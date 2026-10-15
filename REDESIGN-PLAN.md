@@ -1423,7 +1423,22 @@ animation, 12 screen check.
   tap, `dc_ea_cover_hint_seen`; it waits out the welcome gate and the
   tour). The tour's Weekly walkthrough has a new phase after "The chart
   itself" that rings a row's cover and ▶ ⋮ pair and explains both, for
-  mouse and touch. The menu replaces `_wvGridCtx`. Play now /
+  mouse and touch.
+- **Step 2 ✓ (2026-10-14): one item builder.** `_chartItem(type, item, i,
+  ctx)` works out everything about an entry once: key, movement (`move`,
+  `moveDiff`, `prevRank`, the chip `mvHtml`, `barCls`), peak, weeks,
+  all-time plays and certification (`certHtml`, by release type for
+  albums), rating, plays peak, change in plays (`deltaHtml`), a song's
+  album key and album certification, song / track counts, artwork key and
+  the action attributes (`ea`). The three Table renderers call it directly;
+  the other five layouts go through `_wvItem`, now a thin wrapper that also
+  queues the artwork. `_wvMv` is gone. Which facts each layout shows hasn't
+  changed (that's step 4). Checked by dumping every layout's HTML (six
+  layouts × three types on Weekly, the Table on Monthly / Yearly /
+  All-Time) before and after: identical, apart from an artwork-sampled
+  glow colour that varies run to run. One real fix: Mosaic and Filmstrip
+  certified every album on the album ladder; they now use its release type
+  (single / EP / album), like the Table. The menu replaces `_wvGridCtx`. Play now /
   next / queue on an artist or album plays the song the sample picks, and
   "Pick a song…" opens the old last-10 picker. Chart run toggles the
   Table's run row; elsewhere it opens the details pop-up (the drawer

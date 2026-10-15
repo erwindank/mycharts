@@ -17107,42 +17107,36 @@ function renderSongs(plays, peaks, monthlyStats) {
   const _prevMapSongs = buildPrevRankMap(_animPrevPlays, 'songs');
   const _animSongs = _animPrevPlays !== null;
   const currPairsS = sorted.map((s, i) => {
-    const k = songKey(s);
-    const pk = !isAllTime ? peaks.songPeakMap[k] : null;
     const imgId = 'simg-' + i;
-    const prefKey = 'song:' + s.artist.toLowerCase() + '|||' + s.title.toLowerCase();
     const rowId = 'crr-song-' + i;
+    // Everything about the entry, from the one builder every layout uses (phase 7)
+    const f = _chartItem('songs', s, i, { ms: monthlyStats, peaks, isAllTime, imgId, crRow: rowId });
+    const k = f.key, pk = f.peak, prefKey = f.prefKey;
     imgItems.push({ imgId, title: s.title, artist: s.artist, album: s.album, type: 'song', prefKey });
-    const cumSongPlays = cumulativeMaps ? (cumulativeMaps.songs[k] || 0) : s.count;
-    const cumAlbumPlays = cumulativeMaps && s.album ? (cumulativeMaps.albumsByName[s.album] || 0) : 0;
-    const histMaxSong = playsPeakMaps ? (playsPeakMaps.songs[k] || 0) : 0;
-    const isPlaysPeak = !isAllTime && histMaxSong > 0 && s.count >= histMaxSong;
-    const _sPrev = monthlyStats ? monthlyStats.prevChart.songs[k] : null;
-    const barCls = !monthlyStats ? '' : !_sPrev && !monthlyStats.everChartedBefore.songs.has(k) ? ' wv-bar-new' : !_sPrev ? ' wv-bar-re' : (_sPrev.rank-(i+1)) > 0 ? ' wv-bar-up' : (_sPrev.rank-(i+1)) < 0 ? ' wv-bar-down' : '';
-    const statusCls = barCls === ' wv-bar-new' ? ' wv-row-new' : barCls === ' wv-bar-re' ? ' wv-row-re' : '';
+    const barCls = f.barCls ? ' ' + f.barCls : '';
+    const statusCls = f.move === 'new' ? ' wv-row-new' : f.move === 're' ? ' wv-row-re' : '';
     const _prevIdxS = _animSongs ? (_prevMapSongs[k] ?? chartSize * 2) : 0;
     const _crsiOffsetS = _animSongs ? Math.max(-200, Math.min(200, (_prevIdxS - i) * 38)) : 0;
     const _animAttrsS = _animSongs ? ` style="--crsi-offset:${_crsiOffsetS}px;--crsi-delay:${i * 50}ms"` : '';
     const _animClassS = _animSongs ? ' chart-row-anim' : '';
     const _songModalClass = (isAllTime || currentPeriod === 'year') ? ' song-row' : '';
     const _songModalAttr = (isAllTime || currentPeriod === 'year') ? ` data-songkey="${encodeURIComponent(k)}"` : '';
-    // Phase 7: ▶ sample + ⋮ before the chart-run icon, right-click (see _eaAttrs)
-    const _eaS = _eaAttrs('songs', { title: s.title, artist: s.artist, album: s.album, key: k, imgId, crRow: rowId });
-    const mainRow = `<tr${_animAttrsS}${_songModalAttr}${_eaS} class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}${_animClassS}${_songModalClass}${statusCls}">
+    // Phase 7: ▶ sample + ⋮ before the chart-run icon, right-click (f.ea, see _eaAttrs)
+    const mainRow = `<tr${_animAttrsS}${_songModalAttr}${f.ea} class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}${_animClassS}${_songModalClass}${statusCls}">
       <td class="rank-cell">${i + 1}</td>
       ${monthlyStats ? mPrevCell(i + 1, k, 'songs', monthlyStats) : ''}
       <td class="thumb-cell"><div class="thumb-wrap ea-cover"><div id="${imgId}"><div class="thumb-initials">${esc(initials(s.title))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="song" data-prefkey="${esc(prefKey)}" data-name="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
       <td>
-        <div class="song-title">${chartNameLink(s.title, 'openSongModal', k)}${pk ? peakBadge(pk) : ''}${certBadge(cumSongPlays, 'song')}${ratingSongBadge(k)}</div>
+        <div class="song-title">${chartNameLink(s.title, 'openSongModal', k)}${pk ? peakBadge(pk) : ''}${f.certHtml}${f.ratingHtml}</div>
         <div class="song-artist">${chartArtistLinks(s.artist)}</div>
         <button class="yt-play-btn" data-title="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}" onclick="event.stopPropagation();ytPlayFromBtn(this)" title="Play on YouTube"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>${dcPlBtnHtml('song', s.title, s.artist, s.album)}
       </td>
-      <td class="meta-col"><div class="song-album">${s.album ? chartNameLink(s.album, 'openAlbumModal', s.album + '|||' + albumArtistOfSong(s)) : ''}${cumAlbumPlays ? certBadge(cumAlbumPlays, certKindFor(s.album, albumArtistOfSong(s))) : ''}</div></td>
+      <td class="meta-col"><div class="song-album">${f.albumKey ? chartNameLink(s.album, 'openAlbumModal', f.albumKey) : ''}${f.albumCertHtml}</div></td>
       ${monthlyStats ? mMthsCell(k, 'songs', monthlyStats) : ''}
       <td>
-        <div class="play-count">${tCountHtml('plays', s.count)}${monthlyStats ? deltaInline(s.count, k, 'songs', monthlyStats) : ''}</div>
+        <div class="play-count">${tCountHtml('plays', s.count)}${f.deltaHtml}</div>
         <div class="play-bar"><div class="play-bar-fill${barCls}" style="width:${Math.round(s.count / max * 100)}%"></div></div>
-        ${isPlaysPeak ? playsPeakBadge() : ''}
+        ${f.isPlaysPeak ? playsPeakBadge() : ''}
       </td>
       <td class="cr-cell">${_eaBtns()}<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_song')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">${CR_ICON}</button></td>
     </tr>`;
@@ -17241,22 +17235,19 @@ function renderArtists(plays, peaks, monthlyStats) {
   const _prevMapArtists = buildPrevRankMap(_animPrevPlays, 'artists');
   const _animArtists = _animPrevPlays !== null;
   const currPairsA = sorted.map(([artist, data], i) => {
-    const pk = !isAllTime ? peaks.artistPeakMap[artist] : null;
     const imgId = 'aimg-' + i;
-    const prefKey = 'artist:' + artist.toLowerCase();
     const rowId = 'crr-artist-' + i;
+    // Everything about the entry, from the one builder every layout uses (phase 7)
+    const f = _chartItem('artists', { name: artist, count: data.count, songs: data.songs }, i, { ms: monthlyStats, peaks, isAllTime, imgId, crRow: rowId });
+    const pk = f.peak, prefKey = f.prefKey;
     imgItems.push({ imgId, name: artist, prefKey });
-    const histMaxArtist = playsPeakMaps ? (playsPeakMaps.artists[artist] || 0) : 0;
-    const isPlaysPeak = !isAllTime && histMaxArtist > 0 && data.count >= histMaxArtist;
-    const _aPrev = monthlyStats ? monthlyStats.prevChart.artists[artist] : null;
-    const barCls = !monthlyStats ? '' : !_aPrev && !monthlyStats.everChartedBefore.artists.has(artist) ? ' wv-bar-new' : !_aPrev ? ' wv-bar-re' : (_aPrev.rank-(i+1)) > 0 ? ' wv-bar-up' : (_aPrev.rank-(i+1)) < 0 ? ' wv-bar-down' : '';
-    const statusCls = barCls === ' wv-bar-new' ? ' wv-row-new' : barCls === ' wv-bar-re' ? ' wv-row-re' : '';
+    const barCls = f.barCls ? ' ' + f.barCls : '';
+    const statusCls = f.move === 'new' ? ' wv-row-new' : f.move === 're' ? ' wv-row-re' : '';
     const _prevIdxA = _animArtists ? (_prevMapArtists[artist] ?? chartSize * 2) : 0;
     const _crsiOffsetA = _animArtists ? Math.max(-200, Math.min(200, (_prevIdxA - i) * 38)) : 0;
     const _animAttrsA = _animArtists ? ` style="--crsi-offset:${_crsiOffsetA}px;--crsi-delay:${i * 50}ms"` : '';
     const _animClassA = _animArtists ? ' chart-row-anim' : '';
-    const _eaA = _eaAttrs('artists', { artist, key: artist, imgId, crRow: rowId });
-    const mainRow = `<tr${_animAttrsA}${_eaA} class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}${_animClassA} artist-row${statusCls}" data-artist="${esc(artist)}">
+    const mainRow = `<tr${_animAttrsA}${f.ea} class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}${_animClassA} artist-row${statusCls}" data-artist="${esc(artist)}">
       <td class="rank-cell">${i + 1}</td>
       ${monthlyStats ? mPrevCell(i + 1, artist, 'artists', monthlyStats) : ''}
       <td class="thumb-cell"><div class="thumb-wrap ea-cover"><div id="${imgId}"><div class="thumb-initials">${esc(initials(artist))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(artist)}" data-artist="${esc(artist)}" data-album="">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
@@ -17264,10 +17255,10 @@ function renderArtists(plays, peaks, monthlyStats) {
       <td class="meta-col"><div class="song-artist">${artistSongsRankBtn(artist, data.songs.size)}</div></td>
       ${monthlyStats ? mMthsCell(artist, 'artists', monthlyStats) : ''}
       <td>
-        <div class="play-count">${tCountHtml('plays', data.count)}${monthlyStats ? deltaInline(data.count, artist, 'artists', monthlyStats) : ''}</div>
+        <div class="play-count">${tCountHtml('plays', data.count)}${f.deltaHtml}</div>
         <div class="play-bar"><div class="play-bar-fill${barCls}" style="width:${Math.round(data.count / max * 100)}%"></div></div>
         ${/* under the bar, same as the songs chart — it used to sit above the count here */ ''}
-        ${isPlaysPeak ? playsPeakBadge() : ''}
+        ${f.isPlaysPeak ? playsPeakBadge() : ''}
       </td>
       <td class="cr-cell">${_eaBtns()}<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_artist')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">${CR_ICON}</button></td>
     </tr>`;
@@ -17381,39 +17372,34 @@ function renderAlbums(plays, peaks, monthlyStats) {
     document.getElementById('albumsBody').innerHTML = `<tr><td colspan="${colCount}"><div class="empty-state"><p>${albumsEmptyMessage('empty_no_album_data_csv')}</p></div></td></tr>`;
   } else {
     const currPairsL = sorted.map(({ album, artist, count, tracks }, i) => {
-      const ak = album + '|||' + artist;
-      const pk = !isAllTime ? peaks.albumPeakMap[ak] : null;
       const imgId = 'limg-' + i;
-      const prefKey = 'album:' + artist.toLowerCase() + '|||' + album.toLowerCase();
       const rowId = 'crr-album-' + i;
+      // Everything about the entry, from the one builder every layout uses (phase 7)
+      const f = _chartItem('albums', { album, artist, count, tracks }, i, { ms: monthlyStats, peaks, isAllTime, imgId, crRow: rowId });
+      const ak = f.key, pk = f.peak, prefKey = f.prefKey;
       imgItems.push({ imgId, album, artist, name: album, prefKey });
-      const cumAlbumPlays = cumulativeMaps ? (cumulativeMaps.albums[ak] || 0) : count;
-      const histMaxAlbum = playsPeakMaps ? (playsPeakMaps.albums[ak] || 0) : 0;
-      const isPlaysPeak = !isAllTime && histMaxAlbum > 0 && count >= histMaxAlbum;
-      const _lPrev = monthlyStats ? monthlyStats.prevChart.albums[ak] : null;
-      const barCls = !monthlyStats ? '' : !_lPrev && !monthlyStats.everChartedBefore.albums.has(ak) ? ' wv-bar-new' : !_lPrev ? ' wv-bar-re' : (_lPrev.rank-(i+1)) > 0 ? ' wv-bar-up' : (_lPrev.rank-(i+1)) < 0 ? ' wv-bar-down' : '';
-      const statusCls = barCls === ' wv-bar-new' ? ' wv-row-new' : barCls === ' wv-bar-re' ? ' wv-row-re' : '';
+      const barCls = f.barCls ? ' ' + f.barCls : '';
+      const statusCls = f.move === 'new' ? ' wv-row-new' : f.move === 're' ? ' wv-row-re' : '';
       const _prevIdxL = _animAlbums ? (_prevMapAlbums[ak] ?? chartSize * 2) : 0;
       const _crsiOffsetL = _animAlbums ? Math.max(-200, Math.min(200, (_prevIdxL - i) * 38)) : 0;
       const _animAttrsL = _animAlbums ? ` style="--crsi-offset:${_crsiOffsetL}px;--crsi-delay:${i * 50}ms"` : '';
       const _animClassL = _animAlbums ? ' chart-row-anim' : '';
-      const _eaL = _eaAttrs('albums', { album, artist, key: ak, imgId, crRow: rowId });
-      const mainRow = `<tr${_animAttrsL}${_eaL} class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}${_animClassL} album-row${statusCls}" data-albumkey="${esc(ak)}">
+      const mainRow = `<tr${_animAttrsL}${f.ea} class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}${_animClassL} album-row${statusCls}" data-albumkey="${esc(ak)}">
       <td class="rank-cell">${i + 1}</td>
       ${monthlyStats ? mPrevCell(i + 1, ak, 'albums', monthlyStats) : ''}
       <td class="thumb-cell"><div class="thumb-wrap ea-cover"><div id="${imgId}"><div class="thumb-initials">${esc(initials(album))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="album" data-prefkey="${esc(prefKey)}" data-name="${esc(album)}" data-artist="${esc(artist)}" data-album="${esc(album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
       <td>
-        <div class="song-title">${chartNameLink(album, 'openAlbumModal', ak)}${pk ? peakBadge(pk) : ''}${certBadge(cumAlbumPlays, certKindFor(album, artist))}${ratingAlbumBadge(ak)}</div>
+        <div class="song-title">${chartNameLink(album, 'openAlbumModal', ak)}${pk ? peakBadge(pk) : ''}${f.certHtml}${f.ratingHtml}</div>
         <div class="song-artist">${chartArtistLinks(artist)}</div>
         <button class="yt-play-btn" data-title="" data-artist="${esc(artist)}" data-album="${esc(album)}" onclick="event.stopPropagation();buShowTrackList(this,'albums')" title="Show recently played tracks"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>${dcPlBtnHtml('album', '', artist, album)}
       </td>
       <td class="meta-col"><div class="song-artist">${tCount('tracks', tracks.size)}</div></td>
       ${monthlyStats ? mMthsCell(ak, 'albums', monthlyStats) : ''}
       <td>
-        <div class="play-count">${tCountHtml('plays', count)}${monthlyStats ? deltaInline(count, ak, 'albums', monthlyStats) : ''}</div>
+        <div class="play-count">${tCountHtml('plays', count)}${f.deltaHtml}</div>
         <div class="play-bar"><div class="play-bar-fill${barCls}" style="width:${Math.round(count / max * 100)}%"></div></div>
         ${/* under the bar, same as the songs chart — it used to sit above the count here */ ''}
-        ${isPlaysPeak ? playsPeakBadge() : ''}
+        ${f.isPlaysPeak ? playsPeakBadge() : ''}
       </td>
       <td class="cr-cell">${_eaBtns()}<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_album')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">${CR_ICON}</button></td>
     </tr>`;
@@ -18276,20 +18262,6 @@ function applyWeeklyChartView(onlyType) {
   }
 }
 
-function _wvMv(type, idx, k, ms) {
-  if (!ms) return '';
-  const prev = ms.prevChart[type][k];
-  if (!prev) {
-    return ms.everChartedBefore[type].has(k)
-      ? `<span class="wv-re">RE</span>`
-      : `<span class="wv-new">NEW</span>`;
-  }
-  const diff = prev.rank - (idx + 1);
-  if (diff > 0) return `<span class="wv-up">▲${diff}</span>`;
-  if (diff < 0) return `<span class="wv-down">▼${Math.abs(diff)}</span>`;
-  return `<span class="wv-same">—</span>`;
-}
-
 function _wvThumb(imgId, ttl) {
   return `<div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(ttl))}</div></div></div>`;
 }
@@ -18298,6 +18270,103 @@ function _wvDisp(type, item) {
   if (type === 'artists') return { ttl: item.name,  sub: item.songs ? tCount('songs', item.songs.size) : '' };
   if (type === 'albums')  return { ttl: item.album, sub: item.artist };
   return { ttl: item.title, sub: item.artist };
+}
+
+/* ─── ONE ITEM BUILDER (phase 7 step 2) ──────────────────────────────────────
+   Everything about one chart entry, worked out once, for every layout: the
+   Table (renderSongs / renderArtists / renderAlbums) and the five others
+   (_wvGrid … _wvStack, through _wvItem). Each layout used to work these out
+   for itself, so a fact one layout had (change in plays, plays peak, album
+   certification…) was simply missing from another. Now a fact added here is
+   there for every layout to show; which ones each layout shows is still its
+   own choice (step 4 makes that the Show switches' job).
+
+   `item` is the chart's own entry: a song { title, artist, album, count },
+   an artist { name, count, songs }, or an album { album, artist, count,
+   tracks }. `ctx` carries what the chart was ranked against:
+     ms        the period stats (previous chart, weeks on chart…) or null
+     peaks     the peak maps for the period, or null
+     isAllTime the All-Time chart has no peaks and no plays-peak badge
+     imgId     the id of this entry's artwork element in this layout
+     crRow     the Table's chart-run row id, if there is one
+
+   Returns plain data plus a few ready-made bits of markup that every layout
+   draws the same way (badges, the movement chip, the action attributes). */
+function _chartItem(type, item, i, ctx) {
+  const ms = ctx.ms || null, peaks = ctx.peaks || null;
+  const rank = i + 1, count = item.count;
+  let key, title = '', artist, album = '', name = '';
+  if (type === 'artists')     { name = item.name; artist = item.name; key = item.name; }
+  else if (type === 'albums') { album = item.album; artist = item.artist; key = album + '|||' + artist; }
+  else                        { title = item.title; artist = item.artist; album = item.album || ''; key = songKey(item); }
+  const { ttl, sub } = _wvDisp(type, item);
+
+  // Movement against the previous period: 'up' / 'down' / 'same', 'new'
+  // (never charted before), 're' (back after time off), or '' with no stats
+  let move = '', moveDiff = 0, prevRank = null;
+  if (ms) {
+    const prev = ms.prevChart[type][key];
+    if (!prev) move = ms.everChartedBefore[type].has(key) ? 're' : 'new';
+    else {
+      prevRank = prev.rank;
+      moveDiff = prev.rank - rank;
+      move = moveDiff > 0 ? 'up' : moveDiff < 0 ? 'down' : 'same';
+    }
+  }
+  const mvHtml = move === 'new' ? `<span class="wv-new">NEW</span>`
+               : move === 're'  ? `<span class="wv-re">RE</span>`
+               : move === 'up'  ? `<span class="wv-up">▲${moveDiff}</span>`
+               : move === 'down' ? `<span class="wv-down">▼${-moveDiff}</span>`
+               : move === 'same' ? `<span class="wv-same">—</span>` : '';
+  const barCls = move === 'new' ? 'wv-bar-new' : move === 're' ? 'wv-bar-re'
+               : move === 'up' ? 'wv-bar-up' : move === 'down' ? 'wv-bar-down' : '';
+
+  // Peak (this period's rank already folded in by the renderers) and weeks
+  const peakMap = peaks && (type === 'songs' ? peaks.songPeakMap : type === 'artists' ? peaks.artistPeakMap : peaks.albumPeakMap);
+  const peak = !ctx.isAllTime && peakMap ? (peakMap[key] || null) : null;
+  const weeks = ms ? (ms.periodsOnChart[type][key] || 0) : 0;   // 0 = not known
+
+  // All-time plays up to this period, and the certification they earn.
+  // An album's ladder depends on its release type (single / EP / album).
+  let cumPlays = 0, certHtml = '';
+  if (type === 'songs') {
+    cumPlays = cumulativeMaps ? (cumulativeMaps.songs[key] || 0) : count;
+    certHtml = certBadge(cumPlays, 'song');
+  } else if (type === 'albums') {
+    cumPlays = cumulativeMaps ? (cumulativeMaps.albums[key] || 0) : count;
+    certHtml = certBadge(cumPlays, certKindFor(album, artist));
+  }
+  const ratingHtml = ratingRowBadge(type, key);
+
+  // Personal best: as many plays in this period as in any period before
+  const histMax = playsPeakMaps ? (playsPeakMaps[type][key] || 0) : 0;
+  const isPlaysPeak = !ctx.isAllTime && histMax > 0 && count >= histMax;
+  const deltaHtml = ms ? deltaInline(count, key, type, ms) : '';
+
+  // A song's album: its pop-up key, all-time plays and certification
+  let albumKey = '', albumCertHtml = '';
+  if (type === 'songs' && album) {
+    const aa = albumArtistOfSong(item);
+    albumKey = album + '|||' + aa;
+    const albumCum = cumulativeMaps ? (cumulativeMaps.albumsByName[album] || 0) : 0;
+    albumCertHtml = albumCum ? certBadge(albumCum, certKindFor(album, aa)) : '';
+  }
+
+  const prefKey = type === 'artists' ? 'artist:' + artist.toLowerCase()
+                : type === 'albums'  ? 'album:' + artist.toLowerCase() + '|||' + album.toLowerCase()
+                : 'song:' + artist.toLowerCase() + '|||' + title.toLowerCase();
+  const imgId = ctx.imgId || '';
+  const ea = _eaAttrs(type, { title, artist, album: type === 'artists' ? '' : album, key, imgId, crRow: ctx.crRow });
+
+  return {
+    type, key, rank, count, title, artist, album, name, ttl, sub,
+    move, moveDiff, prevRank, mvHtml, barCls,
+    peak, weeks, cumPlays, certHtml, ratingHtml, isPlaysPeak, deltaHtml,
+    albumKey, albumCertHtml,
+    songCount: item.songs ? item.songs.size : 0,
+    trackCount: item.tracks ? item.tracks.size : 0,
+    prefKey, imgId, ea,
+  };
 }
 
 // Opens the matching detail modal from any alt chart view (grid/compact/mosaic/filmstrip/stack)
@@ -18327,60 +18396,42 @@ function renderWeeklyAltView(type) {
   }
 }
 
+// The five non-Table layouts reach the builder through here: it picks the
+// artwork id, queues the artwork, and hands back the builder's facts plus the
+// two names those layouts were written against (k = key, mv = movement chip).
 function _wvItem(type, item, i, ms, imgItems, imgPrefix) {
-  let k, prefKey;
   const _typePrefix = { songs: 'so', artists: 'ar', albums: 'al' };
   const imgId = (imgPrefix || 'wv-' + (_typePrefix[type] || type[0]) + 'img') + '-' + i;
-  if (type === 'artists') {
-    k = item.name;
-    prefKey = 'artist:' + item.name.toLowerCase();
-    imgItems.push({ imgId, name: item.name, artist: item.name, prefKey });
-  } else if (type === 'albums') {
-    k = item.album + '|||' + item.artist;
-    prefKey = 'album:' + item.artist.toLowerCase() + '|||' + item.album.toLowerCase();
-    imgItems.push({ imgId, album: item.album, artist: item.artist, name: item.album, prefKey });
-  } else {
-    k = songKey(item);
-    prefKey = 'song:' + item.artist.toLowerCase() + '|||' + item.title.toLowerCase();
-    imgItems.push({ imgId, title: item.title, artist: item.artist, album: item.album, prefKey });
-  }
-  const ea = type === 'artists' ? _eaAttrs(type, { artist: item.name, key: k, imgId })
-           : type === 'albums'  ? _eaAttrs(type, { album: item.album, artist: item.artist, key: k, imgId })
-           : _eaAttrs(type, { title: item.title, artist: item.artist, album: item.album, key: k, imgId });
-  return { k, imgId, prefKey, ea, mv: _wvMv(type, i, k, ms) };
+  const f = _chartItem(type, item, i, { ms, peaks: _weeklyViewPeaks, isAllTime: false, imgId });
+  if (type === 'artists')     imgItems.push({ imgId, name: item.name, artist: item.name, prefKey: f.prefKey });
+  else if (type === 'albums') imgItems.push({ imgId, album: item.album, artist: item.artist, name: item.album, prefKey: f.prefKey });
+  else                        imgItems.push({ imgId, title: item.title, artist: item.artist, album: item.album, prefKey: f.prefKey });
+  return { ...f, k: f.key, mv: f.mvHtml };
 }
 
 function _wvGrid(items, max, ms, imgItems, type) {
   type = type || 'songs';
   // First pass: build all item data so we can compute drama scores for animation order
   const itemData = items.map((s, i) => {
-    const d = _wvItem(type, s, i, ms, imgItems);
-    const { ttl, sub } = _wvDisp(type, s);
-    return { ...d, s, i, ttl, sub };
+    return { ..._wvItem(type, s, i, ms, imgItems), s, i };
   });
   // Biggest movers (NEW/RE/large ▲) animate first; drops last
-  const drama = itemData.map(({ mv }) => {
-    if (!mv) return 0;
-    if (mv.includes('wv-new') || mv.includes('wv-re')) return 9999;
-    const u = mv.match(/▲(\d+)/); if (u) return parseInt(u[1]);
-    const dn = mv.match(/▼(\d+)/); if (dn) return parseInt(dn[1]);
-    return 0;
-  });
+  const drama = itemData.map(({ move, moveDiff }) =>
+    move === 'new' || move === 're' ? 9999 : Math.abs(moveDiff));
   const order = [...itemData.keys()].sort((a, b) => drama[b] - drama[a]);
   const animDelay = new Array(itemData.length);
   order.forEach((origIdx, pos) => { animDelay[origIdx] = pos * 45; });
   const toolbar = `<div class="wv-grid-toolbar"><button class="wv-grid-density-btn${_wvGridLarge ? ' active' : ''}" onclick="toggleGridDensity()" title="Toggle card size">⊞ ${_wvGridLarge ? 'Compact' : 'Large'}</button></div>`;
-  const grid = `<div class="wv-grid${_wvGridLarge ? ' wv-grid-lg' : ''}">${itemData.map(({ k, imgId, ea, mv, s, i, ttl, sub }) => {
+  const grid = `<div class="wv-grid${_wvGridLarge ? ' wv-grid-lg' : ''}">${itemData.map(f => {
+    const { k, imgId, ea, mv, s, i, ttl, sub, barCls } = f;
     const barW = Math.round(s.count / max * 100);
-    const _gPrev = ms ? ms.prevChart[type][k] : null;
-    const barCls = !ms ? '' : !_gPrev && !ms.everChartedBefore[type].has(k) ? 'wv-bar-new' : !_gPrev ? 'wv-bar-re' : (_gPrev.rank-(i+1)) > 0 ? 'wv-bar-up' : (_gPrev.rank-(i+1)) < 0 ? 'wv-bar-down' : '';
-    const pk = type === 'songs' ? _weeklyViewPeaks?.songPeakMap[k] : null;
-    const cumPlays = type === 'songs' && cumulativeMaps ? (cumulativeMaps.songs[k] || 0) : 0;
-    const cert = (type === 'songs' ? certBadge(cumPlays, 'song') : '') + ratingRowBadge(type, k);
+    // What this layout shows of the builder's facts (step 4 hands this to the Show switches)
+    const pk = type === 'songs' ? f.peak : null;
+    const cert = (type === 'songs' ? f.certHtml : '') + f.ratingHtml;
     const mvClass = i >= 3 ? (
-      mv.includes('wv-new') || mv.includes('wv-re') ? ' wv-gc-entry' :
-      mv.includes('wv-up') ? ' wv-gc-up' :
-      mv.includes('wv-down') ? ' wv-gc-down' : ''
+      f.move === 'new' || f.move === 're' ? ' wv-gc-entry' :
+      f.move === 'up' ? ' wv-gc-up' :
+      f.move === 'down' ? ' wv-gc-down' : ''
     ) : '';
     const jtype = esc(JSON.stringify(type));
     // Phase 7: a click opens the details (it used to start YouTube, which spends
@@ -18870,12 +18921,12 @@ function _wvCompact(items, max, ms, imgItems, type) {
     `</div>`;
 
   const rows = items.map((s, i) => {
-    const { k, imgId, ea, mv, prefKey } = _wvItem(type, s, i, ms, imgItems);
-    const { ttl, sub } = _wvDisp(type, s);
-    const pk        = type === 'songs' ? _weeklyViewPeaks?.songPeakMap[k] : null;
-    const cumPlays  = type === 'songs' && cumulativeMaps ? (cumulativeMaps.songs[k] || 0) : 0;
-    const weeks     = ms ? (ms.periodsOnChart[type][k] || 1) : null;
-    const cert      = (type === 'songs' ? certBadge(cumPlays, 'song') : '') + ratingRowBadge(type, k);
+    const f = _wvItem(type, s, i, ms, imgItems);
+    const { k, imgId, ea, mv, prefKey, ttl, sub } = f;
+    const pk        = type === 'songs' ? f.peak : null;
+    const cumPlays  = type === 'songs' ? f.cumPlays : 0;
+    const weeks     = ms ? (f.weeks || 1) : null;
+    const cert      = (type === 'songs' ? f.certHtml : '') + f.ratingHtml;
     const album     = s.album || '';
 
     // Feature 8: number rank for all positions, colored gold/silver/bronze for top 3
@@ -18899,20 +18950,7 @@ function _wvCompact(items, max, ms, imgItems, type) {
     const weeksText = weeks ? (weeks === 1 ? '1 Week' : `${weeks} Weeks`) : '';
 
     // Previous column: movement arrow + previous rank, like the table view
-    const prevContent = (() => {
-      if (!ms) return '';
-      const prev = ms.prevChart[type][k];
-      if (!prev) {
-        return ms.everChartedBefore[type].has(k)
-          ? `<span class="wv-re">RE</span>`
-          : `<span class="wv-new">NEW</span>`;
-      }
-      const diff = prev.rank - (i + 1);
-      if (diff === 0) return `<span class="wv-same">—</span><div class="wv-cx-prev-rank">#${prev.rank}</div>`;
-      const dir = diff > 0 ? 'up' : 'down';
-      const arrow = diff > 0 ? '▲' : '▼';
-      return `<span class="wv-${dir}">${arrow}${Math.abs(diff)}</span><div class="wv-cx-prev-rank">#${prev.rank}</div>`;
-    })();
+    const prevContent = f.prevRank ? `${f.mvHtml}<div class="wv-cx-prev-rank">#${f.prevRank}</div>` : f.mvHtml;
 
     // Feature 7: color-scaled play count
     const ratio = max > 0 ? s.count / max : 0;
@@ -18997,7 +19035,8 @@ function _wvMosaic(items, max, ms, imgItems, type) {
   const vals = items.map(s => Math.sqrt(s.count));
   const rects = _computeTreemap(vals, W, H);
   return `<div class="wv-mosaic" style="height:${H}px">${items.map((s, i) => {
-    const { k, imgId, ea, mv, prefKey } = _wvItem(type, s, i, ms, imgItems);
+    const f = _wvItem(type, s, i, ms, imgItems);
+    const { k, imgId, ea, mv, prefKey } = f;
     const backImgId = imgId + 'b';
     if (type === 'artists') imgItems.push({ imgId: backImgId, name: s.name, artist: s.name, prefKey });
     else if (type === 'albums') imgItems.push({ imgId: backImgId, album: s.album, artist: s.artist, name: s.album, prefKey });
@@ -19006,13 +19045,10 @@ function _wvMosaic(items, max, ms, imgItems, type) {
     const [rx, ry, rw, rh] = rects[i];
     const st = `left:${(rx/W*100).toFixed(2)}%;top:${(ry/H*100).toFixed(2)}%;width:${(rw/W*100).toFixed(2)}%;height:${(rh/H*100).toFixed(2)}%;--bar-w:${Math.round(s.count/max*100)}%`;
     const rc = i < 3 ? ` wv-r${i+1}` : '';
-    const pk = type === 'songs' ? _weeklyViewPeaks?.songPeakMap[k]
-             : type === 'artists' ? _weeklyViewPeaks?.artistPeakMap[k]
-             : _weeklyViewPeaks?.albumPeakMap[k];
-    const wks = ms?.periodsOnChart[type][k] || null;
-    const cumPlays = type === 'songs' ? (cumulativeMaps?.songs[k] || 0)
-                   : type === 'albums' ? (cumulativeMaps?.albums[k] || 0) : 0;
-    const cert = ((type !== 'artists' && cumPlays) ? certBadge(cumPlays, type === 'songs' ? 'song' : 'album') : '') + ratingRowBadge(type, k);
+    const pk = f.peak;
+    const wks = f.weeks || null;
+    const cumPlays = f.cumPlays;
+    const cert = f.certHtml + f.ratingHtml;
     const playTitle  = type === 'songs' ? s.title  : type === 'artists' ? s.name  : s.album;
     const playArtist = type === 'songs' ? s.artist : type === 'artists' ? s.name  : s.artist;
     const playAlbum  = type === 'songs' ? (s.album || '') : type === 'artists' ? '' : s.album;
@@ -19099,18 +19135,13 @@ function _wvFilmstrip(items, max, ms, imgItems, type) {
   for (let d = 0; d < items.length; d += 10) decades.push(d);
 
   const cards = items.map((s, i) => {
-    const { k, imgId, ea, mv } = _wvItem(type, s, i, ms, imgItems);
-    const { ttl, sub } = _wvDisp(type, s);
+    const f = _wvItem(type, s, i, ms, imgItems);
+    const { k, imgId, ea, mv, ttl, sub, barCls } = f;
     const barW = Math.round(s.count / max * 100);
-    const _fPrev = ms ? ms.prevChart[type][k] : null;
-    const barCls = !ms ? '' : !_fPrev && !ms.everChartedBefore[type].has(k) ? 'wv-bar-new' : !_fPrev ? 'wv-bar-re' : (_fPrev.rank-(i+1)) > 0 ? 'wv-bar-up' : (_fPrev.rank-(i+1)) < 0 ? 'wv-bar-down' : '';
-    const pk = type === 'songs' ? _weeklyViewPeaks?.songPeakMap[k]
-             : type === 'artists' ? _weeklyViewPeaks?.artistPeakMap[k]
-             : _weeklyViewPeaks?.albumPeakMap[k];
-    const wks = ms?.periodsOnChart?.[type]?.[k] || null;
-    const cumPlays = type === 'songs' ? (cumulativeMaps?.songs[k] || 0)
-                   : type === 'albums' ? (cumulativeMaps?.albums[k] || 0) : 0;
-    const cert = ((type !== 'artists' && cumPlays) ? certBadge(cumPlays, type === 'songs' ? 'song' : 'album') : '') + ratingRowBadge(type, k);
+    const pk = f.peak;
+    const wks = f.weeks || null;
+    const cumPlays = f.cumPlays;
+    const cert = f.certHtml + f.ratingHtml;
     const playTitle  = type === 'songs' ? s.title  : type === 'artists' ? s.name  : s.album;
     const playArtist = type === 'songs' ? s.artist : type === 'artists' ? s.name  : s.artist;
     const playAlbum  = type === 'songs' ? (s.album || '') : type === 'artists' ? '' : s.album;
@@ -19348,21 +19379,16 @@ function _wvStack(items, max, ms, imgItems, type) {
   type = type || 'songs';
   const crData = allChartRun?.week || chartRunData;
   return `<div class="wv-stack${_stkTwoCol ? ' wv-stack-2col' : ''}">${items.map((s, i) => {
-    const { k, imgId, ea, mv } = _wvItem(type, s, i, ms, imgItems);
-    const { ttl, sub } = _wvDisp(type, s);
-    const pk = type === 'songs' ? _weeklyViewPeaks?.songPeakMap[k] : null;
-    const cumSongPlays = type === 'songs' && cumulativeMaps ? (cumulativeMaps.songs[k] || 0) : 0;
-    const weeks = ms ? (ms.periodsOnChart[type][k] || 1) : null;
+    const f = _wvItem(type, s, i, ms, imgItems);
+    const { k, imgId, ea, mv, ttl, sub, barCls } = f;
+    const pk = type === 'songs' ? f.peak : null;
+    const cumSongPlays = type === 'songs' ? f.cumPlays : 0;
+    const weeks = ms ? (f.weeks || 1) : null;
     const weeksText = weeks ? `<span class="wv-wks">${weeks} ${weeks === 1 ? 'week' : 'weeks'}</span>` : '';
     const barW = Math.round(s.count / max * 100);
 
     // Movement direction for bar color and debut/re border
-    const prevEntry = ms ? ms.prevChart[type][k] : null;
-    const isNew = ms && !prevEntry && !ms.everChartedBefore[type].has(k);
-    const isRe  = ms && !prevEntry &&  ms.everChartedBefore[type].has(k);
-    const mvDiff = prevEntry ? (prevEntry.rank - (i + 1)) : null;
-    const barCls = isNew ? 'wv-bar-new' : isRe ? 'wv-bar-re' : mvDiff > 0 ? 'wv-bar-up' : mvDiff < 0 ? 'wv-bar-down' : '';
-    const statusCls = isNew ? ' wv-stk-new' : isRe ? ' wv-stk-re' : '';
+    const statusCls = f.move === 'new' ? ' wv-stk-new' : f.move === 're' ? ' wv-stk-re' : '';
 
     // Album inline (songs only, same title row, dimmed)
     const albumName = type === 'songs' && s.album && s.album !== '—' ? s.album : '';
@@ -19397,7 +19423,7 @@ function _wvStack(items, max, ms, imgItems, type) {
         <div class="wv-stk-rank">${i+1}</div>
         <div class="wv-thumb wv-thumb-lg ea-cover">${_wvThumb(imgId, ttl)}</div>
         <div class="wv-stk-body">
-          <div class="wv-ttl">${ttlInner}${albumInline}${pk ? peakBadge(pk) : ''}${type === 'songs' ? certBadge(cumSongPlays, 'song') : ''}${ratingRowBadge(type, k)}</div>
+          <div class="wv-ttl">${ttlInner}${albumInline}${pk ? peakBadge(pk) : ''}${type === 'songs' ? f.certHtml : ''}${f.ratingHtml}</div>
           ${artistLine}
           <div class="wv-stk-meta">${dcPlBtnForWv(type, ttl, sub, s.album, 'dc-pl-add-sm')}<span class="wv-plays">${s.count} ${s.count===1?'play':'plays'}</span> ${mv}${weeksText}${cumHtml}</div>
           <div class="wv-bar"><div class="wv-bar-fill${barCls ? ' '+barCls : ''}" style="width:${barW}%"></div></div>
