@@ -1440,8 +1440,10 @@ animation, 12 screen check.
   certified every album on the album ladder; they now use its release type
   (single / EP / album), like the Table.
 - **Step 3 ✓ (2026-10-14): the details drawer.** `_drawerHTML` / `_drToggle`
-  in app.js. Numbers (peak, weeks, previous rank + movement, plays + change,
-  all-time plays + certification, personal best, score), links (a song's
+  in app.js. Numbers for this period only (previous rank + movement, plays +
+  change, certification, personal best, score): peak, weeks on chart and
+  total plays are left to the chart run's own tiles right below, not
+  repeated (you spotted the duplicates). Links (a song's
   album + certification and artists; an album's artists and tracks played;
   an artist's songs played), five buttons (sample, play the video, add to a
   playlist, More details = the pop-up, search YouTube) and the chart run.

@@ -18952,9 +18952,10 @@ function _drStat(label, valueHtml, extraCls) {
 
 // withRun: false for the Table, whose row below already holds the chart run
 function _drawerHTML(f, withRun) {
+  // Only what the chart run below doesn't already show: its own tiles carry
+  // weeks on chart, total plays and peak, so the drawer keeps to this period
+  // (previous rank, plays and the change, personal best) plus score and cert.
   const stats = [];
-  if (f.peak) stats.push(_drStat(t('dr_peak'), '#' + f.peak));
-  if (f.weeks) stats.push(_drStat(t('dr_weeks'), String(f.weeks)));
   if (f.move) {
     const prev = f.prevRank ? `#${f.prevRank} ${f.mvHtml}` : f.mvHtml;
     stats.push(_drStat(t('dr_prev'), prev));
@@ -18962,7 +18963,7 @@ function _drawerHTML(f, withRun) {
   // The change in plays only means something against a previous rank (NEW / RE
   // already show under Previous)
   stats.push(_drStat(t('dr_plays'), `${f.count.toLocaleString()}${f.prevRank ? f.deltaHtml : ''}`));
-  if (f.cumPlays) stats.push(_drStat(t('dr_alltime'), `${f.cumPlays.toLocaleString()}${f.certHtml}`));
+  if (f.certHtml) stats.push(_drStat(t('dr_cert'), f.certHtml));
   if (f.isPlaysPeak) stats.push(_drStat(t('dr_best'), esc(t('dr_best_val')), 'is-best'));
   if (f.ratingHtml) stats.push(_drStat(t('dr_score'), f.ratingHtml));
 

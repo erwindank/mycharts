@@ -18,7 +18,7 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   "Details drawer on every chart entry":
     ["Painel de detalhes em cada entrada do Top",
-     "Clica em qualquer música, artista ou álbum do Top, em qualquer um dos seis esquemas, e abre-se ali mesmo um painel com tudo sobre ele: o pico, semanas no Top, posição anterior, plays e como mudaram, plays totais e certificação, recorde pessoal, a tua nota, o álbum e os artistas, a trajetória completa no Top e botões para ouvir uma pré-visualização, ver o vídeo, adicionar a uma playlist ou abrir a página completa. Mostra sempre tudo, até o que os interruptores de Mostrar escondem no Top. Clicar no nome continua a abrir a página completa."],
+     "Clica em qualquer música, artista ou álbum do Top, em qualquer um dos seis esquemas, e abre-se ali mesmo um painel com tudo sobre ele: a posição anterior, plays e como mudaram, certificação, recorde pessoal, a tua nota, o álbum e os artistas, a trajetória completa no Top com o pico e as semanas e botões para ouvir uma pré-visualização, ver o vídeo, adicionar a uma playlist ou abrir a página completa. Mostra sempre tudo, até o que os interruptores de Mostrar escondem no Top. Clicar no nome continua a abrir a página completa."],
 
   "Shared singles and EPs charts say Singles and EPs":
     ["Tops de singles e EPs partilhados dizem Singles e EPs",

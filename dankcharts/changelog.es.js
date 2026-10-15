@@ -18,7 +18,7 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   "Details drawer on every chart entry":
     ["Panel de detalles en cada entrada del ranking",
-     "Haz clic en cualquier canción, artista o álbum del ranking, en cualquiera de los seis diseños, y se abre ahí mismo un panel con todo sobre él: su pico, semanas en el ranking, posición anterior, reproducciones y cómo cambiaron, reproducciones totales y certificación, mejor marca, tu nota, el álbum y los artistas, el recorrido completo en el ranking y botones para escuchar un fragmento, ver el vídeo, añadirlo a una lista o abrir su página completa. Siempre lo muestra todo, incluso lo que los interruptores de Mostrar ocultan en el ranking. Hacer clic en el nombre sigue abriendo la página completa."],
+     "Haz clic en cualquier canción, artista o álbum del ranking, en cualquiera de los seis diseños, y se abre ahí mismo un panel con todo sobre él: su posición anterior, reproducciones y cómo cambiaron, certificación, mejor marca, tu nota, el álbum y los artistas, el recorrido completo en el ranking con su pico y sus semanas y botones para escuchar un fragmento, ver el vídeo, añadirlo a una lista o abrir su página completa. Siempre lo muestra todo, incluso lo que los interruptores de Mostrar ocultan en el ranking. Hacer clic en el nombre sigue abriendo la página completa."],
 
   "Shared singles and EPs charts say Singles and EPs":
     ["Los rankings de sencillos y EP compartidos dicen Sencillos y EP",
