@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Samples and one menu on every chart entry":
+    ["Prévias e um só menu em cada item da parada",
+     "Cada música, artista e álbum da parada, nos seis layouts, agora tem um ▶ na capa que toca uma prévia de 30 segundos, e um botão ⋮ (ou clique direito) com todo o resto: tocar a música inteira agora, em seguida ou depois, tocar parecidas, adicionar a uma playlist, detalhes, álbum, artista, trajetória na parada, trocar a imagem e buscar no YouTube. A prévia de um artista é a última música dele que você ouviu; a de um álbum, a que você mais ouviu dele no período na tela. As prévias não gastam o limite do YouTube do site, então clicar num card da grade agora abre os detalhes em vez de tocar."],
+
   "Songs found once play for everyone":
     ["Músicas encontradas uma vez tocam para todos",
      "O YouTube só permite ao site um número pequeno de buscas novas de músicas por dia, compartilhado por todos. Agora, quando alguém toca uma música, o site lembra qual é o vídeo, e cada vez que essa música for tocada depois, por qualquer pessoa, ela começa na hora sem gastar esse limite. O mesmo vale para a busca do player e as prévias de Vídeo do Ano em Prêmios. Se um vídeo lembrado parar de funcionar, ele é esquecido e buscado de novo. Sem conta, você pode tocar qualquer música que alguém já tocou; para uma nova, o player pede para você entrar."],

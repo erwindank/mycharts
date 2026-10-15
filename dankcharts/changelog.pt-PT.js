@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Samples and one menu on every chart entry":
+    ["Pré-visualizações e um só menu em cada entrada do Top",
+     "Cada música, artista e álbum do Top, nos seis esquemas, tem agora um ▶ na capa que toca uma pré-visualização de 30 segundos, e um botão ⋮ (ou clique direito) com tudo o resto: ouvir a música inteira agora, a seguir ou mais tarde, ouvir semelhantes, adicionar a uma playlist, detalhes, álbum, artista, trajetória no Top, alterar a imagem e pesquisar no YouTube. A pré-visualização de um artista é a última música dele que ouviste; a de um álbum, a que mais ouviste dele no período no ecrã. As pré-visualizações não gastam o limite do YouTube do site, por isso clicar num cartão da grelha abre agora os detalhes em vez de o tocar."],
+
   "Songs found once play for everyone":
     ["Músicas encontradas uma vez tocam para todos",
      "O YouTube só permite ao site um número pequeno de pesquisas novas de músicas por dia, partilhado por todos. Agora, quando alguém ouve uma música, o site lembra-se de qual é o vídeo, e cada vez que essa música é ouvida depois, por quem quer que seja, começa logo sem gastar esse limite. O mesmo vale para a pesquisa do leitor e as pré-visualizações de Vídeo do Ano nos Prémios. Se um vídeo lembrado deixar de funcionar, é esquecido e procurado de novo. Sem conta podes ouvir qualquer música que alguém já tenha ouvido; para uma nova, o leitor pede-te para iniciar sessão."],

@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Samples and one menu on every chart entry":
+    ["Fragmentos y un solo menú en cada entrada del ranking",
+     "Cada canción, artista y álbum del ranking, en los seis diseños, tiene ahora un ▶ en su portada que reproduce un fragmento de 30 segundos, y un botón ⋮ (o clic derecho) con todo lo demás: escuchar la canción completa ahora, a continuación o más tarde, reproducir similares, añadir a una lista, detalles, álbum, artista, recorrido en el ranking, cambiar la imagen y buscar en YouTube. El fragmento de un artista es la última canción suya que escuchaste; el de un álbum, la que más escuchaste de él en el periodo que estás viendo. Los fragmentos no gastan el límite de YouTube del sitio, así que al pulsar una tarjeta de la cuadrícula ahora se abren sus detalles en lugar de reproducirla."],
+
   "Songs found once play for everyone":
     ["Las canciones encontradas una vez suenan para todos",
      "YouTube solo permite al sitio un número pequeño de búsquedas nuevas de canciones al día, compartido entre todos. Ahora, cuando alguien reproduce una canción, el sitio recuerda qué video es, y cada reproducción posterior de esa canción, de quien sea, empieza al instante sin gastar ese límite. Lo mismo vale para el buscador del reproductor y las vistas previas de Vídeo del Año en Premios. Si un video recordado deja de funcionar, se olvida y se vuelve a buscar. Sin cuenta puedes reproducir cualquier canción que alguien ya haya reproducido; para una nueva, el reproductor te pide iniciar sesión."],

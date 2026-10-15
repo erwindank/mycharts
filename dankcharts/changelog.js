@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 117;
+const DC_CL_I18N_V = 118;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-14', t: 'feature', a: 'charts', h: 'eec9d14',
+    title: 'Samples and one menu on every chart entry',
+    detail: "Every song, artist and album on the chart, in all six layouts, now has a ▶ on its cover that plays a 30-second sample, and a ⋮ button (or right-click) with everything else: play the full song now, next or later, play similar, add to a playlist, details, album, artist, chart run, change the image and search YouTube. An artist's sample is the song you last played by them; an album's is the song you played most from it in the period on screen. Samples don't use the site's YouTube allowance, so clicking a Card grid card now opens its details instead of playing it." },
 
   { d: '2026-10-14', t: 'feature', a: 'player', h: '556b781',
     title: 'Songs found once play for everyone',

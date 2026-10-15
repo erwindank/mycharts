@@ -599,9 +599,10 @@ Two more gaps, outside the table:
      and an **album** plays the user's **most played song from it in the
      chart's period** (that week, month or year; all-time history if the
      period somehow has none). The artist's last-played song comes from the
-     whole history. Both work for Last.fm, Sheets and CSV alike. Build the
-     lookups once per data load or period change (never per button; see the
-     perf note on repeated scans). If a
+     whole history. Both work for Last.fm, Sheets and CSV alike. The lookup
+     runs on the click, never on render (see the perf note on repeated scans):
+     an artist stops at the first few songs in the newest-first history, an
+     album makes one pass over the period's plays. If a
      store has no sample for that song, try the next most recent or next most
      played song (a few at most), then fall back to the store's top song or
      first track. Data without album names falls back the same way. A second
