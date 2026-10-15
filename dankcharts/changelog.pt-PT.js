@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Details drawer on every chart entry":
+    ["Painel de detalhes em cada entrada do Top",
+     "Clica em qualquer música, artista ou álbum do Top, em qualquer um dos seis esquemas, e abre-se ali mesmo um painel com tudo sobre ele: o pico, semanas no Top, posição anterior, plays e como mudaram, plays totais e certificação, recorde pessoal, a tua nota, o álbum e os artistas, a trajetória completa no Top e botões para ouvir uma pré-visualização, ver o vídeo, adicionar a uma playlist ou abrir a página completa. Mostra sempre tudo, até o que os interruptores de Mostrar escondem no Top. Clicar no nome continua a abrir a página completa."],
+
   "Shared singles and EPs charts say Singles and EPs":
     ["Tops de singles e EPs partilhados dizem Singles e EPs",
      "Com singles ou EPs num Top próprio, partilhar esse Top como imagem continuava a dar o título “Top 10 Álbuns”. A imagem, a janela de partilha, o PDF para imprimir e o nome do ficheiro dizem agora Singles ou EPs, tal como o título do próprio Top."],
