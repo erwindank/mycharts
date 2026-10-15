@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 120;
+const DC_CL_I18N_V = 121;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-14', t: 'fix', a: 'charts', h: 'a844fb1',
+    title: 'Mosaic and Filmstrip certify singles and EPs correctly',
+    detail: "In the Mosaic and Filmstrip layouts, every album was measured against the album certification ladder, even singles and EPs. They now use the release type, the same as the table. Behind it, all six layouts now get their facts about each entry from one place, so they can't disagree again." },
 
   { d: '2026-10-14', t: 'feature', a: 'charts', h: 'eec9d14',
     title: 'Samples and one menu on every chart entry',

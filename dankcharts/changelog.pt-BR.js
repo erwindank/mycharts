@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Mosaic and Filmstrip certify singles and EPs correctly":
+    ["Mosaico e Filmstrip certificam singles e EPs corretamente",
+     "Nos layouts Mosaico e Filmstrip, todos os álbuns eram medidos pela escala de certificação de álbuns, até singles e EPs. Agora usam o tipo de lançamento, igual à tabela. Por trás, os seis layouts agora pegam os dados de cada item de um só lugar, então não podem mais discordar."],
+
   "Samples and one menu on every chart entry":
     ["Prévias e um só menu em cada item da parada",
      "Cada música, artista e álbum da parada, nos seis layouts, agora tem um ▶ que toca uma prévia de 30 segundos (no celular, toque na capa), e um botão ⋮ (ou clique direito) com todo o resto: tocar a música inteira agora, em seguida ou depois, tocar parecidas, adicionar a uma playlist, detalhes, álbum, artista, trajetória na parada, trocar a imagem e buscar no YouTube. A prévia de um artista é a última música dele que você ouviu; a de um álbum, a que você mais ouviu dele no período na tela. As prévias não gastam o limite do YouTube do site, então clicar num card da grade agora abre os detalhes em vez de tocar. No celular, uma dica rápida na primeira vez explica a capa: toque para a prévia, segure para trocar a imagem."],
