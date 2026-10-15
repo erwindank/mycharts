@@ -17125,10 +17125,12 @@ function renderSongs(plays, peaks, monthlyStats) {
     const _animClassS = _animSongs ? ' chart-row-anim' : '';
     const _songModalClass = (isAllTime || currentPeriod === 'year') ? ' song-row' : '';
     const _songModalAttr = (isAllTime || currentPeriod === 'year') ? ` data-songkey="${encodeURIComponent(k)}"` : '';
-    const mainRow = `<tr${_animAttrsS}${_songModalAttr} class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}${_animClassS}${_songModalClass}${statusCls}">
+    // Phase 7: the ▶ sample on the cover, ⋮ before the chart-run icon, right-click (see _eaAttrs)
+    const _eaS = _eaAttrs('songs', { title: s.title, artist: s.artist, album: s.album, key: k, imgId, crRow: rowId });
+    const mainRow = `<tr${_animAttrsS}${_songModalAttr}${_eaS} class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}${_animClassS}${_songModalClass}${statusCls}">
       <td class="rank-cell">${i + 1}</td>
       ${monthlyStats ? mPrevCell(i + 1, k, 'songs', monthlyStats) : ''}
-      <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(s.title))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="song" data-prefkey="${esc(prefKey)}" data-name="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
+      <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(s.title))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="song" data-prefkey="${esc(prefKey)}" data-name="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button>${_eaSampleBtn()}</div></td>
       <td>
         <div class="song-title">${chartNameLink(s.title, 'openSongModal', k)}${pk ? peakBadge(pk) : ''}${certBadge(cumSongPlays, 'song')}${ratingSongBadge(k)}</div>
         <div class="song-artist">${chartArtistLinks(s.artist)}</div>
@@ -17141,7 +17143,7 @@ function renderSongs(plays, peaks, monthlyStats) {
         <div class="play-bar"><div class="play-bar-fill${barCls}" style="width:${Math.round(s.count / max * 100)}%"></div></div>
         ${isPlaysPeak ? playsPeakBadge() : ''}
       </td>
-      <td class="cr-cell"><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_song')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">${CR_ICON}</button></td>
+      <td class="cr-cell">${_eaMoreBtn()}<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_song')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">${CR_ICON}</button></td>
     </tr>`;
     const expandRow = `<tr class="cr-row" id="${rowId}"><td colspan="${colCount}"><div class="cr-panel" data-crtype="songs" data-crkey="${encodeURIComponent(k)}">${buildCrPanelHTML('songs', k)}</div></td></tr>`;
     return [mainRow, expandRow];
@@ -17252,10 +17254,11 @@ function renderArtists(plays, peaks, monthlyStats) {
     const _crsiOffsetA = _animArtists ? Math.max(-200, Math.min(200, (_prevIdxA - i) * 38)) : 0;
     const _animAttrsA = _animArtists ? ` style="--crsi-offset:${_crsiOffsetA}px;--crsi-delay:${i * 50}ms"` : '';
     const _animClassA = _animArtists ? ' chart-row-anim' : '';
-    const mainRow = `<tr${_animAttrsA} class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}${_animClassA} artist-row${statusCls}" data-artist="${esc(artist)}">
+    const _eaA = _eaAttrs('artists', { artist, key: artist, imgId, crRow: rowId });
+    const mainRow = `<tr${_animAttrsA}${_eaA} class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}${_animClassA} artist-row${statusCls}" data-artist="${esc(artist)}">
       <td class="rank-cell">${i + 1}</td>
       ${monthlyStats ? mPrevCell(i + 1, artist, 'artists', monthlyStats) : ''}
-      <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(artist))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(artist)}" data-artist="${esc(artist)}" data-album="">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
+      <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(artist))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(artist)}" data-artist="${esc(artist)}" data-album="">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button>${_eaSampleBtn()}</div></td>
       <td><div class="song-title">${chartNameLink(artist, 'openArtistModal', artist)}${pk ? peakBadge(pk) : ''}</div><button class="yt-play-btn" data-title="" data-artist="${esc(artist)}" data-album="" onclick="event.stopPropagation();buShowTrackList(this,'artists')" title="Show recently played tracks"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>${dcPlBtnHtml('artist', '', artist, '')}</td>
       <td class="meta-col"><div class="song-artist">${artistSongsRankBtn(artist, data.songs.size)}</div></td>
       ${monthlyStats ? mMthsCell(artist, 'artists', monthlyStats) : ''}
@@ -17265,7 +17268,7 @@ function renderArtists(plays, peaks, monthlyStats) {
         ${/* under the bar, same as the songs chart — it used to sit above the count here */ ''}
         ${isPlaysPeak ? playsPeakBadge() : ''}
       </td>
-      <td class="cr-cell"><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_artist')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">${CR_ICON}</button></td>
+      <td class="cr-cell">${_eaMoreBtn()}<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_artist')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">${CR_ICON}</button></td>
     </tr>`;
     const expandRow = `<tr class="cr-row" id="${rowId}"><td colspan="${colCount}"><div class="cr-panel" data-crtype="artists" data-crkey="${encodeURIComponent(artist)}">${buildCrPanelHTML('artists', artist)}</div></td></tr>`;
     return [mainRow, expandRow];
@@ -17327,6 +17330,7 @@ function renderArtists(plays, peaks, monthlyStats) {
 }
 
 function renderAlbums(plays, peaks, monthlyStats) {
+  _eaPeriodPlays = plays;   // the album ▶ sample plays its most played song in this period
   let counts = {};
   const roll = rollupAffectsCharts();
   for (const p of plays) {
@@ -17392,10 +17396,11 @@ function renderAlbums(plays, peaks, monthlyStats) {
       const _crsiOffsetL = _animAlbums ? Math.max(-200, Math.min(200, (_prevIdxL - i) * 38)) : 0;
       const _animAttrsL = _animAlbums ? ` style="--crsi-offset:${_crsiOffsetL}px;--crsi-delay:${i * 50}ms"` : '';
       const _animClassL = _animAlbums ? ' chart-row-anim' : '';
-      const mainRow = `<tr${_animAttrsL} class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}${_animClassL} album-row${statusCls}" data-albumkey="${esc(ak)}">
+      const _eaL = _eaAttrs('albums', { album, artist, key: ak, imgId, crRow: rowId });
+      const mainRow = `<tr${_animAttrsL}${_eaL} class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}${_animClassL} album-row${statusCls}" data-albumkey="${esc(ak)}">
       <td class="rank-cell">${i + 1}</td>
       ${monthlyStats ? mPrevCell(i + 1, ak, 'albums', monthlyStats) : ''}
-      <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(album))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="album" data-prefkey="${esc(prefKey)}" data-name="${esc(album)}" data-artist="${esc(artist)}" data-album="${esc(album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
+      <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(album))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="album" data-prefkey="${esc(prefKey)}" data-name="${esc(album)}" data-artist="${esc(artist)}" data-album="${esc(album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button>${_eaSampleBtn()}</div></td>
       <td>
         <div class="song-title">${chartNameLink(album, 'openAlbumModal', ak)}${pk ? peakBadge(pk) : ''}${certBadge(cumAlbumPlays, certKindFor(album, artist))}${ratingAlbumBadge(ak)}</div>
         <div class="song-artist">${chartArtistLinks(artist)}</div>
@@ -17409,7 +17414,7 @@ function renderAlbums(plays, peaks, monthlyStats) {
         ${/* under the bar, same as the songs chart — it used to sit above the count here */ ''}
         ${isPlaysPeak ? playsPeakBadge() : ''}
       </td>
-      <td class="cr-cell"><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_album')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">${CR_ICON}</button></td>
+      <td class="cr-cell">${_eaMoreBtn()}<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_album')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">${CR_ICON}</button></td>
     </tr>`;
       const expandRow = `<tr class="cr-row" id="${rowId}"><td colspan="${colCount}"><div class="cr-panel" data-crtype="albums" data-crkey="${encodeURIComponent(ak)}">${buildCrPanelHTML('albums', ak)}</div></td></tr>`;
       return [mainRow, expandRow];
@@ -18338,7 +18343,10 @@ function _wvItem(type, item, i, ms, imgItems, imgPrefix) {
     prefKey = 'song:' + item.artist.toLowerCase() + '|||' + item.title.toLowerCase();
     imgItems.push({ imgId, title: item.title, artist: item.artist, album: item.album, prefKey });
   }
-  return { k, imgId, prefKey, mv: _wvMv(type, i, k, ms) };
+  const ea = type === 'artists' ? _eaAttrs(type, { artist: item.name, key: k, imgId })
+           : type === 'albums'  ? _eaAttrs(type, { album: item.album, artist: item.artist, key: k, imgId })
+           : _eaAttrs(type, { title: item.title, artist: item.artist, album: item.album, key: k, imgId });
+  return { k, imgId, prefKey, ea, mv: _wvMv(type, i, k, ms) };
 }
 
 function _wvGrid(items, max, ms, imgItems, type) {
@@ -18361,7 +18369,7 @@ function _wvGrid(items, max, ms, imgItems, type) {
   const animDelay = new Array(itemData.length);
   order.forEach((origIdx, pos) => { animDelay[origIdx] = pos * 45; });
   const toolbar = `<div class="wv-grid-toolbar"><button class="wv-grid-density-btn${_wvGridLarge ? ' active' : ''}" onclick="toggleGridDensity()" title="Toggle card size">⊞ ${_wvGridLarge ? 'Compact' : 'Large'}</button></div>`;
-  const grid = `<div class="wv-grid${_wvGridLarge ? ' wv-grid-lg' : ''}">${itemData.map(({ k, imgId, mv, s, i, ttl, sub }) => {
+  const grid = `<div class="wv-grid${_wvGridLarge ? ' wv-grid-lg' : ''}">${itemData.map(({ k, imgId, ea, mv, s, i, ttl, sub }) => {
     const barW = Math.round(s.count / max * 100);
     const _gPrev = ms ? ms.prevChart[type][k] : null;
     const barCls = !ms ? '' : !_gPrev && !ms.everChartedBefore[type].has(k) ? 'wv-bar-new' : !_gPrev ? 'wv-bar-re' : (_gPrev.rank-(i+1)) > 0 ? 'wv-bar-up' : (_gPrev.rank-(i+1)) < 0 ? 'wv-bar-down' : '';
@@ -18373,26 +18381,17 @@ function _wvGrid(items, max, ms, imgItems, type) {
       mv.includes('wv-up') ? ' wv-gc-up' :
       mv.includes('wv-down') ? ' wv-gc-down' : ''
     ) : '';
-    const jt = esc(JSON.stringify(ttl)), jar = esc(JSON.stringify(sub)), jal = esc(JSON.stringify(s.album || ''));
     const jtype = esc(JSON.stringify(type));
-    // Songs play directly; artists and albums show the last-10 track picker,
-    // since their name is not something to search as a track. Artists carry
-    // their own name in data-artist and no album at all.
-    const tlArtist = type === 'artists' ? s.name : (s.artist || '');
-    const tlAlbum  = type === 'artists' ? ''     : (s.album  || '');
-    const clickAttr = type === 'songs'
-      ? ` onclick="_ytPlayOrQueue(${jt},${jar},${jal})"`
-      : ` onclick="buShowTrackList(this,${jtype})" data-artist="${esc(tlArtist)}" data-album="${esc(tlAlbum)}"`;
-    // Play button revealed on card hover — same target as the card itself
-    const gcPlayBtn = type === 'songs'
-      ? `<button class="wv-gc-play-btn" onclick="event.stopPropagation();_ytPlayOrQueue(${jt},${jar},${jal})" title="Play Now">▶</button>`
-      : `<button class="wv-gc-play-btn" data-artist="${esc(tlArtist)}" data-album="${esc(tlAlbum)}" onclick="event.stopPropagation();buShowTrackList(this,${jtype})" title="Show recently played tracks">▶</button>`;
-    const ctxAttr = ` oncontextmenu="_wvGridCtx(event,${jtype},${jt},${jar},${jal});return false"`;
-    return `<div class="wv-card wv-grid-card wv-gc-anim${i < 3 ? ' wv-r' + (i+1) : ''}${mvClass}" style="animation-delay:${animDelay[i]}ms"${clickAttr}${ctxAttr}>` +
+    // Phase 7: a click opens the details (it used to start YouTube, which spends
+    // the site's shared search allowance); ▶ plays a sample, ⋮ / right-click
+    // open the action menu (_eaAttrs).
+    const clickAttr = ` onclick="_wvOpenModal(${jtype},${esc(JSON.stringify(k))})"`;
+    return `<div class="wv-card wv-grid-card wv-gc-anim${i < 3 ? ' wv-r' + (i+1) : ''}${mvClass}" style="animation-delay:${animDelay[i]}ms"${clickAttr}${ea}>` +
       `<div class="wv-card-art"><div class="wv-thumb wv-thumb-lg">${_wvThumb(imgId, ttl)}</div>` +
       `<span class="wv-rank-badge">${i+1}</span>` +
       (cert ? `<span class="wv-gc-cert">${cert}</span>` : '') +
-      `<div class="wv-gc-hover">${gcPlayBtn}${dcPlBtnForWv(type, ttl, sub, s.album, 'dc-pl-add-sm')}</div>` +
+      `<div class="wv-gc-hover">${dcPlBtnForWv(type, ttl, sub, s.album, 'dc-pl-add-sm')}</div>` +
+      _eaSampleBtn() + _eaMoreBtn(true) +
       `</div><div class="wv-card-body">` +
       `<div class="wv-ttl"><span class="wv-title-link" onclick="event.stopPropagation();_wvOpenModal(${jtype},${esc(JSON.stringify(k))})" title="View details">${esc(ttl)}</span>${pk ? peakBadge(pk) : ''}</div>` +
       `<div class="wv-art">${esc(sub)}</div>` +
@@ -18413,62 +18412,347 @@ function toggleGridDensity() {
   });
 }
 
-function _wvGridCtx(e, type, title, artist, album) {
-  e.preventDefault();
-  let menu = document.getElementById('wvGridCtxMenu');
-  if (!menu) {
-    menu = document.createElement('div');
-    menu.id = 'wvGridCtxMenu';
-    menu.className = 'wv-ctx-menu';
-    document.body.appendChild(menu);
-    menu.addEventListener('click', function(ev) {
-      const item = ev.target.closest('.wv-ctx-item[data-action]');
-      if (!item) return;
-      const action = item.dataset.action;
-      const t  = JSON.parse(menu.dataset.t);
-      const ar = JSON.parse(menu.dataset.ar);
-      const al = JSON.parse(menu.dataset.al);
-      if (action === 'play') {
-        _ytPlayOrQueue(t, ar, al);
-      } else if (action === 'next') {
-        _ytQueue.unshift({ title: t, artist: ar, album: al, btn: null });
-        _ytUpdateQueueDisplay(); _ytSaveQueue();
-      } else if (action === 'queue') {
-        _ytQueue.push({ title: t, artist: ar, album: al, btn: null });
-        _ytUpdateQueueDisplay(); _ytSaveQueue();
-      } else if (action === 'similar') {
-        const others = _weeklyViewSongs.filter(s =>
-          s.artist.toLowerCase() === ar.toLowerCase() && !(s.title === t && s.artist === ar));
-        others.forEach(s => _ytQueue.push({ title: s.title, artist: s.artist, album: s.album || '', btn: null }));
-        _ytUpdateQueueDisplay(); _ytSaveQueue();
-        const statusEl = document.getElementById('ytMiniStatus');
-        if (statusEl) { statusEl.textContent = others.length ? `+${others.length} by ${ar} queued` : `No other songs by ${ar} in chart`; statusEl.className = 'yt-mini-status' + (others.length ? ' ok' : ''); setTimeout(() => { if (statusEl.textContent.includes('queued') || statusEl.textContent.includes('No other')) { statusEl.textContent = ''; statusEl.className = 'yt-mini-status'; } }, 2500); }
-      } else if (action === 'yt') {
-        window.open('https://www.youtube.com/results?search_query=' + encodeURIComponent(ar + ' ' + t), '_blank');
-      }
-      menu.style.display = 'none';
-    });
-    document.addEventListener('click', (ev) => { if (!menu.contains(ev.target)) menu.style.display = 'none'; }, true);
-    document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') menu.style.display = 'none'; });
+/* ─── ENTRY ACTIONS: ▶ sample, ⋮ menu, right-click (phase 7 step 1) ─────────
+   Every entry in every chart layout (Table, Card grid, Compact, Mosaic,
+   Filmstrip, Stack — Songs, Artists and Albums) carries the same actions,
+   reached the same three ways:
+     • ▶ on the cover (on hover; always shown on touch screens) plays a
+       30-second store sample (iTunes, then Deezer — the awards ♪ lookup).
+       It never touches YouTube: the site's YouTube searches are a small
+       daily allowance shared by everyone (see _ytMemGet).
+     • ⋮ opens the action menu.
+     • Right-click anywhere on the entry opens the same menu.
+   Each layout only decides where the two buttons sit. The entry element
+   itself carries what the actions need, as data-ea-* attributes written by
+   _eaAttrs(), and one set of document-level listeners serves them all. */
+
+// What to call the type for the sample lookup / playlist picker / cover picker
+const _EA_KIND = { songs: 'song', artists: 'artist', albums: 'album' };
+
+// The attributes that make an element an "entry". `d` is { title, artist,
+// album, key, imgId, crRow }: for an artist the name goes in `artist` (and
+// title/album stay empty); for an album, `album` + its credited `artist`.
+// crRow is the Table's chart-run row id, where there is one.
+function _eaAttrs(type, d) {
+  return ` data-ea-type="${type}" data-ea-title="${esc(d.title || '')}" data-ea-artist="${esc(d.artist || '')}"` +
+    ` data-ea-album="${esc(d.album || '')}" data-ea-key="${esc(d.key || '')}" data-ea-img="${esc(d.imgId || '')}"` +
+    (d.crRow ? ` data-ea-cr="${esc(d.crRow)}"` : '');
+}
+
+// The ▶ sample button. Sits on the cover, so the cover needs position:relative
+// (.ea-cover does that where the layout's own wrapper doesn't).
+function _eaSampleBtn() {
+  const lbl = t('ea_sample');
+  return `<button type="button" class="ea-sample" title="${esc(lbl)}" aria-label="${esc(lbl)}">` +
+    `<svg viewBox="0 0 24 24" aria-hidden="true"><path class="ea-ic-play" d="M8 5v14l11-7z"/><path class="ea-ic-stop" d="M7 6h3.5v12H7zM13.5 6H17v12h-3.5z"/></svg></button>`;
+}
+
+// corner: pinned to the cover's top-right (Card grid, Filmstrip) instead of inline
+function _eaMoreBtn(corner) {
+  const lbl = t('ea_more');
+  return `<button type="button" class="ea-more${corner ? ' ea-corner' : ''}" title="${esc(lbl)}" aria-label="${esc(lbl)}" aria-haspopup="menu">` +
+    `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></button>`;
+}
+
+function _eaEntryData(el) {
+  const d = el.dataset;
+  return { type: d.eaType, title: d.eaTitle || '', artist: d.eaArtist || '', album: d.eaAlbum || '',
+           key: d.eaKey || '', imgId: d.eaImg || '', crRow: d.eaCr || '' };
+}
+
+// ── The sample ──────────────────────────────────────────────────────────────
+let _eaClipKey = null;          // type:key of the entry whose sample is loading/playing
+let _eaClipLoading = false;
+let _eaClipLabel = '';          // "Song — Artist" actually playing, for the button tooltip
+const _eaClipMiss = new Set();  // entries neither store had a sample for
+let _eaPeriodPlays = [];        // the plays behind the Albums chart on screen (set by renderAlbums)
+
+function _eaClipId(d) { return d.type + ':' + d.key; }
+
+// The songs to try, best first. Scans run on the click, not on render: one
+// pass over the period (albums) or until a few distinct songs turn up in the
+// newest-first history (artists), so a big library costs nothing up front.
+function _eaSampleCandidates(d) {
+  if (d.type === 'songs') return [{ title: d.title, artist: d.artist, album: d.album }];
+  const out = [];
+  if (d.type === 'artists') {
+    // The song the user last played by them, then the ones before it
+    const seen = new Set();
+    for (const p of allPlays) {
+      if (!p.artists || !p.artists.includes(d.artist)) continue;
+      const tk = (p.title || '').toLowerCase();
+      if (!tk || seen.has(tk)) continue;
+      seen.add(tk);
+      out.push({ title: p.title, artist: p.artist, album: p.album || '' });
+      if (out.length >= 3) break;
+    }
+    return out;
   }
-  menu.dataset.t  = JSON.stringify(title);
-  menu.dataset.ar = JSON.stringify(artist);
-  menu.dataset.al = JSON.stringify(album);
+  // Albums: the user's most played songs from it in the chart's period;
+  // the whole history if the period has none (e.g. a rolled-up edition)
+  const count = plays => {
+    const tally = new Map();
+    for (const p of plays) {
+      if (p.album !== d.album || albumArtist(p) !== d.artist) continue;
+      const tk = (p.title || '').toLowerCase();
+      const e = tally.get(tk) || { title: p.title, artist: p.artist, album: p.album, n: 0 };
+      e.n++;
+      tally.set(tk, e);
+    }
+    return [...tally.values()].sort((a, b) => b.n - a.n).slice(0, 3);
+  };
+  const inPeriod = count(_eaPeriodPlays || []);
+  return inPeriod.length ? inPeriod : count(allPlays);
+}
+
+function _eaPaintSamples() {
+  document.querySelectorAll('.ea-sample').forEach(btn => {
+    const el = btn.closest('[data-ea-type]');
+    if (!el) return;
+    const id = _eaClipId(_eaEntryData(el));
+    const on = _eaClipKey === id, miss = _eaClipMiss.has(id);
+    btn.classList.toggle('is-on', on && !_eaClipLoading);
+    btn.classList.toggle('is-loading', on && _eaClipLoading);
+    btn.classList.toggle('is-miss', !on && miss);
+    const lbl = on ? (_eaClipLoading ? t('ea_sample_loading') : t('ea_sample_stop', { name: _eaClipLabel }))
+              : miss ? t('ea_sample_none') : t('ea_sample');
+    btn.title = lbl;
+    btn.setAttribute('aria-label', lbl);
+  });
+}
+
+function _eaStopSample() {
+  if (!_eaClipKey) return;
+  _ceremonyStopAudio();
+  _eaClipKey = null;
+  _eaClipLoading = false;
+  _eaPaintSamples();
+}
+
+async function _eaPlaySample(el) {
+  const d = _eaEntryData(el);
+  const id = _eaClipId(d);
+  if (_eaClipKey === id) { _eaStopSample(); return; }   // second click stops it
+  _ceremonyStopAudio();
+  // A sample over the full song is never wanted: pause the player meanwhile
+  try { if (_ytPlayer && _ytPlayer.getPlayerState() === YT.PlayerState.PLAYING) _ytPlayer.pauseVideo(); } catch (e) {}
+  _eaClipKey = id;
+  _eaClipLoading = true;
+  _eaClipMiss.delete(id);
+  _eaPaintSamples();
+  const token = _ceremonyAudioToken;   // any later stop or play bumps it
+
+  let takes = [], label = '';
+  try {
+    for (const c of _eaSampleCandidates(d)) {
+      takes = await _ceremonyPreviewTakes(c, 'song');
+      if (token !== _ceremonyAudioToken) return;
+      if (takes.length) { label = c.title + ' — ' + c.artist; break; }
+    }
+    // Nothing for the user's own songs: whatever the stores rank first
+    if (!takes.length && d.type !== 'songs') {
+      takes = await _ceremonyPreviewTakes({ artist: d.artist, album: d.album, title: '' }, _EA_KIND[d.type]);
+      label = d.type === 'albums' ? d.album : d.artist;
+    }
+  } catch (e) { takes = []; }
+  if (token !== _ceremonyAudioToken || _eaClipKey !== id) return;
+  if (!takes.length) {
+    _eaClipMiss.add(id);
+    _eaClipKey = null;
+    _eaClipLoading = false;
+    _eaPaintSamples();
+    return;
+  }
+  _eaClipLabel = label;
+  const audio = _ceremonyAudio = new Audio(takes[0].url);
+  audio.volume = 0.8;
+  audio.addEventListener('ended', () => {
+    if (_ceremonyAudio !== audio) return;
+    _ceremonyAudio = null;
+    _eaClipKey = null;
+    _eaPaintSamples();
+  });
+  try {
+    await audio.play();
+    if (token !== _ceremonyAudioToken) { audio.pause(); return; }
+    _eaClipLoading = false;
+  } catch (e) {
+    if (_ceremonyAudio === audio) _ceremonyAudio = null;
+    _eaClipKey = null;
+    _eaClipLoading = false;
+  }
+  _eaPaintSamples();
+}
+
+// ── The menu ────────────────────────────────────────────────────────────────
+let _eaMenuEl = null;
+let _eaMenuEntry = null;   // the entry element the open menu acts on
+
+function _eaCloseMenu() {
+  if (_eaMenuEl) _eaMenuEl.style.display = 'none';
+  _eaMenuEntry = null;
+}
+
+// What "play" means for an artist or album: the same song the sample picks
+function _eaPlayTarget(d) {
+  if (d.type === 'songs') return { title: d.title, artist: d.artist, album: d.album };
+  return _eaSampleCandidates(d)[0] || null;
+}
+
+function _eaQueueToast(msg, ok) {
+  const statusEl = document.getElementById('ytMiniStatus');
+  if (!statusEl) return;
+  statusEl.textContent = msg;
+  statusEl.className = 'yt-mini-status' + (ok ? ' ok' : '');
+  setTimeout(() => { if (statusEl.textContent === msg) { statusEl.textContent = ''; statusEl.className = 'yt-mini-status'; } }, 2500);
+}
+
+function _eaMenuItem(action, icon, label, extra) {
+  return `<button type="button" role="menuitem" class="wv-ctx-item" data-action="${action}"${extra || ''}><span class="ea-mi-ic" aria-hidden="true">${icon}</span>${esc(label)}</button>`;
+}
+
+// alignRight: x is the menu's right edge (opened from ⋮, so it drops down to
+// the left and stays inside the chart); otherwise its left edge (right-click).
+function _eaOpenMenu(el, x, y, alignRight) {
+  if (!_eaMenuEl) {
+    _eaMenuEl = document.createElement('div');
+    _eaMenuEl.id = 'eaMenu';
+    _eaMenuEl.className = 'wv-ctx-menu ea-menu';
+    _eaMenuEl.setAttribute('role', 'menu');
+    document.body.appendChild(_eaMenuEl);
+    _eaMenuEl.addEventListener('click', ev => {
+      const item = ev.target.closest('.wv-ctx-item[data-action]');
+      if (!item || !_eaMenuEntry) return;
+      const entry = _eaMenuEntry;
+      _eaCloseMenu();
+      _eaRunAction(item.dataset.action, entry, item.dataset.arg || '');
+    });
+  }
+  _eaMenuEntry = el;
+  const d = _eaEntryData(el);
   const playerEl = document.getElementById('ytMiniPlayer');
   const playerActive = typeof _ytCurrentTrack !== 'undefined' && _ytCurrentTrack && playerEl && playerEl.style.display !== 'none';
-  const isSong = type === 'songs';
-  menu.innerHTML =
-    `<div class="wv-ctx-item" data-action="play">▶ Play Now</div>` +
-    (playerActive ? `<div class="wv-ctx-item" data-action="next">⏭ Play Next</div><div class="wv-ctx-item" data-action="queue">＋ Add to Queue</div>` : '') +
-    (isSong && playerActive ? `<div class="wv-ctx-item" data-action="similar">♪ Play Similar</div>` : '') +
-    `<div class="wv-ctx-sep"></div>` +
-    `<div class="wv-ctx-item" data-action="yt">🔍 Search on YouTube</div>`;
-  menu.style.display = 'block';
-  const mw = menu.offsetWidth || 180, mh = menu.offsetHeight || 140;
-  const vw = window.innerWidth, vh = window.innerHeight;
-  menu.style.left = Math.min(e.clientX, vw - mw - 8) + 'px';
-  menu.style.top  = Math.min(e.clientY, vh - mh - 8) + 'px';
+  const sep = '<div class="wv-ctx-sep" role="separator"></div>';
+  let h = '';
+  // Full songs (YouTube). For an artist or album these play the song the ▶ sample picks.
+  h += _eaMenuItem('play', '▶', t('ea_play_now'));
+  if (playerActive) {
+    h += _eaMenuItem('next', '⏭', t('ea_play_next'));
+    h += _eaMenuItem('queue', '＋', t('ea_add_queue'));
+  }
+  if (d.type === 'songs' && playerActive) h += _eaMenuItem('similar', '♪', t('ea_play_similar'));
+  if (d.type !== 'songs') h += _eaMenuItem('pick', '☰', t('ea_pick_song'));
+  h += _eaMenuItem('playlist', '≡', t('ea_add_playlist'));
+  h += sep;
+  h += _eaMenuItem('details', 'ⓘ', t('ea_details'));
+  if (d.type === 'songs' && d.album && d.album !== '—') h += _eaMenuItem('album', '◉', t('ea_album', { name: d.album }));
+  if (d.type !== 'artists' && d.artist && d.artist !== VARIOUS_ARTISTS) {
+    splitArtists(d.artist).slice(0, 3).forEach(a => { h += _eaMenuItem('artist', '♫', t('ea_artist', { name: a }), ` data-arg="${esc(a)}"`); });
+  }
+  h += _eaMenuItem('chartrun', '▦', t('ea_chart_run'));
+  h += sep;
+  if (d.imgId && document.getElementById(d.imgId)) h += _eaMenuItem('cover', '✎', t('ea_change_cover'));
+  h += _eaMenuItem('yt', '↗', t('ea_search_yt'));
+  _eaMenuEl.innerHTML = h;
+  _eaMenuEl.style.display = 'block';
+  const mw = _eaMenuEl.offsetWidth || 200, mh = _eaMenuEl.offsetHeight || 300;
+  const left = alignRight ? x - mw : x;
+  _eaMenuEl.style.left = Math.max(8, Math.min(left, window.innerWidth - mw - 8)) + 'px';
+  _eaMenuEl.style.top  = Math.max(8, Math.min(y, window.innerHeight - mh - 8)) + 'px';
+  const first = _eaMenuEl.querySelector('.wv-ctx-item');
+  if (first) first.focus({ preventScroll: true });
 }
+
+function _eaRunAction(action, el, arg) {
+  const d = _eaEntryData(el);
+  const kind = _EA_KIND[d.type];
+  if (action === 'play' || action === 'next' || action === 'queue') {
+    const tr = _eaPlayTarget(d);
+    if (!tr) { _eaQueueToast(t('ea_nothing_to_play'), false); return; }
+    _eaStopSample();
+    if (action === 'play') { openYtPlayer(tr.title, tr.artist, tr.album || '', null); return; }
+    const q = { title: tr.title, artist: tr.artist, album: tr.album || '', btn: null };
+    if (action === 'next') _ytQueue.unshift(q); else _ytQueue.push(q);
+    _ytUpdateQueueDisplay(); _ytSaveQueue();
+    _eaQueueToast(t('ea_queued', { name: tr.title }), true);
+  } else if (action === 'similar') {
+    // Other songs by the same artist on the chart on screen
+    const pool = (fullData && fullData.songs) || [];
+    const others = pool.filter(s => s.artist.toLowerCase() === d.artist.toLowerCase() && !(s.title === d.title && s.artist === d.artist));
+    others.forEach(s => _ytQueue.push({ title: s.title, artist: s.artist, album: s.album || '', btn: null }));
+    _ytUpdateQueueDisplay(); _ytSaveQueue();
+    _eaQueueToast(others.length ? t('ea_similar_queued', { n: others.length, name: d.artist }) : t('ea_similar_none', { name: d.artist }), others.length > 0);
+  } else if (action === 'pick') {
+    // The existing "last 10 songs" picker, anchored on this entry's ⋮
+    const anchor = el.querySelector('.ea-more') || el;
+    anchor.dataset.artist = d.artist;
+    anchor.dataset.album = d.type === 'albums' ? d.album : '';
+    buShowTrackList(anchor, d.type);
+  } else if (action === 'playlist') {
+    const label = d.type === 'artists' ? d.artist : (d.title || d.album);
+    dcOpenPlaylistPicker(dcPlTracksFor(kind, d.type === 'songs' ? d.title : '', d.artist, d.album), label, label);
+  } else if (action === 'details') {
+    _wvOpenModal(d.type, d.key);
+  } else if (action === 'album') {
+    openAlbumModal(d.album + '|||' + albumArtistOfSong({ title: d.title, artist: d.artist, album: d.album }));
+  } else if (action === 'artist') {
+    openArtistModal(arg || d.artist);
+  } else if (action === 'chartrun') {
+    // The Table has the run on a row of its own; elsewhere the details pop-up shows it
+    const row = d.crRow && document.getElementById(d.crRow);
+    const btn = row && el.querySelector('.cr-toggle-btn');
+    if (row && btn) toggleChartRun(btn, d.crRow);
+    else _wvOpenModal(d.type, d.key);
+  } else if (action === 'cover') {
+    const name = d.type === 'songs' ? d.title : d.type === 'albums' ? d.album : d.artist;
+    const prefkey = d.type === 'songs' ? 'song:' + d.artist.toLowerCase() + '|||' + d.title.toLowerCase()
+                  : d.type === 'albums' ? 'album:' + d.artist.toLowerCase() + '|||' + d.album.toLowerCase()
+                  : 'artist:' + d.artist.toLowerCase();
+    openImgPicker({ imgid: d.imgId, type: kind, prefkey, name, artist: d.artist, album: d.album });
+  } else if (action === 'yt') {
+    // A link to youtube.com: free, it doesn't use the site's search allowance
+    const q = d.type === 'songs' ? d.artist + ' ' + d.title : d.type === 'albums' ? d.artist + ' ' + d.album : d.artist;
+    window.open('https://www.youtube.com/results?search_query=' + encodeURIComponent(q), '_blank', 'noopener');
+  }
+}
+
+// One set of listeners for every layout. Capture phase, so the entry's own
+// click (expand a row, flip a tile, open the pop-up) never sees these clicks.
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.ea-sample, .ea-more');
+  if (btn) {
+    const el = btn.closest('[data-ea-type]');
+    if (!el) return;
+    e.stopPropagation();
+    e.preventDefault();
+    if (btn.classList.contains('ea-sample')) { _eaCloseMenu(); _eaPlaySample(el); return; }
+    if (_eaMenuEntry === el && _eaMenuEl && _eaMenuEl.style.display === 'block') { _eaCloseMenu(); return; }
+    const r = btn.getBoundingClientRect();
+    _eaOpenMenu(el, r.right, r.bottom + 4, true);
+    return;
+  }
+  if (_eaMenuEl && _eaMenuEl.style.display === 'block' && !_eaMenuEl.contains(e.target)) _eaCloseMenu();
+}, true);
+
+document.addEventListener('contextmenu', e => {
+  const el = e.target.closest('[data-ea-type]');
+  // Links and form fields keep the browser's own menu (open in new tab, copy…)
+  if (!el || e.target.closest('a[href], input, textarea')) return;
+  e.preventDefault();
+  _eaOpenMenu(el, e.clientX, e.clientY);
+});
+
+document.addEventListener('keydown', e => {
+  if (!_eaMenuEl || _eaMenuEl.style.display !== 'block') return;
+  if (e.key === 'Escape') { _eaCloseMenu(); return; }
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    const items = [..._eaMenuEl.querySelectorAll('.wv-ctx-item')];
+    const i = items.indexOf(document.activeElement);
+    const next = items[(i + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length];
+    if (next) { next.focus(); e.preventDefault(); }
+  }
+});
+window.addEventListener('scroll', () => _eaCloseMenu(), { passive: true });
 
 function _wvCompact(items, max, ms, imgItems, type) {
   type = type || 'songs';
@@ -18483,7 +18767,7 @@ function _wvCompact(items, max, ms, imgItems, type) {
     `</div>`;
 
   const rows = items.map((s, i) => {
-    const { k, imgId, mv, prefKey } = _wvItem(type, s, i, ms, imgItems);
+    const { k, imgId, ea, mv, prefKey } = _wvItem(type, s, i, ms, imgItems);
     const { ttl, sub } = _wvDisp(type, s);
     const pk        = type === 'songs' ? _weeklyViewPeaks?.songPeakMap[k] : null;
     const cumPlays  = type === 'songs' && cumulativeMaps ? (cumulativeMaps.songs[k] || 0) : 0;
@@ -18504,15 +18788,8 @@ function _wvCompact(items, max, ms, imgItems, type) {
       (album && album !== '—' ? `<span class="wv-cx-art-alb">${esc(album)}</span>` : '') +
       `</div>`;
 
-    // Feature 6: play button — songs play directly; artists and albums show the
-    // last-10 track picker, since their name is not something to search as a track.
-    // Artists carry their own name in data-artist and no album at all.
-    const jt = esc(JSON.stringify(ttl)), jar = esc(JSON.stringify(sub)), jal = esc(JSON.stringify(album));
-    const tlArtist = type === 'artists' ? s.name : (s.artist || '');
-    const tlAlbum  = type === 'artists' ? ''     : (s.album  || '');
-    const playBtn = type === 'songs'
-      ? `<button class="wv-cx-play-btn" onclick="event.stopPropagation();_ytPlayOrQueue(${jt},${jar},${jal})" title="Play">▶</button>`
-      : `<button class="wv-cx-play-btn" data-artist="${esc(tlArtist)}" data-album="${esc(tlAlbum)}" onclick="event.stopPropagation();buShowTrackList(this,${jtype})" title="Show recently played tracks">▶</button>`;
+    // Feature 6 (phase 7): ▶ on the small cover plays a sample, ⋮ at the row's
+    // end opens the action menu (_eaAttrs)
     const cxPlBtn = dcPlBtnForWv(type, ttl, sub, album, 'dc-pl-add-sm');
 
     // Feature 2: weeks-on-chart column (spelled out)
@@ -18548,20 +18825,21 @@ function _wvCompact(items, max, ms, imgItems, type) {
     const shelf = shelfParts.length ? `<div class="wv-cx-shelf">${shelfParts.join('')}</div>` : '';
     const statusCls = mv.includes('wv-new') ? ' wv-stk-new' : mv.includes('wv-re') ? ' wv-stk-re' : '';
 
-    return `<div class="wv-cx-row${i < 3 ? ' wv-r' + (i + 1) : ''}${statusCls}" onclick="toggleCxExpand(this)">` +
+    return `<div class="wv-cx-row${i < 3 ? ' wv-r' + (i + 1) : ''}${statusCls}" onclick="toggleCxExpand(this)"${ea}>` +
       `<span class="wv-cx-rank">${rankHtml}</span>` +
       `<div class="wv-cx-art-wrap" onclick="event.stopPropagation()">` +
         `<div class="wv-thumb wv-thumb-sm">${_wvThumb(imgId, ttl)}</div>` +
+        _eaSampleBtn() +
         artTip +
       `</div>` +
       `<span class="wv-cx-title"><span class="wv-title-link" onclick="event.stopPropagation();_wvOpenModal(${jtype},${esc(JSON.stringify(k))})" title="View details">${esc(ttl)}</span>${pk ? peakBadge(pk) : ''}${cert}</span>` +
       `<span class="wv-cx-sep">—</span>` +
       `<span class="wv-cx-artist">${esc(sub)}</span>` +
-      playBtn +
       cxPlBtn +
       `<span class="wv-cx-wks">${weeksText}</span>` +
       `<span class="wv-cx-prev">${prevContent}</span>` +
       `<span class="wv-cx-plays"${playsStyle}>${s.count}</span>` +
+      _eaMoreBtn() +
       shelf +
       `</div>`;
   }).join('');
@@ -18617,7 +18895,7 @@ function _wvMosaic(items, max, ms, imgItems, type) {
   const vals = items.map(s => Math.sqrt(s.count));
   const rects = _computeTreemap(vals, W, H);
   return `<div class="wv-mosaic" style="height:${H}px">${items.map((s, i) => {
-    const { k, imgId, mv, prefKey } = _wvItem(type, s, i, ms, imgItems);
+    const { k, imgId, ea, mv, prefKey } = _wvItem(type, s, i, ms, imgItems);
     const backImgId = imgId + 'b';
     if (type === 'artists') imgItems.push({ imgId: backImgId, name: s.name, artist: s.name, prefKey });
     else if (type === 'albums') imgItems.push({ imgId: backImgId, album: s.album, artist: s.artist, name: s.album, prefKey });
@@ -18636,13 +18914,9 @@ function _wvMosaic(items, max, ms, imgItems, type) {
     const playTitle  = type === 'songs' ? s.title  : type === 'artists' ? s.name  : s.album;
     const playArtist = type === 'songs' ? s.artist : type === 'artists' ? s.name  : s.artist;
     const playAlbum  = type === 'songs' ? (s.album || '') : type === 'artists' ? '' : s.album;
-    // Songs play directly; artists and albums show the last-10 track picker
-    // (an artist/album name is not a track, so searching it as one lands wrong)
-    const mosYtOnclick = type === 'songs'
-      ? `event.stopPropagation();ytPlayFromBtn(this)`
-      : `event.stopPropagation();buShowTrackList(this,${jtype})`;
-    const mosYtTitle = type === 'songs' ? 'Play on YouTube' : 'Show recently played tracks';
-    return `<div class="wv-mos-item${rc}" style="${st}" title="#${i+1}: ${esc(ttl)} — ${esc(sub)}" onclick="wvMosTileClick(event,this)">
+    // Phase 7: ▶ sample + ⋮ menu on the hover card and on the back (_eaAttrs)
+    const eaBtns = `<span class="ea-inline">${_eaSampleBtn()}${_eaMoreBtn()}</span>`;
+    return `<div class="wv-mos-item${rc}" style="${st}" title="#${i+1}: ${esc(ttl)} — ${esc(sub)}" onclick="wvMosTileClick(event,this)"${ea}>
       <div class="wv-mos-item-inner">
         <div class="wv-mos-front">
           <div class="wv-thumb wv-thumb-full">${_wvThumb(imgId, ttl)}</div>
@@ -18651,7 +18925,7 @@ function _wvMosaic(items, max, ms, imgItems, type) {
           ${mv ? `<div class="wv-mv-ov">${mv}</div>` : ''}
           <div class="wv-mos-bot"><div class="wv-ttl">${esc(ttl)}</div><div class="wv-art">${esc(sub)}</div><div class="wv-plays">${s.count} ${tUnit('plays', s.count)}</div></div>
           <div class="wv-mos-hcard">
-            <button class="yt-play-btn wv-mos-play-btn" data-title="${esc(playTitle)}" data-artist="${esc(playArtist)}" data-album="${esc(playAlbum)}" onclick="${mosYtOnclick}" title="${mosYtTitle}"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>${dcPlBtnHtml(dcPlKindFor(type), playTitle, playArtist, playAlbum, 'dc-pl-add-sm')}
+            ${eaBtns}${dcPlBtnHtml(dcPlKindFor(type), playTitle, playArtist, playAlbum, 'dc-pl-add-sm')}
             <div class="wv-mos-hcard-ttl"><span class="wv-title-link" onclick="event.stopPropagation();_wvOpenModal(${jtype},${esc(JSON.stringify(k))})" title="View details">${esc(ttl)}</span></div>
             <div class="wv-mos-hcard-art">${esc(sub)}</div>
             <div class="wv-mos-hcard-stats">
@@ -18679,7 +18953,7 @@ function _wvMosaic(items, max, ms, imgItems, type) {
           </div>
           ${cumPlays ? `<div class="wv-mos-hcard-alltime">${cumPlays.toLocaleString()} ${tUnit('plays', cumPlays)} · ${t('nav_alltime')}${cert}</div>` : ''}
           <div class="wv-mos-hcard-bar"><div class="wv-mos-hcard-fill"></div></div>
-          <button class="yt-play-btn wv-mos-play-btn wv-mos-back-play-btn" data-title="${esc(playTitle)}" data-artist="${esc(playArtist)}" data-album="${esc(playAlbum)}" onclick="${mosYtOnclick}" title="${mosYtTitle}"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg><span class="wv-btn-full"> ${mosYtTitle}</span><span class="wv-btn-short">${type === 'songs' ? 'PLAY' : 'TRACKS'}</span></button>${dcPlBtnHtml(dcPlKindFor(type), playTitle, playArtist, playAlbum, 'dc-pl-add-sm')}
+          <div class="wv-mos-back-acts">${eaBtns}${dcPlBtnHtml(dcPlKindFor(type), playTitle, playArtist, playAlbum, 'dc-pl-add-sm')}</div>
         </div>
       </div>
     </div>`;
@@ -18723,7 +18997,7 @@ function _wvFilmstrip(items, max, ms, imgItems, type) {
   for (let d = 0; d < items.length; d += 10) decades.push(d);
 
   const cards = items.map((s, i) => {
-    const { k, imgId, mv } = _wvItem(type, s, i, ms, imgItems);
+    const { k, imgId, ea, mv } = _wvItem(type, s, i, ms, imgItems);
     const { ttl, sub } = _wvDisp(type, s);
     const barW = Math.round(s.count / max * 100);
     const _fPrev = ms ? ms.prevChart[type][k] : null;
@@ -18740,24 +19014,16 @@ function _wvFilmstrip(items, max, ms, imgItems, type) {
     const playAlbum  = type === 'songs' ? (s.album || '') : type === 'artists' ? '' : s.album;
     const rc = i < 3 ? ` wv-r${i+1}` : '';
     const thumbCls = i < 3 ? 'wv-thumb-xl' : 'wv-thumb-lg';
-    const ytSvg = `<svg viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px"><path d="M8 5v14l11-7z"/></svg>`;
-    const ytSvgSm = `<svg viewBox="0 0 24 24" fill="currentColor" style="width:10px;height:10px;margin-right:3px"><path d="M8 5v14l11-7z"/></svg>`;
-    // Songs play directly; artists and albums show the last-10 track picker
-    const filmYtOnclick = type === 'songs'
-      ? `event.stopPropagation();ytPlayFromBtn(this)`
-      : `event.stopPropagation();buShowTrackList(this,${jtype})`;
-    const filmYtTitle = type === 'songs' ? 'Play on YouTube' : 'Show recently played tracks';
-    const filmYtLabel = type === 'songs' ? 'Play on YouTube' : 'Show Tracks';
-    return `<div class="wv-card wv-film-card${rc}" tabindex="0" data-idx="${i}" onclick="wvFilmCardClick(event,this)">
+    // Phase 7: ▶ sample + ⋮ menu on the cover (_eaAttrs)
+    return `<div class="wv-card wv-film-card${rc}" tabindex="0" data-idx="${i}" onclick="wvFilmCardClick(event,this)"${ea}>
       <div class="wv-film-rank-row">
         <span class="wv-film-ranknum">${i+1}</span>
         ${mv ? `<span class="wv-film-mv">${mv}</span>` : ''}
       </div>
       <div class="wv-film-thumb-wrap">
         <div class="wv-thumb ${thumbCls}">${_wvThumb(imgId, ttl)}</div>
-        <div class="wv-film-thumb-hover">
-          <button class="yt-play-btn wv-film-yt-btn" data-title="${esc(playTitle)}" data-artist="${esc(playArtist)}" data-album="${esc(playAlbum)}" onclick="${filmYtOnclick}" title="${filmYtTitle}">${ytSvg}</button>${dcPlBtnHtml(dcPlKindFor(type), playTitle, playArtist, playAlbum, 'dc-pl-add-sm')}
-        </div>
+        <div class="wv-film-thumb-hover">${dcPlBtnHtml(dcPlKindFor(type), playTitle, playArtist, playAlbum, 'dc-pl-add-sm')}</div>
+        ${_eaSampleBtn()}${_eaMoreBtn(true)}
       </div>
       <div class="wv-ttl"><span class="wv-title-link" onclick="event.stopPropagation();_wvOpenModal(${jtype},${esc(JSON.stringify(k))})" title="View details">${esc(ttl)}</span></div>
       <div class="wv-art">${esc(sub)}</div>
@@ -18767,7 +19033,7 @@ function _wvFilmstrip(items, max, ms, imgItems, type) {
         ${(pk || cert) ? `<div class="wv-film-exp-badges">${pk ? peakBadge(pk) : ''}${cert}</div>` : ''}
         ${wks ? `<div class="wv-film-exp-wks">${tCount('weeks_full', wks)} ${t('film_on_chart')}</div>` : ''}
         ${cumPlays ? `<div class="wv-film-exp-alltime">${cumPlays.toLocaleString()} ${t('film_alltime_plays')}</div>` : ''}
-        <button class="yt-play-btn" data-title="${esc(playTitle)}" data-artist="${esc(playArtist)}" data-album="${esc(playAlbum)}" onclick="${filmYtOnclick}" title="${filmYtTitle}" style="margin-top:4px">${ytSvgSm}${filmYtLabel}</button>${dcPlBtnHtml(dcPlKindFor(type), playTitle, playArtist, playAlbum, 'dc-pl-add-sm')}
+        ${dcPlBtnHtml(dcPlKindFor(type), playTitle, playArtist, playAlbum, 'dc-pl-add-sm')}
       </div></div>
     </div>`;
   }).join('');
@@ -18980,7 +19246,7 @@ function _wvStack(items, max, ms, imgItems, type) {
   type = type || 'songs';
   const crData = allChartRun?.week || chartRunData;
   return `<div class="wv-stack${_stkTwoCol ? ' wv-stack-2col' : ''}">${items.map((s, i) => {
-    const { k, imgId, mv } = _wvItem(type, s, i, ms, imgItems);
+    const { k, imgId, ea, mv } = _wvItem(type, s, i, ms, imgItems);
     const { ttl, sub } = _wvDisp(type, s);
     const pk = type === 'songs' ? _weeklyViewPeaks?.songPeakMap[k] : null;
     const cumSongPlays = type === 'songs' && cumulativeMaps ? (cumulativeMaps.songs[k] || 0) : 0;
@@ -19003,19 +19269,8 @@ function _wvStack(items, max, ms, imgItems, type) {
     // Cumulative plays
     const cumHtml = cumSongPlays > 0 ? `<span class="wv-stk-cum">${cumSongPlays} all-time</span>` : '';
 
-    // YT play button
-    const jt = esc(JSON.stringify(ttl));
-    const jar = esc(JSON.stringify(type !== 'artists' ? sub : ''));
-    const jal = esc(JSON.stringify(s.album || ''));
+    // Phase 7: ▶ sample on the cover, ⋮ menu at the row's end (_eaAttrs)
     const jtype = esc(JSON.stringify(type));
-    // Songs play directly; artists and albums show the last-10 track picker,
-    // since their name is not something to search as a track. Artists carry
-    // their own name in data-artist and no album at all.
-    const tlArtist = type === 'artists' ? s.name : (s.artist || '');
-    const tlAlbum  = type === 'artists' ? ''     : (s.album  || '');
-    const ytBtn = type === 'songs'
-      ? `<button class="wv-stk-yt-btn" onclick="event.stopPropagation();_ytPlayOrQueue(${jt},${jar},${jal})" title="Play on YouTube">▶</button>`
-      : `<button class="wv-stk-yt-btn" data-artist="${esc(tlArtist)}" data-album="${esc(tlAlbum)}" onclick="event.stopPropagation();buShowTrackList(this,${jtype})" title="Show recently played tracks">▶</button>`;
 
     // Artist line — plain display only; no modal opens from here
     const artistLine = `<div class="wv-art">${esc(sub)}</div>`;
@@ -19034,16 +19289,17 @@ function _wvStack(items, max, ms, imgItems, type) {
     const summaryHtml = sumParts.length ? `<div class="wv-stk-shelf-sum">${sumParts.join(' · ')}</div>` : '';
     const shelf = `<div class="wv-stk-shelf">${summaryHtml}${crBoxesHTML(type, k, crData)}</div>`;
 
-    return `<div class="wv-stk-card${i < 3 ? ' wv-r' + (i+1) : ''}${statusCls}" tabindex="0" onclick="toggleStkExpand(this)">
+    return `<div class="wv-stk-card${i < 3 ? ' wv-r' + (i+1) : ''}${statusCls}" tabindex="0" onclick="toggleStkExpand(this)"${ea}>
       <div class="wv-stk-row">
         <div class="wv-stk-rank">${i+1}</div>
-        <div class="wv-thumb wv-thumb-lg">${_wvThumb(imgId, ttl)}</div>
+        <div class="wv-thumb wv-thumb-lg ea-cover">${_wvThumb(imgId, ttl)}${_eaSampleBtn()}</div>
         <div class="wv-stk-body">
           <div class="wv-ttl">${ttlInner}${albumInline}${pk ? peakBadge(pk) : ''}${type === 'songs' ? certBadge(cumSongPlays, 'song') : ''}${ratingRowBadge(type, k)}</div>
           ${artistLine}
-          <div class="wv-stk-meta">${ytBtn}${dcPlBtnForWv(type, ttl, sub, s.album, 'dc-pl-add-sm')}<span class="wv-plays">${s.count} ${s.count===1?'play':'plays'}</span> ${mv}${weeksText}${cumHtml}</div>
+          <div class="wv-stk-meta">${dcPlBtnForWv(type, ttl, sub, s.album, 'dc-pl-add-sm')}<span class="wv-plays">${s.count} ${s.count===1?'play':'plays'}</span> ${mv}${weeksText}${cumHtml}</div>
           <div class="wv-bar"><div class="wv-bar-fill${barCls ? ' '+barCls : ''}" style="width:${barW}%"></div></div>
         </div>
+        ${_eaMoreBtn()}
       </div>
       ${shelf}
     </div>`;
@@ -19075,17 +19331,18 @@ function initStkInteractions(type) {
     if (e.key === 'ArrowDown') { e.preventDefault(); cards[Math.min(idx + 1, cards.length - 1)]?.focus(); }
     else if (e.key === 'ArrowUp') { e.preventDefault(); cards[Math.max(idx - 1, 0)]?.focus(); }
     else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleStkExpand(focused); }
-    else if (e.key === 'p' || e.key === 'P') { e.preventDefault(); focused.querySelector('.wv-stk-yt-btn')?.click(); }
+    // P plays the ▶ sample (phase 7; it used to start YouTube)
+    else if (e.key === 'p' || e.key === 'P') { e.preventDefault(); focused.querySelector('.ea-sample')?.click(); }
   });
 
-  // Swipe right → play on YT
+  // Swipe right → play the ▶ sample (phase 7; it used to start YouTube)
   container.querySelectorAll('.wv-stk-card').forEach(card => {
     let tx0 = 0, ty0 = 0;
     card.addEventListener('touchstart', e => { tx0 = e.changedTouches[0].clientX; ty0 = e.changedTouches[0].clientY; }, { passive: true });
     card.addEventListener('touchend', e => {
       const dx = e.changedTouches[0].clientX - tx0;
       const dy = e.changedTouches[0].clientY - ty0;
-      if (Math.abs(dx) > 55 && Math.abs(dy) < 35 && dx > 0) card.querySelector('.wv-stk-yt-btn')?.click();
+      if (Math.abs(dx) > 55 && Math.abs(dy) < 35 && dx > 0) card.querySelector('.ea-sample')?.click();
     }, { passive: true });
   });
 }

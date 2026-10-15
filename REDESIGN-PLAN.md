@@ -589,7 +589,26 @@ Two more gaps, outside the table:
    to playlist, open details, open album, open artist, change cover picture,
    search on YouTube, show chart run. The same list everywhere, reached
    in three consistent ways:
-   - a **▶ play button** visible on hover (on phones, always visible),
+   - a **▶ sample button** visible on hover (on phones, always visible).
+     **Decided 2026-10-14:** it plays a **30-second store sample** (iTunes,
+     then Deezer, the same lookup as the awards ♪ button,
+     `_ceremonyPreviewTakes`), **not** the YouTube player. Samples are free
+     and don't use the site's shared YouTube search allowance (about 100 new
+     songs a day for everyone, see the `ytCache` search memory). The sample is
+     personal: an **artist** plays the song the user **last played** by them,
+     and an **album** plays the user's **most played song from it in the
+     chart's period** (that week, month or year; all-time history if the
+     period somehow has none). The artist's last-played song comes from the
+     whole history. Both work for Last.fm, Sheets and CSV alike. Build the
+     lookups once per data load or period change (never per button; see the
+     perf note on repeated scans). If a
+     store has no sample for that song, try the next most recent or next most
+     played song (a few at most), then fall back to the store's top song or
+     first track. Data without album names falls back the same way. A second
+     click stops it. Starting a sample pauses the player, and only one sample
+     plays at a time. If neither store has a sample, the button dims and
+     points to ⋮. Full plays on YouTube (play now, next, queue, similar) stay
+     in the ⋮ menu and right-click menu.
    - a **⋮ button** on each entry that opens the full action menu,
    - **right-click** opens the same menu (today only Card grid has one).
 3. **One details drawer for everything that doesn't fit.** Click any entry in
@@ -1367,6 +1386,43 @@ the pills into ⋮ → Show, 5 screen check (also covers phase 5).
 
 **Phase 6 done (2026-10-14)** on `redesign/phase-6-weekly`, and merged into `main` the same day.
 
+**Phase 7 (chart table and layouts). Built on branch `redesign/phase-7-layouts`, one step per commit.**
+Decided with you (2026-10-14): the drawer shows everything whatever the
+Show switches say; the tour is updated in the same commit that moves the
+layout buttons; the ▶ on hover plays a 30-second store sample, not YouTube
+(4.9b point 2): artist → the song last played by them, album → its most
+played song in the chart's period. Steps: 1 one action menu (▶ sample, ⋮,
+right-click) in all six layouts, 2 one item builder, 3 details drawer,
+4 Show switches done once, 5 layout buttons into the toolbar (+ tour),
+6 every layout on every period with paging, 7 Table restyle (4.10), 8 the
+other five layouts (one commit each), 9 shorter long charts (4.12),
+10 Bubbling Under / Off the Chart / New Entries (4.11), 11 one rank-change
+animation, 12 screen check.
+- **Step 1 ✓ (2026-10-14): one action menu.** One module in app.js
+  (`_eaAttrs`, `_eaSampleBtn`, `_eaMoreBtn`, `_eaOpenMenu`, `_eaPlaySample`)
+  serves all six layouts and Songs / Artists / Albums: the entry element
+  carries `data-ea-*` attributes and document-level listeners do the rest,
+  so a layout only places the two buttons. ▶ sits on the cover (hover;
+  always shown on touch, small, bottom-right corner) and plays a store
+  sample through the ceremony's single audio slot; it pauses the player.
+  ⋮ sits before the chart-run icon in the Table (on phones it replaces that
+  icon, since Chart run is in the menu), at the row's end in Compact and
+  Stack, on the cover's top-right in Card grid and Filmstrip, and in the
+  hover card / back in Mosaic. The menu replaces `_wvGridCtx`. Play now /
+  next / queue on an artist or album plays the song the sample picks, and
+  "Pick a song…" opens the old last-10 picker. Chart run toggles the
+  Table's run row; elsewhere it opens the details pop-up (the drawer
+  replaces that in step 3). **Also changed to cut YouTube use:** a Card grid
+  click opens the details instead of playing, and Stack's P key and
+  swipe-right play the sample. The old per-layout YouTube ▶ buttons and
+  their CSS are gone; the Table's YouTube button (Show switch, off by
+  default) stays until step 4. Bubbling Under / Off the Chart / New Entries
+  rows don't have the menu yet (step 10). Checked with real clicks: every
+  layout's ⋮ and right-click, the Table's chart run, song / artist / album
+  samples (artist = last played, album = most played this week), no
+  YouTube searches sent, phone menu and width (the phone table is still
+  8px wider than its card, as before; step 7).
+
 The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in
 the top bar.
@@ -1378,7 +1434,9 @@ on the rows themselves are still there and still need 3.8.
 **Phase 7 (layouts and the action menu): now more urgent.** With YouTube
 off, a table row has no play button by default, so the "one action set"
 (▶ on hover, ⋮ per row, right-click) is now how most people will play
-anything from a chart. Do the action set first within phase 7. Also:
+anything from a chart. Do the action set first within phase 7. The ▶ on
+hover plays a 30-second store sample, not YouTube (decided 2026-10-14, see
+4.9b point 2), so browsing a chart doesn't use up the YouTube allowance. Also:
 - **The table on a phone is broken up:** the "Prev" header has its own
   underline that doesn't match the rest, and each row's background is split
   into pieces instead of one strip. Fix it with the table restyle.
