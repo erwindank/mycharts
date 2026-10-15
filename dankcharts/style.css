@@ -35490,3 +35490,29 @@ body.cp-hide-cert-reel    #certReelSection { display: none !important; }
 .ea-menu .wv-ctx-item { width: 100%; border: 0; background: none; font: inherit; text-align: left; overflow: hidden; text-overflow: ellipsis; }
 .ea-menu .wv-ctx-item:focus-visible { outline: none; background: var(--hover); color: var(--accent); }
 .ea-mi-ic { display: inline-flex; justify-content: center; width: 18px; flex-shrink: 0; color: var(--text3); }
+
+/* First-time hint on touch screens (app.js, _eaHintShow): a small bubble
+   under the first chart cover, arrow pointing up at it. Inverted colours
+   (text on bg) so it reads as a note on top of the page in every theme. */
+.ea-hint {
+  position: absolute; z-index: var(--z-dropdown);
+  display: flex; align-items: center; gap: var(--sp-3);
+  max-width: min(320px, calc(100vw - 24px));
+  padding: 10px var(--sp-3); border-radius: var(--r-md);
+  background: var(--text); color: var(--bg);
+  font-size: var(--fs-sm); line-height: 1.4;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  animation: eaHintIn var(--t-slow) var(--ease);
+}
+.ea-hint::before {
+  content: ''; position: absolute; top: -6px; left: var(--ea-hint-arrow, 24px);
+  width: 12px; height: 12px; margin-left: -6px; transform: rotate(45deg);
+  background: inherit; border-radius: 2px;
+}
+.ea-hint-ok {
+  flex-shrink: 0; padding: 6px var(--sp-3); border: 0; border-radius: var(--r-full);
+  background: var(--accent); color: var(--on-accent);
+  font: inherit; font-weight: 600; cursor: pointer;
+}
+@keyframes eaHintIn { from { opacity: 0; transform: translateY(6px); } }
+@media (prefers-reduced-motion: reduce) { .ea-hint { animation: none; } }

@@ -13858,6 +13858,7 @@ function renderAll() {
     chartSize = chartSizeSongs;   renderSongs(plays, peaks, periodStats);
     chartSize = chartSizeArtists; renderArtists(plays, peaks, periodStats);
     chartSize = chartSizeAlbums;  renderAlbums(plays, peaks, periodStats);
+    _eaHintSoon();   // first-time "tap a cover / hold to change the picture" hint (touch only)
     _animPrevPlays = null;
     _animCurrentPlays = null;
   }
@@ -18734,6 +18735,73 @@ function _eaRunAction(action, el, arg) {
 
 const _eaTouch = window.matchMedia ? window.matchMedia('(hover: none)') : { matches: false };
 
+// ── First-time hint (touch screens) ─────────────────────────────────────────
+// On touch there is no ▶ and no ✎ badge to discover: the cover itself is the
+// control (tap = sample, hold = change the picture). So the first time a chart
+// cover scrolls into view, a small bubble under it says so, once. It goes for
+// good on "Got it" or on the first cover tap (they've found it themselves).
+// Never during the welcome gate or the tour. localStorage is fine here: at
+// worst someone sees the hint again on another device.
+const EA_HINT_KEY = 'dc_ea_cover_hint_seen';
+let _eaHintEl = null, _eaHintObs = null, _eaHintCover = null;
+
+function _eaHintSeen() {
+  try { return localStorage.getItem(EA_HINT_KEY) === '1'; } catch (e) { return true; }
+}
+
+function _eaHintDismiss() {
+  try { localStorage.setItem(EA_HINT_KEY, '1'); } catch (e) {}
+  if (_eaHintObs) { _eaHintObs.disconnect(); _eaHintObs = null; }
+  if (_eaHintEl) { _eaHintEl.remove(); _eaHintEl = null; }
+  _eaHintCover = null;
+  window.removeEventListener('resize', _eaHintPlace);
+}
+
+function _eaHintPlace() {
+  if (!_eaHintEl || !_eaHintCover) return;
+  if (!_eaHintCover.isConnected || !_eaHintCover.offsetParent) { _eaHintEl.remove(); _eaHintEl = null; _eaHintCover = null; return; }
+  const r = _eaHintCover.getBoundingClientRect();
+  const w = _eaHintEl.offsetWidth;
+  const left = Math.max(12, Math.min(r.left + r.width / 2 - 24, window.innerWidth - w - 12));
+  _eaHintEl.style.left = (left + window.scrollX) + 'px';
+  _eaHintEl.style.top  = (r.bottom + window.scrollY + 8) + 'px';
+  // The arrow points at the cover's middle, wherever the bubble had to shift to
+  _eaHintEl.style.setProperty('--ea-hint-arrow', Math.max(12, Math.min(r.left + r.width / 2 - left, w - 12)) + 'px');
+}
+
+function _eaHintShow(cover) {
+  if (_eaHintEl || _eaHintSeen()) return;
+  // The welcome gate or the tour is up: try again once it has gone
+  if (document.body.classList.contains('cg-gate-open') || document.body.classList.contains('cg-tour-open')) { setTimeout(_eaHintSoon, 4000); return; }
+  _eaHintCover = cover;
+  _eaHintEl = document.createElement('div');
+  _eaHintEl.className = 'ea-hint';
+  _eaHintEl.setAttribute('role', 'status');
+  _eaHintEl.innerHTML = `<span class="ea-hint-txt">${esc(t('ea_hint_touch'))}</span><button type="button" class="ea-hint-ok">${esc(t('ea_hint_ok'))}</button>`;
+  _eaHintEl.querySelector('.ea-hint-ok').addEventListener('click', e => { e.stopPropagation(); _eaHintDismiss(); });
+  document.body.appendChild(_eaHintEl);
+  _eaHintPlace();
+  window.addEventListener('resize', _eaHintPlace);
+}
+
+// Called after each chart render. Watches the first visible cover and shows
+// the hint once it is well inside the screen.
+function _eaHintSoon() {
+  if (!_eaTouch.matches || _eaHintSeen() || _eaHintEl || !('IntersectionObserver' in window)) return;
+  setTimeout(() => {
+    const cover = [...document.querySelectorAll('[data-ea-type] .ea-cover')].find(c => c.offsetParent);
+    if (!cover) return;
+    if (_eaHintObs) _eaHintObs.disconnect();
+    _eaHintObs = new IntersectionObserver(([en]) => {
+      if (!en.isIntersecting) return;
+      _eaHintObs.disconnect(); _eaHintObs = null;
+      _eaHintShow(cover);
+    }, { threshold: 1, rootMargin: '0px 0px -25% 0px' });
+    _eaHintObs.observe(cover);
+  }, 600);
+}
+
+
 // One set of listeners for every layout. Capture phase, so the entry's own
 // click (expand a row, flip a tile, open the pop-up) never sees these clicks.
 document.addEventListener('click', e => {
@@ -18747,6 +18815,7 @@ document.addEventListener('click', e => {
       e.stopPropagation();
       e.preventDefault();
       _eaCloseMenu();
+      if (_eaHintEl || !_eaHintSeen()) _eaHintDismiss();
       _eaPlaySample(entry);
       return;
     }
@@ -45916,6 +45985,13 @@ const _cgTourSteps = [
         spotlight: '#songsSection',
         reveal: true,
         hold: 11000 },
+
+      /* Phase 7: the two controls on every entry. On touch the cover is the
+         control (there is no ▶ and no ✎ badge), so the text covers both. */
+      { content: 'Every song, artist and album has two buttons beside it. ▶ plays a 30-second sample: for an artist, the song you last played by them; for an album, the one you played most. ⋮ (or a right-click) has everything else: the full video on YouTube, your queue, playlists, details, the chart run.\n\nOn a phone, just tap the cover to hear the sample, and hold it to change the picture. With a mouse, the ✎ on the cover changes the picture.',
+        spotlight: _cgRow('.ea-cover, .ea-pair'),
+        reveal: true,
+        hold: 13000 },
 
       { content: 'Bubbling Under — the songs that just missed the cut. Next week\'s chart usually starts here.\n\nThe coloured tags say why each one is here. To see what each colour means, switch on BU Legend in the ⋮ menu, under Show.',
         spotlight: '#buSongsSection',

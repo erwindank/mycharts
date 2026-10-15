@@ -1416,7 +1416,14 @@ animation, 12 screen check.
   the Table's chart-run icon (Chart run is in the menu), so the row is no
   wider than before. The ⋮ menu starts with the sample too ("Play a
   30-second sample", "Stop the sample" while it plays), and its first
-  YouTube item says so: "Play the video (YouTube)". The menu replaces `_wvGridCtx`. Play now /
+  YouTube item says so: "Play the video (YouTube)". **Teaching it:** on
+  touch screens a one-time bubble under the first cover that scrolls into
+  view says "Tap a cover to hear a 30-second sample. Hold it to change the
+  picture." (`_eaHintSoon`, gone for good on "Got it" or the first cover
+  tap, `dc_ea_cover_hint_seen`; it waits out the welcome gate and the
+  tour). The tour's Weekly walkthrough has a new phase after "The chart
+  itself" that rings a row's cover and ▶ ⋮ pair and explains both, for
+  mouse and touch. The menu replaces `_wvGridCtx`. Play now /
   next / queue on an artist or album plays the song the sample picks, and
   "Pick a song…" opens the old last-10 picker. Chart run toggles the
   Table's run row; elsewhere it opens the details pop-up (the drawer

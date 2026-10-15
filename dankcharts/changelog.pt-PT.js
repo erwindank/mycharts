@@ -18,7 +18,7 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   "Samples and one menu on every chart entry":
     ["Pré-visualizações e um só menu em cada entrada do Top",
-     "Cada música, artista e álbum do Top, nos seis esquemas, tem agora um ▶ que toca uma pré-visualização de 30 segundos (no telemóvel, toca na capa), e um botão ⋮ (ou clique direito) com tudo o resto: ouvir a música inteira agora, a seguir ou mais tarde, ouvir semelhantes, adicionar a uma playlist, detalhes, álbum, artista, trajetória no Top, alterar a imagem e pesquisar no YouTube. A pré-visualização de um artista é a última música dele que ouviste; a de um álbum, a que mais ouviste dele no período no ecrã. As pré-visualizações não gastam o limite do YouTube do site, por isso clicar num cartão da grelha abre agora os detalhes em vez de o tocar."],
+     "Cada música, artista e álbum do Top, nos seis esquemas, tem agora um ▶ que toca uma pré-visualização de 30 segundos (no telemóvel, toca na capa), e um botão ⋮ (ou clique direito) com tudo o resto: ouvir a música inteira agora, a seguir ou mais tarde, ouvir semelhantes, adicionar a uma playlist, detalhes, álbum, artista, trajetória no Top, alterar a imagem e pesquisar no YouTube. A pré-visualização de um artista é a última música dele que ouviste; a de um álbum, a que mais ouviste dele no período no ecrã. As pré-visualizações não gastam o limite do YouTube do site, por isso clicar num cartão da grelha abre agora os detalhes em vez de o tocar. No telemóvel, uma dica rápida na primeira vez explica a capa: toca para a pré-visualização, mantém premido para alterar a imagem."],
 
   "Songs found once play for everyone":
     ["Músicas encontradas uma vez tocam para todos",
