@@ -30211,7 +30211,6 @@ body.albums-hide-yt-btns.albums-hide-pl-btns   #albumsSection  .wv-gc-hover { di
 .wv-r1.wv-cx-row { background: rgba(240,170,48,0.1); }
 .wv-r2.wv-cx-row { background: rgba(148,163,184,0.08); }
 .wv-r3.wv-cx-row { background: rgba(180,83,9,0.08); }
-.wv-cx-row.wv-cx-open { background: rgba(255,255,255,0.05) !important; }
 
 /* Feature 8: rank numbers (all positions), gold/silver/bronze for top 3 */
 .wv-cx-rank { font-family: var(--font-mono);
@@ -30253,16 +30252,6 @@ body.albums-hide-yt-btns.albums-hide-pl-btns   #albumsSection  .wv-gc-hover { di
       font-variant-numeric: tabular-nums; font-size: var(--fs-xs); font-weight: 600; color: var(--text3); flex-shrink: 0; min-width: 24px; text-align: right; transition: color 0.2s; }
 
 /* Feature 5: accordion shelf */
-.wv-cx-shelf {
-  flex: 0 0 100%; display: none; flex-wrap: wrap; gap: var(--sp-2); align-items: center;
-  padding: 0.35rem 0.4rem 0.3rem 52px;
-  border-top: 1px solid var(--border); margin-top: 0.15rem;
-  font-size: var(--fs-xs); color: var(--text2);
-}
-.wv-cx-row.wv-cx-open .wv-cx-shelf { display: flex; }
-.wv-cx-shelf-item { display: inline-flex; align-items: center; gap: var(--sp-1); }
-.wv-cx-shelf-total { color: var(--text3); }
-.wv-cx-shelf-wks { color: var(--text3); }
 
 /* ── MOSAIC (TREEMAP) ── */
 .wv-mosaic { position: relative; width: 100%; min-height: 480px; }
@@ -30470,17 +30459,8 @@ body.albums-hide-cert #albumsSection .wv-film-cert-ov { display: none; }
 .wv-film-card .wv-bar { width: 100%; }
 
 /* Inline expand panel */
-.wv-film-expand { width: 100%; overflow: hidden; max-height: 0; transition: max-height 0.28s ease; }
-.wv-film-card.wv-film-open .wv-film-expand { max-height: 260px; }
-.wv-film-expand-inner { border-top: 1px solid var(--border); padding-top: 6px; margin-top: var(--sp-1); display: flex; flex-direction: column; gap: 5px; align-items: center; font-size: var(--fs-xs); }
-.wv-film-exp-badges { display: flex; flex-direction: row; align-items: center; justify-content: center; gap: var(--sp-1); flex-wrap: wrap; }
-.wv-film-exp-badges .peak-badge, .wv-film-exp-badges .peak-badge-1, .wv-film-exp-badges .peak-badge-2, .wv-film-exp-badges .peak-badge-3, .wv-film-exp-badges .cert { margin-left: 0; }
-.wv-film-exp-wks { color: var(--text3); }
-.wv-film-exp-alltime { color: var(--text3); text-align: center; }
-.wv-film-expand-inner .peak-badge, .wv-film-expand-inner .peak-badge-1, .wv-film-expand-inner .peak-badge-2, .wv-film-expand-inner .peak-badge-3 { margin-left: 0; }
 /* Score chip in the expand panel — the row-chip size (0.7em of an already small
    panel) came out ~7px and unreadable, so give it full panel size here */
-.wv-film-expand-inner .rt-chip--row { font-size: 0.92em; min-width: 2.6em; padding: 0.15em 0.5em; }
 
 /* ── STACK ── */
 @keyframes stk-glow-gold   { 0%,100% { box-shadow:0 0 0 2px rgba(240,170,48,0.85),0 0 28px rgba(240,170,48,0.5),0 0 50px rgba(240,170,48,0.18); } 50% { box-shadow:0 0 0 2px rgba(240,170,48,1),0 0 42px rgba(240,170,48,0.8),0 0 72px rgba(240,170,48,0.38); } }
@@ -31040,10 +31020,6 @@ body.red-light .modal-rank-card--year .mrc-rank {
 }
 
 .wv-r1.wv-stk-card .wv-bar-fill { background: var(--gold1) !important; }
-.wv-stk-shelf { display: none; padding: 0 10px 10px; border-top: 1px solid var(--border); padding-top: var(--sp-2); }
-.wv-stk-card.wv-stk-open .wv-stk-shelf { display: block; }
-.wv-stk-shelf-sum { font-size: var(--fs-xs); color: var(--text3); font-family: var(--font-mono);
-      font-variant-numeric: tabular-nums; margin-bottom: 6px; }
 .stk-2col-btn { display: none; margin-left: var(--sp-1); }
 
 /* ── RESPONSIVE ── */
@@ -35516,3 +35492,90 @@ body.cp-hide-cert-reel    #certReelSection { display: none !important; }
 }
 @keyframes eaHintIn { from { opacity: 0; transform: translateY(6px); } }
 @media (prefers-reduced-motion: reduce) { .ea-hint { animation: none; } }
+
+/* ═══ DETAILS DRAWER (phase 7 step 3) ═══════════════════════════════════════
+   The panel an entry opens in every layout (app.js, _drawerHTML / _drToggle):
+   numbers, links, actions and the chart run. In the Table it sits in the
+   entry's chart-run row; in Compact and Stack inside the entry; in Card grid
+   across the grid after the entry's row; under the strip in Filmstrip and
+   under the tiles in Mosaic. */
+[data-ea-type] { cursor: pointer; }
+.ea-drawer { cursor: auto; }
+
+.ea-drawer {
+  margin: var(--sp-2) 0; padding: var(--sp-3) var(--sp-4);
+  border: 1px solid var(--border); border-radius: var(--r-md);
+  background: var(--bg2); color: var(--text);
+  display: flex; flex-direction: column; gap: var(--sp-3);
+  text-align: left; white-space: normal;
+  animation: eaDrIn var(--t-med) var(--ease);
+}
+@keyframes eaDrIn { from { opacity: 0; transform: translateY(-4px); } }
+
+.ea-dr-head { display: flex; align-items: flex-start; gap: var(--sp-3); }
+.ea-dr-stats { flex: 1; display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-5); }
+.ea-dr-stat { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ea-dr-k { font-size: var(--fs-xs); color: var(--text3); text-transform: uppercase; letter-spacing: 0.04em; }
+.ea-dr-v { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 6px; font-family: var(--font-display); font-size: var(--fs-md); font-weight: 700; font-variant-numeric: tabular-nums; }
+.ea-dr-stat.is-best .ea-dr-v { color: var(--accent); font-family: var(--font-sans); font-size: var(--fs-sm); }
+.ea-dr-v .m-new, .ea-dr-v .m-re { margin-left: 0 !important; }
+.ea-dr-close {
+  flex-shrink: 0; width: 28px; height: 28px; padding: 0; border: 0; border-radius: var(--r-full);
+  background: transparent; color: var(--text3); font-size: var(--fs-sm); cursor: pointer;
+}
+.ea-dr-close:hover { background: var(--hover); color: var(--text); }
+
+.ea-dr-facts { display: flex; flex-wrap: wrap; gap: var(--sp-1) var(--sp-5); font-size: var(--fs-sm); }
+.ea-dr-fact { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.ea-dr-fact .ea-dr-k { margin-right: 2px; }
+
+.ea-dr-acts { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.ea-drawer .ea-dr-btn {
+  display: inline-flex; align-items: center; gap: 6px; width: auto; height: auto;
+  padding: 6px var(--sp-3); border: 1px solid var(--border2); border-radius: var(--r-full);
+  background: transparent; color: var(--text); opacity: 1;
+  font: inherit; font-size: var(--fs-sm); cursor: pointer;
+  transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+}
+.ea-drawer .ea-dr-btn:hover { background: var(--hover); color: var(--text); }
+.ea-drawer .ea-dr-btn.ea-sample.is-on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.ea-drawer .ea-dr-btn.ea-sample.is-loading { animation: eaPulse 1s ease-in-out infinite; }
+.ea-drawer .ea-dr-btn.ea-sample.is-miss { opacity: 0.5; }
+.ea-dr-btn:focus-visible, .ea-dr-close:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.ea-dr-run { margin: 0; padding: 0; border: 0; }
+
+/* The drawer shows everything, whatever ⋮ → Show hides on the chart's face.
+   Those switches hide badges with !important rules under the section id, so
+   these match the id and add a class to win. */
+:is(#songsSection, #artistsSection, #albumsSection) .ea-drawer .cert.cert { display: inline-flex !important; }
+:is(#songsSection, #artistsSection, #albumsSection) .ea-drawer .rt-chip.rt-chip--row { display: inline-flex !important; }
+
+/* Where it sits in each layout */
+.chart-table tr.cr-row td > .ea-drawer { margin: var(--sp-2) var(--sp-2) 0; }
+.wv-grid > .ea-drawer-span { grid-column: 1 / -1; margin: 0; }
+.wv-cx-row > .ea-drawer { flex: 0 0 100%; margin: var(--sp-1) 0 var(--sp-2); }
+.wv-stk-card > .ea-drawer { margin: 0 10px 10px; }
+
+/* The entry whose drawer is open */
+.chart-table tr.ea-open > td { background: var(--hover); }
+.wv-grid-card.ea-open, .wv-film-card.ea-open, .wv-mos-item.ea-open { outline: 2px solid var(--accent); outline-offset: 2px; }
+.wv-cx-row.ea-open, .wv-stk-card.ea-open { background: var(--hover); }
+[data-ea-type]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Mosaic: the tile's back opens the full drawer */
+.wv-mos-dr-btn {
+  padding: 5px 10px; border: 0; border-radius: var(--r-full);
+  background: rgba(255,255,255,0.12); color: #fff; font: inherit; font-size: var(--fs-xs); font-weight: 600; cursor: pointer;
+}
+.wv-mos-dr-btn:hover { background: rgba(255,255,255,0.24); }
+
+@media (max-width: 600px) {
+  .ea-drawer { padding: var(--sp-3); }
+  .ea-dr-stats { gap: var(--sp-2) var(--sp-4); }
+  .chart-table tr.cr-row td > .ea-drawer { margin: var(--sp-2) 0 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ea-drawer { animation: none; }
+  .ea-drawer .ea-dr-btn.ea-sample.is-loading { animation: none; }
+}

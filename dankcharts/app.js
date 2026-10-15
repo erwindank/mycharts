@@ -17147,7 +17147,7 @@ function renderSongs(plays, peaks, monthlyStats) {
         <div class="play-bar"><div class="play-bar-fill${barCls}" style="width:${Math.round(s.count / max * 100)}%"></div></div>
         ${f.isPlaysPeak ? playsPeakBadge() : ''}
       </td>
-      <td class="cr-cell">${_eaBtns()}<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_song')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">${CR_ICON}</button></td>
+      <td class="cr-cell">${_eaBtns()}<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_song')}" onclick="event.stopPropagation();_drToggle(this.closest('tr'))">${CR_ICON}</button></td>
     </tr>`;
     const expandRow = `<tr class="cr-row" id="${rowId}"><td colspan="${colCount}"><div class="cr-panel" data-crtype="songs" data-crkey="${encodeURIComponent(k)}">${buildCrPanelHTML('songs', k)}</div></td></tr>`;
     return [mainRow, expandRow];
@@ -17269,7 +17269,7 @@ function renderArtists(plays, peaks, monthlyStats) {
         ${/* under the bar, same as the songs chart — it used to sit above the count here */ ''}
         ${f.isPlaysPeak ? playsPeakBadge() : ''}
       </td>
-      <td class="cr-cell">${_eaBtns()}<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_artist')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">${CR_ICON}</button></td>
+      <td class="cr-cell">${_eaBtns()}<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_artist')}" onclick="event.stopPropagation();_drToggle(this.closest('tr'))">${CR_ICON}</button></td>
     </tr>`;
     const expandRow = `<tr class="cr-row" id="${rowId}"><td colspan="${colCount}"><div class="cr-panel" data-crtype="artists" data-crkey="${encodeURIComponent(artist)}">${buildCrPanelHTML('artists', artist)}</div></td></tr>`;
     return [mainRow, expandRow];
@@ -17410,7 +17410,7 @@ function renderAlbums(plays, peaks, monthlyStats) {
         ${/* under the bar, same as the songs chart — it used to sit above the count here */ ''}
         ${f.isPlaysPeak ? playsPeakBadge() : ''}
       </td>
-      <td class="cr-cell">${_eaBtns()}<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_album')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">${CR_ICON}</button></td>
+      <td class="cr-cell">${_eaBtns()}<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_album')}" onclick="event.stopPropagation();_drToggle(this.closest('tr'))">${CR_ICON}</button></td>
     </tr>`;
       const expandRow = `<tr class="cr-row" id="${rowId}"><td colspan="${colCount}"><div class="cr-panel" data-crtype="albums" data-crkey="${encodeURIComponent(ak)}">${buildCrPanelHTML('albums', ak)}</div></td></tr>`;
       return [mainRow, expandRow];
@@ -18301,6 +18301,10 @@ function _wvDisp(type, item) {
 
    Returns plain data plus a few ready-made bits of markup that every layout
    draws the same way (badges, the movement chip, the action attributes). */
+// The facts of every entry on the charts on screen, per type, by key: filled
+// as the charts are drawn, read by the details drawer when an entry opens.
+const _chartFacts = { songs: new Map(), artists: new Map(), albums: new Map() };
+
 function _chartItem(type, item, i, ctx) {
   const ms = ctx.ms || null, peaks = ctx.peaks || null;
   const rank = i + 1, count = item.count;
@@ -18367,7 +18371,7 @@ function _chartItem(type, item, i, ctx) {
   const imgId = ctx.imgId || '';
   const ea = _eaAttrs(type, { title, artist, album: type === 'artists' ? '' : album, key, imgId, crRow: ctx.crRow });
 
-  return {
+  const f = {
     type, key, rank, count, title, artist, album, name, ttl, sub,
     move, moveDiff, prevRank, mvHtml, barCls,
     peak, weeks, cumPlays, certHtml, ratingHtml, isPlaysPeak, deltaHtml,
@@ -18376,6 +18380,8 @@ function _chartItem(type, item, i, ctx) {
     trackCount: item.tracks ? item.tracks.size : 0,
     prefKey, imgId, ea,
   };
+  _chartFacts[type].set(key, f);
+  return f;
 }
 
 // Opens the matching detail modal from any alt chart view (grid/compact/mosaic/filmstrip/stack)
@@ -18443,10 +18449,10 @@ function _wvGrid(items, max, ms, imgItems, type) {
       f.move === 'down' ? ' wv-gc-down' : ''
     ) : '';
     const jtype = esc(JSON.stringify(type));
-    // Phase 7: a click opens the details (it used to start YouTube, which spends
-    // the site's shared search allowance); ▶ plays a sample, ⋮ / right-click
-    // open the action menu (_eaAttrs).
-    const clickAttr = ` onclick="_wvOpenModal(${jtype},${esc(JSON.stringify(k))})"`;
+    // Phase 7: a click opens the details drawer (it used to start YouTube,
+    // which spends the site's shared search allowance); ▶ plays a sample,
+    // ⋮ / right-click open the action menu (_eaAttrs).
+    const clickAttr = ` onclick="_drEntryClick(event,this)" tabindex="0"`;
     return `<div class="wv-card wv-grid-card wv-gc-anim${i < 3 ? ' wv-r' + (i+1) : ''}${mvClass}" style="animation-delay:${animDelay[i]}ms"${clickAttr}${ea}>` +
       `<div class="wv-card-art ea-cover"><div class="wv-thumb wv-thumb-lg">${_wvThumb(imgId, ttl)}</div>` +
       `<span class="wv-rank-badge">${i+1}</span>` +
@@ -18589,6 +18595,8 @@ function _eaPaintSamples() {
               : miss ? t('ea_sample_none') : t('ea_sample');
     btn.title = lbl;
     btn.setAttribute('aria-label', lbl);
+    // The drawer's labelled button says what a click will do
+    if (btn.classList.contains('ea-dr-btn') && btn.lastChild) btn.lastChild.textContent = on && !_eaClipLoading ? t('ea_sample_stop_menu') : t('ea_sample');
   });
 }
 
@@ -18775,11 +18783,9 @@ function _eaRunAction(action, el, arg) {
   } else if (action === 'artist') {
     openArtistModal(arg || d.artist);
   } else if (action === 'chartrun') {
-    // The Table has the run on a row of its own; elsewhere the details pop-up shows it
-    const row = d.crRow && document.getElementById(d.crRow);
-    const btn = row && el.querySelector('.cr-toggle-btn');
-    if (row && btn) toggleChartRun(btn, d.crRow);
-    else _wvOpenModal(d.type, d.key);
+    // The details drawer holds the chart run in every layout
+    if (el._drEntry) el = el._drEntry;
+    if (!el.classList.contains('ea-open')) _drToggle(el);
   } else if (action === 'cover') {
     const name = d.type === 'songs' ? d.title : d.type === 'albums' ? d.album : d.artist;
     const prefkey = d.type === 'songs' ? 'song:' + d.artist.toLowerCase() + '|||' + d.title.toLowerCase()
@@ -18917,6 +18923,187 @@ document.addEventListener('keydown', e => {
 });
 window.addEventListener('scroll', () => _eaCloseMenu(), { passive: true });
 
+/* ─── DETAILS DRAWER (phase 7 step 3) ────────────────────────────────────────
+   Clicking an entry in any layout opens a panel with everything about it,
+   right there on the chart: its numbers (peak, weeks, previous rank, plays and
+   the change since last time, all-time plays and certification, personal best,
+   score), its album / artists / counts, the chart run, and the actions. It
+   always shows everything, whatever the ⋮ → Show switches hide on the chart's
+   face: the drawer is where you go *for* detail.
+
+   Where it opens depends on the layout:
+     • Table — in the entry's own chart-run row (tr.cr-row), above the run
+       that row already held; the chart-run icon opens the same drawer.
+     • Compact, Stack — inside the row / card, under its first line.
+     • Card grid — a full-width panel after the visual row of cards.
+     • Filmstrip, Mosaic — a panel under the strip / the mosaic.
+   One drawer at a time per chart, except the Table, which lets several rows
+   stay open as its chart runs always could.
+
+   The facts come from _chartItem (step 2), kept per type in _chartFacts as the
+   chart is drawn, so opening a drawer never re-ranks anything. The drawer
+   element carries the entry's data-ea-* attributes, so its buttons are the
+   action module's own (.ea-sample plays and paints like ▶; data-dr-action
+   runs _eaRunAction). */
+
+function _drStat(label, valueHtml, extraCls) {
+  return `<div class="ea-dr-stat${extraCls ? ' ' + extraCls : ''}"><span class="ea-dr-k">${esc(label)}</span><span class="ea-dr-v">${valueHtml}</span></div>`;
+}
+
+// withRun: false for the Table, whose row below already holds the chart run
+function _drawerHTML(f, withRun) {
+  const stats = [];
+  if (f.peak) stats.push(_drStat(t('dr_peak'), '#' + f.peak));
+  if (f.weeks) stats.push(_drStat(t('dr_weeks'), String(f.weeks)));
+  if (f.move) {
+    const prev = f.prevRank ? `#${f.prevRank} ${f.mvHtml}` : f.mvHtml;
+    stats.push(_drStat(t('dr_prev'), prev));
+  }
+  // The change in plays only means something against a previous rank (NEW / RE
+  // already show under Previous)
+  stats.push(_drStat(t('dr_plays'), `${f.count.toLocaleString()}${f.prevRank ? f.deltaHtml : ''}`));
+  if (f.cumPlays) stats.push(_drStat(t('dr_alltime'), `${f.cumPlays.toLocaleString()}${f.certHtml}`));
+  if (f.isPlaysPeak) stats.push(_drStat(t('dr_best'), esc(t('dr_best_val')), 'is-best'));
+  if (f.ratingHtml) stats.push(_drStat(t('dr_score'), f.ratingHtml));
+
+  const facts = [];
+  if (f.type === 'songs') {
+    if (f.albumKey) facts.push(`<span class="ea-dr-fact"><span class="ea-dr-k">${esc(t('dr_album'))}</span>${chartNameLink(f.album, 'openAlbumModal', f.albumKey)}${f.albumCertHtml}</span>`);
+    facts.push(`<span class="ea-dr-fact"><span class="ea-dr-k">${esc(t('dr_artists'))}</span>${chartArtistLinks(f.artist)}</span>`);
+  } else if (f.type === 'albums') {
+    facts.push(`<span class="ea-dr-fact"><span class="ea-dr-k">${esc(t('dr_artists'))}</span>${chartArtistLinks(f.artist)}</span>`);
+    if (f.trackCount) facts.push(`<span class="ea-dr-fact"><span class="ea-dr-k">${esc(t('dr_tracks'))}</span>${f.trackCount}</span>`);
+  } else if (f.songCount) {
+    facts.push(`<span class="ea-dr-fact"><span class="ea-dr-k">${esc(t('dr_songs'))}</span>${f.songCount}</span>`);
+  }
+
+  const btn = (action, icon, label, cls) =>
+    `<button type="button" class="ea-dr-btn${cls ? ' ' + cls : ''}"${action ? ` data-dr-action="${action}"` : ''}><span aria-hidden="true">${icon}</span>${esc(label)}</button>`;
+  const acts = btn('', '♪', t('ea_sample'), 'ea-sample') +
+    btn('play', '▶', t('ea_play_now')) +
+    btn('playlist', '≡', t('ea_add_playlist')) +
+    btn('details', 'ⓘ', t('dr_more')) +
+    btn('yt', '↗', t('ea_search_yt'));
+
+  const run = withRun
+    ? `<div class="cr-panel ea-dr-run" data-crtype="${f.type}" data-crkey="${encodeURIComponent(f.key)}">${buildCrPanelHTML(f.type, f.key)}</div>`
+    : '';
+  return `<div class="ea-dr-head"><div class="ea-dr-stats">${stats.join('')}</div>` +
+      `<button type="button" class="ea-dr-close" data-dr-action="close" title="${esc(t('dr_close'))}" aria-label="${esc(t('dr_close'))}">✕</button></div>` +
+    (facts.length ? `<div class="ea-dr-facts">${facts.join('')}</div>` : '') +
+    `<div class="ea-dr-acts">${acts}</div>` + run;
+}
+
+// The drawer element: a div carrying the entry's data-ea-* attributes
+function _drMake(entry, f, withRun) {
+  const dr = document.createElement('div');
+  dr.className = 'ea-drawer';
+  dr.setAttribute('role', 'region');
+  dr.setAttribute('aria-label', t('dr_label', { name: f.ttl }));
+  for (const a of entry.attributes) if (a.name.startsWith('data-ea-')) dr.setAttribute(a.name, a.value);
+  dr.innerHTML = _drawerHTML(f, withRun);
+  dr._drEntry = entry;
+  return dr;
+}
+
+function _drSetOpen(entry, open) {
+  entry.classList.toggle('ea-open', open);
+  entry.setAttribute('aria-expanded', open ? 'true' : 'false');
+  const crBtn = entry.querySelector('.cr-toggle-btn');
+  if (crBtn) crBtn.classList.toggle('active', open);
+}
+
+function _drClose(dr) {
+  if (!dr) return;
+  const entry = dr._drEntry;
+  if (entry) _drSetOpen(entry, false);
+  // The Table's drawer lives in the chart-run row: close the row, keep the run
+  const crRow = dr.closest('tr.cr-row');
+  if (crRow) { crRow.classList.remove('open'); dr.remove(); return; }
+  dr.remove();
+}
+
+// Open the entry's drawer, or close it if it is open. Returns nothing.
+function _drToggle(entry) {
+  if (!entry || !entry.dataset.eaType) return;
+  const d = _eaEntryData(entry);
+  const f = _chartFacts[d.type] && _chartFacts[d.type].get(d.key);
+  if (!f) { _wvOpenModal(d.type, d.key); return; }   // facts not kept: the pop-up has it all
+
+  // ── Table: the entry's chart-run row ──
+  if (entry.tagName === 'TR') {
+    const crRow = d.crRow && document.getElementById(d.crRow);
+    if (!crRow) return;
+    const open = crRow.classList.contains('open') && crRow.querySelector('.ea-drawer');
+    if (open) { _drClose(crRow.querySelector('.ea-drawer')); return; }
+    const old = crRow.querySelector('.ea-drawer'); if (old) old.remove();
+    const td = crRow.querySelector('td');
+    td.insertBefore(_drMake(entry, f, false), td.firstChild);
+    crRow.classList.add('open');
+    _drSetOpen(entry, true);
+    return;
+  }
+
+  // ── Every other layout: one drawer per chart ──
+  const host = entry.closest('.wv-grid, .wv-compact, .wv-stack, .wv-film-wrap, .wv-mosaic');
+  const scope = entry.closest('[id^="weeklyAltView-"]') || host;
+  const current = scope && [...scope.querySelectorAll('.ea-drawer')].find(x => x._drEntry);
+  if (current) {
+    const same = current._drEntry === entry;
+    _drClose(current);
+    if (same) return;
+  }
+  const dr = _drMake(entry, f, true);
+  if (entry.classList.contains('wv-cx-row') || entry.classList.contains('wv-stk-card')) {
+    entry.appendChild(dr);                                   // under the row's first line
+  } else if (entry.classList.contains('wv-grid-card')) {
+    // After the last card on the same visual row, spanning the whole grid
+    let last = entry;
+    for (let n = entry.nextElementSibling; n && n.classList.contains('wv-grid-card') && n.offsetTop === entry.offsetTop; n = n.nextElementSibling) last = n;
+    last.after(dr);
+    dr.classList.add('ea-drawer-span');
+  } else if (entry.classList.contains('wv-film-card')) {
+    (entry.closest('.wv-filmstrip') || entry).after(dr);     // under the strip
+  } else if (entry.classList.contains('wv-mos-item')) {
+    (entry.closest('.wv-mosaic') || entry).after(dr);        // under the mosaic
+  } else {
+    entry.after(dr);
+  }
+  _drSetOpen(entry, true);
+  _eaPaintSamples();   // the drawer's ♪ shows a sample that is already playing
+  // Bring it into view if it opened below the screen
+  const r = dr.getBoundingClientRect();
+  if (r.bottom > window.innerHeight) dr.scrollIntoView({ block: 'nearest', behavior: _eaReduceMotion() ? 'auto' : 'smooth' });
+}
+
+function _eaReduceMotion() {
+  return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+}
+
+// What a click on an entry does in Compact, Stack, Card grid and Filmstrip.
+// The drawer can sit inside the entry (Compact, Stack), so a click that
+// started in it is the drawer's own, not a click on the entry.
+function _drEntryClick(event, entry) {
+  if (event.target.closest('.ea-drawer, a, button')) return;
+  _drToggle(entry);
+}
+
+// Drawer buttons (its ♪ is handled with ▶ by the capture listener above).
+// Bubble phase on purpose: the chart run's own buttons inside the drawer
+// (modes, + BU) must still get their clicks.
+document.addEventListener('click', e => {
+  const b = e.target.closest('.ea-drawer [data-dr-action]');
+  if (!b) return;
+  const dr = b.closest('.ea-drawer');
+  if (b.dataset.drAction === 'close') { const entry = dr._drEntry; _drClose(dr); if (entry && entry.focus) entry.focus({ preventScroll: true }); return; }
+  _eaRunAction(b.dataset.drAction, dr);
+});
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape' || (_eaMenuEl && _eaMenuEl.style.display === 'block')) return;
+  const dr = document.activeElement && document.activeElement.closest && document.activeElement.closest('.ea-drawer');
+  if (dr) { const entry = dr._drEntry; _drClose(dr); if (entry && entry.focus) entry.focus({ preventScroll: true }); }
+});
+
 function _wvCompact(items, max, ms, imgItems, type) {
   type = type || 'songs';
   const jtype = esc(JSON.stringify(type));
@@ -18966,16 +19153,9 @@ function _wvCompact(items, max, ms, imgItems, type) {
     const playsColor = ratio > 0.6 ? 'var(--accent)' : ratio > 0.3 ? 'var(--text)' : '';
     const playsStyle = playsColor ? ` style="color:${playsColor}"` : '';
 
-    // Feature 5: expand-on-click accordion shelf
-    const shelfParts = [];
-    if (album && album !== '—') shelfParts.push(`<span class="wv-cx-shelf-item">💿 ${esc(album)}</span>`);
-    if (pk) shelfParts.push(`<span class="wv-cx-shelf-item">${peakBadge(pk)}</span>`);
-    if (cumPlays > 0) shelfParts.push(`<span class="wv-cx-shelf-item wv-cx-shelf-total">${cumPlays} all-time</span>`);
-    if (weeks && weeks > 1) shelfParts.push(`<span class="wv-cx-shelf-item wv-cx-shelf-wks">${weeks}w on chart</span>`);
-    const shelf = shelfParts.length ? `<div class="wv-cx-shelf">${shelfParts.join('')}</div>` : '';
     const statusCls = mv.includes('wv-new') ? ' wv-stk-new' : mv.includes('wv-re') ? ' wv-stk-re' : '';
 
-    return `<div class="wv-cx-row${i < 3 ? ' wv-r' + (i + 1) : ''}${statusCls}" onclick="toggleCxExpand(this)"${ea}>` +
+    return `<div class="wv-cx-row${i < 3 ? ' wv-r' + (i + 1) : ''}${statusCls}" onclick="_drEntryClick(event,this)" tabindex="0"${ea}>` +
       `<span class="wv-cx-rank">${rankHtml}</span>` +
       `<div class="wv-cx-art-wrap ea-cover" onclick="event.stopPropagation()">` +
         `<div class="wv-thumb wv-thumb-sm">${_wvThumb(imgId, ttl)}</div>` +
@@ -18989,16 +19169,12 @@ function _wvCompact(items, max, ms, imgItems, type) {
       `<span class="wv-cx-prev">${prevContent}</span>` +
       `<span class="wv-cx-plays"${playsStyle}>${s.count}</span>` +
       _eaBtns() +
-      shelf +
       `</div>`;
   }).join('');
 
   return `<div class="wv-compact">${header}${rows}</div>`;
 }
 
-function toggleCxExpand(row) {
-  row.classList.toggle('wv-cx-open');
-}
 
 function _tmWorst(row, l) {
   const s = row.reduce((a, b) => a + b, 0);
@@ -19100,7 +19276,7 @@ function _wvMosaic(items, max, ms, imgItems, type) {
           </div>
           ${cumPlays ? `<div class="wv-mos-hcard-alltime">${cumPlays.toLocaleString()} ${tUnit('plays', cumPlays)} · ${t('nav_alltime')}${cert}</div>` : ''}
           <div class="wv-mos-hcard-bar"><div class="wv-mos-hcard-fill"></div></div>
-          <div class="wv-mos-back-acts">${eaBtns}${dcPlBtnHtml(dcPlKindFor(type), playTitle, playArtist, playAlbum, 'dc-pl-add-sm')}</div>
+          <div class="wv-mos-back-acts">${eaBtns}<button type="button" class="wv-mos-dr-btn" onclick="event.stopPropagation();_drToggle(this.closest('.wv-mos-item'))">${esc(t('dr_all'))}</button>${dcPlBtnHtml(dcPlKindFor(type), playTitle, playArtist, playAlbum, 'dc-pl-add-sm')}</div>
         </div>
       </div>
     </div>`;
@@ -19158,7 +19334,7 @@ function _wvFilmstrip(items, max, ms, imgItems, type) {
     const thumbCls = i < 3 ? 'wv-thumb-xl' : 'wv-thumb-lg';
     // Phase 7: ▶ sample + ⋮ menu next to the plays; on touch, tapping the
     // cover plays the sample (_eaAttrs)
-    return `<div class="wv-card wv-film-card${rc}" tabindex="0" data-idx="${i}" onclick="wvFilmCardClick(event,this)"${ea}>
+    return `<div class="wv-card wv-film-card${rc}" tabindex="0" data-idx="${i}" onclick="_drEntryClick(event,this)"${ea}>
       <div class="wv-film-rank-row">
         <span class="wv-film-ranknum">${i+1}</span>
         ${mv ? `<span class="wv-film-mv">${mv}</span>` : ''}
@@ -19171,12 +19347,6 @@ function _wvFilmstrip(items, max, ms, imgItems, type) {
       <div class="wv-art">${esc(sub)}</div>
       <div class="wv-film-plays-row"><span class="wv-plays">${s.count} plays</span>${_eaBtns()}</div>
       <div class="wv-bar"><div class="wv-bar-fill${barCls ? ' '+barCls : ''}" style="width:${barW}%"></div></div>
-      <div class="wv-film-expand"><div class="wv-film-expand-inner">
-        ${(pk || cert) ? `<div class="wv-film-exp-badges">${pk ? peakBadge(pk) : ''}${cert}</div>` : ''}
-        ${wks ? `<div class="wv-film-exp-wks">${tCount('weeks_full', wks)} ${t('film_on_chart')}</div>` : ''}
-        ${cumPlays ? `<div class="wv-film-exp-alltime">${cumPlays.toLocaleString()} ${t('film_alltime_plays')}</div>` : ''}
-        ${dcPlBtnHtml(dcPlKindFor(type), playTitle, playArtist, playAlbum, 'dc-pl-add-sm')}
-      </div></div>
     </div>`;
   }).join('');
 
@@ -19199,10 +19369,6 @@ function _wvFilmstrip(items, max, ms, imgItems, type) {
   </div>`;
 }
 
-function wvFilmCardClick(event, card) {
-  if (event.target.closest('button')) return;
-  card.classList.toggle('wv-film-open');
-}
 
 function wvFilmJump(idx, type) {
   const strip = document.getElementById('wv-filmstrip-' + type);
@@ -19386,7 +19552,6 @@ function initFilmstripInteractions(type) {
 
 function _wvStack(items, max, ms, imgItems, type) {
   type = type || 'songs';
-  const crData = allChartRun?.week || chartRunData;
   return `<div class="wv-stack${_stkTwoCol ? ' wv-stack-2col' : ''}">${items.map((s, i) => {
     const f = _wvItem(type, s, i, ms, imgItems);
     const { k, imgId, ea, mv, ttl, sub, barCls } = f;
@@ -19417,17 +19582,8 @@ function _wvStack(items, max, ms, imgItems, type) {
     const jmodalKey = esc(JSON.stringify(k));
     const ttlInner = `<span class="wv-stk-artist" onclick="event.stopPropagation();_wvOpenModal(${jtype},${jmodalKey})">${esc(ttl)}</span>`;
 
-    // Expand shelf: chart run summary + squares
-    const crD = crData?.result?.[crRunType(type)]?.[k];
-    const crPeak = crD ? crD.peak : null;
-    const crWks  = crD ? crD.entries.length : null;
-    const sumParts = [];
-    if (crWks)  sumParts.push(`${crWks} ${crWks === 1 ? 'week' : 'weeks'} on chart`);
-    if (crPeak) sumParts.push(`peaked #${crPeak}`);
-    const summaryHtml = sumParts.length ? `<div class="wv-stk-shelf-sum">${sumParts.join(' · ')}</div>` : '';
-    const shelf = `<div class="wv-stk-shelf">${summaryHtml}${crBoxesHTML(type, k, crData)}</div>`;
 
-    return `<div class="wv-stk-card${i < 3 ? ' wv-r' + (i+1) : ''}${statusCls}" tabindex="0" onclick="toggleStkExpand(this)"${ea}>
+    return `<div class="wv-stk-card${i < 3 ? ' wv-r' + (i+1) : ''}${statusCls}" tabindex="0" onclick="_drEntryClick(event,this)"${ea}>
       <div class="wv-stk-row">
         <div class="wv-stk-rank">${i+1}</div>
         <div class="wv-thumb wv-thumb-lg ea-cover">${_wvThumb(imgId, ttl)}</div>
@@ -19439,14 +19595,10 @@ function _wvStack(items, max, ms, imgItems, type) {
         </div>
         ${_eaBtns()}
       </div>
-      ${shelf}
     </div>`;
   }).join('')}</div>`;
 }
 
-function toggleStkExpand(card) {
-  card.classList.toggle('wv-stk-open');
-}
 
 function toggleStkTwoCol() {
   _stkTwoCol = !_stkTwoCol;
@@ -19459,7 +19611,7 @@ function initStkInteractions(type) {
   const container = document.getElementById('weeklyAltView-' + type);
   if (!container) return;
 
-  // Keyboard: ↑↓ navigate, Enter/Space expand, P play
+  // Keyboard: ↑↓ navigate, Enter/Space open the details drawer, P play the sample
   container.addEventListener('keydown', e => {
     const focused = document.activeElement;
     if (!focused?.classList.contains('wv-stk-card')) return;
@@ -19468,7 +19620,7 @@ function initStkInteractions(type) {
     if (idx === -1) return;
     if (e.key === 'ArrowDown') { e.preventDefault(); cards[Math.min(idx + 1, cards.length - 1)]?.focus(); }
     else if (e.key === 'ArrowUp') { e.preventDefault(); cards[Math.max(idx - 1, 0)]?.focus(); }
-    else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleStkExpand(focused); }
+    else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); _drToggle(focused); }
     // P plays the ▶ sample (phase 7; it used to start YouTube)
     else if (e.key === 'p' || e.key === 'P') { e.preventDefault(); focused.querySelector('.ea-sample')?.click(); }
   });
@@ -22782,12 +22934,10 @@ if (artistsBody) {
     if (window.getSelection && window.getSelection().toString().length > 0) return;
     let artistRow = e.target.closest('.artist-row');
     if (!artistRow || e.target.closest('button')) return;
-    const artistName = artistRow.dataset.artist;
-    if (artistName) {
-      e.preventDefault();
-      e.stopPropagation();
-      openArtistModal(artistName);
-    }
+    // Phase 7: a row opens its details drawer; the name still opens the pop-up
+    e.preventDefault();
+    e.stopPropagation();
+    _drToggle(artistRow);
   }, false);
 }
 
@@ -24125,12 +24275,10 @@ if (albumsBody) {
     if (window.getSelection && window.getSelection().toString().length > 0) return;
     let albumRow = e.target.closest('.album-row');
     if (!albumRow || e.target.closest('button')) return;
-    const albumKey = albumRow.dataset.albumkey;
-    if (albumKey) {
-      e.preventDefault();
-      e.stopPropagation();
-      openAlbumModal(albumKey);
-    }
+    // Phase 7: a row opens its details drawer; the name still opens the pop-up
+    e.preventDefault();
+    e.stopPropagation();
+    _drToggle(albumRow);
   }, false);
 }
 
@@ -24565,10 +24713,12 @@ const songsBodyEl = document.getElementById('songsBody');
 if (songsBodyEl) {
   songsBodyEl.addEventListener('click', e => {
     if (window.getSelection && window.getSelection().toString().length > 0) return;
-    const songRow = e.target.closest('.song-row');
-    if (!songRow || e.target.closest('button')) return;
-    const key = decodeURIComponent(songRow.dataset.songkey || '');
-    if (key) { e.preventDefault(); e.stopPropagation(); openSongModal(key); }
+    // Phase 7: any chart row opens its details drawer (it used to open the
+    // pop-up on Yearly / All-Time only); the title still opens the pop-up
+    const songRow = e.target.closest('tr[data-ea-type]');
+    if (!songRow || e.target.closest('button, a')) return;
+    e.preventDefault(); e.stopPropagation();
+    _drToggle(songRow);
   }, false);
 }
 

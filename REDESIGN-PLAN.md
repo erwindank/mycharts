@@ -1438,7 +1438,27 @@ animation, 12 screen check.
   All-Time) before and after: identical, apart from an artwork-sampled
   glow colour that varies run to run. One real fix: Mosaic and Filmstrip
   certified every album on the album ladder; they now use its release type
-  (single / EP / album), like the Table. The menu replaces `_wvGridCtx`. Play now /
+  (single / EP / album), like the Table.
+- **Step 3 ✓ (2026-10-14): the details drawer.** `_drawerHTML` / `_drToggle`
+  in app.js. Numbers (peak, weeks, previous rank + movement, plays + change,
+  all-time plays + certification, personal best, score), links (a song's
+  album + certification and artists; an album's artists and tracks played;
+  an artist's songs played), five buttons (sample, play the video, add to a
+  playlist, More details = the pop-up, search YouTube) and the chart run.
+  It shows everything whatever ⋮ → Show hides (CSS beats those switches'
+  !important rules under the section id). Facts come from `_chartFacts`,
+  filled by `_chartItem` as the chart is drawn. **Where:** Table → the
+  entry's chart-run row (a row click or the chart-run icon; several rows can
+  be open, as chart runs could); Compact / Stack → inside the entry; Card
+  grid → across the grid after the entry's visual row; Filmstrip → under the
+  strip; Mosaic → under the tiles, from a new "All details" button on the
+  tile's back (a tile click still flips it). One drawer per chart otherwise.
+  **Replaced:** Compact's accordion shelf, Filmstrip's card expand and
+  Stack's chart-run shelf (their CSS is gone); a Table artist / album row
+  click and a Yearly / All-Time song row click used to open the pop-up, now
+  the title does that and the row opens the drawer. Card grid and Compact
+  entries are now focusable; Enter opens the drawer in Stack. Checked with
+  real clicks in all six layouts, Songs / Artists / Albums tables, phone. The menu replaces `_wvGridCtx`. Play now /
   next / queue on an artist or album plays the song the sample picks, and
   "Pick a song…" opens the old last-10 picker. Chart run toggles the
   Table's run row; elsewhere it opens the details pop-up (the drawer
