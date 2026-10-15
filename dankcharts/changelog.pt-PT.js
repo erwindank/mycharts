@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Shared singles and EPs charts say Singles and EPs":
+    ["Tops de singles e EPs partilhados dizem Singles e EPs",
+     "Com singles ou EPs num Top próprio, partilhar esse Top como imagem continuava a dar o título “Top 10 Álbuns”. A imagem, a janela de partilha, o PDF para imprimir e o nome do ficheiro dizem agora Singles ou EPs, tal como o título do próprio Top."],
+
   "Mosaic and Filmstrip certify singles and EPs correctly":
     ["Mosaico e Filmstrip certificam singles e EPs corretamente",
      "Nos esquemas Mosaico e Filmstrip, todos os álbuns eram medidos pela escala de certificação de álbuns, mesmo singles e EPs. Agora usam o tipo de lançamento, tal como a tabela. Por trás, os seis esquemas vão agora buscar os dados de cada entrada a um só sítio, por isso já não se podem contradizer."],

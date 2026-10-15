@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 121;
+const DC_CL_I18N_V = 122;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-14', t: 'fix', a: 'share', h: 'e2789fd',
+    title: 'Shared singles and EPs charts say Singles and EPs',
+    detail: "With singles or EPs on their own chart, sharing that chart as an image still titled it \"Top 10 Albums\". The image, the share window, the printable PDF and the file name now say Singles or EPs, the same as the chart's own heading." },
 
   { d: '2026-10-14', t: 'fix', a: 'charts', h: 'a844fb1',
     title: 'Mosaic and Filmstrip certify singles and EPs correctly',

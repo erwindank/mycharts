@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Shared singles and EPs charts say Singles and EPs":
+    ["Los rankings de sencillos y EP compartidos dicen Sencillos y EP",
+     "Con los sencillos o los EP en su propio ranking, al compartir ese ranking como imagen el título seguía diciendo «Top 10 Álbumes». La imagen, la ventana de compartir, el PDF para imprimir y el nombre del archivo dicen ahora Sencillos o EP, igual que el título del propio ranking."],
+
   "Mosaic and Filmstrip certify singles and EPs correctly":
     ["Mosaico y Tira certifican bien los sencillos y EPs",
      "En los diseños Mosaico y Tira, todos los álbumes se medían con la escala de certificación de álbumes, incluso los sencillos y los EPs. Ahora usan el tipo de lanzamiento, igual que la tabla. Por detrás, los seis diseños obtienen ahora los datos de cada entrada de un solo sitio, así que ya no pueden contradecirse."],
