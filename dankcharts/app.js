@@ -1250,6 +1250,15 @@ function albumsEmptyMessage(fallbackKey) {
   return t('afilter_empty', { type: albumBucketNoun(true).toLowerCase() });
 }
 
+/* The word for a chart type in a heading that leaves the page: the share
+   image's title, its preview window, the printable PDF. For albums it follows
+   the bucket on show, the same as the chart's own heading, so a shared singles
+   chart says "Top 10 Singles", not "Top 10 Albums". */
+function chartTypeWord(type) {
+  if (type === 'albums' && separatedTypes().length) return albumBucketNoun(true);
+  return { songs: t('ig_type_songs'), artists: t('ig_type_artists'), albums: t('ig_type_albums') }[type];
+}
+
 function albumBucketNoun(plural) {
   const want = albumsFilterBucket();
   if (want === null) return plural ? t('afilter_all_noun') : t('afilter_all_noun_one');
@@ -20196,7 +20205,7 @@ function _pdfLoadOpts() {
 }
 
 function _pdfTypeWord(type) {
-  return { songs: t('ig_type_songs'), artists: t('ig_type_artists'), albums: t('ig_type_albums') }[type];
+  return chartTypeWord(type);
 }
 
 function openPdfModal(type) {
@@ -20965,7 +20974,7 @@ function shChartContext(type, opts) {
   const d = shDims(fmt);
   const n = items.length;
   const dr = getDateRange();
-  const typeWord = { songs: t('ig_type_songs'), artists: t('ig_type_artists'), albums: t('ig_type_albums') }[type];
+  const typeWord = chartTypeWord(type);   // "Singles" / "EPs" when that bucket is on show
 
   // The headline splits in two so templates can set the second half in a
   // lighter colour — "Top 10 Albums" / "of the Week".
@@ -21399,8 +21408,7 @@ function _igShareOpts() {
 function openIgPreviewModal(type) {
   loadIgSettings();
   igPreviewType = type;
-  const titleMap = { songs: t('ig_type_songs'), artists: t('ig_type_artists'), albums: t('ig_type_albums') };
-  document.getElementById('igPreviewTitle').textContent = t('ig_share_title') + ' — ' + titleMap[type];
+  document.getElementById('igPreviewTitle').textContent = t('ig_share_title') + ' — ' + chartTypeWord(type);
   shRenderDesignPickers('ig');
   ['showMovement', 'showPeak', 'showWeeks', 'showPlays', 'showSubtitle', 'showDate', 'showFooter', 'showArt'].forEach(k => {
     const el = document.getElementById('igOpt_' + k);
@@ -21481,7 +21489,10 @@ function updateIgPreview() {
 
 function _igFileName(ext) {
   const dr = getDateRange();
-  const typeLabel = { songs: 'Songs', artists: 'Artists', albums: 'Albums' }[igPreviewType] || 'Chart';
+  // Named after the bucket on show, like the image's title (chartTypeWord)
+  const bucket = igPreviewType === 'albums' ? albumsFilterBucket() : null;
+  const typeLabel = bucket ? ({ single: 'Singles', ep: 'EPs', album: 'Albums' }[bucket] || 'Albums')
+    : ({ songs: 'Songs', artists: 'Artists', albums: 'Albums' }[igPreviewType] || 'Chart');
   const periodSlug = (currentPeriod === 'alltime') ? 'AllTime' : (dr.sub || dr.label).replace(/[^a-z0-9]/gi, '').slice(0, 20);
   return `dankcharts_${typeLabel}_${periodSlug}_${igOptions.template}_${igOptions.format}.${ext || 'png'}`;
 }
