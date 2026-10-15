@@ -14659,7 +14659,13 @@ function openCrIgModalFromPanel(type, encodedKey) {
   openCrIgModal(type, encodedKey, rank);
 }
 
-function buildCrPanelHTML(type, key) {
+/* `f` (optional): the entry's facts from _chartItem, when the panel belongs to
+   an entry on the chart. Then the panel is the entry's whole details panel
+   (phase 7): its links and actions on top (_crEntryHTML), and this period's
+   figures (last week, plays this week, certification, personal best, score)
+   as the first tiles of the chart run's own row (_crNowTiles). Without `f`
+   (song / album pages, All Entries lists) it is the plain chart run. */
+function buildCrPanelHTML(type, key, f) {
   ensureAllChartRun(); // guarantees allChartRun has full history for "All-Time" mode
   const vy = getViewedYear();
   const cutoffKeys = getViewedCutoffKeys();
@@ -14695,6 +14701,7 @@ function buildCrPanelHTML(type, key) {
     <button class="cr-ig-share-btn" style="margin-left:auto;" onclick="openCrIgModalFromPanel('${type}','${encodeKeyForOnclick(key)}');event.stopPropagation()">${t('cr_share_btn')}</button>
   </div>`;
 
+  const nowTiles = f ? _crNowTiles(f) : '';
   let sectionsHtml = '';
   if (currentPeriod === 'year' || currentPeriod === 'alltime') {
     sectionsHtml = [
@@ -14719,6 +14726,9 @@ function buildCrPanelHTML(type, key) {
         <div class="cr-panel-section-body">${bodyHtml}</div>
       </div>`;
     }).join('');
+    // Year / All-Time split the run into three sections; this period's own
+    // figures get a row of their own above them
+    if (nowTiles) sectionsHtml = `<div class="cr-stats cr-stats-now">${nowTiles}</div>` + sectionsHtml;
   } else {
     const crData = allChartRun[currentPeriod] || chartRunData;
     const rawD = crData?.result?.[crRunType(type)]?.[key];
@@ -14726,13 +14736,13 @@ function buildCrPanelHTML(type, key) {
     const rangeOpts = { mode: getCrRangeMode(type, key), viewedYear: vy, cutoffKeys, periodMap: crData?.periodMap };
     if (d && hasBuData) {
       // Two-view wrapper: chart-only (default) and combined chart+BU timeline
-      sectionsHtml = `<div class="cr-stats">${crStats(type, key, currentPeriod, null, d, rangeOpts)}</div>
+      sectionsHtml = `<div class="cr-stats">${nowTiles}${crStats(type, key, currentPeriod, null, d, rangeOpts)}</div>
         <div class="cr-view-chart">${crBoxesHTML(type, key, null, d, currentPeriod)}</div>
         <div class="cr-view-combined" style="display:none;">${buildCrWithBuBoxesHTML(type, key, d)}</div>`;
     } else {
       sectionsHtml = d
-        ? `<div class="cr-stats">${crStats(type, key, currentPeriod, null, d, rangeOpts)}</div>${crBoxesHTML(type, key, null, d, currentPeriod)}`
-        : `<div style="font-size:var(--fs-xs);color:var(--text3);padding:4px 0">${t('cr_no_history')}</div>`;
+        ? `<div class="cr-stats">${nowTiles}${crStats(type, key, currentPeriod, null, d, rangeOpts)}</div>${crBoxesHTML(type, key, null, d, currentPeriod)}`
+        : (nowTiles ? `<div class="cr-stats">${nowTiles}</div>` : '') + `<div style="font-size:var(--fs-xs);color:var(--text3);padding:4px 0">${t('cr_no_history')}</div>`;
     }
   }
 
@@ -14762,7 +14772,7 @@ function buildCrPanelHTML(type, key) {
     <div class="cr-subsection-body" style="display:none;" data-crtype="${encodedType}" data-crkey="${encodedKey}" data-crkind="rawdata"></div>
   </div>`;
 
-  return headerHtml + toggleHtml + sectionsHtml + streaksHtml + heatmapHtml + rawDataHtml;
+  return (f ? _crEntryHTML(f) : '') + headerHtml + toggleHtml + sectionsHtml + streaksHtml + heatmapHtml + rawDataHtml;
 }
 
 function toggleCrPanelSection(headerEl) {
@@ -15522,8 +15532,14 @@ function _rawDataRender(cid, sort, dir, query) {
 function setCrRangeMode(mode, type, encodedKey) {
   const key = decodeURIComponent(encodedKey);
   crRangeModes[type + '|' + key] = mode;
-  const panel = document.querySelector(`.cr-row.open .cr-panel[data-crtype="${type}"][data-crkey="${encodedKey}"]`);
-  if (panel) panel.innerHTML = buildCrPanelHTML(type, key);
+  // Every open panel for the entry: the Table's chart-run row and the details
+  // drawer of the other layouts (step 3 missed the drawer, so its range
+  // buttons did nothing)
+  document.querySelectorAll(`.cr-row.open .cr-panel[data-crtype="${type}"][data-crkey="${encodedKey}"], .ea-drawer .cr-panel[data-crtype="${type}"][data-crkey="${encodedKey}"]`).forEach(panel => {
+    const f = panel.dataset.crfacts ? _chartFacts[type].get(key) : undefined;
+    panel.innerHTML = buildCrPanelHTML(type, key, f);
+  });
+  if (typeof _eaPaintSamples === 'function') _eaPaintSamples();
 }
 
 /* Returns the key of the period currently being viewed, which is where a chart
@@ -15837,6 +15853,11 @@ function crPeriodTitle(period, key) {
 // rangeOpts — { mode, viewedYear, cutoffKeys, periodMap } from the panel's RANGE
 // bar. Omitted by callers that render an unfiltered run (Records rows, modals),
 // which then get the all-time total.
+// One chart-run stat tile: what it counts, then the figure (HTML allowed)
+function crTile(label, valueHtml, cls) {
+  return `<div class="cr-stat${cls ? ' ' + cls : ''}"><span class="cr-stat-k">${esc(label)}</span><strong>${valueHtml}</strong></div>`;
+}
+
 function crStats(type, key, period, crData, preD, rangeOpts) {
   const data = crData || chartRunData;
   const d = preD !== undefined ? preD : (data?.result?.[type]?.[key]);
@@ -15848,23 +15869,20 @@ function crStats(type, key, period, crData, preD, rangeOpts) {
   const top1 = d.entries.filter(e => e.rank === 1).length;
   const top5 = d.entries.filter(e => e.rank <= 5).length;
   const top10 = d.entries.filter(e => e.rank <= 10).length;
-  const crPeriodUnit = (p, count) => p === 'week' ? tUnit('weeks', count) : p === 'month' ? tUnit('months', count) : tUnit('years', count);
-  const peakLabel = t('peak_label');
-  let html = `
-    <div class="cr-stat"><strong>${n} ${crPeriodUnit(period, n)}</strong>${t('cr_on_chart')}</div>
-    ${totalPlays ? `<div class="cr-stat cr-stat-total"><strong>${totalPlays.toLocaleString()}</strong>${t('cr_total_plays')}</div>` : ''}
-    <div class="cr-stat"><strong>${peakLabel} #${peak}</strong></div>
-    ${top1 ? `<div class="cr-stat"><strong>${top1} ${crPeriodUnit(period, top1)}</strong>${t('cr_at_1')}</div>` : ''}
-    ${top5 ? `<div class="cr-stat"><strong>${top5} ${crPeriodUnit(period, top5)}</strong>${t('cr_in_top5')}</div>` : ''}
-    ${top10 ? `<div class="cr-stat"><strong>${top10} ${crPeriodUnit(period, top10)}</strong>${t('cr_in_top10')}</div>` : ''}`;
+  // Each tile says what it counts on top ("Weeks on chart") with the figure
+  // below, so a tile reads on its own (phase 7: was "1 wk / on Chart",
+  // "PEAK #5", the label and the unit split between two lines)
+  const unit = period === 'month' ? 'month' : period === 'year' ? 'year' : 'week';
+  let html = crTile(t('cr_k_on_chart_' + unit), n)
+    + (totalPlays ? crTile(t('cr_k_total'), totalPlays.toLocaleString(), 'cr-stat-total') : '')
+    + crTile(t('cr_k_peak'), '#' + peak)
+    + (top1 ? crTile(t('cr_k_at1_' + unit), top1) : '')
+    + (top5 ? crTile(t('cr_k_top5_' + unit), top5) : '')
+    + (top10 ? crTile(t('cr_k_top10_' + unit), top10) : '');
   if (period === 'month') {
-    html += `
-    <div class="cr-stat"><strong>${d.peakPlays}</strong>${t('cr_peak_plays_month')}</div>
-    <div class="cr-stat"><strong>${d.peakDays}</strong>${t('cr_peak_days_month')}</div>`;
+    html += crTile(t('cr_peak_plays_month'), d.peakPlays) + crTile(t('cr_peak_days_month'), d.peakDays);
   } else if (period === 'year') {
-    html += `
-    <div class="cr-stat"><strong>${d.peakMonths}</strong>${t('cr_months_peak_year')}</div>
-    <div class="cr-stat"><strong>${d.peakDays}</strong>${t('cr_days_peak_year')}</div>`;
+    html += crTile(t('cr_months_peak_year'), d.peakMonths) + crTile(t('cr_days_peak_year'), d.peakDays);
   }
   return html;
 }
@@ -17149,7 +17167,7 @@ function renderSongs(plays, peaks, monthlyStats) {
       </td>
       <td class="cr-cell">${_eaBtns()}<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_song')}" onclick="event.stopPropagation();_drToggle(this.closest('tr'))">${CR_ICON}</button></td>
     </tr>`;
-    const expandRow = `<tr class="cr-row" id="${rowId}"><td colspan="${colCount}"><div class="cr-panel" data-crtype="songs" data-crkey="${encodeURIComponent(k)}">${buildCrPanelHTML('songs', k)}</div></td></tr>`;
+    const expandRow = `<tr class="cr-row" id="${rowId}"><td colspan="${colCount}"><div class="cr-panel"${f.ea} data-crfacts="1" data-crtype="songs" data-crkey="${encodeURIComponent(k)}">${buildCrPanelHTML('songs', k, f)}</div></td></tr>`;
     return [mainRow, expandRow];
   });
   const sbodyS = document.getElementById('songsBody');
@@ -17271,7 +17289,7 @@ function renderArtists(plays, peaks, monthlyStats) {
       </td>
       <td class="cr-cell">${_eaBtns()}<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_artist')}" onclick="event.stopPropagation();_drToggle(this.closest('tr'))">${CR_ICON}</button></td>
     </tr>`;
-    const expandRow = `<tr class="cr-row" id="${rowId}"><td colspan="${colCount}"><div class="cr-panel" data-crtype="artists" data-crkey="${encodeURIComponent(artist)}">${buildCrPanelHTML('artists', artist)}</div></td></tr>`;
+    const expandRow = `<tr class="cr-row" id="${rowId}"><td colspan="${colCount}"><div class="cr-panel"${f.ea} data-crfacts="1" data-crtype="artists" data-crkey="${encodeURIComponent(artist)}">${buildCrPanelHTML('artists', artist, f)}</div></td></tr>`;
     return [mainRow, expandRow];
   });
   const sbodyA = document.getElementById('artistsBody');
@@ -17412,7 +17430,7 @@ function renderAlbums(plays, peaks, monthlyStats) {
       </td>
       <td class="cr-cell">${_eaBtns()}<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_album')}" onclick="event.stopPropagation();_drToggle(this.closest('tr'))">${CR_ICON}</button></td>
     </tr>`;
-      const expandRow = `<tr class="cr-row" id="${rowId}"><td colspan="${colCount}"><div class="cr-panel" data-crtype="albums" data-crkey="${encodeURIComponent(ak)}">${buildCrPanelHTML('albums', ak)}</div></td></tr>`;
+      const expandRow = `<tr class="cr-row" id="${rowId}"><td colspan="${colCount}"><div class="cr-panel"${f.ea} data-crfacts="1" data-crtype="albums" data-crkey="${encodeURIComponent(ak)}">${buildCrPanelHTML('albums', ak, f)}</div></td></tr>`;
       return [mainRow, expandRow];
     });
     const sbodyL = document.getElementById('albumsBody');
@@ -18783,9 +18801,8 @@ function _eaRunAction(action, el, arg) {
   } else if (action === 'artist') {
     openArtistModal(arg || d.artist);
   } else if (action === 'chartrun') {
-    // The details drawer holds the chart run in every layout
-    if (el._drEntry) el = el._drEntry;
-    if (!el.classList.contains('ea-open')) _drToggle(el);
+    // The entry's details panel holds the chart run in every layout
+    if (!el.classList.contains('ea-open') && !el.classList.contains('cr-panel')) _drToggle(el);
   } else if (action === 'cover') {
     const name = d.type === 'songs' ? d.title : d.type === 'albums' ? d.album : d.artist;
     const prefkey = d.type === 'songs' ? 'song:' + d.artist.toLowerCase() + '|||' + d.title.toLowerCase()
@@ -18946,27 +18963,22 @@ window.addEventListener('scroll', () => _eaCloseMenu(), { passive: true });
    action module's own (.ea-sample plays and paints like ▶; data-dr-action
    runs _eaRunAction). */
 
-function _drStat(label, valueHtml, extraCls) {
-  return `<div class="ea-dr-stat${extraCls ? ' ' + extraCls : ''}"><span class="ea-dr-k">${esc(label)}</span><span class="ea-dr-v">${valueHtml}</span></div>`;
+// This period's own figures, as the first tiles of the chart run's row.
+// Labels name the period ("Last week", "Plays this month").
+function _crNowTiles(f) {
+  const per = currentPeriod === 'month' || currentPeriod === 'year' ? currentPeriod : currentPeriod === 'week' ? 'week' : '';
+  let h = '';
+  if (f.move) h += crTile(t('dr_prev_' + (per || 'week')), f.prevRank ? `#${f.prevRank} ${f.mvHtml}` : f.mvHtml, 'cr-stat-now');
+  // The change only means something against a previous rank (NEW / RE show above)
+  h += crTile(per ? t('dr_plays_' + per) : t('dr_plays'), `${f.count.toLocaleString()}${f.prevRank ? f.deltaHtml : ''}`, 'cr-stat-now');
+  if (f.certHtml) h += crTile(t('dr_cert'), f.certHtml, 'cr-stat-now');
+  if (f.isPlaysPeak) h += crTile(t('dr_best'), esc(t('dr_best_val')), 'cr-stat-now is-best');
+  if (f.ratingHtml) h += crTile(t('dr_score'), f.ratingHtml, 'cr-stat-now');
+  return h;
 }
 
-// withRun: false for the Table, whose row below already holds the chart run
-function _drawerHTML(f, withRun) {
-  // Only what the chart run below doesn't already show: its own tiles carry
-  // weeks on chart, total plays and peak, so the drawer keeps to this period
-  // (previous rank, plays and the change, personal best) plus score and cert.
-  const stats = [];
-  if (f.move) {
-    const prev = f.prevRank ? `#${f.prevRank} ${f.mvHtml}` : f.mvHtml;
-    stats.push(_drStat(t('dr_prev'), prev));
-  }
-  // The change in plays only means something against a previous rank (NEW / RE
-  // already show under Previous)
-  stats.push(_drStat(t('dr_plays'), `${f.count.toLocaleString()}${f.prevRank ? f.deltaHtml : ''}`));
-  if (f.certHtml) stats.push(_drStat(t('dr_cert'), f.certHtml));
-  if (f.isPlaysPeak) stats.push(_drStat(t('dr_best'), esc(t('dr_best_val')), 'is-best'));
-  if (f.ratingHtml) stats.push(_drStat(t('dr_score'), f.ratingHtml));
-
+// The top of an entry's details panel: links, actions and the close button
+function _crEntryHTML(f) {
   const facts = [];
   if (f.type === 'songs') {
     if (f.albumKey) facts.push(`<span class="ea-dr-fact"><span class="ea-dr-k">${esc(t('dr_album'))}</span>${chartNameLink(f.album, 'openAlbumModal', f.albumKey)}${f.albumCertHtml}</span>`);
@@ -18977,7 +18989,6 @@ function _drawerHTML(f, withRun) {
   } else if (f.songCount) {
     facts.push(`<span class="ea-dr-fact"><span class="ea-dr-k">${esc(t('dr_songs'))}</span>${f.songCount}</span>`);
   }
-
   const btn = (action, icon, label, cls) =>
     `<button type="button" class="ea-dr-btn${cls ? ' ' + cls : ''}"${action ? ` data-dr-action="${action}"` : ''}><span aria-hidden="true">${icon}</span>${esc(label)}</button>`;
   const acts = btn('', '♪', t('ea_sample'), 'ea-sample') +
@@ -18985,24 +18996,25 @@ function _drawerHTML(f, withRun) {
     btn('playlist', '≡', t('ea_add_playlist')) +
     btn('details', 'ⓘ', t('dr_more')) +
     btn('yt', '↗', t('ea_search_yt'));
-
-  const run = withRun
-    ? `<div class="cr-panel ea-dr-run" data-crtype="${f.type}" data-crkey="${encodeURIComponent(f.key)}">${buildCrPanelHTML(f.type, f.key)}</div>`
-    : '';
-  return `<div class="ea-dr-head"><div class="ea-dr-stats">${stats.join('')}</div>` +
-      `<button type="button" class="ea-dr-close" data-dr-action="close" title="${esc(t('dr_close'))}" aria-label="${esc(t('dr_close'))}">✕</button></div>` +
-    (facts.length ? `<div class="ea-dr-facts">${facts.join('')}</div>` : '') +
-    `<div class="ea-dr-acts">${acts}</div>` + run;
+  return `<div class="cr-entry">` +
+      (facts.length ? `<div class="ea-dr-facts">${facts.join('')}</div>` : '') +
+      `<div class="ea-dr-acts">${acts}</div>` +
+      `<button type="button" class="ea-dr-close" data-dr-action="close" title="${esc(t('dr_close'))}" aria-label="${esc(t('dr_close'))}">✕</button>` +
+    `</div>`;
 }
 
-// The drawer element: a div carrying the entry's data-ea-* attributes
-function _drMake(entry, f, withRun) {
+// The drawer's content in the layouts without a run row: the entry's panel
+function _drawerHTML(f) {
+  return `<div class="cr-panel ea-dr-run"${f.ea} data-crfacts="1" data-crtype="${f.type}" data-crkey="${encodeURIComponent(f.key)}">${buildCrPanelHTML(f.type, f.key, f)}</div>`;
+}
+
+// The drawer element: a wrapper around the entry's panel
+function _drMake(entry, f) {
   const dr = document.createElement('div');
   dr.className = 'ea-drawer';
   dr.setAttribute('role', 'region');
   dr.setAttribute('aria-label', t('dr_label', { name: f.ttl }));
-  for (const a of entry.attributes) if (a.name.startsWith('data-ea-')) dr.setAttribute(a.name, a.value);
-  dr.innerHTML = _drawerHTML(f, withRun);
+  dr.innerHTML = _drawerHTML(f);
   dr._drEntry = entry;
   return dr;
 }
@@ -19018,10 +19030,24 @@ function _drClose(dr) {
   if (!dr) return;
   const entry = dr._drEntry;
   if (entry) _drSetOpen(entry, false);
-  // The Table's drawer lives in the chart-run row: close the row, keep the run
-  const crRow = dr.closest('tr.cr-row');
-  if (crRow) { crRow.classList.remove('open'); dr.remove(); return; }
   dr.remove();
+}
+
+// Close whichever details panel `el` is in: the Table's run row or a drawer.
+// Returns the entry it belonged to.
+function _drCloseFrom(el) {
+  const crRow = el.closest('tr.cr-row');
+  if (crRow) {
+    crRow.classList.remove('open');
+    const entry = crRow.previousElementSibling;
+    if (entry && entry.dataset.eaType) _drSetOpen(entry, false);
+    return entry;
+  }
+  const dr = el.closest('.ea-drawer');
+  if (!dr) return null;
+  const entry = dr._drEntry;
+  _drClose(dr);
+  return entry;
 }
 
 // Open the entry's drawer, or close it if it is open. Returns nothing.
@@ -19031,17 +19057,14 @@ function _drToggle(entry) {
   const f = _chartFacts[d.type] && _chartFacts[d.type].get(d.key);
   if (!f) { _wvOpenModal(d.type, d.key); return; }   // facts not kept: the pop-up has it all
 
-  // ── Table: the entry's chart-run row ──
+  // ── Table: the entry's chart-run row already is its details panel ──
   if (entry.tagName === 'TR') {
     const crRow = d.crRow && document.getElementById(d.crRow);
     if (!crRow) return;
-    const open = crRow.classList.contains('open') && crRow.querySelector('.ea-drawer');
-    if (open) { _drClose(crRow.querySelector('.ea-drawer')); return; }
-    const old = crRow.querySelector('.ea-drawer'); if (old) old.remove();
-    const td = crRow.querySelector('td');
-    td.insertBefore(_drMake(entry, f, false), td.firstChild);
-    crRow.classList.add('open');
-    _drSetOpen(entry, true);
+    const open = !crRow.classList.contains('open');
+    crRow.classList.toggle('open', open);
+    _drSetOpen(entry, open);
+    if (open) _eaPaintSamples();
     return;
   }
 
@@ -19054,7 +19077,7 @@ function _drToggle(entry) {
     _drClose(current);
     if (same) return;
   }
-  const dr = _drMake(entry, f, true);
+  const dr = _drMake(entry, f);
   if (entry.classList.contains('wv-cx-row') || entry.classList.contains('wv-stk-card')) {
     entry.appendChild(dr);                                   // under the row's first line
   } else if (entry.classList.contains('wv-grid-card')) {
@@ -19093,16 +19116,19 @@ function _drEntryClick(event, entry) {
 // Bubble phase on purpose: the chart run's own buttons inside the drawer
 // (modes, + BU) must still get their clicks.
 document.addEventListener('click', e => {
-  const b = e.target.closest('.ea-drawer [data-dr-action]');
+  const b = e.target.closest('.cr-panel [data-dr-action]');
   if (!b) return;
-  const dr = b.closest('.ea-drawer');
-  if (b.dataset.drAction === 'close') { const entry = dr._drEntry; _drClose(dr); if (entry && entry.focus) entry.focus({ preventScroll: true }); return; }
-  _eaRunAction(b.dataset.drAction, dr);
+  if (b.dataset.drAction === 'close') {
+    const entry = _drCloseFrom(b);
+    if (entry && entry.focus) entry.focus({ preventScroll: true });
+    return;
+  }
+  _eaRunAction(b.dataset.drAction, b.closest('[data-ea-type]'));
 });
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape' || (_eaMenuEl && _eaMenuEl.style.display === 'block')) return;
-  const dr = document.activeElement && document.activeElement.closest && document.activeElement.closest('.ea-drawer');
-  if (dr) { const entry = dr._drEntry; _drClose(dr); if (entry && entry.focus) entry.focus({ preventScroll: true }); }
+  const panel = document.activeElement && document.activeElement.closest && document.activeElement.closest('.cr-panel[data-crfacts]');
+  if (panel) { const entry = _drCloseFrom(panel); if (entry && entry.focus) entry.focus({ preventScroll: true }); }
 });
 
 function _wvCompact(items, max, ms, imgItems, type) {

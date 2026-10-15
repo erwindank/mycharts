@@ -1460,7 +1460,20 @@ animation, 12 screen check.
   click and a Yearly / All-Time song row click used to open the pop-up, now
   the title does that and the row opens the drawer. Card grid and Compact
   entries are now focusable; Enter opens the drawer in Stack. Checked with
-  real clicks in all six layouts, Songs / Artists / Albums tables, phone. The menu replaces `_wvGridCtx`. Play now /
+  real clicks in all six layouts, Songs / Artists / Albums tables, phone.
+  **Then merged into the chart run (your call: one improved section, not a
+  second one).** The details panel *is* the chart-run panel now:
+  `buildCrPanelHTML(type, key, f)` with the entry's facts puts its links and
+  actions on top (`_crEntryHTML`, with the ✕) and this period's figures
+  first in the run's own row of tiles (`_crNowTiles`, tinted). The Table's
+  run row is built that way at render, so opening it is just showing the
+  row; the other layouts' drawer is a bare wrapper around the same panel.
+  Every chart-run tile now says what it counts on top with the figure below
+  (`crTile`): Last week, Plays this week, Certified, Personal best, Your
+  score, Weeks on chart, Total plays, Peak, Weeks at #1 / in Top 5 / in Top
+  10 (Months / Years on Monthly / Yearly). That also changes the tiles on the
+  song / album pages. Fixed on the way: the Range buttons only redrew runs
+  in Table rows, so they did nothing in the drawer. The menu replaces `_wvGridCtx`. Play now /
   next / queue on an artist or album plays the song the sample picks, and
   "Pick a song…" opens the old last-10 picker. Chart run toggles the
   Table's run row; elsewhere it opens the details pop-up (the drawer

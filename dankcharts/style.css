@@ -10766,7 +10766,22 @@
       margin-right: 0;
     }
 
+    /* What the tile counts, on top (phase 7: the label used to trail the
+       figure, split from its unit — "1 wk / on Chart") */
+    .cr-stat-k {
+      font-family: var(--font-sans);
+      font-size: var(--fs-xs);
+      line-height: 1.25;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      color: var(--text3);
+    }
+
     .cr-stat strong {
+      display: inline-flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
       color: var(--text);
       font-family: var(--font-display);
       font-size: var(--fs-md);
@@ -35512,14 +35527,9 @@ body.cp-hide-cert-reel    #certReelSection { display: none !important; }
 }
 @keyframes eaDrIn { from { opacity: 0; transform: translateY(-4px); } }
 
-.ea-dr-head { display: flex; align-items: flex-start; gap: var(--sp-3); }
-.ea-dr-stats { flex: 1; display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-5); }
-.ea-dr-stat { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .ea-dr-k { font-size: var(--fs-xs); color: var(--text3); text-transform: uppercase; letter-spacing: 0.04em; }
-.ea-dr-v { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 6px; font-family: var(--font-display); font-size: var(--fs-md); font-weight: 700; font-variant-numeric: tabular-nums; }
-.ea-dr-stat.is-best .ea-dr-v { color: var(--accent); font-family: var(--font-sans); font-size: var(--fs-sm); }
-.ea-dr-v .m-new, .ea-dr-v .m-re { margin-left: 0 !important; }
 .ea-dr-close {
+  position: absolute; top: 0; right: 0;
   flex-shrink: 0; width: 28px; height: 28px; padding: 0; border: 0; border-radius: var(--r-full);
   background: transparent; color: var(--text3); font-size: var(--fs-sm); cursor: pointer;
 }
@@ -35530,26 +35540,25 @@ body.cp-hide-cert-reel    #certReelSection { display: none !important; }
 .ea-dr-fact .ea-dr-k { margin-right: 2px; }
 
 .ea-dr-acts { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
-.ea-drawer .ea-dr-btn {
+.cr-panel .ea-dr-btn {
   display: inline-flex; align-items: center; gap: 6px; width: auto; height: auto;
   padding: 6px var(--sp-3); border: 1px solid var(--border2); border-radius: var(--r-full);
   background: transparent; color: var(--text); opacity: 1;
   font: inherit; font-size: var(--fs-sm); cursor: pointer;
   transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
 }
-.ea-drawer .ea-dr-btn:hover { background: var(--hover); color: var(--text); }
-.ea-drawer .ea-dr-btn.ea-sample.is-on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
-.ea-drawer .ea-dr-btn.ea-sample.is-loading { animation: eaPulse 1s ease-in-out infinite; }
-.ea-drawer .ea-dr-btn.ea-sample.is-miss { opacity: 0.5; }
+.cr-panel .ea-dr-btn:hover { background: var(--hover); color: var(--text); }
+.cr-panel .ea-dr-btn.ea-sample.is-on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.cr-panel .ea-dr-btn.ea-sample.is-loading { animation: eaPulse 1s ease-in-out infinite; }
+.cr-panel .ea-dr-btn.ea-sample.is-miss { opacity: 0.5; }
 .ea-dr-btn:focus-visible, .ea-dr-close:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-.ea-dr-run { margin: 0; padding: 0; border: 0; }
 
 /* The drawer shows everything, whatever ⋮ → Show hides on the chart's face.
    Those switches hide badges with !important rules under the section id, so
    these match the id and add a class to win. */
-:is(#songsSection, #artistsSection, #albumsSection) .ea-drawer .cert.cert { display: inline-flex !important; }
-:is(#songsSection, #artistsSection, #albumsSection) .ea-drawer .rt-chip.rt-chip--row { display: inline-flex !important; }
+:is(#songsSection, #artistsSection, #albumsSection) .cr-panel .cert.cert { display: inline-flex !important; }
+:is(#songsSection, #artistsSection, #albumsSection) .cr-panel .rt-chip.rt-chip--row { display: inline-flex !important; }
 
 /* Where it sits in each layout */
 .chart-table tr.cr-row td > .ea-drawer { margin: var(--sp-2) var(--sp-2) 0; }
@@ -35572,10 +35581,22 @@ body.cp-hide-cert-reel    #certReelSection { display: none !important; }
 
 @media (max-width: 600px) {
   .ea-drawer { padding: var(--sp-3); }
-  .ea-dr-stats { gap: var(--sp-2) var(--sp-4); }
   .chart-table tr.cr-row td > .ea-drawer { margin: var(--sp-2) 0 0; }
 }
 @media (prefers-reduced-motion: reduce) {
   .ea-drawer { animation: none; }
-  .ea-drawer .ea-dr-btn.ea-sample.is-loading { animation: none; }
+  .cr-panel .ea-dr-btn.ea-sample.is-loading { animation: none; }
 }
+
+/* The merged details panel (phase 7): the entry's links and actions sit at
+   the top of its chart-run panel, and this period's figures lead the run's
+   row of tiles, tinted so "now" reads apart from the run's totals. */
+.cr-panel[data-ea-type] { cursor: auto; }
+.cr-entry { position: relative; display: flex; flex-direction: column; gap: var(--sp-2); padding-right: 36px; margin-bottom: var(--sp-3); }
+.ea-drawer > .cr-panel { margin: 0; }
+/* The panel draws its own box; the drawer is only where it sits */
+.ea-drawer { padding: 0; gap: 0; border: 0; background: none; }
+.cr-stat.cr-stat-now { background: color-mix(in srgb, var(--accent) 9%, transparent); }
+.cr-stat.is-best strong { color: var(--accent); font-family: var(--font-sans); font-size: var(--fs-sm); white-space: normal; }
+.cr-stat strong .m-new, .cr-stat strong .m-re { margin-left: 0 !important; }
+.cr-stats-now { margin-bottom: var(--sp-3); }

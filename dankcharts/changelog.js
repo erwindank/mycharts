@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 124;
+const DC_CL_I18N_V = 125;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -82,7 +82,7 @@ const DC_CHANGELOG = [
 
   { d: '2026-10-14', t: 'feature', a: 'charts', h: '6cfb4c9',
     title: 'Details drawer on every chart entry',
-    detail: "Click any song, artist or album on the chart, in any of the six layouts, and a panel opens right there with everything about it: its last position, plays and how they changed, certification, personal best, your score, the album and artists, the full chart run with its peak and weeks, and buttons to hear a sample, play the video, add it to a playlist or open its full page. It always shows everything, even what the Show switches hide on the chart. Clicking the name still opens the full page." },
+    detail: "Click any song, artist or album on the chart, in any of the six layouts, and a panel opens right there with everything about it: its last position, plays and how they changed, certification, personal best, your score, the album and artists, the full chart run with its peak and weeks, and buttons to hear a sample, play the video, add it to a playlist or open its full page. It always shows everything, even what the Show switches hide on the chart. Clicking the name still opens the full page. The chart run's figures are clearer everywhere too: each one now says what it counts on top (Weeks on chart, Total plays, Peak, Weeks in Top 10) with the number below." },
 
   { d: '2026-10-14', t: 'fix', a: 'share', h: 'e2789fd',
     title: 'Shared singles and EPs charts say Singles and EPs',
