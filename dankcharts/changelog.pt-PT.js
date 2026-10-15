@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Songs found once play for everyone":
+    ["Músicas encontradas uma vez tocam para todos",
+     "O YouTube só permite ao site um número pequeno de pesquisas novas de músicas por dia, partilhado por todos. Agora, quando alguém ouve uma música, o site lembra-se de qual é o vídeo, e cada vez que essa música é ouvida depois, por quem quer que seja, começa logo sem gastar esse limite. O mesmo vale para a pesquisa do leitor e as pré-visualizações de Vídeo do Ano nos Prémios. Se um vídeo lembrado deixar de funcionar, é esquecido e procurado de novo. Sem conta podes ouvir qualquer música que alguém já tenha ouvido; para uma nova, o leitor pede-te para iniciar sessão."],
+
   "Plays in Portuguese, reprods in Spanish":
     ["Plays em português, reprods em espanhol",
      "Em português, as contagens dizem agora plays, a palavra que a maioria das apps de música e dos ouvintes já usa, em vez de reproduções e da forma curta «repros». Em espanhol, as etiquetas curtas, como os cabeçalhos de coluna e a palavra depois de um número, dizem reprods (reprod para um), e as frases completas continuam a dizer reproducciones."],

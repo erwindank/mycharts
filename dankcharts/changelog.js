@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 116;
+const DC_CL_I18N_V = 117;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-14', t: 'feature', a: 'player', h: '556b781',
+    title: 'Songs found once play for everyone',
+    detail: "YouTube only allows the site a small number of new song searches a day, shared by everyone. Now, once anyone plays a song, the site remembers which video it is, and every later play of that song, by anyone, starts straight away without using up that allowance. The same goes for the player's search box and the Video of the Year previews in Awards. If a remembered video stops working, it is forgotten and found again. Without an account you can play any song someone has already played; for a brand-new one the player asks you to sign in." },
 
   { d: '2026-10-14', t: 'i18n', a: 'charts', h: '8d135f3',
     title: 'Plays in Portuguese, reprods in Spanish',
