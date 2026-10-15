@@ -18644,6 +18644,10 @@ function _eaOpenMenu(el, x, y, alignRight) {
   const playerActive = typeof _ytCurrentTrack !== 'undefined' && _ytCurrentTrack && playerEl && playerEl.style.display !== 'none';
   const sep = '<div class="wv-ctx-sep" role="separator"></div>';
   let h = '';
+  // The sample first (the same as ▶ / tapping the cover); "stop" while it plays
+  h += _eaClipKey === _eaClipId(d)
+    ? _eaMenuItem('sample', '■', t('ea_sample_stop_menu'))
+    : _eaMenuItem('sample', '♪', t('ea_sample'));
   // Full songs (YouTube). For an artist or album these play the song the ▶ sample picks.
   h += _eaMenuItem('play', '▶', t('ea_play_now'));
   if (playerActive) {
@@ -18676,7 +18680,9 @@ function _eaOpenMenu(el, x, y, alignRight) {
 function _eaRunAction(action, el, arg) {
   const d = _eaEntryData(el);
   const kind = _EA_KIND[d.type];
-  if (action === 'play' || action === 'next' || action === 'queue') {
+  if (action === 'sample') {
+    _eaPlaySample(el);   // toggles: a second time stops it
+  } else if (action === 'play' || action === 'next' || action === 'queue') {
     const tr = _eaPlayTarget(d);
     if (!tr) { _eaQueueToast(t('ea_nothing_to_play'), false); return; }
     _eaStopSample();

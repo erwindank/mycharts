@@ -1414,7 +1414,9 @@ animation, 12 screen check.
   picker, and a small badge on the cover shows the sample playing. Mosaic
   keeps ▶ on the tile's back (a tap flips the tile). On phones ⋮ replaces
   the Table's chart-run icon (Chart run is in the menu), so the row is no
-  wider than before. The menu replaces `_wvGridCtx`. Play now /
+  wider than before. The ⋮ menu starts with the sample too ("Play a
+  30-second sample", "Stop the sample" while it plays), and its first
+  YouTube item says so: "Play the video (YouTube)". The menu replaces `_wvGridCtx`. Play now /
   next / queue on an artist or album plays the song the sample picks, and
   "Pick a song…" opens the old last-10 picker. Chart run toggles the
   Table's run row; elsewhere it opens the details pop-up (the drawer
