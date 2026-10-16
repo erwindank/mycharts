@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 136;
+const DC_CL_I18N_V = 137;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-16', t: 'feature', a: 'charts', h: '9991d33',
+    title: "Memories on the Daily chart",
+    detail: "A Memories card under the Daily chart, looking back from the day you are viewing: your top song and artist on the same date one, two and three years before (click one to open that day), forgotten favourites from your top 100 that had gone three months or more without a play, throwback artists from your top 20 you had not played for a month or more, comebacks (songs back after six months or more) and what you heard for the first time that day. Songs and artists there have the same ▶ sample and ⋮ menu as the other charts, and the daily chart's rows now have them too." },
 
   { d: '2026-10-16', t: 'feature', a: 'charts', h: '689e744',
     title: "Listening patterns on the Daily chart",

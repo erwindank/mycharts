@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Memories on the Daily chart":
+    ["Recuerdos en la lista diaria",
+     "Una tarjeta de Recuerdos bajo la lista diaria, mirando atrás desde el día que estás viendo: tu canción y artista top en la misma fecha uno, dos y tres años antes (haz clic para abrir ese día), favoritas olvidadas de tu top 100 que llevaban tres meses o más sin sonar, artistas del recuerdo de tu top 20 que no escuchabas desde hacía un mes o más, regresos (canciones que vuelven tras seis meses o más) y lo que escuchaste por primera vez ese día. Las canciones y artistas tienen el mismo ▶ de muestra y menú ⋮ que las otras listas, y las filas de la lista diaria ahora también."],
+
   "Listening patterns on the Daily chart":
     ["Patrones de escucha en la lista diaria",
      "Una tarjeta de Patrones bajo la lista diaria: la canción que más repetiste, la racha más larga de una canción y de un artista seguidos, los álbumes que escuchaste completos (comprobados con la lista de canciones real de Deezer, o con todas sus canciones de tu biblioteca mientras llega), lo variado que fue el día en una escala de fiel a explorador con lo habitual marcado, y la mezcla de géneros del día. Los géneros salen de las columnas Genre de tu hoja si las tiene; si no, de las etiquetas de artista de Last.fm."],

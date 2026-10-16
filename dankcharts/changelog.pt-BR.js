@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Memories on the Daily chart":
+    ["Memórias na parada diária",
+     "Um cartão de Memórias abaixo da parada diária, olhando para trás a partir do dia que você está vendo: a sua música e artista top na mesma data um, dois e três anos antes (clique para abrir esse dia), favoritas esquecidas do seu top 100 que estavam há três meses ou mais sem tocar, artistas para relembrar do seu top 20 que você não ouvia há um mês ou mais, retornos (músicas que voltam depois de seis meses ou mais) e o que você ouviu pela primeira vez naquele dia. As músicas e artistas têm o mesmo ▶ de amostra e menu ⋮ das outras paradas, e as linhas da parada diária agora também."],
+
   "Listening patterns on the Daily chart":
     ["Padrões de escuta na parada diária",
      "Um cartão de Padrões abaixo da parada diária: a música que você mais repetiu, a sequência mais longa de uma música e de um artista seguidos, os álbuns que você ouviu completos (conferidos com a lista de faixas real do Deezer, ou com todas as faixas dele na sua biblioteca até ela chegar), quão variado foi o dia numa escala de fiel a explorador com o seu normal marcado, e a mistura de gêneros do dia. Os gêneros vêm das colunas Genre da sua planilha quando ela tem; senão, das tags de artista do Last.fm."],
