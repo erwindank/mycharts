@@ -721,9 +721,9 @@ function _atiPanelEras(d) {
       _ati.eraSel = [...groups].sort((a, b) => b.list.length - a.list.length)[0].id;
     }
     decades = _atiColumns(groups, 'era', _ati.eraSel, _atiDecadeLabel, unit)
-      + (er.unknown ? `<p class="ati-note">${esc(t('ati_years_unknown', { n: er.unknown.toLocaleString() }))}</p>` : '');
+      + (er.unknown ? `<p class="ati-note">${esc(t(isAlb ? 'ati_years_unknown_albums' : 'ati_years_unknown', { n: er.unknown.toLocaleString() }))}</p>` : '');
   } else if (!y.running) {
-    decades = `<p class="ati-line">${esc(t('ati_years_none'))}</p>`;
+    decades = `<p class="ati-line">${esc(t(isAlb ? 'ati_years_none_albums' : 'ati_years_none'))}</p>`;
   }
 
   let age = '';
@@ -748,7 +748,7 @@ function _atiPanelEras(d) {
       </div>
       <div class="ati-block">
         <h3 class="ati-h">${esc(t('ati_age_title'))}</h3>
-        ${age || `<p class="ati-line">${esc(y.running ? t('ati_years_wait') : t('ati_years_none'))}</p>`}
+        ${age || `<p class="ati-line">${esc(y.running ? t('ati_years_wait') : t(isAlb ? 'ati_years_none_albums' : 'ati_years_none'))}</p>`}
         ${spots}
         ${_atiDiscoveryHtml(d)}
       </div>
