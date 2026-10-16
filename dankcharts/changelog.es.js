@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Export a day's songs as a playlist":
+    ["Exporta las canciones de un día como playlist",
+     "La lista diaria también tiene el botón Exportar playlist, igual que Semanal y Mensual: copia o descarga las canciones del día e impórtalas en Soundiiz a Spotify, Apple Music, YouTube Music, Deezer y más. Siempre exporta las canciones del día, aunque estés viendo la lista de artistas o de álbumes, y le pone la fecha como nombre."],
+
   "Share, play and relive a day on the Daily chart":
     ["Comparte, escucha y revive un día en la lista diaria",
      "Cuatro botones bajo los controles de la lista diaria. Resumen del día abre una historia a pantalla completa del día, una diapositiva tras otra: tus reproducciones frente a tu día habitual, tu canción #1, tu artista top, cuándo escuchaste, los destacados y una última para compartir o escucharlo; avanza sola y puedes tocar cualquier lado o usar las flechas. Compartir imagen abre el mismo diseñador que las otras listas (todos los diseños, paletas y formatos), ahora con el título \"del Día\" y los días en la lista diaria. Reproducir top N pone las canciones del día en la cola del reproductor, y Guardar como playlist las guarda en Playlists."],

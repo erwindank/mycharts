@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 139;
+const DC_CL_I18N_V = 140;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-16', t: 'feature', a: 'charts', h: 'b714c9c',
+    title: "Export a day's songs as a playlist",
+    detail: "The Daily chart has an Export playlist button too, the same as Weekly and Monthly: copy or download the day's songs and import them in Soundiiz into Spotify, Apple Music, YouTube Music, Deezer and more. It always exports the day's songs, even while the artists or albums chart is on screen, and names the list after the date." },
 
   { d: '2026-10-16', t: 'feature', a: 'charts', h: '478326d',
     title: "Share, play and relive a day on the Daily chart",

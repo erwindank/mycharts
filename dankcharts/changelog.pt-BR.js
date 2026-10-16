@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Export a day's songs as a playlist":
+    ["Exporte as músicas de um dia como playlist",
+     "A parada diária também tem o botão Exportar playlist, igual ao Semanal e ao Mensal: copie ou baixe as músicas do dia e importe no Soundiiz para Spotify, Apple Music, YouTube Music, Deezer e mais. Ele sempre exporta as músicas do dia, mesmo com a parada de artistas ou de álbuns na tela, e usa a data no nome."],
+
   "Share, play and relive a day on the Daily chart":
     ["Compartilhe, toque e reviva um dia na parada diária",
      "Quatro botões abaixo dos controles da parada diária. Resumo do dia abre uma história em tela cheia do dia, um slide de cada vez: os seus plays contra o seu dia normal, a sua música #1, o seu artista top, quando você ouviu, os destaques e um slide final para compartilhar ou tocar; ela avança sozinha e você pode tocar em qualquer lado ou usar as setas. Compartilhar imagem abre o mesmo editor das outras paradas (todos os designs, paletas e formatos), agora com o título \"do Dia\" e os dias na parada diária. Tocar top N coloca as músicas do dia na fila do player, e Salvar como playlist guarda elas em Playlists."],

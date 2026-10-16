@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Export a day's songs as a playlist":
+    ["Exporta as músicas de um dia como playlist",
+     "A tabela diária também tem o botão Exportar playlist, igual ao Semanal e ao Mensal: copia ou descarrega as músicas do dia e importa-as no Soundiiz para Spotify, Apple Music, YouTube Music, Deezer e mais. Exporta sempre as músicas do dia, mesmo com a tabela de artistas ou de álbuns no ecrã, e usa a data no nome."],
+
   "Share, play and relive a day on the Daily chart":
     ["Partilha, ouve e revive um dia na tabela diária",
      "Quatro botões por baixo dos controlos da tabela diária. Resumo do dia abre uma história em ecrã inteiro do dia, um slide de cada vez: os teus plays face ao teu dia habitual, a tua música #1, o teu artista top, quando ouviste, os destaques e um slide final para partilhar ou tocar; avança sozinha e podes tocar em qualquer lado ou usar as setas. Partilhar imagem abre o mesmo editor das outras tabelas (todos os designs, paletas e formatos), agora com o título \"do Dia\" e os dias na tabela diária. Tocar top N põe as músicas do dia na fila do leitor, e Guardar como playlist guarda-as em Playlists."],
