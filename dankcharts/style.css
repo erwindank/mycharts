@@ -29914,6 +29914,169 @@ button.ns-art {
   color: var(--text2);
 }
 
+/* ---- day streak details: a second row while nothing is on air (2026-10-16) ----
+   Filled by renderNowStripDayMore(). Three groups side by side, wrapping on
+   narrower screens: the bar toward your best, since when + top 3 runs, and
+   the artist / song / album runs still going. A song on air takes the room
+   back, so .is-live hides the row. */
+.ns-more {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  display: grid;
+  grid-template-columns: minmax(220px, 1.1fr) minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: var(--sp-3) var(--sp-5);
+  align-items: start;
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--border);
+  font-size: var(--fs-xs);
+  color: var(--text2);
+}
+
+.ns-more[hidden],
+.now-strip.is-live .ns-more {
+  display: none;
+}
+
+.ns-more-goal-top,
+.ns-more-goal-ends {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--sp-2);
+}
+
+.ns-more-goal-txt {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text);
+}
+
+.ns-more-goal-txt.is-best {
+  color: var(--gold1, #e8b400);
+}
+
+.ns-more-rank {
+  color: var(--text3);
+  white-space: nowrap;
+}
+
+/* The bar: the flame's orange running into gold */
+.ns-more-bar {
+  height: 6px;
+  margin: 6px 0 4px;
+  border-radius: 999px;
+  background: var(--raised, var(--bg3));
+  overflow: hidden;
+}
+
+.ns-more-bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #ff7a12, var(--gold1, #e8b400));
+  transition: width 0.6s ease;
+}
+
+.ns-more-goal-ends {
+  color: var(--text3);
+  font-variant-numeric: tabular-nums;
+}
+
+.ns-more-col {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+/* Small caps headings, the same voice as "LISTENING STREAK" */
+.ns-more-h {
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+
+.ns-more-h2 {
+  margin-top: 4px;
+}
+
+.ns-more-first {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ns-more-first b {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.ns-more-first span {
+  color: var(--text3);
+}
+
+.ns-more-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.ns-more-pill {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  white-space: nowrap;
+  color: var(--text3);
+}
+
+.ns-more-pill b {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The run going now, when it is one of your top 3 */
+.ns-more-pill.is-current {
+  border-color: color-mix(in srgb, #ff7a12 60%, transparent);
+  background: color-mix(in srgb, #ff7a12 12%, transparent);
+  color: var(--text2);
+}
+
+.ns-more-item {
+  display: grid;
+  grid-template-columns: 4.5em minmax(0, 1fr) auto;
+  gap: var(--sp-2);
+  align-items: baseline;
+}
+
+.ns-more-k {
+  color: var(--text3);
+}
+
+.ns-more-v {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text);
+}
+
+.ns-more-n {
+  color: var(--text3);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+@media (max-width: 1000px) {
+  .ns-more {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .ns-more-goal {
+    grid-column: 1 / -1;
+  }
+}
+
 /* ---- the flame (nsFlameSvg) ----
    Two tongues of fire. The tier class on the parent sets the colours: a grey
    ember with no streak, then amber, orange, red-orange, and gold at 100+ days,
@@ -30013,6 +30176,12 @@ body[class*="-light"] [class*="ns-tier-"] .ns-flame {
     padding: var(--sp-3) 0 0;
     border-left: 0;
     border-top: 1px solid var(--border);
+  }
+
+  /* The details stack under the day streak, one group per row */
+  .ns-more {
+    order: 3;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .ns-less {

@@ -33242,6 +33242,7 @@ function renderHeroStats() {
   });
 
   renderNowStripDayStreak(streak, pb);
+  renderNowStripDayMore(sortedDays, streak, pb, toNum(now));
 }
 
 /* Now strip day streak (#nsDayStreak in index.html). Moved out of the
@@ -33286,6 +33287,133 @@ function nsFlameSvg() {
     + '<path class="ns-flame-outer" d="M12 1.5c.6 3.4 2.9 5.4 4.7 7.6 1.6 2 2.8 4.1 2.8 6.6A7.5 7.5 0 0 1 4.5 15.7c0-2.6 1.1-4.6 2.7-6.3.3 1.9 1.2 3.2 2.6 3.9C9.3 9.1 10.3 4.8 12 1.5z"/>'
     + '<path class="ns-flame-inner" d="M12.3 11.6c.4 1.7 1.5 2.6 2.3 3.6.7.9 1 1.7 1 2.6a3.6 3.6 0 0 1-7.2 0c0-1.4.7-2.4 1.5-3.2.2.8.6 1.4 1.2 1.7-.1-1.7.3-3.3 1.2-4.7z"/>'
     + '</svg>';
+}
+
+/* Now strip day streak details (#nsDayMore in index.html, 2026-10-16). A
+   second row under the strip, shown only while nothing is on air (the CSS
+   hides it with .is-live), so the room the live song would take goes to the
+   listening streak instead:
+     - a bar toward your best; once you are on it, toward the next round number
+     - "N days to beat your best" or "New record every day"
+     - where this run ranks ("Your 2nd longest ever")
+     - since when, and the first song of the run
+     - your top 3 runs as pills with dates, this one highlighted if it is there
+     - the longest artist, song and album runs still going inside it
+   sortedDays are the listened days as YYYYMMDD numbers, oldest first, the
+   same list renderHeroStats() builds. Works for every data source: it only
+   reads allPlays. */
+const NS_DAY_GOALS = [7, 14, 30, 50, 100, 200, 365, 500, 730, 1000, 1500, 2000, 3000];
+function renderNowStripDayMore(sortedDays, streak, pb, todayNum) {
+  const el = document.getElementById('nsDayMore');
+  if (!el) return;
+  if (!streak || !sortedDays.length) { el.hidden = true; el.innerHTML = ''; return; }
+
+  const numToDate = n => new Date(Math.floor(n / 10000), Math.floor(n / 100) % 100 - 1, n % 100);
+  const toNum = d => d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+  const nextNum = n => { const d = numToDate(n); d.setDate(d.getDate() + 1); return toNum(d); };
+  const thisYear = Math.floor(todayNum / 10000);
+  // "29 Mar", with the year added when it is not this year
+  const fmt = n => numToDate(n).toLocaleDateString(undefined,
+    Math.floor(n / 10000) === thisYear ? { day: 'numeric', month: 'short' } : { day: 'numeric', month: 'short', year: 'numeric' });
+
+  // Every run of days in a row, oldest first
+  const runs = [];
+  let rs = sortedDays[0], prev = sortedDays[0];
+  for (let i = 1; i <= sortedDays.length; i++) {
+    const d = sortedDays[i];
+    if (d !== undefined && d === nextNum(prev)) { prev = d; continue; }
+    runs.push({ start: rs, end: prev, len: Math.round((numToDate(prev) - numToDate(rs)) / 86400000) + 1 });
+    rs = prev = d;
+  }
+  // The run going now is the newest one (it ends today or yesterday)
+  const cur = runs[runs.length - 1];
+  if (!cur || cur.len !== streak) { el.hidden = true; el.innerHTML = ''; return; }
+
+  // Rank: how many runs were longer, plus one (ties share the rank)
+  const rank = 1 + runs.filter(r => r.len > streak).length;
+  const ord = n => currentLang === 'en' ? ordinalSuffix(n) : n + '.ª';
+  const rankTxt = rank === 1 ? t('ns_more_rank_1') : t('ns_more_rank', { n: ord(rank) });
+
+  // Bar: toward your best, or once you are on it, toward the next round number
+  const onBest = streak >= pb;
+  const goal = onBest ? (NS_DAY_GOALS.find(g => g > streak) || Math.ceil((streak + 1) / 1000) * 1000) : pb;
+  const fill = Math.max(2, Math.min(100, Math.round(streak / goal * 100)));
+  const goalTxt = onBest ? t('ns_more_record') : t('ns_more_to_beat', { n: tCount('days', pb - streak + 1) });
+  const goalEnd = onBest ? t('ns_more_next', { n: goal.toLocaleString() }) : t('ns_more_best', { n: pb.toLocaleString() });
+
+  // Top 3 runs, longest first (newer first on a tie)
+  const top = runs.slice().sort((a, b) => b.len - a.len || b.end - a.end).slice(0, 3);
+  const pills = top.map(r => {
+    const isCur = r === cur;
+    const range = r.start === r.end ? fmt(r.start) : fmt(r.start) + ' – ' + fmt(r.end);
+    return `<span class="ns-more-pill${isCur ? ' is-current' : ''}" title="${esc(range)}"><b>${r.len.toLocaleString()}</b> <span>${esc(range)}</span></span>`;
+  }).join('');
+
+  // One walk over the plays inside the run (allPlays is newest first), for the
+  // first song and the artist / song / album runs still going.
+  const idxOf = new Map();
+  for (let d = cur.start, i = 0; d <= cur.end; d = nextNum(d), i++) idxOf.set(d, i);
+  const lastIdx = cur.len - 1;
+  const days = { artist: new Map(), song: new Map(), album: new Map() };
+  const names = { artist: {}, song: {}, album: {} };
+  const add = (type, key, idx, label) => {
+    let s = days[type].get(key);
+    if (!s) { s = new Set(); days[type].set(key, s); names[type][key] = label; }
+    s.add(idx);
+  };
+  let firstPlay = null;
+  for (const p of allPlays) {
+    const dn = toNum(tzDateOf(p));
+    const idx = idxOf.get(dn);
+    if (idx === undefined) { if (dn < cur.start) break; continue; }
+    if (idx === 0) firstPlay = p; // keeps moving back to the earliest play of day one
+    for (const a of p.artists) add('artist', a, idx, a);
+    add('song', songKey(p), idx, p.title + ' — ' + p.artist);
+    if (p.album && p.album !== '—') add('album', albumKeyOf(p), idx, p.album + ' — ' + albumArtist(p));
+  }
+  // A run still going has a play on the run's last day, or, when that is
+  // today, on the day before (today is not over yet)
+  const endsToday = cur.end === todayNum;
+  const best = {};
+  for (const type of ['artist', 'song', 'album']) {
+    let top1 = null;
+    for (const [key, s] of days[type]) {
+      let i = s.has(lastIdx) ? lastIdx : (endsToday && s.has(lastIdx - 1) ? lastIdx - 1 : -1);
+      if (i < 0) continue;
+      let n = 0;
+      while (i >= 0 && s.has(i)) { n++; i--; }
+      if (!top1 || n > top1.n) top1 = { key, n };
+    }
+    // One day is not a run; leave the line out
+    best[type] = top1 && top1.n >= 2 ? { name: names[type][top1.key], n: top1.n } : null;
+  }
+  const itemRows = ['artist', 'song', 'album'].filter(type => best[type]).map(type => `
+      <span class="ns-more-item">
+        <span class="ns-more-k">${esc(t('ns_more_' + type))}</span>
+        <span class="ns-more-v" title="${esc(best[type].name)}">${esc(best[type].name)}</span>
+        <span class="ns-more-n">${esc(tCount('days', best[type].n))}</span>
+      </span>`).join('');
+
+  el.innerHTML = `
+    <div class="ns-more-goal">
+      <div class="ns-more-goal-top">
+        <span class="ns-more-goal-txt${onBest ? ' is-best' : ''}">${esc(goalTxt)}</span>
+        <span class="ns-more-rank">${esc(rankTxt)}</span>
+      </div>
+      <div class="ns-more-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${goal}" aria-valuenow="${streak}" aria-label="${esc(goalTxt)}"><i style="width:${fill}%"></i></div>
+      <div class="ns-more-goal-ends"><span>${esc(tCount('days', streak))}</span><span>${esc(goalEnd)}</span></div>
+    </div>
+    <div class="ns-more-col">
+      <span class="ns-more-h">${esc(t('ns_more_since', { d: fmt(cur.start) }))}</span>
+      ${firstPlay ? `<span class="ns-more-first" title="${esc(firstPlay.title + ' — ' + firstPlay.artist)}">${esc(t('ns_more_first'))} <b>${esc(firstPlay.title)}</b> <span>— ${esc(firstPlay.artist)}</span></span>` : ''}
+      <span class="ns-more-h ns-more-h2">${esc(t('ns_more_top'))}</span>
+      <span class="ns-more-pills">${pills}</span>
+    </div>
+    ${itemRows ? `<div class="ns-more-col ns-more-items">
+      <span class="ns-more-h">${esc(t('ns_more_items'))}</span>
+      ${itemRows}
+    </div>` : ''}`;
+  el.hidden = false;
 }
 
 // ─── STREAK HEATMAP STATE ─────────────────────────────────────
