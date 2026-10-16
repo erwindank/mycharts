@@ -656,6 +656,15 @@ function dySavePlaylist() {
 
 // type: the chart on screen (what Share image draws); nSongs: the day's song
 // chart length (what Play and Save use, whichever chart is on screen)
+/* Export playlist: the shared export window (openExportModal in app.js) —
+   copy or download the day's songs as "Artist - Title" lines and import them
+   in Soundiiz into Spotify, Apple Music, YouTube Music, Deezer… It reads
+   fullData.songs, which dyPublishForShare() has filled with the day's songs
+   chart whichever chart is on screen. */
+function dyExportPlaylist() {
+  if (typeof openExportModal === 'function') openExportModal();
+}
+
 function dyActionsHtml(type, nSongs) {
   const off = nSongs ? '' : ' disabled';
   return `
@@ -664,6 +673,7 @@ function dyActionsHtml(type, nSongs) {
       <button type="button" class="dy-act" onclick="openIgPreviewModal('${type}')"${off}>📷 ${esc(t('dy_share_img'))}</button>
       <button type="button" class="dy-act" onclick="dyPlayTop()"${off}>▶ ${esc(t('dy_play_top', { n: nSongs }))}</button>
       <button type="button" class="dy-act" onclick="dySavePlaylist()"${off}>＋ ${esc(t('dy_save_pl'))}</button>
+      <button type="button" class="dy-act" onclick="dyExportPlaylist()"${off} title="${esc(t('dy_export_tip'))}">📤 ${esc(t('dy_export'))}</button>
     </div>`;
 }
 

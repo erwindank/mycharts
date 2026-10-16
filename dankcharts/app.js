@@ -20081,9 +20081,11 @@ function generatePlaylistNames(songs, periodName) {
 
 function openExportModal() {
   const songs = getCurrentChartSongs();
-  const { label } = getDateRange();
+  const { label, sub } = getDateRange();
   const periodName = currentPeriod === 'alltime' ? t('period_alltime') :
     currentPeriod === 'week' ? t('period_week_of', { date: label }) :
+      // Daily tab: the label is "Today" / a weekday, so name it by the full date
+      currentPeriod === 'day' ? sub :
       label;
 
   document.getElementById('exportModalSubtitle').textContent =
