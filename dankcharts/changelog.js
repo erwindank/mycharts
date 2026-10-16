@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 127;
+const DC_CL_I18N_V = 128;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -80,9 +80,9 @@ const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
 
-  { d: '2026-10-16', t: 'design', a: 'ui', h: '8bffa21',
-    title: 'Your day streak is on every chart tab',
-    detail: "Your day streak used to be the last number in the All-Time summary, so you only saw it on that one tab. It now sits at the end of the strip at the top of the charts (the one with your in-a-row run and the last song played), on every chart tab: a flame with the number of days in a row you have listened and your personal best. On phones it shows as a \"days\" pill in the folded strip. The flame grows and changes colour as the streak gets longer. Click it to open the streak details." },
+  { d: '2026-10-16', t: 'design', a: 'ui', h: '5cdb2df',
+    title: 'Your listening streak is on every chart tab',
+    detail: "Your listening streak (how many days in a row you have played music) used to be the last number in the All-Time summary, so you only saw it on that one tab. It now sits at the end of the strip at the top of the charts, on every chart tab, labelled Listening streak so it is not mixed up with the in-a-row run next to it. It shows the days and your best (\"Your best: 370 days\", or \"Your best ever\" in gold while you are on it), with a new flame that warms from a grey ember to gold as the streak grows. On phones the folded strip now has two lines: the song, then both streaks in words. Click it to open the streak details." },
 
   { d: '2026-10-14', t: 'feature', a: 'charts', h: '6cfb4c9',
     title: 'Details drawer on every chart entry',

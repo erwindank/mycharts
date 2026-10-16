@@ -16,9 +16,9 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
-  "Your day streak is on every chart tab":
-    ["Sua sequência de dias está em todas as abas de paradas",
-     "Sua sequência de dias era o último número do resumo de Todos os tempos, então você só a via nessa aba. Agora ela fica no fim da faixa no topo das paradas (a da sua sequência seguida e da última música), em todas as abas de paradas: uma chama com o número de dias seguidos em que você ouviu música e seu recorde pessoal. No celular ela aparece como uma etiqueta de \"dias\" na faixa recolhida. A chama cresce e muda de cor conforme a sequência aumenta. Clique para abrir os detalhes da sequência."],
+  "Your listening streak is on every chart tab":
+    ["Sua sequência de escuta está em todas as abas de paradas",
+     "Sua sequência de escuta (quantos dias seguidos você ouviu música) era o último número do resumo de Todos os tempos, então você só a via nessa aba. Agora ela fica no fim da faixa no topo das paradas, em todas as abas de paradas, com o rótulo Sequência de escuta para não ser confundida com a sequência seguida ao lado. Mostra os dias e seu recorde (\"Seu recorde: 370 dias\", ou \"Seu melhor de todos\" em dourado enquanto você está nele), com uma chama nova que vai de brasa cinza a dourado conforme a sequência cresce. No celular a faixa recolhida agora tem duas linhas: a música e depois as duas sequências por extenso. Clique para abrir os detalhes da sequência."],
 
   "Details drawer on every chart entry":
     ["Painel de detalhes em cada item da parada",

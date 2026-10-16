@@ -16,9 +16,9 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
-  "Your day streak is on every chart tab":
-    ["A tua sequência de dias está em todos os separadores do Top",
-     "A tua sequência de dias era o último número do resumo de Sempre, por isso só a vias nesse separador. Agora está no fim da faixa no topo do Top (a da tua sequência seguida e da última música), em todos os separadores do Top: uma chama com o número de dias seguidos em que ouviste música e o teu recorde pessoal. No telemóvel aparece como uma etiqueta de \"dias\" na faixa recolhida. A chama cresce e muda de cor à medida que a sequência aumenta. Clica para abrir os detalhes da sequência."],
+  "Your listening streak is on every chart tab":
+    ["A tua sequência de escuta está em todos os separadores do Top",
+     "A tua sequência de escuta (quantos dias seguidos ouviste música) era o último número do resumo de Sempre, por isso só a vias nesse separador. Agora está no fim da faixa no topo do Top, em todos os separadores do Top, com a etiqueta Sequência de escuta para não ser confundida com a sequência seguida ao lado. Mostra os dias e o teu recorde (\"O teu recorde: 370 dias\", ou \"O teu melhor de sempre\" a dourado enquanto estás nele), com uma chama nova que passa de brasa cinzenta a dourado à medida que a sequência cresce. No telemóvel a faixa recolhida tem agora duas linhas: a música e depois as duas sequências por extenso. Clica para abrir os detalhes da sequência."],
 
   "Details drawer on every chart entry":
     ["Painel de detalhes em cada entrada do Top",

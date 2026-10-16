@@ -16,9 +16,9 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
-  "Your day streak is on every chart tab":
-    ["Tu racha de días está en cada pestaña de rankings",
-     "Tu racha de días era el último número del resumen de Todo el tiempo, así que solo la veías en esa pestaña. Ahora está al final de la franja de arriba de los rankings (la de tu racha seguida y la última canción), en cada pestaña de rankings: una llama con el número de días seguidos que has escuchado y tu mejor marca. En el móvil aparece como una etiqueta de \"días\" en la franja plegada. La llama crece y cambia de color a medida que la racha se alarga. Haz clic para abrir los detalles de la racha."],
+  "Your listening streak is on every chart tab":
+    ["Tu racha de escucha está en cada pestaña de rankings",
+     "Tu racha de escucha (cuántos días seguidos has puesto música) era el último número del resumen de Todo el tiempo, así que solo la veías en esa pestaña. Ahora está al final de la franja de arriba de los rankings, en cada pestaña de rankings, con la etiqueta Racha de escucha para no confundirla con la racha seguida de al lado. Muestra los días y tu récord (\"Tu récord: 370 días\", o \"Tu mejor racha\" en dorado mientras estás en ella), con una llama nueva que pasa de brasa gris a dorado a medida que la racha crece. En el móvil la franja plegada tiene ahora dos líneas: la canción y luego las dos rachas con palabras. Haz clic para abrir los detalles de la racha."],
 
   "Details drawer on every chart entry":
     ["Panel de detalles en cada entrada del ranking",
