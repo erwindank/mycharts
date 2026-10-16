@@ -37846,3 +37846,8 @@ body.pink-light .sk-hm-tswatch.active, body.red-light .sk-hm-tswatch.active { bo
   .sk-hm-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .sk-hm-themes { margin-left: 0; }
 }
+
+/* The streak window sits one step under the other windows, so a song, album or
+   artist window opened from a streak row's ⋮ menu (Details, Album, Artist)
+   shows on top of it instead of behind it. Every other window uses --z-modal. */
+#streakModal { z-index: calc(var(--z-modal) - 1); }
