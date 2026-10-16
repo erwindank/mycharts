@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 146;
+const DC_CL_I18N_V = 147;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-16', t: 'improvement', a: 'charts', h: '24445de',
+    title: "Streak details stay with a song on air, and can be hidden",
+    detail: "The listening streak row under the top strip now shows while a song is on air too. A small handle on the strip's bottom edge folds that row away on its own, without hiding the song or the streaks, and the site remembers your choice." },
 
   { d: '2026-10-16', t: 'feature', a: 'charts', h: '3e1f5dc',
     title: "More about your listening streak when nothing is playing",

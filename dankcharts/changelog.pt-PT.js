@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Streak details stay with a song on air, and can be hidden":
+    ["Os detalhes da sequência ficam com uma música a tocar e podem ser escondidos",
+     "A linha da sequência de escuta por baixo da barra do topo agora aparece também enquanto uma música toca. Uma pequena pega no limite de baixo da barra esconde só essa linha, sem esconder a música nem as sequências, e o site lembra a tua escolha."],
+
   "More about your listening streak when nothing is playing":
     ["Mais sobre a tua sequência de escuta quando nada está a tocar",
      "Sem nenhuma música a tocar, a barra do topo abre uma segunda linha sobre a tua sequência de escuta: uma barra rumo ao teu recorde (e, depois de o passares, rumo ao próximo número redondo como 100 ou 365), quantos dias faltam para bater o teu recorde ou \"Recorde novo todos os dias\", a posição desta sequência (\"A tua 2.ª maior sequência\"), desde quando e a primeira música dela, as tuas 3 maiores sequências com as datas (a atual destacada se estiver entre elas), e o artista, a música e o álbum que ouves há mais dias seguidos neste momento. Quando uma música toca, recupera o espaço."],

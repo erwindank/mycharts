@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Streak details stay with a song on air, and can be hidden":
+    ["Los detalles de la racha se quedan con una canción sonando y se pueden ocultar",
+     "La fila de la racha de escucha bajo la barra de arriba ahora también aparece mientras suena una canción. Un pequeño tirador en el borde inferior de la barra oculta solo esa fila, sin esconder la canción ni las rachas, y la web recuerda tu elección."],
+
   "More about your listening streak when nothing is playing":
     ["Más sobre tu racha de escucha cuando no suena nada",
      "Sin ninguna canción sonando, la barra de arriba abre una segunda fila sobre tu racha de escucha: una barra hacia tu récord (y, una vez superado, hacia el siguiente número redondo como 100 o 365), cuántos días faltan para superarlo o \"Récord nuevo cada día\", qué puesto ocupa esta racha (\"Tu 2.ª racha más larga\"), desde cuándo y su primera canción, tus 3 mejores rachas con sus fechas (la actual resaltada si está entre ellas), y el artista, la canción y el álbum que llevas más días seguidos escuchando ahora mismo. Cuando suena una canción, recupera su espacio."],
