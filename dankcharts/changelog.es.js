@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Streak rows show covers, levels and the last 14 days":
+    ["Las filas de rachas muestran portadas, niveles y los últimos 14 días",
+     "La pestaña En racha de la ventana de Rachas Diarias es una sola lista con un selector Todo / Artistas / Álbumes / Canciones en lugar de tres secciones largas, con un podio para tus tres rachas activas más largas. Cada fila tiene ahora su portada o foto del artista, un nivel de racha (Chispa, Llama, Hoguera, Infierno, Eterna) que colorea los días, los últimos 14 días dibujados bajo el nombre (ya no hay que pasar el ratón por ◈), una barra hacia el siguiente hito y lo cerca que estás de tu récord. Las filas llevan el mismo ▶ de muestra y el menú ⋮ de las listas. Las filas en riesgo y perdidas de la pestaña Hoy usan el mismo diseño. El filtro y el orden siguen funcionando; al filtrar u ordenar de la A a la Z se ven todas las coincidencias como lista simple."],
+
   "The streak window opens on a Today tab that shows what to save":
     ["La ventana de rachas se abre en una pestaña Hoy que muestra qué salvar",
      "La ventana de Rachas Diarias ahora se abre en Hoy: las rachas que aún necesitan una escucha antes de medianoche, con una cuenta atrás en vivo y una barra de cuántas ya mantuviste hoy. Una canción puede mantener varias rachas a la vez (la canción, su álbum y cada artista), así que la ventana muestra las menos canciones que las salvan todas y cuántas salva cada una. Reproducir todo, Cola, Guardar playlist y Copiar lista usan esa lista corta, y cada fila en riesgo tiene su propio botón de reproducir. Las rachas que mantienes pasan a \"Salvadas hoy\" con la ventana abierta, y \"Perdidas ayer\" está en la misma pestaña. Las pestañas ahora son Hoy, En racha, Récords y Calendario."],

@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Streak rows show covers, levels and the last 14 days":
+    ["As linhas de sequências mostram capas, níveis e os últimos 14 dias",
+     "A aba Em chamas da janela de Sequências Diárias é uma única lista com um seletor Tudo / Artistas / Álbuns / Músicas em vez de três seções longas, com um pódio para suas três sequências ativas mais longas. Cada linha agora tem sua capa ou foto do artista, um nível de sequência (Faísca, Chama, Fogueira, Inferno, Eterna) que colore os dias, os últimos 14 dias desenhados logo abaixo do nome (sem precisar passar o mouse no ◈), uma barra até o próximo marco e quão perto você está do seu recorde. As linhas têm o mesmo ▶ de amostra e o menu ⋮ das paradas. As linhas em risco e perdidas da aba Hoje usam o mesmo visual. Filtro e ordenação continuam funcionando; ao filtrar ou ordenar de A a Z, todos os resultados aparecem como lista simples."],
+
   "The streak window opens on a Today tab that shows what to save":
     ["A janela de sequências abre numa aba Hoje que mostra o que salvar",
      "A janela de Sequências Diárias agora abre em Hoje: as sequências que ainda precisam de uma reprodução antes da meia-noite, com uma contagem regressiva ao vivo e uma barra de quantas você já manteve hoje. Uma música pode manter várias sequências de uma vez (a música, o álbum e cada artista), então a janela lista o menor número de músicas que salva todas e quantas cada uma salva. Tocar tudo, Fila, Salvar playlist e Copiar lista usam essa lista curta, e cada linha em risco tem seu próprio botão de tocar. As sequências que você mantém passam para \"Salvas hoje\" com a janela aberta, e \"Perdidas ontem\" fica na mesma aba. As abas agora são Hoje, Em chamas, Recordes e Calendário."],

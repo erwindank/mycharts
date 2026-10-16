@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 148;
+const DC_CL_I18N_V = 149;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-16', t: 'design', a: 'charts', h: 'a381c67',
+    title: "Streak rows show covers, levels and the last 14 days",
+    detail: "The On fire tab in the Daily Streaks window is one list with an All / Artists / Albums / Songs switch instead of three long sections, topped by a podium for your three longest running streaks. Every row now has its cover or artist photo, a streak level (Spark, Flame, Blaze, Inferno, Eternal) that colours the day count, the last 14 days drawn right under the name (no more hovering the ◈), a bar toward the next milestone, and how close you are to your record. Rows carry the same ▶ sample and ⋮ menu as the charts. The at-risk and lost rows on the Today tab use the same design. Filter and sort still work; filtering or sorting A–Z shows every match as a plain list." },
 
   { d: '2026-10-16', t: 'feature', a: 'charts', h: 'f2e654a',
     title: "The streak window opens on a Today tab that shows what to save",
