@@ -25,6 +25,7 @@ const SYNC_KEYS = [
   'dc_events_type_filter', 'dc_cal_view', 'dc_events_view_modes',
   'dc_sectionDisplayToggles', 'dc_subChartToggles',
   'dc_chartSizeWeekly', 'dc_chartSizeMonthly', 'dc_chartSizeYearly', 'dc_chartSizeAllTime',
+  'dc_chartSizeSongsD', 'dc_chartSizeArtistsD', 'dc_chartSizeAlbumsD',
   'dc_chartSizeSongsW', 'dc_chartSizeSongsM', 'dc_chartSizeSongsY', 'dc_chartSizeSongsAT',
   'dc_chartSizeArtistsW', 'dc_chartSizeArtistsM', 'dc_chartSizeArtistsY', 'dc_chartSizeArtistsAT',
   'dc_chartSizeAlbumsW', 'dc_chartSizeAlbumsM', 'dc_chartSizeAlbumsY', 'dc_chartSizeAlbumsAT',

@@ -36148,13 +36148,6 @@ body[data-view="day"] .daily-view {
   font-size: 1.1em;
 }
 
-/* Phones: the peak column goes, so rank, movement, title, days and plays fit */
-@media (max-width: 700px) {
-  .dy-table .dy-peak {
-    display: none;
-  }
-}
-
 /* ---- Daily tab: ring, bars and lines (day panel, time of day, patterns…) ----
    Text lines (.ns-x-*), the plays ring (.ns-ring, dyRingSvg) and the 7-day
    bars (.ns-wk-*). First drawn for the listening streak card, which no longer
@@ -36680,20 +36673,6 @@ body[data-view="day"] .daily-view {
   padding: 2px 0;
   font-size: var(--fs-xs);
   color: var(--text3);
-}
-
-/* The daily chart's own ▶ / ⋮ cell (phase 5) */
-.dy-table .cr-cell {
-  width: 1%;
-  white-space: nowrap;
-}
-
-/* Narrow screens: only ⋮ in the daily chart (its menu has the sample, and on
-   touch the cover plays it), so the row fits like the weekly chart's does */
-@media (max-width: 600px) {
-  .dy-table .cr-cell .ea-sample {
-    display: none;
-  }
 }
 
 /* ---- Daily tab: milestones & goals (phase 6) ----

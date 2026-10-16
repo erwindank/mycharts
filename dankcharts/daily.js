@@ -7,7 +7,8 @@
      - the tab and day-by-day navigation: the shared date bar's ‹ › arrows and
        a date picker (#dayPicker) move one day at a time; currentOffset counts
        days back from today while currentPeriod === 'day'
-     - top songs, artists and albums for the day, Top 10 / 20 / 50
+     - top songs, artists and albums for the day, sized in each chart's
+       ⋮ → Size like the other periods (chartSizeSongsD / ArtistsD / AlbumsD)
      - movement against a comparison day: yesterday, or the same weekday last
        week (▲3, ▼2, NEW, RE)
      - days on the daily chart this month, the peak (rank and date), and the
@@ -16,14 +17,11 @@
        with first-ever plays, the day's share of its week and how the day
        ranks against every other day and every other same weekday
 
-   Why its own file and not a fifth case in renderAll(): the weekly / monthly /
-   yearly pipeline (period stats, chart runs, Bubbling Under, peaks, certs,
-   share images) branches on currentPeriod in well over a hundred places, and
-   most of them fall through to "year" for anything they do not know. Teaching
-   all of them about days would be a large, risky change for features the
-   Daily tab does not need yet. So renderAll() hands 'day' straight to
-   dyRender() and this file builds the view itself, reusing the same tile and
-   chart table markup (and so the same CSS) as the other periods.
+   Phase 1 drew its own table; since phase 9 the chart itself goes through
+   the same sections and row builder as every other period (see RENDER
+   below), so its ⋮ settings match. This file still works out the day's
+   history (dyHistory), its stats in the shape the charts read, and
+   everything around the chart.
 
    Daily charts are built from allPlays alone, so they work the same for
    Last.fm, Google Sheets and CSV uploads.
@@ -34,25 +32,21 @@
    to the count first that day.
    =========================================================================== */
 
-const DY_SIZES = [10, 20, 50];
 const DY_DAY_KEYS = ['day_sunday', 'day_monday', 'day_tuesday', 'day_wednesday', 'day_thursday', 'day_friday', 'day_saturday'];
 
-// Chart size and what to compare against, remembered per browser
-let dySize = (() => {
-  try { const n = parseInt(localStorage.getItem('dc_daily_size'), 10); return DY_SIZES.includes(n) ? n : 20; } catch (e) { return 20; }
-})();
+/* The day's chart size, per chart: chartSizeSongsD / ArtistsD / AlbumsD in
+   app.js, set from each chart's ⋮ → Size like the other periods. */
+function dySizeOf(type) {
+  const v = type === 'artists' ? chartSizeArtistsD : type === 'albums' ? chartSizeAlbumsD : chartSizeSongsD;
+  return isFinite(v) && v > 0 ? v : 20;
+}
+
+// What the movement column compares against, remembered per browser
 let dyCompare = (() => {
   try { return localStorage.getItem('dc_daily_compare') === 'weekday' ? 'weekday' : 'yesterday'; } catch (e) { return 'yesterday'; }
 })();
 
-let _dyHist = null;
-
-// The icon each chart heading carries, the same ones as the Songs / Artists / Albums sections
-const DY_TYPE_ICONS = {
-  songs: '<svg class="section-type-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
-  artists: '<svg class="section-type-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>',
-  albums: '<svg class="section-type-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg>',
-};   // { gen, days, byDay, charts } — see dyHistory()
+let _dyHist = null;   // { gen, days, byDay, charts, timed } — see dyHistory()
 
 // ─── DATE HELPERS ─────────────────────────────────────────────────────────
 // Days are YYYY-MM-DD strings in the app's timezone, the same as dayStrOf(p).
@@ -92,11 +86,13 @@ function dyDateRange() {
 // ─── HISTORY: every day's chart ───────────────────────────────────────────
 /* One pass groups every play by day; a second, oldest day first, ranks each
    day's songs, artists and albums with the tie rules above (they need the day
-   before's chart, which is why it runs in order). Only the top dySize of each
-   day is kept. Cached until the plays, the chart size or the album settings
-   change. */
+   before's chart, which is why it runs in order). Only each chart's Daily
+   size is kept. Cached until the plays, a chart size or the album settings
+   change. Ties end on the first play met in allPlays (newest first), the
+   same "firstAchieved" the weekly sort (rankSortWithStatus) uses, so a
+   day's ranks here and on screen agree. */
 function dyHistory() {
-  const gen = [_stampEpoch, _playsVersion, _releaseEpoch, dySize, albumsFilterBucket() || '', singleRollupLevel()].join('|');
+  const gen = [_stampEpoch, _playsVersion, _releaseEpoch, dySizeOf('songs'), dySizeOf('artists'), dySizeOf('albums'), albumsFilterBucket() || '', singleRollupLevel()].join('|');
   if (_dyHist && _dyHist.gen === gen) return _dyHist;
 
   const byDay = {};   // ds → { plays, songs: {k: e}, artists: {k: e}, albums: {k: e}, list: [plays] }
@@ -116,17 +112,15 @@ function dyHistory() {
     if (ms > d.lastMs) { d.lastMs = ms; d.lastP = p; }
     const sk = songKey(p);
     const s = d.songs[sk] || (d.songs[sk] = { count: 0, first: ms, title: p.title, artist: p.artist, _albums: {} });
-    s.count++; if (ms < s.first) s.first = ms;
+    s.count++;
     s._albums[p.album] = (s._albums[p.album] || 0) + 1;
     for (const a of p.artists) {
       const e = d.artists[a] || (d.artists[a] = { count: 0, first: ms, songs: new Set() });
-      e.count++; if (ms < e.first) e.first = ms;
+      e.count++;
       e.songs.add(p.title);
     }
     // Albums are credited the way the albums chart credits them (singles rolled up, buckets)
     tallyAlbumPlay(d.albums, p, roll, () => ({ count: 0, first: ms }));
-    const ak = p.album && p.album !== '—' ? albumKeyOf(p) : null;
-    if (ak && d.albums[ak] && ms < d.albums[ak].first) d.albums[ak].first = ms;
   }
 
   const days = Object.keys(byDay).sort();
@@ -145,7 +139,7 @@ function dyHistory() {
         return { k, count: e.count, first: e.first, status: pr ? 0 : ever[type].has(k) ? 1 : 2, prevRank: pr || Infinity };
       });
       rows.sort((a, b) => b.count - a.count || a.status - b.status || a.prevRank - b.prevRank || a.first - b.first);
-      const top = rows.slice(0, dySize).map((r, i) => ({ k: r.k, rank: i + 1, count: r.count }));
+      const top = rows.slice(0, dySizeOf(type)).map((r, i) => ({ k: r.k, rank: i + 1, count: r.count }));
       charts[type][ds] = top;
       for (const r of top) ever[type].add(r.k);
     }
@@ -196,42 +190,175 @@ function dyNo1Facts(h, type, ds) {
 }
 
 // ─── RENDER ───────────────────────────────────────────────────────────────
+/* Since phase 9 the Daily chart is the real chart: renderAll() runs as for any
+   period (date bar, size groups, cert reel, Songs / Artists / Albums switch)
+   and hands over to dyRenderAll() just before the stats, which:
+     - fills the stat tiles (#statsStrip) with the day's own tiles
+     - fills #dailyView above the chart: the day panel, your day, the compare
+       switch, the actions and the daily #1 line
+     - renders the day's charts into the same #songsSection / #artistsSection /
+       #albumsSection as every other period (renderSongs and co., with the
+       day's stats in the weekly shape), so ⋮ → Show / Size / Actions, cert
+       badges, scores, peak tags, plays peaks, ▶ / ⋮, the chart-run panel,
+       New Entries and Animate chart all behave as on Weekly. Bubbling Under
+       and Off the Chart stay weekly-only, as on Monthly.
+     - fills #dailyBottom under the chart: time of day, patterns, memories,
+       milestones & goals */
 
-/* Called from renderAll() while the Daily tab is open. Takes down the parts
-   of the chart page that belong to the other periods, then fills the stat
-   tiles and #dailyView. */
+// For callers that just want the Daily tab redrawn (compare switch, diary sync…)
 function dyRender() {
-  // The other periods' charts and extras; renderAll() and applyChartTypeView()
-  // put them back when you switch to Weekly or another period.
-  ['songsChartGroup', 'artistsChartGroup', 'albumsChartGroup', 'statsStrip2', 'statsStrip3'].forEach(id => {
-    const el = document.getElementById(id); if (el) el.style.display = 'none';
-  });
-  const ati = document.getElementById('atInsights'); if (ati) ati.hidden = true;
-  // Certifications earned on the day: the shared reel, as on Weekly / Monthly (phase 6)
-  if (typeof renderCertReel === 'function') { const r = dyDateRange(); renderCertReel(r.start, r.end); }
-  document.getElementById('statsStrip').style.display = '';
-  // The Songs / Artists / Albums switch is shared with the other periods
-  const bar = document.getElementById('chartTypeToggleBar');
-  if (bar) bar.style.display = 'flex';
-  document.querySelectorAll('#chartTypeToggleBar .chart-type-toggle-btn').forEach(b => b.classList.toggle('active', b.dataset.type === chartTypeView));
+  if (currentPeriod === 'day') renderAll();
+}
 
-  // Date bar
-  const { label, sub } = dyDateRange();
-  document.getElementById('periodLabel').innerHTML = `<strong>${esc(label)}</strong><span class="period-sub">${esc(sub)}</span>`;
+function dyRenderAll(plays, start, end) {
   const h = dyHistory();
-  const first = h.days[0] || null;
   const ds = dyViewedDay();
-  const prevDis = !first || ds <= first;   // nothing before your first play
-  const nextDis = currentOffset === 0;
-  document.getElementById('prevBtn').disabled = prevDis;
-  document.getElementById('nextBtn').disabled = nextDis;
-  document.querySelector('.swipe-arrow-left')?.classList.toggle('swipe-arrow-off', nextDis);
-  document.querySelector('.swipe-arrow-right')?.classList.toggle('swipe-arrow-off', prevDis);
-  if (typeof syncPicker === 'function') syncPicker();
 
+  // Nothing before your first play
+  const first = h.days[0] || null;
+  const prevDis = !first || ds <= first;
+  document.getElementById('prevBtn').disabled = prevDis;
+  document.querySelector('.swipe-arrow-right')?.classList.toggle('swipe-arrow-off', prevDis);
+
+  ['statsStrip2', 'statsStrip3'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+  const ati = document.getElementById('atInsights'); if (ati) ati.hidden = true;
+  document.getElementById('statsStrip').style.display = '';
   dyRenderTiles(h, ds);
-  dyRenderChart(h, ds);
+  dyRenderTop(h, ds);
+
+  const { stats, peaks } = dyPublishForShare(h, ds);
+  renderTableHeaders();
+
+  if (!plays.length) {
+    ['songsBody', 'artistsBody', 'albumsBody'].forEach(id => {
+      document.getElementById(id).innerHTML = `<tr><td colspan="8"><div class="empty-state"><p>${t('empty_no_plays')}</p></div></td></tr>`;
+    });
+    ['songsPagination', 'artistsPagination', 'albumsPagination'].forEach(id => { document.getElementById(id).style.display = 'none'; });
+    COLLAPSE_ALL_TYPES.forEach(hideOffSection);
+    NEW_ENTRY_SECTIONS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+    dyRenderBottom(h, ds);
+    dySyncLive();
+    return;
+  }
+
+  // What the shared row builder (_chartItem) reads besides the stats
+  lastPeaks = peaks;
+  lastPeriodStats = stats;
+  cumulativeMaps = buildCumulativeMapsForPeriod(end);
+  playsPeakMaps = dyPlaysPeakMaps(h, ds);
+  chartRunData = null;
+  allChartRun = {};
+  allChartRunIsFullHistory = false;
+  buChartRunData = null;
+
+  ['songsPagination', 'artistsPagination', 'albumsPagination'].forEach(id => { document.getElementById(id).style.display = 'none'; });
+  const sizeS = dySizeOf('songs'), sizeA = dySizeOf('artists'), sizeB = dySizeOf('albums');
+  document.querySelector('#songsSectionTitle .section-title-text').textContent   = t('sec_songs_top',   { n: sizeS }).replace(/^[★♦◈]\s*/, '');
+  document.querySelector('#artistsSectionTitle .section-title-text').textContent = t('sec_artists_top', { n: sizeA }).replace(/^[★♦◈]\s*/, '');
+  document.querySelector('#albumsSectionTitle .section-title-text').textContent  = t('sec_albums_top',  { n: sizeB }).replace(/^[★♦◈]\s*/, '');
+  retitleAlbumsSectionForFilter();
+
+  // Animate chart: from the comparison day's chart to this one
+  const cmp = h.byDay[dyCompareDay(ds)];
+  _animPrevPlays = cmp && cmp.list.length ? cmp.list : null;
+  _animCurrentPlays = _animPrevPlays ? plays : null;
+  chartSize = sizeS; renderSongs(plays, peaks, stats);
+  chartSize = sizeA; renderArtists(plays, peaks, stats);
+  chartSize = sizeB; renderAlbums(plays, peaks, stats);
+  _animPrevPlays = null;
+  _animCurrentPlays = null;
+
+  renderNewEntries(plays, start, end);
+  updateSubChartToggleBarAvailability();
+  applySubChartToggles();
+  updateExportBtn();
+  updateShareBtns();
+  updateChartExportBtns();
+  dyRenderBottom(h, ds);
   dySyncLive();   // 2-minute Last.fm top-up while today is on screen (phase 8)
+}
+
+/* "As many plays in one day as on any day before": each key's best day up to
+   and including this one, for the Plays Peak badge (_chartItem). */
+function dyPlaysPeakMaps(h, ds) {
+  const out = { songs: {}, artists: {}, albums: {} };
+  const day = h.byDay[ds];
+  if (!day) return out;
+  for (const d of h.days) {
+    if (d > ds) break;
+    const x = h.byDay[d];
+    for (const type of ['songs', 'artists', 'albums']) {
+      const tgt = out[type];
+      for (const k in day[type]) {
+        const e = x[type][k];
+        if (e && e.count > (tgt[k] || 0)) tgt[k] = e.count;
+      }
+    }
+  }
+  return out;
+}
+
+// ─── TOP AND BOTTOM ───────────────────────────────────────────────────────
+
+/* Above the chart: the day panel, your day, the compare switch, the actions
+   and the daily #1 line for the chart on screen. Also called on its own when
+   the Songs / Artists / Albums switch changes (applyChartTypeView). */
+function dyRenderTop(h, ds) {
+  const view = document.getElementById('dailyView');
+  if (!view) return;
+  const type = ['songs', 'artists', 'albums'].includes(chartTypeView) ? chartTypeView : 'songs';
+
+  // What the movement column compares against (the chart size is in ⋮ → Size)
+  const cmpBtn = (v, lbl) => `<button type="button" class="dy-seg-btn${dyCompare === v ? ' active' : ''}" onclick="dySetCompare('${v}')">${esc(lbl)}</button>`;
+  const toolbar = `
+    <div class="dy-toolbar">
+      <div class="dy-seg" role="group" aria-label="${esc(t('dy_compare_label'))}">
+        ${cmpBtn('yesterday', t('dy_vs_yesterday'))}${cmpBtn('weekday', t('dy_vs_weekday', { day: dyDayName(ds) }))}
+      </div>
+    </div>`;
+
+  // The daily #1 line
+  const no1 = dyNo1Facts(h, type, ds);
+  let no1Html = '';
+  if (no1) {
+    const bits = [no1.run > 1 ? t('dy_no1_run', { n: no1.run }) : t('dy_no1_today')];
+    if (no1.month > 1) bits.push(t('dy_no1_month', { n: no1.month }));
+    no1Html = `<p class="dy-no1"><span class="dy-no1-crown" aria-hidden="true">♛</span>${esc(bits.join(' · '))}</p>`;
+  }
+
+  // A live redraw must not throw away a note being typed: keep its text,
+  // caret and focus across the innerHTML swap (phase 8)
+  const ae = document.activeElement;
+  const keepNote = ae && ae.id === 'dyNote' ? { v: ae.value, s: ae.selectionStart, e: ae.selectionEnd } : null;
+
+  view.innerHTML = `
+    ${dyPanelHtml(h, ds)}
+    ${dyDiaryHtml(ds)}
+    ${toolbar}
+    ${dyActionsHtml(type, (h.charts.songs[ds] || []).length)}
+    ${no1Html}`;
+
+  if (keepNote) {
+    const n = document.getElementById('dyNote');
+    if (n) { n.value = keepNote.v; n.focus(); n.setSelectionRange(keepNote.s, keepNote.e); }
+  }
+}
+
+// Under the chart: time of day, patterns, memories, milestones & goals
+function dyRenderBottom(h, ds) {
+  const el = document.getElementById('dailyBottom');
+  if (!el) return;
+  // Time of day (phase 3): collects its covers into todImgs to load below
+  const todImgs = [];
+  el.innerHTML = `
+    ${dyTimeOfDayHtml(h, ds, todImgs)}
+    ${dyPatternsHtml(h, ds)}
+    ${dyMemoriesHtml(h, ds)}
+    ${dyMilestonesHtml(h, ds)}`;
+  for (const tp of ['album', 'song']) {
+    const items = todImgs.filter(x => x.type === tp).map(x => x.item);
+    if (items.length) loadImages(items, tp);
+  }
 }
 
 // ─── TILES ────────────────────────────────────────────────────────────────
@@ -317,156 +444,6 @@ function dyRenderTiles(h, ds) {
     box(cur.artists, 'stat_artists',      prv.artists, '🎤', 'artists', newLine(newArtists, 'stat_sub_new_artists')) +
     box(cur.albums,  'stat_albums',       prv.albums,  '💿', 'albums',  newLine(newAlbums, 'stat_sub_new_albums'));
   if (typeof animateStatStrip === 'function') animateStatStrip(el);
-}
-
-// ─── CHART ────────────────────────────────────────────────────────────────
-
-function dyRenderChart(h, ds) {
-  const view = document.getElementById('dailyView');
-  if (!view) return;
-  const type = ['songs', 'artists', 'albums'].includes(chartTypeView) ? chartTypeView : 'songs';
-  const chart = h.charts[type][ds] || [];
-  const day = h.byDay[ds];
-  const cmpDs = dyCompareDay(ds);
-  const cmpRank = {};
-  for (const r of h.charts[type][cmpDs] || []) cmpRank[r.k] = r.rank;
-  const facts = dyEntryFacts(h, type, ds);
-
-  // Toolbar: what to compare against, and the chart size
-  const cmpBtn = (v, lbl) => `<button type="button" class="dy-seg-btn${dyCompare === v ? ' active' : ''}" onclick="dySetCompare('${v}')">${esc(lbl)}</button>`;
-  const sizeBtn = n => `<button type="button" class="dy-seg-btn${dySize === n ? ' active' : ''}" onclick="dySetSize(${n})">${esc(t('dy_top_n', { n }))}</button>`;
-  const toolbar = `
-    <div class="dy-toolbar">
-      <div class="dy-seg" role="group" aria-label="${esc(t('dy_compare_label'))}">
-        ${cmpBtn('yesterday', t('dy_vs_yesterday'))}${cmpBtn('weekday', t('dy_vs_weekday', { day: dyDayName(ds) }))}
-      </div>
-      <div class="dy-seg" role="group" aria-label="${esc(t('dy_size_label'))}">${DY_SIZES.map(sizeBtn).join('')}</div>
-    </div>`;
-
-  // The daily #1 line
-  const no1 = dyNo1Facts(h, type, ds);
-  let no1Html = '';
-  if (no1) {
-    const bits = [no1.run > 1 ? t('dy_no1_run', { n: no1.run }) : t('dy_no1_today')];
-    if (no1.month > 1) bits.push(t('dy_no1_month', { n: no1.month }));
-    no1Html = `<p class="dy-no1"><span class="dy-no1-crown" aria-hidden="true">♛</span>${esc(bits.join(' · '))}</p>`;
-  }
-
-  const titleKey = type === 'songs' ? 'sec_songs_top' : type === 'artists' ? 'sec_artists_top' : 'sec_albums_top';
-  const head = `
-    <tr>
-      <th>${t('th_rank')}</th>
-      <th class="m-th m-th-prev"><span class="th-prev-full">${t('th_prev')}</span><span class="th-prev-short">${t('th_prev_mobile')}</span><span class="th-prev-sub">${t('th_prev_sub')}</span></th>
-      <th class="thumb-th" style="width:52px;"></th>
-      <th>${type === 'songs' ? t('th_title_artist') : type === 'artists' ? t('th_artist') : t('th_album_artist')}</th>
-      <th class="m-th" title="${esc(t('dy_th_days_tip'))}"><span class="th-period-full">${t('dy_th_days')}</span><span class="th-period-short">${t('dy_th_days_mobile')}</span></th>
-      <th class="m-th dy-peak">${t('dy_th_peak')}</th>
-      <th style="text-align:right;"><span class="th-plays-full">${t('th_plays')}</span><span class="th-plays-short">${t('th_plays_mobile')}</span></th>
-      <th class="cr-th"></th>
-    </tr>`;
-
-  const max = chart[0]?.count || 1;
-  const imgItems = [];
-  const rows = chart.map((r, i) => {
-    const f = facts[r.k] || {};
-    const imgId = 'dyimg-' + i;
-    // Movement against the comparison day
-    let move;
-    const was = cmpRank[r.k];
-    if (was) {
-      const diff = was - r.rank;
-      move = diff === 0 ? `<span class="m-same">=</span>` : `<span class="m-${diff > 0 ? 'up' : 'down'}">${diff > 0 ? '▲' : '▼'}${Math.abs(diff)}</span>`;
-      move += `<div class="m-prev-rank">#${was}</div>`;
-    } else {
-      move = f.before ? `<span class="m-re">${t('badge_re')}</span>` : `<span class="m-new">${t(type === 'songs' ? 'badge_new_songs' : 'badge_new')}</span>`;
-    }
-    const peakTip = f.peakDs ? t('dy_peak_tip', { rank: f.peak, date: fmt(dyDate(f.peakDs)) }) : '';
-    const peakCell = `<td class="m-col dy-peak" title="${esc(peakTip)}"><span class="m-mths">#${f.peak}</span>${f.peakDs && f.peakDs !== ds ? `<div class="m-prev-rank">${esc(dyShortDate(f.peakDs))}</div>` : ''}</td>`;
-
-    let thumb, main, ea;   // ea: the entry attributes behind ▶ / ⋮ (_eaAttrs in app.js)
-    if (type === 'songs') {
-      const s = day.songs[r.k];
-      const album = bestAlbum(s.title, s._albums);
-      const prefKey = 'song:' + s.artist.toLowerCase() + '|||' + s.title.toLowerCase();
-      imgItems.push({ imgId, title: s.title, name: s.title, artist: s.artist, album, type: 'song', prefKey });
-      thumb = dyThumb(imgId, s.title, 'song', prefKey, s.title, s.artist, album);
-      main = `<div class="song-title">${chartNameLink(s.title, 'openSongModal', r.k)}</div><div class="song-artist">${chartArtistLinks(s.artist)}</div>`;
-      ea = _eaAttrs('songs', { title: s.title, artist: s.artist, album, key: r.k, imgId });
-    } else if (type === 'artists') {
-      const prefKey = 'artist:' + r.k.toLowerCase();
-      imgItems.push({ imgId, name: r.k, prefKey });
-      thumb = dyThumb(imgId, r.k, 'artist', prefKey, r.k, r.k, '');
-      const n = day.artists[r.k] ? day.artists[r.k].songs.size : 0;
-      main = `<div class="song-title">${chartNameLink(r.k, 'openArtistModal', r.k)}</div><div class="song-artist">${esc(tCount('songs', n))}</div>`;
-      ea = _eaAttrs('artists', { artist: r.k, key: r.k, imgId });
-    } else {
-      const cut = r.k.lastIndexOf('|||');
-      const album = cut < 0 ? r.k : r.k.slice(0, cut), artist = cut < 0 ? '' : r.k.slice(cut + 3);
-      const prefKey = 'album:' + artist.toLowerCase() + '|||' + album.toLowerCase();
-      imgItems.push({ imgId, album, name: album, artist, prefKey });
-      thumb = dyThumb(imgId, album, 'album', prefKey, album, artist, album);
-      main = `<div class="song-title">${chartNameLink(album, 'openAlbumModal', r.k)}</div><div class="song-artist">${chartArtistLinks(artist)}</div>`;
-      ea = _eaAttrs('albums', { album, artist, key: r.k, imgId });
-    }
-    const statusCls = !was ? (f.before ? ' wv-row-re' : ' wv-row-new') : '';
-    return `<tr${ea} class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}${statusCls}">
-      <td class="rank-cell">${r.rank}</td>
-      <td class="m-col">${move}</td>
-      <td class="thumb-cell">${thumb}</td>
-      <td>${main}</td>
-      <td class="m-col" title="${esc(t('dy_th_days_tip'))}"><span class="m-mths">${f.monthDays || 1}</span></td>
-      ${peakCell}
-      <td>
-        <div class="play-count">${tCountHtml('plays', r.count)}</div>
-        <div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(r.count / max * 100)}%"></div></div>
-      </td>
-      <td class="cr-cell">${_eaBtns()}</td>
-    </tr>`;
-  }).join('');
-
-  const body = chart.length
-    ? `<table class="chart-table dy-table"><thead>${head}</thead><tbody>${rows}</tbody></table>`
-    : `<div class="empty-state"><p>${t('empty_no_plays')}</p></div>`;
-
-  // Time of day (phase 3): collects its covers into todImgs to load below
-  const todImgs = [];
-  const tod = dyTimeOfDayHtml(h, ds, todImgs);
-
-  // What the Share image designer reads (phase 7)
-  dyPublishForShare(h, ds);
-
-  // A live redraw must not throw away a note being typed: keep its text,
-  // caret and focus across the innerHTML swap (phase 8)
-  const ae = document.activeElement;
-  const keepNote = ae && ae.id === 'dyNote' ? { v: ae.value, s: ae.selectionStart, e: ae.selectionEnd } : null;
-
-  view.innerHTML = `
-    ${dyPanelHtml(h, ds)}
-    ${dyDiaryHtml(ds)}
-    ${toolbar}
-    ${dyActionsHtml(type, (h.charts.songs[ds] || []).length)}
-    <div class="chart-section dy-section">
-      <div class="section-header">
-        <h2>${DY_TYPE_ICONS[type]}<span class="section-title-text">${esc(t(titleKey, { n: dySize }).replace(/^[★♦◈]\s*/, ''))}</span></h2>
-        <div class="section-rule"></div>
-      </div>
-      ${no1Html}
-      <div class="section-body">${body}</div>
-    </div>
-    ${tod}
-    ${dyPatternsHtml(h, ds)}
-    ${dyMemoriesHtml(h, ds)}
-    ${dyMilestonesHtml(h, ds)}`;
-
-  if (keepNote) {
-    const n = document.getElementById('dyNote');
-    if (n) { n.value = keepNote.v; n.focus(); n.setSelectionRange(keepNote.s, keepNote.e); }
-  }
-  if (imgItems.length) loadImages(imgItems, type === 'songs' ? 'song' : type === 'artists' ? 'artist' : 'album');
-  for (const tp of ['album', 'song']) {
-    const items = todImgs.filter(x => x.type === tp).map(x => x.item);
-    if (items.length) loadImages(items, tp);
-  }
 }
 
 // ─── TIME OF DAY (phase 3) ────────────────────────────────────────────────
@@ -835,10 +812,9 @@ function dyLiveBadge() {
 // ─── SHARING (phase 7) ────────────────────────────────────────────────────
 /* Three ways to take a day with you, in a row under the chart toolbar:
      - Share image: the same designer as the other charts (openIgPreviewModal
-       in app.js, every template, palette and format). It reads the chart on
-       screen from fullData / lastPeriodStats / lastPeaks / chartSize, so
-       dyPublishForShare() fills those in the shape the weekly chart leaves
-       them; shChartContext() knows the 'day' period for its headline.
+       in app.js, every template, palette and format). dyPublishForShare()
+       builds the day's stats in the shape the weekly chart leaves them
+       (lastPeriodStats / lastPeaks); the chart renderers fill fullData.
      - Play top N: the day's top songs into the YouTube player queue, the
        same as Play all on the weekly chart. Save as playlist keeps them under
        Playlists ("Daily chart · 16 Oct 2026").
@@ -871,7 +847,7 @@ function dyPublishForShare(h, ds) {
   }
   lastPeriodStats = stats;
   lastPeaks = peaks;
-  chartSize = dySize;
+  return { stats, peaks };
 }
 
 // The day's songs in chart order, for the player and playlists
@@ -1024,7 +1000,7 @@ function dyRecapSlides(h, ds) {
     <p class="dy-rc-title">${esc(fmt(dyDate(ds)))}</p>
     <div class="dy-rc-btns">
       <button type="button" class="dy-act dy-act-main" onclick="dyCloseRecap();openIgPreviewModal('songs')">📷 ${esc(t('dy_share_img'))}</button>
-      <button type="button" class="dy-act" onclick="dyCloseRecap();dyPlayTop()">▶ ${esc(t('dy_play_top', { n: Math.min(dySize, (h.charts.songs[ds] || []).length) }))}</button>
+      <button type="button" class="dy-act" onclick="dyCloseRecap();dyPlayTop()">▶ ${esc(t('dy_play_top', { n: (h.charts.songs[ds] || []).length }))}</button>
     </div>` });
   return slides;
 }
@@ -1538,7 +1514,7 @@ function dyPlayGenre(p) {
    arrive, so the rest of the page (tiles, chart, covers) is left alone. */
 function dyRefreshPatterns(ds) {
   if (currentPeriod !== 'day' || dyViewedDay() !== ds) return;
-  const el = document.querySelector('#dailyView .dy-pats');
+  const el = document.querySelector('#dailyBottom .dy-pats');
   if (el) el.outerHTML = dyPatternsHtml(dyHistory(), ds);
 }
 
@@ -1766,18 +1742,6 @@ function dyGoOffset(off) {
   renderAll();
 }
 
-// The cover cell, the same markup the other charts use (so the picture picker works)
-function dyThumb(imgId, label, type, prefKey, name, artist, album) {
-  return `<div class="thumb-wrap ea-cover"><div id="${imgId}"><div class="thumb-initials">${esc(initials(label))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="${type}" data-prefkey="${esc(prefKey)}" data-name="${esc(name)}" data-artist="${esc(artist)}" data-album="${esc(album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div>`;
-}
-
-// "12 Oct" in the interface language, from a YYYY-MM-DD string
-function dyShortDate(ds) {
-  try {
-    return dyDate(ds).toLocaleDateString(typeof currentLang !== 'undefined' ? currentLang : undefined, { day: 'numeric', month: 'short' });
-  } catch (e) { return fmt(dyDate(ds)); }
-}
-
 // A day's plays against your usual day, as a ring drawn in SVG (the day panel)
 function dyRingSvg(n, usual) {
   const r = 20, c = 2 * Math.PI * r;
@@ -1794,13 +1758,6 @@ function dyRingSvg(n, usual) {
 function dySetCompare(v) {
   dyCompare = v === 'weekday' ? 'weekday' : 'yesterday';
   try { localStorage.setItem('dc_daily_compare', dyCompare); } catch (e) {}
-  if (currentPeriod === 'day') dyRender();
-}
-
-function dySetSize(n) {
-  if (!DY_SIZES.includes(n)) return;
-  dySize = n;
-  try { localStorage.setItem('dc_daily_size', String(n)); } catch (e) {}
   if (currentPeriod === 'day') dyRender();
 }
 

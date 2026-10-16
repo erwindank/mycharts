@@ -28,15 +28,6 @@ function setChartTypeView(type) {
 }
 
 function applyChartTypeView() {
-  // On the Daily tab the same switch picks the daily chart (daily.js); the
-  // other periods' chart groups stay down.
-  if (currentPeriod === 'day') {
-    ['songsChartGroup', 'artistsChartGroup', 'albumsChartGroup'].forEach(id => { document.getElementById(id).style.display = 'none'; });
-    document.querySelectorAll('#chartTypeToggleBar .chart-type-toggle-btn').forEach(b => b.classList.toggle('active', b.dataset.type === chartTypeView));
-    syncAlbumsFilterBar();
-    if (typeof dyRender === 'function' && allPlays && allPlays.length) dyRender();
-    return;
-  }
   document.getElementById('songsChartGroup').style.display   = chartTypeView === 'songs'   ? '' : 'none';
   document.getElementById('artistsChartGroup').style.display = chartTypeView === 'artists' ? '' : 'none';
   document.getElementById('albumsChartGroup').style.display  = chartTypeView === 'albums'  ? '' : 'none';
@@ -45,6 +36,8 @@ function applyChartTypeView() {
   });
   // The album bucket filter shares the toolbar and only applies to the albums chart
   syncAlbumsFilterBar();
+  // Daily tab: the #1 line above the chart is about the chart on screen
+  if (currentPeriod === 'day' && typeof dyRenderTop === 'function' && allPlays && allPlays.length) dyRenderTop(dyHistory(), dyViewedDay());
 }
 
 // ─── SUB-CHART TOGGLES (Normal / Bubbling Under / Off the Chart / New Entries) ──
@@ -79,7 +72,7 @@ const SUB_CHART_PERIOD_AVAILABILITY = {
   normal: () => true,
   bu:     () => currentPeriod === 'week',
   off:    () => currentPeriod === 'week',
-  new:    () => currentPeriod === 'week' || currentPeriod === 'month' || currentPeriod === 'year'
+  new:    () => currentPeriod === 'day' || currentPeriod === 'week' || currentPeriod === 'month' || currentPeriod === 'year'
 };
 
 function updateSubChartToggleBarAvailability() {
@@ -305,6 +298,7 @@ let playsPeakMaps = null;    // historical max per-period plays for peak badge
 let chartSizeYearly = 100; // compat — mirrors chartSizeSongsY
 let chartSizeAllTime = Infinity; // compat — mirrors chartSizeSongsAT
 // Per-section chart sizes — each section is independent and remembers per period
+let chartSizeSongsD = 20,    chartSizeArtistsD = 20,    chartSizeAlbumsD = 20;   // Daily tab (daily.js)
 let chartSizeSongsW = 10,    chartSizeArtistsW = 10,    chartSizeAlbumsW = 10;
 let chartSizeSongsM = 50,    chartSizeArtistsM = 50,    chartSizeAlbumsM = 50;
 // Yearly defaults to Top 100, not All Entries: the yearly chart now shows movement against
@@ -6598,6 +6592,10 @@ function finalizeLoad() {
     if (globalSaved != null) { const v = parseInt(globalSaved); return v === 0 ? Infinity : v; }
     return def;
   }
+  // Daily: the phase 1 single size (dc_daily_size) seeds all three
+  chartSizeSongsD    = _loadSectionSize('dc_chartSizeSongsD',    'dc_daily_size',       20);
+  chartSizeArtistsD  = _loadSectionSize('dc_chartSizeArtistsD',  'dc_daily_size',       20);
+  chartSizeAlbumsD   = _loadSectionSize('dc_chartSizeAlbumsD',   'dc_daily_size',       20);
   chartSizeSongsW    = _loadSectionSize('dc_chartSizeSongsW',    'dc_chartSizeWeekly',  10);
   chartSizeSongsM    = _loadSectionSize('dc_chartSizeSongsM',    'dc_chartSizeMonthly', 50);
   chartSizeSongsY    = _loadSectionSize('dc_chartSizeSongsY',    'dc_chartSizeYearly',  100);
@@ -6620,6 +6618,9 @@ function finalizeLoad() {
     const str = isFinite(val) ? String(val) : '0';
     document.querySelectorAll('#' + id + ' button').forEach(b => b.classList.toggle('active', b.dataset.size === str));
   }
+  _syncSizeBtns('sizeBtnsSongsD',    chartSizeSongsD);
+  _syncSizeBtns('sizeBtnsArtistsD',  chartSizeArtistsD);
+  _syncSizeBtns('sizeBtnsAlbumsD',   chartSizeAlbumsD);
   _syncSizeBtns('sizeBtnsSongsW',    chartSizeSongsW);
   _syncSizeBtns('sizeBtnsSongsM',    chartSizeSongsM);
   _syncSizeBtns('sizeBtnsSongsY',    chartSizeSongsY);
@@ -6938,6 +6939,10 @@ function _dcSyncCustomSizeRows() {
     if (note.classList.contains('is-error')) { note.classList.remove('is-error'); note.textContent = t('size_custom_note'); }
   });
 }
+// Daily size bars (daily.js)
+_bindSectionSizeBar('sizeBtnsSongsD',   v => { chartSizeSongsD   = v; }, 'dc_chartSizeSongsD',   false, () => chartSizeSongsD);
+_bindSectionSizeBar('sizeBtnsArtistsD', v => { chartSizeArtistsD = v; }, 'dc_chartSizeArtistsD', false, () => chartSizeArtistsD);
+_bindSectionSizeBar('sizeBtnsAlbumsD',  v => { chartSizeAlbumsD  = v; }, 'dc_chartSizeAlbumsD',  false, () => chartSizeAlbumsD);
 // Weekly size bars (non-paginated)
 // (last argument reads the size back, for the Custom row)
 _bindSectionSizeBar('sizeBtnsSongsW',   v => { chartSizeSongsW   = v; chartSizeWeekly = v; }, 'dc_chartSizeSongsW',   false, () => chartSizeSongsW);
@@ -13030,19 +13035,23 @@ function buildFirstSeenMaps() {
 const NEW_ENTRY_SECTIONS = ['newSongsSection', 'newArtistsSection', 'newAlbumsSection'];
 
 function renderNewEntries(plays, start, end) {
-  const show = plays.length > 0 && ['week', 'month', 'year'].includes(currentPeriod);
+  const show = plays.length > 0 && ['day', 'week', 'month', 'year'].includes(currentPeriod);
   if (!show) {
     NEW_ENTRY_SECTIONS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
     pageState.newSongs = 0; pageState.newArtists = 0; pageState.newAlbums = 0;
     return;
   }
 
-  const periodLabel = currentPeriod === 'week' ? t('period_this_week') : currentPeriod === 'month' ? t('period_this_month') : t('period_this_year');
+  const periodLabel = currentPeriod === 'day' ? t('period_this_day') : currentPeriod === 'week' ? t('period_this_week') : currentPeriod === 'month' ? t('period_this_month') : t('period_this_year');
 
   // Each section's own SIZE setting, not the (Songs-only) compat globals — otherwise
   // the Artists/Albums SIZE bar has no effect on how many New Entries are shown.
   let limitSongs, limitArtists, limitAlbums;
-  if (currentPeriod === 'week') {
+  if (currentPeriod === 'day') {
+    limitSongs   = Math.max(20, chartSizeSongsD);
+    limitArtists = Math.max(20, chartSizeArtistsD);
+    limitAlbums  = Math.max(20, chartSizeAlbumsD);
+  } else if (currentPeriod === 'week') {
     limitSongs   = Math.max(20, chartSizeSongsW);
     limitArtists = Math.max(20, chartSizeArtistsW);
     limitAlbums  = Math.max(20, chartSizeAlbumsW);
@@ -13268,11 +13277,13 @@ function renderTableHeaders() {
   const isWeeklyView = currentPeriod === 'week';
   const isMonthlyView = currentPeriod === 'month';
   const isYearlyView = currentPeriod === 'year';
+  const isDailyView = currentPeriod === 'day';
   // Yearly gets the same Previous/movement + periods-on-chart columns as weekly and
   // monthly; only All-Time is left out, since it has no period to compare against.
-  const hasPeriodStats = isWeeklyView || isMonthlyView || isYearlyView;
-  const periodLabel = isWeeklyView ? t('th_weeks') : isMonthlyView ? t('th_months') : t('th_years');
-  const periodLabelMobile = isWeeklyView ? t('th_weeks_mobile') : isMonthlyView ? t('th_months_mobile') : t('th_years_mobile');
+  // Daily (daily.js) counts days on the daily chart this month.
+  const hasPeriodStats = isDailyView || isWeeklyView || isMonthlyView || isYearlyView;
+  const periodLabel = isDailyView ? t('dy_th_days') : isWeeklyView ? t('th_weeks') : isMonthlyView ? t('th_months') : t('th_years');
+  const periodLabelMobile = isDailyView ? t('dy_th_days_mobile') : isWeeklyView ? t('th_weeks_mobile') : isMonthlyView ? t('th_months_mobile') : t('th_years_mobile');
   // Stacked label: main word on top, small muted "Rank" underneath — same footprint as before,
   // reads as "PREVIOUS / RANK" once .chart-table thead th uppercases it.
   const prevTh = `<th class="m-th m-th-prev"><span class="th-prev-full">${t('th_prev')}</span><span class="th-prev-short">${t('th_prev_mobile')}</span><span class="th-prev-sub">${t('th_prev_sub')}</span></th>`;
@@ -13315,9 +13326,6 @@ function renderAll() {
      Sheets, CSV, the sample library — arrives at this same render. Guarded to
      run once. */
   rtQueueAutoSweep();
-  // The Daily tab builds its own tiles and chart (daily.js) rather than going
-  // through the weekly / monthly pipeline below.
-  if (currentPeriod === 'day') { dyRender(); return; }
   const { start, end, label, sub } = getDateRange();
   const plays = currentPeriod === 'alltime'
     ? allPlays
@@ -13328,9 +13336,9 @@ function renderAll() {
 
   // Per-section size bars: show the correct button group for the current period
   const paginated = isPaginated();
-  const _szTag = !paginated ? (currentPeriod === 'month' ? 'M' : 'W') : (currentPeriod === 'year' ? 'Y' : 'AT');
+  const _szTag = !paginated ? (currentPeriod === 'day' ? 'D' : currentPeriod === 'month' ? 'M' : 'W') : (currentPeriod === 'year' ? 'Y' : 'AT');
   ['Songs', 'Artists', 'Albums'].forEach(sec => {
-    ['W', 'M', 'Y', 'AT'].forEach(p => {
+    ['D', 'W', 'M', 'Y', 'AT'].forEach(p => {
       const el = document.getElementById('sizeBtns' + sec + p);
       if (el) el.style.display = p === _szTag ? 'flex' : 'none';
     });
@@ -13339,10 +13347,10 @@ function renderAll() {
   _dcSyncCustomSizeRows();
   // Set active per-section sizes and keep compat vars in sync
   if (!paginated) {
-    const _isM = currentPeriod === 'month';
-    chartSizeSongs   = _isM ? chartSizeSongsM   : chartSizeSongsW;
-    chartSizeArtists = _isM ? chartSizeArtistsM : chartSizeArtistsW;
-    chartSizeAlbums  = _isM ? chartSizeAlbumsM  : chartSizeAlbumsW;
+    const _isM = currentPeriod === 'month', _isD = currentPeriod === 'day';
+    chartSizeSongs   = _isD ? chartSizeSongsD   : _isM ? chartSizeSongsM   : chartSizeSongsW;
+    chartSizeArtists = _isD ? chartSizeArtistsD : _isM ? chartSizeArtistsM : chartSizeArtistsW;
+    chartSizeAlbums  = _isD ? chartSizeAlbumsD  : _isM ? chartSizeAlbumsM  : chartSizeAlbumsW;
     chartSizeWeekly  = chartSizeSongsW;
     chartSizeMonthly = chartSizeSongsM;
   } else {
@@ -13358,7 +13366,7 @@ function renderAll() {
   // a week and it shows the awards that week earned.
   renderCertReel(start, end);
   document.getElementById('chartTypeToggleBar').style.display =
-    ['week', 'month', 'year', 'alltime'].includes(currentPeriod) ? 'flex' : 'none';
+    ['day', 'week', 'month', 'year', 'alltime'].includes(currentPeriod) ? 'flex' : 'none';
   applyChartTypeView();
   const _isWeek = currentPeriod === 'week';
   ['songs','artists','albums'].forEach(tp => {
@@ -13391,7 +13399,7 @@ function renderAll() {
     const el = document.getElementById(id);
     if (el) el.style.display = currentPeriod === 'alltime' ? 'none' : '';
   });
-  const _showReplay = (currentPeriod === 'week' || currentPeriod === 'month') ? '' : 'none';
+  const _showReplay = (currentPeriod === 'day' || currentPeriod === 'week' || currentPeriod === 'month') ? '' : 'none';
   ['songsReplayBtn', 'artistsReplayBtn', 'albumsReplayBtn'].forEach(id => {
     document.getElementById(id).style.display = _showReplay;
   });
@@ -13412,6 +13420,10 @@ function renderAll() {
   document.querySelector('.swipe-arrow-left')?.classList.toggle('swipe-arrow-off', _nextDis);
   document.querySelector('.swipe-arrow-right')?.classList.toggle('swipe-arrow-off', _prevDis);
   syncPicker();
+
+  // The Daily tab has its own tiles and stats, then renders its charts through
+  // the same sections as every period (daily.js, dyRenderAll)
+  if (currentPeriod === 'day') { dyRenderAll(plays, start, end); return; }
 
   // Stats — use split artists for accurate unique artist count
   const artistSet = new Set(plays.flatMap(p => p.artists));
@@ -14586,6 +14598,7 @@ function getCrRangeMode(type, key) { return crRangeModes[type + '|' + key] || 'n
 
 function getViewedYear() {
   const now = tzNow();
+  if (currentPeriod === 'day') return dyDate(dyViewedDay()).getFullYear();
   if (currentPeriod === 'year') return now.getFullYear() - currentOffset;
   if (currentPeriod === 'month') return new Date(now.getFullYear(), now.getMonth() - currentOffset, 1).getFullYear();
   if (currentPeriod === 'week') {
@@ -14600,7 +14613,13 @@ function getViewedYear() {
 function getViewedCutoffKeys() {
   const now = tzNow();
   let weekKey, monthKey, yearKey;
-  if (currentPeriod === 'week') {
+  if (currentPeriod === 'day') {
+    // The viewed day's own week, month and year (daily.js)
+    const d = dyDate(dyViewedDay());
+    weekKey = playWeekKey(d);
+    monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    yearKey = String(d.getFullYear());
+  } else if (currentPeriod === 'week') {
     const dow = now.getDay();
     const offset = (dow - weekStartDay + 7) % 7;
     const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - offset - currentOffset * 7);
@@ -14697,6 +14716,8 @@ function buildCrPanelHTML(type, key, f) {
     modeLabels = { year: t('cr_ytd', { year: vy }), uptoYear: t('cr_up_to_this_week'), now: t('cr_all_time') };
   } else if (currentPeriod === 'month') {
     modeLabels = { year: t('cr_ytd', { year: vy }), uptoYear: t('cr_up_to_this_month'), now: t('cr_all_time') };
+  } else if (currentPeriod === 'day') {
+    modeLabels = { year: t('cr_ytd', { year: vy }), uptoYear: t('cr_up_to_this_day'), now: t('cr_all_time') };
   } else {
     modeLabels = { year: t('cr_year_only_label', { year: vy }), uptoYear: t('cr_up_to_year_label', { year: vy }), now: t('cr_all_time') };
   }
@@ -14726,7 +14747,9 @@ function buildCrPanelHTML(type, key, f) {
 
   const nowTiles = f ? _crNowTiles(f) : '';
   let sectionsHtml = '';
-  if (currentPeriod === 'year' || currentPeriod === 'alltime') {
+  // Year, All-Time and Daily (there is no daily chart run) show the entry's
+  // weekly / monthly / yearly runs one under the other
+  if (currentPeriod === 'year' || currentPeriod === 'alltime' || currentPeriod === 'day') {
     sectionsHtml = [
       { id: 'year', label: t('cr_yearly_label') },
       { id: 'month', label: t('cr_monthly_label') },
@@ -18989,9 +19012,12 @@ window.addEventListener('scroll', () => _eaCloseMenu(), { passive: true });
 // This period's own figures, as the first tiles of the chart run's row.
 // Labels name the period ("Last week", "Plays this month").
 function _crNowTiles(f) {
-  const per = currentPeriod === 'month' || currentPeriod === 'year' ? currentPeriod : currentPeriod === 'week' ? 'week' : '';
+  const per = currentPeriod === 'month' || currentPeriod === 'year' || currentPeriod === 'day' ? currentPeriod : currentPeriod === 'week' ? 'week' : '';
   let h = '';
-  if (f.move) h += crTile(t('dr_prev_' + (per || 'week')), f.prevRank ? `#${f.prevRank} ${f.mvHtml}` : f.mvHtml, 'cr-stat-now');
+  // On the Daily tab the movement is against yesterday or the same weekday last week
+  const prevLbl = per === 'day' && typeof dyCompare !== 'undefined' && dyCompare === 'weekday'
+    ? t('dr_prev_day_wd', { day: dyDayName(dyViewedDay()) }) : t('dr_prev_' + (per || 'week'));
+  if (f.move) h += crTile(prevLbl, f.prevRank ? `#${f.prevRank} ${f.mvHtml}` : f.mvHtml, 'cr-stat-now');
   // The change only means something against a previous rank (NEW / RE show above)
   h += crTile(per ? t('dr_plays_' + per) : t('dr_plays'), `${f.count.toLocaleString()}${f.prevRank ? f.deltaHtml : ''}`, 'cr-stat-now');
   if (f.certHtml) h += crTile(t('dr_cert'), f.certHtml, 'cr-stat-now');

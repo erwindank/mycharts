@@ -709,6 +709,7 @@ const TRANSLATIONS = {
 
     // Period labels
     period_this_week: 'This Week',
+    period_this_day: 'This Day',
     period_this_month: 'This Month',
     period_this_year: 'This Year',
     new_chart_song: 'NEW SONG',
@@ -1897,6 +1898,7 @@ const TRANSLATIONS = {
     cr_ytd: '{{year}} YTD',
     cr_up_to_this_week: 'Up to This Week',
     cr_up_to_this_month: 'Up to This Month',
+    cr_up_to_this_day: 'Up to this day',
     cr_year_only_label: '{{year}} Only',
     cr_up_to_year_label: 'Up to {{year}}',
     cr_all_time: 'All-Time',
@@ -2632,6 +2634,9 @@ const TRANSLATIONS = {
     cr_k_total: 'Total plays',
     cr_k_peak: 'Peak',
     dr_prev_week: 'Last week',
+    dr_prev_day: 'Yesterday',
+    dr_prev_day_wd: 'Last {{day}}',
+    dr_plays_day: 'Plays this day',
     dr_prev_month: 'Last month',
     dr_prev_year: 'Last year',
     dr_plays_week: 'Plays this week',
@@ -3359,6 +3364,7 @@ const TRANSLATIONS = {
 
     // Period labels
     period_this_week: 'Esta Semana',
+    period_this_day: 'Este Día',
     period_this_month: 'Este Mes',
     period_this_year: 'Este Año',
     new_chart_song: 'CANCIÓN NUEVA',
@@ -4457,6 +4463,7 @@ const TRANSLATIONS = {
     cr_ytd: 'Solo {{year}}',
     cr_up_to_this_week: 'Hasta Esta Semana',
     cr_up_to_this_month: 'Hasta Este Mes',
+    cr_up_to_this_day: 'Hasta este día',
     cr_year_only_label: 'Solo {{year}}',
     cr_up_to_year_label: 'Hasta {{year}}',
     cr_all_time: 'Histórico',
@@ -5183,6 +5190,9 @@ const TRANSLATIONS = {
     cr_k_total: 'Reprods totales',
     cr_k_peak: 'Pico',
     dr_prev_week: 'Semana pasada',
+    dr_prev_day: 'Ayer',
+    dr_prev_day_wd: 'El {{day}} pasado',
+    dr_plays_day: 'Reprods este día',
     dr_prev_month: 'Mes pasado',
     dr_prev_year: 'Año pasado',
     dr_plays_week: 'Reprods esta semana',
@@ -5909,6 +5919,7 @@ const TRANSLATIONS = {
 
     // Period labels
     period_this_week: 'Esta Semana',
+    period_this_day: 'Este Dia',
     period_this_month: 'Este Mês',
     period_this_year: 'Este Ano',
     new_chart_song: 'MÚSICA NOVA',
@@ -7008,6 +7019,7 @@ const TRANSLATIONS = {
     cr_ytd: 'Só {{year}}',
     cr_up_to_this_week: 'Até Esta Semana',
     cr_up_to_this_month: 'Até Este Mês',
+    cr_up_to_this_day: 'Até este dia',
     cr_year_only_label: 'Apenas {{year}}',
     cr_up_to_year_label: 'Até {{year}}',
     cr_all_time: 'Histórico',
@@ -7734,6 +7746,9 @@ const TRANSLATIONS = {
     cr_k_total: 'Plays totais',
     cr_k_peak: 'Pico',
     dr_prev_week: 'Semana passada',
+    dr_prev_day: 'Ontem',
+    dr_prev_day_wd: '{{day}} anterior',
+    dr_plays_day: 'Plays neste dia',
     dr_prev_month: 'Mês passado',
     dr_prev_year: 'Ano passado',
     dr_plays_week: 'Plays nesta semana',
@@ -8460,6 +8475,7 @@ const TRANSLATIONS = {
 
     // Period labels
     period_this_week: 'Esta Semana',
+    period_this_day: 'Este Dia',
     period_this_month: 'Este Mês',
     period_this_year: 'Este Ano',
     new_chart_song: 'MÚSICA NOVA',
@@ -9558,6 +9574,7 @@ const TRANSLATIONS = {
     cr_ytd: 'Apenas {{year}}',
     cr_up_to_this_week: 'Até Esta Semana',
     cr_up_to_this_month: 'Até Este Mês',
+    cr_up_to_this_day: 'Até este dia',
     cr_year_only_label: 'Apenas {{year}}',
     cr_up_to_year_label: 'Até {{year}}',
     cr_all_time: 'De Sempre',
@@ -10284,6 +10301,9 @@ const TRANSLATIONS = {
     cr_k_total: 'Plays totais',
     cr_k_peak: 'Pico',
     dr_prev_week: 'Semana passada',
+    dr_prev_day: 'Ontem',
+    dr_prev_day_wd: '{{day}} anterior',
+    dr_plays_day: 'Plays neste dia',
     dr_prev_month: 'Mês passado',
     dr_prev_year: 'Ano passado',
     dr_plays_week: 'Plays esta semana',
