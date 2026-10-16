@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=409">
+  <link rel="stylesheet" href="style.css?v=411">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=109"></script>
+  <script defer src="translations.js?v=110"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -434,11 +434,13 @@
            streak details window. Filled by renderNowStripDayStreak(): a drawn
            flame, "Listening streak", the day count and your best. -->
       <button type="button" id="nsDayStreak" class="ns-day" onclick="openStreakModal()" style="display:none;"></button>
-      <!-- Day streak details (2026-10-16): a second row shown only while
-           nothing is on air. Bar to your best, days to beat it, rank, since
+      <!-- Day streak details (2026-10-16): a second row, shown whether or not
+           a song is on air. Bar to your best, days to beat it, rank, since
            when + first song, top 3 runs, and the artist/song/album runs going.
-           Filled by renderNowStripDayMore(). -->
+           Filled by renderNowStripDayMore(). The handle under it hides or
+           shows this row alone (remembered as dc_nsmore_off). -->
       <div id="nsDayMore" class="ns-more" hidden></div>
+      <button type="button" id="nsMoreToggle" class="ns-more-toggle" aria-controls="nsDayMore" aria-expanded="true" hidden><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       <button type="button" class="ns-less" id="nsLess" data-i18n="nav_toggle_less">Less</button>
     </div>
 
@@ -3761,7 +3763,7 @@
   <!-- Community board tab (suggestions / bugs / discussion). Loaded before
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
   <script defer src="board.js?v=1"></script>
-  <script defer src="app.js?v=365"></script>
+  <script defer src="app.js?v=366"></script>
   <!-- All-Time chart stats ("Inside your Top N"); reads app.js globals, so it loads after it -->
   <script defer src="insights.js?v=8"></script>
   <script defer src="daily.js?v=18"></script>

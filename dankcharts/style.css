@@ -29917,8 +29917,9 @@ button.ns-art {
 /* ---- day streak details: a second row while nothing is on air (2026-10-16) ----
    Filled by renderNowStripDayMore(). Three groups side by side, wrapping on
    narrower screens: the bar toward your best, since when + top 3 runs, and
-   the artist / song / album runs still going. A song on air takes the room
-   back, so .is-live hides the row. */
+   the artist / song / album runs still going. Shown with or without a song
+   on air; the handle on the strip's bottom edge (.ns-more-toggle) hides it
+   alone, and .ns-more-off on the strip remembers that. */
 .ns-more {
   grid-column: 1 / -1;
   grid-row: 2;
@@ -29933,8 +29934,55 @@ button.ns-art {
 }
 
 .ns-more[hidden],
-.now-strip.is-live .ns-more {
+.now-strip.ns-more-off .ns-more {
   display: none;
+}
+
+/* The handle: a small tab sitting on the strip's bottom edge, centred. The
+   chevron points up while the details show (fold them away) and down while
+   they are hidden (bring them back). */
+.now-strip {
+  position: relative;
+}
+
+.ns-more-toggle {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translate(-50%, 50%);
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 18px;
+  padding: 0;
+  border: 1px solid var(--border-t, var(--border));
+  border-radius: 999px;
+  background: var(--bg2);
+  color: var(--text3);
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.ns-more-toggle[hidden] {
+  display: none;
+}
+
+.ns-more-toggle svg {
+  display: block;
+  transform: rotate(180deg);
+  transition: transform 0.2s ease;
+}
+
+.now-strip.ns-more-off .ns-more-toggle svg {
+  transform: none;
+}
+
+.ns-more-toggle:hover,
+.ns-more-toggle:focus-visible {
+  color: var(--text);
+  border-color: var(--text3);
 }
 
 .ns-more-goal-top,
@@ -30182,6 +30230,13 @@ body[class*="-light"] [class*="ns-tier-"] .ns-flame {
   .ns-more {
     order: 3;
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* "Less" sits centred at the bottom on phones, so the handle moves right */
+  .ns-more-toggle {
+    left: auto;
+    right: var(--sp-4);
+    transform: translateY(50%);
   }
 
   .ns-less {

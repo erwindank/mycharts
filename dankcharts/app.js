@@ -33290,9 +33290,9 @@ function nsFlameSvg() {
 }
 
 /* Now strip day streak details (#nsDayMore in index.html, 2026-10-16). A
-   second row under the strip, shown only while nothing is on air (the CSS
-   hides it with .is-live), so the room the live song would take goes to the
-   listening streak instead:
+   second row under the strip, shown whether or not a song is on air. The
+   small handle on the strip's bottom edge (#nsMoreToggle) hides or shows this
+   row alone; the choice is remembered (dc_nsmore_off, see initNsMoreToggle):
      - a bar toward your best; once you are on it, toward the next round number
      - "N days to beat your best" or "New record every day"
      - where this run ranks ("Your 2nd longest ever")
@@ -33306,7 +33306,7 @@ const NS_DAY_GOALS = [7, 14, 30, 50, 100, 200, 365, 500, 730, 1000, 1500, 2000, 
 function renderNowStripDayMore(sortedDays, streak, pb, todayNum) {
   const el = document.getElementById('nsDayMore');
   if (!el) return;
-  if (!streak || !sortedDays.length) { el.hidden = true; el.innerHTML = ''; return; }
+  if (!streak || !sortedDays.length) { el.hidden = true; el.innerHTML = ''; nsSyncMoreToggle(); return; }
 
   const numToDate = n => new Date(Math.floor(n / 10000), Math.floor(n / 100) % 100 - 1, n % 100);
   const toNum = d => d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
@@ -33327,7 +33327,7 @@ function renderNowStripDayMore(sortedDays, streak, pb, todayNum) {
   }
   // The run going now is the newest one (it ends today or yesterday)
   const cur = runs[runs.length - 1];
-  if (!cur || cur.len !== streak) { el.hidden = true; el.innerHTML = ''; return; }
+  if (!cur || cur.len !== streak) { el.hidden = true; el.innerHTML = ''; nsSyncMoreToggle(); return; }
 
   // Rank: how many runs were longer, plus one (ties share the rank)
   const rank = 1 + runs.filter(r => r.len > streak).length;
@@ -33414,7 +33414,40 @@ function renderNowStripDayMore(sortedDays, streak, pb, todayNum) {
       ${itemRows}
     </div>` : ''}`;
   el.hidden = false;
+  nsSyncMoreToggle();
 }
+
+/* The handle that hides or shows the streak details row on its own. Shown
+   only when there are details to show. The strip carries .ns-more-off while
+   they are hidden, and the CSS does the rest. */
+function nsSyncMoreToggle() {
+  const btn = document.getElementById('nsMoreToggle');
+  const more = document.getElementById('nsDayMore');
+  const strip = document.getElementById('nowStrip');
+  if (!btn || !more || !strip) return;
+  btn.hidden = more.hidden;
+  const off = strip.classList.contains('ns-more-off');
+  btn.setAttribute('aria-expanded', off ? 'false' : 'true');
+  const label = t(off ? 'ns_more_show' : 'ns_more_hide');
+  btn.setAttribute('aria-label', label);
+  btn.title = label;
+}
+
+(function initNsMoreToggle() {
+  const strip = document.getElementById('nowStrip');
+  const btn = document.getElementById('nsMoreToggle');
+  if (!strip || !btn) return;
+  const KEY = 'dc_nsmore_off';
+  let off = false;
+  try { off = localStorage.getItem(KEY) === '1'; } catch (e) {}
+  strip.classList.toggle('ns-more-off', off);
+  btn.addEventListener('click', () => {
+    const nowOff = !strip.classList.contains('ns-more-off');
+    strip.classList.toggle('ns-more-off', nowOff);
+    try { localStorage.setItem(KEY, nowOff ? '1' : '0'); } catch (e) {}
+    nsSyncMoreToggle();
+  });
+})();
 
 // ─── STREAK HEATMAP STATE ─────────────────────────────────────
 let _skHmTheme = localStorage.getItem('sk-hm-theme') || 'ocean';
