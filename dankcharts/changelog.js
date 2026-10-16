@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 143;
+const DC_CL_I18N_V = 144;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-16', t: 'feature', a: 'charts', h: '5d54fe0',
+    title: "The Daily chart has the same settings as the other charts",
+    detail: "The Daily chart is now the same chart as Weekly and Monthly, so everything in its ⋮ menu works there too: Show (cert badges, your scores, plays peaks, peak tags, YouTube and playlist buttons, descriptions, and the Chart and New Entries sections), Size (Top 10 to 50 or your own number, set per chart and kept with your account) and Actions (share, PDF, export). Click a row for its chart run, with its weekly, monthly and yearly history, and use Animate Chart to watch it move from the day you compare against. The compare switch, the actions and the day's cards stay above and below the chart." },
 
   { d: '2026-10-16', t: 'feature', a: 'charts', h: '8f8f71e',
     title: "Share images count the right unit on the chart",

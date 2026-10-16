@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "The Daily chart has the same settings as the other charts":
+    ["A parada diária tem as mesmas opções das outras paradas",
+     "A parada diária agora é a mesma parada do Semanal e do Mensal, então todo o menu ⋮ funciona lá também: Mostrar (selos de certificação, suas notas, picos de plays, etiquetas de pico, botões de YouTube e playlist, descrições e as seções Parada e Novas entradas), Tamanho (Top 10 a 50 ou o seu próprio número, por parada e salvo na sua conta) e Ações (compartilhar, PDF, exportar). Clique numa linha para ver a trajetória dela, com o histórico semanal, mensal e anual, e use Animar parada para ver ela se mover a partir do dia que você compara. O seletor de comparação, as ações e os cartões do dia continuam acima e abaixo da parada."],
+
   "Share images count the right unit on the chart":
     ["As imagens para compartilhar usam a unidade certa na parada",
      "As imagens para compartilhar diziam \"3 semanas\" para o tempo na parada qualquer que fosse o período. Agora as mensais dizem meses, as anuais anos e as diárias dias, e a opção do editor tem o nome certo (Dias / Semanas / Meses / Anos na Parada)."],

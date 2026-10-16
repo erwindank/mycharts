@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "The Daily chart has the same settings as the other charts":
+    ["La lista diaria tiene los mismos ajustes que las otras listas",
+     "La lista diaria es ahora la misma lista que Semanal y Mensual, así que todo su menú ⋮ funciona también ahí: Mostrar (insignias de certificación, tus puntuaciones, picos de reproducciones, etiquetas de pico, botones de YouTube y playlist, descripciones y las secciones Lista y Nuevas entradas), Tamaño (Top 10 a 50 o tu propio número, por lista y guardado en tu cuenta) y Acciones (compartir, PDF, exportar). Haz clic en una fila para ver su trayectoria, con su historial semanal, mensual y anual, y usa Animar lista para verla moverse desde el día con el que comparas. El selector de comparación, las acciones y las tarjetas del día siguen encima y debajo de la lista."],
+
   "Share images count the right unit on the chart":
     ["Las imágenes para compartir usan la unidad correcta en la lista",
      "Las imágenes para compartir decían \"3 semanas\" para el tiempo en la lista fuera cual fuera el periodo. Ahora las mensuales dicen meses, las anuales años y las diarias días, y la opción del diseñador se llama igual (Días / Semanas / Meses / Años en el Ranking)."],

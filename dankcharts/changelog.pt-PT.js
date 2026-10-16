@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "The Daily chart has the same settings as the other charts":
+    ["A tabela diária tem as mesmas opções das outras tabelas",
+     "A tabela diária é agora a mesma tabela do Semanal e do Mensal, por isso todo o menu ⋮ funciona lá também: Mostrar (selos de certificação, as tuas notas, picos de plays, etiquetas de pico, botões de YouTube e playlist, descrições e as secções Tabela e Novas entradas), Tamanho (Top 10 a 50 ou o teu próprio número, por tabela e guardado na tua conta) e Ações (partilhar, PDF, exportar). Clica numa linha para veres a trajetória dela, com o histórico semanal, mensal e anual, e usa Animar tabela para a veres mexer a partir do dia com que comparas. O seletor de comparação, as ações e os cartões do dia continuam por cima e por baixo da tabela."],
+
   "Share images count the right unit on the chart":
     ["As imagens para partilhar usam a unidade certa na tabela",
      "As imagens para partilhar diziam \"3 semanas\" para o tempo na tabela fosse qual fosse o período. Agora as mensais dizem meses, as anuais anos e as diárias dias, e a opção do editor tem o nome certo (Dias / Semanas / Meses / Anos no Top)."],
