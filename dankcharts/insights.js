@@ -76,9 +76,27 @@ function _atiYearOf(e) {
   return (k in _awardsAlbumYearCache) ? _awardsAlbumYearCache[k] : undefined;
 }
 function _atiDays(ms) { return Math.max(0, Math.round(ms / 864e5)); }
-function _atiDaysText(d) { return d < 1 ? t('ati_same_day') : _atiCount('days', d); }
-// The unit word for one entry of a chart type ("songs", "artists", "albums")
-function _atiUnit(type) { return type; }
+function _atiDaysText(d) { return d < 1 ? _atiT('ati_same_day') : _atiCount('days', d); }
+/* The unit word for one entry of a chart type ("songs", "artists", "albums").
+   The albums chart can be filtered to singles or EPs once they are set apart
+   (albumsFilterBucket), and then its entries are singles or EPs. */
+function _atiUnit(type) {
+  if (type !== 'albums') return type;
+  const b = typeof albumsFilterBucket === 'function' ? albumsFilterBucket() : null;
+  return b === 'single' ? 'singles' : b === 'ep' ? 'eps' : 'albums';
+}
+/* t() for this section: every string can name the albums chart's entries as
+   {{u}} / {{U}} (plural) and {{u1}} / {{U1}} (one), so the Singles and EPs
+   charts say singles / EPs instead of albums. Worked out at call time, so a
+   language switch or a filter change is picked up on the next render. */
+function _atiT(key, vars, count) {
+  // A count of one picks the key's _one form when it has one ("1 EP was…")
+  if (count === 1 && TRANSLATIONS.en[key + '_one'] !== undefined) key += '_one';
+  const unit = _atiUnit(_ati.data ? _ati.data.type : 'songs');
+  const u = tUnit(unit, 2), u1 = tUnit(unit, 1);
+  const cap = w => w.charAt(0).toUpperCase() + w.slice(1);
+  return t(key, Object.assign({ u, u1, U: cap(u), U1: cap(u1) }, vars || {}));
+}
 function _atiTabs(type) { return ATI_TYPE_TABS[type] || ATI_TYPE_TABS.songs; }
 function _atiTab(type) { const tabs = _atiTabs(type); return tabs.includes(_ati.tab) ? _ati.tab : tabs[0]; }
 // The All-Time size of each chart, and the size bar that sets it
@@ -205,6 +223,12 @@ function _atiCompute(type, items, N) {
   }
   E.forEach(e => e.times.sort((a, b) => a - b));
 
+  /* How many different songs / artists / albums exist at all. On a filtered
+     albums chart (singles or EPs set apart) only the releases of that kind,
+     so "of the 82 EPs you have played" counts EPs. */
+  const bucket = type === 'albums' && typeof albumsFilterBucket === 'function' ? albumsFilterBucket() : null;
+  const uniqN = bucket ? [...uniq].filter(k => albumBucketOfKey(k) === bucket).length : uniq.size;
+
   // The chart a year ago, ranked by the chart's own builder
   const build = type === 'artists' ? buildArtistsFull : type === 'albums' ? buildAlbumsFull : buildSongsFull;
   build(before, null).forEach((it, i) => { const e = byKey.get(_atiKeyOf(type, it)); if (e) e.prevRank = i + 1; });
@@ -293,15 +317,15 @@ function _atiCompute(type, items, N) {
       tiers.diamond.push(e);
       const mult = Math.floor(c / C.diamond);
       next.push({ e, need: (mult + 1) * C.diamond - c, label: tDiamondLabel(mult + 1) });
-    } else if (c >= C.plat) { tiers.plat.push(e); next.push({ e, need: C.diamond - c, label: t('cert_diamond') }); }
-    else if (c >= C.gold)   { tiers.gold.push(e); next.push({ e, need: C.plat - c, label: t('cert_plat') }); }
-    else                    { tiers.none.push(e); next.push({ e, need: C.gold - c, label: t('cert_gold') }); }
+    } else if (c >= C.plat) { tiers.plat.push(e); next.push({ e, need: C.diamond - c, label: _atiT('cert_diamond') }); }
+    else if (c >= C.gold)   { tiers.gold.push(e); next.push({ e, need: C.plat - c, label: _atiT('cert_plat') }); }
+    else                    { tiers.none.push(e); next.push({ e, need: C.gold - c, label: _atiT('cert_gold') }); }
   });
   next.sort((a, b) => (a.need - b.need) || (a.e.rank - b.e.rank));
 
   const d = {
     type, N, E, young, fresh, cut, artists, albums, tracks, depth, carry, top10Owners, top10Max,
-    top3, top3N, top3Share, oneHit, totalPlays, playsOnce, allPlaysN: allPlays.length, uniqN: uniq.size,
+    top3, top3N, top3Share, oneHit, totalPlays, playsOnce, allPlaysN: allPlays.length, uniqN,
     bar, fast, slow, disc, byFirst, tiers, next: next.slice(0, 5), ladders: [...ladders],
   };
   _ati.data = d; _ati.sig = sig;
@@ -446,7 +470,7 @@ function _atiSpot(label, e, line) {
   </button>`;
 }
 
-function _atiDecadeLabel(dec) { return t('ati_decade_short', { d: dec }); }
+function _atiDecadeLabel(dec) { return _atiT('ati_decade_short', { d: dec }); }
 
 /* The discovery-year columns, picking the busiest year the first time */
 function _atiDiscoveryHtml(d) {
@@ -455,8 +479,8 @@ function _atiDiscoveryHtml(d) {
     _ati.discSel = [...groups].sort((a, b) => b.list.length - a.list.length)[0].id;
   }
   const subKey = d.type === 'artists' ? 'ati_discover_sub_artist' : d.type === 'albums' ? 'ati_discover_sub_album' : 'ati_discover_sub';
-  return `<h3 class="ati-h">${esc(t('ati_discover_title'))}</h3>
-    <p class="ati-note">${esc(t(subKey))}</p>
+  return `<h3 class="ati-h">${esc(_atiT('ati_discover_title'))}</h3>
+    <p class="ati-note">${esc(_atiT(subKey))}</p>
     ${_atiColumns(groups, 'disc', _ati.discSel, id => String(id), _atiUnit(d.type))}`;
 }
 
@@ -472,49 +496,49 @@ function _atiFacts(d) {
   const s0 = d.E[0], s1 = d.E[1];
 
   if (d.type === 'artists') {
-    if (s0) add(t('ati_f_art_share', { artist: _atiB(s0.ttl), pct: _atiN(_atiPct(s0.count / d.totalPlays)), N }), ...artistArt(s0.ttl));
+    if (s0) add(_atiT('ati_f_art_share', { artist: _atiB(s0.ttl), pct: _atiN(_atiPct(s0.count / d.totalPlays)), N }), ...artistArt(s0.ttl));
     const dp = d.depth[0];
-    if (dp) add(t('ati_f_depth', { artist: _atiB(dp.ttl), n: _atiCount('songs', dp.songsN) }), ...artistArt(dp.ttl));
+    if (dp) add(_atiT('ati_f_depth', { artist: _atiB(dp.ttl), n: _atiCount('songs', dp.songsN) }), ...artistArt(dp.ttl));
     const cr = d.carry[0];
-    if (cr && cr.songs[0]) add(t('ati_f_carry', { artist: esc(cr.ttl), pct: _atiN(_atiPct(cr.carry)), title: _atiB(cr.songs[0].title) }), ...artistArt(cr.ttl));
-    if (d.top3.length === 3) add(t('ati_share_line_artists', { pct: _atiN(_atiPct(d.top3Share)) }), ...artistArt(d.top3[0].name));
+    if (cr && cr.songs[0]) add(_atiT('ati_f_carry', { artist: esc(cr.ttl), pct: _atiN(_atiPct(cr.carry)), title: _atiB(cr.songs[0].title) }), ...artistArt(cr.ttl));
+    if (d.top3.length === 3) add(_atiT('ati_share_line_artists', { pct: _atiN(_atiPct(d.top3Share)) }), ...artistArt(d.top3[0].name));
     const fr = d.byFirst[0];
-    if (fr) add(t('ati_f_friend', { artist: _atiB(fr.ttl), date: esc(fmtDate(new Date(fr.times[0]))) }), ...artistArt(fr.ttl));
+    if (fr) add(_atiT('ati_f_friend', { artist: _atiB(fr.ttl), date: esc(fmtDate(new Date(fr.times[0]))) }), ...artistArt(fr.ttl));
   } else {
     const a0 = d.artists[0];
-    if (a0 && a0.list.length >= 2) add(t('ati_f_most', { artist: _atiB(a0.name), n: _atiCount(unit, a0.list.length), N }), ...artistArt(a0.name));
-    if (a0) add(t('ati_f_artists', { n: _atiN(d.artists.length), N }), ...artistArt(a0.name));
+    if (a0 && a0.list.length >= 2) add(_atiT('ati_f_most', { artist: _atiB(a0.name), n: _atiCount(unit, a0.list.length), N }), ...artistArt(a0.name));
+    if (a0) add(_atiT('ati_f_artists', { n: _atiN(d.artists.length), N }), ...artistArt(a0.name));
     if (d.type === 'songs' && d.albums[0]) {
       const al = d.albums[0];
-      add(t('ati_f_album', { album: _atiB(al.album), artist: esc(al.artist), n: _atiCount('songs', al.list.length) }),
+      add(_atiT('ati_f_album', { album: _atiB(al.album), artist: esc(al.artist), n: _atiCount('songs', al.list.length) }),
           ['album', { album: al.album, artist: al.artist }], ['album', al.key]);
     }
     if (d.type === 'albums' && d.tracks[0] && d.tracks[0].tracksN > 1) {
       const tr = d.tracks[0];
-      add(t('ati_f_tracks', { album: _atiB(tr.ttl), n: _atiCount('songs', tr.tracksN) }), tr.art, tr.open);
+      add(_atiT('ati_f_tracks', { album: _atiB(tr.ttl), n: _atiCount('songs', tr.tracksN) }), tr.art, tr.open);
     }
-    if (d.top10Owners.length === 1) add(t('ati_f_top10', { artist: _atiB(d.top10Owners[0]), n: _atiN(d.top10Max) }), ...artistArt(d.top10Owners[0]));
-    if (d.top3.length === 3) add(t('ati_f_share', { pct: _atiN(_atiPct(d.top3Share)) }), ...artistArt(d.top3[0].name));
-    if (d.oneHit.length) add(t(d.type === 'albums' ? 'ati_f_onealb' : 'ati_f_onehit', { n: _atiN(d.oneHit.length) }), ...artistArt(d.oneHit[0].name));
-    if (d.tiers.diamond.length) add(t('ati_f_diamond', { n: _atiCount(unit, d.tiers.diamond.length) }), d.tiers.diamond[0].art, d.tiers.diamond[0].open);
+    if (d.top10Owners.length === 1) add(_atiT('ati_f_top10', { artist: _atiB(d.top10Owners[0]), n: _atiN(d.top10Max) }), ...artistArt(d.top10Owners[0]));
+    if (d.top3.length === 3) add(_atiT('ati_f_share', { pct: _atiN(_atiPct(d.top3Share)) }), ...artistArt(d.top3[0].name));
+    if (d.oneHit.length) add(_atiT(d.type === 'albums' ? 'ati_f_onealb' : 'ati_f_onehit', { n: _atiN(d.oneHit.length) }), ...artistArt(d.oneHit[0].name));
+    if (d.tiers.diamond.length) add(_atiT('ati_f_diamond', { n: _atiCount(unit, d.tiers.diamond.length) }, d.tiers.diamond.length), d.tiers.diamond[0].art, d.tiers.diamond[0].open);
   }
-  if (s0 && s1 && s0.count > s1.count) add(t('ati_f_gap', { title: _atiB(s0.ttl), n: _atiN(s0.count - s1.count) }), s0.art, s0.open);
-  if (s0) add(t('ati_f_total', { N, pct: _atiN(_atiPct(d.playsOnce / d.allPlaysN)) }), s0.art, s0.open);
+  if (s0 && s1 && s0.count > s1.count) add(_atiT('ati_f_gap', { title: _atiB(s0.ttl), n: _atiN(s0.count - s1.count) }), s0.art, s0.open);
+  if (s0) add(_atiT('ati_f_total', { N, pct: _atiN(_atiPct(d.playsOnce / d.allPlaysN)) }), s0.art, s0.open);
   if (d.fast[0]) {
     const x = d.fast[0], days = _atiDays(x.days * 864e5);
-    add(days < 1 ? t('ati_f_fast0', { title: _atiB(x.e.ttl), n: _atiN(d.bar) })
-                 : t('ati_f_fast', { title: _atiB(x.e.ttl), days: _atiCount('days', days), n: _atiN(d.bar) }), x.e.art, x.e.open);
+    add(days < 1 ? _atiT('ati_f_fast0', { title: _atiB(x.e.ttl), n: _atiN(d.bar) })
+                 : _atiT('ati_f_fast', { title: _atiB(x.e.ttl), days: _atiCount('days', days), n: _atiN(d.bar) }), x.e.art, x.e.open);
   }
-  if (!d.young && d.fresh.length) add(t('ati_f_new', { n: _atiCount(unit, d.fresh.length) }), d.fresh[0].art, d.fresh[0].open);
+  if (!d.young && d.fresh.length) add(_atiT('ati_f_new', { n: _atiCount(unit, d.fresh.length) }), d.fresh[0].art, d.fresh[0].open);
   const discTop = [...d.disc.entries()].sort((a, b) => b[1].length - a[1].length)[0];
-  if (discTop && d.disc.size > 1) add(t('ati_f_found', { n: _atiCount(unit, discTop[1].length), year: _atiN(String(discTop[0])) }), discTop[1][0].art, discTop[1][0].open);
+  if (discTop && d.disc.size > 1) add(_atiT('ati_f_found', { n: _atiCount(unit, discTop[1].length), year: _atiN(String(discTop[0])) }), discTop[1][0].art, discTop[1][0].open);
   // Year facts only once the years are in (never fetched just for the hero)
   if (d.type !== 'artists') {
     const er = _atiEras(d);
     if (er.known.length >= Math.min(10, d.E.length / 2)) {
       const decTop = [...er.decades.entries()].sort((a, b) => b[1].length - a[1].length)[0];
-      if (decTop) add(t('ati_f_decade', { decade: esc(t('ati_decade_long', { d: decTop[0] })) }), decTop[1][0].art, decTop[1][0].open);
-      if (er.oldest) add(t(d.type === 'albums' ? 'ati_f_oldest_album' : 'ati_f_oldest', { title: _atiB(er.oldest.e.ttl), year: _atiN(String(er.oldest.y)) }), er.oldest.e.art, er.oldest.e.open);
+      if (decTop) add(_atiT('ati_f_decade', { decade: esc(_atiT('ati_decade_long', { d: decTop[0] })) }), decTop[1][0].art, decTop[1][0].open);
+      if (er.oldest) add(_atiT(d.type === 'albums' ? 'ati_f_oldest_album' : 'ati_f_oldest', { title: _atiB(er.oldest.e.ttl), year: _atiN(String(er.oldest.y)) }), er.oldest.e.art, er.oldest.e.open);
     }
   }
   return f;
@@ -526,14 +550,14 @@ function _atiHeroHtml(d) {
   const i = ((_ati.fact % facts.length) + facts.length) % facts.length;
   const f = facts[i];
   const art = f.art
-    ? `<button type="button" class="ati-hero-art" ${_atiOpenAttrs(f.open[0], f.open[1])} aria-label="${esc(t('ati_open'))}">${_atiArt(f.art[0], f.art[1], 'ati-art--hero')}</button>`
+    ? `<button type="button" class="ati-hero-art" ${_atiOpenAttrs(f.open[0], f.open[1])} aria-label="${esc(_atiT('ati_open'))}">${_atiArt(f.art[0], f.art[1], 'ati-art--hero')}</button>`
     : '';
   return `<div class="ati-hero">
     ${art}
     <p class="ati-hero-fact" aria-live="polite">${f.html}</p>
     <button type="button" class="ati-btn ati-btn--ghost ati-hero-next" data-ati="fact">
       <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9M13.5 2.5v2.6h-2.6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <span>${esc(t('ati_another'))}</span>
+      <span>${esc(_atiT('ati_another'))}</span>
       <span class="ati-hero-count">${_atiN((i + 1) + '/' + facts.length)}</span>
     </button>
   </div>`;
@@ -549,59 +573,59 @@ function _atiTilesHtml(d) {
     </button>`;
   const share = _atiN(d.top3.length ? _atiPct(d.top3Share) : '–');
   const first = d.type === 'artists'
-    ? tile('songs', _atiN(d.E.reduce((n, e) => n + e.songsN, 0)), t('ati_tile_songs'), esc(t('ati_tile_songs_sub', { n: d.E.length.toLocaleString() })))
-      + tile('songs', share, t('ati_tile_share_plays'), esc(d.top3.map(a => a.name).join(', ')))
-    : tile('artists', _atiN(d.artists.length), t('ati_tile_artists'),
-           esc(t(d.type === 'albums' ? 'ati_tile_artists_sub_albums' : 'ati_tile_artists_sub', { n: d.E.length.toLocaleString() })))
-      + tile('artists', share, t('ati_tile_share'), d.top3[0] ? esc(d.top3.map(a => a.name).join(', ')) : '');
+    ? tile('songs', _atiN(d.E.reduce((n, e) => n + e.songsN, 0)), _atiT('ati_tile_songs'), esc(_atiT('ati_tile_songs_sub', { n: d.E.length.toLocaleString() })))
+      + tile('songs', share, _atiT('ati_tile_share_plays'), esc(d.top3.map(a => a.name).join(', ')))
+    : tile('artists', _atiN(d.artists.length), _atiT('ati_tile_artists'),
+           esc(_atiT(d.type === 'albums' ? 'ati_tile_artists_sub_albums' : 'ati_tile_artists_sub', { n: d.E.length.toLocaleString() })))
+      + tile('artists', share, _atiT('ati_tile_share'), d.top3[0] ? esc(d.top3.map(a => a.name).join(', ')) : '');
   return `<div class="ati-tiles">
     ${first}
-    ${tile('plays', _atiN(_atiPct(d.playsOnce / d.allPlaysN)), t('ati_tile_plays'), _atiCount('plays', d.playsOnce))}
-    ${tile('new', _atiN(d.young ? '–' : d.fresh.length), t('ati_tile_new'), d.young ? esc(t('ati_tile_new_young')) : esc(t('ati_tile_new_sub')))}
+    ${tile('plays', _atiN(_atiPct(d.playsOnce / d.allPlaysN)), _atiT('ati_tile_plays'), _atiCount('plays', d.playsOnce))}
+    ${tile('new', _atiN(d.young ? '–' : d.fresh.length), _atiT('ati_tile_new'), d.young ? esc(_atiT('ati_tile_new_young')) : esc(_atiT('ati_tile_new_sub')))}
   </div>`;
 }
 
 function _atiTabsHtml(type) {
   const cur = _atiTab(type);
   // The site's one segmented control (DESIGN.md "one of each"), same as Songs/Artists/Albums
-  return `<div class="chart-type-seg ati-tabs" role="tablist" aria-label="${esc(t('ati_tabs_label'))}">${_atiTabs(type).map(tb =>
-    `<button type="button" role="tab" class="chart-type-toggle-btn${tb === cur ? ' active' : ''}" aria-selected="${tb === cur}" data-ati="tab" data-tab="${tb}">${esc(t('ati_tab_' + tb))}</button>`).join('')}</div>`;
+  return `<div class="chart-type-seg ati-tabs" role="tablist" aria-label="${esc(_atiT('ati_tabs_label'))}">${_atiTabs(type).map(tb =>
+    `<button type="button" role="tab" class="chart-type-toggle-btn${tb === cur ? ' active' : ''}" aria-selected="${tb === cur}" data-ati="tab" data-tab="${tb}">${esc(_atiT('ati_tab_' + tb))}</button>`).join('')}</div>`;
 }
 
 // Top 10 owner, top 3 share and one-entry artists, shared by the songs and albums charts
 function _atiArtistFacts(d) {
   const isAlb = d.type === 'albums';
   let top10 = '';
-  if (d.top10Owners.length === 1) top10 = t('ati_top10_line', { artist: _atiB(d.top10Owners[0]), n: _atiN(d.top10Max) });
-  else if (d.top10Owners.length > 1) top10 = t('ati_top10_tie', { artists: d.top10Owners.map(_atiB).join(', '), n: _atiN(d.top10Max) });
-  else top10 = esc(t(isAlb ? 'ati_top10_none_albums' : 'ati_top10_none'));
+  if (d.top10Owners.length === 1) top10 = _atiT('ati_top10_line', { artist: _atiB(d.top10Owners[0]), n: _atiN(d.top10Max) });
+  else if (d.top10Owners.length > 1) top10 = _atiT('ati_top10_tie', { artists: d.top10Owners.map(_atiB).join(', '), n: _atiN(d.top10Max) });
+  else top10 = esc(_atiT(isAlb ? 'ati_top10_none_albums' : 'ati_top10_none'));
 
   // Top 3 share as one stacked bar: each artist's own entries, then everyone else
   let share = '';
   if (d.top3.length) {
     const segs = d.top3.map((a, i) => ({ name: a.name, n: a.list.length, cls: 'ati-seg--' + (i + 1) }));
     const restN = Math.max(0, d.E.length - d.top3N);
-    share = `<p class="ati-line">${t(isAlb ? 'ati_share_line_albums' : 'ati_share_line', { n: _atiN(d.top3N), total: _atiN(d.E.length), pct: _atiN(_atiPct(d.top3Share)) })}</p>
+    share = `<p class="ati-line">${_atiT(isAlb ? 'ati_share_line_albums' : 'ati_share_line', { n: _atiN(d.top3N), total: _atiN(d.E.length), pct: _atiN(_atiPct(d.top3Share)) })}</p>
       ${_atiStack(segs, restN)}
-      ${isAlb ? '' : `<p class="ati-note">${esc(t('ati_share_note'))}</p>`}`;
+      ${isAlb ? '' : `<p class="ati-note">${esc(_atiT('ati_share_note'))}</p>`}`;
   }
 
   // Artists with one entry, as chips: the first 24, the rest one click away
-  let oneHit = `<p class="ati-line">${esc(t(isAlb ? 'ati_onealb_none' : 'ati_onehit_none'))}</p>`;
+  let oneHit = `<p class="ati-line">${esc(_atiT(isAlb ? 'ati_onealb_none' : 'ati_onehit_none'))}</p>`;
   if (d.oneHit.length) {
     const chip = a => `<button type="button" class="ati-chip" ${_atiOpenAttrs(a.list[0].open[0], a.list[0].open[1])} title="${esc(a.list[0].ttl)}">${esc(a.name)}<span class="ati-chip-r">${_atiN('#' + a.list[0].rank)}</span></button>`;
     const first = d.oneHit.slice(0, 24).map(chip).join('');
     const more = d.oneHit.slice(24).map(chip).join('');
-    oneHit = `<p class="ati-line">${t(isAlb ? 'ati_onealb_line' : 'ati_onehit_line', { n: _atiN(d.oneHit.length) })}</p>
+    oneHit = `<p class="ati-line">${_atiT(isAlb ? 'ati_onealb_line' : 'ati_onehit_line', { n: _atiN(d.oneHit.length) })}</p>
       <div class="ati-chips">${first}${more ? `<span class="ati-chips-more" hidden>${more}</span>` : ''}</div>
-      ${more ? `<button type="button" class="ati-link ati-more-chips" data-ati="chips" data-more="${esc(t('ati_show_all', { n: d.oneHit.length.toLocaleString() }))}" data-less="${esc(t('ati_show_less'))}">${esc(t('ati_show_all', { n: d.oneHit.length.toLocaleString() }))}</button>` : ''}`;
+      ${more ? `<button type="button" class="ati-link ati-more-chips" data-ati="chips" data-more="${esc(_atiT('ati_show_all', { n: d.oneHit.length.toLocaleString() }))}" data-less="${esc(_atiT('ati_show_less'))}">${esc(_atiT('ati_show_all', { n: d.oneHit.length.toLocaleString() }))}</button>` : ''}`;
   }
 
-  return `<h3 class="ati-h">${esc(t('ati_top10_title'))}</h3>
+  return `<h3 class="ati-h">${esc(_atiT('ati_top10_title'))}</h3>
     <p class="ati-line">${top10}</p>
-    <h3 class="ati-h">${esc(t('ati_share_title'))}</h3>
+    <h3 class="ati-h">${esc(_atiT('ati_share_title'))}</h3>
     ${share}
-    <h3 class="ati-h">${esc(t(isAlb ? 'ati_onealb_title' : 'ati_onehit_title'))}</h3>
+    <h3 class="ati-h">${esc(_atiT(isAlb ? 'ati_onealb_title' : 'ati_onehit_title'))}</h3>
     ${oneHit}`;
 }
 
@@ -609,7 +633,7 @@ function _atiArtistFacts(d) {
 function _atiStack(segs, restN) {
   return `<div class="ati-stack" aria-hidden="true">${segs.map(s => `<span class="ati-seg ${s.cls}" style="flex:${s.n}"></span>`).join('')}<span class="ati-seg ati-seg--rest" style="flex:${restN}"></span></div>
     <ul class="ati-legend">${segs.map(s => `<li><span class="ati-dot ${s.cls}"></span><button type="button" class="ati-link" ${_atiOpenAttrs('artist', s.name)}>${esc(s.name)}</button> ${_atiN(s.n)}</li>`).join('')}
-      <li><span class="ati-dot ati-seg--rest"></span>${esc(t('ati_share_rest'))} ${_atiN(restN)}</li></ul>`;
+      <li><span class="ati-dot ati-seg--rest"></span>${esc(_atiT('ati_share_rest'))} ${_atiN(restN)}</li></ul>`;
 }
 
 // Artists tab (songs and albums charts)
@@ -620,14 +644,14 @@ function _atiPanelArtists(d) {
   const artistRows = top.map(a => _atiRow(
     `${_atiArt('artist', { name: a.name }, 'ati-art--sm')}<span class="ati-row-name">${esc(a.name)}</span>`,
     a.list.length, max, a.list,
-    `<button type="button" class="ati-link" ${_atiOpenAttrs('artist', a.name)}>${esc(t('ati_open_artist'))}</button>`)).join('');
+    `<button type="button" class="ati-link" ${_atiOpenAttrs('artist', a.name)}>${esc(_atiT('ati_open_artist'))}</button>`)).join('');
 
   let second;
   if (isAlb) {
     // Albums with the most different tracks played
     const tmax = d.tracks[0] ? d.tracks[0].tracksN : 0;
-    second = `<h3 class="ati-h">${esc(t('ati_most_tracks'))}</h3>
-      <p class="ati-note">${esc(t('ati_most_tracks_note'))}</p>
+    second = `<h3 class="ati-h">${esc(_atiT('ati_most_tracks'))}</h3>
+      <p class="ati-note">${esc(_atiT('ati_most_tracks_note'))}</p>
       <div class="ati-rows">${d.tracks.map(e => `<button type="button" class="ati-pod" ${_atiOpenAttrs(e.open[0], e.open[1])}>
           <span class="ati-pod-rk">${_atiN('#' + e.rank)}</span>
           ${_atiEntryArt(e, 'ati-art--sm')}
@@ -640,15 +664,15 @@ function _atiPanelArtists(d) {
     const albumRows = d.albums.slice(0, 5).map(al => _atiRow(
       `${_atiArt('album', { album: al.album, artist: al.artist }, 'ati-art--sm')}<span class="ati-row-name">${esc(al.album)}<span class="ati-row-sub">${esc(al.artist)}</span></span>`,
       al.list.length, amax, al.list,
-      `<button type="button" class="ati-link" ${_atiOpenAttrs('album', al.key)}>${esc(t('ati_open_album'))}</button>`)).join('');
-    second = `<h3 class="ati-h">${esc(t('ati_most_albums'))}</h3>
-      ${albumRows ? `<div class="ati-rows">${albumRows}</div>` : `<p class="ati-line">${esc(t('ati_albums_none'))}</p>`}`;
+      `<button type="button" class="ati-link" ${_atiOpenAttrs('album', al.key)}>${esc(_atiT('ati_open_album'))}</button>`)).join('');
+    second = `<h3 class="ati-h">${esc(_atiT('ati_most_albums'))}</h3>
+      ${albumRows ? `<div class="ati-rows">${albumRows}</div>` : `<p class="ati-line">${esc(_atiT('ati_albums_none'))}</p>`}`;
   }
 
   return `<div class="ati-grid">
     <div class="ati-block">
-      <h3 class="ati-h">${esc(t(isAlb ? 'ati_most_albums_by' : 'ati_most_entries'))}</h3>
-      <p class="ati-note">${esc(t(isAlb ? 'ati_row_hint_albums' : 'ati_row_hint'))}</p>
+      <h3 class="ati-h">${esc(_atiT(isAlb ? 'ati_most_albums_by' : 'ati_most_entries'))}</h3>
+      <p class="ati-note">${esc(_atiT(isAlb ? 'ati_row_hint_albums' : 'ati_row_hint'))}</p>
       <div class="ati-rows">${artistRows}</div>
     </div>
     <div class="ati-block">
@@ -670,7 +694,7 @@ function _atiPanelSongs(d) {
   const depthRows = d.depth.map(e => _atiRow(
     `${_atiEntryArt(e, 'ati-art--sm')}<span class="ati-row-name">${esc(e.ttl)}<span class="ati-row-sub">${esc('#' + e.rank)}</span></span>`,
     e.songsN, max, null,
-    `<button type="button" class="ati-link" ${_atiOpenAttrs('artist', e.ttl)}>${esc(t('ati_open_artist'))}</button>`,
+    `<button type="button" class="ati-link" ${_atiOpenAttrs('artist', e.ttl)}>${esc(_atiT('ati_open_artist'))}</button>`,
     songList(e))).join('');
 
   const carry = `<ol class="ati-songs">${d.carry.map(e => `
@@ -683,21 +707,21 @@ function _atiPanelSongs(d) {
   let share = '';
   if (d.top3.length) {
     const segs = d.top3.map((a, i) => ({ name: a.name, n: a.plays, cls: 'ati-seg--' + (i + 1) }));
-    share = `<p class="ati-line">${t('ati_share_line_artists', { pct: _atiN(_atiPct(d.top3Share)) })}</p>
+    share = `<p class="ati-line">${_atiT('ati_share_line_artists', { pct: _atiN(_atiPct(d.top3Share)) })}</p>
       ${_atiStack(segs, Math.max(0, d.totalPlays - d.top3N))}`;
   }
 
   return `<div class="ati-grid">
     <div class="ati-block">
-      <h3 class="ati-h">${esc(t('ati_depth_title'))}</h3>
-      <p class="ati-note">${esc(t('ati_depth_note'))}</p>
+      <h3 class="ati-h">${esc(_atiT('ati_depth_title'))}</h3>
+      <p class="ati-note">${esc(_atiT('ati_depth_note'))}</p>
       <div class="ati-rows">${depthRows}</div>
     </div>
     <div class="ati-block">
-      <h3 class="ati-h">${esc(t('ati_carry_title'))}</h3>
-      <p class="ati-note">${esc(t('ati_carry_note'))}</p>
+      <h3 class="ati-h">${esc(_atiT('ati_carry_title'))}</h3>
+      <p class="ati-note">${esc(_atiT('ati_carry_note'))}</p>
       ${carry}
-      <h3 class="ati-h">${esc(t('ati_share_title_plays'))}</h3>
+      <h3 class="ati-h">${esc(_atiT('ati_share_title_plays'))}</h3>
       ${share}
     </div>
   </div>`;
@@ -711,7 +735,7 @@ function _atiPanelEras(d) {
   const er = _atiEras(d);
   const y = _ati.years;
   const progress = (y.running && y.total)
-    ? `<div class="ati-progress" role="status"><span>${esc(t('ati_years_loading', { done: y.done.toLocaleString(), total: y.total.toLocaleString() }))}</span><span class="ati-progress-bar"><span style="--w:${Math.round(y.done / y.total * 100)}%"></span></span></div>`
+    ? `<div class="ati-progress" role="status"><span>${esc(_atiT(isAlb ? 'ati_years_loading_albums' : 'ati_years_loading', { done: y.done.toLocaleString(), total: y.total.toLocaleString() }))}</span><span class="ati-progress-bar"><span style="--w:${Math.round(y.done / y.total * 100)}%"></span></span></div>`
     : '';
 
   let decades = '';
@@ -721,34 +745,34 @@ function _atiPanelEras(d) {
       _ati.eraSel = [...groups].sort((a, b) => b.list.length - a.list.length)[0].id;
     }
     decades = _atiColumns(groups, 'era', _ati.eraSel, _atiDecadeLabel, unit)
-      + (er.unknown ? `<p class="ati-note">${esc(t(isAlb ? 'ati_years_unknown_albums' : 'ati_years_unknown', { n: er.unknown.toLocaleString() }))}</p>` : '');
+      + (er.unknown ? `<p class="ati-note">${esc(_atiT(isAlb ? 'ati_years_unknown_albums' : 'ati_years_unknown', { n: er.unknown.toLocaleString() }, er.unknown))}</p>` : '');
   } else if (!y.running) {
-    decades = `<p class="ati-line">${esc(t(isAlb ? 'ati_years_none_albums' : 'ati_years_none'))}</p>`;
+    decades = `<p class="ati-line">${esc(_atiT(isAlb ? 'ati_years_none_albums' : 'ati_years_none'))}</p>`;
   }
 
   let age = '';
   if (er.avgAge !== null) {
-    age = `<p class="ati-line">${t(isAlb ? 'ati_avg_age_line_album' : 'ati_avg_age_line', { n: _atiN(Math.round(er.avgAge * 10) / 10) })}</p>`;
+    age = `<p class="ati-line">${_atiT(isAlb ? 'ati_avg_age_line_album' : 'ati_avg_age_line', { n: _atiN(Math.round(er.avgAge * 10) / 10) })}</p>`;
     if (er.avgGap !== null) {
       const g = Math.round(er.avgGap * 10) / 10;
-      age += `<p class="ati-line">${g < 1 ? esc(t('ati_found_fresh')) : t('ati_found_after', { n: _atiN(g) })}</p>`;
+      age += `<p class="ati-line">${g < 1 ? esc(_atiT('ati_found_fresh')) : _atiT('ati_found_after', { n: _atiN(g) })}</p>`;
     }
   }
   const spots = (er.oldest || er.newest) ? `<div class="ati-spots">
-      ${_atiSpot(t(isAlb ? 'ati_oldest_album' : 'ati_oldest'), er.oldest && er.oldest.e, er.oldest ? _atiN(String(er.oldest.y)) : '')}
-      ${er.newest && er.newest.e !== (er.oldest && er.oldest.e) ? _atiSpot(t(isAlb ? 'ati_newest_album' : 'ati_newest'), er.newest.e, _atiN(String(er.newest.y))) : ''}
+      ${_atiSpot(_atiT(isAlb ? 'ati_oldest_album' : 'ati_oldest'), er.oldest && er.oldest.e, er.oldest ? _atiN(String(er.oldest.y)) : '')}
+      ${er.newest && er.newest.e !== (er.oldest && er.oldest.e) ? _atiSpot(_atiT(isAlb ? 'ati_newest_album' : 'ati_newest'), er.newest.e, _atiN(String(er.newest.y))) : ''}
     </div>` : '';
 
   return `${progress}
     <div class="ati-grid">
       <div class="ati-block">
-        <h3 class="ati-h">${esc(t('ati_decades_title'))}</h3>
-        <p class="ati-note">${esc(t('ati_decades_sub'))}</p>
+        <h3 class="ati-h">${esc(_atiT('ati_decades_title'))}</h3>
+        <p class="ati-note">${esc(_atiT(isAlb ? 'ati_decades_sub_albums' : 'ati_decades_sub'))}</p>
         ${decades}
       </div>
       <div class="ati-block">
-        <h3 class="ati-h">${esc(t('ati_age_title'))}</h3>
-        ${age || `<p class="ati-line">${esc(y.running ? t('ati_years_wait') : t(isAlb ? 'ati_years_none_albums' : 'ati_years_none'))}</p>`}
+        <h3 class="ati-h">${esc(_atiT('ati_age_title'))}</h3>
+        ${age || `<p class="ati-line">${esc(y.running ? _atiT('ati_years_wait') : _atiT(isAlb ? 'ati_years_none_albums' : 'ati_years_none'))}</p>`}
         ${spots}
         ${_atiDiscoveryHtml(d)}
       </div>
@@ -763,8 +787,8 @@ function _atiPanelDiscovery(d) {
     <div class="ati-block">${_atiDiscoveryHtml(d)}</div>
     <div class="ati-block">
       <div class="ati-spots ati-spots--stack">
-        ${first ? _atiSpot(t('ati_first_friend'), first, when(first)) : ''}
-        ${newest && newest !== first ? _atiSpot(t('ati_new_arrival'), newest, when(newest)) : ''}
+        ${first ? _atiSpot(_atiT('ati_first_friend'), first, when(first)) : ''}
+        ${newest && newest !== first ? _atiSpot(_atiT('ati_new_arrival'), newest, when(newest)) : ''}
       </div>
     </div>
   </div>`;
@@ -785,29 +809,29 @@ function _atiPanelPlays(d) {
   if (s[1]) {
     const diff = s[0].count - s[1].count;
     gap = diff > 0
-      ? t('ati_gap_line', { title: _atiB(s[0].ttl), n: _atiCount('plays', diff), pct: _atiN(_atiPct(diff / s[1].count)) })
-      : esc(t('ati_gap_tie'));
+      ? _atiT('ati_gap_line', { title: _atiB(s[0].ttl), n: _atiCount('plays', diff), pct: _atiN(_atiPct(diff / s[1].count)) })
+      : esc(_atiT('ati_gap_tie'));
   }
   const timedList = list => _atiList(list.map(x => x.e), e => _atiDaysText(_atiDays(list.find(z => z.e === e).days * 864e5)));
   const totalKey = d.type === 'artists' ? 'ati_total_line_artists' : d.type === 'albums' ? 'ati_total_line_albums' : 'ati_total_line';
 
   return `<div class="ati-grid">
     <div class="ati-block">
-      <h3 class="ati-h">${esc(t('ati_total_title'))}</h3>
+      <h3 class="ati-h">${esc(_atiT('ati_total_title'))}</h3>
       <p class="ati-big">${_atiN(d.playsOnce)} <span>${esc(tUnit('plays', d.playsOnce))}</span></p>
-      <p class="ati-line">${t(totalKey, { pct: _atiN(_atiPct(d.playsOnce / d.allPlaysN)), spct: _atiN(_atiPct(d.E.length / d.uniqN)), songs: _atiN(d.uniqN) })}</p>
-      <h3 class="ati-h">${esc(t('ati_gap_title'))}</h3>
+      <p class="ati-line">${_atiT(totalKey, { pct: _atiN(_atiPct(d.playsOnce / d.allPlaysN)), spct: _atiN(_atiPct(d.E.length / d.uniqN)), songs: _atiN(d.uniqN) })}</p>
+      <h3 class="ati-h">${esc(_atiT('ati_gap_title'))}</h3>
       <div class="ati-rows">${podium}</div>
       <p class="ati-line">${gap}</p>
     </div>
     <div class="ati-block">
       ${d.fast.length ? `
-        <h3 class="ati-h">${esc(t('ati_fast_title'))}</h3>
-        <p class="ati-note">${t('ati_fast_sub', { n: _atiN(d.bar) })}</p>
+        <h3 class="ati-h">${esc(_atiT('ati_fast_title'))}</h3>
+        <p class="ati-note">${_atiT('ati_fast_sub', { n: _atiN(d.bar) })}</p>
         ${timedList(d.fast)}
-        <h3 class="ati-h">${esc(t('ati_slow_title'))}</h3>
-        <p class="ati-note">${t('ati_slow_sub', { n: _atiN(d.bar) })}</p>
-        ${timedList(d.slow)}` : `<h3 class="ati-h">${esc(t('ati_fast_title'))}</h3><p class="ati-line">${esc(t('ati_fast_none'))}</p>`}
+        <h3 class="ati-h">${esc(_atiT('ati_slow_title'))}</h3>
+        <p class="ati-note">${_atiT('ati_slow_sub', { n: _atiN(d.bar) })}</p>
+        ${timedList(d.slow)}` : `<h3 class="ati-h">${esc(_atiT('ati_fast_title'))}</h3><p class="ati-line">${esc(_atiT('ati_fast_none'))}</p>`}
     </div>
   </div>`;
 }
@@ -819,10 +843,10 @@ function _atiPanelBadges(d) {
      ladder; an albums chart with marked singles/EPs mixes three ladders. */
   const one = d.ladders.length === 1 ? (CERT[d.ladders[0]] || CERT.album) : null;
   const tierDefs = [
-    ['diamond', certBadge(CERT.song.diamond, 'song'), one ? t('ati_cert_from', { n: one.diamond.toLocaleString() }) : ''],
-    ['plat',    certBadge(CERT.song.plat, 'song'),    one ? t('ati_cert_range', { a: one.plat.toLocaleString(), b: (one.diamond - 1).toLocaleString() }) : ''],
-    ['gold',    certBadge(CERT.song.gold, 'song'),    one ? t('ati_cert_range', { a: one.gold.toLocaleString(), b: (one.plat - 1).toLocaleString() }) : ''],
-    ['none',    `<span class="ati-tag">${esc(t('ati_cert_none_tier'))}</span>`, one ? t('ati_cert_under', { n: one.gold.toLocaleString() }) : ''],
+    ['diamond', certBadge(CERT.song.diamond, 'song'), one ? _atiT('ati_cert_from', { n: one.diamond.toLocaleString() }) : ''],
+    ['plat',    certBadge(CERT.song.plat, 'song'),    one ? _atiT('ati_cert_range', { a: one.plat.toLocaleString(), b: (one.diamond - 1).toLocaleString() }) : ''],
+    ['gold',    certBadge(CERT.song.gold, 'song'),    one ? _atiT('ati_cert_range', { a: one.gold.toLocaleString(), b: (one.plat - 1).toLocaleString() }) : ''],
+    ['none',    `<span class="ati-tag">${esc(_atiT('ati_cert_none_tier'))}</span>`, one ? _atiT('ati_cert_under', { n: one.gold.toLocaleString() }) : ''],
   ];
   const tmax = Math.max(1, ...tierDefs.map(([k]) => d.tiers[k].length));
   const tierRows = tierDefs.filter(([k]) => d.tiers[k].length).map(([k, badge, range]) =>
@@ -830,7 +854,7 @@ function _atiPanelBadges(d) {
 
   const nextList = _atiList(d.next.map(x => x.e), e => {
     const x = d.next.find(z => z.e === e);
-    return t('ati_next_line', { n: _atiN(x.need), tier: esc(x.label) });
+    return _atiT('ati_next_line', { n: _atiN(x.need), tier: esc(x.label) });
   });
 
   const rt = _atiReleaseTypes(d);
@@ -838,22 +862,22 @@ function _atiPanelBadges(d) {
                   ['live', 'ati_type_live'], ['soundtrack', 'ati_type_soundtrack'], ['none', 'ati_type_none']];
   const rmax = Math.max(1, ...rtDefs.map(([k]) => rt[k].length));
   const rtRows = rtDefs.filter(([k]) => rt[k].length).map(([k, lbl]) =>
-    _atiRow(`<span class="ati-row-name">${esc(t(lbl))}</span>`, rt[k].length, rmax, rt[k])).join('');
+    _atiRow(`<span class="ati-row-name">${esc(_atiT(lbl))}</span>`, rt[k].length, rmax, rt[k])).join('');
   const marked = rt.single.length + rt.ep.length + rt.live.length + rt.soundtrack.length;
 
   return `<div class="ati-grid">
     <div class="ati-block">
-      <h3 class="ati-h">${esc(t('ati_certs_title'))}</h3>
-      <p class="ati-note">${esc(t(isAlb ? 'ati_certs_sub_album' : 'ati_certs_sub'))}</p>
+      <h3 class="ati-h">${esc(_atiT('ati_certs_title'))}</h3>
+      <p class="ati-note">${esc(_atiT(isAlb ? 'ati_certs_sub_album' : 'ati_certs_sub'))}</p>
       <div class="ati-rows">${tierRows}</div>
-      <h3 class="ati-h">${esc(t('ati_next_title'))}</h3>
+      <h3 class="ati-h">${esc(_atiT('ati_next_title'))}</h3>
       ${nextList}
     </div>
     <div class="ati-block">
-      <h3 class="ati-h">${esc(t('ati_types_title'))}</h3>
-      <p class="ati-note">${esc(t(isAlb ? 'ati_types_sub_album' : 'ati_types_sub'))}</p>
+      <h3 class="ati-h">${esc(_atiT('ati_types_title'))}</h3>
+      <p class="ati-note">${esc(_atiT(isAlb ? 'ati_types_sub_album' : 'ati_types_sub'))}</p>
       <div class="ati-rows">${rtRows}</div>
-      ${marked ? '' : `<p class="ati-note">${esc(t(isAlb ? 'ati_types_hint_albums' : 'ati_types_hint'))}</p>`}
+      ${marked ? '' : `<p class="ati-note">${esc(_atiT(isAlb ? 'ati_types_hint_albums' : 'ati_types_hint'))}</p>`}
     </div>
   </div>`;
 }
@@ -861,27 +885,27 @@ function _atiPanelBadges(d) {
 // New this year tab (all charts)
 function _atiPanelNew(d) {
   const since = fmtDate(new Date(d.cut));
-  const head = `<h3 class="ati-h">${esc(t('ati_new_title', { date: since }))}</h3>`;
-  if (d.young) return `${head}<p class="ati-line">${esc(t('ati_new_young'))}</p>`;
-  if (!d.fresh.length) return `${head}<p class="ati-line">${esc(t('ati_new_none'))}</p>`;
+  const head = `<h3 class="ati-h">${esc(_atiT('ati_new_title', { date: since }))}</h3>`;
+  if (d.young) return `${head}<p class="ati-line">${esc(_atiT('ati_new_young'))}</p>`;
+  if (!d.fresh.length) return `${head}<p class="ati-line">${esc(_atiT('ati_new_none'))}</p>`;
   const isFound = e => e.times.length && e.times[0] > d.cut;
   const rows = d.fresh.map(e => {
     // Where it was a year ago: below the chart, or not played yet at all
     const found = isFound(e);
     const status = found
-      ? t('ati_new_found', { date: esc(fmtDate(new Date(e.times[0]))) })
-      : t('ati_was_rank', { n: _atiN(e.prevRank) });
+      ? _atiT('ati_new_found', { date: esc(fmtDate(new Date(e.times[0]))) })
+      : _atiT('ati_was_rank', { n: _atiN(e.prevRank) });
     return `<li><button type="button" class="ati-new" ${_atiOpenAttrs(e.open[0], e.open[1])}>
       <span class="ati-song-rk">${_atiN('#' + e.rank)}</span>
       ${_atiEntryArt(e, 'ati-art--sm')}
       <span class="ati-song-tx"><span class="ati-song-t">${esc(e.ttl)}</span>${e.sub ? `<span class="ati-song-a">${esc(e.sub)}</span>` : ''}</span>
-      <span class="ati-new-st">${found ? `<span class="ati-new-tag">${esc(t('ati_new_tag'))}</span>` : ''}<span>${status}</span></span>
+      <span class="ati-new-st">${found ? `<span class="ati-new-tag">${esc(_atiT('ati_new_tag'))}</span>` : ''}<span>${status}</span></span>
     </button></li>`;
   }).join('');
   const foundN = d.fresh.filter(isFound).length;
   return `${head}
-    <p class="ati-line">${t('ati_new_line', { n: _atiCount(_atiUnit(d.type), d.fresh.length), N: _atiN(d.N) })}
-      ${foundN ? t('ati_new_split', { a: _atiN(foundN), b: _atiN(d.fresh.length - foundN) }) : ''}</p>
+    <p class="ati-line">${_atiT('ati_new_line', { n: _atiCount(_atiUnit(d.type), d.fresh.length), N: _atiN(d.N) }, d.fresh.length)}
+      ${foundN ? _atiT('ati_new_split', { a: _atiN(foundN), b: _atiN(d.fresh.length - foundN) }) : ''}</p>
     <ol class="ati-songs ati-songs--new">${rows}</ol>`;
 }
 
@@ -896,7 +920,7 @@ function _atiRenderPanel() {
   if (!p || !_ati.data) return;
   const tab = _atiTab(_ati.data.type);
   p.innerHTML = ATI_PANELS[tab](_ati.data);
-  p.setAttribute('aria-label', t('ati_tab_' + tab));
+  p.setAttribute('aria-label', _atiT('ati_tab_' + tab));
   // On a phone the tabs scroll sideways: keep the picked one in sight
   const tabs = el.querySelector('.ati-tabs'), on = tabs && tabs.querySelector('.active');
   if (on && tabs.scrollWidth > tabs.clientWidth) tabs.scrollLeft = Math.max(0, on.offsetLeft - tabs.offsetLeft - 24);
@@ -920,9 +944,9 @@ function atiRender() {
     el.hidden = false;
     el.innerHTML = `<div class="ati-tip">
       <svg class="ati-tip-ic" viewBox="0 0 16 16" width="18" height="18" aria-hidden="true"><path d="M3 13V8M6.5 13V4M10 13V6.5M13.5 13V2.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-      <p class="ati-tip-tx">${esc(t('ati_hint'))}</p>
-      <button type="button" class="ati-btn ati-btn--primary" data-ati="size" data-type="${type}">${esc(t('ati_hint_btn'))}</button>
-      <button type="button" class="ati-x" data-ati="hint-off" aria-label="${esc(t('ati_hint_close'))}" title="${esc(t('ati_hint_close'))}">×</button>
+      <p class="ati-tip-tx">${esc(_atiT('ati_hint'))}</p>
+      <button type="button" class="ati-btn ati-btn--primary" data-ati="size" data-type="${type}">${esc(_atiT('ati_hint_btn'))}</button>
+      <button type="button" class="ati-x" data-ati="hint-off" aria-label="${esc(_atiT('ati_hint_close'))}" title="${esc(_atiT('ati_hint_close'))}">×</button>
     </div>`;
     return;
   }
@@ -939,11 +963,11 @@ function atiRender() {
   el.innerHTML = `
     <div class="ati-head">
       <div class="ati-head-tx">
-        <h2 class="ati-title" id="atiTitle">${esc(t('ati_title_' + type, { n: d.N.toLocaleString() }))}</h2>
-        <p class="ati-sub-h">${esc(t('ati_sub'))}</p>
+        <h2 class="ati-title" id="atiTitle">${esc(_atiT('ati_title_' + type, { n: d.N.toLocaleString() }))}</h2>
+        <p class="ati-sub-h">${esc(_atiT('ati_sub'))}</p>
       </div>
       <button type="button" class="ati-btn ati-btn--secondary ati-toggle" data-ati="toggle" aria-expanded="${_ati.open}" aria-controls="atiBody">
-        <span>${esc(t(_ati.open ? 'ati_less' : 'ati_more'))}</span>
+        <span>${esc(_atiT(_ati.open ? 'ati_less' : 'ati_more'))}</span>
         <svg class="ati-chev" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
     </div>
