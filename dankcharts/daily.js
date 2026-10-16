@@ -246,8 +246,9 @@ function dyRenderAll(plays, start, end) {
   lastPeriodStats = stats;
   cumulativeMaps = buildCumulativeMapsForPeriod(end);
   playsPeakMaps = dyPlaysPeakMaps(h, ds);
-  chartRunData = null;
-  allChartRun = {};
+  // The chart-run panel reads the daily chart's own history only (dyChartRun)
+  allChartRun = { day: dyChartRun(h, ds) };
+  chartRunData = allChartRun.day;
   allChartRunIsFullHistory = false;
   buChartRunData = null;
 
@@ -276,6 +277,50 @@ function dyRenderAll(plays, start, end) {
   updateChartExportBtns();
   dyRenderBottom(h, ds);
   dySyncLive();   // 2-minute Last.fm top-up while today is on screen (phase 8)
+}
+
+/* The daily chart run, in the shape buildChartRun() gives the other periods:
+   { period: 'day', curKey, periodMap, result: { songs: { key: { entries:
+   [{ periodKey, rank, plays }], peak, peakPlays, … } }, … } }, up to the
+   viewed day. The chart-run panel (buildCrPanelHTML), its boxes, gaps, range
+   buttons and Share card all read it, so a Daily entry's run is its days on
+   the daily chart and nothing else. periodMap is each day's tallies, which
+   is what the run's play totals add up. */
+function dyChartRun(h, ds) {
+  if (h._run && h._run.curKey === ds) return h._run;
+  const result = { songs: {}, artists: {}, albums: {} };
+  const periodMap = {};
+  for (const d of h.days) {
+    if (d > ds) break;
+    const x = h.byDay[d];
+    periodMap[d] = x;
+    for (const type of ['songs', 'artists', 'albums']) {
+      for (const r of h.charts[type][d] || []) {
+        const e = result[type][r.k] || (result[type][r.k] = { entries: [], peak: Infinity, peakPlays: 0, peakDays: 0, peakMonths: 0 });
+        // label: what the share card's timeline prints at its two ends
+        e.entries.push({ periodKey: d, rank: r.rank, plays: r.count, label: crPeriodLabel('day', d) });
+        if (r.rank < e.peak) e.peak = r.rank;
+        if (r.count > e.peakPlays) e.peakPlays = r.count;
+        if (type === 'songs') { const s = x.songs[r.k]; e._title = s.title; e._artist = s.artist; }
+        else if (type === 'albums') { const i = r.k.lastIndexOf('|||'); e._album = i < 0 ? r.k : r.k.slice(0, i); e._artist = i < 0 ? '' : r.k.slice(i + 3); }
+      }
+    }
+  }
+  // The albums chart on screen is already the bucket in view, mixed or not
+  result.albumsMixed = result.albums;
+  return (h._run = { period: 'day', curKey: ds, periodMap, result });
+}
+
+// One day's chart, for the pop-up a chart-run box opens: [{ rank, name, key }]
+function dyChartOf(type, ds) {
+  const h = dyHistory();
+  const day = h.byDay[ds];
+  return (h.charts[type][ds] || []).map(r => {
+    let name = r.k;
+    if (type === 'songs') name = day.songs[r.k].title;
+    else if (type === 'albums') { const i = r.k.lastIndexOf('|||'); name = i < 0 ? r.k : r.k.slice(0, i); }
+    return { rank: r.rank, name, key: r.k };
+  });
 }
 
 /* "As many plays in one day as on any day before": each key's best day up to

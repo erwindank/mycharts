@@ -14612,13 +14612,14 @@ function getViewedYear() {
 
 function getViewedCutoffKeys() {
   const now = tzNow();
-  let weekKey, monthKey, yearKey;
+  let weekKey, monthKey, yearKey, dayKey;
   if (currentPeriod === 'day') {
     // The viewed day's own week, month and year (daily.js)
     const d = dyDate(dyViewedDay());
     weekKey = playWeekKey(d);
     monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
     yearKey = String(d.getFullYear());
+    dayKey = dyViewedDay();
   } else if (currentPeriod === 'week') {
     const dow = now.getDay();
     const offset = (dow - weekStartDay + 7) % 7;
@@ -14641,7 +14642,7 @@ function getViewedCutoffKeys() {
     lastDay.setDate(lastDay.getDate() - lastDay.getDay());
     weekKey = localDateStr(lastDay);
   }
-  return { year: yearKey, month: monthKey, week: weekKey };
+  return { year: yearKey, month: monthKey, week: weekKey, day: dayKey };
 }
 
 // Does a single period key fall inside the selected RANGE mode?
@@ -14649,6 +14650,11 @@ function getViewedCutoffKeys() {
 // under the boxes always covers exactly the span the boxes show.
 function crKeyInRange(pk, period, mode, viewedYear, cutoffKeys) {
   if (mode === 'now') return true; // All-Time
+  // Daily chart runs (YYYY-MM-DD keys): this year up to the viewed day, or everything up to it
+  if (period === 'day') {
+    const upto = cutoffKeys?.day || `${viewedYear}-12-31`;
+    return mode === 'year' ? (pk >= `${viewedYear}-01-01` && pk <= upto) : pk <= upto;
+  }
   if (mode === 'year') {
     if (period === 'year') return parseInt(pk) === viewedYear;
     if (period === 'month') return pk >= `${viewedYear}-01` && pk <= (cutoffKeys?.month || `${viewedYear}-12`);
@@ -14708,7 +14714,9 @@ function openCrIgModalFromPanel(type, encodedKey) {
    as the first tiles of the chart run's own row (_crNowTiles). Without `f`
    (song / album pages, All Entries lists) it is the plain chart run. */
 function buildCrPanelHTML(type, key, f) {
-  ensureAllChartRun(); // guarantees allChartRun has full history for "All-Time" mode
+  // guarantees allChartRun has full history for "All-Time" mode. Not on the
+  // Daily tab: its run is the daily chart's own (dyChartRun in daily.js).
+  if (currentPeriod !== 'day') ensureAllChartRun();
   const vy = getViewedYear();
   const cutoffKeys = getViewedCutoffKeys();
   let modeLabels;
@@ -14747,9 +14755,7 @@ function buildCrPanelHTML(type, key, f) {
 
   const nowTiles = f ? _crNowTiles(f) : '';
   let sectionsHtml = '';
-  // Year, All-Time and Daily (there is no daily chart run) show the entry's
-  // weekly / monthly / yearly runs one under the other
-  if (currentPeriod === 'year' || currentPeriod === 'alltime' || currentPeriod === 'day') {
+  if (currentPeriod === 'year' || currentPeriod === 'alltime') {
     sectionsHtml = [
       { id: 'year', label: t('cr_yearly_label') },
       { id: 'month', label: t('cr_monthly_label') },
@@ -15875,7 +15881,7 @@ const _CR_MON_SHORT = ['month_jan','month_feb','month_mar','month_apr','month_ma
 const _CR_MON_LONG  = ['month_january','month_february','month_march','month_april','month_may','month_june','month_july','month_august','month_september','month_october','month_november','month_december'];
 
 function crPeriodLabel(period, key) {
-  if (period === 'week') {
+  if (period === 'day' || period === 'week') {
     const d = new Date(key + 'T00:00:00');
     const mon = t(_CR_MON_SHORT[d.getMonth()]);
     return `${mon} ${d.getDate()}, ${String(d.getFullYear()).slice(-2)}`;
@@ -15887,6 +15893,7 @@ function crPeriodLabel(period, key) {
 }
 
 function crPeriodTitle(period, key) {
+  if (period === 'day') return fmt(new Date(key + 'T12:00:00'));
   if (period === 'week') {
     const d = new Date(key + 'T00:00:00');
     return t('period_week_of', { date: fmt(d) });
@@ -15918,7 +15925,7 @@ function crStats(type, key, period, crData, preD, rangeOpts) {
   // Each tile says what it counts on top ("Weeks on chart") with the figure
   // below, so a tile reads on its own (phase 7: was "1 wk / on Chart",
   // "PEAK #5", the label and the unit split between two lines)
-  const unit = period === 'month' ? 'month' : period === 'year' ? 'year' : 'week';
+  const unit = period === 'day' ? 'day' : period === 'month' ? 'month' : period === 'year' ? 'year' : 'week';
   let html = crTile(t('cr_k_on_chart_' + unit), n)
     + (totalPlays ? crTile(t('cr_k_total'), totalPlays.toLocaleString(), 'cr-stat-total') : '')
     + crTile(t('cr_k_peak'), '#' + peak)
@@ -15935,7 +15942,9 @@ function crStats(type, key, period, crData, preD, rangeOpts) {
 
 function crPeriodGap(period, keyA, keyB) {
   // Returns number of chart periods between keyA and keyB (exclusive), i.e. gap - 1
-  if (period === 'week') {
+  if (period === 'day') {
+    return Math.round((new Date(keyB + 'T12:00:00') - new Date(keyA + 'T12:00:00')) / 86400000) - 1;
+  } else if (period === 'week') {
     const a = new Date(keyA + 'T00:00:00'), b = new Date(keyB + 'T00:00:00');
     return Math.round((b - a) / (7 * 86400000)) - 1;
   } else if (period === 'month') {
@@ -16024,7 +16033,7 @@ function crBoxesHTML(type, key, crData, preD, periodOverride) {
   if (!d) return '<div style="font-size:var(--fs-xs);color:var(--text3);padding:4px 0">No chart history yet.</div>';
   const period = periodOverride || data?.period || currentPeriod;
   const safeKey = encodeKeyForOnclick(key);
-  const unit = (gap) => period === 'week' ? tUnit('weeks', gap) : period === 'month' ? tUnit('months', gap) : tUnit('years', gap);
+  const unit = (gap) => period === 'day' ? tUnit('days', gap) : period === 'week' ? tUnit('weeks', gap) : period === 'month' ? tUnit('months', gap) : tUnit('years', gap);
   const boxes = d.entries.flatMap((e, i) => {
     const isPeak = (e.rank === d.peak);
     // Top-3 weeks that aren't the peak get a light accent tint, so the run's
@@ -16477,7 +16486,10 @@ function showCrPreview(periodKey, type, encodedKey, boxEl, periodName, mixed) {
     pool = pool.filter(([, d]) => albumBucketOf(d._album, d._artist) === bucket);
     if (bucket !== 'album') typeLabel = t('rtype_' + bucket + '_plural');
   }
-  const ranked = pool.sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, Math.min(crSizeForType(type, period), 30));
+  // Daily: the day's chart as the Daily tab ranked it (daily.js)
+  const ranked = period === 'day'
+    ? dyChartOf(type, periodKey).slice(0, 30).map(r => [r.key, type === 'songs' ? { _title: r.name } : type === 'albums' ? { _album: r.name } : {}])
+    : pool.sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, Math.min(crSizeForType(type, period), 30));
   let items = ranked.map(([k, data], i) => {
     const rank = i + 1;
     const isActive = (k === key);
@@ -16687,7 +16699,9 @@ function navigateToCrChart(period, periodKey) {
   hideCrPreview();
   const now = tzNow();
   let offset = 0;
-  if (period === 'week') {
+  if (period === 'day') {
+    offset = Math.round((new Date(localDateStr(now) + 'T12:00:00') - new Date(periodKey + 'T12:00:00')) / 86400000);
+  } else if (period === 'week') {
     const nowDow = now.getDay();
     const nowOffset = (nowDow - weekStartDay + 7) % 7;
     const curStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - nowOffset);
@@ -22051,7 +22065,9 @@ function openCrIgModal(type, encodedKey, rank) {
   const _savedOffset = currentOffset;
   const _savedSize = chartSize;
   currentOffset = 0;
-  if (currentPeriod === 'week') {
+  if (currentPeriod === 'day') {
+    // The Daily tab's run is the daily chart's own (dyChartRun), already built
+  } else if (currentPeriod === 'week') {
     chartSize = chartSizeWeekly;
     allChartRun.week = buildChartRun('week');
   } else if (currentPeriod === 'month') {
@@ -22068,11 +22084,11 @@ function openCrIgModal(type, encodedKey, rank) {
 
   // Show/hide "Include Chart Runs" — only meaningful for yearly view
   document.getElementById('crIgIncludeGroup').style.display =
-    (currentPeriod === 'week' || currentPeriod === 'month') ? 'none' : '';
+    (currentPeriod === 'day' || currentPeriod === 'week' || currentPeriod === 'month') ? 'none' : '';
 
   // Header title
   let name = key.split('|||')[0];
-  const crAny = allChartRun.year?.result?.[type]?.[key] || allChartRun.month?.result?.[type]?.[key];
+  const crAny = allChartRun.day?.result?.[type]?.[key] || allChartRun.year?.result?.[type]?.[key] || allChartRun.month?.result?.[type]?.[key];
   if (crAny) {
     if (type === 'songs') name = crAny._title || name;
     if (type === 'albums') name = crAny._album || name;
@@ -22085,7 +22101,10 @@ function openCrIgModal(type, encodedKey, rank) {
   // Update IG range button labels to be context-aware
   const _vy = getViewedYear();
   let _igLabels, _igTitles;
-  if (currentPeriod === 'week') {
+  if (currentPeriod === 'day') {
+    _igLabels = { year: t('cr_ytd', { year: _vy }), uptoYear: t('cr_up_to_this_day'), now: t('cr_all_time') };
+    _igTitles = { year: '', uptoYear: '', now: t('tooltip_cr_all_time_range') };
+  } else if (currentPeriod === 'week') {
     _igLabels = { year: t('cr_ytd', { year: _vy }), uptoYear: t('cr_up_to_this_week'), now: t('cr_all_time') };
     _igTitles = {
       year: t('tooltip_cr_ytd_week'),
@@ -22160,7 +22179,7 @@ function setCrIgRange(mode) {
 function shRunContext(type, key, opts) {
   // Resolve display name
   let displayName = key.split('|||')[0], artistName = key.split('|||')[1] || '';
-  const crAny = allChartRun.year?.result?.[type]?.[key] || allChartRun.month?.result?.[type]?.[key] || allChartRun.week?.result?.[type]?.[key];
+  const crAny = allChartRun.day?.result?.[type]?.[key] || allChartRun.year?.result?.[type]?.[key] || allChartRun.month?.result?.[type]?.[key] || allChartRun.week?.result?.[type]?.[key];
   if (crAny) {
     if (type === 'songs') { displayName = crAny._title || displayName; artistName = crAny._artist || artistName; }
     if (type === 'albums') { displayName = crAny._album || displayName; artistName = crAny._artist || artistName; }
@@ -22169,7 +22188,9 @@ function shRunContext(type, key, opts) {
 
   // Only show sections relevant to the period that opened the modal
   const activePeriod = opts.period || currentPeriod;
-  const periodConf = activePeriod === 'week'
+  const periodConf = activePeriod === 'day'
+    ? [{ id: 'day', label: t('cr_daily_label').toUpperCase(), check: true }]
+    : activePeriod === 'week'
     ? [{ id: 'week', label: t('cr_weekly_label').toUpperCase(), check: true }]
     : activePeriod === 'month'
       ? [{ id: 'month', label: t('cr_monthly_label').toUpperCase(), check: true }]
@@ -22183,7 +22204,9 @@ function shRunContext(type, key, opts) {
   const vy = getViewedYear();
   const cutoffKeys = getViewedCutoffKeys();
   let rangeLabelMap;
-  if (activePeriod === 'week') {
+  if (activePeriod === 'day') {
+    rangeLabelMap = { year: t('cr_ytd', { year: vy }), uptoYear: t('cr_up_to_this_day'), now: t('cr_all_time') };
+  } else if (activePeriod === 'week') {
     rangeLabelMap = { year: t('cr_ytd', { year: vy }), uptoYear: t('cr_up_to_this_week'), now: t('cr_all_time') };
   } else if (activePeriod === 'month') {
     rangeLabelMap = { year: t('cr_ytd', { year: vy }), uptoYear: t('cr_up_to_this_month'), now: t('cr_all_time') };
@@ -22198,7 +22221,7 @@ function shRunContext(type, key, opts) {
     const d = filterCrD(crData.result[type][key], pc.id, rangeMode, vy, cutoffKeys);
     if (!d || !d.entries.length) return null;
     const entries = d.entries;
-    const unit = n => pc.id === 'week' ? tUnit('cr_week', n) : pc.id === 'month' ? tUnit('months', n) : tUnit('years', n);
+    const unit = n => pc.id === 'day' ? tUnit('days', n) : pc.id === 'week' ? tUnit('cr_week', n) : pc.id === 'month' ? tUnit('months', n) : tUnit('years', n);
     return {
       id: pc.id, label: pc.label, entries,
       n: entries.length,
@@ -22217,7 +22240,7 @@ function shRunContext(type, key, opts) {
   const fmt = SHARE_FORMATS[opts.format] ? opts.format : 'post';
   const d = shDims(fmt);
   const dr = getDateRange();
-  const periodLine = activePeriod === 'week' ? (dr.sub || dr.label)
+  const periodLine = activePeriod === 'day' || activePeriod === 'week' ? (dr.sub || dr.label)
     : activePeriod === 'month' ? dr.label
       : activePeriod === 'year' ? dr.label : t('cr_all_time');
 
