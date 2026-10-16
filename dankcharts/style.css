@@ -37636,3 +37636,116 @@ body.dy-recap-open {
     font-size: 17px;
   }
 }
+
+/* ── Streak rows (redesign phase 2) ──
+   Cover · name + meta line (14-day ticks, milestone bar or record, since) · level
+   icon, day count in the level's colour, ▶/⋮. Used on On fire, at risk and lost. */
+.sk-t-spark   { --sk-tier: var(--text2); }
+.sk-t-flame   { --sk-tier: #ffb347; }
+.sk-t-blaze   { --sk-tier: #ff7a3d; }
+.sk-t-inferno { --sk-tier: #ff4d6d; }
+.sk-t-eternal { --sk-tier: #c084fc; }
+body.navy-light .sk-t-flame, body.purple-light .sk-t-flame, body.yellow-light .sk-t-flame, body.pink-light .sk-t-flame, body.red-light .sk-t-flame { --sk-tier: #b45309; }
+body.navy-light .sk-t-blaze, body.purple-light .sk-t-blaze, body.yellow-light .sk-t-blaze, body.pink-light .sk-t-blaze, body.red-light .sk-t-blaze { --sk-tier: #c2410c; }
+body.navy-light .sk-t-inferno, body.purple-light .sk-t-inferno, body.yellow-light .sk-t-inferno, body.pink-light .sk-t-inferno, body.red-light .sk-t-inferno { --sk-tier: #be123c; }
+body.navy-light .sk-t-eternal, body.purple-light .sk-t-eternal, body.yellow-light .sk-t-eternal, body.pink-light .sk-t-eternal, body.red-light .sk-t-eternal { --sk-tier: #7e22ce; }
+
+.sk-row {
+  display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; gap: 0.65rem; align-items: center;
+  padding: 0.38rem 0.45rem; border-radius: var(--r-md);
+}
+.sk-row[hidden] { display: none; }
+.sk-row:hover { background: var(--hover, var(--bg3)); }
+.sk-art { position: relative; display: inline-block; flex-shrink: 0; width: 36px; height: 36px; border-radius: var(--r-sm); overflow: hidden; background: var(--bg3); }
+.sk-art-in, .sk-art-in > * { display: block; width: 100%; height: 100%; }
+.sk-art .thumb, .sk-art .thumb-initials { width: 100%; height: 100%; border: 0; border-radius: 0; font-size: var(--fs-xs); }
+.sk-art-in > .thumb-initials { display: flex; }
+.sk-art--round { border-radius: 50%; }
+.sk-art--lg { width: 56px; height: 56px; }
+.sk-row-who { min-width: 0; }
+.sk-row-nm { font-size: var(--fs-sm); font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sk-row-sub { color: var(--text2); font-weight: 400; }
+.sk-row-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.6rem; margin-top: 0.18rem; font-size: 0.7rem; color: var(--text3); }
+.sk-row-right { display: flex; align-items: center; gap: 0.4rem; }
+.sk-tier { font-size: 0.85rem; width: 1.2em; text-align: center; }
+.sk-row-len { min-width: 2.6rem; text-align: right; font-size: var(--fs-sm); font-weight: 700; color: var(--sk-tier); }
+.sk-row--risk .sk-row-nm { color: var(--amber); }
+.sk-row--lost .sk-row-nm { color: var(--text2); }
+.sk-row--lost .sk-row-len { color: var(--rose); }
+.sk-row .ea-pair, .sk-row .ea-more { margin-left: 0.1rem; }
+.sk-row .sk-play { margin-left: 0; }
+
+/* Type label: only in mixed lists (All, at risk, lost) */
+.sk-kind {
+  font-family: var(--font-mono); font-size: 0.6rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
+  border: 1px solid; border-radius: var(--r-xs); padding: 0 0.3rem; vertical-align: 1px;
+}
+.sk-kind--song { color: var(--green); border-color: color-mix(in srgb, var(--green) 45%, transparent); }
+.sk-kind--album { color: var(--teal, var(--accent)); border-color: color-mix(in srgb, var(--teal, var(--accent)) 45%, transparent); }
+.sk-kind--artist { color: var(--rose); border-color: color-mix(in srgb, var(--rose) 45%, transparent); }
+.sk-fire:not([data-skf="all"]) .sk-kind { display: none; }
+
+/* 14-day ticks */
+.sk-dots { display: inline-flex; gap: 2px; align-items: center; }
+.sk-dots i { width: 5px; height: 10px; border-radius: 1.5px; background: var(--bg3); box-shadow: inset 0 0 0 1px var(--border); }
+.sk-dots i.on { background: linear-gradient(180deg, #ffb347, #ff6a3d); box-shadow: none; }
+.sk-dots i.today { outline: 1px solid var(--amber); outline-offset: 1px; }
+
+/* Milestone bar / record / since */
+.sk-msbar { display: inline-flex; align-items: center; gap: 0.3rem; white-space: nowrap; }
+.sk-msbar-track { width: 44px; height: 4px; background: var(--bg3); border-radius: var(--r-full); overflow: hidden; }
+.sk-msbar-track i { display: block; height: 100%; background: var(--green); border-radius: inherit; }
+.sk-rec { color: var(--gold1); white-space: nowrap; }
+.sk-rec--new { font-weight: 600; }
+.sk-close-call { color: var(--rose); white-space: nowrap; }
+.sk-row .sk-since { font-size: 0.7rem; }
+
+/* On fire: segmented type switch in the sticky toolbar */
+.sk-fire-toolbar { flex-wrap: wrap; align-items: center; }
+.sk-fire-toolbar .sk-filter { min-width: 120px; }
+.sk-seg { display: inline-flex; background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-sm); padding: 2px; }
+.sk-seg-btn {
+  display: inline-flex; align-items: center; gap: 0.3rem; background: none; border: 0; cursor: pointer;
+  color: var(--text3); font-family: var(--font-sans); font-size: var(--fs-xs); padding: 0.2rem 0.55rem; border-radius: var(--r-xs);
+}
+.sk-seg-btn:hover { color: var(--text); }
+.sk-seg-btn.active { background: var(--surface); color: var(--text); }
+.sk-seg-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.sk-seg-ct { font-family: var(--font-mono); font-size: 0.65rem; opacity: 0.7; }
+.sk-fire-list { padding: 0.2rem 0.9rem var(--sp-3); }
+.sk-fire-none { padding: var(--sp-4) 1.4rem; }
+
+/* Podium: top 3, drawn 2-1-3 with #1 raised */
+.sk-podium { padding: var(--sp-3) 0.9rem 0; }
+.sk-pod-set { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.55rem; align-items: end; }
+.sk-pod-set[hidden] { display: none; }
+.sk-pod {
+  position: relative; min-width: 0; text-align: center; padding: 0.7rem 0.5rem 0.6rem;
+  background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-lg);
+}
+.sk-pod--1 {
+  padding-top: 1.1rem; border-color: color-mix(in srgb, #ff6a3d 55%, transparent);
+  background: linear-gradient(180deg, color-mix(in srgb, #ff6a3d 13%, transparent), var(--bg) 70%);
+}
+.sk-pod .sk-art { margin: 0 auto 0.35rem; }
+.sk-pod-place { position: absolute; top: 0.35rem; left: 0.45rem; font-size: 0.95rem; }
+.sk-pod-nm { font-size: var(--fs-sm); font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sk-pod-sub { font-size: 0.7rem; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sk-pod-len { margin-top: 0.15rem; font-family: var(--font-mono); font-size: var(--fs-md); font-weight: 700; color: var(--sk-tier); }
+.sk-pod-len .streak-days { min-width: 0; font-size: inherit; color: inherit; }
+.sk-pod-foot { font-size: 0.68rem; color: var(--text3); margin-top: 0.1rem; }
+.sk-pod .ea-more { position: absolute; top: 0.3rem; right: 0.3rem; }
+
+.sk-tier-legend { display: flex; flex-wrap: wrap; gap: 0.25rem 0.8rem; padding: 0.6rem 1.4rem 0.2rem; font-size: 0.7rem; color: var(--text3); }
+.sk-tier-legend b { font-family: var(--font-mono); font-weight: 600; color: var(--sk-tier); }
+.sk-fire--flat .sk-podium, .sk-fire--flat .sk-tier-legend { display: none; }
+
+@media (max-width: 520px) {
+  .sk-row { grid-template-columns: 32px minmax(0, 1fr) auto; gap: 0.5rem; }
+  .sk-art { width: 32px; height: 32px; }
+  .sk-art--lg { width: 44px; height: 44px; }
+  .sk-tier { display: none; }
+  .sk-row .sk-since, .sk-row .sk-keptby { display: none; }
+  .sk-pod-set { gap: 0.35rem; }
+  .sk-fire-list { padding: 0.2rem 0.4rem var(--sp-3); }
+}

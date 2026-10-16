@@ -33748,10 +33748,105 @@ function openStreakModal(opts) {
       `${since}${pb}${msB}${tag}${calBtn}${playBtn}</div>`;
   }
 
+  // ── Streak rows (On fire, at risk, lost) ─────────────────────────
+  // Covers load lazily through loadImages() — the same path chart rows use — once
+  // the modal HTML is in place (see the flush after bodyEl.innerHTML below).
+  const skImgQ = [];
+  let skImgSeq = 0;
+  function skArt(it, cls) {
+    const imgId = 'sk-img-' + (++skImgSeq);
+    let item;
+    if (it.type === 'artist') {
+      item = { imgId, name: it.name, prefKey: 'artist:' + it.name.toLowerCase() };
+    } else if (it.type === 'album') {
+      item = { imgId, album: it.name, artist: it.sub || '', name: it.name, prefKey: 'album:' + (it.sub || '').toLowerCase() + '|||' + it.name.toLowerCase() };
+    } else {
+      const alb = (songInfo[it.key] && songInfo[it.key].album) || '';
+      item = { imgId, title: it.name, artist: it.sub || '', album: alb, name: it.name, prefKey: 'song:' + (it.sub || '').toLowerCase() + '|||' + it.name.toLowerCase() };
+    }
+    item._kind = it.type;
+    skImgQ.push(item);
+    return { imgId, html: `<span class="sk-art${cls ? ' ' + cls : ''}${it.type === 'artist' ? ' sk-art--round' : ''}"><span id="${imgId}" class="sk-art-in"><span class="thumb-initials">${esc(initials(it.name))}</span></span></span>` };
+  }
+  // The last 14 days as a strip of ticks, today on the right (outlined).
+  function skDotsHtml(cal) {
+    if (!cal || !cal.length) return '';
+    return `<span class="sk-dots" title="${esc(t('sk_last14'))}" aria-label="${esc(t('sk_last14'))}">` +
+      cal.map((v, i) => `<i class="${v ? 'on' : ''}${i === cal.length - 1 ? ' today' : ''}"></i>`).join('') + `</span>`;
+  }
+  // Progress toward the next milestone (7, 14, 30, 50, 100, 200, 365).
+  function skMsHtml(len) {
+    const m = nextMs(len);
+    if (!m) return '';
+    const prev = [0, ...MILESTONES].filter(x => x <= len).pop();
+    const pct = Math.round((len - prev) / (m - prev) * 100);
+    return `<span class="sk-msbar"><span class="sk-msbar-track"><i style="width:${pct}%"></i></span>${esc(t('sk_to_ms', { n: m - len, m }))}</span>`;
+  }
+  // How this streak stands against its own record.
+  function skRecHtml(it) {
+    if (it.best && it.len >= it.best && it.len >= 7) return `<span class="sk-rec sk-rec--new">🏆 ${esc(t('sk_rec_now'))}</span>`;
+    if (it.best > it.len && it.best >= 7 && it.best - it.len <= 10) return `<span class="sk-rec">${esc(t('sk_rec_close', { n: it.best - it.len, best: it.best }))}</span>`;
+    return '';
+  }
+  function skEaFor(it, imgId) {
+    if (it.type === 'artist') return _eaAttrs('artists', { title: it.name, artist: it.name, key: it.key, imgId });
+    if (it.type === 'album') return _eaAttrs('albums', { title: it.name, artist: it.sub || '', album: it.name, key: it.key, imgId });
+    return _eaAttrs('songs', { title: it.name, artist: it.sub || '', album: (songInfo[it.key] && songInfo[it.key].album) || '', key: it.key, imgId });
+  }
+  // mode: 'active' (On fire) · 'risk' (needs a play today) · 'lost' (ended yesterday)
+  function skRowHtml(it, mode) {
+    mode = mode || 'active';
+    const tier = _skTier(it.len);
+    const a = skArt(it);
+    const sub = it.sub ? ` <span class="sk-row-sub">— ${esc(it.sub)}</span>` : '';
+    const kind = `<span class="sk-kind sk-kind--${it.type}">${esc(t('sk_kind_' + it.type))}</span>`;
+    const since = it.startDs && it.len >= 3 ? `<span class="sk-since">${esc(t('sk_since', { date: fmtD(it.startDs) }))}</span>` : '';
+    let extra = '', btns = '';
+    if (mode === 'risk') {
+      // ▶ plays the full song (a scrobble is what saves the streak); artists and
+      // albums play the song the save plan picked for them.
+      const pe = keptByEntry(it);
+      const pt = pe ? pe.title : it.name, pa = pe ? pe.artist : (it.sub || '');
+      if (pe && it.type !== 'song') extra = `<span class="sk-keptby">${esc(t('sk_kept_by', { song: pe.title }))}</span>`;
+      btns = `<button class="sk-play" onclick="_ytStreakPlay(${esc(JSON.stringify(pt))},${esc(JSON.stringify(pa))})" title="${esc(t('sk_play_title', { song: pt }))}" aria-label="${esc(t('sk_play_title', { song: pt }))}">▶</button>` + _eaMoreBtn();
+    } else if (mode === 'lost') {
+      const m = nextMs(it.len);
+      if (m && m - it.len <= 3) extra = `<span class="sk-close-call">${esc(t('sk_short_of', { n: m - it.len, m }))}</span>`;
+      btns = _eaMoreBtn();
+    } else {
+      btns = _eaBtns();
+    }
+    const meta = mode === 'lost'
+      ? skDotsHtml(it.cal) + extra
+      : skDotsHtml(it.cal) + (skRecHtml(it) || skMsHtml(it.len)) + extra + since;
+    return `<div class="sk-row sk-row--${mode} sk-t-${tier.key}" data-skt="${it.type}" data-name="${esc((it.name + ' ' + (it.sub || '')).toLowerCase())}" data-len="${it.len}"${skEaFor(it, a.imgId)}>` +
+      a.html +
+      `<div class="sk-row-who"><div class="sk-row-nm">${esc(it.name)}${sub} ${kind}</div><div class="sk-row-meta">${meta}</div></div>` +
+      `<div class="sk-row-right"><span class="sk-tier" title="${esc(t('sk_tier_' + tier.key))}" aria-hidden="true">${tier.icon}</span>` +
+      `<span class="streak-days sk-row-len" data-len="${it.len}">0d</span>${btns}</div>` +
+      `</div>`;
+  }
+  // Top 3 for one type ('all' / 'artist' / 'album' / 'song'), drawn 2-1-3 like a podium.
+  function skPodiumHtml(list, type) {
+    const top = (type === 'all' ? list : list.filter(it => it.type === type)).slice(0, 3);
+    if (!top.length) return '';
+    const order = top.length === 3 ? [1, 0, 2] : top.length === 2 ? [1, 0] : [0];
+    return `<div class="sk-pod-set" data-skf="${type}" hidden>` + order.map(i => {
+      const it = top[i], tier = _skTier(it.len), a = skArt(it, 'sk-art--lg');
+      return `<div class="sk-pod sk-pod--${i + 1} sk-t-${tier.key}"${skEaFor(it, a.imgId)}>` +
+        `<span class="sk-pod-place" aria-label="#${i + 1}">${['🥇', '🥈', '🥉'][i]}</span>${a.html}` +
+        `<div class="sk-pod-nm" title="${esc(it.name)}">${esc(it.name)}</div>` +
+        (it.sub ? `<div class="sk-pod-sub" title="${esc(it.sub)}">${esc(it.sub)}</div>` : `<div class="sk-pod-sub">${esc(t('sk_kind_' + it.type))}</div>`) +
+        `<div class="sk-pod-len"><span aria-hidden="true">${tier.icon}</span> <span class="streak-days" data-len="${it.len}">0d</span></div>` +
+        `<div class="sk-pod-foot">${skRecHtml(it) || esc(t('sk_since', { date: fmtD(it.startDs) }))}</div>` +
+        `${_eaMoreBtn()}</div>`;
+    }).join('') + `</div>`;
+  }
+
   // ── Section HTML ─────────────────────────────────────────────────
   function section(title, items, mode, sid, extraTitleHtml = '') {
     const collapsed = localStorage.getItem('skc-' + sid) === '1';
-    const inner = items.length ? items.map(it => itemHtml(it, mode)).join('') : `<div class="streak-empty">${t('streak_none')}</div>`;
+    const inner = items.length ? items.map(it => mode === 'fame' ? itemHtml(it, mode) : skRowHtml(it, mode)).join('') : `<div class="streak-empty">${t('streak_none')}</div>`;
     const cls = mode === 'lost' ? ' streak-section--lost' : mode === 'risk' ? ' streak-section--risk' : mode === 'fame' ? ' streak-section--fame' : '';
     const chev = collapsed ? '▶' : '▼';
     return `<div class="streak-section${cls}${collapsed ? ' streak-section--collapsed' : ''}" data-skid="${sid}">` +
@@ -33854,11 +33949,28 @@ function openStreakModal(opts) {
     section('💔 ' + t('sk_lost_yday'), lost, 'lost', 'lost');
 
   // ── On fire tab (active streaks) ──────────────────────────────────
-  const streaksHtml =
-    `<div class="sk-toolbar"><input type="text" id="skFilter" class="sk-filter" placeholder="Filter…"><button id="skSortBtn" class="sk-sort-btn" data-mode="len">⬇ Length</button></div>` +
-    section(t('streak_section_artists'), activeArtists, 'active', 'artists') +
-    section(t('streak_section_albums'), activeAlbums, 'active', 'albums') +
-    section(t('streak_section_songs'), activeSongs, 'active', 'songs');
+  // One list with an All / Artists / Albums / Songs switch (remembered), a top-3
+  // podium, and rows that carry their cover, streak level, the last 14 days, the
+  // next milestone and how close the record is. Typing in the filter or sorting
+  // A–Z folds the podium away and shows every match as a plain list.
+  const fireAll = [...activeArtists, ...activeAlbums, ...activeSongs].sort((x, y) => y.len - x.len);
+  const fireCounts = { all: fireAll.length, artist: activeArtists.length, album: activeAlbums.length, song: activeSongs.length };
+  const fireHtml = `<div class="sk-fire" id="skFire">` +
+    `<div class="sk-toolbar sk-fire-toolbar">` +
+      `<div class="sk-seg" role="group" aria-label="${esc(t('sk_fire_show'))}">` +
+        ['all', 'artist', 'album', 'song'].map(k =>
+          `<button type="button" class="sk-seg-btn" data-skf="${k}">${esc(t('sk_fire_' + k))}<span class="sk-seg-ct">${fireCounts[k]}</span></button>`).join('') +
+      `</div>` +
+      `<input type="text" id="skFilter" class="sk-filter" placeholder="${esc(t('sk_filter'))}" aria-label="${esc(t('sk_filter'))}">` +
+      `<button id="skSortBtn" class="sk-sort-btn" data-mode="len">⬇ ${esc(t('sk_sort_len'))}</button>` +
+    `</div>` +
+    (fireAll.length
+      ? `<div class="sk-podium" id="skPodium">${['all', 'artist', 'album', 'song'].map(k => skPodiumHtml(fireAll, k)).join('')}</div>` +
+        `<div class="sk-tier-legend">${SK_TIERS.map(tr => `<span class="sk-t-${tr.key}"><span aria-hidden="true">${tr.icon}</span> ${esc(t('sk_tier_' + tr.key))} <b>${tr.min}${tr.max ? '–' + tr.max : '+'}</b></span>`).join('')}</div>` +
+        `<div class="sk-fire-list" id="skFireList">${fireAll.map(it => skRowHtml(it)).join('')}</div>` +
+        `<div class="streak-empty sk-fire-none" id="skFireNone" hidden>${esc(t('streak_none'))}</div>`
+      : `<div class="streak-empty sk-fire-none">${esc(t('streak_none'))}</div>`) +
+    `</div>`;
 
   // ── Graveyard pagination ──────────────────────────────────────────
   const GRAVE_PAGE_SIZE = 25;
@@ -33895,10 +34007,15 @@ function openStreakModal(opts) {
   const prevScroll = keep ? bodyEl.scrollTop : 0;
   bodyEl.innerHTML =
     `<div id="skTabToday" class="sk-tab-pane">${todayHtml}</div>` +
-    `<div id="skTabStreaks" class="sk-tab-pane" style="display:none">${streaksHtml}</div>` +
+    `<div id="skTabStreaks" class="sk-tab-pane" style="display:none">${fireHtml}</div>` +
     `<div id="skTabGraveyard" class="sk-tab-pane" style="display:none">${hofSection()}<div id="skGraveList"></div></div>` +
     `<div id="skTabHeatmap" class="sk-tab-pane" style="display:none"></div>`;
   renderGraveyard();
+  // Covers for every streak row and podium card (lazy: fetched as they scroll in).
+  ['song', 'album', 'artist'].forEach(kind => {
+    const items = skImgQ.filter(i => i._kind === kind);
+    if (items.length) loadImages(items, kind);
+  });
 
   // restore last-used range, validating it's a known year or keyword
   const _skHmValidYrs = new Set(Object.keys(_skHmCount).map(d => d.slice(0, 4)));
@@ -33910,22 +34027,35 @@ function openStreakModal(opts) {
   _streakSwitchTab(prevTab);
   if (keep) bodyEl.scrollTop = prevScroll;
 
-  document.getElementById('skFilter')?.addEventListener('input', e => {
-    const q = e.target.value.toLowerCase();
-    document.querySelectorAll('#skTabStreaks .streak-item').forEach(el => {
-      el.style.display = !q || (el.querySelector('.streak-label')?.textContent || '').toLowerCase().includes(q) ? '' : 'none';
+  // On fire: type switch (remembered), filter and sort all go through _skFireApply().
+  const fireRoot = document.getElementById('skFire');
+  if (fireRoot) {
+    let ft = 'all';
+    try { ft = localStorage.getItem('sk-fire-type') || 'all'; } catch (e) {}
+    fireRoot.dataset.skf = ['all', 'artist', 'album', 'song'].includes(ft) ? ft : 'all';
+    fireRoot.querySelector('.sk-seg')?.addEventListener('click', e => {
+      const b = e.target.closest('.sk-seg-btn');
+      if (!b) return;
+      fireRoot.dataset.skf = b.dataset.skf;
+      try { localStorage.setItem('sk-fire-type', b.dataset.skf); } catch (er) {}
+      _skFireApply();
     });
-  });
-  document.getElementById('skSortBtn')?.addEventListener('click', function() {
-    const mode = this.dataset.mode === 'len' ? 'alpha' : 'len';
-    this.dataset.mode = mode; this.textContent = mode === 'len' ? '⬇ Length' : '🔤 A–Z';
-    document.querySelectorAll('#skTabStreaks .sk-sec-body').forEach(body => {
-      const items = [...body.querySelectorAll('.streak-item')];
-      if (mode === 'alpha') items.sort((a, b) => (a.querySelector('.streak-label')?.textContent || '').localeCompare(b.querySelector('.streak-label')?.textContent || ''));
-      else items.sort((a, b) => +(b.querySelector('.streak-days')?.dataset.len || 0) - +(a.querySelector('.streak-days')?.dataset.len || 0));
-      items.forEach(el => body.appendChild(el));
+    document.getElementById('skFilter')?.addEventListener('input', _skFireApply);
+    document.getElementById('skSortBtn')?.addEventListener('click', function () {
+      const mode = this.dataset.mode === 'len' ? 'alpha' : 'len';
+      this.dataset.mode = mode;
+      this.textContent = mode === 'len' ? '⬇ ' + t('sk_sort_len') : '🔤 ' + t('sk_sort_az');
+      const list = document.getElementById('skFireList');
+      if (list) {
+        const rows = [...list.querySelectorAll('.sk-row')];
+        if (mode === 'alpha') rows.sort((x, y) => x.dataset.name.localeCompare(y.dataset.name));
+        else rows.sort((x, y) => +y.dataset.len - +x.dataset.len);
+        rows.forEach(r => list.appendChild(r));
+      }
+      _skFireApply();
     });
-  });
+    _skFireApply();
+  }
 
   // ── Heatmap interaction (delegated on persistent pane element) ────
   const _skHmPane = document.getElementById('skTabHeatmap');
@@ -33976,6 +34106,47 @@ function _skRefreshIfOpen() {
 }
 
 // ─── STREAK MODAL HELPERS ──────────────────────────────────────
+
+// Streak levels. The day count takes the level's colour (sk-t-<key> in style.css).
+const SK_TIERS = [
+  { key: 'spark',   icon: '✨', min: 2,   max: 6  },
+  { key: 'flame',   icon: '🔥', min: 7,   max: 13 },
+  { key: 'blaze',   icon: '☄️', min: 14,  max: 29 },
+  { key: 'inferno', icon: '🌋', min: 30,  max: 99 },
+  { key: 'eternal', icon: '💎', min: 100, max: 0  },
+];
+function _skTier(len) {
+  for (let i = SK_TIERS.length - 1; i >= 0; i--) if (len >= SK_TIERS[i].min) return SK_TIERS[i];
+  return SK_TIERS[0];
+}
+
+// On fire tab: show the rows of the chosen type that match the filter. With no
+// filter and the length sort, the first three are on the podium, so their rows
+// are hidden; filtering or sorting A–Z folds the podium and lists every match.
+function _skFireApply() {
+  const root = document.getElementById('skFire');
+  if (!root) return;
+  const type = root.dataset.skf || 'all';
+  const q = (document.getElementById('skFilter')?.value || '').toLowerCase().trim();
+  const flat = !!q || (document.getElementById('skSortBtn')?.dataset.mode || 'len') !== 'len';
+  root.classList.toggle('sk-fire--flat', flat);
+  root.querySelectorAll('.sk-seg-btn').forEach(b => {
+    const on = b.dataset.skf === type;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+  let shown = 0, onPod = 0;
+  root.querySelectorAll('.sk-fire-list .sk-row').forEach(r => {
+    const match = (type === 'all' || r.dataset.skt === type) && (!q || r.dataset.name.includes(q));
+    let vis = match;
+    if (match && !flat && onPod < 3) { onPod++; vis = false; }
+    r.hidden = !vis;
+    if (match) shown++;
+  });
+  root.querySelectorAll('.sk-pod-set').forEach(st => { st.hidden = flat || st.dataset.skf !== type; });
+  const none = document.getElementById('skFireNone');
+  if (none) none.hidden = shown > 0;
+}
 
 function _streakToggleSection(sectionEl) {
   const c = sectionEl.classList.toggle('streak-section--collapsed');
