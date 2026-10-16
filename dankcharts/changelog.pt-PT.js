@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Your day streak is in the top bar":
+    ["A tua sequência de dias está na barra superior",
+     "A tua sequência de dias era o último número do resumo de Sempre, por isso só a vias nesse separador. Agora está na barra superior em todas as páginas: uma chama com o número de dias seguidos em que ouviste música. A chama cresce e muda de cor à medida que a sequência aumenta. Passa o rato por cima para ver o teu recorde pessoal e clica para abrir os detalhes da sequência."],
+
   "Details drawer on every chart entry":
     ["Painel de detalhes em cada entrada do Top",
      "Clica em qualquer música, artista ou álbum do Top, em qualquer um dos seis esquemas, e abre-se ali mesmo um painel com tudo sobre ele: a posição anterior, plays e como mudaram, certificação, recorde pessoal, a tua nota, o álbum e os artistas, a trajetória completa no Top com o pico e as semanas e botões para ouvir uma pré-visualização, ver o vídeo, adicionar a uma playlist ou abrir a página completa. Mostra sempre tudo, até o que os interruptores de Mostrar escondem no Top. Clicar no nome continua a abrir a página completa. Os números da trajetória também ficaram mais claros em todo o lado: cada um diz em cima o que conta (Semanas no Top, Plays totais, Pico, Semanas no Top 10) com o número em baixo."],

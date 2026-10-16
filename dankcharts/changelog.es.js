@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Your day streak is in the top bar":
+    ["Tu racha de días está en la barra superior",
+     "Tu racha de días era el último número del resumen de Todo el tiempo, así que solo la veías en esa pestaña. Ahora está en la barra superior en todas las páginas: una llama con el número de días seguidos que has escuchado. La llama crece y cambia de color a medida que la racha se alarga. Pasa el cursor para ver tu mejor marca y haz clic para abrir los detalles de la racha."],
+
   "Details drawer on every chart entry":
     ["Panel de detalles en cada entrada del ranking",
      "Haz clic en cualquier canción, artista o álbum del ranking, en cualquiera de los seis diseños, y se abre ahí mismo un panel con todo sobre él: su posición anterior, reproducciones y cómo cambiaron, certificación, mejor marca, tu nota, el álbum y los artistas, el recorrido completo en el ranking con su pico y sus semanas y botones para escuchar un fragmento, ver el vídeo, añadirlo a una lista o abrir su página completa. Siempre lo muestra todo, incluso lo que los interruptores de Mostrar ocultan en el ranking. Hacer clic en el nombre sigue abriendo la página completa. Las cifras del recorrido también son más claras en todas partes: cada una dice arriba qué cuenta (Semanas en el ranking, Reprods totales, Pico, Semanas en el Top 10) con el número debajo."],
