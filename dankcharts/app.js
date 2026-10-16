@@ -33949,12 +33949,103 @@ function openStreakModal(opts) {
         (longestNow ? `<span class="sk-chip sk-chip--long">${esc(t('sk_longest_now'))} <b>${longestNow.len}d</b> ${esc(longestNow.name)}</span>` : '') +
         `<span class="sk-chip sk-chip--lost">${esc(t('sk_lost_yday'))} <b>${lost.length}</b></span>` +
         (weekStarted || weekEnded ? `<span class="sk-chip" title="${esc(t('sk_week_title'))}">${esc(t('sk_this_week'))} <b>+${weekStarted}</b> / <b>−${weekEnded}</b></span>` : '') +
+        `<button type="button" class="sk-chip sk-chip--share" onclick="skOpenCard()">📤 ${esc(t('sk_share'))}</button>` +
       `</div>`
     : '';
   const ctToday = document.getElementById('skTabCtToday');
   if (ctToday) ctToday.textContent = atRisk.length ? atRisk.length : '';
   const ctFire = document.getElementById('skTabCtFire');
   if (ctFire) ctFire.textContent = totalActive ? totalActive : '';
+
+  // ── Fun extras (redesign phase 5) ─────────────────────────────────
+  const liveAll = mergeSingles([...activeArtists, ...activeAlbums, ...activeSongs, ...atRisk]).sort((x, y) => y.len - x.len);
+  const liveId = it => it.type + '|' + it.key;
+  const atRiskIds = new Set(atRisk.map(liveId));
+
+  // Milestones reached today (only streaks that got today's play count).
+  const msToday = mergeSingles([...activeArtists, ...activeAlbums, ...activeSongs])
+    .filter(it => MILESTONES.includes(it.len)).sort((x, y) => y.len - x.len);
+
+  // Records beaten today: the running streak is the best ever and the old best
+  // (the longest earlier run) is exactly one day shorter.
+  function oldBestOf(it) {
+    const days = it.type === 'song' ? songDays[it.key] : it.type === 'artist' ? artistDays[it.key] : albumDays[it.key];
+    const s = [...days].sort(); let best = 0, cur = 1;
+    for (let i = 1; i < s.length; i++) {
+      const diff = Math.round((+new Date(s[i] + 'T12:00:00') - +new Date(s[i - 1] + 'T12:00:00')) / 86400000);
+      if (diff === 1) cur++; else { if (cur > best) best = cur; cur = 1; }
+    }
+    return best; // the last run (the live one) is never folded in
+  }
+  const beatToday = mergeSingles([...activeArtists, ...activeAlbums, ...activeSongs])
+    .filter(it => it.len >= 7 && it.len >= it.best)
+    .map(it => ({ it, old: oldBestOf(it) }))
+    .filter(x => x.old >= 2 && x.old === x.it.len - 1)
+    .sort((x, y) => y.it.len - x.it.len);
+
+  // Streak of the day: one line, picked in this order — a record beaten today,
+  // a single milestone (several get the banner instead), the longest streak
+  // still at risk, the longest one running.
+  let sotd = null;
+  if (beatToday.length) sotd = { icon: '🏆', text: t('sk_sotd_record', { name: beatToday[0].it.name, n: beatToday[0].it.len, old: beatToday[0].old }) };
+  else if (msToday.length === 1) sotd = { icon: '🎉', text: t('sk_sotd_ms', { name: msToday[0].name, n: msToday[0].len }) };
+  else if (atRisk.length) sotd = { icon: '⚠️', text: t('sk_sotd_risk', { name: atRisk[0].name, n: atRisk[0].len }) };
+  else if (liveAll.length) sotd = { icon: '🔥', text: t('sk_sotd_lead', { name: liveAll[0].name, n: liveAll[0].len }) };
+  const sotdHtml = sotd ? `<div class="sk-sotd"><span class="sk-sotd-ic" aria-hidden="true">${sotd.icon}</span><div><div class="sk-sotd-lbl">${esc(t('sk_sotd'))}</div><div class="sk-sotd-txt">${esc(sotd.text)}</div></div></div>` : '';
+  const msHtml = msToday.length > 1 || (msToday.length === 1 && beatToday.length)
+    ? `<div class="sk-ms-today">🎉 <b>${esc(t('sk_ms_today'))}</b> ${msToday.map(it => `<span class="sk-ms-chip">${esc(it.name)} <b>${it.len}d</b></span>`).join('')}</div>`
+    : '';
+
+  // Rivalry: two unrelated streaks the same length, the longer the better. Same
+  // type and different artists win ties. "Related" = an artist and their own
+  // song/album, or a song and its own album — those always run together.
+  function relatedPair(a, b) {
+    if (a.type === 'artist' && b.type !== 'artist' && splitArtists(b.sub || '').includes(a.key)) return true;
+    if (b.type === 'artist' && a.type !== 'artist' && splitArtists(a.sub || '').includes(b.key)) return true;
+    if (a.type === 'song' && b.type === 'album' && songAlbKey[a.key] === b.key) return true;
+    if (b.type === 'song' && a.type === 'album' && songAlbKey[b.key] === a.key) return true;
+    return false;
+  }
+  let rivalry = null;
+  const byLen = new Map();
+  // The top 3 already face off on the podium, so a rivalry between two of them adds nothing.
+  const podiumIds = new Set(liveAll.slice(0, 3).map(liveId));
+  for (const it of liveAll) if (it.len >= 3) (byLen.get(it.len) || byLen.set(it.len, []).get(it.len)).push(it);
+  for (const [len, grp] of [...byLen.entries()].sort((x, y) => y[0] - x[0])) {
+    const g = grp.slice(0, 30); // cap the pair search on huge ties
+    let best = null, bestScore = -1;
+    for (let i = 0; i < g.length; i++) for (let j = i + 1; j < g.length; j++) {
+      const a = g[i], b = g[j];
+      if (relatedPair(a, b) || (podiumIds.has(liveId(a)) && podiumIds.has(liveId(b)))) continue;
+      const pa = splitArtists(a.type === 'artist' ? a.name : a.sub || '')[0] || '';
+      const pb = splitArtists(b.type === 'artist' ? b.name : b.sub || '')[0] || '';
+      const score = (a.type === b.type ? 2 : 0) + (pa.toLowerCase() !== pb.toLowerCase() ? 1 : 0);
+      if (score > bestScore) { best = [a, b]; bestScore = score; }
+    }
+    if (best) { rivalry = { a: best[0], b: best[1], len }; break; }
+  }
+  let rivalryHtml = '';
+  if (rivalry) {
+    const side = it => { const a = skArt(it, 'sk-art--md'); return `<div class="sk-rival-side"${skEaFor(it, a.imgId)}>${a.html}<div class="sk-rival-nm" title="${esc(it.name)}">${esc(it.name)}</div><div class="sk-rival-sub">${esc(it.sub || t('sk_kind_' + it.type))}</div></div>`; };
+    const lag = [rivalry.a, rivalry.b].find(it => atRiskIds.has(liveId(it)));
+    rivalryHtml = `<div class="sk-rival"><div class="sk-rival-h">⚔️ ${esc(t('sk_rival'))} · <b>${esc(t('sk_rival_both', { n: rivalry.len }))}</b></div>` +
+      `<div class="sk-rival-row">${side(rivalry.a)}<div class="sk-rival-vs">VS</div>${side(rivalry.b)}</div>` +
+      `<div class="sk-rival-foot">${esc(lag ? t('sk_rival_lag', { name: lag.name }) : t('sk_rival_tie'))}</div></div>`;
+  }
+
+  // The header flame grows with the longest streak running now.
+  const flameEl = document.querySelector('#streakModal .streak-modal-icon');
+  if (flameEl) flameEl.dataset.tier = liveAll.length ? _skTier(liveAll[0].len).key : 'spark';
+
+  // Everything the share image needs (built later by skOpenCard).
+  const everBest = ['artist', 'album', 'song'].map(tp => hallOfFame[tp][0]).filter(Boolean).sort((x, y) => y.len - x.len)[0] || null;
+  window._skShareCtx = {
+    dateLabel: new Date(todayStr + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }),
+    alive: aliveTotal, kept: totalActive, risk: atRisk.length,
+    top: liveAll.slice(0, 8).map(it => ({ name: it.name, sub: it.sub || '', type: it.type, len: it.len, album: it.type === 'song' ? ((songInfo[it.key] || {}).album || '') : '' })),
+    ever: everBest ? { name: everBest.name, len: everBest.len } : null,
+    badges: SK_BADGES.filter(b => b.ok).length, badgesTotal: SK_BADGES.length,
+  };
 
   // ── Today tab ─────────────────────────────────────────────────────
   // Rows that left "at risk" since the last render (a live poll brought in their play)
@@ -34010,6 +34101,7 @@ function openStreakModal(opts) {
         `</div></div>`
     : '';
   const todayHtml =
+    sotdHtml + msHtml +
     (atRisk.length ? planSection() : `<div class="sk-all-safe">${esc(aliveTotal ? t('sk_nothing_risk') : t('streak_none'))}</div>`) +
     (atRisk.length ? section(t('streak_section_at_risk'), atRisk, 'risk', 'atrisk') : '') +
     savedHtml +
@@ -34032,7 +34124,7 @@ function openStreakModal(opts) {
       `<button id="skSortBtn" class="sk-sort-btn" data-mode="len">⬇ ${esc(t('sk_sort_len'))}</button>` +
     `</div>` +
     (fireAll.length
-      ? `<div class="sk-podium" id="skPodium">${['all', 'artist', 'album', 'song'].map(k => skPodiumHtml(fireAll, k)).join('')}</div>` +
+      ? rivalryHtml + `<div class="sk-podium" id="skPodium">${['all', 'artist', 'album', 'song'].map(k => skPodiumHtml(fireAll, k)).join('')}</div>` +
         `<div class="sk-tier-legend">${SK_TIERS.map(tr => `<span class="sk-t-${tr.key}"><span aria-hidden="true">${tr.icon}</span> ${esc(t('sk_tier_' + tr.key))} <b>${tr.min}${tr.max ? '–' + tr.max : '+'}</b></span>`).join('')}</div>` +
         `<div class="sk-fire-list" id="skFireList">${fireAll.map(it => skRowHtml(it)).join('')}</div>` +
         `<div class="streak-empty sk-fire-none" id="skFireNone" hidden>${esc(t('streak_none'))}</div>`
@@ -34149,6 +34241,7 @@ function openStreakModal(opts) {
   const cEls = document.querySelectorAll('#streakModalBody .streak-days[data-len]');
   // No count-up on a live re-render — the numbers would flash back to 0.
   if (keep) { cEls.forEach(el => { el.textContent = el.dataset.len + 'd'; }); return; }
+  _skCelebrate(msToday.map(liveId));
   const t0 = performance.now();
   (function tick(ts) {
     const prog = Math.min((ts - t0) / 700, 1), ease = 1 - Math.pow(1 - prog, 3);
@@ -34235,6 +34328,212 @@ function _streakToggleSection(sectionEl) {
   else { body?.classList.remove('sk-sec-hidden'); if (chev) chev.textContent = '▼'; }
   try { localStorage.setItem('skc-' + sectionEl.dataset.skid, c ? '1' : '0'); } catch(e) {}
 }
+
+
+// ── Milestone celebration ─────────────────────────────────────────
+// A short burst of sparks over the streak window the first time it opens on a
+// day a streak reaches 7, 14, 30, 50, 100, 200 or 365 days. Remembered per day
+// (localStorage sk-celebrated), so reopening the window doesn't replay it.
+function _skCelebrate(ids) {
+  if (!ids.length) return;
+  const today = localDateStr(tzNow());
+  let seen = { d: '', k: [] };
+  try { seen = JSON.parse(localStorage.getItem('sk-celebrated') || 'null') || seen; } catch (e) {}
+  if (seen.d !== today) seen = { d: today, k: [] };
+  const fresh = ids.filter(id => !seen.k.includes(id));
+  if (!fresh.length) return;
+  seen.k.push(...fresh);
+  try { localStorage.setItem('sk-celebrated', JSON.stringify(seen)); } catch (e) {}
+  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  _skBurst();
+}
+function _skBurst() {
+  const box = document.querySelector('#streakModal .streak-modal-box');
+  if (!box) return;
+  const layer = document.createElement('div');
+  layer.className = 'sk-burst';
+  layer.setAttribute('aria-hidden', 'true');
+  const glyphs = ['✦', '✧', '🔥', '✨', '•', '★'];
+  const colors = ['#ffb347', '#ff6a3d', '#ff4d6d', '#fbbf24', '#ffffff'];
+  for (let i = 0; i < 34; i++) {
+    const s = document.createElement('span');
+    const ang = Math.random() * Math.PI * 2, dist = 90 + Math.random() * 190;
+    s.textContent = glyphs[i % glyphs.length];
+    s.style.setProperty('--dx', Math.round(Math.cos(ang) * dist) + 'px');
+    s.style.setProperty('--dy', Math.round(Math.sin(ang) * dist - 40) + 'px');
+    s.style.color = colors[i % colors.length];
+    s.style.animationDelay = Math.round(Math.random() * 180) + 'ms';
+    s.style.fontSize = (10 + Math.random() * 14).toFixed(0) + 'px';
+    layer.appendChild(s);
+  }
+  box.appendChild(layer);
+  setTimeout(() => layer.remove(), 1900);
+}
+
+// ─── STREAK SHARE CARD ─────────────────────────────────────────
+// "My streaks" image, built on the share-card design system (palettes,
+// formats, shCapture, the phone share sheet). Two designs: Board (list) and
+// Flame (one big number). Data comes from window._skShareCtx, which
+// openStreakModal() fills; covers are fetched on open and inlined as data URLs.
+let skCard = { template: 'board', palette: 'ember', format: 'portrait', quality: 2 };
+try { Object.assign(skCard, JSON.parse(localStorage.getItem('dc_sk_card') || '{}')); } catch (e) {}
+const _skCardArt = {}; // "type|name|sub" → data URL (or null while loading / missing)
+
+const SK_CARD_TIER_HEX = { spark: ['#c3ccd9', '#5b6472'], flame: ['#ffb347', '#a35c00'], blaze: ['#ff7a3d', '#b4420f'], inferno: ['#ff4d6d', '#b3123b'], eternal: ['#c084fc', '#7e22ce'] };
+function _skCardTierCol(p, len) { const c = SK_CARD_TIER_HEX[_skTier(len).key]; return p.dark ? c[0] : c[1]; }
+function _skCardArtKey(it) { return it.type + '|' + it.name + '|' + it.sub; }
+
+function _skCardRow(p, it, size, nameFs) {
+  const url = _skCardArt[_skCardArtKey(it)] || null;
+  const art = shArt(p, url, size, { radius: it.type === 'artist' ? size / 2 : Math.round(size * 0.12), initials: initials(it.name) });
+  return `<div style="display:flex;align-items:center;gap:26px;">
+    ${art}
+    <div style="flex:1;min-width:0;">
+      <div style="font-family:${SH_FONT.display};font-size:${nameFs}px;font-weight:700;line-height:1.12;color:${p.text};${shClamp(1, nameFs, 1.12)}white-space:nowrap;text-overflow:ellipsis;">${esc(it.name)}</div>
+      <div style="font-family:${SH_FONT.sans};font-size:${Math.round(nameFs * 0.62)}px;color:${p.dim};margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(it.sub || t('sk_kind_' + it.type))}</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;">
+      <span style="font-size:${Math.round(nameFs * 0.9)}px;">${_skTier(it.len).icon}</span>
+      <span style="font-family:${SH_FONT.mono};font-size:${Math.round(nameFs * 1.25)}px;font-weight:700;color:${_skCardTierCol(p, it.len)};">${it.len}d</span>
+    </div>
+  </div>`;
+}
+
+const SH_SK_TEMPLATES = {
+  // A ranked list of the longest streaks running now.
+  board(ctx, p, fmt) {
+    const n = fmt === 'story' ? 8 : fmt === 'portrait' ? 6 : 4;
+    const rows = ctx.top.slice(0, n);
+    const stat = (v, l) => `<div style="flex:1;min-width:0;background:${p.panel};border:1px solid ${p.line};border-radius:22px;padding:18px 22px;">
+      <div style="font-family:${SH_FONT.mono};font-size:38px;font-weight:700;color:${p.text};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${v}</div>
+      <div style="font-family:${SH_FONT.sans};font-size:21px;color:${p.dim};margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(l)}</div></div>`;
+    const inner = `<div style="flex:1;display:flex;flex-direction:column;padding:${shSafeTop(fmt)}px 72px 0;min-height:0;">
+      ${shEyebrow(p, t('sk_card_eyebrow', { date: ctx.dateLabel }))}
+      <div style="font-family:${SH_FONT.display};font-size:92px;font-weight:800;line-height:1.02;margin-top:26px;color:${p.text};">${esc(t('sk_card_alive', { n: ctx.alive }))}</div>
+      <div style="font-family:${SH_FONT.sans};font-size:28px;color:${p.dim};margin-top:12px;">${esc(t('sk_kept', { kept: ctx.kept, total: ctx.alive }))}</div>
+      <div style="display:flex;flex-direction:column;gap:${fmt === 'story' ? 30 : 24}px;margin-top:${fmt === 'post' ? 36 : 48}px;">
+        ${rows.map(it => _skCardRow(p, it, fmt === 'post' ? 84 : 96, fmt === 'post' ? 36 : 40)).join('')}
+      </div>
+      <div style="flex:1;"></div>
+      <div style="display:flex;gap:16px;margin-top:28px;">
+        ${ctx.ever ? stat(ctx.ever.len + 'd', t('sk_card_ever', { name: ctx.ever.name })) : ''}
+        ${stat(ctx.badges + '/' + ctx.badgesTotal, t('sk_badges_title'))}
+      </div>
+    </div>`;
+    return shShell(p, fmt, inner + shFooter(p, fmt));
+  },
+  // One big number: the longest streak running now, with the next two under it.
+  flame(ctx, p, fmt) {
+    const lead = ctx.top[0];
+    if (!lead) return SH_SK_TEMPLATES.board(ctx, p, fmt);
+    // Story is tall: give it more runners-up so the card doesn't open a gap.
+    const rest = ctx.top.slice(1, fmt === 'story' ? 7 : fmt === 'portrait' ? 4 : 3);
+    const big = fmt === 'story' ? 330 : fmt === 'portrait' ? 280 : 230;
+    const leadArt = shArt(p, _skCardArt[_skCardArtKey(lead)] || null, fmt === 'post' ? 120 : 150, { radius: lead.type === 'artist' ? 999 : 24, initials: initials(lead.name) });
+    const inner = `<div style="flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;padding:${shSafeTop(fmt)}px 72px 0;min-height:0;">
+      ${shEyebrow(p, t('sk_card_eyebrow', { date: ctx.dateLabel }))}
+      <div style="font-size:${fmt === 'post' ? 80 : 110}px;line-height:1;margin-top:${fmt === 'post' ? 24 : 48}px;">${_skTier(lead.len).icon}</div>
+      <div style="font-family:${SH_FONT.mono};font-size:${big}px;font-weight:800;line-height:0.95;color:${_skCardTierCol(p, lead.len)};margin-top:10px;">${lead.len}</div>
+      <div style="font-family:${SH_FONT.mono};font-size:30px;font-weight:600;color:${p.dim};text-transform:uppercase;">${esc(t('sk_card_days'))}</div>
+      <div style="display:flex;align-items:center;gap:22px;margin-top:${fmt === 'post' ? 24 : 40}px;max-width:100%;">
+        ${leadArt}
+        <div style="text-align:left;min-width:0;">
+          <div style="font-family:${SH_FONT.display};font-size:52px;font-weight:800;line-height:1.08;color:${p.text};${shClamp(2, 52, 1.08)}">${esc(lead.name)}</div>
+          <div style="font-family:${SH_FONT.sans};font-size:28px;color:${p.dim};margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(lead.sub || t('sk_kind_' + lead.type))}</div>
+        </div>
+      </div>
+      <div style="flex:1;"></div>
+      <div style="width:100%;display:flex;flex-direction:column;gap:18px;text-align:left;margin-top:30px;border-top:1px solid ${p.line};padding-top:28px;">
+        ${rest.map(it => _skCardRow(p, it, 72, 32)).join('')}
+      </div>
+      <div style="font-family:${SH_FONT.sans};font-size:26px;color:${p.dim};margin-top:24px;">${esc(t('sk_card_alive', { n: ctx.alive }))}</div>
+    </div>`;
+    return shShell(p, fmt, inner + shFooter(p, fmt));
+  },
+};
+const SH_SK_TEMPLATE_LIST = [
+  { id: 'board', glyph: '☰', get name() { return t('sk_card_tpl_board'); } },
+  { id: 'flame', glyph: '🔥', get name() { return t('sk_card_tpl_flame'); } },
+];
+SH_SCOPES.sk = { templates: () => SH_SK_TEMPLATE_LIST, get: () => skCard, setTpl: 'setSkTemplate', setPal: 'setSkPalette' };
+
+function _skCardSave() { try { localStorage.setItem('dc_sk_card', JSON.stringify(skCard)); } catch (e) {} }
+function setSkTemplate(id) { skCard.template = SH_SK_TEMPLATES[id] ? id : 'board'; _skCardSave(); shRenderDesignPickers('sk'); skRenderCard(); }
+function setSkPalette(id) { skCard.palette = id; _skCardSave(); shRenderDesignPickers('sk'); skRenderCard(); }
+function setSkFormat(fmt) { skCard.format = SHARE_FORMATS[fmt] ? fmt : 'portrait'; _skCardSave(); shRenderDesignPickers('sk'); skRenderCard(); }
+function setSkQuality(q) { skCard.quality = q === 1 ? 1 : 2; _skCardSave(); shRenderDesignPickers('sk'); }
+
+function skOpenCard() {
+  const ctx = window._skShareCtx;
+  if (!ctx) return;
+  if (!SH_SK_TEMPLATES[skCard.template]) skCard.template = 'board';
+  shRenderDesignPickers('sk');
+  document.getElementById('skCardModal').classList.add('open');
+  skRenderCard();
+  // Covers for the rows on the card: fetched once, inlined (html2canvas needs
+  // data URLs), and the preview redraws as each one lands.
+  ctx.top.forEach(it => {
+    const k = _skCardArtKey(it);
+    if (k in _skCardArt) return;
+    _skCardArt[k] = null;
+    getArtAuto(it.type, it.name, it.sub, it.type === 'album' ? it.name : it.album)
+      .then(url => url ? _igToDataUrl(url) : null)
+      .then(data => { if (data) { _skCardArt[k] = data; if (document.getElementById('skCardModal').classList.contains('open')) skRenderCard(); } })
+      .catch(() => {});
+  });
+}
+function skCloseCard() {
+  document.getElementById('skCardModal').classList.remove('open');
+  document.getElementById('skCardCanvas').innerHTML = '';
+}
+function skRenderCard() {
+  const ctx = window._skShareCtx;
+  if (!ctx) return;
+  const p = shPalette(skCard.palette);
+  const html = (SH_SK_TEMPLATES[skCard.template] || SH_SK_TEMPLATES.board)(ctx, p, skCard.format);
+  const canvas = document.getElementById('skCardCanvas');
+  const d = shDims(skCard.format);
+  canvas.style.width = d.w + 'px';
+  canvas.style.height = d.h + 'px';
+  canvas.innerHTML = html;
+  shFitPreview('skCardFrame', 'skCardInner', skCard.format, html);
+  shPrepareShare('skCardCanvas', 'skCardShareBtn', _skShareOpts);
+}
+function _skShareOpts() { return { format: skCard.format, quality: skCard.quality, fileName: _skCardFileName() }; }
+function _skCardFileName() { return `dankcharts_streaks_${localDateStr(tzNow())}_${skCard.template}_${skCard.format}.png`; }
+async function skDownloadCard() {
+  const btn = document.getElementById('skCardDownloadBtn');
+  const orig = btn.textContent;
+  btn.textContent = '⏳ …'; btn.disabled = true;
+  try {
+    const cvs = await shCapture('skCardCanvas', skCard.format, skCard.quality);
+    const link = document.createElement('a');
+    link.download = _skCardFileName();
+    link.href = cvs.toDataURL('image/png');
+    link.click();
+  } catch (e) { console.error('Streak card download failed', e); }
+  btn.textContent = orig; btn.disabled = false;
+}
+async function skCopyCard() {
+  if (!navigator.clipboard?.write) { skDownloadCard(); return; }
+  const btn = document.getElementById('skCardCopyBtn');
+  const orig = btn.textContent;
+  btn.textContent = '⏳…'; btn.disabled = true;
+  try {
+    const cvs = await shCapture('skCardCanvas', skCard.format, skCard.quality);
+    const blob = await shCanvasBlob(cvs);
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+    btn.textContent = '✓ ' + t('sk_hm_copied');
+    setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 1800);
+  } catch (e) {
+    btn.textContent = orig; btn.disabled = false;
+    skDownloadCard();
+  }
+}
+function skShareCard() { shShareNow('skCardCanvas', 'skCardShareBtn', _skShareOpts, skDownloadCard); }
+document.getElementById('skCardModal')?.addEventListener('click', e => {
+  if (e.target === document.getElementById('skCardModal')) skCloseCard();
+});
 
 // ── At Risk Today — Play All / Queue All / Save Playlist / Copy Tracklist ──────
 // All four use the save plan (window._skPlanSongs, built in openStreakModal): the
