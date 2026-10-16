@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "The top bar fits in every language":
+    ["A barra superior cabe em todos os idiomas",
+     "Em espanhol e português as abas da barra superior podiam se juntar na tela de um notebook, e \"Iniciar sesión\" ficava cortado em celulares pequenos. Agora a barra confere se tudo cabe e, só quando não cabe, se ajusta: Novidades mostra só o número, as abas ficam mais próximas e nos celulares menores Entrar ganha um rótulo curto. Trocar de idioma agora também atualiza a sequência seguida e a linha do último play no topo das paradas, que ficavam no idioma anterior até recarregar."],
+
   "Your listening streak is on every chart tab":
     ["Sua sequência de escuta está em todas as abas de paradas",
      "Sua sequência de escuta (quantos dias seguidos você ouviu música) era o último número do resumo de Todos os tempos, então você só a via nessa aba. Agora ela fica no fim da faixa no topo das paradas, em todas as abas de paradas, com o rótulo Sequência de escuta para não ser confundida com a sequência seguida ao lado. Mostra os dias e seu recorde (\"Seu recorde: 370 dias\", ou \"Seu melhor de todos\" em dourado enquanto você está nele), com uma chama nova que vai de brasa cinza a dourado conforme a sequência cresce. No celular a faixa recolhida agora tem duas linhas: a música e depois as duas sequências por extenso. Clique para abrir os detalhes da sequência."],

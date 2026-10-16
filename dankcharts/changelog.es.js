@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "The top bar fits in every language":
+    ["La barra superior cabe en todos los idiomas",
+     "En español y portugués las pestañas de la barra superior podían juntarse en la pantalla de un portátil, y \"Iniciar sesión\" se cortaba en móviles pequeños. Ahora la barra comprueba si todo cabe y, solo cuando no, se ajusta: Novedades muestra solo su número, las pestañas se acercan y en los móviles más pequeños Iniciar sesión pasa a decir Entrar. Cambiar de idioma también actualiza ya la racha seguida y la línea de la última escucha arriba de los rankings, que se quedaban en el idioma anterior hasta recargar."],
+
   "Your listening streak is on every chart tab":
     ["Tu racha de escucha está en cada pestaña de rankings",
      "Tu racha de escucha (cuántos días seguidos has puesto música) era el último número del resumen de Todo el tiempo, así que solo la veías en esa pestaña. Ahora está al final de la franja de arriba de los rankings, en cada pestaña de rankings, con la etiqueta Racha de escucha para no confundirla con la racha seguida de al lado. Muestra los días y tu récord (\"Tu récord: 370 días\", o \"Tu mejor racha\" en dorado mientras estás en ella), con una llama nueva que pasa de brasa gris a dorado a medida que la racha crece. En el móvil la franja plegada tiene ahora dos líneas: la canción y luego las dos rachas con palabras. Haz clic para abrir los detalles de la racha."],

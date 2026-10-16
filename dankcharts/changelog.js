@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 128;
+const DC_CL_I18N_V = 130;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-16', t: 'fix', a: 'ui', h: '5c765b8',
+    title: 'The top bar fits in every language',
+    detail: "In Spanish and Portuguese the top bar's tabs could run into each other on a laptop screen, and \"Iniciar sesión\" was cut off on small phones. The bar now checks whether everything fits and, only when it does not, tightens itself: What's New shows just its count, the tabs move closer, and on the smallest phones Sign in gets a shorter label. Switching language also now updates the in-a-row run and the last played line at the top of the charts, which stayed in the old language until you reloaded." },
 
   { d: '2026-10-16', t: 'design', a: 'ui', h: '5cdb2df',
     title: 'Your listening streak is on every chart tab',

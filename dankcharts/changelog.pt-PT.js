@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "The top bar fits in every language":
+    ["A barra superior cabe em todas as línguas",
+     "Em espanhol e português os separadores da barra superior podiam juntar-se no ecrã de um portátil, e \"Iniciar sessão\" ficava cortado em telemóveis pequenos. Agora a barra verifica se tudo cabe e, só quando não cabe, ajusta-se: Novidades mostra só o número, os separadores ficam mais próximos e nos telemóveis mais pequenos Iniciar sessão passa a dizer Entrar. Mudar de língua também atualiza agora a sequência seguida e a linha do último play no topo do Top, que ficavam na língua anterior até recarregar."],
+
   "Your listening streak is on every chart tab":
     ["A tua sequência de escuta está em todos os separadores do Top",
      "A tua sequência de escuta (quantos dias seguidos ouviste música) era o último número do resumo de Sempre, por isso só a vias nesse separador. Agora está no fim da faixa no topo do Top, em todos os separadores do Top, com a etiqueta Sequência de escuta para não ser confundida com a sequência seguida ao lado. Mostra os dias e o teu recorde (\"O teu recorde: 370 dias\", ou \"O teu melhor de sempre\" a dourado enquanto estás nele), com uma chama nova que passa de brasa cinzenta a dourado à medida que a sequência cresce. No telemóvel a faixa recolhida tem agora duas linhas: a música e depois as duas sequências por extenso. Clica para abrir os detalhes da sequência."],
