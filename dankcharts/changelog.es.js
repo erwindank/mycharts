@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Milestones and goals on the Daily chart":
+    ["Hitos y metas en la lista diaria",
+     "Una tarjeta de Hitos y metas al final de la lista diaria. Reparte los premios del día (canción, artista y álbum del día, el descubrimiento del día y el regreso del día), muestra canciones, artistas y álbumes que llegaron a una cifra redonda de reproducciones, los récords batidos ese día (tus más reproducciones de una canción o un artista en un día, con un enlace a Récords), las rachas que siguen y las que terminaron, y metas: cuánto le faltó al día para tu mejor día de la semana igual y tu mayor día, lo que escuchaste últimamente que está a pocas reproducciones de su próximo hito y, hoy, las rachas que terminan si no las escuchas hoy. Las certificaciones ganadas ese día aparecen ahora en la misma cinta de Certificados que en Semanal y Mensual."],
+
   "Memories on the Daily chart":
     ["Recuerdos en la lista diaria",
      "Una tarjeta de Recuerdos bajo la lista diaria, mirando atrás desde el día que estás viendo: tu canción y artista top en la misma fecha uno, dos y tres años antes (haz clic para abrir ese día), favoritas olvidadas de tu top 100 que llevaban tres meses o más sin sonar, artistas del recuerdo de tu top 20 que no escuchabas desde hacía un mes o más, regresos (canciones que vuelven tras seis meses o más) y lo que escuchaste por primera vez ese día. Las canciones y artistas tienen el mismo ▶ de muestra y menú ⋮ que las otras listas, y las filas de la lista diaria ahora también."],

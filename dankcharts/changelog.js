@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 137;
+const DC_CL_I18N_V = 138;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-16', t: 'feature', a: 'charts', h: '83ca66a',
+    title: "Milestones and goals on the Daily chart",
+    detail: "A Milestones & goals card at the bottom of the Daily chart. It hands out the day's awards (song, artist and album of the day, the discovery of the day and the comeback of the day), lists songs, artists and albums that reached a round number of plays, records broken that day (your most plays of a song or an artist in one day, with a link to Records), streaks still going and the ones that ended, and goals: how far the day was from your best same weekday and your biggest day, what you played lately that is a few plays from its next milestone, and, on today, the streaks that end unless you play them today. Certifications earned on the day now show in the same Certified reel as on Weekly and Monthly." },
 
   { d: '2026-10-16', t: 'feature', a: 'charts', h: '9991d33',
     title: "Memories on the Daily chart",

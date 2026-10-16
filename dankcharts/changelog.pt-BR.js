@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Milestones and goals on the Daily chart":
+    ["Marcos e metas na parada diária",
+     "Um cartão de Marcos e metas no fim da parada diária. Ele entrega os prêmios do dia (música, artista e álbum do dia, a descoberta do dia e o retorno do dia), mostra músicas, artistas e álbuns que chegaram a um número redondo de plays, os recordes batidos naquele dia (os seus mais plays de uma música ou de um artista num dia, com um link para Recordes), as sequências que continuam e as que terminaram, e metas: quanto faltou para o seu melhor dia da mesma semana e para o seu maior dia, o que você ouviu ultimamente que está a poucos plays do próximo marco e, hoje, as sequências que terminam se você não ouvir hoje. As certificações ganhas no dia agora aparecem na mesma faixa de Certificados do Semanal e do Mensal."],
+
   "Memories on the Daily chart":
     ["Memórias na parada diária",
      "Um cartão de Memórias abaixo da parada diária, olhando para trás a partir do dia que você está vendo: a sua música e artista top na mesma data um, dois e três anos antes (clique para abrir esse dia), favoritas esquecidas do seu top 100 que estavam há três meses ou mais sem tocar, artistas para relembrar do seu top 20 que você não ouvia há um mês ou mais, retornos (músicas que voltam depois de seis meses ou mais) e o que você ouviu pela primeira vez naquele dia. As músicas e artistas têm o mesmo ▶ de amostra e menu ⋮ das outras paradas, e as linhas da parada diária agora também."],
