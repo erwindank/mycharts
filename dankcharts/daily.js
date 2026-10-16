@@ -775,7 +775,10 @@ function dyMilestonesHtml(h, ds) {
   }
   close.sort((a, b) => a.r - b.r || b.m - a.m);
   const closeLabel = x => x.type === 'songs' ? (allSongName(x.k) || x.k) : label[x.type](x.k);
-  close.slice(0, 3).forEach(x => goals.push(row(closeLabel(x), t('dy_goal_close', { n: x.left.toLocaleString(), m: x.m.toLocaleString() }))));
+  // Its own list ("Almost there"), saying the count now and what is left:
+  // "999 plays · 1 more to reach 1,000"
+  const closeRows = close.slice(0, 3).map(x => row(closeLabel(x),
+    t('dy_goal_close', { now: tCount('plays', x.m - x.left), left: x.left.toLocaleString(), m: x.m.toLocaleString() })));
 
   // Today only: streaks that end unless played today
   if (isToday) {
@@ -793,6 +796,7 @@ function dyMilestonesHtml(h, ds) {
     var keepRows = alive.sort((a, b) => b.len - a.len).slice(0, 3).map(x => row(x.name, t('dy_goal_keep', { n: x.len })));
   }
   if (goals.length) blocks.push(['list', t('dy_goals'), goals.join('')]);
+  if (closeRows.length) blocks.push(['list', t('dy_close_title'), closeRows.join('')]);
   // Its own list, so the day's goals and the streaks at stake read apart
   if (keepRows && keepRows.length) blocks.push(['list', t('dy_keep_title'), keepRows.join('')]);
 
