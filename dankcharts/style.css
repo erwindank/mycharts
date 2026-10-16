@@ -36721,3 +36721,89 @@ body[data-view="day"] .daily-view {
     border-top: 1px solid var(--border);
   }
 }
+
+/* ---- Daily tab: memories (phase 5) ----
+   Same card as time of day and patterns: small lists in a grid that fills
+   as many columns as fit. Rows carry the shared ▶ / ⋮ entry buttons, which
+   show on hover (and always on touch screens) as elsewhere. */
+.dy-mem-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--sp-4);
+}
+
+.dy-mem-block {
+  display: grid;
+  align-content: start;
+  gap: var(--sp-1);
+  min-width: 0;
+}
+
+.dy-mem-list {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dy-mem-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+  padding: 4px 6px;
+  margin: 0 -6px;
+  border-radius: var(--r-xs, 6px);
+}
+
+.dy-mem-row:hover {
+  background: var(--hover);
+}
+
+.dy-mem-row.is-link {
+  cursor: pointer;
+}
+
+.dy-mem-text {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+
+.dy-mem-sub {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--fs-xs);
+  color: var(--text3);
+}
+
+/* "1 year ago" in front of an on-this-day row */
+.dy-mem-year {
+  flex-shrink: 0;
+  min-width: 5.5em;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.dy-mem-more {
+  padding: 2px 0;
+  font-size: var(--fs-xs);
+  color: var(--text3);
+}
+
+/* The daily chart's own ▶ / ⋮ cell (phase 5) */
+.dy-table .cr-cell {
+  width: 1%;
+  white-space: nowrap;
+}
+
+/* Narrow screens: only ⋮ in the daily chart (its menu has the sample, and on
+   touch the cover plays it), so the row fits like the weekly chart's does */
+@media (max-width: 600px) {
+  .dy-table .cr-cell .ea-sample {
+    display: none;
+  }
+}

@@ -360,6 +360,7 @@ function dyRenderChart(h, ds) {
       <th class="m-th" title="${esc(t('dy_th_days_tip'))}"><span class="th-period-full">${t('dy_th_days')}</span><span class="th-period-short">${t('dy_th_days_mobile')}</span></th>
       <th class="m-th dy-peak">${t('dy_th_peak')}</th>
       <th style="text-align:right;"><span class="th-plays-full">${t('th_plays')}</span><span class="th-plays-short">${t('th_plays_mobile')}</span></th>
+      <th class="cr-th"></th>
     </tr>`;
 
   const max = chart[0]?.count || 1;
@@ -380,7 +381,7 @@ function dyRenderChart(h, ds) {
     const peakTip = f.peakDs ? t('dy_peak_tip', { rank: f.peak, date: fmt(dyDate(f.peakDs)) }) : '';
     const peakCell = `<td class="m-col dy-peak" title="${esc(peakTip)}"><span class="m-mths">#${f.peak}</span>${f.peakDs && f.peakDs !== ds ? `<div class="m-prev-rank">${esc(nsShortDateSafe(f.peakDs))}</div>` : ''}</td>`;
 
-    let thumb, main;
+    let thumb, main, ea;   // ea: the entry attributes behind ▶ / ⋮ (_eaAttrs in app.js)
     if (type === 'songs') {
       const s = day.songs[r.k];
       const album = bestAlbum(s.title, s._albums);
@@ -388,12 +389,14 @@ function dyRenderChart(h, ds) {
       imgItems.push({ imgId, title: s.title, name: s.title, artist: s.artist, album, type: 'song', prefKey });
       thumb = dyThumb(imgId, s.title, 'song', prefKey, s.title, s.artist, album);
       main = `<div class="song-title">${chartNameLink(s.title, 'openSongModal', r.k)}</div><div class="song-artist">${chartArtistLinks(s.artist)}</div>`;
+      ea = _eaAttrs('songs', { title: s.title, artist: s.artist, album, key: r.k, imgId });
     } else if (type === 'artists') {
       const prefKey = 'artist:' + r.k.toLowerCase();
       imgItems.push({ imgId, name: r.k, prefKey });
       thumb = dyThumb(imgId, r.k, 'artist', prefKey, r.k, r.k, '');
       const n = day.artists[r.k] ? day.artists[r.k].songs.size : 0;
       main = `<div class="song-title">${chartNameLink(r.k, 'openArtistModal', r.k)}</div><div class="song-artist">${esc(tCount('songs', n))}</div>`;
+      ea = _eaAttrs('artists', { artist: r.k, key: r.k, imgId });
     } else {
       const cut = r.k.lastIndexOf('|||');
       const album = cut < 0 ? r.k : r.k.slice(0, cut), artist = cut < 0 ? '' : r.k.slice(cut + 3);
@@ -401,9 +404,10 @@ function dyRenderChart(h, ds) {
       imgItems.push({ imgId, album, name: album, artist, prefKey });
       thumb = dyThumb(imgId, album, 'album', prefKey, album, artist, album);
       main = `<div class="song-title">${chartNameLink(album, 'openAlbumModal', r.k)}</div><div class="song-artist">${chartArtistLinks(artist)}</div>`;
+      ea = _eaAttrs('albums', { album, artist, key: r.k, imgId });
     }
     const statusCls = !was ? (f.before ? ' wv-row-re' : ' wv-row-new') : '';
-    return `<tr class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}${statusCls}">
+    return `<tr${ea} class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}${statusCls}">
       <td class="rank-cell">${r.rank}</td>
       <td class="m-col">${move}</td>
       <td class="thumb-cell">${thumb}</td>
@@ -414,6 +418,7 @@ function dyRenderChart(h, ds) {
         <div class="play-count">${tCountHtml('plays', r.count)}</div>
         <div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(r.count / max * 100)}%"></div></div>
       </td>
+      <td class="cr-cell">${_eaBtns()}</td>
     </tr>`;
   }).join('');
 
@@ -437,7 +442,8 @@ function dyRenderChart(h, ds) {
       <div class="section-body">${body}</div>
     </div>
     ${tod}
-    ${dyPatternsHtml(h, ds)}`;
+    ${dyPatternsHtml(h, ds)}
+    ${dyMemoriesHtml(h, ds)}`;
 
   if (imgItems.length) loadImages(imgItems, type === 'songs' ? 'song' : type === 'artists' ? 'artist' : 'album');
   for (const tp of ['album', 'song']) {
@@ -569,6 +575,129 @@ function dyTimeOfDayHtml(h, ds, imgOut) {
       <div class="dy-hours" aria-hidden="true">${bars}</div>
       <div class="dy-ticks" aria-hidden="true">${ticks}</div>
       <div class="dy-parts">${parts}</div>
+    </section>`;
+}
+
+// ─── MEMORIES (phase 5) ───────────────────────────────────────────────────
+/* A card under Patterns, looking back from the day on screen (not from
+   today, so an old day shows what was forgotten back then):
+     - on this day: the top song and artist on the same date 1, 2 and 3 years
+       before; click one to open that day's chart
+     - forgotten favourites: your top 100 songs as of that day that had gone
+       90+ days without a play (and were not played that day), with ▶
+     - throwback artists: your top 20 artists as of that day with no play in
+       the 30+ days before it (and none that day)
+     - comebacks: songs played that day for the first time in 6+ months
+     - first heard: artists and songs whose first play ever was that day
+   The ▶ / ⋮ buttons are the shared entry actions (_eaAttrs / _eaBtns in
+   app.js): sample, play on YouTube, add to a playlist. */
+const DY_DAY_MS = 86400000;
+
+// "5 months" / "47 days", for how long something went unplayed
+function dyGap(ms) {
+  const d = Math.floor(ms / DY_DAY_MS);
+  if (d >= 60) { const m = Math.round(d / 30.44); return m >= 24 ? tCount('years', Math.floor(m / 12)) : tCount('months', m); }
+  return tCount('days', d);
+}
+
+// One remembered song: title, artist, a muted line, and ▶ ⋮
+function dyMemSong(s, sub) {
+  const k = s.title.toLowerCase().trim() + '|||' + s.artist.toLowerCase().trim();
+  return `<li class="dy-mem-row"${_eaAttrs('songs', { title: s.title, artist: s.artist, album: s.album || '', key: k })}>
+      <span class="dy-mem-text"><span class="ns-x-line" title="${esc(s.title + ' — ' + s.artist)}"><b>${esc(s.title)}</b> <span>— ${esc(s.artist)}</span></span><span class="dy-mem-sub">${esc(sub)}</span></span>
+      ${_eaBtns()}
+    </li>`;
+}
+
+function dyMemArtist(name, sub) {
+  return `<li class="dy-mem-row"${_eaAttrs('artists', { artist: name, key: name })}>
+      <span class="dy-mem-text"><span class="ns-x-line"><b>${chartNameLink(name, 'openArtistModal', name)}</b></span><span class="dy-mem-sub">${esc(sub)}</span></span>
+      ${_eaBtns()}
+    </li>`;
+}
+
+function dyMemoriesHtml(h, ds) {
+  const day = h.byDay[ds];
+  const startMs = +dyDate(ds) - 12 * 3600000;   // midnight at the start of ds
+  const blocks = [];
+
+  // ── On this day ──
+  const otd = [];
+  for (let y = 1; y <= 3; y++) {
+    const past = (+ds.slice(0, 4) - y) + ds.slice(4);
+    const d = h.byDay[past];
+    if (!d) continue;
+    let song = null, art = null;
+    for (const k in d.songs) if (!song || d.songs[k].count > song.count) song = d.songs[k];
+    for (const a in d.artists) if (!art || d.artists[a].count > art[1]) art = [a, d.artists[a].count];
+    const off = Math.round((dyDate(localDateStr(tzNow())) - dyDate(past)) / DY_DAY_MS);
+    otd.push(`<li class="dy-mem-row is-link" role="button" tabindex="0" onclick="dyGoOffset(${off})" onkeydown="if(event.key==='Enter')dyGoOffset(${off})">
+        <span class="dy-mem-year">${esc(t(y === 1 ? 'dy_years_ago_one' : 'dy_years_ago_other', { n: y }))}</span>
+        <span class="dy-mem-text"><span class="ns-x-line" title="${esc(song.title + ' — ' + song.artist)}"><b>${esc(song.title)}</b> <span>— ${esc(song.artist)}</span></span>
+        <span class="dy-mem-sub">${esc(t('ns_x_top'))}: ${esc(art[0])} · ${esc(tCount('plays', d.plays))}</span></span>
+      </li>`);
+  }
+  if (otd.length) blocks.push([t('dy_otd'), otd.join('')]);
+
+  // ── Everything before this day: counts and last plays ──
+  const songs = {}, artists = {};
+  for (const p of allPlays) {
+    const pd = dayStrOf(p);
+    if (pd >= ds) continue;
+    const ms = msOf(p);
+    const sk = songKey(p);
+    const s = songs[sk] || (songs[sk] = { n: 0, last: 0, title: p.title, artist: p.artist, album: p.album && p.album !== '—' ? p.album : '' });
+    s.n++; if (ms > s.last) s.last = ms;
+    for (const a of p.artists) { const r = artists[a] || (artists[a] = { n: 0, last: 0 }); r.n++; if (ms > r.last) r.last = ms; }
+  }
+  const playedToday = k => !!(day && day.songs[k]);
+
+  // ── Forgotten favourites ──
+  const forgot = Object.entries(songs).sort((a, b) => b[1].n - a[1].n).slice(0, 100)
+    .filter(([k, s]) => startMs - s.last >= 90 * DY_DAY_MS && !playedToday(k)).slice(0, 3)
+    .map(([, s]) => dyMemSong(s, tCount('plays', s.n) + ' · ' + t('dy_not_for', { t: dyGap(startMs - s.last) })));
+  if (forgot.length) blocks.push([t('dy_forgot'), forgot.join('')]);
+
+  // ── Throwback artists ──
+  const throwback = Object.entries(artists).sort((a, b) => b[1].n - a[1].n).slice(0, 20)
+    .map(([a, r], i) => ({ a, r, rank: i + 1 }))
+    .filter(x => startMs - x.r.last >= 30 * DY_DAY_MS && !(day && day.artists[x.a])).slice(0, 3)
+    .map(x => dyMemArtist(x.a, t('dy_throw_line', { rank: x.rank, t: dyGap(startMs - x.r.last) })));
+  if (throwback.length) blocks.push([t('dy_throw'), throwback.join('')]);
+
+  if (day) {
+    // ── Comebacks: back after 6+ months ──
+    const back = [];
+    for (const k in day.songs) {
+      const s = songs[k];
+      if (s && day.firstMs - s.last >= 182 * DY_DAY_MS) back.push({ k, s, gap: day.firstMs - s.last, cur: day.songs[k] });
+    }
+    back.sort((a, b) => b.gap - a.gap);
+    if (back.length) blocks.push([t('dy_comeback'), back.slice(0, 3).map(x =>
+      dyMemSong({ title: x.cur.title, artist: x.cur.artist, album: bestAlbum(x.cur.title, x.cur._albums) }, t('dy_comeback_line', { t: dyGap(x.gap) }))).join('')]);
+
+    // ── First heard: songs and artists never played before this day ──
+    const newArtists = Object.keys(day.artists).filter(a => !artists[a]).sort((a, b) => day.artists[b].count - day.artists[a].count);
+    const newSongs = Object.keys(day.songs).filter(k => !songs[k]).sort((a, b) => day.songs[b].count - day.songs[a].count);
+    if (newArtists.length || newSongs.length) {
+      const rows = newArtists.slice(0, 2).map(a => dyMemArtist(a, t('dy_first_artist') + ' · ' + tCount('plays', day.artists[a].count)));
+      const songRows = newSongs.slice(0, Math.max(1, 3 - rows.length)).map(k => {
+        const s = day.songs[k];
+        return dyMemSong({ title: s.title, artist: s.artist, album: bestAlbum(s.title, s._albums) }, t('dy_first_song') + ' · ' + tCount('plays', s.count));
+      });
+      const shown = songRows.length;
+      const more = newSongs.length > shown ? `<li class="dy-mem-more">${esc(t('dy_first_more', { n: newSongs.length - shown }))}</li>` : '';
+      blocks.push([t('dy_first'), rows.join('') + songRows.join('') + more]);
+    }
+  }
+
+  if (!blocks.length) return '';
+  return `
+    <section class="dy-tod dy-mem" aria-label="${esc(t('dy_mem_title'))}">
+      <div class="dy-tod-head"><span class="ns-x-title">${esc(t('dy_mem_title'))}</span></div>
+      <div class="dy-mem-grid">
+        ${blocks.map(([title, body]) => `<div class="dy-mem-block"><span class="ns-x-title">${esc(title)}</span><ul class="dy-mem-list">${body}</ul></div>`).join('')}
+      </div>
     </section>`;
 }
 
@@ -846,7 +975,7 @@ function dyGoOffset(off) {
 
 // The cover cell, the same markup the other charts use (so the picture picker works)
 function dyThumb(imgId, label, type, prefKey, name, artist, album) {
-  return `<div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(label))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="${type}" data-prefkey="${esc(prefKey)}" data-name="${esc(name)}" data-artist="${esc(artist)}" data-album="${esc(album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div>`;
+  return `<div class="thumb-wrap ea-cover"><div id="${imgId}"><div class="thumb-initials">${esc(initials(label))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="${type}" data-prefkey="${esc(prefKey)}" data-name="${esc(name)}" data-artist="${esc(artist)}" data-album="${esc(album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div>`;
 }
 
 // "12 Oct": nsShortDate() lives in app.js; fall back to the full date if it is missing
