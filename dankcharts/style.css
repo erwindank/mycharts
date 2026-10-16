@@ -37148,3 +37148,277 @@ body.dy-recap-open {
     animation: none;
   }
 }
+
+/* ---- Daily tab: your day, calendar, live (phase 8) ---- */
+.dy-diary .dy-tod-head {
+  justify-content: space-between;
+}
+
+.dy-diary-status {
+  font-size: var(--fs-xs);
+  color: var(--text3);
+}
+
+.dy-moods {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: var(--sp-3);
+}
+
+.dy-mood {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--bg);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  filter: grayscale(0.6);
+  opacity: 0.75;
+  transition: transform 0.15s ease, opacity 0.15s ease, filter 0.15s ease;
+}
+
+.dy-mood:hover {
+  opacity: 1;
+  filter: none;
+  transform: scale(1.08);
+}
+
+.dy-mood.active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 18%, var(--bg));
+  opacity: 1;
+  filter: none;
+}
+
+.dy-note-wrap {
+  position: relative;
+}
+
+.dy-note {
+  display: block;
+  width: 100%;
+  min-height: 56px;
+  padding: var(--sp-2) var(--sp-3) 22px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm, 8px);
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  resize: vertical;
+}
+
+.dy-note:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.dy-note-count {
+  position: absolute;
+  right: 10px;
+  bottom: 6px;
+  font-size: 10px;
+  color: var(--text3);
+  pointer-events: none;
+}
+
+/* Live: a small pulsing dot by the day's title */
+.dy-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: var(--sp-2);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--rose);
+}
+
+.dy-live span {
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--text3);
+}
+
+.dy-live i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--rose);
+  animation: dy-live-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes dy-live-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--rose) 60%, transparent); }
+  50% { box-shadow: 0 0 0 5px transparent; }
+}
+
+/* Calendar: the recap's dimmed layer, with a month card */
+.dy-cal-card {
+  width: min(560px, 100%);
+  max-height: calc(100vh - 32px);
+  overflow: auto;
+  padding: var(--sp-4);
+  border-radius: 16px;
+  background: var(--bg2);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+}
+
+.dy-cal-head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-3);
+}
+
+.dy-cal-title {
+  flex: 1;
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  text-align: center;
+  text-transform: capitalize;
+}
+
+.dy-cal-nav {
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.dy-cal-x {
+  position: static;
+  margin-left: var(--sp-2);
+}
+
+.dy-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.dy-cal-wd {
+  padding-bottom: 4px;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  text-align: center;
+  color: var(--text3);
+}
+
+.dy-cal-cell {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text3);
+  font: inherit;
+  cursor: pointer;
+}
+
+.dy-cal-cell.is-pad {
+  border: 0;
+  background: none;
+}
+
+.dy-cal-cell:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.dy-cal-cell.is-viewed {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.dy-cal-art,
+.dy-cal-art img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dy-cal-art .thumb-initials {
+  display: none;
+}
+
+.dy-cal-num {
+  position: absolute;
+  top: 3px;
+  left: 5px;
+  z-index: 1;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  color: var(--text2);
+}
+
+.dy-cal-cell.has-plays .dy-cal-num {
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+}
+
+.dy-cal-cell.is-today .dy-cal-num {
+  color: var(--accent);
+}
+
+.dy-cal-mood {
+  position: absolute;
+  right: 2px;
+  bottom: 1px;
+  z-index: 1;
+  font-size: 16px;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.7));
+}
+
+.dy-cal-note {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  z-index: 1;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--amber);
+  box-shadow: 0 0 0 1.5px rgba(0, 0, 0, 0.5);
+}
+
+.dy-cal-hint {
+  margin: var(--sp-3) 0 0;
+  font-size: var(--fs-xs);
+  color: var(--text3);
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dy-live i { animation: none; }
+}
+
+/* Phones: all eight moods on one row */
+@media (max-width: 420px) {
+  .dy-moods {
+    gap: 4px;
+  }
+
+  .dy-mood {
+    width: 34px;
+    height: 34px;
+    font-size: 17px;
+  }
+}

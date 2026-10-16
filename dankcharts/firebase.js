@@ -217,6 +217,36 @@ async function dcLoadRatings() {
   }
 }
 
+function _diaryRef(uid) {
+  return _db.collection('users').doc(uid).collection('data').doc('diary');
+}
+
+// The Daily tab's mood and note per day: { v, days: { 'YYYY-MM-DD': { mood,
+// note, ts } } }. Own document, written whole, like ratings above; merged per
+// day on sign-in by dcMergeDiary() in daily.js. Covered by the existing
+// users/{uid}/data/{doc} rule, so no new rules are needed.
+async function dcSaveDiary(payload) {
+  if (!_currentUser) return;
+  await _ensureDb();
+  try {
+    await _diaryRef(_currentUser.uid).set(payload);
+  } catch (err) {
+    console.warn('[dankcharts] Diary save error:', err);
+  }
+}
+
+async function dcLoadDiary() {
+  if (!_currentUser) return null;
+  await _ensureDb();
+  try {
+    const snap = await _diaryRef(_currentUser.uid).get();
+    return snap.exists ? snap.data() : null;
+  } catch (err) {
+    console.warn('[dankcharts] Diary load error:', err);
+    return null;
+  }
+}
+
 function _imgChoicesRef(uid) {
   return _db.collection('users').doc(uid).collection('data').doc('imageChoices');
 }
@@ -647,6 +677,8 @@ window.dcLoadSharedCeremony        = dcLoadSharedCeremony;
 window.dcUnshareCeremony           = dcUnshareCeremony;
 window.dcSaveRatings               = dcSaveRatings;
 window.dcLoadRatings               = dcLoadRatings;
+window.dcSaveDiary                 = dcSaveDiary;
+window.dcLoadDiary                 = dcLoadDiary;
 window.dcSaveImgChoices            = dcSaveImgChoices;
 window.dcLoadImgChoices            = dcLoadImgChoices;
 window.dcSavePlaylistsToFirestore  = dcSavePlaylistsToFirestore;
@@ -679,6 +711,10 @@ _auth.onAuthStateChanged(async (user) => {
   // resolves per-entry by last-edited timestamp, so neither side clobbers the other.
   const remoteRatings = await dcLoadRatings();
   if (typeof dcMergeRatings === 'function') dcMergeRatings(remoteRatings);
+
+  // The Daily tab's moods and notes, merged per day the same way.
+  const remoteDiary = await dcLoadDiary();
+  if (typeof dcMergeDiary === 'function') dcMergeDiary(remoteDiary);
 
   // Same per-entry merge for pictures picked in the image picker.
   const remoteImgChoices = await dcLoadImgChoices();

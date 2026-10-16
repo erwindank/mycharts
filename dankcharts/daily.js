@@ -231,6 +231,7 @@ function dyRender() {
 
   dyRenderTiles(h, ds);
   dyRenderChart(h, ds);
+  dySyncLive();   // 2-minute Last.fm top-up while today is on screen (phase 8)
 }
 
 // ─── TILES ────────────────────────────────────────────────────────────────
@@ -434,8 +435,14 @@ function dyRenderChart(h, ds) {
   // What the Share image designer reads (phase 7)
   dyPublishForShare(h, ds);
 
+  // A live redraw must not throw away a note being typed: keep its text,
+  // caret and focus across the innerHTML swap (phase 8)
+  const ae = document.activeElement;
+  const keepNote = ae && ae.id === 'dyNote' ? { v: ae.value, s: ae.selectionStart, e: ae.selectionEnd } : null;
+
   view.innerHTML = `
     ${dyPanelHtml(h, ds)}
+    ${dyDiaryHtml(ds)}
     ${toolbar}
     ${dyActionsHtml(type, (h.charts.songs[ds] || []).length)}
     <div class="chart-section dy-section">
@@ -451,6 +458,10 @@ function dyRenderChart(h, ds) {
     ${dyMemoriesHtml(h, ds)}
     ${dyMilestonesHtml(h, ds)}`;
 
+  if (keepNote) {
+    const n = document.getElementById('dyNote');
+    if (n) { n.value = keepNote.v; n.focus(); n.setSelectionRange(keepNote.s, keepNote.e); }
+  }
   if (imgItems.length) loadImages(imgItems, type === 'songs' ? 'song' : type === 'artists' ? 'artist' : 'album');
   for (const tp of ['album', 'song']) {
     const items = todImgs.filter(x => x.type === tp).map(x => x.item);
@@ -584,6 +595,243 @@ function dyTimeOfDayHtml(h, ds, imgOut) {
     </section>`;
 }
 
+// ─── PERSONAL & LIVE (phase 8) ────────────────────────────────────────────
+/* Three things:
+     - Your day: a mood (one emoji) and a short note for the day on screen.
+       Kept in localStorage (dc_daily_diary) and, when signed in, in the
+       Firestore document users/{uid}/data/diary (dcSaveDiary / dcLoadDiary in
+       firebase.js). That path is already covered by the users/{uid}/data rule
+       in firestore.rules, so no new rules are needed. Merged per day by
+       last-edited time (dcMergeDiary, called on sign-in), the way ratings are;
+       a cleared day keeps an empty entry with its time so the clear wins.
+       Account backups carry it too (_backupCollect / _backupApply in app.js).
+     - Calendar: a month grid of daily #1 covers, with each day's mood; click a
+       day to open it (dyOpenCalendar).
+     - Live: while you look at today and the source is Last.fm, new scrobbles
+       are fetched every 2 minutes (pollLastFm, one page, the same call as the
+       30-minute background poll) and the page redraws itself. */
+const DY_MOODS = ['😄', '🙂', '😐', '😔', '😢', '😤', '🥳', '😴'];
+const DY_MOOD_KEYS = ['great', 'good', 'okay', 'low', 'sad', 'stressed', 'party', 'tired'];
+const DY_NOTE_MAX = 500;
+const DY_LIVE_MS = 2 * 60 * 1000;
+
+let _dyDiary = (() => {
+  try { const d = JSON.parse(localStorage.getItem('dc_daily_diary') || 'null'); if (d && d.days) return d; } catch (e) {}
+  return { v: 1, days: {} };
+})();
+let _dyDiaryTimer = null;
+let _dyLiveTimer = null;
+
+function dyDiaryGet(ds) {
+  const e = _dyDiary.days[ds];
+  return e && (e.note || e.mood) ? e : null;
+}
+
+// Saves locally now and to the account shortly after, so typing is not a write per key
+function dyDiarySet(ds, patch) {
+  const cur = _dyDiary.days[ds] || { note: '', mood: '' };
+  _dyDiary.days[ds] = Object.assign({}, cur, patch, { ts: Date.now() });
+  try { localStorage.setItem('dc_daily_diary', JSON.stringify(_dyDiary)); } catch (e) {}
+  clearTimeout(_dyDiaryTimer);
+  _dyDiaryTimer = setTimeout(dyDiaryPush, 800);
+  dyDiaryStatus(t('dy_diary_saving'));
+}
+
+async function dyDiaryPush() {
+  const signedIn = typeof dcIsSignedIn === 'function' && dcIsSignedIn();
+  if (signedIn && typeof dcSaveDiary === 'function') await dcSaveDiary(_dyDiary);
+  dyDiaryStatus(signedIn ? t('dy_diary_saved') : t('dy_diary_saved_local'));
+}
+
+function dyDiaryStatus(msg) {
+  const el = document.querySelector('#dailyView .dy-diary-status');
+  if (el) el.textContent = msg;
+}
+
+// Sign-in: take whichever side edited each day last, then push the result
+function dcMergeDiary(remote) {
+  let changed = false;
+  const rem = remote && remote.days ? remote.days : {};
+  for (const [ds, e] of Object.entries(rem)) {
+    const mine = _dyDiary.days[ds];
+    if (!mine || (e.ts || 0) > (mine.ts || 0)) { _dyDiary.days[ds] = e; changed = true; }
+  }
+  try { localStorage.setItem('dc_daily_diary', JSON.stringify(_dyDiary)); } catch (e) {}
+  if (Object.keys(_dyDiary.days).length && typeof dcSaveDiary === 'function') dcSaveDiary(_dyDiary);
+  if (changed && currentPeriod === 'day' && allPlays && allPlays.length) dyRender();
+}
+window.dcMergeDiary = dcMergeDiary;
+
+// firebase.js merges on sign-in, but sign-in can settle before this file has
+// run, when dcMergeDiary did not exist yet. Catch up once the page is loaded.
+document.addEventListener('DOMContentLoaded', () => {
+  if (typeof dcIsSignedIn === 'function' && dcIsSignedIn() && typeof dcLoadDiary === 'function') {
+    dcLoadDiary().then(dcMergeDiary).catch(() => {});
+  }
+});
+
+function dySetMood(m) {
+  const ds = dyViewedDay();
+  const cur = _dyDiary.days[ds];
+  // The same emoji again clears it
+  dyDiarySet(ds, { mood: cur && cur.mood === m ? '' : m });
+  document.querySelectorAll('#dailyView .dy-mood').forEach(b => b.classList.toggle('active', b.dataset.mood === (_dyDiary.days[ds].mood || '')));
+}
+
+function dyNoteInput(el) {
+  dyDiarySet(dyViewedDay(), { note: el.value.slice(0, DY_NOTE_MAX) });
+  const c = document.querySelector('#dailyView .dy-note-count');
+  if (c) c.textContent = el.value.length + ' / ' + DY_NOTE_MAX;
+}
+
+function dyDiaryHtml(ds) {
+  const e = _dyDiary.days[ds] || {};
+  const signedIn = typeof dcIsSignedIn === 'function' && dcIsSignedIn();
+  const moods = DY_MOODS.map((m, i) =>
+    `<button type="button" class="dy-mood${e.mood === m ? ' active' : ''}" data-mood="${m}" onclick="dySetMood('${m}')" title="${esc(t('dy_mood_' + DY_MOOD_KEYS[i]))}" aria-label="${esc(t('dy_mood_' + DY_MOOD_KEYS[i]))}" aria-pressed="${e.mood === m}">${m}</button>`).join('');
+  const note = e.note || '';
+  return `
+    <section class="dy-tod dy-diary" aria-label="${esc(t('dy_diary_title'))}">
+      <div class="dy-tod-head">
+        <span class="ns-x-title">${esc(t('dy_diary_title'))}</span>
+        <span class="dy-diary-status">${esc(signedIn ? '' : t('dy_diary_local_hint'))}</span>
+      </div>
+      <div class="dy-moods" role="group" aria-label="${esc(t('dy_mood_label'))}">${moods}</div>
+      <div class="dy-note-wrap">
+        <textarea class="dy-note" id="dyNote" rows="2" maxlength="${DY_NOTE_MAX}" placeholder="${esc(t('dy_note_ph'))}" oninput="dyNoteInput(this)">${esc(note)}</textarea>
+        <span class="dy-note-count">${note.length} / ${DY_NOTE_MAX}</span>
+      </div>
+    </section>`;
+}
+
+// ─── CALENDAR ─────────────────────────────────────────────────────────────
+let _dyCal = null;   // { y, m } of the month on show
+
+function dyOpenCalendar() {
+  const d = dyDate(dyViewedDay());
+  _dyCal = { y: d.getFullYear(), m: d.getMonth() };
+  let el = document.getElementById('dyCalendar');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'dyCalendar';
+    el.className = 'dy-recap dy-cal-layer';
+    el.setAttribute('role', 'dialog');
+    el.setAttribute('aria-modal', 'true');
+    el.addEventListener('click', e => { if (e.target === el) dyCloseCalendar(); });
+    document.body.appendChild(el);
+  }
+  document.addEventListener('keydown', dyCalKeys);
+  document.body.classList.add('dy-recap-open');
+  dyRenderCalendar();
+}
+
+function dyCloseCalendar() {
+  const el = document.getElementById('dyCalendar');
+  if (el) el.remove();
+  document.removeEventListener('keydown', dyCalKeys);
+  document.body.classList.remove('dy-recap-open');
+}
+
+function dyCalKeys(e) {
+  if (e.key === 'Escape') dyCloseCalendar();
+  else if (e.key === 'ArrowLeft') dyCalMove(-1);
+  else if (e.key === 'ArrowRight') dyCalMove(1);
+}
+
+function dyCalMove(n) {
+  if (!_dyCal) return;
+  const h = dyHistory();
+  const first = h.days[0] ? dyDate(h.days[0]) : new Date();
+  const now = tzNow();
+  const d = new Date(_dyCal.y, _dyCal.m + n, 1);
+  if (d > new Date(now.getFullYear(), now.getMonth(), 1) || d < new Date(first.getFullYear(), first.getMonth(), 1)) return;
+  _dyCal = { y: d.getFullYear(), m: d.getMonth() };
+  dyRenderCalendar();
+}
+
+function dyRenderCalendar() {
+  const el = document.getElementById('dyCalendar');
+  if (!el || !_dyCal) return;
+  const h = dyHistory();
+  const { y, m } = _dyCal;
+  const lang = typeof currentLang !== 'undefined' ? currentLang : undefined;
+  const today = localDateStr(tzNow());
+  const viewed = dyViewedDay();
+  const daysIn = new Date(y, m + 1, 0).getDate();
+  const lead = (new Date(y, m, 1).getDay() - weekStartDay + 7) % 7;
+  const heads = Array.from({ length: 7 }, (_, i) => new Date(2023, 0, 1 + ((weekStartDay + i) % 7)).toLocaleDateString(lang, { weekday: 'narrow' }));
+  const imgs = { album: [], song: [] };
+  const cells = [];
+  for (let i = 0; i < lead; i++) cells.push('<span class="dy-cal-cell is-pad"></span>');
+  for (let dnum = 1; dnum <= daysIn; dnum++) {
+    const ds = `${y}-${String(m + 1).padStart(2, '0')}-${String(dnum).padStart(2, '0')}`;
+    const day = h.byDay[ds];
+    const top = (h.charts.songs[ds] || [])[0];
+    const diary = dyDiaryGet(ds);
+    const future = ds > today;
+    let art = '', tip = fmt(dyDate(ds));
+    if (top && day) {
+      const s = day.songs[top.k];
+      const album = bestAlbum(s.title, s._albums);
+      const imgId = 'dycal-' + dnum;
+      const hasAlbum = album && album !== '—';
+      (hasAlbum ? imgs.album : imgs.song).push(hasAlbum
+        ? { imgId, album, name: album, artist: s.artist, prefKey: 'album:' + s.artist.toLowerCase() + '|||' + album.toLowerCase() }
+        : { imgId, title: s.title, name: s.title, artist: s.artist, album: '', prefKey: 'song:' + s.artist.toLowerCase() + '|||' + s.title.toLowerCase() });
+      art = `<span class="dy-cal-art" id="${imgId}"></span>`;
+      tip += '\n#1 ' + s.title + ' — ' + s.artist + '\n' + tCount('plays', day.plays);
+    }
+    if (diary && diary.note) tip += '\n“' + diary.note.slice(0, 120) + '”';
+    const off = Math.round((dyDate(today) - dyDate(ds)) / 86400000);
+    cells.push(`<button type="button" class="dy-cal-cell${day ? ' has-plays' : ''}${ds === viewed ? ' is-viewed' : ''}${ds === today ? ' is-today' : ''}" ${future ? 'disabled' : `onclick="dyCloseCalendar();dyGoOffset(${off})"`} title="${esc(tip)}">
+        ${art}<span class="dy-cal-num">${dnum}</span>
+        ${diary && diary.mood ? `<span class="dy-cal-mood">${diary.mood}</span>` : ''}
+        ${diary && diary.note ? '<span class="dy-cal-note" aria-hidden="true"></span>' : ''}
+      </button>`);
+  }
+  const title = new Date(y, m, 1).toLocaleDateString(lang, { month: 'long', year: 'numeric' });
+  el.setAttribute('aria-label', t('dy_cal_title') + ' · ' + title);
+  el.innerHTML = `
+    <div class="dy-cal-card">
+      <div class="dy-cal-head">
+        <button type="button" class="dy-cal-nav" onclick="dyCalMove(-1)" aria-label="${esc(t('btn_prev'))}">‹</button>
+        <span class="dy-cal-title">${esc(title)}</span>
+        <button type="button" class="dy-cal-nav" onclick="dyCalMove(1)" aria-label="${esc(t('btn_next'))}">›</button>
+        <button type="button" class="dy-rc-x dy-cal-x" onclick="dyCloseCalendar()" aria-label="${esc(t('dy_rc_close'))}">×</button>
+      </div>
+      <div class="dy-cal-grid">
+        ${heads.map(x => `<span class="dy-cal-wd">${esc(x)}</span>`).join('')}
+        ${cells.join('')}
+      </div>
+      <p class="dy-cal-hint">${esc(t('dy_cal_hint'))}</p>
+    </div>`;
+  if (imgs.album.length) loadImages(imgs.album, 'album');
+  if (imgs.song.length) loadImages(imgs.song, 'song');
+}
+
+// ─── LIVE ─────────────────────────────────────────────────────────────────
+function dyIsLive() {
+  return currentPeriod === 'day' && currentOffset === 0 &&
+    typeof getDataSource === 'function' && getDataSource() === 'lastfm' &&
+    typeof getLastFmUser === 'function' && !!getLastFmUser();
+}
+
+// Called on every Daily render: starts the 2-minute top-up on today, stops it elsewhere
+function dySyncLive() {
+  if (!dyIsLive()) { clearInterval(_dyLiveTimer); _dyLiveTimer = null; return; }
+  if (_dyLiveTimer) return;
+  _dyLiveTimer = setInterval(() => {
+    if (!dyIsLive()) { clearInterval(_dyLiveTimer); _dyLiveTimer = null; return; }
+    if (!document.hidden && typeof pollLastFm === 'function') pollLastFm();
+  }, DY_LIVE_MS);
+}
+
+function dyLiveBadge() {
+  if (!dyIsLive()) return '';
+  const when = typeof lastSyncTime !== 'undefined' && lastSyncTime ? lastSyncTime.toLocaleTimeString(typeof currentLang !== 'undefined' ? currentLang : undefined, { hour: '2-digit', minute: '2-digit' }) : '';
+  return `<span class="dy-live" title="${esc(t('dy_live_tip'))}"><i aria-hidden="true"></i>${esc(t('dy_live'))}${when ? ` <span>· ${esc(t('dy_live_updated', { time: when }))}</span>` : ''}</span>`;
+}
+
 // ─── SHARING (phase 7) ────────────────────────────────────────────────────
 /* Three ways to take a day with you, in a row under the chart toolbar:
      - Share image: the same designer as the other charts (openIgPreviewModal
@@ -672,6 +920,7 @@ function dyActionsHtml(type, nSongs) {
       <button type="button" class="dy-act dy-act-main" onclick="dyOpenRecap()"${off}>✦ ${esc(t('dy_recap'))}</button>
       <button type="button" class="dy-act" onclick="openIgPreviewModal('${type}')"${off}>📷 ${esc(t('dy_share_img'))}</button>
       <button type="button" class="dy-act" onclick="dyPlayTop()"${off}>▶ ${esc(t('dy_play_top', { n: nSongs }))}</button>
+      <button type="button" class="dy-act" onclick="dyOpenCalendar()">📅 ${esc(t('dy_cal_title'))}</button>
       <button type="button" class="dy-act" onclick="dySavePlaylist()"${off}>＋ ${esc(t('dy_save_pl'))}</button>
       <button type="button" class="dy-act" onclick="dyExportPlaylist()"${off} title="${esc(t('dy_export_tip'))}">📤 ${esc(t('dy_export'))}</button>
     </div>`;
@@ -1462,7 +1711,7 @@ function dyPanelHtml(h, ds) {
     <div class="dy-pblock">
       ${nsRingSvg(n, usual)}
       <div class="ns-x-text">
-        <span class="ns-x-title">${esc(dayTitle)}</span>
+        <span class="ns-x-title">${esc(dayTitle)}${dyLiveBadge()}</span>
         <span class="ns-x-line"><b>${esc(tCount('plays', n))}</b>${usual ? ` <span>${esc(t('ns_x_usual', { n: usual.toLocaleString() }))}</span>` : ''}</span>
         ${day ? songLine(t('ns_x_first'), day.firstP) + (day.plays > 1 ? songLine(t('dy_last'), day.lastP) : '') : `<span class="ns-x-line"><span>${esc(t('dy_nothing_played'))}</span></span>`}
         ${top ? `<span class="ns-x-line"><em>${esc(t('ns_x_top'))}</em> ${esc(top[0])} <span>· ${esc(tCount('plays', top[1]))}</span></span>` : ''}

@@ -36017,9 +36017,11 @@ async function _backupCollect() {
   }
   for (const [y, d] of Object.entries(_awardsYearData)) offer(String(y), d);
   const hasRatings = Object.keys(_ratings.songs).length || Object.keys(_ratings.albums).length || _ratings.cfgTs;
+  // The Daily tab's moods and notes (daily.js)
+  const diary = typeof _dyDiary !== 'undefined' && Object.keys(_dyDiary.days).length ? _dyDiary : null;
   return JSON.parse(JSON.stringify({
     app: 'dankcharts', v: 1, createdAt: Date.now(),
-    config, awards, ratings: hasRatings ? _ratings : null
+    config, awards, ratings: hasRatings ? _ratings : null, diary
   }));
 }
 
@@ -36106,6 +36108,13 @@ async function _backupApply(p) {
     _ratings = Object.assign({ v: 1 }, r);
     try { localStorage.setItem('dc_ratings', JSON.stringify(_ratings)); } catch (e) {}
     if (typeof dcSaveRatings === 'function') await _withTimeout(dcSaveRatings(_ratings), 10000);
+  }
+  if (p.diary && p.diary.days && typeof p.diary.days === 'object') {
+    // Re-stamped like ratings, so other devices keep the restored notes
+    const dd = JSON.parse(JSON.stringify(p.diary));
+    for (const e of Object.values(dd.days)) if (e && typeof e === 'object') e.ts = now;
+    try { localStorage.setItem('dc_daily_diary', JSON.stringify(dd)); } catch (e) {}
+    if (typeof dcSaveDiary === 'function') await _withTimeout(dcSaveDiary(dd), 10000);
   }
   location.reload();
 }
