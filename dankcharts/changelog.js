@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 133;
+const DC_CL_I18N_V = 134;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-16', t: 'feature', a: 'charts', h: '208a86f',
+    title: "The day at a glance on the Daily chart",
+    detail: "A card above the Daily chart sums up the day you are looking at. A ring fills as its plays approach your usual day (the average of the days you listened in the month before), next to the first and last song of the day and its top artist. Beside it, the 7 days ending on that day as bars, the day itself lit, with the total, the change on the 7 days before and the song on repeat. Click a bar to go to that day." },
 
   { d: '2026-10-16', t: 'feature', a: 'charts', h: 'eba0669',
     title: "A Daily chart",

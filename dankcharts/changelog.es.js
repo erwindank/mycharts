@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "The day at a glance on the Daily chart":
+    ["El día de un vistazo en la lista diaria",
+     "Una tarjeta sobre la lista diaria resume el día que estás viendo. Un anillo se llena a medida que sus reproducciones se acercan a tu día habitual (la media de los días en que escuchaste el mes anterior), junto a la primera y la última canción del día y su artista top. Al lado, los 7 días que terminan ese día en barras, con el día iluminado, el total, el cambio frente a los 7 días anteriores y la canción en bucle. Haz clic en una barra para ir a ese día."],
+
   "A Daily chart":
     ["Una lista diaria",
      "Una nueva pestaña Diario aparece antes de Semanal. Retrocede día a día con las flechas o haz clic en la fecha para elegir cualquier día. Ordena las canciones, artistas y álbumes del día (Top 10, 20 o 50) y muestra cómo se movieron frente a ayer, o frente al mismo día de la semana pasada si lo prefieres. Cada entrada muestra cuántos días lleva en la lista diaria este mes y su pico, con la fecha en que lo alcanzó, y una línea sobre la lista dice cuánto tiempo lleva arriba el #1. Las cuatro tarjetas de estadísticas también comparan con ese día, cuentan tus primeras escuchas, muestran qué parte de la semana fue ese día y lo comparan con todos los demás días en que escuchaste (con una insignia para tu mayor día del mes o de siempre). Pulsa D para ir directamente."],

@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "The day at a glance on the Daily chart":
+    ["O dia num relance na tabela diária",
+     "Um cartão por cima da tabela diária resume o dia que estás a ver. Um anel enche-se à medida que os plays se aproximam do teu dia habitual (a média dos dias em que ouviste no mês anterior), ao lado da primeira e da última música do dia e do artista top. Ao lado, os 7 dias que terminam nesse dia em barras, com o dia aceso, o total, a mudança face aos 7 dias anteriores e a música em repetição. Clica numa barra para ires para esse dia."],
+
   "A Daily chart":
     ["Uma tabela diária",
      "Um novo separador Diário aparece antes de Semanal. Recua um dia de cada vez com as setas ou clica na data para escolheres qualquer dia. Ordena as músicas, artistas e álbuns do dia (Top 10, 20 ou 50) e mostra como cada um se moveu face a ontem, ou face ao mesmo dia da semana passada se preferires. Cada entrada mostra há quantos dias está na tabela diária este mês e o seu pico, com a data em que lá chegou, e uma linha por cima da tabela diz há quanto tempo o #1 está no topo. Os quatro cartões de estatísticas também comparam com esse dia, contam as tuas primeiras escutas, mostram a parte da semana desse dia e comparam-no com todos os outros dias em que ouviste (com um selo para o teu maior dia do mês ou de sempre). Carrega em D para ires diretamente."],

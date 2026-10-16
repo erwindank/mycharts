@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "The day at a glance on the Daily chart":
+    ["O dia num relance na parada diária",
+     "Um cartão acima da parada diária resume o dia que você está vendo. Um anel se enche conforme os plays se aproximam do seu dia normal (a média dos dias em que você ouviu no mês anterior), ao lado da primeira e da última música do dia e do artista top. Ao lado, os 7 dias que terminam nesse dia em barras, com o dia aceso, o total, a mudança contra os 7 dias anteriores e a música no repeat. Clique numa barra para ir para esse dia."],
+
   "A Daily chart":
     ["Uma parada diária",
      "Uma nova aba Diário aparece antes de Semanal. Volte um dia de cada vez com as setas ou clique na data para escolher qualquer dia. Ela classifica as músicas, artistas e álbuns do dia (Top 10, 20 ou 50) e mostra como cada um se moveu em relação a ontem, ou ao mesmo dia da semana passada se preferir. Cada entrada mostra quantos dias está na parada diária este mês e o seu pico, com a data em que chegou lá, e uma linha acima da parada diz há quanto tempo o #1 está no topo. Os quatro cartões de estatísticas também comparam com esse dia, contam as suas primeiras escutas, mostram a parte da semana daquele dia e o comparam com todos os outros dias em que você ouviu (com um selo para o seu maior dia do mês ou de todos os tempos). Aperte D para ir direto."],
