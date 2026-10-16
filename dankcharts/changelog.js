@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 150;
+const DC_CL_I18N_V = 151;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-16', t: 'design', a: 'charts', h: '761e668',
+    title: "One streak calendar with a type switch and a day panel",
+    detail: "The Calendar tab of the Daily Streaks window (it was called Heatmap) now shows one heatmap instead of four stacked ones, with an All / Artists / Songs / Albums switch that recolours the grid and the stats. The long row of year buttons is a dropdown. Peak day, days with streaks, the daily average and the busiest week sit in four tiles. Click any day (or tap it on a phone) to list every streak running that day in a panel under the grid, grouped by artists, albums and songs. The colour themes and Copy image are still there." },
 
   { d: '2026-10-16', t: 'feature', a: 'charts', h: 'd98ed4a',
     title: "Streak records: top 5 per type, headstones and badges",

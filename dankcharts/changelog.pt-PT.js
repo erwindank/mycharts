@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "One streak calendar with a type switch and a day panel":
+    ["Um só calendário de sequências com seletor de tipo e painel do dia",
+     "O separador Calendário da janela de Sequências Diárias (antes Mapa de calor) mostra agora um só mapa em vez de quatro empilhados, com um seletor Tudo / Artistas / Músicas / Álbuns que muda a grelha e os números. A longa fila de botões de anos passou a ser uma lista pendente. Dia recorde, dias com sequências, média diária e semana mais ativa ficam em quatro quadros. Clica em qualquer dia (ou toca-lhe no telemóvel) para veres todas as sequências desse dia num painel por baixo da grelha, agrupadas por artistas, álbuns e músicas. Os temas de cor e Copiar imagem continuam lá."],
+
   "Streak records: top 5 per type, headstones and badges":
     ["Recordes de sequências: top 5 por tipo, lápides e conquistas",
      "O separador Recordes da janela de Sequências Diárias mostra agora um Hall da Fama com as tuas 5 maiores sequências de artistas, álbuns e músicas, com ouro, prata e bronze para as três primeiras. A etiqueta já não diz \"Ativa\" num recorde que terminou há meses: diz \"a decorrer\" só quando o recorde é a sequência que continua, e \"agora numa nova de 26d\" quando há uma sequência mais recente. O Cemitério é um mural de lápides com as datas completas de início e fim e uma nota como \"a 1 de 50d\" quando uma sequência terminou mesmo antes de um marco. Uma música e o single com o mesmo nome aparecem só uma vez, marcados como música e álbum, aqui e no separador Em chamas. Novo: 12 conquistas de sequência, de Primeira semana a O ano inteiro, com a tua melhor marca nas que ainda estão bloqueadas."],

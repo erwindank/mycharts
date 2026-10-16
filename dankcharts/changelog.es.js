@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "One streak calendar with a type switch and a day panel":
+    ["Un solo calendario de rachas con selector de tipo y panel del día",
+     "La pestaña Calendario de la ventana de Rachas Diarias (antes Mapa de calor) muestra ahora un solo mapa en lugar de cuatro apilados, con un selector Todo / Artistas / Canciones / Álbumes que cambia la cuadrícula y las cifras. La larga fila de botones de años es ahora un desplegable. El día récord, los días con rachas, la media diaria y la semana más activa están en cuatro recuadros. Haz clic en cualquier día (o tócalo en el móvil) para ver todas las rachas de ese día en un panel bajo la cuadrícula, agrupadas por artistas, álbumes y canciones. Los temas de color y Copiar imagen siguen ahí."],
+
   "Streak records: top 5 per type, headstones and badges":
     ["Récords de rachas: top 5 por tipo, lápidas e insignias",
      "La pestaña Récords de la ventana de Rachas Diarias muestra ahora un Salón de la Fama con tus 5 mejores rachas de artistas, álbumes y canciones, con oro, plata y bronce para las tres primeras. Su etiqueta ya no dice \"Activa\" en un récord que terminó hace meses: dice \"en curso\" solo cuando el récord es la racha que sigue, y \"ahora en una nueva de 26d\" cuando hay una racha más reciente. El Cementerio es un muro de lápidas con las fechas completas de inicio y fin y una nota como \"a 1 de 50d\" cuando una racha terminó justo antes de un hito. Una canción y su sencillo del mismo nombre aparecen una sola vez, marcados como canción y álbum, aquí y en la pestaña En racha. Nuevo: 12 insignias de rachas, de Primera semana a Todo el año, con tu mejor marca en las que aún están bloqueadas."],
