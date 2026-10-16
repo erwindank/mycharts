@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=384">
+  <link rel="stylesheet" href="style.css?v=388">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -291,6 +291,18 @@
         </div>
       </nav>
     <div class="topbar-actions">
+      <!-- Day streak (2026-10-16). Used to be the last tile of the All-Time
+           summary card, where it was only seen on that one tab. Now it sits in
+           the top bar so it shows on every page: the flame, the count and
+           "Day Streak"; the tooltip carries the personal best. Opens the same
+           streak details window. Filled by renderTopbarStreak(); hidden until
+           there is data. The tier class (hero-stat--streak-N) reuses the
+           flame ramp the summary card used. -->
+      <button type="button" id="tbStreakBtn" class="tb-streak-btn" onclick="openStreakModal()" style="display:none;">
+        <span class="hero-icon hero-icon-flame" aria-hidden="true"><i class="hero-flame-body"></i><i class="hero-flame-core"></i></span>
+        <span class="tb-streak-num">0</span>
+        <span class="tb-streak-label" data-i18n="hero_day_streak">Day Streak</span>
+      </button>
       <!-- "What's New" badge. Hidden by default and only revealed by
            dcClRefreshBadge() when changelog.js holds entries newer than the
            last one this browser was shown; opening the overlay hides it again.

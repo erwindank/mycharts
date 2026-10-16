@@ -33054,16 +33054,9 @@ function renderHeroStats() {
       <span class="hero-val hero-val-artist">${topArtist ? topArtist[0] : '—'}</span>
       <span class="hero-label">${t('hero_top_artist')}</span>
     </div>
-    <div class="hero-stat-sep">·</div>
-    <div class="hero-stat" id="hero-streak-stat" data-tip="Click for streak details · Personal best: ${pb} day${pb === 1 ? '' : 's'}">
-      <!-- Flame instead of the old 📆/🔥/🌟 emoji swap: the same element grows,
-           recolours and starts flickering as the count-up crosses each tier, so
-           the icon is driven by the .hero-stat--streak-N class, not by JS text. -->
-      <span class="hero-icon hero-icon-flame" aria-hidden="true"><i class="hero-flame-body"></i><i class="hero-flame-core"></i></span>
-      <span class="hero-val">0</span>
-      <span class="hero-label">${t('hero_day_streak')}</span>
-      <span class="hero-stat-pb">PB: ${pb}</span>
-    </div>`;
+    `;
+  // The day streak used to be the fifth tile here; it lives in the top bar now
+  // (renderTopbarStreak) so it can be seen on every tab, not just All-Time.
 
   el.style.display = '';
 
@@ -33093,10 +33086,6 @@ function renderHeroStats() {
     }
   });
 
-  // Open streak details modal when streak stat is clicked
-  const streakStatEl = el.querySelector('#hero-streak-stat');
-  if (streakStatEl) streakStatEl.addEventListener('click', openStreakModal);
-
   // Count-up animation for numeric values
   el.querySelectorAll('[data-countup]').forEach(span => {
     const target = parseInt(span.dataset.countup, 10);
@@ -33112,34 +33101,24 @@ function renderHeroStats() {
     requestAnimationFrame(frame);
   });
 
-  // Streak count-up: slow linear animation that transitions through each tier
-  const streakEl = el.querySelector('#hero-streak-stat');
-  if (streakEl && streak > 0) {
-    const valSpan = streakEl.querySelector('.hero-val');
-    const iconSpan = streakEl.querySelector('.hero-icon');
-    const duration = 5000;
-    const startTime = performance.now();
-    function streakFrame(now) {
-      const progress = Math.min((now - startTime) / duration, 1);
-      const cur = Math.round(progress * streak);
-      valSpan.textContent = cur;
-      const t = cur >= 100 ? 6 : cur >= 60 ? 5 : cur >= 30 ? 4 : cur >= 14 ? 3 : cur >= 7 ? 2 : cur >= 1 ? 1 : 0;
-      // The flame is CSS-drawn, so the tier class alone resizes and recolours it
-      // — no icon glyph to swap.
-      streakEl.className = `hero-stat${t > 0 ? ` hero-stat--streak-${t}` : ''}`;
-      if (progress < 1) {
-        requestAnimationFrame(streakFrame);
-      } else {
-        valSpan.style.animation = 'streak-finish-burst 1.4s ease-out forwards';
-        iconSpan.style.animation = 'streak-icon-burst 1.4s ease-out forwards';
-        setTimeout(() => {
-          valSpan.style.animation = '';
-          iconSpan.style.animation = '';
-        }, 1400);
-      }
-    }
-    requestAnimationFrame(streakFrame);
-  }
+  renderTopbarStreak(streak, pb);
+}
+
+/* Top bar day streak (#tbStreakBtn in index.html). Moved out of the All-Time
+   summary card so the streak shows on every tab. Same numbers renderHeroStats()
+   works out: the current run of days ending today (or yesterday) and the
+   personal best. The tier thresholds are the ones the old tile used, so the
+   flame grows and recolours the same way. */
+function renderTopbarStreak(streak, pb) {
+  const btn = document.getElementById('tbStreakBtn');
+  if (!btn) return;
+  const tier = streak >= 100 ? 6 : streak >= 60 ? 5 : streak >= 30 ? 4 : streak >= 14 ? 3 : streak >= 7 ? 2 : streak >= 1 ? 1 : 0;
+  btn.className = 'tb-streak-btn' + (tier > 0 ? ' hero-stat--streak-' + tier : '');
+  btn.querySelector('.tb-streak-num').textContent = streak.toLocaleString();
+  const tip = streak + ' ' + t('hero_day_streak') + ' · PB: ' + pb;
+  btn.title = tip;
+  btn.setAttribute('aria-label', tip);
+  btn.style.display = '';
 }
 
 // ─── STREAK HEATMAP STATE ─────────────────────────────────────
