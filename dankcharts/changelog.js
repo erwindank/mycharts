@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 131;
+const DC_CL_I18N_V = 132;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-16', t: 'feature', a: 'charts', h: '6d2acbb',
+    title: "Fuller listening streak card",
+    detail: "When nothing is playing and there is no play run, the listening streak card no longer sits half empty. Under the streak there is a bar to your best (or, once you are on it, to the next round number), when the streak began and how many days you missed this year; hover it for your three longest streaks. Next to it, Today shows a ring of today's plays against your usual day, the first song of the day and today's top artist, and Last 7 days shows a bar per day, the change on the 7 days before and the song on repeat. A line along the bottom rotates every few seconds through forgotten favourites, throwback artists and your listening style. Works for Last.fm, Google Sheets and CSV." },
 
   { d: '2026-10-16', t: 'feature', a: 'charts',
     title: "Stats about your all-time charts",
