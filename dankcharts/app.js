@@ -33663,9 +33663,83 @@ function openStreakModal(opts) {
   for (const [a] of Object.entries(artistDays)) { const b = artBest[a]; if (b >= 7) { const r = longestStreakRange(artistDays[a]); fameCandidates.push({ name: a, sub: '', type: 'artist', len: b, key: a, best: b, milestone: nextMs(b), cal: cal14(artistDays[a]), startDs: r.startDs, endDs: r.endDs }); } }
   for (const [ak] of Object.entries(albumDays)) { const b = albBest[ak]; if (b >= 7) { const r = longestStreakRange(albumDays[ak]); fameCandidates.push({ name: albumInfo[ak].album, sub: albumInfo[ak].artist, type: 'album', len: b, key: ak, best: b, milestone: nextMs(b), cal: cal14(albumDays[ak]), startDs: r.startDs, endDs: r.endDs }); } }
   fameCandidates.sort((a, b) => b.len - a.len);
-  const hallOfFame = fameCandidates.slice(0, 10);
-  const activeKeys = new Set([...activeSongs, ...activeArtists, ...activeAlbums, ...atRisk].map(it => it.key));
-  const graveyardAll = fameCandidates.filter(it => !activeKeys.has(it.key));
+  // Current streak length of everything still alive (played today or yesterday),
+  // keyed type|key — a song key and an album key can look alike, so the type is part of it.
+  const liveLen = new Map([...activeSongs, ...activeArtists, ...activeAlbums, ...atRisk].map(it => [it.type + '|' + it.key, it.len]));
+
+  // Singles: a song and its same-name album nearly always run the exact same
+  // streak. Show them once, tagged "song + album" (types: ['song', 'album']).
+  function mergeSingles(list) {
+    const albums = new Map(list.filter(i => i.type === 'album').map(a => [a.key, a]));
+    const used = new Set(), out = [];
+    for (const it of list) {
+      if (it.type === 'song') {
+        const al = albums.get(songAlbKey[it.key]);
+        if (al && !used.has(al) && al.name.toLowerCase() === it.name.toLowerCase() && al.len === it.len && al.endDs === it.endDs) {
+          used.add(al);
+          out.push(Object.assign({}, it, { types: ['song', 'album'] }));
+          continue;
+        }
+      }
+      out.push(it);
+    }
+    return out.filter(i => !used.has(i));
+  }
+
+  // Hall of Fame: the top 5 records for each type (artists, albums, songs).
+  function hofTop(type) {
+    const best = type === 'song' ? songBest : type === 'artist' ? artBest : albBest;
+    const days = type === 'song' ? songDays : type === 'artist' ? artistDays : albumDays;
+    return Object.keys(best).filter(k => best[k] >= 2)
+      .sort((x, y) => best[y] - best[x] || x.localeCompare(y)).slice(0, 5)
+      .map(k => {
+        const r = longestStreakRange(days[k]);
+        const name = type === 'song' ? songInfo[k].title : type === 'album' ? albumInfo[k].album : k;
+        const sub = type === 'song' ? songInfo[k].artist : type === 'album' ? albumInfo[k].artist : '';
+        return { name, sub, type, len: best[k], key: k, best: best[k], startDs: r.startDs, endDs: r.endDs, cal: cal14(days[k]) };
+      });
+  }
+  const hallOfFame = { artist: hofTop('artist'), album: hofTop('album'), song: hofTop('song') };
+  // Graveyard: record streaks of 7+ days for things not on a streak right now.
+  const graveyardAll = mergeSingles(fameCandidates.filter(it => !liveLen.has(it.type + '|' + it.key)));
+
+  // ── Badges ──────────────────────────────────────────────────────────
+  // Worked out from the same day sets: the longest streak ever, the most streaks
+  // alive on one day (the heatmap count), second 7+ runs for the same thing,
+  // and how many different things reached 30+.
+  // reduce, not Math.max(...spread): a big library has tens of thousands of songs
+  const maxOf = obj => { let m = 0; for (const k in obj) if (obj[k] > m) m = obj[k]; return m; };
+  const bestEver = Math.max(maxOf(songBest), maxOf(artBest), maxOf(albBest));
+  const mostAlive = maxOf(_skHmCount);
+  function runsOf7(daySet) {
+    const s = [...daySet].sort(); let runs = 0, cur = 1;
+    for (let i = 1; i <= s.length; i++) {
+      const diff = i < s.length ? Math.round((+new Date(s[i] + 'T12:00:00') - +new Date(s[i - 1] + 'T12:00:00')) / 86400000) : 0;
+      if (diff === 1) cur++; else { if (cur >= 7) runs++; cur = 1; }
+    }
+    return runs;
+  }
+  let comeback = false;
+  for (const group of [artistDays, albumDays, songDays]) {
+    for (const k in group) { if (group[k].size >= 14 && runsOf7(group[k]) >= 2) { comeback = true; break; } }
+    if (comeback) break;
+  }
+  const n30 = fameCandidates.filter(it => it.len >= 30).length;
+  const allRound = ['artist', 'album', 'song'].every(tp => fameCandidates.some(it => it.type === tp && it.len >= 30));
+  const SK_BADGES = [
+    { id: 'week',     icon: '🔥', ok: bestEver >= 7,   prog: bestEver + 'd' },
+    { id: 'twoweeks', icon: '☄️', ok: bestEver >= 14,  prog: bestEver + 'd' },
+    { id: 'month',    icon: '🌋', ok: bestEver >= 30,  prog: bestEver + 'd' },
+    { id: 'fifty',    icon: '🏅', ok: bestEver >= 50,  prog: bestEver + 'd' },
+    { id: 'hundred',  icon: '💯', ok: bestEver >= 100, prog: bestEver + 'd' },
+    { id: 'year',     icon: '📅', ok: bestEver >= 365, prog: bestEver + 'd' },
+    { id: 'juggler',  icon: '🤹', ok: mostAlive >= 10,  prog: String(mostAlive) },
+    { id: 'bonfire',  icon: '🎇', ok: mostAlive >= 50,  prog: String(mostAlive) },
+    { id: 'house',    icon: '🏟️', ok: mostAlive >= 100, prog: String(mostAlive) },
+    { id: 'comeback', icon: '🔁', ok: comeback,         prog: '' },
+    { id: 'collector', icon: '🗃️', ok: n30 >= 10,       prog: n30 + '/10' },
+    { id: 'allround', icon: '🎯', ok: allRound,         prog: '' },
+  ];
 
   // ── Weekly digest ─────────────────────────────────────────────────
   const allAR = [...activeSongs, ...activeArtists, ...activeAlbums, ...atRisk];
@@ -33674,79 +33748,71 @@ function openStreakModal(opts) {
   const _chkEnded = entries => { for (const [, d] of entries) { const s = [...d].sort(); const last = s[s.length - 1]; if (last >= weekAgoStr && last < yest && streakEndingAt(d, last) >= 2) weekEnded++; } };
   _chkEnded(Object.entries(songDays)); _chkEnded(Object.entries(artistDays)); _chkEnded(Object.entries(albumDays));
 
-  // ── Hall of Fame plaque card ─────────────────────────────────────
-  function hofItemHtml(it, rank, isActive) {
-    const typeTag = `<span class="streak-type-tag streak-type-tag--${it.type}">${it.type}</span>`;
-    const sub = it.sub ? `<div class="sk-hof-sub">${it.sub}</div>` : '';
-    const cy = String(nowDate.getFullYear());
-    const fmtDY = ds => new Date(ds + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric', ...(ds.slice(0, 4) !== cy ? { year: 'numeric' } : {}) });
-    const dateRange = it.startDs && it.endDs ? `${fmtDY(it.startDs)} – ${fmtDY(it.endDs)}` : '';
-    const statusBadge = isActive
-      ? `<span class="sk-hof-badge sk-hof-badge--active">🔥 Active</span>`
-      : `<span class="sk-hof-badge sk-hof-badge--ended">Ended</span>`;
-    const calAttr = it.cal && it.cal.length ? `data-skc="${esc(JSON.stringify(it.cal))}" data-skn="${esc(it.name)}"` : '';
-    const calBtn = calAttr ? `<span class="sk-cal-trig sk-hof-cal" ${calAttr}>◈</span>` : '';
-    return `<div class="sk-hof-card">` +
-      `<div class="sk-hof-rank">#${rank}</div>` +
-      `<div class="sk-hof-body">` +
-      `<div class="sk-hof-name">${it.name}${typeTag}</div>` +
-      sub +
-      `<div class="sk-hof-record">🏆 <span class="streak-days" data-len="${it.len}">0d</span> record</div>` +
-      (dateRange ? `<div class="sk-hof-dates">${dateRange}</div>` : '') +
-      `<div class="sk-hof-foot">${statusBadge}${calBtn}</div>` +
-      `</div></div>`;
+  // ── Records tab: Hall of Fame (top 5 per type) + badges ──────────────
+  const curYear = String(nowDate.getFullYear());
+  const fmtDY = ds => new Date(ds + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric', ...(ds.slice(0, 4) !== curYear ? { year: 'numeric' } : {}) });
+  const fmtRange = it => it.startDs && it.endDs ? `${fmtDY(it.startDs)} – ${fmtDY(it.endDs)}` : '';
+  // Where a record stands today. The old badge said "Active" whenever the item had
+  // any streak going, even when the record itself ended months ago.
+  function hofState(it) {
+    const cur = liveLen.get(it.type + '|' + it.key) || 0;
+    if (cur && cur >= it.len && it.endDs >= yest) return `<span class="sk-state sk-state--live">🔥 ${esc(t('sk_hof_running'))}</span>`;
+    if (cur) return `<span class="sk-state sk-state--again">${esc(t('sk_hof_again', { n: cur }))}</span>`;
+    return ''; // ended and nothing new running: the date range already says when
+  }
+  function hofRowHtml(it, i) {
+    const tier = _skTier(it.len), a = skArt(it);
+    const medal = i < 3 ? `<span class="sk-medal sk-medal--${i + 1}" aria-label="#${i + 1}">${['🥇', '🥈', '🥉'][i]}</span>` : `<span class="sk-medal">#${i + 1}</span>`;
+    return `<div class="sk-row sk-hof-row sk-t-${tier.key}"${skEaFor(it, a.imgId)}>` + medal + a.html +
+      `<div class="sk-row-who"><div class="sk-row-nm">${esc(it.name)}${it.sub ? ` <span class="sk-row-sub">— ${esc(it.sub)}</span>` : ''}</div>` +
+      `<div class="sk-row-meta"><span class="sk-range">${esc(fmtRange(it))}</span>${hofState(it)}</div></div>` +
+      `<div class="sk-row-right"><span class="sk-tier" title="${esc(t('sk_tier_' + tier.key))}" aria-hidden="true">${tier.icon}</span>` +
+      `<span class="streak-days sk-row-len" data-len="${it.len}">0d</span>${_eaMoreBtn()}</div></div>`;
   }
   function hofSection() {
-    if (!hallOfFame.length) return '';
+    const groups = ['artist', 'album', 'song'].filter(tp => hallOfFame[tp].length);
+    if (!groups.length) return '';
     const collapsed = localStorage.getItem('skc-fame') === '1';
-    const chev = collapsed ? '▶' : '▼';
-    const inner = `<div class="sk-hof-grid">${hallOfFame.map((it, i) => hofItemHtml(it, i + 1, activeKeys.has(it.key))).join('')}</div>`;
+    const inner = groups.map(tp =>
+      `<div class="sk-hof-group"><div class="sk-hof-h">${esc(t('sk_fire_' + tp))}</div>${hallOfFame[tp].map(hofRowHtml).join('')}</div>`).join('');
     return `<div class="streak-section streak-section--fame${collapsed ? ' streak-section--collapsed' : ''}" data-skid="fame">` +
-      `<div class="streak-section-title" onclick="_streakToggleSection(this.closest('.streak-section'))"><span class="sk-chev">${chev}</span> 🏅 Hall of Fame <span class="streak-count">(${hallOfFame.length})</span></div>` +
-      `<div class="sk-sec-body${collapsed ? ' sk-sec-hidden' : ''}">${inner}</div></div>`;
+      `<div class="streak-section-title" onclick="_streakToggleSection(this.closest('.streak-section'))"><span class="sk-chev">${collapsed ? '▶' : '▼'}</span> 🏅 ${esc(t('sk_hof_title'))}</div>` +
+      `<div class="sk-sec-body${collapsed ? ' sk-sec-hidden' : ''}"><div class="sk-hof-groups">${inner}</div></div></div>`;
+  }
+  function badgesSection() {
+    const got = SK_BADGES.filter(b => b.ok).length;
+    const collapsed = localStorage.getItem('skc-badges') === '1';
+    const cards = SK_BADGES.map(b =>
+      `<div class="sk-badge${b.ok ? '' : ' sk-badge--locked'}" title="${esc(t('sk_badge_' + b.id + '_d'))}">` +
+        `<div class="sk-badge-ic" aria-hidden="true">${b.icon}</div>` +
+        `<div class="sk-badge-nm">${esc(t('sk_badge_' + b.id))}</div>` +
+        `<div class="sk-badge-d">${esc(t('sk_badge_' + b.id + '_d'))}</div>` +
+        (!b.ok && b.prog ? `<div class="sk-badge-prog">${esc(t('sk_badge_best', { v: b.prog }))}</div>` : '') +
+        (b.ok ? `<span class="sk-badge-ok">✓</span>` : '') +
+      `</div>`).join('');
+    return `<div class="streak-section streak-section--badges${collapsed ? ' streak-section--collapsed' : ''}" data-skid="badges">` +
+      `<div class="streak-section-title" onclick="_streakToggleSection(this.closest('.streak-section'))"><span class="sk-chev">${collapsed ? '▶' : '▼'}</span> ${esc(t('sk_badges_title'))} <span class="streak-count">(${got}/${SK_BADGES.length})</span></div>` +
+      `<div class="sk-sec-body${collapsed ? ' sk-sec-hidden' : ''}"><div class="sk-badges">${cards}</div></div></div>`;
+  }
+  // One headstone in the Graveyard: full start–end dates, and a red note when it
+  // ended just short of a milestone (replaces the 🎯 chip, which pointed at a goal
+  // an ended streak can't reach any more).
+  function graveHtml(it) {
+    const types = it.types || [it.type];
+    const a = skArt(it, 'sk-art--sm');
+    const m = nextMs(it.len);
+    const close = m && m - it.len <= 3 ? `<span class="sk-close-call">${esc(t('sk_short_of', { n: m - it.len, m }))}</span>` : '';
+    return `<div class="sk-stone sk-t-${_skTier(it.len).key}"${skEaFor(it, a.imgId)}>` +
+      `<div class="sk-stone-top">${a.html}<div class="sk-stone-who"><div class="sk-stone-rip">R.I.P.</div>` +
+      `<div class="sk-stone-nm" title="${esc(it.name)}">${esc(it.name)}</div>` +
+      (it.sub ? `<div class="sk-stone-sub" title="${esc(it.sub)}">${esc(it.sub)}</div>` : '') + `</div>${_eaMoreBtn()}</div>` +
+      `<div class="sk-stone-len"><span class="streak-days" data-len="${it.len}">0d</span> <span class="sk-stone-range">${esc(fmtRange(it))}</span></div>` +
+      `<div class="sk-stone-foot">${types.map(tp => `<span class="sk-kind sk-kind--${tp}">${esc(t('sk_kind_' + tp))}</span>`).join('')}${close}</div>` +
+      `</div>`;
   }
 
   // The save-plan entry (song) that keeps this at-risk streak alive, if any.
   function keptByEntry(it) { return keptBy.get(riskId(it)) || null; }
-
-  // ── Item HTML ────────────────────────────────────────────────────
-  function itemHtml(it, mode) {
-    const sub = it.sub ? `<span class="streak-sub"> — ${it.sub}</span>` : '';
-    const icon = mode === 'lost' ? '💔' : mode === 'risk' ? '⚠️' : mode === 'fame' ? '🏅' : '🔥';
-    const cls = mode === 'lost' ? ' streak-item--lost' : mode === 'risk' ? ' streak-item--risk' : '';
-    const tag = mode !== 'active' ? `<span class="streak-type-tag streak-type-tag--${it.type}">${it.type}</span>` : '';
-    const since = it.startDs && it.len >= 3 ? `<span class="sk-since">since ${fmtD(it.startDs)}</span>` : '';
-    const pb = it.best && it.len >= it.best && it.len >= 7 ? `<span class="sk-pb" title="Personal best!">🏆</span>` : '';
-    const ms = it.milestone; const msLeft = ms ? ms - it.len : null;
-    const msB = msLeft !== null && msLeft >= 1 && msLeft <= 3 ? `<span class="sk-ms" title="${ms}d milestone in ${msLeft}d">🎯 ${ms}d</span>` : '';
-    const calAttr = it.cal && it.cal.length ? `data-skc="${esc(JSON.stringify(it.cal))}" data-skn="${esc(it.name)}"` : '';
-    const calBtn = calAttr ? `<span class="sk-cal-trig" ${calAttr}>◈</span>` : '';
-    let nameHtml, spLink = '', playBtn = '', keptByHtml = '';
-    if (mode === 'risk') {
-      // ▶ on every at-risk row. A song plays itself; an artist or album plays the song
-      // the save plan picked for it, so one tap is always enough to keep the streak.
-      const pe = keptByEntry(it);
-      const pt = pe ? pe.title : it.name, pa = pe ? pe.artist : (it.sub || '');
-      playBtn = `<button class="sk-play" onclick="_ytStreakPlay(${esc(JSON.stringify(pt))},${esc(JSON.stringify(pa))})" title="${esc(t('sk_play_title', { song: pt }))}" aria-label="${esc(t('sk_play_title', { song: pt }))}">▶</button>`;
-      if (pe && it.type !== 'song') keptByHtml = `<span class="sk-keptby">${esc(t('sk_kept_by', { song: pe.title }))}</span>`;
-      if (it.type === 'song') {
-        const q = encodeURIComponent(it.name + (it.sub ? ' ' + it.sub : ''));
-        const jt = esc(JSON.stringify(it.name)); const jar = esc(JSON.stringify(it.sub || ''));
-        nameHtml = `<span class="streak-name-link streak-name-link--play" onclick="_ytStreakPlay(${jt},${jar})" title="Play in player">${it.name}${sub}</span>`;
-        spLink = `<a class="sk-sp-link" href="https://open.spotify.com/search/${q}" target="_blank" rel="noopener" title="Spotify">♫</a>`;
-      } else {
-        const songs = it.type === 'artist' ? (artLastSongs[it.key] || []) : (albLastSongs[it.key] || []);
-        nameHtml = `<span class="streak-entity-trigger streak-name-link" data-ske="${esc(JSON.stringify(songs))}" data-sken="${esc(it.name)}">${it.name}${sub}</span>`;
-      }
-    } else {
-      nameHtml = `${it.name}${sub}`;
-    }
-    return `<div class="streak-item${cls}">` +
-      `<span class="streak-fire">${icon}</span>` +
-      `<span class="streak-days" data-len="${it.len}">0d</span>` +
-      `<span class="streak-label">${nameHtml}</span>${spLink}${keptByHtml}` +
-      `${since}${pb}${msB}${tag}${calBtn}${playBtn}</div>`;
-  }
 
   // ── Streak rows (On fire, at risk, lost) ─────────────────────────
   // Covers load lazily through loadImages() — the same path chart rows use — once
@@ -33799,7 +33865,8 @@ function openStreakModal(opts) {
     const tier = _skTier(it.len);
     const a = skArt(it);
     const sub = it.sub ? ` <span class="sk-row-sub">— ${esc(it.sub)}</span>` : '';
-    const kind = `<span class="sk-kind sk-kind--${it.type}">${esc(t('sk_kind_' + it.type))}</span>`;
+    const types = it.types || [it.type];
+    const kind = types.map(tp => `<span class="sk-kind sk-kind--${tp}">${esc(t('sk_kind_' + tp))}</span>`).join('');
     const since = it.startDs && it.len >= 3 ? `<span class="sk-since">${esc(t('sk_since', { date: fmtD(it.startDs) }))}</span>` : '';
     let extra = '', btns = '';
     if (mode === 'risk') {
@@ -33819,7 +33886,7 @@ function openStreakModal(opts) {
     const meta = mode === 'lost'
       ? skDotsHtml(it.cal) + extra
       : skDotsHtml(it.cal) + (skRecHtml(it) || skMsHtml(it.len)) + extra + since;
-    return `<div class="sk-row sk-row--${mode} sk-t-${tier.key}" data-skt="${it.type}" data-name="${esc((it.name + ' ' + (it.sub || '')).toLowerCase())}" data-len="${it.len}"${skEaFor(it, a.imgId)}>` +
+    return `<div class="sk-row sk-row--${mode} sk-t-${tier.key}" data-skt="${types.join(' ')}" data-name="${esc((it.name + ' ' + (it.sub || '')).toLowerCase())}" data-len="${it.len}"${skEaFor(it, a.imgId)}>` +
       a.html +
       `<div class="sk-row-who"><div class="sk-row-nm">${esc(it.name)}${sub} ${kind}</div><div class="sk-row-meta">${meta}</div></div>` +
       `<div class="sk-row-right"><span class="sk-tier" title="${esc(t('sk_tier_' + tier.key))}" aria-hidden="true">${tier.icon}</span>` +
@@ -33828,7 +33895,7 @@ function openStreakModal(opts) {
   }
   // Top 3 for one type ('all' / 'artist' / 'album' / 'song'), drawn 2-1-3 like a podium.
   function skPodiumHtml(list, type) {
-    const top = (type === 'all' ? list : list.filter(it => it.type === type)).slice(0, 3);
+    const top = (type === 'all' ? list : list.filter(it => (it.types || [it.type]).includes(type))).slice(0, 3);
     if (!top.length) return '';
     const order = top.length === 3 ? [1, 0, 2] : top.length === 2 ? [1, 0] : [0];
     return `<div class="sk-pod-set" data-skf="${type}" hidden>` + order.map(i => {
@@ -33846,7 +33913,7 @@ function openStreakModal(opts) {
   // ── Section HTML ─────────────────────────────────────────────────
   function section(title, items, mode, sid, extraTitleHtml = '') {
     const collapsed = localStorage.getItem('skc-' + sid) === '1';
-    const inner = items.length ? items.map(it => mode === 'fame' ? itemHtml(it, mode) : skRowHtml(it, mode)).join('') : `<div class="streak-empty">${t('streak_none')}</div>`;
+    const inner = items.length ? items.map(it => skRowHtml(it, mode)).join('') : `<div class="streak-empty">${t('streak_none')}</div>`;
     const cls = mode === 'lost' ? ' streak-section--lost' : mode === 'risk' ? ' streak-section--risk' : mode === 'fame' ? ' streak-section--fame' : '';
     const chev = collapsed ? '▶' : '▼';
     return `<div class="streak-section${cls}${collapsed ? ' streak-section--collapsed' : ''}" data-skid="${sid}">` +
@@ -33953,7 +34020,7 @@ function openStreakModal(opts) {
   // podium, and rows that carry their cover, streak level, the last 14 days, the
   // next milestone and how close the record is. Typing in the filter or sorting
   // A–Z folds the podium away and shows every match as a plain list.
-  const fireAll = [...activeArtists, ...activeAlbums, ...activeSongs].sort((x, y) => y.len - x.len);
+  const fireAll = mergeSingles([...activeArtists, ...activeAlbums, ...activeSongs]).sort((x, y) => y.len - x.len);
   const fireCounts = { all: fireAll.length, artist: activeArtists.length, album: activeAlbums.length, song: activeSongs.length };
   const fireHtml = `<div class="sk-fire" id="skFire">` +
     `<div class="sk-toolbar sk-fire-toolbar">` +
@@ -33973,16 +34040,18 @@ function openStreakModal(opts) {
     `</div>`;
 
   // ── Graveyard pagination ──────────────────────────────────────────
-  const GRAVE_PAGE_SIZE = 25;
+  const GRAVE_PAGE_SIZE = 24;
   let gravePage = 0;
   function renderGraveyard() {
     const totalPages = Math.max(1, Math.ceil(graveyardAll.length / GRAVE_PAGE_SIZE));
     gravePage = Math.max(0, Math.min(gravePage, totalPages - 1));
     const start = gravePage * GRAVE_PAGE_SIZE;
     const pageItems = graveyardAll.slice(start, start + GRAVE_PAGE_SIZE);
+    const qStart = skImgQ.length;
     const listHtml = graveyardAll.length
-      ? `<div class="sk-grave-hdr">All-time ended streaks (≥ 7 days)</div>` + pageItems.map(it => itemHtml(it, 'fame')).join('')
-      : `<div class="streak-empty" style="padding:1.2rem 1.4rem">No ended streaks ≥ 7 days yet.</div>`;
+      ? `<div class="sk-grave-hdr">🪦 ${esc(t('sk_grave_title'))} <span class="streak-count">(${graveyardAll.length})</span></div>` +
+        `<div class="sk-stones">${pageItems.map(graveHtml).join('')}</div>`
+      : `<div class="streak-empty" style="padding:1.2rem 1.4rem">${esc(t('sk_grave_none'))}</div>`;
     const pagerHtml = graveyardAll.length > GRAVE_PAGE_SIZE
       ? `<div class="page-nav sk-grave-nav">` +
           `<button class="page-nav-first" onclick="_skGraveGoToPage(0)"${gravePage === 0 ? ' disabled' : ''} title="First page">|◄</button>` +
@@ -33994,6 +34063,16 @@ function openStreakModal(opts) {
       : '';
     const el = document.getElementById('skGraveList');
     if (el) el.innerHTML = listHtml + pagerHtml;
+    // A page turn draws new covers: load the ones queued by this render. (The
+    // first render's are loaded with the rest of the modal after it opens.)
+    if (el && el.dataset.drawn) {
+      const fresh = skImgQ.slice(qStart);
+      ['song', 'album', 'artist'].forEach(kind => {
+        const items = fresh.filter(i => i._kind === kind);
+        if (items.length) loadImages(items, kind);
+      });
+    }
+    if (el) el.dataset.drawn = '1';
     // Fill in streak-day counters for this page — the count-up animation only ever
     // ran once against the page-1 elements at modal-open time, so later pages need
     // their numbers set directly or they'd stay stuck at "0d".
@@ -34008,7 +34087,7 @@ function openStreakModal(opts) {
   bodyEl.innerHTML =
     `<div id="skTabToday" class="sk-tab-pane">${todayHtml}</div>` +
     `<div id="skTabStreaks" class="sk-tab-pane" style="display:none">${fireHtml}</div>` +
-    `<div id="skTabGraveyard" class="sk-tab-pane" style="display:none">${hofSection()}<div id="skGraveList"></div></div>` +
+    `<div id="skTabGraveyard" class="sk-tab-pane" style="display:none">${hofSection()}${badgesSection()}<div id="skGraveList"></div></div>` +
     `<div id="skTabHeatmap" class="sk-tab-pane" style="display:none"></div>`;
   renderGraveyard();
   // Covers for every streak row and podium card (lazy: fetched as they scroll in).
@@ -34137,7 +34216,7 @@ function _skFireApply() {
   });
   let shown = 0, onPod = 0;
   root.querySelectorAll('.sk-fire-list .sk-row').forEach(r => {
-    const match = (type === 'all' || r.dataset.skt === type) && (!q || r.dataset.name.includes(q));
+    const match = (type === 'all' || r.dataset.skt.split(' ').includes(type)) && (!q || r.dataset.name.includes(q));
     let vis = match;
     if (match && !flat && onPod < 3) { onPod++; vis = false; }
     r.hidden = !vis;

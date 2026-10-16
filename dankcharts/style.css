@@ -37749,3 +37749,60 @@ body.navy-light .sk-t-eternal, body.purple-light .sk-t-eternal, body.yellow-ligh
   .sk-pod-set { gap: 0.35rem; }
   .sk-fire-list { padding: 0.2rem 0.4rem var(--sp-3); }
 }
+
+/* ── Records tab (redesign phase 3) ──
+   Hall of Fame: top 5 artists / albums / songs, medal column added to .sk-row. */
+.sk-hof-groups { display: grid; gap: var(--sp-3); padding: 0.2rem 0 0.4rem; }
+.sk-hof-h { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); padding: 0 0.45rem 0.2rem; }
+.sk-hof-row { grid-template-columns: 1.9rem 36px minmax(0, 1fr) auto; }
+.sk-medal { font-family: var(--font-mono); font-size: var(--fs-xs); font-weight: 700; color: var(--text3); text-align: center; }
+.sk-medal--1, .sk-medal--2, .sk-medal--3 { font-size: 1.05rem; }
+.sk-range { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.sk-state { white-space: nowrap; border-radius: var(--r-full); padding: 0 0.45rem; background: var(--bg3); color: var(--text3); }
+.sk-state--live { background: color-mix(in srgb, #ff6a3d 16%, transparent); color: #ff8a4c; font-weight: 600; }
+.sk-state--again { background: color-mix(in srgb, var(--amber) 12%, transparent); color: var(--amber); }
+.streak-section--fame .streak-section-title { color: var(--gold1); }
+
+/* Badges */
+.sk-badges { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.5rem; padding: 0.2rem 0 0.6rem; }
+.sk-badge {
+  position: relative; text-align: center; min-width: 0; padding: 0.6rem 0.35rem 0.55rem;
+  background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-lg);
+}
+.sk-badge-ic { font-size: 1.45rem; line-height: 1.2; }
+.sk-badge-nm { font-size: var(--fs-xs); font-weight: 600; color: var(--text); margin-top: 0.15rem; }
+.sk-badge-d { font-size: 0.66rem; color: var(--text3); line-height: 1.3; margin-top: 0.1rem; }
+.sk-badge-prog { font-family: var(--font-mono); font-size: 0.62rem; color: var(--text2); margin-top: 0.25rem; }
+.sk-badge-ok {
+  position: absolute; top: 0.3rem; right: 0.35rem; width: 1rem; height: 1rem; border-radius: 50%;
+  display: grid; place-items: center; font-size: 0.6rem; background: var(--green); color: var(--bg);
+}
+.sk-badge:not(.sk-badge--locked) { border-color: color-mix(in srgb, var(--gold1) 45%, transparent); background: linear-gradient(180deg, color-mix(in srgb, var(--gold1) 9%, transparent), var(--bg) 75%); }
+.sk-badge--locked .sk-badge-ic { filter: grayscale(1); opacity: 0.4; }
+.sk-badge--locked .sk-badge-nm { color: var(--text3); }
+
+/* Graveyard headstones */
+.sk-grave-hdr { padding: var(--sp-4) 1.4rem 0.5rem; font-size: var(--fs-xs); color: var(--text2); }
+.sk-stones { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.55rem; padding: 0 1.4rem var(--sp-3); }
+.sk-stone {
+  position: relative; min-width: 0; padding: 0.7rem 0.75rem 0.6rem;
+  background: linear-gradient(180deg, var(--bg3), var(--bg));
+  border: 1px solid var(--border); border-radius: 26px 26px var(--r-md) var(--r-md);
+}
+.sk-stone-top { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 0.55rem; align-items: start; }
+.sk-art--sm { width: 32px; height: 32px; }
+.sk-stone-who { min-width: 0; }
+.sk-stone-rip { font-family: var(--font-mono); font-size: 0.6rem; letter-spacing: 0.16em; color: var(--text3); }
+.sk-stone-nm { font-size: var(--fs-sm); font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sk-stone-sub { font-size: 0.7rem; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sk-stone-len { margin-top: 0.4rem; font-size: 0.72rem; color: var(--text2); }
+.sk-stone-len .streak-days { min-width: 0; margin-right: 0.35rem; font-size: var(--fs-sm); font-weight: 700; color: var(--sk-tier); }
+.sk-stone-range { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.sk-stone-foot { display: flex; flex-wrap: wrap; gap: 0.3rem; align-items: center; margin-top: 0.35rem; font-size: 0.7rem; }
+.sk-grave-nav { padding: 0 1.4rem var(--sp-3); }
+
+@media (max-width: 520px) {
+  .sk-badges { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sk-stones { grid-template-columns: 1fr; padding: 0 0.9rem var(--sp-3); }
+  .sk-hof-row { grid-template-columns: 1.6rem 32px minmax(0, 1fr) auto; }
+}
