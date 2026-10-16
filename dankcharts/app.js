@@ -33179,12 +33179,312 @@ function renderNowStripDayStreak(streak, pb) {
       <span class="ns-day-title">${esc(t('ns_day_title'))}</span>
       <span class="ns-day-count"><b>${streak.toLocaleString()}</b> ${esc(tUnit('days', streak))}</span>
       <span class="ns-day-best">${isBest ? '★ ' + esc(t('ns_day_best_now')) : esc(t('ns_day_best', { n: tCount('days', pb) }))}</span>
+      ${nsDayMoreHtml(streak, pb)}
     </span>`;
   el.title = t('ns_day_tip');
   el.setAttribute('aria-label', t('ns_day_title') + ': ' + tCount('days', streak) + '. ' + (isBest ? t('ns_day_best_now') : t('ns_day_best', { n: tCount('days', pb) })));
   el.style.display = '';
   _nsDay = { count: streak, pb: pb, tier: tier };
+  renderNowStripExtra();
   dcSyncNowStrip();
+}
+
+/* ─── NOW STRIP EXTRAS (2026-10-16) ─────────────────────────────────────────
+   With nothing on air and no play run, the day streak used to sit alone at
+   the left of a wide, empty card. In that state (.has-day without .is-live or
+   .has-streak, see style.css) the card now also shows:
+     - under the streak: a bar to your best (or, once you are on your best, to
+       the next round number), and a line with when the streak began and how
+       many days you missed this year; your three longest streaks on hover
+     - Today: a ring of today's plays against your usual day, the first song
+       of the day and today's top artist
+     - Last 7 days: a bar per day, the change on the 7 days before, and the
+       song you played on the most of those days ("On repeat")
+     - a tip line along the bottom that rotates through forgotten favourites,
+       throwback artists and your listening style
+   Everything is worked out from allPlays alone, so it works the same for
+   Last.fm, Google Sheets and CSV. Hour-based styles (night owl, early bird)
+   are skipped when the plays carry no times of day (date-only sheets). */
+const NS_MILESTONES = [7, 14, 30, 50, 100, 150, 200, 250, 300, 365, 500, 730, 1000];
+let _nsXCache = null;       // { key, data } so re-renders do not walk allPlays again
+let _nsTipTimer = null;     // the tip line's rotation interval
+
+// The next round number above n: the list above, then every whole year
+function nsNextMilestone(n) {
+  const m = NS_MILESTONES.find(x => x > n);
+  return m || (Math.floor(n / 365) + 1) * 365;
+}
+
+// "29 Mar" in the interface language, from a YYYY-MM-DD string
+function nsShortDate(ds) {
+  try {
+    return new Date(ds + 'T12:00:00').toLocaleDateString(typeof currentLang !== 'undefined' ? currentLang : undefined, { day: 'numeric', month: 'short' });
+  } catch (e) { return ds; }
+}
+
+// The YYYY-MM-DD string n days before ds
+function nsShiftDs(ds, n) {
+  const d = new Date(ds + 'T12:00:00');
+  d.setDate(d.getDate() - n);
+  return localDateStr(d);
+}
+
+/* One walk over allPlays for everything the extras show. Cached on the
+   number of plays and the newest play, which change whenever new data lands. */
+function nsExtraData() {
+  if (!allPlays || !allPlays.length) return null;
+  const key = allPlays.length + '|' + msOf(allPlays[0]);
+  if (_nsXCache && _nsXCache.key === key) return _nsXCache.data;
+
+  const todayDs = localDateStr(tzNow());
+  const nowMs = Date.now();
+  const recentCut = nsShiftDs(todayDs, 89);   // the last 90 days, today included
+  const weekCut = nsShiftDs(todayDs, 6);      // the last 7 days
+  const monthCut = nsShiftDs(todayDs, 29);    // the last 30 days
+
+  const dayCounts = {};                        // YYYY-MM-DD → plays
+  const songs = {};                            // songKey → { title, artist, n, last }
+  const artists = {};                          // artist → { n, last }
+  const weekSongDays = {};                     // songKey → Set of days in the last 7
+  const todayArtists = {};
+  let firstToday = null, firstTodayMs = Infinity;
+  // Listening style, from the last 90 days
+  let rPlays = 0, rNight = 0, rEarly = 0, rWeekend = 0, rSameAlbum = 0, rTimed = 0;
+  const rSongs = {};
+  // allPlays is newest first, so the play after this one in the array is the one before it in time
+  let prevAlbumKey = null;
+
+  for (let i = allPlays.length - 1; i >= 0; i--) {   // oldest → newest
+    const p = allPlays[i];
+    const ds = dayStrOf(p);
+    const ms = msOf(p);
+    dayCounts[ds] = (dayCounts[ds] || 0) + 1;
+
+    const sk = songKey(p);
+    const s = songs[sk] || (songs[sk] = { title: p.title, artist: p.artist, n: 0, last: 0 });
+    s.n++; if (ms > s.last) s.last = ms;
+    for (const a of p.artists) {
+      const r = artists[a] || (artists[a] = { n: 0, last: 0 });
+      r.n++; if (ms > r.last) r.last = ms;
+    }
+
+    if (ds >= weekCut) (weekSongDays[sk] || (weekSongDays[sk] = new Set())).add(ds);
+    if (ds === todayDs) {
+      for (const a of p.artists) todayArtists[a] = (todayArtists[a] || 0) + 1;
+      if (ms < firstTodayMs) { firstTodayMs = ms; firstToday = p; }
+    }
+
+    const ak = p.album && p.album !== '—' ? albumKeyOf(p) : null;
+    if (ds >= recentCut) {
+      rPlays++;
+      rSongs[sk] = (rSongs[sk] || 0) + 1;
+      const td = tzDateOf(p);
+      const h = td.getHours();
+      if (h || td.getMinutes()) rTimed++;      // a time of day other than midnight
+      if (h >= 22 || h < 4) rNight++;
+      if (h >= 5 && h < 9) rEarly++;
+      const wd = td.getDay();
+      if (wd === 0 || wd === 6) rWeekend++;
+      if (ak && ak === prevAlbumKey) rSameAlbum++;
+    }
+    prevAlbumKey = ak;
+  }
+
+  // ── Streak history: every run of days in a row ──
+  const days = Object.keys(dayCounts).sort();
+  const runs = [];
+  let runStart = days[0], prev = days[0];
+  for (let i = 1; i <= days.length; i++) {
+    const d = days[i];
+    if (d && nsShiftDs(d, 1) === prev) { prev = d; continue; }
+    runs.push({ start: runStart, end: prev, len: Math.round((new Date(prev + 'T12:00:00') - new Date(runStart + 'T12:00:00')) / 86400000) + 1 });
+    runStart = prev = d;
+  }
+  runs.sort((a, b) => b.len - a.len || (a.end < b.end ? 1 : -1));
+  const playedToday = !!dayCounts[todayDs];
+  const lastDay = playedToday ? todayDs : nsShiftDs(todayDs, 1);
+  const curRun = runs.find(r => r.end === lastDay) || null;
+
+  // Days missed this year: from 1 Jan (or your first play, if later) to the last day that counts
+  const yearStart = todayDs.slice(0, 4) + '-01-01';
+  let missed = 0;
+  for (let d = days[0] > yearStart ? days[0] : yearStart; d <= lastDay; d = nsShiftDs(d, -1)) {
+    if (!dayCounts[d]) missed++;
+  }
+
+  // ── Today ──
+  // Your usual day: the average over the days you listened in the last 30, today left out
+  let mSum = 0, mDays = 0;
+  for (const d in dayCounts) if (d >= monthCut && d < todayDs) { mSum += dayCounts[d]; mDays++; }
+  const usual = mDays ? Math.round(mSum / mDays) : Math.round(allPlays.length / days.length);
+  const topToday = Object.entries(todayArtists).sort((a, b) => b[1] - a[1])[0] || null;
+
+  // ── Last 7 days ──
+  const week = [];
+  let wSum = 0, pSum = 0;
+  for (let i = 6; i >= 0; i--) { const d = nsShiftDs(todayDs, i); week.push({ ds: d, n: dayCounts[d] || 0 }); wSum += dayCounts[d] || 0; }
+  for (let i = 7; i < 14; i++) pSum += dayCounts[nsShiftDs(todayDs, i)] || 0;
+  const weekPct = pSum ? Math.round((wSum - pSum) / pSum * 100) : null;
+  let repeat = null;
+  for (const [sk, set] of Object.entries(weekSongDays)) {
+    if (set.size >= 3 && (!repeat || set.size > repeat.days || (set.size === repeat.days && songs[sk].n > songs[repeat.sk].n))) repeat = { sk, days: set.size };
+  }
+  if (repeat) repeat = { title: songs[repeat.sk].title, artist: songs[repeat.sk].artist, days: repeat.days };
+
+  // ── Tips ──
+  const tips = [];
+  const DAY = 86400000;
+  // Forgotten favourites: your all-time top 100 songs, not played in 90+ days
+  Object.values(songs).sort((a, b) => b.n - a.n).slice(0, 100)
+    .filter(s => nowMs - s.last > 90 * DAY).slice(0, 3)
+    .forEach(s => tips.push({ kind: 'forgotten', label: t('ns_x_tip_forgotten'), name: s.title + ' — ' + s.artist,
+      text: t('ns_x_tip_forgotten_text', { plays: tCount('plays', s.n), when: _nsAgo(new Date(s.last)) }) }));
+  // Throwback artists: your all-time top 20, not played in 30+ days
+  Object.entries(artists).sort((a, b) => b[1].n - a[1].n).slice(0, 20)
+    .map(([name, r], i) => ({ name, rank: i + 1, last: r.last }))
+    .filter(a => nowMs - a.last > 30 * DAY).slice(0, 3)
+    .forEach(a => tips.push({ kind: 'throwback', label: t('ns_x_tip_throwback'), name: a.name,
+      text: t('ns_x_tip_throwback_text', { rank: a.rank, days: tCount('days', Math.floor((nowMs - a.last) / DAY)) }) }));
+  // Listening style: every badge your last 90 days qualify for (needs a fair sample)
+  if (rPlays >= 50) {
+    const pct = n => Math.round(n / rPlays * 100);
+    const style = (k, n) => tips.push({ kind: 'style', label: t('ns_x_tip_style'), name: t('ns_x_b_' + k), text: t('ns_x_b_' + k + '_d', { pct: n }) });
+    if (rTimed / rPlays > 0.5) {               // only when the plays carry real times of day
+      if (pct(rNight) >= 30) style('night', pct(rNight));
+      if (pct(rEarly) >= 25) style('early', pct(rEarly));
+    }
+    if (pct(rWeekend) >= 40) style('weekend', pct(rWeekend));
+    else if (pct(rWeekend) <= 20) style('weekday', pct(rWeekend));
+    if (pct(rSameAlbum) >= 50) style('album', pct(rSameAlbum));
+    const counts = Object.values(rSongs).sort((a, b) => b - a);
+    const top10 = counts.slice(0, 10).reduce((x, y) => x + y, 0);
+    if (pct(top10) >= 25) style('loyal', pct(top10));
+    else if (counts.length / rPlays >= 0.5) tips.push({ kind: 'style', label: t('ns_x_tip_style'), name: t('ns_x_b_explorer'), text: t('ns_x_b_explorer_d', { n: counts.length.toLocaleString() }) });
+  }
+  // Mix the kinds so the line does not show three forgotten songs in a row
+  const byKind = ['forgotten', 'throwback', 'style'].map(k => tips.filter(x => x.kind === k));
+  const mixed = [];
+  for (let i = 0; byKind.some(l => l[i]); i++) byKind.forEach(l => l[i] && mixed.push(l[i]));
+
+  const data = {
+    playedToday, curRun, runs: runs.slice(0, 3), missed, year: todayDs.slice(0, 4),
+    todayN: dayCounts[todayDs] || 0, usual, firstToday, topToday,
+    week, todayDs, weekPct, repeat, tips: mixed,
+  };
+  _nsXCache = { key, data };
+  return data;
+}
+
+/* Under the streak count: the bar to your best / next milestone, and the
+   "since" line. Hidden by the CSS unless the card is in its idle state. */
+function nsDayMoreHtml(streak, pb) {
+  const x = nsExtraData();
+  if (!x) return '';
+  let bar = '', note;
+  if (!streak) {
+    note = t('ns_x_start');
+  } else {
+    const goal = streak < pb ? pb : nsNextMilestone(streak);
+    const left = goal - streak;
+    note = streak < pb ? t('ns_x_to_best', { n: tCount('days', left) }) : t('ns_x_to_next', { n: tCount('days', left), goal: goal.toLocaleString() });
+    bar = `<span class="ns-day-bar" aria-hidden="true"><i style="width:${Math.max(2, Math.min(100, streak / goal * 100)).toFixed(1)}%"></i></span>`;
+    if (!x.playedToday) note = t('ns_x_keep_going');
+  }
+  const bits = [];
+  if (streak && x.curRun) bits.push(t('ns_x_since', { date: nsShortDate(x.curRun.start) }));
+  // Rank among your streaks, only when it is not already "your best ever"
+  if (streak && streak < pb) {
+    const rank = x.runs.length && x.runs.findIndex(r => r === x.curRun);
+    if (rank > 0) bits.push(t('ns_x_rank', { n: rank + 1 }));
+  }
+  bits.push(x.missed ? t('ns_x_missed', { n: tCount('days', x.missed), year: x.year }) : t('ns_x_missed_none', { year: x.year }));
+  // Hover: your three longest streaks with their dates
+  const past = t('ns_x_past_title') + '\n' + x.runs.map((r, i) => `${i + 1}. ${tCount('days', r.len)} · ${nsShortDate(r.start)} – ${nsShortDate(r.end)} ${r.end.slice(0, 4)}`).join('\n');
+  return `
+      <span class="ns-day-more">
+        ${bar}
+        <span class="ns-day-note">${esc(note)}</span>
+        <span class="ns-day-since" title="${esc(past)}">${esc(bits.join(' · '))}</span>
+      </span>`;
+}
+
+// Today's plays against your usual day, as a ring drawn in SVG
+function nsRingSvg(n, usual) {
+  const r = 20, c = 2 * Math.PI * r;
+  const f = usual ? Math.min(1, n / usual) : 0;
+  return `<svg class="ns-ring${n >= usual && usual ? ' is-full' : ''}" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+      <circle class="ns-ring-track" cx="24" cy="24" r="${r}"/>
+      <circle class="ns-ring-fill" cx="24" cy="24" r="${r}" stroke-dasharray="${(c * f).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 24 24)"/>
+      <text x="24" y="24" dy="0.35em" text-anchor="middle">${n > 999 ? Math.round(n / 100) / 10 + 'k' : n}</text>
+    </svg>`;
+}
+
+/* Fills #nsExtra: the Today and Last 7 days blocks and the tip line. */
+function renderNowStripExtra() {
+  const el = document.getElementById('nsExtra');
+  if (!el) return;
+  if (_nsTipTimer) { clearInterval(_nsTipTimer); _nsTipTimer = null; }
+  const x = nsExtraData();
+  if (!x) { el.innerHTML = ''; return; }
+  const lang = typeof currentLang !== 'undefined' ? currentLang : undefined;
+
+  // ── Today ──
+  const todayLines = x.todayN ? `
+        ${x.firstToday ? `<span class="ns-x-line" title="${esc(x.firstToday.title + ' — ' + x.firstToday.artist)}"><em>${esc(t('ns_x_first'))}</em> ${esc(x.firstToday.title)} <span>— ${esc(x.firstToday.artist)}</span></span>` : ''}
+        ${x.topToday ? `<span class="ns-x-line"><em>${esc(t('ns_x_top'))}</em> ${esc(x.topToday[0])} <span>· ${esc(tCount('plays', x.topToday[1]))}</span></span>` : ''}`
+    : `<span class="ns-x-line"><span>${esc(t('ns_x_none_today'))}</span></span>`;
+  const today = `
+    <div class="ns-x-block ns-x-today">
+      ${nsRingSvg(x.todayN, x.usual)}
+      <div class="ns-x-text">
+        <span class="ns-x-title">${esc(t('ns_x_today'))}</span>
+        <span class="ns-x-line"><b>${esc(tCount('plays', x.todayN))}</b> <span>${esc(t('ns_x_usual', { n: x.usual.toLocaleString() }))}</span></span>
+        ${todayLines}
+      </div>
+    </div>`;
+
+  // ── Last 7 days ──
+  const max = Math.max(1, ...x.week.map(d => d.n));
+  const bars = x.week.map(d => {
+    const day = new Date(d.ds + 'T12:00:00');
+    const tip = day.toLocaleDateString(lang, { weekday: 'short', day: 'numeric', month: 'short' }) + ' · ' + tCount('plays', d.n);
+    const letter = day.toLocaleDateString(lang, { weekday: 'narrow' });
+    return `<span class="ns-wk-col${d.ds === x.todayDs ? ' is-today' : ''}" title="${esc(tip)}"><i style="height:${d.n ? Math.max(8, d.n / max * 100).toFixed(0) : 0}%"></i><small>${esc(letter)}</small></span>`;
+  }).join('');
+  const pct = x.weekPct === null ? '' :
+    `<span class="ns-wk-pct ${x.weekPct > 0 ? 'is-up' : x.weekPct < 0 ? 'is-down' : ''}">${x.weekPct > 0 ? '▲ ' : x.weekPct < 0 ? '▼ ' : '± '}${Math.abs(x.weekPct)}%</span> <span>${esc(t('ns_x_vs_week'))}</span>`;
+  const week = `
+    <div class="ns-x-block ns-x-week">
+      <div class="ns-wk-bars" aria-hidden="true">${bars}</div>
+      <div class="ns-x-text">
+        <span class="ns-x-title">${esc(t('ns_x_week'))}</span>
+        ${pct ? `<span class="ns-x-line">${pct}</span>` : ''}
+        ${x.repeat ? `<span class="ns-x-line" title="${esc(x.repeat.title + ' — ' + x.repeat.artist + ' · ' + t('ns_x_days_of_7', { n: x.repeat.days }))}"><em>${esc(t('ns_x_on_repeat'))}</em> ${esc(x.repeat.title)} <span>· ${esc(t('ns_x_days_of_7', { n: x.repeat.days }))}</span></span>` : ''}
+      </div>
+    </div>`;
+
+  // ── Tip line ──
+  const tipHtml = tp => `<span class="ns-tip-label">${esc(tp.label)}</span> <b>${esc(tp.name)}</b> <span class="ns-tip-text">${esc(tp.text)}</span>`;
+  const tip = x.tips.length ? `<div class="ns-x-tip" aria-live="off"><span class="ns-tip-inner">${tipHtml(x.tips[0])}</span></div>` : '';
+
+  el.innerHTML = today + week + tip;
+
+  // Rotate the tip every 8 s; hovering holds it so it can be read
+  if (x.tips.length > 1) {
+    let i = 0, held = false;
+    const box = el.querySelector('.ns-x-tip');
+    const inner = box.querySelector('.ns-tip-inner');
+    box.addEventListener('mouseenter', () => { held = true; });
+    box.addEventListener('mouseleave', () => { held = false; });
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    _nsTipTimer = setInterval(() => {
+      if (held || document.hidden || !inner.isConnected) return;
+      i = (i + 1) % x.tips.length;
+      if (reduce) { inner.innerHTML = tipHtml(x.tips[i]); return; }
+      inner.classList.add('is-out');
+      setTimeout(() => { inner.innerHTML = tipHtml(x.tips[i]); inner.classList.remove('is-out'); }, 250);
+    }, 8000);
+  }
 }
 
 /* Flame size/colour tier for a day streak: the same thresholds the old All-Time
