@@ -28,6 +28,15 @@ function setChartTypeView(type) {
 }
 
 function applyChartTypeView() {
+  // On the Daily tab the same switch picks the daily chart (daily.js); the
+  // other periods' chart groups stay down.
+  if (currentPeriod === 'day') {
+    ['songsChartGroup', 'artistsChartGroup', 'albumsChartGroup'].forEach(id => { document.getElementById(id).style.display = 'none'; });
+    document.querySelectorAll('#chartTypeToggleBar .chart-type-toggle-btn').forEach(b => b.classList.toggle('active', b.dataset.type === chartTypeView));
+    syncAlbumsFilterBar();
+    if (typeof dyRender === 'function' && allPlays && allPlays.length) dyRender();
+    return;
+  }
   document.getElementById('songsChartGroup').style.display   = chartTypeView === 'songs'   ? '' : 'none';
   document.getElementById('artistsChartGroup').style.display = chartTypeView === 'artists' ? '' : 'none';
   document.getElementById('albumsChartGroup').style.display  = chartTypeView === 'albums'  ? '' : 'none';
@@ -286,7 +295,7 @@ function yearKeyOf(p) {
   return p._se === _stampEpoch ? p._yk : String(tzDate(p.date).getFullYear());
 }
 
-const savedOffsets = { week: 0, month: 0, year: 0, alltime: 0, records: 0 };
+const savedOffsets = { day: 0, week: 0, month: 0, year: 0, alltime: 0, records: 0 };
 let chartSize = 10;
 let chartSizeWeekly = 10;   // compat — mirrors chartSizeSongsW
 let chartSizeMonthly = 50;  // compat — mirrors chartSizeSongsM
@@ -1297,7 +1306,7 @@ function syncAlbumsFilterBar() {
      the chart sections one by one but leave #albumsChartGroup itself mounted,
      so without this gate the bar goes on hanging over views that never consult
      it. */
-  if (!['week', 'month', 'year', 'alltime'].includes(currentPeriod) || chartTypeView !== 'albums') {
+  if (!['day', 'week', 'month', 'year', 'alltime'].includes(currentPeriod) || chartTypeView !== 'albums') {
     bar.style.display = 'none';
     return;
   }
@@ -12119,7 +12128,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
      below take the chart sections down one by one but not the group that holds
      the bar, and only the chart-period path at the bottom paints it again
      (renderAll -> syncAlbumsFilterBar). */
-  if (!['week', 'month', 'year', 'alltime'].includes(btn.dataset.period)) {
+  if (!['day', 'week', 'month', 'year', 'alltime'].includes(btn.dataset.period)) {
     const afBar = document.getElementById('albumsFilterBar');
     if (afBar) afBar.style.display = 'none';
   }
@@ -12548,8 +12557,14 @@ function syncPicker() {
   const mp = document.getElementById('monthPicker');
   const yp = document.getElementById('yearPicker');
   const jp = document.getElementById('jumpPicker');
-  const hasPicker = ['week', 'month', 'year'].includes(currentPeriod);
+  const dp = document.getElementById('dayPicker');
+  const hasPicker = ['day', 'week', 'month', 'year'].includes(currentPeriod);
   jp.style.display = hasPicker ? '' : 'none';
+  // Daily tab (daily.js): a plain date input, one day at a time
+  if (dp) {
+    dp.style.display = currentPeriod === 'day' ? '' : 'none';
+    if (currentPeriod === 'day') { dp.value = dyViewedDay(); dp.max = localDateStr(now); }
+  }
   wp.style.display = currentPeriod === 'week' ? '' : 'none';
   mp.style.display = currentPeriod === 'month' ? '' : 'none';
   yp.style.display = currentPeriod === 'year' ? '' : 'none';
@@ -12925,6 +12940,7 @@ function currentViewWeekKey() {
 function getDateRange() {
   const now = tzNow();
   if (currentPeriod === 'alltime') return { start: new Date(0), end: new Date(9999, 0), label: t('period_alltime'), sub: t('period_alltime_sub') };
+  if (currentPeriod === 'day') return dyDateRange();   // Daily tab, daily.js
 
   let start, end, label, sub;
   if (currentPeriod === 'week') {
@@ -13299,6 +13315,9 @@ function renderAll() {
      Sheets, CSV, the sample library — arrives at this same render. Guarded to
      run once. */
   rtQueueAutoSweep();
+  // The Daily tab builds its own tiles and chart (daily.js) rather than going
+  // through the weekly / monthly pipeline below.
+  if (currentPeriod === 'day') { dyRender(); return; }
   const { start, end, label, sub } = getDateRange();
   const plays = currentPeriod === 'alltime'
     ? allPlays
@@ -26930,7 +26949,7 @@ window.dcTopbarHome = dcTopbarHome;
 // front doors: each button names an old #periodNav tab in data-go, and clicking
 // it clicks that tab, so there is still exactly one place where views switch.
 // "charts" is the exception: it reopens the chart period you used last.
-const DC_CHART_PERIODS = ['week', 'month', 'year', 'alltime'];
+const DC_CHART_PERIODS = ['day', 'week', 'month', 'year', 'alltime'];
 const DC_MORE_VIEWS = ['events', 'playlists', 'rawdata', 'board', 'chartsguide'];
 // Keyboard shortcuts (initNavShortcuts) shown in the tab tooltips
 const DC_TAB_SHORTCUT = { charts: '1–4', graphs: '6', records: '7', awards: '9', events: '8', rawdata: '5' };
@@ -34504,6 +34523,11 @@ document.addEventListener('mouseout', e => {
 
 // ─── PERIOD LABEL CLICK → OPEN PICKER ─────────────────────────
 document.getElementById('periodLabel').addEventListener('click', () => {
+  if (currentPeriod === 'day') {
+    const dp = document.getElementById('dayPicker');
+    if (dp) { try { dp.showPicker(); } catch (e) { dp.focus(); } }
+    return;
+  }
   if (!['week', 'month', 'year'].includes(currentPeriod)) return;
   const wp = document.getElementById('weekPicker');
   const mp = document.getElementById('monthPicker');
@@ -34541,6 +34565,7 @@ document.addEventListener('keydown', e => {
       if (btn && !btn.disabled) { btn.click(); flash(btn); }
       break;
     }
+    case 'd': case 'D': document.querySelector('#periodNav button[data-period="day"]')?.click(); break;
     case 'w': case 'W': document.querySelector('#periodNav button[data-period="week"]')?.click(); break;
     case 'm': case 'M': document.querySelector('#periodNav button[data-period="month"]')?.click(); break;
     case 'y': case 'Y': document.querySelector('#periodNav button[data-period="year"]')?.click(); break;
@@ -48375,7 +48400,7 @@ function ratingsRefreshUI() {
   try {
     if (document.getElementById('ratingsGraphCard')?.offsetParent) renderRatingsGraphSection();
     if (document.getElementById('recRatingsBody')?.offsetParent)   renderRatingRecordsSection();
-    if (['week', 'month', 'year', 'alltime'].includes(currentPeriod) && allPlays?.length) renderAll();
+    if (['day', 'week', 'month', 'year', 'alltime'].includes(currentPeriod) && allPlays?.length) renderAll();
   } catch (e) {
     console.warn('[dankcharts] ratings UI refresh:', e);
   }

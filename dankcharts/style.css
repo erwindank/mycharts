@@ -1823,7 +1823,7 @@
       border-bottom: none;
     }
 
-    body[data-view]:not([data-view="week"]):not([data-view="month"]):not([data-view="year"]):not([data-view="alltime"]) #periodNav {
+    body[data-view]:not([data-view="day"]):not([data-view="week"]):not([data-view="month"]):not([data-view="year"]):not([data-view="alltime"]) #periodNav {
       display: none;
     }
 
@@ -1832,13 +1832,13 @@
        tab's own title: no now strip and no empty sticky date bar (its 10px
        padding and 28px margin stayed behind on every other tab). !important
        because the view-switch code sets these elements' inline display. */
-    body[data-view]:not([data-view="week"]):not([data-view="month"]):not([data-view="year"]):not([data-view="alltime"]) :is(#nowStrip, #stickyNavBar, #stickyNavSentinel) {
+    body[data-view]:not([data-view="day"]):not([data-view="week"]):not([data-view="month"]):not([data-view="year"]):not([data-view="alltime"]) :is(#nowStrip, #stickyNavBar, #stickyNavSentinel) {
       display: none !important;
     }
 
     /* The first thing on those tabs is their own heading; the container's
        top padding is the only gap the top bar needs */
-    body[data-view]:not([data-view="week"]):not([data-view="month"]):not([data-view="year"]):not([data-view="alltime"]) #mainApp {
+    body[data-view]:not([data-view="day"]):not([data-view="week"]):not([data-view="month"]):not([data-view="year"]):not([data-view="alltime"]) #mainApp {
       padding-top: var(--sp-5);
     }
 
@@ -2191,9 +2191,10 @@
         flex: 1 0 100%;
       }
 
+      /* Five chart periods since the Daily tab (2026-10-16): one row of five */
       #dateNav #periodNav .period-nav-row:not(.period-nav-row-2) {
         display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-template-columns: repeat(5, minmax(0, 1fr));
         width: 100%;
       }
 
@@ -4119,6 +4120,7 @@
        blue and pink rather than as two purples; All-Time took the rose that
        vacated, and Soundtrack took the purple, which also keeps All-Time clear
        of the tab directly beneath it. */
+    .period-nav button[data-period="day"]         { --nav-c: #f59e0b; } /* sun      */
     .period-nav button[data-period="week"]        { --nav-c: #4dabf7; } /* sky      */
     .period-nav button[data-period="month"]       { --nav-c: #6366f1; } /* indigo   */
     .period-nav button[data-period="year"]        { --nav-c: #d946ef; } /* fuchsia  */
@@ -36299,4 +36301,80 @@ body:not([data-view="alltime"]) #atInsights { display: none !important; }
   .ati-hero--in .ati-hero-fact, .ati-hero--in .ati-hero-art,
   .ati-panel .ati-bar-fill, .ati-panel .ati-col-fill { animation: none; }
   .ati-chev, .ati-hero-art .ati-art { transition: none; }
+}
+
+/* ═══ DAILY TAB (daily.js, 2026-10-16) ═══
+   The day's chart sits where the other periods' chart groups do. The stat
+   tiles and the Songs / Artists / Albums switch are the shared ones; this is
+   only the toolbar (compare with yesterday or the same weekday last week, and
+   the chart size), the daily #1 line and the table. Shown only on the Daily
+   tab, so no other branch of the tab switcher has to remember to hide it. */
+.daily-view {
+  display: none;
+}
+
+body[data-view="day"] .daily-view {
+  display: block;
+}
+
+.dy-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-3);
+}
+
+/* Two small segmented switches, the same shape as the chart type switch */
+.dy-seg {
+  display: inline-flex;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm, 8px);
+  background: var(--bg2);
+}
+
+.dy-seg-btn {
+  padding: 4px 12px;
+  border: 0;
+  border-radius: calc(var(--r-sm, 8px) - 3px);
+  background: transparent;
+  color: var(--text2);
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.dy-seg-btn:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
+.dy-seg-btn.active {
+  background: var(--raised);
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* "♛ #1 for 3 days in a row · 5 days at #1 this month" */
+.dy-no1 {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin: 0 0 var(--sp-3);
+  font-size: var(--fs-sm);
+  color: var(--text2);
+}
+
+.dy-no1-crown {
+  color: var(--gold1, var(--amber));
+  font-size: 1.1em;
+}
+
+/* Phones: the peak column goes, so rank, movement, title, days and plays fit */
+@media (max-width: 700px) {
+  .dy-table .dy-peak {
+    display: none;
+  }
 }

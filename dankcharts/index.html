@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=395">
+  <link rel="stylesheet" href="style.css?v=397">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=91"></script>
+  <script defer src="translations.js?v=92"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -458,6 +458,10 @@
           <!-- Row 1: Chart views (time-period tabs) -->
           <div class="period-nav-row">
             <span class="nav-indicator" aria-hidden="true"></span>
+            <!-- Daily (2026-10-16): one day's chart and stats, built by daily.js -->
+            <button data-period="day">
+              <span class="nav-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.05" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle class="ni-sun" cx="8" cy="8" r="3"/><g class="ni-rays"><line x1="8" y1="1.6" x2="8" y2="3"/><line x1="8" y1="13" x2="8" y2="14.4"/><line x1="1.6" y1="8" x2="3" y2="8"/><line x1="13" y1="8" x2="14.4" y2="8"/><line x1="3.5" y1="3.5" x2="4.5" y2="4.5"/><line x1="11.5" y1="11.5" x2="12.5" y2="12.5"/><line x1="3.5" y1="12.5" x2="4.5" y2="11.5"/><line x1="11.5" y1="4.5" x2="12.5" y2="3.5"/></g></svg></span><span data-i18n="nav_daily">Daily</span><span class="nav-eq" aria-hidden="true"></span>
+            </button>
             <button class="active" data-period="week" data-shortcut="1">
               <span class="nav-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.05" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><defs><clipPath id="wkStrip"><rect x="1.1" y="3.4" width="13.8" height="9.2" rx="1.4"/></clipPath></defs><g clip-path="url(#wkStrip)"><rect class="ni-day" x="7.01" y="5.6" width="1.98" height="7" fill="currentColor" stroke="none"/></g><rect x="1.1" y="3.4" width="13.8" height="9.2" rx="1.4"/><line x1="1.1" y1="5.6" x2="14.9" y2="5.6"/><line x1="3.07" y1="5.6" x2="3.07" y2="12.6"/><line x1="5.04" y1="5.6" x2="5.04" y2="12.6"/><line x1="7.01" y1="5.6" x2="7.01" y2="12.6"/><line x1="8.99" y1="5.6" x2="8.99" y2="12.6"/><line x1="10.96" y1="5.6" x2="10.96" y2="12.6"/><line x1="12.93" y1="5.6" x2="12.93" y2="12.6"/></svg></span><span data-i18n="nav_weekly">Weekly</span><span class="nav-eq" aria-hidden="true"></span>
             </button>
@@ -509,6 +513,7 @@
         <div class="date-nav-center">
           <div class="period-label" id="periodLabel" title="Click to jump to a date"><strong>Loading...</strong></div>
           <div id="jumpPicker" style="display:none">
+            <input type="date" id="dayPicker" class="picker-input" style="display:none" data-i18n-title="dy_tooltip_jump">
             <input type="date" id="weekPicker" class="picker-input" data-i18n-title="tooltip_jump_to_week">
             <input type="month" id="monthPicker" class="picker-input" style="display:none"
               data-i18n-title="tooltip_jump_to_month">
@@ -558,6 +563,12 @@
       </div>
       <div class="afilter-bar" id="albumsFilterBar" role="group" aria-label="Album chart filter" style="display:none"></div>
     </div>
+
+    <!-- Daily chart (Daily tab): compare and size controls, the #1 line and the
+         chart table. Filled by dyRender() in daily.js; the CSS shows it only
+         while body[data-view="day"]. The stat tiles above (#statsStrip) and the
+         Songs / Artists / Albums switch are shared with the other periods. -->
+    <div id="dailyView" class="daily-view"></div>
 
     <!-- "Inside your Top N" — stats about the All-Time chart on screen (songs,
          artists or albums) once it has a size (Top 50 / 100 / 200 / custom).
@@ -3724,9 +3735,10 @@
   <!-- Community board tab (suggestions / bugs / discussion). Loaded before
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
   <script defer src="board.js?v=1"></script>
-  <script defer src="app.js?v=352"></script>
+  <script defer src="app.js?v=353"></script>
   <!-- All-Time chart stats ("Inside your Top N"); reads app.js globals, so it loads after it -->
   <script defer src="insights.js?v=8"></script>
+  <script defer src="daily.js?v=1"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at
