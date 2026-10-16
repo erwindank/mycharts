@@ -436,7 +436,8 @@ function dyRenderChart(h, ds) {
       ${no1Html}
       <div class="section-body">${body}</div>
     </div>
-    ${tod}`;
+    ${tod}
+    ${dyPatternsHtml(h, ds)}`;
 
   if (imgItems.length) loadImages(imgItems, type === 'songs' ? 'song' : type === 'artists' ? 'artist' : 'album');
   for (const tp of ['album', 'song']) {
@@ -569,6 +570,193 @@ function dyTimeOfDayHtml(h, ds, imgOut) {
       <div class="dy-ticks" aria-hidden="true">${ticks}</div>
       <div class="dy-parts">${parts}</div>
     </section>`;
+}
+
+// ─── PATTERNS (phase 4) ───────────────────────────────────────────────────
+/* A card under the time-of-day card about how you listened that day:
+     - most replayed: the song played the most times
+     - back to back: the longest run of the same song in a row, and of the
+       same artist in a row (needs plays in order, so it uses the play times;
+       date-only plays keep the order they came in)
+     - albums played in full: every track of an album played that day. The
+       tracklist is the real one from Deezer when it has been looked up
+       (rtPrefetchTracklist, the same store the album grid card uses); until
+       then, or when Deezer has no match, every track of it in your library,
+       and only for albums with 5 or more of those. Only albums with 4+
+       different tracks that day are checked, so few lookups ever happen.
+     - variety: different songs per play, on a scale from loyal (the same few
+       songs again and again) to explorer (nearly every play a new song),
+       against your usual over the 30 days before
+     - genre mix: a donut of the day's plays by genre. Each play takes the
+       first real genre of its song (the sheet's Genre columns) or else of
+       its artist (Last.fm tags, looked up for the day's top artists and then
+       cached). Hidden while nothing is known. */
+const DY_TAG_JUNK = /^(seen live|favou?rites?|my favou?rites?|female vocalists?|male vocalists?|awesome|love|beautiful|cool|amazing|spotify|under \d+ listeners|all|[0-9]{2,4}s|british|american|english|uk|usa|canadian|australian|swedish|german|french|spanish|korean|japanese|brazilian|irish|scottish)$/;
+const DY_GENRE_COLORS = ['var(--accent)', 'var(--green)', 'var(--amber)', 'var(--rose)', 'var(--accent2)', 'var(--text3)'];
+let _dyTagFetching = false;     // one round of Last.fm lookups at a time
+const _dyTrackFetch = new Set(); // albums whose Deezer tracklist was asked for this session
+
+// "Song (feat. X) - Remastered" → "song", so library titles match Deezer's
+function dyPlainTitle(s) {
+  return String(s || '').toLowerCase().replace(/\s*[\(\[][^\)\]]*[\)\]]/g, '').replace(/\s+-\s+.*$/, '').replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+}
+
+// A play's genre, or undefined when its artist has not been looked up yet
+function dyPlayGenre(p) {
+  let tags = p.genres;
+  if (!tags && typeof _awardsSongTags === 'function') tags = _awardsSongTags(p);
+  if (tags === undefined) return undefined;
+  for (const g of tags || []) if (!DY_TAG_JUNK.test(g)) return g;
+  return null;   // looked up, nothing usable
+}
+
+/* Redraws only the patterns card, once a Deezer tracklist or Last.fm tags
+   arrive, so the rest of the page (tiles, chart, covers) is left alone. */
+function dyRefreshPatterns(ds) {
+  if (currentPeriod !== 'day' || dyViewedDay() !== ds) return;
+  const el = document.querySelector('#dailyView .dy-pats');
+  if (el) el.outerHTML = dyPatternsHtml(dyHistory(), ds);
+}
+
+function dyPatternsHtml(h, ds) {
+  const day = h.byDay[ds];
+  if (!day || !day.list.length) return '';
+  const plays = day.list.slice().sort((a, b) => msOf(a) - msOf(b));
+
+  // Most replayed
+  let most = null;
+  for (const k in day.songs) if (!most || day.songs[k].count > most.count) most = day.songs[k];
+
+  // Back to back: longest run of one song, and of one artist
+  let sRun = { n: 0 }, aRun = { n: 0 }, sCur = null, aCur = null;
+  for (const p of plays) {
+    const sk = songKey(p), ar = _pa(p);
+    sCur = sCur && sCur.k === sk ? { ...sCur, n: sCur.n + 1 } : { k: sk, n: 1, title: p.title, artist: p.artist };
+    aCur = aCur && aCur.k === ar ? { ...aCur, n: aCur.n + 1 } : { k: ar, n: 1 };
+    if (sCur.n > sRun.n) sRun = sCur;
+    if (aCur.n > aRun.n) aRun = aCur;
+  }
+
+  // Albums played in full
+  const full = dyFullAlbums(h, ds);
+
+  // Variety, and your usual before this day
+  const variety = d => d.plays ? Object.keys(d.songs).length / d.plays : 0;
+  const v = variety(day);
+  let vs = 0, vc = 0;
+  for (let i = 1; i <= 30; i++) { const d = h.byDay[dyShift(ds, -i)]; if (d && d.plays >= 5) { vs += variety(d); vc++; } }
+  const usualV = vc ? vs / vc : null;
+  const vPct = Math.round(v * 100);
+
+  const tile = (title, body) => `<div class="dy-pat"><span class="ns-x-title">${esc(title)}</span>${body}</div>`;
+  const line = (html, tip) => `<span class="ns-x-line"${tip ? ` title="${esc(tip)}"` : ''}>${html}</span>`;
+
+  const mostTile = tile(t('dy_pat_most'), most
+    ? line(`<b>${esc(most.title)}</b>`, most.title + ' — ' + most.artist) + line(`<span>${esc(most.artist)} · ${esc(t('dy_times', { n: most.count }))}</span>`)
+    : '');
+  const b2bTile = tile(t('dy_pat_b2b'),
+    (sRun.n > 1 ? line(`<b>${esc(sRun.title)}</b> <span>· ${esc(t('dy_in_a_row', { n: sRun.n }))}</span>`, sRun.title + ' — ' + sRun.artist) : line(`<span>${esc(t('dy_no_repeats'))}</span>`)) +
+    (aRun.n > 1 ? line(`${esc(aRun.k)} <span>· ${esc(t('dy_plays_in_a_row', { n: aRun.n }))}</span>`) : ''));
+  const fullTile = tile(t('dy_pat_full'), full.length
+    ? full.slice(0, 2).map(f => line(`<b>${esc(f.album)}</b> <span>· ${esc(t(f.official ? 'dy_full_tracks' : 'dy_full_tracks_lib', { n: f.tracks }))}</span>`, f.album + ' — ' + f.artist)).join('')
+    : line(`<span>${esc(t('dy_full_none'))}</span>`));
+  const marker = `<span class="dy-gauge"><i style="left:${vPct}%"></i>${usualV !== null ? `<u style="left:${Math.round(usualV * 100)}%" title="${esc(t('dy_usual_mark'))}"></u>` : ''}</span>`;
+  const label = v >= 0.7 ? 'dy_var_explorer' : v <= 0.35 ? 'dy_var_loyal' : 'dy_var_mixed';
+  const varTile = tile(t('dy_pat_variety'),
+    line(`<b>${esc(t(label))}</b> <span>· ${esc(t('dy_var_line', { songs: Object.keys(day.songs).length, plays: day.plays }))}</span>`) +
+    marker + `<span class="dy-gauge-ends"><span>${esc(t('dy_var_loyal'))}</span><span>${esc(t('dy_var_explorer'))}</span></span>`);
+
+  return `
+    <section class="dy-tod dy-pats" aria-label="${esc(t('dy_pat_title'))}">
+      <div class="dy-tod-head"><span class="ns-x-title">${esc(t('dy_pat_title'))}</span></div>
+      <div class="dy-pat-grid">${mostTile}${b2bTile}${fullTile}${varTile}</div>
+      ${dyGenreHtml(h, ds, plays)}
+    </section>`;
+}
+
+/* Albums with every track played on the day. Asks Deezer for the tracklist of
+   each candidate once per session; the answer is cached by the album grid's
+   store, and the view is redrawn when it lands. */
+function dyFullAlbums(h, ds) {
+  const day = h.byDay[ds];
+  const byAlbum = {};
+  for (const p of day.list) {
+    if (!p.album || p.album === '—') continue;
+    const ak = albumKeyOf(p);
+    (byAlbum[ak] || (byAlbum[ak] = new Set())).add(dyPlainTitle(p.title));
+  }
+  const store = typeof _rtTracklistStore === 'function' ? _rtTracklistStore() : {};
+  const out = [];
+  for (const [ak, titles] of Object.entries(byAlbum)) {
+    if (titles.size < 4) continue;
+    const [album, artist] = ak.split('|||');
+    const list = store[ak];
+    if (Array.isArray(list)) {
+      const need = [...new Set(list.map(dyPlainTitle))];
+      if (need.length && need.every(x => titles.has(x))) out.push({ album, artist, tracks: need.length, official: true });
+      continue;
+    }
+    if (list === undefined && typeof rtPrefetchTracklist === 'function' && !_dyTrackFetch.has(ak)) {
+      _dyTrackFetch.add(ak);
+      rtPrefetchTracklist(ak).then(() => { if (Array.isArray(_rtTracklistStore()[ak])) dyRefreshPatterns(ds); });
+    }
+    // No tracklist (yet): every track of it in your library
+    const known = new Set();
+    for (const d of h.days) for (const p of h.byDay[d].list) if (p.album === album && albumKeyOf(p) === ak) known.add(dyPlainTitle(p.title));
+    if (known.size >= 5 && [...known].every(x => titles.has(x))) out.push({ album, artist, tracks: known.size, official: false });
+  }
+  return out.sort((a, b) => b.tracks - a.tracks);
+}
+
+// The day's genre mix as a donut with a legend
+function dyGenreHtml(h, ds, plays) {
+  const counts = {};
+  const missing = new Set();
+  let known = 0;
+  for (const p of plays) {
+    const g = dyPlayGenre(p);
+    if (g === undefined) { missing.add(_pa(p)); continue; }
+    if (!g) continue;
+    counts[g] = (counts[g] || 0) + 1;
+    known++;
+  }
+  // Look up the day's top artists that have no tags yet, then redraw once
+  if (missing.size && !_dyTagFetching && typeof _awardsGetArtistGenre === 'function') {
+    const byPlays = {};
+    for (const p of plays) { const a = _pa(p); if (missing.has(a)) byPlays[a] = (byPlays[a] || 0) + 1; }
+    const want = Object.keys(byPlays).sort((a, b) => byPlays[b] - byPlays[a]).slice(0, 15);
+    _dyTagFetching = true;
+    Promise.all(want.map(a => _awardsGetArtistGenre(a))).finally(() => {
+      _dyTagFetching = false;
+      dyRefreshPatterns(ds);
+    });
+  }
+  if (!known) return '';
+
+  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  const top = sorted.slice(0, 5);
+  const rest = sorted.slice(5).reduce((s, [, n]) => s + n, 0);
+  if (rest) top.push([t('dy_genre_other'), rest]);
+  const r = 26, c = 2 * Math.PI * r;
+  let at = 0;
+  const arcs = top.map(([, n], i) => {
+    const len = n / known * c;
+    const seg = `<circle cx="32" cy="32" r="${r}" fill="none" stroke="${DY_GENRE_COLORS[i]}" stroke-width="10" stroke-dasharray="${len.toFixed(2)} ${(c - len).toFixed(2)}" stroke-dashoffset="${(-at).toFixed(2)}" transform="rotate(-90 32 32)"/>`;
+    at += len;
+    return seg;
+  }).join('');
+  const legend = top.map(([g, n], i) =>
+    `<li><i style="background:${DY_GENRE_COLORS[i]}"></i><span class="dy-genre-name">${esc(g)}</span><span class="dy-genre-pct">${Math.round(n / known * 100)}%</span></li>`).join('');
+  const cover = Math.round(known / plays.length * 100);
+  return `
+      <div class="dy-genres">
+        <svg class="dy-donut" viewBox="0 0 64 64" aria-hidden="true" focusable="false">${arcs}</svg>
+        <div class="ns-x-text">
+          <span class="ns-x-title">${esc(t('dy_genre_title'))}</span>
+          <ul class="dy-genre-list">${legend}</ul>
+          ${cover < 100 ? `<span class="dy-genre-note">${esc(t('dy_genre_cover', { pct: cover }))}</span>` : ''}
+        </div>
+      </div>`;
 }
 
 // ─── DAY PANEL (phase 2) ──────────────────────────────────────────────────

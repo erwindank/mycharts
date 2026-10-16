@@ -36586,3 +36586,138 @@ body[data-view="day"] .daily-view {
     height: 26px;
   }
 }
+
+/* ---- Daily tab: patterns (phase 4) ----
+   Same card as the time of day (.dy-tod): four small tiles, then the genre
+   donut with its legend. */
+.dy-pat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--sp-4);
+}
+
+.dy-pat {
+  display: grid;
+  align-content: start;
+  gap: 2px;
+  min-width: 0;
+}
+
+.dy-pat + .dy-pat {
+  padding-left: var(--sp-4);
+  border-left: 1px solid var(--border);
+}
+
+/* Variety: a track from loyal to explorer, the day's dot and your usual tick */
+.dy-gauge {
+  position: relative;
+  display: block;
+  height: 6px;
+  margin: 6px 0 2px;
+  border-radius: 99px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--amber) 55%, var(--raised)), color-mix(in srgb, var(--accent) 55%, var(--raised)));
+}
+
+.dy-gauge i {
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--text);
+  box-shadow: 0 0 0 2px var(--bg2);
+  transform: translate(-50%, -50%);
+}
+
+.dy-gauge u {
+  position: absolute;
+  top: -3px;
+  width: 2px;
+  height: 12px;
+  background: var(--text3);
+  transform: translateX(-50%);
+}
+
+.dy-gauge-ends {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--text3);
+}
+
+/* Genre mix */
+.dy-genres {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  margin-top: var(--sp-3);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--border);
+}
+
+.dy-donut {
+  flex-shrink: 0;
+  width: 84px;
+  height: 84px;
+}
+
+.dy-genre-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-1) var(--sp-4);
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dy-genre-list li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-sm);
+  color: var(--text);
+}
+
+.dy-genre-list i {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.dy-genre-name {
+  text-transform: capitalize;
+}
+
+.dy-genre-pct {
+  color: var(--text3);
+  font-variant-numeric: tabular-nums;
+}
+
+.dy-genre-note {
+  font-size: var(--fs-xs);
+  color: var(--text3);
+}
+
+@media (max-width: 900px) {
+  .dy-pat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dy-pat:nth-child(3) {
+    padding-left: 0;
+    border-left: 0;
+  }
+}
+
+@media (max-width: 700px) {
+  .dy-pat-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--sp-3);
+  }
+
+  .dy-pat + .dy-pat {
+    padding: var(--sp-3) 0 0;
+    border-left: 0;
+    border-top: 1px solid var(--border);
+  }
+}
