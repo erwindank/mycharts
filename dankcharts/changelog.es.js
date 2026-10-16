@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Windows opened from a streak row show on top":
+    ["Las ventanas abiertas desde una fila de racha aparecen delante",
+     "Elegir Detalles, Álbum o Artista en el menú ⋮ de una fila de racha abría esa ventana detrás de la de Rachas Diarias, y parecía que no pasaba nada. Ahora se abre delante."],
+
   "One streak calendar with a type switch and a day panel":
     ["Un solo calendario de rachas con selector de tipo y panel del día",
      "La pestaña Calendario de la ventana de Rachas Diarias (antes Mapa de calor) muestra ahora un solo mapa en lugar de cuatro apilados, con un selector Todo / Artistas / Canciones / Álbumes que cambia la cuadrícula y las cifras. La larga fila de botones de años es ahora un desplegable. El día récord, los días con rachas, la media diaria y la semana más activa están en cuatro recuadros. Haz clic en cualquier día (o tócalo en el móvil) para ver todas las rachas de ese día en un panel bajo la cuadrícula, agrupadas por artistas, álbumes y canciones. Los temas de color y Copiar imagen siguen ahí."],

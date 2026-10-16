@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Windows opened from a streak row show on top":
+    ["Janelas abertas de uma linha de sequência aparecem na frente",
+     "Escolher Detalhes, Álbum ou Artista no menu ⋮ de uma linha de sequência abria essa janela atrás da de Sequências Diárias, e parecia que nada acontecia. Agora ela abre na frente."],
+
   "One streak calendar with a type switch and a day panel":
     ["Um só calendário de sequências com seletor de tipo e painel do dia",
      "A aba Calendário da janela de Sequências Diárias (antes Mapa de calor) agora mostra um só mapa em vez de quatro empilhados, com um seletor Tudo / Artistas / Músicas / Álbuns que muda a grade e os números. A longa fileira de botões de anos virou uma lista suspensa. Dia recorde, dias com sequências, média diária e semana mais ativa ficam em quatro quadros. Clique em qualquer dia (ou toque no celular) para ver todas as sequências daquele dia num painel abaixo da grade, agrupadas por artistas, álbuns e músicas. Os temas de cor e Copiar imagem continuam lá."],

@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 151;
+const DC_CL_I18N_V = 152;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-16', t: 'fix', a: 'charts', h: '6fdc9f2',
+    title: "Windows opened from a streak row show on top",
+    detail: "Choosing Details, Album or Artist from a streak row's ⋮ menu opened that window behind the Daily Streaks window, so nothing seemed to happen. It now opens on top." },
 
   { d: '2026-10-16', t: 'design', a: 'charts', h: '761e668',
     title: "One streak calendar with a type switch and a day panel",
