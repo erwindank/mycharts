@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 130;
+const DC_CL_I18N_V = 131;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-16', t: 'feature', a: 'charts',
+    title: "Stats about your all-time charts",
+    detail: "Set the All-Time songs chart to a size (Top 50, 100, 200 or your own number) and a new section, Inside your Top 100, opens above it. It starts with one big fact and an Another fact button: who has the most songs in it, which album puts the most songs in, who rules the top 10, how far #1 is ahead, and more. See all stats opens four headline numbers and five tabs. Artists: the 10 artists and 5 albums with the most songs (pick one to see them), who owns the top 10, your top 3 artists' share, and the artists who made it with one song. Eras: release decades, the oldest and newest song, how old the chart is on average, and the year you found each song. Plays: how much of all your listening the chart holds, #1 against #2, and the songs that got in fastest and slowest. Badges: how many songs are Gold, Platinum and Diamond, which are closest to their next plaque, and singles against album tracks. New this year: every song that was not in the chart a year ago, and whether it climbed in or you had not played it yet. It works on the Artists and Albums charts too, with stats that fit each one: on Artists, which artists you have played the most different songs by, whose plays lean on a single song, and who you have known the longest; on Albums, who has the most albums in it and which albums you have played the most tracks from. With All Entries, a small tip offers to switch to Top 100. Works with Last.fm, Google Sheets and CSV." },
 
   { d: '2026-10-16', t: 'fix', a: 'ui', h: '5c765b8',
     title: 'The top bar fits in every language',
