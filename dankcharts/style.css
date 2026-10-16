@@ -36807,3 +36807,68 @@ body[data-view="day"] .daily-view {
     display: none;
   }
 }
+
+/* ---- Daily tab: milestones & goals (phase 6) ----
+   Same card and lists as Memories, with a row of award chips on top. */
+.dy-awards-wrap {
+  display: grid;
+  gap: var(--sp-1);
+  margin-bottom: var(--sp-4);
+}
+
+.dy-awards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* A small trophy chip: what it is over whose it is */
+.dy-award {
+  display: grid;
+  min-width: 0;
+  max-width: 260px;
+  padding: 6px 12px;
+  border: 1px solid color-mix(in srgb, var(--gold1, var(--amber)) 45%, var(--border));
+  border-radius: var(--r-sm, 8px);
+  background: color-mix(in srgb, var(--gold1, var(--amber)) 8%, transparent);
+}
+
+.dy-award-lbl {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gold1, var(--amber));
+}
+
+.dy-award-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text);
+}
+
+.dy-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  font-size: var(--fs-xs);
+  cursor: pointer;
+}
+
+.dy-link:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 700px) {
+  .dy-award {
+    max-width: 100%;
+  }
+}

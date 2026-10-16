@@ -207,7 +207,8 @@ function dyRender() {
     const el = document.getElementById(id); if (el) el.style.display = 'none';
   });
   const ati = document.getElementById('atInsights'); if (ati) ati.hidden = true;
-  if (typeof hideCertReel === 'function') hideCertReel();
+  // Certifications earned on the day: the shared reel, as on Weekly / Monthly (phase 6)
+  if (typeof renderCertReel === 'function') { const r = dyDateRange(); renderCertReel(r.start, r.end); }
   document.getElementById('statsStrip').style.display = '';
   // The Songs / Artists / Albums switch is shared with the other periods
   const bar = document.getElementById('chartTypeToggleBar');
@@ -443,7 +444,8 @@ function dyRenderChart(h, ds) {
     </div>
     ${tod}
     ${dyPatternsHtml(h, ds)}
-    ${dyMemoriesHtml(h, ds)}`;
+    ${dyMemoriesHtml(h, ds)}
+    ${dyMilestonesHtml(h, ds)}`;
 
   if (imgItems.length) loadImages(imgItems, type === 'songs' ? 'song' : type === 'artists' ? 'artist' : 'album');
   for (const tp of ['album', 'song']) {
@@ -576,6 +578,244 @@ function dyTimeOfDayHtml(h, ds, imgOut) {
       <div class="dy-ticks" aria-hidden="true">${ticks}</div>
       <div class="dy-parts">${parts}</div>
     </section>`;
+}
+
+// ─── MILESTONES & GOALS (phase 6) ─────────────────────────────────────────
+/* A card under Memories about what the day achieved and what is close:
+     - daily awards: song, artist and album of the day (the daily #1s), the
+       discovery of the day (the most played first-ever song) and the
+       comeback of the day (the song back after the longest silence, 30+ days)
+     - milestones hit: songs, artists and albums whose all-time play count
+       crossed a round number that day (DY_MS lists)
+     - records broken: your most plays of a song or artist in one day, beaten
+       that day; and the most plays of any song / any artist in one day ever
+     - streaks: songs and artists played on 3+ days in a row up to that day,
+       and the ones whose run of 3+ days ended (not played that day)
+     - goals: how far the day was from your best same weekday and your
+       biggest day; close to a milestone (songs, artists, albums a few plays
+       short of the next round number); and, on today only, streaks that end
+       unless you play them today
+   Certifications earned that day are the shared "Certified this period" reel
+   further down (renderCertReel), the same plaques as on Weekly and Monthly. */
+const DY_MS = {
+  songs:   [25, 50, 100, 250, 500, 750, 1000, 1500, 2000, 3000, 5000],
+  artists: [100, 250, 500, 1000, 2500, 5000, 7500, 10000, 15000, 20000, 25000, 50000],
+  albums:  [100, 250, 500, 1000, 2500, 5000, 10000, 20000],
+};
+
+// The next round number above n for a type; past the list, steps of its last gap
+function dyNextMs(type, n) {
+  const list = DY_MS[type];
+  const m = list.find(x => x > n);
+  if (m) return m;
+  const step = list[list.length - 1] - list[list.length - 2];
+  return (Math.floor(n / step) + 1) * step;
+}
+
+// Every round number in (a, b]
+function dyMsCrossed(type, a, b) {
+  const out = [];
+  for (let m = dyNextMs(type, a); m <= b; m = dyNextMs(type, m)) out.push(m);
+  return out;
+}
+
+// How many days in a row, ending on `end`, a key was played (tally: 'songs' / 'artists' / 'albums')
+function dyRunEnding(h, tally, k, end) {
+  let n = 0;
+  for (let d = end; h.byDay[d] && h.byDay[d][tally][k]; d = dyShift(d, -1)) n++;
+  return n;
+}
+
+function dyMilestonesHtml(h, ds) {
+  const day = h.byDay[ds];
+  const blocks = [];
+  const label = {
+    songs: k => { const s = day.songs[k]; return s ? s.title + ' — ' + s.artist : k; },
+    artists: k => k,
+    albums: k => { const i = k.lastIndexOf('|||'); return i < 0 ? k : k.slice(0, i) + ' — ' + k.slice(i + 3); },
+  };
+  const row = (main, sub) => `<li class="dy-mem-row"><span class="dy-mem-text"><span class="ns-x-line" title="${esc(main)}"><b>${esc(main)}</b></span><span class="dy-mem-sub">${esc(sub)}</span></span></li>`;
+
+  // ── Counts before the day and to its end, and each key's best single day before it ──
+  const before = { songs: {}, artists: {}, albums: {} };
+  const after = { songs: {}, artists: {}, albums: {} };
+  const bestDay = { songs: {}, artists: {} };
+  let anySongBest = 0, anyArtistBest = 0, bestWd = 0, bestAll = 0;
+  const wd = dyDate(ds).getDay();
+  for (const d of h.days) {
+    if (d > ds) break;
+    const x = h.byDay[d];
+    for (const type of ['songs', 'artists', 'albums']) {
+      const tgt = d < ds ? before[type] : null;
+      for (const k in x[type]) {
+        const c = x[type][k].count;
+        if (tgt) tgt[k] = (tgt[k] || 0) + c;
+        after[type][k] = (after[type][k] || 0) + c;
+        if (d < ds && type !== 'albums') {
+          if (c > (bestDay[type][k] || 0)) bestDay[type][k] = c;
+          if (type === 'songs' && c > anySongBest) anySongBest = c;
+          if (type === 'artists' && c > anyArtistBest) anyArtistBest = c;
+        }
+      }
+    }
+    if (d < ds) {
+      if (x.plays > bestAll) bestAll = x.plays;
+      if (dyDate(d).getDay() === wd && x.plays > bestWd) bestWd = x.plays;
+    }
+  }
+
+  if (day) {
+    // ── Daily awards ──
+    const chips = [];
+    const top = type => (h.charts[type][ds] || [])[0];
+    const chip = (lbl, name) => `<li class="dy-award"><span class="dy-award-lbl">${esc(lbl)}</span><span class="dy-award-name" title="${esc(name)}">${esc(name)}</span></li>`;
+    if (top('songs')) chips.push(chip(t('dy_aw_song'), label.songs(top('songs').k)));
+    if (top('artists')) chips.push(chip(t('dy_aw_artist'), top('artists').k));
+    if (top('albums')) chips.push(chip(t('dy_aw_album'), label.albums(top('albums').k)));
+    const fresh = Object.keys(day.songs).filter(k => !before.songs[k]).sort((a, b) => day.songs[b].count - day.songs[a].count)[0];
+    if (fresh) chips.push(chip(t('dy_aw_discovery'), label.songs(fresh)));
+    // Comeback: the song whose last play before this day is the oldest (30+ days)
+    let comeback = null;
+    if (Object.keys(day.songs).length) {
+      const last = {};
+      for (const d of h.days) { if (d >= ds) break; for (const k in h.byDay[d].songs) if (day.songs[k]) last[k] = d; }
+      for (const k in last) {
+        const gap = Math.round((dyDate(ds) - dyDate(last[k])) / 86400000);
+        if (gap >= 30 && (!comeback || gap > comeback.gap)) comeback = { k, gap };
+      }
+    }
+    if (comeback) chips.push(chip(t('dy_aw_comeback'), label.songs(comeback.k)));
+    if (chips.length) blocks.push(['awards', t('dy_aw_title'), `<ul class="dy-awards">${chips.join('')}</ul>`]);
+
+    // ── Milestones hit ──
+    const hit = [];
+    for (const type of ['songs', 'artists', 'albums']) {
+      for (const k in day[type]) {
+        const ms = dyMsCrossed(type, before[type][k] || 0, after[type][k] || 0);
+        if (ms.length) hit.push({ type, k, m: ms[ms.length - 1] });
+      }
+    }
+    hit.sort((a, b) => b.m - a.m);
+    if (hit.length) blocks.push(['list', t('dy_ms_hit'), hit.slice(0, 4).map(x => row(label[x.type](x.k), t('dy_ms_reached', { n: x.m.toLocaleString() }))).join('')]);
+
+    // ── Records broken ──
+    const recs = [];
+    const topSong = Object.entries(day.songs).sort((a, b) => b[1].count - a[1].count)[0];
+    const topArtist = Object.entries(day.artists).sort((a, b) => b[1].count - a[1].count)[0];
+    if (topSong && anySongBest && topSong[1].count > anySongBest)
+      recs.push(row(t('dy_rec_any_song'), label.songs(topSong[0]) + ' · ' + t('dy_rec_vs', { n: topSong[1].count, was: anySongBest })));
+    if (topArtist && anyArtistBest && topArtist[1].count > anyArtistBest)
+      recs.push(row(t('dy_rec_any_artist'), topArtist[0] + ' · ' + t('dy_rec_vs', { n: topArtist[1].count, was: anyArtistBest })));
+    for (const type of ['songs', 'artists']) {
+      Object.entries(day[type]).filter(([k, e]) => e.count >= 3 && bestDay[type][k] && e.count > bestDay[type][k])
+        .sort((a, b) => b[1].count - a[1].count).slice(0, 2)
+        .forEach(([k, e]) => recs.push(row(label[type](k), t('dy_rec_own', { n: e.count, was: bestDay[type][k] }))));
+    }
+    if (recs.length) blocks.push(['list', t('dy_rec_title'), recs.slice(0, 4).join('') +
+      `<li class="dy-mem-more"><button type="button" class="dy-link" onclick="dcGoTab('records')">${esc(t('dy_rec_see'))} →</button></li>`]);
+
+    // ── Streaks going and ended ──
+    const going = [];
+    for (const type of ['songs', 'artists']) {
+      for (const k in day[type]) {
+        const n = dyRunEnding(h, type, k, ds);
+        if (n >= 3) going.push({ type, k, n });
+      }
+    }
+    going.sort((a, b) => b.n - a.n);
+    const yest = dyShift(ds, -1), ended = [];
+    // Today is not over yet: its runs are not "ended" but listed under Goals
+    // as "play it today to keep a … streak"
+    if (h.byDay[yest] && currentOffset !== 0) {
+      for (const type of ['songs', 'artists']) {
+        for (const k in h.byDay[yest][type]) {
+          if (day[type][k]) continue;
+          const n = dyRunEnding(h, type, k, yest);
+          if (n >= 3) ended.push({ type, k, n });
+        }
+      }
+    }
+    ended.sort((a, b) => b.n - a.n);
+    const yLabel = (type, k) => type === 'songs' ? (h.byDay[yest].songs[k].title + ' — ' + h.byDay[yest].songs[k].artist) : k;
+    const sRows = going.slice(0, 3).map(x => row(label[x.type](x.k), t('dy_streak_on', { n: x.n })))
+      .concat(ended.slice(0, 2).map(x => row(yLabel(x.type, x.k), t('dy_streak_ended', { n: x.n }))));
+    if (sRows.length) blocks.push(['list', t('dy_streaks'), sRows.join('')]);
+  }
+
+  // ── Goals ──
+  const goals = [];
+  const n = day ? day.plays : 0;
+  const isToday = currentOffset === 0;
+  const dayName = dyDayName(ds);
+  const goal = (best, newKey, leftKey, shortKey) => {
+    if (!best) return;
+    if (n > best) goals.push(row(t(newKey, { day: dayName }), t('dy_goal_beat', { was: best.toLocaleString() })));
+    else goals.push(row(t(isToday ? leftKey : shortKey, { n: (best - n + 1).toLocaleString(), day: dayName }), t('dy_goal_best', { n: best.toLocaleString() })));
+  };
+  goal(bestWd, 'dy_goal_new_wd', 'dy_goal_left_wd', 'dy_goal_short_wd');
+  if (bestAll > bestWd || n > bestWd) goal(bestAll, 'dy_goal_new_all', 'dy_goal_left_all', 'dy_goal_short_all');
+
+  // Close to a milestone, as the day ended: the smallest gaps, relative to the
+  // round number. Only for what you played in the 30 days up to it, so a song
+  // you dropped months ago is not "almost there".
+  const recent = { songs: new Set(), artists: new Set(), albums: new Set() };
+  for (let i = 0; i < 30; i++) {
+    const x = h.byDay[dyShift(ds, -i)];
+    if (x) for (const type of ['songs', 'artists', 'albums']) for (const k in x[type]) recent[type].add(k);
+  }
+  const close = [];
+  for (const type of ['songs', 'artists', 'albums']) {
+    for (const k of recent[type]) {
+      const c = after[type][k] || 0;
+      if (c < DY_MS[type][0] / 2) continue;
+      const m = dyNextMs(type, c);
+      const left = m - c;
+      if (left <= Math.max(3, m * 0.05)) close.push({ type, k, m, left, r: left / m });
+    }
+  }
+  close.sort((a, b) => a.r - b.r || b.m - a.m);
+  const closeLabel = x => x.type === 'songs' ? (allSongName(x.k) || x.k) : label[x.type](x.k);
+  close.slice(0, 3).forEach(x => goals.push(row(closeLabel(x), t('dy_goal_close', { n: x.left.toLocaleString(), m: x.m.toLocaleString() }))));
+
+  // Today only: streaks that end unless played today
+  if (isToday) {
+    const yest = dyShift(ds, -1);
+    const alive = [];
+    if (h.byDay[yest]) {
+      for (const type of ['artists', 'songs']) {
+        for (const k in h.byDay[yest][type]) {
+          if (day && day[type][k]) continue;
+          const len = dyRunEnding(h, type, k, yest);
+          if (len >= 3) alive.push({ type, k, len, name: type === 'songs' ? h.byDay[yest].songs[k].title + ' — ' + h.byDay[yest].songs[k].artist : k });
+        }
+      }
+    }
+    var keepRows = alive.sort((a, b) => b.len - a.len).slice(0, 3).map(x => row(x.name, t('dy_goal_keep', { n: x.len })));
+  }
+  if (goals.length) blocks.push(['list', t('dy_goals'), goals.join('')]);
+  // Its own list, so the day's goals and the streaks at stake read apart
+  if (keepRows && keepRows.length) blocks.push(['list', t('dy_keep_title'), keepRows.join('')]);
+
+  if (!blocks.length) return '';
+  const awards = blocks.filter(b => b[0] === 'awards').map(b => `<div class="dy-awards-wrap"><span class="ns-x-title">${esc(b[1])}</span>${b[2]}</div>`).join('');
+  const lists = blocks.filter(b => b[0] === 'list').map(([, title, body]) => `<div class="dy-mem-block"><span class="ns-x-title">${esc(title)}</span><ul class="dy-mem-list">${body}</ul></div>`).join('');
+  return `
+    <section class="dy-tod dy-ms" aria-label="${esc(t('dy_ms_title'))}">
+      <div class="dy-tod-head"><span class="ns-x-title">${esc(t('dy_ms_title'))}</span></div>
+      ${awards}
+      ${lists ? `<div class="dy-mem-grid">${lists}</div>` : ''}
+    </section>`;
+}
+
+// "Title — Artist" for a song key, from its newest play (for keys not played on the day)
+let _dyNameCache = null;
+function allSongName(k) {
+  if (!_dyNameCache || _dyNameCache.n !== allPlays.length) {
+    const m = new Map();
+    for (const p of allPlays) { const sk = songKey(p); if (!m.has(sk)) m.set(sk, p.title + ' — ' + p.artist); }
+    _dyNameCache = { n: allPlays.length, m };
+  }
+  return _dyNameCache.m.get(k);
 }
 
 // ─── MEMORIES (phase 5) ───────────────────────────────────────────────────

@@ -27633,7 +27633,8 @@ function renderCertReel(start, end) {
 
   // Weekly and monthly only. A year hands over hundreds of plaques, which is a
   // wall, not a reel — and that wall already exists in Records.
-  if ((currentPeriod !== 'week' && currentPeriod !== 'month') || !allPlays.length) {
+  // ...and the Daily tab (daily.js), where a day's awards are a short shelf too
+  if ((currentPeriod !== 'day' && currentPeriod !== 'week' && currentPeriod !== 'month') || !allPlays.length) {
     hideCertReel();
     return;
   }
