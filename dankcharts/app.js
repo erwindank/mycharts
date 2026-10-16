@@ -33402,11 +33402,14 @@ function renderNowStripDayMore(sortedDays, streak, pb, todayNum) {
       </div>
       <div class="ns-more-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${goal}" aria-valuenow="${streak}" aria-label="${esc(goalTxt)}"><i style="width:${fill}%"></i></div>
       <div class="ns-more-goal-ends"><span>${esc(tCount('days', streak))}</span><span>${esc(goalEnd)}</span></div>
+      <!-- Since when + first song sit under the bar: they belong to this run -->
+      <div class="ns-more-since">
+        <span class="ns-more-h">${esc(t('ns_more_since', { d: fmt(cur.start) }))}</span>
+        ${firstPlay ? `<span class="ns-more-first" title="${esc(firstPlay.title + ' — ' + firstPlay.artist)}">${esc(t('ns_more_first'))} <b>${esc(firstPlay.title)}</b> <span>— ${esc(firstPlay.artist)}</span></span>` : ''}
+      </div>
     </div>
     <div class="ns-more-col">
-      <span class="ns-more-h">${esc(t('ns_more_since', { d: fmt(cur.start) }))}</span>
-      ${firstPlay ? `<span class="ns-more-first" title="${esc(firstPlay.title + ' — ' + firstPlay.artist)}">${esc(t('ns_more_first'))} <b>${esc(firstPlay.title)}</b> <span>— ${esc(firstPlay.artist)}</span></span>` : ''}
-      <span class="ns-more-h ns-more-h2">${esc(t('ns_more_top'))}</span>
+      <span class="ns-more-h">${esc(t('ns_more_top'))}</span>
       <span class="ns-more-pills">${pills}</span>
     </div>
     ${itemRows ? `<div class="ns-more-col ns-more-items">
