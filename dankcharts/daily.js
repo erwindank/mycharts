@@ -104,8 +104,11 @@ function dyHistory() {
   for (const p of allPlays) {
     const ds = dayStrOf(p);
     const ms = msOf(p);
-    const d = byDay[ds] || (byDay[ds] = { plays: 0, songs: {}, artists: {}, albums: {} });
+    const d = byDay[ds] || (byDay[ds] = { plays: 0, songs: {}, artists: {}, albums: {}, firstP: p, firstMs: ms, lastP: p, lastMs: ms });
     d.plays++;
+    // The day's first and last play, for the day panel (phase 2)
+    if (ms < d.firstMs) { d.firstMs = ms; d.firstP = p; }
+    if (ms > d.lastMs) { d.lastMs = ms; d.lastP = p; }
     const sk = songKey(p);
     const s = d.songs[sk] || (d.songs[sk] = { count: 0, first: ms, title: p.title, artist: p.artist, _albums: {} });
     s.count++; if (ms < s.first) s.first = ms;
@@ -413,6 +416,7 @@ function dyRenderChart(h, ds) {
     : `<div class="empty-state"><p>${t('empty_no_plays')}</p></div>`;
 
   view.innerHTML = `
+    ${dyPanelHtml(h, ds)}
     ${toolbar}
     <div class="chart-section dy-section">
       <div class="section-header">
@@ -424,6 +428,91 @@ function dyRenderChart(h, ds) {
     </div>`;
 
   if (imgItems.length) loadImages(imgItems, type === 'songs' ? 'song' : type === 'artists' ? 'artist' : 'album');
+}
+
+// ─── DAY PANEL (phase 2) ──────────────────────────────────────────────────
+/* A card above the chart about the day on screen, moved over from the
+   listening streak card's extras (renderNowStripExtra in app.js), which only
+   ever describe today:
+     - a ring of the day's plays against your usual day (the average over the
+       days you listened in the 30 before it), with the day's first and last
+       song and its top artist
+     - the 7 days ending on it as bars, the day itself lit; click a bar to go
+       to that day. Beside them the change on the 7 days before, and the song
+       on repeat: the one played on the most of those 7 days (3 or more). */
+function dyPanelHtml(h, ds) {
+  const day = h.byDay[ds];
+  const n = day ? day.plays : 0;
+
+  // Your usual day, before this one
+  let sum = 0, cnt = 0;
+  for (let i = 1; i <= 30; i++) { const d = h.byDay[dyShift(ds, -i)]; if (d) { sum += d.plays; cnt++; } }
+  const usual = cnt ? Math.round(sum / cnt) : 0;
+
+  const songLine = (lbl, p) => p
+    ? `<span class="ns-x-line" title="${esc(p.title + ' — ' + p.artist)}"><em>${esc(lbl)}</em> ${esc(p.title)} <span>— ${esc(p.artist)}</span></span>` : '';
+  let top = null;
+  if (day) for (const [a, e] of Object.entries(day.artists)) if (!top || e.count > top[1]) top = [a, e.count];
+  const dayTitle = currentOffset === 0 ? t('dy_today') : currentOffset === 1 ? t('dy_yesterday') : dyDayName(ds);
+  const dayBlock = `
+    <div class="dy-pblock">
+      ${nsRingSvg(n, usual)}
+      <div class="ns-x-text">
+        <span class="ns-x-title">${esc(dayTitle)}</span>
+        <span class="ns-x-line"><b>${esc(tCount('plays', n))}</b>${usual ? ` <span>${esc(t('ns_x_usual', { n: usual.toLocaleString() }))}</span>` : ''}</span>
+        ${day ? songLine(t('ns_x_first'), day.firstP) + (day.plays > 1 ? songLine(t('dy_last'), day.lastP) : '') : `<span class="ns-x-line"><span>${esc(t('dy_nothing_played'))}</span></span>`}
+        ${top ? `<span class="ns-x-line"><em>${esc(t('ns_x_top'))}</em> ${esc(top[0])} <span>· ${esc(tCount('plays', top[1]))}</span></span>` : ''}
+      </div>
+    </div>`;
+
+  // The 7 days ending on this one
+  const week = [];
+  let wSum = 0, pSum = 0;
+  for (let i = 6; i >= 0; i--) { const d = dyShift(ds, -i); const c = (h.byDay[d] || {}).plays || 0; week.push({ ds: d, n: c }); wSum += c; }
+  for (let i = 7; i < 14; i++) pSum += (h.byDay[dyShift(ds, -i)] || {}).plays || 0;
+  const pct = pSum ? Math.round((wSum - pSum) / pSum * 100) : null;
+  const max = Math.max(1, ...week.map(d => d.n));
+  const lang = typeof currentLang !== 'undefined' ? currentLang : undefined;
+  const today = localDateStr(tzNow());
+  const bars = week.map(d => {
+    const dt = dyDate(d.ds);
+    const tip = dt.toLocaleDateString(lang, { weekday: 'short', day: 'numeric', month: 'short' }) + ' · ' + tCount('plays', d.n);
+    // Clicking a bar goes to that day (currentOffset counts days back from today)
+    const off = Math.round((dyDate(today) - dt) / 86400000);
+    return `<button type="button" class="ns-wk-col dy-wk-col${d.ds === ds ? ' is-today' : ''}" title="${esc(tip)}" onclick="dyGoOffset(${off})"><i style="height:${d.n ? Math.max(8, d.n / max * 100).toFixed(0) : 0}%"></i><small>${esc(dt.toLocaleDateString(lang, { weekday: 'narrow' }))}</small></button>`;
+  }).join('');
+
+  // On repeat: the song played on the most of these 7 days
+  const songDays = {};
+  for (const w of week) { const d = h.byDay[w.ds]; if (d) for (const k in d.songs) songDays[k] = (songDays[k] || 0) + 1; }
+  let rep = null;
+  for (const [k, c] of Object.entries(songDays)) if (c >= 3 && (!rep || c > rep[1])) rep = [k, c];
+  let repLine = '';
+  if (rep) {
+    let info = null;
+    for (const w of week) { const d = h.byDay[w.ds]; if (d && d.songs[rep[0]]) info = d.songs[rep[0]]; }
+    repLine = `<span class="ns-x-line" title="${esc(info.title + ' — ' + info.artist)}"><em>${esc(t('ns_x_on_repeat'))}</em> ${esc(info.title)} <span>· ${esc(t('ns_x_days_of_7', { n: rep[1] }))}</span></span>`;
+  }
+  const pctHtml = pct === null ? '' :
+    `<span class="ns-x-line"><span class="ns-wk-pct ${pct > 0 ? 'is-up' : pct < 0 ? 'is-down' : ''}">${pct > 0 ? '▲ ' : pct < 0 ? '▼ ' : '± '}${Math.abs(pct)}%</span> <span>${esc(t('ns_x_vs_week'))}</span></span>`;
+  const weekBlock = `
+    <div class="dy-pblock">
+      <div class="ns-wk-bars">${bars}</div>
+      <div class="ns-x-text">
+        <span class="ns-x-title">${esc(t('ns_x_week'))}</span>
+        <span class="ns-x-line"><b>${esc(tCount('plays', wSum))}</b></span>
+        ${pctHtml}${repLine}
+      </div>
+    </div>`;
+
+  return `<div class="dy-panel">${dayBlock}${weekBlock}</div>`;
+}
+
+// A bar in the panel: go to that day
+function dyGoOffset(off) {
+  if (off < 0) return;
+  currentOffset = off;
+  renderAll();
 }
 
 // The cover cell, the same markup the other charts use (so the picture picker works)

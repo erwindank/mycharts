@@ -36378,3 +36378,56 @@ body[data-view="day"] .daily-view {
     display: none;
   }
 }
+
+/* ---- Daily tab: the day panel (phase 2) ----
+   The day's ring and the last-7-days bars, moved over from the streak card's
+   extras: the ring, bar and line styles (.ns-ring, .ns-wk-*, .ns-x-*) are
+   the same ones, laid out here as two blocks in one card. */
+.dy-panel {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-bottom: var(--sp-4);
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--bg2);
+  border: 1px solid var(--border-t, var(--border));
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-1);
+}
+
+.dy-pblock {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.dy-pblock + .dy-pblock {
+  padding-left: var(--sp-4);
+  border-left: 1px solid var(--border);
+}
+
+/* The bars are buttons here: each goes to its day */
+.dy-wk-col {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+.dy-wk-col:hover i {
+  background: color-mix(in srgb, var(--accent) 70%, var(--raised));
+}
+
+@media (max-width: 700px) {
+  .dy-panel {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--sp-3);
+  }
+
+  .dy-pblock + .dy-pblock {
+    padding: var(--sp-3) 0 0;
+    border-left: 0;
+    border-top: 1px solid var(--border);
+  }
+}
