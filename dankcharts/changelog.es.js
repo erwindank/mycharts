@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Share, play and relive a day on the Daily chart":
+    ["Comparte, escucha y revive un día en la lista diaria",
+     "Cuatro botones bajo los controles de la lista diaria. Resumen del día abre una historia a pantalla completa del día, una diapositiva tras otra: tus reproducciones frente a tu día habitual, tu canción #1, tu artista top, cuándo escuchaste, los destacados y una última para compartir o escucharlo; avanza sola y puedes tocar cualquier lado o usar las flechas. Compartir imagen abre el mismo diseñador que las otras listas (todos los diseños, paletas y formatos), ahora con el título \"del Día\" y los días en la lista diaria. Reproducir top N pone las canciones del día en la cola del reproductor, y Guardar como playlist las guarda en Playlists."],
+
   "Milestones and goals on the Daily chart":
     ["Hitos y metas en la lista diaria",
      "Una tarjeta de Hitos y metas al final de la lista diaria. Reparte los premios del día (canción, artista y álbum del día, el descubrimiento del día y el regreso del día), muestra canciones, artistas y álbumes que llegaron a una cifra redonda de reproducciones, los récords batidos ese día (tus más reproducciones de una canción o un artista en un día, con un enlace a Récords), las rachas que siguen y las que terminaron, y metas: cuánto le faltó al día para tu mejor día de la semana igual y tu mayor día, lo que escuchaste últimamente que está a pocas reproducciones de su próximo hito y, hoy, las rachas que terminan si no las escuchas hoy. Las certificaciones ganadas ese día aparecen ahora en la misma cinta de Certificados que en Semanal y Mensual."],

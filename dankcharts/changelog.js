@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 138;
+const DC_CL_I18N_V = 139;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-16', t: 'feature', a: 'charts', h: '478326d',
+    title: "Share, play and relive a day on the Daily chart",
+    detail: "Four buttons under the Daily chart's controls. Day recap opens a full-screen story of the day, one slide at a time: your plays against your usual day, your #1 song, your top artist, when you listened, the highlights, and an end slide to share or play it; it moves on by itself, and you can tap either side or use the arrow keys. Share image opens the same designer as the other charts (every design, palette and format), now headed \"of the Day\" with days on the daily chart. Play top N puts the day's songs into the player queue, and Save as playlist keeps them under Playlists." },
 
   { d: '2026-10-16', t: 'feature', a: 'charts', h: '83ca66a',
     title: "Milestones and goals on the Daily chart",

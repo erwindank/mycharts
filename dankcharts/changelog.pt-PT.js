@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Share, play and relive a day on the Daily chart":
+    ["Partilha, ouve e revive um dia na tabela diária",
+     "Quatro botões por baixo dos controlos da tabela diária. Resumo do dia abre uma história em ecrã inteiro do dia, um slide de cada vez: os teus plays face ao teu dia habitual, a tua música #1, o teu artista top, quando ouviste, os destaques e um slide final para partilhar ou tocar; avança sozinha e podes tocar em qualquer lado ou usar as setas. Partilhar imagem abre o mesmo editor das outras tabelas (todos os designs, paletas e formatos), agora com o título \"do Dia\" e os dias na tabela diária. Tocar top N põe as músicas do dia na fila do leitor, e Guardar como playlist guarda-as em Playlists."],
+
   "Milestones and goals on the Daily chart":
     ["Marcos e metas na tabela diária",
      "Um cartão de Marcos e metas no fim da tabela diária. Entrega os prémios do dia (música, artista e álbum do dia, a descoberta do dia e o regresso do dia), mostra músicas, artistas e álbuns que chegaram a um número redondo de plays, os recordes batidos nesse dia (os teus mais plays de uma música ou de um artista num dia, com uma ligação para Recordes), as sequências que continuam e as que terminaram, e metas: quanto faltou para o teu melhor dia da mesma semana e para o teu maior dia, o que ouviste ultimamente que está a poucos plays do próximo marco e, hoje, as sequências que terminam se não as ouvires hoje. As certificações ganhas nesse dia aparecem agora na mesma faixa de Certificados do Semanal e do Mensal."],
