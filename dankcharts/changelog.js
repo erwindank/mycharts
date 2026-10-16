@@ -80,7 +80,7 @@ const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
 
-  { d: '2026-10-16', t: 'improvement', a: 'charts', h: '24445de',
+  { d: '2026-10-16', t: 'change', a: 'charts', h: '24445de',
     title: "Streak details stay with a song on air, and can be hidden",
     detail: "The listening streak row under the top strip now shows while a song is on air too. A small handle on the strip's bottom edge folds that row away on its own, without hiding the song or the streaks, and the site remembers your choice." },
 
