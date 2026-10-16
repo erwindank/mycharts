@@ -36872,3 +36872,279 @@ body[data-view="day"] .daily-view {
     max-width: 100%;
   }
 }
+
+/* ---- Daily tab: sharing (phase 7) ----
+   A row of actions under the chart toolbar, and the full-screen recap story. */
+.dy-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-3);
+}
+
+.dy-act {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  background: var(--bg2);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.dy-act:hover:not(:disabled) {
+  background: var(--hover);
+}
+
+.dy-act:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.dy-act-main {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 600;
+}
+
+.dy-act-main:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 85%, var(--text));
+}
+
+/* The recap: a dimmed page with one tall card in the middle */
+body.dy-recap-open {
+  overflow: hidden;
+}
+
+.dy-recap {
+  position: fixed;
+  inset: 0;
+  z-index: 10050;
+  display: grid;
+  place-items: center;
+  padding: var(--sp-4);
+  background: rgba(0, 0, 0, 0.72);
+  animation: dy-rc-fade 0.25s ease;
+}
+
+@keyframes dy-rc-fade {
+  from { opacity: 0; }
+}
+
+.dy-rc-card {
+  position: relative;
+  width: min(420px, 100%);
+  height: min(740px, calc(100vh - 32px));
+  overflow: hidden;
+  border-radius: 18px;
+  background:
+    radial-gradient(120% 70% at 80% 0%, color-mix(in srgb, var(--accent) 45%, transparent), transparent 60%),
+    radial-gradient(90% 60% at 0% 100%, color-mix(in srgb, var(--accent2) 35%, transparent), transparent 60%),
+    var(--bg2);
+  color: var(--text);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+}
+
+.dy-rc-bars {
+  position: absolute;
+  top: 12px;
+  left: 14px;
+  right: 14px;
+  z-index: 3;
+  display: flex;
+  gap: 4px;
+}
+
+.dy-rc-bars span {
+  flex: 1;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--text) 25%, transparent);
+}
+
+.dy-rc-bars i {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: var(--text);
+}
+
+.dy-rc-bars span.is-done i {
+  width: 100%;
+}
+
+.dy-rc-x {
+  position: absolute;
+  top: 22px;
+  right: 12px;
+  z-index: 4;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--bg) 50%, transparent);
+  color: var(--text);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* Left and right halves move back and forward; under the slide's own buttons */
+.dy-rc-nav {
+  position: absolute;
+  top: 60px;
+  bottom: 0;
+  z-index: 1;
+  width: 50%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.dy-rc-nav.is-prev { left: 0; cursor: w-resize; }
+.dy-rc-nav.is-next { right: 0; cursor: e-resize; }
+
+.dy-rc-stage {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 64px 28px 40px;
+  text-align: center;
+  pointer-events: none;
+}
+
+.dy-rc-slide {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  width: 100%;
+  animation: dy-rc-in 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes dy-rc-in {
+  from { opacity: 0; transform: translateY(14px); }
+}
+
+.dy-rc-slide p {
+  margin: 0;
+}
+
+/* Buttons on the last slide sit above the tap halves */
+.dy-rc-btns {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  gap: var(--sp-2);
+  margin-top: var(--sp-4);
+  pointer-events: auto;
+}
+
+.dy-rc-kicker {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text2);
+}
+
+.dy-rc-date {
+  font-size: var(--fs-sm);
+  color: var(--text3);
+}
+
+.dy-rc-big {
+  margin-top: var(--sp-3) !important;
+  font-family: var(--font-display, var(--font-sans));
+  font-size: 96px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.dy-rc-label {
+  font-size: var(--fs-lg);
+  font-weight: 600;
+}
+
+.dy-rc-title {
+  font-family: var(--font-display, var(--font-sans));
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.dy-rc-line {
+  font-size: var(--fs-md, 1rem);
+  color: var(--text);
+}
+
+.dy-rc-line.is-dim { color: var(--text2); }
+.dy-rc-line.is-accent { color: var(--accent); font-weight: 700; }
+
+.dy-rc-cover {
+  width: min(240px, 60vw);
+  aspect-ratio: 1;
+  margin: var(--sp-3) 0;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--raised);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+}
+
+.dy-rc-cover.is-round {
+  border-radius: 50%;
+}
+
+.dy-rc-cover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dy-rc-hours {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  width: 100%;
+  height: 140px;
+  margin: var(--sp-4) 0;
+}
+
+.dy-rc-hours i {
+  flex: 1;
+  border-radius: 3px 3px 0 0;
+  background: color-mix(in srgb, var(--text) 30%, transparent);
+}
+
+.dy-rc-hours i.is-busy {
+  background: var(--accent);
+}
+
+.dy-rc-list {
+  display: grid;
+  gap: var(--sp-3);
+  margin: var(--sp-3) 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--fs-lg);
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dy-recap,
+  .dy-rc-slide {
+    animation: none;
+  }
+}

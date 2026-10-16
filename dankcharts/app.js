@@ -21185,6 +21185,8 @@ function shChartContext(type, opts) {
   else if (currentPeriod === 'month') { kicker = t('ig_period_of_month'); dateLine = dr.label; }
   else if (currentPeriod === 'year') { kicker = t('ig_period_of_year', { year: dr.label }); dateLine = dr.label; }
   else if (currentPeriod === 'alltime') { kicker = t('ig_alltime_period'); dateLine = t('ig_alltime_period'); }
+  // Daily tab (daily.js fills fullData / lastPeriodStats / lastPeaks for it)
+  else if (currentPeriod === 'day') { kicker = t('ig_period_of_day'); dateLine = dr.sub || dr.label; }
 
   const src = opts.artSource || 'deezer';
   const rows = items.map((item, i) => {
@@ -21198,7 +21200,10 @@ function shChartContext(type, opts) {
       rank, key, name, sub: sub2, songCount,
       plays: item.count,
       weeks,
-      weeksLabel: weeks ? (weeks === 1 ? t('ig_week_1') : t('ig_weeks_n', { n: weeks })) : '',
+      // On the Daily tab the count is days on the daily chart this month
+      weeksLabel: !weeks ? '' : currentPeriod === 'day'
+        ? (weeks === 1 ? t('ig_day_1') : t('ig_days_n', { n: weeks }))
+        : (weeks === 1 ? t('ig_week_1') : t('ig_weeks_n', { n: weeks })),
       peak: igPeakOf(key, type, lastPeaks),
       mv: igMovement(rank, key, type),
       art: opts.showArt ? (igArtCache[key + ':ig:' + src] || null) : null,

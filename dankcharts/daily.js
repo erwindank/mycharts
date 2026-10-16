@@ -431,9 +431,13 @@ function dyRenderChart(h, ds) {
   const todImgs = [];
   const tod = dyTimeOfDayHtml(h, ds, todImgs);
 
+  // What the Share image designer reads (phase 7)
+  dyPublishForShare(h, ds);
+
   view.innerHTML = `
     ${dyPanelHtml(h, ds)}
     ${toolbar}
+    ${dyActionsHtml(type, (h.charts.songs[ds] || []).length)}
     <div class="chart-section dy-section">
       <div class="section-header">
         <h2>${DY_TYPE_ICONS[type]}<span class="section-title-text">${esc(t(titleKey, { n: dySize }).replace(/^[★♦◈]\s*/, ''))}</span></h2>
@@ -578,6 +582,294 @@ function dyTimeOfDayHtml(h, ds, imgOut) {
       <div class="dy-ticks" aria-hidden="true">${ticks}</div>
       <div class="dy-parts">${parts}</div>
     </section>`;
+}
+
+// ─── SHARING (phase 7) ────────────────────────────────────────────────────
+/* Three ways to take a day with you, in a row under the chart toolbar:
+     - Share image: the same designer as the other charts (openIgPreviewModal
+       in app.js, every template, palette and format). It reads the chart on
+       screen from fullData / lastPeriodStats / lastPeaks / chartSize, so
+       dyPublishForShare() fills those in the shape the weekly chart leaves
+       them; shChartContext() knows the 'day' period for its headline.
+     - Play top N: the day's top songs into the YouTube player queue, the
+       same as Play all on the weekly chart. Save as playlist keeps them under
+       Playlists ("Daily chart · 16 Oct 2026").
+     - Recap: a short full-screen story of the day, one slide at a time
+       (dyOpenRecap below). */
+
+// Puts the viewed day's charts where the share designer reads them
+function dyPublishForShare(h, ds) {
+  const day = h.byDay[ds];
+  const cmp = dyCompareDay(ds);
+  const stats = { prevChart: { songs: {}, artists: {}, albums: {} }, everChartedBefore: { songs: new Set(), artists: new Set(), albums: new Set() }, periodsOnChart: { songs: {}, artists: {}, albums: {} } };
+  const peaks = { songPeakMap: {}, artistPeakMap: {}, albumPeakMap: {} };
+  const peakKey = { songs: 'songPeakMap', artists: 'artistPeakMap', albums: 'albumPeakMap' };
+  for (const type of ['songs', 'artists', 'albums']) {
+    const chart = h.charts[type][ds] || [];
+    for (const r of h.charts[type][cmp] || []) stats.prevChart[type][r.k] = { rank: r.rank, count: r.count };
+    const facts = dyEntryFacts(h, type, ds);
+    for (const r of chart) {
+      const f = facts[r.k] || {};
+      if (f.before) stats.everChartedBefore[type].add(r.k);
+      stats.periodsOnChart[type][r.k] = f.monthDays || 1;
+      if (f.peak && isFinite(f.peak)) peaks[peakKey[type]][r.k] = f.peak;
+    }
+    fullData[type] = !day ? [] : chart.map(r => {
+      if (type === 'songs') { const s = day.songs[r.k]; return { title: s.title, artist: s.artist, album: bestAlbum(s.title, s._albums), count: r.count, firstAchieved: s.first }; }
+      if (type === 'artists') return { name: r.k, count: r.count, songs: day.artists[r.k] ? day.artists[r.k].songs : new Set() };
+      const i = r.k.lastIndexOf('|||');
+      return { album: i < 0 ? r.k : r.k.slice(0, i), artist: i < 0 ? '' : r.k.slice(i + 3), count: r.count };
+    });
+  }
+  lastPeriodStats = stats;
+  lastPeaks = peaks;
+  chartSize = dySize;
+}
+
+// The day's songs in chart order, for the player and playlists
+function dyTopSongs(h, ds) {
+  const day = h.byDay[ds];
+  return (h.charts.songs[ds] || []).map(r => { const s = day.songs[r.k]; return { title: s.title, artist: s.artist, album: bestAlbum(s.title, s._albums) }; });
+}
+
+function dyPlayTop() {
+  const songs = dyTopSongs(dyHistory(), dyViewedDay());
+  if (!songs.length) return;
+  const [first, ...rest] = songs;
+  openYtPlayer(first.title, first.artist, first.album, null);
+  rest.forEach(s => _ytQueue.push({ title: s.title, artist: s.artist, album: s.album, btn: null }));
+  _ytUpdateQueueDisplay();
+  _ytSaveQueue();
+}
+
+function dySavePlaylist() {
+  const ds = dyViewedDay();
+  const songs = dyTopSongs(dyHistory(), ds);
+  if (!songs.length) return;
+  const name = t('dy_pl_name', { date: fmt(dyDate(ds)) });
+  _ytPlaylists[name] = songs;
+  _ytTouchPlaylist(name);
+  _ytSavePlaylists();
+  _ytRenderPlaylists();
+  if (typeof dcPlToast === 'function') dcPlToast(t('dy_pl_saved', { name }));
+}
+
+// type: the chart on screen (what Share image draws); nSongs: the day's song
+// chart length (what Play and Save use, whichever chart is on screen)
+function dyActionsHtml(type, nSongs) {
+  const off = nSongs ? '' : ' disabled';
+  return `
+    <div class="dy-actions">
+      <button type="button" class="dy-act dy-act-main" onclick="dyOpenRecap()"${off}>✦ ${esc(t('dy_recap'))}</button>
+      <button type="button" class="dy-act" onclick="openIgPreviewModal('${type}')"${off}>📷 ${esc(t('dy_share_img'))}</button>
+      <button type="button" class="dy-act" onclick="dyPlayTop()"${off}>▶ ${esc(t('dy_play_top', { n: nSongs }))}</button>
+      <button type="button" class="dy-act" onclick="dySavePlaylist()"${off}>＋ ${esc(t('dy_save_pl'))}</button>
+    </div>`;
+}
+
+// ─── RECAP STORY ──────────────────────────────────────────────────────────
+/* A full-screen story of the day, Wrapped style: progress bars across the
+   top, one slide at a time, moving on by itself every 6 seconds. Tap or click
+   the right side (or →) for the next slide, the left side (or ←) to go back,
+   Esc or × to close; hovering or holding pauses it. Slides: the day in plays,
+   the #1 song, the top artist, when you listened (or how varied it was, for
+   date-only plays), the highlights, and an end slide with Share image and
+   Play. Covers come from getArtAuto, the same lookup as the rest of the app. */
+const DY_RECAP_MS = 6000;
+let _dyRc = null;   // { slides, i, timer, started, paused, el }
+
+function dyRecapSlides(h, ds) {
+  const day = h.byDay[ds];
+  if (!day) return [];
+  const slides = [];
+  const dayName = dyDayName(ds);
+
+  // 1. The day in numbers, against your usual day
+  let sum = 0, cnt = 0;
+  for (let i = 1; i <= 30; i++) { const d = h.byDay[dyShift(ds, -i)]; if (d) { sum += d.plays; cnt++; } }
+  const usual = cnt ? sum / cnt : 0;
+  const pct = usual ? Math.round((day.plays - usual) / usual * 100) : null;
+  const vs = pct === null ? '' : Math.abs(pct) < 5 ? t('dy_rc_same') : t(pct > 0 ? 'dy_rc_up' : 'dy_rc_down', { pct: Math.abs(pct) });
+  slides.push({ cls: 'is-intro', html: `
+    <p class="dy-rc-kicker">${esc(t('dy_rc_intro', { day: dayName }))}</p>
+    <p class="dy-rc-date">${esc(fmt(dyDate(ds)))}</p>
+    <p class="dy-rc-big">${day.plays.toLocaleString()}</p>
+    <p class="dy-rc-label">${esc(tUnit('plays', day.plays))}</p>
+    <p class="dy-rc-line">${esc(t('dy_rc_counts', { s: tCount('songs', Object.keys(day.songs).length), a: tCount('artists', Object.keys(day.artists).length) }))}</p>
+    ${vs ? `<p class="dy-rc-line is-dim">${esc(vs)}</p>` : ''}` });
+
+  // 2. The #1 song
+  const s1 = (h.charts.songs[ds] || [])[0];
+  if (s1) {
+    const s = day.songs[s1.k];
+    const album = bestAlbum(s.title, s._albums);
+    slides.push({ cls: 'is-song', art: { type: album && album !== '—' ? 'album' : 'song', name: album && album !== '—' ? album : s.title, artist: s.artist, album }, html: `
+      <p class="dy-rc-kicker">${esc(t('dy_rc_no1'))}</p>
+      <div class="dy-rc-cover"></div>
+      <p class="dy-rc-title">${esc(s.title)}</p>
+      <p class="dy-rc-line">${esc(s.artist)}</p>
+      <p class="dy-rc-line is-accent">${esc(tCount('plays', s1.count))}</p>` });
+  }
+
+  // 3. The top artist
+  const a1 = (h.charts.artists[ds] || [])[0];
+  if (a1) {
+    const share = Math.round(a1.count / day.plays * 100);
+    slides.push({ cls: 'is-artist', art: { type: 'artist', name: a1.k }, html: `
+      <p class="dy-rc-kicker">${esc(t('dy_rc_artist'))}</p>
+      <div class="dy-rc-cover is-round"></div>
+      <p class="dy-rc-title">${esc(a1.k)}</p>
+      <p class="dy-rc-line is-accent">${esc(tCount('plays', a1.count))}</p>
+      <p class="dy-rc-line is-dim">${esc(t('dy_rc_share', { pct: share }))}</p>` });
+  }
+
+  // 4. When you listened (or, with date-only plays, how varied the day was)
+  if (h.timed) {
+    const hours = new Array(24).fill(0);
+    for (const p of day.list) hours[tzDateOf(p).getHours()]++;
+    let busy = 0;
+    for (let i = 1; i < 24; i++) if (hours[i] > hours[busy]) busy = i;
+    const max = Math.max(1, ...hours);
+    const bars = hours.map((n, i) => `<i class="${i === busy ? 'is-busy' : ''}" style="height:${n ? Math.max(6, n / max * 100) : 2}%"></i>`).join('');
+    slides.push({ cls: 'is-when', html: `
+      <p class="dy-rc-kicker">${esc(t('dy_rc_when'))}</p>
+      <div class="dy-rc-hours">${bars}</div>
+      <p class="dy-rc-title">${esc(t('dy_rc_busiest', { hour: dyHourLabel(busy) }))}</p>
+      <p class="dy-rc-line is-dim">${esc(tCount('plays', hours[busy]))}</p>` });
+  } else {
+    const v = Object.keys(day.songs).length / day.plays;
+    const label = v >= 0.7 ? 'dy_var_explorer' : v <= 0.35 ? 'dy_var_loyal' : 'dy_var_mixed';
+    slides.push({ cls: 'is-when', html: `
+      <p class="dy-rc-kicker">${esc(t('dy_pat_variety'))}</p>
+      <p class="dy-rc-title">${esc(t(label))}</p>
+      <p class="dy-rc-line">${esc(t('dy_var_line', { songs: Object.keys(day.songs).length, plays: day.plays }))}</p>` });
+  }
+
+  // 5. Highlights: first-ever plays, the day's rank, and the #1 run
+  if (!firstSeenMaps) firstSeenMaps = buildFirstSeenMaps();
+  const newSongs = Object.keys(day.songs).filter(k => firstSeenMaps.songFirst[k] && localDateStr(firstSeenMaps.songFirst[k]) === ds).length;
+  let rank = 1;
+  for (const d of h.days) if (h.byDay[d].plays > day.plays) rank++;
+  const no1 = dyNo1Facts(h, 'songs', ds);
+  const hl = [];
+  if (newSongs) hl.push(t('dy_rc_new', { n: newSongs }));
+  hl.push(t('dy_rank_all_tip', { n: rank.toLocaleString(), total: h.days.length.toLocaleString() }));
+  if (no1 && no1.run > 1) hl.push(t('dy_no1_run', { n: no1.run }));
+  slides.push({ cls: 'is-high', html: `
+    <p class="dy-rc-kicker">${esc(t('dy_rc_high'))}</p>
+    <ul class="dy-rc-list">${hl.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` });
+
+  // 6. The end: share or play it
+  slides.push({ cls: 'is-end', html: `
+    <p class="dy-rc-kicker">${esc(t('dy_rc_end'))}</p>
+    <p class="dy-rc-title">${esc(fmt(dyDate(ds)))}</p>
+    <div class="dy-rc-btns">
+      <button type="button" class="dy-act dy-act-main" onclick="dyCloseRecap();openIgPreviewModal('songs')">📷 ${esc(t('dy_share_img'))}</button>
+      <button type="button" class="dy-act" onclick="dyCloseRecap();dyPlayTop()">▶ ${esc(t('dy_play_top', { n: Math.min(dySize, (h.charts.songs[ds] || []).length) }))}</button>
+    </div>` });
+  return slides;
+}
+
+function dyOpenRecap() {
+  const h = dyHistory(), ds = dyViewedDay();
+  const slides = dyRecapSlides(h, ds);
+  if (!slides.length) return;
+  dyCloseRecap();
+  const el = document.createElement('div');
+  el.className = 'dy-recap';
+  el.setAttribute('role', 'dialog');
+  el.setAttribute('aria-modal', 'true');
+  el.setAttribute('aria-label', t('dy_recap'));
+  el.innerHTML = `
+    <div class="dy-rc-card">
+      <div class="dy-rc-bars">${slides.map(() => '<span><i></i></span>').join('')}</div>
+      <button type="button" class="dy-rc-x" aria-label="${esc(t('dy_rc_close'))}" title="${esc(t('dy_rc_close'))}">×</button>
+      <div class="dy-rc-stage"></div>
+      <button type="button" class="dy-rc-nav is-prev" aria-label="${esc(t('dy_rc_prev'))}"></button>
+      <button type="button" class="dy-rc-nav is-next" aria-label="${esc(t('dy_rc_next'))}"></button>
+    </div>`;
+  document.body.appendChild(el);
+  _dyRc = { slides, i: 0, timer: null, el, left: DY_RECAP_MS, at: 0, paused: false };
+  el.querySelector('.dy-rc-x').onclick = dyCloseRecap;
+  el.querySelector('.is-prev').onclick = () => dyRecapGo(_dyRc.i - 1);
+  el.querySelector('.is-next').onclick = () => dyRecapGo(_dyRc.i + 1);
+  el.addEventListener('click', e => { if (e.target === el) dyCloseRecap(); });
+  const card = el.querySelector('.dy-rc-card');
+  const pause = on => { if (!_dyRc || _dyRc.paused === on) return; _dyRc.paused = on; card.classList.toggle('is-paused', on); dyRecapTick(); };
+  card.addEventListener('pointerenter', () => pause(true));
+  card.addEventListener('pointerleave', () => pause(false));
+  document.addEventListener('keydown', dyRecapKeys);
+  document.body.classList.add('dy-recap-open');
+  dyRecapGo(0);
+  el.querySelector('.dy-rc-x').focus();
+}
+
+function dyRecapKeys(e) {
+  if (!_dyRc) return;
+  if (e.key === 'Escape') dyCloseRecap();
+  else if (e.key === 'ArrowRight') { e.preventDefault(); dyRecapGo(_dyRc.i + 1); }
+  else if (e.key === 'ArrowLeft') { e.preventDefault(); dyRecapGo(_dyRc.i - 1); }
+}
+
+function dyCloseRecap() {
+  if (!_dyRc) return;
+  clearTimeout(_dyRc.timer);
+  _dyRc.el.remove();
+  _dyRc = null;
+  document.removeEventListener('keydown', dyRecapKeys);
+  document.body.classList.remove('dy-recap-open');
+}
+
+function dyRecapGo(i) {
+  const rc = _dyRc;
+  if (!rc) return;
+  if (i < 0) i = 0;
+  if (i >= rc.slides.length) { dyCloseRecap(); return; }
+  rc.i = i;
+  const sl = rc.slides[i];
+  const stage = rc.el.querySelector('.dy-rc-stage');
+  stage.className = 'dy-rc-stage ' + sl.cls;
+  stage.innerHTML = `<div class="dy-rc-slide">${sl.html}</div>`;
+  rc.el.querySelectorAll('.dy-rc-bars > span').forEach((b, j) => {
+    b.classList.toggle('is-done', j < i);
+    b.classList.toggle('is-on', j === i);
+  });
+  // The slide's cover, once the lookup comes back
+  if (sl.art && typeof getArtAuto === 'function') {
+    const box = stage.querySelector('.dy-rc-cover');
+    const a = sl.art;
+    const p = a.type === 'artist' ? getArtAuto('artist', a.name) : a.type === 'album' ? getArtAuto('album', a.name, a.artist, a.album) : getArtAuto('song', a.name, a.artist);
+    Promise.resolve(p).then(url => {
+      if (url && box && box.isConnected) box.innerHTML = `<img src="${esc(typeof sizedArtUrl === 'function' ? sizedArtUrl(url, 600) : url)}" alt="">`;
+    }).catch(() => {});
+  }
+  // The last slide waits for a choice; the others move on by themselves
+  rc.left = i === rc.slides.length - 1 ? Infinity : DY_RECAP_MS;
+  rc.at = performance.now();
+  const bar = rc.el.querySelector('.dy-rc-bars > span.is-on i');
+  if (bar) { bar.style.transition = 'none'; bar.style.width = '0%'; }
+  dyRecapTick();
+}
+
+// (Re)starts the timer and the progress bar for whatever time the slide has left
+function dyRecapTick() {
+  const rc = _dyRc;
+  if (!rc) return;
+  clearTimeout(rc.timer);
+  const bar = rc.el.querySelector('.dy-rc-bars > span.is-on i');
+  if (rc.paused) {
+    if (isFinite(rc.left)) rc.left = Math.max(0, rc.left - (performance.now() - rc.at));
+    if (bar) { const w = getComputedStyle(bar).width; bar.style.transition = 'none'; bar.style.width = w; }
+    return;
+  }
+  rc.at = performance.now();
+  if (!isFinite(rc.left)) { if (bar) { bar.style.transition = 'none'; bar.style.width = '100%'; } return; }
+  if (bar) {
+    void bar.offsetWidth;
+    bar.style.transition = `width ${rc.left}ms linear`;
+    bar.style.width = '100%';
+  }
+  rc.timer = setTimeout(() => dyRecapGo(rc.i + 1), rc.left);
 }
 
 // ─── MILESTONES & GOALS (phase 6) ─────────────────────────────────────────
