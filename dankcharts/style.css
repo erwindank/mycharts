@@ -29831,14 +29831,13 @@ button.ns-art {
   cursor: pointer;
 }
 
-.ns-day .hero-icon {
-  margin-bottom: 0;
-  width: 1.5rem;
-  height: 1.5rem;
+.ns-day .ns-flame {
+  width: 30px;
+  height: 30px;
 }
 
-.ns-day:hover .hero-icon {
-  transform: translateY(-2px) scale(1.1);
+.ns-day:hover .ns-flame {
+  transform: translateY(-2px) scale(1.08);
 }
 
 .ns-day-text {
@@ -29846,26 +29845,90 @@ button.ns-art {
   gap: 1px;
 }
 
-.ns-day-count {
+/* "LISTENING STREAK": names it, so it is not read as part of the in-a-row run */
+.ns-day-title {
   font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text3);
 }
 
-.ns-day-num {
+.ns-day-count {
+  font-size: var(--fs-sm);
+  color: var(--text2);
+}
+
+.ns-day-count b {
   color: var(--text);
   font-size: var(--fs-lg);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 
-.ns-day:hover .ns-day-count span {
-  color: var(--text);
-}
-
-.ns-day-pb {
-  font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
+.ns-day-best {
   font-size: var(--fs-xs);
   color: var(--text3);
+}
+
+/* On your best ever: the line turns gold */
+.ns-day.is-best .ns-day-best {
+  color: var(--gold1, #e8b400);
+  font-weight: 600;
+}
+
+.ns-day:hover .ns-day-title {
+  color: var(--text2);
+}
+
+/* ---- the flame (nsFlameSvg) ----
+   Two tongues of fire. The tier class on the parent sets the colours: a grey
+   ember with no streak, then amber, orange, red-orange, and gold at 100+ days,
+   the same steps the old All-Time tile used. From 14 days the inner flame
+   flickers; from 30 the whole flame sways a little. */
+.ns-flame {
+  --f1: color-mix(in srgb, var(--text3) 70%, transparent);
+  --f2: color-mix(in srgb, var(--text3) 35%, transparent);
+  --fglow: 0px;
+  flex-shrink: 0;
+  display: block;
+  overflow: visible;
+  filter: drop-shadow(0 0 var(--fglow) color-mix(in srgb, var(--f1) 55%, transparent));
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.ns-flame-outer { fill: var(--f1); transform-box: fill-box; transform-origin: 50% 100%; }
+.ns-flame-inner { fill: var(--f2); transform-box: fill-box; transform-origin: 50% 100%; }
+
+.ns-tier-1 .ns-flame { --f1: #e8902a; --f2: #f8d27a; --fglow: 2px; }
+.ns-tier-2 .ns-flame { --f1: #ff7a12; --f2: #ffc25a; --fglow: 3px; }
+.ns-tier-3 .ns-flame { --f1: #ff5a10; --f2: #ffb43a; --fglow: 4px; }
+.ns-tier-4 .ns-flame { --f1: #ff4300; --f2: #ffa51f; --fglow: 5px; }
+.ns-tier-5 .ns-flame { --f1: #f02a00; --f2: #ff9a2e; --fglow: 6px; }
+.ns-tier-6 .ns-flame { --f1: #ff7a00; --f2: #ffe066; --fglow: 7px; }
+
+/* The light themes wash the yellows out; deepen the whole ramp there */
+body[class*="-light"] [class*="ns-tier-"] .ns-flame {
+  filter: brightness(0.88) saturate(1.2);
+}
+
+@keyframes ns-flame-flicker {
+  0%, 100% { transform: scale(1, 1); }
+  35%      { transform: scale(0.92, 1.08); }
+  65%      { transform: scale(1.05, 0.94); }
+}
+@keyframes ns-flame-sway {
+  0%, 100% { transform: skewX(0deg); }
+  50%      { transform: skewX(-4deg) scaleY(1.03); }
+}
+:is(.ns-tier-3, .ns-tier-4) .ns-flame-inner { animation: ns-flame-flicker 1.6s ease-in-out infinite; }
+:is(.ns-tier-5, .ns-tier-6) .ns-flame-inner { animation: ns-flame-flicker 0.9s ease-in-out infinite; }
+:is(.ns-tier-4, .ns-tier-5, .ns-tier-6) .ns-flame-outer { animation: ns-flame-sway 2.4s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ns-flame-outer,
+  .ns-flame-inner {
+    animation: none !important;
+  }
 }
 
 /* ═══ Phones: option C ═══ */
@@ -30059,40 +30122,59 @@ button.ns-art {
     color: var(--text2);
   }
 
-  .ns-sum-pill {
-    flex-shrink: 0;
-    padding: 2px var(--sp-2);
-    border-radius: 999px;
-    background: var(--raised);
-    font-size: var(--fs-xs);
+  /* Folded strip, two lines: the song, then each streak named in words */
+  .ns-sum-main {
+    flex: 1;
+    min-width: 0;
+    display: grid;
+    gap: 1px;
   }
 
-  .ns-sum-pill b {
+  .ns-sum-line {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    min-width: 0;
+  }
+
+  .ns-sum-sub {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: var(--fs-xs);
+    color: var(--text3);
+  }
+
+  .ns-sum-run b {
     font-family: var(--font-mono);
     color: var(--ns-c);
   }
 
-  /* Day streak in the closed summary: the small flame and the count */
   .ns-sum-day {
     display: inline-flex;
     align-items: center;
     gap: 3px;
-    flex-shrink: 0;
-    padding: 2px var(--sp-2) 2px 6px;
-    border-radius: 999px;
-    background: var(--raised);
-    font-size: var(--fs-xs);
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text2);
   }
 
-  .ns-sum-day .hero-icon {
-    margin-bottom: 0;
-    width: 0.95rem;
-    height: 0.95rem;
+  .ns-sum-day span {
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
-  .ns-sum-day b {
-    font-family: var(--font-mono);
-    color: var(--text);
+  .ns-sum-day .ns-flame {
+    width: 13px;
+    height: 13px;
+  }
+
+  .ns-sum-dot {
+    opacity: 0.6;
   }
 
   .ns-sum-chev {

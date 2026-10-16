@@ -33107,22 +33107,45 @@ function renderHeroStats() {
 /* Now strip day streak (#nsDayStreak in index.html). Moved out of the
    All-Time summary card so the streak shows on every chart tab. Same numbers
    renderHeroStats() works out: the current run of days ending today (or
-   yesterday) and the personal best. The tier thresholds are the ones the old
-   tile used, so the flame grows and recolours the same way. dcSyncNowStrip()
-   decides whether the strip shows and adds the count to the phone summary. */
+   yesterday) and the personal best. Labelled "Listening streak" so it is not
+   mistaken for the in-a-row run next to it, and the best is spelled out
+   ("Your best: 370 days", or "Your best ever" while you are on it).
+   dcSyncNowStrip() decides whether the strip shows and puts the short form
+   on the folded phone line. */
 function renderNowStripDayStreak(streak, pb) {
   const el = document.getElementById('nsDayStreak');
   if (!el) return;
-  const tier = streak >= 100 ? 6 : streak >= 60 ? 5 : streak >= 30 ? 4 : streak >= 14 ? 3 : streak >= 7 ? 2 : streak >= 1 ? 1 : 0;
-  el.className = 'ns-day' + (tier > 0 ? ' hero-stat--streak-' + tier : '');
-  el.querySelector('.ns-day-num').textContent = streak.toLocaleString();
-  el.querySelector('.ns-day-pb').textContent = 'PB: ' + pb.toLocaleString();
-  const tip = streak + ' ' + t('hero_day_streak') + ' · PB: ' + pb;
-  el.title = tip;
-  el.setAttribute('aria-label', tip);
+  const tier = nsFlameTier(streak);
+  const isBest = streak > 0 && streak >= pb;
+  el.className = 'ns-day ns-tier-' + tier + (isBest ? ' is-best' : '');
+  el.innerHTML = `
+    ${nsFlameSvg()}
+    <span class="ns-day-text">
+      <span class="ns-day-title">${esc(t('ns_day_title'))}</span>
+      <span class="ns-day-count"><b>${streak.toLocaleString()}</b> ${esc(tUnit('days', streak))}</span>
+      <span class="ns-day-best">${isBest ? '★ ' + esc(t('ns_day_best_now')) : esc(t('ns_day_best', { n: tCount('days', pb) }))}</span>
+    </span>`;
+  el.title = t('ns_day_tip');
+  el.setAttribute('aria-label', t('ns_day_title') + ': ' + tCount('days', streak) + '. ' + (isBest ? t('ns_day_best_now') : t('ns_day_best', { n: tCount('days', pb) })));
   el.style.display = '';
-  _nsDay = { count: streak, tier: tier };
+  _nsDay = { count: streak, pb: pb, tier: tier };
   dcSyncNowStrip();
+}
+
+/* Flame size/colour tier for a day streak: the same thresholds the old All-Time
+   tile used (1, 7, 14, 30, 60, 100 days). */
+function nsFlameTier(n) {
+  return n >= 100 ? 6 : n >= 60 ? 5 : n >= 30 ? 4 : n >= 14 ? 3 : n >= 7 ? 2 : n >= 1 ? 1 : 0;
+}
+
+/* The day streak's flame, drawn as an SVG: an outer tongue of fire with a
+   paler inner one. Colours come from the ns-tier-N class on the parent (see
+   style.css), so it warms up from a grey ember to gold as the streak grows. */
+function nsFlameSvg() {
+  return '<svg class="ns-flame" viewBox="0 0 24 24" aria-hidden="true" focusable="false">'
+    + '<path class="ns-flame-outer" d="M12 1.5c.6 3.4 2.9 5.4 4.7 7.6 1.6 2 2.8 4.1 2.8 6.6A7.5 7.5 0 0 1 4.5 15.7c0-2.6 1.1-4.6 2.7-6.3.3 1.9 1.2 3.2 2.6 3.9C9.3 9.1 10.3 4.8 12 1.5z"/>'
+    + '<path class="ns-flame-inner" d="M12.3 11.6c.4 1.7 1.5 2.6 2.3 3.6.7.9 1 1.7 1 2.6a3.6 3.6 0 0 1-7.2 0c0-1.4.7-2.4 1.5-3.2.2.8.6 1.4 1.2 1.7-.1-1.7.3-3.3 1.2-4.7z"/>'
+    + '</svg>';
 }
 
 // ─── STREAK HEATMAP STATE ─────────────────────────────────────
@@ -45951,7 +45974,7 @@ function _nsAgo(date) {
 var _nsStreak = null;     // { type, count } of the streak on screen
 var _nsLiveArt = '';      // cover of the song on air, once loaded
 var _nsStreakArt = '';    // cover of the streak subject, once loaded
-var _nsDay = null;        // { count, tier } of the day streak (#nsDayStreak)
+var _nsDay = null;        // { count, pb, tier } of the day streak (#nsDayStreak)
 
 function dcSyncNowStrip() {
   const strip = document.getElementById('nowStrip');
@@ -45969,20 +45992,29 @@ function dcSyncNowStrip() {
   if (!live) _nsLiveArt = '';
   strip.className = strip.className.replace(/\bns-type-\w+/g, '').trim() + (hasStreak ? ' ns-type-' + _nsStreak.type : '');
 
-  // Phone summary line: [cover] [eq] Song — Artist   [🔥 14] [flame 21 days]  ▾
-  // (the second pill is the day streak; "days" tells it apart from the run)
+  // Phone summary, two lines:  [cover] [eq] Song — Artist              ▾
+  //                                    🔥 3 in a row · 201-day listening streak
   const sum = document.getElementById('nsSummary');
   if (!sum || strip.hidden) return;
   const p0 = allPlays && allPlays[0];
   const title  = live ? npTrack.title  : (p0 ? p0.title : '');
   const artist = live ? npTrack.artist : (p0 ? p0.artist : '');
   const art = live ? _nsLiveArt : _nsStreakArt;
+  // Second line, only when there is a streak to show. Each streak says what it
+  // is ("3 in a row", "201-day listening streak") so the two are not two
+  // look-alike flame pills squeezing the song title.
+  const subParts = [];
+  if (hasStreak) subParts.push(`<span class="ns-sum-run">🔥 <b>${_nsStreak.count}</b> ${esc(t('ns_in_a_row'))}</span>`);
+  if (hasDay) subParts.push(`<span class="ns-sum-day ns-tier-${_nsDay.tier}">${nsFlameSvg()}<span>${esc(t('ns_day_short', { n: _nsDay.count.toLocaleString() }))}</span></span>`);
   sum.innerHTML = `
     <span class="ns-sum-art${!live && _nsStreak && _nsStreak.type === 'artist' ? ' is-round' : ''}">${art ? `<img src="${esc(sizedArtUrl(art, 64))}" alt="">` : ''}</span>
-    ${live ? `<span class="ns-eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>` : ''}
-    <span class="ns-sum-text"><b>${esc(title)}</b> <span>— ${esc(artist)}</span></span>
-    ${hasStreak ? `<span class="ns-sum-pill">🔥 <b>${_nsStreak.count}</b></span>` : ''}
-    ${hasDay ? `<span class="ns-sum-day${_nsDay.tier ? ' hero-stat--streak-' + _nsDay.tier : ''}" title="${esc(t('hero_day_streak'))}"><span class="hero-icon hero-icon-flame" aria-hidden="true"><i class="hero-flame-body"></i><i class="hero-flame-core"></i></span><b>${_nsDay.count.toLocaleString()}</b> ${esc(tUnit('days', _nsDay.count))}</span>` : ''}
+    <span class="ns-sum-main">
+      <span class="ns-sum-line">
+        ${live ? `<span class="ns-eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>` : ''}
+        <span class="ns-sum-text"><b>${esc(title)}</b> <span>— ${esc(artist)}</span></span>
+      </span>
+      ${subParts.length ? `<span class="ns-sum-sub">${subParts.join('<span class="ns-sum-dot" aria-hidden="true">·</span>')}</span>` : ''}
+    </span>
     <span class="ns-sum-chev" aria-hidden="true">▾</span>`;
   sum.setAttribute('aria-label', (live ? t('np_onair') + ': ' : '') + title + ' — ' + artist);
 }

@@ -2265,6 +2265,12 @@ const TRANSLATIONS = {
     ns_type_artist: 'Artist streak',
     ns_type_shuffle: 'Shuffle streak',
     ns_in_a_row: 'in a row',
+    // Now strip day streak (#nsDayStreak): days in a row with a play
+    ns_day_title: 'Listening streak',
+    ns_day_best: 'Your best: {{n}}',
+    ns_day_best_now: 'Your best ever',
+    ns_day_short: '{{n}}-day listening streak',
+    ns_day_tip: 'Days in a row you listened to music. Click for details.',
     ns_nested: '{{n}} straight',
     ns_last_played: 'Last played {{when}}',
     ns_last_n_plays: 'Your last {{n}} plays',
@@ -4489,6 +4495,11 @@ const TRANSLATIONS = {
     ns_type_artist: 'Racha de artista',
     ns_type_shuffle: 'Racha aleatoria',
     ns_in_a_row: 'seguidas',
+    ns_day_title: 'Racha de escucha',
+    ns_day_best: 'Tu récord: {{n}}',
+    ns_day_best_now: 'Tu mejor racha',
+    ns_day_short: '{{n}} días de racha de escucha',
+    ns_day_tip: 'Días seguidos en los que escuchaste música. Haz clic para ver detalles.',
     ns_nested: '{{n}} seguidas',
     ns_last_played: 'Última escucha {{when}}',
     ns_last_n_plays: 'Tus últimas {{n}} reproducciones',
@@ -6710,6 +6721,11 @@ const TRANSLATIONS = {
     ns_type_artist: 'Sequência de artista',
     ns_type_shuffle: 'Sequência aleatória',
     ns_in_a_row: 'seguidas',
+    ns_day_title: 'Sequência de escuta',
+    ns_day_best: 'Seu recorde: {{n}}',
+    ns_day_best_now: 'Seu melhor de todos',
+    ns_day_short: '{{n}} dias de sequência de escuta',
+    ns_day_tip: 'Dias seguidos em que você ouviu música. Clique para ver detalhes.',
     ns_nested: '{{n}} seguidas',
     ns_last_played: 'Último play {{when}}',
     ns_last_n_plays: 'Seus últimos {{n}} plays',
@@ -8930,6 +8946,11 @@ const TRANSLATIONS = {
     ns_type_artist: 'Sequência de artista',
     ns_type_shuffle: 'Sequência aleatória',
     ns_in_a_row: 'seguidas',
+    ns_day_title: 'Sequência de escuta',
+    ns_day_best: 'O teu recorde: {{n}}',
+    ns_day_best_now: 'O teu melhor de sempre',
+    ns_day_short: '{{n}} dias de sequência de escuta',
+    ns_day_tip: 'Dias seguidos em que ouviste música. Clica para ver detalhes.',
     ns_nested: '{{n}} seguidas',
     ns_last_played: 'Último play {{when}}',
     ns_last_n_plays: 'Os seus últimos {{n}} plays',
@@ -9184,6 +9205,11 @@ function setLanguage(lang) {
     const typeKey = 'mb_type_' + el.dataset.mbtype.toLowerCase();
     el.textContent = t(typeKey) || el.dataset.mbtype;
   });
+
+  // The now strip's day streak is not part of renderAll(); redo its words
+  if (typeof renderNowStripDayStreak === 'function' && typeof _nsDay !== 'undefined' && _nsDay) {
+    renderNowStripDayStreak(_nsDay.count, _nsDay.pb);
+  }
 
   // Re-render the full chart so date labels, period header, and section titles update
   if (typeof renderAll === 'function' && typeof allPlays !== 'undefined' && allPlays && allPlays.length > 0) {
