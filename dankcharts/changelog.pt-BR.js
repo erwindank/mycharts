@@ -16,9 +16,9 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
-  "Your day streak is in the top bar":
-    ["Sua sequência de dias está na barra superior",
-     "Sua sequência de dias era o último número do resumo de Todos os tempos, então você só a via nessa aba. Agora ela fica na barra superior em todas as páginas: uma chama com o número de dias seguidos em que você ouviu música. A chama cresce e muda de cor conforme a sequência aumenta. Passe o mouse para ver seu recorde pessoal e clique para abrir os detalhes da sequência."],
+  "Your day streak is on every chart tab":
+    ["Sua sequência de dias está em todas as abas de paradas",
+     "Sua sequência de dias era o último número do resumo de Todos os tempos, então você só a via nessa aba. Agora ela fica no fim da faixa no topo das paradas (a da sua sequência seguida e da última música), em todas as abas de paradas: uma chama com o número de dias seguidos em que você ouviu música e seu recorde pessoal. No celular ela aparece como uma etiqueta de \"dias\" na faixa recolhida. A chama cresce e muda de cor conforme a sequência aumenta. Clique para abrir os detalhes da sequência."],
 
   "Details drawer on every chart entry":
     ["Painel de detalhes em cada item da parada",

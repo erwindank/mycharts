@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 126;
+const DC_CL_I18N_V = 127;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -80,9 +80,9 @@ const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
 
-  { d: '2026-10-16', t: 'design', a: 'ui', h: 'c0f02a7',
-    title: 'Your day streak is in the top bar',
-    detail: "Your day streak used to be the last number in the All-Time summary, so you only saw it on that one tab. It now sits in the top bar on every page: a flame with the number of days in a row you have listened. The flame grows and changes colour as the streak gets longer. Hover it to see your personal best, and click it to open the streak details." },
+  { d: '2026-10-16', t: 'design', a: 'ui', h: '8bffa21',
+    title: 'Your day streak is on every chart tab',
+    detail: "Your day streak used to be the last number in the All-Time summary, so you only saw it on that one tab. It now sits at the end of the strip at the top of the charts (the one with your in-a-row run and the last song played), on every chart tab: a flame with the number of days in a row you have listened and your personal best. On phones it shows as a \"days\" pill in the folded strip. The flame grows and changes colour as the streak gets longer. Click it to open the streak details." },
 
   { d: '2026-10-14', t: 'feature', a: 'charts', h: '6cfb4c9',
     title: 'Details drawer on every chart entry',
