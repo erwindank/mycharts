@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "The streak window opens on a Today tab that shows what to save":
+    ["La ventana de rachas se abre en una pestaña Hoy que muestra qué salvar",
+     "La ventana de Rachas Diarias ahora se abre en Hoy: las rachas que aún necesitan una escucha antes de medianoche, con una cuenta atrás en vivo y una barra de cuántas ya mantuviste hoy. Una canción puede mantener varias rachas a la vez (la canción, su álbum y cada artista), así que la ventana muestra las menos canciones que las salvan todas y cuántas salva cada una. Reproducir todo, Cola, Guardar playlist y Copiar lista usan esa lista corta, y cada fila en riesgo tiene su propio botón de reproducir. Las rachas que mantienes pasan a \"Salvadas hoy\" con la ventana abierta, y \"Perdidas ayer\" está en la misma pestaña. Las pestañas ahora son Hoy, En racha, Récords y Calendario."],
+
   "Streak details stay with a song on air, and can be hidden":
     ["Los detalles de la racha se quedan con una canción sonando y se pueden ocultar",
      "La fila de la racha de escucha bajo la barra de arriba ahora también aparece mientras suena una canción. Un pequeño tirador en el borde inferior de la barra oculta solo esa fila, sin esconder la canción ni las rachas, y la web recuerda tu elección."],

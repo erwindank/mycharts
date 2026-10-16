@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "The streak window opens on a Today tab that shows what to save":
+    ["A janela de sequências abre numa aba Hoje que mostra o que salvar",
+     "A janela de Sequências Diárias agora abre em Hoje: as sequências que ainda precisam de uma reprodução antes da meia-noite, com uma contagem regressiva ao vivo e uma barra de quantas você já manteve hoje. Uma música pode manter várias sequências de uma vez (a música, o álbum e cada artista), então a janela lista o menor número de músicas que salva todas e quantas cada uma salva. Tocar tudo, Fila, Salvar playlist e Copiar lista usam essa lista curta, e cada linha em risco tem seu próprio botão de tocar. As sequências que você mantém passam para \"Salvas hoje\" com a janela aberta, e \"Perdidas ontem\" fica na mesma aba. As abas agora são Hoje, Em chamas, Recordes e Calendário."],
+
   "Streak details stay with a song on air, and can be hidden":
     ["Os detalhes da sequência ficam com uma música tocando e podem ser ocultados",
      "A linha da sequência de escuta abaixo da barra do topo agora aparece também enquanto uma música toca. Uma pequena alça na borda de baixo da barra oculta só essa linha, sem esconder a música nem as sequências, e o site lembra sua escolha."],

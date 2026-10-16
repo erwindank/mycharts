@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 147;
+const DC_CL_I18N_V = 148;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-16', t: 'feature', a: 'charts', h: 'f2e654a',
+    title: "The streak window opens on a Today tab that shows what to save",
+    detail: "The Daily Streaks window now opens on Today: the streaks that still need a play before midnight, with a live countdown and a bar showing how many you have already kept today. One song can keep several streaks going (the song, its album and every artist on it), so the window lists the fewest songs that save them all and says how many each one saves. Play All, Queue, Save Playlist and Copy Tracklist use that short list, and every at-risk row has its own play button. Streaks you keep move to \"Saved today\" while the window is open, and \"Lost yesterday\" sits on the same tab. The tabs are now Today, On fire, Records and Calendar." },
 
   { d: '2026-10-16', t: 'change', a: 'charts', h: '24445de',
     title: "Streak details stay with a song on air, and can be hidden",
