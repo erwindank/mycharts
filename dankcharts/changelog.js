@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 145;
+const DC_CL_I18N_V = 146;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-16', t: 'feature', a: 'charts', h: '3e1f5dc',
+    title: "More about your listening streak when nothing is playing",
+    detail: "With no song on air, the top strip opens a second row about your listening streak: a bar toward your best (and once you pass it, toward the next round number like 100 or 365), how many days to beat your best or \"New record every day\", where this streak ranks (\"Your 2nd longest ever\"), since when and the first song of it, your top 3 streaks with their dates (this one highlighted if it is among them), and the artist, song and album you have played the most days in a row right now. A song on air takes the room back." },
 
   { d: '2026-10-16', t: 'feature', a: 'charts', h: '37d05bb',
     title: "Daily chart runs show the daily chart only",

@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "More about your listening streak when nothing is playing":
+    ["Mais sobre sua sequência de escuta quando nada está tocando",
+     "Sem nenhuma música tocando, a barra do topo abre uma segunda linha sobre sua sequência de escuta: uma barra rumo ao seu recorde (e, depois de superá-lo, rumo ao próximo número redondo como 100 ou 365), quantos dias faltam para bater seu recorde ou \"Recorde novo todo dia\", a posição desta sequência (\"Sua 2.ª maior sequência\"), desde quando e a primeira música dela, suas 3 maiores sequências com as datas (a atual destacada se estiver entre elas), e o artista, a música e o álbum que você ouve há mais dias seguidos agora. Quando uma música toca, ela recupera o espaço."],
+
   "Daily chart runs show the daily chart only":
     ["As trajetórias da parada diária mostram só a parada diária",
      "Abrir uma entrada da parada diária agora mostra a trajetória dela só na parada diária: uma caixa para cada dia em que ela entrou, as pausas contadas em dias, e Dias na parada, Dias no #1, Dias no Top 5 e Dias no Top 10. Os botões de período dizem 2026 YTD, Até este dia e Todos os tempos, uma caixa abre a parada daquele dia, e o cartão para compartilhar desenha a trajetória diária com as datas. As trajetórias semanais, mensais e anuais não aparecem mais ali."],

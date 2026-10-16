@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "More about your listening streak when nothing is playing":
+    ["Más sobre tu racha de escucha cuando no suena nada",
+     "Sin ninguna canción sonando, la barra de arriba abre una segunda fila sobre tu racha de escucha: una barra hacia tu récord (y, una vez superado, hacia el siguiente número redondo como 100 o 365), cuántos días faltan para superarlo o \"Récord nuevo cada día\", qué puesto ocupa esta racha (\"Tu 2.ª racha más larga\"), desde cuándo y su primera canción, tus 3 mejores rachas con sus fechas (la actual resaltada si está entre ellas), y el artista, la canción y el álbum que llevas más días seguidos escuchando ahora mismo. Cuando suena una canción, recupera su espacio."],
+
   "Daily chart runs show the daily chart only":
     ["Las trayectorias de la lista diaria muestran solo la lista diaria",
      "Al abrir una entrada de la lista diaria ahora se ve su trayectoria solo en la lista diaria: una casilla por cada día que estuvo, los huecos contados en días, y Días en la lista, Días en el #1, Días en el Top 5 y Días en el Top 10. Los botones de rango dicen 2026 YTD, Hasta este día y Siempre, una casilla abre la lista de ese día, y la tarjeta para compartir dibuja la trayectoria diaria con sus fechas. Las trayectorias semanales, mensuales y anuales ya no aparecen ahí."],
