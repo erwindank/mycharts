@@ -23,6 +23,8 @@ function setChartTypeView(type) {
   chartTypeView = type;
   try { localStorage.setItem('dc_chart_type_view', type); } catch (e) {}
   applyChartTypeView();
+  // The "Inside your Top N" stats follow the chart on screen (insights.js)
+  if (typeof atiRender === 'function') atiRender();
 }
 
 function applyChartTypeView() {
@@ -13877,6 +13879,8 @@ function renderAll() {
   updateExportBtn();
   updateShareBtns();
   updateChartExportBtns();
+  // "Inside your Top N" stats on the All-Time charts (insights.js)
+  if (typeof atiRender === 'function') atiRender();
 }
 
 // ─── TIE-BREAKING SORT ─────────────────────────────────────────

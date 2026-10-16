@@ -35822,3 +35822,257 @@ body.cp-hide-cert-reel    #certReelSection { display: none !important; }
 .cr-stat.is-best strong { color: var(--accent); font-family: var(--font-sans); font-size: var(--fs-sm); white-space: normal; }
 .cr-stat strong .m-new, .cr-stat strong .m-re { margin-left: 0 !important; }
 .cr-stats-now { margin-bottom: var(--sp-3); }
+
+/* ── ALL-TIME CHART INSIGHTS ("Inside your Top N", insights.js) ──────────────
+   Sits between the Songs / Artists / Albums switch and the All-Time songs
+   chart. Calm by default: a heading and one hero fact; the tiles and the five
+   tabs open with "See all stats". Only the hero, the tiles and the tab panel
+   are cards (one level, no box in a box); everything inside the panel is
+   separated by space. Numbers are mono (.ati-n), words are Plex Sans. Bars
+   use the accent only, so every theme recolours them; certification rows use
+   the site's own gold/platinum/diamond badges. */
+.ati { margin: var(--sp-2) 0 var(--sp-6); }
+.ati[hidden] { display: none; }
+body:not([data-view="alltime"]) #atInsights { display: none !important; }
+.ati-n { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-weight: 600; }
+
+.ati-head { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--sp-3); margin-bottom: var(--sp-3); flex-wrap: wrap; }
+.ati-title { margin: 0; font-family: var(--font-display); font-size: var(--fs-md); font-weight: 700; color: var(--text); }
+.ati-sub-h { margin: 2px 0 0; font-size: var(--fs-sm); color: var(--text3); }
+
+/* Buttons: the site's primary / secondary / ghost (DESIGN.md section 5) */
+.ati-btn {
+  display: inline-flex; align-items: center; gap: var(--sp-2);
+  height: 34px; padding: 0 var(--sp-3);
+  border: 1px solid transparent; border-radius: var(--r-sm);
+  font: inherit; font-size: var(--fs-sm); font-weight: 500; white-space: nowrap; cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
+}
+.ati-btn:focus-visible, .ati-row:focus-visible, .ati-col:focus-visible, .ati-tile:focus-visible,
+.ati-song:focus-visible, .ati-chip:focus-visible, .ati-link:focus-visible, .ati-spot:focus-visible,
+.ati-hero-art:focus-visible, .ati-pod:focus-visible, .ati-new:focus-visible, .ati-x:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.ati-btn--primary { background: var(--accent); color: var(--on-accent); }
+.ati-btn--primary:hover { background: var(--accent2); }
+.ati-btn--secondary { background: var(--surface); color: var(--text); border-color: var(--border-t); }
+.ati-btn--secondary:hover { background: var(--raised); }
+.ati-btn--ghost { background: transparent; color: var(--text2); }
+.ati-btn--ghost:hover { background: var(--hover); color: var(--text); }
+.ati-chev { width: 14px; height: 14px; flex-shrink: 0; transition: transform var(--t-med) var(--ease); }
+.ati-toggle[aria-expanded="true"] .ati-chev,
+.ati-row[aria-expanded="true"] .ati-chev { transform: rotate(180deg); }
+
+/* Artwork: the chart's own lazy thumbnails, sized per use */
+.ati-art { position: relative; display: inline-block; flex-shrink: 0; width: 40px; height: 40px; border-radius: var(--r-sm); overflow: hidden; background: var(--raised); }
+.ati-art-in, .ati-art-in > * { display: block; width: 100%; height: 100%; }
+.ati-art .thumb, .ati-art .thumb-initials { width: 100%; height: 100%; border: 0; border-radius: 0; font-size: var(--fs-xs); }
+.ati-art-in > .thumb-initials { display: flex; }
+.ati-art--round { border-radius: 50%; }
+.ati-art--sm { width: 32px; height: 32px; }
+.ati-art--md { width: 48px; height: 48px; }
+.ati-art--hero { width: 88px; height: 88px; border-radius: var(--r-md); }
+.ati-art--hero.ati-art--round { border-radius: 50%; }
+.ati-art--hero .thumb-initials { font-size: var(--fs-lg); }
+
+/* Hero: one big fact, its picture, and Another fact */
+.ati-hero {
+  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: var(--sp-4);
+  padding: var(--sp-4) var(--sp-5);
+  background: var(--surface); border: 1px solid var(--border-t); border-radius: var(--r-md);
+}
+.ati-hero-art { padding: 0; border: 0; background: none; cursor: pointer; border-radius: var(--r-md); line-height: 0; }
+.ati-hero-art .ati-art { transition: transform var(--t-med) var(--ease); }
+.ati-hero-art:hover .ati-art { transform: scale(1.04); }
+.ati-hero-fact { margin: 0; font-family: var(--font-display); font-size: var(--fs-lg); font-weight: 600; line-height: 1.25; color: var(--text); text-wrap: pretty; }
+.ati-hero-fact b { color: var(--accent); font-weight: 700; }
+.ati-hero-fact .ati-n { font-weight: 700; }
+.ati-hero-count { color: var(--text3); font-size: var(--fs-xs); font-weight: 500; }
+.ati-hero--in .ati-hero-fact, .ati-hero--in .ati-hero-art { animation: atiFactIn 0.34s var(--ease) both; }
+@keyframes atiFactIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* Headline tiles; each opens its tab */
+.ati-body { margin-top: var(--sp-4); }
+.ati-body[hidden] { display: none; }
+.ati-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--sp-3); margin-bottom: var(--sp-4); }
+.ati-tile {
+  display: flex; flex-direction: column; align-items: center; text-align: center; gap: 2px; min-width: 0;
+  padding: var(--sp-3) var(--sp-2); border: 1px solid var(--border-t); border-radius: var(--r-md);
+  background: var(--surface); color: var(--text); font: inherit; cursor: pointer;
+  transition: background var(--t-fast);
+}
+.ati-tile:hover { background: var(--raised); }
+.ati-tile-num { font-size: var(--fs-lg); color: var(--accent); line-height: 1.2; }
+.ati-tile-l { font-size: var(--fs-sm); color: var(--text); font-weight: 500; }
+.ati-tile-sub { font-size: var(--fs-xs); color: var(--text3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+
+.ati-tabs { width: fit-content; max-width: 100%; margin-bottom: var(--sp-3); overflow-x: auto; scrollbar-width: none; }
+.ati-tabs::-webkit-scrollbar { display: none; }
+.ati-panel { padding: var(--sp-4) var(--sp-5) var(--sp-5); background: var(--surface); border: 1px solid var(--border-t); border-radius: var(--r-md); }
+.ati-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-6); }
+.ati-block { min-width: 0; }
+.ati-h { margin: var(--sp-5) 0 var(--sp-1); font-family: var(--font-sans); font-size: var(--fs-base); font-weight: 600; color: var(--text); }
+.ati-block > .ati-h:first-child, .ati-panel > .ati-h:first-child { margin-top: 0; }
+.ati-line { margin: var(--sp-1) 0 var(--sp-2); font-size: var(--fs-base); color: var(--text2); line-height: 1.5; }
+.ati-line b { color: var(--text); font-weight: 600; }
+.ati-note { margin: 0 0 var(--sp-2); font-size: var(--fs-xs); color: var(--text3); }
+.ati-big { margin: var(--sp-1) 0 0; font-size: var(--fs-xl); line-height: 1.1; color: var(--accent); }
+.ati-big .ati-n { font-weight: 700; }
+.ati-big span:not(.ati-n) { font-size: var(--fs-base); color: var(--text2); font-family: var(--font-sans); }
+
+/* Rows with a bar that open their songs */
+.ati-rows { display: flex; flex-direction: column; gap: 2px; }
+.ati-row-wrap { min-width: 0; }
+.ati-row, .ati-pod {
+  display: grid; grid-template-columns: auto minmax(0, 1.4fr) minmax(48px, 1fr) auto auto; align-items: center; gap: var(--sp-3);
+  width: 100%; padding: 6px var(--sp-2); border: 0; border-radius: var(--r-sm);
+  background: transparent; color: var(--text); font: inherit; text-align: left; cursor: pointer;
+  transition: background var(--t-fast);
+}
+/* Rows with no picture (certification tiers, release types) */
+.ati-row:has(> .ati-row-name:first-child) { grid-template-columns: minmax(0, 1.4fr) minmax(48px, 1fr) auto auto; }
+.ati-pod { grid-template-columns: auto auto minmax(0, 1.4fr) minmax(48px, 1fr) auto; }
+.ati-row:hover, .ati-pod:hover, .ati-row[aria-expanded="true"] { background: var(--raised); }
+.ati-row-name { display: flex; flex-direction: column; min-width: 0; font-size: var(--fs-base); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ati-row-name .cert, .ati-row-name .ati-tag { align-self: flex-start; }
+.ati-row-sub { font-size: var(--fs-xs); color: var(--text3); font-weight: 400; overflow: hidden; text-overflow: ellipsis; }
+.ati-row-bar { height: 6px; border-radius: var(--r-full); background: var(--raised); overflow: hidden; }
+.ati-row:hover .ati-row-bar, .ati-row[aria-expanded="true"] .ati-row-bar, .ati-pod:hover .ati-row-bar { background: var(--surface); }
+.ati-bar-fill { display: block; height: 100%; width: var(--w); border-radius: inherit; background: var(--accent); transform-origin: left center; }
+.ati-row-n { font-size: var(--fs-sm); color: var(--text2); text-align: right; min-width: 2ch; }
+.ati-sub { padding: var(--sp-1) 0 var(--sp-3) var(--sp-2); }
+.ati-sub[hidden] { display: none; }
+
+/* Song lists: rank, title over artist, a number on the right */
+.ati-songs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1px; }
+.ati-song, .ati-new {
+  display: grid; grid-template-columns: 3.2em minmax(0, 1fr) auto; align-items: center; gap: var(--sp-2);
+  width: 100%; padding: 5px var(--sp-2); border: 0; border-radius: var(--r-sm);
+  background: transparent; color: var(--text); font: inherit; text-align: left; cursor: pointer;
+}
+.ati-new { grid-template-columns: 3.2em auto minmax(0, 1fr) auto; }
+.ati-song:hover, .ati-new:hover { background: var(--hover); }
+.ati-song-rk { font-size: var(--fs-sm); color: var(--text3); }
+.ati-song-tx, .ati-pod-tx { display: flex; flex-direction: column; min-width: 0; }
+.ati-song-t { font-size: var(--fs-sm); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ati-song-a { font-size: var(--fs-xs); color: var(--text3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ati-song-pl { font-size: var(--fs-xs); color: var(--text2); text-align: right; white-space: nowrap; }
+.ati-pod-rk { font-size: var(--fs-sm); color: var(--text3); min-width: 2.4em; }
+.ati-new-st { display: flex; align-items: center; gap: var(--sp-2); font-size: var(--fs-xs); color: var(--text2); white-space: nowrap; }
+/* "New to you" is the movement word NEW, so it takes the chart-new role
+   (already neutral in Red and Pink, where the accent collides with "down") */
+.ati-new-tag { padding: 1px 8px; border-radius: var(--r-full); background: color-mix(in srgb, var(--chart-new) 16%, transparent); color: var(--chart-new); font-weight: 600; }
+.ati-songs--new { max-height: 520px; overflow-y: auto; }
+
+.ati-link { padding: 0; border: 0; background: none; color: var(--accent); font: inherit; font-size: var(--fs-sm); font-weight: 500; cursor: pointer; }
+.ati-link:hover { text-decoration: underline; }
+.ati-sub > .ati-link { display: inline-block; margin: 0 0 var(--sp-1) var(--sp-2); }
+
+/* Top 3 share: one stacked bar in accent strengths, plus its legend */
+.ati-stack { display: flex; height: 12px; border-radius: var(--r-full); overflow: hidden; background: var(--raised); margin: var(--sp-2) 0; gap: 2px; }
+.ati-seg { display: block; min-width: 3px; }
+.ati-seg--1 { background: var(--accent); }
+.ati-seg--2 { background: color-mix(in srgb, var(--accent) 65%, var(--surface)); }
+.ati-seg--3 { background: color-mix(in srgb, var(--accent) 38%, var(--surface)); }
+.ati-seg--rest { background: var(--raised); }
+.ati-legend { list-style: none; margin: 0 0 var(--sp-1); padding: 0; display: flex; flex-wrap: wrap; gap: var(--sp-1) var(--sp-4); font-size: var(--fs-sm); color: var(--text2); }
+.ati-legend li { display: inline-flex; align-items: center; gap: 6px; }
+.ati-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.ati-dot.ati-seg--rest { box-shadow: inset 0 0 0 1px var(--border); }
+
+/* One-hit wonders as chips */
+.ati-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.ati-chips-more { display: contents; }
+.ati-chips-more[hidden] { display: none; }
+.ati-chip {
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px;
+  border: 0; border-radius: var(--r-full); background: var(--raised); color: var(--text2);
+  font: inherit; font-size: var(--fs-xs); cursor: pointer; transition: background var(--t-fast), color var(--t-fast);
+}
+.ati-chip:hover { color: var(--text); box-shadow: inset 0 0 0 1px var(--border); }
+.ati-chip-r { color: var(--text3); }
+.ati-more-chips { margin-top: var(--sp-2); }
+.ati-tag { display: inline-block; padding: 2px 8px; border-radius: var(--r-full); background: var(--raised); color: var(--text2); font-size: var(--fs-xs); font-weight: 600; }
+
+/* Column charts (decades, discovery years); pick one to list its songs */
+.ati-cols { display: flex; align-items: flex-end; gap: var(--sp-1); padding: var(--sp-2) 0 2px; overflow-x: auto; scrollbar-width: thin; }
+.ati-col {
+  flex: 1 0 44px; max-width: 72px; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 4px 2px; border: 0; border-radius: var(--r-sm); background: transparent; color: var(--text2);
+  font: inherit; cursor: pointer; transition: background var(--t-fast);
+}
+.ati-col:hover { background: var(--hover); }
+.ati-col-n { font-size: var(--fs-xs); }
+.ati-col-track { width: 70%; height: 96px; display: flex; align-items: flex-end; }
+.ati-col-fill {
+  display: block; width: 100%; height: var(--h); border-radius: var(--r-xs) var(--r-xs) 2px 2px;
+  background: color-mix(in srgb, var(--accent) 45%, var(--surface));
+  transform-origin: bottom center; transition: background var(--t-fast);
+}
+.ati-col:hover .ati-col-fill { background: color-mix(in srgb, var(--accent) 70%, var(--surface)); }
+.ati-col.is-on .ati-col-fill { background: var(--accent); }
+.ati-col.is-on { color: var(--text); }
+.ati-col.is-on .ati-col-l { color: var(--accent); font-weight: 600; }
+.ati-col-l { font-size: var(--fs-xs); white-space: nowrap; }
+.ati-col-pick { margin-top: var(--sp-3); }
+.ati-col-pick-h { font-size: var(--fs-sm); font-weight: 600; color: var(--text); margin: 0 0 var(--sp-1) var(--sp-2); }
+.ati-col-pick .ati-songs { max-height: 300px; overflow-y: auto; }
+
+/* Oldest / newest song */
+.ati-spots { display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-4); margin: var(--sp-2) 0; }
+.ati-spot {
+  display: flex; align-items: center; gap: var(--sp-3); min-width: 0; flex: 1 1 200px;
+  padding: var(--sp-2); border: 0; border-radius: var(--r-sm); background: transparent; color: var(--text);
+  font: inherit; text-align: left; cursor: pointer;
+}
+.ati-spot:hover { background: var(--hover); }
+.ati-spot-tx { display: flex; flex-direction: column; min-width: 0; }
+.ati-spot-l { font-size: var(--fs-xs); color: var(--text3); }
+.ati-spot-t { font-size: var(--fs-base); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ati-spot-a { font-size: var(--fs-xs); color: var(--text2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Release-year lookups in progress */
+.ati-progress { display: flex; align-items: center; gap: var(--sp-3); margin: 0 0 var(--sp-4); font-size: var(--fs-xs); color: var(--text3); }
+.ati-progress-bar { flex: 1; max-width: 220px; height: 4px; border-radius: var(--r-full); background: var(--raised); overflow: hidden; }
+.ati-progress-bar > span { display: block; height: 100%; width: var(--w); background: var(--accent); }
+
+/* All Entries: the tip that offers a size */
+.ati-tip {
+  display: flex; align-items: center; gap: var(--sp-3); flex-wrap: wrap;
+  padding: var(--sp-3) var(--sp-4); background: var(--surface); border: 1px solid var(--border-t); border-radius: var(--r-md);
+}
+.ati-tip-ic { color: var(--accent); flex-shrink: 0; }
+.ati-tip-tx { flex: 1 1 260px; margin: 0; font-size: var(--fs-sm); color: var(--text2); }
+.ati-x { width: 30px; height: 30px; border: 0; border-radius: var(--r-sm); background: transparent; color: var(--text3); font-size: var(--fs-md); line-height: 1; cursor: pointer; }
+.ati-x:hover { background: var(--hover); color: var(--text); }
+
+/* Bars grow in when a panel opens (transform only) */
+.ati-panel .ati-bar-fill { animation: atiGrowX 0.5s var(--ease) both; }
+.ati-panel .ati-col-fill { animation: atiGrowY 0.5s var(--ease) both; }
+@keyframes atiGrowX { from { transform: scaleX(0); } }
+@keyframes atiGrowY { from { transform: scaleY(0); } }
+
+@media (max-width: 760px) {
+  .ati-grid { grid-template-columns: minmax(0, 1fr); gap: var(--sp-2); }
+  .ati-grid > .ati-block + .ati-block > .ati-h:first-child { margin-top: var(--sp-5); }
+  .ati-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 600px) {
+  .ati-hero { grid-template-columns: auto 1fr; gap: var(--sp-3); padding: var(--sp-3) var(--sp-4); }
+  .ati-hero-next { grid-column: 1 / -1; justify-self: start; }
+  .ati-art--hero { width: 64px; height: 64px; }
+  .ati-hero-fact { font-size: var(--fs-md); }
+  .ati-panel { padding: var(--sp-3); }
+  .ati-row, .ati-pod { gap: var(--sp-2); }
+  /* The bar steps aside on phones; the number says it */
+  .ati-row-bar { display: none; }
+  .ati-row { grid-template-columns: auto minmax(0, 1fr) auto auto; }
+  .ati-row:has(> .ati-row-name:first-child) { grid-template-columns: minmax(0, 1fr) auto auto; }
+  .ati-pod { grid-template-columns: auto auto minmax(0, 1fr) auto; }
+  .ati-song { grid-template-columns: 2.6em minmax(0, 1fr) auto; }
+  .ati-new { grid-template-columns: 2.6em auto minmax(0, 1fr); }
+  .ati-new-st { grid-column: 3; flex-wrap: wrap; gap: 2px var(--sp-2); white-space: normal; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ati-hero--in .ati-hero-fact, .ati-hero--in .ati-hero-art,
+  .ati-panel .ati-bar-fill, .ati-panel .ati-col-fill { animation: none; }
+  .ati-chev, .ati-hero-art .ati-art { transition: none; }
+}
