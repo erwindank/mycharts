@@ -29835,14 +29835,13 @@ button.ns-art {
   grid-template-columns: auto minmax(0, 1fr) auto;
 }
 
-/* Nothing on air and no play run: the day streak starts the strip without the
-   divider, and the extras (#nsExtra: Today, Last 7 days, the tip line) fill
-   the rest of the card. */
+/* Nothing on air and no play run: the day streak is the whole strip, so it
+   sits at the start without the divider. */
 .now-strip.has-day:not(.has-streak):not(.is-live) {
-  grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: auto;
+  justify-content: start;
 }
 .now-strip.has-day:not(.has-streak):not(.is-live) .ns-day {
-  grid-column: 1;
   padding-left: 0;
   border-left: 0;
 }
@@ -29913,216 +29912,6 @@ button.ns-art {
 
 .ns-day:hover .ns-day-title {
   color: var(--text2);
-}
-
-/* ---- now strip extras (2026-10-16) ----
-   Only in the idle state (day streak alone in the card); see
-   renderNowStripExtra() in app.js. Under the streak: a bar to your best or
-   the next milestone, and a "since" line. Then two blocks set off by
-   hairlines, Today (a ring) and Last 7 days (bars), and a tip line across
-   the bottom that rotates every 8 s. */
-.ns-day-more,
-.ns-extra {
-  display: none;
-}
-
-.now-strip.has-day:not(.has-streak):not(.is-live) .ns-day-more {
-  display: grid;
-  gap: 3px;
-  margin-top: var(--sp-1);
-}
-
-.now-strip.has-day:not(.has-streak):not(.is-live) .ns-extra {
-  display: contents;
-}
-
-/* The bar fills with the flame's own colour */
-.ns-day-bar {
-  display: block;
-  width: 100%;
-  min-width: 160px;
-  height: 5px;
-  border-radius: 99px;
-  background: var(--raised);
-  overflow: hidden;
-}
-
-.ns-day-bar i {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, var(--amber), var(--gold1, var(--amber)));
-}
-
-.ns-day-note {
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  color: var(--text2);
-}
-
-.ns-day-since {
-  font-size: var(--fs-xs);
-  color: var(--text3);
-}
-
-.ns-x-block {
-  grid-row: 1;
-  display: flex;
-  align-items: center;
-  gap: var(--sp-3);
-  align-self: stretch;
-  min-width: 0;
-  padding-left: var(--sp-4);
-  border-left: 1px solid var(--border);
-}
-
-.ns-x-today { grid-column: 2; }
-.ns-x-week  { grid-column: 3; }
-
-.ns-x-text {
-  display: grid;
-  gap: 2px;
-  min-width: 0;
-}
-
-/* Same small caps label as "LISTENING STREAK" */
-.ns-x-title {
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--text3);
-}
-
-.ns-x-line {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: var(--fs-sm);
-  color: var(--text);
-}
-
-.ns-x-line > span {
-  color: var(--text3);
-}
-
-.ns-x-line b {
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-
-/* "First", "Top", "On repeat": a quiet lead-in */
-.ns-x-line em {
-  margin-right: 2px;
-  font-style: normal;
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  color: var(--text3);
-}
-
-/* Today's ring: fills toward your usual day, turns green once past it */
-.ns-ring {
-  flex-shrink: 0;
-  width: 52px;
-  height: 52px;
-}
-
-.ns-ring circle {
-  fill: none;
-  stroke-width: 5;
-}
-
-.ns-ring-track { stroke: var(--raised); }
-
-.ns-ring-fill {
-  stroke: var(--accent);
-  stroke-linecap: round;
-  transition: stroke-dasharray 0.6s ease;
-}
-
-.ns-ring.is-full .ns-ring-fill { stroke: var(--green); }
-
-.ns-ring text {
-  fill: var(--text);
-  font-family: var(--font-sans);
-  font-size: 13px;
-  font-weight: 700;
-}
-
-/* Last 7 days: one bar per day, today's in the accent colour */
-.ns-wk-bars {
-  flex-shrink: 0;
-  display: flex;
-  align-items: stretch;
-  gap: 3px;
-  height: 52px;
-}
-
-.ns-wk-col {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 2px;
-  width: 10px;
-}
-
-.ns-wk-col i {
-  display: block;
-  width: 100%;
-  max-height: calc(100% - 14px);
-  border-radius: 2px;
-  background: color-mix(in srgb, var(--accent) 40%, var(--raised));
-}
-
-.ns-wk-col.is-today i { background: var(--accent); }
-
-.ns-wk-col small {
-  font-size: 9px;
-  line-height: 12px;
-  color: var(--text3);
-}
-
-.ns-wk-pct { font-weight: 700; }
-.ns-wk-pct.is-up   { color: var(--green); }
-.ns-wk-pct.is-down { color: var(--rose); }
-
-/* The tip line: its own row across the card, under a hairline */
-.ns-x-tip {
-  grid-column: 1 / -1;
-  grid-row: 2;
-  min-width: 0;
-  padding-top: var(--sp-2);
-  border-top: 1px solid var(--border);
-  font-size: var(--fs-sm);
-  color: var(--text);
-}
-
-.ns-tip-inner {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  transition: opacity 0.25s ease, transform 0.25s ease;
-}
-
-.ns-tip-inner.is-out {
-  opacity: 0;
-  transform: translateY(3px);
-}
-
-.ns-tip-label {
-  margin-right: var(--sp-1);
-  padding: 1px 6px;
-  border-radius: 99px;
-  background: var(--raised);
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  color: var(--text2);
-}
-
-.ns-tip-text {
-  color: var(--text3);
 }
 
 /* ---- the flame (nsFlameSvg) ----
@@ -30224,19 +30013,6 @@ body[class*="-light"] [class*="ns-tier-"] .ns-flame {
     padding: var(--sp-3) 0 0;
     border-left: 0;
     border-top: 1px solid var(--border);
-  }
-
-  /* Open on phones, the extras stack under the day streak, each its own row */
-  .ns-x-block,
-  .ns-x-tip {
-    order: 3;
-    padding: var(--sp-3) 0 0;
-    border-left: 0;
-    border-top: 1px solid var(--border);
-  }
-
-  .ns-x-tip .ns-tip-inner {
-    white-space: normal;
   }
 
   .ns-less {
@@ -36378,6 +36154,118 @@ body[data-view="day"] .daily-view {
     display: none;
   }
 }
+
+/* ---- Daily tab: ring, bars and lines (day panel, time of day, patterns…) ----
+   Text lines (.ns-x-*), the plays ring (.ns-ring, dyRingSvg) and the 7-day
+   bars (.ns-wk-*). First drawn for the listening streak card, which no longer
+   uses them; the class names stayed. */
+.ns-x-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+/* Same small caps label as "LISTENING STREAK" */
+.ns-x-title {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+
+.ns-x-line {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--fs-sm);
+  color: var(--text);
+}
+
+.ns-x-line > span {
+  color: var(--text3);
+}
+
+.ns-x-line b {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* "First", "Top", "On repeat": a quiet lead-in */
+.ns-x-line em {
+  margin-right: 2px;
+  font-style: normal;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--text3);
+}
+
+/* Today's ring: fills toward your usual day, turns green once past it */
+.ns-ring {
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+}
+
+.ns-ring circle {
+  fill: none;
+  stroke-width: 5;
+}
+
+.ns-ring-track { stroke: var(--raised); }
+
+.ns-ring-fill {
+  stroke: var(--accent);
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.6s ease;
+}
+
+.ns-ring.is-full .ns-ring-fill { stroke: var(--green); }
+
+.ns-ring text {
+  fill: var(--text);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* Last 7 days: one bar per day, today's in the accent colour */
+.ns-wk-bars {
+  flex-shrink: 0;
+  display: flex;
+  align-items: stretch;
+  gap: 3px;
+  height: 52px;
+}
+
+.ns-wk-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 2px;
+  width: 10px;
+}
+
+.ns-wk-col i {
+  display: block;
+  width: 100%;
+  max-height: calc(100% - 14px);
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--accent) 40%, var(--raised));
+}
+
+.ns-wk-col.is-today i { background: var(--accent); }
+
+.ns-wk-col small {
+  font-size: 9px;
+  line-height: 12px;
+  color: var(--text3);
+}
+
+.ns-wk-pct { font-weight: 700; }
+.ns-wk-pct.is-up   { color: var(--green); }
+.ns-wk-pct.is-down { color: var(--rose); }
 
 /* ---- Daily tab: the day panel (phase 2) ----
    The day's ring and the last-7-days bars, moved over from the streak card's

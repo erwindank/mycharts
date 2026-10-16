@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=406">
+  <link rel="stylesheet" href="style.css?v=407">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=103"></script>
+  <script defer src="translations.js?v=105"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -434,11 +434,6 @@
            streak details window. Filled by renderNowStripDayStreak(): a drawn
            flame, "Listening streak", the day count and your best. -->
       <button type="button" id="nsDayStreak" class="ns-day" onclick="openStreakModal()" style="display:none;"></button>
-      <!-- Extras (2026-10-16): fill the card when the day streak is alone in it
-           (nothing on air, no play run). Today's plays as a ring, the last 7
-           days as bars, and a rotating tip line. Filled by renderNowStripExtra();
-           the CSS shows it only in that idle state. -->
-      <div id="nsExtra" class="ns-extra"></div>
       <button type="button" class="ns-less" id="nsLess" data-i18n="nav_toggle_less">Less</button>
     </div>
 
@@ -3731,14 +3726,14 @@
 
   <!-- defer keeps app.js last in the script execution order (after translations,
        Chart.js and firebase.js) while letting the whole page parse and paint first -->
-  <script defer src="changelog.js?v=206"></script>
+  <script defer src="changelog.js?v=207"></script>
   <!-- Community board tab (suggestions / bugs / discussion). Loaded before
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
   <script defer src="board.js?v=1"></script>
-  <script defer src="app.js?v=357"></script>
+  <script defer src="app.js?v=359"></script>
   <!-- All-Time chart stats ("Inside your Top N"); reads app.js globals, so it loads after it -->
   <script defer src="insights.js?v=8"></script>
-  <script defer src="daily.js?v=14"></script>
+  <script defer src="daily.js?v=15"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at

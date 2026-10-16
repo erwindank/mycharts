@@ -381,7 +381,7 @@ function dyRenderChart(h, ds) {
       move = f.before ? `<span class="m-re">${t('badge_re')}</span>` : `<span class="m-new">${t(type === 'songs' ? 'badge_new_songs' : 'badge_new')}</span>`;
     }
     const peakTip = f.peakDs ? t('dy_peak_tip', { rank: f.peak, date: fmt(dyDate(f.peakDs)) }) : '';
-    const peakCell = `<td class="m-col dy-peak" title="${esc(peakTip)}"><span class="m-mths">#${f.peak}</span>${f.peakDs && f.peakDs !== ds ? `<div class="m-prev-rank">${esc(nsShortDateSafe(f.peakDs))}</div>` : ''}</td>`;
+    const peakCell = `<td class="m-col dy-peak" title="${esc(peakTip)}"><span class="m-mths">#${f.peak}</span>${f.peakDs && f.peakDs !== ds ? `<div class="m-prev-rank">${esc(dyShortDate(f.peakDs))}</div>` : ''}</td>`;
 
     let thumb, main, ea;   // ea: the entry attributes behind ▶ / ⋮ (_eaAttrs in app.js)
     if (type === 'songs') {
@@ -1684,9 +1684,7 @@ function dyGenreHtml(h, ds, plays) {
 }
 
 // ─── DAY PANEL (phase 2) ──────────────────────────────────────────────────
-/* A card above the chart about the day on screen, moved over from the
-   listening streak card's extras (renderNowStripExtra in app.js), which only
-   ever describe today:
+/* A card above the chart about the day on screen:
      - a ring of the day's plays against your usual day (the average over the
        days you listened in the 30 before it), with the day's first and last
        song and its top artist
@@ -1709,7 +1707,7 @@ function dyPanelHtml(h, ds) {
   const dayTitle = currentOffset === 0 ? t('dy_today') : currentOffset === 1 ? t('dy_yesterday') : dyDayName(ds);
   const dayBlock = `
     <div class="dy-pblock">
-      ${nsRingSvg(n, usual)}
+      ${dyRingSvg(n, usual)}
       <div class="ns-x-text">
         <span class="ns-x-title">${esc(dayTitle)}${dyLiveBadge()}</span>
         <span class="ns-x-line"><b>${esc(tCount('plays', n))}</b>${usual ? ` <span>${esc(t('ns_x_usual', { n: usual.toLocaleString() }))}</span>` : ''}</span>
@@ -1773,9 +1771,22 @@ function dyThumb(imgId, label, type, prefKey, name, artist, album) {
   return `<div class="thumb-wrap ea-cover"><div id="${imgId}"><div class="thumb-initials">${esc(initials(label))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="${type}" data-prefkey="${esc(prefKey)}" data-name="${esc(name)}" data-artist="${esc(artist)}" data-album="${esc(album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div>`;
 }
 
-// "12 Oct": nsShortDate() lives in app.js; fall back to the full date if it is missing
-function nsShortDateSafe(ds) {
-  return typeof nsShortDate === 'function' ? nsShortDate(ds) : fmt(dyDate(ds));
+// "12 Oct" in the interface language, from a YYYY-MM-DD string
+function dyShortDate(ds) {
+  try {
+    return dyDate(ds).toLocaleDateString(typeof currentLang !== 'undefined' ? currentLang : undefined, { day: 'numeric', month: 'short' });
+  } catch (e) { return fmt(dyDate(ds)); }
+}
+
+// A day's plays against your usual day, as a ring drawn in SVG (the day panel)
+function dyRingSvg(n, usual) {
+  const r = 20, c = 2 * Math.PI * r;
+  const f = usual ? Math.min(1, n / usual) : 0;
+  return `<svg class="ns-ring${n >= usual && usual ? ' is-full' : ''}" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+      <circle class="ns-ring-track" cx="24" cy="24" r="${r}"/>
+      <circle class="ns-ring-fill" cx="24" cy="24" r="${r}" stroke-dasharray="${(c * f).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 24 24)"/>
+      <text x="24" y="24" dy="0.35em" text-anchor="middle">${n > 999 ? Math.round(n / 100) / 10 + 'k' : n}</text>
+    </svg>`;
 }
 
 // ─── CONTROLS ─────────────────────────────────────────────────────────────
