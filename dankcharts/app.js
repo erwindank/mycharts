@@ -34350,18 +34350,31 @@ const _skHmTip = (() => {
   document.body.appendChild(el); return el;
 })();
 
+// Calendar tab state: which streaks the heatmap counts ('all' / 'artist' / 'song' /
+// 'album', remembered) and the day whose streaks the panel under the grid lists.
+let _skHmType = (() => { try { return localStorage.getItem('sk-hm-type') || 'all'; } catch (e) { return 'all'; } })();
+let _skHmSel = '';
+
+// Streaks running on a day, for the type on screen.
+function _skHmCnt(ds) {
+  return _skHmType === 'all' ? (_skHmCount[ds] || 0) : ((_skHmByType[ds] || {})[_skHmType] || 0);
+}
+function _skHmNamesFor(ds, type) {
+  return ((_skHmNamesByType[ds] || {})[type]) || [];
+}
+
 function _skHmShowTip(cell, ev) {
   const ds = cell.dataset.ds;
   const cnt = +cell.dataset.cnt || 0;
   if (!cnt) return;
-  const names = _skHmNames[ds] || [];
+  const names = _skHmType === 'all' ? (_skHmNames[ds] || []) : _skHmNamesFor(ds, _skHmType);
   const fmtDs = new Date(ds + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
   const top6 = names.slice(0, 6);
   const extra = names.length - top6.length;
   _skHmTip.innerHTML =
     `<div class="sk-hm-tip-date">${fmtDs}</div>` +
-    `<div class="sk-hm-tip-count">${cnt} active streak${cnt !== 1 ? 's' : ''}</div>` +
-    (top6.length ? `<ul class="sk-hm-tip-list">${top6.map(n => `<li>${esc(n)}</li>`).join('')}${extra ? `<li class="sk-hm-tip-more">+${extra} more</li>` : ''}</ul>` : '');
+    `<div class="sk-hm-tip-count">${esc(t('sk_hm_running', { n: cnt }))}</div>` +
+    (top6.length ? `<ul class="sk-hm-tip-list">${top6.map(n => `<li>${esc(n)}</li>`).join('')}${extra ? `<li class="sk-hm-tip-more">${esc(t('sk_more', { n: extra }))}</li>` : ''}</ul>` : '');
   _skHmTip.style.display = 'block';
   const cx = ev.clientX != null ? ev.clientX : ev.pageX - window.scrollX;
   const cy = ev.clientY != null ? ev.clientY : ev.pageY - window.scrollY;
@@ -34372,60 +34385,31 @@ function _skHmShowTip(cell, ev) {
   _skHmTip.style.left = l + 'px'; _skHmTip.style.top = top + 'px';
 }
 
+// The panel under the grid: every streak running on the chosen day, grouped by
+// type (only the chosen type when the switch isn't on All).
 function _skHmShowDrill(ds) {
   const drill = document.getElementById('skHmDrill');
   if (!drill) return;
-  const names = _skHmNames[ds] || [];
-  const cnt = _skHmCount[ds] || 0;
-  if (!cnt) { drill.style.display = 'none'; return; }
-  const fmtDs = new Date(ds + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+  _skHmSel = ds || '';
+  document.querySelectorAll('#skTabHeatmap .sk-hm-sel').forEach(c => c.classList.remove('sk-hm-sel'));
+  const cnt = ds ? _skHmCnt(ds) : 0;
+  if (!cnt) { drill.innerHTML = `<div class="sk-hm-drill-hint">${esc(t('sk_hm_click'))}</div>`; return; }
+  document.querySelector(`#skTabHeatmap .sk-hm-cell[data-ds="${ds}"]`)?.classList.add('sk-hm-sel');
+  const fmtDs = new Date(ds + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+  const types = _skHmType === 'all' ? ['artist', 'album', 'song'] : [_skHmType];
+  const SHOW = 40;
   drill.innerHTML =
-    `<div class="sk-hm-drill-hdr">${fmtDs} — ${cnt} active streak${cnt !== 1 ? 's' : ''}</div>` +
-    `<ul class="sk-hm-drill-list">${names.map(n => `<li>${esc(n)}</li>`).join('')}</ul>`;
-  drill.style.display = '';
-}
-
-function _skHmShowCatTip(cell, ev) {
-  const ds = cell.dataset.ds;
-  const type = cell.dataset.type;
-  const cnt = +cell.dataset.cnt || 0;
-  if (!cnt) return;
-  const names = (_skHmNamesByType[ds] || {})[type] || [];
-  const typeLabel = type === 'artist' ? 'artist' : type === 'song' ? 'song' : 'album';
-  const fmtDs = new Date(ds + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
-  const top6 = names.slice(0, 6);
-  const extra = names.length - top6.length;
-  _skHmTip.innerHTML =
-    `<div class="sk-hm-tip-date">${fmtDs}</div>` +
-    `<div class="sk-hm-tip-count">${cnt} ${typeLabel} streak${cnt !== 1 ? 's' : ''}</div>` +
-    (top6.length ? `<ul class="sk-hm-tip-list">${top6.map(n => `<li>${esc(n)}</li>`).join('')}${extra ? `<li class="sk-hm-tip-more">+${extra} more</li>` : ''}</ul>` : '');
-  _skHmTip.style.display = 'block';
-  const cx = ev.clientX != null ? ev.clientX : ev.pageX - window.scrollX;
-  const cy = ev.clientY != null ? ev.clientY : ev.pageY - window.scrollY;
-  const W = _skHmTip.offsetWidth || 190, H = _skHmTip.offsetHeight || 100;
-  let l = cx + 12, top = cy + 12;
-  if (l + W > innerWidth - 8) l = cx - W - 12;
-  if (top + H > innerHeight - 8) top = cy - H - 12;
-  _skHmTip.style.left = l + 'px'; _skHmTip.style.top = top + 'px';
-}
-
-function _skHmShowCatDrill(ds, type) {
-  const drill = document.getElementById('skHmDrill');
-  if (!drill) return;
-  const names = (_skHmNamesByType[ds] || {})[type] || [];
-  const cnt = names.length;
-  if (!cnt) { drill.style.display = 'none'; return; }
-  const fmtDs = new Date(ds + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
-  const typeLabel = type === 'artist' ? 'artist' : type === 'song' ? 'song' : 'album';
-  drill.innerHTML =
-    `<div class="sk-hm-drill-hdr">${fmtDs} — ${cnt} ${typeLabel} streak${cnt !== 1 ? 's' : ''}</div>` +
-    `<ul class="sk-hm-drill-list">${names.map(n => `<li>${esc(n)}</li>`).join('')}</ul>`;
-  drill.style.display = '';
+    `<div class="sk-hm-drill-hdr">${esc(fmtDs)} · <b>${esc(t('sk_hm_running', { n: cnt }))}</b></div>` +
+    types.map(tp => {
+      const names = _skHmNamesFor(ds, tp);
+      if (!names.length) return '';
+      return `<div class="sk-hm-drill-grp"><div class="sk-hm-drill-h">${esc(t('sk_fire_' + tp))} <span>${names.length}</span></div>` +
+        `<div class="sk-hm-drill-chips">${names.slice(0, SHOW).map(n => `<span class="sk-hm-chip sk-hm-chip--${tp}">${esc(n)}</span>`).join('')}` +
+        (names.length > SHOW ? `<span class="sk-hm-chip sk-hm-chip--more">${esc(t('sk_more', { n: names.length - SHOW }))}</span>` : '') + `</div></div>`;
+    }).join('');
 }
 
 function _skHmOnMouseover(e) {
-  const catCell = e.target.closest('.sk-hm-cat-has');
-  if (catCell) { _skHmShowCatTip(catCell, e); return; }
   const cell = e.target.closest('.sk-hm-has');
   if (!cell) { _skHmTip.style.display = 'none'; return; }
   _skHmShowTip(cell, e);
@@ -34434,19 +34418,16 @@ function _skHmOnMouseout(e) {
   if (!e.relatedTarget?.closest('#skTabHeatmap')) _skHmTip.style.display = 'none';
 }
 function _skHmOnClick(e) {
-  const catCell = e.target.closest('.sk-hm-cat-has');
-  if (catCell) { _skHmShowCatDrill(catCell.dataset.ds, catCell.dataset.type); return; }
   const cell = e.target.closest('.sk-hm-has');
-  if (!cell) { const d = document.getElementById('skHmDrill'); if (d) d.style.display = 'none'; return; }
+  if (!cell) return;
   _skHmShowDrill(cell.dataset.ds);
 }
 function _skHmOnTouchend(e) {
-  const catCell = e.target.closest('.sk-hm-cat-has');
-  if (catCell) { e.preventDefault(); _skHmShowCatTip(catCell, e.changedTouches[0]); return; }
   const cell = e.target.closest('.sk-hm-has');
   if (!cell) return;
   e.preventDefault();
-  _skHmShowTip(cell, e.changedTouches[0]);
+  _skHmTip.style.display = 'none';
+  _skHmShowDrill(cell.dataset.ds); // on touch the panel does the tooltip's job
 }
 
 function _skHmAnimate() {
@@ -34470,10 +34451,20 @@ function _skHmSetTheme(t) {
   _skHmBuild();
 }
 
+function _skHmSetType(type) {
+  _skHmType = ['all', 'artist', 'song', 'album'].includes(type) ? type : 'all';
+  try { localStorage.setItem('sk-hm-type', _skHmType); } catch(e) {}
+  _skHmBuild();
+}
+
 function _skHmBuild() {
   const pane = document.getElementById('skTabHeatmap');
   if (!pane) return;
   pane.innerHTML = _skHmGenHTML();
+  // Keep the chosen day if it is still on screen; else show the latest day with streaks.
+  const cells = [...pane.querySelectorAll('.sk-hm-has')];
+  const keepSel = _skHmSel && cells.some(c => c.dataset.ds === _skHmSel);
+  _skHmShowDrill(keepSel ? _skHmSel : (cells.length ? cells[cells.length - 1].dataset.ds : ''));
 }
 
 function _skHmCopyImg() {
@@ -34499,16 +34490,16 @@ function _skHmCopyImg() {
   canvas.toBlob(blob => {
     if (!blob) return;
     const btn = document.querySelector('.sk-hm-copy-btn');
+    const label = '📋 ' + t('sk_hm_copy');
     navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
-      .then(() => { if (btn) { btn.textContent = '✓ Copied'; setTimeout(() => btn.textContent = '📋 Copy', 1500); } })
+      .then(() => { if (btn) { btn.textContent = '✓ ' + t('sk_hm_copied'); setTimeout(() => btn.textContent = label, 1500); } })
       .catch(() => { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'streaks-heatmap.png'; a.click(); });
   });
 }
 
 function _skHmGenHTML() {
-  const count = _skHmCount, byType = _skHmByType;
   const todayD = new Date(), todayS = localDateStr(todayD);
-  const allDates = Object.keys(count).sort();
+  const allDates = Object.keys(_skHmCount).sort();
 
   // ── Determine date range ──────────────────────────────────────
   let rangeStart, rangeEnd, numWeeks;
@@ -34535,17 +34526,18 @@ function _skHmGenHTML() {
     numWeeks = 54;
   }
   const baseT = rangeStart.getTime();
+  const dayAt = i => new Date(baseT + i * 86400000);
+  const inRange = dt => !(dt > rangeEnd || dt > todayD);
 
-  // ── Compute stats ─────────────────────────────────────────────
-  let activeDays = 0, totalStreakDays = 0, maxCount = 0, maxDate = '';
+  // ── Compute stats (for the type on screen) ────────────────────
+  let activeDays = 0, totalStreakDays = 0, maxCount = 0, maxDate = '', rangeDays = 0;
   const peakSet = new Set();
-  let rangeDays = 0;
   for (let i = 0; i < numWeeks * 7; i++) {
-    const dt = new Date(baseT + i * 86400000);
-    if (dt > rangeEnd || dt > todayD) break;
+    const dt = dayAt(i);
+    if (!inRange(dt)) break;
     rangeDays++;
     const ds = localDateStr(dt);
-    const cnt = count[ds] || 0;
+    const cnt = _skHmCnt(ds);
     if (cnt > 0) { activeDays++; totalStreakDays += cnt; }
     if (cnt > maxCount) { maxCount = cnt; maxDate = ds; peakSet.clear(); peakSet.add(ds); }
     else if (cnt === maxCount && cnt > 0) peakSet.add(ds);
@@ -34557,19 +34549,19 @@ function _skHmGenHTML() {
   for (let w = 0; w < numWeeks; w++) {
     let sum = 0;
     for (let d = 0; d < 7; d++) {
-      const dt = new Date(baseT + (w * 7 + d) * 86400000);
-      if (dt > rangeEnd || dt > todayD) break;
-      sum += count[localDateStr(dt)] || 0;
+      const dt = dayAt(w * 7 + d);
+      if (!inRange(dt)) break;
+      sum += _skHmCnt(localDateStr(dt));
     }
-    if (sum > bestWeekSum) { bestWeekSum = sum; bestWeekStart = localDateStr(new Date(baseT + w * 7 * 86400000)); }
+    if (sum > bestWeekSum) { bestWeekSum = sum; bestWeekStart = localDateStr(dayAt(w * 7)); }
   }
 
   // Longest dense run (≥2 concurrent streaks per day)
   let longestRun = 0, curRun = 0;
   for (let i = 0; i < numWeeks * 7; i++) {
-    const dt = new Date(baseT + i * 86400000);
-    if (dt > rangeEnd || dt > todayD) break;
-    (count[localDateStr(dt)] || 0) >= 2 ? (++curRun > longestRun && (longestRun = curRun)) : (curRun = 0);
+    const dt = dayAt(i);
+    if (!inRange(dt)) break;
+    _skHmCnt(localDateStr(dt)) >= 2 ? (++curRun > longestRun && (longestRun = curRun)) : (curRun = 0);
   }
 
   // ── Color function (continuous, logarithmic) ──────────────────
@@ -34582,42 +34574,38 @@ function _skHmGenHTML() {
     return hmLerpColor(themeStops[lo], themeStops[hi], idx - lo);
   }
 
-  // ── Controls ──────────────────────────────────────────────────
-  const availYears = [...new Set(allDates.map(d => d.slice(0, 4)))].sort();
-  const rangeBtns =
-    `<button class="sk-hm-rbtn${_skHmRange === 'year' ? ' active' : ''}" onclick="_skHmSetRange('year')">Past Year</button>` +
-    availYears.map(y => `<button class="sk-hm-rbtn${_skHmRange === y ? ' active' : ''}" onclick="_skHmSetRange('${y}')">${y}</button>`).join('') +
-    `<button class="sk-hm-rbtn${_skHmRange === 'all' ? ' active' : ''}" onclick="_skHmSetRange('all')">All Time</button>`;
+  // ── Controls: type switch · range dropdown · colour themes ────
+  const availYears = [...new Set(allDates.map(d => d.slice(0, 4)))].sort().reverse();
+  const typeSeg = `<div class="sk-seg" role="group" aria-label="${esc(t('sk_fire_show'))}">` +
+    ['all', 'artist', 'song', 'album'].map(k =>
+      `<button type="button" class="sk-seg-btn${_skHmType === k ? ' active' : ''}" aria-pressed="${_skHmType === k}" onclick="_skHmSetType('${k}')">${esc(t('sk_fire_' + k))}</button>`).join('') +
+    `</div>`;
+  const rangeSel = `<select class="sk-hm-select" aria-label="${esc(t('sk_hm_range'))}" onchange="_skHmSetRange(this.value)">` +
+    `<option value="year"${_skHmRange === 'year' ? ' selected' : ''}>${esc(t('sk_hm_past_year'))}</option>` +
+    availYears.map(y => `<option value="${y}"${_skHmRange === y ? ' selected' : ''}>${y}</option>`).join('') +
+    `<option value="all"${_skHmRange === 'all' ? ' selected' : ''}>${esc(t('sk_hm_all_time'))}</option></select>`;
   const themeSwatches = Object.entries(HM_THEMES).map(([k, stops]) =>
-    `<div class="sk-hm-tswatch${_skHmTheme === k ? ' active' : ''}" style="background:linear-gradient(90deg,${stops[0]},${stops[stops.length - 1]})" onclick="_skHmSetTheme('${k}')" title="${k}"></div>`
+    `<button type="button" class="sk-hm-tswatch${_skHmTheme === k ? ' active' : ''}" style="background:linear-gradient(90deg,${stops[0]},${stops[stops.length - 1]})" onclick="_skHmSetTheme('${k}')" title="${k}" aria-label="${esc(t('sk_hm_theme'))}: ${k}"></button>`
   ).join('');
 
-  // ── Summary stats ─────────────────────────────────────────────
-  const peakFmt = maxDate ? new Date(maxDate + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '';
-  const summaryHtml =
-    `<div class="sk-hm-summary">` +
-    (maxDate ? `<span class="sk-hm-stat">Peak: <strong>${maxCount}</strong> on ${peakFmt}</span>` : '') +
-    `<span class="sk-hm-stat">Active: <strong>${activeDays}</strong>/${rangeDays} days</span>` +
-    `<span class="sk-hm-stat">Avg: <strong>${avgPerActive}</strong>/active day</span>` +
-    `</div>`;
-
-  // ── Callout bar (busiest week + dense run) ─────────────────────
-  let calloutParts = [];
-  if (bestWeekStart && bestWeekSum > 0) {
-    const wEnd = new Date(new Date(bestWeekStart + 'T12:00:00').getTime() + 6 * 86400000);
-    const wFmt = d => new Date(d + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-    calloutParts.push(`📅 Busiest week: ${wFmt(bestWeekStart)}–${wFmt(localDateStr(wEnd))} (${(bestWeekSum / 7).toFixed(1)} avg/day)`);
-  }
-  if (longestRun >= 3) calloutParts.push(`🔥 Longest dense run: ${longestRun} consecutive days with ≥2 active`);
-  const calloutHtml = calloutParts.length ? `<div class="sk-hm-callout">${calloutParts.join(' · ')}</div>` : '';
+  // ── Stat tiles ────────────────────────────────────────────────
+  const fmtMD = ds => new Date(ds + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  const tile = (v, l) => `<div class="sk-hm-tile"><div class="sk-hm-tile-v">${v}</div><div class="sk-hm-tile-l">${l}</div></div>`;
+  const tilesHtml = `<div class="sk-hm-tiles">` +
+    tile(maxCount, esc(maxDate ? t('sk_hm_peak_on', { date: fmtMD(maxDate) }) : t('sk_hm_peak'))) +
+    tile(activeDays, esc(t('sk_hm_active_of', { total: rangeDays }))) +
+    tile(avgPerActive, esc(t('sk_hm_avg'))) +
+    tile(bestWeekSum ? (bestWeekSum / 7).toFixed(1) : '0', esc(bestWeekStart && bestWeekSum ? t('sk_hm_busiest_on', { date: fmtMD(bestWeekStart) }) : t('sk_hm_busiest'))) +
+    `</div>` +
+    (longestRun >= 3 ? `<div class="sk-hm-callout">🔥 ${esc(t('sk_hm_dense', { n: longestRun }))}</div>` : '');
 
   // ── Month label row ───────────────────────────────────────────
   let monthRowHtml = '';
   let lastMonth = -1;
   for (let w = 0; w < numWeeks; w++) {
-    const dt = new Date(baseT + w * 7 * 86400000);
+    const dt = dayAt(w * 7);
     const m = dt.getMonth();
-    if (dt <= rangeEnd && dt <= todayD && m !== lastMonth) {
+    if (inRange(dt) && m !== lastMonth) {
       monthRowHtml += `<div class="sk-hm-month-cell"><span class="sk-hm-month-lbl">${HM_MONTHS[m]}</span></div>`;
       lastMonth = m;
     } else {
@@ -34634,98 +34622,33 @@ function _skHmGenHTML() {
   for (let w = 0; w < numWeeks; w++) {
     gridHtml += `<div class="sk-hm-col sk-hm-col-anim" style="animation-delay:${w * 5}ms">`;
     for (let d = 0; d < 7; d++) {
-      const dt = new Date(baseT + (w * 7 + d) * 86400000);
-      if (dt > rangeEnd || dt > todayD) { gridHtml += '<div class="sk-hm-cell" style="background:transparent"></div>'; continue; }
+      const dt = dayAt(w * 7 + d);
+      if (!inRange(dt)) { gridHtml += '<div class="sk-hm-cell" style="background:transparent"></div>'; continue; }
       const ds = localDateStr(dt);
-      const cnt = count[ds] || 0;
-      const bg = cellBg(cnt);
+      const cnt = _skHmCnt(ds);
       let cls = 'sk-hm-cell';
       if (cnt > 0) cls += ' sk-hm-has';
       if (ds === todayS) cls += ' sk-hm-today';
       if (peakSet.has(ds)) cls += ' sk-hm-peak';
-      gridHtml += `<div class="${cls}" style="background:${bg}" data-ds="${ds}" data-cnt="${cnt}"></div>`;
+      gridHtml += `<div class="${cls}" style="background:${cellBg(cnt)}" data-ds="${ds}" data-cnt="${cnt}"></div>`;
     }
     gridHtml += '</div>';
   }
-
-  // ── Category breakdown (mini grids) ──────────────────────────
-  function miniGrid(type, label, themeKey) {
-    const stops = HM_THEMES[themeKey] || HM_THEMES.default;
-    let maxV = 0;
-    for (let i = 0; i < numWeeks * 7; i++) {
-      const dt = new Date(baseT + i * 86400000);
-      if (dt > rangeEnd || dt > todayD) break;
-      const v = (byType[localDateStr(dt)] || {})[type] || 0;
-      if (v > maxV) maxV = v;
-    }
-    function miniColor(cnt) {
-      if (!cnt || !maxV) return 'rgba(255,255,255,0.05)';
-      const r = Math.min(Math.log1p(cnt) / Math.log1p(maxV), 1);
-      const idx = r * (stops.length - 1);
-      const lo = Math.floor(idx), hi = Math.min(lo + 1, stops.length - 1);
-      return hmLerpColor(stops[lo], stops[hi], idx - lo);
-    }
-    let catMonthRow = '', lastCatMonth = -1;
-    for (let w = 0; w < numWeeks; w++) {
-      const dt = new Date(baseT + w * 7 * 86400000);
-      const m = dt.getMonth();
-      if (dt <= rangeEnd && dt <= todayD && m !== lastCatMonth) {
-        catMonthRow += `<div class="sk-hm-month-cell"><span class="sk-hm-month-lbl">${HM_MONTHS[m]}</span></div>`;
-        lastCatMonth = m;
-      } else {
-        catMonthRow += '<div class="sk-hm-month-cell"></div>';
-      }
-    }
-    const catDowHtml = `<div class="sk-hm-dow-col">${['Mon','','Wed','','Fri','',''].map(l => `<div class="sk-hm-dow-label">${l}</div>`).join('')}</div>`;
-    let cols = '';
-    for (let w = 0; w < numWeeks; w++) {
-      cols += '<div class="sk-hm-cat-col">';
-      for (let d = 0; d < 7; d++) {
-        const dt = new Date(baseT + (w * 7 + d) * 86400000);
-        if (dt > rangeEnd || dt > todayD) { cols += '<div class="sk-hm-cat-cell" style="background:transparent"></div>'; continue; }
-        const ds = localDateStr(dt);
-        const cnt = (byType[ds] || {})[type] || 0;
-        cols += cnt > 0
-          ? `<div class="sk-hm-cat-cell sk-hm-cat-has" style="background:${miniColor(cnt)}" data-ds="${ds}" data-cnt="${cnt}" data-type="${type}"></div>`
-          : `<div class="sk-hm-cat-cell" style="background:rgba(255,255,255,0.05)"></div>`;
-      }
-      cols += '</div>';
-    }
-    return `<div class="sk-hm-cat">
-      <div class="sk-hm-cat-label">${label}</div>
-      <div class="sk-hm-outer">
-        ${catDowHtml}
-        <div class="sk-hm-scroll">
-          <div class="sk-hm-grid-wrap">
-            <div class="sk-hm-month-row-outer">${catMonthRow}</div>
-            <div class="sk-hm-cat-grid">${cols}</div>
-          </div>
-        </div>
-      </div>
-    </div>`;
-  }
-  const catsHtml = `<div class="sk-hm-cats">` +
-    miniGrid('artist', '🎤 Artists', 'fire') +
-    miniGrid('song', '🎵 Songs', 'ocean') +
-    miniGrid('album', '💿 Albums', 'forest') +
-    `</div>`;
 
   // ── Numbered legend ───────────────────────────────────────────
   const lgRatios = [0, 0.25, 0.5, 0.75, 1];
   const lgCells = lgRatios.map((r, i) => {
     const cnt = r === 0 ? 0 : Math.max(1, Math.round(Math.exp(r * Math.log1p(maxCount)) - 1));
-    const bg = cellBg(cnt);
     const lbl = i === 0 ? '0' : (i === lgRatios.length - 1 && maxCount > 0 ? `${cnt}+` : String(cnt));
-    return `<div class="sk-hm-leg-wrap"><div class="sk-hm-cell" style="background:${bg};width:9px;height:9px;border-radius:1.5px;flex-shrink:0"></div><span class="sk-hm-leg-num">${lbl}</span></div>`;
+    return `<div class="sk-hm-leg-wrap"><div class="sk-hm-cell" style="background:${cellBg(cnt)};width:9px;height:9px;border-radius:1.5px;flex-shrink:0"></div><span class="sk-hm-leg-num">${lbl}</span></div>`;
   }).join('');
 
   return `<div class="sk-hm-wrap">
     <div class="sk-hm-controls">
-      <div class="sk-hm-ranges">${rangeBtns}</div>
-      <div class="sk-hm-themes">${themeSwatches}</div>
+      ${typeSeg}${rangeSel}
+      <div class="sk-hm-themes" role="group" aria-label="${esc(t('sk_hm_theme'))}">${themeSwatches}</div>
     </div>
-    ${summaryHtml}
-    ${calloutHtml}
+    ${tilesHtml}
     <div class="sk-hm-outer">
       ${dowHtml}
       <div class="sk-hm-scroll">
@@ -34735,12 +34658,11 @@ function _skHmGenHTML() {
         </div>
       </div>
     </div>
-    ${catsHtml}
     <div class="sk-hm-leg-row">
-      <div class="sk-hm-legend-inner"><span>Less</span>${lgCells}<span>More</span></div>
-      <button class="sk-hm-copy-btn" onclick="_skHmCopyImg()" title="Copy heatmap as image">📋 Copy</button>
+      <div class="sk-hm-legend-inner"><span>${esc(t('sk_hm_less'))}</span>${lgCells}<span>${esc(t('sk_hm_more'))}</span></div>
+      <button class="sk-hm-copy-btn" onclick="_skHmCopyImg()" title="${esc(t('sk_hm_copy'))}">📋 ${esc(t('sk_hm_copy'))}</button>
     </div>
-    <div id="skHmDrill" class="sk-hm-drill" style="display:none"></div>
+    <div id="skHmDrill" class="sk-hm-drill"></div>
   </div>`;
 }
 
