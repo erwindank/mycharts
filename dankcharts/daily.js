@@ -99,13 +99,18 @@ function dyHistory() {
   const gen = [_stampEpoch, _playsVersion, _releaseEpoch, dySize, albumsFilterBucket() || '', singleRollupLevel()].join('|');
   if (_dyHist && _dyHist.gen === gen) return _dyHist;
 
-  const byDay = {};   // ds → { plays, songs: {k: e}, artists: {k: e}, albums: {k: e} }
+  const byDay = {};   // ds → { plays, songs: {k: e}, artists: {k: e}, albums: {k: e}, list: [plays] }
+  let timedN = 0;
   const roll = rollupAffectsCharts();
   for (const p of allPlays) {
     const ds = dayStrOf(p);
     const ms = msOf(p);
-    const d = byDay[ds] || (byDay[ds] = { plays: 0, songs: {}, artists: {}, albums: {}, firstP: p, firstMs: ms, lastP: p, lastMs: ms });
+    const d = byDay[ds] || (byDay[ds] = { plays: 0, songs: {}, artists: {}, albums: {}, firstP: p, firstMs: ms, lastP: p, lastMs: ms, list: [] });
     d.plays++;
+    d.list.push(p);   // the day's plays, for the time-of-day card (phase 3)
+    // Plays with a time of day other than midnight: date-only sheets have none
+    const td = tzDateOf(p);
+    if (td.getHours() || td.getMinutes()) timedN++;
     // The day's first and last play, for the day panel (phase 2)
     if (ms < d.firstMs) { d.firstMs = ms; d.firstP = p; }
     if (ms > d.lastMs) { d.lastMs = ms; d.lastP = p; }
@@ -146,7 +151,8 @@ function dyHistory() {
     }
   }
 
-  _dyHist = { gen, days, byDay, charts };
+  // Real times of day if more than half the plays have one (see dyTimeOfDayHtml)
+  _dyHist = { gen, days, byDay, charts, timed: timedN > allPlays.length / 2 };
   return _dyHist;
 }
 
@@ -415,6 +421,10 @@ function dyRenderChart(h, ds) {
     ? `<table class="chart-table dy-table"><thead>${head}</thead><tbody>${rows}</tbody></table>`
     : `<div class="empty-state"><p>${t('empty_no_plays')}</p></div>`;
 
+  // Time of day (phase 3): collects its covers into todImgs to load below
+  const todImgs = [];
+  const tod = dyTimeOfDayHtml(h, ds, todImgs);
+
   view.innerHTML = `
     ${dyPanelHtml(h, ds)}
     ${toolbar}
@@ -425,9 +435,140 @@ function dyRenderChart(h, ds) {
       </div>
       ${no1Html}
       <div class="section-body">${body}</div>
-    </div>`;
+    </div>
+    ${tod}`;
 
   if (imgItems.length) loadImages(imgItems, type === 'songs' ? 'song' : type === 'artists' ? 'artist' : 'album');
+  for (const tp of ['album', 'song']) {
+    const items = todImgs.filter(x => x.type === tp).map(x => x.item);
+    if (items.length) loadImages(items, tp);
+  }
+}
+
+// ─── TIME OF DAY (phase 3) ────────────────────────────────────────────────
+/* A card under the Daily chart about when in the day you listened:
+     - the busiest hour, and listening sessions: runs of plays with no gap
+       longer than 30 minutes, with the longest one's length and times
+     - 24 bars, one per hour (hover for the hour's plays and top song)
+     - the day in four parts (night 0–6, morning 6–12, afternoon 12–18,
+       evening 18–24), each with its plays and top song
+     - a strip of covers through the day: the most played album (or song,
+       when it has no album) of each hour you listened, at that hour
+   Only shown when the library carries real times of day. A Google Sheet or
+   CSV with dates only stamps every play at midnight, which would put a whole
+   day in one bar, so h.timed (worked out in dyHistory) turns the card off. */
+const DY_SESSION_GAP = 30 * 60 * 1000;   // a longer gap starts a new session
+const DY_SONG_MS = 3.5 * 60 * 1000;      // a play's rough length, added to a session's end
+
+function dyHourLabel(hr) {
+  try {
+    return new Date(2000, 0, 1, hr).toLocaleTimeString(typeof currentLang !== 'undefined' ? currentLang : undefined, { hour: 'numeric' });
+  } catch (e) { return String(hr).padStart(2, '0') + ':00'; }
+}
+
+function dyClock(ms) {
+  const d = tzDate(new Date(ms));
+  return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+}
+
+function dyDuration(ms) {
+  const m = Math.max(1, Math.round(ms / 60000));
+  return m >= 60 ? t('dy_dur_hm', { h: Math.floor(m / 60), m: m % 60 }) : t('dy_dur_m', { m });
+}
+
+// The most played entry of a { key: { n, ... } } tally
+function dyTopOf(tally) {
+  let best = null;
+  for (const k in tally) if (!best || tally[k].n > best.n) best = tally[k];
+  return best;
+}
+
+function dyTimeOfDayHtml(h, ds, imgOut) {
+  const day = h.byDay[ds];
+  if (!h.timed || !day || !day.list.length) return '';
+
+  const plays = day.list.slice().sort((a, b) => msOf(a) - msOf(b));
+  const hours = Array.from({ length: 24 }, () => ({ n: 0, songs: {}, albums: {} }));
+  for (const p of plays) {
+    const hr = tzDateOf(p).getHours();
+    const b = hours[hr];
+    b.n++;
+    const sk = songKey(p);
+    (b.songs[sk] || (b.songs[sk] = { n: 0, title: p.title, artist: p.artist, album: p.album })).n++;
+    const ak = p.album && p.album !== '—' ? albumKeyOf(p) : 'song:' + sk;
+    (b.albums[ak] || (b.albums[ak] = { n: 0, title: p.title, artist: p.artist, album: p.album && p.album !== '—' ? p.album : '' })).n++;
+  }
+
+  // Busiest hour
+  let busy = 0;
+  for (let i = 1; i < 24; i++) if (hours[i].n > hours[busy].n) busy = i;
+
+  // Sessions
+  const sessions = [];
+  let cur = null;
+  for (const p of plays) {
+    const ms = msOf(p);
+    if (cur && ms - cur.end <= DY_SESSION_GAP) { cur.end = ms; cur.n++; }
+    else { cur = { start: ms, end: ms, n: 1 }; sessions.push(cur); }
+  }
+  const longest = sessions.reduce((a, b) => (b.end - b.start > a.end - a.start ? b : a), sessions[0]);
+  const sessLine = t(sessions.length === 1 ? 'dy_sessions_one' : 'dy_sessions_other', { n: sessions.length }) + ' · ' +
+    t('dy_longest', { dur: dyDuration(longest.end - longest.start + DY_SONG_MS), from: dyClock(longest.start), to: dyClock(longest.end + DY_SONG_MS) });
+
+  // Hour bars
+  const max = Math.max(1, ...hours.map(b => b.n));
+  const bars = hours.map((b, i) => {
+    const top = dyTopOf(b.songs);
+    const tip = dyHourLabel(i) + ' · ' + tCount('plays', b.n) + (top ? '\n' + top.title + ' — ' + top.artist : '');
+    return `<span class="dy-hr${i === busy && b.n ? ' is-busy' : ''}" title="${esc(tip)}"><i style="height:${b.n ? Math.max(6, b.n / max * 100).toFixed(0) : 0}%"></i></span>`;
+  }).join('');
+  const ticks = [0, 6, 12, 18].map(i => `<span style="left:${(i / 24 * 100).toFixed(2)}%">${esc(dyHourLabel(i))}</span>`).join('');
+
+  // Four parts of the day
+  const parts = [['night', 0, 6], ['morning', 6, 12], ['afternoon', 12, 18], ['evening', 18, 24]].map(([key, a, z]) => {
+    let n = 0; const songs = {};
+    for (let i = a; i < z; i++) {
+      n += hours[i].n;
+      for (const k in hours[i].songs) {
+        const s = hours[i].songs[k];
+        (songs[k] || (songs[k] = { n: 0, title: s.title, artist: s.artist })).n += s.n;
+      }
+    }
+    const top = dyTopOf(songs);
+    return `<div class="dy-part${n ? '' : ' is-empty'}">
+        <span class="ns-x-title">${esc(t('dy_part_' + key))}</span>
+        <span class="dy-part-n">${esc(tCount('plays', n))}</span>
+        ${top ? `<span class="ns-x-line" title="${esc(top.title + ' — ' + top.artist)}">${esc(top.title)} <span>— ${esc(top.artist)}</span></span>` : ''}
+      </div>`;
+  }).join('');
+
+  // Cover strip: the most played album of each hour, placed at that hour
+  const covers = hours.map((b, i) => {
+    if (!b.n) return '';
+    const top = dyTopOf(b.albums);
+    const imgId = 'dytl-' + i;
+    const isAlbum = !!top.album;
+    const label = isAlbum ? top.album : top.title;
+    const prefKey = isAlbum ? 'album:' + top.artist.toLowerCase() + '|||' + top.album.toLowerCase()
+                            : 'song:' + top.artist.toLowerCase() + '|||' + top.title.toLowerCase();
+    imgOut.push(isAlbum
+      ? { type: 'album', item: { imgId, album: top.album, name: top.album, artist: top.artist, prefKey } }
+      : { type: 'song', item: { imgId, title: top.title, name: top.title, artist: top.artist, album: '', prefKey } });
+    return `<span class="dy-tl-cover" style="left:${((i + 0.5) / 24 * 100).toFixed(2)}%" title="${esc(dyHourLabel(i) + ' · ' + label + ' — ' + top.artist)}"><span id="${imgId}"><span class="thumb-initials">${esc(initials(label))}</span></span></span>`;
+  }).join('');
+
+  return `
+    <section class="dy-tod" aria-label="${esc(t('dy_tod_title'))}">
+      <div class="dy-tod-head">
+        <span class="ns-x-title">${esc(t('dy_tod_title'))}</span>
+        <span class="dy-tod-sum"><em>${esc(t('dy_busiest'))}</em> ${esc(dyHourLabel(busy))} <span>· ${esc(tCount('plays', hours[busy].n))}</span></span>
+        <span class="dy-tod-sum">${esc(sessLine)}</span>
+      </div>
+      <div class="dy-tl" aria-hidden="true">${covers}</div>
+      <div class="dy-hours" aria-hidden="true">${bars}</div>
+      <div class="dy-ticks" aria-hidden="true">${ticks}</div>
+      <div class="dy-parts">${parts}</div>
+    </section>`;
 }
 
 // ─── DAY PANEL (phase 2) ──────────────────────────────────────────────────

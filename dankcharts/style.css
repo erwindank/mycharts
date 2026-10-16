@@ -36431,3 +36431,158 @@ body[data-view="day"] .daily-view {
     border-top: 1px solid var(--border);
   }
 }
+
+/* ---- Daily tab: time of day (phase 3) ----
+   A card under the daily chart: a summary line (busiest hour, sessions), a
+   strip of covers placed by hour, 24 hour bars on the same 24-step scale,
+   hour ticks, and the day in four parts. Hidden by daily.js when the plays
+   carry no times of day. */
+.dy-tod {
+  margin: var(--sp-4) 0;
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--bg2);
+  border: 1px solid var(--border-t, var(--border));
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-1);
+}
+
+.dy-tod-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--sp-1) var(--sp-4);
+  margin-bottom: var(--sp-3);
+}
+
+.dy-tod-sum {
+  font-size: var(--fs-sm);
+  color: var(--text);
+}
+
+.dy-tod-sum em {
+  margin-right: 2px;
+  font-style: normal;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--text3);
+}
+
+.dy-tod-sum > span {
+  color: var(--text3);
+}
+
+/* Covers through the day: each sits centred over its hour's bar */
+.dy-tl {
+  position: relative;
+  height: 34px;
+  margin-bottom: var(--sp-1);
+}
+
+.dy-tl-cover {
+  position: absolute;
+  top: 0;
+  width: 30px;
+  height: 30px;
+  transform: translateX(-50%);
+  border-radius: 5px;
+  overflow: hidden;
+  background: var(--raised);
+  box-shadow: 0 0 0 2px var(--bg2);
+}
+
+.dy-tl-cover > span,
+.dy-tl-cover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dy-tl-cover .thumb-initials {
+  display: grid;
+  place-items: center;
+  font-size: 10px;
+}
+
+/* 24 hour bars */
+.dy-hours {
+  display: grid;
+  grid-template-columns: repeat(24, minmax(0, 1fr));
+  align-items: end;
+  gap: 2px;
+  height: 64px;
+}
+
+.dy-hr {
+  display: flex;
+  align-items: flex-end;
+  height: 100%;
+}
+
+.dy-hr i {
+  display: block;
+  width: 100%;
+  border-radius: 2px 2px 0 0;
+  background: color-mix(in srgb, var(--accent) 40%, var(--raised));
+}
+
+.dy-hr.is-busy i,
+.dy-hr:hover i {
+  background: var(--accent);
+}
+
+.dy-ticks {
+  position: relative;
+  height: 16px;
+  margin-top: 2px;
+  border-top: 1px solid var(--border);
+}
+
+.dy-ticks span {
+  position: absolute;
+  top: 2px;
+  font-size: 10px;
+  color: var(--text3);
+}
+
+/* The day in four parts */
+.dy-parts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--sp-3);
+  margin-top: var(--sp-3);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--border);
+}
+
+.dy-part {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.dy-part-n {
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--text);
+}
+
+.dy-part.is-empty {
+  opacity: 0.5;
+}
+
+@media (max-width: 700px) {
+  .dy-parts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dy-tl-cover {
+    width: 22px;
+    height: 22px;
+    border-radius: 4px;
+  }
+
+  .dy-tl {
+    height: 26px;
+  }
+}
