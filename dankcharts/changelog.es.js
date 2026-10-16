@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Daily chart runs show the daily chart only":
+    ["Las trayectorias de la lista diaria muestran solo la lista diaria",
+     "Al abrir una entrada de la lista diaria ahora se ve su trayectoria solo en la lista diaria: una casilla por cada día que estuvo, los huecos contados en días, y Días en la lista, Días en el #1, Días en el Top 5 y Días en el Top 10. Los botones de rango dicen 2026 YTD, Hasta este día y Siempre, una casilla abre la lista de ese día, y la tarjeta para compartir dibuja la trayectoria diaria con sus fechas. Las trayectorias semanales, mensuales y anuales ya no aparecen ahí."],
+
   "The Daily chart has the same settings as the other charts":
     ["La lista diaria tiene los mismos ajustes que las otras listas",
      "La lista diaria es ahora la misma lista que Semanal y Mensual, así que todo su menú ⋮ funciona también ahí: Mostrar (insignias de certificación, tus puntuaciones, picos de reproducciones, etiquetas de pico, botones de YouTube y playlist, descripciones y las secciones Lista y Nuevas entradas), Tamaño (Top 10 a 50 o tu propio número, por lista y guardado en tu cuenta) y Acciones (compartir, PDF, exportar). Haz clic en una fila para ver su trayectoria, con su historial semanal, mensual y anual, y usa Animar lista para verla moverse desde el día con el que comparas. El selector de comparación, las acciones y las tarjetas del día siguen encima y debajo de la lista."],

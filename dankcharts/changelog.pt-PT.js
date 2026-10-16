@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Daily chart runs show the daily chart only":
+    ["As trajetórias da tabela diária mostram só a tabela diária",
+     "Abrir uma entrada da tabela diária mostra agora a trajetória dela só na tabela diária: uma caixa por cada dia em que entrou, as pausas contadas em dias, e Dias na tabela, Dias no #1, Dias no Top 5 e Dias no Top 10. Os botões de período dizem 2026 YTD, Até este dia e Sempre, uma caixa abre a tabela desse dia, e o cartão para partilhar desenha a trajetória diária com as datas. As trajetórias semanais, mensais e anuais já não aparecem lá."],
+
   "The Daily chart has the same settings as the other charts":
     ["A tabela diária tem as mesmas opções das outras tabelas",
      "A tabela diária é agora a mesma tabela do Semanal e do Mensal, por isso todo o menu ⋮ funciona lá também: Mostrar (selos de certificação, as tuas notas, picos de plays, etiquetas de pico, botões de YouTube e playlist, descrições e as secções Tabela e Novas entradas), Tamanho (Top 10 a 50 ou o teu próprio número, por tabela e guardado na tua conta) e Ações (partilhar, PDF, exportar). Clica numa linha para veres a trajetória dela, com o histórico semanal, mensal e anual, e usa Animar tabela para a veres mexer a partir do dia com que comparas. O seletor de comparação, as ações e os cartões do dia continuam por cima e por baixo da tabela."],

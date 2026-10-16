@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 144;
+const DC_CL_I18N_V = 145;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-16', t: 'feature', a: 'charts', h: '37d05bb',
+    title: "Daily chart runs show the daily chart only",
+    detail: "Opening an entry on the Daily chart now shows its run on the daily chart alone: one box per day it charted, gaps counted in days, and Days on chart, Days at #1, Days in Top 5 and Days in Top 10. The range buttons read 2026 YTD, Up to this day and All-Time, a box opens that day's chart, and the Share card draws the daily run with its dates. Weekly, monthly and yearly runs no longer appear there." },
 
   { d: '2026-10-16', t: 'feature', a: 'charts', h: '5d54fe0',
     title: "The Daily chart has the same settings as the other charts",

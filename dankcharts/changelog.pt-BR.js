@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Daily chart runs show the daily chart only":
+    ["As trajetórias da parada diária mostram só a parada diária",
+     "Abrir uma entrada da parada diária agora mostra a trajetória dela só na parada diária: uma caixa para cada dia em que ela entrou, as pausas contadas em dias, e Dias na parada, Dias no #1, Dias no Top 5 e Dias no Top 10. Os botões de período dizem 2026 YTD, Até este dia e Todos os tempos, uma caixa abre a parada daquele dia, e o cartão para compartilhar desenha a trajetória diária com as datas. As trajetórias semanais, mensais e anuais não aparecem mais ali."],
+
   "The Daily chart has the same settings as the other charts":
     ["A parada diária tem as mesmas opções das outras paradas",
      "A parada diária agora é a mesma parada do Semanal e do Mensal, então todo o menu ⋮ funciona lá também: Mostrar (selos de certificação, suas notas, picos de plays, etiquetas de pico, botões de YouTube e playlist, descrições e as seções Parada e Novas entradas), Tamanho (Top 10 a 50 ou o seu próprio número, por parada e salvo na sua conta) e Ações (compartilhar, PDF, exportar). Clique numa linha para ver a trajetória dela, com o histórico semanal, mensal e anual, e use Animar parada para ver ela se mover a partir do dia que você compara. O seletor de comparação, as ações e os cartões do dia continuam acima e abaixo da parada."],
