@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Time of day on the Daily chart":
+    ["A hora do dia na parada diária",
+     "Abaixo da parada diária, um cartão mostra em que hora do dia você ouviu: a sua hora de pico, quantas sessões de escuta você teve (uma pausa de mais de 30 minutos começa outra) e quanto durou a mais longa, uma barra para cada hora, uma faixa de capas com o álbum que mais tocou em cada hora e o dia em quatro partes (madrugada, manhã, tarde, noite) com a música top de cada uma. Só aparece quando os seus plays têm horário; uma planilha só com datas deixa o cartão de fora em vez de pôr o dia inteiro à meia-noite."],
+
   "The day at a glance on the Daily chart":
     ["O dia num relance na parada diária",
      "Um cartão acima da parada diária resume o dia que você está vendo. Um anel se enche conforme os plays se aproximam do seu dia normal (a média dos dias em que você ouviu no mês anterior), ao lado da primeira e da última música do dia e do artista top. Ao lado, os 7 dias que terminam nesse dia em barras, com o dia aceso, o total, a mudança contra os 7 dias anteriores e a música no repeat. Clique numa barra para ir para esse dia."],

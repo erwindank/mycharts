@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 134;
+const DC_CL_I18N_V = 135;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-16', t: 'feature', a: 'charts', h: '4f74d71',
+    title: "Time of day on the Daily chart",
+    detail: "Under the Daily chart, a card shows when in the day you listened: your busiest hour, how many listening sessions you had (a gap of more than 30 minutes starts a new one) and how long the longest lasted, a bar for every hour, a strip of covers with the album you played most in each hour, and the day in four parts (night, morning, afternoon, evening) with the top song of each. It only appears when your plays have times; a sheet with dates only leaves it out rather than putting the whole day at midnight." },
 
   { d: '2026-10-16', t: 'feature', a: 'charts', h: '208a86f',
     title: "The day at a glance on the Daily chart",

@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Time of day on the Daily chart":
+    ["La hora del día en la lista diaria",
+     "Bajo la lista diaria, una tarjeta muestra en qué momento del día escuchaste: tu hora punta, cuántas sesiones de escucha tuviste (una pausa de más de 30 minutos empieza otra) y cuánto duró la más larga, una barra por cada hora, una tira de portadas con el álbum que más sonó en cada hora y el día en cuatro partes (madrugada, mañana, tarde, noche) con la canción top de cada una. Solo aparece cuando tus reproducciones tienen hora; una hoja solo con fechas la omite en lugar de poner todo el día a medianoche."],
+
   "The day at a glance on the Daily chart":
     ["El día de un vistazo en la lista diaria",
      "Una tarjeta sobre la lista diaria resume el día que estás viendo. Un anillo se llena a medida que sus reproducciones se acercan a tu día habitual (la media de los días en que escuchaste el mes anterior), junto a la primera y la última canción del día y su artista top. Al lado, los 7 días que terminan ese día en barras, con el día iluminado, el total, el cambio frente a los 7 días anteriores y la canción en bucle. Haz clic en una barra para ir a ese día."],
