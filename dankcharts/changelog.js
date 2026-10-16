@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 152;
+const DC_CL_I18N_V = 153;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-16', t: 'feature', a: 'charts', h: '3ac63ef',
+    title: "Streak of the day, rivalries, milestone sparks and a streaks share image",
+    detail: "The Daily Streaks window got more fun. The Today tab opens with a Streak of the day: a record you beat today, a milestone you reached, the longest streak still at risk, or the one in the lead. Milestones reached today (7, 14, 30, 50, 100, 200 or 365 days) are listed, and the first time you open the window that day a burst of sparks goes off. The On fire tab shows a rivalry: two unrelated streaks tied on the same number of days, and which one still needs a play to stay level. The flame in the header grows with your longest running streak. A new Share button makes a \"My streaks\" image in two designs (Board and Flame), with the usual palettes and formats, ready to download, copy or share." },
 
   { d: '2026-10-16', t: 'fix', a: 'charts', h: '6fdc9f2',
     title: "Windows opened from a streak row show on top",

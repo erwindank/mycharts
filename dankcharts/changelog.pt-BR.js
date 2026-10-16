@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Streak of the day, rivalries, milestone sparks and a streaks share image":
+    ["Sequência do dia, rivalidades, faíscas nos marcos e imagem para compartilhar suas sequências",
+     "A janela de Sequências Diárias ficou mais divertida. A aba Hoje abre com a Sequência do dia: um recorde que você bateu hoje, um marco alcançado, a maior sequência ainda em risco ou a que está na frente. Os marcos de hoje (7, 14, 30, 50, 100, 200 ou 365 dias) aparecem listados e, na primeira vez que você abre a janela no dia, saem faíscas. A aba Em chamas mostra uma rivalidade: duas sequências sem relação empatadas no número de dias, e qual ainda precisa de uma reprodução para continuar empatada. A chama do cabeçalho cresce com sua maior sequência em andamento. Um novo botão Compartilhar cria uma imagem \"Minhas sequências\" em dois visuais (Quadro e Chama), com as paletas e formatos de sempre, pronta para baixar, copiar ou compartilhar."],
+
   "Windows opened from a streak row show on top":
     ["Janelas abertas de uma linha de sequência aparecem na frente",
      "Escolher Detalhes, Álbum ou Artista no menu ⋮ de uma linha de sequência abria essa janela atrás da de Sequências Diárias, e parecia que nada acontecia. Agora ela abre na frente."],

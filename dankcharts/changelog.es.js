@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Streak of the day, rivalries, milestone sparks and a streaks share image":
+    ["Racha del día, rivalidades, chispas por hitos e imagen para compartir tus rachas",
+     "La ventana de Rachas Diarias es ahora más divertida. La pestaña Hoy empieza con la Racha del día: un récord que superaste hoy, un hito alcanzado, la racha más larga aún en riesgo o la que va primero. Se listan los hitos de hoy (7, 14, 30, 50, 100, 200 o 365 días) y, la primera vez que abres la ventana ese día, saltan chispas. La pestaña En racha muestra una rivalidad: dos rachas sin relación empatadas en días, y cuál aún necesita una escucha para seguir empatada. La llama del encabezado crece con tu racha activa más larga. Un nuevo botón Compartir crea una imagen \"Mis rachas\" con dos diseños (Tablero y Llama), con las paletas y formatos de siempre, lista para descargar, copiar o compartir."],
+
   "Windows opened from a streak row show on top":
     ["Las ventanas abiertas desde una fila de racha aparecen delante",
      "Elegir Detalles, Álbum o Artista en el menú ⋮ de una fila de racha abría esa ventana detrás de la de Rachas Diarias, y parecía que no pasaba nada. Ahora se abre delante."],
