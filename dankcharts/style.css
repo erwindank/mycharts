@@ -1615,111 +1615,6 @@
       background: var(--hover);
     }
 
-    /* DAY STREAK in the top bar (2026-10-16). Moved here from the All-Time
-       summary card so it shows on every tab. A pill with the drawn flame
-       (.hero-icon-flame, whose tier ramp is driven by the hero-stat--streak-N
-       class on the button), the count and "Day Streak". Quiet like the other
-       bar buttons until hovered; the flame itself carries the colour. */
-    #topbar .tb-streak-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      height: 36px;
-      margin-right: var(--sp-2);
-      padding: 0 var(--sp-3) 0 var(--sp-2);
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      background: var(--surface);
-      color: var(--text2);
-      font-family: var(--font-sans);
-      font-size: var(--fs-sm);
-      font-weight: 500;
-      white-space: nowrap;
-      cursor: pointer;
-      transition: background 0.15s, color 0.15s, border-color 0.15s;
-    }
-
-    #topbar .tb-streak-btn:hover {
-      background: var(--hover);
-      color: var(--text);
-    }
-
-    /* The flame was sized for the card; in the bar it drops its bottom margin
-       so it sits on the text's centre line. */
-    #topbar .tb-streak-btn .hero-icon {
-      margin-bottom: 0;
-      width: 1.1rem;
-      height: 1.1rem;
-    }
-
-    #topbar .tb-streak-btn:hover .hero-icon {
-      transform: translateY(-1px) scale(1.1);
-    }
-
-    #topbar .tb-streak-num {
-      color: var(--text);
-      font-weight: 700;
-      font-variant-numeric: tabular-nums;
-    }
-
-    /* The words "Day Streak" stay in the markup (translations, screen readers)
-       but are not shown: the top bar is capped at ~980px wide on every screen,
-       and with the label the main tabs got squashed together. The flame and
-       the number read on their own; the tooltip spells it out with the PB. */
-    #topbar .tb-streak-label {
-      display: none;
-    }
-    #topbar .tb-streak-btn {
-      padding: 0 var(--sp-2) 0 6px;
-    }
-
-    /* While the streak shows, What's New uses its short form (dot + count, as
-       it already does under 1100px) so the tabs keep their normal spacing. */
-    #topbar:has(#tbStreakBtn:not([style*="none"])) .cl-new-btn .ctrl-btn-wide {
-      display: none;
-    }
-    #topbar:has(#tbStreakBtn:not([style*="none"])) .cl-new-btn .ctrl-btn-narrow {
-      display: inline-flex;
-      font-weight: 700;
-    }
-
-    /* Phones: no pill outline and tighter spacing, so the account button at
-       the right end still fits on a 390px screen. */
-    @media (max-width: 700px) {
-      #topbar .tb-streak-btn {
-        height: 34px;
-        margin-right: 0;
-        padding: 0 4px;
-        gap: 3px;
-        border-color: transparent;
-        background: transparent;
-      }
-    }
-
-    /* Narrow phones (360-420px): the streak button added ~46px to the bar,
-       which pushed Sign in off the right edge. Every bar button gives up a
-       few pixels instead of something being dropped. */
-    @media (max-width: 420px) {
-      #topbar .topbar-actions {
-        gap: 0;
-      }
-      #topbar .tb-btn,
-      #topbar .ctrl-group-btn {
-        min-width: 31px;
-        padding: 0 4px;
-      }
-      #topbar .tb-acct-btn {
-        width: 31px;
-        height: 31px;
-      }
-      #topbar .tb-signin-btn {
-        padding: 0 6px;
-      }
-      #topbar .tb-streak-btn {
-        padding: 0 3px;
-      }
-    }
-
     /* Phones: tighter gaps and a smaller wordmark; on the narrowest screens
        the .fm badge and the language code go so the row still fits. */
     @media (max-width: 700px) {
@@ -29895,6 +29790,84 @@ button.ns-art {
   background: var(--hover);
 }
 
+/* ---- the day streak: the last cell of the row (2026-10-16) ----
+   Days in a row with a play, and the personal best. Moved here from the
+   All-Time summary card so it is seen on every chart tab. Set off from the
+   song by a hairline; the drawn flame (.hero-icon-flame) carries the colour,
+   driven by the hero-stat--streak-N class renderNowStripDayStreak() sets. */
+.now-strip.has-day {
+  grid-template-columns: auto minmax(0, 1fr) auto minmax(220px, 340px) auto;
+}
+.now-strip.has-day:not(.has-streak) {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+/* Nothing on air and no play run: the day streak is the whole strip, so it
+   sits at the start without the divider. */
+.now-strip.has-day:not(.has-streak):not(.is-live) {
+  grid-template-columns: auto;
+  justify-content: start;
+}
+.now-strip.has-day:not(.has-streak):not(.is-live) .ns-day {
+  padding-left: 0;
+  border-left: 0;
+}
+
+.ns-day {
+  grid-column: -2 / -1;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  align-self: stretch;
+  padding: 0 0 0 var(--sp-4);
+  border: 0;
+  border-left: 1px solid var(--border);
+  background: transparent;
+  color: var(--text2);
+  font-family: var(--font-sans);
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.ns-day .hero-icon {
+  margin-bottom: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.ns-day:hover .hero-icon {
+  transform: translateY(-2px) scale(1.1);
+}
+
+.ns-day-text {
+  display: grid;
+  gap: 1px;
+}
+
+.ns-day-count {
+  font-size: var(--fs-xs);
+}
+
+.ns-day-num {
+  color: var(--text);
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.ns-day:hover .ns-day-count span {
+  color: var(--text);
+}
+
+.ns-day-pb {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--fs-xs);
+  color: var(--text3);
+}
+
 /* ═══ Phones: option C ═══ */
 @media (max-width: 700px) {
   .now-strip {
@@ -29938,9 +29911,17 @@ button.ns-art {
     border-top: 1px solid var(--border);
   }
 
+  /* Open on phones: the day streak is its own row under the play streak */
+  .ns-day {
+    order: 3;
+    padding: var(--sp-3) 0 0;
+    border-left: 0;
+    border-top: 1px solid var(--border);
+  }
+
   .ns-less {
     display: block;
-    order: 3;
+    order: 4;
     align-self: center;
     padding: var(--sp-1) var(--sp-3);
     border: 0;
@@ -30089,6 +30070,29 @@ button.ns-art {
   .ns-sum-pill b {
     font-family: var(--font-mono);
     color: var(--ns-c);
+  }
+
+  /* Day streak in the closed summary: the small flame and the count */
+  .ns-sum-day {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    flex-shrink: 0;
+    padding: 2px var(--sp-2) 2px 6px;
+    border-radius: 999px;
+    background: var(--raised);
+    font-size: var(--fs-xs);
+  }
+
+  .ns-sum-day .hero-icon {
+    margin-bottom: 0;
+    width: 0.95rem;
+    height: 0.95rem;
+  }
+
+  .ns-sum-day b {
+    font-family: var(--font-mono);
+    color: var(--text);
   }
 
   .ns-sum-chev {

@@ -33055,8 +33055,8 @@ function renderHeroStats() {
       <span class="hero-label">${t('hero_top_artist')}</span>
     </div>
     `;
-  // The day streak used to be the fifth tile here; it lives in the top bar now
-  // (renderTopbarStreak) so it can be seen on every tab, not just All-Time.
+  // The day streak used to be the fifth tile here; it lives in the now strip
+  // (renderNowStripDayStreak) so it can be seen on every tab, not just All-Time.
 
   el.style.display = '';
 
@@ -33101,24 +33101,28 @@ function renderHeroStats() {
     requestAnimationFrame(frame);
   });
 
-  renderTopbarStreak(streak, pb);
+  renderNowStripDayStreak(streak, pb);
 }
 
-/* Top bar day streak (#tbStreakBtn in index.html). Moved out of the All-Time
-   summary card so the streak shows on every tab. Same numbers renderHeroStats()
-   works out: the current run of days ending today (or yesterday) and the
-   personal best. The tier thresholds are the ones the old tile used, so the
-   flame grows and recolours the same way. */
-function renderTopbarStreak(streak, pb) {
-  const btn = document.getElementById('tbStreakBtn');
-  if (!btn) return;
+/* Now strip day streak (#nsDayStreak in index.html). Moved out of the
+   All-Time summary card so the streak shows on every chart tab. Same numbers
+   renderHeroStats() works out: the current run of days ending today (or
+   yesterday) and the personal best. The tier thresholds are the ones the old
+   tile used, so the flame grows and recolours the same way. dcSyncNowStrip()
+   decides whether the strip shows and adds the count to the phone summary. */
+function renderNowStripDayStreak(streak, pb) {
+  const el = document.getElementById('nsDayStreak');
+  if (!el) return;
   const tier = streak >= 100 ? 6 : streak >= 60 ? 5 : streak >= 30 ? 4 : streak >= 14 ? 3 : streak >= 7 ? 2 : streak >= 1 ? 1 : 0;
-  btn.className = 'tb-streak-btn' + (tier > 0 ? ' hero-stat--streak-' + tier : '');
-  btn.querySelector('.tb-streak-num').textContent = streak.toLocaleString();
+  el.className = 'ns-day' + (tier > 0 ? ' hero-stat--streak-' + tier : '');
+  el.querySelector('.ns-day-num').textContent = streak.toLocaleString();
+  el.querySelector('.ns-day-pb').textContent = 'PB: ' + pb.toLocaleString();
   const tip = streak + ' ' + t('hero_day_streak') + ' · PB: ' + pb;
-  btn.title = tip;
-  btn.setAttribute('aria-label', tip);
-  btn.style.display = '';
+  el.title = tip;
+  el.setAttribute('aria-label', tip);
+  el.style.display = '';
+  _nsDay = { count: streak, tier: tier };
+  dcSyncNowStrip();
 }
 
 // ─── STREAK HEATMAP STATE ─────────────────────────────────────
@@ -45947,6 +45951,7 @@ function _nsAgo(date) {
 var _nsStreak = null;     // { type, count } of the streak on screen
 var _nsLiveArt = '';      // cover of the song on air, once loaded
 var _nsStreakArt = '';    // cover of the streak subject, once loaded
+var _nsDay = null;        // { count, tier } of the day streak (#nsDayStreak)
 
 function dcSyncNowStrip() {
   const strip = document.getElementById('nowStrip');
@@ -45955,13 +45960,17 @@ function dcSyncNowStrip() {
   const stk = document.getElementById('streakBanner');
   const live = !!(now && now.style.display !== 'none' && npTrack);
   const hasStreak = !!(stk && stk.style.display !== 'none' && _nsStreak);
-  strip.hidden = !(live || hasStreak);
+  const day = document.getElementById('nsDayStreak');
+  const hasDay = !!(day && day.style.display !== 'none' && _nsDay);
+  strip.hidden = !(live || hasStreak || hasDay);
   strip.classList.toggle('is-live', live);
   strip.classList.toggle('has-streak', hasStreak);
+  strip.classList.toggle('has-day', hasDay);
   if (!live) _nsLiveArt = '';
   strip.className = strip.className.replace(/\bns-type-\w+/g, '').trim() + (hasStreak ? ' ns-type-' + _nsStreak.type : '');
 
-  // Phone summary line: [cover] [eq] Song — Artist   [🔥 14]  ▾
+  // Phone summary line: [cover] [eq] Song — Artist   [🔥 14] [flame 21 days]  ▾
+  // (the second pill is the day streak; "days" tells it apart from the run)
   const sum = document.getElementById('nsSummary');
   if (!sum || strip.hidden) return;
   const p0 = allPlays && allPlays[0];
@@ -45973,6 +45982,7 @@ function dcSyncNowStrip() {
     ${live ? `<span class="ns-eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>` : ''}
     <span class="ns-sum-text"><b>${esc(title)}</b> <span>— ${esc(artist)}</span></span>
     ${hasStreak ? `<span class="ns-sum-pill">🔥 <b>${_nsStreak.count}</b></span>` : ''}
+    ${hasDay ? `<span class="ns-sum-day${_nsDay.tier ? ' hero-stat--streak-' + _nsDay.tier : ''}" title="${esc(t('hero_day_streak'))}"><span class="hero-icon hero-icon-flame" aria-hidden="true"><i class="hero-flame-body"></i><i class="hero-flame-core"></i></span><b>${_nsDay.count.toLocaleString()}</b> ${esc(tUnit('days', _nsDay.count))}</span>` : ''}
     <span class="ns-sum-chev" aria-hidden="true">▾</span>`;
   sum.setAttribute('aria-label', (live ? t('np_onair') + ': ' : '') + title + ' — ' + artist);
 }
