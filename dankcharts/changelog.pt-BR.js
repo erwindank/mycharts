@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Share images count the right unit on the chart":
+    ["As imagens para compartilhar usam a unidade certa na parada",
+     "As imagens para compartilhar diziam \"3 semanas\" para o tempo na parada qualquer que fosse o período. Agora as mensais dizem meses, as anuais anos e as diárias dias, e a opção do editor tem o nome certo (Dias / Semanas / Meses / Anos na Parada)."],
+
   "Your day, a calendar and live updates on the Daily chart":
     ["O seu dia, um calendário e atualizações ao vivo na parada diária",
      "A parada diária ganha um cartão O seu dia: escolha um humor e escreva uma linha sobre o dia. Ele é salvo enquanto você digita, neste dispositivo e, se você entrou na conta, na sua conta para estar em todos os dispositivos; os backups da conta também incluem. Um novo botão Calendário abre um mês de capas dos #1 diários, com o humor de cada dia e um ponto onde você escreveu uma nota; clique num dia para abrir. E enquanto você vê o dia de hoje com o Last.fm como fonte, aparece um selo Ao vivo e os novos scrobbles entram a cada 2 minutos, sem perder a nota que você estiver digitando."],

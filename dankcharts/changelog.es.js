@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Share images count the right unit on the chart":
+    ["Las imágenes para compartir usan la unidad correcta en la lista",
+     "Las imágenes para compartir decían \"3 semanas\" para el tiempo en la lista fuera cual fuera el periodo. Ahora las mensuales dicen meses, las anuales años y las diarias días, y la opción del diseñador se llama igual (Días / Semanas / Meses / Años en el Ranking)."],
+
   "Your day, a calendar and live updates on the Daily chart":
     ["Tu día, un calendario y actualizaciones en vivo en la lista diaria",
      "La lista diaria gana una tarjeta Tu día: elige un estado de ánimo y escribe una línea sobre el día. Se guarda mientras escribes, en este dispositivo y, si iniciaste sesión, en tu cuenta para tenerlo en todos tus dispositivos; las copias de seguridad de la cuenta también lo incluyen. Un nuevo botón Calendario abre un mes de portadas de los #1 diarios, con el estado de ánimo de cada día y un punto donde escribiste una nota; haz clic en un día para abrirlo. Y mientras ves el día de hoy con Last.fm como fuente, aparece una insignia En vivo y las nuevas reproducciones se añaden cada 2 minutos, sin perder la nota que estés escribiendo."],

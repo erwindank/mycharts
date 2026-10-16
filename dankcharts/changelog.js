@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 142;
+const DC_CL_I18N_V = 143;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-16', t: 'feature', a: 'charts', h: '8f8f71e',
+    title: "Share images count the right unit on the chart",
+    detail: "Share images said \"3 weeks\" for how long an entry had been on the chart whatever the period. Monthly images now say months, yearly images years and daily images days, and the option in the designer is named to match (Days / Weeks / Months / Years on Chart)." },
 
   { d: '2026-10-16', t: 'feature', a: 'charts', h: '61ac42f',
     title: "Your day, a calendar and live updates on the Daily chart",
