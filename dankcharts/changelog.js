@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 140;
+const DC_CL_I18N_V = 141;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-16', t: 'feature', a: 'charts', h: '61ac42f',
+    title: "Your day, a calendar and live updates on the Daily chart",
+    detail: "The Daily chart gets a Your day card: pick a mood and write a line about the day. It is saved as you type, on this device and, when you are signed in, to your account so every device has it; account backups include it too. A new Calendar button opens a month of daily #1 covers, with each day's mood and a dot where you wrote a note; click a day to open it. And while you look at today with Last.fm as your source, a Live badge shows and new scrobbles are added every 2 minutes, without losing a note you are typing." },
 
   { d: '2026-10-16', t: 'feature', a: 'charts', h: 'b714c9c',
     title: "Export a day's songs as a playlist",

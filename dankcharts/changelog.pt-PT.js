@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Your day, a calendar and live updates on the Daily chart":
+    ["O teu dia, um calendário e atualizações em direto na tabela diária",
+     "A tabela diária ganha um cartão O teu dia: escolhe um humor e escreve uma linha sobre o dia. É guardado enquanto escreves, neste dispositivo e, se tiveres sessão iniciada, na tua conta para estar em todos os dispositivos; as cópias de segurança da conta também o incluem. Um novo botão Calendário abre um mês de capas dos #1 diários, com o humor de cada dia e um ponto onde escreveste uma nota; clica num dia para o abrires. E enquanto vês o dia de hoje com o Last.fm como fonte, aparece um selo Em direto e os novos scrobbles entram a cada 2 minutos, sem perderes a nota que estiveres a escrever."],
+
   "Export a day's songs as a playlist":
     ["Exporta as músicas de um dia como playlist",
      "A tabela diária também tem o botão Exportar playlist, igual ao Semanal e ao Mensal: copia ou descarrega as músicas do dia e importa-as no Soundiiz para Spotify, Apple Music, YouTube Music, Deezer e mais. Exporta sempre as músicas do dia, mesmo com a tabela de artistas ou de álbuns no ecrã, e usa a data no nome."],
