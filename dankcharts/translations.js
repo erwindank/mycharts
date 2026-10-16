@@ -1842,6 +1842,7 @@ const TRANSLATIONS = {
     // Top bar (phase 5): icon-button tooltips and the account menu
     tooltip_sync_now: 'Sync now',
     tb_sign_in: 'Sign in',
+    tb_sign_in_short: 'Sign in',
     tb_account: 'Account',
     tb_sign_out: 'Sign out',
     // Main tabs (phase 5 step 2)
@@ -4077,6 +4078,7 @@ const TRANSLATIONS = {
     // Top bar (phase 5): icon-button tooltips and the account menu
     tooltip_sync_now: 'Sincronizar ahora',
     tb_sign_in: 'Iniciar sesión',
+    tb_sign_in_short: 'Entrar',
     tb_account: 'Cuenta',
     tb_sign_out: 'Cerrar sesión',
     // Main tabs (phase 5 step 2)
@@ -6303,6 +6305,7 @@ const TRANSLATIONS = {
     // Top bar (phase 5): icon-button tooltips and the account menu
     tooltip_sync_now: 'Sincronizar agora',
     tb_sign_in: 'Entrar',
+    tb_sign_in_short: 'Entrar',
     tb_account: 'Conta',
     tb_sign_out: 'Sair',
     // Main tabs (phase 5 step 2)
@@ -8528,6 +8531,7 @@ const TRANSLATIONS = {
     // Top bar (phase 5): icon-button tooltips and the account menu
     tooltip_sync_now: 'Sincronizar agora',
     tb_sign_in: 'Iniciar sessão',
+    tb_sign_in_short: 'Entrar',
     tb_account: 'Conta',
     tb_sign_out: 'Terminar sessão',
     // Main tabs (phase 5 step 2)
@@ -9206,7 +9210,16 @@ function setLanguage(lang) {
     el.textContent = t(typeKey) || el.dataset.mbtype;
   });
 
-  // The now strip's day streak is not part of renderAll(); redo its words
+  // Longer words can overflow the top bar; tighten it if they do
+  if (typeof dcFitTopbar === 'function') dcFitTopbar();
+
+  // The now strip is not part of renderAll(); redo its words. The in-a-row
+  // run and "Last played…" (renderStreakBanner), the ON AIR song and its
+  // chips (refreshNowPlayingStats), then the listening streak.
+  if (typeof allPlays !== 'undefined' && allPlays && allPlays.length) {
+    if (typeof renderStreakBanner === 'function') renderStreakBanner();
+    if (typeof refreshNowPlayingStats === 'function') refreshNowPlayingStats();
+  }
   if (typeof renderNowStripDayStreak === 'function' && typeof _nsDay !== 'undefined' && _nsDay) {
     renderNowStripDayStreak(_nsDay.count, _nsDay.pb);
   }

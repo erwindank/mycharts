@@ -1615,6 +1615,37 @@
       background: var(--hover);
     }
 
+    /* Sign in has a short label for tight bars (see dcFitTopbar) */
+    #topbar .tb-signin-short {
+      display: none;
+    }
+
+    /* TIGHT BAR (2026-10-16). dcFitTopbar() measures the bar and adds these
+       only when the words do not fit (long languages, What's New showing).
+       Step 1: What's New as its count, no language code, tighter tabs. */
+    #topbar.tb-tight .tb-tab {
+      padding: 0 var(--sp-2);
+    }
+    #topbar.tb-tight .cl-new-btn .ctrl-btn-wide,
+    #topbar.tb-tight .tb-lang-code {
+      display: none;
+    }
+    #topbar.tb-tight .cl-new-btn .ctrl-btn-narrow {
+      display: inline-flex;
+      font-weight: 700;
+    }
+    /* Step 2: short Sign in label, no .fm badge, tabs tighter still */
+    #topbar.tb-tighter .tb-tab {
+      padding: 0 6px;
+    }
+    #topbar.tb-tighter .wordmark-fm,
+    #topbar.tb-tighter .tb-signin-full {
+      display: none;
+    }
+    #topbar.tb-tighter .tb-signin-short {
+      display: inline;
+    }
+
     /* Phones: tighter gaps and a smaller wordmark; on the narrowest screens
        the .fm badge and the language code go so the row still fits. */
     @media (max-width: 700px) {

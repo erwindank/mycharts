@@ -26859,6 +26859,57 @@ backToTopBtn.addEventListener('click', () => {
 // block that used to live here). Those controls now sit inline in the sticky
 // top bar (#topbar), which never covers content, so the auto-hide is gone.
 
+/* Top bar fit (2026-10-16). Fixed breakpoints could not cover every case:
+   in Spanish the tabs ran into each other at 1280px whenever What's New was
+   showing, and "Iniciar sesión" was cut off on a 360px phone. So this
+   measures instead. It clears the tight classes, and if the tabs or the
+   buttons do not fit, adds .tb-tight (What's New as its count, no language
+   code, tighter tabs), then .tb-tighter (short Sign in label, no .fm badge,
+   tighter still). Runs when the bar resizes (window, badge or account
+   button appearing) and after a language switch (setLanguage). */
+function dcFitTopbar() {
+  const bar = document.getElementById('topbar');
+  if (!bar) return;
+  const inner = bar.querySelector('.topbar-inner');
+  const nav = document.getElementById('topbarNav');
+  if (!inner) return;
+  const overflows = () => {
+    if (inner.scrollWidth > inner.clientWidth + 1) return true;
+    if (!nav || nav.offsetParent === null) return false;   // phones: tabs live in the bottom bar
+    // Tabs shrink rather than overflow the nav, so compare what they need
+    let need = 0;
+    for (const tab of nav.children) need += tab.scrollWidth;
+    return need > nav.clientWidth + 1;
+  };
+  bar.classList.remove('tb-tight', 'tb-tighter');
+  if (!overflows()) return;
+  bar.classList.add('tb-tight');
+  if (overflows()) bar.classList.add('tb-tighter');
+}
+
+(function initTopbarFit() {
+  const bar = document.getElementById('topbar');
+  if (!bar) return;
+  let queued = false;
+  const queue = () => {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(() => { queued = false; dcFitTopbar(); });
+  };
+  if (typeof ResizeObserver === 'function') {
+    const ro = new ResizeObserver(queue);
+    const inner = bar.querySelector('.topbar-inner');
+    const acts = bar.querySelector('.topbar-actions');
+    if (inner) ro.observe(inner);
+    if (acts) ro.observe(acts);
+  } else {
+    window.addEventListener('resize', queue);
+  }
+  // Fonts change text widths once they load
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(queue);
+  queue();
+})();
+
 // Clicking the wordmark goes back to the Weekly chart — the usual "logo means
 // home" convention. Goes through the real tab button so every side effect of a
 // tab switch (hash, saved offsets, view teardown) runs exactly as on a click.

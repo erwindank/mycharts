@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=391">
+  <link rel="stylesheet" href="style.css?v=393">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=81"></script>
+  <script defer src="translations.js?v=83"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -349,7 +349,9 @@
            Signed in: the profile picture, which opens a small menu with the
            name and Sign out. firebase.js (_refreshAuthUI) toggles both by class,
            so nothing there had to change. -->
-      <button class="dc-signin-btn tb-signin-btn" onclick="dcSignIn()" title="Sign in to sync settings across devices" data-i18n="tb_sign_in">Sign In</button>
+      <!-- Two labels: the full one, and a short one dcFitTopbar() swaps in when
+           the bar is too tight (Spanish "Iniciar sesión" on a 360px phone). -->
+      <button class="dc-signin-btn tb-signin-btn" onclick="dcSignIn()" title="Sign in to sync settings across devices"><span class="tb-signin-full" data-i18n="tb_sign_in">Sign In</span><span class="tb-signin-short" data-i18n="tb_sign_in_short">Sign in</span></button>
       <div class="ctrl-group dc-user-badge" id="acctCtrlGroup" style="display:none;">
         <button class="ctrl-group-btn tb-acct-btn" id="acctGroupBtn" aria-label="Account" data-i18n-title="tb_account" title="Account">
           <img class="dc-user-avatar" src="" alt="">
@@ -3711,7 +3713,7 @@
   <!-- Community board tab (suggestions / bugs / discussion). Loaded before
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
   <script defer src="board.js?v=1"></script>
-  <script defer src="app.js?v=348"></script>
+  <script defer src="app.js?v=350"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at
