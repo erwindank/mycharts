@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Listening patterns on the Daily chart":
+    ["Padrões de escuta na tabela diária",
+     "Um cartão de Padrões por baixo da tabela diária: a música que mais repetiste, a sequência mais longa de uma música e de um artista seguidos, os álbuns que ouviste completos (verificados com a lista de faixas real do Deezer, ou com todas as faixas dele na tua biblioteca até ela chegar), quão variado foi o dia numa escala de fiel a explorador com o teu habitual marcado, e a mistura de géneros do dia. Os géneros vêm das colunas Genre da tua folha quando as tem; senão, das tags de artista do Last.fm."],
+
   "Time of day on the Daily chart":
     ["A hora do dia na tabela diária",
      "Por baixo da tabela diária, um cartão mostra em que hora do dia ouviste: a tua hora de pico, quantas sessões de escuta tiveste (uma pausa de mais de 30 minutos começa outra) e quanto durou a mais longa, uma barra para cada hora, uma faixa de capas com o álbum que mais tocou em cada hora e o dia em quatro partes (madrugada, manhã, tarde, noite) com a música top de cada uma. Só aparece quando os teus plays têm hora; uma folha só com datas deixa o cartão de fora em vez de pôr o dia inteiro à meia-noite."],

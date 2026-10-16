@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 135;
+const DC_CL_I18N_V = 136;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-16', t: 'feature', a: 'charts', h: '689e744',
+    title: "Listening patterns on the Daily chart",
+    detail: "A Patterns card under the Daily chart: the song you replayed most, the longest run of one song and of one artist back to back, albums you played in full (checked against the real tracklist from Deezer, or every track of it in your library until that arrives), how varied the day was on a scale from loyal to explorer with your usual marked, and a genre mix of the day's plays. Genres come from your sheet's Genre columns when it has them, otherwise from Last.fm artist tags." },
 
   { d: '2026-10-16', t: 'feature', a: 'charts', h: '4f74d71',
     title: "Time of day on the Daily chart",

@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Listening patterns on the Daily chart":
+    ["Patrones de escucha en la lista diaria",
+     "Una tarjeta de Patrones bajo la lista diaria: la canción que más repetiste, la racha más larga de una canción y de un artista seguidos, los álbumes que escuchaste completos (comprobados con la lista de canciones real de Deezer, o con todas sus canciones de tu biblioteca mientras llega), lo variado que fue el día en una escala de fiel a explorador con lo habitual marcado, y la mezcla de géneros del día. Los géneros salen de las columnas Genre de tu hoja si las tiene; si no, de las etiquetas de artista de Last.fm."],
+
   "Time of day on the Daily chart":
     ["La hora del día en la lista diaria",
      "Bajo la lista diaria, una tarjeta muestra en qué momento del día escuchaste: tu hora punta, cuántas sesiones de escucha tuviste (una pausa de más de 30 minutos empieza otra) y cuánto duró la más larga, una barra por cada hora, una tira de portadas con el álbum que más sonó en cada hora y el día en cuatro partes (madrugada, mañana, tarde, noche) con la canción top de cada una. Solo aparece cuando tus reproducciones tienen hora; una hoja solo con fechas la omite en lugar de poner todo el día a medianoche."],
