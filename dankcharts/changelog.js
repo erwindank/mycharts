@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 149;
+const DC_CL_I18N_V = 150;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-16', t: 'feature', a: 'charts', h: 'd98ed4a',
+    title: "Streak records: top 5 per type, headstones and badges",
+    detail: "The Records tab of the Daily Streaks window now shows a Hall of Fame with your top 5 artist, album and song streaks, with gold, silver and bronze for the first three. Its tag no longer says \"Active\" for a record that ended months ago: it says \"running now\" only when the record is the streak still going, and \"now on a new 26d run\" when a newer streak is going. The Graveyard is a wall of headstones with the full start and end dates and a note like \"1 short of 50d\" when a streak ended just before a milestone. A song and its same-name single are shown once, tagged song and album, here and on the On fire tab. New: 12 streak badges, from First week to Year round, with your best so far on the ones still locked." },
 
   { d: '2026-10-16', t: 'design', a: 'charts', h: 'a381c67',
     title: "Streak rows show covers, levels and the last 14 days",

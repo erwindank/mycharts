@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Streak records: top 5 per type, headstones and badges":
+    ["Récords de rachas: top 5 por tipo, lápidas e insignias",
+     "La pestaña Récords de la ventana de Rachas Diarias muestra ahora un Salón de la Fama con tus 5 mejores rachas de artistas, álbumes y canciones, con oro, plata y bronce para las tres primeras. Su etiqueta ya no dice \"Activa\" en un récord que terminó hace meses: dice \"en curso\" solo cuando el récord es la racha que sigue, y \"ahora en una nueva de 26d\" cuando hay una racha más reciente. El Cementerio es un muro de lápidas con las fechas completas de inicio y fin y una nota como \"a 1 de 50d\" cuando una racha terminó justo antes de un hito. Una canción y su sencillo del mismo nombre aparecen una sola vez, marcados como canción y álbum, aquí y en la pestaña En racha. Nuevo: 12 insignias de rachas, de Primera semana a Todo el año, con tu mejor marca en las que aún están bloqueadas."],
+
   "Streak rows show covers, levels and the last 14 days":
     ["Las filas de rachas muestran portadas, niveles y los últimos 14 días",
      "La pestaña En racha de la ventana de Rachas Diarias es una sola lista con un selector Todo / Artistas / Álbumes / Canciones en lugar de tres secciones largas, con un podio para tus tres rachas activas más largas. Cada fila tiene ahora su portada o foto del artista, un nivel de racha (Chispa, Llama, Hoguera, Infierno, Eterna) que colorea los días, los últimos 14 días dibujados bajo el nombre (ya no hay que pasar el ratón por ◈), una barra hacia el siguiente hito y lo cerca que estás de tu récord. Las filas llevan el mismo ▶ de muestra y el menú ⋮ de las listas. Las filas en riesgo y perdidas de la pestaña Hoy usan el mismo diseño. El filtro y el orden siguen funcionando; al filtrar u ordenar de la A a la Z se ven todas las coincidencias como lista simple."],

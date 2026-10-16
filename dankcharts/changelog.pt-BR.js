@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Streak records: top 5 per type, headstones and badges":
+    ["Recordes de sequências: top 5 por tipo, lápides e conquistas",
+     "A aba Recordes da janela de Sequências Diárias agora mostra um Hall da Fama com suas 5 maiores sequências de artistas, álbuns e músicas, com ouro, prata e bronze para as três primeiras. A etiqueta não diz mais \"Ativa\" para um recorde que terminou há meses: diz \"em andamento\" só quando o recorde é a sequência que continua, e \"agora numa nova de 26d\" quando há uma sequência mais nova. O Cemitério é um mural de lápides com as datas completas de início e fim e uma nota como \"a 1 de 50d\" quando uma sequência terminou logo antes de um marco. Uma música e o single de mesmo nome aparecem uma vez só, marcados como música e álbum, aqui e na aba Em chamas. Novo: 12 conquistas de sequência, de Primeira semana a O ano todo, com sua melhor marca nas que ainda estão bloqueadas."],
+
   "Streak rows show covers, levels and the last 14 days":
     ["As linhas de sequências mostram capas, níveis e os últimos 14 dias",
      "A aba Em chamas da janela de Sequências Diárias é uma única lista com um seletor Tudo / Artistas / Álbuns / Músicas em vez de três seções longas, com um pódio para suas três sequências ativas mais longas. Cada linha agora tem sua capa ou foto do artista, um nível de sequência (Faísca, Chama, Fogueira, Inferno, Eterna) que colore os dias, os últimos 14 dias desenhados logo abaixo do nome (sem precisar passar o mouse no ◈), uma barra até o próximo marco e quão perto você está do seu recorde. As linhas têm o mesmo ▶ de amostra e o menu ⋮ das paradas. As linhas em risco e perdidas da aba Hoje usam o mesmo visual. Filtro e ordenação continuam funcionando; ao filtrar ou ordenar de A a Z, todos os resultados aparecem como lista simples."],
