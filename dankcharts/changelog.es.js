@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "A Daily chart":
+    ["Una lista diaria",
+     "Una nueva pestaña Diario aparece antes de Semanal. Retrocede día a día con las flechas o haz clic en la fecha para elegir cualquier día. Ordena las canciones, artistas y álbumes del día (Top 10, 20 o 50) y muestra cómo se movieron frente a ayer, o frente al mismo día de la semana pasada si lo prefieres. Cada entrada muestra cuántos días lleva en la lista diaria este mes y su pico, con la fecha en que lo alcanzó, y una línea sobre la lista dice cuánto tiempo lleva arriba el #1. Las cuatro tarjetas de estadísticas también comparan con ese día, cuentan tus primeras escuchas, muestran qué parte de la semana fue ese día y lo comparan con todos los demás días en que escuchaste (con una insignia para tu mayor día del mes o de siempre). Pulsa D para ir directamente."],
+
   "Fuller listening streak card":
     ["Una tarjeta de racha más completa",
      "Cuando no suena nada y no hay una racha de reproducciones, la tarjeta de racha de escucha ya no queda medio vacía. Bajo la racha hay una barra hasta tu récord (o, cuando ya lo tienes, hasta el siguiente número redondo), desde cuándo dura y cuántos días te saltaste este año; pasa el ratón para ver tus tres rachas más largas. Al lado, Hoy muestra un anillo con las reproducciones de hoy frente a tu día habitual, la primera canción del día y tu artista top de hoy, y Últimos 7 días muestra una barra por día, el cambio frente a los 7 días anteriores y la canción en bucle. Una línea abajo va rotando entre favoritas olvidadas, artistas del recuerdo y tu estilo de escucha. Funciona con Last.fm, Google Sheets y CSV."],

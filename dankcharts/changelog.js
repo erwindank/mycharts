@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 132;
+const DC_CL_I18N_V = 133;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-16', t: 'feature', a: 'charts', h: 'eba0669',
+    title: "A Daily chart",
+    detail: "A new Daily tab sits before Weekly. Step back one day at a time with the arrows, or click the date to pick any day. It ranks the day's songs, artists and albums (Top 10, 20 or 50) and shows how each moved against yesterday, or against the same weekday last week if you prefer. Each entry shows how many days it has been on the daily chart this month and its peak, with the date it got there, and a line over the chart says how long the #1 has been on top. The four stat tiles compare with that day too, count your first-ever plays, show the day's share of its week, and rank the day against every other day you listened (with a badge for your biggest day of the month or ever). Press D to jump to it." },
 
   { d: '2026-10-16', t: 'feature', a: 'charts', h: '6d2acbb',
     title: "Fuller listening streak card",
