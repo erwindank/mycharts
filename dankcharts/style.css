@@ -26546,6 +26546,127 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
 .sk-stat--risk { color: #e8a020; border-color: rgba(232,160,32,0.3); }
 .sk-stat--lost { color: var(--text3); }
 
+/* ── Header: kept-today bar + chips (redesign phase 1) ──
+   Sits under the title row at full width. Kept part is the fire gradient, the
+   at-risk remainder is striped amber so "what's left to do" reads at a glance. */
+.sk-keep { flex: 1 1 100%; min-width: 0; }
+.sk-keep:empty { display: none; }
+.sk-keep-row {
+  display: flex; justify-content: space-between; align-items: baseline; gap: var(--sp-2); flex-wrap: wrap;
+  font-size: var(--fs-sm); color: var(--text2); margin-bottom: 0.35rem;
+}
+.sk-keep-row strong { font-family: var(--font-mono); color: var(--text); font-size: var(--fs-base); }
+.sk-keep-need { color: var(--amber); font-size: var(--fs-xs); }
+.sk-keep-bar { display: flex; height: 8px; border-radius: var(--r-full); overflow: hidden; background: var(--bg3); }
+.sk-keep-bar i { display: block; height: 100%; transition: width var(--t-slow) var(--ease); }
+.sk-keep-kept { background: linear-gradient(90deg, #ffb347, #ff6a3d); }
+.sk-keep-risk { background: repeating-linear-gradient(45deg, color-mix(in srgb, var(--amber) 55%, transparent) 0 4px, color-mix(in srgb, var(--amber) 22%, transparent) 4px 8px); }
+.sk-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.6rem; }
+.sk-chip {
+  font-size: var(--fs-xs); color: var(--text2); background: var(--bg2);
+  border: 1px solid var(--border); border-radius: var(--r-full); padding: 0.12rem 0.6rem;
+  max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.sk-chip b { font-family: var(--font-mono); color: var(--text); font-variant-numeric: tabular-nums; }
+.sk-chip--long b { color: #ff8a4c; }
+.sk-chip--lost b { color: var(--rose); }
+
+/* Countdown in the subtitle: amber under 6h, red under 3h. */
+.sk-countdown { font-family: var(--font-mono); font-variant-numeric: tabular-nums; color: var(--text2); }
+.sk-countdown--warn { color: var(--amber); }
+.sk-countdown--urgent { color: var(--rose); font-weight: 600; }
+
+/* Tab counts */
+.sk-tab-btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem; }
+.sk-tab-ct {
+  font-family: var(--font-mono); font-size: 0.68rem; font-variant-numeric: tabular-nums;
+  background: var(--bg3); color: var(--text2); border-radius: var(--r-full); padding: 0 0.4rem; line-height: 1.5;
+}
+.sk-tab-ct:empty { display: none; }
+.sk-tab-ct--warn { background: color-mix(in srgb, var(--amber) 18%, transparent); color: var(--amber); }
+
+/* ── Today tab: save plan ── */
+.sk-plan-tip {
+  font-size: var(--fs-sm); color: var(--text2); margin: 0.1rem 0 0.5rem;
+  background: color-mix(in srgb, var(--amber) 7%, transparent);
+  border: 1px dashed color-mix(in srgb, var(--amber) 40%, transparent);
+  border-radius: var(--r-md); padding: 0.45rem 0.75rem;
+}
+.sk-plan-tip b { color: var(--amber); font-family: var(--font-mono); }
+.sk-plan-row {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; gap: 0.6rem; align-items: center;
+  padding: 0.4rem 0.45rem; border-radius: var(--r-md);
+}
+.sk-plan-row:hover { background: var(--hover, var(--bg3)); }
+.sk-plan-who { min-width: 0; }
+.sk-plan-nm { font-size: var(--fs-sm); color: var(--text); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sk-plan-nm span { color: var(--text2); font-weight: 400; }
+.sk-plan-keeps { display: flex; flex-wrap: wrap; gap: 0.25rem; align-items: center; margin-top: 0.2rem; font-size: 0.7rem; color: var(--text3); }
+.sk-plan-keeps-lbl { margin-right: 0.1rem; }
+.sk-keep-item {
+  border: 1px solid var(--border); border-radius: var(--r-xs); padding: 0 0.3rem; color: var(--text2);
+  max-width: 14rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.sk-keep-item--song { border-color: color-mix(in srgb, var(--green) 45%, transparent); }
+.sk-keep-item--album { border-color: color-mix(in srgb, var(--teal, var(--accent)) 45%, transparent); }
+.sk-keep-item--artist { border-color: color-mix(in srgb, var(--rose) 45%, transparent); }
+.sk-saves {
+  font-family: var(--font-mono); font-size: 0.68rem; font-weight: 600; white-space: nowrap;
+  color: var(--amber); background: color-mix(in srgb, var(--amber) 13%, transparent);
+  border-radius: var(--r-full); padding: 0.05rem 0.45rem;
+}
+.sk-plan-len { min-width: 2.5rem; text-align: right; color: #e8a020; }
+
+/* ▶ — round play button, on plan rows and every at-risk row */
+.sk-play {
+  width: 26px; height: 26px; flex-shrink: 0; border-radius: 50%;
+  display: inline-grid; place-items: center; font-size: 0.6rem; line-height: 1; padding: 0 0 0 1px;
+  border: 1px solid color-mix(in srgb, var(--amber) 60%, transparent);
+  background: var(--bg3); color: var(--amber); cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast), transform var(--t-fast);
+}
+.sk-play:hover { background: var(--amber); color: #1a1205; transform: scale(1.08); }
+.sk-play:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.streak-item .sk-play { align-self: center; margin-left: 0.15rem; }
+.sk-keptby { font-size: 0.7rem; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 40%; flex-shrink: 1; }
+
+.sk-atrisk-btn--primary {
+  background: linear-gradient(135deg, #ff6a3d, #e8365d); border-color: transparent; color: #fff; font-weight: 600;
+}
+.sk-atrisk-btn--primary:hover { color: #fff; border-color: transparent; filter: brightness(1.1); background: linear-gradient(135deg, #ff6a3d, #e8365d); }
+
+/* ── Today tab: saved strip ── */
+.sk-title-static { cursor: default; }
+.sk-title-static:hover { color: var(--accent2); }
+.sk-saved-strip { display: flex; flex-wrap: wrap; gap: 0.35rem; padding-bottom: 0.4rem; }
+.sk-saved {
+  font-size: var(--fs-xs); color: var(--text2); border-radius: var(--r-full); padding: 0.1rem 0.6rem;
+  background: color-mix(in srgb, var(--green) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--green) 28%, transparent);
+  max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.sk-saved::before { content: "✓ "; color: var(--green); }
+.sk-saved b { font-family: var(--font-mono); color: var(--text); font-weight: 600; }
+.sk-saved--new { animation: skSavedPop 1.6s var(--ease) 2; border-color: var(--green); }
+@keyframes skSavedPop { 0%, 100% { box-shadow: 0 0 0 0 transparent; } 40% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--green) 30%, transparent); } }
+.sk-saved-more {
+  font-size: var(--fs-xs); color: var(--accent); background: none; border: 1px dashed var(--border);
+  border-radius: var(--r-full); padding: 0.1rem 0.6rem; cursor: pointer;
+}
+.sk-saved-more:hover { border-color: var(--accent); }
+.sk-all-safe {
+  margin: var(--sp-4) 1.4rem 0; padding: 0.7rem 0.9rem; border-radius: var(--r-md);
+  font-size: var(--fs-sm); color: var(--text2);
+  background: color-mix(in srgb, var(--green) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--green) 25%, transparent);
+}
+@media (prefers-reduced-motion: reduce) { .sk-saved--new { animation: none; } .sk-keep-bar i { transition: none; } }
+@media (max-width: 520px) {
+  .sk-plan-row { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .sk-plan-row .sk-saves { display: none; }
+  .sk-keptby { display: none; }
+}
+
 /* ── Tab bar ── */
 .sk-tab-bar {
   display: flex;

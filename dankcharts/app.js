@@ -5391,6 +5391,7 @@ function refreshAfterPoll() {
   // or cached counts even after the full history (or a poll top-up) lands.
   renderHeroStats();
   renderStreakBanner();
+  _skRefreshIfOpen();
   // A poll top-up can include the scrobble for the song still on air — restat so its
   // "43rd play" chip doesn't sit one behind.
   refreshNowPlayingStats();
@@ -33458,8 +33459,11 @@ let _skHmRange = 'year';
 let _skHmCount = {}, _skHmNames = {}, _skHmByType = {}, _skHmNamesByType = {};
 
 // ─── STREAK DETAILS MODAL ─────────────────────────────────────
-function openStreakModal() {
+// opts.keep: re-render in place (live poll top-up) — keep the open tab and scroll
+// position instead of jumping back to Today.
+function openStreakModal(opts) {
   if (!allPlays.length) return;
+  const keep = !!(opts && opts.keep);
 
   // ── Helpers ─────────────────────────────────────────────────────
   function prevDs(ds) {
@@ -33504,12 +33508,14 @@ function openStreakModal() {
   const yest = prevDs(todayStr);
   const dayBefore = prevDs(yest);
   const nowDate = new Date();
-  const hour = nowDate.getHours();
   const weekAgo = new Date(nowDate); weekAgo.setDate(nowDate.getDate() - 6);
   const weekAgoStr = localDateStr(weekAgo);
 
   // ── Build day-sets + last-5-songs maps ───────────────────────────
   const songDays = {}, songInfo = {};
+  // songArtists / songAlbKey: what one play of a song also counts toward — used by the
+  // "fewest songs that save everything" plan on the Today tab.
+  const songArtists = {}, songAlbKey = {};
   const artistDays = {};
   const albumDays = {}, albumInfo = {};
   const artLastSongs = {}, albLastSongs = {};
@@ -33517,20 +33523,20 @@ function openStreakModal() {
   for (const p of allPlays) {
     const ds = dayStrOf(p);
     const sk = songKey(p);
-    if (!songDays[sk]) { songDays[sk] = new Set(); songInfo[sk] = { title: p.title, artist: p.artist, album: p.album && p.album !== '—' ? p.album : '' }; }
+    if (!songDays[sk]) { songDays[sk] = new Set(); songInfo[sk] = { title: p.title, artist: p.artist, album: p.album && p.album !== '—' ? p.album : '' }; songArtists[sk] = p.artists; if (p.album && p.album !== '—') songAlbKey[sk] = albumKeyOf(p); }
     songDays[sk].add(ds);
     for (const a of p.artists) {
       if (!artistDays[a]) artistDays[a] = new Set();
       artistDays[a].add(ds);
       if (!artLastSongs[a]) artLastSongs[a] = [];
-      if (artLastSongs[a].length < 5 && !artLastSongs[a].some(s => s.title === p.title)) artLastSongs[a].push({ title: p.title, artist: p.artist, album: p.album || '' });
+      if (artLastSongs[a].length < 5 && !artLastSongs[a].some(s => s.title === p.title)) artLastSongs[a].push({ title: p.title, artist: p.artist, album: p.album || '', sk });
     }
     if (p.album && p.album !== '—') {
       const ak = albumKeyOf(p);
       if (!albumDays[ak]) { albumDays[ak] = new Set(); albumInfo[ak] = { album: p.album, artist: albumArtist(p) }; }
       albumDays[ak].add(ds);
       if (!albLastSongs[ak]) albLastSongs[ak] = [];
-      if (albLastSongs[ak].length < 5 && !albLastSongs[ak].some(s => s.title === p.title)) albLastSongs[ak].push({ title: p.title, artist: p.artist, album: p.album });
+      if (albLastSongs[ak].length < 5 && !albLastSongs[ak].some(s => s.title === p.title)) albLastSongs[ak].push({ title: p.title, artist: p.artist, album: p.album, sk });
     }
   }
 
@@ -33595,34 +33601,55 @@ function openStreakModal() {
   for (const [ak, d] of Object.entries(albumDays)) { if (d.has(yest) && !d.has(todayStr)) { const l = streakEndingAt(d, yest); if (l >= 2) atRisk.push(mkItem(albumInfo[ak].album, albumInfo[ak].artist, 'album', l, ak, yest)); } }
   atRisk.sort((a, b) => b.len - a.len);
 
-  // ── At Risk — enriched song list for Save Playlist / Copy Tracklist ─────
-  // Those two actions need to protect every at-risk streak, not just song streaks.
-  // Album/artist streaks have no "song" of their own, so: first pass over at-risk
-  // albums — if a song already in the list is from that album, the streak is covered
-  // for free; otherwise pull that album's most-recently-played song. Second pass over
-  // at-risk artists does the same (checked against the list *including* the album
-  // additions), so an artist already covered by an album pick isn't duplicated.
-  function primaryArtistOf(artistStr) { const s = splitArtists(artistStr); return (s && s[0]) || artistStr; }
-  const atRiskFull = atRisk.filter(it => it.type === 'song').map(it => ({
-    title: it.name, artist: it.sub, album: (songInfo[it.key] && songInfo[it.key].album) || ''
-  }));
-  function addAtRiskFull(song) {
-    if (!song) return;
-    const dupe = atRiskFull.some(s => s.title.toLowerCase() === song.title.toLowerCase() && s.artist.toLowerCase() === song.artist.toLowerCase());
-    if (!dupe) atRiskFull.push({ title: song.title, artist: song.artist, album: song.album || '' });
+  // ── Save plan: the fewest songs that keep every at-risk streak alive ─────
+  // One play counts toward the song, its album and each of its artists, so a single
+  // song can save several streaks at once ("Save My Love" can keep the song, the album
+  // and four artists going). Candidates are every at-risk song plus the last few songs
+  // of each at-risk artist/album; a greedy set cover then picks, again and again, the
+  // song that saves the most streaks not yet covered (ties: an at-risk song itself
+  // first, then the one holding the longest streak). Play All / Queue / Save Playlist /
+  // Copy Tracklist all use this list, so artist and album streaks are covered too.
+  const riskId = it => it.type + '|' + it.key;
+  const riskById = new Map(atRisk.map(it => [riskId(it), it]));
+  function songCovers(sk) {
+    const ids = [];
+    if (riskById.has('song|' + sk)) ids.push('song|' + sk);
+    const ak = songAlbKey[sk];
+    if (ak && riskById.has('album|' + ak)) ids.push('album|' + ak);
+    for (const a of (songArtists[sk] || [])) if (riskById.has('artist|' + a)) ids.push('artist|' + a);
+    return ids;
+  }
+  const planCands = new Map(); // sk → { sk, title, artist, album, ids }
+  function addCand(sk) {
+    if (!sk || planCands.has(sk) || !songInfo[sk]) return;
+    const inf = songInfo[sk];
+    planCands.set(sk, { sk, title: inf.title, artist: inf.artist, album: inf.album || '', ids: songCovers(sk), selfRisk: riskById.has('song|' + sk) });
   }
   for (const it of atRisk) {
-    if (it.type !== 'album') continue;
-    const info = albumInfo[it.key];
-    const covered = atRiskFull.some(s => s.album === info.album && primaryArtistOf(s.artist) === info.artist);
-    if (!covered) addAtRiskFull((albLastSongs[it.key] || [])[0]);
+    if (it.type === 'song') addCand(it.key);
+    else (it.type === 'artist' ? (artLastSongs[it.key] || []) : (albLastSongs[it.key] || [])).forEach(s => addCand(s.sk));
   }
-  for (const it of atRisk) {
-    if (it.type !== 'artist') continue;
-    const covered = atRiskFull.some(s => splitArtists(s.artist).includes(it.key));
-    if (!covered) addAtRiskFull((artLastSongs[it.key] || [])[0]);
+  const uncovered = new Set(riskById.keys());
+  const savePlan = [];         // [{ sk, title, artist, album, items: [at-risk items it saves] }]
+  const keptBy = new Map();    // at-risk id → plan entry that saves it
+  while (uncovered.size) {
+    let best = null, bestN = 0, bestLen = -1;
+    for (const c of planCands.values()) {
+      const n = c.ids.reduce((acc, id) => acc + (uncovered.has(id) ? 1 : 0), 0);
+      if (!n) continue;
+      const len = Math.max(...c.ids.filter(id => uncovered.has(id)).map(id => riskById.get(id).len));
+      if (n > bestN || (n === bestN && ((c.selfRisk && !best.selfRisk) || (c.selfRisk === best.selfRisk && len > bestLen)))) { best = c; bestN = n; bestLen = len; }
+    }
+    if (!best) break; // an at-risk streak no candidate reaches (shouldn't happen) — stop rather than loop
+    const entry = { sk: best.sk, title: best.title, artist: best.artist, album: best.album, items: [] };
+    for (const id of best.ids) if (uncovered.has(id)) { uncovered.delete(id); entry.items.push(riskById.get(id)); keptBy.set(id, entry); }
+    entry.items.sort((x, y) => y.len - x.len);
+    entry.len = entry.items[0].len;
+    savePlan.push(entry);
+    planCands.delete(best.sk);
   }
-  window._skAtRiskFullSongs = atRiskFull;
+  savePlan.sort((x, y) => y.items.length - x.items.length || y.len - x.len);
+  window._skPlanSongs = savePlan.map(e => ({ title: e.title, artist: e.artist, album: e.album }));
 
   const lost = [];
   for (const [sk, d] of Object.entries(songDays)) { if (!d.has(yest) && d.has(dayBefore)) { const l = streakEndingAt(d, dayBefore); if (l >= 2) lost.push(mkItem(songInfo[sk].title, songInfo[sk].artist, 'song', l, sk, dayBefore)); } }
@@ -33679,6 +33706,9 @@ function openStreakModal() {
       `<div class="sk-sec-body${collapsed ? ' sk-sec-hidden' : ''}">${inner}</div></div>`;
   }
 
+  // The save-plan entry (song) that keeps this at-risk streak alive, if any.
+  function keptByEntry(it) { return keptBy.get(riskId(it)) || null; }
+
   // ── Item HTML ────────────────────────────────────────────────────
   function itemHtml(it, mode) {
     const sub = it.sub ? `<span class="streak-sub"> — ${it.sub}</span>` : '';
@@ -33691,8 +33721,14 @@ function openStreakModal() {
     const msB = msLeft !== null && msLeft >= 1 && msLeft <= 3 ? `<span class="sk-ms" title="${ms}d milestone in ${msLeft}d">🎯 ${ms}d</span>` : '';
     const calAttr = it.cal && it.cal.length ? `data-skc="${esc(JSON.stringify(it.cal))}" data-skn="${esc(it.name)}"` : '';
     const calBtn = calAttr ? `<span class="sk-cal-trig" ${calAttr}>◈</span>` : '';
-    let nameHtml, spLink = '';
+    let nameHtml, spLink = '', playBtn = '', keptByHtml = '';
     if (mode === 'risk') {
+      // ▶ on every at-risk row. A song plays itself; an artist or album plays the song
+      // the save plan picked for it, so one tap is always enough to keep the streak.
+      const pe = keptByEntry(it);
+      const pt = pe ? pe.title : it.name, pa = pe ? pe.artist : (it.sub || '');
+      playBtn = `<button class="sk-play" onclick="_ytStreakPlay(${esc(JSON.stringify(pt))},${esc(JSON.stringify(pa))})" title="${esc(t('sk_play_title', { song: pt }))}" aria-label="${esc(t('sk_play_title', { song: pt }))}">▶</button>`;
+      if (pe && it.type !== 'song') keptByHtml = `<span class="sk-keptby">${esc(t('sk_kept_by', { song: pe.title }))}</span>`;
       if (it.type === 'song') {
         const q = encodeURIComponent(it.name + (it.sub ? ' ' + it.sub : ''));
         const jt = esc(JSON.stringify(it.name)); const jar = esc(JSON.stringify(it.sub || ''));
@@ -33708,8 +33744,8 @@ function openStreakModal() {
     return `<div class="streak-item${cls}">` +
       `<span class="streak-fire">${icon}</span>` +
       `<span class="streak-days" data-len="${it.len}">0d</span>` +
-      `<span class="streak-label">${nameHtml}</span>${spLink}` +
-      `${since}${pb}${msB}${tag}${calBtn}</div>`;
+      `<span class="streak-label">${nameHtml}</span>${spLink}${keptByHtml}` +
+      `${since}${pb}${msB}${tag}${calBtn}${playBtn}</div>`;
   }
 
   // ── Section HTML ─────────────────────────────────────────────────
@@ -33723,57 +33759,106 @@ function openStreakModal() {
       `<div class="sk-sec-body${collapsed ? ' sk-sec-hidden' : ''}">${inner}</div></div>`;
   }
 
-  // ── Urgency banner ───────────────────────────────────────────────
-  const urgency = atRisk.length ? (
-    hour >= 21 ? `<div class="sk-urgency sk-urg--critical">🚨 ${24 - hour}h or less left today — listen now to save your streaks!</div>` :
-    hour >= 18 ? `<div class="sk-urgency sk-urg--warning">⏰ Evening — a few hours left to save these.</div>` :
-    hour >= 13 ? `<div class="sk-urgency sk-urg--mild">☀️ Afternoon — you still have time today.</div>` :
-    `<div class="sk-urgency sk-urg--safe">🌅 Day is young — come back later to listen.</div>`
-  ) : '';
-
-  // ── Summary stat ─────────────────────────────────────────────────
+  // ── Header: subtitle, countdown, kept-today bar, chips ──────────────
+  // "Active" = played today (streak runs through today); "at risk" = played yesterday,
+  // not yet today. Every streak alive this morning is one or the other, so
+  // kept + at risk = everything still alive today.
   const totalActive = activeSongs.length + activeArtists.length + activeAlbums.length;
+  const aliveTotal = totalActive + atRisk.length;
+  const subEl = document.getElementById('streakModalSub');
+  if (subEl) {
+    const todayFmt = new Date(todayStr + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    subEl.innerHTML = esc(t('sk_sub', { date: todayFmt })) + ' · <span id="skCountdown" class="sk-countdown"></span>';
+  }
+  _skTickCountdown();
+  clearInterval(window._skCdTimer);
+  window._skCdTimer = setInterval(_skTickCountdown, 30000);
+
+  const allLive = [...activeSongs, ...activeArtists, ...activeAlbums, ...atRisk];
+  const longestNow = allLive.reduce((m, it) => (!m || it.len > m.len ? it : m), null);
+  const keptPct = aliveTotal ? (totalActive / aliveTotal * 100) : 0;
   const summaryEl = document.getElementById('streakSummaryStat');
-  if (summaryEl) summaryEl.innerHTML =
-    `<span class="sk-stat">🔥 ${totalActive}</span>` +
-    `<span class="sk-stat sk-stat--risk">⚠️ ${atRisk.length}</span>` +
-    `<span class="sk-stat sk-stat--lost">💔 ${lost.length}</span>`;
-
-  // ── Weekly digest HTML ────────────────────────────────────────────
-  const weeklyHtml = weekStarted || weekEnded
-    ? `<div class="sk-weekly">📅 <strong>This week:</strong> ` +
-      (weekStarted ? `${weekStarted} streak${weekStarted !== 1 ? 's' : ''} started` : '') +
-      (weekStarted && weekEnded ? ' · ' : '') +
-      (weekEnded ? `${weekEnded} ended` : '') + `</div>`
+  if (summaryEl) summaryEl.innerHTML = aliveTotal
+    ? `<div class="sk-keep-row"><span>${atRisk.length ? t('sk_kept', { kept: `<strong>${totalActive}</strong>`, total: aliveTotal }) : t('sk_all_kept', { n: `<strong>${aliveTotal}</strong>` })}</span>` +
+        (atRisk.length ? `<span class="sk-keep-need">${esc(t('sk_need', { n: atRisk.length }))}</span>` : '') + `</div>` +
+      `<div class="sk-keep-bar" role="img" aria-label="${esc(t('sk_kept', { kept: totalActive, total: aliveTotal }))}">` +
+        `<i class="sk-keep-kept" style="width:${keptPct.toFixed(1)}%"></i><i class="sk-keep-risk" style="width:${(100 - keptPct).toFixed(1)}%"></i></div>` +
+      `<div class="sk-chips">` +
+        (longestNow ? `<span class="sk-chip sk-chip--long">${esc(t('sk_longest_now'))} <b>${longestNow.len}d</b> ${esc(longestNow.name)}</span>` : '') +
+        `<span class="sk-chip sk-chip--lost">${esc(t('sk_lost_yday'))} <b>${lost.length}</b></span>` +
+        (weekStarted || weekEnded ? `<span class="sk-chip" title="${esc(t('sk_week_title'))}">${esc(t('sk_this_week'))} <b>+${weekStarted}</b> / <b>−${weekEnded}</b></span>` : '') +
+      `</div>`
     : '';
+  const ctToday = document.getElementById('skTabCtToday');
+  if (ctToday) ctToday.textContent = atRisk.length ? atRisk.length : '';
+  const ctFire = document.getElementById('skTabCtFire');
+  if (ctFire) ctFire.textContent = totalActive ? totalActive : '';
 
-  // ── At Risk — store songs for global play/queue/save functions ──
-  // Play All / Queue All only make sense for actual at-risk SONG streaks. Save Playlist /
-  // Copy Tracklist use the enriched atRiskFull list (built above) so they also cover
-  // at-risk ARTIST/ALBUM streaks via a representative song.
-  window._skAtRiskSongs = atRisk.filter(it => it.type === 'song');
-  const _atRiskPlayBtns = window._skAtRiskSongs.length > 0
-    ? `<button class="sk-atrisk-btn" onclick="skAtRiskPlayAll()" title="Play all at-risk songs in the music player">▶ Play All</button>` +
-      `<button class="sk-atrisk-btn" onclick="skAtRiskQueueAll()" title="Add all at-risk songs to the queue">+ Queue All</button>`
-    : '';
-  const _atRiskFullBtns = window._skAtRiskFullSongs.length > 0
-    ? `<button class="sk-atrisk-btn" onclick="skAtRiskSavePl()" title="Save a playlist covering all at-risk streaks (songs, plus a representative track for at-risk artists/albums)">♫ Save Playlist</button>` +
-      `<button class="sk-atrisk-btn" onclick="skAtRiskExport()" title="Copy a tracklist covering all at-risk streaks for Soundiiz">📋 Copy Tracklist</button>`
-    : '';
-  const _atRiskSongBtns = (_atRiskPlayBtns || _atRiskFullBtns)
-    ? `<span class="sk-sec-btns" onclick="event.stopPropagation()">${_atRiskPlayBtns}${_atRiskFullBtns}</span>` : '';
+  // ── Today tab ─────────────────────────────────────────────────────
+  // Rows that left "at risk" since the last render (a live poll brought in their play)
+  // get a short highlight in "Saved today", so you can watch them tick off.
+  const prevRisk = keep && window._skPrevRiskIds ? window._skPrevRiskIds : null;
+  const activeIds = new Set([...activeSongs, ...activeArtists, ...activeAlbums].map(riskId));
+  const justSaved = prevRisk ? [...prevRisk].filter(id => activeIds.has(id)) : [];
+  window._skPrevRiskIds = new Set(riskById.keys());
 
-  // ── Render ───────────────────────────────────────────────────────
+  // One row per plan song: ▶, the song, which streaks it keeps, "saves N".
+  const planRow = e => {
+    const jt = esc(JSON.stringify(e.title)), ja = esc(JSON.stringify(e.artist));
+    const n = e.items.length;
+    const keeps = e.items.map(it => `<span class="sk-keep-item sk-keep-item--${it.type}" title="${esc(it.type)} · ${it.len}d">${esc(it.name)}</span>`).join('');
+    return `<div class="sk-plan-row">` +
+      `<button class="sk-play" onclick="_ytStreakPlay(${jt},${ja})" title="${esc(t('sk_play_title', { song: e.title }))}" aria-label="${esc(t('sk_play_title', { song: e.title }))}">▶</button>` +
+      `<div class="sk-plan-who"><div class="sk-plan-nm">${esc(e.title)} <span>— ${esc(e.artist)}</span></div>` +
+      // A song that only saves its own streak needs no "keeps" line — it would repeat its name.
+      (n > 1 || e.items[0].type !== 'song' ? `<div class="sk-plan-keeps"><span class="sk-plan-keeps-lbl">${esc(t('sk_keeps'))}</span> ${keeps}</div>` : '') + `</div>` +
+      // Empty cell when there's no chip, so the day counts line up down the list.
+      (n > 1 ? `<span class="sk-saves">${esc(t('sk_saves', { n }))}</span>` : '<span></span>') +
+      `<span class="streak-days sk-plan-len" data-len="${e.len}">0d</span>` +
+      `</div>`;
+  };
+  const planBtns = savePlan.length
+    ? `<span class="sk-sec-btns" onclick="event.stopPropagation()">` +
+        `<button class="sk-atrisk-btn sk-atrisk-btn--primary" onclick="skAtRiskPlayAll()" title="${esc(t('sk_play_all_title'))}">${esc(t('sk_play_n', { n: savePlan.length }))}</button>` +
+        `<button class="sk-atrisk-btn" onclick="skAtRiskQueueAll()" title="Add these songs to the queue">+ Queue All</button>` +
+        `<button class="sk-atrisk-btn" onclick="skAtRiskSavePl()" title="Save these songs as a playlist">♫ Save Playlist</button>` +
+        `<button class="sk-atrisk-btn" onclick="skAtRiskExport()" title="Copy these songs as a tracklist for Soundiiz">📋 Copy Tracklist</button>` +
+      `</span>`
+    : '';
+  const planTip = savePlan.length
+    ? `<div class="sk-plan-tip">${atRisk.length === 1 ? esc(t('sk_plan_tip_single')) : t(savePlan.length === 1 ? 'sk_plan_tip_one' : 'sk_plan_tip_other', { songs: `<b>${savePlan.length}</b>`, n: `<b>${atRisk.length}</b>` })}</div>`
+    : '';
+  function planSection() {
+    const collapsed = localStorage.getItem('skc-plan') === '1';
+    return `<div class="streak-section streak-section--plan${collapsed ? ' streak-section--collapsed' : ''}" data-skid="plan">` +
+      `<div class="streak-section-title" onclick="_streakToggleSection(this.closest('.streak-section'))"><span class="sk-chev">${collapsed ? '▶' : '▼'}</span> ${esc(t('sk_sec_plan'))} <span class="streak-count">(${savePlan.length})</span>${planBtns}</div>` +
+      `<div class="sk-sec-body${collapsed ? ' sk-sec-hidden' : ''}">${planTip}${savePlan.map(planRow).join('')}</div></div>`;
+  }
+  // "Saved today": everything already played today, longest first — just-saved first of all.
+  const jsSet = new Set(justSaved);
+  const savedSorted = [...activeArtists, ...activeAlbums, ...activeSongs]
+    .sort((x, y) => ((jsSet.has(riskId(y)) ? 1 : 0) - (jsSet.has(riskId(x)) ? 1 : 0)) || y.len - x.len);
+  const SAVED_SHOW = 10;
+  const savedHtml = savedSorted.length
+    ? `<div class="streak-section streak-section--saved" data-skid="saved">` +
+        `<div class="streak-section-title sk-title-static">${esc(t('sk_sec_saved'))} <span class="streak-count">(${savedSorted.length})</span></div>` +
+        `<div class="sk-saved-strip">` +
+          savedSorted.slice(0, SAVED_SHOW).map(it => `<span class="sk-saved${jsSet.has(riskId(it)) ? ' sk-saved--new' : ''}" title="${esc(it.type)} · ${it.len}d">${esc(it.name)} <b>${it.len}d</b></span>`).join('') +
+          (savedSorted.length > SAVED_SHOW ? `<button class="sk-saved-more" onclick="_streakSwitchTab('streaks')">${esc(t('sk_more', { n: savedSorted.length - SAVED_SHOW }))}</button>` : '') +
+        `</div></div>`
+    : '';
+  const todayHtml =
+    (atRisk.length ? planSection() : `<div class="sk-all-safe">${esc(aliveTotal ? t('sk_nothing_risk') : t('streak_none'))}</div>`) +
+    (atRisk.length ? section(t('streak_section_at_risk'), atRisk, 'risk', 'atrisk') : '') +
+    savedHtml +
+    section('💔 ' + t('sk_lost_yday'), lost, 'lost', 'lost');
+
+  // ── On fire tab (active streaks) ──────────────────────────────────
   const streaksHtml =
-    weeklyHtml +
     `<div class="sk-toolbar"><input type="text" id="skFilter" class="sk-filter" placeholder="Filter…"><button id="skSortBtn" class="sk-sort-btn" data-mode="len">⬇ Length</button></div>` +
     section(t('streak_section_artists'), activeArtists, 'active', 'artists') +
     section(t('streak_section_albums'), activeAlbums, 'active', 'albums') +
-    section(t('streak_section_songs'), activeSongs, 'active', 'songs') +
-    urgency +
-    section(t('streak_section_at_risk'), atRisk, 'risk', 'atrisk', _atRiskSongBtns) +
-    section(t('streak_section_lost'), lost, 'lost', 'lost') +
-    hofSection();
+    section(t('streak_section_songs'), activeSongs, 'active', 'songs');
 
   // ── Graveyard pagination ──────────────────────────────────────────
   const GRAVE_PAGE_SIZE = 25;
@@ -33795,7 +33880,7 @@ function openStreakModal() {
           `<button class="page-nav-last" onclick="_skGraveGoToPage(${totalPages - 1})"${gravePage >= totalPages - 1 ? ' disabled' : ''} title="Last page">►|</button>` +
         `</div>`
       : '';
-    const el = document.getElementById('skTabGraveyard');
+    const el = document.getElementById('skGraveList');
     if (el) el.innerHTML = listHtml + pagerHtml;
     // Fill in streak-day counters for this page — the count-up animation only ever
     // ran once against the page-1 elements at modal-open time, so later pages need
@@ -33804,10 +33889,15 @@ function openStreakModal() {
   }
   window._skGraveGoToPage = function(page) { gravePage = page; renderGraveyard(); };
 
-  document.getElementById('streakModalBody').innerHTML =
-    `<div id="skTabStreaks" class="sk-tab-pane">${streaksHtml}</div>` +
-    `<div id="skTabHeatmap" class="sk-tab-pane" style="display:none"></div>` +
-    `<div id="skTabGraveyard" class="sk-tab-pane" style="display:none"></div>`;
+  // Live re-render keeps the tab and the scroll position.
+  const bodyEl = document.getElementById('streakModalBody');
+  const prevTab = keep ? (sessionStorage.getItem('sk-tab') || 'today') : 'today';
+  const prevScroll = keep ? bodyEl.scrollTop : 0;
+  bodyEl.innerHTML =
+    `<div id="skTabToday" class="sk-tab-pane">${todayHtml}</div>` +
+    `<div id="skTabStreaks" class="sk-tab-pane" style="display:none">${streaksHtml}</div>` +
+    `<div id="skTabGraveyard" class="sk-tab-pane" style="display:none">${hofSection()}<div id="skGraveList"></div></div>` +
+    `<div id="skTabHeatmap" class="sk-tab-pane" style="display:none"></div>`;
   renderGraveyard();
 
   // restore last-used range, validating it's a known year or keyword
@@ -33816,7 +33906,9 @@ function openStreakModal() {
   _skHmRange = (['year', 'all'].includes(_skHmStoredRange) || _skHmValidYrs.has(_skHmStoredRange)) ? _skHmStoredRange : 'year';
   _skHmBuild();
 
-  _streakSwitchTab(sessionStorage.getItem('sk-tab') || 'streaks');
+  // Today always opens first; a live re-render stays on whatever tab is showing.
+  _streakSwitchTab(prevTab);
+  if (keep) bodyEl.scrollTop = prevScroll;
 
   document.getElementById('skFilter')?.addEventListener('input', e => {
     const q = e.target.value.toLowerCase();
@@ -33846,6 +33938,8 @@ function openStreakModal() {
 
   document.getElementById('streakModal').classList.add('open');
   const cEls = document.querySelectorAll('#streakModalBody .streak-days[data-len]');
+  // No count-up on a live re-render — the numbers would flash back to 0.
+  if (keep) { cEls.forEach(el => { el.textContent = el.dataset.len + 'd'; }); return; }
   const t0 = performance.now();
   (function tick(ts) {
     const prog = Math.min((ts - t0) / 700, 1), ease = 1 - Math.pow(1 - prog, 3);
@@ -33856,6 +33950,29 @@ function openStreakModal() {
 
 function closeStreakModal() {
   document.getElementById('streakModal').classList.remove('open');
+  clearInterval(window._skCdTimer);
+}
+
+// Live countdown to midnight (in the user's chosen time zone) in the modal header.
+// Turns amber under 6 hours and red under 3 — the old fixed morning/evening banners
+// did this job before.
+function _skTickCountdown() {
+  const el = document.getElementById('skCountdown');
+  if (!el) return;
+  const now = tzNow();
+  const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  const left = Math.max(0, midnight - now);
+  const h = Math.floor(left / 3600000), m = Math.floor(left % 3600000 / 60000);
+  el.textContent = t('sk_left', { time: `${h}h ${m}m` });
+  el.classList.toggle('sk-countdown--warn', h < 6 && h >= 3);
+  el.classList.toggle('sk-countdown--urgent', h < 3);
+}
+
+// Called after a live poll / data refresh: if the streak window is open, redraw it in
+// place so streaks that just got their play move from "at risk" to "Saved today".
+function _skRefreshIfOpen() {
+  const m = document.getElementById('streakModal');
+  if (m && m.classList.contains('open')) openStreakModal({ keep: true });
 }
 
 // ─── STREAK MODAL HELPERS ──────────────────────────────────────
@@ -33869,23 +33986,24 @@ function _streakToggleSection(sectionEl) {
   try { localStorage.setItem('skc-' + sectionEl.dataset.skid, c ? '1' : '0'); } catch(e) {}
 }
 
-// ── At Risk Today — Play All / Queue All / Save Playlist ────────────────────
-// These operate only on songs (artists/albums are excluded) from the AT RISK TODAY section.
+// ── At Risk Today — Play All / Queue All / Save Playlist / Copy Tracklist ──────
+// All four use the save plan (window._skPlanSongs, built in openStreakModal): the
+// fewest songs that keep every at-risk streak — songs, albums and artists — alive.
 
 function skAtRiskPlayAll() {
-  const songs = window._skAtRiskSongs || [];
+  const songs = window._skPlanSongs || [];
   if (!songs.length) return;
   const [first, ...rest] = songs;
-  openYtPlayer(first.name, first.sub, '', null);
-  rest.forEach(s => _ytQueue.push({ title: s.name, artist: s.sub, album: '', btn: null }));
+  openYtPlayer(first.title, first.artist, first.album || '', null);
+  rest.forEach(s => _ytQueue.push({ title: s.title, artist: s.artist, album: s.album || '', btn: null }));
   _ytUpdateQueueDisplay();
   _ytSaveQueue();
 }
 
 function skAtRiskQueueAll() {
-  const songs = window._skAtRiskSongs || [];
+  const songs = window._skPlanSongs || [];
   if (!songs.length) return;
-  songs.forEach(s => _ytQueue.push({ title: s.name, artist: s.sub, album: '', btn: null }));
+  songs.forEach(s => _ytQueue.push({ title: s.title, artist: s.artist, album: s.album || '', btn: null }));
   _ytUpdateQueueDisplay();
   _ytSaveQueue();
   const statusEl = document.getElementById('ytMiniStatus');
@@ -33897,9 +34015,8 @@ function skAtRiskQueueAll() {
 }
 
 function skAtRiskSavePl() {
-  // Uses the enriched list (window._skAtRiskFullSongs) so at-risk artist/album streaks
-  // are covered too, not just at-risk songs — see openStreakModal's atRiskFull build.
-  const songs = window._skAtRiskFullSongs || [];
+  // The save plan covers artist and album streaks too — see openStreakModal.
+  const songs = window._skPlanSongs || [];
   if (!songs.length) return;
   // Reuse the calendar create-playlist modal — populate it with at-risk songs
   _calCreatePlTracks = songs.map(s => ({ title: s.title, artist: s.artist, album: s.album || '' }));
@@ -33914,9 +34031,8 @@ function skAtRiskSavePl() {
 }
 
 function skAtRiskExport() {
-  // Uses the enriched list (window._skAtRiskFullSongs) so at-risk artist/album streaks
-  // are covered too, not just at-risk songs — see openStreakModal's atRiskFull build.
-  const songs = window._skAtRiskFullSongs || [];
+  // The save plan covers artist and album streaks too — see openStreakModal.
+  const songs = window._skPlanSongs || [];
   if (!songs.length) return;
   // Build tracklist text (Artist - Title per line, Soundiiz-compatible)
   const mapped = songs.map(s => ({ title: s.title, artist: s.artist, album: s.album || '' }));
@@ -33967,7 +34083,7 @@ function _genAtRiskPlNames(songs, dateLabel) {
 
 function _streakSwitchTab(tab) {
   document.querySelectorAll('.sk-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
-  ['Streaks', 'Heatmap', 'Graveyard'].forEach(n => {
+  ['Today', 'Streaks', 'Heatmap', 'Graveyard'].forEach(n => {
     const el = document.getElementById('skTab' + n);
     if (el) el.style.display = n.toLowerCase() === tab ? '' : 'none';
   });

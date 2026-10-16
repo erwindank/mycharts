@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=412">
+  <link rel="stylesheet" href="style.css?v=413">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=110"></script>
+  <script defer src="translations.js?v=111"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -3763,7 +3763,7 @@
   <!-- Community board tab (suggestions / bugs / discussion). Loaded before
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
   <script defer src="board.js?v=1"></script>
-  <script defer src="app.js?v=367"></script>
+  <script defer src="app.js?v=368"></script>
   <!-- All-Time chart stats ("Inside your Top N"); reads app.js globals, so it loads after it -->
   <script defer src="insights.js?v=8"></script>
   <script defer src="daily.js?v=18"></script>
@@ -4986,14 +4986,19 @@ function deleteGenreTriggers() {
         <span class="streak-modal-icon">🔥</span>
         <div class="streak-hdr-text">
           <div class="streak-modal-title" data-i18n="streak_modal_title">Daily Streaks</div>
-          <div class="streak-modal-sub" data-i18n="streak_modal_sub">Active as of yesterday</div>
+          <!-- Filled by openStreakModal(): "Counted through today, Oct 16 · 6h 41m left today" -->
+          <div class="streak-modal-sub" id="streakModalSub"></div>
         </div>
-        <div id="streakSummaryStat" class="sk-summary"></div>
+        <!-- Kept-today bar + header chips (longest now, lost yesterday, this week) -->
+        <div id="streakSummaryStat" class="sk-keep"></div>
       </div>
+      <!-- Tab order: Today first (the "save them" view), then active streaks, records, heatmap.
+           data-tab values keep the old pane ids (streaks / graveyard / heatmap). -->
       <div class="sk-tab-bar">
-        <button class="sk-tab-btn active" data-tab="streaks" onclick="_streakSwitchTab('streaks')">Streaks</button>
-        <button class="sk-tab-btn" data-tab="heatmap" onclick="_streakSwitchTab('heatmap')">Heatmap</button>
-        <button class="sk-tab-btn" data-tab="graveyard" onclick="_streakSwitchTab('graveyard')">Graveyard</button>
+        <button class="sk-tab-btn active" data-tab="today" onclick="_streakSwitchTab('today')"><span data-i18n="sk_tab_today">Today</span><span class="sk-tab-ct sk-tab-ct--warn" id="skTabCtToday"></span></button>
+        <button class="sk-tab-btn" data-tab="streaks" onclick="_streakSwitchTab('streaks')"><span data-i18n="sk_tab_fire">On fire</span><span class="sk-tab-ct" id="skTabCtFire"></span></button>
+        <button class="sk-tab-btn" data-tab="graveyard" onclick="_streakSwitchTab('graveyard')"><span data-i18n="sk_tab_records">Records</span></button>
+        <button class="sk-tab-btn" data-tab="heatmap" onclick="_streakSwitchTab('heatmap')"><span data-i18n="sk_tab_calendar">Calendar</span></button>
       </div>
       <div class="modal-body" id="streakModalBody"></div>
     </div>
