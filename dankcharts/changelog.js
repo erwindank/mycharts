@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 154;
+const DC_CL_I18N_V = 155;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-17', t: 'fix', a: 'charts', h: '36699a7',
+    title: "Spotify search is back on streaks that need a play",
+    detail: "Every song in the Daily Streaks save plan, every at-risk streak and the Streak of the Day card have a green Spotify button again. It opens a Spotify search for that song in a new tab, so you can keep the streak alive by playing it there." },
 
   { d: '2026-10-17', t: 'feature', a: 'charts', h: '401b187',
     title: "A cleaner, bolder Today tab in Daily Streaks",

@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Spotify search is back on streaks that need a play":
+    ["La búsqueda en Spotify vuelve a las rachas que necesitan una escucha",
+     "Cada canción del plan para salvar rachas, cada racha en riesgo y la tarjeta Racha del día vuelven a tener un botón verde de Spotify. Abre una búsqueda de esa canción en Spotify en una pestaña nueva, para mantener la racha escuchándola allí."],
+
   "A cleaner, bolder Today tab in Daily Streaks":
     ["Una pestaña Hoy más limpia y llamativa en Rachas Diarias",
      "La pestaña Hoy de Rachas Diarias tiene un nuevo aspecto. La cabecera muestra cuántas rachas mantuviste hoy como un gran número de marcador, con lo que aún necesita una escucha al lado. La Racha del día es ahora una tarjeta destacada: la portada de fondo, el nombre y los días en letra grande, y un botón Reproducir; si la racha está en riesgo se convierte en un aviso rojo. El plan para salvarlas tiene un gran botón Reproducir todo con botones pequeños para la cola, guardar la lista y copiar el tracklist, cada canción muestra su portada (Reproducir aparece al pasar el ratón) y las etiquetas de colores son ahora nombres con pequeños iconos de canción, álbum y artista y una leyenda encima. Un sencillo y su álbum con el mismo nombre aparecen una sola vez."],

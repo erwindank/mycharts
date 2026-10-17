@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Spotify search is back on streaks that need a play":
+    ["A pesquisa no Spotify voltou às sequências que precisam de uma reprodução",
+     "Cada música do plano para salvar sequências, cada sequência em risco e o cartão Sequência do dia voltaram a ter um botão verde do Spotify. Abre uma pesquisa dessa música no Spotify num novo separador, para manteres a sequência a tocá-la lá."],
+
   "A cleaner, bolder Today tab in Daily Streaks":
     ["Um separador Hoje mais limpo e marcante em Sequências Diárias",
      "O separador Hoje de Sequências Diárias tem um visual novo. O topo mostra quantas sequências mantiveste hoje como um grande número de marcador, com o que ainda precisa de uma reprodução ao lado. A Sequência do dia é agora um cartão em destaque: a capa ao fundo, o nome e os dias em letra grande e um botão Tocar; quando a sequência está em risco, passa a ser um aviso vermelho. O plano para salvá-las tem um grande botão Tocar tudo com botões pequenos para fila, guardar playlist e copiar tracklist, cada música mostra a sua capa (Tocar aparece ao passar o rato) e as etiquetas coloridas são agora nomes com pequenos ícones de música, álbum e artista e uma legenda por cima. Um single e o seu álbum com o mesmo nome aparecem uma só vez."],
