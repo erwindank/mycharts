@@ -29900,6 +29900,12 @@ button.ns-art {
   min-width: 0;
 }
 
+/* Grid items default to min-width:auto, so the aria-live wrapper around the
+   title grew to the full title length and pushed it past the card on phones
+   (long names like "Younger You - From the "Hannah Montana 20th …"). Letting
+   every child shrink makes .ns-title / .ns-artist cut off with "…" instead. */
+.ns-info > * { min-width: 0; }
+
 .now-strip:not(.has-streak) .ns-art  { grid-column: 1; }
 .now-strip:not(.has-streak) .ns-info { grid-column: 2; }
 
