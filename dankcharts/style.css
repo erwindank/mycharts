@@ -37749,6 +37749,9 @@ body.navy-light .sk-t-eternal, body.purple-light .sk-t-eternal, body.yellow-ligh
   font-family: var(--font-mono); font-size: 0.6rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
   border: 1px solid; border-radius: var(--r-xs); padding: 0 0.3rem; vertical-align: 1px;
 }
+/* Type icon inside the tag (SK_TYPE_SVG): same colour as the tag's text. */
+.sk-kind { display: inline-flex; align-items: center; gap: 0.2rem; }
+.sk-kind .sk-ti { color: inherit; width: 10px; height: 10px; }
 .sk-kind--song { color: var(--green); border-color: color-mix(in srgb, var(--green) 45%, transparent); }
 .sk-kind--album { color: var(--teal, var(--accent)); border-color: color-mix(in srgb, var(--teal, var(--accent)) 45%, transparent); }
 .sk-kind--artist { color: var(--rose); border-color: color-mix(in srgb, var(--rose) 45%, transparent); }

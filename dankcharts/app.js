@@ -33807,7 +33807,7 @@ function openStreakModal(opts) {
       `<div class="sk-stone-nm" title="${esc(it.name)}">${esc(it.name)}</div>` +
       (it.sub ? `<div class="sk-stone-sub" title="${esc(it.sub)}">${esc(it.sub)}</div>` : '') + `</div>${_eaMoreBtn()}</div>` +
       `<div class="sk-stone-len"><span class="streak-days" data-len="${it.len}">0d</span> <span class="sk-stone-range">${esc(fmtRange(it))}</span></div>` +
-      `<div class="sk-stone-foot">${types.map(tp => `<span class="sk-kind sk-kind--${tp}">${esc(t('sk_kind_' + tp))}</span>`).join('')}${close}</div>` +
+      `<div class="sk-stone-foot">${types.map(tp => `<span class="sk-kind sk-kind--${tp}">${SK_TYPE_SVG[tp]}${esc(t('sk_kind_' + tp))}</span>`).join('')}${close}</div>` +
       `</div>`;
   }
 
@@ -33875,7 +33875,7 @@ function openStreakModal(opts) {
     const a = skArt(it);
     const sub = it.sub ? ` <span class="sk-row-sub">— ${esc(it.sub)}</span>` : '';
     const types = it.types || [it.type];
-    const kind = types.map(tp => `<span class="sk-kind sk-kind--${tp}">${esc(t('sk_kind_' + tp))}</span>`).join('');
+    const kind = types.map(tp => `<span class="sk-kind sk-kind--${tp}">${SK_TYPE_SVG[tp]}${esc(t('sk_kind_' + tp))}</span>`).join('');
     const since = it.startDs && it.len >= 3 ? `<span class="sk-since">${esc(t('sk_since', { date: fmtD(it.startDs) }))}</span>` : '';
     let extra = '', btns = '';
     if (mode === 'risk') {
