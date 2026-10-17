@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Long song and album names stay inside the On Air card":
+    ["Los nombres largos de canciones y álbumes se quedan dentro de la tarjeta En el aire",
+     "Un nombre largo de canción o álbum ya no se sale del borde de la tarjeta En el aire en el móvil ni hace que la página se desplace hacia los lados. Ahora termina en \"…\" dentro de la tarjeta."],
+
   "Streak rows on phones: an icon before the name instead of a tag":
     ["Filas de rachas en el móvil: un icono antes del nombre en lugar de la etiqueta",
      "En pantallas pequeñas, las etiquetas CANCIÓN, ÁLBUM y ARTISTA de las filas de Rachas Diarias se sustituyen solo por su icono, delante del nombre, para dejar más espacio a los nombres largos."],
