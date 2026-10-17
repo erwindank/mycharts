@@ -37918,14 +37918,60 @@ body.pink-light .sk-hm-tswatch.active, body.red-light .sk-hm-tswatch.active { bo
 .sk-chip--share:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* Streak of the day */
+/* Featured card: the item's cover fills the card, blurred, under a dark fade, so
+   the text is always light — in light themes too (it reads as a photo card). */
 .sk-sotd {
-  display: flex; gap: 0.7rem; align-items: center; margin: var(--sp-3) 1.4rem 0; padding: 0.6rem 0.85rem;
-  border-radius: var(--r-lg); border: 1px solid color-mix(in srgb, #ff6a3d 40%, var(--border));
-  background: linear-gradient(120deg, color-mix(in srgb, #ff6a3d 12%, transparent), color-mix(in srgb, #e8365d 5%, transparent) 60%, transparent);
+  position: relative; overflow: hidden; isolation: isolate;
+  margin: var(--sp-3) 1.4rem 0; border-radius: var(--r-lg);
+  border: 1px solid color-mix(in srgb, #ff6a3d 45%, transparent);
+  background: linear-gradient(135deg, #3a1a2e, #1a1020); color: #fff;
 }
-.sk-sotd-ic { font-size: 1.5rem; flex-shrink: 0; }
-.sk-sotd-lbl { font-family: var(--font-mono); font-size: 0.64rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3); }
-.sk-sotd-txt { font-size: var(--fs-sm); color: var(--text); font-weight: 500; }
+/* Cover as the background. Initials (no cover found) are hidden — the gradient shows. */
+.sk-sotd .sk-art--bg { position: absolute; inset: -12px; width: auto; height: auto; border-radius: 0; z-index: -2; filter: blur(10px) saturate(1.3); opacity: 0.85; background: none; }
+.sk-sotd .sk-art--bg .thumb-initials { visibility: hidden; }
+.sk-sotd .sk-art--bg .thumb { object-fit: cover; }
+.sk-sotd::before {
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background: linear-gradient(100deg, rgba(10, 6, 14, 0.92) 0%, rgba(10, 6, 14, 0.72) 55%, rgba(10, 6, 14, 0.45) 100%);
+}
+.sk-sotd-body { padding: 0.75rem 0.95rem 0.8rem; }
+.sk-sotd-top { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.sk-sotd-lbl { font-family: var(--font-mono); font-size: 0.64rem; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255, 255, 255, 0.65); }
+.sk-sotd-tag {
+  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.02em; white-space: nowrap;
+  padding: 0.12rem 0.55rem; border-radius: var(--r-full);
+  background: rgba(255, 255, 255, 0.14); color: #fff;
+}
+.sk-sotd-main { display: flex; align-items: flex-end; justify-content: space-between; gap: 0.8rem; margin-top: 0.35rem; }
+.sk-sotd-who { min-width: 0; }
+.sk-sotd-nm { font-family: var(--font-display); font-size: 1.35rem; font-weight: 800; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sk-sotd-sub { font-size: var(--fs-xs); color: rgba(255, 255, 255, 0.7); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Big day count, scoreboard style */
+.sk-sotd-len { display: flex; flex-direction: column; align-items: flex-end; line-height: 1; flex-shrink: 0; }
+.sk-sotd-len b { font-family: var(--font-display); font-size: 2.6rem; font-weight: 800; font-variant-numeric: tabular-nums; color: #ffb347; text-shadow: 0 2px 14px rgba(255, 106, 61, 0.45); }
+.sk-sotd-len span { font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255, 255, 255, 0.65); margin-top: 0.15rem; }
+.sk-sotd-foot { display: flex; align-items: center; justify-content: space-between; gap: 0.7rem; margin-top: 0.55rem; }
+.sk-sotd-txt { font-size: var(--fs-xs); color: rgba(255, 255, 255, 0.85); font-weight: 500; }
+.sk-sotd-play {
+  flex-shrink: 0; display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer;
+  border: 0; border-radius: var(--r-full); padding: 0.35rem 0.9rem;
+  background: #fff; color: #1a1020; font-family: var(--font-sans); font-size: var(--fs-xs); font-weight: 700;
+  transition: transform var(--t-fast), filter var(--t-fast);
+}
+.sk-sotd-play:hover { transform: scale(1.05); }
+.sk-sotd-play:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+/* Pill colours per kind */
+.sk-sotd--record .sk-sotd-tag { background: rgba(255, 200, 60, 0.22); color: #ffd36b; }
+.sk-sotd--ms .sk-sotd-tag { background: rgba(255, 179, 71, 0.22); color: #ffc574; }
+.sk-sotd--lead .sk-sotd-tag { background: rgba(255, 106, 61, 0.24); color: #ff9a6b; }
+/* At risk = a warning: red edge, red-tinted fade, pulsing pill, red ▶ */
+.sk-sotd--risk { border-color: rgba(255, 77, 109, 0.75); box-shadow: 0 0 0 1px rgba(255, 77, 109, 0.25), 0 6px 22px rgba(255, 77, 109, 0.18); }
+.sk-sotd--risk::before { background: linear-gradient(100deg, rgba(40, 6, 16, 0.93) 0%, rgba(40, 6, 16, 0.74) 55%, rgba(40, 6, 16, 0.5) 100%); }
+.sk-sotd--risk .sk-sotd-tag { background: #ff4d6d; color: #fff; animation: skSotdPulse 1.8s ease-in-out infinite; }
+.sk-sotd--risk .sk-sotd-txt { color: #ffb3c0; }
+.sk-sotd--risk .sk-sotd-play { background: #ff4d6d; color: #fff; }
+@keyframes skSotdPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(255, 77, 109, 0.55); } 60% { box-shadow: 0 0 0 6px rgba(255, 77, 109, 0); } }
+@media (prefers-reduced-motion: reduce) { .sk-sotd--risk .sk-sotd-tag { animation: none; } }
 
 /* Milestones reached today */
 .sk-ms-today { display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center; margin: 0.5rem 1.4rem 0; font-size: var(--fs-xs); color: var(--text2); }

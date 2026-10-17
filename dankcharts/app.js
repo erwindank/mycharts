@@ -33987,11 +33987,34 @@ function openStreakModal(opts) {
   // a single milestone (several get the banner instead), the longest streak
   // still at risk, the longest one running.
   let sotd = null;
-  if (beatToday.length) sotd = { icon: '🏆', text: t('sk_sotd_record', { name: beatToday[0].it.name, n: beatToday[0].it.len, old: beatToday[0].old }) };
-  else if (msToday.length === 1) sotd = { icon: '🎉', text: t('sk_sotd_ms', { name: msToday[0].name, n: msToday[0].len }) };
-  else if (atRisk.length) sotd = { icon: '⚠️', text: t('sk_sotd_risk', { name: atRisk[0].name, n: atRisk[0].len }) };
-  else if (liveAll.length) sotd = { icon: '🔥', text: t('sk_sotd_lead', { name: liveAll[0].name, n: liveAll[0].len }) };
-  const sotdHtml = sotd ? `<div class="sk-sotd"><span class="sk-sotd-ic" aria-hidden="true">${sotd.icon}</span><div><div class="sk-sotd-lbl">${esc(t('sk_sotd'))}</div><div class="sk-sotd-txt">${esc(sotd.text)}</div></div></div>` : '';
+  if (beatToday.length) sotd = { kind: 'record', icon: '🏆', it: beatToday[0].it, text: t('sk_sotd_record', { name: beatToday[0].it.name, n: beatToday[0].it.len, old: beatToday[0].old }) };
+  else if (msToday.length === 1) sotd = { kind: 'ms', icon: '🎉', it: msToday[0], text: t('sk_sotd_ms', { name: msToday[0].name, n: msToday[0].len }) };
+  else if (atRisk.length) sotd = { kind: 'risk', icon: '⚠️', it: atRisk[0], text: t('sk_sotd_warn') };
+  else if (liveAll.length) sotd = { kind: 'lead', icon: '🔥', it: liveAll[0], text: t('sk_sotd_lead', { name: liveAll[0].name, n: liveAll[0].len }) };
+  // Featured card: the item's cover blurred behind a dark fade, its name large,
+  // the day count as a big number, a status pill and the one-line message. When
+  // the streak is at risk the card turns into a warning (red edge, pulsing pill)
+  // and gets a ▶ that plays the song the save plan picked for it.
+  let sotdHtml = '';
+  if (sotd) {
+    const it = sotd.it;
+    const bg = skArt(it, 'sk-art--bg');
+    let playBtn = '';
+    if (sotd.kind === 'risk' || it.type === 'song') {
+      const pe = sotd.kind === 'risk' ? keptByEntry(it) : null;
+      const pt = pe ? pe.title : it.type === 'song' ? it.name : '', pa = pe ? pe.artist : (it.sub || '');
+      if (pt) playBtn = `<button type="button" class="sk-sotd-play" onclick="_ytStreakPlay(${esc(JSON.stringify(pt))},${esc(JSON.stringify(pa))})" title="${esc(t('sk_play_title', { song: pt }))}" aria-label="${esc(t('sk_play_title', { song: pt }))}">▶ <span>${esc(t('sk_sotd_play'))}</span></button>`;
+    }
+    sotdHtml = `<div class="sk-sotd sk-sotd--${sotd.kind}">` + bg.html +
+      `<div class="sk-sotd-body">` +
+        `<div class="sk-sotd-top"><span class="sk-sotd-lbl">${esc(t('sk_sotd'))}</span>` +
+          `<span class="sk-sotd-tag"><span aria-hidden="true">${sotd.icon}</span> ${esc(t('sk_sotd_tag_' + sotd.kind))}</span></div>` +
+        `<div class="sk-sotd-main"><div class="sk-sotd-who"><div class="sk-sotd-nm" title="${esc(it.name)}">${esc(it.name)}</div>` +
+          `<div class="sk-sotd-sub">${esc(it.sub || t('sk_kind_' + it.type))}</div></div>` +
+          `<div class="sk-sotd-len"><b>${it.len}</b><span>${esc(t('sk_sotd_days'))}</span></div></div>` +
+        `<div class="sk-sotd-foot"><span class="sk-sotd-txt">${esc(sotd.text)}</span>${playBtn}</div>` +
+      `</div></div>`;
+  }
   const msHtml = msToday.length > 1 || (msToday.length === 1 && beatToday.length)
     ? `<div class="sk-ms-today">🎉 <b>${esc(t('sk_ms_today'))}</b> ${msToday.map(it => `<span class="sk-ms-chip">${esc(it.name)} <b>${it.len}d</b></span>`).join('')}</div>`
     : '';
