@@ -26635,6 +26635,25 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
 }
 .sk-play:hover { background: var(--amber); color: #1a1205; transform: scale(1.08); }
 .sk-play:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Save-plan rows: cover art with the ▶ on top. The button covers the whole
+   cover (dark scrim) and fades in on row hover or keyboard focus. */
+.sk-plan-art { position: relative; display: block; width: 40px; height: 40px; flex-shrink: 0; }
+.sk-plan-art .sk-art { width: 40px; height: 40px; border-radius: var(--r-sm); box-shadow: 0 1px 4px rgba(0,0,0,0.25); }
+.sk-play--over {
+  position: absolute; inset: 0; width: 100%; height: 100%; border-radius: var(--r-sm);
+  border: 0; font-size: 0.8rem; color: #fff; background: rgba(0,0,0,0.55);
+  opacity: 0; transition: opacity var(--t-fast), background var(--t-fast);
+}
+.sk-plan-row:hover .sk-play--over, .sk-play--over:focus-visible { opacity: 1; }
+.sk-play--over:hover { background: color-mix(in srgb, var(--amber) 85%, transparent); color: #1a1205; transform: none; }
+/* No hover on touch screens: keep a small ▶ badge in the corner instead. */
+@media (hover: none) {
+  .sk-play--over {
+    opacity: 1; inset: auto -4px -4px auto; width: 20px; height: 20px; border-radius: 50%;
+    font-size: 0.5rem; background: var(--amber); color: #1a1205; box-shadow: 0 0 0 2px var(--surface, var(--bg2));
+  }
+}
 .streak-item .sk-play { align-self: center; margin-left: 0.15rem; }
 .sk-keptby { font-size: 0.7rem; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 40%; flex-shrink: 1; }
 

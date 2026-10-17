@@ -34068,8 +34068,11 @@ function openStreakModal(opts) {
       else merged.push({ name: it.name, types: [it.type], len: it.len });
     }
     const keeps = merged.map(m => `<span class="sk-keep-item" title="${esc(m.types.map(tp => t('sk_kind_' + tp)).join(' + '))} · ${m.len}d">${m.types.map(tp => SK_TYPE_SVG[tp]).join('')}${esc(m.name)}</span>`).join('');
+    // Cover art with the ▶ laid over it (shows on hover/focus; always a small
+    // corner badge on touch screens — see .sk-plan-art in style.css).
+    const art = skArt({ type: 'song', name: e.title, sub: e.artist, key: e.sk });
     return `<div class="sk-plan-row">` +
-      `<button class="sk-play" onclick="_ytStreakPlay(${jt},${ja})" title="${esc(t('sk_play_title', { song: e.title }))}" aria-label="${esc(t('sk_play_title', { song: e.title }))}">▶</button>` +
+      `<span class="sk-plan-art">${art.html}<button class="sk-play sk-play--over" onclick="_ytStreakPlay(${jt},${ja})" title="${esc(t('sk_play_title', { song: e.title }))}" aria-label="${esc(t('sk_play_title', { song: e.title }))}">▶</button></span>` +
       `<div class="sk-plan-who"><div class="sk-plan-nm">${esc(e.title)} <span>— ${esc(e.artist)}</span></div>` +
       // A song that only saves its own streak needs no "keeps" line — it would repeat its name.
       (n > 1 || e.items[0].type !== 'song' ? `<div class="sk-plan-keeps"><span class="sk-plan-keeps-lbl">${esc(t('sk_keeps'))}</span> ${keeps}</div>` : '') + `</div>` +
