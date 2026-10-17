@@ -37752,6 +37752,14 @@ body.navy-light .sk-t-eternal, body.purple-light .sk-t-eternal, body.yellow-ligh
 /* Type icon inside the tag (SK_TYPE_SVG): same colour as the tag's text. */
 .sk-kind { display: inline-flex; align-items: center; gap: 0.2rem; }
 .sk-kind .sk-ti { color: inherit; width: 10px; height: 10px; }
+/* Leading type icon(s) before a row's name — phones only, in place of the tag. */
+.sk-nm-ic { display: none; }
+@media (max-width: 520px) {
+  .sk-row-nm .sk-kind { display: none; }
+  .sk-nm-ic { display: inline-flex; gap: 0.15rem; margin-right: 0.3rem; vertical-align: -1px; }
+  .sk-nm-ic .sk-ti { width: 12px; height: 12px; }
+  .sk-fire:not([data-skf="all"]) .sk-nm-ic { display: none; }
+}
 .sk-kind--song { color: var(--green); border-color: color-mix(in srgb, var(--green) 45%, transparent); }
 .sk-kind--album { color: var(--teal, var(--accent)); border-color: color-mix(in srgb, var(--teal, var(--accent)) 45%, transparent); }
 .sk-kind--artist { color: var(--rose); border-color: color-mix(in srgb, var(--rose) 45%, transparent); }

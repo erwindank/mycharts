@@ -33875,6 +33875,8 @@ function openStreakModal(opts) {
     const a = skArt(it);
     const sub = it.sub ? ` <span class="sk-row-sub">— ${esc(it.sub)}</span>` : '';
     const types = it.types || [it.type];
+    // Tag(s) after the name; on phones the tag is hidden and the bare icon(s) in
+    // .sk-nm-ic lead the name instead (see style.css, max-width: 520px).
     const kind = types.map(tp => `<span class="sk-kind sk-kind--${tp}">${SK_TYPE_SVG[tp]}${esc(t('sk_kind_' + tp))}</span>`).join('');
     const since = it.startDs && it.len >= 3 ? `<span class="sk-since">${esc(t('sk_since', { date: fmtD(it.startDs) }))}</span>` : '';
     let extra = '', btns = '';
@@ -33897,7 +33899,7 @@ function openStreakModal(opts) {
       : skDotsHtml(it.cal) + (skRecHtml(it) || skMsHtml(it.len)) + extra + since;
     return `<div class="sk-row sk-row--${mode} sk-t-${tier.key}" data-skt="${types.join(' ')}" data-name="${esc((it.name + ' ' + (it.sub || '')).toLowerCase())}" data-len="${it.len}"${skEaFor(it, a.imgId)}>` +
       a.html +
-      `<div class="sk-row-who"><div class="sk-row-nm">${esc(it.name)}${sub} ${kind}</div><div class="sk-row-meta">${meta}</div></div>` +
+      `<div class="sk-row-who"><div class="sk-row-nm"><span class="sk-nm-ic">${types.map(tp => SK_TYPE_SVG[tp]).join('')}</span>${esc(it.name)}${sub} ${kind}</div><div class="sk-row-meta">${meta}</div></div>` +
       `<div class="sk-row-right"><span class="sk-tier" title="${esc(t('sk_tier_' + tier.key))}" aria-hidden="true">${tier.icon}</span>` +
       `<span class="streak-days sk-row-len" data-len="${it.len}">0d</span>${btns}</div>` +
       `</div>`;
