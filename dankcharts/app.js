@@ -33859,6 +33859,15 @@ function openStreakModal(opts) {
     if (it.type === 'album') return _eaAttrs('albums', { title: it.name, artist: it.sub || '', album: it.name, key: it.key, imgId });
     return _eaAttrs('songs', { title: it.name, artist: it.sub || '', album: (songInfo[it.key] && songInfo[it.key].album) || '', key: it.key, imgId });
   }
+  // Spotify: opens a Spotify search for the song in a new tab, so an at-risk
+  // streak can be saved by playing it there (a Spotify scrobble counts too).
+  // Was on every at-risk song before the 2026-10-16 redesign; brought back.
+  const SK_SP_SVG = '<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><circle cx="8" cy="8" r="7.5" fill="currentColor"/><path d="M4.2 6.1c2.6-.8 5.4-.6 7.7.7M4.6 8.3c2.1-.6 4.4-.4 6.3.6M5 10.4c1.7-.4 3.4-.3 4.9.5" fill="none" stroke="#000" stroke-opacity=".75" stroke-width="1.15" stroke-linecap="round"/></svg>';
+  function skSpLink(title, artist) {
+    const q = encodeURIComponent(title + (artist ? ' ' + artist : ''));
+    const lbl = esc('Search "' + title + '" on Spotify');
+    return `<a class="sk-sp-link" href="https://open.spotify.com/search/${q}" target="_blank" rel="noopener" title="${lbl}" aria-label="${lbl}" onclick="event.stopPropagation()">${SK_SP_SVG}</a>`;
+  }
   // mode: 'active' (On fire) · 'risk' (needs a play today) · 'lost' (ended yesterday)
   function skRowHtml(it, mode) {
     mode = mode || 'active';
@@ -33875,7 +33884,7 @@ function openStreakModal(opts) {
       const pe = keptByEntry(it);
       const pt = pe ? pe.title : it.name, pa = pe ? pe.artist : (it.sub || '');
       if (pe && it.type !== 'song') extra = `<span class="sk-keptby">${esc(t('sk_kept_by', { song: pe.title }))}</span>`;
-      btns = `<button class="sk-play" onclick="_ytStreakPlay(${esc(JSON.stringify(pt))},${esc(JSON.stringify(pa))})" title="${esc(t('sk_play_title', { song: pt }))}" aria-label="${esc(t('sk_play_title', { song: pt }))}">▶</button>` + _eaMoreBtn();
+      btns = `<button class="sk-play" onclick="_ytStreakPlay(${esc(JSON.stringify(pt))},${esc(JSON.stringify(pa))})" title="${esc(t('sk_play_title', { song: pt }))}" aria-label="${esc(t('sk_play_title', { song: pt }))}">▶</button>` + skSpLink(pt, pa) + _eaMoreBtn();
     } else if (mode === 'lost') {
       const m = nextMs(it.len);
       if (m && m - it.len <= 3) extra = `<span class="sk-close-call">${esc(t('sk_short_of', { n: m - it.len, m }))}</span>`;
@@ -34009,7 +34018,7 @@ function openStreakModal(opts) {
     if (sotd.kind === 'risk' || it.type === 'song') {
       const pe = sotd.kind === 'risk' ? keptByEntry(it) : null;
       const pt = pe ? pe.title : it.type === 'song' ? it.name : '', pa = pe ? pe.artist : (it.sub || '');
-      if (pt) playBtn = `<button type="button" class="sk-sotd-play" onclick="_ytStreakPlay(${esc(JSON.stringify(pt))},${esc(JSON.stringify(pa))})" title="${esc(t('sk_play_title', { song: pt }))}" aria-label="${esc(t('sk_play_title', { song: pt }))}">▶ <span>${esc(t('sk_sotd_play'))}</span></button>`;
+      if (pt) playBtn = `<button type="button" class="sk-sotd-play" onclick="_ytStreakPlay(${esc(JSON.stringify(pt))},${esc(JSON.stringify(pa))})" title="${esc(t('sk_play_title', { song: pt }))}" aria-label="${esc(t('sk_play_title', { song: pt }))}">▶ <span>${esc(t('sk_sotd_play'))}</span></button>` + skSpLink(pt, pa);
     }
     sotdHtml = `<div class="sk-sotd sk-sotd--${sotd.kind}">` + bg.html +
       `<div class="sk-sotd-body">` +
@@ -34108,7 +34117,7 @@ function openStreakModal(opts) {
       // Empty cell when there's no chip, so the day counts line up down the list.
       // (Still .sk-saves, so the phone layout hides it along with the real chips.)
       (n > 1 ? `<span class="sk-saves">${esc(t('sk_saves', { n }))}</span>` : '<span class="sk-saves sk-saves--none"></span>') +
-      `<span class="streak-days sk-plan-len" data-len="${e.len}">0d</span>` +
+      `<span class="streak-days sk-plan-len" data-len="${e.len}">0d</span>` + skSpLink(e.title, e.artist) +
       `</div>`;
   };
   // One action bar under the section title: a full-width "▶ Play all N" and three

@@ -26608,7 +26608,7 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
 }
 .sk-plan-tip b { color: var(--amber); font-family: var(--font-mono); }
 .sk-plan-row {
-  display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; gap: 0.6rem; align-items: center;
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto auto; gap: 0.6rem; align-items: center;
   padding: 0.4rem 0.45rem; border-radius: var(--r-md);
 }
 .sk-plan-row:hover { background: var(--hover, var(--bg3)); }
@@ -26725,7 +26725,7 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
 }
 @media (prefers-reduced-motion: reduce) { .sk-saved--new { animation: none; } .sk-keep-bar i { transition: none; } }
 @media (max-width: 520px) {
-  .sk-plan-row { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .sk-plan-row { grid-template-columns: auto minmax(0, 1fr) auto auto; }
   .sk-plan-row .sk-saves { display: none; }
   .sk-keptby { display: none; }
 }
@@ -26847,11 +26847,17 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
   font-size: var(--fs-xs);
   flex-shrink: 0;
   text-decoration: none;
-  opacity: 0.7;
-  transition: opacity 0.15s;
+  opacity: 0.8;
+  transition: opacity 0.15s, transform 0.15s;
   line-height: 1;
+  display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%;
 }
-.sk-sp-link:hover { opacity: 1; }
+.sk-sp-link svg { display: block; }
+.sk-sp-link:hover { opacity: 1; transform: scale(1.1); }
+.sk-sp-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; opacity: 1; }
+/* On the Streak of the Day card: sits right of the Play button */
+.sk-sotd .sk-sp-link { width: 30px; height: 30px; opacity: 1; margin-left: -0.35rem; }
+.sk-sotd .sk-sp-link svg { width: 22px; height: 22px; }
 .streak-entity-trigger { cursor: pointer; }
 .sk-cal-trig {
   font-size: var(--fs-xs);
@@ -37965,7 +37971,7 @@ body.pink-light .sk-hm-tswatch.active, body.red-light .sk-hm-tswatch.active { bo
 .sk-sotd-len b { font-family: var(--font-display); font-size: 2.6rem; font-weight: 800; font-variant-numeric: tabular-nums; color: #ffb347; text-shadow: 0 2px 14px rgba(255, 106, 61, 0.45); }
 .sk-sotd-len span { font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255, 255, 255, 0.65); margin-top: 0.15rem; }
 .sk-sotd-foot { display: flex; align-items: center; justify-content: space-between; gap: 0.7rem; margin-top: 0.55rem; }
-.sk-sotd-txt { font-size: var(--fs-xs); color: rgba(255, 255, 255, 0.85); font-weight: 500; }
+.sk-sotd-txt { flex: 1 1 auto; font-size: var(--fs-xs); color: rgba(255, 255, 255, 0.85); font-weight: 500; }
 .sk-sotd-play {
   flex-shrink: 0; display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer;
   border: 0; border-radius: var(--r-full); padding: 0.35rem 0.9rem;
