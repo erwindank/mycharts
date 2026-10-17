@@ -34082,13 +34082,20 @@ function openStreakModal(opts) {
       `<span class="streak-days sk-plan-len" data-len="${e.len}">0d</span>` +
       `</div>`;
   };
+  // One action bar under the section title: a full-width "▶ Play all N" and three
+  // small icon buttons (queue, save as playlist, copy tracklist) — was four
+  // same-weight outlined buttons that wrapped onto two lines.
+  const skIconBtn = (fn, label, svg) => `<button type="button" class="sk-plan-ic" onclick="${fn}()" title="${label}" aria-label="${label}">${svg}</button>`;
   const planBtns = savePlan.length
-    ? `<span class="sk-sec-btns" onclick="event.stopPropagation()">` +
-        `<button class="sk-atrisk-btn sk-atrisk-btn--primary" onclick="skAtRiskPlayAll()" title="${esc(t('sk_play_all_title'))}">${esc(t('sk_play_n', { n: savePlan.length }))}</button>` +
-        `<button class="sk-atrisk-btn" onclick="skAtRiskQueueAll()" title="Add these songs to the queue">+ Queue All</button>` +
-        `<button class="sk-atrisk-btn" onclick="skAtRiskSavePl()" title="Save these songs as a playlist">♫ Save Playlist</button>` +
-        `<button class="sk-atrisk-btn" onclick="skAtRiskExport()" title="Copy these songs as a tracklist for Soundiiz">📋 Copy Tracklist</button>` +
-      `</span>`
+    ? `<div class="sk-plan-bar">` +
+        `<button type="button" class="sk-plan-playall" onclick="skAtRiskPlayAll()" title="${esc(t('sk_play_all_title'))}">${esc(t('sk_play_n', { n: savePlan.length }))}</button>` +
+        skIconBtn('skAtRiskQueueAll', 'Add these songs to the queue',
+          '<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M2 4h9M2 8h9M2 12h5"/><path d="M12.5 9.5v5M10 12h5"/></svg>') +
+        skIconBtn('skAtRiskSavePl', 'Save these songs as a playlist',
+          '<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 2h8v12l-4-3-4 3z"/></svg>') +
+        skIconBtn('skAtRiskExport', 'Copy these songs as a tracklist for Soundiiz',
+          '<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="8.5" height="9" rx="1.5"/><path d="M3 10.5V3.5A1.5 1.5 0 0 1 4.5 2H10"/></svg>') +
+      `</div>`
     : '';
   const planTip = savePlan.length
     ? `<div class="sk-plan-tip">${atRisk.length === 1 ? esc(t('sk_plan_tip_single')) : t(savePlan.length === 1 ? 'sk_plan_tip_one' : 'sk_plan_tip_other', { songs: `<b>${savePlan.length}</b>`, n: `<b>${atRisk.length}</b>` })}</div>`
@@ -34100,8 +34107,8 @@ function openStreakModal(opts) {
   function planSection() {
     const collapsed = localStorage.getItem('skc-plan') === '1';
     return `<div class="streak-section streak-section--plan${collapsed ? ' streak-section--collapsed' : ''}" data-skid="plan">` +
-      `<div class="streak-section-title" onclick="_streakToggleSection(this.closest('.streak-section'))"><span class="sk-chev">${collapsed ? '▶' : '▼'}</span> ${esc(t('sk_sec_plan'))} <span class="streak-count">(${savePlan.length})</span>${planBtns}</div>` +
-      `<div class="sk-sec-body${collapsed ? ' sk-sec-hidden' : ''}">${planTip}${planKey}${savePlan.map(planRow).join('')}</div></div>`;
+      `<div class="streak-section-title" onclick="_streakToggleSection(this.closest('.streak-section'))"><span class="sk-chev">${collapsed ? '▶' : '▼'}</span> ${esc(t('sk_sec_plan'))} <span class="streak-count">(${savePlan.length})</span></div>` +
+      `<div class="sk-sec-body${collapsed ? ' sk-sec-hidden' : ''}">${planBtns}${planTip}${planKey}${savePlan.map(planRow).join('')}</div></div>`;
   }
   // "Saved today": everything already played today, longest first — just-saved first of all.
   const jsSet = new Set(justSaved);
