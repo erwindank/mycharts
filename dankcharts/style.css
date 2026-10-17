@@ -37705,6 +37705,15 @@ body[data-view="day"] .daily-view {
     grid-template-columns: minmax(0, 1fr);
   }
 
+  /* Phones are too narrow for one line: names and goals wrap instead of
+     cutting off */
+  .dy-mem-row .ns-x-line,
+  .dy-mem-row .dy-mem-sub {
+    overflow: visible;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
   /* Awards slide sideways on phones instead of stacking */
   .dy-awards {
     display: flex;
