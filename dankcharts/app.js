@@ -23657,7 +23657,7 @@ function _buildAlbTracksHTML(tracks, totalPlays, crY, crM, crW, allTimeSPM, albu
     const panelHTML = _buildAlbTrackPanelHTML(s, totalPlays, crY, crM, crW, allTimeSPM);
     rows += `<tr>
       <td style="width:28px">
-        <button class="cr-toggle-btn alb-track-toggle" title="Track Details" onclick="event.stopPropagation();(function(btn,id){const r=document.getElementById(id);const open=r.classList.toggle('open');btn.classList.toggle('active',open);})(this,'${rowId}')"><svg class="alb-track-icon" viewBox="0 0 8 10" width="8" height="10"><path d="M0 0 L8 5 L0 10 Z" fill="currentColor"/></svg></button>
+        <button class="cr-toggle-btn alb-track-toggle" title="Track Details" aria-label="Track Details" aria-expanded="false" onclick="event.stopPropagation();(function(btn,id){const r=document.getElementById(id);const open=r.classList.toggle('open');btn.classList.toggle('active',open);btn.setAttribute('aria-expanded',open);})(this,'${rowId}')"><svg class="alb-track-icon" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       </td>
       <td class="modal-rank-col">${atRank ? '#' + atRank : '—'}</td>
       <td>
