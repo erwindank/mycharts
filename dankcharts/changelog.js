@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 160;
+const DC_CL_I18N_V = 161;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-17', t: 'feature', a: 'charts', h: '18e1539',
+    title: "Livelier Daily cards: tap the hours, see covers, browse one list at a time",
+    detail: "The four cards under the Daily chart are easier to read and more fun to use. Each opens with a short summary (like \"An afternoon kind of day\"). In Time of day, tap or hover an hour to see its plays, top song and cover, and tap Night, Morning, Afternoon or Evening to light those hours. Patterns shows one big number per card and a genre donut you can explore. Memories and Milestones show one list at a time behind tabs, with covers, streak and milestone badges, and progress bars toward your goals. Awards of the day are trophy cards that slide sideways on phones." },
 
   { d: '2026-10-17', t: 'feature', a: 'charts', h: '36005bc',
     title: "Cleaner play and expand buttons in Daily Streaks and album windows",

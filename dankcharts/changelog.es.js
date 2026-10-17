@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Livelier Daily cards: tap the hours, see covers, browse one list at a time":
+    ["Tarjetas diarias más vivas: toca las horas, ve portadas y explora una lista a la vez",
+     "Las cuatro tarjetas bajo la lista diaria son más fáciles de leer y más divertidas. Cada una empieza con un breve resumen (como \"Un día de tarde\"). En Hora del día, toca o pasa sobre una hora para ver sus reproducciones, su canción top y su portada, y toca Madrugada, Mañana, Tarde o Noche para iluminar esas horas. Patrones muestra un número grande por tarjeta y una dona de géneros que puedes explorar. Recuerdos e Hitos muestran una lista a la vez en pestañas, con portadas, insignias de rachas e hitos, y barras de progreso hacia tus metas. Los premios del día son tarjetas de trofeo que se deslizan de lado en el móvil."],
+
   "Cleaner play and expand buttons in Daily Streaks and album windows":
     ["Botones de reproducir y desplegar más limpios en Rachas Diarias y en los álbumes",
      "El botón de reproducir de las filas de Rachas Diarias es ahora un cuadrado redondeado suave del color de las rachas que se ilumina al pasar el ratón, en lugar de un círculo con borde. En la ventana de un álbum, el botón que abre las estadísticas de una canción ya no parece un botón de reproducir: ahora es una flecha que gira cuando están abiertas."],

@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Livelier Daily cards: tap the hours, see covers, browse one list at a time":
+    ["Cartões diários mais vivos: toca nas horas, vê capas e percorre uma lista de cada vez",
+     "Os quatro cartões por baixo da tabela diária estão mais fáceis de ler e mais divertidos. Cada um começa com um resumo curto (como \"Um dia de tarde\"). Em Hora do dia, toca ou passa o rato sobre uma hora para veres as reproduções, a música top e a capa, e toca em Madrugada, Manhã, Tarde ou Noite para destacar essas horas. Padrões mostra um número grande por cartão e um donut de géneros para explorar. Memórias e Marcos mostram uma lista de cada vez em separadores, com capas, selos de sequências e marcos, e barras de progresso até às tuas metas. Os prémios do dia são cartões de troféu que deslizam para o lado no telemóvel."],
+
   "Cleaner play and expand buttons in Daily Streaks and album windows":
     ["Botões de tocar e expandir mais limpos em Sequências Diárias e nos álbuns",
      "O botão de tocar nas linhas de Sequências Diárias é agora um quadrado arredondado suave na cor das sequências, que acende ao passar o rato, em vez de um círculo com contorno. Na janela de um álbum, o botão que abre as estatísticas de uma música já não parece um botão de tocar: é agora uma seta que roda quando estão abertas."],
