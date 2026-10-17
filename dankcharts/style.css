@@ -29903,7 +29903,7 @@ button.ns-art {
 /* Grid items default to min-width:auto, so the aria-live wrapper around the
    title grew to the full title length and pushed it past the card on phones
    (long names like "Younger You - From the "Hannah Montana 20th …"). Letting
-   every child shrink makes .ns-title / .ns-artist cut off with "…" instead. */
+   every child shrink keeps .ns-title / .ns-artist inside the card (they wrap). */
 .ns-info > * { min-width: 0; }
 
 .now-strip:not(.has-streak) .ns-art  { grid-column: 1; }
@@ -29961,21 +29961,21 @@ button.ns-art {
   color: var(--text3);
 }
 
+/* Long song / album names wrap onto more lines instead of being cut off with
+   "…" (asked for 2026-10-17). overflow-wrap breaks a single very long word too. */
 .ns-title {
   font-weight: 700;
   font-size: var(--fs-base);
   color: var(--text);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
 }
 
 .ns-artist {
   font-size: var(--fs-sm);
   color: var(--text2);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
 .ns-chips {

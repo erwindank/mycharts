@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 158;
+const DC_CL_I18N_V = 159;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -82,7 +82,7 @@ const DC_CHANGELOG = [
 
   { d: '2026-10-17', t: 'fix', a: 'charts', h: 'fa3b6da',
     title: "Long song and album names stay inside the On Air card",
-    detail: "A long song or album name (like a \"From the … Anniversary Special\" title) no longer runs past the edge of the On Air card on phones or makes the page scroll sideways. It now ends with \"…\" inside the card." },
+    detail: "A long song or album name (like a \"From the … Anniversary Special\" title) no longer runs past the edge of the On Air card on phones or makes the page scroll sideways. It now wraps onto more lines inside the card." },
 
   { d: '2026-10-17', t: 'feature', a: 'charts', h: 'fa69426',
     title: "Streak rows on phones: an icon before the name instead of a tag",
