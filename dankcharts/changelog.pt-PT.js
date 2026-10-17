@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Show switches work in every chart layout, and every row has ▶ and ⋮":
+    ["As opções de Mostrar funcionam em todos os esquemas, e cada linha tem ▶ e ⋮",
+     "As opções do menu ⋮ de uma tabela, em Mostrar (picos, certificações, as tuas notas, pico de plays, + de playlist), funcionam agora da mesma forma nos seis esquemas, para músicas, artistas e álbuns. Antes, Grelha de cartões, Compacto, Pilha e Filmstrip só mostravam algumas. A opção do YouTube saiu: para ver uma música, abre o ⋮ ou clica com o botão direito na linha e escolhe Reproduzir o vídeo. Em troca, as tabelas Anual e de Sempre e as listas Bubbling Under, Fora da tabela e Novas entradas também têm o botão ▶ de amostra e o menu ⋮, e clicar numa linha da Anual ou de Sempre abre os detalhes. Reproduzir tudo e Aleatório funcionam como antes."],
+
   "Livelier Daily cards: tap the hours, see covers, browse one list at a time":
     ["Cartões diários mais vivos: toca nas horas, vê capas e percorre uma lista de cada vez",
      "Os quatro cartões por baixo da tabela diária estão mais fáceis de ler e mais divertidos. Cada um começa com um resumo curto (como \"Um dia de tarde\"). Em Hora do dia, toca ou passa o rato sobre uma hora para veres as reproduções, a música top e a capa, e toca em Madrugada, Manhã, Tarde ou Noite para destacar essas horas. Padrões mostra um número grande por cartão e um donut de géneros para explorar. Memórias e Marcos mostram uma lista de cada vez em separadores, com capas, selos de sequências e marcos, e barras de progresso até às tuas metas. Os prémios do dia são cartões de troféu que deslizam para o lado no telemóvel."],

@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Show switches work in every chart layout, and every row has ▶ and ⋮":
+    ["As opções de Mostrar funcionam em todos os layouts, e toda linha tem ▶ e ⋮",
+     "As opções do menu ⋮ de uma parada, em Mostrar (picos, certificações, suas notas, pico de plays, + de playlist), agora funcionam igual nos seis layouts, para músicas, artistas e álbuns. Antes, Grade de cartões, Compacto, Pilha e Filmstrip só mostravam algumas. A opção do YouTube saiu: para ver uma música, abra o ⋮ ou clique com o botão direito na linha e escolha Tocar o vídeo. Em troca, as paradas Anual e de Todos os Tempos e as listas Bubbling Under, Fora da parada e Novas entradas também ganharam o botão ▶ de amostra e o menu ⋮, e clicar numa linha da Anual ou de Todos os Tempos abre os detalhes. Tocar tudo e Aleatório funcionam como antes."],
+
   "Livelier Daily cards: tap the hours, see covers, browse one list at a time":
     ["Cards diários mais vivos: toque nas horas, veja capas e navegue uma lista por vez",
      "Os quatro cards abaixo da parada diária estão mais fáceis de ler e mais divertidos. Cada um começa com um resumo curto (como \"Um dia de tarde\"). Em Hora do dia, toque ou passe o mouse sobre uma hora para ver as reproduções, a música top e a capa, e toque em Madrugada, Manhã, Tarde ou Noite para destacar essas horas. Padrões mostra um número grande por card e uma rosca de gêneros para explorar. Memórias e Marcos mostram uma lista por vez em abas, com capas, selos de sequências e marcos, e barras de progresso até suas metas. Os prêmios do dia são cards de troféu que deslizam para o lado no celular."],

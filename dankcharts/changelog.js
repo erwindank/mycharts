@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 161;
+const DC_CL_I18N_V = 162;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-17', t: 'feature', a: 'charts', h: 'a405103',
+    title: "Show switches work in every chart layout, and every row has ▶ and ⋮",
+    detail: "The switches in a chart's ⋮ menu, under Show (peak tags, certifications, your scores, plays peak, playlist +), now work the same in all six layouts, for songs, artists and albums. Before, Card grid, Compact, Stack and Filmstrip only showed some of them. The YouTube switch is gone: to watch a song, open ⋮ or right-click the row and pick Play the video. In return, the Yearly and All-Time charts and the Bubbling Under, Off the Chart and New Entries lists now have the ▶ sample button and the ⋮ menu too, and clicking a Yearly or All-Time row opens its details. Play all and Shuffle work as before." },
 
   { d: '2026-10-17', t: 'feature', a: 'charts', h: '18e1539',
     title: "Livelier Daily cards: tap the hours, see covers, browse one list at a time",

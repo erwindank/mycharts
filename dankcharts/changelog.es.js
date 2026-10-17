@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Show switches work in every chart layout, and every row has ▶ and ⋮":
+    ["Los interruptores de Mostrar funcionan en todos los diseños, y cada fila tiene ▶ y ⋮",
+     "Los interruptores del menú ⋮ de un chart, en Mostrar (picos, certificaciones, tus puntuaciones, pico de reprods, + de playlist), ahora funcionan igual en los seis diseños, para canciones, artistas y álbumes. Antes, Cuadrícula de tarjetas, Compacto, Pila y Tira solo mostraban algunos. El interruptor de YouTube ya no está: para ver una canción, abre ⋮ o haz clic derecho en la fila y elige Reproducir el video. A cambio, los charts Anual y Histórico y las listas Bubbling Under, Fuera del chart y Nuevas entradas también tienen el botón ▶ de muestra y el menú ⋮, y al hacer clic en una fila del Anual o el Histórico se abren sus detalles. Reproducir todo y Aleatorio funcionan como antes."],
+
   "Livelier Daily cards: tap the hours, see covers, browse one list at a time":
     ["Tarjetas diarias más vivas: toca las horas, ve portadas y explora una lista a la vez",
      "Las cuatro tarjetas bajo la lista diaria son más fáciles de leer y más divertidas. Cada una empieza con un breve resumen (como \"Un día de tarde\"). En Hora del día, toca o pasa sobre una hora para ver sus reproducciones, su canción top y su portada, y toca Madrugada, Mañana, Tarde o Noche para iluminar esas horas. Patrones muestra un número grande por tarjeta y una dona de géneros que puedes explorar. Recuerdos e Hitos muestran una lista a la vez en pestañas, con portadas, insignias de rachas e hitos, y barras de progreso hacia tus metas. Los premios del día son tarjetas de trofeo que se deslizan de lado en el móvil."],
