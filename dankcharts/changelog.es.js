@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Song, album and artist icons on streak tags":
+    ["Iconos de canción, álbum y artista en las etiquetas de rachas",
+     "Las etiquetas CANCIÓN, ÁLBUM y ARTISTA de las filas de Rachas Diarias llevan ahora los mismos iconos pequeños que la leyenda del plan, para que todas las listas de la ventana se lean igual."],
+
   "Spotify search is back on streaks that need a play":
     ["La búsqueda en Spotify vuelve a las rachas que necesitan una escucha",
      "Cada canción del plan para salvar rachas, cada racha en riesgo y la tarjeta Racha del día vuelven a tener un botón verde de Spotify. Abre una búsqueda de esa canción en Spotify en una pestaña nueva, para mantener la racha escuchándola allí."],

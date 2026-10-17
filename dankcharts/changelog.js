@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 155;
+const DC_CL_I18N_V = 156;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-17', t: 'feature', a: 'charts', h: '2b5ae0e',
+    title: "Song, album and artist icons on streak tags",
+    detail: "The SONG, ALBUM and ARTIST tags on Daily Streaks rows now carry the same small icons as the save plan's key, so every list in the window reads the same way." },
 
   { d: '2026-10-17', t: 'fix', a: 'charts', h: '36699a7',
     title: "Spotify search is back on streaks that need a play",

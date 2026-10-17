@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Song, album and artist icons on streak tags":
+    ["Ícones de música, álbum e artista nas etiquetas de sequências",
+     "As etiquetas MÚSICA, ÁLBUM e ARTISTA nas linhas de Sequências Diárias têm agora os mesmos pequenos ícones da legenda do plano, para que todas as listas da janela se leiam da mesma forma."],
+
   "Spotify search is back on streaks that need a play":
     ["A pesquisa no Spotify voltou às sequências que precisam de uma reprodução",
      "Cada música do plano para salvar sequências, cada sequência em risco e o cartão Sequência do dia voltaram a ter um botão verde do Spotify. Abre uma pesquisa dessa música no Spotify num novo separador, para manteres a sequência a tocá-la lá."],
