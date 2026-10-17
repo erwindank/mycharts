@@ -1487,6 +1487,35 @@ animation, 12 screen check.
   samples (artist = last played, album = most played this week), no
   YouTube searches sent, phone menu and width (the phone table is still
   8px wider than its card, as before; step 7).
+- **Step 4 ✓ (2026-10-17): Show switches done once.** The hiding side was
+  already one rule per feature per section (a body class + one CSS rule on
+  the badge's own class), so it reached every layout. The gap was what each
+  layout *drew*: Card grid, Compact and Stack drew the peak tag only on Songs
+  and no album certifications, Filmstrip drew no badges at all, and the
+  personal-best badge was Table-only. Now every layout draws every
+  switchable badge (peak, certification, score, personal best, ＋) for Songs,
+  Artists and Albums, with the same class, so the switches alone decide.
+  Placement: Card grid puts personal best on the cover's top-right corner;
+  Filmstrip has one centred badge line under the artist (its unused cover
+  overlays are gone); Compact, Stack and Mosaic add it beside the others.
+  Outside the Table the badge is inline and peak-tag sized
+  (`.weekly-alt-view .plays-peak-badge`). **The YouTube switch is removed
+  (your call):** rows play YouTube from ⋮ / right-click. Its three menu rows,
+  `yt-btns` config, CSS, the phone YouTube/＋ pair rule, the label key and
+  the BU tooltip keys are gone (4 langs). To leave no row without a play
+  control, Yearly / All-Time rows (`renderPage`) now go through
+  `_chartItem` and get ▶ ⋮, right-click and the details panel like Weekly,
+  and Bubbling Under / Off the Chart / New Entries rows got ▶ ⋮ where their
+  YouTube button was (step 10 still restyles those). Play all / Shuffle /
+  Play similar read the rows' entry data (`_ytChartRows`) instead of the
+  hidden buttons. Tour: the Show walk has seven row stops, and "Reading a
+  chart row" explains ▶ / ⋮ instead of the red button. Checked with
+  Playwright: every layout × type with the switches off (nothing visible)
+  and on (every badge visible), fake scores for the score switch, phone
+  width, Yearly / BU menus with real clicks, no JS errors. **Found, older
+  than this step, for step 8:** on a phone, Compact squeezes the title to
+  one letter and Stack cuts badges off at the end of the title line (main
+  looks the same).
 
 The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in

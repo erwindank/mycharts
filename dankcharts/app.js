@@ -423,14 +423,17 @@ let _weeklyViewAlbums  = [], _weeklyViewAlbumsMax  = 1;
 let _wvGridLarge = (() => { try { return localStorage.getItem('dc_grid_density') === 'lg'; } catch(e) { return false; } })();
 
 // ─── DISPLAY TOGGLES ──────────────────────────────────────────
-// Per-section display toggle config — each section controls its own visibility independently
+// Per-section display toggle config — each section controls its own visibility independently.
+// Each switch is one body class, and one CSS rule per feature hides it in every
+// layout (phase 7 step 4): every layout draws the same badge with the same class.
+// The YouTube switch ('yt-btns') was removed in that step: entries play YouTube
+// from ⋮ / right-click. A saved 'yt-btns' value is still read by _withPlBtns.
 const SECTION_TOGGLE_CONFIG = {
   songs: {
     'cert':       { btnId: 'toggleCertBtn',             bodyClass: 'songs-hide-cert' },
     'score':      { btnId: 'toggleScoreBtn',            bodyClass: 'songs-hide-score' },
     'plays-peak': { btnId: 'togglePlaysPeakBtn',        bodyClass: 'songs-hide-plays-peak' },
     'peak-tags':  { btnId: 'togglePeakTagsBtn',         bodyClass: 'songs-hide-peak-tags' },
-    'yt-btns':    { btnId: 'toggleYtBtnsBtn',           bodyClass: 'songs-hide-yt-btns' },
     'pl-btns':    { btnId: 'togglePlBtnsBtn',           bodyClass: 'songs-hide-pl-btns' },
     'bu-legend':  { btnId: 'toggleBuLegendBtn',          bodyClass: 'songs-hide-bu-legend' },
     'desc':       { btnId: 'toggleDescBtn',             bodyClass: 'songs-hide-desc' }
@@ -438,7 +441,6 @@ const SECTION_TOGGLE_CONFIG = {
   artists: {
     'plays-peak': { btnId: 'togglePlaysPeakBtnArtists', bodyClass: 'artists-hide-plays-peak' },
     'peak-tags':  { btnId: 'togglePeakTagsBtnArtists',  bodyClass: 'artists-hide-peak-tags' },
-    'yt-btns':    { btnId: 'toggleYtBtnsBtnArtists',    bodyClass: 'artists-hide-yt-btns' },
     'pl-btns':    { btnId: 'togglePlBtnsBtnArtists',    bodyClass: 'artists-hide-pl-btns' },
     'bu-legend':  { btnId: 'toggleBuLegendBtnArtists',   bodyClass: 'artists-hide-bu-legend' },
     'desc':       { btnId: 'toggleDescBtnArtists',      bodyClass: 'artists-hide-desc' }
@@ -448,7 +450,6 @@ const SECTION_TOGGLE_CONFIG = {
     'score':      { btnId: 'toggleScoreBtnAlbums',      bodyClass: 'albums-hide-score' },
     'plays-peak': { btnId: 'togglePlaysPeakBtnAlbums',  bodyClass: 'albums-hide-plays-peak' },
     'peak-tags':  { btnId: 'togglePeakTagsBtnAlbums',   bodyClass: 'albums-hide-peak-tags' },
-    'yt-btns':    { btnId: 'toggleYtBtnsBtnAlbums',     bodyClass: 'albums-hide-yt-btns' },
     'pl-btns':    { btnId: 'togglePlBtnsBtnAlbums',     bodyClass: 'albums-hide-pl-btns' },
     'bu-legend':  { btnId: 'toggleBuLegendBtnAlbums',    bodyClass: 'albums-hide-bu-legend' },
     'desc':       { btnId: 'toggleDescBtnAlbums',       bodyClass: 'albums-hide-desc' }
@@ -472,7 +473,7 @@ function _withPlBtns(s) {
 // saved object always carries every key and these defaults never override it.
 const sectionToggleState = (() => {
   function withDefaults(s) {
-    const d = { cert: false, score: false, 'plays-peak': false, 'peak-tags': false, 'yt-btns': false, 'pl-btns': false, 'bu-legend': false, desc: false };
+    const d = { cert: false, score: false, 'plays-peak': false, 'peak-tags': false, 'pl-btns': false, 'bu-legend': false, desc: false };
     return Object.assign(d, _withPlBtns(s));
   }
   try {
@@ -13208,10 +13209,11 @@ function renderNewPage(type) {
       const imgId = 'nsimg-' + i;
       const prefKey = 'song:' + s.artist.toLowerCase() + '|||' + s.title.toLowerCase();
       imgs.push({ imgId, title: s.title, artist: s.artist, album: s.album, prefKey });
-      return `<tr class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''}">
+      // Phase 7 step 4: ▶ ⋮ and right-click, as on the chart (the YouTube switch is gone)
+      return `<tr${_eaAttrs('songs', { title: s.title, artist: s.artist, album: s.album || '', key: songKey(s), imgId })} class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''}">
       <td class="rank-cell">${rank}</td>
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(s.title))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="song" data-prefkey="${esc(prefKey)}" data-name="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
-      <td><div class="song-title">${esc(s.title)}</div><div class="song-artist">${esc(s.artist)}</div><button class="yt-play-btn" data-title="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}" onclick="event.stopPropagation();ytPlayFromBtn(this)" title="Play on YouTube"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>${dcPlBtnHtml('song', s.title, s.artist, s.album)}</td>
+      <td><div class="song-title">${esc(s.title)}</div><div class="song-artist">${esc(s.artist)}</div>${_eaBtns()}${dcPlBtnHtml('song', s.title, s.artist, s.album)}</td>
       <td><div class="play-count">${tCountHtml('plays', s.count)}</div><div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(s.count / max * 100)}%"></div></div></td>
     </tr>`;
     }).join('');
@@ -13223,10 +13225,10 @@ function renderNewPage(type) {
       const prefKey = 'artist:' + a.name.toLowerCase();
       imgs.push({ imgId, name: a.name, prefKey });
       const songsJson = esc(JSON.stringify([...a.songs]));
-      return `<tr class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} artist-row" data-artist="${esc(a.name)}">
+      return `<tr${_eaAttrs('artists', { artist: a.name, key: a.name, imgId })} class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} artist-row" data-artist="${esc(a.name)}">
       <td class="rank-cell">${rank}</td>
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.name))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(a.name)}" data-artist="${esc(a.name)}" data-album="">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
-      <td><div class="song-title">${esc(a.name)}</div><div class="song-artist"><span class="na-songs-trigger" data-artist="${esc(a.name)}" data-songs="${songsJson}">${tCount('songs', a.songs.size)}</span></div><button class="yt-play-btn" data-title="" data-artist="${esc(a.name)}" data-album="" onclick="event.stopPropagation();buShowTrackList(this,'artists')" title="Show recently played tracks"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>${dcPlBtnHtml('artist', '', a.name, '')}</td>
+      <td><div class="song-title">${esc(a.name)}</div><div class="song-artist"><span class="na-songs-trigger" data-artist="${esc(a.name)}" data-songs="${songsJson}">${tCount('songs', a.songs.size)}</span></div>${_eaBtns()}${dcPlBtnHtml('artist', '', a.name, '')}</td>
       <td><div class="play-count">${tCountHtml('plays', a.count)}</div><div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(a.count / max * 100)}%"></div></div></td>
     </tr>`;
     }).join('');
@@ -13237,10 +13239,10 @@ function renderNewPage(type) {
       const imgId = 'nlimg-' + i;
       const prefKey = 'album:' + a.artist.toLowerCase() + '|||' + a.album.toLowerCase();
       imgs.push({ imgId, album: a.album, artist: a.artist, name: a.album, prefKey });
-      return `<tr class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} album-row" data-albumkey="${esc(a.album + '|||' + a.artist)}">
+      return `<tr${_eaAttrs('albums', { album: a.album, artist: a.artist, key: a.album + '|||' + a.artist, imgId })} class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} album-row" data-albumkey="${esc(a.album + '|||' + a.artist)}">
       <td class="rank-cell">${rank}</td>
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.album))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="album" data-prefkey="${esc(prefKey)}" data-name="${esc(a.album)}" data-artist="${esc(a.artist)}" data-album="${esc(a.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
-      <td><div class="song-title">${esc(a.album)}</div><div class="song-artist">${esc(a.artist)}</div><button class="yt-play-btn" data-title="" data-artist="${esc(a.artist)}" data-album="${esc(a.album)}" onclick="event.stopPropagation();buShowTrackList(this,'albums')" title="Show recently played tracks"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>${dcPlBtnHtml('album', '', a.artist, a.album)}</td>
+      <td><div class="song-title">${esc(a.album)}</div><div class="song-artist">${esc(a.artist)}</div>${_eaBtns()}${dcPlBtnHtml('album', '', a.artist, a.album)}</td>
       <td><div class="play-count">${tCountHtml('plays', a.count)}</div><div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(a.count / max * 100)}%"></div></div></td>
     </tr>`;
     }).join('');
@@ -14438,14 +14440,16 @@ function renderPage(type, peaks) {
       const isPlaysPeak = histMaxSong > 0 && s.count >= histMaxSong;
       const barCls = mvBarCls(ms, 'songs', k, rank);
       const pk = showPeak ? peakMap[k] : null;
-      const mainRow = `<tr data-songkey="${encodeURIComponent(k)}" class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} song-row${mvRowCls(barCls)}">
+      // Phase 7 step 4: the same entry as on Weekly (▶ ⋮, right-click, details), from the one builder
+      const f = _chartItem('songs', s, rank - 1, { ms, peaks: showPeak ? peaks : null, isAllTime: currentPeriod === 'alltime', imgId, crRow: hasCR ? rowId : '' });
+      const mainRow = `<tr${f.ea} data-songkey="${encodeURIComponent(k)}" class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} song-row${mvRowCls(barCls)}">
         <td class="rank-cell">${rank}</td>
         ${ms ? mPrevCell(rank, k, 'songs', ms) : ''}
-        <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(s.title))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="song" data-prefkey="${esc(prefKey)}" data-name="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
+        <td class="thumb-cell"><div class="thumb-wrap ea-cover"><div id="${imgId}"><div class="thumb-initials">${esc(initials(s.title))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="song" data-prefkey="${esc(prefKey)}" data-name="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
         <td>
           <div class="song-title">${esc(s.title)}${pk ? peakBadge(pk) : ''}${certBadge(cumSongPlays, 'song')}${ratingSongBadge(k)}</div>
           <div class="song-artist">${esc(s.artist)}</div>
-          <button class="yt-play-btn" data-title="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}" onclick="event.stopPropagation();ytPlayFromBtn(this)" title="Play on YouTube"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>${dcPlBtnHtml('song', s.title, s.artist, s.album)}
+          ${dcPlBtnHtml('song', s.title, s.artist, s.album)}
         </td>
         <td class="meta-col"><div class="song-album">${s.album ? chartNameLink(s.album, 'openAlbumModal', s.album + '|||' + albumArtistOfSong(s)) : ''}${cumAlbumPlays ? certBadge(cumAlbumPlays, certKindFor(s.album, albumArtistOfSong(s))) : ''}</div></td>
         ${ms ? mMthsCell(k, 'songs', ms) : ''}
@@ -14454,10 +14458,10 @@ function renderPage(type, peaks) {
           <div class="play-bar"><div class="play-bar-fill${barCls}" style="width:${Math.round(s.count / max * 100)}%"></div></div>
           ${isPlaysPeak ? playsPeakBadge() : ''}
         </td>
-        <td class="cr-cell">${hasCR ? `<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_song')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">${CR_ICON}</button>` : ''}</td>
+        <td class="cr-cell">${_eaBtns()}${hasCR ? `<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_song')}" onclick="event.stopPropagation();_drToggle(this.closest('tr'))">${CR_ICON}</button>` : ''}</td>
       </tr>`;
       if (!hasCR) return [mainRow];
-      return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="${colSpan}"><div class="cr-panel" data-crtype="songs" data-crkey="${encodeURIComponent(k)}">${buildCrPanelHTML('songs', k)}</div></td></tr>`];
+      return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="${colSpan}"><div class="cr-panel"${f.ea} data-crfacts="1" data-crtype="songs" data-crkey="${encodeURIComponent(k)}">${buildCrPanelHTML('songs', k, f)}</div></td></tr>`];
     }).join('');
     loadImages(imgItems.map(i => ({ ...i, name: i.title })), 'song');
     const playAllRow = document.getElementById('ytPlayAllRow');
@@ -14475,11 +14479,13 @@ function renderPage(type, peaks) {
       const isArtistPlaysPeak = histMaxArtist > 0 && a.count >= histMaxArtist;
       const barCls = mvBarCls(ms, 'artists', a.name, rank);
       const pk = showPeak ? peakMap[a.name] : null;
-      const mainRow = `<tr class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} artist-row${mvRowCls(barCls)}" data-artist="${esc(a.name)}">
+      // Phase 7 step 4: the same entry as on Weekly (▶ ⋮, right-click, details), from the one builder
+      const f = _chartItem('artists', a, rank - 1, { ms, peaks: showPeak ? peaks : null, isAllTime: currentPeriod === 'alltime', imgId, crRow: hasCR ? rowId : '' });
+      const mainRow = `<tr${f.ea} class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} artist-row${mvRowCls(barCls)}" data-artist="${esc(a.name)}">
         <td class="rank-cell">${rank}</td>
         ${ms ? mPrevCell(rank, a.name, 'artists', ms) : ''}
-        <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.name))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(a.name)}" data-artist="${esc(a.name)}" data-album="">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
-        <td><div class="song-title">${chartNameLink(a.name, 'openArtistModal', a.name)}${pk ? peakBadge(pk) : ''}</div><button class="yt-play-btn" data-title="" data-artist="${esc(a.name)}" data-album="" onclick="event.stopPropagation();buShowTrackList(this,'artists')" title="Show recently played tracks"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>${dcPlBtnHtml('artist', '', a.name, '')}</td>
+        <td class="thumb-cell"><div class="thumb-wrap ea-cover"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.name))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(a.name)}" data-artist="${esc(a.name)}" data-album="">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
+        <td><div class="song-title">${chartNameLink(a.name, 'openArtistModal', a.name)}${pk ? peakBadge(pk) : ''}</div>${dcPlBtnHtml('artist', '', a.name, '')}</td>
         <td class="meta-col"><div class="song-artist">${artistSongsRankBtn(a.name, a.songs.size)}</div></td>
         ${ms ? mMthsCell(a.name, 'artists', ms) : ''}
         <td>
@@ -14487,10 +14493,10 @@ function renderPage(type, peaks) {
           <div class="play-bar"><div class="play-bar-fill${barCls}" style="width:${Math.round(a.count / max * 100)}%"></div></div>
           ${isArtistPlaysPeak ? playsPeakBadge() : ''}
         </td>
-        <td class="cr-cell">${hasCR ? `<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_artist')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">${CR_ICON}</button>` : ''}</td>
+        <td class="cr-cell">${_eaBtns()}${hasCR ? `<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_artist')}" onclick="event.stopPropagation();_drToggle(this.closest('tr'))">${CR_ICON}</button>` : ''}</td>
       </tr>`;
       if (!hasCR) return [mainRow];
-      return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="${colSpan}"><div class="cr-panel" data-crtype="artists" data-crkey="${encodeURIComponent(a.name)}">${buildCrPanelHTML('artists', a.name)}</div></td></tr>`];
+      return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="${colSpan}"><div class="cr-panel"${f.ea} data-crfacts="1" data-crtype="artists" data-crkey="${encodeURIComponent(a.name)}">${buildCrPanelHTML('artists', a.name, f)}</div></td></tr>`];
     }).join('');
     loadImages(imgItems, 'artist');
 
@@ -14512,14 +14518,16 @@ function renderPage(type, peaks) {
         const isAlbumPlaysPeak = histMaxAlbum > 0 && a.count >= histMaxAlbum;
         const barCls = mvBarCls(ms, 'albums', ak, rank);
         const pk = showPeak ? peakMap[ak] : null;
-        const mainRow = `<tr class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} album-row${mvRowCls(barCls)}" data-albumkey="${esc(ak)}">
+        // Phase 7 step 4: the same entry as on Weekly (▶ ⋮, right-click, details), from the one builder
+        const f = _chartItem('albums', a, rank - 1, { ms, peaks: showPeak ? peaks : null, isAllTime: currentPeriod === 'alltime', imgId, crRow: hasCR ? rowId : '' });
+        const mainRow = `<tr${f.ea} class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} album-row${mvRowCls(barCls)}" data-albumkey="${esc(ak)}">
         <td class="rank-cell">${rank}</td>
         ${ms ? mPrevCell(rank, ak, 'albums', ms) : ''}
-        <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.album))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="album" data-prefkey="${esc(prefKey)}" data-name="${esc(a.album)}" data-artist="${esc(a.artist)}" data-album="${esc(a.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
+        <td class="thumb-cell"><div class="thumb-wrap ea-cover"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.album))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="album" data-prefkey="${esc(prefKey)}" data-name="${esc(a.album)}" data-artist="${esc(a.artist)}" data-album="${esc(a.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
         <td>
           <div class="song-title">${esc(a.album)}${pk ? peakBadge(pk) : ''}${certBadge(cumAlbumPlays, certKindFor(a.album, a.artist))}${ratingAlbumBadge(ak)}</div>
           <div class="song-artist">${esc(a.artist)}</div>
-          <button class="yt-play-btn" data-title="" data-artist="${esc(a.artist)}" data-album="${esc(a.album)}" onclick="event.stopPropagation();buShowTrackList(this,'albums')" title="Show recently played tracks"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>${dcPlBtnHtml('album', '', a.artist, a.album)}
+          ${dcPlBtnHtml('album', '', a.artist, a.album)}
         </td>
         <td class="meta-col"><div class="song-artist">${tCount('tracks', a.tracks.size)}</div></td>
         ${ms ? mMthsCell(ak, 'albums', ms) : ''}
@@ -14528,10 +14536,10 @@ function renderPage(type, peaks) {
           <div class="play-bar"><div class="play-bar-fill${barCls}" style="width:${Math.round(a.count / max * 100)}%"></div></div>
           ${isAlbumPlaysPeak ? playsPeakBadge() : ''}
         </td>
-        <td class="cr-cell">${hasCR ? `<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_album')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">${CR_ICON}</button>` : ''}</td>
+        <td class="cr-cell">${_eaBtns()}${hasCR ? `<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_album')}" onclick="event.stopPropagation();_drToggle(this.closest('tr'))">${CR_ICON}</button>` : ''}</td>
       </tr>`;
         if (!hasCR) return [mainRow];
-        return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="${colSpan}"><div class="cr-panel" data-crtype="albums" data-crkey="${encodeURIComponent(ak)}">${buildCrPanelHTML('albums', ak)}</div></td></tr>`];
+        return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="${colSpan}"><div class="cr-panel"${f.ea} data-crfacts="1" data-crtype="albums" data-crkey="${encodeURIComponent(ak)}">${buildCrPanelHTML('albums', ak, f)}</div></td></tr>`];
       }).join('');
     }
     loadImages(imgItems, 'album');
@@ -17217,7 +17225,7 @@ function renderSongs(plays, peaks, monthlyStats) {
       <td>
         <div class="song-title">${chartNameLink(s.title, 'openSongModal', k)}${pk ? peakBadge(pk) : ''}${f.certHtml}${f.ratingHtml}</div>
         <div class="song-artist">${chartArtistLinks(s.artist)}</div>
-        <button class="yt-play-btn" data-title="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}" onclick="event.stopPropagation();ytPlayFromBtn(this)" title="Play on YouTube"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>${dcPlBtnHtml('song', s.title, s.artist, s.album)}
+        ${dcPlBtnHtml('song', s.title, s.artist, s.album)}
       </td>
       <td class="meta-col"><div class="song-album">${f.albumKey ? chartNameLink(s.album, 'openAlbumModal', f.albumKey) : ''}${f.albumCertHtml}</div></td>
       ${monthlyStats ? mMthsCell(k, 'songs', monthlyStats) : ''}
@@ -17339,7 +17347,7 @@ function renderArtists(plays, peaks, monthlyStats) {
       <td class="rank-cell">${i + 1}</td>
       ${monthlyStats ? mPrevCell(i + 1, artist, 'artists', monthlyStats) : ''}
       <td class="thumb-cell"><div class="thumb-wrap ea-cover"><div id="${imgId}"><div class="thumb-initials">${esc(initials(artist))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(artist)}" data-artist="${esc(artist)}" data-album="">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
-      <td><div class="song-title">${chartNameLink(artist, 'openArtistModal', artist)}${pk ? peakBadge(pk) : ''}</div><button class="yt-play-btn" data-title="" data-artist="${esc(artist)}" data-album="" onclick="event.stopPropagation();buShowTrackList(this,'artists')" title="Show recently played tracks"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>${dcPlBtnHtml('artist', '', artist, '')}</td>
+      <td><div class="song-title">${chartNameLink(artist, 'openArtistModal', artist)}${pk ? peakBadge(pk) : ''}</div>${dcPlBtnHtml('artist', '', artist, '')}</td>
       <td class="meta-col"><div class="song-artist">${artistSongsRankBtn(artist, data.songs.size)}</div></td>
       ${monthlyStats ? mMthsCell(artist, 'artists', monthlyStats) : ''}
       <td>
@@ -17479,7 +17487,7 @@ function renderAlbums(plays, peaks, monthlyStats) {
       <td>
         <div class="song-title">${chartNameLink(album, 'openAlbumModal', ak)}${pk ? peakBadge(pk) : ''}${f.certHtml}${f.ratingHtml}</div>
         <div class="song-artist">${chartArtistLinks(artist)}</div>
-        <button class="yt-play-btn" data-title="" data-artist="${esc(artist)}" data-album="${esc(album)}" onclick="event.stopPropagation();buShowTrackList(this,'albums')" title="Show recently played tracks"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>${dcPlBtnHtml('album', '', artist, album)}
+        ${dcPlBtnHtml('album', '', artist, album)}
       </td>
       <td class="meta-col"><div class="song-artist">${tCount('tracks', tracks.size)}</div></td>
       ${monthlyStats ? mMthsCell(ak, 'albums', monthlyStats) : ''}
@@ -18104,21 +18112,18 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
     if (totalBuWeeks >= 2) badges += `<span class="bu-badge bu-badge-weeks" title="${t('bu_badge_weeks_title', { n: totalBuWeeks })}">${t('bu_badge_weeks_label', { n: totalBuWeeks })}</span>`;
     if (consecutiveBuWeeks >= 2) badges += `<span class="bu-badge bu-badge-streak" title="${t('bu_badge_streak_title', { n: consecutiveBuWeeks })}">${t('bu_badge_streak_label', { n: consecutiveBuWeeks })}</span>`;
 
-    // Build YouTube button data attrs based on entry type
+    // What the entry plays / adds: song title, artist, album by entry type
     const ytTitle  = type === 'songs'   ? displayName : '';
     const ytArtist = type === 'artists' ? displayName : subName;
     const ytAlbum  = type === 'albums'  ? displayName : (type === 'songs' ? (album || '') : '');
-    // Songs: play immediately. Artists/albums: show last-10 track picker dropdown.
-    const ytBtnOnclick = type === 'songs'
-      ? `event.stopPropagation();ytPlayFromBtn(this)`
-      : `event.stopPropagation();buShowTrackList(this,${esc(JSON.stringify(type))})`;
-    const ytBtnTitle = t(type === 'songs' ? 'bu_yt_play_title' : 'bu_yt_tracks_title');
-    const ytBtn = `<button class="yt-play-btn bu-yt-btn" data-title="${esc(ytTitle)}" data-artist="${esc(ytArtist)}" data-album="${esc(ytAlbum)}" onclick="${ytBtnOnclick}" title="${ytBtnTitle}"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>`
+    // Phase 7 step 4: ▶ sample + ⋮ menu where the YouTube button was
+    const ytBtn = _eaBtns()
       + dcPlBtnHtml(dcPlKindFor(type), ytTitle, ytArtist, ytAlbum);
 
     // BU chart run expand row — toggled by the icon button in the trailing cr-cell
     const buCrRowId = `bu-cr-${type}-${i}`;
-    const mainRow = `<tr class="bu-row">
+    const buEa = _eaAttrs(type, { title: ytTitle, artist: ytArtist, album: ytAlbum, key });
+    const mainRow = `<tr class="bu-row"${buEa}>
       <td class="bu-rank-cell">#${rank}</td>
       <td class="bu-name-cell">
         <div class="bu-display-name">${esc(displayName)}</div>
@@ -18366,8 +18371,9 @@ function _wvDisp(type, item) {
    (_wvGrid … _wvStack, through _wvItem). Each layout used to work these out
    for itself, so a fact one layout had (change in plays, plays peak, album
    certification…) was simply missing from another. Now a fact added here is
-   there for every layout to show; which ones each layout shows is still its
-   own choice (step 4 makes that the Show switches' job).
+   there for every layout to show. Since step 4 every layout draws every
+   switchable badge (peak, certification, score, personal best, ＋) with the
+   same class, and the ⋮ → Show switches alone decide which ones show.
 
    `item` is the chart's own entry: a song { title, artist, album, count },
    an artist { name, count, songs }, or an album { album, artist, count,
@@ -18519,9 +18525,10 @@ function _wvGrid(items, max, ms, imgItems, type) {
   const grid = `<div class="wv-grid${_wvGridLarge ? ' wv-grid-lg' : ''}">${itemData.map(f => {
     const { k, imgId, ea, mv, s, i, ttl, sub, barCls } = f;
     const barW = Math.round(s.count / max * 100);
-    // What this layout shows of the builder's facts (step 4 hands this to the Show switches)
-    const pk = type === 'songs' ? f.peak : null;
-    const cert = (type === 'songs' ? f.certHtml : '') + f.ratingHtml;
+    // Every switchable badge, for every type: the Show switches decide what
+    // shows (phase 7 step 4), the same way in every layout
+    const pk = f.peak;
+    const cert = f.certHtml + f.ratingHtml;
     const mvClass = i >= 3 ? (
       f.move === 'new' || f.move === 're' ? ' wv-gc-entry' :
       f.move === 'up' ? ' wv-gc-up' :
@@ -18536,6 +18543,7 @@ function _wvGrid(items, max, ms, imgItems, type) {
       `<div class="wv-card-art ea-cover"><div class="wv-thumb wv-thumb-lg">${_wvThumb(imgId, ttl)}</div>` +
       `<span class="wv-rank-badge">${i+1}</span>` +
       (cert ? `<span class="wv-gc-cert">${cert}</span>` : '') +
+      (f.isPlaysPeak ? `<span class="wv-gc-pb">${playsPeakBadge()}</span>` : '') +
       `<div class="wv-gc-hover">${dcPlBtnForWv(type, ttl, sub, s.album, 'dc-pl-add-sm')}</div>` +
       `</div><div class="wv-card-body">` +
       `<div class="wv-ttl"><span class="wv-title-link" onclick="event.stopPropagation();_wvOpenModal(${jtype},${esc(JSON.stringify(k))})" title="View details">${esc(ttl)}</span>${pk ? peakBadge(pk) : ''}</div>` +
@@ -19210,10 +19218,10 @@ function _wvCompact(items, max, ms, imgItems, type) {
   const rows = items.map((s, i) => {
     const f = _wvItem(type, s, i, ms, imgItems);
     const { k, imgId, ea, mv, prefKey, ttl, sub } = f;
-    const pk        = type === 'songs' ? f.peak : null;
-    const cumPlays  = type === 'songs' ? f.cumPlays : 0;
+    // Every switchable badge, for every type (phase 7 step 4: the Show switches decide)
+    const pk        = f.peak;
     const weeks     = ms ? (f.weeks || 1) : null;
-    const cert      = (type === 'songs' ? f.certHtml : '') + f.ratingHtml;
+    const cert      = f.certHtml + f.ratingHtml + (f.isPlaysPeak ? playsPeakBadge() : '');
     const album     = s.album || '';
 
     // Feature 8: number rank for all positions, colored gold/silver/bronze for top 3
@@ -19345,6 +19353,7 @@ function _wvMosaic(items, max, ms, imgItems, type) {
             <div class="wv-mos-hcard-stats">
               ${pk ? peakBadge(pk) : ''}
               ${wks ? `<span class="wv-mos-hcard-wks">${wks} ${tUnit('weeks_full', wks)}</span>` : ''}
+              ${f.isPlaysPeak ? playsPeakBadge() : ''}
             </div>
             ${cumPlays ? `<div class="wv-mos-hcard-alltime">${cumPlays.toLocaleString()} ${tUnit('plays', cumPlays)} · ${t('nav_alltime')}${cert}</div>` : ''}
             <div class="wv-mos-hcard-bar"><div class="wv-mos-hcard-fill"></div></div>
@@ -19364,6 +19373,7 @@ function _wvMosaic(items, max, ms, imgItems, type) {
           <div class="wv-mos-back-stats">
             ${pk ? peakBadge(pk) : ''}
             ${wks ? `<span class="wv-mos-hcard-wks">${wks} ${tUnit('weeks_full', wks)}</span>` : ''}
+            ${f.isPlaysPeak ? playsPeakBadge() : ''}
           </div>
           ${cumPlays ? `<div class="wv-mos-hcard-alltime">${cumPlays.toLocaleString()} ${tUnit('plays', cumPlays)} · ${t('nav_alltime')}${cert}</div>` : ''}
           <div class="wv-mos-hcard-bar"><div class="wv-mos-hcard-fill"></div></div>
@@ -19436,6 +19446,7 @@ function _wvFilmstrip(items, max, ms, imgItems, type) {
       </div>
       <div class="wv-ttl"><span class="wv-title-link" onclick="event.stopPropagation();_wvOpenModal(${jtype},${esc(JSON.stringify(k))})" title="View details">${esc(ttl)}</span></div>
       <div class="wv-art">${esc(sub)}</div>
+      <div class="wv-film-badges">${pk ? peakBadge(pk) : ''}${cert}${f.isPlaysPeak ? playsPeakBadge() : ''}</div>
       <div class="wv-film-plays-row"><span class="wv-plays">${s.count} plays</span>${_eaBtns()}</div>
       <div class="wv-bar"><div class="wv-bar-fill${barCls ? ' '+barCls : ''}" style="width:${barW}%"></div></div>
     </div>`;
@@ -19646,7 +19657,8 @@ function _wvStack(items, max, ms, imgItems, type) {
   return `<div class="wv-stack${_stkTwoCol ? ' wv-stack-2col' : ''}">${items.map((s, i) => {
     const f = _wvItem(type, s, i, ms, imgItems);
     const { k, imgId, ea, mv, ttl, sub, barCls } = f;
-    const pk = type === 'songs' ? f.peak : null;
+    // Every switchable badge, for every type (phase 7 step 4: the Show switches decide)
+    const pk = f.peak;
     const cumSongPlays = type === 'songs' ? f.cumPlays : 0;
     const weeks = ms ? (f.weeks || 1) : null;
     const weeksText = weeks ? `<span class="wv-wks">${weeks} ${weeks === 1 ? 'week' : 'weeks'}</span>` : '';
@@ -19679,9 +19691,9 @@ function _wvStack(items, max, ms, imgItems, type) {
         <div class="wv-stk-rank">${i+1}</div>
         <div class="wv-thumb wv-thumb-lg ea-cover">${_wvThumb(imgId, ttl)}</div>
         <div class="wv-stk-body">
-          <div class="wv-ttl">${ttlInner}${albumInline}${pk ? peakBadge(pk) : ''}${type === 'songs' ? f.certHtml : ''}${f.ratingHtml}</div>
+          <div class="wv-ttl">${ttlInner}${albumInline}${pk ? peakBadge(pk) : ''}${f.certHtml}${f.ratingHtml}</div>
           ${artistLine}
-          <div class="wv-stk-meta">${dcPlBtnForWv(type, ttl, sub, s.album, 'dc-pl-add-sm')}<span class="wv-plays">${s.count} ${s.count===1?'play':'plays'}</span> ${mv}${weeksText}${cumHtml}</div>
+          <div class="wv-stk-meta">${dcPlBtnForWv(type, ttl, sub, s.album, 'dc-pl-add-sm')}<span class="wv-plays">${s.count} ${s.count===1?'play':'plays'}</span> ${mv}${f.isPlaysPeak ? playsPeakBadge() : ''}${weeksText}${cumHtml}</div>
           <div class="wv-bar"><div class="wv-bar-fill${barCls ? ' '+barCls : ''}" style="width:${barW}%"></div></div>
         </div>
         ${_eaBtns()}
@@ -19839,16 +19851,12 @@ function renderOffChart(type, plays, periodStats, buPool, lowestChartCount) {
     else if (type === 'artists') { name = k; sub = ''; }
     else { name = names[k]?.album || k.split('|||')[0]; sub = names[k]?.artist || ''; }
 
-    // YouTube button — same play/track-list pattern as Bubbling Under's ytBtn:
-    // songs play directly, artists/albums open a last-10-tracks picker.
+    // What the entry plays / adds, same as Bubbling Under's: song title, artist, album
     const ytTitle  = type === 'songs'   ? name : '';
     const ytArtist = type === 'artists' ? name : sub;
     const ytAlbum  = type === 'albums'  ? name : (type === 'songs' ? (names[k]?.album || '') : '');
-    const ytBtnOnclick = type === 'songs'
-      ? `event.stopPropagation();ytPlayFromBtn(this)`
-      : `event.stopPropagation();buShowTrackList(this,${esc(JSON.stringify(type))})`;
-    const ytBtnTitle = t(type === 'songs' ? 'bu_yt_play_title' : 'bu_yt_tracks_title');
-    const ytBtn = `<button class="yt-play-btn off-yt-btn" data-title="${esc(ytTitle)}" data-artist="${esc(ytArtist)}" data-album="${esc(ytAlbum)}" onclick="${ytBtnOnclick}" title="${ytBtnTitle}"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>`
+    // Phase 7 step 4: ▶ sample + ⋮ menu where the YouTube button was
+    const ytBtn = _eaBtns()
       + dcPlBtnHtml(dcPlKindFor(type), ytTitle, ytArtist, ytAlbum);
 
     const severeCls = rank <= severeRankCutoff ? ' dropout-row--severe' : '';
@@ -19897,7 +19905,7 @@ function renderOffChart(type, plays, periodStats, buPool, lowestChartCount) {
       ? `<div class="dropout-streak-note">${t('off_chart_streak_before_drop', { n: streakWks })}</div>`
       : '';
 
-    return `<div class="dropout-row${severeCls}">
+    return `<div class="dropout-row${severeCls}"${_eaAttrs(type, { title: ytTitle, artist: ytArtist, album: ytAlbum, key: k })}>
       <span class="dropout-rank"><span class="dropout-rank-was">${t('off_chart_rank_was')}</span>#${rank}</span>
       <div class="dropout-info">
         <div class="dropout-name-row">
@@ -30162,7 +30170,8 @@ async function _ytSearch(artist, title, overrideQuery) {
       _ytMemPut(query, videoId);
       _ytCurrentVideoId = videoId;
       _ytUpdateThumb();
-      if ((data.videoTitle || data.title) && _ytActiveBtn) {
+      // Only a real button gets the video title as tooltip (Play all passes the chart row)
+      if ((data.videoTitle || data.title) && _ytActiveBtn && _ytActiveBtn.tagName === 'BUTTON') {
         _ytActiveBtn.title = '▶ ' + (data.videoTitle || data.title);
       }
       if (statusEl) { statusEl.textContent = ''; }
@@ -30887,26 +30896,36 @@ function _ytAddHistoryToQueue() {
   _ytToggleHistory();
 }
 
+/* The songs chart's rows, as player tracks. Read from the rows' entry data
+   (_eaAttrs) since phase 7 step 4 took the per-row YouTube buttons away; the
+   row itself is passed as the "button", so it gets the now-playing highlight. */
+function _ytChartRows() {
+  return [...document.querySelectorAll('#songsBody tr[data-ea-type="songs"]')].map(tr => ({
+    dataset: { title: tr.dataset.eaTitle || '', artist: tr.dataset.eaArtist || '', album: tr.dataset.eaAlbum || '' },
+    el: tr,
+  }));
+}
+
 function ytPlayAll() {
-  const btns = [...document.querySelectorAll('#songsBody .yt-play-btn')];
+  const btns = _ytChartRows();
   if (btns.length === 0) return;
   const [first, ...rest] = btns;
-  openYtPlayer(first.dataset.title, first.dataset.artist, first.dataset.album, first);
-  rest.forEach(b => _ytQueue.push({ title: b.dataset.title, artist: b.dataset.artist, album: b.dataset.album, btn: b }));
+  openYtPlayer(first.dataset.title, first.dataset.artist, first.dataset.album, first.el);
+  rest.forEach(b => _ytQueue.push({ title: b.dataset.title, artist: b.dataset.artist, album: b.dataset.album, btn: b.el }));
   _ytUpdateQueueDisplay();
   _ytSaveQueue();
 }
 
 function ytShuffleAll() {
-  const btns = [...document.querySelectorAll('#songsBody .yt-play-btn')];
+  const btns = _ytChartRows();
   if (btns.length === 0) return;
   for (let i = btns.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [btns[i], btns[j]] = [btns[j], btns[i]];
   }
   const [first, ...rest] = btns;
-  openYtPlayer(first.dataset.title, first.dataset.artist, first.dataset.album, first);
-  rest.forEach(b => _ytQueue.push({ title: b.dataset.title, artist: b.dataset.artist, album: b.dataset.album, btn: b }));
+  openYtPlayer(first.dataset.title, first.dataset.artist, first.dataset.album, first.el);
+  rest.forEach(b => _ytQueue.push({ title: b.dataset.title, artist: b.dataset.artist, album: b.dataset.album, btn: b.el }));
   _ytUpdateQueueDisplay();
   _ytSaveQueue();
 }
@@ -32344,7 +32363,7 @@ function dcPlShowStatus(msg) {
 function _ytPlaySimilar() {
   if (!_ytCurrentTrack) return;
   const { artist, title } = _ytCurrentTrack;
-  const btns = [...document.querySelectorAll('#songsBody .yt-play-btn')]
+  const btns = _ytChartRows()
     .filter(b => b.dataset.artist && b.dataset.artist.toLowerCase() === artist.toLowerCase()
       && !(b.dataset.title === title && b.dataset.artist === artist));
   const statusEl = document.getElementById('ytMiniStatus');
@@ -32352,7 +32371,7 @@ function _ytPlaySimilar() {
     if (statusEl) { statusEl.textContent = `No other songs by ${artist} in chart`; statusEl.className = 'yt-mini-status'; setTimeout(() => { if (statusEl.textContent.startsWith('No other')) { statusEl.textContent = ''; statusEl.className = 'yt-mini-status'; } }, 3000); }
     return;
   }
-  btns.forEach(b => _ytQueue.push({ title: b.dataset.title, artist: b.dataset.artist, album: b.dataset.album, btn: b }));
+  btns.forEach(b => _ytQueue.push({ title: b.dataset.title, artist: b.dataset.artist, album: b.dataset.album, btn: b.el }));
   _ytUpdateQueueDisplay();
   _ytSaveQueue();
   if (statusEl) { statusEl.textContent = `+${btns.length} by ${artist} queued`; statusEl.className = 'yt-mini-status ok'; setTimeout(() => { if (statusEl.textContent.includes('queued')) { statusEl.textContent = ''; statusEl.className = 'yt-mini-status'; } }, 2000); }
@@ -47167,7 +47186,7 @@ const _cgTourSteps = [
          and walks its four tabs while this paragraph is being read. The holds
          below add up to a little under this phase's own hold, so the menu
          closes on the last tab instead of snapping shut mid-sequence. */
-      { content: 'Every section header has a ⋮ menu — here it is, opening on the songs chart.\n\n"Show" picks what each row carries: cert badges, your scores, plays peak, peak tags, the YouTube and playlist buttons, the Bubbling Under legend and descriptions. They all start off to keep the chart clean. The tour has switched them on for now so you can see them, and turns them back off when it ends. Tick any you want to keep. Under them, "Sections" picks which parts of the chart show.\n\n"Size" sets how many entries the chart holds, from Top 10 to Top 100, remembered separately per chart type.\n\n"View" switches the layout between table, card grid, compact, mosaic, filmstrip and stack.\n\n"Actions" plays the whole chart on YouTube, exports it as a playlist or a shareable image, and on the year and all-time charts downloads it as TXT or CSV.',
+      { content: 'Every section header has a ⋮ menu — here it is, opening on the songs chart.\n\n"Show" picks what each row carries: cert badges, your scores, plays peak, peak tags, the playlist button, the Bubbling Under legend and descriptions. They all start off to keep the chart clean. The tour has switched them on for now so you can see them, and turns them back off when it ends. Tick any you want to keep. Under them, "Sections" picks which parts of the chart show.\n\n"Size" sets how many entries the chart holds, from Top 10 to Top 100, remembered separately per chart type.\n\n"View" switches the layout between table, card grid, compact, mosaic, filmstrip and stack.\n\n"Actions" plays the whole chart on YouTube, exports it as a playlist or a shareable image, and on the year and all-time charts downloads it as TXT or CSV.',
         kebabSection: '#songsSection',
         reveal: true,
         kebabSeq: [
@@ -47180,7 +47199,6 @@ const _cgTourSteps = [
           { tab: 'show',   sel: '.kebab-panel[data-panel="show"] > button:nth-child(5)', hold: 1100 },
           { tab: 'show',   sel: '.kebab-panel[data-panel="show"] > button:nth-child(6)', hold: 1100 },
           { tab: 'show',   sel: '.kebab-panel[data-panel="show"] > button:nth-child(7)', hold: 1100 },
-          { tab: 'show',   sel: '.kebab-panel[data-panel="show"] > button:nth-child(8)', hold: 1100 },
           { tab: 'show',   sel: '.kebab-panel[data-panel="show"] .kebab-sub-rows', hold: 1600 },
           { tab: 'size',   sel: '.kebab-tab[data-tab="size"]', hold: 1300 },
           { tab: 'size',   sel: '.kebab-panel[data-panel="size"] .size-btns', hold: 2400 },
@@ -47193,7 +47211,7 @@ const _cgTourSteps = [
              runs on the weekly one — it would have rung nothing. */
           { tab: 'export', sel: '.export-playlist-btn, .ig-share-btn', hold: 2600 },
         ],
-        // The walk above is 25s; the rest is reading time for the longer text
+        // The walk above is ~24s; the rest is reading time for the longer text
         hold: 30000 },
 
       { content: 'The chart itself. Every row carries its position, how far it moved since last week, its all-time peak, and how many weeks it has spent on the chart altogether.\n\nYour own score and a short description can sit on each row too. Switch on My Scores and Descriptions in the ⋮ menu, under Show.',
@@ -47244,8 +47262,9 @@ const _cgTourSteps = [
       { content: 'Peak is the best position it has ever reached. Next to it sits any Gold, Platinum or Diamond badge it has earned from its total plays.\n\nTo keep them, switch on Peak Tags and Cert Badges in the chart\'s ⋮ menu, under Show.',
         spotlight: _cgRow('.peak-badge, .peak-badge-1, .peak-badge-2, .peak-badge-3, .cert'), hold: 9000 },
 
-      { content: 'Click the red YouTube button and the song starts playing, in a small player down in the corner. If a song is already playing, this one joins the queue instead.\n\nTo keep it, switch on YouTube in the chart\'s ⋮ menu, under Show.',
-        spotlight: _cgRow('.yt-play-btn'), hold: 8000 },
+      /* Phase 7 step 4: the YouTube switch and row button are gone; rows play from ▶ / ⋮ */
+      { content: '▶ plays a 30-second sample. For the whole song, open ⋮ (or right-click the row) and pick Play the video: it plays in a small player down in the corner, and if a song is already playing you can add this one to the queue instead.',
+        spotlight: _cgRow('.ea-pair'), hold: 8000 },
 
       { content: 'The + button opens the playlist picker, so you can drop this row into any playlist you keep. Build one from across any chart or period, then manage them in the Playlists tab.\n\nTo keep it, switch on Playlist in the chart\'s ⋮ menu, under Show.',
         spotlight: _cgRow('.dc-pl-add-btn'), hold: 9000 },
