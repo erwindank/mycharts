@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Streak rows on phones: an icon before the name instead of a tag":
+    ["Linhas de sequências no celular: um ícone antes do nome no lugar da etiqueta",
+     "Em telas pequenas, as etiquetas MÚSICA, ÁLBUM e ARTISTA nas linhas de Sequências Diárias são trocadas só pelo ícone, na frente do nome, para sobrar mais espaço para nomes longos."],
+
   "Song, album and artist icons on streak tags":
     ["Ícones de música, álbum e artista nas etiquetas de sequências",
      "As etiquetas MÚSICA, ÁLBUM e ARTISTA nas linhas de Sequências Diárias agora têm os mesmos pequenos ícones da legenda do plano, para que todas as listas da janela sejam lidas do mesmo jeito."],

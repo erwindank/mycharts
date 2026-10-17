@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Streak rows on phones: an icon before the name instead of a tag":
+    ["Filas de rachas en el móvil: un icono antes del nombre en lugar de la etiqueta",
+     "En pantallas pequeñas, las etiquetas CANCIÓN, ÁLBUM y ARTISTA de las filas de Rachas Diarias se sustituyen solo por su icono, delante del nombre, para dejar más espacio a los nombres largos."],
+
   "Song, album and artist icons on streak tags":
     ["Iconos de canción, álbum y artista en las etiquetas de rachas",
      "Las etiquetas CANCIÓN, ÁLBUM y ARTISTA de las filas de Rachas Diarias llevan ahora los mismos iconos pequeños que la leyenda del plan, para que todas las listas de la ventana se lean igual."],

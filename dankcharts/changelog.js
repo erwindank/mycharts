@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 156;
+const DC_CL_I18N_V = 157;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-17', t: 'feature', a: 'charts', h: 'fa69426',
+    title: "Streak rows on phones: an icon before the name instead of a tag",
+    detail: "On small screens the SONG, ALBUM and ARTIST tags on Daily Streaks rows are replaced by just their icon, placed in front of the name, so long names have more room." },
 
   { d: '2026-10-17', t: 'feature', a: 'charts', h: '2b5ae0e',
     title: "Song, album and artist icons on streak tags",
