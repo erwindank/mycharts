@@ -26601,20 +26601,28 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
 .sk-plan-who { min-width: 0; }
 .sk-plan-nm { font-size: var(--fs-sm); color: var(--text); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sk-plan-nm span { color: var(--text2); font-weight: 400; }
-.sk-plan-keeps { display: flex; flex-wrap: wrap; gap: 0.25rem; align-items: center; margin-top: 0.2rem; font-size: 0.7rem; color: var(--text3); }
-.sk-plan-keeps-lbl { margin-right: 0.1rem; }
+.sk-plan-keeps { display: flex; flex-wrap: wrap; gap: 0.1rem 0.7rem; align-items: center; margin-top: 0.2rem; font-size: 0.7rem; color: var(--text3); }
+.sk-plan-keeps-lbl { margin-right: -0.2rem; }
+/* "keeps" entries: plain text led by a type icon (SK_TYPE_SVG) — no boxes. A
+   same-name song + album shows both icons on one entry. */
 .sk-keep-item {
-  border: 1px solid var(--border); border-radius: var(--r-xs); padding: 0 0.3rem; color: var(--text2);
+  display: inline-flex; align-items: center; gap: 0.2rem; color: var(--text2);
   max-width: 14rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.sk-keep-item--song { border-color: color-mix(in srgb, var(--green) 45%, transparent); }
-.sk-keep-item--album { border-color: color-mix(in srgb, var(--teal, var(--accent)) 45%, transparent); }
-.sk-keep-item--artist { border-color: color-mix(in srgb, var(--rose) 45%, transparent); }
+/* Type icon colours — the same three on the key and on every entry. */
+.sk-ti { flex-shrink: 0; display: block; }
+.sk-ti--song { color: var(--green); }
+.sk-ti--album { color: var(--teal, var(--accent)); }
+.sk-ti--artist { color: var(--rose); }
+/* Key above the plan rows: which icon is which. */
+.sk-plan-key { display: flex; gap: 0.9rem; margin: 0 0 0.35rem 0.45rem; font-size: 0.68rem; color: var(--text3); text-transform: capitalize; }
+.sk-plan-key span { display: inline-flex; align-items: center; gap: 0.25rem; }
 .sk-saves {
   font-family: var(--font-mono); font-size: 0.68rem; font-weight: 600; white-space: nowrap;
   color: var(--amber); background: color-mix(in srgb, var(--amber) 13%, transparent);
   border-radius: var(--r-full); padding: 0.05rem 0.45rem;
 }
+.sk-saves--none { background: none; padding: 0; }
 .sk-plan-len { min-width: 2.5rem; text-align: right; color: #e8a020; }
 
 /* ▶ — round play button, on plan rows and every at-risk row */

@@ -34059,14 +34059,23 @@ function openStreakModal(opts) {
   const planRow = e => {
     const jt = esc(JSON.stringify(e.title)), ja = esc(JSON.stringify(e.artist));
     const n = e.items.length;
-    const keeps = e.items.map(it => `<span class="sk-keep-item sk-keep-item--${it.type}" title="${esc(it.type)} · ${it.len}d">${esc(it.name)}</span>`).join('');
+    // Same-name streaks (a single and its album, "Collide" + "Collide") show once,
+    // with one icon per type. Each name is plain text led by its type icon(s).
+    const merged = [];
+    for (const it of e.items) {
+      const same = merged.find(m => m.name.toLowerCase() === it.name.toLowerCase());
+      if (same) { same.types.push(it.type); same.len = Math.max(same.len, it.len); }
+      else merged.push({ name: it.name, types: [it.type], len: it.len });
+    }
+    const keeps = merged.map(m => `<span class="sk-keep-item" title="${esc(m.types.map(tp => t('sk_kind_' + tp)).join(' + '))} · ${m.len}d">${m.types.map(tp => SK_TYPE_SVG[tp]).join('')}${esc(m.name)}</span>`).join('');
     return `<div class="sk-plan-row">` +
       `<button class="sk-play" onclick="_ytStreakPlay(${jt},${ja})" title="${esc(t('sk_play_title', { song: e.title }))}" aria-label="${esc(t('sk_play_title', { song: e.title }))}">▶</button>` +
       `<div class="sk-plan-who"><div class="sk-plan-nm">${esc(e.title)} <span>— ${esc(e.artist)}</span></div>` +
       // A song that only saves its own streak needs no "keeps" line — it would repeat its name.
       (n > 1 || e.items[0].type !== 'song' ? `<div class="sk-plan-keeps"><span class="sk-plan-keeps-lbl">${esc(t('sk_keeps'))}</span> ${keeps}</div>` : '') + `</div>` +
       // Empty cell when there's no chip, so the day counts line up down the list.
-      (n > 1 ? `<span class="sk-saves">${esc(t('sk_saves', { n }))}</span>` : '<span></span>') +
+      // (Still .sk-saves, so the phone layout hides it along with the real chips.)
+      (n > 1 ? `<span class="sk-saves">${esc(t('sk_saves', { n }))}</span>` : '<span class="sk-saves sk-saves--none"></span>') +
       `<span class="streak-days sk-plan-len" data-len="${e.len}">0d</span>` +
       `</div>`;
   };
@@ -34081,11 +34090,15 @@ function openStreakModal(opts) {
   const planTip = savePlan.length
     ? `<div class="sk-plan-tip">${atRisk.length === 1 ? esc(t('sk_plan_tip_single')) : t(savePlan.length === 1 ? 'sk_plan_tip_one' : 'sk_plan_tip_other', { songs: `<b>${savePlan.length}</b>`, n: `<b>${atRisk.length}</b>` })}</div>`
     : '';
+  // Key for the type icons on the "keeps" lines below.
+  const planKey = savePlan.length
+    ? `<div class="sk-plan-key">${['song', 'album', 'artist'].map(tp => `<span>${SK_TYPE_SVG[tp]}${esc(t('sk_kind_' + tp))}</span>`).join('')}</div>`
+    : '';
   function planSection() {
     const collapsed = localStorage.getItem('skc-plan') === '1';
     return `<div class="streak-section streak-section--plan${collapsed ? ' streak-section--collapsed' : ''}" data-skid="plan">` +
       `<div class="streak-section-title" onclick="_streakToggleSection(this.closest('.streak-section'))"><span class="sk-chev">${collapsed ? '▶' : '▼'}</span> ${esc(t('sk_sec_plan'))} <span class="streak-count">(${savePlan.length})</span>${planBtns}</div>` +
-      `<div class="sk-sec-body${collapsed ? ' sk-sec-hidden' : ''}">${planTip}${savePlan.map(planRow).join('')}</div></div>`;
+      `<div class="sk-sec-body${collapsed ? ' sk-sec-hidden' : ''}">${planTip}${planKey}${savePlan.map(planRow).join('')}</div></div>`;
   }
   // "Saved today": everything already played today, longest first — just-saved first of all.
   const jsSet = new Set(justSaved);
@@ -34287,6 +34300,14 @@ const SK_TIERS = [
   { key: 'inferno', icon: '🌋', min: 30,  max: 99 },
   { key: 'eternal', icon: '💎', min: 100, max: 0  },
 ];
+// Small line icons for the three streak types (song ♪, album disc, artist person).
+// Used on the save plan's "keeps" line and in its key. currentColor, so each type
+// takes its colour from .sk-ti--<type> in style.css.
+const SK_TYPE_SVG = {
+  song:   '<svg class="sk-ti sk-ti--song" viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 12.2V3.5l7-1.5v8.7"/><circle cx="4.3" cy="12.2" r="1.8"/><circle cx="11.3" cy="10.7" r="1.8"/></svg>',
+  album:  '<svg class="sk-ti sk-ti--album" viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="8" cy="8" r="6.2"/><circle cx="8" cy="8" r="1.6"/></svg>',
+  artist: '<svg class="sk-ti sk-ti--artist" viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="5.3" r="2.8"/><path d="M2.6 14c.6-2.8 2.8-4.3 5.4-4.3s4.8 1.5 5.4 4.3"/></svg>',
+};
 function _skTier(len) {
   for (let i = SK_TIERS.length - 1; i >= 0; i--) if (len >= SK_TIERS[i].min) return SK_TIERS[i];
   return SK_TIERS[0];
