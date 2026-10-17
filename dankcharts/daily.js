@@ -393,17 +393,14 @@ function dyRenderTop(h, ds) {
 function dyRenderBottom(h, ds) {
   const el = document.getElementById('dailyBottom');
   if (!el) return;
-  // Time of day (phase 3): collects its covers into todImgs to load below
-  const todImgs = [];
+  // Every card adds its covers to _dyImgs (dyThumb); loaded once they are on the page
+  _dyImgs = [];
   el.innerHTML = `
-    ${dyTimeOfDayHtml(h, ds, todImgs)}
+    ${dyTimeOfDayHtml(h, ds)}
     ${dyPatternsHtml(h, ds)}
     ${dyMemoriesHtml(h, ds)}
     ${dyMilestonesHtml(h, ds)}`;
-  for (const tp of ['album', 'song']) {
-    const items = todImgs.filter(x => x.type === tp).map(x => x.item);
-    if (items.length) loadImages(items, tp);
-  }
+  dyFlushImgs();
 }
 
 // ─── TILES ────────────────────────────────────────────────────────────────
@@ -529,9 +526,101 @@ function dyTopOf(tally) {
   return best;
 }
 
-function dyTimeOfDayHtml(h, ds, imgOut) {
+// ─── SHARED PIECES OF THE BOTTOM CARDS ───────────────────────────────────
+/* The four cards under the daily chart (time of day, patterns, memories,
+   milestones) share these:
+     - dySecHead: an icon, a real heading and a one-line summary, so each card
+       says what it found before it shows the numbers
+     - dyThumb: a small cover or artist photo; collected in _dyImgs and loaded
+       by dyFlushImgs once the HTML is on the page
+     - dyTabsHtml: pills that show one list at a time (memories, milestones),
+       instead of every list at once; the pill you picked is kept in _dyTab
+       across redraws
+     - dyRow: one row of those lists — cover or emoji, text, an optional
+       progress bar, and a badge or the ▶ / ⋮ buttons */
+let _dyImgs = [];
+let _dyImgSeq = 0;
+const _dyTab = {};
+
+function dySecHead(icon, title, subHtml) {
+  return `<header class="dy-sec-head">
+      <span class="dy-sec-ic" aria-hidden="true">${icon}</span>
+      <span class="dy-sec-titles"><h3 class="dy-sec-title">${esc(title)}</h3>${subHtml ? `<span class="dy-sec-sub">${subHtml}</span>` : ''}</span>
+    </header>`;
+}
+
+// type: 'song' | 'album' | 'artist'; d: { title, album, artist }
+function dyThumb(type, d, cls) {
+  const imgId = 'dyi-' + (++_dyImgSeq);
+  const name = type === 'artist' ? d.artist : type === 'album' ? d.album : d.title;
+  const prefKey = type === 'artist' ? 'artist:' + d.artist.toLowerCase()
+                                    : type + ':' + d.artist.toLowerCase() + '|||' + String(name).toLowerCase();
+  _dyImgs.push({ type, item: { imgId, name, title: d.title || '', album: d.album || '', artist: d.artist, prefKey } });
+  return `<span class="dy-thumb${type === 'artist' ? ' is-round' : ''}${cls ? ' ' + cls : ''}" id="${imgId}" aria-hidden="true"><span class="thumb-initials">${esc(initials(name))}</span></span>`;
+}
+
+function dyFlushImgs() {
+  for (const tp of ['album', 'song', 'artist']) {
+    const items = _dyImgs.filter(x => x.type === tp).map(x => x.item);
+    if (items.length) loadImages(items, tp);
+  }
+  _dyImgs = [];
+}
+
+// blocks: [{ key, icon, title, n, body }] — body is the <li> rows of that list
+function dyTabsHtml(sec, blocks) {
+  if (!blocks.length) return '';
+  const act = blocks.some(b => b.key === _dyTab[sec]) ? _dyTab[sec] : blocks[0].key;
+  const tabs = blocks.map(b => `<button type="button" role="tab" class="dy-tab${b.key === act ? ' is-on' : ''}" aria-selected="${b.key === act}" data-dy-tab="${b.key}" onclick="dyTabGo(this)">
+      <span class="dy-tab-ic" aria-hidden="true">${b.icon}</span>${esc(b.title)}${b.n ? `<span class="dy-tab-n">${b.n}</span>` : ''}
+    </button>`).join('');
+  const panels = blocks.map(b => `<div class="dy-tab-panel" role="tabpanel" data-dy-panel="${b.key}"${b.key === act ? '' : ' hidden'}><ul class="dy-mem-list">${b.body}</ul></div>`).join('');
+  return `<div class="dy-tabs" data-dy-sec="${sec}"><div class="dy-tab-row" role="tablist">${tabs}</div>${panels}</div>`;
+}
+
+// DOM-only switch: the hidden panels' covers load when they come into view
+function dyTabGo(btn) {
+  const wrap = btn.closest('.dy-tabs');
+  const k = btn.dataset.dyTab;
+  _dyTab[wrap.dataset.dySec] = k;
+  wrap.querySelectorAll('.dy-tab').forEach(b => { const on = b === btn; b.classList.toggle('is-on', on); b.setAttribute('aria-selected', on); });
+  wrap.querySelectorAll('.dy-tab-panel').forEach(p => { p.hidden = p.dataset.dyPanel !== k; });
+}
+
+/* o: { main (HTML), sub (HTML), tip, lead (HTML: cover or emoji), pct (0–100,
+   a progress bar), badge (HTML), badgeCls, cls, attrs, tail (HTML) } */
+function dyRow(o) {
+  return `<li class="dy-mem-row${o.cls ? ' ' + o.cls : ''}"${o.attrs || ''}>
+      ${o.lead || ''}
+      <span class="dy-mem-text"><span class="ns-x-line"${o.tip ? ` title="${esc(o.tip)}"` : ''}>${o.main}</span>${o.sub ? `<span class="dy-mem-sub">${o.sub}</span>` : ''}${o.pct != null ? `<span class="dy-prog"><i style="width:${Math.max(2, Math.min(100, o.pct)).toFixed(1)}%"></i></span>` : ''}</span>
+      ${o.badge ? `<span class="dy-badge${o.badgeCls ? ' ' + o.badgeCls : ''}">${o.badge}</span>` : ''}${o.tail || ''}
+    </li>`;
+}
+
+// An emoji in a round tile, in place of a cover
+function dyLead(emoji) {
+  return `<span class="dy-thumb is-emoji" aria-hidden="true">${emoji}</span>`;
+}
+
+// "<b>Title</b> — Artist", the way every song line in these cards reads
+function dySongMain(title, artist) {
+  return `<b>${esc(title)}</b> <span>— ${esc(artist)}</span>`;
+}
+
+// ─── TIME OF DAY (phase 3) ────────────────────────────────────────────────
+/* A summary line ("An afternoon kind of day"), three stat chips, then the
+   day as 24 bars you can hover or tap: the box under them shows that hour's
+   plays, top song (with ▶) and cover. Covers of each hour's top album sit
+   over the bars (on phones only the hours that do not crowd each other);
+   under them, the listening sessions as blocks on the same 24 hours. The four
+   parts of the day are cards with their share of the day; tap one to light
+   its six hours. */
+const DY_PARTS = [['night', 0, 6, '🌙'], ['morning', 6, 12, '🌅'], ['afternoon', 12, 18, '☀️'], ['evening', 18, 24, '🌆']];
+let _dyTod = null;   // the hours of the day on screen, for dyPickHour
+
+function dyTimeOfDayHtml(h, ds) {
   const day = h.byDay[ds];
-  if (!h.timed || !day || !day.list.length) return '';
+  if (!h.timed || !day || !day.list.length) { _dyTod = null; return ''; }
 
   const plays = day.list.slice().sort((a, b) => msOf(a) - msOf(b));
   const hours = Array.from({ length: 24 }, () => ({ n: 0, songs: {}, albums: {} }));
@@ -558,20 +647,53 @@ function dyTimeOfDayHtml(h, ds, imgOut) {
     else { cur = { start: ms, end: ms, n: 1 }; sessions.push(cur); }
   }
   const longest = sessions.reduce((a, b) => (b.end - b.start > a.end - a.start ? b : a), sessions[0]);
-  const sessLine = t(sessions.length === 1 ? 'dy_sessions_one' : 'dy_sessions_other', { n: sessions.length }) + ' · ' +
-    t('dy_longest', { dur: dyDuration(longest.end - longest.start + DY_SONG_MS), from: dyClock(longest.start), to: dyClock(longest.end + DY_SONG_MS) });
 
-  // Hour bars
-  const max = Math.max(1, ...hours.map(b => b.n));
-  const bars = hours.map((b, i) => {
-    const top = dyTopOf(b.songs);
-    const tip = dyHourLabel(i) + ' · ' + tCount('plays', b.n) + (top ? '\n' + top.title + ' — ' + top.artist : '');
-    return `<span class="dy-hr${i === busy && b.n ? ' is-busy' : ''}" title="${esc(tip)}"><i style="height:${b.n ? Math.max(6, b.n / max * 100).toFixed(0) : 0}%"></i></span>`;
+  // Minutes after midnight, for placing sessions on the 24 hours
+  const minOf = ms => { const d = tzDate(new Date(ms)); return d.getHours() * 60 + d.getMinutes(); };
+  const sessBlocks = sessions.map(s => {
+    const a = minOf(s.start);
+    const z = Math.min(1440, a + Math.max(1, (s.end - s.start + DY_SONG_MS) / 60000));
+    const tip = dyClock(s.start) + '–' + dyClock(s.end + DY_SONG_MS) + ' · ' + tCount('plays', s.n);
+    return `<i class="${s === longest ? 'is-long' : ''}" style="left:${(a / 1440 * 100).toFixed(2)}%;width:${Math.max(0.8, (z - a) / 1440 * 100).toFixed(2)}%" title="${esc(tip)}"></i>`;
   }).join('');
+
+  // Stat chips
+  const chip = (lbl, val, more) => `<span class="dy-chip"><em>${esc(lbl)}</em><b>${esc(val)}</b>${more ? `<span>${esc(more)}</span>` : ''}</span>`;
+  const chips = chip(t('dy_busiest'), dyHourLabel(busy), tCount('plays', hours[busy].n)) +
+    `<span class="dy-chip"><b>${esc(t(sessions.length === 1 ? 'dy_sessions_one' : 'dy_sessions_other', { n: sessions.length }))}</b></span>` +
+    chip(t('dy_longest_lbl'), dyDuration(longest.end - longest.start + DY_SONG_MS), dyClock(longest.start) + '–' + dyClock(longest.end + DY_SONG_MS));
+
+  // Cover strip: the most played album of each hour, placed at that hour.
+  // On phones the strip is too narrow for 24 covers, so only the busiest
+  // hours that have no shown neighbour keep theirs (the rest get is-minor).
+  const shown = new Set();
+  hours.map((b, i) => [b.n, i]).filter(x => x[0]).sort((a, b) => b[0] - a[0])
+    .forEach(([, i]) => { if (!shown.has(i - 1) && !shown.has(i + 1)) shown.add(i); });
+  _dyTod = { ds, busy, hours: hours.map((b, i) => {
+    if (!b.n) return { n: 0 };
+    const top = dyTopOf(b.albums), song = dyTopOf(b.songs);
+    return { n: b.n, song, isAlbum: !!top.album, label: top.album || top.title, artist: top.artist };
+  }) };
+  const covers = hours.map((b, i) => {
+    if (!b.n) return '';
+    const x = _dyTod.hours[i];
+    const imgId = 'dytl-' + i;
+    const prefKey = (x.isAlbum ? 'album:' : 'song:') + x.artist.toLowerCase() + '|||' + x.label.toLowerCase();
+    _dyImgs.push(x.isAlbum
+      ? { type: 'album', item: { imgId, album: x.label, name: x.label, artist: x.artist, prefKey } }
+      : { type: 'song', item: { imgId, title: x.label, name: x.label, artist: x.artist, album: '', prefKey } });
+    return `<button type="button" class="dy-tl-cover${shown.has(i) ? '' : ' is-minor'}" style="left:${((i + 0.5) / 24 * 100).toFixed(2)}%" title="${esc(dyHourLabel(i) + ' · ' + x.label + ' — ' + x.artist)}" onclick="dyPickHour(${i})" tabindex="-1"><span id="${imgId}"><span class="thumb-initials">${esc(initials(x.label))}</span></span></button>`;
+  }).join('');
+
+  // Hour bars: buttons, so a tap (or hover, or the keyboard) picks the hour
+  const max = Math.max(1, ...hours.map(b => b.n));
+  const bars = hours.map((b, i) => `<button type="button" class="dy-hr${i === busy ? ' is-busy is-picked' : ''}${b.n ? '' : ' is-zero'}" data-hr="${i}"
+      aria-label="${esc(dyHourLabel(i) + ' · ' + tCount('plays', b.n))}" onclick="dyPickHour(${i})" onmouseenter="dyPickHour(${i})" onfocus="dyPickHour(${i})"><i style="height:${b.n ? Math.max(6, b.n / max * 100).toFixed(0) : 0}%"></i></button>`).join('');
   const ticks = [0, 6, 12, 18].map(i => `<span style="left:${(i / 24 * 100).toFixed(2)}%">${esc(dyHourLabel(i))}</span>`).join('');
 
-  // Four parts of the day
-  const parts = [['night', 0, 6], ['morning', 6, 12], ['afternoon', 12, 18], ['evening', 18, 24]].map(([key, a, z]) => {
+  // The four parts of the day, as cards with their share of the day
+  let topPart = null;
+  const partData = DY_PARTS.map(([key, a, z, icon]) => {
     let n = 0; const songs = {};
     for (let i = a; i < z; i++) {
       n += hours[i].n;
@@ -580,41 +702,80 @@ function dyTimeOfDayHtml(h, ds, imgOut) {
         (songs[k] || (songs[k] = { n: 0, title: s.title, artist: s.artist })).n += s.n;
       }
     }
-    const top = dyTopOf(songs);
-    return `<div class="dy-part${n ? '' : ' is-empty'}">
-        <span class="ns-x-title">${esc(t('dy_part_' + key))}</span>
-        <span class="dy-part-n">${esc(tCount('plays', n))}</span>
-        ${top ? `<span class="ns-x-line" title="${esc(top.title + ' — ' + top.artist)}">${esc(top.title)} <span>— ${esc(top.artist)}</span></span>` : ''}
-      </div>`;
+    const x = { key, a, z, icon, n, top: dyTopOf(songs) };
+    if (n && (!topPart || n > topPart.n)) topPart = x;
+    return x;
+  });
+  const parts = partData.map(x => {
+    const pct = Math.round(x.n / plays.length * 100);
+    return `<button type="button" class="dy-part${x.n ? '' : ' is-empty'}${x === topPart ? ' is-top' : ''}" data-a="${x.a}" data-z="${x.z}" onclick="dyPickPart(this)" aria-pressed="false">
+        <span class="dy-part-head"><span class="dy-part-ic" aria-hidden="true">${x.icon}</span><span class="dy-part-name">${esc(t('dy_part_' + x.key))}</span>${x === topPart ? `<span class="dy-part-tag">${esc(t('dy_part_peak'))}</span>` : ''}</span>
+        <span class="dy-part-n">${esc(tCount('plays', x.n))}<span>${pct}%</span></span>
+        <span class="dy-prog"><i style="width:${Math.max(x.n ? 2 : 0, pct)}%"></i></span>
+        ${x.top ? `<span class="ns-x-line dy-part-song" title="${esc(x.top.title + ' — ' + x.top.artist)}">${dySongMain(x.top.title, x.top.artist)}</span>` : `<span class="dy-part-song is-none">${esc(t('dy_part_quiet'))}</span>`}
+      </button>`;
   }).join('');
 
-  // Cover strip: the most played album of each hour, placed at that hour
-  const covers = hours.map((b, i) => {
-    if (!b.n) return '';
-    const top = dyTopOf(b.albums);
-    const imgId = 'dytl-' + i;
-    const isAlbum = !!top.album;
-    const label = isAlbum ? top.album : top.title;
-    const prefKey = isAlbum ? 'album:' + top.artist.toLowerCase() + '|||' + top.album.toLowerCase()
-                            : 'song:' + top.artist.toLowerCase() + '|||' + top.title.toLowerCase();
-    imgOut.push(isAlbum
-      ? { type: 'album', item: { imgId, album: top.album, name: top.album, artist: top.artist, prefKey } }
-      : { type: 'song', item: { imgId, title: top.title, name: top.title, artist: top.artist, album: '', prefKey } });
-    return `<span class="dy-tl-cover" style="left:${((i + 0.5) / 24 * 100).toFixed(2)}%" title="${esc(dyHourLabel(i) + ' · ' + label + ' — ' + top.artist)}"><span id="${imgId}"><span class="thumb-initials">${esc(initials(label))}</span></span></span>`;
-  }).join('');
-
+  const sub = topPart ? esc(t('dy_tod_persona_' + topPart.key)) : '';
   return `
-    <section class="dy-tod" aria-label="${esc(t('dy_tod_title'))}">
-      <div class="dy-tod-head">
-        <span class="ns-x-title">${esc(t('dy_tod_title'))}</span>
-        <span class="dy-tod-sum"><em>${esc(t('dy_busiest'))}</em> ${esc(dyHourLabel(busy))} <span>· ${esc(tCount('plays', hours[busy].n))}</span></span>
-        <span class="dy-tod-sum">${esc(sessLine)}</span>
+    <section class="dy-tod dy-tod-sec" aria-label="${esc(t('dy_tod_title'))}">
+      ${dySecHead('🕒', t('dy_tod_title'), sub)}
+      <div class="dy-chips">${chips}</div>
+      <div class="dy-tod-chart">
+        <div class="dy-tl">${covers}</div>
+        <div class="dy-hours" role="group" aria-label="${esc(t('dy_tod_title'))}">${bars}</div>
+        <div class="dy-ticks" aria-hidden="true">${ticks}</div>
+        <div class="dy-sess" title="${esc(t(sessions.length === 1 ? 'dy_sessions_one' : 'dy_sessions_other', { n: sessions.length }))}">${sessBlocks}</div>
       </div>
-      <div class="dy-tl" aria-hidden="true">${covers}</div>
-      <div class="dy-hours" aria-hidden="true">${bars}</div>
-      <div class="dy-ticks" aria-hidden="true">${ticks}</div>
+      <div class="dy-hr-detail" aria-live="polite">${dyHourDetailHtml(busy)}</div>
       <div class="dy-parts">${parts}</div>
     </section>`;
+}
+
+// The box under the bars: one hour's plays, top song (with ▶ ⋮) and cover
+function dyHourDetailHtml(i) {
+  const x = _dyTod && _dyTod.hours[i];
+  if (!x) return '';
+  const range = dyHourLabel(i) + ' – ' + dyHourLabel((i + 1) % 24);
+  if (!x.n) return `<span class="dy-thumb is-emoji" aria-hidden="true">💤</span>
+      <span class="dy-mem-text"><span class="dy-hr-range">${esc(range)}</span><span class="dy-mem-sub">${esc(t('dy_hr_none'))}</span></span>`;
+  // The strip already loaded this hour's cover: reuse it
+  const img = document.querySelector('#dytl-' + i + ' img');
+  const cover = img && img.src ? `<span class="dy-thumb is-lg"><img src="${esc(img.src)}" alt=""></span>`
+                               : `<span class="dy-thumb is-lg"><span class="thumb-initials">${esc(initials(x.label))}</span></span>`;
+  const s = x.song;
+  return `${cover}
+      <span class="dy-mem-text">
+        <span class="dy-hr-range">${esc(range)}${i === _dyTod.busy ? ` <span class="dy-part-tag">${esc(t('dy_busiest'))}</span>` : ''}</span>
+        <span class="dy-hr-n">${esc(tCount('plays', x.n))}</span>
+        <span class="ns-x-line" title="${esc(s.title + ' — ' + s.artist)}">${dySongMain(s.title, s.artist)}${s.n > 1 ? ` <span>· ${esc(t('dy_times', { n: s.n }))}</span>` : ''}</span>
+      </span>
+      <span class="dy-hr-play"${_eaAttrs('songs', { title: s.title, artist: s.artist, album: s.album && s.album !== '—' ? s.album : '', key: songKey(s) })}>${_eaBtns()}</span>`;
+}
+
+function dyPickHour(i) {
+  const sec = document.querySelector('#dailyBottom .dy-tod-sec');
+  if (!sec || !_dyTod) return;
+  sec.querySelectorAll('.dy-hr').forEach(b => b.classList.toggle('is-picked', +b.dataset.hr === i));
+  const box = sec.querySelector('.dy-hr-detail');
+  if (box.dataset.hr === String(i)) return;
+  box.dataset.hr = i;
+  box.innerHTML = dyHourDetailHtml(i);
+}
+
+// Tap a part of the day: light its six hours (tap again to clear)
+function dyPickPart(btn) {
+  const sec = btn.closest('.dy-tod-sec');
+  const on = btn.getAttribute('aria-pressed') !== 'true';
+  sec.querySelectorAll('.dy-part').forEach(b => { b.setAttribute('aria-pressed', b === btn && on); b.classList.toggle('is-on', b === btn && on); });
+  const a = +btn.dataset.a, z = +btn.dataset.z;
+  sec.querySelector('.dy-hours').classList.toggle('has-part', on);
+  sec.querySelectorAll('.dy-hr').forEach(b => { const hr = +b.dataset.hr; b.classList.toggle('in-part', on && hr >= a && hr < z); });
+  if (!on) return;
+  // Show the part's busiest hour in the box
+  let best = a;
+  for (let i = a; i < z; i++) if (_dyTod.hours[i].n > _dyTod.hours[best].n) best = i;
+  dyPickHour(best);
 }
 
 // ─── PERSONAL & LIVE (phase 8) ────────────────────────────────────────────
@@ -1200,13 +1361,24 @@ function dyRunEnding(h, tally, k, end) {
 
 function dyMilestonesHtml(h, ds) {
   const day = h.byDay[ds];
-  const blocks = [];
-  const label = {
-    songs: k => { const s = day.songs[k]; return s ? s.title + ' — ' + s.artist : k; },
-    artists: k => k,
-    albums: k => { const i = k.lastIndexOf('|||'); return i < 0 ? k : k.slice(0, i) + ' — ' + k.slice(i + 3); },
+  const lists = [];      // { key, icon, title, n, body } for the pills
+  let cheer = 0;         // milestones + records + streaks going, for the summary line
+  // What a key is, for its name and its cover
+  const info = {
+    songs: k => {
+      const s = (day && day.songs[k]) || allSongObj(k);
+      return s ? { type: 'song', title: s.title, artist: s.artist, album: s._albums ? bestAlbum(s.title, s._albums) : (s.album || ''), name: s.title + ' — ' + s.artist }
+               : { type: 'song', title: k, artist: '', name: k };
+    },
+    artists: k => ({ type: 'artist', artist: k, name: k }),
+    albums: k => { const i = k.lastIndexOf('|||'); const al = i < 0 ? k : k.slice(0, i), ar = i < 0 ? '' : k.slice(i + 3); return { type: 'album', album: al, artist: ar, name: ar ? al + ' — ' + ar : al }; },
   };
-  const row = (main, sub) => `<li class="dy-mem-row"><span class="dy-mem-text"><span class="ns-x-line" title="${esc(main)}"><b>${esc(main)}</b></span><span class="dy-mem-sub">${esc(sub)}</span></span></li>`;
+  // "<b>Title</b> — Artist" (or just the bold name) for a key
+  const mainOf = x => x.type === 'song' && x.artist ? dySongMain(x.title, x.artist)
+    : x.type === 'album' && x.artist ? dySongMain(x.album, x.artist) : `<b>${esc(x.name)}</b>`;
+  const thumbOf = x => x.artist ? dyThumb(x.type, x) : dyLead('🎵');
+  // A row about a song / artist / album: its cover, name, and a line under it
+  const keyRow = (type, k, sub, o) => { const x = info[type](k); return dyRow(Object.assign({ lead: thumbOf(x), main: mainOf(x), tip: x.name, sub: esc(sub) }, o || {})); };
 
   // ── Counts before the day and to its end, and each key's best single day before it ──
   const before = { songs: {}, artists: {}, albums: {} };
@@ -1236,16 +1408,23 @@ function dyMilestonesHtml(h, ds) {
     }
   }
 
+  let awards = '';
   if (day) {
-    // ── Daily awards ──
-    const chips = [];
+    // ── Daily awards: trophy cards with the winner's cover ──
+    const cards = [];
     const top = type => (h.charts[type][ds] || [])[0];
-    const chip = (lbl, name) => `<li class="dy-award"><span class="dy-award-lbl">${esc(lbl)}</span><span class="dy-award-name" title="${esc(name)}">${esc(name)}</span></li>`;
-    if (top('songs')) chips.push(chip(t('dy_aw_song'), label.songs(top('songs').k)));
-    if (top('artists')) chips.push(chip(t('dy_aw_artist'), top('artists').k));
-    if (top('albums')) chips.push(chip(t('dy_aw_album'), label.albums(top('albums').k)));
+    const award = (icon, lbl, x) => `<li class="dy-award">
+        <span class="dy-award-ic" aria-hidden="true">${icon}</span>
+        ${x.artist ? dyThumb(x.type, x, 'is-lg') : ''}
+        <span class="dy-award-lbl">${esc(lbl)}</span>
+        <span class="dy-award-name" title="${esc(x.name)}">${esc(x.type === 'album' ? x.album : x.type === 'song' ? x.title : x.name)}</span>
+        ${x.type !== 'artist' && x.artist ? `<span class="dy-award-by">${esc(x.artist)}</span>` : ''}
+      </li>`;
+    if (top('songs')) cards.push(award('🎵', t('dy_aw_song'), info.songs(top('songs').k)));
+    if (top('artists')) cards.push(award('🎤', t('dy_aw_artist'), info.artists(top('artists').k)));
+    if (top('albums')) cards.push(award('💿', t('dy_aw_album'), info.albums(top('albums').k)));
     const fresh = Object.keys(day.songs).filter(k => !before.songs[k]).sort((a, b) => day.songs[b].count - day.songs[a].count)[0];
-    if (fresh) chips.push(chip(t('dy_aw_discovery'), label.songs(fresh)));
+    if (fresh) cards.push(award('🔭', t('dy_aw_discovery'), info.songs(fresh)));
     // Comeback: the song whose last play before this day is the oldest (30+ days)
     let comeback = null;
     if (Object.keys(day.songs).length) {
@@ -1256,8 +1435,8 @@ function dyMilestonesHtml(h, ds) {
         if (gap >= 30 && (!comeback || gap > comeback.gap)) comeback = { k, gap };
       }
     }
-    if (comeback) chips.push(chip(t('dy_aw_comeback'), label.songs(comeback.k)));
-    if (chips.length) blocks.push(['awards', t('dy_aw_title'), `<ul class="dy-awards">${chips.join('')}</ul>`]);
+    if (comeback) cards.push(award('🔄', t('dy_aw_comeback'), info.songs(comeback.k)));
+    if (cards.length) awards = `<div class="dy-awards-wrap"><span class="ns-x-title">${esc(t('dy_aw_title'))}</span><ul class="dy-awards">${cards.join('')}</ul></div>`;
 
     // ── Milestones hit ──
     const hit = [];
@@ -1268,23 +1447,26 @@ function dyMilestonesHtml(h, ds) {
       }
     }
     hit.sort((a, b) => b.m - a.m);
-    if (hit.length) blocks.push(['list', t('dy_ms_hit'), hit.slice(0, 4).map(x => row(label[x.type](x.k), t('dy_ms_reached', { n: x.m.toLocaleString() }))).join('')]);
+    cheer += hit.length;
+    if (hit.length) lists.push({ key: 'hit', icon: '🎉', title: t('dy_ms_hit'), n: hit.length,
+      body: hit.slice(0, 4).map(x => keyRow(x.type, x.k, t('dy_ms_reached', { n: x.m.toLocaleString() }), { badge: esc(x.m.toLocaleString()), badgeCls: 'is-gold' })).join('') });
 
     // ── Records broken ──
     const recs = [];
     const topSong = Object.entries(day.songs).sort((a, b) => b[1].count - a[1].count)[0];
     const topArtist = Object.entries(day.artists).sort((a, b) => b[1].count - a[1].count)[0];
     if (topSong && anySongBest && topSong[1].count > anySongBest)
-      recs.push(row(t('dy_rec_any_song'), label.songs(topSong[0]) + ' · ' + t('dy_rec_vs', { n: topSong[1].count, was: anySongBest })));
+      recs.push(keyRow('songs', topSong[0], t('dy_rec_any_song') + ' · ' + t('dy_rec_vs', { n: topSong[1].count, was: anySongBest }), { badge: '📈 ' + topSong[1].count, badgeCls: 'is-gold' }));
     if (topArtist && anyArtistBest && topArtist[1].count > anyArtistBest)
-      recs.push(row(t('dy_rec_any_artist'), topArtist[0] + ' · ' + t('dy_rec_vs', { n: topArtist[1].count, was: anyArtistBest })));
+      recs.push(keyRow('artists', topArtist[0], t('dy_rec_any_artist') + ' · ' + t('dy_rec_vs', { n: topArtist[1].count, was: anyArtistBest }), { badge: '📈 ' + topArtist[1].count, badgeCls: 'is-gold' }));
     for (const type of ['songs', 'artists']) {
       Object.entries(day[type]).filter(([k, e]) => e.count >= 3 && bestDay[type][k] && e.count > bestDay[type][k])
         .sort((a, b) => b[1].count - a[1].count).slice(0, 2)
-        .forEach(([k, e]) => recs.push(row(label[type](k), t('dy_rec_own', { n: e.count, was: bestDay[type][k] }))));
+        .forEach(([k, e]) => recs.push(keyRow(type, k, t('dy_rec_own', { n: e.count, was: bestDay[type][k] }), { badge: '📈 ' + e.count })));
     }
-    if (recs.length) blocks.push(['list', t('dy_rec_title'), recs.slice(0, 4).join('') +
-      `<li class="dy-mem-more"><button type="button" class="dy-link" onclick="dcGoTab('records')">${esc(t('dy_rec_see'))} →</button></li>`]);
+    cheer += recs.length;
+    if (recs.length) lists.push({ key: 'rec', icon: '📈', title: t('dy_rec_title'), n: Math.min(4, recs.length), body: recs.slice(0, 4).join('') +
+      `<li class="dy-mem-more"><button type="button" class="dy-link" onclick="dcGoTab('records')">${esc(t('dy_rec_see'))} →</button></li>` });
 
     // ── Streaks going and ended ──
     const going = [];
@@ -1296,8 +1478,8 @@ function dyMilestonesHtml(h, ds) {
     }
     going.sort((a, b) => b.n - a.n);
     const yest = dyShift(ds, -1), ended = [];
-    // Today is not over yet: its runs are not "ended" but listed under Goals
-    // as "play it today to keep a … streak"
+    // Today is not over yet: its runs are not "ended" but listed under
+    // "Keep your streaks alive"
     if (h.byDay[yest] && currentOffset !== 0) {
       for (const type of ['songs', 'artists']) {
         for (const k in h.byDay[yest][type]) {
@@ -1308,21 +1490,25 @@ function dyMilestonesHtml(h, ds) {
       }
     }
     ended.sort((a, b) => b.n - a.n);
-    const yLabel = (type, k) => type === 'songs' ? (h.byDay[yest].songs[k].title + ' — ' + h.byDay[yest].songs[k].artist) : k;
-    const sRows = going.slice(0, 3).map(x => row(label[x.type](x.k), t('dy_streak_on', { n: x.n })))
-      .concat(ended.slice(0, 2).map(x => row(yLabel(x.type, x.k), t('dy_streak_ended', { n: x.n }))));
-    if (sRows.length) blocks.push(['list', t('dy_streaks'), sRows.join('')]);
+    cheer += going.length;
+    const sRows = going.slice(0, 3).map(x => keyRow(x.type, x.k, t('dy_streak_on', { n: x.n }), { badge: '🔥 ' + x.n, badgeCls: 'is-hot' }))
+      .concat(ended.slice(0, 2).map(x => {
+        const s = x.type === 'songs' ? h.byDay[yest].songs[x.k] : null;
+        const xi = s ? { type: 'song', title: s.title, artist: s.artist, album: bestAlbum(s.title, s._albums), name: s.title + ' — ' + s.artist } : info.artists(x.k);
+        return dyRow({ lead: thumbOf(xi), main: mainOf(xi), tip: xi.name, sub: esc(t('dy_streak_ended', { n: x.n })), badge: '💔 ' + x.n, cls: 'is-ended' });
+      }));
+    if (sRows.length) lists.push({ key: 'streak', icon: '🔥', title: t('dy_streaks'), n: sRows.length, body: sRows.join('') });
   }
 
-  // ── Goals ──
+  // ── Goals: how the day stands against your best (same weekday, and ever) ──
   const goals = [];
   const n = day ? day.plays : 0;
   const isToday = currentOffset === 0;
   const dayName = dyDayName(ds);
   const goal = (best, newKey, leftKey, shortKey) => {
     if (!best) return;
-    if (n > best) goals.push(row(t(newKey, { day: dayName }), t('dy_goal_beat', { was: best.toLocaleString() })));
-    else goals.push(row(t(isToday ? leftKey : shortKey, { n: (best - n + 1).toLocaleString(), day: dayName }), t('dy_goal_best', { n: best.toLocaleString() })));
+    if (n > best) goals.push(dyRow({ lead: dyLead('🏅'), main: `<b>${esc(t(newKey, { day: dayName }))}</b>`, sub: esc(t('dy_goal_beat', { was: best.toLocaleString() })), pct: 100, badge: esc(n.toLocaleString()), badgeCls: 'is-gold' }));
+    else goals.push(dyRow({ lead: dyLead('🎯'), main: `<b>${esc(t(isToday ? leftKey : shortKey, { n: (best - n + 1).toLocaleString(), day: dayName }))}</b>`, sub: esc(t('dy_goal_best', { n: best.toLocaleString() })), pct: n / best * 100, badge: esc(n.toLocaleString() + ' / ' + best.toLocaleString()) }));
   };
   goal(bestWd, 'dy_goal_new_wd', 'dy_goal_left_wd', 'dy_goal_short_wd');
   if (bestAll > bestWd || n > bestWd) goal(bestAll, 'dy_goal_new_all', 'dy_goal_left_all', 'dy_goal_short_all');
@@ -1346,13 +1532,14 @@ function dyMilestonesHtml(h, ds) {
     }
   }
   close.sort((a, b) => a.r - b.r || b.m - a.m);
-  const closeLabel = x => x.type === 'songs' ? (allSongName(x.k) || x.k) : label[x.type](x.k);
-  // Its own list ("Almost there"), saying the count now and what is left:
-  // "999 plays · 1 more to reach 1,000"
-  const closeRows = close.slice(0, 3).map(x => row(closeLabel(x),
-    t('dy_goal_close', { now: tCount('plays', x.m - x.left), left: x.left.toLocaleString(), m: x.m.toLocaleString() })));
+  // Its own list ("Almost there"), saying the count now and what is left,
+  // with a bar of how far along it is: "999 plays · 1 more to reach 1,000"
+  const closeRows = close.slice(0, 3).map(x => keyRow(x.type, x.k,
+    t('dy_goal_close', { now: tCount('plays', x.m - x.left), left: x.left.toLocaleString(), m: x.m.toLocaleString() }),
+    { pct: (x.m - x.left) / x.m * 100, badge: '−' + x.left.toLocaleString() }));
 
   // Today only: streaks that end unless played today
+  let keepRows = [];
   if (isToday) {
     const yest = dyShift(ds, -1);
     const alive = [];
@@ -1361,34 +1548,37 @@ function dyMilestonesHtml(h, ds) {
         for (const k in h.byDay[yest][type]) {
           if (day && day[type][k]) continue;
           const len = dyRunEnding(h, type, k, yest);
-          if (len >= 3) alive.push({ type, k, len, name: type === 'songs' ? h.byDay[yest].songs[k].title + ' — ' + h.byDay[yest].songs[k].artist : k });
+          if (len >= 3) alive.push({ type, k, len });
         }
       }
     }
-    var keepRows = alive.sort((a, b) => b.len - a.len).slice(0, 3).map(x => row(x.name, t('dy_goal_keep', { n: x.len })));
+    keepRows = alive.sort((a, b) => b.len - a.len).slice(0, 3).map(x => {
+      const s = x.type === 'songs' ? h.byDay[yest].songs[x.k] : null;
+      const xi = s ? { type: 'song', title: s.title, artist: s.artist, album: bestAlbum(s.title, s._albums), name: s.title + ' — ' + s.artist } : info.artists(x.k);
+      return dyRow({ lead: thumbOf(xi), main: mainOf(xi), tip: xi.name, sub: esc(t('dy_goal_keep', { n: x.len })), badge: '⏳ ' + x.len, badgeCls: 'is-hot' });
+    });
   }
-  if (goals.length) blocks.push(['list', t('dy_goals'), goals.join('')]);
-  if (closeRows.length) blocks.push(['list', t('dy_close_title'), closeRows.join('')]);
+  if (goals.length) lists.push({ key: 'goals', icon: '🎯', title: t('dy_goals'), n: 0, body: goals.join('') });
+  if (closeRows.length) lists.push({ key: 'close', icon: '⏳', title: t('dy_close_title'), n: closeRows.length, body: closeRows.join('') });
   // Its own list, so the day's goals and the streaks at stake read apart
-  if (keepRows && keepRows.length) blocks.push(['list', t('dy_keep_title'), keepRows.join('')]);
+  if (keepRows.length) lists.push({ key: 'keep', icon: '🕯️', title: t('dy_keep_title'), n: keepRows.length, body: keepRows.join('') });
 
-  if (!blocks.length) return '';
-  const awards = blocks.filter(b => b[0] === 'awards').map(b => `<div class="dy-awards-wrap"><span class="ns-x-title">${esc(b[1])}</span>${b[2]}</div>`).join('');
-  const lists = blocks.filter(b => b[0] === 'list').map(([, title, body]) => `<div class="dy-mem-block"><span class="ns-x-title">${esc(title)}</span><ul class="dy-mem-list">${body}</ul></div>`).join('');
+  if (!awards && !lists.length) return '';
+  const sub = cheer ? esc(t(cheer === 1 ? 'dy_ms_sub_one' : 'dy_ms_sub_other', { n: cheer })) : '';
   return `
     <section class="dy-tod dy-ms" aria-label="${esc(t('dy_ms_title'))}">
-      <div class="dy-tod-head"><span class="ns-x-title">${esc(t('dy_ms_title'))}</span></div>
+      ${dySecHead('🏆', t('dy_ms_title'), sub)}
       ${awards}
-      ${lists ? `<div class="dy-mem-grid">${lists}</div>` : ''}
+      ${dyTabsHtml('ms', lists)}
     </section>`;
 }
 
-// "Title — Artist" for a song key, from its newest play (for keys not played on the day)
+// A song key's title, artist and album, from its newest play (for keys not played on the day)
 let _dyNameCache = null;
-function allSongName(k) {
+function allSongObj(k) {
   if (!_dyNameCache || _dyNameCache.n !== allPlays.length) {
     const m = new Map();
-    for (const p of allPlays) { const sk = songKey(p); if (!m.has(sk)) m.set(sk, p.title + ' — ' + p.artist); }
+    for (const p of allPlays) { const sk = songKey(p); if (!m.has(sk)) m.set(sk, { title: p.title, artist: p.artist, album: p.album && p.album !== '—' ? p.album : '' }); }
     _dyNameCache = { n: allPlays.length, m };
   }
   return _dyNameCache.m.get(k);
@@ -1416,26 +1606,29 @@ function dyGap(ms) {
   return tCount('days', d);
 }
 
-// One remembered song: title, artist, a muted line, and ▶ ⋮
+// One remembered song: cover, title, artist, a muted line, and ▶ ⋮
 function dyMemSong(s, sub) {
   const k = s.title.toLowerCase().trim() + '|||' + s.artist.toLowerCase().trim();
-  return `<li class="dy-mem-row"${_eaAttrs('songs', { title: s.title, artist: s.artist, album: s.album || '', key: k })}>
-      <span class="dy-mem-text"><span class="ns-x-line" title="${esc(s.title + ' — ' + s.artist)}"><b>${esc(s.title)}</b> <span>— ${esc(s.artist)}</span></span><span class="dy-mem-sub">${esc(sub)}</span></span>
-      ${_eaBtns()}
-    </li>`;
+  return dyRow({
+    attrs: _eaAttrs('songs', { title: s.title, artist: s.artist, album: s.album || '', key: k }),
+    lead: dyThumb('song', s), main: dySongMain(s.title, s.artist), tip: s.title + ' — ' + s.artist,
+    sub: esc(sub), tail: _eaBtns(),
+  });
 }
 
 function dyMemArtist(name, sub) {
-  return `<li class="dy-mem-row"${_eaAttrs('artists', { artist: name, key: name })}>
-      <span class="dy-mem-text"><span class="ns-x-line"><b>${chartNameLink(name, 'openArtistModal', name)}</b></span><span class="dy-mem-sub">${esc(sub)}</span></span>
-      ${_eaBtns()}
-    </li>`;
+  return dyRow({
+    attrs: _eaAttrs('artists', { artist: name, key: name }),
+    lead: dyThumb('artist', { artist: name }), main: `<b>${chartNameLink(name, 'openArtistModal', name)}</b>`,
+    sub: esc(sub), tail: _eaBtns(),
+  });
 }
 
 function dyMemoriesHtml(h, ds) {
   const day = h.byDay[ds];
   const startMs = +dyDate(ds) - 12 * 3600000;   // midnight at the start of ds
   const blocks = [];
+  let yearAgo = null;   // last year's top song, for the card's summary line
 
   // ── On this day ──
   const otd = [];
@@ -1446,14 +1639,18 @@ function dyMemoriesHtml(h, ds) {
     let song = null, art = null;
     for (const k in d.songs) if (!song || d.songs[k].count > song.count) song = d.songs[k];
     for (const a in d.artists) if (!art || d.artists[a].count > art[1]) art = [a, d.artists[a].count];
+    if (y === 1) yearAgo = song;
     const off = Math.round((dyDate(localDateStr(tzNow())) - dyDate(past)) / DY_DAY_MS);
-    otd.push(`<li class="dy-mem-row is-link" role="button" tabindex="0" onclick="dyGoOffset(${off})" onkeydown="if(event.key==='Enter')dyGoOffset(${off})">
-        <span class="dy-mem-year">${esc(t(y === 1 ? 'dy_years_ago_one' : 'dy_years_ago_other', { n: y }))}</span>
-        <span class="dy-mem-text"><span class="ns-x-line" title="${esc(song.title + ' — ' + song.artist)}"><b>${esc(song.title)}</b> <span>— ${esc(song.artist)}</span></span>
-        <span class="dy-mem-sub">${esc(t('ns_x_top'))}: ${esc(art[0])} · ${esc(tCount('plays', d.plays))}</span></span>
-      </li>`);
+    otd.push(dyRow({
+      cls: 'is-link', attrs: ` role="button" tabindex="0" onclick="dyGoOffset(${off})" onkeydown="if(event.key==='Enter')dyGoOffset(${off})"`,
+      lead: `<span class="dy-mem-year">${esc(t(y === 1 ? 'dy_years_ago_one' : 'dy_years_ago_other', { n: y }))}</span>` +
+        dyThumb('song', { title: song.title, artist: song.artist, album: bestAlbum(song.title, song._albums) }),
+      main: dySongMain(song.title, song.artist), tip: song.title + ' — ' + song.artist,
+      sub: `${esc(t('ns_x_top'))}: ${esc(art[0])} · ${esc(tCount('plays', d.plays))}`,
+      tail: `<span class="dy-go" aria-hidden="true">›</span>`,
+    }));
   }
-  if (otd.length) blocks.push([t('dy_otd'), otd.join('')]);
+  if (otd.length) blocks.push({ key: 'otd', icon: '📅', title: t('dy_otd'), n: otd.length, body: otd.join('') });
 
   // ── Everything before this day: counts and last plays ──
   const songs = {}, artists = {};
@@ -1472,14 +1669,14 @@ function dyMemoriesHtml(h, ds) {
   const forgot = Object.entries(songs).sort((a, b) => b[1].n - a[1].n).slice(0, 100)
     .filter(([k, s]) => startMs - s.last >= 90 * DY_DAY_MS && !playedToday(k)).slice(0, 3)
     .map(([, s]) => dyMemSong(s, tCount('plays', s.n) + ' · ' + t('dy_not_for', { t: dyGap(startMs - s.last) })));
-  if (forgot.length) blocks.push([t('dy_forgot'), forgot.join('')]);
+  if (forgot.length) blocks.push({ key: 'forgot', icon: '💤', title: t('dy_forgot'), n: forgot.length, body: forgot.join('') });
 
   // ── Throwback artists ──
   const throwback = Object.entries(artists).sort((a, b) => b[1].n - a[1].n).slice(0, 20)
     .map(([a, r], i) => ({ a, r, rank: i + 1 }))
     .filter(x => startMs - x.r.last >= 30 * DY_DAY_MS && !(day && day.artists[x.a])).slice(0, 3)
     .map(x => dyMemArtist(x.a, t('dy_throw_line', { rank: x.rank, t: dyGap(startMs - x.r.last) })));
-  if (throwback.length) blocks.push([t('dy_throw'), throwback.join('')]);
+  if (throwback.length) blocks.push({ key: 'throw', icon: '📼', title: t('dy_throw'), n: throwback.length, body: throwback.join('') });
 
   if (day) {
     // ── Comebacks: back after 6+ months ──
@@ -1489,8 +1686,8 @@ function dyMemoriesHtml(h, ds) {
       if (s && day.firstMs - s.last >= 182 * DY_DAY_MS) back.push({ k, s, gap: day.firstMs - s.last, cur: day.songs[k] });
     }
     back.sort((a, b) => b.gap - a.gap);
-    if (back.length) blocks.push([t('dy_comeback'), back.slice(0, 3).map(x =>
-      dyMemSong({ title: x.cur.title, artist: x.cur.artist, album: bestAlbum(x.cur.title, x.cur._albums) }, t('dy_comeback_line', { t: dyGap(x.gap) }))).join('')]);
+    if (back.length) blocks.push({ key: 'back', icon: '🔄', title: t('dy_comeback'), n: Math.min(3, back.length), body: back.slice(0, 3).map(x =>
+      dyMemSong({ title: x.cur.title, artist: x.cur.artist, album: bestAlbum(x.cur.title, x.cur._albums) }, t('dy_comeback_line', { t: dyGap(x.gap) }))).join('') });
 
     // ── First heard: songs and artists never played before this day ──
     const newArtists = Object.keys(day.artists).filter(a => !artists[a]).sort((a, b) => day.artists[b].count - day.artists[a].count);
@@ -1503,17 +1700,16 @@ function dyMemoriesHtml(h, ds) {
       });
       const shown = songRows.length;
       const more = newSongs.length > shown ? `<li class="dy-mem-more">${esc(t('dy_first_more', { n: newSongs.length - shown }))}</li>` : '';
-      blocks.push([t('dy_first'), rows.join('') + songRows.join('') + more]);
+      blocks.push({ key: 'first', icon: '✨', title: t('dy_first'), n: newArtists.length + newSongs.length, body: rows.join('') + songRows.join('') + more });
     }
   }
 
   if (!blocks.length) return '';
+  const sub = yearAgo ? esc(t('dy_mem_sub_year', { song: yearAgo.title })) : '';
   return `
     <section class="dy-tod dy-mem" aria-label="${esc(t('dy_mem_title'))}">
-      <div class="dy-tod-head"><span class="ns-x-title">${esc(t('dy_mem_title'))}</span></div>
-      <div class="dy-mem-grid">
-        ${blocks.map(([title, body]) => `<div class="dy-mem-block"><span class="ns-x-title">${esc(title)}</span><ul class="dy-mem-list">${body}</ul></div>`).join('')}
-      </div>
+      ${dySecHead('📼', t('dy_mem_title'), sub)}
+      ${dyTabsHtml('mem', blocks)}
     </section>`;
 }
 
@@ -1560,7 +1756,10 @@ function dyPlayGenre(p) {
 function dyRefreshPatterns(ds) {
   if (currentPeriod !== 'day' || dyViewedDay() !== ds) return;
   const el = document.querySelector('#dailyBottom .dy-pats');
-  if (el) el.outerHTML = dyPatternsHtml(dyHistory(), ds);
+  if (!el) return;
+  _dyImgs = [];
+  el.outerHTML = dyPatternsHtml(dyHistory(), ds);
+  dyFlushImgs();
 }
 
 function dyPatternsHtml(h, ds) {
@@ -1593,28 +1792,39 @@ function dyPatternsHtml(h, ds) {
   const usualV = vc ? vs / vc : null;
   const vPct = Math.round(v * 100);
 
-  const tile = (title, body) => `<div class="dy-pat"><span class="ns-x-title">${esc(title)}</span>${body}</div>`;
+  /* Each pattern is a card: emoji, label, one big figure, then the detail.
+     big is HTML (already escaped). */
+  const card = (icon, title, big, body, extra, headExtra) => `<div class="dy-pat"${extra || ''}>
+      <span class="dy-pat-head"><span class="dy-pat-ic" aria-hidden="true">${icon}</span><span class="ns-x-title">${esc(title)}</span>${headExtra || ''}</span>
+      <span class="dy-pat-big">${big}</span>
+      ${body}
+    </div>`;
   const line = (html, tip) => `<span class="ns-x-line"${tip ? ` title="${esc(tip)}"` : ''}>${html}</span>`;
 
-  const mostTile = tile(t('dy_pat_most'), most
-    ? line(`<b>${esc(most.title)}</b>`, most.title + ' — ' + most.artist) + line(`<span>${esc(most.artist)} · ${esc(t('dy_times', { n: most.count }))}</span>`)
-    : '');
-  const b2bTile = tile(t('dy_pat_b2b'),
+  // Most replayed carries ▶ / ⋮ like a chart row (in the card's head, so the
+  // song keeps the width), and the song's cover
+  const mostAlbum = most ? bestAlbum(most.title, most._albums) : '';
+  const mostCard = card('🔁', t('dy_pat_most'), most ? `${most.count}<small>×</small>` : '—', most
+    ? `<span class="dy-pat-song">${dyThumb('song', { title: most.title, artist: most.artist, album: mostAlbum })}
+        <span class="dy-mem-text">${line(`<b>${esc(most.title)}</b>`, most.title + ' — ' + most.artist)}${line(`<span>${esc(most.artist)}</span>`)}</span></span>`
+    : '', most ? _eaAttrs('songs', { title: most.title, artist: most.artist, album: mostAlbum || '', key: songKey(most) }) : '', most ? _eaBtns() : '');
+  const b2bCard = card('⏩', t('dy_pat_b2b'), sRun.n > 1 ? `${sRun.n}<small>×</small>` : '—',
     (sRun.n > 1 ? line(`<b>${esc(sRun.title)}</b> <span>· ${esc(t('dy_in_a_row', { n: sRun.n }))}</span>`, sRun.title + ' — ' + sRun.artist) : line(`<span>${esc(t('dy_no_repeats'))}</span>`)) +
     (aRun.n > 1 ? line(`${esc(aRun.k)} <span>· ${esc(t('dy_plays_in_a_row', { n: aRun.n }))}</span>`) : ''));
-  const fullTile = tile(t('dy_pat_full'), full.length
-    ? full.slice(0, 2).map(f => line(`<b>${esc(f.album)}</b> <span>· ${esc(t(f.official ? 'dy_full_tracks' : 'dy_full_tracks_lib', { n: f.tracks }))}</span>`, f.album + ' — ' + f.artist)).join('')
-    : line(`<span>${esc(t('dy_full_none'))}</span>`));
+  const fullCard = card('💿', t('dy_pat_full'), String(full.length), full.length
+    ? full.slice(0, 2).map(f => `<span class="dy-pat-song">${dyThumb('album', { album: f.album, artist: f.artist })}<span class="dy-mem-text">${line(`<b>${esc(f.album)}</b>`, f.album + ' — ' + f.artist)}${line(`<span>${esc(t(f.official ? 'dy_full_tracks' : 'dy_full_tracks_lib', { n: f.tracks }))}</span>`)}</span></span>`).join('')
+    : line(`<span>${esc(t('dy_full_none'))}</span>`), full.length ? ' data-has="1"' : '');
   const marker = `<span class="dy-gauge"><i style="left:${vPct}%"></i>${usualV !== null ? `<u style="left:${Math.round(usualV * 100)}%" title="${esc(t('dy_usual_mark'))}"></u>` : ''}</span>`;
   const label = v >= 0.7 ? 'dy_var_explorer' : v <= 0.35 ? 'dy_var_loyal' : 'dy_var_mixed';
-  const varTile = tile(t('dy_pat_variety'),
-    line(`<b>${esc(t(label))}</b> <span>· ${esc(t('dy_var_line', { songs: Object.keys(day.songs).length, plays: day.plays }))}</span>`) +
+  const varIcon = v >= 0.7 ? '🧭' : v <= 0.35 ? '💞' : '⚖️';
+  const varCard = card(varIcon, t('dy_pat_variety'), esc(t(label)),
+    line(`<span>${esc(t('dy_var_line', { songs: Object.keys(day.songs).length, plays: day.plays }))}</span>`) +
     marker + `<span class="dy-gauge-ends"><span>${esc(t('dy_var_loyal'))}</span><span>${esc(t('dy_var_explorer'))}</span></span>`);
 
   return `
     <section class="dy-tod dy-pats" aria-label="${esc(t('dy_pat_title'))}">
-      <div class="dy-tod-head"><span class="ns-x-title">${esc(t('dy_pat_title'))}</span></div>
-      <div class="dy-pat-grid">${mostTile}${b2bTile}${fullTile}${varTile}</div>
+      ${dySecHead('🧩', t('dy_pat_title'), esc(t('dy_pat_persona_' + label.slice(7))))}
+      <div class="dy-pat-grid">${mostCard}${b2bCard}${fullCard}${varCard}</div>
       ${dyGenreHtml(h, ds, plays)}
     </section>`;
 }
@@ -1686,22 +1896,40 @@ function dyGenreHtml(h, ds, plays) {
   let at = 0;
   const arcs = top.map(([, n], i) => {
     const len = n / known * c;
-    const seg = `<circle cx="32" cy="32" r="${r}" fill="none" stroke="${DY_GENRE_COLORS[i]}" stroke-width="10" stroke-dasharray="${len.toFixed(2)} ${(c - len).toFixed(2)}" stroke-dashoffset="${(-at).toFixed(2)}" transform="rotate(-90 32 32)"/>`;
+    const seg = `<circle data-i="${i}" cx="32" cy="32" r="${r}" fill="none" stroke="${DY_GENRE_COLORS[i]}" stroke-width="10" stroke-dasharray="${len.toFixed(2)} ${(c - len).toFixed(2)}" stroke-dashoffset="${(-at).toFixed(2)}" transform="rotate(-90 32 32)"/>`;
     at += len;
     return seg;
   }).join('');
+  // Legend entries are buttons: hover or tap one to light its slice and show
+  // it in the middle of the donut (dyGenreHl)
+  const pct = n => Math.round(n / known * 100);
   const legend = top.map(([g, n], i) =>
-    `<li><i style="background:${DY_GENRE_COLORS[i]}"></i><span class="dy-genre-name">${esc(g)}</span><span class="dy-genre-pct">${Math.round(n / known * 100)}%</span></li>`).join('');
+    `<li><button type="button" data-i="${i}" data-g="${esc(g)}" data-p="${pct(n)}" onmouseenter="dyGenreHl(this)" onfocus="dyGenreHl(this)" onclick="dyGenreHl(this)" onmouseleave="dyGenreHl(null, this)">
+      <i style="background:${DY_GENRE_COLORS[i]}"></i><span class="dy-genre-name">${esc(g)}</span><span class="dy-genre-pct">${pct(n)}%</span></button></li>`).join('');
   const cover = Math.round(known / plays.length * 100);
   return `
       <div class="dy-genres">
-        <svg class="dy-donut" viewBox="0 0 64 64" aria-hidden="true" focusable="false">${arcs}</svg>
+        <div class="dy-donut-wrap">
+          <svg class="dy-donut" viewBox="0 0 64 64" aria-hidden="true" focusable="false">${arcs}</svg>
+          <span class="dy-donut-c" data-g="${esc(top[0][0])}" data-p="${pct(top[0][1])}"><b>${pct(top[0][1])}%</b><span>${esc(top[0][0])}</span></span>
+        </div>
         <div class="ns-x-text">
           <span class="ns-x-title">${esc(t('dy_genre_title'))}</span>
           <ul class="dy-genre-list">${legend}</ul>
           ${cover < 100 ? `<span class="dy-genre-note">${esc(t('dy_genre_cover', { pct: cover }))}</span>` : ''}
         </div>
       </div>`;
+}
+
+// Light one genre's slice (btn) or go back to the top genre (btn = null)
+function dyGenreHl(btn, from) {
+  const wrap = (btn || from).closest('.dy-genres');
+  const c = wrap.querySelector('.dy-donut-c');
+  if (btn) wrap.dataset.hl = btn.dataset.i; else delete wrap.dataset.hl;
+  wrap.querySelectorAll('.dy-donut circle').forEach(x => x.classList.toggle('is-hl', !!btn && x.dataset.i === btn.dataset.i));
+  wrap.querySelectorAll('.dy-genre-list button').forEach(x => x.classList.toggle('is-hl', x === btn));
+  const g = btn ? btn.dataset.g : c.dataset.g, p = btn ? btn.dataset.p : c.dataset.p;
+  c.innerHTML = `<b>${esc(p)}%</b><span>${esc(g)}</span>`;
 }
 
 // ─── DAY PANEL (phase 2) ──────────────────────────────────────────────────
