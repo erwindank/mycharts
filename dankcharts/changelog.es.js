@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Cleaner play and expand buttons in Daily Streaks and album windows":
+    ["Botones de reproducir y desplegar más limpios en Rachas Diarias y en los álbumes",
+     "El botón de reproducir de las filas de Rachas Diarias es ahora un cuadrado redondeado suave del color de las rachas que se ilumina al pasar el ratón, en lugar de un círculo con borde. En la ventana de un álbum, el botón que abre las estadísticas de una canción ya no parece un botón de reproducir: ahora es una flecha que gira cuando están abiertas."],
+
   "Long song and album names stay inside the On Air card":
     ["Los nombres largos de canciones y álbumes se quedan dentro de la tarjeta En el aire",
      "Un nombre largo de canción o álbum ya no se sale del borde de la tarjeta En el aire en el móvil ni hace que la página se desplace hacia los lados. Ahora pasa a varias líneas dentro de la tarjeta."],

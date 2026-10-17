@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Cleaner play and expand buttons in Daily Streaks and album windows":
+    ["Botões de tocar e expandir mais limpos em Sequências Diárias e nos álbuns",
+     "O botão de tocar nas linhas de Sequências Diárias agora é um quadrado arredondado suave na cor das sequências, que acende ao passar o mouse, em vez de um círculo com borda. Na janela de um álbum, o botão que abre as estatísticas de uma música não parece mais um botão de tocar: agora é uma seta que vira quando elas estão abertas."],
+
   "Long song and album names stay inside the On Air card":
     ["Nomes longos de músicas e álbuns ficam dentro do cartão No ar",
      "Um nome longo de música ou álbum não passa mais da borda do cartão No ar no celular nem faz a página rolar para o lado. Agora quebra em mais linhas dentro do cartão."],

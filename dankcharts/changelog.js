@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 159;
+const DC_CL_I18N_V = 160;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-17', t: 'feature', a: 'charts', h: '36005bc',
+    title: "Cleaner play and expand buttons in Daily Streaks and album windows",
+    detail: "The play button on Daily Streaks rows is now a soft rounded square in the streak colour that lights up on hover, instead of an outlined circle. In an album window, the button that opens a track's stats no longer looks like a play button: it is now an arrow that flips when the stats are open." },
 
   { d: '2026-10-17', t: 'fix', a: 'charts', h: 'fa3b6da',
     title: "Long song and album names stay inside the On Air card",
