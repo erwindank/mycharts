@@ -33941,8 +33941,14 @@ function openStreakModal(opts) {
   const keptPct = aliveTotal ? (totalActive / aliveTotal * 100) : 0;
   const summaryEl = document.getElementById('streakSummaryStat');
   if (summaryEl) summaryEl.innerHTML = aliveTotal
-    ? `<div class="sk-keep-row"><span>${atRisk.length ? t('sk_kept', { kept: `<strong>${totalActive}</strong>`, total: aliveTotal }) : t('sk_all_kept', { n: `<strong>${aliveTotal}</strong>` })}</span>` +
-        (atRisk.length ? `<span class="sk-keep-need">${esc(t('sk_need', { n: atRisk.length }))}</span>` : '') + `</div>` +
+    // Scoreboard: "34 / 152" as one big figure with "kept today" under it, and the
+    // to-do ("118 need a play", or "all kept 🎉") as a pill on the right.
+    ? `<div class="sk-keep-row sk-score" aria-label="${esc(t('sk_kept', { kept: totalActive, total: aliveTotal }))}">` +
+        `<div class="sk-score-fig"><span class="sk-score-num">${totalActive}</span><span class="sk-score-of">/ ${aliveTotal}</span>` +
+          `<span class="sk-score-lbl">${esc(t('sk_kept_lbl'))}</span></div>` +
+        (atRisk.length
+          ? `<span class="sk-keep-need">${esc(t('sk_need', { n: atRisk.length }))}</span>`
+          : `<span class="sk-keep-need sk-keep-need--done">${esc(t('sk_all_kept', { n: aliveTotal }))}</span>`) + `</div>` +
       `<div class="sk-keep-bar" role="img" aria-label="${esc(t('sk_kept', { kept: totalActive, total: aliveTotal }))}">` +
         `<i class="sk-keep-kept" style="width:${keptPct.toFixed(1)}%"></i><i class="sk-keep-risk" style="width:${(100 - keptPct).toFixed(1)}%"></i></div>` +
       `<div class="sk-chips">` +

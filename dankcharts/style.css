@@ -26557,6 +26557,20 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
 }
 .sk-keep-row strong { font-family: var(--font-mono); color: var(--text); font-size: var(--fs-base); }
 .sk-keep-need { color: var(--amber); font-size: var(--fs-xs); }
+/* Scoreboard (redesign follow-up): big kept number, smaller "/ total", label under. */
+.sk-score { align-items: center; margin-bottom: 0.5rem; }
+.sk-score-fig { display: grid; grid-template-columns: auto auto; column-gap: 0.35rem; align-items: baseline; }
+.sk-score-num {
+  font-family: var(--font-display); font-weight: 800; font-size: 2.8rem; line-height: 0.95;
+  font-variant-numeric: tabular-nums; color: var(--text); letter-spacing: -0.02em;
+}
+.sk-score-of { font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; color: var(--text3); font-variant-numeric: tabular-nums; }
+.sk-score-lbl { grid-column: 1 / -1; font-family: var(--font-mono); font-size: 0.64rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text3); margin-top: 0.2rem; }
+.sk-score .sk-keep-need {
+  font-weight: 700; padding: 0.2rem 0.65rem; border-radius: var(--r-full);
+  background: color-mix(in srgb, var(--amber) 14%, transparent); border: 1px solid color-mix(in srgb, var(--amber) 40%, transparent);
+}
+.sk-score .sk-keep-need--done { color: var(--green); background: color-mix(in srgb, var(--green) 12%, transparent); border-color: color-mix(in srgb, var(--green) 40%, transparent); }
 .sk-keep-bar { display: flex; height: 8px; border-radius: var(--r-full); overflow: hidden; background: var(--bg3); }
 .sk-keep-bar i { display: block; height: 100%; transition: width var(--t-slow) var(--ease); }
 .sk-keep-kept { background: linear-gradient(90deg, #ffb347, #ff6a3d); }
