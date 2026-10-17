@@ -30829,6 +30829,27 @@ body.albums-hide-pl-btns  #albumsSection  .wv-gc-hover { display: none; }
   box-shadow: 0 1px 4px rgba(0,0,0,0.55);
   text-shadow: 0 1px 2px rgba(0,0,0,0.6);
 }
+/* Badges on dark glass: the Card grid's cover overlays and Mosaic's hover card
+   and tile back are dark in every theme. The light themes give peak tags,
+   certifications, scores and personal best deep text colours made for white
+   cards, which nearly vanish there, so on these surfaces they use bright hues
+   in every theme (the tier is still told by the colour). */
+:is(#songsSection, #artistsSection, #albumsSection) :is(.wv-gc-cert, .wv-gc-pb, .wv-mos-hcard, .wv-mos-back) .cert-gold    { color: #fbbf24; border-color: rgba(251, 191, 36, 0.55); }
+:is(#songsSection, #artistsSection, #albumsSection) :is(.wv-gc-cert, .wv-gc-pb, .wv-mos-hcard, .wv-mos-back) .cert-plat    { color: #e2e8f0; border-color: rgba(226, 232, 240, 0.5); }
+:is(#songsSection, #artistsSection, #albumsSection) :is(.wv-gc-cert, .wv-gc-pb, .wv-mos-hcard, .wv-mos-back) .cert-diamond { color: #7dd3fc; border-color: rgba(125, 211, 252, 0.55); }
+:is(#songsSection, #artistsSection, #albumsSection) :is(.wv-gc-cert, .wv-gc-pb, .wv-mos-hcard, .wv-mos-back) .rt-chip      { color: #fff; }
+:is(#songsSection, #artistsSection, #albumsSection) :is(.wv-gc-cert, .wv-gc-pb, .wv-mos-hcard, .wv-mos-back) .plays-peak-badge { color: #86efac; border-color: rgba(134, 239, 172, 0.55); }
+:is(#songsSection, #artistsSection, #albumsSection) :is(.wv-mos-hcard, .wv-mos-back) .peak-badge-1 { color: #fbbf24; border-color: rgba(251, 191, 36, 0.5); }
+:is(#songsSection, #artistsSection, #albumsSection) :is(.wv-mos-hcard, .wv-mos-back) .peak-badge-2 { color: #e2e8f0; border-color: rgba(226, 232, 240, 0.45); }
+:is(#songsSection, #artistsSection, #albumsSection) :is(.wv-mos-hcard, .wv-mos-back) .peak-badge-3 { color: #f0a77a; border-color: rgba(240, 167, 122, 0.5); }
+:is(#songsSection, #artistsSection, #albumsSection) :is(.wv-mos-hcard, .wv-mos-back) .peak-badge   { color: #cbd5e1; border-color: rgba(203, 213, 225, 0.35); }
+/* Mosaic's score chip: the same readable dark-glass chip as on Card grid covers */
+:is(.wv-mos-hcard, .wv-mos-back) .rt-chip {
+  font-size: var(--fs-xs);
+  padding: 1px 7px;
+  background: color-mix(in srgb, var(--rt-c) 22%, rgba(8,10,16,0.82));
+  border-color: var(--rt-c);
+}
 
 /* movement border tints (ranks 4+) */
 .wv-gc-entry.wv-card { border-color: rgba(74,222,128,0.4); box-shadow: 0 0 0 1px rgba(74,222,128,0.15) inset; }
@@ -30939,9 +30960,9 @@ body.albums-hide-pl-btns  #albumsSection  .wv-gc-hover { display: none; }
 .wv-mos-hcard-ttl { font-size: var(--fs-xs); font-weight: 600; color: #fff; white-space: normal; line-height: 1.25; margin-bottom: 2px; }
 .wv-mos-hcard-art { font-size: var(--fs-xs); color: rgba(255,255,255,0.65); margin-bottom: 6px; }
 .wv-mos-hcard-stats { display: flex; align-items: center; gap: 6px; margin-bottom: var(--sp-1); flex-wrap: wrap; }
-.wv-mos-hcard-wks { font-size: var(--fs-xs); color: rgba(255,255,255,0.5); font-family: var(--font-mono);
-      font-variant-numeric: tabular-nums; background: rgba(255,255,255,0.1); padding: 1px 5px; border-radius: 3px; }
-.wv-mos-hcard-alltime { font-size: var(--fs-xs); color: rgba(255,255,255,0.5); font-family: var(--font-sans); margin-bottom: 6px; display: flex; align-items: center; gap: var(--sp-1); flex-wrap: wrap; }
+.wv-mos-hcard-wks { font-size: var(--fs-xs); color: rgba(255,255,255,0.82); font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums; background: rgba(255,255,255,0.14); padding: 1px 5px; border-radius: 3px; }
+.wv-mos-hcard-alltime { font-size: var(--fs-xs); color: rgba(255,255,255,0.75); font-family: var(--font-sans); margin-bottom: 6px; display: flex; align-items: center; gap: var(--sp-1); flex-wrap: wrap; }
 .wv-mos-hcard-bar { height: 3px; background: rgba(255,255,255,0.12); border-radius: 2px; overflow: hidden; margin-top: 2px; }
 .wv-mos-hcard-fill { height: 100%; width: var(--bar-w); background: var(--accent); border-radius: 2px; }
 .wv-mos-item .wv-mv-ov { background: rgba(0,0,0,0.82); padding: 0; border-radius: var(--r-xs); z-index: 3; }
