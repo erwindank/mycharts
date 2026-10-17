@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 153;
+const DC_CL_I18N_V = 154;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-17', t: 'feature', a: 'charts', h: '401b187',
+    title: "A cleaner, bolder Today tab in Daily Streaks",
+    detail: "The Today tab in Daily Streaks got a visual refresh. The header shows how many streaks you kept today as one big scoreboard number, with what still needs a play beside it. Streak of the Day is now a featured card: the cover in the background, the name and day count in large type, and a Play button; when the streak is at risk it turns into a red warning. The save plan has one big Play all button with small icon buttons for queue, save playlist and copy tracklist, every song shows its cover (Play appears on hover), and the coloured tag boxes are now plain names with small song, album and artist icons and a key above the list. A single and its album with the same name now show once." },
 
   { d: '2026-10-16', t: 'feature', a: 'charts', h: '3ac63ef',
     title: "Streak of the day, rivalries, milestone sparks and a streaks share image",

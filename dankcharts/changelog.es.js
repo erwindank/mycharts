@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "A cleaner, bolder Today tab in Daily Streaks":
+    ["Una pestaña Hoy más limpia y llamativa en Rachas Diarias",
+     "La pestaña Hoy de Rachas Diarias tiene un nuevo aspecto. La cabecera muestra cuántas rachas mantuviste hoy como un gran número de marcador, con lo que aún necesita una escucha al lado. La Racha del día es ahora una tarjeta destacada: la portada de fondo, el nombre y los días en letra grande, y un botón Reproducir; si la racha está en riesgo se convierte en un aviso rojo. El plan para salvarlas tiene un gran botón Reproducir todo con botones pequeños para la cola, guardar la lista y copiar el tracklist, cada canción muestra su portada (Reproducir aparece al pasar el ratón) y las etiquetas de colores son ahora nombres con pequeños iconos de canción, álbum y artista y una leyenda encima. Un sencillo y su álbum con el mismo nombre aparecen una sola vez."],
+
   "Streak of the day, rivalries, milestone sparks and a streaks share image":
     ["Racha del día, rivalidades, chispas por hitos e imagen para compartir tus rachas",
      "La ventana de Rachas Diarias es ahora más divertida. La pestaña Hoy empieza con la Racha del día: un récord que superaste hoy, un hito alcanzado, la racha más larga aún en riesgo o la que va primero. Se listan los hitos de hoy (7, 14, 30, 50, 100, 200 o 365 días) y, la primera vez que abres la ventana ese día, saltan chispas. La pestaña En racha muestra una rivalidad: dos rachas sin relación empatadas en días, y cuál aún necesita una escucha para seguir empatada. La llama del encabezado crece con tu racha activa más larga. Un nuevo botón Compartir crea una imagen \"Mis rachas\" con dos diseños (Tablero y Llama), con las paletas y formatos de siempre, lista para descargar, copiar o compartir."],

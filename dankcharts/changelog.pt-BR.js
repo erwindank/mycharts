@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "A cleaner, bolder Today tab in Daily Streaks":
+    ["Uma aba Hoje mais limpa e marcante em Sequências Diárias",
+     "A aba Hoje de Sequências Diárias ganhou um visual novo. O topo mostra quantas sequências você manteve hoje como um grande número de placar, com o que ainda precisa de uma reprodução ao lado. A Sequência do dia agora é um cartão em destaque: a capa ao fundo, o nome e os dias em letras grandes e um botão Tocar; quando a sequência está em risco, ele vira um aviso vermelho. O plano para salvá-las tem um grande botão Tocar tudo com botões pequenos para fila, salvar playlist e copiar tracklist, cada música mostra sua capa (Tocar aparece ao passar o mouse) e as etiquetas coloridas agora são nomes com pequenos ícones de música, álbum e artista e uma legenda acima. Um single e seu álbum com o mesmo nome aparecem uma vez só."],
+
   "Streak of the day, rivalries, milestone sparks and a streaks share image":
     ["Sequência do dia, rivalidades, faíscas nos marcos e imagem para compartilhar suas sequências",
      "A janela de Sequências Diárias ficou mais divertida. A aba Hoje abre com a Sequência do dia: um recorde que você bateu hoje, um marco alcançado, a maior sequência ainda em risco ou a que está na frente. Os marcos de hoje (7, 14, 30, 50, 100, 200 ou 365 dias) aparecem listados e, na primeira vez que você abre a janela no dia, saem faíscas. A aba Em chamas mostra uma rivalidade: duas sequências sem relação empatadas no número de dias, e qual ainda precisa de uma reprodução para continuar empatada. A chama do cabeçalho cresce com sua maior sequência em andamento. Um novo botão Compartilhar cria uma imagem \"Minhas sequências\" em dois visuais (Quadro e Chama), com as paletas e formatos de sempre, pronta para baixar, copiar ou compartilhar."],
