@@ -33886,7 +33886,7 @@ function openStreakModal(opts) {
       const pe = keptByEntry(it);
       const pt = pe ? pe.title : it.name, pa = pe ? pe.artist : (it.sub || '');
       if (pe && it.type !== 'song') extra = `<span class="sk-keptby">${esc(t('sk_kept_by', { song: pe.title }))}</span>`;
-      btns = `<button class="sk-play" onclick="_ytStreakPlay(${esc(JSON.stringify(pt))},${esc(JSON.stringify(pa))})" title="${esc(t('sk_play_title', { song: pt }))}" aria-label="${esc(t('sk_play_title', { song: pt }))}">▶</button>` + skSpLink(pt, pa) + _eaMoreBtn();
+      btns = `<button class="sk-play" onclick="_ytStreakPlay(${esc(JSON.stringify(pt))},${esc(JSON.stringify(pa))})" title="${esc(t('sk_play_title', { song: pt }))}" aria-label="${esc(t('sk_play_title', { song: pt }))}">${SK_PLAY_SVG}</button>` + skSpLink(pt, pa) + _eaMoreBtn();
     } else if (mode === 'lost') {
       const m = nextMs(it.len);
       if (m && m - it.len <= 3) extra = `<span class="sk-close-call">${esc(t('sk_short_of', { n: m - it.len, m }))}</span>`;
@@ -34112,7 +34112,7 @@ function openStreakModal(opts) {
     // corner badge on touch screens — see .sk-plan-art in style.css).
     const art = skArt({ type: 'song', name: e.title, sub: e.artist, key: e.sk });
     return `<div class="sk-plan-row">` +
-      `<span class="sk-plan-art">${art.html}<button class="sk-play sk-play--over" onclick="_ytStreakPlay(${jt},${ja})" title="${esc(t('sk_play_title', { song: e.title }))}" aria-label="${esc(t('sk_play_title', { song: e.title }))}">▶</button></span>` +
+      `<span class="sk-plan-art">${art.html}<button class="sk-play sk-play--over" onclick="_ytStreakPlay(${jt},${ja})" title="${esc(t('sk_play_title', { song: e.title }))}" aria-label="${esc(t('sk_play_title', { song: e.title }))}">${SK_PLAY_SVG}</button></span>` +
       `<div class="sk-plan-who"><div class="sk-plan-nm">${esc(e.title)} <span>— ${esc(e.artist)}</span></div>` +
       // A song that only saves its own streak needs no "keeps" line — it would repeat its name.
       (n > 1 || e.items[0].type !== 'song' ? `<div class="sk-plan-keeps"><span class="sk-plan-keeps-lbl">${esc(t('sk_keeps'))}</span> ${keeps}</div>` : '') + `</div>` +
@@ -34358,6 +34358,9 @@ const SK_TYPE_SVG = {
   album:  '<svg class="sk-ti sk-ti--album" viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="8" cy="8" r="6.2"/><circle cx="8" cy="8" r="1.6"/></svg>',
   artist: '<svg class="sk-ti sk-ti--artist" viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="5.3" r="2.8"/><path d="M2.6 14c.6-2.8 2.8-4.3 5.4-4.3s4.8 1.5 5.4 4.3"/></svg>',
 };
+// Play icon for the streak ▶ buttons (.sk-play): an SVG with rounded corners
+// instead of the "▶" text glyph, which every platform draws differently.
+const SK_PLAY_SVG = '<svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M5 3.2c0-.8.9-1.3 1.6-.9l6.3 4c.6.4.6 1.3 0 1.7l-6.3 4c-.7.4-1.6-.1-1.6-.9z" fill="currentColor"/></svg>';
 function _skTier(len) {
   for (let i = SK_TIERS.length - 1; i >= 0; i--) if (len >= SK_TIERS[i].min) return SK_TIERS[i];
   return SK_TIERS[0];
