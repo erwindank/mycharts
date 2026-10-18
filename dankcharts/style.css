@@ -5943,12 +5943,20 @@
 
     /* The Songs table's album never wraps the row to double height (4.10):
        the name cuts off with "…" (the cell's title shows it whole) and the
-       certification disc stays visible beside it */
+       certification disc stays visible beside it.
+       The cell takes a fixed share of the row and max-width: 0 stops it
+       asking for more: a one-line cell otherwise reserves its whole text
+       width, and the table took that space from Title · Artist, squeezing
+       titles and their badges into ~130px. */
+    .chart-table td.meta-col {
+      width: 20%;
+      max-width: 0;
+    }
     .chart-table td.meta-col > .song-album {
       display: flex;
       align-items: center;
       gap: 6px;
-      max-width: 240px;
+      max-width: 100%;
       white-space: nowrap;
     }
     .chart-table td.meta-col > .song-album > .chart-name-link {

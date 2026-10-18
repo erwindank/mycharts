@@ -1586,6 +1586,10 @@ animation, 12 screen check.
   albums, Navy dark, Navy light and Yellow, Yearly, an open chart run, New
   Songs; phone (touch) table width measured for 4 languages × 5 periods ×
   3 types, all inside the card; no JS errors.
+  **Fixed the same day (you spotted it):** the one-line album cell reserved
+  its whole text width, so with the badges on, Title · Artist shrank to
+  ~135px and every title wrapped. The album cell now has a fixed 20% share
+  (`max-width: 0`), and the title column gets ~225px at 1240px wide.
 
 The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in
