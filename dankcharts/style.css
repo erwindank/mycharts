@@ -5260,6 +5260,31 @@
       font-variant-numeric: tabular-nums;
     }
 
+    .bu-row .cr-cell { white-space: nowrap; }
+
+    /* Plays copy inside the name cell: hidden until phone width */
+    .bu-play-inline { display: none; }
+
+    /* Phones: the Plays column squeezed titles and badges. Drop it and show
+       the count under the artist instead; rank and ▶ ⋮ sit at the top of the
+       row next to the title rather than floating in the middle. */
+    @media (max-width: 600px) {
+      .bu-plays-cell { display: none; }
+      .bu-play-inline {
+        display: block;
+        margin-top: 2px;
+        font-size: var(--fs-xs);
+        font-weight: 700;
+        color: var(--text2);
+        font-family: var(--font-mono);
+        font-variant-numeric: tabular-nums;
+      }
+      .bu-row td { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+      .bu-rank-cell { vertical-align: top; padding-top: 0.6rem !important; width: 30px; }
+      .bu-name-cell { padding-left: var(--sp-1) !important; }
+      .bu-row .cr-cell { vertical-align: top; padding-top: 0.25rem; }
+    }
+
 /* ─── BU TRACK LIST DROPDOWN ─────────────────────────────────── */
 .bu-tracklist-drop {
   position: fixed;

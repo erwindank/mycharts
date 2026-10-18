@@ -18347,13 +18347,15 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
       <td class="bu-name-cell">
         <div class="bu-display-name">${esc(displayName)}</div>
         ${subName ? `<div class="bu-sub-name">${esc(subName)}</div>` : ''}
-        ${ytBtn}
+        <!-- Phones only: plays move under the artist so the title gets the width -->
+        <div class="bu-play-inline">${tCountHtml('plays', count)}</div>
         ${badges ? `<div class="bu-badges">${badges}</div>` : ''}
       </td>
       <td class="bu-plays-cell">
         <div class="bu-play-count">${tCountHtml('plays', count)}</div>
       </td>
-      <td class="cr-cell"><button class="cr-toggle-btn bu-cr-btn" title="BU Chart Run — Bubbling Under history" onclick="event.stopPropagation();toggleBuCr(this,'${buCrRowId}')">${CR_ICON}</button></td>
+      <!-- ▶ sample + ⋮ menu share the trailing column with the chart-run icon, as on the main charts -->
+      <td class="cr-cell">${ytBtn}<button class="cr-toggle-btn bu-cr-btn" title="BU Chart Run — Bubbling Under history" onclick="event.stopPropagation();toggleBuCr(this,'${buCrRowId}')">${CR_ICON}</button></td>
     </tr>`;
     const expandRow = `<tr class="bu-cr-row cr-row" id="${buCrRowId}"><td colspan="4"><div class="cr-panel bu-cr-panel">${buildBuCrPanelHTML(type, key)}</div></td></tr>`;
     return [mainRow, expandRow];
