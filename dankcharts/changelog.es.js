@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Off the Chart is easier to read on phones":
+    ["Fuera del Ranking se lee mejor en el móvil",
+     "En el móvil, las filas de Fuera del Ranking recortaban los títulos a unas pocas letras. Ahora cada fila se lee de arriba abajo: el título completo, el artista, las reproducciones y semanas en una línea, y luego las notas de racha y estado, con el menú ⋮ a la derecha."],
+
   "Off the Chart: play and menu buttons in their own column":
     ["Fuera del Ranking: los botones de muestra y menú en su propia columna",
      "En las listas Fuera del Ranking, los botones ▶ de muestra y ⋮ de menú estaban debajo de cada título. Ahora tienen su propia columna al final de cada fila, así las filas son más cortas y los botones siempre quedan alineados."],

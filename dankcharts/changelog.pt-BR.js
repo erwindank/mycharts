@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Off the Chart is easier to read on phones":
+    ["Fora da Parada ficou mais fácil de ler no celular",
+     "No celular, as linhas de Fora da Parada cortavam os títulos em poucas letras. Agora cada linha se lê de cima para baixo: o título completo, o artista, plays e semanas numa linha só, depois as notas de sequência e status, com o menu ⋮ à direita."],
+
   "Off the Chart: play and menu buttons in their own column":
     ["Fora da Parada: botões de amostra e menu em coluna própria",
      "Os botões ▶ de amostra e ⋮ de menu ficavam embaixo de cada título nas listas Fora da Parada. Agora eles têm sua própria coluna no fim de cada linha, então as linhas ficam mais curtas e os botões sempre alinhados."],

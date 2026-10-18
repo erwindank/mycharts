@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Off the Chart is easier to read on phones":
+    ["Fora do Top lê-se melhor no telemóvel",
+     "No telemóvel, as linhas de Fora do Top cortavam os títulos em poucas letras. Agora cada linha lê-se de cima para baixo: o título completo, o artista, plays e semanas numa só linha, depois as notas de sequência e estado, com o menu ⋮ à direita."],
+
   "Off the Chart: play and menu buttons in their own column":
     ["Fora do Top: botões de amostra e menu em coluna própria",
      "Os botões ▶ de amostra e ⋮ de menu ficavam por baixo de cada título nas listas Fora do Top. Agora têm a sua própria coluna no fim de cada linha, por isso as linhas ficam mais curtas e os botões sempre alinhados."],

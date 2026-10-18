@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 172;
+const DC_CL_I18N_V = 173;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-18', t: 'fix', a: 'charts', h: 'd4220bd',
+    title: "Off the Chart is easier to read on phones",
+    detail: "On phones, Off the Chart rows squeezed song titles down to a few letters. Each row now reads top to bottom: the full title, the artist, then plays and weeks on one line, then the streak and status notes, with the ⋮ menu on the right." },
 
   { d: '2026-10-18', t: 'fix', a: 'charts', h: '418f548',
     title: "Off the Chart: play and menu buttons in their own column",
