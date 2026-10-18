@@ -9038,6 +9038,16 @@
     .pk-medal,
     .cert-short { display: none; }
 
+    /* Spanish chart tables at every width (2026-10-18): the Plays column
+       took far too much of the row with "54 reproducciones", the
+       "REPRODUCCIONES" header and "▲ LOGRO MÁS ALTO". They use the short forms
+       the phone already had: "54 reprods", "Reprods" / "Total", "▲ MÁX".
+       English and Portuguese have no longer forms here, so they're unchanged. */
+    html[lang="es"] .chart-table .th-plays-full { display: none; }
+    html[lang="es"] .chart-table .th-plays-short { display: inline; }
+    html[lang="es"] .chart-table .plays-peak-badge .ppb-full { display: none; }
+    html[lang="es"] .chart-table .plays-peak-badge .ppb-short { display: inline; }
+
     /* Phone chart table, every language: diamonds as emoji ("DOUBLE DIAMOND"
        → 💎💎, "TRIPLE DIAMOND" → 3×💎, 4×💎…). Gold and Platinum keep their
        words (your call, 2026-10-18). */
