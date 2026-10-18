@@ -1592,6 +1592,20 @@ animation, 12 screen check.
   (`max-width: 0`), and the title column gets ~225px at 1240px wide.
   **Then, your call: album names wrap** inside that 20% instead of being
   cut off with "…", the certification disc following the name.
+  **Then, your request: adjustable columns** (`_colw*` in app.js). On the
+  Songs / Artists / Albums tables, every period, desktop only: drag the line
+  between two headers (Title · Album · Weeks · Plays) to move width from one
+  column to its neighbour, so the table never outgrows its card; rank,
+  movement, cover and buttons keep their sizes. Double-click the line, or ⋮
+  → Size → Reset column widths (shown only while a table has custom widths),
+  to go back to automatic. Saved per table and per column set (with or
+  without Move / Weeks), text columns as a share of the table and laid out
+  in whole pixels for the current width (percentages left a seam in the #1
+  row's tint); `dc_col_widths` syncs with the account. Phones ignore it.
+  Checked with real mouse drags: widths, save, re-render, All-Time kept
+  apart, a table drawn while hidden, window resize, double-click and menu
+  reset, phone switch-off, phone fit unchanged. Noted again: between 600
+  and 980px wide the whole page still scrolls sideways (older, phase 5).
 
 The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in

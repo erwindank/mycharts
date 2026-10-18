@@ -30780,6 +30780,60 @@ body[class*="-light"] [class*="ns-tier-"] .ns-flame {
   font-size: var(--fs-xs);
 }
 
+/* ── ADJUSTABLE COLUMNS (chart tables, _colw* in app.js) ──
+   A drag handle on the right edge of each resizable header; once a table has
+   saved widths it switches to fixed layout so the header widths are exact. */
+.chart-table thead th { position: relative; }
+.chart-table.colw-fixed { table-layout: fixed; }
+/* Fixed layout cuts what doesn't fit instead of widening the column */
+.chart-table.colw-fixed td { overflow: hidden; overflow-wrap: anywhere; }
+.chart-table.colw-fixed td.meta-col { max-width: none; }
+.colw-handle {
+  position: absolute;
+  top: 0;
+  right: -5px;
+  bottom: 0;
+  width: 10px;
+  z-index: 2;
+  cursor: col-resize;
+  touch-action: none;
+}
+/* The line itself: faint on header hover, accent while hovered / dragged */
+.colw-handle::after {
+  content: '';
+  position: absolute;
+  top: 25%;
+  bottom: 25%;
+  left: 4px;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--border);
+  opacity: 0;
+  transition: opacity 0.15s, background 0.15s;
+}
+.chart-table thead tr:hover .colw-handle::after { opacity: 1; }
+.colw-handle:hover::after,
+body.colw-dragging .colw-handle::after { background: var(--accent); opacity: 1; }
+body.colw-dragging { cursor: col-resize; user-select: none; }
+@media (max-width: 600px) {
+  .colw-handle { display: none; }
+}
+/* ⋮ → Size: shown only while the table has custom widths */
+.colw-reset-btn {
+  width: 100%;
+  margin-top: 2px;
+  padding: 0.4rem var(--sp-2);
+  border: none;
+  border-top: 1px solid var(--border);
+  background: none;
+  color: var(--text2);
+  font-family: var(--font-sans);
+  font-size: var(--fs-xs);
+  text-align: left;
+  cursor: pointer;
+}
+.colw-reset-btn:hover { background: var(--bg3); color: var(--text); }
+
 /* ── WEEKLY ALT VIEW CONTAINER ── */
 .weekly-alt-view { padding: var(--sp-2) 0; }
 

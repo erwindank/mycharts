@@ -38,6 +38,8 @@ function applyChartTypeView() {
   syncAlbumsFilterBar();
   // So do the layout buttons, which show the layout of the chart on screen
   syncChartLayoutBar();
+  // A table drawn while hidden couldn't size its custom columns; it can now
+  if (typeof _colwApply === 'function') _colwApply(chartTypeView);
   // Daily tab: the #1 line above the chart is about the chart on screen
   if (currentPeriod === 'day' && typeof dyRenderTop === 'function' && allPlays && allPlays.length) dyRenderTop(dyHistory(), dyViewedDay());
 }
@@ -13318,7 +13320,206 @@ function renderTableHeaders() {
     document.getElementById('artistsHeadRow').innerHTML = `<th>${t('th_rank')}</th>${thumbTh}<th>${t('th_artist')}</th><th class="meta-col">${t('th_unique_songs')}</th><th style="text-align:right;"><span class="th-plays-full">${t('th_total_plays')}</span><span class="th-plays-short">${t('th_total_plays_mobile')}</span></th>${crTh}`;
     document.getElementById('albumsHeadRow').innerHTML = `<th>${t('th_rank')}</th>${thumbTh}<th>${separatedTypes().length ? t('th_type_artist', { type: albumBucketNoun(false) }) : t('th_album_artist')}</th><th class="meta-col">${t('th_tracks')}</th><th style="text-align:right;"><span class="th-plays-full">${t('th_total_plays')}</span><span class="th-plays-short">${t('th_total_plays_mobile')}</span></th>${crTh}`;
   }
+  // Drag handles + any saved column widths (adjustable columns, below)
+  _colwSetup(hasPeriodStats);
 }
+
+/* ─── ADJUSTABLE COLUMNS (chart tables) ───────────────────────────────────────
+   Songs / Artists / Albums tables, every period: drag the line between two
+   headers to move width from one column to its neighbour, so the table never
+   grows past its card. Double-click the line (or ⋮ → Size → Reset column
+   widths) to go back to automatic widths. Desktop only: on phones the table
+   already squeezes to fit and its Album column is hidden.
+
+   The four text columns (title, album / songs / tracks, weeks, plays) are
+   saved as their share of the table (%), so they still fit when the window
+   changes size; rank, movement, cover and the action buttons keep their
+   width in px, so a narrower window never crops a cover. Per table and per
+   column set: tables
+   with Move / Weeks columns (Daily, Weekly, Monthly, Yearly) and without
+   (All-Time) are kept apart. dc_col_widths syncs with the account
+   (SYNC_KEYS in firebase.js). Shape: { "songs|s": { title: 31.2, rank: 64, … }, … } */
+const _COLW_KEYS = {
+  s: ['rank', 'move', 'thumb', 'title', 'meta', 'period', 'plays', 'cr'],   // with period stats
+  p: ['rank', 'thumb', 'title', 'meta', 'plays', 'cr'],                     // All-Time
+};
+// The columns whose shared edges can be dragged; rank, cover, movement and
+// the action buttons keep their own sizes
+const _COLW_RESIZABLE = new Set(['title', 'meta', 'period', 'plays']);
+const _COLW_MIN = 48;   // px, the narrowest a dragged column can get
+const _colwDesktop = window.matchMedia('(min-width: 601px)');
+
+/* Saved widths → whole pixels for the table's current width. Percentages
+   left to the browser land between pixels, and the #1 row's tint then
+   showed a hairline seam where two columns meet. The text columns share
+   what the fixed ones leave; rounding leftovers go to the title column.
+   Re-run on window resize and when a hidden table comes on screen. */
+function _colwLayout(table, saved) {
+  const W = _colwAvail(table);
+  if (!W) return;   // hidden (another chart type on screen): laid out once it shows
+  const ths = [...table.querySelectorAll('thead th[data-col]')];
+  const px = {};
+  let used = 0;
+  for (const th of ths) {
+    const col = th.dataset.col, v = saved[col];
+    if (v == null) continue;
+    px[col] = _COLW_RESIZABLE.has(col) ? Math.max(_COLW_MIN, Math.round(v / 100 * W)) : Math.round(v);
+    used += px[col];
+  }
+  if (px.title != null) px.title = Math.max(_COLW_MIN, px.title + (W - used));
+  for (const th of ths) if (px[th.dataset.col] != null) th.style.width = px[th.dataset.col] + 'px';
+}
+
+/* The width the table may use. Measured with the table taken out for a
+   moment: once its columns are set in px it holds itself (and the flex
+   boxes around it) open, so neither it nor its container would ever shrink
+   with the window. */
+function _colwAvail(table) {
+  const d = table.style.display;
+  table.style.display = 'none';
+  const W = table.parentElement.clientWidth;
+  table.style.display = d;
+  return W;
+}
+
+// Window resized: lay the custom tables out again for the new width
+let _colwRaf = 0;
+window.addEventListener('resize', () => {
+  if (_colwRaf) return;
+  _colwRaf = requestAnimationFrame(() => {
+    _colwRaf = 0;
+    if (_colwDesktop.matches) ['songs', 'artists', 'albums'].forEach(_colwApply);
+  });
+});
+
+function _colwRead() {
+  try { return JSON.parse(localStorage.getItem('dc_col_widths') || '{}') || {}; } catch (e) { return {}; }
+}
+function _colwWrite(all) {
+  try {
+    if (Object.keys(all).length) localStorage.setItem('dc_col_widths', JSON.stringify(all));
+    else localStorage.removeItem('dc_col_widths');
+  } catch (e) {}
+  if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
+}
+
+// Called by renderTableHeaders once the three header rows are built: name each
+// header cell (data-col), put the drag handles in, and lay out any saved widths
+function _colwSetup(withStats) {
+  const set = withStats ? 's' : 'p';
+  for (const type of ['songs', 'artists', 'albums']) {
+    const row = document.getElementById(type + 'HeadRow');
+    if (!row) continue;
+    const ths = [...row.children];
+    ths.forEach((th, i) => {
+      const col = _COLW_KEYS[set][i];
+      if (!col) return;
+      th.dataset.col = col;
+      th.dataset.w0 = th.style.width;   // built-in width (cover, actions), put back on reset
+      const next = _COLW_KEYS[set][i + 1];
+      if (_COLW_RESIZABLE.has(col) && _COLW_RESIZABLE.has(next)) {
+        const h = document.createElement('span');
+        h.className = 'colw-handle';
+        h.title = t('colw_hint');
+        h.setAttribute('aria-hidden', 'true');
+        h.addEventListener('pointerdown', e => _colwDragStart(e, type, set, th));
+        h.addEventListener('dblclick', e => { e.stopPropagation(); colwReset(type); });
+        th.appendChild(h);
+      }
+    });
+    const table = row.closest('table');
+    table.dataset.colwSet = set;
+    _colwApply(type);
+  }
+}
+
+// Lay out a table's saved widths (fixed layout), or leave it automatic
+function _colwApply(type) {
+  const table = document.getElementById(type + 'Table');
+  if (!table) return;
+  const key = type + '|' + table.dataset.colwSet;
+  const saved = _colwDesktop.matches ? _colwRead()[key] : null;
+  table.classList.toggle('colw-fixed', !!saved);
+  if (saved) _colwLayout(table, saved);
+  else table.querySelectorAll('thead th[data-col]').forEach(th => { th.style.width = th.dataset.w0 || ''; });
+  _colwSyncResetBtn(type, !!saved);
+}
+
+// "Reset column widths" under ⋮ → Size, only while this table has custom widths
+function _colwSyncResetBtn(type, on) {
+  const bar = document.getElementById('sizeBar' + type[0].toUpperCase() + type.slice(1));
+  if (!bar) return;
+  let btn = bar.parentElement.querySelector('.colw-reset-btn');
+  if (!btn) {
+    btn = document.createElement('button');
+    btn.className = 'colw-reset-btn';
+    btn.addEventListener('click', () => colwReset(type));
+    bar.after(btn);
+  }
+  btn.textContent = t('colw_reset');
+  btn.style.display = on ? '' : 'none';
+}
+
+function colwReset(type) {
+  const table = document.getElementById(type + 'Table');
+  if (!table) return;
+  const all = _colwRead();
+  delete all[type + '|' + table.dataset.colwSet];
+  _colwWrite(all);
+  _colwApply(type);
+}
+
+function _colwDragStart(e, type, set, th) {
+  if (e.button !== 0) return;
+  e.preventDefault();
+  e.stopPropagation();
+  const table = th.closest('table');
+  const ths = [...th.parentElement.children];
+  const right = th.nextElementSibling;
+  const tableW = _colwAvail(table);
+  // First drag on an automatic table: freeze every column at its current
+  // width, so only the two columns either side of the line move
+  if (!table.classList.contains('colw-fixed')) {
+    const widths = ths.map(c => c.getBoundingClientRect().width);
+    ths.forEach((c, i) => { c.style.width = Math.round(widths[i]) + 'px'; });
+    table.classList.add('colw-fixed');
+  }
+  const startX = e.clientX;
+  const startL = th.getBoundingClientRect().width;
+  const startR = right.getBoundingClientRect().width;
+  const handle = e.currentTarget;
+  handle.setPointerCapture(e.pointerId);
+  document.body.classList.add('colw-dragging');
+  const move = ev => {
+    const dx = Math.max(_COLW_MIN - startL, Math.min(startR - _COLW_MIN, ev.clientX - startX));
+    th.style.width = Math.round(startL + dx) + 'px';
+    right.style.width = Math.round(startR - dx) + 'px';
+  };
+  const up = () => {
+    handle.removeEventListener('pointermove', move);
+    handle.removeEventListener('pointerup', up);
+    handle.removeEventListener('pointercancel', up);
+    document.body.classList.remove('colw-dragging');
+    // Text columns saved as a share of the table, the rest in px
+    const map = {};
+    ths.forEach(c => {
+      const col = c.dataset.col;
+      if (!col) return;
+      const w = c.getBoundingClientRect().width;
+      map[col] = _COLW_RESIZABLE.has(col) ? +(w / tableW * 100).toFixed(2) : Math.round(w);
+    });
+    const all = _colwRead();
+    all[type + '|' + set] = map;
+    _colwWrite(all);
+    _colwSyncResetBtn(type, true);
+  };
+  handle.addEventListener('pointermove', move);
+  handle.addEventListener('pointerup', up);
+  handle.addEventListener('pointercancel', up);
+}
+
+// Crossing the phone / desktop width: saved widths only apply on desktop
+_colwDesktop.addEventListener('change', () => ['songs', 'artists', 'albums'].forEach(_colwApply));
 
 function renderAll() {
   if (currentPeriod === 'rawdata') { applyRawFilters(); return; }

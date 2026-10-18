@@ -1261,6 +1261,9 @@ const TRANSLATIONS = {
     // Card grid on Yearly / All-Time pages with this (phase 7 step 6)
     wv_show_more: 'Show more',
     wv_showing: 'Showing {{n}} of {{total}}',
+    // Adjustable chart table columns (_colw* in app.js)
+    colw_hint: 'Drag to resize · double-click to reset',
+    colw_reset: 'Reset column widths',
     sub_toggle_bu: 'Bubbling Under',
     sec_bubbling_under: 'BUBBLING UNDER TOP {{n}}',
     bu_sub_songs: 'Songs just outside the chart — ranked by plays this week',
@@ -4080,6 +4083,9 @@ const TRANSLATIONS = {
     // Card grid on Yearly / All-Time pages with this (phase 7 step 6)
     wv_show_more: 'Mostrar más',
     wv_showing: 'Mostrando {{n}} de {{total}}',
+    // Adjustable chart table columns (_colw* in app.js)
+    colw_hint: 'Arrastra para ajustar · doble clic para restablecer',
+    colw_reset: 'Restablecer anchos de columna',
     sub_toggle_bu: 'Casi en el Top',
     sec_bubbling_under: 'CASI EN EL TOP {{n}}',
     bu_sub_songs: 'Canciones justo fuera del ranking — ordenadas por reproducciones esta semana',
@@ -6799,6 +6805,9 @@ const TRANSLATIONS = {
     // Card grid on Yearly / All-Time pages with this (phase 7 step 6)
     wv_show_more: 'Mostrar mais',
     wv_showing: 'Mostrando {{n}} de {{total}}',
+    // Adjustable chart table columns (_colw* in app.js)
+    colw_hint: 'Arraste para ajustar · clique duas vezes para redefinir',
+    colw_reset: 'Redefinir largura das colunas',
     sub_toggle_bu: 'Quase no Top',
     sec_bubbling_under: 'QUASE NO TOP {{n}}',
     bu_sub_songs: 'Músicas que ficaram de fora da parada — ordenadas por plays esta semana',
@@ -9519,6 +9528,9 @@ const TRANSLATIONS = {
     // Card grid on Yearly / All-Time pages with this (phase 7 step 6)
     wv_show_more: 'Mostrar mais',
     wv_showing: 'A mostrar {{n}} de {{total}}',
+    // Adjustable chart table columns (_colw* in app.js)
+    colw_hint: 'Arrasta para ajustar · clica duas vezes para repor',
+    colw_reset: 'Repor largura das colunas',
     sub_toggle_bu: 'Quase no Top',
     sec_bubbling_under: 'QUASE NO TOP {{n}}',
     bu_sub_songs: 'Músicas que ficaram fora do Top — ordenadas por plays esta semana',
