@@ -157,9 +157,11 @@ function dyHistory() {
 function dyEntryFacts(h, type, ds) {
   const chart = h.charts[type][ds] || [];
   const want = new Set(chart.map(r => r.k));
-  const monthStart = ds.slice(0, 7) + '-01';
   const facts = {};
-  for (const k of want) facts[k] = { peak: Infinity, peakDs: '', monthDays: 0, before: false };
+  // days: every day on the daily chart up to and including the viewed one,
+  // the same count as the chart run's "Days on chart" (dyChartRun). It used
+  // to count only this month's days, so a song back after a month away read 1.
+  for (const k of want) facts[k] = { peak: Infinity, peakDs: '', days: 0, before: false };
   for (const day of h.days) {
     if (day > ds) break;
     const rows = h.charts[type][day];
@@ -168,7 +170,7 @@ function dyEntryFacts(h, type, ds) {
       const f = facts[r.k];
       if (!f) continue;
       if (r.rank < f.peak) { f.peak = r.rank; f.peakDs = day; }
-      if (day >= monthStart) f.monthDays++;
+      f.days++;
       if (day < ds) f.before = true;
     }
   }
@@ -1041,7 +1043,7 @@ function dyPublishForShare(h, ds) {
     for (const r of chart) {
       const f = facts[r.k] || {};
       if (f.before) stats.everChartedBefore[type].add(r.k);
-      stats.periodsOnChart[type][r.k] = f.monthDays || 1;
+      stats.periodsOnChart[type][r.k] = f.days || 1;
       if (f.peak && isFinite(f.peak)) peaks[peakKey[type]][r.k] = f.peak;
     }
     fullData[type] = !day ? [] : chart.map(r => {
