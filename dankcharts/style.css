@@ -6074,6 +6074,23 @@
       user-select: text;
     }
 
+    /* Plays in the Songs / Artists / Albums tables: number, change and bar
+       centred under a centred header, like Weeks beside it (2026-10-18) */
+    .chart-table .plays-th,
+    .chart-table:is(#songsTable, #artistsTable, #albumsTable) .play-count {
+      text-align: center;
+    }
+    /* Dragged narrow, the change in plays wraps under the number instead of
+       spilling out of the column */
+    .chart-table.colw-fixed:is(#songsTable, #artistsTable, #albumsTable) .play-count {
+      white-space: normal;
+    }
+    /* …but "3 plays" and "-51" each stay in one piece */
+    .chart-table.colw-fixed:is(#songsTable, #artistsTable, #albumsTable) .play-count .cnt-unit,
+    .chart-table.colw-fixed:is(#songsTable, #artistsTable, #albumsTable) .play-count > [class^="m-"] {
+      white-space: nowrap;
+    }
+
     /* Fully rounded capsule on a translucent track. 3px since phase 7 step 7:
        the number is what matters; the fill keeps its movement colour. */
     .play-bar {

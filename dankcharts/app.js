@@ -13304,13 +13304,13 @@ function renderTableHeaders() {
   // 72px = the ▶ · ⋮ · chart-run buttons side by side (.cr-cell in style.css)
   const crTh = `<th class="cr-th" style="width:72px;"></th>`;
   if (hasPeriodStats) {
-    document.getElementById('songsHeadRow').innerHTML = `${rankTh}${prevTh}${thumbTh}<th>${t('th_title_artist')}</th><th class="meta-col">${t('th_album')}</th>${periodTh}<th style="text-align:right;"><span class="th-plays-full">${t('th_plays')}</span><span class="th-plays-short">${t('th_plays_mobile')}</span></th>${crTh}`;
-    document.getElementById('artistsHeadRow').innerHTML = `${rankTh}${prevTh}${thumbTh}<th>${t('th_artist')}</th><th class="meta-col">${t('th_unique_songs')}</th>${periodTh}<th style="text-align:right;"><span class="th-plays-full">${t('th_total_plays')}</span><span class="th-plays-short">${t('th_total_plays_mobile')}</span></th>${crTh}`;
-    document.getElementById('albumsHeadRow').innerHTML = `${rankTh}${prevTh}${thumbTh}<th>${separatedTypes().length ? t('th_type_artist', { type: albumBucketNoun(false) }) : t('th_album_artist')}</th><th class="meta-col">${t('th_tracks')}</th>${periodTh}<th style="text-align:right;"><span class="th-plays-full">${t('th_total_plays')}</span><span class="th-plays-short">${t('th_total_plays_mobile')}</span></th>${crTh}`;
+    document.getElementById('songsHeadRow').innerHTML = `${rankTh}${prevTh}${thumbTh}<th>${t('th_title_artist')}</th><th class="meta-col">${t('th_album')}</th>${periodTh}<th class="plays-th"><span class="th-plays-full">${t('th_plays')}</span><span class="th-plays-short">${t('th_plays_mobile')}</span></th>${crTh}`;
+    document.getElementById('artistsHeadRow').innerHTML = `${rankTh}${prevTh}${thumbTh}<th>${t('th_artist')}</th><th class="meta-col">${t('th_unique_songs')}</th>${periodTh}<th class="plays-th"><span class="th-plays-full">${t('th_total_plays')}</span><span class="th-plays-short">${t('th_total_plays_mobile')}</span></th>${crTh}`;
+    document.getElementById('albumsHeadRow').innerHTML = `${rankTh}${prevTh}${thumbTh}<th>${separatedTypes().length ? t('th_type_artist', { type: albumBucketNoun(false) }) : t('th_album_artist')}</th><th class="meta-col">${t('th_tracks')}</th>${periodTh}<th class="plays-th"><span class="th-plays-full">${t('th_total_plays')}</span><span class="th-plays-short">${t('th_total_plays_mobile')}</span></th>${crTh}`;
   } else {
-    document.getElementById('songsHeadRow').innerHTML = `${rankTh}${thumbTh}<th>${t('th_title_artist')}</th><th class="meta-col">${t('th_album')}</th><th style="text-align:right;"><span class="th-plays-full">${t('th_plays')}</span><span class="th-plays-short">${t('th_plays_mobile')}</span></th>${crTh}`;
-    document.getElementById('artistsHeadRow').innerHTML = `${rankTh}${thumbTh}<th>${t('th_artist')}</th><th class="meta-col">${t('th_unique_songs')}</th><th style="text-align:right;"><span class="th-plays-full">${t('th_total_plays')}</span><span class="th-plays-short">${t('th_total_plays_mobile')}</span></th>${crTh}`;
-    document.getElementById('albumsHeadRow').innerHTML = `${rankTh}${thumbTh}<th>${separatedTypes().length ? t('th_type_artist', { type: albumBucketNoun(false) }) : t('th_album_artist')}</th><th class="meta-col">${t('th_tracks')}</th><th style="text-align:right;"><span class="th-plays-full">${t('th_total_plays')}</span><span class="th-plays-short">${t('th_total_plays_mobile')}</span></th>${crTh}`;
+    document.getElementById('songsHeadRow').innerHTML = `${rankTh}${thumbTh}<th>${t('th_title_artist')}</th><th class="meta-col">${t('th_album')}</th><th class="plays-th"><span class="th-plays-full">${t('th_plays')}</span><span class="th-plays-short">${t('th_plays_mobile')}</span></th>${crTh}`;
+    document.getElementById('artistsHeadRow').innerHTML = `${rankTh}${thumbTh}<th>${t('th_artist')}</th><th class="meta-col">${t('th_unique_songs')}</th><th class="plays-th"><span class="th-plays-full">${t('th_total_plays')}</span><span class="th-plays-short">${t('th_total_plays_mobile')}</span></th>${crTh}`;
+    document.getElementById('albumsHeadRow').innerHTML = `${rankTh}${thumbTh}<th>${separatedTypes().length ? t('th_type_artist', { type: albumBucketNoun(false) }) : t('th_album_artist')}</th><th class="meta-col">${t('th_tracks')}</th><th class="plays-th"><span class="th-plays-full">${t('th_total_plays')}</span><span class="th-plays-short">${t('th_total_plays_mobile')}</span></th>${crTh}`;
   }
   // Drag handles + any saved column widths (adjustable columns, below)
   _colwSetup(hasPeriodStats);
@@ -13323,12 +13323,13 @@ function renderTableHeaders() {
    widths) to go back to automatic widths. Desktop only: on phones the table
    already squeezes to fit and its Album column is hidden.
 
-   The three text columns (title, album / songs / tracks, weeks) are saved
-   as their share of the table (%), so they still fit when the window
-   changes size; rank and movement are dragged and saved in px. Cover,
-   Plays and the action buttons always keep their built-in width and are
-   never saved, so the ⋮ menu can't be pushed out of the card (an old
-   saved 38px button column used to cut it off). Per table and per
+   The four text columns (title, album / songs / tracks, weeks, plays) are
+   saved as their share of the table (%), so they still fit when the window
+   changes size; rank and movement are dragged and saved in px. Plays has
+   its own floor (_COLW_MIN_COL) so its number always fits. Cover and the
+   action buttons always keep their built-in width and are never saved, so
+   the ⋮ menu can't be pushed out of the card (an old saved 38px button
+   column used to cut it off). Per table and per
    column set: tables
    with Move / Weeks columns (Daily, Weekly, Monthly, Yearly) and without
    (All-Time) are kept apart. dc_col_widths syncs with the account
@@ -13339,20 +13340,26 @@ const _COLW_KEYS = {
 };
 // The columns whose shared edges can be dragged; cover and the action
 // buttons keep their own sizes
-const _COLW_RESIZABLE = new Set(['title', 'meta', 'period']);
+const _COLW_RESIZABLE = new Set(['title', 'meta', 'period', 'plays']);
 // Rank and Move can be dragged too, but stay in px (like the cover). Their
 // right edge trades width with the next column when it is Move, otherwise
 // with Title, which absorbs every px change anyway
 const _COLW_PX_DRAG = new Set(['rank', 'move']);
 const _COLW_MIN = 48;   // px, the narrowest a dragged column can get
 const _COLW_MIN_PX = 40;   // px, the narrowest Rank / Move can get
-// Columns that never change size: their px width, whatever was saved.
-// Plays fits "3 veces -51" plus its bar; cover and buttons use the width
-// set on their header in renderTableHeaders
-const _COLW_FIXED = { plays: 150 };
+// Plays can be dragged again (your call, 2026-10-18) but never below the
+// number itself; narrower than "3 veces -51" the change wraps under it
+const _COLW_MIN_COL = { plays: 96 };
+function _colwMin(col) {
+  return _COLW_MIN_COL[col] || (_COLW_PX_DRAG.has(col) ? _COLW_MIN_PX : _COLW_MIN);
+}
+// Width a column starts at when nothing is saved for it: Plays fits
+// "3 veces -51" plus its bar (older saved widths have no Plays entry)
+const _COLW_DEFAULT = { plays: 150 };
+// Columns that never change size: cover and buttons use the width set on
+// their header in renderTableHeaders, whatever was saved
 function _colwFixedW(th) {
   const col = th.dataset.col;
-  if (_COLW_FIXED[col]) return _COLW_FIXED[col];
   if (col === 'thumb' || col === 'cr') return parseInt(th.dataset.w0, 10) || null;
   return null;
 }
@@ -13373,8 +13380,11 @@ function _colwLayout(table, saved) {
     const col = th.dataset.col, fixed = _colwFixedW(th);
     if (fixed) { px[col] = fixed; used += fixed; continue; }
     const v = saved[col];
-    if (v == null) continue;
-    px[col] = _COLW_RESIZABLE.has(col) ? Math.max(_COLW_MIN, Math.round(v / 100 * W)) : Math.round(v);
+    if (v == null) {
+      if (_COLW_DEFAULT[col]) { px[col] = _COLW_DEFAULT[col]; used += px[col]; }
+      continue;
+    }
+    px[col] = _COLW_RESIZABLE.has(col) ? Math.max(_colwMin(col), Math.round(v / 100 * W)) : Math.round(v);
     used += px[col];
   }
   if (px.title != null) px.title = Math.max(_COLW_MIN, px.title + (W - used));
@@ -13454,7 +13464,7 @@ function _colwApply(type) {
   if (saved) _colwLayout(table, saved);
   else table.querySelectorAll('thead th[data-col]').forEach(th => {
     // Phones lay the table out on their own: built-in widths only
-    const fixed = _colwDesktop.matches ? _colwFixedW(th) : null;
+    const fixed = _colwDesktop.matches ? (_colwFixedW(th) || _COLW_DEFAULT[th.dataset.col]) : null;
     th.style.width = fixed ? fixed + 'px' : (th.dataset.w0 || '');
   });
   _colwSyncResetBtn(type, !!saved);
@@ -13496,8 +13506,8 @@ function _colwDragStart(e, type, set, th) {
   const right = (_COLW_RESIZABLE.has(nextCol) || _COLW_PX_DRAG.has(nextCol))
     ? th.nextElementSibling
     : th.parentElement.querySelector('th[data-col="title"]');
-  const minL = _COLW_PX_DRAG.has(th.dataset.col) ? _COLW_MIN_PX : _COLW_MIN;
-  const minR = _COLW_PX_DRAG.has(right.dataset.col) ? _COLW_MIN_PX : _COLW_MIN;
+  const minL = _colwMin(th.dataset.col);
+  const minR = _colwMin(right.dataset.col);
   const tableW = _colwAvail(table);
   // First drag on an automatic table: freeze every column at its current
   // width, so only the two columns either side of the line move
