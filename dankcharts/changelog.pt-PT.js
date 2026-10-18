@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Chart layouts are now buttons above the chart":
+    ["As disposições do top agora são botões por cima do top",
+     "As seis formas de ver um top (Tabela, Grelha de cartões, Compacto, Mosaico, Faixa e Pilha) estavam escondidas no menu ⋮ do top, em Ver. Agora são uma fila de ícones pequenos à direita da barra por cima do top, ao lado de Músicas, Artistas e Álbuns: passa o rato por cima de um para ver o nome. Cada tipo de top continua a lembrar a sua própria disposição. Com Pilha ativa, mais um ícone divide-a em duas colunas. O menu ⋮ agora tem Mostrar, Tamanho e Ações. A visita guiada mostra os novos botões."],
+
   "Show switches work in every chart layout, and every row has ▶ and ⋮":
     ["As opções de Mostrar funcionam em todos os esquemas, e cada linha tem ▶ e ⋮",
      "As opções do menu ⋮ de uma tabela, em Mostrar (picos, certificações, as tuas notas, pico de plays, + de playlist), funcionam agora da mesma forma nos seis esquemas, para músicas, artistas e álbuns. Antes, Grelha de cartões, Compacto, Pilha e Filmstrip só mostravam algumas. A opção do YouTube saiu: para ver uma música, abre o ⋮ ou clica com o botão direito na linha e escolhe Reproduzir o vídeo. Em troca, as tabelas Anual e de Sempre e as listas Bubbling Under, Fora da tabela e Novas entradas também têm o botão ▶ de amostra e o menu ⋮, e clicar numa linha da Anual ou de Sempre abre os detalhes. Reproduzir tudo e Aleatório funcionam como antes."],

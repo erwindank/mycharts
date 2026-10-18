@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 162;
+const DC_CL_I18N_V = 163;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-17', t: 'feature', a: 'charts', h: 'd7069fd',
+    title: "Chart layouts are now buttons above the chart",
+    detail: "The six ways to look at a chart (Table, Card grid, Compact, Mosaic, Filmstrip and Stack) used to hide in the chart's ⋮ menu, under View. Now they are a row of small icons on the right of the bar above the chart, next to Songs, Artists and Albums: hover one to see its name. Each chart type still remembers its own layout. When Stack is on, one more icon splits it into two columns. The ⋮ menu now has Show, Size and Actions. The guided tour shows the new buttons." },
 
   { d: '2026-10-17', t: 'feature', a: 'charts', h: 'a405103',
     title: "Show switches work in every chart layout, and every row has ▶ and ⋮",

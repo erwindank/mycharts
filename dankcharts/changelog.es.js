@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Chart layouts are now buttons above the chart":
+    ["Los diseños del chart ahora son botones sobre el chart",
+     "Las seis formas de ver un chart (Tabla, Cuadrícula de tarjetas, Compacto, Mosaico, Tira y Pila) estaban escondidas en el menú ⋮ del chart, en Ver. Ahora son una fila de iconos pequeños a la derecha de la barra sobre el chart, junto a Canciones, Artistas y Álbumes: pasa el cursor sobre uno para ver su nombre. Cada tipo de chart sigue recordando su propio diseño. Con Pila activo, un icono más lo divide en dos columnas. El menú ⋮ ahora tiene Mostrar, Tamaño y Acciones. El tour guiado muestra los nuevos botones."],
+
   "Show switches work in every chart layout, and every row has ▶ and ⋮":
     ["Los interruptores de Mostrar funcionan en todos los diseños, y cada fila tiene ▶ y ⋮",
      "Los interruptores del menú ⋮ de un chart, en Mostrar (picos, certificaciones, tus puntuaciones, pico de reprods, + de playlist), ahora funcionan igual en los seis diseños, para canciones, artistas y álbumes. Antes, Cuadrícula de tarjetas, Compacto, Pila y Tira solo mostraban algunos. El interruptor de YouTube ya no está: para ver una canción, abre ⋮ o haz clic derecho en la fila y elige Reproducir el video. A cambio, los charts Anual y Histórico y las listas Bubbling Under, Fuera del chart y Nuevas entradas también tienen el botón ▶ de muestra y el menú ⋮, y al hacer clic en una fila del Anual o el Histórico se abren sus detalles. Reproducir todo y Aleatorio funcionan como antes."],

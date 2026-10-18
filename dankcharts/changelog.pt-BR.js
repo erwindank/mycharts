@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Chart layouts are now buttons above the chart":
+    ["Os layouts da parada agora são botões acima da parada",
+     "As seis formas de ver uma parada (Tabela, Grade de cartões, Compacto, Mosaico, Faixa e Pilha) ficavam escondidas no menu ⋮ da parada, em Ver. Agora são uma fileira de ícones pequenos à direita da barra acima da parada, ao lado de Músicas, Artistas e Álbuns: passe o mouse sobre um para ver o nome. Cada tipo de parada continua lembrando o próprio layout. Com Pilha ativa, mais um ícone divide em duas colunas. O menu ⋮ agora tem Mostrar, Tamanho e Ações. O tour guiado mostra os novos botões."],
+
   "Show switches work in every chart layout, and every row has ▶ and ⋮":
     ["As opções de Mostrar funcionam em todos os layouts, e toda linha tem ▶ e ⋮",
      "As opções do menu ⋮ de uma parada, em Mostrar (picos, certificações, suas notas, pico de plays, + de playlist), agora funcionam igual nos seis layouts, para músicas, artistas e álbuns. Antes, Grade de cartões, Compacto, Pilha e Filmstrip só mostravam algumas. A opção do YouTube saiu: para ver uma música, abra o ⋮ ou clique com o botão direito na linha e escolha Tocar o vídeo. Em troca, as paradas Anual e de Todos os Tempos e as listas Bubbling Under, Fora da parada e Novas entradas também ganharam o botão ▶ de amostra e o menu ⋮, e clicar numa linha da Anual ou de Todos os Tempos abre os detalhes. Tocar tudo e Aleatório funcionam como antes."],
