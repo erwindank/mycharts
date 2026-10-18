@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "A cleaner chart table that fits on phones":
+    ["Uma tabela do top mais limpa que cabe no telemóvel",
+     "A disposição Tabela parece-se mais com um top impresso: as linhas são separadas por um traço fino em vez de cada uma estar numa caixa, as capas estão um pouco maiores e só o #1 tem um destaque suave. As barras de plays estão mais finas mas mantêm as cores, e os nomes longos de álbuns ficam numa só linha (passa o rato por cima para ver o nome completo). A coluna Anterior chama-se agora Variação e continua a mostrar a posição anterior por baixo da seta. No telemóvel a tabela já não sai pela margem direita em nenhuma língua: a coluna de plays mostra só o número, com a variação por baixo."],
+
   "Daily: Days on chart counts every day again":
     ["Diário: Dias no top volta a contar todos os dias",
      "No top Diário, a coluna Dias no top só contava os dias do mês atual, por isso uma música que voltava ao fim de algum tempo podia mostrar 1 dia enquanto o historial mostrava 48. Agora conta todos os dias que passou no top diário, o mesmo número que o historial mostra."],

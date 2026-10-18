@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 164;
+const DC_CL_I18N_V = 165;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-17', t: 'feature', a: 'charts', h: '98e03fc',
+    title: "A cleaner chart table that fits on phones",
+    detail: "The Table layout reads more like a printed chart: rows are split by a thin line instead of each sitting in its own box, covers are a little bigger, and only #1 gets a soft highlight. The play bars are thinner but keep their colours, and long album names stay on one line (hover to see the full name). The Previous column is now called Move, and still shows last period's rank under the arrow. On phones the table no longer runs off the right edge in any language: the plays column shows just the number, with the change under it." },
 
   { d: '2026-10-17', t: 'fix', a: 'charts', h: 'dfeb253',
     title: "Daily: Days on chart counts every day again",
