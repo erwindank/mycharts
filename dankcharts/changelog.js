@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 187;
+const DC_CL_I18N_V = 188;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-18', t: 'change', a: 'records', h: '6e76bba',
+    title: "Streak badges climb step by step",
+    detail: "The badges in Daily Streaks → Records now go up in smaller steps, so there's always a next one in reach: 110 badges in all, with new ones like a three-week streak, five streaks alive on one day, or 10 songs with a two-week streak. Names now grow with the goal too: the grandest names (Pantheon, Museum, Immortals, Phoenix, Lazarus, Serial returner) are now at the top of their ladders instead of partway up. Some cards were renamed, and two (Homecoming, Reborn legend) were folded into the new ladders." },
 
   { d: '2026-10-18', t: 'feature', a: 'records', h: 'db3096c',
     title: "Ten more Comebacks badges",

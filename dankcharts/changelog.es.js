@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Streak badges climb step by step":
+    ["Las insignias de rachas suben paso a paso",
+     "Las insignias de Rachas Diarias → Récords suben ahora en pasos más pequeños, así que siempre hay una siguiente a tu alcance: 110 insignias en total, con nuevas como una racha de tres semanas, cinco rachas activas en un día o 10 canciones con una racha de dos semanas. Los nombres también crecen con la meta: los más grandes (Panteón, Museo, Inmortales, Fénix, Lázaro, Siempre vuelve) están ahora en lo alto de su escalera y no a mitad. Algunas cambiaron de nombre, y dos (De vuelta a casa, Leyenda renacida) se integraron en las nuevas escaleras."],
+
   "Ten more Comebacks badges":
     ["Diez insignias más de Regresos",
      "Las insignias de Regresos en Rachas Diarias → Récords pasan de 7 a 17, con metas más difíciles cuando ya tienes las primeras: lo mismo volviendo con una racha de una semana 10 o 30 veces, dos o tres rachas separadas de un mes de lo mismo, 500 cosas distintas que vuelven, superar tu propio récord de 30 o 100 días, 100 cosas que vuelven tras más de un año, un regreso que llega a 30 días y una racha que vuelve tras más de cinco años."],

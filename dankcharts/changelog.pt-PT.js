@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Streak badges climb step by step":
+    ["As conquistas de sequências sobem passo a passo",
+     "As conquistas em Sequências Diárias → Recordes sobem agora em passos mais pequenos, por isso há sempre uma próxima ao alcance: 110 conquistas no total, com novas como uma sequência de três semanas, cinco sequências ativas num dia ou 10 músicas com uma sequência de duas semanas. Os nomes também crescem com a meta: os mais grandiosos (Panteão, Museu, Imortais, Fénix, Lázaro, Sempre volta) estão agora no topo da escada e não a meio. Algumas mudaram de nome, e duas (De volta a casa, Lenda renascida) foram integradas nas novas escadas."],
+
   "Ten more Comebacks badges":
     ["Mais dez conquistas de Retornos",
      "As conquistas de Retornos em Sequências Diárias → Recordes passam de 7 para 17, com metas mais difíceis depois das primeiras: a mesma coisa a voltar numa sequência de uma semana 10 ou 30 vezes, duas ou três sequências separadas de um mês da mesma coisa, 500 coisas diferentes que voltam, superar o próprio recorde de 30 ou 100 dias, 100 coisas que voltam ao fim de mais de um ano, um regresso que chega aos 30 dias e uma sequência que volta ao fim de mais de cinco anos."],
