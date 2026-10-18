@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 192;
+const DC_CL_I18N_V = 193;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-18', t: 'feature', a: 'records', h: '3b3c2ca',
+    title: "Calendar badges",
+    detail: "The Calendar group in Daily Streaks → Records goes from one badge to 18: streaks on holidays (New Year, Valentine's Day, February 29, Halloween, the holidays), in the seasons (a song of the summer, a winter streak, all four seasons in one year), covering whole calendar months or a whole year, and anniversaries, like the same artist on a streak on the same date in different years." },
 
   { d: '2026-10-18', t: 'feature', a: 'records', h: '25b0b6a',
     title: "Album badges for several albums",

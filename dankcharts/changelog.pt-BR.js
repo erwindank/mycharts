@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Calendar badges":
+    ["Conquistas de Calendário",
+     "O grupo Calendário em Sequências Diárias → Recordes passa de uma conquista para 18: sequências em datas especiais (Ano-Novo, Dia dos Namorados, 29 de fevereiro, Halloween, as festas), nas estações (uma música do verão, uma sequência de inverno, as quatro estações num ano), cobrindo meses inteiros ou um ano inteiro, e aniversários, como o mesmo artista em sequência na mesma data em anos diferentes."],
+
   "Album badges for several albums":
     ["Conquistas de álbum para vários álbuns",
      "Lado A, Devoto do álbum, Lado B e Do início ao fim em Sequências Diárias → Recordes agora têm mais três conquistas cada uma por conseguir isso com 3, 5 e 10 álbuns diferentes, de Lado A triplo e Grandes sucessos até De capa a capa."],

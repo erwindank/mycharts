@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Calendar badges":
+    ["Insignias de Calendario",
+     "El grupo Calendario en Rachas Diarias → Récords pasa de una insignia a 18: rachas en fechas especiales (Año Nuevo, San Valentín, el 29 de febrero, Halloween, las fiestas), en las estaciones (una canción del verano, una racha de invierno, las cuatro estaciones en un año), que cubren meses enteros o un año entero, y aniversarios, como el mismo artista en racha en la misma fecha en años distintos."],
+
   "Album badges for several albums":
     ["Insignias de álbumes para varios álbumes",
      "Lado A, Devoto del álbum, Lado B y De principio a fin en Rachas Diarias → Récords tienen ahora tres insignias más cada una por lograrlo con 3, 5 y 10 álbumes distintos, desde Triple cara A y Grandes éxitos hasta De tapa a tapa."],
