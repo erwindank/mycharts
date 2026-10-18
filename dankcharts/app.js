@@ -34257,6 +34257,31 @@ function openStreakModal(opts) {
   }
   const albMost = maxOf(artAlb30);
 
+  // ── All three kinds: an artist, an album and a song ──
+  // The shortest of the three records (an artist, an album and a song each
+  // reached it), and how many of each kind reached 30 days
+  const all3Len = Math.min(maxOf(artBest), maxOf(albBest), maxOf(songBest));
+  const all3N30 = Math.min(nBest(artBest, 30), nBest(albBest, 30), nBest(songBest, 30));
+  // Was there a day with an artist, an album and a song all on day minLen+
+  // of a streak? Singles are left out (a song and its same-name single run on
+  // the same days, so one song would do it alone).
+  function all3SameDay(minLen) {
+    const ev = [];
+    for (const r of allRuns) {
+      if (r.tp === 'album' && singleAlb.has(r.k)) continue;
+      for (const x of r.runs) if (x.len >= minLen) { ev.push([x.s + minLen - 1, r.tp, 1]); ev.push([x.e + 1, r.tp, -1]); }
+    }
+    ev.sort((a, b) => a[0] - b[0]);
+    const cur = { artist: 0, album: 0, song: 0 };
+    for (let i = 0; i < ev.length; i++) {
+      cur[ev[i][1]] += ev[i][2];
+      // check once every change for this day is in
+      if ((i + 1 === ev.length || ev[i + 1][0] !== ev[i][0]) && cur.artist && cur.album && cur.song) return true;
+    }
+    return false;
+  }
+  const all3Day14 = all3SameDay(14), all3Day30 = all3SameDay(30), all3Day100 = all3SameDay(100);
+
   // Shown in groups, in this order (heading: sk_bgrp_<g>)
   const SK_BADGES = [
     { id: 'week', g: 'long', icon: '🔥', ok: bestEver >= 7, prog: bestEver + 'd' },
@@ -34317,7 +34342,20 @@ function openStreakModal(opts) {
     { id: 'perennial', g: 'many', icon: '🌻', ok: n365 >= 2, prog: n365 + '/2' },
     { id: 'evergreen', g: 'many', icon: '🌲', ok: n365 >= 3, prog: n365 + '/3' },
     { id: 'oldgrowth', g: 'many', icon: '🌴', ok: n365 >= 5, prog: n365 + '/5' },
-    { id: 'allround', g: 'many', icon: '🎯', ok: allRound, prog: '' },
+    { id: 'tripleplay', g: 'all3', icon: '🎲', ok: all3Len >= 7, prog: all3Len + 'd' },
+    { id: 'triplethreat', g: 'all3', icon: '🔱', ok: all3Len >= 14, prog: all3Len + 'd' },
+    { id: 'allround', g: 'all3', icon: '🎯', ok: allRound, prog: all3Len + 'd' },
+    { id: 'utility', g: 'all3', icon: '🛠️', ok: all3Len >= 50, prog: all3Len + 'd' },
+    { id: 'renaissance', g: 'all3', icon: '🎨', ok: all3Len >= 100, prog: all3Len + 'd' },
+    { id: 'polymath', g: 'all3', icon: '🧠', ok: all3Len >= 200, prog: all3Len + 'd' },
+    { id: 'grandslam', g: 'all3', icon: '🎾', ok: all3Len >= 365, prog: all3Len + 'd' },
+    { id: 'balanced', g: 'all3', icon: '🥗', ok: all3N30 >= 3, prog: all3N30 + '/3' },
+    { id: 'wellround', g: 'all3', icon: '🌐', ok: all3N30 >= 5, prog: all3N30 + '/5' },
+    { id: 'package', g: 'all3', icon: '🎁', ok: all3N30 >= 10, prog: all3N30 + '/10' },
+    { id: 'everywhere', g: 'all3', icon: '🌍', ok: all3N30 >= 25, prog: all3N30 + '/25' },
+    { id: 'instep', g: 'all3', icon: '👣', ok: all3Day14, prog: '' },
+    { id: 'insync', g: 'all3', icon: '🔗', ok: all3Day30, prog: '' },
+    { id: 'harmony', g: 'all3', icon: '🎼', ok: all3Day100, prog: '' },
     { id: 'kindling', g: 'stay', icon: '🪵', ok: at7.lit >= 30, prog: at7.lit + 'd' },
     { id: 'hearth', g: 'stay', icon: '🏡', ok: at30.lit >= 30, prog: at30.lit + 'd' },
     { id: 'slowburn', g: 'stay', icon: '♨️', ok: at14.lit >= 60, prog: at14.lit + 'd' },
