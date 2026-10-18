@@ -5154,6 +5154,18 @@
       color: var(--text3);
     }
 
+    /* BU stat tiles: same layout as the main chart run, larger type —
+       the 12px labels / 18px figures read too small here */
+    .bu-cr-panel .cr-stats {
+      grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+    }
+    .bu-cr-panel .cr-stat-k {
+      font-size: var(--fs-sm);
+    }
+    .bu-cr-panel .cr-stat strong {
+      font-size: 1.375rem;
+    }
+
     .bu-cr-empty {
       font-size: var(--fs-xs);
       color: var(--text3);
