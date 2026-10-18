@@ -5136,6 +5136,30 @@
       padding: var(--sp-1);
     }
 
+    /* BU panel header: the BU / With-chart switch wraps under the title on
+       narrow screens instead of squeezing it */
+    .bu-cr-panel .cr-head {
+      flex-wrap: wrap;
+    }
+    .bu-cr-seg {
+      flex-shrink: 0;
+    }
+
+    /* Peak tile: "BU1" with the overall rank it equals as a quiet note */
+    .bu-cr-note {
+      font-family: var(--font-sans);
+      font-size: var(--fs-xs);
+      font-weight: 500;
+      letter-spacing: 0;
+      color: var(--text3);
+    }
+
+    .bu-cr-empty {
+      font-size: var(--fs-xs);
+      color: var(--text3);
+      padding: 4px 0;
+    }
+
     .bu-row td {
       padding: 0.3rem var(--sp-2);
       font-size: var(--fs-sm);
@@ -11194,11 +11218,25 @@
     /* Legend strip above combined boxes */
     .bu-combined-legend {
       display: flex;
-      gap: 10px;
-      margin-bottom: 5px;
+      gap: 14px;
+      margin-bottom: 8px;
       font-family: var(--font-sans);
       font-size: var(--fs-xs);
       color: var(--text3);
+    }
+
+    /* Coloured dot before each legend label (was a "■" typed into the text) */
+    .bu-combined-legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .bu-combined-legend span::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
     }
 
     .bu-combined-legend-chart {
