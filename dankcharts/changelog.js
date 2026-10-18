@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 171;
+const DC_CL_I18N_V = 172;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-18', t: 'fix', a: 'charts', h: '418f548',
+    title: "Off the Chart: play and menu buttons in their own column",
+    detail: "In the Off the Chart lists, the ▶ sample and ⋮ menu buttons used to sit under each title. They now have their own column at the right end of every row, so the rows are shorter and the buttons always line up." },
 
   { d: '2026-10-18', t: 'i18n', a: 'charts', h: 'fc66c0a',
     title: "Spanish: plays now read “veces”",

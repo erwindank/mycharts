@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Off the Chart: play and menu buttons in their own column":
+    ["Fora do Top: botões de amostra e menu em coluna própria",
+     "Os botões ▶ de amostra e ⋮ de menu ficavam por baixo de cada título nas listas Fora do Top. Agora têm a sua própria coluna no fim de cada linha, por isso as linhas ficam mais curtas e os botões sempre alinhados."],
+
   "Spanish: plays now read “veces”":
     ["Espanhol: os plays agora dizem “veces”",
      "Em espanhol, a coluna de plays dos tops diz agora 54 veces (1 vez) sob o cabeçalho Escuchas, em vez de reprods, e o selo de pico ficou mais curto (▲ MÁX), deixando mais espaço para os títulos."],

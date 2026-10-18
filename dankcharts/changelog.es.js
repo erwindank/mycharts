@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Off the Chart: play and menu buttons in their own column":
+    ["Fuera del Ranking: los botones de muestra y menú en su propia columna",
+     "En las listas Fuera del Ranking, los botones ▶ de muestra y ⋮ de menú estaban debajo de cada título. Ahora tienen su propia columna al final de cada fila, así las filas son más cortas y los botones siempre quedan alineados."],
+
   "Spanish: plays now read “veces”":
     ["Español: las reproducciones ahora dicen «veces»",
      "En español, la columna de reproducciones de los charts ahora dice 54 veces (1 vez) bajo el encabezado Escuchas, en vez de reprods. Junto con la insignia de récord más corta (▲ MÁX), deja mucho más espacio para los títulos."],
