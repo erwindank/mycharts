@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Spanish: plays now read “veces”":
+    ["Español: las reproducciones ahora dicen «veces»",
+     "En español, la columna de reproducciones de los charts ahora dice 54 veces (1 vez) bajo el encabezado Escuchas, en vez de reprods. Junto con la insignia de récord más corta (▲ MÁX), deja mucho más espacio para los títulos."],
+
   "Certifications in your language":
     ["Certificaciones en tu idioma",
      "Las insignias de certificación decían Gold, Platinum y Diamond en inglés fuera cual fuera el idioma. Ahora siguen tu idioma en todos los sitios donde aparecen: Oro, Platino, Diamante, Diamante Doble… en los charts, en las ventanas de álbum, en el muro de certificaciones y en las placas de los premios."],

@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 170;
+const DC_CL_I18N_V = 171;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-18', t: 'i18n', a: 'charts', h: 'fc66c0a',
+    title: "Spanish: plays now read “veces”",
+    detail: "In Spanish, the charts' Plays column now says 54 veces (1 vez) under the header Escuchas, instead of reprods. Together with the shorter plays peak tag (▲ MÁX), this leaves much more room for the titles." },
 
   { d: '2026-10-18', t: 'i18n', a: 'charts', h: 'aba198b',
     title: "Certifications in your language",

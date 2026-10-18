@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Spanish: plays now read “veces”":
+    ["Espanhol: os plays agora dizem “veces”",
+     "Em espanhol, a coluna de plays dos tops diz agora 54 veces (1 vez) sob o cabeçalho Escuchas, em vez de reprods, e o selo de pico ficou mais curto (▲ MÁX), deixando mais espaço para os títulos."],
+
   "Certifications in your language":
     ["Certificações na tua língua",
      "Os selos de certificação diziam Gold, Platinum e Diamond em inglês, fosse qual fosse a língua. Agora seguem a tua língua em todo o lado onde aparecem: Ouro, Platina, Diamante, Diamante Duplo… nos tops, nas janelas de álbum, no mural de certificações e nas placas dos prémios."],
