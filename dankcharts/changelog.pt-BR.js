@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Tidier details panel":
+    ["Painel de detalhes mais organizado",
+     "Os botões no topo dos detalhes de uma entrada (prévia, vídeo, playlist, YouTube, detalhes) agora são uma pequena barra com rótulos curtos, ao lado do álbum e do artista, em vez de duas fileiras de botões grandes; passe o mouse num botão para ver o nome completo. No celular ficam numa única fileira. Os blocos de dados da trajetória estão mais largos e fáceis de ler."],
+
   "Bubbling Under run panel redesigned":
     ["Novo visual da trajetória nos Aspirantes",
      "O painel de histórico de cada entrada dos Aspirantes agora segue o da trajetória na parada: blocos claros com o rótulo em cima, o pico como BU1 com a posição geral embaixo e uma chave simples entre as semanas nos Aspirantes e uma visão junto com a parada. Tudo no painel, inclusive as datas dos blocos, agora está traduzido."],

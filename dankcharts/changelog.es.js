@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Tidier details panel":
+    ["Panel de detalles más ordenado",
+     "Los botones de arriba en los detalles de una entrada (fragmento, vídeo, lista, YouTube, detalles) son ahora una pequeña barra con etiquetas cortas, junto al álbum y el artista, en lugar de dos filas de botones grandes; pasa el ratón por un botón para ver su nombre completo. En el móvil quedan en una sola fila. Las casillas de datos del recorrido son más anchas y fáciles de leer, y ahora dice \"Reproducciones\" completo."],
+
   "Bubbling Under run panel redesigned":
     ["Nuevo diseño del recorrido en Aspirantes",
      "El panel de historial de cada entrada de Aspirantes ahora se parece al recorrido del ranking principal: casillas claras con la etiqueta arriba, el pico como BU1 con su posición total debajo y un interruptor simple entre las semanas en Aspirantes y una vista mezclada con el ranking. Todo el panel, incluidas las fechas de las casillas, ya está traducido."],

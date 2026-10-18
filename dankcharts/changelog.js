@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 179;
+const DC_CL_I18N_V = 180;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-18', t: 'change', a: 'charts', h: '5a9e83c',
+    title: "Tidier details panel",
+    detail: "The buttons at the top of an entry's details (sample, video, playlist, YouTube, details) are now one small toolbar with short labels, next to the album and artist instead of two rows of big buttons; hover a button for its full name. On phones they sit in one even row. The chart run's stat tiles are wider and easier to read, and Spanish spells out \"Reproducciones\"." },
 
   { d: '2026-10-18', t: 'change', a: 'charts', h: 'a49c61b',
     title: "Bubbling Under run panel redesigned",
