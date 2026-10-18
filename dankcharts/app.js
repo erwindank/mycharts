@@ -20207,12 +20207,13 @@ function renderOffChart(type, plays, periodStats, buPool, lowestChartCount) {
         ${sub ? `<div class="dropout-artist">${esc(sub)}</div>` : ''}
         ${streakNoteHtml}
         ${buLineHtml}
-        ${ytBtn}
       </div>
       <div class="dropout-stats">
         <span class="dropout-plays">${tCountHtml('plays', count)}</span>
         <span class="dropout-wks${wksCls}">${tCount('weeks_full', wks)} ${t('film_on_chart')}</span>
       </div>
+      <!-- ▶ sample + ⋮ menu get their own column at the end of the row -->
+      <div class="dropout-actions">${ytBtn}</div>
     </div>`;
   }).join('');
 
