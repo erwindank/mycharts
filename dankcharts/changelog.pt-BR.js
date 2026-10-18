@@ -16,9 +16,13 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Spanish and Portuguese: Bubbling Under is now Aspirantes":
+    ["Quase no Top agora se chama Aspirantes",
+     "A seção Quase no Top agora se chama Aspirantes (Aspirantes ao Top 100): as músicas, artistas e álbuns tentando entrar na parada. Em Fora da Parada aparece “Agora #106 entre os Aspirantes”."],
+
   "Bubbling Under: buttons at the end, easier to read on phones":
-    ["Quase no Top: botões no fim e leitura mais fácil no celular",
-     "Em Quase no Top, os botões ▶ de amostra e ⋮ de menu agora ficam no fim de cada linha, como nas paradas principais, em vez de embaixo do título. No celular, os plays passam para baixo do artista, e os títulos e selos ganham toda a largura."],
+    ["Aspirantes: botões no fim e leitura mais fácil no celular",
+     "Nos Aspirantes, os botões ▶ de amostra e ⋮ de menu agora ficam no fim de cada linha, como nas paradas principais, em vez de embaixo do título. No celular, os plays passam para baixo do artista, e os títulos e selos ganham toda a largura."],
 
   "Off the Chart is easier to read on phones":
     ["Fora da Parada ficou mais fácil de ler no celular",

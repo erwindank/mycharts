@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 174;
+const DC_CL_I18N_V = 175;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-18', t: 'i18n', a: 'charts', h: 'ebcae25',
+    title: "Spanish and Portuguese: Bubbling Under is now Aspirantes",
+    detail: "In Spanish the Bubbling Under section was called Casi en el Top, and in Portuguese Quase no Top. Both now read Aspirantes (Aspirantes al Top 100 / Aspirantes ao Top 100): the songs, artists and albums trying to get into the chart." },
 
   { d: '2026-10-18', t: 'fix', a: 'charts', h: 'fe83b8f',
     title: "Bubbling Under: buttons at the end, easier to read on phones",

@@ -16,9 +16,13 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Spanish and Portuguese: Bubbling Under is now Aspirantes":
+    ["Casi en el Top ahora se llama Aspirantes",
+     "La sección Casi en el Top ahora se llama Aspirantes (Aspirantes al Top 100): las canciones, artistas y álbumes que buscan entrar al ranking. En Fuera del Ranking se lee «Ahora #106 entre los Aspirantes»."],
+
   "Bubbling Under: buttons at the end, easier to read on phones":
-    ["Casi en el Top: botones al final y más fácil de leer en el móvil",
-     "En Casi en el Top, los botones ▶ de muestra y ⋮ de menú ahora están al final de cada fila, como en los charts principales, en vez de debajo del título. En el móvil, las reproducciones pasan debajo del artista, así los títulos y etiquetas tienen todo el ancho."],
+    ["Aspirantes: botones al final y más fácil de leer en el móvil",
+     "En Aspirantes, los botones ▶ de muestra y ⋮ de menú ahora están al final de cada fila, como en los charts principales, en vez de debajo del título. En el móvil, las reproducciones pasan debajo del artista, así los títulos y etiquetas tienen todo el ancho."],
 
   "Off the Chart is easier to read on phones":
     ["Fuera del Ranking se lee mejor en el móvil",
