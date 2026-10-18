@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 186;
+const DC_CL_I18N_V = 187;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-18', t: 'feature', a: 'records', h: 'db3096c',
+    title: "Ten more Comebacks badges",
+    detail: "The Comebacks badges in Daily Streaks → Records go from 7 to 17, with harder goals once the first ones are done: the same thing coming back on a week-long streak 10 or 30 times, two or three separate month-long streaks for one thing, 500 different things coming back, beating your own record of 30 or 100 days, 100 things returning after more than a year away, a return that reaches 30 days, and a streak that comes back after more than five years." },
 
   { d: '2026-10-18', t: 'feature', a: 'records', h: 'd3825f1',
     title: "Easier Staying power badges",

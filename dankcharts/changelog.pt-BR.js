@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Ten more Comebacks badges":
+    ["Mais dez conquistas de Retornos",
+     "As conquistas de Retornos em Sequências Diárias → Recordes passam de 7 para 17, com metas mais difíceis depois das primeiras: a mesma coisa voltando numa sequência de uma semana 10 ou 30 vezes, duas ou três sequências separadas de um mês da mesma coisa, 500 coisas diferentes que voltam, superar o próprio recorde de 30 ou 100 dias, 100 coisas que voltam depois de mais de um ano, um retorno que chega a 30 dias e uma sequência que volta depois de mais de cinco anos."],
+
   "Easier Staying power badges":
     ["Conquistas de Constância mais fáceis",
      "As conquistas de Constância em Sequências Diárias → Recordes eram todas difíceis, então há seis mais fáceis para ir subindo: manter algo numa sequência de 7 dias por um mês, uma sequência de 30 dias ativa por 30 dias, uma de 14 dias por 60 dias, começar uma sequência de uma semana em cada trimestre ou em cada mês de um ano, e chegar a uma sequência de 30 dias em dois anos diferentes. As descrições da seção também ficaram mais claras e dizem exatamente o que fazer."],

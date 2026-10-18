@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Ten more Comebacks badges":
+    ["Diez insignias más de Regresos",
+     "Las insignias de Regresos en Rachas Diarias → Récords pasan de 7 a 17, con metas más difíciles cuando ya tienes las primeras: lo mismo volviendo con una racha de una semana 10 o 30 veces, dos o tres rachas separadas de un mes de lo mismo, 500 cosas distintas que vuelven, superar tu propio récord de 30 o 100 días, 100 cosas que vuelven tras más de un año, un regreso que llega a 30 días y una racha que vuelve tras más de cinco años."],
+
   "Easier Staying power badges":
     ["Insignias de Constancia más fáciles",
      "Las insignias de Constancia en Rachas Diarias → Récords eran todas difíciles, así que hay seis más fáciles para ir subiendo: mantener algo en una racha de 7 días durante un mes, una racha de 30 días activa durante 30 días, una de 14 días durante 60 días, empezar una racha de una semana en cada trimestre o en cada mes de un año, y llegar a una racha de 30 días en dos años distintos. Las descripciones de la sección también son más claras y dicen exactamente qué hacer."],
