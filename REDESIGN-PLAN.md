@@ -1516,6 +1516,25 @@ animation, 12 screen check.
   than this step, for step 8:** on a phone, Compact squeezes the title to
   one letter and Stack cuts badges off at the end of the title line (main
   looks the same).
+- **Step 5 ✓ (2026-10-17): layout buttons in the toolbar.** The six layouts
+  left each chart's ⋮ → View (the tab is gone; ⋮ is now Show / Size /
+  Actions) for one row of icon buttons on the right of the chart toolbar
+  (`#chartLayoutBar`, after the album filter), same chrome as the Songs ·
+  Artists · Albums switch, each named by its tooltip and aria-label (4
+  langs, `layout_*`). The row acts on the chart on screen: switching Songs /
+  Artists / Albums lights that chart's own saved layout (still kept per
+  type, same `dc_weekly_chart_view_<type>` keys). `syncChartLayoutBar()`
+  keeps it in step, called from `applyChartTypeView` and
+  `applyWeeklyChartView`; `setWeeklyChartView(mode)` defaults to
+  `chartTypeView`. Stack's two-column button is the row's last icon, after
+  a thin divider, only while Stack is on. Weekly only, as before (step 6).
+  On a phone the row sits right-aligned under the three type segments.
+  Tour: a new phase after the chart-type stop rings the six icons in turn;
+  the ⋮ walk lost its View stops and the "View" paragraph. The old
+  `.weekly-view-*` CSS (standalone bar and in-menu rows) is gone. Checked
+  with real clicks on desktop and phone: each layout, type switching, Stack
+  two columns, Monthly hides the row, ⋮ has three tabs, pt-BR tooltips,
+  Navy light and Yellow dark, no JS errors.
 
 The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in

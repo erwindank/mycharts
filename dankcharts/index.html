@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=440">
+  <link rel="stylesheet" href="style.css?v=441">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=117"></script>
+  <script defer src="translations.js?v=118"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -554,7 +554,7 @@
          chart: which chart you are reading (Songs / Artists / Albums, one at a
          time) on the left, and the album bucket filter on the right, which only
          exists once a release type is set apart in Settings and only shows on
-         the albums chart (syncAlbumsFilterBar). Which parts of a chart show —
+         the albums chart (syncAlbumsFilterBar), then the layout buttons. Which parts of a chart show —
          the chart itself, Bubbling Under, Off the Chart, New Entries — moved
          into that chart's ⋮ → Show. -->
     <div class="chart-type-toggle-bar" id="chartTypeToggleBar" style="display:none;">
@@ -564,6 +564,21 @@
         <button class="chart-type-toggle-btn" data-type="albums" onclick="setChartTypeView('albums')"><svg class="type-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg> <span data-i18n="chart_type_albums">Albums</span></button>
       </div>
       <div class="afilter-bar" id="albumsFilterBar" role="group" aria-label="Album chart filter" style="display:none"></div>
+      <!-- The six chart layouts (phase 7 step 5, REDESIGN-PLAN.md 4.9b): small
+           icons with tooltips, for the chart on screen. They lived in each
+           chart's ⋮ → View, where few people found them. Weekly only for now
+           (step 6 brings them to every period); the choice is still kept per
+           chart type. The last button splits Stack into two columns and only
+           shows on Stack. Kept in step with applyWeeklyChartView. -->
+      <div class="chart-layout-bar" id="chartLayoutBar" role="group" aria-label="Layout" data-i18n-aria="layout_bar_aria" style="display:none">
+        <button class="chart-layout-btn active" data-view="table" onclick="setWeeklyChartView('table')" title="Table" aria-label="Table" aria-pressed="true" data-i18n-title="layout_table" data-i18n-aria="layout_table"><svg class="view-mode-icon" aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><line x1="1.5" y1="6.5" x2="14.5" y2="6.5"/><line x1="1.5" y1="10" x2="14.5" y2="10"/></svg></button>
+        <button class="chart-layout-btn" data-view="grid" onclick="setWeeklyChartView('grid')" title="Card grid" aria-label="Card grid" aria-pressed="false" data-i18n-title="layout_grid" data-i18n-aria="layout_grid"><svg class="view-mode-icon" aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1"/><rect x="9" y="1.5" width="5.5" height="5.5" rx="1"/><rect x="1.5" y="9" width="5.5" height="5.5" rx="1"/><rect x="9" y="9" width="5.5" height="5.5" rx="1"/></svg></button>
+        <button class="chart-layout-btn" data-view="compact" onclick="setWeeklyChartView('compact')" title="Compact" aria-label="Compact" aria-pressed="false" data-i18n-title="layout_compact" data-i18n-aria="layout_compact"><svg class="view-mode-icon" aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><line x1="1.5" y1="2.5" x2="14.5" y2="2.5"/><line x1="1.5" y1="6.2" x2="14.5" y2="6.2"/><line x1="1.5" y1="9.9" x2="14.5" y2="9.9"/><line x1="1.5" y1="13.5" x2="14.5" y2="13.5"/></svg></button>
+        <button class="chart-layout-btn" data-view="mosaic" onclick="setWeeklyChartView('mosaic')" title="Mosaic" aria-label="Mosaic" aria-pressed="false" data-i18n-title="layout_mosaic" data-i18n-aria="layout_mosaic"><svg class="view-mode-icon" aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.5" y="1.5" width="7" height="7" rx="1"/><rect x="9.5" y="1.5" width="5" height="4.5" rx="1"/><rect x="9.5" y="7" width="5" height="7.5" rx="1"/><rect x="1.5" y="9.5" width="7" height="5" rx="1"/></svg></button>
+        <button class="chart-layout-btn" data-view="filmstrip" onclick="setWeeklyChartView('filmstrip')" title="Filmstrip" aria-label="Filmstrip" aria-pressed="false" data-i18n-title="layout_filmstrip" data-i18n-aria="layout_filmstrip"><svg class="view-mode-icon" aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1" y="3.5" width="14" height="9" rx="1"/><line x1="5" y1="3.5" x2="5" y2="12.5"/><line x1="8.3" y1="3.5" x2="8.3" y2="12.5"/><line x1="11.6" y1="3.5" x2="11.6" y2="12.5"/></svg></button>
+        <button class="chart-layout-btn" data-view="stack" onclick="setWeeklyChartView('stack')" title="Stack" aria-label="Stack" aria-pressed="false" data-i18n-title="layout_stack" data-i18n-aria="layout_stack"><svg class="view-mode-icon" aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="3.5" y="1.5" width="9" height="5" rx="1"/><rect x="2" y="5.5" width="12" height="5" rx="1"/><rect x="1" y="9.5" width="14" height="5" rx="1"/></svg></button>
+        <button class="chart-layout-btn stk-2col-btn" style="display:none" onclick="toggleStkTwoCol()" title="Two columns" aria-label="Two columns" aria-pressed="false" data-i18n-title="layout_two_col" data-i18n-aria="layout_two_col"><svg class="view-mode-icon" aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.5" y="2" width="5.5" height="12" rx="1"/><rect x="9" y="2" width="5.5" height="12" rx="1"/></svg></button>
+      </div>
     </div>
 
     <!-- Daily tab, above the chart (daily.js, dyRenderTop): the day panel,
@@ -587,14 +602,13 @@
         <span class="chart-hidden-label" data-i18n="chart_hidden_hint">Chart hidden · switch it back on in ⋮ → Show</span>
         <div class="section-rule"></div>
         <button class="section-replay-btn" id="songsReplayBtn" onclick="replayChartAnimation('songs')" title="Animate chart — show rank changes from previous period" style="display:none">▶<span class="replay-btn-label"> Animate Chart</span></button>
-        <!-- Chart options — kebab menu: Show on Chart / Size / View / Export -->
+        <!-- Chart options — kebab menu: Show on Chart / Size / Export (the layout buttons moved to the chart toolbar in phase 7 step 5) -->
         <div class="kebab-menu-wrap">
           <button class="kebab-menu-btn" onclick="toggleKebabMenu(this)" title="Chart options" aria-label="Chart options" aria-haspopup="true">⋮</button>
           <div class="kebab-menu">
             <div class="kebab-tabs">
               <button class="kebab-tab active" data-tab="show" onclick="switchKebabTab(this, 'show')">Show</button>
               <button class="kebab-tab" data-tab="size" onclick="switchKebabTab(this, 'size')">Size</button>
-              <button class="kebab-tab" data-tab="view" onclick="switchKebabTab(this, 'view')">View</button>
               <button class="kebab-tab" data-tab="export" onclick="switchKebabTab(this, 'export')">Actions</button>
             </div>
             <div class="kebab-panel" data-panel="show">
@@ -649,19 +663,6 @@
                   <button data-size="100">Top 100</button>
                   <button data-size="200">Top 200</button>
                   <button data-size="0" class="active" data-i18n="all_entries">All Entries</button>
-                </div>
-              </div>
-            </div>
-            <div class="kebab-panel" data-panel="view" style="display:none">
-              <div class="weekly-view-bar" id="weeklyViewBtns-songs" style="display:none;">
-                <div class="weekly-view-btns">
-                  <button class="weekly-view-btn active" data-view="table"     onclick="setWeeklyChartView('table', 'songs')"><svg class="view-mode-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><line x1="1.5" y1="6.5" x2="14.5" y2="6.5"/><line x1="1.5" y1="10" x2="14.5" y2="10"/></svg> Table</button>
-                  <button class="weekly-view-btn"         data-view="grid"      onclick="setWeeklyChartView('grid', 'songs')"><svg class="view-mode-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1"/><rect x="9" y="1.5" width="5.5" height="5.5" rx="1"/><rect x="1.5" y="9" width="5.5" height="5.5" rx="1"/><rect x="9" y="9" width="5.5" height="5.5" rx="1"/></svg> Card Grid</button>
-                  <button class="weekly-view-btn"         data-view="compact"   onclick="setWeeklyChartView('compact', 'songs')"><svg class="view-mode-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><line x1="1.5" y1="2.5" x2="14.5" y2="2.5"/><line x1="1.5" y1="6.2" x2="14.5" y2="6.2"/><line x1="1.5" y1="9.9" x2="14.5" y2="9.9"/><line x1="1.5" y1="13.5" x2="14.5" y2="13.5"/></svg> Compact</button>
-                  <button class="weekly-view-btn"         data-view="mosaic"    onclick="setWeeklyChartView('mosaic', 'songs')"><svg class="view-mode-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.5" y="1.5" width="7" height="7" rx="1"/><rect x="9.5" y="1.5" width="5" height="4.5" rx="1"/><rect x="9.5" y="7" width="5" height="7.5" rx="1"/><rect x="1.5" y="9.5" width="7" height="5" rx="1"/></svg> Mosaic</button>
-                  <button class="weekly-view-btn"         data-view="filmstrip" onclick="setWeeklyChartView('filmstrip', 'songs')"><svg class="view-mode-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1" y="3.5" width="14" height="9" rx="1"/><line x1="5" y1="3.5" x2="5" y2="12.5"/><line x1="8.3" y1="3.5" x2="8.3" y2="12.5"/><line x1="11.6" y1="3.5" x2="11.6" y2="12.5"/></svg> Filmstrip</button>
-                  <button class="weekly-view-btn"         data-view="stack"     onclick="setWeeklyChartView('stack', 'songs')"><svg class="view-mode-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="3.5" y="1.5" width="9" height="5" rx="1"/><rect x="2" y="5.5" width="12" height="5" rx="1"/><rect x="1" y="9.5" width="14" height="5" rx="1"/></svg> Stack</button>
-                  <button class="weekly-view-btn stk-2col-btn" onclick="toggleStkTwoCol()" title="Toggle 2-column layout" style="display:none">⊞ 2 Col</button>
                 </div>
               </div>
             </div>
@@ -802,14 +803,13 @@
         <span class="chart-hidden-label" data-i18n="chart_hidden_hint">Chart hidden · switch it back on in ⋮ → Show</span>
         <div class="section-rule"></div>
         <button class="section-replay-btn" id="artistsReplayBtn" onclick="replayChartAnimation('artists')" title="Animate chart — show rank changes from previous period" style="display:none">▶<span class="replay-btn-label"> Animate Chart</span></button>
-        <!-- Chart options — kebab menu: Show on Chart / Size / View / Export -->
+        <!-- Chart options — kebab menu: Show on Chart / Size / Export (the layout buttons moved to the chart toolbar in phase 7 step 5) -->
         <div class="kebab-menu-wrap">
           <button class="kebab-menu-btn" onclick="toggleKebabMenu(this)" title="Chart options" aria-label="Chart options" aria-haspopup="true">⋮</button>
           <div class="kebab-menu">
             <div class="kebab-tabs">
               <button class="kebab-tab active" data-tab="show" onclick="switchKebabTab(this, 'show')">Show</button>
               <button class="kebab-tab" data-tab="size" onclick="switchKebabTab(this, 'size')">Size</button>
-              <button class="kebab-tab" data-tab="view" onclick="switchKebabTab(this, 'view')">View</button>
               <button class="kebab-tab" data-tab="export" onclick="switchKebabTab(this, 'export')">Actions</button>
             </div>
             <div class="kebab-panel" data-panel="show">
@@ -862,19 +862,6 @@
                   <button data-size="100">Top 100</button>
                   <button data-size="200">Top 200</button>
                   <button data-size="0" class="active" data-i18n="all_entries">All Entries</button>
-                </div>
-              </div>
-            </div>
-            <div class="kebab-panel" data-panel="view" style="display:none">
-              <div class="weekly-view-bar" id="weeklyViewBtns-artists" style="display:none;">
-                <div class="weekly-view-btns">
-                  <button class="weekly-view-btn active" data-view="table"     onclick="setWeeklyChartView('table', 'artists')"><svg class="view-mode-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><line x1="1.5" y1="6.5" x2="14.5" y2="6.5"/><line x1="1.5" y1="10" x2="14.5" y2="10"/></svg> Table</button>
-                  <button class="weekly-view-btn"         data-view="grid"      onclick="setWeeklyChartView('grid', 'artists')"><svg class="view-mode-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1"/><rect x="9" y="1.5" width="5.5" height="5.5" rx="1"/><rect x="1.5" y="9" width="5.5" height="5.5" rx="1"/><rect x="9" y="9" width="5.5" height="5.5" rx="1"/></svg> Card Grid</button>
-                  <button class="weekly-view-btn"         data-view="compact"   onclick="setWeeklyChartView('compact', 'artists')"><svg class="view-mode-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><line x1="1.5" y1="2.5" x2="14.5" y2="2.5"/><line x1="1.5" y1="6.2" x2="14.5" y2="6.2"/><line x1="1.5" y1="9.9" x2="14.5" y2="9.9"/><line x1="1.5" y1="13.5" x2="14.5" y2="13.5"/></svg> Compact</button>
-                  <button class="weekly-view-btn"         data-view="mosaic"    onclick="setWeeklyChartView('mosaic', 'artists')"><svg class="view-mode-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.5" y="1.5" width="7" height="7" rx="1"/><rect x="9.5" y="1.5" width="5" height="4.5" rx="1"/><rect x="9.5" y="7" width="5" height="7.5" rx="1"/><rect x="1.5" y="9.5" width="7" height="5" rx="1"/></svg> Mosaic</button>
-                  <button class="weekly-view-btn"         data-view="filmstrip" onclick="setWeeklyChartView('filmstrip', 'artists')"><svg class="view-mode-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1" y="3.5" width="14" height="9" rx="1"/><line x1="5" y1="3.5" x2="5" y2="12.5"/><line x1="8.3" y1="3.5" x2="8.3" y2="12.5"/><line x1="11.6" y1="3.5" x2="11.6" y2="12.5"/></svg> Filmstrip</button>
-                  <button class="weekly-view-btn"         data-view="stack"     onclick="setWeeklyChartView('stack', 'artists')"><svg class="view-mode-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="3.5" y="1.5" width="9" height="5" rx="1"/><rect x="2" y="5.5" width="12" height="5" rx="1"/><rect x="1" y="9.5" width="14" height="5" rx="1"/></svg> Stack</button>
-                  <button class="weekly-view-btn stk-2col-btn" onclick="toggleStkTwoCol()" title="Toggle 2-column layout" style="display:none">⊞ 2 Col</button>
                 </div>
               </div>
             </div>
@@ -1010,14 +997,13 @@
         <span class="chart-hidden-label" data-i18n="chart_hidden_hint">Chart hidden · switch it back on in ⋮ → Show</span>
         <div class="section-rule"></div>
         <button class="section-replay-btn" id="albumsReplayBtn" onclick="replayChartAnimation('albums')" title="Animate chart — show rank changes from previous period" style="display:none">▶<span class="replay-btn-label"> Animate Chart</span></button>
-        <!-- Chart options — kebab menu: Show on Chart / Size / View / Export -->
+        <!-- Chart options — kebab menu: Show on Chart / Size / Export (the layout buttons moved to the chart toolbar in phase 7 step 5) -->
         <div class="kebab-menu-wrap">
           <button class="kebab-menu-btn" onclick="toggleKebabMenu(this)" title="Chart options" aria-label="Chart options" aria-haspopup="true">⋮</button>
           <div class="kebab-menu">
             <div class="kebab-tabs">
               <button class="kebab-tab active" data-tab="show" onclick="switchKebabTab(this, 'show')">Show</button>
               <button class="kebab-tab" data-tab="size" onclick="switchKebabTab(this, 'size')">Size</button>
-              <button class="kebab-tab" data-tab="view" onclick="switchKebabTab(this, 'view')">View</button>
               <button class="kebab-tab" data-tab="export" onclick="switchKebabTab(this, 'export')">Actions</button>
             </div>
             <div class="kebab-panel" data-panel="show">
@@ -1072,19 +1058,6 @@
                   <button data-size="100">Top 100</button>
                   <button data-size="200">Top 200</button>
                   <button data-size="0" class="active" data-i18n="all_entries">All Entries</button>
-                </div>
-              </div>
-            </div>
-            <div class="kebab-panel" data-panel="view" style="display:none">
-              <div class="weekly-view-bar" id="weeklyViewBtns-albums" style="display:none;">
-                <div class="weekly-view-btns">
-                  <button class="weekly-view-btn active" data-view="table"     onclick="setWeeklyChartView('table', 'albums')"><svg class="view-mode-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><line x1="1.5" y1="6.5" x2="14.5" y2="6.5"/><line x1="1.5" y1="10" x2="14.5" y2="10"/></svg> Table</button>
-                  <button class="weekly-view-btn"         data-view="grid"      onclick="setWeeklyChartView('grid', 'albums')"><svg class="view-mode-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1"/><rect x="9" y="1.5" width="5.5" height="5.5" rx="1"/><rect x="1.5" y="9" width="5.5" height="5.5" rx="1"/><rect x="9" y="9" width="5.5" height="5.5" rx="1"/></svg> Card Grid</button>
-                  <button class="weekly-view-btn"         data-view="compact"   onclick="setWeeklyChartView('compact', 'albums')"><svg class="view-mode-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><line x1="1.5" y1="2.5" x2="14.5" y2="2.5"/><line x1="1.5" y1="6.2" x2="14.5" y2="6.2"/><line x1="1.5" y1="9.9" x2="14.5" y2="9.9"/><line x1="1.5" y1="13.5" x2="14.5" y2="13.5"/></svg> Compact</button>
-                  <button class="weekly-view-btn"         data-view="mosaic"    onclick="setWeeklyChartView('mosaic', 'albums')"><svg class="view-mode-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.5" y="1.5" width="7" height="7" rx="1"/><rect x="9.5" y="1.5" width="5" height="4.5" rx="1"/><rect x="9.5" y="7" width="5" height="7.5" rx="1"/><rect x="1.5" y="9.5" width="7" height="5" rx="1"/></svg> Mosaic</button>
-                  <button class="weekly-view-btn"         data-view="filmstrip" onclick="setWeeklyChartView('filmstrip', 'albums')"><svg class="view-mode-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1" y="3.5" width="14" height="9" rx="1"/><line x1="5" y1="3.5" x2="5" y2="12.5"/><line x1="8.3" y1="3.5" x2="8.3" y2="12.5"/><line x1="11.6" y1="3.5" x2="11.6" y2="12.5"/></svg> Filmstrip</button>
-                  <button class="weekly-view-btn"         data-view="stack"     onclick="setWeeklyChartView('stack', 'albums')"><svg class="view-mode-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="3.5" y="1.5" width="9" height="5" rx="1"/><rect x="2" y="5.5" width="12" height="5" rx="1"/><rect x="1" y="9.5" width="14" height="5" rx="1"/></svg> Stack</button>
-                  <button class="weekly-view-btn stk-2col-btn" onclick="toggleStkTwoCol()" title="Toggle 2-column layout" style="display:none">⊞ 2 Col</button>
                 </div>
               </div>
             </div>
@@ -3760,7 +3733,7 @@
   <!-- Community board tab (suggestions / bugs / discussion). Loaded before
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
   <script defer src="board.js?v=1"></script>
-  <script defer src="app.js?v=374"></script>
+  <script defer src="app.js?v=375"></script>
   <!-- All-Time chart stats ("Inside your Top N"); reads app.js globals, so it loads after it -->
   <script defer src="insights.js?v=8"></script>
   <script defer src="daily.js?v=19"></script>

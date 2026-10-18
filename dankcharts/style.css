@@ -5467,13 +5467,14 @@
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      justify-content: space-between;
+      justify-content: flex-end;
       gap: var(--sp-2) var(--sp-3);
       margin: var(--sp-5) 0 var(--sp-4);
     }
 
     .chart-type-seg,
-    .chart-type-toggle-bar .afilter-bar {
+    .chart-type-toggle-bar .afilter-bar,
+    .chart-layout-bar {
       display: flex;
       gap: 2px;
       margin: 0;
@@ -5481,6 +5482,11 @@
       background: var(--raised);
       border-radius: var(--r-sm);
     }
+
+    /* The type switch takes the left; whatever follows (album filter, layout
+       buttons) lines up on the right, however many of them are showing.
+       After the shared rule above so its margin: 0 does not undo it. */
+    .chart-type-toggle-bar .chart-type-seg { margin-right: auto; }
 
     .chart-type-toggle-btn,
     .chart-type-toggle-bar .afilter-btn {
@@ -5527,6 +5533,46 @@
       color: var(--accent);
       font-weight: 600;
       box-shadow: var(--shadow-1);
+    }
+
+    /* Layout buttons (phase 7 step 5): the six layouts as icon-only segments,
+       same chrome as the type switch, named by their tooltip and aria-label.
+       The two-column button (Stack only) sits after a thin divider. */
+    .chart-layout-btn {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 30px;
+      padding: 0;
+      border: 0;
+      border-radius: calc(var(--r-sm) - 2px);
+      background: transparent;
+      color: var(--text2);
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .chart-layout-btn .view-mode-icon { width: 16px; height: 16px; }
+    .chart-layout-btn:hover { background: var(--hover); color: var(--text); }
+    .chart-layout-btn.active {
+      background: color-mix(in srgb, var(--accent) 18%, var(--raised));
+      color: var(--accent);
+      box-shadow: var(--shadow-1);
+    }
+    .chart-layout-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .chart-layout-btn.stk-2col-btn {
+      margin-left: 3px;
+      position: relative;
+    }
+    .chart-layout-btn.stk-2col-btn::before {
+      content: '';
+      position: absolute;
+      left: -3px;
+      top: 6px;
+      bottom: 6px;
+      width: 1px;
+      background: var(--border);
     }
 
     @media (max-width: 600px) {
@@ -30687,37 +30733,6 @@ body[class*="-light"] [class*="ns-tier-"] .ns-flame {
   font-size: var(--fs-xs);
 }
 
-/* ── WEEKLY CHART VIEW BUTTONS ── */
-.weekly-view-bar {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-2);
-  padding: 0.45rem var(--sp-3) 0.3rem;
-  flex-wrap: wrap;
-  border-top: 1px solid var(--border);
-  position: relative; /* anchors the .weekly-view-btns dropdown when open */
-}
-.weekly-view-btns {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 3px;
-}
-.weekly-view-btn {
-  -webkit-appearance: none;
-  appearance: none;
-  background: none;
-  border: 1px solid var(--border);
-  border-radius: 3px;
-  color: var(--text3);
-  font-family: var(--font-sans);
-  font-size: var(--fs-xs);
-  padding: 0.12rem 0.55rem;
-  cursor: pointer;
-  transition: color 0.15s, background 0.15s, border-color 0.15s;
-}
-.weekly-view-btn:hover { background: var(--border); color: var(--text); }
-.weekly-view-btn.active { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
-
 /* ── WEEKLY ALT VIEW CONTAINER ── */
 .weekly-alt-view { padding: var(--sp-2) 0; }
 
@@ -31703,7 +31718,6 @@ body.red-light .modal-rank-card--year .mrc-rank {
 }
 
 .wv-r1.wv-stk-card .wv-bar-fill { background: var(--gold1) !important; }
-.stk-2col-btn { display: none; margin-left: var(--sp-1); }
 
 /* ── RESPONSIVE ── */
 @media (max-width: 600px) {
@@ -32992,11 +33006,10 @@ body.red-light .modal-rank-card--year .mrc-rank {
       fill: currentColor;
     }
 
-    /* Size / View lists reuse .size-btns / .weekly-view-btn as full-width rows —
+    /* The Size list reuses .size-btns as full-width rows —
        the tab switch is the only disclosure now, so every option is always
        visible once its tab is active (no extra per-list open/close state) */
-    .kebab-panel .chart-size-bar,
-    .kebab-panel .weekly-view-bar {
+    .kebab-panel .chart-size-bar {
       display: block;
     }
     /* Strip the old standalone full-bleed bar chrome (negative margins +
@@ -33010,15 +33023,13 @@ body.red-light .modal-rank-card--year .mrc-rank {
     .kebab-panel .chart-size-bar label {
       display: none;
     }
-    .kebab-panel .size-btns,
-    .kebab-panel .weekly-view-btns {
+    .kebab-panel .size-btns {
       display: flex;
       flex-direction: column;
       gap: 2px;
       min-width: 0;
     }
-    .kebab-panel .size-btns button,
-    .kebab-panel .weekly-view-btn {
+    .kebab-panel .size-btns button {
       width: 100%;
       min-width: 0;
       box-sizing: border-box;
@@ -33033,25 +33044,11 @@ body.red-light .modal-rank-card--year .mrc-rank {
       cursor: pointer;
       transition: background 120ms ease, color 120ms ease;
     }
-    /* View-mode rows also carry a small line-icon sketching the layout
-       (rows, grid, filmstrip frames, etc.) — align it with the label */
-    .kebab-panel .weekly-view-btn {
-      display: flex;
-      align-items: center;
-      gap: 0.55rem;
-    }
-    .kebab-panel .weekly-view-btn .view-mode-icon {
-      width: 14px;
-      height: 14px;
-      flex-shrink: 0;
-    }
-    .kebab-panel .size-btns button:hover,
-    .kebab-panel .weekly-view-btn:hover {
+    .kebab-panel .size-btns button:hover {
       background: var(--bg3);
       color: var(--text);
     }
-    .kebab-panel .size-btns button.active,
-    .kebab-panel .weekly-view-btn.active {
+    .kebab-panel .size-btns button.active {
       background: color-mix(in srgb, var(--accent) 18%, transparent);
       color: var(--accent);
       font-weight: 600;
@@ -33060,15 +33057,9 @@ body.red-light .modal-rank-card--year .mrc-rank {
        text, so the tinted row above reads as a muddy olive that looks *dimmer* than
        its unselected white siblings — selection has to fall back to the solid accent
        fill the rest of the app's selected states use. */
-    body.yellow .kebab-panel .size-btns button.active,
-    body.yellow .kebab-panel .weekly-view-btn.active {
+    body.yellow .kebab-panel .size-btns button.active {
       background: var(--accent);
       color: var(--on-accent);
-    }
-    .kebab-panel .stk-2col-btn {
-      margin-top: 2px;
-      border-top: 1px solid var(--border);
-      border-radius: 0;
     }
 
     /* Custom size row — built by _dcInitCustomSizeRows() under the Top N list.

@@ -36,6 +36,8 @@ function applyChartTypeView() {
   });
   // The album bucket filter shares the toolbar and only applies to the albums chart
   syncAlbumsFilterBar();
+  // So do the layout buttons, which show the layout of the chart on screen
+  syncChartLayoutBar();
   // Daily tab: the #1 line above the chart is about the chart on screen
   if (currentPeriod === 'day' && typeof dyRenderTop === 'function' && allPlays && allPlays.length) dyRenderTop(dyHistory(), dyViewedDay());
 }
@@ -13371,20 +13373,10 @@ function renderAll() {
   document.getElementById('chartTypeToggleBar').style.display =
     ['day', 'week', 'month', 'year', 'alltime'].includes(currentPeriod) ? 'flex' : 'none';
   applyChartTypeView();
+  // The layout buttons in the toolbar (#chartLayoutBar) show or hide with the
+  // period inside applyChartTypeView → syncChartLayoutBar, just above.
   const _isWeek = currentPeriod === 'week';
   ['songs','artists','albums'].forEach(tp => {
-    const bar = document.getElementById('weeklyViewBtns-' + tp);
-    if (bar) bar.style.display = _isWeek ? 'flex' : 'none';
-    // The View tab only has content during the weekly period — hide the tab
-    // itself rather than let the kebab menu open onto an empty panel.
-    const viewTab = document.querySelector(`#${tp}Section .kebab-tab[data-tab="view"]`);
-    if (viewTab) {
-      viewTab.style.display = _isWeek ? '' : 'none';
-      if (!_isWeek && viewTab.classList.contains('active')) {
-        const showTab = viewTab.closest('.kebab-menu')?.querySelector('.kebab-tab[data-tab="show"]');
-        if (showTab) switchKebabTab(showTab, 'show');
-      }
-    }
     if (!_isWeek) {
       const alt = document.getElementById('weeklyAltView-' + tp);
       if (alt) { alt.style.display = 'none'; alt.innerHTML = ''; }
@@ -18323,7 +18315,10 @@ function buTlPlayAll() {
 }
 
 // ─── WEEKLY CHART VIEWS ────────────────────────────────────────
+// `type` defaults to the chart on screen: the toolbar's layout buttons
+// (#chartLayoutBar, phase 7 step 5) always act on that one.
 function setWeeklyChartView(mode, type) {
+  type = type || chartTypeView;
   weeklyChartViewMode[type] = mode;
   try { localStorage.setItem('dc_weekly_chart_view_' + type, mode); } catch(e) {}
   if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
@@ -18333,15 +18328,9 @@ function setWeeklyChartView(mode, type) {
 function applyWeeklyChartView(onlyType) {
   if (currentPeriod !== 'week') return;
   const types = onlyType ? [onlyType] : ['songs', 'artists', 'albums'];
+  syncChartLayoutBar();
   for (const tp of types) {
     const mode = weeklyChartViewMode[tp];
-    // Update button active states and stk-2col visibility scoped to this section's bar
-    const bar = document.getElementById('weeklyViewBtns-' + tp);
-    if (bar) {
-      bar.querySelectorAll('.weekly-view-btn:not(.stk-2col-btn)').forEach(b => b.classList.toggle('active', b.dataset.view === mode));
-      const stkBtn = bar.querySelector('.stk-2col-btn');
-      if (stkBtn) { stkBtn.style.display = mode === 'stack' ? '' : 'none'; stkBtn.classList.toggle('active', _stkTwoCol); }
-    }
     const isAlt = mode !== 'table';
     const tbl = document.getElementById(tp + 'Table');
     const altView = document.getElementById('weeklyAltView-' + tp);
@@ -18352,6 +18341,28 @@ function applyWeeklyChartView(onlyType) {
       altView.style.display = isAlt ? 'block' : 'none';
       if (isAlt) renderWeeklyAltView(tp);
     }
+  }
+}
+
+/* The toolbar's layout buttons (phase 7 step 5). One row for whichever chart
+   is on screen (chartTypeView), so switching Songs / Artists / Albums lights
+   that chart's own saved layout. Only on Weekly until step 6 brings the other
+   layouts to every period. The two-column button only makes sense on Stack. */
+function syncChartLayoutBar() {
+  const bar = document.getElementById('chartLayoutBar');
+  if (!bar) return;
+  bar.style.display = currentPeriod === 'week' ? '' : 'none';
+  const mode = weeklyChartViewMode[chartTypeView] || 'table';
+  bar.querySelectorAll('.chart-layout-btn[data-view]').forEach(b => {
+    const on = b.dataset.view === mode;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+  const stkBtn = bar.querySelector('.stk-2col-btn');
+  if (stkBtn) {
+    stkBtn.style.display = mode === 'stack' ? '' : 'none';
+    stkBtn.classList.toggle('active', _stkTwoCol);
+    stkBtn.setAttribute('aria-pressed', _stkTwoCol ? 'true' : 'false');
   }
 }
 
@@ -19706,8 +19717,7 @@ function _wvStack(items, max, ms, imgItems, type) {
 function toggleStkTwoCol() {
   _stkTwoCol = !_stkTwoCol;
   try { localStorage.setItem('dc_stk_2col', _stkTwoCol ? '1' : '0'); } catch(e) {}
-  document.querySelectorAll('.stk-2col-btn').forEach(b => b.classList.toggle('active', _stkTwoCol));
-  applyWeeklyChartView();
+  applyWeeklyChartView(); // also relights the button (syncChartLayoutBar)
 }
 
 function initStkInteractions(type) {
@@ -47181,12 +47191,26 @@ const _cgTourSteps = [
         ],
         seqHold: 2000 },
 
+      /* Phase 7 step 5: the layout buttons left ⋮ → View for the toolbar.
+         Rings the six in turn, then the whole row while the text finishes. */
+      { content: 'Beside it, six ways to look at the same chart: table, card grid, compact, mosaic, filmstrip and stack. Try them; each chart type remembers its own. Stack has one more button, to split it into two columns.',
+        seq: [
+          '#chartLayoutBar .chart-layout-btn[data-view="table"]',
+          '#chartLayoutBar .chart-layout-btn[data-view="grid"]',
+          '#chartLayoutBar .chart-layout-btn[data-view="compact"]',
+          '#chartLayoutBar .chart-layout-btn[data-view="mosaic"]',
+          '#chartLayoutBar .chart-layout-btn[data-view="filmstrip"]',
+          '#chartLayoutBar .chart-layout-btn[data-view="stack"]',
+          '#chartLayoutBar',
+        ],
+        seqHold: 1300 },
+
       /* Absorbed the old standalone "Chart size, layout and the ⋮ menu" step:
          rather than describe the same menu twice, the tour opens the real one
-         and walks its four tabs while this paragraph is being read. The holds
+         and walks its three tabs while this paragraph is being read. The holds
          below add up to a little under this phase's own hold, so the menu
          closes on the last tab instead of snapping shut mid-sequence. */
-      { content: 'Every section header has a ⋮ menu — here it is, opening on the songs chart.\n\n"Show" picks what each row carries: cert badges, your scores, plays peak, peak tags, the playlist button, the Bubbling Under legend and descriptions. They all start off to keep the chart clean. The tour has switched them on for now so you can see them, and turns them back off when it ends. Tick any you want to keep. Under them, "Sections" picks which parts of the chart show.\n\n"Size" sets how many entries the chart holds, from Top 10 to Top 100, remembered separately per chart type.\n\n"View" switches the layout between table, card grid, compact, mosaic, filmstrip and stack.\n\n"Actions" plays the whole chart on YouTube, exports it as a playlist or a shareable image, and on the year and all-time charts downloads it as TXT or CSV.',
+      { content: 'Every section header has a ⋮ menu — here it is, opening on the songs chart.\n\n"Show" picks what each row carries: cert badges, your scores, plays peak, peak tags, the playlist button, the Bubbling Under legend and descriptions. They all start off to keep the chart clean. The tour has switched them on for now so you can see them, and turns them back off when it ends. Tick any you want to keep. Under them, "Sections" picks which parts of the chart show.\n\n"Size" sets how many entries the chart holds, from Top 10 to Top 100, remembered separately per chart type.\n\n"Actions" plays the whole chart on YouTube, exports it as a playlist or a shareable image, and on the year and all-time charts downloads it as TXT or CSV.',
         kebabSection: '#songsSection',
         reveal: true,
         kebabSeq: [
@@ -47202,8 +47226,6 @@ const _cgTourSteps = [
           { tab: 'show',   sel: '.kebab-panel[data-panel="show"] .kebab-sub-rows', hold: 1600 },
           { tab: 'size',   sel: '.kebab-tab[data-tab="size"]', hold: 1300 },
           { tab: 'size',   sel: '.kebab-panel[data-panel="size"] .size-btns', hold: 2400 },
-          { tab: 'view',   sel: '.kebab-tab[data-tab="view"]', hold: 1300 },
-          { tab: 'view',   sel: '.kebab-panel[data-panel="view"] .weekly-view-btns', hold: 2400 },
           { tab: 'export', sel: '.kebab-tab[data-tab="export"]', hold: 1300 },
           { tab: 'export', sel: '.kebab-panel[data-panel="export"] .kebab-playback-row', hold: 1400 },
           /* Deliberately no TXT/CSV entry: that bar only becomes .visible in
@@ -47211,8 +47233,8 @@ const _cgTourSteps = [
              runs on the weekly one — it would have rung nothing. */
           { tab: 'export', sel: '.export-playlist-btn, .ig-share-btn', hold: 2600 },
         ],
-        // The walk above is ~24s; the rest is reading time for the longer text
-        hold: 30000 },
+        // The walk above is ~20s; the rest is reading time for the longer text
+        hold: 27000 },
 
       { content: 'The chart itself. Every row carries its position, how far it moved since last week, its all-time peak, and how many weeks it has spent on the chart altogether.\n\nYour own score and a short description can sit on each row too. Switch on My Scores and Descriptions in the ⋮ menu, under Show.',
         spotlight: '#songsSection',
@@ -47458,7 +47480,7 @@ function _dcTourUnclick() {
 }
 
 /* The ⋮ chart-options menu gets a walkthrough of its own rather than a card
-   describing it: the tour opens the real menu, steps through its four tabs and
+   describing it: the tour opens the real menu, steps through its tabs and
    rings the controls inside each one, then closes it again.
 
    Nothing here is persisted — switchKebabTab() remembers the last tab in
