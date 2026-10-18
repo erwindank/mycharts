@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 191;
+const DC_CL_I18N_V = 192;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-18', t: 'feature', a: 'records', h: '25b0b6a',
+    title: "Album badges for several albums",
+    detail: "Side A, Album devotee, Side B and Front to back in Daily Streaks → Records now each have three more badges for doing it with 3, 5 and 10 different albums, from Triple A-side and Greatest hits to Cover to cover." },
 
   { d: '2026-10-18', t: 'feature', a: 'records', h: '7dd01ed',
     title: "Fan club badges",

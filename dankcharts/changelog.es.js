@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Album badges for several albums":
+    ["Insignias de álbumes para varios álbumes",
+     "Lado A, Devoto del álbum, Lado B y De principio a fin en Rachas Diarias → Récords tienen ahora tres insignias más cada una por lograrlo con 3, 5 y 10 álbumes distintos, desde Triple cara A y Grandes éxitos hasta De tapa a tapa."],
+
   "Fan club badges":
     ["Insignias del club de fans",
      "Fan de verdad en Rachas Diarias → Récords tiene ahora rangos de club de fans. Elige un artista con el que hayas tenido una racha de 30 días: cuantas más canciones suyas lleguen a una racha de 7 días, más subes, desde Club de fans pasando por Secretario, Tesorero, Vicepresidente y Presidente hasta Fundador. Otro grupo cuenta de cuántos clubs de fans formas parte, y Caja recopilatoria y Lado B completan las insignias de álbumes."],
