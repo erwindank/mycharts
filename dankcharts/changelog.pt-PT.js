@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Fold away badge groups":
+    ["Grupos de conquistas recolhíveis",
+     "Cada grupo de conquistas em Sequências Diárias → Recordes (Uma sequência longa, Ao mesmo tempo e os outros) pode agora ser recolhido ao clicar no título, para deixar abertos só os que lhe interessam. A janela lembra-se dos grupos que recolheu."],
+
   "All three kinds badges":
     ["Conquistas de Os três tipos",
      "Completo em Sequências Diárias → Recordes tem agora um grupo próprio, Os três tipos, com 13 conquistas parecidas: um artista, um álbum e uma música a chegar aos 7, 14, 50, 100, 200 ou 365 dias; 3, 5, 10 ou 25 de cada tipo com uma sequência de 30 dias; e um artista, um álbum e uma música em sequências longas no mesmo dia."],

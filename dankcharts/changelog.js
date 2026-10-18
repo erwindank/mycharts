@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 189;
+const DC_CL_I18N_V = 190;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-18', t: 'change', a: 'records', h: 'a16e85f',
+    title: "Fold away badge groups",
+    detail: "Each badge group in Daily Streaks → Records (One long streak, Side by side and the rest) can now be folded away by clicking its heading, so you can keep open only the ones you care about. The window remembers which groups you folded." },
 
   { d: '2026-10-18', t: 'feature', a: 'records', h: 'a04ef08',
     title: "All three kinds badges",

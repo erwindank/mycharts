@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Fold away badge groups":
+    ["Grupos de insignias plegables",
+     "Cada grupo de insignias en Rachas Diarias → Récords (Una racha larga, A la vez y los demás) se puede plegar ahora haciendo clic en su título, para dejar abiertos solo los que te interesan. La ventana recuerda qué grupos plegaste."],
+
   "All three kinds badges":
     ["Insignias de Los tres tipos",
      "Todoterreno en Rachas Diarias → Récords tiene ahora su propio grupo, Los tres tipos, con 13 insignias parecidas: un artista, un álbum y una canción que llegan a 7, 14, 50, 100, 200 o 365 días; 3, 5, 10 o 25 de cada tipo con una racha de 30 días; y un artista, un álbum y una canción en rachas largas el mismo día."],
