@@ -16,6 +16,14 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Add to a playlist from each entry's ⋮ menu":
+    ["Añade a una lista desde el menú ⋮ de cada entrada",
+     "El interruptor Lista ya no está en el menú ⋮ → Show de los charts, y las entradas ya no llevan un botón + de lista en ningún diseño. Para añadir una canción, artista o álbum a una lista, abre su propio menú ⋮ (o haz clic derecho) y elige Añadir a una lista."],
+
+  "Shorter badges in the chart table on phones":
+    ["Insignias más cortas en la tabla del chart en el móvil",
+     "En el móvil, la insignia de récord de reproducciones en la tabla del chart ahora dice ▲ MÁX en vez de ▲ LOGRO MÁS ALTO, así que ya no es más ancha que el número de reproducciones. Las certificaciones de diamante se muestran como diamantes: 💎 para Diamond, 💎💎 para Double Diamond, y luego 3×💎, 4×💎, etc. Gold y Platinum mantienen su nombre. La insignia de puesto máximo muestra una medalla y el número (🏅 #1). Mantén pulsada una insignia para ver su nombre completo."],
+
   "Resize the chart table's columns":
     ["Ajusta el ancho de las columnas del chart",
      "En el ordenador ya puedes arrastrar la línea entre dos encabezados de columna en las tablas de Canciones, Artistas y Álbumes para ensanchar o estrechar una columna, en todos los periodos. La columna de al lado cede el espacio, así que la tabla siempre cabe. Tus anchos se guardan (y siguen a tu cuenta en otros dispositivos). Haz doble clic en la línea, o abre el menú ⋮ del chart → Size → Restablecer anchos de columna, para volver a los anchos automáticos."],

@@ -16,6 +16,14 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Add to a playlist from each entry's ⋮ menu":
+    ["Adiciona a uma playlist pelo menu ⋮ de cada entrada",
+     "A opção Playlist saiu do menu ⋮ → Show dos tops, e as entradas já não têm um botão + de playlist em nenhuma disposição. Para adicionar uma música, artista ou álbum a uma playlist, abre o menu ⋮ da própria entrada (ou clica com o botão direito) e escolhe Adicionar a uma playlist."],
+
+  "Shorter badges in the chart table on phones":
+    ["Selos mais curtos na tabela do top no telemóvel",
+     "No telemóvel, o selo de pico de plays na tabela do top diz agora ▲ PICO em vez de ▲ PICO DE PLAYS, por isso já não fica mais largo do que o número de plays por cima. As certificações de diamante aparecem como diamantes: 💎 para Diamond, 💎💎 para Double Diamond, depois 3×💎, 4×💎 e por aí fora. Gold e Platinum mantêm o nome. Mantém um selo premido para ver o nome completo."],
+
   "Resize the chart table's columns":
     ["Ajusta a largura das colunas do top",
      "No computador já podes arrastar a linha entre dois cabeçalhos de coluna nas tabelas de Músicas, Artistas e Álbuns para alargar ou estreitar uma coluna, em todos os períodos. A coluna ao lado cede o espaço, por isso a tabela cabe sempre. As tuas larguras ficam guardadas (e acompanham a tua conta noutros dispositivos). Clica duas vezes na linha, ou abre o menu ⋮ do top → Size → Repor largura das colunas, para voltar às larguras automáticas."],

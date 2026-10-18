@@ -16,6 +16,14 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Add to a playlist from each entry's ⋮ menu":
+    ["Adicione a uma playlist pelo menu ⋮ de cada item",
+     "A opção Playlist saiu do menu ⋮ → Show das paradas, e os itens não têm mais um botão + de playlist em nenhum layout. Para adicionar uma música, artista ou álbum a uma playlist, abra o menu ⋮ do próprio item (ou clique com o botão direito) e escolha Adicionar a uma playlist."],
+
+  "Shorter badges in the chart table on phones":
+    ["Selos mais curtos na tabela da parada no celular",
+     "No celular, o selo de pico de plays na tabela da parada agora diz ▲ PICO em vez de ▲ PICO DE PLAYS, então não fica mais largo que o número de plays acima dele. As certificações de diamante aparecem como diamantes: 💎 para Diamond, 💎💎 para Double Diamond, depois 3×💎, 4×💎 e assim por diante. Gold e Platinum mantêm o nome. Segure um selo para ver o nome completo."],
+
   "Resize the chart table's columns":
     ["Ajuste a largura das colunas da parada",
      "No computador agora dá para arrastar a linha entre dois cabeçalhos de coluna nas tabelas de Músicas, Artistas e Álbuns para deixar uma coluna mais larga ou mais estreita, em todos os períodos. A coluna ao lado cede o espaço, então a tabela sempre cabe. Suas larguras ficam salvas (e acompanham sua conta em outros aparelhos). Clique duas vezes na linha, ou abra o menu ⋮ da parada → Size → Redefinir largura das colunas, para voltar às larguras automáticas."],

@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 168;
+const DC_CL_I18N_V = 169;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,14 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-18', t: 'change', a: 'charts', h: '6ce8ef5',
+    title: "Add to a playlist from each entry's ⋮ menu",
+    detail: "The Playlist switch is gone from the charts' ⋮ → Show menu, and chart entries no longer carry a + playlist button in any layout. To add a song, artist or album to a playlist, open its own ⋮ menu (or right-click it) and pick Add to a playlist." },
+
+  { d: '2026-10-18', t: 'design', a: 'charts', h: '6ce8ef5',
+    title: "Shorter badges in the chart table on phones",
+    detail: "On phones, the plays peak tag in the chart table now reads ▲ PB instead of ▲ PLAYS PEAK, so it no longer outgrows the play count above it. Diamond certifications show as diamonds: 💎 for Diamond, 💎💎 for Double Diamond, then 3×💎, 4×💎 and so on. Gold and Platinum keep their names. In Spanish, the peak tag shows a medal and the number (🏅 #1). Hold a badge to see its full name." },
 
   { d: '2026-10-17', t: 'feature', a: 'charts', h: '0681898',
     title: "Resize the chart table's columns",
