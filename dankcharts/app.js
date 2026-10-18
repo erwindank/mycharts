@@ -34231,6 +34231,24 @@ function openStreakModal(opts) {
     if (r.runs.length > mostRuns) mostRuns = r.runs.length;
     for (let i = 1; i < r.runs.length; i++) if (r.runs[i].s - r.runs[i - 1].e > 1095) lazarus = true;
   }
+  // Harder comebacks (2026-10-18, every first one was earned): separate
+  // 30-day runs for one thing (Second wind, Encore), Phoenix beating a 30+ /
+  // 100+ record (Rebirth, Reborn), how many things came back after a year
+  // away (Reunion tour), a return after 5 years (Time capsule) and a return
+  // after a year that itself reaches 30 days (Rekindled)
+  let most30Runs = 0, rebirth = false, reborn = false, reunions = 0, timeCapsule = false, rekindled = false;
+  for (const r of allRuns) {
+    const n30r = r.runs.filter(x => x.len >= 30).length;
+    if (n30r > most30Runs) most30Runs = n30r;
+    let top = r.runs[0].len, away = false;
+    for (let i = 1; i < r.runs.length; i++) {
+      const gap = r.runs[i].s - r.runs[i - 1].e;
+      if (r.runs[i].len > top) { if (top >= 30) rebirth = true; if (top >= 100) reborn = true; top = r.runs[i].len; }
+      if (gap > 365) { away = true; if (r.runs[i].len >= 30) rekindled = true; }
+      if (gap > 1825) timeCapsule = true;
+    }
+    if (away) reunions++;
+  }
   // Completist: one artist's albums with a 30-day streak (singles left out,
   // they'd make it a song badge)
   const artAlb30 = {};
@@ -34289,11 +34307,21 @@ function openStreakModal(opts) {
     { id: 'thruyears', g: 'stay', icon: '⏳', ok: years30.size >= 5, prog: years30.size + '/5' },
     { id: 'comeback',  g: 'back', icon: '🔁', ok: comeback,         prog: '' },
     { id: 'thirdtime', g: 'back', icon: '🍀', ok: mostRuns >= 3,    prog: mostRuns + '/3' },
+    { id: 'cantstay',  g: 'back', icon: '🧲', ok: mostRuns >= 10,   prog: mostRuns + '/10' },
+    { id: 'revolving', g: 'back', icon: '🚪', ok: mostRuns >= 30,   prog: mostRuns + '/30' },
+    { id: 'secondwind', g: 'back', icon: '🌬️', ok: most30Runs >= 2, prog: most30Runs + '/2' },
+    { id: 'encore',    g: 'back', icon: '👏', ok: most30Runs >= 3,  prog: most30Runs + '/3' },
     { id: 'serial',    g: 'back', icon: '🪃', ok: returners >= 10,  prog: returners + '/10' },
     { id: 'boomerang', g: 'back', icon: '🌀', ok: returners >= 50,  prog: returners + '/50' },
+    { id: 'homecoming', g: 'back', icon: '🎈', ok: returners >= 500, prog: returners + '/500' },
     { id: 'phoenix',   g: 'back', icon: '🌅', ok: phoenix,          prog: '' },
+    { id: 'rebirth',   g: 'back', icon: '🐣', ok: rebirth,          prog: '' },
+    { id: 'reborn',    g: 'back', icon: '✨', ok: reborn,           prog: '' },
     { id: 'oldflame',  g: 'back', icon: '💌', ok: oldFlame,         prog: '' },
+    { id: 'reunion',   g: 'back', icon: '🤝', ok: reunions >= 100,  prog: reunions + '/100' },
+    { id: 'rekindled', g: 'back', icon: '🪔', ok: rekindled,        prog: '' },
     { id: 'lazarus',   g: 'back', icon: '⚰️', ok: lazarus,          prog: '' },
+    { id: 'timecapsule', g: 'back', icon: '🕰️', ok: timeCapsule,    prog: '' },
     { id: 'superfan',  g: 'fan',  icon: '🙌', ok: fanMost >= 3,     prog: fanMost + '/3' },
     { id: 'obsessed',  g: 'fan',  icon: '😍', ok: fanMost >= 10,    prog: fanMost + '/10' },
     { id: 'completist', g: 'fan', icon: '🧩', ok: albMost >= 3,     prog: albMost + '/3' },
