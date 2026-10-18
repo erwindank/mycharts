@@ -34104,19 +34104,126 @@ function openStreakModal(opts) {
   }
   const n30 = fameCandidates.filter(it => it.len >= 30).length;
   const allRound = ['artist', 'album', 'song'].every(tp => fameCandidates.some(it => it.type === tp && it.len >= 30));
+
+  // ── More badges (2026-10-18): range and staying power, not one long run ──
+  // Most of the first twelve fall to a single artist going long, so these ask
+  // for many different things, long streaks side by side, months of keeping a
+  // fire lit, comebacks, and an artist's / album's songs going along with it.
+  // How many things of one type reached a length
+  const nBest = (best, len) => { let n = 0; for (const k in best) if (best[k] >= len) n++; return n; };
+  // Every run of 7+ days, for everything whose record is 7+ (the rest can't
+  // have one). Days as whole numbers so gaps and overlaps are plain sums.
+  const dayNo = ds => Math.round(Date.UTC(+ds.slice(0, 4), +ds.slice(5, 7) - 1, +ds.slice(8, 10)) / 86400000);
+  function runs7(daySet) {
+    const n = [...daySet].map(dayNo).sort((a, b) => a - b), out = [];
+    let st = 0;
+    for (let i = 1; i <= n.length; i++) {
+      if (i < n.length && n[i] === n[i - 1] + 1) continue;
+      if (i - st >= 7) out.push({ s: n[st], e: n[i - 1], len: i - st });
+      st = i;
+    }
+    return out;
+  }
+  // A single (album named like its song) runs on the same days as the song,
+  // so it doesn't count as a second streak side by side with it
+  const singleAlb = new Set();
+  for (const sk in songAlbKey) {
+    const ak = songAlbKey[sk];
+    if (albumInfo[ak] && albumInfo[ak].album.toLowerCase() === songInfo[sk].title.toLowerCase()) singleAlb.add(ak);
+  }
+  const allRuns = [];   // [{ tp, k, runs }]: one entry per thing with a 7+ run
+  for (const [days, best, tp] of [[songDays, songBest, 'song'], [artistDays, artBest, 'artist'], [albumDays, albBest, 'album']]) {
+    for (const k in best) if (best[k] >= 7) allRuns.push({ tp, k, runs: runs7(days[k]) });
+  }
+  // Streaks side by side: the most things on day minLen+ of a run on the same
+  // day, and the longest stretch of days with at least one ("Eternal flame").
+  // A difference array over day numbers: +1 the day a run reaches minLen,
+  // -1 the day after it ends.
+  function mostAtOnce(minLen) {
+    const diff = new Map();
+    const add = (d, v) => diff.set(d, (diff.get(d) || 0) + v);
+    for (const r of allRuns) {
+      if (r.tp === 'album' && singleAlb.has(r.k)) continue;
+      for (const x of r.runs) if (x.len >= minLen) { add(x.s + minLen - 1, 1); add(x.e + 1, -1); }
+    }
+    const days = [...diff.keys()].sort((a, b) => a - b);
+    let cur = 0, most = 0, lit = 0, litBest = 0, litFrom = null;
+    for (const d of days) {
+      const was = cur;
+      cur += diff.get(d);
+      if (cur > most) most = cur;
+      if (!was && cur) litFrom = d;   // a fire lights
+      if (was && !cur) { lit = d - litFrom; if (lit > litBest) litBest = lit; }   // and goes out
+    }
+    return { most, lit: litBest };
+  }
+  const at30 = mostAtOnce(30), at100 = mostAtOnce(100);
+  // Every season: a 14-day streak started in each month of one calendar year
+  const monthsByYear = {};
+  for (const r of allRuns) for (const x of r.runs) if (x.len >= 14) {
+    const d = new Date(x.s * 86400000), y = d.getUTCFullYear();
+    (monthsByYear[y] = monthsByYear[y] || new Set()).add(d.getUTCMonth());
+  }
+  let seasonsBest = 0;
+  for (const y in monthsByYear) if (monthsByYear[y].size > seasonsBest) seasonsBest = monthsByYear[y].size;
+  // Comebacks: a record of 14+ beaten by a later run (Phoenix), a 7+ run back
+  // more than a year after the last one ended (Old flame), and how many things
+  // had two 7+ runs at all (Serial returner)
+  let phoenix = false, oldFlame = false, returners = 0;
+  for (const r of allRuns) {
+    if (r.runs.length < 2) continue;
+    returners++;
+    let top = r.runs[0].len;
+    for (let i = 1; i < r.runs.length; i++) {
+      if (top >= 14 && r.runs[i].len > top) phoenix = true;
+      if (r.runs[i].s - r.runs[i - 1].e > 365) oldFlame = true;
+      if (r.runs[i].len > top) top = r.runs[i].len;
+    }
+  }
+  // Deep fan: an artist with 3 of their songs at 30+ days and an album with
+  // 5 of its songs at 14+, the artist / album itself reaching the same length
+  const fanSongs = {}, devSongs = {};
+  for (const sk in songBest) {
+    if (songBest[sk] >= 30) for (const a of (songArtists[sk] || [])) if (artBest[a] >= 30) fanSongs[a] = (fanSongs[a] || 0) + 1;
+    const ak = songAlbKey[sk];
+    if (songBest[sk] >= 14 && ak && albBest[ak] >= 14) devSongs[ak] = (devSongs[ak] || 0) + 1;
+  }
+  const fanMost = maxOf(fanSongs), devMost = maxOf(devSongs);
+  const nArt30 = nBest(artBest, 30), nAlb14 = nBest(albBest, 14), nSong14 = nBest(songBest, 14);
+  const n100 = nBest(songBest, 100) + nBest(artBest, 100) + nBest(albBest, 100);
+
+  // Shown in groups, in this order (heading: sk_bgrp_<g>)
   const SK_BADGES = [
-    { id: 'week',     icon: '🔥', ok: bestEver >= 7,   prog: bestEver + 'd' },
-    { id: 'twoweeks', icon: '☄️', ok: bestEver >= 14,  prog: bestEver + 'd' },
-    { id: 'month',    icon: '🌋', ok: bestEver >= 30,  prog: bestEver + 'd' },
-    { id: 'fifty',    icon: '🏅', ok: bestEver >= 50,  prog: bestEver + 'd' },
-    { id: 'hundred',  icon: '💯', ok: bestEver >= 100, prog: bestEver + 'd' },
-    { id: 'year',     icon: '📅', ok: bestEver >= 365, prog: bestEver + 'd' },
-    { id: 'juggler',  icon: '🤹', ok: mostAlive >= 10,  prog: String(mostAlive) },
-    { id: 'bonfire',  icon: '🎇', ok: mostAlive >= 50,  prog: String(mostAlive) },
-    { id: 'house',    icon: '🏟️', ok: mostAlive >= 100, prog: String(mostAlive) },
-    { id: 'comeback', icon: '🔁', ok: comeback,         prog: '' },
-    { id: 'collector', icon: '🗃️', ok: n30 >= 10,       prog: n30 + '/10' },
-    { id: 'allround', icon: '🎯', ok: allRound,         prog: '' },
+    { id: 'week',      g: 'long', icon: '🔥', ok: bestEver >= 7,    prog: bestEver + 'd' },
+    { id: 'twoweeks',  g: 'long', icon: '☄️', ok: bestEver >= 14,   prog: bestEver + 'd' },
+    { id: 'month',     g: 'long', icon: '🌋', ok: bestEver >= 30,   prog: bestEver + 'd' },
+    { id: 'fifty',     g: 'long', icon: '🏅', ok: bestEver >= 50,   prog: bestEver + 'd' },
+    { id: 'hundred',   g: 'long', icon: '💯', ok: bestEver >= 100,  prog: bestEver + 'd' },
+    { id: 'year',      g: 'long', icon: '📅', ok: bestEver >= 365,  prog: bestEver + 'd' },
+    { id: 'juggler',   g: 'once', icon: '🤹', ok: mostAlive >= 10,  prog: String(mostAlive) },
+    { id: 'bonfire',   g: 'once', icon: '🎇', ok: mostAlive >= 50,  prog: String(mostAlive) },
+    { id: 'house',     g: 'once', icon: '🏟️', ok: mostAlive >= 100, prog: String(mostAlive) },
+    { id: 'twin',      g: 'once', icon: '🕯️', ok: at30.most >= 2,   prog: at30.most + '/2' },
+    { id: 'hattrick',  g: 'once', icon: '🎩', ok: at30.most >= 3,   prog: at30.most + '/3' },
+    { id: 'pantheon',  g: 'once', icon: '🏛️', ok: at30.most >= 10,  prog: at30.most + '/10' },
+    { id: 'doublec',   g: 'once', icon: '⚔️', ok: at100.most >= 2,  prog: at100.most + '/2' },
+    { id: 'collector', g: 'many', icon: '🗃️', ok: n30 >= 10,        prog: n30 + '/10' },
+    { id: 'archivist', g: 'many', icon: '📚', ok: n30 >= 50,        prog: n30 + '/50' },
+    { id: 'museum',    g: 'many', icon: '🖼️', ok: n30 >= 100,       prog: n30 + '/100' },
+    { id: 'squad',     g: 'many', icon: '👥', ok: nArt30 >= 5,      prog: nArt30 + '/5' },
+    { id: 'discog',    g: 'many', icon: '💿', ok: nAlb14 >= 10,     prog: nAlb14 + '/10' },
+    { id: 'hitparade', g: 'many', icon: '🎶', ok: nSong14 >= 25,    prog: nSong14 + '/25' },
+    { id: 'legends',   g: 'many', icon: '👑', ok: n100 >= 5,        prog: n100 + '/5' },
+    { id: 'allround',  g: 'many', icon: '🎯', ok: allRound,         prog: '' },
+    { id: 'eternal',   g: 'stay', icon: '🏮', ok: at30.lit >= 100,  prog: at30.lit + 'd' },
+    { id: 'nevercold', g: 'stay', icon: '☀️', ok: at30.lit >= 365,  prog: at30.lit + 'd' },
+    { id: 'seasons',   g: 'stay', icon: '🗓️', ok: seasonsBest >= 12, prog: seasonsBest + '/12' },
+    { id: 'comeback',  g: 'back', icon: '🔁', ok: comeback,         prog: '' },
+    { id: 'phoenix',   g: 'back', icon: '🌅', ok: phoenix,          prog: '' },
+    { id: 'oldflame',  g: 'back', icon: '💌', ok: oldFlame,         prog: '' },
+    { id: 'serial',    g: 'back', icon: '🪃', ok: returners >= 10,  prog: returners + '/10' },
+    { id: 'superfan',  g: 'fan',  icon: '🙌', ok: fanMost >= 3,     prog: fanMost + '/3' },
+    { id: 'devotee',   g: 'fan',  icon: '🎧', ok: devMost >= 5,     prog: devMost + '/5' },
   ];
 
   // ── Weekly digest ─────────────────────────────────────────────────
@@ -34160,17 +34267,24 @@ function openStreakModal(opts) {
   function badgesSection() {
     const got = SK_BADGES.filter(b => b.ok).length;
     const collapsed = localStorage.getItem('skc-badges') === '1';
-    const cards = SK_BADGES.map(b =>
+    const card = b =>
       `<div class="sk-badge${b.ok ? '' : ' sk-badge--locked'}" title="${esc(t('sk_badge_' + b.id + '_d'))}">` +
         `<div class="sk-badge-ic" aria-hidden="true">${b.icon}</div>` +
         `<div class="sk-badge-nm">${esc(t('sk_badge_' + b.id))}</div>` +
         `<div class="sk-badge-d">${esc(t('sk_badge_' + b.id + '_d'))}</div>` +
         (!b.ok && b.prog ? `<div class="sk-badge-prog">${esc(t('sk_badge_best', { v: b.prog }))}</div>` : '') +
         (b.ok ? `<span class="sk-badge-ok">✓</span>` : '') +
-      `</div>`).join('');
+      `</div>`;
+    // One small heading per group, with how many of its badges are earned
+    const groups = [...new Set(SK_BADGES.map(b => b.g))];
+    const cards = groups.map(g => {
+      const list = SK_BADGES.filter(b => b.g === g);
+      return `<div class="sk-bgrp-h">${esc(t('sk_bgrp_' + g))} <span class="sk-bgrp-n">${list.filter(b => b.ok).length}/${list.length}</span></div>` +
+        `<div class="sk-badges">${list.map(card).join('')}</div>`;
+    }).join('');
     return `<div class="streak-section streak-section--badges${collapsed ? ' streak-section--collapsed' : ''}" data-skid="badges">` +
       `<div class="streak-section-title" onclick="_streakToggleSection(this.closest('.streak-section'))"><span class="sk-chev">${collapsed ? '▶' : '▼'}</span> ${esc(t('sk_badges_title'))} <span class="streak-count">(${got}/${SK_BADGES.length})</span></div>` +
-      `<div class="sk-sec-body${collapsed ? ' sk-sec-hidden' : ''}"><div class="sk-badges">${cards}</div></div></div>`;
+      `<div class="sk-sec-body${collapsed ? ' sk-sec-hidden' : ''}">${cards}</div></div>`;
   }
   // One headstone in the Graveyard: full start–end dates, and a red note when it
   // ended just short of a milestone (replaces the 🎯 chip, which pointed at a goal
