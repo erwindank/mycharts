@@ -1560,6 +1560,32 @@ animation, 12 screen check.
   Compact and Stack, Show more (100 → 200, #101 after #100), search in
   Filmstrip (ranks kept, "No results"), the details panel from a Yearly
   Compact row, no JS errors.
+- **Step 7 ✓ (2026-10-17): Table restyle (4.10).** Your calls first: **last
+  period's rank stays visible** under the movement chip (not moved into a
+  tooltip); the column is now called **Move** (`th_move`, 4 langs; the
+  stacked "PREVIOUS / RANK" header, a flex box with its own out-of-line
+  underline, is gone along with the `th_prev*` keys). **Peak stays a tag by
+  the title** under its Show switch (no Peak column). **Play bar 3px, still
+  coloured by movement.** Done as planned: one thin divider between rows
+  instead of a rounded strip per row; rows 64px with 48px covers (8px above
+  and below); artist line at `--fs-sm`; hover lightens the row; **#1 only**
+  gets a soft gold wash with rounded ends and a 56px cover, no ring (the
+  #2 / #3 tints are gone; their numbers keep silver and bronze); the album
+  column stays on one line with "…" and the full name on hover (`title`),
+  its certification disc kept visible. **Phone: the table now fits its card
+  in every period, type and language** (it ran up to 60px past the edge in
+  Spanish and on Yearly): the Plays cells show just the number (the header
+  names the column; `tCountHtml` now wraps the unit in `.cnt-unit`), the
+  change in plays goes under it, the rank column is 32px, covers 36px (40px
+  on #1), and long words may break in titles and headers. The Bubbling
+  Under / Off the Chart / New Entries tables share the new rows (step 10
+  goes further). **Not done here:** the gradient stand-in for missing
+  covers (phase 4 left it for later; the initials show in 56 places, so it
+  belongs with phase 8's shared components); the Tracks / Unique songs
+  column stays as it is (no new switch). Checked: desktop Weekly songs /
+  albums, Navy dark, Navy light and Yellow, Yearly, an open chart run, New
+  Songs; phone (touch) table width measured for 4 languages × 5 periods ×
+  3 types, all inside the card; no JS errors.
 
 The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in

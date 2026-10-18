@@ -5736,19 +5736,19 @@
       color: var(--text3);
     }
 
-    /* CHART TABLE — 2026-10 refresh.
-       Was a boxed spreadsheet: filled thead, vertical rules between every
-       header cell, full-width hairlines and flat square row tints. Now each
-       row is its own rounded strip floating on the section card, separated
-       by a few px of air instead of a line, with a borderless header that
-       just labels the columns. border-collapse has to be `separate` for the
-       per-cell rounding below — collapse ignores border-radius on cells. */
+    /* CHART TABLE — phase 7 step 7 (REDESIGN-PLAN.md 4.10).
+       Was (2026-10 refresh) a rounded strip per row floating on the card,
+       with gold/silver/bronze tints on the top three and a gold ring on #1.
+       Now it reads like a printed chart: open rows split by one thin line,
+       64px tall with 48px covers, hover lightening the whole row, and only
+       #1 set apart, by a soft tint (no ring, no box). The medal colours stay
+       on the #1–#3 rank numbers. The Bubbling Under / Off the Chart / New
+       Entries tables share these rules (step 10 restyles them further). */
     .chart-table {
       width: 100%;
-      border-collapse: separate;
-      border-spacing: 0 4px;
+      border-collapse: separate; /* keeps #1's rounded corners possible */
+      border-spacing: 0;
       background: transparent;
-      margin-top: -4px; /* swallow the first spacing gap so the header sits flush */
     }
 
     .chart-table thead {
@@ -5776,24 +5776,25 @@
       transition: background var(--t-fast) var(--ease);
     }
 
-    /* The row strip is painted on the cells (not the <tr>) because browsers
-       don't round a <tr>; the first and last cell carry the corners. */
+    /* The divider and the hover wash are painted on the cells, since a <tr>
+       takes neither a border (in separate mode) nor a radius */
     .chart-table tbody tr > td {
-      background: color-mix(in srgb, var(--text) 3%, transparent);
+      background: transparent;
+      border-bottom: 1px solid var(--border-t);
       transition: background var(--t-fast) var(--ease);
     }
 
-    .chart-table tbody tr > td:first-child {
-      border-radius: 12px 0 0 12px;
+    /* No line under the last row: the section card's edge closes the list.
+       In Yearly / All-Time every row is followed by its (hidden) chart-run
+       row, so the last visible row is the second-last child there. */
+    .chart-table tbody tr:last-child > td,
+    .chart-table tbody tr:nth-last-child(2):has(+ tr.cr-row:not(.open)) > td {
+      border-bottom-color: transparent;
     }
 
-    .chart-table tbody tr > td:last-child {
-      border-radius: 0 12px 12px 0;
-    }
-
-    /* A single-cell row (the chart-run panel, empty states) is rounded all round */
+    /* A single-cell row (empty states) has no line of its own */
     .chart-table tbody tr > td:only-child {
-      border-radius: 12px;
+      border-bottom: 0;
     }
 
     .chart-table tbody tr:hover > td {
@@ -5801,60 +5802,33 @@
     }
 
     /* The chart-run row carries its own rounded card (.cr-panel), so the
-       strip tint and hover wash stay off it. */
+       hover wash stays off it. */
     .chart-table tbody tr.cr-row > td,
     .chart-table tbody tr.cr-row:hover > td {
       background: transparent;
     }
 
-    /* Medal rows: a tint of the medal token itself (light themes already
-       darken --medal-*), so the strip reads as gold/silver/bronze on every
-       theme instead of the old hard-coded rgba amber that went muddy on light. */
+    /* #1: a soft gold wash (the colour of its rank number) with rounded ends,
+       and no divider of its own so the wash isn't cut by a line. */
     .chart-table tbody tr.rank-1 > td {
-      background: color-mix(in srgb, var(--medal-gold) 11%, transparent);
-    }
-
-    .chart-table tbody tr.rank-2 > td {
-      background: color-mix(in srgb, var(--medal-silver) 8%, transparent);
-    }
-
-    .chart-table tbody tr.rank-3 > td {
-      background: color-mix(in srgb, var(--medal-bronze) 9%, transparent);
+      background: color-mix(in srgb, var(--medal-gold) 8%, transparent);
+      border-bottom-color: transparent;
     }
 
     .chart-table tbody tr.rank-1:hover > td {
-      background: color-mix(in srgb, var(--medal-gold) 18%, transparent);
-    }
-
-    .chart-table tbody tr.rank-2:hover > td {
-      background: color-mix(in srgb, var(--medal-silver) 14%, transparent);
-    }
-
-    .chart-table tbody tr.rank-3:hover > td {
-      background: color-mix(in srgb, var(--medal-bronze) 15%, transparent);
-    }
-
-    /* #1 also gets a hairline ring in gold so it lifts off the list like the
-       top slot on a chart-show lower third. Drawn as an inset shadow on each
-       cell (top/bottom on all, plus the outer side on the end cells) since a
-       <tr> can't take a rounded outline. */
-    .chart-table tbody tr.rank-1 > td {
-      box-shadow: inset 0 1px 0 color-mix(in srgb, var(--medal-gold) 30%, transparent),
-                  inset 0 -1px 0 color-mix(in srgb, var(--medal-gold) 30%, transparent);
+      background: color-mix(in srgb, var(--medal-gold) 14%, transparent);
     }
 
     .chart-table tbody tr.rank-1 > td:first-child {
-      box-shadow: inset 1px 1px 0 color-mix(in srgb, var(--medal-gold) 30%, transparent),
-                  inset 0 -1px 0 color-mix(in srgb, var(--medal-gold) 30%, transparent);
+      border-radius: 12px 0 0 12px;
     }
 
     .chart-table tbody tr.rank-1 > td:last-child {
-      box-shadow: inset -1px 1px 0 color-mix(in srgb, var(--medal-gold) 30%, transparent),
-                  inset 0 -1px 0 color-mix(in srgb, var(--medal-gold) 30%, transparent);
+      border-radius: 0 12px 12px 0;
     }
 
     .chart-table td {
-      padding: 0.6rem 0.85rem;
+      padding: var(--sp-2) 0.85rem;
       vertical-align: middle;
       font-size: var(--fs-base);
     }
@@ -5905,14 +5879,12 @@
         /* background-clip:text clips every background layer, which would
            strip this cell's share of the row tint — so the tint is repainted
            as a big inset shadow (shadows sit above the background, below the
-           text), alongside the gold ring lines from the row rule. */
-        --r1-tint: color-mix(in srgb, var(--medal-gold) 11%, transparent);
-        box-shadow: inset 1px 1px 0 color-mix(in srgb, var(--medal-gold) 30%, transparent),
-                    inset 0 -1px 0 color-mix(in srgb, var(--medal-gold) 30%, transparent),
-                    inset 0 0 0 200px var(--r1-tint);
+           text). Same values as the row rule. */
+        --r1-tint: color-mix(in srgb, var(--medal-gold) 8%, transparent);
+        box-shadow: inset 0 0 0 200px var(--r1-tint);
       }
       .chart-table tbody tr.rank-1:hover > td.rank-cell {
-        --r1-tint: color-mix(in srgb, var(--medal-gold) 18%, transparent);
+        --r1-tint: color-mix(in srgb, var(--medal-gold) 14%, transparent);
       }
     }
 
@@ -5942,6 +5914,12 @@
       user-select: text;
     }
 
+    /* In the chart table the artist reads at --fs-sm (4.10); the meta column
+       (unique songs / tracks) keeps the smaller size */
+    .chart-table td:not(.meta-col) > .song-artist {
+      font-size: var(--fs-sm);
+    }
+
     /* Song / album / artist names in the chart tables open their modal */
     .chart-name-link {
       color: inherit;
@@ -5963,6 +5941,25 @@
       user-select: text;
     }
 
+    /* The Songs table's album never wraps the row to double height (4.10):
+       the name cuts off with "…" (the cell's title shows it whole) and the
+       certification disc stays visible beside it */
+    .chart-table td.meta-col > .song-album {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      max-width: 240px;
+      white-space: nowrap;
+    }
+    .chart-table td.meta-col > .song-album > .chart-name-link {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .chart-table td.meta-col > .song-album > :not(.chart-name-link) {
+      flex-shrink: 0;
+    }
+
     .play-count {
       font-family: var(--font-mono);
       font-variant-numeric: tabular-nums;
@@ -5973,10 +5970,10 @@
       user-select: text;
     }
 
-    /* Fully rounded 4px capsule on a translucent track (was a 3px bar on a
-       solid --border track, which read as a divider line). */
+    /* Fully rounded capsule on a translucent track. 3px since phase 7 step 7:
+       the number is what matters; the fill keeps its movement colour. */
     .play-bar {
-      height: 4px;
+      height: 3px;
       background: color-mix(in srgb, var(--text) 9%, transparent);
       margin-top: 6px;
       border-radius: var(--r-full);
@@ -6032,9 +6029,21 @@
       border-color: rgba(245, 158, 11, 0.3);
     }
 
-    .thumb-cell {
+    /* Chart table covers (4.10): 48px, and a little bigger on #1 */
+    .chart-table .thumb,
+    .chart-table .thumb-initials {
+      width: 48px;
+      height: 48px;
+    }
+    .chart-table tr.rank-1 .thumb,
+    .chart-table tr.rank-1 .thumb-initials {
       width: 56px;
-      padding: 0.4rem var(--sp-2) !important;
+      height: 56px;
+    }
+
+    .thumb-cell {
+      width: 64px;
+      padding: var(--sp-1) var(--sp-2) !important;
       vertical-align: middle;
     }
 
@@ -11276,20 +11285,10 @@
       white-space: nowrap;
     }
 
-    /* Previous-rank header: stacked "PREVIOUS / Rank" so the column keeps its
-       narrow footprint next to Rank instead of growing to fit two words inline */
+    /* Move header (was a stacked "PREVIOUS / Rank" laid out as a flex box,
+       which gave the cell its own underline out of line with the others) */
     .m-th-prev {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 1px;
-      line-height: 1.3;
-    }
-
-    .th-prev-sub {
-      font-size: 0.8em;
-      color: var(--text3);
-      opacity: 0.75;
+      text-align: center !important;
     }
 
     .m-up {
@@ -12067,6 +12066,53 @@
         padding: var(--sp-1);
       }
 
+      /* Phone table (phase 7 step 7): covers stay at their old 36px (40px
+         on #1), the artist line at the small size, the rank column a little
+         narrower, and the change in plays (+10 / NEW) goes under the count.
+         Together that brings the table inside its card: before, it ran
+         ~30px past the right edge and cut off the plays. */
+      .chart-table .thumb,
+      .chart-table .thumb-initials {
+        width: 36px;
+        height: 36px;
+      }
+      .chart-table tr.rank-1 .thumb,
+      .chart-table tr.rank-1 .thumb-initials {
+        width: 40px;
+        height: 40px;
+      }
+      .chart-table td:not(.meta-col) > .song-artist {
+        font-size: var(--fs-xs);
+      }
+      .chart-table .rank-cell {
+        width: 32px;
+      }
+      .chart-table thead th:first-child {
+        width: 32px;
+        padding-left: 0;
+        padding-right: 0;
+      }
+      .chart-table .thumb-cell {
+        padding: 0.3rem 0.2rem !important;
+      }
+      /* Long single words (a title like "BRAND NEW CHANEL$", headers like
+         "Puesto") set a column's minimum width; let them break on phones so
+         the columns can share the width instead of pushing the table out */
+      .chart-table .song-title,
+      .chart-table .song-artist,
+      .chart-table thead th {
+        overflow-wrap: anywhere;
+      }
+      /* The Plays header names the column, so the rows show just the number */
+      .chart-table .play-count .cnt-unit {
+        display: none;
+      }
+      .chart-table .play-count > [class^="m-"] {
+        display: block;
+        margin-left: 0 !important;
+        margin-top: 1px;
+      }
+
       .thumb {
         width: 36px;
         height: 36px;
@@ -12199,7 +12245,11 @@
        thumbnail column so the chart table still fits without a horizontal scroll */
     @media (max-width: 340px) {
       .thumb,
-      .thumb-initials {
+      .thumb-initials,
+      .chart-table .thumb,
+      .chart-table .thumb-initials,
+      .chart-table tr.rank-1 .thumb,
+      .chart-table tr.rank-1 .thumb-initials {
         width: 30px;
         height: 30px;
       }
@@ -12225,9 +12275,6 @@
       .th-plays-short,
       .th-prev-short,
       .th-period-short { display: inline; }
-      /* "Rank" subtext is redundant once the column is already showing the short
-         "Prev" label at this width — drop it to keep the header compact */
-      .th-prev-sub { display: none; }
     }
 
     /* ── RECORDS VIEW ── */

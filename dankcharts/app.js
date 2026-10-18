@@ -13299,9 +13299,10 @@ function renderTableHeaders() {
   const hasPeriodStats = isDailyView || isWeeklyView || isMonthlyView || isYearlyView;
   const periodLabel = isDailyView ? t('dy_th_days') : isWeeklyView ? t('th_weeks') : isMonthlyView ? t('th_months') : t('th_years');
   const periodLabelMobile = isDailyView ? t('dy_th_days_mobile') : isWeeklyView ? t('th_weeks_mobile') : isMonthlyView ? t('th_months_mobile') : t('th_years_mobile');
-  // Stacked label: main word on top, small muted "Rank" underneath — same footprint as before,
-  // reads as "PREVIOUS / RANK" once .chart-table thead th uppercases it.
-  const prevTh = `<th class="m-th m-th-prev"><span class="th-prev-full">${t('th_prev')}</span><span class="th-prev-short">${t('th_prev_mobile')}</span><span class="th-prev-sub">${t('th_prev_sub')}</span></th>`;
+  // "Move" (phase 7 step 7, 4.10): the cell shows the movement chip with last
+  // period's rank under it (mPrevCell), so one short word covers both. It was
+  // a stacked "PREVIOUS / RANK" that made the header row taller than the rest.
+  const prevTh = `<th class="m-th m-th-prev"><span class="th-prev-full">${t('th_move')}</span><span class="th-prev-short">${t('th_move_mobile')}</span></th>`;
   const periodTh = `<th class="m-th"><span class="th-period-full">${periodLabel}</span><span class="th-period-short">${periodLabelMobile}</span></th>`;
   // thumb-th / meta-col are class-based (not nth-child) because the Previous column only
   // exists in the hasPeriodStats branch, shifting later columns' position between branches.
@@ -14455,7 +14456,7 @@ function renderPage(type, peaks) {
           <div class="song-artist">${esc(s.artist)}</div>
           ${dcPlBtnHtml('song', s.title, s.artist, s.album)}
         </td>
-        <td class="meta-col"><div class="song-album">${s.album ? chartNameLink(s.album, 'openAlbumModal', s.album + '|||' + albumArtistOfSong(s)) : ''}${cumAlbumPlays ? certBadge(cumAlbumPlays, certKindFor(s.album, albumArtistOfSong(s))) : ''}</div></td>
+        <td class="meta-col"><div class="song-album" title="${esc(s.album || '')}">${s.album ? chartNameLink(s.album, 'openAlbumModal', s.album + '|||' + albumArtistOfSong(s)) : ''}${cumAlbumPlays ? certBadge(cumAlbumPlays, certKindFor(s.album, albumArtistOfSong(s))) : ''}</div></td>
         ${ms ? mMthsCell(k, 'songs', ms) : ''}
         <td>
           <div class="play-count">${tCountHtml('plays', s.count)}${ms ? deltaInline(s.count, k, 'songs', ms) : ''}</div>
@@ -17244,7 +17245,7 @@ function renderSongs(plays, peaks, monthlyStats) {
         <div class="song-artist">${chartArtistLinks(s.artist)}</div>
         ${dcPlBtnHtml('song', s.title, s.artist, s.album)}
       </td>
-      <td class="meta-col"><div class="song-album">${f.albumKey ? chartNameLink(s.album, 'openAlbumModal', f.albumKey) : ''}${f.albumCertHtml}</div></td>
+      <td class="meta-col"><div class="song-album" title="${esc(s.album || '')}">${f.albumKey ? chartNameLink(s.album, 'openAlbumModal', f.albumKey) : ''}${f.albumCertHtml}</div></td>
       ${monthlyStats ? mMthsCell(k, 'songs', monthlyStats) : ''}
       <td>
         <div class="play-count">${tCountHtml('plays', s.count)}${f.deltaHtml}</div>

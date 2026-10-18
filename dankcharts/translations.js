@@ -817,9 +817,8 @@ const TRANSLATIONS = {
     th_tracks: 'Tracks',
     th_artist: 'Artist',
     th_album_artist: 'Album · Artist',
-    th_prev: 'Previous',
-    th_prev_mobile: 'Prev',
-    th_prev_sub: 'Rank',
+    th_move: 'Move',
+    th_move_mobile: 'Move',
     th_weeks: 'Weeks',
     th_weeks_mobile: 'Wks',
     th_months: 'Months',
@@ -3637,9 +3636,8 @@ const TRANSLATIONS = {
     th_tracks: 'Canciones',
     th_artist: 'Artista',
     th_album_artist: 'Álbum · Artista',
-    th_prev: 'Anterior',
-    th_prev_mobile: 'Ant.',
-    th_prev_sub: 'Puesto',
+    th_move: 'Cambio',
+    th_move_mobile: 'Camb.',
     th_weeks: 'Semanas',
     th_weeks_mobile: 'Sem.',
     th_months: 'Meses',
@@ -6357,9 +6355,8 @@ const TRANSLATIONS = {
     th_tracks: 'Faixas',
     th_artist: 'Artista',
     th_album_artist: 'Álbum · Artista',
-    th_prev: 'Anterior',
-    th_prev_mobile: 'Ant.',
-    th_prev_sub: 'Posição',
+    th_move: 'Variação',
+    th_move_mobile: 'Var.',
     th_weeks: 'Semanas',
     th_weeks_mobile: 'Sem.',
     th_months: 'Meses',
@@ -9078,9 +9075,8 @@ const TRANSLATIONS = {
     th_tracks: 'Faixas',
     th_artist: 'Artista',
     th_album_artist: 'Álbum · Artista',
-    th_prev: 'Anterior',
-    th_prev_mobile: 'Ant.',
-    th_prev_sub: 'Posição',
+    th_move: 'Variação',
+    th_move_mobile: 'Var.',
     th_weeks: 'Semanas',
     th_weeks_mobile: 'Sem.',
     th_months: 'Meses',
@@ -11028,13 +11024,14 @@ function tCount(key, n) {
 
 // ─── HELPER: number + unit with portrait-mobile abbreviation ─────────────────
 // Returns dual-span HTML so CSS can swap the unit word on narrow portrait screens.
-// Falls back to plain tCount when full and short unit are identical (e.g. English).
+// The unit always sits in a .cnt-unit span, so a narrow column (the chart
+// table's Plays on phones, phase 7 step 7) can hide it and keep the number.
 function tCountHtml(key, n) {
   const unit = tUnit(key, n);
   const mobileUnit = t(n === 1 ? key + '_one_mobile' : key + '_other_mobile');
   const count = n.toLocaleString();
-  if (unit === mobileUnit) return `${count} ${unit}`;
-  return `${count} <span class="th-plays-full">${unit}</span><span class="th-plays-short">${mobileUnit}</span>`;
+  if (unit === mobileUnit) return `${count}<span class="cnt-unit"> ${unit}</span>`;
+  return `${count}<span class="cnt-unit"> <span class="th-plays-full">${unit}</span><span class="th-plays-short">${mobileUnit}</span></span>`;
 }
 
 // ─── HELPER: update button label (On/Off state) ──────────────────────────────
