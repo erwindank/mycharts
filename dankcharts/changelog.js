@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 181;
+const DC_CL_I18N_V = 182;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-18', t: 'fix', a: 'charts', h: 'e47d15c',
+    title: "Row buttons always fit in the chart",
+    detail: "The Plays column now has a fixed width, and the ▶, ⋮ and chart run buttons at the end of each row always get their full space. If you had resized columns before, the ⋮ menu could end up cut off at the edge of the chart; it now always fits." },
 
   { d: '2026-10-18', t: 'change', a: 'charts', h: '3e1e84d',
     title: "Resizable Rank and Move columns",

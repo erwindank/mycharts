@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Row buttons always fit in the chart":
+    ["Los botones de cada fila siempre caben en la lista",
+     "La columna Escuchas tiene ahora un ancho fijo, y los botones ▶, ⋮ y trayectoria al final de cada fila siempre tienen su espacio completo. Si antes habías ajustado las columnas, el menú ⋮ podía quedar cortado en el borde de la lista; ahora siempre cabe."],
+
   "Resizable Rank and Move columns":
     ["Columnas Puesto y Cambio ajustables",
      "En las listas diaria, semanal, mensual y anual ahora también puedes arrastrar el borde de las columnas Puesto y Cambio, no solo las columnas de texto. Al hacerlas más estrechas, el espacio pasa al título y los botones al final de cada fila siguen a la vista. Haz doble clic en una línea, o usa ⋮ → Tamaño → Restablecer anchos de columna, para volver."],

@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Row buttons always fit in the chart":
+    ["Os botões de cada linha sempre cabem na parada",
+     "A coluna Reproduções agora tem largura fixa, e os botões ▶, ⋮ e trajetória no fim de cada linha sempre têm o espaço completo. Se você tinha ajustado as colunas antes, o menu ⋮ podia ficar cortado na borda da parada; agora ele sempre cabe."],
+
   "Resizable Rank and Move columns":
     ["Colunas Posição e Movimento ajustáveis",
      "Nas paradas diária, semanal, mensal e anual agora você também pode arrastar a borda das colunas Posição e Movimento, não só das colunas de texto. Ao deixá-las mais estreitas, o espaço vai para o título e os botões no fim de cada linha continuam à vista. Clique duas vezes numa linha, ou use ⋮ → Tamanho → Redefinir largura das colunas, para voltar."],
