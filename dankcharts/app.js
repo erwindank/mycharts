@@ -18105,7 +18105,7 @@ function buildBuCrPanelHTML(type, key) {
     ${crTile(t('bucr_k_weeks'), n)}
     ${crTile(t('cr_k_peak'), peakHtml, 'bu-cr-peak')}
     ${at1 ? crTile(t('bucr_k_at1'), at1) : ''}
-    ${longestStreak > 1 ? crTile(t('bucr_k_streak'), `${longestStreak} ${tUnit('weeks', longestStreak)}`) : ''}
+    ${longestStreak > 1 ? crTile(t('bucr_k_streak'), `${longestStreak} ${tUnit('weeks_full', longestStreak)}`) : ''}
     ${stints > 1 ? crTile(t('bucr_k_stints'), stints) : ''}
     ${crTile(t('bucr_k_best'), d.peakPlays.toLocaleString(), 'cr-stat-total')}
   </div>`;

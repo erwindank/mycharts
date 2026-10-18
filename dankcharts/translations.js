@@ -5555,7 +5555,7 @@ const TRANSLATIONS = {
     bucr_k_at1: 'Semanas en BU1',
     bucr_k_streak: 'Racha más larga',
     bucr_k_stints: 'Etapas',
-    bucr_k_best: 'Más reprods en una semana',
+    bucr_k_best: 'Más reproducciones en una semana',
     bucr_legend_chart: 'Ranking',
     bucr_legend_bu: 'Aspirantes',
     bucr_none: 'Aún sin historial en Aspirantes.',
