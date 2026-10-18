@@ -11634,6 +11634,50 @@
       padding: var(--sp-2) 0;
     }
 
+    /* Phones: the stats column squeezed the title down to a few letters.
+       Restack each row as one reading column between the rank and the ⋮:
+       title (now allowed to wrap) → artist → "22 plays · 2 weeks on chart"
+       on one line → streak / Bubbling Under notes. .dropout-info is
+       flattened (display: contents) so the stats line can slot in right
+       under the artist via `order`. */
+    @media (max-width: 600px) {
+      .dropout-row {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        gap: 0 var(--sp-2);   /* no row gap: the lines sit tight like a list entry */
+        align-items: start;
+        padding: 0.6rem 0 0.6rem var(--sp-1);
+        border-left: 2px solid transparent;   /* same inset as a red (severe) row, so titles line up */
+      }
+      /* The desktop -0.5rem pull-out clips "Was #1" against the card edge here */
+      .dropout-row--severe { margin-left: 0; padding-left: var(--sp-1); }
+      .dropout-rank   { grid-column: 1; grid-row: 1 / span 6; min-width: 34px; padding-top: 2px; }
+      .dropout-actions { grid-column: 3; grid-row: 1 / span 6; align-self: start; margin-top: -4px; }
+      .dropout-info { display: contents; }
+      .dropout-info > *, .dropout-stats { grid-column: 2; }
+      .dropout-name-row      { order: 1; flex-wrap: wrap; gap: 2px var(--sp-1); }
+      .dropout-artist        { order: 2; }
+      .dropout-stats         { order: 3; }
+      .dropout-streak-note   { order: 4; }
+      .dropout-bu-line       { order: 5; }
+
+      /* Title wraps to as many lines as it needs instead of "die for my a…" */
+      .dropout-name { white-space: normal; overflow: visible; line-height: 1.25; }
+
+      /* Plays + weeks side by side, left-aligned, dot between */
+      .dropout-stats {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 0 var(--sp-1);
+        margin-top: 3px;
+      }
+      .dropout-wks::before { content: '·'; margin-right: var(--sp-1); opacity: 0.6; font-style: normal; }
+
+      .dropout-streak-note { margin: 3px 0 0; }
+      .dropout-bu-line { margin: 3px 0 0; }
+    }
+
     /* RAW DATA VIEW */
     #rawDataView {
       display: none;
