@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "18 new streak badges":
+    ["18 novas conquistas de sequências",
+     "As conquistas em Sequências Diárias → Recordes passam de 12 para 30, e a maioria das novas pede mais do que um só artista numa sequência longa: várias sequências de 30 dias no mesmo dia, muitos artistas, álbuns e músicas diferentes com sequências longas, manter uma sequência de 30 dias durante 100 dias ou um ano inteiro, sequências que voltam, e um artista ou álbum em sequência juntamente com as suas músicas. As conquistas estão agora em seis grupos, cada um a mostrar quantas tem."],
+
   "Plays column centred and resizable":
     ["Coluna Reproduções centrada e ajustável",
      "Nas tabelas de músicas, artistas e álbuns, a coluna Reproduções está agora centrada, como Semanas ao lado. Pode voltar a arrastar a linha entre Semanas e Reproduções para tornar qualquer uma mais larga ou mais estreita. Reproduções nunca fica estreita demais para o número, e os botões ▶, ⋮ e trajetória continuam com o espaço completo."],

@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 183;
+const DC_CL_I18N_V = 184;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-18', t: 'feature', a: 'records', h: 'a918c94',
+    title: "18 new streak badges",
+    detail: "The Badges in Daily Streaks → Records go from 12 to 30, and most of the new ones take more than one artist going long: several 30-day streaks on the same day, many different artists, albums and songs with long streaks, keeping a 30-day streak going for 100 days or a whole year, streaks that come back, and an artist or album going strong together with its songs. The badges are now sorted into six groups, each showing how many you have." },
 
   { d: '2026-10-18', t: 'change', a: 'charts', h: '0a9f363',
     title: "Plays column centred and resizable",

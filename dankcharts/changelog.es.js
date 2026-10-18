@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "18 new streak badges":
+    ["18 insignias nuevas de rachas",
+     "Las insignias en Rachas Diarias → Récords pasan de 12 a 30, y la mayoría de las nuevas piden más que un solo artista en una racha larga: varias rachas de 30 días el mismo día, muchos artistas, álbumes y canciones distintos con rachas largas, mantener una racha de 30 días durante 100 días o un año entero, rachas que vuelven, y un artista o álbum en racha junto con sus canciones. Las insignias ahora están en seis grupos, cada uno con cuántas tienes."],
+
   "Plays column centred and resizable":
     ["Columna Escuchas centrada y ajustable",
      "En las listas de canciones, artistas y álbumes, la columna Escuchas ahora está centrada, como Semanas a su lado. Puedes volver a arrastrar la línea entre Semanas y Escuchas para hacer cualquiera de las dos más ancha o más estrecha. Escuchas nunca queda demasiado estrecha para su número, y los botones ▶, ⋮ y trayectoria siguen teniendo su espacio completo."],
