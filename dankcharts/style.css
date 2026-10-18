@@ -9030,6 +9030,9 @@
       font-size: 8px;
     }
 
+    /* Short label only shows in the phone chart table (see the 600px block) */
+    .plays-peak-badge .ppb-short { display: none; }
+
     .plays-peak-badge {
       display: block;
       width: fit-content;
@@ -12142,6 +12145,15 @@
         margin-left: 0 !important;
         margin-top: 1px;
       }
+      /* Plays peak: "▲ PB" instead of "▲ PLAYS PEAK", in a slimmer pill no
+         wider than the number above it */
+      .chart-table .plays-peak-badge {
+        padding: 2px 6px;
+        margin-top: 4px;
+        white-space: nowrap;
+      }
+      .chart-table .plays-peak-badge .ppb-full { display: none; }
+      .chart-table .plays-peak-badge .ppb-short { display: inline; }
       /* NEW / RE is already the Move chip on the same row; only the change
          in plays (+10, −3) repeats under the number */
       .chart-table .play-count > .m-new,

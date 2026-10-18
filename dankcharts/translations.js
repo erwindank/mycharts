@@ -1235,6 +1235,7 @@ const TRANSLATIONS = {
     btn_display_plays_peak: '📈 PLAYS PEAK',
     btn_display_peak_tags: '🏷️ PEAK TAGS',
     badge_plays_peak: 'PLAYS PEAK',
+    badge_plays_peak_short: 'PB',   // phone chart table
     btn_display_pl_btns: 'PLAYLIST',
     btn_display_bu_legend: '🏷️ BU LEGEND',
     btn_display_desc: '📝 DESCRIPTIONS',
@@ -4057,6 +4058,7 @@ const TRANSLATIONS = {
     btn_display_plays_peak: '📈 PICO REPRODS',
     btn_display_peak_tags: '🏷️ ETIQ. LOGRO',
     badge_plays_peak: 'LOGRO MÁS ALTO',
+    badge_plays_peak_short: 'MÁX',   // phone chart table
     btn_display_pl_btns: 'LISTA',
     btn_display_bu_legend: '🏷️ LEYENDA BU',
     btn_display_desc: '📝 DESCRIPCIONES',
@@ -6782,6 +6784,7 @@ const TRANSLATIONS = {
     btn_display_bu_legend: '🏷️ LEGENDA BU',
     btn_display_desc: '📝 DESCRIÇÕES',
     badge_plays_peak: 'PICO DE PLAYS',
+    badge_plays_peak_short: 'PICO',   // phone chart table
 
     // Chart toolbar (Songs / Artists / Albums) and the ⋮ → Show "Sections" rows
     chart_type_songs: 'Músicas',
@@ -9505,6 +9508,7 @@ const TRANSLATIONS = {
     btn_display_bu_legend: '🏷️ LEGENDA BU',
     btn_display_desc: '📝 DESCRIÇÕES',
     badge_plays_peak: 'PICO DE PLAYS',
+    badge_plays_peak_short: 'PICO',   // phone chart table
 
     // Chart toolbar (Songs / Artists / Albums) and the ⋮ → Show "Sections" rows
     chart_type_songs: 'Músicas',

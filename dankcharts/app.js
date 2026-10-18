@@ -17293,8 +17293,12 @@ function buildPeriodPeaks(period) {
 }
 
 // Small badge shown on the play count when a period play count equals the all-time per-period peak.
+// Full label everywhere; the chart table swaps in the short one on phones
+// (.ppb-short), where "PLAYS PEAK" was wider than the play count above it.
+// The title keeps the full words for a long-press / hover.
 function playsPeakBadge() {
-  return `<span class="plays-peak-badge">▲ ${t('badge_plays_peak')}</span>`;
+  const full = t('badge_plays_peak');
+  return `<span class="plays-peak-badge" title="${esc(full)}">▲ <span class="ppb-full">${full}</span><span class="ppb-short">${t('badge_plays_peak_short')}</span></span>`;
 }
 
 // Cumulative plays per song/album up to endDate (for period cert badges).
