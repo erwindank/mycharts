@@ -18,7 +18,7 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   "A cleaner chart table that fits on phones":
     ["Uma tabela de parada mais limpa que cabe no celular",
-     "O layout Tabela parece mais uma parada impressa: as linhas são separadas por um traço fino em vez de cada uma ficar numa caixa, as capas estão um pouco maiores e só o #1 ganha um destaque suave. As barras de plays estão mais finas mas mantêm as cores, e nomes longos de álbum ficam numa linha só (passe o mouse para ver o nome inteiro). A coluna Anterior agora se chama Variação e continua mostrando a posição anterior embaixo da seta. No celular a tabela não passa mais da borda direita em nenhum idioma: a coluna de plays mostra só o número, com a variação embaixo."],
+     "O layout Tabela parece mais uma parada impressa: as linhas são separadas por um traço fino em vez de cada uma ficar numa caixa, as capas estão um pouco maiores e só o #1 ganha um destaque suave. As barras de plays estão mais finas mas mantêm as cores, e nomes longos de álbum quebram linha na própria coluna sem apertar os títulos. A coluna Anterior agora se chama Variação e continua mostrando a posição anterior embaixo da seta. No celular a tabela não passa mais da borda direita em nenhum idioma: a coluna de plays mostra só o número, com a variação embaixo."],
 
   "Daily: Days on chart counts every day again":
     ["Diário: Dias na parada volta a contar todos os dias",

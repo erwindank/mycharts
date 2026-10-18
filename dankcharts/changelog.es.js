@@ -18,7 +18,7 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   "A cleaner chart table that fits on phones":
     ["Una tabla de chart más limpia que cabe en el móvil",
-     "El diseño Tabla se parece más a un chart impreso: las filas se separan con una línea fina en vez de ir cada una en su caja, las portadas son un poco más grandes y solo el #1 lleva un realce suave. Las barras de reproducciones son más finas pero mantienen sus colores, y los nombres de álbum largos quedan en una línea (pasa el cursor para ver el nombre completo). La columna Anterior ahora se llama Cambio y sigue mostrando el puesto anterior bajo la flecha. En el móvil la tabla ya no se sale por la derecha en ningún idioma: la columna de reproducciones muestra solo el número, con el cambio debajo."],
+     "El diseño Tabla se parece más a un chart impreso: las filas se separan con una línea fina en vez de ir cada una en su caja, las portadas son un poco más grandes y solo el #1 lleva un realce suave. Las barras de reproducciones son más finas pero mantienen sus colores, y los nombres de álbum largos se reparten en su propia columna sin apretar los títulos. La columna Anterior ahora se llama Cambio y sigue mostrando el puesto anterior bajo la flecha. En el móvil la tabla ya no se sale por la derecha en ningún idioma: la columna de reproducciones muestra solo el número, con el cambio debajo."],
 
   "Daily: Days on chart counts every day again":
     ["Diario: Días en el chart vuelve a contar todos los días",

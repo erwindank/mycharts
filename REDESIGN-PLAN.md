@@ -1590,6 +1590,8 @@ animation, 12 screen check.
   its whole text width, so with the badges on, Title · Artist shrank to
   ~135px and every title wrapped. The album cell now has a fixed 20% share
   (`max-width: 0`), and the title column gets ~225px at 1240px wide.
+  **Then, your call: album names wrap** inside that 20% instead of being
+  cut off with "…", the certification disc following the name.
 
 The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in

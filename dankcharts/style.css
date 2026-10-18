@@ -5941,31 +5941,23 @@
       user-select: text;
     }
 
-    /* The Songs table's album never wraps the row to double height (4.10):
-       the name cuts off with "…" (the cell's title shows it whole) and the
-       certification disc stays visible beside it.
-       The cell takes a fixed share of the row and max-width: 0 stops it
-       asking for more: a one-line cell otherwise reserves its whole text
-       width, and the table took that space from Title · Artist, squeezing
-       titles and their badges into ~130px. */
+    /* The Songs table's album column (4.10): a fixed 20% share of the row,
+       and long names wrap inside it (your call, 2026-10-17: wrapping beats
+       cutting the name off with "…"). max-width: 0 keeps the cell from
+       asking for its whole text width: a cell that won't break otherwise
+       takes that space from Title · Artist, which then squeezed titles and
+       their badges into ~130px. Very long single words break too. */
     .chart-table td.meta-col {
       width: 20%;
       max-width: 0;
     }
     .chart-table td.meta-col > .song-album {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      max-width: 100%;
+      overflow-wrap: anywhere;
+    }
+    /* The certification disc rides after the name, on its line or the next */
+    .chart-table td.meta-col > .song-album > .cert {
+      margin-left: 6px;
       white-space: nowrap;
-    }
-    .chart-table td.meta-col > .song-album > .chart-name-link {
-      min-width: 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .chart-table td.meta-col > .song-album > :not(.chart-name-link) {
-      flex-shrink: 0;
     }
 
     .play-count {
