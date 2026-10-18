@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Bubbling Under: buttons at the end, easier to read on phones":
+    ["Casi en el Top: botones al final y más fácil de leer en el móvil",
+     "En Casi en el Top, los botones ▶ de muestra y ⋮ de menú ahora están al final de cada fila, como en los charts principales, en vez de debajo del título. En el móvil, las reproducciones pasan debajo del artista, así los títulos y etiquetas tienen todo el ancho."],
+
   "Off the Chart is easier to read on phones":
     ["Fuera del Ranking se lee mejor en el móvil",
      "En el móvil, las filas de Fuera del Ranking recortaban los títulos a unas pocas letras. Ahora cada fila se lee de arriba abajo: el título completo, el artista, las reproducciones y semanas en una línea, y luego las notas de racha y estado, con el menú ⋮ a la derecha."],

@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Bubbling Under: buttons at the end, easier to read on phones":
+    ["Quase no Top: botões no fim e leitura mais fácil no celular",
+     "Em Quase no Top, os botões ▶ de amostra e ⋮ de menu agora ficam no fim de cada linha, como nas paradas principais, em vez de embaixo do título. No celular, os plays passam para baixo do artista, e os títulos e selos ganham toda a largura."],
+
   "Off the Chart is easier to read on phones":
     ["Fora da Parada ficou mais fácil de ler no celular",
      "No celular, as linhas de Fora da Parada cortavam os títulos em poucas letras. Agora cada linha se lê de cima para baixo: o título completo, o artista, plays e semanas numa linha só, depois as notas de sequência e status, com o menu ⋮ à direita."],

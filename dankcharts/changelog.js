@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 173;
+const DC_CL_I18N_V = 174;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-18', t: 'fix', a: 'charts', h: 'fe83b8f',
+    title: "Bubbling Under: buttons at the end, easier to read on phones",
+    detail: "In Bubbling Under, the ▶ sample and ⋮ menu buttons now sit at the end of each row, like on the main charts, instead of under the title. On phones the plays count moves under the artist, so titles and tags get the full width." },
 
   { d: '2026-10-18', t: 'fix', a: 'charts', h: 'd4220bd',
     title: "Off the Chart is easier to read on phones",

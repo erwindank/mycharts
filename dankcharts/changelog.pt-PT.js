@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Bubbling Under: buttons at the end, easier to read on phones":
+    ["Quase no Top: botões no fim e leitura mais fácil no telemóvel",
+     "Em Quase no Top, os botões ▶ de amostra e ⋮ de menu ficam agora no fim de cada linha, como nos tops principais, em vez de por baixo do título. No telemóvel, os plays passam para baixo do artista, e os títulos e selos ganham toda a largura."],
+
   "Off the Chart is easier to read on phones":
     ["Fora do Top lê-se melhor no telemóvel",
      "No telemóvel, as linhas de Fora do Top cortavam os títulos em poucas letras. Agora cada linha lê-se de cima para baixo: o título completo, o artista, plays e semanas numa só linha, depois as notas de sequência e estado, com o menu ⋮ à direita."],
