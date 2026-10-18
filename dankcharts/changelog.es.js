@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Your Soundtrack banner: Your year in music":
+    ["El banner dice Tu año en música",
+     "La línea bajo el año en el banner de Tu Banda Sonora ahora dice Tu año en música (Tu mes en música para un solo mes) en vez de Tu año en sonido."],
+
   "Spanish: Soundtrack is now Banda Sonora":
     ["Soundtrack ahora se llama Banda Sonora",
      "La pestaña y la página Soundtrack ahora se llaman Banda Sonora (Tu Banda Sonora), como ya se llamaban las bandas sonoras en el resto del sitio."],

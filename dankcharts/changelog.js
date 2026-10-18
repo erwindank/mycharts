@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 176;
+const DC_CL_I18N_V = 177;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-18', t: 'change', a: 'soundtrack', h: 'b35dbff',
+    title: "Your Soundtrack banner: Your year in music",
+    detail: "The line under the year on the Your Soundtrack banner now reads Your year in music (Your month in music for a single month) instead of Your year in sound, in every language." },
 
   { d: '2026-10-18', t: 'i18n', a: 'soundtrack', h: 'abdb83d',
     title: "Spanish: Soundtrack is now Banda Sonora",

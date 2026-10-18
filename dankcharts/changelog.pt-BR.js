@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Your Soundtrack banner: Your year in music":
+    ["O banner diz Seu ano em música",
+     "A linha abaixo do ano no banner de Sua Trilha Sonora agora diz Seu ano em música (Seu mês em música para um único mês) em vez de Seu ano em som."],
+
   "Spanish and Portuguese: Bubbling Under is now Aspirantes":
     ["Quase no Top agora se chama Aspirantes",
      "A seção Quase no Top agora se chama Aspirantes (Aspirantes ao Top 100): as músicas, artistas e álbuns tentando entrar na parada. Em Fora da Parada aparece “Agora #106 entre os Aspirantes”."],
