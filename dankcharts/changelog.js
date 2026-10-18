@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 175;
+const DC_CL_I18N_V = 176;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-18', t: 'i18n', a: 'soundtrack', h: 'abdb83d',
+    title: "Spanish: Soundtrack is now Banda Sonora",
+    detail: "In Spanish the Soundtrack tab and page kept the English word. They now read Banda Sonora (Tu Banda Sonora), like the rest of the Spanish site already did for soundtrack releases." },
 
   { d: '2026-10-18', t: 'i18n', a: 'charts', h: 'ebcae25',
     title: "Spanish and Portuguese: Bubbling Under is now Aspirantes",

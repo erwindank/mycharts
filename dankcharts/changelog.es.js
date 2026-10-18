@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Spanish: Soundtrack is now Banda Sonora":
+    ["Soundtrack ahora se llama Banda Sonora",
+     "La pestaña y la página Soundtrack ahora se llaman Banda Sonora (Tu Banda Sonora), como ya se llamaban las bandas sonoras en el resto del sitio."],
+
   "Spanish and Portuguese: Bubbling Under is now Aspirantes":
     ["Casi en el Top ahora se llama Aspirantes",
      "La sección Casi en el Top ahora se llama Aspirantes (Aspirantes al Top 100): las canciones, artistas y álbumes que buscan entrar al ranking. En Fuera del Ranking se lee «Ahora #106 entre los Aspirantes»."],
