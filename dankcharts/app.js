@@ -46423,7 +46423,10 @@ function stReplayBuildShell(canvas) {
       <div class="st-replay-week-label" id="stReplayWeekLabel"></div>
       <div class="st-replay-controls">
         <button class="st-replay-speed-btn" id="stReplaySpeedBtn" onclick="stReplayCycleSpeed()" title="${t('st_replay_speed_title')}"></button>
+        <!-- ‹ / › step one week at a time; stepping pauses the auto-play -->
+        <button class="st-replay-pause-btn st-replay-step-btn" id="stReplayPrevBtn" onclick="stReplayStep(-1)" title="${t('st_replay_prev_title')}" aria-label="${t('st_replay_prev_title')}">‹</button>
         <button class="st-replay-pause-btn" id="stReplayPauseBtn" onclick="stReplayTogglePause()" title="${t('st_replay_pause_title')}"></button>
+        <button class="st-replay-pause-btn st-replay-step-btn" id="stReplayNextBtn" onclick="stReplayStep(1)" title="${t('st_replay_next_title')}" aria-label="${t('st_replay_next_title')}">›</button>
       </div>
     </div>
     <div class="st-replay-progress" id="stReplayProgress"></div>
@@ -46445,6 +46448,9 @@ function stReplayRender() {
   document.getElementById('stReplayProgress').textContent = t('st_replay_progress', { n: _stReplayIdx + 1, total: _stReplaySnapshots.length });
   document.getElementById('stReplaySpeedBtn').textContent = ({300:'2',600:'1',1200:'0.5'})[_stReplaySpeedMs] + '×';
   document.getElementById('stReplayPauseBtn').textContent = _stReplayPaused ? (atEnd ? '↻' : '▶') : '⏸';
+  // Step buttons grey out at the first / last week.
+  document.getElementById('stReplayPrevBtn').disabled = _stReplayIdx === 0;
+  document.getElementById('stReplayNextBtn').disabled = atEnd;
   stReplayRenderRows(document.getElementById('stReplayRows'), snap, prevTop5);
   const scrubberEl = document.getElementById('stReplayScrubber');
   if (scrubberEl && document.activeElement !== scrubberEl) scrubberEl.value = _stReplayIdx;
@@ -46486,6 +46492,12 @@ function stReplayScrub(val) {
   if (_stReplayTimer) { clearInterval(_stReplayTimer); _stReplayTimer = null; }
   _stReplayIdx = Math.max(0, Math.min(_stReplaySnapshots.length - 1, parseInt(val, 10) || 0));
   stReplayRender();
+}
+
+// Manual week-by-week stepping (‹ / › buttons). Pauses auto-advance like the
+// scrubber does, so the user stays on the week they stepped to.
+function stReplayStep(dir) {
+  stReplayScrub(_stReplayIdx + dir);
 }
 
 function stStartReplay() {

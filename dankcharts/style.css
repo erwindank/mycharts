@@ -29572,6 +29572,10 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
 }
 .st-replay-pause-btn { min-width: 2rem; text-align: center; }
 .st-replay-speed-btn:hover, .st-replay-pause-btn:hover { background: var(--sc); color: #fff; border-color: var(--sc); }
+/* ‹ / › week steppers: the chevrons need a bigger glyph to read at button size */
+.st-replay-step-btn { font-size: var(--fs-base); line-height: 1; padding-top: 0.15rem; padding-bottom: 0.25rem; }
+.st-replay-step-btn:disabled { opacity: 0.35; cursor: default; }
+.st-replay-step-btn:disabled:hover { background: var(--bg2); color: var(--text2); border-color: var(--border); }
 
 .st-replay-progress {
   font-family: var(--font-mono);
