@@ -5154,28 +5154,27 @@
       color: var(--text3);
     }
 
-    /* BU stat tiles: same layout as the main chart run, larger type —
-       the 12px labels / 18px figures read too small here */
-    /* Wide, short tiles (rectangles, not squares): labels fit on one or two
-       lines. Two per row on phones. */
-    .bu-cr-panel .cr-stats {
+    /* Chart run stat tiles (main chart run + Bubbling Under run): wide, short
+       rectangles instead of squares so labels fit on one or two lines, and
+       larger type than the base .cr-stat (12px labels / 18px figures read too
+       small). ~3 per row on desktop; tiles on a short last row stretch so the
+       row never ends in an empty gap. Two per row on phones. */
+    .cr-panel .cr-stats {
       display: flex;
       flex-wrap: wrap;
     }
-    /* ~3 per row on desktop; tiles on a short last row stretch so the row
-       never ends in an empty gap */
-    .bu-cr-panel .cr-stat {
+    .cr-panel .cr-stat {
       flex: 1 1 220px;
     }
     @media (max-width: 600px) {
-      .bu-cr-panel .cr-stat {
+      .cr-panel .cr-stat {
         flex-basis: 40%;
       }
     }
-    .bu-cr-panel .cr-stat-k {
+    .cr-panel .cr-stat-k {
       font-size: var(--fs-sm);
     }
-    .bu-cr-panel .cr-stat strong {
+    .cr-panel .cr-stat strong {
       font-size: 1.375rem;
     }
 
