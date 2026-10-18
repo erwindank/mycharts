@@ -13325,7 +13325,8 @@ function renderTableHeaders() {
    The four text columns (title, album / songs / tracks, weeks, plays) are
    saved as their share of the table (%), so they still fit when the window
    changes size; rank, movement, cover and the action buttons keep their
-   width in px, so a narrower window never crops a cover. Per table and per
+   width in px, so a narrower window never crops a cover (Rank and Move can
+   still be dragged narrower or wider). Per table and per
    column set: tables
    with Move / Weeks columns (Daily, Weekly, Monthly, Yearly) and without
    (All-Time) are kept apart. dc_col_widths syncs with the account
@@ -13334,10 +13335,15 @@ const _COLW_KEYS = {
   s: ['rank', 'move', 'thumb', 'title', 'meta', 'period', 'plays', 'cr'],   // with period stats
   p: ['rank', 'thumb', 'title', 'meta', 'plays', 'cr'],                     // All-Time
 };
-// The columns whose shared edges can be dragged; rank, cover, movement and
-// the action buttons keep their own sizes
+// The columns whose shared edges can be dragged; cover and the action
+// buttons keep their own sizes
 const _COLW_RESIZABLE = new Set(['title', 'meta', 'period', 'plays']);
+// Rank and Move can be dragged too, but stay in px (like the cover). Their
+// right edge trades width with the next column when it is Move, otherwise
+// with Title, which absorbs every px change anyway
+const _COLW_PX_DRAG = new Set(['rank', 'move']);
 const _COLW_MIN = 48;   // px, the narrowest a dragged column can get
+const _COLW_MIN_PX = 40;   // px, the narrowest Rank / Move can get
 const _colwDesktop = window.matchMedia('(min-width: 601px)');
 
 /* Saved widths → whole pixels for the table's current width. Percentages
@@ -13408,7 +13414,7 @@ function _colwSetup(withStats) {
       th.dataset.col = col;
       th.dataset.w0 = th.style.width;   // built-in width (cover, actions), put back on reset
       const next = _COLW_KEYS[set][i + 1];
-      if (_COLW_RESIZABLE.has(col) && _COLW_RESIZABLE.has(next)) {
+      if ((_COLW_RESIZABLE.has(col) && _COLW_RESIZABLE.has(next)) || _COLW_PX_DRAG.has(col)) {
         const h = document.createElement('span');
         h.className = 'colw-handle';
         h.title = t('colw_hint');
@@ -13466,7 +13472,14 @@ function _colwDragStart(e, type, set, th) {
   e.stopPropagation();
   const table = th.closest('table');
   const ths = [...th.parentElement.children];
-  const right = th.nextElementSibling;
+  // The column that gives / takes the width: the right-hand neighbour, or
+  // Title when Rank / Move sit next to a column that keeps its size (cover)
+  const nextCol = th.nextElementSibling && th.nextElementSibling.dataset.col;
+  const right = (_COLW_RESIZABLE.has(nextCol) || _COLW_PX_DRAG.has(nextCol))
+    ? th.nextElementSibling
+    : th.parentElement.querySelector('th[data-col="title"]');
+  const minL = _COLW_PX_DRAG.has(th.dataset.col) ? _COLW_MIN_PX : _COLW_MIN;
+  const minR = _COLW_PX_DRAG.has(right.dataset.col) ? _COLW_MIN_PX : _COLW_MIN;
   const tableW = _colwAvail(table);
   // First drag on an automatic table: freeze every column at its current
   // width, so only the two columns either side of the line move
@@ -13482,7 +13495,7 @@ function _colwDragStart(e, type, set, th) {
   handle.setPointerCapture(e.pointerId);
   document.body.classList.add('colw-dragging');
   const move = ev => {
-    const dx = Math.max(_COLW_MIN - startL, Math.min(startR - _COLW_MIN, ev.clientX - startX));
+    const dx = Math.max(minL - startL, Math.min(startR - minR, ev.clientX - startX));
     th.style.width = Math.round(startL + dx) + 'px';
     right.style.width = Math.round(startR - dx) + 'px';
   };
