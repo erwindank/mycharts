@@ -1236,7 +1236,6 @@ const TRANSLATIONS = {
     btn_display_peak_tags: '🏷️ PEAK TAGS',
     badge_plays_peak: 'PLAYS PEAK',
     badge_plays_peak_short: 'PB',   // phone chart table
-    btn_display_pl_btns: 'PLAYLIST',
     btn_display_bu_legend: '🏷️ BU LEGEND',
     btn_display_desc: '📝 DESCRIPTIONS',
 
@@ -4059,7 +4058,6 @@ const TRANSLATIONS = {
     btn_display_peak_tags: '🏷️ ETIQ. LOGRO',
     badge_plays_peak: 'LOGRO MÁS ALTO',
     badge_plays_peak_short: 'MÁX',   // phone chart table
-    btn_display_pl_btns: 'LISTA',
     btn_display_bu_legend: '🏷️ LEYENDA BU',
     btn_display_desc: '📝 DESCRIPCIONES',
 
@@ -6780,7 +6778,6 @@ const TRANSLATIONS = {
     graph_ratings_sub: 'Cada álbum e música que você pontuou — como seus veredictos se distribuem, seus melhores e piores discos, e o que você ouve sem parar mas nunca avaliou.',
     btn_display_plays_peak: '📈 PICO DE PLAYS',
     btn_display_peak_tags: '🏷️ TAGS PICO',
-    btn_display_pl_btns: 'PLAYLIST',
     btn_display_bu_legend: '🏷️ LEGENDA BU',
     btn_display_desc: '📝 DESCRIÇÕES',
     badge_plays_peak: 'PICO DE PLAYS',
@@ -9504,7 +9501,6 @@ const TRANSLATIONS = {
     graph_ratings_sub: 'Cada álbum e música que pontuaste — como se distribuem os teus veredictos, os teus melhores e piores discos, e o que ouves constantemente mas nunca avaliaste.',
     btn_display_plays_peak: '📈 PICO DE PLAYS',
     btn_display_peak_tags: '🏷️ TAGS PICO',
-    btn_display_pl_btns: 'PLAYLIST',
     btn_display_bu_legend: '🏷️ LEGENDA BU',
     btn_display_desc: '📝 DESCRIÇÕES',
     badge_plays_peak: 'PICO DE PLAYS',

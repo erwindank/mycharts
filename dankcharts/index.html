@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=454">
+  <link rel="stylesheet" href="style.css?v=455">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=122"></script>
+  <script defer src="translations.js?v=123"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -616,11 +616,10 @@
               <button id="toggleScoreBtn" class="kebab-check-row" onclick="toggleSectionDisplay('score', 'songs')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_score">My Scores</span></span></button>
               <button id="togglePlaysPeakBtn" class="kebab-check-row" onclick="toggleSectionDisplay('plays-peak', 'songs')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_plays_peak">Plays Peak</span></span></button>
               <button id="togglePeakTagsBtn" class="kebab-check-row" onclick="toggleSectionDisplay('peak-tags', 'songs')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_peak_tags">Peak Tags</span></span></button>
-              <button id="togglePlBtnsBtn" class="kebab-check-row" onclick="toggleSectionDisplay('pl-btns', 'songs')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_pl_btns">Playlist</span></span></button>
               <button id="toggleBuLegendBtn" class="kebab-check-row" onclick="toggleSectionDisplay('bu-legend', 'songs')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_bu_legend">BU Legend</span></span></button>
               <button id="toggleDescBtn" class="kebab-check-row" onclick="toggleSectionDisplay('desc', 'songs')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_desc">Descriptions</span></span></button>
-              <!-- Which parts of this chart show (toggleSubChart). After the eight
-                   row switches on purpose: the tour rings those by position. -->
+              <!-- Which parts of this chart show (toggleSubChart). After the row
+                   switches on purpose: the tour rings those by position. -->
               <div class="kebab-sub-rows" id="subChartRows-songs">
                 <div class="kebab-group-label" data-i18n="kebab_sections">Sections</div>
                 <button class="kebab-check-row" data-sub="normal" onclick="toggleSubChart('songs','normal')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="sub_toggle_chart">Chart</span></span></button>
@@ -815,11 +814,10 @@
             <div class="kebab-panel" data-panel="show">
               <button id="togglePlaysPeakBtnArtists" class="kebab-check-row" onclick="toggleSectionDisplay('plays-peak', 'artists')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_plays_peak">Plays Peak</span></span></button>
               <button id="togglePeakTagsBtnArtists" class="kebab-check-row" onclick="toggleSectionDisplay('peak-tags', 'artists')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_peak_tags">Peak Tags</span></span></button>
-              <button id="togglePlBtnsBtnArtists" class="kebab-check-row" onclick="toggleSectionDisplay('pl-btns', 'artists')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_pl_btns">Playlist</span></span></button>
               <button id="toggleBuLegendBtnArtists" class="kebab-check-row" onclick="toggleSectionDisplay('bu-legend', 'artists')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_bu_legend">BU Legend</span></span></button>
               <button id="toggleDescBtnArtists" class="kebab-check-row" onclick="toggleSectionDisplay('desc', 'artists')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_desc">Descriptions</span></span></button>
-              <!-- Which parts of this chart show (toggleSubChart). After the eight
-                   row switches on purpose: the tour rings those by position. -->
+              <!-- Which parts of this chart show (toggleSubChart). After the row
+                   switches on purpose: the tour rings those by position. -->
               <div class="kebab-sub-rows" id="subChartRows-artists">
                 <div class="kebab-group-label" data-i18n="kebab_sections">Sections</div>
                 <button class="kebab-check-row" data-sub="normal" onclick="toggleSubChart('artists','normal')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="sub_toggle_chart">Chart</span></span></button>
@@ -1011,11 +1009,10 @@
               <button id="toggleScoreBtnAlbums" class="kebab-check-row" onclick="toggleSectionDisplay('score', 'albums')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_score">My Scores</span></span></button>
               <button id="togglePlaysPeakBtnAlbums" class="kebab-check-row" onclick="toggleSectionDisplay('plays-peak', 'albums')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_plays_peak">Plays Peak</span></span></button>
               <button id="togglePeakTagsBtnAlbums" class="kebab-check-row" onclick="toggleSectionDisplay('peak-tags', 'albums')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_peak_tags">Peak Tags</span></span></button>
-              <button id="togglePlBtnsBtnAlbums" class="kebab-check-row" onclick="toggleSectionDisplay('pl-btns', 'albums')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_pl_btns">Playlist</span></span></button>
               <button id="toggleBuLegendBtnAlbums" class="kebab-check-row" onclick="toggleSectionDisplay('bu-legend', 'albums')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_bu_legend">BU Legend</span></span></button>
               <button id="toggleDescBtnAlbums" class="kebab-check-row" onclick="toggleSectionDisplay('desc', 'albums')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_desc">Descriptions</span></span></button>
-              <!-- Which parts of this chart show (toggleSubChart). After the eight
-                   row switches on purpose: the tour rings those by position. -->
+              <!-- Which parts of this chart show (toggleSubChart). After the row
+                   switches on purpose: the tour rings those by position. -->
               <div class="kebab-sub-rows" id="subChartRows-albums">
                 <div class="kebab-group-label" data-i18n="kebab_sections">Sections</div>
                 <button class="kebab-check-row" data-sub="normal" onclick="toggleSubChart('albums','normal')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="sub_toggle_chart">Chart</span></span></button>
@@ -3733,7 +3730,7 @@
   <!-- Community board tab (suggestions / bugs / discussion). Loaded before
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
   <script defer src="board.js?v=1"></script>
-  <script defer src="app.js?v=381"></script>
+  <script defer src="app.js?v=382"></script>
   <!-- All-Time chart stats ("Inside your Top N"); reads app.js globals, so it loads after it -->
   <script defer src="insights.js?v=8"></script>
   <script defer src="daily.js?v=20"></script>

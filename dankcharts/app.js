@@ -441,21 +441,22 @@ let _wvGridLarge = (() => { try { return localStorage.getItem('dc_grid_density')
 // Each switch is one body class, and one CSS rule per feature hides it in every
 // layout (phase 7 step 4): every layout draws the same badge with the same class.
 // The YouTube switch ('yt-btns') was removed in that step: entries play YouTube
-// from ⋮ / right-click. A saved 'yt-btns' value is still read by _withPlBtns.
+// from ⋮ / right-click. The Playlist switch ('pl-btns') went on 2026-10-18 (your
+// call): the ＋ no longer shows on chart rows, and "Add to a playlist" lives in
+// each entry's own ⋮ / right-click menu. Saved 'yt-btns' / 'pl-btns' values are
+// simply ignored.
 const SECTION_TOGGLE_CONFIG = {
   songs: {
     'cert':       { btnId: 'toggleCertBtn',             bodyClass: 'songs-hide-cert' },
     'score':      { btnId: 'toggleScoreBtn',            bodyClass: 'songs-hide-score' },
     'plays-peak': { btnId: 'togglePlaysPeakBtn',        bodyClass: 'songs-hide-plays-peak' },
     'peak-tags':  { btnId: 'togglePeakTagsBtn',         bodyClass: 'songs-hide-peak-tags' },
-    'pl-btns':    { btnId: 'togglePlBtnsBtn',           bodyClass: 'songs-hide-pl-btns' },
     'bu-legend':  { btnId: 'toggleBuLegendBtn',          bodyClass: 'songs-hide-bu-legend' },
     'desc':       { btnId: 'toggleDescBtn',             bodyClass: 'songs-hide-desc' }
   },
   artists: {
     'plays-peak': { btnId: 'togglePlaysPeakBtnArtists', bodyClass: 'artists-hide-plays-peak' },
     'peak-tags':  { btnId: 'togglePeakTagsBtnArtists',  bodyClass: 'artists-hide-peak-tags' },
-    'pl-btns':    { btnId: 'togglePlBtnsBtnArtists',    bodyClass: 'artists-hide-pl-btns' },
     'bu-legend':  { btnId: 'toggleBuLegendBtnArtists',   bodyClass: 'artists-hide-bu-legend' },
     'desc':       { btnId: 'toggleDescBtnArtists',      bodyClass: 'artists-hide-desc' }
   },
@@ -464,22 +465,10 @@ const SECTION_TOGGLE_CONFIG = {
     'score':      { btnId: 'toggleScoreBtnAlbums',      bodyClass: 'albums-hide-score' },
     'plays-peak': { btnId: 'togglePlaysPeakBtnAlbums',  bodyClass: 'albums-hide-plays-peak' },
     'peak-tags':  { btnId: 'togglePeakTagsBtnAlbums',   bodyClass: 'albums-hide-peak-tags' },
-    'pl-btns':    { btnId: 'togglePlBtnsBtnAlbums',     bodyClass: 'albums-hide-pl-btns' },
     'bu-legend':  { btnId: 'toggleBuLegendBtnAlbums',    bodyClass: 'albums-hide-bu-legend' },
     'desc':       { btnId: 'toggleDescBtnAlbums',       bodyClass: 'albums-hide-desc' }
   }
 };
-
-// The ＋ playlist button used to ride on the YouTube switch. A section saved
-// before it had a switch of its own carries no 'pl-btns', so it inherits the
-// YouTube value: whoever saw both buttons keeps seeing both. Also applied to
-// state arriving from the cloud (dcApplySectionDisplayToggles), which can be
-// older than this browser's.
-function _withPlBtns(s) {
-  if (!s || typeof s !== 'object') return s || {};
-  if ('pl-btns' in s || !('yt-btns' in s)) return s;
-  return Object.assign({}, s, { 'pl-btns': s['yt-btns'] });
-}
 
 // Per-section state. Every toggle defaults OFF (redesign phase 1: a calm chart
 // by default, detail one click away in ⋮ → Show). Anyone who has toggled
@@ -487,8 +476,8 @@ function _withPlBtns(s) {
 // saved object always carries every key and these defaults never override it.
 const sectionToggleState = (() => {
   function withDefaults(s) {
-    const d = { cert: false, score: false, 'plays-peak': false, 'peak-tags': false, 'pl-btns': false, 'bu-legend': false, desc: false };
-    return Object.assign(d, _withPlBtns(s));
+    const d = { cert: false, score: false, 'plays-peak': false, 'peak-tags': false, 'bu-legend': false, desc: false };
+    return Object.assign(d, s || {});
   }
   try {
     const saved = JSON.parse(localStorage.getItem('dc_sectionDisplayToggles') || 'null');
@@ -645,7 +634,7 @@ function dcApplySectionDisplayToggles() {
     const saved = JSON.parse(localStorage.getItem('dc_sectionDisplayToggles') || 'null');
     if (saved && typeof saved === 'object') {
       ['songs', 'artists', 'albums'].forEach(s => {
-        if (saved[s] && sectionToggleState[s]) Object.assign(sectionToggleState[s], _withPlBtns(saved[s]));
+        if (saved[s] && sectionToggleState[s]) Object.assign(sectionToggleState[s], saved[s]);
       });
     }
   } catch(e) {}
@@ -20316,17 +20305,18 @@ function tDiamondLabel(mult) {
 function certBadge(plays, type) {
   const certTiers = CERT[type];
   if (!certTiers) return '';
-  // The words sit in .cert-label so a narrow spot can show the icon alone
-  // (💎💎 for Double Diamond; "4×💎" from four up, via .cert-mult). Used by
-  // the Spanish phone chart table (style.css); the title keeps the words.
+  // Diamonds also carry a short form (.cert-short: 💎, 💎💎, then 3×💎, 4×💎…)
+  // that the phone chart table shows instead of the words, in every
+  // language (style.css); the title keeps the words. Gold and Platinum
+  // always show in full.
   if (plays >= certTiers.diamond) {
     const n = Math.floor(plays / certTiers.diamond);
     const { icon, label } = diamondMultiLabel(n);
-    const mult = n >= 4 ? `<span class="cert-mult">${n}×</span>` : '';
-    return `<span class="cert cert-diamond" title="${esc(label)}">${mult}<span class="cert-icon">${icon}</span><span class="cert-label">${label.toUpperCase()}</span></span>`;
+    const short = n <= 2 ? '💎'.repeat(n) : `${n}×💎`;
+    return `<span class="cert cert-diamond" title="${esc(label)}"><span class="cert-icon">${icon}</span><span class="cert-label">${label.toUpperCase()}</span><span class="cert-short">${short}</span></span>`;
   }
-  if (plays >= certTiers.plat) return `<span class="cert cert-plat" title="Platinum"><span class="cert-icon">💿</span><span class="cert-label">PLATINUM</span></span>`;
-  if (plays >= certTiers.gold) return `<span class="cert cert-gold" title="Gold"><span class="cert-icon">🪙</span><span class="cert-label">GOLD</span></span>`;
+  if (plays >= certTiers.plat) return `<span class="cert cert-plat"><span class="cert-icon">💿</span>PLATINUM</span>`;
+  if (plays >= certTiers.gold) return `<span class="cert cert-gold"><span class="cert-icon">🪙</span>GOLD</span>`;
   return '';
 }
 
@@ -47508,7 +47498,7 @@ const _cgTourSteps = [
          and walks its three tabs while this paragraph is being read. The holds
          below add up to a little under this phase's own hold, so the menu
          closes on the last tab instead of snapping shut mid-sequence. */
-      { content: 'Every section header has a ⋮ menu — here it is, opening on the songs chart.\n\n"Show" picks what each row carries: cert badges, your scores, plays peak, peak tags, the playlist button, the Bubbling Under legend and descriptions. They all start off to keep the chart clean. The tour has switched them on for now so you can see them, and turns them back off when it ends. Tick any you want to keep. Under them, "Sections" picks which parts of the chart show.\n\n"Size" sets how many entries the chart holds, from Top 10 to Top 100, remembered separately per chart type.\n\n"Actions" plays the whole chart on YouTube, exports it as a playlist or a shareable image, and on the year and all-time charts downloads it as TXT or CSV.',
+      { content: 'Every section header has a ⋮ menu — here it is, opening on the songs chart.\n\n"Show" picks what each row carries: cert badges, your scores, plays peak, peak tags, the Bubbling Under legend and descriptions. They all start off to keep the chart clean. The tour has switched them on for now so you can see them, and turns them back off when it ends. Tick any you want to keep. Under them, "Sections" picks which parts of the chart show.\n\n"Size" sets how many entries the chart holds, from Top 10 to Top 100, remembered separately per chart type.\n\n"Actions" plays the whole chart on YouTube, exports it as a playlist or a shareable image, and on the year and all-time charts downloads it as TXT or CSV.',
         kebabSection: '#songsSection',
         reveal: true,
         kebabSeq: [
@@ -47520,7 +47510,6 @@ const _cgTourSteps = [
           { tab: 'show',   sel: '.kebab-panel[data-panel="show"] > button:nth-child(4)', hold: 1100 },
           { tab: 'show',   sel: '.kebab-panel[data-panel="show"] > button:nth-child(5)', hold: 1100 },
           { tab: 'show',   sel: '.kebab-panel[data-panel="show"] > button:nth-child(6)', hold: 1100 },
-          { tab: 'show',   sel: '.kebab-panel[data-panel="show"] > button:nth-child(7)', hold: 1100 },
           { tab: 'show',   sel: '.kebab-panel[data-panel="show"] .kebab-sub-rows', hold: 1600 },
           { tab: 'size',   sel: '.kebab-tab[data-tab="size"]', hold: 1300 },
           { tab: 'size',   sel: '.kebab-panel[data-panel="size"] .size-btns', hold: 2400 },
@@ -47585,9 +47574,6 @@ const _cgTourSteps = [
       /* Phase 7 step 4: the YouTube switch and row button are gone; rows play from ▶ / ⋮ */
       { content: '▶ plays a 30-second sample. For the whole song, open ⋮ (or right-click the row) and pick Play the video: it plays in a small player down in the corner, and if a song is already playing you can add this one to the queue instead.',
         spotlight: _cgRow('.ea-pair'), hold: 8000 },
-
-      { content: 'The + button opens the playlist picker, so you can drop this row into any playlist you keep. Build one from across any chart or period, then manage them in the Playlists tab.\n\nTo keep it, switch on Playlist in the chart\'s ⋮ menu, under Show.',
-        spotlight: _cgRow('.dc-pl-add-btn'), hold: 9000 },
 
       { content: 'Weeks on chart — how many weeks this has spent on the chart in total, added up across every spell it has had there.',
         spotlight: _cgRow('td.m-col:has(.m-mths)'), column: true, hold: 6000 },

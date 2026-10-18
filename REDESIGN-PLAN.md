@@ -1616,6 +1616,17 @@ animation, 12 screen check.
   it), the ⋮ column is 24px, and headers no longer break mid-word. Title ·
   Artist on a 390px phone: 112px in English (83px before step 7), 100px in
   Portuguese, 77px in Spanish; every table still fits its card.
+  **2026-10-18, your calls on phone badges:** in the phone chart table the
+  plays-peak tag reads "▲ PB" (MÁX / PICO); diamond certifications show as
+  emoji in every language (💎, 💎💎, then 3×💎, 4×💎…, `.cert-short`), Gold
+  and Platinum keep their words; in Spanish only, the peak tag is 🏅 #n.
+  **The Playlist switch is gone** from every chart's ⋮ → Show (three rows,
+  config, `_withPlBtns`, `btn_display_pl_btns` × 4 langs): the ＋ never shows
+  on chart entries in any layout (one CSS rule per section; the grid and
+  filmstrip hover overlays that only held it go too), and "Add to a
+  playlist" stays in each entry's ⋮ / right-click menu. Tour: the Show walk
+  has six row stops and the ＋ phase is gone. Left: with every badge on, the
+  pt-BR Yearly songs table on a phone is 5px too wide.
 
 The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in

@@ -9033,25 +9033,29 @@
     /* Short label only shows in the phone chart table (see the 600px block) */
     .plays-peak-badge .ppb-short { display: none; }
 
-    /* Short forms of the peak tag and certification: hidden by default, shown
-       only where a spot is too narrow for the words (below) */
+    /* Short forms of the peak tag and the diamond certifications: hidden by
+       default, shown only where a spot is too narrow for the words (below) */
     .pk-medal,
-    .cert-mult { display: none; }
+    .cert-short { display: none; }
 
-    /* Spanish phone chart table: "LOGRO #1" and "DOUBLE DIAMOND" pushed the
-       table past the card, so the peak tag becomes 🏅 #1 and certifications
-       their icon alone (💎💎, 💿, 🪙; 4×💎 from four diamonds up) */
+    /* Phone chart table, every language: diamonds as emoji ("DOUBLE DIAMOND"
+       → 💎💎, "TRIPLE DIAMOND" → 3×💎, 4×💎…). Gold and Platinum keep their
+       words (your call, 2026-10-18). */
     @media (max-width: 600px) {
-      html[lang="es"] .chart-table .pk-label,
-      html[lang="es"] .chart-table .cert-label { display: none; }
+      .chart-table .cert-diamond .cert-icon,
+      .chart-table .cert-diamond .cert-label { display: none; }
+      .chart-table .cert-diamond .cert-short {
+        display: inline;
+        font-size: 13px;
+        line-height: 1;
+        letter-spacing: 0;
+        white-space: nowrap;
+      }
+      .chart-table .cert-diamond { padding: 1px 4px; }
+
+      /* Spanish only: "LOGRO #1" becomes a medal and the number, 🏅 #1 */
+      html[lang="es"] .chart-table .pk-label { display: none; }
       html[lang="es"] .chart-table .pk-medal { display: inline; margin-right: 2px; }
-      html[lang="es"] .chart-table .cert-mult { display: inline; margin-right: 1px; }
-      html[lang="es"] .chart-table .cert { padding: 1px 4px; gap: 0; }
-      /* By id: the tables' own 8px icon rule is keyed to #songsTable / #albumsTable */
-      html[lang="es"] #songsTable .cert .cert-icon,
-      html[lang="es"] #albumsTable .cert .cert-icon,
-      html[lang="es"] .chart-table .cert .cert-icon { font-size: 14px; line-height: 1; margin: 0; }
-      html[lang="es"] .chart-table .cert .cert-mult { font-size: var(--fs-xs); font-weight: 700; }
     }
 
     .plays-peak-badge {
@@ -20623,21 +20627,22 @@ body.purple .landing-card-config input:focus {
 .yt-play-btn.yt-btn-playing { background: var(--accent); color: var(--on-accent); animation: yt-btn-pulse 1.4s ease-in-out infinite; }
 .yt-play-btn.yt-btn-playing .yt-btn-content::before { content: '●'; font-size: 0.55em; margin-right: 0.1em; line-height: 1; }
 
-/* The ＋ add-to-playlist button has its own per-section switch (⋮ → Show →
-   Playlist), off by default. (The YouTube switch beside it was removed in
-   phase 7 step 4: entries play YouTube from ⋮ / right-click.) */
-body.songs-hide-pl-btns   #songsSection     .dc-pl-add-btn,
-body.artists-hide-pl-btns #artistsSection   .dc-pl-add-btn,
-body.albums-hide-pl-btns  #albumsSection    .dc-pl-add-btn,
-body.songs-hide-pl-btns   #buSongsSection   .dc-pl-add-btn,
-body.artists-hide-pl-btns #buArtistsSection .dc-pl-add-btn,
-body.albums-hide-pl-btns  #buAlbumsSection  .dc-pl-add-btn,
-body.songs-hide-pl-btns   #offSongsSection   .dc-pl-add-btn,
-body.artists-hide-pl-btns #offArtistsSection .dc-pl-add-btn,
-body.albums-hide-pl-btns  #offAlbumsSection  .dc-pl-add-btn,
-body.songs-hide-pl-btns   #newSongsSection   .dc-pl-add-btn,
-body.artists-hide-pl-btns #newArtistsSection .dc-pl-add-btn,
-body.albums-hide-pl-btns  #newAlbumsSection  .dc-pl-add-btn { display: none; }
+/* No ＋ add-to-playlist button on chart entries (2026-10-18, your call): the
+   ⋮ → Show → Playlist switch is gone, and "Add to a playlist" is in each
+   entry's own ⋮ / right-click menu. Every layout still draws the button, so
+   one rule per chart section hides it everywhere. */
+#songsSection     .dc-pl-add-btn,
+#artistsSection   .dc-pl-add-btn,
+#albumsSection    .dc-pl-add-btn,
+#buSongsSection   .dc-pl-add-btn,
+#buArtistsSection .dc-pl-add-btn,
+#buAlbumsSection  .dc-pl-add-btn,
+#offSongsSection   .dc-pl-add-btn,
+#offArtistsSection .dc-pl-add-btn,
+#offAlbumsSection  .dc-pl-add-btn,
+#newSongsSection   .dc-pl-add-btn,
+#newArtistsSection .dc-pl-add-btn,
+#newAlbumsSection  .dc-pl-add-btn { display: none !important; }
 
 /* ── Sleep timer panel ── */
 .yt-sleep-panel {
@@ -31013,11 +31018,11 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
 /* hover play overlay */
 .wv-gc-hover { position: absolute; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.18s; pointer-events: none; }
 .wv-grid-card:hover .wv-gc-hover { opacity: 1; pointer-events: auto; }
-/* The overlay holds only the ＋ (Playlist switch); with that off the dark
-   overlay goes too, so a hover never darkens a card for nothing. */
-body.songs-hide-pl-btns   #songsSection   .wv-gc-hover,
-body.artists-hide-pl-btns #artistsSection .wv-gc-hover,
-body.albums-hide-pl-btns  #albumsSection  .wv-gc-hover { display: none; }
+/* The overlay holds only the ＋, which the charts no longer show, so the dark
+   overlay goes too: a hover never darkens a card for nothing. */
+#songsSection   .wv-gc-hover,
+#artistsSection .wv-gc-hover,
+#albumsSection  .wv-gc-hover { display: none; }
 
 /* cert badge overlaid on card art */
 .wv-gc-pb { position: absolute; top: 6px; right: 6px; pointer-events: none; line-height: 1; }
@@ -31335,10 +31340,10 @@ body.albums-hide-pl-btns  #albumsSection  .wv-gc-hover { display: none; }
 .wv-film-thumb-wrap { position: relative; width: 100%; display: flex; justify-content: center; }
 .wv-film-thumb-hover { position: absolute; inset: 0; background: rgba(0,0,0,0.48); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.18s; border-radius: var(--r-xs); pointer-events: none; }
 .wv-film-card:hover .wv-film-thumb-hover { opacity: 1; pointer-events: auto; }
-/* Same as the grid overlay: gone with the Playlist switch off */
-body.songs-hide-pl-btns   #songsSection   .wv-film-thumb-hover,
-body.artists-hide-pl-btns #artistsSection .wv-film-thumb-hover,
-body.albums-hide-pl-btns  #albumsSection  .wv-film-thumb-hover { display: none; }
+/* Same as the grid overlay: it only held the ＋ */
+#songsSection   .wv-film-thumb-hover,
+#artistsSection .wv-film-thumb-hover,
+#albumsSection  .wv-film-thumb-hover { display: none; }
 /* Filmstrip badges (peak, certification, score, personal best): one centred
    line under the artist. Each hides through its own Show switch rule; with
    all of them off the line has no height. (Phase 7 step 4.) */
