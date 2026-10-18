@@ -5156,8 +5156,21 @@
 
     /* BU stat tiles: same layout as the main chart run, larger type —
        the 12px labels / 18px figures read too small here */
+    /* Wide, short tiles (rectangles, not squares): labels fit on one or two
+       lines. Two per row on phones. */
     .bu-cr-panel .cr-stats {
-      grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+      display: flex;
+      flex-wrap: wrap;
+    }
+    /* ~3 per row on desktop; tiles on a short last row stretch so the row
+       never ends in an empty gap */
+    .bu-cr-panel .cr-stat {
+      flex: 1 1 220px;
+    }
+    @media (max-width: 600px) {
+      .bu-cr-panel .cr-stat {
+        flex-basis: 40%;
+      }
     }
     .bu-cr-panel .cr-stat-k {
       font-size: var(--fs-sm);
