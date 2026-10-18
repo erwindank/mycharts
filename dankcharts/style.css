@@ -9041,7 +9041,7 @@
     /* Spanish chart tables at every width (2026-10-18): the Plays column
        took far too much of the row with "54 reproducciones", the
        "REPRODUCCIONES" header and "▲ LOGRO MÁS ALTO". They use the short forms
-       the phone already had: "54 reprods", "Reprods" / "Total", "▲ MÁX".
+       the phone already had: "54 veces" / "1 vez", "Escuchas", "▲ MÁX".
        English and Portuguese have no longer forms here, so they're unchanged. */
     html[lang="es"] .chart-table .th-plays-full { display: none; }
     html[lang="es"] .chart-table .th-plays-short { display: inline; }

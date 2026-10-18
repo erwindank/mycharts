@@ -1627,6 +1627,12 @@ animation, 12 screen check.
   playlist" stays in each entry's ⋮ / right-click menu. Tour: the Show walk
   has six row stops and the ＋ phase is gone. Left: with every badge on, the
   pt-BR Yearly songs table on a phone is 5px too wide.
+  **Spanish plays wording, your call (2026-10-18):** the Spanish chart
+  tables use their short forms at every width (the Plays column was far too
+  wide), and the short forms changed from "reprod / reprods" (settled
+  2026-10-14) to **"1 vez" / "54 veces"**, with the column header
+  **Escuchas** (Songs and the Artists / Albums totals). Full sentences
+  elsewhere still say "reproducciones". Plays peak tag in Spanish tables: "▲ MÁX".
 
 The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in

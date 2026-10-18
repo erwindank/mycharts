@@ -3632,10 +3632,10 @@ const TRANSLATIONS = {
     th_title_artist: 'Título · Artista',
     th_album: 'Álbum',
     th_plays: 'Reproducciones',
-    th_plays_mobile: 'Reprods',
+    th_plays_mobile: 'Escuchas',   // chart tables + phones (2026-10-18, was 'Reprods')
     th_unique_songs: 'Canciones Únicas',
     th_total_plays: 'Total Reprods',
-    th_total_plays_mobile: 'Total',
+    th_total_plays_mobile: 'Escuchas',   // 2026-10-18, was 'Total'
     th_tracks: 'Canciones',
     th_artist: 'Artista',
     th_album_artist: 'Álbum · Artista',
@@ -4175,8 +4175,8 @@ const TRANSLATIONS = {
     // Plurals
     plays_one: 'reproducción',
     plays_other: 'reproducciones',
-    plays_one_mobile: 'reprod',
-    plays_other_mobile: 'reprods',
+    plays_one_mobile: 'vez',        // "1 vez" (2026-10-18, was 'reprod')
+    plays_other_mobile: 'veces',    // "54 veces" (2026-10-18, was 'reprods')
     songs_one: 'canción',
     songs_other: 'canciones',
     albums_one: 'álbum',
