@@ -34295,6 +34295,57 @@ function openStreakModal(opts) {
   }
   const all3Day14 = all3SameDay(14), all3Day30 = all3SameDay(30), all3Day100 = all3SameDay(100);
 
+  // ── Calendar: holidays, seasons, whole months and anniversaries ──
+  // All from the 7+ day runs (allRuns), as day numbers. DN(y, m, d) is a
+  // date's day number (month 0-based; day 0 = the last day of the month before).
+  const DN = (y, m, d) => Math.round(Date.UTC(y, m, d) / 86400000);
+  const overlap = (x, a, b) => Math.max(0, Math.min(x.e, b) - Math.max(x.s, a) + 1);
+  let countdown = false, firstLight = false, holidays = false, valentine = false, spooky = false, leapDay = false;
+  let summerSong = false, winterWarm = false, calYear = false, anniv = false, tradition = false, sameDateYears = 0;
+  const fullMonths = new Set();       // y * 12 + month covered from the 1st to its last day
+  const seasonsByYear = {};           // y → seasons with 30+ days of one run (winter = Dec of y-1 to Feb)
+  const addSeason = (y, k) => (seasonsByYear[y] = seasonsByYear[y] || new Set()).add(k);
+  for (const r of allRuns) {
+    // Same date in different years: only possible with two runs, or one over a year long
+    const dates = (r.runs.length > 1 || r.runs[0].len > 365) ? new Map() : null;   // month*32+day → years
+    const decYears = new Set();
+    for (const x of r.runs) {
+      for (let y = yearOf(x.s) - 1; y <= yearOf(x.e); y++) {
+        const jan1Next = DN(y + 1, 0, 1);
+        if (x.s <= DN(y, 11, 31) && x.e >= jan1Next) countdown = true;
+        if (x.s <= DN(y, 11, 24) && x.e >= jan1Next) holidays = true;
+        if (x.s === DN(y, 0, 1)) firstLight = true;
+        const feb14 = DN(y, 1, 14);
+        if (x.s + 13 <= feb14 && feb14 <= x.e) valentine = true;
+        if (x.s <= DN(y, 9, 1) && x.e >= DN(y, 9, 31)) spooky = true;
+        if (DN(y, 2, 0) - DN(y, 1, 0) === 29) { const f29 = DN(y, 1, 29); if (x.s <= f29 && f29 <= x.e) leapDay = true; }
+        if (x.s <= DN(y, 0, 1) && x.e >= DN(y, 11, 31)) calYear = true;
+        const winter = overlap(x, DN(y, 11, 1), DN(y + 1, 2, 0));
+        if (winter >= 30) { winterWarm = true; addSeason(y + 1, 'w'); }
+        if (overlap(x, DN(y, 2, 1), DN(y, 5, 0)) >= 30) addSeason(y, 'sp');
+        const summer = overlap(x, DN(y, 5, 1), DN(y, 8, 0));
+        if (summer >= 30) { addSeason(y, 'su'); if (r.tp === 'song') summerSong = true; }
+        if (overlap(x, DN(y, 8, 1), DN(y, 11, 0)) >= 30) addSeason(y, 'au');
+        if (x.len >= 28) for (let m = 0; m < 12; m++) if (x.s <= DN(y, m, 1) && x.e >= DN(y, m + 1, 0)) fullMonths.add(y * 12 + m);
+        if (overlap(x, DN(y, 11, 1), DN(y, 11, 31)) >= 7) decYears.add(y);
+      }
+      if (dates) for (let d = x.s; d <= x.e; d++) {
+        const dt = new Date(d * 86400000), k = dt.getUTCMonth() * 32 + dt.getUTCDate();
+        let ys = dates.get(k);
+        if (!ys) dates.set(k, ys = new Set());
+        ys.add(dt.getUTCFullYear());
+      }
+    }
+    for (const y of decYears) if (decYears.has(y + 1) && decYears.has(y + 2)) tradition = true;
+    if (dates) for (const ys of dates.values()) {
+      if (ys.size > sameDateYears) sameDateYears = ys.size;
+      if (!anniv) for (const y of ys) if (ys.has(y + 1)) { anniv = true; break; }
+    }
+  }
+  let seasonsMost = 0;
+  for (const y in seasonsByYear) if (seasonsByYear[y].size > seasonsMost) seasonsMost = seasonsByYear[y].size;
+  const nFullMonths = fullMonths.size;
+
   // Shown in groups, in this order (heading: sk_bgrp_<g>)
   const SK_BADGES = [
     { id: 'week', g: 'long', icon: '🔥', ok: bestEver >= 7, prog: bestEver + 'd' },
@@ -34443,7 +34494,24 @@ function openStreakModal(opts) {
     { id: 'backtoback', g: 'fan', icon: '⏯️', ok: albs10 >= 3, prog: albs10 + '/3' },
     { id: 'startfinish', g: 'fan', icon: '🏁', ok: albs10 >= 5, prog: albs10 + '/5' },
     { id: 'covertocover', g: 'fan', icon: '📕', ok: albs10 >= 10, prog: albs10 + '/10' },
+    { id: 'firstlight', g: 'cal', icon: '🌄', ok: firstLight, prog: '' },
+    { id: 'valentine', g: 'cal', icon: '💝', ok: valentine, prog: '' },
+    { id: 'leap', g: 'cal', icon: '🐸', ok: leapDay, prog: '' },
+    { id: 'spooky', g: 'cal', icon: '🎃', ok: spooky, prog: '' },
+    { id: 'holidays', g: 'cal', icon: '🎄', ok: holidays, prog: '' },
     { id: 'yearender', g: 'cal', icon: '🎆', ok: yearEnder, prog: '' },
+    { id: 'countdown', g: 'cal', icon: '🥂', ok: countdown, prog: '' },
+    { id: 'winterwarm', g: 'cal', icon: '🧣', ok: winterWarm, prog: '' },
+    { id: 'summersong', g: 'cal', icon: '🏖️', ok: summerSong, prog: '' },
+    { id: 'fourseasons', g: 'cal', icon: '🍁', ok: seasonsMost >= 4, prog: seasonsMost + '/4' },
+    { id: 'fullmonth', g: 'cal', icon: '🌕', ok: nFullMonths >= 1, prog: '' },
+    { id: 'monthafter', g: 'cal', icon: '🌗', ok: nFullMonths >= 3, prog: nFullMonths + '/3' },
+    { id: 'mooncycles', g: 'cal', icon: '🌒', ok: nFullMonths >= 6, prog: nFullMonths + '/6' },
+    { id: 'twelvemoons', g: 'cal', icon: '🌝', ok: nFullMonths >= 12, prog: nFullMonths + '/12' },
+    { id: 'calyear', g: 'cal', icon: '📒', ok: calYear, prog: '' },
+    { id: 'anniversary', g: 'cal', icon: '🎂', ok: anniv, prog: '' },
+    { id: 'tradition', g: 'cal', icon: '🔔', ok: tradition, prog: '' },
+    { id: 'sametime', g: 'cal', icon: '♻️', ok: sameDateYears >= 5, prog: sameDateYears + '/5' },
   ];
 
   // ── Weekly digest ─────────────────────────────────────────────────
