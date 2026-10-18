@@ -34181,17 +34181,16 @@ function openStreakModal(opts) {
     if (m.size > months7Best) months7Best = m.size;
     if (q.size > quartersBest) quartersBest = q.size;
   }
-  // Comebacks: a record of 14+ beaten by a later run (Phoenix), a 7+ run back
-  // more than a year after the last one ended (Old flame), and how many things
-  // had two 7+ runs at all (Serial returner)
-  let phoenix = false, oldFlame = false, returners = 0;
+  // Comebacks: a record of 14+ beaten by a later run (Rebound; `phoenix` is
+  // its old name), and how many things had two 7+ runs at all (the Boomerang
+  // to Serial returner ladder)
+  let phoenix = false, returners = 0;
   for (const r of allRuns) {
     if (r.runs.length < 2) continue;
     returners++;
     let top = r.runs[0].len;
     for (let i = 1; i < r.runs.length; i++) {
       if (top >= 14 && r.runs[i].len > top) phoenix = true;
-      if (r.runs[i].s - r.runs[i - 1].e > 365) oldFlame = true;
       if (r.runs[i].len > top) top = r.runs[i].len;
     }
   }
@@ -34224,19 +34223,20 @@ function openStreakModal(opts) {
   // Years where Every season was done (Seasoned)
   let seasonYears = 0;
   for (const y in monthsByYear) if (monthsByYear[y].size >= 12) seasonYears++;
-  // The most separate 7+ runs for one thing (Third time's the charm), and a
-  // run back after more than three years (Lazarus)
-  let mostRuns = 0, lazarus = false;
+  // The most separate 7+ runs for one thing (Third time lucky and up), and
+  // the longest time away before a 7+ run came back, in days (Old flame,
+  // Long lost, Time capsule, Lazarus)
+  let mostRuns = 0, maxGap = 0;
   for (const r of allRuns) {
     if (r.runs.length > mostRuns) mostRuns = r.runs.length;
-    for (let i = 1; i < r.runs.length; i++) if (r.runs[i].s - r.runs[i - 1].e > 1095) lazarus = true;
+    for (let i = 1; i < r.runs.length; i++) maxGap = Math.max(maxGap, r.runs[i].s - r.runs[i - 1].e);
   }
   // Harder comebacks (2026-10-18, every first one was earned): separate
-  // 30-day runs for one thing (Second wind, Encore), Phoenix beating a 30+ /
-  // 100+ record (Rebirth, Reborn), how many things came back after a year
-  // away (Reunion tour), a return after 5 years (Time capsule) and a return
-  // after a year that itself reaches 30 days (Rekindled)
-  let most30Runs = 0, rebirth = false, reborn = false, reunions = 0, timeCapsule = false, rekindled = false;
+  // 30-day runs for one thing (Second wind, Encore, Standing ovation), a
+  // comeback beating a 30+ / 100+ record (Rebirth, Phoenix), how many things
+  // came back after a year away (Reunion ladder) and a return after a year
+  // that itself reaches 30 days (Rekindled)
+  let most30Runs = 0, rebirth = false, reborn = false, reunions = 0, rekindled = false;
   for (const r of allRuns) {
     const n30r = r.runs.filter(x => x.len >= 30).length;
     if (n30r > most30Runs) most30Runs = n30r;
@@ -34245,7 +34245,6 @@ function openStreakModal(opts) {
       const gap = r.runs[i].s - r.runs[i - 1].e;
       if (r.runs[i].len > top) { if (top >= 30) rebirth = true; if (top >= 100) reborn = true; top = r.runs[i].len; }
       if (gap > 365) { away = true; if (r.runs[i].len >= 30) rekindled = true; }
-      if (gap > 1825) timeCapsule = true;
     }
     if (away) reunions++;
   }
@@ -34260,74 +34259,116 @@ function openStreakModal(opts) {
 
   // Shown in groups, in this order (heading: sk_bgrp_<g>)
   const SK_BADGES = [
-    { id: 'week',      g: 'long', icon: '🔥', ok: bestEver >= 7,    prog: bestEver + 'd' },
-    { id: 'twoweeks',  g: 'long', icon: '☄️', ok: bestEver >= 14,   prog: bestEver + 'd' },
-    { id: 'month',     g: 'long', icon: '🌋', ok: bestEver >= 30,   prog: bestEver + 'd' },
-    { id: 'fifty',     g: 'long', icon: '🏅', ok: bestEver >= 50,   prog: bestEver + 'd' },
-    { id: 'hundred',   g: 'long', icon: '💯', ok: bestEver >= 100,  prog: bestEver + 'd' },
-    { id: 'bicent',    g: 'long', icon: '🎖️', ok: bestEver >= 200,  prog: bestEver + 'd' },
-    { id: 'year',      g: 'long', icon: '📅', ok: bestEver >= 365,  prog: bestEver + 'd' },
-    { id: 'twoyears',  g: 'long', icon: '🌳', ok: bestEver >= 730,  prog: bestEver + 'd' },
+    { id: 'week', g: 'long', icon: '🔥', ok: bestEver >= 7, prog: bestEver + 'd' },
+    { id: 'twoweeks', g: 'long', icon: '☄️', ok: bestEver >= 14, prog: bestEver + 'd' },
+    { id: 'threeweeks', g: 'long', icon: '🌿', ok: bestEver >= 21, prog: bestEver + 'd' },
+    { id: 'month', g: 'long', icon: '🌋', ok: bestEver >= 30, prog: bestEver + 'd' },
+    { id: 'fifty', g: 'long', icon: '🏅', ok: bestEver >= 50, prog: bestEver + 'd' },
+    { id: 'twomonths', g: 'long', icon: '🌙', ok: bestEver >= 60, prog: bestEver + 'd' },
+    { id: 'threeq', g: 'long', icon: '⭐', ok: bestEver >= 75, prog: bestEver + 'd' },
+    { id: 'hundred', g: 'long', icon: '💯', ok: bestEver >= 100, prog: bestEver + 'd' },
+    { id: 'fivemonths', g: 'long', icon: '🔆', ok: bestEver >= 150, prog: bestEver + 'd' },
+    { id: 'bicent', g: 'long', icon: '🎖️', ok: bestEver >= 200, prog: bestEver + 'd' },
+    { id: 'year', g: 'long', icon: '📅', ok: bestEver >= 365, prog: bestEver + 'd' },
+    { id: 'fivehundred', g: 'long', icon: '🚀', ok: bestEver >= 500, prog: bestEver + 'd' },
+    { id: 'twoyears', g: 'long', icon: '🌳', ok: bestEver >= 730, prog: bestEver + 'd' },
     { id: 'millennium', g: 'long', icon: '🏔️', ok: bestEver >= 1000, prog: bestEver + 'd' },
-    { id: 'juggler',   g: 'once', icon: '🤹', ok: mostAlive >= 10,  prog: String(mostAlive) },
-    { id: 'bonfire',   g: 'once', icon: '🎇', ok: mostAlive >= 50,  prog: String(mostAlive) },
-    { id: 'house',     g: 'once', icon: '🏟️', ok: mostAlive >= 100, prog: String(mostAlive) },
-    { id: 'wildfire',  g: 'once', icon: '🌠', ok: mostAlive >= 250, prog: String(mostAlive) },
-    { id: 'twin',      g: 'once', icon: '🕯️', ok: at30.most >= 2,   prog: at30.most + '/2' },
-    { id: 'hattrick',  g: 'once', icon: '🎩', ok: at30.most >= 3,   prog: at30.most + '/3' },
-    { id: 'pantheon',  g: 'once', icon: '🏛️', ok: at30.most >= 10,  prog: at30.most + '/10' },
-    { id: 'constell',  g: 'once', icon: '🌌', ok: at30.most >= 25,  prog: at30.most + '/25' },
-    { id: 'doublec',   g: 'once', icon: '⚔️', ok: at100.most >= 2,  prog: at100.most + '/2' },
-    { id: 'tricrown',  g: 'once', icon: '🏆', ok: at100.most >= 3,  prog: at100.most + '/3' },
-    { id: 'collector', g: 'many', icon: '🗃️', ok: n30 >= 10,        prog: n30 + '/10' },
-    { id: 'archivist', g: 'many', icon: '📚', ok: n30 >= 50,        prog: n30 + '/50' },
-    { id: 'museum',    g: 'many', icon: '🖼️', ok: n30 >= 100,       prog: n30 + '/100' },
-    { id: 'library',   g: 'many', icon: '📖', ok: n30 >= 250,       prog: n30 + '/250' },
-    { id: 'squad',     g: 'many', icon: '👥', ok: nArt30 >= 5,      prog: nArt30 + '/5' },
-    { id: 'lineup',    g: 'many', icon: '🎤', ok: nArt30 >= 10,     prog: nArt30 + '/10' },
-    { id: 'discog',    g: 'many', icon: '💿', ok: nAlb14 >= 10,     prog: nAlb14 + '/10' },
-    { id: 'recshop',   g: 'many', icon: '🛍️', ok: nAlb14 >= 25,     prog: nAlb14 + '/25' },
-    { id: 'hitparade', g: 'many', icon: '🎶', ok: nSong14 >= 25,    prog: nSong14 + '/25' },
-    { id: 'jukebox',   g: 'many', icon: '📻', ok: nSong14 >= 100,   prog: nSong14 + '/100' },
-    { id: 'legends',   g: 'many', icon: '👑', ok: n100 >= 5,        prog: n100 + '/5' },
-    { id: 'immortals', g: 'many', icon: '🗿', ok: n100 >= 10,       prog: n100 + '/10' },
-    { id: 'evergreen', g: 'many', icon: '🌲', ok: n365 >= 3,        prog: n365 + '/3' },
-    { id: 'allround',  g: 'many', icon: '🎯', ok: allRound,         prog: '' },
-    { id: 'kindling',  g: 'stay', icon: '🪵', ok: at7.lit >= 30,    prog: at7.lit + 'd' },
-    { id: 'hearth',    g: 'stay', icon: '🏡', ok: at30.lit >= 30,   prog: at30.lit + 'd' },
-    { id: 'slowburn',  g: 'stay', icon: '♨️', ok: at14.lit >= 60,   prog: at14.lit + 'd' },
-    { id: 'eternal',   g: 'stay', icon: '🏮', ok: at30.lit >= 100,  prog: at30.lit + 'd' },
-    { id: 'nevercold', g: 'stay', icon: '☀️', ok: at30.lit >= 365,  prog: at30.lit + 'd' },
-    { id: 'undying',   g: 'stay', icon: '♾️', ok: at30.lit >= 730,  prog: at30.lit + 'd' },
-    { id: 'quarters',  g: 'stay', icon: '🧭', ok: quartersBest >= 4, prog: quartersBest + '/4' },
-    { id: 'regular',   g: 'stay', icon: '📆', ok: months7Best >= 12, prog: months7Best + '/12' },
-    { id: 'seasons',   g: 'stay', icon: '🗓️', ok: seasonsBest >= 12, prog: seasonsBest + '/12' },
-    { id: 'seasoned',  g: 'stay', icon: '🍂', ok: seasonYears >= 3, prog: seasonYears + '/3' },
+    { id: 'spark', g: 'once', icon: '✨', ok: mostAlive >= 5, prog: String(mostAlive) },
+    { id: 'juggler', g: 'once', icon: '🤹', ok: mostAlive >= 10, prog: String(mostAlive) },
+    { id: 'campfire', g: 'once', icon: '🏕️', ok: mostAlive >= 25, prog: String(mostAlive) },
+    { id: 'bonfire', g: 'once', icon: '🎇', ok: mostAlive >= 50, prog: String(mostAlive) },
+    { id: 'house', g: 'once', icon: '🏟️', ok: mostAlive >= 100, prog: String(mostAlive) },
+    { id: 'wildfire', g: 'once', icon: '🌠', ok: mostAlive >= 250, prog: String(mostAlive) },
+    { id: 'inferno', g: 'once', icon: '💥', ok: mostAlive >= 500, prog: String(mostAlive) },
+    { id: 'twin', g: 'once', icon: '🕯️', ok: at30.most >= 2, prog: at30.most + '/2' },
+    { id: 'hattrick', g: 'once', icon: '🎩', ok: at30.most >= 3, prog: at30.most + '/3' },
+    { id: 'highfive', g: 'once', icon: '🖐️', ok: at30.most >= 5, prog: at30.most + '/5' },
+    { id: 'bigband', g: 'once', icon: '🎺', ok: at30.most >= 10, prog: at30.most + '/10' },
+    { id: 'orchestra', g: 'once', icon: '🎻', ok: at30.most >= 15, prog: at30.most + '/15' },
+    { id: 'constell', g: 'once', icon: '🌌', ok: at30.most >= 25, prog: at30.most + '/25' },
+    { id: 'pantheon', g: 'once', icon: '🏛️', ok: at30.most >= 50, prog: at30.most + '/50' },
+    { id: 'doublec', g: 'once', icon: '⚔️', ok: at100.most >= 2, prog: at100.most + '/2' },
+    { id: 'tricrown', g: 'once', icon: '🏆', ok: at100.most >= 3, prog: at100.most + '/3' },
+    { id: 'mountains', g: 'once', icon: '⛰️', ok: at100.most >= 5, prog: at100.most + '/5' },
+    { id: 'starter', g: 'many', icon: '🧺', ok: n30 >= 5, prog: n30 + '/5' },
+    { id: 'collector', g: 'many', icon: '🗃️', ok: n30 >= 10, prog: n30 + '/10' },
+    { id: 'curator', g: 'many', icon: '🔍', ok: n30 >= 25, prog: n30 + '/25' },
+    { id: 'archivist', g: 'many', icon: '📚', ok: n30 >= 50, prog: n30 + '/50' },
+    { id: 'library', g: 'many', icon: '📖', ok: n30 >= 100, prog: n30 + '/100' },
+    { id: 'museum', g: 'many', icon: '🖼️', ok: n30 >= 250, prog: n30 + '/250' },
+    { id: 'trio', g: 'many', icon: '🎸', ok: nArt30 >= 3, prog: nArt30 + '/3' },
+    { id: 'squad', g: 'many', icon: '👥', ok: nArt30 >= 5, prog: nArt30 + '/5' },
+    { id: 'lineup', g: 'many', icon: '🎤', ok: nArt30 >= 10, prog: nArt30 + '/10' },
+    { id: 'festival', g: 'many', icon: '🎪', ok: nArt30 >= 25, prog: nArt30 + '/25' },
+    { id: 'crate', g: 'many', icon: '📦', ok: nAlb14 >= 5, prog: nAlb14 + '/5' },
+    { id: 'recshop', g: 'many', icon: '🛍️', ok: nAlb14 >= 10, prog: nAlb14 + '/10' },
+    { id: 'vinylvault', g: 'many', icon: '🗄️', ok: nAlb14 >= 25, prog: nAlb14 + '/25' },
+    { id: 'discog', g: 'many', icon: '💿', ok: nAlb14 >= 50, prog: nAlb14 + '/50' },
+    { id: 'reclabel', g: 'many', icon: '🏷️', ok: nAlb14 >= 100, prog: nAlb14 + '/100' },
+    { id: 'mixtape', g: 'many', icon: '📼', ok: nSong14 >= 10, prog: nSong14 + '/10' },
+    { id: 'hitparade', g: 'many', icon: '🎶', ok: nSong14 >= 25, prog: nSong14 + '/25' },
+    { id: 'top50', g: 'many', icon: '📈', ok: nSong14 >= 50, prog: nSong14 + '/50' },
+    { id: 'jukebox', g: 'many', icon: '📻', ok: nSong14 >= 100, prog: nSong14 + '/100' },
+    { id: 'radio', g: 'many', icon: '📡', ok: nSong14 >= 250, prog: nSong14 + '/250' },
+    { id: 'veterans', g: 'many', icon: '🪖', ok: n100 >= 3, prog: n100 + '/3' },
+    { id: 'legend5', g: 'many', icon: '🌟', ok: n100 >= 5, prog: n100 + '/5' },
+    { id: 'legends', g: 'many', icon: '👑', ok: n100 >= 10, prog: n100 + '/10' },
+    { id: 'immortals', g: 'many', icon: '🗿', ok: n100 >= 25, prog: n100 + '/25' },
+    { id: 'perennial', g: 'many', icon: '🌻', ok: n365 >= 2, prog: n365 + '/2' },
+    { id: 'evergreen', g: 'many', icon: '🌲', ok: n365 >= 3, prog: n365 + '/3' },
+    { id: 'oldgrowth', g: 'many', icon: '🌴', ok: n365 >= 5, prog: n365 + '/5' },
+    { id: 'allround', g: 'many', icon: '🎯', ok: allRound, prog: '' },
+    { id: 'kindling', g: 'stay', icon: '🪵', ok: at7.lit >= 30, prog: at7.lit + 'd' },
+    { id: 'hearth', g: 'stay', icon: '🏡', ok: at30.lit >= 30, prog: at30.lit + 'd' },
+    { id: 'slowburn', g: 'stay', icon: '♨️', ok: at14.lit >= 60, prog: at14.lit + 'd' },
+    { id: 'eternal', g: 'stay', icon: '🏮', ok: at30.lit >= 100, prog: at30.lit + 'd' },
+    { id: 'nevercold', g: 'stay', icon: '☀️', ok: at30.lit >= 365, prog: at30.lit + 'd' },
+    { id: 'undying', g: 'stay', icon: '♾️', ok: at30.lit >= 730, prog: at30.lit + 'd' },
+    { id: 'quarters', g: 'stay', icon: '🧭', ok: quartersBest >= 4, prog: quartersBest + '/4' },
+    { id: 'regular', g: 'stay', icon: '📆', ok: months7Best >= 12, prog: months7Best + '/12' },
+    { id: 'seasons', g: 'stay', icon: '🗓️', ok: seasonsBest >= 12, prog: seasonsBest + '/12' },
+    { id: 'seasoned', g: 'stay', icon: '🍂', ok: seasonYears >= 3, prog: seasonYears + '/3' },
     { id: 'yearafter', g: 'stay', icon: '🔂', ok: years30.size >= 2, prog: years30.size + '/2' },
     { id: 'thruyears', g: 'stay', icon: '⏳', ok: years30.size >= 5, prog: years30.size + '/5' },
-    { id: 'comeback',  g: 'back', icon: '🔁', ok: comeback,         prog: '' },
-    { id: 'thirdtime', g: 'back', icon: '🍀', ok: mostRuns >= 3,    prog: mostRuns + '/3' },
-    { id: 'cantstay',  g: 'back', icon: '🧲', ok: mostRuns >= 10,   prog: mostRuns + '/10' },
-    { id: 'revolving', g: 'back', icon: '🚪', ok: mostRuns >= 30,   prog: mostRuns + '/30' },
+    { id: 'comeback', g: 'back', icon: '🔁', ok: comeback, prog: '' },
+    { id: 'thirdtime', g: 'back', icon: '🍀', ok: mostRuns >= 3, prog: mostRuns + '/3' },
+    { id: 'hooked', g: 'back', icon: '🪝', ok: mostRuns >= 5, prog: mostRuns + '/5' },
+    { id: 'cantstay', g: 'back', icon: '🧲', ok: mostRuns >= 10, prog: mostRuns + '/10' },
+    { id: 'oldhabit', g: 'back', icon: '☕', ok: mostRuns >= 20, prog: mostRuns + '/20' },
+    { id: 'revolving', g: 'back', icon: '🚪', ok: mostRuns >= 30, prog: mostRuns + '/30' },
     { id: 'secondwind', g: 'back', icon: '🌬️', ok: most30Runs >= 2, prog: most30Runs + '/2' },
-    { id: 'encore',    g: 'back', icon: '👏', ok: most30Runs >= 3,  prog: most30Runs + '/3' },
-    { id: 'serial',    g: 'back', icon: '🪃', ok: returners >= 10,  prog: returners + '/10' },
-    { id: 'boomerang', g: 'back', icon: '🌀', ok: returners >= 50,  prog: returners + '/50' },
-    { id: 'homecoming', g: 'back', icon: '🎈', ok: returners >= 500, prog: returners + '/500' },
-    { id: 'phoenix',   g: 'back', icon: '🌅', ok: phoenix,          prog: '' },
-    { id: 'rebirth',   g: 'back', icon: '🐣', ok: rebirth,          prog: '' },
-    { id: 'reborn',    g: 'back', icon: '✨', ok: reborn,           prog: '' },
-    { id: 'oldflame',  g: 'back', icon: '💌', ok: oldFlame,         prog: '' },
-    { id: 'reunion',   g: 'back', icon: '🤝', ok: reunions >= 100,  prog: reunions + '/100' },
-    { id: 'rekindled', g: 'back', icon: '🪔', ok: rekindled,        prog: '' },
-    { id: 'lazarus',   g: 'back', icon: '⚰️', ok: lazarus,          prog: '' },
-    { id: 'timecapsule', g: 'back', icon: '🕰️', ok: timeCapsule,    prog: '' },
-    { id: 'superfan',  g: 'fan',  icon: '🙌', ok: fanMost >= 3,     prog: fanMost + '/3' },
-    { id: 'obsessed',  g: 'fan',  icon: '😍', ok: fanMost >= 10,    prog: fanMost + '/10' },
-    { id: 'completist', g: 'fan', icon: '🧩', ok: albMost >= 3,     prog: albMost + '/3' },
-    { id: 'devotee',   g: 'fan',  icon: '🎧', ok: devMost >= 5,     prog: devMost + '/5' },
-    { id: 'fronttoback', g: 'fan', icon: '📀', ok: devMost >= 10,   prog: devMost + '/10' },
-    { id: 'yearender', g: 'cal',  icon: '🎆', ok: yearEnder,        prog: '' },
+    { id: 'encore', g: 'back', icon: '👏', ok: most30Runs >= 3, prog: most30Runs + '/3' },
+    { id: 'ovation', g: 'back', icon: '🎭', ok: most30Runs >= 4, prog: most30Runs + '/4' },
+    { id: 'boomerang', g: 'back', icon: '🪃', ok: returners >= 10, prog: returners + '/10' },
+    { id: 'repeatcust', g: 'back', icon: '🛒', ok: returners >= 25, prog: returners + '/25' },
+    { id: 'familiar', g: 'back', icon: '👋', ok: returners >= 50, prog: returners + '/50' },
+    { id: 'freqflyer', g: 'back', icon: '✈️', ok: returners >= 100, prog: returners + '/100' },
+    { id: 'seasonticket', g: 'back', icon: '🎟️', ok: returners >= 200, prog: returners + '/200' },
+    { id: 'habit', g: 'back', icon: '🔄', ok: returners >= 350, prog: returners + '/350' },
+    { id: 'serial', g: 'back', icon: '🌀', ok: returners >= 500, prog: returners + '/500' },
+    { id: 'rebound', g: 'back', icon: '🏀', ok: phoenix, prog: '' },
+    { id: 'rebirth', g: 'back', icon: '🐣', ok: rebirth, prog: '' },
+    { id: 'phoenix', g: 'back', icon: '🌅', ok: reborn, prog: '' },
+    { id: 'rekindled', g: 'back', icon: '🪔', ok: rekindled, prog: '' },
+    { id: 'oldflame', g: 'back', icon: '💌', ok: maxGap > 365, prog: '' },
+    { id: 'longlost', g: 'back', icon: '🧳', ok: maxGap > 730, prog: '' },
+    { id: 'timecapsule', g: 'back', icon: '🕰️', ok: maxGap > 1095, prog: '' },
+    { id: 'lazarus', g: 'back', icon: '⚰️', ok: maxGap > 1825, prog: '' },
+    { id: 'reunite', g: 'back', icon: '🫂', ok: reunions >= 10, prog: reunions + '/10' },
+    { id: 'oldfriends', g: 'back', icon: '🍻', ok: reunions >= 25, prog: reunions + '/25' },
+    { id: 'classreunion', g: 'back', icon: '🎓', ok: reunions >= 50, prog: reunions + '/50' },
+    { id: 'reunion', g: 'back', icon: '🤝', ok: reunions >= 100, prog: reunions + '/100' },
+    { id: 'fan', g: 'fan', icon: '❤️', ok: fanMost >= 2, prog: fanMost + '/2' },
+    { id: 'superfan', g: 'fan', icon: '🙌', ok: fanMost >= 3, prog: fanMost + '/3' },
+    { id: 'devoted', g: 'fan', icon: '💘', ok: fanMost >= 5, prog: fanMost + '/5' },
+    { id: 'obsessed', g: 'fan', icon: '😍', ok: fanMost >= 10, prog: fanMost + '/10' },
+    { id: 'deepdive', g: 'fan', icon: '🤿', ok: albMost >= 2, prog: albMost + '/2' },
+    { id: 'completist', g: 'fan', icon: '🧩', ok: albMost >= 3, prog: albMost + '/3' },
+    { id: 'completeworks', g: 'fan', icon: '🗂️', ok: albMost >= 5, prog: albMost + '/5' },
+    { id: 'sidea', g: 'fan', icon: '💽', ok: devMost >= 3, prog: devMost + '/3' },
+    { id: 'devotee', g: 'fan', icon: '🎧', ok: devMost >= 5, prog: devMost + '/5' },
+    { id: 'fronttoback', g: 'fan', icon: '📀', ok: devMost >= 10, prog: devMost + '/10' },
+    { id: 'yearender', g: 'cal', icon: '🎆', ok: yearEnder, prog: '' },
   ];
 
   // ── Weekly digest ─────────────────────────────────────────────────
