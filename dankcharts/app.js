@@ -20289,11 +20289,16 @@ function certLadderTypesInUse() {
   return ['single', 'ep'].filter(ty => counts[ty] > 0);
 }
 
+// Diamond's icon and name in the reader's language (tDiamondLabel). Was
+// English only, so every certification badge said DOUBLE DIAMOND / GOLD
+// whatever the language (translated 2026-10-18).
 function diamondMultiLabel(n) {
-  if (n === 1) return { icon: '💎', label: 'Diamond' };
-  if (n === 2) return { icon: '💎💎', label: 'Double Diamond' };
-  if (n === 3) return { icon: '💎💎💎', label: 'Triple Diamond' };
-  return { icon: '💎', label: `${n}× Diamond` };
+  const icon = n === 2 ? '💎💎' : n === 3 ? '💎💎💎' : '💎';
+  return { icon, label: tDiamondLabel(n) };
+}
+// Gold / Platinum in the reader's language; tier is 'gold', 'plat' or 'platinum'
+function tTierLabel(tier) {
+  return t(tier === 'gold' ? 'cert_gold' : 'cert_plat');
 }
 function tDiamondLabel(mult) {
   if (mult === 1) return t('cert_diamond');
@@ -20313,10 +20318,10 @@ function certBadge(plays, type) {
     const n = Math.floor(plays / certTiers.diamond);
     const { icon, label } = diamondMultiLabel(n);
     const short = n <= 2 ? '💎'.repeat(n) : `${n}×💎`;
-    return `<span class="cert cert-diamond" title="${esc(label)}"><span class="cert-icon">${icon}</span><span class="cert-label">${label.toUpperCase()}</span><span class="cert-short">${short}</span></span>`;
+    return `<span class="cert cert-diamond" title="${esc(label)}"><span class="cert-icon">${icon}</span><span class="cert-label">${esc(label.toLocaleUpperCase())}</span><span class="cert-short">${short}</span></span>`;
   }
-  if (plays >= certTiers.plat) return `<span class="cert cert-plat"><span class="cert-icon">💿</span>PLATINUM</span>`;
-  if (plays >= certTiers.gold) return `<span class="cert cert-gold"><span class="cert-icon">🪙</span>GOLD</span>`;
+  if (plays >= certTiers.plat) return `<span class="cert cert-plat"><span class="cert-icon">💿</span>${esc(tTierLabel('plat').toLocaleUpperCase())}</span>`;
+  if (plays >= certTiers.gold) return `<span class="cert cert-gold"><span class="cert-icon">🪙</span>${esc(tTierLabel('gold').toLocaleUpperCase())}</span>`;
   return '';
 }
 
@@ -25066,14 +25071,14 @@ function openAlbumModal(albumKey) {
   if (totalPlays >= CERT.album.gold) {
     const mult = totalPlays >= CERT.album.diamond ? Math.floor(totalPlays / CERT.album.diamond) : 0;
     const tier = mult > 0 ? 'diamond' : totalPlays >= CERT.album.plat ? 'plat' : 'gold';
-    const { icon: dIcon, label: dLabel } = mult > 0 ? diamondMultiLabel(mult) : { icon: tier === 'plat' ? '💿' : '🪙', label: tier === 'plat' ? 'Platinum' : 'Gold' };
+    const { icon: dIcon, label: dLabel } = mult > 0 ? diamondMultiLabel(mult) : { icon: tier === 'plat' ? '💿' : '🪙', label: tTierLabel(tier) };
     plaqueItems.push({ icon: dIcon, label: dLabel, tier, mult, plays: mult > 0 ? mult * CERT.album.diamond : (tier === 'plat' ? CERT.album.plat : CERT.album.gold), type: 'Album' });
   }
   for (const s of allTracksSorted) {
     if (s.count >= CERT.song.gold) {
       const mult = s.count >= CERT.song.diamond ? Math.floor(s.count / CERT.song.diamond) : 0;
       const tier = mult > 0 ? 'diamond' : s.count >= CERT.song.plat ? 'plat' : 'gold';
-      const { icon: dIcon, label: dLabel } = mult > 0 ? diamondMultiLabel(mult) : { icon: tier === 'plat' ? '💿' : '🪙', label: tier === 'plat' ? 'Platinum' : 'Gold' };
+      const { icon: dIcon, label: dLabel } = mult > 0 ? diamondMultiLabel(mult) : { icon: tier === 'plat' ? '💿' : '🪙', label: tTierLabel(tier) };
       // A song plaque is always credited to whoever sang it, never to the
       // album's credit — on a compilation those are different people, and the
       // singer is the one who earned it.
@@ -27480,7 +27485,7 @@ const CWALL_TYPE_LABEL = { song: 'song', album: 'album' };
    No emoji: they render differently on every OS, and the plaque now says the
    tier in the tier's own colour, which the emoji was only standing in for. */
 function cwallTierName(item) {
-  if (item.tier !== 'diamond') return CWALL_TIER_LABEL[item.tier] || esc(item.tier || '');
+  if (item.tier !== 'diamond') return CWALL_TIER_LABEL[item.tier] ? esc(tTierLabel(item.tier)) : esc(item.tier || '');
   return esc(diamondMultiLabel(Math.max(1, item.mult || 1)).label);
 }
 
@@ -40860,7 +40865,7 @@ function _awardsArtistExtras(item) {
 
   // ── Plaques earned in the window ──
   const tierIcon = { gold: '🪙', platinum: '💿', diamond: '💎' };
-  const tierName = c => c.tier === 'diamond' ? tDiamondLabel(c.mult) : c.tier === 'platinum' ? 'Platinum' : 'Gold';
+  const tierName = c => c.tier === 'diamond' ? tDiamondLabel(c.mult) : tTierLabel(c.tier);
   const certHtml = section(`Certifications <span class="aw-pst-sec-count">${pl(certsAll, 'plaque', 'plaques')} all time</span>`,
     certs.length
       ? `<div class="aw-pst-plaques">${certs.slice().sort((a, b) => a.date - b.date).map(c => `
