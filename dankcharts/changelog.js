@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 180;
+const DC_CL_I18N_V = 181;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-18', t: 'change', a: 'charts', h: '3e1e84d',
+    title: "Resizable Rank and Move columns",
+    detail: "On the Daily, Weekly, Monthly and Yearly charts you can now drag the edge of the Rank and Move columns too, not just the text columns. Making them narrower gives the space to the title, so the buttons at the end of each row stay in view. Double-click a line, or use ⋮ → Size → Reset column widths, to go back." },
 
   { d: '2026-10-18', t: 'change', a: 'charts', h: '5a9e83c',
     title: "Tidier details panel",

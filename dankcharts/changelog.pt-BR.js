@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Resizable Rank and Move columns":
+    ["Colunas Posição e Movimento ajustáveis",
+     "Nas paradas diária, semanal, mensal e anual agora você também pode arrastar a borda das colunas Posição e Movimento, não só das colunas de texto. Ao deixá-las mais estreitas, o espaço vai para o título e os botões no fim de cada linha continuam à vista. Clique duas vezes numa linha, ou use ⋮ → Tamanho → Redefinir largura das colunas, para voltar."],
+
   "Tidier details panel":
     ["Painel de detalhes mais organizado",
      "Os botões no topo dos detalhes de uma entrada (prévia, vídeo, playlist, YouTube, detalhes) agora são uma pequena barra com rótulos curtos, ao lado do álbum e do artista, em vez de duas fileiras de botões grandes; passe o mouse num botão para ver o nome completo. No celular ficam numa única fileira. Os blocos de dados da trajetória estão mais largos e fáceis de ler."],

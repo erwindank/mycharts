@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Resizable Rank and Move columns":
+    ["Columnas Puesto y Cambio ajustables",
+     "En las listas diaria, semanal, mensual y anual ahora también puedes arrastrar el borde de las columnas Puesto y Cambio, no solo las columnas de texto. Al hacerlas más estrechas, el espacio pasa al título y los botones al final de cada fila siguen a la vista. Haz doble clic en una línea, o usa ⋮ → Tamaño → Restablecer anchos de columna, para volver."],
+
   "Tidier details panel":
     ["Panel de detalles más ordenado",
      "Los botones de arriba en los detalles de una entrada (fragmento, vídeo, lista, YouTube, detalles) son ahora una pequeña barra con etiquetas cortas, junto al álbum y el artista, en lugar de dos filas de botones grandes; pasa el ratón por un botón para ver su nombre completo. En el móvil quedan en una sola fila. Las casillas de datos del recorrido son más anchas y fáciles de leer, y ahora dice \"Reproducciones\" completo."],
