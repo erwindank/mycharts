@@ -4605,7 +4605,7 @@ const TRANSLATIONS = {
     cl_area_records: 'Récords',
     cl_area_awards: 'Premios',
     cl_area_events: 'Eventos',
-    cl_area_soundtrack: 'Tu Soundtrack',
+    cl_area_soundtrack: 'Tu Banda Sonora',
     cl_area_playlists: 'Listas de reproducción',
     cl_area_player: 'Reproductor',
     cl_area_graphs: 'Gráficas',
@@ -4884,7 +4884,7 @@ const TRANSLATIONS = {
     // Main tabs (phase 5 step 2)
     tab_charts: 'Charts',
     tab_stats: 'Estadísticas',
-    tab_soundtrack: 'Soundtrack',
+    tab_soundtrack: 'Banda Sonora',
     tab_main_nav: 'Principal',
     tooltip_jump_to_week: 'Saltar a semana',
     tooltip_jump_to_month: 'Saltar a mes',
@@ -5095,7 +5095,7 @@ const TRANSLATIONS = {
     modal_rules_open_btn: '⚙ Reglas de autocorrección',
 
     // ── YOUR SOUNDTRACK ──────────────────────────────────────────────────────────
-    nav_soundtrack: 'Tu Soundtrack',
+    nav_soundtrack: 'Tu Banda Sonora',
     st_period_year: 'Año',
     st_period_month: 'Mes',
     st_period_alltime: 'Histórico',
@@ -5196,7 +5196,7 @@ const TRANSLATIONS = {
     st_replay_speed_title: 'Velocidad de reproducción',
     st_replay_pause_title: 'Pausar / reanudar',
     st_replay_scrub_label: 'Navegar por el historial de charts',
-    st_card_title: 'Comparte Tu Soundtrack',
+    st_card_title: 'Comparte Tu Banda Sonora',
     st_card_open: '📷 Crear imagen para compartir',
     st_card_hint: 'Cinco diseños, ocho paletas y tres tamaños — elige uno y descárgalo o cópialo.',
     st_card_opt_stats: 'Cifras',
