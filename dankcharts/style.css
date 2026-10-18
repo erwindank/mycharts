@@ -38807,11 +38807,16 @@ body.navy-light .sk-t-eternal, body.purple-light .sk-t-eternal, body.yellow-ligh
 /* Badges */
 /* Group headings (One long streak, Side by side, ...): small caps label with
    the group's earned count, the grid of cards below */
+/* The heading is a button: click to fold the group's cards away */
 .sk-bgrp-h {
-  display: flex; align-items: baseline; gap: 0.4rem; margin: 0.55rem 0 0.35rem;
+  display: flex; align-items: baseline; gap: 0.4rem; width: 100%; margin: 0.55rem 0 0.35rem; padding: 0.15rem 0;
+  background: none; border: 0; border-radius: var(--r-sm); cursor: pointer; text-align: left; font-family: inherit;
   font-size: var(--fs-xs); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text2);
 }
-.sk-bgrp-h:first-child { margin-top: 0.2rem; }
+.sk-bgrp-h:hover { color: var(--text); }
+.sk-bgrp-h:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.sk-bgrp:first-child .sk-bgrp-h { margin-top: 0.2rem; }
+.sk-bgrp--collapsed .sk-badges { display: none; }
 .sk-bgrp-n { font-family: var(--font-mono); font-weight: 500; letter-spacing: 0; color: var(--text3); }
 .sk-badges { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.5rem; padding: 0.2rem 0 0.6rem; }
 .sk-badge {

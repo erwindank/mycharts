@@ -34460,10 +34460,15 @@ function openStreakModal(opts) {
       `</div>`;
     // One small heading per group, with how many of its badges are earned
     const groups = [...new Set(SK_BADGES.map(b => b.g))];
+    // Each group folds away on its own (heading = button), remembered per
+    // group like the sections (skc-bgrp-<g>, see _skToggleBgrp)
     const cards = groups.map(g => {
       const list = SK_BADGES.filter(b => b.g === g);
-      return `<div class="sk-bgrp-h">${esc(t('sk_bgrp_' + g))} <span class="sk-bgrp-n">${list.filter(b => b.ok).length}/${list.length}</span></div>` +
-        `<div class="sk-badges">${list.map(card).join('')}</div>`;
+      let shut = false;
+      try { shut = localStorage.getItem('skc-bgrp-' + g) === '1'; } catch (e) {}
+      return `<div class="sk-bgrp${shut ? ' sk-bgrp--collapsed' : ''}" data-g="${g}">` +
+        `<button type="button" class="sk-bgrp-h" aria-expanded="${!shut}" onclick="_skToggleBgrp(this)"><span class="sk-chev" aria-hidden="true">${shut ? '▶' : '▼'}</span>${esc(t('sk_bgrp_' + g))} <span class="sk-bgrp-n">${list.filter(b => b.ok).length}/${list.length}</span></button>` +
+        `<div class="sk-badges">${list.map(card).join('')}</div></div>`;
     }).join('');
     return `<div class="streak-section streak-section--badges${collapsed ? ' streak-section--collapsed' : ''}" data-skid="badges">` +
       `<div class="streak-section-title" onclick="_streakToggleSection(this.closest('.streak-section'))"><span class="sk-chev">${collapsed ? '▶' : '▼'}</span> ${esc(t('sk_badges_title'))} <span class="streak-count">(${got}/${SK_BADGES.length})</span></div>` +
@@ -35067,6 +35072,16 @@ function _skFireApply() {
   root.querySelectorAll('.sk-pod-set').forEach(st => { st.hidden = flat || st.dataset.skf !== type; });
   const none = document.getElementById('skFireNone');
   if (none) none.hidden = shown > 0;
+}
+
+// One badge group (One long streak, Side by side, ...) folded or opened
+function _skToggleBgrp(btn) {
+  const grp = btn.closest('.sk-bgrp');
+  const c = grp.classList.toggle('sk-bgrp--collapsed');
+  btn.setAttribute('aria-expanded', String(!c));
+  const chev = btn.querySelector('.sk-chev');
+  if (chev) chev.textContent = c ? '▶' : '▼';
+  try { localStorage.setItem('skc-bgrp-' + grp.dataset.g, c ? '1' : '0'); } catch (e) {}
 }
 
 function _streakToggleSection(sectionEl) {
