@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Resize the chart table's columns":
+    ["Ajusta a largura das colunas do top",
+     "No computador já podes arrastar a linha entre dois cabeçalhos de coluna nas tabelas de Músicas, Artistas e Álbuns para alargar ou estreitar uma coluna, em todos os períodos. A coluna ao lado cede o espaço, por isso a tabela cabe sempre. As tuas larguras ficam guardadas (e acompanham a tua conta noutros dispositivos). Clica duas vezes na linha, ou abre o menu ⋮ do top → Size → Repor largura das colunas, para voltar às larguras automáticas."],
+
   "A cleaner chart table that fits on phones":
     ["Uma tabela do top mais limpa que cabe no telemóvel",
      "A disposição Tabela parece-se mais com um top impresso: as linhas são separadas por um traço fino em vez de cada uma estar numa caixa, as capas estão um pouco maiores e só o #1 tem um destaque suave. As barras de plays estão mais finas mas mantêm as cores, e os nomes longos de álbuns passam para a linha seguinte na sua coluna sem apertar os títulos. A coluna Anterior chama-se agora Variação e continua a mostrar a posição anterior por baixo da seta. No telemóvel a tabela já não sai pela margem direita em nenhuma língua: a coluna de plays mostra só o número, com a variação por baixo."],

@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 166;
+const DC_CL_I18N_V = 167;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-17', t: 'feature', a: 'charts', h: '0681898',
+    title: "Resize the chart table's columns",
+    detail: "On a computer you can now drag the line between two column headers in the Songs, Artists and Albums tables to make a column wider or narrower, on every period. The column next to it gives up the space, so the table always fits. Your widths are saved (and follow your account to other devices). Double-click the line, or open the chart's ⋮ menu → Size → Reset column widths, to go back to the automatic widths." },
 
   { d: '2026-10-17', t: 'feature', a: 'charts', h: '98e03fc',
     title: "A cleaner chart table that fits on phones",

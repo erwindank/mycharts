@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Resize the chart table's columns":
+    ["Ajuste a largura das colunas da parada",
+     "No computador agora dá para arrastar a linha entre dois cabeçalhos de coluna nas tabelas de Músicas, Artistas e Álbuns para deixar uma coluna mais larga ou mais estreita, em todos os períodos. A coluna ao lado cede o espaço, então a tabela sempre cabe. Suas larguras ficam salvas (e acompanham sua conta em outros aparelhos). Clique duas vezes na linha, ou abra o menu ⋮ da parada → Size → Redefinir largura das colunas, para voltar às larguras automáticas."],
+
   "A cleaner chart table that fits on phones":
     ["Uma tabela de parada mais limpa que cabe no celular",
      "O layout Tabela parece mais uma parada impressa: as linhas são separadas por um traço fino em vez de cada uma ficar numa caixa, as capas estão um pouco maiores e só o #1 ganha um destaque suave. As barras de plays estão mais finas mas mantêm as cores, e nomes longos de álbum quebram linha na própria coluna sem apertar os títulos. A coluna Anterior agora se chama Variação e continua mostrando a posição anterior embaixo da seta. No celular a tabela não passa mais da borda direita em nenhum idioma: a coluna de plays mostra só o número, com a variação embaixo."],
