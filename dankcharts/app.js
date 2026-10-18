@@ -419,9 +419,19 @@ const weeklyChartViewMode = {
   albums:  (() => { try { return localStorage.getItem('dc_weekly_chart_view_albums')  || localStorage.getItem('dc_weekly_chart_view') || 'grid'; } catch(e) { return 'grid'; } })(),
 };
 let _stkTwoCol = (() => { try { return localStorage.getItem('dc_stk_2col') === '1'; } catch(e) { return false; } })();
-let _weeklyViewSongs = [], _weeklyViewMax = 1, _weeklyViewPeaks = null, _weeklyViewMonthlyStats = null;
-let _weeklyViewArtists = [], _weeklyViewArtistsMax = 1;
-let _weeklyViewAlbums  = [], _weeklyViewAlbumsMax  = 1;
+/* What the five non-Table layouts draw, per chart type (phase 7 step 6: on
+   every period, not just Weekly). Filled by renderSongs / renderArtists /
+   renderAlbums on Daily, Weekly and Monthly (the whole Top N) and by
+   renderPage on Yearly and All-Time (the page on screen, or every page up to
+   it in Card grid's "Show more"). { items, max, ms, peaks, isAllTime, rankOf,
+   hasMore, animFrom, total } — rankOf gives an entry's 0-based rank on the
+   full chart, since a page or a search result doesn't start at #1. */
+// The chart periods that have the six layouts (all of them since phase 7 step 6)
+const _WV_PERIODS = ['day', 'week', 'month', 'year', 'alltime'];
+
+const _wvData = { songs: null, artists: null, albums: null };
+// Card grid's "Show more": how many cards were already on screen, so only the new ones animate
+const _wvAnimFromNext = { songs: 0, artists: 0, albums: 0 };
 let _wvGridLarge = (() => { try { return localStorage.getItem('dc_grid_density') === 'lg'; } catch(e) { return false; } })();
 
 // ─── DISPLAY TOGGLES ──────────────────────────────────────────
@@ -13374,10 +13384,12 @@ function renderAll() {
     ['day', 'week', 'month', 'year', 'alltime'].includes(currentPeriod) ? 'flex' : 'none';
   applyChartTypeView();
   // The layout buttons in the toolbar (#chartLayoutBar) show or hide with the
-  // period inside applyChartTypeView → syncChartLayoutBar, just above.
-  const _isWeek = currentPeriod === 'week';
+  // period inside applyChartTypeView → syncChartLayoutBar, just above. Every
+  // chart period has the six layouts (phase 7 step 6); anywhere else, back to
+  // the table so a later visit doesn't flash the last layout.
+  const _hasLayouts = _WV_PERIODS.includes(currentPeriod);
   ['songs','artists','albums'].forEach(tp => {
-    if (!_isWeek) {
+    if (!_hasLayouts) {
       const alt = document.getElementById('weeklyAltView-' + tp);
       if (alt) { alt.style.display = 'none'; alt.innerHTML = ''; }
       const tbl = document.getElementById(tp + 'Table');
@@ -14536,6 +14548,22 @@ function renderPage(type, peaks) {
     }
     loadImages(imgItems, 'album');
   }
+
+  /* Phase 7 step 6: the other five layouts show the same page (and follow the
+     same search). Card grid shows every page up to this one instead, under a
+     "Show more" button, so the grid just grows; its page bar hides. */
+  const _grid = weeklyChartViewMode[type] === 'grid';
+  const _shown = _grid ? data.slice(0, (page + 1) * PAGE_SIZE) : slice;
+  _wvData[type] = {
+    items: _shown, max, ms, peaks: showPeak ? peaks : null,
+    isAllTime: currentPeriod === 'alltime',
+    rankOf: item => rankOf(item) - 1,
+    hasMore: _grid && _shown.length < data.length,
+    animFrom: _wvAnimFromNext[type] || 0,
+    total: data.length,
+  };
+  _wvAnimFromNext[type] = 0;
+  applyWeeklyChartView(type);
 }
 
 function applySearch(type) {
@@ -17185,10 +17213,7 @@ function renderSongs(plays, peaks, monthlyStats) {
     sorted.forEach((s, i) => { const k = songKey(s); const r = i + 1; peaks.songPeakMap[k] = peaks.songPeakMap[k] ? Math.min(peaks.songPeakMap[k], r) : r; });
   }
   const max = sorted[0]?.count || 1;
-  if (currentPeriod === 'week') {
-    _weeklyViewSongs = sorted; _weeklyViewMax = max;
-    _weeklyViewPeaks = peaks; _weeklyViewMonthlyStats = monthlyStats;
-  }
+  _wvData.songs = { items: sorted, max, ms: monthlyStats, peaks, isAllTime: false };
   const isAllTime = currentPeriod === 'alltime';
   const colCount = monthlyStats ? 8 : 6; // +1 for the trailing chart-run icon column
   const imgItems = [];
@@ -17275,7 +17300,7 @@ function renderSongs(plays, peaks, monthlyStats) {
   }
   const playAllRow = document.getElementById('ytPlayAllRow');
   if (playAllRow) playAllRow.style.display = sorted.length > 0 ? '' : 'none';
-  if (currentPeriod === 'week') applyWeeklyChartView('songs');
+  applyWeeklyChartView('songs');
   // Render Bubbling Under section (weekly only, requires history stats)
   if (currentPeriod === 'week' && monthlyStats) {
     const _buNormSongs = _buPoolSongs.map(s => ({
@@ -17316,7 +17341,7 @@ function renderArtists(plays, peaks, monthlyStats) {
     sorted.forEach(([artist], i) => { const r = i + 1; peaks.artistPeakMap[artist] = peaks.artistPeakMap[artist] ? Math.min(peaks.artistPeakMap[artist], r) : r; });
   }
   const max = sorted[0]?.[1].count || 1;
-  if (currentPeriod === 'week') { _weeklyViewArtists = fullData.artists; _weeklyViewArtistsMax = max; }
+  _wvData.artists = { items: fullData.artists, max, ms: monthlyStats, peaks, isAllTime: false };
   const isAllTime = currentPeriod === 'alltime';
   const colCount = monthlyStats ? 8 : 6; // +1 for the trailing chart-run icon column
   const imgItems = [];
@@ -17395,7 +17420,7 @@ function renderArtists(plays, peaks, monthlyStats) {
     sbodyA.innerHTML = currPairsA.flatMap(p => p).join('');
     loadImages(imgItems, 'artist');
   }
-  if (currentPeriod === 'week') applyWeeklyChartView('artists');
+  applyWeeklyChartView('artists');
   // Render Bubbling Under section (weekly only, requires history stats)
   if (currentPeriod === 'week' && monthlyStats) {
     const _buNormArtists = _buPoolArtists.map(([name, data]) => ({
@@ -17450,7 +17475,7 @@ function renderAlbums(plays, peaks, monthlyStats) {
     sorted.forEach(({ album, artist }, i) => { const ak = album + '|||' + artist; const r = i + 1; peaks.albumPeakMap[ak] = peaks.albumPeakMap[ak] ? Math.min(peaks.albumPeakMap[ak], r) : r; });
   }
   const max = sorted[0]?.count || 1;
-  if (currentPeriod === 'week') { _weeklyViewAlbums = fullData.albums; _weeklyViewAlbumsMax = max; }
+  _wvData.albums = { items: fullData.albums, max, ms: monthlyStats, peaks, isAllTime: false };
   const isAllTime = currentPeriod === 'alltime';
   const colCount = monthlyStats ? 8 : 6; // +1 for the trailing chart-run icon column
   const imgItems = [];
@@ -17537,7 +17562,7 @@ function renderAlbums(plays, peaks, monthlyStats) {
       loadImages(imgItems, 'album');
     }
   }
-  if (currentPeriod === 'week') applyWeeklyChartView('albums');
+  applyWeeklyChartView('albums');
   // Render Bubbling Under section (weekly only, requires history stats)
   if (currentPeriod === 'week' && monthlyStats) {
     const _buNormAlbums = _buPoolAlbums.map(a => ({
@@ -18322,11 +18347,18 @@ function setWeeklyChartView(mode, type) {
   weeklyChartViewMode[type] = mode;
   try { localStorage.setItem('dc_weekly_chart_view_' + type, mode); } catch(e) {}
   if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
+  // Yearly / All-Time: back to the first page, redrawn for the new layout
+  // (renderPage shows its page bar again and calls applyWeeklyChartView)
+  if (isPaginated() && fullData[type]) {
+    pageState[type] = 0;
+    renderPage(type, buildPeaks());
+    return;
+  }
   applyWeeklyChartView(type);
 }
 
 function applyWeeklyChartView(onlyType) {
-  if (currentPeriod !== 'week') return;
+  if (!_WV_PERIODS.includes(currentPeriod)) return;
   const types = onlyType ? [onlyType] : ['songs', 'artists', 'albums'];
   syncChartLayoutBar();
   for (const tp of types) {
@@ -18336,7 +18368,9 @@ function applyWeeklyChartView(onlyType) {
     const altView = document.getElementById('weeklyAltView-' + tp);
     const pgNav = document.getElementById(tp + 'Pagination');
     if (tbl) tbl.style.display = isAlt ? 'none' : '';
-    if (pgNav) pgNav.style.display = 'none';
+    // Yearly / All-Time keep the page bar renderPage set up, except in Card
+    // grid, which pages with "Show more"; the other periods have no pages
+    if (pgNav && (!isPaginated() || mode === 'grid')) pgNav.style.display = 'none';
     if (altView) {
       altView.style.display = isAlt ? 'block' : 'none';
       if (isAlt) renderWeeklyAltView(tp);
@@ -18346,12 +18380,12 @@ function applyWeeklyChartView(onlyType) {
 
 /* The toolbar's layout buttons (phase 7 step 5). One row for whichever chart
    is on screen (chartTypeView), so switching Songs / Artists / Albums lights
-   that chart's own saved layout. Only on Weekly until step 6 brings the other
-   layouts to every period. The two-column button only makes sense on Stack. */
+   that chart's own saved layout. On every chart period since step 6. The
+   two-column button only makes sense on Stack. */
 function syncChartLayoutBar() {
   const bar = document.getElementById('chartLayoutBar');
   if (!bar) return;
-  bar.style.display = currentPeriod === 'week' ? '' : 'none';
+  bar.style.display = _WV_PERIODS.includes(currentPeriod) ? '' : 'none';
   const mode = weeklyChartViewMode[chartTypeView] || 'table';
   bar.querySelectorAll('.chart-layout-btn[data-view]').forEach(b => {
     const on = b.dataset.view === mode;
@@ -18490,15 +18524,26 @@ function _wvOpenModal(type, key) {
 function renderWeeklyAltView(type) {
   type = type || 'songs';
   const container = document.getElementById('weeklyAltView-' + type);
-  const items  = type === 'songs' ? _weeklyViewSongs : type === 'artists' ? _weeklyViewArtists : _weeklyViewAlbums;
-  const maxVal = type === 'songs' ? _weeklyViewMax   : type === 'artists' ? _weeklyViewArtistsMax : _weeklyViewAlbumsMax;
-  if (!container || !items.length) return;
-  const ms = _weeklyViewMonthlyStats;
+  const d = _wvData[type];
+  if (!container) return;
+  // Nothing to draw: say so rather than leave the last period's entries up
+  if (!d || !d.items.length) {
+    const msg = isPaginated() && searchState[type] ? t('empty_no_results') : t('empty_no_plays');
+    container.innerHTML = `<div class="empty-state"><p>${msg}</p></div>`;
+    return;
+  }
+  const items = d.items, maxVal = d.max, ms = d.ms;
   const imgItems = [];
   const renderers = { grid: _wvGrid, compact: _wvCompact, mosaic: _wvMosaic, filmstrip: _wvFilmstrip, stack: _wvStack };
   const mode = weeklyChartViewMode[type];
   const fn = renderers[mode];
-  container.innerHTML = fn ? fn(items, maxVal, ms, imgItems, type) : '';
+  _wvCur = d;   // read by _wvItem / _wvIdx while this layout is built
+  container.innerHTML = (fn ? fn(items, maxVal, ms, imgItems, type) : '') +
+    // Card grid on Yearly / All-Time: the next 100 under the grid
+    (mode === 'grid' && d.hasMore
+      ? `<div class="wv-more"><button class="wv-more-btn" onclick="wvShowMore('${type}')">${t('wv_show_more')}</button><span class="wv-more-count">${t('wv_showing', { n: items.length.toLocaleString(), total: d.total.toLocaleString() })}</span></div>`
+      : '');
+  _wvCur = null;
   if (mode === 'filmstrip') initFilmstripInteractions(type);
   if (mode === 'stack') initStkInteractions(type);
   if (imgItems.length) {
@@ -18507,13 +18552,40 @@ function renderWeeklyAltView(type) {
   }
 }
 
+// The chart being drawn by renderWeeklyAltView (its _wvData entry)
+let _wvCur = null;
+
+// An entry's 0-based rank on the full chart. On Daily / Weekly / Monthly the
+// layout gets the whole Top N, so that is just its place in the list (j); on
+// a Yearly / All-Time page or search result it comes from renderPage.
+function _wvIdx(item, j) {
+  return _wvCur && _wvCur.rankOf ? _wvCur.rankOf(item) : j;
+}
+
+// "12 weeks" / "12 days" / "12 months" / "12 years": time on the chart, in
+// the period being looked at
+function _wvRunText(n) {
+  const unit = currentPeriod === 'day' ? 'days' : currentPeriod === 'month' ? 'months'
+             : currentPeriod === 'year' ? 'years' : 'weeks_full';
+  return n + ' ' + tUnit(unit, n);
+}
+
+// Card grid on Yearly / All-Time: add the next page under the grid
+function wvShowMore(type) {
+  _wvAnimFromNext[type] = (_wvData[type] && _wvData[type].items.length) || 0;
+  pageState[type]++;
+  renderPage(type, buildPeaks());
+}
+
 // The five non-Table layouts reach the builder through here: it picks the
 // artwork id, queues the artwork, and hands back the builder's facts plus the
 // two names those layouts were written against (k = key, mv = movement chip).
+// `i` is the entry's rank index (_wvIdx), so the ids stay unique across pages.
 function _wvItem(type, item, i, ms, imgItems, imgPrefix) {
   const _typePrefix = { songs: 'so', artists: 'ar', albums: 'al' };
   const imgId = (imgPrefix || 'wv-' + (_typePrefix[type] || type[0]) + 'img') + '-' + i;
-  const f = _chartItem(type, item, i, { ms, peaks: _weeklyViewPeaks, isAllTime: false, imgId });
+  const cur = _wvCur || {};
+  const f = _chartItem(type, item, i, { ms, peaks: cur.peaks || null, isAllTime: !!cur.isAllTime, imgId });
   if (type === 'artists')     imgItems.push({ imgId, name: item.name, artist: item.name, prefKey: f.prefKey });
   else if (type === 'albums') imgItems.push({ imgId, album: item.album, artist: item.artist, name: item.album, prefKey: f.prefKey });
   else                        imgItems.push({ imgId, title: item.title, artist: item.artist, album: item.album, prefKey: f.prefKey });
@@ -18523,13 +18595,16 @@ function _wvItem(type, item, i, ms, imgItems, imgPrefix) {
 function _wvGrid(items, max, ms, imgItems, type) {
   type = type || 'songs';
   // First pass: build all item data so we can compute drama scores for animation order
-  const itemData = items.map((s, i) => {
-    return { ..._wvItem(type, s, i, ms, imgItems), s, i };
+  const itemData = items.map((s, j) => {
+    const i = _wvIdx(s, j);
+    return { ..._wvItem(type, s, i, ms, imgItems), s, i, j };
   });
-  // Biggest movers (NEW/RE/large ▲) animate first; drops last
+  // Biggest movers (NEW/RE/large ▲) animate first; drops last. After "Show
+  // more" only the new cards animate (animFrom = cards already on screen).
+  const animFrom = (_wvCur && _wvCur.animFrom) || 0;
   const drama = itemData.map(({ move, moveDiff }) =>
     move === 'new' || move === 're' ? 9999 : Math.abs(moveDiff));
-  const order = [...itemData.keys()].sort((a, b) => drama[b] - drama[a]);
+  const order = [...itemData.keys()].filter(j => j >= animFrom).sort((a, b) => drama[b] - drama[a]);
   const animDelay = new Array(itemData.length);
   order.forEach((origIdx, pos) => { animDelay[origIdx] = pos * 45; });
   const toolbar = `<div class="wv-grid-toolbar"><button class="wv-grid-density-btn${_wvGridLarge ? ' active' : ''}" onclick="toggleGridDensity()" title="Toggle card size">⊞ ${_wvGridLarge ? 'Compact' : 'Large'}</button></div>`;
@@ -18550,7 +18625,8 @@ function _wvGrid(items, max, ms, imgItems, type) {
     // which spends the site's shared search allowance); ▶ plays a sample,
     // ⋮ / right-click open the action menu (_eaAttrs).
     const clickAttr = ` onclick="_drEntryClick(event,this)" tabindex="0"`;
-    return `<div class="wv-card wv-grid-card wv-gc-anim${i < 3 ? ' wv-r' + (i+1) : ''}${mvClass}" style="animation-delay:${animDelay[i]}ms"${clickAttr}${ea}>` +
+    const anim = f.j >= animFrom ? ` wv-gc-anim" style="animation-delay:${animDelay[f.j]}ms` : '';
+    return `<div class="wv-card wv-grid-card${anim}${i < 3 ? ' wv-r' + (i+1) : ''}${mvClass}"${clickAttr}${ea}>` +
       `<div class="wv-card-art ea-cover"><div class="wv-thumb wv-thumb-lg">${_wvThumb(imgId, ttl)}</div>` +
       `<span class="wv-rank-badge">${i+1}</span>` +
       (cert ? `<span class="wv-gc-cert">${cert}</span>` : '') +
@@ -19226,7 +19302,8 @@ function _wvCompact(items, max, ms, imgItems, type) {
     `<span class="wv-cx-hd-plays">Plays</span>` +
     `</div>`;
 
-  const rows = items.map((s, i) => {
+  const rows = items.map((s, j) => {
+    const i = _wvIdx(s, j);   // rank index on the full chart (step 6: pages)
     const f = _wvItem(type, s, i, ms, imgItems);
     const { k, imgId, ea, mv, prefKey, ttl, sub } = f;
     // Every switchable badge, for every type (phase 7 step 4: the Show switches decide)
@@ -19252,8 +19329,8 @@ function _wvCompact(items, max, ms, imgItems, type) {
     // tapping the cover plays the sample (_eaAttrs)
     const cxPlBtn = dcPlBtnForWv(type, ttl, sub, album, 'dc-pl-add-sm');
 
-    // Feature 2: weeks-on-chart column (spelled out)
-    const weeksText = weeks ? (weeks === 1 ? '1 Week' : `${weeks} Weeks`) : '';
+    // Feature 2: time-on-chart column, spelled out in the period's own unit
+    const weeksText = weeks ? _wvRunText(weeks) : '';
 
     // Previous column: movement arrow + previous rank, like the table view
     const prevContent = f.prevRank ? `${f.mvHtml}<div class="wv-cx-prev-rank">#${f.prevRank}</div>` : f.mvHtml;
@@ -19329,7 +19406,8 @@ function _wvMosaic(items, max, ms, imgItems, type) {
   const H = Math.min(2800, 480 + items.length * 22);
   const vals = items.map(s => Math.sqrt(s.count));
   const rects = _computeTreemap(vals, W, H);
-  return `<div class="wv-mosaic" style="height:${H}px">${items.map((s, i) => {
+  return `<div class="wv-mosaic" style="height:${H}px">${items.map((s, j) => {
+    const i = _wvIdx(s, j);   // rank index on the full chart; j = tile slot
     const f = _wvItem(type, s, i, ms, imgItems);
     const { k, imgId, ea, mv, prefKey } = f;
     const backImgId = imgId + 'b';
@@ -19337,7 +19415,7 @@ function _wvMosaic(items, max, ms, imgItems, type) {
     else if (type === 'albums') imgItems.push({ imgId: backImgId, album: s.album, artist: s.artist, name: s.album, prefKey });
     else imgItems.push({ imgId: backImgId, title: s.title, artist: s.artist, album: s.album, prefKey });
     const { ttl, sub } = _wvDisp(type, s);
-    const [rx, ry, rw, rh] = rects[i];
+    const [rx, ry, rw, rh] = rects[j];
     const st = `left:${(rx/W*100).toFixed(2)}%;top:${(ry/H*100).toFixed(2)}%;width:${(rw/W*100).toFixed(2)}%;height:${(rh/H*100).toFixed(2)}%;--bar-w:${Math.round(s.count/max*100)}%`;
     const rc = i < 3 ? ` wv-r${i+1}` : '';
     const pk = f.peak;
@@ -19363,7 +19441,7 @@ function _wvMosaic(items, max, ms, imgItems, type) {
             <div class="wv-mos-hcard-art">${esc(sub)}</div>
             <div class="wv-mos-hcard-stats">
               ${pk ? peakBadge(pk) : ''}
-              ${wks ? `<span class="wv-mos-hcard-wks">${wks} ${tUnit('weeks_full', wks)}</span>` : ''}
+              ${wks ? `<span class="wv-mos-hcard-wks">${_wvRunText(wks)}</span>` : ''}
               ${f.isPlaysPeak ? playsPeakBadge() : ''}
             </div>
             ${cumPlays ? `<div class="wv-mos-hcard-alltime">${cumPlays.toLocaleString()} ${tUnit('plays', cumPlays)} · ${t('nav_alltime')}${cert}</div>` : ''}
@@ -19383,7 +19461,7 @@ function _wvMosaic(items, max, ms, imgItems, type) {
           <div class="wv-mos-back-plays">${s.count}<span class="wv-mos-back-plays-unit"> ${tUnit('plays', s.count)}</span></div>
           <div class="wv-mos-back-stats">
             ${pk ? peakBadge(pk) : ''}
-            ${wks ? `<span class="wv-mos-hcard-wks">${wks} ${tUnit('weeks_full', wks)}</span>` : ''}
+            ${wks ? `<span class="wv-mos-hcard-wks">${_wvRunText(wks)}</span>` : ''}
             ${f.isPlaysPeak ? playsPeakBadge() : ''}
           </div>
           ${cumPlays ? `<div class="wv-mos-hcard-alltime">${cumPlays.toLocaleString()} ${tUnit('plays', cumPlays)} · ${t('nav_alltime')}${cert}</div>` : ''}
@@ -19431,7 +19509,8 @@ function _wvFilmstrip(items, max, ms, imgItems, type) {
   const decades = [];
   for (let d = 0; d < items.length; d += 10) decades.push(d);
 
-  const cards = items.map((s, i) => {
+  const cards = items.map((s, j) => {
+    const i = _wvIdx(s, j);   // rank index on the full chart; j = card slot
     const f = _wvItem(type, s, i, ms, imgItems);
     const { k, imgId, ea, mv, ttl, sub, barCls } = f;
     const barW = Math.round(s.count / max * 100);
@@ -19446,7 +19525,7 @@ function _wvFilmstrip(items, max, ms, imgItems, type) {
     const thumbCls = i < 3 ? 'wv-thumb-xl' : 'wv-thumb-lg';
     // Phase 7: ▶ sample + ⋮ menu next to the plays; on touch, tapping the
     // cover plays the sample (_eaAttrs)
-    return `<div class="wv-card wv-film-card${rc}" tabindex="0" data-idx="${i}" onclick="_drEntryClick(event,this)"${ea}>
+    return `<div class="wv-card wv-film-card${rc}" tabindex="0" data-idx="${j}" onclick="_drEntryClick(event,this)"${ea}>
       <div class="wv-film-rank-row">
         <span class="wv-film-ranknum">${i+1}</span>
         ${mv ? `<span class="wv-film-mv">${mv}</span>` : ''}
@@ -19464,7 +19543,7 @@ function _wvFilmstrip(items, max, ms, imgItems, type) {
   }).join('');
 
   const jumpBtns = decades.map(d =>
-    `<button class="wv-film-jump-btn" onclick="wvFilmJump(${d},'${type}')">#${d+1}</button>`
+    `<button class="wv-film-jump-btn" onclick="wvFilmJump(${d},'${type}')">#${_wvIdx(items[d], d) + 1}</button>`
   ).join('');
 
   return `<div class="wv-film-wrap">
@@ -19665,14 +19744,15 @@ function initFilmstripInteractions(type) {
 
 function _wvStack(items, max, ms, imgItems, type) {
   type = type || 'songs';
-  return `<div class="wv-stack${_stkTwoCol ? ' wv-stack-2col' : ''}">${items.map((s, i) => {
+  return `<div class="wv-stack${_stkTwoCol ? ' wv-stack-2col' : ''}">${items.map((s, j) => {
+    const i = _wvIdx(s, j);   // rank index on the full chart (step 6: pages)
     const f = _wvItem(type, s, i, ms, imgItems);
     const { k, imgId, ea, mv, ttl, sub, barCls } = f;
     // Every switchable badge, for every type (phase 7 step 4: the Show switches decide)
     const pk = f.peak;
     const cumSongPlays = type === 'songs' ? f.cumPlays : 0;
     const weeks = ms ? (f.weeks || 1) : null;
-    const weeksText = weeks ? `<span class="wv-wks">${weeks} ${weeks === 1 ? 'week' : 'weeks'}</span>` : '';
+    const weeksText = weeks ? `<span class="wv-wks">${_wvRunText(weeks)}</span>` : '';
     const barW = Math.round(s.count / max * 100);
 
     // Movement direction for bar color and debut/re border

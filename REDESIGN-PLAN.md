@@ -1535,6 +1535,31 @@ animation, 12 screen check.
   with real clicks on desktop and phone: each layout, type switching, Stack
   two columns, Monthly hides the row, ⋮ has three tabs, pt-BR tooltips,
   Navy light and Yellow dark, no JS errors.
+- **Step 6 ✓ (2026-10-17): every layout on every period, with paging.**
+  Daily too (your call; the plan only named Monthly, Yearly and All-Time).
+  One data slot per chart, `_wvData[type]` (replacing the Weekly-only
+  `_weeklyView*` globals): renderSongs / renderArtists / renderAlbums fill it
+  on Daily, Weekly and Monthly (the whole Top N), and `renderPage` fills it
+  on Yearly and All-Time with the page on screen, so the five other layouts
+  follow the same page bar and the same search box as the Table. Ranks come
+  from the full chart (`rankOf` → `_wvIdx`), so page 2 starts at #101 and a
+  search result keeps its real rank; each renderer now keeps `i` = rank and
+  `j` = place in the list (Mosaic's tile slots, Filmstrip's jump buttons
+  and card index, Card grid's animation order use `j`). **Card grid pages
+  with "Show more"** (`wvShowMore`, 4 langs): the next 100 cards load under
+  the grid with "Showing 200 of 18,012", only the new cards animate, and its
+  page bar hides. **Mosaic keeps the page bar** rather than "Show more" as
+  4.9b suggested: a treemap re-lays out every tile when tiles are added, so
+  the cards you were looking at would jump. Switching layout on Yearly /
+  All-Time goes back to page 1. Time on chart in Compact, Stack and Mosaic
+  now uses the period's unit (days / weeks / months / years, `_wvRunText`)
+  instead of always "weeks"; Compact's and Stack's were English-only and now
+  use the translations. An empty period or a search with no hits says so
+  instead of leaving the last entries up. Checked in the browser: six
+  layouts × Songs / Artists / Albums × all five periods, page 2 ranks in
+  Compact and Stack, Show more (100 → 200, #101 after #100), search in
+  Filmstrip (ranks kept, "No results"), the details panel from a Yearly
+  Compact row, no JS errors.
 
 The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in
