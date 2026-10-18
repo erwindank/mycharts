@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 184;
+const DC_CL_I18N_V = 185;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-18', t: 'feature', a: 'records', h: '4670b1f',
+    title: "22 more streak badges",
+    detail: "Daily Streaks → Records now has 52 badges. New ones include 200-day, two-year and 1,000-day streaks, 25 long streaks on the same day, 100 different songs or 25 different albums with a two-week streak, a streak kept going for two years, streaks that come back a third time or after three years away, an artist with three albums on long streaks, and a new Calendar group starting with a streak still going on New Year's Eve. Within each group the badges now go from easiest to hardest." },
 
   { d: '2026-10-18', t: 'feature', a: 'records', h: 'a918c94',
     title: "18 new streak badges",

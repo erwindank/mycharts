@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "22 more streak badges":
+    ["22 insignias de rachas más",
+     "Rachas Diarias → Récords tiene ahora 52 insignias. Entre las nuevas: rachas de 200 días, dos años y 1000 días, 25 rachas largas el mismo día, 100 canciones distintas o 25 álbumes distintos con una racha de dos semanas, una racha que se mantiene dos años, rachas que vuelven por tercera vez o tras tres años, un artista con tres álbumes en rachas largas, y un nuevo grupo Calendario que empieza con una racha todavía activa en Nochevieja. Dentro de cada grupo las insignias van ahora de la más fácil a la más difícil."],
+
   "18 new streak badges":
     ["18 insignias nuevas de rachas",
      "Las insignias en Rachas Diarias → Récords pasan de 12 a 30, y la mayoría de las nuevas piden más que un solo artista en una racha larga: varias rachas de 30 días el mismo día, muchos artistas, álbumes y canciones distintos con rachas largas, mantener una racha de 30 días durante 100 días o un año entero, rachas que vuelven, y un artista o álbum en racha junto con sus canciones. Las insignias ahora están en seis grupos, cada uno con cuántas tienes."],

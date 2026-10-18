@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "22 more streak badges":
+    ["Mais 22 conquistas de sequências",
+     "Sequências Diárias → Recordes tem agora 52 conquistas. Entre as novas: sequências de 200 dias, dois anos e 1.000 dias, 25 sequências longas no mesmo dia, 100 músicas diferentes ou 25 álbuns diferentes com uma sequência de duas semanas, uma sequência mantida durante dois anos, sequências que voltam pela terceira vez ou ao fim de três anos, um artista com três álbuns em sequências longas, e um novo grupo Calendário que começa com uma sequência ainda ativa na passagem de ano. Dentro de cada grupo, as conquistas vão agora da mais fácil à mais difícil."],
+
   "18 new streak badges":
     ["18 novas conquistas de sequências",
      "As conquistas em Sequências Diárias → Recordes passam de 12 para 30, e a maioria das novas pede mais do que um só artista numa sequência longa: várias sequências de 30 dias no mesmo dia, muitos artistas, álbuns e músicas diferentes com sequências longas, manter uma sequência de 30 dias durante 100 dias ou um ano inteiro, sequências que voltam, e um artista ou álbum em sequência juntamente com as suas músicas. As conquistas estão agora em seis grupos, cada um a mostrar quantas tem."],
