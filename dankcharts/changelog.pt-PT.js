@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Fan club badges":
+    ["Conquistas de clube de fãs",
+     "Fã de verdade em Sequências Diárias → Recordes tem agora cargos de clube de fãs. Escolha um artista com quem teve uma sequência de 30 dias: quanto mais músicas suas chegarem a uma sequência de 7 dias, mais sobe, de Clube de fãs passando por Secretário, Tesoureiro, Vice-presidente e Presidente até Fundador. Outro grupo conta de quantos clubes de fãs faz parte, e Coleção completa e Lado B completam as conquistas de álbuns."],
+
   "Fold away badge groups":
     ["Grupos de conquistas recolhíveis",
      "Cada grupo de conquistas em Sequências Diárias → Recordes (Uma sequência longa, Ao mesmo tempo e os outros) pode agora ser recolhido ao clicar no título, para deixar abertos só os que lhe interessam. A janela lembra-se dos grupos que recolheu."],

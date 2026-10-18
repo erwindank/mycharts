@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 190;
+const DC_CL_I18N_V = 191;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-18', t: 'feature', a: 'records', h: '7dd01ed',
+    title: "Fan club badges",
+    detail: "Deep fan in Daily Streaks → Records now has fan club ranks. Pick an artist you've had a 30-day streak with: the more of their songs reach a 7-day streak, the higher you climb, from Fan club through Secretary, Treasurer, Vice president and President to Founder. Another set counts how many artists' fan clubs you're in, and Box set and Side B fill gaps in the album badges." },
 
   { d: '2026-10-18', t: 'change', a: 'records', h: 'a16e85f',
     title: "Fold away badge groups",

@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Fan club badges":
+    ["Insignias del club de fans",
+     "Fan de verdad en Rachas Diarias → Récords tiene ahora rangos de club de fans. Elige un artista con el que hayas tenido una racha de 30 días: cuantas más canciones suyas lleguen a una racha de 7 días, más subes, desde Club de fans pasando por Secretario, Tesorero, Vicepresidente y Presidente hasta Fundador. Otro grupo cuenta de cuántos clubs de fans formas parte, y Caja recopilatoria y Lado B completan las insignias de álbumes."],
+
   "Fold away badge groups":
     ["Grupos de insignias plegables",
      "Cada grupo de insignias en Rachas Diarias → Récords (Una racha larga, A la vez y los demás) se puede plegar ahora haciendo clic en su título, para dejar abiertos solo los que te interesan. La ventana recuerda qué grupos plegaste."],
