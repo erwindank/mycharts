@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Bubbling Under run panel redesigned":
+    ["Nuevo diseño del recorrido en Aspirantes",
+     "El panel de historial de cada entrada de Aspirantes ahora se parece al recorrido del ranking principal: casillas claras con la etiqueta arriba, el pico como BU1 con su posición total debajo y un interruptor simple entre las semanas en Aspirantes y una vista mezclada con el ranking. Todo el panel, incluidas las fechas de las casillas, ya está traducido."],
+
   "Chart History replay: step week by week":
     ["Repetición del Historial de Charts: semana a semana",
      "La repetición del Historial de Charts en Tu Banda Sonora tiene botones ‹ y › junto a reproducir/pausar, para ir una semana atrás o adelante. Al usarlos la repetición se pausa y se queda en la semana elegida."],

@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Bubbling Under run panel redesigned":
+    ["Novo visual da trajetória nos Aspirantes",
+     "O painel de histórico de cada entrada dos Aspirantes segue agora o da trajetória no Top: blocos claros com o rótulo em cima, o pico como BU1 com a posição geral por baixo e um interruptor simples entre as semanas nos Aspirantes e uma vista junto com o Top. Tudo no painel, incluindo as datas dos blocos, está agora traduzido."],
+
   "Chart History replay: step week by week":
     ["Replay do Histórico de Charts: semana a semana",
      "O replay do Histórico de Charts em Sua Trilha Sonora tem botões ‹ e › ao lado de reproduzir/pausar, para recuar ou avançar uma semana de cada vez. Ao usá-los o replay pausa e fica na semana escolhida."],

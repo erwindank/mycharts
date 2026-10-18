@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 178;
+const DC_CL_I18N_V = 179;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-18', t: 'change', a: 'charts', h: 'a49c61b',
+    title: "Bubbling Under run panel redesigned",
+    detail: "The history panel under each Bubbling Under entry now looks like the main chart run: clear tiles with the label on top, the peak shown as BU1 with its overall rank underneath, and a simple switch between the Bubbling Under weeks and a view mixed with the chart. Everything in it, the dates on the boxes included, is now translated into Spanish and Portuguese." },
 
   { d: '2026-10-18', t: 'feature', a: 'soundtrack', h: '9c3ed0b',
     title: "Chart History replay: step week by week",
