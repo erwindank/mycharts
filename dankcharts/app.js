@@ -34256,6 +34256,16 @@ function openStreakModal(opts) {
     artAlb30[a] = (artAlb30[a] || 0) + 1;
   }
   const albMost = maxOf(artAlb30);
+  // Fan club: an artist with a 30-day streak, counted by how many of their
+  // songs reached a 7-day streak (the ranks), and how many artists have at
+  // least 3 such songs (in the fan club of N artists)
+  const clubSongs = {};
+  for (const sk in songBest) if (songBest[sk] >= 7) {
+    for (const a of (songArtists[sk] || [])) if (artBest[a] >= 30) clubSongs[a] = (clubSongs[a] || 0) + 1;
+  }
+  const clubMost = maxOf(clubSongs);
+  let clubs = 0;
+  for (const a in clubSongs) if (clubSongs[a] >= 3) clubs++;
 
   // ── All three kinds: an artist, an album and a song ──
   // The shortest of the three records (an artist, an album and a song each
@@ -34400,11 +34410,23 @@ function openStreakModal(opts) {
     { id: 'superfan', g: 'fan', icon: '🙌', ok: fanMost >= 3, prog: fanMost + '/3' },
     { id: 'devoted', g: 'fan', icon: '💘', ok: fanMost >= 5, prog: fanMost + '/5' },
     { id: 'obsessed', g: 'fan', icon: '😍', ok: fanMost >= 10, prog: fanMost + '/10' },
+    { id: 'fanclub', g: 'fan', icon: '🎫', ok: clubMost >= 3, prog: clubMost + '/3' },
+    { id: 'clubsec', g: 'fan', icon: '📝', ok: clubMost >= 8, prog: clubMost + '/8' },
+    { id: 'clubtreas', g: 'fan', icon: '💰', ok: clubMost >= 15, prog: clubMost + '/15' },
+    { id: 'clubvp', g: 'fan', icon: '🥈', ok: clubMost >= 25, prog: clubMost + '/25' },
+    { id: 'clubpres', g: 'fan', icon: '🥇', ok: clubMost >= 40, prog: clubMost + '/40' },
+    { id: 'clubfounder', g: 'fan', icon: '📜', ok: clubMost >= 60, prog: clubMost + '/60' },
+    { id: 'clubhopper', g: 'fan', icon: '🦘', ok: clubs >= 3, prog: clubs + '/3' },
+    { id: 'fandoms', g: 'fan', icon: '🎊', ok: clubs >= 5, prog: clubs + '/5' },
+    { id: 'fandomcoll', g: 'fan', icon: '📇', ok: clubs >= 10, prog: clubs + '/10' },
+    { id: 'universal', g: 'fan', icon: '🪐', ok: clubs >= 25, prog: clubs + '/25' },
     { id: 'deepdive', g: 'fan', icon: '🤿', ok: albMost >= 2, prog: albMost + '/2' },
     { id: 'completist', g: 'fan', icon: '🧩', ok: albMost >= 3, prog: albMost + '/3' },
     { id: 'completeworks', g: 'fan', icon: '🗂️', ok: albMost >= 5, prog: albMost + '/5' },
+    { id: 'boxset', g: 'fan', icon: '🧰', ok: albMost >= 10, prog: albMost + '/10' },
     { id: 'sidea', g: 'fan', icon: '💽', ok: devMost >= 3, prog: devMost + '/3' },
     { id: 'devotee', g: 'fan', icon: '🎧', ok: devMost >= 5, prog: devMost + '/5' },
+    { id: 'sideb', g: 'fan', icon: '💾', ok: devMost >= 7, prog: devMost + '/7' },
     { id: 'fronttoback', g: 'fan', icon: '📀', ok: devMost >= 10, prog: devMost + '/10' },
     { id: 'yearender', g: 'cal', icon: '🎆', ok: yearEnder, prog: '' },
   ];
