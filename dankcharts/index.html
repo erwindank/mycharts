@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=474">
+  <link rel="stylesheet" href="style.css?v=480">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=145"></script>
+  <script defer src="translations.js?v=146"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -581,8 +581,9 @@
       </div>
     </div>
 
-    <!-- Daily tab, above the chart (daily.js, dyRenderTop): the day panel,
-         your day, the compare switch, the actions and the daily #1 line. The
+    <!-- Daily tab, above the chart (daily.js, dyRenderTop): the compare
+         switch, the actions and the daily #1 line (the day panel and Your day
+         are in #dailyDay after the chart). The
          chart itself is the shared #songsSection etc. below, the stat tiles
          are #statsStrip. Shown only while body[data-view="day"]. -->
     <div id="dailyView" class="daily-view"></div>
@@ -1180,6 +1181,11 @@
       </div>
     </div>
     </div><!-- /albumsChartGroup -->
+
+    <!-- Daily tab, right after the chart (daily.js, dyRenderTop): the day
+         panel (today / last 7 days) and Your day (mood + note). Moved here
+         from above the chart 2026-10-18 so the chart comes first. -->
+    <div id="dailyDay" class="daily-view"></div>
 
     <!-- Daily tab, under the chart (daily.js, dyRenderBottom): time of day,
          patterns, memories, milestones & goals. Shown only on Daily
@@ -3733,7 +3739,7 @@
   <script defer src="app.js?v=402"></script>
   <!-- All-Time chart stats ("Inside your Top N"); reads app.js globals, so it loads after it -->
   <script defer src="insights.js?v=8"></script>
-  <script defer src="daily.js?v=20"></script>
+  <script defer src="daily.js?v=26"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at

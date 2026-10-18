@@ -5775,25 +5775,35 @@
       background: linear-gradient(90deg, var(--border2), transparent);
     }
 
+    /* Animate Chart: the same box as the ⋮ button beside it (2026-10-18;
+       it was a faded dashed outline that looked unfinished) */
     .section-replay-btn {
       flex-shrink: 0;
-      padding: 0.15rem 0.55rem;
-      border: 1px dashed var(--border2);
-      background: none;
-      color: var(--text3);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      height: 26px;
+      padding: 0 0.6rem;
+      border: 1px solid var(--border2);
+      border-radius: var(--r-sm);
+      background: var(--bg2);
+      color: var(--text2);
       font-family: var(--font-sans);
       font-size: var(--fs-xs);
+      font-weight: 500;
+      line-height: 1;
+      white-space: nowrap;
       cursor: pointer;
-      border-radius: var(--r-xs);
-      opacity: 0.55;
-      transition: opacity 0.15s, background 0.15s, color 0.15s, border-color 0.15s;
+      transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
     }
     .section-replay-btn:hover {
-      opacity: 1;
-      background: var(--surface);
+      background: var(--bg3);
       color: var(--text);
-      border-style: solid;
       border-color: var(--accent);
+    }
+    .section-replay-btn:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
     }
 
     .section-sub {
@@ -36918,54 +36928,132 @@ body[data-view="day"] .daily-view {
   display: block;
 }
 
+/* Under the Songs / Artists / Albums switch: "Compare with" and its switch,
+   then the actions. Same chrome as that switch and the layout buttons (a
+   --raised tray 3px in, an accent-tinted filled segment); redone 2026-10-18,
+   when they were pills and emoji that matched nothing else on the page. */
 .dy-toolbar {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   justify-content: space-between;
-  gap: var(--sp-2);
+  gap: var(--sp-2) var(--sp-3);
   margin-bottom: var(--sp-3);
 }
 
-/* Two small segmented switches, the same shape as the chart type switch */
-.dy-seg {
-  display: inline-flex;
-  padding: 3px;
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm, 8px);
-  background: var(--bg2);
+.dy-cmp {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
 }
 
-.dy-seg-btn {
-  padding: 4px 12px;
+/* Same small caps as the stat tile labels */
+.dy-cmp-lbl {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text3);
+  white-space: nowrap;
+}
+
+.dy-seg,
+.dy-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 3px;
+  background: var(--raised);
+  border-radius: var(--r-sm);
+}
+
+.dy-seg-btn,
+.dy-act {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: 30px;
+  padding: 0 var(--sp-3);
   border: 0;
-  border-radius: calc(var(--r-sm, 8px) - 3px);
+  border-radius: calc(var(--r-sm) - 2px);
   background: transparent;
   color: var(--text2);
   font-family: var(--font-sans);
-  font-size: var(--fs-sm);
+  font-size: var(--fs-xs);
   font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
   cursor: pointer;
+  transition: background 0.15s, color 0.15s;
 }
 
-.dy-seg-btn:hover {
+.dy-seg-btn:hover,
+.dy-act:hover:not(:disabled) {
   background: var(--hover);
   color: var(--text);
 }
 
 .dy-seg-btn.active {
-  background: var(--raised);
-  color: var(--text);
+  background: color-mix(in srgb, var(--accent) 18%, var(--raised));
+  color: var(--accent);
+  font-weight: 600;
+  box-shadow: var(--shadow-1);
+}
+
+.dy-seg-btn:focus-visible,
+.dy-act:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.dy-act-ic {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+}
+
+.dy-act:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* Day recap: the one to try first, in the accent */
+.dy-act-main {
+  color: var(--accent);
   font-weight: 600;
 }
 
-/* "♛ #1 for 3 days in a row · 5 days at #1 this month" */
+.dy-act-main:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 18%, var(--raised));
+  color: var(--accent);
+}
+
+/* Phones: the actions scroll sideways in their tray instead of wrapping
+   into three rows */
+@media (max-width: 700px) {
+  .dy-actions {
+    flex-wrap: nowrap;
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .dy-actions::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* "♛ #1 for 3 days in a row · 5 days at #1 this month": a gold-tinted chip */
 .dy-no1 {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: var(--sp-2);
   margin: 0 0 var(--sp-3);
+  padding: 5px 12px 5px 10px;
+  border-radius: var(--r-sm);
+  background: color-mix(in srgb, var(--gold1, var(--amber)) 12%, transparent);
   font-size: var(--fs-sm);
-  color: var(--text2);
+  color: var(--text);
 }
 
 .dy-no1-crown {
@@ -37090,26 +37178,273 @@ body[data-view="day"] .daily-view {
    extras: the ring, bar and line styles (.ns-ring, .ns-wk-*, .ns-x-*) are
    the same ones, laid out here as two blocks in one card. */
 .dy-panel {
+  margin: var(--sp-4) 0;
+  padding: var(--sp-4) var(--sp-5, 24px);
+  /* A faint wash of the accent, so the panel reads as the day's summary */
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 7%, var(--bg2)), var(--bg2) 60%);
+  border: 1px solid var(--border-t, var(--border));
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-1);
+}
+
+/* The ring and the bars, side by side */
+.dy-ptop {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin-bottom: var(--sp-4);
-  padding: var(--sp-3) var(--sp-4);
-  background: var(--bg2);
-  border: 1px solid var(--border-t, var(--border));
-  border-radius: var(--r-md);
-  box-shadow: var(--shadow-1);
 }
 
 .dy-pblock {
   display: flex;
   align-items: center;
-  gap: var(--sp-3);
+  gap: var(--sp-4);
   min-width: 0;
 }
 
 .dy-pblock + .dy-pblock {
-  padding-left: var(--sp-4);
+  padding-left: var(--sp-5, 24px);
   border-left: 1px solid var(--border);
+}
+
+/* Bigger ring, bars and lines here than in the smaller cards (2026-10-18) */
+.dy-panel .ns-x-text {
+  gap: 4px;
+}
+
+.dy-panel .ns-x-title {
+  margin-bottom: 2px;
+}
+
+.dy-panel .ns-x-line {
+  line-height: 1.45;
+}
+
+/* The day's and the week's play totals: the biggest thing in the card */
+.dy-panel .dy-pbig b {
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+/* ▲ 12% as a small pill, tinted in its own colour */
+.dy-pct-pill {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: var(--fs-xs);
+  background: color-mix(in srgb, currentColor 14%, transparent);
+}
+
+.dy-pct-pill:not(.is-up):not(.is-down) {
+  color: var(--text2, var(--text3));
+}
+
+.dy-panel .ns-ring {
+  width: 76px;
+  height: 76px;
+}
+
+.dy-panel .ns-ring circle {
+  stroke-width: 4.5;
+}
+
+/* A soft glow on the filled part of the ring */
+.dy-panel .ns-ring-fill {
+  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--accent) 60%, transparent));
+}
+
+.dy-panel .ns-ring.is-full .ns-ring-fill {
+  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--green) 60%, transparent));
+}
+
+.dy-panel .ns-ring text {
+  font-family: var(--font-display);
+  font-size: 12px;
+}
+
+.dy-panel .ns-wk-bars {
+  gap: 5px;
+  height: 76px;
+}
+
+.dy-panel .ns-wk-col {
+  width: 14px;
+}
+
+.dy-panel .ns-wk-col i {
+  border-radius: 4px 4px 2px 2px;
+  transition: background 0.15s ease;
+}
+
+/* The day on screen: its letter in the accent too */
+.dy-panel .ns-wk-col.is-today small {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.dy-panel .ns-wk-col.is-today i {
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+/* The week's average: a dashed line across the bars. The bars' own area is
+   the column minus the 14px day letters (see .ns-wk-col i's max-height). */
+.dy-wk-bars {
+  position: relative;
+}
+
+.dy-wk-avg {
+  position: absolute;
+  left: -3px;
+  right: -3px;
+  bottom: calc(14px + (100% - 14px) * var(--avg) / 100%);
+  border-top: 1px dashed color-mix(in srgb, var(--text) 45%, transparent);
+  pointer-events: none;
+}
+
+/* The tiles: first, last, top artist, on repeat — each with its cover */
+.dy-ptiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--sp-2);
+  margin-top: var(--sp-4);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--border);
+}
+
+.dy-ptile {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+  padding: var(--sp-2);
+  border-radius: var(--r-md);
+  background: color-mix(in srgb, var(--raised) 55%, transparent);
+  transition: background 0.15s ease;
+}
+
+.dy-ptile:hover {
+  background: var(--raised);
+}
+
+.dy-ptile .dy-thumb {
+  width: 44px;
+  height: 44px;
+}
+
+.dy-ptile-text {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.dy-ptile-lbl {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+
+/* The time a song was played, after its label */
+.dy-ptile-when {
+  margin-left: 6px;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.dy-ptile-main,
+.dy-ptile-sub {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dy-ptile-main {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text);
+}
+
+.dy-ptile-sub {
+  font-size: var(--fs-xs);
+  color: var(--text3);
+}
+
+/* On repeat: the songs stacked in one cell, one shown at a time with a fade
+   (dyRepStart / dyRepGo in daily.js); dots in the corner step through them */
+.dy-rep {
+  position: relative;
+  display: grid;
+}
+
+.dy-rep-slide {
+  grid-area: 1 / 1;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(4px);
+  transition: opacity 0.35s ease, transform 0.35s ease, visibility 0s linear 0.35s;
+}
+
+.dy-rep-slide.is-on {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition: opacity 0.35s ease, transform 0.35s ease, visibility 0s;
+}
+
+/* Several songs: the tile is a button to the next one */
+.dy-rep.is-many {
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.dy-rep.is-many:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* The time to the next song, filling along the tile's foot. It waits while
+   the pointer is on the tile, as the rotation does. */
+.dy-rep-bar {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  width: 100%;
+  transform: scaleX(0);
+  transform-origin: left;
+  background: color-mix(in srgb, var(--accent) 70%, transparent);
+}
+
+.dy-rep-bar.is-run {
+  animation: dy-rep-fill var(--dy-rep-ms, 4s) linear forwards;
+}
+
+.dy-rep:hover .dy-rep-bar,
+.dy-rep:focus-within .dy-rep-bar {
+  animation-play-state: paused;
+}
+
+@keyframes dy-rep-fill {
+  to { transform: scaleX(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dy-rep-slide,
+  .dy-rep-slide.is-on {
+    transform: none;
+    transition: none;
+  }
+
+  .dy-rep-bar {
+    display: none;
+  }
 }
 
 /* The bars are buttons here: each goes to its day */
@@ -37126,7 +37461,7 @@ body[data-view="day"] .daily-view {
 }
 
 @media (max-width: 700px) {
-  .dy-panel {
+  .dy-ptop {
     grid-template-columns: minmax(0, 1fr);
     row-gap: var(--sp-3);
   }
@@ -37135,6 +37470,19 @@ body[data-view="day"] .daily-view {
     padding: var(--sp-3) 0 0;
     border-left: 0;
     border-top: 1px solid var(--border);
+  }
+  /* The four tiles two by two, so the card stays short */
+  .dy-ptiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dy-ptile {
+    gap: var(--sp-2);
+  }
+
+  .dy-ptile .dy-thumb {
+    width: 36px;
+    height: 36px;
   }
 }
 
@@ -38118,49 +38466,8 @@ body[data-view="day"] .daily-view {
 }
 
 /* ---- Daily tab: sharing (phase 7) ----
-   A row of actions under the chart toolbar, and the full-screen recap story. */
-.dy-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--sp-2);
-  margin-bottom: var(--sp-3);
-}
-
-.dy-act {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  border: 1px solid var(--border);
-  border-radius: 99px;
-  background: var(--bg2);
-  color: var(--text);
-  font-family: var(--font-sans);
-  font-size: var(--fs-sm);
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.dy-act:hover:not(:disabled) {
-  background: var(--hover);
-}
-
-.dy-act:disabled {
-  opacity: 0.45;
-  cursor: default;
-}
-
-.dy-act-main {
-  border-color: var(--accent);
-  background: var(--accent);
-  color: var(--on-accent);
-  font-weight: 600;
-}
-
-.dy-act-main:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--accent) 85%, var(--text));
-}
-
+   The full-screen recap story. (The actions row is styled with the compare
+   switch, under .dy-toolbar.) */
 /* The recap: a dimmed page with one tall card in the middle */
 body.dy-recap-open {
   overflow: hidden;
@@ -38393,81 +38700,134 @@ body.dy-recap-open {
   }
 }
 
-/* ---- Daily tab: your day, calendar, live (phase 8) ---- */
-.dy-diary .dy-tod-head {
-  justify-content: space-between;
+/* ---- Daily tab: your day, calendar, live (phase 8) ----
+   Restyled 2026-10-18: the card uses the same header as the cards under it
+   (dySecHead), the moods are chips with their names, and the save status and
+   character count sit in a row under the note instead of on top of it. */
+.dy-diary .dy-sec-head {
+  margin-bottom: var(--sp-3);
 }
 
-.dy-diary-status {
-  font-size: var(--fs-xs);
-  color: var(--text3);
+/* The mood you picked, in the header line */
+.dy-diary-mood {
+  font-weight: 600;
+  color: var(--text);
 }
 
 .dy-moods {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: var(--sp-2);
   margin-bottom: var(--sp-3);
 }
 
 .dy-mood {
-  width: 40px;
-  height: 40px;
-  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 10px 4px 8px;
   border: 1px solid var(--border);
-  border-radius: 50%;
+  border-radius: var(--r-md);
   background: var(--bg);
-  font-size: 20px;
-  line-height: 1;
+  color: var(--text3);
+  font: inherit;
   cursor: pointer;
-  filter: grayscale(0.6);
-  opacity: 0.75;
-  transition: transform 0.15s ease, opacity 0.15s ease, filter 0.15s ease;
+  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.dy-mood-em {
+  font-size: 26px;
+  line-height: 1;
+  transition: transform 0.15s ease;
+}
+
+.dy-mood-lbl {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--fs-xs);
+  font-weight: 600;
 }
 
 .dy-mood:hover {
-  opacity: 1;
-  filter: none;
-  transform: scale(1.08);
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--border));
+  color: var(--text);
+  transform: translateY(-2px);
+}
+
+.dy-mood:hover .dy-mood-em {
+  transform: scale(1.12);
+}
+
+.dy-mood:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .dy-mood.active {
   border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 18%, var(--bg));
-  opacity: 1;
-  filter: none;
+  background: color-mix(in srgb, var(--accent) 16%, var(--bg));
+  color: var(--text);
+  box-shadow: 0 0 0 1px var(--accent) inset;
 }
 
-.dy-note-wrap {
-  position: relative;
+.dy-mood.active .dy-mood-em {
+  transform: scale(1.12);
+}
+
+/* Once a mood is picked, the others step back a little */
+.dy-moods:has(.dy-mood.active) .dy-mood:not(.active):not(:hover) {
+  opacity: 0.6;
 }
 
 .dy-note {
   display: block;
   width: 100%;
-  min-height: 56px;
-  padding: var(--sp-2) var(--sp-3) 22px;
+  min-height: 84px;
+  padding: var(--sp-3);
   border: 1px solid var(--border);
-  border-radius: var(--r-sm, 8px);
+  border-radius: var(--r-md);
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-sans);
   font-size: var(--fs-sm);
+  line-height: 1.5;
   resize: vertical;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.dy-note::placeholder {
+  color: var(--text3);
 }
 
 .dy-note:focus {
   outline: none;
   border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+/* Under the note: save status on the left, count on the right */
+.dy-note-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--sp-3);
+  margin-top: 6px;
+  font-size: var(--fs-xs);
+  color: var(--text3);
 }
 
 .dy-note-count {
-  position: absolute;
-  right: 10px;
-  bottom: 6px;
-  font-size: 10px;
-  color: var(--text3);
-  pointer-events: none;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.dy-note-count.is-near {
+  color: var(--rose);
+  font-weight: 600;
 }
 
 /* Live: a small pulsing dot by the day's title */
@@ -38654,16 +39014,14 @@ body.dy-recap-open {
   .dy-live i { animation: none; }
 }
 
-/* Phones: all eight moods on one row */
-@media (max-width: 420px) {
+/* Phones: the moods in two rows of four */
+@media (max-width: 560px) {
   .dy-moods {
-    gap: 4px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
-  .dy-mood {
-    width: 34px;
-    height: 34px;
-    font-size: 17px;
+  .dy-mood-em {
+    font-size: 24px;
   }
 }
 

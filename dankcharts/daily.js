@@ -196,8 +196,9 @@ function dyNo1Facts(h, type, ds) {
    period (date bar, size groups, cert reel, Songs / Artists / Albums switch)
    and hands over to dyRenderAll() just before the stats, which:
      - fills the stat tiles (#statsStrip) with the day's own tiles
-     - fills #dailyView above the chart: the day panel, your day, the compare
-       switch, the actions and the daily #1 line
+     - fills #dailyView above the chart: the compare
+       switch, the actions and the daily #1 line; #dailyDay after the chart:
+       the day panel and your day
      - renders the day's charts into the same #songsSection / #artistsSection /
        #albumsSection as every other period (renderSongs and co., with the
        day's stats in the weekly shape), so ⋮ → Show / Size / Actions, cert
@@ -347,9 +348,9 @@ function dyPlaysPeakMaps(h, ds) {
 
 // ─── TOP AND BOTTOM ───────────────────────────────────────────────────────
 
-/* Above the chart: the day panel, your day, the compare switch, the actions
-   and the daily #1 line for the chart on screen. Also called on its own when
-   the Songs / Artists / Albums switch changes (applyChartTypeView). */
+/* Above the chart: the compare switch, the actions and the daily #1 line;
+   the day panel and Your day go to #dailyDay right after the chart. Also
+   called on its own when the Songs / Artists / Albums switch changes (applyChartTypeView). */
 function dyRenderTop(h, ds) {
   const view = document.getElementById('dailyView');
   if (!view) return;
@@ -357,11 +358,17 @@ function dyRenderTop(h, ds) {
 
   // What the movement column compares against (the chart size is in ⋮ → Size)
   const cmpBtn = (v, lbl) => `<button type="button" class="dy-seg-btn${dyCompare === v ? ' active' : ''}" onclick="dySetCompare('${v}')">${esc(lbl)}</button>`;
+  // One bar under the Songs / Artists / Albums switch, in the same chrome:
+  // "Compare with" and its switch on the left, the actions on the right
   const toolbar = `
     <div class="dy-toolbar">
-      <div class="dy-seg" role="group" aria-label="${esc(t('dy_compare_label'))}">
-        ${cmpBtn('yesterday', t('dy_vs_yesterday'))}${cmpBtn('weekday', t('dy_vs_weekday', { day: dyDayName(ds) }))}
+      <div class="dy-cmp">
+        <span class="dy-cmp-lbl" aria-hidden="true">${esc(t('dy_compare_label'))}</span>
+        <div class="dy-seg" role="group" aria-label="${esc(t('dy_compare_label'))}">
+          ${cmpBtn('yesterday', t('dy_vs_yesterday'))}${cmpBtn('weekday', t('dy_vs_weekday', { day: dyDayName(ds) }))}
+        </div>
       </div>
+      ${dyActionsHtml(type, (h.charts.songs[ds] || []).length)}
     </div>`;
 
   // The daily #1 line
@@ -378,11 +385,21 @@ function dyRenderTop(h, ds) {
   const ae = document.activeElement;
   const keepNote = ae && ae.id === 'dyNote' ? { v: ae.value, s: ae.selectionStart, e: ae.selectionEnd } : null;
 
-  view.innerHTML = `
+  // The day panel and Your day sit right after the chart (#dailyDay)
+  const dayEl = document.getElementById('dailyDay');
+  // Its covers load as soon as it is on the page (dyFlushImgs), on their own
+  // so the bottom cards' reset of _dyImgs does not drop them
+  if (dayEl) {
+    _dyImgs = [];
+    dayEl.innerHTML = `
     ${dyPanelHtml(h, ds)}
-    ${dyDiaryHtml(ds)}
+    ${dyDiaryHtml(ds)}`;
+    dyFlushImgs();
+    dyRepStart();
+  }
+
+  view.innerHTML = `
     ${toolbar}
-    ${dyActionsHtml(type, (h.charts.songs[ds] || []).length)}
     ${no1Html}`;
 
   if (keepNote) {
@@ -829,7 +846,7 @@ async function dyDiaryPush() {
 }
 
 function dyDiaryStatus(msg) {
-  const el = document.querySelector('#dailyView .dy-diary-status');
+  const el = document.querySelector('#dailyDay .dy-diary-status');
   if (el) el.textContent = msg;
 }
 
@@ -860,33 +877,53 @@ function dySetMood(m) {
   const cur = _dyDiary.days[ds];
   // The same emoji again clears it
   dyDiarySet(ds, { mood: cur && cur.mood === m ? '' : m });
-  document.querySelectorAll('#dailyView .dy-mood').forEach(b => b.classList.toggle('active', b.dataset.mood === (_dyDiary.days[ds].mood || '')));
+  const now = _dyDiary.days[ds].mood || '';
+  document.querySelectorAll('#dailyDay .dy-mood').forEach(b => {
+    b.classList.toggle('active', b.dataset.mood === now);
+    b.setAttribute('aria-pressed', b.dataset.mood === now);
+  });
+  const sub = document.querySelector('#dailyDay .dy-diary-sub');
+  if (sub) sub.innerHTML = dyDiarySubHtml(now);
 }
 
 function dyNoteInput(el) {
   dyDiarySet(dyViewedDay(), { note: el.value.slice(0, DY_NOTE_MAX) });
-  const c = document.querySelector('#dailyView .dy-note-count');
-  if (c) c.textContent = el.value.length + ' / ' + DY_NOTE_MAX;
+  const c = document.querySelector('#dailyDay .dy-note-count');
+  if (c) {
+    c.textContent = el.value.length + ' / ' + DY_NOTE_MAX;
+    c.classList.toggle('is-near', el.value.length > DY_NOTE_MAX - 50);   // warn near the limit
+  }
 }
 
 function dyDiaryHtml(ds) {
   const e = _dyDiary.days[ds] || {};
   const signedIn = typeof dcIsSignedIn === 'function' && dcIsSignedIn();
-  const moods = DY_MOODS.map((m, i) =>
-    `<button type="button" class="dy-mood${e.mood === m ? ' active' : ''}" data-mood="${m}" onclick="dySetMood('${m}')" title="${esc(t('dy_mood_' + DY_MOOD_KEYS[i]))}" aria-label="${esc(t('dy_mood_' + DY_MOOD_KEYS[i]))}" aria-pressed="${e.mood === m}">${m}</button>`).join('');
+  // Each mood is a chip: the emoji with its name under it, so you can tell
+  // them apart without hovering
+  const moods = DY_MOODS.map((m, i) => {
+    const lbl = t('dy_mood_' + DY_MOOD_KEYS[i]);
+    return `<button type="button" class="dy-mood${e.mood === m ? ' active' : ''}" data-mood="${m}" onclick="dySetMood('${m}')" title="${esc(lbl)}" aria-pressed="${e.mood === m}"><span class="dy-mood-em" aria-hidden="true">${m}</span><span class="dy-mood-lbl">${esc(lbl)}</span></button>`;
+  }).join('');
   const note = e.note || '';
+  // Same header as the cards under it: icon, heading, and a line that is
+  // either the mood you picked or a nudge to pick one
   return `
     <section class="dy-tod dy-diary" aria-label="${esc(t('dy_diary_title'))}">
-      <div class="dy-tod-head">
-        <span class="ns-x-title">${esc(t('dy_diary_title'))}</span>
-        <span class="dy-diary-status">${esc(signedIn ? '' : t('dy_diary_local_hint'))}</span>
-      </div>
+      ${dySecHead('📝', t('dy_diary_title'), `<span class="dy-diary-sub">${dyDiarySubHtml(e.mood)}</span>`)}
       <div class="dy-moods" role="group" aria-label="${esc(t('dy_mood_label'))}">${moods}</div>
-      <div class="dy-note-wrap">
-        <textarea class="dy-note" id="dyNote" rows="2" maxlength="${DY_NOTE_MAX}" placeholder="${esc(t('dy_note_ph'))}" oninput="dyNoteInput(this)">${esc(note)}</textarea>
-        <span class="dy-note-count">${note.length} / ${DY_NOTE_MAX}</span>
+      <textarea class="dy-note" id="dyNote" rows="3" maxlength="${DY_NOTE_MAX}" placeholder="${esc(t('dy_note_ph'))}" oninput="dyNoteInput(this)">${esc(note)}</textarea>
+      <div class="dy-note-foot">
+        <span class="dy-diary-status">${esc(signedIn ? '' : t('dy_diary_local_hint'))}</span>
+        <span class="dy-note-count${note.length > DY_NOTE_MAX - 50 ? ' is-near' : ''}">${note.length} / ${DY_NOTE_MAX}</span>
       </div>
     </section>`;
+}
+
+// The line under "Your day": the picked mood ("😄 Great") or the nudge
+function dyDiarySubHtml(mood) {
+  const i = DY_MOODS.indexOf(mood);
+  return i < 0 ? esc(t('dy_diary_ask'))
+    : `<span class="dy-diary-mood">${mood} ${esc(t('dy_mood_' + DY_MOOD_KEYS[i]))}</span>`;
 }
 
 // ─── CALENDAR ─────────────────────────────────────────────────────────────
@@ -1099,14 +1136,24 @@ function dyExportPlaylist() {
 
 function dyActionsHtml(type, nSongs) {
   const off = nSongs ? '' : ' disabled';
+  // Line icons in the style of the chart type and layout buttons, instead of emoji
+  const ic = d => `<svg class="dy-act-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+  const I = {
+    recap:  ic('<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 16l.7 1.8 1.8.7-1.8.7L19 21l-.7-1.8-1.8-.7 1.8-.7z"/>'),
+    share:  ic('<rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/>'),
+    play:   ic('<path d="M7 4.5v15l12-7.5z"/>'),
+    cal:    ic('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/>'),
+    save:   ic('<path d="M3 6h12M3 12h12M3 18h7"/><path d="M18 14v7M14.5 17.5h7"/>'),
+    export: ic('<path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/>'),
+  };
   return `
     <div class="dy-actions">
-      <button type="button" class="dy-act dy-act-main" onclick="dyOpenRecap()"${off}>✦ ${esc(t('dy_recap'))}</button>
-      <button type="button" class="dy-act" onclick="openIgPreviewModal('${type}')"${off}>📷 ${esc(t('dy_share_img'))}</button>
-      <button type="button" class="dy-act" onclick="dyPlayTop()"${off}>▶ ${esc(t('dy_play_top', { n: nSongs }))}</button>
-      <button type="button" class="dy-act" onclick="dyOpenCalendar()">📅 ${esc(t('dy_cal_title'))}</button>
-      <button type="button" class="dy-act" onclick="dySavePlaylist()"${off}>＋ ${esc(t('dy_save_pl'))}</button>
-      <button type="button" class="dy-act" onclick="dyExportPlaylist()"${off} title="${esc(t('dy_export_tip'))}">📤 ${esc(t('dy_export'))}</button>
+      <button type="button" class="dy-act dy-act-main" onclick="dyOpenRecap()"${off}>${I.recap}${esc(t('dy_recap'))}</button>
+      <button type="button" class="dy-act" onclick="openIgPreviewModal('${type}')"${off}>${I.share}${esc(t('dy_share_img'))}</button>
+      <button type="button" class="dy-act" onclick="dyPlayTop()"${off}>${I.play}${esc(t('dy_play_top', { n: nSongs }))}</button>
+      <button type="button" class="dy-act" onclick="dyOpenCalendar()">${I.cal}${esc(t('dy_cal_title'))}</button>
+      <button type="button" class="dy-act" onclick="dySavePlaylist()"${off}>${I.save}${esc(t('dy_save_pl'))}</button>
+      <button type="button" class="dy-act" onclick="dyExportPlaylist()"${off} title="${esc(t('dy_export_tip'))}">${I.export}${esc(t('dy_export'))}</button>
     </div>`;
 }
 
@@ -1935,13 +1982,17 @@ function dyGenreHl(btn, from) {
 }
 
 // ─── DAY PANEL (phase 2) ──────────────────────────────────────────────────
-/* A card above the chart about the day on screen:
+/* A card after the chart about the day on screen (redone 2026-10-18 with
+   covers, so it is not just lines of text):
      - a ring of the day's plays against your usual day (the average over the
-       days you listened in the 30 before it), with the day's first and last
-       song and its top artist
-     - the 7 days ending on it as bars, the day itself lit; click a bar to go
-       to that day. Beside them the change on the 7 days before, and the song
-       on repeat: the one played on the most of those 7 days (3 or more). */
+       days you listened in the 30 before it), with a ▲ / ▼ badge for how far
+       above or below it the day is
+     - the 7 days ending on it as bars, the day itself lit and a dashed line
+       at the week's average; click a bar to go to that day. Beside them the
+       change on the 7 days before
+     - a strip of four tiles with covers: the day's first and last song (with
+       their times when the library has them), its top artist, and the song
+       on repeat (the one played on the most of those 7 days, 3 or more) */
 function dyPanelHtml(h, ds) {
   const day = h.byDay[ds];
   const n = day ? day.plays : 0;
@@ -1951,19 +2002,19 @@ function dyPanelHtml(h, ds) {
   for (let i = 1; i <= 30; i++) { const d = h.byDay[dyShift(ds, -i)]; if (d) { sum += d.plays; cnt++; } }
   const usual = cnt ? Math.round(sum / cnt) : 0;
 
-  const songLine = (lbl, p) => p
-    ? `<span class="ns-x-line" title="${esc(p.title + ' — ' + p.artist)}"><em>${esc(lbl)}</em> ${esc(p.title)} <span>— ${esc(p.artist)}</span></span>` : '';
-  let top = null;
-  if (day) for (const [a, e] of Object.entries(day.artists)) if (!top || e.count > top[1]) top = [a, e.count];
+  // ▲ 12% / ▼ 35% / ± 0%, in the same colours as the week's change
+  const pctBadge = pct => `<span class="ns-wk-pct dy-pct-pill ${pct > 0 ? 'is-up' : pct < 0 ? 'is-down' : ''}">${pct > 0 ? '▲ ' : pct < 0 ? '▼ ' : '± '}${Math.abs(pct)}%</span>`;
+
   const dayTitle = currentOffset === 0 ? t('dy_today') : currentOffset === 1 ? t('dy_yesterday') : dyDayName(ds);
+  const usualPct = usual && n ? Math.round((n - usual) / usual * 100) : null;
   const dayBlock = `
     <div class="dy-pblock">
       ${dyRingSvg(n, usual)}
       <div class="ns-x-text">
         <span class="ns-x-title">${esc(dayTitle)}${dyLiveBadge()}</span>
-        <span class="ns-x-line"><b>${esc(tCount('plays', n))}</b>${usual ? ` <span>${esc(t('ns_x_usual', { n: usual.toLocaleString() }))}</span>` : ''}</span>
-        ${day ? songLine(t('ns_x_first'), day.firstP) + (day.plays > 1 ? songLine(t('dy_last'), day.lastP) : '') : `<span class="ns-x-line"><span>${esc(t('dy_nothing_played'))}</span></span>`}
-        ${top ? `<span class="ns-x-line"><em>${esc(t('ns_x_top'))}</em> ${esc(top[0])} <span>· ${esc(tCount('plays', top[1]))}</span></span>` : ''}
+        <span class="ns-x-line dy-pbig"><b>${esc(tCount('plays', n))}</b></span>
+        ${usualPct !== null ? `<span class="ns-x-line">${pctBadge(usualPct)} <span>${esc(t('dy_vs_usual', { n: usual.toLocaleString() }))}</span></span>`
+          : day ? '' : `<span class="ns-x-line"><span>${esc(t('dy_nothing_played'))}</span></span>`}
       </div>
     </div>`;
 
@@ -1983,31 +2034,128 @@ function dyPanelHtml(h, ds) {
     const off = Math.round((dyDate(today) - dt) / 86400000);
     return `<button type="button" class="ns-wk-col dy-wk-col${d.ds === ds ? ' is-today' : ''}" title="${esc(tip)}" onclick="dyGoOffset(${off})"><i style="height:${d.n ? Math.max(8, d.n / max * 100).toFixed(0) : 0}%"></i><small>${esc(dt.toLocaleDateString(lang, { weekday: 'narrow' }))}</small></button>`;
   }).join('');
+  // The week's average as a dashed line across the bars (--avg: its height in %)
+  const avg = wSum / 7;
+  const avgLine = wSum ? `<span class="dy-wk-avg" style="--avg:${(avg / max * 100).toFixed(0)}%" title="${esc(t('dy_week_avg', { n: Math.round(avg).toLocaleString() }))}"></span>` : '';
 
-  // On repeat: the song played on the most of these 7 days
-  const songDays = {};
-  for (const w of week) { const d = h.byDay[w.ds]; if (d) for (const k in d.songs) songDays[k] = (songDays[k] || 0) + 1; }
-  let rep = null;
-  for (const [k, c] of Object.entries(songDays)) if (c >= 3 && (!rep || c > rep[1])) rep = [k, c];
-  let repLine = '';
-  if (rep) {
-    let info = null;
-    for (const w of week) { const d = h.byDay[w.ds]; if (d && d.songs[rep[0]]) info = d.songs[rep[0]]; }
-    repLine = `<span class="ns-x-line" title="${esc(info.title + ' — ' + info.artist)}"><em>${esc(t('ns_x_on_repeat'))}</em> ${esc(info.title)} <span>· ${esc(t('ns_x_days_of_7', { n: rep[1] }))}</span></span>`;
-  }
-  const pctHtml = pct === null ? '' :
-    `<span class="ns-x-line"><span class="ns-wk-pct ${pct > 0 ? 'is-up' : pct < 0 ? 'is-down' : ''}">${pct > 0 ? '▲ ' : pct < 0 ? '▼ ' : '± '}${Math.abs(pct)}%</span> <span>${esc(t('ns_x_vs_week'))}</span></span>`;
   const weekBlock = `
     <div class="dy-pblock">
-      <div class="ns-wk-bars">${bars}</div>
+      <div class="ns-wk-bars dy-wk-bars">${bars}${avgLine}</div>
       <div class="ns-x-text">
         <span class="ns-x-title">${esc(t('ns_x_week'))}</span>
-        <span class="ns-x-line"><b>${esc(tCount('plays', wSum))}</b></span>
-        ${pctHtml}${repLine}
+        <span class="ns-x-line dy-pbig"><b>${esc(tCount('plays', wSum))}</b></span>
+        ${pct === null ? '' : `<span class="ns-x-line">${pctBadge(pct)} <span>${esc(t('ns_x_vs_week'))}</span></span>`}
       </div>
     </div>`;
 
-  return `<div class="dy-panel">${dayBlock}${weekBlock}</div>`;
+  // ── The tiles ──
+  // One tile: a cover, a small label (and time), the name and a quiet second line
+  const tile = (lead, lbl, when, main, sub, tip) => `
+      <div class="dy-ptile" title="${esc(tip)}">
+        ${lead}
+        <span class="dy-ptile-text">
+          <span class="dy-ptile-lbl">${esc(lbl)}${when ? `<span class="dy-ptile-when">${esc(when)}</span>` : ''}</span>
+          <span class="dy-ptile-main">${main}</span>
+          <span class="dy-ptile-sub">${sub}</span>
+        </span>
+      </div>`;
+  const tiles = [];
+  if (day) {
+    const songTile = (lbl, p, ms) => tile(dyThumb('song', { title: p.title, artist: p.artist, album: p.album || '' }), lbl,
+      h.timed ? dyClock(ms) : '', esc(p.title), esc(p.artist), p.title + ' — ' + p.artist);
+    tiles.push(songTile(t('ns_x_first'), day.firstP, day.firstMs));
+    if (day.plays > 1) tiles.push(songTile(t('dy_last'), day.lastP, day.lastMs));
+    let top = null;
+    for (const [a, e] of Object.entries(day.artists)) if (!top || e.count > top[1]) top = [a, e.count];
+    if (top) tiles.push(tile(dyThumb('artist', { artist: top[0] }), t('dy_top_artist'), '',
+      chartNameLink(top[0], 'openArtistModal', top[0]), esc(tCount('plays', top[1])), top[0]));
+  }
+
+  // On repeat: every song played on 3 or more of these 7 days, most days
+  // first (then most plays). With more than one the tile rotates through
+  // them (dyRepStart), a thin bar along its foot shows the time to the next,
+  // and clicking the tile moves on by hand.
+  const songDays = {}, songPlays = {}, songInfo = {};
+  for (const w of week) {
+    const d = h.byDay[w.ds];
+    if (d) for (const k in d.songs) { songDays[k] = (songDays[k] || 0) + 1; songPlays[k] = (songPlays[k] || 0) + d.songs[k].count; songInfo[k] = d.songs[k]; }
+  }
+  const reps = Object.keys(songDays).filter(k => songDays[k] >= 3)
+    .sort((a, b) => songDays[b] - songDays[a] || songPlays[b] - songPlays[a]).slice(0, DY_REP_MAX);
+  if (reps.length) {
+    const slides = reps.map((k, i) => {
+      const info = songInfo[k];
+      return `<div class="dy-rep-slide${i ? '' : ' is-on'}" title="${esc(info.title + ' — ' + info.artist)}"${i ? ' aria-hidden="true"' : ''}>
+          ${dyThumb('song', { title: info.title, artist: info.artist, album: bestAlbum(info.title, info._albums) })}
+          <span class="dy-ptile-text">
+            <span class="dy-ptile-lbl">${esc(t('ns_x_on_repeat'))}${reps.length > 1 ? `<span class="dy-ptile-when">${i + 1} / ${reps.length}</span>` : ''}</span>
+            <span class="dy-ptile-main">${esc(info.title)}</span>
+            <span class="dy-ptile-sub">${esc(info.artist)} · ${esc(t('ns_x_days_of_7', { n: songDays[k] }))}</span>
+          </span>
+        </div>`;
+    }).join('');
+    const many = reps.length > 1;
+    tiles.push(`
+      <div class="dy-ptile dy-rep${many ? ' is-many' : ''}"${many ? ` role="button" tabindex="0" aria-label="${esc(t('ns_x_on_repeat'))}" onclick="dyRepNext(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();dyRepNext(this)}"` : ''}>${slides}${many ? '<span class="dy-rep-bar" aria-hidden="true"></span>' : ''}</div>`);
+  }
+
+  return `<div class="dy-panel">
+      <div class="dy-ptop">${dayBlock}${weekBlock}</div>
+      ${tiles.length ? `<div class="dy-ptiles">${tiles.join('')}</div>` : ''}
+    </div>`;
+}
+
+/* The On repeat tile's rotation: one song every few seconds. The timer bar
+   along the tile's foot drives it: when its fill animation ends the next song
+   comes in, so pausing the bar (pointer on the tile, or a hidden tab, where
+   browsers hold animations) pauses the rotation exactly. With reduced motion
+   the bar is hidden and a plain interval does the job. Restarted on every
+   redraw of the panel (dyRenderTop). */
+const DY_REP_MAX = 10;
+const DY_REP_MS = 4000;   // also the bar's run time: --dy-rep-ms in style.css
+let _dyRepTimer = null;
+
+function dyRepStart() {
+  clearInterval(_dyRepTimer);
+  _dyRepTimer = null;
+  const tile = document.querySelector('#dailyDay .dy-rep');
+  if (!tile || tile.querySelectorAll('.dy-rep-slide').length < 2) return;
+  const bar = tile.querySelector('.dy-rep-bar');
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !bar) {
+    _dyRepTimer = setInterval(() => {
+      if (!tile.isConnected) { clearInterval(_dyRepTimer); _dyRepTimer = null; return; }
+      if (document.hidden || tile.matches(':hover')) return;
+      dyRepNext(tile);
+    }, DY_REP_MS);
+    return;
+  }
+  bar.onanimationend = () => dyRepNext(tile);
+  dyRepBar(tile);
+}
+
+// Run the timer bar again from empty (a reflow restarts its animation)
+function dyRepBar(tile) {
+  const bar = tile.querySelector('.dy-rep-bar');
+  if (!bar) return;
+  bar.classList.remove('is-run');
+  void bar.offsetWidth;
+  bar.classList.add('is-run');
+}
+
+// The next song, and a fresh wait (the bar from empty) before the one after
+function dyRepNext(tile) {
+  const n = tile.querySelectorAll('.dy-rep-slide').length;
+  dyRepGo(tile, ((+tile.dataset.i || 0) + 1) % n);
+}
+
+function dyRepGo(tile, i) {
+  if (!tile) return;
+  tile.dataset.i = i;
+  tile.querySelectorAll('.dy-rep-slide').forEach((el, j) => {
+    el.classList.toggle('is-on', j === i);
+    if (j === i) el.removeAttribute('aria-hidden'); else el.setAttribute('aria-hidden', 'true');
+  });
+  dyRepBar(tile);
 }
 
 // A bar in the panel: go to that day
