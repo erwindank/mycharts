@@ -13301,7 +13301,8 @@ function renderTableHeaders() {
   // Rank: just "#" on portrait phones, where every px goes to Title · Artist
   const rankTh = `<th><span class="th-rank-full">${t('th_rank')}</span><span class="th-rank-short">#</span></th>`;
   // Trailing icon-only column for the chart-run toggle button, now separate from rank-cell.
-  const crTh = `<th class="cr-th" style="width:38px;"></th>`;
+  // 72px = the ▶ · ⋮ · chart-run buttons side by side (.cr-cell in style.css)
+  const crTh = `<th class="cr-th" style="width:72px;"></th>`;
   if (hasPeriodStats) {
     document.getElementById('songsHeadRow').innerHTML = `${rankTh}${prevTh}${thumbTh}<th>${t('th_title_artist')}</th><th class="meta-col">${t('th_album')}</th>${periodTh}<th style="text-align:right;"><span class="th-plays-full">${t('th_plays')}</span><span class="th-plays-short">${t('th_plays_mobile')}</span></th>${crTh}`;
     document.getElementById('artistsHeadRow').innerHTML = `${rankTh}${prevTh}${thumbTh}<th>${t('th_artist')}</th><th class="meta-col">${t('th_unique_songs')}</th>${periodTh}<th style="text-align:right;"><span class="th-plays-full">${t('th_total_plays')}</span><span class="th-plays-short">${t('th_total_plays_mobile')}</span></th>${crTh}`;
@@ -13322,11 +13323,12 @@ function renderTableHeaders() {
    widths) to go back to automatic widths. Desktop only: on phones the table
    already squeezes to fit and its Album column is hidden.
 
-   The four text columns (title, album / songs / tracks, weeks, plays) are
-   saved as their share of the table (%), so they still fit when the window
-   changes size; rank, movement, cover and the action buttons keep their
-   width in px, so a narrower window never crops a cover (Rank and Move can
-   still be dragged narrower or wider). Per table and per
+   The three text columns (title, album / songs / tracks, weeks) are saved
+   as their share of the table (%), so they still fit when the window
+   changes size; rank and movement are dragged and saved in px. Cover,
+   Plays and the action buttons always keep their built-in width and are
+   never saved, so the ⋮ menu can't be pushed out of the card (an old
+   saved 38px button column used to cut it off). Per table and per
    column set: tables
    with Move / Weeks columns (Daily, Weekly, Monthly, Yearly) and without
    (All-Time) are kept apart. dc_col_widths syncs with the account
@@ -13337,13 +13339,23 @@ const _COLW_KEYS = {
 };
 // The columns whose shared edges can be dragged; cover and the action
 // buttons keep their own sizes
-const _COLW_RESIZABLE = new Set(['title', 'meta', 'period', 'plays']);
+const _COLW_RESIZABLE = new Set(['title', 'meta', 'period']);
 // Rank and Move can be dragged too, but stay in px (like the cover). Their
 // right edge trades width with the next column when it is Move, otherwise
 // with Title, which absorbs every px change anyway
 const _COLW_PX_DRAG = new Set(['rank', 'move']);
 const _COLW_MIN = 48;   // px, the narrowest a dragged column can get
 const _COLW_MIN_PX = 40;   // px, the narrowest Rank / Move can get
+// Columns that never change size: their px width, whatever was saved.
+// Plays fits "3 veces -51" plus its bar; cover and buttons use the width
+// set on their header in renderTableHeaders
+const _COLW_FIXED = { plays: 150 };
+function _colwFixedW(th) {
+  const col = th.dataset.col;
+  if (_COLW_FIXED[col]) return _COLW_FIXED[col];
+  if (col === 'thumb' || col === 'cr') return parseInt(th.dataset.w0, 10) || null;
+  return null;
+}
 const _colwDesktop = window.matchMedia('(min-width: 601px)');
 
 /* Saved widths → whole pixels for the table's current width. Percentages
@@ -13358,7 +13370,9 @@ function _colwLayout(table, saved) {
   const px = {};
   let used = 0;
   for (const th of ths) {
-    const col = th.dataset.col, v = saved[col];
+    const col = th.dataset.col, fixed = _colwFixedW(th);
+    if (fixed) { px[col] = fixed; used += fixed; continue; }
+    const v = saved[col];
     if (v == null) continue;
     px[col] = _COLW_RESIZABLE.has(col) ? Math.max(_COLW_MIN, Math.round(v / 100 * W)) : Math.round(v);
     used += px[col];
@@ -13438,7 +13452,11 @@ function _colwApply(type) {
   const saved = _colwDesktop.matches ? _colwRead()[key] : null;
   table.classList.toggle('colw-fixed', !!saved);
   if (saved) _colwLayout(table, saved);
-  else table.querySelectorAll('thead th[data-col]').forEach(th => { th.style.width = th.dataset.w0 || ''; });
+  else table.querySelectorAll('thead th[data-col]').forEach(th => {
+    // Phones lay the table out on their own: built-in widths only
+    const fixed = _colwDesktop.matches ? _colwFixedW(th) : null;
+    th.style.width = fixed ? fixed + 'px' : (th.dataset.w0 || '');
+  });
   _colwSyncResetBtn(type, !!saved);
 }
 
@@ -13485,7 +13503,7 @@ function _colwDragStart(e, type, set, th) {
   // width, so only the two columns either side of the line move
   if (!table.classList.contains('colw-fixed')) {
     const widths = ths.map(c => c.getBoundingClientRect().width);
-    ths.forEach((c, i) => { c.style.width = Math.round(widths[i]) + 'px'; });
+    ths.forEach((c, i) => { c.style.width = (_colwFixedW(c) || Math.round(widths[i])) + 'px'; });
     table.classList.add('colw-fixed');
   }
   const startX = e.clientX;
@@ -13508,7 +13526,7 @@ function _colwDragStart(e, type, set, th) {
     const map = {};
     ths.forEach(c => {
       const col = c.dataset.col;
-      if (!col) return;
+      if (!col || _colwFixedW(c)) return;   // fixed columns are never saved
       const w = c.getBoundingClientRect().width;
       map[col] = _COLW_RESIZABLE.has(col) ? +(w / tableW * 100).toFixed(2) : Math.round(w);
     });
