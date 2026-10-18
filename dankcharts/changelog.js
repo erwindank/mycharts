@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 163;
+const DC_CL_I18N_V = 164;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,14 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-17', t: 'fix', a: 'charts', h: 'dfeb253',
+    title: "Daily: Days on chart counts every day again",
+    detail: "On the Daily chart, the Days on chart column only counted days in the current month, so a song back after a while could say 1 day while its chart run showed 48. It now counts every day the entry has spent on the daily chart, the same number the chart run shows." },
+
+  { d: '2026-10-17', t: 'feature', a: 'charts', h: '9239863',
+    title: "Every chart layout now works on every period",
+    detail: "Card grid, Compact, Mosaic, Filmstrip and Stack used to work only on the Weekly chart. Now they work on Daily, Monthly, Yearly and All-Time too: pick one with the layout buttons above the chart. On Yearly and All-Time they follow the same pages and search box as the Table, so page 2 starts at #101. In Card grid, a Show more button under the grid adds the next 100 instead. Time on the chart now says days, weeks, months or years to match the period." },
 
   { d: '2026-10-17', t: 'feature', a: 'charts', h: 'd7069fd',
     title: "Chart layouts are now buttons above the chart",

@@ -16,6 +16,14 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Daily: Days on chart counts every day again":
+    ["Diário: Dias no top volta a contar todos os dias",
+     "No top Diário, a coluna Dias no top só contava os dias do mês atual, por isso uma música que voltava ao fim de algum tempo podia mostrar 1 dia enquanto o historial mostrava 48. Agora conta todos os dias que passou no top diário, o mesmo número que o historial mostra."],
+
+  "Every chart layout now works on every period":
+    ["Todas as disposições do top funcionam agora em todos os períodos",
+     "Grelha de cartões, Compacto, Mosaico, Faixa e Pilha só funcionavam no top Semanal. Agora funcionam também no Diário, Mensal, Anual e de Sempre: escolhe uma com os botões de disposição por cima do top. No Anual e no de Sempre seguem as mesmas páginas e a mesma pesquisa da Tabela, por isso a página 2 começa no #101. Na Grelha de cartões, um botão Mostrar mais por baixo da grelha acrescenta os 100 seguintes. O tempo no top agora diz dias, semanas, meses ou anos, conforme o período."],
+
   "Chart layouts are now buttons above the chart":
     ["As disposições do top agora são botões por cima do top",
      "As seis formas de ver um top (Tabela, Grelha de cartões, Compacto, Mosaico, Faixa e Pilha) estavam escondidas no menu ⋮ do top, em Ver. Agora são uma fila de ícones pequenos à direita da barra por cima do top, ao lado de Músicas, Artistas e Álbuns: passa o rato por cima de um para ver o nome. Cada tipo de top continua a lembrar a sua própria disposição. Com Pilha ativa, mais um ícone divide-a em duas colunas. O menu ⋮ agora tem Mostrar, Tamanho e Ações. A visita guiada mostra os novos botões."],

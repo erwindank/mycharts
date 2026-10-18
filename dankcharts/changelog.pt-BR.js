@@ -16,6 +16,14 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Daily: Days on chart counts every day again":
+    ["Diário: Dias na parada volta a contar todos os dias",
+     "Na parada Diária, a coluna Dias na parada só contava os dias do mês atual, então uma música que voltava depois de um tempo podia mostrar 1 dia enquanto o histórico mostrava 48. Agora conta todos os dias que ela passou na parada diária, o mesmo número do histórico."],
+
+  "Every chart layout now works on every period":
+    ["Todos os layouts da parada agora funcionam em todos os períodos",
+     "Grade de cartões, Compacto, Mosaico, Faixa e Pilha só funcionavam na parada Semanal. Agora funcionam também no Diário, Mensal, Anual e de Todos os Tempos: escolha um com os botões de layout acima da parada. No Anual e no de Todos os Tempos eles seguem as mesmas páginas e a mesma busca da Tabela, então a página 2 começa no #101. Na Grade de cartões, um botão Mostrar mais embaixo da grade adiciona os próximos 100. O tempo na parada agora diz dias, semanas, meses ou anos, conforme o período."],
+
   "Chart layouts are now buttons above the chart":
     ["Os layouts da parada agora são botões acima da parada",
      "As seis formas de ver uma parada (Tabela, Grade de cartões, Compacto, Mosaico, Faixa e Pilha) ficavam escondidas no menu ⋮ da parada, em Ver. Agora são uma fileira de ícones pequenos à direita da barra acima da parada, ao lado de Músicas, Artistas e Álbuns: passe o mouse sobre um para ver o nome. Cada tipo de parada continua lembrando o próprio layout. Com Pilha ativa, mais um ícone divide em duas colunas. O menu ⋮ agora tem Mostrar, Tamanho e Ações. O tour guiado mostra os novos botões."],

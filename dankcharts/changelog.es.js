@@ -16,6 +16,14 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Daily: Days on chart counts every day again":
+    ["Diario: Días en el chart vuelve a contar todos los días",
+     "En el chart Diario, la columna Días en el chart solo contaba los días del mes actual, así que una canción que volvía tras un tiempo podía decir 1 día mientras su historial mostraba 48. Ahora cuenta todos los días que ha pasado en el chart diario, el mismo número que muestra el historial."],
+
+  "Every chart layout now works on every period":
+    ["Todos los diseños del chart funcionan ahora en todos los periodos",
+     "Cuadrícula de tarjetas, Compacto, Mosaico, Tira y Pila solo funcionaban en el chart Semanal. Ahora también funcionan en Diario, Mensual, Anual e Histórico: elige uno con los botones de diseño sobre el chart. En Anual e Histórico siguen las mismas páginas y el mismo buscador que la Tabla, así que la página 2 empieza en el #101. En Cuadrícula de tarjetas, un botón Mostrar más bajo la cuadrícula añade los 100 siguientes. El tiempo en el chart ahora dice días, semanas, meses o años según el periodo."],
+
   "Chart layouts are now buttons above the chart":
     ["Los diseños del chart ahora son botones sobre el chart",
      "Las seis formas de ver un chart (Tabla, Cuadrícula de tarjetas, Compacto, Mosaico, Tira y Pila) estaban escondidas en el menú ⋮ del chart, en Ver. Ahora son una fila de iconos pequeños a la derecha de la barra sobre el chart, junto a Canciones, Artistas y Álbumes: pasa el cursor sobre uno para ver su nombre. Cada tipo de chart sigue recordando su propio diseño. Con Pila activo, un icono más lo divide en dos columnas. El menú ⋮ ahora tiene Mostrar, Tamaño y Acciones. El tour guiado muestra los nuevos botones."],
