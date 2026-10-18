@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "All three kinds badges":
+    ["Insignias de Los tres tipos",
+     "Todoterreno en Rachas Diarias → Récords tiene ahora su propio grupo, Los tres tipos, con 13 insignias parecidas: un artista, un álbum y una canción que llegan a 7, 14, 50, 100, 200 o 365 días; 3, 5, 10 o 25 de cada tipo con una racha de 30 días; y un artista, un álbum y una canción en rachas largas el mismo día."],
+
   "Streak badges climb step by step":
     ["Las insignias de rachas suben paso a paso",
      "Las insignias de Rachas Diarias → Récords suben ahora en pasos más pequeños, así que siempre hay una siguiente a tu alcance: 110 insignias en total, con nuevas como una racha de tres semanas, cinco rachas activas en un día o 10 canciones con una racha de dos semanas. Los nombres también crecen con la meta: los más grandes (Panteón, Museo, Inmortales, Fénix, Lázaro, Siempre vuelve) están ahora en lo alto de su escalera y no a mitad. Algunas cambiaron de nombre, y dos (De vuelta a casa, Leyenda renacida) se integraron en las nuevas escaleras."],

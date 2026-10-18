@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "All three kinds badges":
+    ["Conquistas de Os três tipos",
+     "Completo em Sequências Diárias → Recordes agora tem um grupo próprio, Os três tipos, com 13 conquistas parecidas: um artista, um álbum e uma música chegando a 7, 14, 50, 100, 200 ou 365 dias; 3, 5, 10 ou 25 de cada tipo com uma sequência de 30 dias; e um artista, um álbum e uma música em sequências longas no mesmo dia."],
+
   "Streak badges climb step by step":
     ["As conquistas de sequências sobem passo a passo",
      "As conquistas em Sequências Diárias → Recordes agora sobem em passos menores, então sempre há uma próxima ao alcance: 110 conquistas no total, com novas como uma sequência de três semanas, cinco sequências ativas em um dia ou 10 músicas com uma sequência de duas semanas. Os nomes também crescem com a meta: os mais grandiosos (Panteão, Museu, Imortais, Fênix, Lázaro, Sempre volta) agora ficam no topo da escada, não no meio. Algumas mudaram de nome, e duas (De volta para casa, Lenda renascida) foram incorporadas às novas escadas."],

@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 188;
+const DC_CL_I18N_V = 189;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-18', t: 'feature', a: 'records', h: 'a04ef08',
+    title: "All three kinds badges",
+    detail: "All-rounder in Daily Streaks → Records now has a group of its own, All three kinds, with 13 badges like it: an artist, an album and a song each reaching 7, 14, 50, 100, 200 or 365 days; 3, 5, 10 or 25 of each kind on a 30-day streak; and an artist, an album and a song all on a long streak on the same day." },
 
   { d: '2026-10-18', t: 'change', a: 'records', h: '6e76bba',
     title: "Streak badges climb step by step",
