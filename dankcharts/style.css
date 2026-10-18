@@ -9033,6 +9033,27 @@
     /* Short label only shows in the phone chart table (see the 600px block) */
     .plays-peak-badge .ppb-short { display: none; }
 
+    /* Short forms of the peak tag and certification: hidden by default, shown
+       only where a spot is too narrow for the words (below) */
+    .pk-medal,
+    .cert-mult { display: none; }
+
+    /* Spanish phone chart table: "LOGRO #1" and "DOUBLE DIAMOND" pushed the
+       table past the card, so the peak tag becomes 🏅 #1 and certifications
+       their icon alone (💎💎, 💿, 🪙; 4×💎 from four diamonds up) */
+    @media (max-width: 600px) {
+      html[lang="es"] .chart-table .pk-label,
+      html[lang="es"] .chart-table .cert-label { display: none; }
+      html[lang="es"] .chart-table .pk-medal { display: inline; margin-right: 2px; }
+      html[lang="es"] .chart-table .cert-mult { display: inline; margin-right: 1px; }
+      html[lang="es"] .chart-table .cert { padding: 1px 4px; gap: 0; }
+      /* By id: the tables' own 8px icon rule is keyed to #songsTable / #albumsTable */
+      html[lang="es"] #songsTable .cert .cert-icon,
+      html[lang="es"] #albumsTable .cert .cert-icon,
+      html[lang="es"] .chart-table .cert .cert-icon { font-size: 14px; line-height: 1; margin: 0; }
+      html[lang="es"] .chart-table .cert .cert-mult { font-size: var(--fs-xs); font-weight: 700; }
+    }
+
     .plays-peak-badge {
       display: block;
       width: fit-content;

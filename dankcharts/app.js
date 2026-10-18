@@ -17366,10 +17366,15 @@ function peakBadge(peak) {
   if (!peak || peak === '—') return '';
   const peakLabel = t('peak_label');
   if (peak === 1 && currentPeriod === 'alltime') return `<span class="peak-badge-1">★ ALL-TIME #1</span>`;
-  if (peak === 1) return `<span class="peak-badge-1">${peakLabel} #1</span>`;
-  if (peak === 2) return `<span class="peak-badge-2">${peakLabel} #2</span>`;
-  if (peak === 3) return `<span class="peak-badge-3">${peakLabel} #3</span>`;
-  return `<span class="peak-badge">${peakLabel} #${peak}</span>`;
+  // The word sits in .pk-label and a medal in .pk-medal, so a narrow spot can
+  // show "🏅 #3" instead (the Spanish phone chart table; style.css). The
+  // title keeps the full words for a long-press / hover.
+  const body = n => `<span class="pk-label">${peakLabel} </span><span class="pk-medal" aria-hidden="true">🏅</span>#${n}`;
+  const tip = ` title="${esc(peakLabel)} #${peak}"`;
+  if (peak === 1) return `<span class="peak-badge-1"${tip}>${body(1)}</span>`;
+  if (peak === 2) return `<span class="peak-badge-2"${tip}>${body(2)}</span>`;
+  if (peak === 3) return `<span class="peak-badge-3"${tip}>${body(3)}</span>`;
+  return `<span class="peak-badge"${tip}>${body(peak)}</span>`;
 }
 
 // Line-icon for chart-run toggle buttons — replaces the old 📊 emoji so it reads as
@@ -20311,12 +20316,17 @@ function tDiamondLabel(mult) {
 function certBadge(plays, type) {
   const certTiers = CERT[type];
   if (!certTiers) return '';
+  // The words sit in .cert-label so a narrow spot can show the icon alone
+  // (💎💎 for Double Diamond; "4×💎" from four up, via .cert-mult). Used by
+  // the Spanish phone chart table (style.css); the title keeps the words.
   if (plays >= certTiers.diamond) {
-    const { icon, label } = diamondMultiLabel(Math.floor(plays / certTiers.diamond));
-    return `<span class="cert cert-diamond"><span class="cert-icon">${icon}</span>${label.toUpperCase()}</span>`;
+    const n = Math.floor(plays / certTiers.diamond);
+    const { icon, label } = diamondMultiLabel(n);
+    const mult = n >= 4 ? `<span class="cert-mult">${n}×</span>` : '';
+    return `<span class="cert cert-diamond" title="${esc(label)}">${mult}<span class="cert-icon">${icon}</span><span class="cert-label">${label.toUpperCase()}</span></span>`;
   }
-  if (plays >= certTiers.plat) return `<span class="cert cert-plat"><span class="cert-icon">💿</span>PLATINUM</span>`;
-  if (plays >= certTiers.gold) return `<span class="cert cert-gold"><span class="cert-icon">🪙</span>GOLD</span>`;
+  if (plays >= certTiers.plat) return `<span class="cert cert-plat" title="Platinum"><span class="cert-icon">💿</span><span class="cert-label">PLATINUM</span></span>`;
+  if (plays >= certTiers.gold) return `<span class="cert cert-gold" title="Gold"><span class="cert-icon">🪙</span><span class="cert-label">GOLD</span></span>`;
   return '';
 }
 
