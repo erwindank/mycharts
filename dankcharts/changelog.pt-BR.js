@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Certifications in your language":
+    ["Certificações no seu idioma",
+     "Os selos de certificação diziam Gold, Platinum e Diamond em inglês, qualquer que fosse o idioma. Agora seguem o seu idioma em todo lugar onde aparecem: Ouro, Platina, Diamante, Diamante Duplo… nas paradas, nas janelas de álbum, no mural de certificações e nas placas dos prêmios."],
+
   "Add to a playlist from each entry's ⋮ menu":
     ["Adicione a uma playlist pelo menu ⋮ de cada item",
      "A opção Playlist saiu do menu ⋮ → Show das paradas, e os itens não têm mais um botão + de playlist em nenhum layout. Para adicionar uma música, artista ou álbum a uma playlist, abra o menu ⋮ do próprio item (ou clique com o botão direito) e escolha Adicionar a uma playlist."],

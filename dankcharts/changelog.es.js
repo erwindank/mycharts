@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Certifications in your language":
+    ["Certificaciones en tu idioma",
+     "Las insignias de certificación decían Gold, Platinum y Diamond en inglés fuera cual fuera el idioma. Ahora siguen tu idioma en todos los sitios donde aparecen: Oro, Platino, Diamante, Diamante Doble… en los charts, en las ventanas de álbum, en el muro de certificaciones y en las placas de los premios."],
+
   "Add to a playlist from each entry's ⋮ menu":
     ["Añade a una lista desde el menú ⋮ de cada entrada",
      "El interruptor Lista ya no está en el menú ⋮ → Show de los charts, y las entradas ya no llevan un botón + de lista en ningún diseño. Para añadir una canción, artista o álbum a una lista, abre su propio menú ⋮ (o haz clic derecho) y elige Añadir a una lista."],

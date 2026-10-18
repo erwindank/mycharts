@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 169;
+const DC_CL_I18N_V = 170;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-18', t: 'i18n', a: 'charts', h: 'aba198b',
+    title: "Certifications in your language",
+    detail: "Certification badges used to say Gold, Platinum and Diamond in English whatever language you picked. They now follow your language everywhere they appear: on the charts, in album pop-ups, on the certifications wall and on award plaques." },
 
   { d: '2026-10-18', t: 'change', a: 'charts', h: '6ce8ef5',
     title: "Add to a playlist from each entry's ⋮ menu",
