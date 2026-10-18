@@ -5154,25 +5154,6 @@
       color: var(--text3);
     }
 
-    /* BU stat tiles get more room than the main chart run's: wider columns so
-       labels wrap to two lines at most, sentence-case labels (the uppercase
-       ones read as one dense block), more air between label and figure, and
-       the figure pinned to the bottom so the numbers line up across a row */
-    .bu-cr-panel .cr-stats {
-      grid-template-columns: repeat(auto-fill, minmax(138px, 1fr));
-      gap: var(--sp-2);
-    }
-    .bu-cr-panel .cr-stat {
-      justify-content: space-between;
-      gap: var(--sp-2);
-      padding: 0.75rem 0.9rem;
-    }
-    .bu-cr-panel .cr-stat-k {
-      text-transform: none;
-      letter-spacing: 0;
-      line-height: 1.35;
-    }
-
     .bu-cr-empty {
       font-size: var(--fs-xs);
       color: var(--text3);
