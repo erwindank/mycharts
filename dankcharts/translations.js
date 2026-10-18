@@ -5552,7 +5552,7 @@ const TRANSLATIONS = {
     bucr_view_bu: 'Aspirantes',
     bucr_view_both: 'Con el ranking',
     bucr_k_weeks: 'Semanas en Aspirantes',
-    bucr_peak_overall: '#{{n}} alcanzado',
+    bucr_peak_overall: '#{{n}} en general',
     bucr_k_at1: 'Semanas en A1',
     bucr_prefix: 'A', // A de Aspirantes (A5)
     bucr_k_streak: 'Racha más larga',
