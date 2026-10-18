@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Plays column centred and resizable":
+    ["Coluna Reproduções centralizada e ajustável",
+     "Nas paradas de músicas, artistas e álbuns, a coluna Reproduções agora fica centralizada, como Semanas ao lado. Você pode arrastar de novo a linha entre Semanas e Reproduções para deixar qualquer uma mais larga ou mais estreita. Reproduções nunca fica estreita demais para o número, e os botões ▶, ⋮ e trajetória continuam com o espaço completo."],
+
   "Row buttons always fit in the chart":
     ["Os botões de cada linha sempre cabem na parada",
      "A coluna Reproduções agora tem largura fixa, e os botões ▶, ⋮ e trajetória no fim de cada linha sempre têm o espaço completo. Se você tinha ajustado as colunas antes, o menu ⋮ podia ficar cortado na borda da parada; agora ele sempre cabe."],

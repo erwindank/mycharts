@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 182;
+const DC_CL_I18N_V = 183;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-18', t: 'change', a: 'charts', h: '0a9f363',
+    title: "Plays column centred and resizable",
+    detail: "In the Songs, Artists and Albums charts the Plays column is now centred, like Weeks next to it. You can drag the line between Weeks and Plays again to make either one wider or narrower. Plays never gets too narrow for its number, and the ▶, ⋮ and chart run buttons keep their full space." },
 
   { d: '2026-10-18', t: 'fix', a: 'charts', h: 'e47d15c',
     title: "Row buttons always fit in the chart",

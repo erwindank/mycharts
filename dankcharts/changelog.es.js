@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Plays column centred and resizable":
+    ["Columna Escuchas centrada y ajustable",
+     "En las listas de canciones, artistas y álbumes, la columna Escuchas ahora está centrada, como Semanas a su lado. Puedes volver a arrastrar la línea entre Semanas y Escuchas para hacer cualquiera de las dos más ancha o más estrecha. Escuchas nunca queda demasiado estrecha para su número, y los botones ▶, ⋮ y trayectoria siguen teniendo su espacio completo."],
+
   "Row buttons always fit in the chart":
     ["Los botones de cada fila siempre caben en la lista",
      "La columna Escuchas tiene ahora un ancho fijo, y los botones ▶, ⋮ y trayectoria al final de cada fila siempre tienen su espacio completo. Si antes habías ajustado las columnas, el menú ⋮ podía quedar cortado en el borde de la lista; ahora siempre cabe."],
