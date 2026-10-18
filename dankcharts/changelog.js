@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 193;
+const DC_CL_I18N_V = 194;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-18', t: 'design', a: 'charts', h: 'ebbd1a3',
+    title: "A livelier Daily chart: day summary, Your day and toolbar",
+    detail: "The Today and Last 7 days panel and the Your day card now come after the chart. The panel has a bigger ring and bars, a badge for how your day compares with your usual one, a dashed line for the week's average, and tiles with covers for the day's first and last song (with their times), its top artist and the songs on repeat, which now take turns when there is more than one; click the tile to skip, hover to pause. Your day shows the mood you picked under its title and has mood buttons with their names. The compare switch and the Day recap, Share image, Play, Calendar and playlist buttons now match the Songs / Artists / Albums switch, with line icons, and Animate Chart matches the ⋮ button on every chart." },
 
   { d: '2026-10-18', t: 'feature', a: 'records', h: '3b3c2ca',
     title: "Calendar badges",

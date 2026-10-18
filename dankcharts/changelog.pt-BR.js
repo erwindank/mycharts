@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "A livelier Daily chart: day summary, Your day and toolbar":
+    ["Um gráfico Diário mais vivo: resumo do dia, Seu dia e barra de ferramentas",
+     "O painel de Hoje e Últimos 7 dias e o cartão Seu dia agora ficam depois do gráfico. O painel tem um anel e barras maiores, um selo que compara o dia com o seu dia normal, uma linha tracejada com a média da semana e blocos com capas para a primeira e a última música do dia (com o horário), o artista top e as músicas no repeat, que agora se revezam quando há mais de uma; clique no bloco para pular e passe o mouse para pausar. Seu dia mostra o humor escolhido sob o título e tem botões de humor com os nomes. O seletor de comparação e os botões de Resumo do dia, Compartilhar imagem, Tocar, Calendário e playlists agora combinam com o seletor Músicas / Artistas / Álbuns, com ícones de linha, e Animar gráfico combina com o botão ⋮ em todos os gráficos."],
+
   "Calendar badges":
     ["Conquistas de Calendário",
      "O grupo Calendário em Sequências Diárias → Recordes passa de uma conquista para 18: sequências em datas especiais (Ano-Novo, Dia dos Namorados, 29 de fevereiro, Halloween, as festas), nas estações (uma música do verão, uma sequência de inverno, as quatro estações num ano), cobrindo meses inteiros ou um ano inteiro, e aniversários, como o mesmo artista em sequência na mesma data em anos diferentes."],
