@@ -34203,6 +34203,9 @@ function openStreakModal(opts) {
     if (songBest[sk] >= 14 && ak && albBest[ak] >= 14) devSongs[ak] = (devSongs[ak] || 0) + 1;
   }
   const fanMost = maxOf(fanSongs), devMost = maxOf(devSongs);
+  // How many different albums reached a level (3 / 5 / 7 / 10 of its songs)
+  const albsAt = n => { let c = 0; for (const ak in devSongs) if (devSongs[ak] >= n) c++; return c; };
+  const albs3 = albsAt(3), albs5 = albsAt(5), albs7 = albsAt(7), albs10 = albsAt(10);
   const nArt30 = nBest(artBest, 30), nAlb14 = nBest(albBest, 14), nSong14 = nBest(songBest, 14);
   const n100 = nBest(songBest, 100) + nBest(artBest, 100) + nBest(albBest, 100);
   const n365 = nBest(songBest, 365) + nBest(artBest, 365) + nBest(albBest, 365);
@@ -34425,9 +34428,21 @@ function openStreakModal(opts) {
     { id: 'completeworks', g: 'fan', icon: '🗂️', ok: albMost >= 5, prog: albMost + '/5' },
     { id: 'boxset', g: 'fan', icon: '🧰', ok: albMost >= 10, prog: albMost + '/10' },
     { id: 'sidea', g: 'fan', icon: '💽', ok: devMost >= 3, prog: devMost + '/3' },
+    { id: 'triplea', g: 'fan', icon: '🅰️', ok: albs3 >= 3, prog: albs3 + '/3' },
+    { id: 'alist', g: 'fan', icon: '📋', ok: albs3 >= 5, prog: albs3 + '/5' },
+    { id: 'greatesthits', g: 'fan', icon: '🎙️', ok: albs3 >= 10, prog: albs3 + '/10' },
     { id: 'devotee', g: 'fan', icon: '🎧', ok: devMost >= 5, prog: devMost + '/5' },
+    { id: 'devlistener', g: 'fan', icon: '🎚️', ok: albs5 >= 3, prog: albs5 + '/3' },
+    { id: 'alblover', g: 'fan', icon: '💗', ok: albs5 >= 5, prog: albs5 + '/5' },
+    { id: 'albaddict', g: 'fan', icon: '🫀', ok: albs5 >= 10, prog: albs5 + '/10' },
     { id: 'sideb', g: 'fan', icon: '💾', ok: devMost >= 7, prog: devMost + '/7' },
+    { id: 'flipside', g: 'fan', icon: '🔃', ok: albs7 >= 3, prog: albs7 + '/3' },
+    { id: 'deepcuts', g: 'fan', icon: '⛏️', ok: albs7 >= 5, prog: albs7 + '/5' },
+    { id: 'bsidecoll', g: 'fan', icon: '🧮', ok: albs7 >= 10, prog: albs7 + '/10' },
     { id: 'fronttoback', g: 'fan', icon: '📀', ok: devMost >= 10, prog: devMost + '/10' },
+    { id: 'backtoback', g: 'fan', icon: '⏯️', ok: albs10 >= 3, prog: albs10 + '/3' },
+    { id: 'startfinish', g: 'fan', icon: '🏁', ok: albs10 >= 5, prog: albs10 + '/5' },
+    { id: 'covertocover', g: 'fan', icon: '📕', ok: albs10 >= 10, prog: albs10 + '/10' },
     { id: 'yearender', g: 'cal', icon: '🎆', ok: yearEnder, prog: '' },
   ];
 
