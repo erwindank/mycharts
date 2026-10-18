@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 177;
+const DC_CL_I18N_V = 178;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-18', t: 'feature', a: 'soundtrack', h: '9c3ed0b',
+    title: "Chart History replay: step week by week",
+    detail: "The Chart History replay on Your Soundtrack has ‹ and › buttons beside play/pause, to move back or forward one week at a time. Stepping pauses the replay so it stays on the week you picked." },
 
   { d: '2026-10-18', t: 'change', a: 'soundtrack', h: 'b35dbff',
     title: "Your Soundtrack banner: Your year in music",

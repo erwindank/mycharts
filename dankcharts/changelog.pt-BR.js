@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Chart History replay: step week by week":
+    ["Replay do Histórico de Charts: semana a semana",
+     "O replay do Histórico de Charts em Sua Trilha Sonora tem botões ‹ e › ao lado de tocar/pausar, para voltar ou avançar uma semana por vez. Ao usá-los o replay pausa e fica na semana escolhida."],
+
   "Your Soundtrack banner: Your year in music":
     ["O banner diz Seu ano em música",
      "A linha abaixo do ano no banner de Sua Trilha Sonora agora diz Seu ano em música (Seu mês em música para um único mês) em vez de Seu ano em som."],

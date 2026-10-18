@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Chart History replay: step week by week":
+    ["Repetición del Historial de Charts: semana a semana",
+     "La repetición del Historial de Charts en Tu Banda Sonora tiene botones ‹ y › junto a reproducir/pausar, para ir una semana atrás o adelante. Al usarlos la repetición se pausa y se queda en la semana elegida."],
+
   "Your Soundtrack banner: Your year in music":
     ["El banner dice Tu año en música",
      "La línea bajo el año en el banner de Tu Banda Sonora ahora dice Tu año en música (Tu mes en música para un solo mes) en vez de Tu año en sonido."],
