@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 185;
+const DC_CL_I18N_V = 186;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-18', t: 'feature', a: 'records', h: 'd3825f1',
+    title: "Easier Staying power badges",
+    detail: "The Staying power badges in Daily Streaks → Records were all hard to get, so there are six easier ones to work up to: keep something on a 7-day streak for a month, a 30-day streak going for 30 days, a 14-day streak going for 60 days, start a week-long streak in every quarter or every month of a year, and reach a 30-day streak in two different years. The section's descriptions are also clearer, saying exactly what to do." },
 
   { d: '2026-10-18', t: 'feature', a: 'records', h: '4670b1f',
     title: "22 more streak badges",

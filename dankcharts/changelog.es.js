@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Easier Staying power badges":
+    ["Insignias de Constancia más fáciles",
+     "Las insignias de Constancia en Rachas Diarias → Récords eran todas difíciles, así que hay seis más fáciles para ir subiendo: mantener algo en una racha de 7 días durante un mes, una racha de 30 días activa durante 30 días, una de 14 días durante 60 días, empezar una racha de una semana en cada trimestre o en cada mes de un año, y llegar a una racha de 30 días en dos años distintos. Las descripciones de la sección también son más claras y dicen exactamente qué hacer."],
+
   "22 more streak badges":
     ["22 insignias de rachas más",
      "Rachas Diarias → Récords tiene ahora 52 insignias. Entre las nuevas: rachas de 200 días, dos años y 1000 días, 25 rachas largas el mismo día, 100 canciones distintas o 25 álbumes distintos con una racha de dos semanas, una racha que se mantiene dos años, rachas que vuelven por tercera vez o tras tres años, un artista con tres álbumes en rachas largas, y un nuevo grupo Calendario que empieza con una racha todavía activa en Nochevieja. Dentro de cada grupo las insignias van ahora de la más fácil a la más difícil."],

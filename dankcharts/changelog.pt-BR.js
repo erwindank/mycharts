@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Easier Staying power badges":
+    ["Conquistas de Constância mais fáceis",
+     "As conquistas de Constância em Sequências Diárias → Recordes eram todas difíceis, então há seis mais fáceis para ir subindo: manter algo numa sequência de 7 dias por um mês, uma sequência de 30 dias ativa por 30 dias, uma de 14 dias por 60 dias, começar uma sequência de uma semana em cada trimestre ou em cada mês de um ano, e chegar a uma sequência de 30 dias em dois anos diferentes. As descrições da seção também ficaram mais claras e dizem exatamente o que fazer."],
+
   "22 more streak badges":
     ["Mais 22 conquistas de sequências",
      "Sequências Diárias → Recordes agora tem 52 conquistas. Entre as novas: sequências de 200 dias, dois anos e 1.000 dias, 25 sequências longas no mesmo dia, 100 músicas diferentes ou 25 álbuns diferentes com uma sequência de duas semanas, uma sequência mantida por dois anos, sequências que voltam pela terceira vez ou depois de três anos, um artista com três álbuns em sequências longas, e um novo grupo Calendário que começa com uma sequência ainda ativa na véspera de Ano-Novo. Dentro de cada grupo, as conquistas agora vão da mais fácil à mais difícil."],
