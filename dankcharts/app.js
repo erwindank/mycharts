@@ -18365,7 +18365,7 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
       <!-- ▶ sample + ⋮ menu share the trailing column with the chart-run icon, as on the main charts -->
       <td class="cr-cell">${ytBtn}<button class="cr-toggle-btn bu-cr-btn" title="${esc(t('bucr_btn_title'))}" onclick="event.stopPropagation();toggleBuCr(this,'${buCrRowId}')">${CR_ICON}</button></td>
     </tr>`;
-    const expandRow = `<tr class="bu-cr-row cr-row" id="${buCrRowId}"><td colspan="4"><div class="cr-panel bu-cr-panel">${buildBuCrPanelHTML(type, key)}</div></td></tr>`;
+    const expandRow = `<tr class="bu-cr-row cr-row" id="${buCrRowId}"><td colspan="4"><div class="cr-panel bu-cr-panel" data-bucrtype="${type}" data-bucrkey="${esc(key)}">${buildBuCrPanelHTML(type, key)}</div></td></tr>`;
     return [mainRow, expandRow];
   });
 

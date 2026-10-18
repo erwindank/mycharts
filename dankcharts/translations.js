@@ -11301,7 +11301,31 @@ function setLanguage(lang) {
       openPanels.push({ crtype: panel.dataset.crtype, crkey: panel.dataset.crkey });
     });
 
+    // Bubbling Under run panels carry their own data-bucr* tags (kept apart
+    // from data-cr* so they never match a main chart run panel for the same
+    // key); remember them too, and whether the "With chart" view was on.
+    const openBuPanels = [];
+    document.querySelectorAll('.bu-cr-row.open .bu-cr-panel[data-bucrtype][data-bucrkey]').forEach(panel => {
+      const combined = panel.querySelector('.bu-cr-view-combined');
+      openBuPanels.push({ type: panel.dataset.bucrtype, key: panel.dataset.bucrkey, combined: !!combined && combined.style.display !== 'none' });
+    });
+
     renderAll();
+
+    // Reopen the Bubbling Under panels (and their view) after the re-render
+    openBuPanels.forEach(({ type, key, combined }) => {
+      const panel = Array.from(document.querySelectorAll('.bu-cr-panel[data-bucrtype="' + type + '"]'))
+        .find(p => p.dataset.bucrkey === key);
+      const crRow = panel && panel.closest('.bu-cr-row');
+      if (!crRow) return;
+      crRow.classList.add('open');
+      const btn = crRow.previousElementSibling && crRow.previousElementSibling.querySelector('.bu-cr-btn');
+      if (btn) btn.classList.add('active');
+      if (combined) {
+        const segBtns = panel.querySelectorAll('.bu-cr-seg .cr-range-btn');
+        if (segBtns[1]) toggleBuCombinedView(segBtns[1], true);
+      }
+    });
 
     // Restore open state for any panels that were open before the re-render
     openPanels.forEach(({ crtype, crkey }) => {
