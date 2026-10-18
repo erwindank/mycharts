@@ -36550,15 +36550,34 @@ body.cp-hide-cert-reel    #certReelSection { display: none !important; }
 .ea-dr-fact { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 6px; }
 .ea-dr-fact .ea-dr-k { margin-right: 2px; }
 
-.ea-dr-acts { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
-.cr-panel .ea-dr-btn {
-  display: inline-flex; align-items: center; gap: 6px; width: auto; height: auto;
-  padding: 6px var(--sp-3); border: 1px solid var(--border2); border-radius: var(--r-full);
-  background: transparent; color: var(--text); opacity: 1;
-  font: inherit; font-size: var(--fs-sm); cursor: pointer;
-  transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+/* Actions: one compact toolbar — a soft track holding small borderless
+   buttons (short word + accent icon), same idea as the .cr-seg switch.
+   Was five outlined pills with long labels that wrapped to two rows. */
+.ea-dr-acts {
+  display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px;
+  border-radius: var(--r-full);
+  background: color-mix(in srgb, var(--text) 6%, transparent);
 }
+.cr-panel .ea-dr-btn {
+  display: inline-flex; align-items: center; gap: 5px; width: auto; height: auto;
+  padding: 5px 11px; border: 0; border-radius: var(--r-full);
+  background: transparent; color: var(--text2); opacity: 1;
+  font: inherit; font-size: var(--fs-xs); font-weight: 600; cursor: pointer; white-space: nowrap;
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+.cr-panel .ea-dr-btn .ea-dr-ic { color: var(--accent); }
 .cr-panel .ea-dr-btn:hover { background: var(--hover); color: var(--text); }
+.cr-panel .ea-dr-btn.ea-sample.is-on .ea-dr-ic { color: inherit; }
+/* Phones: the toolbar spans the width as five even columns, icon above a
+   small word, so it stays one tidy row instead of wrapping into a blob */
+@media (max-width: 600px) {
+  .ea-dr-acts { display: grid; grid-template-columns: repeat(5, 1fr); width: 100%; border-radius: var(--r-md); }
+  .cr-panel .ea-dr-btn {
+    flex-direction: column; justify-content: center; gap: 2px; padding: 6px 2px;
+    border-radius: var(--r-sm); font-size: 0.6875rem; min-width: 0;
+  }
+  .cr-panel .ea-dr-btn .ea-dr-ic { font-size: var(--fs-sm); }
+}
 .cr-panel .ea-dr-btn.ea-sample.is-on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 .cr-panel .ea-dr-btn.ea-sample.is-loading { animation: eaPulse 1s ease-in-out infinite; }
 .cr-panel .ea-dr-btn.ea-sample.is-miss { opacity: 0.5; }
@@ -36603,7 +36622,9 @@ body.cp-hide-cert-reel    #certReelSection { display: none !important; }
    the top of its chart-run panel, and this period's figures lead the run's
    row of tiles, tinted so "now" reads apart from the run's totals. */
 .cr-panel[data-ea-type] { cursor: auto; }
-.cr-entry { position: relative; display: flex; flex-direction: column; gap: var(--sp-2); padding-right: 36px; margin-bottom: var(--sp-3); }
+/* Facts (album, artists) on the left, the action toolbar on the right — one
+   line on desktop, wrapping under each other when there is no room */
+.cr-entry { position: relative; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-2) var(--sp-4); padding-right: 36px; margin-bottom: var(--sp-3); }
 .ea-drawer > .cr-panel { margin: 0; }
 /* The panel draws its own box; the drawer is only where it sits */
 .ea-drawer { padding: 0; gap: 0; border: 0; background: none; }

@@ -18982,7 +18982,8 @@ function _eaPaintSamples() {
     btn.title = lbl;
     btn.setAttribute('aria-label', lbl);
     // The drawer's labelled button says what a click will do
-    if (btn.classList.contains('ea-dr-btn') && btn.lastChild) btn.lastChild.textContent = on && !_eaClipLoading ? t('ea_sample_stop_menu') : t('ea_sample');
+    // (short word: the drawer's buttons are a compact toolbar, full wording in the tooltip)
+    if (btn.classList.contains('ea-dr-btn') && btn.lastChild) btn.lastChild.textContent = on && !_eaClipLoading ? t('ea_s_stop') : t('ea_s_sample');
   });
 }
 
@@ -19360,13 +19361,16 @@ function _crEntryHTML(f) {
   } else if (f.songCount) {
     facts.push(`<span class="ea-dr-fact"><span class="ea-dr-k">${esc(t('dr_songs'))}</span>${f.songCount}</span>`);
   }
-  const btn = (action, icon, label, cls) =>
-    `<button type="button" class="ea-dr-btn${cls ? ' ' + cls : ''}"${action ? ` data-dr-action="${action}"` : ''}><span aria-hidden="true">${icon}</span>${esc(label)}</button>`;
-  const acts = btn('', '♪', t('ea_sample'), 'ea-sample') +
-    btn('play', '▶', t('ea_play_now')) +
-    btn('playlist', '≡', t('ea_add_playlist')) +
-    btn('details', 'ⓘ', t('dr_more')) +
-    btn('yt', '↗', t('ea_search_yt'));
+  // Compact toolbar: a short word on each button, the full wording as its
+  // tooltip / accessible name (the long labels made five big pills that
+  // wrapped onto two rows)
+  const btn = (action, icon, label, full, cls) =>
+    `<button type="button" class="ea-dr-btn${cls ? ' ' + cls : ''}"${action ? ` data-dr-action="${action}"` : ''} title="${esc(full)}" aria-label="${esc(full)}"><span class="ea-dr-ic" aria-hidden="true">${icon}</span>${esc(label)}</button>`;
+  const acts = btn('', '♪', t('ea_s_sample'), t('ea_sample'), 'ea-sample') +
+    btn('play', '▶', t('ea_s_video'), t('ea_play_now')) +
+    btn('playlist', '≡', t('ea_s_playlist'), t('ea_add_playlist')) +
+    btn('yt', '↗', t('ea_s_search'), t('ea_search_yt')) +
+    btn('details', 'ⓘ', t('ea_s_details'), t('dr_more'));
   return `<div class="cr-entry">` +
       (facts.length ? `<div class="ea-dr-facts">${facts.join('')}</div>` : '') +
       `<div class="ea-dr-acts">${acts}</div>` +
