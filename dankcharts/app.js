@@ -34158,6 +34158,8 @@ function openStreakModal(opts) {
     return { most, lit: litBest };
   }
   const at30 = mostAtOnce(30), at100 = mostAtOnce(100);
+  // Easier fires for Staying power (2026-10-18): something on day 7+ / 14+
+  const at7 = mostAtOnce(7), at14 = mostAtOnce(14);
   // Every season: a 14-day streak started in each month of one calendar year
   const monthsByYear = {};
   for (const r of allRuns) for (const x of r.runs) if (x.len >= 14) {
@@ -34166,6 +34168,19 @@ function openStreakModal(opts) {
   }
   let seasonsBest = 0;
   for (const y in monthsByYear) if (monthsByYear[y].size > seasonsBest) seasonsBest = monthsByYear[y].size;
+  // The easier versions: a 7-day streak started in every month (Regular) or
+  // in every quarter, Jan–Mar / Apr–Jun / Jul–Sep / Oct–Dec (Four quarters)
+  const months7ByYear = {};
+  for (const r of allRuns) for (const x of r.runs) {
+    const d = new Date(x.s * 86400000), y = d.getUTCFullYear();
+    (months7ByYear[y] = months7ByYear[y] || new Set()).add(d.getUTCMonth());
+  }
+  let months7Best = 0, quartersBest = 0;
+  for (const y in months7ByYear) {
+    const m = months7ByYear[y], q = new Set([...m].map(x => Math.floor(x / 3)));
+    if (m.size > months7Best) months7Best = m.size;
+    if (q.size > quartersBest) quartersBest = q.size;
+  }
   // Comebacks: a record of 14+ beaten by a later run (Phoenix), a 7+ run back
   // more than a year after the last one ended (Old flame), and how many things
   // had two 7+ runs at all (Serial returner)
@@ -34260,11 +34275,17 @@ function openStreakModal(opts) {
     { id: 'immortals', g: 'many', icon: '🗿', ok: n100 >= 10,       prog: n100 + '/10' },
     { id: 'evergreen', g: 'many', icon: '🌲', ok: n365 >= 3,        prog: n365 + '/3' },
     { id: 'allround',  g: 'many', icon: '🎯', ok: allRound,         prog: '' },
+    { id: 'kindling',  g: 'stay', icon: '🪵', ok: at7.lit >= 30,    prog: at7.lit + 'd' },
+    { id: 'hearth',    g: 'stay', icon: '🏡', ok: at30.lit >= 30,   prog: at30.lit + 'd' },
+    { id: 'slowburn',  g: 'stay', icon: '♨️', ok: at14.lit >= 60,   prog: at14.lit + 'd' },
     { id: 'eternal',   g: 'stay', icon: '🏮', ok: at30.lit >= 100,  prog: at30.lit + 'd' },
     { id: 'nevercold', g: 'stay', icon: '☀️', ok: at30.lit >= 365,  prog: at30.lit + 'd' },
     { id: 'undying',   g: 'stay', icon: '♾️', ok: at30.lit >= 730,  prog: at30.lit + 'd' },
+    { id: 'quarters',  g: 'stay', icon: '🧭', ok: quartersBest >= 4, prog: quartersBest + '/4' },
+    { id: 'regular',   g: 'stay', icon: '📆', ok: months7Best >= 12, prog: months7Best + '/12' },
     { id: 'seasons',   g: 'stay', icon: '🗓️', ok: seasonsBest >= 12, prog: seasonsBest + '/12' },
     { id: 'seasoned',  g: 'stay', icon: '🍂', ok: seasonYears >= 3, prog: seasonYears + '/3' },
+    { id: 'yearafter', g: 'stay', icon: '🔂', ok: years30.size >= 2, prog: years30.size + '/2' },
     { id: 'thruyears', g: 'stay', icon: '⏳', ok: years30.size >= 5, prog: years30.size + '/5' },
     { id: 'comeback',  g: 'back', icon: '🔁', ok: comeback,         prog: '' },
     { id: 'thirdtime', g: 'back', icon: '🍀', ok: mostRuns >= 3,    prog: mostRuns + '/3' },
