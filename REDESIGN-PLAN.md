@@ -1606,6 +1606,16 @@ animation, 12 screen check.
   apart, a table drawn while hidden, window resize, double-click and menu
   reset, phone switch-off, phone fit unchanged. Noted again: between 600
   and 980px wide the whole page still scrolls sideways (older, phase 5).
+  **Then, your call: the row look is reverted.** The rounded strip per
+  row, the gold / silver / bronze tints on #1–#3 and the gold ring on #1 are
+  back (the thin-divider rows and #1-only wash are gone). Kept from step 7:
+  Move header, 3px coloured play bar, wrapping album column, adjustable
+  columns. **Covers 48px on every row** (was 44px; #1 no bigger than the
+  rest), 40px on phones. **Phones:** no play bar in the table, rank header
+  is "#", NEW / RE no longer repeats under the plays (the Move chip says
+  it), the ⋮ column is 24px, and headers no longer break mid-word. Title ·
+  Artist on a 390px phone: 112px in English (83px before step 7), 100px in
+  Portuguese, 77px in Spanish; every table still fits its card.
 
 The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in

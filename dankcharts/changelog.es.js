@@ -20,9 +20,9 @@ window.DC_CHANGELOG_I18N['es'] = {
     ["Ajusta el ancho de las columnas del chart",
      "En el ordenador ya puedes arrastrar la línea entre dos encabezados de columna en las tablas de Canciones, Artistas y Álbumes para ensanchar o estrechar una columna, en todos los periodos. La columna de al lado cede el espacio, así que la tabla siempre cabe. Tus anchos se guardan (y siguen a tu cuenta en otros dispositivos). Haz doble clic en la línea, o abre el menú ⋮ del chart → Size → Restablecer anchos de columna, para volver a los anchos automáticos."],
 
-  "A cleaner chart table that fits on phones":
-    ["Una tabla de chart más limpia que cabe en el móvil",
-     "El diseño Tabla se parece más a un chart impreso: las filas se separan con una línea fina en vez de ir cada una en su caja, las portadas son un poco más grandes y solo el #1 lleva un realce suave. Las barras de reproducciones son más finas pero mantienen sus colores, y los nombres de álbum largos se reparten en su propia columna sin apretar los títulos. La columna Anterior ahora se llama Cambio y sigue mostrando el puesto anterior bajo la flecha. En el móvil la tabla ya no se sale por la derecha en ningún idioma: la columna de reproducciones muestra solo el número, con el cambio debajo."],
+  "Bigger covers in the chart table, and more room for titles on phones":
+    ["Portadas más grandes en la tabla del chart y más espacio para los títulos en el móvil",
+     "Las portadas del diseño Tabla son más grandes en todas las filas, y los nombres de álbum largos se reparten en su propia columna sin apretar los títulos. Las barras de reproducciones son más finas pero mantienen sus colores. La columna Anterior ahora se llama Cambio y sigue mostrando el puesto anterior bajo la flecha. En el móvil la tabla ya no se sale por la derecha en ningún idioma, y Título · Artista gana mucho espacio: la columna de reproducciones muestra solo el número (con el cambio debajo, sin barra) y la columna de puesto se llama #."],
 
   "Daily: Days on chart counts every day again":
     ["Diario: Días en el chart vuelve a contar todos los días",

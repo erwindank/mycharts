@@ -5736,19 +5736,22 @@
       color: var(--text3);
     }
 
-    /* CHART TABLE — phase 7 step 7 (REDESIGN-PLAN.md 4.10).
-       Was (2026-10 refresh) a rounded strip per row floating on the card,
-       with gold/silver/bronze tints on the top three and a gold ring on #1.
-       Now it reads like a printed chart: open rows split by one thin line,
-       64px tall with 48px covers, hover lightening the whole row, and only
-       #1 set apart, by a soft tint (no ring, no box). The medal colours stay
-       on the #1–#3 rank numbers. The Bubbling Under / Off the Chart / New
-       Entries tables share these rules (step 10 restyles them further). */
+    /* CHART TABLE — 2026-10 refresh.
+       Was a boxed spreadsheet: filled thead, vertical rules between every
+       header cell, full-width hairlines and flat square row tints. Now each
+       row is its own rounded strip floating on the section card, separated
+       by a few px of air instead of a line, with a borderless header that
+       just labels the columns. border-collapse has to be `separate` for the
+       per-cell rounding below — collapse ignores border-radius on cells.
+       (Phase 7 step 7 tried open rows split by thin lines with only #1
+       tinted; you preferred these strips and the #1–#3 colours, so they
+       came back the same day. The rest of step 7 stayed.) */
     .chart-table {
       width: 100%;
-      border-collapse: separate; /* keeps #1's rounded corners possible */
-      border-spacing: 0;
+      border-collapse: separate;
+      border-spacing: 0 4px;
       background: transparent;
+      margin-top: -4px; /* swallow the first spacing gap so the header sits flush */
     }
 
     .chart-table thead {
@@ -5776,25 +5779,24 @@
       transition: background var(--t-fast) var(--ease);
     }
 
-    /* The divider and the hover wash are painted on the cells, since a <tr>
-       takes neither a border (in separate mode) nor a radius */
+    /* The row strip is painted on the cells (not the <tr>) because browsers
+       don't round a <tr>; the first and last cell carry the corners. */
     .chart-table tbody tr > td {
-      background: transparent;
-      border-bottom: 1px solid var(--border-t);
+      background: color-mix(in srgb, var(--text) 3%, transparent);
       transition: background var(--t-fast) var(--ease);
     }
 
-    /* No line under the last row: the section card's edge closes the list.
-       In Yearly / All-Time every row is followed by its (hidden) chart-run
-       row, so the last visible row is the second-last child there. */
-    .chart-table tbody tr:last-child > td,
-    .chart-table tbody tr:nth-last-child(2):has(+ tr.cr-row:not(.open)) > td {
-      border-bottom-color: transparent;
+    .chart-table tbody tr > td:first-child {
+      border-radius: 12px 0 0 12px;
     }
 
-    /* A single-cell row (empty states) has no line of its own */
+    .chart-table tbody tr > td:last-child {
+      border-radius: 0 12px 12px 0;
+    }
+
+    /* A single-cell row (the chart-run panel, empty states) is rounded all round */
     .chart-table tbody tr > td:only-child {
-      border-bottom: 0;
+      border-radius: 12px;
     }
 
     .chart-table tbody tr:hover > td {
@@ -5802,33 +5804,60 @@
     }
 
     /* The chart-run row carries its own rounded card (.cr-panel), so the
-       hover wash stays off it. */
+       strip tint and hover wash stay off it. */
     .chart-table tbody tr.cr-row > td,
     .chart-table tbody tr.cr-row:hover > td {
       background: transparent;
     }
 
-    /* #1: a soft gold wash (the colour of its rank number) with rounded ends,
-       and no divider of its own so the wash isn't cut by a line. */
+    /* Medal rows: a tint of the medal token itself (light themes already
+       darken --medal-*), so the strip reads as gold/silver/bronze on every
+       theme instead of the old hard-coded rgba amber that went muddy on light. */
     .chart-table tbody tr.rank-1 > td {
-      background: color-mix(in srgb, var(--medal-gold) 8%, transparent);
-      border-bottom-color: transparent;
+      background: color-mix(in srgb, var(--medal-gold) 11%, transparent);
+    }
+
+    .chart-table tbody tr.rank-2 > td {
+      background: color-mix(in srgb, var(--medal-silver) 8%, transparent);
+    }
+
+    .chart-table tbody tr.rank-3 > td {
+      background: color-mix(in srgb, var(--medal-bronze) 9%, transparent);
     }
 
     .chart-table tbody tr.rank-1:hover > td {
-      background: color-mix(in srgb, var(--medal-gold) 14%, transparent);
+      background: color-mix(in srgb, var(--medal-gold) 18%, transparent);
+    }
+
+    .chart-table tbody tr.rank-2:hover > td {
+      background: color-mix(in srgb, var(--medal-silver) 14%, transparent);
+    }
+
+    .chart-table tbody tr.rank-3:hover > td {
+      background: color-mix(in srgb, var(--medal-bronze) 15%, transparent);
+    }
+
+    /* #1 also gets a hairline ring in gold so it lifts off the list like the
+       top slot on a chart-show lower third. Drawn as an inset shadow on each
+       cell (top/bottom on all, plus the outer side on the end cells) since a
+       <tr> can't take a rounded outline. */
+    .chart-table tbody tr.rank-1 > td {
+      box-shadow: inset 0 1px 0 color-mix(in srgb, var(--medal-gold) 30%, transparent),
+                  inset 0 -1px 0 color-mix(in srgb, var(--medal-gold) 30%, transparent);
     }
 
     .chart-table tbody tr.rank-1 > td:first-child {
-      border-radius: 12px 0 0 12px;
+      box-shadow: inset 1px 1px 0 color-mix(in srgb, var(--medal-gold) 30%, transparent),
+                  inset 0 -1px 0 color-mix(in srgb, var(--medal-gold) 30%, transparent);
     }
 
     .chart-table tbody tr.rank-1 > td:last-child {
-      border-radius: 0 12px 12px 0;
+      box-shadow: inset -1px 1px 0 color-mix(in srgb, var(--medal-gold) 30%, transparent),
+                  inset 0 -1px 0 color-mix(in srgb, var(--medal-gold) 30%, transparent);
     }
 
     .chart-table td {
-      padding: var(--sp-2) 0.85rem;
+      padding: 0.6rem 0.85rem;
       vertical-align: middle;
       font-size: var(--fs-base);
     }
@@ -5879,12 +5908,14 @@
         /* background-clip:text clips every background layer, which would
            strip this cell's share of the row tint — so the tint is repainted
            as a big inset shadow (shadows sit above the background, below the
-           text). Same values as the row rule. */
-        --r1-tint: color-mix(in srgb, var(--medal-gold) 8%, transparent);
-        box-shadow: inset 0 0 0 200px var(--r1-tint);
+           text), alongside the gold ring lines from the row rule. */
+        --r1-tint: color-mix(in srgb, var(--medal-gold) 11%, transparent);
+        box-shadow: inset 1px 1px 0 color-mix(in srgb, var(--medal-gold) 30%, transparent),
+                    inset 0 -1px 0 color-mix(in srgb, var(--medal-gold) 30%, transparent),
+                    inset 0 0 0 200px var(--r1-tint);
       }
       .chart-table tbody tr.rank-1:hover > td.rank-cell {
-        --r1-tint: color-mix(in srgb, var(--medal-gold) 14%, transparent);
+        --r1-tint: color-mix(in srgb, var(--medal-gold) 18%, transparent);
       }
     }
 
@@ -6029,16 +6060,11 @@
       border-color: rgba(245, 158, 11, 0.3);
     }
 
-    /* Chart table covers (4.10): 48px, and a little bigger on #1 */
+    /* Chart table covers: 48px on every row (was 44px) */
     .chart-table .thumb,
     .chart-table .thumb-initials {
       width: 48px;
       height: 48px;
-    }
-    .chart-table tr.rank-1 .thumb,
-    .chart-table tr.rank-1 .thumb-initials {
-      width: 56px;
-      height: 56px;
     }
 
     .thumb-cell {
@@ -12073,11 +12099,6 @@
          ~30px past the right edge and cut off the plays. */
       .chart-table .thumb,
       .chart-table .thumb-initials {
-        width: 36px;
-        height: 36px;
-      }
-      .chart-table tr.rank-1 .thumb,
-      .chart-table tr.rank-1 .thumb-initials {
         width: 40px;
         height: 40px;
       }
@@ -12095,22 +12116,37 @@
       .chart-table .thumb-cell {
         padding: 0.3rem 0.2rem !important;
       }
-      /* Long single words (a title like "BRAND NEW CHANEL$", headers like
-         "Puesto") set a column's minimum width; let them break on phones so
+      /* The ⋮ column: its header carries a 38px inline width from JS, more
+         than the lone ⋮ button needs on a phone */
+      .chart-table thead th.cr-th {
+        width: 24px !important;
+      }
+      /* Long single words (a title like "BRAND NEW CHANEL$") set a column's
+         minimum width; let them break on phones so
          the columns can share the width instead of pushing the table out */
       .chart-table .song-title,
-      .chart-table .song-artist,
-      .chart-table thead th {
+      .chart-table .song-artist {
         overflow-wrap: anywhere;
       }
       /* The Plays header names the column, so the rows show just the number */
       .chart-table .play-count .cnt-unit {
         display: none;
       }
+      /* No play bar on phones (your call): the number says it, and the
+         column can shrink to the number, leaving the width to Title · Artist */
+      .chart-table .play-bar {
+        display: none;
+      }
       .chart-table .play-count > [class^="m-"] {
         display: block;
         margin-left: 0 !important;
         margin-top: 1px;
+      }
+      /* NEW / RE is already the Move chip on the same row; only the change
+         in plays (+10, −3) repeats under the number */
+      .chart-table .play-count > .m-new,
+      .chart-table .play-count > .m-re {
+        display: none;
       }
 
       .thumb {
@@ -12245,11 +12281,7 @@
        thumbnail column so the chart table still fits without a horizontal scroll */
     @media (max-width: 340px) {
       .thumb,
-      .thumb-initials,
-      .chart-table .thumb,
-      .chart-table .thumb-initials,
-      .chart-table tr.rank-1 .thumb,
-      .chart-table tr.rank-1 .thumb-initials {
+      .thumb-initials {
         width: 30px;
         height: 30px;
       }
@@ -12266,14 +12298,17 @@
     /* Short column header label — hidden by default, shown only on portrait phones */
     .th-plays-short,
     .th-prev-short,
+    .th-rank-short,
     .th-period-short { display: none; }
 
     @media (max-width: 600px) and (orientation: portrait) {
       .th-plays-full,
       .th-prev-full,
+      .th-rank-full,
       .th-period-full { display: none; }
       .th-plays-short,
       .th-prev-short,
+      .th-rank-short,
       .th-period-short { display: inline; }
     }
 

@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 167;
+const DC_CL_I18N_V = 168;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -85,8 +85,8 @@ const DC_CHANGELOG = [
     detail: "On a computer you can now drag the line between two column headers in the Songs, Artists and Albums tables to make a column wider or narrower, on every period. The column next to it gives up the space, so the table always fits. Your widths are saved (and follow your account to other devices). Double-click the line, or open the chart's ⋮ menu → Size → Reset column widths, to go back to the automatic widths." },
 
   { d: '2026-10-17', t: 'feature', a: 'charts', h: '98e03fc',
-    title: "A cleaner chart table that fits on phones",
-    detail: "The Table layout reads more like a printed chart: rows are split by a thin line instead of each sitting in its own box, covers are a little bigger, and only #1 gets a soft highlight. The play bars are thinner but keep their colours, and long album names wrap neatly in their own column without squeezing the titles. The Previous column is now called Move, and still shows last period's rank under the arrow. On phones the table no longer runs off the right edge in any language: the plays column shows just the number, with the change under it." },
+    title: "Bigger covers in the chart table, and more room for titles on phones",
+    detail: "Covers in the Table layout are bigger on every row, and long album names wrap neatly in their own column without squeezing the titles. The play bars are thinner but keep their colours. The Previous column is now called Move, and still shows last period's rank under the arrow. On phones the table no longer runs off the right edge in any language, and Title · Artist gets much more room: the plays column shows just the number (with the change under it, no bar), and the rank column is labelled #." },
 
   { d: '2026-10-17', t: 'fix', a: 'charts', h: 'dfeb253',
     title: "Daily: Days on chart counts every day again",
