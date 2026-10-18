@@ -17921,7 +17921,7 @@ function buCrBoxesHTML(type, key) {
     const isPeak = (e.buRank === d.peakBuRank);
     const cls = isPeak ? 'cr-box cr-box-peak' : 'cr-box';
     const box = `<div class="${cls}" onclick="showBuCrPreview('${esc(e.periodKey)}','${type}','${safeKey}',this)">
-      <div class="cr-box-rank">BU${e.buRank}</div>
+      <div class="cr-box-rank">${t('bucr_prefix')}${e.buRank}</div>
       <div class="cr-box-label">${esc(crPeriodLabel('week', e.periodKey))}</div>
     </div>`;
     if (i === 0) return [box];
@@ -17961,7 +17961,7 @@ function buildCombinedCrBoxesHTML(type, key) {
     } else {
       const isPeak = buD && e.buRank === buD.peakBuRank;
       cls = isPeak ? 'cr-box cr-box-bu-entry cr-box-peak' : 'cr-box cr-box-bu-entry';
-      rankText = `BU${e.buRank}`;
+      rankText = t('bucr_prefix') + e.buRank;
       onclk = `showBuCrPreview('${esc(e.periodKey)}','${type}','${safeKey}',this)`;
     }
     const box = `<div class="${cls}" onclick="${onclk}">
@@ -18006,7 +18006,7 @@ function buildCrWithBuBoxesHTML(type, key, d) {
     } else {
       const isPeak = buD && e.buRank === buD.peakBuRank;
       cls = isPeak ? 'cr-box cr-box-bu-miss cr-box-bu-miss-peak' : 'cr-box cr-box-bu-miss';
-      rankText = `BU${e.buRank}`;
+      rankText = t('bucr_prefix') + e.buRank;
       onclk = `showBuCrPreview('${esc(e.periodKey)}','${type}','${safeKey}',this)`;
     }
     const box = `<div class="${cls}" onclick="${onclk}">
@@ -18100,7 +18100,7 @@ function buildBuCrPanelHTML(type, key) {
 
   // Peak tile: the BU spot, with the overall rank it equals as a small note
   // (was "Peak BU1 · closest to the chart (chart rank #11)" squeezed into one tile)
-  const peakHtml = `BU${peak}<span class="bu-cr-note">${esc(t('bucr_peak_overall', { n: chartSize + peak }))}</span>`;
+  const peakHtml = `${t('bucr_prefix')}${peak}<span class="bu-cr-note">${esc(t('bucr_peak_overall', { n: chartSize + peak }))}</span>`;
   const statsHtml = `<div class="cr-stats">
     ${crTile(t('bucr_k_weeks'), n)}
     ${crTile(t('cr_k_peak'), peakHtml, 'bu-cr-peak')}
@@ -18150,14 +18150,14 @@ function showBuCrPreview(periodKey, type, encodedKey, boxEl) {
   }
   const items = entries.map(e => {
     const isActive = (e.key === key);
-    return `<div class="cr-preview-item${isActive ? ' highlighted' : ''}"><span class="cr-preview-rank">BU${e.buRank}</span><span>${esc(e.displayName)}</span></div>`;
+    return `<div class="cr-preview-item${isActive ? ' highlighted' : ''}"><span class="cr-preview-rank">${t('bucr_prefix')}${e.buRank}</span><span>${esc(e.displayName)}</span></div>`;
   }).join('');
   const popup = document.createElement('div');
   popup.className = 'cr-preview';
   popup.id = 'buCrPreviewPopup';
   popup.style.position = 'fixed';
   popup.innerHTML = `<button class="cr-preview-close" onclick="hideBuCrPreview()">✕</button>`
-    + `<div class="cr-preview-title"><a class="cr-preview-link" href="#chart/week/${periodKey}" onclick="event.preventDefault();navigateToCrChart('week','${periodKey}')">${esc(title)}</a> · BU ${typeLabels[type]}</div>`
+    + `<div class="cr-preview-title"><a class="cr-preview-link" href="#chart/week/${periodKey}" onclick="event.preventDefault();navigateToCrChart('week','${periodKey}')">${esc(title)}</a> · ${t('bucr_legend_bu')} · ${typeLabels[type]}</div>`
     + items;
   document.body.appendChild(popup);
   // Position near the box, keep within viewport
