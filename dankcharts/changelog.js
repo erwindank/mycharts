@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 201;
+const DC_CL_I18N_V = 202;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-19', t: 'design', a: 'charts', h: '083ca8a',
+    title: "A clearer Stack chart layout",
+    detail: "Stack rows now look like Compact's with bigger covers: the rank with its movement under it, the title, then the artist and album on their own line, and the plays on the right. With two columns on, the chart reads down the first column and then the second (1–5, 6–10), with #1 across the top of both, instead of zig-zagging 1, 2 / 3, 4. The top 3 get the Table's gold, silver and bronze tints instead of a pulsing glow. On a phone badges wrap under the title instead of being cut off at the end of the row. Weeks on chart and all-time plays are in the details panel." },
 
   { d: '2026-10-19', t: 'fix', a: 'playlists', h: '59723c6',
     title: "Better playlist names, and calendar exports that work while loading",

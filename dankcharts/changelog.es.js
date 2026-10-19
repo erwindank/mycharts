@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "A clearer Stack chart layout":
+    ["Un diseño Pila más claro",
+     "Las filas del diseño Pila ahora se parecen a las de Compacto, con portadas más grandes: el puesto con su movimiento debajo, el título, luego el artista y el álbum en su propia línea, y las escuchas a la derecha. Con dos columnas, el chart se lee hacia abajo por la primera columna y luego por la segunda (1–5, 6–10), con el #1 arriba ocupando las dos, en lugar de ir en zigzag 1, 2 / 3, 4. El top 3 lleva los tonos oro, plata y bronce de la Tabla en lugar de un brillo que palpita. En el móvil las insignias bajan debajo del título en lugar de quedar cortadas al final de la fila. Las semanas en el chart y las escuchas totales están en el panel de detalles."],
+
   "Better playlist names, and calendar exports that work while loading":
     ["Mejores nombres de playlist y exportaciones del calendario que funcionan mientras carga",
      "Al exportar el ranking Diario ahora se sugieren nombres que encajan con el día, como Top 27 de Hoy, Top 27 del lunes, Ranking Diario · 19 Oct 2026 y Mi Mix del lunes. Exportar Playlist del calendario de Eventos (vista Día, solo Sencillos) sugiere Un Día Como Hoy, Sencillos del Recuerdo y los artistas del día. Ese botón, junto con Reproducir todo y Crear playlist, tampoco hacía nada mientras el calendario seguía cargando tus artistas; ahora funcionan al momento con lo que ya se ha cargado."],

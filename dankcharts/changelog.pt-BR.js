@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "A clearer Stack chart layout":
+    ["Um layout Pilha mais claro",
+     "As linhas do layout Pilha agora parecem as do Compacto, com capas maiores: a posição com a variação embaixo, o título, depois o artista e o álbum na própria linha, e os plays à direita. Com duas colunas, o chart se lê descendo pela primeira coluna e depois pela segunda (1–5, 6–10), com o #1 em cima ocupando as duas, em vez de ir em zigue-zague 1, 2 / 3, 4. O top 3 ganha os tons ouro, prata e bronze da Tabela em vez de um brilho pulsante. No celular os selos descem para baixo do título em vez de ficarem cortados no fim da linha. As semanas no chart e os plays totais estão no painel de detalhes."],
+
   "Better playlist names, and calendar exports that work while loading":
     ["Nomes de playlist melhores e exportações do calendário que funcionam durante o carregamento",
      "Ao exportar a parada Diária agora aparecem nomes que combinam com o dia, como Top 27 de Hoje, Top 27 de segunda-feira, Parada Diária · 19 Oct 2026 e Meu Mix de segunda-feira. O Exportar Playlist do calendário de Eventos (visão Dia, só Singles) sugere Neste Dia, Singles Nostálgicos e os artistas do dia. Esse botão, junto com Tocar tudo e Criar playlist, também não fazia nada enquanto o calendário ainda buscava seus artistas; agora funcionam na hora com o que já carregou."],
