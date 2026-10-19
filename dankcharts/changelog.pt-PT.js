@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Deleted auto-correct rules stay deleted":
+    ["Regras de correção automática apagadas já não voltam",
+     "Apagar uma regra de correção automática podia parecer resultar e depois a regra voltava, porque outro dispositivo ou a sua Folha Google ainda tinha uma cópia e voltava a partilhá-la. Agora as regras apagadas são lembradas em todos os dispositivos, na folha e na sua conta, por isso não voltam; criar a mesma regra outra vez, ou importá-la, continua a trazê-la de volta. As regras que não mudam nada (o mesmo artista, música e álbum antes e depois) também são removidas: eram elas que mostravam um aviso de \"entradas corrigidas na folha\" em cada carregamento sem corrigir nada."],
+
   "Easier-to-read labels in the Daily day summary":
     ["Etiquetas mais fáceis de ler no resumo do dia do Diário",
      "As etiquetas pequenas dos blocos Primeira, Última, Artista de topo e Em repetição por baixo do gráfico Diário estão um pouco maiores, e no telemóvel a hora passa para baixo da etiqueta quando o bloco é demasiado estreito, em vez de sair do limite."],

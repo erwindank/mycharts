@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Deleted auto-correct rules stay deleted":
+    ["Las reglas de autocorrección borradas ya no vuelven",
+     "Al borrar una regla de autocorrección podía parecer que funcionaba y luego la regla volvía, porque otro dispositivo o tu Hoja de Google aún tenían una copia y la volvían a compartir. Ahora las reglas borradas se recuerdan en cada dispositivo, en la hoja y en tu cuenta, así que no vuelven; crear la misma regla de nuevo, o importarla, sí la recupera. También se eliminan las reglas que no cambian nada (mismo artista, canción y álbum antes y después): eran las que mostraban un aviso de \"entradas autocorregidas en la hoja\" en cada carga sin corregir nada."],
+
   "Easier-to-read labels in the Daily day summary":
     ["Etiquetas más legibles en el resumen del día de Diario",
      "Las etiquetas pequeñas de las fichas Primera, Última, Artista top y En bucle bajo el gráfico Diario son un poco más grandes, y en el móvil la hora pasa debajo de la etiqueta cuando la ficha es demasiado estrecha, en lugar de salirse del borde."],
