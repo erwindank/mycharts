@@ -16,9 +16,13 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "In Stack, the plays-peak tag sits with the plays":
+    ["En Pila, el récord de reproducciones va junto a las reproducciones",
+     "La insignia LOGRO MÁS ALTO del diseño Pila pasó de estar junto al título a ir justo después de las reproducciones de este periodo, así que se entiende como un récord de reproducciones y no del puesto en el chart. Cuando no cabe junto al número baja debajo, completa, en lugar de quedar cortada."],
+
   "A cleaner Card grid, with the top 3 glowing again":
     ["Una Cuadrícula más limpia, con el top 3 brillando otra vez",
-     "Las portadas de la Cuadrícula ahora son cuadradas en lugar de recortadas. El puesto va en la esquina superior izquierda (oro, plata y bronce para el top 3), el movimiento en la superior derecha y la certificación en la esquina inferior. Debajo de la portada van el título con su insignia de pico, el artista y luego las reproducciones de este periodo y el tiempo en el chart, con Buscar en Spotify, el botón de muestra y ⋮ al final. El top 3 vuelve a brillar: un error impedía que se viera. Cinco portadas por fila en la computadora, tres en una tableta y dos en el móvil, y el botón de tamaño está en tu idioma (Portadas más grandes). Las barras de reproducciones y los bordes verdes y rojos ya no están."],
+     "Las portadas de la Cuadrícula ahora son cuadradas en lugar de recortadas. El puesto va en la esquina superior izquierda (oro, plata y bronce para el top 3) con el logro al lado, el movimiento en la superior derecha y la certificación en la esquina inferior. Debajo de la portada van el título, el artista, luego las reproducciones de este periodo (con la insignia de récord de reproducciones justo después) y el tiempo en el chart, y una fila con Buscar en Spotify, el botón de muestra y ⋮. El top 3 vuelve a brillar: un error impedía que se viera. Cinco portadas por fila en la computadora, tres en una tableta y dos en el móvil, y el botón de tamaño está en tu idioma (Portadas más grandes). Las barras de reproducciones y los bordes verdes y rojos ya no están."],
 
   "A clearer Stack chart layout":
     ["Un diseño Pila más claro",

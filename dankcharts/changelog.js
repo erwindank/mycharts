@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 205;
+const DC_CL_I18N_V = 206;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -80,9 +80,13 @@ const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
 
+  { d: '2026-10-19', t: 'fix', a: 'charts', h: '03d2ba7',
+    title: "In Stack, the plays-peak tag sits with the plays",
+    detail: "The Stack layout's plays-peak tag (PLAYS PEAK) moved from beside the title to right after this period's plays, so it reads as a record for the plays and not for the chart position. When it doesn't fit beside the count it wraps underneath, whole, instead of being cut off." },
+
   { d: '2026-10-19', t: 'design', a: 'charts', h: '7d7714d',
     title: "A cleaner Card grid, with the top 3 glowing again",
-    detail: "Card grid covers are square now instead of cropped. The rank sits in the top-left corner (gold, silver and bronze for the top 3), the movement in the top-right, and the certification in the bottom corner. Under the cover come the title with its peak badge, the artist, then this period's plays and time on the chart, with Search on Spotify, the sample button and ⋮ at the end. The top 3 glow again: a bug had stopped it from ever showing. Five covers across on a computer, three on a tablet, two on a phone, and the size button is in your language (Bigger covers). The play bars and the green and red borders are gone." },
+    detail: "Card grid covers are square now instead of cropped. The rank sits in the top-left corner (gold, silver and bronze for the top 3) with the peak beside it, the movement in the top-right, and the certification in the bottom corner. Under the cover come the title, the artist, then this period's plays (with the plays-peak tag right after them) and time on the chart, and a row with Search on Spotify, the sample button and ⋮. The top 3 glow again: a bug had stopped it from ever showing. Five covers across on a computer, three on a tablet, two on a phone, and the size button is in your language (Bigger covers). The play bars and the green and red borders are gone." },
 
   { d: '2026-10-19', t: 'design', a: 'charts', h: '1ef43b9',
     title: "A clearer Stack chart layout",

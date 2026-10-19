@@ -16,9 +16,13 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "In Stack, the plays-peak tag sits with the plays":
+    ["Na Pilha, o pico de plays fica junto dos plays",
+     "O selo PICO DE PLAYS do layout Pilha saiu do lado do título e foi para logo depois dos plays deste período, então ele é lido como um recorde de plays e não da posição no chart. Quando não cabe ao lado do número, ele desce para baixo, inteiro, em vez de ficar cortado."],
+
   "A cleaner Card grid, with the top 3 glowing again":
     ["Uma Grade mais limpa, com o top 3 brilhando de novo",
-     "As capas da Grade agora são quadradas em vez de cortadas. A posição fica no canto superior esquerdo (ouro, prata e bronze para o top 3), a variação no superior direito e a certificação no canto inferior. Abaixo da capa vêm o título com o selo de pico, o artista e depois os plays deste período e o tempo no chart, com Buscar no Spotify, o botão de amostra e ⋮ no fim. O top 3 voltou a brilhar: um bug impedia que aparecesse. Cinco capas por linha no computador, três no tablet e duas no celular, e o botão de tamanho está no seu idioma (Capas maiores). As barras de plays e as bordas verdes e vermelhas saíram."],
+     "As capas da Grade agora são quadradas em vez de cortadas. A posição fica no canto superior esquerdo (ouro, prata e bronze para o top 3) com o pico ao lado, a variação no superior direito e a certificação no canto inferior. Abaixo da capa vêm o título, o artista, depois os plays deste período (com o selo de pico de plays logo em seguida) e o tempo no chart, e uma linha com Buscar no Spotify, o botão de amostra e ⋮. O top 3 voltou a brilhar: um bug impedia que aparecesse. Cinco capas por linha no computador, três no tablet e duas no celular, e o botão de tamanho está no seu idioma (Capas maiores). As barras de plays e as bordas verdes e vermelhas saíram."],
 
   "A clearer Stack chart layout":
     ["Um layout Pilha mais claro",

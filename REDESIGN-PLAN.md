@@ -1703,7 +1703,7 @@ animation, 12 screen check.
   sideways scroll), es, Navy light, drawer by real click, no JS errors.
   **Worth reusing for Card grid and Filmstrip:** the numbers line and the
   Spotify button. **Merged to `main` and pushed 2026-10-19.**
-- **Step 8, Card grid ✓ (2026-10-19, 7d7714d).** **Square covers** (were a
+- **Step 8, Card grid ✓ (2026-10-19, 7d7714d, then 03d2ba7).** **Square covers** (were a
   fixed 140px tall, cropped) with the rank chip top-left (gold / silver /
   bronze for #1–#3), the movement chip top-right on dark glass with bright
   colours in every theme, and certification / score in the cover's
@@ -1728,7 +1728,24 @@ animation, 12 screen check.
   off and on, all 5 periods × 3 types (no element past its card), es, Navy
   light, the details panel by a real click, no JS errors. The 900px
   sideways scroll on Weekly is the phase-5 top bar (980px wide on the Table
-  too), still for step 12. Next: Filmstrip, then Mosaic.
+  too), still for step 12.
+  **Then, from your Spanish light-theme screenshot (03d2ba7):**
+  - **The personal-best tag sat by the title and read as if the *rank*
+    was the best yet.** It is now inside the plays item of the numbers line
+    (`_wvStatsLine`), in Stack and Card grid: "15 reproducciones ▲ MÁX",
+    wrapping under the count, whole, when it doesn't fit. Card grid uses
+    the short form (▲ PB / ▲ MÁX / ▲ PICO; full wording in the tooltip).
+    The numbers line keeps each dot in its own left padding (out of the
+    text flow), so a stat that wraps inside itself starts its second line
+    at the visible edge.
+  - **"reproducciones" was cut off** by Spotify · ▶ · ⋮ sharing its row.
+    The numbers now get the card's full width; the buttons sit on a row
+    under them, right-aligned.
+  - **Peak tag on the cover,** beside the rank chip (`.wv-gc-tl`), on dark
+    glass with the bright tier colours; the title row has no badges now.
+    (#1–#3 peak tags are `.peak-badge-1/2/3` *instead of* `.peak-badge`,
+    so cover rules must name all four.)
+  Next: Filmstrip, then Mosaic.
 - **Step 10, started early (2026-10-18).** Done so far:
   - **Off the Chart rows:** ▶ and ⋮ in their own end column. On phones the
     row restacks: the title wraps instead of being cut, plays and weeks go
