@@ -18,7 +18,7 @@ const SYNC_KEYS = [
   'dc_lfm_api_secret', 'dc_lfm_session_key', 'dc_lfm_session_user',
   'dc_display_name', 'dc_timezone', 'dc_week_start_day', 'dc_cert_config',
   'dc_events_artist_limit', 'dc_theme', 'dc_lang',
-  'dc_autocorrect_rules', 'dc_compilation_albums', 'dc_release_types',
+  'dc_autocorrect_rules', 'dc_autocorrect_deleted', 'dc_compilation_albums', 'dc_release_types',
   'dc_release_separation', 'dc_release_autodetect', 'dc_single_rollup',
   'dc_no_artist_split', 'dc_tm_api_key',
   'dc_tm_toggles',
@@ -88,6 +88,18 @@ async function _loadAndApplyConfig(uid) {
         if ((key === 'dc_autocorrect_rules' || key === 'dc_compilation_albums') && data[key] === '[]') {
           const local = localStorage.getItem(key);
           if (local && local !== '[]') { applied = true; continue; }
+        }
+        // Deleted-rule records are merged, not replaced: a deletion made on this
+        // device before the cloud copy caught up must not be forgotten (the
+        // later of the two times wins per rule).
+        if (key === 'dc_autocorrect_deleted') {
+          let local = {}, remote = {};
+          try { local = JSON.parse(localStorage.getItem(key) || '{}') || {}; } catch {}
+          try { remote = JSON.parse(String(data[key])) || {}; } catch {}
+          for (const [k, t] of Object.entries(remote)) if (!(local[k] >= t)) local[k] = t;
+          localStorage.setItem(key, JSON.stringify(local));
+          applied = true;
+          continue;
         }
         // Same guard for the release-type map, whose empty form is an object.
         // It is hand-built (and later machine-detected) over a whole library,

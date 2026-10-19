@@ -2090,7 +2090,72 @@ function refreshSettingsI18n() {
 const RULES_KEY = 'dc_autocorrect_rules';
 
 let _rulesCache = null;
-window.dcResetRulesCache = () => { _rulesCache = null; };
+
+// ── Deleted-rule memory ("tombstones") ──
+// Rules live in four places (this device's localStorage + IndexedDB, the sheet's
+// script properties, the Firestore config doc) and every merge between them is a
+// union. Without a record of deletions, any copy that still held a deleted rule
+// (another device, the sheet) added it straight back to all the others, so a
+// rule could never really be deleted. Each deletion now leaves
+// { ruleKey: deletedAt } in dc_autocorrect_deleted (synced via SYNC_KEYS), and
+// every merge drops a rule whose key was deleted after the rule was created.
+// Re-creating the same rule later gives it a newer createdAt, so it comes back.
+const RULES_DELETED_KEY = 'dc_autocorrect_deleted';
+const _ruleMatchKey = r => JSON.stringify([r.match.artist, r.match.title, r.match.album]);
+
+function _getRuleTombstones() {
+  try {
+    const o = JSON.parse(localStorage.getItem(RULES_DELETED_KEY) || '{}');
+    return (o && typeof o === 'object' && !Array.isArray(o)) ? o : {};
+  } catch { return {}; }
+}
+
+// Records the given rules as deleted (locally and in the cloud)
+function _tombstoneRules(rules) {
+  if (!rules.length) return;
+  const t = _getRuleTombstones();
+  const now = Date.now();
+  for (const r of rules) t[_ruleMatchKey(r)] = now;
+  const json = JSON.stringify(t);
+  localStorage.setItem(RULES_DELETED_KEY, json);
+  if (typeof dcSaveConfigKey === 'function') dcSaveConfigKey(RULES_DELETED_KEY, json);
+}
+
+// A rule whose replacement equals its match changes nothing — but the sheet's
+// applyRules still counted every matching row as "corrected", so one of these
+// showed an "Auto-corrected N entries" toast on every load. They are dropped.
+function _isNoopRule(r) {
+  return r.match.artist === r.replace.artist && r.match.title === r.replace.title && r.match.album === r.replace.album;
+}
+
+// Drops malformed, no-op and deleted rules from a merged list
+function _liveRules(rules) {
+  const t = _getRuleTombstones();
+  return (rules || []).filter(r => {
+    if (!r || !r.match || !r.replace) return false;
+    if (_isNoopRule(r)) return false;
+    const deletedAt = t[_ruleMatchKey(r)];
+    return !(deletedAt && (r.createdAt || 0) <= deletedAt);
+  });
+}
+
+// Called by firebase.js after it has written the cloud copy into localStorage.
+// Re-reads the rules with the (possibly new) deletions applied and, if that
+// removed anything, writes the clean list back everywhere — before the sign-in
+// callback's dcSaveUserConfig() pushes localStorage up to Firestore.
+window.dcResetRulesCache = () => {
+  _rulesCache = null;
+  let raw = [];
+  try { raw = JSON.parse(localStorage.getItem(RULES_KEY) || '[]'); } catch {}
+  if (!Array.isArray(raw)) raw = [];
+  const live = _liveRules(raw);
+  _rulesCache = live;
+  if (live.length !== raw.length) {
+    localStorage.setItem(RULES_KEY, JSON.stringify(live));
+    saveToIDB(IDB_RULES_KEY, { rules: live }).catch(() => {});
+    syncRulesToSheet();
+  }
+};
 
 async function initRulesCache() {
   const idbData = await loadFromIDB(IDB_RULES_KEY).catch(() => null);
@@ -2107,6 +2172,7 @@ async function initRulesCache() {
   } else {
     _rulesCache = localRules;
   }
+  _rulesCache = _liveRules(_rulesCache);
   if (_rulesCache.length > 0) {
     localStorage.setItem(RULES_KEY, JSON.stringify(_rulesCache));
     saveToIDB(IDB_RULES_KEY, { rules: _rulesCache }).catch(() => {});
@@ -2120,6 +2186,7 @@ function getAutocorrectRules() {
   // initRulesCache() unconditionally overwrites _rulesCache once the IDB merge lands,
   // and dcResetRulesCache() still forces a fresh read by nulling it.
   try { _rulesCache = JSON.parse(localStorage.getItem(RULES_KEY) || '[]'); } catch { _rulesCache = []; }
+  _rulesCache = _liveRules(Array.isArray(_rulesCache) ? _rulesCache : []);
   return _rulesCache;
 }
 
@@ -2127,12 +2194,16 @@ function saveAutocorrectRule(origArtist, origTitle, origAlbum, newArtist, newTit
   const rules = getAutocorrectRules().filter(r =>
     !(r.match.artist === origArtist && r.match.title === origTitle && r.match.album === origAlbum)
   );
-  rules.push({
+  const rule = {
     id: Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
     match:   { artist: origArtist, title: origTitle, album: origAlbum },
     replace: { artist: newArtist,  title: newTitle,  album: newAlbum  },
     createdAt: Date.now()
-  });
+  };
+  // Saving an entry back to its own values is not a rule — it only undoes
+  // the old one for that match, so record that as a deletion instead
+  if (_isNoopRule(rule)) _tombstoneRules([rule]);
+  else rules.push(rule);
   _rulesCache = rules;
   const rulesJson = JSON.stringify(rules);
   localStorage.setItem(RULES_KEY, rulesJson);
@@ -2142,6 +2213,7 @@ function saveAutocorrectRule(origArtist, origTitle, origAlbum, newArtist, newTit
 }
 
 function deleteAutocorrectRule(id) {
+  _tombstoneRules(getAutocorrectRules().filter(r => r.id === id));
   const rules = getAutocorrectRules().filter(r => r.id !== id);
   _rulesCache = rules;
   const rulesJson = JSON.stringify(rules);
@@ -2164,6 +2236,7 @@ function findSimilarRules(origArtist, origTitle, origAlbum) {
 function overrideSimilarRules(similar) {
   if (!similar.length) return;
   const ids  = new Set(similar.map(r => r.id));
+  _tombstoneRules(similar);
   const rules = getAutocorrectRules().filter(r => !ids.has(r.id));
   _rulesCache  = rules;
   const json   = JSON.stringify(rules);
@@ -2358,12 +2431,15 @@ async function loadRulesFromSheet() {
     if (!res.ok) return false;
     const data = await res.json();
     if (data.status !== 'ok' || !data.rules) return false;
-    const sheetRules = JSON.parse(data.rules);
-    if (!Array.isArray(sheetRules)) return false;
+    const sheetRulesRaw = JSON.parse(data.rules);
+    if (!Array.isArray(sheetRulesRaw)) return false;
+    // The sheet may still hold rules deleted elsewhere — leave them out, and
+    // rewrite the sheet's copy below so it stops handing them back
+    const sheetRules = _liveRules(sheetRulesRaw);
     const local = getAutocorrectRules();
     const localJsonBefore = JSON.stringify(local);
     const merged = [...sheetRules];
-    let addedFromLocal = 0;
+    let addedFromLocal = sheetRules.length !== sheetRulesRaw.length ? 1 : 0;
     for (const r of local) {
       const key = r.match.artist + '|' + r.match.title + '|' + r.match.album;
       if (!merged.some(s => s.match.artist + '|' + s.match.title + '|' + s.match.album === key)) {
@@ -2409,14 +2485,15 @@ function importRules() {
       for (const r of imported) {
         const key = r.match?.artist + '|' + r.match?.title + '|' + r.match?.album;
         if (!existing.some(x => x.match.artist + '|' + x.match.title + '|' + x.match.album === key)) {
-          existing.push(r);
+          // Stamped now: importing is a deliberate re-add, so it beats an older deletion
+          existing.push({ ...r, createdAt: Date.now() });
           added++;
         }
       }
-      _rulesCache = existing;
-      const rulesJson = JSON.stringify(existing);
+      _rulesCache = _liveRules(existing);
+      const rulesJson = JSON.stringify(_rulesCache);
       localStorage.setItem(RULES_KEY, rulesJson);
-      saveToIDB(IDB_RULES_KEY, { rules: existing }).catch(() => {});
+      saveToIDB(IDB_RULES_KEY, { rules: _rulesCache }).catch(() => {});
       renderRulesList();
       syncRulesToSheet();
       if (typeof dcSaveRulesToFirestore === 'function') dcSaveRulesToFirestore(rulesJson);
