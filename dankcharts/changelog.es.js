@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Deleted auto-correct rules stay deleted":
+    ["Las reglas de autocorrección borradas ya no vuelven",
+     "Al borrar una regla de autocorrección podía parecer que funcionaba y luego la regla volvía, porque otro dispositivo o tu Hoja de Google aún tenían una copia y la volvían a compartir. Ahora las reglas borradas se recuerdan en cada dispositivo, en la hoja y en tu cuenta, así que no vuelven; crear la misma regla de nuevo, o importarla, sí la recupera. También se eliminan las reglas que no cambian nada (mismo artista, canción y álbum antes y después): eran las que mostraban un aviso de \"entradas autocorregidas en la hoja\" en cada carga sin corregir nada."],
+
   "A tidier Compact chart layout":
     ["Un diseño Compacto más ordenado",
      "Las columnas del diseño Compacto ahora quedan alineadas bajo sus encabezados, que están en tu idioma y coinciden con los de la Tabla (Cambio, Semanas, Escuchas). El título y el artista van juntos a la izquierda en lugar de en los extremos de la fila, y la columna de semanas muestra solo el número. En el móvil el artista pasa debajo del título y las semanas pasan al panel de detalles, así que los títulos se leen en lugar de quedar cortados a una o dos letras; las insignias bajan debajo del título, con los diamantes como 💎."],

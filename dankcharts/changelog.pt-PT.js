@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Deleted auto-correct rules stay deleted":
+    ["Regras de correção automática apagadas já não voltam",
+     "Apagar uma regra de correção automática podia parecer resultar e depois a regra voltava, porque outro dispositivo ou a sua Folha Google ainda tinha uma cópia e voltava a partilhá-la. Agora as regras apagadas são lembradas em todos os dispositivos, na folha e na sua conta, por isso não voltam; criar a mesma regra outra vez, ou importá-la, continua a trazê-la de volta. As regras que não mudam nada (o mesmo artista, música e álbum antes e depois) também são removidas: eram elas que mostravam um aviso de \"entradas corrigidas na folha\" em cada carregamento sem corrigir nada."],
+
   "A tidier Compact chart layout":
     ["Um esquema Compacto mais arrumado",
      "As colunas do esquema Compacto ficam agora alinhadas sob os cabeçalhos, que estão no seu idioma e iguais aos da Tabela (Variação, Semanas, Plays). Título e artista ficam juntos à esquerda em vez de nas pontas da linha, e a coluna de semanas mostra só o número. No telemóvel o artista passa para baixo do título e as semanas passam para o painel de detalhes, por isso os títulos leem-se em vez de ficarem cortados numa ou duas letras; os selos descem para baixo do título, com os diamantes como 💎."],

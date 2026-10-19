@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 196;
+const DC_CL_I18N_V = 197;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-19', t: 'fix', a: 'rawdata', h: 'e368e16',
+    title: "Deleted auto-correct rules stay deleted",
+    detail: "Deleting an auto-correct rule could seem to work and then the rule came back, because another device or your Google Sheet still had a copy and shared it again. Deleted rules are now remembered on every device, the sheet and your account, so they stay gone; making the same rule again, or importing it, still brings it back. Rules that change nothing (the same artist, song and album before and after) are removed too: they were behind an \"Auto-corrected entries in sheet\" message that appeared on every load without anything being corrected." },
 
   { d: '2026-10-18', t: 'design', a: 'charts', h: '4b1c0c3',
     title: "A tidier Compact chart layout",
