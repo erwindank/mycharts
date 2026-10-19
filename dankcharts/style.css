@@ -8815,24 +8815,6 @@
       .dc-pl-add-card { opacity: 1; }
     }
 
-    /* Card Grid's hover overlay pairs the ＋ with a 38px round play button, so it
-       needs breathing room and a little more presence than the table-row size. */
-    .wv-gc-hover { gap: var(--sp-2); }
-
-    .wv-gc-hover .dc-pl-add-btn {
-      width: 26px;
-      height: 26px;
-      border-radius: 50%;
-      background: rgba(0, 0, 0, 0.45);
-      border-color: rgba(255, 255, 255, 0.35);
-      color: #fff;
-    }
-
-    .wv-gc-hover .dc-pl-add-btn .dc-pl-add-icon {
-      width: 14px;
-      height: 14px;
-    }
-
     /* Compact variant for table rows and list rows, which are much tighter */
     .dc-pl-add-sm {
       width: 18px;
@@ -31499,49 +31481,93 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
 .wv-card-art { position: relative; }
 .wv-card-body { padding: 0.4rem var(--sp-2) var(--sp-2); }
 
-/* ── CARD GRID ── */
-.wv-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--sp-2); padding: var(--sp-1) 0 var(--sp-1) var(--sp-1); }
-.wv-grid-lg { grid-template-columns: repeat(3, 1fr); }
-.wv-grid-card .wv-card-art .wv-thumb-lg { width: 100%; }
-.wv-grid-card .wv-card-art .wv-thumb-lg .thumb-wrap { width: 100%; }
+/* ── CARD GRID ── (phase 7 step 8, 4.9b)
+   Square covers with the rank top-left and the movement top-right, the
+   certification / score in the cover's bottom-left corner. Under it: Title
+   (+ peak, personal best), Artist, then the numbers line and Spotify · ▶ · ⋮
+   on one row. The top 3 glow like Stack's cards. 5 across on desktop, 3 on
+   tablets, 2 on phones; "Bigger covers" makes it 3 / 2 / 1. */
+.wv-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--sp-3); padding: var(--sp-1); }
+.wv-grid-lg { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 980px) {
+  .wv-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .wv-grid-lg { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 600px) {
+  .wv-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-2); }
+  .wv-grid-lg { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* The card. No overflow: hidden, so the glow isn't clipped: the cover
+   rounds its own top corners instead. position + z-index make the card its
+   own stacking context, so the glow (z-index -1) sits under its content. */
+.wv-grid-card.wv-card {
+  position: relative; z-index: 0; overflow: visible;
+  display: flex; flex-direction: column;
+  border-radius: var(--r-md); box-shadow: none; cursor: pointer;
+  transition: background var(--t-fast) var(--ease);
+}
+.wv-grid-card:hover { background: color-mix(in srgb, var(--text) 4%, var(--bg2)); }
+/* Top 3: the glow from Stack, a fixed shadow on a layer whose opacity
+   breathes, in the medal colours (light themes get their own) */
+.wv-r1.wv-grid-card { --gc-glow: var(--medal-gold);   --gc-glow-t: 2.5s; }
+.wv-r2.wv-grid-card { --gc-glow: var(--medal-silver); --gc-glow-t: 3s; }
+.wv-r3.wv-grid-card { --gc-glow: var(--medal-bronze); --gc-glow-t: 3.5s; }
+.wv-r1.wv-grid-card, .wv-r2.wv-grid-card, .wv-r3.wv-grid-card {
+  border-color: color-mix(in srgb, var(--gc-glow) 60%, transparent);
+  background: color-mix(in srgb, var(--gc-glow) 7%, var(--bg2));
+  box-shadow: none;
+}
+.wv-r1.wv-grid-card:hover, .wv-r2.wv-grid-card:hover, .wv-r3.wv-grid-card:hover { background: color-mix(in srgb, var(--gc-glow) 12%, var(--bg2)); }
+.wv-r1.wv-grid-card::before, .wv-r2.wv-grid-card::before, .wv-r3.wv-grid-card::before {
+  content: ''; position: absolute; inset: -1px; z-index: -1; border-radius: inherit; pointer-events: none;
+  box-shadow: 0 0 0 1px var(--gc-glow), 0 0 22px color-mix(in srgb, var(--gc-glow) 50%, transparent), 0 0 44px color-mix(in srgb, var(--gc-glow) 18%, transparent);
+  opacity: 0.5; animation: stk-glow var(--gc-glow-t) ease-in-out infinite alternate;
+}
+.wv-r1.wv-grid-card::before { box-shadow: 0 0 0 1px var(--gc-glow), 0 0 28px color-mix(in srgb, var(--gc-glow) 60%, transparent), 0 0 56px color-mix(in srgb, var(--gc-glow) 25%, transparent); }
+@media (prefers-reduced-motion: reduce) {
+  .wv-r1.wv-grid-card::before, .wv-r2.wv-grid-card::before, .wv-r3.wv-grid-card::before { animation: none; opacity: 0.8; }
+}
+
+/* Square cover, filling the card's width */
+.wv-grid-card .wv-card-art { overflow: hidden; border-radius: calc(var(--r-md) - 1px) calc(var(--r-md) - 1px) 0 0; }
+.wv-grid-card .wv-card-art .wv-thumb-lg,
+.wv-grid-card .wv-card-art .wv-thumb-lg .thumb-wrap,
 .wv-grid-card .wv-card-art .wv-thumb-lg .thumb-wrap > div { width: 100%; }
 .wv-grid-card .wv-card-art .wv-thumb-lg .thumb-initials,
-.wv-grid-card .wv-card-art .wv-thumb-lg .thumb { width: 100%; height: 140px; border-radius: 0; }
-.wv-grid-lg .wv-grid-card .wv-card-art .wv-thumb-lg .thumb-initials,
-.wv-grid-lg .wv-grid-card .wv-card-art .wv-thumb-lg .thumb { height: 210px; }
+.wv-grid-card .wv-card-art .wv-thumb-lg .thumb { width: 100%; height: auto; aspect-ratio: 1; border-radius: 0; font-size: 1.6rem; }
+/* Rank chip: bigger on the grid, gold / silver / bronze for the top 3 */
+.wv-grid-card .wv-rank-badge { top: 6px; left: 6px; font-size: var(--fs-base); padding: 2px 8px; border-radius: var(--r-xs); z-index: 1; }
+/* Movement chip, top-right, on dark glass with bright colours (any theme) */
+.wv-grid-card .wv-mv-ov { top: 6px; right: 6px; z-index: 1; padding: 2px 6px; border-radius: var(--r-xs); background: rgba(0,0,0,0.72); line-height: 1.4; }
+.wv-grid-card .wv-mv-ov .wv-up   { color: #4ade80; }
+.wv-grid-card .wv-mv-ov .wv-down { color: #f87171; }
+.wv-grid-card .wv-mv-ov .wv-same { color: #cbd5e1; }
+.wv-grid-card .wv-mv-ov :is(.wv-new, .wv-re) { color: #93c5fd; background: none; border: 0; padding: 0; }
+
+/* Under the cover: Title (+ badges), Artist, then numbers · actions */
+.wv-grid-card .wv-card-body { display: flex; flex-direction: column; gap: 3px; flex: 1; padding: var(--sp-2) var(--sp-2) 6px; }
+.wv-gc-title { display: flex; flex-wrap: wrap; align-items: center; gap: 3px 6px; min-width: 0; }
+.wv-gc-ttl { font-size: var(--fs-sm); font-weight: 600; color: var(--text); line-height: 1.3; min-width: 0; max-width: 100%;
+  overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
+/* Badges take the title's 600 weight, as on Stack */
+.wv-gc-badges { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 3px 5px; font-weight: 600; min-width: 0; max-width: 100%; }
+.wv-gc-badges > * { margin-left: 0; max-width: 100%; }
+.wv-gc-badges:empty { display: none; }
+.wv-gc-artist { font-size: var(--fs-xs); color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* The numbers on the left, the actions on the right; they share the
+   card's bottom edge however tall the title is */
+.wv-gc-foot { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-1); margin-top: auto; padding-top: 2px; }
+.wv-gc-foot .wv-stats { flex: 1; min-width: 0; }
+.wv-gc-foot .wv-acts { margin-right: -4px; }
 
 /* density toggle toolbar */
 .wv-grid-toolbar { display: flex; justify-content: flex-end; padding: 0 var(--sp-1) 6px; }
 .wv-grid-density-btn { font-size: var(--fs-xs); font-family: var(--font-sans); padding: 3px 9px; border-radius: var(--r-xs); border: 1px solid var(--border2); background: var(--bg2); color: var(--text2); cursor: pointer; transition: border-color 0.15s, color 0.15s; }
 .wv-grid-density-btn:hover, .wv-grid-density-btn.active { border-color: var(--accent); color: var(--accent); }
 
-/* bigger rank badge for grid cards */
-.wv-grid-card .wv-rank-badge { font-size: var(--fs-base); padding: 2px 7px; border-radius: var(--r-xs); }
-
-/* click-to-play cursor */
-.wv-grid-card[onclick] { cursor: pointer; }
-
-/* allow title/artist to wrap in grid cards */
-.wv-grid-card .wv-ttl,
-.wv-grid-card .wv-art { white-space: normal; overflow: visible; text-overflow: unset; }
-
-/* plays row: count left, movement badge right */
-.wv-gc-plays-row { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-1); }
-.wv-gc-plays-row .wv-same { display: none; }
-
-/* hover play overlay */
-.wv-gc-hover { position: absolute; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.18s; pointer-events: none; }
-.wv-grid-card:hover .wv-gc-hover { opacity: 1; pointer-events: auto; }
-/* The overlay holds only the ＋, which the charts no longer show, so the dark
-   overlay goes too: a hover never darkens a card for nothing. */
-#songsSection   .wv-gc-hover,
-#artistsSection .wv-gc-hover,
-#albumsSection  .wv-gc-hover { display: none; }
-
 /* cert badge overlaid on card art */
-.wv-gc-pb { position: absolute; top: 6px; right: 6px; pointer-events: none; line-height: 1; }
-.wv-gc-pb .plays-peak-badge { margin: 0; background: rgba(0,0,0,0.72); border-color: transparent; }
-.wv-gc-cert { position: absolute; bottom: 0; left: 0; right: 0; display: flex; justify-content: center; padding-bottom: 3px; pointer-events: none; }
+.wv-gc-cert { position: absolute; bottom: 6px; left: 6px; right: 6px; z-index: 1; display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 3px; font-weight: 600; pointer-events: none; }
 .wv-gc-cert .cert { margin-left: 0; font-size: var(--fs-xs); padding: 1px var(--sp-1); background: rgba(0,0,0,0.72) !important; backdrop-filter: blur(2px); }
 .wv-gc-cert .cert-icon { font-size: 8px; }
 /* Score chip over the cover art. The shared chip is a faint 14% tint meant for
@@ -31563,11 +31589,11 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
    certifications, scores and personal best deep text colours made for white
    cards, which nearly vanish there, so on these surfaces they use bright hues
    in every theme (the tier is still told by the colour). */
-:is(#songsSection, #artistsSection, #albumsSection) :is(.wv-gc-cert, .wv-gc-pb, .wv-mos-hcard, .wv-mos-back) .cert-gold    { color: #fbbf24; border-color: rgba(251, 191, 36, 0.55); }
-:is(#songsSection, #artistsSection, #albumsSection) :is(.wv-gc-cert, .wv-gc-pb, .wv-mos-hcard, .wv-mos-back) .cert-plat    { color: #e2e8f0; border-color: rgba(226, 232, 240, 0.5); }
-:is(#songsSection, #artistsSection, #albumsSection) :is(.wv-gc-cert, .wv-gc-pb, .wv-mos-hcard, .wv-mos-back) .cert-diamond { color: #7dd3fc; border-color: rgba(125, 211, 252, 0.55); }
-:is(#songsSection, #artistsSection, #albumsSection) :is(.wv-gc-cert, .wv-gc-pb, .wv-mos-hcard, .wv-mos-back) .rt-chip      { color: #fff; }
-:is(#songsSection, #artistsSection, #albumsSection) :is(.wv-gc-cert, .wv-gc-pb, .wv-mos-hcard, .wv-mos-back) .plays-peak-badge { color: #86efac; border-color: rgba(134, 239, 172, 0.55); }
+:is(#songsSection, #artistsSection, #albumsSection) :is(.wv-gc-cert, .wv-mos-hcard, .wv-mos-back) .cert-gold    { color: #fbbf24; border-color: rgba(251, 191, 36, 0.55); }
+:is(#songsSection, #artistsSection, #albumsSection) :is(.wv-gc-cert, .wv-mos-hcard, .wv-mos-back) .cert-plat    { color: #e2e8f0; border-color: rgba(226, 232, 240, 0.5); }
+:is(#songsSection, #artistsSection, #albumsSection) :is(.wv-gc-cert, .wv-mos-hcard, .wv-mos-back) .cert-diamond { color: #7dd3fc; border-color: rgba(125, 211, 252, 0.55); }
+:is(#songsSection, #artistsSection, #albumsSection) :is(.wv-gc-cert, .wv-mos-hcard, .wv-mos-back) .rt-chip      { color: #fff; }
+:is(#songsSection, #artistsSection, #albumsSection) :is(.wv-gc-cert, .wv-mos-hcard, .wv-mos-back) .plays-peak-badge { color: #86efac; border-color: rgba(134, 239, 172, 0.55); }
 :is(#songsSection, #artistsSection, #albumsSection) :is(.wv-mos-hcard, .wv-mos-back) .peak-badge-1 { color: #fbbf24; border-color: rgba(251, 191, 36, 0.5); }
 :is(#songsSection, #artistsSection, #albumsSection) :is(.wv-mos-hcard, .wv-mos-back) .peak-badge-2 { color: #e2e8f0; border-color: rgba(226, 232, 240, 0.45); }
 :is(#songsSection, #artistsSection, #albumsSection) :is(.wv-mos-hcard, .wv-mos-back) .peak-badge-3 { color: #f0a77a; border-color: rgba(240, 167, 122, 0.5); }
@@ -31579,11 +31605,6 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
   background: color-mix(in srgb, var(--rt-c) 22%, rgba(8,10,16,0.82));
   border-color: var(--rt-c);
 }
-
-/* movement border tints (ranks 4+) */
-.wv-gc-entry.wv-card { border-color: rgba(74,222,128,0.4); box-shadow: 0 0 0 1px rgba(74,222,128,0.15) inset; }
-.wv-gc-up.wv-card    { border-color: rgba(74,222,128,0.28); }
-.wv-gc-down.wv-card  { border-color: rgba(248,113,113,0.3); }
 
 /* entry animation */
 @keyframes wvCardIn {
@@ -32005,25 +32026,26 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
 .wv-stk-artist { color: var(--text2); flex: 0 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .wv-stk-sep { color: var(--text3); flex: none; }
 .wv-stk-alb { color: var(--text3); flex: 1 1 0; min-width: 2.5em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-/* The numbers: this period's plays first and strongest, then time on
-   chart, set apart by a spaced dot. Every stat starts
-   with its dot and the inner row is pulled left by one dot's width into a
-   clipped edge, so a line that wraps never starts with a stray "·". */
-.wv-stk-stats { overflow: hidden; font-size: var(--fs-xs); color: var(--text3); }
-.wv-stk-stats-in { display: flex; flex-wrap: wrap; align-items: baseline; row-gap: 2px; margin-left: -18px; }
-.wv-stk-stat { white-space: nowrap; }
-.wv-stk-stat::before { content: '·'; display: inline-block; width: 18px; text-align: center; color: var(--text3); opacity: 0.7; }
-.wv-stk-now { color: var(--text2); }
-.wv-stk-now b { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-weight: 700; color: var(--text); }
-.wv-stk-acts { display: inline-flex; align-items: center; gap: 2px; flex: none; }
+/* The numbers line (Stack, Card grid; _wvStatsLine): this period's plays
+   first and strongest, then time on chart, set apart by a spaced dot. Every
+   stat starts with its dot and the inner row is pulled left by one dot's
+   width into a clipped edge, so a line that wraps never starts with "·". */
+.wv-stats { overflow: hidden; font-size: var(--fs-xs); color: var(--text3); }
+.wv-stats-in { display: flex; flex-wrap: wrap; align-items: baseline; row-gap: 2px; margin-left: -18px; }
+.wv-stat { white-space: nowrap; }
+.wv-stat::before { content: '·'; display: inline-block; width: 18px; text-align: center; color: var(--text3); opacity: 0.7; }
+.wv-stat-now { color: var(--text2); }
+.wv-stat-now b { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-weight: 700; color: var(--text); }
+/* Spotify · ▶ · ⋮ (_wvActs) */
+.wv-acts { display: inline-flex; align-items: center; gap: 2px; flex: none; }
 @media (max-width: 600px) {
   .wv-stack-2col { display: flex; flex-direction: column; }
   .wv-stk-row { gap: 8px; padding: var(--sp-2) 4px var(--sp-2) 6px; }
   .wv-stk-pos { min-width: 34px; }
   .wv-stk-rank { font-size: var(--fs-lg); }
   .wv-stk-row .wv-thumb-lg .thumb-initials, .wv-stk-row .wv-thumb-lg .thumb { width: 52px; height: 52px; font-size: 0.95rem; }
-  .wv-stk-stats-in { margin-left: -14px; }
-  .wv-stk-stat::before { width: 14px; }
+  .wv-stats-in { margin-left: -14px; }
+  .wv-stat::before { width: 14px; }
   /* The phone Table's short forms (2026-10-18): 💎 for diamonds, ▲ PB, and
      in Spanish 🏅 #n for the peak tag */
   .wv-stack .cert-diamond .cert-icon,
@@ -32034,6 +32056,15 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
   .wv-stack .plays-peak-badge .ppb-short { display: inline; }
   html[lang="es"] .wv-stack .pk-label { display: none; }
   html[lang="es"] .wv-stack .pk-medal { display: inline; margin-right: 2px; }
+  /* Card grid on phones: the same short forms */
+  .wv-grid .cert-diamond .cert-icon,
+  .wv-grid .cert-diamond .cert-label { display: none; }
+  .wv-grid .cert-diamond .cert-short { display: inline; font-size: 13px; line-height: 1; letter-spacing: 0; white-space: nowrap; }
+  .wv-grid .cert-diamond { padding: 1px 4px; }
+  .wv-grid .plays-peak-badge .ppb-full { display: none; }
+  .wv-grid .plays-peak-badge .ppb-short { display: inline; }
+  html[lang="es"] .wv-grid .pk-label { display: none; }
+  html[lang="es"] .wv-grid .pk-medal { display: inline; margin-right: 2px; }
 }
 /* Shared "click to open detail modal" affordance for titles across all alt chart views */
 .wv-title-link { cursor: pointer; }
@@ -32553,9 +32584,6 @@ body.red-light .modal-rank-card--year .mrc-rank {
 }
 
 /* ── RESPONSIVE ── */
-@media (max-width: 600px) {
-  .wv-grid { grid-template-columns: repeat(2, 1fr); }
-}
 
 /* ═══════════════════════════════════════════════════════════════
    CHARTS GUIDE VIEW  (.cg-*)
@@ -36954,9 +36982,9 @@ body.cp-hide-cert-reel    #certReelSection { display: none !important; }
 /* Where the pair sits in each layout */
 .chart-table .cr-cell { width: 72px; white-space: nowrap; }
 .chart-table .cr-cell .ea-sample, .chart-table .cr-cell .ea-more { width: 22px; height: 24px; }
-.wv-gc-plays-row .ea-pair, .wv-film-plays-row .ea-pair { margin-left: auto; }
-.wv-gc-plays-row .ea-sample, .wv-gc-plays-row .ea-more,
-.wv-film-plays-row .ea-sample, .wv-film-plays-row .ea-more { width: 24px; height: 24px; }
+.wv-film-plays-row .ea-pair { margin-left: auto; }
+.wv-film-plays-row .ea-sample, .wv-film-plays-row .ea-more,
+.wv-gc-foot .ea-sample, .wv-gc-foot .ea-more, .wv-gc-foot .ea-spotify { width: 26px; height: 26px; }
 .wv-film-plays-row { display: flex; align-items: center; gap: var(--sp-1); }
 .wv-cx-row > .ea-pair { justify-self: end; }
 .wv-stk-row > .ea-pair { align-self: center; }

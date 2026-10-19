@@ -1570,6 +1570,8 @@ const TRANSLATIONS = {
     layout_filmstrip: 'Filmstrip',
     layout_stack: 'Stack',
     layout_two_col: 'Two columns',
+    wv_grid_bigger: 'Bigger covers',   // Card grid size toggle
+    wv_grid_smaller: 'Smaller covers',
     // Card grid on Yearly / All-Time pages with this (phase 7 step 6)
     wv_show_more: 'Show more',
     wv_showing: 'Showing {{n}} of {{total}}',
@@ -4772,6 +4774,8 @@ const TRANSLATIONS = {
     layout_filmstrip: 'Tira',
     layout_stack: 'Pila',
     layout_two_col: 'Dos columnas',
+    wv_grid_bigger: 'Portadas más grandes',   // Card grid size toggle
+    wv_grid_smaller: 'Portadas más pequeñas',
     // Card grid on Yearly / All-Time pages with this (phase 7 step 6)
     wv_show_more: 'Mostrar más',
     wv_showing: 'Mostrando {{n}} de {{total}}',
@@ -7874,6 +7878,8 @@ const TRANSLATIONS = {
     layout_filmstrip: 'Faixa',
     layout_stack: 'Pilha',
     layout_two_col: 'Duas colunas',
+    wv_grid_bigger: 'Capas maiores',   // Card grid size toggle
+    wv_grid_smaller: 'Capas menores',
     // Card grid on Yearly / All-Time pages with this (phase 7 step 6)
     wv_show_more: 'Mostrar mais',
     wv_showing: 'Mostrando {{n}} de {{total}}',
@@ -10977,6 +10983,8 @@ const TRANSLATIONS = {
     layout_filmstrip: 'Faixa',
     layout_stack: 'Pilha',
     layout_two_col: 'Duas colunas',
+    wv_grid_bigger: 'Capas maiores',   // Card grid size toggle
+    wv_grid_smaller: 'Capas mais pequenas',
     // Card grid on Yearly / All-Time pages with this (phase 7 step 6)
     wv_show_more: 'Mostrar mais',
     wv_showing: 'A mostrar {{n}} de {{total}}',

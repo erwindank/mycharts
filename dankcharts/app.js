@@ -18926,6 +18926,20 @@ function _wvItem(type, item, i, ms, imgItems, imgPrefix) {
   return { ...f, k: f.key, mv: f.mvHtml };
 }
 
+// The numbers line under an entry (Stack, Card grid): this period's plays,
+// strongest, then time on chart. The All-Time chart has no time on chart.
+// All-time plays stay in the details panel.
+function _wvStatsLine(f, count, ms) {
+  const stats = [`<span class="wv-stat wv-stat-now"><b>${count.toLocaleString()}</b> ${esc(tUnit('plays', count))}</span>`];
+  if (ms && !(_wvCur && _wvCur.isAllTime)) stats.push(`<span class="wv-stat">${esc(_wvRunText(f.weeks || 1))}</span>`);
+  return `<div class="wv-stats"><div class="wv-stats-in">${stats.join('')}</div></div>`;
+}
+
+// Spotify, ▶ sample and ⋮ together (Stack, Card grid)
+function _wvActs(type, ttl, sub) {
+  return `<span class="wv-acts">${_eaSpotifyBtn(type, ttl, type === 'artists' ? '' : sub)}${_eaBtns()}</span>`;
+}
+
 function _wvGrid(items, max, ms, imgItems, type) {
   type = type || 'songs';
   // First pass: build all item data so we can compute drama scores for animation order
@@ -18941,36 +18955,33 @@ function _wvGrid(items, max, ms, imgItems, type) {
   const order = [...itemData.keys()].filter(j => j >= animFrom).sort((a, b) => drama[b] - drama[a]);
   const animDelay = new Array(itemData.length);
   order.forEach((origIdx, pos) => { animDelay[origIdx] = pos * 45; });
-  const toolbar = `<div class="wv-grid-toolbar"><button class="wv-grid-density-btn${_wvGridLarge ? ' active' : ''}" onclick="toggleGridDensity()" title="Toggle card size">⊞ ${_wvGridLarge ? 'Compact' : 'Large'}</button></div>`;
+  const toolbar = `<div class="wv-grid-toolbar"><button class="wv-grid-density-btn${_wvGridLarge ? ' active' : ''}" onclick="toggleGridDensity()" aria-pressed="${_wvGridLarge}">${esc(t(_wvGridLarge ? 'wv_grid_smaller' : 'wv_grid_bigger'))}</button></div>`;
+  const jtype = esc(JSON.stringify(type));
+  // Phase 7 step 8 (4.9b): square covers with the rank top-left and the
+  // movement top-right, the certification / score in the cover's bottom
+  // corner; under it Title (+ peak, personal best), Artist, the numbers line,
+  // and Spotify · ▶ · ⋮. The top 3 glow like Stack's. A click opens the
+  // details panel after the row of cards.
   const grid = `<div class="wv-grid${_wvGridLarge ? ' wv-grid-lg' : ''}">${itemData.map(f => {
-    const { k, imgId, ea, mv, s, i, ttl, sub, barCls } = f;
-    const barW = Math.round(s.count / max * 100);
+    const { k, imgId, ea, s, i, ttl, sub } = f;
     // Every switchable badge, for every type: the Show switches decide what
     // shows (phase 7 step 4), the same way in every layout
-    const pk = f.peak;
     const cert = f.certHtml + f.ratingHtml;
-    const mvClass = i >= 3 ? (
-      f.move === 'new' || f.move === 're' ? ' wv-gc-entry' :
-      f.move === 'up' ? ' wv-gc-up' :
-      f.move === 'down' ? ' wv-gc-down' : ''
-    ) : '';
-    const jtype = esc(JSON.stringify(type));
-    // Phase 7: a click opens the details drawer (it used to start YouTube,
-    // which spends the site's shared search allowance); ▶ plays a sample,
-    // ⋮ / right-click open the action menu (_eaAttrs).
-    const clickAttr = ` onclick="_drEntryClick(event,this)" tabindex="0"`;
-    const anim = f.j >= animFrom ? ` wv-gc-anim" style="animation-delay:${animDelay[f.j]}ms` : '';
-    return `<div class="wv-card wv-grid-card${anim}${i < 3 ? ' wv-r' + (i+1) : ''}${mvClass}"${clickAttr}${ea}>` +
+    const badges = (f.peak ? peakBadge(f.peak) : '') + (f.isPlaysPeak ? playsPeakBadge() : '');
+    // The entry animation's delay goes in style=, outside the class list (it
+    // used to close class="" early, dropping the top-3 classes: no glow)
+    const anim = f.j >= animFrom;
+    return `<div class="wv-card wv-grid-card${anim ? ' wv-gc-anim' : ''}${i < 3 ? ' wv-r' + (i + 1) : ''}"` +
+        `${anim ? ` style="animation-delay:${animDelay[f.j]}ms"` : ''} onclick="_drEntryClick(event,this)" tabindex="0"${ea}>` +
       `<div class="wv-card-art ea-cover"><div class="wv-thumb wv-thumb-lg">${_wvThumb(imgId, ttl)}</div>` +
-      `<span class="wv-rank-badge">${i+1}</span>` +
-      (cert ? `<span class="wv-gc-cert">${cert}</span>` : '') +
-      (f.isPlaysPeak ? `<span class="wv-gc-pb">${playsPeakBadge()}</span>` : '') +
-      `<div class="wv-gc-hover">${dcPlBtnForWv(type, ttl, sub, s.album, 'dc-pl-add-sm')}</div>` +
-      `</div><div class="wv-card-body">` +
-      `<div class="wv-ttl"><span class="wv-title-link" onclick="event.stopPropagation();_wvOpenModal(${jtype},${esc(JSON.stringify(k))})" title="View details">${esc(ttl)}</span>${pk ? peakBadge(pk) : ''}</div>` +
-      `<div class="wv-art">${esc(sub)}</div>` +
-      `<div class="wv-gc-plays-row"><span class="wv-plays">${s.count} ${s.count===1?'play':'plays'}</span>${mv || ''}${_eaBtns()}</div>` +
-      `<div class="wv-bar"><div class="wv-bar-fill${barCls ? ' '+barCls : ''}" style="width:${barW}%"></div></div>` +
+        `<span class="wv-rank-badge">${i + 1}</span>` +
+        (f.mvHtml ? `<span class="wv-mv-ov">${f.mvHtml}</span>` : '') +
+        (cert ? `<span class="wv-gc-cert">${cert}</span>` : '') +
+      `</div>` +
+      `<div class="wv-card-body">` +
+        `<div class="wv-gc-title"><span class="wv-gc-ttl wv-title-link" onclick="event.stopPropagation();_wvOpenModal(${jtype},${esc(JSON.stringify(k))})" title="${esc(ttl)}">${esc(ttl)}</span>${badges ? `<span class="wv-gc-badges">${badges}</span>` : ''}</div>` +
+        (sub ? `<div class="wv-gc-artist">${esc(sub)}</div>` : '') +
+        `<div class="wv-gc-foot">${_wvStatsLine(f, s.count, ms)}${_wvActs(type, ttl, sub)}</div>` +
       `</div></div>`;
   }).join('')}</div>`;
   return toolbar + grid;
@@ -18981,8 +18992,9 @@ function toggleGridDensity() {
   try { localStorage.setItem('dc_grid_density', _wvGridLarge ? 'lg' : 'sm'); } catch(e) {}
   document.querySelectorAll('.wv-grid').forEach(g => g.classList.toggle('wv-grid-lg', _wvGridLarge));
   document.querySelectorAll('.wv-grid-density-btn').forEach(b => {
-    b.textContent = `⊞ ${_wvGridLarge ? 'Compact' : 'Large'}`;
+    b.textContent = t(_wvGridLarge ? 'wv_grid_smaller' : 'wv_grid_bigger');
     b.classList.toggle('active', _wvGridLarge);
+    b.setAttribute('aria-pressed', _wvGridLarge ? 'true' : 'false');
   });
 }
 
@@ -20098,7 +20110,6 @@ function initFilmstripInteractions(type) {
 function _wvStack(items, max, ms, imgItems, type) {
   type = type || 'songs';
   const jtype = esc(JSON.stringify(type));
-  const isAllTime = !!(_wvCur && _wvCur.isAllTime);
   // Phase 7 step 8 (4.9b): rounded cards, the top 3 glowing. Big rank with
   // its movement under it; Title (+ badges); Artist · Album; then the
   // numbers on their own line: plays this period · time on chart (all-time
@@ -20111,10 +20122,6 @@ function _wvStack(items, max, ms, imgItems, type) {
     const badges = (f.peak ? peakBadge(f.peak) : '') + f.certHtml + f.ratingHtml + (f.isPlaysPeak ? playsPeakBadge() : '');
     const album = type === 'songs' && s.album && s.album !== '—' ? s.album : '';
     const statusCls = f.move === 'new' ? ' wv-stk-new' : f.move === 're' ? ' wv-stk-re' : '';
-    // The numbers line. The All-Time chart has no time on chart.
-    const stats = [`<span class="wv-stk-stat wv-stk-now"><b>${s.count.toLocaleString()}</b> ${esc(tUnit('plays', s.count))}</span>`];
-    if (ms && !isAllTime) stats.push(`<span class="wv-stk-stat">${esc(_wvRunText(f.weeks || 1))}</span>`);
-    const spArtist = type === 'artists' ? '' : sub;
     return `<div class="wv-stk-card${i < 3 ? ' wv-r' + (i + 1) : ''}${statusCls}" tabindex="0" onclick="_drEntryClick(event,this)"${ea}>` +
       `<div class="wv-stk-row">` +
         `<div class="wv-stk-pos"><span class="wv-stk-rank">${i + 1}</span>${f.mvHtml ? `<span class="wv-stk-mv">${f.mvHtml}</span>` : ''}</div>` +
@@ -20125,9 +20132,9 @@ function _wvStack(items, max, ms, imgItems, type) {
             (sub ? `<span class="wv-stk-artist">${esc(sub)}</span>` : '') +
             (album ? `${sub ? '<span class="wv-stk-sep" aria-hidden="true">·</span>' : ''}<span class="wv-stk-alb">${esc(album)}</span>` : '') +
           `</div>` : '') +
-          `<div class="wv-stk-stats"><div class="wv-stk-stats-in">${stats.join('')}</div></div>` +
+          _wvStatsLine(f, s.count, ms) +
         `</div>` +
-        `<span class="wv-stk-acts">${_eaSpotifyBtn(type, ttl, spArtist)}${_eaBtns()}</span>` +
+        _wvActs(type, ttl, sub) +
       `</div>` +
     `</div>`;
   };
