@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "A cleaner Card grid, with the top 3 glowing again":
+    ["Uma Grade mais limpa, com o top 3 brilhando de novo",
+     "As capas da Grade agora são quadradas em vez de cortadas. A posição fica no canto superior esquerdo (ouro, prata e bronze para o top 3), a variação no superior direito e a certificação no canto inferior. Abaixo da capa vêm o título com o selo de pico, o artista e depois os plays deste período e o tempo no chart, com Buscar no Spotify, o botão de amostra e ⋮ no fim. O top 3 voltou a brilhar: um bug impedia que aparecesse. Cinco capas por linha no computador, três no tablet e duas no celular, e o botão de tamanho está no seu idioma (Capas maiores). As barras de plays e as bordas verdes e vermelhas saíram."],
+
   "A clearer Stack chart layout":
     ["Um layout Pilha mais claro",
      "Os cards do layout Pilha agora têm três linhas: o título, depois o artista e o álbum, e depois os plays deste período e o tempo no chart, bem separados (os plays totais estão no painel de detalhes). O número grande da posição tem a variação embaixo, e o top 3 continua brilhando em ouro, prata e bronze, agora também nos temas claros. Cada card termina com Buscar no Spotify, o botão de amostra e ⋮. Com duas colunas, o chart se lê descendo pela primeira coluna e depois pela segunda (1–5, 6–10) em vez de ir em zigue-zague 1, 2 / 3, 4. Os selos mantêm a letra em negrito. As barras de plays saíram, e no celular os selos descem para baixo do título em vez de ficarem cortados no fim do card."],

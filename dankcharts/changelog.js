@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 204;
+const DC_CL_I18N_V = 205;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-19', t: 'design', a: 'charts', h: '7d7714d',
+    title: "A cleaner Card grid, with the top 3 glowing again",
+    detail: "Card grid covers are square now instead of cropped. The rank sits in the top-left corner (gold, silver and bronze for the top 3), the movement in the top-right, and the certification in the bottom corner. Under the cover come the title with its peak badge, the artist, then this period's plays and time on the chart, with Search on Spotify, the sample button and ⋮ at the end. The top 3 glow again: a bug had stopped it from ever showing. Five covers across on a computer, three on a tablet, two on a phone, and the size button is in your language (Bigger covers). The play bars and the green and red borders are gone." },
 
   { d: '2026-10-19', t: 'design', a: 'charts', h: '1ef43b9',
     title: "A clearer Stack chart layout",

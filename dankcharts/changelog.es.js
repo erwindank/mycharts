@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "A cleaner Card grid, with the top 3 glowing again":
+    ["Una Cuadrícula más limpia, con el top 3 brillando otra vez",
+     "Las portadas de la Cuadrícula ahora son cuadradas en lugar de recortadas. El puesto va en la esquina superior izquierda (oro, plata y bronce para el top 3), el movimiento en la superior derecha y la certificación en la esquina inferior. Debajo de la portada van el título con su insignia de pico, el artista y luego las reproducciones de este periodo y el tiempo en el chart, con Buscar en Spotify, el botón de muestra y ⋮ al final. El top 3 vuelve a brillar: un error impedía que se viera. Cinco portadas por fila en la computadora, tres en una tableta y dos en el móvil, y el botón de tamaño está en tu idioma (Portadas más grandes). Las barras de reproducciones y los bordes verdes y rojos ya no están."],
+
   "A clearer Stack chart layout":
     ["Un diseño Pila más claro",
      "Las tarjetas del diseño Pila ahora tienen tres líneas: el título, luego el artista y el álbum, y luego las reproducciones de este periodo y el tiempo en el chart, bien separados (las reproducciones totales están en el panel de detalles). El número grande del puesto lleva su movimiento debajo, y el top 3 sigue brillando en oro, plata y bronce, ahora también en los temas claros. Cada tarjeta termina con Buscar en Spotify, el botón de muestra y ⋮. Con dos columnas, el chart se lee hacia abajo por la primera columna y luego por la segunda (1–5, 6–10) en lugar de ir en zigzag 1, 2 / 3, 4. Las insignias mantienen su letra en negrita. Las barras de reproducciones ya no están, y en el móvil las insignias bajan debajo del título en lugar de quedar cortadas al final de la tarjeta."],

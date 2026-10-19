@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "A cleaner Card grid, with the top 3 glowing again":
+    ["Uma Grelha mais limpa, com o top 3 a brilhar outra vez",
+     "As capas da Grelha são agora quadradas em vez de cortadas. A posição fica no canto superior esquerdo (ouro, prata e bronze para o top 3), a variação no superior direito e a certificação no canto inferior. Por baixo da capa vêm o título com o selo de pico, o artista e depois os plays deste período e o tempo no chart, com Pesquisar no Spotify, o botão de amostra e ⋮ no fim. O top 3 voltou a brilhar: um erro impedia que aparecesse. Cinco capas por linha no computador, três no tablet e duas no telemóvel, e o botão de tamanho está no seu idioma (Capas maiores). As barras de plays e os contornos verdes e vermelhos saíram."],
+
   "A clearer Stack chart layout":
     ["Um esquema Pilha mais claro",
      "Os cartões do esquema Pilha têm agora três linhas: o título, depois o artista e o álbum, e depois os plays deste período e o tempo no chart, bem separados (os plays totais estão no painel de detalhes). O número grande da posição tem a variação por baixo, e o top 3 continua a brilhar em ouro, prata e bronze, agora também nos temas claros. Cada cartão termina com Pesquisar no Spotify, o botão de amostra e ⋮. Com duas colunas, o chart lê-se a descer pela primeira coluna e depois pela segunda (1–5, 6–10) em vez de ir em ziguezague 1, 2 / 3, 4. Os selos mantêm a letra a negrito. As barras de plays saíram, e no telemóvel os selos descem para baixo do título em vez de ficarem cortados no fim do cartão."],
