@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "A tidier Compact chart layout":
+    ["Un diseño Compacto más ordenado",
+     "Las columnas del diseño Compacto ahora quedan alineadas bajo sus encabezados, que están en tu idioma y coinciden con los de la Tabla (Cambio, Semanas, Escuchas). El título y el artista van juntos a la izquierda en lugar de en los extremos de la fila, y la columna de semanas muestra solo el número. En el móvil el artista pasa debajo del título y las semanas pasan al panel de detalles, así que los títulos se leen en lugar de quedar cortados a una o dos letras; las insignias bajan debajo del título, con los diamantes como 💎."],
+
   "Easier-to-read labels in the Daily day summary":
     ["Etiquetas más legibles en el resumen del día de Diario",
      "Las etiquetas pequeñas de las fichas Primera, Última, Artista top y En bucle bajo el gráfico Diario son un poco más grandes, y en el móvil la hora pasa debajo de la etiqueta cuando la ficha es demasiado estrecha, en lugar de salirse del borde."],

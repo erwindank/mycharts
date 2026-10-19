@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "A tidier Compact chart layout":
+    ["Um esquema Compacto mais arrumado",
+     "As colunas do esquema Compacto ficam agora alinhadas sob os cabeçalhos, que estão no seu idioma e iguais aos da Tabela (Variação, Semanas, Plays). Título e artista ficam juntos à esquerda em vez de nas pontas da linha, e a coluna de semanas mostra só o número. No telemóvel o artista passa para baixo do título e as semanas passam para o painel de detalhes, por isso os títulos leem-se em vez de ficarem cortados numa ou duas letras; os selos descem para baixo do título, com os diamantes como 💎."],
+
   "Easier-to-read labels in the Daily day summary":
     ["Etiquetas mais fáceis de ler no resumo do dia do Diário",
      "As etiquetas pequenas dos blocos Primeira, Última, Artista de topo e Em repetição por baixo do gráfico Diário estão um pouco maiores, e no telemóvel a hora passa para baixo da etiqueta quando o bloco é demasiado estreito, em vez de sair do limite."],

@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 195;
+const DC_CL_I18N_V = 196;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-18', t: 'design', a: 'charts', h: '4b1c0c3',
+    title: "A tidier Compact chart layout",
+    detail: "The Compact layout's columns now line up under their headers, which are in your language and match the Table's (Move, Weeks, Plays). Title and artist sit together on the left instead of at opposite ends of the row, and the weeks column shows just the number. On a phone the artist goes under the title and the weeks move into the details panel, so titles are readable instead of cut to a letter or two; badges drop under the title, with diamonds as 💎." },
 
   { d: '2026-10-18', t: 'fix', a: 'charts', h: 'efb8e8c',
     title: "Easier-to-read labels in the Daily day summary",
