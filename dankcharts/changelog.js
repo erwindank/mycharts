@@ -84,10 +84,6 @@ const DC_CHANGELOG = [
     title: "A clearer Stack chart layout",
     detail: "Stack cards now have three lines: the title, then the artist and album, then the numbers, which are this period's plays, time on the chart and all-time plays, each set apart. The big rank number has its movement under it, and the top 3 still glow gold, silver and bronze, now in light themes too. Each card ends with Search on Spotify, the sample button and ⋮. With two columns on, the chart reads down the first column and then the second (1–5, 6–10), with #1 across the top of both, instead of zig-zagging 1, 2 / 3, 4. The play bars are gone, and on a phone badges wrap under the title instead of being cut off at the end of the card." },
 
-  { d: '2026-10-19', t: 'design', a: 'charts', h: '083ca8a',
-    title: "A clearer Stack chart layout",
-    detail: "Stack rows now look like Compact's with bigger covers: the rank with its movement under it, the title, then the artist and album on their own line, and the plays on the right. With two columns on, the chart reads down the first column and then the second (1–5, 6–10), with #1 across the top of both, instead of zig-zagging 1, 2 / 3, 4. The top 3 get the Table's gold, silver and bronze tints instead of a pulsing glow. On a phone badges wrap under the title instead of being cut off at the end of the row. Weeks on chart and all-time plays are in the details panel." },
-
   { d: '2026-10-19', t: 'fix', a: 'playlists', h: '59723c6',
     title: "Better playlist names, and calendar exports that work while loading",
     detail: "Exporting the Daily chart now suggests names that fit the day, like Today's Top 27, Monday Top 27, Daily Chart · 19 Oct 2026 and My Monday Mix. The Events calendar's Export Playlist (Day view, Singles only) suggests On This Day, Throwback Singles and the day's artists. That button, along with Play All and Create Playlist, also did nothing while the calendar was still fetching your artists; they now work straight away with what has loaded so far." },
