@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Share your Daily calendar as an image":
+    ["Partilhe o seu calendário Diário como imagem",
+     "O calendário do separador Diário tem um novo botão de partilhar ao lado do mês. Cria uma imagem do mês: a capa do #1 de cada dia com o número e o estado de espírito, além de quantos dias tiveram um #1, quantas músicas diferentes lá chegaram e qual ficou mais tempo. Escolha Publicação, Retrato ou Story e uma paleta, e copie, transfira ou partilhe a partir do telemóvel."],
+
   "Compact chart tags no longer overlap on phones":
     ["As etiquetas do gráfico Compacto já não se sobrepõem no telemóvel",
      "No esquema Compacto no telemóvel, uma música com várias etiquetas (o pico, uma certificação e uma nota) mostrava-as por cima das colunas de movimento e de reproduções. Agora as etiquetas passam para uma segunda linha por baixo do título."],

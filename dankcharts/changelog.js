@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 198;
+const DC_CL_I18N_V = 199;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-19', t: 'feature', a: 'share', h: '0b7dc37',
+    title: "Share your Daily calendar as an image",
+    detail: "The calendar on the Daily tab has a new share button next to the month. It makes a picture of the month: each day's #1 cover with its number and mood, plus how many days had a #1, how many different songs got there and which one held it longest. Pick Post, Portrait or Story and a palette, then copy, download or share it from your phone." },
 
   { d: '2026-10-19', t: 'fix', a: 'mobile', h: 'b68c17d',
     title: "Compact chart tags no longer overlap on phones",
