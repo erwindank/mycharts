@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Easier-to-read labels in the Daily day summary":
+    ["Rótulos mais fáceis de ler no resumo do dia do Diário",
+     "Os rótulos pequenos dos blocos Primeira, Última, Artista top e No repeat abaixo do gráfico Diário estão um pouco maiores, e no celular o horário vai para baixo do rótulo quando o bloco é estreito demais, em vez de passar da borda."],
+
   "A livelier Daily chart: day summary, Your day and toolbar":
     ["Um gráfico Diário mais vivo: resumo do dia, Seu dia e barra de ferramentas",
      "O painel de Hoje e Últimos 7 dias e o cartão Seu dia agora ficam depois do gráfico. O painel tem um anel e barras maiores, um selo que compara o dia com o seu dia normal, uma linha tracejada com a média da semana e blocos com capas para a primeira e a última música do dia (com o horário), o artista top e as músicas no repeat, que agora se revezam quando há mais de uma; clique no bloco para pular e passe o mouse para pausar. Seu dia mostra o humor escolhido sob o título e tem botões de humor com os nomes. O seletor de comparação e os botões de Resumo do dia, Compartilhar imagem, Tocar, Calendário e playlists agora combinam com o seletor Músicas / Artistas / Álbuns, com ícones de linha, e Animar gráfico combina com o botão ⋮ em todos os gráficos."],

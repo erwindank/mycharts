@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Easier-to-read labels in the Daily day summary":
+    ["Etiquetas más legibles en el resumen del día de Diario",
+     "Las etiquetas pequeñas de las fichas Primera, Última, Artista top y En bucle bajo el gráfico Diario son un poco más grandes, y en el móvil la hora pasa debajo de la etiqueta cuando la ficha es demasiado estrecha, en lugar de salirse del borde."],
+
   "A livelier Daily chart: day summary, Your day and toolbar":
     ["Un gráfico Diario más vivo: resumen del día, Tu día y barra de herramientas",
      "El panel de Hoy y Últimos 7 días y la tarjeta Tu día ahora van después del gráfico. El panel tiene un anillo y unas barras más grandes, una etiqueta que compara el día con tu día habitual, una línea discontinua con la media de la semana y fichas con portadas para la primera y la última canción del día (con su hora), el artista top y las canciones en bucle, que ahora se turnan cuando hay más de una; haz clic en la ficha para pasar a la siguiente y pasa el ratón por encima para pausar. Tu día muestra el estado de ánimo elegido bajo el título y tiene botones de ánimo con su nombre. El selector de comparación y los botones de Resumen del día, Compartir imagen, Reproducir, Calendario y listas ahora combinan con el selector Canciones / Artistas / Álbumes, con iconos de línea, y Animar gráfico combina con el botón ⋮ en todos los gráficos."],

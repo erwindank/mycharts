@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 194;
+const DC_CL_I18N_V = 195;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-18', t: 'fix', a: 'charts', h: 'efb8e8c',
+    title: "Easier-to-read labels in the Daily day summary",
+    detail: "The small labels on the First, Last, Top artist and On repeat tiles under the Daily chart are a little bigger, and on a phone the time moves under the label when the tile is too narrow, instead of running past its edge." },
 
   { d: '2026-10-18', t: 'design', a: 'charts', h: 'ebbd1a3',
     title: "A livelier Daily chart: day summary, Your day and toolbar",
