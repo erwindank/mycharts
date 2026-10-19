@@ -24,6 +24,9 @@ tab, 164 streak badges, Soundtrack) and what it means for the plan is in
 "Done outside the phases" at the end of section 5, with three small things
 to fix. Next is still step 8.
 
+**Updated 2026-10-19:** step 8 Stack is done (on `redesign/phase-7-layouts`);
+next is Card grid.
+
 **Seen on screen:**
 - Weekly: Albums and Songs, in all six chart layouts (Table, Card grid,
   Compact, Mosaic, Filmstrip, Stack)
@@ -1043,7 +1046,7 @@ themes (Navy dark, Navy light, Yellow dark, Red light; see 3.2) and on a phone.
 | **4** ✓ | **Artwork — redone 2026-10-13** as a review of the picture system (3.7): the missing pictures were mostly a screenshot artifact. Fixed the Deezer→iTunes→Last.fm fallback, sized pictures to their slots, loaded three at a time with what's on screen first. Left for later: the gradient stand-in for the rare real miss. | Turned out smaller than planned. | Small |
 | **5** ✓ | **Done 2026-10-13** (branch `redesign/phase-5-shell`, merged into `main`). **Shell:** slim sticky top bar, new main tabs + More, period switch next to the date, toasts for status, merge ON AIR + streak, no masthead or Time Machine on non-chart tabs. | Fixes "can't find anything" and gives back ~1,000px on every tab. | Medium |
 | **6** ✓ | **Done 2026-10-14** (branch `redesign/phase-6-weekly`; what changed from this plan is under "Phase 6" below). **Weekly page:** one filter toolbar, sections reordered (stats + "of the moment" → chart → bubbling/off/new → certified → time machine), releases moved to Events, light-touch stat tile changes only if you choose them (4.6). | This is the page everyone sees first. | Medium |
-| **7** ◐ | **Steps 1–7 done and on `main` (2026-10-18); step 10 partly done; next is step 8.** **Chart table and layouts** (4.9b, 4.10, 4.11, 4.12): one item builder + one action menu + one details drawer so **every layout has every feature** (chart run, peak, plays change, player, playlist…), layouts on every period with paging, all six layouts restyled, buttons moved into the toolbar, slimmer rows from #11 down, short lists capped at 5. | The core of the product. Do the shared builder first, then restyle each layout on top of it. | Large |
+| **7** ◐ | **Steps 1–7 done and on `main` (2026-10-18); step 10 partly done; step 8: Compact and Stack done, Card grid next.** **Chart table and layouts** (4.9b, 4.10, 4.11, 4.12): one item builder + one action menu + one details drawer so **every layout has every feature** (chart run, peak, plays change, player, playlist…), layouts on every period with paging, all six layouts restyled, buttons moved into the toolbar, slimmer rows from #11 down, short lists capped at 5. | The core of the product. Do the shared builder first, then restyle each layout on top of it. | Large |
 | **8** | **Shared components:** one button, tab, segmented control, chip, card, table, carousel, pop-up frame. Replace the per-feature button families. | Makes 9–10 fast and keeps it consistent. | Large |
 | **9** | **Other views** in this order: Records (4.15), Stats (4.14), Raw Data (4.13), then Events, Awards, Soundtrack and the rest once seen on screen. | Records and Stats have the most concrete fixes already written down. | Large |
 | **10** | **Pop-ups and Settings** (4.20–4.21), including the side panel for song/artist/album. | | Medium |
@@ -1672,8 +1675,24 @@ animation, 12 screen check.
   CAMB.). Hover cover preview is off on touch. Checked: header/row column
   edges equal in all 5 periods × 3 types at 1280 and 390, no row overflow
   with every badge on, en / es / pt-BR, Navy light drawer, ⋮ / right-click /
-  title pop-up with real clicks, no JS errors. Next: Stack (its phone badge
-  cut-off), then Card grid, Filmstrip, Mosaic.
+  title pop-up with real clicks, no JS errors.
+- **Step 8, Stack ✓ (2026-10-19, 083ca8a).** Compact's row style (flat rows,
+  bottom border, the Table's gold / silver / bronze tints for #1–#3) with a
+  48px cover: rank with the movement chip under it, **Title** (+ badges),
+  **Artist · Album** on their own line (the album gives way first), and
+  Plays as a number over a short unit (`plays_*_mobile`: "plays", "veces").
+  Weeks, all-time plays ("N all-time", which was English only) and the ＋
+  left the face; they are in the drawer and ⋮. **Two columns fill down
+  first** (1–5 | 6–10, page-local on Yearly / All-Time pages) as two
+  column divs, with **#1 across both** (64px cover, larger title) when the
+  first entry is rank 1; DOM order stays rank order, so ↑↓ and the drawer
+  are unchanged. The pulsing glow keyframes and the light-theme rank
+  override are gone (ranks use `--text3` / `--medal-*`). **Phones:** one
+  column; badges wrap under the title inside the row (the cut-off is
+  fixed) with the phone Table's short forms. Checked: 1280 and 390, one /
+  two columns, badges off and on, all 5 periods × 3 types with no element
+  past its row and no sideways scroll, es, Navy light, drawer opened by a
+  real click, no JS errors. Next: Card grid, then Filmstrip, Mosaic.
 - **Step 10, started early (2026-10-18).** Done so far:
   - **Off the Chart rows:** ▶ and ⋮ in their own end column. On phones the
     row restacks: the title wraps instead of being cut, plays and weeks go
@@ -1692,13 +1711,11 @@ animation, 12 screen check.
   short muted line. New Entries has had none of the row work yet.
 
 **What's left in phase 7, in order:**
-- **Step 8: the other five layouts**, one commit each (4.9b). Compact done
-  (above); Stack next. Start with
-  the two phone bugs found in step 4: Compact squeezes the title to one
-  letter, Stack cuts badges off at the end of the title line. Use the new
-  table's choices as the model: covers 48px, the gold / silver / bronze
-  tints for #1–#3 (you kept them), and on phones Title · Artist gets the
-  room first.
+- **Step 8: the other five layouts**, one commit each (4.9b). Compact and
+  Stack done (above, with both step-4 phone bugs); Card grid next, then
+  Filmstrip, Mosaic. Use the new table's choices as the model: covers 48px,
+  the gold / silver / bronze tints for #1–#3 (you kept them), and on phones
+  Title · Artist gets the room first.
 - **Step 9: shorter long charts** (4.12, slimmer rows from #11).
 - **Step 10: finish it** (list above).
 - **Step 11: one rank-change animation** for every layout.
