@@ -31940,40 +31940,79 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
 /* Score chip in the expand panel — the row-chip size (0.7em of an already small
    panel) came out ~7px and unreadable, so give it full panel size here */
 
-/* ── STACK ── */
-@keyframes stk-glow-gold   { 0%,100% { box-shadow:0 0 0 2px rgba(240,170,48,0.85),0 0 28px rgba(240,170,48,0.5),0 0 50px rgba(240,170,48,0.18); } 50% { box-shadow:0 0 0 2px rgba(240,170,48,1),0 0 42px rgba(240,170,48,0.8),0 0 72px rgba(240,170,48,0.38); } }
-@keyframes stk-glow-silver { 0%,100% { box-shadow:0 0 0 2px rgba(148,163,184,0.8),0 0 20px rgba(148,163,184,0.4); } 50% { box-shadow:0 0 0 2px rgba(148,163,184,1),0 0 34px rgba(148,163,184,0.65); } }
-@keyframes stk-glow-bronze { 0%,100% { box-shadow:0 0 0 2px rgba(205,110,40,0.8),0 0 20px rgba(205,110,40,0.4); } 50% { box-shadow:0 0 0 2px rgba(205,110,40,1),0 0 34px rgba(205,110,40,0.65); } }
-.wv-stack { display: flex; flex-direction: column; gap: 6px; padding: var(--sp-1); }
-.wv-stack-2col { display: grid !important; grid-template-columns: 1fr 1fr; }
-.wv-stk-card { display: flex; flex-direction: column; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r-sm); cursor: pointer; overflow: hidden; transition: filter 0.15s; }
-.wv-stk-card:hover { filter: brightness(1.06); }
-.wv-stk-card:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
-.wv-r1.wv-stk-card { border-color: rgba(240,170,48,0.6); background: rgba(240,170,48,0.06); animation: stk-glow-gold 2.5s ease-in-out infinite; }
-.wv-r2.wv-stk-card { border-color: rgba(148,163,184,0.55); animation: stk-glow-silver 3s ease-in-out infinite; }
-.wv-r3.wv-stk-card { border-color: rgba(180,83,9,0.55); animation: stk-glow-bronze 3.5s ease-in-out infinite; }
-/* Phase 3 colour pass: the coloured left-edge bars on NEW / RE rows and stack
-   cards are gone (DESIGN.md: no coloured row bars unless the screen explains
-   them). The NEW / RE word in the movement column already says it. The
-   wv-row-new / wv-row-re / wv-stk-new / wv-stk-re classes are still set by
-   app.js as plain status hooks, with no styling of their own. */
-.wv-stk-row { display: flex; align-items: center; gap: 10px; padding: var(--sp-2) 10px; }
+/* ── STACK ── (phase 7 step 8, 4.9b)
+   Compact's row style with a 48px cover and the artist on its own line.
+   The rank has its movement under it; badges wrap under the title rather
+   than run past the row's end. Two columns fill down first (1–5 | 6–10)
+   with #1 across both; phones get one column, in the same order. The
+   pulsing gold / silver / bronze glow is gone: #1–#3 get the Table's tints. */
+.wv-stack { display: flex; flex-direction: column; }
+.wv-stack-2col { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: var(--sp-4); }
+.wv-stk-hero { grid-column: 1 / -1; }
+.wv-stk-col { display: flex; flex-direction: column; min-width: 0; }
+.wv-stk-card { border-bottom: 1px solid var(--border); cursor: pointer; }
+.wv-stk-card:hover { background: var(--hover); }
+.wv-r1.wv-stk-card { background: rgba(240,170,48,0.1); }
+.wv-r2.wv-stk-card { background: rgba(148,163,184,0.08); }
+.wv-r3.wv-stk-card { background: rgba(180,83,9,0.08); }
+.wv-r1.wv-stk-card:hover { background: rgba(240,170,48,0.16); }
+.wv-r2.wv-stk-card:hover { background: rgba(148,163,184,0.13); }
+.wv-r3.wv-stk-card:hover { background: rgba(180,83,9,0.13); }
+/* Phase 3 colour pass: no coloured left-edge bars on NEW / RE rows. The
+   wv-stk-new / wv-stk-re classes are still set as plain status hooks. */
+.wv-stk-row { display: flex; align-items: center; gap: 10px; padding: 6px var(--sp-2); min-height: 60px; }
+.wv-stk-pos { display: flex; flex-direction: column; align-items: center; gap: 2px; width: 40px; flex: none; }
 .wv-stk-rank { font-family: var(--font-mono);
-      font-variant-numeric: tabular-nums; font-size: var(--fs-xl); font-weight: 900; color: rgba(255,255,255,0.55); min-width: 48px; text-align: center; flex-shrink: 0; line-height: 1; }
-.wv-r1 .wv-stk-rank { color: rgba(240,170,48,0.9); }
-.wv-r2 .wv-stk-rank { color: rgba(148,163,184,0.9); }
-.wv-r3 .wv-stk-rank { color: rgba(205,110,40,0.9); }
-.wv-stk-body { flex: 1; min-width: 0; }
-.wv-stk-alb { font-size: var(--fs-xs); color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.wv-stk-alb-inline { font-size: var(--fs-xs); color: var(--text3); margin-left: var(--sp-1); }
-.wv-stk-artist { cursor: pointer; }
-.wv-stk-artist:hover { color: var(--accent); text-decoration: underline; }
+      font-variant-numeric: tabular-nums; font-size: var(--fs-lg); font-weight: 700; color: var(--text3); line-height: 1; }
+.wv-r1 .wv-stk-rank { color: var(--medal-gold); }
+.wv-r2 .wv-stk-rank { color: var(--medal-silver); }
+.wv-r3 .wv-stk-rank { color: var(--medal-bronze); }
+.wv-stk-mv { display: flex; justify-content: center; line-height: 1; }
+.wv-stk-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+/* Title, then the badges: when they don't fit beside it they wrap onto
+   their own line inside the row (on phones they were cut off at its end) */
+.wv-stk-title { display: flex; flex-wrap: wrap; align-items: center; row-gap: 3px; min-width: 0; }
+.wv-stk-ttl { font-size: var(--fs-sm); font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; max-width: 100%; margin-right: 6px; }
+/* Spacing on each badge, not the group: the Show switches hide badges */
+.wv-stk-badges { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 3px 5px; min-width: 0; max-width: 100%; }
+.wv-stk-badges > * { max-width: 100%; }
+.wv-stk-badges:empty { display: none; }
+/* Artist · Album: the album only gets the room the artist leaves */
+.wv-stk-sub { display: flex; align-items: baseline; gap: 6px; min-width: 0; font-size: var(--fs-xs); }
+.wv-stk-artist { color: var(--text2); flex: 0 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wv-stk-sep { color: var(--text3); flex: none; }
+.wv-stk-alb { color: var(--text3); flex: 1 1 0; min-width: 2.5em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wv-stk-plays { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; flex: none; min-width: 48px; }
+.wv-stk-n { font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums; font-size: var(--fs-sm); font-weight: 600; color: var(--text); line-height: 1.1; }
+.wv-stk-unit { font-size: var(--fs-xs); color: var(--text3); line-height: 1.1; }
+/* #1 across both columns: a bigger cover and title */
+.wv-stk-hero .wv-stk-row { min-height: 76px; }
+.wv-stk-hero .wv-thumb-md .thumb-initials, .wv-stk-hero .wv-thumb-md .thumb { width: 64px; height: 64px; font-size: 1.1rem; }
+.wv-stk-hero .wv-stk-ttl { font-size: var(--fs-base); }
+.wv-stk-hero .wv-stk-sub { font-size: var(--fs-sm); }
+.wv-stk-hero .wv-stk-rank { font-size: var(--fs-xl); }
+@media (max-width: 600px) {
+  .wv-stack-2col { display: flex; flex-direction: column; }
+  .wv-stk-row { gap: 8px; padding: 6px 4px 6px 2px; }
+  .wv-stk-pos { width: 30px; }
+  .wv-stk-rank { font-size: var(--fs-base); }
+  .wv-stk-plays { min-width: 36px; }
+  .wv-stk-hero .wv-thumb-md .thumb-initials, .wv-stk-hero .wv-thumb-md .thumb { width: 48px; height: 48px; font-size: 0.85rem; }
+  /* The phone Table's short forms (2026-10-18): 💎 for diamonds, ▲ PB, and
+     in Spanish 🏅 #n for the peak tag */
+  .wv-stack .cert-diamond .cert-icon,
+  .wv-stack .cert-diamond .cert-label { display: none; }
+  .wv-stack .cert-diamond .cert-short { display: inline; font-size: 13px; line-height: 1; letter-spacing: 0; white-space: nowrap; }
+  .wv-stack .cert-diamond { padding: 1px 4px; }
+  .wv-stack .plays-peak-badge .ppb-full { display: none; }
+  .wv-stack .plays-peak-badge .ppb-short { display: inline; }
+  html[lang="es"] .wv-stack .pk-label { display: none; }
+  html[lang="es"] .wv-stack .pk-medal { display: inline; margin-right: 2px; }
+}
 /* Shared "click to open detail modal" affordance for titles across all alt chart views */
 .wv-title-link { cursor: pointer; }
 .wv-title-link:hover { color: var(--accent); text-decoration: underline; }
-.wv-stk-meta { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; margin-top: 2px; }
-.wv-stk-cum { font-size: var(--fs-xs); color: var(--text3); font-family: var(--font-mono);
-      font-variant-numeric: tabular-nums; }
 /* phase 3: neutral, like .yt-play-btn */
 .wv-bar-fill.wv-bar-up,   .play-bar-fill.wv-bar-up   { background: var(--chart-up); }
 .wv-bar-fill.wv-bar-down, .play-bar-fill.wv-bar-down { background: var(--chart-down); }
@@ -32074,15 +32113,6 @@ body.red-light .bu-count-pill {
   background: var(--surface);
   border-color: var(--border2);
 }
-
-/* 7c. Stack view rank numbers (4th place and below) — hardcoded rgba(255,255,255,0.55)
-   is invisible on light card backgrounds. Scoped to exclude .wv-r1/.wv-r2/.wv-r3 cards
-   so the gold/silver/bronze top-3 colors are untouched. */
-body.navy-light .wv-stk-card:not(.wv-r1):not(.wv-r2):not(.wv-r3) .wv-stk-rank,
-body.purple-light .wv-stk-card:not(.wv-r1):not(.wv-r2):not(.wv-r3) .wv-stk-rank,
-body.yellow-light .wv-stk-card:not(.wv-r1):not(.wv-r2):not(.wv-r3) .wv-stk-rank,
-body.pink-light .wv-stk-card:not(.wv-r1):not(.wv-r2):not(.wv-r3) .wv-stk-rank,
-body.red-light .wv-stk-card:not(.wv-r1):not(.wv-r2):not(.wv-r3) .wv-stk-rank { color: var(--text2); }
 
 /* 7b. BU badges — the per-colour light overrides were removed in the phase 3
    colour pass: tags now use --raised / --text2 / --chart-up / --chart-down,
@@ -32496,8 +32526,6 @@ body.yellow-light .modal-rank-card--year .mrc-rank, body.pink-light .modal-rank-
 body.red-light .modal-rank-card--year .mrc-rank {
   color: #1d4ed8;
 }
-
-.wv-r1.wv-stk-card .wv-bar-fill { background: var(--gold1) !important; }
 
 /* ── RESPONSIVE ── */
 @media (max-width: 600px) {
@@ -37022,7 +37050,7 @@ body.cp-hide-cert-reel    #certReelSection { display: none !important; }
 .chart-table tr.cr-row td > .ea-drawer { margin: var(--sp-2) var(--sp-2) 0; }
 .wv-grid > .ea-drawer-span { grid-column: 1 / -1; margin: 0; }
 .wv-cx-row > .ea-drawer { grid-column: 1 / -1; margin: var(--sp-1) 0 var(--sp-2); }
-.wv-stk-card > .ea-drawer { margin: 0 10px 10px; }
+.wv-stk-card > .ea-drawer { margin: 0 var(--sp-2) var(--sp-2); }
 
 /* The entry whose drawer is open */
 .chart-table tr.ea-open > td { background: var(--hover); }

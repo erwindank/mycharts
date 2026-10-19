@@ -20084,55 +20084,49 @@ function initFilmstripInteractions(type) {
 
 function _wvStack(items, max, ms, imgItems, type) {
   type = type || 'songs';
-  return `<div class="wv-stack${_stkTwoCol ? ' wv-stack-2col' : ''}">${items.map((s, j) => {
+  const jtype = esc(JSON.stringify(type));
+  // Phase 7 step 8 (4.9b): Compact's row style with a 48px cover and the
+  // artist on its own line. Rank with the movement under it, Title (+ badges),
+  // Artist · Album, Plays. Weeks, previous rank, all-time plays and the rest
+  // are in the details panel.
+  const row = (s, j) => {
     const i = _wvIdx(s, j);   // rank index on the full chart (step 6: pages)
     const f = _wvItem(type, s, i, ms, imgItems);
-    const { k, imgId, ea, mv, ttl, sub, barCls } = f;
+    const { k, imgId, ea, ttl, sub } = f;
     // Every switchable badge, for every type (phase 7 step 4: the Show switches decide)
-    const pk = f.peak;
-    const cumSongPlays = type === 'songs' ? f.cumPlays : 0;
-    const weeks = ms ? (f.weeks || 1) : null;
-    const weeksText = weeks ? `<span class="wv-wks">${_wvRunText(weeks)}</span>` : '';
-    const barW = Math.round(s.count / max * 100);
-
-    // Movement direction for bar color and debut/re border
+    const badges = (f.peak ? peakBadge(f.peak) : '') + f.certHtml + f.ratingHtml + (f.isPlaysPeak ? playsPeakBadge() : '');
+    const album = type === 'songs' && s.album && s.album !== '—' ? s.album : '';
     const statusCls = f.move === 'new' ? ' wv-stk-new' : f.move === 're' ? ' wv-stk-re' : '';
-
-    // Album inline (songs only, same title row, dimmed)
-    const albumName = type === 'songs' && s.album && s.album !== '—' ? s.album : '';
-    const albumInline = albumName ? ` <span class="wv-stk-alb-inline">· ${esc(albumName)}</span>` : '';
-
-    // Cumulative plays
-    const cumHtml = cumSongPlays > 0 ? `<span class="wv-stk-cum">${cumSongPlays} all-time</span>` : '';
-
-    // Phase 7: ▶ sample + ⋮ menu at the row's end; on touch, tapping the
-    // cover plays the sample (_eaAttrs)
-    const jtype = esc(JSON.stringify(type));
-
-    // Artist line — plain display only; no modal opens from here
-    const artistLine = `<div class="wv-art">${esc(sub)}</div>`;
-
-    // Title — clickable → opens the matching artist/album/song detail modal
-    const jmodalKey = esc(JSON.stringify(k));
-    const ttlInner = `<span class="wv-stk-artist" onclick="event.stopPropagation();_wvOpenModal(${jtype},${jmodalKey})">${esc(ttl)}</span>`;
-
-
-    return `<div class="wv-stk-card${i < 3 ? ' wv-r' + (i+1) : ''}${statusCls}" tabindex="0" onclick="_drEntryClick(event,this)"${ea}>
-      <div class="wv-stk-row">
-        <div class="wv-stk-rank">${i+1}</div>
-        <div class="wv-thumb wv-thumb-lg ea-cover">${_wvThumb(imgId, ttl)}</div>
-        <div class="wv-stk-body">
-          <div class="wv-ttl">${ttlInner}${albumInline}${pk ? peakBadge(pk) : ''}${f.certHtml}${f.ratingHtml}</div>
-          ${artistLine}
-          <div class="wv-stk-meta">${dcPlBtnForWv(type, ttl, sub, s.album, 'dc-pl-add-sm')}<span class="wv-plays">${s.count} ${s.count===1?'play':'plays'}</span> ${mv}${f.isPlaysPeak ? playsPeakBadge() : ''}${weeksText}${cumHtml}</div>
-          <div class="wv-bar"><div class="wv-bar-fill${barCls ? ' '+barCls : ''}" style="width:${barW}%"></div></div>
-        </div>
-        ${_eaBtns()}
-      </div>
-    </div>`;
-  }).join('')}</div>`;
+    // Short unit ("plays", "veces"): the number is what counts here
+    const unit = t(s.count === 1 ? 'plays_one_mobile' : 'plays_other_mobile');
+    return `<div class="wv-stk-card${i < 3 ? ' wv-r' + (i + 1) : ''}${statusCls}" tabindex="0" onclick="_drEntryClick(event,this)"${ea}>` +
+      `<div class="wv-stk-row">` +
+        `<div class="wv-stk-pos"><span class="wv-stk-rank">${i + 1}</span>${f.mvHtml ? `<span class="wv-stk-mv">${f.mvHtml}</span>` : ''}</div>` +
+        `<div class="wv-thumb wv-thumb-md ea-cover">${_wvThumb(imgId, ttl)}</div>` +
+        `<div class="wv-stk-body">` +
+          `<div class="wv-stk-title"><span class="wv-stk-ttl wv-title-link" onclick="event.stopPropagation();_wvOpenModal(${jtype},${esc(JSON.stringify(k))})" title="${esc(ttl)}">${esc(ttl)}</span>${badges ? `<span class="wv-stk-badges">${badges}</span>` : ''}</div>` +
+          ((sub || album) ? `<div class="wv-stk-sub">` +
+            (sub ? `<span class="wv-stk-artist">${esc(sub)}</span>` : '') +
+            (album ? `${sub ? '<span class="wv-stk-sep" aria-hidden="true">·</span>' : ''}<span class="wv-stk-alb">${esc(album)}</span>` : '') +
+          `</div>` : '') +
+        `</div>` +
+        `<div class="wv-stk-plays"><span class="wv-stk-n">${s.count.toLocaleString()}</span><span class="wv-stk-unit">${esc(unit)}</span></div>` +
+        _eaBtns() +
+      `</div>` +
+    `</div>`;
+  };
+  if (!_stkTwoCol) return `<div class="wv-stack">${items.map(row).join('')}</div>`;
+  // Two columns fill down first (1–5 left, 6–10 right), so the ranking reads
+  // as a list; #1 gets a full-width row above both. Phones show one column,
+  // which is the same order.
+  const heroN = items.length && _wvIdx(items[0], 0) === 0 ? 1 : 0;
+  const leftN = heroN + Math.ceil((items.length - heroN) / 2);
+  const col = (a, b) => `<div class="wv-stk-col">${items.slice(a, b).map((s, n) => row(s, a + n)).join('')}</div>`;
+  return `<div class="wv-stack wv-stack-2col">` +
+    (heroN ? `<div class="wv-stk-hero">${row(items[0], 0)}</div>` : '') +
+    col(heroN, leftN) + col(leftN, items.length) +
+  `</div>`;
 }
-
 
 function toggleStkTwoCol() {
   _stkTwoCol = !_stkTwoCol;
