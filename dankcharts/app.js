@@ -20486,21 +20486,45 @@ function buildExportText(songs) {
   }).join('\n');
 }
 
-function toggleExportOrder() {
-  exportReversed = !exportReversed;
-  const btn = document.getElementById('exportOrderBtn');
-  btn.textContent = exportReversed ? t('export_no1_last') : t('export_no1_first');
-  const songs = getCurrentChartSongs();
-  document.getElementById('exportTracklist').textContent = buildExportText(songs);
+// Track order segmented control: false = #1 first, true = #1 last
+function setExportOrder(reversed) {
+  exportReversed = !!reversed;
+  _exportRender();
 }
 
-function toggleExportAlbum() {
-  exportWithAlbum = !exportWithAlbum;
-  const btn = document.getElementById('exportAlbumBtn');
-  btn.textContent = exportWithAlbum ? '✓ + Album' : '+ Album';
-  btn.classList.toggle('active', exportWithAlbum);
+// "Include album" switch — adds " - Album" to each copied line and shows the
+// album under each row
+function setExportAlbum(on) {
+  exportWithAlbum = !!on;
+  _exportRender();
+}
+
+// Redraws everything that depends on the order/album options: the pressed
+// segment, the switch, the song count and the numbered track rows. The rows
+// keep each song's chart position as its number, so "#1 last" reads 40 → 1.
+function _exportRender() {
   const songs = getCurrentChartSongs();
-  document.getElementById('exportTracklist').textContent = buildExportText(songs);
+  const first = document.getElementById('exportOrderFirst');
+  const last = document.getElementById('exportOrderLast');
+  first.setAttribute('aria-pressed', String(!exportReversed));
+  last.setAttribute('aria-pressed', String(exportReversed));
+  document.getElementById('exportAlbumToggle').checked = exportWithAlbum;
+  document.getElementById('exportCount').textContent = tCount('songs', songs.length);
+  // Format note follows the album switch so it always matches what gets copied
+  document.getElementById('exportFormat').innerHTML =
+    t(exportWithAlbum ? 'export_format_album' : 'export_format_used');
+
+  const rows = songs.map((s, i) => {
+    const album = (exportWithAlbum && s.album && s.album !== '—')
+      ? `<span class="export-row-album">${esc(s.album)}</span>` : '';
+    return `<li class="export-row"><span class="export-row-n">${i + 1}</span>` +
+      `<span class="export-row-main"><span class="export-row-title">${esc(s.title)}</span>` +
+      `<span class="export-row-sub"><span class="export-row-artist">${esc(s.artist)}</span>${album}</span></span></li>`;
+  });
+  if (exportReversed) rows.reverse();
+  const list = document.getElementById('exportTracklist');
+  list.innerHTML = rows.join('');
+  list.scrollTop = 0;
 }
 
 function generatePlaylistNames(songs, periodName) {
@@ -20579,30 +20603,41 @@ function openExportModal() {
       currentPeriod === 'day' ? sub :
       label;
 
-  document.getElementById('exportModalSubtitle').textContent =
-    t('export_subtitle', { count: tCount('songs', songs.length), period: periodName });
+  _exportShow(
+    songs,
+    t('export_subtitle', { count: tCount('songs', songs.length), period: periodName }),
+    generatePlaylistNames(songs, periodName)
+  );
+}
 
-  // Playlist name suggestions
-  const names = generatePlaylistNames(songs, periodName);
+// Shared filler for the export window — the chart (openExportModal), any song
+// list (dcOpenTextExport) and the streaks At Risk list (skAtRiskExport) all
+// open it through here: subtitle, name chips, options reset, track rows and
+// the Soundiiz steps.
+function _exportShow(songs, subtitle, names) {
+  document.getElementById('exportModalSubtitle').textContent = subtitle;
+
+  // Name chips — JSON.stringify then esc: a name with an apostrophe must not
+  // end the JS string early. Step 1 hides itself when there's nothing to suggest.
+  names = [...new Set((names || []).filter(Boolean))];
+  const copyIc = '<svg class="export-chip-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>';
   document.getElementById('exportNameChips').innerHTML = names.map(name =>
-    `<button class="export-name-chip" onclick="copyChipName(this,'${esc(name)}')">${esc(name)}</button>`
+    `<button type="button" class="export-name-chip" onclick="copyChipName(this,${esc(JSON.stringify(name))})">` +
+    `<span class="export-chip-text">${esc(name)}</span>${copyIc}</button>`
   ).join('');
+  document.getElementById('exportNameSection').hidden = !names.length;
 
   exportReversed = false;
   exportWithAlbum = false;
-  document.getElementById('exportOrderBtn').textContent = t('export_no1_first');
-  const albumBtn = document.getElementById('exportAlbumBtn');
-  if (albumBtn) { albumBtn.textContent = '+ Album'; albumBtn.classList.remove('active'); }
-  document.getElementById('exportTracklist').textContent = buildExportText(songs);
+  _exportResetCopyBtn();
+  _exportRender();
 
+  // How-to steps; step 2 carries the "or upload the file" alternative under it
   document.getElementById('exportNoteBody').innerHTML =
-    `<strong style="color:var(--text2)">${t('export_how_to_title')}</strong><br>` +
-    `1. ${t('export_how_to_step1')}<br>` +
-    `2. ${t('export_how_to_step2')}<br>` +
-    `&nbsp;&nbsp;&nbsp;${t('export_how_to_step2b')}<br>` +
-    `3. ${t('export_how_to_step3')}<br>` +
-    `4. ${t('export_how_to_step4')}<br><br>` +
-    t('export_format_used');
+    `<li>${t('export_how_to_step1')}</li>` +
+    `<li>${t('export_how_to_step2')}<span class="export-howto-alt">${t('export_how_to_step2b')}</span></li>` +
+    `<li>${t('export_how_to_step3')}</li>` +
+    `<li>${t('export_how_to_step4')}</li>`;
 
   _liftExportModalIfStacked();
   document.getElementById('exportModal').classList.add('open');
@@ -20620,12 +20655,13 @@ function _liftExportModalIfStacked() {
   modal.classList.toggle('modal-on-top', overAnother);
 }
 
+// Copies a suggested name; the chip turns green with a check for 2s (the check
+// is drawn in CSS off .copied, so the chip's text and icon stay untouched)
 function copyChipName(btn, name) {
   navigator.clipboard.writeText(name).then(() => {
     btn.classList.add('copied');
-    const orig = btn.textContent;
-    btn.textContent = '✓ ' + orig;
-    setTimeout(() => { btn.textContent = orig; btn.classList.remove('copied'); }, 2000);
+    clearTimeout(btn._copiedTimer);
+    btn._copiedTimer = setTimeout(() => btn.classList.remove('copied'), 2000);
   });
 }
 
@@ -20724,47 +20760,42 @@ function dcOpenTextExport(songs, label, names) {
   _exportSongsOverride = (songs || []).map(s => ({ title: s.title, artist: s.artist || '', album: s.album || '' }));
   if (!_exportSongsOverride.length) { _exportSongsOverride = null; return; }
 
-  document.getElementById('exportModalSubtitle').textContent =
-    `${tCount('songs', _exportSongsOverride.length)}${label ? ' · ' + label : ''}`;
-
-  names = [...new Set((names || []).filter(Boolean))];
-  // JSON.stringify then esc: a name with an apostrophe must not end the JS string early
-  document.getElementById('exportNameChips').innerHTML = names.map(name =>
-    `<button class="export-name-chip" onclick="copyChipName(this,${esc(JSON.stringify(name))})">${esc(name)}</button>`
-  ).join('');
-
-  exportReversed = false;
-  exportWithAlbum = false;
-  document.getElementById('exportOrderBtn').textContent = t('export_no1_first');
-  const albumBtn = document.getElementById('exportAlbumBtn');
-  if (albumBtn) { albumBtn.textContent = '+ Album'; albumBtn.classList.remove('active'); }
-  document.getElementById('exportTracklist').textContent = buildExportText(_exportSongsOverride);
-
-  document.getElementById('exportNoteBody').innerHTML =
-    `<strong style="color:var(--text2)">${t('export_how_to_title')}</strong><br>` +
-    `1. ${t('export_how_to_step1')}<br>` +
-    `2. ${t('export_how_to_step2')}<br>` +
-    `&nbsp;&nbsp;&nbsp;${t('export_how_to_step2b')}<br>` +
-    `3. ${t('export_how_to_step3')}<br>` +
-    `4. ${t('export_how_to_step4')}<br><br>` +
-    t('export_format_used');
-
-  _liftExportModalIfStacked();
-  document.getElementById('exportModal').classList.add('open');
+  _exportShow(
+    _exportSongsOverride,
+    `${tCount('songs', _exportSongsOverride.length)}${label ? ' · ' + label : ''}`,
+    names
+  );
 }
 
+// Copy button: puts "Artist - Title" lines on the clipboard (built from the
+// songs, not the on-screen rows) and flips to a green "Copied!" state
 function exportCopy() {
-  const text = document.getElementById('exportTracklist').textContent;
-  navigator.clipboard.writeText(text).then(() => {
-    const btn = document.querySelector('.export-btn-copy');
-    const orig = btn.textContent;
-    btn.textContent = t('export_copied');
-    setTimeout(() => btn.textContent = orig, 2000);
-  });
+  const text = buildExportText(getCurrentChartSongs());
+  navigator.clipboard.writeText(text).then(_exportFlashCopied);
+}
+
+let _exportCopiedTimer = null;
+// Green check state on the copy button for a few seconds. Also used by the
+// At Risk export, which copies the list on open, so the user sees it's done.
+function _exportFlashCopied() {
+  const btn = document.getElementById('exportCopyBtn');
+  if (!btn) return;
+  btn.classList.add('is-copied');
+  document.getElementById('exportCopyLabel').textContent = t('export_copied_short');
+  clearTimeout(_exportCopiedTimer);
+  _exportCopiedTimer = setTimeout(_exportResetCopyBtn, 2400);
+}
+
+function _exportResetCopyBtn() {
+  clearTimeout(_exportCopiedTimer);
+  const btn = document.getElementById('exportCopyBtn');
+  if (!btn) return;
+  btn.classList.remove('is-copied');
+  document.getElementById('exportCopyLabel').textContent = t('export_copy_list');
 }
 
 function exportDownload() {
-  const text = document.getElementById('exportTracklist').textContent;
+  const text = buildExportText(getCurrentChartSongs());
   const subtitle = document.getElementById('exportModalSubtitle').textContent;
   const name = 'playlist-' + subtitle.replace(/[^a-z0-9]+/gi, '-').toLowerCase() + '.txt';
   const a = document.createElement('a');
@@ -35542,19 +35573,15 @@ function skAtRiskExport() {
   // Auto-copy to clipboard immediately
   navigator.clipboard.writeText(text).catch(() => {});
 
-  // Pre-load into export modal so user can see the list and pick a playlist name
+  // Pre-load into export modal so user can see the list and pick a playlist name,
+  // with at-risk-specific subtitle and name chips
   _exportSongsOverride = mapped;
-  openExportModal();
-  // Override subtitle and playlist name chips with at-risk-specific content
   const today = new Date();
   const dateLabel = today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  const subEl = document.getElementById('exportModalSubtitle');
-  if (subEl) subEl.textContent = `${songs.length} song${songs.length !== 1 ? 's' : ''} · At Risk Today · ${dateLabel} — ✓ Copied to clipboard`;
-  const chipsEl = document.getElementById('exportNameChips');
-  if (chipsEl) {
-    const names = _genAtRiskPlNames(mapped, dateLabel);
-    chipsEl.innerHTML = names.map(n => `<button class="export-name-chip" onclick="copyChipName(this,'${esc(n)}')">${esc(n)}</button>`).join('');
-  }
+  _exportShow(mapped, `${tCount('songs', songs.length)} · At Risk Today · ${dateLabel}`,
+    _genAtRiskPlNames(mapped, dateLabel));
+  // The list is already on the clipboard — show that on the copy button
+  _exportFlashCopied();
 }
 
 // Generate playlist name suggestions tailored for the At Risk Today export

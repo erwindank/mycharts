@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=488">
+  <link rel="stylesheet" href="style.css?v=489">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -3015,42 +3015,90 @@
   </div>
   <div id="stCardCanvas" style="position:fixed;left:-9999px;top:0;pointer-events:none;"></div>
 
-  <!-- EXPORT PLAYLIST MODAL -->
+  <!-- EXPORT PLAYLIST MODAL — three steps read top to bottom: pick a name,
+       copy (or download) the songs, import them on Soundiiz. Every dynamic part
+       is filled by _exportShow() in app.js; the toggles re-render through
+       _exportRender(). -->
   <div class="modal-overlay" id="exportModal" onclick="if(event.target===this)closeExportModal()">
-    <div class="export-modal-box">
+    <div class="export-modal-box" role="dialog" aria-modal="true" aria-labelledby="exportModalTitle">
       <div class="export-modal-header">
-        <div class="export-modal-title" data-i18n="export_title">♫ Export Playlist</div>
-        <button class="modal-close" id="exportModalClose" onclick="closeExportModal()" data-i18n="btn_close">✕
-          CLOSE</button>
+        <span class="export-hero-ic" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h12M3 12h12M3 18h7"/><circle cx="17.5" cy="17.5" r="2.5"/><path d="M20 17.5V9l-3 1"/></svg>
+        </span>
+        <div class="export-head-text">
+          <div class="export-modal-title" id="exportModalTitle" data-i18n="export_title">Export Playlist</div>
+          <div class="export-modal-subtitle" id="exportModalSubtitle"></div>
+        </div>
+        <button type="button" class="src-modal-close" id="exportModalClose" onclick="closeExportModal()" aria-label="Close" data-i18n-aria="set_close">&times;</button>
       </div>
-      <div class="export-modal-subtitle" id="exportModalSubtitle"></div>
-      <div class="export-name-section" id="exportNameSection">
-        <div class="export-name-label" data-i18n="export_suggested_names">SUGGESTED PLAYLIST NAMES — click to copy</div>
+
+      <!-- Step 1: name suggestions, a click copies one -->
+      <section class="export-step" id="exportNameSection">
+        <div class="export-step-head">
+          <span class="export-step-num">1</span>
+          <span class="export-step-title" data-i18n="export_step_name">Pick a name</span>
+          <span class="export-step-hint" data-i18n="export_step_name_hint">Click to copy</span>
+        </div>
         <div class="export-name-chips" id="exportNameChips"></div>
-      </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.4rem">
-        <span style="font-family: var(--font-sans);font-size:var(--fs-xs);color:var(--text3)"
-          data-i18n="export_track_order">TRACK
-          ORDER</span>
-        <button class="export-name-chip" id="exportOrderBtn" onclick="toggleExportOrder()" style="font-size:var(--fs-xs)">▲
-          #1 First</button>
-      </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.6rem">
-        <span style="font-family: var(--font-sans);font-size:var(--fs-xs);color:var(--text3)">FORMAT</span>
-        <button class="export-name-chip" id="exportAlbumBtn" onclick="toggleExportAlbum()" style="font-size:var(--fs-xs)">+ Album</button>
-      </div>
-      <div class="export-tracklist" id="exportTracklist"></div>
-      <div class="export-actions">
-        <button class="export-btn export-btn-copy" onclick="exportCopy()" data-i18n="btn_copy_clipboard">⎘ COPY TO
-          CLIPBOARD</button>
-        <button class="export-btn export-btn-dl" onclick="exportDownload()" data-i18n="btn_download_txt">↓ DOWNLOAD
-          .TXT</button>
-        <button class="export-btn export-btn-dl" onclick="exportDownloadCSV()" data-i18n="btn_download_csv">↓ DOWNLOAD
-          .CSV</button>
-        <a class="export-btn export-btn-soundiiz" href="https://soundiiz.com/login" target="_blank" rel="noopener"
-          data-i18n="btn_soundiiz">↗ GO TO SOUNDIIZ</a>
-      </div>
-      <div class="export-note" id="exportNoteBody"></div>
+      </section>
+
+      <!-- Step 2: the songs, with order + album options and copy/download -->
+      <section class="export-step">
+        <div class="export-step-head">
+          <span class="export-step-num">2</span>
+          <span class="export-step-title" data-i18n="export_step_songs">Copy your songs</span>
+          <span class="export-step-hint" id="exportCount"></span>
+        </div>
+        <div class="export-toolbar">
+          <div class="export-seg" role="group" aria-label="Track order" data-i18n-aria="export_track_order_aria">
+            <button type="button" class="export-seg-btn" id="exportOrderFirst" onclick="setExportOrder(false)" aria-pressed="true" data-i18n="export_order_first">#1 first</button>
+            <button type="button" class="export-seg-btn" id="exportOrderLast" onclick="setExportOrder(true)" aria-pressed="false" data-i18n="export_order_last">#1 last</button>
+          </div>
+          <!-- A real <label> so a click anywhere on the text flips the switch -->
+          <label class="export-switch">
+            <input type="checkbox" id="exportAlbumToggle" onchange="setExportAlbum(this.checked)">
+            <span class="export-switch-track" aria-hidden="true"></span>
+            <span data-i18n="export_include_album">Include album</span>
+          </label>
+        </div>
+        <ol class="export-tracklist" id="exportTracklist"></ol>
+        <div class="export-actions">
+          <button type="button" class="export-btn export-btn-copy" id="exportCopyBtn" onclick="exportCopy()">
+            <svg class="export-btn-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+            <svg class="export-btn-ic export-btn-ic-done" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+            <span id="exportCopyLabel" data-i18n="export_copy_list">Copy list</span>
+          </button>
+          <button type="button" class="export-btn export-btn-dl" onclick="exportDownload()" title="Download .txt" data-i18n-title="export_dl_txt_tip">
+            <svg class="export-btn-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+            .txt
+          </button>
+          <button type="button" class="export-btn export-btn-dl" onclick="exportDownloadCSV()" title="Download .csv" data-i18n-title="export_dl_csv_tip">
+            <svg class="export-btn-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+            .csv
+          </button>
+        </div>
+        <div class="export-format" id="exportFormat">Format used: <strong>Artist - Title</strong> (one track per line).</div>
+      </section>
+
+      <!-- Step 3: hand the list to Soundiiz, which builds the real playlist -->
+      <section class="export-step export-step-import">
+        <div class="export-step-head">
+          <span class="export-step-num">3</span>
+          <span class="export-step-title" data-i18n="export_step_import">Import it on Soundiiz</span>
+        </div>
+        <div class="export-platforms" aria-hidden="true">
+          <span class="export-platform" style="--pf:#1ed760">Spotify</span>
+          <span class="export-platform" style="--pf:#fa2d48">Apple Music</span>
+          <span class="export-platform" style="--pf:#ff0033">YouTube Music</span>
+          <span class="export-platform" style="--pf:#a238ff">Deezer</span>
+          <span class="export-platform" style="--pf:#8a8f98">Tidal</span>
+        </div>
+        <ol class="export-howto" id="exportNoteBody"></ol>
+        <a class="export-btn export-btn-soundiiz" href="https://soundiiz.com/login" target="_blank" rel="noopener">
+          <span data-i18n="export_open_soundiiz">Open Soundiiz</span>
+          <svg class="export-btn-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>
+        </a>
+      </section>
     </div>
   </div>
 
