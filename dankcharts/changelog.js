@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 203;
+const DC_CL_I18N_V = 204;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -80,9 +80,9 @@ const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
 
-  { d: '2026-10-19', t: 'design', a: 'charts', h: '2c577bc',
+  { d: '2026-10-19', t: 'design', a: 'charts', h: '1ef43b9',
     title: "A clearer Stack chart layout",
-    detail: "Stack cards now have three lines: the title, then the artist and album, then the numbers, which are this period's plays, time on the chart and all-time plays, each set apart. The big rank number has its movement under it, and the top 3 still glow gold, silver and bronze, now in light themes too. Each card ends with Search on Spotify, the sample button and ⋮. With two columns on, the chart reads down the first column and then the second (1–5, 6–10), with #1 across the top of both, instead of zig-zagging 1, 2 / 3, 4. The play bars are gone, and on a phone badges wrap under the title instead of being cut off at the end of the card." },
+    detail: "Stack cards now have three lines: the title, then the artist and album, then this period's plays and time on the chart, set apart (all-time plays are in the details panel). The big rank number has its movement under it, and the top 3 still glow gold, silver and bronze, now in light themes too. Each card ends with Search on Spotify, the sample button and ⋮. With two columns on, the chart reads down the first column and then the second (1–5, 6–10) instead of zig-zagging 1, 2 / 3, 4. Badges keep their bold type. The play bars are gone, and on a phone badges wrap under the title instead of being cut off at the end of the card." },
 
   { d: '2026-10-19', t: 'fix', a: 'playlists', h: '59723c6',
     title: "Better playlist names, and calendar exports that work while loading",

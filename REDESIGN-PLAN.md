@@ -24,7 +24,7 @@ tab, 164 streak badges, Soundtrack) and what it means for the plan is in
 "Done outside the phases" at the end of section 5, with three small things
 to fix. Next is still step 8.
 
-**Updated 2026-10-19:** step 8 Stack is done (on `redesign/phase-7-layouts`);
+**Updated 2026-10-19:** step 8 Stack is done, merged to `main` and pushed;
 next is Card grid.
 
 **Seen on screen:**
@@ -1676,7 +1676,7 @@ animation, 12 screen check.
   edges equal in all 5 periods × 3 types at 1280 and 390, no row overflow
   with every badge on, en / es / pt-BR, Navy light drawer, ⋮ / right-click /
   title pop-up with real clicks, no JS errors.
-- **Step 8, Stack ✓ (2026-10-19, 083ca8a, then 2c577bc).** First built
+- **Step 8, Stack ✓ (2026-10-19, 083ca8a, 2c577bc, then 1ef43b9).** First built
   as flat Compact-style rows; **you asked for the cards back** the same day,
   so the face is now: **rounded cards** (`--r-md`), **the top 3 glowing**
   gold / silver / bronze (kept on purpose, against the "calm" default: the
@@ -1686,20 +1686,23 @@ animation, 12 screen check.
   under it, a 64px cover, and three lines: **Title** (+ badges, wrapping
   under it when they don't fit, which fixes the phone cut-off), **Artist ·
   Album** (the album gives way first), and **the numbers**: plays this
-  period · time on chart · all-time plays (`wv_total`, "26 total", left out
-  on All-Time and when equal to this period's plays). A wrapped numbers line
+  period · time on chart. **All-time plays stay in the chart run / details
+  panel only** (you asked; a "26 total" on the card was tried and taken
+  out). **Badges at the title's 600 weight** (they have none of their own
+  and used to inherit it from the old title line). A wrapped numbers line
   never starts with a "·" (each stat carries its dot; the row is pulled
   left into a clipped edge). **No play bars** (you liked them gone). The
   card ends with **Search on Spotify** (`_eaSpotifyBtn`, new and shared,
   reuses `tm_action_spotify`), ▶ sample and ⋮; on touch ▶ hides as
-  everywhere. **Two columns fill down first** (1–5 | 6–10, page-local) with
-  **#1 across both** (80px cover); phones get one column. All-time totals
+  everywhere. **Two columns fill down first** (1–5 | 6–10, page-local);
+  **#1 is a card like the rest** (a full-width #1 was tried and taken out);
+  phones get one column. All-time totals
   now include artists (`cumulativeMaps.artists`), so Mosaic and Filmstrip
   show them for artists too. Checked: 1280 and 390, one / two columns,
   badges off and on, all 5 periods × 3 types (no element past its card, no
   sideways scroll), es, Navy light, drawer by real click, no JS errors.
   **Worth reusing for Card grid and Filmstrip:** the numbers line and the
-  Spotify button. Next: Card grid, then Filmstrip, Mosaic.
+  Spotify button. **Merged to `main` and pushed 2026-10-19.** Next: Card grid, then Filmstrip, Mosaic.
 - **Step 10, started early (2026-10-18).** Done so far:
   - **Off the Chart rows:** ▶ and ⋮ in their own end column. On phones the
     row restacks: the title wraps instead of being cut, plays and weeks go
