@@ -15,6 +15,15 @@ into view, and the screenshots were taken without scrolling there, so those
 slots had never asked for their picture. Phase 4 has been redone as a review
 of the picture system instead — see section 3.7 and the phase 4 row.
 
+**Updated 2026-10-18 (evening):** phase 7 steps 1–7 are on `main` and live.
+Work since the last update (about 60 commits, up to `f6a5d8c`) is written up
+under phase 7: part of step 10 is already done (Bubbling Under / Off the
+Chart rows and the BU chart run panel), the columns can all be resized, and
+the details panel got a compact toolbar. Work outside the phases (the Daily
+tab, 164 streak badges, Soundtrack) and what it means for the plan is in
+"Done outside the phases" at the end of section 5, with three small things
+to fix. Next is still step 8.
+
 **Seen on screen:**
 - Weekly: Albums and Songs, in all six chart layouts (Table, Card grid,
   Compact, Mosaic, Filmstrip, Stack)
@@ -1034,7 +1043,7 @@ themes (Navy dark, Navy light, Yellow dark, Red light; see 3.2) and on a phone.
 | **4** ✓ | **Artwork — redone 2026-10-13** as a review of the picture system (3.7): the missing pictures were mostly a screenshot artifact. Fixed the Deezer→iTunes→Last.fm fallback, sized pictures to their slots, loaded three at a time with what's on screen first. Left for later: the gradient stand-in for the rare real miss. | Turned out smaller than planned. | Small |
 | **5** ✓ | **Done 2026-10-13** (branch `redesign/phase-5-shell`, merged into `main`). **Shell:** slim sticky top bar, new main tabs + More, period switch next to the date, toasts for status, merge ON AIR + streak, no masthead or Time Machine on non-chart tabs. | Fixes "can't find anything" and gives back ~1,000px on every tab. | Medium |
 | **6** ✓ | **Done 2026-10-14** (branch `redesign/phase-6-weekly`; what changed from this plan is under "Phase 6" below). **Weekly page:** one filter toolbar, sections reordered (stats + "of the moment" → chart → bubbling/off/new → certified → time machine), releases moved to Events, light-touch stat tile changes only if you choose them (4.6). | This is the page everyone sees first. | Medium |
-| **7** | **Chart table and layouts** (4.9b, 4.10, 4.11, 4.12): one item builder + one action menu + one details drawer so **every layout has every feature** (chart run, peak, plays change, player, playlist…), layouts on every period with paging, all six layouts restyled, buttons moved into the toolbar, slimmer rows from #11 down, short lists capped at 5. | The core of the product. Do the shared builder first, then restyle each layout on top of it. | Large |
+| **7** ◐ | **Steps 1–7 done and on `main` (2026-10-18); step 10 partly done; next is step 8.** **Chart table and layouts** (4.9b, 4.10, 4.11, 4.12): one item builder + one action menu + one details drawer so **every layout has every feature** (chart run, peak, plays change, player, playlist…), layouts on every period with paging, all six layouts restyled, buttons moved into the toolbar, slimmer rows from #11 down, short lists capped at 5. | The core of the product. Do the shared builder first, then restyle each layout on top of it. | Large |
 | **8** | **Shared components:** one button, tab, segmented control, chip, card, table, carousel, pop-up frame. Replace the per-feature button families. | Makes 9–10 fast and keeps it consistent. | Large |
 | **9** | **Other views** in this order: Records (4.15), Stats (4.14), Raw Data (4.13), then Events, Awards, Soundtrack and the rest once seen on screen. | Records and Stats have the most concrete fixes already written down. | Large |
 | **10** | **Pop-ups and Settings** (4.20–4.21), including the side panel for song/artist/album. | | Medium |
@@ -1633,6 +1642,51 @@ animation, 12 screen check.
   2026-10-14) to **"1 vez" / "54 veces"**, with the column header
   **Escuchas** (Songs and the Artists / Albums totals). Full sentences
   elsewhere still say "reproducciones". Plays peak tag in Spanish tables: "▲ MÁX".
+  **More columns can be resized (2026-10-18).** Rank and Move now drag too
+  (in px, 40px floor; Rank trades width with Move, Move with Title). Plays
+  is centred like Weeks (header, number, change and bar) and drags on the
+  Weeks | Plays line: 150px to start, 96px floor, where the change moves
+  under the number. Cover and the ▶ · ⋮ · chart-run column keep fixed
+  widths and are never saved, so the ⋮ always fits (old saved widths had a
+  38px button column that cut it off).
+  **Details panel toolbar (2026-10-18):** the five actions are short labels
+  (full wording in the tooltip) in one soft track, on the same line as the
+  album / artist links on desktop; on phones, five even icon-over-word
+  columns. **Chart run tiles** are wide rectangles with larger type, on
+  every chart run panel (also the song / album pop-ups).
+  **Merged to `main` and pushed 2026-10-18**, at your request, together
+  with the streak badges (see "Done outside the phases").
+- **Step 10, started early (2026-10-18).** Done so far:
+  - **Off the Chart rows:** ▶ and ⋮ in their own end column. On phones the
+    row restacks: the title wraps instead of being cut, plays and weeks go
+    under the artist on one line, rank and buttons frame the text.
+  - **Bubbling Under rows:** the same end column and phone restack.
+  - **The Bubbling Under chart run panel** looks like the main one:
+    labelled wide tiles (three per row), a BU / With chart segmented switch
+    instead of "+ Chart", a peak tile with the overall rank as a note, a dot
+    legend, and every string translated. Ranks use a translated prefix
+    (`bucr_prefix`: BU in English, A for "Aspirantes" in es / pt). Open BU
+    panels now stay open across a language switch (`data-bucr*`).
+  - **Names:** Bubbling Under is "Aspirantes" in Spanish and Portuguese.
+  Still to do for step 10 (4.11): show 5 rows with "Show all N", Bubbling
+  Under and Off the Chart side by side on desktop, at most two neutral tags
+  per row with the legend in a ⓘ (3.8), and Off the Chart's reason as one
+  short muted line. New Entries has had none of the row work yet.
+
+**What's left in phase 7, in order:**
+- **Step 8: the other five layouts**, one commit each (4.9b). Start with
+  the two phone bugs found in step 4: Compact squeezes the title to one
+  letter, Stack cuts badges off at the end of the title line. Use the new
+  table's choices as the model: covers 48px, the gold / silver / bronze
+  tints for #1–#3 (you kept them), and on phones Title · Artist gets the
+  room first.
+- **Step 9: shorter long charts** (4.12, slimmer rows from #11).
+- **Step 10: finish it** (list above).
+- **Step 11: one rank-change animation** for every layout.
+- **Step 12: screen check**, including the two leftovers below.
+Leftovers to check in step 12: with every badge on, the pt-BR Yearly songs
+table on a phone was 5px too wide; and the 600–980px sideways scroll (phase
+5) is still open.
 
 The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in
@@ -1664,11 +1718,12 @@ hover plays a 30-second store sample, not YouTube (decided 2026-10-14, see
   tab, and the View tab's `.weekly-view-btns`). Update `_cgTourSteps` in the
   same commit, or the tour rings the wrong rows or nothing.
 
-**Phase 8 (shared components).** The Show menu's rows now include
-"Playlist", and the YouTube/＋ pair has its own sizing rule
+**Phase 8 (shared components).** The Playlist and YouTube switches are
+gone from the charts (phase 7 step 4 / 7), but the YouTube/＋ pair rule
 (`.yt-play-btn:has(+ .dc-pl-add-btn…)` in `style.css`, plus an icon-only
-version of it for phones). When the shared button replaces `yt-play-btn`,
-delete those rules with it.
+version for phones) is still used by the Streaks table (`sk-et-yt`) and the
+new-artist tooltip (`na-tt-yt-btn`). When the shared button replaces
+`yt-play-btn` there, delete those rules with it.
 
 **Phase 9 (Records, Stats, etc.).** Not affected: the Show switches only
 cover the three Weekly-style charts (Songs, Artists, Albums) and their
@@ -1702,6 +1757,44 @@ Red light (phase 3), the broken-up table rows on a phone (phase 7) and the
 scroll-to-top button over the plays column (phase 5).
 
 **Portuguese and reduced motion:** checked 2026-10-14 with phase 6 step 5.
+
+### Done outside the phases (to 2026-10-18)
+
+Work that isn't a plan step but changes what the later phases start from.
+
+- **Daily tab** (its own plan, see the Daily memory; `daily.js`). On
+  2026-10-18 the day panel and Your day moved from above the chart to
+  right after it (`#dailyDay`), so the chart comes first, as phase 6 did for
+  Weekly. The compare switch and actions now use the chart type switch's
+  tray style with line icons instead of emoji (3.4 and 3.5), the #1 line is
+  a gold chip, Animate Chart matches the ⋮ button. Phase 8 can treat these
+  as already on the shared segmented control.
+- **Records → Streaks badges:** 12 → 164 badges in groups (One long streak,
+  Side by side, Comebacks, Deep fans, All three kinds, Calendar…), each
+  group folds away and remembers it, ladders with names that climb, four
+  languages. Phase 9 (Records) should look at this screen as it is now,
+  not as section 6 last listed it.
+- **Your Soundtrack:** the chart history replay steps a week at a time
+  (‹ ▶ ›); "Banda Sonora" in Spanish and the banner translated. Phase 9.
+- **Portuguese/Spanish wording:** Bubbling Under = "Aspirantes"; Spanish
+  chart tables say "vez / veces", header "Escuchas".
+
+**Found while reviewing these, small, worth fixing soon:**
+1. ~~**A 10px label** in the new day panel tiles (`.dy-ptile-lbl`), below
+   the 12px floor (3.1).~~ **Fixed 2026-10-18:** `--fs-xs`, 0.04em
+   tracking. At 12px "PRIMEIRA 15:13" ran past a phone tile (the label and
+   time had no break between them), so the label is now a wrapping row and
+   the time drops underneath when it doesn't fit.
+2. **On repeat still rotates with reduced motion on.** `dyRepStart()` swaps
+   the timer bar for a `setInterval` under `prefers-reduced-motion`, so the
+   tile still changes on its own. The rule (section 5, "How to check")
+   is that nothing moves by itself: under reduced motion, show the first
+   song and let a click step through.
+3. **Portuguese "plays" isn't settled after all.** Phase 6 recorded that
+   Portuguese says "play / plays" everywhere, but newer strings (Daily's
+   `dy_week_avg`, the chart insights `ati_*`, the streaks `sk_*`) say
+   "reproduções". Pick one and make the pt-BR / pt-PT strings match; this
+   is a wording call, so it's yours.
 
 ### Taking screenshots that don't mislead
 
