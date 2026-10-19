@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Compact chart tags no longer overlap on phones":
+    ["As etiquetas do gráfico Compacto já não se sobrepõem no telemóvel",
+     "No esquema Compacto no telemóvel, uma música com várias etiquetas (o pico, uma certificação e uma nota) mostrava-as por cima das colunas de movimento e de reproduções. Agora as etiquetas passam para uma segunda linha por baixo do título."],
+
   "Deleted auto-correct rules stay deleted":
     ["Regras de correção automática apagadas já não voltam",
      "Apagar uma regra de correção automática podia parecer resultar e depois a regra voltava, porque outro dispositivo ou a sua Folha Google ainda tinha uma cópia e voltava a partilhá-la. Agora as regras apagadas são lembradas em todos os dispositivos, na folha e na sua conta, por isso não voltam; criar a mesma regra outra vez, ou importá-la, continua a trazê-la de volta. As regras que não mudam nada (o mesmo artista, música e álbum antes e depois) também são removidas: eram elas que mostravam um aviso de \"entradas corrigidas na folha\" em cada carregamento sem corrigir nada."],

@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 197;
+const DC_CL_I18N_V = 198;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-19', t: 'fix', a: 'mobile', h: 'b68c17d',
+    title: "Compact chart tags no longer overlap on phones",
+    detail: "In the Compact layout on a phone, a song with several tags (its peak, a certification and a rating) had them run across the Move and Plays columns. The tags now wrap onto a second line under the title instead." },
 
   { d: '2026-10-19', t: 'fix', a: 'rawdata', h: 'e368e16',
     title: "Deleted auto-correct rules stay deleted",

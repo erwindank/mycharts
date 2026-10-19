@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Compact chart tags no longer overlap on phones":
+    ["Las etiquetas del gráfico Compacto ya no se solapan en el móvil",
+     "En el diseño Compacto en el móvil, una canción con varias etiquetas (su pico, una certificación y una nota) las mostraba encima de las columnas Cambio y Escuchas. Ahora las etiquetas pasan a una segunda línea bajo el título."],
+
   "Deleted auto-correct rules stay deleted":
     ["Las reglas de autocorrección borradas ya no vuelven",
      "Al borrar una regla de autocorrección podía parecer que funcionaba y luego la regla volvía, porque otro dispositivo o tu Hoja de Google aún tenían una copia y la volvían a compartir. Ahora las reglas borradas se recuerdan en cada dispositivo, en la hoja y en tu cuenta, así que no vuelven; crear la misma regla de nuevo, o importarla, sí la recupera. También se eliminan las reglas que no cambian nada (mismo artista, canción y álbum antes y después): eran las que mostraban un aviso de \"entradas autocorregidas en la hoja\" en cada carga sin corregir nada."],
