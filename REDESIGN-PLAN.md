@@ -25,7 +25,7 @@ tab, 164 streak badges, Soundtrack) and what it means for the plan is in
 to fix. Next is still step 8.
 
 **Updated 2026-10-19:** step 8 Stack is done, merged to `main` and pushed;
-Card grid is done on `redesign/phase-7-layouts`; next is Filmstrip.
+Card grid is done, merged to `main` and pushed; next is Filmstrip.
 
 **Seen on screen:**
 - Weekly: Albums and Songs, in all six chart layouts (Table, Card grid,
@@ -1750,6 +1750,7 @@ animation, 12 screen check.
     (`body.navy-light .peak-badge-2`…) outranked the cover's dark backing.
     The cover rule now carries the section ids. Checked in all ten themes:
     every chip on a cover (peak, certification, movement) has the backing.
+  **Merged to `main` and pushed 2026-10-19.**
   Next: Filmstrip, then Mosaic.
 - **Step 10, started early (2026-10-18).** Done so far:
   - **Off the Chart rows:** ▶ and ⋮ in their own end column. On phones the
