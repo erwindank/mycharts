@@ -1569,6 +1569,7 @@ const TRANSLATIONS = {
     layout_mosaic: 'Mosaic',
     layout_filmstrip: 'Filmstrip',
     layout_stack: 'Stack',
+    wv_total: '{{n}} total',   // all-time plays on a chart entry (Stack)
     layout_two_col: 'Two columns',
     // Card grid on Yearly / All-Time pages with this (phase 7 step 6)
     wv_show_more: 'Show more',
@@ -4771,6 +4772,7 @@ const TRANSLATIONS = {
     layout_mosaic: 'Mosaico',
     layout_filmstrip: 'Tira',
     layout_stack: 'Pila',
+    wv_total: '{{n}} en total',   // all-time plays on a chart entry (Stack)
     layout_two_col: 'Dos columnas',
     // Card grid on Yearly / All-Time pages with this (phase 7 step 6)
     wv_show_more: 'Mostrar más',
@@ -7873,6 +7875,7 @@ const TRANSLATIONS = {
     layout_mosaic: 'Mosaico',
     layout_filmstrip: 'Faixa',
     layout_stack: 'Pilha',
+    wv_total: '{{n}} no total',   // all-time plays on a chart entry (Stack)
     layout_two_col: 'Duas colunas',
     // Card grid on Yearly / All-Time pages with this (phase 7 step 6)
     wv_show_more: 'Mostrar mais',
@@ -10976,6 +10979,7 @@ const TRANSLATIONS = {
     layout_mosaic: 'Mosaico',
     layout_filmstrip: 'Faixa',
     layout_stack: 'Pilha',
+    wv_total: '{{n}} no total',   // all-time plays on a chart entry (Stack)
     layout_two_col: 'Duas colunas',
     // Card grid on Yearly / All-Time pages with this (phase 7 step 6)
     wv_show_more: 'Mostrar mais',

@@ -17412,11 +17412,13 @@ function playsPeakBadge() {
 function buildCumulativeMapsForPeriod(endDate) {
   const songs = {};
   const albums = {};
+  const artists = {};   // every credited artist, as the Artists chart counts them
   const songAlbumCounts = {}; // songKey → { albumKey → count }
   for (const p of allPlays) {
     if (p.date > endDate) continue;
     const sk = songKey(p);
     songs[sk] = (songs[sk] || 0) + 1;
+    for (const a of p.artists) artists[a] = (artists[a] || 0) + 1;
     const ak = albumKeyOf(p);
     albums[ak] = (albums[ak] || 0) + 1;
     if (!songAlbumCounts[sk]) songAlbumCounts[sk] = {};
@@ -17438,7 +17440,7 @@ function buildCumulativeMapsForPeriod(endDate) {
     const name = ak.split('|||')[0];
     albumsByName[name] = (albumsByName[name] || 0) + count;
   }
-  return { songs, albums, songAlbumKey, albumsByName };
+  return { songs, albums, artists, songAlbumKey, albumsByName };
 }
 
 // Historical max per-period play counts, excluding the currently viewed period.
@@ -18808,6 +18810,8 @@ function _chartItem(type, item, i, ctx) {
   } else if (type === 'albums') {
     cumPlays = cumulativeMaps ? (cumulativeMaps.albums[key] || 0) : count;
     certHtml = certBadge(cumPlays, certKindFor(album, artist));
+  } else {
+    cumPlays = cumulativeMaps ? (cumulativeMaps.artists[key] || 0) : count;   // artists have no certification
   }
   const ratingHtml = ratingRowBadge(type, key);
 
@@ -19027,6 +19031,15 @@ function _eaMoreBtn() {
 // ▶ and ⋮ side by side — what every layout places
 function _eaBtns() {
   return `<span class="ea-pair">${_eaSampleBtn()}${_eaMoreBtn()}</span>`;
+}
+
+// Search on Spotify, in a new tab: a song or album with its artist, or the
+// artist. A link, so it never starts the sample or opens the drawer.
+const _EA_SP_SVG = '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7.5" fill="currentColor"/><path d="M4.2 6.1c2.6-.8 5.4-.6 7.7.7M4.6 8.3c2.1-.6 4.4-.4 6.3.6M5 10.4c1.7-.4 3.4-.3 4.9.5" fill="none" stroke="#000" stroke-opacity=".75" stroke-width="1.15" stroke-linecap="round"/></svg>';
+function _eaSpotifyBtn(type, name, artist) {
+  const q = encodeURIComponent(type === 'artists' || !artist ? name : name + ' ' + artist);
+  const lbl = esc(t('tm_action_spotify'));
+  return `<a class="ea-spotify" href="https://open.spotify.com/search/${q}" target="_blank" rel="noopener" title="${lbl}" aria-label="${lbl}" onclick="event.stopPropagation()">${_EA_SP_SVG}</a>`;
 }
 
 function _eaEntryData(el) {
@@ -20085,10 +20098,11 @@ function initFilmstripInteractions(type) {
 function _wvStack(items, max, ms, imgItems, type) {
   type = type || 'songs';
   const jtype = esc(JSON.stringify(type));
-  // Phase 7 step 8 (4.9b): Compact's row style with a 48px cover and the
-  // artist on its own line. Rank with the movement under it, Title (+ badges),
-  // Artist · Album, Plays. Weeks, previous rank, all-time plays and the rest
-  // are in the details panel.
+  const isAllTime = !!(_wvCur && _wvCur.isAllTime);
+  // Phase 7 step 8 (4.9b): rounded cards, the top 3 glowing. Big rank with
+  // its movement under it; Title (+ badges); Artist · Album; then the
+  // numbers on their own line: plays this period · time on chart · all-time
+  // plays. Ends with Spotify, ▶ sample and ⋮.
   const row = (s, j) => {
     const i = _wvIdx(s, j);   // rank index on the full chart (step 6: pages)
     const f = _wvItem(type, s, i, ms, imgItems);
@@ -20097,21 +20111,25 @@ function _wvStack(items, max, ms, imgItems, type) {
     const badges = (f.peak ? peakBadge(f.peak) : '') + f.certHtml + f.ratingHtml + (f.isPlaysPeak ? playsPeakBadge() : '');
     const album = type === 'songs' && s.album && s.album !== '—' ? s.album : '';
     const statusCls = f.move === 'new' ? ' wv-stk-new' : f.move === 're' ? ' wv-stk-re' : '';
-    // Short unit ("plays", "veces"): the number is what counts here
-    const unit = t(s.count === 1 ? 'plays_one_mobile' : 'plays_other_mobile');
+    // The numbers line. The All-Time chart has no time on chart, and its
+    // plays already are the all-time total.
+    const stats = [`<span class="wv-stk-stat wv-stk-now"><b>${s.count.toLocaleString()}</b> ${esc(tUnit('plays', s.count))}</span>`];
+    if (ms && !isAllTime) stats.push(`<span class="wv-stk-stat">${esc(_wvRunText(f.weeks || 1))}</span>`);
+    if (!isAllTime && f.cumPlays > s.count) stats.push(`<span class="wv-stk-stat">${esc(t('wv_total', { n: f.cumPlays.toLocaleString() }))}</span>`);
+    const spArtist = type === 'artists' ? '' : sub;
     return `<div class="wv-stk-card${i < 3 ? ' wv-r' + (i + 1) : ''}${statusCls}" tabindex="0" onclick="_drEntryClick(event,this)"${ea}>` +
       `<div class="wv-stk-row">` +
         `<div class="wv-stk-pos"><span class="wv-stk-rank">${i + 1}</span>${f.mvHtml ? `<span class="wv-stk-mv">${f.mvHtml}</span>` : ''}</div>` +
-        `<div class="wv-thumb wv-thumb-md ea-cover">${_wvThumb(imgId, ttl)}</div>` +
+        `<div class="wv-thumb wv-thumb-lg ea-cover">${_wvThumb(imgId, ttl)}</div>` +
         `<div class="wv-stk-body">` +
           `<div class="wv-stk-title"><span class="wv-stk-ttl wv-title-link" onclick="event.stopPropagation();_wvOpenModal(${jtype},${esc(JSON.stringify(k))})" title="${esc(ttl)}">${esc(ttl)}</span>${badges ? `<span class="wv-stk-badges">${badges}</span>` : ''}</div>` +
           ((sub || album) ? `<div class="wv-stk-sub">` +
             (sub ? `<span class="wv-stk-artist">${esc(sub)}</span>` : '') +
             (album ? `${sub ? '<span class="wv-stk-sep" aria-hidden="true">·</span>' : ''}<span class="wv-stk-alb">${esc(album)}</span>` : '') +
           `</div>` : '') +
+          `<div class="wv-stk-stats"><div class="wv-stk-stats-in">${stats.join('')}</div></div>` +
         `</div>` +
-        `<div class="wv-stk-plays"><span class="wv-stk-n">${s.count.toLocaleString()}</span><span class="wv-stk-unit">${esc(unit)}</span></div>` +
-        _eaBtns() +
+        `<span class="wv-stk-acts">${_eaSpotifyBtn(type, ttl, spArtist)}${_eaBtns()}</span>` +
       `</div>` +
     `</div>`;
   };

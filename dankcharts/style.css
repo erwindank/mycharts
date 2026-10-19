@@ -31941,36 +31941,58 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
    panel) came out ~7px and unreadable, so give it full panel size here */
 
 /* ── STACK ── (phase 7 step 8, 4.9b)
-   Compact's row style with a 48px cover and the artist on its own line.
-   The rank has its movement under it; badges wrap under the title rather
-   than run past the row's end. Two columns fill down first (1–5 | 6–10)
-   with #1 across both; phones get one column, in the same order. The
-   pulsing gold / silver / bronze glow is gone: #1–#3 get the Table's tints. */
-.wv-stack { display: flex; flex-direction: column; }
-.wv-stack-2col { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: var(--sp-4); }
+   Rounded cards, the top 3 glowing gold / silver / bronze. Big rank with
+   its movement under it, a 64px cover, then three lines: Title (+ badges),
+   Artist · Album, and the numbers (plays · time on chart · all-time plays).
+   Spotify, ▶ and ⋮ at the end. Two columns fill down first (1–5 | 6–10)
+   with #1 across both; phones get one column, in the same order. */
+.wv-stack { display: flex; flex-direction: column; gap: var(--sp-2); padding: var(--sp-1); }
+.wv-stack-2col { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--sp-2); }
 .wv-stk-hero { grid-column: 1 / -1; }
-.wv-stk-col { display: flex; flex-direction: column; min-width: 0; }
-.wv-stk-card { border-bottom: 1px solid var(--border); cursor: pointer; }
-.wv-stk-card:hover { background: var(--hover); }
-.wv-r1.wv-stk-card { background: rgba(240,170,48,0.1); }
-.wv-r2.wv-stk-card { background: rgba(148,163,184,0.08); }
-.wv-r3.wv-stk-card { background: rgba(180,83,9,0.08); }
-.wv-r1.wv-stk-card:hover { background: rgba(240,170,48,0.16); }
-.wv-r2.wv-stk-card:hover { background: rgba(148,163,184,0.13); }
-.wv-r3.wv-stk-card:hover { background: rgba(180,83,9,0.13); }
+.wv-stk-col { display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0; }
+/* position + z-index: its own stacking context, so the glow (z-index -1)
+   sits under the card's content but over its background */
+.wv-stk-card {
+  position: relative; z-index: 0;
+  background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r-md);
+  cursor: pointer; transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+}
+.wv-stk-card:hover { background: color-mix(in srgb, var(--text) 4%, var(--bg2)); }
+/* The glow: a fixed shadow on a layer whose opacity breathes. The old one
+   animated box-shadow itself, which repaints every frame; opacity doesn't.
+   Colours come from the medal tokens, so light themes get their own. */
+.wv-r1.wv-stk-card { --stk-glow: var(--medal-gold);   --stk-glow-t: 2.5s; }
+.wv-r2.wv-stk-card { --stk-glow: var(--medal-silver); --stk-glow-t: 3s; }
+.wv-r3.wv-stk-card { --stk-glow: var(--medal-bronze); --stk-glow-t: 3.5s; }
+.wv-r1.wv-stk-card, .wv-r2.wv-stk-card, .wv-r3.wv-stk-card {
+  border-color: color-mix(in srgb, var(--stk-glow) 60%, transparent);
+  background: color-mix(in srgb, var(--stk-glow) 7%, var(--bg2));
+}
+.wv-r1.wv-stk-card:hover, .wv-r2.wv-stk-card:hover, .wv-r3.wv-stk-card:hover { background: color-mix(in srgb, var(--stk-glow) 12%, var(--bg2)); }
+.wv-r1.wv-stk-card::before, .wv-r2.wv-stk-card::before, .wv-r3.wv-stk-card::before {
+  content: ''; position: absolute; inset: -1px; z-index: -1; border-radius: inherit; pointer-events: none;
+  box-shadow: 0 0 0 1px var(--stk-glow), 0 0 22px color-mix(in srgb, var(--stk-glow) 50%, transparent), 0 0 44px color-mix(in srgb, var(--stk-glow) 18%, transparent);
+  opacity: 0.5; animation: stk-glow var(--stk-glow-t) ease-in-out infinite alternate;
+}
+.wv-r1.wv-stk-card::before { box-shadow: 0 0 0 1px var(--stk-glow), 0 0 28px color-mix(in srgb, var(--stk-glow) 60%, transparent), 0 0 56px color-mix(in srgb, var(--stk-glow) 25%, transparent); }
+@keyframes stk-glow { to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .wv-r1.wv-stk-card::before, .wv-r2.wv-stk-card::before, .wv-r3.wv-stk-card::before { animation: none; opacity: 0.8; }
+}
 /* Phase 3 colour pass: no coloured left-edge bars on NEW / RE rows. The
    wv-stk-new / wv-stk-re classes are still set as plain status hooks. */
-.wv-stk-row { display: flex; align-items: center; gap: 10px; padding: 6px var(--sp-2); min-height: 60px; }
-.wv-stk-pos { display: flex; flex-direction: column; align-items: center; gap: 2px; width: 40px; flex: none; }
+.wv-stk-row { display: flex; align-items: center; gap: 10px; padding: var(--sp-2) 10px; }
+.wv-stk-pos { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 48px; flex: none; }
 .wv-stk-rank { font-family: var(--font-mono);
-      font-variant-numeric: tabular-nums; font-size: var(--fs-lg); font-weight: 700; color: var(--text3); line-height: 1; }
+      font-variant-numeric: tabular-nums; font-size: var(--fs-xl); font-weight: 900; line-height: 1;
+      color: color-mix(in srgb, var(--text) 55%, transparent); }
 .wv-r1 .wv-stk-rank { color: var(--medal-gold); }
 .wv-r2 .wv-stk-rank { color: var(--medal-silver); }
 .wv-r3 .wv-stk-rank { color: var(--medal-bronze); }
 .wv-stk-mv { display: flex; justify-content: center; line-height: 1; }
-.wv-stk-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.wv-stk-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
 /* Title, then the badges: when they don't fit beside it they wrap onto
-   their own line inside the row (on phones they were cut off at its end) */
+   their own line inside the card (on phones they were cut off at its end) */
 .wv-stk-title { display: flex; flex-wrap: wrap; align-items: center; row-gap: 3px; min-width: 0; }
 .wv-stk-ttl { font-size: var(--fs-sm); font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; max-width: 100%; margin-right: 6px; }
 /* Spacing on each badge, not the group: the Show switches hide badges */
@@ -31982,23 +32004,29 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
 .wv-stk-artist { color: var(--text2); flex: 0 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .wv-stk-sep { color: var(--text3); flex: none; }
 .wv-stk-alb { color: var(--text3); flex: 1 1 0; min-width: 2.5em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.wv-stk-plays { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; flex: none; min-width: 48px; }
-.wv-stk-n { font-family: var(--font-mono);
-      font-variant-numeric: tabular-nums; font-size: var(--fs-sm); font-weight: 600; color: var(--text); line-height: 1.1; }
-.wv-stk-unit { font-size: var(--fs-xs); color: var(--text3); line-height: 1.1; }
+/* The numbers: this period's plays first and strongest, then time on chart
+   and all-time plays, each set apart by a spaced dot. Every stat starts
+   with its dot and the inner row is pulled left by one dot's width into a
+   clipped edge, so a line that wraps never starts with a stray "·". */
+.wv-stk-stats { overflow: hidden; font-size: var(--fs-xs); color: var(--text3); }
+.wv-stk-stats-in { display: flex; flex-wrap: wrap; align-items: baseline; row-gap: 2px; margin-left: -18px; }
+.wv-stk-stat { white-space: nowrap; }
+.wv-stk-stat::before { content: '·'; display: inline-block; width: 18px; text-align: center; color: var(--text3); opacity: 0.7; }
+.wv-stk-now { color: var(--text2); }
+.wv-stk-now b { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-weight: 700; color: var(--text); }
+.wv-stk-acts { display: inline-flex; align-items: center; gap: 2px; flex: none; }
 /* #1 across both columns: a bigger cover and title */
-.wv-stk-hero .wv-stk-row { min-height: 76px; }
-.wv-stk-hero .wv-thumb-md .thumb-initials, .wv-stk-hero .wv-thumb-md .thumb { width: 64px; height: 64px; font-size: 1.1rem; }
+.wv-stk-hero .wv-thumb-lg .thumb-initials, .wv-stk-hero .wv-thumb-lg .thumb { width: 80px; height: 80px; font-size: 1.3rem; }
 .wv-stk-hero .wv-stk-ttl { font-size: var(--fs-base); }
 .wv-stk-hero .wv-stk-sub { font-size: var(--fs-sm); }
-.wv-stk-hero .wv-stk-rank { font-size: var(--fs-xl); }
 @media (max-width: 600px) {
   .wv-stack-2col { display: flex; flex-direction: column; }
-  .wv-stk-row { gap: 8px; padding: 6px 4px 6px 2px; }
-  .wv-stk-pos { width: 30px; }
-  .wv-stk-rank { font-size: var(--fs-base); }
-  .wv-stk-plays { min-width: 36px; }
-  .wv-stk-hero .wv-thumb-md .thumb-initials, .wv-stk-hero .wv-thumb-md .thumb { width: 48px; height: 48px; font-size: 0.85rem; }
+  .wv-stk-row { gap: 8px; padding: var(--sp-2) 4px var(--sp-2) 6px; }
+  .wv-stk-pos { min-width: 34px; }
+  .wv-stk-rank { font-size: var(--fs-lg); }
+  .wv-stk-row .wv-thumb-lg .thumb-initials, .wv-stk-row .wv-thumb-lg .thumb { width: 52px; height: 52px; font-size: 0.95rem; }
+  .wv-stk-stats-in { margin-left: -14px; }
+  .wv-stk-stat::before { width: 14px; }
   /* The phone Table's short forms (2026-10-18): 💎 for diamonds, ▲ PB, and
      in Spanish 🏅 #n for the peak tag */
   .wv-stack .cert-diamond .cert-icon,
@@ -36884,6 +36912,18 @@ body.cp-hide-cert-reel    #certReelSection { display: none !important; }
 .ea-sample:hover { background: var(--hover); color: var(--accent); }
 .ea-more:hover { background: var(--hover); color: var(--text); }
 .ea-sample:focus-visible, .ea-more:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* Search on Spotify (Stack, beside ▶ and ⋮): same size, quiet until hover */
+.ea-spotify {
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  width: 28px; height: 28px; border-radius: var(--r-full); color: #1DB954; text-decoration: none;
+  opacity: 0.55; transition: opacity var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+.ea-spotify svg { width: 16px; height: 16px; display: block; }
+[data-ea-type]:hover .ea-spotify, .ea-spotify:focus-visible { opacity: 1; }
+.ea-spotify:hover { background: var(--hover); }
+.ea-spotify:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+@media (hover: none) { .ea-spotify { opacity: 1; } }
 
 .ea-sample .ea-ic-stop { display: none; }
 .ea-sample.is-on { background: var(--accent); color: var(--on-accent); opacity: 1; }
