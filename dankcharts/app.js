@@ -2090,7 +2090,72 @@ function refreshSettingsI18n() {
 const RULES_KEY = 'dc_autocorrect_rules';
 
 let _rulesCache = null;
-window.dcResetRulesCache = () => { _rulesCache = null; };
+
+// ── Deleted-rule memory ("tombstones") ──
+// Rules live in four places (this device's localStorage + IndexedDB, the sheet's
+// script properties, the Firestore config doc) and every merge between them is a
+// union. Without a record of deletions, any copy that still held a deleted rule
+// (another device, the sheet) added it straight back to all the others, so a
+// rule could never really be deleted. Each deletion now leaves
+// { ruleKey: deletedAt } in dc_autocorrect_deleted (synced via SYNC_KEYS), and
+// every merge drops a rule whose key was deleted after the rule was created.
+// Re-creating the same rule later gives it a newer createdAt, so it comes back.
+const RULES_DELETED_KEY = 'dc_autocorrect_deleted';
+const _ruleMatchKey = r => JSON.stringify([r.match.artist, r.match.title, r.match.album]);
+
+function _getRuleTombstones() {
+  try {
+    const o = JSON.parse(localStorage.getItem(RULES_DELETED_KEY) || '{}');
+    return (o && typeof o === 'object' && !Array.isArray(o)) ? o : {};
+  } catch { return {}; }
+}
+
+// Records the given rules as deleted (locally and in the cloud)
+function _tombstoneRules(rules) {
+  if (!rules.length) return;
+  const t = _getRuleTombstones();
+  const now = Date.now();
+  for (const r of rules) t[_ruleMatchKey(r)] = now;
+  const json = JSON.stringify(t);
+  localStorage.setItem(RULES_DELETED_KEY, json);
+  if (typeof dcSaveConfigKey === 'function') dcSaveConfigKey(RULES_DELETED_KEY, json);
+}
+
+// A rule whose replacement equals its match changes nothing — but the sheet's
+// applyRules still counted every matching row as "corrected", so one of these
+// showed an "Auto-corrected N entries" toast on every load. They are dropped.
+function _isNoopRule(r) {
+  return r.match.artist === r.replace.artist && r.match.title === r.replace.title && r.match.album === r.replace.album;
+}
+
+// Drops malformed, no-op and deleted rules from a merged list
+function _liveRules(rules) {
+  const t = _getRuleTombstones();
+  return (rules || []).filter(r => {
+    if (!r || !r.match || !r.replace) return false;
+    if (_isNoopRule(r)) return false;
+    const deletedAt = t[_ruleMatchKey(r)];
+    return !(deletedAt && (r.createdAt || 0) <= deletedAt);
+  });
+}
+
+// Called by firebase.js after it has written the cloud copy into localStorage.
+// Re-reads the rules with the (possibly new) deletions applied and, if that
+// removed anything, writes the clean list back everywhere — before the sign-in
+// callback's dcSaveUserConfig() pushes localStorage up to Firestore.
+window.dcResetRulesCache = () => {
+  _rulesCache = null;
+  let raw = [];
+  try { raw = JSON.parse(localStorage.getItem(RULES_KEY) || '[]'); } catch {}
+  if (!Array.isArray(raw)) raw = [];
+  const live = _liveRules(raw);
+  _rulesCache = live;
+  if (live.length !== raw.length) {
+    localStorage.setItem(RULES_KEY, JSON.stringify(live));
+    saveToIDB(IDB_RULES_KEY, { rules: live }).catch(() => {});
+    syncRulesToSheet();
+  }
+};
 
 async function initRulesCache() {
   const idbData = await loadFromIDB(IDB_RULES_KEY).catch(() => null);
@@ -2107,6 +2172,7 @@ async function initRulesCache() {
   } else {
     _rulesCache = localRules;
   }
+  _rulesCache = _liveRules(_rulesCache);
   if (_rulesCache.length > 0) {
     localStorage.setItem(RULES_KEY, JSON.stringify(_rulesCache));
     saveToIDB(IDB_RULES_KEY, { rules: _rulesCache }).catch(() => {});
@@ -2120,6 +2186,7 @@ function getAutocorrectRules() {
   // initRulesCache() unconditionally overwrites _rulesCache once the IDB merge lands,
   // and dcResetRulesCache() still forces a fresh read by nulling it.
   try { _rulesCache = JSON.parse(localStorage.getItem(RULES_KEY) || '[]'); } catch { _rulesCache = []; }
+  _rulesCache = _liveRules(Array.isArray(_rulesCache) ? _rulesCache : []);
   return _rulesCache;
 }
 
@@ -2127,12 +2194,16 @@ function saveAutocorrectRule(origArtist, origTitle, origAlbum, newArtist, newTit
   const rules = getAutocorrectRules().filter(r =>
     !(r.match.artist === origArtist && r.match.title === origTitle && r.match.album === origAlbum)
   );
-  rules.push({
+  const rule = {
     id: Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
     match:   { artist: origArtist, title: origTitle, album: origAlbum },
     replace: { artist: newArtist,  title: newTitle,  album: newAlbum  },
     createdAt: Date.now()
-  });
+  };
+  // Saving an entry back to its own values is not a rule — it only undoes
+  // the old one for that match, so record that as a deletion instead
+  if (_isNoopRule(rule)) _tombstoneRules([rule]);
+  else rules.push(rule);
   _rulesCache = rules;
   const rulesJson = JSON.stringify(rules);
   localStorage.setItem(RULES_KEY, rulesJson);
@@ -2142,6 +2213,7 @@ function saveAutocorrectRule(origArtist, origTitle, origAlbum, newArtist, newTit
 }
 
 function deleteAutocorrectRule(id) {
+  _tombstoneRules(getAutocorrectRules().filter(r => r.id === id));
   const rules = getAutocorrectRules().filter(r => r.id !== id);
   _rulesCache = rules;
   const rulesJson = JSON.stringify(rules);
@@ -2164,6 +2236,7 @@ function findSimilarRules(origArtist, origTitle, origAlbum) {
 function overrideSimilarRules(similar) {
   if (!similar.length) return;
   const ids  = new Set(similar.map(r => r.id));
+  _tombstoneRules(similar);
   const rules = getAutocorrectRules().filter(r => !ids.has(r.id));
   _rulesCache  = rules;
   const json   = JSON.stringify(rules);
@@ -2358,12 +2431,15 @@ async function loadRulesFromSheet() {
     if (!res.ok) return false;
     const data = await res.json();
     if (data.status !== 'ok' || !data.rules) return false;
-    const sheetRules = JSON.parse(data.rules);
-    if (!Array.isArray(sheetRules)) return false;
+    const sheetRulesRaw = JSON.parse(data.rules);
+    if (!Array.isArray(sheetRulesRaw)) return false;
+    // The sheet may still hold rules deleted elsewhere — leave them out, and
+    // rewrite the sheet's copy below so it stops handing them back
+    const sheetRules = _liveRules(sheetRulesRaw);
     const local = getAutocorrectRules();
     const localJsonBefore = JSON.stringify(local);
     const merged = [...sheetRules];
-    let addedFromLocal = 0;
+    let addedFromLocal = sheetRules.length !== sheetRulesRaw.length ? 1 : 0;
     for (const r of local) {
       const key = r.match.artist + '|' + r.match.title + '|' + r.match.album;
       if (!merged.some(s => s.match.artist + '|' + s.match.title + '|' + s.match.album === key)) {
@@ -2409,14 +2485,15 @@ function importRules() {
       for (const r of imported) {
         const key = r.match?.artist + '|' + r.match?.title + '|' + r.match?.album;
         if (!existing.some(x => x.match.artist + '|' + x.match.title + '|' + x.match.album === key)) {
-          existing.push(r);
+          // Stamped now: importing is a deliberate re-add, so it beats an older deletion
+          existing.push({ ...r, createdAt: Date.now() });
           added++;
         }
       }
-      _rulesCache = existing;
-      const rulesJson = JSON.stringify(existing);
+      _rulesCache = _liveRules(existing);
+      const rulesJson = JSON.stringify(_rulesCache);
       localStorage.setItem(RULES_KEY, rulesJson);
-      saveToIDB(IDB_RULES_KEY, { rules: existing }).catch(() => {});
+      saveToIDB(IDB_RULES_KEY, { rules: _rulesCache }).catch(() => {});
       renderRulesList();
       syncRulesToSheet();
       if (typeof dcSaveRulesToFirestore === 'function') dcSaveRulesToFirestore(rulesJson);
@@ -19550,13 +19627,27 @@ document.addEventListener('keydown', e => {
 function _wvCompact(items, max, ms, imgItems, type) {
   type = type || 'songs';
   const jtype = esc(JSON.stringify(type));
-  const header = `<div class="wv-cx-header">` +
-    `<span class="wv-cx-rank">#</span>` +
-    `<div class="wv-cx-hd-spacer"></div>` +
-    `<span class="wv-cx-hd-title">Title — Artist</span>` +
-    `<span class="wv-cx-hd-wks">Weeks</span>` +
-    `<span class="wv-cx-hd-prev">Previous</span>` +
-    `<span class="wv-cx-hd-plays">Plays</span>` +
+  // Phase 7 step 8 (4.9b): one grid for the header and every row, so the
+  // columns line up down the page. Move and time-on-chart only exist where
+  // there is a period to compare against (not All-Time), like the Table.
+  const hasStats = !!ms && !(_wvCur && _wvCur.isAllTime);
+  const p = currentPeriod;
+  const perFull  = p === 'day' ? t('dy_th_days') : p === 'month' ? t('th_months') : p === 'year' ? t('th_years') : t('th_weeks');
+  const perShort = p === 'day' ? t('dy_th_days_mobile') : p === 'month' ? t('th_months_mobile') : p === 'year' ? t('th_years_mobile') : t('th_weeks_mobile');
+  // Same column names as the Table header (renderSongs' head rows)
+  const ttlHead = type === 'artists' ? t('th_artist')
+    : type === 'albums' ? (separatedTypes().length ? t('th_type_artist', { type: albumBucketNoun(false) }) : t('th_album_artist'))
+    : t('th_title_artist');
+  const playsFull  = type === 'songs' ? t('th_plays') : t('th_total_plays');
+  const playsShort = type === 'songs' ? t('th_plays_mobile') : t('th_total_plays_mobile');
+  const header = `<div class="wv-cx-header" aria-hidden="true">` +
+    `<span class="wv-cx-rank">#</span>` +   // the 28px rank column only fits "#"
+    `<span></span>` +
+    `<span class="wv-cx-hd-title">${ttlHead}</span>` +
+    (hasStats ? `<span class="wv-cx-move"><span class="th-prev-full">${t('th_move')}</span><span class="th-prev-short">${t('th_move_mobile')}</span></span>` +
+                `<span class="wv-cx-wks"><span class="th-period-full">${perFull}</span><span class="th-period-short">${perShort}</span></span>` : '') +
+    `<span class="wv-cx-plays"><span class="th-plays-full">${playsFull}</span><span class="th-plays-short">${playsShort}</span></span>` +
+    `<span></span>` +
     `</div>`;
 
   const rows = items.map((s, j) => {
@@ -19565,12 +19656,9 @@ function _wvCompact(items, max, ms, imgItems, type) {
     const { k, imgId, ea, mv, prefKey, ttl, sub } = f;
     // Every switchable badge, for every type (phase 7 step 4: the Show switches decide)
     const pk        = f.peak;
-    const weeks     = ms ? (f.weeks || 1) : null;
     const cert      = f.certHtml + f.ratingHtml + (f.isPlaysPeak ? playsPeakBadge() : '');
+    const badges    = (pk ? peakBadge(pk) : '') + cert;
     const album     = s.album || '';
-
-    // Feature 8: number rank for all positions, colored gold/silver/bronze for top 3
-    const rankHtml = `${i + 1}`;
 
     // Feature 9: art tooltip — second image element with same prefKey so cache is shared
     const tipId = 'wv-sart-tip-' + i;
@@ -19582,41 +19670,36 @@ function _wvCompact(items, max, ms, imgItems, type) {
       (album && album !== '—' ? `<span class="wv-cx-art-alb">${esc(album)}</span>` : '') +
       `</div>`;
 
-    // Feature 6 (phase 7): ▶ sample + ⋮ menu at the row's end; on touch,
-    // tapping the cover plays the sample (_eaAttrs)
-    const cxPlBtn = dcPlBtnForWv(type, ttl, sub, album, 'dc-pl-add-sm');
-
-    // Feature 2: time-on-chart column, spelled out in the period's own unit
-    const weeksText = weeks ? _wvRunText(weeks) : '';
-
-    // Previous column: movement arrow + previous rank, like the table view
-    const prevContent = f.prevRank ? `${f.mvHtml}<div class="wv-cx-prev-rank">#${f.prevRank}</div>` : f.mvHtml;
+    // Move: the chip with last period's rank under it, as in the Table
+    const moveHtml = f.prevRank ? `${f.mvHtml}<span class="wv-cx-prev-rank">#${f.prevRank}</span>` : f.mvHtml;
+    // Time on chart: just the number, the header names the unit (step 8)
+    const weeks = hasStats ? (f.weeks || 1) : null;
 
     // Feature 7: color-scaled play count
     const ratio = max > 0 ? s.count / max : 0;
-    const playsColor = ratio > 0.6 ? 'var(--accent)' : ratio > 0.3 ? 'var(--text)' : '';
-    const playsStyle = playsColor ? ` style="color:${playsColor}"` : '';
+    const playsCls = ratio > 0.6 ? ' wv-cx-hot' : ratio > 0.3 ? ' wv-cx-warm' : '';
 
     const statusCls = mv.includes('wv-new') ? ' wv-stk-new' : mv.includes('wv-re') ? ' wv-stk-re' : '';
 
+    // Title · Artist in one line on desktop (phones: artist on its own line).
+    // The title shrinks first; the badges keep their size after it.
     return `<div class="wv-cx-row${i < 3 ? ' wv-r' + (i + 1) : ''}${statusCls}" onclick="_drEntryClick(event,this)" tabindex="0"${ea}>` +
-      `<span class="wv-cx-rank">${rankHtml}</span>` +
+      `<span class="wv-cx-rank">${i + 1}</span>` +
       `<div class="wv-cx-art-wrap ea-cover" onclick="event.stopPropagation()">` +
         `<div class="wv-thumb wv-thumb-sm">${_wvThumb(imgId, ttl)}</div>` +
         artTip +
       `</div>` +
-      `<span class="wv-cx-title"><span class="wv-title-link" onclick="event.stopPropagation();_wvOpenModal(${jtype},${esc(JSON.stringify(k))})" title="View details">${esc(ttl)}</span>${pk ? peakBadge(pk) : ''}${cert}</span>` +
-      `<span class="wv-cx-sep">—</span>` +
-      `<span class="wv-cx-artist">${esc(sub)}</span>` +
-      cxPlBtn +
-      `<span class="wv-cx-wks">${weeksText}</span>` +
-      `<span class="wv-cx-prev">${prevContent}</span>` +
-      `<span class="wv-cx-plays"${playsStyle}>${s.count}</span>` +
+      `<span class="wv-cx-text">` +
+        `<span class="wv-cx-title"><span class="wv-cx-ttl wv-title-link" onclick="event.stopPropagation();_wvOpenModal(${jtype},${esc(JSON.stringify(k))})" title="${esc(ttl)}">${esc(ttl)}</span>${badges ? `<span class="wv-cx-badges">${badges}</span>` : ''}</span>` +
+        (sub ? `<span class="wv-cx-sep" aria-hidden="true">·</span><span class="wv-cx-artist">${esc(sub)}</span>` : '') +
+      `</span>` +
+      (hasStats ? `<span class="wv-cx-move">${moveHtml}</span><span class="wv-cx-wks">${weeks}</span>` : '') +
+      `<span class="wv-cx-plays${playsCls}">${s.count.toLocaleString()}</span>` +
       _eaBtns() +
       `</div>`;
   }).join('');
 
-  return `<div class="wv-compact">${header}${rows}</div>`;
+  return `<div class="wv-compact${hasStats ? '' : ' wv-cx-nostats'}">${header}${rows}</div>`;
 }
 
 

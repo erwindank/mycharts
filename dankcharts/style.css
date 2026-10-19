@@ -31263,27 +31263,37 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
 .wv-ctx-item:hover { background: var(--bg3, var(--border)); color: var(--accent); }
 .wv-ctx-sep { height: 1px; background: var(--border); margin: 3px 0; }
 
-/* ── COMPACT LIST ── */
-.wv-compact { display: flex; flex-direction: column; }
+/* ── COMPACT LIST ── (phase 7 step 8, 4.9b)
+   One grid template for the header and every row, so Move, time on chart
+   and Plays line up down the page. Title · Artist sit together on the left;
+   on phones the artist drops under the title and the time-on-chart column
+   goes (it is in the details panel), so the names get the room first. */
+.wv-compact {
+  display: flex; flex-direction: column;
+  /* rank · cover · Title · Artist · Move · time on chart · Plays · ▶ ⋮ */
+  --cx-cols: 28px 32px minmax(0, 1fr) 52px 52px 64px 58px;
+}
+.wv-compact.wv-cx-nostats { --cx-cols: 28px 32px minmax(0, 1fr) 64px 58px; }   /* All-Time */
 
 /* Feature 10: sticky column-label header */
 .wv-cx-header {
-  display: flex; align-items: center; gap: 0.4rem;
+  display: grid; grid-template-columns: var(--cx-cols); align-items: center; column-gap: 10px;
   padding: var(--sp-1) var(--sp-2);
   position: sticky; top: 0; z-index: 10;
   background: var(--bg);
   border-bottom: 1px solid var(--border2);
-  font-family: var(--font-sans); font-size: var(--fs-xs);
+  font-family: var(--font-sans); font-size: var(--fs-xs); font-weight: 600;
   color: var(--text3); text-transform: uppercase; letter-spacing: 0.04em;
 }
-.wv-cx-hd-spacer { width: 28px; flex-shrink: 0; }
-.wv-cx-hd-title { flex: 1; min-width: 0; }
-.wv-cx-hd-wks { flex-shrink: 0; width: 60px; text-align: right; }
-.wv-cx-hd-prev { flex-shrink: 0; width: 50px; text-align: center; }
-.wv-cx-hd-plays { flex-shrink: 0; min-width: 24px; text-align: right; }
+.wv-cx-header > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wv-cx-header .wv-cx-rank { font-family: var(--font-sans); font-size: var(--fs-xs); font-weight: 600; color: var(--text3); }
 
-/* Row — flex-wrap so accordion shelf wraps to its own line */
-.wv-cx-row { display: flex; align-items: center; flex-wrap: wrap; gap: 0.4rem; padding: 0.3rem var(--sp-2); border-bottom: 1px solid var(--border); min-height: 40px; cursor: pointer; }
+/* Row: 40px, with the details drawer on its own full-width line */
+.wv-cx-row {
+  display: grid; grid-template-columns: var(--cx-cols); align-items: center; column-gap: 10px;
+  padding: 4px var(--sp-2); min-height: 40px;
+  border-bottom: 1px solid var(--border); cursor: pointer;
+}
 .wv-cx-row:hover { background: var(--hover); } /* phase 3: was a white wash, invisible on light themes */
 .wv-r1.wv-cx-row:hover { background: rgba(240,170,48,0.16); }
 .wv-r2.wv-cx-row:hover { background: rgba(148,163,184,0.13); }
@@ -31295,13 +31305,13 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
 
 /* Feature 8: rank numbers (all positions), gold/silver/bronze for top 3 */
 .wv-cx-rank { font-family: var(--font-mono);
-      font-variant-numeric: tabular-nums; font-size: var(--fs-base); font-weight: 700; color: var(--text3); min-width: 20px; text-align: right; flex-shrink: 0; }
+      font-variant-numeric: tabular-nums; font-size: var(--fs-base); font-weight: 700; color: var(--text3); text-align: right; }
 .wv-r1 .wv-cx-rank { color: var(--medal-gold); }
 .wv-r2 .wv-cx-rank { color: var(--medal-silver); }
 .wv-r3 .wv-cx-rank { color: var(--medal-bronze); }
 
 /* Feature 9: art wrap + tooltip */
-.wv-cx-art-wrap { position: relative; flex-shrink: 0; }
+.wv-cx-art-wrap { position: relative; width: 32px; height: 32px; }
 .wv-cx-art-tip {
   position: absolute; left: 0; top: calc(100% + 4px); z-index: 100;
   display: flex; flex-direction: column; align-items: center; gap: var(--sp-1);
@@ -31310,29 +31320,81 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
   min-width: 100px;
 }
 .wv-cx-art-wrap:hover .wv-cx-art-tip { opacity: 1; }
+@media (hover: none) { .wv-cx-art-tip { display: none; } }   /* a tap plays the sample */
 .wv-cx-art-alb { font-size: var(--fs-xs); color: var(--text2); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100px; }
 
-.wv-cx-title { font-size: var(--fs-sm); font-weight: 600; color: var(--text); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
-.wv-cx-sep { color: var(--text3); flex-shrink: 0; font-size: var(--fs-xs); }
-.wv-cx-artist { font-size: var(--fs-xs); color: var(--text2); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+/* Title · Artist: one line. The artist gives way before the title does;
+   the badges keep their size after the title. */
+.wv-cx-text { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.wv-cx-title { display: flex; align-items: center; min-width: 0; flex: 0 1 auto; }
+.wv-cx-ttl { font-size: var(--fs-sm); font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 2.5em; }
+/* Spacing on each badge, not the group: the Show switches hide badges, and a
+   group margin would leave a gap before the "·" with every switch off */
+.wv-cx-badges { display: inline-flex; align-items: center; flex: none; }
+.wv-cx-badges > * { margin-left: 5px; }
+.wv-cx-badges:empty { display: none; }
+.wv-cx-sep { color: var(--text3); flex: none; font-size: var(--fs-sm); }
+.wv-cx-artist { font-size: var(--fs-sm); color: var(--text2); flex: 0 4 auto; min-width: 3em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* Feature 6: play-on-hover button */
-/* honour the per-type "hide YouTube buttons" setting */
-
-/* Feature 2: weeks column (spelled out) */
-.wv-cx-wks { font-family: var(--font-mono);
-      font-variant-numeric: tabular-nums; font-size: var(--fs-xs); color: var(--text3); flex-shrink: 0; width: 60px; text-align: right; }
-
-/* Previous column: movement arrow + prev rank below */
-.wv-cx-prev { flex-shrink: 0; width: 50px; display: flex; flex-direction: column; align-items: center; gap: 1px; }
+/* Move: the chip with last period's rank under it, as in the Table */
+.wv-cx-move { display: flex; flex-direction: column; align-items: center; gap: 1px; text-align: center; }
 .wv-cx-prev-rank { font-family: var(--font-mono);
-      font-variant-numeric: tabular-nums; font-size: var(--fs-xs); color: var(--text3); }
+      font-variant-numeric: tabular-nums; font-size: var(--fs-xs); color: var(--text3); line-height: 1.1; }
+
+/* Feature 2: time on chart, number only (the header names the unit) */
+.wv-cx-wks { font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums; font-size: var(--fs-sm); color: var(--text3); text-align: center; }
+.wv-cx-header .wv-cx-wks, .wv-cx-header .wv-cx-move { font-family: var(--font-sans); font-size: var(--fs-xs); }
 
 /* Feature 7: color-scaled play count */
 .wv-cx-plays { font-family: var(--font-mono);
-      font-variant-numeric: tabular-nums; font-size: var(--fs-xs); font-weight: 600; color: var(--text3); flex-shrink: 0; min-width: 24px; text-align: right; transition: color 0.2s; }
+      font-variant-numeric: tabular-nums; font-size: var(--fs-sm); font-weight: 600; color: var(--text2); text-align: center; transition: color 0.2s; }   /* centred, like the Table's Plays */
+.wv-cx-plays.wv-cx-warm { color: var(--text); }
+.wv-cx-plays.wv-cx-hot  { color: var(--accent); }
+.wv-cx-header .wv-cx-plays { font-family: var(--font-sans); font-size: var(--fs-xs); color: var(--text3); }
 
-/* Feature 5: accordion shelf */
+/* Touch: no ▶, so the button column is just ⋮ */
+@media (hover: none) {
+  .wv-compact { --cx-cols: 28px 32px minmax(0, 1fr) 52px 52px 64px 28px; }
+  .wv-compact.wv-cx-nostats { --cx-cols: 28px 32px minmax(0, 1fr) 64px 28px; }
+}
+
+/* Phones: Title over Artist, no time-on-chart column, tighter numbers.
+   Was ~20px for the title on a 390px phone; now about 200px. */
+@media (max-width: 600px) {
+  .wv-compact { --cx-cols: 22px 32px minmax(0, 1fr) 40px 48px 28px; }
+  .wv-compact.wv-cx-nostats { --cx-cols: 22px 32px minmax(0, 1fr) 48px 28px; }
+  /* "ESCUCHAS" / "PLAYS" is wider than the column: start it at the column's
+     left edge and let it run on over the ⋮ column (which has no label), rather
+     than cut it to "PLA…" or run it into "CAMB." */
+  .wv-cx-header { letter-spacing: 0.02em; }
+  .wv-cx-header > .wv-cx-plays { overflow: visible; text-overflow: clip; text-align: left; }
+  .wv-cx-header, .wv-cx-row { column-gap: 8px; padding-left: 6px; padding-right: 4px; }
+  .wv-cx-row { min-height: 44px; }
+  .wv-cx-wks { display: none; }
+  .wv-cx-rank { font-size: var(--fs-sm); }
+  .wv-cx-text { flex-direction: column; align-items: stretch; gap: 1px; }
+  .wv-cx-sep { display: none; }
+  .wv-cx-title { max-width: 100%; }
+  .wv-cx-artist { font-size: var(--fs-xs); min-width: 0; }
+  .wv-cx-badges > * { margin-left: 4px; }
+  /* With badges on, they drop under the title instead of running into the
+     Move and Plays columns */
+  .wv-cx-title { flex-wrap: wrap; row-gap: 2px; }
+  .wv-cx-ttl { max-width: 100%; }
+  .wv-cx-badges { flex-wrap: wrap; row-gap: 2px; }
+  /* The phone Table's short forms (2026-10-18): 💎 for diamonds, ▲ PB, and
+     in Spanish 🏅 #n for the peak tag */
+  .wv-compact .cert-diamond .cert-icon,
+  .wv-compact .cert-diamond .cert-label { display: none; }
+  .wv-compact .cert-diamond .cert-short { display: inline; font-size: 13px; line-height: 1; letter-spacing: 0; white-space: nowrap; }
+  .wv-compact .cert-diamond { padding: 1px 4px; }
+  .wv-compact .plays-peak-badge .ppb-full { display: none; }
+  .wv-compact .plays-peak-badge .ppb-short { display: inline; }
+  html[lang="es"] .wv-compact .pk-label { display: none; }
+  html[lang="es"] .wv-compact .pk-medal { display: inline; margin-right: 2px; }
+}
+
 
 /* ── MOSAIC (TREEMAP) ── */
 .wv-mosaic { position: relative; width: 100%; min-height: 480px; }
@@ -36492,7 +36554,7 @@ body.cp-hide-cert-reel    #certReelSection { display: none !important; }
 .wv-gc-plays-row .ea-sample, .wv-gc-plays-row .ea-more,
 .wv-film-plays-row .ea-sample, .wv-film-plays-row .ea-more { width: 24px; height: 24px; }
 .wv-film-plays-row { display: flex; align-items: center; gap: var(--sp-1); }
-.wv-cx-row > .ea-pair { margin-left: var(--sp-1); }
+.wv-cx-row > .ea-pair { justify-self: end; }
 .wv-stk-row > .ea-pair { align-self: center; }
 
 /* Touch: no ▶ (the cover is the button) and ⋮ always shown */
@@ -36620,7 +36682,7 @@ body.cp-hide-cert-reel    #certReelSection { display: none !important; }
 /* Where it sits in each layout */
 .chart-table tr.cr-row td > .ea-drawer { margin: var(--sp-2) var(--sp-2) 0; }
 .wv-grid > .ea-drawer-span { grid-column: 1 / -1; margin: 0; }
-.wv-cx-row > .ea-drawer { flex: 0 0 100%; margin: var(--sp-1) 0 var(--sp-2); }
+.wv-cx-row > .ea-drawer { grid-column: 1 / -1; margin: var(--sp-1) 0 var(--sp-2); }
 .wv-stk-card > .ea-drawer { margin: 0 10px 10px; }
 
 /* The entry whose drawer is open */
