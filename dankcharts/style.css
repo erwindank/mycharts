@@ -37337,17 +37337,23 @@ body[data-view="day"] .daily-view {
   min-width: 0;
 }
 
+/* 12px floor (REDESIGN-PLAN 3.1): uppercase labels at --fs-xs, 0.04em */
 .dy-ptile-lbl {
-  font-size: 10px;
+  font-size: var(--fs-xs);
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--text3);
+  /* A wrapping row, so the time (or "1 / 10") drops under the label when
+     a narrow tile can't fit both; the markup has no space between them */
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 6px;
 }
 
 /* The time a song was played, after its label */
 .dy-ptile-when {
-  margin-left: 6px;
+  white-space: nowrap;
   font-weight: 600;
   letter-spacing: 0;
   color: var(--accent);
