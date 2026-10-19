@@ -955,6 +955,9 @@ function dyCloseCalendar() {
 }
 
 function dyCalKeys(e) {
+  // While the share window is open on top, Esc closes it and the arrows do nothing
+  const sh = document.getElementById('dyCalShareModal');
+  if (sh && sh.classList.contains('open')) { if (e.key === 'Escape') dyCalShareClose(); return; }
   if (e.key === 'Escape') dyCloseCalendar();
   else if (e.key === 'ArrowLeft') dyCalMove(-1);
   else if (e.key === 'ArrowRight') dyCalMove(1);
@@ -1019,6 +1022,8 @@ function dyRenderCalendar() {
         <button type="button" class="dy-cal-nav" onclick="dyCalMove(-1)" aria-label="${esc(t('btn_prev'))}">‹</button>
         <span class="dy-cal-title">${esc(title)}</span>
         <button type="button" class="dy-cal-nav" onclick="dyCalMove(1)" aria-label="${esc(t('btn_next'))}">›</button>
+        <!-- Share this month as a picture (dyCalShareOpen) -->
+        <button type="button" class="dy-cal-nav dy-cal-share" onclick="dyCalShareOpen()" title="${esc(t('dy_cal_share_title'))}" aria-label="${esc(t('dy_cal_share_title'))}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg></button>
         <button type="button" class="dy-rc-x dy-cal-x" onclick="dyCloseCalendar()" aria-label="${esc(t('dy_rc_close'))}">×</button>
       </div>
       <div class="dy-cal-grid">
@@ -1029,6 +1034,288 @@ function dyRenderCalendar() {
     </div>`;
   if (imgs.album.length) loadImages(imgs.album, 'album');
   if (imgs.song.length) loadImages(imgs.song, 'song');
+}
+
+// ─── CALENDAR SHARE IMAGE ─────────────────────────────────────────────────
+/* The month on show in the calendar as a picture: every day's #1 cover in a
+   7-column grid, with the moods and a short month summary. Built on the same
+   share-card system as the other images (app.js: SHARE_FORMATS, shPalette,
+   shShell, shFooter, shCapture, shShareNow), so formats, palettes and the
+   phone share sheet behave the same. The window is built here rather than in
+   index.html because it only exists while the calendar is open. */
+const dyCalCard = { palette: 'app', format: 'portrait', quality: 2, moods: true, stats: true, footer: true };
+try { Object.assign(dyCalCard, JSON.parse(localStorage.getItem('dc_dy_cal_card') || '{}')); } catch {}
+function dyCalCardSave() { try { localStorage.setItem('dc_dy_cal_card', JSON.stringify(dyCalCard)); } catch {} }
+
+const _dyCalArt = {};   // prefKey → data URL (null = no picture found)
+let _dyCalShareMonth = null;   // { y, m } the card is for
+
+// The month's days with their #1, for the card
+function dyCalMonthData(y, m) {
+  const h = dyHistory();
+  const today = localDateStr(tzNow());
+  const daysIn = new Date(y, m + 1, 0).getDate();
+  const days = [];
+  const ones = {};   // song key → { title, artist, days }
+  for (let dnum = 1; dnum <= daysIn; dnum++) {
+    const ds = `${y}-${String(m + 1).padStart(2, '0')}-${String(dnum).padStart(2, '0')}`;
+    const day = h.byDay[ds];
+    const top = (h.charts.songs[ds] || [])[0];
+    const diary = dyDiaryGet(ds);
+    const cell = { dnum, ds, future: ds > today, mood: diary && diary.mood ? diary.mood : '' };
+    if (top && day) {
+      const s = day.songs[top.k];
+      const album = bestAlbum(s.title, s._albums);
+      const hasAlbum = album && album !== '—';
+      cell.title = s.title; cell.artist = s.artist;
+      cell.art = hasAlbum
+        ? { kind: 'albums', item: { album, artist: s.artist }, prefKey: 'album:' + s.artist.toLowerCase() + '|||' + album.toLowerCase() }
+        : { kind: 'songs', item: { title: s.title, artist: s.artist }, prefKey: 'song:' + s.artist.toLowerCase() + '|||' + s.title.toLowerCase() };
+      const o = ones[top.k] || (ones[top.k] = { title: s.title, artist: s.artist, days: 0 });
+      o.days++;
+    }
+    days.push(cell);
+  }
+  const best = Object.values(ones).sort((a, b) => b.days - a.days)[0] || null;
+  return { days, listened: days.filter(d => d.title).length, distinct: Object.keys(ones).length, best };
+}
+
+// Same picture as the calendar shows: a pinned choice first, else the item's
+// preferred source and the usual fallback chain — inlined as a data URL so
+// the canvas is not tainted.
+async function dyCalPrefetchArt(data) {
+  const todo = data.days.filter(d => d.art && !(d.art.prefKey in _dyCalArt));
+  await Promise.all(todo.map(async d => {
+    const { kind, item, prefKey } = d.art;
+    _dyCalArt[prefKey] = null;
+    let url = null;
+    const choice = typeof imgChoicePrefs !== 'undefined' && imgChoicePrefs[prefKey];
+    if (choice) url = choice.source === 'off' ? null : choice.url;
+    else {
+      const pref = (typeof itemSourcePrefs !== 'undefined' && itemSourcePrefs[prefKey]) || 'deezer';
+      if (pref !== 'off') url = await _igFetchArtWithFallback(kind, item, pref);
+    }
+    _dyCalArt[prefKey] = url ? await _igToDataUrl(url) : null;
+  }));
+}
+
+function dyCalCardHTML(o) {
+  const { y, m } = _dyCalShareMonth;
+  const data = dyCalMonthData(y, m);
+  const p = shPalette(o.palette === 'cover' ? 'app' : o.palette);
+  const d = shDims(o.format);
+  const lang = typeof currentLang !== 'undefined' ? currentLang : undefined;
+  const title = new Date(y, m, 1).toLocaleDateString(lang, { month: 'long', year: 'numeric' });
+  const lead = (new Date(y, m, 1).getDay() - weekStartDay + 7) % 7;
+  const rows = Math.ceil((lead + data.days.length) / 7);
+  const heads = Array.from({ length: 7 }, (_, i) => new Date(2023, 0, 1 + ((weekStartDay + i) % 7)).toLocaleDateString(lang, { weekday: 'narrow' }));
+
+  // Height left for the grid once the header, weekday row, summary and footer
+  // are placed; the cells are square and sized to whichever runs out first
+  const padX = 72, gap = o.format === 'post' ? 10 : 12;
+  const top = shSafeTop(o.format);
+  const headH = 150, wdH = 40;
+  const showStats = o.stats && data.listened > 0;
+  const statsH = showStats ? (o.format === 'post' ? 96 : 128) : 0;
+  const footH = o.footer ? 70 + shSafeBottom(o.format) : shSafeBottom(o.format);
+  const availH = d.h - top - headH - wdH - statsH - footH - 24;
+  const cell = Math.floor(Math.min((d.w - padX * 2 - gap * 6) / 7, (availH - gap * (rows - 1)) / rows));
+  const gridW = cell * 7 + gap * 6;
+  const r = Math.round(cell * 0.12);
+  const numFs = Math.max(18, Math.round(cell * 0.2));
+
+  const cells = [];
+  for (let i = 0; i < lead; i++) cells.push(`<div style="width:${cell}px;height:${cell}px;"></div>`);
+  for (const c of data.days) {
+    const art = c.art && _dyCalArt[c.art.prefKey];
+    // Plain borders and an <img>, not an inset box-shadow or a CSS background
+    // image: html2canvas draws both of those as stray boxes over the cover
+    const bg = `background:${art ? p.panel : c.title ? _shA(p.accent, 0.18) : c.future ? 'transparent' : p.panel};`;
+    const border = c.future ? `border:2px dashed ${p.line};` : `border:1px solid ${p.line2};`;
+    const numCol = art ? '#ffffff' : c.title ? p.text : p.faint;
+    // No gradient scrim — html2canvas drew its edge as a line across the cover;
+    // a stronger shadow keeps the number readable on any picture
+    const shadow = art ? 'text-shadow:0 1px 3px rgba(0,0,0,0.9),0 0 8px rgba(0,0,0,0.8),0 0 16px rgba(0,0,0,0.5);' : '';
+    cells.push(`<div style="position:relative;width:${cell}px;height:${cell}px;border-radius:${r}px;overflow:hidden;box-sizing:border-box;${bg}${border}">
+      ${art ? `<img src="${art}" width="${cell}" height="${cell}" style="position:absolute;left:0;top:0;width:100%;height:100%;object-fit:cover;display:block;">` : ''}
+      <span style="position:absolute;left:${Math.round(cell * 0.09)}px;top:${Math.round(cell * 0.06)}px;font-family:${SH_FONT.display};font-size:${numFs}px;font-weight:800;line-height:1.1;color:${numCol};${shadow}">${c.dnum}</span>
+      ${o.moods && c.mood ? `<span style="position:absolute;right:${Math.round(cell * 0.06)}px;bottom:${Math.round(cell * 0.04)}px;font-size:${Math.round(cell * 0.26)}px;line-height:1;">${c.mood}</span>` : ''}
+    </div>`);
+  }
+
+  const stat = (val, lbl, wide) => `<div style="flex:${wide ? '2 1 0' : '1 1 0'};min-width:0;padding:${o.format === 'post' ? 14 : 20}px 22px;border-radius:18px;background:${p.panel};border:1px solid ${p.line};">
+      <div style="font-family:${SH_FONT.display};font-size:${o.format === 'post' ? 30 : 38}px;font-weight:800;line-height:1.1;color:${p.accent};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${val}</div>
+      <div style="margin-top:6px;font-family:${SH_FONT.mono};font-size:17px;font-weight:600;color:${p.dim};text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${lbl}</div>
+    </div>`;
+  const best = data.best;
+  const statsHtml = !showStats ? '' : `<div style="display:flex;gap:14px;width:${gridW}px;margin:22px auto 0;">
+      ${stat(data.listened, esc(t('dy_cal_st_days')))}
+      ${stat(data.distinct, esc(t('dy_cal_st_ones')))}
+      ${best ? stat(esc(best.title), esc(t('dy_cal_st_top', { n: best.days })) + ' · ' + esc(best.artist), true) : ''}
+    </div>`;
+
+  const headInner = `${shEyebrow(p, t('dy_cal_eyebrow'))}
+      <div style="margin-top:18px;font-family:${SH_FONT.display};font-size:${o.format === 'post' ? 74 : 84}px;font-weight:800;line-height:1;color:${p.text};text-transform:capitalize;white-space:nowrap;overflow:hidden;">${esc(title)}</div>`;
+  // Story is tall enough that a header pinned to the top leaves a gap above
+  // the grid: there the title joins the grid as one block, centred in the frame
+  const story = o.format === 'story';
+  const inner = `
+    ${story ? `<div style="flex-shrink:0;height:${top}px;"></div>` : `<div style="flex-shrink:0;padding:${top}px ${padX}px 0;height:${top + headH}px;box-sizing:border-box;">${headInner}</div>`}
+    <div style="flex:1 1 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;padding-bottom:24px;">
+      ${story ? `<div style="width:${gridW}px;margin-bottom:48px;">${headInner}</div>` : ''}
+      <div style="display:grid;grid-template-columns:repeat(7,${cell}px);column-gap:${gap}px;width:${gridW}px;height:${wdH}px;align-items:center;">
+        ${heads.map(x => `<span style="text-align:center;font-family:${SH_FONT.mono};font-size:20px;font-weight:700;color:${p.dim};text-transform:uppercase;">${esc(x)}</span>`).join('')}
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(7,${cell}px);gap:${gap}px;width:${gridW}px;">${cells.join('')}</div>
+      ${statsHtml}
+    </div>
+    ${shFooter(p, o.format, { show: o.footer })}`;
+  return shShell(p, o.format, inner);
+}
+
+function dyCalShareOpen() {
+  if (!_dyCal) return;
+  _dyCalShareMonth = { ..._dyCal };
+  let el = document.getElementById('dyCalShareModal');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'dyCalShareModal';
+    el.className = 'ig-modal-overlay';
+    el.style.zIndex = '10060';   // above the calendar (.dy-recap, 10050)
+    el.addEventListener('click', e => { if (e.target === el) dyCalShareClose(); });
+    document.body.appendChild(el);
+    const cv = document.createElement('div');
+    cv.id = 'dyCalCardCanvas';
+    cv.style.cssText = 'position:fixed;left:-9999px;top:0;pointer-events:none;';
+    document.body.appendChild(cv);
+  }
+  const fmtBtn = (f, k) => `<button class="sh-seg-btn${dyCalCard.format === f ? ' active' : ''}" data-fmt="${f}" onclick="dyCalShareSet('format','${f}')">${esc(t(k))}</button>`;
+  const chk = (k, lbl) => `<label class="ig-ctrl-row"><input type="checkbox"${dyCalCard[k] ? ' checked' : ''} onchange="dyCalShareSet('${k}',this.checked)"><span>${esc(lbl)}</span></label>`;
+  el.innerHTML = `
+    <div class="ig-modal-box">
+      <div class="ig-modal-header">
+        <h3>${esc(t('dy_cal_share_title'))}</h3>
+        <button class="ig-modal-close" onclick="dyCalShareClose()">${esc(t('btn_close'))}</button>
+      </div>
+      <div class="ig-modal-body">
+        <div class="ig-preview-panel">
+          <div class="ig-preview-label">${esc(t('ig_preview_label'))}</div>
+          <div class="ig-preview-frame" id="dyCalCardFrame"><div class="ig-preview-inner" id="dyCalCardInner"></div></div>
+        </div>
+        <div class="ig-controls-panel">
+          <div class="sh-group">
+            <div class="sh-group-title">${esc(t('sh_palette'))}</div>
+            <div class="sh-swatch-row" id="dyCalPaletteRow"></div>
+          </div>
+          <div class="sh-group">
+            <div class="sh-group-title">${esc(t('ig_format'))}</div>
+            <div class="sh-seg" id="dyCalFormatBtns">${fmtBtn('post', 'sh_fmt_post')}${fmtBtn('portrait', 'sh_fmt_portrait')}${fmtBtn('story', 'sh_fmt_story')}</div>
+          </div>
+          <div class="sh-group">
+            <div class="sh-group-title">${esc(t('ig_show_hide'))}</div>
+            ${chk('moods', t('dy_cal_opt_moods'))}
+            ${chk('stats', t('dy_cal_opt_stats'))}
+            ${chk('footer', t('ig_footer_branding'))}
+          </div>
+          <div class="sh-group">
+            <div class="sh-group-title">${esc(t('sh_quality'))}</div>
+            <div class="sh-seg" id="dyCalQualityBtns">
+              <button class="sh-seg-btn" data-q="1" onclick="dyCalShareSet('quality',1)">${esc(t('sh_quality_std'))}</button>
+              <button class="sh-seg-btn" data-q="2" onclick="dyCalShareSet('quality',2)">${esc(t('sh_quality_high'))}</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="ig-modal-footer">
+        <button class="ig-modal-close" onclick="dyCalShareClose()">${esc(t('btn_cancel'))}</button>
+        <button class="ig-copy-btn" id="dyCalCopyBtn" onclick="dyCalShareCopy()">📋 ${esc(t('dy_cal_copy'))}</button>
+        <button class="ig-copy-btn ig-share-native-btn" id="dyCalShareBtn" onclick="dyCalShareNow()">📤 ${esc(t('dy_cal_share'))}</button>
+        <button class="ig-download-btn" id="dyCalDownloadBtn" onclick="dyCalShareDownload()">${esc(t('btn_download_image'))}</button>
+      </div>
+    </div>`;
+  el.classList.add('open');
+  dyCalSharePickers();
+  dyCalShareRender();
+  // Covers arrive after the first paint; render again once they are in
+  dyCalPrefetchArt(dyCalMonthData(_dyCalShareMonth.y, _dyCalShareMonth.m)).then(() => {
+    if (document.getElementById('dyCalShareModal')?.classList.contains('open')) dyCalShareRender();
+  });
+}
+
+function dyCalShareClose() {
+  document.getElementById('dyCalShareModal')?.classList.remove('open');
+}
+
+// The palette chips, minus Cover (a month has no single cover to take it from)
+function dyCalSharePickers() {
+  const row = document.getElementById('dyCalPaletteRow');
+  if (row) row.innerHTML = SHARE_PALETTES.filter(pl => pl.id !== 'cover').map(pl =>
+    `<button class="sh-swatch${pl.id === dyCalCard.palette ? ' active' : ''}" onclick="dyCalShareSet('palette','${esc(pl.id)}')" title="${esc(pl.name)}">
+       <span class="sh-swatch-dots"><span class="sh-swatch-dot" style="background:${pl.chip[0]};"></span><span class="sh-swatch-dot" style="background:${pl.chip[1]};"></span></span>
+       <span class="sh-swatch-name">${esc(pl.name)}</span>
+     </button>`).join('');
+  document.querySelectorAll('#dyCalFormatBtns .sh-seg-btn').forEach(b => b.classList.toggle('active', b.dataset.fmt === dyCalCard.format));
+  document.querySelectorAll('#dyCalQualityBtns .sh-seg-btn').forEach(b => b.classList.toggle('active', +b.dataset.q === dyCalCard.quality));
+}
+
+function dyCalShareSet(k, v) {
+  dyCalCard[k] = v;
+  dyCalCardSave();
+  dyCalSharePickers();
+  if (k !== 'quality') dyCalShareRender();
+  else shPrepareShare('dyCalCardCanvas', 'dyCalShareBtn', _dyCalShareOpts);
+}
+
+function dyCalShareRender() {
+  if (!_dyCalShareMonth) return;
+  const html = dyCalCardHTML(dyCalCard);
+  const cv = document.getElementById('dyCalCardCanvas');
+  const d = shDims(dyCalCard.format);
+  cv.style.width = d.w + 'px';
+  cv.style.height = d.h + 'px';
+  cv.innerHTML = html;
+  shFitPreview('dyCalCardFrame', 'dyCalCardInner', dyCalCard.format, html);
+  shPrepareShare('dyCalCardCanvas', 'dyCalShareBtn', _dyCalShareOpts);
+}
+
+function _dyCalShareOpts() {
+  const { y, m } = _dyCalShareMonth;
+  return { format: dyCalCard.format, quality: dyCalCard.quality, fileName: `dankcharts_daily_${y}-${String(m + 1).padStart(2, '0')}_${dyCalCard.format}.png` };
+}
+
+async function dyCalShareDownload() {
+  const btn = document.getElementById('dyCalDownloadBtn');
+  const orig = btn.textContent;
+  btn.textContent = '⏳ …'; btn.disabled = true;
+  try {
+    const cvs = await shCapture('dyCalCardCanvas', dyCalCard.format, dyCalCard.quality);
+    const link = document.createElement('a');
+    link.download = _dyCalShareOpts().fileName;
+    link.href = cvs.toDataURL('image/png');
+    link.click();
+  } catch (e) { console.error('Calendar image download failed', e); }
+  btn.textContent = orig; btn.disabled = false;
+}
+
+async function dyCalShareCopy() {
+  if (!navigator.clipboard?.write) { dyCalShareDownload(); return; }
+  const btn = document.getElementById('dyCalCopyBtn');
+  const orig = btn.textContent;
+  btn.textContent = '⏳ …'; btn.disabled = true;
+  try {
+    const cvs = await shCapture('dyCalCardCanvas', dyCalCard.format, dyCalCard.quality);
+    const blob = await shCanvasBlob(cvs);
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+    btn.textContent = '✓ ' + t('dy_cal_copied');
+    setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 1800);
+  } catch (e) {
+    btn.textContent = orig; btn.disabled = false;
+    dyCalShareDownload();
+  }
+}
+
+function dyCalShareNow() {
+  shShareNow('dyCalCardCanvas', 'dyCalShareBtn', _dyCalShareOpts, dyCalShareDownload);
 }
 
 // ─── LIVE ─────────────────────────────────────────────────────────────────
