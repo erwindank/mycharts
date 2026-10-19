@@ -31536,8 +31536,12 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
 .wv-grid-card .wv-card-art .wv-thumb-lg .thumb-wrap > div { width: 100%; }
 .wv-grid-card .wv-card-art .wv-thumb-lg .thumb-initials,
 .wv-grid-card .wv-card-art .wv-thumb-lg .thumb { width: 100%; height: auto; aspect-ratio: 1; border-radius: 0; font-size: 1.6rem; }
-/* Rank chip: bigger on the grid, gold / silver / bronze for the top 3 */
-.wv-grid-card .wv-rank-badge { top: 6px; left: 6px; font-size: var(--fs-base); padding: 2px 8px; border-radius: var(--r-xs); z-index: 1; }
+/* Top-left: the rank chip (gold / silver / bronze for the top 3) with the
+   peak tag beside it, both on the cover */
+.wv-gc-tl { position: absolute; top: 6px; left: 6px; right: 44px; z-index: 1; display: flex; flex-wrap: wrap; align-items: center; gap: 4px; pointer-events: none; }
+.wv-grid-card .wv-rank-badge { position: static; font-size: var(--fs-base); padding: 2px 8px; border-radius: var(--r-xs); }
+/* #1–#3 peak tags are .peak-badge-1/2/3 instead of .peak-badge */
+.wv-gc-tl :is(.peak-badge, .peak-badge-1, .peak-badge-2, .peak-badge-3) { margin: 0; font-weight: 600; background: rgba(0,0,0,0.72); backdrop-filter: blur(2px); }
 /* Movement chip, top-right, on dark glass with bright colours (any theme) */
 .wv-grid-card .wv-mv-ov { top: 6px; right: 6px; z-index: 1; padding: 2px 6px; border-radius: var(--r-xs); background: rgba(0,0,0,0.72); line-height: 1.4; }
 .wv-grid-card .wv-mv-ov .wv-up   { color: #4ade80; }
@@ -31550,16 +31554,17 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
 .wv-gc-title { display: flex; flex-wrap: wrap; align-items: center; gap: 3px 6px; min-width: 0; }
 .wv-gc-ttl { font-size: var(--fs-sm); font-weight: 600; color: var(--text); line-height: 1.3; min-width: 0; max-width: 100%;
   overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
-/* Badges take the title's 600 weight, as on Stack */
-.wv-gc-badges { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 3px 5px; font-weight: 600; min-width: 0; max-width: 100%; }
-.wv-gc-badges > * { margin-left: 0; max-width: 100%; }
-.wv-gc-badges:empty { display: none; }
 .wv-gc-artist { font-size: var(--fs-xs); color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-/* The numbers on the left, the actions on the right; they share the
-   card's bottom edge however tall the title is */
-.wv-gc-foot { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-1); margin-top: auto; padding-top: 2px; }
-.wv-gc-foot .wv-stats { flex: 1; min-width: 0; }
-.wv-gc-foot .wv-acts { margin-right: -4px; }
+/* The numbers get the card's full width (side by side with the buttons,
+   "13 reproducciones" was cut off), the actions sit on a row under them,
+   and both stay on the card's bottom edge however tall the title is */
+.wv-gc-foot { display: flex; flex-direction: column; gap: 2px; margin-top: auto; padding-top: 2px; }
+.wv-gc-foot .wv-stats { min-width: 0; }
+.wv-gc-foot .wv-acts { align-self: flex-end; margin-right: -4px; }
+/* The cards are narrow at every width: the personal best uses its short
+   form there (▲ PB / ▲ MÁX / ▲ PICO), the full wording is its tooltip */
+.wv-grid .wv-stat-pb .ppb-full { display: none; }
+.wv-grid .wv-stat-pb .ppb-short { display: inline; }
 
 /* density toggle toolbar */
 .wv-grid-toolbar { display: flex; justify-content: flex-end; padding: 0 var(--sp-1) 6px; }
@@ -31594,10 +31599,10 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
 :is(#songsSection, #artistsSection, #albumsSection) :is(.wv-gc-cert, .wv-mos-hcard, .wv-mos-back) .cert-diamond { color: #7dd3fc; border-color: rgba(125, 211, 252, 0.55); }
 :is(#songsSection, #artistsSection, #albumsSection) :is(.wv-gc-cert, .wv-mos-hcard, .wv-mos-back) .rt-chip      { color: #fff; }
 :is(#songsSection, #artistsSection, #albumsSection) :is(.wv-gc-cert, .wv-mos-hcard, .wv-mos-back) .plays-peak-badge { color: #86efac; border-color: rgba(134, 239, 172, 0.55); }
-:is(#songsSection, #artistsSection, #albumsSection) :is(.wv-mos-hcard, .wv-mos-back) .peak-badge-1 { color: #fbbf24; border-color: rgba(251, 191, 36, 0.5); }
-:is(#songsSection, #artistsSection, #albumsSection) :is(.wv-mos-hcard, .wv-mos-back) .peak-badge-2 { color: #e2e8f0; border-color: rgba(226, 232, 240, 0.45); }
-:is(#songsSection, #artistsSection, #albumsSection) :is(.wv-mos-hcard, .wv-mos-back) .peak-badge-3 { color: #f0a77a; border-color: rgba(240, 167, 122, 0.5); }
-:is(#songsSection, #artistsSection, #albumsSection) :is(.wv-mos-hcard, .wv-mos-back) .peak-badge   { color: #cbd5e1; border-color: rgba(203, 213, 225, 0.35); }
+:is(#songsSection, #artistsSection, #albumsSection) :is(.wv-gc-tl, .wv-mos-hcard, .wv-mos-back) .peak-badge-1 { color: #fbbf24; border-color: rgba(251, 191, 36, 0.5); }
+:is(#songsSection, #artistsSection, #albumsSection) :is(.wv-gc-tl, .wv-mos-hcard, .wv-mos-back) .peak-badge-2 { color: #e2e8f0; border-color: rgba(226, 232, 240, 0.45); }
+:is(#songsSection, #artistsSection, #albumsSection) :is(.wv-gc-tl, .wv-mos-hcard, .wv-mos-back) .peak-badge-3 { color: #f0a77a; border-color: rgba(240, 167, 122, 0.5); }
+:is(#songsSection, #artistsSection, #albumsSection) :is(.wv-gc-tl, .wv-mos-hcard, .wv-mos-back) .peak-badge   { color: #cbd5e1; border-color: rgba(203, 213, 225, 0.35); }
 /* Mosaic's score chip: the same readable dark-glass chip as on Card grid covers */
 :is(.wv-mos-hcard, .wv-mos-back) .rt-chip {
   font-size: var(--fs-xs);
@@ -32028,13 +32033,22 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
 .wv-stk-alb { color: var(--text3); flex: 1 1 0; min-width: 2.5em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* The numbers line (Stack, Card grid; _wvStatsLine): this period's plays
    first and strongest, then time on chart, set apart by a spaced dot. Every
-   stat starts with its dot and the inner row is pulled left by one dot's
-   width into a clipped edge, so a line that wraps never starts with "·". */
+   stat keeps its dot in its own left padding and the inner row is pulled
+   left by that width into a clipped edge, so a line that wraps never
+   starts with "·". The dot is out of the text flow, so a stat that wraps
+   inside itself (plays + personal best) starts its second line at the
+   visible edge too. */
 .wv-stats { overflow: hidden; font-size: var(--fs-xs); color: var(--text3); }
 .wv-stats-in { display: flex; flex-wrap: wrap; align-items: baseline; row-gap: 2px; margin-left: -18px; }
-.wv-stat { white-space: nowrap; }
-.wv-stat::before { content: '·'; display: inline-block; width: 18px; text-align: center; color: var(--text3); opacity: 0.7; }
+.wv-stat { position: relative; padding-left: 18px; white-space: nowrap; min-width: 0; }
+.wv-stat::before { content: '·'; position: absolute; left: 0; top: 0; width: 18px; text-align: center; color: var(--text3); opacity: 0.7; }
 .wv-stat-now { color: var(--text2); }
+/* Personal best, inside the plays it is about. The plays item always
+   starts its line, so it may wrap there: the badge drops under the count
+   when the card is narrow, never into the clipped edge. */
+.wv-stat-now { white-space: normal; }
+.wv-stat-pb { white-space: nowrap; font-weight: 600; }
+.wv-stat-pb .plays-peak-badge { margin: 0 0 0 2px; }
 .wv-stat-now b { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-weight: 700; color: var(--text); }
 /* Spotify · ▶ · ⋮ (_wvActs) */
 .wv-acts { display: inline-flex; align-items: center; gap: 2px; flex: none; }
@@ -32045,6 +32059,7 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
   .wv-stk-rank { font-size: var(--fs-lg); }
   .wv-stk-row .wv-thumb-lg .thumb-initials, .wv-stk-row .wv-thumb-lg .thumb { width: 52px; height: 52px; font-size: 0.95rem; }
   .wv-stats-in { margin-left: -14px; }
+  .wv-stat { padding-left: 14px; }
   .wv-stat::before { width: 14px; }
   /* The phone Table's short forms (2026-10-18): 💎 for diamonds, ▲ PB, and
      in Spanish 🏅 #n for the peak tag */

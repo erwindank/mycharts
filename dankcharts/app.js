@@ -18927,10 +18927,13 @@ function _wvItem(type, item, i, ms, imgItems, imgPrefix) {
 }
 
 // The numbers line under an entry (Stack, Card grid): this period's plays,
-// strongest, then time on chart. The All-Time chart has no time on chart.
-// All-time plays stay in the details panel.
+// strongest, with the personal-best badge right after them (beside the
+// title it read as if the rank was the best yet), then time on chart. The
+// All-Time chart has no time on chart. All-time plays stay in the details
+// panel.
 function _wvStatsLine(f, count, ms) {
-  const stats = [`<span class="wv-stat wv-stat-now"><b>${count.toLocaleString()}</b> ${esc(tUnit('plays', count))}</span>`];
+  const pb = f.isPlaysPeak ? ` <span class="wv-stat-pb">${playsPeakBadge()}</span>` : '';
+  const stats = [`<span class="wv-stat wv-stat-now"><b>${count.toLocaleString()}</b> ${esc(tUnit('plays', count))}${pb}</span>`];
   if (ms && !(_wvCur && _wvCur.isAllTime)) stats.push(`<span class="wv-stat">${esc(_wvRunText(f.weeks || 1))}</span>`);
   return `<div class="wv-stats"><div class="wv-stats-in">${stats.join('')}</div></div>`;
 }
@@ -18959,27 +18962,26 @@ function _wvGrid(items, max, ms, imgItems, type) {
   const jtype = esc(JSON.stringify(type));
   // Phase 7 step 8 (4.9b): square covers with the rank top-left and the
   // movement top-right, the certification / score in the cover's bottom
-  // corner; under it Title (+ peak, personal best), Artist, the numbers line,
-  // and Spotify · ▶ · ⋮. The top 3 glow like Stack's. A click opens the
+  // corner, the peak tag beside the rank; under it Title, Artist, the
+  // numbers line (with the personal best), and Spotify · ▶ · ⋮. The top 3 glow like Stack's. A click opens the
   // details panel after the row of cards.
   const grid = `<div class="wv-grid${_wvGridLarge ? ' wv-grid-lg' : ''}">${itemData.map(f => {
     const { k, imgId, ea, s, i, ttl, sub } = f;
     // Every switchable badge, for every type: the Show switches decide what
     // shows (phase 7 step 4), the same way in every layout
     const cert = f.certHtml + f.ratingHtml;
-    const badges = (f.peak ? peakBadge(f.peak) : '') + (f.isPlaysPeak ? playsPeakBadge() : '');
     // The entry animation's delay goes in style=, outside the class list (it
     // used to close class="" early, dropping the top-3 classes: no glow)
     const anim = f.j >= animFrom;
     return `<div class="wv-card wv-grid-card${anim ? ' wv-gc-anim' : ''}${i < 3 ? ' wv-r' + (i + 1) : ''}"` +
         `${anim ? ` style="animation-delay:${animDelay[f.j]}ms"` : ''} onclick="_drEntryClick(event,this)" tabindex="0"${ea}>` +
       `<div class="wv-card-art ea-cover"><div class="wv-thumb wv-thumb-lg">${_wvThumb(imgId, ttl)}</div>` +
-        `<span class="wv-rank-badge">${i + 1}</span>` +
+        `<span class="wv-gc-tl"><span class="wv-rank-badge">${i + 1}</span>${f.peak ? peakBadge(f.peak) : ''}</span>` +
         (f.mvHtml ? `<span class="wv-mv-ov">${f.mvHtml}</span>` : '') +
         (cert ? `<span class="wv-gc-cert">${cert}</span>` : '') +
       `</div>` +
       `<div class="wv-card-body">` +
-        `<div class="wv-gc-title"><span class="wv-gc-ttl wv-title-link" onclick="event.stopPropagation();_wvOpenModal(${jtype},${esc(JSON.stringify(k))})" title="${esc(ttl)}">${esc(ttl)}</span>${badges ? `<span class="wv-gc-badges">${badges}</span>` : ''}</div>` +
+        `<div class="wv-gc-title"><span class="wv-gc-ttl wv-title-link" onclick="event.stopPropagation();_wvOpenModal(${jtype},${esc(JSON.stringify(k))})" title="${esc(ttl)}">${esc(ttl)}</span></div>` +
         (sub ? `<div class="wv-gc-artist">${esc(sub)}</div>` : '') +
         `<div class="wv-gc-foot">${_wvStatsLine(f, s.count, ms)}${_wvActs(type, ttl, sub)}</div>` +
       `</div></div>`;
@@ -20119,7 +20121,7 @@ function _wvStack(items, max, ms, imgItems, type) {
     const f = _wvItem(type, s, i, ms, imgItems);
     const { k, imgId, ea, ttl, sub } = f;
     // Every switchable badge, for every type (phase 7 step 4: the Show switches decide)
-    const badges = (f.peak ? peakBadge(f.peak) : '') + f.certHtml + f.ratingHtml + (f.isPlaysPeak ? playsPeakBadge() : '');
+    const badges = (f.peak ? peakBadge(f.peak) : '') + f.certHtml + f.ratingHtml;
     const album = type === 'songs' && s.album && s.album !== '—' ? s.album : '';
     const statusCls = f.move === 'new' ? ' wv-stk-new' : f.move === 're' ? ' wv-stk-re' : '';
     return `<div class="wv-stk-card${i < 3 ? ' wv-r' + (i + 1) : ''}${statusCls}" tabindex="0" onclick="_drEntryClick(event,this)"${ea}>` +
