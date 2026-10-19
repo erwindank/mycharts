@@ -1745,6 +1745,11 @@ animation, 12 screen check.
     glass with the bright tier colours; the title row has no badges now.
     (#1–#3 peak tags are `.peak-badge-1/2/3` *instead of* `.peak-badge`,
     so cover rules must name all four.)
+  - **#2 / #3 peak tags went see-through on pale covers** in light themes
+    (9f61252): the light themes' near-clear `.peak-badge-2/3` backgrounds
+    (`body.navy-light .peak-badge-2`…) outranked the cover's dark backing.
+    The cover rule now carries the section ids. Checked in all ten themes:
+    every chip on a cover (peak, certification, movement) has the backing.
   Next: Filmstrip, then Mosaic.
 - **Step 10, started early (2026-10-18).** Done so far:
   - **Off the Chart rows:** ▶ and ⋮ in their own end column. On phones the
