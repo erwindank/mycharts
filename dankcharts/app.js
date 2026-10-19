@@ -9377,8 +9377,8 @@ function buildRecords() {
     ch += recTable(['#', t('rec_th_artist'), t('rec_th_song_cert'), t('rec_th_album_cert'),
         '<button class="rec-expand-all-btn" onclick="event.stopPropagation();toggleAllCertLedgers(\'' + certTblId + '\',this)" title="' + esc(t('rec_expand_all')) + '">▶▶</button>'],
       certW.map(function (e, i) {
-        const sc2 = [e.sd ? e.sd + '× 💎' : '', e.sp ? e.sp + '× 💿' : '', e.sg ? e.sg + '× 🪙' : ''].filter(Boolean).join(' ') || '—';
-        const ac2 = [e.ad ? e.ad + '× 💎' : '', e.ap ? e.ap + '× 💿' : '', e.ag ? e.ag + '× 🪙' : ''].filter(Boolean).join(' ') || '—';
+        const sc2 = [e.sd ? e.sd + '× 💎' : '', e.sp ? e.sp + '× 💿' : '', e.sg ? e.sg + '× 📀' : ''].filter(Boolean).join(' ') || '—';
+        const ac2 = [e.ad ? e.ad + '× 💎' : '', e.ap ? e.ap + '× 💿' : '', e.ag ? e.ag + '× 📀' : ''].filter(Boolean).join(' ') || '—';
         const ledgerId = 'rec-cert-ledger-' + i;
         return '<td class="rec-rank">' + (i + 1) + '</td>'
           // The name opens the artist modal. It stays a plain-looking name — the
@@ -10716,7 +10716,7 @@ function figureHtml(rec, hi, figV) {
   }
 
   /* Most figures are a short number, but a few are not — the certifications
-     leaderboard's headline is a tally like "14× 💎 21× 💿 45× 🪙". Stepping the
+     leaderboard's headline is a tally like "14× 💎 21× 💿 45× 📀". Stepping the
      display size down by length keeps those inside the card instead of running
      off its edge, without shrinking the ordinary case. */
   const sizeCls = figV.length > 15 ? ' rec-hero-card-fig-v-xs'
@@ -16459,7 +16459,7 @@ const CERTD_PAGE = 12;
 function certTierMeta(tier, mult) {
   if (tier === 'diamond') return { icon: '💎', label: tDiamondLabel(mult || 1), cls: 'diamond' };
   if (tier === 'plat') return { icon: '💿', label: t('cert_plat'), cls: 'plat' };
-  return { icon: '🪙', label: t('cert_gold'), cls: 'gold' };
+  return { icon: '📀', label: t('cert_gold'), cls: 'gold' };
 }
 
 /* Sort weight, so one numeric attribute can order the whole ledger by tier:
@@ -16660,7 +16660,7 @@ function certLedgerHTML(idx, artist, rows) {
       + certdBtn(idx, 'tier', 'all', t('certd_all'), true)
       + (byTier.diamond ? certdBtn(idx, 'tier', 'diamond', '💎 ' + byTier.diamond, false) : '')
       + (byTier.plat ? certdBtn(idx, 'tier', 'plat', '💿 ' + byTier.plat, false) : '')
-      + (byTier.gold ? certdBtn(idx, 'tier', 'gold', '🪙 ' + byTier.gold, false) : '')
+      + (byTier.gold ? certdBtn(idx, 'tier', 'gold', '📀 ' + byTier.gold, false) : '')
     + '</div>'
     + '<label class="certd-sortwrap"><span class="certd-sortlabel">' + t('certd_sort') + '</span>'
       + '<select class="certd-select" onclick="event.stopPropagation()" onchange="certLedgerSet(' + idx + ',\'ord\',this.value)">'
@@ -20474,7 +20474,7 @@ function certBadge(plays, type) {
     return `<span class="cert cert-diamond" title="${esc(label)}"><span class="cert-icon">${icon}</span><span class="cert-label">${esc(label.toLocaleUpperCase())}</span><span class="cert-short">${short}</span></span>`;
   }
   if (plays >= certTiers.plat) return `<span class="cert cert-plat"><span class="cert-icon">💿</span>${esc(tTierLabel('plat').toLocaleUpperCase())}</span>`;
-  if (plays >= certTiers.gold) return `<span class="cert cert-gold"><span class="cert-icon">🪙</span>${esc(tTierLabel('gold').toLocaleUpperCase())}</span>`;
+  if (plays >= certTiers.gold) return `<span class="cert cert-gold"><span class="cert-icon">📀</span>${esc(tTierLabel('gold').toLocaleUpperCase())}</span>`;
   return '';
 }
 
@@ -24528,7 +24528,7 @@ function openArtistModal(artistName) {
   }
   if (goldSongs) {
     const items = allSongsSorted.filter(s => s.count >= CERT.song.gold && s.count < CERT.song.plat);
-    acc.push(accRow('🪙', t('acc_cert', { n: goldSongs, cert: t('cert_gold'), unit: tUnit('songs', goldSongs), plays: CERT.song.gold, plays_unit: tUnit('plays', CERT.song.gold) }),
+    acc.push(accRow('📀', t('acc_cert', { n: goldSongs, cert: t('cert_gold'), unit: tUnit('songs', goldSongs), plays: CERT.song.gold, plays_unit: tUnit('plays', CERT.song.gold) }),
       items.map(s => ({ name: s.title + (s.album !== '—' ? ' · ' + s.album : ''), plays: s.count, date: firstPlay(s) }))));
   }
 
@@ -24549,7 +24549,7 @@ function openArtistModal(artistName) {
   }
   if (goldAlbums) {
     const items = certAlbums.filter(a => a.count >= CERT.album.gold && a.count < CERT.album.plat);
-    acc.push(accRow('🪙', t('acc_cert', { n: goldAlbums, cert: t('cert_gold'), unit: tUnit('albums', goldAlbums), plays: CERT.album.gold, plays_unit: tUnit('plays', CERT.album.gold) }),
+    acc.push(accRow('📀', t('acc_cert', { n: goldAlbums, cert: t('cert_gold'), unit: tUnit('albums', goldAlbums), plays: CERT.album.gold, plays_unit: tUnit('plays', CERT.album.gold) }),
       items.map(a => ({ name: a.album, plays: a.count, date: firstAlbumPlay(a.album) }))));
   }
 
@@ -24580,7 +24580,7 @@ function openArtistModal(artistName) {
     }
     const goldN = pool.filter(a => a.count >= cfg.gold && a.count < cfg.plat);
     if (goldN.length) {
-      acc.push(accRow('🪙', t('acc_cert', { n: goldN.length, cert: t('cert_gold'), unit: tUnit(unitKey, goldN.length), plays: cfg.gold, plays_unit: tUnit('plays', cfg.gold) }),
+      acc.push(accRow('📀', t('acc_cert', { n: goldN.length, cert: t('cert_gold'), unit: tUnit(unitKey, goldN.length), plays: cfg.gold, plays_unit: tUnit('plays', cfg.gold) }),
         goldN.map(a => ({ name: a.album, plays: a.count, date: firstAlbumPlay(a.album) }))));
     }
   }
@@ -25196,7 +25196,7 @@ function openAlbumModal(albumKey) {
   } else if (totalPlays >= CERT.album.plat) {
     acc.push(albAccRow('💿', t('acc_cert_single_album', { cert: t('cert_plat'), plays: CERT.album.plat, plays_unit: tUnit('plays', CERT.album.plat) }), []));
   } else if (totalPlays >= CERT.album.gold) {
-    acc.push(albAccRow('🪙', t('acc_cert_single_album', { cert: t('cert_gold'), plays: CERT.album.gold, plays_unit: tUnit('plays', CERT.album.gold) }), []));
+    acc.push(albAccRow('📀', t('acc_cert_single_album', { cert: t('cert_gold'), plays: CERT.album.gold, plays_unit: tUnit('plays', CERT.album.gold) }), []));
   }
 
   // Track certifications (multi-level diamond)
@@ -25213,7 +25213,7 @@ function openAlbumModal(albumKey) {
   if (platTracks.length) acc.push(albAccRow('💿', t('acc_cert', { n: platTracks.length, cert: t('cert_plat'), unit: tUnit('tracks', platTracks.length), plays: CERT.song.plat, plays_unit: tUnit('plays', CERT.song.plat) }),
     platTracks.map(s => ({ name: s.title, plays: s.count }))));
   const goldTracks = allTracksSorted.filter(s => s.count >= CERT.song.gold && s.count < CERT.song.plat);
-  if (goldTracks.length) acc.push(albAccRow('🪙', t('acc_cert', { n: goldTracks.length, cert: t('cert_gold'), unit: tUnit('tracks', goldTracks.length), plays: CERT.song.gold, plays_unit: tUnit('plays', CERT.song.gold) }),
+  if (goldTracks.length) acc.push(albAccRow('📀', t('acc_cert', { n: goldTracks.length, cert: t('cert_gold'), unit: tUnit('tracks', goldTracks.length), plays: CERT.song.gold, plays_unit: tUnit('plays', CERT.song.gold) }),
     goldTracks.map(s => ({ name: s.title, plays: s.count }))));
 
   if (!acc.length) acc.push(`<div style="font-family:var(--font-sans);font-style:italic;font-size:var(--fs-sm);color:var(--text3);padding:0.5rem 0">${t('acc_none', { n: chartSize })}</div>`);
@@ -25275,14 +25275,14 @@ function openAlbumModal(albumKey) {
   if (totalPlays >= CERT.album.gold) {
     const mult = totalPlays >= CERT.album.diamond ? Math.floor(totalPlays / CERT.album.diamond) : 0;
     const tier = mult > 0 ? 'diamond' : totalPlays >= CERT.album.plat ? 'plat' : 'gold';
-    const { icon: dIcon, label: dLabel } = mult > 0 ? diamondMultiLabel(mult) : { icon: tier === 'plat' ? '💿' : '🪙', label: tTierLabel(tier) };
+    const { icon: dIcon, label: dLabel } = mult > 0 ? diamondMultiLabel(mult) : { icon: tier === 'plat' ? '💿' : '📀', label: tTierLabel(tier) };
     plaqueItems.push({ icon: dIcon, label: dLabel, tier, mult, plays: mult > 0 ? mult * CERT.album.diamond : (tier === 'plat' ? CERT.album.plat : CERT.album.gold), type: 'Album' });
   }
   for (const s of allTracksSorted) {
     if (s.count >= CERT.song.gold) {
       const mult = s.count >= CERT.song.diamond ? Math.floor(s.count / CERT.song.diamond) : 0;
       const tier = mult > 0 ? 'diamond' : s.count >= CERT.song.plat ? 'plat' : 'gold';
-      const { icon: dIcon, label: dLabel } = mult > 0 ? diamondMultiLabel(mult) : { icon: tier === 'plat' ? '💿' : '🪙', label: tTierLabel(tier) };
+      const { icon: dIcon, label: dLabel } = mult > 0 ? diamondMultiLabel(mult) : { icon: tier === 'plat' ? '💿' : '📀', label: tTierLabel(tier) };
       // A song plaque is always credited to whoever sang it, never to the
       // album's credit — on a compilation those are different people, and the
       // singer is the one who earned it.
@@ -25727,7 +25727,7 @@ function openSongModal(key) {
   } else if (totalPlays >= CERT.song.plat) {
     acc.push(accRow('💿', `Platinum Certification · ${CERT.song.plat.toLocaleString()} ${tUnit('plays',CERT.song.plat)}`, []));
   } else if (totalPlays >= CERT.song.gold) {
-    acc.push(accRow('🪙', `Gold Certification · ${CERT.song.gold.toLocaleString()} ${tUnit('plays',CERT.song.gold)}`, []));
+    acc.push(accRow('📀', `Gold Certification · ${CERT.song.gold.toLocaleString()} ${tUnit('plays',CERT.song.gold)}`, []));
   }
 
   // Grammy wins
@@ -41485,13 +41485,13 @@ function _awardsArtistExtras(item) {
   }
 
   // ── Plaques earned in the window ──
-  const tierIcon = { gold: '🪙', platinum: '💿', diamond: '💎' };
+  const tierIcon = { gold: '📀', platinum: '💿', diamond: '💎' };
   const tierName = c => c.tier === 'diamond' ? tDiamondLabel(c.mult) : tTierLabel(c.tier);
   const certHtml = section(`Certifications <span class="aw-pst-sec-count">${pl(certsAll, 'plaque', 'plaques')} all time</span>`,
     certs.length
       ? `<div class="aw-pst-plaques">${certs.slice().sort((a, b) => a.date - b.date).map(c => `
           <div class="aw-pst-plaque is-${c.tier}">
-            <span class="aw-pst-plaque-icon" aria-hidden="true">${tierIcon[c.tier] || '🪙'}</span>
+            <span class="aw-pst-plaque-icon" aria-hidden="true">${tierIcon[c.tier] || '📀'}</span>
             <span class="aw-pst-plaque-text"><b>${esc(c.title)}</b><small>${esc(tierName(c))} ${c.type === 'album' ? 'album' : 'song'} · ${pl(c.n, 'play', 'plays')} · ${esc(short(localDateStr(c.tz)))}</small></span>
           </div>`).join('')}</div>`
       : `<div class="aw-pst-none">No new plaques in ${esc(year)}</div>`);

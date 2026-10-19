@@ -1829,7 +1829,7 @@ const TRANSLATIONS = {
     rec_ov_certs_first: 'First to reach this certification',
     rec_ov_cert_tier_diamond: '💎 Diamond',
     rec_ov_cert_tier_platinum: '💿 Platinum',
-    rec_ov_cert_tier_gold: '🪙 Gold',
+    rec_ov_cert_tier_gold: '📀 Gold',
     // Five streak ladders, five cards. Days, weeks, months and years each count
     // calendar units the entry was played in; runs count plays back-to-back in
     // the log, which is why that one has no period of its own.
@@ -5008,7 +5008,7 @@ const TRANSLATIONS = {
     rec_ov_certs_first: 'Primero en alcanzar esta certificación',
     rec_ov_cert_tier_diamond: '💎 Diamante',
     rec_ov_cert_tier_platinum: '💿 Platino',
-    rec_ov_cert_tier_gold: '🪙 Oro',
+    rec_ov_cert_tier_gold: '📀 Oro',
     rec_ov_streaks: 'Racha diaria de escucha más larga',
     rec_ov_streaks_week: 'Racha semanal de escucha más larga',
     rec_ov_streaks_month: 'Racha mensual de escucha más larga',
@@ -8113,7 +8113,7 @@ const TRANSLATIONS = {
     rec_ov_certs_first: 'Primeiro a atingir esta certificação',
     rec_ov_cert_tier_diamond: '💎 Diamante',
     rec_ov_cert_tier_platinum: '💿 Platina',
-    rec_ov_cert_tier_gold: '🪙 Ouro',
+    rec_ov_cert_tier_gold: '📀 Ouro',
     rec_ov_streaks: 'Maior sequência diária de escuta',
     rec_ov_streaks_week: 'Maior sequência semanal de escuta',
     rec_ov_streaks_month: 'Maior sequência mensal de escuta',
@@ -11218,7 +11218,7 @@ const TRANSLATIONS = {
     rec_ov_certs_first: 'Primeiro a atingir esta certificação',
     rec_ov_cert_tier_diamond: '💎 Diamante',
     rec_ov_cert_tier_platinum: '💿 Platina',
-    rec_ov_cert_tier_gold: '🪙 Ouro',
+    rec_ov_cert_tier_gold: '📀 Ouro',
     rec_ov_streaks: 'Maior sequência diária de escuta',
     rec_ov_streaks_week: 'Maior sequência semanal de escuta',
     rec_ov_streaks_month: 'Maior sequência mensal de escuta',
