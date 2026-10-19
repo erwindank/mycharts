@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "A cleaner Export Playlist window":
+    ["Uma janela de Exportar Playlist mais clara",
+     "A janela Exportar Playlist agora tem três passos simples: escolha um nome, copie suas músicas e importe no Soundiiz. As músicas aparecem numa lista numerada com título e artista em vez de um bloco de texto, a ordem é um seletor #1 primeiro / #1 por último e o álbum é um botão liga/desliga. Copiar lista é o botão grande e fica verde com um visto quando deu certo, com os downloads .txt e .csv ao lado. O último passo mostra para quais serviços o Soundiiz pode enviar a playlist e tem um só botão Abrir o Soundiiz."],
+
   "Share your Daily calendar as an image":
     ["Compartilhe seu calendário Diário como imagem",
      "O calendário da aba Diário tem um novo botão de compartilhar ao lado do mês. Ele cria uma imagem do mês: a capa do #1 de cada dia com o número e o humor, além de quantos dias tiveram um #1, quantas músicas diferentes chegaram lá e qual ficou mais tempo. Escolha Post, Retrato ou Story e uma paleta, e copie, baixe ou compartilhe pelo celular."],

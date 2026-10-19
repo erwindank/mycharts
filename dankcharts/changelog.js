@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 199;
+const DC_CL_I18N_V = 200;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-19', t: 'design', a: 'playlists', h: '9bc70e4',
+    title: "A cleaner Export Playlist window",
+    detail: "The Export Playlist window is now three simple steps: pick a name, copy your songs, import them on Soundiiz. The songs show as a numbered list with title and artist instead of a block of text, the order is a #1 first / #1 last switch and the album is an on/off toggle. Copy list is the big button and turns green with a check when it worked, with .txt and .csv downloads beside it. The last step shows which services Soundiiz can send the playlist to and has one Open Soundiiz button." },
 
   { d: '2026-10-19', t: 'feature', a: 'share', h: '0b7dc37',
     title: "Share your Daily calendar as an image",
