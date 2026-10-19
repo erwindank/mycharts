@@ -31377,12 +31377,16 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
   .wv-cx-sep { display: none; }
   .wv-cx-title { max-width: 100%; }
   .wv-cx-artist { font-size: var(--fs-xs); min-width: 0; }
-  .wv-cx-badges > * { margin-left: 4px; }
+  .wv-cx-badges > * { margin-left: 0; margin-right: 4px; }
   /* With badges on, they drop under the title instead of running into the
      Move and Plays columns */
   .wv-cx-title { flex-wrap: wrap; row-gap: 2px; }
   .wv-cx-ttl { max-width: 100%; }
-  .wv-cx-badges { flex-wrap: wrap; row-gap: 2px; }
+  /* The group takes the full width of the title column on its own line, so
+     a long set (PEAK #n + PLATINUM + a score) wraps inside it — as flex: none
+     it stayed one max-content line and ran over the Move and Plays columns */
+  .wv-cx-badges { flex-wrap: wrap; row-gap: 2px; flex: 1 1 100%; min-width: 0; max-width: 100%; }
+  .wv-cx-badges > * { max-width: 100%; }
   /* The phone Table's short forms (2026-10-18): 💎 for diamonds, ▲ PB, and
      in Spanish 🏅 #n for the peak tag */
   .wv-compact .cert-diamond .cert-icon,
