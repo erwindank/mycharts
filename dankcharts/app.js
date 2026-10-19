@@ -20549,6 +20549,18 @@ function generatePlaylistNames(songs, periodName) {
     names.add(t('export_pn_year_highlights', { label }));
     names.add(t('export_pn_year_soundtrack', { label }));
     names.add(t('export_pn_year_chart', { label }));
+  } else if (currentPeriod === 'day' && typeof dyViewedDay === 'function') {
+    // Daily tab: name it after the weekday and the date being viewed
+    // (daily.js helpers), e.g. "Monday Top 27", "Daily Chart · 19 Oct 2026"
+    const ds = dyViewedDay();
+    const day = dyDayName(ds);
+    const date = fmt(dyDate(ds));
+    if (currentOffset === 0) names.add(t('export_pn_day_today', { n: songs.length }));
+    names.add(t('export_pn_day_top', { day, n: songs.length }));
+    names.add(t('export_pn_day_top_date', { n: songs.length, date }));
+    names.add(t('export_pn_day_chart', { date }));
+    names.add(t('export_pn_day_mix', { day }));
+    names.add(t('export_pn_day_repeat', { date }));
   } else if (currentPeriod === 'alltime') {
     names.add(t('export_pn_alltime_top', { n: songs.length }));
     names.add(t('export_pn_alltime_favorites'));
@@ -20744,11 +20756,19 @@ function openCalendarExportModal() {
   if (!events.length) { alert('No singles found on this day.'); return; }
 
   const dateLabel = fmtDate(dateObj);
-  dcOpenTextExport(
-    events.map(ev => ({ title: ev.ttTitle, artist: ev.ttArtist, album: '' })),
-    dateLabel,
-    [`Singles · ${dateLabel}`, `New Releases · ${dateLabel}`, `🎵 ${dateLabel}`]
-  );
+  const songs = events.map(ev => ({ title: ev.ttTitle, artist: ev.ttArtist, album: '' }));
+  // Name ideas: the day's singles, anniversaries ("On This Day") when there
+  // are any, new releases when there are any, plus the top two artists
+  const names = [t('export_pn_cal_singles', { date: dateLabel })];
+  if (events.some(ev => ev.ttType === 'anniversary')) {
+    names.push(t('export_pn_cal_on_this_day', { date: dateLabel }));
+    names.push(t('export_pn_cal_throwback', { date: dateLabel }));
+  }
+  if (events.some(ev => ev.ttType === 'release')) names.push(t('export_pn_cal_releases', { date: dateLabel }));
+  const artists = [...new Set(songs.map(s => s.artist.split(',')[0].trim()).filter(Boolean))];
+  if (artists.length >= 2) names.push(t('export_pn_two_and_mix', { a1: artists[0], a2: artists[1] }));
+  names.push(t('export_pn_top_picks', { n: songs.length }));
+  dcOpenTextExport(songs, dateLabel, names);
 }
 
 /* Opens the Soundiiz text export (the chart's Export modal) with any song list
@@ -29597,6 +29617,10 @@ function renderEventsPartial(birthdays, anniversaries, recentBirthdays, recentAn
   if (f.recentAnniversaries.length) _evRenderSectionByKey('recentAnniversaries', [...f.recentAnniversaries].sort(sortFnAgo));
   if (f.eventsUpcoming.length) _evRenderSectionByKey('eventsUpcoming', sortUpcomingReleases([...f.eventsUpcoming]));
   if (f.eventsRecent.length) _evRenderSectionByKey('eventsRecent', sortRecentReleases([...f.eventsRecent]));
+  // Keep what the calendar shows in _eventsCalendarData while the fetch is
+  // still running too — Play All, Create Playlist and Export Playlist read it,
+  // and without this they silently did nothing until all artists had loaded
+  _eventsCalendarData = f;
   renderEventsCalendar(f, eventsCalendarYear, eventsCalendarMonth);
 }
 

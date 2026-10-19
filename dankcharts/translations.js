@@ -2456,6 +2456,17 @@ const TRANSLATIONS = {
     export_pn_the_top: 'The Top {{n}}',
     export_pn_top_picks: 'Top {{n}} Picks',
     export_pn_top_tracks: 'Top {{n}} Tracks',
+    // Daily tab and Events calendar playlist names
+    export_pn_day_today: "Today's Top {{n}}",
+    export_pn_day_top: "{{day}} Top {{n}}",
+    export_pn_day_top_date: "Top {{n}} · {{date}}",
+    export_pn_day_chart: "Daily Chart · {{date}}",
+    export_pn_day_mix: "My {{day}} Mix",
+    export_pn_day_repeat: "On Repeat · {{date}}",
+    export_pn_cal_singles: "Singles · {{date}}",
+    export_pn_cal_on_this_day: "On This Day · {{date}}",
+    export_pn_cal_throwback: "Throwback Singles · {{date}}",
+    export_pn_cal_releases: "New Releases · {{date}}",
 
     // Button tooltips
     tooltip_theme_navy_dark: 'Navy Dark',
@@ -5557,6 +5568,17 @@ const TRANSLATIONS = {
     export_pn_the_top: 'El Top {{n}}',
     export_pn_top_picks: 'Top {{n}} Selecciones',
     export_pn_top_tracks: 'Top {{n}} Canciones',
+    // Daily tab and Events calendar playlist names
+    export_pn_day_today: "Top {{n}} de Hoy",
+    export_pn_day_top: "Top {{n}} del {{day}}",
+    export_pn_day_top_date: "Top {{n}} · {{date}}",
+    export_pn_day_chart: "Ranking Diario · {{date}}",
+    export_pn_day_mix: "Mi Mix del {{day}}",
+    export_pn_day_repeat: "En Bucle · {{date}}",
+    export_pn_cal_singles: "Sencillos · {{date}}",
+    export_pn_cal_on_this_day: "Un Día Como Hoy · {{date}}",
+    export_pn_cal_throwback: "Sencillos del Recuerdo · {{date}}",
+    export_pn_cal_releases: "Nuevos Lanzamientos · {{date}}",
 
     // Button tooltips
     tooltip_theme_navy_dark: 'Azul Marino Oscuro',
@@ -8649,6 +8671,17 @@ const TRANSLATIONS = {
     export_pn_the_top: 'O Top {{n}}',
     export_pn_top_picks: 'Top {{n}} Escolhas',
     export_pn_top_tracks: 'Top {{n}} Músicas',
+    // Daily tab and Events calendar playlist names
+    export_pn_day_today: "Top {{n}} de Hoje",
+    export_pn_day_top: "Top {{n}} de {{day}}",
+    export_pn_day_top_date: "Top {{n}} · {{date}}",
+    export_pn_day_chart: "Parada Diária · {{date}}",
+    export_pn_day_mix: "Meu Mix de {{day}}",
+    export_pn_day_repeat: "No Repeat · {{date}}",
+    export_pn_cal_singles: "Singles · {{date}}",
+    export_pn_cal_on_this_day: "Neste Dia · {{date}}",
+    export_pn_cal_throwback: "Singles Nostálgicos · {{date}}",
+    export_pn_cal_releases: "Lançamentos · {{date}}",
 
     // Button tooltips
     tooltip_theme_navy_dark: 'Azul Marinho Escuro',
@@ -11740,6 +11773,17 @@ const TRANSLATIONS = {
     export_pn_the_top: 'O Top {{n}}',
     export_pn_top_picks: 'Top {{n}} Escolhas',
     export_pn_top_tracks: 'Top {{n}} Músicas',
+    // Daily tab and Events calendar playlist names
+    export_pn_day_today: "Top {{n}} de Hoje",
+    export_pn_day_top: "Top {{n}} de {{day}}",
+    export_pn_day_top_date: "Top {{n}} · {{date}}",
+    export_pn_day_chart: "Top Diário · {{date}}",
+    export_pn_day_mix: "O Meu Mix de {{day}}",
+    export_pn_day_repeat: "Em Repetição · {{date}}",
+    export_pn_cal_singles: "Singles · {{date}}",
+    export_pn_cal_on_this_day: "Neste Dia · {{date}}",
+    export_pn_cal_throwback: "Singles Nostálgicos · {{date}}",
+    export_pn_cal_releases: "Novos Lançamentos · {{date}}",
 
     // Button tooltips
     tooltip_theme_navy_dark: 'Azul Escuro',
