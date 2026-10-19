@@ -18,7 +18,7 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   "A clearer Stack chart layout":
     ["Um layout Pilha mais claro",
-     "As linhas do layout Pilha agora parecem as do Compacto, com capas maiores: a posição com a variação embaixo, o título, depois o artista e o álbum na própria linha, e os plays à direita. Com duas colunas, o chart se lê descendo pela primeira coluna e depois pela segunda (1–5, 6–10), com o #1 em cima ocupando as duas, em vez de ir em zigue-zague 1, 2 / 3, 4. O top 3 ganha os tons ouro, prata e bronze da Tabela em vez de um brilho pulsante. No celular os selos descem para baixo do título em vez de ficarem cortados no fim da linha. As semanas no chart e os plays totais estão no painel de detalhes."],
+     "Os cards do layout Pilha agora têm três linhas: o título, depois o artista e o álbum, e depois os números: os plays deste período, o tempo no chart e os plays no total, cada um bem separado. O número grande da posição tem a variação embaixo, e o top 3 continua brilhando em ouro, prata e bronze, agora também nos temas claros. Cada card termina com Buscar no Spotify, o botão de amostra e ⋮. Com duas colunas, o chart se lê descendo pela primeira coluna e depois pela segunda (1–5, 6–10), com o #1 em cima ocupando as duas, em vez de ir em zigue-zague 1, 2 / 3, 4. As barras de plays saíram, e no celular os selos descem para baixo do título em vez de ficarem cortados no fim do card."],
 
   "Better playlist names, and calendar exports that work while loading":
     ["Nomes de playlist melhores e exportações do calendário que funcionam durante o carregamento",

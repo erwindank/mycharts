@@ -1676,23 +1676,30 @@ animation, 12 screen check.
   edges equal in all 5 periods × 3 types at 1280 and 390, no row overflow
   with every badge on, en / es / pt-BR, Navy light drawer, ⋮ / right-click /
   title pop-up with real clicks, no JS errors.
-- **Step 8, Stack ✓ (2026-10-19, 083ca8a).** Compact's row style (flat rows,
-  bottom border, the Table's gold / silver / bronze tints for #1–#3) with a
-  48px cover: rank with the movement chip under it, **Title** (+ badges),
-  **Artist · Album** on their own line (the album gives way first), and
-  Plays as a number over a short unit (`plays_*_mobile`: "plays", "veces").
-  Weeks, all-time plays ("N all-time", which was English only) and the ＋
-  left the face; they are in the drawer and ⋮. **Two columns fill down
-  first** (1–5 | 6–10, page-local on Yearly / All-Time pages) as two
-  column divs, with **#1 across both** (64px cover, larger title) when the
-  first entry is rank 1; DOM order stays rank order, so ↑↓ and the drawer
-  are unchanged. The pulsing glow keyframes and the light-theme rank
-  override are gone (ranks use `--text3` / `--medal-*`). **Phones:** one
-  column; badges wrap under the title inside the row (the cut-off is
-  fixed) with the phone Table's short forms. Checked: 1280 and 390, one /
-  two columns, badges off and on, all 5 periods × 3 types with no element
-  past its row and no sideways scroll, es, Navy light, drawer opened by a
-  real click, no JS errors. Next: Card grid, then Filmstrip, Mosaic.
+- **Step 8, Stack ✓ (2026-10-19, 083ca8a, then 2c577bc).** First built
+  as flat Compact-style rows; **you asked for the cards back** the same day,
+  so the face is now: **rounded cards** (`--r-md`), **the top 3 glowing**
+  gold / silver / bronze (kept on purpose, against the "calm" default: the
+  glow is a fixed shadow on a `::before` whose opacity breathes, coloured
+  from `--medal-*` so light themes get their own, still under reduced
+  motion), the **big rank number** (`--fs-xl`, 900) with the movement chip
+  under it, a 64px cover, and three lines: **Title** (+ badges, wrapping
+  under it when they don't fit, which fixes the phone cut-off), **Artist ·
+  Album** (the album gives way first), and **the numbers**: plays this
+  period · time on chart · all-time plays (`wv_total`, "26 total", left out
+  on All-Time and when equal to this period's plays). A wrapped numbers line
+  never starts with a "·" (each stat carries its dot; the row is pulled
+  left into a clipped edge). **No play bars** (you liked them gone). The
+  card ends with **Search on Spotify** (`_eaSpotifyBtn`, new and shared,
+  reuses `tm_action_spotify`), ▶ sample and ⋮; on touch ▶ hides as
+  everywhere. **Two columns fill down first** (1–5 | 6–10, page-local) with
+  **#1 across both** (80px cover); phones get one column. All-time totals
+  now include artists (`cumulativeMaps.artists`), so Mosaic and Filmstrip
+  show them for artists too. Checked: 1280 and 390, one / two columns,
+  badges off and on, all 5 periods × 3 types (no element past its card, no
+  sideways scroll), es, Navy light, drawer by real click, no JS errors.
+  **Worth reusing for Card grid and Filmstrip:** the numbers line and the
+  Spotify button. Next: Card grid, then Filmstrip, Mosaic.
 - **Step 10, started early (2026-10-18).** Done so far:
   - **Off the Chart rows:** ▶ and ⋮ in their own end column. On phones the
     row restacks: the title wraps instead of being cut, plays and weeks go

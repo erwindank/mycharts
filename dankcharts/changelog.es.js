@@ -18,7 +18,7 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   "A clearer Stack chart layout":
     ["Un diseño Pila más claro",
-     "Las filas del diseño Pila ahora se parecen a las de Compacto, con portadas más grandes: el puesto con su movimiento debajo, el título, luego el artista y el álbum en su propia línea, y las escuchas a la derecha. Con dos columnas, el chart se lee hacia abajo por la primera columna y luego por la segunda (1–5, 6–10), con el #1 arriba ocupando las dos, en lugar de ir en zigzag 1, 2 / 3, 4. El top 3 lleva los tonos oro, plata y bronce de la Tabla en lugar de un brillo que palpita. En el móvil las insignias bajan debajo del título en lugar de quedar cortadas al final de la fila. Las semanas en el chart y las escuchas totales están en el panel de detalles."],
+     "Las tarjetas del diseño Pila ahora tienen tres líneas: el título, luego el artista y el álbum, y luego los números: las reproducciones de este periodo, el tiempo en el chart y las reproducciones en total, cada uno bien separado. El número grande del puesto lleva su movimiento debajo, y el top 3 sigue brillando en oro, plata y bronce, ahora también en los temas claros. Cada tarjeta termina con Buscar en Spotify, el botón de muestra y ⋮. Con dos columnas, el chart se lee hacia abajo por la primera columna y luego por la segunda (1–5, 6–10), con el #1 arriba ocupando las dos, en lugar de ir en zigzag 1, 2 / 3, 4. Las barras de reproducciones ya no están, y en el móvil las insignias bajan debajo del título en lugar de quedar cortadas al final de la tarjeta."],
 
   "Better playlist names, and calendar exports that work while loading":
     ["Mejores nombres de playlist y exportaciones del calendario que funcionan mientras carga",
