@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Better playlist names, and calendar exports that work while loading":
+    ["Mejores nombres de playlist y exportaciones del calendario que funcionan mientras carga",
+     "Al exportar el ranking Diario ahora se sugieren nombres que encajan con el día, como Top 27 de Hoy, Top 27 del lunes, Ranking Diario · 19 Oct 2026 y Mi Mix del lunes. Exportar Playlist del calendario de Eventos (vista Día, solo Sencillos) sugiere Un Día Como Hoy, Sencillos del Recuerdo y los artistas del día. Ese botón, junto con Reproducir todo y Crear playlist, tampoco hacía nada mientras el calendario seguía cargando tus artistas; ahora funcionan al momento con lo que ya se ha cargado."],
+
   "A cleaner Export Playlist window":
     ["Una ventana de Exportar Playlist más clara",
      "La ventana Exportar Playlist ahora son tres pasos sencillos: elige un nombre, copia tus canciones e impórtalas en Soundiiz. Las canciones aparecen como una lista numerada con título y artista en lugar de un bloque de texto, el orden es un selector #1 primero / #1 al final y el álbum un interruptor. Copiar lista es el botón grande y se pone verde con una marca cuando funcionó, con las descargas .txt y .csv al lado. El último paso muestra a qué servicios puede enviar Soundiiz la playlist y tiene un solo botón Abrir Soundiiz."],

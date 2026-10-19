@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 200;
+const DC_CL_I18N_V = 201;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-19', t: 'fix', a: 'playlists', h: '59723c6',
+    title: "Better playlist names, and calendar exports that work while loading",
+    detail: "Exporting the Daily chart now suggests names that fit the day, like Today's Top 27, Monday Top 27, Daily Chart · 19 Oct 2026 and My Monday Mix. The Events calendar's Export Playlist (Day view, Singles only) suggests On This Day, Throwback Singles and the day's artists. That button, along with Play All and Create Playlist, also did nothing while the calendar was still fetching your artists; they now work straight away with what has loaded so far." },
 
   { d: '2026-10-19', t: 'design', a: 'playlists', h: '9bc70e4',
     title: "A cleaner Export Playlist window",
