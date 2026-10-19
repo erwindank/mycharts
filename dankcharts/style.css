@@ -31943,12 +31943,11 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
 /* ── STACK ── (phase 7 step 8, 4.9b)
    Rounded cards, the top 3 glowing gold / silver / bronze. Big rank with
    its movement under it, a 64px cover, then three lines: Title (+ badges),
-   Artist · Album, and the numbers (plays · time on chart · all-time plays).
-   Spotify, ▶ and ⋮ at the end. Two columns fill down first (1–5 | 6–10)
-   with #1 across both; phones get one column, in the same order. */
+   Artist · Album, and the numbers (plays · time on chart). Spotify, ▶ and
+   ⋮ at the end. Two columns fill down first (1–5 | 6–10); phones get one
+   column, in the same order. */
 .wv-stack { display: flex; flex-direction: column; gap: var(--sp-2); padding: var(--sp-1); }
 .wv-stack-2col { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--sp-2); }
-.wv-stk-hero { grid-column: 1 / -1; }
 .wv-stk-col { display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0; }
 /* position + z-index: its own stacking context, so the glow (z-index -1)
    sits under the card's content but over its background */
@@ -31995,8 +31994,10 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
    their own line inside the card (on phones they were cut off at its end) */
 .wv-stk-title { display: flex; flex-wrap: wrap; align-items: center; row-gap: 3px; min-width: 0; }
 .wv-stk-ttl { font-size: var(--fs-sm); font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; max-width: 100%; margin-right: 6px; }
-/* Spacing on each badge, not the group: the Show switches hide badges */
-.wv-stk-badges { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 3px 5px; min-width: 0; max-width: 100%; }
+/* Spacing on each badge, not the group: the Show switches hide badges.
+   Badges set no weight of their own; they take the title's 600, as they did
+   when they sat inside the old title line. */
+.wv-stk-badges { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 3px 5px; min-width: 0; max-width: 100%; font-weight: 600; }
 .wv-stk-badges > * { max-width: 100%; }
 .wv-stk-badges:empty { display: none; }
 /* Artist · Album: the album only gets the room the artist leaves */
@@ -32004,8 +32005,8 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
 .wv-stk-artist { color: var(--text2); flex: 0 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .wv-stk-sep { color: var(--text3); flex: none; }
 .wv-stk-alb { color: var(--text3); flex: 1 1 0; min-width: 2.5em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-/* The numbers: this period's plays first and strongest, then time on chart
-   and all-time plays, each set apart by a spaced dot. Every stat starts
+/* The numbers: this period's plays first and strongest, then time on
+   chart, set apart by a spaced dot. Every stat starts
    with its dot and the inner row is pulled left by one dot's width into a
    clipped edge, so a line that wraps never starts with a stray "·". */
 .wv-stk-stats { overflow: hidden; font-size: var(--fs-xs); color: var(--text3); }
@@ -32015,10 +32016,6 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
 .wv-stk-now { color: var(--text2); }
 .wv-stk-now b { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-weight: 700; color: var(--text); }
 .wv-stk-acts { display: inline-flex; align-items: center; gap: 2px; flex: none; }
-/* #1 across both columns: a bigger cover and title */
-.wv-stk-hero .wv-thumb-lg .thumb-initials, .wv-stk-hero .wv-thumb-lg .thumb { width: 80px; height: 80px; font-size: 1.3rem; }
-.wv-stk-hero .wv-stk-ttl { font-size: var(--fs-base); }
-.wv-stk-hero .wv-stk-sub { font-size: var(--fs-sm); }
 @media (max-width: 600px) {
   .wv-stack-2col { display: flex; flex-direction: column; }
   .wv-stk-row { gap: 8px; padding: var(--sp-2) 4px var(--sp-2) 6px; }

@@ -20101,8 +20101,8 @@ function _wvStack(items, max, ms, imgItems, type) {
   const isAllTime = !!(_wvCur && _wvCur.isAllTime);
   // Phase 7 step 8 (4.9b): rounded cards, the top 3 glowing. Big rank with
   // its movement under it; Title (+ badges); Artist · Album; then the
-  // numbers on their own line: plays this period · time on chart · all-time
-  // plays. Ends with Spotify, ▶ sample and ⋮.
+  // numbers on their own line: plays this period · time on chart (all-time
+  // plays are in the details panel). Ends with Spotify, ▶ sample and ⋮.
   const row = (s, j) => {
     const i = _wvIdx(s, j);   // rank index on the full chart (step 6: pages)
     const f = _wvItem(type, s, i, ms, imgItems);
@@ -20111,11 +20111,9 @@ function _wvStack(items, max, ms, imgItems, type) {
     const badges = (f.peak ? peakBadge(f.peak) : '') + f.certHtml + f.ratingHtml + (f.isPlaysPeak ? playsPeakBadge() : '');
     const album = type === 'songs' && s.album && s.album !== '—' ? s.album : '';
     const statusCls = f.move === 'new' ? ' wv-stk-new' : f.move === 're' ? ' wv-stk-re' : '';
-    // The numbers line. The All-Time chart has no time on chart, and its
-    // plays already are the all-time total.
+    // The numbers line. The All-Time chart has no time on chart.
     const stats = [`<span class="wv-stk-stat wv-stk-now"><b>${s.count.toLocaleString()}</b> ${esc(tUnit('plays', s.count))}</span>`];
     if (ms && !isAllTime) stats.push(`<span class="wv-stk-stat">${esc(_wvRunText(f.weeks || 1))}</span>`);
-    if (!isAllTime && f.cumPlays > s.count) stats.push(`<span class="wv-stk-stat">${esc(t('wv_total', { n: f.cumPlays.toLocaleString() }))}</span>`);
     const spArtist = type === 'artists' ? '' : sub;
     return `<div class="wv-stk-card${i < 3 ? ' wv-r' + (i + 1) : ''}${statusCls}" tabindex="0" onclick="_drEntryClick(event,this)"${ea}>` +
       `<div class="wv-stk-row">` +
@@ -20135,15 +20133,10 @@ function _wvStack(items, max, ms, imgItems, type) {
   };
   if (!_stkTwoCol) return `<div class="wv-stack">${items.map(row).join('')}</div>`;
   // Two columns fill down first (1–5 left, 6–10 right), so the ranking reads
-  // as a list; #1 gets a full-width row above both. Phones show one column,
-  // which is the same order.
-  const heroN = items.length && _wvIdx(items[0], 0) === 0 ? 1 : 0;
-  const leftN = heroN + Math.ceil((items.length - heroN) / 2);
+  // as a list. Phones show one column, which is the same order.
+  const leftN = Math.ceil(items.length / 2);
   const col = (a, b) => `<div class="wv-stk-col">${items.slice(a, b).map((s, n) => row(s, a + n)).join('')}</div>`;
-  return `<div class="wv-stack wv-stack-2col">` +
-    (heroN ? `<div class="wv-stk-hero">${row(items[0], 0)}</div>` : '') +
-    col(heroN, leftN) + col(leftN, items.length) +
-  `</div>`;
+  return `<div class="wv-stack wv-stack-2col">${col(0, leftN)}${col(leftN, items.length)}</div>`;
 }
 
 function toggleStkTwoCol() {
