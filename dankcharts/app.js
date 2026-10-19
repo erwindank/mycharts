@@ -361,10 +361,11 @@ let certWallSort   = 'tier';
 const CWALL_SORTS = [
   // `up`/`down` name what each direction actually does, for the button's tooltip
   // — "ascending" says nothing useful about a wall of plaques.
-  { key: 'tier',   label: 'Tier',   asc: false, up: 'Gold → Diamond', down: 'Diamond → Gold' },
-  { key: 'artist', label: 'Artist', asc: true,  up: 'A → Z',          down: 'Z → A' },
-  { key: 'title',  label: 'Title',  asc: true,  up: 'A → Z',          down: 'Z → A' },
-  { key: 'date',   label: 'Date',   asc: true,  up: 'oldest first',   down: 'newest first' },
+  // Values are translation keys (A → Z needs none), looked up when painted.
+  { key: 'tier',   label: 'cwall_sort_tier',   asc: false, up: 'cwall_tier_up', down: 'cwall_tier_down' },
+  { key: 'artist', label: 'cwall_sort_artist', asc: true,  up: 'A → Z',         down: 'Z → A' },
+  { key: 'title',  label: 'cwall_sort_title',  asc: true,  up: 'A → Z',         down: 'Z → A' },
+  { key: 'date',   label: 'cwall_sort_date',   asc: true,  up: 'cwall_oldest',  down: 'cwall_newest' },
 ];
 const cwallSortDefaultAsc = k => (CWALL_SORTS.find(s => s.key === k) || { asc: true }).asc;
 let certWallSortAsc = cwallSortDefaultAsc(certWallSort);
@@ -27681,7 +27682,6 @@ function dcSyncMainTabs(view) {
 // ─── CERTIFICATIONS WALL ────────────────────────────────────────
 const CWALL_TIER_CLASS = { gold: 'gold', platinum: 'plat', diamond: 'diamond' };
 const CWALL_TIER_LABEL = { gold: 'Gold', platinum: 'Platinum', diamond: 'Diamond' };
-const CWALL_TYPE_LABEL = { song: 'song', album: 'album' };
 
 /* The award a plaque names. Only Diamond repeats, and it repeats the way the
    album modal already writes it — Double and Triple get their words, and past
@@ -27691,6 +27691,13 @@ const CWALL_TYPE_LABEL = { song: 'song', album: 'album' };
 function cwallTierName(item) {
   if (item.tier !== 'diamond') return CWALL_TIER_LABEL[item.tier] ? esc(tTierLabel(item.tier)) : esc(item.tier || '');
   return esc(diamondMultiLabel(Math.max(1, item.mult || 1)).label);
+}
+
+/* "Gold certified song" — the award and what it is for. Word order is the
+   language's (Spanish and Portuguese put the tier last, and gender the
+   participle), so the whole line, span included, lives in the translation. */
+function cwallAwardLine(item) {
+  return t(item.type === 'album' ? 'cwall_award_album' : 'cwall_award_song', { tier: cwallTierName(item) });
 }
 
 /* How many records to press for one award. Diamond repeats, so a 3× hangs
@@ -27744,9 +27751,10 @@ function paintCwallSortBtns(wall) {
     b.classList.toggle('active', on);
     const dir = b.querySelector('.cwall-dir');
     if (dir) dir.textContent = on ? (asc ? '▲' : '▼') : '';
+    const label = t(s.label), dirTxt = t(asc ? s.up : s.down);
     b.title = on
-      ? s.label + ': ' + (asc ? s.up : s.down) + ' — click to reverse'
-      : 'Sort by ' + s.label.toLowerCase() + ' (' + (asc ? s.up : s.down) + ')';
+      ? t('cwall_sort_on', { label, dir: dirTxt })
+      : t('cwall_sort_by', { label: label.toLowerCase(), dir: dirTxt });
     b.setAttribute('aria-pressed', on ? 'true' : 'false');
   });
 }
@@ -27758,7 +27766,8 @@ function wallInitials(str) {
 function fmtCertDate(dateStr) {
   if (!dateStr) return '';
   try {
-    return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const locale = currentLang === 'en' ? 'en-US' : currentLang;
+    return new Date(dateStr).toLocaleDateString(locale, { month: 'short', day: 'numeric', year: 'numeric' });
   } catch (e) { return String(dateStr); }
 }
 
@@ -27774,7 +27783,7 @@ function renderCertifications(data) {
   if (!wall) return;
 
   if (!certWallData.length) {
-    wall.innerHTML = '<div class="cwall-empty">No certifications to display.</div>';
+    wall.innerHTML = '<div class="cwall-empty">' + esc(t('cwall_empty')) + '</div>';
     return;
   }
 
@@ -27782,17 +27791,17 @@ function renderCertifications(data) {
     <div class="cwall-controls">
       <div class="cwall-search-wrap">
         <input class="cwall-search" id="cwall-search-input" type="search"
-          placeholder="Search by artist, song, or album…" value="${esc(certWallSearch)}">
+          placeholder="${esc(t('cwall_search_ph'))}" value="${esc(certWallSearch)}">
       </div>
       <div class="cwall-filter-row">
         <div class="cwall-filter-btns">
-          <button class="cwall-btn${certWallFilter==='all'?' active':''}" data-cwall-filter="all">All</button>
-          <button class="cwall-btn${certWallFilter==='song'?' active':''}" data-cwall-filter="song">Songs</button>
-          <button class="cwall-btn${certWallFilter==='album'?' active':''}" data-cwall-filter="album">Albums</button>
+          <button class="cwall-btn${certWallFilter==='all'?' active':''}" data-cwall-filter="all">${esc(t('cwall_all'))}</button>
+          <button class="cwall-btn${certWallFilter==='song'?' active':''}" data-cwall-filter="song">${esc(t('cwall_songs'))}</button>
+          <button class="cwall-btn${certWallFilter==='album'?' active':''}" data-cwall-filter="album">${esc(t('cwall_albums'))}</button>
         </div>
         <div class="cwall-sort-btns">
-          <span class="cwall-sort-label">Sort:</span>
-          ${CWALL_SORTS.map(s => `<button class="cwall-btn cwall-sort-btn${certWallSort===s.key?' active':''}" data-cwall-sort="${s.key}">${s.label}<span class="cwall-dir"></span></button>`).join('')}
+          <span class="cwall-sort-label">${esc(t('cwall_sort'))}</span>
+          ${CWALL_SORTS.map(s => `<button class="cwall-btn cwall-sort-btn${certWallSort===s.key?' active':''}" data-cwall-sort="${s.key}">${esc(t(s.label))}<span class="cwall-dir"></span></button>`).join('')}
         </div>
       </div>
     </div>
@@ -27856,7 +27865,7 @@ function renderCertWallCards() {
   harvestCertWallImages();
 
   if (!items.length) {
-    grid.innerHTML = '<div class="cwall-empty">No certifications match your search.</div>';
+    grid.innerHTML = '<div class="cwall-empty">' + esc(t('cwall_no_match')) + '</div>';
     return;
   }
 
@@ -27895,7 +27904,7 @@ function renderCertWallCards() {
     <div class="cert-info">
       <div class="cert-title">${esc(item.title)}</div>
       <div class="cert-artist">${esc(item.artist)}</div>
-      <div class="cert-tier-name">${cwallTierName(item)} <span class="cert-tier-of">certified ${esc(CWALL_TYPE_LABEL[item.type] || item.type || '')}</span></div>
+      <div class="cert-tier-name">${cwallAwardLine(item)}</div>
       ${dateStr ? `<div class="cert-date">${dateStr}</div>` : ''}
     </div>
   </div>
@@ -28167,7 +28176,7 @@ function certReelCard(item, i) {
       <div class="cert-info">
         <div class="cert-title">${esc(item.title)}</div>
         <div class="cert-artist">${esc(item.artist)}</div>
-        <div class="cert-tier-name">${cwallTierName(item)} <span class="cert-tier-of">certified ${esc(CWALL_TYPE_LABEL[item.type] || item.type || '')}</span></div>
+        <div class="cert-tier-name">${cwallAwardLine(item)}</div>
         <div class="cert-date">${fmtCertDate(item.date)}</div>
       </div>
     </div>
