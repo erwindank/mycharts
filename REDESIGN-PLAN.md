@@ -1656,6 +1656,24 @@ animation, 12 screen check.
   every chart run panel (also the song / album pop-ups).
   **Merged to `main` and pushed 2026-10-18**, at your request, together
   with the streak badges (see "Done outside the phases").
+- **Step 8, Compact ✓ (2026-10-18, 4b1c0c3).** Header and rows share one
+  CSS grid (`--cx-cols`), so Move, time on chart and Plays line up; the old
+  flex header drifted and its labels overlapped. Headers are translated, with
+  the Table's words (`th_move`, `th_weeks` / `dy_th_days` / …, `th_plays`);
+  time on chart is the number only; **Title · Artist** sit together on the
+  left, the artist giving way first; Plays is centred like the Table's.
+  All-Time has no Move / time columns (`.wv-cx-nostats`). Cover stays 32px
+  in a 40px row (4.9b said 28px; 32px is the existing small thumb). The ＋
+  and the English "weeks" text are gone from the markup. **Phones:** the
+  artist goes under the title, time on chart moves to the details panel,
+  title 20px → ~118px on a 390px phone; badges drop under the title with the
+  phone Table's short forms (💎, ▲ PB, Spanish 🏅 #n); the Plays header
+  starts at its column and runs over the ⋮ column (ESCUCHAS no longer meets
+  CAMB.). Hover cover preview is off on touch. Checked: header/row column
+  edges equal in all 5 periods × 3 types at 1280 and 390, no row overflow
+  with every badge on, en / es / pt-BR, Navy light drawer, ⋮ / right-click /
+  title pop-up with real clicks, no JS errors. Next: Stack (its phone badge
+  cut-off), then Card grid, Filmstrip, Mosaic.
 - **Step 10, started early (2026-10-18).** Done so far:
   - **Off the Chart rows:** ▶ and ⋮ in their own end column. On phones the
     row restacks: the title wraps instead of being cut, plays and weeks go
@@ -1674,7 +1692,8 @@ animation, 12 screen check.
   short muted line. New Entries has had none of the row work yet.
 
 **What's left in phase 7, in order:**
-- **Step 8: the other five layouts**, one commit each (4.9b). Start with
+- **Step 8: the other five layouts**, one commit each (4.9b). Compact done
+  (above); Stack next. Start with
   the two phone bugs found in step 4: Compact squeezes the title to one
   letter, Stack cuts badges off at the end of the title line. Use the new
   table's choices as the model: covers 48px, the gold / silver / bronze
