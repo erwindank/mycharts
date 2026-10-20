@@ -20130,18 +20130,25 @@ function _wvCompact(items, max, ms, imgItems, type) {
 
     const statusCls = mv.includes('wv-new') ? ' wv-stk-new' : mv.includes('wv-re') ? ' wv-stk-re' : '';
 
-    // Title · Artist in one line on desktop (phones: artist on its own line).
-    // The title shrinks first; the badges keep their size after it.
+    // Title · Artist in one line, then the badges. The artist shrinks first,
+    // then the title; the badges keep their size after them.
+    // Phones (2026-10-20): the move chip sits under the rank number and the
+    // Move column goes, so the title gets the width (CSS shows one or the other)
+    const rankMove = hasStats ? `<span class="wv-cx-rk-mv">${f.mvHtml}</span>` : '';
     return `<div class="wv-cx-row${i < 3 ? ' wv-r' + (i + 1) : ''}${statusCls}" onclick="_drEntryClick(event,this)" tabindex="0"${ea}>` +
-      `<span class="wv-cx-rank">${i + 1}</span>` +
+      `<span class="wv-cx-rank"><span class="wv-cx-rk-n">${i + 1}</span>${rankMove}</span>` +
       `<div class="wv-cx-art-wrap ea-cover" onclick="event.stopPropagation()">` +
         `<div class="wv-thumb wv-thumb-sm">${_wvThumb(imgId, ttl)}</div>` +
         _eaCoverPlay() +
         artTip +
       `</div>` +
       `<span class="wv-cx-text">` +
-        `<span class="wv-cx-title"><span class="wv-cx-ttl wv-title-link" onclick="event.stopPropagation();_wvOpenModal(${jtype},${esc(JSON.stringify(k))})" title="${esc(ttl)}">${esc(ttl)}</span>${badges ? `<span class="wv-cx-badges">${badges}</span>` : ''}</span>` +
-        (sub ? `<span class="wv-cx-sep" aria-hidden="true">·</span><span class="wv-cx-artist">${esc(sub)}</span>` : '') +
+        // Title · Artist on one line everywhere, the badges right after it
+        // (2026-10-20: phones too, where the artist used to sit under the title)
+        `<span class="wv-cx-title"><span class="wv-cx-ttl wv-title-link" onclick="event.stopPropagation();_wvOpenModal(${jtype},${esc(JSON.stringify(k))})" title="${esc(ttl)}">${esc(ttl)}</span>` +
+          (sub ? `<span class="wv-cx-sep" aria-hidden="true">·</span><span class="wv-cx-artist">${esc(sub)}</span>` : '') +
+        `</span>` +
+        (badges ? `<span class="wv-cx-badges">${badges}</span>` : '') +
       `</span>` +
       (hasStats ? `<span class="wv-cx-move">${moveHtml}</span><span class="wv-cx-wks">${weeks}</span>` : '') +
       `<span class="wv-cx-plays${playsCls}">${s.count.toLocaleString()}</span>` +
@@ -20996,15 +21003,15 @@ function certBadge(plays, type) {
   if (!certTiers) return '';
   // Diamonds also carry a short form (.cert-short: 💎, 💎💎, then 3×💎, 4×💎…)
   // that the phone chart table shows instead of the words, in every
-  // language (style.css); the title keeps the words. Gold and Platinum
-  // always show in full.
+  // language (style.css); the title keeps the words.
   if (plays >= certTiers.diamond) {
     const n = Math.floor(plays / certTiers.diamond);
     const { icon, label } = diamondMultiLabel(n);
     const short = n <= 2 ? '💎'.repeat(n) : `${n}×💎`;
     return `<span class="cert cert-diamond" title="${esc(label)}"><span class="cert-icon">${icon}</span><span class="cert-label">${esc(label.toLocaleUpperCase())}</span><span class="cert-short">${short}</span></span>`;
   }
-  if (plays >= certTiers.plat) return `<span class="cert cert-plat"><span class="cert-icon">💿</span>${esc(tTierLabel('plat').toLocaleUpperCase())}</span>`;
+  // Platinum shows as PLAT (2026-10-20); the tooltip keeps the full word
+  if (plays >= certTiers.plat) return `<span class="cert cert-plat" title="${esc(tTierLabel('plat'))}"><span class="cert-icon">💿</span>${esc(t('cert_plat_short'))}</span>`;
   if (plays >= certTiers.gold) return `<span class="cert cert-gold"><span class="cert-icon">📀</span>${esc(tTierLabel('gold').toLocaleUpperCase())}</span>`;
   return '';
 }

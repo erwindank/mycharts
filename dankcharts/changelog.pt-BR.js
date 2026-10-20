@@ -16,6 +16,14 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "A tidier Compact chart on phones":
+    ["Um gráfico Compacto mais organizado no celular",
+     "No layout Compacto a música e o artista agora ficam juntos numa linha (Título · Artista), com as etiquetas logo depois, no computador e no celular. No celular o movimento (▲, ▼, NOVO, RE) fica abaixo do número da posição em vez de numa coluna própria, nomes longos passam para a linha seguinte em vez de serem cortados, as etiquetas de pico são uma medalha e o número (🏅 #3), e o ícone do Spotify saiu de cada linha (Buscar no Spotify continua no menu ⋮)."],
+
+  "Platinum badges say PLAT":
+    ["Selos de Platina dizem PLAT",
+     "O selo de Platina nas entradas do gráfico foi encurtado para 💿 PLAT, para ocupar menos espaço ao lado dos nomes. Passe o cursor por cima (ou segure) para ver \"Platina\"."],
+
   "A smaller plays peak tag in the Table":
     ["Uma etiqueta de pico de plays menor na Tabela",
      "No layout Tabela, a etiqueta ▲ PICO DE PLAYS embaixo dos plays agora tem o mesmo tamanho das etiquetas de Pico ao lado do título, em vez de uma pílula grande. Quando a coluna de Plays fica estreita demais para as palavras, ela mostra o curto ▲ PICO em vez de ser cortada."],

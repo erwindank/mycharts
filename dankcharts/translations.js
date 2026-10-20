@@ -2311,6 +2311,7 @@ const TRANSLATIONS = {
     cert_tri_diamond: 'Triple Diamond',
     cert_nx_diamond: '{{n}}× Diamond',
     cert_plat: 'Platinum',
+    cert_plat_short: 'PLAT',   // the badge on chart rows (2026-10-20)
     cert_gold: 'Gold',
     cwall_search_ph: 'Search by artist, song, or album…',
     cwall_all: 'All',
@@ -5498,6 +5499,7 @@ const TRANSLATIONS = {
     cert_tri_diamond: 'Diamante Triple',
     cert_nx_diamond: '{{n}}× Diamante',
     cert_plat: 'Platino',
+    cert_plat_short: 'PLAT',   // the badge on chart rows (2026-10-20)
     cert_gold: 'Oro',
     cwall_search_ph: 'Buscar por artista, canción o álbum…',
     cwall_all: 'Todo',
@@ -8676,6 +8678,7 @@ const TRANSLATIONS = {
     cert_tri_diamond: 'Diamante Triplo',
     cert_nx_diamond: '{{n}}× Diamante',
     cert_plat: 'Platina',
+    cert_plat_short: 'PLAT',   // the badge on chart rows (2026-10-20)
     cert_gold: 'Ouro',
     cwall_search_ph: 'Buscar por artista, música ou álbum…',
     cwall_all: 'Tudo',
@@ -11853,6 +11856,7 @@ const TRANSLATIONS = {
     cert_tri_diamond: 'Diamante Triplo',
     cert_nx_diamond: '{{n}}× Diamante',
     cert_plat: 'Platina',
+    cert_plat_short: 'PLAT',   // the badge on chart rows (2026-10-20)
     cert_gold: 'Ouro',
     cwall_search_ph: 'Pesquisar por artista, música ou álbum…',
     cwall_all: 'Tudo',

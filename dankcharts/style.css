@@ -31750,7 +31750,8 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
 /* Title · Artist: one line. The artist gives way before the title does;
    the badges keep their size after the title. */
 .wv-cx-text { display: flex; align-items: center; gap: 6px; min-width: 0; }
-.wv-cx-title { display: flex; align-items: center; min-width: 0; flex: 0 1 auto; }
+/* Title · Artist together (2026-10-20), the badges after the pair */
+.wv-cx-title { display: flex; align-items: center; gap: 6px; min-width: 0; flex: 0 1 auto; }
 .wv-cx-ttl { font-size: var(--fs-sm); font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 2.5em; }
 /* Spacing on each badge, not the group: the Show switches hide badges, and a
    group margin would leave a gap before the "·" with every switch off */
@@ -31762,6 +31763,8 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
 
 /* Move: the chip with last period's rank under it, as in the Table */
 .wv-cx-move { display: flex; flex-direction: column; align-items: center; gap: 1px; text-align: center; }
+/* The copy under the rank number is for phones only (see the 600px block) */
+.wv-cx-rk-mv { display: none; }
 .wv-cx-prev-rank { font-family: var(--font-mono);
       font-variant-numeric: tabular-nums; font-size: var(--fs-xs); color: var(--text3); line-height: 1.1; }
 
@@ -31786,30 +31789,43 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
 /* Phones: Title over Artist, no time-on-chart column, tighter numbers.
    Was ~20px for the title on a 390px phone; now about 200px. */
 @media (max-width: 600px) {
-  .wv-compact { --cx-cols: 22px 32px minmax(0, 1fr) 40px 48px 28px; }
-  .wv-compact.wv-cx-nostats { --cx-cols: 22px 32px minmax(0, 1fr) 48px 28px; }
+  /* Rank and Move share the first column (move chip under the number,
+     2026-10-20), so the separate Move column is gone */
+  /* Plays and ⋮ slimmed (2026-10-20) so Title · Artist gets the room */
+  .wv-compact { --cx-cols: 36px 32px minmax(0, 1fr) 30px 20px; }
+  .wv-compact.wv-cx-nostats { --cx-cols: 22px 32px minmax(0, 1fr) 40px 20px; }
+  .wv-cx-row > .ea-pair .ea-more { width: 20px; height: 32px; }
+  .wv-cx-move { display: none; }
+  .wv-cx-rank { display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; }
+  .wv-cx-rk-mv { display: flex; justify-content: center; font-family: var(--font-sans); font-weight: 400; line-height: 1; }
+  .wv-cx-header .wv-cx-rank { align-items: center; }
+  /* Search on Spotify is already in the ⋮ menu: phones drop the icon */
+  .wv-cx-row .ea-spotify { display: none; }
   /* "ESCUCHAS" / "PLAYS" is wider than the column: start it at the column's
      left edge and let it run on over the ⋮ column (which has no label), rather
      than cut it to "PLA…" or run it into "CAMB." */
   .wv-cx-header { letter-spacing: 0.02em; }
   .wv-cx-header > .wv-cx-plays { overflow: visible; text-overflow: clip; text-align: left; }
-  .wv-cx-header, .wv-cx-row { column-gap: 8px; padding-left: 6px; padding-right: 4px; }
+  .wv-cx-header, .wv-cx-row { column-gap: 6px; padding-left: 4px; padding-right: 2px; }
   .wv-cx-row { min-height: 44px; }
   .wv-cx-wks { display: none; }
   .wv-cx-rank { font-size: var(--fs-sm); }
-  .wv-cx-text { flex-direction: column; align-items: stretch; gap: 1px; }
-  .wv-cx-sep { display: none; }
-  .wv-cx-title { max-width: 100%; }
-  .wv-cx-artist { font-size: var(--fs-xs); min-width: 0; }
-  .wv-cx-badges > * { margin-left: 0; margin-right: 4px; }
-  /* With badges on, they drop under the title instead of running into the
-     Move and Plays columns */
-  .wv-cx-title { flex-wrap: wrap; row-gap: 2px; }
-  .wv-cx-ttl { max-width: 100%; }
-  /* The group takes the full width of the title column on its own line, so
-     a long set (PEAK #n + PLATINUM + a score) wraps inside it — as flex: none
-     it stayed one max-content line and ran over the Move and Plays columns */
-  .wv-cx-badges { flex-wrap: wrap; row-gap: 2px; flex: 1 1 100%; min-width: 0; max-width: 100%; }
+  /* Title · Artist together (2026-10-20, was artist under title) */
+  /* Ordinary text flow instead of flex, so a long title or artist wraps onto
+     the next line rather than being cut with "…" (asked 2026-10-20), and the
+     badges run on straight after the artist */
+  .wv-cx-text { display: block; line-height: 1.3; }
+  /* Inline, so the badges carry on in the same line, and a set hidden by the
+     Show switches leaves no empty line under the names */
+  .wv-cx-title { display: inline; }
+  .wv-cx-ttl, .wv-cx-artist { white-space: normal; overflow: visible; overflow-wrap: anywhere; min-width: 0; }
+  .wv-cx-sep { margin: 0 4px; }
+  .wv-cx-artist { font-size: var(--fs-xs); }
+  .wv-cx-badges { display: inline; }
+  .wv-cx-badges > * { display: inline-flex; vertical-align: middle; margin: 2px 4px 0 0; max-width: 100%; }
+  .wv-cx-title + .wv-cx-badges { margin-left: 6px; }
+  /* Rows grow with wrapped names: keep the cover in the middle of the row */
+  .wv-cx-art-wrap { align-self: center; }
   .wv-cx-badges > * { max-width: 100%; }
   /* The phone Table's short forms (2026-10-18): 💎 for diamonds, ▲ BEST, and
      in Spanish 🏅 #n for the peak tag */
@@ -31819,8 +31835,9 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
   .wv-compact .cert-diamond { padding: 1px 4px; }
   .wv-compact .plays-peak-badge .ppb-full { display: none; }
   .wv-compact .plays-peak-badge .ppb-short { display: inline; }
-  html[lang="es"] .wv-compact .pk-label { display: none; }
-  html[lang="es"] .wv-compact .pk-medal { display: inline; margin-right: 2px; }
+  /* Peak tags are 🏅 #n in every language here (2026-10-20; was Spanish only) */
+  .wv-compact .pk-label { display: none; }
+  .wv-compact .pk-medal { display: inline; margin-right: 2px; }
 }
 
 

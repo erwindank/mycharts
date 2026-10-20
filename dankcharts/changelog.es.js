@@ -16,6 +16,14 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "A tidier Compact chart on phones":
+    ["Un gráfico Compacto más ordenado en el móvil",
+     "En el diseño Compacto la canción y el artista ahora van juntos en una línea (Título · Artista), con las etiquetas justo después, en el ordenador y en el móvil. En el móvil el movimiento (▲, ▼, NUEVO, RE) va debajo del número de posición en lugar de en su propia columna, los nombres largos pasan a la línea siguiente en vez de cortarse, las etiquetas de pico son una medalla y el número (🏅 #3), y el icono de Spotify ya no aparece en cada fila (Buscar en Spotify sigue en el menú ⋮)."],
+
+  "Platinum badges say PLAT":
+    ["Las insignias de Platino dicen PLAT",
+     "La insignia de Platino en las entradas del gráfico se acorta a 💿 PLAT, para que ocupe menos espacio junto a los nombres. Pasa el cursor por encima (o mantenla pulsada) para ver \"Platino\"."],
+
   "A smaller plays peak tag in the Table":
     ["Una etiqueta de récord de reproducciones más pequeña en la Tabla",
      "En el diseño Tabla, la etiqueta ▲ MÁX debajo de las reproducciones ahora tiene el mismo tamaño que las etiquetas de Logro junto al título, en lugar de una pastilla grande, y ya no se corta cuando la columna de Escuchas es estrecha."],

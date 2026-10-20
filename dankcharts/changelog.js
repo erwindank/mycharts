@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 220;
+const DC_CL_I18N_V = 222;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,14 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-20', t: 'design', a: 'charts',
+    title: "A tidier Compact chart on phones",
+    detail: "In the Compact layout the song and artist now sit together on one line (Title · Artist), with the tags straight after them, on desktop and phones. On phones the move (▲, ▼, NEW, RE) sits under the rank number instead of in its own column, long names wrap onto the next line instead of being cut off, peak tags are a medal and the number (🏅 #3), and the Spotify icon is gone from each row (Search on Spotify is still in the ⋮ menu)." },
+
+  { d: '2026-10-20', t: 'design', a: 'charts',
+    title: "Platinum badges say PLAT",
+    detail: "The Platinum badge on chart entries is shortened to 💿 PLAT, so it takes less room next to the names. Point at it (or hold it) to see \"Platinum\"." },
 
   { d: '2026-10-20', t: 'design', a: 'charts',
     title: "The plays peak tag says BEST",
