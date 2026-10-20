@@ -30,7 +30,8 @@ done on the branch (not merged yet), so **step 8 is finished**; next is
 step 9.
 
 **Updated 2026-10-20:** step 9 (slimmer rows from #11) skipped after you
-saw a mockup; next is step 10.
+saw a mockup; step 10 (the Around the chart box) done the same day; next is
+step 11.
 
 **Seen on screen:**
 - Weekly: Albums and Songs, in all six chart layouts (Table, Card grid,
@@ -1944,6 +1945,30 @@ animation, 12 screen check.
   Under and Off the Chart side by side on desktop, at most two neutral tags
   per row with the legend in a ⓘ (3.8), and Off the Chart's reason as one
   short muted line. New Entries has had none of the row work yet.
+- **Step 10 ✓ (2026-10-20, f3b0e4c).** Designed with you over five mockup
+  rounds (artifact "Below the Chart Ideas"), which replaced the list above:
+  - **One "Around the chart" box** per chart type with three tabs (Bubbling
+    Under / Off the Chart / New), only the ones with something to show. It
+    remembers the last tab and a folded box (this device). Stat-tile jumps
+    and the tour open the right tab. You chose this over side by side.
+  - **Bubbling Under:** covers (▶ on the corner, ✎), a bar for the distance
+    to the chart (gold line = the last chart entry's plays), and **every tag
+    kept** (you asked not to lose any), moved under the bar. The legend is
+    behind a ⓘ. "N plays away" lives under the bar now.
+  - **Off the Chart:** three lines per side, lined up, so the cover can
+    fill the row and stay square: title ↔ last week → this week plays,
+    artist + exit label ↔ weeks on chart, Bubbling Under link or last
+    played ↔ streak. Exit labels are on trial ("we can look into"). The
+    Bubbling Under link jumps to the row and flashes it. On phones each row
+    is a card with a three-number strip. Only the "plays away" tag is left
+    on the Bubbling Under line (Fallen became an exit label).
+  - **New Entries:** the chart row with covers, Debuted at #N / #N in
+    Bubbling Under, ✦ New artist, a strip of small squares (days of a week,
+    weeks of a month, months of a year; none on Daily) with "N of 7 days",
+    the 🏆 big-debut note, All / Made the chart / New artists chips, and the
+    counts added to the subtitle.
+  - **Not done, on purpose:** 5 rows + "Show all" (too close to step 9,
+    which you turned down).
 
 **What's left in phase 7, in order:**
 - **Step 8: the other five layouts**, one commit each (4.9b). Compact,
@@ -1955,7 +1980,7 @@ animation, 12 screen check.
   **Skipped (2026-10-20).** You saw a mockup (full-size #1–#10, slim rows
   from #11, "Show all 100" after 50) and decided against it. Long charts
   keep every row at full size.
-- **Step 10: finish it** (list above).
+- **Step 10: finish it** (list above). **Done 2026-10-20.**
 - **Step 11: one rank-change animation** for every layout.
 - **Step 12: screen check**, including the two leftovers below.
 Leftovers to check in step 12: with every badge on, the pt-BR Yearly songs

@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 213;
+const DC_CL_I18N_V = 214;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-20', t: 'design', a: 'charts', h: 'f3b0e4c',
+    title: "Bubbling Under, Off the Chart and New Entries share one box",
+    detail: "Under each chart, Bubbling Under, Off the Chart and New Entries are now three tabs of one Around the chart box, which remembers the tab you last opened. Bubbling Under rows have covers (the 30-second sample on the corner, ✎ to change the picture) and a bar showing how close each one is to the chart; every tag is still there, under the bar, and the ⓘ explains them. Off the Chart rows have a cover that fills the row, last week's plays next to this week's, a label for how it left (Fell from the top 3, Long run ended, One-week visit…), when it was last played, and a link that jumps to its row in Bubbling Under; on phones each one is a small card. New Entries rows say where a new song reached on the chart, mark artists that are new to you too, show a small square for each day (week, month) you played it, point out your biggest debuts, and can be filtered to Made the chart or New artists." },
 
   { d: '2026-10-19', t: 'design', a: 'charts', h: '8c05a9e',
     title: "New icons in the ⋮ menu",

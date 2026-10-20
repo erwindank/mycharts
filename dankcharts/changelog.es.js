@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Bubbling Under, Off the Chart and New Entries share one box":
+    ["Aspirantes, Fuera del Ranking y Nuevas Entradas comparten un recuadro",
+     "Debajo de cada ranking, Aspirantes, Fuera del Ranking y Nuevas Entradas son ahora tres pestañas de un mismo recuadro, Alrededor del ranking, que recuerda la última pestaña que abriste. Las filas de Aspirantes tienen portada (la muestra de 30 segundos en la esquina y ✎ para cambiar la imagen) y una barra que muestra cuánto le falta a cada una para entrar al ranking; todas las etiquetas siguen ahí, debajo de la barra, y la ⓘ las explica. Las filas de Fuera del Ranking tienen una portada que llena la fila, las escuchas de la semana pasada junto a las de esta, una etiqueta sobre cómo salió (Cayó del top 3, Fin de una larga racha, Visita de una semana…), cuándo la escuchaste por última vez y un enlace que salta a su fila en Aspirantes; en el móvil cada una es una pequeña tarjeta. Las filas de Nuevas Entradas dicen hasta dónde llegó una canción nueva en el ranking, marcan a los artistas que también son nuevos para ti, muestran un cuadrito por cada día (semana, mes) que la escuchaste, destacan tus mayores debuts y se pueden filtrar por Entraron al ranking o Artistas nuevos."],
+
   "New icons in the ⋮ menu":
     ["Nuevos iconos en el menú ⋮",
      "El menú que se abre con ⋮ (o con clic derecho) en cualquier entrada del chart tiene un nuevo conjunto de iconos de línea a juego en lugar de los símbolos de antes, y los logos reales de YouTube y Spotify en las dos búsquedas. El icono se ilumina junto con su texto al pasar el ratón."],

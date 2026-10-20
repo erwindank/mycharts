@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Bubbling Under, Off the Chart and New Entries share one box":
+    ["Aspirantes, Fora do Top e Novas Entradas partilham um quadro",
+     "Por baixo de cada top, Aspirantes, Fora do Top e Novas Entradas são agora três separadores de um mesmo quadro, À volta do top, que se lembra do último separador que abriste. As linhas de Aspirantes têm capa (a amostra de 30 segundos no canto e ✎ para mudar a imagem) e uma barra que mostra quanto falta a cada uma para entrar no top; todas as etiquetas continuam lá, por baixo da barra, e o ⓘ explica-as. As linhas de Fora do Top têm uma capa que ocupa a linha toda, os plays da semana passada ao lado dos desta, uma etiqueta sobre como saiu (Caiu do top 3, Fim de uma longa sequência, Visita de uma semana…), quando a ouviste pela última vez e uma ligação que salta para a linha dela em Aspirantes; no telemóvel cada uma é um pequeno cartão. As linhas de Novas Entradas dizem até onde uma música nova chegou no top, marcam artistas que também são novos para ti, mostram um quadradinho por cada dia (semana, mês) em que a ouviste, destacam as tuas maiores estreias e podem ser filtradas por Entraram no top ou Artistas novos."],
+
   "New icons in the ⋮ menu":
     ["Novos ícones no menu ⋮",
      "O menu que abre pelo ⋮ (ou com o botão direito) em qualquer entrada da tabela tem um novo conjunto de ícones de linha a condizer, em vez dos símbolos antigos, e os verdadeiros logótipos do YouTube e do Spotify nas duas pesquisas. O ícone acende com o texto ao passar o rato."],

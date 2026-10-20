@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Bubbling Under, Off the Chart and New Entries share one box":
+    ["Aspirantes, Fora da Parada e Novas Entradas dividem um quadro",
+     "Embaixo de cada parada, Aspirantes, Fora da Parada e Novas Entradas agora são três abas de um mesmo quadro, Em volta da parada, que lembra a última aba que você abriu. As linhas de Aspirantes têm capa (a amostra de 30 segundos no canto e ✎ para trocar a imagem) e uma barra mostrando quanto falta para cada uma entrar na parada; todas as etiquetas continuam lá, embaixo da barra, e o ⓘ explica cada uma. As linhas de Fora da Parada têm uma capa que ocupa a linha inteira, os plays da semana passada ao lado dos desta, uma etiqueta sobre como saiu (Caiu do top 3, Fim de uma longa sequência, Visita de uma semana…), quando você ouviu pela última vez e um link que pula para a linha dela em Aspirantes; no celular cada uma vira um pequeno cartão. As linhas de Novas Entradas dizem até onde uma música nova chegou na parada, marcam artistas que também são novos para você, mostram um quadradinho para cada dia (semana, mês) em que você ouviu, destacam suas maiores estreias e podem ser filtradas por Entraram na parada ou Artistas novos."],
+
   "New icons in the ⋮ menu":
     ["Novos ícones no menu ⋮",
      "O menu que abre pelo ⋮ (ou com o botão direito) em qualquer entrada da parada ganhou um novo conjunto de ícones de linha combinando, no lugar dos símbolos antigos, e os logos de verdade do YouTube e do Spotify nas duas buscas. O ícone acende junto com o texto ao passar o mouse."],
