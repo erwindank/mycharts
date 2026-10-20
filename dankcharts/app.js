@@ -4441,6 +4441,7 @@ function applyImgChoice(o, url, source) {
   closeImgPicker();
   refreshImgInstances(o.prefkey);
   _awardsOnImgChoice(o.prefkey);
+  _igOnImgChoice(o.prefkey);   // the share window's card and Pictures row
 }
 
 // Header artwork for the song, artist and album profile modals. Drawn by the
@@ -21799,8 +21800,21 @@ function shHiResArt(url) {
   return url;
 }
 
+// The picture picked for an entry (✎ anywhere) as share-card art: its URL,
+// null for "No picture", or undefined when nothing was picked
+function _shPickedArt(type, title, artist, album) {
+  const pk = type === 'songs' ? 'song:' + (artist || '').toLowerCase() + '|||' + (title || '').toLowerCase()
+           : type === 'artists' ? 'artist:' + (artist || '').toLowerCase()
+           : 'album:' + (artist || '').toLowerCase() + '|||' + (album || '').toLowerCase();
+  const pick = imgChoicePrefs[pk];
+  return pick ? (pick.url ? shHiResArt(pick.url) : null) : undefined;
+}
+
 // Tries preferred source first, then rotates through remaining sources until one has art.
+// A picture picked for the entry wins (every share card comes through here).
 async function _igFetchArtWithFallback(type, item, preferredSource) {
+  const picked = _shPickedArt(type, item.title, type === 'artists' ? item.name : item.artist, item.album);
+  if (picked !== undefined) return picked;
   for (const src of autoImgChain(preferredSource)) {
     let url = null;
     try {
@@ -21813,24 +21827,75 @@ async function _igFetchArtWithFallback(type, item, preferredSource) {
   return null;
 }
 
+// The same item key the chart pages use for a picked picture (imgChoicePrefs)
+function _igPrefKey(type, item) {
+  return type === 'songs' ? 'song:' + item.artist.toLowerCase() + '|||' + item.title.toLowerCase()
+       : type === 'artists' ? 'artist:' + item.name.toLowerCase()
+       : 'album:' + item.artist.toLowerCase() + '|||' + item.album.toLowerCase();
+}
+function _igItemKey(type, item) {
+  return type === 'songs' ? songKey(item) : type === 'artists' ? item.name : item.album + '|||' + item.artist;
+}
+
 async function prefetchIgArt(type) {
   const source = igOptions.artSource;
   const items = getIgCardItems(type);
   await Promise.all(items.map(async item => {
-    const itemKey = type === 'songs' ? songKey(item)
-                  : type === 'artists' ? item.name
-                  : item.album + '|||' + item.artist;
-    const ck = itemKey + ':ig:' + source;
+    const ck = _igItemKey(type, item) + ':ig:' + source;
     if (ck in igArtCache) return;
-    const url = await _igFetchArtWithFallback(type, item, source);
-    igArtCache[ck] = url ? await _igToDataUrl(url) : null;
+    // A picture picked for this entry (✎ anywhere, or the Pictures row below)
+    // wins over the source; "No picture" leaves the card's placeholder
+    const pick = imgChoicePrefs[_igPrefKey(type, item)];
+    const url = pick ? (pick.url ? shHiResArt(pick.url) : null) : await _igFetchArtWithFallback(type, item, source);
+    igArtCache[ck] = url ? (url.startsWith('data:') ? url : await _igToDataUrl(url)) : null;
   }));
+  _igRenderArtPicks();
   // The leading cover drives both the Cover palette and the Poster backdrop.
   const hero = _igHeroArtUrl(type);
   if (hero) await Promise.all([shComputeDominant(hero), shComputeBlur(hero)]);
   if (document.getElementById('igPreviewModal').classList.contains('open') && igPreviewType === type) {
     _renderIgPreview();
   }
+}
+
+// The share window's Pictures row: one tile per entry on the card. A click
+// opens the picture picker for that entry; the choice is saved for the entry
+// everywhere (charts too) and the card redraws with it (_igOnImgChoice).
+function _igRenderArtPicks() {
+  const box = document.getElementById('igArtPicks');
+  if (!box || !igPreviewType) return;
+  const type = igPreviewType;
+  const wrap = box.closest('.ig-art-picks-wrap');
+  if (wrap) wrap.style.display = igOptions.showArt ? '' : 'none';
+  const kind = type === 'songs' ? 'song' : type === 'artists' ? 'artist' : 'album';
+  box.innerHTML = getIgCardItems(type).map((item, i) => {
+    const name = type === 'songs' ? item.title : type === 'artists' ? item.name : item.album;
+    const art = igArtCache[_igItemKey(type, item) + ':ig:' + igOptions.artSource];
+    const lbl = esc(t('img_picker_change_for', { name }));
+    return `<button type="button" class="ig-art-pick" title="${lbl}" aria-label="${lbl}" data-i="${i}">` +
+      (art ? `<img alt="" src="${esc(art)}">` : `<span class="ig-art-pick-ini">${esc(initials(name))}</span>`) +
+      `<span class="ig-art-pick-rank">${i + 1}</span><span class="ig-art-pick-pen" aria-hidden="true">✎</span></button>`;
+  }).join('');
+  box.querySelectorAll('.ig-art-pick').forEach(btn => btn.onclick = () => {
+    const item = getIgCardItems(type)[+btn.dataset.i];
+    if (!item) return;
+    const name = type === 'songs' ? item.title : type === 'artists' ? item.name : item.album;
+    openImgPicker({ imgid: '', type: kind, prefkey: _igPrefKey(type, item), name,
+      artist: type === 'artists' ? item.name : item.artist, album: type === 'albums' ? item.album : (item.album || '') });
+  });
+}
+
+// A picture was picked (applyImgChoice): drop that entry's cached share art
+// and, with the share window open, fetch it again and redraw the card
+function _igOnImgChoice(prefkey) {
+  ['songs', 'artists', 'albums'].forEach(type => {
+    (fullData[type] || []).slice(0, 25).forEach(item => {
+      if (_igPrefKey(type, item) !== prefkey) return;
+      const k = _igItemKey(type, item) + ':ig:';
+      Object.keys(igArtCache).forEach(ck => { if (ck.startsWith(k)) delete igArtCache[ck]; });
+    });
+  });
+  if (igPreviewType && document.getElementById('igPreviewModal')?.classList.contains('open')) prefetchIgArt(igPreviewType);
 }
 
 function _igHeroArtUrl(type) {
@@ -22382,6 +22447,7 @@ function updateIgPreview() {
   shSyncIgLabels();
   saveIgSettings();
   if (igOptions.showArt || igOptions.palette === 'cover' || igOptions.template === 'poster') prefetchIgArt(igPreviewType);
+  _igRenderArtPicks();
   _renderIgPreview();
 }
 
@@ -22577,6 +22643,11 @@ async function _lookupImgUrl(type, key, source) {
     const crAny = allChartRun.year?.result?.[type]?.[key]
       || allChartRun.month?.result?.[type]?.[key]
       || allChartRun.week?.result?.[type]?.[key];
+    // A picture picked for the entry (✎ anywhere) wins over the source
+    const picked = type === 'artists' ? _shPickedArt('artists', '', key)
+      : type === 'songs' ? _shPickedArt('songs', crAny?._title || key.split('|||')[0] || key, crAny?._artist || key.split('|||')[1] || '')
+      : _shPickedArt('albums', '', crAny?._artist || key.split('|||')[1] || '', crAny?._album || key.split('|||')[0] || key);
+    if (picked !== undefined) return picked;
     if (type === 'artists') return shHiResArt(await getArtistImage(key, source));
     if (type === 'songs') {
       return shHiResArt(await getTrackImage(

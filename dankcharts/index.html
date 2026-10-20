@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=520">
+  <link rel="stylesheet" href="style.css?v=521">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=151"></script>
+  <script defer src="translations.js?v=152"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -2710,6 +2710,11 @@
               <button class="sh-mini-btn ig-art-src-btn" data-src="lastfm" onclick="setIgArtSource('lastfm')">Last.fm</button>
               <button class="sh-mini-btn ig-art-src-btn" data-src="youtube" onclick="setIgArtSource('youtube')">YouTube</button>
             </div>
+            <!-- Pictures: one tile per entry; click to choose its picture (_igRenderArtPicks) -->
+            <div class="ig-art-picks-wrap">
+              <div class="sh-src-label" data-i18n="ig_pictures_hint">Click an entry to choose its picture</div>
+              <div class="ig-art-picks" id="igArtPicks"></div>
+            </div>
             <label class="ig-ctrl-row"><input type="checkbox" id="igOpt_showMovement" checked
                 onchange="updateIgPreview()"><span data-i18n="ig_movement">Movement (▲▼ NEW RE)</span></label>
             <label class="ig-ctrl-row"><input type="checkbox" id="igOpt_showPeak" checked
@@ -3784,7 +3789,7 @@
   <!-- Community board tab (suggestions / bugs / discussion). Loaded before
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
   <script defer src="board.js?v=1"></script>
-  <script defer src="app.js?v=417"></script>
+  <script defer src="app.js?v=419"></script>
   <!-- All-Time chart stats ("Inside your Top N"); reads app.js globals, so it loads after it -->
   <script defer src="insights.js?v=8"></script>
   <script defer src="daily.js?v=27"></script>

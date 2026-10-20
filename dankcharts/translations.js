@@ -2360,6 +2360,7 @@ const TRANSLATIONS = {
     sh_fmt_portrait: 'Portrait 4:5',
     sh_fmt_story: 'Story 9:16',
     ig_album_art: 'Album Art',
+    ig_pictures_hint: 'Click an entry to choose its picture',   // share window's Pictures row
     ep_stats: 'Stat chips (weeks · peak · plays)',
     ep_position_label: 'Position',
 
@@ -5501,6 +5502,7 @@ const TRANSLATIONS = {
     sh_fmt_portrait: 'Vertical 4:5',
     sh_fmt_story: 'Historia 9:16',
     ig_album_art: 'Portada',
+    ig_pictures_hint: 'Haz clic en una entrada para elegir su imagen',
     ep_stats: 'Chips de datos (sem. · pico · reprods)',
     ep_position_label: 'Posición',
 
@@ -8633,6 +8635,7 @@ const TRANSLATIONS = {
     sh_fmt_portrait: 'Retrato 4:5',
     sh_fmt_story: 'Story 9:16',
     ig_album_art: 'Capa',
+    ig_pictures_hint: 'Clique numa entrada para escolher a imagem',
     ep_stats: 'Chips de dados (sem. · pico · plays)',
     ep_position_label: 'Posição',
 
@@ -11764,6 +11767,7 @@ const TRANSLATIONS = {
     sh_fmt_portrait: 'Retrato 4:5',
     sh_fmt_story: 'Story 9:16',
     ig_album_art: 'Capa',
+    ig_pictures_hint: 'Clica numa entrada para escolher a imagem',
     ep_stats: 'Chips de dados (sem. · pico · plays)',
     ep_position_label: 'Posição',
 
