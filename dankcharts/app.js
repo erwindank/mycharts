@@ -13296,7 +13296,7 @@ function renderNewPage(type) {
       return `<tr${_eaAttrs('songs', { title: s.title, artist: s.artist, album: s.album || '', key: songKey(s), imgId })} class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''}">
       <td class="rank-cell">${rank}</td>
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(s.title))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="song" data-prefkey="${esc(prefKey)}" data-name="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
-      <td><div class="song-title">${esc(s.title)}</div><div class="song-artist">${esc(s.artist)}</div>${_eaBtns()}${dcPlBtnHtml('song', s.title, s.artist, s.album)}</td>
+      <td><div class="song-title">${esc(s.title)}</div><div class="song-artist">${esc(s.artist)}</div>${_eaBtns(true)}${dcPlBtnHtml('song', s.title, s.artist, s.album)}</td>
       <td><div class="play-count">${tCountHtml('plays', s.count)}</div><div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(s.count / max * 100)}%"></div></div></td>
     </tr>`;
     }).join('');
@@ -13311,7 +13311,7 @@ function renderNewPage(type) {
       return `<tr${_eaAttrs('artists', { artist: a.name, key: a.name, imgId })} class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} artist-row" data-artist="${esc(a.name)}">
       <td class="rank-cell">${rank}</td>
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.name))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(a.name)}" data-artist="${esc(a.name)}" data-album="">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
-      <td><div class="song-title">${esc(a.name)}</div><div class="song-artist"><span class="na-songs-trigger" data-artist="${esc(a.name)}" data-songs="${songsJson}">${tCount('songs', a.songs.size)}</span></div>${_eaBtns()}${dcPlBtnHtml('artist', '', a.name, '')}</td>
+      <td><div class="song-title">${esc(a.name)}</div><div class="song-artist"><span class="na-songs-trigger" data-artist="${esc(a.name)}" data-songs="${songsJson}">${tCount('songs', a.songs.size)}</span></div>${_eaBtns(true)}${dcPlBtnHtml('artist', '', a.name, '')}</td>
       <td><div class="play-count">${tCountHtml('plays', a.count)}</div><div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(a.count / max * 100)}%"></div></div></td>
     </tr>`;
     }).join('');
@@ -13325,7 +13325,7 @@ function renderNewPage(type) {
       return `<tr${_eaAttrs('albums', { album: a.album, artist: a.artist, key: a.album + '|||' + a.artist, imgId })} class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} album-row" data-albumkey="${esc(a.album + '|||' + a.artist)}">
       <td class="rank-cell">${rank}</td>
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.album))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="album" data-prefkey="${esc(prefKey)}" data-name="${esc(a.album)}" data-artist="${esc(a.artist)}" data-album="${esc(a.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
-      <td><div class="song-title">${esc(a.album)}</div><div class="song-artist">${esc(a.artist)}</div>${_eaBtns()}${dcPlBtnHtml('album', '', a.artist, a.album)}</td>
+      <td><div class="song-title">${esc(a.album)}</div><div class="song-artist">${esc(a.artist)}</div>${_eaBtns(true)}${dcPlBtnHtml('album', '', a.artist, a.album)}</td>
       <td><div class="play-count">${tCountHtml('plays', a.count)}</div><div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(a.count / max * 100)}%"></div></div></td>
     </tr>`;
     }).join('');
@@ -14763,7 +14763,7 @@ function renderPage(type, peaks) {
       const mainRow = `<tr${f.ea} data-songkey="${encodeURIComponent(k)}" class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} song-row${mvRowCls(barCls)}">
         <td class="rank-cell">${rank}</td>
         ${ms ? mPrevCell(rank, k, 'songs', ms) : ''}
-        <td class="thumb-cell"><div class="thumb-wrap ea-cover"><div id="${imgId}"><div class="thumb-initials">${esc(initials(s.title))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="song" data-prefkey="${esc(prefKey)}" data-name="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
+        <td class="thumb-cell"><div class="thumb-wrap ea-cover">${_eaCoverPlay()}<div id="${imgId}"><div class="thumb-initials">${esc(initials(s.title))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="song" data-prefkey="${esc(prefKey)}" data-name="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
         <td>
           <div class="song-title">${esc(s.title)}${pk ? peakBadge(pk) : ''}${certBadge(cumSongPlays, 'song')}${ratingSongBadge(k)}</div>
           <div class="song-artist">${esc(s.artist)}</div>
@@ -14773,10 +14773,9 @@ function renderPage(type, peaks) {
         ${ms ? mMthsCell(k, 'songs', ms) : ''}
         <td>
           <div class="play-count">${tCountHtml('plays', s.count)}${ms ? deltaInline(s.count, k, 'songs', ms) : ''}</div>
-          <div class="play-bar"><div class="play-bar-fill${barCls}" style="width:${Math.round(s.count / max * 100)}%"></div></div>
           ${isPlaysPeak ? playsPeakBadge() : ''}
         </td>
-        <td class="cr-cell">${_eaBtns()}${hasCR ? `<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_song')}" onclick="event.stopPropagation();_drToggle(this.closest('tr'))">${CR_ICON}</button>` : ''}</td>
+        <td class="cr-cell">${_eaBtns(true, true)}${hasCR ? `<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_song')}" onclick="event.stopPropagation();_drToggle(this.closest('tr'))">${CR_ICON}</button>` : ''}</td>
       </tr>`;
       if (!hasCR) return [mainRow];
       return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="${colSpan}"><div class="cr-panel"${f.ea} data-crfacts="1" data-crtype="songs" data-crkey="${encodeURIComponent(k)}">${buildCrPanelHTML('songs', k, f)}</div></td></tr>`];
@@ -14802,16 +14801,15 @@ function renderPage(type, peaks) {
       const mainRow = `<tr${f.ea} class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} artist-row${mvRowCls(barCls)}" data-artist="${esc(a.name)}">
         <td class="rank-cell">${rank}</td>
         ${ms ? mPrevCell(rank, a.name, 'artists', ms) : ''}
-        <td class="thumb-cell"><div class="thumb-wrap ea-cover"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.name))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(a.name)}" data-artist="${esc(a.name)}" data-album="">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
+        <td class="thumb-cell"><div class="thumb-wrap ea-cover">${_eaCoverPlay()}<div id="${imgId}"><div class="thumb-initials">${esc(initials(a.name))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(a.name)}" data-artist="${esc(a.name)}" data-album="">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
         <td><div class="song-title">${chartNameLink(a.name, 'openArtistModal', a.name)}${pk ? peakBadge(pk) : ''}</div>${dcPlBtnHtml('artist', '', a.name, '')}</td>
         <td class="meta-col"><div class="song-artist">${artistSongsRankBtn(a.name, a.songs.size)}</div></td>
         ${ms ? mMthsCell(a.name, 'artists', ms) : ''}
         <td>
           <div class="play-count">${tCountHtml('plays', a.count)}${ms ? deltaInline(a.count, a.name, 'artists', ms) : ''}</div>
-          <div class="play-bar"><div class="play-bar-fill${barCls}" style="width:${Math.round(a.count / max * 100)}%"></div></div>
           ${isArtistPlaysPeak ? playsPeakBadge() : ''}
         </td>
-        <td class="cr-cell">${_eaBtns()}${hasCR ? `<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_artist')}" onclick="event.stopPropagation();_drToggle(this.closest('tr'))">${CR_ICON}</button>` : ''}</td>
+        <td class="cr-cell">${_eaBtns(true, true)}${hasCR ? `<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_artist')}" onclick="event.stopPropagation();_drToggle(this.closest('tr'))">${CR_ICON}</button>` : ''}</td>
       </tr>`;
       if (!hasCR) return [mainRow];
       return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="${colSpan}"><div class="cr-panel"${f.ea} data-crfacts="1" data-crtype="artists" data-crkey="${encodeURIComponent(a.name)}">${buildCrPanelHTML('artists', a.name, f)}</div></td></tr>`];
@@ -14841,7 +14839,7 @@ function renderPage(type, peaks) {
         const mainRow = `<tr${f.ea} class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} album-row${mvRowCls(barCls)}" data-albumkey="${esc(ak)}">
         <td class="rank-cell">${rank}</td>
         ${ms ? mPrevCell(rank, ak, 'albums', ms) : ''}
-        <td class="thumb-cell"><div class="thumb-wrap ea-cover"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.album))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="album" data-prefkey="${esc(prefKey)}" data-name="${esc(a.album)}" data-artist="${esc(a.artist)}" data-album="${esc(a.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
+        <td class="thumb-cell"><div class="thumb-wrap ea-cover">${_eaCoverPlay()}<div id="${imgId}"><div class="thumb-initials">${esc(initials(a.album))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="album" data-prefkey="${esc(prefKey)}" data-name="${esc(a.album)}" data-artist="${esc(a.artist)}" data-album="${esc(a.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
         <td>
           <div class="song-title">${esc(a.album)}${pk ? peakBadge(pk) : ''}${certBadge(cumAlbumPlays, certKindFor(a.album, a.artist))}${ratingAlbumBadge(ak)}</div>
           <div class="song-artist">${esc(a.artist)}</div>
@@ -14851,10 +14849,9 @@ function renderPage(type, peaks) {
         ${ms ? mMthsCell(ak, 'albums', ms) : ''}
         <td>
           <div class="play-count">${tCountHtml('plays', a.count)}${ms ? deltaInline(a.count, ak, 'albums', ms) : ''}</div>
-          <div class="play-bar"><div class="play-bar-fill${barCls}" style="width:${Math.round(a.count / max * 100)}%"></div></div>
           ${isAlbumPlaysPeak ? playsPeakBadge() : ''}
         </td>
-        <td class="cr-cell">${_eaBtns()}${hasCR ? `<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_album')}" onclick="event.stopPropagation();_drToggle(this.closest('tr'))">${CR_ICON}</button>` : ''}</td>
+        <td class="cr-cell">${_eaBtns(true, true)}${hasCR ? `<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_album')}" onclick="event.stopPropagation();_drToggle(this.closest('tr'))">${CR_ICON}</button>` : ''}</td>
       </tr>`;
         if (!hasCR) return [mainRow];
         return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="${colSpan}"><div class="cr-panel"${f.ea} data-crfacts="1" data-crtype="albums" data-crkey="${encodeURIComponent(ak)}">${buildCrPanelHTML('albums', ak, f)}</div></td></tr>`];
@@ -17563,7 +17560,7 @@ function renderSongs(plays, peaks, monthlyStats) {
     const mainRow = `<tr${_animAttrsS}${_songModalAttr}${f.ea} class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}${_animClassS}${_songModalClass}${statusCls}">
       <td class="rank-cell">${i + 1}</td>
       ${monthlyStats ? mPrevCell(i + 1, k, 'songs', monthlyStats) : ''}
-      <td class="thumb-cell"><div class="thumb-wrap ea-cover"><div id="${imgId}"><div class="thumb-initials">${esc(initials(s.title))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="song" data-prefkey="${esc(prefKey)}" data-name="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
+      <td class="thumb-cell"><div class="thumb-wrap ea-cover">${_eaCoverPlay()}<div id="${imgId}"><div class="thumb-initials">${esc(initials(s.title))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="song" data-prefkey="${esc(prefKey)}" data-name="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
       <td>
         <div class="song-title">${chartNameLink(s.title, 'openSongModal', k)}${pk ? peakBadge(pk) : ''}${f.certHtml}${f.ratingHtml}</div>
         <div class="song-artist">${chartArtistLinks(s.artist)}</div>
@@ -17573,10 +17570,9 @@ function renderSongs(plays, peaks, monthlyStats) {
       ${monthlyStats ? mMthsCell(k, 'songs', monthlyStats) : ''}
       <td>
         <div class="play-count">${tCountHtml('plays', s.count)}${f.deltaHtml}</div>
-        <div class="play-bar"><div class="play-bar-fill${barCls}" style="width:${Math.round(s.count / max * 100)}%"></div></div>
         ${f.isPlaysPeak ? playsPeakBadge() : ''}
       </td>
-      <td class="cr-cell">${_eaBtns()}<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_song')}" onclick="event.stopPropagation();_drToggle(this.closest('tr'))">${CR_ICON}</button></td>
+      <td class="cr-cell">${_eaBtns(true, true)}<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_song')}" onclick="event.stopPropagation();_drToggle(this.closest('tr'))">${CR_ICON}</button></td>
     </tr>`;
     const expandRow = `<tr class="cr-row" id="${rowId}"><td colspan="${colCount}"><div class="cr-panel"${f.ea} data-crfacts="1" data-crtype="songs" data-crkey="${encodeURIComponent(k)}">${buildCrPanelHTML('songs', k, f)}</div></td></tr>`;
     return [mainRow, expandRow];
@@ -17688,17 +17684,16 @@ function renderArtists(plays, peaks, monthlyStats) {
     const mainRow = `<tr${_animAttrsA}${f.ea} class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}${_animClassA} artist-row${statusCls}" data-artist="${esc(artist)}">
       <td class="rank-cell">${i + 1}</td>
       ${monthlyStats ? mPrevCell(i + 1, artist, 'artists', monthlyStats) : ''}
-      <td class="thumb-cell"><div class="thumb-wrap ea-cover"><div id="${imgId}"><div class="thumb-initials">${esc(initials(artist))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(artist)}" data-artist="${esc(artist)}" data-album="">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
+      <td class="thumb-cell"><div class="thumb-wrap ea-cover">${_eaCoverPlay()}<div id="${imgId}"><div class="thumb-initials">${esc(initials(artist))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(artist)}" data-artist="${esc(artist)}" data-album="">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
       <td><div class="song-title">${chartNameLink(artist, 'openArtistModal', artist)}${pk ? peakBadge(pk) : ''}</div>${dcPlBtnHtml('artist', '', artist, '')}</td>
       <td class="meta-col"><div class="song-artist">${artistSongsRankBtn(artist, data.songs.size)}</div></td>
       ${monthlyStats ? mMthsCell(artist, 'artists', monthlyStats) : ''}
       <td>
         <div class="play-count">${tCountHtml('plays', data.count)}${f.deltaHtml}</div>
-        <div class="play-bar"><div class="play-bar-fill${barCls}" style="width:${Math.round(data.count / max * 100)}%"></div></div>
         ${/* under the bar, same as the songs chart — it used to sit above the count here */ ''}
         ${f.isPlaysPeak ? playsPeakBadge() : ''}
       </td>
-      <td class="cr-cell">${_eaBtns()}<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_artist')}" onclick="event.stopPropagation();_drToggle(this.closest('tr'))">${CR_ICON}</button></td>
+      <td class="cr-cell">${_eaBtns(true, true)}<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_artist')}" onclick="event.stopPropagation();_drToggle(this.closest('tr'))">${CR_ICON}</button></td>
     </tr>`;
     const expandRow = `<tr class="cr-row" id="${rowId}"><td colspan="${colCount}"><div class="cr-panel"${f.ea} data-crfacts="1" data-crtype="artists" data-crkey="${encodeURIComponent(artist)}">${buildCrPanelHTML('artists', artist, f)}</div></td></tr>`;
     return [mainRow, expandRow];
@@ -17825,7 +17820,7 @@ function renderAlbums(plays, peaks, monthlyStats) {
       const mainRow = `<tr${_animAttrsL}${f.ea} class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}${_animClassL} album-row${statusCls}" data-albumkey="${esc(ak)}">
       <td class="rank-cell">${i + 1}</td>
       ${monthlyStats ? mPrevCell(i + 1, ak, 'albums', monthlyStats) : ''}
-      <td class="thumb-cell"><div class="thumb-wrap ea-cover"><div id="${imgId}"><div class="thumb-initials">${esc(initials(album))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="album" data-prefkey="${esc(prefKey)}" data-name="${esc(album)}" data-artist="${esc(artist)}" data-album="${esc(album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
+      <td class="thumb-cell"><div class="thumb-wrap ea-cover">${_eaCoverPlay()}<div id="${imgId}"><div class="thumb-initials">${esc(initials(album))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="album" data-prefkey="${esc(prefKey)}" data-name="${esc(album)}" data-artist="${esc(artist)}" data-album="${esc(album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
       <td>
         <div class="song-title">${chartNameLink(album, 'openAlbumModal', ak)}${pk ? peakBadge(pk) : ''}${f.certHtml}${f.ratingHtml}</div>
         <div class="song-artist">${chartArtistLinks(artist)}</div>
@@ -17835,11 +17830,10 @@ function renderAlbums(plays, peaks, monthlyStats) {
       ${monthlyStats ? mMthsCell(ak, 'albums', monthlyStats) : ''}
       <td>
         <div class="play-count">${tCountHtml('plays', count)}${f.deltaHtml}</div>
-        <div class="play-bar"><div class="play-bar-fill${barCls}" style="width:${Math.round(count / max * 100)}%"></div></div>
         ${/* under the bar, same as the songs chart — it used to sit above the count here */ ''}
         ${f.isPlaysPeak ? playsPeakBadge() : ''}
       </td>
-      <td class="cr-cell">${_eaBtns()}<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_album')}" onclick="event.stopPropagation();_drToggle(this.closest('tr'))">${CR_ICON}</button></td>
+      <td class="cr-cell">${_eaBtns(true, true)}<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_album')}" onclick="event.stopPropagation();_drToggle(this.closest('tr'))">${CR_ICON}</button></td>
     </tr>`;
       const expandRow = `<tr class="cr-row" id="${rowId}"><td colspan="${colCount}"><div class="cr-panel"${f.ea} data-crfacts="1" data-crtype="albums" data-crkey="${encodeURIComponent(ak)}">${buildCrPanelHTML('albums', ak, f)}</div></td></tr>`;
       return [mainRow, expandRow];
@@ -18467,7 +18461,7 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
     const ytArtist = type === 'artists' ? displayName : subName;
     const ytAlbum  = type === 'albums'  ? displayName : (type === 'songs' ? (album || '') : '');
     // Phase 7 step 4: ▶ sample + ⋮ menu where the YouTube button was
-    const ytBtn = _eaBtns()
+    const ytBtn = _eaBtns(true)
       + dcPlBtnHtml(dcPlKindFor(type), ytTitle, ytArtist, ytAlbum);
 
     // BU chart run expand row — toggled by the icon button in the trailing cr-cell
@@ -18941,9 +18935,10 @@ function _wvStatsLine(f, count, ms) {
   return `<div class="wv-stats"><div class="wv-stats-in">${stats.join('')}</div></div>`;
 }
 
-// Spotify, ▶ sample and ⋮ together (Stack, Card grid)
-function _wvActs(type, ttl, sub) {
-  return `<span class="wv-acts">${_eaSpotifyBtn(type, ttl, type === 'artists' ? '' : sub)}${_eaBtns()}</span>`;
+// Spotify, ▶ sample and ⋮ together (Card grid, Filmstrip); Stack passes
+// noSample, its ▶ is on the cover
+function _wvActs(type, ttl, sub, noSample) {
+  return `<span class="wv-acts">${_eaSpotifyBtn(type, ttl, type === 'artists' ? '' : sub)}${_eaBtns(false, noSample)}</span>`;
 }
 
 // One cover card: the Card grid's, and Filmstrip's podium and strip. A
@@ -19045,9 +19040,9 @@ function _eaAttrs(type, d) {
 }
 
 // The ▶ sample button. Normally placed through _eaBtns() as a pair with ⋮.
-function _eaSampleBtn() {
+function _eaSampleBtn(extraCls) {
   const lbl = t('ea_sample');
-  return `<button type="button" class="ea-sample" title="${esc(lbl)}" aria-label="${esc(lbl)}">` +
+  return `<button type="button" class="ea-sample${extraCls ? ' ' + extraCls : ''}" title="${esc(lbl)}" aria-label="${esc(lbl)}">` +
     `<svg viewBox="0 0 24 24" aria-hidden="true"><path class="ea-ic-play" d="M8 5v14l11-7z"/><path class="ea-ic-stop" d="M7 6h3.5v12H7zM13.5 6H17v12h-3.5z"/></svg></button>`;
 }
 
@@ -19057,9 +19052,21 @@ function _eaMoreBtn() {
     `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></button>`;
 }
 
-// ▶ and ⋮ side by side — what every layout places
-function _eaBtns() {
-  return `<span class="ea-pair">${_eaSampleBtn()}${_eaMoreBtn()}</span>`;
+// ▶ and ⋮ side by side — what every layout places. `sp` puts Search on
+// Spotify in front of them (_eaSpAuto: it reads the entry's own data, so a
+// row needs nothing more than its data-ea-* attributes)
+// `noSample` leaves ▶ out: Table, Stack and Compact put it on the cover's
+// corner instead (_eaCoverPlay)
+function _eaBtns(sp, noSample) {
+  return `<span class="ea-pair">${sp ? _eaSpAuto() : ''}${noSample ? '' : _eaSampleBtn()}${_eaMoreBtn()}</span>`;
+}
+
+// ▶ on the cover's bottom-right corner (Table, Stack, Compact; asked for
+// 2026-10-19). The ✎ picture button keeps the top-right corner. The click
+// is the same .ea-sample handler; on touch it is always shown, and a tap
+// anywhere on the cover still plays the sample too.
+function _eaCoverPlay() {
+  return _eaSampleBtn('ea-cover-play');
 }
 
 // Search on Spotify, in a new tab: a song or album with its artist, or the
@@ -19070,6 +19077,29 @@ function _eaSpotifyBtn(type, name, artist) {
   const lbl = esc(t('tm_action_spotify'));
   return `<a class="ea-spotify" href="https://open.spotify.com/search/${q}" target="_blank" rel="noopener" title="${lbl}" aria-label="${lbl}" onclick="event.stopPropagation()">${_EA_SP_SVG}</a>`;
 }
+
+// Search on Spotify for rows that only have their data-ea-* attributes
+// (Table, Compact, Bubbling Under, Off the Chart, New Entries). A real link,
+// so open-in-new-tab and middle-click work; its address is filled in from
+// the entry just before it is used (see the listener below).
+function _eaSpAuto() {
+  const lbl = esc(t('tm_action_spotify'));
+  return `<a class="ea-spotify ea-sp-auto" href="https://open.spotify.com/search/" target="_blank" rel="noopener" title="${lbl}" aria-label="${lbl}">${_EA_SP_SVG}</a>`;
+}
+function _eaSpotifyHref(el) {
+  const d = _eaEntryData(el);
+  const name = d.type === 'artists' ? d.artist : d.type === 'albums' ? d.album : d.title;
+  const by = d.type === 'artists' ? '' : d.artist;
+  return 'https://open.spotify.com/search/' + encodeURIComponent(by ? name + ' ' + by : name);
+}
+['pointerdown', 'focusin', 'click'].forEach(ev => document.addEventListener(ev, e => {
+  const a = e.target.closest && e.target.closest('.ea-sp-auto');
+  if (!a) return;
+  const el = a.closest('[data-ea-type]');
+  if (el) a.href = _eaSpotifyHref(el);
+  // The link opens Spotify; the row under it must not open its details
+  if (ev === 'click') e.stopPropagation();
+}, true));
 
 function _eaEntryData(el) {
   const d = el.dataset;
@@ -19731,6 +19761,7 @@ function _wvCompact(items, max, ms, imgItems, type) {
       `<span class="wv-cx-rank">${i + 1}</span>` +
       `<div class="wv-cx-art-wrap ea-cover" onclick="event.stopPropagation()">` +
         `<div class="wv-thumb wv-thumb-sm">${_wvThumb(imgId, ttl)}</div>` +
+        _eaCoverPlay() +
         artTip +
       `</div>` +
       `<span class="wv-cx-text">` +
@@ -19739,7 +19770,7 @@ function _wvCompact(items, max, ms, imgItems, type) {
       `</span>` +
       (hasStats ? `<span class="wv-cx-move">${moveHtml}</span><span class="wv-cx-wks">${weeks}</span>` : '') +
       `<span class="wv-cx-plays${playsCls}">${s.count.toLocaleString()}</span>` +
-      _eaBtns() +
+      _eaBtns(true, true) +
       `</div>`;
   }).join('');
 
@@ -19775,8 +19806,9 @@ function _wvMosaic(items, max, ms, imgItems, type) {
     const cert = f.certHtml + f.ratingHtml;
     const plays = `${s.count.toLocaleString()} ${esc(tUnit('plays', s.count))}`;
     const titleLink = `<span class="wv-title-link" onclick="event.stopPropagation();_wvOpenModal(${jtype},${esc(JSON.stringify(k))})" title="${esc(ttl)}">${esc(ttl)}</span>`;
-    // Phase 7: ▶ sample + ⋮ menu on the hover card and on the back (_eaAttrs)
-    const eaBtns = `<span class="ea-pair ea-inline">${_eaSampleBtn()}${_eaMoreBtn()}</span>`;
+    // Search on Spotify, ▶ sample and ⋮ on the hover card and on the back
+    // (the same three as Stack, Card grid and Filmstrip; _eaAttrs)
+    const eaBtns = `<span class="ea-pair ea-inline">${_eaSpotifyBtn(type, ttl, type === 'artists' ? '' : sub)}${_eaSampleBtn()}${_eaMoreBtn()}</span>`;
     const stats = `${pk ? peakBadge(pk) : ''}` +
       `${wks ? `<span class="wv-mos-hcard-wks">${esc(_wvRunText(wks))}</span>` : ''}` +
       `${f.isPlaysPeak ? playsPeakBadge() : ''}`;
@@ -20212,7 +20244,7 @@ function _wvStack(items, max, ms, imgItems, type) {
     return `<div class="wv-stk-card${i < 3 ? ' wv-r' + (i + 1) : ''}${statusCls}" tabindex="0" onclick="_drEntryClick(event,this)"${ea}>` +
       `<div class="wv-stk-row">` +
         `<div class="wv-stk-pos"><span class="wv-stk-rank">${i + 1}</span>${f.mvHtml ? `<span class="wv-stk-mv">${f.mvHtml}</span>` : ''}</div>` +
-        `<div class="wv-thumb wv-thumb-lg ea-cover">${_wvThumb(imgId, ttl)}</div>` +
+        `<div class="wv-thumb wv-thumb-lg ea-cover">${_wvThumb(imgId, ttl)}${_eaCoverPlay()}</div>` +
         `<div class="wv-stk-body">` +
           `<div class="wv-stk-title"><span class="wv-stk-ttl wv-title-link" onclick="event.stopPropagation();_wvOpenModal(${jtype},${esc(JSON.stringify(k))})" title="${esc(ttl)}">${esc(ttl)}</span>${badges ? `<span class="wv-stk-badges">${badges}</span>` : ''}</div>` +
           ((sub || album) ? `<div class="wv-stk-sub">` +
@@ -20221,7 +20253,7 @@ function _wvStack(items, max, ms, imgItems, type) {
           `</div>` : '') +
           _wvStatsLine(f, s.count, ms) +
         `</div>` +
-        _wvActs(type, ttl, sub) +
+        _wvActs(type, ttl, sub, true) +
       `</div>` +
     `</div>`;
   };
@@ -20385,7 +20417,7 @@ function renderOffChart(type, plays, periodStats, buPool, lowestChartCount) {
     const ytArtist = type === 'artists' ? name : sub;
     const ytAlbum  = type === 'albums'  ? name : (type === 'songs' ? (names[k]?.album || '') : '');
     // Phase 7 step 4: ▶ sample + ⋮ menu where the YouTube button was
-    const ytBtn = _eaBtns()
+    const ytBtn = _eaBtns(true)
       + dcPlBtnHtml(dcPlKindFor(type), ytTitle, ytArtist, ytAlbum);
 
     const severeCls = rank <= severeRankCutoff ? ' dropout-row--severe' : '';
@@ -48309,7 +48341,7 @@ const _cgTourSteps = [
       { content: 'Weeks on chart — how many weeks this has spent on the chart in total, added up across every spell it has had there.',
         spotlight: _cgRow('td.m-col:has(.m-mths)'), column: true, hold: 6000 },
 
-      { content: 'Plays in this period, the change since last period, and a bar measuring it against your number one.\n\nA badge marks its best ever week for plays. To keep it, switch on Plays Peak in the ⋮ menu, under Show.',
+      { content: 'Plays in this period, with the change since last period under it.\n\nA badge marks its best ever week for plays. To keep it, switch on Plays Peak in the ⋮ menu, under Show.',
         spotlight: _cgRow('.play-count, .play-bar'), hold: 8000 },
 
       { content: 'The button at the end shows the whole story: every week this one has been on the chart, and how high it got each time.',
