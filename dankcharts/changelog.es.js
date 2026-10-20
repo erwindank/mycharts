@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Mosaic reads in chart order":
+    ["El Mosaico se lee en el orden del chart",
+     "El Mosaico antes daba a cada mosaico un tamaño según sus reproducciones, así que el chart salía desordenado (el #4 junto al #1, el #5 en una esquina) y las portadas se estiraban. Ahora cada mosaico es una portada cuadrada y el tamaño indica el puesto: el #1 ocupa la mitad del ancho, del #2 al #5 van a su lado de dos en dos y el resto sigue de cinco en cinco. En el móvil el #1 va arriba a todo lo ancho, luego de dos y de tres por fila. Un degradado oscuro suave mantiene legibles el número grande del puesto y el título sobre cualquier portada, el top 3 lleva aros de oro, plata y bronce, y los espacios son parejos. Al pasar el ratón se siguen viendo los detalles y al hacer clic el mosaico se sigue girando, ahora con todo cabiendo en el reverso. Un nuevo botón Guardar imagen guarda todo el mosaico como una imagen."],
+
   "Filmstrip becomes a podium for your top 3":
     ["La Tira se convierte en un podio para tu top 3",
      "La Tira ya no empieza como una fila de tarjetas pequeñas cortada en el borde. Tus #1, #2 y #3 ahora aparecen lado a lado en una fila pareja arriba, brillando en oro, plata y bronce, cada uno con su portada y el puesto en un número grande junto al título. El resto del chart sigue en una tira de tarjetas debajo, con flechas y bordes difuminados que indican que hay más. En el móvil el #1 va arriba a todo lo ancho, con el #2 y el #3 debajo. Los botones están en tu idioma y Guardar imagen vuelve a funcionar: guarda el podio y todas las tarjetas de la tira en una sola imagen. Desplazar la página con el ratón ya no se queda atascado en la tira, y arrastrar la tira ya no abre los detalles de una tarjeta."],

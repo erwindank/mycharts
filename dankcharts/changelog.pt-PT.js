@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Mosaic reads in chart order":
+    ["O Mosaico passa a seguir a ordem da tabela",
+     "O Mosaico dava a cada bloco um tamanho conforme as reproduções, por isso a tabela saía baralhada (o #4 ao lado do #1, o #5 num canto) e as capas ficavam esticadas. Agora cada bloco é uma capa quadrada e o tamanho mostra a posição: o #1 ocupa metade da largura, do #2 ao #5 ficam ao lado dele dois a dois e o resto segue cinco a cinco. No telemóvel o #1 fica em cima a toda a largura, depois dois e três por linha. Um esbatido escuro suave mantém legíveis o número grande da posição e o título sobre qualquer capa, o top 3 tem aros de ouro, prata e bronze, e os espaços são iguais. Passar o rato continua a mostrar os detalhes e clicar num bloco continua a virá-lo, agora com tudo a caber no verso. Um novo botão Guardar imagem guarda o mosaico inteiro como imagem."],
+
   "Filmstrip becomes a podium for your top 3":
     ["A Faixa passa a ser um pódio para o teu top 3",
      "A Faixa já não começa como uma fila de cartões pequenos cortada na margem. Os teus #1, #2 e #3 aparecem agora lado a lado numa fila uniforme no topo, a brilhar em ouro, prata e bronze, cada um com a sua capa e a posição num número grande ao lado do título. O resto da tabela segue numa faixa de cartões por baixo, com setas e margens esbatidas a mostrar que há mais. No telemóvel o #1 fica em cima, a toda a largura, com o #2 e o #3 por baixo. Os botões estão na tua língua e Guardar imagem volta a funcionar: guarda o pódio e todos os cartões da faixa numa só imagem. Deslocar a página com o rato já não fica preso na faixa, e arrastar a faixa já não abre os detalhes de um cartão."],

@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 208;
+const DC_CL_I18N_V = 209;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-19', t: 'design', a: 'charts', h: 'ae16a1a',
+    title: "Mosaic reads in chart order",
+    detail: "Mosaic used to size each tile by its plays, so the chart came out jumbled (#4 next to #1, #5 off in a corner) and covers were stretched. Now every tile is a square cover and the size tells the rank: #1 takes half the width, #2 to #5 sit beside it two by two, and the rest follow five to a row. On a phone #1 goes across the top, then two and three to a row. A soft dark fade keeps the big rank number and the title readable on any cover, the top 3 have gold, silver and bronze rings, and the gaps are even. Hovering still shows the details and clicking a tile still flips it, now with everything fitting on the back. A new Save image button saves the whole mosaic as a picture." },
 
   { d: '2026-10-19', t: 'design', a: 'charts', h: '27abfda',
     title: "Filmstrip becomes a podium for your top 3",

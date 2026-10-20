@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Mosaic reads in chart order":
+    ["O Mosaico agora segue a ordem da parada",
+     "O Mosaico dava a cada bloco um tamanho conforme as reproduções, então a parada saía bagunçada (o #4 ao lado do #1, o #5 num canto) e as capas ficavam esticadas. Agora cada bloco é uma capa quadrada e o tamanho mostra a posição: o #1 ocupa metade da largura, do #2 ao #5 ficam ao lado dele de dois em dois e o resto segue de cinco em cinco. No celular o #1 fica em cima de ponta a ponta, depois dois e três por linha. Um degradê escuro suave deixa o número grande da posição e o título legíveis sobre qualquer capa, o top 3 tem aros de ouro, prata e bronze, e os espaços são iguais. Passar o mouse ainda mostra os detalhes e clicar num bloco ainda o vira, agora com tudo cabendo no verso. Um novo botão Salvar imagem salva o mosaico inteiro como imagem."],
+
   "Filmstrip becomes a podium for your top 3":
     ["A Faixa vira um pódio para o seu top 3",
      "A Faixa não começa mais como uma fileira de cartões pequenos cortada na borda. Seus #1, #2 e #3 agora ficam lado a lado numa fileira uniforme no topo, brilhando em ouro, prata e bronze, cada um com sua capa e a posição em um número grande ao lado do título. O resto da parada vem numa faixa de cartões logo abaixo, com setas e bordas esmaecidas mostrando que há mais. No celular o #1 fica em cima, de ponta a ponta, com o #2 e o #3 embaixo. Os botões estão no seu idioma e Salvar imagem voltou a funcionar: salva o pódio e todos os cartões da faixa numa só imagem. Rolar a página com o mouse não trava mais na faixa, e arrastar a faixa não abre mais os detalhes de um cartão."],

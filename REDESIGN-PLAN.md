@@ -25,8 +25,9 @@ tab, 164 streak badges, Soundtrack) and what it means for the plan is in
 to fix. Next is still step 8.
 
 **Updated 2026-10-19:** step 8 Stack is done, merged to `main` and pushed;
-Card grid is done, merged to `main` and pushed; Filmstrip is done on the
-branch (not merged yet); next is Mosaic.
+Card grid is done, merged to `main` and pushed; Filmstrip and Mosaic are
+done on the branch (not merged yet), so **step 8 is finished**; next is
+step 9.
 
 **Seen on screen:**
 - Weekly: Albums and Songs, in all six chart layouts (Table, Card grid,
@@ -1047,7 +1048,7 @@ themes (Navy dark, Navy light, Yellow dark, Red light; see 3.2) and on a phone.
 | **4** ✓ | **Artwork — redone 2026-10-13** as a review of the picture system (3.7): the missing pictures were mostly a screenshot artifact. Fixed the Deezer→iTunes→Last.fm fallback, sized pictures to their slots, loaded three at a time with what's on screen first. Left for later: the gradient stand-in for the rare real miss. | Turned out smaller than planned. | Small |
 | **5** ✓ | **Done 2026-10-13** (branch `redesign/phase-5-shell`, merged into `main`). **Shell:** slim sticky top bar, new main tabs + More, period switch next to the date, toasts for status, merge ON AIR + streak, no masthead or Time Machine on non-chart tabs. | Fixes "can't find anything" and gives back ~1,000px on every tab. | Medium |
 | **6** ✓ | **Done 2026-10-14** (branch `redesign/phase-6-weekly`; what changed from this plan is under "Phase 6" below). **Weekly page:** one filter toolbar, sections reordered (stats + "of the moment" → chart → bubbling/off/new → certified → time machine), releases moved to Events, light-touch stat tile changes only if you choose them (4.6). | This is the page everyone sees first. | Medium |
-| **7** ◐ | **Steps 1–7 done and on `main` (2026-10-18); step 10 partly done; step 8: Compact, Stack, Card grid and Filmstrip done, Mosaic next.** **Chart table and layouts** (4.9b, 4.10, 4.11, 4.12): one item builder + one action menu + one details drawer so **every layout has every feature** (chart run, peak, plays change, player, playlist…), layouts on every period with paging, all six layouts restyled, buttons moved into the toolbar, slimmer rows from #11 down, short lists capped at 5. | The core of the product. Do the shared builder first, then restyle each layout on top of it. | Large |
+| **7** ◐ | **Steps 1–7 done and on `main` (2026-10-18); step 10 partly done; step 8 done (all five layouts; Filmstrip and Mosaic on the branch); step 9 next.** **Chart table and layouts** (4.9b, 4.10, 4.11, 4.12): one item builder + one action menu + one details drawer so **every layout has every feature** (chart run, peak, plays change, player, playlist…), layouts on every period with paging, all six layouts restyled, buttons moved into the toolbar, slimmer rows from #11 down, short lists capped at 5. | The core of the product. Do the shared builder first, then restyle each layout on top of it. | Large |
 | **8** | **Shared components:** one button, tab, segmented control, chip, card, table, carousel, pop-up frame. Replace the per-feature button families. | Makes 9–10 fast and keeps it consistent. | Large |
 | **9** | **Other views** in this order: Records (4.15), Stats (4.14), Raw Data (4.13), then Events, Awards, Soundtrack and the rest once seen on screen. | Records and Stats have the most concrete fixes already written down. | Large |
 | **10** | **Pop-ups and Settings** (4.20–4.21), including the side panel for song/artist/album. | | Medium |
@@ -1793,6 +1794,32 @@ animation, 12 screen check.
   cards of one size, cover on top, 240px wide (strip: 176px), centred**,
   about 360px tall. Tablets share the width three across. Phones still
   unchanged.
+- **Step 8, Mosaic ✓ (2026-10-19, ae16a1a), on the branch, not merged.**
+  **The treemap is gone**: it sized tiles by plays, so the chart read in
+  a jumble (#4 beside #1, #5 in the far corner) and covers were stretched.
+  Now a **20-column grid of square tiles**: **#1 half the width and two
+  rows, #2–#5 two by two beside it, #6 on five to a row** (`.wv-mos-xl /
+  -md / -sm`; rows take their height from the square tiles, so #1 is square
+  too). Phones: #1 full width, #2–#5 two across, the rest three (artist
+  and plays hidden on those, a tap away). Only when the list starts at #1;
+  a search is all small tiles. **One full-tile fade layer** (top and bottom
+  gradients together) behind the big rank and the title, both sized to
+  the tile with `cqw`; **even gaps**; the Card grid's movement chip; gold /
+  silver / bronze rings from `--medal-*`. The artwork-sampled ring on the
+  other tiles (`_mosDominantGlow`) is now 1px and faint, so it no longer
+  competes with the medals. **Kept:** the hover card and the tap-to-flip
+  back with ▶ ⋮ and All details (drawer under the mosaic). The back now
+  fits the new small tiles (a 150–219px container query; a flipped tile
+  grows to ~230px) and its movement chip sits in its rank row (it covered
+  the ×). **New: Save image** (4.9b's "Share this"), through a shared
+  `_wvSaveImage` that Filmstrip uses too; html2canvas needed the rings as
+  a real border and no layer ending mid-tile (it drew a hairline at the
+  edge). **Gone:** the play bars, the ＋, the English "View details", the
+  treemap helpers. **Not done:** slimmer tiles from #11 down (step 9).
+  Checked: 1280 and 390, all 5 periods × 3 types (every tile square,
+  nothing past its tile, no sideways scroll), search, real hover / flip /
+  All details / × / ⋮ / Save (download checked), es phone, Navy light, no
+  JS errors.
 - **Step 10, started early (2026-10-18).** Done so far:
   - **Off the Chart rows:** ▶ and ⋮ in their own end column. On phones the
     row restacks: the title wraps instead of being cut, plays and weeks go
@@ -1812,8 +1839,8 @@ animation, 12 screen check.
 
 **What's left in phase 7, in order:**
 - **Step 8: the other five layouts**, one commit each (4.9b). Compact,
-  Stack, Card grid and Filmstrip done (above, with both step-4 phone
-  bugs); Mosaic next. Use the new table's choices as the model: covers 48px,
+  Stack, Card grid, Filmstrip and Mosaic done (above, with both step-4
+  phone bugs): **step 8 finished**. Use the new table's choices as the model: covers 48px,
   the gold / silver / bronze tints for #1–#3 (you kept them), and on phones
   Title · Artist gets the room first.
 - **Step 9: shorter long charts** (4.12, slimmer rows from #11).
