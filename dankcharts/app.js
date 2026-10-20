@@ -19268,8 +19268,32 @@ function _eaQueueToast(msg, ok) {
   setTimeout(() => { if (statusEl.textContent === msg) { statusEl.textContent = ''; statusEl.className = 'yt-mini-status'; } }, 2500);
 }
 
+// The ⋮ menu's icons (2026-10-19): one line-icon set, drawn at the same
+// size and weight (24px grid, round strokes, the text colour), and the real
+// YouTube / Spotify marks for the two search items. Keyed by action; the
+// sample's "stop" state has its own.
+const _EA_MI_SVG = body => `<svg viewBox="0 0 24 24" aria-hidden="true">${body}</svg>`;
+const _EA_MI = {
+  sample:   _EA_MI_SVG('<path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/>'),
+  stop:     _EA_MI_SVG('<rect x="6" y="6" width="12" height="12" rx="2.5"/>'),
+  play:     _EA_MI_SVG('<circle cx="12" cy="12" r="9.5"/><path d="M10 8.5v7l5.5-3.5z"/>'),
+  next:     _EA_MI_SVG('<path d="M5 5.5v13l9-6.5z"/><path d="M18.5 5.5v13"/>'),
+  queue:    _EA_MI_SVG('<path d="M15 12H3"/><path d="M15 6H3"/><path d="M10 18H3"/><path d="M21 6v10a2 2 0 0 1-2 2h-5"/><path d="m16 16-2 2 2 2"/>'),
+  similar:  _EA_MI_SVG('<path d="M12 3.5l1.9 5.1 5.1 1.9-5.1 1.9L12 17.5l-1.9-5.1L5 10.5l5.1-1.9z"/><path d="M19 15.5l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/>'),
+  pick:     _EA_MI_SVG('<path d="M21 15V6"/><circle cx="18.5" cy="15.5" r="2.5"/><path d="M12 12H3"/><path d="M16 6H3"/><path d="M12 18H3"/>'),
+  playlist: _EA_MI_SVG('<path d="M11 12H3"/><path d="M16 6H3"/><path d="M16 18H3"/><path d="M18 9v6"/><path d="M21 12h-6"/>'),
+  details:  _EA_MI_SVG('<circle cx="12" cy="12" r="9.5"/><path d="M12 16.5v-5"/><path d="M12 7.5h.01"/>'),
+  album:    _EA_MI_SVG('<circle cx="12" cy="12" r="9.5"/><circle cx="12" cy="12" r="2.5"/><path d="M6.5 12a5.5 5.5 0 0 1 5.5-5.5"/>'),
+  artist:   _EA_MI_SVG('<rect x="9" y="2.5" width="6" height="11.5" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0"/><path d="M12 17.5v4"/><path d="M8.5 21.5h7"/>'),
+  chartrun: _EA_MI_SVG('<path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="m19 8-5 5-4-4-3 3"/>'),
+  cover:    _EA_MI_SVG('<rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/>'),
+  yt:       '<svg class="ea-mi-brand" viewBox="0 0 24 24" aria-hidden="true"><path fill="#FF0033" d="M22.6 7.2a2.8 2.8 0 0 0-2-2C18.9 4.7 12 4.7 12 4.7s-6.9 0-8.6.5a2.8 2.8 0 0 0-2 2A29 29 0 0 0 1 12a29 29 0 0 0 .4 4.8 2.8 2.8 0 0 0 2 2c1.7.5 8.6.5 8.6.5s6.9 0 8.6-.5a2.8 2.8 0 0 0 2-2A29 29 0 0 0 23 12a29 29 0 0 0-.4-4.8z"/><path fill="#fff" d="M9.8 15.1 15.5 12 9.8 8.9z"/></svg>',
+  spotify:  '<span class="ea-mi-brand ea-mi-sp">' + _EA_SP_SVG + '</span>',
+};
+
 function _eaMenuItem(action, icon, label, extra) {
-  return `<button type="button" role="menuitem" class="wv-ctx-item" data-action="${action}"${extra || ''}><span class="ea-mi-ic" aria-hidden="true">${icon}</span>${esc(label)}</button>`;
+  const key = action === 'sample' && icon === '■' ? 'stop' : action;
+  return `<button type="button" role="menuitem" class="wv-ctx-item" data-action="${action}"${extra || ''}><span class="ea-mi-ic" aria-hidden="true">${_EA_MI[key] || icon}</span>${esc(label)}</button>`;
 }
 
 // alignRight: x is the menu's right edge (opened from ⋮, so it drops down to

@@ -37292,7 +37292,17 @@ body.cp-hide-cert-reel    #certReelSection { display: none !important; }
 .ea-menu { min-width: 210px; max-width: min(320px, calc(100vw - 16px)); }
 .ea-menu .wv-ctx-item { width: 100%; border: 0; background: none; font: inherit; text-align: left; overflow: hidden; text-overflow: ellipsis; }
 .ea-menu .wv-ctx-item:focus-visible { outline: none; background: var(--hover); color: var(--accent); }
-.ea-mi-ic { display: inline-flex; justify-content: center; width: 18px; flex-shrink: 0; color: var(--text3); }
+.ea-mi-ic { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; flex-shrink: 0; color: var(--text3); }
+/* The menu's line icons (_EA_MI): 17px, round 1.8px strokes in the muted
+   text colour, turning accent with the label on hover / focus. The YouTube
+   and Spotify marks keep their own colours. */
+.ea-menu .wv-ctx-item { gap: 10px; padding: 8px 14px; }
+.ea-mi-ic > svg { width: 17px; height: 17px; }
+.ea-mi-ic > svg:not(.ea-mi-brand) { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.ea-menu .wv-ctx-item:is(:hover, :focus-visible) .ea-mi-ic { color: var(--accent); }
+.ea-mi-ic > svg.ea-mi-brand { width: 18px; height: 18px; }
+.ea-mi-sp { display: inline-flex; color: #1DB954; }
+.ea-mi-sp svg { width: 16px; height: 16px; }
 
 /* First-time hint on touch screens (app.js, _eaHintShow): a small bubble
    under the first chart cover, arrow pointing up at it. Inverted colours
