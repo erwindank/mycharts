@@ -1816,6 +1816,12 @@ animation, 12 screen check.
   a real border and no layer ending mid-tile (it drew a hairline at the
   edge). **Gone:** the play bars, the ＋, the English "View details", the
   treemap helpers. **Not done:** slimmer tiles from #11 down (step 9).
+  **Then, from your light-theme screenshot:** peak tags from #4 down were
+  unreadable on the flipped tile's back and the hover card (pale tag on a
+  pale chip, contrast ~1.2 in all five light themes). Those dark surfaces
+  now give every peak tag its own dark backing, as Card grid covers do.
+  Measured in all ten themes: peak, personal best, certifications and
+  scores all 7.8:1 or better.
   Checked: 1280 and 390, all 5 periods × 3 types (every tile square,
   nothing past its tile, no sideways scroll), search, real hover / flip /
   All details / × / ⋮ / Save (download checked), es phone, Navy light, no
