@@ -37183,6 +37183,11 @@ body.cp-hide-cert-reel    #certReelSection { display: none !important; }
 /* Where the pair sits in each layout */
 .chart-table .cr-cell { width: 72px; white-space: nowrap; }
 .chart-table .cr-cell .ea-sample, .chart-table .cr-cell .ea-more { width: 22px; height: 24px; }
+/* Spotify takes ▶'s old place (▶ is on the cover now) at the same 22px, so
+   Spotify · ⋮ · chart run still fit the 72px cell (at its default 28px it
+   pushed the chart-run icon past the row's edge) */
+.chart-table .cr-cell .ea-spotify { width: 22px; height: 24px; }
+.chart-table .cr-cell .ea-spotify svg { width: 15px; height: 15px; }
 .wv-gc-foot .ea-sample, .wv-gc-foot .ea-more, .wv-gc-foot .ea-spotify { width: 26px; height: 26px; }
 .wv-cx-row > .ea-pair { justify-self: end; }
 .wv-stk-row > .ea-pair { align-self: center; }

@@ -1847,6 +1847,12 @@ animation, 12 screen check.
   Spotify, none overflows, no sideways scroll), BU / Off rows, a real
   Spotify click (right address, no details panel), real ▶-on-cover clicks
   in all three layouts, Mosaic backs on every tile size.
+  **Then, from your light-theme screenshot:** the chart-run icon was cut
+  off at the row's edge on computers. Spotify (28px by default) took ▶'s
+  22px place in the Table's fixed 72px button cell. It is 22px there now,
+  like the others. Measured this time for every button in the cell (the
+  first check skipped the chart-run icon): all periods × 3 types and
+  Bubbling Under at 1280 / 1100 / 820 / 390, nothing past its cell.
   Checked: 1280 and 390, all 5 periods × 3 types (every tile square,
   nothing past its tile, no sideways scroll), search, real hover / flip /
   All details / × / ⋮ / Save (download checked), es phone, Navy light, no
