@@ -25,7 +25,8 @@ tab, 164 streak badges, Soundtrack) and what it means for the plan is in
 to fix. Next is still step 8.
 
 **Updated 2026-10-19:** step 8 Stack is done, merged to `main` and pushed;
-Card grid is done, merged to `main` and pushed; next is Filmstrip.
+Card grid is done, merged to `main` and pushed; Filmstrip is done on the
+branch (not merged yet); next is Mosaic.
 
 **Seen on screen:**
 - Weekly: Albums and Songs, in all six chart layouts (Table, Card grid,
@@ -1046,7 +1047,7 @@ themes (Navy dark, Navy light, Yellow dark, Red light; see 3.2) and on a phone.
 | **4** ✓ | **Artwork — redone 2026-10-13** as a review of the picture system (3.7): the missing pictures were mostly a screenshot artifact. Fixed the Deezer→iTunes→Last.fm fallback, sized pictures to their slots, loaded three at a time with what's on screen first. Left for later: the gradient stand-in for the rare real miss. | Turned out smaller than planned. | Small |
 | **5** ✓ | **Done 2026-10-13** (branch `redesign/phase-5-shell`, merged into `main`). **Shell:** slim sticky top bar, new main tabs + More, period switch next to the date, toasts for status, merge ON AIR + streak, no masthead or Time Machine on non-chart tabs. | Fixes "can't find anything" and gives back ~1,000px on every tab. | Medium |
 | **6** ✓ | **Done 2026-10-14** (branch `redesign/phase-6-weekly`; what changed from this plan is under "Phase 6" below). **Weekly page:** one filter toolbar, sections reordered (stats + "of the moment" → chart → bubbling/off/new → certified → time machine), releases moved to Events, light-touch stat tile changes only if you choose them (4.6). | This is the page everyone sees first. | Medium |
-| **7** ◐ | **Steps 1–7 done and on `main` (2026-10-18); step 10 partly done; step 8: Compact, Stack and Card grid done, Filmstrip next.** **Chart table and layouts** (4.9b, 4.10, 4.11, 4.12): one item builder + one action menu + one details drawer so **every layout has every feature** (chart run, peak, plays change, player, playlist…), layouts on every period with paging, all six layouts restyled, buttons moved into the toolbar, slimmer rows from #11 down, short lists capped at 5. | The core of the product. Do the shared builder first, then restyle each layout on top of it. | Large |
+| **7** ◐ | **Steps 1–7 done and on `main` (2026-10-18); step 10 partly done; step 8: Compact, Stack, Card grid and Filmstrip done, Mosaic next.** **Chart table and layouts** (4.9b, 4.10, 4.11, 4.12): one item builder + one action menu + one details drawer so **every layout has every feature** (chart run, peak, plays change, player, playlist…), layouts on every period with paging, all six layouts restyled, buttons moved into the toolbar, slimmer rows from #11 down, short lists capped at 5. | The core of the product. Do the shared builder first, then restyle each layout on top of it. | Large |
 | **8** | **Shared components:** one button, tab, segmented control, chip, card, table, carousel, pop-up frame. Replace the per-feature button families. | Makes 9–10 fast and keeps it consistent. | Large |
 | **9** | **Other views** in this order: Records (4.15), Stats (4.14), Raw Data (4.13), then Events, Awards, Soundtrack and the rest once seen on screen. | Records and Stats have the most concrete fixes already written down. | Large |
 | **10** | **Pop-ups and Settings** (4.20–4.21), including the side panel for song/artist/album. | | Medium |
@@ -1752,6 +1753,36 @@ animation, 12 screen check.
     every chip on a cover (peak, certification, movement) has the backing.
   **Merged to `main` and pushed 2026-10-19.**
   Next: Filmstrip, then Mosaic.
+- **Step 8, Filmstrip ✓ (2026-10-19, 27abfda), on the branch, not merged.**
+  The **podium** from 4.9b: **#1–#3 as big cards filling the width** (three
+  columns, #1 at 1.3×, bottoms aligned so #1's bigger cover rises above),
+  the rank as a **big number beside the title** (medal colours) instead of
+  a chip on the cover; then **the rest as a strip of Card grid cards**
+  (176px, 148px on phones) with **‹ › arrows and faded edges** only on a
+  side with more, the thin scroll track kept. Podium and strip cards come
+  from one new builder, **`_wvCoverCard`**, which Card grid now uses too
+  (its markup is unchanged), so every feature, chip and the glow are
+  shared. The podium shows only when the list starts at #1; a search result
+  is all strip with its real ranks. On phones #1 goes across the top with
+  its cover on the left, #2 / #3 side by side under it; short forms (💎,
+  ▲ PB, Spanish 🏅 #n) as in the other layouts. Jump buttons only for a
+  strip of more than 10 (#4, #11, #21…). The details panel opens under the
+  podium or under the strip. **Controls translated** (`wv_film_*`: Auto-
+  scroll / Stop, Save image, Previous / Next). **Save image was broken**:
+  html2canvas 1.4 throws on `color-mix()` colours, which the cards use; the
+  new `_h2cPlainColors` copies every colour on the capture copy as plain
+  rgba (inline, and through a temporary sheet for `::before` / `::after`),
+  and the capture is limited to the copy (`ignoreElements`). It saves the
+  podium and every strip card wrapped into rows. Also fixed: the wheel
+  trapped page scrolling over the strip (now it passes on at either end),
+  a drag opened the details panel of the card it ended on, and
+  `.section-body`'s `overflow: auto` cut the glow off in a hard box (off
+  for Filmstrip only, via `:has(.wv-film-podium)`). Gone: play bars, the
+  English "plays", the ＋ hover overlay (hidden everywhere already), the
+  badge line under the artist. Checked: 1280 and 390, all 5 periods × 3
+  types with every badge on (nothing past its card, no sideways scroll),
+  search, real clicks on podium / strip / arrows / jump / drag / wheel /
+  Auto-scroll / Save (download checked), es phone, Navy light, no JS errors.
 - **Step 10, started early (2026-10-18).** Done so far:
   - **Off the Chart rows:** ▶ and ⋮ in their own end column. On phones the
     row restacks: the title wraps instead of being cut, plays and weeks go
@@ -1771,8 +1802,8 @@ animation, 12 screen check.
 
 **What's left in phase 7, in order:**
 - **Step 8: the other five layouts**, one commit each (4.9b). Compact,
-  Stack and Card grid done (above, with both step-4 phone bugs); Filmstrip
-  next, then Mosaic. Use the new table's choices as the model: covers 48px,
+  Stack, Card grid and Filmstrip done (above, with both step-4 phone
+  bugs); Mosaic next. Use the new table's choices as the model: covers 48px,
   the gold / silver / bronze tints for #1–#3 (you kept them), and on phones
   Title · Artist gets the room first.
 - **Step 9: shorter long charts** (4.12, slimmer rows from #11).

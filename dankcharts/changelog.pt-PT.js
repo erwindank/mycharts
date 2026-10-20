@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Filmstrip becomes a podium for your top 3":
+    ["A Faixa passa a ser um pódio para o teu top 3",
+     "A Faixa já não começa como uma fila de cartões pequenos cortada na margem. Os teus #1, #2 e #3 aparecem agora lado a lado como cartões grandes a toda a largura, o #1 o maior, com a posição num número grande ao lado do título. O resto da tabela segue numa faixa de cartões por baixo, com setas e margens esbatidas a mostrar que há mais. No telemóvel o #1 fica em cima, a toda a largura, com o #2 e o #3 por baixo. Os botões estão na tua língua e Guardar imagem volta a funcionar: guarda o pódio e todos os cartões da faixa numa só imagem. Deslocar a página com o rato já não fica preso na faixa, e arrastar a faixa já não abre os detalhes de um cartão."],
+
   "In Stack, the plays-peak tag sits with the plays":
     ["Na Pilha, o pico de plays fica junto dos plays",
      "O selo PICO DE PLAYS do esquema Pilha saiu do lado do título e passou para logo a seguir aos plays deste período, por isso lê-se como um recorde de plays e não da posição no chart. Quando não cabe ao lado do número, desce para baixo, inteiro, em vez de ficar cortado."],

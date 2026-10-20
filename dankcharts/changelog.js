@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 206;
+const DC_CL_I18N_V = 207;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-19', t: 'design', a: 'charts', h: '27abfda',
+    title: "Filmstrip becomes a podium for your top 3",
+    detail: "Filmstrip no longer starts as a row of small cards cut off at the edge. Your #1, #2 and #3 now stand side by side as big cards across the whole width, #1 the biggest, with the rank as a large number beside the title. The rest of the chart follows in a strip of cards under them, with arrows and faded edges showing there is more. On a phone #1 goes across the top with #2 and #3 below it. The buttons are in your language, and Save image works again: it saves the podium and every card of the strip as one picture. Scrolling the page with the mouse no longer gets stuck on the strip, and dragging the strip no longer opens a card's details." },
 
   { d: '2026-10-19', t: 'fix', a: 'charts', h: '03d2ba7',
     title: "In Stack, the plays-peak tag sits with the plays",

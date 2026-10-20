@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Filmstrip becomes a podium for your top 3":
+    ["La Tira se convierte en un podio para tu top 3",
+     "La Tira ya no empieza como una fila de tarjetas pequeñas cortada en el borde. Tus #1, #2 y #3 ahora aparecen lado a lado como tarjetas grandes a todo lo ancho, el #1 la más grande, con el puesto en un número grande junto al título. El resto del chart sigue en una tira de tarjetas debajo, con flechas y bordes difuminados que indican que hay más. En el móvil el #1 va arriba a todo lo ancho, con el #2 y el #3 debajo. Los botones están en tu idioma y Guardar imagen vuelve a funcionar: guarda el podio y todas las tarjetas de la tira en una sola imagen. Desplazar la página con el ratón ya no se queda atascado en la tira, y arrastrar la tira ya no abre los detalles de una tarjeta."],
+
   "In Stack, the plays-peak tag sits with the plays":
     ["En Pila, el récord de reproducciones va junto a las reproducciones",
      "La insignia LOGRO MÁS ALTO del diseño Pila pasó de estar junto al título a ir justo después de las reproducciones de este periodo, así que se entiende como un récord de reproducciones y no del puesto en el chart. Cuando no cabe junto al número baja debajo, completa, en lugar de quedar cortada."],
