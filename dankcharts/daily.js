@@ -226,7 +226,7 @@ function dyRenderAll(plays, start, end) {
   ['statsStrip2', 'statsStrip3'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
   const ati = document.getElementById('atInsights'); if (ati) ati.hidden = true;
   document.getElementById('statsStrip').style.display = '';
-  dyRenderTiles(h, ds);
+  dyRenderTiles(h, ds, plays);
   dyRenderTop(h, ds);
 
   const { stats, peaks } = dyPublishForShare(h, ds);
@@ -428,7 +428,7 @@ function dyRenderBottom(h, ds) {
 
 // ─── TILES ────────────────────────────────────────────────────────────────
 
-function dyRenderTiles(h, ds) {
+function dyRenderTiles(h, ds, plays) {
   const el = document.getElementById('statsStrip');
   const day = h.byDay[ds];
   const cmpDs = dyCompareDay(ds);
@@ -476,6 +476,41 @@ function dyRenderTiles(h, ds) {
     }
   }
 
+  /* Stats banner on Daily too (2026-10-20, same as the other periods — see
+     renderStatsHero in app.js): the best day ever for each tile (the record
+     the bars' tick marks), the best before this day (record at the time) and
+     the usual day (median of the days before), for the bars, rings and the
+     headline. One pass over every day; cached on the history per day. */
+  if (!h._shRec || h._shRec.ds !== ds) {
+    const rec = { plays: 0, songs: 0, artists: 0, albums: 0 }, before = { plays: 0, songs: 0, artists: 0, albums: 0 };
+    const earlierPlays = [];
+    for (const day2 of h.days) {
+      const u = uniq(h.byDay[day2]);
+      for (const f in rec) {
+        if (u[f] > rec[f]) rec[f] = u[f];
+        if (day2 < ds && u[f] > before[f]) before[f] = u[f];
+      }
+      if (day2 < ds) earlierPlays.push(u.plays);
+    }
+    earlierPlays.sort((a, b) => a - b);
+    const m = earlierPlays.length >> 1;
+    const usual = !earlierPlays.length ? null : earlierPlays.length % 2 ? earlierPlays[m] : Math.round((earlierPlays[m - 1] + earlierPlays[m]) / 2);
+    h._shRec = { ds, rec, before, usual, nBefore: earlierPlays.length };
+  }
+  const { rec, before } = h._shRec;
+  // Gold ring for a best day ever, silver for the best day up to then
+  // (Total Plays keeps its own "biggest this month" tag below)
+  const ring = (val, f) => {
+    if (!day || !val) return { cls: '', tag: '' };
+    if (val >= rec[f]) return { cls: ' stat-peak-alltime', tag: `<div class="stat-peak-badge stat-peak-badge-alltime">${t('stat_alltime_peak')}</div>` };
+    if (h._shRec.nBefore && val >= before[f]) return { cls: ' stat-peak-attime', tag: `<div class="stat-peak-badge stat-peak-badge-attime">${t('stat_peak_at_time')}</div>` };
+    return { cls: '', tag: '' };
+  };
+  // Pictures: the day's first-ever songs (top 3 if none), top artists, top albums
+  const tally = shTally(plays, new Date(d.getFullYear(), d.getMonth(), d.getDate()));
+  const faceSongs = tally.newSongs.length ? tally.newSongs.slice(0, 5) : tally.songList.slice(0, 3);
+  const faces = { songs: faceSongs, artists: tally.artistList.slice(0, 5), albums: tally.albumList.slice(0, 3) };
+
   const delta = (a, b) => {
     if (!cmp) return '';
     const diff = a - b;
@@ -486,11 +521,14 @@ function dyRenderTiles(h, ds) {
   };
   const subCell = (val, lbl, extra = '', attrs = '') =>
     `<div class="stat-sub-cell${extra}"${attrs}><span class="stat-sub-val">${val}</span><span class="stat-sub-lbl">${esc(lbl)}</span></div>`;
-  const box = (val, key, prevVal, emoji, cat, extraLine, badge) => `
-    <div class="stat-box${badge ? ' stat-peak-attime' : ''}" data-cat="${cat}">
+  // f: the tile's field (plays / songs / artists / albums), for its bars
+  // against the comparison day and the record tick; ringCls: the tile's ring
+  const box = (val, key, prevVal, emoji, cat, extraLine, badge, f, ringCls, facesHtml) => `
+    <div class="stat-box${ringCls || ''}" data-cat="${cat}">
       <div class="stat-head"><span class="stat-cat-icon">${emoji}</span><span class="stat-label">${t(key)}</span></div>
       <div class="stat-val" data-val="${val}">${val.toLocaleString()}</div>
       ${cmp ? `<div class="stat-foot">${delta(val, prevVal)}</div>` : ''}
+      ${day ? shBarsHtml(val, prevVal, rec[f] || null) : ''}${facesHtml || ''}
       ${extraLine || ''}${badge || ''}
     </div>`;
   const newLine = (n, key) => day ? `<div class="stat-sub">${subCell('+' + n.toLocaleString(), t(key))}</div>` : '';
@@ -502,13 +540,30 @@ function dyRenderTiles(h, ds) {
   const badge = !day ? '' : rankAll === 1
     ? `<div class="stat-peak-badge stat-peak-badge-alltime">${esc(t('dy_biggest_ever'))}</div>`
     : rankMonth === 1 ? `<div class="stat-peak-badge stat-peak-badge-attime">${esc(t('dy_biggest_month'))}</div>` : '';
+  const playsRing = !day ? '' : rankAll === 1 ? ' stat-peak-alltime' : rankMonth === 1 ? ' stat-peak-attime' : '';
+  const rS = ring(cur.songs, 'songs'), rA = ring(cur.artists, 'artists'), rB = ring(cur.albums, 'albums');
+  const songsTip = tally.newSongs.length ? t('sh_faces_new') : t('sh_faces_top_songs');
 
   el.innerHTML =
-    box(cur.plays,   'stat_total_plays',  prv.plays,   '🎵', 'plays',   playsLine, badge) +
-    box(cur.songs,   'stat_unique_songs', prv.songs,   '🎶', 'songs',   newLine(newSongs, 'stat_sub_new_songs')) +
-    box(cur.artists, 'stat_artists',      prv.artists, '🎤', 'artists', newLine(newArtists, 'stat_sub_new_artists')) +
-    box(cur.albums,  'stat_albums',       prv.albums,  '💿', 'albums',  newLine(newAlbums, 'stat_sub_new_albums'));
-  if (typeof animateStatStrip === 'function') animateStatStrip(el);
+    box(cur.plays,   'stat_total_plays',  prv.plays,   '🎵', 'plays',   playsLine, badge, 'plays', playsRing) +
+    box(cur.songs,   'stat_unique_songs', prv.songs,   '🎶', 'songs',   newLine(newSongs, 'stat_sub_new_songs'), rS.tag, 'songs', rS.cls, shFacesHtml('songs', faces.songs, songsTip)) +
+    box(cur.artists, 'stat_artists',      prv.artists, '🎤', 'artists', newLine(newArtists, 'stat_sub_new_artists'), rA.tag, 'artists', rA.cls, shFacesHtml('artists', faces.artists, t('sh_faces_top_artists'))) +
+    box(cur.albums,  'stat_albums',       prv.albums,  '💿', 'albums',  newLine(newAlbums, 'stat_sub_new_albums'), rB.tag, 'albums', rB.cls, shFacesHtml('albums', faces.albums, t('sh_faces_top_albums')));
+  // Slow count-up, as on the other periods
+  if (typeof animateStatStrip === 'function') animateStatStrip(el, 1600);
+  shLoadFaces(faces);
+
+  // The banner around the tiles: the day's #1 artist photo once the day is
+  // over, today's top covers while it runs; headline; plays by hour; Share
+  const dayIndex = {};
+  for (const day2 of h.days) dayIndex[day2] = { plays: h.byDay[day2].plays };
+  renderStatsHero({
+    period: 'day', offset: currentOffset, plays, start: new Date(d.getFullYear(), d.getMonth(), d.getDate()),
+    end: new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999), cutoffKey: ds, tally,
+    peakStats: { maxPlays: rec.plays }, peakAtTimeStats: h._shRec.nBefore ? { maxPlays: before.plays } : null,
+    usual: h._shRec.usual !== null ? { plays: h._shRec.usual } : null,
+    agg: { index: dayIndex, keys: h.days }, timed: h.timed
+  });
 }
 
 // ─── TIME OF DAY (phase 3) ────────────────────────────────────────────────

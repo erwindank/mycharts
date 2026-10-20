@@ -40805,16 +40805,11 @@ html[lang="en"] .plays-peak-badge .ppb-short { display: inline; }
 /* Only the chart tabs show the banner at all (the other tabs hide
    #statsStrip themselves, but not the picture and lines around it) */
 body:not([data-view="day"]):not([data-view="week"]):not([data-view="month"]):not([data-view="year"]):not([data-view="alltime"]) .sh-hero { display: none; }
-/* Daily keeps its own tiles only; other tabs never show the banner bits */
+/* No plays: just the tiles. (Daily has had the banner too since
+   2026-10-20, with plays by hour at the bottom.) */
 .sh-hero:not(.sh-on) > .sh-bg,
 .sh-hero:not(.sh-on) > .sh-top,
-.sh-hero:not(.sh-on) > .sh-days,
-body[data-view="day"] .sh-hero > .sh-bg,
-body[data-view="day"] .sh-hero > .sh-top,
-body[data-view="day"] .sh-hero > .sh-days { display: none; }
-body[data-view="day"] .sh-hero.sh-on {
-  overflow: visible; background: none; border: 0; border-radius: 0; box-shadow: none; padding: 0;
-}
+.sh-hero:not(.sh-on) > .sh-days { display: none; }
 
 /* Background: what the plate looks like before a picture lands, and on
    an artist with no photo — a tint like the Records banner's */
@@ -41073,6 +41068,7 @@ body.red-light .sh-headline em, body.pink-light .sh-headline em, body.purple-lig
 .sh-days:empty { display: none; }
 .sh-days-head {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--sp-3);
@@ -41108,7 +41104,49 @@ body.red-light .sh-headline em, body.pink-light .sh-headline em, body.purple-lig
 .sh-day small { display: block; font-size: 0.6rem; font-weight: 500; opacity: 0.85; }
 .sh-day.is-hi { color: var(--on-accent); }
 .sh-day.is-zero { color: var(--text3); }
-.sh-day.is-best { border-color: var(--gold1); }
+.sh-day { position: relative; }
+/* The best cell: gold fill, a glow and a "★ BEST" tag sitting on top, so
+   it reads as the best at a glance (2026-10-20, user's ask) */
+.sh-day.is-best {
+  background: var(--gold1);
+  border: 2px solid var(--gold1);
+  color: var(--bg2);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold1) 28%, transparent), 0 4px 14px color-mix(in srgb, var(--gold1) 40%, transparent);
+  z-index: 1;
+}
+.sh-day.is-best small { opacity: 1; font-weight: 700; }
+.sh-day-tag {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 4px);
+  transform: translateX(-50%);
+  white-space: nowrap;
+  padding: 2px 6px;
+  border-radius: var(--r-full);
+  background: var(--gold1);
+  color: var(--bg2);
+  font-family: var(--font-sans);
+  font-size: 0.6rem;
+  font-weight: 800;
+  line-height: 1.1;
+  pointer-events: none;
+}
+/* at either end of the strip the tag lines up with the edge instead of
+   hanging past it (the banner clips anything outside) */
+.sh-day:first-child .sh-day-tag { left: 0; transform: none; }
+.sh-day:last-child .sh-day-tag { left: auto; right: 0; transform: none; }
+/* room above the cells for the tag */
+.sh-days-grid { padding-top: 20px; }
+.sh-days-best {
+  margin-left: auto;
+  font-family: var(--font-sans);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--gold1);
+  text-align: right;
+}
 .sh-day:hover { transform: translateY(-2px); }
 .sh-day:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .sh-day.is-future {
@@ -41118,14 +41156,17 @@ body.red-light .sh-headline em, body.pink-light .sh-headline em, body.purple-lig
   cursor: default;
 }
 .sh-day.is-future:hover { transform: none; }
-/* a month has ~30 cells: thinner, and on phones the counts go (they are
-   in each cell's tooltip) */
-.sh-days-month { gap: 3px; }
-.sh-days-month .sh-day { padding: 5px 0; }
+/* an hour on Daily is not a link */
+.sh-day.is-static { cursor: default; }
+.sh-day.is-static:hover { transform: none; }
+/* a month has ~30 cells and a day 24 hours: thinner, and on phones the
+   counts go (they are in each cell's tooltip) */
+.sh-days-month, .sh-days-day { gap: 3px; }
+.sh-days-month .sh-day, .sh-days-day .sh-day { padding: 5px 0; }
 @media (max-width: 640px) {
-  .sh-days-month { gap: 2px; }
-  .sh-days-month .sh-day { font-size: 0.5rem; border-radius: 4px; }
-  .sh-days-month .sh-day small { display: none; }
+  .sh-days-month, .sh-days-day { gap: 2px; }
+  .sh-days-month .sh-day, .sh-days-day .sh-day { font-size: 0.5rem; border-radius: 4px; }
+  .sh-days-month .sh-day small, .sh-days-day .sh-day small { display: none; }
   .sh-days-alltime .sh-day { font-size: 0.52rem; }
 }
 
@@ -41140,6 +41181,9 @@ body.red-light .sh-headline em, body.pink-light .sh-headline em, body.purple-lig
     gap: 10px;
   }
   .sh-hero.sh-on { padding: 130px 10px 12px; border-radius: 16px; }
+  /* heading + Share on one line, the "★ Best" line under them */
+  .sh-days-head .sh-share { margin-left: auto; }
+  .sh-days-best { order: 3; flex-basis: 100%; margin-left: 0; text-align: left; }
   .sh-bg { height: 360px; }
   .sh-faces-songs .sh-face { width: 22px; height: 22px; }
   .sh-faces-songs { gap: 3px; }

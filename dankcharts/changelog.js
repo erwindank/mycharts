@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 232;
+const DC_CL_I18N_V = 233;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,14 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-20', t: 'feature', a: 'charts',
+    title: "The stats banner on Daily too",
+    detail: "The Daily tab now has the same banner around its stats: the day's #1 artist photo and a headline once the day is over, today's top album covers while it runs, bars against the comparison day, gold and silver record rings on every tile, pictures, plays by hour and Share. On every tab the line on the small bars now marks your current record instead of your usual, and the cover mosaic uses your top 18 albums." },
+
+  { d: '2026-10-20', t: 'feature', a: 'charts',
+    title: "A banner around the stats tiles",
+    detail: "The four stats tiles on Weekly, Monthly, Yearly and All-Time now sit inside a big banner, like the one on Records. A finished week, month or year shows its #1 artist's photo and a line about how it went (\"your busiest week since March\"); the one still running shows a mosaic of its top album covers. The numbers count up slowly, each tile has two small bars (this time and last time) with a mark for your usual, and pictures of its new songs, top artists and top albums. Record tiles get a gold ring for an all-time peak or a silver one for a peak at the time. Under the tiles, plays by day: tap a day to open it on Daily. Share saves the whole banner as a picture. The plays per day figure is also fixed: a 7-day week was counted as 8 days." },
 
   { d: '2026-10-20', t: 'design', a: 'charts',
     title: "Tidier controls above the Daily chart",

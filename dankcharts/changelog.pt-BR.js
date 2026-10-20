@@ -20,6 +20,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
     ["Um banner em volta das estatísticas",
      "Os quatro cartões de estatísticas de Semanal, Mensal, Anual e Todos os tempos agora ficam dentro de um grande banner, como o de Recordes. Uma semana, mês ou ano já encerrado mostra a foto do seu artista nº 1 e uma frase sobre como foi (\"sua semana mais movimentada desde março\"); o que ainda está em andamento mostra um mosaico das capas mais ouvidas. Os números sobem devagar, cada cartão tem duas barrinhas (agora e da última vez) com uma marca para o normal, e as imagens das músicas novas, artistas e álbuns mais ouvidos. Cartões com recorde ganham borda dourada para um pico histórico ou prateada para um pico na época. Embaixo, plays por dia: toque em um dia para abri-lo no Diário. Compartilhar salva o banner inteiro como imagem. O número de plays por dia também foi corrigido: uma semana de 7 dias era contada como 8."],
 
+  "The stats banner on Daily too":
+    ["O banner de estatísticas também no Diário",
+     "A aba Diário agora tem o mesmo banner em volta das estatísticas: a foto do artista nº 1 do dia e uma frase quando o dia já acabou, as capas mais ouvidas de hoje enquanto ele segue, barras contra o dia de comparação, bordas douradas e prateadas de recorde em todos os cartões, imagens, plays por hora e Compartilhar. Em todas as abas a linha das barrinhas agora marca seu recorde atual em vez do normal, e o mosaico usa seus 18 álbuns mais ouvidos."],
+
   "New Artists icon":
     ["Novo ícone de Artistas",
      "O botão Artistas acima da parada e o título da parada de Artistas agora mostram uma pessoa com uma nota musical em vez de um microfone, assim como os botões Músicas / Artistas / Álbuns dos Recordes."],

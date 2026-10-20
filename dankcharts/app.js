@@ -13057,17 +13057,20 @@ function shTally(plays, start) {
 }
 
 // The two little bars on a tile: this period, the last one, and a tick for
-// your usual period. All three on one scale, so the tick lines up with them.
-function shBarsHtml(cur, prev, usual) {
+// the current record for this kind of period (the best week / month / year
+// ever, user's call 2026-10-20 — it was "your usual" at first). All three on
+// one scale, so the tick lines up with them; the record is the biggest of
+// them, so the tick sits at the end and the bars read as "how close".
+function shBarsHtml(cur, prev, record) {
   if (prev === null || prev === undefined) return '';
-  const max = Math.max(cur, prev, usual || 0, 1);
+  const max = Math.max(cur, prev, record || 0, 1);
   const pct = v => Math.max(0, Math.min(100, v / max * 100)).toFixed(1);
-  const tip = t('sh_bars_tip', { now: cur.toLocaleString(), last: prev.toLocaleString(), usual: usual !== null ? usual.toLocaleString() : '—' });
+  const tip = t('sh_bars_tip', { now: cur.toLocaleString(), last: prev.toLocaleString(), rec: record !== null ? record.toLocaleString() : '—' });
   return `<div class="sh-bars" title="${esc(tip)}">
       <span class="sh-bar-k">${esc(t('sh_bar_now'))}</span><span class="sh-bar-track"><i class="sh-bar-now" style="width:${pct(cur)}%"></i></span>
       <span class="sh-bar-k">${esc(t('sh_bar_last'))}</span><span class="sh-bar-track"><i class="sh-bar-was" style="width:${pct(prev)}%"></i></span>
-      ${usual !== null ? `<span class="sh-usual"><b style="left:${pct(usual)}%"></b></span>` : ''}
-    </div>${usual !== null ? `<div class="sh-usual-cap">${esc(t('sh_usual', { n: usual.toLocaleString() }))}</div>` : ''}`;
+      ${record !== null ? `<span class="sh-usual"><b style="left:${pct(record)}%"></b></span>` : ''}
+    </div>${record !== null ? `<div class="sh-usual-cap">${esc(t('sh_record', { n: record.toLocaleString() }))}</div>` : ''}`;
 }
 
 // Picture slots for a tile. kind: 'songs' (a row of covers), 'artists'
@@ -13093,15 +13096,18 @@ function shLoadFaces(f) {
 function shPeriodWhen(periodType, key) {
   if (periodType === 'week') { const [y, m, d] = key.split('-').map(Number); return fmt(new Date(y, m - 1, d)); }
   if (periodType === 'month') { const [y, m] = key.split('-').map(Number); return fmt(new Date(y, m - 1, 1)).replace(/^1 /, ''); }
+  if (periodType === 'day') { const [y, m, d] = key.split('-').map(Number); return fmt(new Date(y, m - 1, d)); }
   return key;
 }
 
 /* The headline over a finished period's tiles, picked from its plays:
    a record ("Your biggest week ever"), how long since one this busy or this
    quiet, or failing that how far it was from your usual week. The number is
-   wrapped in <em> so it can take the plays colour. */
-function shHeadline(periodType, cutoffKey, cur, peakAll, peakAtTime, usual) {
-  const { index, keys } = _periodAgg(periodType);
+   wrapped in <em> so it can take the plays colour. src: { index, keys } of
+   every period's plays; Daily passes its own (one per day), the others
+   default to the week / month / year index. */
+function shHeadline(periodType, cutoffKey, cur, peakAll, peakAtTime, usual, src) {
+  const { index, keys } = src || _periodAgg(periodType);
   const earlier = keys.filter(k => k < cutoffKey);
   const p = periodType;
   // Placeholder survives esc(), then becomes the highlighted number
@@ -13129,15 +13135,25 @@ function shHeadline(periodType, cutoffKey, cur, peakAll, peakAtTime, usual) {
 
 /* Plays by day under the tiles: a week or a month gets a cell per day
    (tap one to open that day on Daily), a year a cell per month, All-Time
-   a cell per year. Darker = busier; days still to come are dashed. */
+   a cell per year, and a Daily day a cell per hour (only when the library
+   has real times of day: timed, see dyHistory — date-only sheets stamp
+   every play at midnight). Darker = busier; time still to come is dashed. */
 const SH_DOW_KEYS = ['day_sunday', 'day_monday', 'day_tuesday', 'day_wednesday', 'day_thursday', 'day_friday', 'day_saturday'];
 const SH_MON_KEYS = ['month_jan', 'month_feb', 'month_mar', 'month_apr', 'month_may_short', 'month_jun', 'month_jul', 'month_aug', 'month_sep', 'month_oct', 'month_nov', 'month_dec'];
-function shDaysHtml(periodType, start, end, plays, shareBtn = '') {
+function shDaysHtml(periodType, start, end, plays, shareBtn = '', timed = true) {
   const counts = {};
   const now = tzNow();
   const todayKey = localDateStr(now);
   const cells = [];
-  if (periodType === 'week' || periodType === 'month') {
+  if (periodType === 'day') {
+    // no times of day: just the heading, so Share is still there
+    if (!timed) return `<div class="sh-days-head"><span></span>${shareBtn}</div>`;
+    for (const p of plays) { const hr = tzDateOf(p).getHours(); counts[hr] = (counts[hr] || 0) + 1; }
+    const isToday = localDateStr(start) === todayKey;
+    for (let hr = 0; hr < 24; hr++) {
+      cells.push({ go: null, n: counts[hr] || 0, future: isToday && hr > now.getHours(), label: String(hr), tip: dyHourLabel(hr) });
+    }
+  } else if (periodType === 'week' || periodType === 'month') {
     for (const p of plays) { const k = localDateStr(tzDateOf(p)); counts[k] = (counts[k] || 0) + 1; }
     for (let d = new Date(start.getFullYear(), start.getMonth(), start.getDate()); d <= end; d.setDate(d.getDate() + 1)) {
       const k = localDateStr(d);
@@ -13162,17 +13178,27 @@ function shDaysHtml(periodType, start, end, plays, shareBtn = '') {
   if (!cells.length) return '';
   const max = Math.max(1, ...cells.map(c => c.n));
   let best = -1;
-  cells.forEach((c, i) => { if (c.n > 0 && (best < 0 || c.n > cells[best].n)) best = i; });
-  const head = { week: 'sh_days_day', month: 'sh_days_day', year: 'sh_days_month', alltime: 'sh_days_year' }[periodType];
+  // A tie goes to the later cell, the same day the Total Plays tile's
+  // "Best day" picks, so the two never name different days
+  cells.forEach((c, i) => { if (c.n > 0 && (best < 0 || c.n >= cells[best].n)) best = i; });
+  const head = { day: 'sh_days_hour', week: 'sh_days_day', month: 'sh_days_day', year: 'sh_days_month', alltime: 'sh_days_year' }[periodType];
   const body = cells.map((c, i) => {
     if (c.future) return `<div class="sh-day is-future" title="${esc(c.tip)}">${esc(c.label)}<small>·</small></div>`;
     // 12% for a quiet day up to the full accent for the busiest one
     const lv = c.n ? Math.round(12 + 88 * c.n / max) : 0;
     const cls = 'sh-day' + (lv >= 55 ? ' is-hi' : '') + (i === best ? ' is-best' : '') + (c.n ? '' : ' is-zero');
     const tip = t('sh_day_tip', { date: c.tip, n: c.n.toLocaleString() });
-    return `<button type="button" class="${cls}" style="--lv:${lv}%" title="${esc(tip)}" onclick="shGoTo('${c.go[0]}','${c.go[1]}')">${esc(c.label)}<small>${c.n.toLocaleString()}</small></button>`;
+    // The best hour / day / month / year wears a gold "★ BEST" tag on top
+    // (2026-10-20: the user wanted it clearly marked as the best)
+    const tag = i === best ? `<span class="sh-day-tag">★ ${esc(t('badge_plays_peak_short'))}</span>` : '';
+    // An hour on Daily has nowhere to go, so it is a plain cell
+    if (!c.go) return `<div class="${cls} is-static" style="--lv:${lv}%" title="${esc(tip)}">${tag}${esc(c.label)}<small>${c.n.toLocaleString()}</small></div>`;
+    return `<button type="button" class="${cls}" style="--lv:${lv}%" title="${esc(tip)}" onclick="shGoTo('${c.go[0]}','${c.go[1]}')">${tag}${esc(c.label)}<small>${c.n.toLocaleString()}</small></button>`;
   }).join('');
-  return `<div class="sh-days-head"><span>${esc(t(head))}</span>${shareBtn}</div>
+  // …and is named in the heading too: "★ Best: Friday · 16 Oct 2026 · 99 plays"
+  const bestLine = best >= 0
+    ? `<span class="sh-days-best">${esc(t('sh_days_best', { when: cells[best].tip, n: cells[best].n.toLocaleString() }))}</span>` : '';
+  return `<div class="sh-days-head"><span>${esc(t(head))}</span>${bestLine}${shareBtn}</div>
     <div class="sh-days-grid sh-days-${periodType}" style="--n:${cells.length}">${body}</div>`;
 }
 
@@ -13207,7 +13233,9 @@ function renderStatsHero(ctx) {
   const top = document.getElementById('statsHeroTop');
   const days = document.getElementById('statsHeroDays');
   if (!hero || !bg || !top || !days) return;
-  const { period, offset, plays, start, end, cutoffKey, tally, peakStats, peakAtTimeStats, usual } = ctx;
+  // agg / timed come from Daily only: its own per-day index for the
+  // headline, and whether the library has times of day for plays by hour
+  const { period, offset, plays, start, end, cutoffKey, tally, peakStats, peakAtTimeStats, usual, agg, timed } = ctx;
   if (!plays.length) {
     hero.classList.remove('sh-on');
     bg.innerHTML = top.innerHTML = days.innerHTML = '';
@@ -13224,9 +13252,10 @@ function renderStatsHero(ctx) {
     bg.innerHTML = `<div class="sh-photo" id="sh-photo"><span class="thumb-initials"></span></div>`;
     fetchAndInjectImage(document.getElementById('sh-photo'), { imgId: 'sh-photo', name: lead.name, prefKey: 'artist:' + lead.name.toLowerCase() }, 'artist');
   } else {
-    // 24 cells so the grid fills the banner at every width; the top 12
-    // covers repeat when there are fewer of them than cells
-    const covers = tally.albumList.slice(0, 12);
+    // 24 cells so the grid fills the banner at every width; the top 18
+    // covers (three full rows of 6 on a computer, user's pick 2026-10-20)
+    // repeat when there are fewer of them than cells
+    const covers = tally.albumList.slice(0, 18);
     if (covers.length) {
       bg.innerHTML = `<div class="sh-mosaic">${Array.from({ length: 24 }, (_, i) => `<span class="sh-mos-cell" id="sh-mos-${i}"></span>`).join('')}</div>`;
       covers.forEach((b, i) => {
@@ -13253,8 +13282,8 @@ function renderStatsHero(ctx) {
   if (finished) {
     sub = share;
     headline = shHeadline(period, cutoffKey, plays.length,
-      peakStats ? peakStats.maxPlays : null, peakAtTimeStats ? peakAtTimeStats.maxPlays : null, usual ? usual.plays : null);
-  } else if (period !== 'alltime') {
+      peakStats ? peakStats.maxPlays : null, peakAtTimeStats ? peakAtTimeStats.maxPlays : null, usual ? usual.plays : null, agg);
+  } else if (period !== 'alltime' && period !== 'day') {
     // How far into the period we are
     const now = tzNow();
     // end is 23:59:59.999 of the last day, so ceil gives the day count
@@ -13273,7 +13302,7 @@ function renderStatsHero(ctx) {
       <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span>${esc(t('sh_share'))}</span>
     </button>`;
-  days.innerHTML = shDaysHtml(period, start, end, plays, shareBtn);
+  days.innerHTML = shDaysHtml(period, start, end, plays, shareBtn, timed !== false);
 }
 
 // Share: the banner as a picture. Phones get the share sheet, computers a
@@ -14418,10 +14447,10 @@ function renderAll() {
     };
   }
 
-  // Stats banner (2026-10-20): your usual period for the bars' tick, and the
-  // period's top songs / artists / albums for the pictures on the tiles
+  // Stats banner (2026-10-20): your usual period (for the headline's "more /
+  // fewer than your usual week"; the bars' tick is the record, peakStats),
+  // and the period's top songs / artists / albums for the tile pictures
   const _usual = cutoffKey ? shUsualStats(currentPeriod, cutoffKey) : null;
-  const _uv = f => (_usual && _usual.n ? _usual[f] : null);
   const _tally = shTally(plays, currentPeriod === 'alltime' ? null : start);
   // Songs: the songs heard for the first time this period, as covers; a
   // period with none (and All-Time) shows its top 3 instead
@@ -14431,13 +14460,13 @@ function renderAll() {
 
   document.getElementById('statsStrip').innerHTML =
     statBox(plays.length,   'stat_total_plays',  prevPlays     ? prevPlays.length     : null, peakStats ? peakStats.maxPlays   : null, peakAtTimeStats ? peakAtTimeStats.maxPlays   : null, { scrollTo: 'songsSection',   emoji: '🎵', cat: 'plays',   extraLabel: playsPerDay ? playsPerDay + t('stat_per_day') : null, extraLine: _hl?.bestDayLine,
-      barsHtml: shBarsHtml(plays.length, prevPlays ? prevPlays.length : null, _uv('plays')) }) +
+      barsHtml: shBarsHtml(plays.length, prevPlays ? prevPlays.length : null, peakStats ? peakStats.maxPlays : null) }) +
     statBox(songSet.size,   'stat_unique_songs',  prevSongSet   ? prevSongSet.size     : null, peakStats ? peakStats.maxSongs   : null, peakAtTimeStats ? peakAtTimeStats.maxSongs   : null, { scrollTo: 'songsSection',   emoji: '🎶', cat: 'songs',   extraLabel: !_hl && discoveryRate !== null ? discoveryRate + t('stat_pct_new') : null, extraLine: _hl?.songs,
-      barsHtml: shBarsHtml(songSet.size, prevSongSet ? prevSongSet.size : null, _uv('songs')), facesHtml: shFacesHtml('songs', _faces.songs, _songsTip) }) +
+      barsHtml: shBarsHtml(songSet.size, prevSongSet ? prevSongSet.size : null, peakStats ? peakStats.maxSongs : null), facesHtml: shFacesHtml('songs', _faces.songs, _songsTip) }) +
     statBox(artistSet.size, 'stat_artists',       prevArtistSet ? prevArtistSet.size   : null, peakStats ? peakStats.maxArtists : null, peakAtTimeStats ? peakAtTimeStats.maxArtists : null, { scrollTo: 'artistsSection', emoji: '🎤', cat: 'artists', extraLine: _hl?.artists,
-      barsHtml: shBarsHtml(artistSet.size, prevArtistSet ? prevArtistSet.size : null, _uv('artists')), facesHtml: shFacesHtml('artists', _faces.artists, t('sh_faces_top_artists')) }) +
+      barsHtml: shBarsHtml(artistSet.size, prevArtistSet ? prevArtistSet.size : null, peakStats ? peakStats.maxArtists : null), facesHtml: shFacesHtml('artists', _faces.artists, t('sh_faces_top_artists')) }) +
     statBox(albumSet.size,  'stat_albums',        prevAlbumSet  ? prevAlbumSet.size    : null, peakStats ? peakStats.maxAlbums  : null, peakAtTimeStats ? peakAtTimeStats.maxAlbums  : null, { scrollTo: 'albumsSection',  emoji: '💿', cat: 'albums',  extraLine: _hl?.albums,
-      barsHtml: shBarsHtml(albumSet.size, prevAlbumSet ? prevAlbumSet.size : null, _uv('albums')), facesHtml: shFacesHtml('albums', _faces.albums, t('sh_faces_top_albums')) });
+      barsHtml: shBarsHtml(albumSet.size, prevAlbumSet ? prevAlbumSet.size : null, peakStats ? peakStats.maxAlbums : null), facesHtml: shFacesHtml('albums', _faces.albums, t('sh_faces_top_albums')) });
   // Slow count-up for the four totals (the user asked for it to be slow)
   animateStatStrip(document.getElementById('statsStrip'), 1600);
   shLoadFaces(_faces);
