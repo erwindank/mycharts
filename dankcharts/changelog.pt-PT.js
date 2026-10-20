@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "A smaller plays peak tag in the Table":
+    ["Uma etiqueta de pico de plays mais pequena na Tabela",
+     "No esquema Tabela, a etiqueta ▲ PICO DE PLAYS por baixo dos plays tem agora o mesmo tamanho das etiquetas de Pico ao lado do título, em vez de uma pastilha grande. Quando a coluna de Plays fica estreita demais para as palavras, mostra o curto ▲ PICO em vez de ficar cortada."],
+
   "Rank and Move headers stay over their columns":
     ["Os cabeçalhos Posição e Variação ficam sobre as suas colunas",
      "No esquema Tabela, as colunas Posição e Variação podiam ser arrastadas até ficarem mais estreitas do que o próprio cabeçalho, por isso o cabeçalho saía para a direita e deixava de ficar sobre os números. Agora uma coluna para na largura do seu cabeçalho no seu idioma, e as larguras guardadas mais estreitas são alargadas até caber."],

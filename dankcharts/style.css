@@ -9209,6 +9209,17 @@
       text-align: center;
     }
 
+    /* In the Table: the size of the Peak tags by the title (it was a much
+       fatter pill), and never wider than the Plays column, which cut it off */
+    .chart-table .plays-peak-badge {
+      padding: 1px var(--sp-2);
+      line-height: 1.4;
+      margin-top: 3px;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
     /* Outside the Table (Card grid, Compact, Mosaic, Filmstrip, Stack) the
        personal-best badge sits in a line of other badges: inline, peak-tag
        sized, no centring margin. (Phase 7 step 4.) */
@@ -40534,3 +40545,20 @@ html body:not(.albums-hide-bu-legend)  #buAlbumsSection.bu-legend-open .bu-legen
 /* Rank and Move headers: slim side padding, so the narrowest a drag can make
    them (their label, _colwMinFor in app.js) stays close to the numbers */
 :is(#songsTable, #artistsTable, #albumsTable) thead th:is([data-col="rank"], [data-col="move"]) { padding-left: 4px; padding-right: 4px; }
+
+/* Plays peak tag in the Table: .ppb-box (playsPeakBadge(true)) is a container
+   as wide as the Plays cell. When a dragged column leaves less room than the
+   full words need ("▲ PLAYS PEAK" ≈ 98px, "▲ PICO DE PLAYS" ≈ 114px), the
+   short label shows (▲ PB / ▲ PICO) instead of a cut-off one. Spanish uses
+   the short one at every width already, and phones do in every language. */
+/* Desktop only: phones show the short label anyway, and there the container
+   (which leaves the tag out of the column's sizing) squeezed the column */
+@media (min-width: 601px) { .chart-table .ppb-box { container-type: inline-size; } }
+@container (max-width: 100px) {
+  .plays-peak-badge .ppb-full { display: none; }
+  .plays-peak-badge .ppb-short { display: inline; }
+}
+@container (max-width: 116px) {
+  html[lang^="pt"] .plays-peak-badge .ppb-full { display: none; }
+  html[lang^="pt"] .plays-peak-badge .ppb-short { display: inline; }
+}

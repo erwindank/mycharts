@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 219;
+const DC_CL_I18N_V = 220;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-20', t: 'design', a: 'charts',
+    title: "A smaller plays peak tag in the Table",
+    detail: "In the Table layout the ▲ PLAYS PEAK tag under the play count is now the same size as the Peak tags beside the title, instead of a big pill. When the Plays column is made too narrow for the words, it shows the short ▲ PB instead of being cut off." },
 
   { d: '2026-10-20', t: 'fix', a: 'charts',
     title: "Rank and Move headers stay over their columns",

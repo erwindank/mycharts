@@ -14974,7 +14974,7 @@ function renderPage(type, peaks) {
         ${ms ? mMthsCell(k, 'songs', ms) : ''}
         <td>
           <div class="play-count">${tCountHtml('plays', s.count)}${ms ? deltaInline(s.count, k, 'songs', ms) : ''}</div>
-          ${isPlaysPeak ? playsPeakBadge() : ''}
+          ${isPlaysPeak ? playsPeakBadge(true) : ''}
         </td>
         <td class="cr-cell">${_eaBtns(true, true)}${hasCR ? `<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_song')}" onclick="event.stopPropagation();_drToggle(this.closest('tr'))">${CR_ICON}</button>` : ''}</td>
       </tr>`;
@@ -15008,7 +15008,7 @@ function renderPage(type, peaks) {
         ${ms ? mMthsCell(a.name, 'artists', ms) : ''}
         <td>
           <div class="play-count">${tCountHtml('plays', a.count)}${ms ? deltaInline(a.count, a.name, 'artists', ms) : ''}</div>
-          ${isArtistPlaysPeak ? playsPeakBadge() : ''}
+          ${isArtistPlaysPeak ? playsPeakBadge(true) : ''}
         </td>
         <td class="cr-cell">${_eaBtns(true, true)}${hasCR ? `<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_artist')}" onclick="event.stopPropagation();_drToggle(this.closest('tr'))">${CR_ICON}</button>` : ''}</td>
       </tr>`;
@@ -15050,7 +15050,7 @@ function renderPage(type, peaks) {
         ${ms ? mMthsCell(ak, 'albums', ms) : ''}
         <td>
           <div class="play-count">${tCountHtml('plays', a.count)}${ms ? deltaInline(a.count, ak, 'albums', ms) : ''}</div>
-          ${isAlbumPlaysPeak ? playsPeakBadge() : ''}
+          ${isAlbumPlaysPeak ? playsPeakBadge(true) : ''}
         </td>
         <td class="cr-cell">${_eaBtns(true, true)}${hasCR ? `<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_album')}" onclick="event.stopPropagation();_drToggle(this.closest('tr'))">${CR_ICON}</button>` : ''}</td>
       </tr>`;
@@ -17604,9 +17604,12 @@ function buildPeriodPeaks(period) {
 // Full label everywhere; the chart table swaps in the short one on phones
 // (.ppb-short), where "PLAYS PEAK" was wider than the play count above it.
 // The title keeps the full words for a long-press / hover.
-function playsPeakBadge() {
+// inTable: wrapped in .ppb-box, a container the size of the Plays cell, so a
+// column made narrow by dragging shows the short label instead of a cut one
+function playsPeakBadge(inTable) {
   const full = t('badge_plays_peak');
-  return `<span class="plays-peak-badge" title="${esc(full)}">▲ <span class="ppb-full">${full}</span><span class="ppb-short">${t('badge_plays_peak_short')}</span></span>`;
+  const tag = `<span class="plays-peak-badge" title="${esc(full)}">▲ <span class="ppb-full">${full}</span><span class="ppb-short">${t('badge_plays_peak_short')}</span></span>`;
+  return inTable ? `<div class="ppb-box">${tag}</div>` : tag;
 }
 
 // Cumulative plays per song/album up to endDate (for period cert badges).
@@ -17771,7 +17774,7 @@ function renderSongs(plays, peaks, monthlyStats) {
       ${monthlyStats ? mMthsCell(k, 'songs', monthlyStats) : ''}
       <td>
         <div class="play-count">${tCountHtml('plays', s.count)}${f.deltaHtml}</div>
-        ${f.isPlaysPeak ? playsPeakBadge() : ''}
+        ${f.isPlaysPeak ? playsPeakBadge(true) : ''}
       </td>
       <td class="cr-cell">${_eaBtns(true, true)}<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_song')}" onclick="event.stopPropagation();_drToggle(this.closest('tr'))">${CR_ICON}</button></td>
     </tr>`;
@@ -17892,7 +17895,7 @@ function renderArtists(plays, peaks, monthlyStats) {
       <td>
         <div class="play-count">${tCountHtml('plays', data.count)}${f.deltaHtml}</div>
         ${/* under the bar, same as the songs chart — it used to sit above the count here */ ''}
-        ${f.isPlaysPeak ? playsPeakBadge() : ''}
+        ${f.isPlaysPeak ? playsPeakBadge(true) : ''}
       </td>
       <td class="cr-cell">${_eaBtns(true, true)}<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_artist')}" onclick="event.stopPropagation();_drToggle(this.closest('tr'))">${CR_ICON}</button></td>
     </tr>`;
@@ -18032,7 +18035,7 @@ function renderAlbums(plays, peaks, monthlyStats) {
       <td>
         <div class="play-count">${tCountHtml('plays', count)}${f.deltaHtml}</div>
         ${/* under the bar, same as the songs chart — it used to sit above the count here */ ''}
-        ${f.isPlaysPeak ? playsPeakBadge() : ''}
+        ${f.isPlaysPeak ? playsPeakBadge(true) : ''}
       </td>
       <td class="cr-cell">${_eaBtns(true, true)}<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_album')}" onclick="event.stopPropagation();_drToggle(this.closest('tr'))">${CR_ICON}</button></td>
     </tr>`;

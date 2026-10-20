@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "A smaller plays peak tag in the Table":
+    ["Una etiqueta de récord de reproducciones más pequeña en la Tabla",
+     "En el diseño Tabla, la etiqueta ▲ MÁX debajo de las reproducciones ahora tiene el mismo tamaño que las etiquetas de Logro junto al título, en lugar de una pastilla grande, y ya no se corta cuando la columna de Escuchas es estrecha."],
+
   "Rank and Move headers stay over their columns":
     ["Los encabezados Puesto y Cambio quedan sobre sus columnas",
      "En el diseño Tabla, las columnas Puesto y Cambio se podían arrastrar hasta quedar más estrechas que su propio encabezado, así que el encabezado se salía hacia la derecha y ya no quedaba sobre los números. Ahora una columna se detiene en el ancho de su encabezado en tu idioma, y los anchos guardados más estrechos se ensanchan hasta que quepa."],
