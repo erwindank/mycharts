@@ -6495,29 +6495,49 @@
       box-shadow: var(--shadow-2);
     }
 
+    /* Record tags (2026-10-20, idea 11 of the stats-banner ideas): a filled
+       tag sitting on the tile's top edge, and a ring round the tile. Gold for
+       an all-time peak, silver for a peak at the time. The ring is a real
+       border, not a box-shadow, so the Share picture (html2canvas) draws it. */
     .stat-peak-badge {
-      display: inline-block;
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 2;
+      white-space: nowrap;
       font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      border-radius: 3px;
-      padding: 0.1rem 0.38rem;
-      margin-top: 0.3rem;
+      font-size: 0.66rem;
+      font-weight: 700;
+      line-height: 1;
+      border-radius: var(--r-full);
+      padding: 0.3rem 0.6rem;
+      box-shadow: var(--shadow-1);
     }
     .stat-peak-badge-alltime {
-      color: var(--gold1);
-      border: 1px solid var(--gold1);
-      animation: peakPulse 2.4s ease-in-out infinite;
+      color: var(--bg2);
+      background: var(--gold1);
     }
     .stat-peak-badge-attime {
-      color: var(--accent2);
-      border: 1px solid var(--accent2);
+      color: var(--bg2);
+      background: var(--text2);
     }
-    @keyframes peakPulse {
-      0%, 100% { opacity: 1; }
-      50%       { opacity: 0.55; }
+    .stat-box.stat-peak-alltime,
+    .stat-box.stat-peak-attime {
+      /* 2px ring; the padding loses the extra 1px so the tile keeps its size */
+      border-width: 2px;
+      padding: calc(0.9rem - 1px) calc(var(--sp-4) - 1px) calc(0.95rem - 1px);
     }
-    .stat-peak-alltime { box-shadow: inset 0 3px 0 var(--gold1); }
-    .stat-peak-attime  { box-shadow: inset 0 3px 0 var(--accent2); }
+    .stat-box.stat-peak-alltime {
+      border-color: var(--gold1);
+      background:
+        linear-gradient(180deg, color-mix(in srgb, var(--gold1) 13%, var(--bg2)), var(--bg2) 55%);
+    }
+    .stat-box.stat-peak-attime {
+      border-color: color-mix(in srgb, var(--text2) 70%, transparent);
+      background:
+        linear-gradient(180deg, color-mix(in srgb, var(--text2) 9%, var(--bg2)), var(--bg2) 55%);
+    }
 
     /* Change vs. previous period — a soft tinted pill so the up/down reads at
        a glance without competing with the big number above it */
@@ -40758,4 +40778,379 @@ html[lang="en"] .plays-peak-badge .ppb-short { display: inline; }
   }
   .chart-table .song-tags > .cert-diamond .cert-short,
   .wv-compact .wv-cx-badges > .cert-diamond .cert-short { font-size: 12px; }
+}
+
+/* ===========================================================================
+   STATS BANNER (2026-10-20) — renderStatsHero in app.js, #statsHero in
+   index.html. The four period tiles sit inside a banner like the Records
+   one: the #1 artist's photo behind a finished period, a mosaic of the top
+   covers behind the period still running (same size), the artist line and
+   headline above the tiles, plays by day under them, and a Share button.
+   The tiles themselves keep their look (centred, coloured numbers); they
+   gain two small bars and their pictures here.
+   =========================================================================== */
+.sh-hero { position: relative; }
+.sh-hero.sh-on {
+  overflow: hidden;
+  background: var(--bg2);
+  border: 1px solid var(--border-t);
+  border-radius: 20px;
+  box-shadow: var(--shadow-1);
+  /* the top padding leaves the face / covers clear above the name */
+  padding: 150px var(--sp-4) var(--sp-4);
+}
+@media (min-width: 640px) {
+  .sh-hero.sh-on { padding: 190px var(--sp-5) var(--sp-5); }
+}
+/* Only the chart tabs show the banner at all (the other tabs hide
+   #statsStrip themselves, but not the picture and lines around it) */
+body:not([data-view="day"]):not([data-view="week"]):not([data-view="month"]):not([data-view="year"]):not([data-view="alltime"]) .sh-hero { display: none; }
+/* Daily keeps its own tiles only; other tabs never show the banner bits */
+.sh-hero:not(.sh-on) > .sh-bg,
+.sh-hero:not(.sh-on) > .sh-top,
+.sh-hero:not(.sh-on) > .sh-days,
+body[data-view="day"] .sh-hero > .sh-bg,
+body[data-view="day"] .sh-hero > .sh-top,
+body[data-view="day"] .sh-hero > .sh-days { display: none; }
+body[data-view="day"] .sh-hero.sh-on {
+  overflow: visible; background: none; border: 0; border-radius: 0; box-shadow: none; padding: 0;
+}
+
+/* Background: what the plate looks like before a picture lands, and on
+   an artist with no photo — a tint like the Records banner's */
+.sh-bg {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 400px;
+  overflow: hidden;
+  background-color: color-mix(in srgb, var(--accent) 12%, var(--bg2));
+  background-image: radial-gradient(ellipse 90% 100% at 50% 0%, color-mix(in srgb, var(--accent) 20%, transparent) 0%, transparent 70%);
+}
+@media (min-width: 640px) { .sh-bg { height: 460px; } }
+/* Clear over the face / covers, solid card colour by the tiles. One
+   full-size layer (a partial one leaves a hairline in html2canvas). */
+.sh-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg,
+    transparent 0%,
+    transparent 30%,
+    color-mix(in srgb, var(--bg2) 70%, transparent) 55%,
+    color-mix(in srgb, var(--bg2) 94%, transparent) 76%,
+    var(--bg2) 100%);
+}
+.sh-photo { position: absolute; inset: 0; }
+.sh-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 26%; /* faces usually sit in the top third */
+  display: block;
+}
+.sh-photo .thumb-initials { display: none; }
+
+/* The cover mosaic: square cells, as many rows as fit; a soft blur so the
+   covers read as a backdrop, not as things to tap */
+.sh-mosaic {
+  position: absolute;
+  inset: -8px;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  align-content: start;
+  filter: blur(3px) saturate(1.15);
+  opacity: 0.9;
+}
+@media (max-width: 640px) { .sh-mosaic { grid-template-columns: repeat(4, 1fr); } }
+.sh-mos-cell { aspect-ratio: 1; overflow: hidden; background: var(--bg3); }
+.sh-mos-cell img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.sh-mos-cell .thumb-initials { display: none; }
+/* the covers are busier than a face, so the running period's fade starts sooner */
+.sh-hero:not(.sh-finished) .sh-bg::after {
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--bg2) 15%, transparent) 0%,
+    color-mix(in srgb, var(--bg2) 45%, transparent) 30%,
+    color-mix(in srgb, var(--bg2) 82%, transparent) 55%,
+    var(--bg2) 78%);
+}
+
+/* Artist line + headline, centred like the Records banner */
+.sh-top {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  margin-bottom: var(--sp-5);
+}
+.sh-eyebrow {
+  font-family: var(--font-sans);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  color: var(--gold1);
+  margin-bottom: 0.45rem;
+  text-shadow: 0 1px 8px color-mix(in srgb, var(--bg2) 80%, transparent);
+}
+.sh-name {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 7vw, 3.4rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  color: var(--text);
+  text-wrap: balance;
+  margin-bottom: 0.4rem;
+  text-shadow: 0 2px 16px color-mix(in srgb, var(--bg2) 90%, transparent);
+}
+.sh-sub {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--fs-sm);
+  color: var(--text2);
+  text-shadow: 0 1px 8px color-mix(in srgb, var(--bg2) 80%, transparent);
+}
+.sh-headline {
+  margin: var(--sp-4) auto 0;
+  max-width: 34ch;
+  font-family: var(--font-display);
+  font-size: clamp(1.1rem, 2.6vw, 1.45rem);
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--text);
+  text-wrap: balance;
+}
+.sh-headline em { font-style: normal; color: var(--accent); }
+body.red .sh-headline em, body.pink .sh-headline em, body.purple .sh-headline em { color: #58aaf6; }
+body.red-light .sh-headline em, body.pink-light .sh-headline em, body.purple-light .sh-headline em { color: #0852a8; }
+
+/* Share: a small button at the right end of the plays-by-day heading (the
+   banner's top corner sits under the sticky date bar most of the time) */
+.sh-share {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.35rem 0.75rem;
+  font-family: var(--font-sans);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--text);
+  background: color-mix(in srgb, var(--bg2) 72%, transparent);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border-t);
+  border-radius: var(--r-full);
+  cursor: pointer;
+}
+.sh-share:hover { background: var(--bg2); border-color: var(--accent); }
+.sh-share:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* The tiles ride over the fade */
+.sh-hero.sh-on #statsStrip { position: relative; z-index: 1; }
+/* sub-stats sit at the bottom of every tile, so the dividers line up even
+   though Total Plays has no pictures */
+.sh-hero.sh-on .stat-box .stat-sub { margin-top: auto; }
+.sh-hero.sh-on .stat-box .sh-faces,
+.sh-hero.sh-on .stat-box .sh-usual-cap { margin-bottom: var(--sp-3); }
+
+/* Two small bars: this period, the last one; the tick is your usual */
+.sh-bars {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: 6px;
+  row-gap: 4px;
+  width: 100%;
+  max-width: 160px;
+  margin: 0.65rem auto 0;
+  position: relative;
+}
+/* Every cell placed by hand: the tick spans both rows of the bar column,
+   and left to auto-placement it pushed the "Now" bar out of its row */
+.sh-bars > :nth-child(1) { grid-area: 1 / 1; }
+.sh-bars > :nth-child(2) { grid-area: 1 / 2; }
+.sh-bars > :nth-child(3) { grid-area: 2 / 1; }
+.sh-bars > :nth-child(4) { grid-area: 2 / 2; }
+.sh-bar-k {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--text3);
+  text-align: right;
+  line-height: 1;
+}
+.sh-bar-track {
+  display: block;
+  height: 6px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--text3) 16%, transparent);
+  overflow: hidden;
+}
+.sh-bar-track i {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  transform-origin: left center;
+  animation: shBarGrow 1.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.sh-bar-now { background: var(--cat-color, var(--accent)); }
+.sh-bar-was { background: color-mix(in srgb, var(--cat-color, var(--accent)) 40%, var(--text3)); opacity: 0.55; }
+.sh-bars > .sh-usual {
+  grid-area: 1 / 2 / 3 / 3;
+  align-self: stretch;
+  position: relative;
+  pointer-events: none;
+}
+.sh-usual b {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  margin-left: -1px;
+  border-radius: 1px;
+  background: var(--text);
+  opacity: 0.75;
+}
+.sh-usual-cap {
+  margin-top: 4px;
+  font-family: var(--font-sans);
+  font-size: 0.66rem;
+  color: var(--text3);
+}
+@keyframes shBarGrow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+/* Pictures on the tiles: Songs a row of covers (the new ones), Artists
+   overlapping round photos, Albums three covers fanned like cards */
+.sh-faces {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 0.7rem;
+  min-height: 30px;
+}
+.sh-face {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: 5px;
+  background: var(--bg3);
+  display: grid;
+  place-items: center;
+}
+.sh-face img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.sh-face .thumb-initials {
+  width: 100%; height: 100%; border: 0; border-radius: 0;
+  font-size: 0.55rem;
+}
+.sh-faces-songs { gap: 4px; }
+.sh-faces-artists .sh-face {
+  border-radius: 50%;
+  border: 2px solid var(--bg2);
+  width: 30px;
+  height: 30px;
+  margin-left: -9px;
+}
+.sh-faces-artists .sh-face:first-child { margin-left: 0; }
+.sh-faces-albums { position: relative; height: 42px; width: 96px; margin-left: auto; margin-right: auto; }
+.sh-faces-albums .sh-face {
+  position: absolute;
+  top: 3px;
+  left: 50%;
+  width: 36px;
+  height: 36px;
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.28);
+}
+.sh-faces-albums .sh-face:nth-child(1) { transform: translateX(-90%) rotate(-12deg); }
+.sh-faces-albums .sh-face:nth-child(2) { transform: translateX(-50%); z-index: 2; top: 0; }
+.sh-faces-albums .sh-face:nth-child(3) { transform: translateX(-10%) rotate(12deg); }
+/* a single album: no fan, just centred */
+.sh-faces-albums .sh-face:only-child { transform: translateX(-50%); }
+
+/* Plays by day (or month / year) under the tiles */
+.sh-days {
+  position: relative;
+  z-index: 1;
+  margin-top: var(--sp-4);
+}
+.sh-days:empty { display: none; }
+.sh-days-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text3);
+  margin-bottom: 6px;
+}
+.sh-days-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+  gap: 4px;
+}
+.sh-day {
+  min-width: 0;
+  padding: 6px 1px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: color-mix(in srgb, var(--accent) var(--lv, 0%), var(--bg3));
+  color: var(--text2);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 600;
+  line-height: 1.15;
+  text-align: center;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform var(--t-fast) var(--ease);
+}
+.sh-day small { display: block; font-size: 0.6rem; font-weight: 500; opacity: 0.85; }
+.sh-day.is-hi { color: var(--on-accent); }
+.sh-day.is-zero { color: var(--text3); }
+.sh-day.is-best { border-color: var(--gold1); }
+.sh-day:hover { transform: translateY(-2px); }
+.sh-day:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.sh-day.is-future {
+  background: transparent;
+  border: 1px dashed var(--border-t);
+  color: var(--text3);
+  cursor: default;
+}
+.sh-day.is-future:hover { transform: none; }
+/* a month has ~30 cells: thinner, and on phones the counts go (they are
+   in each cell's tooltip) */
+.sh-days-month { gap: 3px; }
+.sh-days-month .sh-day { padding: 5px 0; }
+@media (max-width: 640px) {
+  .sh-days-month { gap: 2px; }
+  .sh-days-month .sh-day { font-size: 0.5rem; border-radius: 4px; }
+  .sh-days-month .sh-day small { display: none; }
+  .sh-days-alltime .sh-day { font-size: 0.52rem; }
+}
+
+/* Phones: the strips wrapper is a 2-column grid there and #statsStrip
+   normally dissolves into it (display:contents). Inside the banner the
+   tiles keep their own 2-column grid instead. */
+@media (max-width: 600px) {
+  .sh-hero { grid-column: 1 / -1; }
+  .sh-hero #statsStrip {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 10px;
+  }
+  .sh-hero.sh-on { padding: 130px 10px 12px; border-radius: 16px; }
+  .sh-bg { height: 360px; }
+  .sh-faces-songs .sh-face { width: 22px; height: 22px; }
+  .sh-faces-songs { gap: 3px; }
+  .sh-faces-artists .sh-face { width: 26px; height: 26px; margin-left: -8px; }
+  .sh-faces-artists .sh-face:first-child { margin-left: 0; }
+}
+
+/* Share picture (html2canvas): nothing moves */
+.sh-capture .sh-bar-track i { animation: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sh-bar-track i { animation: none; }
+  .sh-day { transition: none; }
 }

@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "A banner around the stats tiles":
+    ["Un banner alrededor de las estadísticas",
+     "Las cuatro tarjetas de estadísticas de Semanal, Mensual, Anual y De siempre ahora están dentro de un gran banner, como el de Récords. Una semana, mes o año ya terminado muestra la foto de su artista n.º 1 y una frase sobre cómo fue (\"tu semana más activa desde marzo\"); el que sigue en curso muestra un mosaico con sus portadas más escuchadas. Los números cuentan despacio, cada tarjeta tiene dos barras pequeñas (ahora y la vez anterior) con una marca para lo normal, y las imágenes de sus canciones nuevas, artistas y álbumes más escuchados. Las tarjetas con récord llevan un borde dorado si es un pico histórico o plateado si es un pico en su momento. Debajo, reproducciones por día: toca un día para abrirlo en Diario. Compartir guarda todo el banner como imagen. También se corrigió la cifra por día: una semana de 7 días se contaba como 8."],
+
   "New Artists icon":
     ["Nuevo icono de Artistas",
      "El botón Artistas sobre el gráfico y el título del gráfico de Artistas ahora muestran una persona con una nota musical en lugar de un micrófono, igual que los botones Canciones / Artistas / Álbumes de Récords."],
