@@ -1910,6 +1910,17 @@ animation, 12 screen check.
   `--bg2`, so an overlap is invisible. Same colours within 1–2 levels in
   all ten themes. (Headless Chromium snaps pixels differently and never
   showed the lines, so this was checked by measurement, not by eye.)
+  **That was not it: the lines stayed, and it hid the #1 numeral.** The
+  real cause: #1's gold ring was an inset box-shadow on every cell, and at
+  fractional cell widths an inset shadow leaves a faint sliver of ring
+  colour down each cell's sides (only #1 has the ring, so only #1 showed
+  it). The ring is real borders now (top / bottom on every cell, the outer
+  side on the end cells, rounded by their radius). And the solid tint, laid
+  over the numeral as an inset shadow, had covered the foil "1": the rank
+  cell now has two background layers, the foil gradient clipped to the
+  digits over the row tint (`background-clip: text, border-box`). Checked:
+  no cell shadows left, the numeral at full contrast, phone and computer,
+  light and dark. The solid medal tints stay.
   Checked: 1280 and 390, all 5 periods × 3 types (every tile square,
   nothing past its tile, no sideways scroll), search, real hover / flip /
   All details / × / ⋮ / Save (download checked), es phone, Navy light, no

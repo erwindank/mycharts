@@ -5928,22 +5928,22 @@
     }
 
     /* #1 also gets a hairline ring in gold so it lifts off the list like the
-       top slot on a chart-show lower third. Drawn as an inset shadow on each
-       cell (top/bottom on all, plus the outer side on the end cells) since a
-       <tr> can't take a rounded outline. */
+       top slot on a chart-show lower third. A <tr> can't take a rounded
+       outline, so the cells draw it: top and bottom borders on every cell,
+       the outer side on the end cells (their radius rounds it). It was an
+       inset box-shadow per cell, which at fractional cell widths left a faint
+       vertical sliver of ring colour at every column edge (2026-10-19). */
     .chart-table tbody tr.rank-1 > td {
-      box-shadow: inset 0 1px 0 color-mix(in srgb, var(--medal-gold) 30%, transparent),
-                  inset 0 -1px 0 color-mix(in srgb, var(--medal-gold) 30%, transparent);
+      border-top: 1px solid color-mix(in srgb, var(--medal-gold) 30%, var(--bg2));
+      border-bottom: 1px solid color-mix(in srgb, var(--medal-gold) 30%, var(--bg2));
     }
 
     .chart-table tbody tr.rank-1 > td:first-child {
-      box-shadow: inset 1px 1px 0 color-mix(in srgb, var(--medal-gold) 30%, transparent),
-                  inset 0 -1px 0 color-mix(in srgb, var(--medal-gold) 30%, transparent);
+      border-left: 1px solid color-mix(in srgb, var(--medal-gold) 30%, var(--bg2));
     }
 
     .chart-table tbody tr.rank-1 > td:last-child {
-      box-shadow: inset -1px 1px 0 color-mix(in srgb, var(--medal-gold) 30%, transparent),
-                  inset 0 -1px 0 color-mix(in srgb, var(--medal-gold) 30%, transparent);
+      border-right: 1px solid color-mix(in srgb, var(--medal-gold) 30%, var(--bg2));
     }
 
     .chart-table td {
@@ -5989,20 +5989,18 @@
     @supports ((-webkit-background-clip: text) or (background-clip: text)) {
       /* tbody tr … td.rank-cell: has to out-rank the row's td:first-child ring rule */
       .chart-table tbody tr.rank-1 > td.rank-cell {
-        background-image: linear-gradient(180deg,
-          color-mix(in srgb, var(--medal-gold) 65%, var(--text)) 15%,
-          var(--medal-gold) 60%);
-        -webkit-background-clip: text;
-        background-clip: text;
         -webkit-text-fill-color: transparent;
-        /* background-clip:text clips every background layer, which would
-           strip this cell's share of the row tint — so the tint is repainted
-           as a big inset shadow (shadows sit above the background, below the
-           text), alongside the gold ring lines from the row rule. */
+        /* Two layers: the foil gradient clipped to the digits, and under it
+           the row tint filling the cell (background-clip per layer). The
+           tint used to be a big inset shadow, which a solid colour turned
+           into a cover over the digits. */
         --r1-tint: color-mix(in srgb, var(--medal-gold) 11%, var(--bg2));
-        box-shadow: inset 1px 1px 0 color-mix(in srgb, var(--medal-gold) 30%, transparent),
-                    inset 0 -1px 0 color-mix(in srgb, var(--medal-gold) 30%, transparent),
-                    inset 0 0 0 200px var(--r1-tint);
+        background-image: linear-gradient(180deg,
+            color-mix(in srgb, var(--medal-gold) 65%, var(--text)) 15%,
+            var(--medal-gold) 60%),
+          linear-gradient(var(--r1-tint), var(--r1-tint));
+        -webkit-background-clip: text, border-box;
+        background-clip: text, border-box;
       }
       .chart-table tbody tr.rank-1:hover > td.rank-cell {
         --r1-tint: color-mix(in srgb, var(--medal-gold) 18%, var(--bg2));
