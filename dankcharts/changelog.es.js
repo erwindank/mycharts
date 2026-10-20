@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Bubbling Under and New Entries covers fill the row":
+    ["Las portadas de Aspirantes y Nuevas Entradas llenan la fila",
+     "Las portadas de Aspirantes y Nuevas Entradas ahora llenan su fila de arriba abajo y siguen siendo cuadradas, igual que en Fuera del Ranking, y las tres pestañas tienen filas de la misma altura. En el móvil la portada llena la parte de arriba de cada tarjeta, y la línea de etiquetas (Aspirantes) o la fila de cuadritos de los días (Nuevas Entradas) va en una franja debajo."],
+
   "Around the chart: shorter wording on phones, a working tag guide":
     ["Alrededor del ranking: textos más cortos en el móvil y una guía de etiquetas que funciona",
      "En el móvil, Aspirantes dice cuánto le falta a una canción para entrar al ranking en pocas palabras (\"faltan 2\"), así los nombres de canciones, álbumes y artistas ya no se cortan. La cápsula \"ⓘ Qué significan las etiquetas\" abre y cierra la lista de etiquetas con lo que significa cada una, algo que antes no hacía. Sigue el interruptor de leyenda de Aspirantes en ⋮ → Mostrar (apagado, la cápsula desaparece), y el interruptor de Descripciones ahora también oculta las líneas de descripción en Aspirantes, Fuera del Ranking y Nuevas Entradas."],

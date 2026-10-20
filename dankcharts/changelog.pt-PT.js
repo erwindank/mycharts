@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Bubbling Under and New Entries covers fill the row":
+    ["As capas dos Aspirantes e das Novas Entradas preenchem a linha",
+     "As capas dos Aspirantes e das Novas Entradas agora preenchem a linha de cima a baixo e continuam quadradas, como em Fora do Top, e os três separadores têm linhas da mesma altura. No telemóvel a capa preenche a parte de cima de cada cartão, e a linha de etiquetas (Aspirantes) ou a fila de quadradinhos dos dias (Novas Entradas) fica numa faixa por baixo."],
+
   "Around the chart: shorter wording on phones, a working tag guide":
     ["À volta da tabela: textos mais curtos no telemóvel e um guia de etiquetas que funciona",
      "No telemóvel, os Aspirantes dizem quanto falta para uma música entrar na tabela em poucas palavras (\"faltam 2\"), por isso os nomes de músicas, álbuns e artistas já não ficam cortados. A cápsula \"ⓘ O que as etiquetas significam\" abre e fecha a lista de etiquetas com o significado de cada uma, o que antes não fazia. Segue o interruptor de legenda dos Aspirantes em ⋮ → Mostrar (desligado, a cápsula desaparece), e o interruptor de Descrições agora também esconde as linhas de descrição nos Aspirantes, Fora da Tabela e Novas Entradas."],

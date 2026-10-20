@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 216;
+const DC_CL_I18N_V = 217;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-20', t: 'design', a: 'charts',
+    title: "Bubbling Under and New Entries covers fill the row",
+    detail: "Covers in Bubbling Under and New Entries now fill their row from top to bottom and stay square, the same as in Off the Chart, and the three tabs have rows of the same height. On phones the cover fills the top of each card, and the tag line (Bubbling Under) or the row of day squares (New Entries) sits in a strip under it." },
 
   { d: '2026-10-20', t: 'fix', a: 'charts',
     title: "Around the chart: shorter wording on phones, a working tag guide",

@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Bubbling Under and New Entries covers fill the row":
+    ["As capas dos Aspirantes e das Novas Entradas preenchem a linha",
+     "As capas dos Aspirantes e das Novas Entradas agora preenchem a linha de cima a baixo e continuam quadradas, como em Fora da Parada, e as três abas têm linhas da mesma altura. No celular a capa preenche a parte de cima de cada cartão, e a linha de etiquetas (Aspirantes) ou a fileira de quadradinhos dos dias (Novas Entradas) fica numa faixa embaixo."],
+
   "Around the chart: shorter wording on phones, a working tag guide":
     ["Em volta da parada: textos mais curtos no celular e um guia de etiquetas que funciona",
      "No celular, os Aspirantes dizem quanto falta para uma música entrar na parada em poucas palavras (\"faltam 2\"), então os nomes de músicas, álbuns e artistas não são mais cortados. A cápsula \"ⓘ O que as etiquetas significam\" abre e fecha a lista de etiquetas com o que cada uma quer dizer, o que antes não fazia. Ela segue o botão de legenda dos Aspirantes em ⋮ → Mostrar (desligado, a cápsula some), e o botão de Descrições agora também esconde as linhas de descrição nos Aspirantes, Fora da Parada e Novas Entradas."],
