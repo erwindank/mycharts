@@ -1,4 +1,4 @@
-﻿// Suppress html2canvas "willReadFrequently" warning by patching getContext
+// Suppress html2canvas "willReadFrequently" warning by patching getContext
 (function () {
   const _orig = HTMLCanvasElement.prototype.getContext;
   HTMLCanvasElement.prototype.getContext = function (type, attrs) {
@@ -126,6 +126,8 @@ function applySubChartToggles() {
       if (el) el.classList.toggle(cls, !subChartToggleState[type][sub]);
     }
   }
+  // The "Around the chart" box shows a tab for each sub-chart left visible
+  if (typeof atcSyncAll === 'function') atcSyncAll();
 }
 
 initSubChartToggles();
@@ -13008,6 +13010,8 @@ function animateModalCountup(containerEl) {
 function dcScrollTo(sectionId) {
   const el = document.getElementById(sectionId);
   if (!el) return;
+  // Bubbling Under / Off the Chart / New Entries are tabs of one box: open the tab
+  atcRevealSection(sectionId);
   // Only one of the Songs / Artists / Albums charts is shown at a time, so a
   // jump to an artist or album section (Artists tile, "Artist of the moment",
   // "+12 new"…) used to scroll to a hidden chart and do nothing. Switch the
@@ -13132,6 +13136,7 @@ function renderNewEntries(plays, start, end) {
     return;
   }
 
+  _neRange.start = start; _neRange.end = end;   // for the per-row strips (renderNewPage)
   const periodLabel = currentPeriod === 'day' ? t('period_this_day') : currentPeriod === 'week' ? t('period_this_week') : currentPeriod === 'month' ? t('period_this_month') : t('period_this_year');
 
   // Each section's own SIZE setting, not the (Songs-only) compat globals — otherwise
@@ -13158,15 +13163,25 @@ function renderNewEntries(plays, start, end) {
   if (!firstSeenMaps) firstSeenMaps = buildFirstSeenMaps();
   const { songFirst, artistFirst, albumFirst } = firstSeenMaps;
 
+  // Step 10: plays per day (week) / week (month) / month (year) for the small
+  // strip on each row; none on Daily. And whether the artist is new to you too.
+  const nb = _neBuckets(currentPeriod, start, end);
+  const periodKeyOf = _nePeriodKeyFn(currentPeriod);
+  const newDays = () => nb ? new Array(nb.n).fill(0) : null;
+  const tally = (o, p) => { if (nb) { const bi = nb.idx(p); if (bi >= 0 && bi < nb.n) o.days[bi]++; } };
+  const isNewArtist = a => { const f = a && artistFirst[a]; return !!(f && f >= start && f <= end); };
+
   // New songs
   const songCounts = {};
   for (const p of plays) {
     const sk = songKey(p);
     const first = songFirst[sk];
     if (first && first >= start && first <= end) {
-      if (!songCounts[sk]) songCounts[sk] = { title: p.title, artist: p.artist, count: 0, _albums: {}, firstAchieved: p.date };
+      if (!songCounts[sk]) songCounts[sk] = { title: p.title, artist: p.artist, count: 0, _albums: {}, firstAchieved: p.date,
+        days: newDays(), newArtist: isNewArtist(p.artists && p.artists[0]), pk: periodKeyOf(p) };
       songCounts[sk].count++;
       songCounts[sk]._albums[p.album] = (songCounts[sk]._albums[p.album] || 0) + 1;
+      tally(songCounts[sk], p);
     }
   }
   const allNewSongs = Object.values(songCounts).map(s => { s.album = bestAlbum(s.title, s._albums); delete s._albums; return s; })
@@ -13179,9 +13194,10 @@ function renderNewEntries(plays, start, end) {
     for (const artist of p.artists) {
       const first = artistFirst[artist];
       if (first && first >= start && first <= end) {
-        if (!artistCounts[artist]) artistCounts[artist] = { name: artist, count: 0, songs: new Set(), firstAchieved: p.date };
+        if (!artistCounts[artist]) artistCounts[artist] = { name: artist, count: 0, songs: new Set(), firstAchieved: p.date, days: newDays(), pk: periodKeyOf(p) };
         artistCounts[artist].count++;
         artistCounts[artist].songs.add(p.title);
+        tally(artistCounts[artist], p);
       }
     }
   }
@@ -13198,10 +13214,12 @@ function renderNewEntries(plays, start, end) {
     if (!(first && first >= start && first <= end)) return;
     if (!albumCounts[ak]) {
       const i = ak.lastIndexOf('|||');
-      albumCounts[ak] = { album: ak.slice(0, i), artist: ak.slice(i + 3), count: 0, tracks: new Set(), firstAchieved: p.date };
+      albumCounts[ak] = { album: ak.slice(0, i), artist: ak.slice(i + 3), count: 0, tracks: new Set(), firstAchieved: p.date,
+        days: newDays(), newArtist: isNewArtist(ak.slice(i + 3)), pk: periodKeyOf(p) };
     }
     albumCounts[ak].count++;
     albumCounts[ak].tracks.add(p.title);
+    tally(albumCounts[ak], p);
   };
   for (const p of plays) {
     if (!p.album || p.album === '—') continue;
@@ -13217,6 +13235,19 @@ function renderNewEntries(plays, start, end) {
 
   // Reset pages on each full data rebuild
   pageState.newSongs = 0; pageState.newArtists = 0; pageState.newAlbums = 0;
+
+  // Step 10: rank in the full list (kept when a filter chip hides rows), the
+  // chart / Bubbling Under spot it reached, and the big-debut note
+  _neDecorate('songs', fullNewData.newSongs);
+  _neDecorate('artists', fullNewData.newArtists);
+  _neDecorate('albums', fullNewData.newAlbums);
+  const neExtra = type => {
+    const list = fullNewData['new' + _atcUc(type)];
+    const charted = list.filter(o => o.chartRank).length;
+    const naArtists = type === 'artists' ? 0 : new Set(list.filter(o => o.newArtist).map(o => o.artist)).size;
+    return (charted ? ' · ' + t('ne_sum_charted', { n: charted }) : '')
+      + (naArtists ? ' · ' + t(naArtists === 1 ? 'ne_sum_new_artists_one' : 'ne_sum_new_artists_other', { n: naArtists }) : '');
+  };
 
   // Update section visibility and titles
   const songSec = document.getElementById('newSongsSection');
@@ -13234,7 +13265,7 @@ function renderNewEntries(plays, start, end) {
     songSec.style.display = songShown > 0 ? '' : 'none';
     const songType = (songShown !== 1 ? t('new_chart_songs') : t('new_chart_song')).toLowerCase();
     const songSuffix = songTotal > songShown ? t('new_chart_suffix_f', { n: songTotal, period: periodLower }) : '';
-    document.getElementById('newSongsSub').textContent = `${t('new_chart_intro_f', { n: songShown, type: songType, period: periodLower })}${songSuffix}`;
+    document.getElementById('newSongsSub').textContent = `${t('new_chart_intro_f', { n: songShown, type: songType, period: periodLower })}${songSuffix}${neExtra('songs')}`;
   }
   if (artistSec) {
     const artistShown = fullNewData.newArtists.length;
@@ -13242,7 +13273,7 @@ function renderNewEntries(plays, start, end) {
     artistSec.style.display = artistShown > 0 ? '' : 'none';
     const artistType = (artistShown !== 1 ? t('new_chart_artists') : t('new_chart_artist')).toLowerCase();
     const artistSuffix = artistTotal > artistShown ? t('new_chart_suffix', { n: artistTotal, period: periodLower }) : '';
-    document.getElementById('newArtistsSub').textContent = `${t('new_chart_intro', { n: artistShown, type: artistType, period: periodLower })}${artistSuffix}`;
+    document.getElementById('newArtistsSub').textContent = `${t('new_chart_intro', { n: artistShown, type: artistType, period: periodLower })}${artistSuffix}${neExtra('artists')}`;
   }
   if (albumSec) {
     const albumShown = fullNewData.newAlbums.length;
@@ -13254,7 +13285,7 @@ function renderNewEntries(plays, start, end) {
       ? albumBucketNoun(albumShown !== 1)
       : (albumShown !== 1 ? t('new_chart_albums') : t('new_chart_album'))).toLowerCase();
     const albumSuffix = albumTotal > albumShown ? t('new_chart_suffix', { n: albumTotal, period: periodLower }) : '';
-    document.getElementById('newAlbumsSub').textContent = `${t('new_chart_intro', { n: albumShown, type: albumType, period: periodLower })}${albumSuffix}`;
+    document.getElementById('newAlbumsSub').textContent = `${t('new_chart_intro', { n: albumShown, type: albumType, period: periodLower })}${albumSuffix}${neExtra('albums')}`;
   }
 
   renderNewPage('newSongs');
@@ -13262,12 +13293,163 @@ function renderNewEntries(plays, start, end) {
   renderNewPage('newAlbums');
 }
 
+// ─── NEW ENTRIES ROWS (phase 7 step 10) ─────────────────────────
+// The chart row (cover with ▶ / ✎, #1–#3 tints) plus: Debuted at #N or a
+// Bubbling Under spot, a New artist tag, a small strip of plays per day /
+// week / month, the big-debut note, and All / Made the chart / New artists chips.
+
+// Which filter chip is on, per list (this visit only)
+const _neFilter = { newSongs: 'all', newArtists: 'all', newAlbums: 'all' };
+// The period on screen, kept by renderNewEntries() for the strips
+const _neRange = { start: null, end: null };
+
+/* The strip's buckets for the period on screen: 7 days for a week, the weeks
+   of a month (days 1–7, 8–14…), 12 months for a year, none on Daily. Day
+   numbers are counted on the calendar, so a DST change can't shift a play. */
+function _neBuckets(period, start, end) {
+  if (!(start instanceof Date)) return null;
+  const s0 = Date.UTC(start.getFullYear(), start.getMonth(), start.getDate());
+  const dayIdx = p => { const d = tzDateOf(p); return Math.round((Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) - s0) / 864e5); };
+  const DAYS = ['day_sunday', 'day_monday', 'day_tuesday', 'day_wednesday', 'day_thursday', 'day_friday', 'day_saturday'];
+  if (period === 'week') return {
+    n: 7, unit: 'days', idx: dayIdx,
+    label: i => t(DAYS[new Date(start.getFullYear(), start.getMonth(), start.getDate() + i).getDay()])
+  };
+  if (period === 'month') {
+    const dim = new Date(start.getFullYear(), start.getMonth() + 1, 0).getDate();
+    return { n: Math.ceil(dim / 7), unit: 'weeks', idx: p => Math.floor(dayIdx(p) / 7),
+      label: i => t('ne_week_n', { n: i + 1 }) };
+  }
+  if (period === 'year') return {
+    n: 12, unit: 'months', idx: p => tzDateOf(p).getMonth(),
+    label: i => t(_CR_MON_SHORT[i])
+  };
+  return null;
+}
+
+// The key of the period a play falls in (for comparing debuts across periods)
+function _nePeriodKeyFn(period) {
+  if (period === 'day') return dayStrOf;
+  if (period === 'week') return playWeekKeyOf;
+  if (period === 'month') return monthKeyOf;
+  return yearKeyOf;
+}
+
+/* For the big-debut note: for every period, the most plays any song (artist,
+   album) had in the period it was first heard. One pass over the history,
+   cached until the plays or the period type change. */
+const _neDebutCache = {};
+function _neDebutHistory(type) {
+  const ck = currentPeriod + '|' + _playsVersion + '|' + _stampEpoch;
+  if (_neDebutCache[type] && _neDebutCache[type].ck === ck) return _neDebutCache[type];
+  const keyOf = _nePeriodKeyFn(currentPeriod);
+  const first = new Map(), cnt = new Map();
+  const see = (k, b) => {
+    const f = first.get(k);
+    if (f === undefined || b < f) { first.set(k, b); cnt.set(k, 1); }
+    else if (b === f) cnt.set(k, cnt.get(k) + 1);
+  };
+  for (const p of allPlays) {
+    const b = keyOf(p);
+    if (type === 'songs') see(songKey(p), b);
+    else if (type === 'artists') { for (const a of p.artists) see(a, b); }
+    else if (p.album && p.album !== '—') see(albumKeyOf(p), b);
+  }
+  const max = new Map();
+  for (const [k, b] of first) { const c = cnt.get(k); if (!(max.get(b) >= c)) max.set(b, c); }
+  _neDebutCache[type] = { ck, max, order: [...max.keys()].sort() };
+  return _neDebutCache[type];
+}
+
+// "Mar 3" for a day / week, "Mar 2026" for a month, "2024" for a year
+function _nePeriodLabel(key) {
+  const [y, m, d] = key.split('-').map(Number);
+  if (!m) return String(y);
+  const mon = t(_CR_MON_SHORT[m - 1]);
+  if (!d) return `${mon} ${y}`;
+  const sameYear = y === tzNow().getFullYear();
+  return (currentLang === 'en' ? `${mon} ${d}` : `${d} ${mon}`) + (sameYear ? '' : ' ' + y);
+}
+
+function _neDecorate(type, list) {
+  // Its spot on the chart this period, when the chart has a set size
+  const size = type === 'songs' ? chartSizeSongs : type === 'artists' ? chartSizeArtists : chartSizeAlbums;
+  const keyOfNew = o => type === 'songs' ? songKey(o) : type === 'artists' ? o.name : o.album + '|||' + o.artist;
+  const chartRank = new Map();
+  if (isFinite(size)) (fullData[type] || []).slice(0, size).forEach((o, i) => chartRank.set(keyOfNew(o), i + 1));
+  // …or in Bubbling Under (weekly only, the pool that section just drew)
+  const buRank = new Map();
+  if (currentPeriod === 'week' && isFinite(size)) (_pdfBuPools[type] || []).forEach((o, i) => buRank.set(o.key, size + 1 + i));
+  // Big debut: the most recent earlier period with a debut at least this big,
+  // if it is far enough back to be worth saying (or there is none at all)
+  const minGap = { day: 14, week: 8, month: 4, year: 2 }[currentPeriod] || 8;
+  const hist = list.length ? _neDebutHistory(type) : null;
+  list.forEach((o, i) => {
+    o.rankNo = i + 1;
+    const k = keyOfNew(o);
+    o.chartRank = chartRank.get(k) || 0;
+    o.buRank = o.chartRank ? 0 : (buRank.get(k) || 0);
+    o.bigDebut = '';
+    if (!hist || o.count < 3 || !o.pk) return;
+    const at = hist.order.indexOf(o.pk);
+    if (at < 0) return;
+    let j = at - 1;
+    while (j >= 0 && !(hist.max.get(hist.order[j]) >= o.count)) j--;
+    if (j < 0) { if (at >= minGap * 2) o.bigDebut = t('ne_big_debut_ever'); }
+    else if (at - j >= minGap) o.bigDebut = t('ne_big_debut_since', { when: _nePeriodLabel(hist.order[j]) });
+  });
+}
+
+// The rows a list shows with its filter chip applied
+function _neFiltered(type) {
+  const data = fullNewData[type] || [];
+  const f = _neFilter[type];
+  if (f === 'chart') return data.filter(o => o.chartRank);
+  if (f === 'artists') return data.filter(o => o.newArtist);
+  return data;
+}
+
+function neSetFilter(type, f) {
+  _neFilter[type] = f;
+  pageState[type] = 0;
+  renderNewPage(type);
+}
+
+// All · Made the chart · New artists — only the chips that would show something
+function _neChipsHtml(type) {
+  const data = fullNewData[type] || [];
+  const n = { all: data.length, chart: data.filter(o => o.chartRank).length, artists: type === 'newArtists' ? 0 : data.filter(o => o.newArtist).length };
+  if (!n.chart && !n.artists) return '';
+  const chip = (f, key) => n[f] || f === 'all'
+    ? `<button class="ne-chip" aria-pressed="${_neFilter[type] === f}" onclick="neSetFilter('${type}','${f}')">${esc(t(key))}<em>${n[f]}</em></button>` : '';
+  return chip('all', 'ne_filter_all') + chip('chart', 'ne_filter_chart') + chip('artists', 'ne_filter_new_artists');
+}
+
+// The strip: one small square per day / week / month, brighter = more plays
+function _neStripHtml(o, nb) {
+  if (!nb || !o.days) return '';
+  const max = Math.max(1, ...o.days);
+  const caps = o.days.map((d, i) => `<i class="${d ? 'is-on' : ''}" title="${esc(nb.label(i))}: ${esc(tCount('plays', d))}"${d ? ` style="--ne-a:${Math.round(35 + d / max * 65)}%"` : ''}></i>`).join('');
+  const on = o.days.filter(Boolean).length;
+  return `<span class="ne-caps">${caps}</span><span class="ne-days">${esc(t('ne_active_' + nb.unit, { n: on, total: nb.n }))}</span>`;
+}
+
+function _neTagsHtml(o, withNewArtist) {
+  return (o.chartRank ? `<span class="atc-tag">${esc(t('ne_debuted_at', { n: o.chartRank }))}</span>`
+      : o.buRank ? `<span class="atc-tag">${esc(t('ne_in_bu', { n: o.buRank }))}</span>` : '')
+    + (withNewArtist && o.newArtist ? `<span class="atc-tag" title="${esc(t('ne_new_artist_title'))}">✦ ${esc(t('ne_new_artist'))}</span>` : '');
+}
+
 function renderNewPage(type) {
-  const data = fullNewData[type];
+  const data = _neFiltered(type);
   const page = pageState[type];
   const totalPages = Math.ceil(data.length / PAGE_SIZE);
   const slice = data.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
-  const max = data[0]?.count || 1;
+  const plType = type === 'newSongs' ? 'songs' : type === 'newArtists' ? 'artists' : 'albums';
+  const nb = _neBuckets(currentPeriod, _neRange.start, _neRange.end);
+
+  const chipsEl = document.getElementById(type + 'Chips');
+  if (chipsEl) chipsEl.innerHTML = _neChipsHtml(type);
 
   const paginationEl = document.getElementById(type + 'Pagination');
   const labelEl = document.getElementById(type + 'PageLabel');
@@ -13291,49 +13473,52 @@ function renderNewPage(type) {
   }
 
   const imgs = [];
+  const rankCls = r => r === 1 ? 'rank-1' : r === 2 ? 'rank-2' : r === 3 ? 'rank-3' : '';
+  // The row: rank · cover · name with its tags (and the big-debut note) ·
+  // the strip · plays · Spotify / ⋮. Rank is the place in the full list, so
+  // it stays put when a chip hides rows.
+  const row = (o, i, d) => {
+    const rank = o.rankNo || (page * PAGE_SIZE + i + 1);
+    const imgId = d.prefix + i;
+    const cov = _atcCover(plType, imgId, d.ea);
+    imgs.push(cov.img);
+    return `<tr${_eaAttrs(plType, { ...d.ea, key: d.key, imgId })} class="ne-row atc-row ${rankCls(rank)}${d.cls}"${d.attrs}>
+      <td class="atc-rank">${rank}</td>
+      <td class="atc-cov">${cov.html}</td>
+      <td class="atc-name">
+        <div class="atc-title">${esc(d.name)}</div>
+        <div class="atc-subrow">${d.sub}${_neTagsHtml(o, plType !== 'artists')}</div>
+        ${o.bigDebut ? `<div class="ne-big">🏆 ${esc(o.bigDebut)}</div>` : ''}
+      </td>
+      <td class="atc-days">${_neStripHtml(o, nb)}</td>
+      <td class="atc-plays">${tCountHtml('plays', o.count)}</td>
+      <td class="cr-cell">${_eaBtns(true, true)}${d.pl}</td>
+    </tr>`;
+  };
+
   if (type === 'newSongs') {
-    document.getElementById('newSongsBody').innerHTML = slice.map((s, i) => {
-      const rank = page * PAGE_SIZE + i + 1;
-      const imgId = 'nsimg-' + i;
-      const prefKey = 'song:' + s.artist.toLowerCase() + '|||' + s.title.toLowerCase();
-      imgs.push({ imgId, title: s.title, artist: s.artist, album: s.album, prefKey });
-      // Phase 7 step 4: ▶ ⋮ and right-click, as on the chart (the YouTube switch is gone)
-      return `<tr${_eaAttrs('songs', { title: s.title, artist: s.artist, album: s.album || '', key: songKey(s), imgId })} class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''}">
-      <td class="rank-cell">${rank}</td>
-      <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(s.title))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="song" data-prefkey="${esc(prefKey)}" data-name="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
-      <td><div class="song-title">${esc(s.title)}</div><div class="song-artist">${esc(s.artist)}</div>${_eaBtns(true)}${dcPlBtnHtml('song', s.title, s.artist, s.album)}</td>
-      <td><div class="play-count">${tCountHtml('plays', s.count)}</div><div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(s.count / max * 100)}%"></div></div></td>
-    </tr>`;
-    }).join('');
-    loadImages(imgs.map(i => ({ ...i, name: i.title })), 'song');
+    document.getElementById('newSongsBody').innerHTML = slice.map((s, i) => row(s, i, {
+      prefix: 'nsimg-', key: songKey(s), name: s.title, cls: '', attrs: '',
+      ea: { title: s.title, artist: s.artist, album: s.album || '' },
+      sub: `<span class="atc-sub">${esc(s.artist)}</span>`,
+      pl: dcPlBtnHtml('song', s.title, s.artist, s.album)
+    })).join('');
+    loadImages(imgs, 'song');
   } else if (type === 'newArtists') {
-    document.getElementById('newArtistsBody').innerHTML = slice.map((a, i) => {
-      const rank = page * PAGE_SIZE + i + 1;
-      const imgId = 'naimg-' + i;
-      const prefKey = 'artist:' + a.name.toLowerCase();
-      imgs.push({ imgId, name: a.name, prefKey });
-      const songsJson = esc(JSON.stringify([...a.songs]));
-      return `<tr${_eaAttrs('artists', { artist: a.name, key: a.name, imgId })} class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} artist-row" data-artist="${esc(a.name)}">
-      <td class="rank-cell">${rank}</td>
-      <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.name))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(a.name)}" data-artist="${esc(a.name)}" data-album="">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
-      <td><div class="song-title">${esc(a.name)}</div><div class="song-artist"><span class="na-songs-trigger" data-artist="${esc(a.name)}" data-songs="${songsJson}">${tCount('songs', a.songs.size)}</span></div>${_eaBtns(true)}${dcPlBtnHtml('artist', '', a.name, '')}</td>
-      <td><div class="play-count">${tCountHtml('plays', a.count)}</div><div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(a.count / max * 100)}%"></div></div></td>
-    </tr>`;
-    }).join('');
+    document.getElementById('newArtistsBody').innerHTML = slice.map((a, i) => row(a, i, {
+      prefix: 'naimg-', key: a.name, name: a.name, cls: ' artist-row', attrs: ` data-artist="${esc(a.name)}"`,
+      ea: { artist: a.name },
+      sub: `<span class="atc-sub"><span class="na-songs-trigger" data-artist="${esc(a.name)}" data-songs="${esc(JSON.stringify([...a.songs]))}">${tCount('songs', a.songs.size)}</span></span>`,
+      pl: dcPlBtnHtml('artist', '', a.name, '')
+    })).join('');
     loadImages(imgs, 'artist');
   } else if (type === 'newAlbums') {
-    document.getElementById('newAlbumsBody').innerHTML = slice.map((a, i) => {
-      const rank = page * PAGE_SIZE + i + 1;
-      const imgId = 'nlimg-' + i;
-      const prefKey = 'album:' + a.artist.toLowerCase() + '|||' + a.album.toLowerCase();
-      imgs.push({ imgId, album: a.album, artist: a.artist, name: a.album, prefKey });
-      return `<tr${_eaAttrs('albums', { album: a.album, artist: a.artist, key: a.album + '|||' + a.artist, imgId })} class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} album-row" data-albumkey="${esc(a.album + '|||' + a.artist)}">
-      <td class="rank-cell">${rank}</td>
-      <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.album))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="album" data-prefkey="${esc(prefKey)}" data-name="${esc(a.album)}" data-artist="${esc(a.artist)}" data-album="${esc(a.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
-      <td><div class="song-title">${esc(a.album)}</div><div class="song-artist">${esc(a.artist)}</div>${_eaBtns(true)}${dcPlBtnHtml('album', '', a.artist, a.album)}</td>
-      <td><div class="play-count">${tCountHtml('plays', a.count)}</div><div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(a.count / max * 100)}%"></div></div></td>
-    </tr>`;
-    }).join('');
+    document.getElementById('newAlbumsBody').innerHTML = slice.map((a, i) => row(a, i, {
+      prefix: 'nlimg-', key: a.album + '|||' + a.artist, name: a.album, cls: ' album-row', attrs: ` data-albumkey="${esc(a.album + '|||' + a.artist)}"`,
+      ea: { album: a.album, artist: a.artist },
+      sub: `<span class="atc-sub">${esc(a.artist)}</span>`,
+      pl: dcPlBtnHtml('album', '', a.artist, a.album)
+    })).join('');
     loadImages(imgs, 'album');
   }
 }
@@ -18302,6 +18487,114 @@ function hideBuCrPreview() {
   if (_buCrPreviewCleanup) { _buCrPreviewCleanup(); _buCrPreviewCleanup = null; }
 }
 
+// ─── AROUND THE CHART (phase 7 step 10) ─────────────────────────
+// Bubbling Under, Off the Chart and New Entries sit in one box per chart type
+// (#atcSongs / #atcArtists / #atcAlbums in index.html) with a tab for each.
+// The three sections keep deciding for themselves whether they have anything
+// to show (inline display / the sub-chart Show switches); atcSync() only
+// reads that, builds a tab for each one that does, and shows the chosen one.
+// It runs from applySubChartToggles(), the last visibility pass of a render.
+const ATC_TYPES = ['songs', 'artists', 'albums'];
+const ATC_SUBS = ['bu', 'off', 'new'];
+// Last tab opened and whether the box is folded, per chart type (this device only)
+const _atcTab = (() => { try { return JSON.parse(localStorage.getItem('dc_atc_tab') || '{}') || {}; } catch (e) { return {}; } })();
+const _atcFold = (() => { try { return JSON.parse(localStorage.getItem('dc_atc_fold') || '{}') || {}; } catch (e) { return {}; } })();
+const _atcUc = type => type.charAt(0).toUpperCase() + type.slice(1);
+
+// A section can be shown when its render left it visible and its Show switch is on
+function _atcAvailable(type, sub) {
+  const el = document.getElementById(SUB_CHART_SECTION_IDS[sub][type]);
+  return !!el && el.style.display !== 'none' && !el.classList.contains('sub-chart-toggled-off');
+}
+
+function atcSync(type) {
+  const uc = _atcUc(type);
+  const box = document.getElementById('atc' + uc);
+  if (!box) return;
+  const avail = ATC_SUBS.filter(s => _atcAvailable(type, s));
+  box.style.display = avail.length ? '' : 'none';
+  if (!avail.length) return;
+  const cur = avail.includes(_atcTab[type]) ? _atcTab[type] : avail[0];
+  box.dataset.tab = cur;
+  ATC_SUBS.forEach(s => {
+    const el = document.getElementById(SUB_CHART_SECTION_IDS[s][type]);
+    if (el) el.classList.toggle('atc-active', s === cur);
+  });
+  // Tab counts: the numbers each section already shows in its own header
+  const count = {
+    bu:  document.getElementById('bu' + uc + 'Count')?.textContent || '',
+    off: document.getElementById('off' + uc + 'Count')?.textContent || '',
+    new: String((fullNewData['new' + uc] || []).length)
+  };
+  const label = { bu: t('atc_tab_bu'), off: t('sec_off_chart'), new: t('atc_tab_new') };
+  const tabsEl = document.getElementById('atc' + uc + 'Tabs');
+  if (tabsEl) tabsEl.innerHTML = avail.map(s =>
+    `<button class="atc-tab" role="tab" aria-selected="${s === cur}" onclick="atcSetTab('${type}','${s}')">${esc(label[s])}<em>${esc(count[s])}</em></button>`
+  ).join('');
+  const folded = !!_atcFold[type];
+  box.classList.toggle('atc-folded', folded);
+  const fold = document.getElementById('atc' + uc + 'Fold');
+  if (fold) { fold.textContent = folded ? '▼' : '▲'; fold.setAttribute('aria-expanded', String(!folded)); }
+}
+
+function atcSyncAll() { ATC_TYPES.forEach(atcSync); }
+
+function atcSetTab(type, sub) {
+  _atcTab[type] = sub;
+  _atcFold[type] = false;   // choosing a tab always opens the box
+  try { localStorage.setItem('dc_atc_tab', JSON.stringify(_atcTab)); localStorage.setItem('dc_atc_fold', JSON.stringify(_atcFold)); } catch (e) {}
+  atcSync(type);
+}
+
+function atcToggleFold(type) {
+  _atcFold[type] = !_atcFold[type];
+  try { localStorage.setItem('dc_atc_fold', JSON.stringify(_atcFold)); } catch (e) {}
+  atcSync(type);
+}
+
+// A jump to one of the three sections (stat tiles, the tour) opens its tab first
+function atcRevealSection(sectionId) {
+  for (const sub of ATC_SUBS) for (const type of ATC_TYPES) {
+    if (SUB_CHART_SECTION_IDS[sub][type] === sectionId && _atcAvailable(type, sub)) { atcSetTab(type, sub); return; }
+  }
+}
+
+// Off the Chart → "Now #12 in Bubbling Under →": open that tab and flash the row
+function atcJumpToBu(type, rank) {
+  atcSetTab(type, 'bu');
+  const row = document.querySelector(`#bu${_atcUc(type)}TableBody tr[data-bur="${rank}"]`);
+  if (!row) return;
+  const still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  row.scrollIntoView({ behavior: still ? 'auto' : 'smooth', block: 'center' });
+  row.classList.remove('atc-flash');
+  void row.offsetWidth;   // restart the animation on a second jump
+  row.classList.add('atc-flash');
+  setTimeout(() => row.classList.remove('atc-flash'), 2000);
+}
+
+// The ⓘ beside the Bubbling Under subtitle: the tag legend, on demand
+function toggleBuLegendPop(type) {
+  document.getElementById('bu' + _atcUc(type) + 'Section')?.classList.toggle('bu-legend-open');
+}
+
+/* One cover for the rows in the box: the same markup as the chart Table's
+   (▶ sample on the bottom-right corner, ✎ change picture on the top-right,
+   hold to change on touch), so loadImages() and the picker treat it the same.
+   d = { title, artist, album } as given to _eaAttrs. Returns the markup and
+   the item to hand to loadImages(). */
+function _atcCover(type, imgId, d) {
+  const artist = d.artist || '', title = d.title || '', album = d.album || '';
+  let kind, prefKey, name;
+  if (type === 'songs')        { kind = 'song';   name = title;  prefKey = 'song:' + artist.toLowerCase() + '|||' + title.toLowerCase(); }
+  else if (type === 'artists') { kind = 'artist'; name = artist; prefKey = 'artist:' + artist.toLowerCase(); }
+  else                         { kind = 'album';  name = album;  prefKey = 'album:' + artist.toLowerCase() + '|||' + album.toLowerCase(); }
+  const html = `<div class="thumb-wrap ea-cover atc-cover">${_eaCoverPlay()}<div id="${imgId}" class="atc-art"><div class="thumb-initials">${esc(initials(name))}</div></div>`
+    + `<button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="${kind}" data-prefkey="${esc(prefKey)}" data-name="${esc(name)}" data-artist="${esc(artist)}" data-album="${esc(album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div>`;
+  const img = { imgId, name, artist, album, prefKey };
+  if (type === 'songs') img.title = title;
+  return { html, img, kind };
+}
+
 // ─── BUBBLING UNDER ─────────────────────────────────────────────
 // Tracks open/closed state of the accordion per type (songs/artists/albums)
 const _buOpen = { songs: false, artists: false, albums: false };
@@ -18399,6 +18692,7 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
     if (-delta > bestFreefallDelta) { bestFreefallDelta = -delta; freefallKey = item.key; }
   }
 
+  const buImgs = [];   // covers, handed to loadImages() after the rows are in
   const rows = normalizedPool.flatMap((item, i) => {
     const rank = chartSize + 1 + i;
     const { key, displayName, subName, album, count } = item;
@@ -18444,10 +18738,10 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
     const buRuns           = ms.bubblingUnderRuns?.[type]?.[key] || 0;
     const isYoYo           = buRuns >= 3;
 
-    // Build badges (ideas 13, 14, 15, 16, 17 + Freefall + Revolving)
+    // Build badges (ideas 14, 15, 16, 17 + Freefall + Revolving). Every tag stays;
+    // "N plays away" (idea 13) moved under the distance bar (step 10).
     let badges = '';
-    if (playsAway > 0)  badges += `<span class="bu-badge bu-badge-away" title="${t(playsAway === 1 ? 'bu_badge_away_title_one' : 'bu_badge_away_title_other', { n: playsAway })}">${t(playsAway === 1 ? 'bu_badge_away_one' : 'bu_badge_away_other', { n: playsAway })}</span>`;
-    if (isFading)       badges += `<span class="bu-badge bu-badge-fading" title="${t('bu_badge_fading_title')}">${t('bu_badge_fading')}</span>`;
+    if (isFading)      badges += `<span class="bu-badge bu-badge-fading" title="${t('bu_badge_fading_title')}">${t('bu_badge_fading')}</span>`;
     if (isDebut)        badges += `<span class="bu-badge bu-badge-debut" title="${t('bu_badge_debut_title')}">${t('bu_badge_debut')}</span>`;
     if (isTrending)     badges += `<span class="bu-badge bu-badge-trending" title="${t('bu_badge_trending_title')}">${t('bu_badge_trending')}</span>`;
     if (isPersistent)   badges += `<span class="bu-badge bu-badge-persistent" title="${t('bu_badge_persistent_title', { n: totalBuWeeks })}">${t('bu_badge_persistent')}</span>`;
@@ -18465,33 +18759,54 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
     const ytTitle  = type === 'songs'   ? displayName : '';
     const ytArtist = type === 'artists' ? displayName : subName;
     const ytAlbum  = type === 'albums'  ? displayName : (type === 'songs' ? (album || '') : '');
-    // Phase 7 step 4: ▶ sample + ⋮ menu where the YouTube button was
-    const ytBtn = _eaBtns(true)
+    // Step 10: ▶ sits on the cover now (as in the Table), so the end column
+    // has Spotify · ⋮ · the Bubbling Under history
+    const ytBtn = _eaBtns(true, true)
       + dcPlBtnHtml(dcPlKindFor(type), ytTitle, ytArtist, ytAlbum);
+
+    // Cover with ▶ on its bottom-right corner and ✎ on its top-right
+    const imgId = `buimg-${type}-${i}`;
+    const cov = _atcCover(type, imgId, { title: ytTitle, artist: ytArtist, album: ytAlbum });
+    buImgs.push(cov.img);
+
+    // Distance to the chart: plays on the scale of the last chart entry's
+    // plays (the gold line at the end of the track)
+    const pct = lowestChartCount > 0 ? Math.min(100, Math.round(count / lowestChartCount * 100)) : 100;
+    const toGo = playsAway > 0
+      ? `<span title="${esc(t(playsAway === 1 ? 'bu_badge_away_title_one' : 'bu_badge_away_title_other', { n: playsAway }))}">${t(playsAway === 1 ? 'bu_badge_away_one' : 'bu_badge_away_other', { n: playsAway })}</span>`
+      : `<span>${esc(t('bu_level_with', { n: chartSize }))}</span>`;
 
     // BU chart run expand row — toggled by the icon button in the trailing cr-cell
     const buCrRowId = `bu-cr-${type}-${i}`;
-    const buEa = _eaAttrs(type, { title: ytTitle, artist: ytArtist, album: ytAlbum, key });
-    const mainRow = `<tr class="bu-row"${buEa}>
-      <td class="bu-rank-cell">#${rank}</td>
-      <td class="bu-name-cell">
-        <div class="bu-display-name">${esc(displayName)}</div>
-        ${subName ? `<div class="bu-sub-name">${esc(subName)}</div>` : ''}
-        <!-- Phones only: plays move under the artist so the title gets the width -->
-        <div class="bu-play-inline">${tCountHtml('plays', count)}</div>
+    const buEa = _eaAttrs(type, { title: ytTitle, artist: ytArtist, album: ytAlbum, key, imgId });
+    // Who it is on the left (rank, cover, name); how it's doing on the right
+    // (the distance bar, then every tag it has)
+    const mainRow = `<tr class="bu-row atc-row"${buEa} data-bur="${rank}">
+      <td class="atc-rank">${rank}</td>
+      <td class="atc-cov">${cov.html}</td>
+      <td class="atc-name">
+        <div class="atc-title">${esc(displayName)}</div>
+        ${subName ? `<div class="atc-sub">${esc(subName)}</div>` : ''}
+      </td>
+      <td class="atc-status">
+        <div class="atc-meter">
+          <div class="atc-track"><i style="width:${pct}%"></i></div>
+          <div class="atc-meter-lbl"><span>${tCountHtml('plays', count)}</span>${toGo}</div>
+        </div>
         ${badges ? `<div class="bu-badges">${badges}</div>` : ''}
       </td>
-      <td class="bu-plays-cell">
-        <div class="bu-play-count">${tCountHtml('plays', count)}</div>
-      </td>
-      <!-- ▶ sample + ⋮ menu share the trailing column with the chart-run icon, as on the main charts -->
       <td class="cr-cell">${ytBtn}<button class="cr-toggle-btn bu-cr-btn" title="${esc(t('bucr_btn_title'))}" onclick="event.stopPropagation();toggleBuCr(this,'${buCrRowId}')">${CR_ICON}</button></td>
     </tr>`;
-    const expandRow = `<tr class="bu-cr-row cr-row" id="${buCrRowId}"><td colspan="4"><div class="cr-panel bu-cr-panel" data-bucrtype="${type}" data-bucrkey="${esc(key)}">${buildBuCrPanelHTML(type, key)}</div></td></tr>`;
+    const expandRow = `<tr class="bu-cr-row cr-row" id="${buCrRowId}"><td colspan="5"><div class="cr-panel bu-cr-panel" data-bucrtype="${type}" data-bucrkey="${esc(key)}">${buildBuCrPanelHTML(type, key)}</div></td></tr>`;
     return [mainRow, expandRow];
   });
 
   if (tbodyEl) tbodyEl.innerHTML = rows.join('');
+  if (buImgs.length) loadImages(buImgs, type === 'songs' ? 'song' : type === 'artists' ? 'artist' : 'album');
+
+  // What the gold line at the end of each bar means
+  const noteEl = document.getElementById('bu' + ucType + 'MeterNote');
+  if (noteEl) noteEl.textContent = t('bu_meter_note', { n: chartSize, p: lowestChartCount });
 
   const legendEl = document.getElementById('bu' + ucType + 'Legend');
   if (legendEl) legendEl.innerHTML = `
@@ -20431,6 +20746,36 @@ function renderOffChart(type, plays, periodStats, buPool, lowestChartCount) {
   // vanishing outright. Map key → its BU rank + count so rows can link the two.
   const buMap = new Map((buPool || []).map((item, i) => [item.key, { rank: chartSize + 1 + i, count: item.count }]));
 
+  /* Last played (step 10), for the dropouts that aren't in Bubbling Under: the
+     latest play up to the end of the week on screen — never a later one, so an
+     old week reads the same as it did then. One pass over the history, only
+     for the keys that need it. */
+  const lastPlayed = new Map();
+  const needLast = new Set(dropped.filter(([k]) => !buMap.has(k)).map(([k]) => k));
+  const weekEnd = _offWeekEnd(plays);
+  const cutoff = isFinite(weekEnd) ? weekEnd : +tzNow();
+  if (needLast.size) {
+    const note = (k, ms) => { if (needLast.has(k) && ms <= cutoff && !(lastPlayed.get(k) >= ms)) lastPlayed.set(k, ms); };
+    for (const p of allPlays) {
+      const ms = tzMsOf(p);
+      if (ms > cutoff) continue;
+      if (type === 'songs') note(songKey(p), ms);
+      else if (type === 'artists') { for (const a of p.artists) note(a, ms); }
+      else if (p.album && p.album !== '—') note(albumKeyOf(p), ms);
+    }
+  }
+  // "Oct 11" / "11 oct", with the year when it isn't the week's own year
+  const shortDate = ms => {
+    const d = new Date(ms);
+    const mon = t(_CR_MON_SHORT[d.getMonth()]);
+    const yr = d.getFullYear() !== new Date(cutoff).getFullYear() ? ' ' + d.getFullYear() : '';
+    return (currentLang === 'en' ? `${mon} ${d.getDate()}` : `${d.getDate()} ${mon}`) + yr;
+  };
+
+  // Every row gets its own cover (▶ bottom-right, ✎ top-right)
+  const offImgs = [];
+  let offIdx = 0;
+
   const rows = dropped.map(([k, { rank, count }]) => {
     // Lifetime total weeks charted, ever — may span several separate,
     // non-consecutive stints. The run that just ended (streakWks below) is
@@ -20448,37 +20793,46 @@ function renderOffChart(type, plays, periodStats, buPool, lowestChartCount) {
     const ytTitle  = type === 'songs'   ? name : '';
     const ytArtist = type === 'artists' ? name : sub;
     const ytAlbum  = type === 'albums'  ? name : (type === 'songs' ? (names[k]?.album || '') : '');
-    // Phase 7 step 4: ▶ sample + ⋮ menu where the YouTube button was
-    const ytBtn = _eaBtns(true)
+    // Step 10: ▶ is on the cover, so the end column has Spotify · ⋮
+    const ytBtn = _eaBtns(true, true)
       + dcPlBtnHtml(dcPlKindFor(type), ytTitle, ytArtist, ytAlbum);
 
     const severeCls = rank <= severeRankCutoff ? ' dropout-row--severe' : '';
+    const imgId = `offimg-${type}-${offIdx++}`;
+    const cov = _atcCover(type, imgId, { title: ytTitle, artist: ytArtist, album: ytAlbum });
+    offImgs.push(cov.img);
 
-    // Idea 3+5: if this dropout landed in the Bubbling Under zone this week
-    // rather than vanishing outright, say so and borrow the same badge
-    // vocabulary used in the Bubbling Under section itself — a user who
-    // recognizes those badges down there recognizes them here too.
-    let buLineHtml = '';
+    /* Step 10 row: exactly three lines on each side, lined up —
+         title             ↔  last week → this week plays
+         artist + exit     ↔  weeks on chart
+         Bubbling Under /  ↔  streak before dropping out
+         last played
+       so the cover can fill the row top to bottom and stay square. On phones
+       the row becomes a card: "Was #N" + exit label join the text, and the
+       three numbers sit in a strip underneath (style.css, .atc-off). */
+    const thisWeekCount = counts[k]?.count || 0;
     const buEntry = buMap.get(k);
+    let line3;
     if (buEntry) {
-      const totalBuWeeks      = periodStats.bubblingUnderWeeks?.[type]?.[k] || 0;
-      const consecutiveBuWeeks = periodStats.bubblingUnderStreak?.[type]?.[k] || 0;
+      // Idea 3+5: it landed in Bubbling Under — link straight to its row there
       const playsAway = Math.max(0, (lowestChartCount || 0) - buEntry.count);
-      let buBadges = '';
-      if (rank <= 3) buBadges += `<span class="bu-badge bu-badge-fallen" title="${t('bu_badge_fallen_title', { n: rank })}">${t('bu_badge_fallen')}</span>`;
-      if (playsAway > 0) buBadges += `<span class="bu-badge bu-badge-away" title="${t(playsAway === 1 ? 'off_bu_reenter_title_one' : 'off_bu_reenter_title_other', { n: playsAway })}">${t(playsAway === 1 ? 'bu_badge_away_one' : 'bu_badge_away_other', { n: playsAway })}</span>`;
-      if (totalBuWeeks >= 2) buBadges += `<span class="bu-badge bu-badge-weeks" title="${t('bu_badge_weeks_title', { n: totalBuWeeks })}">${t('bu_badge_weeks_label', { n: totalBuWeeks })}</span>`;
-      if (consecutiveBuWeeks >= 2) buBadges += `<span class="bu-badge bu-badge-streak" title="${t('bu_badge_streak_title', { n: consecutiveBuWeeks })}">${t('bu_badge_streak_label', { n: consecutiveBuWeeks })}</span>`;
-      buLineHtml = `<div class="dropout-bu-line"><span class="dropout-bu-now">${t('off_bu_now_at', { n: buEntry.rank })}</span>${buBadges}</div>`;
+      line3 = `<button class="atc-jump" onclick="event.stopPropagation();atcJumpToBu('${type}',${buEntry.rank})">${esc(t('off_bu_now_at', { n: buEntry.rank }))} →</button>`
+        + (playsAway > 0 ? `<span class="bu-badge bu-badge-away" title="${t(playsAway === 1 ? 'off_bu_reenter_title_one' : 'off_bu_reenter_title_other', { n: playsAway })}">${t(playsAway === 1 ? 'bu_badge_away_one' : 'bu_badge_away_other', { n: playsAway })}</span>` : '');
     } else {
-      // Not even in the Bubbling Under zone — say so explicitly instead of
-      // leaving the absence of a BU line to be read as a gap in the data.
-      const thisWeekCount = counts[k]?.count || 0;
-      const goneNote = thisWeekCount > 0
-        ? t(thisWeekCount === 1 ? 'off_bu_gone_one' : 'off_bu_gone_other', { n: thisWeekCount })
-        : t('off_bu_no_plays');
-      buLineHtml = `<div class="dropout-bu-line dropout-bu-line--gone"><span class="dropout-bu-gone">${esc(goneNote)}</span></div>`;
+      // Not even in Bubbling Under — say so, and when it was last played
+      const why = thisWeekCount > 0 ? t('off_not_in_bu') : t('off_bu_no_plays');
+      const lp = lastPlayed.get(k);
+      // On phones only "last played …" shows: the number strip already says 3 → 0
+      line3 = `<span class="atc-muted"><span class="atc-why${lp ? '' : ' is-only'}">${esc(why)}${lp ? ' <span class="atc-dot">·</span> ' : ''}</span>${lp ? esc(t('off_last_played', { date: shortDate(lp) })) : ''}</span>`;
     }
+
+    // Exit type: one label for how it left; the first rule that matches wins
+    const exit = rank <= 3 ? ['off_exit_top3', '']
+      : wks >= 10 ? ['off_exit_long', '']
+      : buEntry ? ['off_exit_slipped', ' is-soft']
+      : wks === 1 ? ['off_exit_oneweek', ' is-soft']
+      : ['off_exit_dropped', ''];
+    const exitTag = cls => `<span class="atc-exit${exit[1]}${cls}" title="${esc(t(exit[0] + '_title'))}">${esc(t(exit[0]))}</span>`;
 
     // Idea 1: only worth calling out if this entry once did BETTER than the
     // rank it just fell from — restating "Peak #9" next to "Was #9" is noise,
@@ -20486,40 +20840,40 @@ function renderOffChart(type, plays, periodStats, buPool, lowestChartCount) {
     const pk = periodStats.peakRank?.[type]?.[k];
     const peakBadgeHtml = (pk && pk < rank) ? peakBadge(pk) : '';
 
-    // Only ever having charted once, period, is worth muting — but not the
-    // lifetime total in general, since that would misrepresent an entry with
-    // several separate stints as unremarkable.
-    const wksCls = wks === 1 ? ' dropout-wks--flash' : '';
+    // Last week → this week, with two thin bars on the scale of last week's plays
+    const nowPct = count > 0 ? Math.max(4, Math.round(thisWeekCount / count * 100)) : 0;
+    const wasLbl = esc(t('off_chart_rank_was'));
 
-    // Distinct from the lifetime total: call out a real (2+ week) consecutive
-    // run immediately before THIS drop, explicitly anchored to "before dropping
-    // out" so it can't be mistaken for some earlier streak in the entry's history.
-    const streakNoteHtml = streakWks >= 2
-      ? `<div class="dropout-streak-note">${t('off_chart_streak_before_drop', { n: streakWks })}</div>`
-      : '';
-
-    return `<div class="dropout-row${severeCls}"${_eaAttrs(type, { title: ytTitle, artist: ytArtist, album: ytAlbum, key: k })}>
-      <span class="dropout-rank"><span class="dropout-rank-was">${t('off_chart_rank_was')}</span>#${rank}</span>
-      <div class="dropout-info">
-        <div class="dropout-name-row">
-          <span class="dropout-name">${esc(name)}</span>
-          ${peakBadgeHtml}
-        </div>
-        ${sub ? `<div class="dropout-artist">${esc(sub)}</div>` : ''}
-        ${streakNoteHtml}
-        ${buLineHtml}
+    return `<div class="dropout-row atc-off${severeCls}"${_eaAttrs(type, { title: ytTitle, artist: ytArtist, album: ytAlbum, key: k, imgId })}>
+      <div class="atc-was"><small>${wasLbl}</small>${rank}</div>
+      <div class="atc-offcov">${cov.html}</div>
+      <div class="atc-offtext">
+        <div class="atc-ln atc-ph-top"><span class="atc-ph-was">${wasLbl} <b>#${rank}</b></span>${exitTag('')}</div>
+        <div class="atc-ln atc-title">${esc(name)}${peakBadgeHtml}</div>
+        <div class="atc-ln">${sub ? `<span class="atc-sub">${esc(sub)}</span>` : ''}${exitTag(' atc-exit-wide')}</div>
+        <div class="atc-ln">${line3}</div>
       </div>
-      <div class="dropout-stats">
-        <span class="dropout-plays">${tCountHtml('plays', count)}</span>
-        <span class="dropout-wks${wksCls}">${tCount('weeks_full', wks)} ${t('film_on_chart')}</span>
+      <div class="atc-offstats">
+        <div class="atc-ln" data-cap="${esc(t('off_cap_plays'))}"><span class="atc-lt" title="${esc(t('off_lt_title', { a: count, b: thisWeekCount }))}"><span class="atc-lt-bars"><i style="width:100%"></i><i class="is-now" style="width:${nowPct}%"></i></span><span><b>${count}</b> <span class="atc-arrow">→</span> <b>${thisWeekCount}</b> <span class="atc-long">${esc(t('off_cap_plays'))}</span></span></span></div>
+        <div class="atc-ln" data-cap="${esc(t('off_cap_weeks'))}"><span class="atc-long">${tCount('weeks_full', wks)} ${t('film_on_chart')}</span><span class="atc-short">${wks}</span></div>
+        ${streakWks >= 2
+          ? `<div class="atc-ln atc-strk" data-cap="${esc(t('off_cap_streak'))}"><span class="atc-long">${t('off_chart_streak_before_drop', { n: streakWks })}</span><span class="atc-short">🔥 ${streakWks}</span></div>`
+          : `<div class="atc-ln" data-cap="${esc(t('off_cap_nostreak'))}"><span class="atc-short">–</span></div>`}
       </div>
-      <!-- ▶ sample + ⋮ menu get their own column at the end of the row -->
       <div class="dropout-actions">${ytBtn}</div>
     </div>`;
   }).join('');
 
   const contentEl = document.getElementById('off' + ucType + 'Content');
   if (contentEl) contentEl.innerHTML = rows;
+  if (offImgs.length) loadImages(offImgs, type === 'songs' ? 'song' : type === 'artists' ? 'artist' : 'album');
+}
+
+// The latest instant among a week's plays (for Off the Chart's dates)
+function _offWeekEnd(plays) {
+  let m = -Infinity;
+  for (const p of plays) { const ms = tzMsOf(p); if (ms > m) m = ms; }
+  return m;
 }
 
 // ─── CERTIFICATIONS ────────────────────────────────────────────
@@ -48400,21 +48754,12 @@ const _cgTourSteps = [
         reveal: true,
         hold: 13000 },
 
-      { content: 'Bubbling Under — the songs that just missed the cut. Next week\'s chart usually starts here.\n\nThe coloured tags say why each one is here. To see what each colour means, switch on BU Legend in the ⋮ menu, under Show.',
-        spotlight: '#buSongsSection',
+      /* Phase 7 step 10: the three sections are tabs of one box now.
+         New Entries is first-ever discoveries, not chart debuts — say so plainly. */
+      { content: 'Around the chart — three tabs under the chart.\n\nBubbling Under: the songs that just missed the cut, with a bar showing how close each one is to the chart. The ⓘ explains the tags.\n\nOff the Chart: what was here last week and has gone this week, and where it went.\n\nNew: not chart debuts, but songs you heard for the very first time ever.',
+        spotlight: '#atcSongs',
         reveal: true,
-        hold: 12000 },
-
-      { content: 'Off the Chart — what was here last week and has gone this week. Worth a look before it disappears from memory too.',
-        spotlight: '#offSongsSection',
-        reveal: true,
-        hold: 10000 },
-
-      /* New Entries is first-ever discoveries, not chart debuts — say so plainly. */
-      { content: 'New Entries — not chart debuts, but songs you heard for the very first time ever, ranked by how much you played them this week.',
-        spotlight: '#newSongsSection',
-        reveal: true,
-        hold: 10000 },
+        hold: 16000 },
 
       { content: 'Under the charts: songs and albums go Gold, Platinum or Diamond once they pass a set number of plays, and this section shows the ones that got there this week. Want different numbers? Change them in Settings → Certification Thresholds.',
         spotlight: '#certReelSection',

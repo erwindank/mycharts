@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=528">
+  <link rel="stylesheet" href="style.css?v=531">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -724,6 +724,15 @@
       </div>
     </div>
 
+    <!-- AROUND THE CHART — SONGS (phase 7 step 10): Bubbling Under, Off the Chart and
+         New Entries as tabs of one box. atcSync() builds the tabs from whichever
+         of the three has something to show and shows only the chosen one. -->
+    <div class="atc-box" id="atcSongs" data-atc="songs" style="display:none;">
+      <div class="atc-bar">
+        <span class="atc-ttl" data-i18n="atc_title">Around the chart</span>
+        <div class="atc-tabs" role="tablist" id="atcSongsTabs"></div>
+        <button class="atc-fold" id="atcSongsFold" onclick="atcToggleFold('songs')" aria-expanded="true" data-i18n-title="atc_fold_title" title="Show or hide">▲</button>
+      </div>
     <!-- BUBBLING UNDER — SONGS (weekly only, idea 1/5/6/8/9/13/14/15/16/17) -->
     <div class="chart-section bu-section" id="buSongsSection" style="display:none;">
       <div class="bu-section-header" onclick="toggleBuSection('songs')">
@@ -735,7 +744,11 @@
         <div class="section-rule"></div>
       </div>
       <div class="bu-body" id="buSongsBody" style="display:none;">
-        <div class="bu-sub" data-i18n="bu_sub_songs">Songs just outside the chart — ranked by plays this week</div>
+        <div class="bu-subrow">
+          <div class="bu-sub" data-i18n="bu_sub_songs">Songs just outside the chart — ranked by plays this week</div>
+          <span class="bu-meter-note" id="buSongsMeterNote"></span>
+          <button class="atc-info" onclick="toggleBuLegendPop('songs')" data-i18n-title="bu_legend_btn" title="What the tags mean" aria-label="What the tags mean">i</button>
+        </div>
         <div class="bu-legend" id="buSongsLegend"></div>
         <table class="chart-table bu-table">
           <tbody id="buSongsTableBody"></tbody>
@@ -769,6 +782,7 @@
       </div>
       <div class="section-sub" id="newSongsSub"></div>
       <div class="section-body">
+        <div class="ne-chips" id="newSongsChips"></div>
         <table class="chart-table new-entries-table">
           <thead>
             <tr>
@@ -792,6 +806,7 @@
         </div>
       </div>
     </div>
+    </div><!-- /atcSongs -->
     </div><!-- /songsChartGroup -->
 
     <div class="chart-type-group" id="artistsChartGroup" style="display:none;">
@@ -917,6 +932,15 @@
       </div>
     </div>
 
+    <!-- AROUND THE CHART — ARTISTS (phase 7 step 10): Bubbling Under, Off the Chart and
+         New Entries as tabs of one box. atcSync() builds the tabs from whichever
+         of the three has something to show and shows only the chosen one. -->
+    <div class="atc-box" id="atcArtists" data-atc="artists" style="display:none;">
+      <div class="atc-bar">
+        <span class="atc-ttl" data-i18n="atc_title">Around the chart</span>
+        <div class="atc-tabs" role="tablist" id="atcArtistsTabs"></div>
+        <button class="atc-fold" id="atcArtistsFold" onclick="atcToggleFold('artists')" aria-expanded="true" data-i18n-title="atc_fold_title" title="Show or hide">▲</button>
+      </div>
     <!-- BUBBLING UNDER — ARTISTS (weekly only) -->
     <div class="chart-section bu-section" id="buArtistsSection" style="display:none;">
       <div class="bu-section-header" onclick="toggleBuSection('artists')">
@@ -928,7 +952,11 @@
         <div class="section-rule"></div>
       </div>
       <div class="bu-body" id="buArtistsBody" style="display:none;">
-        <div class="bu-sub" data-i18n="bu_sub_artists">Artists just outside the chart — ranked by plays this week</div>
+        <div class="bu-subrow">
+          <div class="bu-sub" data-i18n="bu_sub_artists">Artists just outside the chart — ranked by plays this week</div>
+          <span class="bu-meter-note" id="buArtistsMeterNote"></span>
+          <button class="atc-info" onclick="toggleBuLegendPop('artists')" data-i18n-title="bu_legend_btn" title="What the tags mean" aria-label="What the tags mean">i</button>
+        </div>
         <div class="bu-legend" id="buArtistsLegend"></div>
         <table class="chart-table bu-table">
           <tbody id="buArtistsTableBody"></tbody>
@@ -962,6 +990,7 @@
       </div>
       <div class="section-sub" id="newArtistsSub"></div>
       <div class="section-body">
+        <div class="ne-chips" id="newArtistsChips"></div>
         <table class="chart-table new-entries-table">
           <thead>
             <tr>
@@ -985,6 +1014,7 @@
         </div>
       </div>
     </div>
+    </div><!-- /atcArtists -->
     </div><!-- /artistsChartGroup -->
 
     <div class="chart-type-group" id="albumsChartGroup" style="display:none;">
@@ -1112,6 +1142,15 @@
       </div>
     </div>
 
+    <!-- AROUND THE CHART — ALBUMS (phase 7 step 10): Bubbling Under, Off the Chart and
+         New Entries as tabs of one box. atcSync() builds the tabs from whichever
+         of the three has something to show and shows only the chosen one. -->
+    <div class="atc-box" id="atcAlbums" data-atc="albums" style="display:none;">
+      <div class="atc-bar">
+        <span class="atc-ttl" data-i18n="atc_title">Around the chart</span>
+        <div class="atc-tabs" role="tablist" id="atcAlbumsTabs"></div>
+        <button class="atc-fold" id="atcAlbumsFold" onclick="atcToggleFold('albums')" aria-expanded="true" data-i18n-title="atc_fold_title" title="Show or hide">▲</button>
+      </div>
     <!-- BUBBLING UNDER — ALBUMS (weekly only) -->
     <div class="chart-section bu-section" id="buAlbumsSection" style="display:none;">
       <div class="bu-section-header" onclick="toggleBuSection('albums')">
@@ -1123,7 +1162,11 @@
         <div class="section-rule"></div>
       </div>
       <div class="bu-body" id="buAlbumsBody" style="display:none;">
-        <div class="bu-sub" data-i18n="bu_sub_albums">Albums just outside the chart — ranked by plays this week</div>
+        <div class="bu-subrow">
+          <div class="bu-sub" data-i18n="bu_sub_albums">Albums just outside the chart — ranked by plays this week</div>
+          <span class="bu-meter-note" id="buAlbumsMeterNote"></span>
+          <button class="atc-info" onclick="toggleBuLegendPop('albums')" data-i18n-title="bu_legend_btn" title="What the tags mean" aria-label="What the tags mean">i</button>
+        </div>
         <div class="bu-legend" id="buAlbumsLegend"></div>
         <table class="chart-table bu-table">
           <tbody id="buAlbumsTableBody"></tbody>
@@ -1157,6 +1200,7 @@
       </div>
       <div class="section-sub" id="newAlbumsSub"></div>
       <div class="section-body">
+        <div class="ne-chips" id="newAlbumsChips"></div>
         <table class="chart-table new-entries-table">
           <thead>
             <tr>
@@ -1180,6 +1224,7 @@
         </div>
       </div>
     </div>
+    </div><!-- /atcAlbums -->
     </div><!-- /albumsChartGroup -->
 
     <!-- Daily tab, right after the chart (daily.js, dyRenderTop): the day
