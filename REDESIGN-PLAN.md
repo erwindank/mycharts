@@ -1789,6 +1789,10 @@ animation, 12 screen check.
   (at most 168px), big rank + title, artist and numbers on the right, about
   as tall as a strip card. The glow and the medal-coloured number set them
   apart. **Phones unchanged** (#1 across the top, #2 / #3 under it).
+  **Then you found those covers smaller than the strip's.** Now: **three
+  cards of one size, cover on top, 240px wide (strip: 176px), centred**,
+  about 360px tall. Tablets share the width three across. Phones still
+  unchanged.
 - **Step 10, started early (2026-10-18).** Done so far:
   - **Off the Chart rows:** ▶ and ⋮ in their own end column. On phones the
     row restacks: the title wraps instead of being cut, plays and weeks go

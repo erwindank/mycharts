@@ -31923,26 +31923,22 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
 .wv-film-auto-btn.wv-film-auto-on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 .wv-film-share-btn:disabled { opacity: 0.7; cursor: default; }
 
-/* The podium: three even cards in a row, each with its cover on the left
-   and the big rank, title, artist and numbers on the right, so it stays
-   about as tall as a strip card. (The first version stacked big covers
-   over the text, #1 wider; on a computer it was too big and uneven.) The
-   glow and the gold / silver / bronze number set the top 3 apart. With one
-   or two entries (a tiny chart) they keep their slots. */
+/* The podium: three cards of one size, centred, a little bigger than the
+   strip's (240px against 176px), so the top 3 stand out without taking
+   over. Tried first: big covers with #1 wider (too big and uneven on a
+   computer), then wide cards with the cover on the left (covers came out
+   smaller than the strip's). The glow and the gold / silver / bronze
+   number set them apart. With one or two entries (a tiny chart) they keep
+   their slots. */
 .wv-film-podium {
-  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--sp-4); align-items: stretch; padding: var(--sp-2) var(--sp-1) 0;
+  display: grid; grid-template-columns: repeat(3, minmax(0, 240px)); justify-content: center;
+  gap: var(--sp-5, 24px); align-items: stretch; padding: var(--sp-2) var(--sp-1) 0;
 }
 /* .section-body scrolls (overflow: auto, for the Table), which cut the
    podium's glow off in a hard box. Nothing in Filmstrip needs it: the strip
    scrolls itself. */
 .section-body:has(.wv-film-podium) { overflow: visible; }
-.wv-film-big.wv-grid-card { flex-direction: row; }
-.wv-film-big .wv-card-art {
-  flex: 0 0 min(42%, 168px); align-self: flex-start;
-  border-radius: calc(var(--r-md) - 1px) 0 calc(var(--r-md) - 1px) calc(var(--r-md) - 1px);
-}
-.wv-film-big .wv-card-body { min-width: 0; gap: 4px; padding: var(--sp-2) var(--sp-3) 6px; }
+.wv-film-big .wv-card-body { min-width: 0; gap: 4px; padding: var(--sp-2) var(--sp-2) 6px; }
 .wv-film-head { display: flex; align-items: flex-start; gap: var(--sp-2); min-width: 0; }
 .wv-film-bigrank {
   flex: none; font-family: var(--font-mono); font-variant-numeric: tabular-nums;
@@ -31951,14 +31947,14 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
 }
 .wv-r1 .wv-film-bigrank { font-size: var(--fs-xl); line-height: 0.9; }
 .wv-film-names { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.wv-film-big .wv-gc-ttl { font-size: var(--fs-sm); font-weight: 700; line-height: 1.25; }
-.wv-film-big .wv-gc-artist, .wv-film-big .wv-stats { font-size: var(--fs-xs); }
+.wv-film-big .wv-gc-ttl { font-size: var(--fs-base); font-weight: 700; line-height: 1.25; }
+.wv-film-big .wv-gc-artist, .wv-film-big .wv-stats { font-size: var(--fs-sm); }
 /* The text column is narrow: the personal best uses its short form */
 .wv-film-big .wv-stat-pb .ppb-full { display: none; }
 .wv-film-big .wv-stat-pb .ppb-short { display: inline; }
-/* Tablets keep the three across, a little closer together */
+/* Tablets: the three share the width */
 @media (min-width: 601px) and (max-width: 980px) {
-  .wv-film-podium { gap: var(--sp-3); }
+  .wv-film-podium { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-3); }
 }
 
 /* The strip: Card grid cards in a row that scrolls sideways (drag, wheel,
@@ -32028,11 +32024,9 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
 @media (max-width: 600px) {
   /* #1 across the top with its cover on the left, #2 and #3 side by side */
   .wv-film-podium { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-3) var(--sp-2); }
-  .wv-film-podium > .wv-r1 { grid-column: 1 / -1; }
+  .wv-film-podium { justify-content: stretch; }
+  .wv-film-podium > .wv-r1 { grid-column: 1 / -1; flex-direction: row; }
   .wv-film-podium > .wv-r1 .wv-card-art { flex: 0 0 44%; border-radius: calc(var(--r-md) - 1px) 0 0 calc(var(--r-md) - 1px); }
-  /* #2 and #3 go back to cover-over-text cards, like the strip's */
-  .wv-film-podium > .wv-film-big:not(.wv-r1) { flex-direction: column; }
-  .wv-film-podium > .wv-film-big:not(.wv-r1) .wv-card-art { flex: none; align-self: stretch; border-radius: calc(var(--r-md) - 1px) calc(var(--r-md) - 1px) 0 0; }
   .wv-film-big .wv-card-body { padding: var(--sp-2) var(--sp-2) 6px; }
   .wv-film-head { gap: var(--sp-2); }
   .wv-film-bigrank { font-size: var(--fs-lg); }
