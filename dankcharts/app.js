@@ -4580,7 +4580,9 @@ function _mosDominantGlow(url, tile) {
       }
       if (bestSat < 0.2 || !tile.isConnected) return;
       const inner = tile.querySelector('.wv-mos-item-inner');
-      if (inner) inner.style.boxShadow = `0 0 0 2px rgba(${bestR},${bestG},${bestB},0.8), 0 0 14px rgba(${bestR},${bestG},${bestB},0.3)`;
+      // A thin ring in the cover's own colour; kept faint so the top 3's gold /
+      // silver / bronze rings stay the ones that stand out (phase 7 step 8)
+      if (inner) inner.style.boxShadow = `0 0 0 1px rgba(${bestR},${bestG},${bestB},0.5)`;
     } catch(e) {}
   };
   probe.src = url;
@@ -19745,51 +19747,20 @@ function _wvCompact(items, max, ms, imgItems, type) {
 }
 
 
-function _tmWorst(row, l) {
-  const s = row.reduce((a, b) => a + b, 0);
-  const maxA = Math.max(...row), minA = Math.min(...row);
-  return Math.max((l * l * maxA) / (s * s), (s * s) / (l * l * minA));
-}
-function _tmRow(row, x, y, w, h) {
-  const s = row.reduce((a, b) => a + b, 0);
-  const out = [];
-  if (w >= h) {
-    const sw = s / h; let p = y;
-    for (const a of row) { const ih = (a / s) * h; out.push([x, p, sw, ih]); p += ih; }
-  } else {
-    const sh = s / w; let p = x;
-    for (const a of row) { const iw = (a / s) * w; out.push([p, y, iw, sh]); p += iw; }
-  }
-  return out;
-}
-function _computeTreemap(values, W, H) {
-  const total = values.reduce((a, b) => a + b, 0);
-  const areas = values.map(v => (v / total) * W * H);
-  const all = [];
-  let rem = [...areas], x = 0, y = 0, w = W, h = H;
-  while (rem.length) {
-    const l = Math.min(w, h);
-    let row = [rem.shift()];
-    while (rem.length) {
-      const next = [...row, rem[0]];
-      if (_tmWorst(next, l) <= _tmWorst(row, l)) { row = next; rem.shift(); } else break;
-    }
-    all.push(..._tmRow(row, x, y, w, h));
-    const rs = row.reduce((a, b) => a + b, 0);
-    if (w >= h) { const sw = rs / h; x += sw; w -= sw; }
-    else { const sh = rs / w; y += sh; h -= sh; }
-  }
-  return all;
-}
 function _wvMosaic(items, max, ms, imgItems, type) {
   type = type || 'songs';
   const jtype = esc(JSON.stringify(type));
-  const W = 1000;
-  const H = Math.min(2800, 480 + items.length * 22);
-  const vals = items.map(s => Math.sqrt(s.count));
-  const rects = _computeTreemap(vals, W, H);
-  return `<div class="wv-mosaic" style="height:${H}px">${items.map((s, j) => {
-    const i = _wvIdx(s, j);   // rank index on the full chart; j = tile slot
+  // Phase 7 step 8 (4.9b): a ranked grid of square tiles instead of the
+  // treemap (which sized tiles by plays and read in a jumble: #4 beside #1,
+  // #5 in the far corner, covers stretched). #1 takes half the width, #2–#5
+  // sit beside it two by two, #6 on are five to a row: the size says the
+  // rank, and it reads in chart order. Only when the list starts at #1
+  // (page 1, no search); otherwise every tile is the small size.
+  const ranks = items.map((s, j) => _wvIdx(s, j));
+  const fromTop = ranks[0] === 0;
+  const sizeOf = (i, j) => !fromTop || ranks[j] !== j ? 'sm' : i === 0 ? 'xl' : i <= 4 ? 'md' : 'sm';
+  const tiles = items.map((s, j) => {
+    const i = ranks[j];   // rank index on the full chart; j = tile slot
     const f = _wvItem(type, s, i, ms, imgItems);
     const { k, imgId, ea, mv, prefKey } = f;
     const backImgId = imgId + 'b';
@@ -19797,62 +19768,56 @@ function _wvMosaic(items, max, ms, imgItems, type) {
     else if (type === 'albums') imgItems.push({ imgId: backImgId, album: s.album, artist: s.artist, name: s.album, prefKey });
     else imgItems.push({ imgId: backImgId, title: s.title, artist: s.artist, album: s.album, prefKey });
     const { ttl, sub } = _wvDisp(type, s);
-    const [rx, ry, rw, rh] = rects[j];
-    const st = `left:${(rx/W*100).toFixed(2)}%;top:${(ry/H*100).toFixed(2)}%;width:${(rw/W*100).toFixed(2)}%;height:${(rh/H*100).toFixed(2)}%;--bar-w:${Math.round(s.count/max*100)}%`;
     const rc = i < 3 ? ` wv-r${i+1}` : '';
     const pk = f.peak;
     const wks = f.weeks || null;
     const cumPlays = f.cumPlays;
     const cert = f.certHtml + f.ratingHtml;
-    const playTitle  = type === 'songs' ? s.title  : type === 'artists' ? s.name  : s.album;
-    const playArtist = type === 'songs' ? s.artist : type === 'artists' ? s.name  : s.artist;
-    const playAlbum  = type === 'songs' ? (s.album || '') : type === 'artists' ? '' : s.album;
+    const plays = `${s.count.toLocaleString()} ${esc(tUnit('plays', s.count))}`;
+    const titleLink = `<span class="wv-title-link" onclick="event.stopPropagation();_wvOpenModal(${jtype},${esc(JSON.stringify(k))})" title="${esc(ttl)}">${esc(ttl)}</span>`;
     // Phase 7: ▶ sample + ⋮ menu on the hover card and on the back (_eaAttrs)
     const eaBtns = `<span class="ea-pair ea-inline">${_eaSampleBtn()}${_eaMoreBtn()}</span>`;
-    return `<div class="wv-mos-item${rc}" style="${st}" title="#${i+1}: ${esc(ttl)} — ${esc(sub)}" onclick="wvMosTileClick(event,this)"${ea}>
+    const stats = `${pk ? peakBadge(pk) : ''}` +
+      `${wks ? `<span class="wv-mos-hcard-wks">${esc(_wvRunText(wks))}</span>` : ''}` +
+      `${f.isPlaysPeak ? playsPeakBadge() : ''}`;
+    const allTime = cumPlays ? `<div class="wv-mos-hcard-alltime">${cumPlays.toLocaleString()} ${esc(tUnit('plays', cumPlays))} · ${esc(t('nav_alltime'))}${cert}</div>` : '';
+    return `<div class="wv-mos-item wv-mos-${sizeOf(i, j)}${rc}" title="#${i+1}: ${esc(ttl)} — ${esc(sub)}" onclick="wvMosTileClick(event,this)"${ea}>
       <div class="wv-mos-item-inner">
         <div class="wv-mos-front">
           <div class="wv-thumb wv-thumb-full">${_wvThumb(imgId, ttl)}</div>
           <div class="wv-mos-top"></div>
           <span class="wv-rank-badge">${i+1}</span>
           ${mv ? `<div class="wv-mv-ov">${mv}</div>` : ''}
-          <div class="wv-mos-bot"><div class="wv-ttl">${esc(ttl)}</div><div class="wv-art">${esc(sub)}</div><div class="wv-plays">${s.count} ${tUnit('plays', s.count)}</div></div>
+          <div class="wv-mos-bot"><div class="wv-ttl">${esc(ttl)}</div><div class="wv-art">${esc(sub)}</div><div class="wv-plays">${plays}</div></div>
           <div class="wv-mos-hcard">
-            ${eaBtns}${dcPlBtnHtml(dcPlKindFor(type), playTitle, playArtist, playAlbum, 'dc-pl-add-sm')}
-            <div class="wv-mos-hcard-ttl"><span class="wv-title-link" onclick="event.stopPropagation();_wvOpenModal(${jtype},${esc(JSON.stringify(k))})" title="View details">${esc(ttl)}</span></div>
+            ${eaBtns}
+            <div class="wv-mos-hcard-ttl">${titleLink}</div>
             <div class="wv-mos-hcard-art">${esc(sub)}</div>
-            <div class="wv-mos-hcard-stats">
-              ${pk ? peakBadge(pk) : ''}
-              ${wks ? `<span class="wv-mos-hcard-wks">${_wvRunText(wks)}</span>` : ''}
-              ${f.isPlaysPeak ? playsPeakBadge() : ''}
-            </div>
-            ${cumPlays ? `<div class="wv-mos-hcard-alltime">${cumPlays.toLocaleString()} ${tUnit('plays', cumPlays)} · ${t('nav_alltime')}${cert}</div>` : ''}
-            <div class="wv-mos-hcard-bar"><div class="wv-mos-hcard-fill"></div></div>
+            <div class="wv-mos-hcard-stats">${stats}</div>
+            ${allTime}
           </div>
         </div>
         <div class="wv-mos-back">
-          <button class="wv-mos-back-close" onclick="event.stopPropagation();wvMosaicCloseAll(this.closest('.wv-mosaic'))">×</button>
+          <button class="wv-mos-back-close" onclick="event.stopPropagation();wvMosaicCloseAll(this.closest('.wv-mosaic'))" aria-label="${esc(t('dr_close'))}">×</button>
           <div class="wv-mos-back-header">
             <div class="wv-mos-back-img">${_wvThumb(backImgId, ttl)}</div>
             <div class="wv-mos-back-meta">
               <div class="wv-mos-back-rank-row"><span class="wv-mos-back-ranknum">#${i+1}</span>${mv ? `<span class="wv-mv-ov">${mv}</span>` : ''}</div>
-              <div class="wv-mos-back-ttl"><span class="wv-title-link" onclick="event.stopPropagation();_wvOpenModal(${jtype},${esc(JSON.stringify(k))})" title="View details">${esc(ttl)}</span></div>
+              <div class="wv-mos-back-ttl">${titleLink}</div>
               <div class="wv-mos-back-sub">${esc(sub)}</div>
             </div>
           </div>
-          <div class="wv-mos-back-plays">${s.count}<span class="wv-mos-back-plays-unit"> ${tUnit('plays', s.count)}</span></div>
-          <div class="wv-mos-back-stats">
-            ${pk ? peakBadge(pk) : ''}
-            ${wks ? `<span class="wv-mos-hcard-wks">${_wvRunText(wks)}</span>` : ''}
-            ${f.isPlaysPeak ? playsPeakBadge() : ''}
-          </div>
-          ${cumPlays ? `<div class="wv-mos-hcard-alltime">${cumPlays.toLocaleString()} ${tUnit('plays', cumPlays)} · ${t('nav_alltime')}${cert}</div>` : ''}
-          <div class="wv-mos-hcard-bar"><div class="wv-mos-hcard-fill"></div></div>
-          <div class="wv-mos-back-acts">${eaBtns}<button type="button" class="wv-mos-dr-btn" onclick="event.stopPropagation();_drToggle(this.closest('.wv-mos-item'))">${esc(t('dr_all'))}</button>${dcPlBtnHtml(dcPlKindFor(type), playTitle, playArtist, playAlbum, 'dc-pl-add-sm')}</div>
+          <div class="wv-mos-back-plays">${s.count.toLocaleString()}<span class="wv-mos-back-plays-unit"> ${esc(tUnit('plays', s.count))}</span></div>
+          <div class="wv-mos-back-stats">${stats}</div>
+          ${allTime}
+          <div class="wv-mos-back-acts">${eaBtns}<button type="button" class="wv-mos-dr-btn" onclick="event.stopPropagation();_drToggle(this.closest('.wv-mos-item'))">${esc(t('dr_all'))}</button></div>
         </div>
       </div>
     </div>`;
-  }).join('')}</div>`;
+  }).join('');
+  // "Save image" over the grid: the mosaic is the poster layout (4.9b)
+  const tools = `<div class="wv-mos-tools"><button class="wv-film-share-btn wv-mos-save-btn" onclick="shareMosaic('${type}')">${esc(t('wv_film_save'))}</button></div>`;
+  return `${tools}<div class="wv-mosaic" id="wv-mosaic-${type}">${tiles}</div>`;
 }
 
 function wvMosTileClick(e, el) {
@@ -19863,7 +19828,8 @@ function wvMosTileClick(e, el) {
   if (!wasFlipped) {
     const eRect = el.getBoundingClientRect();
     const mRect = mosaic.getBoundingClientRect();
-    const minPx = 190;
+    // A flipped tile grows to at least ~230px on screen so its back reads
+    const minPx = 230;
     const scale = Math.min(Math.max(1, minPx / Math.min(eRect.width, eRect.height)), 2.8);
     if (scale > 1.05) {
       const cx = (eRect.left + eRect.width / 2 - mRect.left) / mRect.width;
@@ -19993,26 +19959,23 @@ function wvFilmAutoScroll(type) {
   }
 }
 
-// Save: the podium and every strip card as one picture. The strip wraps
-// into rows under the podium for it, without the buttons, arrows or an
-// open details panel. The copy is made inside the chart's section so the
+// Save image (Filmstrip, Mosaic): draws a copy of `src` as a PNG and
+// downloads it. `prep(copy)` trims the copy first (buttons, hover cards…).
+// The copy is made beside `src`, inside the chart's section, so the
 // section-scoped rules (the chips on the covers) still apply to it.
-async function shareFilmstrip(type) {
-  const wrap = document.getElementById('wv-film-wrap-' + type);
-  if (!wrap || typeof html2canvas === 'undefined') return;
-
-  const btn = wrap.querySelector('.wv-film-share-btn');
+async function _wvSaveImage(src, btn, name, prep) {
+  if (!src || typeof html2canvas === 'undefined') return;
   const origText = btn ? btn.textContent : '';
   if (btn) { btn.disabled = true; btn.textContent = t('wv_film_saving'); }
 
-  const clone = wrap.cloneNode(true);
-  clone.classList.add('wv-film-capture');
-  clone.querySelectorAll('.wv-film-controls, .wv-film-arrow, .wv-film-scrolltrack, .ea-drawer, .wv-acts, [data-auto-clone]').forEach(n => n.remove());
+  const clone = src.cloneNode(true);
+  if (prep) prep(clone);
+  clone.querySelectorAll('.ea-drawer').forEach(n => n.remove());
   clone.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'));
   clone.removeAttribute('id');
-  const fullW = wrap.offsetWidth;
+  const fullW = src.offsetWidth;
   Object.assign(clone.style, { position: 'fixed', left: '-99999px', top: '0', width: fullW + 'px' });
-  wrap.parentNode.appendChild(clone);
+  src.parentNode.appendChild(clone);
   const fullH = clone.scrollHeight;
 
   // Pre-convert cross-origin images to data URLs so the canvas isn't tainted
@@ -20047,17 +20010,40 @@ async function shareFilmstrip(type) {
     });
     const link = document.createElement('a');
     const { label } = getDateRange();
-    link.download = `filmstrip-${type}-${(label||'chart').replace(/[^a-z0-9]/gi,'-')}.png`;
+    link.download = `${name}-${(label||'chart').replace(/[^a-z0-9]/gi,'-')}.png`;
     link.href = cvs.toDataURL('image/png');
     link.click();
     if (btn) { btn.textContent = '✓ ' + t('wv_film_saved'); setTimeout(() => { btn.textContent = origText; btn.disabled = false; }, 2000); }
   } catch(e) {
-    console.error('shareFilmstrip', e);
+    console.error('_wvSaveImage', e);
     if (btn) { btn.textContent = origText; btn.disabled = false; }
   } finally {
     plain.done();
     clone.remove();
   }
+}
+
+// Filmstrip: the podium and every strip card as one picture; the strip
+// wraps into rows under the podium, without the buttons or arrows
+function shareFilmstrip(type) {
+  const wrap = document.getElementById('wv-film-wrap-' + type);
+  if (!wrap) return;
+  return _wvSaveImage(wrap, wrap.querySelector('.wv-film-share-btn'), 'filmstrip-' + type, c => {
+    c.classList.add('wv-film-capture');
+    c.querySelectorAll('.wv-film-controls, .wv-film-arrow, .wv-film-scrolltrack, .wv-acts, [data-auto-clone]').forEach(n => n.remove());
+  });
+}
+
+// Mosaic: the tiles as they are, without hover cards, backs or a flip
+function shareMosaic(type) {
+  const mos = document.getElementById('wv-mosaic-' + type);
+  if (!mos) return;
+  const btn = mos.parentNode.querySelector('.wv-mos-save-btn');
+  return _wvSaveImage(mos, btn, 'mosaic-' + type, c => {
+    c.classList.add('wv-mos-capture');
+    c.querySelectorAll('.wv-mos-hcard, .wv-mos-back').forEach(n => n.remove());
+    c.querySelectorAll('.wv-mos-item').forEach(n => { n.classList.remove('wv-mos-flipped'); n.style.transform = ''; });
+  });
 }
 
 // html2canvas 1.4 throws on the colour functions the themes use: color-mix()

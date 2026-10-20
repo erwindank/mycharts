@@ -31764,44 +31764,87 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
 }
 
 
-/* ── MOSAIC (TREEMAP) ── */
-.wv-mosaic { position: relative; width: 100%; min-height: 480px; }
-.wv-mos-item { position: absolute; box-sizing: border-box; padding: 2px; cursor: pointer; container-type: size; container-name: mos-tile; }
-.wv-mos-item-inner { position: relative; width: 100%; height: 100%; border-radius: 12px; overflow: hidden; }
+/* ── MOSAIC ── (phase 7 step 8, 4.9b): a ranked grid of square tiles
+   (it was a treemap sized by plays, which read in a jumble). A 20-column
+   grid: #1 spans half the width and two rows (.wv-mos-xl), #2–#5 fill the
+   other half two by two (.wv-mos-md), #6 on are five to a row (.wv-mos-sm).
+   Rows take their height from the square md / sm tiles, so #1 comes out
+   square too. Even gaps everywhere. */
+.wv-mos-tools { display: flex; justify-content: flex-end; padding: 0 var(--sp-1) var(--sp-2); }
+.wv-mosaic { display: grid; grid-template-columns: repeat(20, minmax(0, 1fr)); gap: var(--sp-2); padding: var(--sp-1); }
+.wv-mos-item {
+  position: relative; min-width: 0; cursor: pointer;
+  container-type: size; container-name: mos-tile;
+  transition: transform 0.2s ease, opacity 0.25s ease;
+}
+.wv-mos-xl { grid-column: span 10; grid-row: span 2; }
+.wv-mos-md { grid-column: span 5; aspect-ratio: 1; }
+.wv-mos-sm { grid-column: span 4; aspect-ratio: 1; }
+.wv-mos-item-inner { position: relative; width: 100%; height: 100%; border-radius: var(--r-md); overflow: hidden; background: var(--bg3); }
 .wv-mos-item .wv-thumb-full { width: 100%; height: 100%; }
-.wv-mos-top { position: absolute; top: 0; left: 0; right: 0; height: 40%; background: linear-gradient(to bottom, rgba(0,0,0,0.78) 0%, transparent 100%); pointer-events: none; z-index: 1; }
-.wv-mos-bot { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%); padding: 28px 6px 5px; z-index: 1; }
-.wv-mos-bot .wv-ttl { font-size: var(--fs-xs); color: #fff; }
-.wv-mos-bot .wv-art { font-size: var(--fs-xs); color: rgba(255,255,255,0.72); }
-.wv-mos-bot .wv-plays { font-size: var(--fs-xs); color: rgba(255,255,255,0.5); font-family: var(--font-mono);
-      font-variant-numeric: tabular-nums; }
-.wv-mos-item { transition: transform 0.2s ease, opacity 0.25s ease, z-index 0s; }
-.wv-mos-item:hover { transform: scale(1.04); z-index: 10; }
-.wv-mosaic:has(.wv-mos-item:hover) .wv-mos-item { opacity: 0.45; }
+.wv-mos-item .wv-thumb-full .thumb-initials { font-size: clamp(1rem, 14cqw, 3rem); }
+/* Two soft fades: the top one under the rank, the bottom one under the
+   title, so both read on any cover, light or dark */
+/* Both fades on one layer over the whole tile: a layer that ends mid-tile
+   left a hairline at its edge in saved images (html2canvas) */
+.wv-mos-top { position: absolute; inset: 0; pointer-events: none; z-index: 1;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0) 45%),
+              linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.55) 28%, rgba(0,0,0,0) 58%); }
+.wv-mos-bot { position: absolute; bottom: 0; left: 0; right: 0; z-index: 1; padding: 30% clamp(6px, 5cqw, 18px) clamp(5px, 4cqw, 14px); }
+.wv-mos-bot .wv-ttl { font-size: clamp(0.72rem, 6.5cqw, 1.5rem); font-weight: 700; line-height: 1.2; color: #fff; white-space: normal;
+  overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
+.wv-mos-bot .wv-art { font-size: clamp(0.68rem, 5cqw, 1.05rem); color: rgba(255,255,255,0.78); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+.wv-mos-bot .wv-plays { font-size: clamp(0.66rem, 4.5cqw, 0.95rem); color: rgba(255,255,255,0.62); margin-top: 2px; }
+/* The big rank, stamped top-left and sized to the tile */
+.wv-mos-item .wv-rank-badge {
+  top: clamp(4px, 3cqw, 12px); left: clamp(6px, 4cqw, 16px); background: none; padding: 0; border-radius: 0;
+  font-size: clamp(1.6rem, 30cqw, 7rem); font-weight: 900; line-height: 0.85; letter-spacing: -0.05em;
+  color: rgba(255,255,255,0.85); text-shadow: 0 2px 14px rgba(0,0,0,0.45); z-index: 1; pointer-events: none;
+}
+.wv-mos-item.wv-r1 .wv-rank-badge { background: none; color: #f6c453; }
+.wv-mos-item.wv-r2 .wv-rank-badge { background: none; color: #d5dce6; }
+.wv-mos-item.wv-r3 .wv-rank-badge { background: none; color: #e59a5c; }
+/* Hover lifts the tile and dims the rest */
+.wv-mos-item:hover { transform: scale(1.03); z-index: 10; }
+.wv-mosaic:has(.wv-mos-item:hover) .wv-mos-item { opacity: 0.55; }
 .wv-mosaic:has(.wv-mos-item:hover) .wv-mos-item:hover { opacity: 1; }
-.wv-mos-hcard { position: absolute; inset: 0; top: auto; background: rgba(8,18,30,0.82); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 10px var(--sp-2) var(--sp-2); transform: translateY(100%); transition: transform 0.25s ease; z-index: 4; display: flex; flex-direction: column; justify-content: flex-end; }
+@media (hover: none) { .wv-mos-item:hover { transform: none; } .wv-mosaic:has(.wv-mos-item:hover) .wv-mos-item { opacity: 1; } }
+.wv-mos-hcard { position: absolute; inset: 0; top: auto; background: rgba(8,18,30,0.86); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 10px var(--sp-2) var(--sp-2); transform: translateY(100%); transition: transform 0.25s ease; z-index: 4; display: flex; flex-direction: column; justify-content: flex-end; }
 .wv-mos-item:hover .wv-mos-hcard { transform: translateY(0); }
-.wv-mos-hcard-ttl { font-size: var(--fs-xs); font-weight: 600; color: #fff; white-space: normal; line-height: 1.25; margin-bottom: 2px; }
-.wv-mos-hcard-art { font-size: var(--fs-xs); color: rgba(255,255,255,0.65); margin-bottom: 6px; }
+.wv-mos-hcard .ea-pair { align-self: flex-end; margin-bottom: 2px; }
+.wv-mos-hcard-ttl { font-size: var(--fs-sm); font-weight: 600; color: #fff; white-space: normal; line-height: 1.25; margin-bottom: 2px; }
+.wv-mos-hcard-art { font-size: var(--fs-xs); color: rgba(255,255,255,0.7); margin-bottom: 6px; }
 .wv-mos-hcard-stats { display: flex; align-items: center; gap: 6px; margin-bottom: var(--sp-1); flex-wrap: wrap; }
-.wv-mos-hcard-wks { font-size: var(--fs-xs); color: rgba(255,255,255,0.82); font-family: var(--font-mono);
-      font-variant-numeric: tabular-nums; background: rgba(255,255,255,0.14); padding: 1px 5px; border-radius: 3px; }
-.wv-mos-hcard-alltime { font-size: var(--fs-xs); color: rgba(255,255,255,0.75); font-family: var(--font-sans); margin-bottom: 6px; display: flex; align-items: center; gap: var(--sp-1); flex-wrap: wrap; }
-.wv-mos-hcard-bar { height: 3px; background: rgba(255,255,255,0.12); border-radius: 2px; overflow: hidden; margin-top: 2px; }
-.wv-mos-hcard-fill { height: 100%; width: var(--bar-w); background: var(--accent); border-radius: 2px; }
-.wv-mos-item .wv-mv-ov { background: rgba(0,0,0,0.82); padding: 0; border-radius: var(--r-xs); z-index: 3; }
-.wv-mos-item .wv-up   { color: #86efac; font-size: var(--fs-xs); padding: 2px 6px; border-radius: var(--r-xs); background: rgba(74,222,128,0.25); border: none; display: inline-block; }
-.wv-mos-item .wv-down { color: #fca5a5; font-size: var(--fs-xs); padding: 2px 6px; border-radius: var(--r-xs); background: rgba(248,113,113,0.25); border: none; display: inline-block; }
-.wv-mos-item .wv-new  { color: #93c5fd; font-size: var(--fs-xs); padding: 2px 6px; border-radius: var(--r-xs); background: rgba(88,170,246,0.3); border: none; display: inline-block; }
-.wv-mos-item .wv-re   { color: #d8b4fe; font-size: var(--fs-xs); padding: 2px 6px; border-radius: var(--r-xs); background: rgba(167,139,250,0.3); border: none; display: inline-block; }
-.wv-mos-item .wv-same { color: rgba(255,255,255,0.45); font-size: var(--fs-xs); padding: 2px 6px; border-radius: var(--r-xs); background: rgba(255,255,255,0.12); border: none; display: inline-block; }
-.wv-mos-item .wv-rank-badge { top: 0.1em; left: 2px; background: none; padding: 0; border-radius: 0; font-size: 5rem; font-weight: 900; line-height: 0.85; letter-spacing: -0.05em; color: rgba(255,255,255,0.45); z-index: 1; pointer-events: none; }
-.wv-mos-item.wv-r1 .wv-rank-badge { background: none; color: rgba(240,170,48,0.75); }
-.wv-mos-item.wv-r2 .wv-rank-badge { background: none; color: rgba(148,163,184,0.75); }
-.wv-mos-item.wv-r3 .wv-rank-badge { background: none; color: rgba(180,83,9,0.85); }
-.wv-r1 .wv-mos-item-inner { box-shadow: 0 0 0 3px rgba(240,170,48,1), 0 0 28px rgba(240,170,48,0.65), 0 0 50px rgba(240,170,48,0.25); }
-.wv-r2 .wv-mos-item-inner { box-shadow: 0 0 0 3px rgba(148,163,184,0.95), 0 0 22px rgba(148,163,184,0.55), 0 0 40px rgba(148,163,184,0.2); }
-.wv-r3 .wv-mos-item-inner { box-shadow: 0 0 0 3px rgba(205,110,40,0.95), 0 0 22px rgba(205,110,40,0.55), 0 0 40px rgba(205,110,40,0.2); }
+.wv-mos-hcard-stats:empty { display: none; }
+.wv-mos-hcard-wks { font-size: var(--fs-xs); color: rgba(255,255,255,0.85); background: rgba(255,255,255,0.14); padding: 1px 6px; border-radius: var(--r-xs); }
+.wv-mos-hcard-alltime { font-size: var(--fs-xs); color: rgba(255,255,255,0.75); font-family: var(--font-sans); display: flex; align-items: center; gap: var(--sp-1); flex-wrap: wrap; }
+/* Movement chip, top-right, on dark glass with bright colours (any theme),
+   the same as the Card grid's */
+.wv-mos-item .wv-mv-ov { top: clamp(4px, 3cqw, 10px); right: clamp(4px, 3cqw, 10px); background: rgba(0,0,0,0.72); padding: 2px 6px; border-radius: var(--r-xs); line-height: 1.4; z-index: 3; }
+.wv-mos-item .wv-mv-ov .wv-up   { color: #4ade80; }
+.wv-mos-item .wv-mv-ov .wv-down { color: #f87171; }
+.wv-mos-item .wv-mv-ov .wv-same { color: #cbd5e1; }
+.wv-mos-item .wv-mv-ov :is(.wv-new, .wv-re) { color: #93c5fd; background: none; border: 0; padding: 0; }
+/* The top 3: gold / silver / bronze rings with a soft glow */
+.wv-r1 .wv-mos-item-inner { box-shadow: 0 0 0 2px var(--medal-gold),   0 0 24px color-mix(in srgb, var(--medal-gold) 45%, transparent); }
+.wv-r2 .wv-mos-item-inner { box-shadow: 0 0 0 2px var(--medal-silver), 0 0 20px color-mix(in srgb, var(--medal-silver) 35%, transparent); }
+.wv-r3 .wv-mos-item-inner { box-shadow: 0 0 0 2px var(--medal-bronze), 0 0 20px color-mix(in srgb, var(--medal-bronze) 35%, transparent); }
+/* Save image: the tiles without hover effects */
+.wv-mos-capture .wv-mos-item { transform: none !important; opacity: 1 !important; }
+/* html2canvas skips the rings' box-shadow: a real border carries them */
+.wv-mos-capture .wv-r1 .wv-mos-item-inner { border: 2px solid var(--medal-gold); }
+.wv-mos-capture .wv-r2 .wv-mos-item-inner { border: 2px solid var(--medal-silver); }
+.wv-mos-capture .wv-r3 .wv-mos-item-inner { border: 2px solid var(--medal-bronze); }
+
+/* Phones: #1 across the whole width, #2–#5 two to a row, the rest three */
+@media (max-width: 600px) {
+  .wv-mosaic { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
+  .wv-mos-xl { grid-column: span 6; grid-row: auto; aspect-ratio: 1; }
+  .wv-mos-md { grid-column: span 3; }
+  .wv-mos-sm { grid-column: span 2; }
+  /* Small tiles: the rank and title only; the artist and plays are a tap away */
+  .wv-mos-sm .wv-mos-bot .wv-art, .wv-mos-sm .wv-mos-bot .wv-plays { display: none; }
+}
 
 /* ── MOSAIC CLICK-TO-EXPAND ── */
 .wv-mos-front { position: absolute; inset: 0; transition: opacity 0.2s ease; }
@@ -31841,9 +31884,29 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
       font-variant-numeric: tabular-nums; line-height: 1; margin: var(--sp-1) 0 2px; }
 .wv-mos-back-plays-unit { font-size: 0.62rem; font-weight: 400; color: rgba(255,255,255,0.5); }
 .wv-mos-back-stats { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; margin: 1px 0; }
-.wv-mos-back .wv-mos-hcard-bar { display: none; }
 
+/* The back's movement chip sits in its rank row, not in the tile's corner
+   (it covered the × there) */
+.wv-mos-back .wv-mv-ov { position: static; }
 /* ── MOSAIC BACK CARD: responsive to tile size via container queries ── */
+/* Tiles of 150–219px (the grid's small tiles on a computer): the back keeps
+   every part, packed tighter so the buttons stay in view */
+@container mos-tile (min-width: 150px) and (max-width: 219px) {
+  .wv-mos-back { padding: 7px var(--sp-2) 6px; gap: 2px; }
+  .wv-mos-back-close { width: 18px; height: 18px; top: 4px; right: 4px; font-size: 0.72rem; }
+  .wv-mos-back-header { margin-bottom: 2px; gap: 6px; }
+  .wv-mos-back-img { width: 38px; height: 38px; }
+  .wv-mos-back-ranknum { font-size: 0.72rem; }
+  .wv-mos-back-ttl { font-size: 0.68rem; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .wv-mos-back-sub { font-size: 0.56rem; }
+  .wv-mos-back-plays { font-size: 1.1rem; margin: 2px 0 1px; }
+  .wv-mos-back-stats { gap: 3px; }
+  .wv-mos-back-stats > * { font-size: 0.56rem !important; }
+  .wv-mos-back .wv-mos-hcard-alltime { display: none; }
+  .wv-mos-back-acts { padding-top: 2px; gap: 3px; }
+  .wv-mos-back-acts .ea-sample, .wv-mos-back-acts .ea-more { width: 22px; height: 22px; }
+  .wv-mos-back-acts .wv-mos-dr-btn { padding: 3px 8px; font-size: 0.62rem; }
+}
 /* All selectors scoped to .wv-mos-back so front card tiles are never affected */
 @container mos-tile (max-width: 89px) {
   .wv-mos-back { padding: 5px; gap: 1px; }
