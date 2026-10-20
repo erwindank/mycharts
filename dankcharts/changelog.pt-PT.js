@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "New Artists icon":
+    ["Novo ícone de Artistas",
+     "O botão Artistas acima da tabela e o título da tabela de Artistas mostram agora uma pessoa com uma nota musical em vez de um microfone, tal como os botões Músicas / Artistas / Álbuns dos Recordes."],
+
   "Platinum badges spelled out again":
     ["Os distintivos de Platina voltam a ser escritos por extenso",
      "O distintivo de Platina nas entradas do gráfico volta a dizer 💿 PLATINA em vez do curto PLAT."],

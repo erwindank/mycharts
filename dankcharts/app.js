@@ -11771,16 +11771,16 @@ document.addEventListener('click', function (e) {
    albums; they were three abstract marks whose only job was to be different
    from each other, and two of the three sections (New Charts, and the chart-run
    popup) had already drifted to emoji because of it. These replace all of them
-   with objects: a beamed pair of notes, a stage microphone, a record in its
-   sleeve.
+   with objects: a beamed pair of notes, a person with a music note (a stage
+   microphone until 2026-10-20), a record in its sleeve.
 
    Written inline rather than as <symbol>s in the sprite, unlike the eleven
    section icons in index.html. Content cloned through <use> lives in a shadow
    tree that document CSS cannot select into, so a <symbol> can only ever be
    animated as one lump — the whole icon transformed together. Inline markup
    puts every path in the document, which is what buys the motion these have:
-   the note heads pulse on their own beat while the beam holds still, the mic's
-   sound arcs radiate while the mic body stays put, and the record's groove
+   the note heads pulse on their own beat while the beam holds still, the
+   artist's note pulses while the person stays put, and the record's groove
    turns inside a sleeve that does not.
 
    Same drawing rules as the sprite otherwise: stroke-only on a 16-unit grid,
@@ -11793,13 +11793,13 @@ const REC_ENT_ICON_PARTS = {
   songs: '<path d="M5.6 11.4V4.2l7-1.6v7.2"/>'
     + '<circle class="rei-note rei-note-a" cx="3.85" cy="11.4" r="1.75"/>'
     + '<circle class="rei-note rei-note-b" cx="10.85" cy="9.8" r="1.75"/>',
-  // Mic capsule in its cradle, on a stand. The two arcs either side are the
-  // sound coming off it — the only part of the glyph that moves.
-  artists: '<rect x="6.4" y="1.7" width="3.2" height="6.2" rx="1.6"/>'
-    + '<path d="M5 6.9a3 3 0 0 0 6 0"/>'
-    + '<path d="M8 9.9v2.6M5.9 12.5h4.2"/>'
-    + '<path class="rei-wave rei-wave-l" d="M3.9 3.2a3 3 0 0 0 0 2.4"/>'
-    + '<path class="rei-wave rei-wave-r" d="M12.1 3.2a3 3 0 0 1 0 2.4"/>',
+  // A person (head and shoulders) with a music note beside them — the same
+  // drawing as the Artists button above the chart, on the 16-unit grid. Was a
+  // stage mic until 2026-10-20. The note head is the only part that moves.
+  artists: '<circle cx="6" cy="4.7" r="2.7"/>'
+    + '<path d="M1.3 14v-1.3a2.7 2.7 0 0 1 2.7-2.7h3.3"/>'
+    + '<path d="M12.7 12.7V8l2 1"/>'
+    + '<circle class="rei-note" cx="11.3" cy="12.7" r="1.4"/>',
   /* A record standing in front of its sleeve. Two earlier drawings of this
      were thrown out on the silhouette alone: the whole disc *inside* the
      square is a camera aperture, and a square with a half-disc bulging off one

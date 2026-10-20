@@ -14436,7 +14436,8 @@
 
     /* ── Songs / Artists / Albums glyphs ──────────────────────────────
        Drawn inline by recEntIco() in app.js — a beamed pair of notes, a stage
-       mic, a record in its sleeve — in place of the ★ ♦ ◈ these pills used to
+       person with a music note (a stage mic until 2026-10-20), a record in
+       its sleeve — in place of the ★ ♦ ◈ these pills used to
        carry, which named nothing and had already been abandoned for emoji in
        two of the sections.
 
@@ -14503,7 +14504,7 @@
        cannot select into. These are written inline for exactly this reason:
        the part that should move moves and the part that should hold still
        holds still. The note's heads pulse while its beam stays rigid, the
-       mic's sound radiates while the mic stays on its stand, the record turns
+       artist's note pulses while the person stays put, the record turns
        inside a sleeve that does not.
 
        Every loop is delayed by the length of the entrance it follows and left
@@ -14530,27 +14531,18 @@
       animation-delay: 750ms;
     }
 
-    /* Sound coming off the mic: each arc grows from the edge nearest the
-       capsule outward, which is the direction sound actually leaves it —
-       scaling from the arc's own centre would read as a throb instead. Both
-       fire on the same beat rather than alternating; a mic does not radiate
-       left, then right. */
+    /* The artist (a person with a music note, a mic until 2026-10-20): the
+       figure bobs gently and the note head pulses on the same beat as the
+       songs glyph's heads, so the two read as one family. */
     :is(.nc-rec-tab, .mil-tab, .fast-tab, .rec-ent-tab).active .rec-ent-ico--artists {
       animation: reiPop 320ms var(--ease) backwards,
-        reiMicBob 3.1s ease-in-out 320ms infinite;
+        reiArtistBob 3.1s ease-in-out 320ms infinite;
     }
 
-    :is(.nc-rec-tab, .mil-tab, .fast-tab, .rec-ent-tab).active .rec-ent-ico--artists .rei-wave {
+    :is(.nc-rec-tab, .mil-tab, .fast-tab, .rec-ent-tab).active .rec-ent-ico--artists .rei-note {
       transform-box: fill-box;
-      animation: reiWave 1.9s ease-in-out 320ms infinite;
-    }
-
-    :is(.nc-rec-tab, .mil-tab, .fast-tab, .rec-ent-tab).active .rec-ent-ico--artists .rei-wave-l {
-      transform-origin: right center;
-    }
-
-    :is(.nc-rec-tab, .mil-tab, .fast-tab, .rec-ent-tab).active .rec-ent-ico--artists .rei-wave-r {
-      transform-origin: left center;
+      transform-origin: center;
+      animation: reiNotePulse 1.3s ease-in-out 320ms infinite;
     }
 
     /* The record turns; the sleeve behind it holds still. Only the groove is
@@ -14608,14 +14600,9 @@
       45%      { transform: scale(1.28); }
     }
 
-    @keyframes reiMicBob {
+    @keyframes reiArtistBob {
       0%, 100% { transform: translateY(0); }
       50%      { transform: translateY(-0.7px); }
-    }
-
-    @keyframes reiWave {
-      0%, 100% { opacity: 0.18; transform: scale(0.55); }
-      45%      { opacity: 1;    transform: scale(1.08); }
     }
 
     @keyframes reiSpin {

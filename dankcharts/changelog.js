@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 229;
+const DC_CL_I18N_V = 231;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-20', t: 'design', a: 'charts',
+    title: "New Artists icon",
+    detail: "The Artists button above the chart and the Artists chart heading now show a person with a music note instead of a microphone, and so do the Songs / Artists / Albums pills in Records." },
 
   { d: '2026-10-20', t: 'design', a: 'charts',
     title: "Platinum badges spelled out again",
