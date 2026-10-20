@@ -1575,6 +1575,14 @@ const TRANSLATIONS = {
     // Card grid on Yearly / All-Time pages with this (phase 7 step 6)
     wv_show_more: 'Show more',
     wv_showing: 'Showing {{n}} of {{total}}',
+    // Filmstrip: the strip's controls (phase 7 step 8)
+    wv_film_auto: 'Auto-scroll',
+    wv_film_stop: 'Stop',
+    wv_film_save: 'Save image',
+    wv_film_saving: 'Saving…',
+    wv_film_saved: 'Saved',
+    wv_film_prev: 'Previous',
+    wv_film_next: 'Next',
     // Adjustable chart table columns (_colw* in app.js)
     colw_hint: 'Drag to resize · double-click to reset',
     colw_reset: 'Reset column widths',
@@ -4798,6 +4806,14 @@ const TRANSLATIONS = {
     // Card grid on Yearly / All-Time pages with this (phase 7 step 6)
     wv_show_more: 'Mostrar más',
     wv_showing: 'Mostrando {{n}} de {{total}}',
+    // Filmstrip: los controles de la tira (phase 7 step 8)
+    wv_film_auto: 'Avance automático',
+    wv_film_stop: 'Detener',
+    wv_film_save: 'Guardar imagen',
+    wv_film_saving: 'Guardando…',
+    wv_film_saved: 'Guardada',
+    wv_film_prev: 'Anteriores',
+    wv_film_next: 'Siguientes',
     // Adjustable chart table columns (_colw* in app.js)
     colw_hint: 'Arrastra para ajustar · doble clic para restablecer',
     colw_reset: 'Restablecer anchos de columna',
@@ -7921,6 +7937,14 @@ const TRANSLATIONS = {
     // Card grid on Yearly / All-Time pages with this (phase 7 step 6)
     wv_show_more: 'Mostrar mais',
     wv_showing: 'Mostrando {{n}} de {{total}}',
+    // Filmstrip: os controles da faixa (phase 7 step 8)
+    wv_film_auto: 'Rolagem automática',
+    wv_film_stop: 'Parar',
+    wv_film_save: 'Salvar imagem',
+    wv_film_saving: 'Salvando…',
+    wv_film_saved: 'Salva',
+    wv_film_prev: 'Anteriores',
+    wv_film_next: 'Próximos',
     // Adjustable chart table columns (_colw* in app.js)
     colw_hint: 'Arraste para ajustar · clique duas vezes para redefinir',
     colw_reset: 'Redefinir largura das colunas',
@@ -11045,6 +11069,14 @@ const TRANSLATIONS = {
     // Card grid on Yearly / All-Time pages with this (phase 7 step 6)
     wv_show_more: 'Mostrar mais',
     wv_showing: 'A mostrar {{n}} de {{total}}',
+    // Filmstrip: os controlos da faixa (phase 7 step 8)
+    wv_film_auto: 'Deslocar sozinho',
+    wv_film_stop: 'Parar',
+    wv_film_save: 'Guardar imagem',
+    wv_film_saving: 'A guardar…',
+    wv_film_saved: 'Guardada',
+    wv_film_prev: 'Anteriores',
+    wv_film_next: 'Seguintes',
     // Adjustable chart table columns (_colw* in app.js)
     colw_hint: 'Arrasta para ajustar · clica duas vezes para repor',
     colw_reset: 'Repor largura das colunas',

@@ -18944,6 +18944,37 @@ function _wvActs(type, ttl, sub) {
   return `<span class="wv-acts">${_eaSpotifyBtn(type, ttl, type === 'artists' ? '' : sub)}${_eaBtns()}</span>`;
 }
 
+// One cover card: the Card grid's, and Filmstrip's podium and strip. A
+// square cover with the rank chip top-left (the peak tag beside it), the
+// movement chip top-right and the certification / score in the bottom-left
+// corner; under it Title, Artist, the numbers line (with the personal best)
+// and Spotify · ▶ · ⋮. `f` is _wvItem's facts, `s` the entry, `i` its rank
+// index. o.cls adds classes, o.style an inline style (the Card grid's entry
+// animation). o.big is Filmstrip's podium: the rank leaves the cover and
+// becomes a big number beside the title.
+function _wvCoverCard(f, s, i, type, ms, o) {
+  o = o || {};
+  const { k, imgId, ea, ttl, sub } = f;
+  const jtype = esc(JSON.stringify(type));
+  // Every switchable badge, for every type: the Show switches decide what
+  // shows (phase 7 step 4), the same way in every layout
+  const cert = f.certHtml + f.ratingHtml;
+  const tl = (o.big ? '' : `<span class="wv-rank-badge">${i + 1}</span>`) + (f.peak ? peakBadge(f.peak) : '');
+  const names = `<div class="wv-gc-title"><span class="wv-gc-ttl wv-title-link" onclick="event.stopPropagation();_wvOpenModal(${jtype},${esc(JSON.stringify(k))})" title="${esc(ttl)}">${esc(ttl)}</span></div>` +
+    (sub ? `<div class="wv-gc-artist">${esc(sub)}</div>` : '');
+  return `<div class="wv-card wv-grid-card${o.cls || ''}${i < 3 ? ' wv-r' + (i + 1) : ''}"` +
+      `${o.style ? ` style="${o.style}"` : ''} onclick="_drEntryClick(event,this)" tabindex="0"${ea}>` +
+    `<div class="wv-card-art ea-cover"><div class="wv-thumb wv-thumb-lg">${_wvThumb(imgId, ttl)}</div>` +
+      (tl ? `<span class="wv-gc-tl">${tl}</span>` : '') +
+      (f.mvHtml ? `<span class="wv-mv-ov">${f.mvHtml}</span>` : '') +
+      (cert ? `<span class="wv-gc-cert">${cert}</span>` : '') +
+    `</div>` +
+    `<div class="wv-card-body">` +
+      (o.big ? `<div class="wv-film-head"><span class="wv-film-bigrank">${i + 1}</span><div class="wv-film-names">${names}</div></div>` : names) +
+      `<div class="wv-gc-foot">${_wvStatsLine(f, s.count, ms)}${_wvActs(type, ttl, sub)}</div>` +
+    `</div></div>`;
+}
+
 function _wvGrid(items, max, ms, imgItems, type) {
   type = type || 'songs';
   // First pass: build all item data so we can compute drama scores for animation order
@@ -18960,32 +18991,13 @@ function _wvGrid(items, max, ms, imgItems, type) {
   const animDelay = new Array(itemData.length);
   order.forEach((origIdx, pos) => { animDelay[origIdx] = pos * 45; });
   const toolbar = `<div class="wv-grid-toolbar"><button class="wv-grid-density-btn${_wvGridLarge ? ' active' : ''}" onclick="toggleGridDensity()" aria-pressed="${_wvGridLarge}">${esc(t(_wvGridLarge ? 'wv_grid_smaller' : 'wv_grid_bigger'))}</button></div>`;
-  const jtype = esc(JSON.stringify(type));
-  // Phase 7 step 8 (4.9b): square covers with the rank top-left and the
-  // movement top-right, the certification / score in the cover's bottom
-  // corner, the peak tag beside the rank; under it Title, Artist, the
-  // numbers line (with the personal best), and Spotify · ▶ · ⋮. The top 3 glow like Stack's. A click opens the
-  // details panel after the row of cards.
+  // Phase 7 step 8 (4.9b): square covers (see _wvCoverCard). The top 3
+  // glow like Stack's. A click opens the details panel after the row of cards.
   const grid = `<div class="wv-grid${_wvGridLarge ? ' wv-grid-lg' : ''}">${itemData.map(f => {
-    const { k, imgId, ea, s, i, ttl, sub } = f;
-    // Every switchable badge, for every type: the Show switches decide what
-    // shows (phase 7 step 4), the same way in every layout
-    const cert = f.certHtml + f.ratingHtml;
     // The entry animation's delay goes in style=, outside the class list (it
     // used to close class="" early, dropping the top-3 classes: no glow)
     const anim = f.j >= animFrom;
-    return `<div class="wv-card wv-grid-card${anim ? ' wv-gc-anim' : ''}${i < 3 ? ' wv-r' + (i + 1) : ''}"` +
-        `${anim ? ` style="animation-delay:${animDelay[f.j]}ms"` : ''} onclick="_drEntryClick(event,this)" tabindex="0"${ea}>` +
-      `<div class="wv-card-art ea-cover"><div class="wv-thumb wv-thumb-lg">${_wvThumb(imgId, ttl)}</div>` +
-        `<span class="wv-gc-tl"><span class="wv-rank-badge">${i + 1}</span>${f.peak ? peakBadge(f.peak) : ''}</span>` +
-        (f.mvHtml ? `<span class="wv-mv-ov">${f.mvHtml}</span>` : '') +
-        (cert ? `<span class="wv-gc-cert">${cert}</span>` : '') +
-      `</div>` +
-      `<div class="wv-card-body">` +
-        `<div class="wv-gc-title"><span class="wv-gc-ttl wv-title-link" onclick="event.stopPropagation();_wvOpenModal(${jtype},${esc(JSON.stringify(k))})" title="${esc(ttl)}">${esc(ttl)}</span></div>` +
-        (sub ? `<div class="wv-gc-artist">${esc(sub)}</div>` : '') +
-        `<div class="wv-gc-foot">${_wvStatsLine(f, s.count, ms)}${_wvActs(type, ttl, sub)}</div>` +
-      `</div></div>`;
+    return _wvCoverCard(f, f.s, f.i, type, ms, { cls: anim ? ' wv-gc-anim' : '', style: anim ? `animation-delay:${animDelay[f.j]}ms` : '' });
   }).join('')}</div>`;
   return toolbar + grid;
 }
@@ -19601,14 +19613,16 @@ function _drToggle(entry) {
   const dr = _drMake(entry, f);
   if (entry.classList.contains('wv-cx-row') || entry.classList.contains('wv-stk-card')) {
     entry.appendChild(dr);                                   // under the row's first line
+  } else if (entry.closest('.wv-film-wrap')) {
+    // Filmstrip (its cards are Card grid cards too, so this goes first):
+    // under the podium, or under the strip
+    (entry.closest('.wv-film-podium, .wv-film-rail') || entry).after(dr);
   } else if (entry.classList.contains('wv-grid-card')) {
     // After the last card on the same visual row, spanning the whole grid
     let last = entry;
     for (let n = entry.nextElementSibling; n && n.classList.contains('wv-grid-card') && n.offsetTop === entry.offsetTop; n = n.nextElementSibling) last = n;
     last.after(dr);
     dr.classList.add('ea-drawer-span');
-  } else if (entry.classList.contains('wv-film-card')) {
-    (entry.closest('.wv-filmstrip') || entry).after(dr);     // under the strip
   } else if (entry.classList.contains('wv-mos-item')) {
     (entry.closest('.wv-mosaic') || entry).after(dr);        // under the mosaic
   } else {
@@ -19873,77 +19887,79 @@ function wvMosaicCloseAll(mosaic) {
 
 function _wvFilmstrip(items, max, ms, imgItems, type) {
   type = type || 'songs';
-  const jtype = esc(JSON.stringify(type));
-  const decades = [];
-  for (let d = 0; d < items.length; d += 10) decades.push(d);
+  // Phase 7 step 8 (4.9b): the "podium" layout. #1–#3 as big cards that fill
+  // the width, the rest of the chart as a strip of Card grid cards under them
+  // (scrolled by drag, wheel, keys or the ‹ › arrows, with faded edges where
+  // there is more). Both use _wvCoverCard, so every feature is there.
+  const all = items.map((s, j) => {
+    const i = _wvIdx(s, j);   // rank index on the full chart; j = place in the list
+    return { f: _wvItem(type, s, i, ms, imgItems), s, i, j };
+  });
+  // The podium is the chart's own #1–#3: only when this list starts at #1
+  // (page 1, no search). Page 2 or a search result is all strip.
+  let podN = 0;
+  while (podN < 3 && podN < all.length && all[podN].i === podN) podN++;
+  const pod = all.slice(0, podN), rest = all.slice(podN);
+  const podium = pod.length
+    ? `<div class="wv-film-podium wv-film-pod-${pod.length}">${pod.map(e => _wvCoverCard(e.f, e.s, e.i, type, ms, { big: true, cls: ' wv-film-big' })).join('')}</div>`
+    : '';
 
-  const cards = items.map((s, j) => {
-    const i = _wvIdx(s, j);   // rank index on the full chart; j = card slot
-    const f = _wvItem(type, s, i, ms, imgItems);
-    const { k, imgId, ea, mv, ttl, sub, barCls } = f;
-    const barW = Math.round(s.count / max * 100);
-    const pk = f.peak;
-    const wks = f.weeks || null;
-    const cumPlays = f.cumPlays;
-    const cert = f.certHtml + f.ratingHtml;
-    const playTitle  = type === 'songs' ? s.title  : type === 'artists' ? s.name  : s.album;
-    const playArtist = type === 'songs' ? s.artist : type === 'artists' ? s.name  : s.artist;
-    const playAlbum  = type === 'songs' ? (s.album || '') : type === 'artists' ? '' : s.album;
-    const rc = i < 3 ? ` wv-r${i+1}` : '';
-    const thumbCls = i < 3 ? 'wv-thumb-xl' : 'wv-thumb-lg';
-    // Phase 7: ▶ sample + ⋮ menu next to the plays; on touch, tapping the
-    // cover plays the sample (_eaAttrs)
-    return `<div class="wv-card wv-film-card${rc}" tabindex="0" data-idx="${j}" onclick="_drEntryClick(event,this)"${ea}>
-      <div class="wv-film-rank-row">
-        <span class="wv-film-ranknum">${i+1}</span>
-        ${mv ? `<span class="wv-film-mv">${mv}</span>` : ''}
-      </div>
-      <div class="wv-film-thumb-wrap ea-cover">
-        <div class="wv-thumb ${thumbCls}">${_wvThumb(imgId, ttl)}</div>
-        <div class="wv-film-thumb-hover">${dcPlBtnHtml(dcPlKindFor(type), playTitle, playArtist, playAlbum, 'dc-pl-add-sm')}</div>
-      </div>
-      <div class="wv-ttl"><span class="wv-title-link" onclick="event.stopPropagation();_wvOpenModal(${jtype},${esc(JSON.stringify(k))})" title="View details">${esc(ttl)}</span></div>
-      <div class="wv-art">${esc(sub)}</div>
-      <div class="wv-film-badges">${pk ? peakBadge(pk) : ''}${cert}${f.isPlaysPeak ? playsPeakBadge() : ''}</div>
-      <div class="wv-film-plays-row"><span class="wv-plays">${s.count} plays</span>${_eaBtns()}</div>
-      <div class="wv-bar"><div class="wv-bar-fill${barCls ? ' '+barCls : ''}" style="width:${barW}%"></div></div>
-    </div>`;
-  }).join('');
+  // Jump buttons for a long strip: its first card, then every #11, #21, …
+  const jumps = rest.length > 10
+    ? rest.map((e, n) => (n === 0 || (e.i + 1) % 10 === 1)
+        ? `<button class="wv-film-jump-btn" onclick="wvFilmJump(${n},'${type}')">#${e.i + 1}</button>` : '').join('')
+    : '';
+  const prevLbl = esc(t('wv_film_prev')), nextLbl = esc(t('wv_film_next'));
+  const arrow = (dir, lbl, d) =>
+    `<button type="button" class="wv-film-arrow wv-film-${dir}" onclick="wvFilmStep('${type}',${d})" title="${lbl}" aria-label="${lbl}">` +
+    `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${d < 0 ? 'M15 5l-7 7 7 7' : 'M9 5l7 7-7 7'}"/></svg></button>`;
+  const rail = rest.length
+    ? `<div class="wv-film-rail">
+      <div class="wv-filmstrip" id="wv-filmstrip-${type}">${rest.map(e => _wvCoverCard(e.f, e.s, e.i, type, ms, { cls: ' wv-film-card' })).join('')}</div>
+      ${arrow('prev', prevLbl, -1)}${arrow('next', nextLbl, 1)}
+      <div class="wv-film-scrolltrack" id="wv-film-track-${type}"><div class="wv-film-scrollfill" id="wv-film-fill-${type}"></div></div>
+    </div>`
+    : '';
 
-  const jumpBtns = decades.map(d =>
-    `<button class="wv-film-jump-btn" onclick="wvFilmJump(${d},'${type}')">#${_wvIdx(items[d], d) + 1}</button>`
-  ).join('');
-
-  return `<div class="wv-film-wrap">
+  // Auto-scroll only has something to move when there is a strip; Save
+  // always works (it saves the podium and every strip card as one picture)
+  const autoBtn = rest.length
+    ? `<button class="wv-film-auto-btn" id="wv-film-auto-${type}" onclick="wvFilmAutoScroll('${type}')" aria-pressed="false">${_wvFilmAutoLabel(false)}</button>`
+    : '';
+  return `<div class="wv-film-wrap" id="wv-film-wrap-${type}">
     <div class="wv-film-controls">
-      <div class="wv-film-jump-btns">${jumpBtns}</div>
-      <div class="wv-film-action-btns">
-        <button class="wv-film-auto-btn" id="wv-film-auto-${type}" onclick="wvFilmAutoScroll('${type}')">▶ Auto</button>
-        <button class="wv-film-share-btn" onclick="shareFilmstrip('${type}')">⬇ Save</button>
-      </div>
+      <div class="wv-film-jump-btns">${jumps}</div>
+      <div class="wv-film-action-btns">${autoBtn}<button class="wv-film-share-btn" onclick="shareFilmstrip('${type}')">${esc(t('wv_film_save'))}</button></div>
     </div>
-    <div class="wv-filmstrip" id="wv-filmstrip-${type}">${cards}</div>
-    <div class="wv-film-scrolltrack" id="wv-film-track-${type}">
-      <div class="wv-film-scrollfill" id="wv-film-fill-${type}"></div>
-    </div>
+    ${podium}${rail}
   </div>`;
 }
 
+// "▶ Auto-scroll" / "■ Stop": the strip's auto-scroll button
+function _wvFilmAutoLabel(on) {
+  return on ? '■ ' + esc(t('wv_film_stop')) : '▶ ' + esc(t('wv_film_auto'));
+}
 
 function wvFilmJump(idx, type) {
   const strip = document.getElementById('wv-filmstrip-' + type);
   if (!strip) return;
   const card = strip.querySelectorAll('.wv-film-card')[idx];
   if (card) {
-    strip.scrollTo({ left: card.offsetLeft - 8, behavior: 'smooth' });
+    strip.scrollTo({ left: card.offsetLeft - strip.offsetLeft - 6, behavior: _eaReduceMotion() ? 'auto' : 'smooth' });
     card.focus({ preventScroll: true });
   }
+}
+
+// The ‹ › arrows: about a screen of cards at a time
+function wvFilmStep(type, dir) {
+  const strip = document.getElementById('wv-filmstrip-' + type);
+  if (!strip) return;
+  strip.scrollBy({ left: dir * Math.max(160, strip.clientWidth * 0.8), behavior: _eaReduceMotion() ? 'auto' : 'smooth' });
 }
 
 function wvFilmAutoScroll(type) {
   const strip = document.getElementById('wv-filmstrip-' + type);
   const btn = document.getElementById('wv-film-auto-' + type);
-  const scrollTrack = document.getElementById('wv-film-track-' + type);
   if (!strip || !btn) return;
 
   if (strip.classList.contains('wv-film-auto-mode')) {
@@ -19955,44 +19971,49 @@ function wvFilmAutoScroll(type) {
     }
     strip.classList.remove('wv-film-auto-mode');
     btn.classList.remove('wv-film-auto-on');
-    btn.textContent = '▶ Auto';
-    if (scrollTrack) scrollTrack.style.display = '';
+    btn.innerHTML = _wvFilmAutoLabel(false);
+    btn.setAttribute('aria-pressed', 'false');
+    strip.dispatchEvent(new Event('scroll'));   // relight the arrows / fades
   } else {
-    // Start: wrap cards in a track, duplicate, animate infinitely
+    // Start: wrap cards in a track, duplicate, animate infinitely (the
+    // arrows, fades and scroll track hide while it runs, see the CSS)
     const cards = Array.from(strip.querySelectorAll('.wv-film-card'));
     if (!cards.length) return;
     const track = document.createElement('div');
     track.className = 'wv-film-auto-track';
     cards.forEach(c => track.appendChild(c));
-    cards.map(c => { const cl = c.cloneNode(true); cl.setAttribute('data-auto-clone', '1'); return cl; })
+    cards.map(c => { const cl = c.cloneNode(true); cl.setAttribute('data-auto-clone', '1'); cl.removeAttribute('tabindex'); return cl; })
          .forEach(c => track.appendChild(c));
     strip.appendChild(track);
     track.style.animationDuration = Math.max(20, cards.length * 3) + 's';
     strip.classList.add('wv-film-auto-mode');
     btn.classList.add('wv-film-auto-on');
-    btn.textContent = '⏸ Auto';
-    if (scrollTrack) scrollTrack.style.display = 'none';
+    btn.innerHTML = _wvFilmAutoLabel(true);
+    btn.setAttribute('aria-pressed', 'true');
   }
 }
 
+// Save: the podium and every strip card as one picture. The strip wraps
+// into rows under the podium for it, without the buttons, arrows or an
+// open details panel. The copy is made inside the chart's section so the
+// section-scoped rules (the chips on the covers) still apply to it.
 async function shareFilmstrip(type) {
-  const strip = document.getElementById('wv-filmstrip-' + type);
-  if (!strip || typeof html2canvas === 'undefined') return;
+  const wrap = document.getElementById('wv-film-wrap-' + type);
+  if (!wrap || typeof html2canvas === 'undefined') return;
 
-  const btn = strip.closest('.wv-film-wrap')?.querySelector('.wv-film-share-btn');
+  const btn = wrap.querySelector('.wv-film-share-btn');
   const origText = btn ? btn.textContent : '';
-  if (btn) { btn.disabled = true; btn.textContent = '⏳ Saving…'; }
+  if (btn) { btn.disabled = true; btn.textContent = t('wv_film_saving'); }
 
-  // Clone off-screen at full scrollable width so html2canvas captures all cards
-  const fullW = strip.scrollWidth;
-  const fullH = strip.scrollHeight;
-  const clone = strip.cloneNode(true);
-  Object.assign(clone.style, {
-    position: 'fixed', left: '-99999px', top: '0',
-    overflow: 'visible', width: fullW + 'px', height: fullH + 'px',
-    flexShrink: '0', animation: 'none'
-  });
-  document.body.appendChild(clone);
+  const clone = wrap.cloneNode(true);
+  clone.classList.add('wv-film-capture');
+  clone.querySelectorAll('.wv-film-controls, .wv-film-arrow, .wv-film-scrolltrack, .ea-drawer, .wv-acts, [data-auto-clone]').forEach(n => n.remove());
+  clone.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'));
+  clone.removeAttribute('id');
+  const fullW = wrap.offsetWidth;
+  Object.assign(clone.style, { position: 'fixed', left: '-99999px', top: '0', width: fullW + 'px' });
+  wrap.parentNode.appendChild(clone);
+  const fullH = clone.scrollHeight;
 
   // Pre-convert cross-origin images to data URLs so the canvas isn't tainted
   await Promise.all(Array.from(clone.querySelectorAll('img')).map(img => new Promise(resolve => {
@@ -20014,66 +20035,143 @@ async function shareFilmstrip(type) {
     t.src = img.src;
   })));
 
+  const plain = _h2cPlainColors(clone);
   try {
     const cvs = await html2canvas(clone, {
       scale: 2, useCORS: false, allowTaint: false,
-      backgroundColor: '#0f172a', logging: false,
-      width: fullW, height: fullH
+      backgroundColor: plain.color(getComputedStyle(document.body).backgroundColor) || '#0f172a', logging: false,
+      width: fullW, height: fullH,
+      // Only the copy, its ancestors and <head>: cloning the whole page is
+      // ~3s, this is a fraction of that and draws the same
+      ignoreElements: el => !(clone.contains(el) || el.contains(clone) || el === document.head || document.head.contains(el))
     });
     const link = document.createElement('a');
     const { label } = getDateRange();
     link.download = `filmstrip-${type}-${(label||'chart').replace(/[^a-z0-9]/gi,'-')}.png`;
     link.href = cvs.toDataURL('image/png');
     link.click();
-    if (btn) { btn.textContent = '✓ Saved'; setTimeout(() => { btn.textContent = origText; btn.disabled = false; }, 2000); }
+    if (btn) { btn.textContent = '✓ ' + t('wv_film_saved'); setTimeout(() => { btn.textContent = origText; btn.disabled = false; }, 2000); }
   } catch(e) {
     console.error('shareFilmstrip', e);
     if (btn) { btn.textContent = origText; btn.disabled = false; }
   } finally {
+    plain.done();
     clone.remove();
   }
+}
+
+// html2canvas 1.4 throws on the colour functions the themes use: color-mix()
+// (which the browser reports as color(srgb …)), oklch() and the like. Before
+// a capture, this copies every such colour under `root` as plain rgba():
+// inline (!important, so no rule wins over it) on the elements, and through
+// a temporary style sheet for their ::before / ::after (the top 3's glow,
+// the numbers line's dots), which can't take inline styles. Returns
+// { color(v): v with plain colours, done(): remove the sheet }.
+function _h2cPlainColors(root) {
+  const cvs = document.createElement('canvas');
+  cvs.width = cvs.height = 1;
+  const ctx = cvs.getContext('2d', { willReadFrequently: true });
+  const memo = {};
+  // One colour → rgba(), by painting a pixel and reading it back
+  const rgba = c => memo[c] || (memo[c] = (() => {
+    ctx.clearRect(0, 0, 1, 1);
+    ctx.fillStyle = '#000';
+    ctx.fillStyle = c;
+    ctx.fillRect(0, 0, 1, 1);
+    const d = ctx.getImageData(0, 0, 1, 1).data;
+    return `rgba(${d[0]}, ${d[1]}, ${d[2]}, ${+(d[3] / 255).toFixed(3)})`;
+  })());
+  const FN = /(?:color-mix|color|oklch|oklab|lch|lab|hwb)\((?:[^()]|\([^()]*\))*\)/g;
+  const color = v => v ? v.replace(FN, rgba) : v;
+  const PROPS = ['color', 'background-color', 'background-image', 'border-top-color', 'border-right-color',
+    'border-bottom-color', 'border-left-color', 'box-shadow', 'outline-color', 'text-decoration-color',
+    'text-shadow', 'fill', 'stroke'];
+  const pseudoRules = [];
+  let n = 0;
+  [root, ...root.querySelectorAll('*')].forEach(el => {
+    const cs = getComputedStyle(el);
+    PROPS.forEach(p => {
+      const v = cs.getPropertyValue(p);
+      if (v && FN.test(v)) el.style.setProperty(p, color(v), 'important');
+      FN.lastIndex = 0;
+    });
+    ['::before', '::after'].forEach(pe => {
+      const ps = getComputedStyle(el, pe);
+      if (!ps.content || ps.content === 'none' || ps.content === 'normal') return;
+      const decl = PROPS.map(p => {
+        const v = ps.getPropertyValue(p);
+        const hit = v && FN.test(v);
+        FN.lastIndex = 0;
+        return hit ? `${p}: ${color(v)} !important;` : '';
+      }).join('');
+      if (!decl) return;
+      if (!el.dataset.h2c) el.dataset.h2c = String(++n);
+      pseudoRules.push(`[data-h2c="${el.dataset.h2c}"]${pe} { ${decl} }`);
+    });
+  });
+  const sheet = document.createElement('style');
+  sheet.textContent = pseudoRules.join('\n');
+  document.head.appendChild(sheet);
+  return { color, done: () => sheet.remove() };
 }
 
 function initFilmstripInteractions(type) {
   const strip = document.getElementById('wv-filmstrip-' + type);
   if (!strip) return;
+  const rail = strip.closest('.wv-film-rail');
 
-  // Drag to scroll
-  let isDragging = false, dragStartX = 0, dragScrollLeft = 0;
+  // Drag to scroll. A drag that moved is not a click: it must not open the
+  // details panel of the card it ended on.
+  let isDragging = false, dragMoved = false, dragStartX = 0, dragScrollLeft = 0;
   strip.addEventListener('mousedown', e => {
-    if (e.button !== 0) return;
-    isDragging = true;
+    if (e.button !== 0 || e.target.closest('button, a')) return;
+    isDragging = true; dragMoved = false;
     dragStartX = e.pageX - strip.getBoundingClientRect().left;
     dragScrollLeft = strip.scrollLeft;
     strip.classList.add('is-dragging');
   });
   strip.addEventListener('mousemove', e => {
     if (!isDragging) return;
+    const dx = e.pageX - strip.getBoundingClientRect().left - dragStartX;
+    if (Math.abs(dx) > 5) dragMoved = true;
     e.preventDefault();
-    strip.scrollLeft = dragScrollLeft - (e.pageX - strip.getBoundingClientRect().left - dragStartX);
+    strip.scrollLeft = dragScrollLeft - dx;
   });
   const endDrag = () => { isDragging = false; strip.classList.remove('is-dragging'); };
   strip.addEventListener('mouseup', endDrag);
   strip.addEventListener('mouseleave', endDrag);
+  strip.addEventListener('click', e => {
+    if (dragMoved) { e.stopPropagation(); e.preventDefault(); dragMoved = false; }
+  }, true);
 
-  // Mouse wheel scrolls horizontally
+  // The mouse wheel scrolls the strip sideways, until it reaches an end;
+  // then the page scrolls on as normal (it used to trap the wheel)
   strip.addEventListener('wheel', e => {
-    if (e.deltaY === 0) return;
+    if (e.deltaY === 0 || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+    const maxScroll = strip.scrollWidth - strip.clientWidth;
+    if (maxScroll <= 0) return;
+    if ((e.deltaY < 0 && strip.scrollLeft <= 0) || (e.deltaY > 0 && strip.scrollLeft >= maxScroll - 1)) return;
     e.preventDefault();
     strip.scrollLeft += e.deltaY;
   }, { passive: false });
 
-  // Scroll position indicator
+  // Where the strip is: the scroll track's fill, and which arrows / faded
+  // edges show (only on a side with more cards)
   const fill = document.getElementById('wv-film-fill-' + type);
-  if (fill) {
-    const updateFill = () => {
-      const maxScroll = strip.scrollWidth - strip.clientWidth;
-      const pct = maxScroll > 0 ? strip.scrollLeft / maxScroll : 0;
-      fill.style.width = Math.max(6, Math.round(pct * 94) + 6) + '%';
-    };
-    strip.addEventListener('scroll', updateFill, { passive: true });
-    updateFill();
-  }
+  const update = () => {
+    const maxScroll = strip.scrollWidth - strip.clientWidth;
+    const pct = maxScroll > 0 ? strip.scrollLeft / maxScroll : 0;
+    if (fill) fill.style.width = Math.max(6, Math.round(pct * 94) + 6) + '%';
+    if (rail) {
+      rail.classList.toggle('can-prev', strip.scrollLeft > 2);
+      rail.classList.toggle('can-next', strip.scrollLeft < maxScroll - 2);
+      rail.classList.toggle('no-scroll', maxScroll <= 2);
+    }
+  };
+  strip.addEventListener('scroll', update, { passive: true });
+  update();
+  // The window changing size (or a pinch) changes how much is hidden
+  if (window.ResizeObserver) new ResizeObserver(update).observe(strip);
 
   // Keyboard navigation
   strip.addEventListener('keydown', e => {
@@ -20104,10 +20202,10 @@ function initFilmstripInteractions(type) {
   strip.addEventListener('touchmove', e => {
     if (e.touches.length !== 2 || !pinchDist0) return;
     const dist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
-    const newW = Math.max(90, Math.min(240, Math.round(pinchBaseW * dist / pinchDist0)));
+    const newW = Math.max(110, Math.min(260, Math.round(pinchBaseW * dist / pinchDist0)));
     strip.querySelectorAll('.wv-film-card').forEach(c => { c.style.flex = `0 0 ${newW}px`; });
   }, { passive: true });
-  strip.addEventListener('touchend', () => { pinchDist0 = null; }, { passive: true });
+  strip.addEventListener('touchend', () => { pinchDist0 = null; update(); }, { passive: true });
 }
 
 function _wvStack(items, max, ms, imgItems, type) {
