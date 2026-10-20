@@ -40565,3 +40565,9 @@ html body:not(.albums-hide-bu-legend)  #buAlbumsSection.bu-legend-open .bu-legen
   html[lang^="pt"] .plays-peak-badge .ppb-full { display: none; }
   html[lang^="pt"] .plays-peak-badge .ppb-short { display: inline; }
 }
+
+/* English: the plays peak tag says "▲ BEST" in every layout and at every
+   width (your call, 2026-10-20) — one word everywhere, shorter than
+   "PLAYS PEAK". The full words stay its tooltip. */
+html[lang="en"] .plays-peak-badge .ppb-full { display: none; }
+html[lang="en"] .plays-peak-badge .ppb-short { display: inline; }

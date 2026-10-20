@@ -81,8 +81,8 @@ const DC_CHANGELOG = [
   /* ========== OCTOBER 2026 ========== */
 
   { d: '2026-10-20', t: 'design', a: 'charts',
-    title: "The short plays peak tag says BEST",
-    detail: "Where the plays peak tag uses its short form (the Table on phones, or a narrow Plays column), it now says ▲ BEST instead of ▲ PB, which was hard to understand. On phones it is a slimmer tag so the word doesn't take room from the song names." },
+    title: "The plays peak tag says BEST",
+    detail: "The tag for a song's, artist's or album's best week (or month, year) of plays now says ▲ BEST in every layout, on desktop and phones, instead of ▲ PLAYS PEAK or the hard-to-read ▲ PB. Point at it (or hold it) to see \"Plays peak\". On phones it is a slimmer tag so the word doesn't take room from the song names." },
 
   { d: '2026-10-20', t: 'design', a: 'charts',
     title: "A smaller plays peak tag in the Table",
