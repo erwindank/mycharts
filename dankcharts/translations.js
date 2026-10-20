@@ -1547,7 +1547,7 @@ const TRANSLATIONS = {
     btn_display_plays_peak: '📈 PLAYS PEAK',
     btn_display_peak_tags: '🏷️ PEAK TAGS',
     badge_plays_peak: 'PLAYS PEAK',
-    badge_plays_peak_short: 'PB',   // phone chart table
+    badge_plays_peak_short: 'BEST',   // phone chart table
     btn_display_bu_legend: '🏷️ BU LEGEND',
     btn_display_desc: '📝 DESCRIPTIONS',
 

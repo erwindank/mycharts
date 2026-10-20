@@ -81,8 +81,12 @@ const DC_CHANGELOG = [
   /* ========== OCTOBER 2026 ========== */
 
   { d: '2026-10-20', t: 'design', a: 'charts',
+    title: "The short plays peak tag says BEST",
+    detail: "Where the plays peak tag uses its short form (the Table on phones, or a narrow Plays column), it now says ▲ BEST instead of ▲ PB, which was hard to understand. On phones it is a slimmer tag so the word doesn't take room from the song names." },
+
+  { d: '2026-10-20', t: 'design', a: 'charts',
     title: "A smaller plays peak tag in the Table",
-    detail: "In the Table layout the ▲ PLAYS PEAK tag under the play count is now the same size as the Peak tags beside the title, instead of a big pill. When the Plays column is made too narrow for the words, it shows the short ▲ PB instead of being cut off." },
+    detail: "In the Table layout the ▲ PLAYS PEAK tag under the play count is now the same size as the Peak tags beside the title, instead of a big pill. When the Plays column is made too narrow for the words, it shows the short ▲ BEST instead of being cut off." },
 
   { d: '2026-10-20', t: 'fix', a: 'charts',
     title: "Rank and Move headers stay over their columns",
