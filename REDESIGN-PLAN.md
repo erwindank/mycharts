@@ -1892,6 +1892,10 @@ animation, 12 screen check.
   accent on hover / focus), with the real YouTube and Spotify marks on the
   two searches. Checked in Navy dark and light, with the player-only items
   showing.
+- **New Entries plays centred (2026-10-19), at your request:** header and
+  numbers centred, like the chart tables (the header had an inline
+  right-align). New Entries still has its play bar on computers; the main
+  Table's was taken out.
   Checked: 1280 and 390, all 5 periods × 3 types (every tile square,
   nothing past its tile, no sideways scroll), search, real hover / flip /
   All details / × / ⋮ / Save (download checked), es phone, Navy light, no

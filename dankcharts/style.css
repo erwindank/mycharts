@@ -5009,9 +5009,11 @@
       font-size: var(--fs-xs);
     }
 
+    /* Plays centred under a centred header, like the chart tables' (2026-10-19) */
     .new-entries-table .play-count {
       font-size: var(--fs-xs);
       white-space: nowrap;
+      text-align: center;
     }
 
     /* =============================================

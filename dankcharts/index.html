@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=523">
+  <link rel="stylesheet" href="style.css?v=524">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -775,7 +775,7 @@
               <th>RANK</th>
               <th style="width:52px;"></th>
               <th>Title · Artist</th>
-              <th style="text-align:right;">Plays</th>
+              <th class="plays-th" style="text-align:center;">Plays</th>
             </tr>
           </thead>
           <tbody id="newSongsBody"></tbody>
@@ -968,7 +968,7 @@
               <th>RANK</th>
               <th style="width:52px;"></th>
               <th>Artist</th>
-              <th style="text-align:right;">Plays</th>
+              <th class="plays-th" style="text-align:center;">Plays</th>
             </tr>
           </thead>
           <tbody id="newArtistsBody"></tbody>
@@ -1163,7 +1163,7 @@
               <th>RANK</th>
               <th style="width:52px;"></th>
               <th id="newAlbumsThName">Album · Artist</th>
-              <th style="text-align:right;">Plays</th>
+              <th class="plays-th" style="text-align:center;">Plays</th>
             </tr>
           </thead>
           <tbody id="newAlbumsBody"></tbody>
