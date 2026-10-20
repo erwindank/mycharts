@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Choose pictures from every layout and in Share as Image":
+    ["Escolha imagens em todos os layouts e em Compartilhar como imagem",
+     "Todos os layouts da parada agora permitem trocar a imagem de uma entrada: o ✎ na capa (no Mosaico, no verso do bloco), segurar o dedo no celular ou ⋮ → Trocar imagem. A nova imagem aparece na hora, em todos os lugares onde a entrada aparece. O menu ⋮ também tem Buscar no Spotify em todos os layouts. Em Compartilhar como imagem, uma nova linha abaixo da fonte das capas mostra um quadradinho para cada entrada do cartão: clique num deles para escolher a imagem e o cartão se atualiza na hora. As imagens para compartilhar agora usam as imagens que você escolheu em vez de buscar as próprias."],
+
   "Spotify on every chart, and the sample button on the cover":
     ["Spotify em todas as paradas, e o botão de amostra na capa",
      "Todos os layouts da parada agora têm um botão Buscar no Spotify em cada entrada: a tabela, Compacto, Mosaico (no cartão ao passar o mouse e no verso do bloco) e as listas de Aspirantes, Fora da Parada e Novas Entradas, como Pilha, Grade e Faixa já tinham. Na tabela, Pilha e Compacto, o botão que toca uma amostra de 30 segundos agora fica no canto da capa. Ele aparece ao passar o mouse pela linha, e no celular está sempre visível. A coluna de reproduções da tabela não tem mais barra: só as reproduções, com a mudança desde a última vez embaixo."],

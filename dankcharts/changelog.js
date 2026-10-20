@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 210;
+const DC_CL_I18N_V = 211;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-19', t: 'feature', a: 'charts', h: '7899764',
+    title: "Choose pictures from every layout and in Share as Image",
+    detail: "Every chart layout now lets you change an entry's picture: the ✎ on the cover (on Mosaic, on the back of a tile), press and hold on a phone, or ⋮ → Change image. The new picture shows straight away, everywhere the entry appears. The ⋮ menu also has Search on Spotify in every layout. In Share as Image, a new row under the artwork source shows a small tile for each entry on the card: click one to pick its picture and the card updates at once. Share images now use the pictures you picked instead of fetching their own." },
 
   { d: '2026-10-19', t: 'design', a: 'charts', h: 'd9c3659',
     title: "Spotify on every chart, and the sample button on the cover",

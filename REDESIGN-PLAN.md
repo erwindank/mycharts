@@ -1853,6 +1853,31 @@ animation, 12 screen check.
   like the others. Measured this time for every button in the cell (the
   first check skipped the chart-run icon): all periods × 3 types and
   Bubbling Under at 1280 / 1100 / 820 / 390, nothing past its cell.
+- **Pictures and Spotify everywhere (2026-10-19, 9fcb6fe, 7899764), at your
+  request:**
+  - **⋮ → Search on Spotify** in every view (the shared menu, `_eaRunAction
+    'spotify'`).
+  - **Change the picture from every layout.** `loadImages` now attaches the
+    ✎ (`attachRecImgPicker`, as for Records) to covers in all five
+    non-Table layouts: hover ✎, press-and-hold on touch, and ⋮ → Change
+    picture now redraws those covers at once (`refreshImgInstances` only
+    found covers with a ✎, so picking a picture there used to wait for the
+    next redraw). ✎ sits bottom-right on Card grid / Filmstrip covers (the
+    movement chip is top-right), smaller on Compact, on the tile's back in
+    Mosaic. The phone-only Mosaic back rule now stops at 164px, so the
+    computer's small tiles keep their thumbnail and ✎.
+  - **Share as Image: a Pictures row** (`_igRenderArtPicks`): one tile per
+    entry on the card, a click opens the picker, the card redraws with the
+    choice, which is saved for the entry everywhere. **Share cards used to
+    ignore picked pictures** (they fetched from the source):
+    `_igFetchArtWithFallback`, which every share card uses, and
+    `_lookupImgUrl` (chart run / entry card) now return the picked picture
+    first; "No picture" gives the placeholder. `applyImgChoice` clears that
+    entry's cached share art and redraws an open share window.
+  Checked: a real ✎ → picker → picture in all six layouts (cover updated at
+  once), ⋮ has Spotify and Change picture in all six, the share window at
+  1280 and 390 (10 tiles, picker opens on top, tile + card + chart cover
+  updated, kept after reopening), no JS errors.
   Checked: 1280 and 390, all 5 periods × 3 types (every tile square,
   nothing past its tile, no sideways scroll), search, real hover / flip /
   All details / × / ⋮ / Save (download checked), es phone, Navy light, no

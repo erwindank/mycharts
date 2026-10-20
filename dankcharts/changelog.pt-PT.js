@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Choose pictures from every layout and in Share as Image":
+    ["Escolhe imagens em todos os esquemas e em Partilhar como imagem",
+     "Todos os esquemas da tabela permitem agora mudar a imagem de uma entrada: o ✎ na capa (no Mosaico, no verso do bloco), manter premido no telemóvel ou ⋮ → Alterar imagem. A nova imagem aparece logo, em todos os sítios onde a entrada aparece. O menu ⋮ também tem Pesquisar no Spotify em todos os esquemas. Em Partilhar como imagem, uma nova linha por baixo da fonte das capas mostra um quadradinho por cada entrada do cartão: clica num para escolher a imagem e o cartão atualiza-se logo. As imagens para partilhar usam agora as imagens que escolheste em vez de irem buscar as suas."],
+
   "Spotify on every chart, and the sample button on the cover":
     ["Spotify em todas as tabelas, e o botão de amostra na capa",
      "Todos os esquemas da tabela têm agora um botão Pesquisar no Spotify em cada entrada: a tabela, Compacto, Mosaico (no cartão ao passar o rato e no verso do bloco) e as listas de Aspirantes, Fora do Top e Novas Entradas, como Pilha, Grelha e Faixa já tinham. Na tabela, Pilha e Compacto, o botão que toca uma amostra de 30 segundos fica agora no canto da capa. Aparece ao passar o rato pela linha e, no telemóvel, está sempre visível. A coluna de reproduções da tabela já não tem barra: só as reproduções, com a mudança desde a última vez por baixo."],
