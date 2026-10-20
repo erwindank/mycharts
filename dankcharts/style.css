@@ -5654,6 +5654,12 @@
       /* Three equal segments across the phone, the filter on its own line */
       .chart-type-seg { flex: 1 1 100%; }
       .chart-type-seg .chart-type-toggle-btn { flex: 1 1 0; justify-content: center; }
+      /* The album filter and the layout buttons run full width too
+         (2026-10-20), so the rows line up instead of hanging off the right */
+      .chart-type-toggle-bar .afilter-bar,
+      .chart-layout-bar { flex: 1 1 100%; }
+      .chart-type-toggle-bar .afilter-btn { flex: 1 1 0; justify-content: center; }
+      .chart-layout-btn { flex: 1 1 0; width: auto; }
     }
 
     /* The main chart switched off in ⋮ → Show: its header stays, because the
@@ -37755,19 +37761,32 @@ body[data-view="day"] .daily-view {
    then the actions. Same chrome as that switch and the layout buttons (a
    --raised tray 3px in, an accent-tinted filled segment); redone 2026-10-18,
    when they were pills and emoji that matched nothing else on the page. */
+/* Tidied 2026-10-20: two rows that both run edge to edge, "Compare with" +
+   the #1 chip, then the actions tray, instead of four loose rows */
 .dy-toolbar {
+  display: grid;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-4);
+}
+
+.dy-toolbar-row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--sp-2) var(--sp-3);
-  margin-bottom: var(--sp-3);
 }
 
 .dy-cmp {
   display: flex;
   align-items: center;
   gap: var(--sp-2);
+}
+
+/* The actions spread across the whole width, each one centred in its share */
+.dy-actions .dy-act {
+  flex: 1 1 auto;
+  justify-content: center;
 }
 
 /* Same small caps as the stat tile labels */
@@ -37851,27 +37870,13 @@ body[data-view="day"] .daily-view {
   color: var(--accent);
 }
 
-/* Phones: the actions scroll sideways in their tray instead of wrapping
-   into three rows */
-@media (max-width: 700px) {
-  .dy-actions {
-    flex-wrap: nowrap;
-    max-width: 100%;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-
-  .dy-actions::-webkit-scrollbar {
-    display: none;
-  }
-}
-
-/* "♛ #1 for 3 days in a row · 5 days at #1 this month": a gold-tinted chip */
+/* "♛ #1 for 3 days in a row · 5 days at #1 this month": a gold-tinted chip,
+   at the right end of the compare row (its own line on phones) */
 .dy-no1 {
   display: inline-flex;
   align-items: center;
   gap: var(--sp-2);
-  margin: 0 0 var(--sp-3);
+  margin: 0;
   padding: 5px 12px 5px 10px;
   border-radius: var(--r-sm);
   background: color-mix(in srgb, var(--gold1, var(--amber)) 12%, transparent);
@@ -37882,6 +37887,46 @@ body[data-view="day"] .daily-view {
 .dy-no1-crown {
   color: var(--gold1, var(--amber));
   font-size: 1.1em;
+}
+
+/* Phones: every row full width like the Songs / Artists / Albums switch
+   above. Was a sideways-scrolling actions tray that hid half its buttons;
+   now a 3 × 2 grid, icon over label, so all six show at once. */
+@media (max-width: 700px) {
+  .dy-cmp {
+    flex: 1 1 100%;
+  }
+
+  .dy-cmp .dy-seg {
+    flex: 1 1 auto;
+    flex-wrap: nowrap;
+  }
+
+  .dy-cmp .dy-seg-btn {
+    flex: 1 1 0;
+    justify-content: center;
+  }
+
+  .dy-no1 {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+
+  .dy-actions {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .dy-actions .dy-act {
+    flex-direction: column;
+    gap: 4px;
+    height: auto;
+    min-height: 52px;
+    padding: 6px 4px;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.2;
+  }
 }
 
 /* ---- Daily tab: ring, bars and lines (day panel, time of day, patterns…) ----

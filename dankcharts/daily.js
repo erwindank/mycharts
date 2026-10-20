@@ -358,18 +358,6 @@ function dyRenderTop(h, ds) {
 
   // What the movement column compares against (the chart size is in ⋮ → Size)
   const cmpBtn = (v, lbl) => `<button type="button" class="dy-seg-btn${dyCompare === v ? ' active' : ''}" onclick="dySetCompare('${v}')">${esc(lbl)}</button>`;
-  // One bar under the Songs / Artists / Albums switch, in the same chrome:
-  // "Compare with" and its switch on the left, the actions on the right
-  const toolbar = `
-    <div class="dy-toolbar">
-      <div class="dy-cmp">
-        <span class="dy-cmp-lbl" aria-hidden="true">${esc(t('dy_compare_label'))}</span>
-        <div class="dy-seg" role="group" aria-label="${esc(t('dy_compare_label'))}">
-          ${cmpBtn('yesterday', t('dy_vs_yesterday'))}${cmpBtn('weekday', t('dy_vs_weekday', { day: dyDayName(ds) }))}
-        </div>
-      </div>
-      ${dyActionsHtml(type, (h.charts.songs[ds] || []).length)}
-    </div>`;
 
   // The daily #1 line
   const no1 = dyNo1Facts(h, type, ds);
@@ -379,6 +367,24 @@ function dyRenderTop(h, ds) {
     if (no1.month > 1) bits.push(t('dy_no1_month', { n: no1.month }));
     no1Html = `<p class="dy-no1"><span class="dy-no1-crown" aria-hidden="true">♛</span>${esc(bits.join(' · '))}</p>`;
   }
+
+  // One block under the Songs / Artists / Albums switch, in the same chrome
+  // (tidied 2026-10-20, when its four loose rows had nothing lined up):
+  // "Compare with" and its switch on the left with the #1 chip on the right,
+  // then the actions in one full-width tray (a 3 × 2 grid on phones)
+  const toolbar = `
+    <div class="dy-toolbar">
+      <div class="dy-toolbar-row">
+        <div class="dy-cmp">
+          <span class="dy-cmp-lbl" aria-hidden="true">${esc(t('dy_compare_label'))}</span>
+          <div class="dy-seg" role="group" aria-label="${esc(t('dy_compare_label'))}">
+            ${cmpBtn('yesterday', t('dy_vs_yesterday'))}${cmpBtn('weekday', t('dy_vs_weekday', { day: dyDayName(ds) }))}
+          </div>
+        </div>
+        ${no1Html}
+      </div>
+      ${dyActionsHtml(type, (h.charts.songs[ds] || []).length)}
+    </div>`;
 
   // A live redraw must not throw away a note being typed: keep its text,
   // caret and focus across the innerHTML swap (phase 8)
@@ -398,9 +404,7 @@ function dyRenderTop(h, ds) {
     dyRepStart();
   }
 
-  view.innerHTML = `
-    ${toolbar}
-    ${no1Html}`;
+  view.innerHTML = toolbar;
 
   if (keepNote) {
     const n = document.getElementById('dyNote');

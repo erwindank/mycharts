@@ -81,6 +81,10 @@ const DC_CHANGELOG = [
   /* ========== OCTOBER 2026 ========== */
 
   { d: '2026-10-20', t: 'design', a: 'charts',
+    title: "Tidier controls above the Daily chart",
+    detail: "Compare with and the #1 chip now share one row, and the six actions sit in one full-width bar. On phones every row runs edge to edge, and the actions show as a 3 × 2 grid, so you no longer have to scroll sideways to find Calendar or the playlist buttons. The album filter and layout buttons line up full width on phones on every tab." },
+
+  { d: '2026-10-20', t: 'design', a: 'charts',
     title: "New Artists icon",
     detail: "The Artists button above the chart and the Artists chart heading now show a person with a music note instead of a microphone, and so do the Songs / Artists / Albums pills in Records." },
 
