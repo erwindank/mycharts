@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 215;
+const DC_CL_I18N_V = 216;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-20', t: 'fix', a: 'charts',
+    title: "Around the chart: shorter wording on phones, a working tag guide",
+    detail: "On phones Bubbling Under now says how far a song is from the chart in a few words (\"2 away\", \"faltan 2\" in Spanish), so long wording no longer squeezes the song, album and artist names. The \"ⓘ What the tags mean\" capsule opens and closes the list of tags with what each one means, which it didn't do before. It follows the BU legend switch in ⋮ → Show (switch off and the capsule is gone), and the Descriptions switch now hides the description lines in Bubbling Under, Off the Chart and New Entries too." },
 
   { d: '2026-10-20', t: 'design', a: 'charts',
     title: "Bubbling Under rows look like the chart",

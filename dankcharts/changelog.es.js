@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Around the chart: shorter wording on phones, a working tag guide":
+    ["Alrededor del ranking: textos más cortos en el móvil y una guía de etiquetas que funciona",
+     "En el móvil, Aspirantes dice cuánto le falta a una canción para entrar al ranking en pocas palabras (\"faltan 2\"), así los nombres de canciones, álbumes y artistas ya no se cortan. La cápsula \"ⓘ Qué significan las etiquetas\" abre y cierra la lista de etiquetas con lo que significa cada una, algo que antes no hacía. Sigue el interruptor de leyenda de Aspirantes en ⋮ → Mostrar (apagado, la cápsula desaparece), y el interruptor de Descripciones ahora también oculta las líneas de descripción en Aspirantes, Fuera del Ranking y Nuevas Entradas."],
+
   "Bubbling Under rows look like the chart":
     ["Las filas de Aspirantes se parecen al chart",
      "Las filas de Aspirantes son más tranquilas: posición, portada, título y artista, y luego todas las etiquetas en una sola línea de texto en lugar de pastillas de colores. La barra ya no está; las reproducciones van a la derecha con cuántas faltan para entrar al chart debajo, en dorado cuando faltan solo 1 o 2. Spotify, ⋮ y el historial en Aspirantes van uno al lado del otro, y todas las filas tienen la misma altura. En el móvil, Spotify y el historial pasan al menú ⋮ y la línea de etiquetas ocupa todo el ancho de la fila."],

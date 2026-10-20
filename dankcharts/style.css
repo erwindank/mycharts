@@ -40230,19 +40230,56 @@ body.pink-light .sk-hm-tswatch.active, body.red-light .sk-hm-tswatch.active { bo
 .atc-box .new-entries-section.collapsed .section-sub { display: block !important; }
 .atc-box .section-sub, .atc-box .off-sub, .atc-box .bu-sub { font-style: normal; padding-left: 0; }
 
+/* The Descriptions switch (⋮ → Show) hides the box's description lines too:
+   Bubbling Under's line and "Away = …" note, Off the Chart's line and New
+   Entries' summary. The box sits outside #<type>ChartGroup, so the chart's
+   own .section-sub rule doesn't reach it. The ⓘ button stays. */
+body.songs-hide-desc   #atcSongs   :is(.bu-sub, .bu-meter-note, .off-sub, .section-sub),
+body.artists-hide-desc #atcArtists :is(.bu-sub, .bu-meter-note, .off-sub, .section-sub),
+body.albums-hide-desc  #atcAlbums  :is(.bu-sub, .bu-meter-note, .off-sub, .section-sub) { display: none !important; }
+
 /* Bubbling Under subtitle line: what the gold line means, and the ⓘ */
 .bu-subrow { display: flex; align-items: center; flex-wrap: wrap; gap: 4px var(--sp-3); margin-bottom: var(--sp-2); }
 .bu-subrow .bu-sub { margin: 0; }
 .bu-meter-note { font-size: var(--fs-xs); color: var(--text3); display: inline-flex; align-items: center; gap: 6px; }
 .bu-meter-note:empty { display: none; }
 /* (The gold-line mark is gone with the bar: the note now explains "away") */
+/* "ⓘ What the tags mean": a line info icon with its label, so it's clear
+   what it opens (the bare "i" looked odd) */
 .atc-info {
-  width: 20px; height: 20px; border-radius: var(--r-full); padding: 0;
+  display: inline-flex; align-items: center; gap: 5px;
+  height: 24px; padding: 0 10px 0 7px; border-radius: var(--r-full);
   border: 1px solid var(--border); background: var(--bg2); color: var(--text2);
-  font: 700 11px var(--font-sans); cursor: pointer; display: inline-grid; place-items: center;
+  font: 600 var(--fs-xs) var(--font-sans); cursor: pointer; white-space: nowrap;
 }
-.atc-info:hover { color: var(--accent); border-color: var(--accent); }
-.bu-section.bu-legend-open .bu-legend { display: flex !important; }
+.atc-info svg { width: 14px; height: 14px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.atc-info:hover, .atc-info[aria-expanded="true"] { color: var(--accent); border-color: var(--accent); }
+/* BU legend switch (⋮ → Show): on = the "ⓘ What the tags mean" capsule,
+   which opens the tag list on demand (the list never shows by itself);
+   off = no capsule and no list */
+.atc-box .bu-legend { display: none; }
+body.songs-hide-bu-legend   #atcSongs   .atc-info,
+body.artists-hide-bu-legend #atcArtists .atc-info,
+body.albums-hide-bu-legend  #atcAlbums  .atc-info { display: none !important; }
+/* The capsule opens the list. Ids + html body so it outranks the setting's
+   own .bu-legend hide rule; the :not() keeps the list shut when the switch
+   is off even if it was left open */
+html body:not(.songs-hide-bu-legend)   #buSongsSection.bu-legend-open .bu-legend,
+html body:not(.artists-hide-bu-legend) #buArtistsSection.bu-legend-open .bu-legend,
+html body:not(.albums-hide-bu-legend)  #buAlbumsSection.bu-legend-open .bu-legend { display: grid !important; }
+/* In the box: one tag per line, its meaning beside it, and the tag written
+   the way the rows now show it (plain words, not a coloured pill) */
+.atc-box .bu-legend {
+  grid-template-columns: max-content minmax(0, 1fr); gap: 6px var(--sp-3); align-items: baseline;
+  padding: var(--sp-2) var(--sp-3); margin: 0 0 var(--sp-2);
+  background: var(--bg3); border: 1px solid var(--border); border-radius: var(--r-md);
+}
+.atc-box .bu-legend-item { display: contents; }
+.atc-box .bu-legend .bu-badge {
+  background: none; border: 0; padding: 0; box-shadow: none;
+  font: 600 var(--fs-xs) var(--font-sans); color: var(--text2); white-space: nowrap;
+}
+.atc-box .bu-legend-desc { white-space: normal; }
 
 /* ── Shared row parts ─────────────────────────────────────────────────── */
 .atc-box .bu-table, .atc-box .bu-table > tbody,
@@ -40304,6 +40341,7 @@ body.pink-light .sk-hm-tswatch.active, body.red-light .sk-hm-tswatch.active { bo
 .bu-plays-n .cnt-unit { font: 500 11px var(--font-sans); color: var(--text3); }
 .bu-away { display: block; margin-top: 1px; font: 600 10px var(--font-sans); letter-spacing: 0.05em; text-transform: uppercase; color: var(--text3); }
 .bu-away.is-close { color: var(--medal-gold); font-weight: 700; }
+.bu-away-s { display: none; }
 /* Spotify · ⋮ · history side by side */
 .bu-row.atc-row .cr-cell { flex-direction: row; }
 .atc-box .bu-row .cr-cell .cr-toggle-btn { display: inline-flex; }
@@ -40404,6 +40442,9 @@ body.pink-light .sk-hm-tswatch.active, body.red-light .sk-hm-tswatch.active { bo
   .bu-row.atc-row .bu-plays   { grid-column: 4; grid-row: 1 / 3; align-self: center; }
   .bu-row.atc-row .cr-cell    { grid-column: 5; grid-row: 1 / 3; align-self: center; }
   .bu-story { grid-column: 2 / -1; grid-row: 3; margin-top: 6px; white-space: normal; }
+  /* Short "away" wording so the names keep their room (long in Spanish/Portuguese) */
+  .bu-away-l { display: none; }
+  .bu-away-s { display: inline; }
   .atc-box .bu-row .cr-cell .ea-spotify,
   .atc-box .bu-row .cr-cell .cr-toggle-btn { display: none; }
 

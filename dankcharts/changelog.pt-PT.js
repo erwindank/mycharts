@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Around the chart: shorter wording on phones, a working tag guide":
+    ["À volta da tabela: textos mais curtos no telemóvel e um guia de etiquetas que funciona",
+     "No telemóvel, os Aspirantes dizem quanto falta para uma música entrar na tabela em poucas palavras (\"faltam 2\"), por isso os nomes de músicas, álbuns e artistas já não ficam cortados. A cápsula \"ⓘ O que as etiquetas significam\" abre e fecha a lista de etiquetas com o significado de cada uma, o que antes não fazia. Segue o interruptor de legenda dos Aspirantes em ⋮ → Mostrar (desligado, a cápsula desaparece), e o interruptor de Descrições agora também esconde as linhas de descrição nos Aspirantes, Fora da Tabela e Novas Entradas."],
+
   "Bubbling Under rows look like the chart":
     ["As linhas dos Aspirantes parecem a tabela",
      "As linhas dos Aspirantes estão mais calmas: posição, capa, título e artista, e depois todas as etiquetas numa única linha de texto em vez de pastilhas coloridas. A barra desapareceu; os plays ficam à direita com quantos faltam para entrar na tabela por baixo, a dourado quando faltam só 1 ou 2. Spotify, ⋮ e o histórico nos Aspirantes ficam lado a lado, e todas as linhas têm a mesma altura. No telemóvel, o Spotify e o histórico passam para o menu ⋮ e a linha de etiquetas ocupa toda a largura da linha."],

@@ -18574,7 +18574,11 @@ function atcJumpToBu(type, rank) {
 
 // The ⓘ beside the Bubbling Under subtitle: the tag legend, on demand
 function toggleBuLegendPop(type) {
-  document.getElementById('bu' + _atcUc(type) + 'Section')?.classList.toggle('bu-legend-open');
+  const sec = document.getElementById('bu' + _atcUc(type) + 'Section');
+  if (!sec) return;
+  const open = sec.classList.toggle('bu-legend-open');
+  // The button shows it's open (accent colour) and tells screen readers
+  sec.querySelector('.atc-info')?.setAttribute('aria-expanded', String(open));
 }
 
 /* One cover for the rows in the box: the same markup as the chart Table's
@@ -18773,10 +18777,12 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
     buImgs.push(cov.img);
 
     // Distance to the chart: "N plays away" under the plays number, gold
-    // when it's only 1–2 away (no bar any more, step 10 idea 1)
-    const toGo = playsAway > 0
-      ? `<span class="bu-away${playsAway <= 2 ? ' is-close' : ''}" title="${esc(t(playsAway === 1 ? 'bu_badge_away_title_one' : 'bu_badge_away_title_other', { n: playsAway }))}">${t(playsAway === 1 ? 'bu_badge_away_one' : 'bu_badge_away_other', { n: playsAway })}</span>`
-      : `<span class="bu-away is-close">${esc(t('bu_level_with', { n: chartSize }))}</span>`;
+    // when it's only 1–2 away (no bar any more, step 10 idea 1). Phones show
+    // the short form ("faltan 2") so long wording can't squeeze the names
+    const awayLong  = playsAway > 0 ? t(playsAway === 1 ? 'bu_badge_away_one' : 'bu_badge_away_other', { n: playsAway }) : t('bu_level_with', { n: chartSize });
+    const awayShort = playsAway > 0 ? t(playsAway === 1 ? 'bu_away_short_one' : 'bu_away_short_other', { n: playsAway }) : t('bu_level_short', { n: chartSize });
+    const awayTitle = playsAway > 0 ? t(playsAway === 1 ? 'bu_badge_away_title_one' : 'bu_badge_away_title_other', { n: playsAway }) : awayLong;
+    const toGo = `<span class="bu-away${playsAway <= 2 ? ' is-close' : ''}" title="${esc(awayTitle)}"><span class="bu-away-l">${esc(awayLong)}</span><span class="bu-away-s">${esc(awayShort)}</span></span>`;
 
     // BU chart run expand row — toggled by the icon button in the trailing cr-cell
     const buCrRowId = `bu-cr-${type}-${i}`;

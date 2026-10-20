@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Around the chart: shorter wording on phones, a working tag guide":
+    ["Em volta da parada: textos mais curtos no celular e um guia de etiquetas que funciona",
+     "No celular, os Aspirantes dizem quanto falta para uma música entrar na parada em poucas palavras (\"faltam 2\"), então os nomes de músicas, álbuns e artistas não são mais cortados. A cápsula \"ⓘ O que as etiquetas significam\" abre e fecha a lista de etiquetas com o que cada uma quer dizer, o que antes não fazia. Ela segue o botão de legenda dos Aspirantes em ⋮ → Mostrar (desligado, a cápsula some), e o botão de Descrições agora também esconde as linhas de descrição nos Aspirantes, Fora da Parada e Novas Entradas."],
+
   "Bubbling Under rows look like the chart":
     ["As linhas dos Aspirantes parecem a parada",
      "As linhas dos Aspirantes estão mais calmas: posição, capa, título e artista, e depois todas as etiquetas numa única linha de texto em vez de pílulas coloridas. A barra saiu; os plays ficam à direita com quantos faltam para entrar na parada embaixo, em dourado quando faltam só 1 ou 2. Spotify, ⋮ e o histórico nos Aspirantes ficam lado a lado, e todas as linhas têm a mesma altura. No celular, o Spotify e o histórico vão para o menu ⋮ e a linha de etiquetas ocupa toda a largura da linha."],
