@@ -16,6 +16,18 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Platinum badges spelled out again":
+    ["Os selos de Platina voltam a ser escritos por extenso",
+     "O selo de Platina nas entradas do gráfico volta a dizer 💿 PLATINA em vez do curto PLAT."],
+  "Smaller tags in the Compact chart on phones":
+    ["Etiquetas menores no gráfico Compacto no celular",
+     "No celular as etiquetas de pico, certificação e nota do layout Compacto agora têm o mesmo tamanho menor que na Tabela, a etiqueta ▲ PICO agora fica abaixo do número de plays (como na Tabela) em vez de junto às etiquetas, e todas as etiquetas de uma linha têm a mesma altura (a de diamante 💎 era mais baixa, com um diamante minúsculo)."],
+  "Rank and move together on phones":
+    ["Posição e movimento juntos no celular",
+     "No layout Tabela no celular o movimento (▲, ▼, NOVO, RE) agora fica abaixo de um número da posição um pouco maior em vez de numa coluna própria, o que deixa mais espaço para o título e o artista. As etiquetas de pico, certificação e nota também ficaram um pouco menores no celular."],
+  "Table tags on their own line":
+    ["As etiquetas da Tabela numa linha própria",
+     "No layout Tabela as etiquetas de pico, certificação e nota agora ficam numa linha própria abaixo do nome do artista, no computador e no celular, para a linha do título mostrar só o título."],
   "A tidier Compact chart on phones":
     ["Um gráfico Compacto mais organizado no celular",
      "No layout Compacto a música e o artista agora ficam juntos numa linha (Título · Artista), com as etiquetas logo depois, no computador e no celular. No celular o movimento (▲, ▼, NOVO, RE) fica abaixo do número da posição em vez de numa coluna própria, nomes longos passam para a linha seguinte em vez de serem cortados, as etiquetas de pico são uma medalha e o número (🏅 #3), e o ícone do Spotify saiu de cada linha (Buscar no Spotify continua no menu ⋮)."],

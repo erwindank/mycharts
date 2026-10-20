@@ -14962,12 +14962,13 @@ function renderPage(type, peaks) {
       // Phase 7 step 4: the same entry as on Weekly (▶ ⋮, right-click, details), from the one builder
       const f = _chartItem('songs', s, rank - 1, { ms, peaks: showPeak ? peaks : null, isAllTime: currentPeriod === 'alltime', imgId, crRow: hasCR ? rowId : '' });
       const mainRow = `<tr${f.ea} data-songkey="${encodeURIComponent(k)}" class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} song-row${mvRowCls(barCls)}">
-        <td class="rank-cell">${rank}</td>
+        <td class="rank-cell">${rank}${ms ? _rankMove(mPrevCell(rank, k, 'songs', ms)) : ''}</td>
         ${ms ? mPrevCell(rank, k, 'songs', ms) : ''}
         <td class="thumb-cell"><div class="thumb-wrap ea-cover">${_eaCoverPlay()}<div id="${imgId}"><div class="thumb-initials">${esc(initials(s.title))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="song" data-prefkey="${esc(prefKey)}" data-name="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
         <td>
-          <div class="song-title">${esc(s.title)}${pk ? peakBadge(pk) : ''}${certBadge(cumSongPlays, 'song')}${ratingSongBadge(k)}</div>
+          <div class="song-title">${esc(s.title)}</div>
           <div class="song-artist">${esc(s.artist)}</div>
+          ${_tblTags((pk ? peakBadge(pk) : '') + certBadge(cumSongPlays, 'song') + ratingSongBadge(k))}
           ${dcPlBtnHtml('song', s.title, s.artist, s.album)}
         </td>
         <td class="meta-col"><div class="song-album" title="${esc(s.album || '')}">${s.album ? chartNameLink(s.album, 'openAlbumModal', s.album + '|||' + albumArtistOfSong(s)) : ''}${cumAlbumPlays ? certBadge(cumAlbumPlays, certKindFor(s.album, albumArtistOfSong(s))) : ''}</div></td>
@@ -15000,10 +15001,10 @@ function renderPage(type, peaks) {
       // Phase 7 step 4: the same entry as on Weekly (▶ ⋮, right-click, details), from the one builder
       const f = _chartItem('artists', a, rank - 1, { ms, peaks: showPeak ? peaks : null, isAllTime: currentPeriod === 'alltime', imgId, crRow: hasCR ? rowId : '' });
       const mainRow = `<tr${f.ea} class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} artist-row${mvRowCls(barCls)}" data-artist="${esc(a.name)}">
-        <td class="rank-cell">${rank}</td>
+        <td class="rank-cell">${rank}${ms ? _rankMove(mPrevCell(rank, a.name, 'artists', ms)) : ''}</td>
         ${ms ? mPrevCell(rank, a.name, 'artists', ms) : ''}
         <td class="thumb-cell"><div class="thumb-wrap ea-cover">${_eaCoverPlay()}<div id="${imgId}"><div class="thumb-initials">${esc(initials(a.name))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(a.name)}" data-artist="${esc(a.name)}" data-album="">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
-        <td><div class="song-title">${chartNameLink(a.name, 'openArtistModal', a.name)}${pk ? peakBadge(pk) : ''}</div>${dcPlBtnHtml('artist', '', a.name, '')}</td>
+        <td><div class="song-title">${chartNameLink(a.name, 'openArtistModal', a.name)}</div>${_tblTags(pk ? peakBadge(pk) : '')}${dcPlBtnHtml('artist', '', a.name, '')}</td>
         <td class="meta-col"><div class="song-artist">${artistSongsRankBtn(a.name, a.songs.size)}</div></td>
         ${ms ? mMthsCell(a.name, 'artists', ms) : ''}
         <td>
@@ -15038,12 +15039,13 @@ function renderPage(type, peaks) {
         // Phase 7 step 4: the same entry as on Weekly (▶ ⋮, right-click, details), from the one builder
         const f = _chartItem('albums', a, rank - 1, { ms, peaks: showPeak ? peaks : null, isAllTime: currentPeriod === 'alltime', imgId, crRow: hasCR ? rowId : '' });
         const mainRow = `<tr${f.ea} class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} album-row${mvRowCls(barCls)}" data-albumkey="${esc(ak)}">
-        <td class="rank-cell">${rank}</td>
+        <td class="rank-cell">${rank}${ms ? _rankMove(mPrevCell(rank, ak, 'albums', ms)) : ''}</td>
         ${ms ? mPrevCell(rank, ak, 'albums', ms) : ''}
         <td class="thumb-cell"><div class="thumb-wrap ea-cover">${_eaCoverPlay()}<div id="${imgId}"><div class="thumb-initials">${esc(initials(a.album))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="album" data-prefkey="${esc(prefKey)}" data-name="${esc(a.album)}" data-artist="${esc(a.artist)}" data-album="${esc(a.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
         <td>
-          <div class="song-title">${esc(a.album)}${pk ? peakBadge(pk) : ''}${certBadge(cumAlbumPlays, certKindFor(a.album, a.artist))}${ratingAlbumBadge(ak)}</div>
+          <div class="song-title">${esc(a.album)}</div>
           <div class="song-artist">${esc(a.artist)}</div>
+          ${_tblTags((pk ? peakBadge(pk) : '') + certBadge(cumAlbumPlays, certKindFor(a.album, a.artist)) + ratingAlbumBadge(ak))}
           ${dcPlBtnHtml('album', '', a.artist, a.album)}
         </td>
         <td class="meta-col"><div class="song-artist">${tCount('tracks', a.tracks.size)}</div></td>
@@ -17440,6 +17442,13 @@ function mPrevCell(curRank, key, type, ms) {
   return `<td class="m-col"><span class="m-${dir}">${arrow}${Math.abs(diff)}</span><div class="m-prev-rank">#${prev.rank}</div></td>`;
 }
 
+// Phones: Rank and Move share one column (2026-10-20). The same move chip
+// (and last period's rank) goes inside the rank cell, under the number;
+// style.css shows it only at 600px and below, where the Move column hides.
+function _rankMove(cellHtml) {
+  return cellHtml.replace(/^<td class="m-col">/, '<div class="rank-mv">').replace(/<\/td>$/, '</div>');
+}
+
 // Inline delta badge — returns a <span> (no <td>) for embedding next to the play count
 function deltaInline(curCount, key, type, ms) {
   const prev = ms.prevChart[type][key];
@@ -17675,6 +17684,13 @@ function buildPeaks() {
   return buildAllTimePeaks(true);
 }
 
+// Table layout: the peak / cert / score tags get their own line under the
+// artist name (your call, 2026-10-20), on every screen size, so the title
+// line holds only the title. Nothing at all when the entry has no tags.
+function _tblTags(html) {
+  return html ? `<div class="song-tags">${html}</div>` : '';
+}
+
 function peakBadge(peak) {
   if (!peak || peak === '—') return '';
   const peakLabel = t('peak_label');
@@ -17762,12 +17778,13 @@ function renderSongs(plays, peaks, monthlyStats) {
     const _songModalAttr = (isAllTime || currentPeriod === 'year') ? ` data-songkey="${encodeURIComponent(k)}"` : '';
     // Phase 7: ▶ sample + ⋮ before the chart-run icon, right-click (f.ea, see _eaAttrs)
     const mainRow = `<tr${_animAttrsS}${_songModalAttr}${f.ea} class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}${_animClassS}${_songModalClass}${statusCls}">
-      <td class="rank-cell">${i + 1}</td>
+      <td class="rank-cell">${i + 1}${monthlyStats ? _rankMove(mPrevCell(i + 1, k, 'songs', monthlyStats)) : ''}</td>
       ${monthlyStats ? mPrevCell(i + 1, k, 'songs', monthlyStats) : ''}
       <td class="thumb-cell"><div class="thumb-wrap ea-cover">${_eaCoverPlay()}<div id="${imgId}"><div class="thumb-initials">${esc(initials(s.title))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="song" data-prefkey="${esc(prefKey)}" data-name="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
       <td>
-        <div class="song-title">${chartNameLink(s.title, 'openSongModal', k)}${pk ? peakBadge(pk) : ''}${f.certHtml}${f.ratingHtml}</div>
+        <div class="song-title">${chartNameLink(s.title, 'openSongModal', k)}</div>
         <div class="song-artist">${chartArtistLinks(s.artist)}</div>
+        ${_tblTags((pk ? peakBadge(pk) : '') + f.certHtml + f.ratingHtml)}
         ${dcPlBtnHtml('song', s.title, s.artist, s.album)}
       </td>
       <td class="meta-col"><div class="song-album" title="${esc(s.album || '')}">${f.albumKey ? chartNameLink(s.album, 'openAlbumModal', f.albumKey) : ''}${f.albumCertHtml}</div></td>
@@ -17886,10 +17903,10 @@ function renderArtists(plays, peaks, monthlyStats) {
     const _animAttrsA = _animArtists ? ` style="--crsi-offset:${_crsiOffsetA}px;--crsi-delay:${i * 50}ms"` : '';
     const _animClassA = _animArtists ? ' chart-row-anim' : '';
     const mainRow = `<tr${_animAttrsA}${f.ea} class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}${_animClassA} artist-row${statusCls}" data-artist="${esc(artist)}">
-      <td class="rank-cell">${i + 1}</td>
+      <td class="rank-cell">${i + 1}${monthlyStats ? _rankMove(mPrevCell(i + 1, artist, 'artists', monthlyStats)) : ''}</td>
       ${monthlyStats ? mPrevCell(i + 1, artist, 'artists', monthlyStats) : ''}
       <td class="thumb-cell"><div class="thumb-wrap ea-cover">${_eaCoverPlay()}<div id="${imgId}"><div class="thumb-initials">${esc(initials(artist))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(artist)}" data-artist="${esc(artist)}" data-album="">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
-      <td><div class="song-title">${chartNameLink(artist, 'openArtistModal', artist)}${pk ? peakBadge(pk) : ''}</div>${dcPlBtnHtml('artist', '', artist, '')}</td>
+      <td><div class="song-title">${chartNameLink(artist, 'openArtistModal', artist)}</div>${_tblTags(pk ? peakBadge(pk) : '')}${dcPlBtnHtml('artist', '', artist, '')}</td>
       <td class="meta-col"><div class="song-artist">${artistSongsRankBtn(artist, data.songs.size)}</div></td>
       ${monthlyStats ? mMthsCell(artist, 'artists', monthlyStats) : ''}
       <td>
@@ -18022,12 +18039,13 @@ function renderAlbums(plays, peaks, monthlyStats) {
       const _animAttrsL = _animAlbums ? ` style="--crsi-offset:${_crsiOffsetL}px;--crsi-delay:${i * 50}ms"` : '';
       const _animClassL = _animAlbums ? ' chart-row-anim' : '';
       const mainRow = `<tr${_animAttrsL}${f.ea} class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}${_animClassL} album-row${statusCls}" data-albumkey="${esc(ak)}">
-      <td class="rank-cell">${i + 1}</td>
+      <td class="rank-cell">${i + 1}${monthlyStats ? _rankMove(mPrevCell(i + 1, ak, 'albums', monthlyStats)) : ''}</td>
       ${monthlyStats ? mPrevCell(i + 1, ak, 'albums', monthlyStats) : ''}
       <td class="thumb-cell"><div class="thumb-wrap ea-cover">${_eaCoverPlay()}<div id="${imgId}"><div class="thumb-initials">${esc(initials(album))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="album" data-prefkey="${esc(prefKey)}" data-name="${esc(album)}" data-artist="${esc(artist)}" data-album="${esc(album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
       <td>
-        <div class="song-title">${chartNameLink(album, 'openAlbumModal', ak)}${pk ? peakBadge(pk) : ''}${f.certHtml}${f.ratingHtml}</div>
+        <div class="song-title">${chartNameLink(album, 'openAlbumModal', ak)}</div>
         <div class="song-artist">${chartArtistLinks(artist)}</div>
+        ${_tblTags((pk ? peakBadge(pk) : '') + f.certHtml + f.ratingHtml)}
         ${dcPlBtnHtml('album', '', artist, album)}
       </td>
       <td class="meta-col"><div class="song-artist">${tCount('tracks', tracks.size)}</div></td>
@@ -20105,7 +20123,8 @@ function _wvCompact(items, max, ms, imgItems, type) {
     const { k, imgId, ea, mv, prefKey, ttl, sub } = f;
     // Every switchable badge, for every type (phase 7 step 4: the Show switches decide)
     const pk        = f.peak;
-    const cert      = f.certHtml + f.ratingHtml + (f.isPlaysPeak ? playsPeakBadge() : '');
+    // ▲ BEST goes under the play count (2026-10-20), as in the Table, not in the tag row
+    const cert      = f.certHtml + f.ratingHtml;
     const badges    = (pk ? peakBadge(pk) : '') + cert;
     const album     = s.album || '';
 
@@ -20151,7 +20170,7 @@ function _wvCompact(items, max, ms, imgItems, type) {
         (badges ? `<span class="wv-cx-badges">${badges}</span>` : '') +
       `</span>` +
       (hasStats ? `<span class="wv-cx-move">${moveHtml}</span><span class="wv-cx-wks">${weeks}</span>` : '') +
-      `<span class="wv-cx-plays${playsCls}">${s.count.toLocaleString()}</span>` +
+      `<span class="wv-cx-plays${playsCls}">${s.count.toLocaleString()}${f.isPlaysPeak ? playsPeakBadge() : ''}</span>` +
       _eaBtns(true, true) +
       `</div>`;
   }).join('');
@@ -21011,7 +21030,8 @@ function certBadge(plays, type) {
     return `<span class="cert cert-diamond" title="${esc(label)}"><span class="cert-icon">${icon}</span><span class="cert-label">${esc(label.toLocaleUpperCase())}</span><span class="cert-short">${short}</span></span>`;
   }
   // Platinum shows as PLAT (2026-10-20); the tooltip keeps the full word
-  if (plays >= certTiers.plat) return `<span class="cert cert-plat" title="${esc(tTierLabel('plat'))}"><span class="cert-icon">💿</span>${esc(t('cert_plat_short'))}</span>`;
+  // Spelled out again (your call, 2026-10-20): was the short "PLAT" for a day
+  if (plays >= certTiers.plat) return `<span class="cert cert-plat"><span class="cert-icon">💿</span>${esc(tTierLabel('plat').toLocaleUpperCase())}</span>`;
   if (plays >= certTiers.gold) return `<span class="cert cert-gold"><span class="cert-icon">📀</span>${esc(tTierLabel('gold').toLocaleUpperCase())}</span>`;
   return '';
 }

@@ -16,6 +16,18 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Platinum badges spelled out again":
+    ["Las insignias de Platino vuelven a escribirse completas",
+     "La insignia de Platino en las entradas del gráfico vuelve a decir 💿 PLATINO en lugar del corto PLAT."],
+  "Smaller tags in the Compact chart on phones":
+    ["Etiquetas más pequeñas en el gráfico Compacto en el móvil",
+     "En el móvil las etiquetas de pico, certificación y nota del diseño Compacto ahora tienen el mismo tamaño más pequeño que en la Tabla, la etiqueta ▲ MÁX ahora va debajo del número de reproducciones (como en la Tabla) en lugar de con las etiquetas, y todas las etiquetas de una fila tienen la misma altura (la de diamante 💎 era más baja, con un diamante diminuto)."],
+  "Rank and move together on phones":
+    ["Posición y movimiento juntos en el móvil",
+     "En el diseño Tabla en el móvil el movimiento (▲, ▼, NUEVO, RE) ahora va debajo de un número de posición algo más grande en lugar de en su propia columna, lo que deja más espacio para el título y el artista. Las etiquetas de pico, certificación y nota también son un poco más pequeñas en el móvil."],
+  "Table tags on their own line":
+    ["Las etiquetas de la Tabla en su propia línea",
+     "En el diseño Tabla las etiquetas de pico, certificación y nota ahora van en su propia línea debajo del nombre del artista, en el ordenador y en el móvil, así la línea del título muestra solo el título."],
   "A tidier Compact chart on phones":
     ["Un gráfico Compacto más ordenado en el móvil",
      "En el diseño Compacto la canción y el artista ahora van juntos en una línea (Título · Artista), con las etiquetas justo después, en el ordenador y en el móvil. En el móvil el movimiento (▲, ▼, NUEVO, RE) va debajo del número de posición en lugar de en su propia columna, los nombres largos pasan a la línea siguiente en vez de cortarse, las etiquetas de pico son una medalla y el número (🏅 #3), y el icono de Spotify ya no aparece en cada fila (Buscar en Spotify sigue en el menú ⋮)."],

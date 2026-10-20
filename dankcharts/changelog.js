@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 222;
+const DC_CL_I18N_V = 229;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,22 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-20', t: 'design', a: 'charts',
+    title: "Platinum badges spelled out again",
+    detail: "The Platinum badge on chart entries says 💿 PLATINUM again instead of the short PLAT." },
+
+  { d: '2026-10-20', t: 'design', a: 'charts',
+    title: "Smaller tags in the Compact chart on phones",
+    detail: "On phones the peak, certification and score tags in the Compact layout are now the same smaller size as in the Table, the ▲ BEST tag now sits under the play count (as in the Table) instead of with the tags, and every tag in a row is the same height (the 💎 diamond tag was shorter, with a tiny gem)." },
+
+  { d: '2026-10-20', t: 'design', a: 'charts',
+    title: "Rank and move together on phones",
+    detail: "In the Table layout on phones the move (▲, ▼, NEW, RE) now sits under a slightly bigger rank number instead of in its own column, which leaves more room for the title and artist. The peak, certification and score tags are also a little smaller on phones." },
+
+  { d: '2026-10-20', t: 'design', a: 'charts',
+    title: "Table tags on their own line",
+    detail: "In the Table layout the peak, certification and score tags now sit on their own line under the artist name, on desktop and phones, so the title line shows just the title." },
 
   { d: '2026-10-20', t: 'design', a: 'charts',
     title: "A tidier Compact chart on phones",

@@ -10846,14 +10846,29 @@
       row-gap: 3px;
     }
 
-    .chart-table .song-title > .peak-badge-1,
-    .chart-table .song-title > .peak-badge-2,
-    .chart-table .song-title > .peak-badge-3,
-    .chart-table .song-title > .peak-badge,
-    .chart-table .song-title > .cert,
-    .chart-table .song-title > .rt-chip,
-    body #songsTable .song-title > .cert,  /* outranks the smaller-cert rule */
-    body #albumsTable .song-title > .cert { /* for non-all-time periods */
+    /* Since 2026-10-20 the tags sit on their own line under the artist
+       (.song-tags, built by _tblTags), on big screens and phones alike,
+       so the title line is just the title. Same wrapping row as above.
+       The space above sits on each tag, not on the line: when every tag is
+       switched off in the ⋮ menu the empty line then takes no room at all. */
+    .chart-table .song-tags {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      column-gap: 6px;
+    }
+    .chart-table .song-tags > * {
+      margin-top: 4px;
+    }
+
+    .chart-table .song-tags > .peak-badge-1,
+    .chart-table .song-tags > .peak-badge-2,
+    .chart-table .song-tags > .peak-badge-3,
+    .chart-table .song-tags > .peak-badge,
+    .chart-table .song-tags > .cert,
+    .chart-table .song-tags > .rt-chip,
+    body #songsTable .song-tags > .cert,  /* outranks the smaller-cert rule */
+    body #albumsTable .song-tags > .cert { /* for non-all-time periods */
       margin-left: 0;
     }
 
@@ -31792,8 +31807,10 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
   /* Rank and Move share the first column (move chip under the number,
      2026-10-20), so the separate Move column is gone */
   /* Plays and ⋮ slimmed (2026-10-20) so Title · Artist gets the room */
-  .wv-compact { --cx-cols: 36px 32px minmax(0, 1fr) 30px 20px; }
-  .wv-compact.wv-cx-nostats { --cx-cols: 22px 32px minmax(0, 1fr) 40px 20px; }
+  /* Plays 30px → 44px (2026-10-20): ▲ BEST now sits under the count and
+     needs the width; all-time (no stats) gets the same column */
+  .wv-compact { --cx-cols: 36px 32px minmax(0, 1fr) 44px 20px; }
+  .wv-compact.wv-cx-nostats { --cx-cols: 22px 32px minmax(0, 1fr) 44px 20px; }
   .wv-cx-row > .ea-pair .ea-more { width: 20px; height: 32px; }
   .wv-cx-move { display: none; }
   .wv-cx-rank { display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; }
@@ -40588,3 +40605,125 @@ html body:not(.albums-hide-bu-legend)  #buAlbumsSection.bu-legend-open .bu-legen
    "PLAYS PEAK". The full words stay its tooltip. */
 html[lang="en"] .plays-peak-badge .ppb-full { display: none; }
 html[lang="en"] .plays-peak-badge .ppb-short { display: inline; }
+
+/* Table on phones (2026-10-20): Rank and Move share one column. The move
+   chip sits under the number (.rank-mv, built by
+   _rankMove in app.js); the separate Move column is hidden. The Weeks /
+   Months column is also a td.m-col (it holds .m-mths), so it stays. */
+.chart-table .rank-mv { display: none; }
+@media (max-width: 600px) {
+  .chart-table thead th.m-th-prev,
+  .chart-table td.m-col:not(:has(.m-mths)) { display: none; }
+  .chart-table .rank-cell,
+  .chart-table thead th:first-child { width: 40px; }
+  .chart-table .rank-mv {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    margin-top: 5px;
+    font-family: var(--font-sans);
+    font-weight: 400;
+    letter-spacing: 0;
+    /* The #1 numeral is foil text (transparent fill, see .rank-1 above):
+       the chip must paint its own colour, not inherit the see-through fill */
+    -webkit-text-fill-color: currentColor;
+  }
+  .chart-table .rank-mv > .m-up,
+  .chart-table .rank-mv > .m-down,
+  .chart-table .rank-mv > .m-same,
+  .chart-table .rank-mv > .m-new,
+  .chart-table .rank-mv > .m-re {
+    display: inline-block;
+    padding: 1px 5px;
+    border-radius: var(--r-full);
+    font-size: 10px;
+    line-height: 1.35;
+    white-space: nowrap;
+  }
+  .chart-table .rank-mv > .m-up   { background: color-mix(in srgb, var(--chart-up) 15%, transparent); }
+  .chart-table .rank-mv > .m-down { background: color-mix(in srgb, var(--chart-down) 15%, transparent); }
+  .chart-table .rank-mv > .m-new  { background: color-mix(in srgb, var(--chart-new) 16%, transparent); }
+  .chart-table .rank-mv > .m-re   { background: color-mix(in srgb, var(--chart-re) 16%, transparent); }
+  .chart-table .rank-mv > .m-same { background: color-mix(in srgb, var(--text3) 18%, transparent); color: var(--text2); }
+  /* Just the rank and the move chip on phones: last period's rank is left
+     out (asked 2026-10-20), and the number is a size up from 18px to fill
+     the room it frees */
+  .chart-table .rank-mv > .m-prev-rank { display: none; }
+  .chart-table td.rank-cell { font-size: 1.375rem !important; }   /* 22px */
+
+  /* Smaller tags under the artist on phones (asked 2026-10-20) */
+  .chart-table .song-tags { column-gap: 4px; }
+  .chart-table .song-tags > * { margin-top: 3px; }
+  .chart-table .song-tags > .peak-badge-1,
+  .chart-table .song-tags > .peak-badge-2,
+  .chart-table .song-tags > .peak-badge-3,
+  .chart-table .song-tags > .peak-badge {
+    font-size: 10px;
+    padding: 1px 6px;
+  }
+  .chart-table .song-tags > .cert,
+  body #songsTable .song-tags > .cert,  /* outranks the smaller-cert rule */
+  body #albumsTable .song-tags > .cert {
+    font-size: 10px;
+    padding: 0 4px;
+  }
+  .chart-table .song-tags > .cert .cert-icon { font-size: 8px; }
+  .chart-table .song-tags > .rt-chip { font-size: 9px; }
+}
+
+/* Compact on phones: the tags match the phone Table's smaller sizes above
+   (asked 2026-10-20), so both layouts carry the same size of tag */
+@media (max-width: 600px) {
+  .wv-compact .wv-cx-badges > .peak-badge-1,
+  .wv-compact .wv-cx-badges > .peak-badge-2,
+  .wv-compact .wv-cx-badges > .peak-badge-3,
+  .wv-compact .wv-cx-badges > .peak-badge {
+    font-size: 10px;
+    padding: 1px 6px;
+  }
+  .wv-compact .wv-cx-badges > .cert {
+    font-size: 10px;
+    padding: 0 4px;
+  }
+  .wv-compact .wv-cx-badges > .cert .cert-icon { font-size: 8px; }
+  .wv-compact .wv-cx-badges > .rt-chip { font-size: 9px; }
+}
+
+/* Compact: ▲ BEST sits under the play count (2026-10-20), as in the Table,
+   with the short word at every width so it fits the narrow Plays column.
+   Same size as the tags: 10px type, 17px tall. */
+.wv-cx-row > .wv-cx-plays { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; }
+.wv-cx-plays .plays-peak-badge {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  height: 17px;
+  margin: 0;
+  padding: 0 6px;
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+.wv-cx-plays .plays-peak-badge .ppb-full { display: none; }
+.wv-cx-plays .plays-peak-badge .ppb-short { display: inline; }
+@media (max-width: 600px) {
+  .wv-cx-plays .plays-peak-badge { padding: 0 4px; }
+}
+
+/* Phones, Table and Compact: every tag in a row is the same height. The
+   diamond tag is just 💎 (no words), so it came out shorter and its emoji
+   looked tiny next to GOLD / PEAK; the emoji is sized up and each tag gets
+   the peak tag's height (17px) as a floor (2026-10-20). */
+@media (max-width: 600px) {
+  .chart-table .song-tags > *,
+  .wv-compact .wv-cx-badges > * {
+    box-sizing: border-box;
+    min-height: 17px;
+    align-items: center;
+  }
+  .chart-table .song-tags > .cert-diamond .cert-short,
+  .wv-compact .wv-cx-badges > .cert-diamond .cert-short { font-size: 12px; }
+}
