@@ -5897,29 +5897,34 @@
 
     /* Medal rows: a tint of the medal token itself (light themes already
        darken --medal-*), so the strip reads as gold/silver/bronze on every
-       theme instead of the old hard-coded rgba amber that went muddy on light. */
+       theme instead of the old hard-coded rgba amber that went muddy on light.
+       Mixed with the card colour (--bg2) into a solid colour, not a
+       see-through one: each cell paints its own share of the strip, and with
+       Windows display scaling (125%…) neighbouring cells overlap by a pixel,
+       which doubled a see-through tint into a darker line between every
+       column of the #1 row (2026-10-19). Solid colours overlap invisibly. */
     .chart-table tbody tr.rank-1 > td {
-      background: color-mix(in srgb, var(--medal-gold) 11%, transparent);
+      background: color-mix(in srgb, var(--medal-gold) 11%, var(--bg2));
     }
 
     .chart-table tbody tr.rank-2 > td {
-      background: color-mix(in srgb, var(--medal-silver) 8%, transparent);
+      background: color-mix(in srgb, var(--medal-silver) 8%, var(--bg2));
     }
 
     .chart-table tbody tr.rank-3 > td {
-      background: color-mix(in srgb, var(--medal-bronze) 9%, transparent);
+      background: color-mix(in srgb, var(--medal-bronze) 9%, var(--bg2));
     }
 
     .chart-table tbody tr.rank-1:hover > td {
-      background: color-mix(in srgb, var(--medal-gold) 18%, transparent);
+      background: color-mix(in srgb, var(--medal-gold) 18%, var(--bg2));
     }
 
     .chart-table tbody tr.rank-2:hover > td {
-      background: color-mix(in srgb, var(--medal-silver) 14%, transparent);
+      background: color-mix(in srgb, var(--medal-silver) 14%, var(--bg2));
     }
 
     .chart-table tbody tr.rank-3:hover > td {
-      background: color-mix(in srgb, var(--medal-bronze) 15%, transparent);
+      background: color-mix(in srgb, var(--medal-bronze) 15%, var(--bg2));
     }
 
     /* #1 also gets a hairline ring in gold so it lifts off the list like the
@@ -5994,13 +5999,13 @@
            strip this cell's share of the row tint — so the tint is repainted
            as a big inset shadow (shadows sit above the background, below the
            text), alongside the gold ring lines from the row rule. */
-        --r1-tint: color-mix(in srgb, var(--medal-gold) 11%, transparent);
+        --r1-tint: color-mix(in srgb, var(--medal-gold) 11%, var(--bg2));
         box-shadow: inset 1px 1px 0 color-mix(in srgb, var(--medal-gold) 30%, transparent),
                     inset 0 -1px 0 color-mix(in srgb, var(--medal-gold) 30%, transparent),
                     inset 0 0 0 200px var(--r1-tint);
       }
       .chart-table tbody tr.rank-1:hover > td.rank-cell {
-        --r1-tint: color-mix(in srgb, var(--medal-gold) 18%, transparent);
+        --r1-tint: color-mix(in srgb, var(--medal-gold) 18%, var(--bg2));
       }
     }
 

@@ -1901,6 +1901,15 @@ animation, 12 screen check.
   Spotify is in that menu). Bubbling Under, Off the Chart and the other
   layouts keep their button; computers keep it everywhere. Checked with
   touch emulation.
+- **Lines between the #1 row's columns (2026-10-19), from your screenshot:**
+  each cell paints its own share of the row strip, and with Windows display
+  scaling neighbouring cells overlap by a pixel; #1's see-through 11% gold
+  doubled there into a darker line at every column edge (measured on your
+  screenshot: 232,223,205 against 242,237,227). The medal tints (#1–#3 and
+  their hover shades, and #1's rank cell) are now solid colours mixed with
+  `--bg2`, so an overlap is invisible. Same colours within 1–2 levels in
+  all ten themes. (Headless Chromium snaps pixels differently and never
+  showed the lines, so this was checked by measurement, not by eye.)
   Checked: 1280 and 390, all 5 periods × 3 types (every tile square,
   nothing past its tile, no sideways scroll), search, real hover / flip /
   All details / × / ⋮ / Save (download checked), es phone, Navy light, no
