@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Table covers fill the row":
+    ["Las portadas de la Tabla llenan la fila",
+     "En el diseño Tabla de los rankings de canciones, artistas y álbumes, la portada ahora llena su fila de arriba abajo como un cuadrado sin esquinas redondeadas, como en Fuera del Ranking, y es un poco más grande (64px, 52px en el móvil). Una fila más alta por un título largo que ocupa varias líneas mantiene la misma portada cuadrada, centrada en la fila."],
+
   "Bubbling Under and New Entries covers fill the row":
     ["Las portadas de Aspirantes y Nuevas Entradas llenan la fila",
      "Las portadas de Aspirantes y Nuevas Entradas ahora llenan su fila de arriba abajo y siguen siendo cuadradas, igual que en Fuera del Ranking, y las tres pestañas tienen filas de la misma altura. En el móvil la portada llena la parte de arriba de cada tarjeta, y la línea de etiquetas (Aspirantes) o la fila de cuadritos de los días (Nuevas Entradas) va en una franja debajo."],

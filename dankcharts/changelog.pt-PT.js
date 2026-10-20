@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Table covers fill the row":
+    ["As capas da Tabela preenchem a linha",
+     "No esquema Tabela das tabelas de músicas, artistas e álbuns, a capa agora preenche a linha de cima a baixo como um quadrado sem cantos arredondados, como em Fora do Top, e ficou um pouco maior (64px, 52px no telemóvel). Uma linha mais alta por causa de um título longo que ocupa várias linhas mantém a mesma capa quadrada, centrada na linha."],
+
   "Bubbling Under and New Entries covers fill the row":
     ["As capas dos Aspirantes e das Novas Entradas preenchem a linha",
      "As capas dos Aspirantes e das Novas Entradas agora preenchem a linha de cima a baixo e continuam quadradas, como em Fora do Top, e os três separadores têm linhas da mesma altura. No telemóvel a capa preenche a parte de cima de cada cartão, e a linha de etiquetas (Aspirantes) ou a fila de quadradinhos dos dias (Novas Entradas) fica numa faixa por baixo."],

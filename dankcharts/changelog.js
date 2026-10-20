@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 217;
+const DC_CL_I18N_V = 218;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-20', t: 'design', a: 'charts',
+    title: "Table covers fill the row",
+    detail: "In the Table layout of the songs, artists and albums charts, the cover now fills its row from top to bottom as a square without rounded corners, like in Off the Chart, and is a little bigger (64px, 52px on phones). A row made taller by a long title that wraps keeps the same square cover, centred in the row." },
 
   { d: '2026-10-20', t: 'design', a: 'charts',
     title: "Bubbling Under and New Entries covers fill the row",

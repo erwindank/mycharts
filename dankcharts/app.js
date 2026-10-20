@@ -13567,7 +13567,7 @@ function renderTableHeaders() {
   const periodTh = `<th class="m-th"><span class="th-period-full">${periodLabel}</span><span class="th-period-short">${periodLabelMobile}</span></th>`;
   // thumb-th / meta-col are class-based (not nth-child) because the Previous column only
   // exists in the hasPeriodStats branch, shifting later columns' position between branches.
-  const thumbTh = `<th class="thumb-th" style="width:52px;"></th>`;
+  const thumbTh = `<th class="thumb-th" style="width:64px;"></th>`;   // = --tbl-cov in style.css
   // Rank: just "#" on portrait phones, where every px goes to Title · Artist
   const rankTh = `<th><span class="th-rank-full">${t('th_rank')}</span><span class="th-rank-short">#</span></th>`;
   // Trailing icon-only column for the chart-run toggle button, now separate from rank-cell.

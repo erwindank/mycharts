@@ -40506,3 +40506,27 @@ html body:not(.albums-hide-bu-legend)  #buAlbumsSection.bu-legend-open .bu-legen
   .ne-row.atc-row .cr-cell { grid-column: 4; margin-left: calc(-1 * var(--sp-2)); }
   .ne-caps i { width: 12px; height: 12px; }
 }
+
+/* ── Table covers fill the row (like Off the Chart) ───────────────────────
+   The cover cell has no padding and is as tall as a normal row, so the
+   square cover touches the row's top and bottom. A row made taller by a
+   long, wrapping title keeps the same square, centred (your call,
+   2026-10-20). --tbl-cov is the cover size and the normal row height. */
+:is(#songsTable, #artistsTable, #albumsTable) { --tbl-cov: 64px; }
+:is(#songsTable, #artistsTable, #albumsTable) .thumb-th { width: var(--tbl-cov) !important; padding: 0 !important; }
+:is(#songsTable, #artistsTable, #albumsTable) > tbody > tr > td.thumb-cell {
+  width: var(--tbl-cov) !important; height: var(--tbl-cov); padding: 0 !important; vertical-align: middle;
+}
+:is(#songsTable, #artistsTable, #albumsTable) .thumb-cell .thumb-wrap { width: var(--tbl-cov); height: var(--tbl-cov); gap: 0; }
+:is(#songsTable, #artistsTable, #albumsTable) .thumb-cell :is(.thumb, .thumb-initials) {
+  width: var(--tbl-cov); height: var(--tbl-cov); border-radius: 0; border: 0;
+}
+:is(#songsTable, #artistsTable, #albumsTable) .thumb-cell .img-src-btn { top: 5px; right: 5px; }
+:is(#songsTable, #artistsTable, #albumsTable) .thumb-cell .ea-sample.ea-cover-play { right: 5px; bottom: 5px; }
+@media (max-width: 600px) {
+  :is(#songsTable, #artistsTable, #albumsTable) { --tbl-cov: 52px; }
+  :is(#songsTable, #artistsTable, #albumsTable) .thumb-cell .ea-sample.ea-cover-play { right: 3px; bottom: 3px; }
+}
+@media (max-width: 340px) {
+  :is(#songsTable, #artistsTable, #albumsTable) { --tbl-cov: 44px; }
+}
