@@ -1783,6 +1783,12 @@ animation, 12 screen check.
   types with every badge on (nothing past its card, no sideways scroll),
   search, real clicks on podium / strip / arrows / jump / drag / wheel /
   Auto-scroll / Save (download checked), es phone, Navy light, no JS errors.
+  **Then, the same day, you found the big podium too much on a computer**
+  ("excessive and disorganized"; fine on phones). On computers and tablets
+  the top 3 are now **one even row of three wide cards**: cover on the left
+  (at most 168px), big rank + title, artist and numbers on the right, about
+  as tall as a strip card. The glow and the medal-coloured number set them
+  apart. **Phones unchanged** (#1 across the top, #2 / #3 under it).
 - **Step 10, started early (2026-10-18).** Done so far:
   - **Off the Chart rows:** ▶ and ⋮ in their own end column. On phones the
     row restacks: the title wraps instead of being cut, plays and weeks go
