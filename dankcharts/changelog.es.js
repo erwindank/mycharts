@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "New icons in the ⋮ menu":
+    ["Nuevos iconos en el menú ⋮",
+     "El menú que se abre con ⋮ (o con clic derecho) en cualquier entrada del chart tiene un nuevo conjunto de iconos de línea a juego en lugar de los símbolos de antes, y los logos reales de YouTube y Spotify en las dos búsquedas. El icono se ilumina junto con su texto al pasar el ratón."],
+
   "The sample button is back beside Spotify and ⋮ on phones":
     ["El botón de muestra vuelve junto a Spotify y ⋮ en el móvil",
      "En el móvil, Cuadrícula, Tira y las listas de Aspirantes, Fuera del Ranking y Nuevas Entradas ocultaban el botón de muestra de 30 segundos y esperaban que tocaras la portada. Ahora el botón aparece junto a Buscar en Spotify y ⋮ también ahí, como en la computadora. Mosaico lo tiene en el reverso del mosaico; la tabla, Pila y Compacto lo mantienen en la esquina de la portada."],

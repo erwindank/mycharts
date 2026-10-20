@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "New icons in the ⋮ menu":
+    ["Novos ícones no menu ⋮",
+     "O menu que abre pelo ⋮ (ou com o botão direito) em qualquer entrada da tabela tem um novo conjunto de ícones de linha a condizer, em vez dos símbolos antigos, e os verdadeiros logótipos do YouTube e do Spotify nas duas pesquisas. O ícone acende com o texto ao passar o rato."],
+
   "The sample button is back beside Spotify and ⋮ on phones":
     ["O botão de amostra volta para junto do Spotify e do ⋮ no telemóvel",
      "No telemóvel, Grelha, Faixa e as listas de Aspirantes, Fora do Top e Novas Entradas escondiam o botão de amostra de 30 segundos e esperavam que tocasses na capa. Agora o botão aparece junto de Pesquisar no Spotify e do ⋮ também aí, como no computador. O Mosaico tem-no no verso do bloco; a tabela, Pilha e Compacto mantêm-no no canto da capa."],

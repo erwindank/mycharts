@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 212;
+const DC_CL_I18N_V = 213;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-19', t: 'design', a: 'charts', h: '8c05a9e',
+    title: "New icons in the ⋮ menu",
+    detail: "The menu that opens from ⋮ (or a right-click) on any chart entry has a new set of matching line icons in place of the old symbols, and the real YouTube and Spotify logos on the two search items. The icon lights up with its label when you point at it." },
 
   { d: '2026-10-19', t: 'fix', a: 'charts', h: '51ea3ed',
     title: "The sample button is back beside Spotify and ⋮ on phones",

@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "New icons in the ⋮ menu":
+    ["Novos ícones no menu ⋮",
+     "O menu que abre pelo ⋮ (ou com o botão direito) em qualquer entrada da parada ganhou um novo conjunto de ícones de linha combinando, no lugar dos símbolos antigos, e os logos de verdade do YouTube e do Spotify nas duas buscas. O ícone acende junto com o texto ao passar o mouse."],
+
   "The sample button is back beside Spotify and ⋮ on phones":
     ["O botão de amostra volta ao lado do Spotify e do ⋮ no celular",
      "No celular, Grade, Faixa e as listas de Aspirantes, Fora da Parada e Novas Entradas escondiam o botão de amostra de 30 segundos e esperavam que você tocasse na capa. Agora o botão aparece ao lado de Buscar no Spotify e do ⋮ também ali, como no computador. O Mosaico o tem no verso do bloco; a tabela, Pilha e Compacto o mantêm no canto da capa."],

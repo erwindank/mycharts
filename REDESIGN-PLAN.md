@@ -1886,6 +1886,12 @@ animation, 12 screen check.
   Mosaic has it on the tile's back. Checked with real touch emulation
   (hover: none; earlier phone checks were desktop browsers at 390px):
   every view's buttons inside their row, no sideways scroll.
+- **⋮ menu icons (2026-10-19, 8c05a9e), at your request:** the text
+  symbols (♪ ▶ ⏭ ＋ ☰ ≡ ⓘ ◉ ♫ ▦ ✎ ↗) are one SVG line-icon set
+  (`_EA_MI`, keyed by action: 17px, round 1.8px strokes, muted text colour,
+  accent on hover / focus), with the real YouTube and Spotify marks on the
+  two searches. Checked in Navy dark and light, with the player-only items
+  showing.
   Checked: 1280 and 390, all 5 periods × 3 types (every tile square,
   nothing past its tile, no sideways scroll), search, real hover / flip /
   All details / × / ⋮ / Save (download checked), es phone, Navy light, no
