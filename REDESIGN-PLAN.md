@@ -29,6 +29,9 @@ Card grid is done, merged to `main` and pushed; Filmstrip and Mosaic are
 done on the branch (not merged yet), so **step 8 is finished**; next is
 step 9.
 
+**Updated 2026-10-20:** step 9 (slimmer rows from #11) skipped after you
+saw a mockup; next is step 10.
+
 **Seen on screen:**
 - Weekly: Albums and Songs, in all six chart layouts (Table, Card grid,
   Compact, Mosaic, Filmstrip, Stack)
@@ -1949,6 +1952,9 @@ animation, 12 screen check.
   the gold / silver / bronze tints for #1–#3 (you kept them), and on phones
   Title · Artist gets the room first.
 - **Step 9: shorter long charts** (4.12, slimmer rows from #11).
+  **Skipped (2026-10-20).** You saw a mockup (full-size #1–#10, slim rows
+  from #11, "Show all 100" after 50) and decided against it. Long charts
+  keep every row at full size.
 - **Step 10: finish it** (list above).
 - **Step 11: one rank-change animation** for every layout.
 - **Step 12: screen check**, including the two leftovers below.
