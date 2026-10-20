@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "The sample button is back beside Spotify and ⋮ on phones":
+    ["El botón de muestra vuelve junto a Spotify y ⋮ en el móvil",
+     "En el móvil, Cuadrícula, Tira y las listas de Aspirantes, Fuera del Ranking y Nuevas Entradas ocultaban el botón de muestra de 30 segundos y esperaban que tocaras la portada. Ahora el botón aparece junto a Buscar en Spotify y ⋮ también ahí, como en la computadora. Mosaico lo tiene en el reverso del mosaico; la tabla, Pila y Compacto lo mantienen en la esquina de la portada."],
+
   "Choose pictures from every layout and in Share as Image":
     ["Elige imágenes desde todos los diseños y en Compartir como imagen",
      "Todos los diseños del chart permiten ahora cambiar la imagen de una entrada: el ✎ sobre la portada (en Mosaico, en el reverso del mosaico), mantener pulsado en el móvil o ⋮ → Cambiar imagen. La nueva imagen aparece al instante, en todos los lugares donde sale la entrada. El menú ⋮ también tiene Buscar en Spotify en todos los diseños. En Compartir como imagen, una nueva fila debajo de la fuente de las portadas muestra un recuadro pequeño por cada entrada de la tarjeta: haz clic en uno para elegir su imagen y la tarjeta se actualiza al momento. Las imágenes para compartir ahora usan las imágenes que elegiste en lugar de buscar las suyas."],

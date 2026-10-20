@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "The sample button is back beside Spotify and ⋮ on phones":
+    ["O botão de amostra volta para junto do Spotify e do ⋮ no telemóvel",
+     "No telemóvel, Grelha, Faixa e as listas de Aspirantes, Fora do Top e Novas Entradas escondiam o botão de amostra de 30 segundos e esperavam que tocasses na capa. Agora o botão aparece junto de Pesquisar no Spotify e do ⋮ também aí, como no computador. O Mosaico tem-no no verso do bloco; a tabela, Pilha e Compacto mantêm-no no canto da capa."],
+
   "Choose pictures from every layout and in Share as Image":
     ["Escolhe imagens em todos os esquemas e em Partilhar como imagem",
      "Todos os esquemas da tabela permitem agora mudar a imagem de uma entrada: o ✎ na capa (no Mosaico, no verso do bloco), manter premido no telemóvel ou ⋮ → Alterar imagem. A nova imagem aparece logo, em todos os sítios onde a entrada aparece. O menu ⋮ também tem Pesquisar no Spotify em todos os esquemas. Em Partilhar como imagem, uma nova linha por baixo da fonte das capas mostra um quadradinho por cada entrada do cartão: clica num para escolher a imagem e o cartão atualiza-se logo. As imagens para partilhar usam agora as imagens que escolheste em vez de irem buscar as suas."],

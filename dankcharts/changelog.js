@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 211;
+const DC_CL_I18N_V = 212;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-19', t: 'fix', a: 'charts', h: '51ea3ed',
+    title: "The sample button is back beside Spotify and ⋮ on phones",
+    detail: "On phones, Card grid, Filmstrip and the Bubbling Under, Off the Chart and New Entries lists hid the 30-second sample button and expected you to tap the cover. The button now shows next to Search on Spotify and ⋮ there too, as on a computer. Mosaic has it on the back of a tile; the table, Stack and Compact keep it on the corner of the cover." },
 
   { d: '2026-10-19', t: 'feature', a: 'charts', h: '7899764',
     title: "Choose pictures from every layout and in Share as Image",

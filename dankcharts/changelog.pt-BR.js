@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "The sample button is back beside Spotify and ⋮ on phones":
+    ["O botão de amostra volta ao lado do Spotify e do ⋮ no celular",
+     "No celular, Grade, Faixa e as listas de Aspirantes, Fora da Parada e Novas Entradas escondiam o botão de amostra de 30 segundos e esperavam que você tocasse na capa. Agora o botão aparece ao lado de Buscar no Spotify e do ⋮ também ali, como no computador. O Mosaico o tem no verso do bloco; a tabela, Pilha e Compacto o mantêm no canto da capa."],
+
   "Choose pictures from every layout and in Share as Image":
     ["Escolha imagens em todos os layouts e em Compartilhar como imagem",
      "Todos os layouts da parada agora permitem trocar a imagem de uma entrada: o ✎ na capa (no Mosaico, no verso do bloco), segurar o dedo no celular ou ⋮ → Trocar imagem. A nova imagem aparece na hora, em todos os lugares onde a entrada aparece. O menu ⋮ também tem Buscar no Spotify em todos os layouts. Em Compartilhar como imagem, uma nova linha abaixo da fonte das capas mostra um quadradinho para cada entrada do cartão: clique num deles para escolher a imagem e o cartão se atualiza na hora. As imagens para compartilhar agora usam as imagens que você escolheu em vez de buscar as próprias."],

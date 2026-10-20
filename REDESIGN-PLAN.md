@@ -1878,6 +1878,14 @@ animation, 12 screen check.
   once), ⋮ has Spotify and Change picture in all six, the share window at
   1280 and 390 (10 tiles, picker opens on top, tile + card + chart cover
   updated, kept after reopening), no JS errors.
+- **▶ beside Spotify and ⋮ on phones too (2026-10-19), from your phone
+  screenshot.** Card grid, Filmstrip and the BU / Off / New rows still
+  hid ▶ on touch (the 2026-10-14 "the cover is the button" rule), which
+  you found not user-friendly. That rule is gone: on touch ▶ shows in the
+  group wherever it is there. Table, Stack and Compact keep ▶ on the cover;
+  Mosaic has it on the tile's back. Checked with real touch emulation
+  (hover: none; earlier phone checks were desktop browsers at 390px):
+  every view's buttons inside their row, no sideways scroll.
   Checked: 1280 and 390, all 5 periods × 3 types (every tile square,
   nothing past its tile, no sideways scroll), search, real hover / flip /
   All details / × / ⋮ / Save (download checked), es phone, Navy light, no
