@@ -37220,9 +37220,12 @@ body.cp-hide-cert-reel    #certReelSection { display: none !important; }
 .wv-cx-row > .ea-pair { justify-self: end; }
 .wv-stk-row > .ea-pair { align-self: center; }
 
-/* Touch: no ▶ (the cover is the button) and ⋮ always shown */
+/* Touch: ⋮ always shown. ▶ stays beside Spotify and ⋮ wherever it is in
+   the group (Card grid, Filmstrip, Mosaic, the BU / Off / New rows): it used
+   to hide on touch with the cover as the button, which you found not
+   user-friendly (2026-10-19). Table, Stack and Compact have it on the cover. */
 @media (hover: none) {
-  .ea-pair:not(.ea-inline) .ea-sample { display: none; }
+  .ea-sample { opacity: 1; }
   .ea-more { opacity: 1; }
   .chart-table .cr-cell { width: 68px; }
 }
