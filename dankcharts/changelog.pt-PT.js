@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Spotify on every chart, and the sample button on the cover":
+    ["Spotify em todas as tabelas, e o botão de amostra na capa",
+     "Todos os esquemas da tabela têm agora um botão Pesquisar no Spotify em cada entrada: a tabela, Compacto, Mosaico (no cartão ao passar o rato e no verso do bloco) e as listas de Aspirantes, Fora do Top e Novas Entradas, como Pilha, Grelha e Faixa já tinham. Na tabela, Pilha e Compacto, o botão que toca uma amostra de 30 segundos fica agora no canto da capa. Aparece ao passar o rato pela linha e, no telemóvel, está sempre visível. A coluna de reproduções da tabela já não tem barra: só as reproduções, com a mudança desde a última vez por baixo."],
+
   "Mosaic reads in chart order":
     ["O Mosaico passa a seguir a ordem da tabela",
      "O Mosaico dava a cada bloco um tamanho conforme as reproduções, por isso a tabela saía baralhada (o #4 ao lado do #1, o #5 num canto) e as capas ficavam esticadas. Agora cada bloco é uma capa quadrada e o tamanho mostra a posição: o #1 ocupa metade da largura, do #2 ao #5 ficam ao lado dele dois a dois e o resto segue cinco a cinco. No telemóvel o #1 fica em cima a toda a largura, depois dois e três por linha. Um esbatido escuro suave mantém legíveis o número grande da posição e o título sobre qualquer capa, o top 3 tem aros de ouro, prata e bronze, e os espaços são iguais. Passar o rato continua a mostrar os detalhes e clicar num bloco continua a virá-lo, agora com tudo a caber no verso. Um novo botão Guardar imagem guarda o mosaico inteiro como imagem."],

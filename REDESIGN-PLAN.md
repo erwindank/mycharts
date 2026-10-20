@@ -1822,6 +1822,31 @@ animation, 12 screen check.
   now give every peak tag its own dark backing, as Card grid covers do.
   Measured in all ten themes: peak, personal best, certifications and
   scores all 7.8:1 or better.
+- **Across the layouts (2026-10-19, d9c3659), at your request:**
+  - **Search on Spotify on every view.** Mosaic's hover card and tile back
+    (`_eaSpotifyBtn`), and a new `_eaSpAuto` (`_eaBtns(true)`) for rows
+    that only carry `data-ea-*`: a real link (open in new tab works) whose
+    address is filled from the row just before use. Table (all periods),
+    Compact, Bubbling Under, Off the Chart, New Entries. On phones the
+    Table's Spotify sits above ⋮, so the column stays one button wide.
+  - **▶ on the cover's bottom-right corner in Table, Stack and Compact**
+    (`_eaCoverPlay`, `_eaBtns(sp, noSample)`). **This reverses the
+    2026-10-14 call** "▶ never on the artwork": you now want it there. The
+    ✎ picture button keeps the top-right corner, so they don't meet. Shown
+    on hover with a mouse, always on touch (16px on the phone Table's 36px
+    covers), accent while playing; the cover's own ❚❚ / ♪ badge is off
+    there. Tapping the cover still plays the sample on touch. Card grid,
+    Filmstrip, Mosaic and the BU / Off / New rows keep ▶ beside ⋮.
+  - **Table plays: no bar.** The number, with the change in plays under it
+    at every width (it was the phone layout); NEW / RE stay in the Move
+    column. The tour's Plays step no longer mentions a bar.
+  - **Mosaic tile backs fit on phones**: the smallest tiles show rank,
+    title, plays and the four buttons (peak and weeks are in All details);
+    the container-query rules now beat `.wv-mos-back-acts`' own spacing.
+  Checked: 1280 and 390, all 5 periods × Table / Compact (every row has
+  Spotify, none overflows, no sideways scroll), BU / Off rows, a real
+  Spotify click (right address, no details panel), real ▶-on-cover clicks
+  in all three layouts, Mosaic backs on every tile size.
   Checked: 1280 and 390, all 5 periods × 3 types (every tile square,
   nothing past its tile, no sideways scroll), search, real hover / flip /
   All details / × / ⋮ / Save (download checked), es phone, Navy light, no

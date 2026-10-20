@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Spotify on every chart, and the sample button on the cover":
+    ["Spotify en todos los charts, y el botón de muestra sobre la portada",
+     "Todos los diseños del chart tienen ahora un botón Buscar en Spotify en cada entrada: la tabla, Compacto, Mosaico (en la tarjeta al pasar el ratón y en el reverso del mosaico) y las listas de Aspirantes, Fuera del Ranking y Nuevas Entradas, como ya tenían Pila, Cuadrícula y Tira. En la tabla, Pila y Compacto, el botón que reproduce una muestra de 30 segundos ahora está en la esquina de la portada. Aparece al pasar el ratón por la fila, y en el móvil siempre está visible. La columna de reproducciones de la tabla ya no tiene barra: solo las reproducciones, con el cambio respecto a la vez anterior debajo."],
+
   "Mosaic reads in chart order":
     ["El Mosaico se lee en el orden del chart",
      "El Mosaico antes daba a cada mosaico un tamaño según sus reproducciones, así que el chart salía desordenado (el #4 junto al #1, el #5 en una esquina) y las portadas se estiraban. Ahora cada mosaico es una portada cuadrada y el tamaño indica el puesto: el #1 ocupa la mitad del ancho, del #2 al #5 van a su lado de dos en dos y el resto sigue de cinco en cinco. En el móvil el #1 va arriba a todo lo ancho, luego de dos y de tres por fila. Un degradado oscuro suave mantiene legibles el número grande del puesto y el título sobre cualquier portada, el top 3 lleva aros de oro, plata y bronce, y los espacios son parejos. Al pasar el ratón se siguen viendo los detalles y al hacer clic el mosaico se sigue girando, ahora con todo cabiendo en el reverso. Un nuevo botón Guardar imagen guarda todo el mosaico como una imagen."],

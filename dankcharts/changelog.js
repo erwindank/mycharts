@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 209;
+const DC_CL_I18N_V = 210;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-19', t: 'design', a: 'charts', h: 'd9c3659',
+    title: "Spotify on every chart, and the sample button on the cover",
+    detail: "Every chart layout now has a Search on Spotify button on each entry: the table, Compact, Mosaic (on the hover card and the back of a tile), and the Bubbling Under, Off the Chart and New Entries lists, as Stack, Card grid and Filmstrip already had. In the table, Stack and Compact, the button that plays a 30-second sample now sits on the corner of the cover. It shows when you point at the row, and on a phone it is always there. The table's plays column has no bar any more: just the plays, with the change since last time under them." },
 
   { d: '2026-10-19', t: 'design', a: 'charts', h: 'ae16a1a',
     title: "Mosaic reads in chart order",
