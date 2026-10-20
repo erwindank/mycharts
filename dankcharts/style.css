@@ -31625,7 +31625,7 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
 .wv-gc-foot .wv-stats { min-width: 0; }
 .wv-gc-foot .wv-acts { align-self: flex-end; margin-right: -4px; }
 /* The cards are narrow at every width: the personal best uses its short
-   form there (▲ PB / ▲ MÁX / ▲ PICO), the full wording is its tooltip */
+   form there (▲ BEST / ▲ MÁX / ▲ PICO), the full wording is its tooltip */
 .wv-grid .wv-stat-pb .ppb-full { display: none; }
 .wv-grid .wv-stat-pb .ppb-short { display: inline; }
 
@@ -31811,7 +31811,7 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
      it stayed one max-content line and ran over the Move and Plays columns */
   .wv-cx-badges { flex-wrap: wrap; row-gap: 2px; flex: 1 1 100%; min-width: 0; max-width: 100%; }
   .wv-cx-badges > * { max-width: 100%; }
-  /* The phone Table's short forms (2026-10-18): 💎 for diamonds, ▲ PB, and
+  /* The phone Table's short forms (2026-10-18): 💎 for diamonds, ▲ BEST, and
      in Spanish 🏅 #n for the peak tag */
   .wv-compact .cert-diamond .cert-icon,
   .wv-compact .cert-diamond .cert-label { display: none; }
@@ -32179,7 +32179,7 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
   .wv-film-big .wv-gc-artist, .wv-film-big .wv-stats, .wv-film-big .wv-mv-ov { font-size: var(--fs-xs); }
   .wv-film-rail { --film-card-w: 148px; }
   .wv-filmstrip { gap: var(--sp-2); }
-  /* The phone Table's short forms (2026-10-18): 💎 for diamonds, ▲ PB, and
+  /* The phone Table's short forms (2026-10-18): 💎 for diamonds, ▲ BEST, and
      in Spanish 🏅 #n for the peak tag */
   .wv-film-wrap .cert-diamond .cert-icon,
   .wv-film-wrap .cert-diamond .cert-label { display: none; }
@@ -32290,7 +32290,7 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
   .wv-stats-in { margin-left: -14px; }
   .wv-stat { padding-left: 14px; }
   .wv-stat::before { width: 14px; }
-  /* The phone Table's short forms (2026-10-18): 💎 for diamonds, ▲ PB, and
+  /* The phone Table's short forms (2026-10-18): 💎 for diamonds, ▲ BEST, and
      in Spanish 🏅 #n for the peak tag */
   .wv-stack .cert-diamond .cert-icon,
   .wv-stack .cert-diamond .cert-label { display: none; }
@@ -40552,7 +40552,7 @@ html body:not(.albums-hide-bu-legend)  #buAlbumsSection.bu-legend-open .bu-legen
 /* Plays peak tag in the Table: .ppb-box (playsPeakBadge(true)) is a container
    as wide as the Plays cell. When a dragged column leaves less room than the
    full words need ("▲ PLAYS PEAK" ≈ 98px, "▲ PICO DE PLAYS" ≈ 114px), the
-   short label shows (▲ PB / ▲ PICO) instead of a cut-off one. Spanish uses
+   short label shows (▲ BEST / ▲ PICO) instead of a cut-off one. Spanish uses
    the short one at every width already, and phones do in every language. */
 /* Desktop only: phones show the short label anyway, and there the container
    (which leaves the tag out of the column's sizing) squeezed the column */
