@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 214;
+const DC_CL_I18N_V = 215;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-20', t: 'design', a: 'charts',
+    title: "Bubbling Under rows look like the chart",
+    detail: "Bubbling Under rows are calmer: rank, cover, title and artist, then every tag on one plain line of words instead of coloured pills (Trending · 3 weeks · 3-week streak). The bar is gone; plays sit on the right with how many plays away from the chart it is under them, in gold when it is only 1 or 2 away. Spotify, ⋮ and the Bubbling Under history sit side by side, and every row is the same height. On phones Spotify and the history move into the ⋮ menu, and the tag line runs across the full width of the row." },
 
   { d: '2026-10-20', t: 'design', a: 'charts', h: 'f3b0e4c',
     title: "Bubbling Under, Off the Chart and New Entries share one box",

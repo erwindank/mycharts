@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Bubbling Under rows look like the chart":
+    ["Las filas de Aspirantes se parecen al chart",
+     "Las filas de Aspirantes son más tranquilas: posición, portada, título y artista, y luego todas las etiquetas en una sola línea de texto en lugar de pastillas de colores. La barra ya no está; las reproducciones van a la derecha con cuántas faltan para entrar al chart debajo, en dorado cuando faltan solo 1 o 2. Spotify, ⋮ y el historial en Aspirantes van uno al lado del otro, y todas las filas tienen la misma altura. En el móvil, Spotify y el historial pasan al menú ⋮ y la línea de etiquetas ocupa todo el ancho de la fila."],
+
   "Bubbling Under, Off the Chart and New Entries share one box":
     ["Aspirantes, Fuera del Ranking y Nuevas Entradas comparten un recuadro",
      "Debajo de cada ranking, Aspirantes, Fuera del Ranking y Nuevas Entradas son ahora tres pestañas de un mismo recuadro, Alrededor del ranking, que recuerda la última pestaña que abriste. Las filas de Aspirantes tienen portada (la muestra de 30 segundos en la esquina y ✎ para cambiar la imagen) y una barra que muestra cuánto le falta a cada una para entrar al ranking; todas las etiquetas siguen ahí, debajo de la barra, y la ⓘ las explica. Las filas de Fuera del Ranking tienen una portada que llena la fila, las escuchas de la semana pasada junto a las de esta, una etiqueta sobre cómo salió (Cayó del top 3, Fin de una larga racha, Visita de una semana…), cuándo la escuchaste por última vez y un enlace que salta a su fila en Aspirantes; en el móvil cada una es una pequeña tarjeta. Las filas de Nuevas Entradas dicen hasta dónde llegó una canción nueva en el ranking, marcan a los artistas que también son nuevos para ti, muestran un cuadrito por cada día (semana, mes) que la escuchaste, destacan tus mayores debuts y se pueden filtrar por Entraron al ranking o Artistas nuevos."],

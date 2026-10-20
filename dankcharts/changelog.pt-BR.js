@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Bubbling Under rows look like the chart":
+    ["As linhas dos Aspirantes parecem a parada",
+     "As linhas dos Aspirantes estão mais calmas: posição, capa, título e artista, e depois todas as etiquetas numa única linha de texto em vez de pílulas coloridas. A barra saiu; os plays ficam à direita com quantos faltam para entrar na parada embaixo, em dourado quando faltam só 1 ou 2. Spotify, ⋮ e o histórico nos Aspirantes ficam lado a lado, e todas as linhas têm a mesma altura. No celular, o Spotify e o histórico vão para o menu ⋮ e a linha de etiquetas ocupa toda a largura da linha."],
+
   "Bubbling Under, Off the Chart and New Entries share one box":
     ["Aspirantes, Fora da Parada e Novas Entradas dividem um quadro",
      "Embaixo de cada parada, Aspirantes, Fora da Parada e Novas Entradas agora são três abas de um mesmo quadro, Em volta da parada, que lembra a última aba que você abriu. As linhas de Aspirantes têm capa (a amostra de 30 segundos no canto e ✎ para trocar a imagem) e uma barra mostrando quanto falta para cada uma entrar na parada; todas as etiquetas continuam lá, embaixo da barra, e o ⓘ explica cada uma. As linhas de Fora da Parada têm uma capa que ocupa a linha inteira, os plays da semana passada ao lado dos desta, uma etiqueta sobre como saiu (Caiu do top 3, Fim de uma longa sequência, Visita de uma semana…), quando você ouviu pela última vez e um link que pula para a linha dela em Aspirantes; no celular cada uma vira um pequeno cartão. As linhas de Novas Entradas dizem até onde uma música nova chegou na parada, marcam artistas que também são novos para você, mostram um quadradinho para cada dia (semana, mês) em que você ouviu, destacam suas maiores estreias e podem ser filtradas por Entraram na parada ou Artistas novos."],

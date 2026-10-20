@@ -18738,22 +18738,25 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
     const buRuns           = ms.bubblingUnderRuns?.[type]?.[key] || 0;
     const isYoYo           = buRuns >= 3;
 
-    // Build badges (ideas 14, 15, 16, 17 + Freefall + Revolving). Every tag stays;
-    // "N plays away" (idea 13) moved under the distance bar (step 10).
-    let badges = '';
-    if (isFading)      badges += `<span class="bu-badge bu-badge-fading" title="${t('bu_badge_fading_title')}">${t('bu_badge_fading')}</span>`;
-    if (isDebut)        badges += `<span class="bu-badge bu-badge-debut" title="${t('bu_badge_debut_title')}">${t('bu_badge_debut')}</span>`;
-    if (isTrending)     badges += `<span class="bu-badge bu-badge-trending" title="${t('bu_badge_trending_title')}">${t('bu_badge_trending')}</span>`;
-    if (isPersistent)   badges += `<span class="bu-badge bu-badge-persistent" title="${t('bu_badge_persistent_title', { n: totalBuWeeks })}">${t('bu_badge_persistent')}</span>`;
-    if (isResurgence)   badges += `<span class="bu-badge bu-badge-resurgence" title="${t('bu_badge_resurgence_title')}">${t('bu_badge_resurgence')}</span>`;
-    if (isResurgent)    badges += `<span class="bu-badge bu-badge-resurgent" title="${t('bu_badge_resurgent_title')}">${t('bu_badge_resurgent')}</span>`;
-    if (isClinging)     badges += `<span class="bu-badge bu-badge-clinging" title="${t('bu_badge_clinging_title')}">${t('bu_badge_clinging')}</span>`;
-    if (isFallen)       badges += `<span class="bu-badge bu-badge-fallen" title="${t('bu_badge_fallen_title', { n: lastWeekRank })}">${t('bu_badge_fallen')}</span>`;
-    if (isSurging)      badges += `<span class="bu-badge bu-badge-surging" title="${t('bu_badge_surging_title', { n: bestSurgeDelta })}">${t('bu_badge_surging')}</span>`;
-    if (isFreefall)     badges += `<span class="bu-badge bu-badge-freefall" title="${t('bu_badge_freefall_title', { n: bestFreefallDelta })}">${t('bu_badge_freefall')}</span>`;
-    if (isYoYo)         badges += `<span class="bu-badge bu-badge-yoyo" title="${t('bu_badge_yoyo_title', { n: buRuns })}">${t('bu_badge_yoyo')}</span>`;
-    if (totalBuWeeks >= 2) badges += `<span class="bu-badge bu-badge-weeks" title="${t('bu_badge_weeks_title', { n: totalBuWeeks })}">${t('bu_badge_weeks_label', { n: totalBuWeeks })}</span>`;
-    if (consecutiveBuWeeks >= 2) badges += `<span class="bu-badge bu-badge-streak" title="${t('bu_badge_streak_title', { n: consecutiveBuWeeks })}">${t('bu_badge_streak_label', { n: consecutiveBuWeeks })}</span>`;
+    // Every tag (ideas 14, 15, 16, 17 + Freefall + Revolving) stays, but as
+    // plain words on one line under the name, "·" between them (step 10,
+    // idea 1 "Like the chart"). Story words are bold; weeks and streak muted.
+    const words = [];
+    const word = (cls, title, label) => words.push(`<span class="bu-word ${cls}" title="${esc(title)}">${label}</span>`);
+    if (isFading)      word('is-story', t('bu_badge_fading_title'), t('bu_badge_fading'));
+    if (isDebut)       word('is-story', t('bu_badge_debut_title'), t('bu_badge_debut'));
+    if (isTrending)    word('is-story', t('bu_badge_trending_title'), t('bu_badge_trending'));
+    if (isPersistent)  word('is-story', t('bu_badge_persistent_title', { n: totalBuWeeks }), t('bu_badge_persistent'));
+    if (isResurgence)  word('is-story', t('bu_badge_resurgence_title'), t('bu_badge_resurgence'));
+    if (isResurgent)   word('is-story', t('bu_badge_resurgent_title'), t('bu_badge_resurgent'));
+    if (isClinging)    word('is-story', t('bu_badge_clinging_title'), t('bu_badge_clinging'));
+    if (isFallen)      word('is-story', t('bu_badge_fallen_title', { n: lastWeekRank }), t('bu_badge_fallen'));
+    if (isSurging)     word('is-story', t('bu_badge_surging_title', { n: bestSurgeDelta }), t('bu_badge_surging'));
+    if (isFreefall)    word('is-story', t('bu_badge_freefall_title', { n: bestFreefallDelta }), t('bu_badge_freefall'));
+    if (isYoYo)        word('is-story', t('bu_badge_yoyo_title', { n: buRuns }), t('bu_badge_yoyo'));
+    if (totalBuWeeks >= 2)       word('', t('bu_badge_weeks_title', { n: totalBuWeeks }), t('bu_badge_weeks_label', { n: totalBuWeeks }));
+    if (consecutiveBuWeeks >= 2) word('', t('bu_badge_streak_title', { n: consecutiveBuWeeks }), t('bu_badge_streak_label', { n: consecutiveBuWeeks }));
+    const storyLine = words.join('<span class="bu-word-dot"> · </span>');
 
     // What the entry plays / adds: song title, artist, album by entry type
     const ytTitle  = type === 'songs'   ? displayName : '';
@@ -18769,31 +18772,28 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
     const cov = _atcCover(type, imgId, { title: ytTitle, artist: ytArtist, album: ytAlbum });
     buImgs.push(cov.img);
 
-    // Distance to the chart: plays on the scale of the last chart entry's
-    // plays (the gold line at the end of the track)
-    const pct = lowestChartCount > 0 ? Math.min(100, Math.round(count / lowestChartCount * 100)) : 100;
+    // Distance to the chart: "N plays away" under the plays number, gold
+    // when it's only 1–2 away (no bar any more, step 10 idea 1)
     const toGo = playsAway > 0
-      ? `<span title="${esc(t(playsAway === 1 ? 'bu_badge_away_title_one' : 'bu_badge_away_title_other', { n: playsAway }))}">${t(playsAway === 1 ? 'bu_badge_away_one' : 'bu_badge_away_other', { n: playsAway })}</span>`
-      : `<span>${esc(t('bu_level_with', { n: chartSize }))}</span>`;
+      ? `<span class="bu-away${playsAway <= 2 ? ' is-close' : ''}" title="${esc(t(playsAway === 1 ? 'bu_badge_away_title_one' : 'bu_badge_away_title_other', { n: playsAway }))}">${t(playsAway === 1 ? 'bu_badge_away_one' : 'bu_badge_away_other', { n: playsAway })}</span>`
+      : `<span class="bu-away is-close">${esc(t('bu_level_with', { n: chartSize }))}</span>`;
 
     // BU chart run expand row — toggled by the icon button in the trailing cr-cell
     const buCrRowId = `bu-cr-${type}-${i}`;
     const buEa = _eaAttrs(type, { title: ytTitle, artist: ytArtist, album: ytAlbum, key, imgId });
-    // Who it is on the left (rank, cover, name); how it's doing on the right
-    // (the distance bar, then every tag it has)
+    // Like the chart row: rank, cover, name with the plain tag line under it,
+    // then plays with "N away" under it, then the buttons side by side
     const mainRow = `<tr class="bu-row atc-row"${buEa} data-bur="${rank}">
       <td class="atc-rank">${rank}</td>
       <td class="atc-cov">${cov.html}</td>
       <td class="atc-name">
         <div class="atc-title">${esc(displayName)}</div>
         ${subName ? `<div class="atc-sub">${esc(subName)}</div>` : ''}
+        ${storyLine ? `<div class="bu-story">${storyLine}</div>` : ''}
       </td>
-      <td class="atc-status">
-        <div class="atc-meter">
-          <div class="atc-track"><i style="width:${pct}%"></i></div>
-          <div class="atc-meter-lbl"><span>${tCountHtml('plays', count)}</span>${toGo}</div>
-        </div>
-        ${badges ? `<div class="bu-badges">${badges}</div>` : ''}
+      <td class="atc-status bu-plays">
+        <div class="bu-plays-n">${tCountHtml('plays', count)}</div>
+        ${toGo}
       </td>
       <td class="cr-cell">${ytBtn}<button class="cr-toggle-btn bu-cr-btn" title="${esc(t('bucr_btn_title'))}" onclick="event.stopPropagation();toggleBuCr(this,'${buCrRowId}')">${CR_ICON}</button></td>
     </tr>`;
@@ -18804,9 +18804,9 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
   if (tbodyEl) tbodyEl.innerHTML = rows.join('');
   if (buImgs.length) loadImages(buImgs, type === 'songs' ? 'song' : type === 'artists' ? 'artist' : 'album');
 
-  // What the gold line at the end of each bar means
+  // What "away" means: plays needed to reach the last chart spot
   const noteEl = document.getElementById('bu' + ucType + 'MeterNote');
-  if (noteEl) noteEl.textContent = t('bu_meter_note', { n: chartSize, p: lowestChartCount });
+  if (noteEl) noteEl.textContent = t('bu_away_note', { n: chartSize, p: lowestChartCount });
 
   const legendEl = document.getElementById('bu' + ucType + 'Legend');
   if (legendEl) legendEl.innerHTML = `
@@ -19606,8 +19606,9 @@ const _EA_MI = {
   spotify:  '<span class="ea-mi-brand ea-mi-sp">' + _EA_SP_SVG + '</span>',
 };
 
-function _eaMenuItem(action, icon, label, extra) {
-  const key = action === 'sample' && icon === '■' ? 'stop' : action;
+// iconKey: borrow another action's icon (Bubbling Under history uses the chart-run one)
+function _eaMenuItem(action, icon, label, extra, iconKey) {
+  const key = iconKey || (action === 'sample' && icon === '■' ? 'stop' : action);
   return `<button type="button" role="menuitem" class="wv-ctx-item" data-action="${action}"${extra || ''}><span class="ea-mi-ic" aria-hidden="true">${_EA_MI[key] || icon}</span>${esc(label)}</button>`;
 }
 
@@ -19654,6 +19655,9 @@ function _eaOpenMenu(el, x, y, alignRight) {
     splitArtists(d.artist).slice(0, 3).forEach(a => { h += _eaMenuItem('artist', '♫', t('ea_artist', { name: a }), ` data-arg="${esc(a)}"`); });
   }
   h += _eaMenuItem('chartrun', '▦', t('ea_chart_run'));
+  // Bubbling Under rows: their own history too (on phones its button is
+  // tucked away, so ⋮ is where it lives there)
+  if (el.classList && el.classList.contains('bu-row')) h += _eaMenuItem('buhistory', '▦', t('bucr_btn_title'), '', 'chartrun');
   h += sep;
   if (d.imgId && document.getElementById(d.imgId)) h += _eaMenuItem('cover', '✎', t('ea_change_cover'));
   h += _eaMenuItem('yt', '↗', t('ea_search_yt'));
@@ -19719,6 +19723,10 @@ function _eaRunAction(action, el, arg) {
     window.open('https://www.youtube.com/results?search_query=' + encodeURIComponent(q), '_blank', 'noopener');
   } else if (action === 'spotify') {
     window.open(_eaSpotifyHref(el), '_blank', 'noopener');
+  } else if (action === 'buhistory') {
+    // Same as the row's history button (hidden on phones)
+    const b = el.querySelector('.bu-cr-btn');
+    if (b) b.click();
   }
 }
 
