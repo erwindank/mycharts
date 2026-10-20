@@ -37279,11 +37279,10 @@ body.cp-hide-cert-reel    #certReelSection { display: none !important; }
 .wv-cx-art-wrap .ea-sample.ea-cover-play svg { width: 8px; height: 8px; }
 .wv-stk-row .ea-sample.ea-cover-play { width: 24px; height: 24px; right: 3px; bottom: 3px; }
 .wv-stk-row .ea-sample.ea-cover-play svg { width: 12px; height: 12px; }
-/* Phones: the Table's Spotify sits above ⋮, so the button column stays the
-   width of one button and Title · Artist keeps its room */
+/* Phones: the Table's row ends with ⋮ alone; Search on Spotify is in that
+   menu (your call, 2026-10-19), so Title · Artist keeps the room */
 @media (max-width: 600px) {
-  .chart-table .cr-cell .ea-pair { flex-direction: column; gap: 4px; }
-  .chart-table .cr-cell .ea-spotify { width: 24px; height: 24px; }
+  .chart-table:is(#songsTable, #artistsTable, #albumsTable) .cr-cell .ea-spotify { display: none; }
   /* Always shown on touch: smaller on the phone Table's 36px covers */
   .chart-table .ea-sample.ea-cover-play { width: 16px; height: 16px; right: 1px; bottom: 1px; }
   .chart-table .ea-sample.ea-cover-play svg { width: 8px; height: 8px; }

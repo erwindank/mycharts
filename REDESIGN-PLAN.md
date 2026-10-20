@@ -1896,6 +1896,11 @@ animation, 12 screen check.
   numbers centred, like the chart tables (the header had an inline
   right-align). New Entries still has its play bar on computers; the main
   Table's was taken out.
+- **No Spotify button in the phone Table (2026-10-19), at your request:**
+  on phones the three chart tables end each row with ⋮ alone (Search on
+  Spotify is in that menu). Bubbling Under, Off the Chart and the other
+  layouts keep their button; computers keep it everywhere. Checked with
+  touch emulation.
   Checked: 1280 and 390, all 5 periods × 3 types (every tile square,
   nothing past its tile, no sideways scroll), search, real hover / flip /
   All details / × / ⋮ / Save (download checked), es phone, Navy light, no
