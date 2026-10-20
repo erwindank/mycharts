@@ -31923,8 +31923,10 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
   .wv-mos-back-acts .ea-spotify svg { width: 14px; height: 14px; }
   .wv-mos-back-acts .wv-mos-dr-btn { padding: 3px 8px; font-size: 0.62rem; white-space: nowrap; }
 }
-/* 150–179px (the phone grid's #2–#5): no thumbnail, so the title has the width */
-@container mos-tile (min-width: 150px) and (max-width: 179px) {
+/* 150–164px (the phone grid's #2–#5, ~160px): no thumbnail, so the title has
+   the width. Stops short of the computer's small tiles (~168px), whose back
+   keeps its thumbnail and ✎ */
+@container mos-tile (min-width: 150px) and (max-width: 164px) {
   .wv-mos-back-img { display: none; }
   .wv-mos-back-stats { flex-wrap: nowrap; overflow: hidden; }
   .wv-mos-back-acts .wv-mos-dr-btn { padding: 3px 6px; font-size: 0.56rem; }
@@ -37226,6 +37228,20 @@ body.cp-hide-cert-reel    #certReelSection { display: none !important; }
 .ea-sample.ea-cover-play.is-on { background: var(--accent); color: var(--on-accent); }
 .ea-sample.ea-cover-play.is-miss { opacity: 0.6; }
 .ea-cover:has(> .ea-cover-play)::after { display: none !important; }
+/* ✎ change picture in the non-Table layouts (attached in loadImages, the
+   same button as the Table's top-right one). Card grid / Filmstrip covers
+   have the movement chip top-right, so ✎ sits bottom-right there; Compact's
+   32px thumb gets a smaller one; Mosaic shows it on the tile's back (the
+   front's corners hold the rank and movement), and ⋮ → Change picture or
+   press-and-hold works on every tile. */
+.wv-grid-card .wv-card-art .img-src-btn { top: auto; bottom: 6px; right: 6px; width: 22px; height: 22px; }
+.wv-grid-card .wv-card-art .img-src-btn::before { font-size: 12px; }
+.wv-grid-card:hover .wv-card-art .img-src-btn { opacity: 1; }
+.wv-cx-art-wrap .img-src-btn { top: 1px; right: 1px; width: 14px; height: 14px; }
+.wv-cx-art-wrap .img-src-btn::before { font-size: 8px; }
+.wv-mos-front .img-src-btn { display: none; }
+.wv-mos-back-img { position: relative; }
+.wv-mos-back-img .img-src-btn { opacity: 1; top: 2px; right: 2px; }
 @media (hover: none) { .ea-sample.ea-cover-play { opacity: 1; } }
 /* Sized to each cover: Compact's 32px thumb, Stack's 64px one */
 .wv-cx-art-wrap .ea-sample.ea-cover-play { width: 16px; height: 16px; right: 1px; bottom: 1px; }

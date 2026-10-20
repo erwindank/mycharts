@@ -4340,7 +4340,11 @@ function loadImages(items, type) {
     el._imgItem = item;
     el._imgType = type;   // kept so _recReattachImageObservers can regroup by type
     observer.observe(el);
-    if (el.closest('#recordsView')) attachRecImgPicker(el, item, type);
+    // Records and the five non-Table chart layouts (Card grid, Compact, Stack,
+    // Mosaic, Filmstrip) get the ✎ picker here; the Table writes its own. The
+    // button is also what refreshImgInstances() finds, so a picture picked
+    // anywhere now redraws these covers too (it used to wait for a re-render).
+    if (el.closest('#recordsView, [id^="weeklyAltView-"]')) attachRecImgPicker(el, item, type);
   }
   // Returned so callers that re-render (the certifications wall re-renders on
   // every filter, sort and search change) can retire the previous observer
@@ -19313,6 +19317,7 @@ function _eaOpenMenu(el, x, y, alignRight) {
   h += sep;
   if (d.imgId && document.getElementById(d.imgId)) h += _eaMenuItem('cover', '✎', t('ea_change_cover'));
   h += _eaMenuItem('yt', '↗', t('ea_search_yt'));
+  h += _eaMenuItem('spotify', '↗', t('tm_action_spotify'));
   _eaMenuEl.innerHTML = h;
   _eaMenuEl.style.display = 'block';
   const mw = _eaMenuEl.offsetWidth || 200, mh = _eaMenuEl.offsetHeight || 300;
@@ -19372,6 +19377,8 @@ function _eaRunAction(action, el, arg) {
     // A link to youtube.com: free, it doesn't use the site's search allowance
     const q = d.type === 'songs' ? d.artist + ' ' + d.title : d.type === 'albums' ? d.artist + ' ' + d.album : d.artist;
     window.open('https://www.youtube.com/results?search_query=' + encodeURIComponent(q), '_blank', 'noopener');
+  } else if (action === 'spotify') {
+    window.open(_eaSpotifyHref(el), '_blank', 'noopener');
   }
 }
 
