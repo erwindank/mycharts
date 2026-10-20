@@ -40530,3 +40530,7 @@ html body:not(.albums-hide-bu-legend)  #buAlbumsSection.bu-legend-open .bu-legen
 @media (max-width: 340px) {
   :is(#songsTable, #artistsTable, #albumsTable) { --tbl-cov: 44px; }
 }
+
+/* Rank and Move headers: slim side padding, so the narrowest a drag can make
+   them (their label, _colwMinFor in app.js) stays close to the numbers */
+:is(#songsTable, #artistsTable, #albumsTable) thead th:is([data-col="rank"], [data-col="move"]) { padding-left: 4px; padding-right: 4px; }

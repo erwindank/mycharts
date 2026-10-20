@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Rank and Move headers stay over their columns":
+    ["Os cabeçalhos Posição e Variação ficam sobre as suas colunas",
+     "No esquema Tabela, as colunas Posição e Variação podiam ser arrastadas até ficarem mais estreitas do que o próprio cabeçalho, por isso o cabeçalho saía para a direita e deixava de ficar sobre os números. Agora uma coluna para na largura do seu cabeçalho no seu idioma, e as larguras guardadas mais estreitas são alargadas até caber."],
+
   "Table covers fill the row":
     ["As capas da Tabela preenchem a linha",
      "No esquema Tabela das tabelas de músicas, artistas e álbuns, a capa agora preenche a linha de cima a baixo como um quadrado sem cantos arredondados, como em Fora do Top, e ficou um pouco maior (64px, 52px no telemóvel). Uma linha mais alta por causa de um título longo que ocupa várias linhas mantém a mesma capa quadrada, centrada na linha."],

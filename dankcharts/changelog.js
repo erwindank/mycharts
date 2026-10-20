@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 218;
+const DC_CL_I18N_V = 219;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-20', t: 'fix', a: 'charts',
+    title: "Rank and Move headers stay over their columns",
+    detail: "In the Table layout, the Rank and Move columns could be dragged narrower than their own header, so the header spilled out to the right and no longer sat over the numbers (most visible in Spanish and Portuguese, where the words are longer). A column now stops at the width of its header in your language, and widths saved narrower than that are widened to fit." },
 
   { d: '2026-10-20', t: 'design', a: 'charts',
     title: "Table covers fill the row",

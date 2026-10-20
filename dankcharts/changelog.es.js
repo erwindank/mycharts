@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Rank and Move headers stay over their columns":
+    ["Los encabezados Puesto y Cambio quedan sobre sus columnas",
+     "En el diseño Tabla, las columnas Puesto y Cambio se podían arrastrar hasta quedar más estrechas que su propio encabezado, así que el encabezado se salía hacia la derecha y ya no quedaba sobre los números. Ahora una columna se detiene en el ancho de su encabezado en tu idioma, y los anchos guardados más estrechos se ensanchan hasta que quepa."],
+
   "Table covers fill the row":
     ["Las portadas de la Tabla llenan la fila",
      "En el diseño Tabla de los rankings de canciones, artistas y álbumes, la portada ahora llena su fila de arriba abajo como un cuadrado sin esquinas redondeadas, como en Fuera del Ranking, y es un poco más grande (64px, 52px en el móvil). Una fila más alta por un título largo que ocupa varias líneas mantiene la misma portada cuadrada, centrada en la fila."],

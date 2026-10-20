@@ -13623,6 +13623,16 @@ const _COLW_MIN_COL = { plays: 96 };
 function _colwMin(col) {
   return _COLW_MIN_COL[col] || (_COLW_PX_DRAG.has(col) ? _COLW_MIN_PX : _COLW_MIN);
 }
+// Never narrower than the header's own label ("RANK", "PUESTO", "VARIAÇÃO"…):
+// a squeezed label spills out to the right and no longer sits over its
+// column, while the centred numbers under it stay put
+function _colwMinFor(th) {
+  const lab = [...th.children].find(c => !c.classList.contains('colw-handle') && c.offsetWidth);
+  if (!lab) return _colwMin(th.dataset.col);
+  const cs = getComputedStyle(th);
+  const need = Math.ceil(lab.offsetWidth + parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight));
+  return Math.max(_colwMin(th.dataset.col), need);
+}
 // Width a column starts at when nothing is saved for it: Plays fits
 // "3 veces -51" plus its bar (older saved widths have no Plays entry)
 const _COLW_DEFAULT = { plays: 150 };
@@ -13654,7 +13664,8 @@ function _colwLayout(table, saved) {
       if (_COLW_DEFAULT[col]) { px[col] = _COLW_DEFAULT[col]; used += px[col]; }
       continue;
     }
-    px[col] = _COLW_RESIZABLE.has(col) ? Math.max(_colwMin(col), Math.round(v / 100 * W)) : Math.round(v);
+    // Rank / Move saved before the label minimum existed are widened to fit it
+    px[col] = _COLW_RESIZABLE.has(col) ? Math.max(_colwMin(col), Math.round(v / 100 * W)) : Math.max(_colwMinFor(th), Math.round(v));
     used += px[col];
   }
   if (px.title != null) px.title = Math.max(_COLW_MIN, px.title + (W - used));
@@ -13776,8 +13787,8 @@ function _colwDragStart(e, type, set, th) {
   const right = (_COLW_RESIZABLE.has(nextCol) || _COLW_PX_DRAG.has(nextCol))
     ? th.nextElementSibling
     : th.parentElement.querySelector('th[data-col="title"]');
-  const minL = _colwMin(th.dataset.col);
-  const minR = _colwMin(right.dataset.col);
+  const minL = _colwMinFor(th);
+  const minR = _colwMinFor(right);
   const tableW = _colwAvail(table);
   // First drag on an automatic table: freeze every column at its current
   // width, so only the two columns either side of the line move
