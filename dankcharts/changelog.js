@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 233;
+const DC_CL_I18N_V = 234;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-21', t: 'feature', a: 'records',
+    title: "Badges flip over, and a badge timeline",
+    detail: "Tap an earned badge on the Streaks window's Records tab and it flips over to show when you earned it: the date, the time of the play that did it, and the artist, album or song (or several) behind it. A new Badge timeline under the badges lists every badge you've earned, newest first, by year, with the date and time and the music that earned each one. Tap \"Timeline\" on the back of a badge to jump to its entry. Works with Last.fm, Google Sheets and CSV uploads; for a sheet or file with dates but no times, only the date shows." },
 
   { d: '2026-10-20', t: 'feature', a: 'charts',
     title: "The stats banner on Daily too",

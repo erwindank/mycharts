@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Badges flip over, and a badge timeline":
+    ["Las insignias se dan la vuelta, y una cronología de insignias",
+     "Toca una insignia conseguida en la pestaña Récords de la ventana de Rachas y se da la vuelta para mostrar cuándo la conseguiste: la fecha, la hora de la reproducción que lo logró y el artista, álbum o canción (o varios) detrás. Una nueva Cronología de insignias debajo de las insignias muestra todas las que has conseguido, de la más reciente a la más antigua y por año, con la fecha, la hora y la música de cada una. Toca \"Cronología\" en el reverso de una insignia para ir a su entrada. Funciona con Last.fm, Google Sheets y archivos CSV; si una hoja o archivo tiene fechas sin hora, solo se muestra la fecha."],
+
   "A banner around the stats tiles":
     ["Un banner alrededor de las estadísticas",
      "Las cuatro tarjetas de estadísticas de Semanal, Mensual, Anual y De siempre ahora están dentro de un gran banner, como el de Récords. Una semana, mes o año ya terminado muestra la foto de su artista n.º 1 y una frase sobre cómo fue (\"tu semana más activa desde marzo\"); el que sigue en curso muestra un mosaico con sus portadas más escuchadas. Los números cuentan despacio, cada tarjeta tiene dos barras pequeñas (ahora y la vez anterior) con una marca para lo normal, y las imágenes de sus canciones nuevas, artistas y álbumes más escuchados. Las tarjetas con récord llevan un borde dorado si es un pico histórico o plateado si es un pico en su momento. Debajo, reproducciones por día: toca un día para abrirlo en Diario. Compartir guarda todo el banner como imagen. También se corrigió la cifra por día: una semana de 7 días se contaba como 8."],

@@ -40087,6 +40087,94 @@ body.navy-light .sk-t-eternal, body.purple-light .sk-t-eternal, body.yellow-ligh
 .sk-badge--locked .sk-badge-ic { filter: grayscale(1); opacity: 0.4; }
 .sk-badge--locked .sk-badge-nm { color: var(--text3); }
 
+/* Earned badges flip over (2026-10-20): the front is the card above, the back
+   says when it was earned and with what. Both faces turn on their own (no
+   preserve-3d), the back laid over the front so the card keeps its size. */
+.sk-bk-hint { font-size: 0.7rem; color: var(--text3); margin: 0.1rem 0 0.2rem; }
+.sk-bdg { position: relative; min-width: 0; perspective: 900px; cursor: pointer; border-radius: var(--r-lg); }
+.sk-bdg:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.sk-bdg > .sk-badge {
+  height: 100%; backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  transition: transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.sk-bdg:hover > .sk-badge-f { border-color: color-mix(in srgb, var(--gold1) 75%, transparent); }
+.sk-bdg > .sk-badge-b {
+  position: absolute; inset: 0; transform: rotateY(-180deg); overflow-y: auto; overscroll-behavior: contain;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.1rem; padding: 0.45rem 0.4rem;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--gold1) 16%, var(--bg)), var(--bg) 90%);
+}
+.sk-bdg.is-flipped > .sk-badge-f { transform: rotateY(180deg); }
+.sk-bdg.is-flipped > .sk-badge-b { transform: rotateY(0deg); }
+.sk-bk-lbl { font-size: 0.6rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text2); }
+.sk-bk-date { font-size: var(--fs-xs); font-weight: 700; color: var(--text); line-height: 1.2; }
+.sk-bk-time { font-family: var(--font-mono); font-size: 0.64rem; color: var(--text2); }
+.sk-bk-none { font-size: 0.66rem; color: var(--text3); }
+.sk-bk-who { list-style: none; margin: 0.15rem 0 0; padding: 0; width: 100%; }
+.sk-bk-who li { display: flex; align-items: center; justify-content: center; gap: 0.25rem; min-width: 0; font-size: 0.66rem; color: var(--text); line-height: 1.35; }
+.sk-bk-who .sk-ti { width: 10px; height: 10px; }
+.sk-bk-nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.sk-bk-more {
+  margin-top: 0.15rem; padding: 0.05rem 0.4rem; border: 0; border-radius: var(--r-sm); background: none; cursor: pointer;
+  font: inherit; font-size: 0.62rem; font-weight: 600; color: var(--accent);
+}
+.sk-bk-more:hover { text-decoration: underline; }
+.sk-bk-more:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+@media (prefers-reduced-motion: reduce) { .sk-bdg > .sk-badge { transition: none; } }
+
+/* Badge timeline: newest first, date and time on the left, the badge on a
+   rail, then the artists / albums / songs that earned it */
+.sk-tl { list-style: none; margin: 0; padding: 0.2rem 0 0.6rem; }
+.sk-tl-yr {
+  font-family: var(--font-mono); font-size: var(--fs-xs); font-weight: 600; color: var(--text2);
+  margin: 0.4rem 0 0.5rem; padding-bottom: 0.2rem; border-bottom: 1px solid var(--border);
+}
+.sk-tl-it {
+  --tl-when: 4.4rem;
+  position: relative; display: grid; grid-template-columns: var(--tl-when) 2rem minmax(0, 1fr); gap: 0.6rem;
+  padding: 0.35rem 0.4rem 0.85rem 0; border-radius: var(--r-md);
+}
+/* the rail through the icons, broken before each year */
+.sk-tl-it::before {
+  content: ''; position: absolute; top: 0; bottom: 0; left: calc(var(--tl-when) + 0.6rem + 1rem - 1px); width: 2px;
+  background: var(--border);
+}
+.sk-tl-it:has(+ .sk-tl-yr)::before, .sk-tl-it:last-child::before { bottom: auto; height: 1.4rem; }
+.sk-tl-when { text-align: right; padding-top: 0.35rem; }
+.sk-tl-date { font-size: var(--fs-xs); font-weight: 600; color: var(--text); }
+.sk-tl-time { font-family: var(--font-mono); font-size: 0.66rem; color: var(--text3); }
+.sk-tl-dot {
+  position: relative; z-index: 1; width: 2rem; height: 2rem; border-radius: 50%; display: grid; place-items: center; font-size: 1rem;
+  background: var(--bg); border: 1px solid color-mix(in srgb, var(--gold1) 55%, transparent);
+}
+.sk-tl-body { min-width: 0; padding-top: 0.2rem; }
+.sk-tl-nm { font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
+.sk-tl-g { margin-left: 0.25rem; font-size: 0.62rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text3); }
+.sk-tl-d { font-size: 0.72rem; color: var(--text3); line-height: 1.35; margin-top: 0.1rem; }
+.sk-tl-who { display: grid; gap: 0.35rem; margin-top: 0.45rem; }
+.sk-tl-rest { display: grid; gap: 0.3rem; }
+.sk-tl-rest[hidden] { display: none; }
+.sk-tl-row { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0.5rem; align-items: center; }
+.sk-tl-row--txt { grid-template-columns: minmax(0, 1fr); padding-left: calc(32px + 0.5rem); }
+.sk-tl-rn { font-size: 0.78rem; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sk-tl-rm { display: flex; flex-wrap: wrap; align-items: center; gap: 0.15rem 0.45rem; font-size: 0.66rem; color: var(--text3); margin-top: 0.05rem; }
+.sk-tl-run { font-family: var(--font-mono); }
+.sk-tl-over { padding-left: calc(32px + 0.5rem); font-size: 0.7rem; color: var(--text3); }
+.sk-tl-all {
+  margin-top: 0.4rem; padding: 0.15rem 0; border: 0; background: none; cursor: pointer;
+  font: inherit; font-size: 0.72rem; font-weight: 600; color: var(--accent);
+}
+.sk-tl-all:hover { text-decoration: underline; }
+.sk-tl-all:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--r-sm); }
+.sk-tl-empty { padding: 0.6rem 0 0.8rem; font-size: var(--fs-xs); color: var(--text3); }
+/* the entry a badge's back jumped to: a short glow */
+.sk-tl-it--hi { animation: skTlHi 1.6s ease-out; }
+@keyframes skTlHi { 0%, 30% { background: color-mix(in srgb, var(--gold1) 16%, transparent); } 100% { background: transparent; } }
+@media (max-width: 520px) {
+  .sk-tl-it { --tl-when: 3.3rem; gap: 0.45rem; }
+  .sk-tl-it::before { left: calc(var(--tl-when) + 0.45rem + 1rem - 1px); }
+}
+@media (prefers-reduced-motion: reduce) { .sk-tl-it--hi { animation: none; } }
+
 /* Graveyard headstones */
 .sk-grave-hdr { padding: var(--sp-4) 1.4rem 0.5rem; font-size: var(--fs-xs); color: var(--text2); }
 .sk-stones { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.55rem; padding: 0 1.4rem var(--sp-3); }

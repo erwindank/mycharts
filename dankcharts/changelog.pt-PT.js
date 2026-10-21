@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Badges flip over, and a badge timeline":
+    ["As conquistas viram-se, e uma cronologia das conquistas",
+     "Toca numa conquista desbloqueada no separador Recordes da janela de Sequências e ela vira-se para mostrar quando a conseguiste: a data, a hora da reprodução que a garantiu e o artista, álbum ou música (ou vários) por trás dela. Uma nova Cronologia das conquistas, por baixo das conquistas, lista todas as que já ganhaste, da mais recente para a mais antiga e por ano, com a data, a hora e a música de cada uma. Toca em \"Cronologia\" no verso de uma conquista para ires até ela. Funciona com Last.fm, Google Sheets e ficheiros CSV; numa folha ou ficheiro com datas sem hora, só aparece a data."],
+
   "A banner around the stats tiles":
     ["Um banner à volta das estatísticas",
      "Os quatro cartões de estatísticas de Semanal, Mensal, Anual e De sempre estão agora dentro de um grande banner, como o dos Recordes. Uma semana, mês ou ano já terminado mostra a foto do teu artista n.º 1 e uma frase sobre como correu (\"a tua semana mais movimentada desde março\"); o que ainda está a decorrer mostra um mosaico das capas mais ouvidas. Os números sobem devagar, cada cartão tem duas barrinhas (agora e da última vez) com uma marca para o normal, e as imagens das músicas novas, artistas e álbuns mais ouvidos. Cartões com recorde ganham um contorno dourado para um pico histórico ou prateado para um pico na época. Por baixo, plays por dia: toca num dia para o abrir no Diário. Partilhar guarda o banner inteiro como imagem. O número de plays por dia também foi corrigido: uma semana de 7 dias era contada como 8."],

@@ -35667,6 +35667,351 @@ function openStreakModal(opts) {
     { id: 'sametime', g: 'cal', icon: '♻️', ok: sameDateYears >= 5, prog: sameDateYears + '/5' },
   ];
 
+  // ── Badge proofs (2026-10-20): the back of a badge and the timeline ──
+  // For each earned badge: the first day its target was met, the artists /
+  // albums / songs that met it, and the time of the play that clinched it.
+  // Each proof walks the badge's own rule above through time. Worked out only
+  // when needed (a badge flipped over, or the timeline shown), then kept for
+  // this render: pfAll().
+  // A proof: { d: day number, items: [{ tp, k, x?: its 7+ run, day?: streak
+  //   day }], clock: the things that had to be played on day d, nth: how many
+  //   of them (the nth first play of the day is the time it was earned) }
+  const dsN = n => new Date(n * 86400000).toISOString().slice(0, 10);
+  const ALL3 = ['artist', 'album', 'song'];
+  const runsBy = new Map(allRuns.map(r => [r.tp + '|' + r.k, r.runs]));
+  // The day a thing's streak first reached n days (n of 7+), with that run
+  function reachOf(tp, k, n) {
+    for (const x of (runsBy.get(tp + '|' + k) || [])) if (x.len >= n) return { tp, k, x, d: x.s + n - 1 };
+    return null;
+  }
+  // Everything of these types that reached n days
+  function reachList(tps, n) {
+    const out = [];
+    for (const r of allRuns) if (tps.includes(r.tp)) { const h = reachOf(r.tp, r.k, n); if (h) out.push(h); }
+    return out;
+  }
+  // From a list of hits: the nth one in date order earns it. Items are
+  // listed newest first, so the one that clinched it leads.
+  function pfCount(list, n) {
+    list.sort((a, b) => a.d - b.d);
+    if (list.length < n) return null;
+    return { d: list[n - 1].d, items: list.slice(0, n).reverse(), clock: [list[n - 1]], nth: 1 };
+  }
+  // Every item was needed: earned on the day the last one got there (listed first)
+  function pfAllOf(items) {
+    items = items.slice().sort((a, b) => b.d - a.d);
+    const d = items[0].d, clock = items.filter(i => i.d === d);
+    return { d, items, clock, nth: clock.length };
+  }
+  // One thing did it: the earliest fn(r) ({ d, x } or null) over every thing
+  function pfFirst(fn) {
+    let best = null;
+    for (const r of allRuns) {
+      const h = fn(r);
+      if (h && (!best || h.d < best.d)) best = { tp: r.tp, k: r.k, x: h.x, d: h.d };
+    }
+    return best && { d: best.d, items: [best], clock: [best], nth: 1 };
+  }
+  // The nth thing to do fn(r)
+  function pfNth(fn, n) {
+    const list = [];
+    for (const r of allRuns) { const h = fn(r); if (h) list.push({ tp: r.tp, k: r.k, x: h.x, d: h.d }); }
+    return pfCount(list, n);
+  }
+  // fn(x, y, r) over every 7+ run and each year it touches (from the year
+  // before, for things that span New Year): the earliest day it returns
+  const pfRuns = fn => pfFirst(r => {
+    let best = null;
+    for (const x of r.runs) for (let y = yearOf(x.s) - 1; y <= yearOf(x.e); y++) {
+      const d = fn(x, y, r);
+      if (d != null && (!best || d < best.d)) best = { d, x };
+    }
+    return best;
+  });
+  // Day by day through the 7+ runs, singles left out (as in mostAtOnce): a run
+  // is "on" from the day it reaches minLen to its last day. onDay(d, on) runs
+  // once each day's changes are in; whatever it returns stops the walk.
+  function pfSweep(minLen, onDay) {
+    const ev = [];
+    for (const r of allRuns) {
+      if (r.tp === 'album' && singleAlb.has(r.k)) continue;
+      for (const x of r.runs) if (x.len >= minLen) {
+        const it = { tp: r.tp, k: r.k, x, from: x.s + minLen - 1 };
+        ev.push([it.from, 1, it], [x.e + 1, -1, it]);
+      }
+    }
+    ev.sort((a, b) => a[0] - b[0]);
+    const on = new Set();
+    for (let i = 0; i < ev.length; i++) {
+      const [d, v, it] = ev[i];
+      if (v > 0) on.add(it); else on.delete(it);
+      if (i + 1 < ev.length && ev[i + 1][0] === d) continue;
+      const res = onDay(d, on);
+      if (res) return res;
+    }
+    return null;
+  }
+  const pfByLen = (a, b) => (b.x ? b.x.len : 0) - (a.x ? a.x.len : 0);
+  // n things on day minLen+ of a streak on the same day (Side by side)
+  const pfAtOnce = (minLen, n) => pfSweep(minLen, (d, on) => on.size >= n ? { d, items: [...on].sort(pfByLen), clock: [...on], nth: n } : null);
+  // The first stretch of n days with a streak on day minLen+ always going
+  // (Staying power): every streak that kept it lit until day n
+  function pfLit(minLen, n) {
+    let from = null, seen = null;
+    return pfSweep(minLen, (d, on) => {
+      if (on.size) {
+        if (from === null) { from = d; seen = new Set(); }
+        on.forEach(it => seen.add(it));
+        return null;
+      }
+      if (from !== null && d - from >= n) {
+        const e = from + n - 1, part = it => Math.min(it.x.e, e) - Math.max(it.from, from);
+        const items = [...seen].filter(it => it.from <= e).sort((a, b) => part(b) - part(a));
+        return { d: e, items, clock: items.filter(it => it.x.e >= e), nth: 1 };
+      }
+      from = null;
+      return null;
+    });
+  }
+  // An artist, an album and a song all on day minLen+ on one day: the
+  // longest of each kind going that day
+  const pfAll3Day = minLen => pfSweep(minLen, (d, on) => {
+    const pick = {};
+    for (const it of on) if (!pick[it.tp] || it.x.len > pick[it.tp].x.len) pick[it.tp] = it;
+    if (!pick.artist || !pick.album || !pick.song) return null;
+    const items = [pick.artist, pick.album, pick.song];
+    return { d, items, clock: items, nth: 3 };
+  });
+  // n streaks alive on one day (the Calendar count, streaks of 2+ days)
+  function pfAlive(n) {
+    const ds = Object.keys(_skHmCount).sort().find(k => _skHmCount[k] >= n);
+    if (!ds) return null;
+    const pv = prevDs(ds), items = [];
+    for (const [tp, days] of [['artist', artistDays], ['album', albumDays], ['song', songDays]])
+      for (const k in days) if (days[k].has(ds) && days[k].has(pv)) items.push({ tp, k, day: streakEndingAt(days[k], ds) });
+    items.sort((a, b) => b.day - a.day);
+    return { d: dayNo(ds), items, clock: items, nth: n };
+  }
+  // Per calendar year, the earliest minLen-day streak started in each month
+  // (or quarter); the years that filled `need` of them, in the order they did
+  function pfSlots(minLen, perQ, need) {
+    const byY = {};
+    for (const r of allRuns) for (const x of r.runs) if (x.len >= minLen) {
+      const dt = new Date(x.s * 86400000), m = dt.getUTCMonth(), slot = perQ ? Math.floor(m / 3) : m;
+      const sl = byY[dt.getUTCFullYear()] = byY[dt.getUTCFullYear()] || {}, d = x.s + minLen - 1;
+      if (!sl[slot] || d < sl[slot].d) sl[slot] = { tp: r.tp, k: r.k, x, d };
+    }
+    const out = [];
+    for (const y in byY) { const its = Object.values(byY[y]); if (its.length >= need) out.push(pfAllOf(its)); }
+    return out.sort((a, b) => a.d - b.d);
+  }
+  // Calendar years with a streak on day 30+ (Through the years)
+  function pfYears30(n) {
+    const byY = {};
+    for (const r of allRuns) for (const x of r.runs) if (x.len >= 30)
+      for (let y = yearOf(x.s + 29); y <= yearOf(x.e); y++) {
+        const d = Math.max(x.s + 29, DN(y, 0, 1));
+        if (!byY[y] || d < byY[y].d) byY[y] = { tp: r.tp, k: r.k, x, d };
+      }
+    return pfCount(Object.values(byY), n);
+  }
+  // An artist (or album) at ownLen days with n of its songs at songLen, per
+  // owner, earliest first (Fan club, Superfan, Side A, ...)
+  function pfOwners(owner, ownLen, songLen, n) {
+    const songs = {};
+    for (const sk in songBest) if (songBest[sk] >= songLen) {
+      const h = reachOf('song', sk, songLen);
+      if (!h) continue;
+      const os = owner === 'artist' ? (songArtists[sk] || []) : (songAlbKey[sk] ? [songAlbKey[sk]] : []);
+      for (const o of os) (songs[o] = songs[o] || []).push(h);
+    }
+    const out = [];
+    for (const o in songs) {
+      if (songs[o].length < n) continue;
+      const own = reachOf(owner, o, ownLen);
+      if (own) out.push(pfAllOf([own, ...songs[o].sort((a, b) => a.d - b.d).slice(0, n)]));
+    }
+    return out.sort((a, b) => a.d - b.d);
+  }
+  // The mth owner to get there: one item per owner (the artist / album)
+  const pfOwnersN = (owner, ownLen, songLen, n, m) =>
+    pfCount(pfOwners(owner, ownLen, songLen, n).map(p => Object.assign({}, p.items.find(i => i.tp === owner), { d: p.d })), m);
+  // One artist's albums (singles left out) at 30 days (Completist)
+  function pfArtAlbums(n) {
+    const by = {};
+    for (const h of reachList(['album'], 30)) if (!singleAlb.has(h.k)) (by[albumInfo[h.k].artist] = by[albumInfo[h.k].artist] || []).push(h);
+    let best = null;
+    for (const a in by) { const p = pfCount(by[a], n); if (p && (!best || p.d < best.d)) best = p; }
+    return best;
+  }
+  // The three kinds: each kind's first to reach n, or its nth to reach 30
+  function pfAll3(n) {
+    const items = ALL3.map(tp => pfCount(reachList([tp], n), 1));
+    return items.every(Boolean) ? pfAllOf(items.map(p => p.items[0])) : null;
+  }
+  function pfAll3N(n) {
+    const per = ALL3.map(tp => pfCount(reachList([tp], 30), n));
+    if (!per.every(Boolean)) return null;
+    const p = pfAllOf(per.map(q => q.items[0]));   // each kind's nth (listed first)
+    p.items = per.flatMap(q => q.items);
+    return p;
+  }
+  // Comebacks, per thing
+  const second = r => r.runs.length >= 2 ? { d: r.runs[1].s + 6, x: r.runs[1] } : null;
+  const nthRun = n => r => r.runs.length >= n ? { d: r.runs[n - 1].s + 6, x: r.runs[n - 1] } : null;
+  const nth30 = n => r => { const a = r.runs.filter(x => x.len >= 30); return a.length >= n ? { d: a[n - 1].s + 29, x: a[n - 1] } : null; };
+  // A later run beating a record of `min`+ days: the day it went one past it
+  const beat = min => r => {
+    let top = r.runs[0].len;
+    for (let i = 1; i < r.runs.length; i++) if (r.runs[i].len > top) {
+      if (top >= min) return { d: r.runs[i].s + top, x: r.runs[i] };
+      top = r.runs[i].len;
+    }
+    return null;
+  };
+  // Back after more than `gap` days away (reaching len days, 7 by default)
+  const away = (gap, len) => r => {
+    for (let i = 1; i < r.runs.length; i++)
+      if (r.runs[i].s - r.runs[i - 1].e > gap && r.runs[i].len >= (len || 7)) return { d: r.runs[i].s + (len || 7) - 1, x: r.runs[i] };
+    return null;
+  };
+  // Seasons: the year one run (or several) got 30 days into each of the four
+  function pfSeasons() {
+    const byY = {};
+    for (const r of allRuns) for (const x of r.runs) for (let y = yearOf(x.s) - 1; y <= yearOf(x.e); y++) {
+      for (const [yy, key, a, b] of [[y + 1, 'w', DN(y, 11, 1), DN(y + 1, 2, 0)], [y, 'sp', DN(y, 2, 1), DN(y, 5, 0)], [y, 'su', DN(y, 5, 1), DN(y, 8, 0)], [y, 'au', DN(y, 8, 1), DN(y, 11, 0)]]) {
+        if (overlap(x, a, b) < 30) continue;
+        const sl = byY[yy] = byY[yy] || {}, d = Math.max(x.s, a) + 29;
+        if (!sl[key] || d < sl[key].d) sl[key] = { tp: r.tp, k: r.k, x, d };
+      }
+    }
+    let best = null;
+    for (const y in byY) { const its = Object.values(byY[y]); if (its.length >= 4) { const p = pfAllOf(its); if (!best || p.d < best.d) best = p; } }
+    return best;
+  }
+  // Whole months, from the 1st to the last day: the nth one covered
+  function pfMonths(n) {
+    const by = {};
+    for (const r of allRuns) for (const x of r.runs) if (x.len >= 28) for (let y = yearOf(x.s) - 1; y <= yearOf(x.e); y++)
+      for (let m = 0; m < 12; m++) if (x.s <= DN(y, m, 1) && x.e >= DN(y, m + 1, 0)) {
+        const d = Math.max(DN(y, m + 1, 0), x.s + 6);
+        if (!by[y * 12 + m] || d < by[y * 12 + m].d) by[y * 12 + m] = { tp: r.tp, k: r.k, x, d };
+      }
+    return pfCount(Object.values(by), n);
+  }
+  // The same date on a streak in the next year (consecutive) or in n years
+  const sameDate = (n, consecutive) => r => {
+    if (!(r.runs.length > 1 || r.runs[0].len > 365)) return null;
+    const seen = new Map();   // month*32+day → years
+    for (const x of r.runs) for (let d = x.s; d <= x.e; d++) {
+      const dt = new Date(d * 86400000), key = dt.getUTCMonth() * 32 + dt.getUTCDate(), y = dt.getUTCFullYear();
+      let ys = seen.get(key);
+      if (!ys) seen.set(key, ys = new Set());
+      ys.add(y);
+      if (consecutive ? ys.has(y - 1) : ys.size >= n) return { d: Math.max(d, x.s + 6), x };
+    }
+    return null;
+  };
+  // Three Decembers in a row with a week of one thing's streak
+  const tradition3 = r => {
+    const dec = {};
+    for (const x of r.runs) for (let y = yearOf(x.s) - 1; y <= yearOf(x.e); y++)
+      if (overlap(x, DN(y, 11, 1), DN(y, 11, 31)) >= 7) { const d = Math.max(x.s, DN(y, 11, 1)) + 6; if (!dec[y] || d < dec[y].d) dec[y] = { d, x }; }
+    let best = null;
+    for (const y in dec) {
+      const b = dec[+y + 1], c = dec[+y + 2];
+      if (b && c) { const d = Math.max(dec[y].d, b.d, c.d); if (!best || d < best.d) best = { d, x: c.x }; }
+    }
+    return best;
+  };
+
+  // Badge id → its proof, in the same groups and order as SK_BADGES
+  const PF = {};
+  const pf = (pairs, fn) => pairs.forEach(([id, ...a]) => { PF[id] = () => fn(...a); });
+  pf([['week', 7], ['twoweeks', 14], ['threeweeks', 21], ['month', 30], ['fifty', 50], ['twomonths', 60], ['threeq', 75], ['hundred', 100],
+    ['fivemonths', 150], ['bicent', 200], ['year', 365], ['fivehundred', 500], ['twoyears', 730], ['millennium', 1000]], n => pfCount(reachList(ALL3, n), 1));
+  pf([['spark', 5], ['juggler', 10], ['campfire', 25], ['bonfire', 50], ['house', 100], ['wildfire', 250], ['inferno', 500]], pfAlive);
+  pf([['twin', 30, 2], ['hattrick', 30, 3], ['highfive', 30, 5], ['bigband', 30, 10], ['orchestra', 30, 15], ['constell', 30, 25], ['pantheon', 30, 50],
+    ['doublec', 100, 2], ['tricrown', 100, 3], ['mountains', 100, 5]], pfAtOnce);
+  pf([['starter', ALL3, 30, 5], ['collector', ALL3, 30, 10], ['curator', ALL3, 30, 25], ['archivist', ALL3, 30, 50], ['library', ALL3, 30, 100], ['museum', ALL3, 30, 250],
+    ['trio', ['artist'], 30, 3], ['squad', ['artist'], 30, 5], ['lineup', ['artist'], 30, 10], ['festival', ['artist'], 30, 25],
+    ['crate', ['album'], 14, 5], ['recshop', ['album'], 14, 10], ['vinylvault', ['album'], 14, 25], ['discog', ['album'], 14, 50], ['reclabel', ['album'], 14, 100],
+    ['mixtape', ['song'], 14, 10], ['hitparade', ['song'], 14, 25], ['top50', ['song'], 14, 50], ['jukebox', ['song'], 14, 100], ['radio', ['song'], 14, 250],
+    ['veterans', ALL3, 100, 3], ['legend5', ALL3, 100, 5], ['legends', ALL3, 100, 10], ['immortals', ALL3, 100, 25],
+    ['perennial', ALL3, 365, 2], ['evergreen', ALL3, 365, 3], ['oldgrowth', ALL3, 365, 5]], (tps, len, n) => pfCount(reachList(tps, len), n));
+  pf([['tripleplay', 7], ['triplethreat', 14], ['allround', 30], ['utility', 50], ['renaissance', 100], ['polymath', 200], ['grandslam', 365]], pfAll3);
+  pf([['balanced', 3], ['wellround', 5], ['package', 10], ['everywhere', 25]], pfAll3N);
+  pf([['instep', 14], ['insync', 30], ['harmony', 100]], pfAll3Day);
+  pf([['kindling', 7, 30], ['hearth', 30, 30], ['slowburn', 14, 60], ['eternal', 30, 100], ['nevercold', 30, 365], ['undying', 30, 730]], pfLit);
+  pf([['quarters', 7, true, 4], ['regular', 7, false, 12], ['seasons', 14, false, 12]], (len, q, need) => pfSlots(len, q, need)[0] || null);
+  PF.seasoned = () => pfCount(pfSlots(14, false, 12).map(p => Object.assign({}, p.clock[0], { d: p.d })), 3);
+  pf([['yearafter', 2], ['thruyears', 5]], pfYears30);
+  PF.comeback = () => pfFirst(second);
+  pf([['thirdtime', 3], ['hooked', 5], ['cantstay', 10], ['oldhabit', 20], ['revolving', 30]], n => pfFirst(nthRun(n)));
+  pf([['secondwind', 2], ['encore', 3], ['ovation', 4]], n => pfFirst(nth30(n)));
+  pf([['boomerang', 10], ['repeatcust', 25], ['familiar', 50], ['freqflyer', 100], ['seasonticket', 200], ['habit', 350], ['serial', 500]], n => pfNth(second, n));
+  pf([['rebound', 14], ['rebirth', 30], ['phoenix', 100]], n => pfFirst(beat(n)));
+  PF.rekindled = () => pfFirst(away(365, 30));
+  pf([['oldflame', 365], ['longlost', 730], ['timecapsule', 1095], ['lazarus', 1825]], g => pfFirst(away(g)));
+  pf([['reunite', 10], ['oldfriends', 25], ['classreunion', 50], ['reunion', 100]], n => pfNth(away(365), n));
+  pf([['fan', 2], ['superfan', 3], ['devoted', 5], ['obsessed', 10]], n => pfOwners('artist', 30, 30, n)[0] || null);
+  pf([['fanclub', 3], ['clubsec', 8], ['clubtreas', 15], ['clubvp', 25], ['clubpres', 40], ['clubfounder', 60]], n => pfOwners('artist', 30, 7, n)[0] || null);
+  pf([['clubhopper', 3], ['fandoms', 5], ['fandomcoll', 10], ['universal', 25]], m => pfOwnersN('artist', 30, 7, 3, m));
+  pf([['deepdive', 2], ['completist', 3], ['completeworks', 5], ['boxset', 10]], pfArtAlbums);
+  pf([['sidea', 3], ['devotee', 5], ['sideb', 7], ['fronttoback', 10]], n => pfOwners('album', 14, 14, n)[0] || null);
+  pf([['triplea', 3, 3], ['alist', 3, 5], ['greatesthits', 3, 10], ['devlistener', 5, 3], ['alblover', 5, 5], ['albaddict', 5, 10],
+    ['flipside', 7, 3], ['deepcuts', 7, 5], ['bsidecoll', 7, 10], ['backtoback', 10, 3], ['startfinish', 10, 5], ['covertocover', 10, 10]],
+    (n, m) => pfOwnersN('album', 14, 14, n, m));
+  PF.firstlight = () => pfRuns((x, y) => x.s === DN(y, 0, 1) ? x.s + 6 : null);
+  PF.valentine = () => pfRuns((x, y) => { const f = DN(y, 1, 14); return x.s + 13 <= f && f <= x.e ? f : null; });
+  PF.leap = () => pfRuns((x, y) => { const f = DN(y, 1, 29); return DN(y, 2, 0) - DN(y, 1, 0) === 29 && x.s <= f && f <= x.e ? Math.max(f, x.s + 6) : null; });
+  PF.spooky = () => pfRuns((x, y) => x.s <= DN(y, 9, 1) && x.e >= DN(y, 9, 31) ? DN(y, 9, 31) : null);
+  PF.holidays = () => pfRuns((x, y) => x.s <= DN(y, 11, 24) && x.e >= DN(y + 1, 0, 1) ? Math.max(DN(y + 1, 0, 1), x.s + 6) : null);
+  PF.yearender = () => pfRuns((x, y) => { const f = DN(y, 11, 31); return x.len >= 30 && f >= x.s + 29 && f <= x.e ? f : null; });
+  PF.countdown = () => pfRuns((x, y) => x.s <= DN(y, 11, 31) && x.e >= DN(y + 1, 0, 1) ? Math.max(DN(y + 1, 0, 1), x.s + 6) : null);
+  PF.winterwarm = () => pfRuns((x, y) => overlap(x, DN(y, 11, 1), DN(y + 1, 2, 0)) >= 30 ? Math.max(x.s, DN(y, 11, 1)) + 29 : null);
+  PF.summersong = () => pfRuns((x, y, r) => r.tp === 'song' && overlap(x, DN(y, 5, 1), DN(y, 8, 0)) >= 30 ? Math.max(x.s, DN(y, 5, 1)) + 29 : null);
+  PF.fourseasons = pfSeasons;
+  pf([['fullmonth', 1], ['monthafter', 3], ['mooncycles', 6], ['twelvemoons', 12]], pfMonths);
+  PF.calyear = () => pfRuns((x, y) => x.s <= DN(y, 0, 1) && x.e >= DN(y, 11, 31) ? DN(y, 11, 31) : null);
+  PF.anniversary = () => pfFirst(sameDate(0, true));
+  PF.tradition = () => pfFirst(tradition3);
+  PF.sametime = () => pfFirst(sameDate(5, false));
+
+  let pfCache = null;
+  function pfAll() {
+    if (pfCache) return pfCache;
+    pfCache = {};
+    for (const b of SK_BADGES) if (b.ok && PF[b.id]) {
+      try { const p = PF[b.id](); if (p) pfCache[b.id] = p; } catch (e) { console.warn('badge proof', b.id, e); }
+    }
+    // The time each was earned: the first play of each clock item on the day,
+    // all looked up in one pass over the plays
+    const want = new Map(), days = new Set();
+    for (const id in pfCache) {
+      const p = pfCache[id];
+      p.ds = dsN(p.d);
+      days.add(p.ds);
+      for (const it of p.clock) want.set(it.tp + '|' + it.k + '|' + p.ds, null);
+    }
+    let tm = 0;
+    const hit = key => { if (want.has(key)) { const v = want.get(key); if (v === null || tm < v) want.set(key, tm); } };
+    for (const pl of allPlays) {
+      const ds = dayStrOf(pl);
+      if (!days.has(ds)) continue;
+      tm = +pl.date;
+      hit('song|' + songKey(pl) + '|' + ds);
+      if (pl.album && pl.album !== '—') hit('album|' + albumKeyOf(pl) + '|' + ds);
+      for (const a of pl.artists) hit('artist|' + a + '|' + ds);
+    }
+    for (const id in pfCache) {
+      const p = pfCache[id];
+      const ts = p.clock.map(it => want.get(it.tp + '|' + it.k + '|' + p.ds)).filter(v => v != null).sort((a, b) => a - b);
+      p.time = ts.length ? ts[Math.min(p.nth, ts.length) - 1] : null;
+    }
+    return pfCache;
+  }
+
   // ── Weekly digest ─────────────────────────────────────────────────
   const allAR = [...activeSongs, ...activeArtists, ...activeAlbums, ...atRisk];
   const weekStarted = allAR.filter(it => it.startDs >= weekAgoStr).length;
@@ -35708,14 +36053,18 @@ function openStreakModal(opts) {
   function badgesSection() {
     const got = SK_BADGES.filter(b => b.ok).length;
     const collapsed = localStorage.getItem('skc-badges') === '1';
-    const card = b =>
-      `<div class="sk-badge${b.ok ? '' : ' sk-badge--locked'}" title="${esc(t('sk_badge_' + b.id + '_d'))}">` +
+    const face = b =>
         `<div class="sk-badge-ic" aria-hidden="true">${b.icon}</div>` +
         `<div class="sk-badge-nm">${esc(t('sk_badge_' + b.id))}</div>` +
         `<div class="sk-badge-d">${esc(t('sk_badge_' + b.id + '_d'))}</div>` +
         (!b.ok && b.prog ? `<div class="sk-badge-prog">${esc(t('sk_badge_best', { v: b.prog }))}</div>` : '') +
-        (b.ok ? `<span class="sk-badge-ok">✓</span>` : '') +
-      `</div>`;
+        (b.ok ? `<span class="sk-badge-ok">✓</span>` : '');
+    // An earned badge flips over (click / Enter) to when and with what it was
+    // earned; the back is filled on the first flip (_skBadgeFlip)
+    const card = b => b.ok
+      ? `<div class="sk-bdg" role="button" tabindex="0" aria-pressed="false" data-bid="${b.id}" aria-label="${esc(t('sk_badge_' + b.id) + ' · ' + t('sk_bk_flip'))}" title="${esc(t('sk_bk_flip'))}" onclick="_skBadgeFlip(this)" onkeydown="_skBadgeKey(event,this)">` +
+          `<div class="sk-badge sk-badge-f">${face(b)}</div><div class="sk-badge sk-badge-b" aria-hidden="true"></div></div>`
+      : `<div class="sk-badge sk-badge--locked" title="${esc(t('sk_badge_' + b.id + '_d'))}">${face(b)}</div>`;
     // One small heading per group, with how many of its badges are earned
     const groups = [...new Set(SK_BADGES.map(b => b.g))];
     // Each group folds away on its own (heading = button), remembered per
@@ -35730,8 +36079,124 @@ function openStreakModal(opts) {
     }).join('');
     return `<div class="streak-section streak-section--badges${collapsed ? ' streak-section--collapsed' : ''}" data-skid="badges">` +
       `<div class="streak-section-title" onclick="_streakToggleSection(this.closest('.streak-section'))"><span class="sk-chev">${collapsed ? '▶' : '▼'}</span> ${esc(t('sk_badges_title'))} <span class="streak-count">(${got}/${SK_BADGES.length})</span></div>` +
-      `<div class="sk-sec-body${collapsed ? ' sk-sec-hidden' : ''}">${cards}</div></div>`;
+      `<div class="sk-sec-body${collapsed ? ' sk-sec-hidden' : ''}">${got ? `<div class="sk-bk-hint">${esc(t('sk_bk_hint'))}</div>` : ''}${cards}</div></div>`;
   }
+
+  // ── Back of a badge + Badge timeline (proofs from pfAll) ──
+  const pfDate = (p, opt) => new Date(p.ds + 'T12:00:00').toLocaleDateString(undefined, opt || { year: 'numeric', month: 'short', day: 'numeric' });
+  function pfTime(p) {
+    if (p.time == null) return '';
+    const td = tzDate(new Date(p.time));
+    // a play logged with a date and no time of day (some sheets / CSVs)
+    if (!td.getHours() && !td.getMinutes() && !td.getSeconds()) return '';
+    return td.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+  }
+  function pfWho(it) {
+    if (it.tp === 'artist') return { name: it.k, sub: '' };
+    if (it.tp === 'album') return { name: albumInfo[it.k].album, sub: albumInfo[it.k].artist };
+    return { name: songInfo[it.k].title, sub: songInfo[it.k].artist };
+  }
+  // The same run can stand for several slots (whole months): show it once
+  function pfUniq(items) {
+    const seen = new Set();
+    return items.filter(it => { const id = it.tp + '|' + it.k + '|' + (it.x ? it.x.s : ''); if (seen.has(id)) return false; seen.add(id); return true; });
+  }
+  // The streak behind an item: "30d · Mar 4 – Apr 2" (or "since" while it runs)
+  function pfRunTxt(it) {
+    if (it.day) return t('sk_tl_day', { n: it.day });
+    if (!it.x) return '';
+    const s = dsN(it.x.s), e = dsN(it.x.e);
+    return it.x.len + 'd · ' + (e >= yest ? t('sk_since', { date: fmtDY(s) }) : fmtDY(s) + ' – ' + fmtDY(e));
+  }
+  function pfBackHtml(b) {
+    const p = pfAll()[b.id];
+    const top = `<div class="sk-bk-lbl"><span aria-hidden="true">${b.icon}</span> ${esc(t('sk_bk_earned'))}</div>`;
+    if (!p) return top + `<div class="sk-bk-none">${esc(t('sk_bk_nodata'))}</div>`;
+    const who = pfUniq(p.items), tm = pfTime(p);
+    return top + `<div class="sk-bk-date">${esc(pfDate(p))}</div>` + (tm ? `<div class="sk-bk-time">${esc(tm)}</div>` : '') +
+      `<ul class="sk-bk-who">${who.slice(0, 2).map(it => {
+        const w = pfWho(it);
+        return `<li title="${esc(w.name + (w.sub ? ' — ' + w.sub : ''))}"><span class="sk-ti sk-ti--${it.tp}" aria-hidden="true">${SK_TYPE_SVG[it.tp]}</span><span class="sk-bk-nm">${esc(w.name)}</span></li>`;
+      }).join('')}</ul>` +
+      `<button type="button" class="sk-bk-more" onclick="event.stopPropagation();_skTlGo('${b.id}')">${esc(who.length > 2 ? t('sk_bk_more', { n: who.length - 2 }) : t('sk_bk_tl'))}</button>`;
+  }
+  // One thing in a timeline entry: cover, name, kind and its streak
+  function pfRowHtml(it, art) {
+    const w = pfWho(it);
+    const a = art ? skArt({ type: it.tp, name: w.name, sub: w.sub, key: it.k }, 'sk-art--sm').html : '';
+    return `<div class="sk-tl-row${art ? '' : ' sk-tl-row--txt'}">${a}<div class="sk-tl-rw">` +
+      `<div class="sk-tl-rn">${esc(w.name)}${w.sub ? ` <span class="sk-row-sub">— ${esc(w.sub)}</span>` : ''}</div>` +
+      `<div class="sk-tl-rm"><span class="sk-kind sk-kind--${it.tp}">${SK_TYPE_SVG[it.tp]}${esc(t('sk_kind_' + it.tp))}</span><span class="sk-tl-run">${esc(pfRunTxt(it))}</span></div></div></div>`;
+  }
+  // Newest first, a heading per year. Each entry shows its first 4 things
+  // with covers; "Show all" opens the rest (up to 60, then a count).
+  const TL_ART = 4, TL_MAX = 60;
+  function pfTimelineHtml() {
+    const P = pfAll();
+    const rows = SK_BADGES.map((b, i) => ({ b, i, p: P[b.id] })).filter(r => r.p)
+      .sort((a, z) => z.p.d - a.p.d || (z.p.time || 0) - (a.p.time || 0) || z.i - a.i);
+    if (!rows.length) return `<div class="sk-tl-empty">${esc(t('sk_tl_empty'))}</div>`;
+    let yr = '', html = '<ol class="sk-tl">';
+    for (const { b, p } of rows) {
+      const y = p.ds.slice(0, 4), tm = pfTime(p), who = pfUniq(p.items);
+      if (y !== yr) { yr = y; html += `<li class="sk-tl-yr">${y}</li>`; }
+      const rest = who.slice(TL_ART, TL_MAX);
+      html += `<li class="sk-tl-it" id="sk-tl-${b.id}">` +
+        `<div class="sk-tl-when"><div class="sk-tl-date">${esc(pfDate(p, { month: 'short', day: 'numeric' }))}</div>${tm ? `<div class="sk-tl-time">${esc(tm)}</div>` : ''}</div>` +
+        `<div class="sk-tl-dot" aria-hidden="true">${b.icon}</div>` +
+        `<div class="sk-tl-body"><div class="sk-tl-nm">${esc(t('sk_badge_' + b.id))} <span class="sk-tl-g">${esc(t('sk_bgrp_' + b.g))}</span></div>` +
+        `<div class="sk-tl-d">${esc(t('sk_badge_' + b.id + '_d'))}</div>` +
+        `<div class="sk-tl-who">${who.slice(0, TL_ART).map(it => pfRowHtml(it, true)).join('')}` +
+        (rest.length ? `<div class="sk-tl-rest" hidden>${rest.map(it => pfRowHtml(it, false)).join('')}` +
+          (who.length > TL_MAX ? `<div class="sk-tl-over">${esc(t('sk_tl_more', { n: who.length - TL_MAX }))}</div>` : '') + `</div>` : '') +
+        `</div>` +
+        (rest.length ? `<button type="button" class="sk-tl-all" aria-expanded="false" data-n="${who.length}" onclick="_skTlMore(this)">${esc(t('sk_tl_all', { n: who.length }))}</button>` : '') +
+        `</div></li>`;
+    }
+    return html + '</ol>';
+  }
+  function timelineSection() {
+    const got = SK_BADGES.filter(b => b.ok).length;
+    const collapsed = localStorage.getItem('skc-tl') === '1';
+    return `<div class="streak-section streak-section--tl${collapsed ? ' streak-section--collapsed' : ''}" data-skid="tl">` +
+      `<div class="streak-section-title" onclick="_streakToggleSection(this.closest('.streak-section'))"><span class="sk-chev">${collapsed ? '▶' : '▼'}</span> 🕓 ${esc(t('sk_tl_title'))} <span class="streak-count">(${got})</span></div>` +
+      `<div class="sk-sec-body${collapsed ? ' sk-sec-hidden' : ''}"><div id="skTimeline"></div></div></div>`;
+  }
+  // Drawn when the Records tab or the section first shows (see
+  // _streakSwitchTab / _streakToggleSection): the proofs take a moment
+  window._skTlFill = function () {
+    const el = document.getElementById('skTimeline');
+    if (!el || el.dataset.drawn || el.closest('.sk-sec-hidden')) return;
+    el.dataset.drawn = '1';
+    const q0 = skImgQ.length;
+    el.innerHTML = pfTimelineHtml();
+    const fresh = skImgQ.slice(q0);
+    ['song', 'album', 'artist'].forEach(kind => {
+      const items = fresh.filter(i => i._kind === kind);
+      if (items.length) loadImages(items, kind);
+    });
+  };
+  window._skBadgeFlip = function (el) {
+    const back = el.querySelector('.sk-badge-b'), front = el.querySelector('.sk-badge-f');
+    if (!back.dataset.drawn) { back.innerHTML = pfBackHtml(SK_BADGES.find(b => b.id === el.dataset.bid)); back.dataset.drawn = '1'; }
+    const f = el.classList.toggle('is-flipped');
+    el.setAttribute('aria-pressed', String(f));
+    back.setAttribute('aria-hidden', String(!f));
+    front.setAttribute('aria-hidden', String(f));
+  };
+  // From the back of a badge: open its timeline entry, with everything showing
+  window._skTlGo = function (id) {
+    const sec = document.querySelector('#streakModal .streak-section[data-skid="tl"]');
+    if (sec && sec.classList.contains('streak-section--collapsed')) _streakToggleSection(sec);
+    window._skTlFill();
+    const li = document.getElementById('sk-tl-' + id);
+    if (!li) return;
+    const all = li.querySelector('.sk-tl-all');
+    if (all && all.getAttribute('aria-expanded') === 'false') _skTlMore(all);
+    const still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    li.scrollIntoView({ behavior: still ? 'auto' : 'smooth', block: 'center' });
+    li.classList.remove('sk-tl-it--hi'); void li.offsetWidth; li.classList.add('sk-tl-it--hi');
+  };
   // One headstone in the Graveyard: full start–end dates, and a red note when it
   // ended just short of a milestone (replaces the 🎯 chip, which pointed at a goal
   // an ended streak can't reach any more).
@@ -36180,7 +36645,7 @@ function openStreakModal(opts) {
   bodyEl.innerHTML =
     `<div id="skTabToday" class="sk-tab-pane">${todayHtml}</div>` +
     `<div id="skTabStreaks" class="sk-tab-pane" style="display:none">${fireHtml}</div>` +
-    `<div id="skTabGraveyard" class="sk-tab-pane" style="display:none">${hofSection()}${badgesSection()}<div id="skGraveList"></div></div>` +
+    `<div id="skTabGraveyard" class="sk-tab-pane" style="display:none">${hofSection()}${badgesSection()}${timelineSection()}<div id="skGraveList"></div></div>` +
     `<div id="skTabHeatmap" class="sk-tab-pane" style="display:none"></div>`;
   renderGraveyard();
   // Covers for every streak row and podium card (lazy: fetched as they scroll in).
@@ -36342,6 +36807,22 @@ function _skToggleBgrp(btn) {
   try { localStorage.setItem('skc-bgrp-' + grp.dataset.g, c ? '1' : '0'); } catch (e) {}
 }
 
+// Enter / Space flips a badge, like a click (the card is role="button")
+function _skBadgeKey(e, el) {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  e.preventDefault();
+  _skBadgeFlip(el);
+}
+// A timeline entry's "Show all N" / "Show fewer"
+function _skTlMore(btn) {
+  const rest = btn.closest('.sk-tl-body').querySelector('.sk-tl-rest');
+  if (!rest) return;
+  const open = rest.hidden;
+  rest.hidden = !open;
+  btn.setAttribute('aria-expanded', String(open));
+  btn.textContent = open ? t('sk_tl_less') : t('sk_tl_all', { n: btn.dataset.n });
+}
+
 function _streakToggleSection(sectionEl) {
   const c = sectionEl.classList.toggle('streak-section--collapsed');
   const body = sectionEl.querySelector('.sk-sec-body');
@@ -36349,6 +36830,8 @@ function _streakToggleSection(sectionEl) {
   if (c) { body?.classList.add('sk-sec-hidden'); if (chev) chev.textContent = '▶'; }
   else { body?.classList.remove('sk-sec-hidden'); if (chev) chev.textContent = '▼'; }
   try { localStorage.setItem('skc-' + sectionEl.dataset.skid, c ? '1' : '0'); } catch(e) {}
+  // The badge timeline is drawn the first time it shows
+  if (!c && sectionEl.dataset.skid === 'tl' && window._skTlFill) window._skTlFill();
 }
 
 
@@ -36655,6 +37138,7 @@ function _streakSwitchTab(tab) {
     if (el) el.style.display = n.toLowerCase() === tab ? '' : 'none';
   });
   if (tab === 'heatmap') _skHmAnimate();
+  if (tab === 'graveyard' && window._skTlFill) window._skTlFill();
   try { sessionStorage.setItem('sk-tab', tab); } catch(e) {}
 }
 
