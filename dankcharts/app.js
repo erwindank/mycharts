@@ -13008,14 +13008,23 @@ function animateStatStrip(containerEl, dur = 550) {
    Last.fm, Google Sheets and CSV libraries. Daily keeps its own tiles; the
    banner's extras are hidden there by CSS (body[data-view="day"]). */
 
-// Median of every earlier period of this type, per tile ("your usual week").
-// Only periods with plays are in the index, so this is a typical *active*
-// week. Median rather than mean so one huge week doesn't skew it.
+// How far back "your usual" looks: the most recent periods you listened in
+// before the one on screen. Not the whole history — listening habits change
+// over the years, so seven-year-old weeks shouldn't set today's normal
+// (user's call 2026-10-21). Daily uses SH_USUAL_WINDOW.day in daily.js.
+const SH_USUAL_WINDOW = { day: 90, week: 26, month: 12, year: 3 };
+
+// Median of the recent earlier periods of this type, per tile ("your usual
+// week"). Only periods with plays are in the index, so this is a typical
+// *active* week. Median rather than mean so one huge week doesn't skew it.
 function shUsualStats(periodType, cutoffKey) {
   const { index, keys } = _periodAgg(periodType);
-  const vals = { plays: [], songs: [], artists: [], albums: [] };
-  for (const k of keys) {
-    if (k >= cutoffKey) break;              // keys are sorted: the rest are this period or later
+  // the four totals plus the new-entry counts (bars under "+N new songs", 2026-10-21)
+  const vals = { plays: [], songs: [], artists: [], albums: [], newSongs: [], newArtists: [], newAlbums: [] };
+  // keys are sorted, so the ones before cutoffKey end at `end`; take the last N
+  let end = 0;
+  while (end < keys.length && keys[end] < cutoffKey) end++;
+  for (const k of keys.slice(Math.max(0, end - (SH_USUAL_WINDOW[periodType] || end)), end)) {
     const r = index[k];
     for (const f in vals) vals[f].push(r[f]);
   }
@@ -13025,7 +13034,9 @@ function shUsualStats(periodType, cutoffKey) {
     const m = a.length >> 1;
     return a.length % 2 ? a[m] : Math.round((a[m - 1] + a[m]) / 2);
   };
-  return { plays: med(vals.plays), songs: med(vals.songs), artists: med(vals.artists), albums: med(vals.albums), n: vals.plays.length };
+  const out = { n: vals.plays.length };
+  for (const f in vals) out[f] = med(vals[f]);
+  return out;
 }
 
 // One pass over the period's plays: top songs / artists / albums with their
@@ -13057,20 +13068,30 @@ function shTally(plays, start) {
 }
 
 // The two little bars on a tile: this period, the last one, and a tick for
-// the current record for this kind of period (the best week / month / year
-// ever, user's call 2026-10-20 — it was "your usual" at first). All three on
-// one scale, so the tick lines up with them; the record is the biggest of
-// them, so the tick sits at the end and the bars read as "how close".
-function shBarsHtml(cur, prev, record) {
+// your usual period of this kind (median of the recent earlier ones,
+// shUsualStats / daily.js). The tick went usual → record → usual again: pinned to the record
+// it always sat at the end of the bar, since the record is the biggest number
+// (user's call 2026-10-21). The record stays as text under the bars, as it
+// stood for this period (best up to and including it, not today's best).
+// All drawn on one scale (now, last, usual), so the tick lines up with them.
+// Each bar has its number at the end too, so nothing needs a hover (phones
+// have none); the title tooltip is just a desktop extra (2026-10-21).
+function shBarsHtml(cur, prev, record, usual) {
   if (prev === null || prev === undefined) return '';
-  const max = Math.max(cur, prev, record || 0, 1);
+  if (usual === undefined) usual = null;
+  const max = Math.max(cur, prev, usual || 0, 1);
   const pct = v => Math.max(0, Math.min(100, v / max * 100)).toFixed(1);
-  const tip = t('sh_bars_tip', { now: cur.toLocaleString(), last: prev.toLocaleString(), rec: record !== null ? record.toLocaleString() : '—' });
+  const fmt = v => v !== null ? v.toLocaleString() : '—';
+  const tip = t('sh_bars_tip', { now: cur.toLocaleString(), last: prev.toLocaleString(), usual: fmt(usual), rec: fmt(record) });
+  // Caption: "Usual: N · Record: N", either part left out when unknown
+  const cap = [usual !== null ? t('sh_usual', { n: usual.toLocaleString() }) : '',
+               record !== null ? t('sh_record', { n: record.toLocaleString() }) : ''].filter(Boolean).join(' · ');
   return `<div class="sh-bars" title="${esc(tip)}">
       <span class="sh-bar-k">${esc(t('sh_bar_now'))}</span><span class="sh-bar-track"><i class="sh-bar-now" style="width:${pct(cur)}%"></i></span>
       <span class="sh-bar-k">${esc(t('sh_bar_last'))}</span><span class="sh-bar-track"><i class="sh-bar-was" style="width:${pct(prev)}%"></i></span>
-      ${record !== null ? `<span class="sh-usual"><b style="left:${pct(record)}%"></b></span>` : ''}
-    </div>${record !== null ? `<div class="sh-usual-cap">${esc(t('sh_record', { n: record.toLocaleString() }))}</div>` : ''}`;
+      ${usual !== null ? `<span class="sh-usual"><b style="left:${pct(usual)}%"></b></span>` : ''}
+      <span class="sh-bar-v sh-bar-v-now">${cur.toLocaleString()}</span><span class="sh-bar-v sh-bar-v-was">${prev.toLocaleString()}</span>
+    </div>${cap ? `<div class="sh-usual-cap">${esc(cap)}</div>` : ''}`;
 }
 
 // Picture slots for a tile. kind: 'songs' (a row of covers), 'artists'
@@ -14374,6 +14395,9 @@ function renderAll() {
   // new count sit in the line's tooltip, and the line still jumps to its
   // New Songs / Artists / Albums section.
   let _hl = null;
+  // Stats banner (2026-10-20): your usual period, from the recent ones (the
+  // headline's "more / fewer than your usual week" and every bar's tick)
+  const _usual = cutoffKey ? shUsualStats(currentPeriod, cutoffKey) : null;
   if (_showStrip2) {
     if (!firstSeenMaps) firstSeenMaps = buildFirstSeenMaps();
     const { songFirst, artistFirst, albumFirst } = firstSeenMaps;
@@ -14403,7 +14427,9 @@ function renderAll() {
 
     // "+69 / new songs" cell (+ "27% / of the total" on Songs). Clicking it jumps
     // to the New Entries list. Tooltip: change vs. last period, record badge.
-    const newLine = (n, prevN, maxAll, maxAt, labelKey, section, pct) => {
+    // Under it the same small bars as the totals: this period vs. the previous
+    // one, your usual (field: its key in _usual) and the record at the time.
+    const newLine = (n, prevN, maxAll, maxAt, labelKey, section, pct, field) => {
       const tip = [t(labelKey) + ': ' + n.toLocaleString()];
       if (prevN !== null) {
         const d = n - prevN;
@@ -14414,7 +14440,8 @@ function renderAll() {
       const newCell = subCell('+' + n.toLocaleString(), t(labelKey.replace('stat_new_', 'stat_sub_new_')), ' is-link',
         ` onclick="event.stopPropagation();dcScrollTo('${section}')" title="${esc(tip.join(' · '))}"`);
       const pctCell = pct !== null && pct !== undefined ? subCell(pct + '%', t('stat_sub_of_total')) : '';
-      return `<div class="stat-sub">${newCell}${pctCell}</div>`;
+      const bars = shBarsHtml(n, prevN, maxAt !== null ? Math.max(maxAt, n) : null, _usual && _usual.n ? _usual[field] : null);
+      return `<div class="stat-sub">${newCell}${pctCell}</div>${bars ? `<div class="sh-new-bars">${bars}</div>` : ''}`;
     };
 
     // Best day in the period being viewed → caption on Total Plays
@@ -14441,16 +14468,14 @@ function renderAll() {
 
     _hl = {
       bestDayLine,
-      songs:   newLine(newSongs,   prevNewSongs,   newPeak.maxNewSongs,   newPeakAtTime.maxNewSongs,   'stat_new_songs',   'newSongsSection',   discoveryRate),
-      artists: newLine(newArtists, prevNewArtists, newPeak.maxNewArtists, newPeakAtTime.maxNewArtists, 'stat_new_artists', 'newArtistsSection', null),
-      albums:  newLine(newAlbums,  prevNewAlbums,  newPeak.maxNewAlbums,  newPeakAtTime.maxNewAlbums,  'stat_new_albums',  'newAlbumsSection',  null),
+      songs:   newLine(newSongs,   prevNewSongs,   newPeak.maxNewSongs,   newPeakAtTime.maxNewSongs,   'stat_new_songs',   'newSongsSection',   discoveryRate, 'newSongs'),
+      artists: newLine(newArtists, prevNewArtists, newPeak.maxNewArtists, newPeakAtTime.maxNewArtists, 'stat_new_artists', 'newArtistsSection', null, 'newArtists'),
+      albums:  newLine(newAlbums,  prevNewAlbums,  newPeak.maxNewAlbums,  newPeakAtTime.maxNewAlbums,  'stat_new_albums',  'newAlbumsSection',  null, 'newAlbums'),
     };
   }
 
-  // Stats banner (2026-10-20): your usual period (for the headline's "more /
-  // fewer than your usual week"; the bars' tick is the record, peakStats),
-  // and the period's top songs / artists / albums for the tile pictures
-  const _usual = cutoffKey ? shUsualStats(currentPeriod, cutoffKey) : null;
+  // Stats banner (2026-10-20): the period's top songs / artists / albums for
+  // the tile pictures (_usual, your usual period, is worked out further up)
   const _tally = shTally(plays, currentPeriod === 'alltime' ? null : start);
   // Songs: the songs heard for the first time this period, as covers; a
   // period with none (and All-Time) shows its top 3 instead
@@ -14460,15 +14485,15 @@ function renderAll() {
 
   document.getElementById('statsStrip').innerHTML =
     statBox(plays.length,   'stat_total_plays',  prevPlays     ? prevPlays.length     : null, peakStats ? peakStats.maxPlays   : null, peakAtTimeStats ? peakAtTimeStats.maxPlays   : null, { scrollTo: 'songsSection',   emoji: '🎵', cat: 'plays',   extraLabel: playsPerDay ? playsPerDay + t('stat_per_day') : null, extraLine: _hl?.bestDayLine,
-      barsHtml: shBarsHtml(plays.length, prevPlays ? prevPlays.length : null, peakStats ? peakStats.maxPlays : null) }) +
+      barsHtml: shBarsHtml(plays.length, prevPlays ? prevPlays.length : null, peakAtTimeStats ? peakAtTimeStats.maxPlays : null, _usual && _usual.n ? _usual.plays : null) }) +
     statBox(songSet.size,   'stat_unique_songs',  prevSongSet   ? prevSongSet.size     : null, peakStats ? peakStats.maxSongs   : null, peakAtTimeStats ? peakAtTimeStats.maxSongs   : null, { scrollTo: 'songsSection',   emoji: '🎶', cat: 'songs',   extraLabel: !_hl && discoveryRate !== null ? discoveryRate + t('stat_pct_new') : null, extraLine: _hl?.songs,
-      barsHtml: shBarsHtml(songSet.size, prevSongSet ? prevSongSet.size : null, peakStats ? peakStats.maxSongs : null), facesHtml: shFacesHtml('songs', _faces.songs, _songsTip) }) +
+      barsHtml: shBarsHtml(songSet.size, prevSongSet ? prevSongSet.size : null, peakAtTimeStats ? peakAtTimeStats.maxSongs : null, _usual && _usual.n ? _usual.songs : null), facesHtml: shFacesHtml('songs', _faces.songs, _songsTip) }) +
     statBox(artistSet.size, 'stat_artists',       prevArtistSet ? prevArtistSet.size   : null, peakStats ? peakStats.maxArtists : null, peakAtTimeStats ? peakAtTimeStats.maxArtists : null, { scrollTo: 'artistsSection', emoji: '🎤', cat: 'artists', extraLine: _hl?.artists,
-      barsHtml: shBarsHtml(artistSet.size, prevArtistSet ? prevArtistSet.size : null, peakStats ? peakStats.maxArtists : null), facesHtml: shFacesHtml('artists', _faces.artists, t('sh_faces_top_artists')) }) +
+      barsHtml: shBarsHtml(artistSet.size, prevArtistSet ? prevArtistSet.size : null, peakAtTimeStats ? peakAtTimeStats.maxArtists : null, _usual && _usual.n ? _usual.artists : null), facesHtml: shFacesHtml('artists', _faces.artists, t('sh_faces_top_artists')) }) +
     statBox(albumSet.size,  'stat_albums',        prevAlbumSet  ? prevAlbumSet.size    : null, peakStats ? peakStats.maxAlbums  : null, peakAtTimeStats ? peakAtTimeStats.maxAlbums  : null, { scrollTo: 'albumsSection',  emoji: '💿', cat: 'albums',  extraLine: _hl?.albums,
-      barsHtml: shBarsHtml(albumSet.size, prevAlbumSet ? prevAlbumSet.size : null, peakStats ? peakStats.maxAlbums : null), facesHtml: shFacesHtml('albums', _faces.albums, t('sh_faces_top_albums')) });
+      barsHtml: shBarsHtml(albumSet.size, prevAlbumSet ? prevAlbumSet.size : null, peakAtTimeStats ? peakAtTimeStats.maxAlbums : null, _usual && _usual.n ? _usual.albums : null), facesHtml: shFacesHtml('albums', _faces.albums, t('sh_faces_top_albums')) });
   // Slow count-up for the four totals (the user asked for it to be slow)
-  animateStatStrip(document.getElementById('statsStrip'), 1600);
+  animateStatStrip(document.getElementById('statsStrip'), 2400);   // 1.6s → 2.4s, slower still (2026-10-21)
   shLoadFaces(_faces);
   renderStatsHero({ period: currentPeriod, offset: currentOffset, plays, start, end, cutoffKey, tally: _tally, peakStats, peakAtTimeStats, usual: _usual && _usual.n ? _usual : null });
 

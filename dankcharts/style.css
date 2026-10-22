@@ -41033,15 +41033,20 @@ body.red-light .sh-headline em, body.pink-light .sh-headline em, body.purple-lig
 .sh-hero.sh-on .stat-box .sh-faces,
 .sh-hero.sh-on .stat-box .sh-usual-cap { margin-bottom: var(--sp-3); }
 
-/* Two small bars: this period, the last one; the tick is your usual */
+/* Two small bars: this period, the previous one; the tick is your usual */
+/* The same bars under "+N new songs / artists / albums" (2026-10-21),
+   sitting just under the sub-stat they belong to */
+.sh-new-bars .sh-bars { margin-top: 0.4rem; }
+.sh-new-bars .sh-usual-cap { margin-bottom: 0; }
 .sh-bars {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  /* label · bar · its number (shown, not just in the tooltip: phones can't hover) */
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   column-gap: 6px;
   row-gap: 4px;
   width: 100%;
-  max-width: 160px;
+  max-width: 200px;
   margin: 0.65rem auto 0;
   position: relative;
 }
@@ -41051,6 +41056,17 @@ body.red-light .sh-headline em, body.pink-light .sh-headline em, body.purple-lig
 .sh-bars > :nth-child(2) { grid-area: 1 / 2; }
 .sh-bars > :nth-child(3) { grid-area: 2 / 1; }
 .sh-bars > :nth-child(4) { grid-area: 2 / 2; }
+.sh-bars > .sh-bar-v-now { grid-area: 1 / 3; }
+.sh-bars > .sh-bar-v-was { grid-area: 2 / 3; }
+.sh-bar-v {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  line-height: 1;
+  text-align: left;
+  font-variant-numeric: tabular-nums;
+  color: var(--text2);
+}
+.sh-bar-v-was { color: var(--text3); }
 .sh-bar-k {
   font-family: var(--font-mono);
   font-size: 0.6rem;
@@ -41070,7 +41086,7 @@ body.red-light .sh-headline em, body.pink-light .sh-headline em, body.purple-lig
   height: 100%;
   border-radius: 3px;
   transform-origin: left center;
-  animation: shBarGrow 1.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation: shBarGrow 2.4s cubic-bezier(0.2, 0.7, 0.2, 1) both;   /* grows with the 2.4s count-up */
 }
 .sh-bar-now { background: var(--cat-color, var(--accent)); }
 .sh-bar-was { background: color-mix(in srgb, var(--cat-color, var(--accent)) 40%, var(--text3)); opacity: 0.55; }

@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "The stats bars: your usual as the line, the record at the time":
+    ["Las barras de estadísticas: lo normal como línea, el récord de ese momento",
+     "En Diario, Semanal, Mensual y Anual, la línea sobre las barras pequeñas de las cuatro casillas de estadísticas vuelve a marcar tu día, semana, mes o año normal (el punto medio de los recientes: los últimos 90 días, 26 semanas, 12 meses o 3 años en los que escuchaste, para que siga cómo escuchas ahora y no hace años; el titular \"más de lo normal\" usa el mismo número), así que se mueve en vez de quedarse siempre al final. Debajo de las barras ves las dos cosas: lo normal y el récord tal como estaba en ese periodo, el mejor hasta ese periodo, incluido. Al mirar una semana antigua ves el récord con el que competía entonces, no el de hoy. Cada barra muestra ahora su número al final, así que puedes leer este periodo y el anterior sin pasar el ratón por encima (algo que en el móvil no se puede). Las canciones, artistas y álbumes nuevos al pie de las casillas tienen ahora las mismas barras, lo normal y el récord. Diario ahora calcula lo normal también para canciones, artistas y álbumes, no solo reproducciones. Funciona con Last.fm, Google Sheets y archivos CSV."],
+
   "Badges flip over, and a badge timeline":
     ["Las insignias se dan la vuelta, y una cronología de insignias",
      "Toca una insignia conseguida en la pestaña Récords de la ventana de Rachas y se da la vuelta para mostrar cuándo la conseguiste: la fecha, la hora de la reproducción que lo logró y el artista, álbum o canción (o varios) detrás. Una nueva Cronología de insignias debajo de las insignias muestra todas las que has conseguido, de la más reciente a la más antigua y por año, con la fecha, la hora y la música de cada una. Toca \"Cronología\" en el reverso de una insignia para ir a su entrada. Funciona con Last.fm, Google Sheets y archivos CSV; si una hoja o archivo tiene fechas sin hora, solo se muestra la fecha."],

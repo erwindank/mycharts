@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "The stats bars: your usual as the line, the record at the time":
+    ["As barras de estatísticas: o normal como linha, o recorde da época",
+     "Em Diário, Semanal, Mensal e Anual, a linha sobre as barrinhas dos quatro quadros de estatísticas volta a marcar seu dia, semana, mês ou ano normal (o meio dos recentes: os últimos 90 dias, 26 semanas, 12 meses ou 3 anos em que você ouviu música, para seguir como você ouve agora e não anos atrás; a manchete \"mais que o normal\" usa o mesmo número), então ela se move em vez de ficar sempre no fim. Embaixo das barras aparecem os dois: o normal e o recorde como estava naquele período, o melhor até ele, incluindo ele. Ao olhar uma semana antiga, você vê o recorde que ela tinha que bater na época, não o de hoje. Cada barra agora mostra seu número no fim, então dá para ler este período e o anterior sem passar o mouse (o que no celular não dá). As músicas, artistas e álbuns novos no pé dos quadros agora têm as mesmas barras, o normal e o recorde. O Diário agora calcula o normal também para músicas, artistas e álbuns, não só reproduções. Funciona com Last.fm, Google Sheets e arquivos CSV."],
+
   "Badges flip over, and a badge timeline":
     ["As conquistas viram, e uma linha do tempo das conquistas",
      "Toque numa conquista desbloqueada na aba Recordes da janela de Sequências e ela vira para mostrar quando você a conseguiu: a data, a hora da reprodução que a garantiu e o artista, álbum ou música (ou vários) por trás dela. Uma nova Linha do tempo das conquistas, abaixo das conquistas, lista todas as que você já ganhou, da mais nova para a mais antiga e por ano, com a data, a hora e a música de cada uma. Toque em \"Linha do tempo\" no verso de uma conquista para ir até ela. Funciona com Last.fm, Google Sheets e arquivos CSV; numa planilha ou arquivo com datas sem hora, só a data aparece."],

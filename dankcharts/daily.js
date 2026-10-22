@@ -479,23 +479,42 @@ function dyRenderTiles(h, ds, plays) {
   /* Stats banner on Daily too (2026-10-20, same as the other periods — see
      renderStatsHero in app.js): the best day ever for each tile (the record
      the bars' tick marks), the best before this day (record at the time) and
-     the usual day (median of the days before), for the bars, rings and the
-     headline. One pass over every day; cached on the history per day. */
+     the usual day per tile (median of the days before, 2026-10-21: all four
+     tiles, it was plays only), for the bars, rings and the headline. The
+     new-entry counts get the same, for the bars under "+N new songs"
+     (2026-10-21). One pass over every day; cached on the history per day. */
   if (!h._shRec || h._shRec.ds !== ds) {
-    const rec = { plays: 0, songs: 0, artists: 0, albums: 0 }, before = { plays: 0, songs: 0, artists: 0, albums: 0 };
-    const earlierPlays = [];
+    // New songs / artists / albums per day, straight from the first-seen
+    // dates (same keys as day.songs / .artists / .albums, so same as isNew)
+    const nb = { newSongs: {}, newArtists: {}, newAlbums: {} };
+    const tallyFirst = (map, into) => { for (const k in map) { const f = map[k]; if (f) { const k2 = localDateStr(f); into[k2] = (into[k2] || 0) + 1; } } };
+    tallyFirst(songFirst, nb.newSongs); tallyFirst(artistFirst, nb.newArtists); tallyFirst(albumFirst, nb.newAlbums);
+    const fields = ['plays', 'songs', 'artists', 'albums', 'newSongs', 'newArtists', 'newAlbums'];
+    const rec = {}, before = {}, earlier = {};
+    for (const f of fields) { rec[f] = 0; before[f] = 0; earlier[f] = []; }
     for (const day2 of h.days) {
       const u = uniq(h.byDay[day2]);
+      for (const f in nb) u[f] = nb[f][day2] || 0;
       for (const f in rec) {
         if (u[f] > rec[f]) rec[f] = u[f];
         if (day2 < ds && u[f] > before[f]) before[f] = u[f];
       }
-      if (day2 < ds) earlierPlays.push(u.plays);
+      if (day2 < ds) for (const f in earlier) earlier[f].push(u[f]);
     }
-    earlierPlays.sort((a, b) => a - b);
-    const m = earlierPlays.length >> 1;
-    const usual = !earlierPlays.length ? null : earlierPlays.length % 2 ? earlierPlays[m] : Math.round((earlierPlays[m - 1] + earlierPlays[m]) / 2);
-    h._shRec = { ds, rec, before, usual, nBefore: earlierPlays.length };
+    // Median, same as shUsualStats in app.js (null before the first day)
+    const med = a => {
+      if (!a.length) return null;
+      a.sort((x, y) => x - y);
+      const m = a.length >> 1;
+      return a.length % 2 ? a[m] : Math.round((a[m - 1] + a[m]) / 2);
+    };
+    // Only the most recent days you listened in count (SH_USUAL_WINDOW in
+    // app.js, 90), so old listening habits don't set today's normal
+    const win = (typeof SH_USUAL_WINDOW !== 'undefined' && SH_USUAL_WINDOW.day) || 90;
+    for (const f in earlier) earlier[f] = earlier[f].slice(-win);
+    const usual = {};
+    for (const f of fields) usual[f] = med(earlier[f]);
+    h._shRec = { ds, rec, before, usual, nb, nBefore: earlier.plays.length };
   }
   const { rec, before } = h._shRec;
   // Gold ring for a best day ever, silver for the best day up to then
@@ -522,16 +541,22 @@ function dyRenderTiles(h, ds, plays) {
   const subCell = (val, lbl, extra = '', attrs = '') =>
     `<div class="stat-sub-cell${extra}"${attrs}><span class="stat-sub-val">${val}</span><span class="stat-sub-lbl">${esc(lbl)}</span></div>`;
   // f: the tile's field (plays / songs / artists / albums), for its bars
-  // against the comparison day and the record tick; ringCls: the tile's ring
+  // against the comparison day and the record tick; ringCls: the tile's ring.
+  // The record is the one as of this day (best before it, or this day if it
+  // beat it), not today's all-time best; the tick is the usual day (both
+  // user's calls 2026-10-21).
   const box = (val, key, prevVal, emoji, cat, extraLine, badge, f, ringCls, facesHtml) => `
     <div class="stat-box${ringCls || ''}" data-cat="${cat}">
       <div class="stat-head"><span class="stat-cat-icon">${emoji}</span><span class="stat-label">${t(key)}</span></div>
       <div class="stat-val" data-val="${val}">${val.toLocaleString()}</div>
       ${cmp ? `<div class="stat-foot">${delta(val, prevVal)}</div>` : ''}
-      ${day ? shBarsHtml(val, prevVal, rec[f] || null) : ''}${facesHtml || ''}
+      ${day ? shBarsHtml(val, prevVal, Math.max(before[f], val) || null, h._shRec.usual[f]) : ''}${facesHtml || ''}
       ${extraLine || ''}${badge || ''}
     </div>`;
-  const newLine = (n, key) => day ? `<div class="stat-sub">${subCell('+' + n.toLocaleString(), t(key))}</div>` : '';
+  // "+N new songs" and under it the bars: this day vs. the comparison day,
+  // your usual day and the record as of this day (f: field in h._shRec)
+  const newLine = (n, key, f) => day ? `<div class="stat-sub">${subCell('+' + n.toLocaleString(), t(key))}</div>`
+    + `<div class="sh-new-bars">${shBarsHtml(n, h._shRec.nb[f][cmpDs] || 0, Math.max(before[f], n) || null, h._shRec.usual[f])}</div>` : '';
 
   // Plays tile: share of the week and the weekday rank, with the full ranking in the tooltip
   const rankTip = [t('dy_rank_all_tip', { n: rankAll.toLocaleString(), total: h.days.length.toLocaleString() }),
@@ -546,11 +571,11 @@ function dyRenderTiles(h, ds, plays) {
 
   el.innerHTML =
     box(cur.plays,   'stat_total_plays',  prv.plays,   '🎵', 'plays',   playsLine, badge, 'plays', playsRing) +
-    box(cur.songs,   'stat_unique_songs', prv.songs,   '🎶', 'songs',   newLine(newSongs, 'stat_sub_new_songs'), rS.tag, 'songs', rS.cls, shFacesHtml('songs', faces.songs, songsTip)) +
-    box(cur.artists, 'stat_artists',      prv.artists, '🎤', 'artists', newLine(newArtists, 'stat_sub_new_artists'), rA.tag, 'artists', rA.cls, shFacesHtml('artists', faces.artists, t('sh_faces_top_artists'))) +
-    box(cur.albums,  'stat_albums',       prv.albums,  '💿', 'albums',  newLine(newAlbums, 'stat_sub_new_albums'), rB.tag, 'albums', rB.cls, shFacesHtml('albums', faces.albums, t('sh_faces_top_albums')));
+    box(cur.songs,   'stat_unique_songs', prv.songs,   '🎶', 'songs',   newLine(newSongs, 'stat_sub_new_songs', 'newSongs'), rS.tag, 'songs', rS.cls, shFacesHtml('songs', faces.songs, songsTip)) +
+    box(cur.artists, 'stat_artists',      prv.artists, '🎤', 'artists', newLine(newArtists, 'stat_sub_new_artists', 'newArtists'), rA.tag, 'artists', rA.cls, shFacesHtml('artists', faces.artists, t('sh_faces_top_artists'))) +
+    box(cur.albums,  'stat_albums',       prv.albums,  '💿', 'albums',  newLine(newAlbums, 'stat_sub_new_albums', 'newAlbums'), rB.tag, 'albums', rB.cls, shFacesHtml('albums', faces.albums, t('sh_faces_top_albums')));
   // Slow count-up, as on the other periods
-  if (typeof animateStatStrip === 'function') animateStatStrip(el, 1600);
+  if (typeof animateStatStrip === 'function') animateStatStrip(el, 2400);   // same 2.4s as the other periods
   shLoadFaces(faces);
 
   // The banner around the tiles: the day's #1 artist photo once the day is
@@ -561,7 +586,7 @@ function dyRenderTiles(h, ds, plays) {
     period: 'day', offset: currentOffset, plays, start: new Date(d.getFullYear(), d.getMonth(), d.getDate()),
     end: new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999), cutoffKey: ds, tally,
     peakStats: { maxPlays: rec.plays }, peakAtTimeStats: h._shRec.nBefore ? { maxPlays: before.plays } : null,
-    usual: h._shRec.usual !== null ? { plays: h._shRec.usual } : null,
+    usual: h._shRec.usual.plays !== null ? { plays: h._shRec.usual.plays } : null,
     agg: { index: dayIndex, keys: h.days }, timed: h.timed
   });
 }
