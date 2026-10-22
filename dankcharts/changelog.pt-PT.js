@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Tabs look the same everywhere, and the \u22ee menu speaks your language":
+    ["Os separadores têm o mesmo aspeto em todo o lado e o menu ⋮ fala a tua língua",
+     "Os separadores têm agora um só estilo, uma linha sob o separador aberto: em Recordes (Semanal, Mensal, Anual), Prémios, a janela de sequências, a janela de avaliação de álbuns e a janela de partilhar o percurso no top. Os pequenos seletores Músicas / Artistas / Álbuns de Recordes usam o mesmo seletor do resto do site. Os separadores Show, Size e Actions do menu ⋮ de cada top estavam sempre em inglês; agora estão traduzidos (Mostrar, Tamanho, Ações). Funciona com Last.fm, Google Sheets e ficheiros CSV."],
+
   "Every \"pick one\" switch looks the same":
     ["Todos os seletores de \"escolhe um\" têm o mesmo aspeto",
      "Os seletores em que escolhes uma opção, como Carrossel / Blocos / Tabela / Lista em Eventos, Mês / Semana / Dia, os períodos dos gráficos de Estatísticas, a velocidade e o Top N da corrida dos tops, a ordem das avaliações, os tipos de sequência e as opções de cada janela de Partilhar como imagem, usam agora a mesma bandeja do seletor Músicas / Artistas / Álbuns, com a opção escolhida destacada na cor do tema. Funciona com Last.fm, Google Sheets e ficheiros CSV."],

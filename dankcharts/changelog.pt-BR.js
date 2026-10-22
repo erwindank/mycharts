@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Tabs look the same everywhere, and the \u22ee menu speaks your language":
+    ["As abas têm a mesma aparência em todo lugar e o menu ⋮ fala seu idioma",
+     "As abas agora têm um só estilo, uma linha sob a aba aberta: em Recordes (Semanal, Mensal, Anual), Prêmios, a janela de sequências, a janela de avaliação de álbuns e a janela de compartilhar a trajetória na parada. Os pequenos seletores Músicas / Artistas / Álbuns de Recordes usam o mesmo seletor do resto do site. As abas Show, Size e Actions do menu ⋮ de cada parada estavam sempre em inglês; agora estão traduzidas (Mostrar, Tamanho, Ações). Funciona com Last.fm, Google Sheets e arquivos CSV."],
+
   "Every \"pick one\" switch looks the same":
     ["Todos os seletores de \"escolha um\" têm a mesma aparência",
      "Os seletores em que você escolhe uma opção, como Carrossel / Blocos / Tabela / Lista em Eventos, Mês / Semana / Dia, os períodos dos gráficos de Estatísticas, a velocidade e o Top N da corrida das paradas, a ordem das avaliações, os tipos de sequência e as opções de cada janela de Compartilhar como imagem, agora usam a mesma bandeja do seletor Músicas / Artistas / Álbuns, com a opção escolhida destacada na cor do tema. Funciona com Last.fm, Google Sheets e arquivos CSV."],

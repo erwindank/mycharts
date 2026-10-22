@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Tabs look the same everywhere, and the \u22ee menu speaks your language":
+    ["Las pestañas se ven igual en todas partes y el menú ⋮ habla tu idioma",
+     "Las pestañas comparten ahora un mismo estilo, una línea bajo la pestaña abierta: en Récords (Semanal, Mensual, Anual), Premios, la ventana de rachas, la ventana de valoración de álbumes y la ventana para compartir el recorrido en la lista. Los pequeños selectores Canciones / Artistas / Álbumes de Récords usan el mismo selector que el resto del sitio. Las pestañas Show, Size y Actions del menú ⋮ de cada lista estaban siempre en inglés; ahora están traducidas (Mostrar, Tamaño, Acciones). Funciona con Last.fm, Google Sheets y archivos CSV."],
+
   "Every \"pick one\" switch looks the same":
     ["Todos los selectores de \"elige uno\" tienen el mismo aspecto",
      "Los selectores en los que eliges una opción, como Carrusel / Mosaico / Tabla / Lista en Eventos, Mes / Semana / Día, los periodos de los gráficos de Estadísticas, la velocidad y el Top N de la carrera de listas, el orden de las valoraciones, los tipos de rachas y las opciones de cada ventana de Compartir como imagen, usan ahora la misma bandeja que el selector Canciones / Artistas / Álbumes, con la opción elegida resaltada en el color del tema. Funciona con Last.fm, Google Sheets y archivos CSV."],

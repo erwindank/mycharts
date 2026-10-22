@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 257;
+const DC_CL_I18N_V = 258;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-22', t: 'design', a: 'ui', h: '3aedb54',
+    title: "Tabs look the same everywhere, and the \u22ee menu speaks your language",
+    detail: "Tabs now share one style, a line under the open tab: in Records (Weekly, Monthly, Yearly), Awards, the streaks window, the album rating window and the chart run share window. Records' small Songs / Artists / Albums switches use the same switch as the rest of the site. The Show, Size and Actions tabs in each chart's \u22ee menu were always in English; they're now translated. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-22', t: 'design', a: 'ui', h: '2902bd8',
     title: "Every \"pick one\" switch looks the same",
     detail: "Switches where you pick one option, like Reel / Tiles / Table / List on Events, Month / Week / Day, the Stats graph periods, the chart race speed and Top N, the ratings sort, the Streaks types and the options in every Share as image window, now all use the same tray as the Songs / Artists / Albums switch, with the chosen option lit in the theme colour. Works with Last.fm, Google Sheets and CSV uploads." },
