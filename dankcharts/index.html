@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=604">
+  <link rel="stylesheet" href="style.css?v=605">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -1858,6 +1858,15 @@
         </div>
         <div class="section-sub" data-i18n="rec_pak_sub">Periods where one artist simultaneously held #1 on the
           artist, song &amp; album charts</div>
+        <!-- The name is chart slang, so it gets spelled out on demand: the same
+             "ⓘ" capsule Bubbling Under uses for its tags. -->
+        <button type="button" class="atc-info pak-info-btn" aria-expanded="false" aria-controls="pakInfo"
+          onclick="this.setAttribute('aria-expanded', String(document.getElementById('pakInfo').hidden)); document.getElementById('pakInfo').hidden = !document.getElementById('pakInfo').hidden"><svg
+            viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" /><path d="M12 16.5v-5" /><path
+              d="M12 7.5h.01" /></svg><span data-i18n="rec_pak_info_btn">What's a Perfect All Kill?</span></button>
+        <p class="pak-info" id="pakInfo" hidden data-i18n="rec_pak_info">A Perfect All Kill is a week, month or year
+          in which one artist is #1 on all three of your charts at once: the song chart, the album chart and the
+          artist chart. The name comes from K-pop chart talk, where an "all-kill" means topping every chart.</p>
         <div class="section-body" id="recPAKBody"></div>
       </div>
 

@@ -8387,9 +8387,11 @@ function buildRecords() {
           + '<div class="pak-col pak-col-artist"><div class="pak-mini-thumb pak-mini-thumb-round" id="' + pakArtistImgId + '"><div class="pak-mini-initials">' + esc(initials(pw.artist)) + '</div></div><span class="pak-col-text">' + esc(pw.artist) + '</span></div>'
           + '<div class="pak-col pak-col-song">' + esc(pw.song) + '</div>'
           + '<div class="pak-col pak-col-album"><div class="pak-mini-thumb" id="' + pakImgId + '"><div class="pak-mini-initials">' + esc(initials(pw.album)) + '</div></div><span class="pak-col-text">' + esc(pw.album) + '</span></div>'
+          /* Which PAK this was overall, and which of the artist's own: plain
+             text in two quiet lines rather than two coloured pills. */
           + '<div class="pak-badge-stack">'
-          + '<span class="rec-badge rec-badge-gold">#' + pakGlobalIdx[pw.periodKey] + ' / ' + list.length + '</span>'
-          + '<span class="rec-badge rec-badge-artist-pak">' + t('rec_pak_badge_artist') + ' #' + pakArtistOcc[pw.periodKey] + '</span>'
+          + '<span class="pak-n">#' + pakGlobalIdx[pw.periodKey] + ' / ' + list.length + '</span>'
+          + '<span class="pak-n-sub">' + t('rec_pak_badge_artist') + ' #' + pakArtistOcc[pw.periodKey] + '</span>'
           + '</div>'
           + '</div>';
       }
@@ -28850,9 +28852,19 @@ function renderCertifications(data) {
   renderCertWallCards();
 }
 
-function renderCertWallCards() {
+/* The wall shows its first CWALL_PAGE plaques and a "Show more" button
+   under them: a few years of plays earn hundreds of plaques, which made a
+   page tens of thousands of pixels tall. The rest are in the page but hidden
+   (not left out), because the most-decorated-artist tally counts .cert-card
+   elements (REC_TALLY_SEL) and must not change with how many are shown.
+   A new filter, sort or search starts from the first page again. */
+const CWALL_PAGE = 24;
+let certWallShown = CWALL_PAGE;
+
+function renderCertWallCards(keepShown) {
   const grid = document.getElementById('cwall-grid');
   if (!grid) return;
+  if (!keepShown) certWallShown = CWALL_PAGE;
 
   let items = certWallData.slice();
 
@@ -28877,7 +28889,7 @@ function renderCertWallCards() {
     return;
   }
 
-  grid.innerHTML = items.map(item => {
+  grid.innerHTML = items.map((item, idx) => {
     const origIdx = item._i;
     const cwKey = certWallPrefKey(item);
     const known = _certWallResolved[cwKey];
@@ -28899,7 +28911,8 @@ function renderCertWallCards() {
     const cwPrefKey = cwType + ':' + (item.artist || '').toLowerCase() + '|||' + (item.title || '').toLowerCase();
     // One record per multiple, so a Triple Diamond is counted, not read.
     const cwDiscs = cwallDiscCount(item);
-    return `<div class="cert-card cert-card--${tierClass}"${item.top ? '' : ' data-cert-lesser="1"'} data-rec-artist="${esc(item.artist || '')}" data-rec-type="${esc(cwType)}" data-rec-name="${esc(item.title || '')}" data-rec-prefkey="${esc(cwPrefKey)}">
+    const more = idx >= certWallShown ? ' cert-card-more' : '';
+    return `<div class="cert-card cert-card--${tierClass}${more}"${item.top ? '' : ' data-cert-lesser="1"'} data-rec-artist="${esc(item.artist || '')}" data-rec-type="${esc(cwType)}" data-rec-name="${esc(item.title || '')}" data-rec-prefkey="${esc(cwPrefKey)}">
   <div class="cert-frame">
     <span class="cert-bolt cert-bolt--tl"></span><span class="cert-bolt cert-bolt--tr"></span>
     <span class="cert-bolt cert-bolt--bl"></span><span class="cert-bolt cert-bolt--br"></span>
@@ -28918,6 +28931,27 @@ function renderCertWallCards() {
   </div>
 </div>`;
   }).join('');
+
+  // "Show more", under the grid, while plaques are still hidden
+  const left = items.length - certWallShown;
+  let moreBtn = document.getElementById('cwall-more');
+  if (left > 0) {
+    if (!moreBtn) {
+      moreBtn = document.createElement('button');
+      moreBtn.type = 'button';
+      moreBtn.id = 'cwall-more';
+      moreBtn.className = 'dc-btn dc-btn-normal cwall-more';
+      moreBtn.addEventListener('click', function () {
+        certWallShown += CWALL_PAGE * 2;
+        renderCertWallCards(true);
+      });
+      grid.after(moreBtn);
+    }
+    moreBtn.textContent = t('cwall_show_more', { n: left.toLocaleString() });
+    moreBtn.hidden = false;
+  } else if (moreBtn) {
+    moreBtn.hidden = true;
+  }
 
   loadCertWallImages(items);
 }

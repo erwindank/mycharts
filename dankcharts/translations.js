@@ -2010,6 +2010,9 @@ const TRANSLATIONS = {
     rec_all_ones_sub: 'Artists, albums & tracks that reached the top spot on your charts — including how many times each held #1',
     // Sits above the period pills, so it can no longer say "weeks" or "weekly".
     rec_pak_sub: 'Periods where one artist simultaneously held #1 on the artist, song & album charts',
+    rec_pak_info_btn: "What's a Perfect All Kill?",
+    rec_pak_info: 'A Perfect All Kill is a week, month or year in which one artist is #1 on all three of your charts at once: the song chart, the album chart and the artist chart. The name comes from K-pop chart talk, where an "all-kill" means topping every chart.',
+    cwall_show_more: 'Show more ({{n}} left)',
     // Neither names the weekly chart any more — both sections split into
     // weekly, monthly and yearly records, each titled with its own chart.
     rec_appearances_sub: 'Artists, albums & tracks with the most periods spent inside your charts',
@@ -2192,7 +2195,7 @@ const TRANSLATIONS = {
     rec_have_reached: '{{n}} {{type}} have reached {{plays}} plays — ranked by the shortest time from first to {{plays}}th play',
     rec_has_reached: '1 {{type}} has reached {{plays}} plays — ranked by the shortest time from first to {{plays}}th play',
     rec_pak_summary: '{{count}} Perfect All Kill {{unitword}} across {{n}} {{artistword}}',
-    rec_pak_badge_artist: 'ARTIST',
+    rec_pak_badge_artist: 'Artist',
     rec_pak_week_preview_link: '→ View full week',
     // The same link inside Perfect All Kill, where the period varies.
     rec_pak_period_preview_link: '→ View full {{unit}}',
@@ -5374,6 +5377,9 @@ const TRANSLATIONS = {
     // Records subtitles
     rec_all_ones_sub: 'Artistas, álbumes y canciones que alcanzaron el #1 en tus rankings — incluyendo cuántas veces lo tuvieron',
     rec_pak_sub: 'Períodos en los que un artista tuvo simultáneamente el #1 en artista, canción y álbum',
+    rec_pak_info_btn: '¿Qué es un Perfect All Kill?',
+    rec_pak_info: 'Un Perfect All Kill es una semana, un mes o un año en que un artista es #1 en tus tres rankings a la vez: el de canciones, el de álbumes y el de artistas. El nombre viene de la jerga de los rankings del K-pop, donde un "all-kill" es encabezar todos los rankings.',
+    cwall_show_more: 'Mostrar más (quedan {{n}})',
     rec_appearances_sub: 'Artistas, álbumes y canciones con más períodos dentro de tus rankings',
     rec_debuts_sub: 'Entradas que debutaron en las posiciones más altas del ranking',
     rec_peak_plays_sub: 'Picos de reproducciones en un único período — más reproducciones de una canción, artista o álbum en una semana, mes o año',
@@ -5521,7 +5527,7 @@ const TRANSLATIONS = {
     rec_have_reached: '{{n}} {{type}} han alcanzado {{plays}} reproducciones — ordenados por el menor tiempo desde la primera hasta la {{plays}}ª reproducción',
     rec_has_reached: '1 {{type}} ha alcanzado {{plays}} reproducciones — ordenado por el menor tiempo desde la primera hasta la {{plays}}ª reproducción',
     rec_pak_summary: '{{count}} {{unitword}} de Dominio Total en {{n}} {{artistword}}',
-    rec_pak_badge_artist: 'ARTISTA',
+    rec_pak_badge_artist: 'Artista',
     rec_pak_week_preview_link: '→ Ver semana completa',
     rec_pak_period_preview_link: '→ Ver período completo',
     rec_pak_all_week: 'Todas las Semanas de Dominio Total (Más Recientes Primero)',
@@ -8671,6 +8677,9 @@ const TRANSLATIONS = {
     // Records subtitles
     rec_all_ones_sub: 'Artistas, álbuns e músicas que chegaram ao #1 nas suas paradas — incluindo quantas vezes ficaram no topo',
     rec_pak_sub: 'Períodos em que um artista teve simultaneamente o #1 em artista, música e álbum',
+    rec_pak_info_btn: 'O que é um Perfect All Kill?',
+    rec_pak_info: 'Um Perfect All Kill é uma semana, um mês ou um ano em que um artista é #1 nas suas três paradas ao mesmo tempo: a de músicas, a de álbuns e a de artistas. O nome vem da gíria das paradas do K-pop, em que um "all-kill" é liderar todas as paradas.',
+    cwall_show_more: 'Mostrar mais (faltam {{n}})',
     rec_appearances_sub: 'Artistas, álbuns e músicas com mais períodos dentro das suas paradas',
     rec_debuts_sub: 'Entradas que estrearam nas posições mais altas da parada',
     rec_peak_plays_sub: 'Picos de plays em um único período — mais plays de uma música, artista ou álbum em uma semana, mês ou ano',
@@ -8818,7 +8827,7 @@ const TRANSLATIONS = {
     rec_have_reached: '{{n}} {{type}} atingiram {{plays}} plays — ordenados pelo menor tempo do primeiro ao {{plays}}º',
     rec_has_reached: '1 {{type}} atingiu {{plays}} plays — ordenado pelo menor tempo do primeiro ao {{plays}}º',
     rec_pak_summary: '{{count}} {{unitword}} de Domínio Total em {{n}} {{artistword}}',
-    rec_pak_badge_artist: 'ARTISTA',
+    rec_pak_badge_artist: 'Artista',
     rec_pak_week_preview_link: '→ Ver semana completa',
     rec_pak_period_preview_link: '→ Ver período completo',
     rec_pak_all_week: 'Todas as Semanas de Domínio Total (Mais Recentes Primeiro)',
@@ -11968,6 +11977,9 @@ const TRANSLATIONS = {
     // Records subtitles
     rec_all_ones_sub: 'Artistas, álbuns e músicas que chegaram ao #1 nos seus tops — incluindo quantas vezes ficaram no topo',
     rec_pak_sub: 'Períodos em que um artista teve simultaneamente o #1 em artista, música e álbum',
+    rec_pak_info_btn: 'O que é um Perfect All Kill?',
+    rec_pak_info: 'Um Perfect All Kill é uma semana, um mês ou um ano em que um artista é #1 nos teus três tops ao mesmo tempo: o de músicas, o de álbuns e o de artistas. O nome vem da gíria dos tops do K-pop, em que um "all-kill" é liderar todos os tops.',
+    cwall_show_more: 'Mostrar mais (faltam {{n}})',
     rec_appearances_sub: 'Artistas, álbuns e músicas com mais períodos dentro dos seus tops',
     rec_debuts_sub: 'Entradas que estrearam nas posições mais altas do top',
     rec_peak_plays_sub: 'Picos de plays num único período — mais plays de uma música, artista ou álbum numa semana, mês ou ano',
@@ -12114,7 +12126,7 @@ const TRANSLATIONS = {
     rec_have_reached: '{{n}} {{type}} atingiram {{plays}} plays — ordenados pelo menor tempo do primeiro ao {{plays}}º',
     rec_has_reached: '1 {{type}} atingiu {{plays}} plays — ordenado pelo menor tempo do primeiro ao {{plays}}º',
     rec_pak_summary: '{{count}} {{unitword}} de Domínio Total em {{n}} {{artistword}}',
-    rec_pak_badge_artist: 'ARTISTA',
+    rec_pak_badge_artist: 'Artista',
     rec_pak_week_preview_link: '→ Ver semana completa',
     rec_pak_period_preview_link: '→ Ver período completo',
     rec_pak_all_week: 'Todas as Semanas de Domínio Total (Mais Recentes Primeiro)',

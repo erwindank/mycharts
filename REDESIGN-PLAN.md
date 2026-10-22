@@ -2262,6 +2262,11 @@ Steps:
 7. **Perfect All Kill and Certifications.** Perfect All Kill gets a ⓘ
    that explains the name; the "#67 / 67 · ARTIST #7" tags get calmer.
    The plaque wall shows the first rows and a "Show more" button.
+   **Done 2026-10-22:** "ⓘ What's a Perfect All Kill?" (the Bubbling Under
+   capsule) opens a short note; the PAK list shows "#67 / 67" and
+   "Artist #7" as two quiet text lines (old .rec-badge CSS deleted). The
+   wall shows 24 plaques, then "Show more (N left)" adds 48; the rest stay
+   in the page, hidden, so the hero tally (REC_TALLY_SEL) is unchanged.
 8. **Screen check.** Every sub-tab, all 10 themes spot-checked, phone
    with touch, four languages, search across sections.
 
