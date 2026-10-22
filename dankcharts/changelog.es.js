@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Every pop-up window has the same frame and close button":
+    ["Todas las ventanas emergentes tienen el mismo marco y botón de cerrar",
+     "Todas las ventanas emergentes (canciones, álbumes y artistas, valoraciones, rachas, Compartir como imagen, Ajustes, listas de reproducción, Novedades y las demás) comparten ahora un mismo marco, y todas se cierran con el mismo botón ✕ en la esquina en vez de una mezcla de etiquetas \"✕ CERRAR\" y botones redondos. En las ventanas de confirmación, Cancelar es un botón normal y la acción que borra algo aparece en rojo. En los teléfonos, el menú ⋮ de cada lista se abre ahora justo encima de la barra de pestañas inferior en vez de quedar debajo. Funciona con Last.fm, Google Sheets y archivos CSV."],
+
   "The Records reel can be dragged like every other reel":
     ["El carrusel de Récords se puede arrastrar como los demás",
      "El carrusel de tarjetas de récords del resumen de Récords, y el mismo carrusel en la ventana de un artista, funciona ahora como los de Máquina del tiempo, Banda sonora y Eventos: agárralo y arrástralo, usa el panel táctil o el teclado, y se queda quieto si tu dispositivo pide reducir el movimiento. Las flechas del carrusel de pósters de Premios son ahora los botones cuadrados pequeños del sitio. Funciona con Last.fm, Google Sheets y archivos CSV."],

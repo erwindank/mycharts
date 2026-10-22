@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 262;
+const DC_CL_I18N_V = 263;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-22', t: 'design', a: 'ui', h: 'e518b2f',
+    title: "Every pop-up window has the same frame and close button",
+    detail: "All pop-up windows (song, album and artist windows, ratings, streaks, Share as image, Settings, playlists, What's New and the rest) now share one frame, and each closes with the same \u2715 button in the corner instead of a mix of \"\u2715 CLOSE\" labels and round buttons. In confirm windows, Cancel is a normal button and the action that deletes something is in red. On phones, each chart's \u22ee menu now opens just above the bottom tab bar instead of underneath it. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-22', t: 'feature', a: 'records', h: '511a642',
     title: "The Records reel can be dragged like every other reel",
     detail: "The moving reel of record cards on the Records overview, and the same reel in an artist's window, now works like the Time Machine, Soundtrack and Events reels: grab it and drag, use the trackpad or the keyboard, and it stays still if your device asks for reduced motion. The Awards poster reel's arrows are now the site's small square buttons. Works with Last.fm, Google Sheets and CSV uploads." },

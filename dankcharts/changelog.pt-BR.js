@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Every pop-up window has the same frame and close button":
+    ["Todas as janelas pop-up têm a mesma moldura e botão de fechar",
+     "Todas as janelas pop-up (músicas, álbuns e artistas, avaliações, sequências, Compartilhar como imagem, Configurações, playlists, Novidades e as outras) agora têm uma só moldura, e todas fecham com o mesmo botão ✕ no canto, em vez de uma mistura de rótulos \"✕ FECHAR\" e botões redondos. Nas janelas de confirmação, Cancelar é um botão normal e a ação que apaga algo aparece em vermelho. Nos celulares, o menu ⋮ de cada parada agora abre logo acima da barra de abas inferior em vez de ficar embaixo dela. Funciona com Last.fm, Google Sheets e arquivos CSV."],
+
   "The Records reel can be dragged like every other reel":
     ["O carrossel de Recordes pode ser arrastado como os outros",
      "O carrossel de cartões de recordes no resumo de Recordes, e o mesmo carrossel na janela de um artista, agora funciona como os da Máquina do tempo, Trilha sonora e Eventos: segure e arraste, use o trackpad ou o teclado, e ele fica parado se o seu dispositivo pede menos movimento. As setas do carrossel de pôsteres de Prêmios agora são os botões quadrados pequenos do site. Funciona com Last.fm, Google Sheets e arquivos CSV."],
