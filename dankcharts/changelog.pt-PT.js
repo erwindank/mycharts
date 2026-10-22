@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Perfect All Kill explained, and a shorter plaque wall":
+    ["Perfect All Kill explicado e um mural de placas mais curto",
+     "Perfect All Kill tem agora um botão \"O que é um Perfect All Kill?\" que explica o nome. A lista mostra qual Perfect All Kill foi cada um, e a contagem do próprio artista, como texto normal em vez de etiquetas coloridas. O mural de certificações mostra as primeiras 24 placas com um botão Mostrar mais por baixo, em vez de todas as placas de uma vez. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
+
   "Fastest to Milestone has a picker":
     ["Mais rápido ao marco tem um seletor",
      "Mais rápido ao marco mostrava o primeiro total de plays aberto e todos os outros como barras recolhidas. Agora escolhes o total num só menu, como em \"Mais rápido a atingir 100 plays\", e só essa tabela aparece. Recordes lembra a tua escolha para músicas, artistas e álbuns. A pesquisa continua a procurar em todos os totais. Funciona com Last.fm, Google Sheets e ficheiros CSV."],

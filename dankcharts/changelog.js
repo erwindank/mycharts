@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 272;
+const DC_CL_I18N_V = 273;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-22', t: 'design', a: 'records', h: '9271948',
+    title: "Perfect All Kill explained, and a shorter plaque wall",
+    detail: "Perfect All Kill now has a \"What's a Perfect All Kill?\" button that explains the name. Its list shows which Perfect All Kill each one was, and the artist's own count, as plain text instead of coloured labels. The certifications wall shows its first 24 plaques with a Show more button under them, instead of every plaque at once. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-22', t: 'design', a: 'records', h: '0e7cd9b',
     title: "Fastest to Milestone has a picker",
     detail: "Fastest to Milestone showed the first play total open and every higher one as a folded bar. Now you pick the total from one menu, as in \"Fastest to 100 plays\", and only that table shows. Records remembers your pick for songs, artists and albums. A search still looks through every total. Works with Last.fm, Google Sheets and CSV uploads." },

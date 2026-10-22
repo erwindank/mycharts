@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Perfect All Kill explained, and a shorter plaque wall":
+    ["Perfect All Kill explicado y un muro de placas más corto",
+     "Perfect All Kill tiene ahora un botón \"¿Qué es un Perfect All Kill?\" que explica el nombre. Su lista muestra qué Perfect All Kill fue cada uno, y el número del propio artista, como texto normal en lugar de etiquetas de colores. El muro de certificaciones muestra sus primeras 24 placas con un botón Mostrar más debajo, en lugar de todas las placas a la vez. Funciona con Last.fm, Google Sheets y archivos CSV."],
+
   "Fastest to Milestone has a picker":
     ["Más rápido al hito tiene un selector",
      "Más rápido al hito mostraba la primera cifra de reproducciones abierta y todas las demás como barras plegadas. Ahora eliges la cifra en un solo menú, como en \"Más rápido en llegar a 100 reprods\", y solo se ve esa tabla. Récords recuerda tu elección para canciones, artistas y álbumes. La búsqueda sigue mirando en todas las cifras. Funciona con Last.fm, Google Sheets y archivos CSV."],
