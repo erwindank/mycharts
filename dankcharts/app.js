@@ -12229,6 +12229,14 @@ document.getElementById('periodNav').addEventListener('click', e => {
   if (!['day', 'week', 'month', 'year', 'alltime'].includes(btn.dataset.period)) {
     const afBar = document.getElementById('albumsFilterBar');
     if (afBar) afBar.style.display = 'none';
+    /* And the "Around the chart" boxes: the branches below hide Bubbling Under,
+       Off the Chart and New Entries but never re-run atcSync(), so the box (tabs
+       and all) stayed on Stats, Records, Events… The chart-period path puts it
+       back (renderAll -> applySubChartToggles -> atcSync). */
+    ATC_TYPES.forEach(type => {
+      const box = document.getElementById('atc' + _atcUc(type));
+      if (box) box.style.display = 'none';
+    });
   }
 
   /* The community board (board.js) is taken down here for every other tab, so
