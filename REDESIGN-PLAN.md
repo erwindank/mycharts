@@ -2269,6 +2269,14 @@ Steps:
    in the page, hidden, so the hero tally (REC_TALLY_SEL) is unchanged.
 8. **Screen check.** Every sub-tab, all 10 themes spot-checked, phone
    with touch, four languages, search across sections.
+   **Done 2026-10-22:** every sub-tab at 1440 / 1100 / 390 (touch) in
+   English, Spanish and both Portuguese: no browser-default buttons, no raw
+   translation keys, no sideways scroll, no script errors; search finds
+   across 8 sections in every language; Overview and Perfect All Kill
+   looked at in all 10 themes.
+
+**Phase 9 part 1 (Records) is finished** (2026-10-22, on `main`). Next is
+phase 9 part 2: Stats (4.14).
 
 The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in
