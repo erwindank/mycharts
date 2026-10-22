@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Corners and shadows match across the site":
+    ["Las esquinas y las sombras coinciden en todo el sitio",
+     "Los botones, tarjetas, etiquetas y ventanas emergentes fuera de las listas usan ahora los mismos cinco tamaños de esquina en vez de diecinueve ligeramente distintos, y sus sombras tienen tres profundidades estándar. En los temas claros esas sombras son más suaves, así que las tarjetas ya no se ven manchadas. Los botones en forma de píldora siguen totalmente redondos y las listas conservan exactamente el aspecto que tenían. Funciona con Last.fm, Google Sheets y archivos CSV."],
+
   "Charts fit the screen on tablets and small phones":
     ["Las listas caben en la pantalla en tabletas y teléfonos pequeños",
      "En pantallas de unos 600 a 980 píxeles de ancho, como una tableta o una ventana pequeña, toda la página podía moverse de lado porque la vista Tira y la cinta de certificaciones la estiraban. Ahora esas tiras se desplazan dentro de su propio recuadro y la página no se mueve. En los teléfonos más pequeños (unos 330 píxeles) los botones de la barra superior son un poco más estrechos para que quepa Iniciar sesión, los botones de página bajo las listas Anuales y De todos los tiempos ponen el número de página en su propia línea en vez de salirse del borde, y en Diario los botones de Comparar con y las tarjetas de partes del día ya no se salen de la pantalla en español y portugués. Funciona con Last.fm, Google Sheets y archivos CSV."],

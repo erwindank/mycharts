@@ -1053,7 +1053,7 @@ themes (Navy dark, Navy light, Yellow dark, Red light; see 3.2) and on a phone.
 | **5** ✓ | **Done 2026-10-13** (branch `redesign/phase-5-shell`, merged into `main`). **Shell:** slim sticky top bar, new main tabs + More, period switch next to the date, toasts for status, merge ON AIR + streak, no masthead or Time Machine on non-chart tabs. | Fixes "can't find anything" and gives back ~1,000px on every tab. | Medium |
 | **6** ✓ | **Done 2026-10-14** (branch `redesign/phase-6-weekly`; what changed from this plan is under "Phase 6" below). **Weekly page:** one filter toolbar, sections reordered (stats + "of the moment" → chart → bubbling/off/new → certified → time machine), releases moved to Events, light-touch stat tile changes only if you choose them (4.6). | This is the page everyone sees first. | Medium |
 | **7** ✓ | **Done 2026-10-22** (branch `redesign/phase-7-layouts`, on `main`; see "Phase 7" below — step 9 skipped). **Chart table and layouts** (4.9b, 4.10, 4.11, 4.12): one item builder + one action menu + one details drawer so **every layout has every feature** (chart run, peak, plays change, player, playlist…), layouts on every period with paging, all six layouts restyled, buttons moved into the toolbar, short lists capped at 5. | The core of the product. Do the shared builder first, then restyle each layout on top of it. | Large |
-| **8** | **Next** (11 steps, see "Phase 8" below). **Shared components:** one button, tab, segmented control, chip, card, table, carousel, pop-up frame. Replace the per-feature button families. | Makes 9–10 fast and keeps it consistent. | Large |
+| **8** ◐ | **Step 1 done 2026-10-22; step 2 (buttons) next** (11 steps, see "Phase 8" below). **Shared components:** one button, tab, segmented control, chip, card, table, carousel, pop-up frame. Replace the per-feature button families. | Makes 9–10 fast and keeps it consistent. | Large |
 | **9** | **Other views** in this order: Records (4.15), Stats (4.14), Raw Data (4.13), then Events, Awards, Soundtrack and the rest once seen on screen. | Records and Stats have the most concrete fixes already written down. | Large |
 | **10** | **Pop-ups and Settings** (4.20–4.21), including the side panel for song/artist/album. | | Medium |
 | **11** | **Final sweep:** move the 352 inline styles into classes, delete whatever old CSS and JS the earlier phases missed, reduce breakpoints to two, replace emoji in titles with icons. | Shrinks the 1.1 MB stylesheet and stops it drifting again. | Medium |
@@ -2036,9 +2036,21 @@ phase 7: a mockup first when a step changes the look, you check each step
 before the next, and the old classes go in the same commit that moves their
 last user (see "Delete as you go").
 
-1. **Corners and shadows.** Settle the corner sizes (6 / 10 / 16 / full, see
-   phase 0) and a few standard shadows, and point the 222 raw shadows at
-   them. Barely visible, but every later step uses them.
+1. **Corners and shadows. Done 2026-10-22 (2dd424e).** Mockup:
+   https://claude.ai/artifact/Ui89Ze7cAGcEExj2YiNvKU. Five corner sizes:
+   `--r-xs` 4, `--r-sm` 6, `--r-md` 10, `--r-lg` 16 (was 14), `--r-full`;
+   `--r-xl` removed. About 200 raw corners moved (3–5px → xs, 6–8 → sm,
+   9–12 → md, 14–24 → lg, or full on pills/buttons; 1–2px bars, circles and
+   0 stay). About 40 plain grey drop shadows moved onto `--shadow-1/2/3` by
+   blur, so light themes get the softer values. Coloured glows, rings,
+   inset bars and halos stay (they do a different job).
+   **Charts left out on your call:** chart table, six layouts, Around the
+   chart, replay, ⋮ menu, chart-run panel, peak and cert badges, plus the
+   dark ceremony / Soundtrack stages keep their values; their `--r-lg` /
+   `--r-xl` uses are pinned to 14px / 18px with a comment. A later step (or
+   phase 11) moves them. Checked by dumping computed corners and shadows of
+   every chart element old vs new: identical except the certification reel
+   (5px → 4px). Script: scratchpad `conv.py`.
 2. **Buttons.** One button in three kinds: main, normal, plain. Move every
    page's buttons onto it (`graphs-btn`, `ev-view-btn`, `creel-btn`…). This
    also removes the old YouTube/＋ pair rules still used by `sk-et-yt` and

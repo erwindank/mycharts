@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Corners and shadows match across the site":
+    ["Cantos e sombras iguais em todo o site",
+     "Botões, cartões, etiquetas e janelas pop-up fora dos tops usam agora os mesmos cinco tamanhos de canto em vez de dezanove ligeiramente diferentes, e as sombras têm três profundidades padrão. Nos temas claros essas sombras são mais suaves, por isso os cartões já não parecem esborratados. Os botões em forma de pílula continuam totalmente redondos e os tops mantêm exatamente o aspeto que tinham. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
+
   "Charts fit the screen on tablets and small phones":
     ["As tabelas cabem no ecrã em tablets e telemóveis pequenos",
      "Em ecrãs de cerca de 600 a 980 píxeis de largura, como um tablet ou uma janela pequena, a página inteira podia deslizar para o lado porque a vista Faixa e a fita de certificações a esticavam. Agora elas deslocam-se dentro da sua própria caixa e a página fica parada. Nos telemóveis mais pequenos (cerca de 330 píxeis) os botões da barra superior ficaram um pouco mais estreitos para caber Iniciar sessão, os botões de página das tabelas Anuais e De sempre põem o número da página numa linha própria em vez de saírem da margem, e no Diário os botões de Comparar com e os cartões das partes do dia já não saem do ecrã em espanhol e português. Funciona com Last.fm, Google Sheets e ficheiros CSV."],

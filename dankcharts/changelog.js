@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 247;
+const DC_CL_I18N_V = 248;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-22', t: 'design', a: 'ui', h: '2dd424e',
+    title: "Corners and shadows match across the site",
+    detail: "Buttons, cards, tags and pop-up windows outside the charts now use the same five corner sizes instead of nineteen slightly different ones, and their shadows come in three standard depths. On light themes those shadows are softer, so cards no longer look smudged. Pill-shaped buttons stay fully round, and the charts keep exactly the look they had. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-22', t: 'fix', a: 'charts', h: 'f6bc35c',
     title: "Charts fit the screen on tablets and small phones",
     detail: "On screens between about 600 and 980 pixels wide, like a tablet or a small laptop window, the whole page could slide sideways because the Filmstrip and the certification reel stretched it. Those strips now scroll inside their own box and the page stays put. On the smallest phones (about 330 pixels) the top bar's buttons are a little slimmer so Sign in fits, the page buttons under Yearly and All-Time charts put the page number on its own line instead of spilling off the edge, and on Daily the Compare with buttons and the part-of-day cards no longer run off the screen in Spanish and Portuguese. Works with Last.fm, Google Sheets and CSV uploads." },
