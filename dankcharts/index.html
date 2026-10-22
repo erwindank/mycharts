@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=590">
+  <link rel="stylesheet" href="style.css?v=591">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -1271,7 +1271,7 @@
            nothing to narrow to there. -->
       <div class="creel-subrow">
         <div class="section-sub" id="certReelSub"></div>
-        <div class="creel-filter-btns" id="certReelFilter" style="display:none;" role="group" aria-label="Filter certifications by type">
+        <div class="dc-seg creel-filter-btns" id="certReelFilter" style="display:none;" role="group" aria-label="Filter certifications by type">
           <button class="creel-btn active" data-creel-filter="all" onclick="setCertReelFilter('all')"><span data-i18n="certd_all">All</span> <span class="creel-btn-n" id="certReelNAll"></span></button>
           <button class="creel-btn" data-creel-filter="song" onclick="setCertReelFilter('song')"><span data-i18n="chart_type_songs">Songs</span> <span class="creel-btn-n" id="certReelNSongs"></span></button>
           <button class="creel-btn" data-creel-filter="album" onclick="setCertReelFilter('album')"><span data-i18n="chart_type_albums">Albums</span> <span class="creel-btn-n" id="certReelNAlbums"></span></button>
@@ -1296,7 +1296,7 @@
       <div class="graphs-controls" id="graphsControls">
         <div class="graphs-ctrl-group">
           <label class="graphs-ctrl-label" data-i18n="gran_label">Granularity</label>
-          <div class="graphs-ctrl-btns" id="graphGranularity">
+          <div class="dc-seg graphs-ctrl-btns" id="graphGranularity">
             <button class="graphs-btn" data-gran="day" data-i18n="gran_daily">Daily</button>
             <button class="graphs-btn active" data-gran="month" data-i18n="gran_monthly">Monthly</button>
             <button class="graphs-btn" data-gran="year" data-i18n="gran_yearly">Yearly</button>
@@ -1420,14 +1420,14 @@
         <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.45rem;">
           <span data-i18n="type_label"
             style="font-family: var(--font-sans);font-size:var(--fs-xs);color:var(--text3);">Type</span>
-          <div id="raceTypeBtns" style="display:flex;gap:4px;">
+          <div id="raceTypeBtns" class="dc-seg">
             <button class="graphs-btn active" data-racetype="artists" data-i18n="race_artists">Artists</button>
             <button class="graphs-btn" data-racetype="songs" data-i18n="race_songs">Songs</button>
             <button class="graphs-btn" data-racetype="albums" data-i18n="race_albums">Albums</button>
           </div>
           <span data-i18n="speed_label"
             style="font-family: var(--font-sans);font-size:var(--fs-xs);color:var(--text3);margin-left:0.3rem;">Speed</span>
-          <div id="raceSpeedBtns" style="display:flex;gap:4px;">
+          <div id="raceSpeedBtns" class="dc-seg">
             <button class="graphs-btn" data-speed="0.5">0.5×</button>
             <button class="graphs-btn active" data-speed="1">1×</button>
             <button class="graphs-btn" data-speed="2">2×</button>
@@ -1439,7 +1439,7 @@
         <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.45rem;">
           <span data-i18n="show_label"
             style="font-family: var(--font-sans);font-size:var(--fs-xs);color:var(--text3);">Show</span>
-          <div id="raceTopNBtns" style="display:flex;gap:4px;flex-wrap:wrap;">
+          <div id="raceTopNBtns" class="dc-seg">
             <button class="graphs-btn" data-topn="5">Top 5</button>
             <button class="graphs-btn active" data-topn="10">Top 10</button>
             <button class="graphs-btn" data-topn="15">Top 15</button>
@@ -1488,7 +1488,7 @@
         <div class="graph-card-sub">Your music mapped day by day — brighter squares mean more plays. Hover any square to explore what you were listening to.</div>
         <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.5rem;">
           <span style="font-family: var(--font-sans);font-size:var(--fs-xs);color:var(--text3);">View</span>
-          <div id="heatmapTypeBtns" style="display:flex;gap:4px;flex-wrap:wrap;">
+          <div id="heatmapTypeBtns" class="dc-seg">
             <button class="graphs-btn active" data-hmtype="all">All</button>
             <button class="graphs-btn" data-hmtype="artist">Artist</button>
             <button class="graphs-btn" data-hmtype="song">Song</button>
@@ -1963,7 +1963,7 @@
           <button class="dc-btn dc-btn-normal dc-btn-sm dc-btn-icon cal-nav-btn" onclick="eventsCalendarPrev()">&#8249;</button>
           <span id="eventsCalendarTitle" class="cal-title"></span>
           <button class="dc-btn dc-btn-normal dc-btn-sm dc-btn-icon cal-nav-btn" onclick="eventsCalendarNext()">&#8250;</button>
-          <div class="cal-view-btns">
+          <div class="dc-seg cal-view-btns">
             <button class="cal-view-btn" data-view="month" onclick="setCalView('month')" title="Month view">Month</button>
             <button class="cal-view-btn" data-view="week"  onclick="setCalView('week')"  title="Week view">Week</button>
             <button class="cal-view-btn" data-view="day"   onclick="setCalView('day')"   title="Day view">Day</button>
@@ -1987,7 +1987,7 @@
           <button class="dc-btn dc-btn-normal dc-btn-sm" id="tmPlBtn" onclick="tmAddAllToPlaylist()"
             data-i18n="pl_section_btn" data-i18n-title="pl_section_btn_title"
             title="Save everything in this section to a playlist">＋ Playlist</button>
-          <div class="tm-toggle-btns">
+          <div class="dc-seg tm-toggle-btns">
             <button id="tmToggleSongs" class="tm-type-btn active" onclick="tmToggleType('songs')" data-i18n="time_machine_songs">Songs</button>
             <button id="tmToggleArtists" class="tm-type-btn active" onclick="tmToggleType('artists')" data-i18n="time_machine_artists">Artists</button>
             <button id="tmToggleAlbums" class="tm-type-btn active" onclick="tmToggleType('albums')" data-i18n="time_machine_albums">Albums</button>
@@ -2014,7 +2014,7 @@
           <button class="dc-btn dc-btn-normal dc-btn-sm" id="birthdaysPlBtn" style="display:none"
             onclick="evAddSectionToPlaylist('birthdays')" data-i18n="pl_section_btn"
             data-i18n-title="pl_section_btn_title" title="Save everything in this section to a playlist">＋ Playlist</button>
-          <div class="ev-view-btns" id="birthdaysViewBtns">
+          <div class="dc-seg ev-view-btns" id="birthdaysViewBtns">
             <button class="ev-view-btn active" data-view="carousel" onclick="setEventsView('birthdays','carousel')">Reel</button>
             <button class="ev-view-btn" data-view="tiles" onclick="setEventsView('birthdays','tiles')">Tiles</button>
             <button class="ev-view-btn" data-view="table" onclick="setEventsView('birthdays','table')">Table</button>
@@ -2036,7 +2036,7 @@
           <button class="dc-btn dc-btn-normal dc-btn-sm" id="anniversariesPlBtn" style="display:none"
             onclick="evAddSectionToPlaylist('anniversaries')" data-i18n="pl_section_btn"
             data-i18n-title="pl_section_btn_title" title="Save everything in this section to a playlist">＋ Playlist</button>
-          <div class="ev-view-btns" id="anniversariesViewBtns">
+          <div class="dc-seg ev-view-btns" id="anniversariesViewBtns">
             <button class="ev-view-btn active" data-view="carousel" onclick="setEventsView('anniversaries','carousel')">Reel</button>
             <button class="ev-view-btn" data-view="tiles" onclick="setEventsView('anniversaries','tiles')">Tiles</button>
             <button class="ev-view-btn" data-view="table" onclick="setEventsView('anniversaries','table')">Table</button>
@@ -2055,7 +2055,7 @@
           <h2 class="section-header-h2">🆕 Upcoming Releases</h2>
           <span class="section-collapsed-label">collapsed — click + to expand</span>
           <div class="section-rule"></div>
-          <div class="ev-view-btns" id="eventsUpcomingViewBtns">
+          <div class="dc-seg ev-view-btns" id="eventsUpcomingViewBtns">
             <button class="ev-view-btn active" data-view="carousel" onclick="setEventsView('eventsUpcoming','carousel')">Reel</button>
             <button class="ev-view-btn" data-view="tiles" onclick="setEventsView('eventsUpcoming','tiles')">Tiles</button>
             <button class="ev-view-btn" data-view="table" onclick="setEventsView('eventsUpcoming','table')">Table</button>
@@ -2077,7 +2077,7 @@
           <button class="dc-btn dc-btn-normal dc-btn-sm" id="eventsRecentPlBtn" style="display:none"
             onclick="evAddSectionToPlaylist('eventsRecent')" data-i18n="pl_section_btn"
             data-i18n-title="pl_section_btn_title" title="Save everything in this section to a playlist">＋ Playlist</button>
-          <div class="ev-view-btns" id="eventsRecentViewBtns">
+          <div class="dc-seg ev-view-btns" id="eventsRecentViewBtns">
             <button class="ev-view-btn active" data-view="carousel" onclick="setEventsView('eventsRecent','carousel')">Reel</button>
             <button class="ev-view-btn" data-view="tiles" onclick="setEventsView('eventsRecent','tiles')">Tiles</button>
             <button class="ev-view-btn" data-view="table" onclick="setEventsView('eventsRecent','table')">Table</button>
@@ -2099,7 +2099,7 @@
           <button class="dc-btn dc-btn-normal dc-btn-sm" id="recentBirthdaysPlBtn" style="display:none"
             onclick="evAddSectionToPlaylist('recentBirthdays')" data-i18n="pl_section_btn"
             data-i18n-title="pl_section_btn_title" title="Save everything in this section to a playlist">＋ Playlist</button>
-          <div class="ev-view-btns" id="recentBirthdaysViewBtns">
+          <div class="dc-seg ev-view-btns" id="recentBirthdaysViewBtns">
             <button class="ev-view-btn active" data-view="carousel" onclick="setEventsView('recentBirthdays','carousel')">Reel</button>
             <button class="ev-view-btn" data-view="tiles" onclick="setEventsView('recentBirthdays','tiles')">Tiles</button>
             <button class="ev-view-btn" data-view="table" onclick="setEventsView('recentBirthdays','table')">Table</button>
@@ -2121,7 +2121,7 @@
           <button class="dc-btn dc-btn-normal dc-btn-sm" id="recentAnniversariesPlBtn" style="display:none"
             onclick="evAddSectionToPlaylist('recentAnniversaries')" data-i18n="pl_section_btn"
             data-i18n-title="pl_section_btn_title" title="Save everything in this section to a playlist">＋ Playlist</button>
-          <div class="ev-view-btns" id="recentAnniversariesViewBtns">
+          <div class="dc-seg ev-view-btns" id="recentAnniversariesViewBtns">
             <button class="ev-view-btn active" data-view="carousel" onclick="setEventsView('recentAnniversaries','carousel')">Reel</button>
             <button class="ev-view-btn" data-view="tiles" onclick="setEventsView('recentAnniversaries','tiles')">Tiles</button>
             <button class="ev-view-btn" data-view="table" onclick="setEventsView('recentAnniversaries','table')">Table</button>
@@ -2140,7 +2140,7 @@
           <h2 class="section-header-h2">🎧 New Music Friday</h2>
           <span class="section-collapsed-label">collapsed — click + to expand</span>
           <div class="section-rule"></div>
-          <div class="ev-view-btns" id="nmfViewBtns">
+          <div class="dc-seg ev-view-btns" id="nmfViewBtns">
             <button class="ev-view-btn active" data-view="carousel" onclick="setEventsView('nmf','carousel')">Reel</button>
             <button class="ev-view-btn" data-view="tiles" onclick="setEventsView('nmf','tiles')">Tiles</button>
             <button class="ev-view-btn" data-view="table" onclick="setEventsView('nmf','table')">Table</button>
@@ -2170,7 +2170,7 @@
           <button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon section-collapse-btn" data-target="concertsSection" title="Expand">+</button>
           <h2 class="section-header-h2">🎤 Upcoming Shows</h2>
           <div class="section-rule"></div>
-          <div class="ev-view-btns" id="concertsViewBtns">
+          <div class="dc-seg ev-view-btns" id="concertsViewBtns">
             <button class="ev-view-btn active" data-view="carousel" onclick="setEventsView('concerts','carousel')">Reel</button>
             <button class="ev-view-btn" data-view="tiles" onclick="setEventsView('concerts','tiles')">Tiles</button>
             <button class="ev-view-btn" data-view="table" onclick="setEventsView('concerts','table')">Table</button>
@@ -2401,7 +2401,7 @@
         <button class="modal-close" onclick="closePdfModal()" data-i18n="btn_close">✕ CLOSE</button>
       </div>
       <div class="dc-plpick-sub" id="pdfSub"></div>
-      <div class="sh-seg pdf-scope" id="pdfScopeBtns">
+      <div class="dc-seg dc-seg-fill sh-seg pdf-scope" id="pdfScopeBtns">
         <button class="sh-seg-btn active" data-scope="one" id="pdfScopeOne" onclick="setPdfScope('one')">This chart</button>
         <button class="sh-seg-btn" data-scope="all" onclick="setPdfScope('all')" data-i18n="pdf_all_charts">All three charts</button>
       </div>
@@ -2440,7 +2440,7 @@
         <h2 class="st-title">🎬 <span data-i18n="nav_soundtrack">Your Soundtrack</span></h2>
       </div>
       <div class="st-controls">
-        <div class="st-period-nav" id="stPeriodNav">
+        <div class="dc-seg st-period-nav" id="stPeriodNav">
           <button class="st-period-btn active" data-st-period="year" onclick="stSetPeriod('year')" data-i18n="st_period_year">Year</button>
           <button class="st-period-btn" data-st-period="month" onclick="stSetPeriod('month')" data-i18n="st_period_month">Month</button>
           <button class="st-period-btn" data-st-period="alltime" onclick="stSetPeriod('alltime')" data-i18n="st_period_alltime">All-Time</button>
@@ -2752,7 +2752,7 @@
           </div>
           <div class="sh-group">
             <div class="sh-group-title" data-i18n="ig_format">Format</div>
-            <div class="sh-seg" id="igFormatBtns">
+            <div class="dc-seg dc-seg-fill sh-seg" id="igFormatBtns">
               <button class="sh-seg-btn active" data-fmt="post" onclick="setIgFormat('post')" data-i18n="sh_fmt_post">Post 1:1</button>
               <button class="sh-seg-btn" data-fmt="portrait" onclick="setIgFormat('portrait')" data-i18n="sh_fmt_portrait">Portrait 4:5</button>
               <button class="sh-seg-btn" data-fmt="story" onclick="setIgFormat('story')" data-i18n="sh_fmt_story">Story 9:16</button>
@@ -2764,10 +2764,12 @@
                 onchange="updateIgPreview()"><span data-i18n="ig_album_art">Album Art</span></label>
             <div id="igArtSourceRow" class="sh-src-row">
               <span class="sh-src-label" data-i18n="ig_source">Source:</span>
+              <div class="dc-seg">
               <button class="sh-mini-btn ig-art-src-btn active" data-src="deezer" onclick="setIgArtSource('deezer')">Deezer</button>
               <button class="sh-mini-btn ig-art-src-btn" data-src="itunes" onclick="setIgArtSource('itunes')">iTunes</button>
               <button class="sh-mini-btn ig-art-src-btn" data-src="lastfm" onclick="setIgArtSource('lastfm')">Last.fm</button>
               <button class="sh-mini-btn ig-art-src-btn" data-src="youtube" onclick="setIgArtSource('youtube')">YouTube</button>
+              </div>
             </div>
             <!-- Pictures: one tile per entry; click to choose its picture (_igRenderArtPicks) -->
             <div class="ig-art-picks-wrap">
@@ -2804,7 +2806,7 @@
           </div>
           <div class="sh-group">
             <div class="sh-group-title" data-i18n="sh_quality">Quality</div>
-            <div class="sh-seg" id="igQualityBtns">
+            <div class="dc-seg dc-seg-fill sh-seg" id="igQualityBtns">
               <button class="sh-seg-btn" data-q="1" onclick="setIgQuality(1)" data-i18n="sh_quality_std">Standard</button>
               <button class="sh-seg-btn active" data-q="2" onclick="setIgQuality(2)" data-i18n="sh_quality_high">High</button>
             </div>
@@ -2854,7 +2856,7 @@
             </div>
             <div class="sh-group">
               <div class="sh-group-title" data-i18n="ig_format">Format</div>
-              <div class="sh-seg" id="crFormatBtns">
+              <div class="dc-seg dc-seg-fill sh-seg" id="crFormatBtns">
                 <button class="sh-seg-btn active" data-fmt="post" onclick="setCrFormat('post')" data-i18n="sh_fmt_post">Post 1:1</button>
                 <button class="sh-seg-btn" data-fmt="portrait" onclick="setCrFormat('portrait')" data-i18n="sh_fmt_portrait">Portrait 4:5</button>
                 <button class="sh-seg-btn" data-fmt="story" onclick="setCrFormat('story')" data-i18n="sh_fmt_story">Story 9:16</button>
@@ -2862,7 +2864,7 @@
             </div>
             <div class="sh-group">
               <div class="sh-group-title" data-i18n="cr_range">Range</div>
-              <div class="sh-seg" id="crIgRangeBtns">
+              <div class="dc-seg dc-seg-fill sh-seg" id="crIgRangeBtns">
                 <button class="sh-seg-btn" id="crIgRangeYear" onclick="setCrIgRange('year')">Year Only</button>
                 <button class="sh-seg-btn" id="crIgRangeUptoYear" onclick="setCrIgRange('uptoYear')">Up to Year</button>
                 <button class="sh-seg-btn active" id="crIgRangeNow" onclick="setCrIgRange('now')">All-Time</button>
@@ -2884,10 +2886,12 @@
                   onchange="updateCrIgPreview()"><span data-i18n="ig_cover_art">Cover Art / Photo</span></label>
               <div class="sh-src-row">
                 <span class="sh-src-label" data-i18n="ig_source">Source:</span>
+                <div class="dc-seg">
                 <button class="sh-mini-btn active" id="crIgSrc_deezer" onclick="setCrIgImgSource('deezer')">Deezer</button>
                 <button class="sh-mini-btn" id="crIgSrc_itunes" onclick="setCrIgImgSource('itunes')">iTunes</button>
                 <button class="sh-mini-btn" id="crIgSrc_lastfm" onclick="setCrIgImgSource('lastfm')">Last.fm</button>
                 <button class="sh-mini-btn" id="crIgSrc_youtube" onclick="setCrIgImgSource('youtube')">YouTube</button>
+                </div>
               </div>
               <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showWeekDate" checked
                   onchange="updateCrIgPreview()"><span data-i18n="ig_week_date_sub">Week Date Subtitle</span></label>
@@ -2905,7 +2909,7 @@
                 <span class="sh-slider-val" id="crTextScaleLabel">100%</span>
               </div>
               <div class="sh-group-title" style="margin-top:0.6rem;" data-i18n="sh_quality">Quality</div>
-              <div class="sh-seg" id="crQualityBtns">
+              <div class="dc-seg dc-seg-fill sh-seg" id="crQualityBtns">
                 <button class="sh-seg-btn" data-q="1" onclick="setCrQuality(1)" data-i18n="sh_quality_std">Standard</button>
                 <button class="sh-seg-btn active" data-q="2" onclick="setCrQuality(2)" data-i18n="sh_quality_high">High</button>
               </div>
@@ -2924,7 +2928,7 @@
             </div>
             <div class="sh-group">
               <div class="sh-group-title" data-i18n="ig_format">Format</div>
-              <div class="sh-seg" id="epFormatBtns">
+              <div class="dc-seg dc-seg-fill sh-seg" id="epFormatBtns">
                 <button class="sh-seg-btn" data-fmt="post" onclick="setEpFormat('post')" data-i18n="sh_fmt_post">Post 1:1</button>
                 <button class="sh-seg-btn" data-fmt="portrait" onclick="setEpFormat('portrait')" data-i18n="sh_fmt_portrait">Portrait 4:5</button>
                 <button class="sh-seg-btn active" data-fmt="story" onclick="setEpFormat('story')" data-i18n="sh_fmt_story">Story 9:16</button>
@@ -2936,10 +2940,12 @@
                   onchange="updateCrIgPreview()"><span data-i18n="ig_cover_art">Cover Art / Photo</span></label>
               <div class="sh-src-row">
                 <span class="sh-src-label" data-i18n="ig_source">Source:</span>
+                <div class="dc-seg">
                 <button class="sh-mini-btn active" id="entPostSrc_deezer" onclick="setEntPostImgSource('deezer')">Deezer</button>
                 <button class="sh-mini-btn" id="entPostSrc_itunes" onclick="setEntPostImgSource('itunes')">iTunes</button>
                 <button class="sh-mini-btn" id="entPostSrc_lastfm" onclick="setEntPostImgSource('lastfm')">Last.fm</button>
                 <button class="sh-mini-btn" id="entPostSrc_youtube" onclick="setEntPostImgSource('youtube')">YouTube</button>
+                </div>
               </div>
               <label class="ig-ctrl-row"><input type="checkbox" id="entPostOpt_showWeekDate" checked
                   onchange="updateCrIgPreview()"><span data-i18n="ig_week_date_sub">Week Date Subtitle</span></label>
@@ -2956,7 +2962,7 @@
             </div>
             <div class="sh-group">
               <div class="sh-group-title" data-i18n="cr_desc_text">Description Text</div>
-              <div class="sh-seg">
+              <div class="dc-seg dc-seg-fill sh-seg">
                 <button class="sh-seg-btn active" id="entPostDescModeAuto" onclick="setEntPostDescMode('auto')" data-i18n="cr_auto">Auto</button>
                 <button class="sh-seg-btn" id="entPostDescShuffle" onclick="shuffleEntPostDescription()" data-i18n="cr_shuffle">Shuffle</button>
                 <button class="sh-seg-btn" id="entPostDescModeCustom" onclick="setEntPostDescMode('custom')" data-i18n="cr_use_custom">Use Custom</button>
@@ -2973,7 +2979,7 @@
                 <span class="sh-slider-val" id="epTextScaleLabel">100%</span>
               </div>
               <div class="sh-group-title" style="margin-top:0.6rem;" data-i18n="sh_quality">Quality</div>
-              <div class="sh-seg" id="epQualityBtns">
+              <div class="dc-seg dc-seg-fill sh-seg" id="epQualityBtns">
                 <button class="sh-seg-btn" data-q="1" onclick="setEpQuality(1)" data-i18n="sh_quality_std">Standard</button>
                 <button class="sh-seg-btn active" data-q="2" onclick="setEpQuality(2)" data-i18n="sh_quality_high">High</button>
               </div>
@@ -3019,7 +3025,7 @@
           </div>
           <div class="sh-group">
             <div class="sh-group-title" data-i18n="ig_format">Format</div>
-            <div class="sh-seg" id="stFormatBtns">
+            <div class="dc-seg dc-seg-fill sh-seg" id="stFormatBtns">
               <button class="sh-seg-btn" data-fmt="post" onclick="setStFormat('post')" data-i18n="sh_fmt_post">Post 1:1</button>
               <button class="sh-seg-btn" data-fmt="portrait" onclick="setStFormat('portrait')" data-i18n="sh_fmt_portrait">Portrait 4:5</button>
               <button class="sh-seg-btn active" data-fmt="story" onclick="setStFormat('story')" data-i18n="sh_fmt_story">Story 9:16</button>
@@ -3031,10 +3037,12 @@
                 onchange="stUpdateCardPreview()"><span data-i18n="ig_album_art">Album Art</span></label>
             <div class="sh-src-row">
               <span class="sh-src-label" data-i18n="ig_source">Source:</span>
+              <div class="dc-seg">
               <button class="sh-mini-btn st-art-src-btn active" data-src="deezer" onclick="setStArtSource('deezer')">Deezer</button>
               <button class="sh-mini-btn st-art-src-btn" data-src="itunes" onclick="setStArtSource('itunes')">iTunes</button>
               <button class="sh-mini-btn st-art-src-btn" data-src="lastfm" onclick="setStArtSource('lastfm')">Last.fm</button>
               <button class="sh-mini-btn st-art-src-btn" data-src="youtube" onclick="setStArtSource('youtube')">YouTube</button>
+              </div>
             </div>
             <label class="ig-ctrl-row"><input type="checkbox" id="stOpt_showStats" checked
                 onchange="stUpdateCardPreview()"><span data-i18n="st_card_opt_stats">Stat numbers</span></label>
@@ -3061,7 +3069,7 @@
           </div>
           <div class="sh-group">
             <div class="sh-group-title" data-i18n="sh_quality">Quality</div>
-            <div class="sh-seg" id="stQualityBtns">
+            <div class="dc-seg dc-seg-fill sh-seg" id="stQualityBtns">
               <button class="sh-seg-btn" data-q="1" onclick="setStQuality(1)" data-i18n="sh_quality_std">Standard</button>
               <button class="sh-seg-btn active" data-q="2" onclick="setStQuality(2)" data-i18n="sh_quality_high">High</button>
             </div>
@@ -3114,7 +3122,7 @@
           <span class="export-step-hint" id="exportCount"></span>
         </div>
         <div class="export-toolbar">
-          <div class="export-seg" role="group" aria-label="Track order" data-i18n-aria="export_track_order_aria">
+          <div class="dc-seg export-seg" role="group" aria-label="Track order" data-i18n-aria="export_track_order_aria">
             <button type="button" class="export-seg-btn" id="exportOrderFirst" onclick="setExportOrder(false)" aria-pressed="true" data-i18n="export_order_first">#1 first</button>
             <button type="button" class="export-seg-btn" id="exportOrderLast" onclick="setExportOrder(true)" aria-pressed="false" data-i18n="export_order_last">#1 last</button>
           </div>
@@ -3310,7 +3318,7 @@
           </div>
           <div class="sh-group">
             <div class="sh-group-title" data-i18n="ig_format">Format</div>
-            <div class="sh-seg" id="rtFormatBtns">
+            <div class="dc-seg dc-seg-fill sh-seg" id="rtFormatBtns">
               <button class="sh-seg-btn" data-fmt="post" onclick="setRtFormat('post')" data-i18n="sh_fmt_post">Post 1:1</button>
               <button class="sh-seg-btn" data-fmt="portrait" onclick="setRtFormat('portrait')" data-i18n="sh_fmt_portrait">Portrait 4:5</button>
               <button class="sh-seg-btn active" data-fmt="story" onclick="setRtFormat('story')" data-i18n="sh_fmt_story">Story 9:16</button>
@@ -3338,7 +3346,7 @@
           <!-- Grid design only: which number heads the card. -->
           <div class="sh-group" data-rt-grid-only style="display:none">
             <div class="sh-group-title" data-i18n="rt_card_score_shown">Score shown</div>
-            <div class="sh-seg" id="rtScoreModeBtns">
+            <div class="dc-seg dc-seg-fill sh-seg" id="rtScoreModeBtns">
               <button class="sh-seg-btn active" data-mode="album" onclick="setRtScoreMode('album')" data-i18n="rt_card_mode_album">Album score</button>
               <button class="sh-seg-btn" data-mode="avg" onclick="setRtScoreMode('avg')" data-i18n="rt_card_mode_avg">Track average</button>
               <button class="sh-seg-btn" data-mode="both" onclick="setRtScoreMode('both')" data-i18n="rt_card_mode_both">Both</button>
@@ -3363,7 +3371,7 @@
           </div>
           <div class="sh-group">
             <div class="sh-group-title" data-i18n="sh_quality">Quality</div>
-            <div class="sh-seg" id="rtQualityBtns">
+            <div class="dc-seg dc-seg-fill sh-seg" id="rtQualityBtns">
               <button class="sh-seg-btn" data-q="1" onclick="setRtQuality(1)" data-i18n="sh_quality_std">Standard</button>
               <button class="sh-seg-btn active" data-q="2" onclick="setRtQuality(2)" data-i18n="sh_quality_high">High</button>
             </div>
@@ -3458,7 +3466,7 @@
           </div>
           <div class="sh-group">
             <div class="sh-group-title" data-i18n="ig_format">Format</div>
-            <div class="sh-seg" id="tpFormatBtns">
+            <div class="dc-seg dc-seg-fill sh-seg" id="tpFormatBtns">
               <button class="sh-seg-btn" data-fmt="post" onclick="setTpFormat('post')" data-i18n="sh_fmt_post">Post 1:1</button>
               <button class="sh-seg-btn active" data-fmt="portrait" onclick="setTpFormat('portrait')" data-i18n="sh_fmt_portrait">Portrait 4:5</button>
               <button class="sh-seg-btn" data-fmt="story" onclick="setTpFormat('story')" data-i18n="sh_fmt_story">Story 9:16</button>
@@ -3469,13 +3477,17 @@
             <div class="sh-group-title" data-i18n="tp_card_pic">Picture</div>
             <div class="sh-src-row" id="tpPicBtns">
               <span class="sh-src-label" id="tpPicCoverLabel" data-i18n="tp_card_pic_cover">Cover:</span>
+              <div class="dc-seg">
               <button class="sh-mini-btn active" data-pic="deezer" onclick="setTpPic('deezer')">Deezer</button>
               <button class="sh-mini-btn" data-pic="itunes" onclick="setTpPic('itunes')">iTunes</button>
               <button class="sh-mini-btn" data-pic="lastfm" onclick="setTpPic('lastfm')">Last.fm</button>
+              </div>
             </div>
             <div class="sh-src-row">
+              <div class="dc-seg">
               <button class="sh-mini-btn" data-pic="artist" onclick="setTpPic('artist')" data-i18n="tp_card_pic_artist">Artist photo</button>
               <button class="sh-mini-btn" data-pic="upload" onclick="setTpPic('upload')" data-i18n="tp_card_pic_upload">⬆ Upload your own</button>
+              </div>
               <input type="file" id="tpPicFile" accept="image/*" hidden onchange="tpUploadPic(this)">
             </div>
             <div class="sh-hint" id="tpPicNote"></div>
@@ -3484,7 +3496,7 @@
                Hidden on an artist card, which is always most played first. -->
           <div class="sh-group" id="tpOrderGroup">
             <div class="sh-group-title" data-i18n="tp_card_order">Order</div>
-            <div class="sh-seg" id="tpOrderBtns">
+            <div class="dc-seg dc-seg-fill sh-seg" id="tpOrderBtns">
               <button class="sh-seg-btn active" data-order="plays" onclick="setTpOrder('plays')" data-i18n="tp_card_order_plays">Most played</button>
               <button class="sh-seg-btn" data-order="album" onclick="setTpOrder('album')" data-i18n="tp_card_order_album">Album order</button>
             </div>
@@ -3493,7 +3505,7 @@
           <!-- Only the word under each number changes — the counts are the same -->
           <div class="sh-group">
             <div class="sh-group-title" data-i18n="tp_card_unit">Count as</div>
-            <div class="sh-seg" id="tpUnitBtns">
+            <div class="dc-seg dc-seg-fill sh-seg" id="tpUnitBtns">
               <button class="sh-seg-btn active" data-unit="plays" onclick="setTpUnit('plays')" data-i18n="tp_card_unit_plays">Plays</button>
               <button class="sh-seg-btn" data-unit="streams" onclick="setTpUnit('streams')" data-i18n="tp_card_unit_streams">Streams</button>
               <button class="sh-seg-btn" data-unit="scrobbles" onclick="setTpUnit('scrobbles')" data-i18n="tp_card_unit_scrobbles">Scrobbles</button>
@@ -3527,7 +3539,7 @@
           </div>
           <div class="sh-group">
             <div class="sh-group-title" data-i18n="sh_quality">Quality</div>
-            <div class="sh-seg" id="tpQualityBtns">
+            <div class="dc-seg dc-seg-fill sh-seg" id="tpQualityBtns">
               <button class="sh-seg-btn" data-q="1" onclick="setTpQuality(1)" data-i18n="sh_quality_std">Standard</button>
               <button class="sh-seg-btn active" data-q="2" onclick="setTpQuality(2)" data-i18n="sh_quality_high">High</button>
             </div>
@@ -3562,9 +3574,9 @@
           </div>
           <!-- Page arrows sit under the preview, where the page is seen. -->
           <div class="ra-pager">
-            <button class="sh-seg-btn" id="raPagePrev" onclick="raGoPage(-1)" aria-label="Previous page">‹</button>
+            <button class="dc-btn dc-btn-normal dc-btn-sm dc-btn-icon" id="raPagePrev" onclick="raGoPage(-1)" aria-label="Previous page">‹</button>
             <span class="ra-pager-label" id="raPageLabel">—</span>
-            <button class="sh-seg-btn" id="raPageNext" onclick="raGoPage(1)" aria-label="Next page">›</button>
+            <button class="dc-btn dc-btn-normal dc-btn-sm dc-btn-icon" id="raPageNext" onclick="raGoPage(1)" aria-label="Next page">›</button>
           </div>
         </div>
         <div class="ig-controls-panel">
@@ -3579,7 +3591,7 @@
           </div>
           <div class="sh-group">
             <div class="sh-group-title" data-i18n="ig_format">Format</div>
-            <div class="sh-seg" id="raFormatBtns">
+            <div class="dc-seg dc-seg-fill sh-seg" id="raFormatBtns">
               <button class="sh-seg-btn" data-fmt="post" onclick="setRaFormat('post')" data-i18n="sh_fmt_post">Post 1:1</button>
               <button class="sh-seg-btn" data-fmt="portrait" onclick="setRaFormat('portrait')" data-i18n="sh_fmt_portrait">Portrait 4:5</button>
               <button class="sh-seg-btn active" data-fmt="story" onclick="setRaFormat('story')" data-i18n="sh_fmt_story">Story 9:16</button>
@@ -3593,7 +3605,7 @@
               <span class="sh-slider-val" id="raPerPageLabel">6</span>
             </div>
             <div class="sh-group-title" style="margin-top:0.6rem;" data-i18n="ra_card_order">Order</div>
-            <div class="sh-seg" id="raOrderBtns">
+            <div class="dc-seg dc-seg-fill sh-seg" id="raOrderBtns">
               <button class="sh-seg-btn active" data-order="year" onclick="setRaOrder('year')" data-i18n="ra_card_order_year">Release year</button>
               <button class="sh-seg-btn" data-order="first" onclick="setRaOrder('first')" data-i18n="ra_card_order_first">First played</button>
               <button class="sh-seg-btn" data-order="score" onclick="setRaOrder('score')" data-i18n="ra_card_order_score">Score</button>
@@ -3601,7 +3613,7 @@
           </div>
           <div class="sh-group">
             <div class="sh-group-title" data-i18n="rt_card_score_shown">Score shown</div>
-            <div class="sh-seg" id="raScoreModeBtns">
+            <div class="dc-seg dc-seg-fill sh-seg" id="raScoreModeBtns">
               <button class="sh-seg-btn active" data-mode="album" onclick="setRaScoreMode('album')" data-i18n="rt_card_mode_album">Album score</button>
               <button class="sh-seg-btn" data-mode="avg" onclick="setRaScoreMode('avg')" data-i18n="rt_card_mode_avg">Track average</button>
               <button class="sh-seg-btn" data-mode="both" onclick="setRaScoreMode('both')" data-i18n="rt_card_mode_both">Both</button>
@@ -3634,7 +3646,7 @@
           </div>
           <div class="sh-group">
             <div class="sh-group-title" data-i18n="sh_quality">Quality</div>
-            <div class="sh-seg" id="raQualityBtns">
+            <div class="dc-seg dc-seg-fill sh-seg" id="raQualityBtns">
               <button class="sh-seg-btn" data-q="1" onclick="setRaQuality(1)" data-i18n="sh_quality_std">Standard</button>
               <button class="sh-seg-btn active" data-q="2" onclick="setRaQuality(2)" data-i18n="sh_quality_high">High</button>
             </div>
@@ -3848,7 +3860,7 @@
   <!-- Community board tab (suggestions / bugs / discussion). Loaded before
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
   <script defer src="board.js?v=2"></script>
-  <script defer src="app.js?v=464"></script>
+  <script defer src="app.js?v=465"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
   <script defer src="replay.js?v=1"></script>
   <!-- All-Time chart stats ("Inside your Top N"); reads app.js globals, so it loads after it -->
@@ -4623,7 +4635,7 @@ function deleteGenreTriggers() {
         <div class="cert-config-title" data-i18n="set_week_title">Chart Week</div>
         <div class="set-row rt-sep-row">
           <span class="rt-sep-label" data-i18n="set_week_label">Weekly charts start on</span>
-          <div class="rt-sep-seg" role="group" id="daySwitcher"></div>
+          <div class="dc-seg rt-sep-seg" role="group" id="daySwitcher"></div>
         </div>
         <p class="src-modal-hint rt-sep-hint" data-i18n="set_week_hint">The day each weekly chart begins. Changing it rebuilds every week at once.</p>
       </div>
@@ -4740,14 +4752,14 @@ function deleteGenreTriggers() {
              default for both, so marking stays inert until asked otherwise. -->
         <div class="set-row rt-sep-row">
           <span class="rt-sep-label" data-i18n="rtype_sep_singles">Singles in the albums chart</span>
-          <div class="rt-sep-seg" role="group">
+          <div class="dc-seg rt-sep-seg" role="group">
             <button type="button" class="rt-sep-btn" data-sep="single" data-mode="with" onclick="setReleaseSeparationFromUI('single','with')" data-i18n="rtype_sep_with">With albums</button>
             <button type="button" class="rt-sep-btn" data-sep="single" data-mode="apart" onclick="setReleaseSeparationFromUI('single','apart')" data-i18n="rtype_sep_apart">Apart</button>
           </div>
         </div>
         <div class="set-row rt-sep-row">
           <span class="rt-sep-label" data-i18n="rtype_sep_eps">EPs in the albums chart</span>
-          <div class="rt-sep-seg" role="group">
+          <div class="dc-seg rt-sep-seg" role="group">
             <button type="button" class="rt-sep-btn" data-sep="ep" data-mode="with" onclick="setReleaseSeparationFromUI('ep','with')" data-i18n="rtype_sep_with">With albums</button>
             <button type="button" class="rt-sep-btn" data-sep="ep" data-mode="apart" onclick="setReleaseSeparationFromUI('ep','apart')" data-i18n="rtype_sep_apart">Apart</button>
           </div>
@@ -4760,7 +4772,7 @@ function deleteGenreTriggers() {
              survive, so it disables itself and says why. -->
         <div class="set-row rt-sep-row">
           <span class="rt-sep-label" data-i18n="rollup_label">Count singles toward their album</span>
-          <div class="rt-sep-seg" role="group">
+          <div class="dc-seg rt-sep-seg" role="group">
             <button type="button" class="rt-sep-btn" data-rollup="off" onclick="setSingleRollupFromUI('off')" data-i18n="rollup_off">Off</button>
             <button type="button" class="rt-sep-btn" data-rollup="modal" onclick="setSingleRollupFromUI('modal')" data-i18n="rollup_modal">Album pages</button>
             <button type="button" class="rt-sep-btn" data-rollup="charts" onclick="setSingleRollupFromUI('charts')" data-i18n="rollup_charts">Pages &amp; charts</button>
@@ -5118,7 +5130,7 @@ function deleteGenreTriggers() {
           </div>
           <div class="sh-group">
             <div class="sh-group-title" data-i18n="ig_format">Format</div>
-            <div class="sh-seg" id="skFormatBtns">
+            <div class="dc-seg dc-seg-fill sh-seg" id="skFormatBtns">
               <button class="sh-seg-btn" data-fmt="post" onclick="setSkFormat('post')" data-i18n="sh_fmt_post">Post 1:1</button>
               <button class="sh-seg-btn active" data-fmt="portrait" onclick="setSkFormat('portrait')" data-i18n="sh_fmt_portrait">Portrait 4:5</button>
               <button class="sh-seg-btn" data-fmt="story" onclick="setSkFormat('story')" data-i18n="sh_fmt_story">Story 9:16</button>
@@ -5126,7 +5138,7 @@ function deleteGenreTriggers() {
           </div>
           <div class="sh-group">
             <div class="sh-group-title" data-i18n="sh_quality">Quality</div>
-            <div class="sh-seg" id="skQualityBtns">
+            <div class="dc-seg dc-seg-fill sh-seg" id="skQualityBtns">
               <button class="sh-seg-btn" data-q="1" onclick="setSkQuality(1)" data-i18n="sh_quality_std">Standard</button>
               <button class="sh-seg-btn active" data-q="2" onclick="setSkQuality(2)" data-i18n="sh_quality_high">High</button>
             </div>

@@ -568,6 +568,56 @@
     .dc-btn-icon.dc-btn-sm { width: 26px; }
     .dc-btn:disabled { opacity: 0.45; cursor: default; }
 
+    /* ═══════════════════════════════════════════════════════════════
+       SHARED "PICK ONE" SWITCH — phase 8 step 3
+       .dc-seg on the group; its buttons need no class of their own (the
+       feature classes stay only as JS hooks). The tray look is the one the
+       chart type switch (Songs / Artists / Albums) and the Daily tab already
+       use. Lit = .active or aria-pressed="true", whichever the feature sets.
+       .dc-seg-fill stretches the buttons to share the row (share windows).
+       ═══════════════════════════════════════════════════════════════ */
+    .dc-seg {
+      display: inline-flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 2px;
+      padding: 3px;
+      max-width: 100%;
+      background: var(--raised);
+      border-radius: var(--r-sm);
+    }
+    .dc-seg > button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      height: 28px;
+      padding: 0 var(--sp-3);
+      border: 0;
+      border-radius: calc(var(--r-sm) - 2px);
+      background: transparent;
+      color: var(--text2);
+      font-family: var(--font-sans);
+      font-size: var(--fs-xs);
+      font-weight: 500;
+      line-height: 1;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+    }
+    .dc-seg > button:hover:not(:disabled):not(.is-disabled) { background: var(--hover); color: var(--text); }
+    .dc-seg > button.active,
+    .dc-seg > button[aria-pressed="true"] {
+      background: color-mix(in srgb, var(--accent) 18%, var(--raised));
+      color: var(--accent);
+      font-weight: 600;
+      box-shadow: var(--shadow-1);
+    }
+    .dc-seg > button:disabled,
+    .dc-seg > button.is-disabled { opacity: 0.4; cursor: not-allowed; }
+    .dc-seg-fill { display: flex; }
+    .dc-seg-fill > button { flex: 1 1 auto; min-width: 0; }
+
     /* Layout only — the look comes from .dc-btn above */
     .upcoming-refresh-btn { display: flex; width: fit-content; margin: 0 0.85rem var(--sp-2) auto; }
     .cal-nav-btn { font-size: var(--fs-md); }
@@ -7379,38 +7429,9 @@
       white-space: nowrap;
     }
 
-    .sh-seg {
-      display: flex;
-      gap: 0.3rem;
-      flex-wrap: wrap;
-    }
 
-    .sh-seg-btn {
-      flex: 1 1 auto;
-      min-width: 0;
-      padding: 0.4rem var(--sp-2);
-      border: 1px solid var(--border2);
-      border-radius: var(--r-sm);
-      background: var(--bg3);
-      color: var(--text2);
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      cursor: pointer;
-      white-space: nowrap;
-      transition: all 0.12s;
-    }
 
-    .sh-seg-btn:hover {
-      border-color: var(--accent);
-      color: var(--text);
-    }
 
-    .sh-seg-btn.active {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: var(--on-accent);
-      font-weight: 700;
-    }
 
     .sh-slider-row {
       display: flex;
@@ -7456,8 +7477,7 @@
       gap: 0.6rem;
       margin-top: 0.6rem;
     }
-    .ra-pager .sh-seg-btn { flex: 0 0 auto; min-width: 2.2rem; font-size: var(--fs-sm); }
-    .ra-pager .sh-seg-btn:disabled { opacity: 0.35; cursor: default; }
+    .ra-pager .dc-btn { font-size: var(--fs-sm); }
     .ra-pager-label {
       font-family: var(--font-sans);
       font-size: var(--fs-xs);
@@ -7529,29 +7549,8 @@
       flex-shrink: 0;
     }
 
-    .sh-mini-btn {
-      padding: 0.2rem 0.45rem;
-      border: 1px solid var(--border2);
-      border-radius: var(--r-xs);
-      background: var(--bg3);
-      color: var(--text3);
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      cursor: pointer;
-      transition: all 0.12s;
-    }
 
-    .sh-mini-btn:hover {
-      border-color: var(--accent);
-      color: var(--text);
-    }
 
-    .sh-mini-btn.active {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: var(--on-accent);
-      font-weight: 700;
-    }
 
     .sh-textarea {
       width: 100%;
@@ -7683,40 +7682,10 @@
       color: var(--text3);
     }
 
-    .graphs-ctrl-btns {
-      display: flex;
-      gap: var(--sp-1);
-      flex-wrap: wrap;
-    }
 
-    .graphs-btn {
-      background: none;
-      border: 1px solid var(--border2);
-      color: var(--text2);
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      padding: 0.22rem 0.7rem;
-      border-radius: var(--r-xs);
-      cursor: pointer;
-      transition: background 0.12s, color 0.12s;
-    }
 
-    .graphs-btn.active {
-      background: var(--accent);
-      color: var(--on-accent);
-      border-color: var(--accent);
-      font-weight: 700;
-    }
 
-    .graphs-btn:not(.active):hover {
-      color: #fff;
-      font-weight: 700;
-      border-color: var(--accent);
-    }
 
-    body.yellow .graphs-btn.active {
-      color: #1a1a00;
-    }
 
     .graph-card {
       background: var(--bg2);
@@ -8000,33 +7969,15 @@
     }
 
     /* EVENTS SECTION VIEW TOGGLE BUTTONS */
-    .ev-view-btns {
-      display: flex;
-      gap: 2px;
-      flex-shrink: 0;
-    }
-    .ev-view-btn {
-      -webkit-appearance: none;
-      appearance: none;
-      background: none;
-      border: 1px solid var(--border);
-      border-radius: var(--r-xs);
-      color: var(--text3);
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      padding: 0.12rem var(--sp-2);
-      cursor: pointer;
-      transition: color 0.15s, background 0.15s, border-color 0.15s;
-    }
-    .ev-view-btn:hover { background: var(--border); color: var(--text); }
-    .ev-view-btn.active { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+    .ev-view-btns { flex-shrink: 0; }
 
     @media (max-width: 768px) {
+      /* own line under the section title, lined up with the title text */
       .ev-view-btns {
         order: 10;
         flex-basis: 100%;
-        gap: var(--sp-1);
-        padding-left: calc(18px + var(--sp-4));
+        max-width: max-content;
+        margin-left: calc(18px + var(--sp-4));
       }
     }
 
@@ -8179,19 +8130,6 @@
       font-size: var(--fs-xs);
       color: var(--text3);
     }
-    .ev-list-sort-btn {
-      background: none;
-      border: 1px solid var(--border);
-      border-radius: var(--r-xs);
-      color: var(--text3);
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      padding: 0.1rem var(--sp-2);
-      cursor: pointer;
-      transition: color 0.15s, background 0.15s, border-color 0.15s;
-    }
-    .ev-list-sort-btn:hover { background: var(--border); color: var(--text); }
-    .ev-list-sort-btn.active { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
     .ev-list-items { display: flex; flex-direction: column; }
     .ev-list-row {
       display: grid;
@@ -8363,35 +8301,10 @@
       gap: var(--sp-1);
     }
 
-    .cal-view-btns {
-      display: flex;
-      gap: 2px;
-      margin-left: auto;
-    }
+    .cal-view-btns { margin-left: auto; }
 
-    .cal-view-btn {
-      background: none;
-      border: 1px solid var(--border);
-      border-radius: var(--r-xs);
-      color: var(--text3);
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      font-weight: bold;
-      padding: 0.1rem 0.45rem 0.15rem;
-      cursor: pointer;
-      transition: color 0.15s, background 0.15s, border-color 0.15s;
-    }
 
-    .cal-view-btn:hover {
-      background: var(--border);
-      color: var(--text1);
-    }
 
-    .cal-view-btn.active {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: var(--on-accent);
-    }
 
 
 
@@ -9318,35 +9231,9 @@
     }
 
     /* Segmented control for track order */
-    .export-seg {
-      display: inline-flex;
-      padding: 3px;
-      gap: 2px;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: var(--r-full);
-    }
 
-    .export-seg-btn {
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      font-weight: 600;
-      padding: 0.3rem 0.8rem;
-      border: 0;
-      border-radius: var(--r-full);
-      background: none;
-      color: var(--text3);
-      cursor: pointer;
-      transition: background var(--t-fast), color var(--t-fast);
-    }
 
-    .export-seg-btn:hover { color: var(--text); }
 
-    .export-seg-btn[aria-pressed="true"] {
-      background: var(--surface);
-      color: var(--text);
-      box-shadow: var(--shadow-1);
-    }
 
     /* Album switch (a <label> wrapping a visually hidden checkbox) */
     .export-switch {
@@ -10330,19 +10217,6 @@
       color: var(--text3);
       margin-right: 0.2rem;
     }
-    .alb-sort-btn {
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      padding: var(--sp-1) 0.6rem;
-      border: 1px solid var(--border);
-      border-radius: var(--r-xs);
-      background: var(--bg3);
-      color: var(--text3);
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .alb-sort-btn:hover { color: var(--text); border-color: var(--accent); }
-    .alb-sort-btn.active { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
     /* "Share tracks" — pushed to the right end of the sort bar, opens the track plays share card. */
     .alb-share-btn { margin-left: auto; }
 
@@ -12699,10 +12573,6 @@
       }
 
       /* Events view toggle buttons: compact size on small phones */
-      .ev-view-btn {
-        padding: 0.2rem 0.65rem;
-        font-size: var(--fs-xs);
-      }
 
       /* Album modal tracks: hide date columns so table fits within modal width,
          preventing the expanded track panel from overflowing horizontally */
@@ -18112,13 +17982,7 @@
       justify-content: space-between;
     }
 
-    .cwall-filter-btns,
-    .cwall-sort-btns {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.3rem;
-      align-items: center;
-    }
+    .cwall-sort-btns { display: flex; flex-wrap: wrap; gap: 0.3rem; align-items: center; }
 
     .cwall-sort-label {
       font-family: var(--font-sans);
@@ -18127,30 +17991,8 @@
       margin-right: 0.1rem;
     }
 
-    .cwall-btn {
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      padding: var(--sp-1) 0.65rem;
-      border-radius: var(--r-xs);
-      border: 1px solid var(--border2);
-      background: var(--bg2);
-      color: var(--text3);
-      cursor: pointer;
-      transition: background 0.12s, color 0.12s, border-color 0.12s;
-      white-space: nowrap;
-    }
 
-    .cwall-btn:hover {
-      background: var(--surface);
-      color: var(--text);
-      border-color: var(--accent);
-    }
 
-    .cwall-btn.active {
-      background: var(--accent);
-      color: var(--on-accent);
-      border-color: var(--accent);
-    }
 
     /* The direction arrow, drawn only on the sort in force. Its box is held
        open on all four buttons so the row keeps its widths when the active one
@@ -22277,37 +22119,10 @@ body[class*="-light"] .hero-stats [class*="hero-stat--streak-"] .hero-val {
 }
 
 /* ─── TIME MACHINE TICKER ────────────────────────────────────── */
-.tm-toggle-btns {
-  display: flex;
-  gap: 5px;
-  margin-left: 10px;
-  flex-shrink: 0;
-}
+.tm-toggle-btns { margin-left: 10px; flex-shrink: 0; }
 
-.tm-type-btn {
-  font-family: var(--font-sans);
-  font-size: var(--fs-xs);
-  font-weight: 700;
-  padding: 0.2rem 0.6rem;
-  border: 1px solid var(--border);
-  border-radius: var(--r-xs);
-  background: none;
-  color: var(--text3);
-  cursor: pointer;
-  opacity: 0.5;
-  transition: color 0.15s, border-color 0.15s, opacity 0.15s;
-}
 
-.tm-type-btn:hover {
-  opacity: 0.85;
-  color: var(--text2);
-}
 
-.tm-type-btn.active {
-  color: var(--gold1);
-  border-color: var(--gold1);
-  opacity: 1;
-}
 
 /* The Time Machine and the Soundtrack reel share this chrome. Neither is a CSS
    marquee any more: both are scrolled from JS by the shared reel engine (see
@@ -27316,27 +27131,7 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
   flex-wrap: wrap;
 }
 
-.st-period-nav {
-  display: flex;
-  gap: 0;
-  border: 1px solid var(--border);
-  border-radius: var(--r-full);
-  overflow: hidden;
-  background: var(--bg2);
-}
 
-.st-period-btn {
-  font-family: var(--font-sans);
-  font-size: var(--fs-xs);
-  padding: 0.4rem 0.9rem;
-  background: transparent;
-  color: var(--text2);
-  border: none;
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s;
-}
-.st-period-btn.active { background: var(--accent); color: var(--on-accent); font-weight: 700; }
-.st-period-btn:hover:not(.active) { background: var(--bg3); color: var(--text1); }
 
 .st-nav-bar {
   display: flex;
@@ -34690,31 +34485,10 @@ body.red-light .modal-rank-card--year .mrc-rank {
   color: var(--text2);
 }
 
-.rt-sep-seg {
-  display: inline-flex;
-  flex-shrink: 0;
-  border: 1px solid var(--border);
-  border-radius: var(--r-full);
-  overflow: hidden;
-}
+.rt-sep-seg { flex-shrink: 0; }
 
-.rt-sep-btn {
-  padding: 0.22rem 0.7rem;
-  border: none;
-  background: transparent;
-  color: var(--text3);
-  font-family: var(--font-sans);
-  font-size: var(--fs-xs);
-  cursor: pointer;
-  transition: color 0.18s ease, background 0.18s ease;
-}
 
-.rt-sep-btn:hover { color: var(--text2); }
 
-.rt-sep-btn.active {
-  background: var(--accent);
-  color: var(--on-accent);
-}
 
 .rt-sep-hint {
   margin-top: 0.55rem;
@@ -34723,12 +34497,7 @@ body.red-light .modal-rank-card--year .mrc-rank {
 /* The charts level of the roll-up needs singles separated, so it sits there
    visibly unavailable rather than vanishing — the row would otherwise change
    shape depending on a setting three lines above it. */
-.rt-sep-btn.is-disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
 
-.rt-sep-btn.is-disabled:hover { color: var(--text3); }
 
 /* Says the album total counted its singles. A quiet chip beside the release
    controls: the number above it is not the one the user would get by adding
@@ -34988,39 +34757,11 @@ body.red-light .modal-rank-card--year .mrc-rank {
   display: none;
 }
 
-.creel-filter-btns {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.3rem;
-  align-items: center;
-}
 
 /* Same chip as the Certifications Wall's filter buttons — the two controls do
    the same job on the same plaques, so they should not look like two ideas. */
-.creel-btn {
-  font-family: var(--font-sans);
-  font-size: var(--fs-xs);
-  padding: var(--sp-1) 0.65rem;
-  border-radius: var(--r-xs);
-  border: 1px solid var(--border2);
-  background: var(--bg2);
-  color: var(--text3);
-  cursor: pointer;
-  transition: background 0.12s, color 0.12s, border-color 0.12s;
-  white-space: nowrap;
-}
 
-.creel-btn:hover {
-  background: var(--surface);
-  color: var(--text);
-  border-color: var(--accent);
-}
 
-.creel-btn.active {
-  background: var(--accent);
-  color: var(--on-accent);
-  border-color: var(--accent);
-}
 
 /* The count rides a step quieter than its label — it is the supporting fact,
    not the name of the button. On the active chip it inherits the accent's own
@@ -35542,17 +35283,6 @@ body.red-light .modal-rank-card--year .mrc-rank {
       flex-wrap: wrap;
       margin: var(--sp-4) 0 0.4rem;
     }
-    .rt-mode-btn {
-      padding: 0.3rem 0.8rem;
-      border: 1px solid var(--border2);
-      background: var(--bg3);
-      color: var(--text2);
-      border-radius: var(--r-sm, 5px);
-      font-size: var(--fs-xs);
-      font-weight: 700;
-      cursor: pointer;
-    }
-    .rt-mode-btn.active { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
     .rt-mode-hint { font-size: var(--fs-xs); color: var(--text3); flex: 1 1 100%; }
 
     /* ── Tabs (album aspects / tracks) ──────────────────────────── */
@@ -35813,7 +35543,7 @@ body.red-light .modal-rank-card--year .mrc-rank {
       flex-wrap: wrap;
       margin: 1.1rem 0 0.6rem;
     }
-    .rt-lib-filter, .rt-lib-sort { display: flex; gap: 0.3rem; flex-wrap: wrap; }
+    
 
     .rt-lib-table { display: flex; flex-direction: column; gap: 1px; max-height: 520px; overflow-y: auto; }
     .rt-lib-row {
@@ -39350,14 +39080,6 @@ body.navy-light .sk-t-eternal, body.purple-light .sk-t-eternal, body.yellow-ligh
 /* On fire: segmented type switch in the sticky toolbar */
 .sk-fire-toolbar { flex-wrap: wrap; align-items: center; }
 .sk-fire-toolbar .sk-filter { min-width: 120px; }
-.sk-seg { display: inline-flex; background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-sm); padding: 2px; }
-.sk-seg-btn {
-  display: inline-flex; align-items: center; gap: 0.3rem; background: none; border: 0; cursor: pointer;
-  color: var(--text3); font-family: var(--font-sans); font-size: var(--fs-xs); padding: 0.2rem 0.55rem; border-radius: var(--r-xs);
-}
-.sk-seg-btn:hover { color: var(--text); }
-.sk-seg-btn.active { background: var(--surface); color: var(--text); }
-.sk-seg-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .sk-seg-ct { font-family: var(--font-mono); font-size: 0.65rem; opacity: 0.7; }
 .sk-fire-list { padding: 0.2rem 0.9rem var(--sp-3); }
 .sk-fire-none { padding: var(--sp-4) 1.4rem; }

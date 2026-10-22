@@ -24840,8 +24840,8 @@ function _albSortBarHTML(criterion) {
     `<button class="alb-sort-btn${criterion === s ? ' active' : ''}" data-sort="${s}" onclick="sortAlbumTracksBy('${s}')">${
       s === 'plays' ? 'Most Played' : s === 'rank' ? 'Chart Rank' : s === 'firstPlayed' ? 'Discovered First' : 'Recently Played'
     }</button>`).join('');
-  return `<div class="alb-sort-bar"><span class="alb-sort-label">Sort:</span>${btns}
-    <button class="alb-sort-btn alb-share-btn" onclick="tpOpenCard()">${esc(t('tp_card_open'))}</button></div>`;
+  return `<div class="alb-sort-bar"><span class="alb-sort-label">Sort:</span><div class="dc-seg">${btns}</div>
+    <button class="dc-btn dc-btn-normal dc-btn-sm alb-share-btn" onclick="tpOpenCard()">${esc(t('tp_card_open'))}</button></div>`;
 }
 
 function _sortAlbTracks(tracks, criterion, crY, crM, crW, allTimeSPM) {
@@ -25492,7 +25492,7 @@ function openArtistModal(artistName) {
   // "Share songs" opens the track plays share card for this artist's most
   // played songs (tpOpenArtistCard — "ALBUM TRACK PLAYS SHARE CARD").
   document.getElementById('modalSongs').innerHTML =
-    `<div class="alb-sort-bar"><button class="alb-sort-btn alb-share-btn" onclick="tpOpenArtistCard(${esc(JSON.stringify(artistName))})">${esc(t('tp_card_open_artist'))}</button></div>` +
+    `<div class="alb-sort-bar"><button class="dc-btn dc-btn-normal dc-btn-sm alb-share-btn" onclick="tpOpenArtistCard(${esc(JSON.stringify(artistName))})">${esc(t('tp_card_open_artist'))}</button></div>` +
     mcsSection('♦', 'All-Time Chart', allTimeSongs.length, 'songs', allTimeSongsHTML) +
     mcsSection('📅', 'Yearly Charts', yearlySongsData.length, 'songs', yearlySongsHTML) +
     mcsSection('📆', 'Monthly Charts', monthlySongsData.length, 'songs', monthlySongsHTML) +
@@ -28561,14 +28561,14 @@ function renderCertifications(data) {
           placeholder="${esc(t('cwall_search_ph'))}" value="${esc(certWallSearch)}">
       </div>
       <div class="cwall-filter-row">
-        <div class="cwall-filter-btns">
+        <div class="dc-seg cwall-filter-btns">
           <button class="cwall-btn${certWallFilter==='all'?' active':''}" data-cwall-filter="all">${esc(t('cwall_all'))}</button>
           <button class="cwall-btn${certWallFilter==='song'?' active':''}" data-cwall-filter="song">${esc(t('cwall_songs'))}</button>
           <button class="cwall-btn${certWallFilter==='album'?' active':''}" data-cwall-filter="album">${esc(t('cwall_albums'))}</button>
         </div>
         <div class="cwall-sort-btns">
           <span class="cwall-sort-label">${esc(t('cwall_sort'))}</span>
-          ${CWALL_SORTS.map(s => `<button class="cwall-btn cwall-sort-btn${certWallSort===s.key?' active':''}" data-cwall-sort="${s.key}">${esc(t(s.label))}<span class="cwall-dir"></span></button>`).join('')}
+          <div class="dc-seg">${CWALL_SORTS.map(s => `<button class="cwall-btn cwall-sort-btn${certWallSort===s.key?' active':''}" data-cwall-sort="${s.key}">${esc(t(s.label))}<span class="cwall-dir"></span></button>`).join('')}</div>
         </div>
       </div>
     </div>
@@ -30383,9 +30383,9 @@ function _evList(gridEl, sectionKey, items) {
       `<span class="ev-list-type">${esc(item.typeLabel)}</span></div>`;
   }).join('');
   gridEl.innerHTML =
-    `<div class="ev-list-sort"><span class="ev-list-sort-lbl">Sort:</span>` +
+    `<div class="ev-list-sort"><span class="ev-list-sort-lbl">Sort:</span><div class="dc-seg">` +
     `<button class="ev-list-sort-btn${sort === 'date' ? ' active' : ''}" onclick="sortEvListView('${esc(sectionKey)}','date')">Date</button>` +
-    `<button class="ev-list-sort-btn${sort === 'artist' ? ' active' : ''}" onclick="sortEvListView('${esc(sectionKey)}','artist')">Artist</button></div>` +
+    `<button class="ev-list-sort-btn${sort === 'artist' ? ' active' : ''}" onclick="sortEvListView('${esc(sectionKey)}','artist')">Artist</button></div></div>` +
     `<div class="ev-list-items">${rows}</div>`;
 }
 
@@ -36566,7 +36566,7 @@ function openStreakModal(opts) {
   const fireCounts = { all: fireAll.length, artist: activeArtists.length, album: activeAlbums.length, song: activeSongs.length };
   const fireHtml = `<div class="sk-fire" id="skFire">` +
     `<div class="sk-toolbar sk-fire-toolbar">` +
-      `<div class="sk-seg" role="group" aria-label="${esc(t('sk_fire_show'))}">` +
+      `<div class="dc-seg sk-seg" role="group" aria-label="${esc(t('sk_fire_show'))}">` +
         ['all', 'artist', 'album', 'song'].map(k =>
           `<button type="button" class="sk-seg-btn" data-skf="${k}">${esc(t('sk_fire_' + k))}<span class="sk-seg-ct">${fireCounts[k]}</span></button>`).join('') +
       `</div>` +
@@ -37361,7 +37361,7 @@ function _skHmGenHTML() {
 
   // ── Controls: type switch · range dropdown · colour themes ────
   const availYears = [...new Set(allDates.map(d => d.slice(0, 4)))].sort().reverse();
-  const typeSeg = `<div class="sk-seg" role="group" aria-label="${esc(t('sk_fire_show'))}">` +
+  const typeSeg = `<div class="dc-seg sk-seg" role="group" aria-label="${esc(t('sk_fire_show'))}">` +
     ['all', 'artist', 'song', 'album'].map(k =>
       `<button type="button" class="sk-seg-btn${_skHmType === k ? ' active' : ''}" aria-pressed="${_skHmType === k}" onclick="_skHmSetType('${k}')">${esc(t('sk_fire_' + k))}</button>`).join('') +
     `</div>`;
@@ -52049,8 +52049,10 @@ function _ratingSongEditorHTML(view) {
     </div>
 
     <div class="rt-mode-switch">
+      <div class="dc-seg">
       <button class="rt-mode-btn${quick ? '' : ' active'}" onclick="ratingSetSongMode(${esc(JSON.stringify(key))},'detailed')">Detailed</button>
       <button class="rt-mode-btn${quick ? ' active' : ''}" onclick="ratingSetSongMode(${esc(JSON.stringify(key))},'quick')">Quick</button>
+      </div>
       <span class="rt-mode-hint">${quick ? 'One gut score, no breakdown.' : 'Score each craft criterion; the total is their weighted average.'}</span>
     </div>
 
@@ -54975,11 +54977,11 @@ function renderRatingsGraphSection() {
     ${_ratingsDistributionHTML(items)}
 
     <div class="rt-lib-controls">
-      <div class="rt-lib-filter">
+      <div class="dc-seg rt-lib-filter">
         <button class="graphs-btn${_ratingsLibFilter === 'albums' ? ' active' : ''}" onclick="ratingsLibSetFilter('albums')">Albums <span class="rt-tab-count">${albums.length}</span></button>
         <button class="graphs-btn${_ratingsLibFilter === 'songs' ? ' active' : ''}" onclick="ratingsLibSetFilter('songs')">Songs <span class="rt-tab-count">${songs.length}</span></button>
       </div>
-      <div class="rt-lib-sort">
+      <div class="dc-seg rt-lib-sort">
         <button class="graphs-btn${_ratingsLibSort === 'score' ? ' active' : ''}" onclick="ratingsLibSetSort('score')">Score${arrow('score')}</button>
         <button class="graphs-btn${_ratingsLibSort === 'plays' ? ' active' : ''}" onclick="ratingsLibSetSort('plays')">Plays${arrow('plays')}</button>
         <button class="graphs-btn${_ratingsLibSort === 'recent' ? ' active' : ''}" onclick="ratingsLibSetSort('recent')">Rated${arrow('recent')}</button>
