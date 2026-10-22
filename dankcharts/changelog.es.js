@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Records has a side menu":
+    ["Récords tiene un menú lateral",
+     "Las dos filas de pestañas de Récords son ahora un menú en el lado izquierdo de la página que sigue a la vista mientras te desplazas. Está dividido en Récords de listas y Récords de escuchas, y cada opción muestra cuántas listas de récords tiene. En pantallas anchas la página de Récords es un poco más ancha, así que las tablas mantienen todo su ancho. En móviles y tabletas las pestañas son un solo desplegable Sección que muestra dónde estás. Funciona con Last.fm, Google Sheets y archivos CSV."],
+
   "A calmer top of the Records page":
     ["La parte de arriba de Récords, más tranquila",
      "El recuadro grande Semanal / Mensual / Anual de la parte de arriba de Récords es ahora una sola línea pequeña bajo el título, así que las pestañas y tus récords aparecen antes. Récords de valoración ya no se repite al final (y en algunas pestañas al principio) de cada página de Récords: ahora está en Resumen, debajo de las tarjetas de récords, con iconos sencillos en lugar de emojis. Funciona con Last.fm, Google Sheets y archivos CSV."],

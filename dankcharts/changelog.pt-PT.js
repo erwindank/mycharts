@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Records has a side menu":
+    ["Recordes tem um menu lateral",
+     "As duas filas de separadores de Recordes são agora um menu do lado esquerdo da página que continua visível enquanto deslizas. Está dividido em Recordes dos tops e Recordes de reproduções, e cada item mostra quantas listas de recordes tem. Em ecrãs largos a página de Recordes fica um pouco mais larga, por isso as tabelas mantêm a largura toda. No telemóvel e no tablet os separadores passam a ser um único menu Secção que mostra onde estás. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
+
   "A calmer top of the Records page":
     ["O topo da página de Recordes mais calmo",
      "O quadro grande Semanal / Mensal / Anual no topo de Recordes é agora uma linha pequena por baixo do título, por isso os separadores e os teus recordes aparecem mais cedo. Recordes de avaliação já não se repete no fim (e em alguns separadores no início) de cada página de Recordes: está agora na Visão geral, por baixo dos cartões de recordes, com ícones simples em vez de emojis. Funciona com Last.fm, Google Sheets e ficheiros CSV."],

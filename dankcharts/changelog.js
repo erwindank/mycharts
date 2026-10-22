@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 267;
+const DC_CL_I18N_V = 268;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-22', t: 'design', a: 'records', h: 'd2973b9',
+    title: "Records has a side menu",
+    detail: "The two rows of Records sub-tabs are now a menu down the left side of the page that stays in view while you scroll. It is split into Chart records and Play records, and each item shows how many record lists it holds. On wide screens the Records page gets a little wider, so the tables keep their full width. On phones and tablets the sub-tabs are one Section dropdown that shows where you are. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-22', t: 'design', a: 'records', h: 'f0240e9',
     title: "A calmer top of the Records page",
     detail: "The big Weekly / Monthly / Yearly box at the top of Records is now one small line under the title, so the sub-tabs and your records come up sooner. Rating Records no longer repeats at the bottom (and on some sub-tabs the top) of every Records page: it now lives on Overview, under the record cards, with simple icons in place of the emoji. Works with Last.fm, Google Sheets and CSV uploads." },
