@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Tables in Records, Raw Data and Events match":
+    ["As tabelas de Recordes, Dados brutos e Eventos combinam",
+     "As tabelas de Recordes, Dados brutos, a visualização em tabela de Eventos e as janelas de músicas, álbuns e artistas agora têm o mesmo estilo de cabeçalho, o mesmo espaçamento de células e as mesmas linhas e destaque de linha. Recordes mantém as tabelas emolduradas com cabeçalhos que continuam à vista ao rolar. Funciona com Last.fm, Google Sheets e arquivos CSV."],
+
   "Cards and panels share one look":
     ["Cartões e painéis têm a mesma aparência",
      "Os painéis do site, como os gráficos de Estatísticas, o Guia das paradas, o resumo de Recordes e suas playlists, agora têm um só estilo de cartão, e os cartões que ficam dentro de outro painel (cartões de eventos, Máquina do tempo, categorias de Prêmios, os blocos da janela de boas-vindas) são um tom mais escuros para parecerem aninhados. Os cartões \"Do momento\" mantêm a aparência. Funciona com Last.fm, Google Sheets e arquivos CSV."],

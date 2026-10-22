@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 260;
+const DC_CL_I18N_V = 261;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-22', t: 'design', a: 'records', h: 'f530656',
+    title: "Tables in Records, Raw Data and Events match",
+    detail: "The tables in Records, Raw Data, the Events table view and the song, album and artist windows now share one header style, the same cell spacing and the same row lines and hover highlight. Records keeps its framed tables with headers that stay in view as you scroll. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-22', t: 'design', a: 'ui', h: 'd82b8f9',
     title: "Cards and panels share one look",
     detail: "Panels across the site, like the Stats graphs, the Charts Guide, the Records overview and your playlists, now share one card style, and cards that sit inside another panel (event cards, Time Machine, Awards categories, the welcome window's tiles) are one shade darker so they read as nested. The \"Of the moment\" cards keep their look. Works with Last.fm, Google Sheets and CSV uploads." },

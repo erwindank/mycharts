@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Tables in Records, Raw Data and Events match":
+    ["Las tablas de Récords, Datos sin procesar y Eventos coinciden",
+     "Las tablas de Récords, Datos sin procesar, la vista de tabla de Eventos y las ventanas de canciones, álbumes y artistas comparten ahora el mismo estilo de encabezado, el mismo espaciado de celdas y las mismas líneas y resaltado de filas. Récords conserva sus tablas enmarcadas con encabezados que siguen a la vista al desplazarte. Funciona con Last.fm, Google Sheets y archivos CSV."],
+
   "Cards and panels share one look":
     ["Las tarjetas y los paneles comparten un mismo aspecto",
      "Los paneles de todo el sitio, como los gráficos de Estadísticas, la Guía de listas, el resumen de Récords y tus listas de reproducción, comparten ahora un mismo estilo de tarjeta, y las tarjetas que están dentro de otro panel (tarjetas de eventos, Máquina del tiempo, categorías de Premios, los recuadros de la ventana de bienvenida) son un tono más oscuras para que se vean anidadas. Las tarjetas \"Del momento\" conservan su aspecto. Funciona con Last.fm, Google Sheets y archivos CSV."],
