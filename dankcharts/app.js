@@ -34868,8 +34868,9 @@ function renderHeroStats() {
   if (!el || !allPlays.length) return;
   // Retired 2026-10-21: the All-Time stats banner (renderStatsHero) shows all
   // four of these now, so the old card stays hidden. Kept in case it's wanted back.
+  // The day streak below is still worked out here, though: the now strip's
+  // "Listening streak" (renderNowStripDayStreak) depends on it.
   el.style.display = 'none';
-  return;
 
   const total = allPlays.length;
 
@@ -34877,14 +34878,6 @@ function renderHeroStats() {
     const d = tzDateOf(p);
     return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
   }));
-
-  const artistCounts = {};
-  for (const p of allPlays) {
-    for (const a of p.artists) {
-      artistCounts[a] = (artistCounts[a] || 0) + 1;
-    }
-  }
-  const topArtist = Object.entries(artistCounts).sort((a, b) => b[1] - a[1])[0];
 
   // Consecutive day streak ending today (or yesterday if today has no plays yet)
   const daySet = days;
@@ -34910,6 +34903,21 @@ function renderHeroStats() {
     if (toNum(prevD) === sortedDays[i]) { pbCur++; if (pbCur > pb) pb = pbCur; }
     else pbCur = 1;
   }
+
+  // The day streak lives in the now strip (it used to be the card's fifth tile)
+  renderNowStripDayStreak(streak, pb);
+  renderNowStripDayMore(sortedDays, streak, pb, toNum(now));
+
+  // Everything below builds the retired card — stop here while it's retired
+  return;
+
+  const artistCounts = {};
+  for (const p of allPlays) {
+    for (const a of p.artists) {
+      artistCounts[a] = (artistCounts[a] || 0) + 1;
+    }
+  }
+  const topArtist = Object.entries(artistCounts).sort((a, b) => b[1] - a[1])[0];
 
   const avgPerDay = Math.round(total / days.size);
 
@@ -34986,9 +34994,6 @@ function renderHeroStats() {
     }
     requestAnimationFrame(frame);
   });
-
-  renderNowStripDayStreak(streak, pb);
-  renderNowStripDayMore(sortedDays, streak, pb, toNum(now));
 }
 
 /* Now strip day streak (#nsDayStreak in index.html). Moved out of the
