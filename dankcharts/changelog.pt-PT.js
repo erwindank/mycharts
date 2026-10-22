@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "A calmer top of the Records page":
+    ["O topo da página de Recordes mais calmo",
+     "O quadro grande Semanal / Mensal / Anual no topo de Recordes é agora uma linha pequena por baixo do título, por isso os separadores e os teus recordes aparecem mais cedo. Recordes de avaliação já não se repete no fim (e em alguns separadores no início) de cada página de Recordes: está agora na Visão geral, por baixo dos cartões de recordes, com ícones simples em vez de emojis. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
+
   "Weekly, Monthly and Yearly tabs in Records look right again":
     ["Os separadores Semanal, Mensal e Anual de Recordes voltaram ao normal",
      "Em Perfect All Kill e algumas outras secções de Recordes, os separadores Semanal / Mensal / Anual apareciam como botões cinzentos do navegador depois da mudança de estilo dos separadores. Agora usam os mesmos separadores do resto de Recordes. Funciona com Last.fm, Google Sheets e ficheiros CSV."],

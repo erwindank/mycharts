@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "A calmer top of the Records page":
+    ["O topo da página de Recordes mais calmo",
+     "O quadro grande Semanal / Mensal / Anual no topo de Recordes agora é uma linha pequena embaixo do título, então as abas e os seus recordes aparecem antes. Recordes de avaliação não se repete mais no final (e em algumas abas no início) de toda página de Recordes: agora fica na Visão geral, embaixo dos cartões de recordes, com ícones simples no lugar dos emojis. Funciona com Last.fm, Google Sheets e arquivos CSV."],
+
   "Weekly, Monthly and Yearly tabs in Records look right again":
     ["As abas Semanal, Mensal e Anual de Recordes voltaram ao normal",
      "Em Perfect All Kill e algumas outras seções de Recordes, as abas Semanal / Mensal / Anual apareciam como botões cinza do navegador depois da mudança de estilo das abas. Agora usam as mesmas abas do resto de Recordes. Funciona com Last.fm, Google Sheets e arquivos CSV."],

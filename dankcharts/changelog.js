@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 266;
+const DC_CL_I18N_V = 267;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-22', t: 'design', a: 'records', h: 'f0240e9',
+    title: "A calmer top of the Records page",
+    detail: "The big Weekly / Monthly / Yearly box at the top of Records is now one small line under the title, so the sub-tabs and your records come up sooner. Rating Records no longer repeats at the bottom (and on some sub-tabs the top) of every Records page: it now lives on Overview, under the record cards, with simple icons in place of the emoji. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-22', t: 'fix', a: 'records', h: '0147742',
     title: "Weekly, Monthly and Yearly tabs in Records look right again",
     detail: "In Perfect All Kill and a few other Records sections, the Weekly / Monthly / Yearly tabs showed up as plain grey browser buttons after the tab restyle. They now use the same tabs as the rest of Records. Works with Last.fm, Google Sheets and CSV uploads." },

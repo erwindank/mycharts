@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "A calmer top of the Records page":
+    ["La parte de arriba de Récords, más tranquila",
+     "El recuadro grande Semanal / Mensual / Anual de la parte de arriba de Récords es ahora una sola línea pequeña bajo el título, así que las pestañas y tus récords aparecen antes. Récords de valoración ya no se repite al final (y en algunas pestañas al principio) de cada página de Récords: ahora está en Resumen, debajo de las tarjetas de récords, con iconos sencillos en lugar de emojis. Funciona con Last.fm, Google Sheets y archivos CSV."],
+
   "Weekly, Monthly and Yearly tabs in Records look right again":
     ["Las pestañas Semanal, Mensual y Anual de Récords vuelven a verse bien",
      "En Perfect All Kill y algunas otras secciones de Récords, las pestañas Semanal / Mensual / Anual aparecían como botones grises del navegador tras el cambio de estilo de las pestañas. Ahora usan las mismas pestañas que el resto de Récords. Funciona con Last.fm, Google Sheets y archivos CSV."],
