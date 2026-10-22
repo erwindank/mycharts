@@ -1628,7 +1628,10 @@ const imgCache = {}; // key → url string or null
 // burned through the whole day's quota in minutes. It stays pickable by hand
 // (image picker, source button), and an item already set to YouTube still
 // tries it first.
-const AUTO_IMG_SOURCES = ['deezer', 'itunes', 'lastfm'];
+// 'caa' (Cover Art Archive, songs / albums) and 'wiki' (Wikipedia, artists)
+// come last: the rare item the first three don't have (phase 8 step 10).
+// Each getter answers null at once for the type it doesn't cover.
+const AUTO_IMG_SOURCES = ['deezer', 'itunes', 'lastfm', 'caa', 'wiki'];
 
 // The order to try sources in. Always from Deezer down: a remembered iTunes or
 // Last.fm source is only where the last automatic search ended up, and it
@@ -1713,6 +1716,8 @@ function srcLabel(s) {
   if (s === 'deezer') return 'Deezer';
   if (s === 'youtube') return YOUTUBE_KEY ? 'YouTube' : 'YT (no key)';
   if (s === 'custom') return 'Custom';
+  if (s === 'caa') return 'Cover Art';   // Cover Art Archive, short for the source button
+  if (s === 'wiki') return 'Wikipedia';
   return '—';
 }
 
@@ -4015,10 +4020,91 @@ async function _imgJson(url) {
   return r.json();
 }
 
+/* ── Last-resort picture sources (phase 8 step 10) ─────────────────────
+   Tried only after Deezer, iTunes and Last.fm all came back empty, so they
+   only cost anything for the rare item none of those has.
+   'caa'  — songs and albums: MusicBrainz finds the release group, the Cover
+            Art Archive has its front cover. Strong on small and obscure
+            releases. Free, no key.
+   'wiki' — artists: the photo on the artist's English Wikipedia page. Free,
+            no key, CORS-open (origin=*).
+   MusicBrainz allows about one request a second, so its lookups wait in one
+   line here. When the line is already long the lookup counts as a failure
+   (not cached), so a page with many misses fills in over a few visits
+   instead of holding up the image loader. */
+let _mbArtQueue = Promise.resolve();
+let _mbArtWaiting = 0;
+function _mbArtFetch(endpoint) {
+  if (_mbArtWaiting >= 6) return Promise.reject(new Error('mb queue full'));
+  _mbArtWaiting++;
+  const run = _mbArtQueue.then(() => new Promise(r => setTimeout(r, 1100))).then(async () => {
+    const res = await fetch('https://musicbrainz.org/ws/2/' + endpoint, { headers: { 'User-Agent': MB_USER_AGENT } });
+    if (res.status === 429 || res.status === 503 || res.status >= 500) throw new Error('mb busy ' + res.status);
+    return res.ok ? res.json() : null;
+  });
+  _mbArtQueue = run.catch(() => {}).then(() => { _mbArtWaiting--; });
+  return run;
+}
+// Loose name match: case, accents and punctuation don't count
+function _artNorm(s) {
+  return String(s || '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+}
+function _mbQ(s) { return '"' + String(s || '').replace(/["\\]/g, ' ') + '"'; }
+// The front cover the Cover Art Archive holds for a release group, or null
+async function _caaFront(rgId) {
+  const r = await fetch('https://coverartarchive.org/release-group/' + rgId);
+  if (r.status === 404) return null;
+  if (!r.ok) throw new Error('caa ' + r.status);
+  const d = await r.json();
+  const img = (d.images || []).find(i => i.front) || (d.images || [])[0];
+  if (!img) return null;
+  const t = img.thumbnails || {};
+  return (t['500'] || t.large || img.image || '').replace(/^http:/, 'https:') || null;
+}
+async function caaAlbumImage(album, artist) {
+  const a = _artSearchArtist(artist), t = _artSearchTitle(album) || album;
+  const d = await _mbArtFetch('release-group/?fmt=json&limit=5&query=' + encodeURIComponent('releasegroup:' + _mbQ(t) + ' AND artist:' + _mbQ(a)));
+  const want = _artNorm(t), who = _artNorm(a).split(' ')[0];
+  const hit = (d?.['release-groups'] || []).find(g => (g.score || 0) >= 85 && _artNorm(g.title) === want &&
+    (g['artist-credit'] || []).some(c => _artNorm(c.name || c.artist?.name).includes(who)));
+  return hit ? _caaFront(hit.id) : null;
+}
+async function caaTrackImage(track, artist) {
+  const a = _artSearchArtist(artist), t = _artSearchTitle(track) || track;
+  const d = await _mbArtFetch('recording/?fmt=json&limit=5&query=' + encodeURIComponent('recording:' + _mbQ(t) + ' AND artist:' + _mbQ(a)));
+  const want = _artNorm(t), who = _artNorm(a).split(' ')[0];
+  const rec = (d?.recordings || []).find(r => (r.score || 0) >= 85 && _artNorm(r.title) === want &&
+    (r['artist-credit'] || []).some(c => _artNorm(c.name || c.artist?.name).includes(who)));
+  // The first release group it appears on that has a cover
+  for (const rel of (rec?.releases || []).slice(0, 3)) {
+    const rg = rel['release-group']?.id;
+    if (!rg) continue;
+    const url = await _caaFront(rg);
+    if (url) return url;
+  }
+  return null;
+}
+async function wikiArtistImage(artist) {
+  const url = 'https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&redirects=1'
+    + '&generator=search&gsrlimit=5&gsrsearch=' + encodeURIComponent(artist + ' music')
+    + '&prop=pageimages|description&piprop=thumbnail&pithumbsize=500';
+  const r = await fetch(url);
+  if (r.status === 429 || r.status >= 500) throw new Error('wiki busy ' + r.status);
+  if (!r.ok) return null;
+  const pages = Object.values((await r.json())?.query?.pages || {}).sort((x, y) => (x.index || 0) - (y.index || 0));
+  const want = _artNorm(artist);
+  // The page must be about this name (a "(band)" / "(singer)" suffix is fine)
+  // and describe a music act, so a city or a film of the same name is skipped.
+  const hit = pages.find(p => p.thumbnail?.source &&
+    _artNorm(p.title.replace(/\s*\(.*\)$/, '')) === want &&
+    /singer|rapper|band|musician|music|dj|producer|songwriter|group|duo|composer|vocalist|artist/i.test(p.description || ''));
+  return hit ? hit.thumbnail.source : null;
+}
+
 function getArtistImage(artist, source) {
   source = source || 'deezer';
   const k = 'artist:' + artist.toLowerCase() + ':' + source;
-  if (source === 'off') return Promise.resolve(null);
+  if (source === 'off' || source === 'caa') return Promise.resolve(null);
   return _imgLookup(k, async () => {
     if (source === 'itunes') {
       const d = await _imgJson(`https://itunes.apple.com/search?term=${encodeURIComponent(artist)}&entity=musicTrack&limit=5&attribute=artistTerm`);
@@ -4035,6 +4121,7 @@ function getArtistImage(artist, source) {
     }
     if (source === 'deezer') return deezerArtistImage(artist);
     if (source === 'youtube') return ytSearch(artist + ' official');
+    if (source === 'wiki') return wikiArtistImage(artist);
     return null;
   });
 }
@@ -4042,7 +4129,7 @@ function getArtistImage(artist, source) {
 function getAlbumImage(album, artist, source) {
   source = source || 'deezer';
   const k = 'album:' + artist.toLowerCase() + '|||' + album.toLowerCase() + ':' + source;
-  if (source === 'off') return Promise.resolve(null);
+  if (source === 'off' || source === 'wiki') return Promise.resolve(null);
   return _imgLookup(k, async () => {
     // Same reasoning as deezerAlbumImageCandidates: a compilation searches on
     // its title alone, since nothing is credited to "Various Artists".
@@ -4062,6 +4149,8 @@ function getAlbumImage(album, artist, source) {
     }
     if (source === 'deezer') return deezerAlbumImage(album, artist);
     if (source === 'youtube') return ytSearch((comp ? album : artist + ' ' + album) + ' album');
+    // A compilation has no single artist to match the release on
+    if (source === 'caa') return comp ? null : caaAlbumImage(album, artist);
     return null;
   });
 }
@@ -4069,7 +4158,7 @@ function getAlbumImage(album, artist, source) {
 function getTrackImage(track, artist, source) {
   source = source || 'deezer';
   const k = 'track:' + artist.toLowerCase() + '|||' + track.toLowerCase() + ':' + source;
-  if (source === 'off') return Promise.resolve(null);
+  if (source === 'off' || source === 'wiki') return Promise.resolve(null);
   return _imgLookup(k, async () => {
     if (source === 'itunes') {
       const d = await _imgJson(`https://itunes.apple.com/search?term=${encodeURIComponent(artist + ' ' + track)}&entity=musicTrack&limit=5`);
@@ -4086,6 +4175,7 @@ function getTrackImage(track, artist, source) {
     }
     if (source === 'deezer') return deezerTrackImage(track, artist);
     if (source === 'youtube') return ytSearch(artist + ' ' + track);
+    if (source === 'caa') return caaTrackImage(track, artist);
     return null;
   });
 }
