@@ -2662,37 +2662,9 @@
       .lfm-auth-dot.pending { animation: none; }
     }
 
-    .lfm-connect-btn {
-      background: var(--accent);
-      border: none;
-      color: var(--on-accent);
-      padding: 0.35rem 0.9rem;
-      border-radius: var(--r-sm);
-      cursor: pointer;
-      font-size: var(--fs-xs);
-      font-family: inherit;
-      font-weight: 600;
-      transition: opacity 0.15s;
-      white-space: nowrap;
-    }
 
-    .lfm-connect-btn:hover { opacity: 0.85; }
-    .lfm-connect-btn:disabled { opacity: 0.5; cursor: default; }
 
-    .lfm-disconnect-btn {
-      background: none;
-      border: 1px solid var(--border);
-      color: var(--text3);
-      padding: 0.35rem var(--sp-3);
-      border-radius: var(--r-sm);
-      cursor: pointer;
-      font-size: var(--fs-xs);
-      font-family: inherit;
-      transition: background 0.15s, color 0.15s;
-      white-space: nowrap;
-    }
 
-    .lfm-disconnect-btn:hover { background: var(--surface); color: var(--text); }
 
     .lfm-custom-creds {
       margin-top: 0.7rem;
@@ -2720,20 +2692,7 @@
 
     .scrobble-time-row input { flex: 1; }
 
-    .scrobble-now-btn {
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 0.45rem 0.7rem;
-      border-radius: var(--r-sm);
-      cursor: pointer;
-      font-size: var(--fs-sm);
-      font-family: var(--font-sans);
-      transition: background 0.15s;
-      white-space: nowrap;
-    }
 
-    .scrobble-now-btn:hover { background: var(--surface); }
 
     .scrobble-status {
       font-size: var(--fs-sm);
@@ -5573,7 +5532,9 @@
       flex-wrap: wrap;
     }
 
-    .section-collapse-btn {
+    /* Fold (−/+) on the three chart sections only — left out of phase 8 with
+       the charts. Every other fold button is a .dc-btn icon button. */
+    .section-collapse-btn:not(.dc-btn) {
       flex-shrink: 0;
       width: 18px;
       height: 18px;
@@ -5591,7 +5552,7 @@
       transition: background 0.15s, color 0.15s, border-color 0.15s;
     }
 
-    .section-collapse-btn:hover {
+    .section-collapse-btn:not(.dc-btn):hover {
       background: var(--surface);
       color: var(--text);
       border-color: var(--accent);
@@ -6461,22 +6422,7 @@
       flex-wrap: wrap;
     }
 
-    .imgpk-foot-btn {
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      padding: 5px 10px;
-      border: 1px solid var(--border2);
-      border-radius: var(--r-xs);
-      background: var(--surface);
-      color: var(--text2);
-      cursor: pointer;
-      white-space: nowrap;
-    }
 
-    .imgpk-foot-btn:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-    }
 
     .imgpk-url-input {
       flex: 1 1 140px;
@@ -10161,19 +10107,6 @@
       opacity: 0.7;
       margin-top: -0.2rem;
     }
-    .alb-play-btn {
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      color: var(--accent);
-      background: transparent;
-      border: 1px solid rgba(100,200,255,0.25);
-      border-radius: var(--r-xs);
-      padding: var(--sp-1) 11px;
-      cursor: pointer;
-      transition: background 0.15s, border-color 0.15s;
-    }
-    .alb-play-btn:hover { background: rgba(100,200,255,0.1); border-color: rgba(100,200,255,0.5); }
-    .alb-play-btn:disabled { opacity: 0.35; cursor: default; }
     .alb-chart-area {
       display: flex;
       gap: 6px;
@@ -12163,25 +12096,7 @@
       color: var(--text3);
     }
 
-    .raw-clear-btn {
-      background: none;
-      border: 1px solid var(--border2);
-      color: var(--text3);
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      padding: 0.35rem var(--sp-3);
-      border-radius: var(--r-xs);
-      cursor: pointer;
-      white-space: nowrap;
-      transition: background 0.15s, color 0.15s;
-      align-self: end;
-    }
 
-    .raw-clear-btn:hover {
-      background: var(--surface);
-      color: var(--text);
-      border-color: var(--accent);
-    }
 
     .raw-summary {
       font-family: var(--font-sans);
@@ -12348,24 +12263,7 @@
       text-align: center;
     }
 
-    .raw-edit-btn {
-      background: none;
-      border: 1px solid var(--border2);
-      color: var(--text3);
-      font-size: var(--fs-xs);
-      width: 1.5rem;
-      height: 1.5rem;
-      border-radius: var(--r-xs);
-      cursor: pointer;
-      line-height: 1;
-      padding: 0;
-      transition: color 0.15s, border-color 0.15s;
-    }
 
-    .raw-edit-btn:hover {
-      color: var(--accent);
-      border-color: var(--accent);
-    }
 
     .raw-pagination {
       display: flex;
@@ -15278,53 +15176,9 @@
       margin-bottom: 0.3rem;
     }
 
-    .rec-collapse-btn {
-      flex-shrink: 0;
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      border: 1px solid var(--border2);
-      background: none;
-      color: var(--text3);
-      font-size: var(--fs-xs);
-      line-height: 1;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0;
-      transition: background 0.15s, color 0.15s, border-color 0.15s;
-    }
 
-    .rec-collapse-btn:hover {
-      background: var(--surface);
-      color: var(--text);
-      border-color: var(--accent);
-    }
 
-    .rec-subsection-collapse-btn {
-      flex-shrink: 0;
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      border: 1px solid var(--border2);
-      background: none;
-      color: var(--text3);
-      font-size: var(--fs-xs);
-      line-height: 1;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0;
-      transition: background 0.15s, color 0.15s, border-color 0.15s;
-    }
 
-    .rec-subsection-collapse-btn:hover {
-      background: var(--surface);
-      color: var(--text);
-      border-color: var(--accent);
-    }
 
     .rec-section-sub-wrapper {
       margin-bottom: var(--sp-2);
@@ -20119,19 +19973,6 @@ body.purple .landing-card-config input:focus {
 }
 .app-support-bar a { color: var(--text3); }
 .app-support-bar a:hover { color: var(--accent); }
-.app-support-btn {
-  background: none;
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  color: var(--accent);
-  font-family: var(--font-sans);
-  font-size: var(--fs-sm);
-  font-weight: 500;
-  padding: 0.22rem var(--sp-3);
-  cursor: pointer;
-  transition: background 0.15s;
-}
-.app-support-btn:hover { background: var(--bg2); }
 .app-support-sep { color: var(--border); }
 
 /* ── Support note (landing screen) ── */
@@ -32560,19 +32401,7 @@ body.red-light .modal-rank-card--year .mrc-rank {
     }
 
     /* ── Mini button (used across multiple panels) ────────── */
-    .cg-mini-btn {
-      margin-top: auto;
-      padding: 0.35rem 0.7rem;
-      border-radius: var(--r-xs);
-      font-size: var(--fs-xs);
-      font-weight: 600;
-      cursor: pointer;
-      border: 1px solid var(--accent);
-      background: transparent;
-      color: var(--accent);
-      transition: background 0.15s, color 0.15s;
-    }
-    .cg-mini-btn:hover { background: var(--accent); color: var(--on-accent); }
+.cg-mini-btn { margin-top: auto; }
 
     /* ── 3+18 · Dual row (checklist + on this day) ────────── */
     .cg-dual-row {
@@ -33023,21 +32852,6 @@ body.red-light .modal-rank-card--year .mrc-rank {
       gap: var(--sp-2);
       margin-top: 0.2rem;
     }
-    .cg-tour-ctrl {
-      padding: 0.35rem var(--sp-3);
-      border-radius: var(--r-xs);
-      font-size: var(--fs-xs);
-      font-weight: 600;
-      cursor: pointer;
-      border: 1px solid var(--border);
-      background: var(--bg3);
-      color: var(--text);
-      transition: background 0.15s;
-    }
-    .cg-tour-ctrl:hover { background: var(--bg); }
-    .cg-tour-ctrl:disabled { opacity: 0.4; cursor: default; }
-    .cg-tour-next-btn { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
-    .cg-tour-next-btn:hover { opacity: 0.88; background: var(--accent); }
     .cg-tour-end-btn { margin-left: auto; }
 
     /* ── Responsive ──────────────────────────────────────── */
@@ -33268,21 +33082,7 @@ body.red-light .modal-rank-card--year .mrc-rank {
     }
 
     .cg-gate-actions { display: flex; gap: 0.55rem; flex-wrap: wrap; }
-    .cg-gate-btn {
-      flex: 1 1 200px;
-      padding: 0.7rem var(--sp-4);
-      border-radius: var(--r-sm);
-      border: 1px solid var(--border2, var(--border));
-      background: var(--bg3);
-      color: var(--text);
-      font-size: var(--fs-sm);
-      font-weight: 650;
-      cursor: pointer;
-      transition: border-color 0.15s, background 0.15s, transform 0.12s;
-    }
-    .cg-gate-btn:hover { border-color: var(--accent); transform: translateY(-1px); }
-    .cg-gate-btn-primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
-    .cg-gate-btn-primary:hover { background: var(--accent); opacity: 0.9; }
+.cg-gate-btn { flex: 1 1 200px; }
     .cg-gate-skip {
       display: block;
       width: 100%;
@@ -36498,28 +36298,10 @@ body.cp-hide-cert-reel    #certReelSection { display: none !important; }
 .bd-section .section-body { display: flex; flex-direction: column; gap: 14px; }
 
 /* Buttons and inputs */
-.bd-btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-  padding: var(--sp-2) 14px;
-  border-radius: var(--r-md);
-  border: 1px solid var(--border);
-  background: var(--surface2);
-  color: var(--text1);
-  font: inherit; font-size: var(--fs-sm); font-weight: 600;
-  cursor: pointer;
-  transition: background 0.12s, border-color 0.12s, color 0.12s;
-  white-space: nowrap;
-}
-.bd-btn:hover { border-color: var(--accent); }
-.bd-btn:disabled { opacity: 0.55; cursor: default; }
-.bd-btn:focus-visible, .bd-chip:focus-visible, .bd-vote:focus-visible,
+.bd-chip:focus-visible, .bd-vote:focus-visible,
 .bd-seg button:focus-visible, .bd-link:focus-visible, .bd-post-title:focus-visible {
   outline: 2px solid var(--accent); outline-offset: 2px;
 }
-.bd-btn-primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
-.bd-btn-primary:hover { filter: brightness(1.08); }
-.bd-btn-sm { padding: 5px 10px; font-size: var(--fs-xs); }
-.bd-btn-danger:hover { border-color: var(--bd-danger); color: color-mix(in srgb, var(--bd-danger) 75%, var(--text)); }
 
 .bd-input {
   box-sizing: border-box;

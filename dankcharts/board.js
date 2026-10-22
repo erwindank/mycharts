@@ -377,7 +377,7 @@
     // Account strip
     if (!u) {
       h += '<div class="bd-signin"><span>' + esc(tr('board_signin_note')) + '</span>' +
-        '<button type="button" class="bd-btn bd-btn-primary" onclick="dcSignIn()">' + esc(tr('board_signin_btn')) + '</button></div>';
+        '<button type="button" class="dc-btn dc-btn-main" onclick="dcSignIn()">' + esc(tr('board_signin_btn')) + '</button></div>';
     }
 
     // Toolbar: category chips, then search / status / sort / new post
@@ -400,7 +400,7 @@
       ['top', 'new', 'active'].map(function (s) {
         return '<button type="button" class="' + (S.sort === s ? 'active' : '') + '" aria-pressed="' + (S.sort === s) + '" onclick="dcBoard.setSort(\'' + s + '\')">' + esc(tr('board_sort_' + s)) + '</button>';
       }).join('') + '</div>';
-    h += '<button type="button" class="bd-btn bd-btn-primary bd-new-btn" onclick="dcBoard.compose()">＋ ' + esc(tr('board_new')) + '</button>';
+    h += '<button type="button" class="dc-btn dc-btn-main bd-new-btn" onclick="dcBoard.compose()">＋ ' + esc(tr('board_new')) + '</button>';
     h += '</div></div>';
 
     if (S.composing && u) h += composerHTML(null);
@@ -439,7 +439,7 @@
     h += '<div class="bd-composer-foot"><span class="bd-note">' + (post ? '' : esc(tr('board_public_note'))) + '</span>' +
       '<span class="bd-count" data-for="' + pre + 'Body"></span>' +
       '<button type="button" class="bd-btn" onclick="dcBoard.cancelCompose(' + (post ? 'true' : 'false') + ')">' + esc(tr('board_cancel')) + '</button>' +
-      '<button type="submit" class="bd-btn bd-btn-primary"' + (S.busy[post ? 'edit:' + post.id : 'create'] ? ' disabled' : '') + '>' + esc(post ? tr('board_save') : tr('board_post')) + '</button></div>';
+      '<button type="submit" class="dc-btn dc-btn-main"' + (S.busy[post ? 'edit:' + post.id : 'create'] ? ' disabled' : '') + '>' + esc(post ? tr('board_save') : tr('board_post')) + '</button></div>';
     h += '</form>';
     return h;
   }
@@ -489,18 +489,18 @@
     var h = '';
     if ((mine || S.isAdmin) && S.editingId !== p.id) {
       h += '<div class="bd-actions">';
-      if (mine) h += '<button type="button" class="bd-btn bd-btn-sm" onclick="dcBoard.edit(\'' + esc(p.id) + '\')">✎ ' + esc(tr('board_edit')) + '</button>';
-      h += '<button type="button" class="bd-btn bd-btn-sm" onclick="dcBoard.share(\'' + esc(p.id) + '\')">🔗 ' + esc(tr('board_copy_link')) + '</button>';
+      if (mine) h += '<button type="button" class="dc-btn dc-btn-normal dc-btn-sm" onclick="dcBoard.edit(\'' + esc(p.id) + '\')">✎ ' + esc(tr('board_edit')) + '</button>';
+      h += '<button type="button" class="dc-btn dc-btn-normal dc-btn-sm" onclick="dcBoard.share(\'' + esc(p.id) + '\')">🔗 ' + esc(tr('board_copy_link')) + '</button>';
       if (S.isAdmin) {
-        h += '<button type="button" class="bd-btn bd-btn-sm" onclick="dcBoard.pin(\'' + esc(p.id) + '\')">📌 ' + esc(tr(p.pinned ? 'board_unpin' : 'board_pin')) + '</button>';
+        h += '<button type="button" class="dc-btn dc-btn-normal dc-btn-sm" onclick="dcBoard.pin(\'' + esc(p.id) + '\')">📌 ' + esc(tr(p.pinned ? 'board_unpin' : 'board_pin')) + '</button>';
         h += '<label class="bd-status-pick"><span>' + esc(tr('board_status_label')) + '</span><select class="bd-input bd-select" onchange="dcBoard.setPostStatus(\'' + esc(p.id) + '\', this.value)">' +
           STATUSES.map(function (s) { return '<option value="' + s + '"' + ((p.status || 'open') === s ? ' selected' : '') + '>' + esc(statusLabel(s)) + '</option>'; }).join('') +
           '</select></label>';
       }
-      h += '<button type="button" class="bd-btn bd-btn-sm bd-btn-danger" onclick="dcBoard.askDeletePost(\'' + esc(p.id) + '\')">🗑 ' + esc(tr('board_delete')) + '</button>';
+      h += '<button type="button" class="dc-btn dc-btn-plain dc-btn-sm dc-btn-danger" onclick="dcBoard.askDeletePost(\'' + esc(p.id) + '\')">🗑 ' + esc(tr('board_delete')) + '</button>';
       h += '</div>';
     } else if (S.editingId !== p.id) {
-      h += '<div class="bd-actions"><button type="button" class="bd-btn bd-btn-sm" onclick="dcBoard.share(\'' + esc(p.id) + '\')">🔗 ' + esc(tr('board_copy_link')) + '</button></div>';
+      h += '<div class="bd-actions"><button type="button" class="dc-btn dc-btn-normal dc-btn-sm" onclick="dcBoard.share(\'' + esc(p.id) + '\')">🔗 ' + esc(tr('board_copy_link')) + '</button></div>';
     }
 
     var replies = S.replies[p.id];
@@ -526,10 +526,10 @@
       h += '<form class="bd-reply-form" onsubmit="dcBoard.reply(event,\'' + esc(p.id) + '\')">' +
         '<textarea id="bdReplyInput" data-draft class="bd-input bd-textarea" rows="3" maxlength="' + MAX_REPLY + '" placeholder="' + esc(tr('board_reply_ph')) + '" aria-label="' + esc(tr('board_reply_ph')) + '" oninput="dcBoard.count(this)" required></textarea>' +
         '<div class="bd-composer-foot"><span class="bd-note"></span><span class="bd-count" data-for="bdReplyInput"></span>' +
-        '<button type="submit" class="bd-btn bd-btn-primary"' + (S.busy['reply:' + p.id] ? ' disabled' : '') + '>' + esc(tr('board_reply_btn')) + '</button></div></form>';
+        '<button type="submit" class="dc-btn dc-btn-main"' + (S.busy['reply:' + p.id] ? ' disabled' : '') + '>' + esc(tr('board_reply_btn')) + '</button></div></form>';
     } else {
       h += '<div class="bd-signin bd-signin-sm"><span>' + esc(tr('board_signin_reply')) + '</span>' +
-        '<button type="button" class="bd-btn bd-btn-primary bd-btn-sm" onclick="dcSignIn()">' + esc(tr('board_signin_btn')) + '</button></div>';
+        '<button type="button" class="dc-btn dc-btn-main dc-btn-sm" onclick="dcSignIn()">' + esc(tr('board_signin_btn')) + '</button></div>';
     }
     h += '</div>';
     return h;

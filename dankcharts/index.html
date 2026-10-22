@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=589">
+  <link rel="stylesheet" href="style.css?v=590">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -1258,7 +1258,7 @@
          Bubbling Under / Off the Chart / New Entries sections (phase 6). -->
     <div class="chart-section creel-section" id="certReelSection" style="display:none;">
       <div class="section-header">
-        <button class="section-collapse-btn" data-target="certReelSection" data-i18n-title="tooltip_collapse">−</button>
+        <button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon section-collapse-btn" data-target="certReelSection" data-i18n-title="tooltip_collapse">−</button>
         <h2 class="section-title" data-i18n="creel_title">🏆 CERTIFIED THIS PERIOD</h2>
         <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
         <div class="section-rule"></div>
@@ -1542,12 +1542,12 @@
           <input type="text" id="rawFilterDate" placeholder="e.g. 2024 or Mar 2024…"
             data-i18n-placeholder="raw_search_date">
         </div>
-        <button class="raw-clear-btn" id="rawClearBtn" data-i18n="raw_clear">✕ Clear</button>
+        <button class="dc-btn dc-btn-normal dc-btn-sm" id="rawClearBtn" data-i18n="raw_clear">✕ Clear</button>
         <label class="raw-corrected-toggle" title="Show only entries that have been autocorrected by your rules">
           <input type="checkbox" id="rawFilterCorrected">
           <span data-i18n="raw_corrected_only">~ corrected only</span>
         </label>
-        <button class="raw-clear-btn" id="manageRulesBtn" onclick="openRulesModal()" style="margin-left:auto" data-i18n="modal_rules_open_btn">⚙ Auto-correct Rules</button>
+        <button class="dc-btn dc-btn-normal dc-btn-sm" id="manageRulesBtn" onclick="openRulesModal()" style="margin-left:auto" data-i18n="modal_rules_open_btn">⚙ Auto-correct Rules</button>
       </div>
       <div class="raw-summary" id="rawSummary"></div>
       <table class="raw-table">
@@ -1776,7 +1776,7 @@
 
       <div class="chart-section" id="recAllOnesSection">
         <div class="section-header">
-          <button class="section-collapse-btn" data-target="recAllOnesSection"
+          <button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon section-collapse-btn" data-target="recAllOnesSection"
             data-i18n-title="tooltip_collapse">−</button>
           <h2 class="section-header-h2"><svg class="rec-h2-ico" aria-hidden="true" focusable="false"><use
                 href="#ri-ones" /></svg><span data-i18n="rec_all_ones_title">All #1s</span></h2>
@@ -1789,7 +1789,7 @@
 
       <div class="chart-section" id="recPAKSection">
         <div class="section-header">
-          <button class="section-collapse-btn" data-target="recPAKSection" data-i18n-title="tooltip_collapse">−</button>
+          <button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon section-collapse-btn" data-target="recPAKSection" data-i18n-title="tooltip_collapse">−</button>
           <h2 class="section-header-h2"><svg class="rec-h2-ico" aria-hidden="true" focusable="false"><use
                 href="#ri-pak" /></svg><span data-i18n="rec_pak_title">Perfect All Kill</span></h2>
           <div class="section-rule"></div>
@@ -1801,7 +1801,7 @@
 
       <div class="chart-section" id="recAppearancesSection">
         <div class="section-header">
-          <button class="section-collapse-btn" data-target="recAppearancesSection"
+          <button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon section-collapse-btn" data-target="recAppearancesSection"
             data-i18n-title="tooltip_collapse">−</button>
           <h2 class="section-header-h2"><svg class="rec-h2-ico" aria-hidden="true" focusable="false"><use
                 href="#ri-appearances" /></svg><span data-i18n="rec_appearances_title">Most Chart
@@ -1817,7 +1817,7 @@
 
       <div class="chart-section" id="recDebutsSection">
         <div class="section-header">
-          <button class="section-collapse-btn" data-target="recDebutsSection"
+          <button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon section-collapse-btn" data-target="recDebutsSection"
             data-i18n-title="tooltip_collapse">−</button>
           <h2 class="section-header-h2"><svg class="rec-h2-ico" aria-hidden="true" focusable="false"><use
                 href="#ri-debuts" /></svg><span data-i18n="rec_debuts_title">Biggest Debuts</span></h2>
@@ -1831,7 +1831,7 @@
 
       <div class="chart-section" id="recPeakPlaysSection">
         <div class="section-header">
-          <button class="section-collapse-btn" data-target="recPeakPlaysSection"
+          <button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon section-collapse-btn" data-target="recPeakPlaysSection"
             data-i18n-title="tooltip_collapse">−</button>
           <h2 class="section-header-h2"><svg class="rec-h2-ico" aria-hidden="true" focusable="false"><use
                 href="#ri-plays" /></svg><span data-i18n="rec_peak_plays_title">Most Plays in a Period</span></h2>
@@ -1844,7 +1844,7 @@
 
       <div class="chart-section" id="recMilestonesSection">
         <div class="section-header">
-          <button class="section-collapse-btn" data-target="recMilestonesSection"
+          <button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon section-collapse-btn" data-target="recMilestonesSection"
             data-i18n-title="tooltip_collapse">−</button>
           <h2 class="section-header-h2"><svg class="rec-h2-ico" aria-hidden="true" focusable="false"><use
                 href="#ri-milestones" /></svg><span data-i18n="rec_milestones_title">Play Count
@@ -1857,7 +1857,7 @@
 
       <div class="chart-section" id="recFastestSection">
         <div class="section-header">
-          <button class="section-collapse-btn" data-target="recFastestSection"
+          <button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon section-collapse-btn" data-target="recFastestSection"
             data-i18n-title="tooltip_collapse">−</button>
           <h2 class="section-header-h2"><svg class="rec-h2-ico" aria-hidden="true" focusable="false"><use
                 href="#ri-fastest" /></svg><span data-i18n="rec_fastest_title">Fastest to Milestone</span></h2>
@@ -1871,7 +1871,7 @@
 
       <div class="chart-section" id="recCertsSection">
         <div class="section-header">
-          <button class="section-collapse-btn" data-target="recCertsSection"
+          <button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon section-collapse-btn" data-target="recCertsSection"
             data-i18n-title="tooltip_collapse">−</button>
           <h2 class="section-header-h2"><svg class="rec-h2-ico" aria-hidden="true" focusable="false"><use
                 href="#ri-certs" /></svg><span data-i18n="rec_certs_title">Certifications Leaderboard</span></h2>
@@ -1888,7 +1888,7 @@
            Filled by renderRatingRecordsSection(). -->
       <div class="chart-section" id="recRatingsSection">
         <div class="section-header">
-          <button class="section-collapse-btn" data-target="recRatingsSection"
+          <button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon section-collapse-btn" data-target="recRatingsSection"
             data-i18n-title="tooltip_collapse">−</button>
           <h2 class="section-header-h2"><span class="rec-h2-emoji">★</span><span data-i18n="rec_ratings_title">Rating Records</span></h2>
           <div class="section-rule"></div>
@@ -1900,7 +1900,7 @@
 
       <div class="chart-section" id="recStreaksSection">
         <div class="section-header">
-          <button class="section-collapse-btn" data-target="recStreaksSection"
+          <button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon section-collapse-btn" data-target="recStreaksSection"
             data-i18n-title="tooltip_collapse">−</button>
           <h2 class="section-header-h2"><svg class="rec-h2-ico" aria-hidden="true" focusable="false"><use
                 href="#ri-streaks" /></svg><span data-i18n="rec_streaks_title">Streak Records</span></h2>
@@ -1913,7 +1913,7 @@
 
       <div class="chart-section" id="recNewChartsSection">
         <div class="section-header">
-          <button class="section-collapse-btn" data-target="recNewChartsSection"
+          <button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon section-collapse-btn" data-target="recNewChartsSection"
             data-i18n-title="tooltip_collapse">−</button>
           <h2 class="section-header-h2"><svg class="rec-h2-ico" aria-hidden="true" focusable="false"><use
                 href="#ri-newcharts" /></svg><span>New Charts Records</span></h2>
@@ -1980,7 +1980,7 @@
            chart period); the Events tab branch in the period switch renders it. -->
       <div class="chart-section" id="timeMachineSection" style="display:none;">
         <div class="section-header">
-          <button class="section-collapse-btn" data-target="timeMachineSection" data-i18n-title="tooltip_collapse">−</button>
+          <button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon section-collapse-btn" data-target="timeMachineSection" data-i18n-title="tooltip_collapse">−</button>
           <h2 class="section-title" data-i18n="time_machine_title">⏳ TIME MACHINE</h2>
           <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
           <div class="section-rule"></div>
@@ -2007,7 +2007,7 @@
 
       <div class="chart-section" id="birthdaysSection">
         <div class="section-header">
-          <button class="section-collapse-btn" data-target="birthdaysSection" title="Collapse">−</button>
+          <button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon section-collapse-btn" data-target="birthdaysSection" title="Collapse">−</button>
           <h2 class="section-header-h2">🎂 Artist Birthdays</h2>
           <span class="section-collapsed-label">collapsed — click + to expand</span>
           <div class="section-rule"></div>
@@ -2029,7 +2029,7 @@
 
       <div class="chart-section" id="anniversariesSection">
         <div class="section-header">
-          <button class="section-collapse-btn" data-target="anniversariesSection" title="Collapse">−</button>
+          <button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon section-collapse-btn" data-target="anniversariesSection" title="Collapse">−</button>
           <h2 class="section-header-h2">🎵 Anniversaries</h2>
           <span class="section-collapsed-label">collapsed — click + to expand</span>
           <div class="section-rule"></div>
@@ -2051,7 +2051,7 @@
 
       <div class="chart-section" id="eventsUpcomingSection">
         <div class="section-header">
-          <button class="section-collapse-btn" data-target="eventsUpcomingSection" title="Collapse">−</button>
+          <button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon section-collapse-btn" data-target="eventsUpcomingSection" title="Collapse">−</button>
           <h2 class="section-header-h2">🆕 Upcoming Releases</h2>
           <span class="section-collapsed-label">collapsed — click + to expand</span>
           <div class="section-rule"></div>
@@ -2070,7 +2070,7 @@
 
       <div class="chart-section" id="eventsRecentSection">
         <div class="section-header">
-          <button class="section-collapse-btn" data-target="eventsRecentSection" title="Collapse">−</button>
+          <button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon section-collapse-btn" data-target="eventsRecentSection" title="Collapse">−</button>
           <h2 class="section-header-h2">📅 Recent Releases</h2>
           <span class="section-collapsed-label">collapsed — click + to expand</span>
           <div class="section-rule"></div>
@@ -2092,7 +2092,7 @@
 
       <div class="chart-section collapsed" id="eventsRecentBirthdaysSection">
         <div class="section-header">
-          <button class="section-collapse-btn" data-target="eventsRecentBirthdaysSection" title="Expand">+</button>
+          <button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon section-collapse-btn" data-target="eventsRecentBirthdaysSection" title="Expand">+</button>
           <h2 class="section-header-h2">🎂 Recent Birthdays</h2>
           <span class="section-collapsed-label">collapsed — click + to expand</span>
           <div class="section-rule"></div>
@@ -2114,7 +2114,7 @@
 
       <div class="chart-section collapsed" id="eventsRecentAnniversariesSection">
         <div class="section-header">
-          <button class="section-collapse-btn" data-target="eventsRecentAnniversariesSection" title="Expand">+</button>
+          <button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon section-collapse-btn" data-target="eventsRecentAnniversariesSection" title="Expand">+</button>
           <h2 class="section-header-h2">🎵 Recent Anniversaries</h2>
           <span class="section-collapsed-label">collapsed — click + to expand</span>
           <div class="section-rule"></div>
@@ -2136,7 +2136,7 @@
 
       <div class="chart-section collapsed" id="nmfSection">
         <div class="section-header">
-          <button class="section-collapse-btn" data-target="nmfSection" title="Expand">+</button>
+          <button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon section-collapse-btn" data-target="nmfSection" title="Expand">+</button>
           <h2 class="section-header-h2">🎧 New Music Friday</h2>
           <span class="section-collapsed-label">collapsed — click + to expand</span>
           <div class="section-rule"></div>
@@ -2167,7 +2167,7 @@
 
       <div class="chart-section collapsed" id="concertsSection" style="display:none;">
         <div class="section-header">
-          <button class="section-collapse-btn" data-target="concertsSection" title="Expand">+</button>
+          <button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon section-collapse-btn" data-target="concertsSection" title="Expand">+</button>
           <h2 class="section-header-h2">🎤 Upcoming Shows</h2>
           <div class="section-rule"></div>
           <div class="ev-view-btns" id="concertsViewBtns">
@@ -2662,8 +2662,8 @@
       </div>
 
       <div class="cg-gate-actions">
-        <button class="cg-gate-btn cg-gate-btn-primary" onclick="dcGateChoose('tour')">▶&nbsp; Show me around <span class="cg-gate-btn-note">2 min</span></button>
-        <button class="cg-gate-btn" onclick="dcGateChoose('guide')">📖&nbsp; Read the Charts Guide</button>
+        <button class="dc-btn dc-btn-main cg-gate-btn" onclick="dcGateChoose('tour')">▶&nbsp; Show me around <span class="cg-gate-btn-note">2 min</span></button>
+        <button class="dc-btn dc-btn-normal cg-gate-btn" onclick="dcGateChoose('guide')">📖&nbsp; Read the Charts Guide</button>
       </div>
       <button class="cg-gate-skip" onclick="dcGateChoose('skip')">Just take me to my charts →</button>
     </div>
@@ -2679,8 +2679,8 @@
       <div class="cg-tour-content" id="cgTourContent"></div>
       <div class="cg-tour-controls">
         <button class="cg-tour-ctrl" id="cgTourPrev" onclick="dcTourStep(-1)">← Prev</button>
-        <button class="cg-tour-ctrl cg-tour-next-btn" id="cgTourNext" onclick="dcTourStep(1)">Next →</button>
-        <button class="cg-tour-ctrl cg-tour-end-btn" onclick="dcEndTour()">✕ End Tour</button>
+        <button class="dc-btn dc-btn-main dc-btn-sm cg-tour-next-btn" id="cgTourNext" onclick="dcTourStep(1)">Next →</button>
+        <button class="dc-btn dc-btn-plain dc-btn-sm cg-tour-end-btn" onclick="dcEndTour()">✕ End Tour</button>
       </div>
     </div>
   </div>
@@ -2690,7 +2690,7 @@
 
   <div class="app-support-bar">
     <span>Questions or issues?</span>
-    <button class="app-support-btn" onclick="openSupport()">Contact Support</button>
+    <button class="dc-btn dc-btn-normal dc-btn-sm" onclick="openSupport()">Contact Support</button>
     <span class="app-support-sep">·</span>
     <a href="mailto:support@dankcharts.fm">support@dankcharts.fm</a>
   </div>
@@ -3680,7 +3680,7 @@
           <span data-i18n="modal_label_datetime">Date &amp; Time</span>
           <div class="scrobble-time-row">
             <input type="datetime-local" id="editScrobbleTime" step="1">
-            <button type="button" class="scrobble-now-btn" onclick="setEditScrobbleNow()" data-i18n="modal_now_btn">Now</button>
+            <button type="button" class="dc-btn dc-btn-normal" onclick="setEditScrobbleNow()" data-i18n="modal_now_btn">Now</button>
           </div>
         </label>
       </div>
@@ -3828,7 +3828,7 @@
           <span data-i18n="modal_label_datetime">Date &amp; Time</span>
           <div class="scrobble-time-row">
             <input type="datetime-local" id="scrobbleTime" step="1">
-            <button type="button" class="scrobble-now-btn" onclick="setScrobbleNow()" data-i18n="modal_now_btn">Now</button>
+            <button type="button" class="dc-btn dc-btn-normal" onclick="setScrobbleNow()" data-i18n="modal_now_btn">Now</button>
           </div>
         </label>
       </div>
@@ -3847,8 +3847,8 @@
   <script defer src="changelog.js?v=326"></script>
   <!-- Community board tab (suggestions / bugs / discussion). Loaded before
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
-  <script defer src="board.js?v=1"></script>
-  <script defer src="app.js?v=463"></script>
+  <script defer src="board.js?v=2"></script>
+  <script defer src="app.js?v=464"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
   <script defer src="replay.js?v=1"></script>
   <!-- All-Time chart stats ("Inside your Top N"); reads app.js globals, so it loads after it -->
@@ -4593,8 +4593,8 @@ function deleteGenreTriggers() {
         <div class="lfm-auth-divider" data-i18n-html="set_lfm_account">Last.fm Account <span class="lfm-optional">(optional)</span></div>
         <div class="lfm-auth-row">
           <span id="lfmAuthStatus" class="lfm-auth-status"><span class="lfm-auth-dot"></span> Not connected</span>
-          <button type="button" id="lfmConnectBtn" class="lfm-connect-btn" onclick="lfmAuthBtnClick()">Connect to Last.fm</button>
-          <button type="button" id="lfmDisconnectBtn" class="lfm-disconnect-btn" onclick="lfmAuthDisconnect()" style="display:none" data-i18n="set_lfm_disconnect">Disconnect</button>
+          <button type="button" id="lfmConnectBtn" class="dc-btn dc-btn-main dc-btn-sm" onclick="lfmAuthBtnClick()">Connect to Last.fm</button>
+          <button type="button" id="lfmDisconnectBtn" class="dc-btn dc-btn-plain dc-btn-sm dc-btn-danger" onclick="lfmAuthDisconnect()" style="display:none" data-i18n="set_lfm_disconnect">Disconnect</button>
         </div>
         <p id="lfmConnectHint" class="src-modal-hint" data-i18n="set_lfm_hint_idle">Lets you add and edit plays from this site, and shows what you're playing right now in the ON AIR bar.</p>
         <details class="lfm-custom-creds set-disclosure">

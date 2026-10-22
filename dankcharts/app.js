@@ -4523,10 +4523,10 @@ function openImgPicker(o) {
       </div>`).join('')}
     </div>
     <div class="imgpk-foot">
-      <button class="imgpk-foot-btn" data-act="auto">${t('imgpk_auto')}</button>
-      <button class="imgpk-foot-btn" data-act="off">${t('imgpk_none')}</button>
+      <button class="dc-btn dc-btn-normal dc-btn-sm" data-act="auto">${t('imgpk_auto')}</button>
+      <button class="dc-btn dc-btn-normal dc-btn-sm" data-act="off">${t('imgpk_none')}</button>
       <input class="imgpk-url-input" type="url" placeholder="${t('imgpk_url_ph')}" spellcheck="false">
-      <button class="imgpk-foot-btn imgpk-url-apply" data-act="custom">${t('imgpk_apply')}</button>
+      <button class="dc-btn dc-btn-main dc-btn-sm imgpk-url-apply" data-act="custom">${t('imgpk_apply')}</button>
     </div>
   </div>`;
 
@@ -12059,7 +12059,7 @@ function setupRecordSubsectionCollapse() {
     header.className = 'rec-section-header';
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = 'rec-collapse-btn';
+    btn.className = 'dc-btn dc-btn-plain dc-btn-sm dc-btn-icon rec-collapse-btn';
     btn.title = 'Collapse';
     btn.setAttribute('aria-expanded', 'true');
     btn.textContent = '−';
@@ -12248,6 +12248,17 @@ document.getElementById('periodNav').addEventListener('click', e => {
     if (bdView) bdView.style.display = 'none';
     if (window.dcBoard) window.dcBoard.hide();
   }
+
+  /* Every tab page comes down here, once; the branch below shows its own.
+     Each branch used to hide the others by hand and some lists were short:
+     Raw Data left Stats, Events and Awards on screen under it, and Stats and
+     Records left Awards. (Playlists shows part of Events again on purpose.) */
+  ['rawDataView', 'graphsView', 'recordsView', 'eventsView', 'awardsView',
+   'soundtrackView', 'playlistsView', 'chartsguideView'].forEach(id => {
+    const v = document.getElementById(id);
+    if (v) v.style.display = 'none';
+  });
+  document.getElementById('eventsView')?.classList.remove('dc-pl-mode');
 
   if (btn.dataset.period === 'rawdata') {
     // Switch to raw data view
@@ -12819,7 +12830,7 @@ function renderRawPage() {
       <td class="raw-title">${esc(p.title)}</td>
       <td>${esc(p.artist)}</td>
       <td class="raw-album">${esc(p.album)}</td>
-      <td class="raw-edit-cell"><button class="raw-edit-btn" title="Edit" onclick="openEditScrobbleModal(${start + i})">✎</button></td>
+      <td class="raw-edit-cell"><button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon" title="Edit" onclick="openEditScrobbleModal(${start + i})">✎</button></td>
     </tr>`;
   }).join('') || `<tr><td colspan="6" style="padding:1rem;color:var(--text3);font-style:italic;font-family:var(--font-sans);font-size:var(--fs-xs);">${t('raw_no_match')}</td></tr>`;
 
@@ -24628,7 +24639,7 @@ function buildAlbumSparklineHTML(albumPlays) {
   return `<div class="alb-sparkline-wrap" id="albSparklineWrap">
     <div class="alb-sparkline-header">
       <div class="alb-sparkline-label">${t('alb_plays_by_month')}</div>
-      <button class="alb-play-btn" onclick="albChartPlay()" title="${t('alb_replay_title')}">${t('alb_replay_btn')}</button>
+      <button class="dc-btn dc-btn-normal dc-btn-sm alb-play-btn" onclick="albChartPlay()" title="${t('alb_replay_title')}">${t('alb_replay_btn')}</button>
     </div>
     <div class="alb-sparkline-hint">${t('alb_chart_hint')}</div>
     <div class="alb-chart-area">
@@ -24765,7 +24776,7 @@ function buildArtistSparklineHTML(artistPlays) {
   return `<div class="alb-sparkline-wrap" id="artSparklineWrap">
     <div class="alb-sparkline-header">
       <div class="alb-sparkline-label">${t('alb_plays_by_month')}</div>
-      <button class="alb-play-btn" onclick="artChartPlay()" title="${t('alb_replay_title')}">${t('alb_replay_btn')}</button>
+      <button class="dc-btn dc-btn-normal dc-btn-sm alb-play-btn" onclick="artChartPlay()" title="${t('alb_replay_title')}">${t('alb_replay_btn')}</button>
     </div>
     <div class="alb-sparkline-hint">${t('alb_chart_hint')}</div>
     <div class="alb-chart-area">
@@ -50754,7 +50765,7 @@ function dcRenderChartsGuideView() {
         <p class="cg-step-text">${srcOk
           ? esc(srcLabel) + ' is connected and ' + n.toLocaleString() + ' plays are loaded.'
           : 'No source is set up yet, so every chart will be empty. Pick Last.fm, a Google Sheet, or a CSV upload.'}</p>
-        <button class="cg-mini-btn" onclick="openSourceModal()">${srcOk ? 'Change source' : 'Set up now'} →</button>
+        <button class="dc-btn dc-btn-normal dc-btn-sm cg-mini-btn" onclick="openSourceModal()">${srcOk ? 'Change source' : 'Set up now'} →</button>
       </div>
     </div>
     <div class="cg-step ${(hasDisplay && hasTz) ? 'done' : 'todo'}">
@@ -50762,7 +50773,7 @@ function dcRenderChartsGuideView() {
       <div class="cg-step-body">
         <div class="cg-step-title">Set your name, timezone and week start</div>
         <p class="cg-step-text">Timezone decides which day a late-night play lands on; week start decides where every weekly chart is cut. ${hasDisplay ? 'Display name set.' : 'Display name not set.'} ${hasTz ? 'Timezone configured.' : 'Using your browser default timezone.'}</p>
-        <button class="cg-mini-btn" onclick="openSourceModal()">Open Settings →</button>
+        <button class="dc-btn dc-btn-normal dc-btn-sm cg-mini-btn" onclick="openSourceModal()">Open Settings →</button>
       </div>
     </div>
     <div class="cg-step ${checks.tour ? 'done' : 'todo'}">
@@ -50770,7 +50781,7 @@ function dcRenderChartsGuideView() {
       <div class="cg-step-body">
         <div class="cg-step-title">Take the guided tour</div>
         <p class="cg-step-text">Eleven steps, about two minutes. It drives the real nav bar so you see each tab as it is described.</p>
-        <button class="cg-mini-btn" onclick="dcStartChartsGuideTour()">Start the tour →</button>
+        <button class="dc-btn dc-btn-normal dc-btn-sm cg-mini-btn" onclick="dcStartChartsGuideTour()">Start the tour →</button>
       </div>
     </div>
   </div>`;
@@ -50785,7 +50796,7 @@ function dcRenderChartsGuideView() {
         <div class="cg-si ${hasDisplay ? 'ok' : 'neutral'}"><span>${hasDisplay ? '✓' : '○'}</span>Display name ${hasDisplay ? 'set' : 'not set (optional)'}</div>
         <div class="cg-si ${hasTz ? 'ok' : 'neutral'}"><span>${hasTz ? '✓' : '○'}</span>Timezone ${hasTz ? 'configured' : 'using browser default'}</div>
       </div>
-      <button class="cg-mini-btn" onclick="openSourceModal()">Open Settings →</button>
+      <button class="dc-btn dc-btn-normal dc-btn-sm cg-mini-btn" onclick="openSourceModal()">Open Settings →</button>
     </div>
     <div class="cg-panel">
       <div class="cg-panel-title">📋 Data quality</div>
@@ -50830,7 +50841,7 @@ function dcRenderChartsGuideView() {
           <div class="cg-tab-head"><span class="cg-tab-icon">${t.icon}</span><span class="cg-tab-name">${esc(t.name)}</span></div>
           <p class="cg-tab-desc">${esc(t.desc)}</p>
           <p class="cg-tab-use"><span>Best for</span> ${esc(t.use)}</p>
-          ${t.period === 'chartsguide' ? `<span class="cg-tab-here">You are here</span>` : `<button class="cg-mini-btn" onclick="${goTab(t.period)}">Open ${esc(t.name)} →</button>`}
+          ${t.period === 'chartsguide' ? `<span class="cg-tab-here">You are here</span>` : `<button class="dc-btn dc-btn-normal dc-btn-sm cg-mini-btn" onclick="${goTab(t.period)}">Open ${esc(t.name)} →</button>`}
         </div>`).join('')}
       </div>
     </div>`;
@@ -50975,7 +50986,7 @@ function dcRenderChartsGuideView() {
     <p>Every change to dankcharts.fm since April 2026 — ${
       typeof DC_CHANGELOG !== 'undefined' ? DC_CHANGELOG.length : ''
     } of them, searchable and filterable by what changed and where.</p>
-    <button class="cg-mini-btn" onclick="openChangelog()">Open the changelog</button>
+    <button class="dc-btn dc-btn-normal dc-btn-sm cg-mini-btn" onclick="openChangelog()">Open the changelog</button>
   </div>`;
 
   const savedFeedback = (() => { try { return localStorage.getItem('dc_guide_feedback') || ''; } catch(e) { return ''; } })();
@@ -50984,7 +50995,7 @@ function dcRenderChartsGuideView() {
     <p class="cg-feedback-intro">Write an idea or a bug here and it is saved in this browser, waiting for you next visit. For anything that needs a reply, use Contact Support at the bottom of the page or email <a href="mailto:support@dankcharts.fm">support@dankcharts.fm</a>.</p>
     <textarea id="cgFeedbackText" class="cg-feedback-textarea" rows="4" placeholder="Your idea or feedback…">${esc(savedFeedback)}</textarea>
     <div class="cg-feedback-row">
-      <button class="cg-mini-btn" onclick="dcGuideSaveFeedback()">Save note</button>
+      <button class="dc-btn dc-btn-normal dc-btn-sm cg-mini-btn" onclick="dcGuideSaveFeedback()">Save note</button>
       <span id="cgFeedbackStatus" class="cg-feedback-status"></span>
     </div>
   </div>`;
