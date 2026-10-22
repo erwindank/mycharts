@@ -22092,11 +22092,22 @@ function shPeakChip(p, peak, size) {
 }
 
 // Movement badge. `compact` renders just the arrow + delta, with no pill.
-function shMove(p, mv, size, compact) {
+// `onArt` is for badges laid over cover art (the Grid template): the usual
+// faint tint vanishes on busy covers, so the pill gets a solid backing in
+// the palette's own background tone (dark or light), which keeps the
+// palette's up/down/new colours at the contrast they were tuned for.
+function shMove(p, mv, size, compact, onArt) {
   if (!mv || !mv.label) return '';
   const col = mv.cls === 'up' ? p.pos : mv.cls === 'down' ? p.neg : mv.cls === 'new' ? p.accent : mv.cls === 're' ? p.gold : p.dim;
   if (compact) {
     return `<span style="font-family:${SH_FONT.mono};font-size:${size}px;font-weight:700;color:${col};letter-spacing:0.03em;white-space:nowrap;line-height:1;">${esc(mv.label)}</span>`;
+  }
+  if (onArt) {
+    return shChip(p, `<b style="font-weight:800;">${esc(mv.label)}</b>`, {
+      size, color: col,
+      bg: p.dark ? 'rgba(12,10,18,0.86)' : 'rgba(255,255,255,0.92)',
+      border: _shA(col, 0.7)
+    });
   }
   return shChip(p, esc(mv.label), { size, color: col });
 }
@@ -22636,7 +22647,7 @@ const SH_CHART_TEMPLATES = {
         <div style="position:absolute;left:0;bottom:0;width:${tile}px;height:${Math.round(tile * 0.45)}px;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,0.78));"></div>
         <div style="position:absolute;left:${Math.round(tile * 0.06)}px;bottom:${Math.round(tile * 0.04)}px;font-family:${SH_FONT.display};font-size:${Math.round(tile * 0.26)}px;font-weight:800;color:#fff;line-height:0.95;text-shadow:0 2px 12px rgba(0,0,0,0.6);">${r.rank}</div>
         ${opts.showPlays ? `<div style="position:absolute;right:${Math.round(tile * 0.06)}px;bottom:${Math.round(tile * 0.07)}px;font-family:${SH_FONT.mono};font-size:${Math.round(tile * 0.095)}px;font-weight:700;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,0.7);">${r.plays.toLocaleString()}</div>` : ''}
-        ${opts.showMovement && r.mv.label ? `<div style="position:absolute;right:${Math.round(tile * 0.055)}px;top:${Math.round(tile * 0.055)}px;">${shMove(p, r.mv, Math.max(11, Math.round(tile * 0.082)))}</div>` : ''}
+        ${opts.showMovement && r.mv.label ? `<div style="position:absolute;right:${Math.round(tile * 0.055)}px;top:${Math.round(tile * 0.055)}px;">${shMove(p, r.mv, Math.max(12, Math.round(tile * 0.09)), false, true)}</div>` : ''}
       </div>
       <div style="height:${capH}px;padding-top:${s(10)}px;overflow:hidden;">
         <div style="font-family:${SH_FONT.sans};font-size:${s(21)}px;font-weight:600;color:${p.text};line-height:1.2;${shClamp(opts.showSubtitle && r.sub ? 1 : 2, s(21), 1.2)}">${esc(r.name)}</div>
