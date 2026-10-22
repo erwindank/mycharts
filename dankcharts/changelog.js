@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 261;
+const DC_CL_I18N_V = 262;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-22', t: 'feature', a: 'records', h: '511a642',
+    title: "The Records reel can be dragged like every other reel",
+    detail: "The moving reel of record cards on the Records overview, and the same reel in an artist's window, now works like the Time Machine, Soundtrack and Events reels: grab it and drag, use the trackpad or the keyboard, and it stays still if your device asks for reduced motion. The Awards poster reel's arrows are now the site's small square buttons. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-22', t: 'design', a: 'records', h: 'f530656',
     title: "Tables in Records, Raw Data and Events match",
     detail: "The tables in Records, Raw Data, the Events table view and the song, album and artist windows now share one header style, the same cell spacing and the same row lines and hover highlight. Records keeps its framed tables with headers that stay in view as you scroll. Works with Last.fm, Google Sheets and CSV uploads." },

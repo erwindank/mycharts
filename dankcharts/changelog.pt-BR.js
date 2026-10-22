@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "The Records reel can be dragged like every other reel":
+    ["O carrossel de Recordes pode ser arrastado como os outros",
+     "O carrossel de cartões de recordes no resumo de Recordes, e o mesmo carrossel na janela de um artista, agora funciona como os da Máquina do tempo, Trilha sonora e Eventos: segure e arraste, use o trackpad ou o teclado, e ele fica parado se o seu dispositivo pede menos movimento. As setas do carrossel de pôsteres de Prêmios agora são os botões quadrados pequenos do site. Funciona com Last.fm, Google Sheets e arquivos CSV."],
+
   "Tables in Records, Raw Data and Events match":
     ["As tabelas de Recordes, Dados brutos e Eventos combinam",
      "As tabelas de Recordes, Dados brutos, a visualização em tabela de Eventos e as janelas de músicas, álbuns e artistas agora têm o mesmo estilo de cabeçalho, o mesmo espaçamento de células e as mesmas linhas e destaque de linha. Recordes mantém as tabelas emolduradas com cabeçalhos que continuam à vista ao rolar. Funciona com Last.fm, Google Sheets e arquivos CSV."],
