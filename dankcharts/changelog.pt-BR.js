@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Travel back in time on the All-Time chart":
+    ["Viaje no tempo na parada de Todos os Tempos",
+     "Todos os Tempos agora pode mostrar como suas paradas estavam em qualquer dia anterior. Use as setas ao lado da data para voltar ou avançar um mês por vez, ou toque na data para escolher qualquer dia desde o seu primeiro play até hoje. As paradas, o banner de estatísticas, a faixa de plays por ano e os dados do Top N passam a contar só os plays até esse dia. Avance até hoje (ou escolha hoje) para ver tudo de novo. Funciona com Last.fm, Google Sheets e arquivos CSV."],
+
   "The All-Time collage follows the chart you're looking at":
     ["A colagem de Todos os Tempos acompanha a parada que você está vendo",
      "Em Todos os Tempos, a colagem de imagens atrás do banner de estatísticas agora combina com a parada abaixo: Músicas mostra as capas das suas músicas mais ouvidas, Artistas as fotos dos seus artistas principais e Álbuns seus álbuns principais. Se você separa singles ou EPs dos álbuns, os botões Álbuns / Singles / EPs / Tudo também mudam a colagem. Os outros períodos continuam mostrando capas de álbuns. Funciona com Last.fm, Google Sheets e arquivos CSV."],

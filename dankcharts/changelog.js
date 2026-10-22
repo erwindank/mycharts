@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 241;
+const DC_CL_I18N_V = 242;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-21', t: 'feature', a: 'charts', h: '0c25610',
+    title: "Travel back in time on the All-Time chart",
+    detail: "All-Time can now show how your charts looked on any earlier day. Use the arrows next to the date to step back or forward a month at a time, or tap the date to pick any day from your first play to today. The charts, the stats banner, the plays-by-year strip and the Top N insights then count only the plays up to that day. Step forward to today (or pick today) to see everything again. Works with Last.fm, Google Sheets and CSV uploads." },
 
   { d: '2026-10-21', t: 'design', a: 'charts',
     title: "The All-Time collage follows the chart you're looking at",

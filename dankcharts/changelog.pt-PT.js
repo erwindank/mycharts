@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Travel back in time on the All-Time chart":
+    ["Viaje no tempo na tabela de Sempre",
+     "Sempre pode agora mostrar como as suas tabelas estavam em qualquer dia anterior. Use as setas ao lado da data para recuar ou avançar um mês de cada vez, ou toque na data para escolher qualquer dia desde o seu primeiro play até hoje. As tabelas, o banner de estatísticas, a faixa de plays por ano e os dados do Top N passam a contar só os plays até esse dia. Avance até hoje (ou escolha hoje) para voltar a ver tudo. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
+
   "The All-Time collage follows the chart you're looking at":
     ["A colagem de Sempre acompanha a tabela que está a ver",
      "Em Sempre, a colagem de imagens por trás do banner de estatísticas corresponde agora à tabela por baixo: Músicas mostra as capas das suas músicas mais ouvidas, Artistas as fotos dos seus artistas principais e Álbuns os seus álbuns principais. Se separar singles ou EPs dos álbuns, os botões Álbuns / Singles / EPs / Tudo também mudam a colagem. Os outros períodos continuam a mostrar capas de álbuns. Funciona com Last.fm, Google Sheets e ficheiros CSV."],

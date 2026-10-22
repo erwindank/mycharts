@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Travel back in time on the All-Time chart":
+    ["Viaja en el tiempo en la lista Histórico",
+     "Histórico ahora puede mostrar cómo eran tus listas en cualquier día anterior. Usa las flechas junto a la fecha para retroceder o avanzar un mes cada vez, o toca la fecha para elegir cualquier día desde tu primera reproducción hasta hoy. Las listas, el banner de estadísticas, la barra de reproducciones por año y los datos del Top N cuentan entonces solo las reproducciones hasta ese día. Avanza hasta hoy (o elige hoy) para volver a verlo todo. Funciona con Last.fm, Google Sheets y archivos CSV."],
+
   "The All-Time collage follows the chart you're looking at":
     ["El collage de Histórico sigue a la lista que estás viendo",
      "En Histórico, el collage de imágenes detrás del banner de estadísticas ahora coincide con la lista de debajo: Canciones muestra las portadas de tus canciones más escuchadas, Artistas las fotos de tus artistas principales y Álbumes tus álbumes principales. Si separas los sencillos o los EPs de los álbumes, los botones Álbumes / Sencillos / EPs / Todo también cambian el collage. Los otros periodos siguen mostrando portadas de álbumes. Funciona con Last.fm, Google Sheets y archivos CSV."],

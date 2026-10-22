@@ -4586,7 +4586,7 @@ const TRANSLATIONS = {
     period_alltime: 'Histórico',
     period_alltime_sub: 'Cada reproducción desde tu primer scrobble',
     period_alltime_asof: 'Cada reproducción hasta el {{date}}',
-    tooltip_alltime_asof: 'Ver el All-Time tal como estaba en una fecha',
+    tooltip_alltime_asof: 'Ver el Histórico tal como estaba en una fecha',
     period_week_of: 'Semana del {{date}}',
     period_year_months: 'Enero – Diciembre {{year}}',
 
@@ -7838,7 +7838,7 @@ const TRANSLATIONS = {
     period_alltime: 'Histórico',
     period_alltime_sub: 'Cada play desde o seu primeiro scrobble',
     period_alltime_asof: 'Cada play até {{date}}',
-    tooltip_alltime_asof: 'Ver o All-Time como estava numa data',
+    tooltip_alltime_asof: 'Ver o Histórico como estava em uma data',
     period_week_of: 'Semana de {{date}}',
     period_year_months: 'Janeiro – Dezembro {{year}}',
 
@@ -11091,7 +11091,7 @@ const TRANSLATIONS = {
     period_alltime: 'De Sempre',
     period_alltime_sub: 'Cada play desde o seu primeiro scrobble',
     period_alltime_asof: 'Cada play até {{date}}',
-    tooltip_alltime_asof: 'Ver o All-Time como estava numa data',
+    tooltip_alltime_asof: 'Ver De Sempre como estava numa data',
     period_week_of: 'Semana de {{date}}',
     period_year_months: 'Janeiro – Dezembro {{year}}',
 
