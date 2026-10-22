@@ -10785,7 +10785,8 @@ function recFillReelTrack(track, records, idPrefix) {
         + esc(d.label) + '</span> ' + esc(d.value) + '</span>';
     }).join('<span class="rec-hero-card-meta-sep">·</span>');
 
-    return '<div class="rec-hero-card rec-hero-card-' + type + (rec.isCert ? ' rec-hero-card-cert' : '') + '">'
+    // the second copy is only there for the wrap (see dcMountReel)
+    return '<div class="rec-hero-card rec-hero-card-' + type + (rec.isCert ? ' rec-hero-card-cert' : '') + (suffix === 'b' ? ' dcreel-dupe' : '') + '">'
       + (rec.rank ? '<div class="rec-hero-card-rank">' + esc(rec.rank) + '</div>' : '')
       + '<div class="rec-hero-card-head">'
       + '<div class="rec-hero-card-art' + (type === 'artist' ? ' rec-hero-card-art-round' : '') + '" id="' + imgId + '">'
@@ -10809,8 +10810,11 @@ function recFillReelTrack(track, records, idPrefix) {
      instead of racing. 6 rather than the Time Machine's 5, because these cards
      are 288px against the ticker's 148: at a matched seconds-per-card the reel
      would travel twice the distance in the same time, which is what made it
-     read as fast. 6s lands it near the Events reels, around 50px/s. */
-  track.style.animationDuration = Math.max(20, cards.length * 6) + 's';
+     read as fast. 6s lands it near the Events reels, around 50px/s.
+     Was the last CSS marquee; now the shared reel engine, like the Time
+     Machine, Soundtrack and Events reels, so it can be grabbed and dragged
+     and holds still for reduced motion the same way. */
+  dcMountReel(track.parentElement, track, Math.max(20, cards.length * 6));
 
   /* Card artwork. Fetched directly in small batches rather than through
      loadImages(), because the reel is in constant motion and its
@@ -29247,8 +29251,9 @@ function initCertReel() {
    second copy is what makes the loop seamless — subtracting one copy's width
    the moment the scroll passes it lands on a pixel-identical frame.
 
-   Users: the Time Machine ticker, the Soundtrack reel, and every Events
-   section's "Reel" view. */
+   Users: the Time Machine ticker, the Soundtrack reel, every Events
+   section's "Reel" view, and the Records reel (overview + artist window,
+   phase 8 step 8). */
 
 // Per-viewport state, keyed off the element so a re-render can update the
 // measurements without the listeners being attached a second time.
@@ -42138,7 +42143,7 @@ function _awardsRenderArtCard(cat, catData, year, idx, view, idp, queue) {
   const chev = d => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${d}"/></svg>`;
   const head = view === 'reel'
     ? _awardsCatHeadHtml(cat, count, `<div class="aw-reel-actions">${actions}${f.entries.length > 1
-        ? `<button class="aw-reel-nav" onclick="awardsReelScroll(this,-1)" aria-label="Scroll back">${chev('M15 18l-6-6 6-6')}</button><button class="aw-reel-nav" onclick="awardsReelScroll(this,1)" aria-label="Scroll forward">${chev('M9 18l6-6-6-6')}</button>`
+        ? `<button class="dc-btn dc-btn-normal dc-btn-sm dc-btn-icon aw-reel-nav" onclick="awardsReelScroll(this,-1)" aria-label="Scroll back">${chev('M15 18l-6-6 6-6')}</button><button class="dc-btn dc-btn-normal dc-btn-sm dc-btn-icon aw-reel-nav" onclick="awardsReelScroll(this,1)" aria-label="Scroll forward">${chev('M9 18l6-6-6-6')}</button>`
         : ''}</div>`)
     : _awardsCatHeadHtml(cat, count);
   const foot = (view === 'reel' || !actions) ? '' : `<div class="awards-cat-footer">${actions}</div>`;

@@ -12881,18 +12881,6 @@
       gap: 10px;
       padding: var(--sp-1) 0;
       width: max-content;
-      animation: rec-hero-scroll linear infinite;
-    }
-
-    /* Duration is set inline per deck size, so the pace stays constant
-       (~4s per card) whether the artist holds 9 records or 900. */
-    @keyframes rec-hero-scroll {
-      from { transform: translateX(0); }
-      to   { transform: translateX(-50%); }
-    }
-
-    .rec-hero-reel:hover .rec-hero-track {
-      animation-play-state: paused;
     }
 
     /* Wide enough for the record's own figures — a certification says its tier
@@ -13200,19 +13188,6 @@
       overflow: hidden;
     }
 
-    /* An endlessly moving element is exactly what this preference is for. The
-       marquee stops and becomes an ordinary horizontal scroller, so every card
-       is still reachable. */
-    @media (prefers-reduced-motion: reduce) {
-      .rec-hero-track {
-        animation: none;
-        width: auto;
-      }
-
-      .rec-hero-reel {
-        overflow-x: auto;
-      }
-    }
 
     /* The same reel inside the artist modal. --hc is set on .rec-hero and does
        not reach here, so the cards' rank disc, spotlight and figure labels
@@ -23634,22 +23609,8 @@ body[class*="-light"] .tm-card-search:hover {
   margin-left: auto;
 }
 .aw-reel-actions .awards-cat-action-btn { flex: none; }
-.aw-reel-nav {
-  flex: none;
-  width: 28px;
-  height: 28px;
-  display: grid;
-  place-items: center;
-  padding: 0;
-  border: 1px solid var(--border);
-  border-radius: 50%;
-  background: var(--surface3);
-  color: var(--text2);
-  cursor: pointer;
-  transition: color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
-}
+.aw-reel-nav { flex: none; }
 .aw-reel-nav svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.aw-reel-nav:hover { color: var(--text1); border-color: var(--cat-hue); }
 @media (hover: none) { .aw-reel-nav { display: none; } }
 .aw-reel-track {
   display: grid;
@@ -23661,8 +23622,9 @@ body[class*="-light"] .tm-card-search:hover {
   overscroll-behavior-x: contain;
   scroll-snap-type: x mandatory;
   scroll-padding: 0 6px;
-  scrollbar-width: thin;
+  scrollbar-width: none;
 }
+.aw-reel-track::-webkit-scrollbar { display: none; }
 .aw-poster {
   min-width: 0;
   display: flex;
@@ -34570,7 +34532,8 @@ body.red-light .modal-rank-card--year .mrc-rank {
 .dcreel.dcreel-static .dcreel-dupe { display: none; }
 
 .dcreel.dcreel-static .tm-ticker-track,
-.dcreel.dcreel-static .ev-carousel-track {
+.dcreel.dcreel-static .ev-carousel-track,
+.dcreel.dcreel-static .rec-hero-track {
   margin-inline: auto;
 }
 
