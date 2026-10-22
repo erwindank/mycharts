@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=577">
+  <link rel="stylesheet" href="style.css?v=578">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -2627,43 +2627,45 @@
        on a Weekly chart with no idea what the other eleven tabs did. This
        gate makes reading the guide the default path instead of a discovery.
        It is deliberately not dismissible by backdrop click or Esc — the only
-       ways out are the three buttons, all of which record the visit. -->
+       ways out are its buttons and shortcut tiles, all of which record the visit. -->
   <div id="cgWelcomeGate" class="cg-gate" style="display:none" role="dialog" aria-modal="true" aria-labelledby="cgGateTitle">
     <div class="cg-gate-box">
-      <div class="cg-gate-kicker">Welcome to</div>
-      <h2 class="cg-gate-title" id="cgGateTitle">dank<span class="cg-gate-title-2">charts</span><span class="cg-gate-fm">.fm</span></h2>
-      <p class="cg-gate-sub">Every song you've ever played, turned into real charts — weekly, monthly, yearly and all-time, with movement, peaks and chart runs. Here's the short version before you dive in.</p>
+      <!-- Header: wordmark on the left, live source status on the right -->
+      <div class="cg-gate-head">
+        <h2 class="cg-gate-title" id="cgGateTitle">dank<span class="cg-gate-title-2">charts</span><span class="cg-gate-fm">.fm</span></h2>
+        <span class="cg-gate-src" id="cgGateSrc"><span class="cg-gate-src-dot"></span><span id="cgGateSrcNote">Connect a source to begin</span></span>
+      </div>
+      <p class="cg-gate-hook">Your listening, <span class="cg-gate-hook-em">charted like a real countdown.</span></p>
+      <p class="cg-gate-sub">Every play becomes a weekly, monthly, yearly and all-time chart — with climbers, debuts, peaks, records and awards.</p>
 
-      <ol class="cg-gate-steps">
-        <li class="cg-gate-step" id="cgGateStep1">
-          <span class="cg-gate-num">1</span>
-          <span class="cg-gate-step-text">
-            <strong>Connect your listening history</strong>
-            <em id="cgGateSrcNote">Last.fm, a Google Sheet, or a CSV upload — your data, your choice.</em>
-          </span>
-          <span class="cg-gate-state" id="cgGateSrcState"></span>
-        </li>
-        <li class="cg-gate-step">
-          <span class="cg-gate-num">2</span>
-          <span class="cg-gate-step-text">
-            <strong>Learn what the twelve tabs do</strong>
-            <em>Six chart views on the top row, six insight views below them.</em>
-          </span>
-        </li>
-        <li class="cg-gate-step">
-          <span class="cg-gate-num">3</span>
-          <span class="cg-gate-step-text">
-            <strong>Explore your own charts</strong>
-            <em>Records, awards, playlists, graphs — all built from your plays.</em>
-          </span>
-        </li>
-      </ol>
+      <!-- Example chart. It reshuffles every few seconds (dcGateDemoTick) so the
+           first thing a new visitor sees is charts actually moving, not a list
+           of instructions. Made-up songs — real plays may still be loading. -->
+      <div class="cg-gate-demo" aria-hidden="true">
+        <div class="cg-gate-demo-head">
+          <span class="cg-gate-demo-label">How a chart moves</span>
+          <span class="cg-gate-demo-week" id="cgGateDemoWeek">Week 1</span>
+        </div>
+        <div class="cg-gate-demo-rows" id="cgGateDemoRows"></div>
+      </div>
+
+      <!-- Shortcuts straight into the most fun views. Icons are copied from the
+           nav bar when the gate opens (dcGateFillTiles), so they always match. -->
+      <div class="cg-gate-jump-label">Jump straight in</div>
+      <div class="cg-gate-tiles">
+        <button class="cg-gate-tile" data-go="week"><span class="cg-gate-tile-ic"></span><strong>Weekly chart</strong><em>This week's top songs</em></button>
+        <button class="cg-gate-tile" data-go="records"><span class="cg-gate-tile-ic"></span><strong>Records</strong><em>Longest #1s, biggest debuts</em></button>
+        <button class="cg-gate-tile" data-go="awards"><span class="cg-gate-tile-ic"></span><strong>Awards</strong><em>Your own award show</em></button>
+        <button class="cg-gate-tile" data-go="soundtrack"><span class="cg-gate-tile-ic"></span><strong>Your Soundtrack</strong><em>Your life in songs</em></button>
+        <button class="cg-gate-tile" data-go="graphs"><span class="cg-gate-tile-ic"></span><strong>Graphs</strong><em>Chart runs over time</em></button>
+        <button class="cg-gate-tile" data-go="alltime"><span class="cg-gate-tile-ic"></span><strong>All-Time</strong><em>Your biggest songs ever</em></button>
+      </div>
 
       <div class="cg-gate-actions">
-        <button class="cg-gate-btn cg-gate-btn-primary" onclick="dcGateChoose('tour')">▶&nbsp; Take the guided tour</button>
-        <button class="cg-gate-btn" onclick="dcGateChoose('guide')">📖&nbsp; Open the Charts Guide</button>
+        <button class="cg-gate-btn cg-gate-btn-primary" onclick="dcGateChoose('tour')">▶&nbsp; Show me around <span class="cg-gate-btn-note">2 min</span></button>
+        <button class="cg-gate-btn" onclick="dcGateChoose('guide')">📖&nbsp; Read the Charts Guide</button>
       </div>
-      <button class="cg-gate-skip" onclick="dcGateChoose('skip')">Skip for now — the guide stays in the nav bar</button>
+      <button class="cg-gate-skip" onclick="dcGateChoose('skip')">Just take me to my charts →</button>
     </div>
   </div>
   <!-- END FIRST-RUN WELCOME GATE -->
@@ -3846,7 +3848,7 @@
   <!-- Community board tab (suggestions / bugs / discussion). Loaded before
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
   <script defer src="board.js?v=1"></script>
-  <script defer src="app.js?v=457"></script>
+  <script defer src="app.js?v=458"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
   <script defer src="replay.js?v=1"></script>
   <!-- All-Time chart stats ("Inside your Top N"); reads app.js globals, so it loads after it -->

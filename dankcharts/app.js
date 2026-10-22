@@ -49485,36 +49485,180 @@ function dcMaybeShowWelcomeGate() {
   const gate = document.getElementById('cgWelcomeGate');
   if (!gate) return;
 
-  /* Step 1 reflects live setup state — someone who just picked a source on the
-     landing screen shouldn't be told to go and pick one. */
-  const configured = !needsOnboarding();
-  const srcLabel   = { lastfm: 'Last.fm', sheets: 'Google Sheets', file: 'CSV upload' }[getDataSource()] || 'Your source';
-  const noteEl     = document.getElementById('cgGateSrcNote');
-  const stateEl    = document.getElementById('cgGateSrcState');
-  const stepEl     = document.getElementById('cgGateStep1');
-  if (configured) {
-    if (noteEl)  noteEl.textContent  = srcLabel + ' is connected — your plays are loading now.';
-    if (stateEl) stateEl.textContent = '✓';
-    if (stepEl)  stepEl.classList.add('done');
-  } else {
-    if (noteEl)  noteEl.textContent  = 'Last.fm, a Google Sheet, or a CSV upload — your data, your choice.';
-    if (stateEl) stateEl.textContent = '';
-    if (stepEl)  stepEl.classList.remove('done');
-  }
-
-  gate.style.display = 'flex';
-  document.body.classList.add('cg-gate-open');
-  setTimeout(() => gate.querySelector('.cg-gate-btn-primary')?.focus(), 80);
+  _dcGateOpen(gate);
 }
 
-/* The only three exits from the gate. Each one records the visit, so the
-   overlay never blocks a second load regardless of which was chosen. */
+/* The live demo ("Play the live demo" on the landing screen) is just the
+   sample Google Sheet loaded as a normal source — recognise it by its id. */
+const _DC_DEMO_SHEET_ID = '1ulWuTKxreKLUWGBEI0g2d5iMgjHu6y02IFzg6A7BzVA';
+function dcIsLiveDemo() {
+  try {
+    return getDataSource() === 'sheets' && (localStorage.getItem('dc_sheet_id') || '').includes(_DC_DEMO_SHEET_ID);
+  } catch (e) { return false; }
+}
+
+/* Shared by the first-run path and the replay button: fill in the parts that
+   depend on who's looking, then show the gate and start the example chart. */
+function _dcGateOpen(gate) {
+  const demo       = dcIsLiveDemo();
+  const configured = !needsOnboarding();
+  const srcLabel   = { lastfm: 'Last.fm', sheets: 'Google Sheets', file: 'CSV upload' }[getDataSource()] || 'Your source';
+  gate.classList.toggle('is-demo', demo);
+
+  // Status pill — someone who just picked a source shouldn't be told to pick one
+  const srcEl  = document.getElementById('cgGateSrc');
+  const noteEl = document.getElementById('cgGateSrcNote');
+  if (srcEl)  srcEl.classList.toggle('on', configured);
+  if (noteEl) noteEl.textContent = demo ? 'Live demo'
+    : configured ? srcLabel + ' connected · loading your plays'
+    : 'Connect a source to begin';
+
+  // Demo visitors are looking at someone else's listening, so the copy says so
+  // and the second button becomes the way to swap in their own history.
+  const hook  = gate.querySelector('.cg-gate-hook');
+  const sub   = gate.querySelector('.cg-gate-sub');
+  const btn2  = gate.querySelector('.cg-gate-actions .cg-gate-btn:not(.cg-gate-btn-primary)');
+  const skip  = gate.querySelector('.cg-gate-skip');
+  if (demo) {
+    if (hook) hook.innerHTML = 'You\'re in the live demo. <span class="cg-gate-hook-em">Every chart here is real.</span>';
+    if (sub)  sub.textContent = 'This is one real listener\'s history, charted week by week since day one. Click around freely — nothing you do here is saved. When you\'re ready, swap in your own Last.fm, Google Sheet or CSV.';
+    if (btn2) { btn2.innerHTML = '🎧&nbsp; Use my own listening'; btn2.setAttribute('onclick', "dcGateChoose('own')"); }
+    if (skip) skip.textContent = 'Just let me explore the demo →';
+  } else {
+    if (hook) hook.innerHTML = 'Your listening, <span class="cg-gate-hook-em">charted like a real countdown.</span>';
+    if (sub)  sub.textContent = 'Every play becomes a weekly, monthly, yearly and all-time chart — with climbers, debuts, peaks, records and awards.';
+    if (btn2) { btn2.innerHTML = '📖&nbsp; Read the Charts Guide'; btn2.setAttribute('onclick', "dcGateChoose('guide')"); }
+    if (skip) skip.textContent = 'Just take me to my charts →';
+  }
+
+  dcGateFillTiles(gate);
+  gate.style.display = 'flex';
+  document.body.classList.add('cg-gate-open');
+  dcGateDemoStart();
+  // preventScroll: on a phone the box is taller than the screen, and focusing
+  // the button would otherwise open the gate scrolled past its own heading
+  setTimeout(() => gate.querySelector('.cg-gate-btn-primary')?.focus({ preventScroll: true }), 80);
+}
+
+/* Shortcut tiles borrow their icons from the nav buttons they lead to, so the
+   welcome window teaches the same pictures the nav bar uses. Wired once. */
+function dcGateFillTiles(gate) {
+  gate.querySelectorAll('.cg-gate-tile').forEach(tile => {
+    const period = tile.dataset.go;
+    const ic = tile.querySelector('.cg-gate-tile-ic');
+    const navIc = document.querySelector('#periodNav button[data-period="' + period + '"] .nav-icon');
+    // Ids inside the icon (gradients, masks) get a suffix: the nav's copies can
+    // sit in a collapsed nav, and url(#id) pointing into a hidden SVG paints nothing.
+    if (ic && navIc && !ic.childElementCount) {
+      ic.innerHTML = navIc.innerHTML
+        .replace(/id="([^"]+)"/g, 'id="$1-gate"')
+        .replace(/url\(#([^)]+)\)/g, 'url(#$1-gate)');
+    }
+    if (!tile._wired) {
+      tile._wired = true;
+      tile.addEventListener('click', () => dcGateChoose('go:' + period));
+    }
+  });
+}
+
+/* ── Example chart ──
+   Five rows out of six made-up songs, cycling through four "weeks". Each tick
+   moves rows to their new slot with a transform, so the climb/fall is visible,
+   and works out the movement tag (▲ ▼ = NEW RE) from the previous week. */
+const _CG_DEMO_SONGS = [
+  { t: 'Glass Summer',    a: 'Neon Harbor' },
+  { t: 'Overpass',        a: 'The Lowlights' },
+  { t: 'Paper Satellites', a: 'Mira Vale' },
+  { t: 'Night Bus Home',  a: 'Coastline Kids' },
+  { t: 'Velvet Static',   a: 'June Arcade' },
+  { t: 'Holding Pattern', a: 'Sable & Fox' },
+];
+// Each week lists song indexes from #1 down; the song left out is off the chart
+const _CG_DEMO_WEEKS = [
+  [0, 1, 2, 3, 4],
+  [2, 0, 5, 1, 3],
+  [2, 5, 0, 4, 1],
+  [5, 2, 3, 0, 4],
+];
+let _cgDemoWeek = 0;
+let _cgDemoTimer = null;
+let _cgDemoEverOn = new Set(); // songs seen on an earlier week, for RE tags
+
+function dcGateDemoStart() {
+  const wrap = document.getElementById('cgGateDemoRows');
+  if (!wrap) return;
+  clearInterval(_cgDemoTimer);
+  _cgDemoWeek = 0;
+  _cgDemoEverOn = new Set();
+  wrap.innerHTML = _CG_DEMO_SONGS.map((s, i) =>
+    '<div class="cg-gate-demo-row" data-i="' + i + '">' +
+      '<span class="cg-gate-demo-pos"></span>' +
+      '<span class="cg-gate-demo-art" style="--h:' + (i * 57 + 200) % 360 + '"></span>' +
+      '<span class="cg-gate-demo-txt"><strong>' + s.t + '</strong><em>' + s.a + '</em></span>' +
+      '<span class="cg-gate-demo-mv"></span>' +
+    '</div>').join('');
+  _dcGateDemoRender(null);
+  // Reduced motion: show week 1 and leave it there
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  _cgDemoTimer = setInterval(() => {
+    const prev = _CG_DEMO_WEEKS[_cgDemoWeek];
+    _cgDemoWeek = (_cgDemoWeek + 1) % _CG_DEMO_WEEKS.length;
+    if (_cgDemoWeek === 0) _cgDemoEverOn = new Set(); // loop restarts the story
+    _dcGateDemoRender(_cgDemoWeek === 0 ? null : prev);
+  }, 2600);
+}
+
+function _dcGateDemoStop() {
+  clearInterval(_cgDemoTimer);
+  _cgDemoTimer = null;
+}
+
+function _dcGateDemoRender(prev) {
+  const wrap = document.getElementById('cgGateDemoRows');
+  if (!wrap) return;
+  const week = _CG_DEMO_WEEKS[_cgDemoWeek];
+  const weekEl = document.getElementById('cgGateDemoWeek');
+  if (weekEl) weekEl.textContent = 'Week ' + (_cgDemoWeek + 1);
+
+  wrap.querySelectorAll('.cg-gate-demo-row').forEach(row => {
+    const i = +row.dataset.i;
+    const rank = week.indexOf(i);
+    const mv = row.querySelector('.cg-gate-demo-mv');
+    if (rank < 0) { row.classList.add('off'); row.style.setProperty('--slot', 5); return; }
+    row.classList.remove('off');
+    row.style.setProperty('--slot', rank);
+    row.querySelector('.cg-gate-demo-pos').textContent = rank + 1;
+    row.classList.toggle('top', rank === 0);
+
+    // Movement against last week — on the very first week everything is a debut
+    let tag = 'new', txt = 'NEW';
+    const was = prev ? prev.indexOf(i) : -1;
+    if (was >= 0) {
+      const d = was - rank;
+      tag = d > 0 ? 'up' : d < 0 ? 'down' : 'same';
+      txt = d > 0 ? '▲' + d : d < 0 ? '▼' + (-d) : '=';
+    } else if (_cgDemoEverOn.has(i)) { tag = 're'; txt = 'RE'; }
+    mv.className = 'cg-gate-demo-mv mv-' + tag;
+    mv.textContent = txt;
+  });
+  week.forEach(i => _cgDemoEverOn.add(i));
+}
+
+/* Every exit from the gate. Each one records the visit, so the overlay never
+   blocks a second load regardless of which was chosen. Modes:
+   skip · guide · tour · own (demo → Settings) · go:<period> (a shortcut tile) */
 function dcGateChoose(mode) {
   try { localStorage.setItem('dc_guide_seen', String(CG_GUIDE_VERSION)); } catch (e) {}
   const gate = document.getElementById('cgWelcomeGate');
   if (gate) gate.style.display = 'none';
   document.body.classList.remove('cg-gate-open');
+  _dcGateDemoStop();
   if (mode === 'skip') return;
+  if (mode === 'own') { if (typeof openSourceModal === 'function') openSourceModal(); return; }
+  if (mode.indexOf('go:') === 0) {
+    document.querySelector('#periodNav button[data-period="' + mode.slice(3) + '"]')?.click();
+    return;
+  }
 
   document.querySelector('#periodNav button[data-period="chartsguide"]')?.click();
   // Let the guide paint before the tour starts driving the nav around
@@ -49525,8 +49669,7 @@ function dcGateChoose(mode) {
 function dcReplayWelcomeGate() {
   const gate = document.getElementById('cgWelcomeGate');
   if (!gate) return;
-  gate.style.display = 'flex';
-  document.body.classList.add('cg-gate-open');
+  _dcGateOpen(gate);
 }
 
 /* ═══════════════════════════════════════════════════════════════════
