@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Filter chips and small tags match across the site":
+    ["Os filtros e as etiquetas pequenas combinam em todo o site",
+     "Os filtros de Eventos (Aniversários, Álbuns, Singles…), os grupos de categorias de Prémios e o mural da comunidade têm agora o mesmo aspeto, com os ativos tingidos na cor do tema. As etiquetas pequenas, como as contagens de sequências, os géneros e a etiqueta \"Auto\" de Prémios, partilham também um estilo discreto. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
+
   "Tabs look the same everywhere, and the \u22ee menu speaks your language":
     ["Os separadores têm o mesmo aspeto em todo o lado e o menu ⋮ fala a tua língua",
      "Os separadores têm agora um só estilo, uma linha sob o separador aberto: em Recordes (Semanal, Mensal, Anual), Prémios, a janela de sequências, a janela de avaliação de álbuns e a janela de partilhar o percurso no top. Os pequenos seletores Músicas / Artistas / Álbuns de Recordes usam o mesmo seletor do resto do site. Os separadores Show, Size e Actions do menu ⋮ de cada top estavam sempre em inglês; agora estão traduzidos (Mostrar, Tamanho, Ações). Funciona com Last.fm, Google Sheets e ficheiros CSV."],

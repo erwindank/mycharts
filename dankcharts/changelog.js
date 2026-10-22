@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 258;
+const DC_CL_I18N_V = 259;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-22', t: 'design', a: 'ui', h: '4c904e5',
+    title: "Filter chips and small tags match across the site",
+    detail: "The filter chips on Events (Birthdays, Albums, Singles\u2026), the Awards category groups and the community board now look the same, with the ones that are on tinted in the theme colour. Small labels like streak counts, genre tags and the Awards \"Auto\" tag share one quiet style too. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-22', t: 'design', a: 'ui', h: '3aedb54',
     title: "Tabs look the same everywhere, and the \u22ee menu speaks your language",
     detail: "Tabs now share one style, a line under the open tab: in Records (Weekly, Monthly, Yearly), Awards, the streaks window, the album rating window and the chart run share window. Records' small Songs / Artists / Albums switches use the same switch as the rest of the site. The Show, Size and Actions tabs in each chart's \u22ee menu were always in English; they're now translated. Works with Last.fm, Google Sheets and CSV uploads." },

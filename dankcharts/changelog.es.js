@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Filter chips and small tags match across the site":
+    ["Los filtros y las etiquetas pequeñas coinciden en todo el sitio",
+     "Los filtros de Eventos (Cumpleaños, Álbumes, Sencillos…), los grupos de categorías de Premios y el tablón de la comunidad tienen ahora el mismo aspecto, con los activos teñidos del color del tema. Las etiquetas pequeñas, como los recuentos de rachas, los géneros y la etiqueta \"Auto\" de Premios, comparten también un estilo discreto. Funciona con Last.fm, Google Sheets y archivos CSV."],
+
   "Tabs look the same everywhere, and the \u22ee menu speaks your language":
     ["Las pestañas se ven igual en todas partes y el menú ⋮ habla tu idioma",
      "Las pestañas comparten ahora un mismo estilo, una línea bajo la pestaña abierta: en Récords (Semanal, Mensual, Anual), Premios, la ventana de rachas, la ventana de valoración de álbumes y la ventana para compartir el recorrido en la lista. Los pequeños selectores Canciones / Artistas / Álbumes de Récords usan el mismo selector que el resto del sitio. Las pestañas Show, Size y Actions del menú ⋮ de cada lista estaban siempre en inglés; ahora están traducidas (Mostrar, Tamaño, Acciones). Funciona con Last.fm, Google Sheets y archivos CSV."],
