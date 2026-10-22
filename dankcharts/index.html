@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=594">
+  <link rel="stylesheet" href="style.css?v=595">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -1550,7 +1550,7 @@
         <button class="dc-btn dc-btn-normal dc-btn-sm" id="manageRulesBtn" onclick="openRulesModal()" style="margin-left:auto" data-i18n="modal_rules_open_btn">⚙ Auto-correct Rules</button>
       </div>
       <div class="raw-summary" id="rawSummary"></div>
-      <table class="raw-table">
+      <table class="dc-table raw-table">
         <thead>
           <tr>
             <th class="raw-th" data-col="num" data-i18n-raw-th="raw_th_num">#<span class="sort-arrow">↕</span></th>
@@ -3860,7 +3860,7 @@
   <!-- Community board tab (suggestions / bugs / discussion). Loaded before
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
   <script defer src="board.js?v=3"></script>
-  <script defer src="app.js?v=468"></script>
+  <script defer src="app.js?v=469"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
   <script defer src="replay.js?v=1"></script>
   <!-- All-Time chart stats ("Inside your Top N"); reads app.js globals, so it loads after it -->

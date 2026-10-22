@@ -725,6 +725,34 @@
       border-radius: var(--r-md);
     }
 
+    /* ═══════════════════════════════════════════════════════════════
+       SHARED TABLE — phase 8 step 7
+       .dc-table: small uppercase header, one cell padding, a line under
+       each row, the hover wash. Records keeps its framed box and floating
+       headers, Raw Data its sortable headers, on their own classes. The
+       chart table is phase 7's and stays as it is.
+       ═══════════════════════════════════════════════════════════════ */
+    .dc-table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
+    .dc-table th {
+      padding: 0.45rem 0.7rem;
+      border-bottom: 1px solid var(--border2);
+      color: var(--text3);
+      font-family: var(--font-sans);
+      font-size: var(--fs-xs);
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      text-align: left;
+      white-space: nowrap;
+      vertical-align: middle;
+    }
+    .dc-table td {
+      padding: 0.45rem 0.7rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    .dc-table tbody tr:hover > td { background: var(--hover); }
+
     /* Layout only — the look comes from .dc-btn above */
     .upcoming-refresh-btn { display: flex; width: fit-content; margin: 0 0.85rem var(--sp-2) auto; }
     .cal-nav-btn { font-size: var(--fs-md); }
@@ -8024,26 +8052,11 @@
 
     /* TABLE VIEW */
     .ev-table-wrap { overflow-x: auto; padding: 0 0.85rem var(--sp-3); }
-    .ev-table { width: 100%; border-collapse: collapse; }
-    .ev-table th {
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      color: var(--text3);
-      text-align: left;
-      padding: 0.35rem 0.6rem;
-      border-bottom: 1px solid var(--border);
-      white-space: nowrap;
-    }
-    .ev-table td {
-      padding: 0.35rem 0.6rem;
-      border-bottom: 1px solid var(--border);
-      vertical-align: middle;
-      font-size: var(--fs-sm);
-    }
+
+
+
     .ev-table tbody tr:last-child td { border-bottom: none; }
-    .ev-table tbody tr:hover td { background: var(--hover); }
+
     .ev-tbl-img { width: 42px; }
     .ev-tbl-thumb {
       width: 34px;
@@ -10436,18 +10449,10 @@
     .mge-year { color: var(--text3); flex-shrink: 0; min-width: 2.8rem; }
     .mge-cat { flex: 1; }
 
-    .modal-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: var(--fs-sm);
-    }
+
 
     .modal-table td {
-      padding: 0.45rem var(--sp-2);
-      border-bottom: 1px solid var(--border);
-      vertical-align: middle;
-      color: var(--text);
-    }
+      color: var(--text); }
 
     .modal-table tr:last-child td {
       border-bottom: none;
@@ -12004,25 +12009,12 @@
       font-size: var(--fs-sm);
     }
 
-    .raw-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: var(--fs-xs);
-    }
+
 
     .raw-table th {
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      color: var(--text3);
-      text-align: left;
-      padding: 0.4rem 0.6rem;
-      border-bottom: 1px solid var(--border2);
       white-space: nowrap;
       cursor: pointer;
-      user-select: none;
-    }
+      user-select: none; }
 
     .raw-table th:hover {
       color: var(--text);
@@ -12042,16 +12034,10 @@
     }
 
     .raw-table td {
-      padding: 0.35rem 0.6rem;
-      border-bottom: 1px solid var(--border);
       color: var(--text2);
-      vertical-align: middle;
-      user-select: text;
-    }
+      user-select: text; }
 
-    .raw-table tr:hover td {
-      background: var(--hover);
-    }
+
 
     .raw-table .raw-num {
       color: var(--text3);
@@ -15046,30 +15032,21 @@
          - inner cells must round their own corners, or their backgrounds square
            off the table's. */
     .rec-table {
-      width: 100%;
       border-collapse: separate;
       border-spacing: 0;
       background: var(--bg2);
       border: 1px solid var(--border);
       border-radius: var(--r-sm);
-      margin-bottom: var(--sp-3);
-    }
+      margin-bottom: var(--sp-3); }
 
     .rec-table thead {
       background: var(--bg3);
     }
 
     .rec-table thead th {
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      padding: 0.45rem 0.7rem;
-      text-align: left;
+      /* Type, padding and the bottom edge it needs once it floats over the
+         rows come from .dc-table th. */
       border-right: 1px solid var(--border);
-      /* Gives the header a defined edge once it is floating over the rows.
-         Matches .milestone-table th, which always had one. */
-      border-bottom: 1px solid var(--border);
       color: var(--text2);
       font-weight: 500;
       /* sticky, not relative — still a containing block for
@@ -15183,9 +15160,7 @@
 
     /* Row separators live on the cells: a border set on <tr> is not painted in
        the separated model. */
-    .rec-table tbody td {
-      border-bottom: 1px solid var(--border);
-    }
+
 
     /* Last row in the DOM, not the last row still visible under the
        entries-per-table limit — the same caveat this rule has always carried. */
@@ -15201,9 +15176,7 @@
       border-bottom-right-radius: 7px;
     }
 
-    .rec-table tbody tr:hover {
-      background: var(--bg3);
-    }
+
 
     .rec-run-detail {
       display: none;
@@ -15256,11 +15229,7 @@
       font-size: 0.75rem;
     }
 
-    .rec-table td {
-      padding: 0.48rem 0.7rem;
-      vertical-align: middle;
-      font-size: var(--fs-sm);
-    }
+
 
     .rec-rank {
       text-align: center;
@@ -15683,34 +15652,18 @@
     }
 
     .milestone-table {
-      width: 100%;
       border-collapse: collapse;
       background: var(--bg2);
       border: 1px solid var(--border);
       border-radius: var(--r-sm);
       overflow: hidden;
-      margin-bottom: var(--sp-3);
-    }
+      margin-bottom: var(--sp-3); }
 
     .milestone-table th {
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      color: var(--text2);
       background: var(--bg3);
-      padding: 0.45rem 0.7rem;
-      text-align: left;
-      border-bottom: 1px solid var(--border);
-      position: relative;
-    }
+      position: relative; }
 
-    .milestone-table td {
-      padding: 0.45rem 0.7rem;
-      font-size: var(--fs-sm);
-      border-bottom: 1px solid var(--border);
-      vertical-align: middle;
-    }
+
 
     .milestone-table tr:last-child td {
       border-bottom: none;

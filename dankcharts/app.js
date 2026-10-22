@@ -7973,7 +7973,7 @@ function buildRecords() {
     const sliced = isFinite(limit) ? rows.slice(0, limit) : rows;
     const slicedDetails = detailRows ? (isFinite(limit) ? detailRows.slice(0, limit) : detailRows) : null;
     const colCount = headers.length;
-    return '<table class="rec-table' + (opts.tableCls ? ' ' + opts.tableCls : '') + '"' + (tableId ? ' id="' + tableId + '"' : '') + '><thead><tr>' + headers.map(function (h) { return '<th>' + h + '</th>'; }).join('') + '</tr></thead><tbody>' +
+    return '<table class="dc-table rec-table' + (opts.tableCls ? ' ' + opts.tableCls : '') + '"' + (tableId ? ' id="' + tableId + '"' : '') + '><thead><tr>' + headers.map(function (h) { return '<th>' + h + '</th>'; }).join('') + '</tr></thead><tbody>' +
       sliced.map(function (r, i) {
         const rankCls = (i === 0 ? 'rec-rank-1' : i === 1 ? 'rec-rank-2' : i === 2 ? 'rec-rank-3' : '')
           + (opts.rowCls ? ' ' + opts.rowCls(i) : '');
@@ -8235,7 +8235,7 @@ function buildRecords() {
           n: sortedPAK.length, artistword: tUnit('artists', sortedPAK.length)
         }) + '</div>';
       const limEntries = isFinite(lim) ? sortedPAK.slice(0, lim) : sortedPAK;
-      ph += '<table class="rec-table pak-artist-table"><thead><tr>'
+      ph += '<table class="dc-table rec-table pak-artist-table"><thead><tr>'
         + '<th></th><th>' + t('rec_th_artist') + '</th>'
         + '<th class="pak-weeks-th">' + t('rec_th_pak_periods', { unit: cfg.big }) + '</th>'
         + '<th>' + t('rec_th_first_song') + '</th>'
@@ -8381,7 +8381,7 @@ function buildRecords() {
       const sliced = isFinite(lim) ? tops.slice(0, lim) : tops;
       const tableId = 'app-tbl-songs-' + cfg.pt;
       let ah = '<div class="rec-section"><div class="rec-section-title">' + recEntIco('songs') + ' ' + t('rec_th_songs') + ' &mdash; ' + t('rec_most_appearances_on', { period: cfg.label }) + ' ' + t('rec_suffix_non_consec') + '</div>';
-      ah += '<div class="app-table-wrap"><table class="rec-table app-appearances-table" id="' + tableId + '"><thead><tr>';
+      ah += '<div class="app-table-wrap"><table class="dc-table rec-table app-appearances-table" id="' + tableId + '"><thead><tr>';
       ah += '<th>#</th><th></th><th>' + t('rec_th_songs') + '</th><th class="app-art-th"></th><th>' + t('rec_th_artist') + '</th>';
       ah += '<th>' + t('rec_th_first_streamed') + '</th><th>' + t('rec_th_last_streamed') + '</th>';
       ah += '<th>' + t('rec_th_on_chart', { unit: cfg.big }) + '</th><th class="rec-cr-th"><button class="rec-expand-all-btn" onclick="event.stopPropagation();toggleAllAppCr(\'' + tableId + '\',this)" title="' + t('rec_expand_all') + '">▶▶</button></th>';
@@ -8424,7 +8424,7 @@ function buildRecords() {
       const sliced = isFinite(lim) ? tops.slice(0, lim) : tops;
       const tableId = 'app-tbl-artists-' + cfg.pt;
       let ah = '<div class="rec-section"><div class="rec-section-title">' + recEntIco('artists') + ' ' + t('rec_th_artists') + ' &mdash; ' + t('rec_most_appearances_on', { period: cfg.label }) + ' ' + t('rec_suffix_non_consec') + '</div>';
-      ah += '<div class="app-table-wrap"><table class="rec-table app-appearances-table" id="' + tableId + '"><thead><tr>';
+      ah += '<div class="app-table-wrap"><table class="dc-table rec-table app-appearances-table" id="' + tableId + '"><thead><tr>';
       ah += '<th>#</th><th></th><th>' + t('rec_th_artist') + '</th>';
       ah += '<th>' + t('rec_th_first_song') + '</th><th>' + t('rec_th_last_song') + '</th>';
       ah += '<th>' + t('rec_th_first_charted') + '</th>';
@@ -8467,7 +8467,7 @@ function buildRecords() {
       const sliced = isFinite(lim) ? tops.slice(0, lim) : tops;
       const tableId = 'app-tbl-' + ent.key + '-' + cfg.pt;
       let ah = '<div class="rec-section"><div class="rec-section-title">' + ent.icon + ' ' + esc(ent.label) + ' &mdash; ' + t('rec_most_appearances_on', { period: cfg.label }) + ' ' + t('rec_suffix_non_consec') + '</div>';
-      ah += '<div class="app-table-wrap"><table class="rec-table app-appearances-table" id="' + tableId + '"><thead><tr>';
+      ah += '<div class="app-table-wrap"><table class="dc-table rec-table app-appearances-table" id="' + tableId + '"><thead><tr>';
       ah += '<th>#</th><th></th><th>' + esc(ent.label) + '</th><th class="app-art-th"></th><th>' + t('rec_th_artist') + '</th>';
       ah += '<th>' + t('rec_th_first_song') + '</th>';
       ah += '<th>' + t('rec_th_first_streamed') + '</th>';
@@ -8682,7 +8682,7 @@ function buildRecords() {
       if (!sliced.length) {
         dh += '<div class="rec-empty">' + t('rec_no_data') + '</div>';
       } else {
-        dh += '<div class="app-table-wrap"><table class="rec-table debut-rich-table"><thead><tr>';
+        dh += '<div class="app-table-wrap"><table class="dc-table rec-table debut-rich-table"><thead><tr>';
         dh += '<th>#</th><th>' + t('rec_th_songs') + '</th><th class="debut-mini-art-th"></th><th>' + t('rec_th_artist') + '</th>';
         dh += '<th>' + t('rec_th_plays') + '</th><th>' + t('rec_th_debut_rank') + '</th><th>' + cfg.unitLabel + '</th>';
         dh += '</tr></thead><tbody>';
@@ -8719,7 +8719,7 @@ function buildRecords() {
       if (!sliced.length) {
         dh += '<div class="rec-empty">' + t('rec_no_data') + '</div>';
       } else {
-        dh += '<div class="app-table-wrap"><table class="rec-table debut-rich-table"><thead><tr>';
+        dh += '<div class="app-table-wrap"><table class="dc-table rec-table debut-rich-table"><thead><tr>';
         dh += '<th>#</th><th class="debut-mini-art-th"></th><th>' + t('rec_th_artist') + '</th>';
         dh += '<th>' + t('rec_th_first_song') + '</th>';
         dh += '<th class="debut-mini-art-th"></th><th>' + t('rec_th_first_album') + '</th>';
@@ -8770,7 +8770,7 @@ function buildRecords() {
       if (!sliced.length) {
         dh += '<div class="rec-empty">' + t('rec_no_data') + '</div>';
       } else {
-        dh += '<div class="app-table-wrap"><table class="rec-table debut-rich-table"><thead><tr>';
+        dh += '<div class="app-table-wrap"><table class="dc-table rec-table debut-rich-table"><thead><tr>';
         dh += '<th>#</th><th class="debut-mini-art-th"></th><th>' + esc(ent.label) + '</th><th class="debut-mini-art-th"></th><th>' + t('rec_th_artist') + '</th>';
         dh += '<th>' + t('rec_th_plays') + '</th><th>' + t('rec_th_debut_rank') + '</th><th>' + cfg.unitLabel + '</th>';
         dh += '</tr></thead><tbody>';
@@ -8867,7 +8867,7 @@ function buildRecords() {
       return h;
     }
     const sliced = isFinite(lim) ? rows.slice(0, lim) : rows;
-    h += '<div class="app-table-wrap"><table class="rec-table"><thead><tr>'
+    h += '<div class="app-table-wrap"><table class="dc-table rec-table"><thead><tr>'
       + '<th>#</th><th>' + t('rec_th_songs') + '</th>'
       + '<th>' + t('rtype_single_plural') + '</th>'
       + '<th>' + t('rec_th_albums') + '</th>'
@@ -9144,7 +9144,7 @@ function buildRecords() {
     // row counts as content: a library too small for the 10-play tier still has
     // a first play, and that is the whole story it has to tell.
     if (!rows.length && !originRow) return '<div class="rec-empty mil-empty">' + t(cfg.emptyKey) + '</div>';
-    return '<table class="milestone-table mil-timeline"><thead><tr>'
+    return '<table class="dc-table milestone-table mil-timeline"><thead><tr>'
       + '<th scope="col">' + t('mil_th_plays') + '</th>'
       + '<th scope="col"></th>'
       + '<th scope="col">' + t('mil_th_first_to_reach') + '</th>'
@@ -16248,7 +16248,7 @@ function buildItemRawDataHTML(type, key) {
       <span class="cr-rawdata-count" id="${cid}-count">${itemPlays.length.toLocaleString()} plays</span>
     </div>
     <div style="overflow-x:auto;max-height:400px;overflow-y:auto;">
-      <table class="raw-table" style="font-size:var(--fs-xs);">
+      <table class="dc-table raw-table" style="font-size:var(--fs-xs);">
         <thead><tr>
           <th class="raw-num">#</th>
           <th data-col="date" class="sort-active" onclick="rawDataSort('${cid}','date')">Date <span class="sort-arrow">↓</span></th>
@@ -24956,7 +24956,7 @@ function _buildAlbTracksHTML(tracks, totalPlays, crY, crM, crW, allTimeSPM, albu
     </tr>
     <tr class="cr-row" id="${rowId}"><td colspan="6">${panelHTML}</td></tr>`;
   });
-  return `<table class="modal-table"><thead><tr class="modal-table-header">
+  return `<table class="dc-table modal-table"><thead><tr class="modal-table-header">
     <td></td><td>RANK</td><td>${t('th_track')}</td>
     <td class="modal-date-col">${t('modal_first_played')}</td>
     <td class="modal-date-col">${t('modal_last_played')}</td>
@@ -25400,7 +25400,7 @@ function openArtistModal(artistName) {
         <td class="modal-plays-col">${s.count} ${tUnit('plays', s.count)}</td>
       </tr>${streamHistoryPanel(ek, sk, 6)}`;
     });
-    return `<table class="modal-table"><tbody>${rows}</tbody></table>`;
+    return `<table class="dc-table modal-table"><tbody>${rows}</tbody></table>`;
   })();
 
   // ── 2. Yearly chart songs ─────────────────────────────────────────────────
@@ -25429,7 +25429,7 @@ function openArtistModal(artistName) {
       </tr>
       <tr class="cr-row" id="${rowId}"><td colspan="7"><div class="cr-panel" data-crtype="songs" data-crkey="${ek}"><div class="cr-stats">${crStats('songs', s.key, 'year', crY)}</div>${crBoxesHTML('songs', s.key, crY, null, 'year')}</div></td></tr>`;
     });
-    return `<table class="modal-table"><tbody>${rows}</tbody></table>`;
+    return `<table class="dc-table modal-table"><tbody>${rows}</tbody></table>`;
   })();
 
   // ── 3. Monthly chart songs ────────────────────────────────────────────────
@@ -25458,7 +25458,7 @@ function openArtistModal(artistName) {
       </tr>
       <tr class="cr-row" id="${rowId}"><td colspan="7"><div class="cr-panel" data-crtype="songs" data-crkey="${ek}"><div class="cr-stats">${crStats('songs', s.key, 'month', crM)}</div>${crBoxesHTML('songs', s.key, crM, null, 'month')}</div></td></tr>`;
     });
-    return `<table class="modal-table"><tbody>${rows}</tbody></table>`;
+    return `<table class="dc-table modal-table"><tbody>${rows}</tbody></table>`;
   })();
 
   // ── 4. Weekly chart songs ─────────────────────────────────────────────────
@@ -25486,7 +25486,7 @@ function openArtistModal(artistName) {
       </tr>
       <tr class="cr-row" id="${rowId}"><td colspan="7"><div class="cr-panel" data-crtype="songs" data-crkey="${ek}"><div class="cr-stats">${crStats('songs', s.key, 'week', crW)}</div>${crBoxesHTML('songs', s.key, crW, null, 'week')}</div></td></tr>`;
     });
-    return `<table class="modal-table"><tbody>${rows}</tbody></table>`;
+    return `<table class="dc-table modal-table"><tbody>${rows}</tbody></table>`;
   })();
 
   // "Share songs" opens the track plays share card for this artist's most
@@ -25528,7 +25528,7 @@ function openArtistModal(artistName) {
         <td class="modal-plays-col">${a.count} ${tUnit('plays', a.count)}</td>
       </tr>${albumStreamPanel(ek, 4)}`;
     });
-    return `<table class="modal-table"><tbody>${rows}</tbody></table>`;
+    return `<table class="dc-table modal-table"><tbody>${rows}</tbody></table>`;
   })();
 
   // ── 2. Yearly chart albums ────────────────────────────────────────────────
@@ -25558,7 +25558,7 @@ function openArtistModal(artistName) {
       </tr>
       <tr class="cr-row" id="${rowId}"><td colspan="7"><div class="cr-panel" data-crtype="albums" data-crkey="${ek}"><div class="cr-stats">${crStats('albums', crKeyRaw, 'year', crY)}</div>${crBoxesHTML('albums', crKeyRaw, crY, null, 'year')}</div></td></tr>`;
     });
-    return `<table class="modal-table"><tbody>${rows}</tbody></table>`;
+    return `<table class="dc-table modal-table"><tbody>${rows}</tbody></table>`;
   })();
 
   // ── 3. Monthly chart albums ───────────────────────────────────────────────
@@ -25588,7 +25588,7 @@ function openArtistModal(artistName) {
       </tr>
       <tr class="cr-row" id="${rowId}"><td colspan="7"><div class="cr-panel" data-crtype="albums" data-crkey="${ek}"><div class="cr-stats">${crStats('albums', crKeyRaw, 'month', crM)}</div>${crBoxesHTML('albums', crKeyRaw, crM, null, 'month')}</div></td></tr>`;
     });
-    return `<table class="modal-table"><tbody>${rows}</tbody></table>`;
+    return `<table class="dc-table modal-table"><tbody>${rows}</tbody></table>`;
   })();
 
   // ── 4. Weekly chart albums ────────────────────────────────────────────────
@@ -25617,7 +25617,7 @@ function openArtistModal(artistName) {
       </tr>
       <tr class="cr-row" id="${rowId}"><td colspan="7"><div class="cr-panel" data-crtype="albums" data-crkey="${ek}"><div class="cr-stats">${crStats('albums', crKeyRaw, 'week', crW)}</div>${crBoxesHTML('albums', crKeyRaw, crW, null, 'week')}</div></td></tr>`;
     });
-    return `<table class="modal-table"><tbody>${rows}</tbody></table>`;
+    return `<table class="dc-table modal-table"><tbody>${rows}</tbody></table>`;
   })();
 
   document.getElementById('modalAlbums').innerHTML =
@@ -30341,7 +30341,7 @@ function _evTable(gridEl, items) {
       (hasPl ? `<td class="ev-tbl-pl">${_evPlBtn(item, 'dc-pl-add-sm')}</td>` : '') +
       `</tr>`;
   }).join('');
-  gridEl.innerHTML = `<table class="ev-table"><thead><tr><th></th><th>Event</th><th>Artist</th><th>Date</th><th>Type</th>${hasPl ? '<th></th>' : ''}</tr></thead><tbody>${rows}</tbody></table>`;
+  gridEl.innerHTML = `<table class="dc-table ev-table"><thead><tr><th></th><th>Event</th><th>Artist</th><th>Date</th><th>Type</th>${hasPl ? '<th></th>' : ''}</tr></thead><tbody>${rows}</tbody></table>`;
   triggerPendingImgs(gridEl);
 }
 
