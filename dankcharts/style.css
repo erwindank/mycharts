@@ -27275,11 +27275,6 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
 .sk-saved b { font-family: var(--font-mono); color: var(--text); font-weight: 600; }
 .sk-saved--new { animation: skSavedPop 1.6s var(--ease) 2; border-color: var(--green); }
 @keyframes skSavedPop { 0%, 100% { box-shadow: 0 0 0 0 transparent; } 40% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--green) 30%, transparent); } }
-.sk-saved-more {
-  font-size: var(--fs-xs); color: var(--accent); background: none; border: 1px dashed var(--border);
-  border-radius: var(--r-full); padding: 0.1rem 0.6rem; cursor: pointer;
-}
-.sk-saved-more:hover { border-color: var(--accent); }
 .sk-all-safe {
   margin: var(--sp-4) 1.4rem 0; padding: 0.7rem 0.9rem; border-radius: var(--r-md);
   font-size: var(--fs-sm); color: var(--text2);
@@ -27341,19 +27336,6 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
   outline: none;
 }
 .sk-filter:focus { border-color: var(--accent); }
-.sk-sort-btn {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: var(--r-xs);
-  padding: 0.28rem 0.6rem;
-  font-family: var(--font-sans);
-  font-size: var(--fs-xs);
-  color: var(--text2);
-  cursor: pointer;
-  white-space: nowrap;
-  transition: border-color 0.15s, color 0.15s;
-}
-.sk-sort-btn:hover { border-color: var(--accent); color: var(--accent); }
 
 /* The toolbar sticks to the top of .modal-body, which is now the modal's scroll
    container — so it lands just under the pinned tab bar at every width. The old
@@ -27690,12 +27672,6 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
 .sk-hm-leg-wrap { display: flex; flex-direction: column; align-items: center; gap: 1px; }
 .sk-hm-leg-num { font-family: var(--font-mono);
       font-variant-numeric: tabular-nums; font-size: 0.42rem; color: var(--text3); }
-.sk-hm-copy-btn {
-  font-family: var(--font-sans); font-size: var(--fs-xs); padding: 3px 9px;
-  border-radius: var(--r-xs); border: 1px solid var(--border2); background: transparent;
-  color: var(--text3); cursor: pointer; transition: background 0.13s, color 0.13s;
-}
-.sk-hm-copy-btn:hover { background: var(--hover); color: var(--text2); } /* phase 3: was a white wash, invisible on light themes */
 
 /* Rich tooltip */
 #skHmTip {
@@ -35110,16 +35086,7 @@ body.red-light .modal-rank-card--year .mrc-rank {
   cursor: pointer;
 }
 
-.rt-row-remove {
-  flex-shrink: 0;
-  font-size: var(--fs-xs);
-  padding: 0.2rem var(--sp-2);
-  border: 1px solid var(--border);
-  border-radius: var(--r-xs);
-  background: var(--bg2);
-  color: var(--text2);
-  cursor: pointer;
-}
+.rt-row-remove { flex-shrink: 0; }
 
 .rt-empty {
   padding: var(--sp-4) 0.2rem;
@@ -35275,30 +35242,8 @@ body.red-light .modal-rank-card--year .mrc-rank {
   line-height: 1.5;
 }
 
-.rtd-scan-btn,
-.rtd-apply-btn {
-  padding: 0.4rem var(--sp-4);
-  border: 1px solid var(--accent);
-  border-radius: var(--r-full);
-  background: var(--accent);
-  /* var(--on-accent), never #fff — the yellow theme's accent is light. */
-  color: var(--on-accent);
-  font-family: var(--font-sans);
-  font-size: var(--fs-xs);
-  cursor: pointer;
-}
 
-.rtd-stop-btn {
-  margin-top: 0.6rem;
-  padding: var(--sp-1) 0.8rem;
-  border: 1px solid var(--border);
-  border-radius: var(--r-full);
-  background: var(--bg2);
-  color: var(--text2);
-  font-family: var(--font-sans);
-  font-size: var(--fs-xs);
-  cursor: pointer;
-}
+.rtd-stop-btn { margin-top: 0.6rem; }
 
 .rtd-progress {
   padding: 1.6rem 0.4rem;
@@ -35890,28 +35835,8 @@ body.red-light .modal-rank-card--year .mrc-rank {
     .rt-insights { margin-top: 0.9rem; }
 
     /* ── Buttons ────────────────────────────────────────────────── */
-    .rt-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      padding: 0.4rem 0.85rem;
-      border: 1px solid var(--border2);
-      background: var(--surface);
-      color: var(--text);
-      border-radius: var(--r-sm, 5px);
-      font-size: var(--fs-sm);
-      font-weight: 700;
-      cursor: pointer;
-      transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
-    }
-    .rt-btn:hover { background: var(--bg3); border-color: var(--accent); }
-    .rt-btn:active { transform: translateY(1px); }
     /* --on-accent, never a hard-coded #fff: the yellow-dark theme has a light
        accent and white ink on it is unreadable. */
-    .rt-btn--primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
-    .rt-btn--primary:hover { background: var(--accent2); border-color: var(--accent2); color: var(--on-accent); }
-    .rt-btn--danger { color: var(--rose); border-color: color-mix(in srgb, var(--rose) 45%, var(--border)); }
-    .rt-btn--danger:hover { background: color-mix(in srgb, var(--rose) 12%, transparent); border-color: var(--rose); }
 
     /* Edit rating + Share score side by side under the album verdict; wraps on
        narrow modals instead of squeezing the labels. */
@@ -36004,33 +35929,8 @@ body.red-light .modal-rank-card--year .mrc-rank {
     .rt-tt-editable:focus-visible .rt-tt-cta { opacity: 1; }
     /* Touch screens have no hover, so the hint stays visible there. */
     @media (hover: none) { .rt-tt-cta { opacity: 1; } }
-    .rt-tt-open {
-      flex: 0 0 auto;
-      width: 1.7rem;
-      height: 1.7rem;
-      border: 1px solid var(--border2);
-      border-radius: var(--r-sm);
-      background: transparent;
-      color: var(--text3);
-      font-size: var(--fs-sm);
-      line-height: 1;
-      cursor: pointer;
-    }
-    .rt-tt-open:hover { color: var(--accent); border-color: var(--accent); }
     .rt-sub-count { margin-left: 0.3rem; color: var(--text3); font-weight: 400; }
-    .rt-tt-more {
-      align-self: flex-start;
-      margin-top: 0.45rem;
-      padding: 0.3rem 0.7rem;
-      border: 1px solid var(--border2);
-      border-radius: var(--r-full);
-      background: transparent;
-      color: var(--text2);
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      cursor: pointer;
-    }
-    .rt-tt-more:hover { color: var(--accent); border-color: var(--accent); }
+    .rt-tt-more { align-self: flex-start; margin-top: 0.45rem; }
     .rt-block--pending { margin-top: 0.6rem; }
 
     /* ═══ RATING EDITOR MODAL ═══════════════════════════════════ */

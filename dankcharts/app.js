@@ -3043,7 +3043,7 @@ function renderRtScanPanel() {
   if (!rtScan) {
     el.innerHTML = `<div class="rtd-idle">
       <p class="rtd-idle-text">${esc(t('rtd_idle'))}</p>
-      <button class="rtd-scan-btn" onclick="rtStartScan()">${esc(t('rtd_scan'))}</button>
+      <button class="dc-btn dc-btn-main" onclick="rtStartScan()">${esc(t('rtd_scan'))}</button>
     </div>`;
     return;
   }
@@ -3055,7 +3055,7 @@ function renderRtScanPanel() {
     html += `<div class="rtd-progress">
       <div class="rtd-progress-bar"><div class="rtd-progress-fill" style="width:${Math.min(100, pct)}%"></div></div>
       <div class="rtd-progress-text">${esc(t('rtd_scanning', { done: rtScan.checked.toLocaleString(), total: rtScan.total.toLocaleString() }))}</div>
-      <button class="rtd-stop-btn" onclick="rtCancelScan()">${esc(t('rtd_stop'))}</button>
+      <button class="dc-btn dc-btn-plain rtd-stop-btn" onclick="rtCancelScan()">${esc(t('rtd_stop'))}</button>
     </div>`;
     el.innerHTML = html;
     return;
@@ -3077,7 +3077,7 @@ function renderRtScanPanel() {
     html += `<div class="rtd-idle">
       <p class="rtd-idle-text">${esc(rtScan.applied ? t('rtd_nothing_left') : t('rtd_nothing_found'))}</p>
       ${moreNote}
-      <button class="rtd-scan-btn" onclick="rtScan=null;rtStartScan()">${esc(t('rtd_rescan'))}</button>
+      <button class="dc-btn dc-btn-main" onclick="rtScan=null;rtStartScan()">${esc(t('rtd_rescan'))}</button>
     </div>`;
     el.innerHTML = html;
     return;
@@ -3116,7 +3116,7 @@ function renderRtScanPanel() {
   }
 
   el.innerHTML = html;
-  setFooter(`<button class="rtd-apply-btn" id="rtApplyBtn" onclick="rtApplyProposals()">${esc(t('rtd_apply', { n: nPicked }))}</button>`);
+  setFooter(`<button class="dc-btn dc-btn-main" id="rtApplyBtn" onclick="rtApplyProposals()">${esc(t('rtd_apply', { n: nPicked }))}</button>`);
 }
 
 // ─── RELEASE TYPE MANAGER ─────────────────────────────────────
@@ -3216,7 +3216,7 @@ function renderReleaseTypesList() {
         </div>
         ${e.src === 'auto' ? `<span class="rt-row-auto" title="${esc(t('rtype_auto_hint'))}">${esc(t('rtype_auto'))}</span>` : ''}
         <select class="rt-row-select" onchange="changeReleaseTypeFromList(${esc(JSON.stringify(e.album))},${esc(JSON.stringify(e.artist))},this.value)">${opts}</select>
-        <button class="rt-row-remove" onclick="clearReleaseTypeFromList(${esc(JSON.stringify(e.album))},${esc(JSON.stringify(e.artist))})" title="${esc(t('rtype_forget_hint'))}">${esc(t('comp_remove'))}</button>
+        <button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-danger rt-row-remove" onclick="clearReleaseTypeFromList(${esc(JSON.stringify(e.album))},${esc(JSON.stringify(e.artist))})" title="${esc(t('rtype_forget_hint'))}">${esc(t('comp_remove'))}</button>
       </div>`;
     }
   }
@@ -36536,7 +36536,7 @@ function openStreakModal(opts) {
         `<div class="streak-section-title sk-title-static">${esc(t('sk_sec_saved'))} <span class="streak-count">(${savedSorted.length})</span></div>` +
         `<div class="sk-saved-strip">` +
           savedSorted.slice(0, SAVED_SHOW).map(it => `<span class="sk-saved${jsSet.has(riskId(it)) ? ' sk-saved--new' : ''}" title="${esc(it.type)} · ${it.len}d">${esc(it.name)} <b>${it.len}d</b></span>`).join('') +
-          (savedSorted.length > SAVED_SHOW ? `<button class="sk-saved-more" onclick="_streakSwitchTab('streaks')">${esc(t('sk_more', { n: savedSorted.length - SAVED_SHOW }))}</button>` : '') +
+          (savedSorted.length > SAVED_SHOW ? `<button class="dc-btn dc-btn-normal dc-btn-sm" onclick="_streakSwitchTab('streaks')">${esc(t('sk_more', { n: savedSorted.length - SAVED_SHOW }))}</button>` : '') +
         `</div></div>`
     : '';
   const todayHtml =
@@ -36560,7 +36560,7 @@ function openStreakModal(opts) {
           `<button type="button" class="sk-seg-btn" data-skf="${k}">${esc(t('sk_fire_' + k))}<span class="sk-seg-ct">${fireCounts[k]}</span></button>`).join('') +
       `</div>` +
       `<input type="text" id="skFilter" class="sk-filter" placeholder="${esc(t('sk_filter'))}" aria-label="${esc(t('sk_filter'))}">` +
-      `<button id="skSortBtn" class="sk-sort-btn" data-mode="len">⬇ ${esc(t('sk_sort_len'))}</button>` +
+      `<button id="skSortBtn" class="dc-btn dc-btn-normal dc-btn-sm" data-mode="len">⬇ ${esc(t('sk_sort_len'))}</button>` +
     `</div>` +
     (fireAll.length
       ? rivalryHtml + `<div class="sk-podium" id="skPodium">${['all', 'artist', 'album', 'song'].map(k => skPodiumHtml(fireAll, k)).join('')}</div>` +
@@ -37434,7 +37434,7 @@ function _skHmGenHTML() {
     </div>
     <div class="sk-hm-leg-row">
       <div class="sk-hm-legend-inner"><span>${esc(t('sk_hm_less'))}</span>${lgCells}<span>${esc(t('sk_hm_more'))}</span></div>
-      <button class="sk-hm-copy-btn" onclick="_skHmCopyImg()" title="${esc(t('sk_hm_copy'))}">📋 ${esc(t('sk_hm_copy'))}</button>
+      <button class="dc-btn dc-btn-normal dc-btn-sm" onclick="_skHmCopyImg()" title="${esc(t('sk_hm_copy'))}">📋 ${esc(t('sk_hm_copy'))}</button>
     </div>
     <div id="skHmDrill" class="sk-hm-drill"></div>
   </div>`;
@@ -52060,8 +52060,8 @@ function _ratingSongEditorHTML(view) {
     </div>
 
     <div class="rt-edit-actions">
-      <button class="rt-btn rt-btn--danger" onclick="ratingClearEntry('song',${esc(JSON.stringify(key))})">Clear rating</button>
-      <button class="rt-btn rt-btn--primary" onclick="closeRatingModal()">Done</button>
+      <button class="dc-btn dc-btn-plain dc-btn-danger" onclick="ratingClearEntry('song',${esc(JSON.stringify(key))})">Clear rating</button>
+      <button class="dc-btn dc-btn-main" onclick="closeRatingModal()">Done</button>
     </div>`;
 }
 
@@ -52149,8 +52149,8 @@ function _ratingAlbumEditorHTML(view) {
     : `<div class="rt-track-list">${trackRows}</div>`}
 
     <div class="rt-edit-actions">
-      <button class="rt-btn rt-btn--danger" onclick="ratingClearEntry('album',${esc(JSON.stringify(key))})">Clear album aspects</button>
-      <button class="rt-btn rt-btn--primary" onclick="closeRatingModal()">Done</button>
+      <button class="dc-btn dc-btn-plain dc-btn-danger" onclick="ratingClearEntry('album',${esc(JSON.stringify(key))})">Clear album aspects</button>
+      <button class="dc-btn dc-btn-main" onclick="closeRatingModal()">Done</button>
     </div>`;
 }
 
@@ -52327,7 +52327,7 @@ function renderSongRatingSection(key) {
       <div class="rt-empty-copy">
         <div class="rt-empty-title">Not rated yet</div>
         <div class="rt-empty-sub">Score this track on ${ratingEnabledSongCriteria().length} craft criteria, or give it one quick gut score.</div>
-        <button class="rt-btn rt-btn--primary" onclick="openRatingModal('song', ${esc(JSON.stringify(key))})">${btnLabel}</button>
+        <button class="dc-btn dc-btn-main" onclick="openRatingModal('song', ${esc(JSON.stringify(key))})">${btnLabel}</button>
       </div>
     </div>${albumLink}`;
     return;
@@ -52344,7 +52344,7 @@ function renderSongRatingSection(key) {
       <div class="rt-block-meta">
         <div class="rt-block-verdict ${ratingBand(score).cls}">${esc(ratingBand(score).label)}</div>
         ${e.note ? `<blockquote class="rt-block-note">${esc(e.note)}</blockquote>` : ''}
-        <button class="rt-btn" onclick="openRatingModal('song', ${esc(JSON.stringify(key))})">${btnLabel}</button>
+        <button class="dc-btn dc-btn-normal" onclick="openRatingModal('song', ${esc(JSON.stringify(key))})">${btnLabel}</button>
       </div>
     </div>
     <div class="rt-critbars">${bars}</div>
@@ -52365,7 +52365,7 @@ function renderAlbumRatingSection(albumKey) {
       <div class="rt-empty-copy">
         <div class="rt-empty-title">Not rated yet</div>
         <div class="rt-empty-sub">Score its ${tracks.length} ${tUnit('tracks', tracks.length)} and the album-level aspects — art, cohesion, concept — and the total builds itself.</div>
-        <button class="rt-btn rt-btn--primary" onclick="openRatingModal('album', ${esc(JSON.stringify(albumKey))})">★ Rate this album</button>
+        <button class="dc-btn dc-btn-main" onclick="openRatingModal('album', ${esc(JSON.stringify(albumKey))})">★ Rate this album</button>
       </div>
     </div>`;
     return;
@@ -52405,8 +52405,8 @@ function renderAlbumRatingSection(albumKey) {
         <div class="rt-formula rt-formula--static">${_ratingFormulaHTML(res)}</div>
         ${e?.note ? `<blockquote class="rt-block-note">${esc(e.note)}</blockquote>` : ''}
         <div class="rt-btn-row">
-          <button class="rt-btn" onclick="openRatingModal('album', ${esc(JSON.stringify(albumKey))})">✎ Edit rating</button>
-          <button class="rt-btn" onclick="rtOpenCard(${esc(JSON.stringify(albumKey))})">${esc(t('rt_card_share_btn'))}</button>
+          <button class="dc-btn dc-btn-normal" onclick="openRatingModal('album', ${esc(JSON.stringify(albumKey))})">✎ Edit rating</button>
+          <button class="dc-btn dc-btn-normal" onclick="rtOpenCard(${esc(JSON.stringify(albumKey))})">${esc(t('rt_card_share_btn'))}</button>
         </div>
       </div>
     </div>
@@ -54067,7 +54067,7 @@ function renderArtistRatingSection(artistName) {
         <div class="rt-block-verdict ${ratingBand(headline).cls}">${esc(ratingBand(headline).label)}</div>
         <div class="rt-block-sub">${sum.albumAvg != null ? 'Average across their rated albums' : 'Average across their rated songs'}</div>
         ${sum.ratedAlbums ? `<div class="rt-btn-row">
-          <button class="rt-btn" onclick="raOpenCard(${esc(JSON.stringify(artistName))})">${esc(t('ra_card_btn'))}</button>
+          <button class="dc-btn dc-btn-normal" onclick="raOpenCard(${esc(JSON.stringify(artistName))})">${esc(t('ra_card_btn'))}</button>
         </div>` : ''}
       </div>
     </div>
@@ -54095,7 +54095,7 @@ function _ratingArtistAlbumRow(key, name, meta, cta) {
     <span class="rt-tt-title">${esc(name)}</span>
     ${meta}
     <span class="rt-tt-cta">${esc(cta)}</span>
-    <button class="rt-tt-open" title="Open album page" aria-label="Open album page"
+    <button class="dc-btn dc-btn-normal dc-btn-sm dc-btn-icon" title="Open album page" aria-label="Open album page"
       onclick="event.stopPropagation();openAlbumModal(${k})">↗</button>
   </div>`;
 }
@@ -54125,7 +54125,7 @@ function _ratingArtistPendingHTML(artistName) {
       ${shown.map(k => _ratingArtistAlbumRow(k, k.split('|||')[0],
         `<span class="rt-tt-plays">${plays[k] || 0} ${tUnit('plays', plays[k] || 0)}</span>`, 'Rate →')).join('')}
     </div>
-    ${list.length > RT_ARTIST_PENDING_SHOWN ? `<button class="rt-tt-more" onclick="ratingArtistTogglePending()">${
+    ${list.length > RT_ARTIST_PENDING_SHOWN ? `<button class="dc-btn dc-btn-normal dc-btn-sm rt-tt-more" onclick="ratingArtistTogglePending()">${
       more ? `Show all ${list.length}` : 'Show fewer'}</button>` : ''}`;
 }
 
