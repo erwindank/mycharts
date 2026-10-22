@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 254;
+const DC_CL_I18N_V = 256;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,12 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-22', t: 'fix', a: 'rawdata', h: '8d05fda',
+    title: "Raw Data no longer opens with another page underneath",
+    detail: "Opening Raw Data after Stats, Events or Awards left that page on screen under your play history, and Stats and Records could still show Awards below them. Each tab now shows only its own page. Works with Last.fm, Google Sheets and CSV uploads." },
+  { d: '2026-10-22', t: 'design', a: 'ui', h: '8d05fda',
+    title: "Every button outside the charts now looks the same",
+    detail: "The last buttons moved to the site's shared button: Settings (Last.fm Connect, and Disconnect in red), Raw Data, the welcome window, the tour, the Charts Guide, the picture picker, the community board and Contact Support. The fold buttons on Records and Events sections are now small square buttons that are easier to tap. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-22', t: 'design', a: 'player', h: 'e379e84',
     title: "Player queue buttons match the rest of the site",
     detail: "The buttons in the music player's queue (Now, Next, + Queue, Queue all, Move to top, Undo and Save) and the YouTube buttons in the streaks window now share the site's button look and size. Delete in the queue is red so it's harder to hit by mistake. Works with Last.fm, Google Sheets and CSV uploads." },

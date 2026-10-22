@@ -13,6 +13,14 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Raw Data no longer opens with another page underneath":
+    ["Datos sin procesar ya no se abre con otra página debajo",
+     "Al abrir Datos sin procesar después de Estadísticas, Eventos o Premios, esa página se quedaba en pantalla debajo de tu historial, y Estadísticas y Récords podían seguir mostrando Premios debajo. Ahora cada pestaña muestra solo su propia página. Funciona con Last.fm, Google Sheets y archivos CSV."],
+
+  "Every button outside the charts now looks the same":
+    ["Todos los botones fuera de las listas tienen ahora el mismo aspecto",
+     "Los últimos botones pasaron al botón común del sitio: Ajustes (Conectar Last.fm, y Desconectar en rojo), Datos sin procesar, la ventana de bienvenida, el recorrido guiado, la Guía de listas, el selector de imágenes, el tablón de la comunidad y Contactar con soporte. Los botones para plegar las secciones de Récords y Eventos son ahora pequeños botones cuadrados, más fáciles de pulsar. Funciona con Last.fm, Google Sheets y archivos CSV."],
+
   "Player queue buttons match the rest of the site":
     ["Los botones de la cola del reproductor coinciden con el resto del sitio",
      "Los botones de la cola del reproductor (Ahora, Siguiente, + Cola, Poner todo en cola, Subir arriba, Deshacer y Guardar) y los botones de YouTube de la ventana de rachas comparten ahora el aspecto y tamaño de los botones del sitio. Eliminar en la cola aparece en rojo para que sea más difícil pulsarlo por error. Funciona con Last.fm, Google Sheets y archivos CSV."],

@@ -13,6 +13,14 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Raw Data no longer opens with another page underneath":
+    ["Dados em bruto já não abre com outra página por baixo",
+     "Abrir Dados em bruto depois de Estatísticas, Eventos ou Prémios deixava essa página no ecrã por baixo do teu histórico, e Estatísticas e Recordes ainda podiam mostrar Prémios por baixo. Agora cada separador mostra só a sua página. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
+
+  "Every button outside the charts now looks the same":
+    ["Todos os botões fora dos tops têm agora o mesmo aspeto",
+     "Os últimos botões passaram para o botão comum do site: Definições (Ligar Last.fm, e Desligar a vermelho), Dados em bruto, a janela de boas-vindas, a visita guiada, o Guia dos tops, o seletor de imagens, o mural da comunidade e Contactar o suporte. Os botões para recolher as secções de Recordes e Eventos são agora pequenos botões quadrados, mais fáceis de tocar. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
+
   "Player queue buttons match the rest of the site":
     ["Os botões da fila do leitor combinam com o resto do site",
      "Os botões da fila do leitor (Agora, Seguinte, + Fila, Pôr tudo na fila, Mover para o topo, Anular e Guardar) e os botões do YouTube na janela de sequências têm agora o aspeto e o tamanho dos botões do site. Eliminar na fila aparece a vermelho para ser mais difícil tocar-lhe por engano. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
