@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Awards buttons match the rest of the site":
+    ["Os botões de Prêmios combinam com o resto do site",
+     "Na página de Prêmios, as setas do ano, Configurar ano, Gerar indicados, Ativar tudo e Desativar tudo, os botões Escolher indicados, Trocar e Playlist de cada categoria, o botão Compartilhar da cerimônia e os botões do seletor de indicados agora têm a mesma aparência e tamanho, com Gerar indicados como o botão principal em destaque. O botão dourado Ver cerimônia mantém a aparência. Funciona com Last.fm, Google Sheets e arquivos CSV."],
+
   "Stats, ratings and streaks buttons match the rest of the site":
     ["Os botões de Estatísticas, avaliações e sequências combinam com o resto do site",
      "Na página de Estatísticas, os botões Redefinir, Rótulos e Redefinir zoom de cada gráfico e os controles da corrida das paradas agora têm a mesma aparência e tamanho, com + Adicionar e Tocar como o botão principal em destaque. Na janela de avaliação, Concluir é o botão principal e Limpar avaliação aparece em vermelho. A varredura de avaliações, sua biblioteca avaliada e a janela de sequências também usam os mesmos botões. Funciona com Last.fm, Google Sheets e arquivos CSV."],

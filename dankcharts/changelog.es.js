@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Awards buttons match the rest of the site":
+    ["Los botones de Premios coinciden con el resto del sitio",
+     "En la página de Premios, las flechas del año, Configurar año, Generar nominados, Activar todo y Desactivar todo, los botones Elegir nominados, Cambiar y Lista de cada categoría, el botón Compartir de la ceremonia y los botones del selector de nominados tienen ahora el mismo aspecto y tamaño, con Generar nominados como botón principal destacado. El botón dorado Ver ceremonia conserva su aspecto. Funciona con Last.fm, Google Sheets y archivos CSV."],
+
   "Stats, ratings and streaks buttons match the rest of the site":
     ["Los botones de Estadísticas, valoraciones y rachas coinciden con el resto del sitio",
      "En la página de Estadísticas, los botones Restablecer, Etiquetas y Restablecer zoom de cada gráfico y los controles de la carrera de listas tienen ahora el mismo aspecto y tamaño, con + Añadir y Reproducir como botón principal destacado. En la ventana de valoración, Listo es el botón principal y Borrar valoración aparece en rojo. El escaneo de valoraciones, tu biblioteca valorada y la ventana de rachas usan también los mismos botones. Funciona con Last.fm, Google Sheets y archivos CSV."],
