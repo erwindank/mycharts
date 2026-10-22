@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=593">
+  <link rel="stylesheet" href="style.css?v=594">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -1309,7 +1309,7 @@
            activity and the "played a lot, never rated" prompts. The granularity
            control above does not apply to it, so it sits in its own card and
            renders independently via renderRatingsGraphSection(). -->
-      <div class="graph-card" id="ratingsGraphCard">
+      <div class="dc-card graph-card" id="ratingsGraphCard">
         <div class="graph-card-title" data-i18n="graph_ratings_title">★ My Ratings</div>
         <div class="graph-card-sub" data-i18n="graph_ratings_sub">Every album and song you have scored — how your
           verdicts are distributed, your best and worst records, and what you play constantly but have never rated.</div>
@@ -1317,7 +1317,7 @@
       </div>
 
       <!-- Chart 1: Cumulative plays over time -->
-      <div class="graph-card">
+      <div class="dc-card graph-card">
         <div class="graph-card-title" data-i18n="graph_cumulative_title">📈 Cumulative Plays Over Time — Artist
           Comparison</div>
         <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
@@ -1346,7 +1346,7 @@
       </div>
 
       <!-- Chart 2: Total play volume -->
-      <div class="graph-card">
+      <div class="dc-card graph-card">
         <div class="graph-card-title" data-i18n="graph_volume_title">📊 Total Play Volume by Period</div>
         <div class="graph-card-sub" data-i18n="graph_volume_sub">How many songs you played each period across all
           artists</div>
@@ -1368,7 +1368,7 @@
       </div>
 
       <!-- Chart 3: Play volume by artist comparison -->
-      <div class="graph-card">
+      <div class="dc-card graph-card">
         <div class="graph-card-title" data-i18n="graph_volume_comp_title">📊 Play Volume by Period — Artist Comparison
         </div>
         <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
@@ -1397,7 +1397,7 @@
       </div>
 
       <!-- Chart 4: New discoveries per period -->
-      <div class="graph-card">
+      <div class="dc-card graph-card">
         <div class="graph-card-title" data-i18n="graph_discoveries_title">✨ New Discoveries per Period</div>
         <div class="graph-card-sub" data-i18n="graph_discoveries_sub">Songs, artists and albums heard for the first time
           each period</div>
@@ -1411,7 +1411,7 @@
       </div>
 
       <!-- Bar Chart Race -->
-      <div class="graph-card">
+      <div class="dc-card graph-card">
         <div class="graph-card-title" data-i18n="graph_race_title">🏁 Play Count Race</div>
         <div class="graph-card-sub" data-i18n="graph_race_sub">Cumulative plays over time — watch entries compete for
           the top spot</div>
@@ -1483,7 +1483,7 @@
       </div>
 
       <!-- Chart 6: Listening Activity Heatmap -->
-      <div class="graph-card" id="heatmapCard">
+      <div class="dc-card graph-card" id="heatmapCard">
         <div class="graph-card-title">🔥 Listening Activity Heatmap</div>
         <div class="graph-card-sub">Your music mapped day by day — brighter squares mean more plays. Hover any square to explore what you were listening to.</div>
         <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.5rem;">
@@ -2215,7 +2215,7 @@
         </div>
 
         <!-- Year config panel -->
-        <div class="awards-config-panel" id="awardsConfigPanel" style="display:none;">
+        <div class="dc-card awards-config-panel" id="awardsConfigPanel" style="display:none;">
           <div class="awards-config-row">
             <label data-i18n="awards_elig_window">Eligibility Window:</label>
             <input type="date" id="awardsEligStart" onchange="awardsUpdateElig()">
@@ -2653,12 +2653,12 @@
            nav bar when the gate opens (dcGateFillTiles), so they always match. -->
       <div class="cg-gate-jump-label">Jump straight in</div>
       <div class="cg-gate-tiles">
-        <button class="cg-gate-tile" data-go="week"><span class="cg-gate-tile-ic"></span><strong>Weekly chart</strong><em>This week's top songs</em></button>
-        <button class="cg-gate-tile" data-go="records"><span class="cg-gate-tile-ic"></span><strong>Records</strong><em>Longest #1s, biggest debuts</em></button>
-        <button class="cg-gate-tile" data-go="awards"><span class="cg-gate-tile-ic"></span><strong>Awards</strong><em>Your own award show</em></button>
-        <button class="cg-gate-tile" data-go="soundtrack"><span class="cg-gate-tile-ic"></span><strong>Your Soundtrack</strong><em>Your life in songs</em></button>
-        <button class="cg-gate-tile" data-go="graphs"><span class="cg-gate-tile-ic"></span><strong>Graphs</strong><em>Chart runs over time</em></button>
-        <button class="cg-gate-tile" data-go="alltime"><span class="cg-gate-tile-ic"></span><strong>All-Time</strong><em>Your biggest songs ever</em></button>
+        <button class="dc-card-inset cg-gate-tile" data-go="week"><span class="cg-gate-tile-ic"></span><strong>Weekly chart</strong><em>This week's top songs</em></button>
+        <button class="dc-card-inset cg-gate-tile" data-go="records"><span class="cg-gate-tile-ic"></span><strong>Records</strong><em>Longest #1s, biggest debuts</em></button>
+        <button class="dc-card-inset cg-gate-tile" data-go="awards"><span class="cg-gate-tile-ic"></span><strong>Awards</strong><em>Your own award show</em></button>
+        <button class="dc-card-inset cg-gate-tile" data-go="soundtrack"><span class="cg-gate-tile-ic"></span><strong>Your Soundtrack</strong><em>Your life in songs</em></button>
+        <button class="dc-card-inset cg-gate-tile" data-go="graphs"><span class="cg-gate-tile-ic"></span><strong>Graphs</strong><em>Chart runs over time</em></button>
+        <button class="dc-card-inset cg-gate-tile" data-go="alltime"><span class="cg-gate-tile-ic"></span><strong>All-Time</strong><em>Your biggest songs ever</em></button>
       </div>
 
       <div class="cg-gate-actions">
@@ -3860,7 +3860,7 @@
   <!-- Community board tab (suggestions / bugs / discussion). Loaded before
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
   <script defer src="board.js?v=3"></script>
-  <script defer src="app.js?v=467"></script>
+  <script defer src="app.js?v=468"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
   <script defer src="replay.js?v=1"></script>
   <!-- All-Time chart stats ("Inside your Top N"); reads app.js globals, so it loads after it -->

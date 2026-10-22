@@ -10317,7 +10317,7 @@ function renderRecordsOverview(highlights) {
     /* A <div role="button"> rather than a real <button>: the artwork carries
        the image picker's ✎ control, and a button inside a button is invalid
        HTML that browsers unnest. Keyboard activation is restored below. */
-    let card = '<div class="rec-ov-card' + (hasRecord ? '' : ' rec-ov-card-empty') +
+    let card = '<div class="dc-card rec-ov-card' + (hasRecord ? '' : ' rec-ov-card-empty') +
       '" role="button" tabindex="0" data-rec-goto="' + esc(id) + '">';
 
     // Artwork only where there is a record to illustrate — an empty card has
@@ -26328,14 +26328,14 @@ function openSongModal(key) {
   // ── RANK CARDS ────────────────────────────────────────────────
   let rankCardsHTML = '';
   if (allTimeSongRank) {
-    rankCardsHTML += `<div class="modal-rank-card modal-rank-card--gold">
+    rankCardsHTML += `<div class="dc-card modal-rank-card modal-rank-card--gold">
       <div class="mrc-icon">🏆</div>
       <div class="mrc-rank">#${allTimeSongRank}</div>
       <div class="mrc-label">Most Played Song of All Time</div>
     </div>`;
   }
   if (chartPosition && currentPeriod === 'year') {
-    rankCardsHTML += `<div class="modal-rank-card modal-rank-card--year">
+    rankCardsHTML += `<div class="dc-card modal-rank-card modal-rank-card--year">
       <div class="mrc-icon">⭐</div>
       <div class="mrc-rank">#${chartPosition}</div>
       <div class="mrc-label">Most Played Song of the Year</div>
@@ -26348,7 +26348,7 @@ function openSongModal(key) {
                      : debutPeriod === 'month' ? t(_CR_MON_SHORT[+dk.split('-')[1] - 1]) + ' ' + dk.split('-')[0]
                      : dk;
     const debutChart = { week: 'Weekly', month: 'Monthly', year: 'Yearly' }[debutPeriod];
-    rankCardsHTML += `<div class="modal-rank-card">
+    rankCardsHTML += `<div class="dc-card modal-rank-card">
       <div class="mrc-icon">🚀</div>
       <div class="mrc-rank">#${debutEntry.rank}</div>
       <div class="mrc-label">${debutChart} Chart Debut · ${esc(debutLabel)}</div>
@@ -26896,7 +26896,7 @@ function renderUpcomingCard(release, artistName) {
   const typeLabel = t(typeKey) || release.type || 'Release';
   const imgSrc = release.mbid ? `https://coverartarchive.org/release-group/${release.mbid}/front-250` : null;
   const imgHtml = `<img class="upcoming-card-img${imgSrc ? '' : ' upcoming-card-img-pending'}" ${imgSrc ? `src="${imgSrc}" onerror="releaseImgFallback(this)"` : ''} alt="" loading="lazy" data-artist="${esc(artistName)}" data-title="${esc(release.title)}" data-sources="itunes,lastfm">`;
-  return `<div class="upcoming-card" onclick="_relShowMenu(event,${esc(JSON.stringify(release.title))},${esc(JSON.stringify(artistName))})">
+  return `<div class="dc-card-inset upcoming-card" onclick="_relShowMenu(event,${esc(JSON.stringify(release.title))},${esc(JSON.stringify(artistName))})">
     ${imgHtml}
     <div class="upcoming-card-date${soon ? ' soon' : ''}" data-date="${esc(release.date)}">${esc(label)}</div>
     <div class="upcoming-card-title">${esc(release.title)}</div>
@@ -26938,7 +26938,7 @@ function renderRecentCard(release, artistName) {
   const typeLabel = t(typeKey) || release.type || 'Release';
   const imgSrc = release.mbid ? `https://coverartarchive.org/release-group/${release.mbid}/front-250` : null;
   const imgHtml = `<img class="upcoming-card-img${imgSrc ? '' : ' upcoming-card-img-pending'}" ${imgSrc ? `src="${imgSrc}" onerror="releaseImgFallback(this)"` : ''} alt="" loading="lazy" data-artist="${esc(artistName)}" data-title="${esc(release.title)}" data-sources="itunes,lastfm">`;
-  return `<div class="upcoming-card" onclick="_tmShowAlbumMenu(event,${esc(JSON.stringify(release.title))},${esc(JSON.stringify(artistName))})">
+  return `<div class="dc-card-inset upcoming-card" onclick="_tmShowAlbumMenu(event,${esc(JSON.stringify(release.title))},${esc(JSON.stringify(artistName))})">
     ${imgHtml}
     <div class="upcoming-card-date recent" data-date="${esc(release.date)}">${esc(label)}</div>
     <div class="upcoming-card-title">${esc(release.title)}</div>
@@ -29616,7 +29616,7 @@ function renderBirthdayCard(entry) {
   // that search is still there, as the menu's Google option. The ＋ stays the
   // shortcut: it builds a playlist from what the user has actually played by
   // this artist (see dcPlTracksFor).
-  return `<div class="upcoming-card${isToday ? ' event-today' : ''}" onclick="_tmShowBirthdayMenu(event,${esc(JSON.stringify(artistName))})">
+  return `<div class="dc-card-inset upcoming-card${isToday ? ' event-today' : ''}" onclick="_tmShowBirthdayMenu(event,${esc(JSON.stringify(artistName))})">
     ${dcPlBtnHtml('artist', '', artistName, '', 'dc-pl-add-card')}
     ${imgHtml}
     <div class="upcoming-card-date${isToday ? ' soon' : ''}">${countdownLabel}</div>
@@ -29635,7 +29635,7 @@ function renderRecentBirthdayCard(entry) {
   const displayDate = fmtDate(new Date(currentYear, parseInt(mm) - 1, parseInt(dd)));
   const daysAgoLabel = `${daysAgo} day${daysAgo === 1 ? '' : 's'} ago`;
   const imgHtml = `<img class="upcoming-card-img upcoming-card-img-pending" alt="" loading="lazy" data-artist="${esc(artistName)}" data-title="" data-sources="deezer-artist">`;
-  return `<div class="upcoming-card" onclick="_tmShowBirthdayMenu(event,${esc(JSON.stringify(artistName))})">
+  return `<div class="dc-card-inset upcoming-card" onclick="_tmShowBirthdayMenu(event,${esc(JSON.stringify(artistName))})">
     ${dcPlBtnHtml('artist', '', artistName, '', 'dc-pl-add-card')}
     ${imgHtml}
     <div class="upcoming-card-date recent">${daysAgoLabel}</div>
@@ -29657,7 +29657,7 @@ function renderAnniversaryCard(entry) {
   // songs, Google) instead of going straight to Google. The ＋ is still the
   // shortcut: it pulls this release's played tracks, falling back to the
   // release itself when it has never been played (see dcPlTracksFor).
-  return `<div class="upcoming-card${isToday ? ' event-today' : ''}" onclick="_tmShowAlbumMenu(event,${esc(JSON.stringify(title))},${esc(JSON.stringify(artistName))})">
+  return `<div class="dc-card-inset upcoming-card${isToday ? ' event-today' : ''}" onclick="_tmShowAlbumMenu(event,${esc(JSON.stringify(title))},${esc(JSON.stringify(artistName))})">
     ${dcPlBtnHtml('album', title, artistName, title, 'dc-pl-add-card')}
     ${imgHtml}
     <div class="upcoming-card-date${isToday ? ' soon' : ''}">${countdownLabel}</div>
@@ -29674,7 +29674,7 @@ function renderRecentAnniversaryCard(entry) {
   const daysAgoLabel = `${daysAgo} day${daysAgo === 1 ? '' : 's'} ago`;
   const imgSrc = mbid ? `https://coverartarchive.org/release-group/${mbid}/front-250` : null;
   const imgHtml = `<img class="upcoming-card-img${imgSrc ? '' : ' upcoming-card-img-pending'}" ${imgSrc ? `src="${imgSrc}" onerror="releaseImgFallback(this)"` : ''} alt="" loading="lazy" data-artist="${esc(artistName)}" data-title="${esc(title)}" data-sources="deezer,itunes,lastfm">`;
-  return `<div class="upcoming-card" onclick="_tmShowAlbumMenu(event,${esc(JSON.stringify(title))},${esc(JSON.stringify(artistName))})">
+  return `<div class="dc-card-inset upcoming-card" onclick="_tmShowAlbumMenu(event,${esc(JSON.stringify(title))},${esc(JSON.stringify(artistName))})">
     ${dcPlBtnHtml('album', title, artistName, title, 'dc-pl-add-card')}
     ${imgHtml}
     <div class="upcoming-card-date recent">${daysAgoLabel}</div>
@@ -30352,7 +30352,7 @@ function _evCarousel(gridEl, items) {
      onto an identical frame, and copy B is hidden when the deck is short enough
      to fit — see dcMountReel(), which drives the motion and the drag. */
   const card = (item, dupe) => {
-    return `<div class="ev-carousel-card${item.isToday ? ' event-today' : ''}${dupe ? ' dcreel-dupe' : ''}" ${_evReleaseClickAttr(item)}>` +
+    return `<div class="dc-card-inset ev-carousel-card${item.isToday ? ' event-today' : ''}${dupe ? ' dcreel-dupe' : ''}" ${_evReleaseClickAttr(item)}>` +
       `${_evPlBtn(item, 'dc-pl-add-card')}` +
       `${_evImgTag(item, 'ev-carousel-img')}` +
       `<div class="ev-carousel-date">${esc(item.dateLabel)}</div>` +
@@ -30447,7 +30447,7 @@ function renderConcertCard(event, artistName) {
   const imgHtml = `<img class="upcoming-card-img upcoming-card-img-pending" alt="" loading="lazy" data-artist="${esc(artistName)}" data-title="" data-sources="deezer-artist">`;
   // The card opens the artist action menu, with the show's ticket page — where
   // the card used to go on its own — as the menu's first option.
-  return `<div class="upcoming-card${isToday ? ' event-today' : ''}" onclick="_concertShowMenu(event,${esc(JSON.stringify(artistName))},${esc(JSON.stringify(url))})">
+  return `<div class="dc-card-inset upcoming-card${isToday ? ' event-today' : ''}" onclick="_concertShowMenu(event,${esc(JSON.stringify(artistName))},${esc(JSON.stringify(url))})">
     ${imgHtml}
     <div class="upcoming-card-date${isToday || isSoon ? ' soon' : ''}">${esc(countdownLabel)}</div>
     <div class="upcoming-card-title">${esc(artistName)}</div>
@@ -30573,7 +30573,7 @@ function renderNMFCard(album) {
   // The card opens the release action menu rather than the Deezer page. The
   // release still comes from Deezer — cover, title, date and type all below —
   // and that page is the menu's first option.
-  return `<div class="upcoming-card" onclick="_nmfShowMenu(event,${esc(JSON.stringify(album.title || ''))},${esc(JSON.stringify(album.artist?.name || ''))},${esc(JSON.stringify(href))})">
+  return `<div class="dc-card-inset upcoming-card" onclick="_nmfShowMenu(event,${esc(JSON.stringify(album.title || ''))},${esc(JSON.stringify(album.artist?.name || ''))},${esc(JSON.stringify(href))})">
     ${imgHtml}
     <div class="upcoming-card-date">${esc(dateStr)}</div>
     <div class="upcoming-card-title">${esc(album.title || '')}</div>
@@ -33652,7 +33652,7 @@ function dcRenderPlaylistsView() {
       const nameEsc  = esc(name);
       const nameJson = esc(JSON.stringify(name)); // must escape " so it doesn't break the onclick="" attribute
 
-      html += `<div class="dc-pl-card${isExpanded ? ' dc-pl-card-open' : ''}">` +
+      html += `<div class="dc-card dc-pl-card${isExpanded ? ' dc-pl-card-open' : ''}">` +
         `<div class="dc-pl-card-header" onclick="dcPlToggleExpand(${nameJson})">` +
         `<svg class="dc-pl-chevron${isExpanded ? ' dc-pl-chevron-open' : ''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9,18 15,12 9,6"/></svg>` +
         `<span class="dc-pl-name">${nameEsc}</span>` +
@@ -37375,7 +37375,7 @@ function _skHmGenHTML() {
 
   // ── Stat tiles ────────────────────────────────────────────────
   const fmtMD = ds => new Date(ds + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-  const tile = (v, l) => `<div class="sk-hm-tile"><div class="sk-hm-tile-v">${v}</div><div class="sk-hm-tile-l">${l}</div></div>`;
+  const tile = (v, l) => `<div class="dc-card-inset sk-hm-tile"><div class="sk-hm-tile-v">${v}</div><div class="sk-hm-tile-l">${l}</div></div>`;
   const tilesHtml = `<div class="sk-hm-tiles">` +
     tile(maxCount, esc(maxDate ? t('sk_hm_peak_on', { date: fmtMD(maxDate) }) : t('sk_hm_peak'))) +
     tile(activeDays, esc(t('sk_hm_active_of', { total: rangeDays }))) +
@@ -37996,7 +37996,7 @@ function renderTimeMachine(forceRebuild) {
       const sub = entry.artist + (entry.album && entry.album !== '—' ? ' · ' + entry.album : '');
       const prefKey = 'song:' + entry.artist.toLowerCase() + '|||' + entry.title.toLowerCase();
       songArr.push({ imgId, title: entry.title, artist: entry.artist, album: entry.album, name: entry.title, prefKey });
-      return '<div class="tm-card tm-card-song' + dupe + '" data-type="song" onclick="_tmShowSongMenu(event,' + esc(JSON.stringify(entry.title)) + ',' + esc(JSON.stringify(entry.artist)) + ',' + esc(JSON.stringify(entry.album)) + ')">' +
+      return '<div class="dc-card-inset tm-card tm-card-song' + dupe + '" data-type="song" onclick="_tmShowSongMenu(event,' + esc(JSON.stringify(entry.title)) + ',' + esc(JSON.stringify(entry.artist)) + ',' + esc(JSON.stringify(entry.album)) + ')">' +
         '<div class="tm-card-img" id="' + esc(imgId) + '"><div class="thumb-initials">' + esc(initials(entry.title)) + '</div></div>' +
         '<div class="tm-card-info">' +
         '<div class="tm-card-title">' + esc(entry.title) + '</div>' +
@@ -38006,7 +38006,7 @@ function renderTimeMachine(forceRebuild) {
     } else if (entry.type === 'artist') {
       const prefKey = 'artist:' + entry.artist.toLowerCase();
       artistArr.push({ imgId, name: entry.artist, artist: entry.artist, album: '', title: '', prefKey });
-      return '<div class="tm-card tm-card-search' + dupe + '" data-type="artist" onclick="_tmShowArtistMenu(event,' + esc(JSON.stringify(entry.artist)) + ')">' +
+      return '<div class="dc-card-inset tm-card tm-card-search' + dupe + '" data-type="artist" onclick="_tmShowArtistMenu(event,' + esc(JSON.stringify(entry.artist)) + ')">' +
         '<div class="tm-card-img" id="' + esc(imgId) + '"><div class="thumb-initials">' + esc(initials(entry.artist)) + '</div></div>' +
         '<div class="tm-card-info">' +
         '<div class="tm-card-title">' + esc(entry.artist) + '</div>' +
@@ -38015,7 +38015,7 @@ function renderTimeMachine(forceRebuild) {
     } else {
       const prefKey = 'album:' + entry.artist.toLowerCase() + '|||' + entry.album.toLowerCase();
       albumArr.push({ imgId, album: entry.album, artist: entry.artist, name: entry.album, title: '', prefKey });
-      return '<div class="tm-card tm-card-search' + dupe + '" data-type="album" onclick="_tmShowAlbumMenu(event,' + esc(JSON.stringify(entry.album)) + ',' + esc(JSON.stringify(entry.artist)) + ')">' +
+      return '<div class="dc-card-inset tm-card tm-card-search' + dupe + '" data-type="album" onclick="_tmShowAlbumMenu(event,' + esc(JSON.stringify(entry.album)) + ',' + esc(JSON.stringify(entry.artist)) + ')">' +
         '<div class="tm-card-img" id="' + esc(imgId) + '"><div class="thumb-initials">' + esc(initials(entry.album)) + '</div></div>' +
         '<div class="tm-card-info">' +
         '<div class="tm-card-title">' + esc(entry.album) + '</div>' +
@@ -40815,7 +40815,7 @@ function _awcMark(text) {
 function _awcCardHtml(cat, data) {
   const on = _awcEnabled(data, cat);
   const name = t('awards_cat_' + cat.id);
-  return `<label class="awc-card${on ? ' is-on' : ''}${_awardsFavCats.has(cat.id) ? ' is-fav' : ''}" data-cat="${esc(cat.id)}">
+  return `<label class="dc-card-inset awc-card${on ? ' is-on' : ''}${_awardsFavCats.has(cat.id) ? ' is-fav' : ''}" data-cat="${esc(cat.id)}">
     <span class="awc-emoji" aria-hidden="true">${cat.emoji || '🏆'}</span>
     <span class="awc-text">
       <span class="awc-name">${_awcMark(name)}</span>
@@ -42748,7 +42748,7 @@ function _awardsPickerStatsHtml(item) {
   const year = esc(String(_awardsPickerCtx.year));
   const pl = (n, a, b) => `${n.toLocaleString()} ${n === 1 ? a : b}`;
   const short = ds => _awardsStatDate(ds).replace(/\s\d{4}$/, '');   // "11 Jan", the year is a given
-  const tile = (label, value, note, cls) => `<div class="aw-pst-tile${cls ? ' ' + cls : ''}">
+  const tile = (label, value, note, cls) => `<div class="dc-card-inset aw-pst-tile${cls ? ' ' + cls : ''}">
       <span class="aw-pst-label">${label}</span>
       <span class="aw-pst-value">${value}</span>
       ${note ? `<span class="aw-pst-note">${note}</span>` : ''}
@@ -44303,7 +44303,7 @@ async function _loadRealLifeGrammys(year) {
 
     // The artist's portrait runs down the whole card, with their name and every
     // nomination beside it.
-    return `<div class="awards-reallife-card">
+    return `<div class="dc-card-inset awards-reallife-card">
       ${_rlArtHtml(artistId, r.played.artist, 'awards-reallife-portrait')}
       <div class="awards-reallife-body">
         <div class="awards-reallife-artist">
@@ -45137,7 +45137,7 @@ async function _loadRealLifeWiki(showId, year) {
         prefKey: 'artist:' + r.played.artist.toLowerCase(),
       } });
       const plays = r.played.plays;
-      return `<div class="awards-reallife-card">
+      return `<div class="dc-card-inset awards-reallife-card">
         ${_rlArtHtml(artistId, r.played.artist, 'awards-reallife-portrait')}
         <div class="awards-reallife-body">
           <div class="awards-reallife-artist">
@@ -46659,7 +46659,7 @@ function stBuildReelCard(entry, i, suffix, songItems, artistItems) {
   if (entry.type === 'artist') {
     const prefKey = 'artist:' + entry.artist.toLowerCase();
     artistItems.push({ imgId, name: entry.artist, artist: entry.artist, album: '', title: '', prefKey });
-    return '<div class="tm-card tm-card-search' + dupe + '" data-type="artist" onclick="_tmShowArtistMenu(event,' + esc(JSON.stringify(entry.artist)) + ')">' +
+    return '<div class="dc-card-inset tm-card tm-card-search' + dupe + '" data-type="artist" onclick="_tmShowArtistMenu(event,' + esc(JSON.stringify(entry.artist)) + ')">' +
       '<div class="tm-card-img" id="' + esc(imgId) + '"><div class="thumb-initials">' + esc(initials(entry.artist)) + '</div></div>' +
       '<div class="tm-card-info">' +
       '<div class="tm-card-title">' + esc(entry.artist) + '</div>' +
@@ -46670,7 +46670,7 @@ function stBuildReelCard(entry, i, suffix, songItems, artistItems) {
   if (entry.type === 'day') {
     const prefKey = 'song:' + entry.topArtist.toLowerCase() + '|||' + entry.topTitle.toLowerCase();
     songItems.push({ imgId, title: entry.topTitle, artist: entry.topArtist, album: entry.topAlbum, name: entry.topTitle, prefKey });
-    return '<div class="tm-card tm-card-song' + dupe + '" data-type="day" onclick="_tmShowSongMenu(event,' + esc(JSON.stringify(entry.topTitle)) + ',' + esc(JSON.stringify(entry.topArtist)) + ',' + esc(JSON.stringify(entry.topAlbum)) + ')">' +
+    return '<div class="dc-card-inset tm-card tm-card-song' + dupe + '" data-type="day" onclick="_tmShowSongMenu(event,' + esc(JSON.stringify(entry.topTitle)) + ',' + esc(JSON.stringify(entry.topArtist)) + ',' + esc(JSON.stringify(entry.topAlbum)) + ')">' +
       '<div class="tm-card-img" id="' + esc(imgId) + '"><div class="thumb-initials">' + esc(initials(entry.topTitle)) + '</div></div>' +
       '<div class="tm-card-info">' +
       '<div class="tm-card-title">' + esc(dateStr(tzDate(entry.date))) + '</div>' +
@@ -46683,7 +46683,7 @@ function stBuildReelCard(entry, i, suffix, songItems, artistItems) {
   const sub = entry.artist + (entry.album && entry.album !== '—' ? ' · ' + entry.album : '');
   const prefKey = 'song:' + entry.artist.toLowerCase() + '|||' + entry.title.toLowerCase();
   songItems.push({ imgId, title: entry.title, artist: entry.artist, album: entry.album, name: entry.title, prefKey });
-  return '<div class="tm-card tm-card-song' + dupe + '" data-type="song" onclick="_tmShowSongMenu(event,' + esc(JSON.stringify(entry.title)) + ',' + esc(JSON.stringify(entry.artist)) + ',' + esc(JSON.stringify(entry.album)) + ')">' +
+  return '<div class="dc-card-inset tm-card tm-card-song' + dupe + '" data-type="song" onclick="_tmShowSongMenu(event,' + esc(JSON.stringify(entry.title)) + ',' + esc(JSON.stringify(entry.artist)) + ',' + esc(JSON.stringify(entry.album)) + ')">' +
     '<div class="tm-card-img" id="' + esc(imgId) + '"><div class="thumb-initials">' + esc(initials(entry.title)) + '</div></div>' +
     '<div class="tm-card-info">' +
     '<div class="tm-card-title">' + esc(entry.title) + '</div>' +
@@ -50788,7 +50788,7 @@ function dcRenderChartsGuideView() {
 
   /* Data status — setup checks, quality checks and source explainer in one panel */
   h += `<div class="cg-status-row">
-    <div class="cg-panel">
+    <div class="dc-card cg-panel">
       <div class="cg-panel-title">⚙ Setup</div>
       <div class="cg-status-items">
         <div class="cg-si ${srcOk ? 'ok' : 'warn'}"><span>${srcOk ? '✓' : '!'}</span>${esc(srcLabel)} ${srcOk ? 'connected' : 'not configured'}</div>
@@ -50798,13 +50798,13 @@ function dcRenderChartsGuideView() {
       </div>
       <button class="dc-btn dc-btn-normal dc-btn-sm cg-mini-btn" onclick="openSourceModal()">Open Settings →</button>
     </div>
-    <div class="cg-panel">
+    <div class="dc-card cg-panel">
       <div class="cg-panel-title">📋 Data quality</div>
       <div class="cg-status-items">
         ${warnings.map(w => `<div class="cg-si ${w.type}"><span>${w.type === 'ok' ? '✓' : w.type === 'error' ? '✗' : '!'}</span>${esc(w.msg)}</div>`).join('')}
       </div>
     </div>
-    <div class="cg-panel">
+    <div class="dc-card cg-panel">
       <div class="cg-panel-title">📡 Source: ${esc(srcLabel)}</div>
       <p class="cg-source-desc">${esc(srcDescs[src] || '')}</p>
       <div class="cg-source-dots">
@@ -50816,7 +50816,7 @@ function dcRenderChartsGuideView() {
   </div>`;
 
   /* First-steps checklist */
-  h += `<div class="cg-panel cg-checklist-panel">
+  h += `<div class="dc-card cg-panel cg-checklist-panel">
     <div class="cg-panel-title">✅ First steps</div>
     <div class="cg-progress-track"><div class="cg-checklist-bar" style="width:${Math.round(doneCount / checkItems.length * 100)}%"></div></div>
     <div class="cg-checklist-frac">${doneCount} of ${checkItems.length} done</div>
@@ -50837,7 +50837,7 @@ function dcRenderChartsGuideView() {
       <div class="cg-tabgroup-title">${esc(row.group)}</div>
       <p class="cg-tabgroup-note">${esc(row.note)}</p>
       <div class="cg-tab-grid">
-        ${row.tabs.map(t => `<div class="cg-tab-card${t.period === 'chartsguide' ? ' current' : ''}">
+        ${row.tabs.map(t => `<div class="dc-card cg-tab-card${t.period === 'chartsguide' ? ' current' : ''}">
           <div class="cg-tab-head"><span class="cg-tab-icon">${t.icon}</span><span class="cg-tab-name">${esc(t.name)}</span></div>
           <p class="cg-tab-desc">${esc(t.desc)}</p>
           <p class="cg-tab-use"><span>Best for</span> ${esc(t.use)}</p>
@@ -50879,14 +50879,14 @@ function dcRenderChartsGuideView() {
   h += `<section class="cg-chapter">`;
   h += chapterHead('tips', 'Everything with a key binding, then the things that are easy to miss entirely.');
   h += `<div class="cg-dual-row">
-    <div class="cg-panel cg-shortcuts">
+    <div class="dc-card cg-panel cg-shortcuts">
       <div class="cg-panel-title">⌨ Keyboard & click shortcuts</div>
       ${shortcuts.map(([keys, desc]) => `<div class="cg-shortcut-row">
         <span class="cg-shortcut-keys">${esc(keys)}</span>
         <span class="cg-shortcut-desc">${esc(desc)}</span>
       </div>`).join('')}
     </div>
-    <div class="cg-panel cg-gems">
+    <div class="dc-card cg-panel cg-gems">
       <div class="cg-panel-title">💎 Easy to miss</div>
       ${tips.map(t => `<div class="cg-gem">• ${t}</div>`).join('')}
     </div>
@@ -50900,11 +50900,11 @@ function dcRenderChartsGuideView() {
   /* Deliberately omits Total Plays and Days Listened: both already sit in the
      masthead stat strip a few hundred pixels up the page. */
   h += `<div class="cg-stats-row">
-    <div class="cg-stat-card"><span class="cg-stat-num">${uniqueArtists.toLocaleString()}</span><span class="cg-stat-lbl">Artists</span></div>
-    <div class="cg-stat-card"><span class="cg-stat-num">${uniqueTracks.toLocaleString()}</span><span class="cg-stat-lbl">Unique Tracks</span></div>
-    <div class="cg-stat-card"><span class="cg-stat-num">${uniqueAlbums.toLocaleString()}</span><span class="cg-stat-lbl">Albums</span></div>
-    <div class="cg-stat-card"><span class="cg-stat-num">${n ? yearsFmt : '—'}</span><span class="cg-stat-lbl">History</span></div>
-    <div class="cg-stat-card"><span class="cg-stat-num cg-stat-num-sm">${esc(firstFmt)}</span><span class="cg-stat-lbl">First Scrobble</span></div>
+    <div class="dc-card cg-stat-card"><span class="cg-stat-num">${uniqueArtists.toLocaleString()}</span><span class="cg-stat-lbl">Artists</span></div>
+    <div class="dc-card cg-stat-card"><span class="cg-stat-num">${uniqueTracks.toLocaleString()}</span><span class="cg-stat-lbl">Unique Tracks</span></div>
+    <div class="dc-card cg-stat-card"><span class="cg-stat-num">${uniqueAlbums.toLocaleString()}</span><span class="cg-stat-lbl">Albums</span></div>
+    <div class="dc-card cg-stat-card"><span class="cg-stat-num">${n ? yearsFmt : '—'}</span><span class="cg-stat-lbl">History</span></div>
+    <div class="dc-card cg-stat-card"><span class="cg-stat-num cg-stat-num-sm">${esc(firstFmt)}</span><span class="cg-stat-lbl">First Scrobble</span></div>
   </div>`;
 
   h += `<div class="cg-sub-label">Where to go next</div>
@@ -50918,7 +50918,7 @@ function dcRenderChartsGuideView() {
 
   const todayFmt = today.toLocaleDateString('en', { month: 'long', day: 'numeric' });
   h += `<div class="cg-dual-row">
-    <div class="cg-panel">
+    <div class="dc-card cg-panel">
       <div class="cg-panel-title">📅 On this day — ${esc(todayFmt)}</div>
       ${onThisDay.length === 0
         ? `<p class="cg-empty">${n === 0 ? 'Load your plays to see what you were listening to on this day in past years.' : 'No plays found on this date in previous years.'}</p>`
@@ -50927,7 +50927,7 @@ function dcRenderChartsGuideView() {
             <span class="cg-otd-detail">${r.plays} plays · top: <strong>${esc(r.artist)}</strong> (${r.count}×)</span>
           </div>`).join('')}
     </div>
-    <div class="cg-panel">
+    <div class="dc-card cg-panel">
       <div class="cg-panel-title">🕰 Milestones</div>
       ${milestones.length === 0
         ? `<p class="cg-empty">Load your plays to see your listening milestones.</p>`
@@ -50969,7 +50969,7 @@ function dcRenderChartsGuideView() {
   h += foldHead('export', 'Export &amp; share');
   h += `<div class="cg-collapsible" id="cg-export-body" style="display:none">
     <div class="cg-export-grid">
-      ${exportGuide.map(eg => `<div class="cg-panel">
+      ${exportGuide.map(eg => `<div class="dc-card cg-panel">
         <div class="cg-export-icon">${eg.icon}</div>
         <div class="cg-panel-title">${esc(eg.title)}</div>
         <ol class="cg-export-steps">${eg.steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol>
@@ -50982,7 +50982,7 @@ function dcRenderChartsGuideView() {
      second kind inside the first is how it went unread. This is the
      signpost, and the count comes from the real list so it cannot go stale. */
   h += `<div class="cg-sub-label">What's new</div>
-  <div class="cg-panel cg-changelog-pointer">
+  <div class="dc-card cg-panel cg-changelog-pointer">
     <p>Every change to dankcharts.fm since April 2026 — ${
       typeof DC_CHANGELOG !== 'undefined' ? DC_CHANGELOG.length : ''
     } of them, searchable and filterable by what changed and where.</p>
@@ -50991,7 +50991,7 @@ function dcRenderChartsGuideView() {
 
   const savedFeedback = (() => { try { return localStorage.getItem('dc_guide_feedback') || ''; } catch(e) { return ''; } })();
   h += `<div class="cg-sub-label">Still stuck?</div>
-  <div class="cg-panel cg-feedback">
+  <div class="dc-card cg-panel cg-feedback">
     <p class="cg-feedback-intro">Write an idea or a bug here and it is saved in this browser, waiting for you next visit. For anything that needs a reply, use Contact Support at the bottom of the page or email <a href="mailto:support@dankcharts.fm">support@dankcharts.fm</a>.</p>
     <textarea id="cgFeedbackText" class="cg-feedback-textarea" rows="4" placeholder="Your idea or feedback…">${esc(savedFeedback)}</textarea>
     <div class="cg-feedback-row">
@@ -54959,13 +54959,13 @@ function renderRatingsGraphSection() {
     </div>
 
     ${bestAlbum ? `<div class="rt-bestworst">
-      <button class="rt-bw-card rt-bw-card--best" onclick="openAlbumModal(${esc(JSON.stringify(bestAlbum.key))})">
+      <button class="dc-card-inset rt-bw-card rt-bw-card--best" onclick="openAlbumModal(${esc(JSON.stringify(bestAlbum.key))})">
         <div class="rt-bw-lead">🏆 Best rated album</div>
         <div class="rt-bw-name">${esc(bestAlbum.name)}</div>
         <div class="rt-bw-artist">${esc(bestAlbum.artist)}</div>
         ${ratingChip(bestAlbum.score)}
       </button>
-      ${worstAlbum && worstAlbum.key !== bestAlbum.key ? `<button class="rt-bw-card rt-bw-card--worst" onclick="openAlbumModal(${esc(JSON.stringify(worstAlbum.key))})">
+      ${worstAlbum && worstAlbum.key !== bestAlbum.key ? `<button class="dc-card-inset rt-bw-card rt-bw-card--worst" onclick="openAlbumModal(${esc(JSON.stringify(worstAlbum.key))})">
         <div class="rt-bw-lead">🥀 Lowest rated album</div>
         <div class="rt-bw-name">${esc(worstAlbum.name)}</div>
         <div class="rt-bw-artist">${esc(worstAlbum.artist)}</div>
@@ -55074,7 +55074,7 @@ function renderRatingRecordsSection() {
               : r.kind === 'song'  ? `openSongModal(${esc(JSON.stringify(r.key))})`
               : `openArtistModal(${esc(JSON.stringify(r.key))})`;
   el.innerHTML = `<div class="rt-rec-grid">
-    ${recs.map(r => `<button class="rt-rec-card" onclick="${open(r)}">
+    ${recs.map(r => `<button class="dc-card-inset rt-rec-card" onclick="${open(r)}">
       <div class="rt-rec-emoji">${r.emoji}</div>
       <div class="rt-rec-value ${ratingBand(parseFloat(r.value))?.cls || ''}">${esc(r.value)}</div>
       <div class="rt-rec-label">${esc(r.label)}</div>
