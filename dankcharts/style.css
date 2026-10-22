@@ -749,14 +749,12 @@
       box-sizing: border-box;
     }
 
+    /* No min-width: min-content on html. It let any sideways-scrolling strip
+       (Filmstrip, the certification reel) widen the whole page to the
+       container's 980px cap between 600 and 980px wide (phase 7 step 12).
+       Phones already had it off. */
     html {
-      min-width: min-content;
-    }
-
-    @media (max-width: 600px) {
-      html {
-        min-width: 0;
-      }
+      min-width: 0;
     }
 
     button, input, select, textarea {
@@ -1688,6 +1686,16 @@
       #topbar .wordmark-fm,
       #topbar .tb-lang-code {
         display: none;
+      }
+    }
+
+    /* The smallest phones (~330px): the icon buttons slim down 4px each so
+       "Sign in" no longer pushes the page 15px wider (phase 7 step 12) */
+    @media (max-width: 350px) {
+      #topbar .tb-btn,
+      #topbar .ctrl-group-btn {
+        min-width: 30px;
+        padding: 0 4px;
       }
     }
 
@@ -7046,6 +7054,29 @@
       gap: 0.35rem;
       flex: 1;
       justify-content: center;
+    }
+
+    /* Small phones: five pieces don't fit on one line (at 330px "|◄" and
+       "◄ PREV" split in two and ►| hung off the edge). The page label and
+       jump box take their own line on top, the four buttons share the one
+       under it (phase 7 step 12). */
+    @media (max-width: 420px) {
+      .page-nav {
+        flex-wrap: wrap;
+        gap: 6px;
+        padding: 0.5rem 0.6rem;
+      }
+
+      .page-nav button {
+        flex: 1 1 auto;
+        padding: 0.22rem 0.5rem;
+        white-space: nowrap;
+      }
+
+      .page-nav-center {
+        order: -1;
+        flex: 1 1 100%;
+      }
     }
 
     .page-jump {
@@ -37946,18 +37977,31 @@ body[data-view="day"] .daily-view {
    above. Was a sideways-scrolling actions tray that hid half its buttons;
    now a 3 × 2 grid, icon over label, so all six show at once. */
 @media (max-width: 700px) {
+  /* Wraps so a long "Compare with" (es / pt: "vs mesmo dia da semana
+     passada") puts its buttons on their own line instead of pushing the
+     page sideways (phase 7 step 12); English still fits on one line */
   .dy-cmp {
     flex: 1 1 100%;
+    flex-wrap: wrap;
   }
 
   .dy-cmp .dy-seg {
     flex: 1 1 auto;
     flex-wrap: nowrap;
+    min-width: 0;
   }
 
+  /* Last resort on the narrowest screens: the label wraps inside its button */
   .dy-cmp .dy-seg-btn {
     flex: 1 1 0;
     justify-content: center;
+    min-width: 0;
+    height: auto;
+    min-height: 30px;
+    padding-block: 4px;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.2;
   }
 
   .dy-no1 {
@@ -38830,7 +38874,14 @@ body[data-view="day"] .daily-view {
   color: var(--text);
 }
 
-.dy-part-n > span {
+/* The count is "<b>7</b> <i>plays</i>"; both halves look like plain text here */
+.dy-part-cnt b,
+.dy-part-cnt i {
+  font-weight: inherit;
+  font-style: normal;
+}
+
+.dy-part-n > span:not(.dy-part-cnt) {
   font-family: var(--font-sans);
   font-size: var(--fs-xs);
   font-weight: 600;
@@ -38849,6 +38900,29 @@ body[data-view="day"] .daily-view {
 @media (max-width: 700px) {
   .dy-parts {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* Half-width cards: long words ("reproducciones", "MADRUGADA" + "PICO")
+     wrap inside the card instead of spilling over (phase 7 step 12) */
+  .dy-part-head {
+    flex-wrap: wrap;
+    row-gap: 2px;
+  }
+
+  .dy-part-n {
+    flex-wrap: wrap;
+    column-gap: 6px;
+  }
+
+  .dy-part-cnt {
+    min-width: 0;
+  }
+
+  .dy-part-w {
+    font-family: var(--font-sans);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    color: var(--text2);
   }
 
   /* The stat chips slide sideways on one line instead of stacking */

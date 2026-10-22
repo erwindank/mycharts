@@ -811,9 +811,14 @@ function dyTimeOfDayHtml(h, ds) {
   });
   const parts = partData.map(x => {
     const pct = Math.round(x.n / plays.length * 100);
+    // Number and word apart, so phones can shrink the word ("reproducciones"
+    // is wider than a half-width card on a 330px screen)
+    const cnt = tCount('plays', x.n);
+    const cm = cnt.match(/^(\S+)\s+(.+)$/);
+    const cntHtml = cm ? `<b>${esc(cm[1])}</b> <i class="dy-part-w">${esc(cm[2])}</i>` : esc(cnt);
     return `<button type="button" class="dy-part${x.n ? '' : ' is-empty'}${x === topPart ? ' is-top' : ''}" data-a="${x.a}" data-z="${x.z}" onclick="dyPickPart(this)" aria-pressed="false">
         <span class="dy-part-head"><span class="dy-part-ic" aria-hidden="true">${x.icon}</span><span class="dy-part-name">${esc(t('dy_part_' + x.key))}</span>${x === topPart ? `<span class="dy-part-tag">${esc(t('dy_part_peak'))}</span>` : ''}</span>
-        <span class="dy-part-n">${esc(tCount('plays', x.n))}<span>${pct}%</span></span>
+        <span class="dy-part-n"><span class="dy-part-cnt">${cntHtml}</span><span>${pct}%</span></span>
         <span class="dy-prog"><i style="width:${Math.max(x.n ? 2 : 0, pct)}%"></i></span>
         ${x.top ? `<span class="ns-x-line dy-part-song" title="${esc(x.top.title + ' — ' + x.top.artist)}">${dySongMain(x.top.title, x.top.artist)}</span>` : `<span class="dy-part-song is-none">${esc(t('dy_part_quiet'))}</span>`}
       </button>`;
