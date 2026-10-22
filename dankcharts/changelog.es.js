@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Records Overview: one card per record":
+    ["Resumen de Récords: una tarjeta por récord",
+     "El Resumen de Récords mostraba hasta 26 tarjetas, porque la mayoría de los récords tenía una tarjeta aparte para semanal, mensual y anual. Ahora cada récord tiene una sola tarjeta, con su propio selector Semanal / Mensual / Anual debajo, y cada tarjeta recuerda el período que elegiste. Las tarjetas están en los mismos dos grupos que el menú lateral. La fila de tarjetas bajo el artista con más récords se desvanece más suavemente en los bordes. Funciona con Last.fm, Google Sheets y archivos CSV."],
+
   "Records has a side menu":
     ["Récords tiene un menú lateral",
      "Las dos filas de pestañas de Récords son ahora un menú en el lado izquierdo de la página que sigue a la vista mientras te desplazas. Está dividido en Récords de listas y Récords de escuchas, y cada opción muestra cuántas listas de récords tiene. En pantallas anchas la página de Récords es un poco más ancha, así que las tablas mantienen todo su ancho. En móviles y tabletas las pestañas son un solo desplegable Sección que muestra dónde estás. Funciona con Last.fm, Google Sheets y archivos CSV."],

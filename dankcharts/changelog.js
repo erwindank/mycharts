@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 268;
+const DC_CL_I18N_V = 269;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-22', t: 'design', a: 'records', h: 'b5ccf38',
+    title: "Records Overview: one card per record",
+    detail: "Records Overview used to show up to 26 cards, because most records had a separate card for weekly, monthly and yearly. Now each record has one card, with its own Weekly / Monthly / Yearly switch underneath, and each card remembers the period you picked. The cards are in the same two groups as the side menu. The row of cards under the most decorated artist fades out more softly at the edges. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-22', t: 'design', a: 'records', h: 'd2973b9',
     title: "Records has a side menu",
     detail: "The two rows of Records sub-tabs are now a menu down the left side of the page that stays in view while you scroll. It is split into Chart records and Play records, and each item shows how many record lists it holds. On wide screens the Records page gets a little wider, so the tables keep their full width. On phones and tablets the sub-tabs are one Section dropdown that shows where you are. Works with Last.fm, Google Sheets and CSV uploads." },

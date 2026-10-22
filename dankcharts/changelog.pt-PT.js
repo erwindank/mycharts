@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Records Overview: one card per record":
+    ["Visão geral de Recordes: um cartão por recorde",
+     "A Visão geral de Recordes mostrava até 26 cartões, porque a maioria dos recordes tinha um cartão à parte para semanal, mensal e anual. Agora cada recorde tem um só cartão, com o seu próprio seletor Semanal / Mensal / Anual por baixo, e cada cartão lembra o período que escolheste. Os cartões estão nos mesmos dois grupos do menu lateral. A fila de cartões por baixo do artista com mais recordes desvanece mais suavemente nas margens. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
+
   "Records has a side menu":
     ["Recordes tem um menu lateral",
      "As duas filas de separadores de Recordes são agora um menu do lado esquerdo da página que continua visível enquanto deslizas. Está dividido em Recordes dos tops e Recordes de reproduções, e cada item mostra quantas listas de recordes tem. Em ecrãs largos a página de Recordes fica um pouco mais larga, por isso as tabelas mantêm a largura toda. No telemóvel e no tablet os separadores passam a ser um único menu Secção que mostra onde estás. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
