@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "All #1s and Appearances: one table at a time":
+    ["Todos os #1 e Aparições: uma tabela de cada vez",
+     "Todos os #1 e Mais aparições mostravam duas tabelas por período, uma com o total e outra com a maior sequência seguida. Agora há uma tabela só, com um seletor Total / Seguidas em cima, e Recordes lembra qual você escolheu. A busca continua olhando nas duas. Funciona com Last.fm, Google Sheets e arquivos CSV."],
+
   "Calmer Records tables":
     ["Tabelas de Recordes mais calmas",
      "As datas nas tabelas de Recordes agora são texto normal. Elas continuam abrindo a parada daquela semana e ficam sublinhadas quando você passa o ponteiro. Os ícones de nota e disco antes dos títulos de músicas e álbuns saíram, já que a coluna já diz o que é. O controle 25 / 50 / 100 / Todos agora fica na linha do título da seção que ele muda. Também corrigido: em Perfect All Kill, a coluna Mais recente ficava desalinhada do resto da linha. Funciona com Last.fm, Google Sheets e arquivos CSV."],

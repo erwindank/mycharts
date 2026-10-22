@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 270;
+const DC_CL_I18N_V = 271;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-22', t: 'design', a: 'records', h: '47149ac',
+    title: "All #1s and Appearances: one table at a time",
+    detail: "All #1s and Most Chart Appearances showed two tables for every period, one counting the total and one counting the longest run in a row. Now there is one table with a Total / In a row switch above it, and Records remembers which one you picked. A search still looks through both. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-22', t: 'design', a: 'records', h: 'f357296',
     title: "Calmer Records tables",
     detail: "Dates in Records tables are now plain text. They still open that week's chart, and underline when you point at them. The music-note and disc icons in front of song and album titles are gone, since the column already says what it is. The 25 / 50 / 100 / All control now sits on the heading line of the section it changes. Also fixed: in Perfect All Kill, the Most recent column sat out of line with the rest of its row. Works with Last.fm, Google Sheets and CSV uploads." },
