@@ -13718,6 +13718,22 @@
       --ico: var(--accent2);
     }
 
+    /* Total / In a row switch (All #1s, Appearances): one of the two tables
+       per period shows. During a search both show, so no match is hidden,
+       and the switch steps aside. */
+    .rec-run-seg {
+      margin: 0 0 var(--sp-3);
+    }
+
+    #recordsView:not(.rec-searching) [data-rec-run="consec"] .rec-run-total,
+    #recordsView:not(.rec-searching) [data-rec-run="total"] .rec-run-consec {
+      display: none;
+    }
+
+    #recordsView.rec-searching .rec-run-seg {
+      display: none;
+    }
+
     /* Rating Records has no pill of its own (it lives on Overview), but its
        star and card icons take the trophy gold. */
     #recRatingsSection {

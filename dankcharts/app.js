@@ -8135,7 +8135,7 @@ function buildRecords() {
       h += '<div class="rec-per-panel" role="tabpanel"'
         + ' data-rec-per-scope="' + esc(perScope) + '" data-rec-per="' + cfg.pt + '"'
         + ' data-rec-scope="' + esc(perScope + '-' + cfg.pt) + '" style="display:none">';
-      h += '<div class="rec-section"><div class="rec-section-title">'
+      h += '<div class="rec-section rec-run-total"><div class="rec-section-title">'
         + ent.icon + ' ' + ent.label + ' &mdash; ' + t('rec_most_times_1_on', { period: cfg.label })
         + ' ' + t('rec_suffix_non_consec') + '</div>';
       h += '<div class="rec-section-sub">' + t('rec_have_hit_1', { n: '<strong>' + entries.length + '</strong>', type: ent.label.toLowerCase() }) + '</div>';
@@ -8203,7 +8203,7 @@ function buildRecords() {
         });
       const cTableId = 'rec-1sc-tbl-' + ent.key + '-' + cfg.pt;
       const cRunBaseId = 'rec-1sc-run-' + ent.key + '-' + cfg.pt;
-      h += '<div class="rec-section"><div class="rec-section-title">'
+      h += '<div class="rec-section rec-run-consec"><div class="rec-section-title">'
         + ent.icon + ' ' + ent.label + ' &mdash; ' + t('rec_most_times_1_on', { period: cfg.label })
         + ' ' + t('rec_suffix_consec') + '</div>';
       h += '<div class="rec-section-sub">' + t('rec_consec_sub_1') + '</div>';
@@ -8461,7 +8461,7 @@ function buildRecords() {
       const tops = Object.entries(songApps[cfg.pt]).sort((a, b) => b[1] - a[1]);
       const sliced = isFinite(lim) ? tops.slice(0, lim) : tops;
       const tableId = 'app-tbl-songs-' + cfg.pt;
-      let ah = '<div class="rec-section"><div class="rec-section-title">' + recEntIco('songs') + ' ' + t('rec_th_songs') + ' &mdash; ' + t('rec_most_appearances_on', { period: cfg.label }) + ' ' + t('rec_suffix_non_consec') + '</div>';
+      let ah = '<div class="rec-section rec-run-total"><div class="rec-section-title">' + recEntIco('songs') + ' ' + t('rec_th_songs') + ' &mdash; ' + t('rec_most_appearances_on', { period: cfg.label }) + ' ' + t('rec_suffix_non_consec') + '</div>';
       ah += '<div class="app-table-wrap"><table class="dc-table rec-table app-appearances-table" id="' + tableId + '"><thead><tr>';
       ah += '<th>#</th><th></th><th>' + t('rec_th_songs') + '</th><th class="app-art-th"></th><th>' + t('rec_th_artist') + '</th>';
       ah += '<th>' + t('rec_th_first_streamed') + '</th><th>' + t('rec_th_last_streamed') + '</th>';
@@ -8504,7 +8504,7 @@ function buildRecords() {
       const tops = Object.entries(artistApps[cfg.pt]).sort((a, b) => b[1] - a[1]);
       const sliced = isFinite(lim) ? tops.slice(0, lim) : tops;
       const tableId = 'app-tbl-artists-' + cfg.pt;
-      let ah = '<div class="rec-section"><div class="rec-section-title">' + recEntIco('artists') + ' ' + t('rec_th_artists') + ' &mdash; ' + t('rec_most_appearances_on', { period: cfg.label }) + ' ' + t('rec_suffix_non_consec') + '</div>';
+      let ah = '<div class="rec-section rec-run-total"><div class="rec-section-title">' + recEntIco('artists') + ' ' + t('rec_th_artists') + ' &mdash; ' + t('rec_most_appearances_on', { period: cfg.label }) + ' ' + t('rec_suffix_non_consec') + '</div>';
       ah += '<div class="app-table-wrap"><table class="dc-table rec-table app-appearances-table" id="' + tableId + '"><thead><tr>';
       ah += '<th>#</th><th></th><th>' + t('rec_th_artist') + '</th>';
       ah += '<th>' + t('rec_th_first_song') + '</th><th>' + t('rec_th_last_song') + '</th>';
@@ -8547,7 +8547,7 @@ function buildRecords() {
       const tops = Object.entries(appsByKey[ent.key][cfg.pt]).sort((a, b) => b[1] - a[1]);
       const sliced = isFinite(lim) ? tops.slice(0, lim) : tops;
       const tableId = 'app-tbl-' + ent.key + '-' + cfg.pt;
-      let ah = '<div class="rec-section"><div class="rec-section-title">' + ent.icon + ' ' + esc(ent.label) + ' &mdash; ' + t('rec_most_appearances_on', { period: cfg.label }) + ' ' + t('rec_suffix_non_consec') + '</div>';
+      let ah = '<div class="rec-section rec-run-total"><div class="rec-section-title">' + ent.icon + ' ' + esc(ent.label) + ' &mdash; ' + t('rec_most_appearances_on', { period: cfg.label }) + ' ' + t('rec_suffix_non_consec') + '</div>';
       ah += '<div class="app-table-wrap"><table class="dc-table rec-table app-appearances-table" id="' + tableId + '"><thead><tr>';
       ah += '<th>#</th><th></th><th>' + esc(ent.label) + '</th><th class="app-art-th"></th><th>' + t('rec_th_artist') + '</th>';
       ah += '<th>' + t('rec_th_first_song') + '</th>';
@@ -8650,7 +8650,7 @@ function buildRecords() {
     });
     const tableId = 'app-c-tbl-' + ent.key + '-' + cfg.pt;
     const runBaseId = 'app-c-run-' + ent.key + '-' + cfg.pt;
-    let ah = '<div class="rec-section"><div class="rec-section-title">'
+    let ah = '<div class="rec-section rec-run-consec"><div class="rec-section-title">'
       + ent.icon + ' ' + ent.label + ' &mdash; ' + t('rec_most_appearances_on', { period: cfg.label })
       + ' ' + t('rec_suffix_consec') + '</div>';
     ah += '<div class="rec-section-sub">' + t('rec_consec_sub_app') + '</div>';
@@ -11647,6 +11647,31 @@ function initRecordsViewUI() {
       }
     });
   }
+
+  /* Total / In a row (All #1s, Appearances). Each period used to stack two
+     tables, the total count and the longest unbroken run; now one shows at a
+     time. The choice is a data-rec-run attribute on the section, and CSS
+     hides the other table, except during a search, which shows both so no
+     match is hidden. */
+  document.querySelectorAll('.rec-run-seg').forEach(function (seg) {
+    const sec = document.getElementById(seg.dataset.recRunSec);
+    if (!sec) return;
+    const apply = function (mode) {
+      sec.dataset.recRun = mode;
+      seg.querySelectorAll('[data-rec-run]').forEach(function (b) {
+        b.setAttribute('aria-pressed', b.dataset.recRun === mode ? 'true' : 'false');
+      });
+    };
+    let stored = null;
+    try { stored = localStorage.getItem('dc_rec_run_' + sec.id); } catch (e) {}
+    apply(stored === 'consec' ? 'consec' : 'total');
+    seg.addEventListener('click', function (e) {
+      const b = e.target.closest('[data-rec-run]');
+      if (!b) return;
+      apply(b.dataset.recRun);
+      try { localStorage.setItem('dc_rec_run_' + sec.id, b.dataset.recRun); } catch (err) {}
+    });
+  });
 
   // Add event listeners for records size buttons
   const recordsSizeBar = document.getElementById('recordsSizeBar');

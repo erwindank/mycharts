@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=602">
+  <link rel="stylesheet" href="style.css?v=603">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -1841,6 +1841,11 @@
         </div>
         <div class="section-sub" data-i18n="rec_all_ones_sub">Artists, albums &amp; tracks that reached the top spot on
           your charts — including how many times each held #1</div>
+        <div class="dc-seg rec-run-seg" data-rec-run-sec="recAllOnesSection" role="group" aria-label="How to count"
+          data-i18n-aria="rec_run_label">
+          <button type="button" data-rec-run="total" aria-pressed="true" data-i18n="rec_run_total">Total</button>
+          <button type="button" data-rec-run="consec" aria-pressed="false" data-i18n="rec_run_consec">In a row</button>
+        </div>
         <div class="section-body" id="recAllOnesBody"></div>
       </div>
 
@@ -1869,6 +1874,11 @@
              monthly and yearly records, and each one titles its own chart. -->
         <div class="section-sub" data-i18n="rec_appearances_sub">Artists, albums &amp; tracks with the most periods
           spent inside your charts</div>
+        <div class="dc-seg rec-run-seg" data-rec-run-sec="recAppearancesSection" role="group" aria-label="How to count"
+          data-i18n-aria="rec_run_label">
+          <button type="button" data-rec-run="total" aria-pressed="true" data-i18n="rec_run_total">Total</button>
+          <button type="button" data-rec-run="consec" aria-pressed="false" data-i18n="rec_run_consec">In a row</button>
+        </div>
         <div class="section-body" id="recAppearancesBody"></div>
       </div>
 

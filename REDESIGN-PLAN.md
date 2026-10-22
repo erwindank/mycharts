@@ -2250,6 +2250,9 @@ Steps:
    row (display:flex on a td).
 5. **Total / In a row.** All #1s and Appearances get one table with a
    "Total / In a row" switch above it instead of two stacked tables.
+   **Done 2026-10-22:** a Total / In a row switch (shared .dc-seg) under
+   each section's description, remembered per section; during a search
+   both tables show and the switch hides.
 6. **Fastest and Milestones.** Fastest gets one picker, "Fastest to
    [50 ▾] plays", instead of the folded bars. Milestones highlights only
    the big round totals (100, 500, 1,000…).
