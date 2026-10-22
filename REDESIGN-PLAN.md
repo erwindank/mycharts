@@ -2233,6 +2233,12 @@ Steps:
 3. **Overview cards.** Mockup first. One card per record type with a
    small Week / Month / Year switch on the card (26 → about 9). The hero
    reel stops being cut off at both edges.
+   **Done 2026-10-22** (you asked for the rest without stops; the
+   mockup's recommended options were taken): 10 cards in the menu's two
+   groups, a Weekly / Monthly / Yearly strip under each (Streaks: Daily,
+   Weekly, Monthly, Yearly, Back-to-Back; lifetime ones say All-Time), each
+   card remembers its period. The All / Weekly / Monthly / Yearly row is
+   gone. The reel keeps sliding, with 12% fades instead of 4%.
 4. **Tables.** "Entries display" moves next to the table it controls.
    Dates in plain muted text, underline only on hover. Titles in the
    normal font with no ♫ in front (Perfect All Kill, Certifications).

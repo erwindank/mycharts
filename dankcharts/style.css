@@ -12689,48 +12689,6 @@
       color: #1a1a00;
     }
 
-    /* All / Weekly / Monthly / Yearly, the row under the type pills. Same
-       shape, one step quieter: a pill-shaped outline instead of a filled
-       chip, so the two rows read as a hierarchy rather than a tie. */
-    .rec-ov-periods {
-      grid-column: 1 / -1;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.3rem;
-      margin-bottom: 0.35rem;
-    }
-
-    .rec-ov-period {
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--text2);
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      padding: 0.26rem 0.66rem;
-      border-radius: var(--r-full);
-      cursor: pointer;
-      transition: background 0.15s, color 0.15s, border-color 0.15s;
-    }
-
-    .rec-ov-period:hover {
-      background: var(--bg2);
-      color: var(--text);
-      border-color: var(--border2);
-    }
-
-    .rec-ov-period:focus-visible {
-      outline: 2px solid var(--accent);
-      outline-offset: 2px;
-    }
-
-    /* Selected state is a tinted outline, not a fill — the filled chip belongs
-       to the row above, and two solid accents stacked would fight. */
-    .rec-ov-period.active {
-      background: color-mix(in srgb, var(--accent) 16%, transparent);
-      border-color: color-mix(in srgb, var(--accent) 60%, var(--border));
-      color: var(--text);
-    }
-
     /* ── Records hero: most-decorated artist ──────────────────────────
        Photo fills the plate, the name sits in the fade beneath it, and the
        reel of that artist's individual records scrolls across the faded
@@ -12831,8 +12789,10 @@
       overflow: hidden;
       width: 100%;
       padding-bottom: 1.1rem;
-      mask-image: linear-gradient(to right, transparent 0%, black 4%, black 96%, transparent 100%);
-      -webkit-mask-image: linear-gradient(to right, transparent 0%, black 4%, black 96%, transparent 100%);
+      /* Wide fades (12%), so the cards sliding in and out at the edges melt
+         away instead of looking cut in half. */
+      mask-image: linear-gradient(to right, transparent 0%, black 12%, black 88%, transparent 100%);
+      -webkit-mask-image: linear-gradient(to right, transparent 0%, black 12%, black 88%, transparent 100%);
     }
 
     .rec-hero-track {
@@ -13173,29 +13133,139 @@
        for the same reason the mosaic's are: the backdrop is a photograph in
        all ten themes, so the text has to answer to the photo rather than to
        the palette. Empty cards, which show no artwork, go back to tokens. */
-    .rec-ov-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-      gap: 0.7rem;
-      margin-bottom: var(--sp-5);
+    /* Two groups, like the side menu: chart records, then play records.
+       Five cards a row on a full-width page; three, then two, as it narrows.
+       Where five cards do not fill the rows evenly, the group's first card
+       spans two columns, so no card is left alone on a row. */
+    .rec-ov-grp {
+      margin: var(--sp-4) 0 var(--sp-2);
+      font-size: var(--fs-xs);
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text3);
     }
 
-    .rec-ov-card { position: relative; /* Square, because the source art is square — at any other ratio object-fit: cover would have to crop a sleeve to fill the card. */ aspect-ratio: 1 / 1; overflow: hidden; cursor: pointer; /* a role=button div inherits the page font, but .rec-ov-name sets no family of its own and the card must not drift with its container */ font-family: var(--font-sans); color: #fff; transition: transform 0.2s ease, opacity 0.25s ease, border-color 0.15s; }
+    .rec-ov-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 0.7rem;
+      margin-bottom: var(--sp-3);
+    }
+
+    @media (max-width: 1259px) {
+      .rec-ov-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .rec-ov-grid > .rec-ov-cell:first-child {
+        grid-column: span 2;
+      }
+
+      .rec-ov-grid > .rec-ov-cell:first-child .rec-ov-card {
+        aspect-ratio: auto;
+        height: 100%;
+        min-height: 12rem;
+      }
+    }
+
+    /* The card frame: artwork on top, the period switch underneath. */
+    .rec-ov-cell {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      padding: 0;
+      transition: transform 0.2s ease, opacity 0.25s ease, border-color 0.15s;
+    }
+
+    .rec-ov-card { position: relative; flex: 1 1 auto; /* Square, because the source art is square — at any other ratio object-fit: cover would have to crop a sleeve to fill the card. */ aspect-ratio: 1 / 1; overflow: hidden; cursor: pointer; /* a role=button div inherits the page font, but .rec-ov-name sets no family of its own and the card must not drift with its container */ font-family: var(--font-sans); color: #fff; }
 
     /* The mosaic's hover: the tile grows a little and everything around it
        recedes, so the one being considered is the only one being read. */
-    .rec-ov-card:hover {
-      transform: scale(1.03);
-      border-color: var(--border2);
-      z-index: 5;
+    /* Mouse only: on a touch screen :hover sticks after a tap, which left the
+       other cards dimmed after every switch press. */
+    @media (hover: hover) {
+      .rec-ov-cell:hover {
+        transform: scale(1.03);
+        border-color: var(--border2);
+        z-index: 5;
+      }
+
+      .rec-ov-grid:has(.rec-ov-cell:hover) .rec-ov-cell { opacity: 0.5; }
+      .rec-ov-grid:has(.rec-ov-cell:hover) .rec-ov-cell:hover { opacity: 1; }
     }
 
-    .rec-ov-grid:has(.rec-ov-card:hover) .rec-ov-card { opacity: 0.5; }
-    .rec-ov-grid:has(.rec-ov-card:hover) .rec-ov-card:hover { opacity: 1; }
+    /* The card's own period switch, a row of equal parts under the artwork.
+       Streaks has five, which wrap to a row of three and a row of two. */
+    .rec-ov-sw {
+      display: flex;
+      border-top: 1px solid var(--border);
+      background: var(--bg2);
+    }
+
+    .rec-ov-sw-wrap {
+      flex-wrap: wrap;
+    }
+
+    .rec-ov-sw-btn {
+      flex: 1 1 0;
+      min-width: 0;
+      padding: 0.4rem 0.2rem;
+      border: 0;
+      background: none;
+      color: var(--text3);
+      font-family: var(--font-sans);
+      font-size: var(--fs-xs);
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      cursor: pointer;
+      transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+    }
+
+    .rec-ov-sw-btn + .rec-ov-sw-btn {
+      border-left: 1px solid var(--border);
+    }
+
+    .rec-ov-sw-wrap .rec-ov-sw-btn {
+      flex: 1 1 33%;
+    }
+
+    .rec-ov-sw-wrap .rec-ov-sw-btn:nth-child(4) {
+      border-left: 0;
+    }
+
+    .rec-ov-sw-wrap .rec-ov-sw-btn:nth-child(n+4) {
+      border-top: 1px solid var(--border);
+    }
+
+    .rec-ov-sw-btn:hover {
+      background: var(--bg3);
+      color: var(--text);
+    }
+
+    .rec-ov-sw-btn.active {
+      background: var(--surface);
+      color: var(--text);
+    }
+
+    .rec-ov-sw-btn:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: -2px;
+    }
+
+    /* Lifetime records: the same strip, saying "All-Time". */
+    .rec-ov-sw-none {
+      justify-content: center;
+      padding: 0.4rem 0.2rem;
+      font-size: var(--fs-xs);
+      color: var(--text3);
+    }
 
     .rec-ov-card:focus-visible {
       outline: 2px solid var(--accent);
-      outline-offset: 2px;
+      outline-offset: -2px;
     }
 
     /* Full-bleed artwork. The thumbnail plumbing is shared with every other
@@ -13307,34 +13377,6 @@
       filter: none;
     }
 
-    /* Which of the section's records this tile is — "Weekly", "Back-to-Back".
-       Only on the All board, where a section can put up five tiles under one
-       name. Inline like the glyph above, for the same wrapping reason, and a
-       translucent plate rather than a colour so it never competes with the
-       figure downstairs for the eye. */
-    .rec-ov-tag {
-      display: inline-block;
-      margin-left: 0.4em;
-      padding: 0.08em 0.42em;
-      border-radius: var(--r-full);
-      background: rgba(255, 255, 255, 0.16);
-      border: 1px solid rgba(255, 255, 255, 0.22);
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      font-weight: 500;
-      vertical-align: 0.1em;
-      white-space: nowrap;
-      text-shadow: none;
-    }
-
-    /* No artwork behind an empty card, so the white plate would be invisible
-       on the card's own surface — give it the theme's border instead. */
-    .rec-ov-card-empty .rec-ov-tag {
-      background: var(--bg3);
-      border-color: var(--border);
-      color: var(--text2);
-    }
-
     .rec-ov-value {
       font-family: var(--font-mono);
       font-size: var(--fs-md);
@@ -13374,7 +13416,7 @@
 
     /* No record for this type, so no artwork either — the scrims have nothing
        to sit over and the card returns to the theme's own surface. */
-    .rec-ov-card-empty {
+    .rec-ov-cell-empty {
       border-style: dashed;
     }
 
@@ -13397,7 +13439,7 @@
       /* Two up rather than one: a single-column square on a phone is a card
          the height of the viewport, and ten of them is a very long scroll. */
       .rec-ov-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: var(--sp-2);
       }
 
@@ -13409,11 +13451,11 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .rec-ov-card {
+      .rec-ov-cell {
         transition: none;
       }
 
-      .rec-ov-card:hover {
+      .rec-ov-cell:hover {
         transform: none;
       }
     }

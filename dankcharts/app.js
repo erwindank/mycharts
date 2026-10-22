@@ -10233,36 +10233,25 @@ const REC_OV_TYPES = [
   { key: 'albums', label: 'rec_th_albums' },
 ];
 
-/* Second toggle, under the type pills: which chart period the board is cut to.
-   'all' is every record the overview knows about; the other three narrow it to
-   one chart period. */
-const REC_OV_PERIODS = [
-  { key: 'all', label: 'rec_ov_period_all' },
-  { key: 'week', label: 'nav_weekly' },
-  { key: 'month', label: 'nav_monthly' },
-  { key: 'year', label: 'nav_yearly' },
-];
+/* Every card the board can show, per section: which stored records it can
+   switch between (`slot`, the key hi() filed it under) and the label each
+   one gets on the card's own switch (`tag`). A section whose record is a
+   lifetime total has one slot and no switch — the card says "All-Time"
+   there instead, so every card lines up.
 
-/* Every card the board can show, per section: which stored record it reads
-   (`slot`, the key hi() filed it under), which pills it appears under
-   (`pills`) and the chip it wears when several of a section's cards sit side
-   by side on All (`tag`).
-
-   All shows the lot, so every slot lists 'all'. A section whose record is a
-   lifetime total has one slot and no tag — nothing to tell apart. Streaks is
-   the section with the most: five ladders, five cards, of which three answer
-   a period pill and two (the daily streak and the back-to-back run) are
-   All-only because no chart period corresponds to them.
+   One card per section: before phase 9 each period got a card of its own,
+   which put 26 cards on the board. Streaks has the most slots: the daily
+   streak, the weekly / monthly / yearly ones and the back-to-back run.
 
    A section missing from this map draws no card, which is the safe failure:
    adding a records section means adding its slots here, and forgetting leaves
    a gap rather than an empty tile or a wrong figure. */
 const OV_CHART_SLOTS = [
-  { slot: 'week', pills: ['all', 'week'], tag: 'nav_weekly' },
-  { slot: 'month', pills: ['all', 'month'], tag: 'nav_monthly' },
-  { slot: 'year', pills: ['all', 'year'], tag: 'nav_yearly' },
+  { slot: 'week', tag: 'nav_weekly' },
+  { slot: 'month', tag: 'nav_monthly' },
+  { slot: 'year', tag: 'nav_yearly' },
 ];
-const OV_ALLTIME_SLOTS = [{ slot: 'all', pills: ['all'], tag: null }];
+const OV_ALLTIME_SLOTS = [{ slot: 'all', tag: null }];
 
 const REC_OV_SLOTS = {
   recAllOnesSection: OV_CHART_SLOTS,
@@ -10274,16 +10263,16 @@ const REC_OV_SLOTS = {
   recFastestSection: OV_ALLTIME_SLOTS,
   recCertsSection: OV_ALLTIME_SLOTS,
   recStreaksSection: [
-    { slot: 'runs', pills: ['all'], tag: 'rec_per_runs' },
-    { slot: 'days', pills: ['all'], tag: 'nav_daily' },
-    { slot: 'weeks', pills: ['all', 'week'], tag: 'nav_weekly' },
-    { slot: 'months', pills: ['all', 'month'], tag: 'nav_monthly' },
-    { slot: 'years', pills: ['all', 'year'], tag: 'nav_yearly' },
+    { slot: 'days', tag: 'nav_daily' },
+    { slot: 'weeks', tag: 'nav_weekly' },
+    { slot: 'months', tag: 'nav_monthly' },
+    { slot: 'years', tag: 'nav_yearly' },
+    { slot: 'runs', tag: 'rec_per_runs' },
   ],
   recNewChartsSection: OV_CHART_SLOTS,
 };
 
-// Held so the Songs/Artists/Albums and period toggles can re-render from memory
+// Held so the Songs/Artists/Albums toggle and the card switches can re-render from memory
 // instead of re-running buildRecords(), which would rebuild all ~55 tables to
 // change a pill. Shape: { sectionId: { slot: { type: {…} } } }.
 let _recOvHighlights = {};
@@ -10316,22 +10305,27 @@ function recOverviewType() {
   return REC_OV_TYPES.some(function (ty) { return ty.key === stored; }) ? stored : 'songs';
 }
 
-function recOverviewPeriod() {
-  const stored = localStorage.getItem('dc_rec_ov_period');
-  return REC_OV_PERIODS.some(function (p) { return p.key === stored; }) ? stored : 'all';
+/* The board in two groups, the same as the side menu: records from the
+   charts, then records from play counts. */
+const REC_OV_GROUPS = [
+  { label: 'rec_grp_chart', ids: ['recAllOnesSection', 'recPAKSection', 'recAppearancesSection', 'recDebutsSection', 'recNewChartsSection'] },
+  { label: 'rec_grp_plays', ids: ['recPeakPlaysSection', 'recMilestonesSection', 'recFastestSection', 'recStreaksSection', 'recCertsSection'] },
+];
+
+/* Which slot each card is switched to, remembered per section. A stored slot
+   the section no longer has falls back to its first one. */
+function recOvSlotFor(id) {
+  const slots = REC_OV_SLOTS[id] || [];
+  let map = {};
+  try { map = JSON.parse(localStorage.getItem('dc_rec_ov_slots') || '{}') || {}; } catch (e) { map = {}; }
+  return slots.some(function (s) { return s.slot === map[id]; }) ? map[id] : (slots[0] ? slots[0].slot : null);
 }
 
-/* Every card on the board for one period, in nav order: each section's slots
-   that answer this pill, flattened. */
-function recOvCards(period) {
-  const cards = [];
-  for (const id of REC_SECTION_IDS) {
-    if (id === 'recOverviewSection') continue;
-    for (const sl of (REC_OV_SLOTS[id] || [])) {
-      if (sl.pills.indexOf(period) !== -1) cards.push({ id: id, slot: sl.slot, tag: sl.tag });
-    }
-  }
-  return cards;
+function recOvSetSlot(id, slot) {
+  let map = {};
+  try { map = JSON.parse(localStorage.getItem('dc_rec_ov_slots') || '{}') || {}; } catch (e) { map = {}; }
+  map[id] = slot;
+  try { localStorage.setItem('dc_rec_ov_slots', JSON.stringify(map)); } catch (e) {}
 }
 
 /* Section id → sprite symbol id. The symbols themselves are defined once in
@@ -10358,8 +10352,6 @@ function renderRecordsOverview(highlights) {
   if (!body) return;
   if (highlights) _recOvHighlights = highlights;
   const type = recOverviewType();
-  const period = recOverviewPeriod();
-  const cards = recOvCards(period);
 
   let html = '<p class="rec-ov-intro">' + esc(t('rec_ov_intro')) + '</p>';
   html += '<div class="rec-ov-types" role="group" aria-label="' + esc(t('rec_ov_type_label')) + '">';
@@ -10370,65 +10362,52 @@ function renderRecordsOverview(highlights) {
   }).join('');
   html += '</div>';
 
-  // Second row, one step quieter than the first: the type pills pick what the
-  // board is about, these pick how it is sliced.
-  html += '<div class="rec-ov-periods" role="group" aria-label="' + esc(t('rec_ov_period_label')) + '">';
-  html += REC_OV_PERIODS.map(function (p) {
-    return '<button type="button" class="rec-ov-period' + (p.key === period ? ' active' : '') +
-      '" data-rec-ov-period="' + p.key + '" aria-pressed="' + (p.key === period) + '">' +
-      esc(t(p.label)) + '</button>';
-  }).join('');
-  html += '</div>';
-
   /* Cards are built to the mosaic tile's anatomy (.wv-mos-item): the record
      holder's artwork fills the whole card, a scrim at the top carries the
      section name and one at the foot carries every fact — the figure, who
-     holds it and what it is. Unlike the mosaic, all tiles are the same size;
-     nothing here is being weighted against anything else. */
+     holds it and what it is. Under the artwork sits the card's own period
+     switch. */
   const imgItems = [];
-  html += cards.map(function (c, idx) {
-    const id = c.id;
+  function cardHtml(id) {
     const sec = document.getElementById(id);
-    if (!sec) return '';
-    const heading = sec.querySelector('.section-header-h2');
-    const title = heading ? heading.textContent.trim() : id;
-    const d = (_recOvHighlights[id] || {})[c.slot] ? _recOvHighlights[id][c.slot][type] : null;
+    const slots = REC_OV_SLOTS[id];
+    if (!sec || !slots) return '';
+    // The card uses the short name from the side menu ("Appearances"), not
+    // the section's long heading ("Most Chart Appearances").
+    const navLabel = document.querySelector('#recordsNav .records-nav-btn[data-rec-view="' + id + '"] span');
+    const title = navLabel ? navLabel.textContent.trim() : id;
+    const slot = recOvSlotFor(id);
+    const d = (_recOvHighlights[id] || {})[slot] ? _recOvHighlights[id][slot][type] : null;
     const hasRecord = !!(d && d.value);
 
-    /* A <div role="button"> rather than a real <button>: the artwork carries
+    /* The outer cell carries the card frame; the inner .rec-ov-card is the
+       part that opens the section. The switch sits outside it, so a tap on
+       Weekly / Monthly / Yearly never also opens the tables.
+       A <div role="button"> rather than a real <button>: the artwork carries
        the image picker's ✎ control, and a button inside a button is invalid
        HTML that browsers unnest. Keyboard activation is restored below. */
-    let card = '<div class="dc-card rec-ov-card' + (hasRecord ? '' : ' rec-ov-card-empty') +
+    let card = '<div class="dc-card rec-ov-cell' + (hasRecord ? '' : ' rec-ov-cell-empty') + '">';
+    card += '<div class="rec-ov-card' + (hasRecord ? '' : ' rec-ov-card-empty') +
       '" role="button" tabindex="0" data-rec-goto="' + esc(id) + '">';
 
     // Artwork only where there is a record to illustrate — an empty card has
     // no holder, so it stays a plain surface instead of borrowing someone's art.
     if (hasRecord && d.name) {
-      // Card index, not section index: All puts several cards from one section
-      // on the board, and a reused id would let a stale observer resolve.
-      const imgId = 'recov-' + period + '-' + type + '-' + idx;
+      const imgId = 'recov-' + type + '-' + id + '-' + slot;
       imgItems.push(recOvImgItem(type, d, imgId));
       card += '<div class="rec-ov-art"><div class="thumb-wrap"><div id="' + imgId + '">'
         + '<div class="thumb-initials">' + esc(initials(d.name)) + '</div></div></div></div>';
     }
 
     card += '<div class="rec-ov-scrim-top"></div>';
-    // The card's own copy of the section's glyph — third and last place the
-    // sprite appears, after the nav pill and the section heading, so a tile,
-    // the pill it jumps to and the heading it lands on all carry one mark.
-    // Titles no longer supply an emoji of their own: it was stripped out of
-    // the rec_*_title strings when the sprite went in.
-    // On All, where one section can put five cards up at once, the slot's chip
-    // rides alongside the title so they are not five tiles with one name. Under
-    // a period pill the pill itself already says which, so the chip is dropped.
+    // The card's own copy of the section's glyph — the same mark the side
+    // menu item and the section heading carry.
     card += '<span class="rec-ov-title">' +
       (REC_SECTION_ICON[id]
         ? '<svg class="rec-ov-ico" aria-hidden="true" focusable="false"><use href="#' +
           REC_SECTION_ICON[id] + '" /></svg>'
         : '') +
-      esc(title) +
-      (period === 'all' && c.tag ? '<span class="rec-ov-tag">' + esc(t(c.tag)) + '</span>' : '') +
-      '</span>';
+      esc(title) + '</span>';
     card += '<div class="rec-ov-bot">';
     card += '<span class="rec-ov-value">' + (hasRecord ? esc(d.value) : '—') + '</span>';
     if (hasRecord && d.name) {
@@ -10437,12 +10416,32 @@ function renderRecordsOverview(highlights) {
     }
     card += '<span class="rec-ov-label">' + esc(hasRecord ? d.label : t('rec_ov_no_type_record')) + '</span>';
     card += '</div></div>';
+
+    // The card's own period switch. Lifetime records have nothing to switch,
+    // so they say "All-Time" in the same spot and every card lines up.
+    if (slots.length > 1) {
+      card += '<div class="rec-ov-sw' + (slots.length > 3 ? ' rec-ov-sw-wrap' : '') +
+        '" role="group" aria-label="' + esc(t('rec_ov_period_label')) + '">' +
+        slots.map(function (s) {
+          return '<button type="button" class="rec-ov-sw-btn' + (s.slot === slot ? ' active' : '') +
+            '" data-rec-ov-sec="' + esc(id) + '" data-rec-ov-slot="' + s.slot +
+            '" aria-pressed="' + (s.slot === slot) + '">' + esc(t(s.tag)) + '</button>';
+        }).join('') + '</div>';
+    } else {
+      card += '<div class="rec-ov-sw rec-ov-sw-none">' + esc(t('nav_alltime')) + '</div>';
+    }
+    card += '</div>';
     return card;
+  }
+
+  html += REC_OV_GROUPS.map(function (g) {
+    return '<div class="rec-ov-grp">' + esc(t(g.label)) + '</div>' +
+      '<div class="rec-ov-grid">' + g.ids.map(cardHtml).join('') + '</div>';
   }).join('');
 
   body.innerHTML = html;
 
-  // Retire the previous pill's observer before the new one starts watching.
+  // Retire the previous observer before the new one starts watching.
   if (_recOvImgObserver) { _recOvImgObserver.disconnect(); _recOvImgObserver = null; }
   if (imgItems.length) _recOvImgObserver = loadImages(imgItems, REC_OV_IMG_TYPE[type]);
 
@@ -10455,10 +10454,14 @@ function renderRecordsOverview(highlights) {
         renderRecordsOverview(); // re-reads the cached highlights, no rebuild
         return;
       }
-      const perBtn = e.target.closest('[data-rec-ov-period]');
-      if (perBtn) {
-        localStorage.setItem('dc_rec_ov_period', perBtn.dataset.recOvPeriod);
+      const swBtn = e.target.closest('[data-rec-ov-slot]');
+      if (swBtn) {
+        recOvSetSlot(swBtn.dataset.recOvSec, swBtn.dataset.recOvSlot);
         renderRecordsOverview();
+        // Keep keyboard focus on the switch that was pressed.
+        const again = body.querySelector('[data-rec-ov-sec="' + swBtn.dataset.recOvSec +
+          '"][data-rec-ov-slot="' + swBtn.dataset.recOvSlot + '"]');
+        if (again) again.focus();
         return;
       }
       const card = e.target.closest('[data-rec-goto]');

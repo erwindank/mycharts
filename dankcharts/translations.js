@@ -1937,7 +1937,7 @@ const TRANSLATIONS = {
 
     // Records overview cards — one headline record per section.
     // Only defined in `en`; t() falls back to English for the other languages.
-    rec_ov_intro: 'Your single best record in each category, on every chart period. Pick one to see the full tables.',
+    rec_ov_intro: 'Your best record in each category. Switch a card between periods under it, or pick a card to see the full tables.',
     rec_ov_type_label: 'Which chart to show records for',
     rec_ov_no_type_record: 'Not tracked for this chart',
     rec_ov_period_label: 'Which chart period to show records for',
@@ -5307,7 +5307,7 @@ const TRANSLATIONS = {
     rec_hero_cert_album: '💿 Certificación de álbum',
     modal_held_records: 'Récords del Salón de la Fama',
     modal_held_records_wait: 'Calculando récords…',
-    rec_ov_intro: 'Tu mejor récord en cada categoría, en cada período del ranking. Elige uno para ver las tablas completas.',
+    rec_ov_intro: 'Tu mejor récord en cada categoría. Cambia el período de una tarjeta debajo de ella, o elige una para ver las tablas completas.',
     rec_ov_type_label: 'De qué ranking mostrar récords',
     rec_ov_no_type_record: 'No se registra en este ranking',
     rec_ov_period_label: 'De qué período del ranking mostrar récords',
@@ -8599,7 +8599,7 @@ const TRANSLATIONS = {
     rec_hero_cert_album: '💿 Certificação de álbum',
     modal_held_records: 'Recordes do Salão da Fama',
     modal_held_records_wait: 'Calculando recordes…',
-    rec_ov_intro: 'Seu melhor recorde em cada categoria, em cada período da parada. Escolha um para ver as tabelas completas.',
+    rec_ov_intro: 'Seu melhor recorde em cada categoria. Troque o período de um cartão logo abaixo dele, ou escolha um cartão para ver as tabelas completas.',
     rec_ov_type_label: 'De qual parada mostrar recordes',
     rec_ov_no_type_record: 'Não registrado nesta parada',
     rec_ov_period_label: 'De qual período da parada mostrar recordes',
@@ -11891,7 +11891,7 @@ const TRANSLATIONS = {
     rec_hero_cert_album: '💿 Certificação de álbum',
     modal_held_records: 'Recordes do Salão da Fama',
     modal_held_records_wait: 'A calcular recordes…',
-    rec_ov_intro: 'O teu melhor recorde em cada categoria, em cada período do top. Escolhe um para ver as tabelas completas.',
+    rec_ov_intro: 'O teu melhor recorde em cada categoria. Muda o período de um cartão por baixo dele, ou escolhe um cartão para ver as tabelas completas.',
     rec_ov_type_label: 'De que top mostrar recordes',
     rec_ov_no_type_record: 'Não registado neste top',
     rec_ov_period_label: 'De que período do top mostrar recordes',
