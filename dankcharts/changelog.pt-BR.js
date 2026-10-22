@@ -20,6 +20,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
     ["Os vídeos do player e das premiações não dependem mais só da busca do YouTube",
      "O YouTube só permite ao site inteiro cerca de 100 buscas de músicas por dia. Antes de usar uma, o player agora procura a música no Wikidata e no MusicBrainz, dois bancos de dados musicais gratuitos que guardam o vídeo oficial do YouTube de muitas músicas, e toca esse. Funciona no player ▶, nas prévias de vídeo das premiações e na busca do player, onde esses resultados aparecem primeiro com um link \"Não está aqui? Buscar no YouTube\" embaixo. Como não gasta o limite diário, funciona também sem fazer login. Funciona com Last.fm, Google Sheets e arquivos CSV."],
 
+  "Up, down and new tags are easy to read on the Grid picture":
+    ["As etiquetas de subida, queda e novidade ficam fáceis de ler na imagem de Grade",
+     "Numa imagem de Grade compartilhada, as etiquetas de movimento ficavam sobre uma pílula quase transparente e sumiam em capas carregadas. Agora ficam sobre uma pílula sólida, um pouco maior, e dão para ler em qualquer capa. Funciona com Last.fm, Google Sheets e arquivos CSV."],
+
   "Listening streak shows again":
     ["A sequência de escuta voltou a aparecer",
      "Ao juntar o card de estatísticas de Todos os Tempos ao banner, a sequência de escuta no fim da faixa do topo também foi desligada, junto com a linha de baixo (maiores sequências, a mais longa em andamento). As duas voltam a aparecer em todas as abas de paradas."],

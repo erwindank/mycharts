@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 244;
+const DC_CL_I18N_V = 245;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-22', t: 'fix', a: 'share', h: 'd93bf92',
+    title: "Up, down and new tags are easy to read on the Grid picture",
+    detail: "On a shared Grid picture the movement tags sat on a faint see-through pill, so they disappeared on busy cover art. They now sit on a solid pill, a little bigger, and stay readable on any cover. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-22', t: 'feature', a: 'charts', h: 'd526475',
     title: "Animate Chart replays your plays one by one, in every layout",
     detail: "Animate Chart now starts on the previous chart and goes through your plays one at a time, dropping the oldest one or adding the next, until it reaches the chart you're looking at. Play counts, ranks, the up and down arrows and the gold, silver and bronze top 3 all change as it goes, and an entry slides past the one it overtakes. Covers load before anything moves. You can pause, change the speed (½× to 20×), step one play or one day back or forward (one hour on Daily), drag the slider, click a day on the strip, or use the keyboard, and a small control stays at the bottom of the screen when you scroll down a long chart. It works the same in all six layouts, on Daily, Weekly and Monthly, for Songs, Artists and Albums. Works with Last.fm, Google Sheets and CSV uploads." },

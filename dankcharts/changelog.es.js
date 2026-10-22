@@ -20,6 +20,10 @@ window.DC_CHANGELOG_I18N['es'] = {
     ["Los vídeos del reproductor y de los premios ya no dependen solo de la búsqueda de YouTube",
      "YouTube solo permite a todo el sitio unas 100 búsquedas de canciones al día. Antes de usar una, el reproductor ahora busca la canción en Wikidata y MusicBrainz, dos bases de datos musicales gratuitas que guardan el vídeo oficial de YouTube de muchas canciones, y reproduce ese. Funciona en el reproductor ▶, en las vistas previas de vídeo de los premios y en el buscador del reproductor, donde estos resultados aparecen primero con un enlace \"¿No está aquí? Buscar en YouTube\" debajo. Como no gasta el límite diario, también funciona sin iniciar sesión. Funciona con Last.fm, Google Sheets y archivos CSV."],
 
+  "Up, down and new tags are easy to read on the Grid picture":
+    ["Las etiquetas de subida, bajada y nueva se leen bien en la imagen de Cuadrícula",
+     "En una imagen compartida de Cuadrícula, las etiquetas de movimiento estaban sobre una píldora casi transparente y desaparecían en portadas recargadas. Ahora van sobre una píldora sólida, un poco más grande, y se leen sobre cualquier portada. Funciona con Last.fm, Google Sheets y archivos CSV."],
+
   "Listening streak shows again":
     ["La racha de escucha vuelve a aparecer",
      "Al integrar la tarjeta de estadísticas de Histórico en el banner también se desactivó la racha de escucha al final de la franja superior, junto con la fila de debajo (mejores rachas, la más larga en curso). Ambas vuelven a aparecer en todas las pestañas de listas."],
