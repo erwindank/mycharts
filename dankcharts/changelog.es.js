@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Fastest to Milestone has a picker":
+    ["Más rápido al hito tiene un selector",
+     "Más rápido al hito mostraba la primera cifra de reproducciones abierta y todas las demás como barras plegadas. Ahora eliges la cifra en un solo menú, como en \"Más rápido en llegar a 100 reprods\", y solo se ve esa tabla. Récords recuerda tu elección para canciones, artistas y álbumes. La búsqueda sigue mirando en todas las cifras. Funciona con Last.fm, Google Sheets y archivos CSV."],
+
   "All #1s and Appearances: one table at a time":
     ["Todos los #1 y Apariciones: una tabla cada vez",
      "Todos los #1 y Más apariciones mostraban dos tablas por período, una con el total y otra con la racha más larga seguida. Ahora hay una sola tabla con un selector Total / Seguidas encima, y Récords recuerda cuál elegiste. La búsqueda sigue mirando en las dos. Funciona con Last.fm, Google Sheets y archivos CSV."],

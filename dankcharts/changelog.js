@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 271;
+const DC_CL_I18N_V = 272;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-22', t: 'design', a: 'records', h: '0e7cd9b',
+    title: "Fastest to Milestone has a picker",
+    detail: "Fastest to Milestone showed the first play total open and every higher one as a folded bar. Now you pick the total from one menu, as in \"Fastest to 100 plays\", and only that table shows. Records remembers your pick for songs, artists and albums. A search still looks through every total. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-22', t: 'design', a: 'records', h: '47149ac',
     title: "All #1s and Appearances: one table at a time",
     detail: "All #1s and Most Chart Appearances showed two tables for every period, one counting the total and one counting the longest run in a row. Now there is one table with a Total / In a row switch above it, and Records remembers which one you picked. A search still looks through both. Works with Last.fm, Google Sheets and CSV uploads." },

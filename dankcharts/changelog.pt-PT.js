@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Fastest to Milestone has a picker":
+    ["Mais rápido ao marco tem um seletor",
+     "Mais rápido ao marco mostrava o primeiro total de plays aberto e todos os outros como barras recolhidas. Agora escolhes o total num só menu, como em \"Mais rápido a atingir 100 plays\", e só essa tabela aparece. Recordes lembra a tua escolha para músicas, artistas e álbuns. A pesquisa continua a procurar em todos os totais. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
+
   "All #1s and Appearances: one table at a time":
     ["Todos os #1 e Aparições: uma tabela de cada vez",
      "Todos os #1 e Mais aparições mostravam duas tabelas por período, uma com o total e outra com a maior sequência seguida. Agora há uma só tabela, com um seletor Total / Seguidas por cima, e Recordes lembra qual escolheste. A pesquisa continua a procurar nas duas. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
