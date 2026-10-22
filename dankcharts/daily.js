@@ -1281,10 +1281,10 @@ function dyCalShareOpen() {
   const fmtBtn = (f, k) => `<button class="sh-seg-btn${dyCalCard.format === f ? ' active' : ''}" data-fmt="${f}" onclick="dyCalShareSet('format','${f}')">${esc(t(k))}</button>`;
   const chk = (k, lbl) => `<label class="ig-ctrl-row"><input type="checkbox"${dyCalCard[k] ? ' checked' : ''} onchange="dyCalShareSet('${k}',this.checked)"><span>${esc(lbl)}</span></label>`;
   el.innerHTML = `
-    <div class="ig-modal-box">
+    <div class="dc-modal ig-modal-box">
       <div class="ig-modal-header">
         <h3>${esc(t('dy_cal_share_title'))}</h3>
-        <button class="ig-modal-close" onclick="dyCalShareClose()">${esc(t('btn_close'))}</button>
+        <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close ig-modal-close" onclick="dyCalShareClose()" aria-label="${esc(t('set_close'))}">✕</button>
       </div>
       <div class="ig-modal-body">
         <div class="ig-preview-panel">

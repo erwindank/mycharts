@@ -565,13 +565,13 @@
     var layer = document.createElement('div');
     layer.className = 'bd-confirm-layer';
     layer.innerHTML = '<div class="awards-picker-confirm">' +
-      '<div class="awards-picker-confirm-box" role="alertdialog" aria-modal="true" aria-labelledby="bdConfirmTitle" aria-describedby="bdConfirmText">' +
+      '<div class="dc-modal awards-picker-confirm-box" role="alertdialog" aria-modal="true" aria-labelledby="bdConfirmTitle" aria-describedby="bdConfirmText">' +
       '<div class="awards-picker-confirm-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg></div>' +
       '<div class="awards-picker-confirm-title" id="bdConfirmTitle">' + esc(title) + '</div>' +
       '<div class="awards-picker-confirm-text" id="bdConfirmText">' + esc(text) + '</div>' +
       '<div class="awards-picker-confirm-actions">' +
-      '<button type="button" class="awards-picker-confirm-cancel">' + esc(tr('board_cancel')) + '</button>' +
-      '<button type="button" class="awards-picker-confirm-ok">' + esc(okLabel) + '</button>' +
+      '<button type="button" class="dc-btn dc-btn-normal awards-picker-confirm-cancel">' + esc(tr('board_cancel')) + '</button>' +
+      '<button type="button" class="dc-btn dc-btn-plain dc-btn-danger awards-picker-confirm-ok">' + esc(okLabel) + '</button>' +
       '</div></div></div>';
     var prevFocus = document.activeElement;
     function close() {

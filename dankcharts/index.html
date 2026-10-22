@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=596">
+  <link rel="stylesheet" href="style.css?v=597">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -2395,10 +2395,10 @@
        rendered by _cerShareRender() for whichever step the owner is on. -->
   <!-- Printable PDF of a chart (openPdfModal / createChartPdf in app.js) -->
   <div class="modal-overlay" id="pdfModal" onclick="if(event.target===this)closePdfModal()">
-    <div class="dc-plpick-box pdf-box">
+    <div class="dc-modal dc-plpick-box pdf-box">
       <div class="dc-plpick-header">
         <div class="dc-plpick-title" data-i18n="pdf_title">📄 Printable PDF</div>
-        <button class="modal-close" onclick="closePdfModal()" data-i18n="btn_close">✕ CLOSE</button>
+        <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close modal-close" onclick="closePdfModal()" aria-label="Close" data-i18n-aria="set_close">✕</button>
       </div>
       <div class="dc-plpick-sub" id="pdfSub"></div>
       <div class="dc-seg dc-seg-fill sh-seg pdf-scope" id="pdfScopeBtns">
@@ -2423,10 +2423,10 @@
   </div>
 
   <div class="modal-overlay" id="cerShareModal" onclick="if(event.target===this)closeCeremonyShare()">
-    <div class="dc-plpick-box cer-share-box">
+    <div class="dc-modal dc-plpick-box cer-share-box">
       <div class="dc-plpick-header">
         <div class="dc-plpick-title">🔗 Share ceremony</div>
-        <button class="modal-close" onclick="closeCeremonyShare()">✕ CLOSE</button>
+        <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close modal-close" onclick="closeCeremonyShare()" aria-label="Close" data-i18n-aria="set_close">✕</button>
       </div>
       <div class="dc-plpick-sub" id="cerShareSub"></div>
       <div id="cerShareBody"></div>
@@ -2629,7 +2629,7 @@
        It is deliberately not dismissible by backdrop click or Esc — the only
        ways out are its buttons and shortcut tiles, all of which record the visit. -->
   <div id="cgWelcomeGate" class="cg-gate" style="display:none" role="dialog" aria-modal="true" aria-labelledby="cgGateTitle">
-    <div class="cg-gate-box">
+    <div class="dc-modal cg-gate-box">
       <!-- Header: wordmark on the left, live source status on the right -->
       <div class="cg-gate-head">
         <h2 class="cg-gate-title" id="cgGateTitle">dank<span class="cg-gate-title-2">charts</span><span class="cg-gate-fm">.fm</span></h2>
@@ -2711,11 +2711,11 @@
        history. Body is built by dcRenderChangelog() on first open and cached,
        because the list only grows and never changes while the page is up. -->
   <div id="changelogModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="clTitle">
-    <div class="cl-box">
+    <div class="dc-modal cl-box">
       <div class="cl-head">
         <div class="cl-head-top">
           <h3 class="cl-title" id="clTitle" data-i18n="cl_title">What&rsquo;s New</h3>
-          <button class="cl-close" onclick="closeChangelog()" aria-label="Close" data-i18n="btn_close">&#10005; CLOSE</button>
+          <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close cl-close" onclick="closeChangelog()" aria-label="Close" data-i18n-aria="set_close">✕</button>
         </div>
         <div class="cl-stats" id="clStats"></div>
         <input type="text" class="cl-search" id="clSearch" placeholder="Search every change…" oninput="dcChangelogFilter()" data-i18n-placeholder="cl_search">
@@ -2728,10 +2728,10 @@
 
   <!-- IG SHARE PREVIEW MODAL -->
   <div class="ig-modal-overlay" id="igPreviewModal">
-    <div class="ig-modal-box">
+    <div class="dc-modal ig-modal-box">
       <div class="ig-modal-header">
         <h3 id="igPreviewTitle" data-i18n="ig_share_title">Share as Image</h3>
-        <button class="ig-modal-close" onclick="closeIgPreviewModal()" data-i18n="btn_close">✕ CLOSE</button>
+        <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close ig-modal-close" onclick="closeIgPreviewModal()" aria-label="Close" data-i18n-aria="set_close">✕</button>
       </div>
       <div class="ig-modal-body">
         <div class="ig-preview-panel">
@@ -2826,10 +2826,10 @@
 
   <!-- CHART RUN SHARE MODAL -->
   <div class="ig-modal-overlay" id="crIgModal">
-    <div class="ig-modal-box">
+    <div class="dc-modal ig-modal-box">
       <div class="ig-modal-header">
         <h3 id="crIgTitle">Share as Image</h3>
-        <button class="ig-modal-close" onclick="closeCrIgModal()" data-i18n="btn_close">✕ CLOSE</button>
+        <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close ig-modal-close" onclick="closeCrIgModal()" aria-label="Close" data-i18n-aria="set_close">✕</button>
       </div>
       <!-- Mode toggle bar -->
       <div class="dc-tabs ig-modal-mode-bar">
@@ -3001,10 +3001,10 @@
 
   <!-- YOUR SOUNDTRACK SHARE MODAL -->
   <div class="ig-modal-overlay" id="stCardModal">
-    <div class="ig-modal-box">
+    <div class="dc-modal ig-modal-box">
       <div class="ig-modal-header">
         <h3 data-i18n="st_card_title">Share Your Soundtrack</h3>
-        <button class="ig-modal-close" onclick="stCloseCard()" data-i18n="btn_close">✕ CLOSE</button>
+        <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close ig-modal-close" onclick="stCloseCard()" aria-label="Close" data-i18n-aria="set_close">✕</button>
       </div>
       <div class="ig-modal-body">
         <div class="ig-preview-panel">
@@ -3092,7 +3092,7 @@
        is filled by _exportShow() in app.js; the toggles re-render through
        _exportRender(). -->
   <div class="modal-overlay" id="exportModal" onclick="if(event.target===this)closeExportModal()">
-    <div class="export-modal-box" role="dialog" aria-modal="true" aria-labelledby="exportModalTitle">
+    <div class="dc-modal export-modal-box" role="dialog" aria-modal="true" aria-labelledby="exportModalTitle">
       <div class="export-modal-header">
         <span class="export-hero-ic" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h12M3 12h12M3 18h7"/><circle cx="17.5" cy="17.5" r="2.5"/><path d="M20 17.5V9l-3 1"/></svg>
@@ -3101,7 +3101,7 @@
           <div class="export-modal-title" id="exportModalTitle" data-i18n="export_title">Export Playlist</div>
           <div class="export-modal-subtitle" id="exportModalSubtitle"></div>
         </div>
-        <button type="button" class="src-modal-close" id="exportModalClose" onclick="closeExportModal()" aria-label="Close" data-i18n-aria="set_close">&times;</button>
+        <button type="button" class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close src-modal-close" id="exportModalClose" onclick="closeExportModal()" aria-label="Close" data-i18n-aria="set_close">✕</button>
       </div>
 
       <!-- Step 1: name suggestions, a click copies one -->
@@ -3176,10 +3176,10 @@
 
   <!-- CAL CREATE PLAYLIST MODAL -->
   <div class="modal-overlay" id="calCreatePlModal" onclick="if(event.target===this)closeCalCreatePlModal()">
-    <div class="cal-create-pl-box">
+    <div class="dc-modal cal-create-pl-box">
       <div class="cal-create-pl-header">
         <div class="cal-create-pl-title">+ Create Playlist</div>
-        <button class="modal-close" onclick="closeCalCreatePlModal()">✕ CLOSE</button>
+        <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close modal-close" onclick="closeCalCreatePlModal()" aria-label="Close" data-i18n-aria="set_close">✕</button>
       </div>
       <div class="cal-create-pl-sub" id="calCreatePlSub"></div>
       <input class="cal-create-pl-input" id="calCreatePlName" type="text" maxlength="60" placeholder="Playlist name…"
@@ -3195,10 +3195,10 @@
        the events sections and the Soundtrack reels. Body is rendered by
        _dcPickRenderList() / _dcPickShowNew(). -->
   <div class="modal-overlay" id="dcPlPickModal" onclick="if(event.target===this)dcClosePlaylistPicker()">
-    <div class="dc-plpick-box">
+    <div class="dc-modal dc-plpick-box">
       <div class="dc-plpick-header">
         <div class="dc-plpick-title" data-i18n="pl_pick_title">♫ Add to Playlist</div>
-        <button class="modal-close" onclick="dcClosePlaylistPicker()">✕ CLOSE</button>
+        <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close modal-close" onclick="dcClosePlaylistPicker()" aria-label="Close" data-i18n-aria="set_close">✕</button>
       </div>
       <div class="dc-plpick-sub" id="dcPlPickSub"></div>
       <div class="dc-plpick-body" id="dcPlPickBody"></div>
@@ -3207,8 +3207,8 @@
 
   <!-- SONG PROFILE MODAL -->
   <div class="modal-overlay" id="songModal">
-    <div class="modal-box">
-      <button class="modal-close" id="songModalClose">✕ CLOSE</button>
+    <div class="dc-modal modal-box">
+      <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close modal-close" id="songModalClose" aria-label="Close" data-i18n-aria="set_close">✕</button>
       <div class="modal-header">
         <div id="songModalImg"></div>
         <div>
@@ -3247,16 +3247,16 @@
        single overlay rather than two stacked ones. Body is rendered by
        renderRatingModal(). -->
   <div class="modal-overlay" id="ratingModal" role="dialog" aria-modal="true" aria-label="Rate">
-    <div class="modal-box rt-modal-box">
-      <button class="modal-close" onclick="closeRatingModal()" data-i18n="btn_close">✕ CLOSE</button>
+    <div class="dc-modal modal-box rt-modal-box">
+      <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close modal-close" onclick="closeRatingModal()" aria-label="Close" data-i18n-aria="set_close">✕</button>
       <div class="modal-body" id="ratingModalBody"></div>
     </div>
   </div>
 
   <!-- ALBUM PROFILE MODAL -->
   <div class="modal-overlay" id="albumModal">
-    <div class="modal-box">
-      <button class="modal-close" id="albumModalClose" data-i18n="btn_close">✕ CLOSE</button>
+    <div class="dc-modal modal-box">
+      <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close modal-close" id="albumModalClose" aria-label="Close" data-i18n-aria="set_close">✕</button>
       <div class="modal-header">
         <div id="albumModalImg"></div>
         <div>
@@ -3294,10 +3294,10 @@
        Declared after #albumModal on purpose: every overlay shares one z-index,
        so the later one in the DOM wins and this opens on top of its caller. -->
   <div class="ig-modal-overlay" id="rtCardModal">
-    <div class="ig-modal-box">
+    <div class="dc-modal ig-modal-box">
       <div class="ig-modal-header">
         <h3 id="rtCardTitle" data-i18n="rt_card_title">Share Album Score</h3>
-        <button class="ig-modal-close" onclick="rtCloseCard()" data-i18n="btn_close">✕ CLOSE</button>
+        <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close ig-modal-close" onclick="rtCloseCard()" aria-label="Close" data-i18n-aria="set_close">✕</button>
       </div>
       <div class="ig-modal-body">
         <div class="ig-preview-panel">
@@ -3392,8 +3392,8 @@
 
   <!-- ARTIST PROFILE MODAL -->
   <div class="modal-overlay" id="artistModal">
-    <div class="modal-box">
-      <button class="modal-close" id="modalClose" data-i18n="btn_close">✕ CLOSE</button>
+    <div class="dc-modal modal-box">
+      <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close modal-close" id="modalClose" aria-label="Close" data-i18n-aria="set_close">✕</button>
       <div class="modal-header">
         <div id="modalArtistImg"></div>
         <div>
@@ -3442,10 +3442,10 @@
        wins and this opens on top of both.
        Filled by tpOpenCard / tpOpenArtistCard / tpRenderCardPreview in app.js. -->
   <div class="ig-modal-overlay" id="tpCardModal">
-    <div class="ig-modal-box">
+    <div class="dc-modal ig-modal-box">
       <div class="ig-modal-header">
         <h3 id="tpCardTitle" data-i18n="tp_card_title">Share Track Plays</h3>
-        <button class="ig-modal-close" onclick="tpCloseCard()" data-i18n="btn_close">✕ CLOSE</button>
+        <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close ig-modal-close" onclick="tpCloseCard()" aria-label="Close" data-i18n-aria="set_close">✕</button>
       </div>
       <div class="ig-modal-body">
         <div class="ig-preview-panel">
@@ -3561,10 +3561,10 @@
        Declared after #artistModal on purpose: every overlay shares one
        z-index, so the later one in the DOM wins and this opens on top. -->
   <div class="ig-modal-overlay" id="raCardModal">
-    <div class="ig-modal-box">
+    <div class="dc-modal ig-modal-box">
       <div class="ig-modal-header">
         <h3 id="raCardTitle" data-i18n="ra_card_title">Share Discography Scores</h3>
-        <button class="ig-modal-close" onclick="raCloseCard()" data-i18n="btn_close">✕ CLOSE</button>
+        <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close ig-modal-close" onclick="raCloseCard()" aria-label="Close" data-i18n-aria="set_close">✕</button>
       </div>
       <div class="ig-modal-body">
         <div class="ig-preview-panel">
@@ -3669,7 +3669,7 @@
 
   <!-- ── Edit Scrobble Modal ── -->
   <div id="editScrobbleModal" class="modal-overlay" role="dialog" aria-modal="true">
-    <div class="src-modal-box scrobble-modal-box" style="position:relative">
+    <div class="dc-modal src-modal-box scrobble-modal-box" style="position:relative">
       <button onclick="closeEditScrobbleModal()" aria-label="Close" style="position:absolute;top:0.6rem;right:0.7rem;background:none;border:none;color:var(--text3);font-size:var(--fs-md);line-height:1;cursor:pointer;padding:0.1rem 0.3rem;">&times;</button>
       <h3 class="src-modal-title" data-i18n="modal_edit_title">Edit Scrobble</h3>
       <div class="src-field-group">
@@ -3719,7 +3719,7 @@
 
   <!-- ── Auto-correct Rules Modal ── -->
   <div id="rulesModal" class="modal-overlay" role="dialog" aria-modal="true">
-    <div class="src-modal-box">
+    <div class="dc-modal src-modal-box">
       <h3 class="src-modal-title" data-i18n="modal_rules_title">Auto-correct Rules</h3>
       <p style="font-size:var(--fs-xs);color:var(--text3);margin:0 0 0.7rem" data-i18n="modal_rules_desc">Rules apply automatically on every data load. Each rule matches an exact Artist + Song + Album combination and replaces it with your corrected values.</p>
       <input type="text" id="rulesSearch" placeholder="Search rules…" data-i18n-placeholder="modal_rules_search_placeholder" oninput="renderRulesList()" style="width:100%;box-sizing:border-box;margin-bottom:0.5rem;padding:0.35rem 0.6rem;font-size:var(--fs-sm);border:1px solid var(--border);border-radius:4px;background:var(--bg2);color:var(--text2);outline:none">
@@ -3736,7 +3736,7 @@
 
   <!-- ── Compilation Albums Modal ── -->
   <div id="compilationsModal" class="modal-overlay modal-overlay--stacked" role="dialog" aria-modal="true">
-    <div class="src-modal-box">
+    <div class="dc-modal src-modal-box">
       <h3 class="src-modal-title" data-i18n="comp_modal_title">Compilation Albums</h3>
       <p style="font-size:var(--fs-xs);color:var(--text3);margin:0 0 0.7rem" data-i18n="comp_modal_desc">Each album listed here is counted as one record credited to Various Artists, however many singers appear on it. Nothing about the tracks changes: every song stays with the artist who sang it, in the artist charts and in its own certifications.</p>
       <div style="display:flex;gap:0.4rem;margin-bottom:0.6rem">
@@ -3761,7 +3761,7 @@
        changes nothing about the charts until the user separates that type in
        Settings. -->
   <div id="releaseTypesModal" class="modal-overlay modal-overlay--stacked" role="dialog" aria-modal="true">
-    <div class="src-modal-box">
+    <div class="dc-modal src-modal-box">
       <h3 class="src-modal-title" data-i18n="rtype_modal_title">Release Types</h3>
       <p style="font-size:var(--fs-xs);color:var(--text3);margin:0 0 0.7rem" data-i18n="rtype_modal_desc">Mark what kind of record each release is — a single, an EP, a live album, a soundtrack. Singles and EPs are then certified on their own thresholds, since a hundred plays means something different for a two-track single. Your charts stay exactly as they are until you choose to separate a type in Settings.</p>
       <div style="display:flex;gap:0.4rem;margin-bottom:0.35rem;flex-wrap:wrap">
@@ -3791,7 +3791,7 @@
        Detection collects proposals; this is where they are seen and picked
        before anything is written. -->
   <div id="rtDetectModal" class="modal-overlay modal-overlay--stacked" role="dialog" aria-modal="true">
-    <div class="src-modal-box">
+    <div class="dc-modal src-modal-box">
       <h3 class="src-modal-title" data-i18n="rtd_modal_title">Detected Release Types</h3>
       <p style="font-size:var(--fs-xs);color:var(--text3);margin:0 0 0.7rem" data-i18n="rtd_modal_desc">Everything found is listed here before anything is written. Untick what looks wrong — whatever you change becomes your own mark, and a later scan will not touch it again.</p>
       <div id="rtDetectBody" style="max-height:340px;overflow-y:auto"></div>
@@ -3806,7 +3806,7 @@
 
   <!-- ── Similar Rule Warning Modal ── -->
   <div id="similarRuleModal" class="modal-overlay" role="dialog" aria-modal="true">
-    <div class="src-modal-box" style="max-width:440px">
+    <div class="dc-modal src-modal-box" style="max-width:440px">
       <h3 class="src-modal-title" data-i18n="modal_similar_title">Similar Rule Already Exists</h3>
       <p style="font-size:var(--fs-xs);color:var(--text3);margin:0 0 0.8rem" data-i18n="modal_similar_desc">A rule already exists for the same artist and track. Select which existing rules to remove, or add the new one alongside them.</p>
       <div id="similarRuleDetails" style="font-size:var(--fs-xs);background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:0.6rem 0.8rem;margin-bottom:0.8rem;line-height:1.7"></div>
@@ -3821,7 +3821,7 @@
 
   <!-- ── Manual Scrobble Modal ── -->
   <div id="scrobbleModal" class="modal-overlay" role="dialog" aria-modal="true">
-    <div class="src-modal-box scrobble-modal-box">
+    <div class="dc-modal src-modal-box scrobble-modal-box">
       <h3 class="src-modal-title" data-i18n="modal_manual_title">Manual Scrobble</h3>
       <div class="src-field-group">
         <label>
@@ -3859,13 +3859,13 @@
   <script defer src="changelog.js?v=334"></script>
   <!-- Community board tab (suggestions / bugs / discussion). Loaded before
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
-  <script defer src="board.js?v=3"></script>
-  <script defer src="app.js?v=470"></script>
+  <script defer src="board.js?v=4"></script>
+  <script defer src="app.js?v=471"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
   <script defer src="replay.js?v=1"></script>
   <!-- All-Time chart stats ("Inside your Top N"); reads app.js globals, so it loads after it -->
   <script defer src="insights.js?v=9"></script>
-  <script defer src="daily.js?v=36"></script>
+  <script defer src="daily.js?v=37"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at
@@ -3873,10 +3873,10 @@
        people to "Settings ⚙ → Google Sheets / Last.fm / Upload File" — that
        path has to keep working with zero extra clicks. -->
   <div id="sourceModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="srcModalTitle">
-    <div class="src-modal-box set-box">
+    <div class="dc-modal src-modal-box set-box">
       <div class="src-modal-header">
         <h3 class="src-modal-title" id="srcModalTitle" data-i18n="set_title">Settings</h3>
-        <button type="button" class="src-modal-close" onclick="closeSourceModal()" aria-label="Close" data-i18n-aria="set_close">&times;</button>
+        <button type="button" class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close src-modal-close" onclick="closeSourceModal()" aria-label="Close" data-i18n-aria="set_close">✕</button>
       </div>
 
       <!-- Tuner-dial tab strip: one sliding ink bar whose position comes from
@@ -5079,8 +5079,8 @@ function deleteGenreTriggers() {
 
   <!-- STREAK DETAILS MODAL -->
   <div id="streakModal" class="modal-overlay" onclick="if(event.target===this)closeStreakModal()">
-    <div class="modal-box streak-modal-box">
-      <button class="modal-close" onclick="closeStreakModal()" data-i18n="btn_close">✕ CLOSE</button>
+    <div class="dc-modal modal-box streak-modal-box">
+      <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close modal-close" onclick="closeStreakModal()" aria-label="Close" data-i18n-aria="set_close">✕</button>
       <div class="streak-modal-header">
         <span class="streak-modal-icon">🔥</span>
         <div class="streak-hdr-text">
@@ -5106,10 +5106,10 @@ function deleteGenreTriggers() {
   <!-- STREAK SHARE CARD ("My streaks" image) - built by skOpenCard() in app.js.
        Must stay after #streakModal: same z-index, later in the page wins. -->
   <div class="ig-modal-overlay" id="skCardModal">
-    <div class="ig-modal-box">
+    <div class="dc-modal ig-modal-box">
       <div class="ig-modal-header">
         <h3 data-i18n="sk_card_title">Share my streaks</h3>
-        <button class="ig-modal-close" onclick="skCloseCard()" data-i18n="btn_close">✕ CLOSE</button>
+        <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close ig-modal-close" onclick="skCloseCard()" aria-label="Close" data-i18n-aria="set_close">✕</button>
       </div>
       <div class="ig-modal-body">
         <div class="ig-preview-panel">
@@ -5157,8 +5157,8 @@ function deleteGenreTriggers() {
 
   <!-- DISCOVERY BUBBLE ARTIST MODAL -->
   <div id="stArtistModal" class="modal-overlay" onclick="if(event.target===this)stCloseArtistModal()">
-    <div class="modal-box st-artist-modal-box">
-      <button class="modal-close" onclick="stCloseArtistModal()" data-i18n="btn_close">✕ CLOSE</button>
+    <div class="dc-modal modal-box st-artist-modal-box">
+      <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close modal-close" onclick="stCloseArtistModal()" aria-label="Close" data-i18n-aria="set_close">✕</button>
       <div class="st-artist-modal-header">
         <div class="st-artist-modal-avatar" id="stArtistModalAvatar"></div>
         <div class="st-artist-modal-headtext">

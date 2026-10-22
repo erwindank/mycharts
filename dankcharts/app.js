@@ -4508,13 +4508,13 @@ function openImgPicker(o) {
   overlay.addEventListener('click', e => { if (e.target === overlay) closeImgPicker(); });
 
   const sources = ['deezer', 'itunes', 'lastfm', 'youtube'].filter(s => s !== 'youtube' || YOUTUBE_KEY);
-  overlay.innerHTML = `<div class="imgpk-panel" role="dialog" aria-modal="true">
+  overlay.innerHTML = `<div class="dc-modal imgpk-panel" role="dialog" aria-modal="true">
     <div class="imgpk-head">
       <div class="imgpk-titles">
         <div class="imgpk-title">${t('imgpk_title')}</div>
         <div class="imgpk-item">${esc(title)}${sub ? `<span class="imgpk-item-sub"> — ${esc(sub)}</span>` : ''}</div>
       </div>
-      <button class="imgpk-close" onclick="closeImgPicker()" aria-label="Close">✕</button>
+      <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close imgpk-close" onclick="closeImgPicker()" aria-label="Close" data-i18n-aria="set_close">✕</button>
     </div>
     <div class="imgpk-body">
       ${sources.map(s => `<div class="imgpk-section" data-src="${s}">
@@ -43360,12 +43360,12 @@ function _awardsShowPicker(year, catId, candidates) {
   _awardsPickerBuildIndex();
 
   const html = `<div class="awards-picker-overlay" id="awardsPickerOverlay" onclick="awardsPickerBgClick(event)">
-    <div class="awards-picker-modal">
+    <div class="dc-modal awards-picker-modal">
       <div class="awards-picker-head">
         <span class="awards-picker-eyebrow">${year} · ${typeLabel}</span>
         <span class="awards-picker-title">${esc(t('awards_cat_' + catDef.id))}</span>
         ${_awardsFavBtn(catDef.id, 'awards-picker-fav')}
-        <button class="awards-picker-close" onclick="awardsPickerClose()" aria-label="Close">✕</button>
+        <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close awards-picker-close" onclick="awardsPickerClose()" aria-label="Close" data-i18n-aria="set_close">✕</button>
       </div>
       <div class="awards-picker-ballot">
         <div class="awards-picker-ballot-head">
@@ -43488,15 +43488,15 @@ function awardsPickerClearSel() {
   const catName = _awardsPickerCtx ? t('awards_cat_' + _awardsPickerCtx.catId) : '';
   const wrap = document.createElement('div');
   wrap.innerHTML = `<div class="awards-picker-confirm" id="awardsPickerConfirm" onclick="if(event.target===this)awardsPickerClearCancel()">
-    <div class="awards-picker-confirm-box" role="alertdialog" aria-modal="true" aria-labelledby="awardsPickerConfirmTitle" aria-describedby="awardsPickerConfirmText">
+    <div class="dc-modal awards-picker-confirm-box" role="alertdialog" aria-modal="true" aria-labelledby="awardsPickerConfirmTitle" aria-describedby="awardsPickerConfirmText">
       <div class="awards-picker-confirm-icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       </div>
       <div class="awards-picker-confirm-title" id="awardsPickerConfirmTitle">Remove all nominees?</div>
       <div class="awards-picker-confirm-text" id="awardsPickerConfirmText">This takes all <strong>${n}</strong> nominee${n === 1 ? '' : 's'} off ${catName ? `<strong>${esc(catName)}</strong>` : 'this category'}. Nothing is saved until you press Save Nominees, so closing the picker without saving keeps your current ballot.</div>
       <div class="awards-picker-confirm-actions">
-        <button type="button" class="awards-picker-confirm-cancel" onclick="awardsPickerClearCancel()">Cancel</button>
-        <button type="button" class="awards-picker-confirm-ok" onclick="awardsPickerClearConfirm()">Remove all</button>
+        <button type="button" class="dc-btn dc-btn-normal awards-picker-confirm-cancel" onclick="awardsPickerClearCancel()">Cancel</button>
+        <button type="button" class="dc-btn dc-btn-plain dc-btn-danger awards-picker-confirm-ok" onclick="awardsPickerClearConfirm()">Remove all</button>
       </div>
     </div>
   </div>`;
