@@ -507,6 +507,12 @@
       box-shadow: var(--focus-ring);
     }
 
+    /* Browsers give form controls their own system font. Inherit the page's
+       instead, so a button that never set one (guide hero buttons, the share
+       window's design picker, N/A, picture source badges…) matches the text
+       around it. Found by the phase 8 screen check. */
+    button, input, select, textarea { font-family: inherit; }
+
     /* ═══════════════════════════════════════════════════════════════
        SHARED BUTTON — phase 8 step 2
        One button for the whole site outside the charts. Pick one kind:
