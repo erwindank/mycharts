@@ -9391,7 +9391,7 @@ function buildRecords() {
     const sub = entries.length === 1
       ? t('rec_has_reached', { n: 1, type: tUnit(cfg.unit, 1), plays: plays })
       : t('rec_have_reached', { n: entries.length, type: tUnit(cfg.unit, entries.length), plays: plays });
-    let h = '<div class="rec-section"' + (collapsed ? ' data-rec-default-collapsed="1"' : '')
+    let h = '<div class="rec-section" data-fast-tier="' + m + '"' + (collapsed ? ' data-rec-default-collapsed="1"' : '')
       + '><div class="rec-section-title">' + cfg.title(m) + '</div>';
     h += '<div class="rec-section-sub">' + sub + '</div>';
     h += recTable(['#', cfg.head, t('rec_th_time_taken'), t('rec_th_first_play'), t('rec_th_date_reached')],
@@ -9425,12 +9425,28 @@ function buildRecords() {
     // The first rung that actually has anybody on it stays open; the rest wait
     // to be asked for. Empty tiers return '' and so never claim that slot.
     let body = '';
+    const tiersShown = [];
     // recRunKey: singles and EPs climb the same play-count ladder albums do —
     // the tiers describe plays, not formats, and FAST_TIERS has no key of their
     // own. Without this the loop throws and takes the rest of Records with it.
-    for (const m of FAST_TIERS[recRunKey(ty.key)]) body += fastTierSection(ty, m, body !== '');
+    // Only one tier shows at a time now (the picker below), so none of them
+    // starts folded.
+    for (const m of FAST_TIERS[recRunKey(ty.key)]) {
+      const sec = fastTierSection(ty, m, false);
+      if (sec) { body += sec; tiersShown.push(m); }
+    }
+    /* "Fastest to [50 ▾] plays": one picker instead of a stack of folded
+       bars, one per tier. applyFastestTier() shows the picked tier. */
+    let picker = '';
+    if (tiersShown.length > 1) {
+      picker = '<label class="fast-pick"><span>' + esc(t('fast_pick_pre')) + '</span>'
+        + '<select class="fast-tier-sel" data-fast-type="' + ty.key + '">'
+        + tiersShown.map(function (m) { return '<option value="' + m + '">' + m.toLocaleString() + '</option>'; }).join('')
+        + '</select><span>' + esc(t('fast_pick_post')) + '</span></label>';
+    }
     fh += '<div class="fast-panel" role="tabpanel" data-fast-type="' + ty.key + '"'
       + ' data-rec-scope="fast-' + ty.key + '" style="display:none">'
+      + picker
       + (body || '<div class="rec-empty">' + t('rec_no_data') + '</div>')
       + '</div>';
   }
@@ -11949,8 +11965,31 @@ function applyFastestRecTabs() {
   });
   body.querySelectorAll('.fast-panel').forEach(function (p) {
     p.style.display = p.dataset.fastType === type ? '' : 'none';
+    applyFastestTier(p);
   });
 }
+
+/* Shows the picked tier in one Fastest panel ("Fastest to 100 plays"). The
+   choice is remembered per type; one the panel no longer has falls back to
+   its first tier. The others are hidden by CSS, except during a search,
+   which shows every tier so no match is hidden. */
+function applyFastestTier(panel) {
+  const sel = panel.querySelector('.fast-tier-sel');
+  const secs = panel.querySelectorAll('.rec-section[data-fast-tier]');
+  if (!secs.length) return;
+  let tier = null;
+  try { tier = localStorage.getItem('dc_fast_tier_' + panel.dataset.fastType); } catch (e) {}
+  if (!panel.querySelector('.rec-section[data-fast-tier="' + tier + '"]')) tier = secs[0].dataset.fastTier;
+  if (sel) sel.value = tier;
+  secs.forEach(function (s) { s.classList.toggle('fast-tier-on', s.dataset.fastTier === tier); });
+}
+
+document.addEventListener('change', function (e) {
+  const sel = e.target.closest('#recFastestBody .fast-tier-sel');
+  if (!sel) return;
+  try { localStorage.setItem('dc_fast_tier_' + sel.dataset.fastType, sel.value); } catch (err) {}
+  applyFastestTier(sel.closest('.fast-panel'));
+});
 
 document.addEventListener('click', function (e) {
   const btn = e.target.closest('#recFastestBody .fast-tab');

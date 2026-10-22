@@ -2220,6 +2220,8 @@ const TRANSLATIONS = {
     mil_tabs_label: 'Milestone record type',
     // Fastest-to-milestone: same three-way pill row, its own state
     fast_tabs_label: 'Fastest record type',
+    fast_pick_pre: 'Fastest to',
+    fast_pick_post: 'plays',
     // The shared pill row every other entity-organised record section wears —
     // All #1s, Appearances, Debuts, Most Plays, Streaks. One label serves them
     // all: it is read next to the section heading, which already says which
@@ -5538,6 +5540,8 @@ const TRANSLATIONS = {
     mil_no_data: 'No se alcanzaron hitos aún.',
     mil_tabs_label: 'Tipo de récord de hito',
     fast_tabs_label: 'Tipo de récord de rapidez',
+    fast_pick_pre: 'Más rápido en llegar a',
+    fast_pick_post: 'reprods',
     rec_ent_tabs_label: 'Tipo de récord',
     rec_per_tabs_label: 'Período del ranking',
     mil_th_first_to_reach: 'Primero en alcanzarlo',
@@ -8833,6 +8837,8 @@ const TRANSLATIONS = {
     mil_no_data: 'Nenhum marco atingido ainda.',
     mil_tabs_label: 'Tipo de recorde de marco',
     fast_tabs_label: 'Tipo de recorde de rapidez',
+    fast_pick_pre: 'Mais rápido a atingir',
+    fast_pick_post: 'plays',
     rec_ent_tabs_label: 'Tipo de recorde',
     rec_per_tabs_label: 'Período da parada',
     mil_th_first_to_reach: 'Primeiro a atingir',
@@ -12127,6 +12133,8 @@ const TRANSLATIONS = {
     mil_no_data: 'Nenhum marco atingido ainda.',
     mil_tabs_label: 'Tipo de recorde de marco',
     fast_tabs_label: 'Tipo de recorde de rapidez',
+    fast_pick_pre: 'Mais rápido a atingir',
+    fast_pick_post: 'plays',
     rec_ent_tabs_label: 'Tipo de recorde',
     rec_per_tabs_label: 'Período do top',
     mil_th_first_to_reach: 'Primeiro a atingir',

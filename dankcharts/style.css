@@ -13718,6 +13718,44 @@
       --ico: var(--accent2);
     }
 
+    /* Fastest: "Fastest to [50 ▾] plays". One tier's table shows at a
+       time; a search shows them all and the picker steps aside. */
+    .fast-pick {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 0 0 var(--sp-3);
+      font-size: var(--fs-sm);
+      color: var(--text2);
+    }
+
+    .fast-tier-sel {
+      height: 30px;
+      padding: 0 1.6rem 0 0.6rem;
+      border: 1px solid var(--border2);
+      border-radius: var(--r-sm);
+      background: var(--bg2);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: var(--fs-sm);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      cursor: pointer;
+    }
+
+    .fast-tier-sel:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    #recordsView:not(.rec-searching) .fast-panel .rec-section[data-fast-tier]:not(.fast-tier-on) {
+      display: none;
+    }
+
+    #recordsView.rec-searching .fast-pick {
+      display: none;
+    }
+
     /* Total / In a row switch (All #1s, Appearances): one of the two tables
        per period shows. During a search both show, so no match is hidden,
        and the switch steps aside. */

@@ -2256,6 +2256,9 @@ Steps:
 6. **Fastest and Milestones.** Fastest gets one picker, "Fastest to
    [50 ▾] plays", instead of the folded bars. Milestones highlights only
    the big round totals (100, 500, 1,000…).
+   **Done 2026-10-22:** Fastest has a "Fastest to [50 ▾] plays" picker per
+   type (remembered; a search shows every tier). Milestones needed nothing:
+   MIL_MAJOR already highlights only 100, 500, 1,000, 5,000…
 7. **Perfect All Kill and Certifications.** Perfect All Kill gets a ⓘ
    that explains the name; the "#67 / 67 · ARTIST #7" tags get calmer.
    The plaque wall shows the first rows and a "Show more" button.
