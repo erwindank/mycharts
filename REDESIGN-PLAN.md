@@ -2199,6 +2199,49 @@ Left for later, on purpose: the charts' own controls (left out on your
 call, incl. the three chart fold buttons and the ⋮ Size buttons), the
 Records dial, the landing page, the ceremony stage, Daily's own pieces.
 
+**Phase 9 part 1: Records. Planned 2026-10-22, one step per commit, on
+`main`; you review each step before the next.** Every sub-tab was looked
+at on screen first (desktop and phone, navy dark). What changed since 4.15
+was written:
+- **Rating Records shows on every sub-tab**, because it is not in the
+  sub-tab list, so switching never hides it. On Streaks and New Charts it
+  even sits *above* the section you picked.
+- **Certifications draws every plaque at once:** with a few years of
+  plays that is hundreds of plaques and a page about 40,000px tall.
+- **Milestones is already a timeline** ("first to 10, 25, 50… plays",
+  one row per total), not the repeating pills 4.15 describes. The "group
+  by song" fix is out of date and is dropped. Only "highlight the big
+  round numbers" is left, and it is folded into step 6.
+- **Fastest** now shows 50 plays open and the higher totals folded.
+- Initials instead of covers only happen in test runs that block picture
+  downloads. Covers come from the normal picture system (phase 4/8).
+- The Overview cards already have an "All / Weekly / Monthly / Yearly"
+  row above them; the 26 cards are "All".
+
+Steps:
+1. **Top of the page.** The Weekly / Monthly / Yearly box becomes one
+   small caption line under the title. Rating Records shows only on
+   Overview, at the bottom; its ★ becomes a line icon like the other
+   section titles, and its numbers turn white (3.2).
+2. **Sub-tab menu.** Mockup first. A left side menu on desktop, a
+   dropdown on phones, in place of the two-row dial. Search stays on top.
+3. **Overview cards.** Mockup first. One card per record type with a
+   small Week / Month / Year switch on the card (26 → about 9). The hero
+   reel stops being cut off at both edges.
+4. **Tables.** "Entries display" moves next to the table it controls.
+   Dates in plain muted text, underline only on hover. Titles in the
+   normal font with no ♫ in front (Perfect All Kill, Certifications).
+5. **Total / In a row.** All #1s and Appearances get one table with a
+   "Total / In a row" switch above it instead of two stacked tables.
+6. **Fastest and Milestones.** Fastest gets one picker, "Fastest to
+   [50 ▾] plays", instead of the folded bars. Milestones highlights only
+   the big round totals (100, 500, 1,000…).
+7. **Perfect All Kill and Certifications.** Perfect All Kill gets a ⓘ
+   that explains the name; the "#67 / 67 · ARTIST #7" tags get calmer.
+   The plaque wall shows the first rows and a "Show more" button.
+8. **Screen check.** Every sub-tab, all 10 themes spot-checked, phone
+   with touch, four languages, search across sections.
+
 The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in
 the top bar.

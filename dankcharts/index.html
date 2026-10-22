@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=598">
+  <link rel="stylesheet" href="style.css?v=599">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -1667,6 +1667,40 @@
             <path d="M8 8V2.6M8 8v5.4M8 8H2.6M8 8h5.4" />
             <path d="m8 8-3.4-3.4M8 8l3.4 3.4M8 8l3.4-3.4M8 8l-3.4 3.4" />
           </symbol>
+          <!-- Rating Records: a five-point star for the heading, and one glyph
+               per card in place of the emoji the cards used to carry. Same
+               stroke-only 16-unit grid as the rest of the sprite. -->
+          <symbol id="ri-ratings" viewBox="0 0 16 16">
+            <path d="m8 1.8 1.9 3.9 4.3.6-3.1 3 .7 4.3L8 11.6l-3.8 2 .7-4.3-3.1-3 4.3-.6Z" />
+          </symbol>
+          <!-- Trophy: highest rated album. -->
+          <symbol id="ri-rt-trophy" viewBox="0 0 16 16">
+            <path d="M4.6 2.2h6.8v3.6a3.4 3.4 0 0 1-6.8 0Z" />
+            <path d="M4.6 3.4H2.4a2.4 2.4 0 0 0 2.4 3M11.4 3.4h2.2a2.4 2.4 0 0 1-2.4 3" />
+            <path d="M8 9.2v2.6M5.2 14h5.6M6 14l.4-2.2h3.2L10 14" />
+          </symbol>
+          <!-- Medal on a ribbon: highest rated song. -->
+          <symbol id="ri-rt-medal" viewBox="0 0 16 16">
+            <path d="M5 1.6 7 6.2M11 1.6 9 6.2" />
+            <circle cx="8" cy="10.2" r="4" />
+            <path d="M8 8.4v3.6" />
+          </symbol>
+          <!-- Two arrows chasing round: played over and over. -->
+          <symbol id="ri-rt-repeat" viewBox="0 0 16 16">
+            <path d="M2.6 7.2V6a2.4 2.4 0 0 1 2.4-2.4h8.2M11 1.4l2.2 2.2L11 5.8" />
+            <path d="M13.4 8.8V10a2.4 2.4 0 0 1-2.4 2.4H2.8M5 14.6l-2.2-2.2L5 10.2" />
+          </symbol>
+          <!-- Cut gem: the hidden one you rate highly but rarely play. -->
+          <symbol id="ri-rt-gem" viewBox="0 0 16 16">
+            <path d="M4.2 2.4h7.6l2.8 3.8L8 14 1.4 6.2Z" />
+            <path d="M1.4 6.2h13.2M6 2.4 5.2 6.2 8 14l2.8-7.8L10 2.4" />
+          </symbol>
+          <!-- Spirit level: every track on the album at the same height. -->
+          <symbol id="ri-rt-level" viewBox="0 0 16 16">
+            <rect x="1.4" y="5.4" width="13.2" height="5.2" rx="1.2" />
+            <rect x="6.2" y="6.9" width="3.6" height="2.2" rx="1.1" />
+            <path d="M8 6.9v2.2" />
+          </symbol>
         </defs>
       </svg>
 
@@ -1772,6 +1806,24 @@
              Filled by renderRecordsHeroArtist(); hidden until there is data. -->
         <div class="rec-hero" id="recHeroArtist" style="display:none;"></div>
         <div class="rec-ov-grid" id="recOverviewBody"></div>
+      </div>
+
+      <!-- Rating Records — critical records derived from the user's own scores
+           (highest rated, most over/underplayed, most consistent album).
+           Filled by renderRatingRecordsSection(). Shown on Overview only —
+           applyRecordsViewFilter() hides it on every other sub-tab, where it
+           used to repeat under (and on some, above) the section you picked. -->
+      <div class="chart-section" id="recRatingsSection">
+        <div class="section-header">
+          <button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon section-collapse-btn" data-target="recRatingsSection"
+            data-i18n-title="tooltip_collapse">−</button>
+          <h2 class="section-header-h2"><svg class="rec-h2-ico" aria-hidden="true" focusable="false"><use
+                href="#ri-ratings" /></svg><span data-i18n="rec_ratings_title">Rating Records</span></h2>
+          <div class="section-rule"></div>
+        </div>
+        <div class="section-sub" data-i18n="rec_ratings_sub">Your highest rated records, the ones you play more than you
+          rate them, and the albums that hold their level from front to back</div>
+        <div class="section-body" id="recRatingsBody"></div>
       </div>
 
       <div class="chart-section" id="recAllOnesSection">
@@ -1883,20 +1935,6 @@
         <div id="certifications-wall"></div>
       </div>
 
-      <!-- Rating Records — critical records derived from the user's own scores
-           (highest rated, most over/underplayed, most consistent album).
-           Filled by renderRatingRecordsSection(). -->
-      <div class="chart-section" id="recRatingsSection">
-        <div class="section-header">
-          <button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon section-collapse-btn" data-target="recRatingsSection"
-            data-i18n-title="tooltip_collapse">−</button>
-          <h2 class="section-header-h2"><span class="rec-h2-emoji">★</span><span data-i18n="rec_ratings_title">Rating Records</span></h2>
-          <div class="section-rule"></div>
-        </div>
-        <div class="section-sub" data-i18n="rec_ratings_sub">Your highest rated records, the ones you play more than you
-          rate them, and the albums that hold their level from front to back</div>
-        <div class="section-body" id="recRatingsBody"></div>
-      </div>
 
       <div class="chart-section" id="recStreaksSection">
         <div class="section-header">

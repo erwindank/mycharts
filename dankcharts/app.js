@@ -8004,11 +8004,10 @@ function buildRecords() {
   }
 
   // ── RENDERING ────────────────────────────────────────────────
-  // The intro carries two facts, and they are the same three columns: the
-  // chart size per period, and how much history exists per period. Written as
-  // one run-on line joined by a pipe, that pairing was invisible. Per column
-  // it reads as a sentence — "weekly records come off a Top 20, and there are
-  // 312 of those weeks" — which is the whole reason the sizes are stated here.
+  // The intro is one quiet caption under the page title: the chart size per
+  // period and how much history feeds it ("Weekly Top 10 · 165 weeks"). It
+  // used to be a boxed three-column panel with big numbers, which made the
+  // smallest fact on the page the loudest thing above the sub-tabs.
   //
   // The period words are `nav_*`, not the `rec_*_label` pair used lower down:
   // those are "Weekly Chart"/"Monthly Chart", and "Chart" repeated three times
@@ -8019,23 +8018,15 @@ function buildRecords() {
     { label: t('nav_monthly'), size: mSizeSongs, span: tCount('months', monthKeys.length) },
     { label: t('nav_yearly'), size: chartSizeYearly, span: tCount('years', yearKeys.length) },
   ];
-  document.getElementById('recIntro').innerHTML =
-    '<div class="rec-intro-grid">' + recIntroCols.map(function (c, i) {
-      // An unlimited yearly chart has no cutoff to name, so the phrase takes
-      // the slot instead of a bare ∞ that the column would then have to
-      // explain. It is deliberately not `rec_yearly_all` — that string starts
-      // with "Yearly", which the column heading has already said.
-      const cut = isFinite(c.size)
-        ? '<span class="rec-intro-pre">' + esc(t('rec_intro_top')) + '</span>' +
-          '<span class="rec-intro-num">' + c.size + '</span>'
-        : '<span class="rec-intro-all">' + esc(t('rec_intro_all')) + '</span>';
-      // --i drives the stagger and the cutoff-rule wipe; both inherit it.
-      return '<div class="rec-intro-col" style="--i:' + i + '">' +
-        '<span class="rec-intro-label">' + esc(c.label) + '</span>' +
-        '<span class="rec-intro-cut">' + cut + '</span>' +
-        '<span class="rec-intro-span">' + esc(c.span) + '</span>' +
-        '</div>';
-    }).join('') + '</div>';
+  document.getElementById('recIntro').innerHTML = recIntroCols.map(function (c) {
+    // An unlimited yearly chart has no cutoff to name, so the phrase takes
+    // the slot instead of a bare ∞.
+    const cut = isFinite(c.size) ? t('rec_intro_top') + ' ' + c.size : t('rec_intro_all');
+    // Each period is one unbreakable item, so on a phone the caption wraps
+    // between periods and never inside one.
+    return '<span class="rec-intro-item"><span class="rec-intro-label">' + esc(c.label) + '</span> ' +
+      esc(cut) + ' · ' + esc(c.span) + '</span>';
+  }).join('<span class="rec-intro-sep" aria-hidden="true"></span>');
 
   /* Attributes the hero-artist tally reads off a record row — see
      recRowRecord(). Only needed where the row has no .img-src-btn written into
@@ -11464,6 +11455,9 @@ function runRecordsSearch(q) {
     el.classList.toggle('rec-search-hidden', !el.querySelector('.rec-search-hit'));
   });
   let sections = 0;
+  // Rating Records has nothing to match against, so a search hides it.
+  const ratingsSec = document.getElementById('recRatingsSection');
+  if (ratingsSec) ratingsSec.style.display = 'none';
   REC_SECTION_IDS.forEach(function (id) {
     const el = document.getElementById(id);
     if (!el) return;
@@ -11696,6 +11690,10 @@ function applyRecordsViewFilter(view) {
     if (!el) return;
     el.style.display = view === id ? '' : 'none';
   });
+  // Rating Records is not a sub-tab of its own: it belongs to Overview, under
+  // the cards, and stays out of every other sub-tab.
+  const ratingsSec = document.getElementById('recRatingsSection');
+  if (ratingsSec) ratingsSec.style.display = view === 'recOverviewSection' ? '' : 'none';
   document.querySelectorAll('#recordsNav .records-nav-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.recView === view);
   });
@@ -55109,9 +55107,9 @@ function ratingRecords() {
   const out = [];
   const bestAlbum = [...albums].sort((a, b) => b.score - a.score)[0];
   const bestSong  = [...songs].sort((a, b) => b.score - a.score)[0];
-  if (bestAlbum) out.push({ id: 'rt_best_album', emoji: '🏆', label: 'Highest rated album',
+  if (bestAlbum) out.push({ id: 'rt_best_album', icon: 'ri-rt-trophy', label: 'Highest rated album',
     value: ratingFmt(bestAlbum.score), detail: `${bestAlbum.name} — ${bestAlbum.artist}`, key: bestAlbum.key, kind: 'album' });
-  if (bestSong) out.push({ id: 'rt_best_song', emoji: '🥇', label: 'Highest rated song',
+  if (bestSong) out.push({ id: 'rt_best_song', icon: 'ri-rt-medal', label: 'Highest rated song',
     value: ratingFmt(bestSong.score), detail: `${bestSong.name} — ${bestSong.artist}`, key: bestSong.key, kind: 'song' });
 
   // Overrated / underrated by the user's own numbers: rank each rated album by
@@ -55126,9 +55124,9 @@ function ratingRecords() {
     const gaps = albums.map(a => ({ ...a, gap: scoreRank.get(a.key) - playRank.get(a.key) }));
     const over  = [...gaps].sort((a, b) => b.gap - a.gap)[0];   // played high, scored low
     const under = [...gaps].sort((a, b) => a.gap - b.gap)[0];   // scored high, played low
-    if (over && over.gap > 0)  out.push({ id: 'rt_overplayed', emoji: '🔁', label: 'Most overplayed',
+    if (over && over.gap > 0)  out.push({ id: 'rt_overplayed', icon: 'ri-rt-repeat', label: 'Most overplayed',
       value: ratingFmt(over.score), detail: `${over.name} — ${over.plays} ${tUnit('plays', over.plays)}`, key: over.key, kind: 'album' });
-    if (under && under.gap < 0) out.push({ id: 'rt_underplayed', emoji: '💎', label: 'Most underplayed',
+    if (under && under.gap < 0) out.push({ id: 'rt_underplayed', icon: 'ri-rt-gem', label: 'Most underplayed',
       value: ratingFmt(under.score), detail: `${under.name} — only ${under.plays} ${tUnit('plays', under.plays)}`, key: under.key, kind: 'album' });
   }
 
@@ -55140,7 +55138,7 @@ function ratingRecords() {
     if (!ins || ins.ratedCount < 3) continue;
     if (!bestCons || ins.consistency > bestCons.consistency) bestCons = { ...a, consistency: ins.consistency };
   }
-  if (bestCons) out.push({ id: 'rt_consistent', emoji: '📐', label: 'Most consistent album',
+  if (bestCons) out.push({ id: 'rt_consistent', icon: 'ri-rt-level', label: 'Most consistent album',
     value: ratingFmt(bestCons.consistency), detail: `${bestCons.name} — ${bestCons.artist}`, key: bestCons.key, kind: 'album' });
 
   // Best rated artist, over artists with at least two rated albums, so a single
@@ -55151,7 +55149,7 @@ function ratingRecords() {
     .filter(([, arr]) => arr.length >= 2)
     .map(([name, arr]) => ({ name, avg: Math.round((arr.reduce((x, y) => x + y, 0) / arr.length) * 10) / 10, n: arr.length }))
     .sort((a, b) => b.avg - a.avg);
-  if (artistAvgs[0]) out.push({ id: 'rt_best_artist', emoji: '👑', label: 'Best rated artist',
+  if (artistAvgs[0]) out.push({ id: 'rt_best_artist', icon: 'ri-ones', label: 'Best rated artist',
     value: ratingFmt(artistAvgs[0].avg), detail: `${artistAvgs[0].name} — ${artistAvgs[0].n} albums`, kind: 'artist', key: artistAvgs[0].name });
 
   return out.length ? out : null;
@@ -55170,8 +55168,8 @@ function renderRatingRecordsSection() {
               : `openArtistModal(${esc(JSON.stringify(r.key))})`;
   el.innerHTML = `<div class="rt-rec-grid">
     ${recs.map(r => `<button class="dc-card-inset rt-rec-card" onclick="${open(r)}">
-      <div class="rt-rec-emoji">${r.emoji}</div>
-      <div class="rt-rec-value ${ratingBand(parseFloat(r.value))?.cls || ''}">${esc(r.value)}</div>
+      <svg class="rt-rec-ico" aria-hidden="true" focusable="false"><use href="#${r.icon}" /></svg>
+      <div class="rt-rec-value">${esc(r.value)}</div>
       <div class="rt-rec-label">${esc(r.label)}</div>
       <div class="rt-rec-detail">${esc(r.detail)}</div>
     </button>`).join('')}
