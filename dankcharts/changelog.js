@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 251;
+const DC_CL_I18N_V = 252;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-22', t: 'design', a: 'graphs', h: '8f575ea',
+    title: "Stats, ratings and streaks buttons match the rest of the site",
+    detail: "On the Stats page, each graph's Reset, Labels and Reset Zoom buttons and the chart race controls now share one look and size, with + Add and Play as the bold main button. In the rating window, Done is the main button and Clear rating is red. The ratings scan, your rated library and the streaks window use the same buttons too. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-22', t: 'fix', a: 'charts', h: '5c50621',
     title: "The Around the chart box only shows on chart pages",
     detail: "The Around the chart box (Bubbling Under, Off the Chart and New Entries) stayed at the top of the page when you switched to Stats, Records, Events, Awards, Your Soundtrack, Playlists and other tabs. It now only appears with the charts. Works with Last.fm, Google Sheets and CSV uploads." },

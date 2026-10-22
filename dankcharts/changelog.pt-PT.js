@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Stats, ratings and streaks buttons match the rest of the site":
+    ["Os botões de Estatísticas, avaliações e sequências combinam com o resto do site",
+     "Na página de Estatísticas, os botões Repor, Etiquetas e Repor zoom de cada gráfico e os controlos da corrida dos tops têm agora o mesmo aspeto e tamanho, com + Adicionar e Reproduzir como botão principal em destaque. Na janela de avaliação, Concluir é o botão principal e Limpar avaliação aparece a vermelho. A análise de avaliações, a tua biblioteca avaliada e a janela de sequências usam também os mesmos botões. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
+
   "The Around the chart box only shows on chart pages":
     ["A caixa À volta do top só aparece nas páginas dos tops",
      "A caixa À volta do top (Aspirantes, Fora do top e Novas entradas) ficava no topo da página quando mudava para Estatísticas, Recordes, Eventos, Prémios, A tua banda sonora, Playlists e outros separadores. Agora só aparece com os tops. Funciona com Last.fm, Google Sheets e ficheiros CSV."],

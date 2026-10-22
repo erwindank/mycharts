@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Stats, ratings and streaks buttons match the rest of the site":
+    ["Os botões de Estatísticas, avaliações e sequências combinam com o resto do site",
+     "Na página de Estatísticas, os botões Redefinir, Rótulos e Redefinir zoom de cada gráfico e os controles da corrida das paradas agora têm a mesma aparência e tamanho, com + Adicionar e Tocar como o botão principal em destaque. Na janela de avaliação, Concluir é o botão principal e Limpar avaliação aparece em vermelho. A varredura de avaliações, sua biblioteca avaliada e a janela de sequências também usam os mesmos botões. Funciona com Last.fm, Google Sheets e arquivos CSV."],
+
   "The Around the chart box only shows on chart pages":
     ["A caixa Em volta da parada só aparece nas páginas de paradas",
      "A caixa Em volta da parada (Aspirantes, Fora da parada e Novas entradas) ficava no topo da página quando você ia para Estatísticas, Recordes, Eventos, Prêmios, Sua trilha sonora, Playlists e outras abas. Agora ela só aparece com as paradas. Funciona com Last.fm, Google Sheets e arquivos CSV."],

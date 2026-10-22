@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Stats, ratings and streaks buttons match the rest of the site":
+    ["Los botones de Estadísticas, valoraciones y rachas coinciden con el resto del sitio",
+     "En la página de Estadísticas, los botones Restablecer, Etiquetas y Restablecer zoom de cada gráfico y los controles de la carrera de listas tienen ahora el mismo aspecto y tamaño, con + Añadir y Reproducir como botón principal destacado. En la ventana de valoración, Listo es el botón principal y Borrar valoración aparece en rojo. El escaneo de valoraciones, tu biblioteca valorada y la ventana de rachas usan también los mismos botones. Funciona con Last.fm, Google Sheets y archivos CSV."],
+
   "The Around the chart box only shows on chart pages":
     ["El recuadro Alrededor de la lista solo aparece en las páginas de listas",
      "El recuadro Alrededor de la lista (Aspirantes, Fuera de la lista y Nuevas entradas) se quedaba arriba de la página al pasar a Estadísticas, Récords, Eventos, Premios, Tu banda sonora, Listas de reproducción y otras pestañas. Ahora solo aparece con las listas. Funciona con Last.fm, Google Sheets y archivos CSV."],
