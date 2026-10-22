@@ -41037,6 +41037,33 @@ body.red-light .sh-headline em, body.pink-light .sh-headline em, body.purple-lig
 /* The same bars under "+N new songs / artists / albums" (2026-10-21),
    sitting just under the sub-stat they belong to */
 .sh-new-bars .sh-bars { margin-top: 0.4rem; }
+/* Bars folded away until the arrow is clicked (2026-10-21). The arrow sits
+   on the tile's bottom edge, inside its padding, so it takes no room; one
+   per tile — the new-entry bars open with the main ones */
+body:not(.sh-bars-open) .sh-bars,
+body:not(.sh-bars-open) .sh-usual-cap { display: none; }
+.sh-new-bars .sh-bars-tog { display: none; }
+.sh-hero .stat-box { position: relative; }
+.sh-bars-tog {
+  position: absolute;
+  left: 50%;
+  bottom: 1px;
+  transform: translateX(-50%);
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 14px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text3);
+  opacity: 0.55;
+  cursor: pointer;
+}
+.sh-bars-tog svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; transition: transform 0.2s; }
+body.sh-bars-open .sh-bars-tog svg { transform: rotate(180deg); }
+.sh-bars-tog:hover, .sh-bars-tog:focus-visible { opacity: 1; color: var(--text); }
 .sh-new-bars .sh-usual-cap { margin-bottom: 0; }
 .sh-bars {
   display: grid;

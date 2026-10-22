@@ -13086,12 +13086,27 @@ function shBarsHtml(cur, prev, record, usual) {
   // Caption: "Usual: N · Record: N", either part left out when unknown
   const cap = [usual !== null ? t('sh_usual', { n: usual.toLocaleString() }) : '',
                record !== null ? t('sh_record', { n: record.toLocaleString() }) : ''].filter(Boolean).join(' · ');
-  return `<div class="sh-bars" title="${esc(tip)}">
+  // Folded away by default (user's call 2026-10-21: the bars took too much
+  // room). The toggle is just a small arrow pinned to the tile's bottom edge;
+  // the words are only for screen readers / the tooltip. One click opens
+  // every tile's bars at once (shToggleBars), so the tiles stay lined up.
+  const togLbl = esc(t('sh_bars_show') + ' / ' + t('sh_bars_hide'));
+  return `<button type="button" class="sh-bars-tog" aria-expanded="${shBarsOpen}" aria-label="${togLbl}" title="${togLbl}" onclick="event.stopPropagation();shToggleBars()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="sh-bars" title="${esc(tip)}">
       <span class="sh-bar-k">${esc(t('sh_bar_now'))}</span><span class="sh-bar-track"><i class="sh-bar-now" style="width:${pct(cur)}%"></i></span>
       <span class="sh-bar-k">${esc(t('sh_bar_last'))}</span><span class="sh-bar-track"><i class="sh-bar-was" style="width:${pct(prev)}%"></i></span>
       ${usual !== null ? `<span class="sh-usual"><b style="left:${pct(usual)}%"></b></span>` : ''}
       <span class="sh-bar-v sh-bar-v-now">${cur.toLocaleString()}</span><span class="sh-bar-v sh-bar-v-was">${prev.toLocaleString()}</span>
     </div>${cap ? `<div class="sh-usual-cap">${esc(cap)}</div>` : ''}`;
+}
+
+// Open / close the bars on every tile. The state is a class on <body>, so it
+// survives the tiles being redrawn when you change period; a page load starts
+// closed again.
+let shBarsOpen = false;
+function shToggleBars() {
+  shBarsOpen = !shBarsOpen;
+  document.body.classList.toggle('sh-bars-open', shBarsOpen);
+  document.querySelectorAll('.sh-bars-tog').forEach(b => b.setAttribute('aria-expanded', shBarsOpen));
 }
 
 // Picture slots for a tile. kind: 'songs' (a row of covers), 'artists'
