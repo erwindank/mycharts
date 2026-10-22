@@ -2242,6 +2242,12 @@ Steps:
 4. **Tables.** "Entries display" moves next to the table it controls.
    Dates in plain muted text, underline only on hover. Titles in the
    normal font with no ♫ in front (Perfect All Kill, Certifications).
+   **Done 2026-10-22:** "Show 25 50 100 All" now sits at the right end
+   of the heading line of the section on screen (its own line on phones).
+   Dates are muted text, accent + underline on hover. The 🎵/💿 in front of
+   titles are gone from Perfect All Kill, Appearances and Debuts. Also
+   fixed: Perfect All Kill's "Most recent" cell sat out of line with its
+   row (display:flex on a td).
 5. **Total / In a row.** All #1s and Appearances get one table with a
    "Total / In a row" switch above it instead of two stacked tables.
 6. **Fastest and Milestones.** Fastest gets one picker, "Fastest to

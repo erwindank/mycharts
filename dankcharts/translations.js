@@ -2018,7 +2018,7 @@ const TRANSLATIONS = {
     rec_streaks_sub: 'Longest listening streaks by day, week, month and year, plus the longest back-to-back play runs',
 
     // Records size bar
-    rec_size_label: 'Entries Display:',
+    rec_size_label: 'Show',
 
     // Records intro (dynamic)
     rec_yearly_all: 'Yearly All Entries',
@@ -5375,7 +5375,7 @@ const TRANSLATIONS = {
     rec_streaks_sub: 'Rachas de escucha más largas por día, semana, mes y año, además de las rachas de reproducciones seguidas',
 
     // Records size bar
-    rec_size_label: 'Mostrar Entradas:',
+    rec_size_label: 'Mostrar',
 
     // Records intro
     rec_yearly_all: 'Anual Todas las Entradas',
@@ -8667,7 +8667,7 @@ const TRANSLATIONS = {
     rec_streaks_sub: 'Maiores sequências de escuta por dia, semana, mês e ano, além das maiores sequências de plays seguidos',
 
     // Records size bar
-    rec_size_label: 'Exibir Entradas:',
+    rec_size_label: 'Mostrar',
 
     // Records intro
     rec_yearly_all: 'Anual Todas as Entradas',
@@ -11959,7 +11959,7 @@ const TRANSLATIONS = {
     rec_streaks_sub: 'Maiores sequências de escuta por dia, semana, mês e ano, além das maiores sequências de plays seguidos',
 
     // Records size bar
-    rec_size_label: 'Mostrar Entradas:',
+    rec_size_label: 'Mostrar',
 
     // Records intro
     rec_yearly_all: 'Anual Todas as Entradas',

@@ -8342,8 +8342,8 @@ function buildRecords() {
           + '<td class="rec-rank">' + (i + 1) + '</td>'
           + '<td><div class="pak-artist-cell"><div class="pak-mini-thumb pak-mini-thumb-round" id="' + artistImgId + '"><div class="pak-mini-initials">' + esc(initials(artist)) + '</div></div><div class="rec-name">' + esc(artist) + '</div></div></td>'
           + '<td class="rec-count">' + periods.length + '</td>'
-          + '<td class="rec-meta pak-tbl-song"><span class="pak-col-icon">🎵</span>' + esc(firstPer.song) + '</td>'
-          + '<td class="rec-meta pak-tbl-album"><span class="pak-col-icon">💿</span>' + esc(firstPer.album) + '</td>'
+          + '<td class="rec-meta pak-tbl-song">' + esc(firstPer.song) + '</td>'
+          + '<td class="rec-meta pak-tbl-album">' + esc(firstPer.album) + '</td>'
           + '<td class="rec-meta pak-tbl-last-cell"><a class="pak-date pak-date-link" href="javascript:void(0)" onclick="event.stopPropagation();showPakPeriodPreview(\'' + pt + '\',\'' + esc(lastPer.periodKey) + '\',this)">' + fmtPeriodKey(lastPer.periodKey, pt) + '</a><span class="pak-expand-icon">▼</span></td>'
           + '</tr>';
         ph += '<tr class="pak-expand-row" id="' + expandId + '" style="display:none"><td colspan="6"><div class="pak-expand-list">';
@@ -8353,8 +8353,8 @@ function buildRecords() {
           pakImgQueue.push(pakAlbumItem(albumImgId, pw.album, artist));
           ph += '<div class="pak-expand-item" data-pak-album-img="' + albumImgId + '" data-album="' + esc(pw.album) + '" data-artist="' + esc(artist) + '">'
             + '<div class="pak-mini-thumb" id="' + albumImgId + '"><div class="pak-mini-initials">' + esc(initials(pw.album)) + '</div></div>'
-            + '<span class="pak-expand-album">💿 ' + esc(pw.album) + '</span>'
-            + '<span class="pak-expand-song"><span class="pak-col-icon">🎵</span>' + esc(pw.song) + '</span>'
+            + '<span class="pak-expand-album">' + esc(pw.album) + '</span>'
+            + '<span class="pak-expand-song">' + esc(pw.song) + '</span>'
             + '<a class="pak-date pak-date-link" href="javascript:void(0)" onclick="showPakPeriodPreview(\'' + pt + '\',\'' + esc(pw.periodKey) + '\',this)">' + fmtPeriodKey(pw.periodKey, pt) + '</a>'
             + '<a class="pak-expand-link" href="#chart/' + pt + '/' + esc(pw.periodKey) + '" onclick="event.preventDefault();navigateToRecPeriod(\'' + pt + '\',\'' + esc(pw.periodKey) + '\')">' + t('rec_pak_period_preview_link', { unit: tUnit(cfg.unitKey, 1) }) + '</a>'
             + '</div>';
@@ -8385,7 +8385,7 @@ function buildRecords() {
         ph += '<div class="pak-item">'
           + '<a class="pak-date pak-date-link" href="javascript:void(0)" onclick="showPakPeriodPreview(\'' + pt + '\',\'' + esc(pw.periodKey) + '\',this)">' + fmtPeriodKey(pw.periodKey, pt) + '</a>'
           + '<div class="pak-col pak-col-artist"><div class="pak-mini-thumb pak-mini-thumb-round" id="' + pakArtistImgId + '"><div class="pak-mini-initials">' + esc(initials(pw.artist)) + '</div></div><span class="pak-col-text">' + esc(pw.artist) + '</span></div>'
-          + '<div class="pak-col pak-col-song"><span class="pak-col-icon">🎵</span>' + esc(pw.song) + '</div>'
+          + '<div class="pak-col pak-col-song">' + esc(pw.song) + '</div>'
           + '<div class="pak-col pak-col-album"><div class="pak-mini-thumb" id="' + pakImgId + '"><div class="pak-mini-initials">' + esc(initials(pw.album)) + '</div></div><span class="pak-col-text">' + esc(pw.album) + '</span></div>'
           + '<div class="pak-badge-stack">'
           + '<span class="rec-badge rec-badge-gold">#' + pakGlobalIdx[pw.periodKey] + ' / ' + list.length + '</span>'
@@ -8526,8 +8526,8 @@ function buildRecords() {
         ah += '<td class="thumb-cell"><div class="thumb-wrap"><div id="' + imgId + '" class="app-art-circle"><div class="thumb-initials">' + esc(initials(a)) + '</div></div>';
         ah += '<button id="srcbtn-' + imgId + '" class="img-src-btn" data-imgid="' + imgId + '" data-type="artist" data-prefkey="' + esc('artist:' + a.toLowerCase()) + '" data-name="' + esc(a) + '" data-artist="' + esc(a) + '" data-album="">Deezer</button></div></td>';
         ah += '<td><div class="rec-name">' + esc(a) + '</div></td>';
-        ah += '<td class="rec-meta app-song-cell"><span class="app-song-icon">🎵</span>' + esc(firstSong) + '</td>';
-        ah += '<td class="rec-meta app-song-cell"><span class="app-song-icon">🎵</span>' + esc(lastSong) + '</td>';
+        ah += '<td class="rec-meta app-song-cell">' + esc(firstSong) + '</td>';
+        ah += '<td class="rec-meta app-song-cell">' + esc(lastSong) + '</td>';
         ah += '<td class="rec-meta">' + esc(firstCharted) + '</td>';
         ah += '<td class="rec-count">' + tCount(cfg.unitKey, count) + '</td>';
         ah += '<td class="rec-cr-btn-cell"><button class="rec-cr-toggle" onclick="toggleAppCr(\'' + crRowId + '\',this)" title="' + t('cr_chart_run') + '">▶</button></td>';
@@ -8573,7 +8573,7 @@ function buildRecords() {
         ah += '<td class="thumb-cell"><div class="thumb-wrap"><div id="' + artImgId + '" class="app-art-circle"><div class="thumb-initials">' + esc(initials(artist)) + '</div></div>';
         ah += '<button id="srcbtn-' + artImgId + '" class="img-src-btn" data-imgid="' + artImgId + '" data-type="artist" data-prefkey="' + esc('artist:' + artist.toLowerCase()) + '" data-name="' + esc(artist) + '" data-artist="' + esc(artist) + '" data-album="">Deezer</button></div></td>';
         ah += '<td><div class="rec-name">' + esc(artist) + '</div></td>';
-        ah += '<td class="rec-meta app-song-cell"><span class="app-song-icon">🎵</span>' + esc(firstSong) + '</td>';
+        ah += '<td class="rec-meta app-song-cell">' + esc(firstSong) + '</td>';
         ah += '<td class="rec-meta">' + esc(firstDate) + '</td>';
         ah += '<td class="rec-count">' + tCount(cfg.unitKey, count) + '</td>';
         ah += '<td class="rec-cr-btn-cell"><button class="rec-cr-toggle" onclick="toggleAppCr(\'' + crRowId + '\',this)" title="' + t('cr_chart_run') + '">▶</button></td>';
@@ -8778,7 +8778,7 @@ function buildRecords() {
           dh += '<tr class="' + rankCls + '" data-rec-artist="' + esc(d.artist) + '" data-rec-type="song"'
             + ' data-rec-name="' + esc(d.title) + '" data-rec-prefkey="' + esc('song:' + d.artist.toLowerCase() + '|||' + d.title.toLowerCase()) + '">';
           dh += '<td class="rec-rank">' + (i + 1) + '</td>';
-          dh += '<td><span class="pak-col-icon">🎵</span><span class="rec-name">' + esc(d.title) + '</span></td>';
+          dh += '<td><span class="rec-name">' + esc(d.title) + '</span></td>';
           dh += '<td><div class="pak-mini-thumb pak-mini-thumb-round" id="' + artImgId + '"><div class="pak-mini-initials">' + esc(initials(d.artist)) + '</div></div></td>';
           dh += '<td><div class="rec-name">' + esc(d.artist) + '</div></td>';
           dh += '<td class="rec-count">' + (d.plays || 0) + '</td>';
@@ -8821,7 +8821,7 @@ function buildRecords() {
           dh += '<td><div class="pak-mini-thumb pak-mini-thumb-round" id="' + artImgId + '"><div class="pak-mini-initials">' + esc(initials(a)) + '</div></div></td>';
           dh += '<td><div class="rec-name">' + esc(a) + '</div></td>';
           if (fSong) {
-            dh += '<td><span class="pak-col-icon">🎵</span><span class="rec-name debut-first-label">' + esc(fSong) + '</span></td>';
+            dh += '<td><span class="rec-name debut-first-label">' + esc(fSong) + '</span></td>';
           } else {
             dh += '<td class="rec-meta">—</td>';
           }
@@ -11786,9 +11786,15 @@ function applyRecordsViewFilter(view) {
   });
   recNavUpdatePicker();
   recNavUpdateCounts();
-  // The entries-per-table control has nothing to act on from the overview.
+  // The entries-per-table control sits on the heading line of the section it
+  // controls, so it is next to the tables it changes. Overview has nothing
+  // for it to act on.
   const sizeBar = document.getElementById('recordsSizeBar');
-  if (sizeBar) sizeBar.style.display = view === 'recOverviewSection' ? 'none' : '';
+  if (sizeBar) {
+    const hdr = view !== 'recOverviewSection' ? document.querySelector('#' + view + ' > .section-header') : null;
+    if (hdr && sizeBar.parentNode !== hdr) hdr.appendChild(sizeBar);
+    sizeBar.style.display = hdr ? '' : 'none';
+  }
   applyNewChartsRecTabs();
   applyMilestoneRecTabs();
   applyFastestRecTabs();

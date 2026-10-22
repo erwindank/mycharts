@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=601">
+  <link rel="stylesheet" href="style.css?v=602">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -1706,12 +1706,10 @@
 
       <div class="rec-intro" id="recIntro">Load your data to see records.</div>
 
-      <!-- Control deck. The global search and the entries-per-table control are
-           the only two controls here that reach every section, so they share
-           one row. The size control previously owned a full-width bordered
-           strip below the pills, which made it read as outranking the section
-           nav it sat under — exactly backwards. As a flex child it also lets
-           the search reclaim the full width on Overview, where app.js hides it. -->
+      <!-- Control deck: the global search. The entries-per-table control
+           (#recordsSizeBar) starts here too, but applyRecordsViewFilter()
+           moves it onto the heading line of the section on screen, so it sits
+           next to the tables it changes. -->
       <div class="rec-deck">
         <!-- Global search: filters every records table at once, across sections -->
         <div class="rec-search" id="recordsSearchBar">
