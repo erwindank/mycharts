@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 246;
+const DC_CL_I18N_V = 247;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-22', t: 'fix', a: 'charts', h: 'f6bc35c',
+    title: "Charts fit the screen on tablets and small phones",
+    detail: "On screens between about 600 and 980 pixels wide, like a tablet or a small laptop window, the whole page could slide sideways because the Filmstrip and the certification reel stretched it. Those strips now scroll inside their own box and the page stays put. On the smallest phones (about 330 pixels) the top bar's buttons are a little slimmer so Sign in fits, the page buttons under Yearly and All-Time charts put the page number on its own line instead of spilling off the edge, and on Daily the Compare with buttons and the part-of-day cards no longer run off the screen in Spanish and Portuguese. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-22', t: 'design', a: 'guide', h: 'b249867',
     title: "The welcome window shows how charts work and lets you jump straight in",
     detail: "The window you see on your first visit now opens with a small example chart that moves every few seconds, so you can see songs climb, fall and debut before you start. Under it, six shortcuts open Weekly, Records, Awards, Your Soundtrack, Graphs or All-Time straight away, and the tour is one click away. If you're trying the live demo, the window says so, explains that nothing is saved, and has a button to switch to your own listening. Works with Last.fm, Google Sheets and CSV uploads." },

@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Charts fit the screen on tablets and small phones":
+    ["As paradas cabem na tela em tablets e celulares pequenos",
+     "Em telas de cerca de 600 a 980 pixels de largura, como um tablet ou uma janela pequena, a página inteira podia deslizar para o lado porque a visualização Faixa e a fita de certificações a esticavam. Agora elas rolam dentro da própria caixa e a página fica parada. Nos celulares menores (cerca de 330 pixels) os botões da barra superior ficaram um pouco mais estreitos para caber Entrar, os botões de página das paradas Anuais e De todos os tempos colocam o número da página numa linha própria em vez de sair da borda, e no Diário os botões de Comparar com e os cartões de partes do dia não saem mais da tela em espanhol e português. Funciona com Last.fm, Google Sheets e arquivos CSV."],
+
   "Animate Chart replays your plays one by one, in every layout":
     ["Animar a parada repete suas plays uma a uma, em todos os layouts",
      "Animar a parada agora começa na parada anterior e passa pelas suas plays uma a uma, tirando a mais antiga ou adicionando a próxima, até chegar à parada que você está vendo. As plays, as posições, as setas de subida e descida e o top 3 de ouro, prata e bronze mudam enquanto isso, e cada entrada desliza por cima da que ela ultrapassa. As capas carregam antes de qualquer coisa se mexer. Dá para pausar, mudar a velocidade (de ½× a 20×), voltar ou avançar uma play ou um dia (uma hora no Diário), arrastar a barra, tocar num dia da faixa ou usar o teclado, e um controle pequeno fica no pé da tela quando você desce por uma parada longa. Funciona igual nos seis layouts, no Diário, Semanal e Mensal, para Músicas, Artistas e Álbuns. Funciona com Last.fm, Google Sheets e arquivos CSV."],

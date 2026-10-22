@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Charts fit the screen on tablets and small phones":
+    ["Las listas caben en la pantalla en tabletas y teléfonos pequeños",
+     "En pantallas de unos 600 a 980 píxeles de ancho, como una tableta o una ventana pequeña, toda la página podía moverse de lado porque la vista Tira y la cinta de certificaciones la estiraban. Ahora esas tiras se desplazan dentro de su propio recuadro y la página no se mueve. En los teléfonos más pequeños (unos 330 píxeles) los botones de la barra superior son un poco más estrechos para que quepa Iniciar sesión, los botones de página bajo las listas Anuales y De todos los tiempos ponen el número de página en su propia línea en vez de salirse del borde, y en Diario los botones de Comparar con y las tarjetas de partes del día ya no se salen de la pantalla en español y portugués. Funciona con Last.fm, Google Sheets y archivos CSV."],
+
   "Animate Chart replays your plays one by one, in every layout":
     ["Animar la lista repite tus escuchas una a una, en todos los diseños",
      "Animar la lista ahora empieza en la lista anterior y recorre tus escuchas una a una, quitando la más antigua o añadiendo la siguiente, hasta llegar a la lista que estás viendo. Las escuchas, los puestos, las flechas de subida y bajada y el top 3 de oro, plata y bronce cambian sobre la marcha, y cada entrada se desliza por encima de la que adelanta. Las portadas cargan antes de que nada se mueva. Puedes pausar, cambiar la velocidad (de ½× a 20×), ir una escucha o un día atrás o adelante (una hora en Diario), arrastrar la barra, pulsar un día en la franja o usar el teclado, y un pequeño control se queda abajo en la pantalla cuando bajas por una lista larga. Funciona igual en los seis diseños, en Diario, Semanal y Mensual, para Canciones, Artistas y Álbumes. Funciona con Last.fm, Google Sheets y archivos CSV."],

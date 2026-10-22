@@ -2003,10 +2003,31 @@ animation, 12 screen check.
     at the end unless you touched it.
   - A period still running is replayed up to now, so the slide still
     ends on its last play.
-- **Step 12: screen check**, including the two leftovers below.
-Leftovers to check in step 12: with every badge on, the pt-BR Yearly songs
-table on a phone was 5px too wide; and the 600–980px sideways scroll (phase
-5) is still open.
+- **Step 12: screen check — done 2026-10-22 (f6bc35c).** A script went
+  through every width (330, 360, 390, 430, 600, 700, 768, 900, 980, 1024,
+  1280) × Daily / Weekly / Monthly / Yearly / All-Time × Songs / Artists /
+  Albums × all six layouts, with every badge on, in English, and at phone
+  widths in es / pt-BR / pt-PT too. It flags any sideways scroll and anything
+  past the screen edge. It ended with 0 problems and no JS errors. Fixed:
+  - **The 600–980px sideways scroll** (open since phase 5). The cause wasn't
+    the top bar: `html { min-width: min-content }`, there from the very
+    first version, let a sideways-scrolling strip (Filmstrip, the
+    certification reel) stretch the whole page to the container's 980px cap.
+    Phones already had it off. It's gone, and the strips scroll inside their
+    own box.
+  - **330px page 345px wide:** the top bar's icon buttons are 30px (not 34)
+    at ≤350px, so Sign in fits.
+  - **Daily, es / pt at 360–390px:** "Compare with" wraps, so the long
+    "vs mesmo dia da semana passada" goes on its own line.
+  - **Daily part-of-day cards on small phones:** "7 reproducciones" and
+    "MADRUGADA" + "PICO" ran out of the half-width cards. The count is now
+    number + word (`.dy-part-cnt`, `.dy-part-w`), so phones shrink the word.
+    The head and count lines wrap inside the card. Desktop looks the same.
+  - **Yearly / All-Time page bar at 330px:** "|◄" and "◄ PREV" split in
+    two and ►| hung off the edge. At ≤420px the label + jump box take their
+    own line above the four buttons.
+  - The pt-BR Yearly table leftover (5px too wide) didn't show up any more.
+Phase 7 is finished.
 
 The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in
