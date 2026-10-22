@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Every button uses the site's font":
+    ["Todos os botões usam a letra do site",
+     "Alguns botões, como Fazer a visita e Pesquisar no Guia dos tops, o seletor de design de Partilhar como imagem, N/A na janela de avaliação e as etiquetas de origem das imagens, apareciam com a letra do sistema do teu dispositivo em vez da letra do site. Agora combinam com o texto à volta. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
+
   "Two more places to find missing pictures":
     ["Mais dois sítios para encontrar as imagens que faltam",
      "Quando nem o Deezer, nem o iTunes, nem o Last.fm têm imagem para uma música ou um álbum, o site procura agora também no Cover Art Archive, que é forte em lançamentos pequenos e antigos. Para um artista sem foto, procura na página dele na Wikipédia. Estas pesquisas só acontecem para os poucos itens que os três primeiros não têm, por isso tudo o resto carrega tão depressa como antes. O que continuar sem imagem mostra as iniciais, e podes sempre escolher uma com ✎. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
