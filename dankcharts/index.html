@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=584">
+  <link rel="stylesheet" href="style.css?v=585">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -2813,10 +2813,10 @@
         </div>
       </div>
       <div class="ig-modal-footer">
-        <button class="ig-modal-close" onclick="closeIgPreviewModal()" data-i18n="btn_cancel">Cancel</button>
-        <button class="ig-copy-btn" id="igCopyBtn" onclick="copyIgFromPreview()">📋 Copy</button>
-        <button class="ig-copy-btn ig-share-native-btn" id="igShareNativeBtn" onclick="shareIgNative()">📤 Share</button>
-        <button class="ig-download-btn" id="igDownloadBtn" onclick="downloadIgFromPreview()"
+        <button class="dc-btn dc-btn-plain" onclick="closeIgPreviewModal()" data-i18n="btn_cancel">Cancel</button>
+        <button class="dc-btn dc-btn-normal" id="igCopyBtn" onclick="copyIgFromPreview()">📋 Copy</button>
+        <button class="dc-btn dc-btn-normal ig-share-native-btn" id="igShareNativeBtn" onclick="shareIgNative()">📤 Share</button>
+        <button class="dc-btn dc-btn-main" id="igDownloadBtn" onclick="downloadIgFromPreview()"
           data-i18n="btn_download_image">↓ Download Image</button>
       </div>
     </div>
@@ -2983,10 +2983,10 @@
         </div>
       </div>
       <div class="ig-modal-footer">
-        <button class="ig-modal-close" onclick="closeCrIgModal()" data-i18n="btn_cancel">Cancel</button>
-        <button class="ig-copy-btn" id="crIgCopyBtn" onclick="copyCrIg()">📋 Copy</button>
-        <button class="ig-copy-btn ig-share-native-btn" id="crIgShareBtn" onclick="shareCrIgNative()">📤 Share</button>
-        <button class="ig-download-btn" id="crIgDownloadBtn" onclick="downloadCrIg()" data-i18n="btn_download_image">↓
+        <button class="dc-btn dc-btn-plain" onclick="closeCrIgModal()" data-i18n="btn_cancel">Cancel</button>
+        <button class="dc-btn dc-btn-normal" id="crIgCopyBtn" onclick="copyCrIg()">📋 Copy</button>
+        <button class="dc-btn dc-btn-normal ig-share-native-btn" id="crIgShareBtn" onclick="shareCrIgNative()">📤 Share</button>
+        <button class="dc-btn dc-btn-main" id="crIgDownloadBtn" onclick="downloadCrIg()" data-i18n="btn_download_image">↓
           Download Image</button>
       </div>
     </div>
@@ -3070,10 +3070,10 @@
         </div>
       </div>
       <div class="ig-modal-footer">
-        <button class="ig-modal-close" onclick="stCloseCard()" data-i18n="btn_cancel">Cancel</button>
-        <button class="ig-copy-btn" id="stCardCopyBtn" onclick="stCopyCard()">📋 Copy</button>
-        <button class="ig-copy-btn ig-share-native-btn" id="stCardShareBtn" onclick="stShareCard()">📤 Share</button>
-        <button class="ig-download-btn" id="stCardDownloadBtn" onclick="stDownloadCard()" data-i18n="btn_download_image">↓ Download Image</button>
+        <button class="dc-btn dc-btn-plain" onclick="stCloseCard()" data-i18n="btn_cancel">Cancel</button>
+        <button class="dc-btn dc-btn-normal" id="stCardCopyBtn" onclick="stCopyCard()">📋 Copy</button>
+        <button class="dc-btn dc-btn-normal ig-share-native-btn" id="stCardShareBtn" onclick="stShareCard()">📤 Share</button>
+        <button class="dc-btn dc-btn-main" id="stCardDownloadBtn" onclick="stDownloadCard()" data-i18n="btn_download_image">↓ Download Image</button>
       </div>
     </div>
   </div>
@@ -3372,10 +3372,10 @@
         </div>
       </div>
       <div class="ig-modal-footer">
-        <button class="ig-modal-close" onclick="rtCloseCard()" data-i18n="btn_cancel">Cancel</button>
-        <button class="ig-copy-btn" id="rtCardCopyBtn" onclick="rtCopyCard()">📋 Copy</button>
-        <button class="ig-copy-btn ig-share-native-btn" id="rtCardShareBtn" onclick="rtShareCard()">📤 Share</button>
-        <button class="ig-download-btn" id="rtCardDownloadBtn" onclick="rtDownloadCard()" data-i18n="btn_download_image">↓ Download Image</button>
+        <button class="dc-btn dc-btn-plain" onclick="rtCloseCard()" data-i18n="btn_cancel">Cancel</button>
+        <button class="dc-btn dc-btn-normal" id="rtCardCopyBtn" onclick="rtCopyCard()">📋 Copy</button>
+        <button class="dc-btn dc-btn-normal ig-share-native-btn" id="rtCardShareBtn" onclick="rtShareCard()">📤 Share</button>
+        <button class="dc-btn dc-btn-main" id="rtCardDownloadBtn" onclick="rtDownloadCard()" data-i18n="btn_download_image">↓ Download Image</button>
       </div>
     </div>
   </div>
@@ -3536,10 +3536,10 @@
         </div>
       </div>
       <div class="ig-modal-footer">
-        <button class="ig-modal-close" onclick="tpCloseCard()" data-i18n="btn_cancel">Cancel</button>
-        <button class="ig-copy-btn" id="tpCardCopyBtn" onclick="tpCopyCard()">📋 Copy</button>
-        <button class="ig-copy-btn ig-share-native-btn" id="tpCardShareBtn" onclick="tpShareCard()">📤 Share</button>
-        <button class="ig-download-btn" id="tpCardDownloadBtn" onclick="tpDownloadCard()" data-i18n="btn_download_image">↓ Download Image</button>
+        <button class="dc-btn dc-btn-plain" onclick="tpCloseCard()" data-i18n="btn_cancel">Cancel</button>
+        <button class="dc-btn dc-btn-normal" id="tpCardCopyBtn" onclick="tpCopyCard()">📋 Copy</button>
+        <button class="dc-btn dc-btn-normal ig-share-native-btn" id="tpCardShareBtn" onclick="tpShareCard()">📤 Share</button>
+        <button class="dc-btn dc-btn-main" id="tpCardDownloadBtn" onclick="tpDownloadCard()" data-i18n="btn_download_image">↓ Download Image</button>
       </div>
     </div>
   </div>
@@ -3643,11 +3643,11 @@
         </div>
       </div>
       <div class="ig-modal-footer">
-        <button class="ig-modal-close" onclick="raCloseCard()" data-i18n="btn_cancel">Cancel</button>
-        <button class="ig-copy-btn" id="raCardCopyBtn" onclick="raCopyCard()">📋 Copy</button>
-        <button class="ig-copy-btn ig-share-native-btn" id="raCardShareBtn" onclick="raShareCard()">📤 Share</button>
-        <button class="ig-copy-btn" id="raCardAllBtn" onclick="raDownloadAllPages()" style="display:none" data-i18n="ra_card_download_all">↓ All pages</button>
-        <button class="ig-download-btn" id="raCardDownloadBtn" onclick="raDownloadCard()" data-i18n="btn_download_image">↓ Download Image</button>
+        <button class="dc-btn dc-btn-plain" onclick="raCloseCard()" data-i18n="btn_cancel">Cancel</button>
+        <button class="dc-btn dc-btn-normal" id="raCardCopyBtn" onclick="raCopyCard()">📋 Copy</button>
+        <button class="dc-btn dc-btn-normal ig-share-native-btn" id="raCardShareBtn" onclick="raShareCard()">📤 Share</button>
+        <button class="dc-btn dc-btn-normal" id="raCardAllBtn" onclick="raDownloadAllPages()" style="display:none" data-i18n="ra_card_download_all">↓ All pages</button>
+        <button class="dc-btn dc-btn-main" id="raCardDownloadBtn" onclick="raDownloadCard()" data-i18n="btn_download_image">↓ Download Image</button>
       </div>
     </div>
   </div>
@@ -3853,7 +3853,7 @@
   <script defer src="replay.js?v=1"></script>
   <!-- All-Time chart stats ("Inside your Top N"); reads app.js globals, so it loads after it -->
   <script defer src="insights.js?v=9"></script>
-  <script defer src="daily.js?v=35"></script>
+  <script defer src="daily.js?v=36"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at
@@ -5134,10 +5134,10 @@ function deleteGenreTriggers() {
         </div>
       </div>
       <div class="ig-modal-footer">
-        <button class="ig-modal-close" onclick="skCloseCard()" data-i18n="btn_cancel">Cancel</button>
-        <button class="ig-copy-btn" id="skCardCopyBtn" onclick="skCopyCard()">📋 Copy</button>
-        <button class="ig-copy-btn ig-share-native-btn" id="skCardShareBtn" onclick="skShareCard()">📤 Share</button>
-        <button class="ig-download-btn" id="skCardDownloadBtn" onclick="skDownloadCard()" data-i18n="btn_download_image">↓ Download Image</button>
+        <button class="dc-btn dc-btn-plain" onclick="skCloseCard()" data-i18n="btn_cancel">Cancel</button>
+        <button class="dc-btn dc-btn-normal" id="skCardCopyBtn" onclick="skCopyCard()">📋 Copy</button>
+        <button class="dc-btn dc-btn-normal ig-share-native-btn" id="skCardShareBtn" onclick="skShareCard()">📤 Share</button>
+        <button class="dc-btn dc-btn-main" id="skCardDownloadBtn" onclick="skDownloadCard()" data-i18n="btn_download_image">↓ Download Image</button>
       </div>
     </div>
   </div>

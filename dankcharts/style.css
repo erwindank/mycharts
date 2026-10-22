@@ -507,6 +507,67 @@
       box-shadow: var(--focus-ring);
     }
 
+    /* ═══════════════════════════════════════════════════════════════
+       SHARED BUTTON — phase 8 step 2
+       One button for the whole site outside the charts. Pick one kind:
+         .dc-btn-main    the one thing to do here (Download, Save…)
+         .dc-btn-normal  everything else
+         .dc-btn-plain   Cancel, undo and small actions
+       Extras: .dc-btn-sm (26px instead of 32px), .dc-btn-icon (square,
+       icon only), .dc-btn-danger (red text for Delete / Disconnect).
+       Corners are only slightly rounded (--r-sm) — no pill buttons, on
+       the user's call. Feature classes stay on the element only for JS
+       hooks or layout, never for the button's look.
+       ═══════════════════════════════════════════════════════════════ */
+    .dc-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      height: 32px;
+      padding: 0 14px;
+      font-family: var(--font-sans);
+      font-size: var(--fs-sm);
+      font-weight: 500;
+      line-height: 1;
+      white-space: nowrap;
+      text-decoration: none;
+      border: 1px solid transparent;
+      border-radius: var(--r-sm);
+      cursor: pointer;
+      transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease),
+        color var(--t-fast) var(--ease), filter var(--t-fast) var(--ease);
+    }
+    .dc-btn-main {
+      background: var(--accent);
+      color: var(--on-accent);
+      font-weight: 700;
+    }
+    .dc-btn-main:hover:not(:disabled) { filter: brightness(1.12); }
+    .dc-btn-normal {
+      background: var(--bg3);
+      color: var(--text);
+      border-color: var(--border);
+    }
+    .dc-btn-normal:hover:not(:disabled) { background: var(--surface); border-color: var(--border2); }
+    .dc-btn-plain {
+      background: transparent;
+      color: var(--text2);
+    }
+    .dc-btn-plain:hover:not(:disabled) { background: var(--bg3); color: var(--text); }
+    /* Red text so a destructive action is never hit by mistake */
+    .dc-btn-danger,
+    .dc-btn-danger:hover:not(:disabled) { color: var(--rose); }
+    .dc-btn-sm {
+      height: 26px;
+      padding: 0 10px;
+      gap: 4px;
+      font-size: var(--fs-xs);
+    }
+    .dc-btn-icon { width: 32px; padding: 0; }
+    .dc-btn-icon.dc-btn-sm { width: 26px; }
+    .dc-btn:disabled { opacity: 0.45; cursor: default; }
+
     .theme-btn {
       width: 12px;
       height: 12px;
@@ -7626,62 +7687,23 @@
       flex-shrink: 0;
     }
 
-    .ig-download-btn {
-      background: var(--accent);
-      color: var(--on-accent);
-      border: none;
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      padding: var(--sp-2) 1.2rem;
-      border-radius: var(--r-xs);
-      cursor: pointer;
-      font-weight: 700;
-      transition: filter 0.12s;
+    /* Phones: four buttons don't fit on one line. Download (the main one)
+       gets its own full-width row on top, the rest share the row below. */
+    @media (max-width: 600px) {
+      .ig-modal-footer { flex-wrap: wrap; }
+      .ig-modal-footer > .dc-btn { flex: 1 1 0; }
+      .ig-modal-footer > .dc-btn-main { order: -1; flex-basis: 100%; }
     }
 
-    .ig-download-btn:hover {
-      filter: brightness(1.15);
-    }
-
-    .ig-download-btn:disabled {
-      opacity: 0.5;
-      cursor: default;
-    }
-
-    body.yellow .ig-download-btn {
-      color: #1a1600;
-    }
-
-    .ig-copy-btn {
-      background: transparent;
-      color: var(--accent);
-      border: 1px solid var(--accent);
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      padding: var(--sp-2) var(--sp-4);
-      border-radius: var(--r-xs);
-      cursor: pointer;
-      font-weight: 700;
-      transition: background 0.12s, color 0.12s;
-    }
-
-    .ig-copy-btn:hover {
-      background: color-mix(in srgb, var(--accent) 15%, transparent);
-    }
-
-    .ig-copy-btn:disabled {
-      opacity: 0.5;
-      cursor: default;
-    }
-
-    .ig-share-native-btn {
+    /* Share (the phone's share sheet) only shows on phones. Two classes so
+       it beats .dc-btn's display wherever the rules sit. */
+    .dc-btn.ig-share-native-btn {
       display: none;
     }
 
     @media (max-width: 768px) {
-      .ig-share-native-btn {
+      .dc-btn.ig-share-native-btn {
         display: inline-flex;
-        align-items: center;
       }
     }
 
