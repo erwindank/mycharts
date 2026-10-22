@@ -23071,10 +23071,53 @@ async function shCapture(nodeId, fmt, quality) {
   const d = shDims(fmt);
   try { await document.fonts.ready; } catch (e) {}
   const node = document.getElementById(nodeId);
+  const scale = Math.max(1, Math.min(2, quality || 2));
+  // html2canvas ignores object-fit, so a non-square picture (YouTube thumbnails
+  // are 16:9, some iTunes/Last.fm art isn't square) got squashed into its square
+  // box like an accordion while the live preview looked fine. Wait for every
+  // picture to decode so its natural size is known; onclone then swaps each
+  // object-fit:cover <img> for a canvas cropped the way the preview shows it.
+  const srcImgs = [...node.querySelectorAll('img')];
+  await Promise.all(srcImgs.map(i => (i.decode ? i.decode() : Promise.resolve()).catch(() => {})));
   return html2canvas(node, {
-    scale: Math.max(1, Math.min(2, quality || 2)),
+    scale,
     useCORS: true, allowTaint: false, backgroundColor: null, logging: false,
     width: d.w, height: d.h, windowWidth: d.w, windowHeight: d.h,
+    onclone: (doc) => {
+      const clonedNode = doc.getElementById(nodeId);
+      if (!clonedNode) return;
+      const clonedImgs = [...clonedNode.querySelectorAll('img')];
+      srcImgs.forEach((src, idx) => {
+        const dst = clonedImgs[idx];
+        if (!dst || !src.naturalWidth || !src.naturalHeight) return;
+        const cs = getComputedStyle(src);
+        if (cs.objectFit !== 'cover') return;
+        const w = src.offsetWidth, h = src.offsetHeight; // layout size, ignores preview transforms
+        if (!w || !h) return;
+        const nw = src.naturalWidth, nh = src.naturalHeight;
+        if (Math.abs(nw / nh - w / h) < 0.01) return; // already the right shape
+        // Cover crop: biggest centred slice of the source with the box's shape,
+        // honouring object-position (e.g. "center 26%" for faces)
+        const k = Math.max(w / nw, h / nh);
+        const sw = w / k, sh = h / k;
+        const pos = (cs.objectPosition || '50% 50%').split(/\s+/);
+        const frac = (v) => (v && v.endsWith('%')) ? parseFloat(v) / 100 : 0.5;
+        const sx = (nw - sw) * frac(pos[0]), sy = (nh - sh) * frac(pos[1]);
+        try {
+          const c = doc.createElement('canvas');
+          c.width = Math.round(w * scale); c.height = Math.round(h * scale);
+          const g = c.getContext('2d');
+          g.imageSmoothingQuality = 'high';
+          g.drawImage(src, sx, sy, sw, sh, 0, 0, c.width, c.height);
+          // Keep the img's own sizing/positioning so the layout doesn't shift
+          c.style.cssText = dst.style.cssText;
+          c.className = dst.className;
+          c.style.width = w + 'px'; c.style.height = h + 'px';
+          c.style.objectFit = '';
+          dst.replaceWith(c);
+        } catch (e) { /* tainted or broken image — leave the original img */ }
+      });
+    },
     // Artwork is already inlined as data URLs; the timeout only stops one stuck
     // image from hanging the export forever (0 = wait indefinitely).
     imageTimeout: 15000, scrollX: 0, scrollY: 0,

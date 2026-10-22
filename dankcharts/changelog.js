@@ -80,6 +80,10 @@ const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
 
+  { d: '2026-10-21', t: 'fix', a: 'share',
+    title: "Shared images no longer squash non-square pictures",
+    detail: "When a picture wasn't square, such as a YouTube thumbnail or some iTunes and Last.fm covers, the saved or shared image squeezed it into its box like an accordion, even though the preview looked right. Now each picture is cropped the same way the preview shows it, at full sharpness. Fixed on every Share button: charts, records, streaks, stats, ratings, awards and the Daily calendar card. Works with Last.fm, Google Sheets and CSV uploads." },
+
   { d: '2026-10-21', t: 'fix', a: 'charts',
     title: "The stats bars: your usual as the line, the record at the time",
     detail: "On Daily, Weekly, Monthly and Yearly, the line across the small bars on all four stats tiles now marks your usual day, week, month or year again (the middle of your recent ones: the last 90 days, 26 weeks, 12 months or 3 years you listened in, so it follows how you listen now, not years ago; the headline's \"more than usual\" uses the same number), so it moves instead of always sitting at the end. Under the bars you see both: your usual and the record as it stood for that period, the best one up to and including it. Looking back at an older week shows the record it was up against back then, not today's. The bars start folded away to keep the tiles compact: tap the small arrow at the bottom of any tile to open them on all four, and tap it again to fold them. Each bar now has its number at the end, so you can read this period and the last one without hovering (which phones can't do). The new songs, new artists and new albums counts at the bottom of the tiles get the same bars, usual and record too. Daily now works out the usual for songs, artists and albums too, not just plays. Works with Last.fm, Google Sheets and CSV uploads." },
