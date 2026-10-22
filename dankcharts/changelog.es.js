@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Animate Chart replays your plays one by one, in every layout":
+    ["Animar la lista repite tus escuchas una a una, en todos los diseños",
+     "Animar la lista ahora empieza en la lista anterior y recorre tus escuchas una a una, quitando la más antigua o añadiendo la siguiente, hasta llegar a la lista que estás viendo. Las escuchas, los puestos, las flechas de subida y bajada y el top 3 de oro, plata y bronce cambian sobre la marcha, y cada entrada se desliza por encima de la que adelanta. Las portadas cargan antes de que nada se mueva. Puedes pausar, cambiar la velocidad (de ½× a 20×), ir una escucha o un día atrás o adelante (una hora en Diario), arrastrar la barra, pulsar un día en la franja o usar el teclado, y un pequeño control se queda abajo en la pantalla cuando bajas por una lista larga. Funciona igual en los seis diseños, en Diario, Semanal y Mensual, para Canciones, Artistas y Álbumes. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Videos in the player and awards no longer depend on YouTube search alone":
     ["Los vídeos del reproductor y de los premios ya no dependen solo de la búsqueda de YouTube",
      "YouTube solo permite a todo el sitio unas 100 búsquedas de canciones al día. Antes de usar una, el reproductor ahora busca la canción en Wikidata y MusicBrainz, dos bases de datos musicales gratuitas que guardan el vídeo oficial de YouTube de muchas canciones, y reproduce ese. Funciona en el reproductor ▶, en las vistas previas de vídeo de los premios y en el buscador del reproductor, donde estos resultados aparecen primero con un enlace \"¿No está aquí? Buscar en YouTube\" debajo. Como no gasta el límite diario, también funciona sin iniciar sesión. Funciona con Last.fm, Google Sheets y archivos CSV."],

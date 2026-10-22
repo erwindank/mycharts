@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Animate Chart replays your plays one by one, in every layout":
+    ["Animar o top repete os teus plays um a um, em todos os layouts",
+     "Animar o top agora começa no top anterior e passa pelos teus plays um a um, tirando o mais antigo ou juntando o seguinte, até chegar ao top que estás a ver. Os plays, as posições, as setas de subida e descida e o top 3 de ouro, prata e bronze mudam pelo caminho, e cada entrada desliza por cima da que ultrapassa. As capas carregam antes de alguma coisa se mexer. Podes pausar, mudar a velocidade (de ½× a 20×), recuar ou avançar um play ou um dia (uma hora no Diário), arrastar a barra, carregar num dia da faixa ou usar o teclado, e um pequeno controlo fica no fundo do ecrã quando desces por um top longo. Funciona igual nos seis layouts, no Diário, Semanal e Mensal, para Músicas, Artistas e Álbuns. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
   "Videos in the player and awards no longer depend on YouTube search alone":
     ["Os vídeos do leitor e dos prémios já não dependem só da pesquisa do YouTube",
      "O YouTube só permite ao site inteiro cerca de 100 pesquisas de músicas por dia. Antes de usar uma, o leitor procura agora a música no Wikidata e no MusicBrainz, duas bases de dados musicais gratuitas que guardam o vídeo oficial do YouTube de muitas músicas, e reproduz esse. Funciona no leitor ▶, nas pré-visualizações de vídeo dos prémios e na pesquisa do leitor, onde estes resultados aparecem primeiro com uma ligação \"Não está aqui? Pesquisar no YouTube\" por baixo. Como não gasta o limite diário, funciona também sem iniciar sessão. Funciona com Last.fm, Google Sheets e ficheiros CSV."],

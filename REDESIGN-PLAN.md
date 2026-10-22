@@ -1981,7 +1981,28 @@ animation, 12 screen check.
   from #11, "Show all 100" after 50) and decided against it. Long charts
   keep every row at full size.
 - **Step 10: finish it** (list above). **Done 2026-10-20.**
-- **Step 11: one rank-change animation** for every layout.
+- **Step 11: one rank-change animation** for every layout. **Built
+  2026-10-22 (d526475), on the branch for review.** After three mockups
+  (https://claude.ai/artifact/Sq2T66EEY2FgJzMbatyKHW) you chose a replay
+  that goes through the play records one at a time: each step drops one of
+  last period's plays or adds one of this period's, in the order they
+  happened, until it lands on the chart on screen. It replaces the
+  Table-only animation, which moved rows before their covers loaded and
+  whose counts jumped in big frames. New file `replay.js`:
+  - Covers for every entry that will show load before anything moves.
+  - Counts, ranks, arrows and the #1–#3 tints change together; a row
+    glides past the row it overtakes; leavers fade out, new ones rise in.
+  - Controls: play / pause, speeds ½×–20×, ±1 play, ±1 day (±1 hour on
+    Daily), start / end, a slider over every play, a strip of days to
+    click, a log of the last three plays in or out, and the keyboard.
+  - A small floating back / play / forward control once the bar scrolls
+    away. (A sticky bar can't work there: the chart section clips its
+    contents, which pushed the bar down over the rows.)
+  - All six layouts, Daily / Weekly / Monthly, Songs / Artists / Albums.
+    "Animate charts on load" opens it by itself and hands the chart back
+    at the end unless you touched it.
+  - A period still running is replayed up to now, so the slide still
+    ends on its last play.
 - **Step 12: screen check**, including the two leftovers below.
 Leftovers to check in step 12: with every badge on, the pt-BR Yearly songs
 table on a phone was 5px too wide; and the 600–980px sideways scroll (phase

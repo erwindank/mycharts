@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 243;
+const DC_CL_I18N_V = 244;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-22', t: 'feature', a: 'charts', h: 'd526475',
+    title: "Animate Chart replays your plays one by one, in every layout",
+    detail: "Animate Chart now starts on the previous chart and goes through your plays one at a time, dropping the oldest one or adding the next, until it reaches the chart you're looking at. Play counts, ranks, the up and down arrows and the gold, silver and bronze top 3 all change as it goes, and an entry slides past the one it overtakes. Covers load before anything moves. You can pause, change the speed (½× to 20×), step one play or one day back or forward (one hour on Daily), drag the slider, click a day on the strip, or use the keyboard, and a small control stays at the bottom of the screen when you scroll down a long chart. It works the same in all six layouts, on Daily, Weekly and Monthly, for Songs, Artists and Albums. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-22', t: 'feature', a: 'player', h: '39dccca',
     title: "Videos in the player and awards no longer depend on YouTube search alone",
     detail: "YouTube only allows the whole site about 100 song searches a day. Before using one, the player now looks the song up in Wikidata and MusicBrainz, two free music databases that store the official YouTube video for many songs, and plays that. It works for the ▶ player, the awards video previews and the player's search box, where these matches are listed first with a \"Not here? Search YouTube\" link under them. Because it doesn't use the daily limit, it works when you're signed out too. Works with Last.fm, Google Sheets and CSV uploads." },
