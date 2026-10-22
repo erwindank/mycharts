@@ -20,6 +20,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
     ["Os vídeos do player e das premiações não dependem mais só da busca do YouTube",
      "O YouTube só permite ao site inteiro cerca de 100 buscas de músicas por dia. Antes de usar uma, o player agora procura a música no Wikidata e no MusicBrainz, dois bancos de dados musicais gratuitos que guardam o vídeo oficial do YouTube de muitas músicas, e toca esse. Funciona no player ▶, nas prévias de vídeo das premiações e na busca do player, onde esses resultados aparecem primeiro com um link \"Não está aqui? Buscar no YouTube\" embaixo. Como não gasta o limite diário, funciona também sem fazer login. Funciona com Last.fm, Google Sheets e arquivos CSV."],
 
+  "The welcome window shows how charts work and lets you jump straight in":
+    ["A janela de boas-vindas mostra como as paradas funcionam e leva você direto ao que interessa",
+     "A janela que aparece na sua primeira visita agora começa com uma pequena parada de exemplo que se mexe a cada poucos segundos, para você ver músicas subirem, caírem e estrearem antes de começar. Embaixo, seis atalhos abrem Semanal, Recordes, Prêmios, Sua trilha sonora, Gráficos ou De todos os tempos na hora, e o tour fica a um clique. Se você está testando a demo ao vivo, a janela avisa, explica que nada é salvo e tem um botão para trocar para as suas próprias músicas. Funciona com Last.fm, Google Sheets e arquivos CSV."],
+
   "Up, down and new tags are easy to read on the Grid picture":
     ["As etiquetas de subida, queda e novidade ficam fáceis de ler na imagem de Grade",
      "Numa imagem de Grade compartilhada, as etiquetas de movimento ficavam sobre uma pílula quase transparente e sumiam em capas carregadas. Agora ficam sobre uma pílula sólida, um pouco maior, e dão para ler em qualquer capa. Funciona com Last.fm, Google Sheets e arquivos CSV."],

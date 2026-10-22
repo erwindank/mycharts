@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 245;
+const DC_CL_I18N_V = 246;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-22', t: 'design', a: 'guide', h: 'b249867',
+    title: "The welcome window shows how charts work and lets you jump straight in",
+    detail: "The window you see on your first visit now opens with a small example chart that moves every few seconds, so you can see songs climb, fall and debut before you start. Under it, six shortcuts open Weekly, Records, Awards, Your Soundtrack, Graphs or All-Time straight away, and the tour is one click away. If you're trying the live demo, the window says so, explains that nothing is saved, and has a button to switch to your own listening. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-22', t: 'fix', a: 'share', h: 'd93bf92',
     title: "Up, down and new tags are easy to read on the Grid picture",
     detail: "On a shared Grid picture the movement tags sat on a faint see-through pill, so they disappeared on busy cover art. They now sit on a solid pill, a little bigger, and stay readable on any cover. Works with Last.fm, Google Sheets and CSV uploads." },

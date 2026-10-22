@@ -20,6 +20,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
     ["Os vídeos do leitor e dos prémios já não dependem só da pesquisa do YouTube",
      "O YouTube só permite ao site inteiro cerca de 100 pesquisas de músicas por dia. Antes de usar uma, o leitor procura agora a música no Wikidata e no MusicBrainz, duas bases de dados musicais gratuitas que guardam o vídeo oficial do YouTube de muitas músicas, e reproduz esse. Funciona no leitor ▶, nas pré-visualizações de vídeo dos prémios e na pesquisa do leitor, onde estes resultados aparecem primeiro com uma ligação \"Não está aqui? Pesquisar no YouTube\" por baixo. Como não gasta o limite diário, funciona também sem iniciar sessão. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
 
+  "The welcome window shows how charts work and lets you jump straight in":
+    ["A janela de boas-vindas mostra como funcionam as tabelas e leva-te diretamente ao que interessa",
+     "A janela que vês na primeira visita começa agora com uma pequena tabela de exemplo que se mexe a cada poucos segundos, para veres músicas subir, descer e estrear antes de começares. Por baixo, seis atalhos abrem Semanal, Recordes, Prémios, A tua banda sonora, Gráficos ou De sempre de imediato, e a visita guiada fica a um clique. Se estás a experimentar a demo ao vivo, a janela diz isso, explica que nada é guardado e tem um botão para passares para a tua própria música. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
+
   "Up, down and new tags are easy to read on the Grid picture":
     ["As etiquetas de subida, descida e novidade leem-se bem na imagem de Grelha",
      "Numa imagem de Grelha partilhada, as etiquetas de movimento estavam sobre uma pastilha quase transparente e desapareciam em capas carregadas. Agora estão sobre uma pastilha sólida, um pouco maior, e leem-se em qualquer capa. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
