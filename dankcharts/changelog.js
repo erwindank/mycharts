@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 256;
+const DC_CL_I18N_V = 257;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-22', t: 'design', a: 'ui', h: '2902bd8',
+    title: "Every \"pick one\" switch looks the same",
+    detail: "Switches where you pick one option, like Reel / Tiles / Table / List on Events, Month / Week / Day, the Stats graph periods, the chart race speed and Top N, the ratings sort, the Streaks types and the options in every Share as image window, now all use the same tray as the Songs / Artists / Albums switch, with the chosen option lit in the theme colour. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-22', t: 'fix', a: 'rawdata', h: '8d05fda',
     title: "Raw Data no longer opens with another page underneath",
     detail: "Opening Raw Data after Stats, Events or Awards left that page on screen under your play history, and Stats and Records could still show Awards below them. Each tab now shows only its own page. Works with Last.fm, Google Sheets and CSV uploads." },

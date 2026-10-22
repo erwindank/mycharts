@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Every \"pick one\" switch looks the same":
+    ["Todos os seletores de \"escolha um\" têm a mesma aparência",
+     "Os seletores em que você escolhe uma opção, como Carrossel / Blocos / Tabela / Lista em Eventos, Mês / Semana / Dia, os períodos dos gráficos de Estatísticas, a velocidade e o Top N da corrida das paradas, a ordem das avaliações, os tipos de sequência e as opções de cada janela de Compartilhar como imagem, agora usam a mesma bandeja do seletor Músicas / Artistas / Álbuns, com a opção escolhida destacada na cor do tema. Funciona com Last.fm, Google Sheets e arquivos CSV."],
+
   "Raw Data no longer opens with another page underneath":
     ["Dados brutos não abre mais com outra página embaixo",
      "Abrir Dados brutos depois de Estatísticas, Eventos ou Prêmios deixava essa página na tela embaixo do seu histórico, e Estatísticas e Recordes ainda podiam mostrar Prêmios embaixo. Agora cada aba mostra só a própria página. Funciona com Last.fm, Google Sheets e arquivos CSV."],
