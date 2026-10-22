@@ -2225,6 +2225,11 @@ Steps:
    section titles, and its numbers turn white (3.2).
 2. **Sub-tab menu.** Mockup first. A left side menu on desktop, a
    dropdown on phones, in place of the two-row dial. Search stays on top.
+   **Done 2026-10-22** (option A, you picked it): from 1024px a sticky
+   menu on the left in two groups (Chart records / Play records) with a
+   count of record lists per item; from 1260px the Records page grows
+   120px each side so the tables keep their width. Under 1024px one
+   "Section" dropdown. The icon motion on the active item is kept.
 3. **Overview cards.** Mockup first. One card per record type with a
    small Week / Month / Year switch on the card (26 → about 9). The hero
    reel stops being cut off at both edges.

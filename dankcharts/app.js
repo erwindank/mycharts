@@ -11511,6 +11511,7 @@ function runRecordsSearch(q) {
   document.querySelectorAll('#recordsNav .records-nav-btn').forEach(function (b) {
     b.classList.remove('active');
   });
+  recNavUpdatePicker();
   const sizeBar = document.getElementById('recordsSizeBar');
   if (sizeBar) sizeBar.style.display = 'none';
 
@@ -11620,7 +11621,29 @@ function initRecordsViewUI() {
     recSearchReset();
     localStorage.setItem('dc_records_active_view', view);
     applyRecordsViewFilter(view);
+    // On a phone the menu is a dropdown: picking closes it.
+    recNavSetOpen(false);
   });
+
+  // Phone dropdown: the picker opens and closes the menu; a tap outside it
+  // or Escape closes it again.
+  const picker = document.getElementById('recPicker');
+  if (picker) {
+    picker.addEventListener('click', function () {
+      recNavSetOpen(picker.getAttribute('aria-expanded') !== 'true');
+    });
+    document.addEventListener('click', function (e) {
+      if (picker.getAttribute('aria-expanded') !== 'true') return;
+      if (e.target.closest('#recPicker, #recordsNav')) return;
+      recNavSetOpen(false);
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && picker.getAttribute('aria-expanded') === 'true') {
+        recNavSetOpen(false);
+        picker.focus();
+      }
+    });
+  }
 
   // Add event listeners for records size buttons
   const recordsSizeBar = document.getElementById('recordsSizeBar');
@@ -11674,6 +11697,67 @@ const REC_SECTION_IDS = [
 ];
 const REC_DEFAULT_VIEW = 'recOverviewSection';
 
+/* ── Sub-tab menu helpers ─────────────────────────────────────────────
+   The phone dropdown (#recPicker) shows the active item's icon and name.
+   During a search no item is active, so it says "Search results" instead. */
+function recNavUpdatePicker() {
+  const picker = document.getElementById('recPicker');
+  if (!picker) return;
+  const active = document.querySelector('#recordsNav .records-nav-btn.active');
+  const name = document.getElementById('recPickerName');
+  const use = picker.querySelector('use');
+  if (active) {
+    if (name) name.textContent = active.querySelector('span').textContent;
+    if (use) use.setAttribute('href', active.querySelector('use').getAttribute('href'));
+    // The icon keeps its family colour (set per item in style.css).
+    picker.style.setProperty('--ico', getComputedStyle(active).getPropertyValue('--ico'));
+  } else {
+    if (name) name.textContent = t('rec_picker_search');
+    if (use) use.setAttribute('href', '#ri-overview');
+    picker.style.removeProperty('--ico');
+  }
+}
+
+function recNavSetOpen(open) {
+  const layout = document.getElementById('recLayout');
+  const picker = document.getElementById('recPicker');
+  if (!layout || !picker) return;
+  layout.classList.toggle('rec-nav-open', open);
+  picker.setAttribute('aria-expanded', open ? 'true' : 'false');
+  // If the list runs past the bottom of the screen (or under the phone's
+  // bottom tab bar), scroll just enough to bring all of it into view.
+  if (open) {
+    const nav = document.getElementById('recordsNav');
+    const bar = document.getElementById('bottomTabs');
+    // offsetParent is always null for a position:fixed bar, so ask for its box
+    const barH = bar && bar.getClientRects().length ? bar.getBoundingClientRect().height : 0;
+    const over = nav.getBoundingClientRect().bottom - (window.innerHeight - barH - 12);
+    if (over > 0) window.scrollBy({ top: over, behavior: 'smooth' });
+  }
+}
+
+/* How many record lists each sub-tab holds: its tables, plus the plaque wall
+   on Certifications. Read off the built page, so the number always matches
+   what is there. Overview is the index and gets no number. */
+function recNavUpdateCounts() {
+  document.querySelectorAll('#recordsNav .records-nav-btn').forEach(function (b) {
+    const id = b.dataset.recView;
+    if (id === 'recOverviewSection') return;
+    const sec = document.getElementById(id);
+    if (!sec) return;
+    let n = sec.querySelectorAll('table').length;
+    if (id === 'recCertsSection' && sec.querySelector('.cert-card')) n++;
+    let el = b.querySelector('.rec-nav-n');
+    if (!el) {
+      el = document.createElement('span');
+      el.className = 'rec-nav-n';
+      el.setAttribute('aria-hidden', 'true');
+      b.appendChild(el);
+    }
+    el.textContent = n ? String(n) : '';
+  });
+}
+
 function applyRecordsViewFilter(view) {
   // The old "All" pill rendered all ten sections at once — ~55 tables and
   // several hundred image lookups in one scroll. It's gone, so migrate any
@@ -11697,16 +11781,8 @@ function applyRecordsViewFilter(view) {
   document.querySelectorAll('#recordsNav .records-nav-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.recView === view);
   });
-  /* The nav is one non-wrapping scrolling strip, so on a narrow screen the
-     active pill can sit outside the visible span — most obviously on load,
-     where a stored view like Streaks restores with its pill off to the right
-     and the dial appears to be showing Overview. Pull it into view. Only the
-     strip scrolls, never the page: `block: 'nearest'` leaves the vertical
-     axis alone, which matters because callers here also scroll the page. */
-  const activePill = document.querySelector('#recordsNav .records-nav-btn.active');
-  if (activePill && activePill.scrollIntoView) {
-    activePill.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'auto' });
-  }
+  recNavUpdatePicker();
+  recNavUpdateCounts();
   // The entries-per-table control has nothing to act on from the overview.
   const sizeBar = document.getElementById('recordsSizeBar');
   if (sizeBar) sizeBar.style.display = view === 'recOverviewSection' ? 'none' : '';

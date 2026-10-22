@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=599">
+  <link rel="stylesheet" href="style.css?v=600">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -1740,67 +1740,74 @@
       <div class="rec-search-status" id="recordsSearchStatus" role="status" aria-live="polite" style="display:none">
       </div>
 
-      <!-- The pill row as a tuner dial. Eleven equal pills wrapping onto a
-           ragged second row gave the eye nothing to hold on to, so the strip
-           now scrolls on one line instead of wrapping and carries a tick
-           pattern behind the pills — the active section reads as the lit
-           segment on a dial rather than as one more button among eleven.
+      <!-- Sub-tab menu. On desktop a menu down the left side of the page,
+           sticky while you scroll; under 1024px it folds into one dropdown
+           (#recPicker) that names the section you are on. The sub-tabs sit in
+           two groups: records from your charts, and records from play counts.
+           The small number on each item is how many record lists it holds,
+           filled in by recNavUpdateCounts().
            data-i18n replaces textContent, which would eat a sibling <svg>,
            so every label is wrapped in its own <span>. -->
-      <div class="records-nav" id="recordsNav">
-        <button class="records-nav-btn active" data-rec-view="recOverviewSection">
+      <div class="rec-layout" id="recLayout">
+        <button type="button" class="rec-picker" id="recPicker" aria-expanded="false" aria-controls="recordsNav">
           <svg class="rec-nav-ico" aria-hidden="true" focusable="false"><use href="#ri-overview" /></svg>
-          <span data-i18n="rec_nav_overview">Overview</span>
+          <span class="rec-picker-text">
+            <span class="rec-picker-label" data-i18n="rec_picker_label">Section</span>
+            <span class="rec-picker-name" id="recPickerName">Overview</span>
+          </span>
+          <span class="rec-picker-chev" aria-hidden="true">▾</span>
         </button>
-        <button class="records-nav-btn" data-rec-view="recAllOnesSection">
-          <svg class="rec-nav-ico" aria-hidden="true" focusable="false"><use href="#ri-ones" /></svg>
-          <span data-i18n="rec_nav_all_ones">All #1s</span>
-        </button>
-        <button class="records-nav-btn" data-rec-view="recPAKSection">
-          <svg class="rec-nav-ico" aria-hidden="true" focusable="false"><use href="#ri-pak" /></svg>
-          <span data-i18n="rec_nav_pak">Perfect All Kill</span>
-        </button>
-        <button class="records-nav-btn" data-rec-view="recAppearancesSection">
-          <svg class="rec-nav-ico" aria-hidden="true" focusable="false"><use href="#ri-appearances" /></svg>
-          <span data-i18n="rec_nav_appearances">Appearances</span>
-        </button>
-        <button class="records-nav-btn" data-rec-view="recDebutsSection">
-          <svg class="rec-nav-ico" aria-hidden="true" focusable="false"><use href="#ri-debuts" /></svg>
-          <span data-i18n="rec_nav_debuts">Debuts</span>
-        </button>
-        <button class="records-nav-btn" data-rec-view="recPeakPlaysSection">
-          <svg class="rec-nav-ico" aria-hidden="true" focusable="false"><use href="#ri-plays" /></svg>
-          <span data-i18n="rec_nav_peak_plays">Most Plays</span>
-        </button>
-        <!-- Forced row break. Left to wrap on its own the dial split 8/3,
-             which read as an accident; six and five, both rows centred, reads
-             as a made choice. A zero-height flex item is the only way to put
-             the break where we want it — CSS cannot force a wrap at the nth
-             child. Display:none in the narrow scroller, where flex-basis:100%
-             would open a full-width hole in the middle of the row. -->
-        <span class="rec-nav-break" aria-hidden="true"></span>
-        <button class="records-nav-btn" data-rec-view="recMilestonesSection">
-          <svg class="rec-nav-ico" aria-hidden="true" focusable="false"><use href="#ri-milestones" /></svg>
-          <span data-i18n="rec_nav_milestones">Milestones</span>
-        </button>
-        <button class="records-nav-btn" data-rec-view="recFastestSection">
-          <svg class="rec-nav-ico" aria-hidden="true" focusable="false"><use href="#ri-fastest" /></svg>
-          <span data-i18n="rec_nav_fastest">Fastest</span>
-        </button>
-        <button class="records-nav-btn" data-rec-view="recCertsSection">
-          <svg class="rec-nav-ico" aria-hidden="true" focusable="false"><use href="#ri-certs" /></svg>
-          <span data-i18n="rec_nav_certs">Certifications</span>
-        </button>
-        <button class="records-nav-btn" data-rec-view="recStreaksSection">
-          <svg class="rec-nav-ico" aria-hidden="true" focusable="false"><use href="#ri-streaks" /></svg>
-          <span data-i18n="rec_nav_streaks">Streaks</span>
-        </button>
-        <button class="records-nav-btn" data-rec-view="recNewChartsSection">
-          <svg class="rec-nav-ico" aria-hidden="true" focusable="false"><use href="#ri-newcharts" /></svg>
-          <span>New Charts</span>
-        </button>
-      </div>
+        <nav class="records-nav" id="recordsNav" aria-label="Records sections" data-i18n-aria="rec_nav_aria">
+          <button type="button" class="records-nav-btn active" data-rec-view="recOverviewSection">
+            <svg class="rec-nav-ico" aria-hidden="true" focusable="false"><use href="#ri-overview" /></svg>
+            <span data-i18n="rec_nav_overview">Overview</span>
+          </button>
+          <div class="rec-nav-grp" data-i18n="rec_grp_chart">Chart records</div>
+          <button type="button" class="records-nav-btn" data-rec-view="recAllOnesSection">
+            <svg class="rec-nav-ico" aria-hidden="true" focusable="false"><use href="#ri-ones" /></svg>
+            <span data-i18n="rec_nav_all_ones">All #1s</span>
+          </button>
+          <button type="button" class="records-nav-btn" data-rec-view="recPAKSection">
+            <svg class="rec-nav-ico" aria-hidden="true" focusable="false"><use href="#ri-pak" /></svg>
+            <span data-i18n="rec_nav_pak">Perfect All Kill</span>
+          </button>
+          <button type="button" class="records-nav-btn" data-rec-view="recAppearancesSection">
+            <svg class="rec-nav-ico" aria-hidden="true" focusable="false"><use href="#ri-appearances" /></svg>
+            <span data-i18n="rec_nav_appearances">Appearances</span>
+          </button>
+          <button type="button" class="records-nav-btn" data-rec-view="recDebutsSection">
+            <svg class="rec-nav-ico" aria-hidden="true" focusable="false"><use href="#ri-debuts" /></svg>
+            <span data-i18n="rec_nav_debuts">Debuts</span>
+          </button>
+          <button type="button" class="records-nav-btn" data-rec-view="recNewChartsSection">
+            <svg class="rec-nav-ico" aria-hidden="true" focusable="false"><use href="#ri-newcharts" /></svg>
+            <span data-i18n="rec_nav_new_charts">New Charts</span>
+          </button>
+          <div class="rec-nav-grp" data-i18n="rec_grp_plays">Play records</div>
+          <button type="button" class="records-nav-btn" data-rec-view="recPeakPlaysSection">
+            <svg class="rec-nav-ico" aria-hidden="true" focusable="false"><use href="#ri-plays" /></svg>
+            <span data-i18n="rec_nav_peak_plays">Most Plays</span>
+          </button>
+          <button type="button" class="records-nav-btn" data-rec-view="recMilestonesSection">
+            <svg class="rec-nav-ico" aria-hidden="true" focusable="false"><use href="#ri-milestones" /></svg>
+            <span data-i18n="rec_nav_milestones">Milestones</span>
+          </button>
+          <button type="button" class="records-nav-btn" data-rec-view="recFastestSection">
+            <svg class="rec-nav-ico" aria-hidden="true" focusable="false"><use href="#ri-fastest" /></svg>
+            <span data-i18n="rec_nav_fastest">Fastest</span>
+          </button>
+          <button type="button" class="records-nav-btn" data-rec-view="recStreaksSection">
+            <svg class="rec-nav-ico" aria-hidden="true" focusable="false"><use href="#ri-streaks" /></svg>
+            <span data-i18n="rec_nav_streaks">Streaks</span>
+          </button>
+          <button type="button" class="records-nav-btn" data-rec-view="recCertsSection">
+            <svg class="rec-nav-ico" aria-hidden="true" focusable="false"><use href="#ri-certs" /></svg>
+            <span data-i18n="rec_nav_certs">Certifications</span>
+          </button>
+        </nav>
 
+        <!-- Everything the menu switches between. -->
+        <div class="rec-main">
       <div id="recOverviewSection">
         <!-- Hero: the artist holding the most records, with a reel of each one.
              Filled by renderRecordsHeroArtist(); hidden until there is data. -->
@@ -1961,6 +1968,8 @@
           only from entries that actually charted at your current New Charts size</div>
         <div class="section-body" id="recNewChartsBody"></div>
       </div>
+        </div><!-- /.rec-main -->
+      </div><!-- /.rec-layout -->
     </div>
 
     <!-- EVENTS VIEW -->

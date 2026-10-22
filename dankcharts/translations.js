@@ -1893,6 +1893,12 @@ const TRANSLATIONS = {
 
     // Records navigation
     rec_nav_overview: 'Overview',
+    rec_nav_aria: 'Records sections',
+    rec_grp_chart: 'Chart records',
+    rec_grp_plays: 'Play records',
+    rec_picker_label: 'Section',
+    rec_picker_search: 'Search results',
+    rec_nav_new_charts: 'New Charts',
     rec_nav_all_ones: 'All #1s',
     rec_nav_pak: 'Perfect All Kill',
     rec_nav_appearances: 'Appearances',
@@ -5275,6 +5281,12 @@ const TRANSLATIONS = {
     race_songs: 'Canciones',
     race_albums: 'Álbumes',
     rec_nav_overview: 'Resumen',
+    rec_nav_aria: 'Secciones de Récords',
+    rec_grp_chart: 'Récords de listas',
+    rec_grp_plays: 'Récords de escuchas',
+    rec_picker_label: 'Sección',
+    rec_picker_search: 'Resultados de búsqueda',
+    rec_nav_new_charts: 'Novedades',
 
     // Records navigation
     rec_nav_all_ones: 'Todos los #1',
@@ -8561,6 +8573,12 @@ const TRANSLATIONS = {
     race_songs: 'Músicas',
     race_albums: 'Álbuns',
     rec_nav_overview: 'Visão geral',
+    rec_nav_aria: 'Seções de Recordes',
+    rec_grp_chart: 'Recordes das paradas',
+    rec_grp_plays: 'Recordes de reproduções',
+    rec_picker_label: 'Seção',
+    rec_picker_search: 'Resultados da busca',
+    rec_nav_new_charts: 'Novidades',
 
     // Records navigation
     rec_nav_all_ones: 'Todos os #1',
@@ -11847,6 +11865,12 @@ const TRANSLATIONS = {
     race_songs: 'Músicas',
     race_albums: 'Álbuns',
     rec_nav_overview: 'Visão geral',
+    rec_nav_aria: 'Secções de Recordes',
+    rec_grp_chart: 'Recordes dos tops',
+    rec_grp_plays: 'Recordes de reproduções',
+    rec_picker_label: 'Secção',
+    rec_picker_search: 'Resultados da pesquisa',
+    rec_nav_new_charts: 'Novidades',
 
     // Records navigation
     rec_nav_all_ones: 'Todos os #1',
@@ -13449,6 +13473,9 @@ function setLanguage(lang) {
 
   // Longer words can overflow the top bar; tighten it if they do
   if (typeof dcFitTopbar === 'function') dcFitTopbar();
+
+  // The Records dropdown copies the active sub-tab's name; copy it again
+  if (typeof recNavUpdatePicker === 'function') recNavUpdatePicker();
 
   // The now strip is not part of renderAll(); redo its words. The in-a-row
   // run and "Last played…" (renderStreakBanner), the ON AIR song and its
