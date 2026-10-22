@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=591">
+  <link rel="stylesheet" href="style.css?v=592">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=169"></script>
+  <script defer src="translations.js?v=170"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -620,9 +620,9 @@
           <button class="kebab-menu-btn" onclick="toggleKebabMenu(this)" title="Chart options" aria-label="Chart options" aria-haspopup="true">⋮</button>
           <div class="kebab-menu">
             <div class="kebab-tabs">
-              <button class="kebab-tab active" data-tab="show" onclick="switchKebabTab(this, 'show')">Show</button>
-              <button class="kebab-tab" data-tab="size" onclick="switchKebabTab(this, 'size')">Size</button>
-              <button class="kebab-tab" data-tab="export" onclick="switchKebabTab(this, 'export')">Actions</button>
+              <button class="kebab-tab active" data-tab="show" onclick="switchKebabTab(this, 'show')" data-i18n="kebab_tab_show">Show</button>
+              <button class="kebab-tab" data-tab="size" onclick="switchKebabTab(this, 'size')" data-i18n="kebab_tab_size">Size</button>
+              <button class="kebab-tab" data-tab="export" onclick="switchKebabTab(this, 'export')" data-i18n="kebab_tab_actions">Actions</button>
             </div>
             <div class="kebab-panel" data-panel="show">
               <button id="toggleCertBtn" class="kebab-check-row" onclick="toggleSectionDisplay('cert', 'songs')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_cert">Cert Badges</span></span></button>
@@ -835,9 +835,9 @@
           <button class="kebab-menu-btn" onclick="toggleKebabMenu(this)" title="Chart options" aria-label="Chart options" aria-haspopup="true">⋮</button>
           <div class="kebab-menu">
             <div class="kebab-tabs">
-              <button class="kebab-tab active" data-tab="show" onclick="switchKebabTab(this, 'show')">Show</button>
-              <button class="kebab-tab" data-tab="size" onclick="switchKebabTab(this, 'size')">Size</button>
-              <button class="kebab-tab" data-tab="export" onclick="switchKebabTab(this, 'export')">Actions</button>
+              <button class="kebab-tab active" data-tab="show" onclick="switchKebabTab(this, 'show')" data-i18n="kebab_tab_show">Show</button>
+              <button class="kebab-tab" data-tab="size" onclick="switchKebabTab(this, 'size')" data-i18n="kebab_tab_size">Size</button>
+              <button class="kebab-tab" data-tab="export" onclick="switchKebabTab(this, 'export')" data-i18n="kebab_tab_actions">Actions</button>
             </div>
             <div class="kebab-panel" data-panel="show">
               <button id="togglePlaysPeakBtnArtists" class="kebab-check-row" onclick="toggleSectionDisplay('plays-peak', 'artists')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_plays_peak">Plays Peak</span></span></button>
@@ -1043,9 +1043,9 @@
           <button class="kebab-menu-btn" onclick="toggleKebabMenu(this)" title="Chart options" aria-label="Chart options" aria-haspopup="true">⋮</button>
           <div class="kebab-menu">
             <div class="kebab-tabs">
-              <button class="kebab-tab active" data-tab="show" onclick="switchKebabTab(this, 'show')">Show</button>
-              <button class="kebab-tab" data-tab="size" onclick="switchKebabTab(this, 'size')">Size</button>
-              <button class="kebab-tab" data-tab="export" onclick="switchKebabTab(this, 'export')">Actions</button>
+              <button class="kebab-tab active" data-tab="show" onclick="switchKebabTab(this, 'show')" data-i18n="kebab_tab_show">Show</button>
+              <button class="kebab-tab" data-tab="size" onclick="switchKebabTab(this, 'size')" data-i18n="kebab_tab_size">Size</button>
+              <button class="kebab-tab" data-tab="export" onclick="switchKebabTab(this, 'export')" data-i18n="kebab_tab_actions">Actions</button>
             </div>
             <div class="kebab-panel" data-panel="show">
               <button id="toggleCertBtnAlbums" class="kebab-check-row" onclick="toggleSectionDisplay('cert', 'albums')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_cert">Cert Badges</span></span></button>
@@ -2194,7 +2194,7 @@
       </div>
 
       <!-- Sub-navigation -->
-      <div class="awards-subnav">
+      <div class="dc-tabs awards-subnav">
         <button class="awards-subnav-btn active" data-awards-tab="mygrammys" onclick="awardsSubTab('mygrammys')" data-i18n="awards_tab_mygrammys">My Grammys</button>
         <button class="awards-subnav-btn" data-awards-tab="reallife" onclick="awardsSubTab('reallife')" data-i18n="awards_tab_reallife">Real-Life Awards</button>
       </div>
@@ -2832,7 +2832,7 @@
         <button class="ig-modal-close" onclick="closeCrIgModal()" data-i18n="btn_close">✕ CLOSE</button>
       </div>
       <!-- Mode toggle bar -->
-      <div class="ig-modal-mode-bar">
+      <div class="dc-tabs ig-modal-mode-bar">
         <button class="ig-mode-btn active" id="crIgModeChartRun" onclick="setCrIgMode('chartrun')" data-i18n="cr_chart_run">📊 Chart Run</button>
         <button class="ig-mode-btn" id="crIgModeEntry" onclick="setCrIgMode('entrypost')" data-i18n="cr_entry_post">🎵 Entry Post</button>
       </div>
@@ -3860,7 +3860,7 @@
   <!-- Community board tab (suggestions / bugs / discussion). Loaded before
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
   <script defer src="board.js?v=2"></script>
-  <script defer src="app.js?v=465"></script>
+  <script defer src="app.js?v=466"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
   <script defer src="replay.js?v=1"></script>
   <!-- All-Time chart stats ("Inside your Top N"); reads app.js globals, so it loads after it -->
@@ -5093,7 +5093,7 @@ function deleteGenreTriggers() {
       </div>
       <!-- Tab order: Today first (the "save them" view), then active streaks, records, heatmap.
            data-tab values keep the old pane ids (streaks / graveyard / heatmap). -->
-      <div class="sk-tab-bar">
+      <div class="dc-tabs sk-tab-bar">
         <button class="sk-tab-btn active" data-tab="today" onclick="_streakSwitchTab('today')"><span data-i18n="sk_tab_today">Today</span><span class="sk-tab-ct sk-tab-ct--warn" id="skTabCtToday"></span></button>
         <button class="sk-tab-btn" data-tab="streaks" onclick="_streakSwitchTab('streaks')"><span data-i18n="sk_tab_fire">On fire</span><span class="sk-tab-ct" id="skTabCtFire"></span></button>
         <button class="sk-tab-btn" data-tab="graveyard" onclick="_streakSwitchTab('graveyard')"><span data-i18n="sk_tab_records">Records</span></button>

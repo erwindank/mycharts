@@ -8037,7 +8037,7 @@ function buildRecords() {
   const onesImgQueue = [];
   for (const ent of entityConfig) {
     const perScope = 'ones-' + ent.key;
-    let h = '<div class="rec-per-tabs" data-rec-per-scope="' + esc(perScope) + '"'
+    let h = '<div class="dc-tabs rec-per-tabs" data-rec-per-scope="' + esc(perScope) + '"'
       + ' role="tablist" aria-label="' + esc(t('rec_per_tabs_label')) + '">';
     for (const cfg of typeConfig) {
       h += '<button type="button" class="rec-per-tab" role="tab"'
@@ -9214,7 +9214,7 @@ function buildRecords() {
     })(ae.bucket, ae.key);
   }
 
-  let mh = '<div class="mil-tabs" id="milRecTypeTabs" role="tablist" aria-label="' + esc(t('mil_tabs_label')) + '">';
+  let mh = '<div class="dc-seg mil-tabs" id="milRecTypeTabs" role="tablist" aria-label="' + esc(t('mil_tabs_label')) + '">';
   for (const ty of MIL_REC_TYPES) {
     mh += '<button type="button" class="mil-tab" role="tab" data-mil-type="' + ty.key + '">'
       + '<span class="mil-tab-icon" aria-hidden="true">' + ty.icon + '</span>' + esc(ty.label) + '</button>';
@@ -9332,7 +9332,7 @@ function buildRecords() {
     return h + '</div>';
   }
 
-  let fh = '<div class="fast-tabs" id="fastRecTypeTabs" role="tablist" aria-label="' + esc(t('fast_tabs_label')) + '">';
+  let fh = '<div class="dc-seg fast-tabs" id="fastRecTypeTabs" role="tablist" aria-label="' + esc(t('fast_tabs_label')) + '">';
   for (const ty of FAST_REC_TYPES) {
     fh += '<button type="button" class="fast-tab" role="tab" data-fast-type="' + ty.key + '">'
       + '<span class="fast-tab-icon" aria-hidden="true">' + ty.icon + '</span>' + esc(ty.label) + '</button>';
@@ -9670,12 +9670,12 @@ function buildRecords() {
     albums: [ncRecAlbumDebut, ncRecAlbumTracks],
   };
 
-  let nch = '<div class="nc-rec-tabs" id="ncRecTypeTabs" role="tablist" aria-label="New Charts record type">';
+  let nch = '<div class="dc-seg nc-rec-tabs" id="ncRecTypeTabs" role="tablist" aria-label="New Charts record type">';
   for (const ty of NC_REC_TYPES) {
     nch += '<button type="button" class="nc-rec-tab" role="tab" data-nc-type="' + ty.key + '">'
       + '<span class="nc-rec-tab-icon" aria-hidden="true">' + ty.icon + '</span>' + ty.label + '</button>';
   }
-  nch += '</div><div class="nc-rec-subtabs" id="ncRecPeriodTabs" role="tablist" aria-label="Chart period">';
+  nch += '</div><div class="dc-tabs nc-rec-subtabs" id="ncRecPeriodTabs" role="tablist" aria-label="Chart period">';
   for (const p of NC_REC_PERIODS) {
     nch += '<button type="button" class="nc-rec-subtab" role="tab" data-nc-period="' + p.key + '">' + p.label + '</button>';
   }
@@ -11909,7 +11909,7 @@ function recSplitFlat(map, bucket) {
    sections above, so the global records search can still reach all of them;
    only `display` ever moves. */
 function recEntTabsHtml(scope, panels) {
-  let h = '<div class="rec-ent-tabs" data-rec-ent-scope="' + esc(scope) + '"'
+  let h = '<div class="dc-seg rec-ent-tabs" data-rec-ent-scope="' + esc(scope) + '"'
     + ' role="tablist" aria-label="' + esc(t('rec_ent_tabs_label')) + '">';
   for (const p of panels) {
     h += '<button type="button" class="rec-ent-tab" role="tab"'
@@ -52141,7 +52141,7 @@ function _ratingAlbumEditorHTML(view) {
 
     <div class="rt-formula" id="rtFormula">${_ratingFormulaHTML(res)}</div>
 
-    <div class="rt-tabs">
+    <div class="dc-tabs rt-tabs">
       <button class="rt-tab${view.tab === 'aspects' ? ' active' : ''}" onclick="ratingSwitchTab('aspects')">Album aspects</button>
       <button class="rt-tab${view.tab === 'tracks' ? ' active' : ''}" onclick="ratingSwitchTab('tracks')">Tracks <span class="rt-tab-count">${tracks.length}</span></button>
     </div>

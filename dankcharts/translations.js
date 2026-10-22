@@ -1635,6 +1635,9 @@ const TRANSLATIONS = {
     // Bubbling Under section (chart type toggle, section header, badges, legend, track list)
     sub_toggle_chart: 'Chart',
     kebab_sections: 'Sections',
+    kebab_tab_show: 'Show',
+    kebab_tab_size: 'Size',
+    kebab_tab_actions: 'Actions',
     chart_hidden_hint: 'Chart hidden · switch it back on in ⋮ → Show',
     // Chart toolbar layout buttons (phase 7 step 5): tooltips + screen-reader names
     layout_bar_aria: 'Layout',
@@ -5017,7 +5020,10 @@ const TRANSLATIONS = {
     // Bubbling Under section (chart type toggle, section header, badges, legend, track list)
     sub_toggle_chart: 'Ranking',
     kebab_sections: 'Secciones',
-    chart_hidden_hint: 'Ranking oculto · vuelve a activarlo en ⋮ → Show',
+    kebab_tab_show: 'Mostrar',
+    kebab_tab_size: 'Tamaño',
+    kebab_tab_actions: 'Acciones',
+    chart_hidden_hint: 'Ranking oculto · vuelve a activarlo en ⋮ → Mostrar',
     // Chart toolbar layout buttons (phase 7 step 5): tooltips + screen-reader names
     layout_bar_aria: 'Diseño',
     layout_table: 'Tabla',
@@ -8299,7 +8305,10 @@ const TRANSLATIONS = {
     // Bubbling Under section (chart type toggle, section header, badges, legend, track list)
     sub_toggle_chart: 'Parada',
     kebab_sections: 'Seções',
-    chart_hidden_hint: 'Parada oculta · ative de novo em ⋮ → Show',
+    kebab_tab_show: 'Mostrar',
+    kebab_tab_size: 'Tamanho',
+    kebab_tab_actions: 'Ações',
+    chart_hidden_hint: 'Parada oculta · ative de novo em ⋮ → Mostrar',
     // Chart toolbar layout buttons (phase 7 step 5): tooltips + screen-reader names
     layout_bar_aria: 'Layout',
     layout_table: 'Tabela',
@@ -11582,7 +11591,10 @@ const TRANSLATIONS = {
     // Bubbling Under section (chart type toggle, section header, badges, legend, track list)
     sub_toggle_chart: 'Top',
     kebab_sections: 'Secções',
-    chart_hidden_hint: 'Top oculto · volta a ativá-lo em ⋮ → Show',
+    kebab_tab_show: 'Mostrar',
+    kebab_tab_size: 'Tamanho',
+    kebab_tab_actions: 'Ações',
+    chart_hidden_hint: 'Top oculto · volta a ativá-lo em ⋮ → Mostrar',
     // Chart toolbar layout buttons (phase 7 step 5): tooltips + screen-reader names
     layout_bar_aria: 'Disposição',
     layout_table: 'Tabela',

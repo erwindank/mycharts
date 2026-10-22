@@ -618,6 +618,47 @@
     .dc-seg-fill { display: flex; }
     .dc-seg-fill > button { flex: 1 1 auto; min-width: 0; }
 
+    /* ═══════════════════════════════════════════════════════════════
+       SHARED TABS — phase 8 step 4
+       .dc-tabs on the row; its buttons need no class of their own. An
+       underline under the open tab, the look Around the chart and the ⋮
+       menu already have. Open = .active or aria-selected="true". Rows that
+       don't fit scroll sideways inside themselves.
+       ═══════════════════════════════════════════════════════════════ */
+    .dc-tabs {
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      max-width: 100%;
+      overflow-x: auto;
+      scrollbar-width: none;
+      border-bottom: 1px solid var(--border);
+    }
+    .dc-tabs::-webkit-scrollbar { display: none; }
+    .dc-tabs > button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      flex: 0 0 auto;
+      padding: 10px 12px 8px;
+      margin-bottom: -1px;
+      border: 0;
+      border-bottom: 2px solid transparent;
+      background: none;
+      color: var(--text3);
+      font-family: var(--font-sans);
+      font-size: var(--fs-sm);
+      font-weight: 600;
+      line-height: 1.2;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+    }
+    .dc-tabs > button:hover { color: var(--text); }
+    .dc-tabs > button.active,
+    .dc-tabs > button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+
     /* Layout only — the look comes from .dc-btn above */
     .upcoming-refresh-btn { display: flex; width: fit-content; margin: 0 0.85rem var(--sp-2) auto; }
     .cal-nav-btn { font-size: var(--fs-md); }
@@ -7596,37 +7637,11 @@
       color: var(--text2);
     }
 
-    .ig-modal-mode-bar {
-      display: flex;
-      gap: 0;
-      border-bottom: 2px solid var(--accent);
-      background: var(--bg3);
-      flex-shrink: 0;
-    }
+    .ig-modal-mode-bar { flex-shrink: 0; background: var(--bg3); }
+    .ig-modal-mode-bar > button { flex: 1; }
 
-    .ig-mode-btn {
-      flex: 1;
-      padding: 0.55rem var(--sp-2);
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      font-weight: 700;
-      background: none;
-      border: none;
-      color: var(--text3);
-      cursor: pointer;
-      border-bottom: 3px solid transparent;
-      margin-bottom: -2px;
-      transition: color 0.15s, border-color 0.15s;
-    }
 
-    .ig-mode-btn.active {
-      color: var(--accent);
-      border-bottom-color: var(--accent);
-    }
 
-    .ig-mode-btn:not(.active):hover {
-      color: var(--text2);
-    }
 
     .ig-modal-footer {
       padding: 0.85rem 1.2rem;
@@ -14034,34 +14049,8 @@
     .nc-rec-tabs,
     .mil-tabs,
     .fast-tabs,
-    .rec-ent-tabs {
-      display: inline-flex;
-      flex-wrap: wrap;
-      gap: 0.2rem;
-      padding: 0.2rem;
-      margin-bottom: var(--sp-2);
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 7px;
-    }
+    .rec-ent-tabs { margin-bottom: var(--sp-2); }
 
-    .nc-rec-tab,
-    .mil-tab,
-    .fast-tab,
-    .rec-ent-tab {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      background: none;
-      border: 1px solid transparent;
-      color: var(--text2);
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      padding: 0.34rem 0.7rem;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: background 0.15s, color 0.15s, border-color 0.15s;
-    }
 
     /* Now a box round an <svg> rather than a slot for a text glyph, so it is
        sized by its child and no longer needs a font-size of its own. */
@@ -14073,22 +14062,7 @@
       line-height: 1;
     }
 
-    .nc-rec-tab:hover,
-    .mil-tab:hover,
-    .fast-tab:hover,
-    .rec-ent-tab:hover {
-      background: var(--bg3);
-      color: var(--text);
-    }
 
-    .nc-rec-tab.active,
-    .mil-tab.active,
-    .fast-tab.active,
-    .rec-ent-tab.active {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: var(--on-accent);
-    }
 
     /* .rec-per-* is the generic version of this row. Six sections wear it now —
        All #1s, Perfect All Kill, Appearances, Debuts, Most Plays and Streaks —
@@ -14097,46 +14071,11 @@
        shares the styling rather than copying it and letting the two drift
        apart. */
     .nc-rec-subtabs,
-    .rec-per-tabs {
-      display: flex;
-      flex-wrap: wrap;
-      gap: var(--sp-4);
-      margin-bottom: 1.1rem;
-      padding-bottom: 0.4rem;
-      border-bottom: 1px solid var(--border);
-    }
+    .rec-per-tabs { margin-bottom: 1.1rem; }
 
-    .nc-rec-subtab,
-    .rec-per-tab {
-      background: none;
-      border: none;
-      border-bottom: 2px solid transparent;
-      color: var(--text3);
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      padding: 0.2rem 0 0.3rem;
-      margin-bottom: -0.5rem;
-      cursor: pointer;
-      transition: color 0.15s, border-color 0.15s;
-    }
 
-    .nc-rec-subtab:hover,
-    .rec-per-tab:hover {
-      color: var(--text);
-    }
 
-    .nc-rec-subtab.active,
-    .rec-per-tab.active {
-      color: var(--accent);
-      border-bottom-color: var(--accent);
-    }
 
-    body.yellow .nc-rec-tab.active,
-    body.yellow .mil-tab.active,
-    body.yellow .fast-tab.active,
-    body.yellow .rec-ent-tab.active {
-      color: #1a1a00;
-    }
 
     /* ── Songs / Artists / Albums glyphs ──────────────────────────────
        Drawn inline by recEntIco() in app.js — a beamed pair of notes, a stage
@@ -22418,33 +22357,7 @@ body[class*="-light"] .tm-card-search:hover {
 
 /* Segmented control rather than two loose pills — the two panels are one
    either/or switch, and a single tray makes that read at a glance. */
-.awards-subnav {
-  display: inline-flex;
-  gap: 2px;
-  margin: var(--sp-2) 0 18px;
-  padding: 3px;
-  border: 1px solid var(--border);
-  background: var(--surface1);
-  border-radius: var(--r-full);
-  max-width: 100%;
-}
-.awards-subnav-btn {
-  padding: 6px var(--sp-4);
-  border-radius: var(--r-full);
-  border: none;
-  background: transparent;
-  color: var(--text3);
-  font-family: var(--font-sans);
-  font-size: var(--fs-xs);
-  white-space: nowrap;
-  cursor: pointer;
-  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
-}
-.awards-subnav-btn:hover { color: var(--text1); }
-.awards-subnav-btn.active {
-  background: var(--accent);
-  color: var(--on-accent);
-}
+.awards-subnav { margin: var(--sp-2) 0 18px; }
 
 /* Year bar */
 .awards-year-bar {
@@ -26682,25 +26595,8 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
 }
 
 /* ── Tab bar ── */
-.sk-tab-bar {
-  display: flex;
-  background: var(--bg);
-  border-bottom: 1px solid var(--border);
-}
-.sk-tab-btn {
-  flex: 1;
-  padding: 0.55rem var(--sp-2);
-  font-family: var(--font-sans);
-  font-size: var(--fs-xs);
-  color: var(--text3);
-  background: none;
-  border: none;
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  transition: color 0.15s, border-color 0.15s;
-}
-.sk-tab-btn:hover { color: var(--text2); }
-.sk-tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+.sk-tab-bar { background: var(--bg); }
+.sk-tab-bar > button { flex: 1; }
 
 /* ── Modal body reset ── */
 .streak-modal-box .modal-body { padding: 0; }
@@ -35286,24 +35182,7 @@ body.red-light .modal-rank-card--year .mrc-rank {
     .rt-mode-hint { font-size: var(--fs-xs); color: var(--text3); flex: 1 1 100%; }
 
     /* ── Tabs (album aspects / tracks) ──────────────────────────── */
-    .rt-tabs {
-      display: flex;
-      gap: 0.3rem;
-      margin: 0.9rem 0 0.6rem;
-      border-bottom: 1px solid var(--border);
-    }
-    .rt-tab {
-      padding: 0.45rem 0.9rem;
-      background: none;
-      border: none;
-      border-bottom: 2px solid transparent;
-      color: var(--text3);
-      font-size: var(--fs-sm);
-      font-weight: 700;
-      cursor: pointer;
-      margin-bottom: -1px;
-    }
-    .rt-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .rt-tabs { margin: 0.9rem 0 0.6rem; }
     .rt-tab-count {
       display: inline-block;
       margin-left: 0.3rem;
