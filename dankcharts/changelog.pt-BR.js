@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Player queue buttons match the rest of the site":
+    ["Os botões da fila do player combinam com o resto do site",
+     "Os botões da fila do player (Agora, Próxima, + Fila, Pôr tudo na fila, Mover para o topo, Desfazer e Salvar) e os botões do YouTube na janela de sequências agora têm a aparência e o tamanho dos botões do site. Excluir na fila aparece em vermelho para ficar mais difícil tocar nele por engano. Funciona com Last.fm, Google Sheets e arquivos CSV."],
+
   "Awards buttons match the rest of the site":
     ["Os botões de Prêmios combinam com o resto do site",
      "Na página de Prêmios, as setas do ano, Configurar ano, Gerar indicados, Ativar tudo e Desativar tudo, os botões Escolher indicados, Trocar e Playlist de cada categoria, o botão Compartilhar da cerimônia e os botões do seletor de indicados agora têm a mesma aparência e tamanho, com Gerar indicados como o botão principal em destaque. O botão dourado Ver cerimônia mantém a aparência. Funciona com Last.fm, Google Sheets e arquivos CSV."],

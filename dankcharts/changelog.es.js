@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Player queue buttons match the rest of the site":
+    ["Los botones de la cola del reproductor coinciden con el resto del sitio",
+     "Los botones de la cola del reproductor (Ahora, Siguiente, + Cola, Poner todo en cola, Subir arriba, Deshacer y Guardar) y los botones de YouTube de la ventana de rachas comparten ahora el aspecto y tamaño de los botones del sitio. Eliminar en la cola aparece en rojo para que sea más difícil pulsarlo por error. Funciona con Last.fm, Google Sheets y archivos CSV."],
+
   "Awards buttons match the rest of the site":
     ["Los botones de Premios coinciden con el resto del sitio",
      "En la página de Premios, las flechas del año, Configurar año, Generar nominados, Activar todo y Desactivar todo, los botones Elegir nominados, Cambiar y Lista de cada categoría, el botón Compartir de la ceremonia y los botones del selector de nominados tienen ahora el mismo aspecto y tamaño, con Generar nominados como botón principal destacado. El botón dorado Ver ceremonia conserva su aspecto. Funciona con Last.fm, Google Sheets y archivos CSV."],
