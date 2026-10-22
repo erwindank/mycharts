@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Cards and panels share one look":
+    ["Las tarjetas y los paneles comparten un mismo aspecto",
+     "Los paneles de todo el sitio, como los gráficos de Estadísticas, la Guía de listas, el resumen de Récords y tus listas de reproducción, comparten ahora un mismo estilo de tarjeta, y las tarjetas que están dentro de otro panel (tarjetas de eventos, Máquina del tiempo, categorías de Premios, los recuadros de la ventana de bienvenida) son un tono más oscuras para que se vean anidadas. Las tarjetas \"Del momento\" conservan su aspecto. Funciona con Last.fm, Google Sheets y archivos CSV."],
+
   "Filter chips and small tags match across the site":
     ["Los filtros y las etiquetas pequeñas coinciden en todo el sitio",
      "Los filtros de Eventos (Cumpleaños, Álbumes, Sencillos…), los grupos de categorías de Premios y el tablón de la comunidad tienen ahora el mismo aspecto, con los activos teñidos del color del tema. Las etiquetas pequeñas, como los recuentos de rachas, los géneros y la etiqueta \"Auto\" de Premios, comparten también un estilo discreto. Funciona con Last.fm, Google Sheets y archivos CSV."],

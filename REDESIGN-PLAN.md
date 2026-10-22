@@ -1053,7 +1053,7 @@ themes (Navy dark, Navy light, Yellow dark, Red light; see 3.2) and on a phone.
 | **5** ✓ | **Done 2026-10-13** (branch `redesign/phase-5-shell`, merged into `main`). **Shell:** slim sticky top bar, new main tabs + More, period switch next to the date, toasts for status, merge ON AIR + streak, no masthead or Time Machine on non-chart tabs. | Fixes "can't find anything" and gives back ~1,000px on every tab. | Medium |
 | **6** ✓ | **Done 2026-10-14** (branch `redesign/phase-6-weekly`; what changed from this plan is under "Phase 6" below). **Weekly page:** one filter toolbar, sections reordered (stats + "of the moment" → chart → bubbling/off/new → certified → time machine), releases moved to Events, light-touch stat tile changes only if you choose them (4.6). | This is the page everyone sees first. | Medium |
 | **7** ✓ | **Done 2026-10-22** (branch `redesign/phase-7-layouts`, on `main`; see "Phase 7" below — step 9 skipped). **Chart table and layouts** (4.9b, 4.10, 4.11, 4.12): one item builder + one action menu + one details drawer so **every layout has every feature** (chart run, peak, plays change, player, playlist…), layouts on every period with paging, all six layouts restyled, buttons moved into the toolbar, short lists capped at 5. | The core of the product. Do the shared builder first, then restyle each layout on top of it. | Large |
-| **8** ◐ | **Step 1 done 2026-10-22; steps 1–5 done; step 6 (cards) next** (11 steps, see "Phase 8" below). **Shared components:** one button, tab, segmented control, chip, card, table, carousel, pop-up frame. Replace the per-feature button families. | Makes 9–10 fast and keeps it consistent. | Large |
+| **8** ◐ | **Step 1 done 2026-10-22; steps 1–6 done; step 7 (tables) next** (11 steps, see "Phase 8" below). **Shared components:** one button, tab, segmented control, chip, card, table, carousel, pop-up frame. Replace the per-feature button families. | Makes 9–10 fast and keeps it consistent. | Large |
 | **9** | **Other views** in this order: Records (4.15), Stats (4.14), Raw Data (4.13), then Events, Awards, Soundtrack and the rest once seen on screen. | Records and Stats have the most concrete fixes already written down. | Large |
 | **10** | **Pop-ups and Settings** (4.20–4.21), including the side panel for song/artist/album. | | Medium |
 | **11** | **Final sweep:** move the 352 inline styles into classes, delete whatever old CSS and JS the earlier phases missed, reduce breakpoints to two, replace emoji in titles with icons. | Shrinks the 1.1 MB stylesheet and stops it drifting again. | Medium |
@@ -2141,6 +2141,12 @@ last user (see "Delete as you go").
    Daily's chips, chart tags, Settings step tags, cert ledger strip.
 6. **Cards.** One box style for panels and cards. The "Of the moment" cards
    stay as they are (approved).
+   **Done 2026-10-22 (d82b8f9).** `.dc-card` (page panel) and
+   `.dc-card-inset` (card inside a panel, one step darker); border, medium
+   corner, no shadow. 18 card classes moved (Stats graph cards, guide
+   panels, Records overview, playlists, event / Time Machine / Awards /
+   ratings cards, welcome tiles…). Kept: Of the moment, Daily, ceremony,
+   landing, chart cards; pop-up boxes are step 9.
 7. **Tables.** Records, Streaks and Raw Data tables share one look. The
    chart table stays as phase 7 left it.
 8. **Sliders.** Side-scrolling rows (certification reel and the like) work

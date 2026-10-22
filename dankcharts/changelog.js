@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 259;
+const DC_CL_I18N_V = 260;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-22', t: 'design', a: 'ui', h: 'd82b8f9',
+    title: "Cards and panels share one look",
+    detail: "Panels across the site, like the Stats graphs, the Charts Guide, the Records overview and your playlists, now share one card style, and cards that sit inside another panel (event cards, Time Machine, Awards categories, the welcome window's tiles) are one shade darker so they read as nested. The \"Of the moment\" cards keep their look. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-22', t: 'design', a: 'ui', h: '4c904e5',
     title: "Filter chips and small tags match across the site",
     detail: "The filter chips on Events (Birthdays, Albums, Singles\u2026), the Awards category groups and the community board now look the same, with the ones that are on tinted in the theme colour. Small labels like streak counts, genre tags and the Awards \"Auto\" tag share one quiet style too. Works with Last.fm, Google Sheets and CSV uploads." },
