@@ -30584,7 +30584,7 @@ function _renderNMF(albums, fromCache) {
       gridEl.innerHTML = '<div class="upcoming-empty">No new releases found.</div>';
     }
   }
-  if (refreshBtn) refreshBtn.style.display = 'block';
+  if (refreshBtn) refreshBtn.style.display = '';
   if (status) {
     const ts = fromCache
       ? (() => { try { return new Date(JSON.parse(localStorage.getItem(NMF_CACHE_KEY)).ts).toLocaleString(); } catch (e) { return ''; } })()
@@ -30651,7 +30651,7 @@ async function loadNMF(forceRefresh = false) {
     _renderNMF(albums, false);
   } catch (e) {
     if (status) status.textContent = 'Could not load new releases — try again later.';
-    if (refreshBtn) refreshBtn.style.display = 'block';
+    if (refreshBtn) refreshBtn.style.display = '';
   }
 }
 
@@ -30710,7 +30710,7 @@ function _renderConcerts(shows, fromCache) {
       grid.innerHTML = `<div class="upcoming-empty">No upcoming shows found for your top ${CONCERTS_ARTIST_LIMIT} artists.</div>`;
     }
   }
-  if (refreshBtn) refreshBtn.style.display = 'block';
+  if (refreshBtn) refreshBtn.style.display = '';
   if (status) {
     const cacheNote = fromCache ? ' (cached)' : '';
     const ts = fromCache
@@ -30892,7 +30892,7 @@ function _renderEventsFromRaw(raw, artists, fromCache) {
     ? (() => { try { return new Date(JSON.parse(localStorage.getItem(EVENTS_CACHE_KEY)).ts).toLocaleString(); } catch (e) { return ''; } })()
     : new Date().toLocaleString();
   if (statusEl) statusEl.textContent = `${raw.birthdays.length} birthdays · ${raw.anniversaries.length} anniversaries · ${raw.eventsUpcoming.length} upcoming · ${raw.eventsRecent.length} recent · top ${artists.length} artists · ${ts}${cacheNote}`;
-  if (refreshEl) refreshEl.style.display = 'block';
+  if (refreshEl) refreshEl.style.display = '';
 
   const sel = document.getElementById('eventsLimitSelect');
   if (sel) sel.value = eventsArtistLimit;
@@ -33609,7 +33609,7 @@ function dcRenderPlaylistsView() {
     const resumeLabel = esc(_ytCurrentTrack.title) + (_ytCurrentTrack.artist ? ` – ${esc(_ytCurrentTrack.artist)}` : '');
     html +=
       `<div class="dc-pl-resume-row">` +
-      `<button class="dc-pl-resume-btn" onclick="dcPlResume()" title="Resume where you left off">▶ Resume: ${resumeLabel}</button>` +
+      `<button class="dc-btn dc-btn-main dc-pl-resume-btn" onclick="dcPlResume()" title="Resume where you left off">▶ Resume: ${resumeLabel}</button>` +
       (_ytQueue.length > 0 ? `<span class="dc-pl-resume-hint">+ ${_ytQueue.length} in queue</span>` : '') +
       `</div>`;
   }
@@ -33618,7 +33618,7 @@ function dcRenderPlaylistsView() {
     `<div class="dc-pl-save-row">` +
     `<input id="dcPlNewName" class="dc-pl-name-input" type="text" placeholder="Save current queue as…" maxlength="40" ` +
     `onkeydown="if(event.key==='Enter'){dcPlSaveQueue(this.value.trim());}">` +
-    `<button class="dc-pl-save-btn" onclick="dcPlSaveQueue(document.getElementById('dcPlNewName').value.trim())">Save Queue</button>` +
+    `<button class="dc-btn dc-btn-normal" onclick="dcPlSaveQueue(document.getElementById('dcPlNewName').value.trim())">Save Queue</button>` +
     `<span id="dcPlStatus" class="dc-pl-status"></span>` +
     `</div>` +
     `</div>`;
@@ -33639,13 +33639,13 @@ function dcRenderPlaylistsView() {
         `<span class="dc-pl-name">${nameEsc}</span>` +
         `<span class="dc-pl-count">${tracks.length} track${tracks.length !== 1 ? 's' : ''}</span>` +
         `<div class="dc-pl-actions" onclick="event.stopPropagation()">` +
-        `<button class="dc-pl-play-btn" onclick="dcPlPlayFromStart(${nameJson})" title="Play playlist">` +
+        `<button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon" onclick="dcPlPlayFromStart(${nameJson})" title="Play playlist">` +
         `<svg class="dc-pl-ic" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>` +
         `</button>` +
-        `<button class="dc-pl-rename-btn" onclick="dcPlStartRename(${nameJson})" title="Rename">` +
+        `<button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon" onclick="dcPlStartRename(${nameJson})" title="Rename">` +
         `<svg class="dc-pl-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>` +
         `</button>` +
-        `<button class="dc-pl-del-btn" onclick="dcPlDeleteFromView(${nameJson})" title="Delete playlist">` +
+        `<button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon dc-btn-danger" onclick="dcPlDeleteFromView(${nameJson})" title="Delete playlist">` +
         `<svg class="dc-pl-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,6 5,6 21,6"/><path d="M19,6l-1,14a2,2,0,0,1-2,2H8a2,2,0,0,1-2-2L5,6"/><path d="M10,11v6"/><path d="M14,11v6"/><path d="M9,6V4a1,1,0,0,1,1-1h4a1,1,0,0,1,1,1v2"/></svg>` +
         `</button>` +
         `</div>` +
@@ -33666,8 +33666,8 @@ function dcRenderPlaylistsView() {
             `<span class="dc-pl-track-artist">${esc(t.artist)}</span>` +
             `</div>` +
             `<div class="dc-pl-track-actions">` +
-            `<button class="dc-pl-track-play-btn" onclick="dcPlPlayFromTrack(${nameJson},${idx})" title="Play from here">▶</button>` +
-            `<button class="dc-pl-track-del-btn" onclick="dcPlRemoveTrack(${nameJson},${idx})" title="Remove track">✕</button>` +
+            `<button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon" onclick="dcPlPlayFromTrack(${nameJson},${idx})" title="Play from here">▶</button>` +
+            `<button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon dc-btn-danger" onclick="dcPlRemoveTrack(${nameJson},${idx})" title="Remove track">✕</button>` +
             `</div>` +
             `</div>`; // end track
         });
@@ -46294,7 +46294,7 @@ function _cerShareRender(note) {
       <p class="cer-share-text">Sign in with Google to create a link. Anyone you send it to can watch the ceremony without an account.</p>
       ${noteHtml}
       <div class="cal-create-pl-actions">
-        <button class="cal-create-pl-confirm-btn" onclick="_cerShareSignIn()">Sign in with Google</button>
+        <button class="dc-btn dc-btn-main" onclick="_cerShareSignIn()">Sign in with Google</button>
       </div>`;
     return;
   }
@@ -46304,7 +46304,7 @@ function _cerShareRender(note) {
       <p class="cer-share-text">Creates a link anyone can open to watch this ceremony: the nominees, the envelopes, the winners and their artwork. Nothing else from your library is shared.</p>
       ${noteHtml}
       <div class="cal-create-pl-actions">
-        <button class="cal-create-pl-confirm-btn" onclick="_cerSharePublish()">🔗 Create link</button>
+        <button class="dc-btn dc-btn-main" onclick="_cerSharePublish()">🔗 Create link</button>
       </div>`;
     return;
   }
@@ -46314,14 +46314,14 @@ function _cerShareRender(note) {
   body.innerHTML = `
     <div class="cer-share-link-row">
       <input class="cal-create-pl-input cer-share-link" id="cerShareLink" type="text" readonly value="${esc(url)}" onfocus="this.select()">
-      <button class="cal-create-pl-confirm-btn" onclick="_cerShareCopy()">Copy</button>
+      <button class="dc-btn dc-btn-main" onclick="_cerShareCopy()">Copy</button>
     </div>
     <p class="cer-share-text">Anyone with this link can watch. It's a snapshot — if you change nominees or winners, press Update link.</p>
     ${noteHtml}
     <div class="cal-create-pl-actions cer-share-actions">
-      <button class="cal-create-pl-cancel-btn cer-share-stop" onclick="_cerShareStop()">Stop sharing</button>
-      <button class="cal-create-pl-cancel-btn" onclick="_cerSharePublish()">↻ Update link</button>
-      ${canNative ? `<button class="cal-create-pl-confirm-btn" onclick="_cerShareNative()">Share…</button>` : ''}
+      <button class="dc-btn dc-btn-plain dc-btn-danger cer-share-stop" onclick="_cerShareStop()">Stop sharing</button>
+      <button class="dc-btn dc-btn-normal" onclick="_cerSharePublish()">↻ Update link</button>
+      ${canNative ? `<button class="dc-btn dc-btn-normal" onclick="_cerShareNative()">Share…</button>` : ''}
     </div>`;
 }
 

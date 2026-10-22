@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=585">
+  <link rel="stylesheet" href="style.css?v=586">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -1943,7 +1943,7 @@
           </select>
           all-time artists
         </span>
-        <button class="upcoming-refresh-btn" id="eventsRefreshBtn" onclick="loadEvents(true)" style="display:none">↺ Refresh</button>
+        <button class="dc-btn dc-btn-normal dc-btn-sm upcoming-refresh-btn" id="eventsRefreshBtn" onclick="loadEvents(true)" style="display:none">↺ Refresh</button>
       </div>
 
       <div class="events-type-filters">
@@ -1960,17 +1960,17 @@
 
       <div class="events-calendar-wrap">
         <div class="events-calendar-header">
-          <button class="cal-nav-btn" onclick="eventsCalendarPrev()">&#8249;</button>
+          <button class="dc-btn dc-btn-normal dc-btn-sm dc-btn-icon cal-nav-btn" onclick="eventsCalendarPrev()">&#8249;</button>
           <span id="eventsCalendarTitle" class="cal-title"></span>
-          <button class="cal-nav-btn" onclick="eventsCalendarNext()">&#8250;</button>
+          <button class="dc-btn dc-btn-normal dc-btn-sm dc-btn-icon cal-nav-btn" onclick="eventsCalendarNext()">&#8250;</button>
           <div class="cal-view-btns">
             <button class="cal-view-btn" data-view="month" onclick="setCalView('month')" title="Month view">Month</button>
             <button class="cal-view-btn" data-view="week"  onclick="setCalView('week')"  title="Week view">Week</button>
             <button class="cal-view-btn" data-view="day"   onclick="setCalView('day')"   title="Day view">Day</button>
           </div>
-          <button class="cal-play-all-btn" id="calPlayAllBtn" onclick="calPlayAll()" title="Play all singles in the music player" style="display:none">▶ Play All</button>
-          <button class="cal-create-pl-btn" id="calCreatePlBtn" onclick="openCalCreatePlModal()" title="Save today's singles as an in-site playlist" style="display:none">+ Create Playlist</button>
-          <button class="cal-export-playlist-btn" id="calExportPlaylistBtn" onclick="openCalendarExportModal()" title="Export singles as playlist" style="display:none">♫ Export Playlist</button>
+          <button class="dc-btn dc-btn-normal dc-btn-sm" id="calPlayAllBtn" onclick="calPlayAll()" title="Play all singles in the music player" style="display:none">▶ Play All</button>
+          <button class="dc-btn dc-btn-normal dc-btn-sm" id="calCreatePlBtn" onclick="openCalCreatePlModal()" title="Save today's singles as an in-site playlist" style="display:none">+ Create Playlist</button>
+          <button class="dc-btn dc-btn-normal dc-btn-sm" id="calExportPlaylistBtn" onclick="openCalendarExportModal()" title="Export singles as playlist" style="display:none">♫ Export Playlist</button>
         </div>
         <div class="events-cal-grid" id="eventsCalendarGrid"></div>
       </div>
@@ -1984,7 +1984,7 @@
           <h2 class="section-title" data-i18n="time_machine_title">⏳ TIME MACHINE</h2>
           <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
           <div class="section-rule"></div>
-          <button class="dc-pl-section-btn" id="tmPlBtn" onclick="tmAddAllToPlaylist()"
+          <button class="dc-btn dc-btn-normal dc-btn-sm" id="tmPlBtn" onclick="tmAddAllToPlaylist()"
             data-i18n="pl_section_btn" data-i18n-title="pl_section_btn_title"
             title="Save everything in this section to a playlist">＋ Playlist</button>
           <div class="tm-toggle-btns">
@@ -2011,7 +2011,7 @@
           <h2 class="section-header-h2">🎂 Artist Birthdays</h2>
           <span class="section-collapsed-label">collapsed — click + to expand</span>
           <div class="section-rule"></div>
-          <button class="dc-pl-section-btn" id="birthdaysPlBtn" style="display:none"
+          <button class="dc-btn dc-btn-normal dc-btn-sm" id="birthdaysPlBtn" style="display:none"
             onclick="evAddSectionToPlaylist('birthdays')" data-i18n="pl_section_btn"
             data-i18n-title="pl_section_btn_title" title="Save everything in this section to a playlist">＋ Playlist</button>
           <div class="ev-view-btns" id="birthdaysViewBtns">
@@ -2033,7 +2033,7 @@
           <h2 class="section-header-h2">🎵 Anniversaries</h2>
           <span class="section-collapsed-label">collapsed — click + to expand</span>
           <div class="section-rule"></div>
-          <button class="dc-pl-section-btn" id="anniversariesPlBtn" style="display:none"
+          <button class="dc-btn dc-btn-normal dc-btn-sm" id="anniversariesPlBtn" style="display:none"
             onclick="evAddSectionToPlaylist('anniversaries')" data-i18n="pl_section_btn"
             data-i18n-title="pl_section_btn_title" title="Save everything in this section to a playlist">＋ Playlist</button>
           <div class="ev-view-btns" id="anniversariesViewBtns">
@@ -2074,7 +2074,7 @@
           <h2 class="section-header-h2">📅 Recent Releases</h2>
           <span class="section-collapsed-label">collapsed — click + to expand</span>
           <div class="section-rule"></div>
-          <button class="dc-pl-section-btn" id="eventsRecentPlBtn" style="display:none"
+          <button class="dc-btn dc-btn-normal dc-btn-sm" id="eventsRecentPlBtn" style="display:none"
             onclick="evAddSectionToPlaylist('eventsRecent')" data-i18n="pl_section_btn"
             data-i18n-title="pl_section_btn_title" title="Save everything in this section to a playlist">＋ Playlist</button>
           <div class="ev-view-btns" id="eventsRecentViewBtns">
@@ -2096,7 +2096,7 @@
           <h2 class="section-header-h2">🎂 Recent Birthdays</h2>
           <span class="section-collapsed-label">collapsed — click + to expand</span>
           <div class="section-rule"></div>
-          <button class="dc-pl-section-btn" id="recentBirthdaysPlBtn" style="display:none"
+          <button class="dc-btn dc-btn-normal dc-btn-sm" id="recentBirthdaysPlBtn" style="display:none"
             onclick="evAddSectionToPlaylist('recentBirthdays')" data-i18n="pl_section_btn"
             data-i18n-title="pl_section_btn_title" title="Save everything in this section to a playlist">＋ Playlist</button>
           <div class="ev-view-btns" id="recentBirthdaysViewBtns">
@@ -2118,7 +2118,7 @@
           <h2 class="section-header-h2">🎵 Recent Anniversaries</h2>
           <span class="section-collapsed-label">collapsed — click + to expand</span>
           <div class="section-rule"></div>
-          <button class="dc-pl-section-btn" id="recentAnniversariesPlBtn" style="display:none"
+          <button class="dc-btn dc-btn-normal dc-btn-sm" id="recentAnniversariesPlBtn" style="display:none"
             onclick="evAddSectionToPlaylist('recentAnniversaries')" data-i18n="pl_section_btn"
             data-i18n-title="pl_section_btn_title" title="Save everything in this section to a playlist">＋ Playlist</button>
           <div class="ev-view-btns" id="recentAnniversariesViewBtns">
@@ -2150,13 +2150,13 @@
         </div>
         <div class="section-sub">New releases this week from Deezer · not filtered to your artists</div>
         <div id="nmfStatus" class="upcoming-status"></div>
-        <button class="upcoming-refresh-btn" id="nmfRefreshBtn" onclick="loadNMF(true)" style="display:none">↺ Refresh</button>
+        <button class="dc-btn dc-btn-normal dc-btn-sm upcoming-refresh-btn" id="nmfRefreshBtn" onclick="loadNMF(true)" style="display:none">↺ Refresh</button>
         <div class="section-body">
           <div class="nmf-cal-outer" id="nmfCalOuter" style="display:none;">
             <div class="events-calendar-header" style="margin-bottom:0.5rem;">
-              <button class="cal-nav-btn" onclick="nmfCalPrev()">&#8249;</button>
+              <button class="dc-btn dc-btn-normal dc-btn-sm dc-btn-icon cal-nav-btn" onclick="nmfCalPrev()">&#8249;</button>
               <span id="nmfCalTitle" class="cal-title"></span>
-              <button class="cal-nav-btn" onclick="nmfCalNext()">&#8250;</button>
+              <button class="dc-btn dc-btn-normal dc-btn-sm dc-btn-icon cal-nav-btn" onclick="nmfCalNext()">&#8250;</button>
             </div>
             <div id="nmfCalGrid"></div>
             <div class="nmf-cal-legend">Fridays with stored releases are highlighted &mdash; click to view that week</div>
@@ -2179,7 +2179,7 @@
         </div>
         <div class="section-sub">Live concerts &amp; shows for your top 10 all-time artists · <a href="https://www.ticketmaster.com" target="_blank" rel="noopener" style="color:var(--accent)">Tickets via Ticketmaster</a></div>
         <div id="concertsStatus" class="upcoming-status"></div>
-        <button class="upcoming-refresh-btn" id="concertsRefreshBtn" onclick="loadConcerts(true)" style="display:none">↺ Refresh</button>
+        <button class="dc-btn dc-btn-normal dc-btn-sm upcoming-refresh-btn" id="concertsRefreshBtn" onclick="loadConcerts(true)" style="display:none">↺ Refresh</button>
         <div class="section-body">
           <div class="upcoming-grid" id="concertsGrid"></div>
         </div>
@@ -2416,8 +2416,8 @@
       </label>
       <p class="cer-share-text pdf-hint" data-i18n="pdf_hint">Your print window opens next. Choose “Save as PDF” as the printer to download it.</p>
       <div class="cal-create-pl-actions">
-        <button class="cal-create-pl-cancel-btn" onclick="closePdfModal()" data-i18n="btn_cancel">Cancel</button>
-        <button class="cal-create-pl-confirm-btn" id="pdfCreateBtn" onclick="createChartPdf()">Create PDF</button>
+        <button class="dc-btn dc-btn-plain" onclick="closePdfModal()" data-i18n="btn_cancel">Cancel</button>
+        <button class="dc-btn dc-btn-main" id="pdfCreateBtn" onclick="createChartPdf()">Create PDF</button>
       </div>
     </div>
   </div>
@@ -2498,7 +2498,7 @@
         <div class="tm-ticker-track" id="stReelTickerTrack"></div>
       </div>
       <div class="st-reel-footer" id="stReelSub"></div>
-      <button class="dc-pl-section-btn dc-pl-reel-btn" id="stReelPlBtn" style="display:none"
+      <button class="dc-btn dc-btn-normal dc-btn-sm dc-pl-reel-btn" id="stReelPlBtn" style="display:none"
         onclick="stReelAddToPlaylist()" data-i18n="pl_section_btn"
         data-i18n-title="pl_section_btn_title" title="Save everything in this section to a playlist">＋ Playlist</button>
     </div>
@@ -3177,8 +3177,8 @@
       <input class="cal-create-pl-input" id="calCreatePlName" type="text" maxlength="60" placeholder="Playlist name…"
         onkeydown="if(event.key==='Enter')_calCreatePlConfirm()">
       <div class="cal-create-pl-actions">
-        <button class="cal-create-pl-confirm-btn" onclick="_calCreatePlConfirm()">✓ Create Playlist</button>
-        <button class="cal-create-pl-cancel-btn" onclick="closeCalCreatePlModal()">Cancel</button>
+        <button class="dc-btn dc-btn-main" onclick="_calCreatePlConfirm()">✓ Create Playlist</button>
+        <button class="dc-btn dc-btn-plain" onclick="closeCalCreatePlModal()">Cancel</button>
       </div>
     </div>
   </div>
@@ -3848,7 +3848,7 @@
   <!-- Community board tab (suggestions / bugs / discussion). Loaded before
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
   <script defer src="board.js?v=1"></script>
-  <script defer src="app.js?v=458"></script>
+  <script defer src="app.js?v=459"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
   <script defer src="replay.js?v=1"></script>
   <!-- All-Time chart stats ("Inside your Top N"); reads app.js globals, so it loads after it -->

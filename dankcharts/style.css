@@ -568,6 +568,12 @@
     .dc-btn-icon.dc-btn-sm { width: 26px; }
     .dc-btn:disabled { opacity: 0.45; cursor: default; }
 
+    /* Layout only — the look comes from .dc-btn above */
+    .upcoming-refresh-btn { display: flex; width: fit-content; margin: 0 0.85rem var(--sp-2) auto; }
+    .cal-nav-btn { font-size: var(--fs-md); }
+    /* Resume shows the track name: cut it with … instead of growing */
+    .dc-pl-resume-btn { display: block; max-width: 360px; overflow: hidden; text-overflow: ellipsis; line-height: 30px; flex-shrink: 0; }
+
     .theme-btn {
       width: 12px;
       height: 12px;
@@ -7980,26 +7986,7 @@
       text-align: center;
     }
 
-    .upcoming-refresh-btn {
-      background: none;
-      border: 1px solid var(--border2);
-      color: var(--text3);
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      padding: 0.22rem 0.7rem;
-      border-radius: var(--r-xs);
-      cursor: pointer;
-      margin-left: auto;
-      display: block;
-      margin-right: 0.85rem;
-      margin-bottom: var(--sp-2);
-      transition: color 0.12s, border-color 0.12s;
-    }
 
-    .upcoming-refresh-btn:hover {
-      color: var(--text);
-      border-color: var(--accent);
-    }
 
     /* EVENTS VIEW */
     .events-controls {
@@ -8328,22 +8315,7 @@
       letter-spacing: -0.01em;
     }
 
-    .cal-nav-btn {
-      background: none;
-      border: 1px solid var(--border);
-      border-radius: var(--r-xs);
-      color: var(--text2);
-      font-size: var(--fs-md);
-      line-height: 1;
-      padding: 0.1rem var(--sp-2) 0.15rem;
-      cursor: pointer;
-      transition: color 0.15s, background 0.15s;
-    }
 
-    .cal-nav-btn:hover {
-      background: var(--border);
-      color: var(--text1);
-    }
 
     .events-cal-grid {
       display: grid;
@@ -8475,65 +8447,11 @@
       color: var(--on-accent);
     }
 
-    .cal-export-playlist-btn {
-      background: none;
-      border: 1px solid var(--border2);
-      border-radius: var(--r-xs);
-      color: var(--text2);
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      font-weight: bold;
-      padding: 0.1rem var(--sp-2) 0.15rem;
-      cursor: pointer;
-      transition: background 0.12s, color 0.12s, border-color 0.12s;
-      margin-left: 0.4rem;
-    }
 
-    .cal-export-playlist-btn:hover {
-      background: var(--surface);
-      color: var(--text);
-      border-color: var(--accent);
-    }
 
-    .cal-play-all-btn {
-      background: none;
-      border: 1px solid var(--border2);
-      border-radius: var(--r-xs);
-      color: var(--text2);
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      font-weight: bold;
-      padding: 0.1rem var(--sp-2) 0.15rem;
-      cursor: pointer;
-      transition: background 0.12s, color 0.12s, border-color 0.12s;
-      margin-left: 0.4rem;
-    }
 
-    .cal-play-all-btn:hover {
-      background: var(--surface);
-      color: var(--accent);
-      border-color: var(--accent);
-    }
 
-    .cal-create-pl-btn {
-      background: none;
-      border: 1px solid var(--border2);
-      border-radius: var(--r-xs);
-      color: var(--text2);
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      font-weight: bold;
-      padding: 0.1rem var(--sp-2) 0.15rem;
-      cursor: pointer;
-      transition: background 0.12s, color 0.12s, border-color 0.12s;
-      margin-left: 0.4rem;
-    }
 
-    .cal-create-pl-btn:hover {
-      background: var(--surface);
-      color: var(--accent);
-      border-color: var(--accent);
-    }
 
     /* CAL CREATE PLAYLIST MODAL */
     .cal-create-pl-box {
@@ -8591,37 +8509,9 @@
       justify-content: flex-end;
     }
 
-    .cal-create-pl-confirm-btn {
-      background: var(--accent);
-      border: none;
-      border-radius: var(--r-xs);
-      color: var(--on-accent);
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      font-weight: bold;
-      padding: 0.4rem 0.9rem;
-      cursor: pointer;
-      transition: opacity 0.12s;
-    }
 
-    .cal-create-pl-confirm-btn:hover { opacity: 0.85; }
 
-    .cal-create-pl-cancel-btn {
-      background: none;
-      border: 1px solid var(--border2);
-      border-radius: var(--r-xs);
-      color: var(--text2);
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      padding: 0.4rem 0.9rem;
-      cursor: pointer;
-      transition: border-color 0.12s, color 0.12s;
-    }
 
-    .cal-create-pl-cancel-btn:hover {
-      border-color: var(--text2);
-      color: var(--text);
-    }
 
     /* ADD TO PLAYLIST PICKER — shared modal (see dcOpenPlaylistPicker) */
     .dc-plpick-box {
@@ -8944,32 +8834,11 @@
     /* Trailing ＋ column in the table view; sized to the button, not the header. */
     .ev-tbl-pl { width: 26px; padding-left: 0; }
 
-    /* Section-header "save everything here" buttons — matches .cal-create-pl-btn */
-    .dc-pl-section-btn {
-      background: none;
-      border: 1px solid var(--border2);
-      border-radius: var(--r-xs);
-      color: var(--text2);
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      font-weight: bold;
-      padding: 0.1rem var(--sp-2) 0.15rem;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: background 0.12s, color 0.12s, border-color 0.12s;
-      margin-left: 0.4rem;
-    }
-
-    .dc-pl-section-btn:hover {
-      background: var(--surface);
-      color: var(--accent);
-      border-color: var(--accent);
-    }
-
     /* The Soundtrack reel has a footer caption instead of a section header, so
        its button sits under the reel and centres on that caption. */
     .dc-pl-reel-btn {
-      display: block;
+      display: flex;
+      width: fit-content;
       margin: var(--sp-2) auto 0;
     }
 
@@ -21445,19 +21314,6 @@ body.purple .landing-card-config input:focus {
   outline: none;
 }
 .dc-pl-name-input:focus { border-color: var(--accent); }
-.dc-pl-save-btn {
-  background: var(--accent);
-  border: none;
-  border-radius: var(--r-xs);
-  padding: 0.35rem var(--sp-3);
-  font-size: var(--fs-sm);
-  font-weight: 600;
-  color: var(--on-accent);
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: opacity 0.1s;
-}
-.dc-pl-save-btn:hover { opacity: 0.85; }
 .dc-pl-status {
   font-size: var(--fs-xs);
   color: var(--text2);
@@ -21472,23 +21328,6 @@ body.purple .landing-card-config input:focus {
   gap: var(--sp-2);
   flex-wrap: wrap;
 }
-.dc-pl-resume-btn {
-  background: var(--accent);
-  border: none;
-  border-radius: var(--r-xs);
-  padding: 0.35rem var(--sp-3);
-  font-size: var(--fs-sm);
-  font-weight: 600;
-  color: var(--on-accent);
-  cursor: pointer;
-  flex-shrink: 0;
-  max-width: 360px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  transition: opacity 0.1s;
-}
-.dc-pl-resume-btn:hover { opacity: 0.85; }
 .dc-pl-resume-hint {
   font-size: var(--fs-xs);
   color: var(--text3);
@@ -21564,27 +21403,10 @@ body.purple .landing-card-config input:focus {
   gap: 0.15rem;
   flex-shrink: 0;
 }
-.dc-pl-play-btn,
-.dc-pl-rename-btn,
-.dc-pl-del-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0.2rem;
-  border-radius: var(--r-xs);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text3);
-  transition: color 0.1s, background 0.1s;
-}
 .dc-pl-ic {
   width: 15px;
   height: 15px;
 }
-.dc-pl-play-btn:hover   { color: var(--accent); background: rgba(255,0,0,0.08); }
-.dc-pl-rename-btn:hover { color: var(--text1);  background: var(--bg3); }
-.dc-pl-del-btn:hover    { color: var(--rose);   background: rgba(255,80,80,0.08); }
 .dc-pl-tracks {
   border-top: 1px solid var(--border);
   padding: 0.2rem 0;
@@ -21626,19 +21448,6 @@ body.purple .landing-card-config input:focus {
   transition: opacity 0.1s;
 }
 .dc-pl-track:hover .dc-pl-track-actions { opacity: 1; }
-.dc-pl-track-play-btn,
-.dc-pl-track-del-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: var(--fs-xs);
-  padding: 0.15rem 0.3rem;
-  border-radius: var(--r-xs);
-  color: var(--text3);
-  transition: color 0.1s, background 0.1s;
-}
-.dc-pl-track-play-btn:hover { color: var(--accent); background: rgba(255,0,0,0.08); }
-.dc-pl-track-del-btn:hover  { color: var(--rose);   background: rgba(255,80,80,0.08); }
 
 /* ── Speed badge ── */
 .yt-speed-badge {
@@ -24746,10 +24555,8 @@ body.pink-light .awards-ceremony-share-btn:hover { border-color: var(--medal-gol
 }
 .cer-share-link-row { display: flex; gap: var(--sp-2); align-items: flex-start; }
 .cer-share-link-row .cer-share-link { flex: 1; min-width: 0; margin-bottom: var(--sp-3); }
-.cer-share-link-row .cal-create-pl-confirm-btn { padding: var(--sp-2) 0.9rem; }
 .cer-share-actions { flex-wrap: wrap; }
 .cer-share-stop { margin-right: auto; }
-.cer-share-stop:hover { border-color: #e5484d; color: #e5484d; }
 
 /* Shared-link guests have no app behind the overlay, so it gets a solid floor
    instead of a see-through scrim over the empty page. */
