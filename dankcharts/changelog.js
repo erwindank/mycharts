@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 242;
+const DC_CL_I18N_V = 243;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,13 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-22', t: 'feature', a: 'player', h: '39dccca',
+    title: "Videos in the player and awards no longer depend on YouTube search alone",
+    detail: "YouTube only allows the whole site about 100 song searches a day. Before using one, the player now looks the song up in Wikidata and MusicBrainz, two free music databases that store the official YouTube video for many songs, and plays that. It works for the ▶ player, the awards video previews and the player's search box, where these matches are listed first with a \"Not here? Search YouTube\" link under them. Because it doesn't use the daily limit, it works when you're signed out too. Works with Last.fm, Google Sheets and CSV uploads." },
+  { d: '2026-10-22', t: 'fix', a: 'charts', h: '071cc3b',
+    title: "Listening streak shows again",
+    detail: "Folding the All-Time stats card into the banner also switched off the Listening streak at the end of the now strip, along with the row under it (top streaks, longest going). Both show again on every chart tab." },
+
 
   { d: '2026-10-21', t: 'feature', a: 'charts', h: '0c25610',
     title: "Travel back in time on the All-Time chart",

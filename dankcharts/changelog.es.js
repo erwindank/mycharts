@@ -13,6 +13,14 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Videos in the player and awards no longer depend on YouTube search alone":
+    ["Los vídeos del reproductor y de los premios ya no dependen solo de la búsqueda de YouTube",
+     "YouTube solo permite a todo el sitio unas 100 búsquedas de canciones al día. Antes de usar una, el reproductor ahora busca la canción en Wikidata y MusicBrainz, dos bases de datos musicales gratuitas que guardan el vídeo oficial de YouTube de muchas canciones, y reproduce ese. Funciona en el reproductor ▶, en las vistas previas de vídeo de los premios y en el buscador del reproductor, donde estos resultados aparecen primero con un enlace \"¿No está aquí? Buscar en YouTube\" debajo. Como no gasta el límite diario, también funciona sin iniciar sesión. Funciona con Last.fm, Google Sheets y archivos CSV."],
+
+  "Listening streak shows again":
+    ["La racha de escucha vuelve a aparecer",
+     "Al integrar la tarjeta de estadísticas de Histórico en el banner también se desactivó la racha de escucha al final de la franja superior, junto con la fila de debajo (mejores rachas, la más larga en curso). Ambas vuelven a aparecer en todas las pestañas de listas."],
+
 
   /* ========== OCTUBRE 2026 ========== */
 

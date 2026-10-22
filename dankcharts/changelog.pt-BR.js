@@ -13,6 +13,14 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Videos in the player and awards no longer depend on YouTube search alone":
+    ["Os vídeos do player e das premiações não dependem mais só da busca do YouTube",
+     "O YouTube só permite ao site inteiro cerca de 100 buscas de músicas por dia. Antes de usar uma, o player agora procura a música no Wikidata e no MusicBrainz, dois bancos de dados musicais gratuitos que guardam o vídeo oficial do YouTube de muitas músicas, e toca esse. Funciona no player ▶, nas prévias de vídeo das premiações e na busca do player, onde esses resultados aparecem primeiro com um link \"Não está aqui? Buscar no YouTube\" embaixo. Como não gasta o limite diário, funciona também sem fazer login. Funciona com Last.fm, Google Sheets e arquivos CSV."],
+
+  "Listening streak shows again":
+    ["A sequência de escuta voltou a aparecer",
+     "Ao juntar o card de estatísticas de Todos os Tempos ao banner, a sequência de escuta no fim da faixa do topo também foi desligada, junto com a linha de baixo (maiores sequências, a mais longa em andamento). As duas voltam a aparecer em todas as abas de paradas."],
+
 
   /* ========== OUTUBRO 2026 ========== */
 
