@@ -1052,8 +1052,8 @@ themes (Navy dark, Navy light, Yellow dark, Red light; see 3.2) and on a phone.
 | **4** ✓ | **Artwork — redone 2026-10-13** as a review of the picture system (3.7): the missing pictures were mostly a screenshot artifact. Fixed the Deezer→iTunes→Last.fm fallback, sized pictures to their slots, loaded three at a time with what's on screen first. Left for later: the gradient stand-in for the rare real miss. | Turned out smaller than planned. | Small |
 | **5** ✓ | **Done 2026-10-13** (branch `redesign/phase-5-shell`, merged into `main`). **Shell:** slim sticky top bar, new main tabs + More, period switch next to the date, toasts for status, merge ON AIR + streak, no masthead or Time Machine on non-chart tabs. | Fixes "can't find anything" and gives back ~1,000px on every tab. | Medium |
 | **6** ✓ | **Done 2026-10-14** (branch `redesign/phase-6-weekly`; what changed from this plan is under "Phase 6" below). **Weekly page:** one filter toolbar, sections reordered (stats + "of the moment" → chart → bubbling/off/new → certified → time machine), releases moved to Events, light-touch stat tile changes only if you choose them (4.6). | This is the page everyone sees first. | Medium |
-| **7** ◐ | **Steps 1–7 done and on `main` (2026-10-18); step 10 partly done; step 8 done (all five layouts; Filmstrip and Mosaic on the branch); step 9 next.** **Chart table and layouts** (4.9b, 4.10, 4.11, 4.12): one item builder + one action menu + one details drawer so **every layout has every feature** (chart run, peak, plays change, player, playlist…), layouts on every period with paging, all six layouts restyled, buttons moved into the toolbar, slimmer rows from #11 down, short lists capped at 5. | The core of the product. Do the shared builder first, then restyle each layout on top of it. | Large |
-| **8** | **Shared components:** one button, tab, segmented control, chip, card, table, carousel, pop-up frame. Replace the per-feature button families. | Makes 9–10 fast and keeps it consistent. | Large |
+| **7** ✓ | **Done 2026-10-22** (branch `redesign/phase-7-layouts`, on `main`; see "Phase 7" below — step 9 skipped). **Chart table and layouts** (4.9b, 4.10, 4.11, 4.12): one item builder + one action menu + one details drawer so **every layout has every feature** (chart run, peak, plays change, player, playlist…), layouts on every period with paging, all six layouts restyled, buttons moved into the toolbar, short lists capped at 5. | The core of the product. Do the shared builder first, then restyle each layout on top of it. | Large |
+| **8** | **Next** (11 steps, see "Phase 8" below). **Shared components:** one button, tab, segmented control, chip, card, table, carousel, pop-up frame. Replace the per-feature button families. | Makes 9–10 fast and keeps it consistent. | Large |
 | **9** | **Other views** in this order: Records (4.15), Stats (4.14), Raw Data (4.13), then Events, Awards, Soundtrack and the rest once seen on screen. | Records and Stats have the most concrete fixes already written down. | Large |
 | **10** | **Pop-ups and Settings** (4.20–4.21), including the side panel for song/artist/album. | | Medium |
 | **11** | **Final sweep:** move the 352 inline styles into classes, delete whatever old CSS and JS the earlier phases missed, reduce breakpoints to two, replace emoji in titles with icons. | Shrinks the 1.1 MB stylesheet and stops it drifting again. | Medium |
@@ -2028,6 +2028,47 @@ animation, 12 screen check.
     own line above the four buttons.
   - The pt-BR Yearly table leftover (5px too wide) didn't show up any more.
 Phase 7 is finished.
+
+**Phase 8 (shared components). Planned 2026-10-22, one step per commit, on
+its own branch.** Before/after mockup:
+https://claude.ai/artifact/Tf4Sbvjr3qLBfNrfoRuU1f. Same way of working as
+phase 7: a mockup first when a step changes the look, you check each step
+before the next, and the old classes go in the same commit that moves their
+last user (see "Delete as you go").
+
+1. **Corners and shadows.** Settle the corner sizes (6 / 10 / 16 / full, see
+   phase 0) and a few standard shadows, and point the 222 raw shadows at
+   them. Barely visible, but every later step uses them.
+2. **Buttons.** One button in three kinds: main, normal, plain. Move every
+   page's buttons onto it (`graphs-btn`, `ev-view-btn`, `creel-btn`…). This
+   also removes the old YouTube/＋ pair rules still used by `sk-et-yt` and
+   `na-tt-yt-btn`.
+3. **The "pick one" switch.** One segmented control for Stats period,
+   Graphs, Events view, Time Machine type, the certification reel and the
+   rest (`st-period-btn`, `sh-seg-btn`, `tm-type-btn`…). The Daily tab's
+   switches already count as done.
+4. **Tabs.** Records, Awards and the ⋮ menu share one tab style. The ⋮ tabs
+   (Show / Size / View / Actions) get translated here.
+5. **Tags and chips.** One small label style ("New", "Gold", "#1"…).
+6. **Cards.** One box style for panels and cards. The "Of the moment" cards
+   stay as they are (approved).
+7. **Tables.** Records, Streaks and Raw Data tables share one look. The
+   chart table stays as phase 7 left it.
+8. **Sliders.** Side-scrolling rows (certification reel and the like) work
+   the same everywhere.
+9. **Pop-up frame.** One frame for every pop-up window; on phones the ⋮
+   menu opens above the bottom tab bar. What is inside the pop-ups is
+   phase 10.
+10. **More picture sources.** Not the old "missing pictures" problem (phase 4
+    showed that was loading, and fixed it). This is for the rare song or
+    album no source has: after Deezer → iTunes → Last.fm, try **Cover Art
+    Archive** (through MusicBrainz, about one lookup a second, so only on a
+    real miss) for songs and albums, and **Wikipedia / Wikidata** for artist
+    photos. Both are free, need no key and are already used elsewhere in the
+    site. What still has no picture keeps the initials (✎ still works).
+    Replaces the gradient stand-in idea.
+11. **Screen check.** Every page at phone, tablet and desktop widths in the
+    four check themes, like phase 7 step 12.
 
 The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in
