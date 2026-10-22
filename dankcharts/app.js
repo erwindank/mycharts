@@ -8411,7 +8411,7 @@ function buildRecords() {
     if (!pakCfg.some(function (cfg) { return pakPeriods[cfg.pt].length; })) {
       document.getElementById('recPAKBody').innerHTML = pakEmpty(pakCfg[0]);
     } else {
-      let ph = '<div class="rec-per-tabs" data-rec-per-scope="pak" role="tablist"'
+      let ph = '<div class="dc-tabs rec-per-tabs" data-rec-per-scope="pak" role="tablist"'
         + ' aria-label="' + esc(t('rec_per_tabs_label')) + '">';
       for (const cfg of pakCfg) {
         ph += '<button type="button" class="rec-per-tab" role="tab"'
@@ -8704,7 +8704,7 @@ function buildRecords() {
     // One period pill row per entity panel, so Songs can sit on Weekly while
     // Albums sits on Yearly — 'app-songs' is a different stored choice.
     const perScope = 'app-' + ent.key;
-    let html = '<div class="rec-per-tabs" data-rec-per-scope="' + esc(perScope) + '"'
+    let html = '<div class="dc-tabs rec-per-tabs" data-rec-per-scope="' + esc(perScope) + '"'
       + ' role="tablist" aria-label="' + esc(t('rec_per_tabs_label')) + '">';
     for (const cfg of appCfg) {
       html += '<button type="button" class="rec-per-tab" role="tab"'
@@ -8981,7 +8981,7 @@ function buildRecords() {
     // 'deb-songs' is a different stored period choice from 'deb-albums', so
     // each entity remembers the chart you last looked at it on.
     const perScope = 'deb-' + ent.key;
-    let html = '<div class="rec-per-tabs" data-rec-per-scope="' + esc(perScope) + '"'
+    let html = '<div class="dc-tabs rec-per-tabs" data-rec-per-scope="' + esc(perScope) + '"'
       + ' role="tablist" aria-label="' + esc(t('rec_per_tabs_label')) + '">';
     for (const cfg of debCfg) {
       html += '<button type="button" class="rec-per-tab" role="tab"'
@@ -9078,7 +9078,7 @@ function buildRecords() {
     // One period pill row per entity panel, so each entity remembers its own
     // period — 'pp-songs' is a different stored choice from 'pp-albums'.
     const perScope = 'pp-' + ent.key;
-    let html = '<div class="rec-per-tabs" data-rec-per-scope="' + esc(perScope) + '"'
+    let html = '<div class="dc-tabs rec-per-tabs" data-rec-per-scope="' + esc(perScope) + '"'
       + ' role="tablist" aria-label="' + esc(t('rec_per_tabs_label')) + '">';
     for (const cfg of ptCfg) {
       html += '<button type="button" class="rec-per-tab" role="tab"'
@@ -9829,7 +9829,7 @@ function buildRecords() {
     const perScope = 'streaks-' + ent.key;
     // Artists are their own credit; everything else carries one underneath.
     const nameTh = ent.kind === 'artist' ? ent.label : ent.label + ' &middot; ' + t('rec_th_artist');
-    let html = '<div class="rec-per-tabs" data-rec-per-scope="' + esc(perScope) + '"'
+    let html = '<div class="dc-tabs rec-per-tabs" data-rec-per-scope="' + esc(perScope) + '"'
       + ' role="tablist" aria-label="' + esc(t('rec_per_tabs_label')) + '">';
     for (const cfg of STREAK_PERIODS) {
       html += '<button type="button" class="rec-per-tab" role="tab"'
