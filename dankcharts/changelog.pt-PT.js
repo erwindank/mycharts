@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Events and Playlists buttons match the rest of the site":
+    ["Os botões de Eventos e Playlists combinam com o resto do site",
+     "Os botões da página de Eventos (Atualizar, as setas do calendário, Reproduzir tudo, Criar playlist, Exportar playlist e os botões de adicionar à playlist em cada secção) e da página de Playlists têm agora o mesmo aspeto e tamanho. Em Playlists, Retomar é o único botão em destaque, e Eliminar e Remover aparecem a vermelho para ser mais difícil tocar-lhes por engano. As janelas de Criar playlist e PDF para imprimir e o painel da ligação de partilha da cerimónia de prémios têm cada uma um botão principal claro. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
+
   "Share as image windows have clearer buttons":
     ["As janelas de Partilhar como imagem têm botões mais claros",
      "Em todas as janelas de Partilhar como imagem (tops, percursos no top, cartões de estatísticas, avaliações, recordes, sequências e o calendário Diário), Transferir imagem é agora o único botão em destaque, e Copiar e Partilhar ficam ao lado num estilo mais discreto, todos com a mesma altura. Nos telemóveis, Transferir imagem tem uma linha própria em toda a largura, com Cancelar, Copiar e Partilhar por baixo, em vez de quatro botões apertados com o texto partido. Funciona com Last.fm, Google Sheets e ficheiros CSV."],

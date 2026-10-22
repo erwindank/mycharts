@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Events and Playlists buttons match the rest of the site":
+    ["Los botones de Eventos y Listas de reproducción coinciden con el resto del sitio",
+     "Los botones de la página de Eventos (Actualizar, las flechas del calendario, Reproducir todo, Crear lista, Exportar lista y los botones para añadir a una lista en cada sección) y de la página de Listas de reproducción comparten ahora el mismo aspecto y tamaño. En Listas de reproducción, Reanudar es el único botón destacado, y Eliminar y Quitar aparecen en rojo para que sea más difícil pulsarlos por error. Las ventanas de Crear lista y PDF imprimible y el panel del enlace para compartir de la ceremonia de premios tienen cada uno un botón principal claro. Funciona con Last.fm, Google Sheets y archivos CSV."],
+
   "Share as image windows have clearer buttons":
     ["Las ventanas de Compartir como imagen tienen botones más claros",
      "En todas las ventanas de Compartir como imagen (listas, recorridos en la lista, tarjetas de estadísticas, valoraciones, récords, rachas y el calendario Diario), Descargar imagen es ahora el único botón destacado, y Copiar y Compartir quedan al lado con un estilo más discreto, todos a la misma altura. En los teléfonos, Descargar imagen ocupa su propia fila a todo lo ancho, con Cancelar, Copiar y Compartir debajo, en vez de cuatro botones apretados con el texto partido. Funciona con Last.fm, Google Sheets y archivos CSV."],
