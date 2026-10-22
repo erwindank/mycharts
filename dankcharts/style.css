@@ -20694,17 +20694,6 @@ body.purple .landing-card-config input:focus {
   border-bottom: 1px solid var(--border);
   margin-bottom: 0.15em;
 }
-.yt-hist-addall-btn {
-  background: none;
-  border: 1px solid var(--border);
-  border-radius: var(--r-xs);
-  color: var(--text3);
-  cursor: pointer;
-  font-size: var(--fs-xs);
-  padding: 0.1rem 0.35rem;
-  transition: background 0.1s, color 0.1s;
-}
-.yt-hist-addall-btn:hover { background: var(--border); color: var(--text); }
 
 /* ── Shortcuts panel ── */
 .yt-shortcuts-panel {
@@ -20832,23 +20821,6 @@ body.purple .landing-card-config input:focus {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.yt-queue-now-btn, .yt-queue-next-btn, .yt-queue-add-btn, .yt-queue-dismiss-btn {
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  color: var(--text);
-  border-radius: var(--r-xs);
-  padding: 0.2rem 0.45rem;
-  cursor: pointer;
-  font-size: var(--fs-xs);
-  white-space: nowrap;
-  transition: background 0.1s, border-color 0.1s;
-  font-family: inherit;
-}
-.yt-queue-now-btn:hover, .yt-queue-next-btn:hover, .yt-queue-add-btn:hover, .yt-queue-dismiss-btn:hover { background: var(--border); }
-.yt-queue-next-btn { color: var(--text2); border-style: dashed; }
-.yt-queue-next-btn:hover { border-style: solid; color: var(--text); }
-.yt-queue-add-btn { border-color: #FF0000; color: #FF0000; }
-.yt-queue-add-btn:hover { background: rgba(255,0,0,0.08); }
 
 /* ── Played items (greyed out, already played from queue) ── */
 .yt-mini-queue-played { padding: 0.03rem 0; }
@@ -20919,19 +20891,6 @@ body.purple .landing-card-config input:focus {
   margin-bottom: 0.1em;
 }
 .yt-queue-sel-count { color: var(--text3); font-size: var(--fs-xs); flex: 1; }
-.yt-queue-multi-act-btn {
-  background: none;
-  border: 1px solid var(--border);
-  border-radius: var(--r-xs);
-  color: var(--text2);
-  cursor: pointer;
-  font-size: var(--fs-xs);
-  padding: 0.1em 0.45em;
-  font-family: inherit;
-  transition: color 0.1s, border-color 0.1s;
-}
-.yt-queue-multi-act-btn:hover  { color: var(--text); border-color: var(--text3); }
-.yt-queue-multi-del-btn:hover  { color: #FF0000;   border-color: #FF0000; }
 
 /* ── Checkbox in multi-select mode ── */
 .yt-mini-queue-cb { flex-shrink: 0; cursor: pointer; accent-color: #FF0000; width: 12px; height: 12px; }
@@ -20948,6 +20907,7 @@ body.purple .landing-card-config input:focus {
   border-top: 1px solid var(--border);
   margin-top: 0.12em;
 }
+.yt-queue-undo-bar .dc-btn { flex-shrink: 0; }
 .yt-queue-undo-label {
   color: var(--text3);
   font-size: var(--fs-xs);
@@ -20956,19 +20916,6 @@ body.purple .landing-card-config input:focus {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.yt-queue-undo-btn {
-  background: none;
-  border: 1px solid var(--border);
-  border-radius: var(--r-xs);
-  color: var(--text2);
-  cursor: pointer;
-  font-size: var(--fs-xs);
-  padding: 0.1em 0.5em;
-  flex-shrink: 0;
-  font-family: inherit;
-  transition: color 0.1s, border-color 0.1s;
-}
-.yt-queue-undo-btn:hover { color: var(--text); border-color: var(--text3); }
 
 /* ── Right-click context menu (#10 / #17) ── */
 .yt-queue-ctx {
@@ -21050,56 +20997,15 @@ body.purple .landing-card-config input:focus {
   line-height: 1.4;
 }
 
-/* YouTube play button on each song row.
-   Phase 3 colour pass: was a solid YouTube-red (#FF0000) button, the loudest
-   thing on the page and the same red as "dropped". Now a quiet neutral button
-   (--raised / --text); the YouTube icon and word say what it is. The theme
-   accent shows what's playing (see .yt-btn-playing). */
-.yt-play-btn {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  background: var(--raised);
-  color: var(--text);
-  border: none;
-  border-radius: var(--r-xs);
-  font-size: var(--fs-xs);
-  font-weight: 700;
-  font-family: inherit;
-  padding: 0.18em 0.48em;
-  margin-top: 0.2rem;
-  cursor: pointer;
-  vertical-align: middle;
-  line-height: 1.5;
-  overflow: hidden;
-  transition: background 0.15s, transform 0.1s;
-  white-space: nowrap;
-}
-/* hover is colour only, no scale pop (DESIGN.md §5 Buttons) */
-.yt-play-btn:hover { background: color-mix(in srgb, var(--text) 12%, var(--raised)); }
+/* YouTube ▶ (Streaks table, new-artist tooltip). The look is .dc-btn's;
+   .yt-play-btn only carries the loading spinner and now-playing states the
+   player sets on whichever button started the track. The old pill and its
+   YouTube/＋ pair rules went in phase 8 step 2e. */
+.yt-play-btn { position: relative; overflow: hidden; }
 .yt-play-btn .yt-btn-content { display: flex; align-items: center; gap: 0.3em; transition: opacity 0.12s; }
-
-/* YouTube + ＋ playlist pair under a row's title. They were different heights
-   (~18px vs 22px), the ＋ sat higher because only YouTube had a top margin,
-   and nothing spaced them apart. Here they share one height, corner, top
-   margin and an 8px gap, so they read as a tidy pair of controls. The small
-   overlay variants (.dc-pl-add-sm, on cover hovers) keep their own layout.
-   The gap is YouTube's right margin, not the ＋'s left one: either can be
-   switched off on its own, and a hidden YouTube must take the gap with it or
-   the ＋ would sit indented with nothing beside it. */
-.yt-play-btn:has(+ .dc-pl-add-btn:not(.dc-pl-add-sm)) {
-  height: 22px;
-  padding: 0 0.6em;
-  margin-top: 6px;
-  margin-right: var(--sp-2);
-  border-radius: var(--r-xs);
-  font-size: var(--fs-xs);
-  line-height: 1;
-}
-.yt-play-btn + .dc-pl-add-btn:not(.dc-pl-add-sm) { margin-top: 6px; }
 .yt-btn-icon { width: 10px; height: 10px; fill: currentColor; flex-shrink: 0; display: block; }
 /* Loading state */
-.yt-play-btn.yt-btn-loading { background: var(--raised); cursor: wait; pointer-events: none; }
+.yt-play-btn.yt-btn-loading { cursor: wait; pointer-events: none; }
 .yt-play-btn.yt-btn-loading .yt-btn-content { opacity: 0; }
 .yt-play-btn.yt-btn-loading::after {
   content: '';
@@ -21218,20 +21124,6 @@ body.purple .landing-card-config input:focus {
   outline: none;
 }
 .yt-pl-name-input:focus { border-color: #FF0000; }
-.yt-pl-save-btn {
-  background: none;
-  border: 1px solid var(--border);
-  border-radius: var(--r-xs);
-  color: var(--text2);
-  cursor: pointer;
-  font-size: var(--fs-xs);
-  padding: 0.18rem 0.4rem;
-  font-family: inherit;
-  white-space: nowrap;
-  transition: background 0.1s, border-color 0.1s, color 0.1s;
-  flex-shrink: 0;
-}
-.yt-pl-save-btn:hover { background: rgba(255,0,0,0.08); border-color: #FF0000; color: #FF0000; }
 .yt-pl-empty { color: var(--text3); font-size: var(--fs-xs); }
 .yt-pl-item {
   display: flex;

@@ -32139,7 +32139,7 @@ function _ytRenderHistory() {
   if (_ytHistory.length === 0) { el.innerHTML = '<div class="yt-hist-empty">No history yet</div>'; return; }
   el.innerHTML =
     `<div class="yt-hist-header">` +
-    `<button class="yt-hist-addall-btn" onclick="_ytAddHistoryToQueue()" title="Add all to queue">+ Queue all</button>` +
+    `<button class="dc-btn dc-btn-normal dc-btn-sm" onclick="_ytAddHistoryToQueue()" title="Add all to queue">+ Queue all</button>` +
     `</div>` +
     _ytHistory.map((h, i) =>
     `<div class="yt-hist-item">` +
@@ -32497,8 +32497,8 @@ function _ytUpdateQueueDisplay() {
     html +=
       `<div class="yt-queue-multi-actions">` +
       `<span class="yt-queue-sel-count">${selCount} selected</span>` +
-      `<button class="yt-queue-multi-act-btn" onclick="_ytMoveSelectedToTop()" title="Move selected to top">↑ Top</button>` +
-      `<button class="yt-queue-multi-act-btn yt-queue-multi-del-btn" onclick="_ytDeleteSelected()" title="Delete selected">✕ Del</button>` +
+      `<button class="dc-btn dc-btn-normal dc-btn-sm" onclick="_ytMoveSelectedToTop()" title="Move selected to top">↑ Top</button>` +
+      `<button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-danger" onclick="_ytDeleteSelected()" title="Delete selected">✕ Del</button>` +
       `</div>`;
   }
 
@@ -32557,7 +32557,7 @@ function _ytUpdateQueueDisplay() {
     html +=
       `<div class="yt-queue-undo-bar">` +
       `<span class="yt-queue-undo-label">Removed "${esc(_ytLastRemovedItem.item.title)}"</span>` +
-      `<button class="yt-queue-undo-btn" onclick="_ytUndoRemove()">Undo</button>` +
+      `<button class="dc-btn dc-btn-normal dc-btn-sm" onclick="_ytUndoRemove()">Undo</button>` +
       `</div>`;
   }
 
@@ -33301,7 +33301,7 @@ function _ytRenderPlaylists() {
   const names = Object.keys(_ytPlaylists);
   let html = `<div class="yt-pl-save-row">` +
     `<input id="ytPlNewName" class="yt-pl-name-input" type="text" placeholder="Playlist name…" maxlength="40" onkeydown="if(event.key==='Enter')_ytSaveCurrentQueue(this.value.trim())">` +
-    `<button class="yt-pl-save-btn" onclick="_ytSaveCurrentQueue(document.getElementById('ytPlNewName').value.trim())">Save</button>` +
+    `<button class="dc-btn dc-btn-main dc-btn-sm" onclick="_ytSaveCurrentQueue(document.getElementById('ytPlNewName').value.trim())">Save</button>` +
     `</div>`;
   if (names.length === 0) {
     html += '<div class="yt-pl-empty">No saved playlists</div>';
@@ -37483,7 +37483,7 @@ function _skShowEntTip(trig) {
   const ytSvg = `<svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>`;
   _skEntTip.innerHTML = `<div class="sk-et-hdr">Last played from <strong>${esc(name)}</strong></div>` +
     songs.map(s => `<div class="sk-et-row"><span class="sk-et-name">${esc(s.title)}</span>` +
-      `<button class="yt-play-btn sk-et-yt" data-title="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album || '')}" onclick="event.stopPropagation();_ytStreakPlay(this.dataset.title,this.dataset.artist)" title="Play / Add to Queue"><span class="yt-btn-content">${ytSvg}</span></button>${dcPlBtnHtml('song', s.title, s.artist, s.album || '')}` +
+      `<button class="dc-btn dc-btn-normal dc-btn-sm yt-play-btn sk-et-yt" data-title="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album || '')}" onclick="event.stopPropagation();_ytStreakPlay(this.dataset.title,this.dataset.artist)" title="Play / Add to Queue"><span class="yt-btn-content">${ytSvg}</span></button>${dcPlBtnHtml('song', s.title, s.artist, s.album || '')}` +
     `</div>`).join('');
   _skEntTip.style.display = 'block';
   const r = trig.getBoundingClientRect(), w = 300;
@@ -37615,7 +37615,7 @@ function _naShowTooltip(trigger) {
   _naTooltip.innerHTML = songs.map(title =>
     `<div class="na-tt-item">
       <span class="na-tt-name">${esc(title)}</span>
-      <button class="yt-play-btn na-tt-yt-btn" data-title="${esc(title)}" data-artist="${esc(artist)}" data-album="" onclick="event.stopPropagation();ytPlayFromBtn(this)" title="Play on YouTube"><span class="yt-btn-content">${ytSvg}YouTube</span></button>${dcPlBtnHtml('song', title, artist, '')}
+      <button class="dc-btn dc-btn-normal dc-btn-sm yt-play-btn na-tt-yt-btn" data-title="${esc(title)}" data-artist="${esc(artist)}" data-album="" onclick="event.stopPropagation();ytPlayFromBtn(this)" title="Play on YouTube"><span class="yt-btn-content">${ytSvg}YouTube</span></button>${dcPlBtnHtml('song', title, artist, '')}
     </div>`
   ).join('');
   _naTooltip.style.display = 'block';
