@@ -80,6 +80,14 @@ const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
 
+  { d: '2026-10-21', t: 'design', a: 'charts',
+    title: "The All-Time collage follows the chart you're looking at",
+    detail: "On All-Time, the picture collage behind the stats banner now matches the chart under it: Songs shows your top songs' covers, Artists your top artists' photos, and Albums your top albums. If you keep singles or EPs apart from albums, the Albums / Singles / EPs / All buttons change the collage too. The other periods keep showing album covers. Works with Last.fm, Google Sheets and CSV uploads." },
+
+  { d: '2026-10-21', t: 'design', a: 'charts',
+    title: "All-Time's stats card is now part of the stats banner",
+    detail: "On All-Time, the separate card above the stats banner (total plays, days listened, plays per day and top artist) is gone, and nothing went with it: total plays and your top artist were already in the banner, and days listened and plays per day are now the small stats under Total Plays, where the other periods show their best day. Tap days listened to jump to your listening heatmap, as before. Works with Last.fm, Google Sheets and CSV uploads." },
+
   { d: '2026-10-21', t: 'fix', a: 'share',
     title: "Shared images no longer squash non-square pictures",
     detail: "When a picture wasn't square, such as a YouTube thumbnail or some iTunes and Last.fm covers, the saved or shared image squeezed it into its box like an accordion, even though the preview looked right. Now each picture is cropped the same way the preview shows it, at full sharpness. Fixed on every Share button: charts, records, streaks, stats, ratings, awards and the Daily calendar card. Works with Last.fm, Google Sheets and CSV uploads." },

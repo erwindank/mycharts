@@ -25,6 +25,8 @@ function setChartTypeView(type) {
   applyChartTypeView();
   // The "Inside your Top N" stats follow the chart on screen (insights.js)
   if (typeof atiRender === 'function') atiRender();
+  // The All-Time banner's collage follows the chart on screen too
+  if (currentPeriod === 'alltime' && typeof shRenderMosaic === 'function') shRenderMosaic();
 }
 
 function applyChartTypeView() {
@@ -13288,25 +13290,9 @@ function renderStatsHero(ctx) {
     bg.innerHTML = `<div class="sh-photo" id="sh-photo"><span class="thumb-initials"></span></div>`;
     fetchAndInjectImage(document.getElementById('sh-photo'), { imgId: 'sh-photo', name: lead.name, prefKey: 'artist:' + lead.name.toLowerCase() }, 'artist');
   } else {
-    // 24 cells so the grid fills the banner at every width; the top 18
-    // covers (three full rows of 6 on a computer, user's pick 2026-10-20)
-    // repeat when there are fewer of them than cells
-    const covers = tally.albumList.slice(0, 18);
-    if (covers.length) {
-      bg.innerHTML = `<div class="sh-mosaic">${Array.from({ length: 24 }, (_, i) => `<span class="sh-mos-cell" id="sh-mos-${i}"></span>`).join('')}</div>`;
-      covers.forEach((b, i) => {
-        const el = document.getElementById('sh-mos-' + i);
-        if (!el) return;
-        fetchAndInjectImage(el, { imgId: 'sh-mos-' + i, album: b.album, name: b.album, artist: b.artist, prefKey: 'album:' + b.artist.toLowerCase() + '|||' + b.album.toLowerCase() }, 'album')
-          .then(() => {
-            // copy the picture into the repeats of this cover
-            for (let j = i + covers.length; j < 24; j += covers.length) {
-              const dup = document.getElementById('sh-mos-' + j);
-              if (dup && el.isConnected) dup.innerHTML = el.innerHTML;
-            }
-          });
-      });
-    } else bg.innerHTML = '';
+    _shMosaicTally = tally;
+    _shMosaicPeriod = period;
+    shRenderMosaic();
   }
 
   // Eyebrow / name / sub, the way the Records banner reads
@@ -13339,6 +13325,51 @@ function renderStatsHero(ctx) {
       <span>${esc(t('sh_share'))}</span>
     </button>`;
   days.innerHTML = shDaysHtml(period, start, end, plays, shareBtn, timed !== false);
+}
+
+// The cover mosaic behind a running period (and All-Time). On All-Time it
+// follows the chart on screen (user, 2026-10-21): Songs → top songs' covers,
+// Artists → top artists' photos, Albums → the top releases of the bucket
+// the album chips show (albums, singles, EPs…, or all of them). The other
+// periods keep the album covers. Kept separate from renderStatsHero so the
+// Songs / Artists / Albums toggle can redraw just this (setChartTypeView).
+let _shMosaicTally = null, _shMosaicPeriod = null;
+function shRenderMosaic() {
+  const bg = document.getElementById('statsHeroBg');
+  const tally = _shMosaicTally;
+  if (!bg || !tally) return;
+  const kind = _shMosaicPeriod === 'alltime' ? chartTypeView : 'albums';
+  // 24 cells so the grid fills the banner at every width; the top 18
+  // (three full rows of 6 on a computer, user's pick 2026-10-20)
+  // repeat when there are fewer of them than cells
+  let items, type;
+  if (kind === 'songs') {
+    type = 'song';
+    items = tally.songList.slice(0, 18).map(s => ({ title: s.title, name: s.title, artist: s.artist, prefKey: 'song:' + s.artist.toLowerCase() + '|||' + s.title.toLowerCase() }));
+  } else if (kind === 'artists') {
+    type = 'artist';
+    items = tally.artistList.slice(0, 18).map(a => ({ name: a.name, prefKey: 'artist:' + a.name.toLowerCase() }));
+  } else {
+    type = 'album';
+    // Only All-Time follows the album chips; null = nothing separated / "All"
+    const want = _shMosaicPeriod === 'alltime' ? albumsFilterBucket() : null;
+    const list = want ? tally.albumList.filter(b => albumBucketOfKey(b.key) === want) : tally.albumList;
+    items = list.slice(0, 18).map(b => ({ album: b.album, name: b.album, artist: b.artist, prefKey: 'album:' + b.artist.toLowerCase() + '|||' + b.album.toLowerCase() }));
+  }
+  if (!items.length) { bg.innerHTML = ''; return; }
+  bg.innerHTML = `<div class="sh-mosaic">${Array.from({ length: 24 }, (_, i) => `<span class="sh-mos-cell" id="sh-mos-${i}"></span>`).join('')}</div>`;
+  items.forEach((item, i) => {
+    const el = document.getElementById('sh-mos-' + i);
+    if (!el) return;
+    fetchAndInjectImage(el, Object.assign({ imgId: 'sh-mos-' + i }, item), type)
+      .then(() => {
+        // copy the picture into the repeats of this one
+        for (let j = i + items.length; j < 24; j += items.length) {
+          const dup = document.getElementById('sh-mos-' + j);
+          if (dup && el.isConnected) dup.innerHTML = el.innerHTML;
+        }
+      });
+  });
 }
 
 // Share: the banner as a picture. Phones get the share sheet, computers a
@@ -14489,6 +14520,21 @@ function renderAll() {
     };
   }
 
+  // All-Time (2026-10-21): Days Listened and Plays / Day used to sit in their
+  // own card above the banner (#heroStats); now they are the small stats under
+  // Total Plays, where the other periods show their best day. The card's Total
+  // Plays and Top Artist were already in the banner. Days Listened still jumps
+  // to the heatmap.
+  let _alltimeLine = '';
+  if (currentPeriod === 'alltime' && plays.length) {
+    const _days = new Set(plays.map(p => localDateStr(tzDateOf(p)))).size;
+    const _perDay = Math.round(plays.length / _days);
+    _alltimeLine = `<div class="stat-sub">` +
+      `<div class="stat-sub-cell is-link" onclick="event.stopPropagation();dcGoHeatmap()" title="${esc(t('hero_days_tip'))}"><span class="stat-sub-val">${_days.toLocaleString()}</span><span class="stat-sub-lbl">${esc(t('hero_days_listened'))}</span></div>` +
+      `<div class="stat-sub-cell"><span class="stat-sub-val">${_perDay.toLocaleString()}</span><span class="stat-sub-lbl">${esc(t('hero_plays_per_day'))}</span></div>` +
+      `</div>`;
+  }
+
   // Stats banner (2026-10-20): the period's top songs / artists / albums for
   // the tile pictures (_usual, your usual period, is worked out further up)
   const _tally = shTally(plays, currentPeriod === 'alltime' ? null : start);
@@ -14499,7 +14545,7 @@ function renderAll() {
   const _songsTip = _tally.newSongs.length ? t('sh_faces_new') : t('sh_faces_top_songs');
 
   document.getElementById('statsStrip').innerHTML =
-    statBox(plays.length,   'stat_total_plays',  prevPlays     ? prevPlays.length     : null, peakStats ? peakStats.maxPlays   : null, peakAtTimeStats ? peakAtTimeStats.maxPlays   : null, { scrollTo: 'songsSection',   emoji: '🎵', cat: 'plays',   extraLabel: playsPerDay ? playsPerDay + t('stat_per_day') : null, extraLine: _hl?.bestDayLine,
+    statBox(plays.length,   'stat_total_plays',  prevPlays     ? prevPlays.length     : null, peakStats ? peakStats.maxPlays   : null, peakAtTimeStats ? peakAtTimeStats.maxPlays   : null, { scrollTo: 'songsSection',   emoji: '🎵', cat: 'plays',   extraLabel: playsPerDay ? playsPerDay + t('stat_per_day') : null, extraLine: _hl?.bestDayLine || _alltimeLine,
       barsHtml: shBarsHtml(plays.length, prevPlays ? prevPlays.length : null, peakAtTimeStats ? peakAtTimeStats.maxPlays : null, _usual && _usual.n ? _usual.plays : null) }) +
     statBox(songSet.size,   'stat_unique_songs',  prevSongSet   ? prevSongSet.size     : null, peakStats ? peakStats.maxSongs   : null, peakAtTimeStats ? peakAtTimeStats.maxSongs   : null, { scrollTo: 'songsSection',   emoji: '🎶', cat: 'songs',   extraLabel: !_hl && discoveryRate !== null ? discoveryRate + t('stat_pct_new') : null, extraLine: _hl?.songs,
       barsHtml: shBarsHtml(songSet.size, prevSongSet ? prevSongSet.size : null, peakAtTimeStats ? peakAtTimeStats.maxSongs : null, _usual && _usual.n ? _usual.songs : null), facesHtml: shFacesHtml('songs', _faces.songs, _songsTip) }) +
@@ -34728,9 +34774,24 @@ function showSkeleton() {
 }
 
 // ─── HERO STATS ────────────────────────────────────────────────
+// Days Listened → the listening heatmap on the Graphs tab
+function dcGoHeatmap() {
+  const graphsBtn = document.querySelector('#periodNav button[data-period="graphs"]');
+  const needsSwitch = graphsBtn && currentPeriod !== 'graphs';
+  if (needsSwitch) graphsBtn.click();
+  const card = document.getElementById('heatmapCard');
+  if (card) {
+    setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'start' }), needsSwitch ? 300 : 0);
+  }
+}
+
 function renderHeroStats() {
   const el = document.getElementById('heroStats');
   if (!el || !allPlays.length) return;
+  // Retired 2026-10-21: the All-Time stats banner (renderStatsHero) shows all
+  // four of these now, so the old card stays hidden. Kept in case it's wanted back.
+  el.style.display = 'none';
+  return;
 
   const total = allPlays.length;
 
@@ -34831,15 +34892,7 @@ function renderHeroStats() {
   });
 
   // Switch to Graphs tab and scroll to heatmap when Days Listened is clicked
-  el.querySelector('.hero-stat-days').addEventListener('click', () => {
-    const graphsBtn = document.querySelector('#periodNav button[data-period="graphs"]');
-    const needsSwitch = graphsBtn && currentPeriod !== 'graphs';
-    if (needsSwitch) graphsBtn.click();
-    const card = document.getElementById('heatmapCard');
-    if (card) {
-      setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'start' }), needsSwitch ? 300 : 0);
-    }
-  });
+  el.querySelector('.hero-stat-days').addEventListener('click', dcGoHeatmap);
 
   // Count-up animation for numeric values
   el.querySelectorAll('[data-countup]').forEach(span => {

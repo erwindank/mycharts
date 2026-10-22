@@ -16,6 +16,14 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "The All-Time collage follows the chart you're looking at":
+    ["A colagem de Todos os Tempos acompanha a parada que você está vendo",
+     "Em Todos os Tempos, a colagem de imagens atrás do banner de estatísticas agora combina com a parada abaixo: Músicas mostra as capas das suas músicas mais ouvidas, Artistas as fotos dos seus artistas principais e Álbuns seus álbuns principais. Se você separa singles ou EPs dos álbuns, os botões Álbuns / Singles / EPs / Tudo também mudam a colagem. Os outros períodos continuam mostrando capas de álbuns. Funciona com Last.fm, Google Sheets e arquivos CSV."],
+
+  "All-Time's stats card is now part of the stats banner":
+    ["O cartão de estatísticas de Todos os Tempos agora faz parte do banner",
+     "Em Todos os Tempos, o cartão separado acima do banner de estatísticas (plays totais, dias ouvidos, plays por dia e artista principal) sumiu sem perder nada: os plays totais e seu artista principal já estavam no banner, e dias ouvidos e plays por dia agora são os números pequenos sob Plays totais, onde os outros períodos mostram o melhor dia. Toque em dias ouvidos para ir ao seu mapa de calor de audição, como antes. Funciona com Last.fm, Google Sheets e arquivos CSV."],
+
   "The stats bars: your usual as the line, the record at the time":
     ["As barras de estatísticas: o normal como linha, o recorde da época",
      "Em Diário, Semanal, Mensal e Anual, a linha sobre as barrinhas dos quatro quadros de estatísticas volta a marcar seu dia, semana, mês ou ano normal (o meio dos recentes: os últimos 90 dias, 26 semanas, 12 meses ou 3 anos em que você ouviu música, para seguir como você ouve agora e não anos atrás; a manchete \"mais que o normal\" usa o mesmo número), então ela se move em vez de ficar sempre no fim. Embaixo das barras aparecem os dois: o normal e o recorde como estava naquele período, o melhor até ele, incluindo ele. Ao olhar uma semana antiga, você vê o recorde que ela tinha que bater na época, não o de hoje. As barras começam recolhidas para os quadros ocuparem menos espaço: toque na setinha no pé de qualquer quadro para abri-las nos quatro e toque de novo para recolher. Cada barra agora mostra seu número no fim, então dá para ler este período e o anterior sem passar o mouse (o que no celular não dá). As músicas, artistas e álbuns novos no pé dos quadros agora têm as mesmas barras, o normal e o recorde. O Diário agora calcula o normal também para músicas, artistas e álbuns, não só reproduções. Funciona com Last.fm, Google Sheets e arquivos CSV."],

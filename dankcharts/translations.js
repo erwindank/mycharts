@@ -587,6 +587,7 @@ const TRANSLATIONS = {
     hero_days_listened: 'Days Listened',
     hero_plays_per_day: 'Plays / Day',
     hero_top_artist: 'Top Artist',
+    hero_days_tip: 'See your listening heatmap',
     hero_day_streak: 'Day Streak',
 
     // Streak modal
@@ -3942,6 +3943,7 @@ const TRANSLATIONS = {
     hero_days_listened: 'Días Escuchados',
     hero_plays_per_day: 'Reprods / Día',
     hero_top_artist: 'Artista Principal',
+    hero_days_tip: 'Ver tu mapa de calor de escucha',
     hero_day_streak: 'Días de Racha',
 
     // Streak modal
@@ -7191,6 +7193,7 @@ const TRANSLATIONS = {
     hero_days_listened: 'Dias Ouvidos',
     hero_plays_per_day: 'Plays / Dia',
     hero_top_artist: 'Artista Principal',
+    hero_days_tip: 'Ver seu mapa de calor de audição',
     hero_day_streak: 'Sequência de Dias',
 
     // Streak modal
@@ -10441,6 +10444,7 @@ const TRANSLATIONS = {
     hero_days_listened: 'Dias Ouvidos',
     hero_plays_per_day: 'Plays / Dia',
     hero_top_artist: 'Artista Principal',
+    hero_days_tip: 'Ver o seu mapa de calor de audição',
     hero_day_streak: 'Sequência de Dias',
 
     // Streak modal
