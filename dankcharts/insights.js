@@ -165,7 +165,11 @@ function _atiKeyOf(type, it) {
    cost a string compare, not two passes over every play. */
 function _atiCompute(type, items, N) {
   const last = items[items.length - 1];
-  const sig = [type, allPlays.length, typeof _stampEpoch !== 'undefined' ? _stampEpoch : 0,
+  /* The plays the chart counts: all of them, or those up to the day All-Time
+     is being looked at (atPlays / atAsOfEnd in app.js, "as of" time travel) */
+  const plays = typeof atPlays === 'function' ? atPlays() : allPlays;
+  const asOf = typeof atAsOfEnd === 'function' ? atAsOfEnd() : null;
+  const sig = [type, plays.length, asOf ? +asOf : 0, typeof _stampEpoch !== 'undefined' ? _stampEpoch : 0,
                typeof albumsChartFilter !== 'undefined' ? albumsChartFilter : '', N, items.length,
                _atiKeyOf(type, items[0]), items[0].count, _atiKeyOf(type, last), last.count].join('|');
   if (_ati.data && _ati.sig === sig) return _ati.data;
@@ -176,7 +180,7 @@ function _atiCompute(type, items, N) {
   /* One pass: each entry's play times (and, for artists, which of their
      songs), the plays up to a year ago, how many different songs / artists /
      albums exist at all, and when the library starts. */
-  const yearAgo = tzNow(); yearAgo.setFullYear(yearAgo.getFullYear() - 1);
+  const yearAgo = asOf ? new Date(asOf) : tzNow(); yearAgo.setFullYear(yearAgo.getFullYear() - 1);
   const cut = +yearAgo;
   const before = [];
   const uniq = new Set();
@@ -187,7 +191,7 @@ function _atiCompute(type, items, N) {
      artists get the play) and a rolled-up single on the albums chart, so the
      chart's share of all listening uses this instead. */
   let playsOnce = 0;
-  for (const p of allPlays) {
+  for (const p of plays) {
     const m = tzMsOf(p);
     if (m < earliest) earliest = m;
     if (m <= cut) before.push(p);
@@ -325,7 +329,7 @@ function _atiCompute(type, items, N) {
 
   const d = {
     type, N, E, young, fresh, cut, artists, albums, tracks, depth, carry, top10Owners, top10Max,
-    top3, top3N, top3Share, oneHit, totalPlays, playsOnce, allPlaysN: allPlays.length, uniqN,
+    top3, top3N, top3Share, oneHit, totalPlays, playsOnce, allPlaysN: plays.length, uniqN,
     bar, fast, slow, disc, byFirst, tiers, next: next.slice(0, 5), ladders: [...ladders],
   };
   _ati.data = d; _ati.sig = sig;

@@ -1233,6 +1233,8 @@ const TRANSLATIONS = {
     sec_new_albums: 'New Albums',
     period_alltime: 'All-Time',
     period_alltime_sub: 'Every play since your first scrobble',
+    period_alltime_asof: 'Every play up to {{date}}',
+    tooltip_alltime_asof: 'See All-Time as it was on a date',
     period_week_of: 'Week of {{date}}',
     period_year_months: 'January – December {{year}}',
 
@@ -4583,6 +4585,8 @@ const TRANSLATIONS = {
     sec_new_albums: 'Álbumes Nuevos',
     period_alltime: 'Histórico',
     period_alltime_sub: 'Cada reproducción desde tu primer scrobble',
+    period_alltime_asof: 'Cada reproducción hasta el {{date}}',
+    tooltip_alltime_asof: 'Ver el All-Time tal como estaba en una fecha',
     period_week_of: 'Semana del {{date}}',
     period_year_months: 'Enero – Diciembre {{year}}',
 
@@ -7833,6 +7837,8 @@ const TRANSLATIONS = {
     sec_new_albums: 'Álbuns Novos',
     period_alltime: 'Histórico',
     period_alltime_sub: 'Cada play desde o seu primeiro scrobble',
+    period_alltime_asof: 'Cada play até {{date}}',
+    tooltip_alltime_asof: 'Ver o All-Time como estava numa data',
     period_week_of: 'Semana de {{date}}',
     period_year_months: 'Janeiro – Dezembro {{year}}',
 
@@ -11084,6 +11090,8 @@ const TRANSLATIONS = {
     sec_new_albums: 'Álbuns Novos',
     period_alltime: 'De Sempre',
     period_alltime_sub: 'Cada play desde o seu primeiro scrobble',
+    period_alltime_asof: 'Cada play até {{date}}',
+    tooltip_alltime_asof: 'Ver o All-Time como estava numa data',
     period_week_of: 'Semana de {{date}}',
     period_year_months: 'Janeiro – Dezembro {{year}}',
 

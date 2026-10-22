@@ -2159,16 +2159,9 @@
       min-width: 0;
     }
 
-    /* All-time is a single period: no arrows to step through and no picker */
-    body[data-view="alltime"] #dateNav .date-nav-chevron,
-    body[data-view="alltime"] #dateNav .period-sub::after {
-      display: none;
-    }
-
-    body[data-view="alltime"] #dateNav .period-label {
-      cursor: default;
-      margin-left: auto;
-    }
+    /* All-Time has arrows and a picker too since 2026-10-21: it can be seen
+       as it stood on an earlier day ("as of" time travel), so the rules that
+       hid them here are gone */
 
     #dateNav .period-label:hover .period-sub {
       background: none;
@@ -2219,10 +2212,6 @@
 
       #dateNav .period-sub {
         font-size: var(--fs-xs);
-      }
-
-      body[data-view="alltime"] #dateNav .period-label {
-        margin: 0 auto;
       }
     }
 

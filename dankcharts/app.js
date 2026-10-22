@@ -12605,8 +12605,9 @@ document.getElementById('periodNav').addEventListener('click', e => {
   renderAll();
 });
 
-document.getElementById('prevBtn').addEventListener('click', () => { currentOffset++; pageState.songs = 0; pageState.artists = 0; pageState.albums = 0; renderAll(); });
-document.getElementById('nextBtn').addEventListener('click', () => { currentOffset = Math.max(0, currentOffset - 1); pageState.songs = 0; pageState.artists = 0; pageState.albums = 0; renderAll(); });
+// On All-Time the arrows travel a month at a time (atStepMonth)
+document.getElementById('prevBtn').addEventListener('click', () => { currentOffset = currentPeriod === 'alltime' ? atStepMonth(1) : currentOffset + 1; pageState.songs = 0; pageState.artists = 0; pageState.albums = 0; renderAll(); });
+document.getElementById('nextBtn').addEventListener('click', () => { currentOffset = currentPeriod === 'alltime' ? atStepMonth(-1) : Math.max(0, currentOffset - 1); pageState.songs = 0; pageState.artists = 0; pageState.albums = 0; renderAll(); });
 
 // ─── NAV ENHANCEMENTS ──────────────────────────────────────────
 
@@ -12657,8 +12658,18 @@ function syncPicker() {
   const yp = document.getElementById('yearPicker');
   const jp = document.getElementById('jumpPicker');
   const dp = document.getElementById('dayPicker');
-  const hasPicker = ['day', 'week', 'month', 'year'].includes(currentPeriod);
+  const ap = document.getElementById('atPicker');
+  const hasPicker = ['day', 'week', 'month', 'year', 'alltime'].includes(currentPeriod);
   jp.style.display = hasPicker ? '' : 'none';
+  // All-Time: the "as of" day, from the first play to today
+  if (ap) {
+    ap.style.display = currentPeriod === 'alltime' ? '' : 'none';
+    if (currentPeriod === 'alltime') {
+      ap.value = localDateStr(new Date(now.getFullYear(), now.getMonth(), now.getDate() - currentOffset));
+      ap.max = localDateStr(now);
+      ap.min = atFirstDay() || '';
+    }
+  }
   // Daily tab (daily.js): a plain date input, one day at a time
   if (dp) {
     dp.style.display = currentPeriod === 'day' ? '' : 'none';
@@ -12707,6 +12718,13 @@ document.getElementById('monthPicker').addEventListener('change', e => {
   const [yr, mo] = e.target.value.split('-').map(Number);
   const now = tzNow();
   const offset = (now.getFullYear() - yr) * 12 + (now.getMonth() + 1 - mo);
+  if (offset >= 0) { currentOffset = offset; pageState.songs = 0; pageState.artists = 0; pageState.albums = 0; renderAll(); }
+});
+
+// All-Time "as of" day: any day from the first play to today
+document.getElementById('atPicker').addEventListener('change', e => {
+  if (!e.target.value) return;
+  const offset = atOffsetOf(e.target.value);
   if (offset >= 0) { currentOffset = offset; pageState.songs = 0; pageState.artists = 0; pageState.albums = 0; renderAll(); }
 });
 
@@ -13209,9 +13227,11 @@ function shDaysHtml(periodType, start, end, plays, shareBtn = '', timed = true) 
       cells.push({ go: ['month', yr + '-' + String(m + 1).padStart(2, '0')], n: counts[m] || 0, future, label: t(SH_MON_KEYS[m]), tip: t(SH_MON_KEYS[m]) + ' ' + yr });
     }
   } else {
-    let first = now.getFullYear();
+    // Up to this year, or to the "as of" day's year when All-Time is looked at back in time
+    const last = Math.min(now.getFullYear(), end.getFullYear());
+    let first = last;
     for (const p of plays) { const y = tzDateOf(p).getFullYear(); counts[y] = (counts[y] || 0) + 1; if (y < first) first = y; }
-    for (let y = first; y <= now.getFullYear(); y++) cells.push({ go: ['year', String(y)], n: counts[y] || 0, future: false, label: String(y), tip: String(y) });
+    for (let y = first; y <= last; y++) cells.push({ go: ['year', String(y)], n: counts[y] || 0, future: false, label: String(y), tip: String(y) });
   }
   if (!cells.length) return '';
   const max = Math.max(1, ...cells.map(c => c.n));
@@ -13430,10 +13450,66 @@ function currentViewWeekKey() {
   return localDateStr(startDate);
 }
 
+// ─── ALL-TIME "AS OF" (time travel) ─────────────────────────────
+/* All-Time can be looked at as it stood on an earlier day (2026-10-21): the
+   chart, stats and insights then count only the plays up to the end of that
+   day. On All-Time, currentOffset counts days back from today (0 = today, the
+   normal All-Time), so savedOffsets and the page reset work as on the other
+   tabs. The arrows step a month at a time; the date box jumps to any day. */
+function atAsOfEnd() {
+  if (currentPeriod !== 'alltime' || !currentOffset) return null;
+  const n = tzNow();
+  return new Date(n.getFullYear(), n.getMonth(), n.getDate() - currentOffset, 23, 59, 59, 999);
+}
+// The day offset for a YYYY-MM-DD string (negative = in the future)
+function atOffsetOf(ds) {
+  const n = tzNow();
+  const today = new Date(n.getFullYear(), n.getMonth(), n.getDate(), 12);
+  return Math.round((today - new Date(ds + 'T12:00:00')) / 86400000);
+}
+// The first day with a play, so the arrows stop before an empty chart
+function atFirstDay() {
+  let min = Infinity;
+  for (const p of allPlays) { const m = tzMsOf(p); if (m < min) min = m; }
+  return isFinite(min) ? localDateStr(new Date(min)) : null;
+}
+// One month back (dir 1) or forward (dir -1) from the day on screen, keeping
+// the day of the month where it exists (31 Mar → 28/29 Feb)
+function atStepMonth(dir) {
+  const n = tzNow();
+  const d = new Date(n.getFullYear(), n.getMonth(), n.getDate() - currentOffset, 12);
+  const day = d.getDate();
+  d.setDate(1);
+  d.setMonth(d.getMonth() - dir);
+  d.setDate(Math.min(day, new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()));
+  let off = Math.max(0, atOffsetOf(localDateStr(d)));
+  const first = atFirstDay();
+  if (first) off = Math.min(off, atOffsetOf(first));
+  return off;
+}
+// The plays All-Time counts: every play, or those up to the day on screen.
+// Cached on the cutoff and _playsVersion so the insights and the render share one pass.
+let _atPlaysCache = null;
+function atPlays() {
+  const end = atAsOfEnd();
+  if (!end) return allPlays;
+  const sig = [+end, allPlays.length, typeof _playsVersion !== 'undefined' ? _playsVersion : 0].join('|');
+  if (_atPlaysCache && _atPlaysCache.sig === sig) return _atPlaysCache.plays;
+  const e = +end;
+  const plays = allPlays.filter(p => tzMsOf(p) <= e);
+  _atPlaysCache = { sig, plays };
+  return plays;
+}
+
 // ─── DATE RANGE ─────────────────────────────────────────────────
 function getDateRange() {
   const now = tzNow();
-  if (currentPeriod === 'alltime') return { start: new Date(0), end: new Date(9999, 0), label: t('period_alltime'), sub: t('period_alltime_sub') };
+  if (currentPeriod === 'alltime') {
+    const asOf = atAsOfEnd();
+    return asOf
+      ? { start: new Date(0), end: asOf, label: t('period_alltime'), sub: t('period_alltime_asof', { date: fmt(asOf) }) }
+      : { start: new Date(0), end: new Date(9999, 0), label: t('period_alltime'), sub: t('period_alltime_sub') };
+  }
   if (currentPeriod === 'day') return dyDateRange();   // Daily tab, daily.js
 
   let start, end, label, sub;
@@ -14253,7 +14329,7 @@ function renderAll() {
   rtQueueAutoSweep();
   const { start, end, label, sub } = getDateRange();
   const plays = currentPeriod === 'alltime'
-    ? allPlays
+    ? atPlays()   // every play, or up to the "as of" day
     // Numeric bounds: this filter touches every play on every render, and
     // comparing numbers skips a Date valueOf coercion per comparison.
     : (() => { const s = +start, e = +end;
@@ -14330,8 +14406,10 @@ function renderAll() {
   // Update date nav
   const pl = document.getElementById('periodLabel');
   pl.innerHTML = `<strong>${label}</strong><span class="period-sub">${sub}</span>`;
-  const _prevDis = (currentPeriod === 'alltime');
-  const _nextDis = (currentOffset === 0 || currentPeriod === 'alltime');
+  // All-Time steps back a month at a time until the first day with a play
+  const _atFirst = currentPeriod === 'alltime' ? atFirstDay() : null;
+  const _prevDis = currentPeriod === 'alltime' && (!_atFirst || currentOffset >= atOffsetOf(_atFirst));
+  const _nextDis = currentOffset === 0;
   document.getElementById('prevBtn').disabled = _prevDis;
   document.getElementById('nextBtn').disabled = _nextDis;
   document.querySelector('.swipe-arrow-left')?.classList.toggle('swipe-arrow-off', _nextDis);
@@ -37683,6 +37761,11 @@ document.getElementById('periodLabel').addEventListener('click', () => {
     if (dp) { try { dp.showPicker(); } catch (e) { dp.focus(); } }
     return;
   }
+  if (currentPeriod === 'alltime') {
+    const ap = document.getElementById('atPicker');
+    if (ap) { try { ap.showPicker(); } catch (e) { ap.focus(); } }
+    return;
+  }
   if (!['week', 'month', 'year'].includes(currentPeriod)) return;
   const wp = document.getElementById('weekPicker');
   const mp = document.getElementById('monthPicker');
@@ -37737,7 +37820,7 @@ document.addEventListener('keydown', e => {
   mc.add(new Hammer.Swipe({ direction: Hammer.DIRECTION_HORIZONTAL, threshold: 25, velocity: 0.25 }));
   mc.on('swipeleft swiperight', e => {
     if (e.pointerType !== 'touch') return;
-    if (!['week', 'month', 'year'].includes(currentPeriod)) return;
+    if (!['week', 'month', 'year', 'alltime'].includes(currentPeriod)) return;
     if (e.srcEvent?.target?.tagName === 'CANVAS') return;
     document.getElementById('navHint')?.classList.add('swipe-done');
     if (e.direction === Hammer.DIRECTION_LEFT) {
