@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Share as image windows have clearer buttons":
+    ["Las ventanas de Compartir como imagen tienen botones más claros",
+     "En todas las ventanas de Compartir como imagen (listas, recorridos en la lista, tarjetas de estadísticas, valoraciones, récords, rachas y el calendario Diario), Descargar imagen es ahora el único botón destacado, y Copiar y Compartir quedan al lado con un estilo más discreto, todos a la misma altura. En los teléfonos, Descargar imagen ocupa su propia fila a todo lo ancho, con Cancelar, Copiar y Compartir debajo, en vez de cuatro botones apretados con el texto partido. Funciona con Last.fm, Google Sheets y archivos CSV."],
+
   "Corners and shadows match across the site":
     ["Las esquinas y las sombras coinciden en todo el sitio",
      "Los botones, tarjetas, etiquetas y ventanas emergentes fuera de las listas usan ahora los mismos cinco tamaños de esquina en vez de diecinueve ligeramente distintos, y sus sombras tienen tres profundidades estándar. En los temas claros esas sombras son más suaves, así que las tarjetas ya no se ven manchadas. Los botones en forma de píldora siguen totalmente redondos y las listas conservan exactamente el aspecto que tenían. Funciona con Last.fm, Google Sheets y archivos CSV."],

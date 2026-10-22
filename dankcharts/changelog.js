@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 248;
+const DC_CL_I18N_V = 249;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-22', t: 'design', a: 'share', h: '62d1dbc',
+    title: "Share as image windows have clearer buttons",
+    detail: "In every Share as image window (charts, chart runs, stats cards, ratings, records, streaks and the Daily calendar), Download Image is now the one bold button and Copy and Share sit next to it in a quieter style, all the same height. On phones, Download Image gets its own full-width row with Cancel, Copy and Share below it, instead of four squeezed buttons with wrapped text. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-22', t: 'design', a: 'ui', h: '2dd424e',
     title: "Corners and shadows match across the site",
     detail: "Buttons, cards, tags and pop-up windows outside the charts now use the same five corner sizes instead of nineteen slightly different ones, and their shadows come in three standard depths. On light themes those shadows are softer, so cards no longer look smudged. Pill-shaped buttons stay fully round, and the charts keep exactly the look they had. Works with Last.fm, Google Sheets and CSV uploads." },
