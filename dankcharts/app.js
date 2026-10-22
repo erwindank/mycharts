@@ -31846,6 +31846,156 @@ function _ytSignInHTML() {
   return `${esc(t('yt_signin_needed'))} <button class="yt-err-open-btn" onclick="dcSignIn()">${esc(t('yt_signin_btn'))}</button>`;
 }
 
+// ── Free video lookup (no YouTube quota) ────────────────────────────────────
+// Before spending ~101 quota units on a YouTube search, ask two free, open
+// music databases that store the official YouTube video for many songs:
+//   1. Wikidata (the data behind Wikipedia) — "YouTube video ID" (P1651) on the
+//      song's item. Covers most hit singles; tested 17 of 20 chart songs.
+//   2. MusicBrainz — YouTube links on recordings. Patchier, but catches some
+//      songs Wikidata misses. Asks for at most 1 request a second.
+// Both allow browser requests (CORS) and need no key. Every step is checked
+// against the artist and title so a cover or remix is never picked, and any
+// failure just returns null so the normal search takes over.
+
+// "Good Luck, Babe!" / "good luck babe" / "Good Luck, Babe! (feat. X)" all match
+function _ytFreeNorm(s) {
+  return String(s || '').toLowerCase()
+    .replace(/[’‘`]/g, "'")
+    .replace(/\s*[\(\[](feat|ft|with)\.?\s[^\)\]]*[\)\]]/g, '')
+    .replace(/&/g, 'and')
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .trim();
+}
+
+// "Drake & 21 Savage" / "SZA feat. Phoebe Bridgers" → "Drake" / "SZA"
+function _ytFreeMainArtist(artist) {
+  return String(artist || '').split(/\s*(?:,|&|\/|;|\s(?:feat\.?|ft\.?|featuring|with|x|and|vs\.?)\s)\s*/i)[0].trim() || artist;
+}
+
+const _ytVideoIdRe = /^[A-Za-z0-9_-]{11}$/;
+
+// fetch() that gives up after `ms`, so a slow database can't hold up the player
+async function _ytFreeFetch(url, ms = 4000) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), ms);
+  try {
+    const res = await fetch(url, { signal: ctrl.signal });
+    return res.ok ? await res.json() : null;
+  } finally { clearTimeout(timer); }
+}
+
+async function _ytFreeWikidata(artist, title) {
+  const want = _ytFreeNorm(title);
+  const main = _ytFreeNorm(_ytFreeMainArtist(artist));
+  const api  = 'https://www.wikidata.org/w/api.php?origin=*&format=json';
+  // Full-text search, limited to items that have a YouTube video ID at all
+  const search = await _ytFreeFetch(`${api}&action=query&list=search&srlimit=5&srsearch=`
+    + encodeURIComponent(`${_ytFreeMainArtist(artist)} ${title.replace(/\s*[\(\[](feat|ft|with)\.?\s[^\)\]]*[\)\]]/gi, '')} haswbstatement:P1651`));
+  const ids = ((search && search.query && search.query.search) || []).map(r => r.title);
+  if (!ids.length) return null;
+  const data = await _ytFreeFetch(`${api}&action=wbgetentities&props=labels|descriptions|claims&languages=en&ids=${ids.join('|')}`);
+  if (!data || !data.entities) return null;
+  // Keep search order (best match first)
+  for (const id of ids) {
+    const ent = data.entities[id];
+    if (!ent) continue;
+    const label = ((ent.labels || {}).en || {}).value;
+    const desc  = ((ent.descriptions || {}).en || {}).value;
+    // Title must match, and the English description ("2015 single by Drake")
+    // must name the artist — that's what keeps covers and same-name songs out
+    if (_ytFreeNorm(label) !== want) continue;
+    if (!main || !(' ' + _ytFreeNorm(desc) + ' ').includes(' ' + main + ' ')) continue;
+    const claims = ((ent.claims || {}).P1651 || []).filter(c => c.rank !== 'deprecated');
+    // A "preferred" video wins, otherwise the first one listed
+    claims.sort((a, b) => (b.rank === 'preferred') - (a.rank === 'preferred'));
+    for (const c of claims) {
+      const v = c.mainsnak && c.mainsnak.datavalue && c.mainsnak.datavalue.value;
+      if (_ytVideoIdRe.test(v || '')) return v;
+    }
+  }
+  return null;
+}
+
+// Pull the 11-character id out of a youtube.com / music.youtube.com / youtu.be link
+function _ytIdFromUrl(url) {
+  const m = String(url || '').match(/(?:youtube\.com\/watch\?(?:.*&)?v=|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+
+async function _ytFreeMusicBrainz(artist, title) {
+  const want = _ytFreeNorm(title);
+  const main = _ytFreeNorm(_ytFreeMainArtist(artist));
+  // Quotes and backslashes would break MusicBrainz's search syntax
+  const quote = s => String(s).replace(/(["\\])/g, '\\$1');
+  const cleanTitle = title.replace(/\s*[\(\[](feat|ft|with)\.?\s[^\)\]]*[\)\]]/gi, '');
+  const search = await _ytFreeFetch('https://musicbrainz.org/ws/2/recording/?fmt=json&limit=15&query='
+    + encodeURIComponent(`recording:"${quote(cleanTitle)}" AND artist:"${quote(_ytFreeMainArtist(artist))}"`));
+  // Same title, same lead artist, and no "live" / "acoustic" / "remix" style
+  // note — except "music video" / "lyric video", which are the real song
+  const recs = ((search && search.recordings) || []).filter(r =>
+    _ytFreeNorm(r.title) === want
+    && (!r.disambiguation || /^(official )?(music|lyric) video$/i.test(r.disambiguation))
+    && _ytFreeNorm(((r['artist-credit'] || [])[0] || {}).name) === main);
+  if (!recs.length) return null;
+  // Search results don't carry links, so look a few recordings up one by one —
+  // spaced 1.1s apart for MusicBrainz's one-request-a-second rule
+  for (const r of recs.slice(0, 3)) {
+    await new Promise(res => setTimeout(res, 1100));
+    const rec = await _ytFreeFetch(`https://musicbrainz.org/ws/2/recording/${r.id}?inc=url-rels&fmt=json`);
+    const links = ((rec && rec.relations) || []).map(rel => _ytIdFromUrl(rel.url && rel.url.resource)).filter(Boolean);
+    if (links.length) return links[0];
+  }
+  return null;
+}
+
+// Videos from the free lookup that refused to play here (removed, or the
+// owner blocked playing it on other sites) — skipped for the rest of the
+// session so the player doesn't pick the same broken video every time.
+const _ytFreeBad = new Set();
+
+// Free-text version for the player's search box, where there's no separate
+// artist and title to check: Wikidata's best matches that are songs or music
+// videos (judged by their English description, "2015 single by Drake").
+// Returns [{ videoId, title }] — empty when nothing fits or Wikidata is down.
+async function _ytFreeSearch(text) {
+  const api = 'https://www.wikidata.org/w/api.php?origin=*&format=json';
+  try {
+    const search = await _ytFreeFetch(`${api}&action=query&list=search&srlimit=8&srsearch=`
+      + encodeURIComponent(`${text} haswbstatement:P1651`));
+    const ids = ((search && search.query && search.query.search) || []).map(r => r.title);
+    if (!ids.length) return [];
+    const data = await _ytFreeFetch(`${api}&action=wbgetentities&props=labels|descriptions|claims&languages=en&ids=${ids.join('|')}`);
+    if (!data || !data.entities) return [];
+    const hits = [];
+    for (const id of ids) {
+      const ent = data.entities[id];
+      if (!ent) continue;
+      const label = ((ent.labels || {}).en || {}).value;
+      const desc  = ((ent.descriptions || {}).en || {}).value || '';
+      if (!label || !/\b(song|single|music video|track)\b/i.test(desc)) continue;
+      const claims = ((ent.claims || {}).P1651 || []).filter(c => c.rank !== 'deprecated');
+      claims.sort((a, b) => (b.rank === 'preferred') - (a.rank === 'preferred'));
+      const c = claims.find(c => _ytVideoIdRe.test((c.mainsnak && c.mainsnak.datavalue && c.mainsnak.datavalue.value) || ''));
+      if (c && !_ytFreeBad.has(c.mainsnak.datavalue.value)) {
+        hits.push({ videoId: c.mainsnak.datavalue.value, title: `${label} — ${desc}` });
+      }
+    }
+    return hits;
+  } catch (e) { return []; }
+}
+
+// Wikidata, then MusicBrainz. null = neither knows this song.
+async function _ytFreeLookup(artist, title) {
+  if (!artist || !title) return null;
+  for (const source of [_ytFreeWikidata, _ytFreeMusicBrainz]) {
+    try {
+      const v = await source(artist, title);
+      if (v && !_ytFreeBad.has(v)) return v;
+    } catch (e) { /* network error or timeout — try the next source */ }
+  }
+  return null;
+}
+
 let _ytLastQuery = null;   // the query behind the video now loading — for _ytOnError
 
 async function _ytSearch(artist, title, overrideQuery) {
@@ -31862,6 +32012,23 @@ async function _ytSearch(artist, title, overrideQuery) {
     if (_ytApiReady) _ytLoadVideo(remembered);
     else _ytPendingVideo = remembered;
     return;
+  }
+  // Not remembered yet — try the free databases before the quota-limited
+  // search. Only for a normal play (artist + title); the alternate searches
+  // after a failed video (overrideQuery) go straight to YouTube. Free, so
+  // signed-out visitors get this too.
+  if (!overrideQuery) {
+    const free = await _ytFreeLookup(artist, title);
+    if (_ytLastQuery !== query) return;   // a newer play started meanwhile
+    if (free) {
+      _ytMemPut(query, free);
+      _ytCurrentVideoId = free;
+      _ytUpdateThumb();
+      if (statusEl) { statusEl.textContent = ''; }
+      if (_ytApiReady) _ytLoadVideo(free);
+      else _ytPendingVideo = free;
+      return;
+    }
   }
   if (_ytNeedsSignIn()) {
     if (_ytActiveBtn) _ytActiveBtn.classList.remove('yt-btn-loading', 'yt-btn-playing');
@@ -32010,6 +32177,7 @@ function _ytOnError(event) {
   const code = event && event.data;
   // This video can't play here, so don't hand it to the next person either
   if (_ytLastQuery) _ytMemForget(_ytLastQuery);
+  if (_ytCurrentVideoId) _ytFreeBad.add(_ytCurrentVideoId);
   if (_ytCurrentTrack && _ytEmbedRetry < 5) {
     _ytEmbedRetry++;
     const { title, artist } = _ytCurrentTrack;
@@ -32227,7 +32395,41 @@ function _ytRunCustomSearch() {
   _ytSearchMulti(q);
 }
 
+// The search box asks Wikidata first (free, see _ytFreeSearch) and lists what
+// it finds, with a "Search YouTube" link under the list for when the right
+// video isn't there. Only that link spends the shared YouTube quota.
+let _ytFreeSearchQuery = '';   // what the "Search YouTube" link searches for
+
 async function _ytSearchMulti(baseQuery) {
+  const resultsEl = document.getElementById('ytSearchResults');
+  const statusEl  = document.getElementById('ytMiniStatus');
+  if (resultsEl) { resultsEl.style.display = 'block'; resultsEl.innerHTML = '<div class="yt-sr-loading">Searching…</div>'; }
+  if (statusEl)  { statusEl.textContent = ''; }
+  const free = await _ytFreeSearch(baseQuery);
+  if (free.length) {
+    _ytFreeSearchQuery = baseQuery;
+    if (!resultsEl) return;
+    const more = _ytNeedsSignIn()
+      ? _ytSignInHTML()
+      : `Not here? <button class="yt-err-open-btn" onclick="_ytSearchMultiYT(_ytFreeSearchQuery)">Search YouTube</button>`;
+    resultsEl.innerHTML = _ytResultsHTML(free) + `<div class="yt-sr-more">${more}</div>`;
+    return;
+  }
+  _ytSearchMultiYT(baseQuery);
+}
+
+// One clickable row per video
+function _ytResultsHTML(hits) {
+  return hits.map(h =>
+    `<div class="yt-sr-item" data-vid="${h.videoId}" onclick="_ytPickResult(this.dataset.vid)">` +
+    `<img class="yt-sr-thumb" src="https://img.youtube.com/vi/${h.videoId}/default.jpg" loading="lazy" onerror="this.style.display='none'">` +
+    `<span class="yt-sr-title">${esc(h.videoTitle || h.title || 'Unknown')}</span>` +
+    `</div>`
+  ).join('');
+}
+
+// The YouTube search itself (quota-limited, see _ytMemGet)
+async function _ytSearchMultiYT(baseQuery) {
   const resultsEl = document.getElementById('ytSearchResults');
   const statusEl  = document.getElementById('ytMiniStatus');
   if (resultsEl) { resultsEl.style.display = 'block'; resultsEl.innerHTML = '<div class="yt-sr-loading">Searching…</div>'; }
@@ -32279,12 +32481,7 @@ async function _ytSearchMulti(baseQuery) {
     return;
   }
   if (hits.length === 1) { resultsEl.style.display = 'none'; _ytPickResult(hits[0].videoId); return; }
-  resultsEl.innerHTML = hits.map(h =>
-    `<div class="yt-sr-item" data-vid="${h.videoId}" onclick="_ytPickResult(this.dataset.vid)">` +
-    `<img class="yt-sr-thumb" src="https://img.youtube.com/vi/${h.videoId}/default.jpg" loading="lazy" onerror="this.style.display='none'">` +
-    `<span class="yt-sr-title">${esc(h.videoTitle || h.title || 'Unknown')}</span>` +
-    `</div>`
-  ).join('');
+  resultsEl.innerHTML = _ytResultsHTML(hits);
 }
 
 function _ytPickResult(videoId) {
@@ -44148,11 +44345,20 @@ async function _awardsPickerPreview(item) {
   status('Finding the video…');
 
   let vid = _awardsVidCache[k];
+  // Where the video came from, for the "Wrong video?" line under it
+  let from = 'an earlier search';
   // The site-wide search memory, shared with the mini player (see _ytMemGet)
   if (vid === undefined) {
     const remembered = await _ytMemGet(query);
     if (seq !== _awardsPrevSeq) return;
     if (remembered) vid = _awardsVidCache[k] = remembered;
+  }
+  // Then the free music databases (see _ytFreeLookup) — no quota, so this
+  // works for signed-out visitors too
+  if (vid === undefined) {
+    const free = await _ytFreeLookup(item.artist || '', item.title);
+    if (seq !== _awardsPrevSeq) return;
+    if (free) { vid = _awardsVidCache[k] = free; from = 'Wikidata or MusicBrainz'; _ytMemPut(query, free); }
     else if (_ytNeedsSignIn()) { status(_ytSignInHTML()); return; }
   }
   if (vid === undefined) {
@@ -44163,7 +44369,7 @@ async function _awardsPickerPreview(item) {
         if (res.status === 502 || res.status === 503) throw new TypeError('asleep');
         const data = await res.json();
         vid = data.videoId || '';
-        if (vid) _ytMemPut(query, vid);
+        if (vid) { _ytMemPut(query, vid); from = 'YouTube search'; }
       } catch (e) {
         if (e.name !== 'TypeError' || attempt === 5) { vid = null; break; }
         status('Waking up the server…');
@@ -44184,7 +44390,7 @@ async function _awardsPickerPreview(item) {
         allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen
         title="${esc(item.title)} video"></iframe>
     </div>
-    <a class="awards-picker-preview-yt" href="https://www.youtube.com/watch?v=${encodeURIComponent(vid)}" target="_blank" rel="noopener">Wrong video? It came from YouTube search: open on YouTube ↗</a>`;
+    <a class="awards-picker-preview-yt" href="https://www.youtube.com/watch?v=${encodeURIComponent(vid)}" target="_blank" rel="noopener">Wrong video? It came from ${from}: open on YouTube ↗</a>`;
 }
 
 // "Song (Remastered)" / "Song - Live" / "Song [feat. X]" all count as "song"

@@ -20728,6 +20728,8 @@ body.purple .landing-card-config input:focus {
 }
 .yt-sr-loading    { font-size: var(--fs-xs); color: var(--text3); padding: 0.15rem 0.2rem; }
 .yt-sr-no-results { font-size: var(--fs-xs); color: var(--rose); padding: 0.15rem 0.2rem; }
+/* "Not here? Search YouTube" under the free (Wikidata) results */
+.yt-sr-more       { font-size: var(--fs-xs); color: var(--text3); padding: 0.15rem 0.2rem; }
 
 /* ── History panel ── */
 .yt-mini-history {
