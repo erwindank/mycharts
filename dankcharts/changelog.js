@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 263;
+const DC_CL_I18N_V = 264;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-22', t: 'feature', a: 'charts', h: '5176b01',
+    title: "Two more places to find missing pictures",
+    detail: "When Deezer, iTunes and Last.fm all have no picture for a song or album, the site now also looks in the Cover Art Archive, which is strong on small and older releases. For an artist with no photo, it looks on the artist's Wikipedia page. These lookups only happen for the rare item the first three don't have, so everything else loads as fast as before. Anything still missing shows its initials, and you can always set a picture yourself with \u270e. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-22', t: 'design', a: 'ui', h: 'e518b2f',
     title: "Every pop-up window has the same frame and close button",
     detail: "All pop-up windows (song, album and artist windows, ratings, streaks, Share as image, Settings, playlists, What's New and the rest) now share one frame, and each closes with the same \u2715 button in the corner instead of a mix of \"\u2715 CLOSE\" labels and round buttons. In confirm windows, Cancel is a normal button and the action that deletes something is in red. On phones, each chart's \u22ee menu now opens just above the bottom tab bar instead of underneath it. Works with Last.fm, Google Sheets and CSV uploads." },

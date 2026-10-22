@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Two more places to find missing pictures":
+    ["Mais dois sítios para encontrar as imagens que faltam",
+     "Quando nem o Deezer, nem o iTunes, nem o Last.fm têm imagem para uma música ou um álbum, o site procura agora também no Cover Art Archive, que é forte em lançamentos pequenos e antigos. Para um artista sem foto, procura na página dele na Wikipédia. Estas pesquisas só acontecem para os poucos itens que os três primeiros não têm, por isso tudo o resto carrega tão depressa como antes. O que continuar sem imagem mostra as iniciais, e podes sempre escolher uma com ✎. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
+
   "Every pop-up window has the same frame and close button":
     ["Todas as janelas pop-up têm a mesma moldura e botão de fechar",
      "Todas as janelas pop-up (músicas, álbuns e artistas, avaliações, sequências, Partilhar como imagem, Definições, playlists, Novidades e as outras) têm agora uma só moldura, e todas fecham com o mesmo botão ✕ no canto, em vez de uma mistura de etiquetas \"✕ FECHAR\" e botões redondos. Nas janelas de confirmação, Cancelar é um botão normal e a ação que apaga algo aparece a vermelho. Nos telemóveis, o menu ⋮ de cada top abre agora logo acima da barra de separadores inferior em vez de ficar por baixo dela. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
