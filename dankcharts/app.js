@@ -34315,8 +34315,8 @@ function renderHeatmap() {
   let streakHtml = '';
   if (bestStreak > 1 || curStreak > 0) {
     const chips = [];
-    if (curStreak > 0) chips.push(`<span class="hm-streak-chip">🔥 ${curStreak}-day streak</span>`);
-    if (bestStreak > 1) chips.push(`<span class="hm-streak-chip">Best: ${bestStreak} days</span>`);
+    if (curStreak > 0) chips.push(`<span class="dc-chip hm-streak-chip">🔥 ${curStreak}-day streak</span>`);
+    if (bestStreak > 1) chips.push(`<span class="dc-chip hm-streak-chip">Best: ${bestStreak} days</span>`);
     streakHtml = `<div class="hm-streak-bar">${chips.join('')}</div>`;
   }
 
@@ -36350,10 +36350,10 @@ function openStreakModal(opts) {
       `<div class="sk-keep-bar" role="img" aria-label="${esc(t('sk_kept', { kept: totalActive, total: aliveTotal }))}">` +
         `<i class="sk-keep-kept" style="width:${keptPct.toFixed(1)}%"></i><i class="sk-keep-risk" style="width:${(100 - keptPct).toFixed(1)}%"></i></div>` +
       `<div class="sk-chips">` +
-        (longestNow ? `<span class="sk-chip sk-chip--long">${esc(t('sk_longest_now'))} <b>${longestNow.len}d</b> ${esc(longestNow.name)}</span>` : '') +
-        `<span class="sk-chip sk-chip--lost">${esc(t('sk_lost_yday'))} <b>${lost.length}</b></span>` +
-        (weekStarted || weekEnded ? `<span class="sk-chip" title="${esc(t('sk_week_title'))}">${esc(t('sk_this_week'))} <b>+${weekStarted}</b> / <b>−${weekEnded}</b></span>` : '') +
-        `<button type="button" class="sk-chip sk-chip--share" onclick="skOpenCard()">📤 ${esc(t('sk_share'))}</button>` +
+        (longestNow ? `<span class="dc-chip sk-chip sk-chip--long">${esc(t('sk_longest_now'))} <b>${longestNow.len}d</b> ${esc(longestNow.name)}</span>` : '') +
+        `<span class="dc-chip sk-chip sk-chip--lost">${esc(t('sk_lost_yday'))} <b>${lost.length}</b></span>` +
+        (weekStarted || weekEnded ? `<span class="dc-chip sk-chip" title="${esc(t('sk_week_title'))}">${esc(t('sk_this_week'))} <b>+${weekStarted}</b> / <b>−${weekEnded}</b></span>` : '') +
+        `<button type="button" class="dc-btn dc-btn-normal dc-btn-sm sk-chip--share" onclick="skOpenCard()">📤 ${esc(t('sk_share'))}</button>` +
       `</div>`
     : '';
   const ctToday = document.getElementById('skTabCtToday');
@@ -40823,7 +40823,7 @@ function _awcCardHtml(cat, data) {
     </span>
     <span class="awc-tags">
       <span class="awards-type-badge awards-type-${cat.type}">${esc(t('awards_cat_type_' + cat.type))}</span>
-      ${cat.auto ? `<span class="awards-auto-badge">${esc(t('awards_cat_auto'))}</span>` : ''}
+      ${cat.auto ? `<span class="dc-chip dc-chip-warn awards-auto-badge">${esc(t('awards_cat_auto'))}</span>` : ''}
     </span>
     ${_awardsFavBtn(cat.id, 'awc-fav')}
     <span class="src-switch">
@@ -40848,7 +40848,7 @@ function _awardsRenderCatToggles(data) {
   if (chipsEl) {
     const pool = AWARD_CATEGORIES.filter(c => _awcMatches(c, data, false));
     const chip = (id, icon, label, n) =>
-      `<button type="button" class="awc-chip" data-g="${id}" aria-pressed="${_awcGroup === id}" onclick="awardsCatFilter('group','${id}')"${n === 0 && _awcGroup !== id ? ' disabled' : ''}>${icon ? `<span aria-hidden="true">${icon}</span>` : ''}${esc(label)}<span class="awc-chip-n">${n}</span></button>`;
+      `<button type="button" class="dc-chip awc-chip" data-g="${id}" aria-pressed="${_awcGroup === id}" onclick="awardsCatFilter('group','${id}')"${n === 0 && _awcGroup !== id ? ' disabled' : ''}>${icon ? `<span aria-hidden="true">${icon}</span>` : ''}${esc(label)}<span class="awc-chip-n">${n}</span></button>`;
     chipsEl.innerHTML = chip('all', '', t('awards_group_all'), pool.length)
       + groups.map(g => {
         const n = pool.filter(c => _awardsCatGroup(c).id === g.id).length;
@@ -41566,7 +41566,7 @@ function _awardsCatHeadHtml(cat, count, extra) {
         <span class="awards-cat-name">${esc(t('awards_cat_' + cat.id))}</span>
         <span class="awards-cat-desc">${esc(_awardsCatHint(cat))}</span>
       </span>
-      ${cat.auto ? '<span class="awards-auto-tag">auto</span>' : ''}${extra || ''}
+      ${cat.auto ? '<span class="dc-chip dc-chip-warn awards-auto-tag">auto</span>' : ''}${extra || ''}
       ${_awardsFavBtn(cat.id, 'awards-cat-fav')}
       ${_awardsCollapseBtn(cat)}
     </div>`;
@@ -42782,10 +42782,10 @@ function _awardsPickerStatsHtml(item) {
   const chartRow = (label, c, unit) => {
     if (!c) return `<div class="aw-pst-chart"><span class="aw-pst-chart-name">${label}</span><span class="aw-pst-none">Never made the chart</span></div>`;
     const chips = [c.at1
-      ? `<span class="aw-pst-chip is-gold">👑 #1 for ${pl(c.at1, unit, unit + 's')}</span>`
-      : `<span class="aw-pst-chip is-strong">Peaked at #${c.peak}</span>`];
-    if (c.top10) chips.push(`<span class="aw-pst-chip">${pl(c.top10, unit, unit + 's')} in the top 10</span>`);
-    chips.push(`<span class="aw-pst-chip">${pl(c.on, unit, unit + 's')} on the chart</span>`);
+      ? `<span class="dc-chip aw-pst-chip is-gold">👑 #1 for ${pl(c.at1, unit, unit + 's')}</span>`
+      : `<span class="dc-chip aw-pst-chip is-strong">Peaked at #${c.peak}</span>`];
+    if (c.top10) chips.push(`<span class="dc-chip aw-pst-chip">${pl(c.top10, unit, unit + 's')} in the top 10</span>`);
+    chips.push(`<span class="dc-chip aw-pst-chip">${pl(c.on, unit, unit + 's')} on the chart</span>`);
     return `<div class="aw-pst-chart"><span class="aw-pst-chart-name">${label}</span>${chips.join('')}</div>`;
   };
 
@@ -43129,10 +43129,10 @@ function _awardsPickerGenreInner(item) {
   const isGenreCat = _awardsPickerCatFilter.startsWith('genre:') || _awardsPickerCatFilter === 'rock_group' || _awardsPickerCatFilter.includes('+genre:');
   const tags = _awardsPickerItemTags(item);
   if (tags && tags.length) {
-    return tags.slice(0, isGenreCat ? 5 : 3).map(t => `<span class="awards-picker-genre-tag">${esc(t)}</span>`).join('');
+    return tags.slice(0, isGenreCat ? 5 : 3).map(t => `<span class="dc-chip awards-picker-genre-tag">${esc(t)}</span>`).join('');
   }
   if (!isGenreCat) return '';
-  return `<span class="awards-picker-genre-tag awards-picker-genre-unk">${tags === undefined ? '…' : 'no genre'}</span>`;
+  return `<span class="dc-chip awards-picker-genre-tag awards-picker-genre-unk">${tags === undefined ? '…' : 'no genre'}</span>`;
 }
 
 // The artist whose tags stand in for a row with no sheet genres (as _awardsSongTags reads them)

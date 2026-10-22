@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=592">
+  <link rel="stylesheet" href="style.css?v=593">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -1948,12 +1948,12 @@
 
       <div class="events-type-filters">
         <span class="events-controls-label">Type:</span>
-        <button class="events-type-btn" data-etype="birthday" onclick="toggleEventsType('birthday')">🎂 Birthdays</button>
-        <button class="events-type-btn" data-etype="album" onclick="toggleEventsType('album')">💿 Albums</button>
-        <button class="events-type-btn" data-etype="single" onclick="toggleEventsType('single')">🎵 Singles</button>
-        <button class="events-type-btn" data-etype="ep" onclick="toggleEventsType('ep')">📀 EPs</button>
-        <button class="events-type-btn" data-etype="other" onclick="toggleEventsType('other')">🎶 Other</button>
-        <button class="events-type-btn" id="showsFilterBtn" data-etype="show" onclick="toggleEventsType('show')" style="display:none">🎤 Shows</button>
+        <button class="dc-chip events-type-btn" data-etype="birthday" onclick="toggleEventsType('birthday')">🎂 Birthdays</button>
+        <button class="dc-chip events-type-btn" data-etype="album" onclick="toggleEventsType('album')">💿 Albums</button>
+        <button class="dc-chip events-type-btn" data-etype="single" onclick="toggleEventsType('single')">🎵 Singles</button>
+        <button class="dc-chip events-type-btn" data-etype="ep" onclick="toggleEventsType('ep')">📀 EPs</button>
+        <button class="dc-chip events-type-btn" data-etype="other" onclick="toggleEventsType('other')">🎶 Other</button>
+        <button class="dc-chip events-type-btn" id="showsFilterBtn" data-etype="show" onclick="toggleEventsType('show')" style="display:none">🎤 Shows</button>
       </div>
 
       <div id="eventsStatus" class="upcoming-status"></div>
@@ -3859,8 +3859,8 @@
   <script defer src="changelog.js?v=330"></script>
   <!-- Community board tab (suggestions / bugs / discussion). Loaded before
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
-  <script defer src="board.js?v=2"></script>
-  <script defer src="app.js?v=466"></script>
+  <script defer src="board.js?v=3"></script>
+  <script defer src="app.js?v=467"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
   <script defer src="replay.js?v=1"></script>
   <!-- All-Time chart stats ("Inside your Top N"); reads app.js globals, so it loads after it -->

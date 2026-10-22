@@ -385,7 +385,7 @@
     h += '<div class="bd-chips" role="group" aria-label="' + esc(tr('board_filter_cat')) + '">';
     ['all'].concat(CATEGORIES).forEach(function (c) {
       var n = c === 'all' ? S.posts.length : S.posts.filter(function (p) { return p.category === c; }).length;
-      h += '<button type="button" class="bd-chip' + (S.cat === c ? ' active' : '') + '" data-cat="' + c + '" aria-pressed="' + (S.cat === c) + '" onclick="dcBoard.setCat(\'' + c + '\')">' +
+      h += '<button type="button" class="dc-chip bd-chip' + (S.cat === c ? ' active' : '') + '" data-cat="' + c + '" aria-pressed="' + (S.cat === c) + '" onclick="dcBoard.setCat(\'' + c + '\')">' +
         (c === 'all' ? esc(tr('board_cat_all')) : '<span class="bd-dot bd-cat-' + c + '"></span>' + esc(catLabel(c))) +
         '<span class="bd-chip-n">' + n + '</span></button>';
     });
@@ -459,9 +459,9 @@
     // Main column
     h += '<div class="bd-post-main">';
     h += '<div class="bd-tags">' +
-      (p.pinned ? '<span class="bd-tag bd-tag-pin">📌 ' + esc(tr('board_pinned')) + '</span>' : '') +
-      '<span class="bd-tag bd-tag-cat"><span class="bd-dot bd-cat-' + esc(p.category) + '"></span>' + esc(catLabel(p.category)) + '</span>' +
-      (status !== 'open' ? '<span class="bd-tag bd-status bd-status-' + esc(status) + '">' + esc(statusLabel(status)) + '</span>' : '') +
+      (p.pinned ? '<span class="dc-chip bd-tag bd-tag-pin">📌 ' + esc(tr('board_pinned')) + '</span>' : '') +
+      '<span class="dc-chip bd-tag bd-tag-cat"><span class="bd-dot bd-cat-' + esc(p.category) + '"></span>' + esc(catLabel(p.category)) + '</span>' +
+      (status !== 'open' ? '<span class="dc-chip bd-tag bd-status bd-status-' + esc(status) + '">' + esc(statusLabel(status)) + '</span>' : '') +
       '</div>';
     if (S.editingId === p.id) {
       h += composerHTML(p);

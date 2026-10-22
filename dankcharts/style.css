@@ -659,6 +659,52 @@
     .dc-tabs > button.active,
     .dc-tabs > button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
 
+    /* ═══════════════════════════════════════════════════════════════
+       SHARED TAGS AND CHIPS — phase 8 step 5
+       .dc-chip is a small quiet label ("Auto", a genre, a streak count…):
+       tiny corner, raised fill, no border. On a <button> it becomes a
+       filter chip (Events types, Awards groups, board categories): taller,
+       bordered, tinted with the accent when on (.active or
+       aria-pressed="true"). Feature classes keep only colour variants
+       (gold, lost, pinned…) and layout.
+       ═══════════════════════════════════════════════════════════════ */
+    .dc-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      height: 20px;
+      padding: 0 7px;
+      border: 1px solid transparent;
+      border-radius: var(--r-xs);
+      background: var(--raised);
+      color: var(--text2);
+      font-family: var(--font-sans);
+      font-size: var(--fs-xs);
+      font-weight: 600;
+      line-height: 1;
+      white-space: nowrap;
+      vertical-align: middle;
+    }
+    button.dc-chip {
+      height: 28px;
+      padding: 0 10px;
+      border-color: var(--border);
+      background: transparent;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+    }
+    button.dc-chip:hover:not(:disabled) { border-color: var(--border2); color: var(--text); }
+    button.dc-chip.active,
+    button.dc-chip[aria-pressed="true"] {
+      border-color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 16%, transparent);
+      color: var(--text);
+    }
+    button.dc-chip:disabled { opacity: 0.4; cursor: default; }
+    /* Amber: something the site picked for you (Awards "Auto") */
+    .dc-chip-warn { background: color-mix(in srgb, var(--amber) 16%, transparent); color: var(--amber); }
+
     /* Layout only — the look comes from .dc-btn above */
     .upcoming-refresh-btn { display: flex; width: fit-content; margin: 0 0.85rem var(--sp-2) auto; }
     .cal-nav-btn { font-size: var(--fs-md); }
@@ -7779,7 +7825,6 @@
     .hm-theme-swatch:hover:not(.active) { opacity: 0.72; }
     /* Streak bar */
     .hm-streak-bar { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-bottom: 0.55rem; }
-    .hm-streak-chip { font-family: var(--font-sans); font-size: var(--fs-xs); color: var(--text3); background: var(--bg2); border: 1px solid var(--border2); border-radius: var(--r-full); padding: 2px 9px; white-space: nowrap; }
     /* Best day glow */
     .heatmap-cell.hm-best-day { box-shadow: 0 0 0 1.5px #ffd030, 0 0 5px #ffd03055; }
     /* Year-in-review card */
@@ -7955,29 +8000,8 @@
       flex-wrap: wrap;
     }
 
-    .events-type-btn {
-      background: none;
-      border: 1px solid var(--border);
-      border-radius: var(--r-xs);
-      color: var(--text3);
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      font-weight: bold;
-      padding: 0.1rem var(--sp-2) 0.15rem;
-      cursor: pointer;
-      transition: color 0.15s, background 0.15s, border-color 0.15s;
-    }
 
-    .events-type-btn:hover {
-      background: var(--border);
-      color: var(--text1);
-    }
 
-    .events-type-btn.active {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: var(--on-accent);
-    }
 
     .upcoming-card.event-today {
       border-color: var(--accent);
@@ -22622,28 +22646,7 @@ body[class*="-light"] .tm-card-search:hover {
   margin-bottom: var(--sp-2);
   scrollbar-width: thin;
 }
-.awc-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  flex: 0 0 auto;
-  height: 32px;
-  padding: 0 var(--sp-3);
-  border-radius: var(--r-full);
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--text2);
-  font-size: var(--fs-sm);
-  font-weight: 600;
-  cursor: pointer;
-}
-.awc-chip:hover:not(:disabled) { border-color: color-mix(in srgb, var(--accent) 60%, var(--border)); color: var(--text1); }
-.awc-chip[aria-pressed="true"] {
-  border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 16%, transparent);
-  color: var(--text1);
-}
-.awc-chip:disabled { opacity: 0.4; cursor: default; }
+.awc-chip { flex: 0 0 auto; gap: 6px; }
 .awc-chip-n { font-family: var(--font-mono);
       font-variant-numeric: tabular-nums; font-size: var(--fs-xs); color: var(--text3); }
 
@@ -22742,14 +22745,6 @@ body[class*="-light"] .tm-card-search:hover {
 .awards-type-song   { background: color-mix(in srgb, var(--teal) 18%, transparent);    color: var(--teal); }
 .awards-type-album  { background: color-mix(in srgb, var(--accent2) 18%, transparent); color: var(--accent2); }
 .awards-type-artist { background: color-mix(in srgb, var(--green) 18%, transparent);   color: var(--green); }
-.awards-auto-badge  {
-  font-size: var(--fs-xs);
-  padding: 1px 5px;
-  border-radius: var(--r-xs);
-  background: color-mix(in srgb, var(--amber) 18%, transparent);
-  color: var(--amber);
-  font-weight: 700;
-}
 
 /* Status */
 .awards-status {
@@ -22862,16 +22857,7 @@ body[class*="-light"] .tm-card-search:hover {
   line-height: 1.3;
   color: var(--text3);
 }
-.awards-auto-tag  {
-  flex: none;
-  font-size: var(--fs-xs);
-  padding: 2px 6px;
-  border-radius: var(--r-full);
-  background: color-mix(in srgb, var(--amber) 16%, transparent);
-  color: var(--amber);
-  font-family: var(--font-sans);
-  font-weight: 500;
-}
+.awards-auto-tag { flex: none; }
 /* Fold chevron at the end of the header (awardsToggleCollapse) */
 .awards-cat-collapse {
   flex: none;
@@ -24281,7 +24267,6 @@ body[class*="-light"] .tm-card-search:hover {
 .awards-picker-sub  { font-size: var(--fs-xs); color: var(--text3); white-space: nowrap; }
 /* Up to five genres (the sheet has Genre 1–5) — they wrap rather than crowd the title */
 .awards-picker-genre-tags { display: inline-flex; flex-wrap: wrap; gap: 3px; flex-shrink: 1; min-width: 0; }
-.awards-picker-genre-tag  { font-size: var(--fs-xs); padding: 1px 5px; border-radius: var(--r-md); background: var(--surface3); color: var(--text3); border: 1px solid var(--border); white-space: nowrap; }
 .awards-picker-genre-unk  { opacity: 0.5; font-style: italic; }
 /* Every row carries the genre box so the lazy lookup can fill it; an empty one
    would still take a gap in the row, so it hides until something lands in it */
@@ -24441,15 +24426,7 @@ body[class*="-light"] .tm-card-search:hover {
   color: var(--text3);
 }
 .aw-pst-chip.is-strong { color: var(--text1); font-weight: 600; }
-.aw-pst-chip {
-  padding: 2px var(--sp-2);
-  border-radius: var(--r-full);
-  border: 1px solid var(--border);
-  background: var(--surface3);
-  font-size: var(--fs-xs);
-  color: var(--text2);
-  font-feature-settings: "tnum";
-}
+.aw-pst-chip { font-feature-settings: "tnum"; }
 .aw-pst-chip.is-gold {
   border-color: color-mix(in srgb, var(--pk-gold) 50%, var(--border));
   background: color-mix(in srgb, var(--pk-gold) 12%, var(--surface3));
@@ -26434,11 +26411,7 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
 .sk-keep-kept { background: linear-gradient(90deg, #ffb347, #ff6a3d); }
 .sk-keep-risk { background: repeating-linear-gradient(45deg, color-mix(in srgb, var(--amber) 55%, transparent) 0 4px, color-mix(in srgb, var(--amber) 22%, transparent) 4px 8px); }
 .sk-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.6rem; }
-.sk-chip {
-  font-size: var(--fs-xs); color: var(--text2); background: var(--bg2);
-  border: 1px solid var(--border); border-radius: var(--r-full); padding: 0.12rem 0.6rem;
-  max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
+.sk-chip { display: inline-block; line-height: 18px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
 .sk-chip b { font-family: var(--font-mono); color: var(--text); font-variant-numeric: tabular-nums; }
 .sk-chip--long b { color: #ff8a4c; }
 .sk-chip--lost b { color: var(--rose); }
@@ -35940,18 +35913,7 @@ body.cp-hide-cert-reel    #certReelSection { display: none !important; }
 /* Toolbar */
 .bd-toolbar { display: flex; flex-direction: column; gap: 10px; }
 .bd-chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.bd-chip {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 6px 11px;
-  border-radius: var(--r-full);
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--text2);
-  font: inherit; font-size: var(--fs-xs); font-weight: 600;
-  cursor: pointer;
-}
-.bd-chip:hover { color: var(--text1); border-color: var(--accent); }
-.bd-chip.active { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.bd-chip { gap: 6px; }
 .bd-chip-n { font-family: var(--font-mono);
       font-variant-numeric: tabular-nums; font-size: var(--fs-xs); opacity: 0.7; }
 .bd-tools { display: flex; flex-wrap: wrap; gap: var(--sp-2); align-items: center; }
@@ -36036,12 +35998,7 @@ body.cp-hide-cert-reel    #certReelSection { display: none !important; }
 
 .bd-post-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
 .bd-tags { display: flex; flex-wrap: wrap; gap: 6px; }
-.bd-tag {
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 2px var(--sp-2); border-radius: var(--r-full);
-  font-size: var(--fs-xs); font-weight: 700;
-  color: var(--text2); background: var(--surface2);
-}
+.bd-tag { gap: 5px; }
 .bd-tag-pin { color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); }
 .bd-status { --c: var(--text3); color: color-mix(in srgb, var(--c) 65%, var(--text)); background: color-mix(in srgb, var(--c) 16%, transparent); }
 .bd-status-planned  { --c: #a78bfa; }
@@ -39213,9 +39170,6 @@ body.pink-light .sk-hm-tswatch.active, body.red-light .sk-hm-tswatch.active { bo
 @keyframes skFlicker { 0%, 100% { transform: scale(1) rotate(-1deg); } 50% { transform: scale(1.06) rotate(1.5deg); } }
 
 /* Share chip in the header */
-.sk-chip--share { cursor: pointer; color: var(--text); font-family: var(--font-sans); }
-.sk-chip--share:hover { border-color: var(--accent); color: var(--accent); }
-.sk-chip--share:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* Streak of the day */
 /* Featured card: the item's cover fills the card, blurred, under a dark fade, so
