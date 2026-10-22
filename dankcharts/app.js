@@ -345,8 +345,6 @@ let lastPeriodStats = null;
 let lastPeaks = null;
 let _animPrevPlays = null; // previous-period plays used for chart entrance animation
 let _animCurrentPlays = null;
-const _replayFns = {}; // per-type full animation replay functions
-let _animSpeedFactor = 0.25; // default slow; >1 = faster, <1 = slower; controlled by speed slider
 const searchState = { songs: '', artists: '', albums: '' };
 let imgObservers = [];
 
@@ -715,8 +713,9 @@ function dcApplyAllSettings() {
 }
 window.dcApplyAllSettings = dcApplyAllSettings;
 
+// ▶ Animate Chart: opens the play-by-play replay (replay.js)
 function replayChartAnimation(type) {
-  if (_replayFns[type]) { _replayFns[type](); return; }
+  if (typeof crpOpen === 'function') crpOpen(type, false);
 }
 
 // ─── WEEK START DAY SELECTOR ───────────────────────────────────
@@ -14312,9 +14311,10 @@ function renderAll() {
   clearImageObservers();
   ['songsBody', 'artistsBody', 'albumsBody'].forEach(id => {
     const el = document.getElementById(id);
-    if (el && el._swToken) el._swToken.cancelled = true;
     if (el && el._visObs) { el._visObs.disconnect(); delete el._visObs; }
   });
+  // An open chart replay belongs to the chart being replaced (replay.js)
+  if (typeof crpCloseAll === 'function') crpCloseAll();
   document.body.dataset.period = currentPeriod;
   // The bar's segments depend on the separation settings, which can arrive
   // from the Firestore sync after the first paint — so it is repainted here
@@ -14930,7 +14930,7 @@ function renderAll() {
     // Not gated on chartAnimEnabled — that setting only controls whether the
     // animation plays automatically on load. The underlying prev/curr data
     // still needs to be built whenever a comparison is possible so the
-    // manual ▶ Animate Chart button (_replayFns) works even with it off.
+    // manual ▶ Animate Chart button (crpOpen, replay.js) works even with it off.
     _animPrevPlays = (prevPlays && prevPlays.length > 0 && (currentPeriod === 'week' || currentPeriod === 'month')) ? prevPlays : null;
     _animCurrentPlays = _animPrevPlays ? plays : null;
     chartSize = chartSizeSongs;   renderSongs(plays, peaks, periodStats);
@@ -14966,342 +14966,6 @@ function rankSortWithStatus(a, b) {
   if (a.chartStatus !== b.chartStatus) return a.chartStatus - b.chartStatus;
   if (a.prevRank !== b.prevRank) return a.prevRank - b.prevRank;
   return a.firstAchieved - b.firstAchieved;
-}
-
-// ─── PREV-PERIOD RANK MAP (for chart entrance animation) ───────
-// Returns a map of key → 0-based rank index for the previous period's chart.
-function buildPrevRankMap(prevPlays, type) {
-  if (!prevPlays || prevPlays.length === 0) return {};
-  const counts = {};
-  if (type === 'songs') {
-    for (const p of prevPlays) {
-      const k = songKey(p);
-      if (!counts[k]) counts[k] = { count: 0, firstAchieved: p.date };
-      counts[k].count++;
-    }
-  } else if (type === 'artists') {
-    for (const p of prevPlays) {
-      for (const artist of p.artists) {
-        if (!counts[artist]) counts[artist] = { count: 0, firstAchieved: p.date };
-        counts[artist].count++;
-      }
-    }
-  } else if (type === 'albums') {
-    // Last period's albums chart as it was shown: same credit, same bucket.
-    const roll = rollupAffectsCharts();
-    for (const p of prevPlays) tallyAlbumPlay(counts, p, roll, () => ({ count: 0, firstAchieved: p.date }));
-    const kept = applyAlbumsFilterByKey(counts);
-    const map = {};
-    Object.entries(kept).sort(([, a], [, b]) => rankSort(a, b)).forEach(([k], i) => { map[k] = i; });
-    return map;
-  }
-  const map = {};
-  Object.entries(counts).sort(([, a], [, b]) => rankSort(a, b)).forEach(([k], i) => { map[k] = i; });
-  return map;
-}
-
-// Returns sorted array of simplified entries for the previous period (used to build the "preview" chart).
-function buildPrevSortedEntries(prevPlays, type) {
-  if (!prevPlays || prevPlays.length === 0) return [];
-  const counts = {};
-  if (type === 'songs') {
-    for (const p of prevPlays) {
-      const k = songKey(p);
-      if (!counts[k]) counts[k] = { title: p.title, artist: p.artist, album: p.album, count: 0, firstAchieved: p.date };
-      counts[k].count++;
-    }
-  } else if (type === 'artists') {
-    for (const p of prevPlays) {
-      for (const artist of p.artists) {
-        if (!counts[artist]) counts[artist] = { name: artist, count: 0, firstAchieved: p.date };
-        counts[artist].count++;
-      }
-    }
-  } else if (type === 'albums') {
-    // Same credit and same bucket as the chart it animates into, or the
-    // "previous" chart shows singles sliding into an albums-only chart.
-    const roll = rollupAffectsCharts();
-    for (const p of prevPlays) tallyAlbumPlay(counts, p, roll, (k) => {
-      const i = k.lastIndexOf('|||');
-      return { album: k.slice(0, i), artist: k.slice(i + 3), count: 0, firstAchieved: p.date };
-    });
-    return Object.values(applyAlbumsFilter(counts)).sort(rankSort);
-  }
-  return Object.values(counts).sort(rankSort);
-}
-
-// Builds the simplified "previous period" tbody HTML shown before the sliding-window animation.
-// Each row gets data-chartkey (for FLIP keying), sw-count, and sw-bar for live updates.
-function buildPrevChartHtml(prevSorted, size, colCount, type) {
-  // Blank placeholder for the Previous column (sits right after rank-cell); Weeks keeps its old spot before plays.
-  // Threshold is 6 now (not 5): no-monthlyStats views are 6 cols (rank/thumb/title/album/plays/cr-icon),
-  // monthlyStats views are 8 (+previous +weeks).
-  const prevBlank = colCount > 6 ? '<td></td>' : '';
-  const weeksBlank = colCount > 6 ? '<td></td>' : '';
-  const crBlank = '<td></td>'; // trailing chart-run icon column placeholder, present in every view
-  const maxPrev = prevSorted[0]?.count || 1;
-  return Array.from({ length: size }, (_, i) => {
-    const e = prevSorted[i];
-    if (!e) return `<tr class="chart-row-prev"><td class="rank-cell">${i + 1}</td>${'<td></td>'.repeat(colCount - 1)}</tr>`;
-    const barPct = Math.round(e.count / maxPrev * 100);
-    const countCell = `<td><div class="play-count sw-count">${e.count}</div><div class="play-bar"><div class="play-bar-fill sw-bar" style="width:${barPct}%"></div></div></td>`;
-    if (type === 'songs') {
-      const key = songKey(e);
-      return `<tr class="chart-row-prev" data-chartkey="${esc(key)}">
-      <td class="rank-cell">${i + 1}</td>
-      ${prevBlank}
-      <td class="thumb-cell"><div class="thumb-wrap"><div id="pwsimg-${i}"><div class="thumb-initials">${esc(initials(e.title))}</div></div></div></td>
-      <td><div class="song-title">${esc(e.title)}</div><div class="song-artist">${esc(e.artist)}</div></td>
-      <td class="meta-col"><div class="song-album">${esc(e.album || '—')}</div></td>
-      ${weeksBlank}${countCell}${crBlank}</tr>`;
-    }
-    if (type === 'artists') {
-      return `<tr class="chart-row-prev" data-chartkey="${esc(e.name)}">
-      <td class="rank-cell">${i + 1}</td>
-      ${prevBlank}
-      <td class="thumb-cell"><div class="thumb-wrap"><div id="pwaimg-${i}"><div class="thumb-initials">${esc(initials(e.name))}</div></div></div></td>
-      <td><div class="song-title">${esc(e.name)}</div></td>
-      <td class="meta-col"></td>${weeksBlank}${countCell}${crBlank}</tr>`;
-    }
-    if (type === 'albums') {
-      const key = e.album + '|||' + e.artist;
-      return `<tr class="chart-row-prev" data-chartkey="${esc(key)}">
-      <td class="rank-cell">${i + 1}</td>
-      ${prevBlank}
-      <td class="thumb-cell"><div class="thumb-wrap"><div id="pwlimg-${i}"><div class="thumb-initials">${esc(initials(e.album))}</div></div></div></td>
-      <td><div class="song-title">${esc(e.album)}</div><div class="song-artist">${esc(e.artist)}</div></td>
-      <td class="meta-col"></td>${weeksBlank}${countCell}${crBlank}</tr>`;
-    }
-    return '';
-  }).join('');
-}
-
-// ─── SLIDING-WINDOW CHART MORPH ────────────────────────────────
-// Animates tbody rows through the sliding window from prev→curr period using FLIP.
-// Each frame drops the oldest prev plays and adds the oldest curr plays so counts
-// change continuously and entries visibly climb/fall through positions.
-// Uses a cancellation token so re-renders abort any in-progress animation on the same tbody.
-function runSlideWindowAnim(tbody, type, prevPlays, currPlays, onComplete) {
-  if (!prevPlays || !currPlays) { onComplete(); return; }
-
-  const token = { cancelled: false };
-  if (tbody._swToken) tbody._swToken.cancelled = true;
-  tbody._swToken = token;
-
-  // Oldest-first so oldest prev plays drop first and oldest curr plays enter first
-  const pSorted = [...prevPlays].sort((a, b) => a.date - b.date);
-  const cSorted = [...currPlays].sort((a, b) => a.date - b.date);
-
-  // key → display metadata; used to build rows for new entrants
-  const keyToMeta = {};
-  for (const p of [...prevPlays, ...currPlays]) {
-    if (type === 'songs') {
-      const k = songKey(p);
-      if (!keyToMeta[k]) keyToMeta[k] = { title: p.title, artist: p.artist, album: p.album };
-    } else if (type === 'artists') {
-      for (const a of p.artists) {
-        if (!keyToMeta[a]) keyToMeta[a] = { name: a };
-      }
-    } else if (type === 'albums') {
-      if (p.album && p.album !== '—') {
-        const k = albumKeyOf(p);
-        if (!keyToMeta[k]) keyToMeta[k] = { album: p.album, artist: albumArtist(p) };
-      }
-    }
-  }
-
-  function getRowMap() {
-    const m = new Map();
-    for (const tr of tbody.querySelectorAll('tr[data-chartkey]')) m.set(tr.dataset.chartkey, tr);
-    return m;
-  }
-
-  function getColCount() {
-    const r = tbody.querySelector('tr');
-    return r ? r.querySelectorAll('td').length : 5;
-  }
-
-  function buildNewRow(key, meta, colCount) {
-    const prevBlank = colCount > 6 ? '<td></td>' : '';
-    const weeksBlank = colCount > 6 ? '<td></td>' : '';
-    const crBlank = '<td></td>'; // trailing chart-run icon column placeholder
-    const countCell = `<td><div class="play-count sw-count">0</div><div class="play-bar"><div class="play-bar-fill sw-bar" style="width:0%"></div></div></td>`;
-    const tr = document.createElement('tr');
-    tr.className = 'chart-row-prev';
-    tr.dataset.chartkey = key;
-    tr.style.opacity = '0';
-    if (type === 'songs') {
-      tr.innerHTML = `<td class="rank-cell">—</td>
-        ${prevBlank}
-        <td class="thumb-cell"><div class="thumb-wrap"><div><div class="thumb-initials">${esc(initials(meta.title))}</div></div></div></td>
-        <td><div class="song-title">${esc(meta.title)}</div><div class="song-artist">${esc(meta.artist)}</div></td>
-        <td class="meta-col"><div class="song-album">${esc(meta.album || '—')}</div></td>
-        ${weeksBlank}${countCell}${crBlank}`;
-    } else if (type === 'artists') {
-      tr.innerHTML = `<td class="rank-cell">—</td>
-        ${prevBlank}
-        <td class="thumb-cell"><div class="thumb-wrap"><div><div class="thumb-initials">${esc(initials(meta.name))}</div></div></div></td>
-        <td><div class="song-title">${esc(meta.name)}</div></td>
-        <td class="meta-col"></td>${weeksBlank}${countCell}${crBlank}`;
-    } else if (type === 'albums') {
-      tr.innerHTML = `<td class="rank-cell">—</td>
-        ${prevBlank}
-        <td class="thumb-cell"><div class="thumb-wrap"><div><div class="thumb-initials">${esc(initials(meta.album))}</div></div></div></td>
-        <td><div class="song-title">${esc(meta.album)}</div><div class="song-artist">${esc(meta.artist)}</div></td>
-        <td class="meta-col"></td>${weeksBlank}${countCell}${crBlank}`;
-    }
-    return tr;
-  }
-
-  if (getRowMap().size === 0) { onComplete(); return; }
-
-  // rc is the live count map; seeded with all prev plays, mutated frame-by-frame
-  const rc = {};
-  function rcMutate(p, delta) {
-    if (type === 'songs') {
-      const k = songKey(p);
-      if (!rc[k]) rc[k] = { key: k, count: 0 };
-      rc[k].count += delta;
-      if (rc[k].count <= 0) delete rc[k];
-    } else if (type === 'artists') {
-      for (const a of p.artists) {
-        if (!rc[a]) rc[a] = { key: a, count: 0 };
-        rc[a].count += delta;
-        if (rc[a].count <= 0) delete rc[a];
-      }
-    } else if (type === 'albums') {
-      if (!p.album || p.album === '—') return;
-      const k = albumKeyOf(p);
-      if (!rc[k]) rc[k] = { key: k, count: 0 };
-      rc[k].count += delta;
-      if (rc[k].count <= 0) delete rc[k];
-    }
-  }
-  for (const p of pSorted) rcMutate(p, 1);
-
-  // Only show the current top-N; new entrants appear naturally when they earn a slot
-  function getCurrentCounts() {
-    return Object.values(rc).sort((a, b) => b.count - a.count).slice(0, chartSize);
-  }
-
-  // FRAMES scaled so the top entry changes count ~once per frame (gradual readable steps)
-  const topCount = Object.values(rc).sort((a, b) => b.count - a.count)[0]?.count || 40;
-  const FRAMES = Math.max(40, Math.min(150, topCount));
-  const prevPerFrame = pSorted.length / FRAMES;
-  const currPerFrame = cSorted.length / FRAMES;
-  let prevIdx = 0;
-  let currIdx = 0;
-
-  // Speed slider — injected above the chart table, removed when animation ends
-  const tableEl = tbody.closest('table');
-  const sliderWrapId = 'sw-speed-' + type;
-  let sliderWrap = document.getElementById(sliderWrapId);
-  if (!sliderWrap && tableEl?.parentElement) {
-    sliderWrap = document.createElement('div');
-    sliderWrap.id = sliderWrapId;
-    sliderWrap.className = 'anim-speed-bar';
-    sliderWrap.innerHTML =
-      `<span class="anim-speed-label">Speed</span>` +
-      `<span class="anim-speed-emoji">🐢</span>` +
-      `<input type="range" min="0.25" max="4" step="0.25" value="${_animSpeedFactor}" class="anim-speed-slider">` +
-      `<span class="anim-speed-emoji">🐇</span>` +
-      `<span class="anim-speed-val">${_animSpeedFactor}&times;</span>`;
-    tableEl.parentElement.insertBefore(sliderWrap, tableEl);
-    sliderWrap.querySelector('.anim-speed-slider').addEventListener('input', e => {
-      _animSpeedFactor = parseFloat(e.target.value);
-      const valEl = document.getElementById(sliderWrapId)?.querySelector('.anim-speed-val');
-      if (valEl) valEl.textContent = _animSpeedFactor + '×';
-    });
-  }
-
-  function cleanupSlider() {
-    const el = document.getElementById(sliderWrapId);
-    if (el) el.remove();
-  }
-
-  function doStep(frame) {
-    if (token.cancelled || !tbody.isConnected) { cleanupSlider(); return; }
-    if (frame > FRAMES) { cleanupSlider(); onComplete(); return; }
-
-    // Slide the window: drop oldest prev plays, add oldest curr plays
-    const nextPrevIdx = Math.round(frame * prevPerFrame);
-    const nextCurrIdx = Math.round(frame * currPerFrame);
-    while (prevIdx < nextPrevIdx) rcMutate(pSorted[prevIdx++], -1);
-    while (currIdx < nextCurrIdx) rcMutate(cSorted[currIdx++],  1);
-
-    const counts   = getCurrentCounts();
-    const newTopSet = new Set(counts.map(c => c.key));
-    const maxCount = counts[0]?.count || 1;
-    const colCount = getColCount();
-
-    // Dynamically create rows for new entrants the moment they earn a chart slot
-    let rowMap = getRowMap();
-    for (const c of counts) {
-      if (!rowMap.has(c.key)) {
-        const meta = keyToMeta[c.key];
-        if (meta) tbody.appendChild(buildNewRow(c.key, meta, colCount));
-      }
-    }
-    rowMap = getRowMap();
-    if (rowMap.size === 0) { cleanupSlider(); onComplete(); return; }
-
-    const activeRows  = counts.map(c => rowMap.get(c.key)).filter(Boolean);
-    const droppedRows = [...rowMap.values()].filter(tr => !newTopSet.has(tr.dataset.chartkey));
-
-    // Remove dropped rows from the DOM before measuring so they don't distort FLIP positions
-    const droppedFrag = document.createDocumentFragment();
-    for (const tr of droppedRows) droppedFrag.appendChild(tr);
-
-    // FLIP read-1: freeze transitions, measure current positions of active rows
-    const firstTops = new Map();
-    for (const tr of activeRows) {
-      tr.style.transition = 'none';
-      tr.style.transform  = '';
-      firstTops.set(tr, tr.getBoundingClientRect().top);
-    }
-
-    // DOM reorder: active rows in rank order
-    for (const tr of activeRows) tbody.appendChild(tr);
-
-    // Content update: rank number, count, bar width
-    counts.forEach((c, i) => {
-      const tr = rowMap.get(c.key);
-      if (!tr) return;
-      const rankCell = tr.querySelector('.rank-cell');
-      const countEl  = tr.querySelector('.sw-count');
-      const barEl    = tr.querySelector('.sw-bar');
-      if (rankCell) rankCell.textContent = i + 1;
-      if (countEl)  countEl.textContent  = c.count;
-      if (barEl)    barEl.style.width    = Math.round(c.count / maxCount * 100) + '%';
-    });
-
-    // FLIP read-2: measure after reorder, apply inverse transforms so rows appear unmoved
-    const lastTops = new Map();
-    for (const [tr] of firstTops) lastTops.set(tr, tr.getBoundingClientRect().top);
-    for (const [tr, first] of firstTops) {
-      const dy = first - (lastTops.get(tr) ?? first);
-      if (Math.abs(dy) > 0.5) tr.style.transform = `translateY(${dy}px)`;
-    }
-
-    const frameMs = Math.round(150 / _animSpeedFactor);
-    const transMs = Math.round(frameMs * 0.75);
-
-    // FLIP play: animate rows to their final positions and fade new entrants in
-    requestAnimationFrame(() => {
-      if (token.cancelled) return;
-      requestAnimationFrame(() => {
-        if (token.cancelled) return;
-        for (const tr of activeRows) {
-          tr.style.transition = `transform ${transMs}ms cubic-bezier(0.4,0,0.2,1), opacity ${transMs}ms ease`;
-          tr.style.transform  = '';
-          tr.style.opacity    = '1';
-        }
-        setTimeout(() => doStep(frame + 1), frameMs);
-      });
-    });
-  }
-
-  setTimeout(() => doStep(1), 900);
 }
 
 // ─── FULL DATASET BUILDERS (for paginated yearly/alltime) ──────
@@ -18273,8 +17937,6 @@ function renderSongs(plays, peaks, monthlyStats) {
   const isAllTime = currentPeriod === 'alltime';
   const colCount = monthlyStats ? 8 : 6; // +1 for the trailing chart-run icon column
   const imgItems = [];
-  const _prevMapSongs = buildPrevRankMap(_animPrevPlays, 'songs');
-  const _animSongs = _animPrevPlays !== null;
   const currPairsS = sorted.map((s, i) => {
     const imgId = 'simg-' + i;
     const rowId = 'crr-song-' + i;
@@ -18284,14 +17946,10 @@ function renderSongs(plays, peaks, monthlyStats) {
     imgItems.push({ imgId, title: s.title, artist: s.artist, album: s.album, type: 'song', prefKey });
     const barCls = f.barCls ? ' ' + f.barCls : '';
     const statusCls = f.move === 'new' ? ' wv-row-new' : f.move === 're' ? ' wv-row-re' : '';
-    const _prevIdxS = _animSongs ? (_prevMapSongs[k] ?? chartSize * 2) : 0;
-    const _crsiOffsetS = _animSongs ? Math.max(-200, Math.min(200, (_prevIdxS - i) * 38)) : 0;
-    const _animAttrsS = _animSongs ? ` style="--crsi-offset:${_crsiOffsetS}px;--crsi-delay:${i * 50}ms"` : '';
-    const _animClassS = _animSongs ? ' chart-row-anim' : '';
     const _songModalClass = (isAllTime || currentPeriod === 'year') ? ' song-row' : '';
     const _songModalAttr = (isAllTime || currentPeriod === 'year') ? ` data-songkey="${encodeURIComponent(k)}"` : '';
     // Phase 7: ▶ sample + ⋮ before the chart-run icon, right-click (f.ea, see _eaAttrs)
-    const mainRow = `<tr${_animAttrsS}${_songModalAttr}${f.ea} class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}${_animClassS}${_songModalClass}${statusCls}">
+    const mainRow = `<tr${_songModalAttr}${f.ea} class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}${_songModalClass}${statusCls}">
       <td class="rank-cell">${i + 1}${monthlyStats ? _rankMove(mPrevCell(i + 1, k, 'songs', monthlyStats)) : ''}</td>
       ${monthlyStats ? mPrevCell(i + 1, k, 'songs', monthlyStats) : ''}
       <td class="thumb-cell"><div class="thumb-wrap ea-cover">${_eaCoverPlay()}<div id="${imgId}"><div class="thumb-initials">${esc(initials(s.title))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="song" data-prefkey="${esc(prefKey)}" data-name="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
@@ -18313,47 +17971,11 @@ function renderSongs(plays, peaks, monthlyStats) {
     return [mainRow, expandRow];
   });
   const sbodyS = document.getElementById('songsBody');
-  if (sbodyS._visObs) { sbodyS._visObs.disconnect(); delete sbodyS._visObs; }
-  if (_animSongs) {
-    const _capPrevS = _animPrevPlays, _capCurrS = _animCurrentPlays;
-    const _prevEntriesS = buildPrevSortedEntries(_capPrevS, 'songs');
-    const _startAnimS = () => {
-      if (sbodyS._swToken) sbodyS._swToken.cancelled = true;
-      sbodyS.innerHTML = buildPrevChartHtml(_prevEntriesS, sorted.length, colCount, 'songs');
-      loadImages(_prevEntriesS.map((e, i) => ({ imgId: `pwsimg-${i}`, title: e.title, artist: e.artist, album: e.album, type: 'song', prefKey: 'song:' + e.artist.toLowerCase() + '|||' + e.title.toLowerCase(), name: e.title })), 'song');
-      runSlideWindowAnim(sbodyS, 'songs', _capPrevS, _capCurrS, () => {
-        for (const tr of sbodyS.querySelectorAll('tr[data-chartkey]')) {
-          tr.style.transition = 'opacity 0.35s ease';
-          tr.style.opacity = '0.75';
-        }
-        setTimeout(() => {
-          sbodyS.innerHTML = currPairsS.flatMap(p => p).join('');
-          loadImages(imgItems.map(i => ({ ...i, name: i.title })), 'song');
-        }, 380);
-      });
-    };
-    // Always register the manual replay function so ▶ Animate Chart works
-    // even with auto-play-on-load off — only the observer below is gated.
-    _replayFns['songs'] = _startAnimS;
-    if (chartAnimEnabled) {
-      sbodyS.innerHTML = buildPrevChartHtml(_prevEntriesS, sorted.length, colCount, 'songs');
-      const _obsS = new IntersectionObserver(([entry]) => {
-        if (!entry.isIntersecting) return;
-        _obsS.disconnect();
-        delete sbodyS._visObs;
-        _startAnimS();
-      }, { threshold: 0 });
-      sbodyS._visObs = _obsS;
-      _obsS.observe(sbodyS);
-    } else {
-      sbodyS.innerHTML = currPairsS.flatMap(p => p).join('');
-      loadImages(imgItems.map(i => ({ ...i, name: i.title })), 'song');
-    }
-  } else {
-    delete _replayFns['songs'];
-    sbodyS.innerHTML = currPairsS.flatMap(p => p).join('');
-    loadImages(imgItems.map(i => ({ ...i, name: i.title })), 'song');
-  }
+  sbodyS.innerHTML = currPairsS.flatMap(p => p).join('');
+  loadImages(imgItems.map(i => ({ ...i, name: i.title })), 'song');
+  // ▶ Animate Chart: the play-by-play replay from the previous period, in
+  // whichever layout is on (replay.js, phase 7 step 11)
+  if (typeof crpRegister === 'function') crpRegister('songs', _animPrevPlays, _animCurrentPlays, monthlyStats, sorted.map(s => songKey(s)));
   const playAllRow = document.getElementById('ytPlayAllRow');
   if (playAllRow) playAllRow.style.display = sorted.length > 0 ? '' : 'none';
   applyWeeklyChartView('songs');
@@ -18401,8 +18023,6 @@ function renderArtists(plays, peaks, monthlyStats) {
   const isAllTime = currentPeriod === 'alltime';
   const colCount = monthlyStats ? 8 : 6; // +1 for the trailing chart-run icon column
   const imgItems = [];
-  const _prevMapArtists = buildPrevRankMap(_animPrevPlays, 'artists');
-  const _animArtists = _animPrevPlays !== null;
   const currPairsA = sorted.map(([artist, data], i) => {
     const imgId = 'aimg-' + i;
     const rowId = 'crr-artist-' + i;
@@ -18412,11 +18032,7 @@ function renderArtists(plays, peaks, monthlyStats) {
     imgItems.push({ imgId, name: artist, prefKey });
     const barCls = f.barCls ? ' ' + f.barCls : '';
     const statusCls = f.move === 'new' ? ' wv-row-new' : f.move === 're' ? ' wv-row-re' : '';
-    const _prevIdxA = _animArtists ? (_prevMapArtists[artist] ?? chartSize * 2) : 0;
-    const _crsiOffsetA = _animArtists ? Math.max(-200, Math.min(200, (_prevIdxA - i) * 38)) : 0;
-    const _animAttrsA = _animArtists ? ` style="--crsi-offset:${_crsiOffsetA}px;--crsi-delay:${i * 50}ms"` : '';
-    const _animClassA = _animArtists ? ' chart-row-anim' : '';
-    const mainRow = `<tr${_animAttrsA}${f.ea} class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}${_animClassA} artist-row${statusCls}" data-artist="${esc(artist)}">
+    const mainRow = `<tr${f.ea} class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''} artist-row${statusCls}" data-artist="${esc(artist)}">
       <td class="rank-cell">${i + 1}${monthlyStats ? _rankMove(mPrevCell(i + 1, artist, 'artists', monthlyStats)) : ''}</td>
       ${monthlyStats ? mPrevCell(i + 1, artist, 'artists', monthlyStats) : ''}
       <td class="thumb-cell"><div class="thumb-wrap ea-cover">${_eaCoverPlay()}<div id="${imgId}"><div class="thumb-initials">${esc(initials(artist))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(artist)}" data-artist="${esc(artist)}" data-album="">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
@@ -18434,47 +18050,10 @@ function renderArtists(plays, peaks, monthlyStats) {
     return [mainRow, expandRow];
   });
   const sbodyA = document.getElementById('artistsBody');
-  if (sbodyA._visObs) { sbodyA._visObs.disconnect(); delete sbodyA._visObs; }
-  if (_animArtists) {
-    const _capPrevA = _animPrevPlays, _capCurrA = _animCurrentPlays;
-    const _prevEntriesA = buildPrevSortedEntries(_capPrevA, 'artists');
-    const _startAnimA = () => {
-      if (sbodyA._swToken) sbodyA._swToken.cancelled = true;
-      sbodyA.innerHTML = buildPrevChartHtml(_prevEntriesA, sorted.length, colCount, 'artists');
-      loadImages(_prevEntriesA.map((e, i) => ({ imgId: `pwaimg-${i}`, name: e.name, prefKey: 'artist:' + e.name.toLowerCase() })), 'artist');
-      runSlideWindowAnim(sbodyA, 'artists', _capPrevA, _capCurrA, () => {
-        for (const tr of sbodyA.querySelectorAll('tr[data-chartkey]')) {
-          tr.style.transition = 'opacity 0.35s ease';
-          tr.style.opacity = '0.75';
-        }
-        setTimeout(() => {
-          sbodyA.innerHTML = currPairsA.flatMap(p => p).join('');
-          loadImages(imgItems, 'artist');
-        }, 380);
-      });
-    };
-    // Always register the manual replay function so ▶ Animate Chart works
-    // even with auto-play-on-load off — only the observer below is gated.
-    _replayFns['artists'] = _startAnimA;
-    if (chartAnimEnabled) {
-      sbodyA.innerHTML = buildPrevChartHtml(_prevEntriesA, sorted.length, colCount, 'artists');
-      const _obsA = new IntersectionObserver(([entry]) => {
-        if (!entry.isIntersecting) return;
-        _obsA.disconnect();
-        delete sbodyA._visObs;
-        _startAnimA();
-      }, { threshold: 0 });
-      sbodyA._visObs = _obsA;
-      _obsA.observe(sbodyA);
-    } else {
-      sbodyA.innerHTML = currPairsA.flatMap(p => p).join('');
-      loadImages(imgItems, 'artist');
-    }
-  } else {
-    delete _replayFns['artists'];
-    sbodyA.innerHTML = currPairsA.flatMap(p => p).join('');
-    loadImages(imgItems, 'artist');
-  }
+  sbodyA.innerHTML = currPairsA.flatMap(p => p).join('');
+  loadImages(imgItems, 'artist');
+  // ▶ Animate Chart (replay.js), as in renderSongs
+  if (typeof crpRegister === 'function') crpRegister('artists', _animPrevPlays, _animCurrentPlays, monthlyStats, sorted.map(([name]) => name));
   applyWeeklyChartView('artists');
   // Render Bubbling Under section (weekly only, requires history stats)
   if (currentPeriod === 'week' && monthlyStats) {
@@ -18534,8 +18113,6 @@ function renderAlbums(plays, peaks, monthlyStats) {
   const isAllTime = currentPeriod === 'alltime';
   const colCount = monthlyStats ? 8 : 6; // +1 for the trailing chart-run icon column
   const imgItems = [];
-  const _prevMapAlbums = buildPrevRankMap(_animPrevPlays, 'albums');
-  const _animAlbums = _animPrevPlays !== null;
   if (sorted.length === 0) {
     document.getElementById('albumsBody').innerHTML = `<tr><td colspan="${colCount}"><div class="empty-state"><p>${albumsEmptyMessage('empty_no_album_data_csv')}</p></div></td></tr>`;
   } else {
@@ -18548,11 +18125,7 @@ function renderAlbums(plays, peaks, monthlyStats) {
       imgItems.push({ imgId, album, artist, name: album, prefKey });
       const barCls = f.barCls ? ' ' + f.barCls : '';
       const statusCls = f.move === 'new' ? ' wv-row-new' : f.move === 're' ? ' wv-row-re' : '';
-      const _prevIdxL = _animAlbums ? (_prevMapAlbums[ak] ?? chartSize * 2) : 0;
-      const _crsiOffsetL = _animAlbums ? Math.max(-200, Math.min(200, (_prevIdxL - i) * 38)) : 0;
-      const _animAttrsL = _animAlbums ? ` style="--crsi-offset:${_crsiOffsetL}px;--crsi-delay:${i * 50}ms"` : '';
-      const _animClassL = _animAlbums ? ' chart-row-anim' : '';
-      const mainRow = `<tr${_animAttrsL}${f.ea} class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}${_animClassL} album-row${statusCls}" data-albumkey="${esc(ak)}">
+      const mainRow = `<tr${f.ea} class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''} album-row${statusCls}" data-albumkey="${esc(ak)}">
       <td class="rank-cell">${i + 1}${monthlyStats ? _rankMove(mPrevCell(i + 1, ak, 'albums', monthlyStats)) : ''}</td>
       ${monthlyStats ? mPrevCell(i + 1, ak, 'albums', monthlyStats) : ''}
       <td class="thumb-cell"><div class="thumb-wrap ea-cover">${_eaCoverPlay()}<div id="${imgId}"><div class="thumb-initials">${esc(initials(album))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="album" data-prefkey="${esc(prefKey)}" data-name="${esc(album)}" data-artist="${esc(artist)}" data-album="${esc(album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
@@ -18575,48 +18148,11 @@ function renderAlbums(plays, peaks, monthlyStats) {
       return [mainRow, expandRow];
     });
     const sbodyL = document.getElementById('albumsBody');
-    if (sbodyL._visObs) { sbodyL._visObs.disconnect(); delete sbodyL._visObs; }
-    if (_animAlbums) {
-      const _capPrevL = _animPrevPlays, _capCurrL = _animCurrentPlays;
-      const _prevEntriesL = buildPrevSortedEntries(_capPrevL, 'albums');
-      const _startAnimL = () => {
-        if (sbodyL._swToken) sbodyL._swToken.cancelled = true;
-        sbodyL.innerHTML = buildPrevChartHtml(_prevEntriesL, sorted.length, colCount, 'albums');
-        loadImages(_prevEntriesL.map((e, i) => ({ imgId: `pwlimg-${i}`, album: e.album, artist: e.artist, name: e.album, prefKey: 'album:' + (e.album + '|||' + e.artist).toLowerCase() })), 'album');
-        runSlideWindowAnim(sbodyL, 'albums', _capPrevL, _capCurrL, () => {
-          for (const tr of sbodyL.querySelectorAll('tr[data-chartkey]')) {
-            tr.style.transition = 'opacity 0.35s ease';
-            tr.style.opacity = '0.75';
-          }
-          setTimeout(() => {
-            sbodyL.innerHTML = currPairsL.flatMap(p => p).join('');
-            loadImages(imgItems, 'album');
-          }, 380);
-        });
-      };
-      // Always register the manual replay function so ▶ Animate Chart works
-      // even with auto-play-on-load off — only the observer below is gated.
-      _replayFns['albums'] = _startAnimL;
-      if (chartAnimEnabled) {
-        sbodyL.innerHTML = buildPrevChartHtml(_prevEntriesL, sorted.length, colCount, 'albums');
-        const _obsL = new IntersectionObserver(([entry]) => {
-          if (!entry.isIntersecting) return;
-          _obsL.disconnect();
-          delete sbodyL._visObs;
-          _startAnimL();
-        }, { threshold: 0 });
-        sbodyL._visObs = _obsL;
-        _obsL.observe(sbodyL);
-      } else {
-        sbodyL.innerHTML = currPairsL.flatMap(p => p).join('');
-        loadImages(imgItems, 'album');
-      }
-    } else {
-      delete _replayFns['albums'];
-      sbodyL.innerHTML = currPairsL.flatMap(p => p).join('');
-      loadImages(imgItems, 'album');
-    }
+    sbodyL.innerHTML = currPairsL.flatMap(p => p).join('');
+    loadImages(imgItems, 'album');
   }
+  // ▶ Animate Chart (replay.js), as in renderSongs
+  if (typeof crpRegister === 'function') crpRegister('albums', _animPrevPlays, _animCurrentPlays, monthlyStats, sorted.map(a => a.album + '|||' + a.artist));
   applyWeeklyChartView('albums');
   // Render Bubbling Under section (weekly only, requires history stats)
   if (currentPeriod === 'week' && monthlyStats) {
@@ -19545,6 +19081,8 @@ function buTlPlayAll() {
 // (#chartLayoutBar, phase 7 step 5) always act on that one.
 function setWeeklyChartView(mode, type) {
   type = type || chartTypeView;
+  // A replay in the old layout makes way for the new one (replay.js)
+  if (typeof crpClose === 'function') crpClose(type);
   weeklyChartViewMode[type] = mode;
   try { localStorage.setItem('dc_weekly_chart_view_' + type, mode); } catch(e) {}
   if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
@@ -48860,8 +48398,8 @@ function stReplayMovementInfo(name, i, prevTop5) {
 }
 
 // FLIP-reorders the row elements from the previous week's positions to this
-// week's, same technique as the main chart's sliding-window bar-race animation
-// (runSlideWindowAnim above) — rows are kept and moved/resized rather than
+// week's, same technique as the main chart's play-by-play replay
+// (replay.js) — rows are kept and moved/resized rather than
 // wiped and redrawn, so entries visibly slide/grow instead of flashing.
 function stReplayRenderRows(rowsEl, snap, prevTop5) {
   const newTop5 = snap.top5;
