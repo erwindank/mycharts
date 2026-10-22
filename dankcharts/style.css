@@ -22918,19 +22918,7 @@ body[class*="-light"] .tm-card-search:hover {
   border: 1px solid var(--border);
   margin-right: 6px;
 }
-.awards-year-nav-btn {
-  flex: none;
-  width: 32px;
-  height: 32px;
-  display: grid;
-  place-items: center;
-  background: transparent;
-  border: none;
-  color: var(--text3);
-  border-radius: var(--r-full);
-  cursor: pointer;
-  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
-}
+.awards-year-nav-btn { flex: none; }
 .awards-year-nav-btn svg,
 .awards-config-btn svg,
 .awards-generate-btn svg {
@@ -22942,10 +22930,6 @@ body[class*="-light"] .tm-card-search:hover {
   stroke-linecap: round;
   stroke-linejoin: round;
   flex: none;
-}
-.awards-year-nav-btn:hover {
-  background: color-mix(in srgb, var(--accent) 16%, transparent);
-  color: var(--text1);
 }
 /* The year is a button: click it to open the year picker. The caret only
    shows on hover / keyboard focus / while open, and is absolutely placed so
@@ -22991,7 +22975,6 @@ body[class*="-light"] .tm-card-search:hover {
 .awards-year-label.is-open::after { transform: rotate(-135deg); bottom: -1px; }
 .awards-year-label:hover,
 .awards-year-label.is-open { background: color-mix(in srgb, var(--accent) 14%, transparent); }
-.awards-year-nav-btn:disabled { opacity: 0.3; cursor: default; background: transparent; }
 
 /* Year picker popover: a grid of year chips, newest first, scrolls if long */
 .awards-year-picker {
@@ -23028,55 +23011,9 @@ body[class*="-light"] .tm-card-search:hover {
 .awards-year-chip:focus-visible { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--text1); outline: none; }
 .awards-year-chip.is-current { background: var(--accent); color: var(--on-accent); }
 @media (prefers-reduced-motion: reduce) { .awards-year-picker { animation: none; } }
-/* Action buttons: 40px pills with a line icon, matching the stepper's height */
-.awards-config-btn,
-.awards-generate-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--sp-2);
-  height: 42px;
-  padding: 0 18px 0 15px;
-  border-radius: var(--r-full);
-  border: 1px solid var(--border);
-  font-size: var(--fs-sm);
-  font-weight: 600;
-  cursor: pointer;
-  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease),
-              border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
-}
-.awards-config-btn:active,
-.awards-generate-btn:active:not(:disabled) { transform: translateY(1px); }
-/* Secondary: a quiet ghost button that tints toward the accent on hover/open */
-.awards-config-btn {
-  background: transparent;
-  color: var(--text2);
-}
-.awards-config-btn:hover {
-  background: color-mix(in srgb, var(--accent) 10%, transparent);
-  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
-  color: var(--text1);
-}
-.awards-config-btn.active {
-  background: color-mix(in srgb, var(--accent) 16%, transparent);
-  border-color: var(--accent);
-  color: var(--text1);
-}
-/* Primary: the theme's own accent as a solid fill (so it fits every theme),
-   text in --on-accent, a soft accent glow underneath. */
-.awards-generate-btn {
-  background: var(--accent);
-  border-color: transparent;
-  color: var(--on-accent);
-  font-weight: 700;
-  box-shadow: 0 4px 16px -6px color-mix(in srgb, var(--accent) 70%, transparent),
-              inset 0 1px 0 rgba(255, 255, 255, 0.18);
-}
-.awards-generate-btn:hover {
-  background: color-mix(in srgb, var(--accent) 88%, #fff 12%);
-  box-shadow: 0 6px 22px -6px color-mix(in srgb, var(--accent) 85%, transparent),
-              inset 0 1px 0 rgba(255, 255, 255, 0.22);
-}
-.awards-generate-btn:disabled { opacity: 0.6; cursor: wait; box-shadow: none; }
+/* Settings panel open */
+.awards-config-btn.active { border-color: var(--accent); }
+.awards-generate-btn:disabled { cursor: wait; }
 
 /* Config panel */
 .awards-config-panel {
@@ -23214,19 +23151,6 @@ body[class*="-light"] .tm-card-search:hover {
 .awc-seg button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
 
 .awc-bulk { display: inline-flex; gap: 6px; margin-left: auto; }
-.awc-bulk-btn {
-  height: 36px;
-  padding: 0 var(--sp-3);
-  border-radius: var(--r-md);
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--text2);
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-}
-.awc-bulk-btn:hover { border-color: var(--accent); color: var(--text1); }
 
 /* Group chips: scroll sideways on a phone instead of wrapping into a block */
 .awc-chips {
@@ -23547,7 +23471,6 @@ body[class*="-light"] .tm-card-search:hover {
 .awards-picker-fav { position: absolute; top: 15px; right: 50px; }
 .awards-picker-head:has(.awards-picker-fav) { padding-right: 88px; }
 .awc-seg-n { opacity: 0.6; font-variant-numeric: tabular-nums; }
-.awc-favs-only:disabled { opacity: 0.5; cursor: default; border-color: var(--border); color: var(--text3); }
 /* Folded: just the header, pointing the chevron sideways; align-self keeps the
    card from stretching to the height of its row-mates in the grid */
 .awards-cat-card.is-collapsed { align-self: start; }
@@ -23706,27 +23629,10 @@ body[class*="-light"] .tm-card-search:hover {
 }
 
 /* Category action button — a full-width ghost slip at the foot of the ballot */
-.awards-cat-action-btn {
-  flex: 1;
-  padding: 7px var(--sp-3);
-  border-radius: var(--r-sm);
-  border: 1px dashed color-mix(in srgb, var(--cat-hue) 35%, var(--border));
-  background: transparent;
-  color: color-mix(in srgb, var(--cat-hue) 50%, var(--text2));
-  font-family: var(--font-sans);
-  font-size: var(--fs-xs);
-  cursor: pointer;
-  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
-}
+.awards-cat-action-btn { flex: 1; }
 /* The playlist button sits beside Change / Pick nominees, sized to its label */
 .awards-cat-footer { gap: 6px; }
 .awards-cat-pl-btn { flex: none; }
-.awards-cat-action-btn:hover {
-  background: color-mix(in srgb, var(--cat-hue) 14%, transparent);
-  border-style: solid;
-  border-color: var(--cat-hue);
-  color: var(--text1);
-}
 
 /* Reveal animations are decorative only — the grid is fully readable without them. */
 @media (prefers-reduced-motion: reduce) {
@@ -23814,12 +23720,8 @@ body[class*="-light"] .tm-card-search:hover {
 .aw-col-cell .aw-move button:hover:not(:disabled) { background: var(--accent); border-color: var(--accent); }
 .aw-reorder-hint { color: color-mix(in srgb, var(--accent) 70%, var(--text3)); opacity: 1; }
 .awards-cat-reorder-btn { flex: none; }
-.awards-cat-reorder-btn.is-on {
-  border-style: solid;
-  border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 16%, transparent);
-  color: var(--text1);
-}
+/* Reordering in progress */
+.awards-cat-reorder-btn.is-on { border-color: var(--accent); }
 
 /* Nominee view switcher ───────────────────────────────────────────────────────
    A segmented pill above the grid, right-aligned so it reads as a display
@@ -24521,23 +24423,6 @@ body[class*="-light"] .tm-card-search:hover {
 
 /* Share sits beside the launch button — quieter, so View Ceremony stays the lead */
 .awards-ceremony-bar { gap: 10px; flex-wrap: wrap; }
-.awards-ceremony-share-btn {
-  padding: 10px 20px;
-  border-radius: 24px;
-  background: transparent;
-  color: var(--text);
-  font-weight: 700;
-  font-size: var(--fs-base);
-  border: 1px solid var(--border2);
-  cursor: pointer;
-  transition: border-color 0.15s, color 0.15s;
-}
-.awards-ceremony-share-btn:hover { border-color: #FFD700; color: #FFD700; }
-body.navy-light .awards-ceremony-share-btn:hover,
-body.purple-light .awards-ceremony-share-btn:hover,
-body.red-light .awards-ceremony-share-btn:hover,
-body.yellow-light .awards-ceremony-share-btn:hover,
-body.pink-light .awards-ceremony-share-btn:hover { border-color: var(--medal-gold); color: var(--medal-gold); }
 
 /* Share dialog (see _cerShareRender) — reuses the playlist-picker box and the
    create-playlist buttons; these only cover what is new. */
@@ -24921,20 +24806,7 @@ body.pink-light .awards-ceremony-share-btn:hover { border-color: var(--medal-gol
   padding: 10px var(--sp-2) var(--sp-1);
 }
 .awards-picker-group:first-child { padding-top: 2px; }
-.awards-picker-more {
-  display: block;
-  width: 100%;
-  margin-top: 6px;
-  padding: 7px;
-  background: var(--surface2);
-  border: 1px dashed var(--border);
-  border-radius: var(--r-sm);
-  color: var(--text3);
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  cursor: pointer;
-}
-.awards-picker-more:hover { color: var(--text1); border-color: var(--accent); }
+.awards-picker-more { display: flex; width: 100%; margin-top: 6px; }
 .awards-picker-add-icon {
   font-size: 1rem;
   color: var(--text3);
@@ -24998,24 +24870,8 @@ body.pink-light .awards-ceremony-share-btn:hover { border-color: var(--medal-gol
   background: color-mix(in srgb, var(--pk-gold) 12%, var(--surface2));
 }
 .aw-pst-pill.is-gold b { color: color-mix(in srgb, var(--pk-gold) 80%, var(--text1)); }
-.awards-picker-stats-btn {
-  margin-left: auto;
-  padding: 2px var(--sp-2);
-  border: 1px solid var(--border);
-  border-radius: var(--r-full);
-  background: var(--surface2);
-  color: var(--text2);
-  font-family: var(--font-sans);
-  font-size: var(--fs-xs);
-  cursor: pointer;
-  transition: color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
-}
-.awards-picker-stats-btn:hover,
-.awards-picker-stats-btn[aria-expanded="true"] {
-  color: var(--text1);
-  border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 12%, var(--surface2));
-}
+.awards-picker-stats-btn { margin-left: auto; }
+.awards-picker-stats-btn[aria-expanded="true"] { border-color: var(--accent); }
 .awards-picker-result-row.has-stats-open { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
 
 .awards-picker-stats {
@@ -25634,17 +25490,6 @@ body.pink-light .awards-picker-yt-btn:hover { color: #CC0000; border-color: #CC0
   justify-content: space-between;
 }
 .awards-picker-count { font-size: var(--fs-xs); color: var(--text3); }
-.awards-picker-save {
-  padding: var(--sp-2) 20px;
-  background: var(--accent);
-  color: var(--on-accent);
-  border: none;
-  border-radius: var(--r-sm);
-  font-weight: 600;
-  font-size: var(--fs-sm);
-  cursor: pointer;
-}
-.awards-picker-save:hover { opacity: 0.88; }
 
 /* Empty states */
 .awards-empty { font-size: var(--fs-sm); color: var(--text3); padding: var(--sp-3) var(--sp-1); }

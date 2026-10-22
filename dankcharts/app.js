@@ -40849,7 +40849,7 @@ function _awardsRenderCatToggles(data) {
   if (!shown.length) {
     el.innerHTML = `<div class="awc-empty">
       <span>${esc(_awcQ ? t('awards_cat_none_q', { q: _awcQ }) : t('awards_cat_none'))}</span>
-      <button type="button" class="awc-bulk-btn" onclick="awardsCatClearFilters()">${esc(t('awards_cat_clear'))}</button>
+      <button type="button" class="dc-btn dc-btn-normal dc-btn-sm awc-bulk-btn" onclick="awardsCatClearFilters()">${esc(t('awards_cat_clear'))}</button>
     </div>`;
   } else {
     el.innerHTML = groups.map(g => {
@@ -40962,7 +40962,7 @@ function _awardsRenderCatList(data) {
   el.innerHTML = !shownCats.length
     // Every category is decided and they're all hidden: say so, with a way back
     ? `<div class="awards-empty">${esc(t('awards_all_decided'))}
-        <button class="awards-cat-action-btn" onclick="awardsSetHideDecided(false)">${esc(t('awards_show_decided'))}</button></div>`
+        <button class="dc-btn dc-btn-normal dc-btn-sm awards-cat-action-btn" onclick="awardsSetHideDecided(false)">${esc(t('awards_show_decided'))}</button></div>`
     : shownCats.map((cat, i) => {
     const cd = data.categories[cat.id] || { enabled: true, nominees: [], winner: null };
     return view === 'ballot'
@@ -41569,15 +41569,15 @@ function _awardsCollapseBtn(cat) {
 
 // Change / Pick nominees, plus the playlist button once there is a field to hear
 function _awardsCatActionsHtml(cat, year, count) {
-  const genBtn = cat.auto ? '' : `<button class="awards-cat-action-btn" onclick="awardsGenerateCatCandidates(${year},'${esc(cat.id)}')" data-catid="${esc(cat.id)}">${count ? t('awards_change_btn') : t('awards_pick_nominees_btn')}</button>`;
+  const genBtn = cat.auto ? '' : `<button class="dc-btn dc-btn-normal dc-btn-sm awards-cat-action-btn" onclick="awardsGenerateCatCandidates(${year},'${esc(cat.id)}')" data-catid="${esc(cat.id)}">${count ? t('awards_change_btn') : t('awards_pick_nominees_btn')}</button>`;
   // Listen to the whole field before choosing. Auto categories have nothing to decide.
   const plBtn = (!cat.auto && count)
-    ? `<button class="awards-cat-action-btn awards-cat-pl-btn" onclick="awardsCatPlaylist(${year},'${esc(cat.id)}')" title="Make a playlist of these nominees">♫ Playlist</button>`
+    ? `<button class="dc-btn dc-btn-normal dc-btn-sm awards-cat-action-btn awards-cat-pl-btn" onclick="awardsCatPlaylist(${year},'${esc(cat.id)}')" title="Make a playlist of these nominees">♫ Playlist</button>`
     : '';
   // Reorder mode, for touch and keyboard (a mouse can just drag)
   const on = _awardsReordering.has(cat.id);
   const roBtn = (!cat.auto && count > 1)
-    ? `<button class="awards-cat-action-btn awards-cat-reorder-btn${on ? ' is-on' : ''}" onclick="awardsToggleReorder(${year},'${esc(cat.id)}')" aria-pressed="${on}" title="${on ? 'Finish reordering' : 'Change the order of the nominees'}">${on ? '✓ ' + esc(t('awards_reorder_done')) : '⇅ ' + esc(t('awards_reorder'))}</button>`
+    ? `<button class="dc-btn dc-btn-normal dc-btn-sm awards-cat-action-btn awards-cat-reorder-btn${on ? ' is-on' : ''}" onclick="awardsToggleReorder(${year},'${esc(cat.id)}')" aria-pressed="${on}" title="${on ? 'Finish reordering' : 'Change the order of the nominees'}">${on ? '✓ ' + esc(t('awards_reorder_done')) : '⇅ ' + esc(t('awards_reorder'))}</button>`
     : '';
   return genBtn + plBtn + roBtn;
 }
@@ -42724,7 +42724,7 @@ function _awardsPickerStatLine(item, idx) {
   if (s.streak.len > 1) bits.push(pill('Longest run of days in a row with a play', `🔥 <b>${s.streak.len} days</b> in a row`, 'is-hot'));
   bits.push(pill(`Days with at least one play (${pl(s.weeks, 'week', 'weeks')}, ${pl(s.months, 'month', 'months')})`, `Played on <b>${pl(s.days, 'day', 'days')}</b>`));
   if (s.peakDay.n > 1) bits.push(pill('Most plays in a single day', `<b>${s.peakDay.n} plays</b> in one day`));
-  return `<span class="awards-picker-statline">${bits.join('')}<button type="button" class="awards-picker-stats-btn" onclick="event.stopPropagation();awardsPickerToggleStats(${idx},this)" title="All stats for ${esc(String(_awardsPickerCtx.year))}" aria-expanded="false">📊 Stats</button></span>`;
+  return `<span class="awards-picker-statline">${bits.join('')}<button type="button" class="dc-btn dc-btn-normal dc-btn-sm awards-picker-stats-btn" onclick="event.stopPropagation();awardsPickerToggleStats(${idx},this)" title="All stats for ${esc(String(_awardsPickerCtx.year))}" aria-expanded="false">📊 Stats</button></span>`;
 }
 
 // The full card, opened under a row by its 📊 button
@@ -43274,7 +43274,7 @@ function _awardsPickerBodyHtml() {
   });
 
   const left = list.length - _awardsPickerRows.length;
-  if (left > 0) html += `<button class="awards-picker-more" onclick="awardsPickerShowMore()">Show ${Math.min(left, AWARDS_PICKER_PAGE)} more · ${left} left</button>`;
+  if (left > 0) html += `<button class="dc-btn dc-btn-normal dc-btn-sm awards-picker-more" onclick="awardsPickerShowMore()">Show ${Math.min(left, AWARDS_PICKER_PAGE)} more · ${left} left</button>`;
   return html;
 }
 
@@ -43381,7 +43381,7 @@ function _awardsShowPicker(year, catId, candidates) {
       <div class="awards-picker-body" id="awardsPickerBody">${_awardsPickerBodyHtml()}</div>
       <div class="awards-picker-foot">
         <span class="awards-picker-count" id="awardsPickerCount" title="Click a row to add or remove · ↑↓ then Enter · Ctrl+Enter saves">${t('awards_picker_selected', { count: _awardsPickerSel.length })}</span>
-        <button class="awards-picker-save" onclick="awardsPickerSave(${year},'${catId}')">${t('awards_save_nominees')}</button>
+        <button class="dc-btn dc-btn-main" onclick="awardsPickerSave(${year},'${catId}')">${t('awards_save_nominees')}</button>
       </div>
     </div>
   </div>`;

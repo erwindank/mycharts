@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=587">
+  <link rel="stylesheet" href="style.css?v=588">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -2205,13 +2205,13 @@
         <div class="awards-year-bar">
           <!-- Year stepper: arrows and year share one pill -->
           <div class="awards-year-stepper">
-            <button class="awards-year-nav-btn" onclick="awardsChangeYear(-1)" aria-label="Previous year"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button>
+            <button class="dc-btn dc-btn-plain dc-btn-icon awards-year-nav-btn" onclick="awardsChangeYear(-1)" aria-label="Previous year"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button>
             <button class="awards-year-label" id="awardsYearLabel" onclick="awardsOpenYearPicker('mygrammys')" aria-haspopup="true" aria-expanded="false" title="Pick a year">2024</button>
-            <button class="awards-year-nav-btn" onclick="awardsChangeYear(1)" aria-label="Next year"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></button>
+            <button class="dc-btn dc-btn-plain dc-btn-icon awards-year-nav-btn" onclick="awardsChangeYear(1)" aria-label="Next year"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></button>
           </div>
           <!-- Icons are inline SVG; the labels alone are translated -->
-          <button class="awards-config-btn" onclick="awardsToggleConfig()" id="awardsConfigToggleBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg><span data-i18n="awards_configure">Configure Year</span></button>
-          <button class="awards-generate-btn" id="awardsGenerateBtn" onclick="awardsGenerateCandidates()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg><span data-i18n="awards_generate">Generate Nominees</span></button>
+          <button class="dc-btn dc-btn-normal awards-config-btn" onclick="awardsToggleConfig()" id="awardsConfigToggleBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg><span data-i18n="awards_configure">Configure Year</span></button>
+          <button class="dc-btn dc-btn-main awards-generate-btn" id="awardsGenerateBtn" onclick="awardsGenerateCandidates()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg><span data-i18n="awards_generate">Generate Nominees</span></button>
         </div>
 
         <!-- Year config panel -->
@@ -2306,10 +2306,10 @@
                 <button type="button" data-v="fav" onclick="awardsCatFilter('status','fav')"><span aria-hidden="true">★</span> <span data-i18n="awards_cat_f_fav">Favorites</span> <span class="awc-seg-n"></span></button>
               </div>
               <div class="awc-bulk">
-                <button type="button" class="awc-bulk-btn" id="awardsCatAllOn" onclick="awardsToggleAllCats(true)">Enable All</button>
-                <button type="button" class="awc-bulk-btn" id="awardsCatAllOff" onclick="awardsToggleAllCats(false)">Disable All</button>
+                <button type="button" class="dc-btn dc-btn-normal dc-btn-sm awc-bulk-btn" id="awardsCatAllOn" onclick="awardsToggleAllCats(true)">Enable All</button>
+                <button type="button" class="dc-btn dc-btn-normal dc-btn-sm awc-bulk-btn" id="awardsCatAllOff" onclick="awardsToggleAllCats(false)">Disable All</button>
                 <!-- Favourites on, everything else off (awardsCatFavsOnly); label and state set by _awcUpdateCounts -->
-                <button type="button" class="awc-bulk-btn awc-favs-only" id="awardsCatFavsOnly" onclick="awardsCatFavsOnly()" disabled>★ Favorites only</button>
+                <button type="button" class="dc-btn dc-btn-normal dc-btn-sm awc-bulk-btn awc-favs-only" id="awardsCatFavsOnly" onclick="awardsCatFavsOnly()" disabled>★ Favorites only</button>
               </div>
             </div>
             <div class="awc-chips" id="awardsCatGroups" role="group" aria-label="Category groups"></div>
@@ -2333,7 +2333,7 @@
         <div class="awards-ceremony-bar" id="awardsCeremonyBar" style="display:none;">
           <button class="awards-ceremony-launch-btn" onclick="startAwardsCeremony()" data-i18n="awards_ceremony_btn">🎬 View Ceremony</button>
           <!-- Public link anyone can watch without an account (openCeremonyShare) -->
-          <button class="awards-ceremony-share-btn" onclick="openCeremonyShare()">🔗 Share</button>
+          <button class="dc-btn dc-btn-normal awards-ceremony-share-btn" onclick="openCeremonyShare()">🔗 Share</button>
         </div>
       </div>
 
@@ -2353,9 +2353,9 @@
         </div>
         <div class="awards-year-bar">
           <div class="awards-year-stepper">
-            <button class="awards-year-nav-btn" onclick="realLifeAwardsChangeYear(-1)" aria-label="Previous year"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button>
+            <button class="dc-btn dc-btn-plain dc-btn-icon awards-year-nav-btn" onclick="realLifeAwardsChangeYear(-1)" aria-label="Previous year"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button>
             <button class="awards-year-label" id="realLifeYearLabel" onclick="awardsOpenYearPicker('reallife')" aria-haspopup="true" aria-expanded="false" title="Pick a year">2024</button>
-            <button class="awards-year-nav-btn" onclick="realLifeAwardsChangeYear(1)" aria-label="Next year"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></button>
+            <button class="dc-btn dc-btn-plain dc-btn-icon awards-year-nav-btn" onclick="realLifeAwardsChangeYear(1)" aria-label="Next year"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></button>
           </div>
         </div>
         <div class="awards-status" id="realLifeStatus" data-i18n="awards_reallife_loading">Loading awards data…</div>
@@ -3848,7 +3848,7 @@
   <!-- Community board tab (suggestions / bugs / discussion). Loaded before
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
   <script defer src="board.js?v=1"></script>
-  <script defer src="app.js?v=461"></script>
+  <script defer src="app.js?v=462"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
   <script defer src="replay.js?v=1"></script>
   <!-- All-Time chart stats ("Inside your Top N"); reads app.js globals, so it loads after it -->
