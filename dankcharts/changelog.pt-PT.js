@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Weekly, Monthly and Yearly tabs in Records look right again":
+    ["Os separadores Semanal, Mensal e Anual de Recordes voltaram ao normal",
+     "Em Perfect All Kill e algumas outras secções de Recordes, os separadores Semanal / Mensal / Anual apareciam como botões cinzentos do navegador depois da mudança de estilo dos separadores. Agora usam os mesmos separadores do resto de Recordes. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
+
   "Every button uses the site's font":
     ["Todos os botões usam a letra do site",
      "Alguns botões, como Fazer a visita e Pesquisar no Guia dos tops, o seletor de design de Partilhar como imagem, N/A na janela de avaliação e as etiquetas de origem das imagens, apareciam com a letra do sistema do teu dispositivo em vez da letra do site. Agora combinam com o texto à volta. Funciona com Last.fm, Google Sheets e ficheiros CSV."],

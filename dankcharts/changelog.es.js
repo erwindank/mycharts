@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Weekly, Monthly and Yearly tabs in Records look right again":
+    ["Las pestañas Semanal, Mensual y Anual de Récords vuelven a verse bien",
+     "En Perfect All Kill y algunas otras secciones de Récords, las pestañas Semanal / Mensual / Anual aparecían como botones grises del navegador tras el cambio de estilo de las pestañas. Ahora usan las mismas pestañas que el resto de Récords. Funciona con Last.fm, Google Sheets y archivos CSV."],
+
   "Every button uses the site's font":
     ["Todos los botones usan la fuente del sitio",
      "Algunos botones, como Hacer el recorrido y Buscar en la Guía de listas, el selector de diseño de Compartir como imagen, N/A en la ventana de valoración y las etiquetas de origen de las imágenes, se mostraban con la fuente del sistema de tu dispositivo en vez de la del sitio. Ahora coinciden con el texto que los rodea. Funciona con Last.fm, Google Sheets y archivos CSV."],

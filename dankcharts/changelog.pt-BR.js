@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Weekly, Monthly and Yearly tabs in Records look right again":
+    ["As abas Semanal, Mensal e Anual de Recordes voltaram ao normal",
+     "Em Perfect All Kill e algumas outras seções de Recordes, as abas Semanal / Mensal / Anual apareciam como botões cinza do navegador depois da mudança de estilo das abas. Agora usam as mesmas abas do resto de Recordes. Funciona com Last.fm, Google Sheets e arquivos CSV."],
+
   "Every button uses the site's font":
     ["Todos os botões usam a fonte do site",
      "Alguns botões, como Fazer o tour e Buscar no Guia das paradas, o seletor de design de Compartilhar como imagem, N/A na janela de avaliação e as etiquetas de origem das imagens, apareciam com a fonte do sistema do seu aparelho em vez da fonte do site. Agora combinam com o texto ao redor. Funciona com Last.fm, Google Sheets e arquivos CSV."],

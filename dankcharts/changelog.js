@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 265;
+const DC_CL_I18N_V = 266;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-22', t: 'fix', a: 'records', h: '0147742',
+    title: "Weekly, Monthly and Yearly tabs in Records look right again",
+    detail: "In Perfect All Kill and a few other Records sections, the Weekly / Monthly / Yearly tabs showed up as plain grey browser buttons after the tab restyle. They now use the same tabs as the rest of Records. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-22', t: 'fix', a: 'ui', h: '2fcb820',
     title: "Every button uses the site's font",
     detail: "A few buttons, like the Charts Guide's Take the tour and Search buttons, the design picker in Share as image, N/A in the rating window and the picture source badges, were drawn in your device's system font instead of the site's. They now match the text around them. Works with Last.fm, Google Sheets and CSV uploads." },
