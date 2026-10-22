@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "The Around the chart box only shows on chart pages":
+    ["El recuadro Alrededor de la lista solo aparece en las páginas de listas",
+     "El recuadro Alrededor de la lista (Aspirantes, Fuera de la lista y Nuevas entradas) se quedaba arriba de la página al pasar a Estadísticas, Récords, Eventos, Premios, Tu banda sonora, Listas de reproducción y otras pestañas. Ahora solo aparece con las listas. Funciona con Last.fm, Google Sheets y archivos CSV."],
+
   "Events and Playlists buttons match the rest of the site":
     ["Los botones de Eventos y Listas de reproducción coinciden con el resto del sitio",
      "Los botones de la página de Eventos (Actualizar, las flechas del calendario, Reproducir todo, Crear lista, Exportar lista y los botones para añadir a una lista en cada sección) y de la página de Listas de reproducción comparten ahora el mismo aspecto y tamaño. En Listas de reproducción, Reanudar es el único botón destacado, y Eliminar y Quitar aparecen en rojo para que sea más difícil pulsarlos por error. Las ventanas de Crear lista y PDF imprimible y el panel del enlace para compartir de la ceremonia de premios tienen cada uno un botón principal claro. Funciona con Last.fm, Google Sheets y archivos CSV."],

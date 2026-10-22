@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "The Around the chart box only shows on chart pages":
+    ["A caixa À volta do top só aparece nas páginas dos tops",
+     "A caixa À volta do top (Aspirantes, Fora do top e Novas entradas) ficava no topo da página quando mudava para Estatísticas, Recordes, Eventos, Prémios, A tua banda sonora, Playlists e outros separadores. Agora só aparece com os tops. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
+
   "Events and Playlists buttons match the rest of the site":
     ["Os botões de Eventos e Playlists combinam com o resto do site",
      "Os botões da página de Eventos (Atualizar, as setas do calendário, Reproduzir tudo, Criar playlist, Exportar playlist e os botões de adicionar à playlist em cada secção) e da página de Playlists têm agora o mesmo aspeto e tamanho. Em Playlists, Retomar é o único botão em destaque, e Eliminar e Remover aparecem a vermelho para ser mais difícil tocar-lhes por engano. As janelas de Criar playlist e PDF para imprimir e o painel da ligação de partilha da cerimónia de prémios têm cada uma um botão principal claro. Funciona com Last.fm, Google Sheets e ficheiros CSV."],

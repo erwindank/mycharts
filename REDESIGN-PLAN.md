@@ -2075,8 +2075,9 @@ last user (see "Delete as you go").
      Playlists: Resume = main, Save Queue = normal, icon buttons plain with
      delete / remove red. The Events view switches (Reel / Tiles / Table /
      List, Month / Week / Day) wait for step 3. Found, not from this step:
-     the Around the chart box and the Events sections also show on the
-     Stats and Playlists tabs (same on main before step 2).
+     the Around the chart box showed on every non-chart tab; fixed
+     (5c50621). (Playlists showing Recent Releases and Anniversaries is
+     on purpose.)
    - 2c. Records and Stats.
    - 2d. Awards (not the ceremony's gold buttons).
    - 2e. Player queue and playlist bar.

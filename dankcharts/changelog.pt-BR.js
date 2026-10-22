@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "The Around the chart box only shows on chart pages":
+    ["A caixa Em volta da parada só aparece nas páginas de paradas",
+     "A caixa Em volta da parada (Aspirantes, Fora da parada e Novas entradas) ficava no topo da página quando você ia para Estatísticas, Recordes, Eventos, Prêmios, Sua trilha sonora, Playlists e outras abas. Agora ela só aparece com as paradas. Funciona com Last.fm, Google Sheets e arquivos CSV."],
+
   "Events and Playlists buttons match the rest of the site":
     ["Os botões de Eventos e Playlists combinam com o resto do site",
      "Os botões da página de Eventos (Atualizar, as setas do calendário, Tocar tudo, Criar playlist, Exportar playlist e os botões de adicionar à playlist em cada seção) e da página de Playlists agora têm a mesma aparência e tamanho. Em Playlists, Retomar é o único botão em destaque, e Excluir e Remover aparecem em vermelho para ficar mais difícil tocar neles por engano. As janelas de Criar playlist e PDF para impressão e o painel do link de compartilhamento da cerimônia de premiação têm cada um um botão principal claro. Funciona com Last.fm, Google Sheets e arquivos CSV."],
