@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Calmer Records tables":
+    ["Tablas de Récords más tranquilas",
+     "Las fechas de las tablas de Récords son ahora texto normal. Siguen abriendo el ranking de esa semana y se subrayan al pasar el puntero. Los iconos de nota y disco delante de los títulos de canciones y álbumes ya no están, porque la columna ya dice lo que es. El control 25 / 50 / 100 / Todos está ahora en la línea del título de la sección que cambia. También corregido: en Perfect All Kill, la columna Más reciente no estaba alineada con el resto de su fila. Funciona con Last.fm, Google Sheets y archivos CSV."],
+
   "Records Overview: one card per record":
     ["Resumen de Récords: una tarjeta por récord",
      "El Resumen de Récords mostraba hasta 26 tarjetas, porque la mayoría de los récords tenía una tarjeta aparte para semanal, mensual y anual. Ahora cada récord tiene una sola tarjeta, con su propio selector Semanal / Mensual / Anual debajo, y cada tarjeta recuerda el período que elegiste. Las tarjetas están en los mismos dos grupos que el menú lateral. La fila de tarjetas bajo el artista con más récords se desvanece más suavemente en los bordes. Funciona con Last.fm, Google Sheets y archivos CSV."],

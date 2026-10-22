@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 269;
+const DC_CL_I18N_V = 270;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-22', t: 'design', a: 'records', h: 'f357296',
+    title: "Calmer Records tables",
+    detail: "Dates in Records tables are now plain text. They still open that week's chart, and underline when you point at them. The music-note and disc icons in front of song and album titles are gone, since the column already says what it is. The 25 / 50 / 100 / All control now sits on the heading line of the section it changes. Also fixed: in Perfect All Kill, the Most recent column sat out of line with the rest of its row. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-22', t: 'design', a: 'records', h: 'b5ccf38',
     title: "Records Overview: one card per record",
     detail: "Records Overview used to show up to 26 cards, because most records had a separate card for weekly, monthly and yearly. Now each record has one card, with its own Weekly / Monthly / Yearly switch underneath, and each card remembers the period you picked. The cards are in the same two groups as the side menu. The row of cards under the most decorated artist fades out more softly at the edges. Works with Last.fm, Google Sheets and CSV uploads." },

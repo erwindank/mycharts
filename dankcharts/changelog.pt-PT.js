@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Calmer Records tables":
+    ["Tabelas de Recordes mais calmas",
+     "As datas nas tabelas de Recordes são agora texto normal. Continuam a abrir o top dessa semana e ficam sublinhadas quando passas o ponteiro. Os ícones de nota e disco antes dos títulos de músicas e álbuns desapareceram, porque a coluna já diz o que é. O controlo 25 / 50 / 100 / Todos está agora na linha do título da secção que muda. Também corrigido: em Perfect All Kill, a coluna Mais recente ficava desalinhada do resto da linha. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
+
   "Records Overview: one card per record":
     ["Visão geral de Recordes: um cartão por recorde",
      "A Visão geral de Recordes mostrava até 26 cartões, porque a maioria dos recordes tinha um cartão à parte para semanal, mensal e anual. Agora cada recorde tem um só cartão, com o seu próprio seletor Semanal / Mensal / Anual por baixo, e cada cartão lembra o período que escolheste. Os cartões estão nos mesmos dois grupos do menu lateral. A fila de cartões por baixo do artista com mais recordes desvanece mais suavemente nas margens. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
