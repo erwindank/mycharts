@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 275;
+const DC_CL_I18N_V = 276;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-23', t: 'design', a: 'graphs', h: '8e9636e',
+    title: "Stats: calmer charts with steady colours",
+    detail: "The Stats charts are quieter: no vertical gridlines, faint horizontal ones and softer axis text that stays readable on every theme. Comparisons use a fixed set of eight colours, picked so neighbouring artists stay easy to tell apart, also for colour-blind readers, with a version tuned for light themes. A chart with one artist uses your theme's colour. In the Play Count Race the rank boxes are plain, so only the bars carry colour. Changing the theme now recolours the charts straight away. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-22', t: 'design', a: 'graphs', h: 'bf40312',
     title: "Stats: chart buttons tucked into the corner",
     detail: "The Labels and Reset zoom buttons on the Stats charts are now two small icons in each chart's top-right corner, so the charts start right under their titles. Point at an icon to see what it does; the labels icon stays lit while labels are on. Works with Last.fm, Google Sheets and CSV uploads." },

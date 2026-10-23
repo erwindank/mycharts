@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Stats: calmer charts with steady colours":
+    ["Estatísticas: gráficos mais calmos e cores fixas",
+     "Os gráficos de Estatísticas estão mais calmos: sem linhas verticais, linhas horizontais suaves e um texto dos eixos mais discreto que dá para ler em todos os temas. As comparações usam um conjunto fixo de oito cores, escolhidas para que artistas vizinhos fiquem fáceis de distinguir, inclusive para daltônicos, com uma versão ajustada para os temas claros. Um gráfico com um só artista usa a cor do seu tema. Na Corrida de plays as caixas de posição são neutras, então só as barras têm cor. Ao trocar de tema, os gráficos mudam de cor na hora. Funciona com Last.fm, Google Sheets e arquivos CSV."],
+
   "Stats: chart buttons tucked into the corner":
     ["Estatísticas: botões dos gráficos no canto",
      "Os botões Rótulos e Redefinir zoom dos gráficos de Estatísticas agora são dois ícones pequenos no canto superior direito de cada gráfico, então os gráficos começam logo abaixo do título. Passe o ponteiro sobre um ícone para ver o que ele faz; o de rótulos fica aceso enquanto estão ligados. Funciona com Last.fm, Google Sheets e arquivos CSV."],
