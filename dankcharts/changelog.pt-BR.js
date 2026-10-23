@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Stats: the heatmap shows one year at a time":
+    ["Estatísticas: o mapa de escutas mostra um ano por vez",
+     "O mapa de escutas em Estatísticas agora mostra um ano ocupando o cartão inteiro, em vez de empilhar todos os anos na página. Ele abre no ano atual; use ‹ e › (ou as setas do teclado) para passar pelos anos, ou clique numa das miniaturas abaixo, que mostram o formato de cada ano de relance. Os plays do ano, o melhor dia, o artista principal e os artistas novos ficam ao lado do ano. Os Padrões de escuta agora seguem o ano que você está vendo, com um botão Desde sempre se quiser o histórico todo. No celular o ano rola para o lado e abre no mês mais recente. Funciona com Last.fm, Google Sheets e arquivos CSV."],
+
   "Stats: ratings chart shaded by score":
     ["Estatísticas: gráfico de notas sombreado pela nota",
      "O gráfico de notas em Minhas avaliações usa uma cor só, a do seu tema, e sombreia pela nota: notas baixas ficam suaves e as mais altas com a cor cheia, então você vê de relance onde está a maioria das suas avaliações. Funciona com Last.fm, Google Sheets e arquivos CSV."],

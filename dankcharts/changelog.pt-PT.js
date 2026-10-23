@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Stats: the heatmap shows one year at a time":
+    ["Estatísticas: o mapa de escutas mostra um ano de cada vez",
+     "O mapa de escutas em Estatísticas mostra agora um ano a ocupar o cartão todo, em vez de empilhar todos os anos na página. Abre no ano atual; usa ‹ e › (ou as setas do teclado) para passar de ano, ou clica numa das miniaturas por baixo, que mostram a forma de cada ano num relance. Os plays do ano, o melhor dia, o artista principal e os artistas novos ficam ao lado do ano. Os Padrões de escuta seguem agora o ano que estás a ver, com um botão Desde sempre se quiseres o histórico todo. No telemóvel o ano desliza para o lado e abre no mês mais recente. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
+
   "Stats: ratings chart shaded by score":
     ["Estatísticas: gráfico de notas sombreado pela nota",
      "O gráfico de notas em As minhas avaliações usa uma só cor, a do teu tema, e sombreia-a pela nota: as notas baixas ficam suaves e as mais altas com a cor cheia, por isso vês num instante onde está a maioria das tuas avaliações. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
