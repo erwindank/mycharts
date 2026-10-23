@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Events: one card style, one view switch, one playlist button":
+    ["Eventos: um só estilo de cartão, um seletor de vista e um botão de playlist",
+     "Cada evento da página Eventos (aniversários, datas, lançamentos, New Music Friday e concertos) usa agora o mesmo cartão: a imagem, a data, o título, o artista e o tipo com um ícone pequeno. Carrossel, Blocos, Tabela e Lista são um só seletor para a página toda em vez de um por secção, e a vista que escolheste antes mantém-se. O calendário de semanas anteriores do New Music Friday abre-se com o botão Sextas anteriores. As secções já não se recolhem, por isso nada fica escondido atrás de um +. Um único botão + Playlist guarda o que o separador aberto mostra: em Hoje e Calendário, os eventos do calendário. Substitui o botão de cada secção e o Tocar tudo, Criar playlist e Exportar playlist do calendário; a playlist criada toca em Playlists. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
+
   "Events has four tabs: Today, Coming up, Recent and Calendar":
     ["Eventos tem quatro separadores: Hoje, Brevemente, Recentes e Calendário",
      "A página Eventos abre agora em Hoje: o que acontece hoje, com a Máquina do tempo por baixo. Brevemente tem aniversários, datas, próximos lançamentos, New Music Friday e concertos; Recentes tem o que acabou de acontecer; Calendário tem o calendário de mês, semana e dia. A página lembra o último separador que usaste. O título é agora só \"Eventos\", os botões de tipo têm ícones pequenos em vez de emojis e um único botão de atualizar no canto atualiza a página toda. O resumo da lista está atrás do botão ⓘ, e quantos artistas principais incluir escolhe-se nas Definições. Funciona com Last.fm, Google Sheets e ficheiros CSV."],

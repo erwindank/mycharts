@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Events: one card style, one view switch, one playlist button":
+    ["Eventos: un solo estilo de tarjeta, un selector de vista y un botón de lista",
+     "Cada evento de la página Eventos (cumpleaños, aniversarios, lanzamientos, New Music Friday y conciertos) usa ahora la misma tarjeta: la imagen, la fecha, el título, el artista y el tipo con un icono pequeño. Carrusel, Mosaico, Tabla y Lista son un solo selector para toda la página en lugar de uno por sección, y la vista que elegiste antes se mantiene. El calendario de semanas anteriores de New Music Friday se abre con su botón Viernes anteriores. Las secciones ya no se pliegan, así que nada queda escondido detrás de un +. Un solo botón + Lista guarda lo que muestra la pestaña abierta: en Hoy y Calendario, los eventos del calendario. Sustituye al botón de cada sección y a Reproducir todo, Crear lista y Exportar lista del calendario; la lista que crea se reproduce desde Listas. Funciona con Last.fm, Google Sheets y archivos CSV."],
+
   "Events has four tabs: Today, Coming up, Recent and Calendar":
     ["Eventos tiene cuatro pestañas: Hoy, Próximamente, Recientes y Calendario",
      "La página Eventos se abre ahora en Hoy: lo que pasa hoy, con la Máquina del tiempo debajo. Próximamente tiene cumpleaños, aniversarios, próximos lanzamientos, New Music Friday y conciertos; Recientes tiene lo que acaba de pasar; Calendario tiene el calendario de mes, semana y día. La página recuerda la última pestaña que usaste. El título es ahora simplemente \"Eventos\", los botones de tipo tienen iconos pequeños en lugar de emojis y un solo botón de actualizar en la esquina actualiza toda la página. El resumen de la lista está detrás del botón ⓘ, y cuántos artistas principales incluir se elige en Ajustes. Funciona con Last.fm, Google Sheets y archivos CSV."],
