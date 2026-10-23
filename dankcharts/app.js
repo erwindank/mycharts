@@ -29763,21 +29763,20 @@ function toggleEventsType(type) {
   if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
   _syncEventsTypeFilter();
   if (type === 'show') {
-    _syncConcertsSectionVisibility();
+    // shows live in Today, Coming up and the calendar
+    _renderEventsToday();
+    _renderEventsComing();
     if (_eventsCalendarData) renderEventsCalendar(_eventsCalendarData, eventsCalendarYear, eventsCalendarMonth);
   } else {
     if (_eventsRawData) _renderEventsFromRaw(_eventsRawData, _eventsArtists, true);
   }
 }
 
+// The Shows chip starts hidden in index.html; shows have no section of
+// their own any more (Today, Coming up and the calendar carry them)
 function _syncConcertsSectionVisibility() {
-  const section = document.getElementById('concertsSection');
   const filterBtn = document.getElementById('showsFilterBtn');
-  const hasConcerts = true;
-  if (filterBtn) filterBtn.style.display = hasConcerts ? '' : 'none';
-  if (!section) return;
-  const visible = hasConcerts && eventsTypeFilter.has('show');
-  section.style.display = visible ? '' : 'none';
+  if (filterBtn) filterBtn.style.display = '';
 }
 
 function _syncEventsTypeFilter() {
@@ -30290,11 +30289,13 @@ function _evSaveViewModes() {
    artist was enough to make the reel unusable until the loop finished. */
 const EV_PROGRESS_PAINT_MS = 1500;
 let _eventsLastData = null;
+// The sections that still have a grid of their own. Birthdays, upcoming
+// releases and shows are drawn into Coming up's groups instead (step 5);
+// anniversaries keeps its grid for Playlists.
 const EV_GRID_IDS = {
-  birthdays: 'birthdaysGrid', anniversaries: 'anniversariesGrid',
-  eventsUpcoming: 'eventsUpcomingGrid', eventsRecent: 'eventsRecentGrid',
+  anniversaries: 'anniversariesGrid', eventsRecent: 'eventsRecentGrid',
   recentBirthdays: 'eventsRecentBirthdaysGrid', recentAnniversaries: 'eventsRecentAnniversariesGrid',
-  concerts: 'concertsGrid', nmf: 'nmfGrid'
+  nmf: 'nmfGrid'
 };
 
 function setEventsView(mode) {
@@ -30303,6 +30304,7 @@ function setEventsView(mode) {
   _evSaveViewModes();
   _syncEventsViewBtns();
   Object.keys(EV_GRID_IDS).forEach(_evReRenderSection);
+  _renderEventsComing();
 }
 
 function _syncEventsViewBtns() {
@@ -30327,10 +30329,6 @@ function _syncNMFPastBtn() {
 }
 
 function _evReRenderSection(sectionKey) {
-  if (sectionKey === 'concerts') {
-    if (_concertsData && _concertsData.length) _evRenderSectionByKey('concerts', _concertsData);
-    return;
-  }
   if (sectionKey === 'nmf') {
     if (_nmfData && _nmfData.length) _evRenderSectionByKey('nmf', _nmfData);
     return;
@@ -30340,9 +30338,7 @@ function _evReRenderSection(sectionKey) {
   const sortFn = (a, b) => a.daysUntil - b.daysUntil;
   const sortFnAgo = (a, b) => a.daysAgo - b.daysAgo;
   const itemsMap = {
-    birthdays: () => [...f.birthdays].sort(sortFn),
     anniversaries: () => [...f.anniversaries].sort(sortFn),
-    eventsUpcoming: () => sortUpcomingReleases([...f.eventsUpcoming]),
     eventsRecent: () => sortRecentReleases([...f.eventsRecent]),
     recentBirthdays: () => [...f.recentBirthdays].sort(sortFnAgo),
     recentAnniversaries: () => [...f.recentAnniversaries].sort(sortFnAgo)
@@ -30582,7 +30578,6 @@ function _evPlBtn(item, extraCls) {
 // release entries resolve to the release's most recent play, falling back to
 // the release itself when it has never been played.
 const EV_PL_SECTIONS = {
-  birthdays:           { label: 'Birthdays',           pick: it => _tmArtistLastSongs(it.artistName, 1)[0] },
   recentBirthdays:     { label: 'Recent Birthdays',    pick: it => _tmArtistLastSongs(it.artistName, 1)[0] },
   anniversaries:       { label: 'Anniversaries',       pick: it => _evPlRelease(it.title, it.artistName) },
   recentAnniversaries: { label: 'Recent Anniversaries', pick: it => _evPlRelease(it.title, it.artistName) },
@@ -30609,7 +30604,6 @@ function evAddSectionToPlaylist(sectionKey) {
    release its latest play or the release itself. Shows and New Music Friday
    aren't staged, as before. The Time Machine keeps its own button. */
 const EV_PL_TABS = {
-  coming: ['birthdays', 'anniversaries'],
   recent: ['eventsRecent', 'recentBirthdays', 'recentAnniversaries']
 };
 
@@ -30633,6 +30627,7 @@ function _evCalendarTracks() {
 
 function _evTabTracks() {
   if (eventsTab === 'today') return _evTodayTracks();
+  if (eventsTab === 'coming') return _evComingTracks();
   if (EV_PL_TABS[eventsTab]) {
     return EV_PL_TABS[eventsTab].flatMap(key => (_evLastItems[key] || []).map(EV_PL_SECTIONS[key].pick)).filter(Boolean);
   }
@@ -30757,6 +30752,91 @@ function _evTodayTracks() {
   ].filter(Boolean);
 }
 
+// ── Coming up tab ──────────────────────────────────────────────
+
+/* One list instead of five sections: birthdays, anniversaries, releases and
+   shows, grouped by how many days away they are. Each group draws in the
+   page's view. Anniversaries are ranked like Today's and only the top
+   EV_TODAY_CAP of each group show until its "Show all". */
+const EV_COMING_GROUPS = [
+  { id: 'evComingWeek', from: 0, to: 6 },
+  { id: 'evComingSoon', from: 7, to: 30 },
+  { id: 'evComingLater', from: 31, to: 90 }
+];
+const _evComingShowAll = {};
+let _evComingShown = { birthdays: [], anniversaries: [] }; // for ＋ Playlist / ▶ Play all
+
+function _evDaysFrom(dateStr) {
+  if (!dateStr) return null;
+  const d = new Date(dateStr + 'T00:00:00');
+  const today = tzNow(); today.setHours(0, 0, 0, 0);
+  return Math.round((d - today) / 86400000);
+}
+
+function _renderEventsComing() {
+  const section = document.getElementById('eventsComingSection');
+  if (!section) return;
+  const f = _eventsLastData ? applyEventsTypeFilter(_eventsLastData) : null;
+  const shows = eventsTypeFilter.has('show') ? (_concertsData || []) : [];
+  const shownBirthdays = [], shownAnn = [];
+  let any = false;
+
+  for (const g of EV_COMING_GROUPS) {
+    const wrap = document.getElementById(g.id);
+    const gridEl = document.getElementById(g.id + 'Grid');
+    if (!wrap || !gridEl) continue;
+    const inG = n => n !== null && n >= g.from && n <= g.to;
+    const birthdays = f ? f.birthdays.filter(b => inG(b.daysUntil)) : [];
+    const releases = f ? f.eventsUpcoming.filter(r => inG(_evDaysFrom(r.release?.date))) : [];
+    const gShows = shows.filter(sh => inG(_evDaysFrom(sh.event?.dates?.start?.localDate)));
+    const ranked = f ? _evRankAnniversaries(f.anniversaries.filter(a => inG(a.daysUntil))) : [];
+    const ann = _evComingShowAll[g.id] ? ranked : ranked.slice(0, EV_TODAY_CAP);
+    shownBirthdays.push(...birthdays);
+    shownAnn.push(...ann.map(r => r.a));
+
+    // Everything sorts by days away; on one day, anniversaries keep their rank order
+    const items = [
+      ..._evNormalize('birthdays', birthdays).map((it, i) => ({ it, d: birthdays[i].daysUntil, o: 0 })),
+      ..._evNormalize('eventsUpcoming', releases).map((it, i) => ({ it, d: _evDaysFrom(releases[i].release.date), o: 1 })),
+      ..._evNormalize('concerts', gShows).map((it, i) => ({ it, d: _evDaysFrom(gShows[i].event.dates.start.localDate), o: 2 })),
+      ..._evNormalize('anniversaries', ann.map(r => r.a)).map((it, i) => ({ it, d: ann[i].a.daysUntil, o: 3 + i }))
+    ].sort((x, y) => (x.d - y.d) || (x.o - y.o)).map(({ it, d }) => { it.dateSort = d; return it; });
+
+    wrap.hidden = !items.length;
+    wrap.querySelector('.ev-today-more')?.remove();
+    if (!items.length) { gridEl.innerHTML = ''; gridEl.className = ''; continue; }
+    any = true;
+    const mode = _evMode();
+    if (mode === 'table') _evTable(gridEl, items);
+    else if (mode === 'tiles') _evTiles(gridEl, items);
+    else if (mode === 'list') _evList(gridEl, g.id, items);
+    else _evCarousel(gridEl, items);
+    // Under the grid, not in it: the Reel would carry it off with the cards
+    if (ranked.length > EV_TODAY_CAP) {
+      gridEl.insertAdjacentHTML('afterend',
+        `<button type="button" class="dc-btn dc-btn-normal dc-btn-sm ev-today-more" aria-expanded="${!!_evComingShowAll[g.id]}" onclick="toggleEventsComingAll('${g.id}')">` +
+        `${esc(_evComingShowAll[g.id] ? t('ev_today_fewer') : t('ev_anniv_all', { n: ranked.length }))}</button>`);
+    }
+  }
+  _evComingShown = { birthdays: shownBirthdays, anniversaries: shownAnn };
+  const empty = document.getElementById('evComingEmpty');
+  if (empty) empty.hidden = any || !_eventsLastData;
+  const note = document.getElementById('evComingShowsNote');
+  if (note) note.hidden = !eventsTypeFilter.has('show') || !_concertsData;
+}
+
+function toggleEventsComingAll(groupId) {
+  _evComingShowAll[groupId] = !_evComingShowAll[groupId];
+  _renderEventsComing();
+}
+
+function _evComingTracks() {
+  return [
+    ..._evComingShown.birthdays.map(b => _tmArtistLastSongs(b.artistName, 1)[0]),
+    ..._evComingShown.anniversaries.map(a => _evPlRelease(a.title, a.artistName))
+  ].filter(Boolean);
+}
+
 function _evTable(gridEl, items) {
   gridEl.className = 'ev-table-wrap';
   // The ＋ gets its own trailing column rather than sharing the 42px image cell,
@@ -30795,11 +30875,15 @@ function _evList(gridEl, sectionKey, items) {
     sort === 'artist' ? a.artistSort.localeCompare(b.artistSort)
     : typeof a.dateSort === 'string' ? a.dateSort.localeCompare(b.dateSort) : a.dateSort - b.dateSort
   );
+  // A list that mixes types (Coming up) has rows with and without a ＋; they
+  // all keep its column, an empty one where there's no button, so the dates,
+  // titles and artists line up down the list
+  const hasPl = items.some(it => it.pl);
   const rows = sorted.map(item => {
     // The row is a fixed 4-column grid; the extra child needs its own column or
     // it wraps onto a second line (see .ev-list-row--pl).
-    return `<div class="ev-list-row${item.pl ? ' ev-list-row--pl' : ''}${item.isToday ? ' event-today' : ''}" ${_evReleaseClickAttr(item)}>` +
-      `${_evPlBtn(item, 'dc-pl-add-sm')}` +
+    return `<div class="ev-list-row${hasPl ? ' ev-list-row--pl' : ''}${item.isToday ? ' event-today' : ''}" ${_evReleaseClickAttr(item)}>` +
+      `${item.pl ? _evPlBtn(item, 'dc-pl-add-sm') : (hasPl ? '<span class="ev-list-pl-gap"></span>' : '')}` +
       `<span class="ev-list-date">${esc(item.dateLabel)}</span>` +
       `<span class="ev-list-title">${esc(item.title)}</span>` +
       `<span class="ev-list-artist">${esc(item.artist)}</span>` +
@@ -30813,10 +30897,12 @@ function _evList(gridEl, sectionKey, items) {
 }
 
 function sortEvListView(sectionKey, sortBy) {
-  const gridEl = document.getElementById(EV_GRID_IDS[sectionKey]);
+  // a Coming up group passes its own id (see _renderEventsComing)
+  const gridEl = document.getElementById(EV_GRID_IDS[sectionKey] || sectionKey + 'Grid');
   if (!gridEl) return;
   gridEl.dataset.evListSort = sortBy;
-  _evReRenderSection(sectionKey);
+  if (EV_GRID_IDS[sectionKey]) _evReRenderSection(sectionKey);
+  else _renderEventsComing();
 }
 
 function renderEventsPartial(birthdays, anniversaries, recentBirthdays, recentAnniversaries, eventsUpcoming, eventsRecent) {
@@ -30824,11 +30910,9 @@ function renderEventsPartial(birthdays, anniversaries, recentBirthdays, recentAn
   const f = applyEventsTypeFilter(_eventsLastData);
   const sortFn = (a, b) => a.daysUntil - b.daysUntil;
   const sortFnAgo = (a, b) => a.daysAgo - b.daysAgo;
-  if (f.birthdays.length) _evRenderSectionByKey('birthdays', [...f.birthdays].sort(sortFn));
   if (f.anniversaries.length) _evRenderSectionByKey('anniversaries', [...f.anniversaries].sort(sortFn));
   if (f.recentBirthdays.length) _evRenderSectionByKey('recentBirthdays', [...f.recentBirthdays].sort(sortFnAgo));
   if (f.recentAnniversaries.length) _evRenderSectionByKey('recentAnniversaries', [...f.recentAnniversaries].sort(sortFnAgo));
-  if (f.eventsUpcoming.length) _evRenderSectionByKey('eventsUpcoming', sortUpcomingReleases([...f.eventsUpcoming]));
   if (f.eventsRecent.length) _evRenderSectionByKey('eventsRecent', sortRecentReleases([...f.eventsRecent]));
   // Keep what the calendar shows in _eventsCalendarData while the fetch is
   // still running too — Play All, Create Playlist and Export Playlist read it,
@@ -30836,6 +30920,7 @@ function renderEventsPartial(birthdays, anniversaries, recentBirthdays, recentAn
   _eventsCalendarData = f;
   renderEventsCalendar(f, eventsCalendarYear, eventsCalendarMonth);
   _renderEventsToday();
+  _renderEventsComing();
 }
 
 async function fetchConcertsForArtist(artistName, apiKey) {
@@ -31132,17 +31217,8 @@ function _renderConcerts(shows, fromCache) {
   _concertsData = shows;
   _syncConcertsSectionVisibility();
   _renderEventsToday();
-  const grid = document.getElementById('concertsGrid');
+  _renderEventsComing();
   const status = document.getElementById('concertsStatus');
-
-  if (grid) {
-    if (shows.length) {
-      _evRenderSectionByKey('concerts', shows);
-    } else {
-      grid.className = 'upcoming-grid';
-      grid.innerHTML = `<div class="upcoming-empty">No upcoming shows found for your top ${CONCERTS_ARTIST_LIMIT} artists.</div>`;
-    }
-  }
   if (status) {
     const cacheNote = fromCache ? ' (cached)' : '';
     const ts = fromCache
@@ -31347,22 +31423,19 @@ function _renderEventsFromRaw(raw, artists, fromCache) {
     ? _evRenderSectionByKey(key, items)
     : emptyGrid(key, emptyMsg);
 
-  renderSec('birthdays', [...f.birthdays].sort(sortFn),
-    `No birthdays found in the next ${EVENTS_WINDOW_DAYS} days for your top ${artists.length} artists.`);
   renderSec('anniversaries', [...f.anniversaries].sort(sortFn),
     `No anniversaries found in the next ${EVENTS_WINDOW_DAYS} days for your top ${artists.length} artists.`);
   renderSec('recentBirthdays', [...f.recentBirthdays].sort(sortFnAgo),
     `No birthdays found in the past ${EVENTS_WINDOW_DAYS} days for your top ${artists.length} artists.`);
   renderSec('recentAnniversaries', [...f.recentAnniversaries].sort(sortFnAgo),
     `No anniversaries found in the past ${EVENTS_WINDOW_DAYS} days for your top ${artists.length} artists.`);
-  renderSec('eventsUpcoming', sortUpcomingReleases([...f.eventsUpcoming]),
-    `No upcoming releases in the next 90 days for your top ${artists.length} artists.`);
   renderSec('eventsRecent', sortRecentReleases([...f.eventsRecent]),
     `No recent releases in the past 6 months for your top ${artists.length} artists.`);
 
   _eventsCalendarData = f;
   renderEventsCalendar(_eventsCalendarData, eventsCalendarYear, eventsCalendarMonth);
   _renderEventsToday();
+  _renderEventsComing();
 
   const cacheNote = fromCache ? ' (cached)' : '';
   const ts = fromCache

@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=623">
+  <link rel="stylesheet" href="style.css?v=626">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=182"></script>
+  <script defer src="translations.js?v=183"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -2133,18 +2133,9 @@
         </div>
       </div>
 
-      <div class="chart-section" id="birthdaysSection" data-ev-group="coming">
-        <div class="section-header">
-          <h2 class="section-header-h2">Artist Birthdays</h2>
-          <div class="section-rule"></div>
-        </div>
-        <div class="section-sub">Upcoming birthdays for your top artists — next 30 days</div>
-        <div class="section-body">
-          <div class="upcoming-grid" id="birthdaysGrid"></div>
-        </div>
-      </div>
-
-      <div class="chart-section" id="anniversariesSection" data-ev-group="coming">
+      <!-- Shown only on Playlists (.dc-pl-mode), with Recent Releases: on
+           Events the anniversaries are part of Coming up below. -->
+      <div class="chart-section" id="anniversariesSection" data-ev-group="">
         <div class="section-header">
           <h2 class="section-header-h2">Anniversaries</h2>
           <div class="section-rule"></div>
@@ -2158,14 +2149,37 @@
         </div>
       </div>
 
-      <div class="chart-section" id="eventsUpcomingSection" data-ev-group="coming">
-        <div class="section-header">
-          <h2 class="section-header-h2">Upcoming Releases</h2>
-          <div class="section-rule"></div>
+      <!-- COMING UP (phase 9 part 4 step 5): birthdays, anniversaries,
+           releases and shows in one list, grouped by how soon they are.
+           Each group draws in the page's view; anniversaries are ranked
+           like Today's and capped per group. Filled by _renderEventsComing(). -->
+      <div class="chart-section" id="eventsComingSection" data-ev-group="coming">
+        <div class="ev-group" id="evComingWeek">
+          <div class="section-header">
+            <h2 class="section-header-h2" data-i18n="ev_group_week">This week</h2>
+            <div class="section-rule"></div>
+          </div>
+          <div id="evComingWeekGrid"></div>
         </div>
-        <div class="section-sub">Releases coming in the next 90 days from your top artists</div>
-        <div class="section-body">
-          <div class="upcoming-grid" id="eventsUpcomingGrid"></div>
+        <div class="ev-group" id="evComingSoon">
+          <div class="section-header">
+            <h2 class="section-header-h2" data-i18n="ev_group_soon">Next few weeks</h2>
+            <div class="section-rule"></div>
+          </div>
+          <div id="evComingSoonGrid"></div>
+        </div>
+        <div class="ev-group" id="evComingLater">
+          <div class="section-header">
+            <h2 class="section-header-h2" data-i18n="ev_group_later">Later</h2>
+            <div class="section-rule"></div>
+          </div>
+          <div id="evComingLaterGrid"></div>
+        </div>
+        <div class="upcoming-empty" id="evComingEmpty" hidden data-i18n="ev_coming_empty">Nothing coming up for your top artists.</div>
+        <!-- Shows come from Ticketmaster, whose terms want the credit -->
+        <div class="section-sub ev-coming-shows-note" id="evComingShowsNote" hidden>
+          <span id="concertsStatus" class="upcoming-status"></span>
+          <a href="https://www.ticketmaster.com" target="_blank" rel="noopener" data-i18n="ev_tickets_credit">Tickets via Ticketmaster</a>
         </div>
       </div>
 
@@ -2205,7 +2219,9 @@
         </div>
       </div>
 
-      <div class="chart-section" id="nmfSection" data-ev-group="coming">
+      <!-- New Music Friday is out already and not filtered to your artists,
+           so it sits on Recent, after your own recent events (step 5). -->
+      <div class="chart-section" id="nmfSection" data-ev-group="recent">
         <div class="section-header">
           <h2 class="section-header-h2">New Music Friday</h2>
           <div class="section-rule"></div>
@@ -2228,17 +2244,6 @@
         </div>
       </div>
 
-      <div class="chart-section" id="concertsSection" data-ev-group="coming" style="display:none;">
-        <div class="section-header">
-          <h2 class="section-header-h2">Upcoming Shows</h2>
-          <div class="section-rule"></div>
-        </div>
-        <div class="section-sub">Live concerts &amp; shows for your top 10 all-time artists · <a href="https://www.ticketmaster.com" target="_blank" rel="noopener" style="color:var(--accent)">Tickets via Ticketmaster</a></div>
-        <div id="concertsStatus" class="upcoming-status"></div>
-        <div class="section-body">
-          <div class="upcoming-grid" id="concertsGrid"></div>
-        </div>
-      </div>
     </div>
 
     <!-- AWARDS VIEW -->
@@ -3915,7 +3920,7 @@
   <!-- Community board tab (suggestions / bugs / discussion). Loaded before
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
   <script defer src="board.js?v=4"></script>
-  <script defer src="app.js?v=491"></script>
+  <script defer src="app.js?v=494"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
   <script defer src="replay.js?v=1"></script>
   <!-- All-Time chart stats ("Inside your Top N"); reads app.js globals, so it loads after it -->

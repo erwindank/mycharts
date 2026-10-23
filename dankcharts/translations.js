@@ -1453,6 +1453,12 @@ const TRANSLATIONS = {
     ev_today_all: 'Show all {{n}}',
     ev_today_fewer: 'Show fewer',
     ev_today_empty: 'Nothing is happening today for your top artists.',
+    ev_group_week: 'This week',
+    ev_group_soon: 'Next few weeks',
+    ev_group_later: 'Later',
+    ev_coming_empty: 'Nothing coming up for your top artists.',
+    ev_tickets_credit: 'Tickets via Ticketmaster',
+    ev_anniv_all: 'Show all {{n}} anniversaries',
     sec_records_title: '🏆 Records & Hall of Fame',
     collapsed_hint: 'collapsed — click + to expand',
 
@@ -5082,6 +5088,12 @@ const TRANSLATIONS = {
     ev_today_all: 'Mostrar los {{n}}',
     ev_today_fewer: 'Mostrar menos',
     ev_today_empty: 'Hoy no pasa nada con tus artistas principales.',
+    ev_group_week: 'Esta semana',
+    ev_group_soon: 'Próximas semanas',
+    ev_group_later: 'Más adelante',
+    ev_coming_empty: 'No hay nada próximamente para tus artistas principales.',
+    ev_tickets_credit: 'Entradas en Ticketmaster',
+    ev_anniv_all: 'Mostrar los {{n}} aniversarios',
     sec_records_title: '🏆 Récords y Salón de la Fama',
     collapsed_hint: 'contraído — clic en + para expandir',
 
@@ -8611,6 +8623,12 @@ const TRANSLATIONS = {
     ev_today_all: 'Mostrar todas as {{n}}',
     ev_today_fewer: 'Mostrar menos',
     ev_today_empty: 'Nada acontecendo hoje com seus artistas principais.',
+    ev_group_week: 'Esta semana',
+    ev_group_soon: 'Próximas semanas',
+    ev_group_later: 'Mais adiante',
+    ev_coming_empty: 'Nada em breve para seus artistas principais.',
+    ev_tickets_credit: 'Ingressos pelo Ticketmaster',
+    ev_anniv_all: 'Mostrar todas as {{n}} datas comemorativas',
     sec_records_title: '🏆 Recordes e Salão da Fama',
     collapsed_hint: 'recolhido — clique em + para expandir',
 
@@ -12141,6 +12159,12 @@ const TRANSLATIONS = {
     ev_today_all: 'Mostrar todas as {{n}}',
     ev_today_fewer: 'Mostrar menos',
     ev_today_empty: 'Nada a acontecer hoje com os teus artistas principais.',
+    ev_group_week: 'Esta semana',
+    ev_group_soon: 'Próximas semanas',
+    ev_group_later: 'Mais tarde',
+    ev_coming_empty: 'Nada para breve com os teus artistas principais.',
+    ev_tickets_credit: 'Bilhetes na Ticketmaster',
+    ev_anniv_all: 'Mostrar todas as {{n}} datas',
     sec_records_title: '🏆 Recordes e Salão da Fama',
     collapsed_hint: 'recolhido — clique em + para expandir',
 
@@ -14425,6 +14449,7 @@ function setLanguage(lang) {
   // Events cards carry dates and release types in the language: draw them again
   if (typeof _evReRenderSection === 'function') Object.keys(EV_GRID_IDS).forEach(_evReRenderSection);
   if (typeof _renderEventsToday === 'function') _renderEventsToday();
+  if (typeof _renderEventsComing === 'function') _renderEventsComing();
 
   // Longer words can overflow the top bar; tighten it if they do
   if (typeof dcFitTopbar === 'function') dcFitTopbar();

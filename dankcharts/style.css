@@ -8221,10 +8221,13 @@
     }
     .events-toolbar-end {
       display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
       align-items: center;
       gap: var(--sp-2);
       margin-left: auto;
     }
+    .events-view-btns { flex-wrap: nowrap; }
     /* The view switch only means something on the tabs with card sections */
     #eventsView[data-ev-tab="today"] .events-view-btns,
     #eventsView[data-ev-tab="calendar"] .events-view-btns { display: none; }
@@ -8250,6 +8253,13 @@
       color: var(--text2);
     }
     .ev-today-more { margin-bottom: var(--sp-2); }
+    /* Coming up: three groups in one section, space between them */
+    .ev-group + .ev-group { margin-top: var(--sp-5); }
+    .ev-group[hidden] { display: none; }
+    .ev-coming-shows-note { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--sp-2); margin-top: var(--sp-3); }
+    .ev-coming-shows-note[hidden] { display: none; }
+    .ev-coming-shows-note .upcoming-status { padding: 0; }
+    .ev-coming-shows-note a { color: var(--accent); }
     /* The type line's icon in cards, list rows and table cells */
     .ev-carousel-type .ev-type-ico,
     .ev-list-type .ev-type-ico,
@@ -8388,7 +8398,9 @@
     .ev-list-items { display: flex; flex-direction: column; }
     .ev-list-row {
       display: grid;
-      grid-template-columns: 72px 1fr 1fr auto;
+      /* every column may shrink, so a long type line can't squeeze out the
+         title; the date column fits a full "23 Oct 2026" */
+      grid-template-columns: 92px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 15rem);
       align-items: center;
       gap: 0.6rem;
       padding: 0.32rem 0.4rem;
@@ -8413,6 +8425,29 @@
       font-size: var(--fs-xs);
       color: var(--text3);
       white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-align: right;
+    }
+    /* Phones: the date on the left, then title, artist and type stacked */
+    @media (max-width: 600px) {
+      .ev-list-row {
+        grid-template-columns: 84px minmax(0, 1fr);
+        grid-template-areas: "date title" "date artist" "date type";
+        align-items: start;
+        row-gap: 1px;
+      }
+      .ev-list-row.ev-list-row--pl {
+        grid-template-columns: 22px 84px minmax(0, 1fr);
+        grid-template-areas: "pl date title" "pl date artist" "pl date type";
+      }
+      .ev-list-row > .dc-pl-add-sm,
+      .ev-list-row > .ev-list-pl-gap { grid-area: pl; }
+      .ev-list-type { text-align: left; }
+      .ev-list-date { grid-area: date; padding-top: 2px; }
+      .ev-list-title { grid-area: title; }
+      .ev-list-artist { grid-area: artist; }
+      .ev-list-type { grid-area: type; }
     }
 
     /* EVENTS CALENDAR */
@@ -8933,7 +8968,7 @@
     /* A list row is a fixed 4-column grid, so a row carrying the ＋ needs a fifth
        track for it — without this the button lands on an implicit second row and
        pushes the type label under everything else. */
-    .ev-list-row--pl { grid-template-columns: 22px 72px 1fr 1fr auto; }
+    .ev-list-row--pl { grid-template-columns: 22px 92px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 15rem); }
 
     /* Trailing ＋ column in the table view; sized to the button, not the header. */
     .ev-tbl-pl { width: 26px; padding-left: 0; }

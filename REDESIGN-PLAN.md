@@ -2666,6 +2666,28 @@ Steps:
 5. **Coming up.** Birthdays, anniversaries, releases, shows and New Music
    Friday in one list grouped by date (This week / Later this month / Next
    3 months), anniversaries ranked and capped.
+   **Done 2026-10-23:** #eventsComingSection with three groups by days
+   away, named for what they hold: This week (0–6), Next few weeks
+   (7–30), Later (31–90). _renderEventsComing() merges birthdays,
+   releases, shows and anniversaries per group, sorted by day (on one day
+   anniversaries keep Today's rank order), drawn in the page's view; each
+   group shows its top 8 anniversaries with "Show all N anniversaries".
+   Birthdays, Upcoming Releases and Upcoming Shows lost their sections
+   (and EV_GRID_IDS entries); Anniversaries keeps its section for
+   Playlists only (data-ev-group=""). Shows: the Ticketmaster credit and
+   status line sit under the groups; the Shows chip now redraws Today and
+   Coming up (it only redrew the calendar). **New Music Friday moved to
+   Recent** instead of joining the list: it is out already and not your
+   artists, so it isn't "coming up"; it keeps its section and Past
+   Fridays. ＋ Playlist / ▶ Play all on Coming up: the birthdays and
+   shown anniversaries (unreleased releases and shows stay out, as
+   before). **List view fixed on phones** (it squeezed the title and
+   artist to nothing when the type line was long): every column may
+   shrink, phones stack title / artist / type beside the date, and a
+   list that mixes rows with and without ＋ keeps the column so they line
+   up. Checked at 1440 and 390 (touch) with 20 anniversaries over 90
+   days and two shows: all four views, Show all, list sort, Shows on /
+   off, Recent, Playlists, no sideways scroll, no errors.
 6. **Recent.** The same, looking back.
 7. **Calendar.** Month by default; a day opens that day's list. No row
    tints or left bars; the event labels in the cells use the type icons.
