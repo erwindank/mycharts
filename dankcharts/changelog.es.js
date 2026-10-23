@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Stats: one date range for the whole page":
+    ["Estadísticas: un solo rango de fechas para toda la página",
+     "La pestaña Estadísticas tiene ahora una sola barra arriba con Diario / Mensual / Anual y el rango de fechas: botones rápidos para los últimos 12 meses, 3 años o todo, y dos casillas de fecha para cualquier otro periodo. Todas las gráficas lo siguen, así que las casillas de fecha y los botones Restablecer de cada gráfica ya no están. Empieza en los últimos 12 meses, así que un historial largo ya no dibuja una línea plana con un pico al final. La Carrera de reproducciones mantiene su propio rango, desde tu primera reproducción. Funciona con Last.fm, Google Sheets y archivos CSV."],
+
   "Perfect All Kill explained, and a shorter plaque wall":
     ["Perfect All Kill explicado y un muro de placas más corto",
      "Perfect All Kill tiene ahora un botón \"¿Qué es un Perfect All Kill?\" que explica el nombre. Su lista muestra qué Perfect All Kill fue cada uno, y el número del propio artista, como texto normal en lugar de etiquetas de colores. El muro de certificaciones muestra sus primeras 24 placas con un botón Mostrar más debajo, en lugar de todas las placas a la vez. Funciona con Last.fm, Google Sheets y archivos CSV."],

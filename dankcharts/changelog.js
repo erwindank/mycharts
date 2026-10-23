@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 273;
+const DC_CL_I18N_V = 274;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-22', t: 'design', a: 'graphs', h: 'ffeab6d',
+    title: "Stats: one date range for the whole page",
+    detail: "The Stats tab now has one bar at the top with Daily / Monthly / Yearly and the date range: quick buttons for the last 12 months, 3 years or everything, plus two date boxes for any other stretch. Every chart follows it, so the separate date boxes and Reset buttons on each chart are gone. It starts on the last 12 months, so a long history no longer draws a flat line with a spike at the end. The Play Count Race keeps its own range, starting at your first play. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-22', t: 'design', a: 'records', h: '9271948',
     title: "Perfect All Kill explained, and a shorter plaque wall",
     detail: "Perfect All Kill now has a \"What's a Perfect All Kill?\" button that explains the name. Its list shows which Perfect All Kill each one was, and the artist's own count, as plain text instead of coloured labels. The certifications wall shows its first 24 plaques with a Show more button under them, instead of every plaque at once. Works with Last.fm, Google Sheets and CSV uploads." },
