@@ -1983,13 +1983,18 @@
       }
     }
 
-    /* The smallest phones (~330px): the icon buttons slim down 4px each so
-       "Sign in" no longer pushes the page 15px wider (phase 7 step 12) */
+    /* The smallest phones (~320px): the icon buttons slim down 6px each and
+       Sign in loses a little padding, so it no longer pushes the page wider
+       (phase 7 step 12; 2px more each after the What's new counter came) */
     @media (max-width: 350px) {
       #topbar .tb-btn,
       #topbar .ctrl-group-btn {
-        min-width: 30px;
-        padding: 0 4px;
+        min-width: 28px;
+        padding: 0 3px;
+      }
+
+      #topbar .tb-signin-btn {
+        padding: 0 6px;
       }
     }
 

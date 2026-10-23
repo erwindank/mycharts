@@ -13118,6 +13118,20 @@ document.getElementById('rawClearBtn').addEventListener('click', () => {
 
 document.getElementById('rawFilterCorrected').addEventListener('change', applyRawFilters);
 
+// The narrowest phones leave ~120px per search box, too little for "Buscar
+// canciones…" or "Date, e.g. Mar 2024", so there the boxes use the short
+// hints. Switching the key also keeps it right on a language change.
+const RAW_NARROW = window.matchMedia('(max-width: 360px)');
+function rawSetSearchHints() {
+  document.querySelectorAll('.raw-search input').forEach(input => {
+    const key = input.dataset.i18nPlaceholder.replace(/_short$/, '') + (RAW_NARROW.matches ? '_short' : '');
+    input.dataset.i18nPlaceholder = key;
+    input.placeholder = t(key);
+  });
+}
+rawSetSearchHints();
+RAW_NARROW.addEventListener('change', rawSetSearchHints);
+
 // The sticky header row sits just under the sticky search bar, whose height
 // changes as it wraps and with the language.
 new ResizeObserver(() => {
