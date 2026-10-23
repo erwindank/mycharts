@@ -2278,6 +2278,44 @@ Steps:
 **Phase 9 part 1 (Records) is finished** (2026-10-22, on `main`). Next is
 phase 9 part 2: Stats (4.14).
 
+**Phase 9 part 2: Stats. Planned 2026-10-22, one step per commit, on
+`main`; you review each step before the next.** Looked at on screen first
+(desktop and phone, navy dark, a 3-year test library). What 4.14 still gets
+right, and what is new:
+- The page title is "📈 Historical Graphs" in a pill, under a tab called
+  Stats. Daily / Monthly / Yearly sits alone in a box at the top.
+- **Four cards each carry their own Range row** (two date boxes and Reset):
+  Cumulative Plays, Total Play Volume, Play Volume per Artist and the Play
+  Count Race. New Discoveries has none. Every range starts at the very
+  first play, which is why long libraries get a flat line and a spike.
+- Default Chart.js look: vertical and horizontal gridlines, bright axis
+  text. "Labels: Off" and "Reset Zoom" are text buttons on every card.
+- The Play Count Race colours each rank box and avatar a different hue.
+- The heatmap stacks one block per year (11 on your library), then
+  Listening Patterns under it.
+- 72 inline styles in the Stats markup (same count as 4.14 said).
+
+Steps:
+1. **Page top and one date range.** Mockup first (it also shows where the
+   later steps lead). Title "Stats" with a line icon like Records. One bar
+   at the top: Daily / Monthly / Yearly, then "12 mo · 3 yr · All" and the
+   two date boxes, defaulting to the last 12 months. The four per-card
+   Range rows go; a card that needs its own range keeps an override.
+2. **Card corner buttons.** "Labels" and "Reset zoom" become small icon
+   buttons in each card's top-right corner, with tooltips.
+3. **Chart style.** No vertical gridlines, faint horizontal ones, 12px
+   muted axis text, the theme accent for single series, a fixed set of
+   6–8 colours for comparisons (artists, the race), checked in all themes.
+4. **Ratings chart.** One colour (accent), lighter or darker by score,
+   instead of a rainbow.
+5. **Heatmap.** Mockup first. One year at a time with `‹ 2026 ›`, and a
+   row of small thumbnails to jump between years. Listening Patterns stay.
+6. **Two-column layout** on desktop: small charts side by side, wide ones
+   (race, heatmap) full width.
+7. **Inline styles** in the Stats markup move into classes.
+8. **Screen check.** All charts, 10 themes, phone with touch, four
+   languages, a long (10-year) library.
+
 The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in
 the top bar.
