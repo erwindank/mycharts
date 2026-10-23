@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 292;
+const DC_CL_I18N_V = 293;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-23', t: 'design', a: 'events', h: 'f26d2b0',
+    title: "Events: Coming up is one list, by how soon",
+    detail: "Coming up on the Events page is now one list instead of five sections: your top artists' birthdays, anniversaries, releases and shows together, in three groups — This week, Next few weeks and Later — and in date order inside each. Each group shows its eight most-played anniversaries first, with a button to see the rest. New Music Friday moved to Recent, since its releases are already out. In the List view on a phone, the title and artist no longer disappear when the type line is long. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-23', t: 'feature', a: 'events', h: '02223cb',
     title: "Events: Today shows what's happening today, and Play all is back",
     detail: "The Today tab now opens with today's date and what's happening: your top artists' birthdays, releases and shows first, then the day's anniversaries. Anniversaries are ranked so the ones that matter come first: the releases you've played most lead, a round one (5th, 10th, 20th…) moves ahead of others you've played about as much, and each card says how many times you've played it. Eight show at first, and Show all opens the rest, so a day with fifty anniversaries no longer fills the page. The Time Machine is still underneath. Play all is back next to + Playlist: it plays what the open tab shows in the music player, the first song now and the rest in the queue. Works with Last.fm, Google Sheets and CSV uploads." },

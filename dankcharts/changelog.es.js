@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Events: Coming up is one list, by how soon":
+    ["Eventos: Próximamente es una sola lista, por cercanía",
+     "Próximamente en la página Eventos es ahora una sola lista en lugar de cinco secciones: los cumpleaños, aniversarios, lanzamientos y conciertos de tus artistas principales juntos, en tres grupos (Esta semana, Próximas semanas y Más adelante) y por fecha dentro de cada uno. Cada grupo muestra primero sus ocho aniversarios más escuchados, con un botón para ver el resto. New Music Friday pasó a Recientes, porque sus lanzamientos ya salieron. En la vista Lista en el móvil, el título y el artista ya no desaparecen cuando la línea del tipo es larga. Funciona con Last.fm, Google Sheets y archivos CSV."],
+
   "Events: Today shows what's happening today, and Play all is back":
     ["Eventos: Hoy muestra lo que pasa hoy, y vuelve Reproducir todo",
      "La pestaña Hoy se abre ahora con la fecha de hoy y lo que pasa: primero los cumpleaños, lanzamientos y conciertos de tus artistas principales, y luego los aniversarios del día. Los aniversarios se ordenan para que los importantes vayan primero: delante van los lanzamientos que más has escuchado, uno redondo (5.º, 10.º, 20.º…) pasa por delante de otros que has escuchado más o menos lo mismo, y cada tarjeta dice cuántas veces lo has escuchado. Al principio se ven ocho, y Mostrar los abre el resto, así que un día con cincuenta aniversarios ya no llena la página. La Máquina del tiempo sigue debajo. Reproducir todo vuelve junto a + Lista: reproduce en el reproductor lo que muestra la pestaña abierta, la primera canción ya y el resto en la cola. Funciona con Last.fm, Google Sheets y archivos CSV."],

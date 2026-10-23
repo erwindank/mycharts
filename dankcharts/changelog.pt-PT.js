@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Events: Coming up is one list, by how soon":
+    ["Eventos: Brevemente é uma lista só, pela proximidade",
+     "Brevemente na página Eventos é agora uma lista só em vez de cinco secções: aniversários, datas, lançamentos e concertos dos teus artistas principais juntos, em três grupos (Esta semana, Próximas semanas e Mais tarde) e por data dentro de cada um. Cada grupo mostra primeiro as suas oito datas mais ouvidas, com um botão para ver o resto. O New Music Friday passou para Recentes, porque os lançamentos já saíram. Na vista Lista no telemóvel, o título e o artista já não desaparecem quando a linha do tipo é longa. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
+
   "Events: Today shows what's happening today, and Play all is back":
     ["Eventos: Hoje mostra o que acontece hoje, e Tocar tudo voltou",
      "O separador Hoje abre agora com a data de hoje e o que acontece: primeiro os aniversários, lançamentos e concertos dos teus artistas principais, depois as datas do dia. As datas são ordenadas para que as importantes venham primeiro: à frente ficam os lançamentos que mais ouviste, uma redonda (5.ª, 10.ª, 20.ª…) passa à frente de outras que ouviste mais ou menos o mesmo, e cada cartão diz quantas vezes o ouviste. Aparecem oito no início, e Mostrar todas abre o resto, por isso um dia com cinquenta datas já não enche a página. A Máquina do tempo continua por baixo. Tocar tudo voltou ao lado de + Playlist: toca no leitor o que o separador aberto mostra, a primeira música já e o resto na fila. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
