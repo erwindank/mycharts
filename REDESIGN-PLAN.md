@@ -2379,6 +2379,52 @@ Steps:
 **Phase 9 part 2 (Stats) is finished** (2026-10-23). Next is phase 9
 part 3: Raw Data (4.13).
 
+**Phase 9 part 3: Raw Data. Planned 2026-10-23, one step per commit, on
+`main`; you review each step before the next.** Looked at on screen first
+(1440, 1100 and 390 with touch, navy dark, a 217,000-play library). What
+4.13 still gets right, and what is new:
+- Text is already 13px (title, artist) and 12px (date, album), rows 32px.
+  Still true: the header row scrolls away, page buttons only at the
+  bottom, a ✎ on every row, lines between rows instead of zebra.
+- **The filter bar is broken:** a 5-column grid holding 7 things, so
+  "~ corrected only" and "Auto-correct Rules" wrap onto a second line
+  out of line with each other. Every box has a label *and* a placeholder
+  that say the same thing.
+- The title is still the old "⊞ Raw Scrobble Data" pill (Records and
+  Stats now have a plain title with a line icon). The total is in the
+  accent colour, album names and dates are tinted (3.2).
+- 200 rows a page, fixed; "◄ Prev / Next ►" are browser-looking buttons
+  and are not translated. The ✎ tooltip and the "Autocorrected from"
+  tooltip are English only.
+- On a phone the filters take about 450px before the first row.
+- The "Raw data" tab inside song / album / artist windows is a second,
+  smaller copy (inline 12px, English headers and "Search…").
+
+Steps:
+1. **Top of the page.** Title "Raw Data" with the nav's line icon, in
+   Records' / Stats' title style. The four search boxes on one row with no
+   labels above them (the placeholder says it; the label stays for screen
+   readers). Under them one line: the total on the left (white, 3.2), then
+   "Corrected only", Clear (only while a filter is on) and Auto-correct
+   rules on the right. On phones the boxes go two by two and the line
+   wraps under them.
+2. **Sticky.** The search bar and the table's header row stay under the
+   top bar while you scroll (from 601px up, like Stats' bar); on phones
+   only the header row sticks.
+3. **Rows.** Zebra striping instead of lines, 36px rows. Title, artist and
+   album 13px sans in ink colours (album muted, not tinted); # and date in
+   tabular mono, muted. Corrected rows keep their mark. The ✎ becomes a
+   line icon that shows on row hover or focus (always on touch screens);
+   its tooltip and "Autocorrected from" get translated.
+4. **Page controls.** One bar above and below the table: ‹ Previous ·
+   "Page 3 of 1,087" · Next ›, plus first / last and "Rows per page 50 /
+   100 / 200 / 500" (remembered). All translated, shared button styles.
+5. **The Raw data tab in item windows.** The same row look as the page
+   (zebra, mono dates, no inline styles) and translated headers and search.
+6. **Screen check.** 1440 / 1100 / 390 touch, all 10 themes, four
+   languages, sorting and every filter on the big library, no sideways
+   scroll, no script errors.
+
 The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in
 the top bar.
