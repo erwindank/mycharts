@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Raw Data: page buttons at the top, jump to a page, rows per page":
+    ["Dados brutos: botões de página no topo, saltar para uma página, linhas por página",
+     "Dados brutos tem agora botões de página por cima da tabela além de por baixo, por isso já não precisas de ir até ao fim para mudar de página. Ao lado de Anterior e Seguinte há botões para a primeira e a última página, e uma caixa onde escreves o número da página e carregas em Enter para ir diretamente. Linhas por página deixa-te ver 50, 100, 200 ou 500 plays de cada vez, e a escolha fica guardada para a próxima vez. Os botões de baixo levam-te ao início da nova página. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
+
   "Raw Data: calmer rows, edit button on hover":
     ["Dados brutos: linhas mais calmas, botão de editar ao passar o rato",
      "A lista de plays em Dados brutos lê-se melhor. As linhas estão um pouco mais altas e uma sim, uma não, fica sombreada em vez de ter uma linha por baixo de cada uma. Os títulos destacam-se, os artistas ficam um tom mais suaves e as datas e os álbuns mais suaves ainda, em cores de texto normais em vez do azul que parecia uma ligação. O botão de editar é agora um lápis pequeno que aparece quando passas o rato por uma linha (no telemóvel está sempre visível). Os plays alterados pelas tuas regras de correção automática mantêm a marca, agora também no telemóvel. Funciona com Last.fm, Google Sheets e ficheiros CSV."],

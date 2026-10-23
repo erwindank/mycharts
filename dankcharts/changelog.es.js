@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Raw Data: page buttons at the top, jump to a page, rows per page":
+    ["Base de datos: botones de página arriba, saltar a una página, filas por página",
+     "Base de datos tiene ahora botones de página encima de la tabla además de debajo, así que ya no hace falta bajar hasta el final para pasar de página. Junto a Anterior y Siguiente hay botones para la primera y la última página, y una casilla donde puedes escribir un número de página y pulsar Enter para ir directamente. Filas por página te deja ver 50, 100, 200 o 500 reproducciones a la vez, y se recuerda para la próxima vez. Los botones de abajo te llevan al principio de la nueva página. Funciona con Last.fm, Google Sheets y archivos CSV."],
+
   "Raw Data: calmer rows, edit button on hover":
     ["Base de datos: filas más tranquilas, botón de editar al pasar el ratón",
      "La lista de reproducciones de Base de datos se lee mejor. Las filas son un poco más altas y una de cada dos va sombreada en lugar de llevar una línea debajo. Los títulos destacan, los artistas van un paso más suaves y las fechas y los álbumes más suaves aún, en colores de texto normales en lugar del azul que parecía un enlace. El botón de editar es ahora un lápiz pequeño que aparece al pasar el ratón por una fila (en el móvil siempre está). Las reproducciones cambiadas por tus reglas de autocorrección conservan su marca, ahora también en el móvil. Funciona con Last.fm, Google Sheets y archivos CSV."],

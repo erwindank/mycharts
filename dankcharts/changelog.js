@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 282;
+const DC_CL_I18N_V = 283;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-23', t: 'feature', a: 'rawdata', h: 'aa08d4f',
+    title: "Raw Data: page buttons at the top, jump to a page, rows per page",
+    detail: "Raw Data now has page buttons above the table as well as below it, so you no longer have to scroll to the bottom to turn the page. Next to Previous and Next there are buttons for the first and last page, and a box where you can type a page number and press Enter to jump straight to it. Rows per page lets you show 50, 100, 200 or 500 plays at a time, and it is remembered next time. Using the buttons at the bottom takes you back to the top of the new page. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-23', t: 'design', a: 'rawdata', h: '0494690',
     title: "Raw Data: calmer rows, edit button on hover",
     detail: "The play list on Raw Data is easier on the eyes. Rows are a little taller and every other row is shaded instead of having a line under each one. Song titles stand out, artists are a step quieter, and dates and albums are quieter still, in plain text colours instead of blue that looked like links. The edit button is now a small pencil that shows when you point at a row (on a phone it is always there). Plays changed by your auto-correct rules keep their mark, now on phones too. Works with Last.fm, Google Sheets and CSV uploads." },
