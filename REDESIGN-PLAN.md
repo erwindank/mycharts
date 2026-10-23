@@ -2471,6 +2471,17 @@ Steps:
    its header now sticks to the top of the 400px box with the panel's
    background. The search box grows (flex 14rem, max 18rem) and the count
    drops under it on phones.
+   **Fix after review (2026-10-23):** in Spanish on a phone the table slid
+   sideways. The column names were nowrap: in the song / album pop-ups
+   (the same buildItemRawDataHTML) the table was 338px in a 290px box
+   (es), 320px (pt), and English overflowed at 320–360px too. Worse, the
+   Raw Data page itself was 400px wide on a 320px phone in Spanish. Now
+   header cells wrap (.cr-rawdata-table always, .raw-table on phones),
+   long words in cells break (overflow-wrap: anywhere), and the pop-up
+   header drops its letter-spacing on phones. Checked 320 / 360 / 375 /
+   390 / 414 in en / es / pt-BR: no sideways scroll in the pop-up, the
+   panel or the page. Left: at 320px every page is 2–4px too wide
+   because of the top bar's Sign in button (not Raw Data).
 6. **Screen check.** 1440 / 1100 / 390 touch, all 10 themes, four
    languages, sorting and every filter on the big library, no sideways
    scroll, no script errors.

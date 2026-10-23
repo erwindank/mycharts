@@ -12409,12 +12409,16 @@
       font-size: var(--fs-xs);
       letter-spacing: 0.04em;
       text-transform: uppercase;
+      /* the box is narrow (pop-ups, phones): long column names such as
+         "Título de Canción" wrap instead of pushing the table sideways */
+      white-space: normal;
     }
 
     .raw-table.cr-rawdata-table td {
       padding: 0.3rem 0.7rem;
       font-size: var(--fs-sm);
       background: none;
+      overflow-wrap: anywhere;
     }
 
     /* as specific as the chart table's first / last cell rounding */
@@ -12440,6 +12444,11 @@
       .raw-table.cr-rawdata-table td {
         padding: 0.3rem 0.35rem;
         font-size: var(--fs-xs);
+      }
+
+      /* the narrowest phones (320px) still needed a few pixels in Spanish */
+      .raw-table.cr-rawdata-table thead th {
+        letter-spacing: 0;
       }
     }
 
@@ -12681,6 +12690,16 @@
       .raw-table th,
       .raw-table td {
         padding: 0.3rem 0.35rem;
+      }
+
+      /* Spanish and Portuguese column names are long; on a phone they wrap
+         rather than make the page scroll sideways */
+      .raw-table th {
+        white-space: normal;
+      }
+
+      .raw-table td {
+        overflow-wrap: anywhere;
       }
 
       .raw-table {
