@@ -13113,6 +13113,13 @@ document.getElementById('rawClearBtn').addEventListener('click', () => {
 
 document.getElementById('rawFilterCorrected').addEventListener('change', applyRawFilters);
 
+// The sticky header row sits just under the sticky search bar, whose height
+// changes as it wraps and with the language.
+new ResizeObserver(() => {
+  const bar = document.querySelector('#rawDataView .raw-filters');
+  document.getElementById('rawDataView').style.setProperty('--raw-filters-h', bar.getBoundingClientRect().height + 'px');
+}).observe(document.querySelector('#rawDataView .raw-filters'));
+
 document.getElementById('rawPrevBtn').addEventListener('click', () => { rawPage--; renderRawPage(); });
 document.getElementById('rawNextBtn').addEventListener('click', () => { rawPage++; renderRawPage(); });
 

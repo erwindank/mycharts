@@ -2420,6 +2420,14 @@ Steps:
 2. **Sticky.** The search bar and the table's header row stay under the
    top bar while you scroll (from 601px up, like Stats' bar); on phones
    only the header row sticks.
+   **Done 2026-10-23:** .raw-filters sticks at --topbar-offset from 601px
+   (page background, below the top bar's menus); the header cells stick
+   under it at --topbar-offset + --raw-filters-h, which a ResizeObserver
+   in app.js keeps at the bar's height (it grows when the bar wraps, e.g.
+   Spanish at 601px). Phones: only the header row, under the top bar. Both
+   follow the top bar when it tucks away. The header line is an inset
+   shadow, since a collapsed border stays behind a stuck cell. Checked at
+   1440 (10 themes), 1100, 601, 390 touch, en / es / pt-PT, while filtered.
 3. **Rows.** Zebra striping instead of lines, 36px rows. Title, artist and
    album 13px sans in ink colours (album muted, not tinted); # and date in
    tabular mono, muted. Corrected rows keep their mark. The ✎ becomes a

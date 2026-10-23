@@ -12187,6 +12187,37 @@
       color: var(--text3);
     }
 
+    /* Sticky (step 2): the search bar stays under the top bar from 601px up
+       (like Stats' bar; on a phone it is too tall to keep on screen), and
+       the header row stays under the bar. app.js keeps --raw-filters-h at
+       the bar's height, which changes as it wraps and with the language.
+       The header's line is a shadow: a collapsed table border stays behind
+       when its cell sticks. */
+    .raw-table thead th {
+      position: sticky;
+      top: var(--topbar-offset);
+      z-index: 2;
+      background: var(--bg);
+      border-bottom: none;
+      box-shadow: inset 0 -1px 0 var(--border2);
+    }
+
+    @media (min-width: 601px) {
+      .raw-filters {
+        position: sticky;
+        top: var(--topbar-offset);
+        /* below the top bar's open menus, as Stats' bar */
+        z-index: calc(var(--z-nav) - 1);
+        background: var(--bg);
+        padding-block: var(--sp-2);
+        margin-bottom: 0;
+      }
+
+      .raw-table thead th {
+        top: calc(var(--topbar-offset) + var(--raw-filters-h, 0px));
+      }
+    }
+
     .raw-bar {
       display: flex;
       flex-wrap: wrap;
