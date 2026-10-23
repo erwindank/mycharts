@@ -2501,6 +2501,15 @@ Steps:
    song / album pop-ups still have English section names ("Chart
    Accomplishments", "Year-by-Year Breakdown"…).
 
+**Follow-ups, same day:** the More menu said "BASE DE DATOS" in capitals (now "Base de
+datos" / "Dados brutos"); the 320px top bar fits (icon buttons 28px, Sign in
+6px padding under 351px); Raw Data's search boxes use short hints at 360px
+and below (raw_search_*_short, swapped by matchMedia in rawSetSearchHints);
+the song and album pop-ups are translated (120 keys: sm_*, am_*, rtp_* and
+three section-title keys), including the shared rating box and the
+certification plaques. The rating band names stay English (Stats step 7).
+Still English: the artist pop-up's table headers (RANK, FIRST STREAM…).
+
 **Phase 9 part 3 (Raw Data) is finished** (2026-10-23). Next in phase 9:
 Events, Awards, Soundtrack and the rest, each looked at on screen first.
 

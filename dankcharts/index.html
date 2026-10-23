@@ -31,7 +31,7 @@
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=178"></script>
+  <script defer src="translations.js?v=179"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -3296,14 +3296,14 @@
         <div class="modal-section-title" data-i18n="modal_rating_song">★ My Rating</div>
         <div id="songModalRating"></div>
         <div id="songModalGrandSlam"></div>
-        <div class="modal-section-title">🏅 My Grammies</div>
+        <div class="modal-section-title" data-i18n="modal_grammies_title">🏅 My Grammies</div>
         <div class="modal-stats-strip" id="songModalGrammyStrip"></div>
         <div id="songModalGrammyDetail"></div>
-        <div class="modal-section-title">📊 Chart Peaks</div>
+        <div class="modal-section-title" data-i18n="modal_chart_peaks_title">📊 Chart Peaks</div>
         <div class="modal-stats-strip" id="songModalPeaks"></div>
-        <div class="modal-section-title">📈 Chart Records</div>
+        <div class="modal-section-title" data-i18n="modal_chart_records_title">📈 Chart Records</div>
         <div class="modal-stats-strip" id="songModalRecords"></div>
-        <div class="modal-section-title">★ Chart Accomplishments</div>
+        <div class="modal-section-title" data-i18n="modal_accomplishments">★ Chart Accomplishments</div>
         <div id="songModalAccomplishments"></div>
         <div id="songModalSparkline"></div>
         <div id="songModalExtraStats"></div>
@@ -3481,7 +3481,7 @@
         <div id="modalArtistRating"></div>
         <div id="modalGrandSlam"></div>
         <div class="modal-stats-strip" id="modalArtistPeaks"></div>
-        <div class="modal-section-title">📈 Chart Records</div>
+        <div class="modal-section-title" data-i18n="modal_chart_records_title">📈 Chart Records</div>
         <div class="modal-stats-strip" id="modalRecordsStrip"></div>
         <!-- Every record this artist holds across the Records tab, in the same
              reel the hero banner uses. Filled by renderModalArtistRecords();
@@ -3491,7 +3491,7 @@
         <div class="rec-hero-reel modal-records-reel" id="modalHeldRecordsReel" style="display:none">
           <div class="rec-hero-track" id="modalHeldRecordsTrack"></div>
         </div>
-        <div class="modal-section-title">🏅 My Grammies</div>
+        <div class="modal-section-title" data-i18n="modal_grammies_title">🏅 My Grammies</div>
         <div class="modal-stats-strip" id="modalGrammyStrip"></div>
         <div id="modalGrammyDetail"></div>
         <div id="modalArtistChart"></div>
@@ -3932,7 +3932,7 @@
   <!-- Community board tab (suggestions / bugs / discussion). Loaded before
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
   <script defer src="board.js?v=4"></script>
-  <script defer src="app.js?v=484"></script>
+  <script defer src="app.js?v=486"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
   <script defer src="replay.js?v=1"></script>
   <!-- All-Time chart stats ("Inside your Top N"); reads app.js globals, so it loads after it -->

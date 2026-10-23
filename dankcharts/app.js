@@ -25158,9 +25158,9 @@ function sortAlbumTracksBy(criterion) {
 function _albSortBarHTML(criterion) {
   const btns = ['plays','rank','firstPlayed','lastPlayed'].map(s =>
     `<button class="alb-sort-btn${criterion === s ? ' active' : ''}" data-sort="${s}" onclick="sortAlbumTracksBy('${s}')">${
-      s === 'plays' ? 'Most Played' : s === 'rank' ? 'Chart Rank' : s === 'firstPlayed' ? 'Discovered First' : 'Recently Played'
+      t(s === 'plays' ? 'am_sort_plays' : s === 'rank' ? 'am_sort_rank' : s === 'firstPlayed' ? 'am_sort_first' : 'am_sort_recent')
     }</button>`).join('');
-  return `<div class="alb-sort-bar"><span class="alb-sort-label">Sort:</span><div class="dc-seg">${btns}</div>
+  return `<div class="alb-sort-bar"><span class="alb-sort-label">${t('am_sort')}</span><div class="dc-seg">${btns}</div>
     <button class="dc-btn dc-btn-normal dc-btn-sm alb-share-btn" onclick="tpOpenCard()">${esc(t('tp_card_open'))}</button></div>`;
 }
 
@@ -25196,8 +25196,8 @@ function _buildAlbTrackPanelHTML(s, totalPlays, crY, crM, crW, allTimeSPM) {
   const consecPlays = longestConsecutivePlaysAllTime(sk);
   const peaks = computeTrackPeaks(sk);
 
-  const MO = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const fmtWeekKey = wk => { const d = new Date(wk + 'T00:00:00'); return `Wk of ${d.getDate()} ${MO[d.getMonth()]} ${d.getFullYear()}`; };
+  const MO = _CR_MON_SHORT.map(k => t(k));
+  const fmtWeekKey = wk => { const d = new Date(wk + 'T00:00:00'); return t('sm_week_of', { date: `${d.getDate()} ${MO[d.getMonth()]} ${d.getFullYear()}` }); };
   const fmtMonthKey = mk => { const [y, m] = mk.split('-'); return `${MO[parseInt(m) - 1]} ${y}`; };
 
   const statItem = (val, label, sub = '') => `<div class="alb-stat-item">
@@ -25207,19 +25207,19 @@ function _buildAlbTrackPanelHTML(s, totalPlays, crY, crM, crW, allTimeSPM) {
   </div>`;
 
   let statsHTML = `<div class="alb-track-stats-grid">`;
-  if (allTimeRank) statsHTML += statItem(`#${allTimeRank}`, 'Most Heard Song of All Time');
-  statsHTML += statItem(calDays, 'Calendar Days Played');
-  if (consecDays > 1) statsHTML += statItem(`${consecDays}d`, 'Longest Day Streak');
-  if (consecMonths > 1) statsHTML += statItem(`${consecMonths}mo`, 'Longest Month Streak');
-  if (consecPlays > 1) statsHTML += statItem(`${consecPlays}×`, 'Longest Play Streak');
-  if (peaks.peakDay) statsHTML += statItem(peaks.peakDay[1], 'Peak Plays in a Day', peaks.peakDay[0]);
-  if (peaks.peakWeek) statsHTML += statItem(peaks.peakWeek[1], 'Peak Plays in a Week', fmtWeekKey(peaks.peakWeek[0]));
-  if (peaks.peakMonth) statsHTML += statItem(peaks.peakMonth[1], 'Peak Plays in a Month', fmtMonthKey(peaks.peakMonth[0]));
-  if (peaks.peakYear) statsHTML += statItem(peaks.peakYear[1], 'Peak Plays in a Year', peaks.peakYear[0]);
+  if (allTimeRank) statsHTML += statItem(`#${allTimeRank}`, t('am_most_heard_song'));
+  statsHTML += statItem(calDays, t('am_cal_days'));
+  if (consecDays > 1) statsHTML += statItem(`${consecDays}d`, t('am_day_streak'));
+  if (consecMonths > 1) statsHTML += statItem(`${consecMonths}mo`, t('am_month_streak'));
+  if (consecPlays > 1) statsHTML += statItem(`${consecPlays}×`, t('am_play_streak'));
+  if (peaks.peakDay) statsHTML += statItem(peaks.peakDay[1], t('am_peak_day'), peaks.peakDay[0]);
+  if (peaks.peakWeek) statsHTML += statItem(peaks.peakWeek[1], t('am_peak_week'), fmtWeekKey(peaks.peakWeek[0]));
+  if (peaks.peakMonth) statsHTML += statItem(peaks.peakMonth[1], t('am_peak_month'), fmtMonthKey(peaks.peakMonth[0]));
+  if (peaks.peakYear) statsHTML += statItem(peaks.peakYear[1], t('am_peak_year'), peaks.peakYear[0]);
   const crYD = crY?.result?.songs?.[sk];
   if (crYD) {
-    statsHTML += statItem(crYD.peakDays, 'Peak Days in a Year');
-    statsHTML += statItem(crYD.peakMonths, 'Peak Months in a Year');
+    statsHTML += statItem(crYD.peakDays, t('am_peak_days_year'));
+    statsHTML += statItem(crYD.peakMonths, t('am_peak_months_year'));
   }
   statsHTML += `</div>`;
 
@@ -25250,7 +25250,7 @@ function _buildAlbTrackPanelHTML(s, totalPlays, crY, crM, crW, allTimeSPM) {
 }
 
 function _buildAlbTracksHTML(tracks, totalPlays, crY, crM, crW, allTimeSPM, albumEk) {
-  if (!tracks.length) return `<div style="font-style:italic;color:var(--text3);padding:0.5rem 0;font-size:var(--fs-sm)">No tracks found.</div>`;
+  if (!tracks.length) return `<div style="font-style:italic;color:var(--text3);padding:0.5rem 0;font-size:var(--fs-sm)">${t('am_no_tracks')}</div>`;
   let rows = '';
   tracks.forEach((s, i) => {
     const sk = songKey(s);
@@ -25260,7 +25260,7 @@ function _buildAlbTracksHTML(tracks, totalPlays, crY, crM, crW, allTimeSPM, albu
     const panelHTML = _buildAlbTrackPanelHTML(s, totalPlays, crY, crM, crW, allTimeSPM);
     rows += `<tr>
       <td style="width:28px">
-        <button class="cr-toggle-btn alb-track-toggle" title="Track Details" aria-label="Track Details" aria-expanded="false" onclick="event.stopPropagation();(function(btn,id){const r=document.getElementById(id);const open=r.classList.toggle('open');btn.classList.toggle('active',open);btn.setAttribute('aria-expanded',open);})(this,'${rowId}')"><svg class="alb-track-icon" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <button class="cr-toggle-btn alb-track-toggle" title="${t('am_track_details')}" aria-label="${t('am_track_details')}" aria-expanded="false" onclick="event.stopPropagation();(function(btn,id){const r=document.getElementById(id);const open=r.classList.toggle('open');btn.classList.toggle('active',open);btn.setAttribute('aria-expanded',open);})(this,'${rowId}')"><svg class="alb-track-icon" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       </td>
       <td class="modal-rank-col">${atRank ? '#' + atRank : '—'}</td>
       <td>
@@ -25277,7 +25277,7 @@ function _buildAlbTracksHTML(tracks, totalPlays, crY, crM, crW, allTimeSPM, albu
     <tr class="cr-row" id="${rowId}"><td colspan="6">${panelHTML}</td></tr>`;
   });
   return `<table class="dc-table modal-table"><thead><tr class="modal-table-header">
-    <td></td><td>RANK</td><td>${t('th_track')}</td>
+    <td></td><td>${t('th_rank')}</td><td>${t('th_track')}</td>
     <td class="modal-date-col">${t('modal_first_played')}</td>
     <td class="modal-date-col">${t('modal_last_played')}</td>
     <td>${t('th_plays')}</td>
@@ -25471,9 +25471,9 @@ function openArtistModal(artistName) {
   const weeklyDebutRank = _firstWkEntry ? _firstWkEntry.rank : null;
   const recordsEl = document.getElementById('modalRecordsStrip');
   recordsEl.innerHTML = `
-    <div class="modal-stat ${weeksAtNo1 > 0 ? 'modal-stat--gold' : ''}"><div class="se">🥇</div><div class="sv ${weeksAtNo1 > 0 ? 'sv--gold' : ''}" data-countup="${weeksAtNo1}">${weeksAtNo1}</div><div class="sl">Weeks at #1 on the<br>Weekly Chart</div></div>
-    <div class="modal-stat"><div class="se">🌙</div><div class="sv ${monthsAtNo1 > 0 ? 'sv--gold' : ''}" data-countup="${monthsAtNo1}">${monthsAtNo1}</div><div class="sl">Months at #1 on the<br>Monthly Chart</div></div>
-    <div class="modal-stat"><div class="se">⭐</div><div class="sv ${yearsAtNo1 > 0 ? 'sv--gold' : ''}" data-countup="${yearsAtNo1}">${yearsAtNo1}</div><div class="sl">Years at #1 on the<br>Yearly Chart</div></div>
+    <div class="modal-stat ${weeksAtNo1 > 0 ? 'modal-stat--gold' : ''}"><div class="se">🥇</div><div class="sv ${weeksAtNo1 > 0 ? 'sv--gold' : ''}" data-countup="${weeksAtNo1}">${weeksAtNo1}</div><div class="sl">${t('sm_weeks_at1')}</div></div>
+    <div class="modal-stat"><div class="se">🌙</div><div class="sv ${monthsAtNo1 > 0 ? 'sv--gold' : ''}" data-countup="${monthsAtNo1}">${monthsAtNo1}</div><div class="sl">${t('sm_months_at1')}</div></div>
+    <div class="modal-stat"><div class="se">⭐</div><div class="sv ${yearsAtNo1 > 0 ? 'sv--gold' : ''}" data-countup="${yearsAtNo1}">${yearsAtNo1}</div><div class="sl">${t('sm_years_at1')}</div></div>
     <div class="modal-stat"><div class="se">📅</div><div class="sv" data-countup="${weeklyApps}">${weeklyApps}</div><div class="sl">Weekly Chart<br>Appearances</div></div>
     <div class="modal-stat"><div class="se">🗓️</div><div class="sv" data-countup="${monthlyApps}">${monthlyApps}</div><div class="sl">Monthly Chart<br>Appearances</div></div>
     ${weeklyDebutRank ? `<div class="modal-stat"><div class="se">🚀</div><div class="sv ${peakCls(weeklyDebutRank)}">#${weeklyDebutRank}</div><div class="sl">Weekly Chart<br>Debut Rank</div></div>` : ''}
@@ -25543,7 +25543,7 @@ function openArtistModal(artistName) {
       : `<div class="acc-detail-row"><span class="acc-detail-name" style="font-style:italic">${t('modal_no_detail')}</span></div>`;
     return `<div class="acc-row">
       <div class="acc-header">
-        <button class="acc-toggle" onclick="const d=document.getElementById('${id}');const open=d.classList.toggle('open');this.textContent=open?'−':'+';" title="Expand">+</button>
+        <button class="acc-toggle" onclick="const d=document.getElementById('${id}');const open=d.classList.toggle('open');this.textContent=open?'−':'+';" title="${t('sm_expand')}">+</button>
         <span>${icon} ${label}</span>
       </div>
       <div class="acc-detail" id="${id}">${detail}</div>
@@ -26093,7 +26093,7 @@ function openAlbumModal(albumKey) {
   const albIsComp = artistName === VARIOUS_ARTISTS;
   document.getElementById('albumModalSub').innerHTML = albIsComp
     ? `${t('modal_compilation_by')} <span class="modal-artist-va">${esc(VARIOUS_ARTISTS)}</span> · ${t('modal_chart_profile')}`
-    : `Album by <a class="modal-artist-link" href="javascript:void(0)" onclick="albumModal.classList.remove('open');setTimeout(()=>openArtistModal(${esc(JSON.stringify(artistName))}),50)">${esc(artistName)}</a> · ${t('modal_chart_profile')}`;
+    : `${t('am_album_by')} <a class="modal-artist-link" href="javascript:void(0)" onclick="albumModal.classList.remove('open');setTimeout(()=>openArtistModal(${esc(JSON.stringify(artistName))}),50)">${esc(artistName)}</a> · ${t('modal_chart_profile')}`;
 
   // The compilation switch itself — the album is the only place you can see
   // whether it is merged, so it is the natural place to flip it.
@@ -26211,13 +26211,13 @@ function openAlbumModal(albumKey) {
             ? ` onclick="goToWeek(${r.weekOffset});albumModal.classList.remove('open')" style="cursor:pointer"`
             : r.period ? ` onclick="goToPeriodFromAlbumModal('${r.period}','${r.periodKey}')" style="cursor:pointer"` : '';
           const viewTag = (r.weekOffset !== undefined || r.period)
-            ? `<span style="color:var(--accent);font-size:var(--fs-xs);flex-shrink:0;margin-left:0.5rem;">→ VIEW</span>` : '';
+            ? `<span style="color:var(--accent);font-size:var(--fs-xs);flex-shrink:0;margin-left:0.5rem;">${t('sm_view')}</span>` : '';
           return `<div class="acc-detail-row"${navAttr}><span class="acc-detail-name">${esc(r.name)}</span><span class="acc-detail-plays">${r.plays} ${tUnit('plays', r.plays)}</span>${r.date ? `<span class="acc-detail-date">${r.date}</span>` : ''}${viewTag}</div>`;
         }).join('')
       : `<div class="acc-detail-row"><span class="acc-detail-name" style="font-style:italic">${t('modal_no_detail')}</span></div>`;
     return `<div class="acc-row">
       <div class="acc-header">
-        <button class="acc-toggle" onclick="const d=document.getElementById('${id}');const open=d.classList.toggle('open');this.textContent=open?'−':'+';" title="Expand">+</button>
+        <button class="acc-toggle" onclick="const d=document.getElementById('${id}');const open=d.classList.toggle('open');this.textContent=open?'−':'+';" title="${t('sm_expand')}">+</button>
         <span>${icon} ${label}</span>
       </div>
       <div class="acc-detail" id="${id}">${detail}</div>
@@ -26318,7 +26318,7 @@ function openAlbumModal(albumKey) {
       const sid = 'alb-crh-' + period;
       return `<div class="acc-row">
         <div class="acc-header">
-          <button class="acc-toggle" onclick="const b=document.getElementById('${sid}');const open=b.classList.toggle('open');this.textContent=open?'−':'+';" title="Expand">+</button>
+          <button class="acc-toggle" onclick="const b=document.getElementById('${sid}');const open=b.classList.toggle('open');this.textContent=open?'−':'+';" title="${t('sm_expand')}">+</button>
           <span>${label}</span>
         </div>
         <div class="acc-detail" id="${sid}" style="padding:0.5rem 0">
@@ -26397,8 +26397,8 @@ function openAlbumModal(albumKey) {
           <div class="cert-info">
             <div class="cert-title">${esc(name)}</div>
             <div class="cert-artist">${esc(p.artist || artistName)}</div>
-            <div class="cert-tier-name">${esc(p.label)} <span class="cert-tier-of">certified ${esc(p.type.toLowerCase())}</span></div>
-            <div class="cert-date">${p.plays.toLocaleString()} plays</div>
+            <div class="cert-tier-name">${esc(p.label)} <span class="cert-tier-of">${t(p.type === 'Album' ? 'am_cert_album' : 'am_cert_song')}</span></div>
+            <div class="cert-date">${p.plays.toLocaleString()} ${tUnit('plays', p.plays)}</div>
           </div>
         </div>
       </div>`;
@@ -26635,9 +26635,9 @@ function openSongModal(key) {
   // ── HEADER ────────────────────────────────────────────────────
   document.getElementById('songModalTitle').textContent = propTitle;
   document.getElementById('songModalSub').innerHTML =
-    `By <a class="modal-artist-link" href="javascript:void(0)" onclick="songModal.classList.remove('open');setTimeout(()=>openArtistModal(${esc(JSON.stringify(propArtist))}),50)">${esc(propArtist)}</a>` +
+    `${t('sm_by')} <a class="modal-artist-link" href="javascript:void(0)" onclick="songModal.classList.remove('open');setTimeout(()=>openArtistModal(${esc(JSON.stringify(propArtist))}),50)">${esc(propArtist)}</a>` +
     (propAlbum ? ` · <a class="modal-artist-link" href="javascript:void(0)" onclick="songModal.classList.remove('open');setTimeout(()=>openAlbumModal(${esc(JSON.stringify(propAlbum + '|||' + propArtist))}),50)">${esc(propAlbum)}</a>` : '') +
-    ` · Song Profile`;
+    ` · ${t('sm_song_profile')}`;
 
   // ── IMAGE ─────────────────────────────────────────────────────
   // Same prefKey as the song's chart row, so a picture picked in either place
@@ -26651,27 +26651,26 @@ function openSongModal(key) {
     rankCardsHTML += `<div class="dc-card modal-rank-card modal-rank-card--gold">
       <div class="mrc-icon">🏆</div>
       <div class="mrc-rank">#${allTimeSongRank}</div>
-      <div class="mrc-label">Most Played Song of All Time</div>
+      <div class="mrc-label">${t('sm_rc_alltime')}</div>
     </div>`;
   }
   if (chartPosition && currentPeriod === 'year') {
     rankCardsHTML += `<div class="dc-card modal-rank-card modal-rank-card--year">
       <div class="mrc-icon">⭐</div>
       <div class="mrc-rank">#${chartPosition}</div>
-      <div class="mrc-label">Most Played Song of the Year</div>
+      <div class="mrc-label">${t('sm_rc_year')}</div>
     </div>`;
   }
   if (debutEntry) {
     // Month spelled with the full year: crPeriodLabel's "Sep 26" reads as a day.
     const dk = debutEntry.periodKey;
-    const debutLabel = debutPeriod === 'week' ? 'Week of ' + crPeriodLabel('week', dk)
+    const debutLabel = debutPeriod === 'week' ? t('sm_week_of', { date: crPeriodLabel('week', dk) })
                      : debutPeriod === 'month' ? t(_CR_MON_SHORT[+dk.split('-')[1] - 1]) + ' ' + dk.split('-')[0]
                      : dk;
-    const debutChart = { week: 'Weekly', month: 'Monthly', year: 'Yearly' }[debutPeriod];
     rankCardsHTML += `<div class="dc-card modal-rank-card">
       <div class="mrc-icon">🚀</div>
       <div class="mrc-rank">#${debutEntry.rank}</div>
-      <div class="mrc-label">${debutChart} Chart Debut · ${esc(debutLabel)}</div>
+      <div class="mrc-label">${t('sm_debut_' + debutPeriod, { when: esc(debutLabel) })}</div>
     </div>`;
   }
   if (rankCardsHTML) {
@@ -26682,37 +26681,37 @@ function openSongModal(key) {
   // ── STATS STRIP ───────────────────────────────────────────────
   const fmtDate = d => d ? fmt(d) : '—';
   document.getElementById('songModalStats').innerHTML = `
-    <div class="modal-stat"><div class="se">🎧</div><div class="sv" data-countup="${totalPlays}">${totalPlays.toLocaleString()}</div><div class="sl">Total Plays</div></div>
-    <div class="modal-stat"><div class="sv" style="font-size:var(--fs-sm)">${fmtDate(firstPlayed)}</div><div class="sl">First Played</div></div>
-    <div class="modal-stat"><div class="sv" style="font-size:var(--fs-sm)">${fmtDate(lastPlayed)}</div><div class="sl">Last Played</div></div>
-    <div class="modal-stat"><div class="se">📅</div><div class="sv">${calendarDays}</div><div class="sl">Days Played</div></div>
-    <div class="modal-stat"><div class="se">🔥</div><div class="sv">${longestStreak}</div><div class="sl">Peak Day Streak</div></div>
-    <div class="modal-stat"><div class="se">📈</div><div class="sv">${peakDayPlays}</div><div class="sl">Peak Plays · Day${peakDayDate ? `<br><span style="font-size:var(--fs-xs);color:var(--text3)">${fmtDate(new Date(peakDayDate))}</span>` : ''}</div></div>
-    <div class="modal-stat"><div class="se">📅</div><div class="sv">${peakMonthPlays}</div><div class="sl">Peak Plays · Month${peakMonthKey ? `<br><span style="font-size:var(--fs-xs);color:var(--text3)">${peakMonthKey}</span>` : ''}</div></div>
-    <div class="modal-stat"><div class="se">⭐</div><div class="sv">${peakYearPlays}</div><div class="sl">Peak Plays · Year${peakYearKey ? `<br><span style="font-size:var(--fs-xs);color:var(--text3)">${peakYearKey}</span>` : ''}</div></div>
-    <div class="modal-stat"><div class="se">⏰</div><div class="sv">${peakHour !== null ? fmtHour(peakHour) : '—'}</div><div class="sl">Peak Listen Hour</div></div>
-    <div class="modal-stat"><div class="se">🌙</div><div class="sv">${midnightPct}%</div><div class="sl">Late-Night Plays<br><span style="font-size:var(--fs-xs);color:var(--text3)">12–4 AM</span></div></div>
-    <div class="modal-stat"><div class="se">🔄</div><div class="sv">${replayDepth}</div><div class="sl">Avg Plays/Day Played</div></div>
-    ${reentries > 0 ? `<div class="modal-stat"><div class="se">↩️</div><div class="sv">${reentries}</div><div class="sl">Re-entries on the<br>Weekly Chart</div></div>` : ''}
-    ${longestGap > 1 ? `<div class="modal-stat"><div class="se">⏳</div><div class="sv">${longestGap}</div><div class="sl">Longest Gap (days)</div></div>` : ''}
-    ${daysToPeak !== null ? `<div class="modal-stat"><div class="se">🎯</div><div class="sv">${daysToPeak}</div><div class="sl">Days to Peak</div></div>` : ''}
-    ${maxConsecYears > 1 ? `<div class="modal-stat"><div class="se">🗓</div><div class="sv">${maxConsecYears}</div><div class="sl">Consecutive Years</div></div>` : ''}
-    ${totalWeeksOnChart ? `<div class="modal-stat"><div class="se">📊</div><div class="sv">${totalWeeksOnChart}</div><div class="sl">Weeks on the<br>Weekly Chart</div></div>` : ''}
-    ${totalMonthsOnChart ? `<div class="modal-stat"><div class="se">🌙</div><div class="sv">${totalMonthsOnChart}</div><div class="sl">Months on the<br>Monthly Chart</div></div>` : ''}
-    ${totalYearsOnChart ? `<div class="modal-stat"><div class="se">⭐</div><div class="sv">${totalYearsOnChart}</div><div class="sl">Years on the<br>Yearly Chart</div></div>` : ''}
-    ${certBadge(totalPlays, 'song') ? `<div class="modal-stat"><div class="sv" style="font-size:var(--fs-sm)">${certBadge(totalPlays, 'song')}</div><div class="sl">Certification</div></div>` : ''}
+    <div class="modal-stat"><div class="se">🎧</div><div class="sv" data-countup="${totalPlays}">${totalPlays.toLocaleString()}</div><div class="sl">${t('sm_total_plays')}</div></div>
+    <div class="modal-stat"><div class="sv" style="font-size:var(--fs-sm)">${fmtDate(firstPlayed)}</div><div class="sl">${t('modal_first_played')}</div></div>
+    <div class="modal-stat"><div class="sv" style="font-size:var(--fs-sm)">${fmtDate(lastPlayed)}</div><div class="sl">${t('modal_last_played')}</div></div>
+    <div class="modal-stat"><div class="se">📅</div><div class="sv">${calendarDays}</div><div class="sl">${t('sm_days_played')}</div></div>
+    <div class="modal-stat"><div class="se">🔥</div><div class="sv">${longestStreak}</div><div class="sl">${t('sm_peak_day_streak')}</div></div>
+    <div class="modal-stat"><div class="se">📈</div><div class="sv">${peakDayPlays}</div><div class="sl">${t('sm_peak_day')}${peakDayDate ? `<br><span style="font-size:var(--fs-xs);color:var(--text3)">${fmtDate(new Date(peakDayDate))}</span>` : ''}</div></div>
+    <div class="modal-stat"><div class="se">📅</div><div class="sv">${peakMonthPlays}</div><div class="sl">${t('sm_peak_month')}${peakMonthKey ? `<br><span style="font-size:var(--fs-xs);color:var(--text3)">${peakMonthKey}</span>` : ''}</div></div>
+    <div class="modal-stat"><div class="se">⭐</div><div class="sv">${peakYearPlays}</div><div class="sl">${t('sm_peak_year')}${peakYearKey ? `<br><span style="font-size:var(--fs-xs);color:var(--text3)">${peakYearKey}</span>` : ''}</div></div>
+    <div class="modal-stat"><div class="se">⏰</div><div class="sv">${peakHour !== null ? fmtHour(peakHour) : '—'}</div><div class="sl">${t('sm_peak_hour')}</div></div>
+    <div class="modal-stat"><div class="se">🌙</div><div class="sv">${midnightPct}%</div><div class="sl">${t('sm_late_night')}<br><span style="font-size:var(--fs-xs);color:var(--text3)">12–4 AM</span></div></div>
+    <div class="modal-stat"><div class="se">🔄</div><div class="sv">${replayDepth}</div><div class="sl">${t('sm_avg_per_day')}</div></div>
+    ${reentries > 0 ? `<div class="modal-stat"><div class="se">↩️</div><div class="sv">${reentries}</div><div class="sl">${t('sm_reentries')}</div></div>` : ''}
+    ${longestGap > 1 ? `<div class="modal-stat"><div class="se">⏳</div><div class="sv">${longestGap}</div><div class="sl">${t('sm_longest_gap')}</div></div>` : ''}
+    ${daysToPeak !== null ? `<div class="modal-stat"><div class="se">🎯</div><div class="sv">${daysToPeak}</div><div class="sl">${t('sm_days_to_peak')}</div></div>` : ''}
+    ${maxConsecYears > 1 ? `<div class="modal-stat"><div class="se">🗓</div><div class="sv">${maxConsecYears}</div><div class="sl">${t('sm_consec_years')}</div></div>` : ''}
+    ${totalWeeksOnChart ? `<div class="modal-stat"><div class="se">📊</div><div class="sv">${totalWeeksOnChart}</div><div class="sl">${t('sm_weeks_on')}</div></div>` : ''}
+    ${totalMonthsOnChart ? `<div class="modal-stat"><div class="se">🌙</div><div class="sv">${totalMonthsOnChart}</div><div class="sl">${t('sm_months_on')}</div></div>` : ''}
+    ${totalYearsOnChart ? `<div class="modal-stat"><div class="se">⭐</div><div class="sv">${totalYearsOnChart}</div><div class="sl">${t('sm_years_on')}</div></div>` : ''}
+    ${certBadge(totalPlays, 'song') ? `<div class="modal-stat"><div class="sv" style="font-size:var(--fs-sm)">${certBadge(totalPlays, 'song')}</div><div class="sl">${t('sm_certification')}</div></div>` : ''}
   `;
 
   // ── GRAND SLAM ────────────────────────────────────────────────
   const grandSlam = weeklySongPeak===1 && monthlySongPeak===1 && yearlySongPeak===1 && allTimeSongRank===1;
   document.getElementById('songModalGrandSlam').innerHTML = grandSlam
-    ? `<div class="modal-grand-slam">✨ Grand Slam — #1 Everywhere ✨</div>` : '';
+    ? `<div class="modal-grand-slam">${t('sm_grand_slam')}</div>` : '';
 
   // ── GRAMMY STRIP ──────────────────────────────────────────────
   const grammyEl = document.getElementById('songModalGrammyStrip');
   grammyEl.innerHTML = `
-    <div class="modal-stat"><div class="se">🏅</div><div class="sv" data-countup="${grammyNoms}">${grammyNoms}</div><div class="sl">Nominations</div></div>
-    <div class="modal-stat ${grammyWins>0?'modal-stat--gold':''}"><div class="se">🏆</div><div class="sv ${grammyWins>0?'sv--gold':''}" data-countup="${grammyWins}">${grammyWins}</div><div class="sl">Wins</div></div>
+    <div class="modal-stat"><div class="se">🏅</div><div class="sv" data-countup="${grammyNoms}">${grammyNoms}</div><div class="sl">${t('sm_nominations')}</div></div>
+    <div class="modal-stat ${grammyWins>0?'modal-stat--gold':''}"><div class="se">🏆</div><div class="sv ${grammyWins>0?'sv--gold':''}" data-countup="${grammyWins}">${grammyWins}</div><div class="sl">${t('sm_wins')}</div></div>
   `;
   animateModalCountup(grammyEl);
   const grammyDetailEl = document.getElementById('songModalGrammyDetail');
@@ -26721,37 +26720,37 @@ function openSongModal(key) {
       `<div class="modal-grammy-entry${e.isWin?' modal-grammy-entry--win':''}"><span class="mge-icon">${e.isWin?'🏆':'🏅'}</span><span class="mge-year">${e.year}</span><span class="mge-cat">${esc(e.label)}</span></div>`
     ).join('');
     const n = grammyEntries.length;
-    grammyDetailEl.innerHTML = `<button class="modal-grammy-toggle" onclick="toggleSongModalGrammyDetail(this)" data-count="${n}">▾ Show all ${n} categor${n===1?'y':'ies'}</button><div class="modal-grammy-list" style="display:none">${listHTML}</div>`;
+    grammyDetailEl.innerHTML = `<button class="modal-grammy-toggle" onclick="toggleSongModalGrammyDetail(this)" data-count="${n}">${t(n === 1 ? 'sm_show_cats_one' : 'sm_show_cats', { n })}</button><div class="modal-grammy-list" style="display:none">${listHTML}</div>`;
   } else {
     grammyDetailEl.innerHTML = '';
   }
 
   // ── PEAKS STRIP ───────────────────────────────────────────────
   document.getElementById('songModalPeaks').innerHTML = `
-    <div class="modal-stat"><div class="se">📊</div><div class="sv ${peakCls(weeklySongPeak)}">${weeklySongPeak?'#'+weeklySongPeak:'—'}</div><div class="sl">Weekly Chart Peak</div></div>
-    <div class="modal-stat"><div class="se">🌙</div><div class="sv ${peakCls(monthlySongPeak)}">${monthlySongPeak?'#'+monthlySongPeak:'—'}</div><div class="sl">Monthly Chart Peak</div></div>
-    <div class="modal-stat"><div class="se">⭐</div><div class="sv ${peakCls(yearlySongPeak)}">${yearlySongPeak?'#'+yearlySongPeak:'—'}</div><div class="sl">Yearly Chart Peak</div></div>
-    ${allTimeSongRank?`<div class="modal-stat modal-stat--gold"><div class="se">🏆</div><div class="sv sv--gold">#${allTimeSongRank}</div><div class="sl">All-Time Rank</div></div>`:''}
+    <div class="modal-stat"><div class="se">📊</div><div class="sv ${peakCls(weeklySongPeak)}">${weeklySongPeak?'#'+weeklySongPeak:'—'}</div><div class="sl">${t('modal_weekly_chart_peak')}</div></div>
+    <div class="modal-stat"><div class="se">🌙</div><div class="sv ${peakCls(monthlySongPeak)}">${monthlySongPeak?'#'+monthlySongPeak:'—'}</div><div class="sl">${t('modal_monthly_chart_peak')}</div></div>
+    <div class="modal-stat"><div class="se">⭐</div><div class="sv ${peakCls(yearlySongPeak)}">${yearlySongPeak?'#'+yearlySongPeak:'—'}</div><div class="sl">${t('modal_yearly_chart_peak')}</div></div>
+    ${allTimeSongRank?`<div class="modal-stat modal-stat--gold"><div class="se">🏆</div><div class="sv sv--gold">#${allTimeSongRank}</div><div class="sl">${t('sm_alltime_rank')}</div></div>`:''}
   `;
 
   // ── RECORDS STRIP ─────────────────────────────────────────────
   const records = [];
   if (weeklySongPeak === 1 && songCrW) {
     const no1Weeks = songCrW.entries.filter(e=>e.rank===1).length;
-    if (no1Weeks) records.push(`<div class="modal-stat"><div class="se">🥇</div><div class="sv">${no1Weeks}</div><div class="sl">Weeks at #1 on the<br>Weekly Chart</div></div>`);
+    if (no1Weeks) records.push(`<div class="modal-stat"><div class="se">🥇</div><div class="sv">${no1Weeks}</div><div class="sl">${t('sm_weeks_at1')}</div></div>`);
   }
   if (monthlySongPeak === 1 && songCrM) {
     const no1Months = songCrM.entries.filter(e=>e.rank===1).length;
-    if (no1Months) records.push(`<div class="modal-stat"><div class="se">🥇</div><div class="sv">${no1Months}</div><div class="sl">Months at #1 on the<br>Monthly Chart</div></div>`);
+    if (no1Months) records.push(`<div class="modal-stat"><div class="se">🥇</div><div class="sv">${no1Months}</div><div class="sl">${t('sm_months_at1')}</div></div>`);
   }
   if (yearlySongPeak === 1 && songCrY) {
     const no1Years = songCrY.entries.filter(e=>e.rank===1).length;
-    if (no1Years) records.push(`<div class="modal-stat"><div class="se">🥇</div><div class="sv">${no1Years}</div><div class="sl">Years at #1 on the<br>Yearly Chart</div></div>`);
+    if (no1Years) records.push(`<div class="modal-stat"><div class="se">🥇</div><div class="sv">${no1Years}</div><div class="sl">${t('sm_years_at1')}</div></div>`);
   }
-  if (longestStreak >= 7) records.push(`<div class="modal-stat"><div class="se">🔥</div><div class="sv">${longestStreak}</div><div class="sl">Day Streak Record</div></div>`);
-  if (peakDayPlays >= 10) records.push(`<div class="modal-stat"><div class="se">📈</div><div class="sv">${peakDayPlays}</div><div class="sl">Plays in One Day</div></div>`);
+  if (longestStreak >= 7) records.push(`<div class="modal-stat"><div class="se">🔥</div><div class="sv">${longestStreak}</div><div class="sl">${t('sm_streak_record')}</div></div>`);
+  if (peakDayPlays >= 10) records.push(`<div class="modal-stat"><div class="se">📈</div><div class="sv">${peakDayPlays}</div><div class="sl">${t('sm_plays_one_day')}</div></div>`);
   document.getElementById('songModalRecords').innerHTML = records.length
-    ? records.join('') : `<div style="font-size:var(--fs-sm);color:var(--text3);padding:0.4rem 0">No chart records yet.</div>`;
+    ? records.join('') : `<div style="font-size:var(--fs-sm);color:var(--text3);padding:0.4rem 0">${t('sm_no_records')}</div>`;
 
   // ── ACCOMPLISHMENTS ───────────────────────────────────────────
   let accId = 0;
@@ -26763,94 +26762,94 @@ function openSongModal(key) {
             ? ` onclick="goToWeek(${r.weekOffset});songModal.classList.remove('open')" style="cursor:pointer"`
             : r.period ? ` onclick="goToPeriodFromSongModal('${r.period}','${r.periodKey}')" style="cursor:pointer"` : '';
           const viewTag = (r.weekOffset !== undefined || r.period)
-            ? `<span style="color:var(--accent);font-size:var(--fs-xs);flex-shrink:0;margin-left:0.5rem;">→ VIEW</span>` : '';
+            ? `<span style="color:var(--accent);font-size:var(--fs-xs);flex-shrink:0;margin-left:0.5rem;">${t('sm_view')}</span>` : '';
           return `<div class="acc-detail-row"${navAttr}><span class="acc-detail-name">${esc(r.name)}</span><span class="acc-detail-plays">${r.plays} ${tUnit('plays',r.plays)}</span>${r.date?`<span class="acc-detail-date">${r.date}</span>`:''}${viewTag}</div>`;
         }).join('')
       : `<div class="acc-detail-row"><span class="acc-detail-name" style="font-style:italic">${t('modal_no_detail')}</span></div>`;
     return `<div class="acc-row">
-      <div class="acc-header"><button class="acc-toggle" onclick="const d=document.getElementById('${id}');const o=d.classList.toggle('open');this.textContent=o?'−':'+';" title="Expand">+</button><span>${icon} ${label}</span></div>
+      <div class="acc-header"><button class="acc-toggle" onclick="const d=document.getElementById('${id}');const o=d.classList.toggle('open');this.textContent=o?'−':'+';" title="${t('sm_expand')}">+</button><span>${icon} ${label}</span></div>
       <div class="acc-detail" id="${id}">${detail}</div>
     </div>`;
   };
   const acc = [];
 
   // All-time rank
-  if (allTimeSongRank) acc.push(accRow('🏆', `${ordinalSuffix(allTimeSongRank)} Most Played Song of All Time`, []));
+  if (allTimeSongRank) acc.push(accRow('🏆', t('sm_acc_alltime', { rank: ordinalSuffix(allTimeSongRank), n: allTimeSongRank }), []));
 
   // Yearly #1 / top 5 / top 10
   if (songCrY) {
     const yNo1 = songCrY.entries.filter(e=>e.rank===1);
-    if (yNo1.length) acc.push(accRow('🥇', `#1 Song of the Year · ${yNo1.length} ${tUnit('years',yNo1.length)}`, yNo1.map(e=>({name:e.periodKey,plays:e.plays,period:'year',periodKey:e.periodKey}))));
+    if (yNo1.length) acc.push(accRow('🥇', t('sm_acc_no1_year', { n: yNo1.length, unit: tUnit('years',yNo1.length) }), yNo1.map(e=>({name:e.periodKey,plays:e.plays,period:'year',periodKey:e.periodKey}))));
     const yTop5 = songCrY.entries.filter(e=>e.rank>1&&e.rank<=5);
-    if (yTop5.length) acc.push(accRow('🔝', `Top 5 Song of the Year · ${yTop5.length} ${tUnit('years',yTop5.length)}`, yTop5.map(e=>({name:`#${e.rank} · ${e.periodKey}`,plays:e.plays,period:'year',periodKey:e.periodKey}))));
+    if (yTop5.length) acc.push(accRow('🔝', t('sm_acc_top5_year', { n: yTop5.length, unit: tUnit('years',yTop5.length) }), yTop5.map(e=>({name:`#${e.rank} · ${e.periodKey}`,plays:e.plays,period:'year',periodKey:e.periodKey}))));
     const yTop10 = songCrY.entries.filter(e=>e.rank>5&&e.rank<=10);
-    if (yTop10.length) acc.push(accRow('⭐', `Top 10 Song of the Year · ${yTop10.length} ${tUnit('years',yTop10.length)}`, yTop10.map(e=>({name:`#${e.rank} · ${e.periodKey}`,plays:e.plays,period:'year',periodKey:e.periodKey}))));
+    if (yTop10.length) acc.push(accRow('⭐', t('sm_acc_top10_year', { n: yTop10.length, unit: tUnit('years',yTop10.length) }), yTop10.map(e=>({name:`#${e.rank} · ${e.periodKey}`,plays:e.plays,period:'year',periodKey:e.periodKey}))));
   }
 
   // Monthly #1 / top 5 / top 10
   if (songCrM) {
     const mNo1 = songCrM.entries.filter(e=>e.rank===1);
-    if (mNo1.length) acc.push(accRow('🥇', `#1 Song of the Month · ${mNo1.length} ${tUnit('months',mNo1.length)}`, mNo1.map(e=>({name:crPeriodLabel('month',e.periodKey),plays:e.plays,period:'month',periodKey:e.periodKey}))));
+    if (mNo1.length) acc.push(accRow('🥇', t('sm_acc_no1_month', { n: mNo1.length, unit: tUnit('months',mNo1.length) }), mNo1.map(e=>({name:crPeriodLabel('month',e.periodKey),plays:e.plays,period:'month',periodKey:e.periodKey}))));
     const mTop5 = songCrM.entries.filter(e=>e.rank>1&&e.rank<=5);
-    if (mTop5.length) acc.push(accRow('🔝', `Top 5 Monthly · ${mTop5.length} ${tUnit('months',mTop5.length)}`, mTop5.map(e=>({name:`#${e.rank} · ${crPeriodLabel('month',e.periodKey)}`,plays:e.plays,period:'month',periodKey:e.periodKey}))));
+    if (mTop5.length) acc.push(accRow('🔝', t('sm_acc_top5_month', { n: mTop5.length, unit: tUnit('months',mTop5.length) }), mTop5.map(e=>({name:`#${e.rank} · ${crPeriodLabel('month',e.periodKey)}`,plays:e.plays,period:'month',periodKey:e.periodKey}))));
     const mTop10 = songCrM.entries.filter(e=>e.rank>5&&e.rank<=10);
-    if (mTop10.length) acc.push(accRow('📆', `Top 10 Monthly · ${mTop10.length} ${tUnit('months',mTop10.length)}`, mTop10.map(e=>({name:`#${e.rank} · ${crPeriodLabel('month',e.periodKey)}`,plays:e.plays,period:'month',periodKey:e.periodKey}))));
+    if (mTop10.length) acc.push(accRow('📆', t('sm_acc_top10_month', { n: mTop10.length, unit: tUnit('months',mTop10.length) }), mTop10.map(e=>({name:`#${e.rank} · ${crPeriodLabel('month',e.periodKey)}`,plays:e.plays,period:'month',periodKey:e.periodKey}))));
   }
 
   // Weekly #1 / top 5 / top 10
   if (songCrW) {
     const wNo1 = songCrW.entries.filter(e=>e.rank===1);
-    if (wNo1.length) acc.push(accRow('🥇', `#1 Song of the Week · ${wNo1.length} ${tUnit('cr_week',wNo1.length)}`, wNo1.map(e=>({name:crPeriodLabel('week',e.periodKey),plays:e.plays,weekOffset:weekOffset(new Date(e.periodKey+'T00:00:00'))}))));
+    if (wNo1.length) acc.push(accRow('🥇', t('sm_acc_no1_week', { n: wNo1.length, unit: tUnit('cr_week',wNo1.length) }), wNo1.map(e=>({name:crPeriodLabel('week',e.periodKey),plays:e.plays,weekOffset:weekOffset(new Date(e.periodKey+'T00:00:00'))}))));
     const wTop5 = songCrW.entries.filter(e=>e.rank>1&&e.rank<=5);
-    if (wTop5.length) acc.push(accRow('🔝', `Top 5 Weekly · ${wTop5.length} ${tUnit('cr_week',wTop5.length)}`, wTop5.map(e=>({name:`#${e.rank} · ${crPeriodLabel('week',e.periodKey)}`,plays:e.plays,weekOffset:weekOffset(new Date(e.periodKey+'T00:00:00'))}))));
+    if (wTop5.length) acc.push(accRow('🔝', t('sm_acc_top5_week', { n: wTop5.length, unit: tUnit('cr_week',wTop5.length) }), wTop5.map(e=>({name:`#${e.rank} · ${crPeriodLabel('week',e.periodKey)}`,plays:e.plays,weekOffset:weekOffset(new Date(e.periodKey+'T00:00:00'))}))));
     const wTop10 = songCrW.entries.filter(e=>e.rank>5&&e.rank<=10);
-    if (wTop10.length) acc.push(accRow('📊', `Top 10 Weekly · ${wTop10.length} ${tUnit('cr_week',wTop10.length)}`, wTop10.map(e=>({name:`#${e.rank} · ${crPeriodLabel('week',e.periodKey)}`,plays:e.plays,weekOffset:weekOffset(new Date(e.periodKey+'T00:00:00'))}))));
+    if (wTop10.length) acc.push(accRow('📊', t('sm_acc_top10_week', { n: wTop10.length, unit: tUnit('cr_week',wTop10.length) }), wTop10.map(e=>({name:`#${e.rank} · ${crPeriodLabel('week',e.periodKey)}`,plays:e.plays,weekOffset:weekOffset(new Date(e.periodKey+'T00:00:00'))}))));
   }
 
   // Certifications
   if (totalPlays >= CERT.song.diamond) {
     const mult = Math.floor(totalPlays / CERT.song.diamond);
     const { icon } = diamondMultiLabel(mult);
-    acc.push(accRow(icon, `${tDiamondLabel(mult)} Certification · ${(mult*CERT.song.diamond).toLocaleString()} ${tUnit('plays',mult*CERT.song.diamond)}`, []));
+    acc.push(accRow(icon, t('sm_acc_cert', { cert: tDiamondLabel(mult), n: (mult*CERT.song.diamond).toLocaleString(), unit: tUnit('plays',mult*CERT.song.diamond) }), []));
   } else if (totalPlays >= CERT.song.plat) {
-    acc.push(accRow('💿', `Platinum Certification · ${CERT.song.plat.toLocaleString()} ${tUnit('plays',CERT.song.plat)}`, []));
+    acc.push(accRow('💿', t('sm_acc_cert', { cert: t('cert_plat'), n: CERT.song.plat.toLocaleString(), unit: tUnit('plays',CERT.song.plat) }), []));
   } else if (totalPlays >= CERT.song.gold) {
-    acc.push(accRow('📀', `Gold Certification · ${CERT.song.gold.toLocaleString()} ${tUnit('plays',CERT.song.gold)}`, []));
+    acc.push(accRow('📀', t('sm_acc_cert', { cert: t('cert_gold'), n: CERT.song.gold.toLocaleString(), unit: tUnit('plays',CERT.song.gold) }), []));
   }
 
   // Grammy wins
-  if (grammyWins > 0) acc.push(accRow('🏆', `${grammyWins} Grammy ${grammyWins===1?'Win':'Wins'}`, grammyEntries.filter(e=>e.isWin).map(e=>({name:`${e.year} — ${e.label}`,plays:0}))));
-  if (grammyNoms > grammyWins) acc.push(accRow('🏅', `${grammyNoms-grammyWins} Grammy ${(grammyNoms-grammyWins)===1?'Nomination':'Nominations'}`, grammyEntries.filter(e=>!e.isWin).map(e=>({name:`${e.year} — ${e.label}`,plays:0}))));
+  if (grammyWins > 0) acc.push(accRow('🏆', t(grammyWins === 1 ? 'sm_acc_grammy_win_one' : 'sm_acc_grammy_wins', { n: grammyWins }), grammyEntries.filter(e=>e.isWin).map(e=>({name:`${e.year} — ${e.label}`,plays:0}))));
+  if (grammyNoms > grammyWins) acc.push(accRow('🏅', t((grammyNoms-grammyWins) === 1 ? 'sm_acc_grammy_nom_one' : 'sm_acc_grammy_noms', { n: grammyNoms-grammyWins }), grammyEntries.filter(e=>!e.isWin).map(e=>({name:`${e.year} — ${e.label}`,plays:0}))));
 
   // Milestones
   const milestones = [500,1000,2000,5000,10000].filter(m=>totalPlays>=m);
-  if (milestones.length) acc.push(accRow('🎯', `${milestones.length} Play Milestone${milestones.length>1?'s':''} Reached`, milestones.map(m=>({name:`${m.toLocaleString()} plays`,plays:m}))));
+  if (milestones.length) acc.push(accRow('🎯', t(milestones.length === 1 ? 'sm_acc_milestone_one' : 'sm_acc_milestones', { n: milestones.length }), milestones.map(m=>({name:`${m.toLocaleString()} ${tUnit('plays',m)}`,plays:m}))));
 
   // Peak streak
-  if (longestStreak >= 3) acc.push(accRow('🔥', `Longest Listening Streak: ${longestStreak} days`, allStreaks.slice(0,5).map(s=>({name:`${fmtDate(new Date(s.start))} – ${fmtDate(new Date(s.end))}`,plays:s.len,date:`${s.len} days`}))));
+  if (longestStreak >= 3) acc.push(accRow('🔥', t('sm_acc_streak', { n: longestStreak, unit: tUnit('days',longestStreak) }), allStreaks.slice(0,5).map(s=>({name:`${fmtDate(new Date(s.start))} – ${fmtDate(new Date(s.end))}`,plays:s.len,date:`${s.len} ${tUnit('days',s.len)}`}))));
 
   // Discovery context
   if (discoveryPlay) {
-    acc.push(accRow('🔍', `First Discovered: ${fmtDate(discoveryPlay.date)}`, [
-      ...discoveryBefore.map(p=>({name:`↑ ${p.title} — ${p.artist}`,plays:0,date:'before'})),
+    acc.push(accRow('🔍', t('sm_acc_discovered', { date: fmtDate(discoveryPlay.date) }), [
+      ...discoveryBefore.map(p=>({name:`↑ ${p.title} — ${p.artist}`,plays:0,date:t('sm_before')})),
       {name:`★ ${propTitle}`,plays:0,date:fmtDate(discoveryPlay.date)},
-      ...discoveryAfter.map(p=>({name:`↓ ${p.title} — ${p.artist}`,plays:0,date:'after'})),
+      ...discoveryAfter.map(p=>({name:`↓ ${p.title} — ${p.artist}`,plays:0,date:t('sm_after')})),
     ]));
   }
 
   // Session co-plays
   if (topCo.length) {
-    acc.push(accRow('🎵', `Usually Heard With (top ${topCo.length} session neighbours)`, topCo.map(s=>({name:`${s.title} — ${s.artist}`,plays:s.count,date:`${s.count}×`}))));
+    acc.push(accRow('🎵', t('sm_acc_coplays', { n: topCo.length }), topCo.map(s=>({name:`${s.title} — ${s.artist}`,plays:s.count,date:`${s.count}×`}))));
   }
 
   // Longest gap
   if (longestGap > 30) {
-    acc.push(accRow('⏳', `Longest Gap Between Plays: ${longestGap} days`, longestGapStart ? [{name:`${fmtDate(new Date(longestGapStart))} → ${fmtDate(new Date(longestGapEnd))}`,plays:longestGap,date:`${longestGap} days`}] : []));
+    acc.push(accRow('⏳', t('sm_acc_gap', { n: longestGap, unit: tUnit('days',longestGap) }), longestGapStart ? [{name:`${fmtDate(new Date(longestGapStart))} → ${fmtDate(new Date(longestGapEnd))}`,plays:longestGap,date:`${longestGap} ${tUnit('days',longestGap)}`}] : []));
   }
 
   // Year-by-year
   if (Object.keys(yearMap).length) {
-    acc.push(accRow('📅', 'Year-by-Year Breakdown', Object.entries(yearMap).sort(([a],[b])=>b.localeCompare(a)).map(([yr,c])=>({name:yr,plays:c}))));
+    acc.push(accRow('📅', t('sm_acc_years'), Object.entries(yearMap).sort(([a],[b])=>b.localeCompare(a)).map(([yr,c])=>({name:yr,plays:c}))));
   }
 
   // Seasonal breakdown
@@ -26863,31 +26862,31 @@ function openSongModal(key) {
     else seasonMap.Winter++;
   }
   if (totalPlays > 0) {
-    acc.push(accRow('🌤', 'Seasonal Listening Breakdown', Object.entries(seasonMap).map(([s,c])=>({name:s,plays:c,date:`${Math.round(c/totalPlays*100)}%`}))));
+    acc.push(accRow('🌤', t('sm_acc_seasons'), Object.entries(seasonMap).map(([s,c])=>({name:t('sm_season_' + s.toLowerCase()),plays:c,date:`${Math.round(c/totalPlays*100)}%`}))));
   }
 
   // Daily streaming streaks list (all)
   if (allStreaks.length) {
-    acc.push(accRow('🔥', `All Daily Streaming Streaks (${allStreaks.length} total)`, allStreaks.map(s=>({name:`${fmtDate(new Date(s.start))} – ${fmtDate(new Date(s.end))}`,plays:s.len,date:`${s.len} day${s.len>1?'s':''}`}))));
+    acc.push(accRow('🔥', t('sm_acc_all_streaks', { n: allStreaks.length }), allStreaks.map(s=>({name:`${fmtDate(new Date(s.start))} – ${fmtDate(new Date(s.end))}`,plays:s.len,date:`${s.len} ${tUnit('days',s.len)}`}))));
   }
 
   // Weekly chart appearances with links
   if (songCrW?.entries?.length) {
     const wEntSorted = [...songCrW.entries].sort((a,b)=>b.periodKey.localeCompare(a.periodKey));
-    acc.push(accRow('📊', `All ${wEntSorted.length} Weekly Chart Appearances`, wEntSorted.map(e=>({name:`${crPeriodLabel('week',e.periodKey)}`,plays:e.plays,date:`#${e.rank}`,weekOffset:weekOffset(new Date(e.periodKey+'T00:00:00'))}))));
+    acc.push(accRow('📊', t('sm_acc_weekly_apps', { n: wEntSorted.length }), wEntSorted.map(e=>({name:`${crPeriodLabel('week',e.periodKey)}`,plays:e.plays,date:`#${e.rank}`,weekOffset:weekOffset(new Date(e.periodKey+'T00:00:00'))}))));
   }
 
   // Chart longevity badge
   const totalAppearances = totalWeeksOnChart + totalMonthsOnChart + totalYearsOnChart;
   if (totalAppearances > 0) {
-    acc.push(accRow('📋', `Total Chart Appearances: ${totalAppearances}`, [
-      totalWeeksOnChart ? {name:'Weekly',plays:totalWeeksOnChart,date:'appearances'} : null,
-      totalMonthsOnChart ? {name:'Monthly',plays:totalMonthsOnChart,date:'appearances'} : null,
-      totalYearsOnChart ? {name:'Yearly',plays:totalYearsOnChart,date:'appearances'} : null,
+    acc.push(accRow('📋', t('sm_acc_total_apps', { n: totalAppearances }), [
+      totalWeeksOnChart ? {name:t('nav_weekly'),plays:totalWeeksOnChart,date:t('sm_appearances')} : null,
+      totalMonthsOnChart ? {name:t('nav_monthly'),plays:totalMonthsOnChart,date:t('sm_appearances')} : null,
+      totalYearsOnChart ? {name:t('nav_yearly'),plays:totalYearsOnChart,date:t('sm_appearances')} : null,
     ].filter(Boolean)));
   }
 
-  if (!acc.length) acc.push(`<div style="font-style:italic;font-size:var(--fs-sm);color:var(--text3);padding:0.5rem 0">No chart accomplishments yet.</div>`);
+  if (!acc.length) acc.push(`<div style="font-style:italic;font-size:var(--fs-sm);color:var(--text3);padding:0.5rem 0">${t('sm_no_acc')}</div>`);
   document.getElementById('songModalAccomplishments').innerHTML = acc.join('');
 
   // ── SPARKLINE (listening pattern by month) ────────────────────
@@ -26903,13 +26902,13 @@ function openSongModal(key) {
     const norm = r => maxR === minR ? 50 : Math.round((1 - (r - minR)/(maxR - minR)) * 80 + 10);
     const w = 100, h = 60, step = w / (wRanks.length - 1);
     const pts = wRanks.map((r,i)=>`${Math.round(i*step)},${h-norm(r)}`).join(' ');
-    extraHTML += `<div class="modal-section-title">📈 Weekly Position Movement</div>
+    extraHTML += `<div class="modal-section-title">${t('sm_pos_title')}</div>
     <div class="song-pos-chart"><svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="width:100%;height:80px;display:block">
       <polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="1.5"/>
       <circle cx="${Math.round((wRanks.length-1)*step)}" cy="${h-norm(wRanks[wRanks.length-1])}" r="2.5" fill="var(--accent)"/>
     </svg>
     <div style="display:flex;justify-content:space-between;font-size:var(--fs-xs);color:var(--text3);margin-top:0.2rem">
-      <span>${crPeriodLabel('week',wEntAsc[0].periodKey)}</span><span>#${Math.min(...wRanks)} Peak</span><span>${crPeriodLabel('week',wEntAsc[wEntAsc.length-1].periodKey)}</span>
+      <span>${crPeriodLabel('week',wEntAsc[0].periodKey)}</span><span>${t('sm_pos_peak', { n: Math.min(...wRanks) })}</span><span>${crPeriodLabel('week',wEntAsc[wEntAsc.length-1].periodKey)}</span>
     </div></div>`;
   }
   document.getElementById('songModalExtraStats').innerHTML = extraHTML;
@@ -26947,7 +26946,7 @@ function toggleSongModalGrammyDetail(btn) {
   const open = list.style.display !== 'none';
   list.style.display = open ? 'none' : '';
   const n = btn.dataset.count;
-  btn.textContent = open ? `▾ Show all ${n} categor${n==1?'y':'ies'}` : '▴ Hide categories';
+  btn.textContent = open ? t(n == 1 ? 'sm_show_cats_one' : 'sm_show_cats', { n }) : t('sm_hide_cats');
 }
 
 // ─── SONG SPARKLINE ──────────────────────────────────────────────
@@ -26971,7 +26970,7 @@ function songMonthClick(month) {
   document.querySelectorAll('#songSparklineWrap .alb-spark-bar--active').forEach(b=>b.classList.remove('alb-spark-bar--active'));
   const bar = document.querySelector(`#songSparklineWrap [data-month="${month}"]`);
   if (bar) bar.classList.add('alb-spark-bar--active');
-  panel.innerHTML = plays.map(p=>`<div class="alb-month-play-row"><span class="alb-mpr-date">${fmt(p.date)}</span><span class="alb-mpr-title">${esc(p.title)}</span></div>`).join('') || '<em>No plays</em>';
+  panel.innerHTML = plays.map(p=>`<div class="alb-month-play-row"><span class="alb-mpr-date">${fmt(p.date)}</span><span class="alb-mpr-title">${esc(p.title)}</span></div>`).join('') || `<em>${t('sm_no_plays')}</em>`;
   panel.style.display = '';
 }
 
@@ -27012,9 +27011,9 @@ function buildSongSparklineHTML(plays, title, key) {
     barsHTML+=`<div class="${cls}" style="height:${pct}%;background:${color}" data-month="${m}" data-count="${count}" data-tip="${tip}" onclick="songMonthClick('${m}')"></div>`;
     xlabelsHTML+=`<span class="alb-spark-xlabel${isPeak?' alb-spark-xlabel--peak':''}">${show?`${MO[parseInt(mo)-1]} '${yr.slice(2)}`:''}</span>`;
   });
-  return `<div class="modal-section-title">📊 Listening Pattern</div>
+  return `<div class="modal-section-title">${t('sm_listening_pattern')}</div>
   <div class="alb-sparkline-wrap" id="songSparklineWrap">
-    <div class="alb-sparkline-header"><div class="alb-sparkline-label">Plays by Month</div></div>
+    <div class="alb-sparkline-header"><div class="alb-sparkline-label">${t('alb_plays_by_month')}</div></div>
     <div class="alb-chart-area">
       <div class="alb-y-axis"><span>${maxVal}</span><span>${midVal}</span><span>0</span></div>
       <div class="alb-chart-body">
@@ -27022,7 +27021,7 @@ function buildSongSparklineHTML(plays, title, key) {
           <div class="alb-grid-line" style="top:0"></div>
           <div class="alb-grid-line" style="top:50%"></div>
           <div class="alb-grid-line" style="bottom:0"></div>
-          <div class="alb-avg-line" style="bottom:${avgPct}%"><span class="alb-avg-label">Avg ${avgVal}</span></div>
+          <div class="alb-avg-line" style="bottom:${avgPct}%"><span class="alb-avg-label">${t('alb_avg_label', { n: avgVal })}</span></div>
           ${barsHTML}
         </div>
         <div class="alb-x-labels">${xlabelsHTML}</div>
@@ -39770,8 +39769,8 @@ function _renderModalGrammyStrip(artistName) {
   const wins = entries.filter(e => e.isWin).length;
   const grammyEl = document.getElementById('modalGrammyStrip');
   grammyEl.innerHTML = `
-    <div class="modal-stat"><div class="se">🏅</div><div class="sv" data-countup="${noms}">${noms}</div><div class="sl">Nominations</div></div>
-    <div class="modal-stat ${wins > 0 ? 'modal-stat--gold' : ''}"><div class="se">🏆</div><div class="sv ${wins > 0 ? 'sv--gold' : ''}" data-countup="${wins}">${wins}</div><div class="sl">Wins</div></div>
+    <div class="modal-stat"><div class="se">🏅</div><div class="sv" data-countup="${noms}">${noms}</div><div class="sl">${t('sm_nominations')}</div></div>
+    <div class="modal-stat ${wins > 0 ? 'modal-stat--gold' : ''}"><div class="se">🏆</div><div class="sv ${wins > 0 ? 'sv--gold' : ''}" data-countup="${wins}">${wins}</div><div class="sl">${t('sm_wins')}</div></div>
   `;
   animateModalCountup(grammyEl);
   const detailEl = document.getElementById('modalGrammyDetail');
@@ -52387,7 +52386,7 @@ function ratingRing(score, opts = {}) {
   const r = (size / 2) - 7;
   const circ = 2 * Math.PI * r;
   const pct = score == null ? 0 : score / RATING_MAX;
-  const label = opts.label || (band ? band.label : 'Not rated');
+  const label = opts.label || (band ? band.label : t('rtp_not_rated'));
   return `<div class="rt-ring ${band ? band.cls : 'rt--none'}" style="--rt-size:${size}px">
     <svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" aria-hidden="true">
       <circle class="rt-ring-track" cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke-width="6"/>
@@ -52820,7 +52819,7 @@ function renderSongRatingSection(key) {
   if (!el || !key) return;
   const score = ratingSongScore(key);
   const e = ratingSongEntry(key);
-  const btnLabel = score == null ? '★ Rate this song' : '✎ Edit rating';
+  const btnLabel = score == null ? t('rtp_rate_song') : t('rtp_edit');
 
   // The album this song belongs to, so the song modal can link straight through
   // to the full album evaluation. bestAlbum() picks the same album the rest of
@@ -52837,10 +52836,10 @@ function renderSongRatingSection(key) {
       albumLink = `<button class="rt-albumlink" onclick="openAlbumModal(${esc(JSON.stringify(bestKey))})">
         <span class="rt-albumlink-ico">◈</span>
         <span class="rt-albumlink-txt">
-          <span class="rt-albumlink-lead">Full album evaluation</span>
+          <span class="rt-albumlink-lead">${t('rtp_full_album')}</span>
           <span class="rt-albumlink-name">${esc(aName)}</span>
         </span>
-        ${ar ? ratingChip(ar.score) : `<span class="rt-albumlink-unrated">Not rated</span>`}
+        ${ar ? ratingChip(ar.score) : `<span class="rt-albumlink-unrated">${t('rtp_not_rated')}</span>`}
         <span class="rt-albumlink-arrow">→</span>
       </button>`;
     }
@@ -52850,8 +52849,8 @@ function renderSongRatingSection(key) {
     el.innerHTML = `<div class="rt-block rt-block--empty">
       ${ratingRing(null)}
       <div class="rt-empty-copy">
-        <div class="rt-empty-title">Not rated yet</div>
-        <div class="rt-empty-sub">Score this track on ${ratingEnabledSongCriteria().length} craft criteria, or give it one quick gut score.</div>
+        <div class="rt-empty-title">${t('rtp_not_rated_yet')}</div>
+        <div class="rt-empty-sub">${t('rtp_song_sub', { n: ratingEnabledSongCriteria().length })}</div>
         <button class="dc-btn dc-btn-main" onclick="openRatingModal('song', ${esc(JSON.stringify(key))})">${btnLabel}</button>
       </div>
     </div>${albumLink}`;
@@ -52861,7 +52860,7 @@ function renderSongRatingSection(key) {
   const detailed = e.m !== 'quick';
   const bars = detailed
     ? ratingEnabledSongCriteria().map(c => ratingCritBar(c, e.c?.[c.id])).join('')
-    : `<div class="rt-quick-note">Rated in quick mode — one overall score, no breakdown.</div>`;
+    : `<div class="rt-quick-note">${t('rtp_quick_note')}</div>`;
 
   el.innerHTML = `<div class="rt-block">
     <div class="rt-block-head">
@@ -52888,9 +52887,9 @@ function renderAlbumRatingSection(albumKey) {
     el.innerHTML = `<div class="rt-block rt-block--empty">
       ${ratingRing(null)}
       <div class="rt-empty-copy">
-        <div class="rt-empty-title">Not rated yet</div>
-        <div class="rt-empty-sub">Score its ${tracks.length} ${tUnit('tracks', tracks.length)} and the album-level aspects — art, cohesion, concept — and the total builds itself.</div>
-        <button class="dc-btn dc-btn-main" onclick="openRatingModal('album', ${esc(JSON.stringify(albumKey))})">★ Rate this album</button>
+        <div class="rt-empty-title">${t('rtp_not_rated_yet')}</div>
+        <div class="rt-empty-sub">${t('rtp_album_sub', { n: tracks.length, unit: tUnit('tracks', tracks.length) })}</div>
+        <button class="dc-btn dc-btn-main" onclick="openRatingModal('album', ${esc(JSON.stringify(albumKey))})">${t('rtp_rate_album')}</button>
       </div>
     </div>`;
     return;
@@ -52904,10 +52903,10 @@ function renderAlbumRatingSection(albumKey) {
   // The auto-derived stats. None of these are typed in — they all fall out of
   // the track scores, which is exactly what makes them worth showing.
   const insightStrip = ins ? `<div class="modal-stats-strip rt-insights">
-    <div class="modal-stat"><div class="se">⛰️</div><div class="sv ${ratingBand(ins.peak.score).cls}">${ratingFmt(ins.peak.score)}</div><div class="sl">Peak track</div></div>
-    <div class="modal-stat"><div class="se">🕳️</div><div class="sv ${ratingBand(ins.floor.score).cls}">${ratingFmt(ins.floor.score)}</div><div class="sl">Weakest track</div></div>
-    <div class="modal-stat"><div class="se">📐</div><div class="sv ${ratingBand(ins.consistency).cls}">${ratingFmt(ins.consistency)}</div><div class="sl">Consistency</div></div>
-    <div class="modal-stat"><div class="se">🗑️</div><div class="sv">${ins.fillerPct}%</div><div class="sl">Filler</div></div>
+    <div class="modal-stat"><div class="se">⛰️</div><div class="sv ${ratingBand(ins.peak.score).cls}">${ratingFmt(ins.peak.score)}</div><div class="sl">${t('rtp_peak_track')}</div></div>
+    <div class="modal-stat"><div class="se">🕳️</div><div class="sv ${ratingBand(ins.floor.score).cls}">${ratingFmt(ins.floor.score)}</div><div class="sl">${t('rtp_weakest_track')}</div></div>
+    <div class="modal-stat"><div class="se">📐</div><div class="sv ${ratingBand(ins.consistency).cls}">${ratingFmt(ins.consistency)}</div><div class="sl">${t('rtp_consistency')}</div></div>
+    <div class="modal-stat"><div class="se">🗑️</div><div class="sv">${ins.fillerPct}%</div><div class="sl">${t('rtp_filler')}</div></div>
   </div>` : '';
 
   // Full track table, best first, so the album reads like a review scorecard.
@@ -52918,7 +52917,7 @@ function renderAlbumRatingSection(albumKey) {
             onclick="openSongModal(${esc(JSON.stringify(tr.key))})">
           <span class="rt-tt-title">${esc(tr.title)}</span>
           <span class="rt-tt-plays">${tr.count} ${tUnit('plays', tr.count)}</span>
-          ${tr.score == null ? `<span class="rt-tt-unrated">unrated</span>` : ratingChip(tr.score)}
+          ${tr.score == null ? `<span class="rt-tt-unrated">${t('rtp_unrated')}</span>` : ratingChip(tr.score)}
         </button>`).join('')}
   </div>` : '';
 
@@ -52930,18 +52929,18 @@ function renderAlbumRatingSection(albumKey) {
         <div class="rt-formula rt-formula--static">${_ratingFormulaHTML(res)}</div>
         ${e?.note ? `<blockquote class="rt-block-note">${esc(e.note)}</blockquote>` : ''}
         <div class="rt-btn-row">
-          <button class="dc-btn dc-btn-normal" onclick="openRatingModal('album', ${esc(JSON.stringify(albumKey))})">✎ Edit rating</button>
+          <button class="dc-btn dc-btn-normal" onclick="openRatingModal('album', ${esc(JSON.stringify(albumKey))})">${t('rtp_edit')}</button>
           <button class="dc-btn dc-btn-normal" onclick="rtOpenCard(${esc(JSON.stringify(albumKey))})">${esc(t('rt_card_share_btn'))}</button>
         </div>
       </div>
     </div>
     ${insightStrip}
-    ${aspectBars ? `<div class="rt-sub-label">Album aspects</div><div class="rt-critbars">${aspectBars}</div>` : ''}
-    ${ins && ins.highlights.length ? `<div class="rt-sub-label">Highlights</div>
+    ${aspectBars ? `<div class="rt-sub-label">${t('rtp_aspects')}</div><div class="rt-critbars">${aspectBars}</div>` : ''}
+    ${ins && ins.highlights.length ? `<div class="rt-sub-label">${t('rtp_highlights')}</div>
       <div class="rt-pill-row">${ins.highlights.map(h => `<span class="rt-pill ${ratingBand(h.score).cls}">${esc(h.title)} ${ratingFmt(h.score)}</span>`).join('')}</div>` : ''}
-    ${ins && ins.skips.length ? `<div class="rt-sub-label">Skips</div>
+    ${ins && ins.skips.length ? `<div class="rt-sub-label">${t('rtp_skips')}</div>
       <div class="rt-pill-row">${ins.skips.map(h => `<span class="rt-pill ${ratingBand(h.score).cls}">${esc(h.title)} ${ratingFmt(h.score)}</span>`).join('')}</div>` : ''}
-    ${trackTable ? `<div class="rt-sub-label">Track scores</div>${trackTable}` : ''}
+    ${trackTable ? `<div class="rt-sub-label">${t('rtp_track_scores')}</div>${trackTable}` : ''}
   </div>`;
 }
 
