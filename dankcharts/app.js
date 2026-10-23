@@ -55157,9 +55157,12 @@ function _ratingsDistributionHTML(items) {
       ${buckets.map(b => {
         const h = (b.n / max) * 100;
         const band = ratingBand(b.lo + 0.5);
+        // Shade by score (phase 9 part 2 step 4): the 0 bucket is the accent
+        // mixed 40% into the card, the 9–10 bucket the full accent.
+        const mix = Math.round(40 + b.lo * (60 / 9));
         return `<div class="rt-dist-col" title="${b.n} ${b.n === 1 ? 'entry' : 'entries'} scored ${b.lo}.0–${b.hi === 10 ? '10.0' : b.hi + '.0'}">
           <div class="rt-dist-count">${b.n || ''}</div>
-          <div class="rt-dist-bar-wrap">${b.n ? `<div class="rt-dist-bar ${band.cls}" style="height:${h}%"></div>` : ''}</div>
+          <div class="rt-dist-bar-wrap">${b.n ? `<div class="rt-dist-bar ${band.cls}" style="height:${h}%;--rt-mix:${mix}%"></div>` : ''}</div>
           <div class="rt-dist-tick">${b.lo}</div>
         </div>`;
       }).join('')}

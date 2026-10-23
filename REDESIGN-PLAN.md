@@ -2327,6 +2327,10 @@ Steps:
    change repaints). Charts redraw on a theme change.
 4. **Ratings chart.** One colour (accent), lighter or darker by score,
    instead of a rainbow.
+   **Done 2026-10-23:** the bars were already one accent colour (phase 3
+   colour pass); now shaded by score: app.js sets --rt-mix per bucket
+   (40% for 0 up to 100% for 9–10) and .rt-dist-bar mixes the accent into
+   --bg2, so low scores recede on dark and light themes alike.
 5. **Heatmap.** Mockup first. One year at a time with `‹ 2026 ›`, and a
    row of small thumbnails to jump between years. Listening Patterns stay.
 6. **Two-column layout** on desktop: small charts side by side, wide ones

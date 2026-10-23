@@ -35156,6 +35156,10 @@ body.red-light .modal-rank-card--year .mrc-rank {
          something beyond the tick under it. The band class is still on the
          bar from app.js; the score chips elsewhere keep their band colours. */
       background: var(--accent);
+      /* Phase 9 part 2 step 4: still one colour, but lighter or darker by
+         score. app.js sets --rt-mix per bucket (40% for 0, 100% for 9–10),
+         mixed into the card colour, so low scores recede on every theme. */
+      background: color-mix(in srgb, var(--accent) var(--rt-mix, 100%), var(--bg2));
       /* Rounded data-end only, anchored flat to the baseline. */
       border-radius: var(--r-xs) 4px 0 0;
     }
