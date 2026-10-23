@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Song and album windows in your language":
+    ["Las ventanas de canciones y álbumes, en tu idioma",
+     "Las ventanas que se abren al pulsar una canción o un álbum siguen ahora el idioma que elegiste. Antes, casi todo salía en inglés: las estadísticas (escuchas totales, primera y última escucha, rachas, récords), los mejores puestos, los récords, la lista de logros, el patrón de escucha, el orden y las estadísticas de las canciones del álbum, las placas de certificación y el recuadro de valoración. Además: Base de datos ya no sale en mayúsculas en el menú Más, la barra superior cabe en los móviles más pequeños y en esos móviles las casillas de búsqueda de Base de datos muestran pistas cortas que no se cortan. Funciona con Last.fm, Google Sheets y archivos CSV."],
+
   "Raw Data: one play is counted as one play":
     ["Base de datos: una reproducción se cuenta como una",
      "Cuando una canción, un álbum o una búsqueda tiene una sola reproducción, Base de datos y el historial de reproducciones de las ventanas de canciones y álbumes dicen ahora 1 reproducción en total en lugar de 1 reproducciones en total. Funciona con Last.fm, Google Sheets y archivos CSV."],

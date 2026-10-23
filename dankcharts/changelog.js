@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 286;
+const DC_CL_I18N_V = 287;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-23', t: 'fix', a: 'ui', h: '5c2a5d8',
+    title: "Song and album windows in your language",
+    detail: "The windows that open when you click a song or an album now follow the language you picked. Before, most of them stayed in English: the stats (total plays, first and last played, streaks, records), Chart Peaks, Chart Records, the Chart Accomplishments list, Listening Pattern, the album's track sorting and track stats, the certification plaques and the rating box. Also fixed: Raw Data is no longer in capitals in the Spanish More menu, the top bar fits the smallest phones, and on those phones the Raw Data search boxes show short hints that are not cut off. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-23', t: 'fix', a: 'rawdata', h: 'd4381cb',
     title: "Raw Data: one play is counted as one play",
     detail: "When a song, album or search has exactly one play, Raw Data and the play history in song and album windows now say 1 play in total instead of 1 total plays, in every language. Works with Last.fm, Google Sheets and CSV uploads." },

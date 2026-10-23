@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Song and album windows in your language":
+    ["Janelas de músicas e álbuns no seu idioma",
+     "As janelas que abrem quando você clica numa música ou num álbum agora seguem o idioma que você escolheu. Antes, quase tudo ficava em inglês: as estatísticas (total de plays, primeiro e último play, sequências, recordes), os picos e recordes nas paradas, a lista de conquistas, o padrão de escuta, a ordenação e as estatísticas das faixas do álbum, as placas de certificação e o quadro de avaliação. Também: Dados brutos não aparece mais em maiúsculas no menu Mais, a barra do topo cabe nos celulares menores e, nesses celulares, as caixas de busca de Dados brutos mostram dicas curtas que não ficam cortadas. Funciona com Last.fm, Google Sheets e arquivos CSV."],
+
   "Raw Data: one play is counted as one play":
     ["Dados brutos: um play é contado como um play",
      "Quando uma música, um álbum ou uma busca tem só um play, Dados brutos e o histórico de plays nas janelas de músicas e álbuns agora dizem 1 play no total em vez de 1 plays no total. Funciona com Last.fm, Google Sheets e arquivos CSV."],
