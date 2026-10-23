@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Events: Today shows what's happening today, and Play all is back":
+    ["Eventos: Hoy muestra lo que pasa hoy, y vuelve Reproducir todo",
+     "La pestaña Hoy se abre ahora con la fecha de hoy y lo que pasa: primero los cumpleaños, lanzamientos y conciertos de tus artistas principales, y luego los aniversarios del día. Los aniversarios se ordenan para que los importantes vayan primero: los redondos (5.º, 10.º, 20.º…) arriba, luego los lanzamientos que más has escuchado, y cada tarjeta dice cuántas veces lo has escuchado. Al principio se ven ocho, y Mostrar los abre el resto, así que un día con cincuenta aniversarios ya no llena la página. La Máquina del tiempo sigue debajo. Reproducir todo vuelve junto a + Lista: reproduce en el reproductor lo que muestra la pestaña abierta, la primera canción ya y el resto en la cola. Funciona con Last.fm, Google Sheets y archivos CSV."],
+
   "Events: one card style, one view switch, one playlist button":
     ["Eventos: un solo estilo de tarjeta, un selector de vista y un botón de lista",
      "Cada evento de la página Eventos (cumpleaños, aniversarios, lanzamientos, New Music Friday y conciertos) usa ahora la misma tarjeta: la imagen, la fecha, el título, el artista y el tipo con un icono pequeño. Carrusel, Mosaico, Tabla y Lista son un solo selector para toda la página en lugar de uno por sección, y la vista que elegiste antes se mantiene. El calendario de semanas anteriores de New Music Friday se abre con su botón Viernes anteriores. Las secciones ya no se pliegan, así que nada queda escondido detrás de un +. Un solo botón + Lista guarda lo que muestra la pestaña abierta: en Hoy y Calendario, los eventos del calendario. Sustituye al botón de cada sección y a Reproducir todo, Crear lista y Exportar lista del calendario; la lista que crea se reproduce desde Listas. Funciona con Last.fm, Google Sheets y archivos CSV."],

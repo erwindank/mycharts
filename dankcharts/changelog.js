@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 290;
+const DC_CL_I18N_V = 291;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-23', t: 'feature', a: 'events', h: '02223cb',
+    title: "Events: Today shows what's happening today, and Play all is back",
+    detail: "The Today tab now opens with today's date and what's happening: your top artists' birthdays, releases and shows first, then the day's anniversaries. Anniversaries are ranked so the ones that matter come first: round ones (5th, 10th, 20th…) at the top, then the releases you've played most, and each card says how many times you've played it. Eight show at first, and Show all opens the rest, so a day with fifty anniversaries no longer fills the page. The Time Machine is still underneath. Play all is back next to + Playlist: it plays what the open tab shows in the music player, the first song now and the rest in the queue. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-23', t: 'design', a: 'events', h: '635da41',
     title: "Events: one card style, one view switch, one playlist button",
     detail: "Every event on the Events page — birthdays, anniversaries, releases, New Music Friday and shows — now uses the same card: the picture, the date, the title, the artist and the type with a small icon. Reel, Tiles, Table and List are one switch for the whole page instead of one per section, and the view you picked before carries over. New Music Friday's calendar of past weeks opens from its Past Fridays button. Sections no longer fold away, so nothing is hidden behind a +. One + Playlist button saves what the open tab shows: on Today and Calendar, the events on the calendar. It replaces each section's own button and the calendar's Play All, Create Playlist and Export Playlist; the playlist it makes plays from Playlists. Works with Last.fm, Google Sheets and CSV uploads." },

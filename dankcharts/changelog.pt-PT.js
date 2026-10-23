@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Events: Today shows what's happening today, and Play all is back":
+    ["Eventos: Hoje mostra o que acontece hoje, e Tocar tudo voltou",
+     "O separador Hoje abre agora com a data de hoje e o que acontece: primeiro os aniversários, lançamentos e concertos dos teus artistas principais, depois as datas do dia. As datas são ordenadas para que as importantes venham primeiro: as redondas (5.ª, 10.ª, 20.ª…) no topo, depois os lançamentos que mais ouviste, e cada cartão diz quantas vezes o ouviste. Aparecem oito no início, e Mostrar todas abre o resto, por isso um dia com cinquenta datas já não enche a página. A Máquina do tempo continua por baixo. Tocar tudo voltou ao lado de + Playlist: toca no leitor o que o separador aberto mostra, a primeira música já e o resto na fila. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
+
   "Events: one card style, one view switch, one playlist button":
     ["Eventos: um só estilo de cartão, um seletor de vista e um botão de playlist",
      "Cada evento da página Eventos (aniversários, datas, lançamentos, New Music Friday e concertos) usa agora o mesmo cartão: a imagem, a data, o título, o artista e o tipo com um ícone pequeno. Carrossel, Blocos, Tabela e Lista são um só seletor para a página toda em vez de um por secção, e a vista que escolheste antes mantém-se. O calendário de semanas anteriores do New Music Friday abre-se com o botão Sextas anteriores. As secções já não se recolhem, por isso nada fica escondido atrás de um +. Um único botão + Playlist guarda o que o separador aberto mostra: em Hoje e Calendário, os eventos do calendário. Substitui o botão de cada secção e o Tocar tudo, Criar playlist e Exportar playlist do calendário; a playlist criada toca em Playlists. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
