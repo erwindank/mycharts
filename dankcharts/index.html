@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=605">
+  <link rel="stylesheet" href="style.css?v=606">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -1287,20 +1287,37 @@
 
     <!-- GRAPHS VIEW -->
     <div id="graphsView" style="display:none;">
-      <div class="section-header" style="margin-bottom:0.5rem;">
-        <h2 class="section-header-h2" data-i18n="sec_graphs_title">📈 Historical Graphs</h2>
+      <!-- Titled like the tab ("Stats"), with a line icon in place of the old
+           📈 emoji. -->
+      <div class="section-header graphs-header">
+        <h2 class="section-header-h2"><svg class="graphs-h2-ico" viewBox="0 0 16 16" aria-hidden="true"
+            focusable="false"><path d="M2 13.5h12M3.5 11l3-3.5 2.5 2 4-5" /></svg><span
+            data-i18n="sec_graphs_title">Stats</span></h2>
         <div class="section-rule"></div>
       </div>
 
-      <!-- Graph controls -->
+      <!-- One bar for the whole page, sticky under the top bar: Daily /
+           Monthly / Yearly, then the date range every chart follows (quick
+           buttons and two date boxes). It replaces the Range row each chart
+           used to have. The Play Count Race keeps its own range, which starts
+           at the first play. -->
       <div class="graphs-controls" id="graphsControls">
-        <div class="graphs-ctrl-group">
-          <label class="graphs-ctrl-label" data-i18n="gran_label">Granularity</label>
-          <div class="dc-seg graphs-ctrl-btns" id="graphGranularity">
-            <button class="graphs-btn" data-gran="day" data-i18n="gran_daily">Daily</button>
-            <button class="graphs-btn active" data-gran="month" data-i18n="gran_monthly">Monthly</button>
-            <button class="graphs-btn" data-gran="year" data-i18n="gran_yearly">Yearly</button>
-          </div>
+        <div class="dc-seg graphs-ctrl-btns" id="graphGranularity" role="group" aria-label="Granularity"
+          data-i18n-aria="gran_label">
+          <button class="graphs-btn" data-gran="day" data-i18n="gran_daily">Daily</button>
+          <button class="graphs-btn active" data-gran="month" data-i18n="gran_monthly">Monthly</button>
+          <button class="graphs-btn" data-gran="year" data-i18n="gran_yearly">Yearly</button>
+        </div>
+        <span class="graphs-ctrl-sep" aria-hidden="true"></span>
+        <div class="dc-seg" id="graphRangePresets" role="group" aria-label="Date range" data-i18n-aria="range_aria">
+          <button type="button" data-range="12m" data-i18n="range_12m">12 mo</button>
+          <button type="button" data-range="3y" data-i18n="range_3y">3 yr</button>
+          <button type="button" data-range="all" data-i18n="range_all">All</button>
+        </div>
+        <div class="graphs-range-dates">
+          <input id="gRangeFrom" type="date" aria-label="From" data-i18n-aria="range_from">
+          <span data-i18n="range_to">to</span>
+          <input id="gRangeTo" type="date" aria-label="To" data-i18n-aria="range_until">
         </div>
       </div>
 
@@ -1329,14 +1346,6 @@
         </div>
         <div id="gCumulativeChips" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:0.6rem;min-height:0;"></div>
         <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.75rem;">
-          <span data-i18n="range_label"
-            style="font-family: var(--font-sans);font-size:var(--fs-xs);color:var(--text3);">Range</span>
-          <input id="gCumulativeFrom" type="date"
-            style="background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family: var(--font-sans);font-size:var(--fs-xs);padding:0.25rem 0.5rem;border-radius:4px;outline:none;">
-          <span data-i18n="range_to" style="font-family: var(--font-sans);font-size:var(--fs-xs);color:var(--text3);">to</span>
-          <input id="gCumulativeTo" type="date"
-            style="background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family: var(--font-sans);font-size:var(--fs-xs);padding:0.25rem 0.5rem;border-radius:4px;outline:none;">
-          <button id="gCumulativeResetRange" class="dc-btn dc-btn-normal dc-btn-sm" data-i18n="btn_reset" style="white-space:nowrap;">Reset</button>
           <button id="gCumulativeLabelsBtn" class="dc-btn dc-btn-normal dc-btn-sm" data-i18n-title="tooltip_toggle_labels"
             style="white-space:nowrap;">Labels: Off</button>
           <button id="gCumulativeResetZoom" class="dc-btn dc-btn-normal dc-btn-sm" data-i18n="btn_reset_zoom" data-i18n-title="tooltip_reset_zoom"
@@ -1351,14 +1360,6 @@
         <div class="graph-card-sub" data-i18n="graph_volume_sub">How many songs you played each period across all
           artists</div>
         <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.75rem;">
-          <span data-i18n="range_label"
-            style="font-family: var(--font-sans);font-size:var(--fs-xs);color:var(--text3);">Range</span>
-          <input id="gTotalVolumeFrom" type="date"
-            style="background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family: var(--font-sans);font-size:var(--fs-xs);padding:0.25rem 0.5rem;border-radius:4px;outline:none;">
-          <span data-i18n="range_to" style="font-family: var(--font-sans);font-size:var(--fs-xs);color:var(--text3);">to</span>
-          <input id="gTotalVolumeTo" type="date"
-            style="background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family: var(--font-sans);font-size:var(--fs-xs);padding:0.25rem 0.5rem;border-radius:4px;outline:none;">
-          <button id="gTotalVolumeResetRange" class="dc-btn dc-btn-normal dc-btn-sm" data-i18n="btn_reset" style="white-space:nowrap;">Reset</button>
           <button id="gTotalVolumeResetZoom" class="dc-btn dc-btn-normal dc-btn-sm" data-i18n="btn_reset_zoom" data-i18n-title="tooltip_reset_zoom"
             style="white-space:nowrap;">Reset Zoom</button>
           <button id="gTotalVolumeLabelsBtn" class="dc-btn dc-btn-normal dc-btn-sm" data-i18n-title="tooltip_toggle_labels"
@@ -1380,14 +1381,6 @@
         </div>
         <div id="gVolumeChips" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:0.6rem;min-height:0;"></div>
         <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.75rem;">
-          <span data-i18n="range_label"
-            style="font-family: var(--font-sans);font-size:var(--fs-xs);color:var(--text3);">Range</span>
-          <input id="gVolumeFrom" type="date"
-            style="background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family: var(--font-sans);font-size:var(--fs-xs);padding:0.25rem 0.5rem;border-radius:4px;outline:none;">
-          <span data-i18n="range_to" style="font-family: var(--font-sans);font-size:var(--fs-xs);color:var(--text3);">to</span>
-          <input id="gVolumeTo" type="date"
-            style="background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family: var(--font-sans);font-size:var(--fs-xs);padding:0.25rem 0.5rem;border-radius:4px;outline:none;">
-          <button id="gVolumeResetRange" class="dc-btn dc-btn-normal dc-btn-sm" data-i18n="btn_reset" style="white-space:nowrap;">Reset</button>
           <button id="gVolumeResetZoom" class="dc-btn dc-btn-normal dc-btn-sm" data-i18n="btn_reset_zoom" data-i18n-title="tooltip_reset_zoom"
             style="white-space:nowrap;">Reset Zoom</button>
           <button id="gVolumeLabelsBtn" class="dc-btn dc-btn-normal dc-btn-sm" data-i18n-title="tooltip_toggle_labels"

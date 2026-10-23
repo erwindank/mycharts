@@ -2301,6 +2301,12 @@ Steps:
    at the top: Daily / Monthly / Yearly, then "12 mo · 3 yr · All" and the
    two date boxes, defaulting to the last 12 months. The four per-card
    Range rows go; a card that needs its own range keeps an override.
+   **Done 2026-10-22:** title "Stats" (Records' title style); one bar with
+   Daily / Monthly / Yearly, "12 mo · 3 yr · All" and two date boxes
+   (dc_gRange; editing a box makes it custom), sticky from 601px up, on
+   phones it scrolls away. Cumulative, Total volume, Artist volume and New
+   Discoveries follow it (Discoveries still counts "new" over all history).
+   The race keeps its own range from the first play (your call).
 2. **Card corner buttons.** "Labels" and "Reset zoom" become small icon
    buttons in each card's top-right corner, with tooltips.
 3. **Chart style.** No vertical gridlines, faint horizontal ones, 12px

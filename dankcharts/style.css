@@ -5122,56 +5122,33 @@
       border-color: var(--accent);
     }
 
-    /* Graph date range pickers — dark icon in dark themes */
-    #gCumulativeFrom,
-    #gCumulativeTo,
-    #gTotalVolumeFrom,
-    #gTotalVolumeTo,
-    #gVolumeFrom,
-    #gVolumeTo,
+    /* Stats date boxes (the page range and the race's own) — dark calendar
+       icon in dark themes, light in light ones */
+    #gRangeFrom,
+    #gRangeTo,
     #raceFrom,
     #raceTo {
       color-scheme: dark;
     }
 
-    body.navy-light #gCumulativeFrom,
-    body.navy-light #gCumulativeTo,
-    body.navy-light #gTotalVolumeFrom,
-    body.navy-light #gTotalVolumeTo,
-    body.navy-light #gVolumeFrom,
-    body.navy-light #gVolumeTo,
-    body.purple-light #gCumulativeFrom,
-    body.purple-light #gCumulativeTo,
-    body.purple-light #gTotalVolumeFrom,
-    body.purple-light #gTotalVolumeTo,
-    body.purple-light #gVolumeFrom,
-    body.purple-light #gVolumeTo,
-    body.red-light #gCumulativeFrom,
-    body.red-light #gCumulativeTo,
-    body.red-light #gTotalVolumeFrom,
-    body.red-light #gTotalVolumeTo,
-    body.red-light #gVolumeFrom,
-    body.red-light #gVolumeTo,
-    body.yellow-light #gCumulativeFrom,
-    body.yellow-light #gCumulativeTo,
-    body.yellow-light #gTotalVolumeFrom,
-    body.yellow-light #gTotalVolumeTo,
-    body.yellow-light #gVolumeFrom,
-    body.yellow-light #gVolumeTo,
-    body.pink-light #gCumulativeFrom,
-    body.pink-light #gCumulativeTo,
-    body.pink-light #gTotalVolumeFrom,
-    body.pink-light #gTotalVolumeTo,
-    body.pink-light #gVolumeFrom,
-    body.pink-light #gVolumeTo,
+    body.navy-light #gRangeFrom,
+    body.navy-light #gRangeTo,
     body.navy-light #raceFrom,
     body.navy-light #raceTo,
+    body.purple-light #gRangeFrom,
+    body.purple-light #gRangeTo,
     body.purple-light #raceFrom,
     body.purple-light #raceTo,
+    body.red-light #gRangeFrom,
+    body.red-light #gRangeTo,
     body.red-light #raceFrom,
     body.red-light #raceTo,
+    body.yellow-light #gRangeFrom,
+    body.yellow-light #gRangeTo,
     body.yellow-light #raceFrom,
     body.yellow-light #raceTo,
+    body.pink-light #gRangeFrom,
+    body.pink-light #gRangeTo,
     body.pink-light #raceFrom,
     body.pink-light #raceTo {
       color-scheme: light;
@@ -7758,27 +7735,94 @@
     }
 
     /* GRAPHS VIEW */
+    .graphs-header {
+      margin-bottom: var(--sp-3);
+    }
+
+    .graphs-h2-ico {
+      width: 1em;
+      height: 1em;
+      margin-right: 0.45em;
+      vertical-align: -0.12em;
+      fill: none;
+      stroke: var(--accent);
+      stroke-width: 1.6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* The page bar: Daily / Monthly / Yearly, then the range every chart
+       follows. Sticky under the top bar so the range stays in view while
+       you scroll through the charts. */
     .graphs-controls {
       display: flex;
       flex-wrap: wrap;
-      gap: var(--sp-4) var(--sp-6);
-      padding: var(--sp-3) 0.85rem;
+      align-items: center;
+      gap: var(--sp-2) var(--sp-3);
+      padding: var(--sp-2) var(--sp-3);
       background: var(--bg2);
       border: 1px solid var(--border);
       border-radius: var(--r-sm);
+      box-shadow: var(--shadow-1);
       margin-bottom: 1.25rem;
     }
 
-    .graphs-ctrl-group {
-      display: flex;
-      flex-direction: column;
-      gap: 0.35rem;
+    .graphs-ctrl-sep {
+      width: 1px;
+      height: 22px;
+      background: var(--border);
     }
 
-    .graphs-ctrl-label {
-      font-family: var(--font-sans);
+    .graphs-range-dates {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--sp-2);
       font-size: var(--fs-xs);
       color: var(--text3);
+    }
+
+    .graphs-range-dates input[type="date"] {
+      background: var(--bg);
+      border: 1px solid var(--border2);
+      border-radius: var(--r-sm);
+      color: var(--text);
+      font-size: var(--fs-xs);
+      padding: 0.25rem 0.5rem;
+    }
+
+    .graphs-range-dates input[type="date"]:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+
+    /* Sticky from tablet width up. On a phone the bar wraps to three rows,
+       too tall to keep on screen, so there it scrolls away with the page. */
+    @media (min-width: 601px) {
+      .graphs-controls {
+        position: sticky;
+        top: calc(var(--topbar-offset) + var(--sp-2));
+        z-index: var(--z-nav);
+      }
+    }
+
+    /* On a phone the bar wraps: switches on one line, dates on the next. */
+    @media (max-width: 600px) {
+      .graphs-ctrl-sep {
+        display: none;
+      }
+
+      /* A grid, so the two date boxes share the width exactly; a date
+         input's own minimum width pushed the second one past the edge. */
+      .graphs-range-dates {
+        flex: 1 0 100%;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+      }
+
+      .graphs-range-dates input[type="date"] {
+        width: 100%;
+        min-width: 0;
+      }
     }
 
 
@@ -12597,7 +12641,9 @@
        chip (background/padding/radius) has to be cleared explicitly; it
        reads as a chip at 11px but as a white slab at heading sizes. */
 
-    #recordsView>.section-header .section-header-h2 {
+    /* Stats shares the Records page title (phase 9). */
+    #recordsView>.section-header .section-header-h2,
+    #graphsView>.section-header .section-header-h2 {
       font-family: var(--font-display);
       font-size: var(--fs-lg);
       font-weight: 500;

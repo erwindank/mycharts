@@ -6826,10 +6826,9 @@ function finalizeLoad() {
     gCumulativeLabels = true;
     updateLabelButton('gCumulativeLabelsBtn', true);
   }
-  const savedCumFrom = localStorage.getItem('dc_gCumulativeFrom');
-  if (savedCumFrom) document.getElementById('gCumulativeFrom').value = savedCumFrom;
-  const savedCumTo = localStorage.getItem('dc_gCumulativeTo');
-  if (savedCumTo) document.getElementById('gCumulativeTo').value = savedCumTo;
+  // The per-chart ranges were replaced by one page range (dc_gRange)
+  ['dc_gCumulativeFrom', 'dc_gCumulativeTo', 'dc_gTotalVolumeFrom', 'dc_gTotalVolumeTo', 'dc_gVolumeFrom', 'dc_gVolumeTo']
+    .forEach(k => localStorage.removeItem(k));
 
   if (localStorage.getItem('dc_gTotalVolumeLabels') === '1') {
     gTotalVolumeLabels = true;
@@ -6839,10 +6838,6 @@ function finalizeLoad() {
     gDiscoveriesLabels = true;
     updateLabelButton('gDiscoveriesLabelsBtn', true);
   }
-  const savedTVFrom = localStorage.getItem('dc_gTotalVolumeFrom');
-  if (savedTVFrom) document.getElementById('gTotalVolumeFrom').value = savedTVFrom;
-  const savedTVTo = localStorage.getItem('dc_gTotalVolumeTo');
-  if (savedTVTo) document.getElementById('gTotalVolumeTo').value = savedTVTo;
 
   const savedVolArtists = localStorage.getItem('dc_gVolumeArtists');
   if (savedVolArtists) try { gVolumeArtists = JSON.parse(savedVolArtists); renderVolumeChips(); } catch (e) { }
@@ -6850,10 +6845,6 @@ function finalizeLoad() {
     gVolumeLabels = true;
     updateLabelButton('gVolumeLabelsBtn', true);
   }
-  const savedVolFrom = localStorage.getItem('dc_gVolumeFrom');
-  if (savedVolFrom) document.getElementById('gVolumeFrom').value = savedVolFrom;
-  const savedVolTo = localStorage.getItem('dc_gVolumeTo');
-  if (savedVolTo) document.getElementById('gVolumeTo').value = savedVolTo;
 
   // Restore race/graph settings
   const savedRaceSpeed = localStorage.getItem('dc_raceSpeed');
@@ -27199,6 +27190,59 @@ function sortRecentReleases(releases) {
 let graphGranularity = 'month';
 let graphCharts = {};
 
+/* ── The page-wide date range ─────────────────────────────────────────
+   One range for every Stats chart except the Play Count Race (which keeps
+   its own, starting at the first play). `preset` is 12m / 3y / all, or
+   custom when a date box was changed by hand; from / to are YYYY-MM-DD and
+   only used for custom. Stored in dc_gRange. Defaults to the last 12 months,
+   so a long library no longer draws a flat line with a spike at the end. */
+let graphRange = { preset: '12m', from: '', to: '' };
+try {
+  const savedRange = JSON.parse(localStorage.getItem('dc_gRange') || 'null');
+  if (savedRange && ['12m', '3y', 'all', 'custom'].indexOf(savedRange.preset) !== -1) graphRange = savedRange;
+} catch (e) { }
+
+// The range as YYYY-MM-DD strings, worked out from the preset.
+function graphRangeDates() {
+  const today = localDateStr(tzNow());
+  const first = allPlays.length ? localDateStr(tzDate(allPlays[allPlays.length - 1].date)) : today;
+  if (graphRange.preset === 'custom') return { from: graphRange.from || first, to: graphRange.to || today };
+  if (graphRange.preset === 'all') return { from: first, to: today };
+  const d = tzNow();
+  d.setFullYear(d.getFullYear() - (graphRange.preset === '3y' ? 3 : 1));
+  d.setDate(d.getDate() + 1);
+  const from = localDateStr(d);
+  return { from: from < first ? first : from, to: today };
+}
+
+// The same range as timestamps, for the chart filters.
+function graphRangeTs() {
+  const r = graphRangeDates();
+  return { fromTs: new Date(r.from + 'T00:00:00').getTime(), toTs: new Date(r.to + 'T23:59:59').getTime() };
+}
+
+// Shows the range in the bar: the active quick button and the two dates.
+function paintGraphRange() {
+  const r = graphRangeDates();
+  const f = document.getElementById('gRangeFrom'), t2 = document.getElementById('gRangeTo');
+  if (f) f.value = r.from;
+  if (t2) t2.value = r.to;
+  document.querySelectorAll('#graphRangePresets [data-range]').forEach(function (b) {
+    const on = b.dataset.range === graphRange.preset;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+}
+
+function setGraphRange(next) {
+  graphRange = next;
+  try { localStorage.setItem('dc_gRange', JSON.stringify(graphRange)); } catch (e) { }
+  // A zoom saved for the old range would point at the wrong stretch
+  ['cumulative', 'totalVolume', 'volume', 'discoveries'].forEach(function (k) { localStorage.removeItem('dc_zoom_' + k); });
+  paintGraphRange();
+  if (currentPeriod === 'graphs') renderGraphs();
+}
+
 function destroyGraphCharts() {
   Object.values(graphCharts).forEach(c => { try { c.destroy(); } catch (e) { } });
   graphCharts = {};
@@ -27249,6 +27293,7 @@ function renderGraphs() {
   if (!allPlays.length) return;
   destroyGraphCharts();
   const gc = getGraphColors();
+  paintGraphRange();
 
   // Build sorted list of all period keys
   const allKeys = new Set();
@@ -27278,25 +27323,10 @@ function renderGraphs() {
       gCumulativeArtists.push(sorted[0]);
       renderCumulativeChips();
     }
-    // Populate default date range from allPlays extents (only on first load)
-    const fromEl = document.getElementById('gCumulativeFrom');
-    const toEl = document.getElementById('gCumulativeTo');
-    if (!fromEl.value && allPlays.length) {
-      // allPlays is sorted descending — last entry is the oldest play
-      fromEl.value = localDateStr(tzDate(allPlays[allPlays.length - 1].date));
-      toEl.value = localDateStr(tzNow());
-    }
   }
   renderCumulativeChart(sortedKeys, labels, ptRadius, gc, axisOpts, legendOpts);
 
   // ── Chart 2: Total play volume ─────────────────────────────
-  {
-    const el = document.getElementById('gTotalVolumeFrom');
-    if (!el.value && allPlays.length) {
-      el.value = localDateStr(tzDate(allPlays[allPlays.length - 1].date));
-      document.getElementById('gTotalVolumeTo').value = localDateStr(tzNow());
-    }
-  }
   renderTotalVolumeChart(sortedKeys, gc, axisOpts, legendOpts);
 
   // ── Chart 3: Artist comparison volume ─────────────────────
@@ -27309,11 +27339,6 @@ function renderGraphs() {
     if (!gVolumeArtists.length && sorted.length) {
       gVolumeArtists.push(sorted[0]);
       renderVolumeChips();
-    }
-    const vFrom = document.getElementById('gVolumeFrom');
-    if (!vFrom.value && allPlays.length) {
-      vFrom.value = localDateStr(tzDate(allPlays[allPlays.length - 1].date));
-      document.getElementById('gVolumeTo').value = localDateStr(tzNow());
     }
   }
   renderVolumeChart(sortedKeys, gc, axisOpts, legendOpts);
@@ -27353,13 +27378,22 @@ function renderGraphs() {
         });
       }
     };
+    /* Shown for the page range only. The counting above still runs over the
+       whole history, so "new" keeps meaning heard for the first time ever. */
+    const { fromTs: dFromTs, toTs: dToTs } = graphRangeTs();
+    const dKeys = sortedKeys.filter(k => {
+      const d = graphGranularity === 'day' ? new Date(k + 'T00:00:00') :
+        graphGranularity === 'month' ? new Date(k + '-01T00:00:00') :
+          new Date(k + '-01-01T00:00:00');
+      return d.getTime() >= dFromTs && d.getTime() <= dToTs;
+    });
     graphCharts.discoveries = new Chart(document.getElementById('gDiscoveries'), {
       type: 'bar',
       data: {
-        labels, datasets: [
-          { label: 'New Songs', data: sortedKeys.map(k => nSong[k]), backgroundColor: GRAPH_PALETTE[0] + 'bb', borderColor: GRAPH_PALETTE[0], borderWidth: 1, stack: 'disc' },
-          { label: 'New Artists', data: sortedKeys.map(k => nArtist[k]), backgroundColor: GRAPH_PALETTE[1] + 'bb', borderColor: GRAPH_PALETTE[1], borderWidth: 1, stack: 'disc' },
-          { label: 'New Albums', data: sortedKeys.map(k => nAlbum[k]), backgroundColor: GRAPH_PALETTE[2] + 'bb', borderColor: GRAPH_PALETTE[2], borderWidth: 1, stack: 'disc' },
+        labels: dKeys.map(graphKeyLabel), datasets: [
+          { label: 'New Songs', data: dKeys.map(k => nSong[k]), backgroundColor: GRAPH_PALETTE[0] + 'bb', borderColor: GRAPH_PALETTE[0], borderWidth: 1, stack: 'disc' },
+          { label: 'New Artists', data: dKeys.map(k => nArtist[k]), backgroundColor: GRAPH_PALETTE[1] + 'bb', borderColor: GRAPH_PALETTE[1], borderWidth: 1, stack: 'disc' },
+          { label: 'New Albums', data: dKeys.map(k => nAlbum[k]), backgroundColor: GRAPH_PALETTE[2] + 'bb', borderColor: GRAPH_PALETTE[2], borderWidth: 1, stack: 'disc' },
         ]
       },
       options: {
@@ -27462,11 +27496,8 @@ function removeCumulativeArtist(idx) {
 function renderCumulativeChart(sortedKeys, labels, ptRadius, gc, axisOpts, legendOpts) {
   if (graphCharts.cumulative) { try { graphCharts.cumulative.destroy(); } catch (e) { } delete graphCharts.cumulative; }
 
-  // Date range filter
-  const fromVal = document.getElementById('gCumulativeFrom').value;
-  const toVal = document.getElementById('gCumulativeTo').value;
-  const fromTs = fromVal ? new Date(fromVal + 'T00:00:00').getTime() : -Infinity;
-  const toTs = toVal ? new Date(toVal + 'T23:59:59').getTime() : Infinity;
+  // The page-wide range (the bar at the top of Stats)
+  const { fromTs, toTs } = graphRangeTs();
 
   // Filter sortedKeys to range
   const filteredKeys = sortedKeys.filter(k => {
@@ -27570,14 +27601,6 @@ document.getElementById('gCumulativeArtistBtn').addEventListener('click', addCum
 document.getElementById('gCumulativeArtistInput').addEventListener('keydown', e => {
   if (e.key === 'Enter') addCumulativeArtist();
 });
-document.getElementById('gCumulativeFrom').addEventListener('change', () => {
-  localStorage.setItem('dc_gCumulativeFrom', document.getElementById('gCumulativeFrom').value);
-  triggerCumulativeUpdate();
-});
-document.getElementById('gCumulativeTo').addEventListener('change', () => {
-  localStorage.setItem('dc_gCumulativeTo', document.getElementById('gCumulativeTo').value);
-  triggerCumulativeUpdate();
-});
 document.getElementById('gCumulativeLabelsBtn').addEventListener('click', () => {
   gCumulativeLabels = !gCumulativeLabels;
   localStorage.setItem('dc_gCumulativeLabels', gCumulativeLabels ? '1' : '0');
@@ -27590,24 +27613,13 @@ document.getElementById('gCumulativeResetZoom').addEventListener('click', () => 
   localStorage.removeItem('dc_zoom_cumulative');
 });
 
-document.getElementById('gCumulativeResetRange').addEventListener('click', () => {
-  if (!allPlays.length) return;
-  document.getElementById('gCumulativeFrom').value = localDateStr(tzDate(allPlays[allPlays.length - 1].date));
-  document.getElementById('gCumulativeTo').value = localDateStr(tzNow());
-  localStorage.removeItem('dc_gCumulativeFrom');
-  localStorage.removeItem('dc_gCumulativeTo');
-  triggerCumulativeUpdate();
-});
-
 
 // ── Total volume chart (no artist filter) ────────────────────
 function renderTotalVolumeChart(sortedKeys, gc, axisOpts, legendOpts) {
   if (graphCharts.totalVolume) { try { graphCharts.totalVolume.destroy(); } catch (e) { } delete graphCharts.totalVolume; }
 
-  const fromVal = document.getElementById('gTotalVolumeFrom').value;
-  const toVal = document.getElementById('gTotalVolumeTo').value;
-  const fromTs = fromVal ? new Date(fromVal + 'T00:00:00').getTime() : -Infinity;
-  const toTs = toVal ? new Date(toVal + 'T23:59:59').getTime() : Infinity;
+  // The page-wide range (the bar at the top of Stats)
+  const { fromTs, toTs } = graphRangeTs();
 
   const filteredKeys = sortedKeys.filter(k => {
     const d = graphGranularity === 'day' ? new Date(k + 'T00:00:00') :
@@ -27705,10 +27717,8 @@ function removeVolumeArtist(idx) {
 function renderVolumeChart(sortedKeys, gc, axisOpts, legendOpts) {
   if (graphCharts.volume) { try { graphCharts.volume.destroy(); } catch (e) { } delete graphCharts.volume; }
 
-  const fromVal = document.getElementById('gVolumeFrom').value;
-  const toVal = document.getElementById('gVolumeTo').value;
-  const fromTs = fromVal ? new Date(fromVal + 'T00:00:00').getTime() : -Infinity;
-  const toTs = toVal ? new Date(toVal + 'T23:59:59').getTime() : Infinity;
+  // The page-wide range (the bar at the top of Stats)
+  const { fromTs, toTs } = graphRangeTs();
 
   const filteredKeys = sortedKeys.filter(k => {
     const d = graphGranularity === 'day' ? new Date(k + 'T00:00:00') :
@@ -27801,22 +27811,6 @@ function addVolumeArtist() {
 document.getElementById('gVolumeArtistBtn').addEventListener('click', addVolumeArtist);
 document.getElementById('gVolumeArtistInput').addEventListener('keydown', e => { if (e.key === 'Enter') addVolumeArtist(); });
 
-document.getElementById('gTotalVolumeFrom').addEventListener('change', () => {
-  localStorage.setItem('dc_gTotalVolumeFrom', document.getElementById('gTotalVolumeFrom').value);
-  triggerTotalVolumeUpdate();
-});
-document.getElementById('gTotalVolumeTo').addEventListener('change', () => {
-  localStorage.setItem('dc_gTotalVolumeTo', document.getElementById('gTotalVolumeTo').value);
-  triggerTotalVolumeUpdate();
-});
-document.getElementById('gTotalVolumeResetRange').addEventListener('click', () => {
-  if (!allPlays.length) return;
-  document.getElementById('gTotalVolumeFrom').value = localDateStr(tzDate(allPlays[allPlays.length - 1].date));
-  document.getElementById('gTotalVolumeTo').value = localDateStr(tzNow());
-  localStorage.removeItem('dc_gTotalVolumeFrom');
-  localStorage.removeItem('dc_gTotalVolumeTo');
-  triggerTotalVolumeUpdate();
-});
 document.getElementById('gTotalVolumeResetZoom').addEventListener('click', () => {
   if (graphCharts.totalVolume) graphCharts.totalVolume.resetZoom();
   localStorage.removeItem('dc_zoom_totalVolume');
@@ -27828,22 +27822,6 @@ document.getElementById('gTotalVolumeLabelsBtn').addEventListener('click', () =>
   triggerTotalVolumeUpdate();
 });
 
-document.getElementById('gVolumeFrom').addEventListener('change', () => {
-  localStorage.setItem('dc_gVolumeFrom', document.getElementById('gVolumeFrom').value);
-  triggerVolumeUpdate();
-});
-document.getElementById('gVolumeTo').addEventListener('change', () => {
-  localStorage.setItem('dc_gVolumeTo', document.getElementById('gVolumeTo').value);
-  triggerVolumeUpdate();
-});
-document.getElementById('gVolumeResetRange').addEventListener('click', () => {
-  if (!allPlays.length) return;
-  document.getElementById('gVolumeFrom').value = localDateStr(tzDate(allPlays[allPlays.length - 1].date));
-  document.getElementById('gVolumeTo').value = localDateStr(tzNow());
-  localStorage.removeItem('dc_gVolumeFrom');
-  localStorage.removeItem('dc_gVolumeTo');
-  triggerVolumeUpdate();
-});
 document.getElementById('gVolumeResetZoom').addEventListener('click', () => {
   if (graphCharts.volume) graphCharts.volume.resetZoom();
   localStorage.removeItem('dc_zoom_volume');
@@ -28437,6 +28415,21 @@ async function downloadRaceGif() {
 }
 
 document.getElementById('raceGifBtn').addEventListener('click', downloadRaceGif);
+
+// The page range: quick buttons, then the two date boxes (which make it custom)
+document.getElementById('graphRangePresets').addEventListener('click', e => {
+  const btn = e.target.closest('[data-range]');
+  if (!btn) return;
+  setGraphRange({ preset: btn.dataset.range, from: '', to: '' });
+});
+['gRangeFrom', 'gRangeTo'].forEach(id => {
+  document.getElementById(id).addEventListener('change', () => {
+    const f = document.getElementById('gRangeFrom').value, t2 = document.getElementById('gRangeTo').value;
+    if (!f || !t2) return;
+    // Dates the wrong way round are swapped rather than refused
+    setGraphRange({ preset: 'custom', from: f <= t2 ? f : t2, to: f <= t2 ? t2 : f });
+  });
+});
 
 document.getElementById('graphGranularity').addEventListener('click', e => {
   const btn = e.target.closest('button');
