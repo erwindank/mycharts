@@ -12429,36 +12429,88 @@
 
 
 
-    .raw-pagination {
+    /* Page controls (step 4): the same bar above and below the table.
+       ‹ › and « » with a page box between them; the top bar also holds
+       Rows per page. */
+    .raw-pager {
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
-      justify-content: center;
-      gap: var(--sp-4);
-      margin-top: var(--sp-4);
+      justify-content: space-between;
+      gap: var(--sp-2) var(--sp-4);
+      margin-block: var(--sp-2);
       font-family: var(--font-sans);
       font-size: var(--fs-xs);
       color: var(--text3);
+      /* the bottom bar scrolls the top one into view: clear the sticky
+         top bar and search bar */
+      scroll-margin-top: calc(var(--topbar-offset) + var(--raw-filters-h, 0px) + var(--sp-2));
     }
 
-    .raw-pagination button {
-      background: none;
-      border: 1px solid var(--border2);
+    .raw-pager:empty {
+      display: none;
+    }
+
+    .raw-pager-bottom {
+      justify-content: center;
+      margin-top: var(--sp-4);
+    }
+
+    .raw-pager-nav,
+    .raw-pager-size {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-2);
+    }
+
+    .raw-pager-step {
+      gap: 0.35rem;
+    }
+
+    .raw-pager-pos {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      white-space: nowrap;
       color: var(--text2);
-      font-family: var(--font-sans);
+    }
+
+    .raw-page-input {
+      width: 4.5em;
+      height: 28px;
+      padding: 0 0.4rem;
+      background: var(--bg2);
+      border: 1px solid var(--border2);
+      border-radius: var(--r-sm);
+      color: var(--text);
+      font-family: var(--font-mono);
       font-size: var(--fs-xs);
-      padding: var(--sp-1) var(--sp-3);
-      border-radius: var(--r-xs);
-      cursor: pointer;
-      transition: background 0.15s;
+      font-variant-numeric: tabular-nums;
+      text-align: center;
+      -moz-appearance: textfield;
     }
 
-    .raw-pagination button:hover {
-      background: var(--surface);
+    .raw-page-input::-webkit-inner-spin-button,
+    .raw-page-input::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
     }
 
-    .raw-pagination button:disabled {
-      opacity: 0.3;
-      cursor: default;
+    .raw-page-input:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+
+    /* Phones: arrows only, the words go */
+    @media (max-width: 600px) {
+      .raw-pager {
+        justify-content: center;
+        scroll-margin-top: var(--topbar-offset);
+      }
+
+      .raw-pager-word {
+        display: none;
+      }
     }
 
     /* CTRL GROUP — mobile: compact circle buttons */

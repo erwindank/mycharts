@@ -1863,6 +1863,14 @@ const TRANSLATIONS = {
     raw_no_match: 'No records match your filters.',
     raw_edit_play: 'Edit this play',
     raw_corrected_from: 'Auto-corrected from:',
+    raw_page_first: 'First page',
+    raw_page_prev: 'Previous',
+    raw_page_next: 'Next',
+    raw_page_last: 'Last page',
+    raw_page_word: 'Page',
+    raw_page_of: 'of {{total}}',
+    raw_rows_per_page: 'Rows per page',
+    raw_pages_aria: 'Pages',
 
     // Graphs
     gran_label: 'Granularity',
@@ -5333,6 +5341,14 @@ const TRANSLATIONS = {
     raw_no_match: 'Ningún registro coincide con tus filtros.',
     raw_edit_play: 'Editar esta reproducción',
     raw_corrected_from: 'Autocorregido desde:',
+    raw_page_first: 'Primera página',
+    raw_page_prev: 'Anterior',
+    raw_page_next: 'Siguiente',
+    raw_page_last: 'Última página',
+    raw_page_word: 'Página',
+    raw_page_of: 'de {{total}}',
+    raw_rows_per_page: 'Filas por página',
+    raw_pages_aria: 'Páginas',
 
     // Graphs
     gran_label: 'Granularidad',
@@ -8705,6 +8721,14 @@ const TRANSLATIONS = {
     raw_no_match: 'Nenhum registro corresponde aos seus filtros.',
     raw_edit_play: 'Editar este play',
     raw_corrected_from: 'Autocorrigido de:',
+    raw_page_first: 'Primeira página',
+    raw_page_prev: 'Anterior',
+    raw_page_next: 'Próxima',
+    raw_page_last: 'Última página',
+    raw_page_word: 'Página',
+    raw_page_of: 'de {{total}}',
+    raw_rows_per_page: 'Linhas por página',
+    raw_pages_aria: 'Páginas',
 
     // Graphs
     gran_label: 'Granularidade',
@@ -12077,6 +12101,14 @@ const TRANSLATIONS = {
     raw_no_match: 'Nenhum registo corresponde aos seus filtros.',
     raw_edit_play: 'Editar este play',
     raw_corrected_from: 'Corrigido automaticamente de:',
+    raw_page_first: 'Primeira página',
+    raw_page_prev: 'Anterior',
+    raw_page_next: 'Seguinte',
+    raw_page_last: 'Última página',
+    raw_page_word: 'Página',
+    raw_page_of: 'de {{total}}',
+    raw_rows_per_page: 'Linhas por página',
+    raw_pages_aria: 'Páginas',
 
     // Graphs
     gran_label: 'Granularidade',

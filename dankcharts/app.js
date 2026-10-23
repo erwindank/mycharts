@@ -12995,7 +12995,9 @@ document.getElementById('yearPicker').addEventListener('change', e => {
 });
 
 // ─── RAW DATA VIEW ─────────────────────────────────────────────
-const RAW_PAGE_SIZE = 200;
+// Rows per page: the "Rows per page" switch, remembered
+const RAW_PAGE_SIZES = [50, 100, 200, 500];
+let rawPageSize = (() => { try { const n = +localStorage.getItem('dc_rawPageSize'); return RAW_PAGE_SIZES.includes(n) ? n : 200; } catch (e) { return 200; } })();
 let rawPage = 0;
 let rawFiltered = [];
 let rawSortCol = 'date';
@@ -13044,10 +13046,10 @@ function applyRawFilters() {
 
 function renderRawPage() {
   const total = rawFiltered.length;
-  const totalPages = Math.max(1, Math.ceil(total / RAW_PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(total / rawPageSize));
   rawPage = Math.max(0, Math.min(rawPage, totalPages - 1));
-  const start = rawPage * RAW_PAGE_SIZE;
-  const slice = rawFiltered.slice(start, start + RAW_PAGE_SIZE);
+  const start = rawPage * rawPageSize;
+  const slice = rawFiltered.slice(start, start + rawPageSize);
 
   // Summary
   const hasFilter = ['rawFilterSong', 'rawFilterArtist', 'rawFilterAlbum', 'rawFilterDate'].some(id => document.getElementById(id).value.trim())
@@ -13083,9 +13085,9 @@ function renderRawPage() {
   }).join('') || `<tr><td colspan="6" class="raw-empty">${t('raw_no_match')}</td></tr>`;
 
   // Pagination
-  document.getElementById('rawPrevBtn').disabled = rawPage === 0;
-  document.getElementById('rawNextBtn').disabled = rawPage >= totalPages - 1;
-  document.getElementById('rawPageLabel').textContent = total > 0 ? t('page_label', { page: rawPage + 1, total: totalPages }) : '';
+  document.getElementById('rawPagerTop').innerHTML = rawPagerHTML(totalPages, true);
+  // the bottom bar only when there is more than one page to move through
+  document.getElementById('rawPagerBottom').innerHTML = totalPages > 1 ? rawPagerHTML(totalPages, false) : '';
 
   // Sort arrows
   document.querySelectorAll('.raw-th').forEach(th => {
@@ -13123,8 +13125,52 @@ new ResizeObserver(() => {
   document.getElementById('rawDataView').style.setProperty('--raw-filters-h', bar.getBoundingClientRect().height + 'px');
 }).observe(document.querySelector('#rawDataView .raw-filters'));
 
-document.getElementById('rawPrevBtn').addEventListener('click', () => { rawPage--; renderRawPage(); });
-document.getElementById('rawNextBtn').addEventListener('click', () => { rawPage++; renderRawPage(); });
+// Page bar: ‹ › and first / last, a page box to jump to, and (top bar
+// only) Rows per page. Both bars are redrawn on every page change.
+function rawPagerHTML(totalPages, withSize) {
+  const btn = (page, cls, label, ico, disabled) =>
+    `<button class="dc-btn dc-btn-normal dc-btn-sm ${cls}" data-raw-page="${page}" title="${label}" aria-label="${label}"${disabled ? ' disabled' : ''}>${ico}</button>`;
+  const first = rawPage === 0, last = rawPage >= totalPages - 1;
+  const nav = totalPages > 1 ? `<div class="raw-pager-nav">
+      ${btn(0, 'dc-btn-icon', esc(t('raw_page_first')), '«', first)}
+      ${btn(rawPage - 1, 'raw-pager-step', esc(t('raw_page_prev')), `‹<span class="raw-pager-word">${t('raw_page_prev')}</span>`, first)}
+      <label class="raw-pager-pos">${t('raw_page_word')} <input type="number" class="raw-page-input" min="1" max="${totalPages}" value="${rawPage + 1}" aria-label="${esc(t('raw_page_word'))}"> ${t('raw_page_of', { total: totalPages.toLocaleString() })}</label>
+      ${btn(rawPage + 1, 'raw-pager-step', esc(t('raw_page_next')), `<span class="raw-pager-word">${t('raw_page_next')}</span>›`, last)}
+      ${btn(totalPages - 1, 'dc-btn-icon', esc(t('raw_page_last')), '»', last)}
+    </div>` : '';
+  const size = withSize ? `<div class="raw-pager-size"><span>${t('raw_rows_per_page')}</span>
+      <div class="dc-seg" role="group" aria-label="${esc(t('raw_rows_per_page'))}">${RAW_PAGE_SIZES.map(n =>
+        `<button data-raw-size="${n}" aria-pressed="${n === rawPageSize}">${n}</button>`).join('')}</div></div>` : '';
+  return nav + size;
+}
+
+function rawGoToPage(page, fromBottom) {
+  rawPage = page;
+  renderRawPage();
+  // From the bottom bar, go back up to the first row of the new page
+  if (fromBottom) document.getElementById('rawPagerTop').scrollIntoView({ block: 'start' });
+}
+
+document.getElementById('rawDataView').addEventListener('click', e => {
+  const pageBtn = e.target.closest('[data-raw-page]');
+  if (pageBtn) { rawGoToPage(+pageBtn.dataset.rawPage, !!pageBtn.closest('#rawPagerBottom')); return; }
+  const sizeBtn = e.target.closest('[data-raw-size]');
+  if (sizeBtn) {
+    // keep the first row on screen the same play
+    const firstRow = rawPage * rawPageSize;
+    rawPageSize = +sizeBtn.dataset.rawSize;
+    try { localStorage.setItem('dc_rawPageSize', rawPageSize); } catch (err) {}
+    rawGoToPage(Math.floor(firstRow / rawPageSize), false);
+  }
+});
+
+document.getElementById('rawDataView').addEventListener('change', e => {
+  const box = e.target.closest('.raw-page-input');
+  if (!box) return;
+  const total = Math.max(1, Math.ceil(rawFiltered.length / rawPageSize));
+  const n = Math.min(total, Math.max(1, Math.round(+box.value) || 1));
+  rawGoToPage(n - 1, !!box.closest('#rawPagerBottom'));
+});
 
 document.querySelector('table.raw-table thead').addEventListener('click', e => {
   const th = e.target.closest('.raw-th');
