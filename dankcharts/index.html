@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=612">
+  <link rel="stylesheet" href="style.css?v=613">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=172"></script>
+  <script defer src="translations.js?v=173"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -1523,37 +1523,42 @@
 
     <!-- RAW DATA VIEW -->
     <div id="rawDataView">
-      <div class="section-header" style="margin-bottom:1rem;">
-        <h2 class="section-header-h2" data-i18n="sec_raw_data_title">⊞ Raw Scrobble Data</h2>
+      <!-- Titled like the tab ("Raw Data"), with the nav's line icon in place
+           of the old ⊞ pill, the same title as Records and Stats. -->
+      <div class="section-header raw-header">
+        <h2 class="section-header-h2"><svg class="graphs-h2-ico" viewBox="0 0 16 16" aria-hidden="true"
+            focusable="false"><ellipse cx="8" cy="3.7" rx="5.1" ry="2.1" /><path
+              d="M2.9 3.7v8.5c0 1.2 2.3 2.1 5.1 2.1s5.1-.9 5.1-2.1V3.7" /><path
+              d="M2.9 7.3c0 1.2 2.3 2.1 5.1 2.1s5.1-.9 5.1-2.1" /><path
+              d="M2.9 10.5c0 1.2 2.3 2.1 5.1 2.1s5.1-.9 5.1-2.1" /></svg><span
+            data-i18n="sec_raw_data_title">Raw Data</span></h2>
         <div class="section-rule"></div>
       </div>
+      <!-- The four search boxes on one row (two by two on phones); the
+           placeholder names each box, the aria-label does it for screen
+           readers. Under them one line: the total, then the switches. -->
       <div class="raw-filters">
-        <div class="raw-filter-group">
-          <label data-i18n="raw_song_label">Song Title</label>
-          <input type="text" id="rawFilterSong" placeholder="Search songs…" data-i18n-placeholder="raw_search_songs">
-        </div>
-        <div class="raw-filter-group">
-          <label data-i18n="raw_artist_label">Artist</label>
+        <div class="raw-search">
+          <input type="text" id="rawFilterSong" placeholder="Search songs…" data-i18n-placeholder="raw_search_songs"
+            aria-label="Song Title" data-i18n-aria-label="raw_song_label">
           <input type="text" id="rawFilterArtist" placeholder="Search artists…"
-            data-i18n-placeholder="raw_search_artists">
+            data-i18n-placeholder="raw_search_artists" aria-label="Artist" data-i18n-aria-label="raw_artist_label">
+          <input type="text" id="rawFilterAlbum" placeholder="Search albums…" data-i18n-placeholder="raw_search_albums"
+            aria-label="Album" data-i18n-aria-label="raw_album_label">
+          <input type="text" id="rawFilterDate" placeholder="Date, e.g. Mar 2024"
+            data-i18n-placeholder="raw_search_date" aria-label="Date" data-i18n-aria-label="raw_date_label">
         </div>
-        <div class="raw-filter-group">
-          <label data-i18n="raw_album_label">Album</label>
-          <input type="text" id="rawFilterAlbum" placeholder="Search albums…" data-i18n-placeholder="raw_search_albums">
+        <div class="raw-bar">
+          <div class="raw-summary" id="rawSummary" aria-live="polite"></div>
+          <label class="raw-corrected-toggle" title="Show only plays your auto-correct rules have changed"
+            data-i18n-title="raw_corrected_tip">
+            <input type="checkbox" id="rawFilterCorrected">
+            <span data-i18n="raw_corrected_only">Corrected only</span>
+          </label>
+          <button class="dc-btn dc-btn-normal dc-btn-sm" id="rawClearBtn" data-i18n="raw_clear" style="display:none">✕ Clear</button>
+          <button class="dc-btn dc-btn-normal dc-btn-sm" id="manageRulesBtn" onclick="openRulesModal()" data-i18n="modal_rules_open_btn">⚙ Auto-correct Rules</button>
         </div>
-        <div class="raw-filter-group">
-          <label data-i18n="raw_date_label">Date</label>
-          <input type="text" id="rawFilterDate" placeholder="e.g. 2024 or Mar 2024…"
-            data-i18n-placeholder="raw_search_date">
-        </div>
-        <button class="dc-btn dc-btn-normal dc-btn-sm" id="rawClearBtn" data-i18n="raw_clear">✕ Clear</button>
-        <label class="raw-corrected-toggle" title="Show only entries that have been autocorrected by your rules">
-          <input type="checkbox" id="rawFilterCorrected">
-          <span data-i18n="raw_corrected_only">~ corrected only</span>
-        </label>
-        <button class="dc-btn dc-btn-normal dc-btn-sm" id="manageRulesBtn" onclick="openRulesModal()" style="margin-left:auto" data-i18n="modal_rules_open_btn">⚙ Auto-correct Rules</button>
       </div>
-      <div class="raw-summary" id="rawSummary"></div>
       <table class="dc-table raw-table">
         <thead>
           <tr>
@@ -3928,7 +3933,7 @@
   <!-- Community board tab (suggestions / bugs / discussion). Loaded before
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
   <script defer src="board.js?v=4"></script>
-  <script defer src="app.js?v=477"></script>
+  <script defer src="app.js?v=478"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
   <script defer src="replay.js?v=1"></script>
   <!-- All-Time chart stats ("Inside your Top N"); reads app.js globals, so it loads after it -->

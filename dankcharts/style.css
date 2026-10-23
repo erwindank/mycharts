@@ -7739,6 +7739,7 @@
       margin-bottom: var(--sp-3);
     }
 
+    /* Also Raw Data's title icon. */
     .graphs-h2-ico {
       width: 1em;
       height: 1em;
@@ -12137,69 +12138,75 @@
       display: none;
     }
 
-    .raw-filters {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr 1fr auto;
-      gap: var(--sp-2);
-      margin-bottom: var(--sp-4);
-      align-items: end;
+    /* Top of the page (phase 9 part 3 step 1): the four search boxes on one
+       row, then one line with the total on the left and the switches on the
+       right. */
+    .raw-header {
+      margin-bottom: var(--sp-3);
     }
 
-    .raw-filter-group {
+    .raw-filters {
       display: flex;
       flex-direction: column;
-      gap: 0.3rem;
-      /* allow grid tracks to shrink below the input's intrinsic width —
-         without this the filters overflow the page on narrow screens */
-      min-width: 0;
+      gap: var(--sp-2);
+      margin-bottom: var(--sp-3);
     }
 
-    .raw-filter-group label {
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      color: var(--text3);
+    .raw-search {
+      display: grid;
+      /* minmax(0, …) lets the tracks shrink below an input's own width;
+         without it the boxes overflow the page on narrow screens */
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: var(--sp-2);
     }
 
-    .raw-filter-group input {
+    .raw-search input {
       background: var(--bg2);
       border: 1px solid var(--border2);
       color: var(--text);
       font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      padding: 0.35rem 0.6rem;
+      font-size: var(--fs-sm);
+      padding: 0.4rem 0.6rem;
       border-radius: var(--r-sm);
-      outline: none;
       transition: border-color var(--t-fast) var(--ease);
       min-width: 0;
       width: 100%;
     }
 
-    .raw-filter-group input:focus {
+    .raw-search input:focus {
       border-color: var(--accent);
+      outline: none;
     }
 
-    .raw-filter-group input::placeholder {
+    .raw-search input:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+
+    .raw-search input::placeholder {
       color: var(--text3);
     }
 
-
+    .raw-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--sp-2);
+    }
 
     .raw-summary {
+      flex: 1 1 auto;
       font-family: var(--font-sans);
       font-size: var(--fs-xs);
       color: var(--text3);
-      margin-bottom: var(--sp-3);
-      display: flex;
-      align-items: center;
-      gap: var(--sp-4);
     }
 
     .raw-summary strong {
-      color: var(--accent2);
+      color: var(--text);
       font-size: var(--fs-sm);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
     }
-
-
 
     .raw-table th {
       white-space: nowrap;
@@ -12437,8 +12444,8 @@
         display: none;
       }
 
-      .raw-filters {
-        grid-template-columns: 1fr 1fr;
+      .raw-search {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
       /* Raw Data table: hide # and Album cols, allow date to wrap, shrink to fit */
@@ -12828,9 +12835,10 @@
        chip (background/padding/radius) has to be cleared explicitly; it
        reads as a chip at 11px but as a white slab at heading sizes. */
 
-    /* Stats shares the Records page title (phase 9). */
+    /* Stats and Raw Data share the Records page title (phase 9). */
     #recordsView>.section-header .section-header-h2,
-    #graphsView>.section-header .section-header-h2 {
+    #graphsView>.section-header .section-header-h2,
+    #rawDataView>.section-header .section-header-h2 {
       font-family: var(--font-display);
       font-size: var(--fs-lg);
       font-weight: 500;

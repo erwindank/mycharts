@@ -13054,6 +13054,8 @@ function renderRawPage() {
   document.getElementById('rawSummary').innerHTML = hasFilter
     ? t('raw_showing', { n: `<strong>${total.toLocaleString()}</strong>`, total: totalAll.toLocaleString() })
     : t('raw_total', { n: `<strong>${totalAll.toLocaleString()}</strong>` });
+  // Clear only while there is something to clear
+  document.getElementById('rawClearBtn').style.display = hasFilter ? '' : 'none';
 
   // Rows
   document.getElementById('rawBody').innerHTML = slice.map((p, i) => {

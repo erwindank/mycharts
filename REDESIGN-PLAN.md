@@ -2408,6 +2408,15 @@ Steps:
    "Corrected only", Clear (only while a filter is on) and Auto-correct
    rules on the right. On phones the boxes go two by two and the line
    wraps under them.
+   **Done 2026-10-23:** title "Raw Data" (es "Base de datos", pt "Dados
+   brutos") with the database icon, sharing Records' / Stats' title rule
+   and .graphs-h2-ico. .raw-search (4 boxes, 2×2 under 601px) and
+   .raw-bar (total · Corrected only · Clear · Auto-correct rules); Clear
+   hides while nothing is filtered. The boxes lost their visible labels
+   (now aria-labels), so the date box says "Date, e.g. Mar 2024", short
+   enough for a phone. The total is ink, not accent, and sits next to its
+   words (the old flex gap pushed them apart). "~ corrected only" lost its
+   "~"; its tooltip is translated. Phone filters: ~450px → ~270px.
 2. **Sticky.** The search bar and the table's header row stay under the
    top bar while you scroll (from 601px up, like Stats' bar); on phones
    only the header row sticks.
