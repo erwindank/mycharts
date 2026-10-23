@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Raw Data: one play is counted as one play":
+    ["Dados brutos: um play é contado como um play",
+     "Quando uma música, um álbum ou uma busca tem só um play, Dados brutos e o histórico de plays nas janelas de músicas e álbuns agora dizem 1 play no total em vez de 1 plays no total. Funciona com Last.fm, Google Sheets e arquivos CSV."],
+
   "Play history fits on phones in every language":
     ["O histórico de plays cabe no celular em todos os idiomas",
      "No celular, a tabela do histórico de plays nas janelas de músicas e álbuns, e a página Dados brutos nos celulares menores, podiam ficar mais largas que a tela, e era preciso deslizar para o lado para ver o artista. Acontecia principalmente em espanhol e português, onde os nomes das colunas são mais longos. Agora os nomes das colunas quebram em duas linhas quando falta espaço e a tabela inteira cabe na tela. Funciona com Last.fm, Google Sheets e arquivos CSV."],

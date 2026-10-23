@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 285;
+const DC_CL_I18N_V = 286;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-23', t: 'fix', a: 'rawdata', h: 'd4381cb',
+    title: "Raw Data: one play is counted as one play",
+    detail: "When a song, album or search has exactly one play, Raw Data and the play history in song and album windows now say 1 play in total instead of 1 total plays, in every language. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-23', t: 'fix', a: 'rawdata', h: '72edf0f',
     title: "Play history fits on phones in every language",
     detail: "On a phone, the play history table in song and album windows, and the Raw Data page on the smallest phones, could be wider than the screen, so you had to slide sideways to see the artist. This happened mostly in Spanish and Portuguese, where the column names are longer. Column names now wrap onto two lines when there is no room, and the whole table fits the screen. Works with Last.fm, Google Sheets and CSV uploads." },

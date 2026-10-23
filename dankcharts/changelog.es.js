@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Raw Data: one play is counted as one play":
+    ["Base de datos: una reproducción se cuenta como una",
+     "Cuando una canción, un álbum o una búsqueda tiene una sola reproducción, Base de datos y el historial de reproducciones de las ventanas de canciones y álbumes dicen ahora 1 reproducción en total en lugar de 1 reproducciones en total. Funciona con Last.fm, Google Sheets y archivos CSV."],
+
   "Play history fits on phones in every language":
     ["El historial de reproducciones cabe en el móvil en todos los idiomas",
      "En el móvil, la tabla del historial de reproducciones en las ventanas de canciones y álbumes, y la página Base de datos en los móviles más pequeños, podían ser más anchas que la pantalla, así que había que deslizar hacia los lados para ver el artista. Pasaba sobre todo en español y portugués, donde los nombres de las columnas son más largos. Ahora los nombres de las columnas pasan a dos líneas cuando no hay sitio y toda la tabla cabe en la pantalla. Funciona con Last.fm, Google Sheets y archivos CSV."],
