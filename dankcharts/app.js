@@ -13057,7 +13057,7 @@ function renderRawPage() {
   const totalAll = allPlays.length;
   document.getElementById('rawSummary').innerHTML = hasFilter
     ? t('raw_showing', { n: `<strong>${total.toLocaleString()}</strong>`, total: totalAll.toLocaleString() })
-    : t('raw_total', { n: `<strong>${totalAll.toLocaleString()}</strong>` });
+    : t(totalAll === 1 ? 'raw_total_one' : 'raw_total', { n: `<strong>${totalAll.toLocaleString()}</strong>` });
   // Clear only while there is something to clear
   document.getElementById('rawClearBtn').style.display = hasFilter ? '' : 'none';
 
@@ -16567,7 +16567,7 @@ function buildItemRawDataHTML(type, key) {
 function _rawDataCount(shown, total, filtered) {
   return filtered
     ? t('raw_showing', { n: shown.toLocaleString(), total: total.toLocaleString() })
-    : t('raw_total', { n: total.toLocaleString() });
+    : t(total === 1 ? 'raw_total_one' : 'raw_total', { n: total.toLocaleString() });
 }
 
 function _rawDataRows(plays, sort, dir, query) {

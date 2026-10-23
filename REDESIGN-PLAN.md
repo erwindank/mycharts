@@ -2485,6 +2485,24 @@ Steps:
 6. **Screen check.** 1440 / 1100 / 390 touch, all 10 themes, four
    languages, sorting and every filter on the big library, no sideways
    scroll, no script errors.
+   **Done 2026-10-23** (217,311 plays): all four columns sort both ways
+   with the right arrow (# does not sort); song / artist / album / date
+   ("2024", "mar 2024") filters and a combination return only matching
+   rows; a full refilter takes ~57ms; Corrected only, Clear, the edit
+   pencil (right play on page 3 at 100 rows) work; all 10 themes looked
+   at; every label, tooltip and placeholder translated in en / es / pt-BR
+   / pt-PT; 1100, 390 and 320 touch with no sideways scroll, sticky
+   header under the top bar, bottom pager tap. Song and album pop-ups fit
+   at 320 and 390. Fixed: "1 reproducciones en total" → raw_total_one
+   (page and pop-ups). Left, not Raw Data's: numbers use the browser's
+   1,234 grouping in every language (toLocaleString() with no locale,
+   app-wide); at 320px the top bar's Sign in is 2–4px too wide on every
+   page; at 320px in Spanish the search placeholders are cut off; the
+   song / album pop-ups still have English section names ("Chart
+   Accomplishments", "Year-by-Year Breakdown"…).
+
+**Phase 9 part 3 (Raw Data) is finished** (2026-10-23). Next in phase 9:
+Events, Awards, Soundtrack and the rest, each looked at on screen first.
 
 The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in
