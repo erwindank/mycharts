@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 279;
+const DC_CL_I18N_V = 280;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-23', t: 'design', a: 'rawdata', h: '58a4260',
+    title: 'Raw Data: a tidier top of the page',
+    detail: "The top of Raw Data is calmer. The title now reads Raw Data, like the tab. The four search boxes sit on one row (two by two on a phone) without the labels that repeated what the boxes already say, so the plays start much higher on the page, especially on a phone. Under the boxes one line shows how many plays you have or how many match, then Corrected only, Clear (only while a search is on) and Auto-correct rules. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-23', t: 'fix', a: 'graphs', h: '903542a',
     title: "Stats in your language, and a heatmap made for light themes",
     detail: "Everything on Stats now follows the language you picked: the heatmap and its pop-up, month and day names, the race's Play and Pause button, the New Discoveries legend and the whole My Ratings card. Month and day names on the heatmaps in song, album and artist windows and on Streaks follow it too. On light themes the heatmap now runs from light to dark, so days with no plays match the page instead of showing as dark squares, and the busiest days stand out. Works with Last.fm, Google Sheets and CSV uploads." },

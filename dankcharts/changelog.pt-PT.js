@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Raw Data: a tidier top of the page":
+    ["Dados brutos: o topo da página mais arrumado",
+     "O topo de Dados brutos está mais calmo. O título diz agora Dados brutos, como o separador. As quatro caixas de pesquisa ficam numa linha (duas a duas no telemóvel), sem os rótulos que repetiam o que cada caixa já diz, por isso os plays começam muito mais acima, sobretudo no telemóvel. Por baixo das caixas, uma linha mostra quantos plays tens ou quantos correspondem à pesquisa, depois Só corrigidos, Limpar (só durante uma pesquisa) e Regras de autocorreção. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
+
   "Stats in your language, and a heatmap made for light themes":
     ["Estatísticas no teu idioma e um mapa de calor pensado para os temas claros",
      "Tudo em Estatísticas segue agora o idioma que escolheste: o mapa de calor e a janela que aparece sobre ele, os nomes dos meses e dos dias, o botão Reproduzir e Pausa da corrida, a legenda de Novas descobertas e todo o cartão As Minhas Avaliações. Os nomes de meses e dias dos mapas nas janelas de músicas, álbuns e artistas e em Sequências também seguem o idioma. Nos temas claros o mapa vai agora do claro ao escuro, por isso os dias sem plays ficam da cor da página em vez de quadrados escuros, e os dias com mais plays destacam-se. Funciona com Last.fm, Google Sheets e ficheiros CSV."],

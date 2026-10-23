@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Raw Data: a tidier top of the page":
+    ["Base de datos: la parte de arriba, más ordenada",
+     "La parte de arriba de Base de datos está más tranquila. El título dice ahora Base de datos, como la pestaña. Las cuatro casillas de búsqueda están en una fila (de dos en dos en el móvil) sin las etiquetas que repetían lo que ya dice cada casilla, así que las reproducciones empiezan mucho más arriba, sobre todo en el móvil. Debajo, una sola línea muestra cuántas reproducciones tienes o cuántas coinciden, y luego Solo corregidos, Limpiar (solo mientras buscas) y Reglas de autocorrección. Funciona con Last.fm, Google Sheets y archivos CSV."],
+
   "Stats in your language, and a heatmap made for light themes":
     ["Estadísticas en tu idioma y un mapa de escuchas pensado para los temas claros",
      "Todo en Estadísticas sigue ahora el idioma que elegiste: el mapa de escuchas y su ventana emergente, los nombres de los meses y los días, el botón Reproducir y Pausa de la carrera, la leyenda de Nuevos descubrimientos y toda la tarjeta Mis valoraciones. Los nombres de meses y días de los mapas en las ventanas de canciones, álbumes y artistas y en Rachas también lo siguen. En los temas claros el mapa va ahora de claro a oscuro, así que los días sin escuchas se ven como la página en lugar de cuadros oscuros, y los días con más escuchas destacan. Funciona con Last.fm, Google Sheets y archivos CSV."],
