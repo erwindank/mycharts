@@ -7832,6 +7832,44 @@
 
     .graph-card { padding: 1.1rem 1.1rem var(--sp-3); margin-bottom: 1.25rem; }
 
+    /* Card head: title (and description) on the left, the chart's tools as
+       small icon buttons on the right. */
+    .graph-card-head {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--sp-3);
+      margin-bottom: 0.5rem;
+    }
+
+    .graph-card-head > .graph-card-title,
+    .graph-card-text {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
+    .graph-card-tools {
+      display: flex;
+      gap: 2px;
+      flex: none;
+      margin: -4px -4px 0 0;
+    }
+
+    .graph-tool svg {
+      width: 15px;
+      height: 15px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* Labels switched on: the icon stays lit. */
+    .graph-tool[aria-pressed="true"] {
+      color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 14%, transparent);
+    }
+
     .graph-card-title {
       font-family: var(--font-sans);
       font-size: var(--fs-xs);

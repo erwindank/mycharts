@@ -13383,7 +13383,16 @@ function tCountHtml(key, n) {
 function updateLabelButton(elemId, isOn) {
   const btn = document.getElementById(elemId);
   if (btn) {
-    btn.textContent = isOn ? t('labels_on') : t('labels_off');
+    const label = isOn ? t('labels_on') : t('labels_off');
+    // The Stats charts' buttons are icons (phase 9): keep the icon, put the
+    // state in the tooltip, the screen-reader name and aria-pressed.
+    if (btn.classList.contains('graph-tool')) {
+      btn.title = label;
+      btn.setAttribute('aria-label', label);
+      btn.setAttribute('aria-pressed', isOn ? 'true' : 'false');
+    } else {
+      btn.textContent = label;
+    }
     btn.classList.toggle('active', isOn);
   }
 }
@@ -13612,13 +13621,15 @@ function setLanguage(lang) {
   // Re-render graphs tab if active (renderAll does not handle the graphs period)
   if (typeof currentPeriod !== 'undefined' && currentPeriod === 'graphs' && typeof renderGraphs === 'function') {
     renderGraphs();
-    // Refresh labels button text with the new language
-    if (typeof updateLabelButton === 'function') {
-      if (typeof gCumulativeLabels !== 'undefined') updateLabelButton('gCumulativeLabelsBtn', gCumulativeLabels);
-      if (typeof gTotalVolumeLabels !== 'undefined') updateLabelButton('gTotalVolumeLabelsBtn', gTotalVolumeLabels);
-      if (typeof gVolumeLabels !== 'undefined') updateLabelButton('gVolumeLabelsBtn', gVolumeLabels);
-      if (typeof gDiscoveriesLabels !== 'undefined') updateLabelButton('gDiscoveriesLabelsBtn', gDiscoveriesLabels);
-    }
+  }
+  // Refresh the Stats Labels buttons' tooltips in the new language. Done on
+  // every tab, not only Stats: they are icons now, so the tooltip is the only
+  // place their words live and nothing else would update it.
+  if (typeof updateLabelButton === 'function') {
+    if (typeof gCumulativeLabels !== 'undefined') updateLabelButton('gCumulativeLabelsBtn', gCumulativeLabels);
+    if (typeof gTotalVolumeLabels !== 'undefined') updateLabelButton('gTotalVolumeLabelsBtn', gTotalVolumeLabels);
+    if (typeof gVolumeLabels !== 'undefined') updateLabelButton('gVolumeLabelsBtn', gVolumeLabels);
+    if (typeof gDiscoveriesLabels !== 'undefined') updateLabelButton('gDiscoveriesLabelsBtn', gDiscoveriesLabels);
   }
 
   // Update theme label with new language

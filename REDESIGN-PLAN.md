@@ -2309,6 +2309,10 @@ Steps:
    The race keeps its own range from the first play (your call).
 2. **Card corner buttons.** "Labels" and "Reset zoom" become small icon
    buttons in each card's top-right corner, with tooltips.
+   **Done 2026-10-22:** .graph-card-head with .graph-card-tools on the four
+   charts; Labels shows its state in the tooltip and aria-pressed (lit
+   when on), updateLabelButton() keeps the icon; tooltips refresh on every
+   language change.
 3. **Chart style.** No vertical gridlines, faint horizontal ones, 12px
    muted axis text, the theme accent for single series, a fixed set of
    6–8 colours for comparisons (artists, the race), checked in all themes.

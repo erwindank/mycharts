@@ -6845,6 +6845,12 @@ function finalizeLoad() {
     gVolumeLabels = true;
     updateLabelButton('gVolumeLabelsBtn', true);
   }
+  // The Labels buttons are icons with the state in their tooltip: set it for
+  // the ones that are off too, in the current language.
+  updateLabelButton('gCumulativeLabelsBtn', gCumulativeLabels);
+  updateLabelButton('gTotalVolumeLabelsBtn', gTotalVolumeLabels);
+  updateLabelButton('gVolumeLabelsBtn', gVolumeLabels);
+  updateLabelButton('gDiscoveriesLabelsBtn', gDiscoveriesLabels);
 
   // Restore race/graph settings
   const savedRaceSpeed = localStorage.getItem('dc_raceSpeed');

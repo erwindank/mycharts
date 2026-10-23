@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=606">
+  <link rel="stylesheet" href="style.css?v=607">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -1335,8 +1335,19 @@
 
       <!-- Chart 1: Cumulative plays over time -->
       <div class="dc-card graph-card">
-        <div class="graph-card-title" data-i18n="graph_cumulative_title">📈 Cumulative Plays Over Time — Artist
-          Comparison</div>
+        <!-- Title on the left, the chart's two tools as small icons on the
+             right: show labels on the chart, and reset the zoom. -->
+        <div class="graph-card-head">
+          <div class="graph-card-title" data-i18n="graph_cumulative_title">📈 Cumulative Plays Over Time — Artist
+            Comparison</div>
+          <div class="graph-card-tools">
+            <button id="gCumulativeLabelsBtn" type="button" class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon graph-tool"
+              aria-pressed="false" title="Labels: Off" aria-label="Labels: Off"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M2.5 3.5h7l4 4.5-4 4.5h-7z" /><path d="M5.5 8h3" /></svg></button>
+            <button id="gCumulativeResetZoom" type="button" class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon graph-tool"
+              data-i18n-title="tooltip_reset_zoom" data-i18n-aria="btn_reset_zoom" title="Reset the chart zoom to show the full date range"
+              aria-label="Reset Zoom"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="7" cy="7" r="4.5" /><path d="m10.4 10.4 3.6 3.6M5 7h4" /></svg></button>
+          </div>
+        </div>
         <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
           <input id="gCumulativeArtistInput" type="text" list="gCumulativeArtistList" data-i18n-placeholder="graph_add_artist" placeholder="Add an artist…"
             style="flex:1;min-width:0;background:var(--bg2);border:1px solid var(--border2);color:var(--text);
@@ -1345,32 +1356,40 @@
           <button id="gCumulativeArtistBtn" class="dc-btn dc-btn-main dc-btn-sm" data-i18n="btn_add" style="white-space:nowrap;">+ Add</button>
         </div>
         <div id="gCumulativeChips" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:0.6rem;min-height:0;"></div>
-        <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.75rem;">
-          <button id="gCumulativeLabelsBtn" class="dc-btn dc-btn-normal dc-btn-sm" data-i18n-title="tooltip_toggle_labels"
-            style="white-space:nowrap;">Labels: Off</button>
-          <button id="gCumulativeResetZoom" class="dc-btn dc-btn-normal dc-btn-sm" data-i18n="btn_reset_zoom" data-i18n-title="tooltip_reset_zoom"
-            style="white-space:nowrap;">Reset Zoom</button>
-        </div>
         <div class="graph-canvas-wrap"><canvas id="gCumulative"></canvas></div>
       </div>
 
       <!-- Chart 2: Total play volume -->
       <div class="dc-card graph-card">
-        <div class="graph-card-title" data-i18n="graph_volume_title">📊 Total Play Volume by Period</div>
-        <div class="graph-card-sub" data-i18n="graph_volume_sub">How many songs you played each period across all
-          artists</div>
-        <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.75rem;">
-          <button id="gTotalVolumeResetZoom" class="dc-btn dc-btn-normal dc-btn-sm" data-i18n="btn_reset_zoom" data-i18n-title="tooltip_reset_zoom"
-            style="white-space:nowrap;">Reset Zoom</button>
-          <button id="gTotalVolumeLabelsBtn" class="dc-btn dc-btn-normal dc-btn-sm" data-i18n-title="tooltip_toggle_labels"
-            style="white-space:nowrap;">Labels: Off</button>
+        <div class="graph-card-head">
+          <div class="graph-card-text">
+            <div class="graph-card-title" data-i18n="graph_volume_title">📊 Total Play Volume by Period</div>
+            <div class="graph-card-sub" data-i18n="graph_volume_sub">How many songs you played each period across all
+              artists</div>
+          </div>
+          <div class="graph-card-tools">
+            <button id="gTotalVolumeLabelsBtn" type="button" class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon graph-tool"
+              aria-pressed="false" title="Labels: Off" aria-label="Labels: Off"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M2.5 3.5h7l4 4.5-4 4.5h-7z" /><path d="M5.5 8h3" /></svg></button>
+            <button id="gTotalVolumeResetZoom" type="button" class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon graph-tool"
+              data-i18n-title="tooltip_reset_zoom" data-i18n-aria="btn_reset_zoom" title="Reset the chart zoom to show the full date range"
+              aria-label="Reset Zoom"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="7" cy="7" r="4.5" /><path d="m10.4 10.4 3.6 3.6M5 7h4" /></svg></button>
+          </div>
         </div>
         <div class="graph-canvas-wrap"><canvas id="gTotalVolume"></canvas></div>
       </div>
 
       <!-- Chart 3: Play volume by artist comparison -->
       <div class="dc-card graph-card">
-        <div class="graph-card-title" data-i18n="graph_volume_comp_title">📊 Play Volume by Period — Artist Comparison
+        <div class="graph-card-head">
+          <div class="graph-card-title" data-i18n="graph_volume_comp_title">📊 Play Volume by Period — Artist Comparison
+          </div>
+          <div class="graph-card-tools">
+            <button id="gVolumeLabelsBtn" type="button" class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon graph-tool"
+              aria-pressed="false" title="Labels: Off" aria-label="Labels: Off"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M2.5 3.5h7l4 4.5-4 4.5h-7z" /><path d="M5.5 8h3" /></svg></button>
+            <button id="gVolumeResetZoom" type="button" class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon graph-tool"
+              data-i18n-title="tooltip_reset_zoom" data-i18n-aria="btn_reset_zoom" title="Reset the chart zoom to show the full date range"
+              aria-label="Reset Zoom"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="7" cy="7" r="4.5" /><path d="m10.4 10.4 3.6 3.6M5 7h4" /></svg></button>
+          </div>
         </div>
         <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
           <input id="gVolumeArtistInput" type="text" list="gVolumeArtistList" data-i18n-placeholder="graph_add_artist" placeholder="Add an artist…"
@@ -1380,25 +1399,24 @@
           <button id="gVolumeArtistBtn" class="dc-btn dc-btn-main dc-btn-sm" data-i18n="btn_add" style="white-space:nowrap;">+ Add</button>
         </div>
         <div id="gVolumeChips" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:0.6rem;min-height:0;"></div>
-        <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.75rem;">
-          <button id="gVolumeResetZoom" class="dc-btn dc-btn-normal dc-btn-sm" data-i18n="btn_reset_zoom" data-i18n-title="tooltip_reset_zoom"
-            style="white-space:nowrap;">Reset Zoom</button>
-          <button id="gVolumeLabelsBtn" class="dc-btn dc-btn-normal dc-btn-sm" data-i18n-title="tooltip_toggle_labels"
-            style="white-space:nowrap;">Labels: Off</button>
-        </div>
         <div class="graph-canvas-wrap"><canvas id="gVolume"></canvas></div>
       </div>
 
       <!-- Chart 4: New discoveries per period -->
       <div class="dc-card graph-card">
-        <div class="graph-card-title" data-i18n="graph_discoveries_title">✨ New Discoveries per Period</div>
-        <div class="graph-card-sub" data-i18n="graph_discoveries_sub">Songs, artists and albums heard for the first time
-          each period</div>
-        <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.75rem;">
-          <button id="gDiscoveriesResetZoom" class="dc-btn dc-btn-normal dc-btn-sm" data-i18n="btn_reset_zoom" data-i18n-title="tooltip_reset_zoom"
-            style="white-space:nowrap;">Reset Zoom</button>
-          <button id="gDiscoveriesLabelsBtn" class="dc-btn dc-btn-normal dc-btn-sm" data-i18n-title="tooltip_toggle_labels"
-            style="white-space:nowrap;">Labels: Off</button>
+        <div class="graph-card-head">
+          <div class="graph-card-text">
+            <div class="graph-card-title" data-i18n="graph_discoveries_title">✨ New Discoveries per Period</div>
+            <div class="graph-card-sub" data-i18n="graph_discoveries_sub">Songs, artists and albums heard for the first time
+              each period</div>
+          </div>
+          <div class="graph-card-tools">
+            <button id="gDiscoveriesLabelsBtn" type="button" class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon graph-tool"
+              aria-pressed="false" title="Labels: Off" aria-label="Labels: Off"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M2.5 3.5h7l4 4.5-4 4.5h-7z" /><path d="M5.5 8h3" /></svg></button>
+            <button id="gDiscoveriesResetZoom" type="button" class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon graph-tool"
+              data-i18n-title="tooltip_reset_zoom" data-i18n-aria="btn_reset_zoom" title="Reset the chart zoom to show the full date range"
+              aria-label="Reset Zoom"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="7" cy="7" r="4.5" /><path d="m10.4 10.4 3.6 3.6M5 7h4" /></svg></button>
+          </div>
         </div>
         <div class="graph-canvas-wrap"><canvas id="gDiscoveries"></canvas></div>
       </div>
