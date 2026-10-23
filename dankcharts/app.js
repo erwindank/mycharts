@@ -30687,14 +30687,21 @@ function _evReleasePlays(title, artist) {
   return Math.max(_evPlayCounts.albums.get(k) || 0, _evPlayCounts.tracks.get(k) || 0);
 }
 
-// Round anniversaries (5th, 10th, 15th…) first, then the ones you played most,
-// then by how high the artist sits in your top artists
+// The ones you played most first. A round anniversary (5th, 10th, 15th…)
+// counts its plays a fifth higher, so it moves ahead of a release you played
+// about as much but never ahead of one you played far more; with no plays
+// either way it goes first. Then by how high the artist sits in your top artists.
+const EV_ROUND_BOOST = 1.2;
 function _evRankAnniversaries(list) {
   const rank = new Map((_eventsArtists || []).map((a, i) => [a, i]));
   const pos = name => (rank.has(name) ? rank.get(name) : 1e9);
   return list
-    .map(a => ({ a, plays: _evReleasePlays(a.title, a.artistName), round: a.years % 5 === 0 ? 1 : 0 }))
-    .sort((x, y) => (y.round - x.round) || (y.plays - x.plays) || (pos(x.a.artistName) - pos(y.a.artistName)));
+    .map(a => {
+      const plays = _evReleasePlays(a.title, a.artistName);
+      const round = a.years % 5 === 0 ? 1 : 0;
+      return { a, plays, round, score: plays * (round ? EV_ROUND_BOOST : 1) };
+    })
+    .sort((x, y) => (y.score - x.score) || (y.round - x.round) || (pos(x.a.artistName) - pos(y.a.artistName)));
 }
 
 function _renderEventsToday() {

@@ -2658,8 +2658,11 @@ Steps:
    now and the rest queued (evPlayTab; the same songs as ＋ Playlist,
    _evTabTracks). Checked at 1440 and 390 (touch), en and es, with 14
    anniversaries today from the test library: 8 shown, Show all 14,
-   Play all on all four tabs, no errors. **To look at:** round-first
-   puts a 10th anniversary with 1 play above a 12th with 682.
+   Play all on all four tabs, no errors. **Ranking changed the same day**
+   (you agreed): round-first put a 10th anniversary with 1 play above a
+   12th with 682, so plays lead now and a round year only counts its
+   plays a fifth higher (EV_ROUND_BOOST 1.2): it passes releases played
+   about as much, and goes first when nothing has plays.
 5. **Coming up.** Birthdays, anniversaries, releases, shows and New Music
    Friday in one list grouped by date (This week / Later this month / Next
    3 months), anniversaries ranked and capped.
