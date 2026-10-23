@@ -12406,8 +12406,6 @@ document.addEventListener('click', e => {
     localStorage.setItem('dc_rec_section_collapsed_' + section.id, collapsed ? '1' : '0');
   } else if (CHART_COLLAPSIBLE_SECTIONS.includes(section.id)) {
     localStorage.setItem('dc_chart_section_collapsed_' + section.id + '_' + currentPeriod, collapsed ? '1' : '0');
-  } else if (['timeMachineSection', 'birthdaysSection', 'anniversariesSection', 'eventsUpcomingSection', 'eventsRecentSection', 'eventsRecentBirthdaysSection', 'eventsRecentAnniversariesSection', 'nmfSection'].includes(section.id)) {
-    localStorage.setItem('dc_events_section_collapsed_' + section.id, collapsed ? '1' : '0');
   }
 });
 
@@ -12630,17 +12628,8 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('eventsView').style.display = 'block';
     _syncEventsTypeFilter();
     setEventsTab(eventsTab);
-    ['timeMachineSection', 'birthdaysSection', 'anniversariesSection', 'eventsUpcomingSection', 'eventsRecentSection', 'eventsRecentBirthdaysSection', 'eventsRecentAnniversariesSection', 'nmfSection'].forEach(id => {
-      const el = document.getElementById(id);
-      if (!el) return;
-      const key = 'dc_events_section_collapsed_' + id;
-      const saved = localStorage.getItem(key);
-      const defaultCollapsed = ['eventsRecentBirthdaysSection', 'eventsRecentAnniversariesSection', 'nmfSection'].includes(id);
-      const collapsed = saved !== null ? saved === '1' : defaultCollapsed;
-      el.classList.toggle('collapsed', collapsed);
-      const btn = el.querySelector('.section-collapse-btn');
-      if (btn) { btn.textContent = collapsed ? '+' : '−'; btn.title = collapsed ? 'Expand' : 'Collapse'; }
-    });
+    _syncEventsViewBtns();
+    _syncNMFPastBtn();
     renderTimeMachine();
     if (allPlays.length) { loadEvents(); loadConcerts(); loadNMF(); }
     if (typeof window._refreshBackToTop === 'function') window._refreshBackToTop();
@@ -12744,12 +12733,8 @@ document.getElementById('periodNav').addEventListener('click', e => {
     // playlist manager (dc-pl-mode hides the rest of Events)
     const _evPl = document.getElementById('eventsView');
     if (_evPl) { _evPl.classList.add('dc-pl-mode'); _evPl.style.display = 'block'; }
-    // Default all sections to Reel (carousel) view for easy browsing
-    if (typeof setEventsView === 'function') {
-      setEventsView('eventsRecent', 'carousel');
-      setEventsView('anniversaries', 'carousel');
-    }
-    // Those two reels are filled by the Events loader, which otherwise only runs
+    // Those two show as reels here whatever the Events page's view is
+    // (_evMode); the reels are filled by the Events loader, which otherwise only runs
     // on the Events tab; it reads its cache first, so this is cheap after once
     if (allPlays.length) loadEvents();
     document.getElementById('playlistsView').style.display = 'block';
@@ -21657,46 +21642,7 @@ function closeExportModal() {
   modal.classList.remove('modal-on-top'); // back to the shared modal level
 }
 
-// Play all singles for the currently viewed day in the in-site music player
-function calPlayAll() {
-  if (!_eventsCalendarData) return;
-  const dateObj = new Date(eventsCalendarYear, eventsCalendarMonth, eventsCalendarDay);
-  const ds = localDateStr(dateObj);
-  const dayMap = buildCalendarDayMap(
-    { ..._eventsCalendarData, concerts: [] },
-    new Set([ds])
-  );
-  const events = (dayMap[ds] || []).filter(ev => ev.ttType === 'anniversary' || ev.ttType === 'release');
-  if (!events.length) return;
-  const tracks = events.map(ev => ({ title: ev.ttTitle, artist: ev.ttArtist }));
-  const [first, ...rest] = tracks;
-  openYtPlayer(first.title, first.artist, '', null);
-  rest.forEach(t => _ytQueue.push({ title: t.title, artist: t.artist, album: '', btn: null }));
-  _ytUpdateQueueDisplay();
-  _ytSaveQueue();
-}
-
 let _calCreatePlTracks = null; // tracks staged for the create-playlist modal
-
-function openCalCreatePlModal() {
-  if (!_eventsCalendarData) return;
-  const dateObj = new Date(eventsCalendarYear, eventsCalendarMonth, eventsCalendarDay);
-  const ds = localDateStr(dateObj);
-  const dayMap = buildCalendarDayMap(
-    { ..._eventsCalendarData, concerts: [] },
-    new Set([ds])
-  );
-  const events = (dayMap[ds] || []).filter(ev => ev.ttType === 'anniversary' || ev.ttType === 'release');
-  if (!events.length) { alert('No singles found on this day.'); return; }
-  _calCreatePlTracks = events.map(ev => ({ title: ev.ttTitle, artist: ev.ttArtist, album: '' }));
-  const dateLabel = fmtDate(dateObj);
-  document.getElementById('calCreatePlSub').textContent = `${tCount('songs', _calCreatePlTracks.length)} · ${dateLabel}`;
-  const nameInput = document.getElementById('calCreatePlName');
-  nameInput.value = `Singles · ${dateLabel}`;
-  document.getElementById('calCreatePlModal').classList.add('open');
-  // Pre-select so user can immediately type a new name
-  setTimeout(() => nameInput.select(), 80);
-}
 
 function closeCalCreatePlModal() {
   document.getElementById('calCreatePlModal').classList.remove('open');
@@ -21715,33 +21661,6 @@ function _calCreatePlConfirm() {
   // Refresh the Playlists tab manager if it's currently open
   if (typeof currentPeriod !== 'undefined' && currentPeriod === 'playlists') dcRenderPlaylistsView();
   closeCalCreatePlModal();
-}
-
-function openCalendarExportModal() {
-  if (!_eventsCalendarData) return;
-  const dateObj = new Date(eventsCalendarYear, eventsCalendarMonth, eventsCalendarDay);
-  const ds = localDateStr(dateObj);
-  const dayMap = buildCalendarDayMap(
-    { ..._eventsCalendarData, concerts: [] },
-    new Set([ds])
-  );
-  const events = (dayMap[ds] || []).filter(ev => ev.ttType === 'anniversary' || ev.ttType === 'release');
-  if (!events.length) { alert('No singles found on this day.'); return; }
-
-  const dateLabel = fmtDate(dateObj);
-  const songs = events.map(ev => ({ title: ev.ttTitle, artist: ev.ttArtist, album: '' }));
-  // Name ideas: the day's singles, anniversaries ("On This Day") when there
-  // are any, new releases when there are any, plus the top two artists
-  const names = [t('export_pn_cal_singles', { date: dateLabel })];
-  if (events.some(ev => ev.ttType === 'anniversary')) {
-    names.push(t('export_pn_cal_on_this_day', { date: dateLabel }));
-    names.push(t('export_pn_cal_throwback', { date: dateLabel }));
-  }
-  if (events.some(ev => ev.ttType === 'release')) names.push(t('export_pn_cal_releases', { date: dateLabel }));
-  const artists = [...new Set(songs.map(s => s.artist.split(',')[0].trim()).filter(Boolean))];
-  if (artists.length >= 2) names.push(t('export_pn_two_and_mix', { a1: artists[0], a2: artists[1] }));
-  names.push(t('export_pn_top_picks', { n: songs.length }));
-  dcOpenTextExport(songs, dateLabel, names);
 }
 
 /* Opens the Soundiiz text export (the chart's Export modal) with any song list
@@ -27204,21 +27123,6 @@ function upcomingDateLabel(dateStr) {
   return { label: fmt, soon: days <= 14 };
 }
 
-function renderUpcomingCard(release, artistName) {
-  const { label, soon } = upcomingDateLabel(release.date);
-  const typeKey = 'mb_type_' + (release.type || 'Release').toLowerCase();
-  const typeLabel = t(typeKey) || release.type || 'Release';
-  const imgSrc = release.mbid ? `https://coverartarchive.org/release-group/${release.mbid}/front-250` : null;
-  const imgHtml = `<img class="upcoming-card-img${imgSrc ? '' : ' upcoming-card-img-pending'}" ${imgSrc ? `src="${imgSrc}" onerror="releaseImgFallback(this)"` : ''} alt="" loading="lazy" data-artist="${esc(artistName)}" data-title="${esc(release.title)}" data-sources="itunes,lastfm">`;
-  return `<div class="dc-card-inset upcoming-card" onclick="_relShowMenu(event,${esc(JSON.stringify(release.title))},${esc(JSON.stringify(artistName))})">
-    ${imgHtml}
-    <div class="upcoming-card-date${soon ? ' soon' : ''}" data-date="${esc(release.date)}">${esc(label)}</div>
-    <div class="upcoming-card-title">${esc(release.title)}</div>
-    <div class="upcoming-card-artist">${esc(artistName)}</div>
-    <div class="upcoming-card-type" data-mbtype="${esc(release.type || 'Release')}">${esc(typeLabel)}</div>
-  </div>`;
-}
-
 function sortUpcomingReleases(releases) {
   return releases.filter(r => r.release?.date).sort((a, b) =>
     (a.release.date || '').localeCompare(b.release.date || ''));
@@ -27243,22 +27147,6 @@ async function fetchRecentReleasesForMBID(mbid) {
       mbid: g.id
     }));
   } catch (e) { return []; }
-}
-
-function renderRecentCard(release, artistName) {
-  const d = new Date(release.date + 'T00:00:00');
-  const label = fmtDate(d);
-  const typeKey = 'mb_type_' + (release.type || 'Release').toLowerCase();
-  const typeLabel = t(typeKey) || release.type || 'Release';
-  const imgSrc = release.mbid ? `https://coverartarchive.org/release-group/${release.mbid}/front-250` : null;
-  const imgHtml = `<img class="upcoming-card-img${imgSrc ? '' : ' upcoming-card-img-pending'}" ${imgSrc ? `src="${imgSrc}" onerror="releaseImgFallback(this)"` : ''} alt="" loading="lazy" data-artist="${esc(artistName)}" data-title="${esc(release.title)}" data-sources="itunes,lastfm">`;
-  return `<div class="dc-card-inset upcoming-card" onclick="_tmShowAlbumMenu(event,${esc(JSON.stringify(release.title))},${esc(JSON.stringify(artistName))})">
-    ${imgHtml}
-    <div class="upcoming-card-date recent" data-date="${esc(release.date)}">${esc(label)}</div>
-    <div class="upcoming-card-title">${esc(release.title)}</div>
-    <div class="upcoming-card-artist">${esc(artistName)}</div>
-    <div class="upcoming-card-type" data-mbtype="${esc(release.type || 'Release')}">${esc(typeLabel)}</div>
-  </div>`;
 }
 
 function sortRecentReleases(releases) {
@@ -29874,7 +29762,6 @@ function toggleEventsType(type) {
   try { localStorage.setItem('dc_events_type_filter', JSON.stringify([...eventsTypeFilter])); } catch (e) {}
   if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
   _syncEventsTypeFilter();
-  _syncCalExportBtn();
   if (type === 'show') {
     _syncConcertsSectionVisibility();
     if (_eventsCalendarData) renderEventsCalendar(_eventsCalendarData, eventsCalendarYear, eventsCalendarMonth);
@@ -29984,89 +29871,6 @@ function ordinalSuffix(n) {
   if (n === 11 || n === 12 || n === 13) return n + 'th';
   const s = ['th', 'st', 'nd', 'rd'];
   return n + (s[n % 10] || 'th');
-}
-
-function renderBirthdayCard(entry) {
-  const { artistName, dateStr, daysUntil } = entry;
-  const isToday = daysUntil === 0;
-  const birthYear = parseInt(dateStr.slice(0, 4));
-  const currentYear = tzNow().getFullYear();
-  const age = isToday ? currentYear - birthYear : (currentYear + (daysUntil > 0 ? 0 : 1)) - birthYear;
-  const [, mm, dd] = dateStr.split('-');
-  const displayDate = fmtDate(new Date(currentYear + (daysUntil < 0 ? 1 : 0), parseInt(mm) - 1, parseInt(dd)));
-  const countdownLabel = isToday ? 'TODAY' : `in ${daysUntil} day${daysUntil === 1 ? '' : 's'}`;
-  const imgHtml = `<img class="upcoming-card-img upcoming-card-img-pending" alt="" loading="lazy" data-artist="${esc(artistName)}" data-title="" data-sources="deezer-artist">`;
-  // The card opens the artist action menu (Spotify, a playlist, the last 10
-  // songs, Google) instead of jumping straight out to the birthday search —
-  // that search is still there, as the menu's Google option. The ＋ stays the
-  // shortcut: it builds a playlist from what the user has actually played by
-  // this artist (see dcPlTracksFor).
-  return `<div class="dc-card-inset upcoming-card${isToday ? ' event-today' : ''}" onclick="_tmShowBirthdayMenu(event,${esc(JSON.stringify(artistName))})">
-    ${dcPlBtnHtml('artist', '', artistName, '', 'dc-pl-add-card')}
-    ${imgHtml}
-    <div class="upcoming-card-date${isToday ? ' soon' : ''}">${countdownLabel}</div>
-    <div class="upcoming-card-title">${esc(artistName)}</div>
-    <div class="upcoming-card-artist">${esc(displayDate)} · Turning ${age}</div>
-    <div class="upcoming-card-type">🎂 Birthday</div>
-  </div>`;
-}
-
-function renderRecentBirthdayCard(entry) {
-  const { artistName, dateStr, daysAgo } = entry;
-  const birthYear = parseInt(dateStr.slice(0, 4));
-  const currentYear = tzNow().getFullYear();
-  const age = currentYear - birthYear;
-  const [, mm, dd] = dateStr.split('-');
-  const displayDate = fmtDate(new Date(currentYear, parseInt(mm) - 1, parseInt(dd)));
-  const daysAgoLabel = `${daysAgo} day${daysAgo === 1 ? '' : 's'} ago`;
-  const imgHtml = `<img class="upcoming-card-img upcoming-card-img-pending" alt="" loading="lazy" data-artist="${esc(artistName)}" data-title="" data-sources="deezer-artist">`;
-  return `<div class="dc-card-inset upcoming-card" onclick="_tmShowBirthdayMenu(event,${esc(JSON.stringify(artistName))})">
-    ${dcPlBtnHtml('artist', '', artistName, '', 'dc-pl-add-card')}
-    ${imgHtml}
-    <div class="upcoming-card-date recent">${daysAgoLabel}</div>
-    <div class="upcoming-card-title">${esc(artistName)}</div>
-    <div class="upcoming-card-artist">${esc(displayDate)} · Turned ${age}</div>
-    <div class="upcoming-card-type">🎂 Birthday</div>
-  </div>`;
-}
-
-function renderAnniversaryCard(entry) {
-  const { artistName, title, type, releaseDate, years, daysUntil, mbid } = entry;
-  const isToday = daysUntil === 0;
-  const typeKey = 'mb_type_' + (type || 'Release').toLowerCase();
-  const typeLabel = t(typeKey) || type || 'Release';
-  const countdownLabel = isToday ? 'TODAY' : `in ${daysUntil} day${daysUntil === 1 ? '' : 's'}`;
-  const imgSrc = mbid ? `https://coverartarchive.org/release-group/${mbid}/front-250` : null;
-  const imgHtml = `<img class="upcoming-card-img${imgSrc ? '' : ' upcoming-card-img-pending'}" ${imgSrc ? `src="${imgSrc}" onerror="releaseImgFallback(this)"` : ''} alt="" loading="lazy" data-artist="${esc(artistName)}" data-title="${esc(title)}" data-sources="deezer,itunes,lastfm">`;
-  // The card opens the release action menu (Spotify, a playlist, the last 10
-  // songs, Google) instead of going straight to Google. The ＋ is still the
-  // shortcut: it pulls this release's played tracks, falling back to the
-  // release itself when it has never been played (see dcPlTracksFor).
-  return `<div class="dc-card-inset upcoming-card${isToday ? ' event-today' : ''}" onclick="_tmShowAlbumMenu(event,${esc(JSON.stringify(title))},${esc(JSON.stringify(artistName))})">
-    ${dcPlBtnHtml('album', title, artistName, title, 'dc-pl-add-card')}
-    ${imgHtml}
-    <div class="upcoming-card-date${isToday ? ' soon' : ''}">${countdownLabel}</div>
-    <div class="upcoming-card-title">${esc(title)}</div>
-    <div class="upcoming-card-artist">${esc(artistName)}</div>
-    <div class="upcoming-card-type">${releaseIcon(type)} ${ordinalSuffix(years)} Anniversary · ${esc(typeLabel)} · ${releaseDate.slice(0, 4)}</div>
-  </div>`;
-}
-
-function renderRecentAnniversaryCard(entry) {
-  const { artistName, title, type, releaseDate, years, daysAgo, mbid } = entry;
-  const typeKey = 'mb_type_' + (type || 'Release').toLowerCase();
-  const typeLabel = t(typeKey) || type || 'Release';
-  const daysAgoLabel = `${daysAgo} day${daysAgo === 1 ? '' : 's'} ago`;
-  const imgSrc = mbid ? `https://coverartarchive.org/release-group/${mbid}/front-250` : null;
-  const imgHtml = `<img class="upcoming-card-img${imgSrc ? '' : ' upcoming-card-img-pending'}" ${imgSrc ? `src="${imgSrc}" onerror="releaseImgFallback(this)"` : ''} alt="" loading="lazy" data-artist="${esc(artistName)}" data-title="${esc(title)}" data-sources="deezer,itunes,lastfm">`;
-  return `<div class="dc-card-inset upcoming-card" onclick="_tmShowAlbumMenu(event,${esc(JSON.stringify(title))},${esc(JSON.stringify(artistName))})">
-    ${dcPlBtnHtml('album', title, artistName, title, 'dc-pl-add-card')}
-    ${imgHtml}
-    <div class="upcoming-card-date recent">${daysAgoLabel}</div>
-    <div class="upcoming-card-title">${esc(title)}</div>
-    <div class="upcoming-card-artist">${esc(artistName)}</div>
-    <div class="upcoming-card-type">${releaseIcon(type)} ${ordinalSuffix(years)} Anniversary · ${esc(typeLabel)} · ${releaseDate.slice(0, 4)}</div>
-  </div>`;
 }
 
 // ─── EVENTS CALENDAR VIEW ──────────────────────────────────────
@@ -30421,19 +30225,6 @@ function _syncCalViewBtns() {
   document.querySelectorAll('.cal-view-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.view === eventsCalendarView);
   });
-  _syncCalExportBtn();
-}
-
-function _syncCalExportBtn() {
-  const btn = document.getElementById('calExportPlaylistBtn');
-  const playBtn = document.getElementById('calPlayAllBtn');
-  const createPlBtn = document.getElementById('calCreatePlBtn');
-  const isDay = _evCalView() === 'day';
-  const singlesOnly = eventsTypeFilter.size === 1 && eventsTypeFilter.has('single');
-  const show = (isDay && singlesOnly) ? '' : 'none';
-  if (btn) btn.style.display = show;
-  if (playBtn) playBtn.style.display = show;
-  if (createPlBtn) createPlBtn.style.display = show;
 }
 
 function setCalView(view) {
@@ -30479,15 +30270,30 @@ function eventsCalendarNext() {
   if (_eventsCalendarData) renderEventsCalendar(_eventsCalendarData, eventsCalendarYear, eventsCalendarMonth);
 }
 
-// ====== Events Section View Modes ======
-const _eventsViewDefaults = {
-  birthdays: 'carousel', anniversaries: 'carousel', eventsUpcoming: 'carousel',
-  eventsRecent: 'carousel', recentBirthdays: 'carousel', recentAnniversaries: 'carousel', concerts: 'carousel',
-  nmf: 'carousel'
-};
-const eventsViewModes = Object.assign({}, _eventsViewDefaults,
-  (() => { try { return JSON.parse(localStorage.getItem('dc_events_view_modes') || '{}'); } catch (e) { return {}; } })()
-);
+// ====== Events View Mode ======
+/* One Reel / Tiles / Table / List switch for the whole page (phase 9 part 4
+   step 3), kept under the synced dc_events_view_modes key as { page, nmfPast }.
+   A setting saved before then had one mode per section: the Birthdays one
+   becomes the page's, and New Music Friday's old "calendar" mode becomes its
+   Past Fridays toggle. */
+const EV_VIEW_MODES = ['carousel', 'tiles', 'table', 'list'];
+const eventsViewModes = (() => {
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem('dc_events_view_modes') || '{}') || {}; } catch (e) {}
+  const page = EV_VIEW_MODES.includes(saved.page) ? saved.page
+    : EV_VIEW_MODES.includes(saved.birthdays) ? saved.birthdays : 'carousel';
+  return { page, nmfPast: typeof saved.nmfPast === 'boolean' ? saved.nmfPast : saved.nmf === 'calendar' };
+})();
+
+// Playlists borrows two of these sections and always shows them as reels
+function _evMode() {
+  return document.getElementById('eventsView')?.classList.contains('dc-pl-mode') ? 'carousel' : eventsViewModes.page;
+}
+
+function _evSaveViewModes() {
+  try { localStorage.setItem('dc_events_view_modes', JSON.stringify(eventsViewModes)); } catch (e) {}
+  if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
+}
 /* How often the Upcoming/Recent release loops are allowed to repaint while
    they walk the Top 200. Each repaint rebuilds the whole section, so in Reel
    view it remounts the carousel and re-fires every artwork fetch — once per
@@ -30501,13 +30307,33 @@ const EV_GRID_IDS = {
   concerts: 'concertsGrid', nmf: 'nmfGrid'
 };
 
-function setEventsView(sectionKey, mode) {
-  eventsViewModes[sectionKey] = mode;
-  try { localStorage.setItem('dc_events_view_modes', JSON.stringify(eventsViewModes)); } catch (e) {}
-  if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
-  document.querySelectorAll('#' + sectionKey + 'ViewBtns .ev-view-btn')
-    .forEach(b => b.classList.toggle('active', b.dataset.view === mode));
-  _evReRenderSection(sectionKey);
+function setEventsView(mode) {
+  if (!EV_VIEW_MODES.includes(mode)) return;
+  eventsViewModes.page = mode;
+  _evSaveViewModes();
+  _syncEventsViewBtns();
+  Object.keys(EV_GRID_IDS).forEach(_evReRenderSection);
+}
+
+function _syncEventsViewBtns() {
+  document.querySelectorAll('#eventsViewBtns > button').forEach(b => {
+    const on = b.dataset.view === eventsViewModes.page;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-pressed', String(on));
+  });
+}
+
+// New Music Friday's calendar of past Fridays, opened from its own header
+function toggleNMFPastFridays() {
+  eventsViewModes.nmfPast = !eventsViewModes.nmfPast;
+  _evSaveViewModes();
+  _syncNMFPastBtn();
+  _evReRenderSection('nmf');
+}
+
+function _syncNMFPastBtn() {
+  const btn = document.getElementById('nmfPastBtn');
+  if (btn) btn.setAttribute('aria-pressed', String(!!eventsViewModes.nmfPast));
 }
 
 function _evReRenderSection(sectionKey) {
@@ -30534,6 +30360,31 @@ function _evReRenderSection(sectionKey) {
   if (itemsMap[sectionKey]) _evRenderSectionByKey(sectionKey, itemsMap[sectionKey]());
 }
 
+// The type's line icon on every card, row and filter chip (the chips in
+// index.html draw the same shapes)
+const EV_TYPE_ICONS = {
+  birthday: '<path d="M2.8 13.6h10.4V8.8H2.8zM2.8 11c1.3 0 1.3-.9 2.6-.9s1.3.9 2.6.9 1.3-.9 2.6-.9 1.3.9 2.6.9M8 8.8V6.6"/><path d="M8 4.7c-.7-.6-.7-1.4 0-2.4.7 1 .7 1.8 0 2.4z"/>',
+  album: '<circle cx="8" cy="8" r="5.9"/><circle cx="8" cy="8" r="1.7"/>',
+  single: '<path d="M6.4 12.1V3.7l6.2-1.4v8.3"/><circle cx="4.7" cy="12.1" r="1.7"/><circle cx="10.9" cy="10.6" r="1.7"/>',
+  ep: '<rect x="1.8" y="3.4" width="9.2" height="9.2" rx="1"/><path d="M11 4.6a3.5 3.5 0 0 1 0 6.8"/><circle cx="6.4" cy="8" r="1.4"/>',
+  other: '<path d="M2 8h1.4M4.8 5.2v5.6M7.4 2.8v10.4M10 5.6v4.8M12.6 7v2M14 8h.01"/>',
+  show: '<rect x="6" y="1.8" width="4" height="7.2" rx="2"/><path d="M3.9 7.4a4.1 4.1 0 0 0 8.2 0M8 11.5v2.4M5.8 13.9h4.4"/>'
+};
+
+function _evKind(type) {
+  const k = String(type || '').toLowerCase();
+  return k === 'album' || k === 'single' || k === 'ep' ? k : 'other';
+}
+
+function _evTypeIco(kind) {
+  return `<svg class="ev-type-ico" viewBox="0 0 16 16" aria-hidden="true" focusable="false">${EV_TYPE_ICONS[kind] || EV_TYPE_ICONS.other}</svg>`;
+}
+
+// The type line under a card or in a row: icon, then the words
+function _evTypeHtml(item) {
+  return `${_evTypeIco(item.kind)}<span>${esc(item.typeLabel)}</span>`;
+}
+
 // `pl` is what the ＋ add-to-playlist button on each row or card is built from
 // — see dcPlBtnHtml. `menuAction` (plus `menuArgs`, when the menu wants
 // something other than the item's own title and artist) names the global that
@@ -30551,8 +30402,8 @@ function _evNormalize(sectionKey, items) {
       const [, mm, dd] = dateStr.split('-');
       const d = new Date(curYr + (daysUntil < 0 ? 1 : 0), parseInt(mm) - 1, parseInt(dd));
       out.push({ title: artistName, artist: `${fmtDate(d)} · Turning ${curYr - age + (daysUntil < 0 ? 1 : 0)}`,
-        dateLabel: isToday ? 'TODAY' : `in ${mkLabel(daysUntil, 'day')}`, dateSort: daysUntil,
-        artistSort: artistName, typeLabel: '🎂 Birthday',
+        dateLabel: isToday ? 'Today' : `in ${mkLabel(daysUntil, 'day')}`, dateSort: daysUntil,
+        artistSort: artistName, typeLabel: 'Birthday', kind: 'birthday',
         menuAction: '_tmShowBirthdayMenu', menuArgs: [artistName],
         pl: { kind: 'artist', title: '', artist: artistName, album: '' },
         imgSrc: null, imgAttr: { artist: artistName, title: '', sources: 'deezer-artist' }, isToday });
@@ -30562,8 +30413,8 @@ function _evNormalize(sectionKey, items) {
       const isToday = daysUntil === 0;
       const tl = t('mb_type_' + (type || 'Release').toLowerCase()) || type || 'Release';
       out.push({ title, artist: artistName,
-        dateLabel: isToday ? 'TODAY' : `in ${mkLabel(daysUntil, 'day')}`, dateSort: daysUntil,
-        artistSort: artistName, typeLabel: `🎵 ${ordinalSuffix(years)} Anniversary · ${tl} · ${releaseDate.slice(0, 4)}`,
+        dateLabel: isToday ? 'Today' : `in ${mkLabel(daysUntil, 'day')}`, dateSort: daysUntil,
+        artistSort: artistName, typeLabel: `${ordinalSuffix(years)} Anniversary · ${tl} · ${releaseDate.slice(0, 4)}`, kind: _evKind(type),
         menuAction: '_tmShowAlbumMenu', menuArgs: [title, artistName],
         pl: { kind: 'album', title, artist: artistName, album: title },
         imgSrc: mbid ? `https://coverartarchive.org/release-group/${mbid}/front-250` : null,
@@ -30574,7 +30425,7 @@ function _evNormalize(sectionKey, items) {
       const { label } = upcomingDateLabel(release.date);
       const tl = t('mb_type_' + (release.type || 'Release').toLowerCase()) || release.type || 'Release';
       out.push({ title: release.title, artist: artistName, dateLabel: label, dateSort: release.date,
-        artistSort: artistName, typeLabel: tl,
+        artistSort: artistName, typeLabel: tl, kind: _evKind(release.type),
         menuAction: '_relShowMenu', // unreleased — Spotify/Google popup only, never a player option
         imgSrc: release.mbid ? `https://coverartarchive.org/release-group/${release.mbid}/front-250` : null,
         imgAttr: { artist: artistName, title: release.title, sources: 'itunes,lastfm' }, isToday: false });
@@ -30584,7 +30435,7 @@ function _evNormalize(sectionKey, items) {
       const tl = t('mb_type_' + (release.type || 'Release').toLowerCase()) || release.type || 'Release';
       out.push({ title: release.title, artist: artistName,
         dateLabel: fmtDate(new Date(release.date + 'T00:00:00')), dateSort: release.date,
-        artistSort: artistName, typeLabel: tl,
+        artistSort: artistName, typeLabel: tl, kind: _evKind(release.type),
         menuAction: '_tmShowAlbumMenu', // already released — popup adds a player option if it's been played
         imgSrc: release.mbid ? `https://coverartarchive.org/release-group/${release.mbid}/front-250` : null,
         imgAttr: { artist: artistName, title: release.title, sources: 'itunes,lastfm' }, isToday: false });
@@ -30597,7 +30448,7 @@ function _evNormalize(sectionKey, items) {
       out.push({ title: artistName,
         artist: `${fmtDate(new Date(curYr, parseInt(mm) - 1, parseInt(dd)))} · Turned ${curYr - birthYr}`,
         dateLabel: mkLabel(daysAgo, 'day') + ' ago', dateSort: -daysAgo,
-        artistSort: artistName, typeLabel: '🎂 Birthday',
+        artistSort: artistName, typeLabel: 'Birthday', kind: 'birthday',
         menuAction: '_tmShowBirthdayMenu', menuArgs: [artistName],
         pl: { kind: 'artist', title: '', artist: artistName, album: '' },
         imgSrc: null, imgAttr: { artist: artistName, title: '', sources: 'deezer-artist' }, isToday: false });
@@ -30607,16 +30458,16 @@ function _evNormalize(sectionKey, items) {
       const tl = t('mb_type_' + (type || 'Release').toLowerCase()) || type || 'Release';
       out.push({ title, artist: artistName,
         dateLabel: mkLabel(daysAgo, 'day') + ' ago', dateSort: -daysAgo,
-        artistSort: artistName, typeLabel: `🎵 ${ordinalSuffix(years)} Anniversary · ${tl} · ${releaseDate.slice(0, 4)}`,
+        artistSort: artistName, typeLabel: `${ordinalSuffix(years)} Anniversary · ${tl} · ${releaseDate.slice(0, 4)}`, kind: _evKind(type),
         menuAction: '_tmShowAlbumMenu', menuArgs: [title, artistName],
         pl: { kind: 'album', title, artist: artistName, album: title },
         imgSrc: mbid ? `https://coverartarchive.org/release-group/${mbid}/front-250` : null,
         imgAttr: { artist: artistName, title, sources: 'deezer,itunes,lastfm' }, isToday: false });
     }
   } else if (sectionKey === 'nmf') {
-    const typeMap = { album: '💿 Album', single: '🎵 Single', ep: '📀 EP' };
+    const typeMap = { album: 'Album', single: 'Single', ep: 'EP' };
     for (const album of items) {
-      const typeLabel = typeMap[album.record_type] || '🎶 Release';
+      const typeLabel = typeMap[album.record_type] || 'Release';
       const href = album.link || `https://www.deezer.com/album/${album.id}`;
       const dateStr = album.release_date || '';
       out.push({
@@ -30625,7 +30476,7 @@ function _evNormalize(sectionKey, items) {
         dateLabel: dateStr ? fmtDate(new Date(dateStr + 'T00:00:00')) : '',
         dateSort: dateStr,
         artistSort: album.artist?.name || '',
-        typeLabel,
+        typeLabel, kind: _evKind(album.record_type),
         menuAction: '_nmfShowMenu',
         menuArgs: [album.title || '', album.artist?.name || '', href],
         imgSrc: album.cover_xl || album.cover_big || album.cover_medium || null,
@@ -30647,9 +30498,9 @@ function _evNormalize(sectionKey, items) {
       const du = sd ? Math.round((sd - tzNow()) / 86400000) : null;
       const isToday = du === 0;
       out.push({ title: artistName, artist: `${venueName}${loc ? ' · ' + loc : ''}`,
-        dateLabel: du === null ? '' : isToday ? 'TODAY' : `in ${mkLabel(du, 'day')}`,
+        dateLabel: du === null ? '' : isToday ? 'Today' : `in ${mkLabel(du, 'day')}`,
         dateSort: du !== null ? du : 9999, artistSort: artistName,
-        typeLabel: `🎤 Live Show · ${date ? fmtDate(sd) : ''}${time ? ' · ' + time.slice(0, 5) : ''}`,
+        kind: 'show', typeLabel: `Live show · ${date ? fmtDate(sd) : ''}${time ? ' · ' + time.slice(0, 5) : ''}`,
         menuAction: '_concertShowMenu', menuArgs: [artistName, url], imgSrc: null,
         imgAttr: { artist: artistName, title: '', sources: 'deezer-artist' }, isToday: !!isToday });
     }
@@ -30664,55 +30515,58 @@ function _evImgTag(item, cls) {
   return `<img class="${cls} upcoming-card-img-pending" alt="" loading="lazy" ${attrs}>`;
 }
 
-// What each section last rendered, so the header's "＋ Playlist" button can
-// stage exactly what's on screen without re-deriving it (see evAddSectionToPlaylist).
+// What each section last rendered, so the page's "＋ Playlist" button can
+// stage exactly what's on screen without re-deriving it (see evAddTabToPlaylist).
 const _evLastItems = {};
 
 function _evRenderSectionByKey(sectionKey, items) {
   const gridEl = document.getElementById(EV_GRID_IDS[sectionKey]);
   if (!gridEl) return;
   _evLastItems[sectionKey] = items || [];
-  _evUpdatePlBtn(sectionKey);
-  const mode = eventsViewModes[sectionKey] || 'tiles';
 
-  const nmfCalOuter = document.getElementById('nmfCalOuter');
-
-  if (sectionKey === 'nmf' && mode === 'calendar') {
-    if (nmfCalOuter) nmfCalOuter.style.display = '';
-    const history = _getNMFHistory();
-    const fridays = Object.keys(history).sort().reverse();
-    if (!_nmfCalSelectedFriday || !history[_nmfCalSelectedFriday]) {
-      _nmfCalSelectedFriday = fridays[0] || null;
+  // New Music Friday's Past Fridays: the calendar of stored weeks above the
+  // picked week's releases, drawn in the page's view like any other section
+  if (sectionKey === 'nmf') {
+    const nmfCalOuter = document.getElementById('nmfCalOuter');
+    const past = !!eventsViewModes.nmfPast;
+    if (nmfCalOuter) nmfCalOuter.style.display = past ? '' : 'none';
+    if (past) {
+      const history = _getNMFHistory();
+      const fridays = Object.keys(history).sort().reverse();
+      if (!_nmfCalSelectedFriday || !history[_nmfCalSelectedFriday]) {
+        _nmfCalSelectedFriday = fridays[0] || null;
+      }
+      renderNMFCalendar();
+      items = (_nmfCalSelectedFriday && history[_nmfCalSelectedFriday]) || items || [];
     }
-    renderNMFCalendar();
-    const selAlbums = (_nmfCalSelectedFriday && history[_nmfCalSelectedFriday]) || items || [];
-    gridEl.className = 'upcoming-grid';
-    gridEl.innerHTML = selAlbums.map(renderNMFCard).join('');
-    triggerPendingImgs(gridEl);
-    return;
   }
 
-  if (sectionKey === 'nmf' && nmfCalOuter) nmfCalOuter.style.display = 'none';
-
-  if (mode === 'tiles') {
-    gridEl.className = 'upcoming-grid';
-    if (!items.length) { gridEl.innerHTML = ''; return; }
-    if (sectionKey === 'birthdays') gridEl.innerHTML = items.map(renderBirthdayCard).join('');
-    else if (sectionKey === 'anniversaries') gridEl.innerHTML = items.map(renderAnniversaryCard).join('');
-    else if (sectionKey === 'eventsUpcoming') gridEl.innerHTML = items.map(({ release, artistName }) => renderUpcomingCard(release, artistName)).join('');
-    else if (sectionKey === 'eventsRecent') gridEl.innerHTML = items.map(({ release, artistName }) => renderRecentCard(release, artistName)).join('');
-    else if (sectionKey === 'recentBirthdays') gridEl.innerHTML = items.map(renderRecentBirthdayCard).join('');
-    else if (sectionKey === 'recentAnniversaries') gridEl.innerHTML = items.map(renderRecentAnniversaryCard).join('');
-    else if (sectionKey === 'concerts') gridEl.innerHTML = items.map(({ event, artistName }) => renderConcertCard(event, artistName)).join('');
-    else if (sectionKey === 'nmf') gridEl.innerHTML = items.map(renderNMFCard).join('');
-    triggerPendingImgs(gridEl);
-    return;
-  }
   const normalized = _evNormalize(sectionKey, items);
   if (!normalized || !normalized.length) { gridEl.innerHTML = ''; gridEl.className = ''; return; }
+  const mode = _evMode();
   if (mode === 'table') _evTable(gridEl, normalized);
-  else if (mode === 'carousel') _evCarousel(gridEl, normalized);
+  else if (mode === 'tiles') _evTiles(gridEl, normalized);
   else if (mode === 'list') _evList(gridEl, sectionKey, normalized);
+  else _evCarousel(gridEl, normalized);
+}
+
+/* The one event card: picture, date, title, artist, then the type with its
+   icon. The Reel shows it in a moving row, Tiles in a grid. `dupe` marks the
+   Reel's second copy of the deck (see _evCarousel). */
+function _evCardHtml(item, dupe) {
+  return `<div class="dc-card-inset ev-carousel-card${item.isToday ? ' event-today' : ''}${dupe ? ' dcreel-dupe' : ''}" ${_evReleaseClickAttr(item)}>` +
+    `${_evPlBtn(item, 'dc-pl-add-card')}` +
+    `${_evImgTag(item, 'ev-carousel-img')}` +
+    `<div class="ev-carousel-date">${esc(item.dateLabel)}</div>` +
+    `<div class="ev-carousel-title">${esc(item.title)}</div>` +
+    `<div class="ev-carousel-artist">${esc(item.artist)}</div>` +
+    `<div class="ev-carousel-type">${_evTypeHtml(item)}</div></div>`;
+}
+
+function _evTiles(gridEl, items) {
+  gridEl.className = 'ev-tiles';
+  gridEl.innerHTML = items.map(it => _evCardHtml(it, false)).join('');
+  triggerPendingImgs(gridEl);
 }
 
 // onclick attr for a card whose section uses a popup menu instead of a direct
@@ -30758,12 +30612,41 @@ function evAddSectionToPlaylist(sectionKey) {
   dcOpenPlaylistPicker(tracks, cfg.label, `${cfg.label} · ${_dcPlDateTag()}`);
 }
 
-// Hides the header button while a section has nothing in it — an empty section
-// with a live "save these" button reads as broken.
-function _evUpdatePlBtn(sectionKey) {
-  if (!EV_PL_SECTIONS[sectionKey]) return;
-  const btn = document.getElementById(sectionKey + 'PlBtn');
-  if (btn) btn.style.display = (_evLastItems[sectionKey] || []).length ? '' : 'none';
+/* The page's one "＋ Playlist" (phase 9 part 4 step 3): everything the open
+   tab shows. Coming up and Recent stage their sections as above; Today and
+   Calendar stage what the calendar shows (today, or the day / week / month
+   on screen): a birthday gives the artist's latest play, an anniversary or
+   release its latest play or the release itself. Shows and New Music Friday
+   aren't staged, as before. The Time Machine keeps its own button. */
+const EV_PL_TABS = {
+  coming: ['birthdays', 'anniversaries'],
+  recent: ['eventsRecent', 'recentBirthdays', 'recentAnniversaries']
+};
+
+function _evCalendarTracks() {
+  if (!_eventsCalendarData) return [];
+  const view = _evCalView();
+  let dates;
+  if (view === 'month') dates = [..._calMonthDateSet(eventsCalendarYear, eventsCalendarMonth)];
+  else if (view === 'week') dates = getWeekDates(eventsCalendarYear, eventsCalendarMonth, eventsCalendarDay).map(d => localDateStr(d));
+  else dates = [localDateStr(new Date(eventsCalendarYear, eventsCalendarMonth, eventsCalendarDay))];
+  const dayMap = buildCalendarDayMap({ ..._eventsCalendarData, concerts: [] }, new Set(dates));
+  const tracks = [];
+  for (const ds of dates.sort()) {
+    for (const ev of dayMap[ds] || []) {
+      if (ev.ttType === 'birthday') tracks.push(_tmArtistLastSongs(ev.ttArtist, 1)[0]);
+      else if (ev.ttType === 'anniversary' || ev.ttType === 'release') tracks.push(_evPlRelease(ev.ttTitle, ev.ttArtist));
+    }
+  }
+  return tracks.filter(Boolean);
+}
+
+function evAddTabToPlaylist() {
+  const tracks = EV_PL_TABS[eventsTab]
+    ? EV_PL_TABS[eventsTab].flatMap(key => (_evLastItems[key] || []).map(EV_PL_SECTIONS[key].pick)).filter(Boolean)
+    : _evCalendarTracks();
+  const label = t('ev_tab_' + eventsTab);
+  dcOpenPlaylistPicker(tracks, label, `${label} · ${_dcPlDateTag()}`);
 }
 
 function _evTable(gridEl, items) {
@@ -30778,7 +30661,7 @@ function _evTable(gridEl, items) {
       `<td class="ev-tbl-ev">${evCell}</td>` +
       `<td class="ev-tbl-artist">${esc(item.artist)}</td>` +
       `<td class="ev-tbl-date">${esc(item.dateLabel)}</td>` +
-      `<td class="ev-tbl-type">${esc(item.typeLabel)}</td>` +
+      `<td class="ev-tbl-type">${_evTypeHtml(item)}</td>` +
       (hasPl ? `<td class="ev-tbl-pl">${_evPlBtn(item, 'dc-pl-add-sm')}</td>` : '') +
       `</tr>`;
   }).join('');
@@ -30792,16 +30675,7 @@ function _evCarousel(gridEl, items) {
   /* `dupe` marks copy B of the deck. The reel is rendered twice so it can wrap
      onto an identical frame, and copy B is hidden when the deck is short enough
      to fit — see dcMountReel(), which drives the motion and the drag. */
-  const card = (item, dupe) => {
-    return `<div class="dc-card-inset ev-carousel-card${item.isToday ? ' event-today' : ''}${dupe ? ' dcreel-dupe' : ''}" ${_evReleaseClickAttr(item)}>` +
-      `${_evPlBtn(item, 'dc-pl-add-card')}` +
-      `${_evImgTag(item, 'ev-carousel-img')}` +
-      `<div class="ev-carousel-date">${esc(item.dateLabel)}</div>` +
-      `<div class="ev-carousel-title">${esc(item.title)}</div>` +
-      `<div class="ev-carousel-artist">${esc(item.artist)}</div>` +
-      `<div class="ev-carousel-type">${esc(item.typeLabel)}</div></div>`;
-  };
-  gridEl.innerHTML = `<div class="ev-carousel-track">${items.map(it => card(it, false)).join('')}${items.map(it => card(it, true)).join('')}</div>`;
+  gridEl.innerHTML = `<div class="ev-carousel-track">${items.map(it => _evCardHtml(it, false)).join('')}${items.map(it => _evCardHtml(it, true)).join('')}</div>`;
   dcMountReel(gridEl, gridEl.firstElementChild, dur);
   triggerPendingImgs(gridEl);
 }
@@ -30821,7 +30695,7 @@ function _evList(gridEl, sectionKey, items) {
       `<span class="ev-list-date">${esc(item.dateLabel)}</span>` +
       `<span class="ev-list-title">${esc(item.title)}</span>` +
       `<span class="ev-list-artist">${esc(item.artist)}</span>` +
-      `<span class="ev-list-type">${esc(item.typeLabel)}</span></div>`;
+      `<span class="ev-list-type">${_evTypeHtml(item)}</span></div>`;
   }).join('');
   gridEl.innerHTML =
     `<div class="ev-list-sort"><span class="ev-list-sort-lbl">Sort:</span><div class="dc-seg">` +
@@ -30864,37 +30738,6 @@ async function fetchConcertsForArtist(artistName, apiKey) {
     const data = await resp.json();
     return data._embedded?.events || [];
   } catch (e) { return []; }
-}
-
-function renderConcertCard(event, artistName) {
-  const date = event.dates?.start?.localDate || '';
-  const time = event.dates?.start?.localTime || '';
-  const venue = event._embedded?.venues?.[0];
-  const venueName = venue?.name || '';
-  const city = venue?.city?.name || '';
-  const stateCode = venue?.state?.stateCode || venue?.country?.countryCode || '';
-  const location = [city, stateCode].filter(Boolean).join(', ');
-  const url = event.url || `https://www.ticketmaster.com/search?q=${encodeURIComponent(artistName)}`;
-
-  const today = tzNow();
-  const showDate = date ? new Date(date + 'T12:00:00') : null;
-  const daysUntil = showDate ? Math.round((showDate - today) / 86400000) : null;
-  const isToday = daysUntil === 0;
-  const countdownLabel = daysUntil === null ? '' : isToday ? 'TODAY' : `in ${daysUntil} day${daysUntil === 1 ? '' : 's'}`;
-  const isSoon = daysUntil !== null && daysUntil <= 7;
-  const displayDate = date ? fmtDate(showDate) : '';
-  const timeLabel = time ? ' · ' + time.slice(0, 5) : '';
-
-  const imgHtml = `<img class="upcoming-card-img upcoming-card-img-pending" alt="" loading="lazy" data-artist="${esc(artistName)}" data-title="" data-sources="deezer-artist">`;
-  // The card opens the artist action menu, with the show's ticket page — where
-  // the card used to go on its own — as the menu's first option.
-  return `<div class="dc-card-inset upcoming-card${isToday ? ' event-today' : ''}" onclick="_concertShowMenu(event,${esc(JSON.stringify(artistName))},${esc(JSON.stringify(url))})">
-    ${imgHtml}
-    <div class="upcoming-card-date${isToday || isSoon ? ' soon' : ''}">${esc(countdownLabel)}</div>
-    <div class="upcoming-card-title">${esc(artistName)}</div>
-    <div class="upcoming-card-artist">${esc(venueName)}${location ? ' · ' + esc(location) : ''}</div>
-    <div class="upcoming-card-type">🎤 Live Show · ${esc(displayDate)}${esc(timeLabel)}</div>
-  </div>`;
 }
 
 // ─── NMF History helpers ───────────────────────────────────────
@@ -30979,15 +30822,7 @@ function renderNMFCalendar() {
 
 function selectNMFFriday(dateStr) {
   _nmfCalSelectedFriday = dateStr;
-  const history = _getNMFHistory();
-  const albums = history[dateStr] || [];
-  const gridEl = document.getElementById('nmfGrid');
-  if (gridEl) {
-    gridEl.className = 'upcoming-grid';
-    gridEl.innerHTML = albums.map(renderNMFCard).join('');
-    triggerPendingImgs(gridEl);
-  }
-  renderNMFCalendar();
+  _evReRenderSection('nmf');
 }
 
 function nmfCalPrev() {
@@ -31002,27 +30837,6 @@ function nmfCalNext() {
   renderNMFCalendar();
 }
 
-function renderNMFCard(album) {
-  const cover = album.cover_xl || album.cover_big || album.cover_medium || '';
-  const typeMap = { album: '💿 Album', single: '🎵 Single', ep: '📀 EP' };
-  const typeLabel = typeMap[album.record_type] || '🎶 Release';
-  const href = album.link || `https://www.deezer.com/album/${album.id}`;
-  const dateStr = album.release_date ? fmtDate(new Date(album.release_date + 'T00:00:00')) : '';
-  const imgHtml = cover
-    ? `<img class="upcoming-card-img" src="${esc(cover)}" onerror="releaseImgFallback(this)" alt="" loading="lazy" data-artist="${esc(album.artist?.name||'')}" data-title="${esc(album.title||'')}" data-sources="deezer">`
-    : `<img class="upcoming-card-img upcoming-card-img-pending" alt="" loading="lazy" data-artist="${esc(album.artist?.name||'')}" data-title="${esc(album.title||'')}" data-sources="deezer">`;
-  // The card opens the release action menu rather than the Deezer page. The
-  // release still comes from Deezer — cover, title, date and type all below —
-  // and that page is the menu's first option.
-  return `<div class="dc-card-inset upcoming-card" onclick="_nmfShowMenu(event,${esc(JSON.stringify(album.title || ''))},${esc(JSON.stringify(album.artist?.name || ''))},${esc(JSON.stringify(href))})">
-    ${imgHtml}
-    <div class="upcoming-card-date">${esc(dateStr)}</div>
-    <div class="upcoming-card-title">${esc(album.title || '')}</div>
-    <div class="upcoming-card-artist">${esc(album.artist?.name || '')}</div>
-    <div class="upcoming-card-type">${esc(typeLabel)}</div>
-  </div>`;
-}
-
 function _renderNMF(albums, fromCache) {
   _nmfData = albums;
   if (albums.length) {
@@ -31031,7 +30845,7 @@ function _renderNMF(albums, fromCache) {
       try { snapshotTs = JSON.parse(localStorage.getItem(NMF_CACHE_KEY)).ts; } catch (e) {}
     }
     const addedNew = _saveNMFSnapshot(albums, snapshotTs);
-    if (addedNew && eventsViewModes['nmf'] === 'calendar') renderNMFCalendar();
+    if (addedNew && eventsViewModes.nmfPast) renderNMFCalendar();
   }
   const gridEl = document.getElementById('nmfGrid');
   const status = document.getElementById('nmfStatus');

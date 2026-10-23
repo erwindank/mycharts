@@ -8140,25 +8140,6 @@
       padding: var(--sp-3) 0.85rem var(--sp-4);
     }
 
-    .upcoming-card { padding: 0.7rem 0.85rem; display: flex; flex-direction: column; gap: var(--sp-1); transition: border-color var(--t-med) var(--ease), transform var(--t-med) var(--ease), box-shadow var(--t-med) var(--ease); text-decoration: none; cursor: pointer; }
-
-    .upcoming-card:hover {
-      border-color: var(--border2);
-      /* soft lift (2026 redesign) */
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-2);
-    }
-
-    .upcoming-card-img {
-      width: calc(100% + 1.7rem);
-      margin: -0.7rem -0.85rem var(--sp-2);
-      aspect-ratio: 1;
-      object-fit: cover;
-      border-radius: calc(var(--r-md) - 2px) calc(var(--r-md) - 2px) 0 0;
-      display: block;
-      background: var(--surface);
-    }
-
     .upcoming-card-placeholder {
       width: calc(100% + 1.7rem);
       margin: -0.7rem -0.85rem var(--sp-2);
@@ -8171,42 +8152,6 @@
       font-weight: 700;
       color: rgba(255, 255, 255, 0.2);
       user-select: none;
-    }
-
-    .upcoming-card-date {
-      font-family: var(--font-mono);
-      font-variant-numeric: tabular-nums;
-      font-size: var(--fs-xs);
-      color: var(--accent);
-    }
-
-    .upcoming-card-date.soon {
-      color: var(--green);
-    }
-
-    .upcoming-card-date.recent {
-      color: var(--text2);
-    }
-
-    .upcoming-card-title {
-      font-size: var(--fs-base);
-      font-weight: 500;
-      color: var(--text);
-      line-height: 1.3;
-      user-select: text;
-    }
-
-    .upcoming-card-artist {
-      font-size: var(--fs-xs);
-      color: var(--text2);
-      user-select: text;
-    }
-
-    .upcoming-card-type {
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      color: var(--text3);
-      margin-top: 0.1rem;
     }
 
     .upcoming-empty {
@@ -8268,25 +8213,48 @@
       stroke-linecap: round; stroke-linejoin: round;
     }
 
+    /* Under the tabs: the chips on the left, the view switch and ＋ Playlist
+       on the right (wrapping under the chips on narrow screens) */
+    .events-toolbar-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--sp-2) var(--sp-4);
+    }
+    .events-toolbar-end {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-2);
+      margin-left: auto;
+    }
+    /* The view switch only means something on the tabs with card sections */
+    #eventsView[data-ev-tab="today"] .events-view-btns,
+    #eventsView[data-ev-tab="calendar"] .events-view-btns { display: none; }
+    /* Playlists borrows two sections with their own ＋ Playlist; on Events
+       the toolbar's one button does it */
+    #eventsView:not(.dc-pl-mode) .ev-sec-pl { display: none; }
 
-
-
-    .upcoming-card.event-today {
-      border-color: var(--accent);
+    /* Tiles: the Reel's card, in a grid */
+    .ev-tiles {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: var(--sp-2);
+      padding: 0.4rem 0 var(--sp-3);
+    }
+    .ev-tiles .ev-carousel-card { width: auto; }
+    /* The type line's icon in cards, list rows and table cells */
+    .ev-carousel-type .ev-type-ico,
+    .ev-list-type .ev-type-ico,
+    .ev-tbl-type .ev-type-ico {
+      width: 12px; height: 12px;
+      margin-right: 4px;
+      vertical-align: -2px;
     }
 
-    /* EVENTS SECTION VIEW TOGGLE BUTTONS */
-    .ev-view-btns { flex-shrink: 0; }
 
-    @media (max-width: 768px) {
-      /* own line under the section title, lined up with the title text */
-      .ev-view-btns {
-        order: 10;
-        flex-basis: 100%;
-        max-width: max-content;
-        margin-left: calc(18px + var(--sp-4));
-      }
-    }
+
+
 
     /* TABLE VIEW */
     .ev-table-wrap { overflow-x: auto; padding: 0 0.85rem var(--sp-3); }
@@ -8921,7 +8889,6 @@
 
     /* The event/release cards were static-positioned; the corner button needs
        them to be a containing block. */
-    .upcoming-card,
     .ev-carousel-card { position: relative; }
 
     /* On the event/release cards the button floats in the top-left corner, out of
@@ -8936,7 +8903,6 @@
       transition: opacity 0.12s, background 0.12s, color 0.12s, border-color 0.12s;
     }
 
-    .upcoming-card:hover .dc-pl-add-card,
     .ev-carousel-card:hover .dc-pl-add-card,
     .dc-pl-add-card:focus-visible { opacity: 1; }
 

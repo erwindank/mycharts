@@ -1440,6 +1440,13 @@ const TRANSLATIONS = {
     ev_type_shows: 'Shows',
     ev_info_title: 'About this list',
     ev_refresh_title: 'Refresh events',
+    ev_view_aria: 'View',
+    ev_view_reel: 'Reel',
+    ev_view_tiles: 'Tiles',
+    ev_view_table: 'Table',
+    ev_view_list: 'List',
+    ev_pl_title: 'Save what this tab shows to a playlist',
+    ev_nmf_past: 'Past Fridays',
     sec_records_title: '🏆 Records & Hall of Fame',
     collapsed_hint: 'collapsed — click + to expand',
 
@@ -2851,10 +2858,6 @@ const TRANSLATIONS = {
     export_pn_day_chart: "Daily Chart · {{date}}",
     export_pn_day_mix: "My {{day}} Mix",
     export_pn_day_repeat: "On Repeat · {{date}}",
-    export_pn_cal_singles: "Singles · {{date}}",
-    export_pn_cal_on_this_day: "On This Day · {{date}}",
-    export_pn_cal_throwback: "Throwback Singles · {{date}}",
-    export_pn_cal_releases: "New Releases · {{date}}",
 
     // Button tooltips
     tooltip_theme_navy_dark: 'Navy Dark',
@@ -5060,6 +5063,13 @@ const TRANSLATIONS = {
     ev_type_shows: 'Conciertos',
     ev_info_title: 'Sobre esta lista',
     ev_refresh_title: 'Actualizar eventos',
+    ev_view_aria: 'Vista',
+    ev_view_reel: 'Carrusel',
+    ev_view_tiles: 'Mosaico',
+    ev_view_table: 'Tabla',
+    ev_view_list: 'Lista',
+    ev_pl_title: 'Guardar en una lista lo que muestra esta pestaña',
+    ev_nmf_past: 'Viernes anteriores',
     sec_records_title: '🏆 Récords y Salón de la Fama',
     collapsed_hint: 'contraído — clic en + para expandir',
 
@@ -6381,10 +6391,6 @@ const TRANSLATIONS = {
     export_pn_day_chart: "Ranking Diario · {{date}}",
     export_pn_day_mix: "Mi Mix del {{day}}",
     export_pn_day_repeat: "En Bucle · {{date}}",
-    export_pn_cal_singles: "Sencillos · {{date}}",
-    export_pn_cal_on_this_day: "Un Día Como Hoy · {{date}}",
-    export_pn_cal_throwback: "Sencillos del Recuerdo · {{date}}",
-    export_pn_cal_releases: "Nuevos Lanzamientos · {{date}}",
 
     // Button tooltips
     tooltip_theme_navy_dark: 'Azul Marino Oscuro',
@@ -8580,6 +8586,13 @@ const TRANSLATIONS = {
     ev_type_shows: 'Shows',
     ev_info_title: 'Sobre esta lista',
     ev_refresh_title: 'Atualizar eventos',
+    ev_view_aria: 'Visualização',
+    ev_view_reel: 'Carrossel',
+    ev_view_tiles: 'Blocos',
+    ev_view_table: 'Tabela',
+    ev_view_list: 'Lista',
+    ev_pl_title: 'Salvar numa playlist o que esta aba mostra',
+    ev_nmf_past: 'Sextas anteriores',
     sec_records_title: '🏆 Recordes e Salão da Fama',
     collapsed_hint: 'recolhido — clique em + para expandir',
 
@@ -9902,10 +9915,6 @@ const TRANSLATIONS = {
     export_pn_day_chart: "Parada Diária · {{date}}",
     export_pn_day_mix: "Meu Mix de {{day}}",
     export_pn_day_repeat: "No Repeat · {{date}}",
-    export_pn_cal_singles: "Singles · {{date}}",
-    export_pn_cal_on_this_day: "Neste Dia · {{date}}",
-    export_pn_cal_throwback: "Singles Nostálgicos · {{date}}",
-    export_pn_cal_releases: "Lançamentos · {{date}}",
 
     // Button tooltips
     tooltip_theme_navy_dark: 'Azul Marinho Escuro',
@@ -12101,6 +12110,13 @@ const TRANSLATIONS = {
     ev_type_shows: 'Concertos',
     ev_info_title: 'Sobre esta lista',
     ev_refresh_title: 'Atualizar eventos',
+    ev_view_aria: 'Vista',
+    ev_view_reel: 'Carrossel',
+    ev_view_tiles: 'Blocos',
+    ev_view_table: 'Tabela',
+    ev_view_list: 'Lista',
+    ev_pl_title: 'Guardar numa playlist o que este separador mostra',
+    ev_nmf_past: 'Sextas anteriores',
     sec_records_title: '🏆 Recordes e Salão da Fama',
     collapsed_hint: 'recolhido — clique em + para expandir',
 
@@ -13422,10 +13438,6 @@ const TRANSLATIONS = {
     export_pn_day_chart: "Top Diário · {{date}}",
     export_pn_day_mix: "O Meu Mix de {{day}}",
     export_pn_day_repeat: "Em Repetição · {{date}}",
-    export_pn_cal_singles: "Singles · {{date}}",
-    export_pn_cal_on_this_day: "Neste Dia · {{date}}",
-    export_pn_cal_throwback: "Singles Nostálgicos · {{date}}",
-    export_pn_cal_releases: "Novos Lançamentos · {{date}}",
 
     // Button tooltips
     tooltip_theme_navy_dark: 'Azul Escuro',
@@ -14386,15 +14398,8 @@ function setLanguage(lang) {
   // rebuild (and fetch the new language's entries) rather than being re-stamped.
   if (typeof dcClOnLanguageChange === 'function') dcClOnLanguageChange();
 
-  // Re-render release card dates and type labels with new language
-  document.querySelectorAll('.upcoming-card-date[data-date]').forEach(el => {
-    const d = new Date(el.dataset.date + 'T00:00:00');
-    if (!isNaN(d.getTime())) el.textContent = fmtDate(d);
-  });
-  document.querySelectorAll('.upcoming-card-type[data-mbtype]').forEach(el => {
-    const typeKey = 'mb_type_' + el.dataset.mbtype.toLowerCase();
-    el.textContent = t(typeKey) || el.dataset.mbtype;
-  });
+  // Events cards carry dates and release types in the language: draw them again
+  if (typeof _evReRenderSection === 'function') Object.keys(EV_GRID_IDS).forEach(_evReRenderSection);
 
   // Longer words can overflow the top bar; tighten it if they do
   if (typeof dcFitTopbar === 'function') dcFitTopbar();

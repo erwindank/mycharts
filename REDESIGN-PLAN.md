@@ -2612,6 +2612,34 @@ Steps:
    buttons and "collapsed" hints go. One "＋ Playlist" for what's showing
    replaces the per-section ones and the calendar's Play All / Create /
    Export.
+   **Done 2026-10-23:** _evCardHtml() is the one card (picture, date,
+   title, artist, type icon + words); Reel shows it moving, Tiles in a
+   grid (.ev-tiles), and Table / List rows carry the same icon. The eight
+   per-type tile builders (renderBirthdayCard … renderNMFCard) and the
+   .upcoming-card CSS went. _evNormalize gives each item a `kind`
+   (birthday / album / single / ep / other / show, EV_TYPE_ICONS) and
+   drops the emoji from the type words; "TODAY" is "Today". One Reel /
+   Tiles / Table / List switch in the toolbar (shown on Coming up and
+   Recent), still saved under the synced dc_events_view_modes key, now as
+   { page, nmfPast }; an old per-section setting takes the Birthdays mode
+   (checked). New Music Friday's fifth view, its calendar of past weeks,
+   is a "Past Fridays" toggle in its header, and the picked week shows in
+   the page's view. The − / + buttons, "collapsed" hints, emoji in the
+   section titles and the dc_events_section_collapsed_* memory are gone;
+   every section starts open. One "＋ Playlist" in the toolbar
+   (evAddTabToPlaylist): Coming up = birthdays + anniversaries, Recent =
+   the three recent sections, Today / Calendar = what the calendar shows
+   (today, or the day / week / month on screen); the calendar's Play All,
+   Create Playlist and Export Playlist went with calPlayAll /
+   openCalCreatePlModal / openCalendarExportModal and the four
+   export_pn_cal_* keys (the Create Playlist window stays, another
+   feature uses it). Play All has no replacement: a playlist made here
+   plays from Playlists. The Time Machine keeps its own ＋ Playlist.
+   Playlists' two borrowed sections keep their own buttons (.ev-sec-pl)
+   and always show as reels (_evMode). Language switch redraws the event
+   sections instead of relabelling the old cards. Checked at 1440 and 390
+   (touch): every view on both tabs, each tab's ＋ Playlist, Past
+   Fridays, Playlists and back, no sideways scroll, no errors.
 4. **Today.** Today's birthdays, releases and shows, then anniversaries
    ranked by your plays (round numbers first), about 8 plus "Show all".
    The Time Machine under them as "On this day in past years".
