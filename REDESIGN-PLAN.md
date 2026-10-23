@@ -873,8 +873,6 @@ Zoom" buttons. 72 inline styles in this section alone.
 - **Heatmap: one year at a time** with `‹ 2026 ›` arrows (same pattern as the
   period picker), and a small row of 11 mini-thumbnails to jump between
   years.
-- Lay the cards out on a 2-column grid on desktop (small charts side by
-  side, wide ones full width).
 - Move all 72 inline styles into classes.
 
 ### 4.15 Records. Seen on screen (8 of 11 sub-tabs)
@@ -2341,13 +2339,11 @@ Steps:
    scroll the year sideways with the day names pinned. Month labels go on
    the week whose Thursday is in the month (no more "DecJan"). Listening
    Patterns follow the open year with a "2026 | All time" switch
-   (dc_hmPatScope). Seen but left for step 8: the heatmap colour schemes are
+   (dc_hmPatScope). Seen but left for step 7: the heatmap colour schemes are
    dark-only, so on light themes the Less key and empty pattern cells are
    near-black.
-6. **Two-column layout** on desktop: small charts side by side, wide ones
-   (race, heatmap) full width.
-7. **Inline styles** in the Stats markup move into classes.
-8. **Screen check.** All charts, 10 themes, phone with touch, four
+6. **Inline styles** in the Stats markup move into classes.
+7. **Screen check.** All charts, 10 themes, phone with touch, four
    languages, a long (10-year) library.
 
 The period picker does not need moving into one place:
