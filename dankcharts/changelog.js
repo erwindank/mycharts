@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 284;
+const DC_CL_I18N_V = 285;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-23', t: 'fix', a: 'rawdata', h: '72edf0f',
+    title: "Play history fits on phones in every language",
+    detail: "On a phone, the play history table in song and album windows, and the Raw Data page on the smallest phones, could be wider than the screen, so you had to slide sideways to see the artist. This happened mostly in Spanish and Portuguese, where the column names are longer. Column names now wrap onto two lines when there is no room, and the whole table fits the screen. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-23', t: 'design', a: 'rawdata', h: 'f7f27f5',
     title: "Song, album and artist panels: the Raw data tab matches the Raw Data page",
     detail: "The Raw data tab you can open under a song, album or artist on the charts now looks like the Raw Data page: shaded every other row, quiet dates, and column names that stay at the top while you scroll through the list. Its column names, search box, play count and messages now follow your language instead of always showing English. Works with Last.fm, Google Sheets and CSV uploads." },

@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Play history fits on phones in every language":
+    ["O histórico de plays cabe no celular em todos os idiomas",
+     "No celular, a tabela do histórico de plays nas janelas de músicas e álbuns, e a página Dados brutos nos celulares menores, podiam ficar mais largas que a tela, e era preciso deslizar para o lado para ver o artista. Acontecia principalmente em espanhol e português, onde os nomes das colunas são mais longos. Agora os nomes das colunas quebram em duas linhas quando falta espaço e a tabela inteira cabe na tela. Funciona com Last.fm, Google Sheets e arquivos CSV."],
+
   "Song, album and artist panels: the Raw data tab matches the Raw Data page":
     ["Painéis de música, álbum e artista: a aba de dados igual a Dados brutos",
      "A aba com o histórico completo que você abre embaixo de uma música, um álbum ou um artista nas paradas agora se parece com a página Dados brutos: uma linha sim, uma não, sombreada, datas num tom suave e os nomes das colunas fixos no topo enquanto você rola a lista. Os nomes das colunas, a caixa de busca, a contagem de plays e as mensagens agora seguem o seu idioma em vez de aparecer sempre em inglês. Funciona com Last.fm, Google Sheets e arquivos CSV."],

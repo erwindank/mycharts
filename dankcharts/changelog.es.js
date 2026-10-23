@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Play history fits on phones in every language":
+    ["El historial de reproducciones cabe en el móvil en todos los idiomas",
+     "En el móvil, la tabla del historial de reproducciones en las ventanas de canciones y álbumes, y la página Base de datos en los móviles más pequeños, podían ser más anchas que la pantalla, así que había que deslizar hacia los lados para ver el artista. Pasaba sobre todo en español y portugués, donde los nombres de las columnas son más largos. Ahora los nombres de las columnas pasan a dos líneas cuando no hay sitio y toda la tabla cabe en la pantalla. Funciona con Last.fm, Google Sheets y archivos CSV."],
+
   "Song, album and artist panels: the Raw data tab matches the Raw Data page":
     ["Paneles de canción, álbum y artista: la pestaña de datos se parece a Base de datos",
      "La pestaña con el historial completo que puedes abrir bajo una canción, un álbum o un artista en las listas se parece ahora a la página Base de datos: una fila de cada dos sombreada, fechas en un tono suave y los nombres de las columnas fijos arriba mientras recorres la lista. Los nombres de las columnas, la casilla de búsqueda, el número de reproducciones y los mensajes siguen ahora tu idioma en lugar de salir siempre en inglés. Funciona con Last.fm, Google Sheets y archivos CSV."],
