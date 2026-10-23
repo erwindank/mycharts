@@ -15992,7 +15992,7 @@ function buildItemHeatmapHTML(type, key) {
     for (const week of weeks) {
       const month = new Date(week[0].dk + 'T00:00:00').getMonth();
       if (week[0].inRange && month !== lastMonth) {
-        monthHtml += `<div class="heatmap-week-col heatmap-month-header-row" style="position:relative;"><span class="heatmap-month-label">${HM_MONTHS[month]}</span></div>`;
+        monthHtml += `<div class="heatmap-week-col heatmap-month-header-row" style="position:relative;"><span class="heatmap-month-label">${hmMonth(month)}</span></div>`;
         lastMonth = month;
       } else monthHtml += '<div class="heatmap-week-col heatmap-month-header-row"></div>';
     }
@@ -16019,7 +16019,7 @@ function buildItemHeatmapHTML(type, key) {
     html += `<div class="heatmap-year-block">
       <div class="heatmap-year-header">${yr}</div>
       <div class="heatmap-outer">
-        <div class="heatmap-dow-labels">${HM_DOW_LABELS.map(l => `<div class="heatmap-dow-label">${l}</div>`).join('')}</div>
+        <div class="heatmap-dow-labels">${hmDowLabels().map(l => `<div class="heatmap-dow-label">${l}</div>`).join('')}</div>
         <div class="heatmap-inner"><div class="heatmap-grid-wrap">
           <div class="heatmap-weeks-row" style="height:16px;margin-bottom:3px;">${monthHtml}</div>
           <div class="heatmap-weeks-row">${cellsHtml}</div>
@@ -16031,7 +16031,7 @@ function buildItemHeatmapHTML(type, key) {
     const cnt = r === 0 ? 0 : Math.round(Math.exp(r * Math.log1p(maxCount)) - 1);
     return `<div class="heatmap-cell" style="background:${hmCellColor(cnt, maxCount)};cursor:default;"></div>`;
   }).join('');
-  html += `<div class="heatmap-legend" style="margin-top:0.5rem;"><span class="heatmap-legend-label">Less</span>${legendCells}<span class="heatmap-legend-label">More</span></div>`;
+  html += `<div class="heatmap-legend" style="margin-top:0.5rem;"><span class="heatmap-legend-label">${esc(t('sk_hm_less'))}</span>${legendCells}<span class="heatmap-legend-label">${esc(t('sk_hm_more'))}</span></div>`;
   return `<div class="cr-item-heatmap" id="${containerId}">${html}</div>`;
 }
 
@@ -27437,9 +27437,9 @@ function renderGraphs() {
       type: 'bar',
       data: {
         labels: dKeys.map(graphKeyLabel), datasets: [
-          { label: 'New Songs', data: dKeys.map(k => nSong[k]), backgroundColor: graphColor(0), borderColor: gc.cardBg, borderWidth: { top: 2 }, stack: 'disc' },
-          { label: 'New Artists', data: dKeys.map(k => nArtist[k]), backgroundColor: graphColor(1), borderColor: gc.cardBg, borderWidth: { top: 2 }, stack: 'disc' },
-          { label: 'New Albums', data: dKeys.map(k => nAlbum[k]), backgroundColor: graphColor(2), borderColor: gc.cardBg, borderWidth: { top: 2 }, stack: 'disc' },
+          { label: t('graph_new_songs'), data: dKeys.map(k => nSong[k]), backgroundColor: graphColor(0), borderColor: gc.cardBg, borderWidth: { top: 2 }, stack: 'disc' },
+          { label: t('graph_new_artists'), data: dKeys.map(k => nArtist[k]), backgroundColor: graphColor(1), borderColor: gc.cardBg, borderWidth: { top: 2 }, stack: 'disc' },
+          { label: t('graph_new_albums'), data: dKeys.map(k => nAlbum[k]), backgroundColor: graphColor(2), borderColor: gc.cardBg, borderWidth: { top: 2 }, stack: 'disc' },
         ]
       },
       options: {
@@ -27708,7 +27708,7 @@ function renderTotalVolumeChart(sortedKeys, gc, axisOpts, legendOpts) {
     type: 'bar',
     data: {
       labels: filteredLabels, datasets: [{
-        label: 'Plays', data: filteredKeys.map(k => countByKey[k] || 0),
+        label: t('th_plays_mobile'), data: filteredKeys.map(k => countByKey[k] || 0),
         backgroundColor: col, borderColor: col, borderWidth: 0, borderRadius: 3, borderSkipped: 'start'
       }]
     },
@@ -28226,7 +28226,7 @@ function raceAnimate(ts) {
     if (raceFrameIdx >= raceFrames.length - 1) {
       raceFrameIdx = raceFrames.length - 1; raceProgress = 0; racePlaying = false;
       const btn = document.getElementById('racePlayBtn');
-      btn.textContent = '▶ Play'; btn.classList.add('active');
+      btn.textContent = t('race_play'); btn.classList.add('active');
       drawRace(raceFrameIdx, 0); raceUpdateSlider(); return;
     }
   }
@@ -28261,7 +28261,7 @@ function initRace() {
 
   const slider = document.getElementById('raceSeekSlider');
   slider.max = Math.max(1, raceFrames.length - 1); slider.value = 0;
-  document.getElementById('racePlayBtn').textContent = '▶ Play';
+  document.getElementById('racePlayBtn').textContent = t('race_play');
   document.getElementById('racePlayBtn').classList.add('active');
   drawRace(0, 0);
 }
@@ -28273,7 +28273,7 @@ document.getElementById('racePlayBtn').addEventListener('click', () => {
   }
   racePlaying = !racePlaying;
   const btn = document.getElementById('racePlayBtn');
-  btn.textContent = racePlaying ? '⏸ Pause' : '▶ Play';
+  btn.textContent = t(racePlaying ? 'race_pause' : 'race_play');
   btn.classList.toggle('active', racePlaying);
   if (racePlaying) { raceLastTime = null; raceAnimId = requestAnimationFrame(raceAnimate); }
   else {
@@ -28287,7 +28287,7 @@ document.getElementById('raceRestartBtn').addEventListener('click', () => {
   if (raceAnimId) { cancelAnimationFrame(raceAnimId); raceAnimId = null; }
   raceFrameIdx = 0; raceProgress = 0; raceLastTime = null;
   localStorage.removeItem('dc_raceFrameIdx');
-  document.getElementById('racePlayBtn').textContent = '▶ Play';
+  document.getElementById('racePlayBtn').textContent = t('race_play');
   document.getElementById('racePlayBtn').classList.add('active');
   raceUpdateSlider(); drawRace(0, 0);
 });
@@ -28314,7 +28314,7 @@ document.getElementById('raceSeekSlider').addEventListener('input', e => {
     racePlaying = false;
     if (raceAnimId) { cancelAnimationFrame(raceAnimId); raceAnimId = null; }
     const btn = document.getElementById('racePlayBtn');
-    btn.textContent = '▶ Play'; btn.classList.add('active');
+    btn.textContent = t('race_play'); btn.classList.add('active');
   }
   const v = parseFloat(e.target.value);
   raceFrameIdx = Math.min(Math.floor(v), raceFrames.length - 1);
@@ -28356,7 +28356,7 @@ document.getElementById('raceStepBackBtn').addEventListener('click', () => {
     racePlaying = false;
     if (raceAnimId) { cancelAnimationFrame(raceAnimId); raceAnimId = null; }
     const btn = document.getElementById('racePlayBtn');
-    btn.textContent = '▶ Play'; btn.classList.add('active');
+    btn.textContent = t('race_play'); btn.classList.add('active');
   }
   raceProgress = 0;
   raceFrameIdx = Math.max(0, raceFrameIdx - 1);
@@ -28371,7 +28371,7 @@ document.getElementById('raceStepFwdBtn').addEventListener('click', () => {
     racePlaying = false;
     if (raceAnimId) { cancelAnimationFrame(raceAnimId); raceAnimId = null; }
     const btn = document.getElementById('racePlayBtn');
-    btn.textContent = '▶ Play'; btn.classList.add('active');
+    btn.textContent = t('race_play'); btn.classList.add('active');
   }
   raceProgress = 0;
   raceFrameIdx = Math.min(raceFrames.length - 1, raceFrameIdx + 1);
@@ -28386,7 +28386,7 @@ document.getElementById('raceEndBtn').addEventListener('click', () => {
     racePlaying = false;
     if (raceAnimId) { cancelAnimationFrame(raceAnimId); raceAnimId = null; }
     const btn = document.getElementById('racePlayBtn');
-    btn.textContent = '▶ Play'; btn.classList.add('active');
+    btn.textContent = t('race_play'); btn.classList.add('active');
   }
   raceProgress = 0;
   raceFrameIdx = raceFrames.length - 1;
@@ -34282,8 +34282,20 @@ const HM_THEMES = {
   ember:   ['#140303', '#4a0a08', '#991818', '#d44000', '#f09000'],
 };
 const HM_TYPE_THEME = { all: 'default', artist: 'fire', song: 'ocean', album: 'forest' };
-const HM_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const HM_DOW_LABELS = ['Mon', '', 'Wed', '', 'Fri', '', 'Sun'];
+// Month and weekday names in the page language, short and without the
+// trailing dot some languages add ("jan." -> "Jan"). Weekdays run Mon..Sun.
+function hmLocale() { return currentLang === 'en' ? 'en-US' : currentLang; }
+function hmShortName(d, opt) {
+  const s = d.toLocaleDateString(hmLocale(), opt).replace(/\.$/, '');
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+function hmMonth(m) { return hmShortName(new Date(2000, m, 1), { month: 'short' }); }
+// Some languages give a long "short" weekday (pt-PT "Segunda"); the label
+// columns only fit three letters.
+function hmDow(i) { const s = hmShortName(new Date(2024, 0, 1 + i), { weekday: 'short' }); return s.length > 4 ? s.slice(0, 3) : s; }
+function hmCap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+// The calendar grids label every other row: Mon, Wed, Fri, Sun
+function hmDowLabels() { return [0, 1, 2, 3, 4, 5, 6].map(i => i % 2 ? '' : hmDow(i)); }
 
 function hmLerpColor(h1, h2, t) {
   const p = s => parseInt(s, 16);
@@ -34293,8 +34305,25 @@ function hmLerpColor(h1, h2, t) {
   return '#' + r(r1 + (r2 - r1) * t) + r(g1 + (g2 - g1) * t) + r(b1 + (b2 - b1) * t);
 }
 
-function hmCellColor(count, max) {
+// The colour stops for the current heatmap scheme. The schemes are built for
+// dark themes (near-black for no plays, brightest for the most). On a light
+// theme they run the other way: no plays is the theme's empty-cell colour
+// (--bg3) and more plays means darker, so busy days stand out on a white
+// page instead of fading into it.
+let _hmStopsKey = '', _hmStopsVal = null;
+function hmStops() {
+  const light = [...document.body.classList].some(c => c.endsWith('-light'));
+  const key = hmTheme + '|' + (light ? document.body.className : '');
+  if (key === _hmStopsKey) return _hmStopsVal;
   const stops = HM_THEMES[hmTheme] || HM_THEMES.default;
+  const empty = light && getComputedStyle(document.body).getPropertyValue('--bg3').trim();
+  _hmStopsKey = key;
+  _hmStopsVal = light && /^#[0-9a-f]{6}$/i.test(empty) ? [empty, ...stops.slice(1).reverse()] : stops;
+  return _hmStopsVal;
+}
+
+function hmCellColor(count, max) {
+  const stops = hmStops();
   if (!count || !max) return stops[0];
   const ratio = Math.min(Math.log1p(count) / Math.log1p(max), 1);
   const idx = ratio * (stops.length - 1);
@@ -34343,13 +34372,13 @@ function buildHeatmapData() {
     for (const [yr, p] of Object.entries(firstPlayOfYear)) {
       const dk = dayStrOf(p);
       if (!msMap[dk]) msMap[dk] = { daily: [], allTime: [] };
-      msMap[dk].allTime.push({ label: `First scrobble of ${yr}`, play: p, isYearFirst: true });
+      msMap[dk].allTime.push({ label: t('hm_ms_year_first', { y: yr }), play: p, isYearFirst: true });
     }
     // Daily milestones: how many plays you hit within a single day
     for (const [dk, data] of Object.entries(dayMap)) {
       const daily = [];
       for (const n of [1, 50, 100, 200, 500, 1000]) {
-        if (data.plays.length >= n) daily.push({ label: hmOrdinal(n) + ' of the day', play: data.plays[n - 1] });
+        if (data.plays.length >= n) daily.push({ label: t('hm_ms_day', { ord: hmOrdinal(n), n: n.toLocaleString(hmLocale()) }), play: data.plays[n - 1] });
       }
       if (daily.length) {
         if (!msMap[dk]) msMap[dk] = { daily: [], allTime: [] };
@@ -34364,7 +34393,7 @@ function buildHeatmapData() {
       if (allTimeMilestones.has(cumCount)) {
         const dk = dayStrOf(p);
         if (!msMap[dk]) msMap[dk] = { daily: [], allTime: [] };
-        msMap[dk].allTime.push({ label: hmOrdinal(cumCount) + ' scrobble ever', play: p });
+        msMap[dk].allTime.push({ label: t('hm_ms_ever', { ord: hmOrdinal(cumCount), n: cumCount.toLocaleString(hmLocale()) }), play: p });
       }
     }
   } else {
@@ -34387,7 +34416,7 @@ function buildHeatmapData() {
       });
       if (milestoneSet.has(cumCount)) {
         if (!msMap[dk]) msMap[dk] = { daily: [], allTime: [] };
-        msMap[dk].allTime.push({ label: hmOrdinal(cumCount) + ' scrobble', play: p });
+        msMap[dk].allTime.push({ label: t('hm_ms_filtered', { ord: hmOrdinal(cumCount), n: cumCount.toLocaleString(hmLocale()) }), play: p });
       }
     }
   }
@@ -34513,7 +34542,7 @@ function hmYearStats(dayMap) {
 
 // year = a calendar year to limit the patterns to, or null for all history
 function hmRenderPatterns(dayMap, year) {
-  const dowLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const dowLabels = [0, 1, 2, 3, 4, 5, 6].map(hmDow);
   const inYear = dk => year == null || dk.startsWith(year + '-');
   const dowTotals = Array(7).fill(0);
   const dowDayCount = Array(7).fill(0);
@@ -34537,7 +34566,7 @@ function hmRenderPatterns(dayMap, year) {
   }
   const maxHour = Math.max(...grid.flat(), 1);
 
-  const stops = HM_THEMES[hmTheme] || HM_THEMES.default;
+  const stops = hmStops();
   const accent = stops[stops.length - 1];
 
   const barsHtml = dowLabels.map((label, i) => {
@@ -34547,12 +34576,12 @@ function hmRenderPatterns(dayMap, year) {
     return `<div class="hm-pat-bar-row">
       <span class="hm-pat-dow-label">${label}</span>
       <div class="hm-pat-bar-track"><div class="hm-pat-bar-fill" style="width:${w}%;background:${accent};opacity:${alpha.toFixed(2)};"></div></div>
-      <span class="hm-pat-bar-val">${Number.isInteger(avg) ? avg : avg.toFixed(1)}/day</span>
+      <span class="hm-pat-bar-val">${esc(t('hm_per_day', { n: (Number.isInteger(avg) ? avg : +avg.toFixed(1)).toLocaleString(hmLocale()) }))}</span>
     </div>`;
   }).join('');
 
   const hourHeaderCells = Array(24).fill(0).map((_, h) => {
-    const label = h === 0 ? '12a' : h === 6 ? '6a' : h === 12 ? '12p' : h === 18 ? '6p' : '';
+    const label = h % 6 ? '' : t('hm_hours').split('|')[h / 6];
     return `<div class="hm-pat-hour-label">${label}</div>`;
   }).join('');
 
@@ -34571,7 +34600,7 @@ function hmRenderPatterns(dayMap, year) {
 
   return `<div class="hm-patterns-section">
     <div class="hm-patterns-header">
-      <span>Listening Patterns</span>
+      <span>${esc(t('hm_patterns'))}</span>
       <div class="dc-seg hm-pat-scope" role="group" aria-label="${esc(t('hm_pat_scope_aria'))}">
         <button type="button" class="graphs-btn${year != null ? ' active' : ''}" data-hm-pat="year" aria-pressed="${year != null}">${year != null ? year : esc(t('hm_pat_year'))}</button>
         <button type="button" class="graphs-btn${year == null ? ' active' : ''}" data-hm-pat="all" aria-pressed="${year == null}">${esc(t('hm_pat_all'))}</button>
@@ -34579,11 +34608,11 @@ function hmRenderPatterns(dayMap, year) {
     </div>
     <div class="hm-patterns-body">
       <div class="hm-pat-weekday">
-        <div class="hm-pat-sublabel">Weekday rhythm</div>
+        <div class="hm-pat-sublabel">${esc(t('hm_weekday_rhythm'))}</div>
         <div class="hm-pat-bars">${barsHtml}</div>
       </div>
       <div class="hm-pat-hourblock">
-        <div class="hm-pat-sublabel">Hour of day</div>
+        <div class="hm-pat-sublabel">${esc(t('hm_hour_of_day'))}</div>
         <div class="hm-pat-hour-grid">
           <div class="hm-pat-dow-col">${dowLabels.map(l => `<div class="hm-pat-dow-side-label">${l}</div>`).join('')}</div>
           <div><div class="hm-pat-hour-row">${hourHeaderCells}</div>${gridRows}</div>
@@ -34598,6 +34627,9 @@ function renderHeatmap() {
   const tooltip = document.getElementById('heatmapTooltip');
   if (!container || !allPlays.length) return;
   if (tooltip) tooltip.style.display = 'none';
+
+  const inp = document.getElementById('heatmapFilterInput');
+  if (inp) inp.placeholder = t({ artist: 'graph_add_artist', song: 'hm_add_song', album: 'hm_add_album' }[heatmapType] || 'graph_add_artist');
 
   const { dayMap, msMap } = buildHeatmapData();
   _hmDayMap = dayMap;
@@ -34638,8 +34670,8 @@ function renderHeatmap() {
   let streakHtml = '';
   if (bestStreak > 1 || curStreak > 0) {
     const chips = [];
-    if (curStreak > 0) chips.push(`<span class="dc-chip hm-streak-chip">🔥 ${curStreak}-day streak</span>`);
-    if (bestStreak > 1) chips.push(`<span class="dc-chip hm-streak-chip">Best: ${bestStreak} days</span>`);
+    if (curStreak > 0) chips.push(`<span class="dc-chip hm-streak-chip">${esc(t(curStreak === 1 ? 'hm_streak_now_one' : 'hm_streak_now_other', { n: curStreak }))}</span>`);
+    if (bestStreak > 1) chips.push(`<span class="dc-chip hm-streak-chip">${esc(t('hm_best_streak', { n: bestStreak }))}</span>`);
     streakHtml = `<div class="hm-streak-bar">${chips.join('')}</div>`;
   }
 
@@ -34687,7 +34719,7 @@ function renderHeatmap() {
   for (const week of weeks) {
     const m = new Date(week[3].dk + 'T00:00:00').getMonth();
     if (week.some(c => c.inRange) && m !== lastMonth) {
-      monthHtml += `<span class="hm-y-month">${HM_MONTHS[m]}</span>`;
+      monthHtml += `<span class="hm-y-month">${hmMonth(m)}</span>`;
       lastMonth = m;
     } else {
       monthHtml += '<span></span>';
@@ -34727,7 +34759,7 @@ function renderHeatmap() {
   if (yearStats && yearStats[yr]) {
     const ys = yearStats[yr];
     const bd = ys.bestDk ? new Date(ys.bestDk + 'T00:00:00') : null;
-    const bestDayStr = bd ? `${HM_MONTHS[bd.getMonth()]} ${bd.getDate()}` : '—';
+    const bestDayStr = bd ? bd.toLocaleDateString(hmLocale(), { month: 'short', day: 'numeric' }) : '—';
     reviewHtml = `<div class="hm-y-stats">
       <span><span class="hm-yr-num">${ys.total.toLocaleString()}</span> ${tUnit('plays', ys.total)}</span>
       <span>${t('hm_best_day')} <span class="hm-yr-num">${bestDayStr}</span> <span class="hm-yr-muted">(${ys.bestDay.toLocaleString()})</span></span>
@@ -34752,7 +34784,7 @@ function renderHeatmap() {
   <div class="hm-y-scroll">
     <div class="hm-y-grid" style="--hm-weeks:${weeks.length}">
       <div class="hm-y-months">${monthHtml}</div>
-      <div class="hm-y-dows">${HM_DOW_LABELS.map(l => `<span>${l}</span>`).join('')}</div>
+      <div class="hm-y-dows">${hmDowLabels().map(l => `<span>${l}</span>`).join('')}</div>
       <div class="hm-y-cells">${cellsHtml}</div>
     </div>
   </div>`;
@@ -34762,7 +34794,7 @@ function renderHeatmap() {
     return `<div class="heatmap-cell" style="background:${hmCellColor(cnt, maxCount)};cursor:default;"></div>`;
   }).join('');
   // Streaks on the left, the key on the right
-  html += `<div class="hm-y-foot">${streakHtml}<div class="heatmap-legend"><span class="heatmap-legend-label">Less</span>${legendCells}<span class="heatmap-legend-label">More</span></div></div>`;
+  html += `<div class="hm-y-foot">${streakHtml}<div class="heatmap-legend"><span class="heatmap-legend-label">${esc(t('sk_hm_less'))}</span>${legendCells}<span class="heatmap-legend-label">${esc(t('sk_hm_more'))}</span></div></div>`;
 
   // Year strip: one thumbnail per year, a bar per week. Bar heights share one
   // scale across all years, so busy and quiet years look different.
@@ -34782,7 +34814,7 @@ function renderHeatmap() {
       }).join('');
       const sum = wt.reduce((a, b) => a + b, 0);
       const short = sum >= 1000 ? (sum / 1000).toFixed(1) + 'k' : String(sum);
-      return `<button type="button" class="hm-thumb" data-hm-year="${y}" aria-current="${y === yr}" aria-label="${y}: ${sum.toLocaleString()} ${tUnit('plays', sum)}">
+      return `<button type="button" class="hm-thumb" data-hm-year="${y}" aria-current="${y === yr}" aria-label="${y}: ${sum.toLocaleString(hmLocale())} ${tUnit('plays', sum)}">
         <svg viewBox="0 0 80 18" preserveAspectRatio="none" aria-hidden="true">${bars}</svg>
         <span class="hm-thumb-label">${y}<span>${short}</span></span>
       </button>`;
@@ -34827,10 +34859,11 @@ function renderHeatmap() {
     if (patCell && patCell.dataset.hmPattern) {
       const [dow, hr] = patCell.dataset.hmPattern.split(',').map(Number);
       const cnt = parseInt(patCell.dataset.hmPatCount) || 0;
-      const dowName = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'][dow];
-      const hrLabel = hr === 0 ? 'midnight' : hr < 12 ? `${hr}am` : hr === 12 ? 'noon' : `${hr - 12}pm`;
-      tip.innerHTML = `<div class="hm-tt-date">${dowName} · ${hrLabel}</div>
-        <div class="hm-tt-count">${cnt.toLocaleString()} scrobble${cnt !== 1 ? 's' : ''}</div>`;
+      const dowName = hmCap(new Date(2024, 0, 1 + dow).toLocaleDateString(hmLocale(), { weekday: 'long' }));
+      const hrLabel = currentLang !== 'en' ? `${hr}h`
+        : hr === 0 ? 'midnight' : hr < 12 ? `${hr}am` : hr === 12 ? 'noon' : `${hr - 12}pm`;
+      tip.innerHTML = `<div class="hm-tt-date">${esc(dowName)} · ${hrLabel}</div>
+        <div class="hm-tt-count">${cnt.toLocaleString(hmLocale())} ${esc(tUnit('plays', cnt))}</div>`;
       tip.style.display = 'block';
       positionTip(patCell);
       return;
@@ -34849,33 +34882,29 @@ function renderHeatmap() {
     if (!data) return;
 
     const d = new Date(dk + 'T00:00:00');
-    const dayName = d.toLocaleDateString('en-US', { weekday: 'long' });
-    const day = d.getDate();
-    const monthName = d.toLocaleDateString('en-US', { month: 'long' });
-    const yr = d.getFullYear();
-    const word = data.count === 1 ? 'scrobble' : 'scrobbles';
+    const dateStr = hmCap(d.toLocaleDateString(hmLocale(), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }));
 
     // Best day badge
     const bestHtml = dk === _hmBestDayDk
-      ? '<div class="hm-tt-best">⭐ Your best day ever</div>' : '';
+      ? `<div class="hm-tt-best">${esc(t('hm_tt_best'))}</div>` : '';
 
     // Percentile
     const pct = _hmPercentileFn ? _hmPercentileFn(data.count) : null;
     const topPct = pct !== null ? 100 - pct : null;
     const pctHtml = (topPct !== null && topPct <= 20 && dk !== _hmBestDayDk)
-      ? `<div class="hm-tt-pct">Top ${topPct < 1 ? '<1' : topPct}% day</div>` : '';
+      ? `<div class="hm-tt-pct">${esc(t('hm_tt_top_pct', { p: topPct < 1 ? '<1' : topPct }))}</div>` : '';
 
     // Drought return
     const gapDays = _hmReturnMap && _hmReturnMap[dk];
     const gapHtml = gapDays
-      ? `<div class="hm-tt-gap">🌧 Back after ${gapDays}-day break</div>` : '';
+      ? `<div class="hm-tt-gap">${esc(t('hm_tt_back', { n: gapDays }))}</div>` : '';
 
     let msHtml = '';
     const hasBoth = dailyMs.length > 0 && allTimeMs.length > 0;
     if (dailyMs.length || allTimeMs.length) {
       msHtml = '<hr class="hm-tt-rule">';
       if (dailyMs.length) {
-        if (hasBoth) msHtml += '<div class="hm-tt-section-label">📅 Today</div>';
+        if (hasBoth) msHtml += `<div class="hm-tt-section-label">${esc(t('hm_tt_that_day'))}</div>`;
         for (const m of dailyMs) {
           msHtml += `<div class="hm-tt-ms-wrap">
             <div class="hm-tt-ms-label">🚩 ${esc(m.label)}</div>
@@ -34885,7 +34914,7 @@ function renderHeatmap() {
         }
       }
       if (allTimeMs.length) {
-        if (hasBoth) msHtml += '<div class="hm-tt-rule-minor"></div><div class="hm-tt-section-label">🏆 All-time</div>';
+        if (hasBoth) msHtml += `<div class="hm-tt-rule-minor"></div><div class="hm-tt-section-label">${esc(t('hm_tt_all_time'))}</div>`;
         for (const m of allTimeMs) {
           const icon = m.isYearFirst ? '🎆' : '🏆';
           msHtml += `<div class="hm-tt-ms-wrap">
@@ -34897,8 +34926,8 @@ function renderHeatmap() {
       }
     }
 
-    tip.innerHTML = `<div class="hm-tt-date">${dayName} ${day} ${esc(monthName)} ${yr}</div>
-      <div class="hm-tt-count">${data.count.toLocaleString()} ${word}</div>
+    tip.innerHTML = `<div class="hm-tt-date">${esc(dateStr)}</div>
+      <div class="hm-tt-count">${data.count.toLocaleString(hmLocale())} ${esc(tUnit('plays', data.count))}</div>
       ${bestHtml}${pctHtml}${gapHtml}${msHtml}`;
     tip.style.display = 'block';
     positionTip(cell);
@@ -34961,9 +34990,6 @@ document.getElementById('heatmapTypeBtns').addEventListener('click', e => {
   renderHeatmapChips();
   const filterRow = document.getElementById('heatmapFilterRow');
   filterRow.style.display = heatmapType === 'all' ? 'none' : 'flex';
-  const placeholders = { artist: 'Add an artist…', song: 'Add a song…', album: 'Add an album…' };
-  const inp = document.getElementById('heatmapFilterInput');
-  if (inp) inp.placeholder = placeholders[heatmapType] || 'Add filter…';
   if (currentPeriod === 'graphs') renderHeatmap();
 });
 
@@ -37800,7 +37826,7 @@ function _skHmGenHTML() {
     const dt = dayAt(w * 7);
     const m = dt.getMonth();
     if (inRange(dt) && m !== lastMonth) {
-      monthRowHtml += `<div class="sk-hm-month-cell"><span class="sk-hm-month-lbl">${HM_MONTHS[m]}</span></div>`;
+      monthRowHtml += `<div class="sk-hm-month-cell"><span class="sk-hm-month-lbl">${hmMonth(m)}</span></div>`;
       lastMonth = m;
     } else {
       monthRowHtml += '<div class="sk-hm-month-cell"></div>';
@@ -54494,11 +54520,11 @@ function renderArtistRatingSection(artistName) {
       </div>
     </div>
     <div class="modal-stats-strip rt-insights">
-      <div class="modal-stat"><div class="se">◈</div><div class="sv ${sum.albumAvg != null ? ratingBand(sum.albumAvg).cls : ''}">${ratingFmt(sum.albumAvg)}</div><div class="sl">Album average</div></div>
-      <div class="modal-stat"><div class="se">♦</div><div class="sv ${sum.songAvg != null ? ratingBand(sum.songAvg).cls : ''}">${ratingFmt(sum.songAvg)}</div><div class="sl">Song average</div></div>
+      <div class="modal-stat"><div class="se">◈</div><div class="sv ${sum.albumAvg != null ? ratingBand(sum.albumAvg).cls : ''}">${ratingFmt(sum.albumAvg)}</div><div class="sl">${esc(t('ra_card_album_avg'))}</div></div>
+      <div class="modal-stat"><div class="se">♦</div><div class="sv ${sum.songAvg != null ? ratingBand(sum.songAvg).cls : ''}">${ratingFmt(sum.songAvg)}</div><div class="sl">${esc(t('ra_card_song_avg'))}</div></div>
       <div class="modal-stat"><div class="se">🏆</div><div class="sv ${sum.bestAlbum ? ratingBand(sum.bestAlbum.score).cls : ''}">${ratingFmt(sum.bestAlbum?.score)}</div><div class="sl">${sum.bestAlbum ? esc(sum.bestAlbum.name) : 'Best album'}</div></div>
-      <div class="modal-stat"><div class="se">📋</div><div class="sv">${sum.ratedAlbums}/${sum.totalAlbums}</div><div class="sl">Albums rated</div></div>
-      <div class="modal-stat"><div class="se">🎵</div><div class="sv">${sum.ratedSongs}/${sum.totalSongs}</div><div class="sl">Songs rated</div></div>
+      <div class="modal-stat"><div class="se">📋</div><div class="sv">${sum.ratedAlbums}/${sum.totalAlbums}</div><div class="sl">${esc(t('rtg_albums_rated'))}</div></div>
+      <div class="modal-stat"><div class="se">🎵</div><div class="sv">${sum.ratedSongs}/${sum.totalSongs}</div><div class="sl">${esc(t('rtg_songs_rated'))}</div></div>
     </div>
     ${albumList}
     ${pending}
@@ -55261,14 +55287,15 @@ function _ratingsDistributionHTML(items) {
         // Shade by score (phase 9 part 2 step 4): the 0 bucket is the accent
         // mixed 40% into the card, the 9–10 bucket the full accent.
         const mix = Math.round(40 + b.lo * (60 / 9));
-        return `<div class="rt-dist-col" title="${b.n} ${b.n === 1 ? 'entry' : 'entries'} scored ${b.lo}.0–${b.hi === 10 ? '10.0' : b.hi + '.0'}">
+        const one = v => v.toLocaleString(hmLocale(), { minimumFractionDigits: 1 });
+        return `<div class="rt-dist-col" title="${esc(t(b.n === 1 ? 'rtg_dist_tip_one' : 'rtg_dist_tip_other', { n: b.n, lo: one(b.lo), hi: one(b.hi) }))}">
           <div class="rt-dist-count">${b.n || ''}</div>
           <div class="rt-dist-bar-wrap">${b.n ? `<div class="rt-dist-bar ${band.cls}" style="height:${h}%;--rt-mix:${mix}%"></div>` : ''}</div>
           <div class="rt-dist-tick">${b.lo}</div>
         </div>`;
       }).join('')}
     </div>
-    <div class="rt-dist-axis">Score</div>
+    <div class="rt-dist-axis">${esc(t('rtg_sort_score'))}</div>
   </div>`;
 }
 
@@ -55289,19 +55316,19 @@ function _ratingsUnratedHTML() {
     .sort((a, b) => b[1] - a[1]).slice(0, 6);
 
   if (!topAlbums.length && !topSongs.length) {
-    return `<div class="rt-empty">Everything you play often has a score. Impressive.</div>`;
+    return `<div class="rt-empty">${esc(t('rtg_all_scored'))}</div>`;
   }
   const row = (k, n, kind) => {
     const { title: name, artist } = kind === 'song' ? ratingSongNames(k) : { title: k.split('|||')[0], artist: k.split('|||')[1] };
     return `<button class="rt-unrated-row" onclick="openRatingModal('${kind}', ${esc(JSON.stringify(k))})">
       <span class="rt-unrated-name">${esc(name)}<span class="rt-unrated-artist">${esc(artist)}</span></span>
       <span class="rt-unrated-plays">${n} ${tUnit('plays', n)}</span>
-      <span class="rt-unrated-cta">Rate →</span>
+      <span class="rt-unrated-cta">${esc(t('rtg_rate_cta'))}</span>
     </button>`;
   };
   return `<div class="rt-unrated-grid">
-    ${topAlbums.length ? `<div><div class="rt-sub-label">Albums</div>${topAlbums.map(([k, n]) => row(k, n, 'album')).join('')}</div>` : ''}
-    ${topSongs.length ? `<div><div class="rt-sub-label">Songs</div>${topSongs.map(([k, n]) => row(k, n, 'song')).join('')}</div>` : ''}
+    ${topAlbums.length ? `<div><div class="rt-sub-label">${esc(t('race_albums'))}</div>${topAlbums.map(([k, n]) => row(k, n, 'album')).join('')}</div>` : ''}
+    ${topSongs.length ? `<div><div class="rt-sub-label">${esc(t('race_songs'))}</div>${topSongs.map(([k, n]) => row(k, n, 'song')).join('')}</div>` : ''}
   </div>`;
 }
 
@@ -55334,8 +55361,8 @@ function renderRatingsGraphSection() {
 
   if (!albums.length && !songs.length) {
     el.innerHTML = `<div class="rt-empty rt-empty--big">
-      <div class="rt-empty-title">You have not rated anything yet</div>
-      <div class="rt-empty-sub">Open any album or song and score it — this is where the whole rated library, its score distribution and your best and worst records will live.</div>
+      <div class="rt-empty-title">${esc(t('rtg_empty_title'))}</div>
+      <div class="rt-empty-sub">${esc(t('rtg_empty_sub'))}</div>
       ${_ratingsUnratedHTML()}
     </div>`;
     return;
@@ -55362,42 +55389,42 @@ function renderRatingsGraphSection() {
 
   el.innerHTML = `
     <div class="modal-stats-strip rt-insights">
-      <div class="modal-stat"><div class="se">◈</div><div class="sv ${albumAvg != null ? ratingBand(albumAvg).cls : ''}">${ratingFmt(albumAvg)}</div><div class="sl">Album average</div></div>
-      <div class="modal-stat"><div class="se">♦</div><div class="sv ${songAvg != null ? ratingBand(songAvg).cls : ''}">${ratingFmt(songAvg)}</div><div class="sl">Song average</div></div>
-      <div class="modal-stat"><div class="se">📋</div><div class="sv">${albums.length}</div><div class="sl">Albums rated</div></div>
-      <div class="modal-stat"><div class="se">🎵</div><div class="sv">${songs.length}</div><div class="sl">Songs rated</div></div>
-      <div class="modal-stat"><div class="se">📅</div><div class="sv">${act.days}</div><div class="sl">Days rating</div></div>
-      <div class="modal-stat"><div class="se">🔥</div><div class="sv">${act.longest}</div><div class="sl">Longest streak</div></div>
+      <div class="modal-stat"><div class="se">◈</div><div class="sv ${albumAvg != null ? ratingBand(albumAvg).cls : ''}">${ratingFmt(albumAvg)}</div><div class="sl">${esc(t('ra_card_album_avg'))}</div></div>
+      <div class="modal-stat"><div class="se">♦</div><div class="sv ${songAvg != null ? ratingBand(songAvg).cls : ''}">${ratingFmt(songAvg)}</div><div class="sl">${esc(t('ra_card_song_avg'))}</div></div>
+      <div class="modal-stat"><div class="se">📋</div><div class="sv">${albums.length}</div><div class="sl">${esc(t('rtg_albums_rated'))}</div></div>
+      <div class="modal-stat"><div class="se">🎵</div><div class="sv">${songs.length}</div><div class="sl">${esc(t('rtg_songs_rated'))}</div></div>
+      <div class="modal-stat"><div class="se">📅</div><div class="sv">${act.days}</div><div class="sl">${esc(t('rtg_days_rating'))}</div></div>
+      <div class="modal-stat"><div class="se">🔥</div><div class="sv">${act.longest}</div><div class="sl">${esc(t('rtg_longest_streak'))}</div></div>
     </div>
 
     ${bestAlbum ? `<div class="rt-bestworst">
       <button class="dc-card-inset rt-bw-card rt-bw-card--best" onclick="openAlbumModal(${esc(JSON.stringify(bestAlbum.key))})">
-        <div class="rt-bw-lead">🏆 Best rated album</div>
+        <div class="rt-bw-lead">${esc(t('rtg_best_album'))}</div>
         <div class="rt-bw-name">${esc(bestAlbum.name)}</div>
         <div class="rt-bw-artist">${esc(bestAlbum.artist)}</div>
         ${ratingChip(bestAlbum.score)}
       </button>
       ${worstAlbum && worstAlbum.key !== bestAlbum.key ? `<button class="dc-card-inset rt-bw-card rt-bw-card--worst" onclick="openAlbumModal(${esc(JSON.stringify(worstAlbum.key))})">
-        <div class="rt-bw-lead">🥀 Lowest rated album</div>
+        <div class="rt-bw-lead">${esc(t('rtg_worst_album'))}</div>
         <div class="rt-bw-name">${esc(worstAlbum.name)}</div>
         <div class="rt-bw-artist">${esc(worstAlbum.artist)}</div>
         ${ratingChip(worstAlbum.score)}
       </button>` : ''}
     </div>` : ''}
 
-    <div class="rt-sub-label">Score distribution — ${_ratingsLibFilter === 'albums' ? 'albums' : 'songs'}</div>
+    <div class="rt-sub-label">${esc(t(_ratingsLibFilter === 'albums' ? 'rtg_dist_albums' : 'rtg_dist_songs'))}</div>
     ${_ratingsDistributionHTML(items)}
 
     <div class="rt-lib-controls">
       <div class="dc-seg rt-lib-filter">
-        <button class="graphs-btn${_ratingsLibFilter === 'albums' ? ' active' : ''}" onclick="ratingsLibSetFilter('albums')">Albums <span class="rt-tab-count">${albums.length}</span></button>
-        <button class="graphs-btn${_ratingsLibFilter === 'songs' ? ' active' : ''}" onclick="ratingsLibSetFilter('songs')">Songs <span class="rt-tab-count">${songs.length}</span></button>
+        <button class="graphs-btn${_ratingsLibFilter === 'albums' ? ' active' : ''}" onclick="ratingsLibSetFilter('albums')">${esc(t('race_albums'))} <span class="rt-tab-count">${albums.length}</span></button>
+        <button class="graphs-btn${_ratingsLibFilter === 'songs' ? ' active' : ''}" onclick="ratingsLibSetFilter('songs')">${esc(t('race_songs'))} <span class="rt-tab-count">${songs.length}</span></button>
       </div>
       <div class="dc-seg rt-lib-sort">
-        <button class="graphs-btn${_ratingsLibSort === 'score' ? ' active' : ''}" onclick="ratingsLibSetSort('score')">Score${arrow('score')}</button>
-        <button class="graphs-btn${_ratingsLibSort === 'plays' ? ' active' : ''}" onclick="ratingsLibSetSort('plays')">Plays${arrow('plays')}</button>
-        <button class="graphs-btn${_ratingsLibSort === 'recent' ? ' active' : ''}" onclick="ratingsLibSetSort('recent')">Rated${arrow('recent')}</button>
-        <button class="graphs-btn${_ratingsLibSort === 'title' ? ' active' : ''}" onclick="ratingsLibSetSort('title')">Title${arrow('title')}</button>
+        <button class="graphs-btn${_ratingsLibSort === 'score' ? ' active' : ''}" onclick="ratingsLibSetSort('score')">${esc(t('rtg_sort_score'))}${arrow('score')}</button>
+        <button class="graphs-btn${_ratingsLibSort === 'plays' ? ' active' : ''}" onclick="ratingsLibSetSort('plays')">${esc(t('th_plays_mobile'))}${arrow('plays')}</button>
+        <button class="graphs-btn${_ratingsLibSort === 'recent' ? ' active' : ''}" onclick="ratingsLibSetSort('recent')">${esc(t('rtg_sort_rated'))}${arrow('recent')}</button>
+        <button class="graphs-btn${_ratingsLibSort === 'title' ? ' active' : ''}" onclick="ratingsLibSetSort('title')">${esc(t('rtg_sort_title'))}${arrow('title')}</button>
       </div>
     </div>
 
@@ -55410,7 +55437,7 @@ function renderRatingsGraphSection() {
       </button>`).join('')}
     </div>
 
-    <div class="rt-sub-label">Played a lot, never rated</div>
+    <div class="rt-sub-label">${esc(t('rtg_unrated'))}</div>
     ${_ratingsUnratedHTML()}
   `;
 }

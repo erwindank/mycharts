@@ -2354,6 +2354,30 @@ Steps:
    Text inputs now show a focus ring (the old inline outline:none hid it).
 7. **Screen check.** All charts, 10 themes, phone with touch, four
    languages, a long (10-year) library.
+   **Done 2026-10-23:** every chart draws in all 9 Daily / Monthly /
+   Yearly × 12 mo / 3 yr / All combinations on a 2016–2026 library; race
+   plays; all 10 themes; phone (390, touch) has no sideways scroll, a tap
+   opens the heatmap tooltip and the year thumbnails; no script errors.
+   Fixed along the way:
+   - **Heatmap on light themes:** hmStops() runs each scheme the other way
+     (empty = the theme's --bg3, more plays = darker), so the Less key and
+     empty pattern cells are no longer near-black. Description reworded
+     ("the stronger the color"). Tooltip gold/amber lines get darker
+     shades on light themes (≥5:1). The divider after View is hidden on
+     phones, where the swatches wrap.
+   - **Four languages:** much of Stats was English-only. Now translated:
+     the heatmap card, its tooltip, milestones, streak chips, Less/More,
+     Listening Patterns, the filter placeholder, the race Play/Pause
+     button (JS overwrote the translated label), the Discoveries legend
+     and the volume chart's series name, and the whole My Ratings card.
+     Month and weekday names come from the browser in the page language
+     (hmMonth / hmDow), which also fixes the album/song and Streaks
+     heatmaps. Left: the rating band names (Essential, Weak…) stay English;
+     they are the ratings feature's vocabulary everywhere (share images,
+     rating windows), so translating them is its own decision.
+
+**Phase 9 part 2 (Stats) is finished** (2026-10-23). Next is phase 9
+part 3: Raw Data (4.13).
 
 The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in

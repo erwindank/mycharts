@@ -8018,6 +8018,16 @@
     .hm-theme-btns { display: flex; align-items: center; gap: 5px; }
     .hm-ctrl-sep { width: 1px; height: 14px; margin: 0 2px; background: var(--border2); }
     #gHeatmap { overflow-x: auto; padding-bottom: 0.25rem; }
+    /* On a phone the swatches wrap onto their own line, which would leave the
+       divider hanging at the end of the View row. */
+    @media (max-width: 600px) { .hm-ctrl-sep { display: none; } }
+    /* The tooltip's gold and amber lines are tuned for dark themes; on a light
+       tooltip they need darker shades to stay readable (all ≥5:1 on every
+       light theme's --bg). */
+    body[class*="-light"] .hm-tt-ms-label { color: #8f5400; }
+    body[class*="-light"] .hm-tt-ms-alltime,
+    body[class*="-light"] .hm-tt-best { color: #7a5e00; }
+    body[class*="-light"] .hm-tt-gap { color: #8a5a2a; }
     /* Streak bar */
     .hm-streak-bar { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-bottom: 0.55rem; }
     /* Best day glow */

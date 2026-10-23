@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=611">
+  <link rel="stylesheet" href="style.css?v=612">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=171"></script>
+  <script defer src="translations.js?v=172"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -1484,29 +1484,35 @@
 
       <!-- Chart 6: Listening Activity Heatmap -->
       <div class="dc-card graph-card" id="heatmapCard">
-        <div class="graph-card-title">🔥 Listening Activity Heatmap</div>
-        <div class="graph-card-sub">Your music mapped day by day — brighter squares mean more plays. Hover any square to explore what you were listening to.</div>
+        <div class="graph-card-title" data-i18n="hm_title">🔥 Listening Activity Heatmap</div>
+        <div class="graph-card-sub" data-i18n="hm_sub">Your music mapped day by day: the stronger the color, the more you played. Hover or tap any square to see what you were listening to.</div>
         <div class="graph-ctrl-row">
-          <span class="graph-ctrl-label">View</span>
+          <span class="graph-ctrl-label" data-i18n="hm_view">View</span>
           <div id="heatmapTypeBtns" class="dc-seg">
-            <button class="graphs-btn active" data-hmtype="all">All</button>
-            <button class="graphs-btn" data-hmtype="artist">Artist</button>
-            <button class="graphs-btn" data-hmtype="song">Song</button>
-            <button class="graphs-btn" data-hmtype="album">Album</button>
+            <button class="graphs-btn active" data-hmtype="all" data-i18n="hm_type_all">All</button>
+            <button class="graphs-btn" data-hmtype="artist" data-i18n="hm_type_artist">Artist</button>
+            <button class="graphs-btn" data-hmtype="song" data-i18n="hm_type_song">Song</button>
+            <button class="graphs-btn" data-hmtype="album" data-i18n="hm_type_album">Album</button>
           </div>
           <span class="hm-ctrl-sep" aria-hidden="true"></span>
-          <div id="heatmapThemeBtns" class="hm-theme-btns" title="Color theme">
-            <button class="hm-theme-swatch active" data-hmtheme="default" title="Cosmic"></button>
-            <button class="hm-theme-swatch" data-hmtheme="fire" title="Fire"></button>
-            <button class="hm-theme-swatch" data-hmtheme="ocean" title="Ocean"></button>
-            <button class="hm-theme-swatch" data-hmtheme="forest" title="Forest"></button>
-            <button class="hm-theme-swatch" data-hmtheme="ember" title="Ember"></button>
+          <div id="heatmapThemeBtns" class="hm-theme-btns" role="group" title="Color scheme" aria-label="Color scheme"
+            data-i18n-title="hm_scheme" data-i18n-aria="hm_scheme">
+            <button class="hm-theme-swatch active" data-hmtheme="default" title="Cosmic" aria-label="Cosmic"
+              data-i18n-title="hm_scheme_default" data-i18n-aria="hm_scheme_default"></button>
+            <button class="hm-theme-swatch" data-hmtheme="fire" title="Fire" aria-label="Fire"
+              data-i18n-title="hm_scheme_fire" data-i18n-aria="hm_scheme_fire"></button>
+            <button class="hm-theme-swatch" data-hmtheme="ocean" title="Ocean" aria-label="Ocean"
+              data-i18n-title="hm_scheme_ocean" data-i18n-aria="hm_scheme_ocean"></button>
+            <button class="hm-theme-swatch" data-hmtheme="forest" title="Forest" aria-label="Forest"
+              data-i18n-title="hm_scheme_forest" data-i18n-aria="hm_scheme_forest"></button>
+            <button class="hm-theme-swatch" data-hmtheme="ember" title="Ember" aria-label="Ember"
+              data-i18n-title="hm_scheme_ember" data-i18n-aria="hm_scheme_ember"></button>
           </div>
         </div>
         <div id="heatmapFilterRow" class="graph-add-row" style="display:none;">
           <input id="heatmapFilterInput" type="text" class="graph-input" list="heatmapFilterList" placeholder="Add an artist…">
           <datalist id="heatmapFilterList"></datalist>
-          <button id="heatmapFilterBtn" class="dc-btn dc-btn-main dc-btn-sm">+ Add</button>
+          <button id="heatmapFilterBtn" class="dc-btn dc-btn-main dc-btn-sm" data-i18n="btn_add">+ Add</button>
         </div>
         <div id="heatmapChips" class="graph-chips"></div>
         <div id="gHeatmap"></div>
@@ -3922,7 +3928,7 @@
   <!-- Community board tab (suggestions / bugs / discussion). Loaded before
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
   <script defer src="board.js?v=4"></script>
-  <script defer src="app.js?v=476"></script>
+  <script defer src="app.js?v=477"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
   <script defer src="replay.js?v=1"></script>
   <!-- All-Time chart stats ("Inside your Top N"); reads app.js globals, so it loads after it -->
