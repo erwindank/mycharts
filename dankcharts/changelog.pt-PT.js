@@ -13,6 +13,14 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Events: birthdays and anniversaries on the right day":
+    ["Eventos: aniversários e datas no dia certo",
+     "Eventos guarda a lista até um dia, e uma lista descarregada ontem punha cada aniversário e data um dia atrasado (um aniversário de ontem aparecia como hoje). Agora os dias são calculados de novo sempre que abres a página, por isso o aniversário de ontem aparece como há 1 dia e passa para a lista de recentes. Um lançamento cuja data já passou passa de próximos para recentes. Uma data no início de janeiro conta os anos certos. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
+
+  "New Music Friday shows new releases again":
+    ["New Music Friday volta a mostrar lançamentos novos",
+     "New Music Friday mostrava 0 lançamentos porque a Deezer deixou de preencher a lista de onde vinham. Agora também lê as escolhas editoriais da Deezer dos últimos 30 dias e procura a data de lançamento de cada álbum, por isso a secção volta a ter lançamentos novos. São menos do que antes enquanto a lista da própria Deezer continuar vazia. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
+
   "Song and album windows in your language":
     ["Janelas de músicas e álbuns no teu idioma",
      "As janelas que abrem quando clicas numa música ou num álbum seguem agora o idioma que escolheste. Antes, quase tudo ficava em inglês: as estatísticas (total de plays, primeiro e último play, sequências, recordes), os picos e recordes nos tops, a lista de conquistas, o padrão de escuta, a ordenação e as estatísticas das faixas do álbum, as placas de certificação e o quadro de avaliação. Também: Dados brutos já não aparece em maiúsculas no menu Mais, a barra do topo cabe nos telemóveis mais pequenos e, nesses telemóveis, as caixas de pesquisa de Dados brutos mostram dicas curtas que não ficam cortadas. Funciona com Last.fm, Google Sheets e ficheiros CSV."],

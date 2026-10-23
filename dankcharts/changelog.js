@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 287;
+const DC_CL_I18N_V = 288;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,12 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-23', t: 'fix', a: 'events', h: '3bd73c1',
+    title: "Events: birthdays and anniversaries on the right day",
+    detail: "Events keeps its list for up to a day, and a list fetched yesterday put every birthday and anniversary one day late (a birthday from yesterday showed as today). The days are now worked out again each time the page opens, so yesterday's birthday shows as 1 day ago and moves to the recent list. A release whose date has passed moves from upcoming to recent. An anniversary in early January counts the right number of years. Works with Last.fm, Google Sheets and CSV uploads." },
+  { d: '2026-10-23', t: 'fix', a: 'events', h: '3bd73c1',
+    title: "New Music Friday shows new releases again",
+    detail: "New Music Friday showed 0 releases because Deezer stopped filling the list it came from. It now also reads Deezer's editorial picks from the last 30 days and looks up each album's release date, so the section has new releases again. There are fewer than before while Deezer's own list stays empty. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-23', t: 'fix', a: 'ui', h: '5c2a5d8',
     title: "Song and album windows in your language",
     detail: "The windows that open when you click a song or an album now follow the language you picked. Before, most of them stayed in English: the stats (total plays, first and last played, streaks, records), Chart Peaks, Chart Records, the Chart Accomplishments list, Listening Pattern, the album's track sorting and track stats, the certification plaques and the rating box. Also fixed: Raw Data is no longer in capitals in the Spanish More menu, the top bar fits the smallest phones, and on those phones the Raw Data search boxes show short hints that are not cut off. Works with Last.fm, Google Sheets and CSV uploads." },

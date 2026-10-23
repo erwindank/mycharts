@@ -13,6 +13,14 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Events: birthdays and anniversaries on the right day":
+    ["Eventos: cumpleaños y aniversarios en el día correcto",
+     "Eventos guarda su lista hasta un día, y una lista descargada ayer ponía cada cumpleaños y aniversario un día tarde (un cumpleaños de ayer salía como hoy). Ahora los días se calculan de nuevo cada vez que abres la página, así que el cumpleaños de ayer sale como hace 1 día y pasa a la lista de recientes. Un lanzamiento cuya fecha ya pasó pasa de próximos a recientes. Un aniversario a principios de enero cuenta bien los años. Funciona con Last.fm, Google Sheets y archivos CSV."],
+
+  "New Music Friday shows new releases again":
+    ["New Music Friday vuelve a mostrar lanzamientos nuevos",
+     "New Music Friday mostraba 0 lanzamientos porque Deezer dejó de llenar la lista de la que salían. Ahora también lee las selecciones editoriales de Deezer de los últimos 30 días y busca la fecha de salida de cada álbum, así que la sección vuelve a tener lanzamientos nuevos. Hay menos que antes mientras la lista propia de Deezer siga vacía. Funciona con Last.fm, Google Sheets y archivos CSV."],
+
   "Song and album windows in your language":
     ["Las ventanas de canciones y álbumes, en tu idioma",
      "Las ventanas que se abren al pulsar una canción o un álbum siguen ahora el idioma que elegiste. Antes, casi todo salía en inglés: las estadísticas (escuchas totales, primera y última escucha, rachas, récords), los mejores puestos, los récords, la lista de logros, el patrón de escucha, el orden y las estadísticas de las canciones del álbum, las placas de certificación y el recuadro de valoración. Además: Base de datos ya no sale en mayúsculas en el menú Más, la barra superior cabe en los móviles más pequeños y en esos móviles las casillas de búsqueda de Base de datos muestran pistas cortas que no se cortan. Funciona con Last.fm, Google Sheets y archivos CSV."],
