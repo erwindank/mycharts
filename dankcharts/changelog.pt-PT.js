@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Raw Data: calmer rows, edit button on hover":
+    ["Dados brutos: linhas mais calmas, botão de editar ao passar o rato",
+     "A lista de plays em Dados brutos lê-se melhor. As linhas estão um pouco mais altas e uma sim, uma não, fica sombreada em vez de ter uma linha por baixo de cada uma. Os títulos destacam-se, os artistas ficam um tom mais suaves e as datas e os álbuns mais suaves ainda, em cores de texto normais em vez do azul que parecia uma ligação. O botão de editar é agora um lápis pequeno que aparece quando passas o rato por uma linha (no telemóvel está sempre visível). Os plays alterados pelas tuas regras de correção automática mantêm a marca, agora também no telemóvel. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
+
   "Raw Data: the search boxes and column names stay in view":
     ["Dados brutos: as caixas de pesquisa e os nomes das colunas sempre à vista",
      "Em Dados brutos, as caixas de pesquisa e os nomes das colunas (Data e hora, Título, Artista, Álbum) ficam agora no topo do ecrã enquanto percorres os teus plays, por isso sabes sempre qual é cada coluna e podes mudar a pesquisa sem voltar acima. No telemóvel só ficam os nomes das colunas, para os plays ocuparem quase todo o ecrã. Funciona com Last.fm, Google Sheets e ficheiros CSV."],

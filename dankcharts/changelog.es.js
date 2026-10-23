@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Raw Data: calmer rows, edit button on hover":
+    ["Base de datos: filas más tranquilas, botón de editar al pasar el ratón",
+     "La lista de reproducciones de Base de datos se lee mejor. Las filas son un poco más altas y una de cada dos va sombreada en lugar de llevar una línea debajo. Los títulos destacan, los artistas van un paso más suaves y las fechas y los álbumes más suaves aún, en colores de texto normales en lugar del azul que parecía un enlace. El botón de editar es ahora un lápiz pequeño que aparece al pasar el ratón por una fila (en el móvil siempre está). Las reproducciones cambiadas por tus reglas de autocorrección conservan su marca, ahora también en el móvil. Funciona con Last.fm, Google Sheets y archivos CSV."],
+
   "Raw Data: the search boxes and column names stay in view":
     ["Base de datos: las casillas de búsqueda y los nombres de columna siempre a la vista",
      "En Base de datos, las casillas de búsqueda y los nombres de las columnas (Fecha y hora, Título, Artista, Álbum) se quedan ahora arriba en la pantalla mientras recorres tus reproducciones, así que siempre sabes qué columna es cuál y puedes cambiar la búsqueda sin volver arriba. En el móvil solo se quedan los nombres de las columnas, para que las reproducciones ocupen casi toda la pantalla. Funciona con Last.fm, Google Sheets y archivos CSV."],

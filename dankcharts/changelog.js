@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 281;
+const DC_CL_I18N_V = 282;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-23', t: 'design', a: 'rawdata', h: '0494690',
+    title: "Raw Data: calmer rows, edit button on hover",
+    detail: "The play list on Raw Data is easier on the eyes. Rows are a little taller and every other row is shaded instead of having a line under each one. Song titles stand out, artists are a step quieter, and dates and albums are quieter still, in plain text colours instead of blue that looked like links. The edit button is now a small pencil that shows when you point at a row (on a phone it is always there). Plays changed by your auto-correct rules keep their mark, now on phones too. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-23', t: 'design', a: 'rawdata', h: '1e5e385',
     title: "Raw Data: the search boxes and column names stay in view",
     detail: "On Raw Data the search boxes and the column names (Date & Time, Song Title, Artist, Album) now stay at the top of the screen while you scroll through your plays, so you always know which column is which and can change a search without scrolling back up. On a phone only the column names stay, so the plays keep most of the screen. Works with Last.fm, Google Sheets and CSV uploads." },
