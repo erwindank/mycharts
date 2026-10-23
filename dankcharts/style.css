@@ -7801,7 +7801,9 @@
       .graphs-controls {
         position: sticky;
         top: calc(var(--topbar-offset) + var(--sp-2));
-        z-index: var(--z-nav);
+        /* One below the top bar: same level + later in the page painted it
+           over the top bar's open menus (the theme swatches). */
+        z-index: calc(var(--z-nav) - 1);
       }
     }
 
@@ -32163,7 +32165,7 @@ body.red-light .modal-rank-card--year .mrc-rank {
     .cg-toc-row {
       position: sticky;
       top: var(--topbar-offset);   /* under the sticky top bar (phase 5) */
-      z-index: var(--z-nav);
+      z-index: calc(var(--z-nav) - 1);   /* below the top bar's open menus */
       display: flex;
       gap: 0.4rem;
       overflow-x: auto;
