@@ -688,8 +688,6 @@ function dcApplyAllSettings() {
     const nextRu = SINGLE_ROLLUP_LEVELS.includes(savedRu) ? savedRu : 'off';
     if (singleRollup !== nextRu) { singleRollup = nextRu; _rollupCache = null; _releaseEpoch++; }
   } catch (e) {}
-  const evSel = document.getElementById('eventsLimitSelect');
-  if (evSel) evSel.value = eventsArtistLimit;
   // tmToggles is a const object — mutate in place so the TM section reflects the loaded state
   const savedTm = localStorage.getItem('dc_tm_toggles');
   if (savedTm) {
@@ -6313,8 +6311,6 @@ function saveSourceConfig() {
     eventsArtistLimit = newEventsLimit;
     localStorage.setItem('dc_events_artist_limit', newEventsLimit);
     localStorage.removeItem(EVENTS_CACHE_KEY);
-    const sel = document.getElementById('eventsLimitSelect');
-    if (sel) sel.value = eventsArtistLimit;
   }
   noArtistSplit = document.getElementById('srcNoArtistSplit').checked;
   localStorage.setItem('dc_no_artist_split', noArtistSplit ? '1' : '0');
@@ -12632,9 +12628,8 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('chartsguideView').style.display = 'none';
     document.getElementById('eventsView').classList.remove('dc-pl-mode'); // restore full events view
     document.getElementById('eventsView').style.display = 'block';
-    const sel = document.getElementById('eventsLimitSelect');
-    if (sel) sel.value = eventsArtistLimit;
     _syncEventsTypeFilter();
+    setEventsTab(eventsTab);
     ['timeMachineSection', 'birthdaysSection', 'anniversariesSection', 'eventsUpcomingSection', 'eventsRecentSection', 'eventsRecentBirthdaysSection', 'eventsRecentAnniversariesSection', 'nmfSection'].forEach(id => {
       const el = document.getElementById(id);
       if (!el) return;
@@ -30349,6 +30344,61 @@ function _triggerCalDayImgs(calEl) {
   });
 }
 
+// ── Page tabs: Today · Coming up · Recent · Calendar ───────────
+
+/* The open tab sits on #eventsView as data-ev-tab; CSS hides every block
+   whose data-ev-group doesn't list it. Today shows the calendar's Day view
+   for today (its arrows and Month / Week / Day hidden) without touching
+   the view saved for the Calendar tab. */
+const EVENTS_TABS = ['today', 'coming', 'recent', 'calendar'];
+let eventsTab = (() => {
+  try { const v = localStorage.getItem('dc_events_tab'); return EVENTS_TABS.includes(v) ? v : 'today'; }
+  catch (e) { return 'today'; }
+})();
+
+function _evCalView() {
+  return eventsTab === 'today' ? 'day' : eventsCalendarView;
+}
+
+function _syncEventsTab() {
+  const view = document.getElementById('eventsView');
+  if (view) view.dataset.evTab = eventsTab;
+  document.querySelectorAll('.events-tabs > button').forEach(btn => {
+    const on = btn.dataset.evTab === eventsTab;
+    btn.classList.toggle('active', on);
+    btn.setAttribute('aria-selected', String(on));
+  });
+}
+
+function setEventsTab(tab) {
+  if (!EVENTS_TABS.includes(tab)) return;
+  eventsTab = tab;
+  try { localStorage.setItem('dc_events_tab', tab); } catch (e) {}
+  if (tab === 'today') {
+    const tod = tzNow();
+    eventsCalendarYear = tod.getFullYear(); eventsCalendarMonth = tod.getMonth(); eventsCalendarDay = tod.getDate();
+  }
+  _syncEventsTab();
+  if (_eventsCalendarData && (tab === 'today' || tab === 'calendar')) {
+    renderEventsCalendar(_eventsCalendarData, eventsCalendarYear, eventsCalendarMonth);
+  }
+}
+
+function toggleEventsStatus() {
+  const view = document.getElementById('eventsView');
+  const btn = document.getElementById('eventsInfoBtn');
+  if (!view) return;
+  const open = view.classList.toggle('ev-status-open');
+  if (btn) btn.setAttribute('aria-expanded', String(open));
+}
+
+// The one ↻ on the page: birthdays / anniversaries / releases, shows and New Music Friday
+function refreshEventsPage() {
+  loadEvents(true);
+  loadConcerts(true);
+  loadNMF(true);
+}
+
 // ── Dispatcher ─────────────────────────────────────────────────
 
 function renderEventsCalendar(data, year, month) {
@@ -30356,9 +30406,10 @@ function renderEventsCalendar(data, year, month) {
   const titleEl = document.getElementById('eventsCalendarTitle');
   if (!calEl || !titleEl) return;
   const merged = { ...data, concerts: eventsTypeFilter.has('show') ? (_concertsData || []) : [] };
-  if (eventsCalendarView === 'week') {
+  const view = _evCalView();
+  if (view === 'week') {
     renderCalWeek(calEl, titleEl, merged, year, month, eventsCalendarDay);
-  } else if (eventsCalendarView === 'day') {
+  } else if (view === 'day') {
     renderCalDay(calEl, titleEl, merged, year, month, eventsCalendarDay);
   } else {
     renderCalMonth(calEl, titleEl, merged, year, month);
@@ -30377,7 +30428,7 @@ function _syncCalExportBtn() {
   const btn = document.getElementById('calExportPlaylistBtn');
   const playBtn = document.getElementById('calPlayAllBtn');
   const createPlBtn = document.getElementById('calCreatePlBtn');
-  const isDay = eventsCalendarView === 'day';
+  const isDay = _evCalView() === 'day';
   const singlesOnly = eventsTypeFilter.size === 1 && eventsTypeFilter.has('single');
   const show = (isDay && singlesOnly) ? '' : 'none';
   if (btn) btn.style.display = show;
@@ -30984,7 +31035,6 @@ function _renderNMF(albums, fromCache) {
   }
   const gridEl = document.getElementById('nmfGrid');
   const status = document.getElementById('nmfStatus');
-  const refreshBtn = document.getElementById('nmfRefreshBtn');
   if (gridEl) {
     if (albums.length) {
       _evRenderSectionByKey('nmf', albums);
@@ -30993,7 +31043,6 @@ function _renderNMF(albums, fromCache) {
       gridEl.innerHTML = '<div class="upcoming-empty">No new releases found.</div>';
     }
   }
-  if (refreshBtn) refreshBtn.style.display = '';
   if (status) {
     const ts = fromCache
       ? (() => { try { return new Date(JSON.parse(localStorage.getItem(NMF_CACHE_KEY)).ts).toLocaleString(); } catch (e) { return ''; } })()
@@ -31024,7 +31073,6 @@ async function _nmfAlbumDetails(ids) {
 
 async function loadNMF(forceRefresh = false) {
   const status = document.getElementById('nmfStatus');
-  const refreshBtn = document.getElementById('nmfRefreshBtn');
 
   if (!forceRefresh) {
     try {
@@ -31037,7 +31085,6 @@ async function loadNMF(forceRefresh = false) {
   }
 
   if (status) status.textContent = 'Fetching new releases from Deezer…';
-  if (refreshBtn) refreshBtn.style.display = 'none';
 
   try {
     /* editorial/0/releases came back empty from Deezer itself by Oct 2026, so
@@ -31117,7 +31164,6 @@ async function loadNMF(forceRefresh = false) {
     _renderNMF(albums, false);
   } catch (e) {
     if (status) status.textContent = 'Could not load new releases — try again later.';
-    if (refreshBtn) refreshBtn.style.display = '';
   }
 }
 
@@ -31138,10 +31184,8 @@ async function loadConcerts(forceRefresh = false) {
   const artists = getTopNArtists(CONCERTS_ARTIST_LIMIT);
   const statusEl = document.getElementById('concertsStatus');
   const gridEl = document.getElementById('concertsGrid');
-  const refreshEl = document.getElementById('concertsRefreshBtn');
   if (statusEl) statusEl.textContent = `Fetching shows for top ${artists.length} artists…`;
   if (gridEl) gridEl.innerHTML = '';
-  if (refreshEl) refreshEl.style.display = 'none';
 
   const allShows = [];
   for (let i = 0; i < artists.length; i++) {
@@ -31166,7 +31210,6 @@ function _renderConcerts(shows, fromCache) {
   _syncConcertsSectionVisibility();
   const grid = document.getElementById('concertsGrid');
   const status = document.getElementById('concertsStatus');
-  const refreshBtn = document.getElementById('concertsRefreshBtn');
 
   if (grid) {
     if (shows.length) {
@@ -31176,7 +31219,6 @@ function _renderConcerts(shows, fromCache) {
       grid.innerHTML = `<div class="upcoming-empty">No upcoming shows found for your top ${CONCERTS_ARTIST_LIMIT} artists.</div>`;
     }
   }
-  if (refreshBtn) refreshBtn.style.display = '';
   if (status) {
     const cacheNote = fromCache ? ' (cached)' : '';
     const ts = fromCache
@@ -31213,7 +31255,7 @@ async function loadEvents(forceRefresh = false) {
     // 2. Check Firestore (cross-device, cross-login)
     if (typeof dcLoadEventsCache === 'function') {
       const statusEl2 = document.getElementById('eventsStatus');
-      if (statusEl2) statusEl2.textContent = 'Loading events…';
+      if (statusEl2) { statusEl2.textContent = 'Loading events…'; statusEl2.classList.add('is-loading'); }
       try {
         const fsCached = await dcLoadEventsCache();
         if (_isCacheValid(fsCached)) {
@@ -31227,15 +31269,14 @@ async function loadEvents(forceRefresh = false) {
 
   const artists = getTopNArtists(eventsArtistLimit);
   const statusEl = document.getElementById('eventsStatus');
-  const refreshEl = document.getElementById('eventsRefreshBtn');
   if (!statusEl) return;
 
   ['birthdaysGrid', 'anniversariesGrid', 'eventsRecentBirthdaysGrid', 'eventsRecentAnniversariesGrid', 'eventsUpcomingGrid', 'eventsRecentGrid'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.innerHTML = '';
   });
-  if (refreshEl) refreshEl.style.display = 'none';
   statusEl.textContent = `Fetching events for top ${artists.length} artists…`;
+  statusEl.classList.add('is-loading');
 
   const birthdays = [];
   const anniversaries = [];
@@ -31372,7 +31413,6 @@ function _renderEventsFromRaw(raw, artists, fromCache) {
   _eventsLastData = raw;
   const f = applyEventsTypeFilter(raw);
   const statusEl = document.getElementById('eventsStatus');
-  const refreshEl = document.getElementById('eventsRefreshBtn');
   const sortFn = (a, b) => a.daysUntil - b.daysUntil;
   const sortFnAgo = (a, b) => a.daysAgo - b.daysAgo;
   const emptyGrid = (key, msg) => {
@@ -31403,24 +31443,14 @@ function _renderEventsFromRaw(raw, artists, fromCache) {
   const ts = fromCache
     ? (() => { try { return new Date(JSON.parse(localStorage.getItem(EVENTS_CACHE_KEY)).ts).toLocaleString(); } catch (e) { return ''; } })()
     : new Date().toLocaleString();
+  // Loaded: the summary stays behind ⓘ (toggleEventsStatus)
+  if (statusEl) statusEl.classList.remove('is-loading');
   if (statusEl) statusEl.textContent = `${raw.birthdays.length} birthdays · ${raw.anniversaries.length} anniversaries · ${raw.eventsUpcoming.length} upcoming · ${raw.eventsRecent.length} recent · top ${artists.length} artists · ${ts}${cacheNote}`;
-  if (refreshEl) refreshEl.style.display = '';
 
-  const sel = document.getElementById('eventsLimitSelect');
-  if (sel) sel.value = eventsArtistLimit;
 
   _syncEventsTypeFilter();
 }
 
-function eventsLimitChanged(val) {
-  const newLimit = parseInt(val) || 50;
-  if (newLimit === eventsArtistLimit) return;
-  eventsArtistLimit = newLimit;
-  localStorage.setItem('dc_events_artist_limit', newLimit);
-  localStorage.removeItem(EVENTS_CACHE_KEY);
-  if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
-  loadEvents(true);
-}
 
 // ── FILE IMPORT (Spotify ZIP, Deezer XLSX, CSV) ────────────────────
 

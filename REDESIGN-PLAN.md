@@ -2585,6 +2585,27 @@ Steps:
    · Recent · Calendar), the type chips with line icons instead of emoji,
    one ↻ in the corner. "Top N artists" moves to Settings or a ⋮; the
    status line goes into an ⓘ.
+   **Done 2026-10-23:** title "Events" (es / pt "Eventos") with a line
+   calendar, in the shared Records / Stats / Raw Data title rule. ⓘ and ↻
+   sit at the end of the title row (plain icon buttons); ↻ refetches the
+   events, shows and New Music Friday together, so the three Refresh
+   buttons are gone. The status line shows by itself only while fetching
+   (.is-loading); once loaded it opens from ⓘ. "Top N artists" was
+   already in Settings (Events Calendar group), so the page's own select
+   and eventsLimitChanged() went. Tabs are .dc-tabs; the open one is
+   data-ev-tab on #eventsView (saved as dc_events_tab, default Today) and
+   every block names its tabs in data-ev-group, one CSS rule hides the
+   rest (not in Playlists' .dc-pl-mode). Until steps 4–7: Today = the
+   calendar's Day view pinned to today (arrows and Month / Week / Day
+   hidden; _evCalView() leaves the Calendar tab's saved view alone) +
+   Time Machine; Coming up = Birthdays, Anniversaries, Upcoming
+   Releases, New Music Friday, Shows; Recent = the three recent
+   sections; Calendar = the calendar. Type chips have line icons (cake,
+   disc, note, sleeve, wave, mic), no "Type:" label. 14 keys in four
+   languages. Checked at 1440 and 390 (touch) in en / es / pt-PT, every
+   tab, no sideways scroll, no errors. Still English, for step 8: the
+   calendar's day and month names, the section titles under the tabs
+   and the status text.
 3. **One card, one switch.** One card for every event type (picture,
    title, artist, type icon, date) in all four views. One Reel / Tiles /
    Table / List switch for the page. The per-section switches, − / +

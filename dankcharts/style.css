@@ -797,7 +797,6 @@
     }
 
     /* Layout only — the look comes from .dc-btn above */
-    .upcoming-refresh-btn { display: flex; width: fit-content; margin: 0 0.85rem var(--sp-2) auto; }
     .cal-nav-btn { font-size: var(--fs-md); }
     /* Resume shows the track name: cut it with … instead of growing */
     .dc-pl-resume-btn { display: block; max-width: 360px; overflow: hidden; text-overflow: ellipsis; line-height: 30px; flex-shrink: 0; }
@@ -8221,40 +8220,52 @@
 
 
     /* EVENTS VIEW */
-    .events-controls {
+    /* Title row: the title, its rule, then ⓘ (status) and ↻ (refetch all) */
+    .events-header { margin-bottom: var(--sp-2); }
+    .events-head-btn { flex: none; color: var(--text3); }
+    /* the pair sits closer than the header gap */
+    .events-head-btn + .events-head-btn { margin-left: calc(var(--sp-1) - var(--sp-4)); }
+    .events-head-btn:hover,
+    .events-head-btn[aria-expanded="true"] { color: var(--accent); }
+    .events-head-btn svg {
+      width: 16px; height: 16px;
+      fill: none; stroke: currentColor; stroke-width: 1.5;
+      stroke-linecap: round; stroke-linejoin: round;
+    }
+    /* Fetch progress shows by itself; the loaded summary only behind ⓘ */
+    .events-status { display: none; padding-left: 0; padding-right: 0; }
+    .events-status.is-loading,
+    #eventsView.ev-status-open .events-status { display: block; }
+
+    /* The toolbar: the four tabs on their line, the type chips under them */
+    .events-toolbar {
       display: flex;
-      align-items: center;
-      gap: var(--sp-4);
-      padding: var(--sp-2) 0.85rem 0.1rem;
-      flex-wrap: wrap;
+      flex-direction: column;
+      gap: var(--sp-3);
+      margin-bottom: var(--sp-5);
     }
 
-    .events-controls-label {
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      color: var(--text2);
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
-
-    .events-controls-label select {
-      padding: 0.22rem 0.45rem;
-      border-radius: var(--r-xs);
-      border: 1px solid var(--border);
-      background: var(--bg2);
-      color: var(--text1);
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      cursor: pointer;
-    }
+    /* Page tabs (phase 9 part 4): a block shows only on the tabs its
+       data-ev-group lists. Playlists reuses this view (.dc-pl-mode) with
+       its own rule, so it is left out. */
+    #eventsView:not(.dc-pl-mode)[data-ev-tab="today"] [data-ev-group]:not([data-ev-group~="today"]),
+    #eventsView:not(.dc-pl-mode)[data-ev-tab="coming"] [data-ev-group]:not([data-ev-group~="coming"]),
+    #eventsView:not(.dc-pl-mode)[data-ev-tab="recent"] [data-ev-group]:not([data-ev-group~="recent"]),
+    #eventsView:not(.dc-pl-mode)[data-ev-tab="calendar"] [data-ev-group]:not([data-ev-group~="calendar"]) { display: none !important; }
+    /* Today is always today: no arrows, no Month / Week / Day */
+    #eventsView[data-ev-tab="today"] .cal-nav-btn,
+    #eventsView[data-ev-tab="today"] .cal-view-btns { display: none; }
 
     .events-type-filters {
       display: flex;
       align-items: center;
       gap: var(--sp-1);
-      padding: 0 0.85rem 0.6rem;
       flex-wrap: wrap;
+    }
+    .ev-type-ico {
+      width: 14px; height: 14px; flex: none;
+      fill: none; stroke: currentColor; stroke-width: 1.4;
+      stroke-linecap: round; stroke-linejoin: round;
     }
 
 
@@ -13072,10 +13083,11 @@
        chip (background/padding/radius) has to be cleared explicitly; it
        reads as a chip at 11px but as a white slab at heading sizes. */
 
-    /* Stats and Raw Data share the Records page title (phase 9). */
+    /* Stats, Raw Data and Events share the Records page title (phase 9). */
     #recordsView>.section-header .section-header-h2,
     #graphsView>.section-header .section-header-h2,
-    #rawDataView>.section-header .section-header-h2 {
+    #rawDataView>.section-header .section-header-h2,
+    #eventsView>.section-header .section-header-h2 {
       font-family: var(--font-display);
       font-size: var(--fs-lg);
       font-weight: 500;
