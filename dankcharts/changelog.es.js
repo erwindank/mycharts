@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Stats: ratings chart shaded by score":
+    ["Estadísticas: la gráfica de puntuaciones, sombreada por nota",
+     "La gráfica de puntuaciones de Mis valoraciones usa un solo color, el de tu tema, y lo sombrea según la nota: las notas bajas se ven suaves y las más altas con el color completo, así ves de un vistazo dónde están la mayoría de tus valoraciones. Funciona con Last.fm, Google Sheets y archivos CSV."],
+
   "Stats: calmer charts with steady colours":
     ["Estadísticas: gráficas más tranquilas y colores fijos",
      "Las gráficas de Estadísticas son más tranquilas: sin líneas verticales, líneas horizontales suaves y un texto de ejes más discreto que se lee bien en todos los temas. Las comparaciones usan un juego fijo de ocho colores, elegidos para que los artistas vecinos se distingan bien, también para personas daltónicas, con una versión ajustada para los temas claros. Una gráfica con un solo artista usa el color de tu tema. En la Carrera de reproducciones las casillas de posición son neutras, así que solo las barras llevan color. Al cambiar de tema, las gráficas cambian de color al momento. Funciona con Last.fm, Google Sheets y archivos CSV."],

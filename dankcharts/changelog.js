@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 276;
+const DC_CL_I18N_V = 277;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-23', t: 'design', a: 'graphs', h: '0815495',
+    title: "Stats: ratings chart shaded by score",
+    detail: "The score chart under My Ratings uses one colour, your theme's, and shades it by score: low scores are faint and the top scores are the full colour, so you can see at a glance where most of your ratings sit. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-23', t: 'design', a: 'graphs', h: '8e9636e',
     title: "Stats: calmer charts with steady colours",
     detail: "The Stats charts are quieter: no vertical gridlines, faint horizontal ones and softer axis text that stays readable on every theme. Comparisons use a fixed set of eight colours, picked so neighbouring artists stay easy to tell apart, also for colour-blind readers, with a version tuned for light themes. A chart with one artist uses your theme's colour. In the Play Count Race the rank boxes are plain, so only the bars carry colour. Changing the theme now recolours the charts straight away. Works with Last.fm, Google Sheets and CSV uploads." },
