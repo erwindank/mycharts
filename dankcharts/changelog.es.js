@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Raw Data: the search boxes and column names stay in view":
+    ["Base de datos: las casillas de búsqueda y los nombres de columna siempre a la vista",
+     "En Base de datos, las casillas de búsqueda y los nombres de las columnas (Fecha y hora, Título, Artista, Álbum) se quedan ahora arriba en la pantalla mientras recorres tus reproducciones, así que siempre sabes qué columna es cuál y puedes cambiar la búsqueda sin volver arriba. En el móvil solo se quedan los nombres de las columnas, para que las reproducciones ocupen casi toda la pantalla. Funciona con Last.fm, Google Sheets y archivos CSV."],
+
   "Raw Data: a tidier top of the page":
     ["Base de datos: la parte de arriba, más ordenada",
      "La parte de arriba de Base de datos está más tranquila. El título dice ahora Base de datos, como la pestaña. Las cuatro casillas de búsqueda están en una fila (de dos en dos en el móvil) sin las etiquetas que repetían lo que ya dice cada casilla, así que las reproducciones empiezan mucho más arriba, sobre todo en el móvil. Debajo, una sola línea muestra cuántas reproducciones tienes o cuántas coinciden, y luego Solo corregidos, Limpiar (solo mientras buscas) y Reglas de autocorrección. Funciona con Last.fm, Google Sheets y archivos CSV."],

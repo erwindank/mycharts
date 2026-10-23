@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Raw Data: the search boxes and column names stay in view":
+    ["Dados brutos: as caixas de busca e os nomes das colunas sempre à vista",
+     "Em Dados brutos, as caixas de busca e os nomes das colunas (Data e hora, Título, Artista, Álbum) agora ficam no topo da tela enquanto você rola pelos seus plays, então você sempre sabe qual coluna é qual e pode mudar a busca sem voltar para cima. No celular só os nomes das colunas ficam, para os plays ocuparem quase toda a tela. Funciona com Last.fm, Google Sheets e arquivos CSV."],
+
   "Raw Data: a tidier top of the page":
     ["Dados brutos: o topo da página mais organizado",
      "O topo de Dados brutos ficou mais calmo. O título agora diz Dados brutos, como a aba. As quatro caixas de busca ficam numa linha (duas a duas no celular), sem os rótulos que repetiam o que cada caixa já diz, então os plays começam bem mais acima, principalmente no celular. Embaixo das caixas, uma linha mostra quantos plays você tem ou quantos batem com a busca, depois Só corrigidos, Limpar (só durante uma busca) e Regras de autocorreção. Funciona com Last.fm, Google Sheets e arquivos CSV."],

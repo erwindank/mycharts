@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 280;
+const DC_CL_I18N_V = 281;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-23', t: 'design', a: 'rawdata', h: '1e5e385',
+    title: "Raw Data: the search boxes and column names stay in view",
+    detail: "On Raw Data the search boxes and the column names (Date & Time, Song Title, Artist, Album) now stay at the top of the screen while you scroll through your plays, so you always know which column is which and can change a search without scrolling back up. On a phone only the column names stay, so the plays keep most of the screen. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-23', t: 'design', a: 'rawdata', h: '58a4260',
     title: 'Raw Data: a tidier top of the page',
     detail: "The top of Raw Data is calmer. The title now reads Raw Data, like the tab. The four search boxes sit on one row (two by two on a phone) without the labels that repeated what the boxes already say, so the plays start much higher on the page, especially on a phone. Under the boxes one line shows how many plays you have or how many match, then Corrected only, Clear (only while a search is on) and Auto-correct rules. Works with Last.fm, Google Sheets and CSV uploads." },
