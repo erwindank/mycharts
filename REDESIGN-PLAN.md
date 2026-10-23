@@ -2333,6 +2333,17 @@ Steps:
    --bg2, so low scores recede on dark and light themes alike.
 5. **Heatmap.** Mockup first. One year at a time with `‹ 2026 ›`, and a
    row of small thumbnails to jump between years. Listening Patterns stay.
+   **Done 2026-10-23** (mockup https://claude.ai/artifact/PpjdoqYAXvf5NGY6XmY4qd):
+   opens on the current year (hmYear, not saved; the page range does not
+   apply), ‹ › and arrow keys step, a strip of year thumbnails (weekly bars on
+   one shared scale) jumps. Year numbers sit next to the year. Squares fill
+   the card width (scoped to #gHeatmap, other heatmaps keep 11px); phones
+   scroll the year sideways with the day names pinned. Month labels go on
+   the week whose Thursday is in the month (no more "DecJan"). Listening
+   Patterns follow the open year with a "2026 | All time" switch
+   (dc_hmPatScope). Seen but left for step 8: the heatmap colour schemes are
+   dark-only, so on light themes the Less key and empty pattern cells are
+   near-black.
 6. **Two-column layout** on desktop: small charts side by side, wide ones
    (race, heatmap) full width.
 7. **Inline styles** in the Stats markup move into classes.

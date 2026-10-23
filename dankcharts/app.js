@@ -27489,6 +27489,11 @@ let gDiscoveriesLabels = false;
 let heatmapType = 'all';
 let heatmapFilters = [];
 let hmTheme = 'default';
+// Heatmap year on screen (phase 9 part 2 step 5). null = the current year,
+// so the heatmap always opens on this year; ‹ › and the year strip change it.
+let hmYear = null;
+// Listening Patterns: over the open year ('year') or the whole history ('all')
+let hmPatScope = (() => { try { return localStorage.getItem('dc_hmPatScope') === 'all' ? 'all' : 'year'; } catch (e) { return 'year'; } })();
 let _hmDayMap = {};
 let _hmMsMap = {};
 let _hmBestDayDk = '';
@@ -34506,11 +34511,14 @@ function hmYearStats(dayMap) {
   return yearStats;
 }
 
-function hmRenderPatterns(dayMap) {
+// year = a calendar year to limit the patterns to, or null for all history
+function hmRenderPatterns(dayMap, year) {
   const dowLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const inYear = dk => year == null || dk.startsWith(year + '-');
   const dowTotals = Array(7).fill(0);
   const dowDayCount = Array(7).fill(0);
   for (const [dk, data] of Object.entries(dayMap)) {
+    if (!inYear(dk)) continue;
     const dow = (new Date(dk + 'T00:00:00').getDay() + 6) % 7;
     dowTotals[dow] += data.count;
     dowDayCount[dow]++;
@@ -34524,6 +34532,7 @@ function hmRenderPatterns(dayMap) {
     : allPlays;
   for (const p of plays) {
     const d = tzDateOf(p);
+    if (year != null && d.getFullYear() !== year) continue;
     grid[(d.getDay() + 6) % 7][d.getHours()]++;
   }
   const maxHour = Math.max(...grid.flat(), 1);
@@ -34561,7 +34570,13 @@ function hmRenderPatterns(dayMap) {
   }
 
   return `<div class="hm-patterns-section">
-    <div class="hm-patterns-header">Listening Patterns</div>
+    <div class="hm-patterns-header">
+      <span>Listening Patterns</span>
+      <div class="dc-seg hm-pat-scope" role="group" aria-label="${esc(t('hm_pat_scope_aria'))}">
+        <button type="button" class="graphs-btn${year != null ? ' active' : ''}" data-hm-pat="year" aria-pressed="${year != null}">${year != null ? year : esc(t('hm_pat_year'))}</button>
+        <button type="button" class="graphs-btn${year == null ? ' active' : ''}" data-hm-pat="all" aria-pressed="${year == null}">${esc(t('hm_pat_all'))}</button>
+      </div>
+    </div>
     <div class="hm-patterns-body">
       <div class="hm-pat-weekday">
         <div class="hm-pat-sublabel">Weekday rhythm</div>
@@ -34633,6 +34648,8 @@ function renderHeatmap() {
   const gridStart = new Date(firstDate);
   gridStart.setDate(gridStart.getDate() - padStart);
 
+  // Weeks run Monday to Sunday. A week belongs to the year its Thursday is
+  // in, so every year is 52 or 53 whole columns.
   const yearGroups = {};
   const cur = new Date(gridStart);
   while (cur <= lastDate) {
@@ -34651,92 +34668,138 @@ function renderHeatmap() {
     yearGroups[yr].push(week);
   }
 
-  let html = '';
-  for (const yr of Object.keys(yearGroups).sort((a, b) => +a - +b)) {
-    const weeks = yearGroups[yr];
+  // ── One year at a time (phase 9 part 2 step 5) ──
+  // It used to stack one block per year (11 on a long library). Now one year
+  // fills the card, ‹ › step, and a strip of thumbnails jumps. The page's
+  // date range doesn't apply: a calendar grid shows whole years.
+  const years = Object.keys(yearGroups).map(Number).sort((a, b) => a - b);
+  const thisYear = tzNow().getFullYear();
+  // hmYear is kept even when a filter has no plays that year, so taking the
+  // filter off goes back to the year you were on.
+  const yr = years.includes(hmYear) ? hmYear : (years.includes(thisYear) ? thisYear : years[years.length - 1]);
+  const yi = years.indexOf(yr);
+  const weeks = yearGroups[yr];
 
-    let monthHtml = '';
-    let lastMonth = -1;
-    for (const week of weeks) {
-      const monDate = new Date(week[0].dk + 'T00:00:00');
-      const month = monDate.getMonth();
-      if (week[0].inRange && month !== lastMonth) {
-        monthHtml += `<div class="heatmap-week-col heatmap-month-header-row" style="position:relative;"><span class="heatmap-month-label">${HM_MONTHS[month]}</span></div>`;
-        lastMonth = month;
-      } else {
-        monthHtml += '<div class="heatmap-week-col heatmap-month-header-row"></div>';
-      }
+  // Month labels sit on the first week whose Thursday is in that month, which
+  // also stops the old "DecJan" pile-up at the start of a year.
+  let monthHtml = '';
+  let lastMonth = -1;
+  for (const week of weeks) {
+    const m = new Date(week[3].dk + 'T00:00:00').getMonth();
+    if (week.some(c => c.inRange) && m !== lastMonth) {
+      monthHtml += `<span class="hm-y-month">${HM_MONTHS[m]}</span>`;
+      lastMonth = m;
+    } else {
+      monthHtml += '<span></span>';
     }
-
-    let cellsHtml = '';
-    for (const week of weeks) {
-      cellsHtml += '<div class="heatmap-week-col">';
-      for (const cell of week) {
-        let bg, cls = 'heatmap-cell', attr = '';
-        if (!cell.inRange) {
-          bg = 'transparent';
-        } else if (cell.count === 0) {
-          if (droughtCells.has(cell.dk)) { bg = 'rgba(180,80,20,0.13)'; cls += ' hm-drought'; }
-          else bg = 'transparent';
-        } else {
-          cls += ' has-data';
-          attr = ` data-dk="${cell.dk}"`;
-          if (cell.dk === _hmBestDayDk) cls += ' hm-best-day';
-          // Split-color for multi-chip overlap
-          if (cell.chipIndices && cell.chipIndices.size > 1) {
-            const idxs = [...cell.chipIndices].slice(0, 2);
-            const c1 = graphColor(idxs[0]);
-            const c2 = graphColor(idxs[1]);
-            bg = `linear-gradient(135deg,${c1} 50%,${c2} 50%)`;
-          } else {
-            bg = hmCellColor(cell.count, maxCount);
-          }
-        }
-        cellsHtml += `<div class="${cls}" style="background:${bg};"${attr}></div>`;
-      }
-      cellsHtml += '</div>';
-    }
-
-    // Year-in-review card
-    let reviewHtml = '';
-    if (yearStats && yearStats[yr]) {
-      const ys = yearStats[yr];
-      const bd = ys.bestDk ? new Date(ys.bestDk + 'T00:00:00') : null;
-      const bestDayStr = bd ? `${HM_MONTHS[bd.getMonth()]} ${bd.getDate()}` : '—';
-      reviewHtml = `<div class="hm-year-review">
-        <span class="hm-yr-stat"><span class="hm-yr-num">${ys.total.toLocaleString()}</span> plays</span>
-        <span class="hm-yr-dot">·</span>
-        <span class="hm-yr-stat">Best day <span class="hm-yr-num">${bestDayStr}</span> <span class="hm-yr-muted">(${ys.bestDay.toLocaleString()})</span></span>
-        <span class="hm-yr-dot">·</span>
-        <span class="hm-yr-stat">Top: <span class="hm-yr-name">${esc(ys.topArtist)}</span></span>
-        ${ys.newArtists > 0 ? `<span class="hm-yr-dot">·</span><span class="hm-yr-stat"><span class="hm-yr-num">${ys.newArtists.toLocaleString()}</span> new artists</span>` : ''}
-      </div>`;
-    }
-
-    html += `<div class="heatmap-year-block">
-      <div class="heatmap-year-header">${yr}</div>
-      <div class="heatmap-outer">
-        <div class="heatmap-dow-labels">${HM_DOW_LABELS.map(l => `<div class="heatmap-dow-label">${l}</div>`).join('')}</div>
-        <div class="heatmap-inner">
-          <div class="heatmap-grid-wrap">
-            <div class="heatmap-weeks-row" style="height:16px;margin-bottom:3px;">${monthHtml}</div>
-            <div class="heatmap-weeks-row">${cellsHtml}</div>
-          </div>
-        </div>
-      </div>
-      ${reviewHtml}
-    </div>`;
   }
+
+  let cellsHtml = '';
+  for (const week of weeks) {
+    for (const cell of week) {
+      let bg, cls = 'heatmap-cell', attr = '';
+      if (!cell.inRange || !cell.dk.startsWith(yr + '-')) {
+        // Days of the neighbouring year in the first/last column stay blank
+        bg = 'transparent';
+      } else if (cell.count === 0) {
+        if (droughtCells.has(cell.dk)) { bg = 'rgba(180,80,20,0.13)'; cls += ' hm-drought'; }
+        else { bg = ''; cls += ' hm-empty'; }
+      } else {
+        cls += ' has-data';
+        attr = ` data-dk="${cell.dk}"`;
+        if (cell.dk === _hmBestDayDk) cls += ' hm-best-day';
+        // Split-color for multi-chip overlap
+        if (cell.chipIndices && cell.chipIndices.size > 1) {
+          const idxs = [...cell.chipIndices].slice(0, 2);
+          const c1 = graphColor(idxs[0]);
+          const c2 = graphColor(idxs[1]);
+          bg = `linear-gradient(135deg,${c1} 50%,${c2} 50%)`;
+        } else {
+          bg = hmCellColor(cell.count, maxCount);
+        }
+      }
+      cellsHtml += `<div class="${cls}"${bg ? ` style="background:${bg};"` : ''}${attr}></div>`;
+    }
+  }
+
+  // The open year's numbers, next to the year
+  let reviewHtml;
+  if (yearStats && yearStats[yr]) {
+    const ys = yearStats[yr];
+    const bd = ys.bestDk ? new Date(ys.bestDk + 'T00:00:00') : null;
+    const bestDayStr = bd ? `${HM_MONTHS[bd.getMonth()]} ${bd.getDate()}` : '—';
+    reviewHtml = `<div class="hm-y-stats">
+      <span><span class="hm-yr-num">${ys.total.toLocaleString()}</span> ${tUnit('plays', ys.total)}</span>
+      <span>${t('hm_best_day')} <span class="hm-yr-num">${bestDayStr}</span> <span class="hm-yr-muted">(${ys.bestDay.toLocaleString()})</span></span>
+      <span>${t('hm_top')} <span class="hm-yr-name">${esc(ys.topArtist)}</span></span>
+      ${ys.newArtists > 0 ? `<span><span class="hm-yr-num">${ys.newArtists.toLocaleString()}</span> ${t('hm_new_artists')}</span>` : ''}
+    </div>`;
+  } else {
+    // Artist / Song / Album views: just that year's plays of what you picked
+    let tot = 0;
+    for (const w of weeks) for (const c of w) if (c.inRange && c.dk.startsWith(yr + '-')) tot += c.count;
+    reviewHtml = `<div class="hm-y-stats"><span><span class="hm-yr-num">${tot.toLocaleString()}</span> ${tUnit('plays', tot)}</span></div>`;
+  }
+
+  let html = `<div class="hm-yearbar">
+    <div class="hm-stepper">
+      <button type="button" class="hm-step" data-hm-step="-1" aria-label="${esc(t('hm_prev_year'))}" title="${esc(t('hm_prev_year'))}"${yi <= 0 ? ' disabled' : ''}>‹</button>
+      <span class="hm-y-num">${yr}</span>
+      <button type="button" class="hm-step" data-hm-step="1" aria-label="${esc(t('hm_next_year'))}" title="${esc(t('hm_next_year'))}"${yi >= years.length - 1 ? ' disabled' : ''}>›</button>
+    </div>
+    ${reviewHtml}
+  </div>
+  <div class="hm-y-scroll">
+    <div class="hm-y-grid" style="--hm-weeks:${weeks.length}">
+      <div class="hm-y-months">${monthHtml}</div>
+      <div class="hm-y-dows">${HM_DOW_LABELS.map(l => `<span>${l}</span>`).join('')}</div>
+      <div class="hm-y-cells">${cellsHtml}</div>
+    </div>
+  </div>`;
 
   const legendCells = [0, 0.2, 0.45, 0.7, 1].map(r => {
     const cnt = r === 0 ? 0 : Math.round(Math.exp(r * Math.log1p(maxCount)) - 1);
     return `<div class="heatmap-cell" style="background:${hmCellColor(cnt, maxCount)};cursor:default;"></div>`;
   }).join('');
-  html += `<div class="heatmap-legend"><span class="heatmap-legend-label">Less</span>${legendCells}<span class="heatmap-legend-label">More</span></div>`;
+  // Streaks on the left, the key on the right
+  html += `<div class="hm-y-foot">${streakHtml}<div class="heatmap-legend"><span class="heatmap-legend-label">Less</span>${legendCells}<span class="heatmap-legend-label">More</span></div></div>`;
 
-  html += hmRenderPatterns(dayMap);
+  // Year strip: one thumbnail per year, a bar per week. Bar heights share one
+  // scale across all years, so busy and quiet years look different.
+  if (years.length > 1) {
+    const totals = {};
+    let weekMax = 1;
+    for (const y of years) {
+      totals[y] = yearGroups[y].map(w => w.reduce((a, c) => a + (c.inRange ? c.count : 0), 0));
+      for (const v of totals[y]) if (v > weekMax) weekMax = v;
+    }
+    const thumbs = years.map(y => {
+      const wt = totals[y];
+      const bars = wt.map((v, x) => {
+        if (!v) return '';
+        const h = Math.max(1, (v / weekMax) * 18);
+        return `<rect x="${x * 1.5}" y="${(18 - h).toFixed(2)}" width="1.2" height="${h.toFixed(2)}" fill="${hmCellColor(Math.round(v / 7), maxCount)}"/>`;
+      }).join('');
+      const sum = wt.reduce((a, b) => a + b, 0);
+      const short = sum >= 1000 ? (sum / 1000).toFixed(1) + 'k' : String(sum);
+      return `<button type="button" class="hm-thumb" data-hm-year="${y}" aria-current="${y === yr}" aria-label="${y}: ${sum.toLocaleString()} ${tUnit('plays', sum)}">
+        <svg viewBox="0 0 80 18" preserveAspectRatio="none" aria-hidden="true">${bars}</svg>
+        <span class="hm-thumb-label">${y}<span>${short}</span></span>
+      </button>`;
+    }).join('');
+    html += `<div class="hm-strip-label">${t('hm_every_year')}</div><div class="hm-strip">${thumbs}</div>`;
+  }
 
-  container.innerHTML = streakHtml + html;
+  html += hmRenderPatterns(dayMap, hmPatScope === 'all' ? null : yr);
+
+  container.innerHTML = html;
+
+  // Phones scroll the year sideways: open it at the latest month
+  const sc = container.querySelector('.hm-y-scroll');
+  if (sc && sc.scrollWidth > sc.clientWidth) sc.scrollLeft = yr === thisYear ? sc.scrollWidth : 0;
+  const curThumb = container.querySelector('.hm-thumb[aria-current="true"]');
+  const strip = container.querySelector('.hm-strip');
+  if (curThumb && strip) strip.scrollLeft = curThumb.offsetLeft - strip.clientWidth / 2 + curThumb.offsetWidth / 2;
 }
 
 // Heatmap tooltip — attached once to the static container
@@ -34842,7 +34905,45 @@ function renderHeatmap() {
   });
 
   cont.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
+
+  // Year stepper, year strip and the patterns switch (phase 9 part 2 step 5)
+  cont.addEventListener('click', e => {
+    const step = e.target.closest('[data-hm-step]');
+    const thumb = e.target.closest('[data-hm-year]');
+    const pat = e.target.closest('[data-hm-pat]');
+    if (step && !step.disabled) hmStepYear(+step.dataset.hmStep);
+    else if (thumb) { hmYear = +thumb.dataset.hmYear; renderHeatmap(); hmRefocus('[data-hm-year="' + hmYear + '"]'); }
+    else if (pat) {
+      hmPatScope = pat.dataset.hmPat;
+      try { localStorage.setItem('dc_hmPatScope', hmPatScope); } catch (err) { }
+      renderHeatmap();
+      hmRefocus('[data-hm-pat="' + hmPatScope + '"]');
+    }
+  });
 }());
+
+// ‹ › on the heatmap: the years on offer are the thumbnails in the strip
+function hmStepYear(dir) {
+  const list = [...document.querySelectorAll('#gHeatmap .hm-thumb')].map(b => +b.dataset.hmYear);
+  const shown = +((document.querySelector('#gHeatmap .hm-y-num') || {}).textContent);
+  const i = list.indexOf(shown) + dir;
+  if (i < 0 || i >= list.length) return;
+  hmYear = list[i];
+  renderHeatmap();
+  hmRefocus('[data-hm-step="' + dir + '"]');
+}
+// The heatmap redraws its HTML, so put keyboard focus back where it was
+function hmRefocus(sel) {
+  const el = document.querySelector('#gHeatmap ' + sel);
+  if (el && !el.disabled) el.focus({ preventScroll: true });
+}
+// Arrow keys step the year while focus is on the heatmap card (not in its text box)
+document.getElementById('heatmapCard')?.addEventListener('keydown', e => {
+  if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+  if (e.target.closest('input, textarea, select')) return;
+  e.preventDefault();
+  hmStepYear(e.key === 'ArrowLeft' ? -1 : 1);
+});
 
 // Heatmap type buttons
 document.getElementById('heatmapTypeBtns').addEventListener('click', e => {
