@@ -2564,6 +2564,22 @@ Steps:
    when the page loads, so a cache from yesterday puts nothing on the
    wrong day. Reels start with no left fade. Find out why New Music Friday
    returns 0 releases.
+   **Done 2026-10-23:** _eventsRedate() works the counts out again from
+   each entry's MM-DD on every render (cached or fresh) and moves entries
+   between upcoming and recent (yesterday's "today" is now "1 day ago");
+   an anniversary's number is the year it falls in minus the release year,
+   so ones across New Year are right too; a release whose date has passed
+   moves to Recent. **New Music Friday:** Deezer's editorial/0/releases
+   (and every genre's) is empty at Deezer itself, and the chart fallback
+   never added anything because chart albums carry no release date. Now
+   it also reads editorial/0/selection (Deezer's picks, last 30 days
+   only, since they include older albums) and looks up release dates per
+   album (_nmfAlbumDetails, four at a time, top 40 chart albums). On
+   2026-10-23 that gives 3 releases instead of 0, which is thin; step 5
+   (Coming up) should decide whether NMF stays as its own type. **Reel
+   fade: not a bug.** The Events reels and the Time Machine scroll on
+   their own in a loop, so both edges fade by design; the screenshot
+   caught them mid-scroll.
 2. **Top of the page.** Title "Events" in Records' / Stats' title style
    with the nav's line icon. One toolbar: the four tabs (Today · Coming up
    · Recent · Calendar), the type chips with line icons instead of emoji,

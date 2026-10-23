@@ -29915,6 +29915,7 @@ const NMF_CACHE_KEY = 'dc_nmfCache';
 const NMF_CACHE_TTL = 7 * 24 * 60 * 60 * 1000;
 const NMF_HISTORY_KEY = 'dc_nmfHistory';
 const NMF_HISTORY_MAX_WEEKS = 16;
+const NMF_CHART_LOOKUPS = 40;   // chart albums whose release date is looked up (one request each)
 const CONCERTS_ARTIST_LIMIT = 10;
 
 function getTopNArtists(n) {
@@ -31001,6 +31002,26 @@ function _renderNMF(albums, fromCache) {
   }
 }
 
+/* Release date and type for each Deezer album id, four requests at a time.
+   An album whose lookup fails is left out; its entry just stays undated. */
+async function _nmfAlbumDetails(ids) {
+  const out = {};
+  const queue = [...new Set(ids)];
+  const worker = async () => {
+    while (queue.length) {
+      const id = queue.shift();
+      try {
+        const r = await deezerFetch(`album/${id}`);
+        if (!r.ok) continue;
+        const a = await r.json();
+        if (a && a.release_date) out[id] = { release_date: a.release_date, record_type: a.record_type };
+      } catch (e) {}
+    }
+  };
+  await Promise.all([worker(), worker(), worker(), worker()]);
+  return out;
+}
+
 async function loadNMF(forceRefresh = false) {
   const status = document.getElementById('nmfStatus');
   const refreshBtn = document.getElementById('nmfRefreshBtn');
@@ -31019,24 +31040,61 @@ async function loadNMF(forceRefresh = false) {
   if (refreshBtn) refreshBtn.style.display = 'none';
 
   try {
-    const [relR, tracksR] = await Promise.all([
+    /* editorial/0/releases came back empty from Deezer itself by Oct 2026, so
+       the editorial picks (editorial/0/selection) are read too. Neither the
+       picks nor the chart's albums carry a release date; _nmfAlbumDetails
+       looks those up. */
+    const [relR, selR, tracksR] = await Promise.all([
       deezerFetch('editorial/0/releases?limit=100'),
+      deezerFetch('editorial/0/selection'),
       deezerFetch('chart/0/tracks?limit=100')
     ]);
 
     const albums = relR.ok ? ((await relR.json())?.data || []) : [];
+    const picks = selR.ok ? ((await selR.json())?.data || []) : [];
     const tracks = tracksR.ok ? ((await tracksR.json())?.data || []) : [];
+
+    const seenIds = new Set(albums.map(a => a.id));
+    const pickIds = new Set();
+    for (const p of picks) {
+      if (seenIds.has(p.id)) continue;
+      seenIds.add(p.id);
+      pickIds.add(p.id);
+      albums.push(p);
+    }
+    const chartTracks = [];
+    const chartIds = new Set();
+    for (const track of tracks) {
+      const alb = track.album;
+      if (!alb || seenIds.has(alb.id) || chartIds.has(alb.id)) continue;
+      chartIds.add(alb.id);
+      if (chartTracks.length < NMF_CHART_LOOKUPS) chartTracks.push(track);
+    }
+    const details = await _nmfAlbumDetails([
+      ...albums.filter(a => !a.release_date).map(a => a.id),
+      ...chartTracks.map(tr => tr.album.id)
+    ]);
+    for (const a of albums) {
+      const d = details[a.id];
+      if (d && !a.release_date) { a.release_date = d.release_date; a.record_type = a.record_type || d.record_type; }
+    }
+    // The picks mix new albums with older ones (one from 2023 in Oct 2026): keep the last 30 days
+    const pickCutoff = new Date();
+    pickCutoff.setDate(pickCutoff.getDate() - 30);
+    const pickCutoffStr = localDateStr(pickCutoff);
+    for (let i = albums.length - 1; i >= 0; i--) {
+      const a = albums[i];
+      if (pickIds.has(a.id) && (!a.release_date || a.release_date < pickCutoffStr)) albums.splice(i, 1);
+    }
 
     // Add chart tracks released in the last 14 days that aren't already in the editorial list
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - 14);
     const cutoffStr = localDateStr(cutoff);
-    const seenIds = new Set(albums.map(a => a.id));
 
-    for (const track of tracks) {
-      const alb = track.album;
-      if (!alb || !alb.release_date || alb.release_date < cutoffStr) continue;
-      if (seenIds.has(alb.id)) continue;
+    for (const track of chartTracks) {
+      const alb = { ...track.album, ...(details[track.album.id] || {}) };
+      if (!alb.release_date || alb.release_date < cutoffStr) continue;
       seenIds.add(alb.id);
       albums.push({
         id: alb.id,
@@ -31047,7 +31105,7 @@ async function loadNMF(forceRefresh = false) {
         cover_big: alb.cover_big || '',
         cover_xl: alb.cover_xl || '',
         release_date: alb.release_date,
-        record_type: 'single',
+        record_type: alb.record_type || 'single',
         artist: track.artist || {},
         type: 'album'
       });
@@ -31258,7 +31316,53 @@ async function loadEvents(forceRefresh = false) {
   renderEventsResults(birthdays, anniversaries, recentBirthdays, recentAnniversaries, eventsUpcoming, eventsRecent, artists, false);
 }
 
+/* The cache keeps "in N days" / "N days ago" counts for up to a day
+   (EVENTS_CACHE_TTL), so a cache from yesterday put every birthday and
+   anniversary one day late. The counts are worked out again from each
+   entry's MM-DD against today, and entries move between the upcoming and
+   recent lists (today's birthday is yesterday's tomorrow). Releases move
+   from upcoming to recent once their date has passed. */
+function _eventsRedate(raw) {
+  const today = tzNow(); today.setHours(0, 0, 0, 0);
+  const todayStr = localDateStr(today);
+  const yearOf = delta => { const d = new Date(today); d.setDate(d.getDate() + delta); return d.getFullYear(); };
+  const split = (upcoming, recent, keyOf, withYear) => {
+    const seen = new Map();
+    for (const e of [...(upcoming || []), ...(recent || [])]) {
+      const k = keyOf(e);
+      if (!seen.has(k)) seen.set(k, e);
+    }
+    const up = [], back = [];
+    for (const e of seen.values()) {
+      const { daysUntil, daysAgo, ...base } = e;
+      const u = daysUntilNextOccurrence(e.mmdd, EVENTS_WINDOW_DAYS);
+      if (u !== null) { const x = withYear({ ...base, daysUntil: u }, yearOf(u)); if (x) up.push(x); }
+      const a = daysSinceLastOccurrence(e.mmdd, EVENTS_WINDOW_DAYS);
+      if (a !== null) { const x = withYear({ ...base, daysAgo: a }, yearOf(-a)); if (x) back.push(x); }
+    }
+    return [up, back];
+  };
+  const [birthdays, recentBirthdays] = split(raw.birthdays, raw.recentBirthdays,
+    b => b.artistName + '|' + b.mmdd, b => b);
+  // An anniversary's number is the year it falls in minus the release year
+  const [anniversaries, recentAnniversaries] = split(raw.anniversaries, raw.recentAnniversaries,
+    a => a.artistName + '|' + (a.mbid || a.title) + '|' + a.mmdd,
+    (a, yr) => {
+      const years = yr - parseInt((a.releaseDate || '').slice(0, 4));
+      return years >= 1 ? { ...a, years } : null;
+    });
+  const eventsUpcoming = [], eventsRecent = [...(raw.eventsRecent || [])];
+  const recentKeys = new Set(eventsRecent.map(e => e.artistName + '|' + (e.release?.mbid || e.release?.title)));
+  for (const e of raw.eventsUpcoming || []) {
+    if (!e.release?.date || e.release.date >= todayStr) { eventsUpcoming.push(e); continue; }
+    if (!recentKeys.has(e.artistName + '|' + (e.release.mbid || e.release.title))) eventsRecent.push(e);
+  }
+  return { birthdays, anniversaries, recentBirthdays, recentAnniversaries, eventsUpcoming, eventsRecent };
+}
+
 function renderEventsResults(birthdays, anniversaries, recentBirthdays, recentAnniversaries, eventsUpcoming, eventsRecent, artists, fromCache) {
+  ({ birthdays, anniversaries, recentBirthdays, recentAnniversaries, eventsUpcoming, eventsRecent } =
+    _eventsRedate({ birthdays, anniversaries, recentBirthdays, recentAnniversaries, eventsUpcoming, eventsRecent }));
   _eventsRawData = { birthdays, anniversaries, recentBirthdays, recentAnniversaries, eventsUpcoming, eventsRecent };
   _eventsArtists = artists;
   _renderEventsFromRaw(_eventsRawData, artists, fromCache);
