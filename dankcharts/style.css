@@ -8197,9 +8197,6 @@
     #eventsView:not(.dc-pl-mode)[data-ev-tab="coming"] [data-ev-group]:not([data-ev-group~="coming"]),
     #eventsView:not(.dc-pl-mode)[data-ev-tab="recent"] [data-ev-group]:not([data-ev-group~="recent"]),
     #eventsView:not(.dc-pl-mode)[data-ev-tab="calendar"] [data-ev-group]:not([data-ev-group~="calendar"]) { display: none !important; }
-    /* Today is always today: no arrows, no Month / Week / Day */
-    #eventsView[data-ev-tab="today"] .cal-nav-btn,
-    #eventsView[data-ev-tab="today"] .cal-view-btns { display: none; }
 
     .events-type-filters {
       display: flex;
@@ -8243,6 +8240,16 @@
       padding: 0.4rem 0 var(--sp-3);
     }
     .ev-tiles .ev-carousel-card { width: auto; }
+    /* Today: the anniversaries get a small heading of their own, and
+       "Show all" sits under their grid */
+    .ev-today-sub {
+      margin: var(--sp-4) 0 0;
+      font-family: var(--font-sans);
+      font-size: var(--fs-sm);
+      font-weight: 600;
+      color: var(--text2);
+    }
+    .ev-today-more { margin-bottom: var(--sp-2); }
     /* The type line's icon in cards, list rows and table cells */
     .ev-carousel-type .ev-type-ico,
     .ev-list-type .ev-type-ico,

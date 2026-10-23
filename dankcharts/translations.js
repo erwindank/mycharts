@@ -1447,6 +1447,12 @@ const TRANSLATIONS = {
     ev_view_list: 'List',
     ev_pl_title: 'Save what this tab shows to a playlist',
     ev_nmf_past: 'Past Fridays',
+    ev_play_all: '▶ Play all',
+    ev_play_all_title: 'Play what this tab shows in the music player',
+    ev_today_anniversaries: 'Anniversaries today',
+    ev_today_all: 'Show all {{n}}',
+    ev_today_fewer: 'Show fewer',
+    ev_today_empty: 'Nothing is happening today for your top artists.',
     sec_records_title: '🏆 Records & Hall of Fame',
     collapsed_hint: 'collapsed — click + to expand',
 
@@ -5070,6 +5076,12 @@ const TRANSLATIONS = {
     ev_view_list: 'Lista',
     ev_pl_title: 'Guardar en una lista lo que muestra esta pestaña',
     ev_nmf_past: 'Viernes anteriores',
+    ev_play_all: '▶ Reproducir todo',
+    ev_play_all_title: 'Reproducir en el reproductor lo que muestra esta pestaña',
+    ev_today_anniversaries: 'Aniversarios de hoy',
+    ev_today_all: 'Mostrar los {{n}}',
+    ev_today_fewer: 'Mostrar menos',
+    ev_today_empty: 'Hoy no pasa nada con tus artistas principales.',
     sec_records_title: '🏆 Récords y Salón de la Fama',
     collapsed_hint: 'contraído — clic en + para expandir',
 
@@ -8593,6 +8605,12 @@ const TRANSLATIONS = {
     ev_view_list: 'Lista',
     ev_pl_title: 'Salvar numa playlist o que esta aba mostra',
     ev_nmf_past: 'Sextas anteriores',
+    ev_play_all: '▶ Tocar tudo',
+    ev_play_all_title: 'Tocar no player o que esta aba mostra',
+    ev_today_anniversaries: 'Datas comemorativas de hoje',
+    ev_today_all: 'Mostrar todas as {{n}}',
+    ev_today_fewer: 'Mostrar menos',
+    ev_today_empty: 'Nada acontecendo hoje com seus artistas principais.',
     sec_records_title: '🏆 Recordes e Salão da Fama',
     collapsed_hint: 'recolhido — clique em + para expandir',
 
@@ -12117,6 +12135,12 @@ const TRANSLATIONS = {
     ev_view_list: 'Lista',
     ev_pl_title: 'Guardar numa playlist o que este separador mostra',
     ev_nmf_past: 'Sextas anteriores',
+    ev_play_all: '▶ Tocar tudo',
+    ev_play_all_title: 'Tocar no leitor o que este separador mostra',
+    ev_today_anniversaries: 'Datas de hoje',
+    ev_today_all: 'Mostrar todas as {{n}}',
+    ev_today_fewer: 'Mostrar menos',
+    ev_today_empty: 'Nada a acontecer hoje com os teus artistas principais.',
     sec_records_title: '🏆 Recordes e Salão da Fama',
     collapsed_hint: 'recolhido — clique em + para expandir',
 
@@ -14400,6 +14424,7 @@ function setLanguage(lang) {
 
   // Events cards carry dates and release types in the language: draw them again
   if (typeof _evReRenderSection === 'function') Object.keys(EV_GRID_IDS).forEach(_evReRenderSection);
+  if (typeof _renderEventsToday === 'function') _renderEventsToday();
 
   // Longer words can overflow the top bar; tighten it if they do
   if (typeof dcFitTopbar === 'function') dcFitTopbar();

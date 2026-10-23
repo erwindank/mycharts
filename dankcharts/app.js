@@ -30151,18 +30151,12 @@ function _triggerCalDayImgs(calEl) {
 // ── Page tabs: Today · Coming up · Recent · Calendar ───────────
 
 /* The open tab sits on #eventsView as data-ev-tab; CSS hides every block
-   whose data-ev-group doesn't list it. Today shows the calendar's Day view
-   for today (its arrows and Month / Week / Day hidden) without touching
-   the view saved for the Calendar tab. */
+   whose data-ev-group doesn't list it. */
 const EVENTS_TABS = ['today', 'coming', 'recent', 'calendar'];
 let eventsTab = (() => {
   try { const v = localStorage.getItem('dc_events_tab'); return EVENTS_TABS.includes(v) ? v : 'today'; }
   catch (e) { return 'today'; }
 })();
-
-function _evCalView() {
-  return eventsTab === 'today' ? 'day' : eventsCalendarView;
-}
 
 function _syncEventsTab() {
   const view = document.getElementById('eventsView');
@@ -30178,12 +30172,8 @@ function setEventsTab(tab) {
   if (!EVENTS_TABS.includes(tab)) return;
   eventsTab = tab;
   try { localStorage.setItem('dc_events_tab', tab); } catch (e) {}
-  if (tab === 'today') {
-    const tod = tzNow();
-    eventsCalendarYear = tod.getFullYear(); eventsCalendarMonth = tod.getMonth(); eventsCalendarDay = tod.getDate();
-  }
   _syncEventsTab();
-  if (_eventsCalendarData && (tab === 'today' || tab === 'calendar')) {
+  if (_eventsCalendarData && tab === 'calendar') {
     renderEventsCalendar(_eventsCalendarData, eventsCalendarYear, eventsCalendarMonth);
   }
 }
@@ -30210,7 +30200,7 @@ function renderEventsCalendar(data, year, month) {
   const titleEl = document.getElementById('eventsCalendarTitle');
   if (!calEl || !titleEl) return;
   const merged = { ...data, concerts: eventsTypeFilter.has('show') ? (_concertsData || []) : [] };
-  const view = _evCalView();
+  const view = eventsCalendarView;
   if (view === 'week') {
     renderCalWeek(calEl, titleEl, merged, year, month, eventsCalendarDay);
   } else if (view === 'day') {
@@ -30625,7 +30615,7 @@ const EV_PL_TABS = {
 
 function _evCalendarTracks() {
   if (!_eventsCalendarData) return [];
-  const view = _evCalView();
+  const view = eventsCalendarView;
   let dates;
   if (view === 'month') dates = [..._calMonthDateSet(eventsCalendarYear, eventsCalendarMonth)];
   else if (view === 'week') dates = getWeekDates(eventsCalendarYear, eventsCalendarMonth, eventsCalendarDay).map(d => localDateStr(d));
@@ -30641,12 +30631,123 @@ function _evCalendarTracks() {
   return tracks.filter(Boolean);
 }
 
+function _evTabTracks() {
+  if (eventsTab === 'today') return _evTodayTracks();
+  if (EV_PL_TABS[eventsTab]) {
+    return EV_PL_TABS[eventsTab].flatMap(key => (_evLastItems[key] || []).map(EV_PL_SECTIONS[key].pick)).filter(Boolean);
+  }
+  return _evCalendarTracks();
+}
+
 function evAddTabToPlaylist() {
-  const tracks = EV_PL_TABS[eventsTab]
-    ? EV_PL_TABS[eventsTab].flatMap(key => (_evLastItems[key] || []).map(EV_PL_SECTIONS[key].pick)).filter(Boolean)
-    : _evCalendarTracks();
   const label = t('ev_tab_' + eventsTab);
-  dcOpenPlaylistPicker(tracks, label, `${label} · ${_dcPlDateTag()}`);
+  dcOpenPlaylistPicker(_evTabTracks(), label, `${label} · ${_dcPlDateTag()}`);
+}
+
+/* ▶ Play all: the same songs, in the music player — the first now, the
+   rest queued (the calendar's old Play All did this for a day's singles) */
+function evPlayTab() {
+  const tracks = _dcPickDedupe(_evTabTracks());
+  if (!tracks.length) { dcPlToast(t('pl_pick_nothing')); return; }
+  const [first, ...rest] = tracks;
+  openYtPlayer(first.title, first.artist, first.album || '', null);
+  rest.forEach(tr => _ytQueue.push({ title: tr.title, artist: tr.artist, album: tr.album || '', btn: null }));
+  _ytUpdateQueueDisplay();
+  _ytSaveQueue();
+}
+
+// ── Today tab ──────────────────────────────────────────────────
+
+const EV_TODAY_CAP = 8;
+let _evTodayShowAll = false;
+let _evTodayShown = { birthdays: [], releases: [], anniversaries: [] }; // what Today shows, for its buttons
+
+/* Your plays of a release by its title and artist: an album counts the
+   plays of its tracks, a single the plays of the song. Counted once per
+   library. */
+let _evPlayCounts = null;
+let _evPlayCountsLen = -1;
+function _evReleasePlays(title, artist) {
+  if (_evPlayCountsLen !== allPlays.length) {
+    const albums = new Map(), tracks = new Map();
+    for (const p of allPlays) {
+      if (p.album) {
+        const k = p.album.toLowerCase() + '|||' + albumArtist(p).toLowerCase();
+        albums.set(k, (albums.get(k) || 0) + 1);
+      }
+      for (const a of (p.artists && p.artists.length) ? p.artists : [p.artist]) {
+        const k = p.title.toLowerCase() + '|||' + String(a).toLowerCase();
+        tracks.set(k, (tracks.get(k) || 0) + 1);
+      }
+    }
+    _evPlayCounts = { albums, tracks };
+    _evPlayCountsLen = allPlays.length;
+  }
+  const k = String(title || '').toLowerCase() + '|||' + String(artist || '').toLowerCase();
+  return Math.max(_evPlayCounts.albums.get(k) || 0, _evPlayCounts.tracks.get(k) || 0);
+}
+
+// Round anniversaries (5th, 10th, 15th…) first, then the ones you played most,
+// then by how high the artist sits in your top artists
+function _evRankAnniversaries(list) {
+  const rank = new Map((_eventsArtists || []).map((a, i) => [a, i]));
+  const pos = name => (rank.has(name) ? rank.get(name) : 1e9);
+  return list
+    .map(a => ({ a, plays: _evReleasePlays(a.title, a.artistName), round: a.years % 5 === 0 ? 1 : 0 }))
+    .sort((x, y) => (y.round - x.round) || (y.plays - x.plays) || (pos(x.a.artistName) - pos(y.a.artistName)));
+}
+
+function _renderEventsToday() {
+  const body = document.getElementById('eventsTodayBody');
+  const title = document.getElementById('eventsTodayTitle');
+  if (!body || !title) return;
+  const today = tzNow(); today.setHours(0, 0, 0, 0);
+  const todayStr = localDateStr(today);
+  const wd = today.toLocaleDateString(currentLang, { weekday: 'long' });
+  title.textContent = `${wd.charAt(0).toUpperCase() + wd.slice(1)}, ${fmtDate(today)}`;
+  if (!_eventsLastData) { body.innerHTML = ''; return; }
+
+  const f = applyEventsTypeFilter(_eventsLastData);
+  const birthdays = f.birthdays.filter(b => b.daysUntil === 0);
+  const releases = f.eventsUpcoming.filter(r => r.release && r.release.date === todayStr);
+  const shows = eventsTypeFilter.has('show')
+    ? (_concertsData || []).filter(sh => sh.event?.dates?.start?.localDate === todayStr) : [];
+  const ranked = _evRankAnniversaries(f.anniversaries.filter(a => a.daysUntil === 0));
+  const shownAnn = _evTodayShowAll ? ranked : ranked.slice(0, EV_TODAY_CAP);
+  _evTodayShown = { birthdays, releases, anniversaries: shownAnn.map(r => r.a) };
+
+  const main = [..._evNormalize('birthdays', birthdays), ..._evNormalize('eventsUpcoming', releases), ..._evNormalize('concerts', shows)];
+  // On Today every anniversary is today, so the card's date line says how much you played it instead
+  const ann = _evNormalize('anniversaries', _evTodayShown.anniversaries);
+  ann.forEach((it, i) => { it.dateLabel = tCount('plays', shownAnn[i].plays); });
+
+  let html = '';
+  if (main.length) html += `<div class="ev-tiles">${main.map(it => _evCardHtml(it, false)).join('')}</div>`;
+  if (ranked.length) {
+    html += `<h3 class="ev-today-sub">${esc(t('ev_today_anniversaries'))}</h3>`;
+    html += `<div class="ev-tiles">${ann.map(it => _evCardHtml(it, false)).join('')}</div>`;
+    if (ranked.length > EV_TODAY_CAP) {
+      html += `<button type="button" class="dc-btn dc-btn-normal dc-btn-sm ev-today-more" aria-expanded="${_evTodayShowAll}" onclick="toggleEventsTodayAll()">` +
+        `${esc(_evTodayShowAll ? t('ev_today_fewer') : t('ev_today_all', { n: ranked.length }))}</button>`;
+    }
+  }
+  if (!html) html = `<div class="upcoming-empty">${esc(t('ev_today_empty'))}</div>`;
+  body.innerHTML = html;
+  triggerPendingImgs(body);
+}
+
+function toggleEventsTodayAll() {
+  _evTodayShowAll = !_evTodayShowAll;
+  _renderEventsToday();
+}
+
+function _evTodayTracks() {
+  const { birthdays, releases, anniversaries } = _evTodayShown;
+  return [
+    ...birthdays.map(b => _tmArtistLastSongs(b.artistName, 1)[0]),
+    ...releases.map(r => _evPlRelease(r.release.title, r.artistName)),
+    ...anniversaries.map(a => _evPlRelease(a.title, a.artistName))
+  ].filter(Boolean);
 }
 
 function _evTable(gridEl, items) {
@@ -30727,6 +30828,7 @@ function renderEventsPartial(birthdays, anniversaries, recentBirthdays, recentAn
   // and without this they silently did nothing until all artists had loaded
   _eventsCalendarData = f;
   renderEventsCalendar(f, eventsCalendarYear, eventsCalendarMonth);
+  _renderEventsToday();
 }
 
 async function fetchConcertsForArtist(artistName, apiKey) {
@@ -31022,6 +31124,7 @@ async function loadConcerts(forceRefresh = false) {
 function _renderConcerts(shows, fromCache) {
   _concertsData = shows;
   _syncConcertsSectionVisibility();
+  _renderEventsToday();
   const grid = document.getElementById('concertsGrid');
   const status = document.getElementById('concertsStatus');
 
@@ -31252,6 +31355,7 @@ function _renderEventsFromRaw(raw, artists, fromCache) {
 
   _eventsCalendarData = f;
   renderEventsCalendar(_eventsCalendarData, eventsCalendarYear, eventsCalendarMonth);
+  _renderEventsToday();
 
   const cacheNote = fromCache ? ' (cached)' : '';
   const ts = fromCache

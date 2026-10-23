@@ -2643,6 +2643,23 @@ Steps:
 4. **Today.** Today's birthdays, releases and shows, then anniversaries
    ranked by your plays (round numbers first), about 8 plus "Show all".
    The Time Machine under them as "On this day in past years".
+   **Done 2026-10-23:** Today is its own section (#eventsTodaySection,
+   _renderEventsToday): the weekday and date as its title, then today's
+   birthdays, releases and shows as cards, then "Anniversaries today"
+   ranked by _evRankAnniversaries (round years first, then your plays of
+   the release via _evReleasePlays — album plays for an album, the
+   song's for a single, counted once per library — then the artist's
+   place in your top artists), 8 with "Show all N" / "Show fewer". On
+   those cards the date line gives your plays ("682 plays"), since every
+   one is today. The calendar is Calendar's alone again (_evCalView and
+   the hidden-arrows rule went). The Time Machine stays under Today as it
+   is. **Play All is back** (asked for after step 3): "▶ Play all" sits
+   next to ＋ Playlist and plays what the open tab shows, the first song
+   now and the rest queued (evPlayTab; the same songs as ＋ Playlist,
+   _evTabTracks). Checked at 1440 and 390 (touch), en and es, with 14
+   anniversaries today from the test library: 8 shown, Show all 14,
+   Play all on all four tabs, no errors. **To look at:** round-first
+   puts a 10th anniversary with 1 play above a 12th with 682.
 5. **Coming up.** Birthdays, anniversaries, releases, shows and New Music
    Friday in one list grouped by date (This week / Later this month / Next
    3 months), anniversaries ranked and capped.

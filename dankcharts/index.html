@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=622">
+  <link rel="stylesheet" href="style.css?v=623">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=181"></script>
+  <script defer src="translations.js?v=182"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -2035,7 +2035,8 @@
           <button type="button" role="tab" data-ev-tab="calendar" onclick="setEventsTab('calendar')" data-i18n="ev_tab_calendar">Calendar</button>
         </div>
         <!-- Under the tabs: the type chips, then the page's one view switch
-             (Coming up and Recent only) and one ＋ Playlist for the open tab -->
+             (Coming up and Recent only), ▶ Play all and ＋ Playlist for the
+             open tab -->
         <div class="events-toolbar-row">
           <div class="events-type-filters" role="group" aria-label="Event types" data-i18n-aria="ev_types_aria">
             <button class="dc-chip events-type-btn" data-etype="birthday" onclick="toggleEventsType('birthday')"><svg
@@ -2070,13 +2071,27 @@
               <button type="button" data-view="table" onclick="setEventsView('table')" data-i18n="ev_view_table">Table</button>
               <button type="button" data-view="list" onclick="setEventsView('list')" data-i18n="ev_view_list">List</button>
             </div>
+            <button type="button" class="dc-btn dc-btn-normal dc-btn-sm" id="eventsPlayBtn" onclick="evPlayTab()"
+              data-i18n="ev_play_all" data-i18n-title="ev_play_all_title" title="Play what this tab shows in the music player">▶ Play all</button>
             <button type="button" class="dc-btn dc-btn-normal dc-btn-sm" id="eventsPlBtn" onclick="evAddTabToPlaylist()"
               data-i18n="pl_section_btn" data-i18n-title="ev_pl_title" title="Save what this tab shows to a playlist">＋ Playlist</button>
           </div>
         </div>
       </div>
 
-      <div class="events-calendar-wrap" data-ev-group="today calendar">
+      <!-- TODAY (phase 9 part 4 step 4): today's birthdays, releases and
+           shows, then the day's anniversaries ranked by your plays (round
+           ones first), eight of them until "Show all". Drawn by
+           _renderEventsToday(); the Time Machine follows. -->
+      <div class="chart-section" id="eventsTodaySection" data-ev-group="today">
+        <div class="section-header">
+          <h2 class="section-header-h2" id="eventsTodayTitle"></h2>
+          <div class="section-rule"></div>
+        </div>
+        <div class="section-body" id="eventsTodayBody"></div>
+      </div>
+
+      <div class="events-calendar-wrap" data-ev-group="calendar">
         <div class="events-calendar-header">
           <button class="dc-btn dc-btn-normal dc-btn-sm dc-btn-icon cal-nav-btn" onclick="eventsCalendarPrev()">&#8249;</button>
           <span id="eventsCalendarTitle" class="cal-title"></span>
@@ -3900,7 +3915,7 @@
   <!-- Community board tab (suggestions / bugs / discussion). Loaded before
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
   <script defer src="board.js?v=4"></script>
-  <script defer src="app.js?v=489"></script>
+  <script defer src="app.js?v=490"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
   <script defer src="replay.js?v=1"></script>
   <!-- All-Time chart stats ("Inside your Top N"); reads app.js globals, so it loads after it -->
