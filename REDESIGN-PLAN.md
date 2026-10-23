@@ -2343,6 +2343,15 @@ Steps:
    dark-only, so on light themes the Less key and empty pattern cells are
    near-black.
 6. **Inline styles** in the Stats markup move into classes.
+   **Done 2026-10-23:** 39 → 3 (steps 1–5 had already removed the rest).
+   New classes: .graph-add-row / .graph-input / .graph-chips for the
+   "Add an artist" rows, .graph-ctrl-row / .graph-ctrl-label for the race
+   and heatmap control rows, .race-*, .hm-theme-btns / .hm-ctrl-sep, and
+   the swatch gradients by data-hmtheme. The 3 left are `display:none`
+   that app.js toggles (#graphsView, #heatmapFilterRow, #heatmapTooltip).
+   Checked before/after on 132 elements at 1280 and 390: identical except
+   the race control rows, whose four spacings are now one (moves ≤2px).
+   Text inputs now show a focus ring (the old inline outline:none hid it).
 7. **Screen check.** All charts, 10 themes, phone with touch, four
    languages, a long (10-year) library.
 

@@ -7898,6 +7898,78 @@
       height: 100% !important;
     }
 
+    /* Controls inside a Stats card: the "Add an artist" row, its chips, and
+       the label + button rows of the race and the heatmap. */
+    .graph-add-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .graph-add-row > .dc-btn { white-space: nowrap; }
+
+    .graph-input {
+      background: var(--bg2);
+      border: 1px solid var(--border2);
+      border-radius: 4px;
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: var(--fs-xs);
+      padding: 0.3rem 0.6rem;
+    }
+
+    .graph-add-row > .graph-input { flex: 1; min-width: 0; }
+    .graph-input[type="date"] { padding: 0.25rem 0.5rem; }
+
+    .graph-input:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+
+    .graph-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-bottom: 0.6rem;
+    }
+
+    .graph-ctrl-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .graph-ctrl-row > .dc-btn { white-space: nowrap; }
+
+    .graph-ctrl-label {
+      font-family: var(--font-sans);
+      font-size: var(--fs-xs);
+      color: var(--text3);
+    }
+
+    /* A label after a button group (race "Speed") gets a little more room. */
+    .dc-seg + .graph-ctrl-label { margin-left: 0.3rem; }
+
+    /* Play Count Race */
+    .race-play-btn { min-width: 84px; }
+    .race-gif-btn { margin-left: auto; }
+
+    .race-seek {
+      width: 100%;
+      margin-bottom: 0.5rem;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .race-canvas {
+      display: block;
+      width: 100%;
+      border-radius: 6px;
+    }
+
     /* HEATMAP */
     .heatmap-year-block { margin-bottom: 1.25rem; }
     .heatmap-year-header { font-family: var(--font-sans); font-size: var(--fs-xs); color: var(--text3); margin-bottom: 5px; }
@@ -7916,7 +7988,7 @@
     .heatmap-cell.has-data:hover { outline: 1.5px solid rgba(255,255,255,0.55); outline-offset: 0px; }
     .heatmap-legend { display: flex; align-items: center; gap: 5px; margin-top: 6px; }
     .heatmap-legend-label { font-family: var(--font-sans); font-size: 0.5rem; color: var(--text3); }
-    #heatmapTooltip { background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-md); padding: 0.65rem 0.85rem; min-width: 185px; max-width: 280px; box-shadow: var(--shadow-2); }
+    #heatmapTooltip { position: fixed; pointer-events: none; z-index: 9999; background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-md); padding: 0.65rem 0.85rem; min-width: 185px; max-width: 280px; box-shadow: var(--shadow-2); }
     .hm-tt-date { font-family: var(--font-mono);
       font-variant-numeric: tabular-nums; font-size: var(--fs-xs); color: var(--text3); margin-bottom: var(--sp-1); }
     .hm-tt-count { font-family: var(--font-mono);
@@ -7938,6 +8010,14 @@
     .hm-theme-swatch { width: 28px; height: 12px; border-radius: var(--r-xs); border: 2px solid transparent; cursor: pointer; padding: 0; transition: border-color 0.15s, opacity 0.15s; flex-shrink: 0; }
     .hm-theme-swatch.active { border-color: var(--text); }
     .hm-theme-swatch:hover:not(.active) { opacity: 0.72; }
+    .hm-theme-swatch[data-hmtheme="default"] { background: linear-gradient(90deg, #3a1858, #ff7ee0); }
+    .hm-theme-swatch[data-hmtheme="fire"] { background: linear-gradient(90deg, #5c1500, #ffd030); }
+    .hm-theme-swatch[data-hmtheme="ocean"] { background: linear-gradient(90deg, #0d3060, #7ee8ff); }
+    .hm-theme-swatch[data-hmtheme="forest"] { background: linear-gradient(90deg, #174d17, #b0f0b0); }
+    .hm-theme-swatch[data-hmtheme="ember"] { background: linear-gradient(90deg, #4a0a08, #f09000); }
+    .hm-theme-btns { display: flex; align-items: center; gap: 5px; }
+    .hm-ctrl-sep { width: 1px; height: 14px; margin: 0 2px; background: var(--border2); }
+    #gHeatmap { overflow-x: auto; padding-bottom: 0.25rem; }
     /* Streak bar */
     .hm-streak-bar { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-bottom: 0.55rem; }
     /* Best day glow */
