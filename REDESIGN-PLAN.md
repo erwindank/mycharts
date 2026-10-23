@@ -2316,6 +2316,15 @@ Steps:
 3. **Chart style.** No vertical gridlines, faint horizontal ones, 12px
    muted axis text, the theme accent for single series, a fixed set of
    6–8 colours for comparisons (artists, the race), checked in all themes.
+   **Done 2026-10-23:** graphAxes()/graphLegend() in app.js give every
+   Stats chart the same axes (no vertical lines, --rule horizontals, 12px
+   axis text = --text mixed 65% into the card, ≥5:1 on all 10 themes;
+   --text3 was near-white on yellow/red/pink dark). Eight fixed hues,
+   a dark set and a light set (graphPalette()/graphColor()), passed the
+   dataviz validator on navy, yellow and pink cards. One artist = accent.
+   Chips: text in ink, colour on the border. Race: rank boxes neutral, bar
+   and avatar ring keep the artist colour (stored as a slot, so a theme
+   change repaints). Charts redraw on a theme change.
 4. **Ratings chart.** One colour (accent), lighter or darker by score,
    instead of a rainbow.
 5. **Heatmap.** Mockup first. One year at a time with `‹ 2026 ›`, and a

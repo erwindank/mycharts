@@ -397,6 +397,9 @@ function applyTheme(theme, preview = false) {
   document.querySelectorAll('.ctrl-theme-dot').forEach(d => { d.style.background = dotColor; });
   if (!preview) {
     try { localStorage.setItem('dankcharts-theme', theme); } catch (e) { }
+    // Stats charts are canvas, so they keep the old theme's colours until
+    // redrawn. Deferred: on page load this runs before currentPeriod exists.
+    setTimeout(() => { try { if (currentPeriod === 'graphs' && allPlays.length) renderGraphs(); } catch (e) { } }, 0);
   }
 }
 
@@ -27286,14 +27289,56 @@ function getGraphColors() {
     accent: get('--accent') || '#4080d0',
     accent2: get('--accent2') || '#2860b0',
     grid: get('--rule') || '#1e3050',
+    // The card the charts sit on (.dc-card), for the 2px gaps between stacked bars
+    cardBg: get('--bg2') || '#131c2c',
+    // Axis and legend text: the theme's text mixed 65% into the card colour.
+    // --text3 can't be used, it is near-white on yellow/red/pink dark. This
+    // gives ≥5:1 on every theme's card without being as loud as body text.
+    axis: mixHex(get('--text') || '#e8f0ff', get('--bg2') || '#131c2c', 0.65),
   };
 }
 
-const GRAPH_PALETTE = [
-  '#4e88e8', '#f0aa30', '#50d0a0', '#e05090', '#a070e0',
-  '#60c8e8', '#e07040', '#90d050', '#d050b0', '#70a0e0',
-  '#f0e050', '#50e0c0', '#e05050', '#8050d0', '#50b0f0'
-];
+// Mix two #rrggbb colours: w = share of a (0–1). Canvas can't read color-mix().
+function mixHex(a, b, w) {
+  const p = h => /^#[0-9a-f]{6}$/i.test(h) ? [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)) : null;
+  const A = p(a), B = p(b);
+  if (!A || !B) return a;
+  return '#' + A.map((v, i) => Math.round(v * w + B[i] * (1 - w)).toString(16).padStart(2, '0')).join('');
+}
+
+/* Comparison colours (phase 9 part 2 step 3): eight fixed hues in a fixed
+   order (blue, orange, aqua, yellow, magenta, green, violet, red), one set
+   stepped for dark themes and one for light. Checked with the dataviz
+   palette validator against every theme's card colour: neighbouring series
+   stay apart for colour-blind readers too. Used by the artist charts, the
+   race, Discoveries and the heatmap chips. A 9th series starts over. */
+const GRAPH_PALETTE_DARK = ['#3987e5', '#d95926', '#199e70', '#c98500', '#d55181', '#008300', '#9085e9', '#e66767'];
+const GRAPH_PALETTE_LIGHT = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#6250d6', '#e34948'];
+function graphPalette() {
+  return [...document.body.classList].some(c => c.endsWith('-light')) ? GRAPH_PALETTE_LIGHT : GRAPH_PALETTE_DARK;
+}
+function graphColor(i) {
+  const pal = graphPalette();
+  return pal[i % pal.length];
+}
+// An artist chart with one artist uses the theme accent, like every other
+// single-series chart; with two or more each artist gets its palette colour.
+function artistSeriesColor(i, n) {
+  return n === 1 ? getGraphColors().accent : graphColor(i);
+}
+
+// Shared axes for the Stats charts: no vertical gridlines, faint horizontal
+// ones, 12px muted tick text, no axis border lines.
+function graphAxes(gc, { maxTicks = 24, stacked = false } = {}) {
+  const ticks = { color: gc.axis, font: { size: 12 } };
+  return {
+    x: { stacked, ticks: { ...ticks, maxTicksLimit: maxTicks, maxRotation: 45 }, grid: { display: false }, border: { color: gc.grid } },
+    y: { stacked, ticks, grid: { color: gc.grid }, border: { display: false } }
+  };
+}
+function graphLegend(gc) {
+  return { labels: { color: gc.axis, font: { size: 12 }, boxWidth: 10, boxHeight: 10, usePointStyle: true, pointStyle: 'circle' } };
+}
 
 function renderGraphs() {
   if (!allPlays.length) return;
@@ -27308,13 +27353,8 @@ function renderGraphs() {
   const labels = sortedKeys.map(graphKeyLabel);
   const maxTicks = 24;
 
-  const axisOpts = (reverse) => ({
-    x: { ticks: { color: gc.text3, maxTicksLimit: maxTicks, maxRotation: 45 }, grid: { color: gc.grid } },
-    y: reverse
-      ? { reverse: true, min: 1, ticks: { color: gc.text3, stepSize: 1 }, grid: { color: gc.grid }, title: { display: true, text: 'Rank (1 = top)', color: gc.text3 } }
-      : { ticks: { color: gc.text3 }, grid: { color: gc.grid } }
-  });
-  const legendOpts = { labels: { color: gc.text3 } };
+  const axisOpts = () => graphAxes(gc, { maxTicks });
+  const legendOpts = graphLegend(gc);
   const ptRadius = labels.length > 100 ? 0 : 2;
 
   // ── Chart 1: Cumulative plays — artist comparison ─────────
@@ -27397,9 +27437,9 @@ function renderGraphs() {
       type: 'bar',
       data: {
         labels: dKeys.map(graphKeyLabel), datasets: [
-          { label: 'New Songs', data: dKeys.map(k => nSong[k]), backgroundColor: GRAPH_PALETTE[0] + 'bb', borderColor: GRAPH_PALETTE[0], borderWidth: 1, stack: 'disc' },
-          { label: 'New Artists', data: dKeys.map(k => nArtist[k]), backgroundColor: GRAPH_PALETTE[1] + 'bb', borderColor: GRAPH_PALETTE[1], borderWidth: 1, stack: 'disc' },
-          { label: 'New Albums', data: dKeys.map(k => nAlbum[k]), backgroundColor: GRAPH_PALETTE[2] + 'bb', borderColor: GRAPH_PALETTE[2], borderWidth: 1, stack: 'disc' },
+          { label: 'New Songs', data: dKeys.map(k => nSong[k]), backgroundColor: graphColor(0), borderColor: gc.cardBg, borderWidth: { top: 2 }, stack: 'disc' },
+          { label: 'New Artists', data: dKeys.map(k => nArtist[k]), backgroundColor: graphColor(1), borderColor: gc.cardBg, borderWidth: { top: 2 }, stack: 'disc' },
+          { label: 'New Albums', data: dKeys.map(k => nAlbum[k]), backgroundColor: graphColor(2), borderColor: gc.cardBg, borderWidth: { top: 2 }, stack: 'disc' },
         ]
       },
       options: {
@@ -27408,10 +27448,7 @@ function renderGraphs() {
           legend: legendOpts,
           zoom: { pan: { enabled: true, mode: 'x', onPanComplete: ({ chart }) => saveChartZoom(chart, 'discoveries') }, zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x', onZoomComplete: ({ chart }) => saveChartZoom(chart, 'discoveries') } }
         },
-        scales: {
-          x: { stacked: true, ticks: { color: gc.text3, maxTicksLimit: maxTicks, maxRotation: 45 }, grid: { color: gc.grid } },
-          y: { stacked: true, ticks: { color: gc.text3 }, grid: { color: gc.grid } }
-        }
+        scales: graphAxes(gc, { maxTicks, stacked: true })
       },
       plugins: [discoveriesLabelsPlugin]
     });
@@ -27481,12 +27518,12 @@ function restoreChartZoom(chart, key) {
 function renderCumulativeChips() {
   const wrap = document.getElementById('gCumulativeChips');
   wrap.innerHTML = gCumulativeArtists.map((a, i) => {
-    const col = GRAPH_PALETTE[i % GRAPH_PALETTE.length];
+    const col = artistSeriesColor(i, gCumulativeArtists.length);
     return `<span style="display:inline-flex;align-items:center;gap:4px;background:${col}22;border:1px solid ${col};
-              color:${col};font-family:var(--font-sans);font-size:var(--fs-xs);padding:2px 8px;border-radius:20px;
+              color:var(--text);font-family:var(--font-sans);font-size:var(--fs-xs);padding:2px 8px;border-radius:20px;
               ">
               ${esc(a)}
-              <button onclick="removeCumulativeArtist(${i})" style="background:none;border:none;color:${col};
+              <button onclick="removeCumulativeArtist(${i})" style="background:none;border:none;color:var(--text2);
                 cursor:pointer;font-size:0.75rem;line-height:1;padding:0 0 1px 2px;">×</button>
             </span>`;
   }).join('');
@@ -27516,7 +27553,7 @@ function renderCumulativeChart(sortedKeys, labels, ptRadius, gc, axisOpts, legen
   const filtPtRadius = filteredLabels.length > 100 ? 0 : 2;
 
   const datasets = gCumulativeArtists.map((artistName, i) => {
-    const col = GRAPH_PALETTE[i % GRAPH_PALETTE.length];
+    const col = artistSeriesColor(i, gCumulativeArtists.length);
     const countByKey = {};
     for (const p of allPlays) {
       if (p.date.getTime() < fromTs || p.date.getTime() > toTs) continue;
@@ -27582,11 +27619,8 @@ function triggerCumulativeUpdate() {
   const labels = sortedKeys.map(graphKeyLabel);
   const ptRadius = labels.length > 100 ? 0 : 2;
   const maxTicks = 24;
-  const axisOpts = () => ({
-    x: { ticks: { color: gc.text3, maxTicksLimit: maxTicks, maxRotation: 45 }, grid: { color: gc.grid } },
-    y: { ticks: { color: gc.text3 }, grid: { color: gc.grid } }
-  });
-  const legendOpts = { labels: { color: gc.text3 } };
+  const axisOpts = () => graphAxes(gc, { maxTicks });
+  const legendOpts = graphLegend(gc);
   renderCumulativeChart(sortedKeys, labels, ptRadius, gc, axisOpts, legendOpts);
 }
 
@@ -27670,7 +27704,7 @@ function renderTotalVolumeChart(sortedKeys, gc, axisOpts, legendOpts) {
     data: {
       labels: filteredLabels, datasets: [{
         label: 'Plays', data: filteredKeys.map(k => countByKey[k] || 0),
-        backgroundColor: col + '99', borderColor: col, borderWidth: 1
+        backgroundColor: col, borderColor: col, borderWidth: 0, borderRadius: 3, borderSkipped: 'start'
       }]
     },
     options: {
@@ -27693,8 +27727,8 @@ function triggerTotalVolumeUpdate() {
   for (const p of allPlays) allKeys.add(graphKey(p.date));
   const sortedKeys = [...allKeys].sort();
   const maxTicks = 24;
-  const axisOpts = () => ({ x: { ticks: { color: gc.text3, maxTicksLimit: maxTicks, maxRotation: 45 }, grid: { color: gc.grid } }, y: { ticks: { color: gc.text3 }, grid: { color: gc.grid } } });
-  const legendOpts = { labels: { color: gc.text3 } };
+  const axisOpts = () => graphAxes(gc, { maxTicks });
+  const legendOpts = graphLegend(gc);
   renderTotalVolumeChart(sortedKeys, gc, axisOpts, legendOpts);
 }
 
@@ -27702,12 +27736,12 @@ function triggerTotalVolumeUpdate() {
 function renderVolumeChips() {
   const wrap = document.getElementById('gVolumeChips');
   wrap.innerHTML = gVolumeArtists.map((a, i) => {
-    const col = GRAPH_PALETTE[i % GRAPH_PALETTE.length];
+    const col = artistSeriesColor(i, gVolumeArtists.length);
     return `<span style="display:inline-flex;align-items:center;gap:4px;background:${col}22;border:1px solid ${col};
-              color:${col};font-family:var(--font-sans);font-size:var(--fs-xs);padding:2px 8px;border-radius:20px;
+              color:var(--text);font-family:var(--font-sans);font-size:var(--fs-xs);padding:2px 8px;border-radius:20px;
               ">
               ${esc(a)}
-              <button onclick="removeVolumeArtist(${i})" style="background:none;border:none;color:${col};
+              <button onclick="removeVolumeArtist(${i})" style="background:none;border:none;color:var(--text2);
                 cursor:pointer;font-size:0.75rem;line-height:1;padding:0 0 1px 2px;">×</button>
             </span>`;
   }).join('');
@@ -27735,7 +27769,7 @@ function renderVolumeChart(sortedKeys, gc, axisOpts, legendOpts) {
   const filteredLabels = filteredKeys.map(graphKeyLabel);
 
   const datasets = gVolumeArtists.map((artistName, i) => {
-    const col = GRAPH_PALETTE[i % GRAPH_PALETTE.length];
+    const col = artistSeriesColor(i, gVolumeArtists.length);
     const countByKey = {};
     for (const p of allPlays) {
       if (p.date.getTime() < fromTs || p.date.getTime() > toTs) continue;
@@ -27745,7 +27779,7 @@ function renderVolumeChart(sortedKeys, gc, axisOpts, legendOpts) {
     }
     return {
       label: artistName, data: filteredKeys.map(k => countByKey[k] || 0),
-      backgroundColor: col + '99', borderColor: col, borderWidth: 1
+      backgroundColor: col, borderColor: col, borderWidth: 0, borderRadius: 3, borderSkipped: 'start'
     };
   });
 
@@ -27795,11 +27829,8 @@ function triggerVolumeUpdate() {
   for (const p of allPlays) allKeys.add(graphKey(p.date));
   const sortedKeys = [...allKeys].sort();
   const maxTicks = 24;
-  const axisOpts = () => ({
-    x: { ticks: { color: gc.text3, maxTicksLimit: maxTicks, maxRotation: 45 }, grid: { color: gc.grid } },
-    y: { ticks: { color: gc.text3 }, grid: { color: gc.grid } }
-  });
-  const legendOpts = { labels: { color: gc.text3 } };
+  const axisOpts = () => graphAxes(gc, { maxTicks });
+  const legendOpts = graphLegend(gc);
   renderVolumeChart(sortedKeys, gc, axisOpts, legendOpts);
 }
 
@@ -27870,9 +27901,10 @@ const BASE_FRAME_MS = 600;
 function getRaceColor(name) {
   if (!raceArtistColors[name]) {
     const n = Object.keys(raceArtistColors).length;
-    raceArtistColors[name] = GRAPH_PALETTE[n % GRAPH_PALETTE.length];
+    raceArtistColors[name] = n;
   }
-  return raceArtistColors[name];
+  // Stored as a palette slot so the colour follows the theme (light/dark set)
+  return graphColor(raceArtistColors[name]);
 }
 
 function raceLabel(key) {
@@ -28095,7 +28127,8 @@ function drawRace(frameIdx, progress, targetCanvas) {
       ctx.fill();
     }
 
-    // Rank badge — colored pill on the far left
+    // Rank badge on the far left: neutral, so only the bar and the avatar
+    // ring carry the artist's colour (it used to be a different hue per rank)
     const rankN = Math.round(rank) + 1;
     const rankStr = String(rankN);
     ctx.font = `bold ${raceTopN > 15 ? 11 : 13}px "JetBrains Mono", monospace`;
@@ -28104,9 +28137,9 @@ function drawRace(frameIdx, progress, targetCanvas) {
     const pillX = 2;
     const pillY = y + (BAR_H - pillH) / 2;
     ctx.beginPath(); rrect(ctx, pillX, pillY, pillW, pillH, 4);
-    ctx.fillStyle = color + '35'; ctx.fill();
-    ctx.strokeStyle = color + '90'; ctx.lineWidth = 1; ctx.stroke();
-    ctx.fillStyle = color;
+    ctx.fillStyle = gc.card || '#0e1e38'; ctx.fill();
+    ctx.strokeStyle = gc.grid || '#1e3050'; ctx.lineWidth = 1; ctx.stroke();
+    ctx.fillStyle = gc.axis || gc.text3 || '#7aa0d0';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText(rankStr, pillX + pillW / 2, pillY + pillH / 2 + 0.5);
 
@@ -34388,11 +34421,11 @@ function renderHeatmapChips() {
   const wrap = document.getElementById('heatmapChips');
   if (!wrap) return;
   wrap.innerHTML = heatmapFilters.map((f, i) => {
-    const col = GRAPH_PALETTE[i % GRAPH_PALETTE.length];
+    const col = graphColor(i);
     return `<span style="display:inline-flex;align-items:center;gap:4px;background:${col}22;border:1px solid ${col};
-              color:${col};font-family:var(--font-sans);font-size:var(--fs-xs);padding:2px 8px;border-radius:20px;
+              color:var(--text);font-family:var(--font-sans);font-size:var(--fs-xs);padding:2px 8px;border-radius:20px;
               ">${esc(f)}
-              <button onclick="removeHeatmapFilter(${i})" style="background:none;border:none;color:${col};
+              <button onclick="removeHeatmapFilter(${i})" style="background:none;border:none;color:var(--text2);
                 cursor:pointer;font-size:0.75rem;line-height:1;padding:0 0 1px 2px;">×</button>
             </span>`;
   }).join('');
@@ -34652,8 +34685,8 @@ function renderHeatmap() {
           // Split-color for multi-chip overlap
           if (cell.chipIndices && cell.chipIndices.size > 1) {
             const idxs = [...cell.chipIndices].slice(0, 2);
-            const c1 = GRAPH_PALETTE[idxs[0] % GRAPH_PALETTE.length];
-            const c2 = GRAPH_PALETTE[idxs[1] % GRAPH_PALETTE.length];
+            const c1 = graphColor(idxs[0]);
+            const c2 = graphColor(idxs[1]);
             bg = `linear-gradient(135deg,${c1} 50%,${c2} 50%)`;
           } else {
             bg = hmCellColor(cell.count, maxCount);
