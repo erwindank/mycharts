@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Events has four tabs: Today, Coming up, Recent and Calendar":
+    ["Eventos tem quatro abas: Hoje, Em breve, Recentes e Calendário",
+     "A página Eventos agora abre em Hoje: o que está acontecendo hoje, com a Máquina do tempo embaixo. Em breve tem aniversários, datas comemorativas, próximos lançamentos, New Music Friday e shows; Recentes tem o que acabou de acontecer; Calendário tem o calendário de mês, semana e dia. A página lembra a última aba que você usou. O título agora é só \"Eventos\", os botões de tipo têm ícones pequenos em vez de emojis e um único botão de atualizar no canto atualiza a página inteira. O resumo da lista fica atrás do botão ⓘ, e quantos artistas principais incluir é escolhido em Configurações. Funciona com Last.fm, Google Sheets e arquivos CSV."],
+
   "Events: birthdays and anniversaries on the right day":
     ["Eventos: aniversários e datas comemorativas no dia certo",
      "Eventos guarda a lista por até um dia, e uma lista baixada ontem colocava cada aniversário e data comemorativa um dia atrasado (um aniversário de ontem aparecia como hoje). Agora os dias são calculados de novo toda vez que você abre a página, então o aniversário de ontem aparece como há 1 dia e vai para a lista de recentes. Um lançamento cuja data já passou vai de próximos para recentes. Uma data comemorativa no começo de janeiro conta os anos certos. Funciona com Last.fm, Google Sheets e arquivos CSV."],

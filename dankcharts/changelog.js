@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 288;
+const DC_CL_I18N_V = 289;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-23', t: 'design', a: 'events', h: '675c2d2',
+    title: "Events has four tabs: Today, Coming up, Recent and Calendar",
+    detail: "The Events page now opens on Today: what's happening today, with the Time Machine under it. Coming up has birthdays, anniversaries, upcoming releases, New Music Friday and shows; Recent has the ones that just happened; Calendar has the month, week and day calendar. The page remembers the tab you last used. The title is now plain \"Events\", the type buttons have small icons instead of emoji, and one refresh button in the corner updates everything on the page. The list summary is behind the ⓘ button, and how many top artists to include is chosen in Settings. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-23', t: 'fix', a: 'events', h: '3bd73c1',
     title: "Events: birthdays and anniversaries on the right day",
     detail: "Events keeps its list for up to a day, and a list fetched yesterday put every birthday and anniversary one day late (a birthday from yesterday showed as today). The days are now worked out again each time the page opens, so yesterday's birthday shows as 1 day ago and moves to the recent list. A release whose date has passed moves from upcoming to recent. An anniversary in early January counts the right number of years. Works with Last.fm, Google Sheets and CSV uploads." },
