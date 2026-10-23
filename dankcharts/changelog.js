@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 283;
+const DC_CL_I18N_V = 284;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-23', t: 'design', a: 'rawdata', h: 'f7f27f5',
+    title: "Song, album and artist panels: the Raw data tab matches the Raw Data page",
+    detail: "The Raw data tab you can open under a song, album or artist on the charts now looks like the Raw Data page: shaded every other row, quiet dates, and column names that stay at the top while you scroll through the list. Its column names, search box, play count and messages now follow your language instead of always showing English. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-23', t: 'feature', a: 'rawdata', h: 'aa08d4f',
     title: "Raw Data: page buttons at the top, jump to a page, rows per page",
     detail: "Raw Data now has page buttons above the table as well as below it, so you no longer have to scroll to the bottom to turn the page. Next to Previous and Next there are buttons for the first and last page, and a box where you can type a page number and press Enter to jump straight to it. Rows per page lets you show 50, 100, 200 or 500 plays at a time, and it is remembered next time. Using the buttons at the bottom takes you back to the top of the new page. Works with Last.fm, Google Sheets and CSV uploads." },

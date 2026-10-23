@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Song, album and artist panels: the Raw data tab matches the Raw Data page":
+    ["Paneles de canción, álbum y artista: la pestaña de datos se parece a Base de datos",
+     "La pestaña con el historial completo que puedes abrir bajo una canción, un álbum o un artista en las listas se parece ahora a la página Base de datos: una fila de cada dos sombreada, fechas en un tono suave y los nombres de las columnas fijos arriba mientras recorres la lista. Los nombres de las columnas, la casilla de búsqueda, el número de reproducciones y los mensajes siguen ahora tu idioma en lugar de salir siempre en inglés. Funciona con Last.fm, Google Sheets y archivos CSV."],
+
   "Raw Data: page buttons at the top, jump to a page, rows per page":
     ["Base de datos: botones de página arriba, saltar a una página, filas por página",
      "Base de datos tiene ahora botones de página encima de la tabla además de debajo, así que ya no hace falta bajar hasta el final para pasar de página. Junto a Anterior y Siguiente hay botones para la primera y la última página, y una casilla donde puedes escribir un número de página y pulsar Enter para ir directamente. Filas por página te deja ver 50, 100, 200 o 500 reproducciones a la vez, y se recuerda para la próxima vez. Los botones de abajo te llevan al principio de la nueva página. Funciona con Last.fm, Google Sheets y archivos CSV."],

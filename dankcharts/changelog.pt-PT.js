@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Song, album and artist panels: the Raw data tab matches the Raw Data page":
+    ["Painéis de música, álbum e artista: o separador de dados igual a Dados brutos",
+     "O separador com o histórico completo que abres por baixo de uma música, um álbum ou um artista nas tabelas parece-se agora com a página Dados brutos: uma linha sim, uma não, sombreada, datas num tom suave e os nomes das colunas fixos no topo enquanto percorres a lista. Os nomes das colunas, a caixa de pesquisa, a contagem de plays e as mensagens seguem agora o teu idioma em vez de aparecerem sempre em inglês. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
+
   "Raw Data: page buttons at the top, jump to a page, rows per page":
     ["Dados brutos: botões de página no topo, saltar para uma página, linhas por página",
      "Dados brutos tem agora botões de página por cima da tabela além de por baixo, por isso já não precisas de ir até ao fim para mudar de página. Ao lado de Anterior e Seguinte há botões para a primeira e a última página, e uma caixa onde escreves o número da página e carregas em Enter para ir diretamente. Linhas por página deixa-te ver 50, 100, 200 ou 500 plays de cada vez, e a escolha fica guardada para a próxima vez. Os botões de baixo levam-te ao início da nova página. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
