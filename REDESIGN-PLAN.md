@@ -2448,6 +2448,15 @@ Steps:
 4. **Page controls.** One bar above and below the table: ‹ Previous ·
    "Page 3 of 1,087" · Next ›, plus first / last and "Rows per page 50 /
    100 / 200 / 500" (remembered). All translated, shared button styles.
+   **Done 2026-10-23 (aa08d4f):** rawPagerHTML() draws both bars
+   (#rawPagerTop, #rawPagerBottom): « ‹ Previous · Page [box] of N ·
+   Next › », dc-btn buttons with translated labels; the box jumps on
+   Enter / blur (clamped to 1…N). Rows per page (dc-seg, dc_rawPageSize,
+   default 200) is on the top bar only, and switching it keeps the same
+   first play on screen. The bottom bar shows only with more than one page
+   and, when used, scrolls the top bar back under the sticky search bar
+   (scroll-margin). Phones: arrows only. The old .raw-pagination markup,
+   CSS and rawPrev/NextBtn listeners are gone.
 5. **The Raw data tab in item windows.** The same row look as the page
    (zebra, mono dates, no inline styles) and translated headers and search.
 6. **Screen check.** 1440 / 1100 / 390 touch, all 10 themes, four
