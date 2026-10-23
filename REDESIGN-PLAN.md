@@ -2433,6 +2433,18 @@ Steps:
    tabular mono, muted. Corrected rows keep their mark. The ✎ becomes a
    line icon that shows on row hover or focus (always on touch screens);
    its tooltip and "Autocorrected from" get translated.
+   **Done 2026-10-23:** zebra = --text at 4% on even rows, no row lines,
+   rows 36px min. Colours are mixed from --text, not --text2 / --text3:
+   --text2 is blue on navy (artists read as links) and equals --text on
+   red / yellow / pink dark, so .raw-table sets --raw-ink2 (82%, artist)
+   and --raw-muted (62%; #, date, album). Contrast on --bg across the 10
+   themes: muted 4.9–7.7:1, artist 9.6–13.1:1. Album is 13px now (was
+   12px); phones keep their 12px table. Corrected rows: a 2px inset
+   accent edge on # (on the date on phones, where # is hidden) plus the
+   ~, whose tooltip is translated (raw_corrected_from + the field names).
+   ✎ glyph → line pencil (RAW_EDIT_ICO), "Edit this play" tooltip and
+   aria-label, opacity 0 until row hover or keyboard focus, always on with
+   (hover: none). The "no match" row's inline style → td.raw-empty.
 4. **Page controls.** One bar above and below the table: ‹ Previous ·
    "Page 3 of 1,087" · Next ›, plus first / last and "Rows per page 50 /
    100 / 200 / 500" (remembered). All translated, shared button styles.

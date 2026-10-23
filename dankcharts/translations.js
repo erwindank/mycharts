@@ -1861,6 +1861,8 @@ const TRANSLATIONS = {
     raw_showing: 'Showing {{n}} of {{total}} plays',
     raw_total: '{{n}} total plays',
     raw_no_match: 'No records match your filters.',
+    raw_edit_play: 'Edit this play',
+    raw_corrected_from: 'Auto-corrected from:',
 
     // Graphs
     gran_label: 'Granularity',
@@ -5329,6 +5331,8 @@ const TRANSLATIONS = {
     raw_showing: 'Mostrando {{n}} de {{total}} reproducciones',
     raw_total: '{{n}} reproducciones en total',
     raw_no_match: 'Ningún registro coincide con tus filtros.',
+    raw_edit_play: 'Editar esta reproducción',
+    raw_corrected_from: 'Autocorregido desde:',
 
     // Graphs
     gran_label: 'Granularidad',
@@ -8699,6 +8703,8 @@ const TRANSLATIONS = {
     raw_showing: 'Exibindo {{n}} de {{total}} plays',
     raw_total: '{{n}} plays no total',
     raw_no_match: 'Nenhum registro corresponde aos seus filtros.',
+    raw_edit_play: 'Editar este play',
+    raw_corrected_from: 'Autocorrigido de:',
 
     // Graphs
     gran_label: 'Granularidade',
@@ -12069,6 +12075,8 @@ const TRANSLATIONS = {
     raw_showing: 'A mostrar {{n}} de {{total}} plays',
     raw_total: '{{n}} plays no total',
     raw_no_match: 'Nenhum registo corresponde aos seus filtros.',
+    raw_edit_play: 'Editar este play',
+    raw_corrected_from: 'Corrigido automaticamente de:',
 
     // Graphs
     gran_label: 'Granularidade',

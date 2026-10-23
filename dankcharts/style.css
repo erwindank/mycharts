@@ -12261,24 +12261,41 @@
       opacity: 1;
     }
 
+    /* Rows (step 3): zebra striping instead of a line under every row,
+       36px rows, ink colours only. Title in ink, artist a step down; #,
+       date and album in one muted tone. Both are mixed from the ink, since
+       --text2 / --text3 are tinted on several themes and read as links. */
+    .raw-table {
+      --raw-muted: color-mix(in srgb, var(--text) 62%, var(--bg));
+      /* artist: a step below the title (--text2 is blue on navy and the
+         same as --text on several dark themes) */
+      --raw-ink2: color-mix(in srgb, var(--text) 82%, var(--bg));
+    }
+
     .raw-table td {
-      color: var(--text2);
+      height: 36px;
+      padding-block: 0.3rem;
+      border-bottom: none;
+      color: var(--raw-ink2);
       user-select: text; }
 
+    .raw-table tbody tr:nth-child(even) > td {
+      background: color-mix(in srgb, var(--text) 4%, transparent);
+    }
 
+    .raw-table tbody tr:hover > td {
+      background: var(--hover);
+    }
 
-    .raw-table .raw-num {
-      color: var(--text3);
+    .raw-table .raw-num,
+    .raw-table .raw-date {
+      color: var(--raw-muted);
       font-family: var(--font-mono);
       font-variant-numeric: tabular-nums;
       font-size: var(--fs-xs);
     }
 
     .raw-table .raw-date {
-      font-family: var(--font-mono);
-      font-variant-numeric: tabular-nums;
-      font-size: var(--fs-xs);
-      color: var(--text3);
       white-space: nowrap;
     }
 
@@ -12288,12 +12305,21 @@
     }
 
     .raw-table .raw-album {
-      font-size: var(--fs-xs);
-      color: var(--text3);
+      color: var(--raw-muted);
     }
 
-    .raw-table tr.raw-corrected td:first-child {
-      border-left: 2px solid var(--accent2);
+    /* Corrected plays: a thin accent edge on the first cell (a shadow, so the
+       cell keeps its width) and the ~ after the number. */
+    .raw-table tr.raw-corrected .raw-num {
+      box-shadow: inset 2px 0 0 var(--accent2);
+    }
+
+    .raw-table td.raw-empty {
+      padding: 1rem 0.7rem;
+      color: var(--raw-muted);
+      font-style: italic;
+      font-family: var(--font-sans);
+      font-size: var(--fs-xs);
     }
 
     .raw-corrected-badge {
@@ -12366,6 +12392,39 @@
       width: 2rem;
       padding: 0.15rem 0.3rem !important;
       text-align: center;
+    }
+
+    /* The edit button shows on row hover or keyboard focus; on touch
+       screens, which have no hover, it is always there. */
+    .raw-edit-btn {
+      color: var(--raw-muted);
+      opacity: 0;
+      transition: opacity var(--t-fast) var(--ease);
+    }
+
+    .raw-table tbody tr:hover .raw-edit-btn,
+    .raw-edit-btn:focus-visible {
+      opacity: 1;
+    }
+
+    .raw-edit-btn:hover {
+      color: var(--text);
+    }
+
+    .raw-edit-btn svg {
+      width: 14px;
+      height: 14px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.4;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    @media (hover: none) {
+      .raw-edit-btn {
+        opacity: 1;
+      }
     }
 
 
@@ -12492,8 +12551,12 @@
 
       .raw-table .raw-date {
         white-space: normal;
-        font-size: var(--fs-xs);
         min-width: 4rem;
+      }
+
+      /* # is hidden here, so the corrected edge moves to the date */
+      .raw-table tr.raw-corrected .raw-date {
+        box-shadow: inset 2px 0 0 var(--accent2);
       }
 
       .raw-table th,

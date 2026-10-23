@@ -13000,6 +13000,8 @@ let rawPage = 0;
 let rawFiltered = [];
 let rawSortCol = 'date';
 let rawSortDir = -1; // -1 = desc, 1 = asc
+// Line pencil for each row's edit button
+const RAW_EDIT_ICO = '<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M10.8 2.7l2.5 2.5L5.6 12.9l-3.1.6.6-3.1z"/><path d="M9.4 4.1l2.5 2.5"/></svg>';
 
 function rawFmtDate(d) {
   const td = tzDate(d);
@@ -13058,16 +13060,17 @@ function renderRawPage() {
   document.getElementById('rawClearBtn').style.display = hasFilter ? '' : 'none';
 
   // Rows
+  const editLabel = esc(t('raw_edit_play'));
   document.getElementById('rawBody').innerHTML = slice.map((p, i) => {
     const n = start + i + 1;
     let correctedBadge = '';
     if (p._corrected) {
       const orig = p._orig;
       const parts = [];
-      if (orig.artist !== p.artist) parts.push(`Artist: ${orig.artist}`);
-      if (orig.title  !== p.title)  parts.push(`Title: ${orig.title}`);
-      if (orig.album  !== p.album)  parts.push(`Album: ${orig.album}`);
-      correctedBadge = `<span class="raw-corrected-badge" title="Autocorrected from:\n${parts.join('\n')}">~</span>`;
+      if (orig.artist !== p.artist) parts.push(`${t('raw_artist_label')}: ${orig.artist}`);
+      if (orig.title  !== p.title)  parts.push(`${t('raw_song_label')}: ${orig.title}`);
+      if (orig.album  !== p.album)  parts.push(`${t('raw_album_label')}: ${orig.album}`);
+      correctedBadge = `<span class="raw-corrected-badge" title="${esc(t('raw_corrected_from') + '\n' + parts.join('\n'))}">~</span>`;
     }
     return `<tr${p._corrected ? ' class="raw-corrected"' : ''}>
       <td class="raw-num">${n.toLocaleString()}${correctedBadge}</td>
@@ -13075,9 +13078,9 @@ function renderRawPage() {
       <td class="raw-title">${esc(p.title)}</td>
       <td>${esc(p.artist)}</td>
       <td class="raw-album">${esc(p.album)}</td>
-      <td class="raw-edit-cell"><button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon" title="Edit" onclick="openEditScrobbleModal(${start + i})">✎</button></td>
+      <td class="raw-edit-cell"><button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon raw-edit-btn" title="${editLabel}" aria-label="${editLabel}" onclick="openEditScrobbleModal(${start + i})">${RAW_EDIT_ICO}</button></td>
     </tr>`;
-  }).join('') || `<tr><td colspan="6" style="padding:1rem;color:var(--text3);font-style:italic;font-family:var(--font-sans);font-size:var(--fs-xs);">${t('raw_no_match')}</td></tr>`;
+  }).join('') || `<tr><td colspan="6" class="raw-empty">${t('raw_no_match')}</td></tr>`;
 
   // Pagination
   document.getElementById('rawPrevBtn').disabled = rawPage === 0;
