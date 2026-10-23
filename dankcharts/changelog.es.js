@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Stats in your language, and a heatmap made for light themes":
+    ["Estadísticas en tu idioma y un mapa de escuchas pensado para los temas claros",
+     "Todo en Estadísticas sigue ahora el idioma que elegiste: el mapa de escuchas y su ventana emergente, los nombres de los meses y los días, el botón Reproducir y Pausa de la carrera, la leyenda de Nuevos descubrimientos y toda la tarjeta Mis valoraciones. Los nombres de meses y días de los mapas en las ventanas de canciones, álbumes y artistas y en Rachas también lo siguen. En los temas claros el mapa va ahora de claro a oscuro, así que los días sin escuchas se ven como la página en lugar de cuadros oscuros, y los días con más escuchas destacan. Funciona con Last.fm, Google Sheets y archivos CSV."],
+
   "Stats: the heatmap shows one year at a time":
     ["Estadísticas: el mapa de escuchas muestra un año cada vez",
      "El mapa de escuchas de Estadísticas muestra ahora un año a lo ancho de toda la tarjeta en lugar de apilar todos los años en la página. Se abre en el año actual; usa ‹ y › (o las flechas del teclado) para pasar de un año a otro, o haz clic en una de las miniaturas de abajo, que muestran la forma de cada año de un vistazo. Las reproducciones del año, el mejor día, el artista principal y los artistas nuevos aparecen junto al año. Los Patrones de escucha siguen ahora el año que estás viendo, con un botón Todo el tiempo si quieres todo tu historial. En el móvil el año se desplaza de lado y se abre en el último mes. Funciona con Last.fm, Google Sheets y archivos CSV."],

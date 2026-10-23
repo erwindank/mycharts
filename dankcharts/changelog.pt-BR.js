@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Stats in your language, and a heatmap made for light themes":
+    ["Estatísticas no seu idioma e um mapa de calor pensado para os temas claros",
+     "Tudo em Estatísticas agora segue o idioma que você escolheu: o mapa de calor e a janela que aparece sobre ele, os nomes dos meses e dos dias, o botão Reproduzir e Pausar da corrida, a legenda de Novas descobertas e todo o cartão Minhas avaliações. Os nomes de meses e dias dos mapas nas janelas de músicas, álbuns e artistas e em Sequências também seguem o idioma. Nos temas claros o mapa agora vai do claro ao escuro, então os dias sem plays ficam da cor da página em vez de quadrados escuros, e os dias mais movimentados se destacam. Funciona com Last.fm, Google Sheets e arquivos CSV."],
+
   "Stats: the heatmap shows one year at a time":
     ["Estatísticas: o mapa de escutas mostra um ano por vez",
      "O mapa de escutas em Estatísticas agora mostra um ano ocupando o cartão inteiro, em vez de empilhar todos os anos na página. Ele abre no ano atual; use ‹ e › (ou as setas do teclado) para passar pelos anos, ou clique numa das miniaturas abaixo, que mostram o formato de cada ano de relance. Os plays do ano, o melhor dia, o artista principal e os artistas novos ficam ao lado do ano. Os Padrões de escuta agora seguem o ano que você está vendo, com um botão Desde sempre se quiser o histórico todo. No celular o ano rola para o lado e abre no mês mais recente. Funciona com Last.fm, Google Sheets e arquivos CSV."],

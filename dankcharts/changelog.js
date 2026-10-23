@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 278;
+const DC_CL_I18N_V = 279;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-23', t: 'fix', a: 'graphs', h: '903542a',
+    title: "Stats in your language, and a heatmap made for light themes",
+    detail: "Everything on Stats now follows the language you picked: the heatmap and its pop-up, month and day names, the race's Play and Pause button, the New Discoveries legend and the whole My Ratings card. Month and day names on the heatmaps in song, album and artist windows and on Streaks follow it too. On light themes the heatmap now runs from light to dark, so days with no plays match the page instead of showing as dark squares, and the busiest days stand out. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-23', t: 'design', a: 'graphs', h: 'b771080',
     title: "Stats: the heatmap shows one year at a time",
     detail: "The listening heatmap on Stats now shows one year across the whole card instead of stacking every year down the page. It opens on this year; use ‹ and › (or the arrow keys) to step through the years, or click one of the small year thumbnails underneath, which show the shape of every year at a glance. The year's plays, best day, top artist and new artists sit next to the year. Listening Patterns now follow the year you are looking at, with an All time switch if you want your whole history. On a phone the year scrolls sideways and opens at the latest month. Works with Last.fm, Google Sheets and CSV uploads." },
