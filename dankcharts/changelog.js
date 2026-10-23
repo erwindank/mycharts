@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 274;
+const DC_CL_I18N_V = 275;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-22', t: 'design', a: 'graphs', h: 'bf40312',
+    title: "Stats: chart buttons tucked into the corner",
+    detail: "The Labels and Reset zoom buttons on the Stats charts are now two small icons in each chart's top-right corner, so the charts start right under their titles. Point at an icon to see what it does; the labels icon stays lit while labels are on. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-22', t: 'design', a: 'graphs', h: 'ffeab6d',
     title: "Stats: one date range for the whole page",
     detail: "The Stats tab now has one bar at the top with Daily / Monthly / Yearly and the date range: quick buttons for the last 12 months, 3 years or everything, plus two date boxes for any other stretch. Every chart follows it, so the separate date boxes and Reset buttons on each chart are gone. It starts on the last 12 months, so a long history no longer draws a flat line with a spike at the end. The Play Count Race keeps its own range, starting at your first play. Works with Last.fm, Google Sheets and CSV uploads." },

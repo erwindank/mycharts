@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Stats: chart buttons tucked into the corner":
+    ["Estadísticas: los botones de las gráficas, en la esquina",
+     "Los botones Etiquetas y Restablecer zoom de las gráficas de Estadísticas son ahora dos iconos pequeños en la esquina superior derecha de cada gráfica, así que las gráficas empiezan justo debajo de su título. Pasa el puntero por un icono para ver qué hace; el de etiquetas se queda iluminado mientras están activadas. Funciona con Last.fm, Google Sheets y archivos CSV."],
+
   "Stats: one date range for the whole page":
     ["Estadísticas: un solo rango de fechas para toda la página",
      "La pestaña Estadísticas tiene ahora una sola barra arriba con Diario / Mensual / Anual y el rango de fechas: botones rápidos para los últimos 12 meses, 3 años o todo, y dos casillas de fecha para cualquier otro periodo. Todas las gráficas lo siguen, así que las casillas de fecha y los botones Restablecer de cada gráfica ya no están. Empieza en los últimos 12 meses, así que un historial largo ya no dibuja una línea plana con un pico al final. La Carrera de reproducciones mantiene su propio rango, desde tu primera reproducción. Funciona con Last.fm, Google Sheets y archivos CSV."],

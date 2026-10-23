@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Stats: chart buttons tucked into the corner":
+    ["Estatísticas: botões dos gráficos no canto",
+     "Os botões Rótulos e Redefinir zoom dos gráficos de Estatísticas agora são dois ícones pequenos no canto superior direito de cada gráfico, então os gráficos começam logo abaixo do título. Passe o ponteiro sobre um ícone para ver o que ele faz; o de rótulos fica aceso enquanto estão ligados. Funciona com Last.fm, Google Sheets e arquivos CSV."],
+
   "Stats: one date range for the whole page":
     ["Estatísticas: um só intervalo de datas para a página toda",
      "A aba Estatísticas agora tem uma barra só no topo com Diário / Mensal / Anual e o intervalo de datas: botões rápidos para os últimos 12 meses, 3 anos ou tudo, e duas caixas de data para qualquer outro período. Todos os gráficos seguem essa barra, então as caixas de data e os botões Redefinir de cada gráfico saíram. Ela começa nos últimos 12 meses, então um histórico longo não desenha mais uma linha reta com um pico no final. A Corrida de plays mantém o próprio intervalo, a partir do seu primeiro play. Funciona com Last.fm, Google Sheets e arquivos CSV."],
