@@ -40,9 +40,10 @@ step 11.
 - Raw Data, Graphs
 - Records: Overview, All #1s, Perfect All Kill, Appearances, Debuts, Most
   Plays, Milestones, Fastest
+- Events (2026-10-23)
 
 **Not seen yet (judged from the code only):** Records → Certifications,
-Streaks, New Charts; Events; Awards; Soundtrack; Playlists; Board; Charts
+Streaks, New Charts; Awards; Soundtrack; Playlists; Board; Charts
 Guide; the pop-up windows; Settings; the landing page; phones. Those findings
 are about structure (how many controls, how things are laid out). Look at each
 one on screen before changing it. Section 6 lists them.
@@ -931,20 +932,59 @@ Zoom" buttons. 72 inline styles in this section alone.
   it ("#1 song, album and artist in the same week"). Same for any other
   insider term.
 
-### 4.16 Events. From the code
+### 4.16 Events. Seen on screen (2026-10-23)
 
-**Now:** 10 sections (Artist birthdays, Anniversaries, Upcoming shows, New
-Music Friday, Upcoming releases, Recent releases, Recent birthdays…), **each
-with its own Reel/Tiles/Table/List switch**, plus a calendar with
-Month/Week/Day.
+**Now:** a calendar (Month / Week / Day, opens on Day), then the Time
+Machine, then 9 sections (Artist Birthdays, Anniversaries, Upcoming
+Releases, Recent Releases, Recent Birthdays, Recent Anniversaries, New Music
+Friday, Upcoming Shows), **each with its own Reel/Tiles/Table/List switch**.
+What the screen shows:
+- **The Day view is a wall:** about 60 rows (~2,800px) before anything
+  else, nearly all anniversaries (top 200 artists × 30 days = 973). Nothing
+  is ranked, so a remix single weighs the same as a 10th anniversary of an
+  album you love.
+- **Everything shows twice:** today's anniversaries, birthdays and upcoming
+  releases are in the calendar and again in their own reels.
+- **Dates are a day off after midnight (bug):** the 24-hour cache
+  (`EVENTS_CACHE_TTL`) stores "in N days", not the date, so the next day
+  every birthday and anniversary slides one day later (tobyMac's 22 Oct
+  birthday showed under Friday 23 Oct as "Turning 62").
+- **Every section repeats the same controls:** − / +, "＋ Playlist", the
+  view switch, a divider. Three Refresh buttons, plus Play All / Create /
+  Export in the calendar header.
+- **Collapsed sections are still full cards** saying "collapsed — click +
+  to expand". New Music Friday showed "0 releases" and has its own
+  Calendar view inside the page's calendar.
+- **Mixed languages:** MÁQUINA DEL TIEMPO, "+ Lista", Sencillo, Álbum next
+  to Events Calendar, Artist Birthdays, TODAY, "in 2 days", Turning 62.
+  Most of the page's text is hard-coded English.
+- **Leftovers:** emoji in the type chips and titles (3.5), a coloured left
+  bar and blue tint on every calendar row (phase 3 removed these
+  elsewhere), mono uppercase "TODAY", the status line ("973 anniversaries
+  · … (cached)") shown as content (3.6).
+- **Reels start with the first card cut off:** the left fade is on before
+  you scroll.
 
-**Fix:**
-- **One view switch for the whole page**, not ten.
-- Group into three: **Coming up** (releases, shows, birthdays,
-  anniversaries this week), **Just happened** (the recent ones), and
-  **Calendar**. Each group can be a tab.
-- Use one card style for every event type, with a small type icon
-  (cake, ticket, disc) instead of a different layout per type.
+**Fix (decided 2026-10-23):**
+- **Four tabs: Today · Coming up · Recent · Calendar.**
+- **Today** replaces the Day wall: today's birthdays, releases and shows
+  first, then anniversaries **ranked by your plays and capped at about 8**
+  (round ones — 5th, 10th, 20th… — first), with "Show all". The **Time
+  Machine sits under Today** as "On this day in past years" (try it there;
+  it can become its own tab if it doesn't fit).
+- **Coming up** and **Recent**: birthdays, anniversaries, releases, shows
+  and New Music Friday in **one list grouped by date** (This week / Later
+  this month / Next 3 months, and the same looking back), not five
+  sections. Anniversaries ranked and capped as in Today.
+- **Calendar**: Month by default, a day opens its list. No row tints or
+  left bars.
+- **One card style for every event type** (picture, title, artist, small
+  type icon, date) and **one Reel / Tiles / Table / List switch for the
+  whole page** (all four views stay), not one per section.
+- One toolbar: the tabs, type chips with line icons, one ↻ in the corner.
+  "Top 200 artists" moves to Settings or a ⋮; the status line goes into an
+  ⓘ. One "＋ Playlist" for what's showing, replacing the per-section
+  buttons and the calendar's three.
 
 ### 4.17 Awards. From the code
 
@@ -2510,8 +2550,46 @@ three section-title keys), including the shared rating box and the
 certification plaques. The rating band names stay English (Stats step 7).
 Still English: the artist pop-up's table headers (RANK, FIRST STREAM…).
 
-**Phase 9 part 3 (Raw Data) is finished** (2026-10-23). Next in phase 9:
-Events, Awards, Soundtrack and the rest, each looked at on screen first.
+**Phase 9 part 3 (Raw Data) is finished** (2026-10-23). Next is phase 9
+part 4: Events (4.16).
+
+**Phase 9 part 4: Events. Planned 2026-10-23, one step per commit, on
+`main`; you review each step before the next.** Looked at on screen first
+(1440, light theme, top 200 artists); what was found is under 4.16. Decided
+with you: tabs, keep all four views (Reel / Tiles / Table / List) as one
+page-wide switch, Time Machine under Today.
+
+Steps:
+1. **Fix first.** Cache real dates and work out "in N days" / "N days ago"
+   when the page loads, so a cache from yesterday puts nothing on the
+   wrong day. Reels start with no left fade. Find out why New Music Friday
+   returns 0 releases.
+2. **Top of the page.** Title "Events" in Records' / Stats' title style
+   with the nav's line icon. One toolbar: the four tabs (Today · Coming up
+   · Recent · Calendar), the type chips with line icons instead of emoji,
+   one ↻ in the corner. "Top N artists" moves to Settings or a ⋮; the
+   status line goes into an ⓘ.
+3. **One card, one switch.** One card for every event type (picture,
+   title, artist, type icon, date) in all four views. One Reel / Tiles /
+   Table / List switch for the page. The per-section switches, − / +
+   buttons and "collapsed" hints go. One "＋ Playlist" for what's showing
+   replaces the per-section ones and the calendar's Play All / Create /
+   Export.
+4. **Today.** Today's birthdays, releases and shows, then anniversaries
+   ranked by your plays (round numbers first), about 8 plus "Show all".
+   The Time Machine under them as "On this day in past years".
+5. **Coming up.** Birthdays, anniversaries, releases, shows and New Music
+   Friday in one list grouped by date (This week / Later this month / Next
+   3 months), anniversaries ranked and capped.
+6. **Recent.** The same, looking back.
+7. **Calendar.** Month by default; a day opens that day's list. No row
+   tints or left bars; the event labels in the cells use the type icons.
+8. **Screen check.** 1440 / 1100 / 390 (touch), the four check themes, all
+   four languages (every hard-coded English string on the page moves into
+   `translations.js`).
+
+After Events: Awards (4.17), Soundtrack (4.18), then the rest, each looked
+at on screen first.
 
 The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in
@@ -2691,7 +2769,7 @@ There is no automated check for looks. For each phase:
 Send screenshots of these and they'll be added the same way:
 
 - Records → Certifications, Streaks, New Charts
-- Events (and its calendar)
+- ~~Events (and its calendar)~~ seen 2026-10-23, see 4.16
 - Awards (My Grammys, Real-Life Awards, the ceremony screen)
 - Your Soundtrack
 - Playlists, Board, Charts Guide
