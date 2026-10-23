@@ -1871,6 +1871,8 @@ const TRANSLATIONS = {
     raw_page_of: 'of {{total}}',
     raw_rows_per_page: 'Rows per page',
     raw_pages_aria: 'Pages',
+    raw_item_search: 'Search title, artist, album…',
+    raw_item_none: 'No plays found.',
 
     // Graphs
     gran_label: 'Granularity',
@@ -5349,6 +5351,8 @@ const TRANSLATIONS = {
     raw_page_of: 'de {{total}}',
     raw_rows_per_page: 'Filas por página',
     raw_pages_aria: 'Páginas',
+    raw_item_search: 'Buscar título, artista, álbum…',
+    raw_item_none: 'No se encontraron reproducciones.',
 
     // Graphs
     gran_label: 'Granularidad',
@@ -8729,6 +8733,8 @@ const TRANSLATIONS = {
     raw_page_of: 'de {{total}}',
     raw_rows_per_page: 'Linhas por página',
     raw_pages_aria: 'Páginas',
+    raw_item_search: 'Buscar título, artista, álbum…',
+    raw_item_none: 'Nenhum play encontrado.',
 
     // Graphs
     gran_label: 'Granularidade',
@@ -12109,6 +12115,8 @@ const TRANSLATIONS = {
     raw_page_of: 'de {{total}}',
     raw_rows_per_page: 'Linhas por página',
     raw_pages_aria: 'Páginas',
+    raw_item_search: 'Pesquisar título, artista, álbum…',
+    raw_item_none: 'Nenhum play encontrado.',
 
     // Graphs
     gran_label: 'Granularidade',

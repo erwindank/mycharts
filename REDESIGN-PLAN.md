@@ -2459,6 +2459,18 @@ Steps:
    CSS and rawPrev/NextBtn listeners are gone.
 5. **The Raw data tab in item windows.** The same row look as the page
    (zebra, mono dates, no inline styles) and translated headers and search.
+   **Done 2026-10-23:** the panel's table (.cr-rawdata-table) now reads
+   its headers from raw_th_*, the count from raw_total / raw_showing (same
+   words as the page, _rawDataCount), "no match" from raw_no_match, plus
+   new raw_item_search ("Search title, artist, album…") and raw_item_none
+   (also used by the panel's heatmap tab). Inline styles → .cr-rawdata-
+   scroll / .cr-rawdata-none / td.raw-empty. Found on screen: the chart
+   table it sits inside reaches in with .chart-table td / thead th rules
+   (rounded tinted pill rows, 15px text, relative header cells, no
+   uppercase on phones), so .cr-rawdata-table puts the page's look back;
+   its header now sticks to the top of the 400px box with the panel's
+   background. The search box grows (flex 14rem, max 18rem) and the count
+   drops under it on phones.
 6. **Screen check.** 1440 / 1100 / 390 touch, all 10 themes, four
    languages, sorting and every filter on the big library, no sideways
    scroll, no script errors.

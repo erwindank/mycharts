@@ -15978,7 +15978,7 @@ function buildItemHeatmapHTML(type, key) {
     if (type === 'albums') { const parts = key.split('|||'); return p.album === parts[0] && albumArtist(p) === parts[1]; }
     return false;
   });
-  if (!itemPlays.length) return '<div style="font-size:var(--fs-xs);color:var(--text3);padding:4px 0">No play history found.</div>';
+  if (!itemPlays.length) return `<div class="cr-rawdata-none">${t('raw_item_none')}</div>`;
 
   const chrono = [...itemPlays].sort((a, b) => a.date - b.date);
 
@@ -16539,28 +16539,35 @@ function buildItemRawDataHTML(type, key) {
     if (type === 'albums') { const parts = key.split('|||'); return p.album === parts[0] && albumArtist(p) === parts[1]; }
     return false;
   });
-  if (!itemPlays.length) return '<div style="font-size:var(--fs-xs);color:var(--text3);padding:4px 0">No play history found.</div>';
+  if (!itemPlays.length) return `<div class="cr-rawdata-none">${t('raw_item_none')}</div>`;
   const cid = 'rawdata-' + (++_rawDataCtr);
   _rawDataPlaysCache.set(cid, itemPlays);
   const initialRows = _rawDataRows(itemPlays, 'date', 'desc', '');
   return `<div id="${cid}" class="cr-rawdata-wrap" data-sort="date" data-dir="desc">
     <div class="cr-rawdata-controls">
-      <input class="cr-rawdata-search" type="text" placeholder="Search…" oninput="rawDataFilter('${cid}')">
-      <span class="cr-rawdata-count" id="${cid}-count">${itemPlays.length.toLocaleString()} plays</span>
+      <input class="cr-rawdata-search" type="text" placeholder="${esc(t('raw_item_search'))}" aria-label="${esc(t('raw_item_search'))}" oninput="rawDataFilter('${cid}')">
+      <span class="cr-rawdata-count" id="${cid}-count">${_rawDataCount(itemPlays.length, itemPlays.length, false)}</span>
     </div>
-    <div style="overflow-x:auto;max-height:400px;overflow-y:auto;">
-      <table class="dc-table raw-table" style="font-size:var(--fs-xs);">
+    <div class="cr-rawdata-scroll">
+      <table class="dc-table raw-table cr-rawdata-table">
         <thead><tr>
-          <th class="raw-num">#</th>
-          <th data-col="date" class="sort-active" onclick="rawDataSort('${cid}','date')">Date <span class="sort-arrow">↓</span></th>
-          <th data-col="title" onclick="rawDataSort('${cid}','title')">Title <span class="sort-arrow">↕</span></th>
-          <th data-col="artist" onclick="rawDataSort('${cid}','artist')">Artist <span class="sort-arrow">↕</span></th>
-          <th data-col="album" class="raw-album" onclick="rawDataSort('${cid}','album')">Album <span class="sort-arrow">↕</span></th>
+          <th class="raw-num">${t('raw_th_num')}</th>
+          <th data-col="date" class="sort-active" onclick="rawDataSort('${cid}','date')">${t('raw_th_date_time')}<span class="sort-arrow">↓</span></th>
+          <th data-col="title" onclick="rawDataSort('${cid}','title')">${t('raw_th_song_title')}<span class="sort-arrow">↕</span></th>
+          <th data-col="artist" onclick="rawDataSort('${cid}','artist')">${t('raw_th_artist')}<span class="sort-arrow">↕</span></th>
+          <th data-col="album" class="raw-album" onclick="rawDataSort('${cid}','album')">${t('raw_th_album')}<span class="sort-arrow">↕</span></th>
         </tr></thead>
         <tbody id="${cid}-body">${initialRows}</tbody>
       </table>
     </div>
   </div>`;
+}
+
+// "N total plays" / "Showing N of M plays", the same words as the Raw Data page
+function _rawDataCount(shown, total, filtered) {
+  return filtered
+    ? t('raw_showing', { n: shown.toLocaleString(), total: total.toLocaleString() })
+    : t('raw_total', { n: total.toLocaleString() });
 }
 
 function _rawDataRows(plays, sort, dir, query) {
@@ -16576,7 +16583,7 @@ function _rawDataRows(plays, sort, dir, query) {
     else if (sort === 'album') cmp = a.album.localeCompare(b.album);
     return dir === 'asc' ? cmp : -cmp;
   });
-  if (!list.length) return `<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:8px 0;font-size:var(--fs-xs);">No results</td></tr>`;
+  if (!list.length) return `<tr><td colspan="5" class="raw-empty">${t('raw_no_match')}</td></tr>`;
   return list.map((p, i) => `<tr>
     <td class="raw-num">${(i + 1).toLocaleString()}</td>
     <td class="raw-date">${rawFmtDate(p.date)}</td>
@@ -16611,9 +16618,7 @@ function _rawDataRender(cid, sort, dir, query) {
   const visibleCount = query
     ? plays.filter(p => { const q = query.toLowerCase(); return p.title.toLowerCase().includes(q) || p.artist.toLowerCase().includes(q) || p.album.toLowerCase().includes(q); }).length
     : plays.length;
-  if (countEl) countEl.textContent = query
-    ? `${visibleCount.toLocaleString()} of ${plays.length.toLocaleString()} plays`
-    : `${plays.length.toLocaleString()} plays`;
+  if (countEl) countEl.textContent = _rawDataCount(visibleCount, plays.length, !!query);
   wrap.querySelectorAll('thead th[data-col]').forEach(th => {
     const active = th.dataset.col === sort;
     th.classList.toggle('sort-active', active);

@@ -12356,6 +12356,7 @@
 
     .cr-rawdata-controls {
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
       gap: var(--sp-2);
       margin-bottom: 0.4rem;
@@ -12370,7 +12371,9 @@
       padding: 3px 7px;
       border-radius: 3px;
       outline: none;
-      width: 130px;
+      flex: 1 1 14rem;
+      min-width: 0;
+      max-width: 18rem;
       transition: border-color 0.15s;
     }
 
@@ -12379,6 +12382,70 @@
     }
 
     .cr-rawdata-search::placeholder {
+      color: var(--text3);
+    }
+
+    /* The Raw data tab in song / album / artist windows (step 5): the page's
+       table look in its own scroll box. Its header sticks to the top of
+       that box, not under the page's top bar and search bar. */
+    .cr-rawdata-scroll {
+      max-height: 400px;
+      overflow: auto;
+    }
+
+    /* position again: the chart table this sits inside sets its own header
+       cells to relative, and that rule reaches this nested table too. The
+       background is the panel's (.cr-panel), so the header blends in. */
+    .raw-table.cr-rawdata-table thead th {
+      position: sticky;
+      top: 0;
+      background: color-mix(in srgb, var(--surface) 88%, var(--bg));
+    }
+
+    /* The chart table's own cell rules (rounded tinted rows, 15px text,
+       roomy padding) also reach this nested table; put back the page's. */
+    .raw-table.cr-rawdata-table thead th {
+      padding: 0.45rem 0.7rem;
+      font-size: var(--fs-xs);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .raw-table.cr-rawdata-table td {
+      padding: 0.3rem 0.7rem;
+      font-size: var(--fs-sm);
+      background: none;
+    }
+
+    /* as specific as the chart table's first / last cell rounding */
+    .cr-rawdata-scroll .raw-table.cr-rawdata-table tbody tr > td {
+      border-radius: 0;
+    }
+
+    .raw-table.cr-rawdata-table .raw-num,
+    .raw-table.cr-rawdata-table .raw-date {
+      font-size: var(--fs-xs);
+    }
+
+    .raw-table.cr-rawdata-table tbody tr:nth-child(even) > td {
+      background: color-mix(in srgb, var(--text) 4%, transparent);
+    }
+
+    .raw-table.cr-rawdata-table tbody tr:hover > td {
+      background: var(--hover);
+    }
+
+    @media (max-width: 600px) {
+      .raw-table.cr-rawdata-table thead th,
+      .raw-table.cr-rawdata-table td {
+        padding: 0.3rem 0.35rem;
+        font-size: var(--fs-xs);
+      }
+    }
+
+    .cr-rawdata-none {
+      padding: var(--sp-1) 0;
+      font-size: var(--fs-xs);
       color: var(--text3);
     }
 
