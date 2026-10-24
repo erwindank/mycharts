@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Awards: a tidier ballot":
+    ["Prêmios: uma votação mais arrumada",
+     "A barra acima da sua votação de Prêmios agora cabe numa linha: Expandir tudo e Recolher tudo viraram ícones pequenos (passe o mouse para ver o nome). “Clique num indicado para coroar o vencedor” aparece uma vez só abaixo dessa barra em vez de em cada cartão. O tipo de cada cartão (Música, Álbum, Artista) agora aparece no seu idioma como uma pequena etiqueta em maiúsculas, e as categorias ainda sem indicados são cartões curtos com uma linha discreta em vez de uma grande caixa tracejada. Funciona com Last.fm, Google Sheets e arquivos CSV."],
   "Awards: Stats & records folds out of the way":
     ["Prêmios: Estatísticas e recordes se recolhe",
      "Estatísticas e recordes, acima da sua votação, ocupava quase uma tela antes de chegar às suas categorias. Agora ele se recolhe numa linha com os números do ano e quem tem mais indicações, mais um botão Abrir. Abra para ver o bloco inteiro, igual a antes; a página lembra se você o deixou aberto. As telas de abertura e encerramento da cerimônia continuam mostrando tudo. Funciona com Last.fm, Google Sheets e arquivos CSV."],
