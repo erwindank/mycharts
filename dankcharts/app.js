@@ -42189,16 +42189,50 @@ function _awardsSummaryHtml(sum, queue, idp, opts) {
 
   const kicker = opts.kicker || (sum.spoilerFree ? `Going into the ${sum.year} ceremony` : `${sum.year} at a glance`);
   const title  = opts.title || 'Stats & records';
-  return `<section class="aw-sum">
+  /* opts.foldable (the tab's copy only): the block folds to its header, with
+     the year's leader added to the numbers line and an Open / Close button.
+     The ceremony's opening and closing slides always show the whole block. */
+  const fold   = !!opts.foldable;
+  const folded = fold && !_awardsSumOpen;
+  const top    = sum.ranking[0];
+  const leader = fold && top ? `<span class="aw-sum-leader"> · most: ${esc(top.artist)} (${top.noms})</span>` : '';
+  const bodyId = `${idp}_body`;
+  const toggle = fold
+    ? `<button type="button" class="dc-btn dc-btn-normal dc-btn-sm aw-sum-toggle" aria-expanded="${!folded}" aria-controls="${bodyId}" onclick="awardsToggleSummary()">${esc(folded ? 'Open' : 'Close')}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>`
+    : '';
+  return `<section class="aw-sum${fold ? ' is-foldable' : ''}${folded ? ' is-folded' : ''}">
     <header class="aw-sum-head">
-      <div class="aw-sum-kicker">${esc(kicker)}</div>
-      <div class="aw-sum-title">${esc(title)}</div>
-      <div class="aw-sum-meta">${plural(sum.yearNoms, 'nomination', 'nominations')} · ${plural(sum.yearCats, 'category', 'categories')} · ${plural(sum.artistCount, 'artist', 'artists')}</div>
+      <div class="aw-sum-head-text">
+        <div class="aw-sum-kicker">${esc(kicker)}</div>
+        <div class="aw-sum-title">${esc(title)}</div>
+        <div class="aw-sum-meta">${plural(sum.yearNoms, 'nomination', 'nominations')} · ${plural(sum.yearCats, 'category', 'categories')} · ${plural(sum.artistCount, 'artist', 'artists')}${leader}</div>
+      </div>
+      ${toggle}
     </header>
+    <div class="aw-sum-body" id="${bodyId}">
     ${group('noms', 'All-time most nominations')}
     ${hasWins ? group('wins', sum.spoilerFree ? 'All-time most wins, before tonight' : 'All-time most wins') : ''}
     ${yearGroup}
+    </div>
   </section>`;
+}
+
+/* Stats & records above the ballot starts folded to one row (phase 9 part 5
+   step 3); whether it was left open is remembered on this device. */
+const AWARDS_SUM_OPEN_KEY = 'dc_awards_sum_open';
+let _awardsSumOpen = (() => { try { return localStorage.getItem(AWARDS_SUM_OPEN_KEY) === '1'; } catch (e) { return false; } })();
+function awardsToggleSummary() {
+  _awardsSumOpen = !_awardsSumOpen;
+  try { localStorage.setItem(AWARDS_SUM_OPEN_KEY, _awardsSumOpen ? '1' : '0'); } catch (e) {}
+  // In place: the block's pictures are already loaded, so nothing is rebuilt
+  const sec = document.querySelector('#awardsSummary .aw-sum');
+  if (!sec) return;
+  sec.classList.toggle('is-folded', !_awardsSumOpen);
+  const btn = sec.querySelector('.aw-sum-toggle');
+  if (btn) {
+    btn.setAttribute('aria-expanded', String(_awardsSumOpen));
+    btn.firstChild.textContent = _awardsSumOpen ? 'Close' : 'Open';
+  }
 }
 
 // The tab's copy. All-time records need every year's ballot, which only the
@@ -42210,7 +42244,7 @@ async function _awardsRenderSummary(year) {
   await _awardsEnsureAllYearsLoaded();
   if (seq !== _awardsSummarySeq || year !== _awardsYear) return;   // the user moved on
   const queue = [];
-  el.innerHTML = _awardsSummaryHtml(_awardsSummary(year), queue, `awSum${seq}`);
+  el.innerHTML = _awardsSummaryHtml(_awardsSummary(year), queue, `awSum${seq}`, { foldable: true });
   _awardsLoadArtQueue(queue, () => seq === _awardsSummarySeq);
 }
 

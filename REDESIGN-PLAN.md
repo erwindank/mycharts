@@ -2841,6 +2841,15 @@ Steps:
    the title, the headline numbers and the leader, and Open ▾. Open, it
    is the full block as today; open / closed remembered on this device.
    The ceremony's opening and closing slides keep the full block.
+   **Done 2026-10-24:** _awardsSummaryHtml takes opts.foldable (only the
+   tab's copy passes it): the header becomes a row (text + Open / Close
+   button, aria-expanded), the numbers line gains "· most: <artist> (N)",
+   and the groups move into .aw-sum-body, hidden by .is-folded. Folded is
+   the default; awardsToggleSummary() flips it in place (no rebuild, the
+   pictures stay) and saves dc_awards_sum_open. The ceremony slides don't
+   pass foldable, so they show the whole block with no button (checked
+   with a script, 1440 and 390: a real click opens it, a re-render keeps
+   it open, the opening slide is full).
 4. **Ballot.** One toolbar row (left-to-decide, Hide decided, All / No
    winner, Expand / Collapse, View). Type label as the compact uppercase
    label used elsewhere. Empty categories as a short card (title + "Pick

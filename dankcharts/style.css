@@ -26021,7 +26021,22 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
   font-weight: 700;
   vertical-align: 1px;
 }
-.aw-sum-head { display: flex; flex-direction: column; gap: 3px; }
+/* Header row: the text on the left, Open / Close on the right (the tab's
+   folding copy only). The groups live in .aw-sum-body, spaced as before. */
+.aw-sum-head { display: flex; align-items: center; gap: var(--sp-3); }
+.aw-sum-head-text { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0; }
+.aw-sum-body { display: flex; flex-direction: column; gap: 18px; }
+.aw-sum.is-folded .aw-sum-body { display: none; }
+/* Folded, the block is one row: less padding, a smaller title */
+.aw-sum.is-folded { padding: 12px 18px; }
+.aw-sum.is-folded .aw-sum-title { font-size: var(--fs-md, 1.1rem); }
+.aw-sum-leader { color: var(--text2); }
+.aw-sum-toggle { flex: none; display: inline-flex; align-items: center; gap: 4px; }
+.aw-sum-toggle svg {
+  width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2;
+  stroke-linecap: round; stroke-linejoin: round; transition: transform var(--t-fast) var(--ease);
+}
+.aw-sum-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
 .aw-sum-kicker {
   font-family: var(--font-sans);
   font-size: var(--fs-xs);
