@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 302;
+const DC_CL_I18N_V = 303;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-24', t: 'design', a: 'awards', h: '8333397',
+    title: "Awards: a neater nominee picker",
+    detail: "Rows in the Awards nominee picker are now one tidy line each: the song name with the artist and year underneath, then the genres, fit, plays and play buttons. Genres show two at a time with “+1” or “+2” for the rest (hover to see them) instead of stacking into tall rows. A stray “-” chip is gone: it was an empty genre cell from Google Sheets showing as a genre. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-24', t: 'fix', a: 'awards', h: '5a1964b',
     title: "Awards: an easier category list in Configure Year",
     detail: "In Configure Year, each category’s name now gets the full width of its card, with the type label and star on a small row underneath, so names like “Song of the Year” no longer break over three lines. The list is part of the page instead of a small box with its own scroll bar, and the search and filters fit on one row. Also fixed: clicking a category card (rather than its switch) did nothing; now a click anywhere on the card turns it on or off. Works with Last.fm, Google Sheets and CSV uploads." },

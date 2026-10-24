@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Awards: a neater nominee picker":
+    ["Prêmios: um seletor de indicados mais arrumado",
+     "As linhas do seletor de indicados de Prêmios agora são uma linha só e arrumada: o nome da música com o artista e o ano embaixo, depois os gêneros, o encaixe, os plays e os botões de ouvir. Os gêneros aparecem de dois em dois com “+1” ou “+2” para o resto (passe o mouse para ver) em vez de se empilharem em linhas altas. Sumiu um “-” perdido: era uma célula de gênero vazia do Google Sheets aparecendo como gênero. Funciona com Last.fm, Google Sheets e arquivos CSV."],
   "Awards: an easier category list in Configure Year":
     ["Prêmios: uma lista de categorias mais fácil em Configurar ano",
      "Em Configurar ano, o nome de cada categoria agora ocupa a largura toda do cartão, com a etiqueta de tipo e a estrela numa pequena linha embaixo, então nomes como “Música do ano” não quebram mais em três linhas. A lista faz parte da página em vez de ser uma caixinha com barra de rolagem própria, e a busca e os filtros cabem numa linha. Também corrigido: clicar num cartão de categoria (e não no botão dele) não fazia nada; agora um clique em qualquer lugar do cartão liga ou desliga a categoria. Funciona com Last.fm, Google Sheets e arquivos CSV."],
