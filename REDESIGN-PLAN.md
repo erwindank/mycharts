@@ -2916,6 +2916,19 @@ Steps:
    gold glow; the others become a dimmed strip. Confetti off with reduced
    motion. The opening (Stats & records) and closing (The Winners) slides
    fit the full-screen stage; the shared-link viewer uses the same stage.
+   **Done 2026-10-24:** on .is-revealed the winner panel comes first
+   (CSS order) and the field becomes a strip of small dimmed covers under
+   it (names hidden, the winner's cover ringed), so the winner shows once.
+   Winner cover clamp(200px, 24vw, 340px) with a #f0aa30 ring and glow,
+   name in Bricolage clamp(26px, 3.4vw, 46px), WINNER as the uppercase
+   label. The reveal scrolls the stage to the top now (it rode to the
+   bottom when the winner was last). Reduced motion: no confetti
+   (_cerReducedMotion), no envelope float, flap swing, card ride or
+   winner pop, and the scroll jumps. The opening and closing slides' record
+   cards keep the art beside the text now that the stage is wide (stacked,
+   the Song card's title ran past its edge: checked 0 names past a card).
+   Shared links use the same overlay, so they get all of this. Checked at
+   1440 (90 confetti pieces) and 390 with reduced motion (0 pieces).
 9. **Real-Life Awards.** Cards size to their rows (a one-nomination
    artist gets a short card with a smaller photo); category names in
    normal case ("Song of the Year").

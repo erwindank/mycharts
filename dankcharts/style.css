@@ -25970,6 +25970,11 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
 }
 @media (prefers-reduced-motion: reduce) {
   .cer-sealed-mark { animation: none; }
+  .cer-envelope { animation: none; }
+  .ceremony-slide.is-revealed .cer-winner { animation: none; }
+  .ceremony-slide.is-opening .cer-env-flap { animation: none; }
+  .ceremony-slide.is-opening .cer-env-card { transition: none; }
+  .cer-nom-card { transition: none; }
 }
 
 /* Winner panel — hidden until the envelope is open */
@@ -25984,14 +25989,61 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
   0%   { opacity: 0; transform: scale(0.7) translateY(24px); }
   100% { opacity: 1; transform: scale(1) translateY(0); }
 }
+/* ── The reveal (phase 9 part 5 step 8) ──────────────────────────────────
+   The winner shows once: large, first, with a gold glow. The field it came
+   from shrinks to a dimmed strip of covers under it, the winner's ringed. */
+.ceremony-slide.is-revealed .cer-winner  { order: 1; }
+.ceremony-slide.is-revealed .cer-nominees { order: 2; }
+.ceremony-slide.is-revealed .cer-nominees {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: var(--sp-2);
+}
+.ceremony-slide.is-revealed .cer-nom-card {
+  width: clamp(44px, 5vw, 64px);
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  transform: none;
+}
+.ceremony-slide.is-revealed .cer-nom-name,
+.ceremony-slide.is-revealed .cer-nom-sub,
+.ceremony-slide.is-revealed .cer-nom-trophy { display: none; }
+.ceremony-slide.is-revealed .cer-nom-card.is-dimmed { opacity: 0.38; }
+.ceremony-slide.is-revealed .cer-nom-card.is-winner .cer-art {
+  box-shadow: 0 0 0 2px #f0aa30;
+}
+.ceremony-slide.is-revealed .cer-art-lg {
+  width: clamp(200px, 24vw, 340px);
+  border-radius: 18px;
+}
+.ceremony-slide.is-revealed .cer-art-lg .thumb-initials { font-size: 3.4rem !important; }
+.ceremony-slide.is-revealed .cer-winner-name {
+  font-family: var(--font-display);
+  font-size: clamp(26px, 3.4vw, 46px);
+  font-weight: 750;
+  letter-spacing: -0.015em;
+}
+.ceremony-slide.is-revealed .cer-winner-sub { font-size: clamp(15px, 1.6vw, 20px); color: var(--text2); }
+.ceremony-slide.is-revealed .cer-winner-label {
+  margin-top: 26px;
+  font-size: var(--fs-xs);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold1);
+}
 .cer-winner-art-wrap { position: relative; }
+/* Gold ring and glow: the same bright gold in every theme (it's earned) */
 .cer-winner-art-wrap .cer-art {
-  box-shadow: 0 0 0 2px #FFD70088, 0 18px 44px rgba(0,0,0,0.55), 0 0 60px #FFD70022;
+  box-shadow: 0 0 0 3px #f0aa30, 0 18px 44px rgba(0,0,0,0.45), 0 0 80px #f0aa3055;
 }
 .cer-winner-badge {
   position: absolute;
-  bottom: -12px; right: -12px;
-  width: 42px; height: 42px;
+  bottom: -14px; right: -14px;
+  width: 52px; height: 52px;
   border-radius: 50%;
   background: radial-gradient(circle at 34% 28%, #ffe680, #d4a017);
   display: flex; align-items: center; justify-content: center;
@@ -26099,11 +26151,9 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
 .ceremony-slide.is-intro .aw-sum { margin-bottom: 0; }
 /* The stage header already says "Stats & records" */
 .ceremony-slide.is-intro .aw-sum-title { display: none; }
-/* The ceremony stage is narrower than the tab, so its record cards (opening
-   slide and roll call alike) stand the artwork on top instead of beside the
-   text — three across still fits. */
-.ceremony-slide .aw-sum-rec-head { flex-direction: column; align-items: flex-start; }
-.ceremony-slide .aw-sum-rec-art { width: 96px; }
+/* The full-screen stage is as wide as the tab, so the opening slide's and
+   the roll call's record cards keep the artwork beside the text (stacked,
+   the Song card's title ran past its edge). */
 /* Roll call: the final records follow the winners grid */
 .cer-finale-stats { width: 100%; margin-top: 26px; }
 .cer-finale-stats .aw-sum { margin-bottom: 0; }
@@ -26536,6 +26586,9 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
   .cer-nom-name { font-size: var(--fs-xs); }
   .cer-envelope { width: 190px; height: 124px; }
   .cer-art-lg { width: 140px; }
+  .ceremony-slide.is-revealed .cer-art-lg { width: min(56vw, 230px); }
+  .ceremony-slide.is-revealed .cer-nominees { display: flex; }
+  .ceremony-slide.is-revealed .cer-nom-card { width: 34px; }   /* eight fit one row at 390 */
   .cer-winner-name { font-size: var(--fs-md); }
   .cer-finale-grid { grid-template-columns: repeat(auto-fill, minmax(108px, 1fr)); }
   .cer-show-name { font-size: var(--fs-md); }

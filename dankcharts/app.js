@@ -46405,10 +46405,10 @@ function ceremonyReveal() {
     slide.classList.remove('is-opening');
     slide.classList.add('is-revealed');
     _ceremonyMarkWinnerCard(winner);
-    // Ride down to the very bottom: the winner is the last thing on the slide, and at
-    // full scroll the sticky nav sits in its natural place instead of over the player.
+    // The winner leads the revealed slide (the field shrinks to a strip under
+    // it), so ride back to the top where it is.
     const stage = document.getElementById('ceremonyStage');
-    if (stage) stage.scrollTo({ top: stage.scrollHeight, behavior: 'smooth' });
+    if (stage) stage.scrollTo({ top: 0, behavior: _cerReducedMotion() ? 'auto' : 'smooth' });
     _triggerConfetti();
     _ceremonyDrawSidebar(data);
     _ceremonyStartPreview(winner, cat.type);   // still inside the click's activation, so autoplay is allowed
@@ -47292,9 +47292,14 @@ async function openSharedCeremony(id) {
   document.title = `${_ceremonyTitle()} · dankcharts.fm`;
 }
 
+// People who turn motion off get the reveal without confetti or glides
+function _cerReducedMotion() {
+  return !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+}
+
 function _triggerConfetti() {
   const el = document.getElementById('ceremonyConfetti');
-  if (!el) return;
+  if (!el || _cerReducedMotion()) return;
   el.innerHTML = '';
   const colors = ['#FFD700','#FFC04D','#FF69B4','#00CED1','#FF6347','#7B68EE','#32CD32','#FF8C00'];
   for (let i = 0; i < 90; i++) {
