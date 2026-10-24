@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 303;
+const DC_CL_I18N_V = 304;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-24', t: 'design', a: 'awards', h: '721d082',
+    title: "Awards: the ceremony fills the screen",
+    detail: "The awards ceremony is no longer a box in the middle of the page. It now fills the whole screen like a real show: the category name in big letters, bigger covers for the nominees, and a slim bar at the top with progress dots, sound and close. The list of categories opens from a Categories button instead of taking up a column, and Previous / Next sit in their own bar at the bottom so they never cover anything. On a phone, everything up to Open Envelope fits on the screen without scrolling. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-24', t: 'design', a: 'awards', h: '8333397',
     title: "Awards: a neater nominee picker",
     detail: "Rows in the Awards nominee picker are now one tidy line each: the song name with the artist and year underneath, then the genres, fit, plays and play buttons. Genres show two at a time with “+1” or “+2” for the rest (hover to see them) instead of stacking into tall rows. A stray “-” chip is gone: it was an empty genre cell from Google Sheets showing as a genre. Works with Last.fm, Google Sheets and CSV uploads." },

@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Awards: the ceremony fills the screen":
+    ["Premios: la ceremonia ocupa toda la pantalla",
+     "La ceremonia de premios ya no es un recuadro en medio de la página. Ahora ocupa toda la pantalla, como un espectáculo de verdad: el nombre de la categoría en letras grandes, portadas más grandes para los nominados y una barra fina arriba con puntos de progreso, sonido y cerrar. La lista de categorías se abre con un botón Categorías en lugar de ocupar una columna, y Anterior / Siguiente van en su propia barra abajo, así que nunca tapan nada. En el móvil, todo hasta Abrir sobre cabe en la pantalla sin desplazarse. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Awards: a neater nominee picker":
     ["Premios: un selector de nominados más ordenado",
      "Las filas del selector de nominados de Premios ahora son una sola línea ordenada: el nombre de la canción con el artista y el año debajo, y después los géneros, el encaje, las reproducciones y los botones para escuchar. Los géneros se muestran de dos en dos con “+1” o “+2” para el resto (pasa el ratón para verlos) en lugar de apilarse en filas altas. Desapareció un “-” suelto: era una celda de género vacía de Google Sheets que salía como género. Funciona con Last.fm, Google Sheets y archivos CSV."],

@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Awards: the ceremony fills the screen":
+    ["Prémios: a cerimónia ocupa o ecrã inteiro",
+     "A cerimónia dos prémios já não é uma caixa a meio da página. Agora ocupa o ecrã inteiro, como um espetáculo a sério: o nome da categoria em letras grandes, capas maiores para os nomeados e uma barra fina no topo com pontos de progresso, som e fechar. A lista de categorias abre num botão Categorias em vez de ocupar uma coluna, e Anterior / Seguinte ficam numa barra própria em baixo, por isso nunca tapam nada. No telemóvel, tudo até Abrir envelope cabe no ecrã sem deslizar. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
   "Awards: a neater nominee picker":
     ["Prémios: um seletor de nomeados mais arrumado",
      "As linhas do seletor de nomeados dos Prémios são agora uma só linha arrumada: o nome da música com o artista e o ano por baixo, depois os géneros, o encaixe, as reproduções e os botões de ouvir. Os géneros aparecem dois a dois com “+1” ou “+2” para o resto (passa o rato para os veres) em vez de se empilharem em linhas altas. Desapareceu um “-” perdido: era uma célula de género vazia do Google Sheets a aparecer como género. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
