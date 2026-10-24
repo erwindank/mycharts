@@ -42592,6 +42592,18 @@ function _awardsEntryText(item, cat, year) {
   };
 }
 
+// Splits a score like "173 plays · with a DJ/producer" into the count ("173
+// plays") and the note after it ("with a DJ/producer"), so Spotlight can keep
+// the count beside the name and put the note on its own line under the artist.
+// Whichever part mentions plays is the count; the rest is the note.
+function _awardsScoreParts(score) {
+  const parts = String(score || '').split(' · ');
+  if (parts.length < 2) return { count: parts[0] || '', note: '' };
+  let i = parts.findIndex(p => /plays?/.test(p));
+  if (i < 0) i = 0;
+  return { count: parts[i], note: parts.filter((_, k) => k !== i).join(' · ') };
+}
+
 // Click (and Enter / Space, via the list's keydown handler) crowns the entry,
 // or hands a tied auto award over. The auto winner itself does nothing.
 function _awardsEntryAttrs(year, cat, e) {
@@ -42756,6 +42768,7 @@ function _awardsSpotlightBody(cat, f, year, idp, queue) {
   // An auto award's winner is the hero already; below it go only the tied rest
   const rows = (cat.auto ? f.entries.filter(e => !e.isW) : f.entries).map((e, k) => {
     const x = _awardsEntryText(e.item, cat, year);
+    const sp = _awardsScoreParts(x.score);
     return `<div class="aw-spot-row${e.isW ? ' is-winner' : ''}" style="--i:${k}"${_awardsEntryAttrs(year, cat, e)}>
       <span class="aw-spot-rank">${e.mark}</span>
       ${_awardsArtSlot(e.item, cat.type, `${idp}_r${k}`, queue, 'aw-spot-thumb')}
@@ -42763,9 +42776,10 @@ function _awardsSpotlightBody(cat, f, year, idp, queue) {
       <span class="aw-spot-text">
         <span class="aw-spot-rname" title="${esc(x.lbl)}">${esc(x.lbl)}</span>
         ${x.sub ? `<span class="aw-spot-rsub" title="${esc(x.sub)}">${esc(x.sub)}</span>` : ''}
+        ${sp.note ? `<span class="aw-spot-rnote" title="${esc(sp.note)}">${esc(sp.note)}</span>` : ''}
       </span>
       ${_awardsRatingChip(e.item)}
-      ${x.score ? `<span class="aw-spot-rscore">${esc(x.score)}</span>` : ''}
+      ${sp.count ? `<span class="aw-spot-rscore">${esc(sp.count)}</span>` : ''}
       ${_awardsMoveCtl(year, cat, e, 'y')}
       ${_awardsEntryRemove(year, cat, e)}
     </div>`;

@@ -2813,6 +2813,14 @@ Steps:
 1. **Fix first.** Spotlight rows keep the song name and put the
    collaboration note ("with a DJ/producer") on the second line, inside
    the card. Picker rows stop cutting off their last buttons.
+   **Done 2026-10-24:** _awardsScoreParts() splits a score at " · " into
+   the count (the part that says plays) and the note; Spotlight rows keep
+   the count at the right (max 40%, …) and put the note on a third line
+   under the artist (.aw-spot-rnote). The hero card still shows the whole
+   score. Picker rows: the artist · year line shrinks with … and the count,
+   chips, ♪ and YouTube buttons never shrink, so nothing leaves the row
+   (checked: 0 of the rows overflow). The "-" year chip and the stacked
+   tags are step 6.
 2. **Top of the page.** Title "Awards" in the shared Records / Stats /
    Events title style with the nav's line trophy. My Grammys / Real-Life
    as .dc-tabs. One toolbar: ‹ year ›, Configure Year, Generate Nominees,

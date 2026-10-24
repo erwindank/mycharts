@@ -23826,8 +23826,23 @@ body[class*="-light"] .tm-card-search:hover {
   line-height: 1.25;
 }
 .aw-spot-rsub { font-size: var(--fs-xs); color: var(--text3); }
+/* The note split off a score ("with a DJ/producer"), on its own line under
+   the artist so the count beside the name stays short */
+.aw-spot-rnote {
+  font-size: var(--fs-xs);
+  color: var(--text3);
+  opacity: 0.8;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .aw-spot-rscore {
   flex: none;
+  max-width: 40%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-family: var(--font-mono);
       font-variant-numeric: tabular-nums;
   font-size: var(--fs-xs);
@@ -24512,7 +24527,15 @@ body[class*="-light"] .tm-card-search:hover {
 }
 .awards-picker-result-row:hover .awards-picker-add-icon { color: var(--accent); }
 .awards-picker-lbl  { flex: 1; min-width: 110px; }
-.awards-picker-sub  { font-size: var(--fs-xs); color: var(--text3); white-space: nowrap; }
+.awards-picker-sub  { font-size: var(--fs-xs); color: var(--text3); white-space: nowrap;
+  min-width: 0; flex-shrink: 1; overflow: hidden; text-overflow: ellipsis; }
+/* The count, chips and buttons at the end of a row never give way: a long
+   artist line shrinks (with …) instead of pushing them out of the row */
+.awards-picker-result-row > .awards-picker-plays,
+.awards-picker-result-row > button,
+.awards-picker-result-row > .awards-picker-yt-btn,
+.awards-picker-result-row > .rt-chip { flex-shrink: 0; }
+.awards-picker-result-row { min-width: 0; }
 /* Up to five genres (the sheet has Genre 1–5) — they wrap rather than crowd the title */
 .awards-picker-genre-tags { display: inline-flex; flex-wrap: wrap; gap: 3px; flex-shrink: 1; min-width: 0; }
 .awards-picker-genre-unk  { opacity: 0.5; font-style: italic; }
