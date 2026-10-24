@@ -2881,6 +2881,17 @@ Steps:
    the card name turns it on, the switch turns it off).
 6. **Nominee picker.** Genre tags on one line (more hidden behind "+N"),
    no "-" chip for a missing year, row buttons always inside the row.
+   **Done 2026-10-24:** each row's title and "artist · year" are one
+   column (.awards-picker-main, title over artist, both with …), like the
+   nominee cards, which frees the width the chips need. Genres: two (three
+   in genre categories) then a "+N" chip with the rest in its tooltip, on
+   one line; on a row still too full the box shrinks and the last chip
+   fades out (.is-clipped, set by _awardsPickerMarkClipped after each
+   render and lookup). **The "-" chip was not a year:** it was a genre tag
+   whose sheet value is "-" (a blank genre cell); those are dropped. A
+   score that isn't a number (NaN from an artist with no rated albums)
+   now shows no chip instead of "—", in the picker and on the cards.
+   Checked at 1440 and 390: 0 rows overflow, every row at 1440 is 52px.
 7. **Ceremony, part 1: the stage.** Full screen, slim top bar (year,
    progress dots, ☰ Categories, 🔊, ✕), category name big in Bricolage,
    nominees as big covers, Previous / Next at the bottom; ☰ opens the

@@ -40580,7 +40580,7 @@ function _awardsGrowthFor(cat, year, item) {
 function _awardsRatingChip(item) {
   if (!_awardsShowRating) return '';
   const s = _awardsPickerItemScore(item);
-  return s == null ? '' : ratingChip(s, 'rt-chip--row aw-rt');
+  return Number.isFinite(s) ? ratingChip(s, 'rt-chip--row aw-rt') : '';
 }
 
 /* ♪ on a nominee card ("Play samples from nominee cards"). One sample at a
@@ -43877,7 +43877,9 @@ function _awardsPickerItemScore(item) {
 
 function _awardsPickerScoreChip(item) {
   const s = _awardsPickerItemScore(item);
-  return s == null ? '' : ratingChip(s, 'rt-chip--row');
+  // Not a number (an artist with no rated albums averages to NaN) shows nothing,
+  // not a lone "—" chip
+  return Number.isFinite(s) ? ratingChip(s, 'rt-chip--row') : '';
 }
 
 /* ─── Year and genres on every picker row ───────────────────────────────────
@@ -43913,9 +43915,16 @@ function _awardsPickerYearText(item) {
 // since the genre is the point there; elsewhere three, and a blank when none.
 function _awardsPickerGenreInner(item) {
   const isGenreCat = _awardsPickerCatFilter.startsWith('genre:') || _awardsPickerCatFilter === 'rock_group' || _awardsPickerCatFilter.includes('+genre:');
-  const tags = _awardsPickerItemTags(item);
+  // The sheet marks a blank genre cell with "-"; that is not a genre to show
+  const raw = _awardsPickerItemTags(item);
+  const tags = Array.isArray(raw) ? raw.filter(g => g && !/^[-–—\s]+$/.test(g)) : raw;
   if (tags && tags.length) {
-    return tags.slice(0, isGenreCat ? 5 : 3).map(t => `<span class="dc-chip awards-picker-genre-tag">${esc(t)}</span>`).join('');
+    // One line: the first few, then "+N" holding the rest in its tooltip, so a
+    // row never grows into a stack of chips (phase 9 part 5 step 6)
+    const max = isGenreCat ? 3 : 2;
+    const rest = tags.slice(max, isGenreCat ? 5 : 3);
+    return tags.slice(0, max).map(t => `<span class="dc-chip awards-picker-genre-tag">${esc(t)}</span>`).join('')
+      + (rest.length ? `<span class="dc-chip awards-picker-genre-tag awards-picker-genre-more" title="${esc(rest.join(', '))}">+${rest.length}</span>` : '');
   }
   if (!isGenreCat) return '';
   return `<span class="dc-chip awards-picker-genre-tag awards-picker-genre-unk">${tags === undefined ? '…' : 'no genre'}</span>`;
@@ -43964,7 +43973,7 @@ function _awardsPickerPaintMeta(idx, item) {
   const y = row.querySelector('.awards-picker-year');
   if (y) y.textContent = _awardsPickerYearText(item);
   const g = row.querySelector('.awards-picker-genre-tags');
-  if (g) g.innerHTML = _awardsPickerGenreInner(item);
+  if (g) { g.innerHTML = _awardsPickerGenreInner(item); _awardsPickerMarkClipped(row); }
 }
 
 async function _awardsPickerPumpMeta() {
@@ -44002,8 +44011,10 @@ function _awardsPickerResultRow(item, idx) {
   return `<div class="${cls}" data-idx="${idx}" onclick="awardsPickerToggleRow(${idx})" title="${picked ? 'Click to remove' : 'Click to nominate'}">
     <span class="awards-picker-add-icon">${picked ? '✓' : '+'}</span>
     ${_awardsPickerThumbHtml(item, 'awPkThumb' + idx)}
-    <span class="awards-picker-lbl">${esc(lbl)}</span>
-    ${sub ? `<span class="awards-picker-sub">${esc(sub)}${rel}</span>` : ''}
+    <span class="awards-picker-main">
+      <span class="awards-picker-lbl" title="${esc(lbl)}">${esc(lbl)}</span>
+      ${sub ? `<span class="awards-picker-sub" title="${esc(sub)}">${esc(sub)}${rel}</span>` : ''}
+    </span>
     ${genreHtml}
     ${_awardsPickerFitChip(item)}
     ${_awardsPickerScoreChip(item)}
@@ -44466,7 +44477,15 @@ let _awardsThumbObs = null;
 let _awardsThumbPending = [];   // [{ idx, imgId, item }] seen but not loaded yet
 let _awardsThumbPumping = false;
 
+// Marks the genre boxes that didn't fit their row, so CSS fades the last chip
+// out instead of cutting it hard. Runs after every list render and lookup.
+function _awardsPickerMarkClipped(root) {
+  (root || document.getElementById('awardsPickerBody'))?.querySelectorAll('.awards-picker-genre-tags').forEach(g =>
+    g.classList.toggle('is-clipped', g.scrollWidth > g.clientWidth + 1));
+}
+
 function _awardsPickerLoadThumbs() {
+  _awardsPickerMarkClipped();
   const seq = ++_awardsThumbSeq;
   if (_awardsThumbObs) { _awardsThumbObs.disconnect(); _awardsThumbObs = null; }
   _awardsThumbPending = [];
