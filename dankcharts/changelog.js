@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 295;
+const DC_CL_I18N_V = 296;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-23', t: 'design', a: 'events', h: '886a8ad',
+    title: "Events: a calmer calendar, and a click on a day opens its list",
+    detail: "The Calendar tab on the Events page now opens on the month. Each day shows its first three events with a small line icon for the type (birthday, album, single, EP, show) instead of coloured rows and emoji, and the rest sit behind “+N more”. Click a day, its number or “+N more” to open that day's list, laid out like Today: birthdays, releases and shows first, then the day's anniversaries ranked by how much you've played them, eight at first with a button to see the rest. On a phone the month shows just the icons and short day names, so all seven columns fit. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-23', t: 'design', a: 'events', h: 'c1821e5',
     title: "Events: Recent is one list, by how long ago",
     detail: "Recent on the Events page is now one list instead of three sections, built like Coming up: your top artists' birthdays, anniversaries and new releases from the past weeks together, in three groups — Past week, Past few weeks and Earlier — newest first. Each group shows its eight most-played anniversaries first, with a button to see the rest. New releases now have their own + to add them to a playlist, and + Playlist and Play all take everything the tab shows. New Music Friday is still underneath. Works with Last.fm, Google Sheets and CSV uploads." },

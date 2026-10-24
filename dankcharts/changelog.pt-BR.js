@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Events: a calmer calendar, and a click on a day opens its list":
+    ["Eventos: um calendário mais calmo, e um clique num dia abre a lista dele",
+     "A aba Calendário da página Eventos agora abre no mês. Cada dia mostra seus três primeiros eventos com um pequeno ícone de linha para o tipo (aniversário, álbum, single, EP, show) em vez de linhas coloridas e emojis, e o resto fica atrás de “+N mais”. Clique num dia, no número dele ou em “+N mais” para abrir a lista daquele dia, no mesmo formato de Hoje: aniversários, lançamentos e shows primeiro, depois as datas comemorativas do dia em ordem de quanto você ouviu, oito no início, com um botão para ver o resto. No celular o mês mostra só os ícones e os nomes curtos dos dias, para caberem as sete colunas. Funciona com Last.fm, Google Sheets e arquivos CSV."],
   "Events: Recent is one list, by how long ago":
     ["Eventos: Recentes é uma lista só, por antiguidade",
      "Recentes na página Eventos agora é uma lista só em vez de três seções, como Em breve: aniversários, datas comemorativas e lançamentos novos dos seus artistas principais das últimas semanas juntos, em três grupos (Última semana, Últimas semanas e Antes), do mais recente ao mais antigo. Cada grupo mostra primeiro suas oito datas comemorativas mais ouvidas, com um botão para ver o resto. Os lançamentos novos agora têm o próprio + para adicioná-los a uma playlist, e + Playlist e Tocar tudo pegam tudo o que a aba mostra. O New Music Friday continua embaixo. Funciona com Last.fm, Google Sheets e arquivos CSV."],
