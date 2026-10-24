@@ -31,7 +31,7 @@
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=186"></script>
+  <script defer src="translations.js?v=188"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -2093,13 +2093,13 @@
 
       <div class="events-calendar-wrap" data-ev-group="calendar">
         <div class="events-calendar-header">
-          <button class="dc-btn dc-btn-normal dc-btn-sm dc-btn-icon cal-nav-btn" onclick="eventsCalendarPrev()">&#8249;</button>
+          <button class="dc-btn dc-btn-normal dc-btn-sm dc-btn-icon cal-nav-btn" onclick="eventsCalendarPrev()" aria-label="Previous" data-i18n-aria="ev_cal_prev">&#8249;</button>
           <span id="eventsCalendarTitle" class="cal-title"></span>
-          <button class="dc-btn dc-btn-normal dc-btn-sm dc-btn-icon cal-nav-btn" onclick="eventsCalendarNext()">&#8250;</button>
+          <button class="dc-btn dc-btn-normal dc-btn-sm dc-btn-icon cal-nav-btn" onclick="eventsCalendarNext()" aria-label="Next" data-i18n-aria="ev_cal_next">&#8250;</button>
           <div class="dc-seg cal-view-btns">
-            <button class="cal-view-btn" data-view="month" onclick="setCalView('month')" title="Month view">Month</button>
-            <button class="cal-view-btn" data-view="week"  onclick="setCalView('week')"  title="Week view">Week</button>
-            <button class="cal-view-btn" data-view="day"   onclick="setCalView('day')"   title="Day view">Day</button>
+            <button class="cal-view-btn" data-view="month" onclick="setCalView('month')" title="Month view" data-i18n="ev_cal_month" data-i18n-title="ev_cal_month_title">Month</button>
+            <button class="cal-view-btn" data-view="week"  onclick="setCalView('week')"  title="Week view" data-i18n="ev_cal_week" data-i18n-title="ev_cal_week_title">Week</button>
+            <button class="cal-view-btn" data-view="day"   onclick="setCalView('day')"   title="Day view" data-i18n="ev_cal_day" data-i18n-title="ev_cal_day_title">Day</button>
           </div>
         </div>
         <div class="events-cal-grid" id="eventsCalendarGrid"></div>
@@ -2110,7 +2110,7 @@
            chart period); the Events tab branch in the period switch renders it. -->
       <div class="chart-section" id="timeMachineSection" data-ev-group="today" style="display:none;">
         <div class="section-header">
-          <h2 class="section-title" data-i18n="time_machine_title">⏳ TIME MACHINE</h2>
+          <h2 class="section-header-h2" data-i18n="time_machine_title">Time Machine</h2>
           <div class="section-rule"></div>
           <button class="dc-btn dc-btn-normal dc-btn-sm" id="tmPlBtn" onclick="tmAddAllToPlaylist()"
             data-i18n="pl_section_btn" data-i18n-title="pl_section_btn_title"
@@ -2137,13 +2137,13 @@
            Events the anniversaries are part of Coming up below. -->
       <div class="chart-section" id="anniversariesSection" data-ev-group="">
         <div class="section-header">
-          <h2 class="section-header-h2">Anniversaries</h2>
+          <h2 class="section-header-h2" data-i18n="ev_cal_anniversaries">Anniversaries</h2>
           <div class="section-rule"></div>
           <button class="dc-btn dc-btn-normal dc-btn-sm ev-sec-pl" id="anniversariesPlBtn"
             onclick="evAddSectionToPlaylist('anniversaries')" data-i18n="pl_section_btn"
             data-i18n-title="pl_section_btn_title" title="Save everything in this section to a playlist">＋ Playlist</button>
         </div>
-        <div class="section-sub">Releases celebrating anniversaries in the next 30 days</div>
+        <div class="section-sub" data-i18n="ev_sec_anniversaries_sub">Releases celebrating anniversaries in the next 30 days</div>
         <div class="section-body">
           <div class="upcoming-grid" id="anniversariesGrid"></div>
         </div>
@@ -2215,13 +2215,13 @@
            Events the recent releases are part of Recent above. -->
       <div class="chart-section" id="eventsRecentSection" data-ev-group="">
         <div class="section-header">
-          <h2 class="section-header-h2">Recent Releases</h2>
+          <h2 class="section-header-h2" data-i18n="ev_sec_recent_releases">Recent Releases</h2>
           <div class="section-rule"></div>
           <button class="dc-btn dc-btn-normal dc-btn-sm ev-sec-pl" id="eventsRecentPlBtn"
             onclick="evAddSectionToPlaylist('eventsRecent')" data-i18n="pl_section_btn"
             data-i18n-title="pl_section_btn_title" title="Save everything in this section to a playlist">＋ Playlist</button>
         </div>
-        <div class="section-sub">Releases from the past 6 months from your top artists</div>
+        <div class="section-sub" data-i18n="ev_sec_recent_releases_sub">Releases from the past 6 months from your top artists</div>
         <div class="section-body">
           <div class="upcoming-grid" id="eventsRecentGrid"></div>
         </div>
@@ -2236,7 +2236,7 @@
           <button type="button" class="dc-btn dc-btn-normal dc-btn-sm" id="nmfPastBtn" aria-pressed="false"
             onclick="toggleNMFPastFridays()" data-i18n="ev_nmf_past">Past Fridays</button>
         </div>
-        <div class="section-sub">New releases this week from Deezer · not filtered to your artists</div>
+        <div class="section-sub" data-i18n="ev_nmf_sub">New releases this week from Deezer · not filtered to your artists</div>
         <div id="nmfStatus" class="upcoming-status"></div>
         <div class="section-body">
           <div class="nmf-cal-outer" id="nmfCalOuter" style="display:none;">
@@ -2246,7 +2246,7 @@
               <button class="dc-btn dc-btn-normal dc-btn-sm dc-btn-icon cal-nav-btn" onclick="nmfCalNext()">&#8250;</button>
             </div>
             <div id="nmfCalGrid"></div>
-            <div class="nmf-cal-legend">Fridays with stored releases are highlighted &mdash; click to view that week</div>
+            <div class="nmf-cal-legend" data-i18n="ev_nmf_legend">Fridays with stored releases are highlighted &mdash; click to view that week</div>
           </div>
           <div class="upcoming-grid" id="nmfGrid"></div>
         </div>
@@ -3928,7 +3928,7 @@
   <!-- Community board tab (suggestions / bugs / discussion). Loaded before
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
   <script defer src="board.js?v=4"></script>
-  <script defer src="app.js?v=497"></script>
+  <script defer src="app.js?v=499"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
   <script defer src="replay.js?v=1"></script>
   <!-- All-Time chart stats ("Inside your Top N"); reads app.js globals, so it loads after it -->

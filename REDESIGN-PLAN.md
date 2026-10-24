@@ -2733,6 +2733,28 @@ Steps:
 8. **Screen check.** 1440 / 1100 / 390 (touch), the four check themes, all
    four languages (every hard-coded English string on the page moves into
    `translations.js`).
+   **Done 2026-10-23:** 49 keys in four languages. Cards and the hover
+   card: "in N days" / "N days ago" / "Today" (_evInDays, _evDaysAgo,
+   _evPl for _one / _other pairs), Turning / Turned, Birthday, Live show,
+   "5th Anniversary" (_evAnnivLabel: English keeps ordinalSuffix, the
+   others "5.º"); New Music Friday's types use the mb_type_ keys. Table
+   heads, list Sort, Month / Week / Day and their titles, ‹ › labels,
+   the Playlists-only Anniversaries / Recent Releases titles and subs
+   (and the playlist names they give), NMF's sub, legend, "N releases"
+   pill, empty / fetching / error lines. Month and day names come from
+   toLocaleDateString(currentLang) (_calMonthName, _calDayName; _CAL_MONTHS
+   / _CAL_DAYS went, NMF's calendar too); the week title is "18–24 Oct
+   2026" in fmtDate's order. Status lines (events, shows, NMF) are built
+   from keys and kept as painters (_evSetStatus) that setLanguage repaints
+   (_evRepaintStatuses); dates in them use currentLang. The Time Machine
+   title lost its ⏳ and capitals ("Time Machine", section-header-h2 like
+   the rest). Checked with a script: 1440 / 1100 / 390 (touch) × en / es /
+   pt-BR / pt-PT × every tab, Coming up in all four views, Month / Week /
+   a day, the hover card and the status lines, scanning for English words
+   and sideways scroll: none left (pt's "Playlist" and "plays" are their
+   translations), no errors. Screenshots in Navy dark, Navy light, Yellow
+   dark and Red light looked right. Not Events: the footer's "Questions or
+   issues?" is still English everywhere.
 
 After Events: Awards (4.17), Soundtrack (4.18), then the rest, each looked
 at on screen first.
