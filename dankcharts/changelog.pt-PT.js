@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Awards: Stats & records folds out of the way":
+    ["Prémios: Estatísticas e recordes recolhe-se",
+     "Estatísticas e recordes, por cima da tua votação, ocupava quase um ecrã antes de chegares às tuas categorias. Agora recolhe-se numa linha com os números do ano e quem tem mais nomeações, mais um botão Abrir. Abre-o para veres o bloco completo, tal como antes; a página lembra-se se o deixaste aberto. Os ecrãs de abertura e de encerramento da cerimónia continuam a mostrar tudo. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
   "Awards: a proper title, and View Ceremony at the top":
     ["Prémios: um título a sério, e Ver cerimónia no topo",
      "A página Prémios tem agora o mesmo título de Recordes, Estatísticas e Eventos, com um troféu de linha em vez da pequena etiqueta branca “Prémios”. Assim que alguma categoria tem um vencedor, Ver cerimónia e Partilhar aparecem ao lado do ano, no topo, por isso já não tens de passar por todos os cartões para os encontrar; continuam também em baixo. Os dois botões ganharam ícones de linha em vez dos emojis 🎬 e 🔗. Funciona com Last.fm, Google Sheets e ficheiros CSV."],

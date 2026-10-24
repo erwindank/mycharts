@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 299;
+const DC_CL_I18N_V = 300;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-24', t: 'design', a: 'awards', h: 'f5b271d',
+    title: "Awards: Stats & records folds out of the way",
+    detail: "Stats & records above your ballot used to take most of a screen before you reached your categories. It now folds into one row with the year’s numbers and who has the most nominations, plus an Open button. Open it for the full block, exactly as before; the page remembers whether you left it open. The ceremony’s opening and closing screens still show everything. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-24', t: 'design', a: 'awards', h: '066202c',
     title: "Awards: a proper title, and View Ceremony at the top",
     detail: "The Awards page now has the same title as Records, Stats and Events, with a line trophy in place of the small white “Awards” tag. Once any category has a winner, View Ceremony and Share appear right next to the year at the top, so you no longer have to scroll past every card to find them; they also stay at the bottom. Both buttons got line icons in place of the 🎬 and 🔗 emoji. Works with Last.fm, Google Sheets and CSV uploads." },
