@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Awards: a bigger moment for the winner":
+    ["Prémios: um momento maior para o vencedor",
+     "Quando abres o envelope na cerimónia dos prémios, o vencedor ocupa agora o palco: uma capa grande com um aro e um brilho dourados, o nome em letras grandes e os outros nomeados encolhidos numa pequena fila esbatida por baixo. Antes, o vencedor aparecia duas vezes, na grelha e outra vez por baixo. Se o teu dispositivo estiver configurado para reduzir o movimento, o vencedor simplesmente aparece, sem confettis nem animação. Funciona com Last.fm, Google Sheets e ficheiros CSV, e nas ligações de cerimónia partilhadas."],
   "Awards: the ceremony fills the screen":
     ["Prémios: a cerimónia ocupa o ecrã inteiro",
      "A cerimónia dos prémios já não é uma caixa a meio da página. Agora ocupa o ecrã inteiro, como um espetáculo a sério: o nome da categoria em letras grandes, capas maiores para os nomeados e uma barra fina no topo com pontos de progresso, som e fechar. A lista de categorias abre num botão Categorias em vez de ocupar uma coluna, e Anterior / Seguinte ficam numa barra própria em baixo, por isso nunca tapam nada. No telemóvel, tudo até Abrir envelope cabe no ecrã sem deslizar. Funciona com Last.fm, Google Sheets e ficheiros CSV."],

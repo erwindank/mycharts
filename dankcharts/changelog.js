@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 304;
+const DC_CL_I18N_V = 305;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-24', t: 'design', a: 'awards', h: '23ba275',
+    title: "Awards: a bigger moment for the winner",
+    detail: "When you open the envelope in the awards ceremony, the winner now takes the stage: a big cover with a gold ring and glow, the name in large letters, and the other nominees shrinking to a small dimmed row underneath. Before, the winner showed twice, once in the grid and again below it. If your device is set to reduce motion, the winner simply appears, with no confetti or animation. Works with Last.fm, Google Sheets and CSV uploads, and in shared ceremony links." },
   { d: '2026-10-24', t: 'design', a: 'awards', h: '721d082',
     title: "Awards: the ceremony fills the screen",
     detail: "The awards ceremony is no longer a box in the middle of the page. It now fills the whole screen like a real show: the category name in big letters, bigger covers for the nominees, and a slim bar at the top with progress dots, sound and close. The list of categories opens from a Categories button instead of taking up a column, and Previous / Next sit in their own bar at the bottom so they never cover anything. On a phone, everything up to Open Envelope fits on the screen without scrolling. Works with Last.fm, Google Sheets and CSV uploads." },

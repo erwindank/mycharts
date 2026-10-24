@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Awards: a bigger moment for the winner":
+    ["Premios: un momento más grande para el ganador",
+     "Cuando abres el sobre en la ceremonia de premios, el ganador ahora ocupa el escenario: una portada grande con un aro y un brillo dorados, el nombre en letras grandes y los demás nominados encogidos en una pequeña fila atenuada debajo. Antes, el ganador salía dos veces, en la cuadrícula y otra vez debajo. Si tu dispositivo está configurado para reducir el movimiento, el ganador simplemente aparece, sin confeti ni animación. Funciona con Last.fm, Google Sheets y archivos CSV, y en los enlaces de ceremonia compartidos."],
   "Awards: the ceremony fills the screen":
     ["Premios: la ceremonia ocupa toda la pantalla",
      "La ceremonia de premios ya no es un recuadro en medio de la página. Ahora ocupa toda la pantalla, como un espectáculo de verdad: el nombre de la categoría en letras grandes, portadas más grandes para los nominados y una barra fina arriba con puntos de progreso, sonido y cerrar. La lista de categorías se abre con un botón Categorías en lugar de ocupar una columna, y Anterior / Siguiente van en su propia barra abajo, así que nunca tapan nada. En el móvil, todo hasta Abrir sobre cabe en la pantalla sin desplazarse. Funciona con Last.fm, Google Sheets y archivos CSV."],
