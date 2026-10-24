@@ -2689,6 +2689,25 @@ Steps:
    days and two shows: all four views, Show all, list sort, Shows on /
    off, Recent, Playlists, no sideways scroll, no errors.
 6. **Recent.** The same, looking back.
+   **Done 2026-10-23:** #eventsRecentListSection with three groups by days
+   ago: Past week (1–6), Past few weeks (7–30), Earlier (31–180; recent
+   birthdays and anniversaries only go back 30 days, so it is releases
+   only). Coming up's code is now shared: _renderEventsList(tab) with
+   _evListSources(tab) saying where each tab's birthdays, releases, shows
+   and anniversaries come from; _renderEventsLists() draws both (it
+   replaces _renderEventsComing everywhere, translations.js too), and
+   toggleEventsGroupAll / _evGroupShowAll / _evGroupShown replace the
+   Coming-only versions. Nearest first, on one day anniversaries in rank
+   order, top 8 anniversaries per group with "Show all N anniversaries".
+   Recent Birthdays and Recent Anniversaries lost their sections (and
+   EV_GRID_IDS / EV_PL_SECTIONS entries, EV_PL_TABS went); Recent
+   Releases keeps its section for Playlists only (data-ev-group="").
+   New Music Friday stays after the list. ＋ Playlist / ▶ Play all on
+   Recent: birthdays, releases and the shown anniversaries
+   (_evListTracks). A recent release now has its own ＋ (it's out). 4 keys
+   in four languages. Checked at 1440 and 390 (touch) with 24 recent
+   anniversaries, 4 birthdays and 4 releases: all four views, Show all,
+   es, Coming up still right, no sideways scroll, no errors.
 7. **Calendar.** Month by default; a day opens that day's list. No row
    tints or left bars; the event labels in the cells use the type icons.
 8. **Screen check.** 1440 / 1100 / 390 (touch), the four check themes, all

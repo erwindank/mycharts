@@ -29765,7 +29765,7 @@ function toggleEventsType(type) {
   if (type === 'show') {
     // shows live in Today, Coming up and the calendar
     _renderEventsToday();
-    _renderEventsComing();
+    _renderEventsLists();
     if (_eventsCalendarData) renderEventsCalendar(_eventsCalendarData, eventsCalendarYear, eventsCalendarMonth);
   } else {
     if (_eventsRawData) _renderEventsFromRaw(_eventsRawData, _eventsArtists, true);
@@ -30290,11 +30290,11 @@ function _evSaveViewModes() {
 const EV_PROGRESS_PAINT_MS = 1500;
 let _eventsLastData = null;
 // The sections that still have a grid of their own. Birthdays, upcoming
-// releases and shows are drawn into Coming up's groups instead (step 5);
-// anniversaries keeps its grid for Playlists.
+// releases and shows are drawn into Coming up's groups instead (step 5), the
+// recent ones into Recent's (step 6); anniversaries and recent releases keep
+// their grids for Playlists.
 const EV_GRID_IDS = {
   anniversaries: 'anniversariesGrid', eventsRecent: 'eventsRecentGrid',
-  recentBirthdays: 'eventsRecentBirthdaysGrid', recentAnniversaries: 'eventsRecentAnniversariesGrid',
   nmf: 'nmfGrid'
 };
 
@@ -30304,7 +30304,7 @@ function setEventsView(mode) {
   _evSaveViewModes();
   _syncEventsViewBtns();
   Object.keys(EV_GRID_IDS).forEach(_evReRenderSection);
-  _renderEventsComing();
+  _renderEventsLists();
 }
 
 function _syncEventsViewBtns() {
@@ -30336,12 +30336,9 @@ function _evReRenderSection(sectionKey) {
   if (!_eventsLastData) return;
   const f = applyEventsTypeFilter(_eventsLastData);
   const sortFn = (a, b) => a.daysUntil - b.daysUntil;
-  const sortFnAgo = (a, b) => a.daysAgo - b.daysAgo;
   const itemsMap = {
     anniversaries: () => [...f.anniversaries].sort(sortFn),
-    eventsRecent: () => sortRecentReleases([...f.eventsRecent]),
-    recentBirthdays: () => [...f.recentBirthdays].sort(sortFnAgo),
-    recentAnniversaries: () => [...f.recentAnniversaries].sort(sortFnAgo)
+    eventsRecent: () => sortRecentReleases([...f.eventsRecent])
   };
   if (itemsMap[sectionKey]) _evRenderSectionByKey(sectionKey, itemsMap[sectionKey]());
 }
@@ -30423,6 +30420,7 @@ function _evNormalize(sectionKey, items) {
         dateLabel: fmtDate(new Date(release.date + 'T00:00:00')), dateSort: release.date,
         artistSort: artistName, typeLabel: tl, kind: _evKind(release.type),
         menuAction: '_tmShowAlbumMenu', // already released — popup adds a player option if it's been played
+        pl: { kind: 'album', title: release.title, artist: artistName, album: release.title },
         imgSrc: release.mbid ? `https://coverartarchive.org/release-group/${release.mbid}/front-250` : null,
         imgAttr: { artist: artistName, title: release.title, sources: 'itunes,lastfm' }, isToday: false });
     }
@@ -30578,9 +30576,7 @@ function _evPlBtn(item, extraCls) {
 // release entries resolve to the release's most recent play, falling back to
 // the release itself when it has never been played.
 const EV_PL_SECTIONS = {
-  recentBirthdays:     { label: 'Recent Birthdays',    pick: it => _tmArtistLastSongs(it.artistName, 1)[0] },
   anniversaries:       { label: 'Anniversaries',       pick: it => _evPlRelease(it.title, it.artistName) },
-  recentAnniversaries: { label: 'Recent Anniversaries', pick: it => _evPlRelease(it.title, it.artistName) },
   eventsRecent:        { label: 'Recent Releases',     pick: it => _evPlRelease(it.release?.title, it.artistName) }
 };
 
@@ -30598,14 +30594,12 @@ function evAddSectionToPlaylist(sectionKey) {
 }
 
 /* The page's one "＋ Playlist" (phase 9 part 4 step 3): everything the open
-   tab shows. Coming up and Recent stage their sections as above; Today and
-   Calendar stage what the calendar shows (today, or the day / week / month
-   on screen): a birthday gives the artist's latest play, an anniversary or
-   release its latest play or the release itself. Shows and New Music Friday
-   aren't staged, as before. The Time Machine keeps its own button. */
-const EV_PL_TABS = {
-  recent: ['eventsRecent', 'recentBirthdays', 'recentAnniversaries']
-};
+   tab shows. Coming up and Recent stage what their groups show
+   (_evListTracks); Today and Calendar stage what the calendar shows (today,
+   or the day / week / month on screen): a birthday gives the artist's latest
+   play, an anniversary or release its latest play or the release itself.
+   Shows and New Music Friday aren't staged, as before. The Time Machine
+   keeps its own button. */
 
 function _evCalendarTracks() {
   if (!_eventsCalendarData) return [];
@@ -30627,10 +30621,7 @@ function _evCalendarTracks() {
 
 function _evTabTracks() {
   if (eventsTab === 'today') return _evTodayTracks();
-  if (eventsTab === 'coming') return _evComingTracks();
-  if (EV_PL_TABS[eventsTab]) {
-    return EV_PL_TABS[eventsTab].flatMap(key => (_evLastItems[key] || []).map(EV_PL_SECTIONS[key].pick)).filter(Boolean);
-  }
+  if (eventsTab === 'coming' || eventsTab === 'recent') return _evListTracks(eventsTab);
   return _evCalendarTracks();
 }
 
@@ -30752,19 +30743,31 @@ function _evTodayTracks() {
   ].filter(Boolean);
 }
 
-// ── Coming up tab ──────────────────────────────────────────────
+// ── Coming up and Recent tabs ──────────────────────────────────
 
 /* One list instead of five sections: birthdays, anniversaries, releases and
    shows, grouped by how many days away they are. Each group draws in the
    page's view. Anniversaries are ranked like Today's and only the top
-   EV_TODAY_CAP of each group show until its "Show all". */
+   EV_TODAY_CAP of each group show until its "Show all". Recent (step 6) is
+   the same list looking back: `d` is days ago there, nearest first. */
 const EV_COMING_GROUPS = [
   { id: 'evComingWeek', from: 0, to: 6 },
   { id: 'evComingSoon', from: 7, to: 30 },
   { id: 'evComingLater', from: 31, to: 90 }
 ];
-const _evComingShowAll = {};
-let _evComingShown = { birthdays: [], anniversaries: [] }; // for ＋ Playlist / ▶ Play all
+// Recent birthdays and anniversaries go back 30 days (EVENTS_WINDOW_DAYS),
+// recent releases 180 (fetchRecentReleasesForMBID), so Earlier is releases only
+const EV_RECENT_GROUPS = [
+  { id: 'evRecentWeek', from: 1, to: 6 },
+  { id: 'evRecentSoon', from: 7, to: 30 },
+  { id: 'evRecentEarlier', from: 31, to: 180 }
+];
+const _evGroupShowAll = {};
+// What each tab's groups show, for ＋ Playlist / ▶ Play all
+const _evGroupShown = {
+  coming: { birthdays: [], releases: [], anniversaries: [] },
+  recent: { birthdays: [], releases: [], anniversaries: [] }
+};
 
 function _evDaysFrom(dateStr) {
   if (!dateStr) return null;
@@ -30773,33 +30776,51 @@ function _evDaysFrom(dateStr) {
   return Math.round((d - today) / 86400000);
 }
 
-function _renderEventsComing() {
-  const section = document.getElementById('eventsComingSection');
-  if (!section) return;
+/* Where each tab's events come from: the _evNormalize key and how many days
+   away (or ago) each one is. Shows are only ever coming up. */
+function _evListSources(tab, f) {
+  if (tab === 'recent') return {
+    groups: EV_RECENT_GROUPS, emptyId: 'evRecentEmpty',
+    birthdays: f ? f.recentBirthdays : [], bKey: 'recentBirthdays', bDays: b => b.daysAgo,
+    releases: f ? f.eventsRecent : [], rKey: 'eventsRecent', rDays: r => { const n = _evDaysFrom(r.release?.date); return n === null ? null : -n; },
+    shows: [],
+    anniversaries: f ? f.recentAnniversaries : [], aKey: 'recentAnniversaries', aDays: a => a.daysAgo
+  };
+  return {
+    groups: EV_COMING_GROUPS, emptyId: 'evComingEmpty',
+    birthdays: f ? f.birthdays : [], bKey: 'birthdays', bDays: b => b.daysUntil,
+    releases: f ? f.eventsUpcoming : [], rKey: 'eventsUpcoming', rDays: r => _evDaysFrom(r.release?.date),
+    shows: eventsTypeFilter.has('show') ? (_concertsData || []) : [],
+    anniversaries: f ? f.anniversaries : [], aKey: 'anniversaries', aDays: a => a.daysUntil
+  };
+}
+
+function _renderEventsList(tab) {
   const f = _eventsLastData ? applyEventsTypeFilter(_eventsLastData) : null;
-  const shows = eventsTypeFilter.has('show') ? (_concertsData || []) : [];
-  const shownBirthdays = [], shownAnn = [];
+  const src = _evListSources(tab, f);
+  const shown = { birthdays: [], releases: [], anniversaries: [] };
   let any = false;
 
-  for (const g of EV_COMING_GROUPS) {
+  for (const g of src.groups) {
     const wrap = document.getElementById(g.id);
     const gridEl = document.getElementById(g.id + 'Grid');
     if (!wrap || !gridEl) continue;
     const inG = n => n !== null && n >= g.from && n <= g.to;
-    const birthdays = f ? f.birthdays.filter(b => inG(b.daysUntil)) : [];
-    const releases = f ? f.eventsUpcoming.filter(r => inG(_evDaysFrom(r.release?.date))) : [];
-    const gShows = shows.filter(sh => inG(_evDaysFrom(sh.event?.dates?.start?.localDate)));
-    const ranked = f ? _evRankAnniversaries(f.anniversaries.filter(a => inG(a.daysUntil))) : [];
-    const ann = _evComingShowAll[g.id] ? ranked : ranked.slice(0, EV_TODAY_CAP);
-    shownBirthdays.push(...birthdays);
-    shownAnn.push(...ann.map(r => r.a));
+    const birthdays = src.birthdays.filter(b => inG(src.bDays(b)));
+    const releases = src.releases.filter(r => inG(src.rDays(r)));
+    const gShows = src.shows.filter(sh => inG(_evDaysFrom(sh.event?.dates?.start?.localDate)));
+    const ranked = _evRankAnniversaries(src.anniversaries.filter(a => inG(src.aDays(a))));
+    const ann = _evGroupShowAll[g.id] ? ranked : ranked.slice(0, EV_TODAY_CAP);
+    shown.birthdays.push(...birthdays);
+    shown.releases.push(...releases);
+    shown.anniversaries.push(...ann.map(r => r.a));
 
-    // Everything sorts by days away; on one day, anniversaries keep their rank order
+    // Everything sorts by days away (or ago); on one day, anniversaries keep their rank order
     const items = [
-      ..._evNormalize('birthdays', birthdays).map((it, i) => ({ it, d: birthdays[i].daysUntil, o: 0 })),
-      ..._evNormalize('eventsUpcoming', releases).map((it, i) => ({ it, d: _evDaysFrom(releases[i].release.date), o: 1 })),
+      ..._evNormalize(src.bKey, birthdays).map((it, i) => ({ it, d: src.bDays(birthdays[i]), o: 0 })),
+      ..._evNormalize(src.rKey, releases).map((it, i) => ({ it, d: src.rDays(releases[i]), o: 1 })),
       ..._evNormalize('concerts', gShows).map((it, i) => ({ it, d: _evDaysFrom(gShows[i].event.dates.start.localDate), o: 2 })),
-      ..._evNormalize('anniversaries', ann.map(r => r.a)).map((it, i) => ({ it, d: ann[i].a.daysUntil, o: 3 + i }))
+      ..._evNormalize(src.aKey, ann.map(r => r.a)).map((it, i) => ({ it, d: src.aDays(ann[i].a), o: 3 + i }))
     ].sort((x, y) => (x.d - y.d) || (x.o - y.o)).map(({ it, d }) => { it.dateSort = d; return it; });
 
     wrap.hidden = !items.length;
@@ -30814,26 +30835,38 @@ function _renderEventsComing() {
     // Under the grid, not in it: the Reel would carry it off with the cards
     if (ranked.length > EV_TODAY_CAP) {
       gridEl.insertAdjacentHTML('afterend',
-        `<button type="button" class="dc-btn dc-btn-normal dc-btn-sm ev-today-more" aria-expanded="${!!_evComingShowAll[g.id]}" onclick="toggleEventsComingAll('${g.id}')">` +
-        `${esc(_evComingShowAll[g.id] ? t('ev_today_fewer') : t('ev_anniv_all', { n: ranked.length }))}</button>`);
+        `<button type="button" class="dc-btn dc-btn-normal dc-btn-sm ev-today-more" aria-expanded="${!!_evGroupShowAll[g.id]}" onclick="toggleEventsGroupAll('${g.id}')">` +
+        `${esc(_evGroupShowAll[g.id] ? t('ev_today_fewer') : t('ev_anniv_all', { n: ranked.length }))}</button>`);
     }
   }
-  _evComingShown = { birthdays: shownBirthdays, anniversaries: shownAnn };
-  const empty = document.getElementById('evComingEmpty');
+  _evGroupShown[tab] = shown;
+  const empty = document.getElementById(src.emptyId);
   if (empty) empty.hidden = any || !_eventsLastData;
+}
+
+// Both lists at once: every caller that used to redraw Coming up also had
+// the Recent sections to redraw
+function _renderEventsLists() {
+  _renderEventsList('coming');
+  _renderEventsList('recent');
   const note = document.getElementById('evComingShowsNote');
   if (note) note.hidden = !eventsTypeFilter.has('show') || !_concertsData;
 }
 
-function toggleEventsComingAll(groupId) {
-  _evComingShowAll[groupId] = !_evComingShowAll[groupId];
-  _renderEventsComing();
+function toggleEventsGroupAll(groupId) {
+  _evGroupShowAll[groupId] = !_evGroupShowAll[groupId];
+  _renderEventsLists();
 }
 
-function _evComingTracks() {
+/* A birthday gives the artist's latest play, an anniversary or recent release
+   its latest play or the release itself. Coming up leaves its releases out:
+   they aren't out yet. */
+function _evListTracks(tab) {
+  const { birthdays, releases, anniversaries } = _evGroupShown[tab];
   return [
-    ..._evComingShown.birthdays.map(b => _tmArtistLastSongs(b.artistName, 1)[0]),
-    ..._evComingShown.anniversaries.map(a => _evPlRelease(a.title, a.artistName))
+    ...birthdays.map(b => _tmArtistLastSongs(b.artistName, 1)[0]),
+    ...(tab === 'recent' ? releases.map(r => _evPlRelease(r.release?.title, r.artistName)) : []),
+    ...anniversaries.map(a => _evPlRelease(a.title, a.artistName))
   ].filter(Boolean);
 }
 
@@ -30897,22 +30930,19 @@ function _evList(gridEl, sectionKey, items) {
 }
 
 function sortEvListView(sectionKey, sortBy) {
-  // a Coming up group passes its own id (see _renderEventsComing)
+  // a Coming up or Recent group passes its own id (see _renderEventsList)
   const gridEl = document.getElementById(EV_GRID_IDS[sectionKey] || sectionKey + 'Grid');
   if (!gridEl) return;
   gridEl.dataset.evListSort = sortBy;
   if (EV_GRID_IDS[sectionKey]) _evReRenderSection(sectionKey);
-  else _renderEventsComing();
+  else _renderEventsLists();
 }
 
 function renderEventsPartial(birthdays, anniversaries, recentBirthdays, recentAnniversaries, eventsUpcoming, eventsRecent) {
   _eventsLastData = { birthdays, anniversaries, recentBirthdays, recentAnniversaries, eventsUpcoming, eventsRecent };
   const f = applyEventsTypeFilter(_eventsLastData);
   const sortFn = (a, b) => a.daysUntil - b.daysUntil;
-  const sortFnAgo = (a, b) => a.daysAgo - b.daysAgo;
   if (f.anniversaries.length) _evRenderSectionByKey('anniversaries', [...f.anniversaries].sort(sortFn));
-  if (f.recentBirthdays.length) _evRenderSectionByKey('recentBirthdays', [...f.recentBirthdays].sort(sortFnAgo));
-  if (f.recentAnniversaries.length) _evRenderSectionByKey('recentAnniversaries', [...f.recentAnniversaries].sort(sortFnAgo));
   if (f.eventsRecent.length) _evRenderSectionByKey('eventsRecent', sortRecentReleases([...f.eventsRecent]));
   // Keep what the calendar shows in _eventsCalendarData while the fetch is
   // still running too — Play All, Create Playlist and Export Playlist read it,
@@ -30920,7 +30950,7 @@ function renderEventsPartial(birthdays, anniversaries, recentBirthdays, recentAn
   _eventsCalendarData = f;
   renderEventsCalendar(f, eventsCalendarYear, eventsCalendarMonth);
   _renderEventsToday();
-  _renderEventsComing();
+  _renderEventsLists();
 }
 
 async function fetchConcertsForArtist(artistName, apiKey) {
@@ -31217,7 +31247,7 @@ function _renderConcerts(shows, fromCache) {
   _concertsData = shows;
   _syncConcertsSectionVisibility();
   _renderEventsToday();
-  _renderEventsComing();
+  _renderEventsLists();
   const status = document.getElementById('concertsStatus');
   if (status) {
     const cacheNote = fromCache ? ' (cached)' : '';
@@ -31414,7 +31444,6 @@ function _renderEventsFromRaw(raw, artists, fromCache) {
   const f = applyEventsTypeFilter(raw);
   const statusEl = document.getElementById('eventsStatus');
   const sortFn = (a, b) => a.daysUntil - b.daysUntil;
-  const sortFnAgo = (a, b) => a.daysAgo - b.daysAgo;
   const emptyGrid = (key, msg) => {
     const el = document.getElementById(EV_GRID_IDS[key]);
     if (el) { el.className = 'upcoming-grid'; el.innerHTML = `<div class="upcoming-empty">${msg}</div>`; }
@@ -31425,17 +31454,13 @@ function _renderEventsFromRaw(raw, artists, fromCache) {
 
   renderSec('anniversaries', [...f.anniversaries].sort(sortFn),
     `No anniversaries found in the next ${EVENTS_WINDOW_DAYS} days for your top ${artists.length} artists.`);
-  renderSec('recentBirthdays', [...f.recentBirthdays].sort(sortFnAgo),
-    `No birthdays found in the past ${EVENTS_WINDOW_DAYS} days for your top ${artists.length} artists.`);
-  renderSec('recentAnniversaries', [...f.recentAnniversaries].sort(sortFnAgo),
-    `No anniversaries found in the past ${EVENTS_WINDOW_DAYS} days for your top ${artists.length} artists.`);
   renderSec('eventsRecent', sortRecentReleases([...f.eventsRecent]),
     `No recent releases in the past 6 months for your top ${artists.length} artists.`);
 
   _eventsCalendarData = f;
   renderEventsCalendar(_eventsCalendarData, eventsCalendarYear, eventsCalendarMonth);
   _renderEventsToday();
-  _renderEventsComing();
+  _renderEventsLists();
 
   const cacheNote = fromCache ? ' (cached)' : '';
   const ts = fromCache

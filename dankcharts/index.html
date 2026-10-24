@@ -31,7 +31,7 @@
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=183"></script>
+  <script defer src="translations.js?v=184"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -2152,7 +2152,7 @@
       <!-- COMING UP (phase 9 part 4 step 5): birthdays, anniversaries,
            releases and shows in one list, grouped by how soon they are.
            Each group draws in the page's view; anniversaries are ranked
-           like Today's and capped per group. Filled by _renderEventsComing(). -->
+           like Today's and capped per group. Filled by _renderEventsList('coming'). -->
       <div class="chart-section" id="eventsComingSection" data-ev-group="coming">
         <div class="ev-group" id="evComingWeek">
           <div class="section-header">
@@ -2183,7 +2183,37 @@
         </div>
       </div>
 
-      <div class="chart-section" id="eventsRecentSection" data-ev-group="recent">
+      <!-- RECENT (phase 9 part 4 step 6): Coming up looking back. Birthdays,
+           anniversaries and releases in one list, grouped by how long ago,
+           nearest first. Filled by _renderEventsList('recent'). -->
+      <div class="chart-section" id="eventsRecentListSection" data-ev-group="recent">
+        <div class="ev-group" id="evRecentWeek">
+          <div class="section-header">
+            <h2 class="section-header-h2" data-i18n="ev_group_past_week">Past week</h2>
+            <div class="section-rule"></div>
+          </div>
+          <div id="evRecentWeekGrid"></div>
+        </div>
+        <div class="ev-group" id="evRecentSoon">
+          <div class="section-header">
+            <h2 class="section-header-h2" data-i18n="ev_group_past_weeks">Past few weeks</h2>
+            <div class="section-rule"></div>
+          </div>
+          <div id="evRecentSoonGrid"></div>
+        </div>
+        <div class="ev-group" id="evRecentEarlier">
+          <div class="section-header">
+            <h2 class="section-header-h2" data-i18n="ev_group_earlier">Earlier</h2>
+            <div class="section-rule"></div>
+          </div>
+          <div id="evRecentEarlierGrid"></div>
+        </div>
+        <div class="upcoming-empty" id="evRecentEmpty" hidden data-i18n="ev_recent_empty">Nothing recent from your top artists.</div>
+      </div>
+
+      <!-- Shown only on Playlists (.dc-pl-mode), with Anniversaries: on
+           Events the recent releases are part of Recent above. -->
+      <div class="chart-section" id="eventsRecentSection" data-ev-group="">
         <div class="section-header">
           <h2 class="section-header-h2">Recent Releases</h2>
           <div class="section-rule"></div>
@@ -2194,28 +2224,6 @@
         <div class="section-sub">Releases from the past 6 months from your top artists</div>
         <div class="section-body">
           <div class="upcoming-grid" id="eventsRecentGrid"></div>
-        </div>
-      </div>
-
-      <div class="chart-section" id="eventsRecentBirthdaysSection" data-ev-group="recent">
-        <div class="section-header">
-          <h2 class="section-header-h2">Recent Birthdays</h2>
-          <div class="section-rule"></div>
-        </div>
-        <div class="section-sub">Artist birthdays from the past 30 days you may have missed</div>
-        <div class="section-body">
-          <div class="upcoming-grid" id="eventsRecentBirthdaysGrid"></div>
-        </div>
-      </div>
-
-      <div class="chart-section" id="eventsRecentAnniversariesSection" data-ev-group="recent">
-        <div class="section-header">
-          <h2 class="section-header-h2">Recent Anniversaries</h2>
-          <div class="section-rule"></div>
-        </div>
-        <div class="section-sub">Album anniversaries from the past 30 days you may have missed</div>
-        <div class="section-body">
-          <div class="upcoming-grid" id="eventsRecentAnniversariesGrid"></div>
         </div>
       </div>
 
@@ -3920,7 +3928,7 @@
   <!-- Community board tab (suggestions / bugs / discussion). Loaded before
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
   <script defer src="board.js?v=4"></script>
-  <script defer src="app.js?v=494"></script>
+  <script defer src="app.js?v=495"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
   <script defer src="replay.js?v=1"></script>
   <!-- All-Time chart stats ("Inside your Top N"); reads app.js globals, so it loads after it -->

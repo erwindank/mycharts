@@ -1457,6 +1457,10 @@ const TRANSLATIONS = {
     ev_group_soon: 'Next few weeks',
     ev_group_later: 'Later',
     ev_coming_empty: 'Nothing coming up for your top artists.',
+    ev_group_past_week: 'Past week',
+    ev_group_past_weeks: 'Past few weeks',
+    ev_group_earlier: 'Earlier',
+    ev_recent_empty: 'Nothing recent from your top artists.',
     ev_tickets_credit: 'Tickets via Ticketmaster',
     ev_anniv_all: 'Show all {{n}} anniversaries',
     sec_records_title: '🏆 Records & Hall of Fame',
@@ -5092,6 +5096,10 @@ const TRANSLATIONS = {
     ev_group_soon: 'Próximas semanas',
     ev_group_later: 'Más adelante',
     ev_coming_empty: 'No hay nada próximamente para tus artistas principales.',
+    ev_group_past_week: 'Última semana',
+    ev_group_past_weeks: 'Últimas semanas',
+    ev_group_earlier: 'Antes',
+    ev_recent_empty: 'No hay nada reciente de tus artistas principales.',
     ev_tickets_credit: 'Entradas en Ticketmaster',
     ev_anniv_all: 'Mostrar los {{n}} aniversarios',
     sec_records_title: '🏆 Récords y Salón de la Fama',
@@ -8627,6 +8635,10 @@ const TRANSLATIONS = {
     ev_group_soon: 'Próximas semanas',
     ev_group_later: 'Mais adiante',
     ev_coming_empty: 'Nada em breve para seus artistas principais.',
+    ev_group_past_week: 'Última semana',
+    ev_group_past_weeks: 'Últimas semanas',
+    ev_group_earlier: 'Antes',
+    ev_recent_empty: 'Nada recente dos seus artistas principais.',
     ev_tickets_credit: 'Ingressos pelo Ticketmaster',
     ev_anniv_all: 'Mostrar todas as {{n}} datas comemorativas',
     sec_records_title: '🏆 Recordes e Salão da Fama',
@@ -12163,6 +12175,10 @@ const TRANSLATIONS = {
     ev_group_soon: 'Próximas semanas',
     ev_group_later: 'Mais tarde',
     ev_coming_empty: 'Nada para breve com os teus artistas principais.',
+    ev_group_past_week: 'Última semana',
+    ev_group_past_weeks: 'Últimas semanas',
+    ev_group_earlier: 'Antes',
+    ev_recent_empty: 'Nada recente dos teus artistas principais.',
     ev_tickets_credit: 'Bilhetes na Ticketmaster',
     ev_anniv_all: 'Mostrar todas as {{n}} datas',
     sec_records_title: '🏆 Recordes e Salão da Fama',
@@ -14449,7 +14465,7 @@ function setLanguage(lang) {
   // Events cards carry dates and release types in the language: draw them again
   if (typeof _evReRenderSection === 'function') Object.keys(EV_GRID_IDS).forEach(_evReRenderSection);
   if (typeof _renderEventsToday === 'function') _renderEventsToday();
-  if (typeof _renderEventsComing === 'function') _renderEventsComing();
+  if (typeof _renderEventsLists === 'function') _renderEventsLists();
 
   // Longer words can overflow the top bar; tighten it if they do
   if (typeof dcFitTopbar === 'function') dcFitTopbar();
