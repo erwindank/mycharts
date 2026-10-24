@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Awards: an easier category list in Configure Year":
+    ["Prêmios: uma lista de categorias mais fácil em Configurar ano",
+     "Em Configurar ano, o nome de cada categoria agora ocupa a largura toda do cartão, com a etiqueta de tipo e a estrela numa pequena linha embaixo, então nomes como “Música do ano” não quebram mais em três linhas. A lista faz parte da página em vez de ser uma caixinha com barra de rolagem própria, e a busca e os filtros cabem numa linha. Também corrigido: clicar num cartão de categoria (e não no botão dele) não fazia nada; agora um clique em qualquer lugar do cartão liga ou desliga a categoria. Funciona com Last.fm, Google Sheets e arquivos CSV."],
   "Awards: a tidier ballot":
     ["Prêmios: uma votação mais arrumada",
      "A barra acima da sua votação de Prêmios agora cabe numa linha: Expandir tudo e Recolher tudo viraram ícones pequenos (passe o mouse para ver o nome). “Clique num indicado para coroar o vencedor” aparece uma vez só abaixo dessa barra em vez de em cada cartão. O tipo de cada cartão (Música, Álbum, Artista) agora aparece no seu idioma como uma pequena etiqueta em maiúsculas, e as categorias ainda sem indicados são cartões curtos com uma linha discreta em vez de uma grande caixa tracejada. Funciona com Last.fm, Google Sheets e arquivos CSV."],

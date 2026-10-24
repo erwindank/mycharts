@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 301;
+const DC_CL_I18N_V = 302;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-24', t: 'fix', a: 'awards', h: '5a1964b',
+    title: "Awards: an easier category list in Configure Year",
+    detail: "In Configure Year, each category’s name now gets the full width of its card, with the type label and star on a small row underneath, so names like “Song of the Year” no longer break over three lines. The list is part of the page instead of a small box with its own scroll bar, and the search and filters fit on one row. Also fixed: clicking a category card (rather than its switch) did nothing; now a click anywhere on the card turns it on or off. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-24', t: 'design', a: 'awards', h: '3e2c312',
     title: "Awards: a tidier ballot",
     detail: "The bar above your Awards ballot now fits on one row: Expand all and Collapse all became small icons (hover for their names). “Click a nominee to crown the winner” is said once under that bar instead of on every card. Each card’s type (Song, Album, Artist) now shows in your language as a small capital label, and categories with no nominees yet are short cards with one quiet line instead of a big dashed box. Works with Last.fm, Google Sheets and CSV uploads." },
