@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Events: Recent is one list, by how long ago":
+    ["Eventos: Recientes es una sola lista, por antigüedad",
+     "Recientes en la página Eventos es ahora una sola lista en lugar de tres secciones, como Próximamente: los cumpleaños, aniversarios y lanzamientos nuevos de tus artistas principales de las últimas semanas juntos, en tres grupos (Última semana, Últimas semanas y Antes), de lo más reciente a lo más antiguo. Cada grupo muestra primero sus ocho aniversarios más escuchados, con un botón para ver el resto. Los lanzamientos nuevos tienen ahora su propio + para añadirlos a una lista, y + Lista y Reproducir todo toman todo lo que muestra la pestaña. New Music Friday sigue debajo. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Events: Coming up is one list, by how soon":
     ["Eventos: Próximamente es una sola lista, por cercanía",
      "Próximamente en la página Eventos es ahora una sola lista en lugar de cinco secciones: los cumpleaños, aniversarios, lanzamientos y conciertos de tus artistas principales juntos, en tres grupos (Esta semana, Próximas semanas y Más adelante) y por fecha dentro de cada uno. Cada grupo muestra primero sus ocho aniversarios más escuchados, con un botón para ver el resto. New Music Friday pasó a Recientes, porque sus lanzamientos ya salieron. En la vista Lista en el móvil, el título y el artista ya no desaparecen cuando la línea del tipo es larga. Funciona con Last.fm, Google Sheets y archivos CSV."],
