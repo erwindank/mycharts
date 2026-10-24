@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Real-Life Awards: shorter cards for one or two nominations":
+    ["Premios reales: tarjetas más cortas para una o dos nominaciones",
+     "En Premios reales, un artista con solo una o dos nominaciones ahora tiene una foto cuadrada pequeña, así que su tarjeta mide lo que sus filas en lugar de ser un recuadro grande y casi vacío. Los nombres de las categorías también se leen con naturalidad, “Song of the Year” en lugar de “Song Of The Year”. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Awards: a bigger moment for the winner":
     ["Premios: un momento más grande para el ganador",
      "Cuando abres el sobre en la ceremonia de premios, el ganador ahora ocupa el escenario: una portada grande con un aro y un brillo dorados, el nombre en letras grandes y los demás nominados encogidos en una pequeña fila atenuada debajo. Antes, el ganador salía dos veces, en la cuadrícula y otra vez debajo. Si tu dispositivo está configurado para reducir el movimiento, el ganador simplemente aparece, sin confeti ni animación. Funciona con Last.fm, Google Sheets y archivos CSV, y en los enlaces de ceremonia compartidos."],

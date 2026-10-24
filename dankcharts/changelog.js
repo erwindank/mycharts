@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 305;
+const DC_CL_I18N_V = 306;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-24', t: 'design', a: 'awards', h: '27bd706',
+    title: "Real-Life Awards: shorter cards for one or two nominations",
+    detail: "In Real-Life Awards, an artist with just one or two nominations now gets a small square photo, so their card is only as tall as its rows instead of a big, mostly empty box. Category names also read naturally now, “Song of the Year” instead of “Song Of The Year”. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-24', t: 'design', a: 'awards', h: '23ba275',
     title: "Awards: a bigger moment for the winner",
     detail: "When you open the envelope in the awards ceremony, the winner now takes the stage: a big cover with a gold ring and glow, the name in large letters, and the other nominees shrinking to a small dimmed row underneath. Before, the winner showed twice, once in the grid and again below it. If your device is set to reduce motion, the winner simply appears, with no confetti or animation. Works with Last.fm, Google Sheets and CSV uploads, and in shared ceremony links." },
