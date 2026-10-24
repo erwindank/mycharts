@@ -23138,7 +23138,11 @@ body[class*="-light"] .tm-card-search:hover {
 }
 .awards-cat-kicker {
   font-family: var(--font-sans);
-  font-size: var(--fs-xs);
+  font-size: 0.68rem;
+  font-weight: 600;
+  /* the compact uppercase label used across the site (phase 9 part 5 step 4) */
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
   color: color-mix(in srgb, var(--cat-hue) 65%, var(--text3));
 }
 .awards-cat-name {
@@ -23361,15 +23365,12 @@ body[class*="-light"] .tm-card-search:hover {
   padding: var(--sp-2) 0 var(--sp-1);
   opacity: 0.75;
 }
+/* An empty category is a short card: one quiet line, no dashed box */
 .awards-no-nominees {
   font-family: var(--font-sans);
   font-size: var(--fs-xs);
   color: var(--text3);
-  text-align: center;
-  padding: 18px 6px;
-  margin: var(--sp-1) 6px;
-  border: 1px dashed var(--border);
-  border-radius: var(--r-sm);
+  padding: 2px 10px var(--sp-1);
   opacity: 0.8;
 }
 
@@ -23545,6 +23546,20 @@ body[class*="-light"] .tm-card-search:hover {
   border-right: 1px solid var(--border);
 }
 .awards-fold-scope { padding: 6px 10px; }
+/* One toolbar row: Expand all / Collapse all are icons (their names stay in
+   the tooltip and aria-label), so the tools and the views fit side by side */
+.awards-expand-all span,
+.awards-collapse-all span { display: none; }
+.awards-expand-all,
+.awards-collapse-all { padding: 6px 9px; }
+/* "Click a nominee to crown the winner", once, under the tools */
+.awards-bar-hint {
+  flex-basis: 100%;
+  font-family: var(--font-sans);
+  font-size: var(--fs-xs);
+  color: var(--text3);
+  margin-top: -2px;
+}
 /* "View" label + view buttons, kept together and on the right when the bar wraps */
 .awards-view-pick {
   display: flex;

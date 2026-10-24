@@ -42311,7 +42311,7 @@ function _awardsRenderCatCard(cat, catData, year, idx) {
         ${_awardsMoveCtl(year, cat, { i, n: nominees.length }, 'y')}
         <button class="awards-nominee-remove" onclick="awardsRemoveNominee(event,${year},'${esc(cat.id)}',${esc(JSON.stringify(item))})" title="Remove">✕</button>
       </div>`;
-    }).join('') + (_awardsReorderHint(cat) || (!winner ? `<div class="awards-pick-hint">${t('awards_pick_hint')}</div>` : ''));
+    }).join('') + _awardsReorderHint(cat);   // "Click a nominee to crown the winner" is said once, in the toolbar
   } else {
     bodyHtml = `<div class="awards-no-nominees">${t('awards_no_nominees')}</div>`;
   }
@@ -42332,7 +42332,7 @@ function _awardsCatHeadHtml(cat, count, extra) {
   return `<div class="awards-cat-header">
       <span class="awards-cat-emoji">${emoji}</span>
       <span class="awards-cat-heading">
-        <span class="awards-cat-kicker">${esc(cat.type || '')}${count ? ' · ' + count : ''}</span>
+        <span class="awards-cat-kicker">${esc(cat.type ? t('awards_cat_type_' + cat.type) : '')}${count ? ' · ' + count : ''}</span>
         <span class="awards-cat-name">${esc(t('awards_cat_' + cat.id))}</span>
         <span class="awards-cat-desc">${esc(_awardsCatHint(cat))}</span>
       </span>
@@ -42490,6 +42490,8 @@ function _awardsRenderViewBar(show, counts) {
   // Progress chip: "3/12 left to decide", or a gold "all decided" once done
   const pendLbl = pending ? t('awards_pending') : t('awards_none_pending');
   const ico = d => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${d}"/></svg>`;
+  // Said once here instead of on every card; hidden once everything is decided
+  const hint = pending ? `<div class="awards-bar-hint">${esc(t('awards_pick_hint'))}</div>` : '';
   bar.innerHTML = `<div class="awards-bar-tools">
       <span class="awards-pending-chip${pending ? '' : ' is-done'}" role="status">${pending ? `<b>${pending}/${total}</b>` : '✓'}<span>${esc(pendLbl)}</span></span>
       <div class="awards-view-seg">
@@ -42508,7 +42510,7 @@ function _awardsRenderViewBar(show, counts) {
       const name = t('awards_view_' + v);
       return `<button class="awards-view-opt" role="radio" aria-checked="${v === _awardsView}" onclick="awardsSetView('${v}')" title="${esc(name)}" aria-label="${esc(name)}"><svg viewBox="0 0 24 24" aria-hidden="true">${AWARDS_VIEW_ICONS[v]}</svg><span>${esc(name)}</span></button>`;
     }).join('')}</div>
-    </div>`;
+    </div>${hint}`;
 }
 
 // What a view can show without a lookup: a picture pinned in a profile modal, or
@@ -42803,7 +42805,6 @@ function _awardsSpotlightBody(cat, f, year, idp, queue) {
       <div class="aw-spot-meta">
         <span class="aw-spot-label">${esc(t('awards_view_uncrowned'))}</span>
         <span class="aw-spot-name">${f.entries.length} ${f.entries.length === 1 ? 'nominee' : 'nominees'}</span>
-        <span class="aw-spot-sub">${esc(t('awards_pick_hint'))}</span>
       </div>
     </div>`;
   }
@@ -42913,10 +42914,8 @@ function _awardsRenderArtCard(cat, catData, year, idx, view, idp, queue) {
     const w = f.winner;
     body = `<div class="awards-tie-hint">${esc(t('awards_tie_hint', { score: w.playLabel || `${w.plays} plays` }))}</div>` + body;
   }
-  // The spotlight's open hero already says it
-  const roHint = _awardsReorderHint(cat);
-  if (roHint) body += roHint;
-  else if (!cat.auto && count && !f.winner && view !== 'spotlight') body += `<div class="awards-pick-hint">${t('awards_pick_hint')}</div>`;
+  // "Click a nominee to crown the winner" is said once, in the toolbar
+  body += _awardsReorderHint(cat);
 
   const actions = _awardsCatActionsHtml(cat, year, count);
   const chev = d => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${d}"/></svg>`;

@@ -2855,6 +2855,16 @@ Steps:
    label used elsewhere. Empty categories as a short card (title + "Pick
    nominees"), no dashed box. "Click a nominee to crown the winner" said
    once in the toolbar, not on every card.
+   **Done 2026-10-24:** Expand all / Collapse all are icons at every width
+   (names in title + aria-label), so the tools and the View switch share
+   one row at 1440 and 1100 (checked: same top). "Click a nominee to crown
+   the winner" is .awards-bar-hint, a full-width line under that row,
+   shown while anything is left to decide; it left the ballot cards, the
+   art views and the Spotlight hero (the reorder hint stays per card).
+   The kicker is t('awards_cat_type_*') (it was the raw English type) as
+   the compact uppercase label (0.68rem, 600, 0.07em). Empty categories:
+   one quiet "No nominees yet." line, no dashed box, so the card is about
+   half as tall.
 5. **Configure Year panel.** Category cards give the name the full width
    (badge, ☆ and switch on their own row or smaller); the list is part of
    the page, not its own scroll box; the two filter rows become one.
