@@ -13054,11 +13054,12 @@
        chip (background/padding/radius) has to be cleared explicitly; it
        reads as a chip at 11px but as a white slab at heading sizes. */
 
-    /* Stats, Raw Data and Events share the Records page title (phase 9). */
+    /* Stats, Raw Data, Events and Awards share the Records page title (phase 9). */
     #recordsView>.section-header .section-header-h2,
     #graphsView>.section-header .section-header-h2,
     #rawDataView>.section-header .section-header-h2,
-    #eventsView>.section-header .section-header-h2 {
+    #eventsView>.section-header .section-header-h2,
+    #awardsView>.section-header .section-header-h2 {
       font-family: var(--font-display);
       font-size: var(--fs-lg);
       font-weight: 500;
@@ -24153,19 +24154,35 @@ body[class*="-light"] .tm-card-search:hover {
   display: flex;
   justify-content: center;
 }
+/* Gold is allowed here (it's earned): the same bright gold in every theme,
+   with dark ink, so it reads on light and dark pages alike. Squared like the
+   other buttons (no pills, phase 8), a line trophy in place of the old 🎬. */
 .awards-ceremony-launch-btn {
-  padding: 10px 28px;
-  border-radius: 24px;
-  background: linear-gradient(135deg, #FFD700, #FF8C00);
-  color: #1a1a1a;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 20px;
+  border-radius: var(--r-md);
+  background: linear-gradient(135deg, #fcd34d, #f0aa30);
+  color: #1b1300;
   font-weight: 700;
   font-size: var(--fs-base);
   border: none;
   cursor: pointer;
-  box-shadow: 0 4px 18px #FFD70044;
+  box-shadow: 0 4px 18px #f0aa3044;
   transition: transform 0.15s, box-shadow 0.15s;
 }
-.awards-ceremony-launch-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 24px #FFD70066; }
+.awards-ceremony-launch-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 24px #f0aa3066; }
+.awards-ceremony-launch-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.awards-ceremony-launch-btn svg,
+.awards-ceremony-share-btn svg {
+  width: 16px; height: 16px; flex: none;
+  fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round;
+}
+.awards-ceremony-share-btn { display: inline-flex; align-items: center; gap: 6px; }
+/* The top copy sits in the year bar, the size of the buttons beside it */
+.awards-top-ceremony { display: inline-flex; gap: 6px; align-items: center; margin-left: 6px; }
+.awards-top-ceremony .awards-ceremony-launch-btn { padding: 6px 14px; font-size: var(--fs-sm); box-shadow: 0 2px 10px #f0aa3033; }
 
 /* Share sits beside the launch button — quieter, so View Ceremony stays the lead */
 .awards-ceremony-bar { gap: 10px; flex-wrap: wrap; }

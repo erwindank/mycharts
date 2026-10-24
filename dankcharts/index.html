@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=630">
+  <link rel="stylesheet" href="style.css?v=631">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -2256,8 +2256,10 @@
 
     <!-- AWARDS VIEW -->
     <div id="awardsView" style="display:none;">
-      <div class="section-header" style="margin-bottom:0.5rem;">
-        <h2 class="section-header-h2">🏆 <span data-i18n="nav_awards">Awards</span></h2>
+      <!-- Titled like the tab, with the nav's line trophy in place of the old
+           🏆 emoji: the same title as Records, Stats, Raw Data and Events. -->
+      <div class="section-header awards-header">
+        <h2 class="section-header-h2"><svg class="graphs-h2-ico" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M4.7 2.7h6.6V6a3.3 3.3 0 0 1-6.6 0Z" /><path d="M4.7 4H3a1.7 1.7 0 0 0 1.7 2M11.3 4H13a1.7 1.7 0 0 1-1.7 2M8 9.3v2.4M5.7 13.7h4.6l-.7-2H6.4Z" /></svg><span data-i18n="nav_awards">Awards</span></h2>
         <div class="section-rule"></div>
       </div>
 
@@ -2280,6 +2282,12 @@
           <!-- Icons are inline SVG; the labels alone are translated -->
           <button class="dc-btn dc-btn-normal awards-config-btn" onclick="awardsToggleConfig()" id="awardsConfigToggleBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg><span data-i18n="awards_configure">Configure Year</span></button>
           <button class="dc-btn dc-btn-main awards-generate-btn" id="awardsGenerateBtn" onclick="awardsGenerateCandidates()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg><span data-i18n="awards_generate">Generate Nominees</span></button>
+          <!-- Once a category has a winner: the ceremony and its share link, up
+               here as well as under the cards (_awardsRenderCatList shows both) -->
+          <span class="awards-top-ceremony awards-ceremony-ctl" style="display:none;">
+          <button class="awards-ceremony-launch-btn" onclick="startAwardsCeremony()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M7 6H4.5a2.5 2.5 0 0 0 2.6 3M17 6h2.5a2.5 2.5 0 0 1-2.6 3M12 14v3.5M8.5 20.5h7l-1-3h-5Z"/></svg><span data-i18n="awards_ceremony_btn">View Ceremony</span></button>
+          <button class="dc-btn dc-btn-normal awards-ceremony-share-btn" onclick="openCeremonyShare()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1"/></svg><span data-i18n="awards_share_btn">Share</span></button>
+          </span>
         </div>
 
         <!-- Year config panel -->
@@ -2399,9 +2407,9 @@
 
         <!-- Ceremony launch -->
         <div class="awards-ceremony-bar" id="awardsCeremonyBar" style="display:none;">
-          <button class="awards-ceremony-launch-btn" onclick="startAwardsCeremony()" data-i18n="awards_ceremony_btn">🎬 View Ceremony</button>
           <!-- Public link anyone can watch without an account (openCeremonyShare) -->
-          <button class="dc-btn dc-btn-normal awards-ceremony-share-btn" onclick="openCeremonyShare()">🔗 Share</button>
+          <button class="awards-ceremony-launch-btn" onclick="startAwardsCeremony()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M7 6H4.5a2.5 2.5 0 0 0 2.6 3M17 6h2.5a2.5 2.5 0 0 1-2.6 3M12 14v3.5M8.5 20.5h7l-1-3h-5Z"/></svg><span data-i18n="awards_ceremony_btn">View Ceremony</span></button>
+          <button class="dc-btn dc-btn-normal awards-ceremony-share-btn" onclick="openCeremonyShare()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1"/></svg><span data-i18n="awards_share_btn">Share</span></button>
         </div>
       </div>
 

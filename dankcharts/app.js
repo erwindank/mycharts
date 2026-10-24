@@ -41357,6 +41357,14 @@ function _awardsCloseYearPicker() {
   window.removeEventListener('resize', _awardsCloseYearPicker);
 }
 
+// View Ceremony + Share appear in two places once a category has a winner:
+// beside the year at the top, and under the cards (phase 9 part 5 step 2)
+function _awardsShowCeremonyBtns(show) {
+  const bar = document.getElementById('awardsCeremonyBar');
+  if (bar) bar.style.display = show ? '' : 'none';
+  document.querySelectorAll('.awards-top-ceremony').forEach(el => { el.style.display = show ? '' : 'none'; });
+}
+
 async function awardsRenderYear(year) {
   const statusEl = document.getElementById('awardsStatus');
   statusEl.textContent = '';
@@ -41365,7 +41373,7 @@ async function awardsRenderYear(year) {
     document.getElementById('awardsCatList').innerHTML = '';
     _awardsRenderViewBar(false);
     document.getElementById('awardsSummary').innerHTML = '';
-    document.getElementById('awardsCeremonyBar').style.display = 'none';
+    _awardsShowCeremonyBtns(false);
     return;
   }
   statusEl.textContent = 'Loading…';
@@ -41691,7 +41699,7 @@ function _awardsRenderCatList(data) {
   });
   if (!activeCats.length) {
     el.innerHTML = `<div class="awards-empty">${t('awards_no_categories')}</div>`;
-    document.getElementById('awardsCeremonyBar').style.display = 'none';
+    _awardsShowCeremonyBtns(false);
     _awardsRenderSummary(data.year);
     return;
   }
@@ -41718,7 +41726,7 @@ function _awardsRenderCatList(data) {
     _awardsBindDrag(el);
   }
   const hasWinner = activeCats.some(c => data.categories[c.id]?.winner);
-  document.getElementById('awardsCeremonyBar').style.display = hasWinner ? '' : 'none';
+  _awardsShowCeremonyBtns(hasWinner);
   // Every change to the ballot comes through here, so the stats block above the
   // cards stays in step with a new nominee or a freshly crowned winner.
   _awardsRenderSummary(data.year);

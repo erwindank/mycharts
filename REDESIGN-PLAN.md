@@ -2826,6 +2826,17 @@ Steps:
    as .dc-tabs. One toolbar: ‹ year ›, Configure Year, Generate Nominees,
    and once there is a winner, View Ceremony (gold) + Share. The bottom
    View Ceremony + Share stay.
+   **Done 2026-10-24:** title "Awards" (es "Premios", pt "Prémios" /
+   "Prêmios") with a line trophy (the bottom bar's, redrawn on 16px) in
+   the shared title rule (#awardsView added to it). My Grammys /
+   Real-Life were already .dc-tabs. The year bar gets View Ceremony + Share
+   (.awards-top-ceremony) after Generate; _awardsShowCeremonyBtns() shows
+   it and the bottom bar together once any category has a winner. Both
+   copies: squared gold button (#fcd34d → #f0aa30, dark ink, the same in
+   every theme) with a line trophy instead of 🎬, Share with a line link
+   icon instead of 🔗 and its own key (awards_share_btn); the 🎬 left
+   awards_ceremony_btn in all four languages. At 390 the year bar wraps to
+   three rows (year + Configure, Generate, Ceremony + Share).
 3. **Stats & records folded closed.** One row: "2025 at a glance",
    the title, the headline numbers and the leader, and Open ▾. Open, it
    is the full block as today; open / closed remembered on this device.
