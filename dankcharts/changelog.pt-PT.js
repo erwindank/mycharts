@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Events: the whole page in your language":
+    ["Eventos: a página inteira na tua língua",
+     "A página Eventos está agora em português do princípio ao fim. Antes, muita coisa ficava em inglês: “in 3 days”, “Turning 41”, “5th Anniversary”, os títulos da tabela e da lista, os nomes dos meses e dias do calendário e as linhas de carregamento e estado. Agora tudo segue a tua língua e muda assim que a trocas. O título da Máquina do tempo também perdeu o emoji e as maiúsculas, como o resto da página. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
   "Events: a calmer calendar, and a click on a day opens its list":
     ["Eventos: um calendário mais calmo, e um clique num dia abre a lista dele",
      "O separador Calendário da página Eventos abre agora no mês. Cada dia mostra os seus três primeiros eventos com um pequeno ícone de linha para o tipo (aniversário, álbum, single, EP, concerto) em vez de linhas coloridas e emojis, e o resto fica atrás de “+N mais”. Clica num dia, no número dele ou em “+N mais” para abrir a lista desse dia, com o mesmo aspeto de Hoje: aniversários, lançamentos e concertos primeiro, depois as datas do dia por ordem de quanto as ouviste, oito no início, com um botão para ver o resto. No telemóvel o mês mostra só os ícones e os nomes curtos dos dias, para caberem as sete colunas. Funciona com Last.fm, Google Sheets e ficheiros CSV."],

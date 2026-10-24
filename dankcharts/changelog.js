@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 296;
+const DC_CL_I18N_V = 297;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-23', t: 'i18n', a: 'events', h: '964d211',
+    title: "Events: the whole page in your language",
+    detail: "The Events page now speaks Spanish and Portuguese all the way through. Before, a lot of it stayed in English: “in 3 days”, “Turning 41”, “5th Anniversary”, the table and list headings, the calendar’s month and day names, and the loading and status lines. All of it now follows your language and switches the moment you change it. The Time Machine’s heading also lost its emoji and capitals to match the rest of the page. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-23', t: 'design', a: 'events', h: '886a8ad',
     title: "Events: a calmer calendar, and a click on a day opens its list",
     detail: "The Calendar tab on the Events page now opens on the month. Each day shows its first three events with a small line icon for the type (birthday, album, single, EP, show) instead of coloured rows and emoji, and the rest sit behind “+N more”. Click a day, its number or “+N more” to open that day's list, laid out like Today: birthdays, releases and shows first, then the day's anniversaries ranked by how much you've played them, eight at first with a button to see the rest. On a phone the month shows just the icons and short day names, so all seven columns fit. Works with Last.fm, Google Sheets and CSV uploads." },
