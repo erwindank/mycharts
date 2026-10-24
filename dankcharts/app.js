@@ -45108,7 +45108,7 @@ async function _loadRealLifeGrammys(year) {
 
     // The artist's portrait runs down the whole card, with their name and every
     // nomination beside it.
-    return `<div class="dc-card-inset awards-reallife-card">
+    return `<div class="dc-card-inset awards-reallife-card${_rlCardCls(rows.length)}">
       ${_rlArtHtml(artistId, r.played.artist, 'awards-reallife-portrait')}
       <div class="awards-reallife-body">
         <div class="awards-reallife-artist">
@@ -45123,7 +45123,7 @@ async function _loadRealLifeGrammys(year) {
             ${art ? _rlArtHtml(workId, e.title, 'awards-reallife-thumb') : '<div class="awards-reallife-thumb is-blank"></div>'}
             <span class="awards-reallife-badge ${e.won ? 'won' : 'nom'}">${e.won ? '🏆 Won' : '🎗 Nominated'}</span>
             <span class="awards-reallife-rowtext">
-              <span class="awards-reallife-cat">${esc(e.category)}</span>
+              <span class="awards-reallife-cat">${esc(_rlCatCase(e.category))}</span>
               ${e.title ? `<span class="awards-reallife-work">${esc(e.title)}</span>` : ''}
             </span>
           </div>`;
@@ -45133,6 +45133,17 @@ async function _loadRealLifeGrammys(year) {
   }).join('') + credit;
 
   _realLifeLoadArt(artQueue, token);
+}
+
+// A card with one or two nominations gets a small square portrait instead of
+// a tall one that leaves the card mostly empty (phase 9 part 5 step 9)
+function _rlCardCls(n) { return n <= 2 ? ' is-short' : ''; }
+
+// grammy.com writes categories in Title Case ("Song Of The Year"); put the
+// small words back in lower case ("Song of the Year"), never the first word
+const _RL_SMALL_WORDS = new Set(['of', 'the', 'a', 'an', 'and', 'or', 'for', 'in', 'on', 'with', 'by', 'to', 'at', 'from']);
+function _rlCatCase(s) {
+  return String(s || '').split(' ').map((w, i) => (i > 0 && _RL_SMALL_WORDS.has(w.toLowerCase()) && /^[A-Z][a-z]*$/.test(w)) ? w.toLowerCase() : w).join(' ');
 }
 
 // An empty thumb slot with the initials showing, for fetchAndInjectImage to fill
@@ -45942,7 +45953,7 @@ async function _loadRealLifeWiki(showId, year) {
         prefKey: 'artist:' + r.played.artist.toLowerCase(),
       } });
       const plays = r.played.plays;
-      return `<div class="dc-card-inset awards-reallife-card">
+      return `<div class="dc-card-inset awards-reallife-card${_rlCardCls(rows.length)}">
         ${_rlArtHtml(artistId, r.played.artist, 'awards-reallife-portrait')}
         <div class="awards-reallife-body">
           <div class="awards-reallife-artist">
@@ -45960,7 +45971,7 @@ async function _loadRealLifeWiki(showId, year) {
               ${art ? _rlArtHtml(workId, work, 'awards-reallife-thumb') : '<div class="awards-reallife-thumb is-blank"></div>'}
               <span class="awards-reallife-badge ${x.nominee.won ? 'won' : 'nom'}">${x.nominee.won ? '🏆 Won' : '🎗 Nominated'}</span>
               <span class="awards-reallife-rowtext">
-                <span class="awards-reallife-cat">${esc(x.category)}</span>
+                <span class="awards-reallife-cat">${esc(_rlCatCase(x.category))}</span>
                 ${work || withWho ? `<span class="awards-reallife-work">${esc(work)}${withWho ? `${work ? ' · ' : ''}${esc(withWho)}` : ''}</span>` : ''}
               </span>
             </div>`;

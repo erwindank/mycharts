@@ -25299,6 +25299,15 @@ body.pink-light .awards-picker-yt-btn:hover { color: #CC0000; border-color: #CC0
   object-fit: cover;
 }
 .awards-reallife-portrait .thumb-initials { font-size: 1.8rem !important; }
+/* One or two nominations: a small square portrait, so the card is as short
+   as its rows instead of 132px tall and mostly empty */
+.awards-reallife-card.is-short .awards-reallife-portrait {
+  width: 72px;
+  min-height: 0;
+  aspect-ratio: 1;
+  align-self: flex-start;
+}
+.awards-reallife-card.is-short .awards-reallife-portrait .thumb-initials { font-size: 1.1rem !important; }
 /* Cover art for the nominated song or album */
 .awards-reallife-thumb {
   flex: 0 0 auto;
@@ -25364,6 +25373,7 @@ body.pink-light .awards-picker-yt-btn:hover { color: #CC0000; border-color: #CC0
      height — at this width that stretch turns into a sliver. */
   .awards-reallife-portrait { width: 76px; min-height: 0; aspect-ratio: 1; align-self: flex-start; }
   .awards-reallife-portrait .thumb-initials { font-size: 1.1rem !important; }
+  .awards-reallife-card.is-short .awards-reallife-portrait { width: 60px; }
   .awards-reallife-artist { flex-wrap: wrap; gap: 2px var(--sp-2); }
   .awards-reallife-thumb, .awards-reallife-thumb.is-blank { width: 24px; height: 24px; }
   .awards-reallife-row { align-items: flex-start; gap: 6px; }

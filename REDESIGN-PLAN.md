@@ -2932,6 +2932,14 @@ Steps:
 9. **Real-Life Awards.** Cards size to their rows (a one-nomination
    artist gets a short card with a smaller photo); category names in
    normal case ("Song of the Year").
+   **Done 2026-10-24:** both Real-Life card builders (Grammys and the
+   Wikipedia shows) add .is-short when a card has one or two rows
+   (_rlCardCls): the portrait is a 72px square (60px on a phone) instead
+   of 132px tall, so those cards are as short as their rows. Categories go
+   through _rlCatCase(): small words after the first (of, the, for, and…)
+   back to lower case when grammy.com wrote them capitalised ("Album Of
+   The Year" → "Album of the Year"; "Best R&B Song" is left alone).
+   Checked on the 2026 Grammys: 12 cards, 9 short, no Title Case left.
 10. **Screen check + four languages.** 1440 / 1100 / 390 (touch) × en /
     es / pt-BR / pt-PT × every view and the ceremony, scanning for English
     and sideways scroll; the generate status lines ("Loading year data…",
