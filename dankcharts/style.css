@@ -25479,94 +25479,156 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
 }
 
 /* ── CEREMONY OVERLAY ─────────────────────────────────────────────────────── */
+/* ── Full-screen ceremony (redesign phase 9 part 5 step 7) ─────────────────
+   The whole screen: top bar / stage (scrolls) / Previous · Next, with a warm
+   gold glow behind the stage. The page's theme still sets the surfaces, so
+   the light themes get a light stage. */
 .awards-ceremony-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.88);
+  background: var(--bg);
   z-index: var(--z-stage);
   display: none;
-  align-items: center;
-  justify-content: center;
-  padding: var(--sp-4);
+  align-items: stretch;
+  justify-content: stretch;
+  padding: 0;
 }
 .awards-ceremony-modal {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  overflow: hidden;
+  background:
+    radial-gradient(60% 50% at 50% 38%, color-mix(in srgb, var(--gold1) 12%, transparent), transparent 70%),
+    linear-gradient(180deg, var(--bg2), var(--bg));
+}
+.ceremony-topbar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: max(10px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px));
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+  z-index: 8;
+}
+.ceremony-year-badge {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+/* One dot per category: the current one long, opened ones gold */
+.ceremony-dots { display: flex; align-items: center; gap: 6px; }
+.ceremony-dots i {
+  display: block;
+  width: 7px; height: 7px;
+  border-radius: 4px;
+  background: var(--border2, var(--border));
+  transition: background var(--t-fast) var(--ease);
+}
+.ceremony-dots i.is-done { background: color-mix(in srgb, var(--gold1) 70%, var(--border)); }
+.ceremony-dots i.is-on { width: 22px; background: #f0aa30; }
+.ceremony-topbar-btns { display: flex; justify-content: flex-end; gap: 6px; }
+.ceremony-top-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 34px;
+  min-width: 34px;
+  padding: 0 10px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text2);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+.ceremony-top-btn:hover { color: var(--text1); border-color: var(--accent); }
+.ceremony-top-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.ceremony-top-btn svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.ceremony-close-btn, .ceremony-sound-btn { padding: 0; }
+.ceremony-cats-btn[aria-expanded="true"] { color: var(--text1); border-color: var(--accent); background: var(--surface3); }
+
+/* Category drawer, opened from ☰ over the stage */
+.ceremony-sidebar {
+  position: absolute;
+  top: 55px;
+  right: max(16px, env(safe-area-inset-right, 0px));
+  width: min(320px, calc(100% - 32px));
+  max-height: calc(100% - 140px);
+  overflow-y: auto;
+  padding: var(--sp-2) 0;
   background: var(--surface1);
   border: 1px solid var(--border);
-  border-radius: 18px; /* old --r-lg/--r-xl size: charts keep it until phase 8 moves them */
-  width: min(860px, 98vw);
-  max-height: 92vh;
-  display: flex;
-  overflow: hidden;
-  position: relative;
-  box-shadow: 0 24px 80px rgba(0,0,0,0.7);
+  border-radius: var(--r-lg);
+  box-shadow: 0 18px 50px rgba(0,0,0,0.45);
+  z-index: 9;
+  opacity: 0;
+  transform: translateY(-6px);
+  pointer-events: none;
+  visibility: hidden;
+  transition: opacity var(--t-fast) var(--ease), transform var(--t-fast) var(--ease), visibility 0s linear var(--t-fast);
 }
-.ceremony-close-btn {
-  position: absolute;
-  top: 12px; right: 14px;
-  background: var(--surface3);
-  border: 1px solid var(--border);
-  color: var(--text2);
-  border-radius: 50%;
-  width: 30px; height: 30px;
-  font-size: var(--fs-base);
-  cursor: pointer;
-  z-index: 10;
-  display: flex; align-items: center; justify-content: center;
-}
-.ceremony-close-btn:hover { background: #ef4444; color: #fff; border-color: #ef4444; }
-
-/* Sidebar */
-.ceremony-sidebar {
-  width: 220px;
-  min-width: 220px;
-  background: var(--surface2);
-  border-right: 1px solid var(--border);
-  overflow-y: auto;
-  padding: var(--sp-3) 0;
+.awards-ceremony-modal.is-drawer-open .ceremony-sidebar {
+  opacity: 1; transform: none; pointer-events: auto; visibility: visible;
+  transition: opacity var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
 }
 .ceremony-sidebar-title {
   font-size: var(--fs-xs);
   font-weight: 700;
   color: var(--text3);
-  padding: var(--sp-1) 14px 10px;
+  padding: var(--sp-1) 14px 8px;
 }
 .ceremony-sidebar-row {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
-  font-size: var(--fs-xs);
-  color: var(--text3);
+  gap: 8px;
+  padding: 8px 14px;
+  font-size: var(--fs-sm);
+  color: var(--text2);
   cursor: pointer;
   transition: background 0.12s, color 0.12s;
   border-left: 3px solid transparent;
 }
-.ceremony-sidebar-row:hover { background: var(--surface3); color: var(--text2); }
+.ceremony-sidebar-row:hover { background: var(--surface3); color: var(--text1); }
 .ceremony-sidebar-row.active { background: var(--surface3); color: var(--text1); font-weight: 600; border-left-color: var(--accent); }
 .ceremony-sidebar-row.done  { color: var(--gold1); }
 
 /* Stage */
 .ceremony-stage {
-  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: var(--sp-6) 28px 20px;
+  padding: clamp(16px, 3.5vh, 40px) max(16px, env(safe-area-inset-right, 0px)) 24px max(16px, env(safe-area-inset-left, 0px));
   overflow-y: auto;
   position: relative;
 }
-.ceremony-year-badge {
-  font-size: var(--fs-xs);
-  font-weight: 700;
-  color: var(--text3);
-  margin-bottom: var(--sp-2);
+.ceremony-stage > .ceremony-cat-name,
+.ceremony-stage > .ceremony-slide { width: 100%; max-width: 1300px; }
+/* Big covers on a wide screen: eight fit one row at 1100px and up */
+@media (min-width: 601px) {
+  .cer-nominees { gap: 12px; }
+  .cer-nom-card { width: clamp(110px, 10.5vw, 150px); }
+  .cer-nom-name { font-size: var(--fs-sm); }
 }
 .ceremony-cat-name {
-  font-size: var(--fs-lg);
-  font-weight: 800;
+  margin: 0 0 clamp(14px, 3vh, 32px);
+  font-family: var(--font-display);
+  font-size: clamp(30px, 5.2vw, 72px);
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  line-height: 1.02;
   color: var(--text1);
   text-align: center;
-  margin-bottom: var(--sp-5);
+  text-wrap: balance;
 }
 /* Slide: nominee cards → sealed envelope → winner */
 .ceremony-slide {
@@ -26412,22 +26474,6 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
   .aw-sum, .aw-sum-rank-row, .aw-sum-winner { animation: none; }
 }
 
-/* Sound toggle, next to the close button */
-.ceremony-sound-btn {
-  position: absolute;
-  top: 12px; right: 52px;
-  background: var(--surface3);
-  border: 1px solid var(--border);
-  color: var(--text2);
-  border-radius: 50%;
-  width: 30px; height: 30px;
-  font-size: var(--fs-sm);
-  cursor: pointer;
-  z-index: 10;
-  display: flex; align-items: center; justify-content: center;
-}
-.ceremony-sound-btn:hover { color: var(--text1); border-color: var(--accent); }
-
 .ceremony-confetti {
   position: absolute;
   inset: 0;
@@ -26445,23 +26491,20 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
   animation: confettiFall linear forwards;
 }
 
+/* Previous / Next: a bar of its own under the stage, so it never covers a
+   slide's content (it used to float over the opening slide's list) */
 .ceremony-nav-row {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: var(--sp-4);
-  margin-top: auto;
-  /* The stage scrolls once a winner is on screen — keep the controls reachable */
-  position: sticky;
-  bottom: -1px;
-  width: 100%;
-  padding: 10px 0 2px;
-  background: linear-gradient(to bottom, transparent, var(--surface1) 28%);
+  padding: 10px max(16px, env(safe-area-inset-right, 0px)) max(12px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+  border-top: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
   z-index: 7;
 }
 .ceremony-nav-btn {
-  padding: 6px var(--sp-4);
-  border-radius: var(--r-sm);
+  padding: 8px var(--sp-5);
+  border-radius: var(--r-md);
   border: 1.5px solid var(--border);
   background: var(--surface2);
   color: var(--text2);
@@ -26477,33 +26520,19 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
 
 /* Mobile responsiveness */
 @media (max-width: 600px) {
-  .awards-ceremony-modal { flex-direction: column; max-height: 96vh; }
-  .ceremony-sidebar {
-    width: 100%;
-    min-width: unset;
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-    max-height: 120px;
-    display: flex;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    padding: 6px var(--sp-1);
-    padding-right: 88px;
-    gap: var(--sp-1);
-  }
-  .ceremony-sidebar-title { display: none; }
-  .ceremony-sidebar-row {
-    white-space: nowrap;
-    border-left: none;
-    border-bottom: 3px solid transparent;
-    padding: 5px 10px;
-    font-size: var(--fs-xs);
-    flex-shrink: 0;
-  }
-  .ceremony-sidebar-row.active { border-left: none; border-bottom-color: var(--accent); }
-  .ceremony-stage { padding: var(--sp-4) 14px var(--sp-3); }
-  .ceremony-cat-name { font-size: var(--fs-md); }
-  .cer-nom-card { width: 96px; padding: 6px; }
+  /* Phone: the label on ☰ goes, the dots shrink, and the whole slide up to
+     Open envelope fits without scrolling (four small covers a row) */
+  .ceremony-cats-btn span { display: none; }
+  .ceremony-cats-btn { padding: 0; }
+  .ceremony-dots { gap: 4px; }
+  .ceremony-dots i { width: 5px; height: 5px; }
+  .ceremony-dots i.is-on { width: 14px; }
+  .ceremony-year-badge { font-size: var(--fs-xs); }
+  .ceremony-stage { padding-top: 14px; }
+  .ceremony-cat-name { font-size: clamp(26px, 8vw, 36px); margin-bottom: 14px; }
+  .cer-nominees { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+  .cer-nom-card { width: auto; padding: 4px; }
+  .cer-nom-sub { display: none; }
   .cer-nom-name { font-size: var(--fs-xs); }
   .cer-envelope { width: 190px; height: 124px; }
   .cer-art-lg { width: 140px; }

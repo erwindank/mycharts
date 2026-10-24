@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=639">
+  <link rel="stylesheet" href="style.css?v=641">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -2445,25 +2445,36 @@
   </div>
 
   <!-- CEREMONY OVERLAY -->
+  <!-- Full screen (redesign phase 9 part 5 step 7): a slim top bar (title,
+       progress dots, ☰ Categories, sound, close), the stage that scrolls, and
+       Previous / Next fixed at the bottom. The category list is a drawer that
+       ☰ opens over the stage instead of a column of its own. -->
   <div class="awards-ceremony-overlay" id="awardsCeremonyOverlay" style="display:none;" onclick="ceremonyOverlayClick(event)">
-    <div class="awards-ceremony-modal" id="awardsCeremonyModal">
-      <button class="ceremony-close-btn" onclick="closeCeremony()" title="Close">✕</button>
-      <button class="ceremony-sound-btn" id="ceremonySoundBtn" onclick="ceremonyToggleSound()" title="Song previews">🔊</button>
+    <div class="awards-ceremony-modal" id="awardsCeremonyModal" role="dialog" aria-modal="true" aria-labelledby="ceremonyCatName">
+      <div class="ceremony-topbar">
+        <div class="ceremony-year-badge" id="ceremonyYearBadge"></div>
+        <div class="ceremony-dots" id="ceremonyDots" aria-hidden="true"></div>
+        <div class="ceremony-topbar-btns">
+          <button type="button" class="ceremony-top-btn ceremony-cats-btn" id="ceremonyCatsBtn" onclick="ceremonyToggleDrawer()" aria-expanded="false" aria-controls="ceremonySidebar" title="Categories" aria-label="Categories" data-i18n-title="awards_ceremony_cats" data-i18n-aria="awards_ceremony_cats"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg><span data-i18n="awards_ceremony_cats">Categories</span></button>
+          <button type="button" class="ceremony-top-btn ceremony-sound-btn" id="ceremonySoundBtn" onclick="ceremonyToggleSound()" title="Song previews">🔊</button>
+          <button type="button" class="ceremony-top-btn ceremony-close-btn" onclick="closeCeremony()" title="Close" aria-label="Close" data-i18n-title="set_close" data-i18n-aria="set_close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+        </div>
+      </div>
 
-      <!-- Category sidebar -->
+      <!-- Category drawer (☰) -->
       <div class="ceremony-sidebar" id="ceremonySidebar"></div>
 
       <!-- Stage: nominees → sealed envelope → winner -->
       <div class="ceremony-stage" id="ceremonyStage">
         <div class="ceremony-confetti" id="ceremonyConfetti"></div>
-        <div class="ceremony-year-badge" id="ceremonyYearBadge"></div>
-        <div class="ceremony-cat-name" id="ceremonyCatName"></div>
+        <h2 class="ceremony-cat-name" id="ceremonyCatName"></h2>
         <div class="ceremony-slide" id="ceremonySlide"></div>
-        <div class="ceremony-nav-row">
-          <button class="ceremony-nav-btn" id="ceremonyPrevBtn" onclick="ceremonyNav(-1)" data-i18n="awards_ceremony_prev">◄ Previous</button>
-          <span class="ceremony-progress" id="ceremonyProgress"></span>
-          <button class="ceremony-nav-btn" id="ceremonyNextBtn" onclick="ceremonyNav(1)">Next ►</button>
-        </div>
+      </div>
+
+      <div class="ceremony-nav-row">
+        <button class="ceremony-nav-btn" id="ceremonyPrevBtn" onclick="ceremonyNav(-1)" data-i18n="awards_ceremony_prev">◄ Previous</button>
+        <span class="ceremony-progress" id="ceremonyProgress"></span>
+        <button class="ceremony-nav-btn" id="ceremonyNextBtn" onclick="ceremonyNav(1)">Next ►</button>
       </div>
     </div>
   </div>

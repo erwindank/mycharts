@@ -46069,6 +46069,7 @@ function _ceremonyOpen(data, year, cats, summary, finalSummary) {
   _ceremonyRevealed = new Set();
   document.getElementById('awardsCeremonyOverlay').style.display = 'flex';
   document.body.style.overflow = 'hidden';
+  ceremonyToggleDrawer(false);
   _ceremonyPaintSoundBtn();
   _ceremonyDrawSidebar(data);
   _ceremonyRender();
@@ -46077,7 +46078,8 @@ function _ceremonyOpen(data, year, cats, summary, finalSummary) {
   _ceremonyKeyHandler = e => {
     if (document.getElementById('awardsCeremonyOverlay')?.style.display === 'none') return;
     const showing = _cerShowIdx >= 0;
-    if (e.key === 'Escape')     { e.preventDefault(); showing ? cerShowStop() : closeCeremony(); }
+    const drawer = document.getElementById('awardsCeremonyModal')?.classList.contains('is-drawer-open');
+    if (e.key === 'Escape')     { e.preventDefault(); drawer ? ceremonyToggleDrawer(false) : showing ? cerShowStop() : closeCeremony(); }
     else if (e.key === 'ArrowRight') { e.preventDefault(); showing ? cerShowNext() : ceremonyNav(1); }
     else if (e.key === 'ArrowLeft')  { e.preventDefault(); showing ? cerShowPrev() : ceremonyNav(-1); }
     else if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); ceremonyReveal(); }
@@ -46096,10 +46098,21 @@ function closeCeremony() {
   if (_ceremonyKeyHandler) { document.removeEventListener('keydown', _ceremonyKeyHandler); _ceremonyKeyHandler = null; }
 }
 
+// ☰ Categories: the category list slides in over the stage (full-screen
+// ceremony, phase 9 part 5 step 7). force = true / false sets it.
+function ceremonyToggleDrawer(force) {
+  const modal = document.getElementById('awardsCeremonyModal');
+  if (!modal) return;
+  const open = typeof force === 'boolean' ? force : !modal.classList.contains('is-drawer-open');
+  modal.classList.toggle('is-drawer-open', open);
+  document.getElementById('ceremonyCatsBtn')?.setAttribute('aria-expanded', String(open));
+}
+
 function ceremonyOverlayClick(e) {
-  // A guest has nowhere to go back to, so a stray click on the backdrop must
-  // not throw them out of the ceremony they were sent.
-  if (e.target.id === 'awardsCeremonyOverlay' && !_ceremonyShared) closeCeremony();
+  // The ceremony fills the screen, so there is no backdrop left to click; a
+  // click on the stage outside the open drawer just closes the drawer.
+  const modal = document.getElementById('awardsCeremonyModal');
+  if (modal?.classList.contains('is-drawer-open') && !e.target.closest('#ceremonySidebar, #ceremonyCatsBtn')) ceremonyToggleDrawer(false);
 }
 
 function _ceremonyIsFinale() { return _ceremonyIdx >= _ceremonyCats.length; }
@@ -46142,6 +46155,16 @@ function _ceremonyDrawSidebar(data) {
     `<div class="ceremony-sidebar-row ceremony-sidebar-finale${_ceremonyIsFinale() ? ' active' : ''}" data-idx="${_ceremonyCats.length}" onclick="ceremonyGoTo(${_ceremonyCats.length})">
       <span class="ceremony-sidebar-dot">🎬</span> All winners
     </div>`;
+  _ceremonyPaintDots();
+}
+
+// Progress dots in the top bar: one per category, the current one long, the
+// opened ones gold. Nothing lit on the opening and closing slides.
+function _ceremonyPaintDots() {
+  const el = document.getElementById('ceremonyDots');
+  if (!el) return;
+  el.innerHTML = _ceremonyCats.map((cat, i) =>
+    `<i class="${i === _ceremonyIdx ? 'is-on' : ''}${_ceremonyRevealed.has(cat.id) ? ' is-done' : ''}"></i>`).join('');
 }
 
 /* ── Artwork ──────────────────────────────────────────────────────────────── */
@@ -46240,6 +46263,7 @@ function _ceremonyRender() {
   nextBtn.style.visibility = _ceremonyIsFinale() ? 'hidden' : '';
   // Rows carry their own index, since the optional intro row shifts the positions
   document.querySelectorAll('.ceremony-sidebar-row').forEach(el => el.classList.toggle('active', +el.dataset.idx === _ceremonyIdx));
+  _ceremonyPaintDots();
   document.getElementById('ceremonyStage').scrollTop = 0;
   _ceremonyLoadArt(queue, seq);
 }
@@ -46413,6 +46437,7 @@ function ceremonyNav(delta) {
 function ceremonyGoTo(idx) {
   const data = _ceremonyData;
   if (!data) return;
+  ceremonyToggleDrawer(false);   // picked from the drawer: close it to show the slide
   _ceremonyIdx = Math.max(_ceremonyFirstIdx(), Math.min(_ceremonyCats.length, idx));
   _ceremonyDrawSidebar(data);
   _ceremonyRender();
