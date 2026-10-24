@@ -2868,6 +2868,17 @@ Steps:
 5. **Configure Year panel.** Category cards give the name the full width
    (badge, ☆ and switch on their own row or smaller); the list is part of
    the page, not its own scroll box; the two filter rows become one.
+   **Done 2026-10-24:** .awc-card is a grid: icon | name + hint (the whole
+   middle column) | switch, with the type / auto badges and ☆ on a second
+   row (badges under the text, ☆ under the switch). .awc-list lost its
+   max-height and scroll; group heads stick under the top bar
+   (var(--topbar-h)). Enable All / Disable All / Favorites only moved up
+   to the "Categories for this year" row, so search + Type + Status share
+   one row at 1440 (checked: same top). **Bug found and fixed:** a click
+   on a category card did nothing. The card is a <label> and its first
+   labelable child was the ☆ <button>, so the label pointed at the star,
+   not the switch; it now has for="awcIn_<id>" (checked with real clicks:
+   the card name turns it on, the switch turns it off).
 6. **Nominee picker.** Genre tags on one line (more hidden behind "+N"),
    no "-" chip for a missing year, row buttons always inside the row.
 7. **Ceremony, part 1: the stage.** Full screen, slim top bar (year,

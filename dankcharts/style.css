@@ -22859,7 +22859,8 @@ body[class*="-light"] .tm-card-search:hover {
 .awc { margin-top: 6px; }
 .awc-head {
   display: flex;
-  align-items: baseline;
+  align-items: center;
+  flex-wrap: wrap;
   gap: 10px;
   margin-bottom: 10px;
 }
@@ -22959,17 +22960,14 @@ body[class*="-light"] .tm-card-search:hover {
 .awc-chip-n { font-family: var(--font-mono);
       font-variant-numeric: tabular-nums; font-size: var(--fs-xs); color: var(--text3); }
 
-.awc-list {
-  max-height: min(62vh, 640px);
-  overflow-y: auto;
-  padding-right: var(--sp-1);
-  scrollbar-width: thin;
-}
+/* Part of the page, not its own scroll box (phase 9 part 5 step 5) */
+.awc-list { padding-right: 0; }
 .awc-group + .awc-group { margin-top: var(--sp-4); }
 /* The heading sticks while its section scrolls under it */
 .awc-group-head {
+  /* sticks under the site's top bar now that the page itself scrolls */
   position: sticky;
-  top: 0;
+  top: var(--topbar-h, 56px);
   z-index: 1;
   display: flex;
   align-items: center;
@@ -22999,8 +22997,25 @@ body[class*="-light"] .tm-card-search:hover {
   grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
   gap: var(--sp-2);
 }
-/* A whole card is the switch's label, so clicking anywhere on it flips it */
-.awc-card { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 10px var(--sp-3); cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+/* A whole card is the switch's label, so clicking anywhere on it flips it.
+   The name gets the full middle column; the type badge and ☆ go on a second
+   row under it, the switch top right (phase 9 part 5 step 5). */
+.awc-card {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  column-gap: 10px;
+  row-gap: 6px;
+  align-items: start;
+  min-width: 0;
+  padding: 10px var(--sp-3);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.awc-card > .awc-emoji { grid-column: 1; grid-row: 1 / span 2; }
+.awc-card > .awc-text  { grid-column: 2; grid-row: 1; }
+.awc-card > .awc-tags  { grid-column: 2; grid-row: 2; }
+.awc-card > .src-switch { grid-column: 3; grid-row: 1; }
+.awc-card > .awc-fav   { grid-column: 3; grid-row: 2; justify-self: center; align-self: center; }
 .awc-card:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); }
 .awc-card.is-on {
   border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
@@ -23023,7 +23038,7 @@ body[class*="-light"] .tm-card-search:hover {
 .awc-card:not(.is-on) .awc-name { color: var(--text2); }
 .awc-name mark { background: color-mix(in srgb, var(--accent) 30%, transparent); color: inherit; border-radius: var(--r-xs); padding: 0 1px; }
 .awc-hint { font-size: var(--fs-xs); color: var(--text3); line-height: 1.3; }
-.awc-tags { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; flex: 0 0 auto; }
+.awc-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
 .awc-empty {
   display: flex;
   flex-direction: column;

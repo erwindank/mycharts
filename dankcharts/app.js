@@ -41551,7 +41551,10 @@ function _awcMark(text) {
 function _awcCardHtml(cat, data) {
   const on = _awcEnabled(data, cat);
   const name = t('awards_cat_' + cat.id);
-  return `<label class="dc-card-inset awc-card${on ? ' is-on' : ''}${_awardsFavCats.has(cat.id) ? ' is-fav' : ''}" data-cat="${esc(cat.id)}">
+  // for= names the switch: without it the label's control is the first
+  // labelable thing inside it, the ☆ button, so a click on the card starred
+  // nothing and switched nothing
+  return `<label class="dc-card-inset awc-card${on ? ' is-on' : ''}${_awardsFavCats.has(cat.id) ? ' is-fav' : ''}" data-cat="${esc(cat.id)}" for="awcIn_${esc(cat.id)}">
     <span class="awc-emoji" aria-hidden="true">${cat.emoji || '🏆'}</span>
     <span class="awc-text">
       <span class="awc-name">${_awcMark(name)}</span>
@@ -41563,7 +41566,7 @@ function _awcCardHtml(cat, data) {
     </span>
     ${_awardsFavBtn(cat.id, 'awc-fav')}
     <span class="src-switch">
-      <input type="checkbox" ${on ? 'checked' : ''} onchange="awardsToggleCat('${esc(cat.id)}',this.checked)" aria-label="${esc(name)}">
+      <input type="checkbox" id="awcIn_${esc(cat.id)}" ${on ? 'checked' : ''} onchange="awardsToggleCat('${esc(cat.id)}',this.checked)" aria-label="${esc(name)}">
       <span class="src-switch-slider"></span>
     </span>
   </label>`;

@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=633">
+  <link rel="stylesheet" href="style.css?v=634">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -2359,6 +2359,14 @@
             <div class="awc-head">
               <span class="awc-title" data-i18n="awards_categories_for_year">Categories for this year</span>
               <span class="awc-count" id="awardsCatCount"></span>
+              <!-- Bulk buttons sit on the title row (phase 9 part 5 step 5), so the
+                   search and the two filters below share one row -->
+              <div class="awc-bulk">
+                <button type="button" class="dc-btn dc-btn-normal dc-btn-sm awc-bulk-btn" id="awardsCatAllOn" onclick="awardsToggleAllCats(true)">Enable All</button>
+                <button type="button" class="dc-btn dc-btn-normal dc-btn-sm awc-bulk-btn" id="awardsCatAllOff" onclick="awardsToggleAllCats(false)">Disable All</button>
+                <!-- Favourites on, everything else off (awardsCatFavsOnly); label and state set by _awcUpdateCounts -->
+                <button type="button" class="dc-btn dc-btn-normal dc-btn-sm awc-bulk-btn awc-favs-only" id="awardsCatFavsOnly" onclick="awardsCatFavsOnly()" disabled>★ Favorites only</button>
+              </div>
             </div>
             <div class="awc-bar">
               <div class="awc-search">
@@ -2380,12 +2388,6 @@
                 <button type="button" data-v="on" onclick="awardsCatFilter('status','on')" data-i18n="awards_cat_f_on">On</button>
                 <button type="button" data-v="off" onclick="awardsCatFilter('status','off')" data-i18n="awards_cat_f_off">Off</button>
                 <button type="button" data-v="fav" onclick="awardsCatFilter('status','fav')"><span aria-hidden="true">★</span> <span data-i18n="awards_cat_f_fav">Favorites</span> <span class="awc-seg-n"></span></button>
-              </div>
-              <div class="awc-bulk">
-                <button type="button" class="dc-btn dc-btn-normal dc-btn-sm awc-bulk-btn" id="awardsCatAllOn" onclick="awardsToggleAllCats(true)">Enable All</button>
-                <button type="button" class="dc-btn dc-btn-normal dc-btn-sm awc-bulk-btn" id="awardsCatAllOff" onclick="awardsToggleAllCats(false)">Disable All</button>
-                <!-- Favourites on, everything else off (awardsCatFavsOnly); label and state set by _awcUpdateCounts -->
-                <button type="button" class="dc-btn dc-btn-normal dc-btn-sm awc-bulk-btn awc-favs-only" id="awardsCatFavsOnly" onclick="awardsCatFavsOnly()" disabled>★ Favorites only</button>
               </div>
             </div>
             <div class="awc-chips" id="awardsCatGroups" role="group" aria-label="Category groups"></div>
