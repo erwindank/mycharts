@@ -986,16 +986,59 @@ What the screen shows:
   ⓘ. One "＋ Playlist" for what's showing, replacing the per-section
   buttons and the calendar's three.
 
-### 4.17 Awards. From the code
+### 4.17 Awards. Seen on screen (2026-10-24)
 
 My Grammys / Real-Life Awards sub-tabs, year arrows, a ceremony mode with
 Previous/Next. This is the most "shareable moment" feature after the hero
-card, so give it the most polish:
-- Ceremony screen: full-width, big cover art, the category name in
-  Bricolage, the winner revealed with one animation (respecting reduced
-  motion).
-- Year switch: use the same `‹ 2025 ›` pattern as the period picker (4.4).
-- Gold here is allowed: this is literally "earned".
+card, so give it the most polish. Gold here is allowed: this is literally
+"earned". The year switch already uses `‹ 2025 ›` (phase 8 step 2d).
+
+**Now** (sample library, 1440 and 390 touch, navy dark; options page for
+the choices: https://claude.ai/artifact/Cj637puWWKusfGrTxvbpGk):
+- **The ceremony is a box** (~860px) with a category list on the left:
+  covers ~100px, the category name in a plain heading, and after the
+  envelope opens the winner shows twice (lit up in the grid and again
+  large below it). On a phone the category strip runs under the 🔊 / ✕
+  buttons and "Open Envelope" is below the fold. On the opening slide
+  (Stats & records) the Previous / Start bar sits on top of the list, and
+  the Song card's title runs past its right edge.
+- **"View Ceremony" only appears at the very bottom**, under every card.
+- **Stats & records is ~800px tall** above the ballot: three all-time
+  cards (six once there are winners) and a 10-row list with "nominations"
+  under every number.
+- **Bug: Spotlight view, Best Collaboration:** rows show "173 plays · with
+  a DJ/producer" in place of the song name; the note pushes the name out
+  and runs past the card.
+- **Page title** is a small white "Awards" tag, not the shared Records /
+  Stats / Events title.
+- **Two toolbar rows** (left-to-decide chip, Hide decided, All / No winner,
+  Expand / Collapse, then View on its own row).
+- **Ballot cards:** a lowercase "song" / "album" label over each title;
+  empty categories are full cards with a dashed "No nominees yet." box;
+  "Click a nominee to crown the winner" repeats on every card.
+- **Configure Year panel:** each category's name is squeezed into a narrow
+  column ("Song of the / Year") by the type badge, ☆ and switch; the
+  category list sits in its own scroll box; two rows of filters.
+- **Nominee picker:** genre tags stack into tall rows, a "-" chip stands
+  in for a missing year, and the last buttons of a row get cut off.
+- **Real-Life Awards:** an artist with one nomination gets a tall, mostly
+  empty card (the photo sets the height); category names in Title Case
+  ("Song Of The Year").
+- **English in every language:** "Loading year data…", "Calculating …",
+  "Saving…" (awardsGenerateCandidates).
+
+**Fix (decided 2026-10-24):**
+- **Ceremony full screen** (option A): the whole screen, a slim top bar
+  (year, progress dots, ☰ Categories, 🔊, ✕), the category name big in
+  Bricolage, big covers before the envelope, then one large winner with a
+  gold glow and the other nominees as a dimmed strip. The category list
+  opens from ☰ instead of taking a column. Confetti stays, off with
+  reduced motion. Same stage for shared ceremony links (?ceremony=).
+- **"View Ceremony" top and bottom** (option B): in the top toolbar next
+  to the year with Share, and still under the cards.
+- **Stats & records:** not answered yet. Placeholder: option A (top 5
+  rows + "Show all", "nominations" once, slimmer cards). Options B (fold
+  closed) and C (leave as is) are on the options page.
 
 ### 4.18 Your Soundtrack. From the code
 
@@ -2758,6 +2801,52 @@ Steps:
 
 After Events: Awards (4.17), Soundtrack (4.18), then the rest, each looked
 at on screen first.
+
+**Phase 9 part 5: Awards. Planned 2026-10-24, one step per commit, on
+`main`; you review each step before the next.** Looked at on screen first
+(1440 and 390 touch, navy dark, sample library); what was found is under
+4.17. Decided with you: ceremony full screen, "View Ceremony" at the top
+and the bottom. Stats & records still open (placeholder: top 5 + Show all).
+
+Steps:
+1. **Fix first.** Spotlight rows keep the song name and put the
+   collaboration note ("with a DJ/producer") on the second line, inside
+   the card. Picker rows stop cutting off their last buttons.
+2. **Top of the page.** Title "Awards" in the shared Records / Stats /
+   Events title style with the nav's line trophy. My Grammys / Real-Life
+   as .dc-tabs. One toolbar: ‹ year ›, Configure Year, Generate Nominees,
+   and once there is a winner, View Ceremony (gold) + Share. The bottom
+   View Ceremony + Share stay.
+3. **Stats & records** as you choose (placeholder: top 5 rows + "Show
+   all", "nominations" said once, slimmer all-time cards). Same block in
+   the ceremony's opening and closing slides.
+4. **Ballot.** One toolbar row (left-to-decide, Hide decided, All / No
+   winner, Expand / Collapse, View). Type label as the compact uppercase
+   label used elsewhere. Empty categories as a short card (title + "Pick
+   nominees"), no dashed box. "Click a nominee to crown the winner" said
+   once in the toolbar, not on every card.
+5. **Configure Year panel.** Category cards give the name the full width
+   (badge, ☆ and switch on their own row or smaller); the list is part of
+   the page, not its own scroll box; the two filter rows become one.
+6. **Nominee picker.** Genre tags on one line (more hidden behind "+N"),
+   no "-" chip for a missing year, row buttons always inside the row.
+7. **Ceremony, part 1: the stage.** Full screen, slim top bar (year,
+   progress dots, ☰ Categories, 🔊, ✕), category name big in Bricolage,
+   nominees as big covers, Previous / Next at the bottom; ☰ opens the
+   category list as a drawer. Phone: everything incl. Open envelope fits
+   without scrolling, nothing under the top buttons.
+8. **Ceremony, part 2: the reveal.** The winner shows once, large, with a
+   gold glow; the others become a dimmed strip. Confetti off with reduced
+   motion. The opening (Stats & records) and closing (The Winners) slides
+   fit the full-screen stage; the shared-link viewer uses the same stage.
+9. **Real-Life Awards.** Cards size to their rows (a one-nomination
+   artist gets a short card with a smaller photo); category names in
+   normal case ("Song of the Year").
+10. **Screen check + four languages.** 1440 / 1100 / 390 (touch) × en /
+    es / pt-BR / pt-PT × every view and the ceremony, scanning for English
+    and sideways scroll; the generate status lines ("Loading year data…",
+    "Calculating …", "Saving…") through keys. Navy dark / light, Yellow
+    dark, Red light screenshots, with gold checked on the light themes.
 
 The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in
