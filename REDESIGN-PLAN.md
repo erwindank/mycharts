@@ -2897,6 +2897,21 @@ Steps:
    nominees as big covers, Previous / Next at the bottom; ☰ opens the
    category list as a drawer. Phone: everything incl. Open envelope fits
    without scrolling, nothing under the top buttons.
+   **Done 2026-10-24:** the overlay fills the screen (no box, no
+   backdrop): a grid of top bar / stage / nav. Top bar: title, progress
+   dots (_ceremonyPaintDots: one per category, current long and gold,
+   opened ones gold-tinted), ☰ Categories (label hidden on phones), 🔊, ✕
+   (line icon). The sidebar is now a drawer under ☰
+   (ceremonyToggleDrawer, .is-drawer-open); picking a row closes it, a
+   click on the stage closes it, Esc closes it before it closes the
+   ceremony. Category name: Bricolage 750, clamp(30px, 5.2vw, 72px).
+   Covers clamp(110px, 10.5vw, 150px), eight in a row from 1100px; on a
+   phone four a row with the artist line hidden. Previous / Next is its
+   own bar under the stage (it used to float over the opening slide's
+   list). The stage keeps the page theme's surfaces with a soft gold glow.
+   Checked at 1440 and 390 (touch) with real clicks: Open envelope is on
+   screen with no scrolling (390: button bottom 612 of 785), the drawer
+   picks a category and closes, Esc leaves, no sideways scroll.
 8. **Ceremony, part 2: the reveal.** The winner shows once, large, with a
    gold glow; the others become a dimmed strip. Confetti off with reduced
    motion. The opening (Stats & records) and closing (The Winners) slides
