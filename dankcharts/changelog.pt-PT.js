@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Awards: names no longer disappear in Spotlight":
+    ["Prémios: os nomes já não desaparecem no Destaque",
+     "Na vista Destaque dos Prémios, as linhas de Melhor colaboração mostravam “173 plays · with a DJ/producer” onde devia estar o nome da música: a nota longa empurrava o nome para fora da linha. Agora a nota fica numa linha própria por baixo do artista, e o número de reproduções fica ao lado do nome. No seletor de nomeados, uma linha de artista longa encurta agora com “…” em vez de empurrar os botões de tocar para fora da linha. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
   "Events: the whole page in your language":
     ["Eventos: a página inteira na tua língua",
      "A página Eventos está agora em português do princípio ao fim. Antes, muita coisa ficava em inglês: “in 3 days”, “Turning 41”, “5th Anniversary”, os títulos da tabela e da lista, os nomes dos meses e dias do calendário e as linhas de carregamento e estado. Agora tudo segue a tua língua e muda assim que a trocas. O título da Máquina do tempo também perdeu o emoji e as maiúsculas, como o resto da página. Funciona com Last.fm, Google Sheets e ficheiros CSV."],

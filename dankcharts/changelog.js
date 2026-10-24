@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 297;
+const DC_CL_I18N_V = 298;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-24', t: 'fix', a: 'awards', h: 'c0da69b',
+    title: "Awards: names no longer disappear in Spotlight",
+    detail: "In the Awards Spotlight view, Best Collaboration rows showed “173 plays · with a DJ/producer” where the song name should be: the long note pushed the name out of the row. The note now sits on its own line under the artist, and the play count stays next to the name. In the nominee picker, a long artist line now shortens with “…” instead of pushing the play buttons out of the row. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-23', t: 'i18n', a: 'events', h: '964d211',
     title: "Events: the whole page in your language",
     detail: "The Events page now speaks Spanish and Portuguese all the way through. Before, a lot of it stayed in English: “in 3 days”, “Turning 41”, “5th Anniversary”, the table and list headings, the calendar’s month and day names, and the loading and status lines. All of it now follows your language and switches the moment you change it. The Time Machine’s heading also lost its emoji and capitals to match the rest of the page. Works with Last.fm, Google Sheets and CSV uploads." },
