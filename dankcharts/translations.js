@@ -1461,6 +1461,9 @@ const TRANSLATIONS = {
     ev_group_past_weeks: 'Past few weeks',
     ev_group_earlier: 'Earlier',
     ev_recent_empty: 'Nothing recent from your top artists.',
+    ev_cal_more: '+{{n}} more',
+    ev_cal_day_empty: 'Nothing on this day.',
+    ev_cal_anniversaries: 'Anniversaries',
     ev_tickets_credit: 'Tickets via Ticketmaster',
     ev_anniv_all: 'Show all {{n}} anniversaries',
     sec_records_title: '🏆 Records & Hall of Fame',
@@ -5100,6 +5103,9 @@ const TRANSLATIONS = {
     ev_group_past_weeks: 'Últimas semanas',
     ev_group_earlier: 'Antes',
     ev_recent_empty: 'No hay nada reciente de tus artistas principales.',
+    ev_cal_more: '+{{n}} más',
+    ev_cal_day_empty: 'No hay nada este día.',
+    ev_cal_anniversaries: 'Aniversarios',
     ev_tickets_credit: 'Entradas en Ticketmaster',
     ev_anniv_all: 'Mostrar los {{n}} aniversarios',
     sec_records_title: '🏆 Récords y Salón de la Fama',
@@ -8639,6 +8645,9 @@ const TRANSLATIONS = {
     ev_group_past_weeks: 'Últimas semanas',
     ev_group_earlier: 'Antes',
     ev_recent_empty: 'Nada recente dos seus artistas principais.',
+    ev_cal_more: '+{{n}} mais',
+    ev_cal_day_empty: 'Nada neste dia.',
+    ev_cal_anniversaries: 'Datas comemorativas',
     ev_tickets_credit: 'Ingressos pelo Ticketmaster',
     ev_anniv_all: 'Mostrar todas as {{n}} datas comemorativas',
     sec_records_title: '🏆 Recordes e Salão da Fama',
@@ -12179,6 +12188,9 @@ const TRANSLATIONS = {
     ev_group_past_weeks: 'Últimas semanas',
     ev_group_earlier: 'Antes',
     ev_recent_empty: 'Nada recente dos teus artistas principais.',
+    ev_cal_more: '+{{n}} mais',
+    ev_cal_day_empty: 'Nada neste dia.',
+    ev_cal_anniversaries: 'Datas',
     ev_tickets_credit: 'Bilhetes na Ticketmaster',
     ev_anniv_all: 'Mostrar todas as {{n}} datas',
     sec_records_title: '🏆 Recordes e Salão da Fama',
@@ -14466,6 +14478,8 @@ function setLanguage(lang) {
   if (typeof _evReRenderSection === 'function') Object.keys(EV_GRID_IDS).forEach(_evReRenderSection);
   if (typeof _renderEventsToday === 'function') _renderEventsToday();
   if (typeof _renderEventsLists === 'function') _renderEventsLists();
+  // and the calendar ("+N more", the Day view's cards)
+  if (typeof _eventsCalendarData !== 'undefined' && _eventsCalendarData) renderEventsCalendar(_eventsCalendarData, eventsCalendarYear, eventsCalendarMonth);
 
   // Longer words can overflow the top bar; tighten it if they do
   if (typeof dcFitTopbar === 'function') dcFitTopbar();

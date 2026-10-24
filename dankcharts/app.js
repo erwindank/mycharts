@@ -322,7 +322,9 @@ let eventsArtistLimit = parseInt(localStorage.getItem('dc_events_artist_limit') 
 let eventsCalendarYear = tzNow().getFullYear();
 let eventsCalendarMonth = tzNow().getMonth();
 let eventsCalendarDay = tzNow().getDate();
-let eventsCalendarView = localStorage.getItem('dc_cal_view') || 'month'; // 'month' | 'week' | 'day'
+// 'month' | 'week' | 'day'. Only Month or Week is saved: a day is opened from
+// its cell, so the Calendar tab always starts on a grid (phase 9 part 4 step 7)
+let eventsCalendarView = localStorage.getItem('dc_cal_view') === 'week' ? 'week' : 'month';
 let _eventsCalendarData = null;
 let _eventsRawData = null;
 let _eventsArtists = [];
@@ -29723,13 +29725,6 @@ function dcInitReel(vp) {
 }
 
 // ─── EVENTS CALENDAR (Birthdays & Anniversaries) ─────────────
-function releaseIcon(type) {
-  const t = (type || '').toLowerCase();
-  if (t === 'single') return '🎵';
-  if (t === 'album')  return '💿';
-  if (t === 'ep')     return '📀';
-  return '🎶';
-}
 
 function _releaseTypeKey(type) {
   const t = (type || '').toLowerCase();
@@ -29876,6 +29871,10 @@ function ordinalSuffix(n) {
 
 const _CAL_MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const _CAL_DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+// A day name with its 3-letter form for phones, where seven full names don't fit
+function _calDowHtml(name) {
+  return `<span class="cal-dow-long">${name}</span><span class="cal-dow-short" aria-hidden="true">${name.slice(0, 3)}</span>`;
+}
 
 function buildCalendarDayMap(data, dateSet) {
   const { birthdays, anniversaries, recentBirthdays, recentAnniversaries, eventsUpcoming, eventsRecent, concerts = [] } = data;
@@ -29894,10 +29893,10 @@ function buildCalendarDayMap(data, dateSet) {
     const age = currentYear - birthYear;
     const [, mm, dd] = b.dateStr.split('-');
     const dispDate = fmtDate(new Date(currentYear, parseInt(mm) - 1, parseInt(dd)));
-    add(ds, { icon: '🎂', label: b.artistName, past: false, menuAction: '_tmShowBirthdayMenu', menuArgs: [b.artistName], cls: 'cal-ev-birthday',
+    add(ds, { kind: 'birthday', src: 'birthdays', item: b, label: b.artistName, past: false, menuAction: '_tmShowBirthdayMenu', menuArgs: [b.artistName],
       ttType: 'birthday', ttArtist: b.artistName, ttTitle: b.artistName, ttMbid: '',
-      ttDetail: `🎂 Birthday · ${dispDate} · Turning ${age}`,
-      ttDateTxt: isToday ? 'TODAY' : `in ${b.daysUntil} day${b.daysUntil === 1 ? '' : 's'}`, ttDateCls: isToday ? 'soon' : '' });
+      ttDetail: `Birthday · ${dispDate} · Turning ${age}`,
+      ttDateTxt: isToday ? 'Today' : `in ${b.daysUntil} day${b.daysUntil === 1 ? '' : 's'}`, ttDateCls: isToday ? 'soon' : '' });
   }
   for (const b of recentBirthdays) {
     const ds = dateFromDelta(-b.daysAgo);
@@ -29906,9 +29905,9 @@ function buildCalendarDayMap(data, dateSet) {
     const age = currentYear - birthYear;
     const [, mm, dd] = b.dateStr.split('-');
     const dispDate = fmtDate(new Date(currentYear, parseInt(mm) - 1, parseInt(dd)));
-    add(ds, { icon: '🎂', label: b.artistName, past: true, menuAction: '_tmShowBirthdayMenu', menuArgs: [b.artistName], cls: 'cal-ev-birthday',
+    add(ds, { kind: 'birthday', src: 'recentBirthdays', item: b, label: b.artistName, past: true, menuAction: '_tmShowBirthdayMenu', menuArgs: [b.artistName],
       ttType: 'birthday', ttArtist: b.artistName, ttTitle: b.artistName, ttMbid: '',
-      ttDetail: `🎂 Birthday · ${dispDate} · Turned ${age}`,
+      ttDetail: `Birthday · ${dispDate} · Turned ${age}`,
       ttDateTxt: `${b.daysAgo} day${b.daysAgo === 1 ? '' : 's'} ago`, ttDateCls: 'recent' });
   }
   for (const a of anniversaries) {
@@ -29917,42 +29916,45 @@ function buildCalendarDayMap(data, dateSet) {
     const isToday = a.daysUntil === 0;
     const typeKey = 'mb_type_' + (a.type || 'Release').toLowerCase();
     const typeLabel = t(typeKey) || a.type || 'Release';
-    add(ds, { icon: releaseIcon(a.type), label: a.title, sub: a.artistName, past: false, menuAction: '_tmShowAlbumMenu', menuArgs: [a.title, a.artistName], cls: 'cal-ev-anniversary',
+    add(ds, { kind: _evKind(a.type), src: 'anniversaries', item: a, label: a.title, sub: a.artistName, past: false, menuAction: '_tmShowAlbumMenu', menuArgs: [a.title, a.artistName],
       ttType: 'anniversary', ttArtist: a.artistName, ttTitle: a.title, ttMbid: a.mbid || '',
-      ttDetail: `${releaseIcon(a.type)} ${ordinalSuffix(a.years)} Anniversary · ${typeLabel} · ${(a.releaseDate || '').slice(0, 4)}`,
-      ttDateTxt: isToday ? 'TODAY' : `in ${a.daysUntil} day${a.daysUntil === 1 ? '' : 's'}`, ttDateCls: isToday ? 'soon' : '' });
+      ttDetail: `${ordinalSuffix(a.years)} Anniversary · ${typeLabel} · ${(a.releaseDate || '').slice(0, 4)}`,
+      ttDateTxt: isToday ? 'Today' : `in ${a.daysUntil} day${a.daysUntil === 1 ? '' : 's'}`, ttDateCls: isToday ? 'soon' : '' });
   }
   for (const a of recentAnniversaries) {
     const ds = dateFromDelta(-a.daysAgo);
     if (!dateSet.has(ds)) continue;
     const typeKey = 'mb_type_' + (a.type || 'Release').toLowerCase();
     const typeLabel = t(typeKey) || a.type || 'Release';
-    add(ds, { icon: releaseIcon(a.type), label: a.title, sub: a.artistName, past: true, menuAction: '_tmShowAlbumMenu', menuArgs: [a.title, a.artistName], cls: 'cal-ev-anniversary',
+    add(ds, { kind: _evKind(a.type), src: 'recentAnniversaries', item: a, label: a.title, sub: a.artistName, past: true, menuAction: '_tmShowAlbumMenu', menuArgs: [a.title, a.artistName],
       ttType: 'anniversary', ttArtist: a.artistName, ttTitle: a.title, ttMbid: a.mbid || '',
-      ttDetail: `${releaseIcon(a.type)} ${ordinalSuffix(a.years)} Anniversary · ${typeLabel} · ${(a.releaseDate || '').slice(0, 4)}`,
+      ttDetail: `${ordinalSuffix(a.years)} Anniversary · ${typeLabel} · ${(a.releaseDate || '').slice(0, 4)}`,
       ttDateTxt: `${a.daysAgo} day${a.daysAgo === 1 ? '' : 's'} ago`, ttDateCls: 'recent' });
   }
-  for (const { release: r, artistName } of eventsUpcoming) {
+  for (const up of eventsUpcoming) {
+    const { release: r, artistName } = up;
     if (!r.date || !dateSet.has(r.date)) continue;
     const { label: dateLabel, soon } = upcomingDateLabel(r.date);
     const typeKey = 'mb_type_' + (r.type || 'Release').toLowerCase();
     const typeLabel = t(typeKey) || r.type || 'Release';
-    add(r.date, { icon: releaseIcon(r.type), label: r.title, sub: artistName, past: false, menuAction: '_relShowMenu', menuArgs: [r.title, artistName], cls: 'cal-ev-release',
+    add(r.date, { kind: _evKind(r.type), src: 'eventsUpcoming', item: up, label: r.title, sub: artistName, past: false, menuAction: '_relShowMenu', menuArgs: [r.title, artistName],
       ttType: 'release', ttArtist: artistName, ttTitle: r.title, ttMbid: r.mbid || '',
-      ttDetail: `${releaseIcon(r.type)} ${typeLabel}`,
+      ttDetail: typeLabel,
       ttDateTxt: dateLabel, ttDateCls: soon ? 'soon' : '' });
   }
-  for (const { release: r, artistName } of eventsRecent) {
+  for (const rec of eventsRecent) {
+    const { release: r, artistName } = rec;
     if (!r.date || !dateSet.has(r.date)) continue;
     const typeKey = 'mb_type_' + (r.type || 'Release').toLowerCase();
     const typeLabel = t(typeKey) || r.type || 'Release';
-    add(r.date, { icon: releaseIcon(r.type), label: r.title, sub: artistName, past: true, menuAction: '_tmShowAlbumMenu', menuArgs: [r.title, artistName], cls: 'cal-ev-release',
+    add(r.date, { kind: _evKind(r.type), src: 'eventsRecent', item: rec, label: r.title, sub: artistName, past: true, menuAction: '_tmShowAlbumMenu', menuArgs: [r.title, artistName],
       ttType: 'release', ttArtist: artistName, ttTitle: r.title, ttMbid: r.mbid || '',
-      ttDetail: `${releaseIcon(r.type)} ${typeLabel}`,
+      ttDetail: typeLabel,
       ttDateTxt: fmtDate(new Date(r.date + 'T00:00:00')), ttDateCls: 'recent' });
   }
   const todayCal = tzNow(); todayCal.setHours(0, 0, 0, 0);
-  for (const { event: ev, artistName } of concerts) {
+  for (const show of concerts) {
+    const { event: ev, artistName } = show;
     const date = ev.dates?.start?.localDate;
     if (!date || !dateSet.has(date)) continue;
     const time = ev.dates?.start?.localTime || '';
@@ -29965,13 +29967,23 @@ function buildCalendarDayMap(data, dateSet) {
     const isPast = showDate < todayCal;
     const daysUntil = Math.round((showDate - todayCal) / 86400000);
     const isToday = daysUntil === 0;
-    add(date, { icon: '🎤', label: artistName, sub: venueName + (loc ? ' · ' + loc : ''), past: isPast,
-      menuAction: '_concertShowMenu', cls: 'cal-ev-concert',
+    add(date, { kind: 'show', src: 'concerts', item: show, label: artistName, sub: venueName + (loc ? ' · ' + loc : ''), past: isPast,
+      menuAction: '_concertShowMenu',
       menuArgs: [artistName, ev.url || `https://www.ticketmaster.com/search?q=${encodeURIComponent(artistName)}`],
       ttType: 'concert', ttArtist: artistName, ttTitle: ev.name || artistName, ttMbid: '',
-      ttDetail: `🎤 Live Show · ${venueName}${loc ? ' · ' + loc : ''}${time ? ' · ' + time.slice(0, 5) : ''}`,
-      ttDateTxt: isToday ? 'TODAY' : isPast ? fmtDate(showDate) : `in ${daysUntil} day${daysUntil === 1 ? '' : 's'}`,
+      ttDetail: `Live show · ${venueName}${loc ? ' · ' + loc : ''}${time ? ' · ' + time.slice(0, 5) : ''}`,
+      ttDateTxt: isToday ? 'Today' : isPast ? fmtDate(showDate) : `in ${daysUntil} day${daysUntil === 1 ? '' : 's'}`,
       ttDateCls: isToday ? 'soon' : isPast ? 'recent' : '' });
+  }
+  // Each day: birthdays, releases and shows as they came, then the
+  // anniversaries ranked like Today's (your most-played first), so a cell's
+  // first few lines are the ones that matter
+  for (const ds of Object.keys(map)) {
+    const anns = map[ds].filter(ev => ev.ttType === 'anniversary');
+    if (anns.length < 2) continue;
+    const byItem = new Map(anns.map(ev => [ev.item, ev]));
+    map[ds] = [...map[ds].filter(ev => ev.ttType !== 'anniversary'),
+      ..._evRankAnniversaries(anns.map(ev => ev.item)).map(r => byItem.get(r.a))];
   }
   return map;
 }
@@ -30015,15 +30027,41 @@ function _calEvClickAttr(ev) {
 // The data-ct* attributes feed the hover mini-card (see _showCalEvTooltip);
 // they stay on the element whether it opens a menu or a link.
 function _calEvTtAttrs(ev) {
-  return `data-ctt="${esc(ev.ttType||'')}" data-cta="${esc(ev.ttArtist||'')}" data-ctl="${esc(ev.ttTitle||'')}" data-ctm="${esc(ev.ttMbid||'')}" data-ctd="${esc(ev.ttDetail||'')}" data-ctx="${esc(ev.ttDateTxt||'')}" data-ctf="${esc(ev.ttDateCls||'')}"`;
+  return `data-ctk="${esc(ev.kind||'')}" data-ctt="${esc(ev.ttType||'')}" data-cta="${esc(ev.ttArtist||'')}" data-ctl="${esc(ev.ttTitle||'')}" data-ctm="${esc(ev.ttMbid||'')}" data-ctd="${esc(ev.ttDetail||'')}" data-ctx="${esc(ev.ttDateTxt||'')}" data-ctf="${esc(ev.ttDateCls||'')}"`;
 }
 
-function renderCalEventsHtml(events) {
-  return `<div class="cal-cell-events">` + events.map(ev =>
-    `<div class="cal-ev ${ev.cls}${ev.past ? ' cal-ev-past' : ''}" ${_calEvClickAttr(ev)} ${_calEvTtAttrs(ev)}>
-      <span class="cal-ev-icon">${ev.icon}</span><span class="cal-ev-text"><span class="cal-ev-label">${esc(ev.label)}</span>${ev.sub ? `<span class="cal-ev-sub">${esc(ev.sub)}</span>` : ''}</span>
+/* A cell lists its first `cap` events (buildCalendarDayMap puts the ones that
+   matter first) with the type's line icon; the rest are behind "+N more",
+   which opens the day's list like a click on the day itself. */
+const CAL_MONTH_CAP = 3;
+const CAL_WEEK_CAP = 8;
+function renderCalEventsHtml(events, cap, ds) {
+  const shown = events.slice(0, cap);
+  const more = events.length - shown.length;
+  return `<div class="cal-cell-events">` + shown.map(ev =>
+    `<div class="cal-ev${ev.past ? ' cal-ev-past' : ''}" ${_calEvClickAttr(ev)} ${_calEvTtAttrs(ev)}>
+      ${_evTypeIco(ev.kind)}<span class="cal-ev-text"><span class="cal-ev-label">${esc(ev.label)}</span>${ev.sub ? `<span class="cal-ev-sub">${esc(ev.sub)}</span>` : ''}</span>
     </div>`
-  ).join('') + `</div>`;
+  ).join('') +
+  (more > 0 ? `<button type="button" class="cal-ev-more" onclick="calOpenDay('${ds}')" aria-label="${esc(t('ev_cal_more', { n: more }))}">` +
+    `<span class="cal-ev-more-long">${esc(t('ev_cal_more', { n: more }))}</span><span class="cal-ev-more-short">+${more}</span></button>` : '') +
+  `</div>`;
+}
+
+/* A click on a day (its number, or the cell around its events) opens that
+   day's list in the Day view; the events themselves keep their own menus. */
+function calOpenDay(ds) {
+  const [y, m, d] = ds.split('-').map(Number);
+  eventsCalendarYear = y; eventsCalendarMonth = m - 1; eventsCalendarDay = d;
+  eventsCalendarView = 'day';
+  _calDayShowAll = false;
+  if (_eventsCalendarData) renderEventsCalendar(_eventsCalendarData, eventsCalendarYear, eventsCalendarMonth);
+  document.querySelector('.events-calendar-wrap')?.scrollIntoView({ block: 'nearest' });
+}
+
+function _calCellClick(e, ds) {
+  if (e.target.closest('.cal-ev, .cal-ev-more, .cal-cell-num')) return;
+  calOpenDay(ds);
 }
 
 // ── Month view ─────────────────────────────────────────────────
@@ -30038,16 +30076,16 @@ function renderCalMonth(calEl, titleEl, data, year, month) {
 
   titleEl.innerHTML = `<span class="cal-title-month">${_CAL_MONTHS[month]}</span><span class="cal-title-year">${year}</span>`;
 
-  let html = _CAL_DAYS.map(d => `<div class="cal-dow">${d}</div>`).join('');
+  let html = _CAL_DAYS.map(d => `<div class="cal-dow">${_calDowHtml(d)}</div>`).join('');
   for (let i = 0; i < firstDow; i++) html += `<div class="cal-cell cal-cell-empty"></div>`;
   for (let d = 1; d <= daysInMonth; d++) {
     const ds = _calDateStr(year, month, d);
     const events = dayMap[ds] || [];
     const isToday = ds === todayStr;
     const isPast  = ds < todayStr;
-    html += `<div class="cal-cell${isToday ? ' cal-today' : ''}${isPast && !isToday ? ' cal-past' : ''}">
-      <div class="cal-cell-num">${d}</div>`;
-    if (events.length) html += renderCalEventsHtml(events);
+    html += `<div class="cal-cell cal-cell-open${isToday ? ' cal-today' : ''}${isPast && !isToday ? ' cal-past' : ''}" onclick="_calCellClick(event,'${ds}')">
+      <button type="button" class="cal-cell-num" onclick="calOpenDay('${ds}')" aria-label="${esc(fmtDate(new Date(year, month, d)))}">${d}</button>`;
+    if (events.length) html += renderCalEventsHtml(events, CAL_MONTH_CAP, ds);
     html += `</div>`;
   }
   calEl.className = 'events-cal-grid';
@@ -30073,10 +30111,10 @@ function renderCalWeek(calEl, titleEl, data, year, month, day) {
     const ds = localDateStr(d);
     const isToday = ds === todayStr;
     const isPast  = ds < todayStr;
-    return `<div class="cal-dow cal-week-dow${isToday ? ' cal-week-dow-today' : ''}${isPast && !isToday ? ' cal-week-dow-past' : ''}">
-      <div class="cal-week-dow-name">${_CAL_DAYS[d.getDay()]}</div>
-      <div class="cal-week-dow-num">${d.getDate()}</div>
-    </div>`;
+    return `<button type="button" class="cal-dow cal-week-dow${isToday ? ' cal-week-dow-today' : ''}${isPast && !isToday ? ' cal-week-dow-past' : ''}" onclick="calOpenDay('${ds}')">
+      <span class="cal-week-dow-name">${_calDowHtml(_CAL_DAYS[d.getDay()])}</span>
+      <span class="cal-week-dow-num">${d.getDate()}</span>
+    </button>`;
   }).join('');
 
   html += weekDates.map(d => {
@@ -30084,8 +30122,8 @@ function renderCalWeek(calEl, titleEl, data, year, month, day) {
     const events = dayMap[ds] || [];
     const isToday = ds === todayStr;
     const isPast  = ds < todayStr;
-    return `<div class="cal-cell cal-week-cell${isToday ? ' cal-today' : ''}${isPast && !isToday ? ' cal-past' : ''}">
-      ${events.length ? renderCalEventsHtml(events) : ''}
+    return `<div class="cal-cell cal-week-cell cal-cell-open${isToday ? ' cal-today' : ''}${isPast && !isToday ? ' cal-past' : ''}" onclick="_calCellClick(event,'${ds}')">
+      ${events.length ? renderCalEventsHtml(events, CAL_WEEK_CAP, ds) : ''}
     </div>`;
   }).join('');
 
@@ -30095,56 +30133,32 @@ function renderCalWeek(calEl, titleEl, data, year, month, day) {
 
 // ── Day view ───────────────────────────────────────────────────
 
-const _CAL_DOW_FULL = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+/* The day's list, laid out like Today: birthdays, releases and shows as
+   cards, then the anniversaries ranked by your plays, 8 until "Show all".
+   Reached from the Month / Week views by clicking a day. */
+let _calDayShowAll = false;
 
 function renderCalDay(calEl, titleEl, data, year, month, day) {
   const dateObj = new Date(year, month, day);
   const ds = localDateStr(dateObj);
-  const dateSet = new Set([ds]);
-  const dayMap = buildCalendarDayMap(data, dateSet);
-  const events = dayMap[ds] || [];
+  const events = buildCalendarDayMap(data, new Set([ds]))[ds] || [];
 
-  titleEl.textContent = `${_CAL_DOW_FULL[dateObj.getDay()]}, ${fmtDate(dateObj)}`;
+  const wd = dateObj.toLocaleDateString(currentLang, { weekday: 'long' });
+  titleEl.textContent = `${wd.charAt(0).toUpperCase() + wd.slice(1)}, ${fmtDate(dateObj)}`;
 
-  if (!events.length) {
-    calEl.className = 'events-cal-day';
-    calEl.innerHTML = `<div class="cal-day-empty">No events on this day</div>`;
-    return;
-  }
-
-  const html = events.map(ev => {
-    const mainTitle = ev.ttType === 'birthday' ? ev.ttArtist : ev.ttTitle;
-    const artistLine = ev.ttType !== 'birthday' ? `<div class="cal-day-item-artist">${esc(ev.ttArtist)}</div>` : '';
-    return `<div class="cal-day-item ${ev.cls}${ev.past ? ' cal-ev-past' : ''}" ${_calEvClickAttr(ev)} ${_calEvTtAttrs(ev)}>
-      <div class="cal-day-item-img-wrap" data-mbid="${esc(ev.ttMbid||'')}" data-artist="${esc(ev.ttArtist||'')}" data-evtype="${esc(ev.ttType||'')}"></div>
-      <div class="cal-day-item-body">
-        <div class="cal-day-item-title">${esc(mainTitle)}</div>
-        ${artistLine}
-        <div class="cal-day-item-detail">${ev.ttDetail}</div>
-      </div>
-    </div>`;
-  }).join('');
-
+  const main = events.filter(ev => ev.ttType !== 'anniversary').map(ev => _evNormalize(ev.src, [ev.item])[0]).filter(Boolean);
+  const anns = events.filter(ev => ev.ttType === 'anniversary');
+  const ranked = _evRankAnniversaries(anns.map(ev => ev.item));
+  const srcOf = new Map(anns.map(ev => [ev.item, ev.src]));
   calEl.className = 'events-cal-day';
-  calEl.innerHTML = html;
-  _triggerCalDayImgs(calEl);
+  calEl.innerHTML = _evDayBodyHtml(main, ranked, list => list.map(a => _evNormalize(srcOf.get(a), [a])[0]),
+    _calDayShowAll, 'toggleCalDayAll()', t('ev_cal_day_empty'), t('ev_cal_anniversaries'));
+  triggerPendingImgs(calEl);
 }
 
-function _triggerCalDayImgs(calEl) {
-  calEl.querySelectorAll('.cal-day-item-img-wrap').forEach(wrap => {
-    const { mbid, artist, evtype } = wrap.dataset;
-    if (mbid) {
-      const img = document.createElement('img');
-      img.className = 'cal-day-item-img';
-      img.alt = '';
-      img.onerror = () => { if (wrap.isConnected) wrap.innerHTML = _calTtPlaceholderHtml(artist); };
-      img.src = `https://coverartarchive.org/release-group/${mbid}/front-250`;
-      wrap.appendChild(img);
-    } else {
-      wrap.innerHTML = _calTtPlaceholderHtml(artist);
-      if (evtype === 'birthday' && artist) _loadCalTtArtistImg(wrap, artist);
-    }
-  });
+function toggleCalDayAll() {
+  _calDayShowAll = !_calDayShowAll;
+  if (_eventsCalendarData) renderEventsCalendar(_eventsCalendarData, eventsCalendarYear, eventsCalendarMonth);
 }
 
 // ── Page tabs: Today · Coming up · Recent · Calendar ───────────
@@ -30218,8 +30232,11 @@ function _syncCalViewBtns() {
 
 function setCalView(view) {
   eventsCalendarView = view;
-  try { localStorage.setItem('dc_cal_view', view); } catch (e) {}
-  if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
+  _calDayShowAll = false;
+  if (view !== 'day') {
+    try { localStorage.setItem('dc_cal_view', view); } catch (e) {}
+    if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
+  }
   if (view !== 'month') {
     const tod = tzNow();
     if (tod.getFullYear() === eventsCalendarYear && tod.getMonth() === eventsCalendarMonth) {
@@ -30710,23 +30727,32 @@ function _renderEventsToday() {
   _evTodayShown = { birthdays, releases, anniversaries: shownAnn.map(r => r.a) };
 
   const main = [..._evNormalize('birthdays', birthdays), ..._evNormalize('eventsUpcoming', releases), ..._evNormalize('concerts', shows)];
-  // On Today every anniversary is today, so the card's date line says how much you played it instead
-  const ann = _evNormalize('anniversaries', _evTodayShown.anniversaries);
+  body.innerHTML = _evDayBodyHtml(main, ranked, list => _evNormalize('anniversaries', list),
+    _evTodayShowAll, 'toggleEventsTodayAll()', t('ev_today_empty'));
+  triggerPendingImgs(body);
+}
+
+/* One day's events, for Today and the calendar's Day view: `main` (normalized
+   birthdays, releases, shows) as cards, then the day's anniversaries in
+   `ranked` order (_evRankAnniversaries), EV_TODAY_CAP of them until the
+   Show all button (`toggleCall`). `normAnn` turns raw anniversaries into cards. */
+function _evDayBodyHtml(main, ranked, normAnn, showAll, toggleCall, emptyText, annHeading) {
+  const shownAnn = showAll ? ranked : ranked.slice(0, EV_TODAY_CAP);
+  // Every anniversary here is on the same day, so the card's date line says how much you played it instead
+  const ann = normAnn(shownAnn.map(r => r.a));
   ann.forEach((it, i) => { it.dateLabel = tCount('plays', shownAnn[i].plays); });
 
   let html = '';
   if (main.length) html += `<div class="ev-tiles">${main.map(it => _evCardHtml(it, false)).join('')}</div>`;
   if (ranked.length) {
-    html += `<h3 class="ev-today-sub">${esc(t('ev_today_anniversaries'))}</h3>`;
+    html += `<h3 class="ev-today-sub">${esc(annHeading || t('ev_today_anniversaries'))}</h3>`;
     html += `<div class="ev-tiles">${ann.map(it => _evCardHtml(it, false)).join('')}</div>`;
     if (ranked.length > EV_TODAY_CAP) {
-      html += `<button type="button" class="dc-btn dc-btn-normal dc-btn-sm ev-today-more" aria-expanded="${_evTodayShowAll}" onclick="toggleEventsTodayAll()">` +
-        `${esc(_evTodayShowAll ? t('ev_today_fewer') : t('ev_today_all', { n: ranked.length }))}</button>`;
+      html += `<button type="button" class="dc-btn dc-btn-normal dc-btn-sm ev-today-more" aria-expanded="${showAll}" onclick="${toggleCall}">` +
+        `${esc(showAll ? t('ev_today_fewer') : t('ev_today_all', { n: ranked.length }))}</button>`;
     }
   }
-  if (!html) html = `<div class="upcoming-empty">${esc(t('ev_today_empty'))}</div>`;
-  body.innerHTML = html;
-  triggerPendingImgs(body);
+  return html || `<div class="upcoming-empty">${esc(emptyText)}</div>`;
 }
 
 function toggleEventsTodayAll() {
@@ -31014,7 +31040,7 @@ function renderNMFCalendar() {
 
   titleEl.innerHTML = `<span class="cal-title-month">${_CAL_MONTHS[month]}</span><span class="cal-title-year">${year}</span>`;
 
-  let html = _CAL_DAYS.map(d => `<div class="cal-dow">${d}</div>`).join('');
+  let html = _CAL_DAYS.map(d => `<div class="cal-dow">${_calDowHtml(d)}</div>`).join('');
   for (let i = 0; i < firstDow; i++) html += '<div class="cal-cell cal-cell-empty"></div>';
 
   for (let d = 1; d <= daysInMonth; d++) {
@@ -38455,7 +38481,7 @@ function _showCalEvTooltip(target) {
   // hover mini-card would sit on top of it.
   if (_tmMenuEl) return;
   clearTimeout(_calEvHideTimer);
-  const { ctt: evType = '', cta: artist = '', ctl: title = '', ctm: mbid = '', ctd: detail = '', ctx: dtxt = '', ctf: dtf = '' } = target.dataset;
+  const { ctk: kind = '', ctt: evType = '', cta: artist = '', ctl: title = '', ctm: mbid = '', ctd: detail = '', ctx: dtxt = '', ctf: dtf = '' } = target.dataset;
 
   const mainTitle = evType === 'birthday' ? artist : title;
   const artistLine = evType !== 'birthday' ? `<div class="ctt-artist">${esc(artist)}</div>` : '';
@@ -38467,7 +38493,7 @@ function _showCalEvTooltip(target) {
       ${dateLine}
       <div class="ctt-title">${esc(mainTitle)}</div>
       ${artistLine}
-      <div class="ctt-type">${detail}</div>
+      <div class="ctt-type">${_evTypeIco(kind)}<span>${esc(detail)}</span></div>
     </div>`;
 
   const imgWrap = _calEvTooltip.querySelector('.ctt-img-wrap');

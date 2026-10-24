@@ -2710,6 +2710,26 @@ Steps:
    es, Coming up still right, no sideways scroll, no errors.
 7. **Calendar.** Month by default; a day opens that day's list. No row
    tints or left bars; the event labels in the cells use the type icons.
+   **Done 2026-10-23:** only Month or Week is saved in dc_cal_view (an old
+   saved "day" opens as Month); Day is reached by clicking a day: its
+   number (a button), the cell around its events, a Week column's head,
+   or "+N more" (calOpenDay; _calCellClick ignores clicks on an event,
+   which keeps its menu). Cells show 3 events (Week 8) with "+N more";
+   buildCalendarDayMap now gives each event `kind`, `src` and `item` and
+   puts a day's anniversaries last in _evRankAnniversaries order. The
+   events carry the type line icons (_evTypeIco); the per-type tints,
+   emoji (releaseIcon went) and the Day view's coloured left bars are
+   gone. The Day view is Today's layout for any day (_evDayBodyHtml,
+   shared with Today): cards, then "Anniversaries" ranked with plays, 8
+   until Show all (toggleCalDayAll); the old .cal-day-item rows and
+   _triggerCalDayImgs went. Hover card: icon + escaped type text (it
+   was inserted as raw HTML). Phones: icons only in Month and Week cells,
+   3-letter day names (_calDowHtml), "+13" instead of "+13 more", equal
+   columns (minmax(0, 1fr)). Language switch redraws the calendar. 3 keys
+   in four languages. Checked at 1440 and 390 (touch) with real clicks:
+   Month, +N more → day, Show all, an empty day, Week, a Week head, an
+   event's menu, es, no sideways scroll, no errors. Still English, for
+   step 8: month and day names, the week title.
 8. **Screen check.** 1440 / 1100 / 390 (touch), the four check themes, all
    four languages (every hard-coded English string on the page moves into
    `translations.js`).
