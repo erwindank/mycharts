@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Awards: a proper title, and View Ceremony at the top":
+    ["Prêmios: um título de verdade, e Ver cerimônia no topo",
+     "A página Prêmios agora tem o mesmo título de Recordes, Estatísticas e Eventos, com um troféu de linha no lugar da pequena etiqueta branca “Prêmios”. Assim que alguma categoria tem um vencedor, Ver cerimônia e Compartilhar aparecem ao lado do ano, no topo, então você não precisa mais passar por todos os cartões para achá-los; eles também continuam embaixo. Os dois botões ganharam ícones de linha no lugar dos emojis 🎬 e 🔗. Funciona com Last.fm, Google Sheets e arquivos CSV."],
   "Awards: names no longer disappear in Spotlight":
     ["Prêmios: os nomes não somem mais no Destaque",
      "Na visualização Destaque de Prêmios, as linhas de Melhor colaboração mostravam “173 plays · with a DJ/producer” onde devia estar o nome da música: a nota longa empurrava o nome para fora da linha. Agora a nota fica numa linha própria abaixo do artista, e o número de plays fica ao lado do nome. No seletor de indicados, uma linha de artista longa agora encurta com “…” em vez de empurrar os botões de tocar para fora da linha. Funciona com Last.fm, Google Sheets e arquivos CSV."],
