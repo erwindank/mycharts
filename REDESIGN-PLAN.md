@@ -1036,9 +1036,10 @@ the choices: https://claude.ai/artifact/Cj637puWWKusfGrTxvbpGk):
   reduced motion. Same stage for shared ceremony links (?ceremony=).
 - **"View Ceremony" top and bottom** (option B): in the top toolbar next
   to the year with Share, and still under the cards.
-- **Stats & records:** not answered yet. Placeholder: option A (top 5
-  rows + "Show all", "nominations" once, slimmer cards). Options B (fold
-  closed) and C (leave as is) are on the options page.
+- **Stats & records folded closed** (option B): one row with the
+  headline numbers and the leader (48 nominations · 6 categories · 24
+  artists · most: Tate McRae (7)) and an Open button; open, it is the
+  full block as today. Open / closed is remembered on this device.
 
 ### 4.18 Your Soundtrack. From the code
 
@@ -2806,7 +2807,7 @@ at on screen first.
 `main`; you review each step before the next.** Looked at on screen first
 (1440 and 390 touch, navy dark, sample library); what was found is under
 4.17. Decided with you: ceremony full screen, "View Ceremony" at the top
-and the bottom. Stats & records still open (placeholder: top 5 + Show all).
+and the bottom, Stats & records folded closed.
 
 Steps:
 1. **Fix first.** Spotlight rows keep the song name and put the
@@ -2817,9 +2818,10 @@ Steps:
    as .dc-tabs. One toolbar: ‹ year ›, Configure Year, Generate Nominees,
    and once there is a winner, View Ceremony (gold) + Share. The bottom
    View Ceremony + Share stay.
-3. **Stats & records** as you choose (placeholder: top 5 rows + "Show
-   all", "nominations" said once, slimmer all-time cards). Same block in
-   the ceremony's opening and closing slides.
+3. **Stats & records folded closed.** One row: "2025 at a glance",
+   the title, the headline numbers and the leader, and Open ▾. Open, it
+   is the full block as today; open / closed remembered on this device.
+   The ceremony's opening and closing slides keep the full block.
 4. **Ballot.** One toolbar row (left-to-decide, Hide decided, All / No
    winner, Expand / Collapse, View). Type label as the compact uppercase
    label used elsewhere. Empty categories as a short card (title + "Pick
