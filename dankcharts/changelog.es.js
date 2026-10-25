@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Your Soundtrack: a clearer #1 artist":
+    ["Tu Banda Sonora: un artista #1 más claro",
+     "El capítulo del artista #1 en Tu Banda Sonora se lee mejor. Bajo la foto y el nombre del artista, el número destacado va primero y en grande: cuántas de sus canciones escuchaste seguidas. Al lado, tu álbum y tu canción favoritos aparecen ahora con sus portadas. Todo lo demás (día con más escuchas, racha de días, días escuchados, canciones, álbumes, escuchas por día, hora punta) va debajo en una sola fila ordenada de números pequeños, en lugar de once recuadros de tamaños distintos. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Your Soundtrack reads like a story now":
     ["Tu Banda Sonora ahora se lee como una historia",
      "Tu Banda Sonora ya no es una pila de recuadros iguales. Cada parte es ahora un capítulo numerado que empieza con una frase grande sobre lo que escuchaste, con una imagen de ese capítulo detrás: “Abril fue tu mes con más escuchas”, “808 artistas que nunca habías escuchado”, “Pasaste las 200.000 escuchas”, “210 días seguidos”. Todo lo que mostraba la página sigue ahí, justo debajo de cada titular: las cinco fichas y la cinta, los carruseles de canciones y artistas top, las barras por mes, el anillo de fidelidad, las burbujas de descubrimientos, cada hito y cada racha. Las fichas tienen iconos de línea en lugar de emoji y, en el móvil, el número de escuchas ocupa todo el ancho para que nunca se corte. Funciona con Last.fm, Google Sheets y archivos CSV."],

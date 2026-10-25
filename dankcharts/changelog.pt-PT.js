@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Your Soundtrack: a clearer #1 artist":
+    ["Sua Trilha Sonora: um artista #1 mais claro",
+     "O capítulo do artista #1 em Sua Trilha Sonora está mais fácil de ler. Por baixo da foto e do nome do artista, o número de destaque vem primeiro e em grande: quantas músicas dele ouviste seguidas. Ao lado, o teu álbum e a tua música favoritos aparecem agora com as capas. Tudo o resto (dia com mais plays, sequência de dias, dias ouvidos, músicas, álbuns, plays por dia, hora de pico) fica por baixo, numa só fila arrumada de números pequenos, em vez de onze caixas de tamanhos diferentes. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
   "Your Soundtrack reads like a story now":
     ["Sua Trilha Sonora lê-se agora como uma história",
      "Sua Trilha Sonora já não é uma pilha de caixas iguais. Cada parte é agora um capítulo numerado que abre com uma frase grande sobre o que ouviste, com uma imagem desse capítulo por trás: “Abril foi o teu mês com mais plays”, “808 artistas que nunca tinhas ouvido”, “Passaste os 200.000 plays”, “210 dias seguidos”. Tudo o que a página mostrava continua lá, logo abaixo de cada título: os cinco cartões e a fita, os carrosséis de músicas e artistas top, as barras por mês, o anel de fidelidade, as bolhas de descobertas, cada marco e cada sequência. Os cartões têm ícones de linha em vez de emoji e, no telemóvel, o número de plays ocupa a largura toda para nunca ser cortado. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
