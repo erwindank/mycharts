@@ -1041,14 +1041,48 @@ the choices: https://claude.ai/artifact/Cj637puWWKusfGrTxvbpGk):
   artists · most: Tate McRae (7)) and an Open button; open, it is the
   full block as today. Open / closed is remembered on this device.
 
-### 4.18 Your Soundtrack. From the code
+### 4.18 Your Soundtrack. Seen on screen (2026-10-25)
 
 11 sections (reel, top artists, top songs, activity, loyalty, discoveries,
 milestones, artist milestones, streaks, Grammys, underrated gem, replay,
 share card). This reads like a "Wrapped" story, so design it as one: a
 vertical scroll of full-width chapters, one big fact per chapter, large type,
-cover art backgrounds. The Time Machine (4.5) fits naturally as a chapter
-here.
+cover art backgrounds. (The Time Machine moved to Events on 2026-10-14, so
+it is no longer part of this.)
+
+**Now** (sample library, 1440 and 390 touch, navy dark; options page:
+https://claude.ai/artifact/UJKWiWZXPfF8NAGYMqnXej):
+- About 6,100px tall on desktop, 8,200px on a phone, in 16 boxes that all
+  look the same (small dot title, glow in the corner).
+- Title is a small "🎬 Your Soundtrack" label; the year arrows ◄ ► show as
+  small odd glyphs.
+- Top: year card, five coloured tiles with emoji icons, the reel.
+- #1 artist: photo, then 11 tiles of four sizes and three colours.
+- Phone: Monthly Activity's play counts run into each other
+  ("4,5114,040…"); Still in Rotation is ~1,500px (5 artists × 5 songs in one
+  column); streaks ~1,400px (each record a full-width photo).
+- Discoveries: a bubble shows as an empty circle until its picture loads.
+- Dates written 11/2/2026 in milestones and streaks.
+- Grammys, Chart History Replay and Share are three nearly empty boxes at
+  the bottom. Emoji everywhere (🔥 on every streak, 🏆 💤 ➡️ chips).
+
+**Fix (decided 2026-10-25):** choice 1 C, choice 2 A, choice 3 A.
+- **Chapters + Play as a story** (1C), on every screen size: no boxes;
+  each section is a chapter that opens with a headline band (label
+  "Chapter N · name", one big sentence with its number, a dim cover
+  behind), headline on the left and a short detail on the right on wide
+  screens, stacked on a phone; everything the section shows today follows
+  under the band. A "Play your 2026" button opens the chapters full screen,
+  one headline per screen (tap / click halves, arrow keys, Esc), like the
+  Awards ceremony.
+- **Chapter 1 keeps the five tiles and the reel** (the tiles still switch
+  the reel).
+- **#1 artist** (2A): photo band with the name, one big fact (songs in a
+  row), the other numbers as small stats under a divider, favourite album
+  and song as cover rows.
+- **Long parts** (3A): Still in Rotation and the streak records become
+  rows you swipe sideways (‹ › on desktop), with small covers instead of
+  full photos.
 
 ### 4.19 Playlists, Board, Charts Guide. From the code
 
@@ -2977,6 +3011,33 @@ Steps:
 
 **Phase 9 part 5 (Awards) is finished** (2026-10-25). Next is phase 9
 part 6: Your Soundtrack (4.18), looked at on screen first.
+
+**Phase 9 part 6: Your Soundtrack. Planned 2026-10-25, one step per
+commit, on `main`.** Looked at on screen first (what was found is under
+4.18). Decided with you from the options page: 1C, 2A, 3A. You said to
+build it all without a stop per step.
+
+Steps:
+1. **Fix first.** Phone Monthly Activity: the bars scroll sideways with
+   room for every number. Discovery bubbles show initials until the
+   picture arrives. Dates in words (11 Feb 2026) in milestones and streaks.
+2. **Top of the page.** The shared page title (as Records / Stats /
+   Events / Awards) with the nav's note icon, Year / Month / All-Time and
+   the shared ‹ 2026 › stepper. Chart History Replay and Share also in
+   this toolbar.
+3. **Chapters.** Boxes go; each section becomes a chapter with its
+   headline band and the full detail under it. Chapter 1 = year, the five
+   tiles (line icons for the emoji) and the reel.
+4. **#1 artist** (2A).
+5. **Long parts** (3A): Still in Rotation and streak records as swipe
+   rows.
+6. **The rest of the emoji and the bottom boxes:** line icons in chips,
+   milestones and streaks; Grammys as a chapter only when there is
+   something to show (a line with a link to Awards otherwise); Replay and
+   Share as the closing chapter.
+7. **Play your year:** the full-screen story.
+8. **Four languages and screen check:** 1440 / 1100 / 390 × en / es /
+   pt-BR / pt-PT × a few themes.
 
 The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in
