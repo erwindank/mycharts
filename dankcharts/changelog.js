@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 306;
+const DC_CL_I18N_V = 307;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-25', t: 'i18n', a: 'awards', h: '82e246b',
+    title: "Awards: the whole page in your language",
+    detail: "The Awards page now speaks Spanish and Portuguese all the way through. Before, changing the language left the category cards, the Configure Year list and an open ceremony in the old language, and a lot stayed in English anyway: Stats & records, play counts like “94 summer plays”, the nominee picker, the ceremony’s buttons and the Real-Life Awards cards (“Held 2026 · honouring 2025 releases”, “Won”, “Nominated”). All of it now follows your language and switches the moment you change it. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-24', t: 'design', a: 'awards', h: '27bd706',
     title: "Real-Life Awards: shorter cards for one or two nominations",
     detail: "In Real-Life Awards, an artist with just one or two nominations now gets a small square photo, so their card is only as tall as its rows instead of a big, mostly empty box. Category names also read naturally now, “Song of the Year” instead of “Song Of The Year”. Works with Last.fm, Google Sheets and CSV uploads." },

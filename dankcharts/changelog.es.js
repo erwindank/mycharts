@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Awards: the whole page in your language":
+    ["Premios: toda la página en tu idioma",
+     "La página Premios ahora está en español de principio a fin. Antes, al cambiar de idioma, las tarjetas de categorías, la lista de Configurar año y una ceremonia abierta se quedaban en el idioma anterior, y mucho seguía en inglés de todos modos: Estadísticas y récords, recuentos como “94 summer plays”, el selector de nominados, los botones de la ceremonia y las tarjetas de Premios reales (“Held 2026 · honouring 2025 releases”, “Won”, “Nominated”). Ahora todo sigue tu idioma y cambia en cuanto lo cambias. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Real-Life Awards: shorter cards for one or two nominations":
     ["Premios reales: tarjetas más cortas para una o dos nominaciones",
      "En Premios reales, un artista con solo una o dos nominaciones ahora tiene una foto cuadrada pequeña, así que su tarjeta mide lo que sus filas en lugar de ser un recuadro grande y casi vacío. Los nombres de las categorías también se leen con naturalidad, “Song of the Year” en lugar de “Song Of The Year”. Funciona con Last.fm, Google Sheets y archivos CSV."],

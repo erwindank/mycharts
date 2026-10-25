@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Awards: the whole page in your language":
+    ["Prémios: a página inteira na tua língua",
+     "A página Prémios está agora em português do princípio ao fim. Antes, ao mudar de língua, os cartões de categorias, a lista de Configurar ano e uma cerimónia aberta ficavam na língua anterior, e muita coisa continuava em inglês de qualquer forma: Estatísticas e recordes, contagens como “94 summer plays”, o seletor de nomeados, os botões da cerimónia e os cartões de Prémios reais (“Held 2026 · honouring 2025 releases”, “Won”, “Nominated”). Agora tudo segue a tua língua e muda assim que a trocas. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
   "Real-Life Awards: shorter cards for one or two nominations":
     ["Prémios reais: cartões mais curtos para uma ou duas nomeações",
      "Em Prémios reais, um artista com só uma ou duas nomeações tem agora uma foto quadrada pequena, por isso o cartão tem só a altura das suas linhas em vez de ser uma caixa grande e quase vazia. Os nomes das categorias também ficam naturais, “Song of the Year” em vez de “Song Of The Year”. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
