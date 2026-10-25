@@ -40593,10 +40593,10 @@ const _awardsCardClipMiss = new Set();  // keys neither store had a preview for
 
 function _awardsCardClipUi(k) {
   if (_awardsCardClipKey === k) return _awardsCardClipLoading
-    ? { icon: '◌', cls: ' is-on is-loading', title: 'Finding a sample…' }
-    : { icon: '❚❚', cls: ' is-on', title: 'Stop the sample' };
-  if (_awardsCardClipMiss.has(k)) return { icon: '♪', cls: ' is-miss', title: 'No sample found' };
-  return { icon: '♪', cls: '', title: 'Play a 30-second sample' };
+    ? { icon: '◌', cls: ' is-on is-loading', title: t('awx_clip_finding') }
+    : { icon: '❚❚', cls: ' is-on', title: t('awx_clip_stop') };
+  if (_awardsCardClipMiss.has(k)) return { icon: '♪', cls: ' is-miss', title: t('awx_clip_none') };
+  return { icon: '♪', cls: '', title: t('awx_clip_play') };
 }
 
 function _awardsClipBtn(cat, item) {
@@ -41365,18 +41365,42 @@ function _awardsShowCeremonyBtns(show) {
   document.querySelectorAll('.awards-top-ceremony').forEach(el => { el.style.display = show ? '' : 'none'; });
 }
 
+/* A language switch (setLanguage) draws the Awards page again in the new
+   language: the cards, the stats block and the category list on My Grammys,
+   the open show on Real-Life Awards, and an open ceremony or nominee picker.
+   Nothing is fetched again; every piece redraws from what is already loaded.
+   (Phase 9 part 5 step 10: before this, the cards kept the old language.) */
+function awardsOnLanguageChange() {
+  const view = document.getElementById('awardsView');
+  const shown = view && view.style.display !== 'none';
+  const data = _awardsYearData?.[_awardsYear];
+  if (shown && _awardsSubTab === 'mygrammys' && data) {
+    _awardsRenderCatList(data);
+    _awardsRenderCatToggles(data);
+    _awardsRenderSummary(_awardsYear);
+    _awardsSyncYearUI('mygrammys');
+  }
+  if (shown && _awardsSubTab === 'reallife') loadRealLifeAwards(_realLifeYear);
+  if (document.getElementById('awardsCeremonyOverlay')?.style.display === 'flex' && _ceremonyData) {
+    _ceremonyDrawSidebar(_ceremonyData);
+    _ceremonyRender();
+    _ceremonyPaintSoundBtn();
+  }
+  if (document.getElementById('awardsPickerOverlay')) _awardsPickerRefresh(false);
+}
+
 async function awardsRenderYear(year) {
   const statusEl = document.getElementById('awardsStatus');
   statusEl.textContent = '';
   if (!allPlays.length) {
-    statusEl.textContent = 'Load your music data to use My Grammys.';
+    statusEl.textContent = t('awx_need_data');
     document.getElementById('awardsCatList').innerHTML = '';
     _awardsRenderViewBar(false);
     document.getElementById('awardsSummary').innerHTML = '';
     _awardsShowCeremonyBtns(false);
     return;
   }
-  statusEl.textContent = 'Loading…';
+  statusEl.textContent = t('awx_loading');
   const data = await _awardsLoad(year);
   statusEl.textContent = '';
   _awardsRenderCatToggles(data);
@@ -42031,7 +42055,45 @@ function _awardsSummary(year, opts) {
   return { year, spoilerFree, yearNoms, yearCats, artistCount: ranked.length, records, ranking, winners };
 }
 
-const AWARDS_SUMMARY_TYPE_LABEL = { artist: 'Artist', album: 'Album', song: 'Song' };
+// "Song" / "Album" / "Artist" in the language on screen (awx_type_*)
+const AWARDS_SUMMARY_TYPE_LABEL = new Proxy({}, { get: (_, type) => t('awx_type_' + String(type)) });
+
+// "3 nominations" in the language on screen: key_one / key_other with {{n}}
+function _awPl(key, n) {
+  return t(key + (n === 1 ? '_one' : '_other'), { n: Number(n).toLocaleString(currentLang) });
+}
+
+/* A score is saved on the ballot in English ("173 plays · with a DJ/producer",
+   "94 summer plays", "12-day streak"…), so it is put into the language on
+   screen when shown, one " · " part at a time. A part it doesn't know is left
+   as it is. Numbers are written the language's way (1,895 → 1.895). */
+const _AW_SCORE_RULES = [
+  [/^([\d,.]+) plays?$/,              m => tCount('plays', _awNum(m[1]))],
+  [/^with a DJ\/producer$/,           () => t('awx_s_dj')],
+  [/^with a group$/,                   () => t('awx_s_group')],
+  [/^([\d,.]+) summer plays$/,        m => t('awx_s_summer',  { n: _awFmt(m[1]) })],
+  [/^([\d,.]+) holiday plays$/,       m => t('awx_s_holiday', { n: _awFmt(m[1]) })],
+  [/^([\d,.]+) morning plays$/,       m => t('awx_s_morning', { n: _awFmt(m[1]) })],
+  [/^([\d,.]+) night plays$/,         m => t('awx_s_night',   { n: _awFmt(m[1]) })],
+  [/^([\d,.]+)-day streak$/,          m => t('awx_s_streak',  { n: _awFmt(m[1]) })],
+  [/^([\d,.]+) days played$/,         m => t('awx_s_days',    { n: _awFmt(m[1]) })],
+  [/^every month$/,                    () => t('awx_s_every_month')],
+  [/^(\d+) of (\d+) months$/,         m => t('awx_s_months', { n: m[1], m: m[2] })],
+  [/^from (\d{4})$/,                   m => t('awx_s_from', { y: m[1] })],
+  [/^popularity (\d+)\/100$/,          m => t('awx_s_popularity', { n: m[1] })],
+  [/^((\d+)(st|nd|rd|th)) best known on the album$/, m => t('awx_s_best_known', { o: m[1], n: m[2] })],
+  [/^([−+±][\d,.]+) plays vs (.+)$/,   m => t('awx_s_vs', { d: m[1], y: m[2] })],
+  [/^new$/,                            () => t('awx_s_new')],
+];
+function _awNum(s) { return Number(String(s).replace(/,/g, '')) || 0; }
+function _awFmt(s) { return _awNum(s).toLocaleString(currentLang); }
+function _awScoreText(score) {
+  if (!score || currentLang === 'en') return score || '';
+  return String(score).split(' · ').map(part => {
+    for (const [re, fn] of _AW_SCORE_RULES) { const m = part.match(re); if (m) return fn(m); }
+    return part;
+  }).join(' · ');
+}
 
 // A shared link's summary comes from someone else's document, so check its shape
 function _awardsSummaryOk(sum) {
@@ -42053,7 +42115,7 @@ function _awardsSummaryHtml(sum, queue, idp, opts) {
   opts = opts || {};
   if (!_awardsSummaryOk(sum)) return '';
   const before = _awardsSummaryOk(opts.before) ? opts.before : null;
-  const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+  const plural = (key, n) => _awPl(key, n);
   const hasWins = sum.records.some(r => r.field === 'wins' && r.items?.length);
 
   const recordCard = (rec, ri) => {
@@ -42063,7 +42125,7 @@ function _awardsSummaryHtml(sum, queue, idp, opts) {
     if (!lead) {
       return `<div class="aw-sum-rec is-empty" data-awtype="${rec.type}">
         <div class="aw-sum-rec-type">${AWARDS_SUMMARY_TYPE_LABEL[rec.type]}</div>
-        <div class="aw-sum-rec-none">No ${kind}s yet</div>
+        <div class="aw-sum-rec-none">${esc(t(rec.field === 'noms' ? 'awx_none_noms' : 'awx_none_wins'))}</div>
       </div>`;
     }
     const imgId = `${idp}_rec_${ri}`;
@@ -42099,11 +42161,11 @@ function _awardsSummaryHtml(sum, queue, idp, opts) {
       <div class="aw-sum-rec-head">
         ${_cerArtHtml(lead, rec.type, imgId, 'aw-sum-rec-art')}
         <div class="aw-sum-rec-body">
-          <div class="aw-sum-rec-type">${AWARDS_SUMMARY_TYPE_LABEL[rec.type]}${tied ? ' · tied' : ''}${isNew ? ' <span class="aw-sum-new">New</span>' : ''}</div>
+          <div class="aw-sum-rec-type">${AWARDS_SUMMARY_TYPE_LABEL[rec.type]}${tied ? ' · ' + esc(t('awx_tied')) : ''}${isNew ? ` <span class="aw-sum-new">${esc(t('awx_new'))}</span>` : ''}</div>
           <div class="aw-sum-rec-name" title="${esc(name)}">${esc(name)}</div>
           ${sub ? `<div class="aw-sum-rec-sub" title="${esc(sub)}">${esc(sub)}</div>` : ''}
-          <div class="aw-sum-rec-count"><b>${lead.count}</b> ${lead.count === 1 ? kind : kind + 's'}${lead.fromSongs > 0
-            ? `<span class="aw-sum-rec-songs" title="${plural(lead.fromSongs, kind, kind + 's')} for songs from this album, not counted in the record">+${lead.fromSongs} from its songs</span>` : ''}</div>
+          <div class="aw-sum-rec-count"><b>${lead.count}</b> ${esc(t((kind === 'nomination' ? 'awx_w_nom' : 'awx_w_win') + (lead.count === 1 ? '_one' : '_other')))}${lead.fromSongs > 0
+            ? `<span class="aw-sum-rec-songs" title="${esc(t('awx_from_songs_tip', { what: plural(kind === 'nomination' ? 'awx_noms' : 'awx_wins', lead.fromSongs) }))}">${esc(t('awx_from_songs', { n: lead.fromSongs }))}</span>` : ''}</div>
         </div>
       </div>
       ${rest ? `<ol class="aw-sum-rec-rest">${rest}</ol>` : ''}
@@ -42127,7 +42189,7 @@ function _awardsSummaryHtml(sum, queue, idp, opts) {
     queue.push({ imgId, item: r, type: 'artist' });
     // Always emitted (empty when none) so every row has the same columns and the bars line up
     const wins = sum.spoilerFree ? '' : (r.wins
-      ? `<span class="aw-sum-rank-wins" title="${plural(r.wins, 'win', 'wins')}"><span class="aw-sum-rank-wins-ico">🏆</span>${r.wins}</span>`
+      ? `<span class="aw-sum-rank-wins" title="${esc(plural('awx_wins', r.wins))}"><span class="aw-sum-rank-wins-ico">🏆</span>${r.wins}</span>`
       : `<span class="aw-sum-rank-wins is-empty"></span>`);
     return `<div class="aw-sum-rank-row${r.rank === 1 ? ' is-top' : ''}" style="--i:${i}">
       <span class="aw-sum-rank-no">${String(r.rank).padStart(2, '0')}</span>
@@ -42136,19 +42198,19 @@ function _awardsSummaryHtml(sum, queue, idp, opts) {
         <span class="aw-sum-rank-name" title="${esc(r.artist)}">${esc(r.artist)}</span>
         <span class="aw-sum-rank-bar"><span style="width:${Math.max(6, Math.round(r.noms / maxNoms * 100))}%"></span></span>
       </span>
-      <span class="aw-sum-rank-noms"><b>${r.noms}</b><small>${r.noms === 1 ? 'nomination' : 'nominations'}</small></span>
+      <span class="aw-sum-rank-noms"><b>${r.noms}</b><small>${esc(t(r.noms === 1 ? 'awx_w_nom_one' : 'awx_w_nom_other'))}</small></span>
       ${wins}
     </div>`;
   }).join('');
   const more = sum.artistCount > sum.ranking.length
-    ? `<div class="aw-sum-rank-more">+ ${plural(sum.artistCount - sum.ranking.length, 'more artist', 'more artists')} nominated</div>` : '';
+    ? `<div class="aw-sum-rank-more">${esc(plural('awx_more_artists', sum.artistCount - sum.ranking.length))}</div>` : '';
 
   /* Roll-call view (opts.winsView): the results are out, so the year's list is
      who won the most, and each artist carries every award they took home, with
      the song, album or artist picture beside the award's name. */
   const winnersHtml = () => {
     const list = sum.winners;
-    if (!list.length) return `<div class="aw-sum-rec-none">No winners crowned yet.</div>`;
+    if (!list.length) return `<div class="aw-sum-rec-none">${esc(t('awx_no_winners'))}</div>`;
     return list.map((w, i) => {
       const imgId = `${idp}_win_${i}`;
       queue.push({ imgId, item: { artist: w.artist }, type: 'artist' });
@@ -42173,7 +42235,7 @@ function _awardsSummaryHtml(sum, queue, idp, opts) {
           <span class="aw-sum-rank-no">${String(w.rank).padStart(2, '0')}</span>
           ${_cerArtHtml(w, 'artist', imgId, 'aw-sum-winner-art')}
           <span class="aw-sum-winner-name" title="${esc(w.artist)}">${esc(w.artist)}</span>
-          <span class="aw-sum-winner-count"><b>${w.wins}</b> ${w.wins === 1 ? 'win' : 'wins'}<span class="aw-sum-winner-noms"> · ${plural(w.noms, 'nomination', 'nominations')}</span></span>
+          <span class="aw-sum-winner-count"><b>${w.wins}</b> ${esc(t(w.wins === 1 ? 'awx_w_win_one' : 'awx_w_win_other'))}<span class="aw-sum-winner-noms"> · ${esc(plural('awx_noms', w.noms))}</span></span>
         </div>
         <div class="aw-sum-win-list">${items}</div>
       </div>`;
@@ -42181,40 +42243,40 @@ function _awardsSummaryHtml(sum, queue, idp, opts) {
   };
   const yearGroup = winsView
     ? `<div class="aw-sum-group">
-        <div class="aw-sum-group-title">🏆 Most wins in ${sum.year}</div>
+        <div class="aw-sum-group-title">🏆 ${esc(t('awx_g_year_wins', { y: sum.year }))}</div>
         <div class="aw-sum-winners">${winnersHtml()}</div>
       </div>`
     : `<div class="aw-sum-group">
-        <div class="aw-sum-group-title">📊 Most nominations in ${sum.year}</div>
+        <div class="aw-sum-group-title">📊 ${esc(t('awx_g_year_noms', { y: sum.year }))}</div>
         <div class="aw-sum-rank">${rows}</div>
         ${more}
       </div>`;
 
-  const kicker = opts.kicker || (sum.spoilerFree ? `Going into the ${sum.year} ceremony` : `${sum.year} at a glance`);
-  const title  = opts.title || 'Stats & records';
+  const kicker = opts.kicker || t(sum.spoilerFree ? 'awx_going_into' : 'awx_glance', { y: sum.year });
+  const title  = opts.title || t('awx_title');
   /* opts.foldable (the tab's copy only): the block folds to its header, with
      the year's leader added to the numbers line and an Open / Close button.
      The ceremony's opening and closing slides always show the whole block. */
   const fold   = !!opts.foldable;
   const folded = fold && !_awardsSumOpen;
   const top    = sum.ranking[0];
-  const leader = fold && top ? `<span class="aw-sum-leader"> · most: ${esc(top.artist)} (${top.noms})</span>` : '';
+  const leader = fold && top ? `<span class="aw-sum-leader"> · ${esc(t('awx_leader', { a: top.artist, n: top.noms }))}</span>` : '';
   const bodyId = `${idp}_body`;
   const toggle = fold
-    ? `<button type="button" class="dc-btn dc-btn-normal dc-btn-sm aw-sum-toggle" aria-expanded="${!folded}" aria-controls="${bodyId}" onclick="awardsToggleSummary()">${esc(folded ? 'Open' : 'Close')}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>`
+    ? `<button type="button" class="dc-btn dc-btn-normal dc-btn-sm aw-sum-toggle" aria-expanded="${!folded}" aria-controls="${bodyId}" onclick="awardsToggleSummary()">${esc(t(folded ? 'awx_open' : 'awx_close'))}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>`
     : '';
   return `<section class="aw-sum${fold ? ' is-foldable' : ''}${folded ? ' is-folded' : ''}">
     <header class="aw-sum-head">
       <div class="aw-sum-head-text">
         <div class="aw-sum-kicker">${esc(kicker)}</div>
         <div class="aw-sum-title">${esc(title)}</div>
-        <div class="aw-sum-meta">${plural(sum.yearNoms, 'nomination', 'nominations')} · ${plural(sum.yearCats, 'category', 'categories')} · ${plural(sum.artistCount, 'artist', 'artists')}${leader}</div>
+        <div class="aw-sum-meta">${esc(plural('awx_noms', sum.yearNoms))} · ${esc(plural('awx_cats', sum.yearCats))} · ${esc(plural('awx_artists', sum.artistCount))}${leader}</div>
       </div>
       ${toggle}
     </header>
     <div class="aw-sum-body" id="${bodyId}">
-    ${group('noms', 'All-time most nominations')}
-    ${hasWins ? group('wins', sum.spoilerFree ? 'All-time most wins, before tonight' : 'All-time most wins') : ''}
+    ${group('noms', esc(t('awx_g_alltime_noms')))}
+    ${hasWins ? group('wins', esc(t(sum.spoilerFree ? 'awx_g_alltime_wins_before' : 'awx_g_alltime_wins'))) : ''}
     ${yearGroup}
     </div>
   </section>`;
@@ -42234,7 +42296,7 @@ function awardsToggleSummary() {
   const btn = sec.querySelector('.aw-sum-toggle');
   if (btn) {
     btn.setAttribute('aria-expanded', String(_awardsSumOpen));
-    btn.firstChild.textContent = _awardsSumOpen ? 'Close' : 'Open';
+    btn.firstChild.textContent = t(_awardsSumOpen ? 'awx_close' : 'awx_open');
   }
 }
 
@@ -42286,7 +42348,7 @@ function _awardsRenderCatCard(cat, catData, year, idx) {
           if (_awardItemKey(item) === wk) return '';
           const tl  = item.title || item.album || item.artist || '';
           const ts  = (item.title || item.album) && item.artist ? item.artist : '';
-          return `<div class="awards-nominee-row awards-tie-row" onclick="awardsPickTieWinner(${year},'${esc(cat.id)}',${i})" title="Make this the winner">
+          return `<div class="awards-nominee-row awards-tie-row" onclick="awardsPickTieWinner(${year},'${esc(cat.id)}',${i})" title="${esc(t('awx_make_winner'))}">
             <span class="awards-nominee-icon">=</span>
             <span class="awards-nominee-label" title="${esc(tl)}">${esc(tl)}</span>
             ${ts ? `<span class="awards-nominee-sub" title="${esc(ts)}">${esc(ts)}</span>` : ''}
@@ -42312,7 +42374,7 @@ function _awardsRenderCatCard(cat, catData, year, idx) {
         ${_awardsRatingChip(item)}
         ${_awardsGrowthChip(cat, year, item)}
         ${_awardsMoveCtl(year, cat, { i, n: nominees.length }, 'y')}
-        <button class="awards-nominee-remove" onclick="awardsRemoveNominee(event,${year},'${esc(cat.id)}',${esc(JSON.stringify(item))})" title="Remove">✕</button>
+        <button class="awards-nominee-remove" onclick="awardsRemoveNominee(event,${year},'${esc(cat.id)}',${esc(JSON.stringify(item))})" title="${esc(t('awx_remove'))}" aria-label="${esc(t('awx_remove'))}">✕</button>
       </div>`;
     }).join('') + _awardsReorderHint(cat);   // "Click a nominee to crown the winner" is said once, in the toolbar
   } else {
@@ -42356,12 +42418,12 @@ function _awardsCatActionsHtml(cat, year, count) {
   const genBtn = cat.auto ? '' : `<button class="dc-btn dc-btn-normal dc-btn-sm awards-cat-action-btn" onclick="awardsGenerateCatCandidates(${year},'${esc(cat.id)}')" data-catid="${esc(cat.id)}">${count ? t('awards_change_btn') : t('awards_pick_nominees_btn')}</button>`;
   // Listen to the whole field before choosing. Auto categories have nothing to decide.
   const plBtn = (!cat.auto && count)
-    ? `<button class="dc-btn dc-btn-normal dc-btn-sm awards-cat-action-btn awards-cat-pl-btn" onclick="awardsCatPlaylist(${year},'${esc(cat.id)}')" title="Make a playlist of these nominees">♫ Playlist</button>`
+    ? `<button class="dc-btn dc-btn-normal dc-btn-sm awards-cat-action-btn awards-cat-pl-btn" onclick="awardsCatPlaylist(${year},'${esc(cat.id)}')" title="${esc(t('awx_pl_tip'))}">♫ ${esc(t('awx_playlist'))}</button>`
     : '';
   // Reorder mode, for touch and keyboard (a mouse can just drag)
   const on = _awardsReordering.has(cat.id);
   const roBtn = (!cat.auto && count > 1)
-    ? `<button class="dc-btn dc-btn-normal dc-btn-sm awards-cat-action-btn awards-cat-reorder-btn${on ? ' is-on' : ''}" onclick="awardsToggleReorder(${year},'${esc(cat.id)}')" aria-pressed="${on}" title="${on ? 'Finish reordering' : 'Change the order of the nominees'}">${on ? '✓ ' + esc(t('awards_reorder_done')) : '⇅ ' + esc(t('awards_reorder'))}</button>`
+    ? `<button class="dc-btn dc-btn-normal dc-btn-sm awards-cat-action-btn awards-cat-reorder-btn${on ? ' is-on' : ''}" onclick="awardsToggleReorder(${year},'${esc(cat.id)}')" aria-pressed="${on}" title="${esc(t(on ? 'awx_reorder_done_tip' : 'awx_reorder_tip'))}">${on ? '✓ ' + esc(t('awards_reorder_done')) : '⇅ ' + esc(t('awards_reorder'))}</button>`
     : '';
   return genBtn + plBtn + roBtn;
 }
@@ -42635,7 +42697,7 @@ function _awardsEntryText(item, cat, year) {
     lbl:   item.title || item.album || item.artist || '',
     sub:   (item.title ? item.artist : (item.album ? item.artist : item.song)) || '',
     // Blank when the user has hidden plays; every view already skips an empty score
-    score: _awardsHidePlays ? '' : growth ? _awardsGrowthLabel(growth) : (item.playLabel || (plays ? `${plays.toLocaleString()} plays` : '')),
+    score: _awScoreText(_awardsHidePlays ? '' : growth ? _awardsGrowthLabel(growth) : (item.playLabel || (plays ? `${plays.toLocaleString()} plays` : ''))),
   };
 }
 
@@ -42656,7 +42718,7 @@ function _awardsScoreParts(score) {
 function _awardsEntryAttrs(year, cat, e) {
   if (cat.auto) {
     return e.tie == null ? ''
-      : ` data-pick role="button" tabindex="0" title="Make this the winner" onclick="awardsPickTieWinner(${year},'${esc(cat.id)}',${e.tie})"`;
+      : ` data-pick role="button" tabindex="0" title="${esc(t('awx_make_winner'))}" onclick="awardsPickTieWinner(${year},'${esc(cat.id)}',${e.tie})"`;
   }
   // Every nominee can be dragged to a new place; in reorder mode that is all a
   // click does, so crowning is off until Done
@@ -42778,7 +42840,7 @@ function _awardsBindDrag(el) {
 
 function _awardsEntryRemove(year, cat, e) {
   return e.removable
-    ? `<button class="aw-x" onclick="awardsRemoveNominee(event,${year},'${esc(cat.id)}',${esc(JSON.stringify(e.item))})" title="Remove" aria-label="Remove">✕</button>`
+    ? `<button class="aw-x" onclick="awardsRemoveNominee(event,${year},'${esc(cat.id)}',${esc(JSON.stringify(e.item))})" title="${esc(t('awx_remove'))}" aria-label="${esc(t('awx_remove'))}">✕</button>`
     : '';
 }
 
@@ -42807,7 +42869,7 @@ function _awardsSpotlightBody(cat, f, year, idp, queue) {
       <div class="aw-spot-sealed" aria-hidden="true">?</div>
       <div class="aw-spot-meta">
         <span class="aw-spot-label">${esc(t('awards_view_uncrowned'))}</span>
-        <span class="aw-spot-name">${f.entries.length} ${f.entries.length === 1 ? 'nominee' : 'nominees'}</span>
+        <span class="aw-spot-name">${esc(_awPl('awx_nominees', f.entries.length))}</span>
       </div>
     </div>`;
   }
@@ -43052,12 +43114,12 @@ async function awardsGenerateCandidates() {
 
   let data;
   try {
-    log('Loading year data…');
+    log(t('awx_loading_year'));
     data = await _awardsLoad(_awardsYear);
     const active = AWARD_CATEGORIES.filter(c => data.categories[c.id]?.enabled ?? c.defaultOn);
 
     for (const cat of active) {
-      log(`Calculating ${cat.label}…`);
+      log(t('awx_calculating', { c: t('awards_cat_' + cat.id) }));
       const cands = await _awardsGetCandidates(cat, data.eligStart, data.eligEnd, log);
       const cd = data.categories[cat.id];
       if (cat.auto) {
@@ -43071,7 +43133,7 @@ async function awardsGenerateCandidates() {
         cd.nominees = cands.slice(0, 8);
       }
     }
-    log('Saving…');
+    log(t('awx_saving'));
     await _awardsSave(_awardsYear);
   } finally {
     // Always give the button back, even if a category blew up mid-run
@@ -43192,12 +43254,11 @@ function _awardsPickerFitChip(item) {
   if (!pct) return '';
   const f = _awardsPickerCatFilter;
   const tier = pct >= 75 ? 'hi' : pct >= 45 ? 'mid' : 'lo';
-  const tip = f === 'summer' ? `${pct}% of its plays in this awards year were in summer (June – August)`
-    : f === 'holiday' ? (pct === 100 ? 'Holiday by its title, or played only in the holiday season'
-      : `${pct}% of its plays in this awards year were in the holiday season (Dec 11 – Jan 14)`)
-    : (f === 'night' || f === 'morning') ? `${pct}% of its plays in this awards year were in the ${f}`
-    : `How strongly its genre tags match this category: ${pct}%`;
-  return `<span class="awards-picker-fit is-${tier}" title="${esc(tip)}">${pct}% fit</span>`;
+  const tip = f === 'summer' ? t('awx_fit_summer', { n: pct })
+    : f === 'holiday' ? (pct === 100 ? t('awx_fit_holiday_all') : t('awx_fit_holiday', { n: pct }))
+    : (f === 'night' || f === 'morning') ? t('awx_fit_' + f, { n: pct })
+    : t('awx_fit_genre', { n: pct });
+  return `<span class="awards-picker-fit is-${tier}" title="${esc(tip)}">${esc(t('awx_pk_fit', { n: pct }))}</span>`;
 }
 
 // Genre tags for a picker row: the sheet's for that song / album, else the artist's
@@ -44008,7 +44069,7 @@ function _awardsPickerResultRow(item, idx) {
     + (picked ? ' is-picked' : '')
     + (idx === _awardsPickerActive ? ' is-active' : '')
     + (statLine ? ' has-stats' : '');
-  return `<div class="${cls}" data-idx="${idx}" onclick="awardsPickerToggleRow(${idx})" title="${picked ? 'Click to remove' : 'Click to nominate'}">
+  return `<div class="${cls}" data-idx="${idx}" onclick="awardsPickerToggleRow(${idx})" title="${esc(t(picked ? 'awx_pk_drop' : 'awx_pk_add'))}">
     <span class="awards-picker-add-icon">${picked ? '✓' : '+'}</span>
     ${_awardsPickerThumbHtml(item, 'awPkThumb' + idx)}
     <span class="awards-picker-main">
@@ -44018,7 +44079,7 @@ function _awardsPickerResultRow(item, idx) {
     ${genreHtml}
     ${_awardsPickerFitChip(item)}
     ${_awardsPickerScoreChip(item)}
-    <span class="awards-picker-plays">${item.playLabel || item.plays + ' plays'}</span>
+    <span class="awards-picker-plays">${esc(_awScoreText(item.playLabel || item.plays + ' plays'))}</span>
     ${_awardsPickerPrevBtn(item, `awardsPickerPreviewRow(${idx})`)}
     ${_awardsPickerListenBtns(item, `awardsPickerPlayRow(${idx})`)}
     ${statLine}
@@ -44032,7 +44093,7 @@ function _awardsPickerSelHtml() {
     const sub = item.title ? item.artist : (item.album ? item.artist : '');
     const tip = sub ? `${lbl} — ${sub}` : lbl;
     // Draggable cards: the order here is the order the nominees appear on the award card
-    return `<div class="awards-picker-nom-row" draggable="true" data-i="${i}" title="${esc(tip)} · drag to reorder"
+    return `<div class="awards-picker-nom-row" draggable="true" data-i="${i}" title="${esc(tip)} · ${esc(t('awx_pk_drag_tip'))}"
         ondragstart="awardsPickerDragStart(event,${i})"
         ondragover="awardsPickerDragOver(event)"
         ondragleave="awardsPickerDragLeave(event)"
@@ -44048,7 +44109,7 @@ function _awardsPickerSelHtml() {
         ${_awardsPickerPrevBtn(item, `awardsPickerPreviewNom(${i})`)}
         ${_awardsPickerListenBtns(item, `awardsPickerPlayNom(${i})`)}
       </span>
-      <button class="awards-picker-nom-x" data-i="${i}" onclick="event.stopPropagation();awardsPickerRemoveNom(this)" title="Remove" aria-label="Remove ${esc(lbl)}">✕</button>
+      <button class="awards-picker-nom-x" data-i="${i}" onclick="event.stopPropagation();awardsPickerRemoveNom(this)" title="${esc(t('awx_remove'))}" aria-label="${esc(t('awx_remove'))} ${esc(lbl)}">✕</button>
     </div>`;
   }).join('');
 }
@@ -44065,12 +44126,12 @@ function _awardsPickerBodyHtml() {
   const fitLabel = _awardsPickerFitLabel();
   const year = _awardsPickerCtx.year;
   const headers = [
-    'Suggested for this category',
-    fitLabel ? `${fitLabel} from ${year}` : `Everything else you played in ${year}`,
+    t('awx_pk_suggested'),
+    fitLabel ? t('awx_pk_fit_from', { f: fitLabel, y: year }) : t('awx_pk_rest', { y: year }),
     // For a filtered category the tail is still fair game: the artist field can't spot every
     // collab, so say so rather than hiding those rows.
-    fitLabel ? `Everything else from ${year} — pick any if you know it fits`
-             : `Everything else you played in ${year}`,
+    fitLabel ? t('awx_pk_rest_fit', { y: year })
+             : t('awx_pk_rest', { y: year }),
   ];
   let html = '', lastGrp = -1;
   _awardsPickerRows.forEach((item, i) => {
@@ -44082,7 +44143,7 @@ function _awardsPickerBodyHtml() {
   });
 
   const left = list.length - _awardsPickerRows.length;
-  if (left > 0) html += `<button class="dc-btn dc-btn-normal dc-btn-sm awards-picker-more" onclick="awardsPickerShowMore()">Show ${Math.min(left, AWARDS_PICKER_PAGE)} more · ${left} left</button>`;
+  if (left > 0) html += `<button class="dc-btn dc-btn-normal dc-btn-sm awards-picker-more" onclick="awardsPickerShowMore()">${esc(t('awx_pk_more', { n: Math.min(left, AWARDS_PICKER_PAGE), left: left.toLocaleString(currentLang) }))}</button>`;
   return html;
 }
 
@@ -44113,7 +44174,7 @@ function _awardsPickerSyncRows(onlyKey) {
     if (!row) return;
     const picked = _awardsPickerSelKeys.has(k);
     row.classList.toggle('is-picked', picked);
-    row.title = picked ? 'Click to remove' : 'Click to nominate';
+    row.title = t(picked ? 'awx_pk_drop' : 'awx_pk_add');
     const icon = row.querySelector('.awards-picker-add-icon');
     if (icon) icon.textContent = picked ? '✓' : '+';
   });
@@ -44147,7 +44208,7 @@ function _awardsShowPicker(year, catId, candidates) {
   _awardsPickerRows      = [];
   _awardsPrevKey         = null;   // no preview open yet
 
-  const typeLabel = catDef.type === 'song' ? 'songs' : catDef.type === 'album' ? 'albums' : 'artists';
+  const typeLabel = t(catDef.type === 'song' ? 'awx_pk_songs' : catDef.type === 'album' ? 'awx_pk_albums' : 'awx_pk_artists');
   _awardsPickerCtx = { year, catId, typeLabel };
   _awardsPickerBuildIndex();
 
@@ -44161,12 +44222,12 @@ function _awardsShowPicker(year, catId, candidates) {
       </div>
       <div class="awards-picker-ballot">
         <div class="awards-picker-ballot-head">
-          <span class="awards-picker-ballot-title">Nominees <span class="awards-picker-tally" id="awardsPickerTally">${_awardsPickerSel.length}</span></span>
-          <span class="awards-picker-ballot-hint">Drag to reorder</span>
+          <span class="awards-picker-ballot-title">${esc(t('awx_pk_nominees'))} <span class="awards-picker-tally" id="awardsPickerTally">${_awardsPickerSel.length}</span></span>
+          <span class="awards-picker-ballot-hint">${esc(t('awx_pk_drag'))}</span>
           <div class="awards-picker-quick">
-            <button onclick="awardsPickerFillTop(8)" title="Add the top 8 of the list below">Fill top 8</button>
-            <button onclick="awardsPickerFillTop(5)" title="Add the top 5 of the list below">Top 5</button>
-            <button class="awards-picker-quick-clear" onclick="awardsPickerClearSel()">Clear</button>
+            <button onclick="awardsPickerFillTop(8)" title="${esc(t('awx_pk_fill_tip', { n: 8 }))}">${esc(t('awx_pk_fill', { n: 8 }))}</button>
+            <button onclick="awardsPickerFillTop(5)" title="${esc(t('awx_pk_fill_tip', { n: 5 }))}">${esc(t('awx_pk_top', { n: 5 }))}</button>
+            <button class="awards-picker-quick-clear" onclick="awardsPickerClearSel()">${esc(t('awx_pk_clear'))}</button>
           </div>
         </div>
         <div class="awards-picker-selected" id="awardsPickerSelected">${_awardsPickerSelHtml()}</div>
@@ -44174,21 +44235,21 @@ function _awardsShowPicker(year, catId, candidates) {
       ${_awardsPickerPreviewKind() ? '<div class="awards-picker-preview" id="awardsPickerPreview" hidden></div>' : ''}
       <div class="awards-picker-tools">
         <div class="awards-picker-search-wrap">
-          <input type="text" id="awardsPickerSearch" placeholder="Search all ${typeLabel} from ${year}…" oninput="awardsPickerDoSearch()" autocomplete="off" spellcheck="false">
+          <input type="text" id="awardsPickerSearch" placeholder="${esc(t('awx_pk_search', { what: typeLabel, y: year }))}" oninput="awardsPickerDoSearch()" autocomplete="off" spellcheck="false">
           <!-- × clears the search; only shown while there is text (see awardsPickerDoSearch) -->
-          <button type="button" class="awards-picker-search-clear" id="awardsPickerSearchClear" onclick="awardsPickerClearSearch()" title="Clear search" aria-label="Clear search" hidden>×</button>
+          <button type="button" class="awards-picker-search-clear" id="awardsPickerSearchClear" onclick="awardsPickerClearSearch()" title="${esc(t('awx_pk_clear_search'))}" aria-label="${esc(t('awx_pk_clear_search'))}" hidden>×</button>
         </div>
-        <select class="awards-picker-sort" id="awardsPickerSort" onchange="awardsPickerSetSort(this.value)" title="Sort the list">
-          <option value="plays">Most played</option>
+        <select class="awards-picker-sort" id="awardsPickerSort" onchange="awardsPickerSetSort(this.value)" title="${esc(t('awx_pk_sort_tip'))}">
+          <option value="plays">${esc(t('awx_pk_sort_plays'))}</option>
           <option value="az">A–Z</option>
-          <option value="recent">Most recent</option>
-          <option value="rated">Highest rated</option>
+          <option value="recent">${esc(t('awx_pk_sort_recent'))}</option>
+          <option value="rated">${esc(t('awx_pk_sort_rated'))}</option>
           ${_awardsPickerHasStats() ? Object.entries(AWARDS_STAT_SORT_LABELS).map(([v, l]) => `<option value="${v}">${l}</option>`).join('') : ''}
         </select>
       </div>
       <div class="awards-picker-body" id="awardsPickerBody">${_awardsPickerBodyHtml()}</div>
       <div class="awards-picker-foot">
-        <span class="awards-picker-count" id="awardsPickerCount" title="Click a row to add or remove · ↑↓ then Enter · Ctrl+Enter saves">${t('awards_picker_selected', { count: _awardsPickerSel.length })}</span>
+        <span class="awards-picker-count" id="awardsPickerCount" title="${esc(t('awx_pk_keys_tip'))}">${t('awards_picker_selected', { count: _awardsPickerSel.length })}</span>
         <button class="dc-btn dc-btn-main" onclick="awardsPickerSave(${year},'${catId}')">${t('awards_save_nominees')}</button>
       </div>
     </div>
@@ -44563,10 +44624,10 @@ function _awardsPickerYtQuery(item) {
 function _awardsPickerClipUi(item) {
   const k = _awardItemKey(item);
   if (_awardsClipKey === k) return _awardsClipLoading
-    ? { icon: '◌', cls: ' is-on is-loading', title: 'Finding a sample…' }
-    : { icon: '❚❚', cls: ' is-on', title: 'Stop the sample' };
-  if (_awardsClipMiss.has(k)) return { icon: '♪', cls: ' is-miss', title: 'No sample found — try the YouTube link' };
-  return { icon: '♪', cls: '', title: 'Play a 30-second sample' };
+    ? { icon: '◌', cls: ' is-on is-loading', title: t('awx_clip_finding') }
+    : { icon: '❚❚', cls: ' is-on', title: t('awx_clip_stop') };
+  if (_awardsClipMiss.has(k)) return { icon: '♪', cls: ' is-miss', title: t('awx_clip_none_yt') };
+  return { icon: '♪', cls: '', title: t('awx_clip_play') };
 }
 
 function _awardsPickerListenBtns(item, onclick) {
@@ -44575,7 +44636,7 @@ function _awardsPickerListenBtns(item, onclick) {
   const yt = 'https://www.youtube.com/results?search_query=' + encodeURIComponent(_awardsPickerYtQuery(item));
   // stopPropagation: the row itself toggles the nomination on click
   return `<button class="awards-picker-clip-btn${ui.cls}" onclick="event.stopPropagation();${onclick}" title="${ui.title}">${ui.icon}</button>`
-    + `<a class="awards-picker-yt-btn" href="${esc(yt)}" target="_blank" rel="noopener" draggable="false" onclick="event.stopPropagation()" title="Search YouTube">`
+    + `<a class="awards-picker-yt-btn" href="${esc(yt)}" target="_blank" rel="noopener" draggable="false" onclick="event.stopPropagation()" title="${esc(t('awx_yt'))}">`
     + `<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M23 7.2a3 3 0 0 0-2.1-2.1C19 4.6 12 4.6 12 4.6s-7 0-8.9.5A3 3 0 0 0 1 7.2 31 31 0 0 0 .5 12a31 31 0 0 0 .5 4.8 3 3 0 0 0 2.1 2.1c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 0 0 2.1-2.1 31 31 0 0 0 .5-4.8 31 31 0 0 0-.5-4.8zM9.7 15.1V8.9l5.8 3.1-5.8 3.1z"/></svg></a>`;
 }
 
@@ -45053,11 +45114,11 @@ async function _loadRealLifeGrammys(year) {
   // nominated. Each one is a single cached proxy call, so the depth is cheap.
   const topArtists  = _awardsTopN(artists, REAL_LIFE_ARTIST_COUNT, 1);
 
-  const ceremony = `${_ordinal(_grammyCeremonyNo(year))} Annual Grammy Awards`;
+  const ceremony = t('awx_rl_ceremony', { o: _ordinal(_grammyCeremonyNo(year)), n: _grammyCeremonyNo(year) });
   let done = 0;
   const tick = () => {
     if (token !== _realLifeLoadToken) return;
-    statusEl.textContent = `Checking your top ${topArtists.length} artists of ${eligYear} against the ${ceremony}… (${done}/${topArtists.length})`;
+    statusEl.textContent = t('awx_rl_checking', { n: topArtists.length, y: eligYear, c: ceremony, d: done });
   };
   tick();
 
@@ -45078,20 +45139,20 @@ async function _loadRealLifeGrammys(year) {
 
   const headline = `<div class="awards-reallife-head">
       <div class="awards-reallife-ceremony">${esc(ceremony)}</div>
-      <div class="awards-reallife-sub">Held ${year} · honouring ${eligYear} releases${inYear.length ? '' : ' · matched against your all-time top artists'}</div>
+      <div class="awards-reallife-sub">${esc(t('awx_rl_held', { y: year, e: eligYear }))}${inYear.length ? '' : esc(t('awx_rl_alltime_match'))}</div>
     </div>`;
-  const credit = `<div class="awards-reallife-credit">Nominations and winners from <a href="https://www.grammy.com/awards/" target="_blank" rel="noopener">grammy.com</a></div>`;
+  const credit = `<div class="awards-reallife-credit">${t('awx_rl_credit', { link: '<a href="https://www.grammy.com/awards/" target="_blank" rel="noopener">grammy.com</a>' })}</div>`;
 
   if (!results.length) {
     contentEl.innerHTML = headline +
-      `<div class="awards-empty">None of your top ${topArtists.length} artists of ${eligYear} were nominated at the ${esc(ceremony)}.</div>` +
+      `<div class="awards-empty">${esc(t('awx_rl_none_top', { n: topArtists.length, y: eligYear, c: ceremony }))}</div>` +
       credit;
     return;
   }
 
   const wins = results.reduce((n, r) => n + r.entries.filter(e => e.won).length, 0);
   const noms = results.reduce((n, r) => n + r.entries.length, 0);
-  const tally = `<div class="awards-reallife-tally">Your artists picked up <strong>${noms}</strong> ${noms === 1 ? 'nomination' : 'nominations'}${wins ? ` and won <strong>${wins}</strong>` : ''}.</div>`;
+  const tally = _rlTallyHtml(noms, wins);
 
   // Artwork is loaded after the list paints, through the app's normal image
   // cascade, so a picture pinned on the charts shows up here too.
@@ -45113,7 +45174,7 @@ async function _loadRealLifeGrammys(year) {
       <div class="awards-reallife-body">
         <div class="awards-reallife-artist">
           <a href="${esc(r.data.url)}" target="_blank" rel="noopener">${esc(r.data.artist)}</a>
-          <span class="awards-reallife-alltime">${r.data.wins} ${r.data.wins === 1 ? 'win' : 'wins'} · ${r.data.nominations} all-time</span>
+          <span class="awards-reallife-alltime">${esc(t('awx_rl_alltime', { w: _awPl('awx_wins', r.data.wins), n: r.data.nominations }))}</span>
         </div>
         ${rows.map((e, ei) => {
           const workId = `rl-work-${ri}-${ei}`;
@@ -45121,7 +45182,7 @@ async function _loadRealLifeGrammys(year) {
           if (art) artQueue.push({ imgId: workId, type: art.type, item: art.item });
           return `<div class="awards-reallife-row">
             ${art ? _rlArtHtml(workId, e.title, 'awards-reallife-thumb') : '<div class="awards-reallife-thumb is-blank"></div>'}
-            <span class="awards-reallife-badge ${e.won ? 'won' : 'nom'}">${e.won ? '🏆 Won' : '🎗 Nominated'}</span>
+            <span class="awards-reallife-badge ${e.won ? 'won' : 'nom'}">${e.won ? '🏆 ' + esc(t('awx_rl_won')) : '🎗 ' + esc(t('awx_rl_nominated'))}</span>
             <span class="awards-reallife-rowtext">
               <span class="awards-reallife-cat">${esc(_rlCatCase(e.category))}</span>
               ${e.title ? `<span class="awards-reallife-work">${esc(e.title)}</span>` : ''}
@@ -45133,6 +45194,12 @@ async function _loadRealLifeGrammys(year) {
   }).join('') + credit;
 
   _realLifeLoadArt(artQueue, token);
+}
+
+// "Your artists picked up 28 nominations and won 2." in the language on screen
+function _rlTallyHtml(noms, wins) {
+  const n = `<strong>${noms}</strong> ${esc(t(noms === 1 ? 'awx_w_nom_one' : 'awx_w_nom_other'))}`;
+  return `<div class="awards-reallife-tally">${wins ? t('awx_rl_tally_won', { n, w: `<strong>${wins}</strong>` }) : t('awx_rl_tally', { n })}</div>`;
 }
 
 // A card with one or two nominations gets a small square portrait instead of
@@ -45938,11 +46005,11 @@ async function _loadRealLifeWiki(showId, year) {
   let tally, cards = '';
   const artQueue = [];
   if (!results.length) {
-    tally = `<div class="awards-empty">None of the artists you played were nominated at the ${esc(ceremony)}.</div>`;
+    tally = `<div class="awards-empty">${esc(t('awx_rl_none_played', { c: ceremony }))}</div>`;
   } else {
     const wins = results.reduce((n, r) => n + r.rows.filter(x => x.nominee.won).length, 0);
     const noms = results.reduce((n, r) => n + r.rows.length, 0);
-    tally = `<div class="awards-reallife-tally">Your artists picked up <strong>${noms}</strong> ${noms === 1 ? 'nomination' : 'nominations'}${wins ? ` and won <strong>${wins}</strong>` : ''}.</div>`;
+    tally = _rlTallyHtml(noms, wins);
 
     // Same card as the Grammys tab: portrait down the side, one row per nomination
     cards = results.map((r, ri) => {
@@ -45958,7 +46025,7 @@ async function _loadRealLifeWiki(showId, year) {
         <div class="awards-reallife-body">
           <div class="awards-reallife-artist">
             <span>${esc(r.played.artist)}</span>
-            <span class="awards-reallife-alltime">${plays.toLocaleString()} ${plays === 1 ? 'play' : 'plays'}${inWindow.length ? ' that season' : ''}</span>
+            <span class="awards-reallife-alltime">${esc(tCount('plays', plays))}${inWindow.length ? esc(t('awx_rl_that_season')) : ''}</span>
           </div>
           ${rows.map((x, xi) => {
             const workId = `rlw-work-${ri}-${xi}`;
@@ -45969,7 +46036,7 @@ async function _loadRealLifeWiki(showId, year) {
             const withWho = _rlWikiNorm(x.nominee.who) !== _rlWikiNorm(r.played.artist) ? x.nominee.who : '';
             return `<div class="awards-reallife-row">
               ${art ? _rlArtHtml(workId, work, 'awards-reallife-thumb') : '<div class="awards-reallife-thumb is-blank"></div>'}
-              <span class="awards-reallife-badge ${x.nominee.won ? 'won' : 'nom'}">${x.nominee.won ? '🏆 Won' : '🎗 Nominated'}</span>
+              <span class="awards-reallife-badge ${x.nominee.won ? 'won' : 'nom'}">${x.nominee.won ? '🏆 ' + esc(t('awx_rl_won')) : '🎗 ' + esc(t('awx_rl_nominated'))}</span>
               <span class="awards-reallife-rowtext">
                 <span class="awards-reallife-cat">${esc(_rlCatCase(x.category))}</span>
                 ${work || withWho ? `<span class="awards-reallife-work">${esc(work)}${withWho ? `${work ? ' · ' : ''}${esc(withWho)}` : ''}</span>` : ''}
@@ -45983,7 +46050,7 @@ async function _loadRealLifeWiki(showId, year) {
 
   // Then the whole ceremony, every category, with the user's artists marked
   const all = `<div class="rlw-all">
-      <div class="rlw-all-head">Every category</div>
+      <div class="rlw-all-head">${esc(t('awx_rl_every_cat'))}</div>
       <div class="rlw-cat-grid">${data.categories.map((cat, ci) => `
         <div class="rlw-cat">
           <div class="rlw-cat-name">${esc(cat.name)}</div>
@@ -46134,8 +46201,8 @@ function _ceremonyFirstIdx() { return _ceremonySummary ? -1 : 0; }
 // "2025 My Grammys" for your own; a shared copy is someone else's, so it carries
 // their name when they set one.
 function _ceremonyTitle() {
-  if (!_ceremonyShared) return `${_ceremonyYear} My Grammys`;
-  return _ceremonyShared.name ? `${_ceremonyShared.name}'s ${_ceremonyYear} Grammys` : `${_ceremonyYear} Grammys`;
+  if (!_ceremonyShared) return t('awx_cer_title', { y: _ceremonyYear });
+  return _ceremonyShared.name ? t('awx_cer_title_named', { name: _ceremonyShared.name, y: _ceremonyYear }) : t('awx_cer_title_shared', { y: _ceremonyYear });
 }
 
 // A shared copy may come from a newer build with a category this one does not
@@ -46151,7 +46218,7 @@ function _ceremonyDrawSidebar(data) {
     `<div class="ceremony-sidebar-title">${esc(_ceremonyTitle())}</div>` +
     (_ceremonySummary
       ? `<div class="ceremony-sidebar-row ceremony-sidebar-intro${_ceremonyIsIntro() ? ' active' : ''}" data-idx="-1" onclick="ceremonyGoTo(-1)">
-          <span class="ceremony-sidebar-dot">📊</span> Stats &amp; records
+          <span class="ceremony-sidebar-dot">📊</span> ${esc(t('awx_title'))}
         </div>`
       : '') +
     _ceremonyCats.map((cat, i) => {
@@ -46164,7 +46231,7 @@ function _ceremonyDrawSidebar(data) {
       </div>`;
     }).join('') +
     `<div class="ceremony-sidebar-row ceremony-sidebar-finale${_ceremonyIsFinale() ? ' active' : ''}" data-idx="${_ceremonyCats.length}" onclick="ceremonyGoTo(${_ceremonyCats.length})">
-      <span class="ceremony-sidebar-dot">🎬</span> All winners
+      <span class="ceremony-sidebar-dot">🎬</span> ${esc(t('awx_cer_all_winners'))}
     </div>`;
   _ceremonyPaintDots();
 }
@@ -46248,13 +46315,13 @@ function _ceremonyRender() {
   const queue = [];
   if (_ceremonyIsIntro()) {
     // Opening slide: where the records stand before tonight's first envelope
-    name.textContent = 'Stats & records';
-    prog.textContent = '📊 Before the show';
+    name.textContent = t('awx_title');
+    prog.textContent = '📊 ' + t('awx_cer_before');
     slide.className = 'ceremony-slide is-intro';
     slide.innerHTML = _awardsSummaryHtml(_ceremonySummary, queue, `cerSum_${seq}`);
   } else if (_ceremonyIsFinale()) {
-    name.textContent = 'The Winners';
-    prog.textContent = '🎬 Roll call';
+    name.textContent = t('awx_cer_winners');
+    prog.textContent = '🎬 ' + t('awx_cer_rollcall');
     slide.className = 'ceremony-slide is-finale';
     slide.innerHTML = _ceremonyFinaleHtml(data, queue);
   } else {
@@ -46269,8 +46336,8 @@ function _ceremonyRender() {
   }
 
   prevBtn.disabled = _ceremonyIdx === _ceremonyFirstIdx();
-  nextBtn.textContent = _ceremonyIsIntro() ? '🎬 Start the show'
-    : (_ceremonyIdx === _ceremonyCats.length - 1 ? '🏆 All winners' : t('awards_ceremony_next'));
+  nextBtn.textContent = _ceremonyIsIntro() ? '🎬 ' + t('awx_cer_start')
+    : (_ceremonyIdx === _ceremonyCats.length - 1 ? '🏆 ' + t('awx_cer_all_winners') : t('awards_ceremony_next'));
   nextBtn.style.visibility = _ceremonyIsFinale() ? 'hidden' : '';
   // Rows carry their own index, since the optional intro row shifts the positions
   document.querySelectorAll('.ceremony-sidebar-row').forEach(el => el.classList.toggle('active', +el.dataset.idx === _ceremonyIdx));
@@ -46329,9 +46396,9 @@ function _ceremonyCatSlideHtml(cat, catData, queue) {
       <div class="cer-winner-name">${esc(lbl)}</div>
       ${sub ? `<div class="cer-winner-sub">${esc(sub)}</div>` : ''}
       <div class="cer-player" id="ceremonyPlayer">
-        <button class="cer-play-btn" id="ceremonyPlayBtn" onclick="ceremonyTogglePlay()" title="30-second preview">▶</button>
+        <button class="cer-play-btn" id="ceremonyPlayBtn" onclick="ceremonyTogglePlay()" title="${esc(t('awx_cer_preview_30'))}">▶</button>
         <div class="cer-player-bar"><div class="cer-player-fill" id="ceremonyPlayFill"></div></div>
-        <span class="cer-player-note" id="ceremonyPlayNote">preview</span>
+        <span class="cer-player-note" id="ceremonyPlayNote">${esc(t('awx_cer_preview'))}</span>
         <button class="cer-take-btn" id="ceremonyTakeBtn" onclick="ceremonyNextTake()" style="display:none" title="${esc(t('awards_preview_wrong'))}">⤿</button>
       </div>
     </div>`;
@@ -46340,12 +46407,12 @@ function _ceremonyCatSlideHtml(cat, catData, queue) {
   // Auto categories hold a single nominee that *is* the winner, so showcasing it
   // would give the game away — only offer the walk-through for a real field.
   const showcaseBtn = (!cat.auto && nominees.length > 1)
-    ? `<button class="ceremony-nominees-btn" onclick="cerShowStart()">▶ Meet the nominees</button>`
+    ? `<button class="ceremony-nominees-btn" onclick="cerShowStart()">▶ ${esc(t('awx_cer_meet'))}</button>`
     : '';
 
   const envelope = winner
     ? `<div class="cer-envelope-wrap">
-         <div class="cer-envelope" onclick="ceremonyReveal()" role="button" tabindex="0" title="Open the envelope">
+         <div class="cer-envelope" onclick="ceremonyReveal()" role="button" tabindex="0" title="${esc(t('awx_cer_open_env'))}">
            <div class="cer-env-back"></div>
            <div class="cer-env-card"><span class="cer-env-card-star">🏆</span></div>
            <div class="cer-env-front"></div>
@@ -46358,8 +46425,8 @@ function _ceremonyCatSlideHtml(cat, catData, queue) {
          </div>
        </div>`
     : `<div class="cer-no-winner">${_ceremonyShared
-        ? 'No winner announced in this category yet.'
-        : 'No winner crowned in this category yet — close the ceremony and click a nominee to crown one.'}</div>`;
+        ? esc(t('awx_cer_no_winner_shared'))
+        : esc(t('awx_cer_no_winner'))}</div>`;
 
   return `${cards ? `<div class="cer-nominees">${cards}</div>` : sealedHtml}${envelope}${winnerHtml}`;
 }
@@ -46382,19 +46449,19 @@ function _ceremonyFinaleHtml(data, queue) {
   }).join('');
   // A guest reaching the end is the moment to tell them where this came from.
   const cta = _ceremonyShared
-    ? `<div class="cer-shared-cta"><a href="${esc(location.pathname)}" class="cer-shared-cta-btn">🏆 Make your own awards on dankcharts.fm</a></div>`
+    ? `<div class="cer-shared-cta"><a href="${esc(location.pathname)}" class="cer-shared-cta-btn">🏆 ${esc(t('awx_cer_make_own'))}</a></div>`
     : '';
   // After the roll call, the records again with tonight's results counted in,
   // marked where a holder changed since the opening slide
   const stats = _ceremonySummaryFinal
     ? `<div class="cer-finale-stats">${_awardsSummaryHtml(_ceremonySummaryFinal, queue, `cerFinSum_${seq}`, {
-        kicker: `After the ${_ceremonyYear} ceremony`,
-        title: 'Final stats & records',
+        kicker: t('awx_after', { y: _ceremonyYear }),
+        title: t('awx_final_title'),
         before: _ceremonySummary,
         winsView: true,
       })}</div>`
     : '';
-  if (!rows) return `<div class="ceremony-no-nom">No winners crowned yet.</div>${stats}${cta}`;
+  if (!rows) return `<div class="ceremony-no-nom">${esc(t('awx_no_winners'))}</div>${stats}${cta}`;
   return `<div class="cer-finale-grid">${rows}</div>${stats}${cta}`;
 }
 
@@ -46794,7 +46861,7 @@ async function _ceremonyPlayClip(item, type, opts) {
   try {
     await audio.play();
     if (token !== _ceremonyAudioToken) { audio.pause(); return null; }
-    paint('❚❚', opts.label ? opts.label(take, takes.length) : (opts.playingNote || '30-second preview'));
+    paint('❚❚', opts.label ? opts.label(take, takes.length) : (opts.playingNote || t('awx_cer_preview_30')));
     _ceremonyFadeIn(audio);
     return audio;
   } catch (e) {
@@ -46820,7 +46887,7 @@ function _ceremonyStartPreview(item, type, takeIdx) {
       _ceremonyPaintTakeBtn(total);
       const want = type === 'album' ? (item.album || '') : type === 'artist' ? '' : (item.title || '');
       const exact = want && _cerNorm(take.title) === _cerNorm(want);
-      return (!exact || total > 1) ? take.label : '30-second preview';
+      return (!exact || total > 1) ? take.label : t('awx_cer_preview_30');
     },
   });
 }
@@ -46863,9 +46930,9 @@ function cerShowStart() {
     <div class="cer-show-bar"><div class="cer-show-fill" id="cerShowFill"></div></div>
     <div class="cer-show-note" id="cerShowNote"></div>
     <div class="cer-show-controls">
-      <button onclick="cerShowPrev()" title="Previous nominee">◄</button>
-      <button onclick="cerShowNext()" title="Next nominee">Skip ►</button>
-      <button onclick="cerShowStop()" title="Back to the envelope">■ Stop</button>
+      <button onclick="cerShowPrev()" title="${esc(t('awx_cer_prev_nom'))}" aria-label="${esc(t('awx_cer_prev_nom'))}">◄</button>
+      <button onclick="cerShowNext()" title="${esc(t('awx_cer_next_nom'))}">${esc(t('awx_cer_skip'))} ►</button>
+      <button onclick="cerShowStop()" title="${esc(t('awx_cer_back_env'))}">■ ${esc(t('awx_cer_stop'))}</button>
     </div>`;
   slide.insertBefore(panel, slide.querySelector('.cer-envelope-wrap') || null);
   // Ride to the bottom so the showcase controls clear the sticky nav row
@@ -46981,7 +47048,7 @@ function _ceremonyStopAudio() {
 
 function ceremonyTogglePlay() {
   if (_ceremonyAudio) {
-    if (_ceremonyAudio.paused) { _ceremonyAudio.play().then(() => _ceremonyPaintPlayer('❚❚', '30-second preview')).catch(() => {}); }
+    if (_ceremonyAudio.paused) { _ceremonyAudio.play().then(() => _ceremonyPaintPlayer('❚❚', t('awx_cer_preview_30'))).catch(() => {}); }
     else { _ceremonyAudio.pause(); _ceremonyPaintPlayer('▶', 'paused'); }
     return;
   }
@@ -47006,7 +47073,8 @@ function _ceremonyPaintSoundBtn() {
   const btn = document.getElementById('ceremonySoundBtn');
   if (!btn) return;
   btn.textContent = _ceremonySound ? '🔊' : '🔇';
-  btn.title = _ceremonySound ? 'Song previews on' : 'Song previews off';
+  btn.title = t(_ceremonySound ? 'awx_cer_sound_on' : 'awx_cer_sound_off');
+  btn.setAttribute('aria-label', btn.title);
 }
 
 /* ── Sharing ──────────────────────────────────────────────────────────────────

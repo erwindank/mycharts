@@ -2945,6 +2945,38 @@ Steps:
     and sideways scroll; the generate status lines ("Loading year data…",
     "Calculating …", "Saving…") through keys. Navy dark / light, Yellow
     dark, Red light screenshots, with gold checked on the light themes.
+    **Done 2026-10-25:** **the cards never changed language:** a switch
+    left My Grammys, the category list, Real-Life Awards and an open
+    ceremony or picker in the old language, though most of their words had
+    keys. awardsOnLanguageChange() (called from setLanguage) redraws them
+    from what is loaded. 153 new awx_* keys in four languages: the Stats &
+    records block (_awPl for _one / _other), the Spotlight hero, card
+    tooltips, the year steppers, the generate status lines, the four
+    Configure Year switches, the picker's head, sort, groups, fit chip and
+    tips, "Show N more", the ceremony (title, Before the show / Start the
+    show, The Winners, Roll call, All winners, Meet the nominees, preview
+    lines, sound button, showcase buttons, the guest's "Make your own"
+    link) and Real-Life Awards (ceremony name "68.ª edición…", Held ·
+    honouring, the tally, wins · all-time, Won / Nominated, that season,
+    Every category, the checking line). **Scores are saved in English on
+    the ballot** ("173 plays · with a DJ/producer", "94 summer plays",
+    "12-day streak"…), so _awScoreText() translates them when shown, one
+    " · " part at a time by pattern, and leaves unknown parts alone.
+    Checked with a script: 1440 / 1100 / 390 (touch) × en / es / pt-BR /
+    pt-PT × the tab, Spotlight, Reel, Configure Year, picker, ceremony
+    (opening, a category, the reveal, the drawer, the roll call) and
+    Real-Life Awards: no English left in visible text (Gemini API Key is a
+    name; pt's "plays" is its translation), no sideways scroll, no errors.
+    The ☆ on a category card stars it and leaves the switch alone. Navy
+    dark, Navy light, Yellow dark and Red light screenshots looked right;
+    the gold button and ring read on the light themes. **Still English:**
+    the picker's stat sort options and stat lines (Song / Album / Artist of
+    the Year), the picker's preview panel, the Share dialog, the
+    showcase's step lines, and play counts written 1,895 in every language
+    (tCount uses the browser's number format, as elsewhere on the site).
+
+**Phase 9 part 5 (Awards) is finished** (2026-10-25). Next is phase 9
+part 6: Your Soundtrack (4.18), looked at on screen first.
 
 The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in
