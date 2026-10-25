@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Your Soundtrack: a proper title and one toolbar":
+    ["Sua Trilha Sonora: um título de verdade e uma barra só",
+     "Sua Trilha Sonora agora começa com o mesmo título de página de Recordes, Estatísticas, Eventos e Prêmios, com a sua nota musical, em vez de um rótulo pequeno. Embaixo fica uma barra só: Ano / Mês / Todo o período, o ano ou o mês entre duas setas claras e, à direita, Replay do histórico e Compartilhar, então não é mais preciso rolar até o fim para achá-los. Replay do histórico leva você ao replay e o inicia; aparece na visão Ano, que é onde ele fica. Funciona com Last.fm, Google Sheets e arquivos CSV."],
   "Your Soundtrack: month numbers, bubbles and dates":
     ["Sua Trilha Sonora: números dos meses, bolhas e datas",
      "Três pequenos ajustes em Sua Trilha Sonora. No celular, as contagens de Atividade mensal não ficam mais umas em cima das outras (“4,5114,040…”): cada mês guarda espaço para o seu número e o gráfico desliza para o lado. As bolhas de Novas descobertas mostram as iniciais do artista até a foto chegar, então nenhuma fica como um círculo vazio. As datas de marcos e sequências são escritas por extenso, como 11 fev 2026, igual a Recordes e Eventos. Funciona com Last.fm, Google Sheets e arquivos CSV."],

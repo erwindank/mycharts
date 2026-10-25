@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Your Soundtrack: a proper title and one toolbar":
+    ["Tu Banda Sonora: un título de verdad y una sola barra",
+     "Tu Banda Sonora ahora empieza con el mismo título de página que Récords, Estadísticas, Eventos y Premios, con su nota musical, en lugar de una etiqueta pequeña. Debajo hay una sola barra: Año / Mes / Todo el tiempo, el año o el mes entre dos flechas claras y, a la derecha, Repetición del historial y Compartir, así que ya no hay que bajar hasta el final para encontrarlos. Repetición del historial te lleva a la repetición y la inicia; aparece en la vista Año, que es donde está. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Your Soundtrack: month numbers, bubbles and dates":
     ["Tu Banda Sonora: números de los meses, burbujas y fechas",
      "Tres arreglos pequeños en Tu Banda Sonora. En el móvil, los recuentos de Actividad mensual ya no se montan unos sobre otros (“4,5114,040…”): cada mes guarda espacio para su número y el gráfico se desliza de lado. Las burbujas de Nuevos descubrimientos muestran las iniciales del artista hasta que llega su foto, así que ninguna queda como un círculo vacío. Las fechas de hitos y rachas se escriben con palabras, como 11 feb 2026, igual que en Récords y Eventos. Funciona con Last.fm, Google Sheets y archivos CSV."],

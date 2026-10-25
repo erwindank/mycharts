@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 308;
+const DC_CL_I18N_V = 309;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-25', t: 'design', a: 'soundtrack', h: '876eec4',
+    title: "Your Soundtrack: a proper title and one toolbar",
+    detail: "Your Soundtrack now opens with the same page title as Records, Stats, Events and Awards, with its music note, instead of a small label. Under it sits one toolbar: Year / Month / All-Time, the year or month between two clear arrows, and on the right Chart History Replay and Share, so you no longer have to scroll to the bottom for them. Chart History Replay takes you to the replay and starts it; it shows in the Year view, where the replay is. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-25', t: 'fix', a: 'soundtrack', h: 'c37dc68',
     title: "Your Soundtrack: month numbers, bubbles and dates",
     detail: "Three small fixes on Your Soundtrack. On a phone, Monthly Activity's play counts no longer run into each other (“4,5114,040…”): each month keeps room for its number and the chart slides sideways. New Discoveries bubbles show the artist's initials until their picture arrives, so none is an empty circle. Milestone and streak dates are written in words, like 11 Feb 2026, the same as Records and Events. Works with Last.fm, Google Sheets and CSV uploads." },
