@@ -48458,60 +48458,71 @@ function stRenderFeaturedArtist(periodPlays, artistName, totalCount) {
   const songPlayStreak = topSong ? computeStreak(p => isThisArtist(p) && songKey(p) === topSong.key) : 0;
   const songDayStreak = topSong ? dayStreakFor(topSong.days) : 0;
 
-  const sharePct = periodPlays.length ? Math.round(totalCount / periodPlays.length * 100) : 0;
   const avgPerDay = dayKeys.length ? Math.round(totalCount / dayKeys.length * 10) / 10 : 0;
 
-  // ── Bento collage ──────────────────────────────────────────────
-  // One big "hero" tile for the standout number, two content tiles for the
-  // text-heavy favorite album/song, and a cluster of small tiles for
-  // everything else — mirrors a Wrapped-style collage rather than a plain grid.
-  const heroTile = { icon: '⚡', label: t('st_feat_label_play_streak'), value: longestPlayStreak.toLocaleString(), note: t('st_feat_note_play_streak'), area: 'hero', role: 'hero' };
-  const contentTiles = [
-    { icon: '🏆', label: t('st_feat_label_favorite_album'), value: topAlbum || '—',
-      note: topAlbum ? [
-        t('st_feat_total_plays', { plays: tCount('plays', topAlbumRec.count) }),
-        t('st_feat_note_play_streak_row', { n: albumPlayStreak }),
-        t('st_feat_note_day_streak', { n: albumDayStreak }),
-      ] : '', area: 'album', role: 'content' },
-    { icon: '🎧', label: t('st_feat_label_favorite_song'), value: topSong ? topSong.title : '—',
-      note: topSong ? [
-        t('st_feat_total_plays', { plays: tCount('plays', topSong.count) }),
-        t('st_feat_note_play_streak_row', { n: songPlayStreak }),
-        t('st_feat_note_day_streak', { n: songDayStreak }),
-      ] : '', area: 'song', role: 'content' },
-  ];
-  // Small tiles: ones with a secondary note get more room ("med", 2 cols)
-  // than bare-number ones ("small", 1 col) — a mosaic rather than a uniform
-  // grid of same-size squares.
-  const smallTiles = [
-    { icon: '🔥', label: t('st_feat_label_most_played_day'), value: peakDayKey ? fmtDate(dayCounts[peakDayKey].date) : '—',
-      note: peakDayKey ? tCount('plays', dayCounts[peakDayKey].count) : '', area: 'dmp', role: 'med' },
-    { icon: '📆', label: t('st_feat_label_day_streak'), value: longestDayStreak.toLocaleString(), note: t('st_feat_note_consecutive_days'), area: 'dst', role: 'med' },
-    { icon: '📅', label: t('st_feat_label_days_played'), value: dayKeys.length.toLocaleString(), area: 'day', role: 'small' },
-    { icon: '🎵', label: t('st_feat_label_songs_played'), value: songSet.size.toLocaleString(), area: 'sng', role: 'small' },
-    { icon: '📊', label: t('st_feat_label_share_of_total'), value: `${sharePct}%`, area: 'shr', role: 'med' },
-    { icon: '📈', label: t('st_feat_label_avg_per_day'), value: avgPerDay.toLocaleString(), area: 'avg', role: 'med' },
-    { icon: '💿', label: t('st_feat_label_albums_played'), value: albumSet.size.toLocaleString(), area: 'alb', role: 'small' },
-    { icon: '🕐', label: t('st_feat_label_peak_hour'), value: dayKeys.length ? fmtHour(peakHour) : '—', area: 'pkh', role: 'small' },
-  ];
+  // ── Under the band (phase 9 part 6, choice 2A) ──────────────────
+  // One big fact (songs in a row) beside the favourite album and song as
+  // cover rows, then the rest as small centred stats under a divider. The
+  // share of all your plays is in the band's subline, so it isn't repeated.
+  const favRow = (kind, labelKey, name, notes) => `
+    <div class="st-fa-fav" data-kind="${kind}">
+      <div class="st-fa-fav-art" id="stFaArt_${kind}"><div class="thumb-initials">${esc(initials(name))}</div></div>
+      <div class="st-fa-fav-info">
+        <div class="st-fa-fav-label">${esc(t(labelKey))}</div>
+        <div class="st-fa-fav-name" title="${esc(name)}">${esc(name)}</div>
+        <div class="st-fa-fav-note">${notes.map(esc).join(' · ')}</div>
+      </div>
+    </div>`;
+  const favs = [
+    topAlbum ? favRow('album', 'st_feat_label_favorite_album', topAlbum, [
+      t('st_feat_total_plays', { plays: tCount('plays', topAlbumRec.count) }),
+      t('st_feat_note_play_streak_row', { n: albumPlayStreak }),
+      t('st_feat_note_day_streak', { n: albumDayStreak }),
+    ]) : '',
+    topSong ? favRow('song', 'st_feat_label_favorite_song', topSong.title, [
+      t('st_feat_total_plays', { plays: tCount('plays', topSong.count) }),
+      t('st_feat_note_play_streak_row', { n: songPlayStreak }),
+      t('st_feat_note_day_streak', { n: songDayStreak }),
+    ]) : '',
+  ].join('');
 
-  const tiles = [heroTile, ...contentTiles, ...smallTiles];
+  // small stats: value, label and an optional note, centred, coloured numbers
+  const small = [
+    { v: peakDayKey ? fmtDate(dayCounts[peakDayKey].date) : '—', l: t('st_feat_label_most_played_day'), n: peakDayKey ? tCount('plays', dayCounts[peakDayKey].count) : '' },
+    { v: longestDayStreak.toLocaleString(), l: t('st_feat_label_day_streak'), n: t('st_feat_note_consecutive_days') },
+    { v: dayKeys.length.toLocaleString(), l: t('st_feat_label_days_played') },
+    { v: songSet.size.toLocaleString(), l: t('st_feat_label_songs_played') },
+    { v: albumSet.size.toLocaleString(), l: t('st_feat_label_albums_played') },
+    { v: avgPerDay.toLocaleString(), l: t('st_feat_label_avg_per_day') },
+    { v: dayKeys.length ? fmtHour(peakHour) : '—', l: t('st_feat_label_peak_hour') },
+  ];
 
   const gridEl = document.getElementById('stFeaturedStats');
   if (gridEl) {
-    gridEl.innerHTML = tiles.map((s, i) => {
-      // content tiles (album/song) also get an area-specific class so each
-      // can carry its own accent color; hero/small/med tiles don't need one
-      const areaClass = s.role === 'content' ? ` st-fstat-${s.area}` : '';
-      return `
-      <div class="st-fstat st-fstat-${s.role}${areaClass}" style="--i:${i};grid-area:${s.area}">
-        <div class="st-fstat-value">${esc(String(s.value))}</div>
-        <div class="st-fstat-label"><span class="st-fstat-icon">${s.icon}</span> ${esc(s.label)}</div>
-        ${Array.isArray(s.note)
-          ? s.note.filter(Boolean).map(n => `<div class="st-fstat-note">${esc(n)}</div>`).join('')
-          : (s.note ? `<div class="st-fstat-note">${esc(s.note)}</div>` : '')}
+    gridEl.innerHTML = `
+      <div class="st-fa-top">
+        <div class="st-fa-big">
+          <div class="st-fa-big-num">${longestPlayStreak.toLocaleString()}</div>
+          <div class="st-fa-big-label">${esc(t('st_feat_note_play_streak'))}</div>
+        </div>
+        <div class="st-fa-favs">${favs}</div>
+      </div>
+      <div class="st-fa-stats">${small.map(s => `
+        <div class="st-fa-stat">
+          <div class="st-fa-stat-v">${esc(String(s.v))}</div>
+          <div class="st-fa-stat-l">${esc(s.l)}</div>
+          ${s.n ? `<div class="st-fa-stat-n">${esc(s.n)}</div>` : ''}
+        </div>`).join('')}
       </div>`;
-    }).join('');
+    // covers for the two favourite rows
+    if (topAlbum) queueImg(() => getArtAuto('album', topAlbum, artistName, topAlbum).then(url => {
+      const el = document.getElementById('stFaArt_album');
+      if (url && el && document.getElementById('stFeaturedArtistName')?.textContent === artistName) el.innerHTML = thumbHtml(url, topAlbum, false);
+    }));
+    if (topSong) queueImg(() => getArtAuto('song', topSong.title, artistName).then(url => {
+      const el = document.getElementById('stFaArt_song');
+      if (url && el && document.getElementById('stFeaturedArtistName')?.textContent === artistName) el.innerHTML = thumbHtml(url, topSong.title, false);
+    }));
   }
 }
 

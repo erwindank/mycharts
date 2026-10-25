@@ -3063,6 +3063,18 @@ Steps:
    with no winners and Share no longer repeat their text under the band.
    Old hero, box, glow and dot-title CSS removed.
 4. **#1 artist** (2A).
+   **Done 2026-10-25:** the band is the artist's photo, the name and
+   "3,663 plays · 7% of everything you played". Under it: the play streak
+   big in gold (102, "songs played back-to-back before switching artist")
+   beside the favourite album and song as cover rows (label, name, total ·
+   in a row · day streak); then a divider and seven small centred stats
+   with coloured numbers and compact uppercase labels (most played day,
+   day streak, days played, songs, albums, plays per active day, peak
+   hour): 7 across, 4 at ≤860px, 2 on a phone with the first on top. The
+   "of your total plays" tile went into the band's subline, so it isn't
+   said twice. The bento grid CSS is gone. Also fixed: every chapter's
+   own colour (--sc) was overridden by the default; the default now sits
+   on the bare .st-chap class.
 5. **Long parts** (3A): Still in Rotation and streak records as swipe
    rows.
 6. **The rest of the emoji and the bottom boxes:** line icons in chips,

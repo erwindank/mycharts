@@ -27452,10 +27452,10 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
    the right of it. Everything the section shows follows in .st-chap-body.
    The band's ground is the page's own colours, so it reads in every theme;
    --sc is the chapter's colour, used for its number only. */
-#soundtrackView .st-chap {
-  --sc: var(--accent);
-  margin: 0 0 var(--sp-8);
-}
+/* the default colour sits on the bare class, so each chapter's own
+   (#stChTop { --sc } below) wins */
+.st-chap { --sc: var(--accent); }
+#soundtrackView .st-chap { margin: 0 0 var(--sp-8); }
 .st-chap-head {
   position: relative;
   overflow: hidden;
@@ -27703,142 +27703,95 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
   line-height: 1.3;
 }
 
-/* Collage of the #1 artist's accomplishments within the active period — a
-   bento mix of one big "hero" stat, two text-heavy content tiles (favorite
-   album / most played song), and a cluster of number tiles sized by how
-   much they carry (a bare number stays narrow; anything with a note gets
-   more room). Every breakpoint's areas sum to a full rectangle, so there's
-   no leftover dead space despite the mixed sizes. */
-.st-featured-stats {
-  position: relative;
-  z-index: 1;
+/* #1 artist, under its band (phase 9 part 6, choice 2A): one big fact on the
+   left, the favourite album and song as cover rows on the right, then the
+   rest as small centred stats under a divider (the chart page's tile rule:
+   compact uppercase labels, coloured numbers). */
+.st-fa-top {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-template-areas:
-    "hero  hero  hero  hero"
-    "hero  hero  hero  hero"
-    "album album album album"
-    "song  song  song  song"
-    "dmp dmp dst dst"
-    "shr shr day sng"
-    "avg avg alb pkh";
-  gap: 0.4rem;
-  padding: 0.8rem 0.8rem var(--sp-4);
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: var(--sp-5);
+  align-items: center;
 }
-@media (min-width: 640px) {
-  .st-featured-stats {
-    grid-template-columns: repeat(6, 1fr);
-    grid-template-areas:
-      "hero hero hero album album album"
-      "hero hero hero song  song  song"
-      "dmp dmp dst dst day sng"
-      "shr shr avg avg alb pkh";
-    gap: var(--sp-2);
-    padding: 0.9rem var(--sp-4) 1.1rem;
-  }
-}
-
-.st-fstat {
-  --tc: var(--sc);
-  position: relative;
-  overflow: hidden;
-  border-radius: var(--r-lg);
-  border: 1px solid color-mix(in srgb, var(--tc) 28%, var(--border));
-}
-.st-fstat-icon {
-  display: inline-block;
-  font-size: 0.9em;
-  line-height: 1;
-  margin-right: 0.3em;
-  vertical-align: -0.05em;
-}
-.st-fstat-value {
+.st-fa-big { display: grid; gap: var(--sp-1); }
+.st-fa-big-num {
   font-family: var(--font-display);
+  font-size: clamp(3rem, 7vw, 4.5rem);
   font-weight: 800;
-  letter-spacing: -0.01em;
-  color: var(--tc);
-  line-height: 1.15;
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  color: var(--sc);
   font-feature-settings: "tnum";
-  overflow-wrap: break-word;
 }
-.st-fstat-label {
+.st-fa-big-label {
   font-family: var(--font-sans);
-  font-size: var(--fs-xs);
+  font-size: var(--fs-sm);
   color: var(--text2);
-  font-weight: 600;
-  margin-top: var(--sp-1);
+  max-width: 26ch;
 }
-.st-fstat-note {
+.st-fa-favs { display: grid; gap: var(--sp-3); }
+.st-fa-fav { display: flex; align-items: center; gap: var(--sp-3); min-width: 0; }
+.st-fa-fav-art {
+  width: 64px;
+  height: 64px;
+  flex: none;
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  background: var(--surface2);
+}
+.st-fa-fav-art .thumb,
+.st-fa-fav-art .thumb-initials { width: 100%; height: 100%; border-radius: inherit; border: none; object-fit: cover; }
+.st-fa-fav-info { min-width: 0; display: grid; gap: 2px; }
+.st-fa-fav-label,
+.st-fa-stat-l {
   font-family: var(--font-sans);
   font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--text3);
-  margin-top: 0.15rem;
-  line-height: 1.3;
 }
-
-/* Number tiles — sized by how much they carry rather than uniformly. A
-   couple of accent hues cycle through so the cluster reads as a collage
-   rather than a spreadsheet. */
-.st-fstat-small, .st-fstat-med {
-  background: color-mix(in srgb, var(--tc) 12%, var(--bg2));
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-.st-fstat-small:nth-of-type(4n+2), .st-fstat-med:nth-of-type(4n+2) { --tc: var(--teal); }
-.st-fstat-small:nth-of-type(4n+3), .st-fstat-med:nth-of-type(4n+3) { --tc: var(--accent); }
-.st-fstat-small:nth-of-type(4n+4), .st-fstat-med:nth-of-type(4n+4) { --tc: var(--green); }
-
-/* bare-number tiles: narrow, compact. They often share a grid row with
-   taller .st-fstat-med tiles (which carry a note line), so the grid
-   stretches them to match — content is centered (see shared rule above)
-   so it doesn't sink to the top of that extra height. */
-.st-fstat-small { padding: 0.35rem var(--sp-1) 0.3rem; }
-.st-fstat-small .st-fstat-value { font-size: var(--fs-md); }
-.st-fstat-small .st-fstat-label { font-size: var(--fs-xs); }
-
-/* tiles with a secondary note: wider, a little more breathing room */
-.st-fstat-med { padding: 0.45rem var(--sp-2) 0.4rem; }
-.st-fstat-med .st-fstat-value { font-size: var(--fs-lg); }
-
-/* Hero tile — the single standout number, given real visual weight but
-   without ballooning past the two content tiles it sits beside */
-.st-fstat-hero {
-  --tc: var(--gold1);
-  background:
-    radial-gradient(ellipse 120% 100% at 30% 0%, color-mix(in srgb, var(--tc) 30%, transparent) 0%, transparent 70%),
-    color-mix(in srgb, var(--tc) 16%, var(--bg2));
-  border-color: color-mix(in srgb, var(--tc) 45%, var(--border));
-  padding: 0.6rem 0.7rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-}
-.st-fstat-hero .st-fstat-value { font-size: var(--fs-xl); }
-.st-fstat-hero .st-fstat-label { font-size: var(--fs-xs); margin-top: 0.35rem; }
-.st-fstat-hero .st-fstat-note { font-size: var(--fs-xs); margin-top: 0.2rem; max-width: 24ch; line-height: 1.25; }
-
-/* Content tiles (favorite album / most played song) — left-aligned text
-   blocks rather than centered numbers, so long titles read like a mini list */
-.st-fstat-content {
-  padding: var(--sp-2) 0.65rem;
-  text-align: left;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-.st-fstat-album { --tc: var(--accent); background: color-mix(in srgb, var(--tc) 11%, var(--bg2)); }
-.st-fstat-song  { --tc: var(--teal);   background: color-mix(in srgb, var(--tc) 11%, var(--bg2)); }
-.st-fstat-content .st-fstat-value {
-  font-size: var(--fs-base);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+.st-fa-fav-name {
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  font-weight: 700;
+  color: var(--text1);
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
+}
+.st-fa-fav-note { font-size: var(--fs-xs); color: var(--text2); }
+.st-fa-stats {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--sp-3);
+  margin-top: var(--sp-5);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--border);
+}
+.st-fa-stat { text-align: center; display: grid; gap: 2px; align-content: start; }
+.st-fa-stat-v {
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  color: var(--text1);
+  font-feature-settings: "tnum";
+  white-space: nowrap;
+}
+.st-fa-stat:nth-child(4n+1) .st-fa-stat-v { color: var(--gold1); }
+.st-fa-stat:nth-child(4n+2) .st-fa-stat-v { color: var(--teal); }
+.st-fa-stat:nth-child(4n+3) .st-fa-stat-v { color: var(--accent); }
+.st-fa-stat:nth-child(4n+4) .st-fa-stat-v { color: var(--green); }
+.st-fa-stat-n { font-size: var(--fs-xs); color: var(--text3); }
+@media (max-width: 860px) {
+  .st-fa-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); row-gap: var(--sp-4); }
+}
+/* phone: stacked; two stats across with the first (it has a note) on top */
+@media (max-width: 640px) {
+  .st-fa-top { grid-template-columns: minmax(0, 1fr); gap: var(--sp-4); }
+  .st-fa-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .st-fa-stat:first-child { grid-column: 1 / -1; }
+  .st-fa-fav-art { width: 56px; height: 56px; }
 }
 
 /* Each chapter's colour (its number in the band) */
