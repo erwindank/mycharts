@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 312;
+const DC_CL_I18N_V = 313;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-25', t: 'design', a: 'soundtrack', h: '70a7c94',
+    title: "Your Soundtrack: line icons and a tidier ending",
+    detail: "Your Soundtrack swaps its emoji for simple line icons that match the rest of the site: in the Monthly Activity notes, the milestones, the streak records, the New Record badge and the award ribbons, and the little flame after every streak is gone. The end of the page is tidier too. Chart History Replay and Share now have their button right in their chapter's headline instead of alone underneath. If none of your top artists has won one of your own awards yet, that part is a single line with an Open Awards button instead of a big empty chapter. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-25', t: 'design', a: 'soundtrack', h: 'f2026c4',
     title: "Your Soundtrack: swipe through rotation and streak records",
     detail: "Two of the longest parts of Your Soundtrack are now rows you swipe sideways, so the page is much shorter on a phone. Still in Rotation shows each returning artist with their top five songs as a card in one row, and the artist, album and song streak records are compact cards with a small cover next to the numbers, instead of a full-size photo each. On a computer, arrows at the ends of a row move it along. On a phone, the three streak cards above the records sit two across with the third underneath, so their dates fit. Works with Last.fm, Google Sheets and CSV uploads." },

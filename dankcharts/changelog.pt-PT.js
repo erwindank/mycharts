@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Your Soundtrack: line icons and a tidier ending":
+    ["Sua Trilha Sonora: ícones de linha e um final mais arrumado",
+     "Sua Trilha Sonora troca os emoji por ícones de linha simples que combinam com o resto do site: nas notas de Atividade mensal, nos marcos, nos recordes de sequência, no selo de Novo recorde e nas fitas de prémios, e desaparece a chamazinha depois de cada sequência. O fim da página também está mais arrumado. Replay do histórico e Partilhar têm agora o botão dentro do título do capítulo em vez de sozinho por baixo. Se nenhum dos teus artistas top ganhou ainda um dos teus prémios, essa parte é uma linha só com um botão Abrir Prémios em vez de um capítulo grande e vazio. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
   "Your Soundtrack: swipe through rotation and streak records":
     ["Sua Trilha Sonora: desliza pela rotação e pelos recordes de sequência",
      "Duas das partes mais longas de Sua Trilha Sonora são agora filas que deslizam para o lado, por isso a página ficou bem mais curta no telemóvel. Ainda em rotação mostra cada artista que voltou, com as cinco músicas top, como um cartão numa só fila, e os recordes de sequência de artista, álbum e música são cartões compactos com uma capa pequena ao lado dos números, em vez de uma foto em tamanho grande cada. No computador, setas nas pontas da fila fazem-na andar. No telemóvel, os três cartões de sequência acima dos recordes ficam dois a dois com o terceiro por baixo, para as datas caberem. Funciona com Last.fm, Google Sheets e ficheiros CSV."],

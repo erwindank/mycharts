@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Your Soundtrack: line icons and a tidier ending":
+    ["Tu Banda Sonora: iconos de línea y un final más ordenado",
+     "Tu Banda Sonora cambia sus emoji por iconos de línea sencillos que combinan con el resto del sitio: en las notas de Actividad mensual, los hitos, los récords de rachas, la insignia de Nuevo récord y las cintas de premios, y desaparece la llamita detrás de cada racha. El final de la página también está más ordenado. Repetición del historial y Compartir ahora tienen su botón dentro del titular de su capítulo en lugar de solo debajo. Si ninguno de tus artistas top ha ganado aún uno de tus premios, esa parte es una sola línea con un botón Abrir Premios en lugar de un capítulo grande y vacío. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Your Soundtrack: swipe through rotation and streak records":
     ["Tu Banda Sonora: desliza por la rotación y los récords de rachas",
      "Dos de las partes más largas de Tu Banda Sonora ahora son filas que se deslizan de lado, así que la página es mucho más corta en el móvil. Sigue en rotación muestra a cada artista que vuelve, con sus cinco canciones top, como una tarjeta en una sola fila, y los récords de rachas de artista, álbum y canción son tarjetas compactas con una portada pequeña junto a los números, en lugar de una foto a tamaño completo cada uno. En el ordenador, unas flechas en los extremos de la fila la mueven. En el móvil, las tres tarjetas de rachas de arriba van de dos en dos con la tercera debajo, para que quepan sus fechas. Funciona con Last.fm, Google Sheets y archivos CSV."],
