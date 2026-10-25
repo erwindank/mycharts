@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Your Soundtrack: your year's albums behind the year":
+    ["Tu Banda Sonora: los álbumes de tu año detrás del año",
+     "El primer capítulo de Tu Banda Sonora muestra ahora los álbumes que más escuchaste ese año (o mes) detrás del año en grande: una cuadrícula apretada de portadas a la derecha que se va deshaciendo hacia la izquierda, con las portadas desplazándose, girando y desvaneciéndose alrededor del año. Las portadas aparecen poco a poco al abrir la página, salvo que tu dispositivo esté configurado para reducir el movimiento. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Your Soundtrack: the new chapters in your language":
     ["Tu Banda Sonora: los nuevos capítulos en tu idioma",
      "Cambiar el idioma con Tu Banda Sonora abierta ahora vuelve a dibujar toda la página de una vez, incluidos los titulares de los capítulos, y una historia de Reproduce tu año abierta se queda en la pantalla en la que estabas. También se traducen algunas cosas que seguían en inglés: la nota de escuchas por día bajo Reproducciones (“~180/día”) y la hora punta de escucha, que ahora dice 17:00 en lugar de 5 PM. Funciona con Last.fm, Google Sheets y archivos CSV."],

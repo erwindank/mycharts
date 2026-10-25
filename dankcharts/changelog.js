@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 315;
+const DC_CL_I18N_V = 316;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-25', t: 'design', a: 'soundtrack', h: '17356fe',
+    title: "Your Soundtrack: your year's albums behind the year",
+    detail: "The first chapter of Your Soundtrack now shows the albums you played most that year (or month) behind the big year: a tight grid of covers on the right that comes apart toward the left, the covers drifting, turning and fading away around the year. The covers dissolve in when the page opens, unless your device is set to reduce motion. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-25', t: 'i18n', a: 'soundtrack', h: '56a30c4',
     title: "Your Soundtrack: the new chapters in your language",
     detail: "Changing the language while Your Soundtrack is open now redraws the whole page at once, chapter headlines included, and an open Play your year story stays on the screen you were on. A few bits that stayed in English are translated too: the plays-per-day note under Plays (“~180/day”), and the peak listening hour, which reads 17:00 in Spanish and Portuguese instead of 5 PM. Works with Last.fm, Google Sheets and CSV uploads." },

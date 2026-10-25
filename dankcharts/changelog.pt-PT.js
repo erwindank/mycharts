@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Your Soundtrack: your year's albums behind the year":
+    ["Sua Trilha Sonora: os álbuns do teu ano por trás do ano",
+     "O primeiro capítulo de Sua Trilha Sonora mostra agora os álbuns que mais ouviste nesse ano (ou mês) por trás do ano em destaque: uma grelha apertada de capas à direita que se vai desfazendo para a esquerda, com as capas a deslocar-se, a rodar e a desaparecer à volta do ano. As capas aparecem aos poucos quando a página abre, a menos que o teu dispositivo esteja configurado para reduzir o movimento. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
   "Your Soundtrack: the new chapters in your language":
     ["Sua Trilha Sonora: os novos capítulos no teu idioma",
      "Mudar o idioma com Sua Trilha Sonora aberta redesenha agora a página toda de uma vez, incluindo os títulos dos capítulos, e uma história de Reproduzir o teu ano aberta continua no ecrã em que estavas. Algumas coisas que ficavam em inglês também foram traduzidas: a nota de plays por dia por baixo de Plays (“~180/dia”) e a hora de pico, que aparece agora como 17:00 em vez de 5 PM. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
