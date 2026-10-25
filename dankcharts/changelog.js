@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 309;
+const DC_CL_I18N_V = 310;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-25', t: 'design', a: 'soundtrack', h: 'bebce11',
+    title: "Your Soundtrack reads like a story now",
+    detail: "Your Soundtrack is no longer a stack of look-alike boxes. Each part is now a numbered chapter that opens with one big line about your listening, with a picture from that chapter behind it: “April was your loudest month”, “808 artists you had never played”, “You passed 200,000 plays”, “210 days in a row”. Everything the page showed before is still there, right under each headline: the five tiles and the reel, the Top Songs and Top Artists carousels, the month bars, the loyalty ring, the discovery bubbles, every milestone and streak. The tiles have simple line icons instead of emoji, and on a phone the play count gets the full width so it's never cut off. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-25', t: 'design', a: 'soundtrack', h: '876eec4',
     title: "Your Soundtrack: a proper title and one toolbar",
     detail: "Your Soundtrack now opens with the same page title as Records, Stats, Events and Awards, with its music note, instead of a small label. Under it sits one toolbar: Year / Month / All-Time, the year or month between two clear arrows, and on the right Chart History Replay and Share, so you no longer have to scroll to the bottom for them. Chart History Replay takes you to the replay and starts it; it shows in the Year view, where the replay is. Works with Last.fm, Google Sheets and CSV uploads." },

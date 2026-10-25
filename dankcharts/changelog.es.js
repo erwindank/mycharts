@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Your Soundtrack reads like a story now":
+    ["Tu Banda Sonora ahora se lee como una historia",
+     "Tu Banda Sonora ya no es una pila de recuadros iguales. Cada parte es ahora un capítulo numerado que empieza con una frase grande sobre lo que escuchaste, con una imagen de ese capítulo detrás: “Abril fue tu mes con más escuchas”, “808 artistas que nunca habías escuchado”, “Pasaste las 200.000 escuchas”, “210 días seguidos”. Todo lo que mostraba la página sigue ahí, justo debajo de cada titular: las cinco fichas y la cinta, los carruseles de canciones y artistas top, las barras por mes, el anillo de fidelidad, las burbujas de descubrimientos, cada hito y cada racha. Las fichas tienen iconos de línea en lugar de emoji y, en el móvil, el número de escuchas ocupa todo el ancho para que nunca se corte. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Your Soundtrack: a proper title and one toolbar":
     ["Tu Banda Sonora: un título de verdad y una sola barra",
      "Tu Banda Sonora ahora empieza con el mismo título de página que Récords, Estadísticas, Eventos y Premios, con su nota musical, en lugar de una etiqueta pequeña. Debajo hay una sola barra: Año / Mes / Todo el tiempo, el año o el mes entre dos flechas claras y, a la derecha, Repetición del historial y Compartir, así que ya no hay que bajar hasta el final para encontrarlos. Repetición del historial te lleva a la repetición y la inicia; aparece en la vista Año, que es donde está. Funciona con Last.fm, Google Sheets y archivos CSV."],
