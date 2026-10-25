@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Your Soundtrack: swipe through rotation and streak records":
+    ["Tu Banda Sonora: desliza por la rotación y los récords de rachas",
+     "Dos de las partes más largas de Tu Banda Sonora ahora son filas que se deslizan de lado, así que la página es mucho más corta en el móvil. Sigue en rotación muestra a cada artista que vuelve, con sus cinco canciones top, como una tarjeta en una sola fila, y los récords de rachas de artista, álbum y canción son tarjetas compactas con una portada pequeña junto a los números, en lugar de una foto a tamaño completo cada uno. En el ordenador, unas flechas en los extremos de la fila la mueven. En el móvil, las tres tarjetas de rachas de arriba van de dos en dos con la tercera debajo, para que quepan sus fechas. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Your Soundtrack: a clearer #1 artist":
     ["Tu Banda Sonora: un artista #1 más claro",
      "El capítulo del artista #1 en Tu Banda Sonora se lee mejor. Bajo la foto y el nombre del artista, el número destacado va primero y en grande: cuántas de sus canciones escuchaste seguidas. Al lado, tu álbum y tu canción favoritos aparecen ahora con sus portadas. Todo lo demás (día con más escuchas, racha de días, días escuchados, canciones, álbumes, escuchas por día, hora punta) va debajo en una sola fila ordenada de números pequeños, en lugar de once recuadros de tamaños distintos. Funciona con Last.fm, Google Sheets y archivos CSV."],

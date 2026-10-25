@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 311;
+const DC_CL_I18N_V = 312;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-25', t: 'design', a: 'soundtrack', h: 'f2026c4',
+    title: "Your Soundtrack: swipe through rotation and streak records",
+    detail: "Two of the longest parts of Your Soundtrack are now rows you swipe sideways, so the page is much shorter on a phone. Still in Rotation shows each returning artist with their top five songs as a card in one row, and the artist, album and song streak records are compact cards with a small cover next to the numbers, instead of a full-size photo each. On a computer, arrows at the ends of a row move it along. On a phone, the three streak cards above the records sit two across with the third underneath, so their dates fit. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-25', t: 'design', a: 'soundtrack', h: 'a7759c5',
     title: "Your Soundtrack: a clearer #1 artist",
     detail: "The #1 artist chapter in Your Soundtrack is easier to read. Under the artist's photo and name, the standout number comes first and big: how many of their songs you played in a row. Next to it, your favourite album and song now show with their covers. Everything else (most played day, day streak, days played, songs, albums, plays per day, peak hour) sits underneath in one tidy row of small numbers, instead of eleven boxes of different sizes. Works with Last.fm, Google Sheets and CSV uploads." },

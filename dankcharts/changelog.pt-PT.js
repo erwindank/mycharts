@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Your Soundtrack: swipe through rotation and streak records":
+    ["Sua Trilha Sonora: desliza pela rotação e pelos recordes de sequência",
+     "Duas das partes mais longas de Sua Trilha Sonora são agora filas que deslizam para o lado, por isso a página ficou bem mais curta no telemóvel. Ainda em rotação mostra cada artista que voltou, com as cinco músicas top, como um cartão numa só fila, e os recordes de sequência de artista, álbum e música são cartões compactos com uma capa pequena ao lado dos números, em vez de uma foto em tamanho grande cada. No computador, setas nas pontas da fila fazem-na andar. No telemóvel, os três cartões de sequência acima dos recordes ficam dois a dois com o terceiro por baixo, para as datas caberem. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
   "Your Soundtrack: a clearer #1 artist":
     ["Sua Trilha Sonora: um artista #1 mais claro",
      "O capítulo do artista #1 em Sua Trilha Sonora está mais fácil de ler. Por baixo da foto e do nome do artista, o número de destaque vem primeiro e em grande: quantas músicas dele ouviste seguidas. Ao lado, o teu álbum e a tua música favoritos aparecem agora com as capas. Tudo o resto (dia com mais plays, sequência de dias, dias ouvidos, músicas, álbuns, plays por dia, hora de pico) fica por baixo, numa só fila arrumada de números pequenos, em vez de onze caixas de tamanhos diferentes. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
