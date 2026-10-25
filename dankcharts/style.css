@@ -27480,8 +27480,29 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
   opacity: 0;
   transition: opacity 0.6s var(--ease);
 }
-.st-chap-bg.is-loaded,
-#stFeaturedBanner[style*="url"] { opacity: 0.5; }
+.st-chap-bg.is-loaded { opacity: 0.5; }
+
+/* Chapter 2 (#1 artist): the photo big and at full strength, the way the old
+   spotlight had it; the name sits low, over a fade into the page at the
+   bottom instead of the side fade the other bands use. */
+/* (two classes, to win over the general band rules further down) */
+.st-chap-head.st-chap-head--artist {
+  min-height: 440px;
+  align-items: end;
+}
+#stFeaturedBanner { background-position: center 26%; }
+#stFeaturedBanner[style*="url"] { opacity: 1; }
+.st-chap-head.st-chap-head--artist::after {
+  background: linear-gradient(180deg,
+    transparent 0%,
+    transparent 48%,
+    color-mix(in srgb, var(--bg) 62%, transparent) 76%,
+    color-mix(in srgb, var(--bg) 94%, transparent) 100%);
+}
+.st-chap-head--artist .st-chap-title { font-size: clamp(2.4rem, 6vw, 4rem); }
+@media (max-width: 640px) {
+  .st-chap-head.st-chap-head--artist { min-height: 340px; }
+}
 .st-chap-head::after {
   content: '';
   position: absolute;

@@ -3149,7 +3149,9 @@ solid right of 82% of the width, gone left of 26%, and in between the
 tiles thin out, shrink, drift, turn and fade, seeded from the period so it
 draws the same each time. One cover lookup per album; the tiles dissolve
 in from the right (off with reduced motion). The band's fade is lighter
-there so the covers show. Checked dark and light, 1440 and 390.
+there so the covers show. Checked dark and light, 1440 and 390. Chapter 2's band went back to the big artist photo you liked:
+440px tall (340 on a phone), the photo at full strength, the name low
+over a fade into the page at the bottom instead of the side fade.
 
 **Phase 9 part 6 (Your Soundtrack) is finished** (2026-10-25). Next is
 4.19 (Playlists, Board, Charts Guide), looked at on screen first.
