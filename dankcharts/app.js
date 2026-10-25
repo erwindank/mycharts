@@ -47542,7 +47542,8 @@ function stJumpToReplay() {
   const sec = document.getElementById('stReplaySection');
   if (!sec || sec.style.display === 'none') return;
   sec.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
-  if (!_stReplayTimer && document.getElementById('stReplayCanvas')?.style.display === 'none') stStartReplay();
+  // start it unless it is already going (then its Play button is hidden)
+  if (document.getElementById('stReplayBtn')?.style.display !== 'none') stStartReplay();
 }
 
 function stNavigate(dir) {
@@ -47933,16 +47934,19 @@ function stRenderChapters() {
   // Underrated Gem: written when its Last.fm lookup comes back (stRenderGem)
   stFillHead('gem', { label: t('st_gem_title'), title: esc(t('st_gem_loading')) });
 
+  // Replay (Year view only) and Share carry their button in the band
   stFillHead('replay', {
     label: t('st_replay_title'),
-    title: esc(t('st_ch_replay_title', { period: periodLabel })), // Year view only
+    title: esc(t('st_ch_replay_title', { period: periodLabel })),
     sub: esc(t('st_ch_replay_sub')),
     bg: f.topArtist ? ['artist', f.topArtist] : null,
+    right: `<button class="dc-btn dc-btn-main st-act-btn" id="stReplayBtn" onclick="stStartReplay()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg><span>${esc(t('st_replay_btn'))}</span></button>`,
   });
   stFillHead('share', {
     label: t('st_card_title'),
     title: esc(stPeriodType === 'alltime' ? t('st_ch_share_title_all') : t('st_ch_share_title', { period: periodLabel })),
     sub: esc(t('st_card_hint')),
+    right: `<button class="dc-btn dc-btn-main st-act-btn" onclick="stOpenCard()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V4M7.5 8.5 12 4l4.5 4.5"/><path d="M5 13v5.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V13"/></svg><span>${esc(t('st_card_open'))}</span></button>`,
   });
 
   stNumberChapters();
@@ -47952,7 +47956,7 @@ function stRenderChapters() {
 function stNumberChapters() {
   let n = 0;
   document.querySelectorAll('#soundtrackView .st-chap').forEach(ch => {
-    const on = ch.style.display !== 'none';
+    const on = ch.style.display !== 'none' && !ch.classList.contains('st-chap--quiet');
     if (on) n++;
     const el = ch.querySelector('.st-chap-n');
     if (el) el.textContent = on ? t('st_ch_label', { n }) + ' · ' : '';
@@ -48627,10 +48631,10 @@ function stRenderActivity(plays) {
   if (months.length > 1) {
     const peakName = monthLabel(peakKey, true);
     const lowName = monthLabel(lowKey, true);
-    const momentumHTML = momentum ? `<span class="st-momentum-label st-${momentum}">${momentum === 'up' ? '📈' : momentum === 'down' ? '📉' : '➡️'} ${t('st_activity_momentum')}: <strong>${t('st_activity_momentum_' + momentum)}</strong></span>` : '';
+    const momentumHTML = momentum ? `<span class="st-momentum-label st-${momentum}">${stIco(momentum)} ${t('st_activity_momentum')}: <strong>${t('st_activity_momentum_' + momentum)}</strong></span>` : '';
     caption = `<div class="st-activity-caption">
-      <span class="st-peak-label">🏆 ${t('st_activity_peak')}: <strong>${peakName}</strong> (${byMonth[peakKey].toLocaleString()} ${tUnit('plays', byMonth[peakKey])})</span>
-      <span class="st-low-label">💤 ${t('st_activity_low')}: <strong>${lowName}</strong> (${byMonth[lowKey].toLocaleString()} ${tUnit('plays', byMonth[lowKey])})</span>
+      <span class="st-peak-label">${stIco('trophy')} ${t('st_activity_peak')}: <strong>${peakName}</strong> (${byMonth[peakKey].toLocaleString()} ${tUnit('plays', byMonth[peakKey])})</span>
+      <span class="st-low-label">${stIco('moon')} ${t('st_activity_low')}: <strong>${lowName}</strong> (${byMonth[lowKey].toLocaleString()} ${tUnit('plays', byMonth[lowKey])})</span>
       ${momentumHTML}
     </div>`;
   }
@@ -48663,7 +48667,7 @@ function stActivitySelectMonth(btn) {
     ? `<span class="st-activity-detail-delta st-${d.deltaDir}">${d.deltaDir === 'up' ? '▲' : d.deltaDir === 'down' ? '▼' : '•'} ${d.delta}% ${t('st_activity_vs_prev', { month: d.prevLabel })}</span>`
     : '';
   const artistHTML = d.artist
-    ? `<div class="st-activity-detail-artist">🎤 ${t('st_activity_top_artist')}: <strong>${esc(d.artist)}</strong> · ${tCount('plays', parseInt(d.artistCount))}</div>`
+    ? `<div class="st-activity-detail-artist">${stIco('mic')} ${t('st_activity_top_artist')}: <strong>${esc(d.artist)}</strong> · ${tCount('plays', parseInt(d.artistCount))}</div>`
     : '';
 
   panel.innerHTML = `
@@ -48677,6 +48681,23 @@ function stActivitySelectMonth(btn) {
     </div>
     ${artistHTML}
   `;
+}
+
+// ── Line icons (phase 9 part 6): the Soundtrack's emoji, redrawn ──
+const ST_ICO = {
+  trophy: '<path d="M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M7 6H4.5a2.5 2.5 0 0 0 2.6 3M17 6h2.5a2.5 2.5 0 0 1-2.6 3M12 14v3.5M8.5 20.5h7l-1-3h-5Z"/>',
+  moon: '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z"/>',
+  up: '<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
+  down: '<path d="M3 7l6 6 4-4 8 8"/><path d="M15 17h6v-6"/>',
+  flat: '<path d="M4 12h15"/><path d="M14 7l5 5-5 5"/>',
+  mic: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M9 21h6"/>',
+  note: '<path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/>',
+  disc: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5"/>',
+  repeat: '<path d="M17 2l3 3-3 3"/><path d="M4 11V9a4 4 0 0 1 4-4h12"/><path d="M7 22l-3-3 3-3"/><path d="M20 13v2a4 4 0 0 1-4 4H4"/>',
+  gem: '<path d="M6 3h12l3 6-9 12L3 9Z"/><path d="M3 9h18M9 3l3 6 3-6M12 9v12"/>',
+};
+function stIco(name) {
+  return `<svg class="st-ico" viewBox="0 0 24 24" aria-hidden="true">${ST_ICO[name] || ''}</svg>`;
 }
 
 // ── Sideways rows (phase 9 part 6, choice 3A) ─────────────────
@@ -49103,7 +49124,7 @@ function stRenderMilestones(plays) {
 
     // Overall milestones — the listener's own cumulative play count
     while (nextIdx < OVERALL_MS.length && total >= OVERALL_MS[nextIdx]) {
-      if (inPeriod) overallMs.push({ icon:'🎵', text: t('st_milestone_overall', { n: MS_NUM_TOKEN }), sub: t('st_milestone_overall_sub', { title: esc(p.title), artist: esc(p.artist) }), date: p.date, rawTitle: p.title, rawArtist: p.artist, nTarget: OVERALL_MS[nextIdx] });
+      if (inPeriod) overallMs.push({ icon: stIco('note'), text: t('st_milestone_overall', { n: MS_NUM_TOKEN }), sub: t('st_milestone_overall_sub', { title: esc(p.title), artist: esc(p.artist) }), date: p.date, rawTitle: p.title, rawArtist: p.artist, nTarget: OVERALL_MS[nextIdx] });
       nextIdx++;
     }
 
@@ -49115,7 +49136,7 @@ function stRenderMilestones(plays) {
       const ak = a.toLowerCase();
       artistCounts[ak] = (artistCounts[ak] || 0) + 1;
       if (inPeriod && ARTIST_MS_SET.has(artistCounts[ak])) {
-        artistMs.push({ icon:'🎤', sub: t('st_milestone_artist_sub', { title: esc(p.title) }), text: t('st_milestone_artist', { n: MS_NUM_TOKEN, artist: esc(a) }), date: p.date, rawTitle: p.title, rawArtist: a, nTarget: artistCounts[ak] });
+        artistMs.push({ icon: stIco('mic'), sub: t('st_milestone_artist_sub', { title: esc(p.title) }), text: t('st_milestone_artist', { n: MS_NUM_TOKEN, artist: esc(a) }), date: p.date, rawTitle: p.title, rawArtist: a, nTarget: artistCounts[ak] });
       }
     }
   }
@@ -49408,7 +49429,7 @@ function stRenderStreaks(plays) {
         <div class="st-streak-entity-overlay">
           <div class="st-streak-num-row">
             <span class="st-streak-num">${best.count}</span>
-            <span class="st-streak-entity-unit">${t('st_streak_days_unit')} 🔥</span>
+            <span class="st-streak-entity-unit">${t('st_streak_days_unit')}</span>
           </div>
           <div class="st-streak-subject" title="${subject}">${icon} ${subject}</div>
           <div class="st-streak-lbl">${t(labelKey)}</div>
@@ -49420,9 +49441,9 @@ function stRenderStreaks(plays) {
   _stFacts.streak = stPeriodType === 'alltime'
     ? { n: longestAll, start: longestStart ? fmtDay(longestStart) : '', end: longestEnd ? fmtDay(longestEnd) : '', artist: bestArtist ? bestArtist.label : null }
     : { n: longestPeriod, start: periodStart ? fmtDay(periodStart) : '', end: periodEnd ? fmtDay(periodEnd) : '', artist: bestArtist ? bestArtist.label : null };
-  const entityCardsHtml = entityCard('artist', '🎤', 'st_streak_artist', bestArtist)
-    + entityCard('album', '💿', 'st_streak_album', bestAlbum)
-    + entityCard('song', '🔂', 'st_streak_song', bestSong);
+  const entityCardsHtml = entityCard('artist', stIco('mic'), 'st_streak_artist', bestArtist)
+    + entityCard('album', stIco('disc'), 'st_streak_album', bestAlbum)
+    + entityCard('song', stIco('repeat'), 'st_streak_song', bestSong);
 
   el.innerHTML = `
     <div class="st-streaks-grid">
@@ -49437,16 +49458,16 @@ function stRenderStreaks(plays) {
       <div class="st-streak-card${isNewRecord ? ' st-streak-card--record' : ''}">
         <div class="st-streak-num-stack">
           <span class="st-streak-num">${longestAll}</span>
-          <span class="st-streak-unit">${t('st_streak_days_unit')} 🔥</span>
+          <span class="st-streak-unit">${t('st_streak_days_unit')}</span>
         </div>
         <div class="st-streak-lbl">${t('st_streak_longest')}</div>
         ${longestStart ? `<div class="st-streak-dates">${fmtDay(longestStart)} – ${fmtDay(longestEnd)}</div>` : ''}
-        ${isNewRecord ? `<div class="st-streak-badge">${t('st_streak_new_record')}</div>` : ''}
+        ${isNewRecord ? `<div class="st-streak-badge">${stIco('trophy')} ${t('st_streak_new_record')}</div>` : ''}
       </div>
       ${stPeriodType !== 'alltime' ? `<div class="st-streak-card">
         <div class="st-streak-num-stack">
           <span class="st-streak-num">${longestPeriod}</span>
-          <span class="st-streak-unit">${t('st_streak_days_unit')} 🔥</span>
+          <span class="st-streak-unit">${t('st_streak_days_unit')}</span>
         </div>
         <div class="st-streak-lbl">${t('st_streak_in_period', { period: stGetPeriodLabel() })}</div>
         ${periodStart ? `<div class="st-streak-dates">${fmtDay(periodStart)} – ${fmtDay(periodEnd)}</div>` : ''}
@@ -49479,7 +49500,16 @@ async function _fetchEntityStreakArt(kind, best) {
 function stRenderGrammys(plays) {
   const el = document.getElementById('stGrammysBody');
   if (!el) return;
-  if (!plays.length) { el.innerHTML = ''; return; }
+  // With no winners the chapter is a quiet line with a way to Awards, not a
+  // numbered chapter with a big "nothing" headline (stNumberChapters skips it)
+  const sec = document.getElementById('stGrammysSection');
+  const quiet = () => {
+    sec?.classList.add('st-chap--quiet');
+    el.innerHTML = `<p class="st-quiet">${stIco('trophy')}<span>${esc(t('st_grammys_none'))}</span>
+      <button type="button" class="dc-btn dc-btn-normal dc-btn-sm" onclick="dcGoTab('awards')">${esc(t('st_grammys_open'))}</button></p>`;
+  };
+  sec?.classList.remove('st-chap--quiet');
+  if (!plays.length) { quiet(); return; }
 
   const artistCounts = {};
   for (const p of plays) artistCounts[p.artist.toLowerCase()] = (artistCounts[p.artist.toLowerCase()] || 0) + 1;
@@ -49507,8 +49537,7 @@ function stRenderGrammys(plays) {
       entries: grammyMap[ak]
     }));
 
-  // no winners: the chapter's band says so, nothing under it
-  if (!withAwards.length) { el.innerHTML = ''; return; }
+  if (!withAwards.length) { quiet(); return; }
 
   _stFacts.grammys = { n: withAwards.length, top: withAwards[0].artist };
   const shown = withAwards.slice(0, 8);
@@ -49519,7 +49548,7 @@ function stRenderGrammys(plays) {
       <div class="st-grammy-card-photo">
         <img id="stGrammyArt_${i}" class="st-grammy-card-bg" src="" alt="" onload="this.classList.add('loaded')">
         <div class="st-grammy-card-fallback">${esc(initials(item.artist))}</div>
-        <div class="st-grammy-ribbon">🏆 ${wins} ${wins === 1 ? t('st_grammy_win') : t('st_grammy_wins')}</div>
+        <div class="st-grammy-ribbon">${stIco('trophy')} ${wins} ${wins === 1 ? t('st_grammy_win') : t('st_grammy_wins')}</div>
         <div class="st-grammy-card-overlay">
           <div class="st-grammy-card-artist" title="${esc(item.artist)}">${esc(item.artist)}</div>
           <div class="st-grammy-card-plays">${item.plays.toLocaleString()} ${tUnit('plays', item.plays)}</div>
@@ -49589,7 +49618,7 @@ function stRenderGem(plays) {
     stNumberChapters();
     el.innerHTML = `
       <div class="st-gem-card">
-        <div class="st-gem-icon">💎</div>
+        <div class="st-gem-icon">${stIco('gem')}</div>
         <div class="st-gem-info">
           <div class="st-gem-title">${esc(gem.title)}</div>
           <div class="st-gem-artist">${esc(gem.artist)}</div>

@@ -3090,6 +3090,21 @@ Steps:
    milestones and streaks; Grammys as a chapter only when there is
    something to show (a line with a link to Awards otherwise); Replay and
    Share as the closing chapter.
+   **Done 2026-10-25:** stIco() draws the Soundtrack's line icons
+   (trophy, moon, trend up / down / flat, mic, note, disc, repeat, gem):
+   Monthly Activity's chips and month panel, the milestone rows, the
+   streak records (artist / album / song), New Record, the Grammy ribbon
+   and the gem. The 🔥 after every "days of streak" is gone. The glyphs
+   left the button texts in all four languages (st_replay_btn,
+   st_replay_stop, st_card_open, st_streak_new_record); the buttons are the
+   shared .dc-btn with an svg. With no Awards winners the Grammys chapter
+   is a quiet dashed line (trophy, "Visit the Awards tab…", Open Awards →
+   dcGoTab('awards')) and isn't numbered. Replay and Share carry their
+   button inside the band (right on a desktop, under the text on a phone);
+   the canvas and Stop follow the replay band. The toolbar's Chart History
+   Replay starts the replay again after Stop (checked with real clicks).
+   The ▲▼ month arrows and the artist pop-up's icons are left (the pop-up
+   is 4.20).
 7. **Play your year:** the full-screen story.
 8. **Four languages and screen check:** 1440 / 1100 / 390 × en / es /
    pt-BR / pt-PT × a few themes.

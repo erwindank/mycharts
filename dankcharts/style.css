@@ -27802,6 +27802,7 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
 #stLoyaltySection   { --sc: var(--accent); }
 #stDiscoveriesSection { --sc: var(--green); }
 #stChMilestones     { --sc: var(--gold1); }
+#stArtistMilestonesSection { --sc: var(--accent); }
 #stStreaksSection   { --sc: var(--amber); }
 #stGrammysSection   { --sc: var(--gold2); }
 #stGemSection       { --sc: var(--teal); }
@@ -28874,6 +28875,38 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--gold1) 45%, transparent), 0 0 16px color-mix(in srgb, var(--gold1) 30%, transparent);
 }
 
+/* Line icons in running text (Soundtrack, phase 9 part 6) */
+.st-ico {
+  width: 1em;
+  height: 1em;
+  flex: none;
+  vertical-align: -0.14em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.st-milestone-icon { color: var(--sc); }
+.st-gem-icon .st-ico { width: 1.2rem; height: 1.2rem; color: var(--sc); }
+
+/* Grammys with no winners: one quiet line instead of a chapter */
+.st-chap--quiet .st-chap-head { display: none; }
+.st-chap--quiet .st-chap-body { margin-top: 0; }
+.st-quiet {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--sp-2) var(--sp-3);
+  margin: 0;
+  padding: var(--sp-3) var(--sp-4);
+  border: 1px dashed var(--border2);
+  border-radius: var(--r-md, 12px);
+  font-size: var(--fs-sm);
+  color: var(--text2);
+}
+.st-quiet .st-ico { color: var(--gold1); }
+
 .st-streak-badge {
   display: inline-block;
   font-family: var(--font-sans);
@@ -29268,30 +29301,10 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
 }
 
 /* ── Chart History Replay — "on air" countdown-show broadcast ────── */
-.st-replay-btn, .st-replay-stop-btn {
-  font-family: var(--font-sans);
-  font-size: var(--fs-sm);
-  font-weight: 600;
-  padding: 0.65rem 1.4rem;
-  border-radius: var(--r-full);
-  border: 1px solid var(--sc);
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s, transform 0.15s;
-}
-
-.st-replay-btn {
-  background: var(--sc);
-  color: #fff;
-}
-.st-replay-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px -6px color-mix(in srgb, var(--sc) 60%, transparent); }
-
-.st-replay-stop-btn {
-  background: transparent;
-  color: var(--text2);
-  border-color: var(--border);
-  margin-left: var(--sp-2);
-}
-.st-replay-stop-btn:hover { background: var(--bg3); }
+/* Play is in the band; Stop is the shared .dc-btn under the canvas. The
+   body is empty until the replay starts. */
+.st-replay-stop { margin-top: var(--sp-3); }
+#stReplaySection .st-chap-body:not(:has(> :not([style*="none"]))) { margin-top: 0; }
 
 /* Broadcast "monitor" frame: scan-line texture + vignette give the replay a
    countdown-show feel rather than a flat settings panel. */
@@ -29513,35 +29526,6 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
   .st-replay-count { display: none; }
   .st-replay-name { font-size: var(--fs-sm); }
 }
-
-/* ── Share Card ──────────────────────────────────────────────── */
-.st-card-actions {
-  display: flex;
-  gap: 0.6rem;
-  margin-bottom: 0.9rem;
-  flex-wrap: wrap;
-}
-
-.st-card-btn {
-  font-family: var(--font-sans);
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  padding: 0.55rem 1.1rem;
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  border-radius: var(--r-full);
-  color: var(--text1);
-  cursor: pointer;
-  transition: background 0.15s, border-color 0.15s, transform 0.15s;
-}
-.st-card-hint {
-  margin-top: var(--sp-2);
-  font-family: var(--font-sans);
-  font-size: var(--fs-xs);
-  color: var(--text3);
-}
-
-.st-card-btn:hover { background: var(--sc); color: #fff; border-color: var(--sc); transform: translateY(-1px); }
 
 /* ── Scroll Reveal ───────────────────────────────────────────── */
 .st-reveal {
