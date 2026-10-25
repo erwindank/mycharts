@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 317;
+const DC_CL_I18N_V = 318;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-25', t: 'feature', a: 'soundtrack', h: '81c6004',
+    title: "Your Soundtrack: Top Albums, and Top Singles and EPs",
+    detail: "Your Soundtrack's top-songs chapter now has a Top Albums carousel too, after Top Songs and Top Artists, with up to 50 albums for the year, month or All-Time. It counts albums the same way your albums chart does. If you show singles or EPs on their own in Settings → Charts, they get their own Top Singles and Top EPs carousels and stay out of Top Albums. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-25', t: 'design', a: 'soundtrack', h: '8e2ccb3',
     title: "Your Soundtrack: the big #1 artist photo is back",
     detail: "The #1 artist chapter in Your Soundtrack opens with a big, full-strength photo of the artist again, with their name at the bottom of it, instead of a dimmed strip. Works with Last.fm, Google Sheets and CSV uploads." },

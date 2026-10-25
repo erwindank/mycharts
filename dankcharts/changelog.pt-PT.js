@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Your Soundtrack: Top Albums, and Top Singles and EPs":
+    ["Sua Trilha Sonora: Top Álbuns, e Top Singles e EPs",
+     "O capítulo de músicas top de Sua Trilha Sonora tem agora também um carrossel de Top Álbuns, depois de Top Músicas e Top Artistas, com até 50 álbuns do ano, do mês ou de Todo o período. Conta os álbuns da mesma forma que a tua tabela de álbuns. Se mostras singles ou EPs à parte em Definições → Tabelas, eles ganham os seus próprios carrosséis de Top Singles e Top EPs e ficam fora de Top Álbuns. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
   "Your Soundtrack: the big #1 artist photo is back":
     ["Sua Trilha Sonora: a foto grande do artista #1 voltou",
      "O capítulo do artista #1 em Sua Trilha Sonora volta a abrir com uma foto grande e em cores vivas do artista, com o nome na parte de baixo, em vez de uma faixa escurecida. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
