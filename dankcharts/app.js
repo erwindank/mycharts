@@ -47700,6 +47700,7 @@ function renderSoundtrack() {
   }
   const plays = stGetPeriodPlays();
   _stCurrentPlays = plays;
+  _stFacts = {};
 
   const navLabel = document.getElementById('stNavLabel');
   if (navLabel) navLabel.textContent = stGetPeriodLabel();
@@ -47711,6 +47712,8 @@ function renderSoundtrack() {
     heroPeriod.setAttribute('data-text', label); // mirrored by the ::before stencil-echo effect
     heroPeriod.classList.toggle('st-hero-period--long', label.length > 7);
   }
+  const heroEyebrow = document.getElementById('stHeroEyebrow');
+  if (heroEyebrow) heroEyebrow.textContent = t('nav_soundtrack');
   const heroSubtitle = document.getElementById('stHeroSubtitle');
   if (heroSubtitle) {
     heroSubtitle.textContent = stPeriodType === 'alltime' ? t('st_subtitle_alltime') :
@@ -47751,7 +47754,209 @@ function renderSoundtrack() {
   if (activitySection) activitySection.style.display = (isYear || isAlltime) ? '' : 'none';
   if (replaySection) replaySection.style.display = isYear ? '' : 'none';
 
+  stRenderChapters();
   requestAnimationFrame(stSetupReveal);
+}
+
+// ── Chapters ──────────────────────────────────────────────────
+// Each section is a chapter: a headline band (one big sentence over a dim
+// picture) and the section's full detail under it. The section renderers
+// leave the facts a band needs in _stFacts; stRenderChapters() writes the
+// bands from them and numbers the chapters that are showing. The same
+// bands are the screens of "Play your year".
+let _stFacts = {};
+let _stHeadToken = 0; // guards the band pictures against a newer render
+
+// The headline sentence: translated text with ##N## standing in for the
+// number, which is drawn larger in the chapter's colour.
+function stHeadTitle(key, num, params) {
+  const s = esc(t(key, Object.assign({ n: '##N##' }, params || {})));
+  return s.replace('##N##', `<span class="st-chap-num">${esc(String(num))}</span>`);
+}
+
+function stFillHead(ch, o) {
+  const head = document.getElementById('stHead_' + ch);
+  if (!head) return;
+  head.classList.toggle('st-chap-head--wide', !!o.right);
+  head.innerHTML = `<div class="st-chap-bg"></div>
+    <div class="st-chap-l">
+      <div class="st-chap-label"><span class="st-chap-n"></span>${esc(o.label)}</div>
+      <div class="st-chap-title">${o.title}</div>
+      ${o.sub ? `<div class="st-chap-sub">${o.sub}</div>` : ''}
+    </div>
+    ${o.right ? `<div class="st-chap-r">${o.right}</div>` : ''}`;
+  if (o.bg) stHeadBg(head, o.bg);
+  if (o.thumbs) stHeadThumbs(head, o.thumbs);
+}
+
+// The dim picture behind a band: [type, name, artist] for getArtAuto()
+function stHeadBg(head, args) {
+  const bg = head.querySelector('.st-chap-bg');
+  if (!bg || !args || !args[1]) return;
+  const tok = _stHeadToken;
+  queueImg(() => getArtAuto(...args).then(url => {
+    if (url && tok === _stHeadToken && bg.isConnected) {
+      bg.style.backgroundImage = `url("${sizedArtUrl(url, 600)}")`;
+      bg.classList.add('is-loaded');
+    }
+  }), true);
+}
+
+// Small covers / portraits on the band's right: [{ type, name, artist }]
+function stHeadThumbHtml(items, round) {
+  return `<div class="st-chap-thumbs${round ? ' is-round' : ''}">${items.map((it, i) =>
+    `<div class="st-chap-thumb" data-i="${i}" title="${esc(it.name)}"><div class="thumb-initials">${esc(initials(it.name))}</div></div>`).join('')}</div>`;
+}
+function stHeadThumbs(head, items) {
+  const tok = _stHeadToken;
+  items.forEach((it, i) => {
+    queueImg(() => getArtAuto(it.type, it.name, it.artist).then(url => {
+      const el = head.querySelector(`.st-chap-thumb[data-i="${i}"]`);
+      if (url && tok === _stHeadToken && el) el.innerHTML = thumbHtml(url, it.name, false);
+    }), true);
+  });
+}
+
+function stRenderChapters() {
+  _stHeadToken++;
+  const f = _stFacts;
+  const periodLabel = stGetPeriodLabel();
+
+  // The year: the period's #1 song behind the big year
+  const yearHead = document.getElementById('stHeroCard');
+  const yearBg = document.getElementById('stChBg_year');
+  if (yearBg) { yearBg.style.backgroundImage = ''; yearBg.classList.remove('is-loaded'); }
+  if (yearHead && f.topSongs && f.topSongs[0]) stHeadBg(yearHead, ['song', f.topSongs[0].title, f.topSongs[0].artist]);
+
+  // Top songs and artists
+  if (f.topSongs && f.topSongs.length) {
+    const s = f.topSongs[0];
+    stFillHead('top', {
+      label: t('st_ch_top_name'),
+      title: esc(t('st_ch_top_title', { song: s.title })),
+      sub: f.topArtist ? esc(t('st_ch_top_sub', { artist: f.topArtist })) : '',
+      bg: ['song', s.title, s.artist],
+      right: stHeadThumbHtml(f.topSongs.slice(0, 5).map(x => ({ name: x.title }))),
+      thumbs: f.topSongs.slice(0, 5).map(x => ({ type: 'song', name: x.title, artist: x.artist })),
+    });
+  } else {
+    stFillHead('top', { label: t('st_ch_top_name'), title: esc(t('st_no_data')) });
+  }
+
+  // Monthly Activity
+  const a = f.activity;
+  if (a) {
+    stFillHead('activity', {
+      label: t('st_activity_title'),
+      title: esc(t('st_ch_act_title', { month: a.peak })),
+      sub: esc(a.artist ? t('st_ch_act_sub', { plays: tCount('plays', a.plays), artist: a.artist }) : tCount('plays', a.plays)),
+      bg: a.artist ? ['artist', a.artist] : null,
+    });
+  } else {
+    stFillHead('activity', { label: t('st_activity_title'), title: esc(t('st_no_data')) });
+  }
+
+  // Loyalty
+  const l = f.loyalty;
+  if (l) {
+    stFillHead('loyalty', {
+      label: t('st_loyalty_title'),
+      title: stHeadTitle('st_ch_loyal_title', l.score + '%'),
+      sub: esc(l.verdict + ' · ' + l.sub),
+      bg: l.artist ? ['artist', l.artist] : null,
+    });
+  } else {
+    stFillHead('loyalty', { label: t('st_loyalty_title'), title: esc(t('st_ch_loyal_none')), sub: esc(t('st_loyalty_no_prev', { year: stYear - 1 })) });
+  }
+
+  // New Discoveries
+  const d = f.discoveries;
+  if (d && d.n) {
+    stFillHead('new', {
+      label: t('st_discoveries_title'),
+      title: stHeadTitle('st_ch_new_title', d.n.toLocaleString()),
+      sub: d.top[0] ? esc(t('st_ch_new_sub', { artist: d.top[0] })) : '',
+      bg: d.top[0] ? ['artist', d.top[0]] : null,
+      right: stHeadThumbHtml(d.top.slice(0, 5).map(x => ({ name: x })), true),
+      thumbs: d.top.slice(0, 5).map(x => ({ type: 'artist', name: x })),
+    });
+  } else {
+    stFillHead('new', { label: t('st_discoveries_title'), title: esc(t('st_discoveries_none')) });
+  }
+
+  // Milestones: the latest of your own totals, or failing that the artist ones
+  const m = f.milestones || {};
+  if (m.overall) {
+    stFillHead('milestones', {
+      label: t('st_ch_ms_name'),
+      title: stHeadTitle('st_ch_ms_title', m.overall.nTarget.toLocaleString()),
+      sub: esc(t('st_ch_ms_sub', { title: m.overall.rawTitle, date: fmtDate(tzDate(m.overall.date)) })),
+      bg: ['song', m.overall.rawTitle, m.overall.rawArtist],
+    });
+  } else if (m.artistCount) {
+    stFillHead('milestones', {
+      label: t('st_ch_ms_name'),
+      title: stHeadTitle('st_ch_ms_title_artist', m.artistCount.toLocaleString()),
+      sub: m.artist ? esc(t('st_ch_ms_sub_artist', { n: m.artist.nTarget.toLocaleString(), artist: m.artist.rawArtist })) : '',
+      bg: m.artist ? ['artist', m.artist.rawArtist] : null,
+    });
+  } else {
+    stFillHead('milestones', { label: t('st_ch_ms_name'), title: esc(t('st_milestones_none')) });
+  }
+
+  // Streaks
+  const s = f.streak;
+  if (s && s.n) {
+    stFillHead('streaks', {
+      label: t('st_streaks_title'),
+      title: stHeadTitle('st_ch_streak_title', s.n.toLocaleString()),
+      sub: s.start ? esc(t('st_ch_streak_sub', { from: s.start, to: s.end })) : '',
+      bg: s.artist ? ['artist', s.artist] : null,
+    });
+  } else {
+    stFillHead('streaks', { label: t('st_streaks_title'), title: esc(t('st_no_data')) });
+  }
+
+  // Grammy winners (your own My Grammys picks)
+  const g = f.grammys;
+  if (g && g.n) {
+    stFillHead('grammys', {
+      label: t('st_grammys_title'),
+      title: stHeadTitle('st_ch_gram_title', g.n),
+      sub: esc(g.top),
+      bg: ['artist', g.top],
+    });
+  } else {
+    stFillHead('grammys', { label: t('st_grammys_title'), title: esc(t('st_ch_gram_none')), sub: esc(t('st_grammys_none')) });
+  }
+
+  // Underrated Gem: written when its Last.fm lookup comes back (stRenderGem)
+  stFillHead('gem', { label: t('st_gem_title'), title: esc(t('st_gem_loading')) });
+
+  stFillHead('replay', {
+    label: t('st_replay_title'),
+    title: esc(t('st_ch_replay_title', { period: periodLabel })), // Year view only
+    sub: esc(t('st_ch_replay_sub')),
+    bg: f.topArtist ? ['artist', f.topArtist] : null,
+  });
+  stFillHead('share', {
+    label: t('st_card_title'),
+    title: esc(stPeriodType === 'alltime' ? t('st_ch_share_title_all') : t('st_ch_share_title', { period: periodLabel })),
+    sub: esc(t('st_card_hint')),
+  });
+
+  stNumberChapters();
+}
+
+// "Chapter 1 · …", counting only the chapters that are showing
+function stNumberChapters() {
+  let n = 0;
+  document.querySelectorAll('#soundtrackView .st-chap').forEach(ch => {
+    const on = ch.style.display !== 'none';
+    if (on) n++;
+    const el = ch.querySelector('.st-chap-n');
+    if (el) el.textContent = on ? t('st_ch_label', { n }) + ' · ' : '';
+  });
 }
 
 function stSetupReveal() {
@@ -47876,6 +48081,8 @@ function stRenderTopCharts(plays) {
 
   const taEl = document.getElementById('stTopArtists');
   const tsEl = document.getElementById('stTopSongs');
+  _stFacts.topSongs = topSongs.slice(0, 5);
+  _stFacts.topArtist = topArtists[0] ? topArtists[0][0] : null;
 
   if (taEl) {
     if (topArtists.length) {
@@ -48143,7 +48350,8 @@ function stRenderFeaturedArtist(periodPlays, artistName, totalCount) {
   const nameEl = document.getElementById('stFeaturedArtistName');
   const countEl = document.getElementById('stFeaturedArtistCount');
   if (nameEl) nameEl.textContent = artistName;
-  if (countEl) countEl.textContent = `${totalCount.toLocaleString()} ${tUnit('plays', totalCount)}`;
+  const sharePctAll = periodPlays.length ? Math.round(totalCount / periodPlays.length * 100) : 0;
+  if (countEl) countEl.textContent = t('st_ch_artist_sub', { plays: tCount('plays', totalCount), pct: sharePctAll });
 
   // Banner photo — cleared first so a stale image from the previous artist
   // never lingers while the new one loads.
@@ -48417,6 +48625,11 @@ function stRenderActivity(plays) {
   }
 
   el.innerHTML = `<div class="st-activity-chart">${barsHTML}</div>${caption}<div class="st-activity-detail"></div>`;
+  const peakTop = topArtistOf(peakKey);
+  // the band names the month in full ("April", or "April 2024" outside this year)
+  const [peakY, peakM] = peakKey.split('-');
+  const peakLong = t(_CR_MON_LONG[+peakM - 1]) + (peakY !== String(stYear) || stPeriodType === 'alltime' ? ' ' + peakY : '');
+  _stFacts.activity = { peak: peakLong, plays: byMonth[peakKey], artist: peakTop ? peakTop.name : null };
 
   // pre-fill the detail panel with the peak month so the tap interaction is discoverable, not empty
   const defaultBtn = el.querySelector('.st-activity-col.is-selected') || el.querySelector('.st-activity-col');
@@ -48505,6 +48718,7 @@ function stRenderLoyalty(plays) {
       return { name, plays: curCounts[ak], topSongs };
     });
 
+  _stFacts.loyalty = { score, verdict: label, sub: t('st_loyalty_sub', { n: returning, year: prevYear }), artist: returningArtists[0] ? returningArtists[0].name : null };
   el.innerHTML = `
     <div class="st-loyalty-score">
       <div class="st-loyalty-ring" style="--pct:${score}">
@@ -48592,6 +48806,7 @@ function stRenderDiscoveries(plays) {
   const topCutoff = Math.max(1, Math.round(discovered.length * 0.2));
   const featuredSet = new Set([...discovered].sort((a, b) => b.count - a.count).slice(0, topCutoff).map(d => d.artist));
   discovered.forEach(d => { d.weight = featuredSet.has(d.artist) ? 3 : 1; });
+  _stFacts.discoveries = { n: discovered.length, top: [...discovered].sort((a, b) => b.count - a.count).slice(0, 5).map(d => d.artist) };
 
   el.innerHTML = `
     <div class="st-discoveries-count">${t('st_discoveries_count', { n: discovered.length })}</div>
@@ -48659,7 +48874,11 @@ function stSpawnBubble(container, artist, isStatic) {
   // Deezer lookups at once.
   queueImg(() => getArtAuto('artist', artist).then(url => {
     const avatarEl = document.getElementById(uid);
-    if (avatarEl) avatarEl.innerHTML = thumbHtml(url, artist, false);
+    if (!avatarEl) return;
+    avatarEl.innerHTML = thumbHtml(url, artist, false);
+    // a lazy picture inside a moving bubble can stay unloaded, leaving an
+    // empty ring, so load it straight away
+    avatarEl.querySelector('img')?.setAttribute('loading', 'eager');
   }));
 }
 
@@ -48855,6 +49074,7 @@ function stRenderMilestones(plays) {
 
   overallMs.sort((a, b) => a.date - b.date);
   artistMs.sort((a, b) => a.date - b.date);
+  _stFacts.milestones = { overall: overallMs[overallMs.length - 1] || null, artistCount: artistMs.length, artist: artistMs[artistMs.length - 1] || null };
 
   _stMilestonesVisible.overall = ST_MS_PAGE;
   _stMilestonesVisible.artist = ST_MS_PAGE;
@@ -49146,6 +49366,10 @@ function stRenderStreaks(plays) {
         </div>
       </div>`;
   };
+  // All-Time has no "this period" streak, so its band uses the longest ever
+  _stFacts.streak = stPeriodType === 'alltime'
+    ? { n: longestAll, start: longestStart ? fmtDay(longestStart) : '', end: longestEnd ? fmtDay(longestEnd) : '', artist: bestArtist ? bestArtist.label : null }
+    : { n: longestPeriod, start: periodStart ? fmtDay(periodStart) : '', end: periodEnd ? fmtDay(periodEnd) : '', artist: bestArtist ? bestArtist.label : null };
   const entityCardsHtml = entityCard('artist', '🎤', 'st_streak_artist', bestArtist)
     + entityCard('album', '💿', 'st_streak_album', bestAlbum)
     + entityCard('song', '🔂', 'st_streak_song', bestSong);
@@ -49232,11 +49456,10 @@ function stRenderGrammys(plays) {
       entries: grammyMap[ak]
     }));
 
-  if (!withAwards.length) {
-    el.innerHTML = `<div class="st-empty">${t('st_grammys_none')}</div>`;
-    return;
-  }
+  // no winners: the chapter's band says so, nothing under it
+  if (!withAwards.length) { el.innerHTML = ''; return; }
 
+  _stFacts.grammys = { n: withAwards.length, top: withAwards[0].artist };
   const shown = withAwards.slice(0, 8);
   el.innerHTML = `<div class="st-grammy-grid">${shown.map((item, i) => {
     const wins = item.entries.filter(e => e.isWin).length;
@@ -49308,9 +49531,11 @@ function stRenderGem(plays) {
 
   Promise.all(fetches).then(results => {
     const valid = results.filter(s => s.listeners > 100);
-    if (!valid.length) { gemSection.style.display = 'none'; return; }
+    if (!valid.length) { gemSection.style.display = 'none'; stNumberChapters(); return; }
     valid.sort((a, b) => (b.count / Math.log(b.listeners + 1)) - (a.count / Math.log(a.listeners + 1)));
     const gem = valid[0];
+    stFillHead('gem', { label: t('st_gem_title'), title: esc(gem.title), sub: esc(gem.artist), bg: ['song', gem.title, gem.artist] });
+    stNumberChapters();
     el.innerHTML = `
       <div class="st-gem-card">
         <div class="st-gem-icon">💎</div>

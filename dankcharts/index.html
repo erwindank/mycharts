@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=646">
+  <link rel="stylesheet" href="style.css?v=650">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=189"></script>
+  <script defer src="translations.js?v=191"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -2549,152 +2549,180 @@
       </span>
     </div>
 
-    <!-- Hero Period Card -->
-    <div class="st-hero st-reveal" id="stHeroCard">
-      <div class="st-hero-eyebrow" data-i18n="nav_soundtrack">Your Soundtrack</div>
-      <div class="st-hero-eq" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
-      <div class="st-hero-period" id="stHeroPeriod" data-text="2026">2026</div>
-      <div class="st-hero-subtitle" id="stHeroSubtitle"></div>
-    </div>
+    <!-- ── The chapters (phase 9 part 6). Each is a <section class="st-chap">:
+         a headline band (.st-chap-head: "Chapter N · name", one big sentence,
+         a dim picture behind) and then everything the section shows, in
+         .st-chap-body. stRenderChapters() fills the bands and numbers the
+         chapters that are showing; the same bands are the screens of
+         "Play your year". ── -->
 
-    <!-- Animated Stats Strip — each card also drives the reel below it -->
-    <div class="st-stats-strip st-reveal" id="stStatsStrip">
-      <div class="st-stat active" data-reel-mode="plays" role="button" tabindex="0" onclick="stSetReelMode('plays')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();stSetReelMode('plays');}">
-        <div class="st-stat-icon">▶</div>
-        <div class="st-stat-val" id="stStatPlaysVal">—</div>
-        <div class="st-stat-label" data-i18n="st_stat_plays">Plays</div>
-        <div class="st-stat-note" id="stStatPlaysNote"></div>
+    <!-- Chapter: the year. Its band is the old hero card; the five tiles and
+         the reel follow it. -->
+    <section class="st-chap st-reveal" id="stChYear" data-ch="year">
+      <div class="st-chap-head st-chap-head--year" id="stHeroCard">
+        <div class="st-chap-bg" id="stChBg_year"></div>
+        <div class="st-chap-l">
+          <div class="st-chap-label"><span class="st-chap-n"></span><span id="stHeroEyebrow"></span></div>
+          <div class="st-hero-period" id="stHeroPeriod">2026</div>
+          <div class="st-hero-subtitle" id="stHeroSubtitle"></div>
+        </div>
       </div>
-      <div class="st-stat" data-reel-mode="days" role="button" tabindex="0" onclick="stSetReelMode('days')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();stSetReelMode('days');}">
-        <div class="st-stat-icon">📅</div>
-        <div class="st-stat-val" id="stStatDaysVal">—</div>
-        <div class="st-stat-label" data-i18n="st_stat_days">Active Days</div>
+      <div class="st-chap-body">
+        <!-- Animated Stats Strip — each card also drives the reel below it -->
+        <div class="st-stats-strip" id="stStatsStrip">
+          <div class="st-stat active" data-reel-mode="plays" role="button" tabindex="0" onclick="stSetReelMode('plays')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();stSetReelMode('plays');}">
+            <div class="st-stat-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg></div>
+            <div class="st-stat-val" id="stStatPlaysVal">—</div>
+            <div class="st-stat-label" data-i18n="st_stat_plays">Plays</div>
+            <div class="st-stat-note" id="stStatPlaysNote"></div>
+          </div>
+          <div class="st-stat" data-reel-mode="days" role="button" tabindex="0" onclick="stSetReelMode('days')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();stSetReelMode('days');}">
+            <div class="st-stat-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5.5" width="16" height="14" rx="2"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/></svg></div>
+            <div class="st-stat-val" id="stStatDaysVal">—</div>
+            <div class="st-stat-label" data-i18n="st_stat_days">Active Days</div>
+          </div>
+          <div class="st-stat" data-reel-mode="artists" role="button" tabindex="0" onclick="stSetReelMode('artists')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();stSetReelMode('artists');}">
+            <div class="st-stat-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M9 21h6"/></svg></div>
+            <div class="st-stat-val" id="stStatArtistsVal">—</div>
+            <div class="st-stat-label" data-i18n="st_stat_artists">Artists</div>
+          </div>
+          <div class="st-stat" data-reel-mode="new" role="button" tabindex="0" onclick="stSetReelMode('new')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();stSetReelMode('new');}">
+            <div class="st-stat-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg></div>
+            <div class="st-stat-val" id="stStatNewVal">—</div>
+            <div class="st-stat-label" data-i18n="st_stat_new_discoveries">New Discoveries</div>
+          </div>
+          <div class="st-stat" data-reel-mode="peak" role="button" tabindex="0" onclick="stSetReelMode('peak')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();stSetReelMode('peak');}">
+            <div class="st-stat-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 19.5 9.5 8l4 6.5 2.5-3.5 5 8.5z"/><path d="M8 10.5l1.5 1.5 1.5-1.5"/></svg></div>
+            <div class="st-stat-val" id="stStatPeakVal">—</div>
+            <div class="st-stat-label" data-i18n="st_stat_peak_day">Peak Day</div>
+            <div class="st-stat-note" id="stStatPeakNote"></div>
+          </div>
+        </div>
+
+        <!-- The Reel — horizontal ticker driven by the active stat card above -->
+        <div class="st-sub" id="stReelSection">
+          <div class="tm-ticker-outer" id="stReelTickerOuter">
+            <div class="tm-ticker-track" id="stReelTickerTrack"></div>
+          </div>
+          <div class="st-reel-footer" id="stReelSub"></div>
+          <button class="dc-btn dc-btn-normal dc-btn-sm dc-pl-reel-btn" id="stReelPlBtn" style="display:none"
+            onclick="stReelAddToPlaylist()" data-i18n="pl_section_btn"
+            data-i18n-title="pl_section_btn_title" title="Save everything in this section to a playlist">＋ Playlist</button>
+        </div>
       </div>
-      <div class="st-stat" data-reel-mode="artists" role="button" tabindex="0" onclick="stSetReelMode('artists')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();stSetReelMode('artists');}">
-        <div class="st-stat-icon">🎤</div>
-        <div class="st-stat-val" id="stStatArtistsVal">—</div>
-        <div class="st-stat-label" data-i18n="st_stat_artists">Artists</div>
+    </section>
+
+    <!-- Chapter: your #1 artist. Its band is the artist's photo with the name;
+         the collage of this artist's numbers follows. -->
+    <section class="st-chap st-reveal" id="stFeaturedArtist" data-ch="artist" style="display:none;">
+      <div class="st-chap-head st-chap-head--artist">
+        <div class="st-chap-bg" id="stFeaturedBanner"></div>
+        <div class="st-chap-l">
+          <div class="st-chap-label"><span class="st-chap-n"></span><span data-i18n="st_featured_label">Your #1 Artist</span></div>
+          <div class="st-chap-title st-featured-name" id="stFeaturedArtistName"></div>
+          <div class="st-chap-sub" id="stFeaturedArtistCount"></div>
+        </div>
       </div>
-      <div class="st-stat" data-reel-mode="new" role="button" tabindex="0" onclick="stSetReelMode('new')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();stSetReelMode('new');}">
-        <div class="st-stat-icon">✨</div>
-        <div class="st-stat-val" id="stStatNewVal">—</div>
-        <div class="st-stat-label" data-i18n="st_stat_new_discoveries">New Discoveries</div>
+      <div class="st-chap-body">
+        <!-- Collage of this artist's accomplishments within the active period -->
+        <div class="st-featured-stats" id="stFeaturedStats"></div>
       </div>
-      <div class="st-stat" data-reel-mode="peak" role="button" tabindex="0" onclick="stSetReelMode('peak')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();stSetReelMode('peak');}">
-        <div class="st-stat-icon">🏔️</div>
-        <div class="st-stat-val" id="stStatPeakVal">—</div>
-        <div class="st-stat-label" data-i18n="st_stat_peak_day">Peak Day</div>
-        <div class="st-stat-note" id="stStatPeakNote"></div>
+    </section>
+
+    <!-- Chapter: top songs and artists — full-width coverflows, up to 50 each -->
+    <section class="st-chap st-reveal" id="stChTop" data-ch="top">
+      <div class="st-chap-head" id="stHead_top"></div>
+      <div class="st-chap-body">
+        <div class="st-sub st-cf-section" id="stTopSongsSection">
+          <div class="st-sub-title" data-i18n="st_top_songs">Top Songs</div>
+          <div id="stTopSongs"></div>
+        </div>
+        <div class="st-sub st-cf-section" id="stTopArtistsSection">
+          <div class="st-sub-title" data-i18n="st_top_artists">Top Artists</div>
+          <div id="stTopArtists"></div>
+        </div>
       </div>
-    </div>
+    </section>
 
-    <!-- The Reel — horizontal ticker driven by the active stat card above -->
-    <div class="st-section st-reveal" id="stReelSection">
-      <div class="tm-ticker-outer" id="stReelTickerOuter">
-        <div class="tm-ticker-track" id="stReelTickerTrack"></div>
+    <!-- Chapter: Monthly Activity -->
+    <section class="st-chap st-reveal" id="stActivitySection" data-ch="activity">
+      <div class="st-chap-head" id="stHead_activity"></div>
+      <div class="st-chap-body" id="stActivityBars"></div>
+    </section>
+
+    <!-- Chapter: Loyalty Score -->
+    <section class="st-chap st-reveal" id="stLoyaltySection" data-ch="loyalty">
+      <div class="st-chap-head" id="stHead_loyalty"></div>
+      <div class="st-chap-body" id="stLoyaltyBody"></div>
+    </section>
+
+    <!-- Chapter: New Discoveries -->
+    <section class="st-chap st-reveal" id="stDiscoveriesSection" data-ch="new">
+      <div class="st-chap-head" id="stHead_new"></div>
+      <div class="st-chap-body" id="stDiscoveriesBody"></div>
+    </section>
+
+    <!-- Chapter: milestones — the overall ones (your own totals) and the
+         per-artist ones stay two separate lists -->
+    <section class="st-chap st-reveal" id="stChMilestones" data-ch="milestones">
+      <div class="st-chap-head" id="stHead_milestones"></div>
+      <div class="st-chap-body">
+        <div class="st-sub" id="stMilestonesSection">
+          <div class="st-sub-title" data-i18n="st_milestones_title">Your Listening Milestones</div>
+          <div class="st-milestones-wrap" id="stMilestonesWrap">
+            <div class="st-milestones-body" id="stMilestonesBody"></div>
+          </div>
+          <button class="st-milestones-toggle" id="stMilestonesToggle" onclick="stToggleMilestones('overall')" style="display:none;"></button>
+        </div>
+        <div class="st-sub" id="stArtistMilestonesSection">
+          <div class="st-sub-title" data-i18n="st_artist_milestones_title">Artist Milestones</div>
+          <div class="st-section-hint" data-i18n="st_artist_milestones_hint">Individual play-count milestones per artist — not part of your overall totals above.</div>
+          <div class="st-milestones-wrap" id="stArtistMilestonesWrap">
+            <div class="st-milestones-body" id="stArtistMilestonesBody"></div>
+          </div>
+          <button class="st-milestones-toggle" id="stArtistMilestonesToggle" onclick="stToggleMilestones('artist')" style="display:none;"></button>
+        </div>
       </div>
-      <div class="st-reel-footer" id="stReelSub"></div>
-      <button class="dc-btn dc-btn-normal dc-btn-sm dc-pl-reel-btn" id="stReelPlBtn" style="display:none"
-        onclick="stReelAddToPlaylist()" data-i18n="pl_section_btn"
-        data-i18n-title="pl_section_btn_title" title="Save everything in this section to a playlist">＋ Playlist</button>
-    </div>
+    </section>
 
-    <!-- Featured #1 Artist -->
-    <div class="st-featured st-reveal" id="stFeaturedArtist" style="display:none;">
-      <!-- Artist banner photo, faded into the card so the name/stats stay legible over any image -->
-      <div class="st-featured-banner" id="stFeaturedBanner"></div>
-      <div class="st-featured-main">
-        <div class="st-featured-label" data-i18n="st_featured_label">Your #1 Artist</div>
-        <div class="st-featured-name" id="stFeaturedArtistName"></div>
-        <div class="st-featured-count" id="stFeaturedArtistCount"></div>
-      </div>
-      <!-- Collage of this artist's accomplishments within the active period -->
-      <div class="st-featured-stats" id="stFeaturedStats"></div>
-    </div>
+    <!-- Chapter: Streaks -->
+    <section class="st-chap st-reveal" id="stStreaksSection" data-ch="streaks">
+      <div class="st-chap-head" id="stHead_streaks"></div>
+      <div class="st-chap-body" id="stStreaksBody"></div>
+    </section>
 
-    <!-- Top Artists + Top Songs — full-width coverflow carousels, up to 50 entries each -->
-    <div class="st-cf-section st-reveal" id="stTopArtistsSection">
-      <div class="st-section-header"><span data-i18n="st_top_artists">Top Artists</span></div>
-      <div id="stTopArtists"></div>
-    </div>
-    <div class="st-cf-section st-reveal" id="stTopSongsSection">
-      <div class="st-section-header"><span data-i18n="st_top_songs">Top Songs</span></div>
-      <div id="stTopSongs"></div>
-    </div>
+    <!-- Chapter: Grammy winners in your charts -->
+    <section class="st-chap st-reveal" id="stGrammysSection" data-ch="grammys">
+      <div class="st-chap-head" id="stHead_grammys"></div>
+      <div class="st-chap-body" id="stGrammysBody"></div>
+    </section>
 
-    <!-- Monthly Activity -->
-    <div class="st-section st-reveal" id="stActivitySection">
-      <div class="st-section-title" data-i18n="st_activity_title">Monthly Activity</div>
-      <div id="stActivityBars"></div>
-    </div>
+    <!-- Chapter: Underrated Gem (Last.fm only) -->
+    <section class="st-chap st-reveal" id="stGemSection" data-ch="gem" style="display:none;">
+      <div class="st-chap-head" id="stHead_gem"></div>
+      <div class="st-chap-body" id="stGemBody"></div>
+    </section>
 
-    <!-- Loyalty Score -->
-    <div class="st-section st-reveal" id="stLoyaltySection">
-      <div class="st-section-title" data-i18n="st_loyalty_title">Loyalty Score</div>
-      <div id="stLoyaltyBody"></div>
-    </div>
-
-    <!-- New Discoveries -->
-    <div class="st-section st-reveal" id="stDiscoveriesSection">
-      <div class="st-section-title" data-i18n="st_discoveries_title">New Discoveries</div>
-      <div id="stDiscoveriesBody"></div>
-    </div>
-
-    <!-- Listening Milestones (overall, personal totals) -->
-    <div class="st-section st-reveal" id="stMilestonesSection">
-      <div class="st-section-title" data-i18n="st_milestones_title">Your Listening Milestones</div>
-      <div class="st-milestones-wrap" id="stMilestonesWrap">
-        <div class="st-milestones-body" id="stMilestonesBody"></div>
-      </div>
-      <button class="st-milestones-toggle" id="stMilestonesToggle" onclick="stToggleMilestones('overall')" style="display:none;"></button>
-    </div>
-
-    <!-- Artist Milestones (per-artist, unrelated to the totals above) -->
-    <div class="st-section st-reveal" id="stArtistMilestonesSection">
-      <div class="st-section-title" data-i18n="st_artist_milestones_title">Artist Milestones</div>
-      <div class="st-section-hint" data-i18n="st_artist_milestones_hint">Individual play-count milestones per artist — not part of your overall totals above.</div>
-      <div class="st-milestones-wrap" id="stArtistMilestonesWrap">
-        <div class="st-milestones-body" id="stArtistMilestonesBody"></div>
-      </div>
-      <button class="st-milestones-toggle" id="stArtistMilestonesToggle" onclick="stToggleMilestones('artist')" style="display:none;"></button>
-    </div>
-
-    <!-- Streaks -->
-    <div class="st-section st-reveal" id="stStreaksSection">
-      <div class="st-section-title" data-i18n="st_streaks_title">Listening Streaks</div>
-      <div id="stStreaksBody"></div>
-    </div>
-
-    <!-- Grammy Overlay -->
-    <div class="st-section st-reveal" id="stGrammysSection">
-      <div class="st-section-title" data-i18n="st_grammys_title">Grammy Winners in Your Charts</div>
-      <div id="stGrammysBody"></div>
-    </div>
-
-    <!-- Underrated Gem (Last.fm only) -->
-    <div class="st-section st-reveal" id="stGemSection" style="display:none;">
-      <div class="st-section-title" data-i18n="st_gem_title">Your Underrated Gem</div>
-      <div id="stGemBody"></div>
-    </div>
-
-    <!-- Chart History Replay -->
-    <div class="st-section st-reveal" id="stReplaySection">
-      <div class="st-section-title" data-i18n="st_replay_title">Chart History Replay</div>
-      <div id="stReplayBody">
+    <!-- Chart History Replay (Year only) -->
+    <section class="st-chap st-reveal" id="stReplaySection" data-ch="replay">
+      <div class="st-chap-head" id="stHead_replay"></div>
+      <div class="st-chap-body" id="stReplayBody">
         <button class="st-replay-btn" id="stReplayBtn" onclick="stStartReplay()" data-i18n="st_replay_btn">▶ Play Chart History</button>
         <div id="stReplayCanvas" class="st-replay-canvas" style="display:none;"></div>
         <button class="st-replay-stop-btn" id="stReplayStopBtn" onclick="stStopReplay()" style="display:none;" data-i18n="st_replay_stop">■ Stop</button>
       </div>
-    </div>
+    </section>
 
     <!-- Share Card -->
-    <div class="st-section st-reveal" id="stCardSection">
-      <div class="st-section-title" data-i18n="st_card_title">Share Your Soundtrack</div>
-      <div class="st-card-actions">
-        <button class="st-card-btn" onclick="stOpenCard()" data-i18n="st_card_open">📷 Make a share image</button>
+    <section class="st-chap st-reveal" id="stCardSection" data-ch="share">
+      <div class="st-chap-head" id="stHead_share"></div>
+      <div class="st-chap-body">
+        <!-- the hint is the band's subline -->
+        <div class="st-card-actions">
+          <button class="st-card-btn" onclick="stOpenCard()" data-i18n="st_card_open">📷 Make a share image</button>
+        </div>
       </div>
-      <div class="st-card-hint" data-i18n="st_card_hint">Five designs, eight palettes and three sizes — pick one, then download or copy it.</div>
-    </div>
+    </section>
   </div>
   <!-- END YOUR SOUNDTRACK VIEW -->
 
@@ -3956,7 +3984,7 @@
   <!-- Community board tab (suggestions / bugs / discussion). Loaded before
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
   <script defer src="board.js?v=4"></script>
-  <script defer src="app.js?v=501"></script>
+  <script defer src="app.js?v=505"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
   <script defer src="replay.js?v=1"></script>
   <!-- All-Time chart stats ("Inside your Top N"); reads app.js globals, so it loads after it -->

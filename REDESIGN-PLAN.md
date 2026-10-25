@@ -3043,6 +3043,25 @@ Steps:
 3. **Chapters.** Boxes go; each section becomes a chapter with its
    headline band and the full detail under it. Chapter 1 = year, the five
    tiles (line icons for the emoji) and the reel.
+   **Done 2026-10-25:** every section is a <section class="st-chap">: a
+   band (.st-chap-head) and .st-chap-body. stRenderChapters() writes the
+   bands from _stFacts (left by the section renderers) and stNumberChapters()
+   numbers the ones showing ("Chapter 4 · Monthly Activity"). Band = one
+   sentence with its number in the chapter's colour ("April was your
+   loudest month", "808 artists you had never played", "You passed 200,000
+   plays", "210 days in a row"…), a subline, and the period's picture at 50%
+   under a fade from the page colour (reads in every theme). Top songs and
+   New Discoveries put five covers / portraits on the right on wide screens.
+   The year band is the old hero (the big 2026, no poster gradient, the #1
+   song's cover behind it); the five tiles have line icons in their colour
+   and, on a phone, Plays is the full width on top (it was cut off). The
+   #1 artist band is the artist's photo with the name. Top Songs / Top
+   Artists and the two milestone lists are titled parts of one chapter each.
+   The tab is 980px wide like the other tabs. The carousels clip their far
+   cards (the old boxes did, the page scrolled sideways without it). Bubble
+   pictures load straight away (a lazy one left an empty ring). Grammys
+   with no winners and Share no longer repeat their text under the band.
+   Old hero, box, glow and dot-title CSS removed.
 4. **#1 artist** (2A).
 5. **Long parts** (3A): Still in Rotation and streak records as swipe
    rows.
