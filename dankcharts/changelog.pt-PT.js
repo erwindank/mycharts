@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Your Soundtrack: month numbers, bubbles and dates":
+    ["Sua Trilha Sonora: números dos meses, bolhas e datas",
+     "Três pequenos acertos em Sua Trilha Sonora. No telemóvel, as contagens de Atividade mensal já não ficam umas por cima das outras (“4,5114,040…”): cada mês guarda espaço para o seu número e o gráfico desliza para o lado. As bolhas de Novas descobertas mostram as iniciais do artista até a foto chegar, por isso nenhuma fica como um círculo vazio. As datas de marcos e sequências são escritas por extenso, como 11 fev 2026, tal como em Recordes e Eventos. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
   "Awards: the whole page in your language":
     ["Prémios: a página inteira na tua língua",
      "A página Prémios está agora em português do princípio ao fim. Antes, ao mudar de língua, os cartões de categorias, a lista de Configurar ano e uma cerimónia aberta ficavam na língua anterior, e muita coisa continuava em inglês de qualquer forma: Estatísticas e recordes, contagens como “94 summer plays”, o seletor de nomeados, os botões da cerimónia e os cartões de Prémios reais (“Held 2026 · honouring 2025 releases”, “Won”, “Nominated”). Agora tudo segue a tua língua e muda assim que a trocas. Funciona com Last.fm, Google Sheets e ficheiros CSV."],

@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 307;
+const DC_CL_I18N_V = 308;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-25', t: 'fix', a: 'soundtrack', h: 'c37dc68',
+    title: "Your Soundtrack: month numbers, bubbles and dates",
+    detail: "Three small fixes on Your Soundtrack. On a phone, Monthly Activity's play counts no longer run into each other (“4,5114,040…”): each month keeps room for its number and the chart slides sideways. New Discoveries bubbles show the artist's initials until their picture arrives, so none is an empty circle. Milestone and streak dates are written in words, like 11 Feb 2026, the same as Records and Events. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-25', t: 'i18n', a: 'awards', h: '82e246b',
     title: "Awards: the whole page in your language",
     detail: "The Awards page now speaks Spanish and Portuguese all the way through. Before, changing the language left the category cards, the Configure Year list and an open ceremony in the old language, and a lot stayed in English anyway: Stats & records, play counts like “94 summer plays”, the nominee picker, the ceremony’s buttons and the Real-Life Awards cards (“Held 2026 · honouring 2025 releases”, “Won”, “Nominated”). All of it now follows your language and switches the moment you change it. Works with Last.fm, Google Sheets and CSV uploads." },

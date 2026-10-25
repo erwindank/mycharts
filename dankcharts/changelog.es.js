@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Your Soundtrack: month numbers, bubbles and dates":
+    ["Tu Banda Sonora: números de los meses, burbujas y fechas",
+     "Tres arreglos pequeños en Tu Banda Sonora. En el móvil, los recuentos de Actividad mensual ya no se montan unos sobre otros (“4,5114,040…”): cada mes guarda espacio para su número y el gráfico se desliza de lado. Las burbujas de Nuevos descubrimientos muestran las iniciales del artista hasta que llega su foto, así que ninguna queda como un círculo vacío. Las fechas de hitos y rachas se escriben con palabras, como 11 feb 2026, igual que en Récords y Eventos. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Awards: the whole page in your language":
     ["Premios: toda la página en tu idioma",
      "La página Premios ahora está en español de principio a fin. Antes, al cambiar de idioma, las tarjetas de categorías, la lista de Configurar año y una ceremonia abierta se quedaban en el idioma anterior, y mucho seguía en inglés de todos modos: Estadísticas y récords, recuentos como “94 summer plays”, el selector de nominados, los botones de la ceremonia y las tarjetas de Premios reales (“Held 2026 · honouring 2025 releases”, “Won”, “Nominated”). Ahora todo sigue tu idioma y cambia en cuanto lo cambias. Funciona con Last.fm, Google Sheets y archivos CSV."],
