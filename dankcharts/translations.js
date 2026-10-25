@@ -3350,6 +3350,7 @@ const TRANSLATIONS = {
     st_story_play_all: 'Play your story',
     st_story_count: '{{n}} of {{total}}',
     st_story_done: 'Done',
+    st_per_day: '~{{n}}/day',
     st_share_btn: 'Share',
     st_stat_plays: 'Plays',
     st_stat_days: 'Active Days',
@@ -7130,6 +7131,7 @@ const TRANSLATIONS = {
     st_story_play_all: 'Reproduce tu historia',
     st_story_count: '{{n}} de {{total}}',
     st_story_done: 'Listo',
+    st_per_day: '~{{n}}/día',
     st_share_btn: 'Compartir',
     st_stat_plays: 'Reproducciones',
     st_stat_days: 'Días Activos',
@@ -10905,6 +10907,7 @@ const TRANSLATIONS = {
     st_story_play_all: 'Reproduzir sua história',
     st_story_count: '{{n}} de {{total}}',
     st_story_done: 'Pronto',
+    st_per_day: '~{{n}}/dia',
     st_share_btn: 'Compartilhar',
     st_stat_plays: 'Plays',
     st_stat_days: 'Dias Ativos',
@@ -11036,7 +11039,7 @@ const TRANSLATIONS = {
     crp_keys: 'Teclas: Espaço reproduzir / pausar · ← → uma play · Shift + ← → um dia · Home / End cada ponta · Esc fechar',
     crp_keys_day: 'Teclas: Espaço reproduzir / pausar · ← → uma play · Shift + ← → uma hora · Home / End cada ponta · Esc fechar',
     st_card_title: 'Compartilhe Sua Trilha Sonora',
-    st_card_open: 'Criar imagem para partilhar',
+    st_card_open: 'Criar imagem para compartilhar',
     st_card_hint: 'Cinco designs, oito paletas e três tamanhos — escolhe um e descarrega ou copia.',
     st_card_opt_stats: 'Números',
     st_card_opt_peak: 'Dia de pico',
@@ -14679,6 +14682,7 @@ const TRANSLATIONS = {
     st_story_play_all: 'Reproduzir a tua história',
     st_story_count: '{{n}} de {{total}}',
     st_story_done: 'Concluído',
+    st_per_day: '~{{n}}/dia',
     st_share_btn: 'Partilhar',
     st_stat_plays: 'Plays',
     st_stat_days: 'Dias Ativos',
@@ -15410,6 +15414,8 @@ function setLanguage(lang) {
   if (typeof _evRepaintStatuses === 'function') _evRepaintStatuses();
   // the Awards page (cards, stats, category list, an open ceremony or picker)
   if (typeof awardsOnLanguageChange === 'function') awardsOnLanguageChange();
+  // Your Soundtrack (its chapter headlines and an open "Play your year")
+  if (typeof stOnLanguageChange === 'function') stOnLanguageChange();
   // and the calendar ("+N more", the Day view's cards)
   if (typeof _eventsCalendarData !== 'undefined' && _eventsCalendarData) renderEventsCalendar(_eventsCalendarData, eventsCalendarYear, eventsCalendarMonth);
 

@@ -3124,6 +3124,26 @@ Steps:
    closes after the last, back works, Esc closes.
 8. **Four languages and screen check:** 1440 / 1100 / 390 × en / es /
    pt-BR / pt-PT × a few themes.
+   **Done 2026-10-25:** setLanguage() now calls stOnLanguageChange(),
+   which draws Your Soundtrack again when it is open (the bands are written
+   in JS) and keeps an open story on its screen. "~180/day" became
+   st_per_day; the #1 artist's peak hour reads 17:00 in Spanish and
+   Portuguese (5 PM in English); the coverflow arrows' names are
+   translated; pt-BR's share button says "compartilhar". Checked with a
+   script: es / pt-BR / pt-PT × Year, Month, All-Time, the replay and every
+   story screen: no English left in visible text (pt's "plays" is its
+   translation; a "VS" was a bubble's initials). Navy dark, Navy light,
+   Yellow and Red light at 1440 / 1100 / 390: no sideways scroll, no
+   errors, the bands and the story read in light themes. Page height:
+   desktop 6,256px (was 6,114 with far less in it per screen), phone
+   7,239px (was 8,207). **Still to do some day:** the artist pop-up from a
+   bubble / Top Artists keeps its emoji icons (it is one of the 27 pop-ups,
+   4.20); the Underrated Gem only shows on Last.fm with an API key, so it
+   was not seen on screen. On a phone in Spanish the three toolbar buttons
+   take three rows.
+
+**Phase 9 part 6 (Your Soundtrack) is finished** (2026-10-25). Next is
+4.19 (Playlists, Board, Charts Guide), looked at on screen first.
 
 The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in

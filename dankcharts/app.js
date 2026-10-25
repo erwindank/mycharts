@@ -48095,6 +48095,19 @@ function stStoryRender() {
   // the thumbs carry ids-free markup; nothing else to load
 }
 
+// A language change while Your Soundtrack is open: draw it again (the
+// chapter headlines are written in JS) and keep an open story on its screen
+function stOnLanguageChange() {
+  if (typeof currentPeriod === 'undefined' || currentPeriod !== 'soundtrack' || !allPlays.length) return;
+  const idx = _stStory ? _stStory.idx : null;
+  renderSoundtrack();
+  if (idx !== null && _stStory) {
+    _stStory.screens = stStoryScreens();
+    _stStory.idx = Math.min(idx, _stStory.screens.length - 1);
+    stStoryRender();
+  }
+}
+
 // "Chapter 1 · …", counting only the chapters that are showing
 function stNumberChapters() {
   let n = 0;
@@ -48193,7 +48206,7 @@ function stRenderStats(plays) {
   }
 
   const noteEl = document.getElementById('stStatPlaysNote');
-  if (noteEl) noteEl.textContent = daySet.size > 0 ? `~${Math.round(plays.length / daySet.size).toLocaleString()}/day` : '';
+  if (noteEl) noteEl.textContent = daySet.size > 0 ? t('st_per_day', { n: Math.round(plays.length / daySet.size).toLocaleString() }) : '';
 }
 
 // Reuses the app's canonical first-seen map (built from each play's already
@@ -48287,7 +48300,7 @@ function stInitCoverflow(viewportEl, items, label) {
 
   viewportEl.innerHTML = `
     <div class="st-cf-viewport" tabindex="0" role="listbox" aria-label="${esc(label || '')}">
-      <button type="button" class="st-cf-nav st-cf-nav-prev" aria-label="Previous">&lsaquo;</button>
+      <button type="button" class="st-cf-nav st-cf-nav-prev" aria-label="${esc(t('st_nav_prev'))}">&lsaquo;</button>
       <div class="st-cf-track">
         ${items.map((it, i) => `
           <div class="st-cf-card" id="idx-${uid}-${i}" data-idx="${i}" role="option">
@@ -48295,7 +48308,7 @@ function stInitCoverflow(viewportEl, items, label) {
             <span class="st-cf-rank${i < 3 ? ' st-cf-medal st-cf-medal-' + (i + 1) : ''}">${i + 1}</span>
           </div>`).join('')}
       </div>
-      <button type="button" class="st-cf-nav st-cf-nav-next" aria-label="Next">&rsaquo;</button>
+      <button type="button" class="st-cf-nav st-cf-nav-next" aria-label="${esc(t('st_nav_next'))}">&rsaquo;</button>
     </div>
     <div class="st-cf-meta">
       <div class="st-cf-name"></div>
@@ -48576,7 +48589,11 @@ function stRenderFeaturedArtist(periodPlays, artistName, totalCount) {
   for (const p of artistPlays) hourCounts[tzDateOf(p).getHours()]++;
   let peakHour = 0;
   for (let h = 1; h < 24; h++) { if (hourCounts[h] > hourCounts[peakHour]) peakHour = h; }
-  const fmtHour = h => { const per = h < 12 ? 'AM' : 'PM'; const h12 = h % 12 === 0 ? 12 : h % 12; return `${h12} ${per}`; };
+  // "5 PM" in English; Spanish and Portuguese write the hour as 17:00
+  const fmtHour = h => {
+    if (currentLang !== 'en') return `${h}:00`;
+    const per = h < 12 ? 'AM' : 'PM'; const h12 = h % 12 === 0 ? 12 : h % 12; return `${h12} ${per}`;
+  };
   const fmtDate = d => `${t(ST_MONTH_KEYS[d.getMonth()]).substring(0, 3)} ${d.getDate()}`;
 
   // Favorite album: the one this artist was played from the most within the
