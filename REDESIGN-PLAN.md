@@ -3142,6 +3142,15 @@ Steps:
    was not seen on screen. On a phone in Spanish the three toolbar buttons
    take three rows.
 
+**After part 6 (2026-10-25, your idea):** Chapter 1's band is no longer
+the #1 song's cover. stRenderYearMosaic() fills it with the period's most
+played albums (up to 48) as a grid that comes apart toward the big year:
+solid right of 82% of the width, gone left of 26%, and in between the
+tiles thin out, shrink, drift, turn and fade, seeded from the period so it
+draws the same each time. One cover lookup per album; the tiles dissolve
+in from the right (off with reduced motion). The band's fade is lighter
+there so the covers show. Checked dark and light, 1440 and 390.
+
 **Phase 9 part 6 (Your Soundtrack) is finished** (2026-10-25). Next is
 4.19 (Playlists, Board, Charts Guide), looked at on screen first.
 

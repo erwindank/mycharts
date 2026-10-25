@@ -47825,11 +47825,8 @@ function stRenderChapters() {
   const f = _stFacts;
   const periodLabel = stGetPeriodLabel();
 
-  // The year: the period's #1 song behind the big year
-  const yearHead = document.getElementById('stHeroCard');
-  const yearBg = document.getElementById('stChBg_year');
-  if (yearBg) { yearBg.style.backgroundImage = ''; yearBg.classList.remove('is-loaded'); }
-  if (yearHead && f.topSongs && f.topSongs[0]) stHeadBg(yearHead, ['song', f.topSongs[0].title, f.topSongs[0].artist]);
+  // The year: a grid of the period's albums that comes apart toward the text
+  stRenderYearMosaic();
 
   // Top songs and artists
   if (f.topSongs && f.topSongs.length) {
@@ -48106,6 +48103,71 @@ function stOnLanguageChange() {
     _stStory.idx = Math.min(idx, _stStory.screens.length - 1);
     stStoryRender();
   }
+}
+
+// ── Chapter 1's band: the period's albums as a grid that disintegrates ──
+// The most-played albums fill the band's right side as a tight grid of
+// covers; toward the left (where the big year sits) the tiles thin out,
+// shrink, drift and fade, as if the grid were coming apart. The pattern is
+// seeded from the period, so a re-render draws the same picture.
+const ST_MOSAIC_MAX = 48;
+function stRenderYearMosaic() {
+  const head = document.getElementById('stHeroCard');
+  const box = document.getElementById('stYearMosaic');
+  if (!head || !box) return;
+  box.innerHTML = '';
+
+  // albums by plays in this period ("—" means no album: skipped)
+  const counts = new Map();
+  for (const p of _stCurrentPlays) {
+    if (!p.album || p.album === '—') continue;
+    const ar = albumArtist(p);
+    const k = ar.toLowerCase() + '|||' + p.album.toLowerCase();
+    const rec = counts.get(k) || { album: p.album, artist: ar, n: 0 };
+    rec.n++; counts.set(k, rec);
+  }
+  const albums = [...counts.values()].sort((a, b) => b.n - a.n).slice(0, ST_MOSAIC_MAX);
+  if (!albums.length) return;
+
+  const W = head.clientWidth || 900, H = head.clientHeight || 200;
+  const size = W < 640 ? 44 : 58;
+  const cols = Math.ceil(W / size), rows = Math.ceil(H / size);
+  // small seeded random, so the same period always comes apart the same way
+  let seed = 0;
+  for (const ch of stGetPeriodLabel()) seed = (seed * 31 + ch.charCodeAt(0)) >>> 0;
+  const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+
+  const cells = [];
+  for (let c = cols - 1; c >= 0; c--) {
+    for (let r = 0; r < rows; r++) {
+      const x = (c + 0.5) / cols;                       // 0 = left edge, 1 = right edge
+      const solid = Math.min(1, Math.max(0, (x - 0.26) / 0.56)); // 0 left of 26%, 1 right of 82%
+      if (rnd() > solid * 0.92 + 0.04) continue;          // gaps grow toward the left
+      const loose = 1 - solid;                            // how far this tile has come apart
+      cells.push({
+        left: c * size, top: r * size,
+        scale: 1 - loose * (0.25 + rnd() * 0.45),
+        dx: (rnd() - 0.7) * loose * size * 1.6,
+        dy: (rnd() - 0.5) * loose * size * 1.2,
+        rot: (rnd() - 0.5) * loose * 40,
+        op: 0.95 - loose * 0.6,
+        delay: Math.round((1 - x) * 700 + rnd() * 200),
+      });
+    }
+  }
+  const tok = _stHeadToken;
+  box.innerHTML = cells.map((t, i) => {
+    const a = albums[i % albums.length];
+    return `<div class="st-mosaic-tile" data-a="${i % albums.length}" style="left:${t.left}px;top:${t.top}px;width:${size}px;height:${size}px;--tx:${t.dx.toFixed(1)}px;--ty:${t.dy.toFixed(1)}px;--rot:${t.rot.toFixed(1)}deg;--sc2:${t.scale.toFixed(2)};--op:${t.op.toFixed(2)};--d:${t.delay}ms" title="${esc(a.album)}"></div>`;
+  }).join('');
+  // one lookup per album, shared by every tile that shows it
+  albums.forEach((a, ai) => {
+    if (!box.querySelector(`[data-a="${ai}"]`)) return;
+    queueImg(() => getArtAuto('album', a.album, a.artist, a.album).then(url => {
+      if (!url || tok !== _stHeadToken) return;
+      box.querySelectorAll(`[data-a="${ai}"]`).forEach(el => { el.style.backgroundImage = `url("${sizedArtUrl(url, 120)}")`; el.classList.add('is-loaded'); });
+    }), true);
+  });
 }
 
 // "Chapter 1 · …", counting only the chapters that are showing

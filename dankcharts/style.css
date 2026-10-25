@@ -27558,6 +27558,41 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
 
 /* Chapter 1's band: the big year, with its stencilled echo */
 .st-chap-head--year { min-height: 200px; }
+/* The album grid behind it (stRenderYearMosaic): tiles placed in JS, each
+   with its own drift (--tx/--ty), turn (--rot), size (--sc2) and fade (--op),
+   all zero on the solid right side. The band's fade is lighter here so the
+   covers on the right show nearly full strength. */
+.st-year-mosaic {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+.st-mosaic-tile {
+  position: absolute;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--surface2) 80%, transparent);
+  background-size: cover;
+  background-position: center;
+  opacity: var(--op);
+  transform: translate(var(--tx), var(--ty)) rotate(var(--rot)) scale(var(--sc2));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--bg) 60%, transparent);
+}
+.st-mosaic-tile:not(.is-loaded) { opacity: calc(var(--op) * 0.35); }
+.st-chap-head--year::after {
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--bg) 92%, transparent) 0%,
+    color-mix(in srgb, var(--bg) 70%, transparent) 38%,
+    color-mix(in srgb, var(--bg) 18%, transparent) 75%,
+    transparent 100%);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .st-mosaic-tile.is-loaded { animation: stMosaicIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) both; animation-delay: var(--d); }
+}
+@keyframes stMosaicIn {
+  from { opacity: 0; transform: translate(calc(var(--tx) - 18px), var(--ty)) rotate(calc(var(--rot) * 2)) scale(calc(var(--sc2) * 0.6)); }
+  to { opacity: var(--op); transform: translate(var(--tx), var(--ty)) rotate(var(--rot)) scale(var(--sc2)); }
+}
 .st-hero-period {
   position: relative;
   display: inline-block;
