@@ -47756,6 +47756,8 @@ function renderSoundtrack() {
   if (replaySection) replaySection.style.display = isYear ? '' : 'none';
 
   stRenderChapters();
+  const storyLbl = document.getElementById('stStoryBtnLabel');
+  if (storyLbl) storyLbl.textContent = stPeriodType === 'alltime' ? t('st_story_play_all') : t('st_story_play', { period: stGetPeriodLabel() });
   requestAnimationFrame(stSetupReveal);
 }
 
@@ -47950,6 +47952,147 @@ function stRenderChapters() {
   });
 
   stNumberChapters();
+}
+
+// ── Play your year (phase 9 part 6, choice 1C) ─────────────────
+// The chapters full screen, one headline per screen, like the Awards
+// ceremony. Each screen is read from a chapter's band on the page, so the
+// story and the scroll page always say the same thing. Tap / click the right
+// side or press → / Space for the next screen, the left side or ← to go
+// back, Esc or ✕ to leave.
+let _stStory = null; // { screens, idx, lastFocus }
+
+function stStoryScreens() {
+  const screens = [];
+  document.querySelectorAll('#soundtrackView .st-chap').forEach(ch => {
+    if (ch.style.display === 'none' || ch.classList.contains('st-chap--quiet')) return;
+    const kind = ch.dataset.ch;
+    const head = ch.querySelector('.st-chap-head');
+    if (!head) return;
+    const bg = head.querySelector('.st-chap-bg');
+    const pic = bg && bg.style.backgroundImage ? bg.style.backgroundImage.replace(/^url\(["']?|["']?\)$/g, '') : '';
+    const labelEl = head.querySelector('.st-chap-label');
+    const label = labelEl ? labelEl.textContent.replace(/\s+/g, ' ').trim() : '';
+    const s = { kind, label, pic };
+    if (kind === 'year') {
+      s.title = esc(document.getElementById('stHeroPeriod')?.textContent || '');
+      s.sub = esc(document.getElementById('stHeroSubtitle')?.textContent || '');
+      // the five numbers under the year
+      s.extra = `<div class="st-story-tiles">${[...document.querySelectorAll('#stStatsStrip .st-stat')].map(tile =>
+        `<div><b>${esc(tile.querySelector('.st-stat-val')?.textContent || '')}</b><span>${esc(tile.querySelector('.st-stat-label')?.textContent || '')}</span></div>`).join('')}</div>`;
+    } else {
+      s.title = head.querySelector('.st-chap-title')?.innerHTML || '';
+      s.sub = head.querySelector('.st-chap-sub')?.innerHTML || '';
+      // covers / portraits from the band's right side
+      const thumbs = head.querySelector('.st-chap-thumbs');
+      if (thumbs) s.extra = thumbs.outerHTML;
+      if (kind === 'artist') {
+        const big = document.querySelector('#stFeaturedStats .st-fa-big');
+        if (big) s.extra = `<div class="st-story-fact"><b>${esc(big.querySelector('.st-fa-big-num')?.textContent || '')}</b><span>${esc(big.querySelector('.st-fa-big-label')?.textContent || '')}</span></div>`;
+      }
+      if (kind === 'replay') s.action = { label: t('st_replay_btn'), run: 'stStoryClose();stJumpToReplay()' };
+      if (kind === 'share') s.action = { label: t('st_card_open'), run: 'stStoryClose();stOpenCard()' };
+    }
+    s.color = getComputedStyle(ch).getPropertyValue('--sc').trim();
+    screens.push(s);
+  });
+  return screens;
+}
+
+function stStoryOpen() {
+  const screens = stStoryScreens();
+  if (!screens.length) return;
+  let ov = document.getElementById('stStory');
+  if (!ov) {
+    ov = document.createElement('div');
+    ov.id = 'stStory';
+    ov.className = 'st-story';
+    ov.setAttribute('role', 'dialog');
+    ov.setAttribute('aria-modal', 'true');
+    document.body.appendChild(ov);
+    ov.addEventListener('click', e => {
+      if (e.target.closest('button, a')) return;
+      // a tap on the left third goes back, anywhere else goes on
+      const r = ov.getBoundingClientRect();
+      stStoryGo(e.clientX < r.left + r.width / 3 ? -1 : 1);
+    });
+  }
+  _stStory = { screens, idx: 0, lastFocus: document.activeElement };
+  ov.setAttribute('aria-label', t('st_story_play', { period: stGetPeriodLabel() }));
+  document.body.classList.add('st-story-open');
+  document.addEventListener('keydown', stStoryKey);
+  ov.hidden = false;
+  stStoryRender();
+  ov.querySelector('.st-story-close')?.focus();
+}
+
+function stStoryClose() {
+  const ov = document.getElementById('stStory');
+  if (ov) { ov.hidden = true; ov.innerHTML = ''; }
+  document.body.classList.remove('st-story-open');
+  document.removeEventListener('keydown', stStoryKey);
+  const back = _stStory && _stStory.lastFocus;
+  _stStory = null;
+  if (back && back.focus) back.focus();
+}
+
+function stStoryKey(e) {
+  if (!_stStory) return;
+  if (e.key === 'Escape') { e.preventDefault(); stStoryClose(); }
+  else if (e.key === 'ArrowRight' || e.key === 'PageDown' || (e.key === ' ' && !e.target.closest('button'))) { e.preventDefault(); stStoryGo(1); }
+  else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); stStoryGo(-1); }
+  else if (e.key === 'Tab') {
+    // keep the keyboard inside the story while it is open
+    const f = [...document.querySelectorAll('#stStory button')];
+    if (!f.length) return;
+    const i = f.indexOf(document.activeElement);
+    if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); }
+    else if (!e.shiftKey && i === f.length - 1) { e.preventDefault(); f[0].focus(); }
+  }
+}
+
+function stStoryGo(dir) {
+  if (!_stStory) return;
+  const n = _stStory.idx + dir;
+  if (n < 0) return;
+  if (n >= _stStory.screens.length) { stStoryClose(); return; } // past the last screen: done
+  _stStory.idx = n;
+  stStoryRender();
+}
+
+function stStoryRender() {
+  const ov = document.getElementById('stStory');
+  if (!ov || !_stStory) return;
+  const { screens, idx } = _stStory;
+  const s = screens[idx];
+  const focusedNav = document.activeElement && document.activeElement.closest && document.activeElement.closest('#stStory') ? document.activeElement.dataset.nav : null;
+  ov.style.setProperty('--sc', s.color || 'var(--accent)');
+  ov.innerHTML = `
+    <div class="st-story-bg"${s.pic ? ` style="background-image:url('${esc(s.pic)}')"` : ''}></div>
+    <div class="st-story-top">
+      <div class="st-story-bars" aria-hidden="true">${screens.map((_, i) => `<i class="${i < idx ? 'is-done' : i === idx ? 'is-on' : ''}"></i>`).join('')}</div>
+      <div class="st-story-meta">
+        <span>${esc(stGetPeriodLabel())} · ${esc(t('st_story_count', { n: idx + 1, total: screens.length }))}</span>
+        <button type="button" class="dc-btn dc-btn-plain dc-btn-icon st-story-close" data-nav="close" onclick="stStoryClose()" aria-label="${esc(t('set_close'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+      </div>
+    </div>
+    <div class="st-story-stage${s.kind === 'year' ? ' is-year' : ''}" aria-live="polite">
+      ${s.pic && s.kind !== 'year' ? `<div class="st-story-art${s.kind === 'artist' || s.kind === 'new' || s.kind === 'activity' || s.kind === 'loyalty' || s.kind === 'streaks' || s.kind === 'replay' ? ' is-round' : ''}" style="background-image:url('${esc(s.pic)}')"></div>` : ''}
+      <div class="st-story-text">
+        <div class="st-story-label">${esc(s.label)}</div>
+        <div class="st-story-title">${s.title}</div>
+        ${s.sub ? `<div class="st-story-sub">${s.sub}</div>` : ''}
+        ${s.extra || ''}
+        ${s.action ? `<button type="button" class="dc-btn dc-btn-main st-story-action" onclick="${s.action.run}">${esc(s.action.label)}</button>` : ''}
+      </div>
+    </div>
+    <div class="st-story-nav">
+      <button type="button" class="dc-btn dc-btn-normal st-story-prev" data-nav="prev" onclick="stStoryGo(-1)"${idx === 0 ? ' disabled' : ''}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg><span>${esc(t('st_nav_prev'))}</span></button>
+      <button type="button" class="dc-btn dc-btn-main st-story-next" data-nav="next" onclick="stStoryGo(1)"><span>${esc(idx === screens.length - 1 ? t('st_story_done') : t('st_nav_next'))}</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></button>
+    </div>`;
+  // keep keyboard focus on the button that was used
+  if (focusedNav) ov.querySelector(`[data-nav="${focusedNav}"]:not([disabled])`)?.focus();
+  // the thumbs carry ids-free markup; nothing else to load
 }
 
 // "Chapter 1 · …", counting only the chapters that are showing

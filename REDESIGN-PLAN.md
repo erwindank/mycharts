@@ -3106,6 +3106,22 @@ Steps:
    The ▲▼ month arrows and the artist pop-up's icons are left (the pop-up
    is 4.20).
 7. **Play your year:** the full-screen story.
+   **Done 2026-10-25:** "Play your 2026" (All-Time: "Play your story")
+   is the first, gold-free main button of the toolbar; Chart History Replay
+   got a bars icon so the two don't share the ▶. stStoryOpen() reads each
+   showing, non-quiet chapter's band (label, sentence, subline, picture;
+   the year screen also gets the five numbers, the #1 artist the 102 fact,
+   Top songs / New Discoveries their five covers) into one screen each, so
+   the story and the page always agree. Full screen on the page's own
+   ground with the picture blurred behind; top: one bar per screen in the
+   chapter's colour, "2026 · 3 of 10", ✕; middle: the picture (round for
+   artists) beside the headline, stacked on a phone; bottom: Previous /
+   Next (Done on the last). The left third of the screen goes back,
+   anywhere else on; ← → Space PageUp/Down, Esc; Tab stays inside; focus
+   goes back to the button. Replay and Share screens have their button
+   (it closes the story first). The entrance animation is off with reduced
+   motion. Checked with real clicks and keys at 1440 and 390: 10 screens,
+   closes after the last, back works, Esc closes.
 8. **Four languages and screen check:** 1440 / 1100 / 390 × en / es /
    pt-BR / pt-PT × a few themes.
 

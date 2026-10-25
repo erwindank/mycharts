@@ -29527,6 +29527,178 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
   .st-replay-name { font-size: var(--fs-sm); }
 }
 
+/* ── Play your year: the chapters full screen (phase 9 part 6) ────
+   The page's own ground with the chapter's picture blurred behind it, so it
+   reads in every theme. Top: one bar per screen, the period, ✕. Middle: the
+   picture and the headline. Bottom: Back / Next. --sc is the chapter's
+   colour (its number). */
+.st-story {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text1);
+  padding: max(var(--sp-4), env(safe-area-inset-top)) max(var(--sp-5), env(safe-area-inset-right)) max(var(--sp-4), env(safe-area-inset-bottom)) max(var(--sp-5), env(safe-area-inset-left));
+  cursor: pointer;
+  user-select: none;
+}
+.st-story[hidden] { display: none; }
+body.st-story-open { overflow: hidden; }
+.st-story-bg {
+  position: absolute;
+  inset: -60px;
+  z-index: 0;
+  background-size: cover;
+  background-position: center;
+  filter: blur(48px) saturate(1.2);
+  opacity: 0.45;
+  pointer-events: none;
+}
+.st-story::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 40%, transparent 0%, color-mix(in srgb, var(--bg) 70%, transparent) 75%);
+}
+/* (not the blurred picture: it stays absolute, out of the grid) */
+.st-story > :not(.st-story-bg) { position: relative; z-index: 1; }
+.st-story-top { display: grid; gap: var(--sp-3); max-width: 1100px; width: 100%; margin: 0 auto; }
+.st-story-bars { display: flex; gap: 4px; }
+.st-story-bars i {
+  flex: 1;
+  height: 3px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--text1) 22%, transparent);
+}
+.st-story-bars i.is-done { background: color-mix(in srgb, var(--text1) 70%, transparent); }
+.st-story-bars i.is-on { background: var(--sc); }
+.st-story-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-sans);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text2);
+}
+.st-story-close svg,
+.st-story-nav svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.st-story-stage {
+  align-self: center;
+  justify-self: center;
+  width: 100%;
+  max-width: 1000px;
+  display: grid;
+  grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
+  align-items: center;
+  gap: var(--sp-8);
+}
+.st-story-stage.is-year,
+.st-story-stage:not(:has(.st-story-art)) { grid-template-columns: minmax(0, 1fr); }
+.st-story-art {
+  aspect-ratio: 1;
+  width: 100%;
+  border-radius: var(--r-lg);
+  background-size: cover;
+  background-position: center 30%;
+  box-shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.7), 0 0 0 1px color-mix(in srgb, var(--text1) 10%, transparent);
+}
+.st-story-art.is-round { border-radius: 50%; }
+.st-story-text { display: grid; gap: var(--sp-3); min-width: 0; justify-items: start; }
+.st-story-label {
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sc);
+}
+.st-story-title {
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 5.5vw, 4.4rem);
+  font-weight: 800;
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+.st-story-stage.is-year .st-story-title { font-size: clamp(4.5rem, 16vw, 11rem); line-height: 0.9; }
+.st-story-title .st-chap-num { color: var(--sc); }
+.st-story-sub {
+  font-family: var(--font-sans);
+  font-size: var(--fs-md);
+  color: var(--text2);
+  line-height: 1.45;
+  max-width: 52ch;
+}
+.st-story-tiles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3) var(--sp-6);
+  margin-top: var(--sp-3);
+}
+.st-story-tiles div,
+.st-story-fact { display: grid; gap: 2px; }
+.st-story-tiles b,
+.st-story-fact b {
+  font-family: var(--font-display);
+  font-size: var(--fs-xl);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text1);
+  font-feature-settings: "tnum";
+}
+.st-story-tiles span,
+.st-story-fact span {
+  font-family: var(--font-sans);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+.st-story-fact { margin-top: var(--sp-3); }
+.st-story-fact b { color: var(--sc); font-size: clamp(2.5rem, 6vw, 3.5rem); }
+.st-story .st-chap-thumbs { margin-top: var(--sp-3); }
+.st-story-action { margin-top: var(--sp-3); }
+.st-story-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+}
+.st-story-nav .dc-btn:disabled { opacity: 0.35; }
+@media (max-width: 640px) {
+  .st-story-stage { grid-template-columns: minmax(0, 1fr); gap: var(--sp-5); align-self: center; }
+  .st-story-art { width: min(62vw, 240px); justify-self: start; }
+  .st-story-sub { font-size: var(--fs-base); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .st-story-stage { animation: stStoryIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .st-story-bars i { transition: background 0.3s; }
+}
+@keyframes stStoryIn {
+  from { opacity: 0; transform: translateY(14px) scale(0.985); }
+  to { opacity: 1; transform: none; }
+}
+
 /* ── Scroll Reveal ───────────────────────────────────────────── */
 .st-reveal {
   opacity: 0;
