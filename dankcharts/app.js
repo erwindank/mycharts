@@ -48630,7 +48630,9 @@ function stSpawnBubble(container, artist, isStatic) {
   bubble.setAttribute('role', 'button');
   bubble.setAttribute('tabindex', '0');
   bubble.setAttribute('aria-label', artist);
-  bubble.innerHTML = `<div class="st-bubble-avatar" id="${uid}"></div><div class="st-bubble-name">${esc(artist)}</div>`;
+  // Initials sit in the circle until the picture arrives (or if none is found),
+  // so a bubble is never an empty ring.
+  bubble.innerHTML = `<div class="st-bubble-avatar" id="${uid}"><div class="thumb-initials">${esc(initials(artist))}</div></div><div class="st-bubble-name">${esc(artist)}</div>`;
   container.appendChild(bubble);
 
   if (!isStatic) bubble.addEventListener('animationend', () => bubble.remove());
@@ -48874,8 +48876,8 @@ function stRenderMilestoneList(items, bodyId, wrapId, toggleId, kind) {
   const visibleItems = items.slice(0, visibleCount);
 
   el.innerHTML = visibleItems.map((m, i) => {
-    const d = tzDate(m.date);
-    const ds = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
+    // Written in words (11 Feb 2026), the same as Records and Events
+    const ds = fmtDate(tzDate(m.date));
     const typeClass = kind === 'overall' ? ' st-milestone-overall' : ' st-milestone-artist';
     const numId = `ms-num-${kind}-${i}`;
     const numSpan = `<span class="st-milestone-num" id="${numId}" data-target="${m.nTarget}">0</span>`;
@@ -48992,7 +48994,9 @@ function stRenderStreaks(plays) {
 
   const pad2 = n => String(n).padStart(2, '0');
   const dayKey = d => { const tz = tzDate(d); return `${tz.getFullYear()}-${pad2(tz.getMonth()+1)}-${pad2(tz.getDate())}`; };
-  const fmtDay = ds => { const d = new Date(ds); return `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`; };
+  // Day keys in words (11 Feb 2026), the same as Records and Events. Noon keeps
+  // the date from slipping a day in timezones behind UTC.
+  const fmtDay = ds => fmtDate(new Date(ds + 'T12:00:00'));
   // Pure UTC decrement on the calendar string — avoids mixing a UTC-parsed
   // Date with local setDate()/getDate(), which silently skips a day in
   // negative-UTC-offset timezones and undercounts the walk below.

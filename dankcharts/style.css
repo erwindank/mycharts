@@ -28421,10 +28421,12 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
   .st-activity-detail-head { animation: none; }
 }
 
+/* On a phone the months keep room for a five-digit count ("4,511") and the
+   chart scrolls sideways instead of squeezing the numbers into each other. */
 @media (max-width: 480px) {
   .st-activity-chart { height: 158px; }
   .st-activity-bar-wrap { height: 94px; }
-  .st-activity-col { min-width: 30px; }
+  .st-activity-col { min-width: 46px; }
 }
 
 /* ── Loyalty Score — chart re-entry stamp ──────────────────────

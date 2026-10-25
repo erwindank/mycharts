@@ -3021,6 +3021,13 @@ Steps:
 1. **Fix first.** Phone Monthly Activity: the bars scroll sideways with
    room for every number. Discovery bubbles show initials until the
    picture arrives. Dates in words (11 Feb 2026) in milestones and streaks.
+   **Done 2026-10-25:** months keep 46px on a phone (room for "4,511"),
+   so the chart scrolls sideways instead of overlapping (checked: 0
+   overlaps at 390). Bubbles start with initials (0 empty circles).
+   Milestone and streak dates go through fmtDate() ("11 Feb 2026"); the
+   streak day keys are read at noon so they can't slip a day.
+   The coverflows already start with #1 in the middle: the space on its
+   left is where #0 would be, so that stays as it is.
 2. **Top of the page.** The shared page title (as Records / Stats /
    Events / Awards) with the nav's note icon, Year / Month / All-Time and
    the shared ‹ 2026 › stepper. Chart History Replay and Share also in
