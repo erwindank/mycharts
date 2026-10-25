@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Your Soundtrack: the big #1 artist photo is back":
+    ["Sua Trilha Sonora: a foto grande do artista #1 voltou",
+     "O capítulo do artista #1 em Sua Trilha Sonora volta a abrir com uma foto grande e em cores vivas do artista, com o nome na parte de baixo, em vez de uma faixa escurecida. Funciona com Last.fm, Google Sheets e arquivos CSV."],
   "Your Soundtrack: your year's albums behind the year":
     ["Sua Trilha Sonora: os álbuns do seu ano atrás do ano",
      "O primeiro capítulo de Sua Trilha Sonora agora mostra os álbuns que você mais ouviu naquele ano (ou mês) atrás do ano em destaque: uma grade apertada de capas à direita que vai se desfazendo para a esquerda, com as capas se deslocando, girando e sumindo em volta do ano. As capas aparecem aos poucos quando a página abre, a menos que o seu aparelho esteja configurado para reduzir movimento. Funciona com Last.fm, Google Sheets e arquivos CSV."],

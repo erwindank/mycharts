@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Your Soundtrack: the big #1 artist photo is back":
+    ["Tu Banda Sonora: vuelve la foto grande del artista #1",
+     "El capítulo del artista #1 en Tu Banda Sonora vuelve a abrir con una foto grande y a plena intensidad del artista, con su nombre en la parte de abajo, en lugar de una franja atenuada. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Your Soundtrack: your year's albums behind the year":
     ["Tu Banda Sonora: los álbumes de tu año detrás del año",
      "El primer capítulo de Tu Banda Sonora muestra ahora los álbumes que más escuchaste ese año (o mes) detrás del año en grande: una cuadrícula apretada de portadas a la derecha que se va deshaciendo hacia la izquierda, con las portadas desplazándose, girando y desvaneciéndose alrededor del año. Las portadas aparecen poco a poco al abrir la página, salvo que tu dispositivo esté configurado para reducir el movimiento. Funciona con Last.fm, Google Sheets y archivos CSV."],
