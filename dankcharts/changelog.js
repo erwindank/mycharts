@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 314;
+const DC_CL_I18N_V = 315;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-25', t: 'i18n', a: 'soundtrack', h: '56a30c4',
+    title: "Your Soundtrack: the new chapters in your language",
+    detail: "Changing the language while Your Soundtrack is open now redraws the whole page at once, chapter headlines included, and an open Play your year story stays on the screen you were on. A few bits that stayed in English are translated too: the plays-per-day note under Plays (“~180/day”), and the peak listening hour, which reads 17:00 in Spanish and Portuguese instead of 5 PM. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-25', t: 'feature', a: 'soundtrack', h: '1beb813',
     title: "Your Soundtrack: play your year as a story",
     detail: "A new Play your 2026 button at the top of Your Soundtrack opens your year full screen, one chapter at a time, like a story: the year and its five big numbers, your #1 artist, your song of the year, your loudest month, your discoveries, milestones and streaks, each with its picture. Tap or click to go on, tap the left side to go back, or use the arrow keys; bars at the top show how far along you are, and ✕ or Esc takes you back to the page. It works for a month and for All-Time too. Works with Last.fm, Google Sheets and CSV uploads." },

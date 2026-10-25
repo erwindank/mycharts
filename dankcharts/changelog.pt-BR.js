@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Your Soundtrack: the new chapters in your language":
+    ["Sua Trilha Sonora: os novos capítulos no seu idioma",
+     "Mudar o idioma com Sua Trilha Sonora aberta agora redesenha a página inteira de uma vez, incluindo os títulos dos capítulos, e uma história de Reproduzir seu ano aberta continua na tela em que você estava. Algumas coisas que ficavam em inglês também foram traduzidas: a nota de plays por dia embaixo de Plays (“~180/dia”) e o horário de pico, que agora aparece como 17:00 em vez de 5 PM. Funciona com Last.fm, Google Sheets e arquivos CSV."],
   "Your Soundtrack: play your year as a story":
     ["Sua Trilha Sonora: reproduza seu ano como uma história",
      "Um novo botão Reproduzir seu 2026, no topo de Sua Trilha Sonora, abre o seu ano em tela cheia, um capítulo por vez, como uma história: o ano e os seus cinco grandes números, o seu artista #1, a sua música do ano, o seu mês com mais plays, as suas descobertas, marcos e sequências, cada um com a sua imagem. Toque ou clique para avançar, toque no lado esquerdo para voltar ou use as setas do teclado; barras no topo mostram onde você está, e ✕ ou Esc levam de volta à página. Funciona também com um mês e com Todo o período. Funciona com Last.fm, Google Sheets e arquivos CSV."],

@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Your Soundtrack: the new chapters in your language":
+    ["Tu Banda Sonora: los nuevos capítulos en tu idioma",
+     "Cambiar el idioma con Tu Banda Sonora abierta ahora vuelve a dibujar toda la página de una vez, incluidos los titulares de los capítulos, y una historia de Reproduce tu año abierta se queda en la pantalla en la que estabas. También se traducen algunas cosas que seguían en inglés: la nota de escuchas por día bajo Reproducciones (“~180/día”) y la hora punta de escucha, que ahora dice 17:00 en lugar de 5 PM. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Your Soundtrack: play your year as a story":
     ["Tu Banda Sonora: reproduce tu año como una historia",
      "Un nuevo botón Reproduce tu 2026, arriba en Tu Banda Sonora, abre tu año a pantalla completa, capítulo a capítulo, como una historia: el año y sus cinco grandes números, tu artista #1, tu canción del año, tu mes con más escuchas, tus descubrimientos, hitos y rachas, cada uno con su imagen. Toca o haz clic para avanzar, toca el lado izquierdo para volver o usa las flechas del teclado; unas barras arriba muestran por dónde vas, y ✕ o Esc te devuelven a la página. También funciona con un mes y con Todo el tiempo. Funciona con Last.fm, Google Sheets y archivos CSV."],
