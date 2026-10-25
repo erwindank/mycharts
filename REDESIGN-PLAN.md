@@ -3151,7 +3151,14 @@ draws the same each time. One cover lookup per album; the tiles dissolve
 in from the right (off with reduced motion). The band's fade is lighter
 there so the covers show. Checked dark and light, 1440 and 390. Chapter 2's band went back to the big artist photo you liked:
 440px tall (340 on a phone), the photo at full strength, the name low
-over a fade into the page at the bottom instead of the side fade.
+over a fade into the page at the bottom instead of the side fade. Chapter 3 got a Top Albums coverflow after Top Artists (your
+ask), counted like the albums chart: tallyAlbumPlay() with roll-up credit
+when singles count toward their album on the charts, and bucketed with
+albumBucketOf(), so a type separated in Settings → Charts gets its own
+Top Singles / Top EPs coverflow and isn't in Top Albums. The coverflow
+learnt album items (album cover, the album's picker key, the centre card
+opens the album window). The chapter is now "Your top songs, artists and
+albums". Checked with singles and EPs separated and not, 1440 and 390.
 
 **Phase 9 part 6 (Your Soundtrack) is finished** (2026-10-25). Next is
 4.19 (Playlists, Board, Charts Guide), looked at on screen first.

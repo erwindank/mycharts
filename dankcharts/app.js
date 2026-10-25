@@ -48301,8 +48301,41 @@ function stRenderTopCharts(plays) {
   }
   const topSongs = Object.values(songCounts).sort((a, b) => b.count - a.count).slice(0, 50);
 
+  // Albums, the way the albums chart counts them: roll-up credit when singles
+  // count toward their album on the charts, and singles / EPs that are
+  // separated in Settings → Charts in lists of their own (not in Top Albums)
+  const roll = rollupAffectsCharts();
+  const albumMap = {};
+  for (const p of plays) tallyAlbumPlay(albumMap, p, roll, k => {
+    const [album, artist] = k.split('|||');
+    return { key: k, album, artist, count: 0 };
+  });
+  const buckets = { album: [] };
+  for (const typ of separatedTypes()) buckets[typ] = [];
+  for (const e of Object.values(albumMap)) (buckets[albumBucketOf(e.album, e.artist)] || buckets.album).push(e);
+  for (const b in buckets) buckets[b] = buckets[b].sort((a, b2) => b2.count - a.count).slice(0, 50);
+  const albumItems = list => list.map(a => ({
+    title: a.album, sub: a.artist, count: a.count, imgType: 'album', imgArgs: [a.album, a.artist],
+    onCenterTap: () => openAlbumModal(a.key)
+  }));
+
   const taEl = document.getElementById('stTopArtists');
   const tsEl = document.getElementById('stTopSongs');
+  const tabEl = document.getElementById('stTopAlbums');
+  if (tabEl) {
+    if (buckets.album.length) stInitCoverflow(tabEl, albumItems(buckets.album), t('st_top_albums'));
+    else tabEl.innerHTML = `<div class="st-empty">${t('st_no_data')}</div>`;
+  }
+  const typesEl = document.getElementById('stTopReleaseTypes');
+  if (typesEl) {
+    const TYPE_TITLE = { single: 'st_top_singles', ep: 'st_top_eps' };
+    const types = separatedTypes().filter(typ => buckets[typ] && buckets[typ].length);
+    typesEl.innerHTML = types.map(typ => `<div class="st-sub st-cf-section">
+        <div class="st-sub-title">${esc(t(TYPE_TITLE[typ]))}</div>
+        <div id="stTopType_${typ}"></div>
+      </div>`).join('');
+    types.forEach(typ => stInitCoverflow(document.getElementById('stTopType_' + typ), albumItems(buckets[typ]), t(TYPE_TITLE[typ])));
+  }
   _stFacts.topSongs = topSongs.slice(0, 5);
   _stFacts.topArtist = topArtists[0] ? topArtists[0][0] : null;
 
@@ -48354,6 +48387,10 @@ function stInitCoverflow(viewportEl, items, label) {
     if (it.imgType === 'artist') {
       it.name = it.imgArgs[0];
       it.prefKey = 'artist:' + it.imgArgs[0].toLowerCase();
+    } else if (it.imgType === 'album') {
+      it.album = it.name = it.imgArgs[0];
+      it.artist = it.imgArgs[1];
+      it.prefKey = 'album:' + it.imgArgs[1].toLowerCase() + '|||' + it.imgArgs[0].toLowerCase();
     } else {
       it.artist = it.imgArgs[1];
       it.prefKey = 'song:' + it.imgArgs[1].toLowerCase() + '|||' + it.imgArgs[0].toLowerCase();

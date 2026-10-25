@@ -31,7 +31,7 @@
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=196"></script>
+  <script defer src="translations.js?v=197"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -2645,6 +2645,13 @@
           <div class="st-sub-title" data-i18n="st_top_artists">Top Artists</div>
           <div id="stTopArtists"></div>
         </div>
+        <div class="st-sub st-cf-section" id="stTopAlbumsSection">
+          <div class="st-sub-title" data-i18n="st_top_albums">Top Albums</div>
+          <div id="stTopAlbums"></div>
+        </div>
+        <!-- Top Singles / Top EPs: only for types separated in Settings → Charts,
+             drawn by stRenderTopCharts() -->
+        <div id="stTopReleaseTypes"></div>
       </div>
     </section>
 
@@ -3983,7 +3990,7 @@
   <!-- Community board tab (suggestions / bugs / discussion). Loaded before
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
   <script defer src="board.js?v=4"></script>
-  <script defer src="app.js?v=516"></script>
+  <script defer src="app.js?v=517"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
   <script defer src="replay.js?v=1"></script>
   <!-- All-Time chart stats ("Inside your Top N"); reads app.js globals, so it loads after it -->
