@@ -28357,10 +28357,51 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
   background-image: repeating-linear-gradient(to right, var(--border2) 0 5px, transparent 5px 10px);
 }
 
-.st-loyalty-artists {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 0.8rem;
+/* ── Sideways rows (Still in Rotation, streak records) ──────────
+   The track scrolls with snap points; the ‹ › buttons sit over its ends on
+   screens with a mouse only (touch swipes), and hide when all fits. */
+.st-row { position: relative; }
+.st-row-track {
+  display: flex;
+  gap: var(--sp-3);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 2px;
+  padding: 8px 2px 10px;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+}
+.st-row-track::-webkit-scrollbar { display: none; }
+.st-row-track > * { flex: 0 0 auto; scroll-snap-align: start; }
+.st-row-nav {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  transform: translateY(-50%);
+  display: none;
+  box-shadow: 0 4px 14px -6px rgba(0, 0, 0, 0.5);
+}
+.st-row-prev { left: -14px; }
+.st-row-next { right: -14px; }
+.st-row-nav svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.st-row-nav:disabled { opacity: 0; pointer-events: none; }
+@media (hover: hover) and (pointer: fine) {
+  .st-row-nav { display: inline-flex; }
+  .st-row.is-static .st-row-nav { display: none; }
+}
+
+/* Still in Rotation cards, one row */
+.st-loyalty-artists > .st-loyalty-artist { width: 272px; }
+@media (max-width: 640px) {
+  .st-loyalty-artists > .st-loyalty-artist { width: min(78vw, 280px); }
 }
 
 .st-loyalty-artist {
@@ -28378,20 +28419,6 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
   transform: translateY(-2px);
   box-shadow: 0 4px 16px color-mix(in srgb, var(--sc) 18%, transparent);
 }
-/* ticket-hole notches punched through the dashed edge */
-.st-loyalty-artist::before,
-.st-loyalty-artist::after {
-  content: '';
-  position: absolute;
-  left: -6px;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--bg2);
-  border: 1px solid var(--border-t);
-}
-.st-loyalty-artist::before { top: -6px; }
-.st-loyalty-artist::after { bottom: -6px; }
 
 /* small "still spinning" glyph, echoes the record-spin on avatar hover */
 .st-loyalty-artist-badge {
@@ -28818,6 +28845,11 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
   flex-wrap: wrap;
   margin-bottom: 0.7rem;
 }
+/* phone: two across, the third the full width under them (three in a row
+   squeezed the dates and the New Record badge onto three lines) */
+@media (max-width: 480px) {
+  .st-streaks-grid > .st-streak-card { min-width: calc(50% - 0.35rem); }
+}
 
 .st-streak-card {
   --fc: var(--amber);
@@ -28862,22 +28894,32 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
   margin: 0.1rem 0 var(--sp-2);
 }
 
-.st-streaks-grid--entity .st-streak-card { min-width: 200px; }
+/* a fixed width so the row scrolls (the base card is flex: 1) */
+.st-streaks-grid--entity > .st-streak-card { width: 300px; flex: none; }
+@media (max-width: 640px) {
+  .st-streaks-grid--entity > .st-streak-card { width: min(80vw, 300px); }
+}
 .st-streaks-grid--entity .st-streak-card:nth-child(1) { --fc: var(--green); animation: none; }
 .st-streaks-grid--entity .st-streak-card:nth-child(2) { --fc: var(--accent2); }
 .st-streaks-grid--entity .st-streak-card:nth-child(3) { --fc: var(--amber); }
 
-/* Entity cards (artist/album/song) carry their art as a full-bleed
-   background photo, with the stats legible over a bottom scrim — same
-   gradient recipe as the mosaic tiles (.wv-mos-bot) for visual consistency.
-   Square aspect ratio so the (mostly square) source art shows in full
-   rather than getting cropped down to fit a short, wide card. */
+/* Entity cards (artist/album/song): a small cover beside the numbers (they
+   were full-card photos, ~330px each on a phone). The cover fades in over
+   its initials once the lookup lands. */
 .st-streak-card--entity {
-  padding: 0;
-  aspect-ratio: 1 / 1;
+  padding: var(--sp-3);
   text-align: left;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
+  gap: var(--sp-3);
+}
+.st-streak-entity-art {
+  position: relative;
+  width: 76px;
+  height: 76px;
+  flex: none;
+  border-radius: var(--r-sm);
+  overflow: hidden;
 }
 
 .st-streak-entity-bg {
@@ -28909,10 +28951,8 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
 
 .st-streak-entity-overlay {
   position: relative;
-  z-index: 1;
-  width: 100%;
-  background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.45) 65%, transparent 100%);
-  padding: 2.2rem var(--sp-3) 0.7rem;
+  min-width: 0;
+  flex: 1;
 }
 
 .st-streak-num-row {
@@ -28930,17 +28970,13 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
   gap: 0.15rem;
 }
 
-.st-streak-card--entity .st-streak-num {
-  font-size: var(--fs-lg);
-  text-shadow: 0 1px 6px rgba(0,0,0,0.7);
-}
+.st-streak-card--entity .st-streak-num { font-size: var(--fs-lg); }
 
 .st-streak-entity-unit {
   font-family: var(--font-sans);
   font-size: var(--fs-xs);
-  color: rgba(255,255,255,0.8);
+  color: var(--text2);
   font-weight: 600;
-  text-shadow: 0 1px 4px rgba(0,0,0,0.7);
 }
 
 .st-streak-subject {
@@ -28953,12 +28989,7 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.st-streak-card--entity .st-streak-subject {
-  color: #fff;
-  text-shadow: 0 1px 4px rgba(0,0,0,0.7);
-}
-.st-streak-card--entity .st-streak-lbl { color: rgba(255,255,255,0.75); }
-.st-streak-card--entity .st-streak-dates { color: rgba(255,255,255,0.55); }
+.st-streak-card--entity .st-streak-subject { color: var(--text1); }
 
 .st-streak-num {
   font-family: var(--font-display);

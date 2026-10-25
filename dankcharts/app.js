@@ -48679,6 +48679,44 @@ function stActivitySelectMonth(btn) {
   `;
 }
 
+// ── Sideways rows (phase 9 part 6, choice 3A) ─────────────────
+// Still in Rotation and the streak records are rows you swipe sideways; on
+// a screen with a mouse, ‹ › step about a screen of cards. The arrows hide
+// when everything fits and dim at either end.
+const ST_ROW_PREV = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>';
+const ST_ROW_NEXT = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>';
+function stRowHtml(trackCls, inner) {
+  return `<div class="st-row">
+    <button type="button" class="dc-btn dc-btn-normal dc-btn-icon st-row-nav st-row-prev" onclick="stRowStep(this,-1)" aria-label="${esc(t('st_nav_prev'))}">${ST_ROW_PREV}</button>
+    <div class="st-row-track ${trackCls}">${inner}</div>
+    <button type="button" class="dc-btn dc-btn-normal dc-btn-icon st-row-nav st-row-next" onclick="stRowStep(this,1)" aria-label="${esc(t('st_nav_next'))}">${ST_ROW_NEXT}</button>
+  </div>`;
+}
+function stRowStep(btn, dir) {
+  const track = btn.parentElement.querySelector('.st-row-track');
+  if (!track) return;
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  track.scrollBy({ left: dir * Math.max(220, track.clientWidth * 0.8), behavior: reduce ? 'auto' : 'smooth' });
+}
+function stRowsInit(root) {
+  root.querySelectorAll('.st-row').forEach(row => {
+    const track = row.querySelector('.st-row-track');
+    const prev = row.querySelector('.st-row-prev'), next = row.querySelector('.st-row-next');
+    const update = () => {
+      const max = track.scrollWidth - track.clientWidth;
+      row.classList.toggle('is-static', max <= 2);
+      prev.disabled = track.scrollLeft <= 2;
+      next.disabled = track.scrollLeft >= max - 2;
+    };
+    track.addEventListener('scroll', update, { passive: true });
+    update();
+  });
+}
+window.addEventListener('resize', () => {
+  const v = document.getElementById('soundtrackView');
+  if (v && v.style.display !== 'none') v.querySelectorAll('.st-row-track').forEach(tr => tr.dispatchEvent(new Event('scroll')));
+}, { passive: true });
+
 // ── Loyalty Score ─────────────────────────────────────────────
 function stRenderLoyalty(plays) {
   const el = document.getElementById('stLoyaltyBody');
@@ -48745,8 +48783,7 @@ function stRenderLoyalty(plays) {
     </div>
     ${returningArtists.length ? `
     <div class="st-loyalty-artists-title">${t('st_loyalty_artists_title')}</div>
-    <div class="st-loyalty-artists">
-      ${returningArtists.map((a, i) => `
+    ${stRowHtml('st-loyalty-artists', returningArtists.map((a, i) => `
         <div class="st-loyalty-artist" style="--i:${i}">
           <div class="st-loyalty-artist-badge" aria-hidden="true">↻</div>
           <div class="st-loyalty-artist-head">
@@ -48759,8 +48796,8 @@ function stRenderLoyalty(plays) {
           <div class="st-loyalty-artist-songs">
             ${a.topSongs.map((s, j) => `<div class="st-loyalty-song"><span class="st-loyalty-song-idx">${j + 1}</span><span class="st-loyalty-song-title">${esc(s.title)}</span><span class="st-loyalty-song-count">${s.count.toLocaleString()}</span></div>`).join('')}
           </div>
-        </div>`).join('')}
-    </div>` : ''}`;
+        </div>`).join(''))}` : ''}`;
+  stRowsInit(el);
 
   // Queued through the shared queueImg() (same one the chart tables and coverflow
   // use) instead of firing all requests at once — a synchronous burst against
@@ -49363,9 +49400,11 @@ function stRenderStreaks(plays) {
     const subject = best.sub ? `${esc(best.label)} · ${esc(best.sub)}` : esc(best.label);
     const fallback = initials(best.label);
     return `<div class="st-streak-card st-streak-card--entity">
-        <img id="stStreakArt_${kind}" class="st-streak-entity-bg" src="" alt=""
-             onload="this.classList.add('loaded')">
-        <div class="st-streak-entity-fallback">${esc(fallback)}</div>
+        <div class="st-streak-entity-art">
+          <img id="stStreakArt_${kind}" class="st-streak-entity-bg" src="" alt=""
+               onload="this.classList.add('loaded')">
+          <div class="st-streak-entity-fallback">${esc(fallback)}</div>
+        </div>
         <div class="st-streak-entity-overlay">
           <div class="st-streak-num-row">
             <span class="st-streak-num">${best.count}</span>
@@ -49415,7 +49454,8 @@ function stRenderStreaks(plays) {
     </div>
     ${entityCardsHtml ? `
     <div class="st-streak-subhead">${t('st_streak_category_title', { period: stGetPeriodLabel() })}</div>
-    <div class="st-streaks-grid st-streaks-grid--entity">${entityCardsHtml}</div>` : ''}`;
+    ${stRowHtml('st-streaks-grid--entity', entityCardsHtml)}` : ''}`;
+  stRowsInit(el);
 
   [['artist', bestArtist], ['album', bestAlbum], ['song', bestSong]].forEach(([kind, best]) => {
     if (!best) return;

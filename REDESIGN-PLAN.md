@@ -3077,6 +3077,15 @@ Steps:
    on the bare .st-chap class.
 5. **Long parts** (3A): Still in Rotation and streak records as swipe
    rows.
+   **Done 2026-10-25:** stRowHtml() / stRowsInit() make a sideways row:
+   a snap-scrolling track, and ‹ › buttons over its ends on screens with a
+   mouse only (hidden when everything fits, gone at either end); touch
+   swipes. Still in Rotation's cards (all 5 songs kept) are 272px wide in
+   one row; the ticket notches went (they punched holes in the old box's
+   colour and were grey dots without it). The three streak records are
+   300px cards with a 76px cover beside the numbers instead of full-card
+   photos; on a desktop all three fit, on a phone they swipe. The three
+   streak cards above them go two across on a phone, the third under them.
 6. **The rest of the emoji and the bottom boxes:** line icons in chips,
    milestones and streaks; Grammys as a chapter only when there is
    something to show (a line with a link to Awards otherwise); Replay and
