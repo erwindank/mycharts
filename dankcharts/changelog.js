@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 313;
+const DC_CL_I18N_V = 314;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-25', t: 'feature', a: 'soundtrack', h: '1beb813',
+    title: "Your Soundtrack: play your year as a story",
+    detail: "A new Play your 2026 button at the top of Your Soundtrack opens your year full screen, one chapter at a time, like a story: the year and its five big numbers, your #1 artist, your song of the year, your loudest month, your discoveries, milestones and streaks, each with its picture. Tap or click to go on, tap the left side to go back, or use the arrow keys; bars at the top show how far along you are, and ✕ or Esc takes you back to the page. It works for a month and for All-Time too. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-25', t: 'design', a: 'soundtrack', h: '70a7c94',
     title: "Your Soundtrack: line icons and a tidier ending",
     detail: "Your Soundtrack swaps its emoji for simple line icons that match the rest of the site: in the Monthly Activity notes, the milestones, the streak records, the New Record badge and the award ribbons, and the little flame after every streak is gone. The end of the page is tidier too. Chart History Replay and Share now have their button right in their chapter's headline instead of alone underneath. If none of your top artists has won one of your own awards yet, that part is a single line with an Open Awards button instead of a big empty chapter. Works with Last.fm, Google Sheets and CSV uploads." },

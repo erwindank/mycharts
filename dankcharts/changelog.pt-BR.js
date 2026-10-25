@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Your Soundtrack: play your year as a story":
+    ["Sua Trilha Sonora: reproduza seu ano como uma história",
+     "Um novo botão Reproduzir seu 2026, no topo de Sua Trilha Sonora, abre o seu ano em tela cheia, um capítulo por vez, como uma história: o ano e os seus cinco grandes números, o seu artista #1, a sua música do ano, o seu mês com mais plays, as suas descobertas, marcos e sequências, cada um com a sua imagem. Toque ou clique para avançar, toque no lado esquerdo para voltar ou use as setas do teclado; barras no topo mostram onde você está, e ✕ ou Esc levam de volta à página. Funciona também com um mês e com Todo o período. Funciona com Last.fm, Google Sheets e arquivos CSV."],
   "Your Soundtrack: line icons and a tidier ending":
     ["Sua Trilha Sonora: ícones de linha e um final mais arrumado",
      "Sua Trilha Sonora troca os emoji por ícones de linha simples que combinam com o resto do site: nas notas de Atividade mensal, nos marcos, nos recordes de sequência, no selo de Novo recorde e nas fitas de prêmios, e some a foguinha depois de cada sequência. O fim da página também ficou mais arrumado. Replay do histórico e Compartilhar agora têm o botão dentro do título do capítulo em vez de sozinho embaixo. Se nenhum dos seus artistas top ganhou ainda um dos seus prêmios, essa parte é uma linha só com um botão Abrir Prêmios em vez de um capítulo grande e vazio. Funciona com Last.fm, Google Sheets e arquivos CSV."],

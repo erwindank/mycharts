@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Your Soundtrack: play your year as a story":
+    ["Tu Banda Sonora: reproduce tu año como una historia",
+     "Un nuevo botón Reproduce tu 2026, arriba en Tu Banda Sonora, abre tu año a pantalla completa, capítulo a capítulo, como una historia: el año y sus cinco grandes números, tu artista #1, tu canción del año, tu mes con más escuchas, tus descubrimientos, hitos y rachas, cada uno con su imagen. Toca o haz clic para avanzar, toca el lado izquierdo para volver o usa las flechas del teclado; unas barras arriba muestran por dónde vas, y ✕ o Esc te devuelven a la página. También funciona con un mes y con Todo el tiempo. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Your Soundtrack: line icons and a tidier ending":
     ["Tu Banda Sonora: iconos de línea y un final más ordenado",
      "Tu Banda Sonora cambia sus emoji por iconos de línea sencillos que combinan con el resto del sitio: en las notas de Actividad mensual, los hitos, los récords de rachas, la insignia de Nuevo récord y las cintas de premios, y desaparece la llamita detrás de cada racha. El final de la página también está más ordenado. Repetición del historial y Compartir ahora tienen su botón dentro del titular de su capítulo en lugar de solo debajo. Si ninguno de tus artistas top ha ganado aún uno de tus premios, esa parte es una sola línea con un botón Abrir Premios en lugar de un capítulo grande y vacío. Funciona con Last.fm, Google Sheets y archivos CSV."],
