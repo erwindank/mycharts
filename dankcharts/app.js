@@ -47529,9 +47529,20 @@ function stSetPeriod(type) {
   document.querySelectorAll('.st-period-btn').forEach(b => b.classList.toggle('active', b.dataset.stPeriod === type));
   const navBar = document.getElementById('stNavBar');
   if (navBar) navBar.style.display = type === 'alltime' ? 'none' : '';
+  // Chart History Replay is a Year-only section, so its toolbar button is too
+  const replayBtn = document.getElementById('stTopReplayBtn');
+  if (replayBtn) replayBtn.style.display = type === 'year' ? '' : 'none';
   if (type === 'year') { stYear = tzNow().getFullYear(); }
   if (type === 'month') { stYear = tzNow().getFullYear(); stMonth = tzNow().getMonth() + 1; }
   renderSoundtrack();
+}
+
+// The toolbar's Chart History Replay: bring the replay into view and start it
+function stJumpToReplay() {
+  const sec = document.getElementById('stReplaySection');
+  if (!sec || sec.style.display === 'none') return;
+  sec.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+  if (!_stReplayTimer && document.getElementById('stReplayCanvas')?.style.display === 'none') stStartReplay();
 }
 
 function stNavigate(dir) {

@@ -3032,6 +3032,14 @@ Steps:
    Events / Awards) with the nav's note icon, Year / Month / All-Time and
    the shared ‹ 2026 › stepper. Chart History Replay and Share also in
    this toolbar.
+   **Done 2026-10-25:** title "Your Soundtrack" in the shared page title
+   (#soundtrackView added to the rule) with the nav's note, heads filled.
+   Year / Month / All-Time, then the Awards stepper pill with line
+   chevrons (aria names st_nav_prev / st_nav_next) around the period, then
+   Chart History Replay (Year only; stJumpToReplay() scrolls to the replay
+   and starts it) and Share (opens the share window) on the right. On a
+   phone the buttons wrap to a second row. The old ◄ ► buttons and the
+   🎬 label are gone with their CSS.
 3. **Chapters.** Boxes go; each section becomes a chapter with its
    headline band and the full detail under it. Chapter 1 = year, the five
    tiles (line icons for the emoji) and the reel.

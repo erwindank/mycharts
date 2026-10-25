@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=645">
+  <link rel="stylesheet" href="style.css?v=646">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=188"></script>
+  <script defer src="translations.js?v=189"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -2524,22 +2524,29 @@
 
   <!-- YOUR SOUNDTRACK VIEW -->
   <div id="soundtrackView" style="display:none;">
-    <div class="st-header">
-      <div class="st-title-row">
-        <h2 class="st-title">🎬 <span data-i18n="nav_soundtrack">Your Soundtrack</span></h2>
+    <!-- Page title in the shared Records / Stats / Events / Awards style, with
+         the nav's note icon -->
+    <div class="section-header st-page-header">
+      <h2 class="section-header-h2"><svg class="graphs-h2-ico st-h2-ico" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M6 12.2V3.6l7-1.6v8.6"/><circle cx="4.3" cy="12.2" r="1.8"/><circle cx="11.3" cy="10.6" r="1.8"/></svg><span data-i18n="nav_soundtrack">Your Soundtrack</span></h2>
+      <div class="section-rule"></div>
+    </div>
+    <!-- One toolbar: period, the shared ‹ 2026 › stepper, then Replay and Share -->
+    <div class="st-controls">
+      <div class="dc-seg st-period-nav" id="stPeriodNav">
+        <button class="st-period-btn active" data-st-period="year" onclick="stSetPeriod('year')" data-i18n="st_period_year">Year</button>
+        <button class="st-period-btn" data-st-period="month" onclick="stSetPeriod('month')" data-i18n="st_period_month">Month</button>
+        <button class="st-period-btn" data-st-period="alltime" onclick="stSetPeriod('alltime')" data-i18n="st_period_alltime">All-Time</button>
       </div>
-      <div class="st-controls">
-        <div class="dc-seg st-period-nav" id="stPeriodNav">
-          <button class="st-period-btn active" data-st-period="year" onclick="stSetPeriod('year')" data-i18n="st_period_year">Year</button>
-          <button class="st-period-btn" data-st-period="month" onclick="stSetPeriod('month')" data-i18n="st_period_month">Month</button>
-          <button class="st-period-btn" data-st-period="alltime" onclick="stSetPeriod('alltime')" data-i18n="st_period_alltime">All-Time</button>
-        </div>
-        <div class="st-nav-bar" id="stNavBar">
-          <button class="st-nav-btn" onclick="stNavigate(-1)">◄</button>
-          <span class="st-nav-label" id="stNavLabel">2025</span>
-          <button class="st-nav-btn" onclick="stNavigate(1)">►</button>
-        </div>
+      <div class="awards-year-stepper st-stepper" id="stNavBar">
+        <button class="dc-btn dc-btn-plain dc-btn-icon awards-year-nav-btn" onclick="stNavigate(-1)" aria-label="Previous" data-i18n-aria="st_nav_prev"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <span class="st-nav-label" id="stNavLabel">2026</span>
+        <button class="dc-btn dc-btn-plain dc-btn-icon awards-year-nav-btn" onclick="stNavigate(1)" aria-label="Next" data-i18n-aria="st_nav_next"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></button>
       </div>
+      <span class="st-actions">
+        <!-- Replay lives in the Year view only, like its section -->
+        <button class="dc-btn dc-btn-normal st-act-btn" id="stTopReplayBtn" onclick="stJumpToReplay()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg><span data-i18n="st_replay_title">Chart History Replay</span></button>
+        <button class="dc-btn dc-btn-normal st-act-btn" onclick="stOpenCard()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V4M7.5 8.5 12 4l4.5 4.5"/><path d="M5 13v5.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V13"/></svg><span data-i18n="st_share_btn">Share</span></button>
+      </span>
     </div>
 
     <!-- Hero Period Card -->
@@ -3949,7 +3956,7 @@
   <!-- Community board tab (suggestions / bugs / discussion). Loaded before
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
   <script defer src="board.js?v=4"></script>
-  <script defer src="app.js?v=500"></script>
+  <script defer src="app.js?v=501"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
   <script defer src="replay.js?v=1"></script>
   <!-- All-Time chart stats ("Inside your Top N"); reads app.js globals, so it loads after it -->

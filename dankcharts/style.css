@@ -13054,12 +13054,14 @@
        chip (background/padding/radius) has to be cleared explicitly; it
        reads as a chip at 11px but as a white slab at heading sizes. */
 
-    /* Stats, Raw Data, Events and Awards share the Records page title (phase 9). */
+    /* Stats, Raw Data, Events, Awards and Your Soundtrack share the Records
+       page title (phase 9). */
     #recordsView>.section-header .section-header-h2,
     #graphsView>.section-header .section-header-h2,
     #rawDataView>.section-header .section-header-h2,
     #eventsView>.section-header .section-header-h2,
-    #awardsView>.section-header .section-header-h2 {
+    #awardsView>.section-header .section-header-h2,
+    #soundtrackView>.section-header .section-header-h2 {
       font-family: var(--font-display);
       font-size: var(--fs-lg);
       font-weight: 500;
@@ -27395,57 +27397,56 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
   --st-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
 }
 
-/* ── Header ─────────────────────────────────────────────────── */
-.st-header {
-  margin-bottom: 1.2rem;
-}
+/* ── Header ─────────────────────────────────────────────────────
+   The title uses the shared page title (the #soundtrackView rule next to
+   Records / Stats / Events / Awards). The note's heads are filled. */
+.st-h2-ico circle { fill: var(--accent); stroke: none; }
 
-.st-title-row { margin-bottom: 0.6rem; }
-
-.st-title {
-  font-family: var(--font-sans);
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  color: var(--text3);
-  margin: 0;
-}
-
+/* One toolbar: period switch, ‹ 2026 › (the Awards stepper's pill), then
+   Replay and Share pushed to the right. Wraps on a phone. */
 .st-controls {
   display: flex;
   align-items: center;
-  gap: 0.8rem;
+  gap: var(--sp-2) var(--sp-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--sp-5);
+}
+.st-stepper { margin-right: 0; }
+/* The period name in the stepper: the Awards year's type, but not a button */
+.st-nav-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 10px;
+  min-width: 70px;
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1;
+  color: var(--text1);
+  font-feature-settings: "tnum";
+  white-space: nowrap;
+}
+.st-actions {
+  display: inline-flex;
+  gap: var(--sp-2);
+  margin-left: auto;
   flex-wrap: wrap;
 }
-
-
-
-.st-nav-bar {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-2);
+.st-act-btn svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex: none;
 }
-
-.st-nav-btn {
-  font-family: var(--font-sans);
-  font-size: var(--fs-xs);
-  padding: 0.3rem 0.6rem;
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: var(--r-full);
-  color: var(--text2);
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s, transform 0.15s;
-}
-.st-nav-btn:hover { background: var(--accent); color: var(--on-accent); border-color: var(--accent); transform: translateY(-1px); }
-
-.st-nav-label {
-  font-family: var(--font-sans);
-  font-size: var(--fs-base);
-  font-weight: 700;
-  color: var(--text1);
-  min-width: 90px;
-  text-align: center;
-  font-feature-settings: "tnum";
+@media (max-width: 640px) {
+  .st-actions { margin-left: 0; }
 }
 
 /* ── Hero Card — the "cover" moment ───────────────────────────
