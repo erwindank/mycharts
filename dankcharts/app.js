@@ -17240,11 +17240,97 @@ function _crNextCert(p, cfg) {
   return { at: m * cfg.diamond, label: tDiamondLabel(m), icon: diamondMultiLabel(m).icon };
 }
 
-/* Next milestones, closest first (by how much of the target is still left).
-   The first gets a row of its own with a bar; the next three follow as
-   "3 weeks from 30 on the chart". Chart-week goals only on the full run: on a
-   range they would count the wrong thing. Certifications and all-time spots
-   are lifetime plays, whatever the range. */
+/* The charts running right now (today, this week, this month, this year —
+   the real ones, not the period on screen) and each item's plays in the last 28 days,
+   the pace the milestones are ordered by. Week/month/year reuse the chart
+   run's own tallies; today and the 28 days take one pass over the plays.
+   Rebuilt when the plays change or the day turns. */
+const CR_PACE_DAYS = 28;
+let _crLiveCache = null;
+function _crLive() {
+  const now = tzNow(), today = localDateStr(now);
+  const sig = _playsVersion + '|' + _stampEpoch + '|' + _releaseEpoch + '|' + today;
+  if (_crLiveCache && _crLiveCache.sig === sig) return _crLiveCache;
+  const day = { songs: {}, artists: {}, albums: {} }, pace = { songs: {}, artists: {}, albums: {} };
+  const since = Date.now() - CR_PACE_DAYS * 86400000;
+  const roll = rollupAffectsCharts();
+  const bump = (m, k) => { m[k] = (m[k] || 0) + 1; };
+  for (const p of allPlays) {
+    if (+p.date < since) continue;
+    const isDay = dayStrOf(p) === today;
+    const sk = songKey(p);
+    bump(pace.songs, sk); if (isDay) bump(day.songs, sk);
+    for (const a of p.artists) { bump(pace.artists, a); if (isDay) bump(day.artists, a); }
+    if (p.album && p.album !== '—') {
+      const ak = albumKeyOf(p), par = roll ? rollupParentOf(p) : null;
+      bump(pace.albums, ak); if (isDay) bump(day.albums, ak);
+      if (par && par !== ak) { bump(pace.albums, par); if (isDay) bump(day.albums, par); }
+    }
+  }
+  // Days left in each period, counting what is left of today
+  const left = 1 - (now.getHours() * 60 + now.getMinutes()) / 1440;
+  const dow = (now.getDay() - weekStartDay + 7) % 7;
+  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const yearEnd = new Date(now.getFullYear(), 11, 31), dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const keys = { day: today, week: playWeekKey(new Date()), month: today.slice(0, 7), year: today.slice(0, 4) };
+  return _crLiveCache = {
+    sig, day, pace, keys,
+    left: { day: left, week: 6 - dow + left, month: monthEnd - now.getDate() + left, year: Math.round((yearEnd - dayStart) / 86400000) + left }
+  };
+}
+
+/* One goal per running chart, the next step up it: get on it, then its Top 10
+   (on a chart longer than that), then #1. Only the ones within reach make the
+   list — already halfway there, or due before the period ends at the item's
+   recent pace (with room to spare) — and only the two soonest. */
+const CR_LIVE_SIZE = {
+  day:   t => t === 'artists' ? chartSizeArtistsD : t === 'albums' ? chartSizeAlbumsD : chartSizeSongsD,
+  week:  t => crSizeForType(t, 'week'), month: t => crSizeForType(t, 'month'), year: t => crSizeForType(t, 'year')
+};
+function _crLiveGoals(type, key, rate, skipWeekEnter) {
+  if (type !== 'songs' && type !== 'artists' && type !== 'albums') return [];
+  const L = _crLive(), out = [];
+  const bucket = type === 'albums' && separatedTypes().length ? albumBucketOfKey(key) : null;
+  for (const per of ['day', 'week', 'month', 'year']) {
+    let tally;
+    if (per === 'day') tally = L.day[type];
+    else {
+      const pm = _crFull(per).periodMap[L.keys[per]]?.[type] || {};
+      tally = {};
+      for (const k in pm) tally[k] = pm[k].count;
+    }
+    const mine = tally[key] || 0;
+    if (!mine && !rate) continue;
+    const others = [];
+    for (const k in tally) if (k !== key && (!bucket || albumBucketOfKey(k) === bucket)) others.push(tally[k]);
+    others.sort((a, b) => b - a);
+    const pos = _crAbove(others, mine) + 1, N = CR_LIVE_SIZE[per](type);
+    let kind, n, tgt;
+    if (pos > N || !mine) {
+      if (per === 'week' && skipWeekEnter) continue;
+      kind = 'pe'; n = N; tgt = (others.length >= N ? others[N - 1] : 0) + 1;
+    } else if (N > 10 && pos > 10) { kind = 'pe'; n = 10; tgt = others[9] + 1; }
+    else if (pos > 1) { kind = 'p1'; tgt = others[0] + 1; }
+    else continue;
+    const need = tgt - mine, eta = rate ? need / rate : Infinity;
+    if (need > mine && eta > L.left[per] * 1.5) continue;
+    out.push({ ic: per === 'day' ? '☀️' : per === 'week' ? '📈' : per === 'month' ? '🗓️' : '🎆', t: tgt, v: mine, u: 'plays', eta,
+      from: mine ? pos : 0, live: true, lbl: t(`cr_g_${kind}_${per}`, { n }), of: t(`cr_g_${kind}_${per}_of`, { n }) });
+  }
+  return out.sort((a, b) => a.eta - b.eta).slice(0, 2);
+}
+
+/* Next milestones, soonest first. The first gets a row of its own with a bar;
+   the next three follow as "3 weeks from 30 on the chart". Chart-week goals
+   only on the full run: on a range they would count the wrong thing.
+   Certifications, all-time spots and the running charts (_crLiveGoals) are
+   lifetime or live plays, whatever the range.
+   "Soonest" is the item's own pace over the last 28 days: 14 plays to the
+   next all-time spot is days away for something on repeat and never for
+   something you stopped playing, and it is what lets "#1 this week" sit
+   fairly next to a 900-play certification. A chart-week goal comes a week
+   (month, year) per week left. Items with no recent plays keep the old
+   order, by how much of the target is still left. */
 function _crGoals(type, key, d, unit, fullRun, top1, extra) {
   const G = extra ? extra.slice() : [], nx = (v, list) => list.find(x => x > v);
   if (fullRun) {
@@ -17283,9 +17369,14 @@ function _crGoals(type, key, d, unit, fullRun, top1, extra) {
       if (pos <= 10) add(S[0], 'top1');              // #1 once it is in the Top 10
     }
   }
+  const rate = (_crLive().pace[type]?.[key] || 0) / CR_PACE_DAYS;
+  G.push(..._crLiveGoals(type, key, rate, G.some(g => g.pin)));
   if (!G.length) return { html: '', first: null };
+  const UNIT_DAYS = { day: 1, week: 7, month: 30, year: 365 };
+  const eta = g => !rate ? Infinity : g.eta !== undefined ? g.eta : g.u === 'plays' ? (g.t - g.v) / rate : (g.t - g.v) * UNIT_DAYS[g.u];
+  G.forEach(g => { g._eta = eta(g); });
   // A caller's own goals (the BU run's "make the chart this week") lead
-  G.sort((x, y) => (y.pin ? 1 : 0) - (x.pin ? 1 : 0) || (x.t - x.v) / x.t - (y.t - y.v) / y.t);
+  G.sort((x, y) => (y.pin ? 1 : 0) - (x.pin ? 1 : 0) || (x._eta - y._eta) || (x.t - x.v) / x.t - (y.t - y.v) / y.t);
   const need = g => g.u === 'plays' ? _crU('plays', g.t - g.v) : _crU(g.u, g.t - g.v);
   const one = g => (g.t - g.v === 1 ? '_one' : '_other');
   const [g0, ...rest] = G;
