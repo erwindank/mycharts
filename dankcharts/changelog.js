@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 336;
+const DC_CL_I18N_V = 337;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-26', t: 'design', a: 'soundtrack', h: '5ba09ed',
+    title: "Your Soundtrack: your best month's banner is a collage of its top songs",
+    detail: "The Monthly Activity chapter's banner now shows a faded collage of the covers of the songs you played most in your loudest month, instead of one photo of that month's top artist. If that month has only a few songs, the artist photo stays. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-26', t: 'fix', a: 'soundtrack', h: 'e2701f2',
     title: "Your Soundtrack: chapter pictures no longer fade out on light themes",
     detail: "On light themes, the pictures behind each chapter's banner looked washed out, almost invisible. They now show at full strength on the right, while the left side stays pale so the chapter's title is still easy to read. Dark themes are unchanged. Works with Last.fm, Google Sheets and CSV uploads." },

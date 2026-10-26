@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Your Soundtrack: your best month's banner is a collage of its top songs":
+    ["Sua trilha sonora: o cabeçalho do seu melhor mês é uma colagem das músicas mais ouvidas",
+     "O cabeçalho do capítulo de Atividade mensal agora mostra uma colagem esmaecida com as capas das músicas que você mais ouviu no seu mês mais intenso, em vez de uma única foto do artista principal daquele mês. Se o mês tiver poucas músicas, a foto do artista continua. Funciona com Last.fm, Google Sheets e arquivos CSV."],
   "Your Soundtrack: chapter pictures no longer fade out on light themes":
     ["Sua trilha sonora: as imagens dos capítulos não ficam mais apagadas nos temas claros",
      "Nos temas claros, as imagens atrás do cabeçalho de cada capítulo pareciam apagadas, quase invisíveis. Agora aparecem com força total à direita, enquanto o lado esquerdo continua claro para o título do capítulo ficar fácil de ler. Os temas escuros não mudam. Funciona com Last.fm, Google Sheets e arquivos CSV."],
