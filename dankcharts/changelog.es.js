@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Your Soundtrack: simpler streak cards, details on tap":
+    ["Tu Banda Sonora: tarjetas de rachas más simples, detalles al tocar",
+     "Las tarjetas del capítulo de Rachas ahora muestran solo el número y una etiqueta corta («Días con música», «Mejor racha de 2019», «Pausa más larga»). Toca una tarjeta para ver sus detalles (fechas, puesto, récord superado, canción más escuchada, comparación con el año anterior) en un panel debajo, y sus días se iluminan en el calendario. Cuando la mejor racha del año es también tu récord de siempre, ambas tarjetas se unen en una con la etiqueta «También la mejor de 2017». Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Your Soundtrack: total days without music on the break card":
     ["Tu Banda Sonora: total de días sin música en la tarjeta de pausa",
      "La tarjeta Pausa Más Larga Sin Música ahora también muestra cuántos días pasaste sin música en todo el año o mes (por ejemplo, «Total en 2017: 124 días sin música»). Además, en el año en curso la tarjeta Días que Escuchaste contaba un día de más, y podía redondear a 100% aunque faltara un día; ambas cosas están corregidas. Funciona con Last.fm, Google Sheets y archivos CSV."],

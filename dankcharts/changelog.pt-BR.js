@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Your Soundtrack: simpler streak cards, details on tap":
+    ["Sua Trilha Sonora: cartões de sequências mais simples, detalhes ao tocar",
+     "Os cartões do capítulo de Sequências agora mostram só o número e um rótulo curto («Dias com música», «Melhor sequência de 2019», «Maior pausa»). Toque num cartão para ver os detalhes (datas, posição, recorde batido, música mais ouvida, comparação com o ano anterior) num painel logo abaixo, e os dias dele se acendem no calendário. Quando a melhor sequência do ano também é seu recorde de todos os tempos, os dois cartões viram um só com a etiqueta «Também a melhor de 2017». Funciona com Last.fm, Google Sheets e arquivos CSV."],
   "Your Soundtrack: total days without music on the break card":
     ["Sua Trilha Sonora: total de dias sem música no cartão de pausa",
      "O cartão Maior Pausa Sem Música agora também mostra quantos dias você ficou sem música no ano ou mês inteiro (por exemplo, «Total em 2017: 124 dias sem música»). Além disso, no ano em curso o cartão Dias em Que Você Ouviu contava um dia a mais e podia arredondar para 100% mesmo faltando um dia; as duas coisas foram corrigidas. Funciona com Last.fm, Google Sheets e arquivos CSV."],

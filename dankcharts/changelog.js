@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 325;
+const DC_CL_I18N_V = 326;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-25', t: 'design', a: 'soundtrack', h: 'ec6b1d1',
+    title: "Your Soundtrack: simpler streak cards, details on tap",
+    detail: "The Streaks chapter's cards now show just the number and a short label (\"Days with music\", \"Best streak of 2019\", \"Longest break\"). Tap a card to see its details (dates, rank, the record it beat, the song you played most, how it compares with the year before) in a panel under the cards, with its days lit up on the calendar. When the year's best streak is also your all-time record, the two cards are now one, marked \"Best of 2017 too\". Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-25', t: 'feature', a: 'soundtrack', h: 'b95d180',
     title: "Your Soundtrack: total days without music on the break card",
     detail: "The Longest Break Without Music card now also shows how many days you went without music across the whole year or month (for example, \"Total in 2017: 124 days without music\"). Also fixed: in the current year the Days You Listened card counted one day too many, and it could round up to 100% even with a day missed. Works with Last.fm, Google Sheets and CSV uploads." },
