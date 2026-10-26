@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Your Soundtrack: a calendar and more facts in Listening Streaks":
+    ["A Tua Banda Sonora: um calendário e mais dados em Sequências",
+     "O capítulo de Sequências tem agora um calendário com cada dia do ano (ou do mês), mais forte quanto mais ouviste, com as tuas três maiores sequências na sua própria cor e a tua maior pausa assinalada. Um novo cartão mostra a Maior Pausa Sem Música. Os cartões dizem agora em que posição fica a sequência entre todas as tuas, que recorde anterior bateu, a música mais ouvida durante ela e quantos dias a mais ou a menos ouviste do que no ano ou mês anterior. Etiquetas mostram se ouviste música todas as semanas, meses ou anos. Os cartões de artista, álbum e música abrem a respetiva página ao clicar. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
   "Your Soundtrack: clearer wording on the Listening Streaks cards":
     ["A Tua Banda Sonora: textos mais claros nos cartões de Sequências",
      "Os cartões do capítulo de Sequências percebem-se agora à primeira: «Dias em Que Ouviste em 2017», «Maior Sequência Diária de Escuta de Sempre» (em anos e meses passados diz que é como estava no fim desse período), «Maior Sequência Diária de Escuta em 2017», e «dias seguidos» em vez de «dias de sequência». A linha de artista, álbum e música chama-se agora «Mais dias seguidos com um mesmo artista, álbum ou música». Funciona com Last.fm, Google Sheets e ficheiros CSV."],

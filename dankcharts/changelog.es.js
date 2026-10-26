@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Your Soundtrack: a calendar and more facts in Listening Streaks":
+    ["Tu Banda Sonora: un calendario y más datos en Rachas",
+     "El capítulo de Rachas tiene un calendario con cada día del año (o del mes), más intenso cuanto más escuchaste, con tus tres rachas más largas en su propio color y tu pausa más larga marcada. Una nueva tarjeta muestra la Pausa Más Larga Sin Música. Las tarjetas dicen ahora en qué puesto queda la racha entre todas las tuyas, qué récord anterior superó, la canción más escuchada durante ella y cuántos días más o menos escuchaste que el año o mes anterior. Unas etiquetas indican si escuchaste música todas las semanas, meses o años. Las tarjetas de artista, álbum y canción abren su página al hacer clic. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Your Soundtrack: clearer wording on the Listening Streaks cards":
     ["Tu Banda Sonora: textos más claros en las tarjetas de Rachas",
      "Las tarjetas del capítulo de Rachas ahora se entienden de un vistazo: «Días que Escuchaste en 2017», «Racha Diaria de Escucha Más Larga de Siempre» (en años y meses pasados indica que es tal como estaba a finales de ese periodo), «Racha Diaria de Escucha Más Larga en 2017», y «días seguidos» en lugar de «días de racha». La fila de artista, álbum y canción ahora se titula «Más días seguidos con un mismo artista, álbum o canción». Funciona con Last.fm, Google Sheets y archivos CSV."],

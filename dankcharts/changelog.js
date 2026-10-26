@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 323;
+const DC_CL_I18N_V = 324;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-25', t: 'feature', a: 'soundtrack', h: '0eaeca3',
+    title: "Your Soundtrack: a calendar and more facts in Listening Streaks",
+    detail: "The Streaks chapter now has a calendar of every day of the year (or month), brighter the more you played, with your three longest streaks in their own colours and your longest break marked. A new card shows your Longest Break Without Music. The cards now say where the streak ranks among all of yours, which old record it beat, the song you played most during it, and how many more or fewer days you listened than the year or month before. Chips show whether you had music every week, month or year. The artist, album and song cards open their page when clicked. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-25', t: 'change', a: 'soundtrack', h: 'bc1de22',
     title: "Your Soundtrack: clearer wording on the Listening Streaks cards",
     detail: "The Streaks chapter's cards now read at a glance: \"Days You Listened in 2017\", \"Longest Daily Listening Streak Ever\" (on past years and months it adds \"as it stood at the end of\" that period), \"Longest Daily Listening Streak in 2017\", and \"days in a row\" instead of \"days of streak\". The artist, album and song row is now headed \"Most days in a row with one artist, album or song\". Works with Last.fm, Google Sheets and CSV uploads." },
