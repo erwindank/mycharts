@@ -3279,6 +3279,28 @@ Steps:
 6. **Charts Guide, text.** Bring it up to date with the top bar, More
    menu, Stats name and the current tabs, in four languages; chapters fold
    closed on a phone.
+   **Done 2026-10-26:** the guide's words moved to a new
+   charts-guide-i18n.js (CG_TEXT, one block per language, like
+   setup-guide-i18n.js; English fills gaps), read through cgText() / cgF().
+   Tab names come from the nav's keys and Records' section list from its
+   rec_nav_* keys, so they always match the menus. Brought up to date: the
+   tabs are grouped as the top bar groups them (Charts: Daily…All-Time;
+   Insights: Stats, Records, Awards, Your Soundtrack; More: Events,
+   Playlists, Raw Data, Board, Guide), Daily added, Graphs → Stats with its
+   real sections, the tour is 18 steps / ~4 minutes, week start is Settings
+   → Charts → Chart Week, Bubbling Under / Off the Chart start off and are
+   switched on in the ⋮ menu (Show), sharing / playlist / PDF are in the ⋮
+   menu (Actions), autocorrect rules come from editing a play in Raw Data
+   (not Settings), the Graveyard and two click shortcuts that no longer
+   exist are gone (D for Daily, swipe and right-click added), a FAQ on why
+   Bubbling Under is missing. Dates and numbers use the language's format;
+   the search results lost their 🎤 🎵. setLanguage() redraws the guide.
+   On a phone (≤560px) every chapter but Start Here folds to its heading
+   (the heading is the button, the rail and deep links open it): 2,783px
+   tall instead of 10,540. Checked en / es / pt-BR / pt-PT at 1440 and 390:
+   no English left except song titles, no sideways scroll, no errors.
+   **Still English:** the tour's own text (it was before this step too, see
+   "The Charts Guide tour") and the footer's "Questions or issues?".
 7. **Screen check:** 1440 / 1100 / 390 × en / es / pt-BR / pt-PT × a few
    themes, all three pages.
 

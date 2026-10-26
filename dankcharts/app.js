@@ -52974,14 +52974,15 @@ function dcGuideSearch(q) {
     }
   }
 
+  // the nav's own icons: All-Time's loop is where a result opens
   let html = '';
   for (const a of artistSet) {
-    html += '<div class="cg-search-item" onclick="dcGuideGoArtist(' + esc(JSON.stringify(a)) + ')">🎤 <strong>' + esc(a) + '</strong></div>';
+    html += '<div class="cg-search-item" onclick="dcGuideGoArtist(' + esc(JSON.stringify(a)) + ')">' + cgIco('mic') + '<strong>' + esc(a) + '</strong></div>';
   }
-  for (const t of trackItems) {
-    html += '<div class="cg-search-item" onclick="dcGuideGoTrack(' + esc(JSON.stringify(t.title)) + ',' + esc(JSON.stringify(t.artist)) + ')">🎵 ' + esc(t.title) + ' <span class="cg-search-by">— ' + esc(t.artist) + '</span></div>';
+  for (const tr of trackItems) {
+    html += '<div class="cg-search-item" onclick="dcGuideGoTrack(' + esc(JSON.stringify(tr.title)) + ',' + esc(JSON.stringify(tr.artist)) + ')">' + cgIco('note') + esc(tr.title) + ' <span class="cg-search-by">— ' + esc(tr.artist) + '</span></div>';
   }
-  if (!html) html = '<div class="cg-search-empty">No results for "' + esc(q) + '"</div>';
+  if (!html) html = '<div class="cg-search-empty">' + esc(cgF(cgText().search_none, { q })) + '</div>';
   resultsEl.innerHTML = html;
 }
 
@@ -53010,10 +53011,11 @@ function dcGuideCheck(id, checked) {
   const total  = inputs.length;
   const pct    = total ? Math.round(done / total * 100) : 0;
   document.querySelectorAll('.cg-checklist-bar').forEach(b => { b.style.width = pct + '%'; });
+  const G = cgText();
   const frac = document.querySelector('.cg-checklist-frac');
-  if (frac) frac.textContent = done + ' of ' + total + ' done';
+  if (frac) frac.textContent = cgF(G.steps_done, { done, total });
   const heroFrac = document.getElementById('cgHeroProgressText');
-  if (heroFrac) heroFrac.textContent = done + ' of ' + total + ' first steps done';
+  if (heroFrac) heroFrac.textContent = cgF(G.progress, { done, total });
 }
 
 /* ── Chapter navigation & progressive disclosure ────────────────── */
@@ -53042,6 +53044,8 @@ function dcGuideExpand(slug) {
    restored deep link, expanding it first if it happens to be collapsed. */
 function dcGuideJump(slug) {
   dcGuideExpand(slug);
+  const ch = document.getElementById('cg-' + slug)?.closest('.cg-chapter');
+  if (ch) dcGuideToggleChapter(ch.dataset.ch, true);
   const target = document.getElementById('cg-' + slug);
   if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   document.querySelectorAll('.cg-toc-pill').forEach(p => p.classList.toggle('active', p.dataset.slug === slug));
@@ -53064,7 +53068,8 @@ function dcGuideFilterList(q, containerId, countId) {
     if (match) shown++;
   });
   const countEl = countId && document.getElementById(countId);
-  if (countEl) countEl.textContent = !q ? '' : shown ? (shown + ' match' + (shown === 1 ? '' : 'es')) : 'no matches';
+  const G = cgText();
+  if (countEl) countEl.textContent = !q ? '' : shown ? cgF(shown === 1 ? G.match_one : G.match_other, { n: shown }) : G.match_none;
 }
 
 /* ── Feedback note ──────────────────────────────────────────────── */
@@ -53072,7 +53077,7 @@ function dcGuideSaveFeedback() {
   const text = document.getElementById('cgFeedbackText')?.value || '';
   try { localStorage.setItem('dc_guide_feedback', text); } catch(e) {}
   const status = document.getElementById('cgFeedbackStatus');
-  if (status) { status.textContent = 'Saved!'; setTimeout(() => { status.textContent = ''; }, 2000); }
+  if (status) { status.textContent = cgText().stuck_saved; setTimeout(() => { status.textContent = ''; }, 2000); }
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -53131,15 +53136,42 @@ const CG_ICONS = {
   image: '<rect x="2" y="2.6" width="12" height="10.8" rx="1.6"/><circle cx="5.8" cy="6.2" r="1.2"/><path d="M2.4 12l3.8-3.6 2.6 2.4 2-1.8 3.2 3"/>',
   search: '<circle cx="7" cy="7" r="4.4"/><path d="M10.3 10.3 14 14"/>',
   wave: '<path d="M10.4 2.8c.9.5 1.2 1.6.7 2.5L9.3 8.4M3.4 9.2l2.9-5c.5-.9 1.6-1.2 2.5-.7s1.2 1.6.7 2.5l-.6 1"/><path d="M9.3 8.4l.7-1.2c.5-.9 1.6-1.2 2.5-.7s1.2 1.6.7 2.5l-1.6 2.8a4.6 4.6 0 0 1-8 .1L2.4 9.8c-.4-.7-.1-1.6.6-2s1.6-.1 2 .6l.7 1.2"/>',
-  play: '<path d="M5 3.2v9.6L12.8 8Z" fill="currentColor"/>'
+  play: '<path d="M5 3.2v9.6L12.8 8Z" fill="currentColor"/>',
+  mic: '<rect x="6" y="1.8" width="4" height="7.2" rx="2"/><path d="M3.9 7.4a4.1 4.1 0 0 0 8.2 0M8 11.5v2.4M5.8 13.9h4.4"/>',
+  note: '<path d="M6.4 12.1V3.7l6.2-1.4v8.3"/><circle cx="4.7" cy="12.1" r="1.7"/><circle cx="10.9" cy="10.6" r="1.7"/>'
 };
 function cgIco(name, cls) {
   return `<svg class="${cls || 'cg-ico'}" viewBox="0 0 16 16" aria-hidden="true" focusable="false">${CG_ICONS[name] || ''}</svg>`;
 }
 
+/* The guide's words in the current language (charts-guide-i18n.js), with
+   English filling anything a language is missing */
+function cgText() {
+  const all = window.CG_TEXT || {};
+  return Object.assign({}, all.en || {}, all[currentLang] || {});
+}
+/* Fill {{name}} placeholders. Values are dropped in as given: escape them
+   first where the string is drawn as HTML. */
+function cgF(str, vars) {
+  return String(str || '').replace(/\{\{(\w+)\}\}/g, (m, k) => (vars && vars[k] != null ? vars[k] : m));
+}
+
+/* On a phone every chapter but the first is folded to its heading, so the
+   guide is a short contents list there; this opens or closes one. Wider
+   screens ignore the fold (CSS), so the class does nothing there. */
+function dcGuideToggleChapter(slug, open) {
+  const sec = document.querySelector(`.cg-chapter[data-ch="${slug}"]`);
+  if (!sec) return;
+  const on = open == null ? !sec.classList.contains('is-open') : !!open;
+  sec.classList.toggle('is-open', on);
+  sec.querySelector('.cg-chapter-head')?.setAttribute('aria-expanded', String(on));
+}
+
 function dcRenderChartsGuideView() {
   const el = document.getElementById('chartsguideView');
   if (!el) return;
+  const G = cgText();
+  const loc = currentLang || 'en';
 
   /* ── Source / setup ───────────────────────────────────────────── */
   const src         = getDataSource();
@@ -53153,8 +53185,10 @@ function dcRenderChartsGuideView() {
   const uniqueAlbums  = n ? new Set(allPlays.filter(p => p.album && p.album !== '—').map(p => p.album + '|||' + p.artist)).size : 0;
   const firstDate     = n ? (window.firstScrobbleDate || allPlays.reduce((min, p) => p.date < min ? p.date : min, allPlays[0].date)) : null;
   const yearsMs       = firstDate ? new Date() - firstDate : 0;
-  const yearsFmt      = yearsMs >= 365 * 24 * 3600 * 1000 ? (yearsMs / (365.25 * 24 * 3600 * 1000)).toFixed(1) + ' yrs' : Math.round(yearsMs / (24 * 3600 * 1000)) + ' days';
-  const firstFmt      = firstDate ? firstDate.toLocaleDateString('en', { month: 'short', year: 'numeric' }) : '—';
+  const yearsFmt      = yearsMs >= 365 * 24 * 3600 * 1000
+    ? cgF(G.years, { n: (yearsMs / (365.25 * 24 * 3600 * 1000)).toLocaleString(loc, { maximumFractionDigits: 1 }) })
+    : cgF(G.days, { n: Math.round(yearsMs / (24 * 3600 * 1000)) });
+  const firstFmt      = firstDate ? firstDate.toLocaleDateString(loc, { month: 'short', year: 'numeric' }) : '—';
 
   /* ── On this day ──────────────────────────────────────────────── */
   const today  = tzNow();
@@ -53177,216 +53211,100 @@ function dcRenderChartsGuideView() {
   if (n && firstDate) {
     const sorted = [...allPlays].sort((a, b) => a.date - b.date);
     const first  = sorted[0];
-    milestones.push({ label: 'First scrobble', date: firstDate, detail: first ? esc(first.title) + ' by ' + esc(first.artist) : '' });
+    milestones.push({ label: G.ms_first, date: firstDate, detail: first ? cgF(G.ms_by, { title: esc(first.title), artist: esc(first.artist) }) : '' });
     for (const cnt of [100, 500, 1000, 5000, 10000, 25000, 50000, 100000, 250000, 500000]) {
       if (sorted.length >= cnt) {
         const p = sorted[cnt - 1];
-        milestones.push({ label: cnt.toLocaleString() + 'th play', date: p.date, detail: esc(p.title) + ' by ' + esc(p.artist) });
+        milestones.push({ label: cgF(G.ms_nth, { n: cnt.toLocaleString(loc) }), date: p.date, detail: cgF(G.ms_by, { title: esc(p.title), artist: esc(p.artist) }) });
       }
     }
   }
 
   /* ── Setup state ──────────────────────────────────────────────── */
-  const srcLabel   = src === 'lastfm' ? 'Last.fm' : src === 'sheets' ? 'Google Sheets' : 'CSV Upload';
+  const srcLabel   = src === 'lastfm' ? 'Last.fm' : src === 'sheets' ? 'Google Sheets' : G.src_csv;
   const srcOk      = src === 'lastfm' ? !!lfmUser : src === 'sheets' ? !!localStorage.getItem('dc_sheet_id') : n > 0;
   const hasDisplay = !!localStorage.getItem('dc_display_name');
   const hasTz      = !!localStorage.getItem('dc_timezone');
+  const nPlays     = n.toLocaleString(loc);
 
   /* ── Data quality checks ──────────────────────────────────────── */
   const warnings = [];
   if (n === 0) {
-    warnings.push({ type: 'error', msg: 'No plays loaded — check your data source in Settings.' });
+    warnings.push({ type: 'error', msg: G.q_none });
   } else {
-    warnings.push({ type: 'ok', msg: n.toLocaleString() + ' plays loaded from ' + srcLabel + '.' });
-    if (uniqueTracks < 10) warnings.push({ type: 'warn', msg: 'Very few unique tracks detected — data may be incomplete.' });
-    if (!firstDate) warnings.push({ type: 'warn', msg: 'Could not determine your earliest scrobble date.' });
+    warnings.push({ type: 'ok', msg: cgF(G.q_ok, { n: nPlays, src: srcLabel }) });
+    if (uniqueTracks < 10) warnings.push({ type: 'warn', msg: G.q_few });
+    if (!firstDate) warnings.push({ type: 'warn', msg: G.q_nodate });
     const noAlbum = allPlays.filter(p => !p.album || p.album === '—').length;
-    if (n > 100 && noAlbum / n > 0.3) warnings.push({ type: 'warn', msg: Math.round(noAlbum / n * 100) + '% of plays have no album — album charts may be sparse.' });
+    if (n > 100 && noAlbum / n > 0.3) warnings.push({ type: 'warn', msg: cgF(G.q_noalbum, { pct: Math.round(noAlbum / n * 100) }) });
   }
-  if (src === 'lastfm' && !lfmUser) warnings.push({ type: 'warn', msg: 'Last.fm selected but no username configured.' });
+  if (src === 'lastfm' && !lfmUser) warnings.push({ type: 'warn', msg: G.q_lfm_nouser });
 
   /* ── First steps checklist ────────────────────────────────────── */
   let checks = {};
   try { checks = JSON.parse(localStorage.getItem('dc_guide_checks') || '{}'); } catch(e) {}
   if (srcOk && n > 0) checks.data  = true; // auto-complete when data is loaded
   if (n > 0)          checks.chart = true; // auto-complete once any plays exist
-  const checkItems = [
-    { id: 'data',     label: 'Load your listening data',            done: !!checks.data },
-    { id: 'chart',    label: 'View your Weekly chart',              done: !!checks.chart },
-    { id: 'tour',     label: 'Take the guided tour',                done: !!checks.tour },
-    { id: 'explore',  label: 'Explore 3 different tabs',            done: !!checks.explore },
-    { id: 'size',     label: 'Change chart size (Top 10 → 50)',     done: !!checks.size },
-    { id: 'card',     label: 'Generate a shareable image card',     done: !!checks.card },
-    { id: 'playlist', label: 'Save a chart as a playlist',          done: !!checks.playlist },
-  ];
+  const checkItems = ['data', 'chart', 'tour', 'explore', 'size', 'card', 'playlist']
+    .map(id => ({ id, label: G.checks[id], done: !!checks[id] }));
   const doneCount = checkItems.filter(c => c.done).length;
 
   /* ── Personalised next steps ──────────────────────────────────── */
+  const goTab = period => `document.querySelector('#periodNav button[data-period=&quot;${period}&quot;]')?.click()`;
   const suggestions = [];
+  const sugg = (key, extra) => suggestions.push(Object.assign({ text: G.sugg[key].text, btn: G.sugg[key].btn }, extra));
   if (n === 0) {
-    suggestions.push({ ico: 'gear', text: 'Set up your data source to start exploring your charts', btn: 'Settings', action: 'openSourceModal()' });
+    sugg('settings', { ico: 'gear', action: 'openSourceModal()' });
   } else {
-    suggestions.push({ nav: 'records', text: 'See all-time chart records — longest runs, best weeks, streaks', btn: 'Go to Records', action: 'document.querySelector(\'#periodNav button[data-period="records"]\').click()' });
-    if (uniqueArtists > 20) suggestions.push({ nav: 'events', text: 'See upcoming birthdays and album anniversaries for your artists', btn: 'Go to Events', action: 'document.querySelector(\'#periodNav button[data-period="events"]\').click()' });
-    if (n > 500)  suggestions.push({ nav: 'graphs', text: 'Visualize your heatmap, listening trends, and artist streaks', btn: 'Go to Graphs', action: 'document.querySelector(\'#periodNav button[data-period="graphs"]\').click()' });
-    if (n > 1000) suggestions.push({ nav: 'playlists', text: 'Build and save playlists from any chart period', btn: 'Go to Playlists', action: 'document.querySelector(\'#periodNav button[data-period="playlists"]\').click()' });
-    suggestions.push({ nav: 'week', text: 'Create a shareable image card from your current Weekly chart', btn: 'Go to Weekly', action: 'document.querySelector(\'#periodNav button[data-period="week"]\').click()' });
+    sugg('records', { nav: 'records', action: goTab('records') });
+    if (uniqueArtists > 20) sugg('events', { nav: 'events', action: goTab('events') });
+    if (n > 500)  sugg('graphs', { nav: 'graphs', action: goTab('graphs') });
+    if (n > 1000) sugg('playlists', { nav: 'playlists', action: goTab('playlists') });
+    sugg('week', { nav: 'week', action: goTab('week') });
   }
 
-  /* ── Chapter 02 · The tabs, grouped exactly like the two nav rows ─
-     `use` answers "when would I open this?", which is the part the old
-     one-line descriptions never covered. */
-  const tabRows = [
-    {
-      group: 'Chart views',
-      note:  'The top row of the nav bar. Same three charts — songs, artists, albums — over four different time windows, plus the raw plays behind them and the graphs drawn from them.',
-      tabs: [
-        { name: 'Weekly',   period: 'week',    desc: 'Your top songs, artists and albums for a single 7-day period, with movement, peaks and chart runs against last week.', use: 'Your main chart. Check it once a week.' },
-        { name: 'Monthly',  period: 'month',   desc: 'The same three charts counted over a calendar month, so a song needs sustained play rather than one heavy afternoon.', use: 'Spotting what actually stuck.' },
-        { name: 'Yearly',   period: 'year',    desc: 'Year-end charts for any calendar year in your history, with movement, peaks and chart runs against the year before.', use: 'Your personal year-in-review, any year.' },
-        { name: 'All-Time', period: 'alltime', desc: 'Every play you have ever logged, counted once. No period boundaries, no movement — just the totals.', use: 'Settling "what is my most played song?"' },
-        { name: 'Raw Data', period: 'rawdata', desc: 'The play list every other tab is built from. Search, filter, edit a wrong timestamp, delete a bad scrobble, export the lot as CSV.', use: 'Fixing bad data, or taking it elsewhere.' },
-        { name: 'Graphs',   period: 'graphs',  desc: 'Five charts at daily, monthly or yearly granularity: cumulative plays with artist comparison, play volume per period, volume compared across artists, new discoveries per period, and an animated play count race — plus the listening heatmap and the graveyard.', use: 'Seeing shape and habit rather than rank.' },
-      ],
-    },
-    {
-      group: 'Insight views',
-      note:  'The second row. Everything here is derived from the charts above — nothing needs extra setup, it all appears once your plays are loaded.',
-      tabs: [
-        { name: 'Records',         period: 'records',    desc: 'Eleven sections behind the button row at the top: All #1s, Perfect All Kill, Most Chart Appearances, Biggest Debuts, Most Plays in a Period, Play Count Milestones, Fastest to Milestone, Certifications, Streak Records, New Charts and an Overview.', use: 'Your record book.' },
-        { name: 'Events',          period: 'events',     desc: 'A calendar of artist birthdays, album anniversaries and new releases for the artists in your charts.', use: 'Knowing when something is worth replaying.' },
-        { name: 'Awards',          period: 'awards',     desc: '53 categories generated from your own chart data — the four majors plus Best Collaboration, Song of the Summer, Best Comeback, Best Discovery, Most Obsessive Play and opt-in genre awards. Set an eligibility window, pick categories, then run the ceremony. Real-Life Awards sits alongside My Grammys, with the real Grammys, VMAs, AMAs, iHeartRadio, World Music, Billboard, ARIA, Juno and BRIT Awards your artists were up for.', use: 'The fun one. Run it every December.' },
-        { name: 'Your Soundtrack', period: 'soundtrack', desc: 'A full recap of any month, year or all time: a reel, headline stats, top charts, a featured artist, your listening patterns, discoveries, milestones, streaks, a mini awards run and a hidden gem — plus an animated chart replay and a shareable card.', use: 'The nostalgic pass through your history.' },
-        { name: 'Playlists',       period: 'playlists',  desc: 'Save any chart as a named playlist and queue tracks from anywhere, with recent releases and anniversaries alongside.', use: 'Turning a chart back into listening.' },
-        { name: 'Board',           period: 'board',      desc: 'The community board: suggest features, report bugs, ask questions and talk with other listeners. Vote up the ideas you want most and follow their status from Planned to Done. Reading is open to everyone; posting needs Google sign-in.', use: 'Asking for the feature you wish existed.' },
-        { name: 'Charts Guide',    period: 'chartsguide',desc: 'You are here. Setup checks, the tab breakdown, how charts are calculated, shortcuts, glossary, FAQ and your milestones.', use: 'Whenever something does not make sense.' },
-      ],
-    },
-  ];
-
-  /* ── Chapter 03 · How the charts are actually built ───────────── */
-  const concepts = [
-    { icon: '▸', title: 'One play, one scrobble',
-      body: 'A chart entry is never estimated or weighted. Every chart in the app counts the same thing: individual plays, each with a timestamp. Play a song five times and it counts five times, whatever else you listened to that day.' },
-    { icon: '◷', title: 'A period is just a date range',
-      body: 'Weekly counts a 7-day window starting on the week-start day you pick in the masthead. Monthly counts a calendar month, Yearly a calendar year, All-Time everything. Change the week-start day and every weekly chart in your history is recut around it.' },
-    { icon: '#', title: 'Ranking is by play count inside the period',
-      body: 'Positions come from plays within that period alone — nothing carries over. That is why a song can sit at #1 for a week and never appear in the monthly chart: one intense week rarely beats four steady ones.' },
-    { icon: '↕︎', title: 'Movement compares like with like',
-      body: 'Up and down arrows, new entries, re-entries and dropouts are always measured against the previous period of the same type. A weekly chart compares to last week, a monthly chart to last month — never across types.' },
-    { icon: '★', title: 'Peak and weeks on chart never reset',
-      body: 'Peak is the best position an entry has ever reached in that chart type. Weeks on chart is the total number of periods it has spent on the chart, added up across every separate spell. Dropping off costs it neither: come back later and both carry on from where they were.' },
-    { icon: '≡', title: 'Bubbling Under and Off Chart',
-      body: 'The chart itself only holds as many entries as your chart size allows. Bubbling Under shows what sat just below the cut; Off Chart shows what fell out entirely. Toggle either per chart type from the section header.' },
-    { icon: '✎︎', title: 'Autocorrect rewrites history',
-      body: 'Autocorrect rules are applied when your plays are parsed, before any chart is calculated. Fixing a misspelled artist name in Settings therefore corrects every chart, record and award at once — retroactively, not just from today.' },
-    { icon: '⤓', title: 'Any chart can leave the app',
-      body: 'The ⋮ menu in a section header exports the chart as a styled PNG image card sized for social, or as data. Raw Data exports your complete play history as CSV. Nothing is uploaded anywhere to do it.' },
-  ];
-
-  /* ── Glossary ─────────────────────────────────────────────────── */
-  const glossary = [
-    { term: 'Scrobble',     def: 'A single recorded play of a track. When a song finishes, it is "scrobbled" — logged to your listening history with a timestamp.' },
-    { term: 'Bullet',       def: 'A chart entry rising to a position it has not previously held this period. Shown with an upward arrow.' },
-    { term: 'Dropout',      def: 'An entry present on last period\'s chart that is completely absent from this one.' },
-    { term: 'Re-entry',     def: 'An entry that previously dropped off the chart and has now returned. It keeps both its old peak and its running weeks-on-chart total.' },
-    { term: 'Chart Run',    def: 'The full record of where an entry has ranked over time. Open it from the button at the end of its row.' },
-    { term: 'Weeks on Chart', def: 'How many periods an entry has been on the chart in total, counting every separate spell. It never resets — a re-entry carries on from the number it already had.' },
-    { term: 'Peak',         def: 'The highest chart position an entry has ever achieved in that chart type.' },
-    { term: 'Bubbling Under', def: 'Entries that fell just short of the chart cut-off for the period — the next few places below your chart size.' },
-    { term: 'Off Chart',    def: 'Entries that were on the chart previously and have now fallen out of it entirely.' },
-    { term: 'Streak',       def: 'Consecutive weeks an artist has appeared in your charts — tracked in the Graphs tab.' },
-    { term: 'Graveyard',    def: 'Artists or songs that appeared in your charts but have had zero plays for a significant time.' },
-    { term: 'Hidden Gem',   def: 'A track from your history that Your Soundtrack resurfaces because you once played it a lot and have not returned to it lately.' },
-    { term: 'NMF',          def: 'New Music Friday — new releases from artists in your charts, surfaced in the Events tab.' },
-    { term: 'Image Card',   def: 'A shareable PNG export of any chart, styled and sized for social media.' },
-    { term: 'Time Machine', def: 'The first section of Events: what you were playing on this day in past years.' },
-    { term: 'Autocorrect',  def: 'A rule that silently renames a misspelled artist or track across all your charts, applied at parse time.' },
-  ];
-
-  /* ── Chapter 04 · Shortcuts, then tricks that are not shortcuts ──
-     Kept disjoint on purpose: anything with a key binding belongs in the
-     table, so the tips list below is not just the same advice again. */
-  const shortcuts = [
-    ['W / M / Y / A',       'Jump to Weekly / Monthly / Yearly / All-Time'],
-    ['← →',                 'Previous / next chart period'],
-    ['+ / −',               'Same as ← → , from the buttons in the date bar'],
-    ['Esc',                 'Close any open panel or modal'],
-    ['Click a stat badge',  'Jump to the chart section that stat came from'],
-    ['Click Days Listened', 'Jump straight to the listening heatmap in Graphs'],
-    ['Click Top Artist',    'Jump straight to the Artists section of the chart'],
-    ['Click a section head','Collapse that section and focus on the others'],
-  ];
-
-  const tips = [
-    'In <strong>Raw Data</strong> you can edit or delete individual scrobbles — the fastest fix for a wrong timestamp or a mis-tagged album.',
-    'The chart size selector remembers <strong>separately</strong> per chart type, so Weekly can sit at Top 10 while Monthly stays at Top 50.',
-    'Every chart section has six layouts behind the <strong>⋮ menu</strong> — Table, Card Grid, Compact, Mosaic, Filmstrip and Stack.',
-    'Autocorrect rules sync through <strong>Firestore</strong>, so a name you fix on your laptop is already fixed on your phone.',
-    '<strong>Graphs → Graveyard</strong> lists artists that used to chart for you and have since gone silent — a good place to find something to revive.',
-    'The <strong>Time Machine</strong> at the top of Events shows what you were playing on this day in past years.',
-    '<strong>Awards</strong> works for any year with enough data, not only the most recent one — run it on the year you first started scrobbling.',
-    'Image cards are generated in your browser from the live chart, so whatever you are looking at is exactly what exports.',
-  ];
-
-  /* ── FAQ ──────────────────────────────────────────────────────── */
-  const faqs = [
-    { q: 'Why are my play counts different from Last.fm\'s site?', a: 'Last.fm sometimes delays scrobbles or deduplicates differently. Use "Sync Now" to fetch the latest data from the API.' },
-    { q: 'Why does a period show no data?', a: 'You may not have scrobbled anything in that week, month or year, or your data source may not cover that date range. Check your sync status at the top of the page.' },
-    { q: 'Why is a song #1 weekly but missing from the monthly chart?', a: 'Each period is counted independently. One very heavy week can top a weekly chart and still finish well behind songs you played steadily across the whole month.' },
-    { q: 'How do I fix a misspelled artist name?', a: 'Settings → Autocorrect, then add a rule: wrong name → correct name. It is applied when plays are parsed, so it corrects your whole history at once, not just future plays.' },
-    { q: 'Can I change which day my week starts on?', a: 'Yes — the Start Day control in the masthead. Every weekly chart in your history is recalculated around the day you choose.' },
-    { q: 'My album charts look sparse. Why?', a: 'Some scrobbling sources do not send album names. Any play without an album is counted in the song and artist charts but cannot appear in the album chart. The Data Status panel above flags this if it affects a large share of your plays.' },
-    { q: 'How do I share my chart as an image?', a: 'Open any Weekly, Monthly or Yearly chart, then use the ⋮ menu in the section header and choose the image card export. You can adjust the layout and font sizes before downloading the PNG.' },
-    { q: 'Can I use this with Spotify or Apple Music directly?', a: 'Not directly — but Last.fm scrobbles from Spotify and 100+ other apps. Connect your service to Last.fm first, then use Last.fm as your source here. Google Sheets and CSV upload work the same way for data you already have.' },
-    { q: 'Where is my data stored?', a: 'In your browser. Charts are computed locally from whichever source you connected; nothing about your listening is uploaded to us or stored on our servers.' },
-    { q: 'What period does "Your Soundtrack" cover?', a: 'Whichever you pick — a single month, a full year, or your entire history. The buttons at the top of the tab switch between the three, and the arrows step through months or years from there.' },
-  ];
-
-  /* ── Export & share walkthroughs ──────────────────────────────── */
-  const exportGuide = [
-    { ico: cgIco('image', 'cg-ico cg-export-ico'), title: 'Image Card (PNG)', steps: ['Open any Weekly, Monthly or Yearly chart', 'Open the ⋮ menu in the section header', 'Choose the image card export', 'Adjust format, layout and font sizes, then Download'] },
-    { ico: cgNavIco('rawdata', 'cg-ico cg-export-ico'), title: 'Raw Data CSV',     steps: ['Go to the Raw Data tab', 'Apply filters if you only want part of your history', 'Click Export CSV', 'The file downloads straight to your device'] },
-    { ico: cgNavIco('playlists', 'cg-ico cg-export-ico'), title: 'Playlist Export',  steps: ['Go to the Playlists tab', 'Queue tracks from any chart with + Play', 'Click Save Queue and give it a name', 'Use the share icon to export the track list'] },
-  ];
-
-  const srcDescs = {
-    lastfm:  'Last.fm records every song you play, scrobbled from Spotify, Apple Music and 100+ other apps. Plays are fetched directly from the Last.fm API each time you sync.',
-    sheets:  'Your plays live in a Google Sheet that you own. The app reads it through the Sheets API on each page load, so you can edit or add rows yourself at any time.',
-    file:    'You uploaded a CSV of your scrobbles. It is parsed and kept locally in your browser — upload a newer file to refresh it.',
+  /* ── Chapter 02 · The tabs, grouped as the top bar groups them ──
+     Names come from the nav's own keys so the guide and the menu agree.
+     Records lists its sections by their Records-nav names. */
+  const TAB_NAME_KEYS = {
+    day: 'nav_daily', week: 'nav_weekly', month: 'nav_monthly', year: 'nav_yearly', alltime: 'nav_alltime',
+    graphs: 'tab_stats', records: 'nav_records', awards: 'nav_awards', soundtrack: 'nav_soundtrack',
+    events: 'nav_events', playlists: 'nav_playlists', rawdata: 'nav_rawdata', board: 'nav_board', chartsguide: 'nav_chartsguide'
   };
+  const recSections = ['rec_nav_overview', 'rec_nav_all_ones', 'rec_nav_pak', 'rec_nav_appearances', 'rec_nav_debuts', 'rec_nav_new_charts',
+    'rec_nav_peak_plays', 'rec_nav_milestones', 'rec_nav_fastest', 'rec_nav_streaks', 'rec_nav_certs'].map(k => t(k)).join(', ');
 
-  /* ═══════════════════ BUILD HTML ═══════════════════════════════ */
-  const chapters = [
-    { slug: 'start',    num: '01', label: 'Start Here' },
-    { slug: 'tabs',     num: '02', label: 'The Tabs' },
-    { slug: 'concepts', num: '03', label: 'How Charts Work' },
-    { slug: 'tips',     num: '04', label: 'Tips & Shortcuts' },
-    { slug: 'yourdata', num: '05', label: 'Your Data' },
-    { slug: 'help',     num: '06', label: 'Help & More' },
-  ];
+  const chapters = ['start', 'tabs', 'concepts', 'tips', 'yourdata', 'help']
+    .map((slug, i) => ({ slug, num: String(i + 1).padStart(2, '0'), label: G.ch[slug] }));
 
   /* Chapter opener: number, title, and a sentence saying what the chapter
-     is for — so a chapter can be skipped without being read. */
-  const chapterHead = (slug, blurb) => {
+     is for — so a chapter can be skipped without being read. It opens the
+     chapter's <section> and body; cgChapterEnd closes them. On a phone the
+     head is the fold's button (dcGuideToggleChapter); the first chapter
+     starts open. */
+  const chapterHead = slug => {
     const c = chapters.find(x => x.slug === slug);
-    return `<div class="cg-chapter-head" id="cg-${slug}">
+    const open = slug === 'start';
+    return `<section class="cg-chapter${open ? ' is-open' : ''}" data-ch="${slug}">
+    <div class="cg-chapter-head" id="cg-${slug}" aria-expanded="${open}" aria-controls="cg-${slug}-chbody"
+        onclick="dcGuideToggleChapter('${slug}')" onkeydown="if((event.key==='Enter'||event.key===' ')&&getComputedStyle(this).cursor==='pointer'){event.preventDefault();dcGuideToggleChapter('${slug}')}">
       <span class="cg-chapter-num">${c.num}</span>
       <div class="cg-chapter-heading">
         <h3 class="cg-chapter-title">${esc(c.label)}</h3>
-        <p class="cg-chapter-blurb">${esc(blurb)}</p>
+        <p class="cg-chapter-blurb">${esc(G.blurb[slug])}</p>
       </div>
-    </div>`;
+      <span class="cg-chapter-chev" aria-hidden="true">›</span>
+    </div>
+    <div class="cg-chapter-body" id="cg-${slug}-chbody">`;
   };
+  const cgChapterEnd = `</div></section>`;
 
   /* Collapsed sub-section header inside a chapter (reference material). */
   const foldHead = (slug, title) =>
     `<div class="cg-section-label cg-section-toggle" id="cg-${slug}" role="button" tabindex="0" aria-expanded="false"
         onclick="dcToggleGuideSection('${slug}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();dcToggleGuideSection('${slug}')}">
-      <span>${title}</span><span class="cg-section-chev">›</span>
+      <span>${esc(title)}</span><span class="cg-section-chev">›</span>
     </div>`;
-
-  const goTab = period => `document.querySelector('#periodNav button[data-period=&quot;${period}&quot;]')?.click()`;
 
   let h = `<div class="cg-view">`;
 
@@ -53396,18 +53314,18 @@ function dcRenderChartsGuideView() {
      solid accent banner. */
   /* Full greeting sentence: "Charts Guide, Erwin" read like the name was
      tacked onto a title, so the welcome is spelled out instead. */
-  const greeting = displayName ? 'Welcome, ' + esc(displayName) + '. ' : '';
+  const greeting = displayName ? cgF(G.intro_hi, { name: esc(displayName) }) : '';
   h += `<div class="section-header cg-page-header"><h2 class="section-header-h2">${cgNavIco('chartsguide', 'graphs-h2-ico cg-h2-ico')}<span>${esc(t('nav_chartsguide'))}</span></h2><div class="section-rule"></div></div>
-  <p class="cg-intro">${greeting}Six chapters, in the order the questions come up: get set up, meet the tabs, see how a chart comes together, learn the shortcuts, look at your own data, and find help.</p>
+  <p class="cg-intro">${greeting}${esc(G.intro)}</p>
   <div class="cg-top-bar">
     <div class="cg-hero-progress">
       <div class="cg-progress-track cg-hero-track"><div class="cg-checklist-bar" style="width:${Math.round(doneCount / checkItems.length * 100)}%"></div></div>
-      <span class="cg-hero-progress-text" id="cgHeroProgressText">${doneCount} of ${checkItems.length} first steps done</span>
+      <span class="cg-hero-progress-text" id="cgHeroProgressText">${esc(cgF(G.progress, { done: doneCount, total: checkItems.length }))}</span>
     </div>
     <div class="cg-top-actions">
-      <button class="dc-btn dc-btn-main cg-top-btn" onclick="dcStartChartsGuideTour()">${cgIco('play')}Take the tour</button>
-      <button class="dc-btn dc-btn-normal cg-top-btn" onclick="dcToggleGuideSearch()">${cgIco('search')}Search your library</button>
-      <button class="dc-btn dc-btn-normal cg-top-btn" onclick="dcReplayWelcomeGate()">${cgIco('wave')}Replay the welcome</button>
+      <button class="dc-btn dc-btn-main cg-top-btn" onclick="dcStartChartsGuideTour()">${cgIco('play')}${esc(G.btn_tour)}</button>
+      <button class="dc-btn dc-btn-normal cg-top-btn" onclick="dcToggleGuideSearch()">${cgIco('search')}${esc(G.btn_search)}</button>
+      <button class="dc-btn dc-btn-normal cg-top-btn" onclick="dcReplayWelcomeGate()">${cgIco('wave')}${esc(G.btn_replay)}</button>
     </div>
   </div>`;
 
@@ -53416,44 +53334,41 @@ function dcRenderChartsGuideView() {
     ${chapters.map(c => `<button type="button" class="cg-toc-pill" data-slug="${c.slug}" onclick="dcGuideJump('${c.slug}')"><span class="cg-toc-num">${c.num}</span> ${esc(c.label)}</button>`).join('')}
   </div>`;
 
-  /* ── Library search (hidden until the hero button is pressed) ─ */
+  /* ── Library search (hidden until the top button is pressed) ── */
   h += `<div class="cg-search-bar" id="cgSearchBar" style="display:none">
     <input type="text" id="cgSearchInput" class="cg-search-input"
-      placeholder="Search artists or songs in your history…"
+      placeholder="${esc(G.search_ph)}" aria-label="${esc(G.search_ph)}"
       oninput="dcGuideSearch(this.value)" autocomplete="off">
     <div id="cgSearchResults" class="cg-search-results"></div>
   </div>`;
 
   /* ═══ 01 · START HERE ═════════════════════════════════════════ */
-  h += `<section class="cg-chapter">`;
-  h += chapterHead('start', 'Confirm the app is reading your data correctly, then work through the first few things worth doing.');
+  h += chapterHead('start');
 
   /* Three-step setup path — the actual order of operations, with live state */
   h += `<div class="cg-steps">
     <div class="cg-step ${srcOk ? 'done' : 'todo'}">
       <span class="cg-step-num">${srcOk ? '✓' : '1'}</span>
       <div class="cg-step-body">
-        <div class="cg-step-title">Connect a data source</div>
-        <p class="cg-step-text">${srcOk
-          ? esc(srcLabel) + ' is connected and ' + n.toLocaleString() + ' plays are loaded.'
-          : 'No source is set up yet, so every chart will be empty. Pick Last.fm, a Google Sheet, or a CSV upload.'}</p>
-        <button class="dc-btn dc-btn-normal dc-btn-sm cg-mini-btn" onclick="openSourceModal()">${srcOk ? 'Change source' : 'Set up now'} →</button>
+        <div class="cg-step-title">${esc(G.step1_title)}</div>
+        <p class="cg-step-text">${esc(srcOk ? cgF(G.step1_ok, { src: srcLabel, n: nPlays }) : G.step1_no)}</p>
+        <button class="dc-btn dc-btn-normal dc-btn-sm cg-mini-btn" onclick="openSourceModal()">${esc(srcOk ? G.step1_btn_ok : G.step1_btn_no)} →</button>
       </div>
     </div>
     <div class="cg-step ${(hasDisplay && hasTz) ? 'done' : 'todo'}">
       <span class="cg-step-num">${(hasDisplay && hasTz) ? '✓' : '2'}</span>
       <div class="cg-step-body">
-        <div class="cg-step-title">Set your name, timezone and week start</div>
-        <p class="cg-step-text">Timezone decides which day a late-night play lands on; week start decides where every weekly chart is cut. ${hasDisplay ? 'Display name set.' : 'Display name not set.'} ${hasTz ? 'Timezone configured.' : 'Using your browser default timezone.'}</p>
-        <button class="dc-btn dc-btn-normal dc-btn-sm cg-mini-btn" onclick="openSourceModal()">Open Settings →</button>
+        <div class="cg-step-title">${esc(G.step2_title)}</div>
+        <p class="cg-step-text">${esc(G.step2_text)} ${esc(hasDisplay ? G.name_set : G.name_unset)} ${esc(hasTz ? G.tz_set : G.tz_unset)}</p>
+        <button class="dc-btn dc-btn-normal dc-btn-sm cg-mini-btn" onclick="openSourceModal()">${esc(G.open_settings)} →</button>
       </div>
     </div>
     <div class="cg-step ${checks.tour ? 'done' : 'todo'}">
       <span class="cg-step-num">${checks.tour ? '✓' : '3'}</span>
       <div class="cg-step-body">
-        <div class="cg-step-title">Take the guided tour</div>
-        <p class="cg-step-text">Eleven steps, about two minutes. It drives the real nav bar so you see each tab as it is described.</p>
-        <button class="dc-btn dc-btn-normal dc-btn-sm cg-mini-btn" onclick="dcStartChartsGuideTour()">Start the tour →</button>
+        <div class="cg-step-title">${esc(G.step3_title)}</div>
+        <p class="cg-step-text">${esc(G.step3_text)}</p>
+        <button class="dc-btn dc-btn-normal dc-btn-sm cg-mini-btn" onclick="dcStartChartsGuideTour()">${esc(G.step3_btn)} →</button>
       </div>
     </div>
   </div>`;
@@ -53461,24 +53376,24 @@ function dcRenderChartsGuideView() {
   /* Data status — setup checks, quality checks and source explainer in one panel */
   h += `<div class="cg-status-row">
     <div class="dc-card cg-panel">
-      <div class="cg-panel-title">${cgIco('gear')}Setup</div>
+      <div class="cg-panel-title">${cgIco('gear')}${esc(G.setup_title)}</div>
       <div class="cg-status-items">
-        <div class="cg-si ${srcOk ? 'ok' : 'warn'}"><span>${srcOk ? '✓' : '!'}</span>${esc(srcLabel)} ${srcOk ? 'connected' : 'not configured'}</div>
-        <div class="cg-si ${n > 0 ? 'ok' : 'warn'}"><span>${n > 0 ? '✓' : '!'}</span>${n > 0 ? n.toLocaleString() + ' plays loaded' : 'No plays loaded'}</div>
-        <div class="cg-si ${hasDisplay ? 'ok' : 'neutral'}"><span>${hasDisplay ? '✓' : '○'}</span>Display name ${hasDisplay ? 'set' : 'not set (optional)'}</div>
-        <div class="cg-si ${hasTz ? 'ok' : 'neutral'}"><span>${hasTz ? '✓' : '○'}</span>Timezone ${hasTz ? 'configured' : 'using browser default'}</div>
+        <div class="cg-si ${srcOk ? 'ok' : 'warn'}"><span>${srcOk ? '✓' : '!'}</span>${esc(cgF(srcOk ? G.si_src_ok : G.si_src_no, { src: srcLabel }))}</div>
+        <div class="cg-si ${n > 0 ? 'ok' : 'warn'}"><span>${n > 0 ? '✓' : '!'}</span>${esc(n > 0 ? cgF(G.si_plays, { n: nPlays }) : G.si_noplays)}</div>
+        <div class="cg-si ${hasDisplay ? 'ok' : 'neutral'}"><span>${hasDisplay ? '✓' : '○'}</span>${esc(hasDisplay ? G.si_name_set : G.si_name_unset)}</div>
+        <div class="cg-si ${hasTz ? 'ok' : 'neutral'}"><span>${hasTz ? '✓' : '○'}</span>${esc(hasTz ? G.si_tz_set : G.si_tz_unset)}</div>
       </div>
-      <button class="dc-btn dc-btn-normal dc-btn-sm cg-mini-btn" onclick="openSourceModal()">Open Settings →</button>
+      <button class="dc-btn dc-btn-normal dc-btn-sm cg-mini-btn" onclick="openSourceModal()">${esc(G.open_settings)} →</button>
     </div>
     <div class="dc-card cg-panel">
-      <div class="cg-panel-title">${cgIco('quality')}Data quality</div>
+      <div class="cg-panel-title">${cgIco('quality')}${esc(G.quality_title)}</div>
       <div class="cg-status-items">
         ${warnings.map(w => `<div class="cg-si ${w.type}"><span>${w.type === 'ok' ? '✓' : w.type === 'error' ? '✗' : '!'}</span>${esc(w.msg)}</div>`).join('')}
       </div>
     </div>
     <div class="dc-card cg-panel">
-      <div class="cg-panel-title">${cgIco('source')}Source: ${esc(srcLabel)}</div>
-      <p class="cg-source-desc">${esc(srcDescs[src] || '')}</p>
+      <div class="cg-panel-title">${cgIco('source')}${esc(cgF(G.source_title, { src: srcLabel }))}</div>
+      <p class="cg-source-desc">${esc((G.src_desc || {})[src] || '')}</p>
       <div class="cg-source-dots">
         <span class="cg-dot ${src === 'lastfm' ? 'active' : ''}">Last.fm</span>
         <span class="cg-dot ${src === 'sheets' ? 'active' : ''}">Sheets</span>
@@ -53489,9 +53404,9 @@ function dcRenderChartsGuideView() {
 
   /* First-steps checklist */
   h += `<div class="dc-card cg-panel cg-checklist-panel">
-    <div class="cg-panel-title">${cgIco('steps')}First steps</div>
+    <div class="cg-panel-title">${cgIco('steps')}${esc(G.first_steps)}</div>
     <div class="cg-progress-track"><div class="cg-checklist-bar" style="width:${Math.round(doneCount / checkItems.length * 100)}%"></div></div>
-    <div class="cg-checklist-frac">${doneCount} of ${checkItems.length} done</div>
+    <div class="cg-checklist-frac">${esc(cgF(G.steps_done, { done: doneCount, total: checkItems.length }))}</div>
     <div class="cg-checklist-grid">
       ${checkItems.map(item => `<label class="cg-check-item ${item.done ? 'done' : ''}">
         <input type="checkbox" ${item.done ? 'checked' : ''} onchange="this.closest('.cg-check-item').classList.toggle('done',this.checked);dcGuideCheck('${item.id}',this.checked)">
@@ -53499,87 +53414,89 @@ function dcRenderChartsGuideView() {
       </label>`).join('')}
     </div>
   </div>`;
-  h += `</section>`;
+  h += cgChapterEnd;
 
   /* ═══ 02 · THE TABS ═══════════════════════════════════════════ */
-  h += `<section class="cg-chapter">`;
-  h += chapterHead('tabs', 'Twelve tabs in two rows. The top row is charts over time; the bottom row is everything derived from them.');
-  tabRows.forEach(row => {
+  h += chapterHead('tabs');
+  (G.groups || []).forEach(row => {
     h += `<div class="cg-tabgroup">
       <div class="cg-tabgroup-title">${esc(row.group)}</div>
       <p class="cg-tabgroup-note">${esc(row.note)}</p>
       <div class="cg-tab-grid">
-        ${row.tabs.map(t => `<div class="dc-card cg-tab-card${t.period === 'chartsguide' ? ' current' : ''}">
-          <div class="cg-tab-head"><span class="cg-tab-icon">${cgNavIco(t.period)}</span><span class="cg-tab-name">${esc(t.name)}</span></div>
-          <p class="cg-tab-desc">${esc(t.desc)}</p>
-          <p class="cg-tab-use"><span>Best for</span> ${esc(t.use)}</p>
-          ${t.period === 'chartsguide' ? `<span class="cg-tab-here">You are here</span>` : `<button class="dc-btn dc-btn-normal dc-btn-sm cg-mini-btn" onclick="${goTab(t.period)}">Open ${esc(t.name)} →</button>`}
-        </div>`).join('')}
+        ${row.tabs.map(tb => {
+          const name = t(TAB_NAME_KEYS[tb.period]);
+          const desc = cgF(tb.desc, { sections: recSections });
+          return `<div class="dc-card cg-tab-card${tb.period === 'chartsguide' ? ' current' : ''}">
+          <div class="cg-tab-head"><span class="cg-tab-icon">${cgNavIco(tb.period)}</span><span class="cg-tab-name">${esc(name)}</span></div>
+          <p class="cg-tab-desc">${esc(desc)}</p>
+          <p class="cg-tab-use"><span>${esc(G.best_for)}</span> ${esc(tb.use)}</p>
+          ${tb.period === 'chartsguide' ? `<span class="cg-tab-here">${esc(G.you_are_here)}</span>` : `<button class="dc-btn dc-btn-normal dc-btn-sm cg-mini-btn" onclick="${goTab(tb.period)}">${esc(cgF(G.open_tab, { name }))} →</button>`}
+        </div>`;
+        }).join('')}
       </div>
     </div>`;
   });
-  h += `</section>`;
+  h += cgChapterEnd;
 
   /* ═══ 03 · HOW CHARTS WORK ════════════════════════════════════ */
-  h += `<section class="cg-chapter">`;
-  h += chapterHead('concepts', 'What the app is counting, how a period is cut, and what every badge on a chart row means.');
+  h += chapterHead('concepts');
   h += `<div class="cg-concept-grid">
-    ${concepts.map(c => `<div class="cg-concept">
+    ${(G.concepts || []).map(c => `<div class="cg-concept">
       <div class="cg-concept-icon">${c.icon}</div>
       <div class="cg-concept-title">${esc(c.title)}</div>
       <p class="cg-concept-body">${esc(c.body)}</p>
     </div>`).join('')}
   </div>`;
 
-  h += foldHead('glossary', 'Glossary — every term the app uses');
+  h += foldHead('glossary', G.glossary_head);
   h += `<div class="cg-collapsible" id="cg-glossary-body" style="display:none">
     <div class="cg-search-bar cg-ref-search-bar">
-      <input type="text" class="cg-search-input" placeholder="Filter terms…"
+      <input type="text" class="cg-search-input" placeholder="${esc(G.glossary_ph)}" aria-label="${esc(G.glossary_ph)}"
         oninput="dcGuideFilterList(this.value,'cgRefGlossary','cgGlossaryCount')" autocomplete="off">
       <span id="cgGlossaryCount" class="cg-ref-search-count"></span>
     </div>
     <div class="cg-gloss-grid" id="cgRefGlossary">
-      ${glossary.map(g => `<div class="cg-gloss-row" data-ref-text="${esc((g.term + ' ' + g.def).toLowerCase())}">
+      ${(G.glossary || []).map(g => `<div class="cg-gloss-row" data-ref-text="${esc((g.term + ' ' + g.def).toLowerCase())}">
         <div class="cg-gloss-term">${esc(g.term)}</div>
         <div class="cg-gloss-def">${esc(g.def)}</div>
       </div>`).join('')}
     </div>
   </div>`;
-  h += `</section>`;
+  h += cgChapterEnd;
 
-  /* ═══ 04 · TIPS & SHORTCUTS ═══════════════════════════════════ */
-  h += `<section class="cg-chapter">`;
-  h += chapterHead('tips', 'Everything with a key binding, then the things that are easy to miss entirely.');
+  /* ═══ 04 · TIPS & SHORTCUTS ═══════════════════════════════════
+     Kept disjoint on purpose: anything with a key or click behind it
+     belongs in the table, so the tips list is not the same advice again. */
+  h += chapterHead('tips');
   h += `<div class="cg-dual-row">
     <div class="dc-card cg-panel cg-shortcuts">
-      <div class="cg-panel-title">${cgIco('keys')}Keyboard & click shortcuts</div>
-      ${shortcuts.map(([keys, desc]) => `<div class="cg-shortcut-row">
+      <div class="cg-panel-title">${cgIco('keys')}${esc(G.shortcuts_title)}</div>
+      ${(G.shortcuts || []).map(([keys, desc]) => `<div class="cg-shortcut-row">
         <span class="cg-shortcut-keys">${esc(keys)}</span>
         <span class="cg-shortcut-desc">${esc(desc)}</span>
       </div>`).join('')}
     </div>
     <div class="dc-card cg-panel cg-gems">
-      <div class="cg-panel-title">${cgIco('gem')}Easy to miss</div>
-      ${tips.map(t => `<div class="cg-gem">• ${t}</div>`).join('')}
+      <div class="cg-panel-title">${cgIco('gem')}${esc(G.tips_title)}</div>
+      ${(G.tips || []).map(tip => `<div class="cg-gem">• ${tip}</div>`).join('')}
     </div>
   </div>`;
-  h += `</section>`;
+  h += cgChapterEnd;
 
   /* ═══ 05 · YOUR DATA ══════════════════════════════════════════ */
-  h += `<section class="cg-chapter">`;
-  h += chapterHead('yourdata', 'What the app has actually loaded about you — deliberately last, because none of it is documentation.');
+  h += chapterHead('yourdata');
 
   /* Deliberately omits Total Plays and Days Listened: both already sit in the
-     masthead stat strip a few hundred pixels up the page. */
+     chart page's stat tiles. */
   h += `<div class="cg-stats-row">
-    <div class="dc-card cg-stat-card"><span class="cg-stat-num">${uniqueArtists.toLocaleString()}</span><span class="cg-stat-lbl">Artists</span></div>
-    <div class="dc-card cg-stat-card"><span class="cg-stat-num">${uniqueTracks.toLocaleString()}</span><span class="cg-stat-lbl">Unique Tracks</span></div>
-    <div class="dc-card cg-stat-card"><span class="cg-stat-num">${uniqueAlbums.toLocaleString()}</span><span class="cg-stat-lbl">Albums</span></div>
-    <div class="dc-card cg-stat-card"><span class="cg-stat-num">${n ? yearsFmt : '—'}</span><span class="cg-stat-lbl">History</span></div>
-    <div class="dc-card cg-stat-card"><span class="cg-stat-num cg-stat-num-sm">${esc(firstFmt)}</span><span class="cg-stat-lbl">First Scrobble</span></div>
+    <div class="dc-card cg-stat-card"><span class="cg-stat-num">${uniqueArtists.toLocaleString(loc)}</span><span class="cg-stat-lbl">${esc(G.stat_artists)}</span></div>
+    <div class="dc-card cg-stat-card"><span class="cg-stat-num">${uniqueTracks.toLocaleString(loc)}</span><span class="cg-stat-lbl">${esc(G.stat_tracks)}</span></div>
+    <div class="dc-card cg-stat-card"><span class="cg-stat-num">${uniqueAlbums.toLocaleString(loc)}</span><span class="cg-stat-lbl">${esc(G.stat_albums)}</span></div>
+    <div class="dc-card cg-stat-card"><span class="cg-stat-num">${n ? esc(yearsFmt) : '—'}</span><span class="cg-stat-lbl">${esc(G.stat_history)}</span></div>
+    <div class="dc-card cg-stat-card"><span class="cg-stat-num cg-stat-num-sm">${esc(firstFmt)}</span><span class="cg-stat-lbl">${esc(G.stat_first)}</span></div>
   </div>`;
 
-  h += `<div class="cg-sub-label">Where to go next</div>
+  h += `<div class="cg-sub-label">${esc(G.next_title)}</div>
   <div class="cg-suggestions">
     ${suggestions.map(s => `<div class="cg-suggestion" onclick="${s.action}">
       <span class="cg-sugg-icon">${s.nav ? cgNavIco(s.nav) : cgIco(s.ico)}</span>
@@ -53588,48 +53505,47 @@ function dcRenderChartsGuideView() {
     </div>`).join('')}
   </div>`;
 
-  const todayFmt = today.toLocaleDateString('en', { month: 'long', day: 'numeric' });
+  const todayFmt = today.toLocaleDateString(loc, { month: 'long', day: 'numeric' });
   h += `<div class="cg-dual-row">
     <div class="dc-card cg-panel">
-      <div class="cg-panel-title">${cgIco('calendar')}On this day — ${esc(todayFmt)}</div>
+      <div class="cg-panel-title">${cgIco('calendar')}${esc(cgF(G.otd_title, { date: todayFmt }))}</div>
       ${onThisDay.length === 0
-        ? `<p class="cg-empty">${n === 0 ? 'Load your plays to see what you were listening to on this day in past years.' : 'No plays found on this date in previous years.'}</p>`
+        ? `<p class="cg-empty">${esc(n === 0 ? G.otd_empty_noplays : G.otd_empty)}</p>`
         : onThisDay.map(r => `<div class="cg-otd-row">
             <span class="cg-otd-year">${r.year}</span>
-            <span class="cg-otd-detail">${r.plays} plays · top: <strong>${esc(r.artist)}</strong> (${r.count}×)</span>
+            <span class="cg-otd-detail">${cgF(G.otd_row, { plays: esc(tCount('plays', r.plays)), artist: esc(r.artist), count: r.count })}</span>
           </div>`).join('')}
     </div>
     <div class="dc-card cg-panel">
-      <div class="cg-panel-title">${cgIco('clock')}Milestones</div>
+      <div class="cg-panel-title">${cgIco('clock')}${esc(G.ms_title)}</div>
       ${milestones.length === 0
-        ? `<p class="cg-empty">Load your plays to see your listening milestones.</p>`
+        ? `<p class="cg-empty">${esc(G.ms_empty)}</p>`
         : `<div class="cg-timeline">` + milestones.map(m => {
-            const df = m.date.toLocaleDateString('en', { year: 'numeric', month: 'short', day: 'numeric' });
+            const df = m.date.toLocaleDateString(loc, { year: 'numeric', month: 'short', day: 'numeric' });
             return `<div class="cg-tl-item">
               <div class="cg-tl-dot"></div>
               <div class="cg-tl-content">
                 <div class="cg-tl-label">${esc(m.label)}</div>
-                <div class="cg-tl-date">${df}</div>
+                <div class="cg-tl-date">${esc(df)}</div>
                 ${m.detail ? `<div class="cg-tl-detail">${m.detail}</div>` : ''}
               </div>
             </div>`;
           }).join('') + `</div>`}
     </div>
   </div>`;
-  h += `</section>`;
+  h += cgChapterEnd;
 
   /* ═══ 06 · HELP & MORE ════════════════════════════════════════ */
-  h += `<section class="cg-chapter">`;
-  h += chapterHead('help', 'Answers to the questions that come up most, how to get your charts out of the app, and what changed recently.');
+  h += chapterHead('help');
 
-  h += `<div class="cg-sub-label">Frequently asked</div>
+  h += `<div class="cg-sub-label">${esc(G.faq_title)}</div>
   <div class="cg-search-bar cg-ref-search-bar">
-    <input type="text" class="cg-search-input" placeholder="Search the FAQ…"
+    <input type="text" class="cg-search-input" placeholder="${esc(G.faq_ph)}" aria-label="${esc(G.faq_ph)}"
       oninput="dcGuideFilterList(this.value,'cgRefFaq','cgFaqCount')" autocomplete="off">
     <span id="cgFaqCount" class="cg-ref-search-count"></span>
   </div>
   <div class="cg-accordion" id="cgRefFaq">
-    ${faqs.map(f => `<div class="cg-acc-row" data-ref-text="${esc((f.q + ' ' + f.a).toLowerCase())}" onclick="this.classList.toggle('open')">
+    ${(G.faqs || []).map(f => `<div class="cg-acc-row" data-ref-text="${esc((f.q + ' ' + f.a).toLowerCase())}" onclick="this.classList.toggle('open')">
       <div class="cg-acc-head">
         <span class="cg-acc-name">${esc(f.q)}</span>
         <span class="cg-acc-chev">›</span>
@@ -53638,11 +53554,13 @@ function dcRenderChartsGuideView() {
     </div>`).join('')}
   </div>`;
 
-  h += foldHead('export', 'Export &amp; share');
+  /* Export walkthroughs: image card, Raw Data CSV, playlist */
+  const exportIcos = [cgIco('image', 'cg-ico cg-export-ico'), cgNavIco('rawdata', 'cg-ico cg-export-ico'), cgNavIco('playlists', 'cg-ico cg-export-ico')];
+  h += foldHead('export', G.export_head);
   h += `<div class="cg-collapsible" id="cg-export-body" style="display:none">
     <div class="cg-export-grid">
-      ${exportGuide.map(eg => `<div class="dc-card cg-panel">
-        <div class="cg-export-icon">${eg.ico}</div>
+      ${(G.export || []).map((eg, i) => `<div class="dc-card cg-panel">
+        <div class="cg-export-icon">${exportIcos[i] || ''}</div>
         <div class="cg-panel-title">${esc(eg.title)}</div>
         <ol class="cg-export-steps">${eg.steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol>
       </div>`).join('')}
@@ -53653,25 +53571,23 @@ function dcRenderChartsGuideView() {
      read once; a changelog is checked again and again, and burying the
      second kind inside the first is how it went unread. This is the
      signpost, and the count comes from the real list so it cannot go stale. */
-  h += `<div class="cg-sub-label">What's new</div>
+  h += `<div class="cg-sub-label">${esc(G.new_title)}</div>
   <div class="dc-card cg-panel cg-changelog-pointer">
-    <p>Every change to dankcharts.fm since April 2026 — ${
-      typeof DC_CHANGELOG !== 'undefined' ? DC_CHANGELOG.length : ''
-    } of them, searchable and filterable by what changed and where.</p>
-    <button class="dc-btn dc-btn-normal dc-btn-sm cg-mini-btn" onclick="openChangelog()">Open the changelog</button>
+    <p>${esc(cgF(G.new_text, { n: typeof DC_CHANGELOG !== 'undefined' ? DC_CHANGELOG.length.toLocaleString(loc) : '' }))}</p>
+    <button class="dc-btn dc-btn-normal dc-btn-sm cg-mini-btn" onclick="openChangelog()">${esc(G.new_btn)}</button>
   </div>`;
 
   const savedFeedback = (() => { try { return localStorage.getItem('dc_guide_feedback') || ''; } catch(e) { return ''; } })();
-  h += `<div class="cg-sub-label">Still stuck?</div>
+  h += `<div class="cg-sub-label">${esc(G.stuck_title)}</div>
   <div class="dc-card cg-panel cg-feedback">
-    <p class="cg-feedback-intro">Write an idea or a bug here and it is saved in this browser, waiting for you next visit. For anything that needs a reply, use Contact Support at the bottom of the page or email <a href="mailto:support@dankcharts.fm">support@dankcharts.fm</a>.</p>
-    <textarea id="cgFeedbackText" class="cg-feedback-textarea" rows="4" placeholder="Your idea or feedback…">${esc(savedFeedback)}</textarea>
+    <p class="cg-feedback-intro">${G.stuck_text}</p>
+    <textarea id="cgFeedbackText" class="cg-feedback-textarea" rows="4" placeholder="${esc(G.stuck_ph)}" aria-label="${esc(G.stuck_ph)}">${esc(savedFeedback)}</textarea>
     <div class="cg-feedback-row">
-      <button class="dc-btn dc-btn-normal dc-btn-sm cg-mini-btn" onclick="dcGuideSaveFeedback()">Save note</button>
+      <button class="dc-btn dc-btn-normal dc-btn-sm cg-mini-btn" onclick="dcGuideSaveFeedback()">${esc(G.stuck_save)}</button>
       <span id="cgFeedbackStatus" class="cg-feedback-status"></span>
     </div>
   </div>`;
-  h += `</section>`;
+  h += cgChapterEnd;
 
   h += `</div>`; // end .cg-view
   el.innerHTML = h;

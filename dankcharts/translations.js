@@ -15872,6 +15872,8 @@ function setLanguage(lang) {
   if (typeof awardsOnLanguageChange === 'function') awardsOnLanguageChange();
   // Your Soundtrack (its chapter headlines and an open "Play your year")
   if (typeof stOnLanguageChange === 'function') stOnLanguageChange();
+  // The Charts Guide (its words come from charts-guide-i18n.js)
+  if (typeof dcRenderChartsGuideView === 'function' && typeof currentPeriod !== 'undefined' && currentPeriod === 'chartsguide') dcRenderChartsGuideView();
   // Playlists (its page is drawn in JS)
   if (typeof dcRenderPlaylistsView === 'function' && typeof currentPeriod !== 'undefined' && currentPeriod === 'playlists') dcRenderPlaylistsView();
   // and the calendar ("+N more", the Day view's cards)
