@@ -45,30 +45,50 @@
     });
   }
 
+  // Same layout as the site's shared window frame (phase 10 step 2): icon
+  // tile, title and ✕ on top, the fields in the middle, Cancel left and Send
+  // right at the bottom. Written out here because the setup guide loads this
+  // file without style.css. On a phone (style.css's pop-up engine) the box
+  // becomes a bottom sheet.
+  var MAIL = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>';
+  var CHECK = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>';
+  var XICO = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>';
   var CSS = '' +
-    '.dc-sup-overlay{position:fixed;inset:0;z-index:100000;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}' +
+    '.dc-sup-overlay{position:fixed;inset:0;z-index:100000;display:none;align-items:center;justify-content:center;padding:16px;background:var(--scrim,rgba(0,0,0,.55));backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}' +
     '.dc-sup-overlay.open{display:flex}' +
-    '.dc-sup-box{position:relative;width:100%;max-width:440px;max-height:calc(100vh - 32px);overflow:auto;box-sizing:border-box;padding:24px;border-radius:16px;' +
-      'background:var(--bg2,#141c2b);color:var(--text,#fff);border:1px solid var(--border,rgba(255,255,255,.12));box-shadow:0 20px 60px rgba(0,0,0,.45);font-family:var(--font-sans,system-ui,sans-serif)}' +
-    '.dc-sup-box h2{margin:0 0 6px;font-family:var(--font-display,inherit);font-size:1.3rem}' +
-    '.dc-sup-intro{margin:0 0 16px;color:var(--text2,rgba(255,255,255,.7));font-size:.9rem;line-height:1.45}' +
-    '.dc-sup-close{position:absolute;top:10px;right:12px;width:32px;height:32px;border:0;border-radius:8px;background:transparent;color:var(--text2,rgba(255,255,255,.7));font-size:1.2rem;cursor:pointer}' +
-    '.dc-sup-close:hover{background:var(--bg3,rgba(255,255,255,.08))}' +
-    '.dc-sup-box label{display:block;margin:0 0 4px;font-size:.8rem;font-weight:600;color:var(--text2,rgba(255,255,255,.7))}' +
-    '.dc-sup-box input,.dc-sup-box textarea{display:block;width:100%;box-sizing:border-box;margin:0 0 14px;padding:10px 12px;border-radius:10px;font:inherit;font-size:.95rem;' +
-      'background:var(--bg3,rgba(255,255,255,.06));color:var(--text,#fff);border:1px solid var(--border,rgba(255,255,255,.15))}' +
-    '.dc-sup-box textarea{min-height:140px;resize:vertical}' +
-    '.dc-sup-box input:focus,.dc-sup-box textarea:focus{outline:2px solid var(--accent,#58aaf6);outline-offset:1px}' +
+    '.dc-sup-box{position:relative;display:flex;flex-direction:column;width:100%;max-width:460px;max-height:calc(100vh - 32px);overflow:hidden;box-sizing:border-box;padding:0;border-radius:16px;' +
+      'background:var(--bg2,#141c2b);color:var(--text,#fff);border:1px solid var(--border2,rgba(255,255,255,.14));box-shadow:0 24px 64px rgba(0,0,0,.45);font-family:var(--font-sans,system-ui,sans-serif)}' +
+    '.dc-sup-head{display:flex;gap:12px;align-items:flex-start;padding:20px 20px 14px}' +
+    '.dc-sup-ico{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;color:var(--accent,#58aaf6);background:color-mix(in srgb,var(--accent,#58aaf6) 14%,transparent)}' +
+    '.dc-sup-titles{flex:1;min-width:0}' +
+    '.dc-sup-box h2{margin:1px 0 0;font-size:1.1rem;font-weight:700;line-height:1.25}' +
+    '.dc-sup-intro{margin:3px 0 0;color:var(--text3,rgba(255,255,255,.6));font-size:.875rem;line-height:1.45}' +
+    '.dc-sup-close{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;margin:-4px -6px 0 0;border:0;border-radius:6px;background:transparent;color:var(--text2,rgba(255,255,255,.7));cursor:pointer}' +
+    '.dc-sup-close:hover{background:var(--bg3,rgba(255,255,255,.08));color:var(--text,#fff)}' +
+    '.dc-sup-body{flex:1;min-height:0;overflow-y:auto;padding:0 20px 18px}' +
+    '.dc-sup-box label{display:block;margin:0 0 6px;font-size:.75rem;font-weight:600;color:var(--text2,rgba(255,255,255,.7))}' +
+    '.dc-sup-box input,.dc-sup-box textarea{display:block;width:100%;box-sizing:border-box;margin:0 0 16px;padding:9px 12px;border-radius:6px;font:inherit;font-size:.9rem;' +
+      'background:var(--bg3,rgba(255,255,255,.06));color:var(--text,#fff);border:1px solid var(--border,rgba(255,255,255,.15));transition:border-color .15s,box-shadow .15s}' +
+    '.dc-sup-box textarea{min-height:150px;resize:vertical;line-height:1.5;margin-bottom:0}' +
+    '.dc-sup-box input:focus,.dc-sup-box textarea:focus{outline:none;border-color:var(--accent,#58aaf6);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent,#58aaf6) 22%,transparent)}' +
+    '.dc-sup-count{margin:6px 0 0;text-align:right;font-size:.72rem;color:var(--text3,rgba(255,255,255,.5))}' +
     // Honeypot: real people never see or fill it, bots usually do.
     '.dc-sup-hp{position:absolute!important;left:-9999px!important;width:1px;height:1px;overflow:hidden}' +
-    '.dc-sup-send{width:100%;padding:11px 16px;border:0;border-radius:10px;font:inherit;font-weight:700;cursor:pointer;' +
-      'background:var(--accent,#58aaf6);color:var(--on-accent,var(--btn-ink,#fff))}' +
-    '.dc-sup-send[disabled]{opacity:.6;cursor:default}' +
-    '.dc-sup-status{margin:12px 0 0;font-size:.88rem;line-height:1.45;min-height:1em}' +
+    '.dc-sup-foot{display:flex;gap:8px;align-items:center;justify-content:flex-end;padding:12px 20px;border-top:1px solid var(--border,rgba(255,255,255,.12));background:color-mix(in srgb,var(--bg3,#1b2435) 55%,transparent)}' +
+    '.dc-sup-foot .dc-sup-cancel{margin-right:auto}' +
+    '.dc-sup-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:36px;padding:0 16px;border:1px solid transparent;border-radius:6px;font:inherit;font-size:.875rem;font-weight:500;cursor:pointer;background:transparent;color:var(--text2,rgba(255,255,255,.75))}' +
+    '.dc-sup-btn:hover{background:var(--bg3,rgba(255,255,255,.08));color:var(--text,#fff)}' +
+    '.dc-sup-send{font-weight:700;background:var(--accent,#58aaf6);color:var(--on-accent,var(--btn-ink,#fff))}' +
+    '.dc-sup-send:hover{background:var(--accent,#58aaf6);color:var(--on-accent,#fff);filter:brightness(1.12)}' +
+    '.dc-sup-send[disabled]{opacity:.6;cursor:default;filter:none}' +
+    '.dc-sup-status{margin:12px 0 0;font-size:.85rem;line-height:1.45}' +
+    '.dc-sup-status:empty{display:none}' +
     '.dc-sup-status.err{color:var(--rose,#f87171)}' +
-    '.dc-sup-done{text-align:center;padding:12px 0 4px}' +
-    '.dc-sup-done p{color:var(--text2,rgba(255,255,255,.7));line-height:1.45}' +
-    '.dc-sup-box a{color:var(--accent,#58aaf6)}';
+    '.dc-sup-done{display:flex;flex-direction:column;align-items:center;text-align:center;padding:12px 24px 8px}' +
+    '.dc-sup-done-ico{display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:50%;margin-bottom:12px;color:var(--green,#34d399);background:color-mix(in srgb,var(--green,#34d399) 14%,transparent)}' +
+    '.dc-sup-done p{margin:6px 0 0;color:var(--text2,rgba(255,255,255,.7));line-height:1.5;font-size:.9rem}' +
+    '.dc-sup-box a{color:var(--accent,#58aaf6)}' +
+    '@media (max-width:640px){.dc-sup-foot .dc-sup-btn{height:40px}.dc-sup-foot .dc-sup-send{flex:1}}';
 
   var overlay = null;
 
@@ -96,21 +116,36 @@
   function renderForm() {
     var user = signedInUser();
     overlay.innerHTML =
-      '<form class="dc-sup-box" novalidate>' +
-        '<button type="button" class="dc-sup-close" aria-label="' + esc(tr('sup_close', 'Close')) + '">✕</button>' +
-        '<h2 id="dcSupTitle">' + esc(tr('sup_title', 'Contact Support')) + '</h2>' +
-        '<p class="dc-sup-intro">' + esc(tr('sup_intro', 'Found a bug, have a question or an idea? Send it here and we will reply by email.')) + '</p>' +
-        '<label for="dcSupEmail">' + esc(tr('sup_email', 'Your email')) + '</label>' +
-        '<input id="dcSupEmail" type="email" name="email" autocomplete="email" required value="' + esc(user && user.email ? user.email : '') + '">' +
-        '<label for="dcSupMsg">' + esc(tr('sup_message', 'Message')) + '</label>' +
-        '<textarea id="dcSupMsg" name="message" required maxlength="5000"></textarea>' +
-        '<div class="dc-sup-hp" aria-hidden="true"><input type="checkbox" name="botcheck" tabindex="-1" autocomplete="off"></div>' +
-        '<button type="submit" class="dc-sup-send">' + esc(tr('sup_send', 'Send message')) + '</button>' +
-        '<p class="dc-sup-status" role="status"></p>' +
+      '<form class="dc-sup-box dc-modal" novalidate>' +
+        '<div class="dc-sup-head">' +
+          '<span class="dc-sup-ico">' + MAIL + '</span>' +
+          '<div class="dc-sup-titles">' +
+            '<h2 id="dcSupTitle">' + esc(tr('sup_title', 'Contact Support')) + '</h2>' +
+            '<p class="dc-sup-intro">' + esc(tr('sup_intro', 'Found a bug, have a question or an idea? Send it here and we will reply by email.')) + '</p>' +
+          '</div>' +
+          '<button type="button" class="dc-sup-close" aria-label="' + esc(tr('sup_close', 'Close')) + '">' + XICO + '</button>' +
+        '</div>' +
+        '<div class="dc-sup-body">' +
+          '<label for="dcSupEmail">' + esc(tr('sup_email', 'Your email')) + '</label>' +
+          '<input id="dcSupEmail" type="email" name="email" autocomplete="email" required value="' + esc(user && user.email ? user.email : '') + '">' +
+          '<label for="dcSupMsg">' + esc(tr('sup_message', 'Message')) + '</label>' +
+          '<textarea id="dcSupMsg" name="message" required maxlength="5000"></textarea>' +
+          // how much room is left, so a long report never hits the limit unseen
+          '<p class="dc-sup-count" aria-hidden="true">0 / ' + (5000).toLocaleString() + '</p>' +
+          '<div class="dc-sup-hp" aria-hidden="true"><input type="checkbox" name="botcheck" tabindex="-1" autocomplete="off"></div>' +
+          '<p class="dc-sup-status" role="status"></p>' +
+        '</div>' +
+        '<div class="dc-sup-foot">' +
+          '<button type="button" class="dc-sup-btn dc-sup-cancel">' + esc(tr('btn_cancel', 'Cancel')) + '</button>' +
+          '<button type="submit" class="dc-sup-btn dc-sup-send">' + esc(tr('sup_send', 'Send message')) + '</button>' +
+        '</div>' +
       '</form>';
 
     var form = overlay.querySelector('form');
     form.querySelector('.dc-sup-close').addEventListener('click', closeSupport);
+    form.querySelector('.dc-sup-cancel').addEventListener('click', closeSupport);
+    var msg = form.querySelector('#dcSupMsg'), count = form.querySelector('.dc-sup-count');
+    msg.addEventListener('input', function () { count.textContent = msg.value.length.toLocaleString() + ' / ' + (5000).toLocaleString(); });
     form.addEventListener('submit', function (e) { e.preventDefault(); send(form); });
   }
 
@@ -170,13 +205,17 @@
       .then(function (res) {
         if (!res || !res.success) throw new Error(res && res.message || 'send failed');
         overlay.querySelector('.dc-sup-box').innerHTML =
-          '<button type="button" class="dc-sup-close" aria-label="' + esc(tr('sup_close', 'Close')) + '">✕</button>' +
+          '<div class="dc-sup-head" style="padding-bottom:0"><span style="flex:1"></span>' +
+            '<button type="button" class="dc-sup-close" aria-label="' + esc(tr('sup_close', 'Close')) + '">' + XICO + '</button></div>' +
           '<div class="dc-sup-done">' +
+            '<span class="dc-sup-done-ico">' + CHECK + '</span>' +
             '<h2 id="dcSupTitle">' + esc(tr('sup_sent_title', 'Message sent')) + '</h2>' +
             '<p>' + esc(tr('sup_sent_text', 'Thanks! We will reply to {{email}} as soon as we can.').replace('{{email}}', email)) + '</p>' +
-            '<button type="button" class="dc-sup-send">' + esc(tr('sup_close', 'Close')) + '</button>' +
+          '</div>' +
+          '<div class="dc-sup-foot" style="border-top:0;background:none">' +
+            '<button type="button" class="dc-sup-btn dc-sup-send dc-sup-done-btn" style="flex:1">' + esc(tr('sup_close', 'Close')) + '</button>' +
           '</div>';
-        overlay.querySelectorAll('.dc-sup-close, .dc-sup-done .dc-sup-send').forEach(function (b) {
+        overlay.querySelectorAll('.dc-sup-close, .dc-sup-done-btn').forEach(function (b) {
           b.addEventListener('click', closeSupport);
         });
       })

@@ -876,6 +876,234 @@
         background: var(--border2);
       }
     }
+    /* ═══════════════════════════════════════════════════════════════
+       SHARED WINDOW FRAME — phase 10 step 2
+       The inside of a pop-up window, the same everywhere:
+         .dc-frame            on the .dc-modal box (no padding of its own)
+           .dc-frame-head     icon tile · title + subtitle · ✕
+             .dc-frame-icon   <span data-ico="name"> (popups.js draws it)
+             .dc-frame-title / .dc-frame-sub
+           .dc-frame-body     scrolls; the head and foot stay put
+           .dc-frame-foot     secondary actions left, the main one right
+                              (.dc-frame-foot-start pushes the rest right)
+       Inside a body: .dc-frame-lead (the intro line), .dc-field (label +
+       control), .dc-input (any text box / select), .dc-list + .dc-list-row
+       (a list of entries with an action), .dc-empty (nothing here yet).
+       ═══════════════════════════════════════════════════════════════ */
+    .dc-modal.dc-frame {
+      display: flex;
+      flex-direction: column;
+      padding: 0;
+      overflow: hidden;
+      max-height: calc(100dvh - 2 * var(--sp-6));
+    }
+    .dc-frame-head {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--sp-3);
+      padding: var(--sp-5) var(--sp-5) var(--sp-4);
+      flex-shrink: 0;
+    }
+    .dc-frame-icon {
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: var(--r-md);
+      background: color-mix(in srgb, var(--accent) 14%, transparent);
+      color: var(--accent);
+    }
+    .dc-frame-icon svg { width: 20px; height: 20px; }
+    .dc-frame-icon.is-danger { background: color-mix(in srgb, var(--rose) 14%, transparent); color: var(--rose); }
+    .dc-frame-titles { flex: 1; min-width: 0; padding-top: 1px; }
+    .dc-frame-title {
+      margin: 0;
+      font-family: var(--font-sans);
+      font-size: var(--fs-md);
+      font-weight: 700;
+      line-height: 1.3;
+      letter-spacing: -0.01em;
+      color: var(--text);
+      overflow-wrap: anywhere;
+    }
+    .dc-frame-sub {
+      margin: 3px 0 0;
+      font-size: var(--fs-sm);
+      line-height: 1.4;
+      color: var(--text3);
+      overflow-wrap: anywhere;
+    }
+    .dc-frame-sub:empty { display: none; }
+    .dc-frame-head .dc-modal-close { margin: -4px -6px 0 0; }
+    .dc-frame-body {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      padding: 0 var(--sp-5) var(--sp-5);
+    }
+    .dc-frame-foot {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+      gap: var(--sp-2);
+      padding: var(--sp-3) var(--sp-5);
+      border-top: 1px solid var(--border);
+      background: color-mix(in srgb, var(--bg3) 55%, transparent);
+      flex-shrink: 0;
+    }
+    .dc-frame-foot-start { margin-right: auto; display: flex; flex-wrap: wrap; gap: var(--sp-2); align-items: center; }
+    .dc-frame-lead {
+      margin: 0 0 var(--sp-4);
+      font-size: var(--fs-sm);
+      line-height: 1.55;
+      color: var(--text2);
+    }
+    .dc-frame-note {
+      margin: var(--sp-3) 0 0;
+      font-size: var(--fs-xs);
+      line-height: 1.5;
+      color: var(--text3);
+    }
+
+    /* A label over its control */
+    .dc-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: var(--sp-4); }
+    .dc-field > span:first-child { font-size: var(--fs-xs); font-weight: 600; color: var(--text2); }
+    .dc-field-row { display: flex; gap: var(--sp-2); align-items: center; }
+    .dc-field-row > .dc-input { flex: 1; min-width: 0; }
+    .dc-input {
+      height: 38px;
+      width: 100%;
+      box-sizing: border-box;
+      padding: 0 var(--sp-3);
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: var(--fs-sm);
+      transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+    }
+    select.dc-input { width: auto; padding-right: var(--sp-6); cursor: pointer; }
+    textarea.dc-input { height: auto; min-height: 96px; padding: var(--sp-2) var(--sp-3); resize: vertical; line-height: 1.5; }
+    .dc-input::placeholder { color: var(--text3); }
+    .dc-input:hover { border-color: var(--border2); }
+    .dc-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
+    /* A search box: magnifier inside on the left */
+    .dc-search { position: relative; }
+    .dc-search > svg, .dc-search > [data-ico] { position: absolute; left: 11px; top: 50%; width: 16px; height: 16px; margin-top: -8px; color: var(--text3); pointer-events: none; }
+    .dc-search > [data-ico] svg { width: 16px; height: 16px; }
+    .dc-field-gap { margin-bottom: var(--sp-4); }
+    .dc-search > .dc-input { padding-left: 34px; }
+
+    /* A tick box with its words, the whole row clickable */
+    .dc-check { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; font-size: var(--fs-sm); color: var(--text2); cursor: pointer; line-height: 1.45; }
+    .dc-check input { width: 16px; height: 16px; margin: 2px 0 0; accent-color: var(--accent); flex-shrink: 0; cursor: pointer; }
+
+    /* A list of entries, each with its action on the right */
+    .dc-list { border: 1px solid var(--border); border-radius: var(--r-md); overflow: hidden; }
+    .dc-list:empty { display: none; }
+    .dc-list-row {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-3);
+      padding: 10px var(--sp-3);
+      border-top: 1px solid var(--border);
+      transition: background var(--t-fast) var(--ease);
+    }
+    .dc-list-row:first-child { border-top: 0; }
+    .dc-list-row:hover { background: var(--hover); }
+    .dc-list-main { flex: 1; min-width: 0; line-height: 1.4; }
+    .dc-list-title { display: block; font-size: var(--fs-sm); font-weight: 600; color: var(--text); overflow-wrap: anywhere; }
+    .dc-list-sub { display: block; font-size: var(--fs-xs); color: var(--text3); overflow-wrap: anywhere; }
+    .dc-list-sub b { color: var(--accent); font-weight: 600; }
+    .dc-list-head { padding: 8px var(--sp-3) 6px; font-size: var(--fs-xs); font-weight: 600; color: var(--text3); background: var(--bg3); border-top: 1px solid var(--border); }
+    .dc-list-head:first-child { border-top: 0; }
+
+    /* Nothing here yet: a soft icon and one line */
+    .dc-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--sp-2);
+      padding: var(--sp-6) var(--sp-4);
+      text-align: center;
+      font-size: var(--fs-sm);
+      color: var(--text3);
+      line-height: 1.5;
+    }
+    .dc-empty svg { width: 28px; height: 28px; color: var(--text3); opacity: 0.7; }
+
+    /* Sizes: forms are 460px (their own box class); lists get more room */
+    .dc-modal.dc-frame-wide { max-width: 600px; }
+    .dc-frame-icon.is-warn { background: color-mix(in srgb, var(--gold, #f5b301) 16%, transparent); color: var(--gold, #f5b301); }
+
+    /* An icon drawn by dcIco() / data-ico, wherever it lands */
+    .dc-ico { width: 1em; height: 1em; flex-shrink: 0; }
+    .dc-btn .dc-ico, .dc-btn [data-ico] svg { width: 16px; height: 16px; }
+    .dc-btn-sm .dc-ico { width: 14px; height: 14px; }
+    [data-ico] { display: inline-flex; align-items: center; }
+    .dc-modal-close .dc-ico { width: 18px; height: 18px; }
+
+    /* "Changes save as you go" in a footer with only Close */
+    .dc-frame-saved { gap: 6px; font-size: var(--fs-xs); color: var(--text3); }
+    .dc-frame-saved svg { width: 14px; height: 14px; color: var(--green, #22c55e); }
+
+    /* A message inside a window (not connected, link created…) */
+    .dc-frame-callout {
+      display: flex;
+      gap: var(--sp-2);
+      align-items: flex-start;
+      margin-top: var(--sp-3);
+      padding: var(--sp-3);
+      border-radius: var(--r-md);
+      background: var(--raised);
+      font-size: var(--fs-sm);
+      line-height: 1.5;
+      color: var(--text2);
+    }
+    .dc-frame-callout svg { width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px; color: var(--text3); }
+
+    /* Waiting on something */
+    .dc-spinner {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      border: 2px solid var(--border2);
+      border-top-color: var(--accent);
+      animation: dcSpin 0.8s linear infinite;
+    }
+    @keyframes dcSpin { to { transform: rotate(360deg); } }
+
+    /* Auto-correct rule rows: the old name dim, the new one with an arrow */
+    .rule-was { color: var(--text2); }
+    .rule-now { display: flex; align-items: center; gap: 4px; }
+    .rule-arrow { width: 14px; height: 14px; color: var(--accent); flex-shrink: 0; }
+    .similar-rule-pick { flex: 1; min-width: 0; padding: 0; }
+    .similar-rule-pick .dc-list-main { display: flex; flex-direction: column; }
+    .rt-add-row { flex-wrap: wrap; }
+    .rt-add-row > .dc-input:first-child { flex: 1 1 200px; }
+    @media (max-width: 640px) {
+      .rt-add-row > .dc-input:first-child { flex-basis: 100%; }
+      .rt-add-row > select.dc-input { flex: 1; }
+    }
+
+    @media (max-width: 640px) {
+      /* The sheet itself does not scroll: its body does, between head and foot
+         (also the share windows and Contact Support, which have their own) */
+      .dc-pop.dc-pop > .dc-frame,
+      .dc-pop.dc-pop > .ig-modal-box,
+      .dc-pop.dc-pop > .dc-sup-box { overflow: hidden; max-height: calc(100dvh - var(--sp-6)); }
+      .dc-frame-head { padding: var(--sp-5) var(--sp-4) var(--sp-3); touch-action: none; }
+      .dc-frame-body { padding: 0 var(--sp-4) var(--sp-4); }
+      .dc-frame-foot { padding: var(--sp-3) var(--sp-4); }
+      /* thumb-sized buttons, the main action filling the row */
+      .dc-frame-foot .dc-btn { height: 40px; }
+      .dc-frame-foot > .dc-btn-main { flex: 1; }
+    }
+
     @keyframes dcSheetUp { from { transform: translateY(100%); } }
     @keyframes dcSheetDown { to { transform: translateY(100%); } }
 
@@ -6583,145 +6811,58 @@
       }
     }
 
-    /* ── IMAGE PICKER POPOVER ─────────────────────────────────── */
+    /* ── IMAGE PICKER POPOVER ───────────────────────────────────
+       On the shared window frame since phase 10 step 2 (backdrop and
+       motion from popups.js). The picture in use sits in the header's
+       icon tile; each source is a titled row of 72px choices. */
     .imgpk-overlay {
       position: fixed;
       inset: 0;
       z-index: 1200;
-      background: rgba(4, 8, 14, 0.7);
-      backdrop-filter: blur(3px);
       display: flex;
       align-items: center;
       justify-content: center;
       padding: var(--sp-4);
     }
-
-    .imgpk-panel {
-      width: min(560px, 100%);
-      max-height: min(80vh, 640px);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden; }
-
-    .imgpk-head {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 10px;
-      padding: var(--sp-3) 14px 10px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .imgpk-title {
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      color: var(--text3);
-      margin-bottom: 3px;
-    }
-
-    .imgpk-item {
-      font-weight: 700;
-      color: var(--text);
-      font-size: var(--fs-base);
-      line-height: 1.3;
-    }
-
-    .imgpk-item-sub {
-      font-weight: 400;
-      color: var(--text2);
-      font-size: var(--fs-sm);
-    }
-
-    .imgpk-close {
-      flex-shrink: 0; }
-
-
-
-    .imgpk-body {
-      overflow-y: auto;
-      padding: 10px 14px;
-      display: flex;
-      flex-direction: column;
-      gap: var(--sp-3);
-    }
-
+    .dc-modal.imgpk-panel { width: min(580px, 100%); max-height: min(86vh, 720px); }
+    .imgpk-now { overflow: hidden; padding: 0; }
+    .imgpk-now img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .imgpk-now.is-round { border-radius: 50%; }
+    .imgpk-body { display: flex; flex-direction: column; gap: var(--sp-4); }
     .imgpk-src-label {
       font-family: var(--font-sans);
       font-size: var(--fs-xs);
-      color: var(--text3);
-      margin-bottom: 6px;
+      font-weight: 600;
+      color: var(--text2);
+      margin-bottom: var(--sp-2);
     }
-
-    .imgpk-tiles {
-      display: flex;
-      flex-wrap: wrap;
-      gap: var(--sp-2);
-    }
-
+    .imgpk-tiles { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
     .imgpk-tile {
-      width: 72px;
-      height: 72px;
+      width: 76px;
+      height: 76px;
       padding: 0;
-      border: 2px solid var(--border);
-      border-radius: var(--r-sm);
+      border: 2px solid transparent;
+      border-radius: var(--r-md);
       overflow: hidden;
       background: var(--surface);
       cursor: pointer;
-      transition: border-color 0.15s, transform 0.12s;
+      box-shadow: 0 0 0 1px var(--border);
+      transition: box-shadow var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
     }
-
-    .imgpk-tile img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    .imgpk-tile:hover {
-      border-color: var(--accent);
-      transform: scale(1.04);
-    }
-
-    .imgpk-tile--current {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 2px var(--accent);
-    }
-
+    .imgpk-tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .imgpk-tile:hover { transform: translateY(-2px); box-shadow: 0 0 0 2px var(--accent), var(--shadow-2); }
+    .imgpk-tile:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--accent); }
+    .imgpk-tile--current { box-shadow: 0 0 0 3px var(--accent); }
     .imgpk-loading,
     .imgpk-empty {
-      font-size: var(--fs-xs);
-      color: var(--text3);
-      font-style: italic;
-      padding: var(--sp-1) 0;
-    }
-
-    .imgpk-foot {
       display: flex;
       align-items: center;
-      gap: 6px;
-      padding: 10px 14px var(--sp-3);
-      border-top: 1px solid var(--border);
-      flex-wrap: wrap;
-    }
-
-
-
-    .imgpk-url-input {
-      flex: 1 1 140px;
-      min-width: 0;
-      padding: 5px var(--sp-2);
+      gap: var(--sp-2);
       font-size: var(--fs-xs);
-      font-family: var(--font-sans);
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r-xs);
-      color: var(--text);
-      outline: none;
+      color: var(--text3);
+      padding: var(--sp-1) 0;
     }
-
-    .imgpk-url-input:focus {
-      border-color: var(--accent);
-    }
+    .imgpk-loading .dc-spinner { width: 14px; height: 14px; }
 
     /* ==========================================================================
        STATS SECTION — three-tier hierarchy (2026 redesign)
@@ -8816,216 +8957,52 @@
 
 
 
-    /* ADD TO PLAYLIST PICKER — shared modal (see dcOpenPlaylistPicker) */
-    .dc-plpick-box {
-      /* .modal-close is position:absolute — without this it anchors to the
-         overlay and lands in the corner of the viewport instead of the box. */
-      position: relative;
-      max-width: 400px;
-      margin: 0 auto;
-      padding: 1.35rem 1.35rem 1.15rem; }
-
-    .dc-plpick-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: var(--sp-3);
-      margin-bottom: 0.55rem;
-    }
-
-    .dc-plpick-title {
-      font-family: var(--font-sans);
-      font-size: var(--fs-sm);
-      font-weight: bold;
-      color: var(--text);
-    }
-
-    .dc-plpick-sub {
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      color: var(--text3);
-      margin-bottom: 0.9rem;
-    }
-
-    /* "＋ New playlist…" — the create path, kept above the existing ones so it
-       stays reachable when the list below is long enough to scroll. */
-    .dc-plpick-new {
-      display: block;
-      width: 100%;
-      background: var(--accent);
-      border: none;
-      border-radius: var(--r-sm);
-      color: var(--on-accent);
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      font-weight: bold;
-      text-align: left;
-      padding: 0.55rem var(--sp-3);
-      margin-bottom: 0.6rem;
-      cursor: pointer;
-      transition: opacity 0.12s;
-    }
-
-    .dc-plpick-new:hover { opacity: 0.85; }
-
-    /* Secondary to "New playlist": same shape, outlined, for the Soundiiz text export */
-    .dc-plpick-text {
-      display: block;
-      width: 100%;
-      background: transparent;
-      border: 1px solid var(--border);
-      border-radius: var(--r-sm);
-      color: var(--text2);
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      text-align: left;
-      padding: var(--sp-2) var(--sp-3);
-      margin: -0.25rem 0 0.6rem;
-      cursor: pointer;
-      transition: border-color 0.12s, color 0.12s;
-    }
-    .dc-plpick-text:hover { border-color: var(--accent); color: var(--text1); }
-
-    .dc-plpick-list {
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-      max-height: 280px;
-      overflow-y: auto;
-    }
-
-    .dc-plpick-item {
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-      width: 100%;
-      background: var(--surface);
-      border: 1px solid var(--border2);
-      border-radius: var(--r-sm);
-      color: var(--text);
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      text-align: left;
-      padding: 0.45rem 0.6rem;
-      cursor: pointer;
-      transition: border-color 0.12s, color 0.12s;
-    }
-
-    .dc-plpick-item:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-
-    .dc-plpick-item-name {
-      flex: 1;
-      min-width: 0;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    /* Current length of the playlist */
-    .dc-plpick-item-count {
-      flex-shrink: 0;
-      font-size: var(--fs-xs);
-      color: var(--text3);
-    }
-
-    /* How many staged tracks this playlist would actually gain */
-    .dc-plpick-item-add {
-      flex-shrink: 0;
-      min-width: 2.1em;
-      text-align: right;
-      font-size: var(--fs-xs);
-      font-weight: bold;
-      color: var(--accent);
-    }
-
-    /* Already holds every staged track — still clickable, just clearly a no-op */
-    .dc-plpick-item-full { opacity: 0.5; }
-    .dc-plpick-item-full .dc-plpick-item-add { color: var(--text3); }
-
-    .dc-plpick-empty {
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      color: var(--text3);
-      text-align: center;
-      padding: 0.9rem 0 0.4rem;
-    }
-
-    .dc-plpick-back {
-      display: block;
+    /* ADD TO PLAYLIST PICKER — shared modal (see dcOpenPlaylistPicker).
+       On the shared window frame since phase 10 step 2: New playlist and
+       Copy as text side by side, then one row per playlist with how many of
+       the songs it would gain (✓ when it has them all). */
+    .dc-plpick-box { max-width: 420px; }
+    .dc-plpick-actions { display: flex; gap: var(--sp-2); margin-bottom: var(--sp-3); flex-wrap: wrap; }
+    .dc-plpick-actions .dc-plpick-new { flex: 1; }
+    .dc-plpick-list { max-height: min(50vh, 380px); overflow-y: auto; }
+    button.dc-list-row {
       width: 100%;
       background: none;
-      border: none;
-      border-bottom: 1px solid var(--border2);
-      border-radius: 0;
-      color: var(--text3);
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
+      border-left: 0;
+      border-right: 0;
+      border-bottom: 0;
+      font: inherit;
+      color: inherit;
       text-align: left;
-      padding: 0 0 0.45rem;
-      margin-bottom: 0.7rem;
       cursor: pointer;
-      transition: color 0.12s;
     }
-
-    .dc-plpick-back:hover { color: var(--accent); }
-
-    .dc-plpick-input {
-      width: 100%;
-      box-sizing: border-box;
-      background: var(--surface);
-      border: 1px solid var(--border2);
+    button.dc-list-row:first-child { border-top: 0; }
+    button.dc-list-row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+    .dc-plpick-item-ico {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 34px; height: 34px; flex-shrink: 0;
       border-radius: var(--r-sm);
-      color: var(--text);
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      padding: var(--sp-2) var(--sp-3);
-      outline: none;
-      transition: border-color 0.12s;
-    }
-
-    .dc-plpick-input:focus { border-color: var(--accent); }
-
-    /* First few staged tracks, so the user can confirm they grabbed the right set */
-    .dc-plpick-preview {
-      margin: 0.7rem 0 0.9rem;
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
+      background: var(--raised);
       color: var(--text2);
     }
-
-    .dc-plpick-preview-row {
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      padding: 0.1rem 0;
-    }
-
-    .dc-plpick-preview-row span { color: var(--text3); }
-
-    .dc-plpick-preview-more {
-      color: var(--text3);
-      padding-top: 0.15rem;
-    }
-
-    .dc-plpick-create {
-      display: block;
-      width: 100%;
-      background: var(--accent);
-      border: none;
+    .dc-plpick-item-ico svg { width: 18px; height: 18px; }
+    .dc-plpick-item-add {
+      display: inline-flex; align-items: center; gap: 3px;
+      height: 26px; padding: 0 10px;
       border-radius: var(--r-sm);
-      color: var(--on-accent);
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      font-weight: bold;
-      padding: var(--sp-2) 0.9rem;
-      cursor: pointer;
-      transition: opacity 0.12s;
+      font-size: var(--fs-xs); font-weight: 700;
+      color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 12%, transparent);
+      flex-shrink: 0;
     }
-
-    .dc-plpick-create:hover { opacity: 0.85; }
+    .dc-plpick-item-add svg { width: 14px; height: 14px; }
+    .dc-plpick-item:hover .dc-plpick-item-add { background: var(--accent); color: var(--on-accent); }
+    .dc-plpick-item-full .dc-plpick-item-add { color: var(--text3); background: none; }
+    .dc-plpick-item-full:hover .dc-plpick-item-add { background: none; color: var(--text3); }
+    .dc-plpick-back { margin: 0 0 var(--sp-3) -8px; }
+    .dc-plpick-preview { margin-bottom: var(--sp-4); }
+    .dc-plpick-preview .dc-list-row { padding: 7px var(--sp-3); }
+    .dc-plpick-create { width: 100%; height: 40px; }
 
     /* Confirmation toast — these actions deliberately never open the player, so
        the player's own status line can't be the feedback channel. */
@@ -24420,24 +24397,11 @@ body[class*="-light"] .tm-card-search:hover {
 /* Share sits beside the launch button — quieter, so View Ceremony stays the lead */
 .awards-ceremony-bar { gap: 10px; flex-wrap: wrap; }
 
-/* Share dialog (see _cerShareRender) — reuses the playlist-picker box and the
-   create-playlist buttons; these only cover what is new. */
-.cer-share-text {
-  font-size: var(--fs-sm);
-  line-height: 1.5;
-  color: var(--text2);
-  margin: 0 0 var(--sp-4);
-}
-.cer-share-note {
-  font-family: var(--font-sans);
-  font-size: var(--fs-xs);
-  color: var(--accent);
-  margin: -0.4rem 0 0.9rem;
-}
-.cer-share-link-row { display: flex; gap: var(--sp-2); align-items: flex-start; }
-.cer-share-link-row .cer-share-link { flex: 1; min-width: 0; margin-bottom: var(--sp-3); }
-.cer-share-actions { flex-wrap: wrap; }
-.cer-share-stop { margin-right: auto; }
+/* Share dialog (see _cerShareRender) — on the shared window frame since phase
+   10 step 2; only the width and the link row are its own. */
+.cer-share-box { max-width: 460px; }
+.cer-share-link-row { align-items: center; }
+.cer-share-link-row .cer-share-link { font-family: var(--font-mono, monospace); font-size: var(--fs-xs); }
 
 /* Shared-link guests have no app behind the overlay, so it gets a solid floor
    instead of a see-through scrim over the empty page. */

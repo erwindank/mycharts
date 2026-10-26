@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=687">
+  <link rel="stylesheet" href="style.css?v=693">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=211"></script>
+  <script defer src="translations.js?v=212"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -2451,42 +2451,54 @@
   <!-- SHARE CEREMONY — creates / updates / removes the public link. Body is
        rendered by _cerShareRender() for whichever step the owner is on. -->
   <!-- Printable PDF of a chart (openPdfModal / createChartPdf in app.js) -->
-  <div class="modal-overlay" id="pdfModal" onclick="if(event.target===this)closePdfModal()">
-    <div class="dc-modal dc-plpick-box pdf-box">
-      <div class="dc-plpick-header">
-        <div class="dc-plpick-title" data-i18n="pdf_title">📄 Printable PDF</div>
-        <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close modal-close" onclick="closePdfModal()" aria-label="Close" data-i18n-aria="set_close">✕</button>
+  <div class="modal-overlay" id="pdfModal" onclick="if(event.target===this)closePdfModal()" role="dialog" aria-modal="true" aria-labelledby="pdfTitle">
+    <div class="dc-modal dc-frame pdf-box">
+      <div class="dc-frame-head">
+        <span class="dc-frame-icon" data-ico="printer"></span>
+        <div class="dc-frame-titles">
+          <h3 class="dc-frame-title" id="pdfTitle" data-i18n="pdf_title">Printable PDF</h3>
+          <p class="dc-frame-sub" id="pdfSub"></p>
+        </div>
+        <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close" onclick="closePdfModal()" aria-label="Close" data-i18n-aria="set_close">✕</button>
       </div>
-      <div class="dc-plpick-sub" id="pdfSub"></div>
-      <div class="dc-seg dc-seg-fill sh-seg pdf-scope" id="pdfScopeBtns">
-        <button class="sh-seg-btn active" data-scope="one" id="pdfScopeOne" onclick="setPdfScope('one')">This chart</button>
-        <button class="sh-seg-btn" data-scope="all" onclick="setPdfScope('all')" data-i18n="pdf_all_charts">All three charts</button>
+      <div class="dc-frame-body">
+        <div class="dc-seg dc-seg-fill sh-seg pdf-scope" id="pdfScopeBtns">
+          <button class="sh-seg-btn active" data-scope="one" id="pdfScopeOne" onclick="setPdfScope('one')">This chart</button>
+          <button class="sh-seg-btn" data-scope="all" onclick="setPdfScope('all')" data-i18n="pdf_all_charts">All three charts</button>
+        </div>
+        <!-- .src-switch-row must be a <label> so the whole row toggles the switch -->
+        <label class="src-switch-row">
+          <span class="src-switch-label" data-i18n="pdf_opt_art">Cover art</span>
+          <span class="src-switch"><input type="checkbox" id="pdfOptArt"><span class="src-switch-slider"></span></span>
+        </label>
+        <label class="src-switch-row" id="pdfOptBuRow">
+          <span class="src-switch-label" data-i18n="pdf_opt_bu">Bubbling Under</span>
+          <span class="src-switch"><input type="checkbox" id="pdfOptBu"><span class="src-switch-slider"></span></span>
+        </label>
+        <p class="dc-frame-note" data-i18n="pdf_hint">Your print window opens next. Choose “Save as PDF” as the printer to download it.</p>
       </div>
-      <!-- .src-switch-row must be a <label> so the whole row toggles the switch -->
-      <label class="src-switch-row">
-        <span class="src-switch-label" data-i18n="pdf_opt_art">Cover art</span>
-        <span class="src-switch"><input type="checkbox" id="pdfOptArt"><span class="src-switch-slider"></span></span>
-      </label>
-      <label class="src-switch-row" id="pdfOptBuRow">
-        <span class="src-switch-label" data-i18n="pdf_opt_bu">Bubbling Under</span>
-        <span class="src-switch"><input type="checkbox" id="pdfOptBu"><span class="src-switch-slider"></span></span>
-      </label>
-      <p class="cer-share-text pdf-hint" data-i18n="pdf_hint">Your print window opens next. Choose “Save as PDF” as the printer to download it.</p>
-      <div class="cal-create-pl-actions">
-        <button class="dc-btn dc-btn-plain" onclick="closePdfModal()" data-i18n="btn_cancel">Cancel</button>
+      <div class="dc-frame-foot">
+        <div class="dc-frame-foot-start">
+          <button class="dc-btn dc-btn-plain" onclick="closePdfModal()" data-i18n="btn_cancel">Cancel</button>
+        </div>
         <button class="dc-btn dc-btn-main" id="pdfCreateBtn" onclick="createChartPdf()">Create PDF</button>
       </div>
     </div>
   </div>
 
-  <div class="modal-overlay" id="cerShareModal" onclick="if(event.target===this)closeCeremonyShare()">
-    <div class="dc-modal dc-plpick-box cer-share-box">
-      <div class="dc-plpick-header">
-        <div class="dc-plpick-title">🔗 Share ceremony</div>
-        <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close modal-close" onclick="closeCeremonyShare()" aria-label="Close" data-i18n-aria="set_close">✕</button>
+  <div class="modal-overlay" id="cerShareModal" onclick="if(event.target===this)closeCeremonyShare()" role="dialog" aria-modal="true" aria-labelledby="cerShareTitle">
+    <div class="dc-modal dc-frame cer-share-box">
+      <div class="dc-frame-head">
+        <span class="dc-frame-icon" data-ico="link"></span>
+        <div class="dc-frame-titles">
+          <h3 class="dc-frame-title" id="cerShareTitle" data-i18n="cer_share_title">Share ceremony</h3>
+          <p class="dc-frame-sub" id="cerShareSub"></p>
+        </div>
+        <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close" onclick="closeCeremonyShare()" aria-label="Close" data-i18n-aria="set_close">✕</button>
       </div>
-      <div class="dc-plpick-sub" id="cerShareSub"></div>
-      <div id="cerShareBody"></div>
+      <!-- _cerShareRender() fills the body and the footer for the step the owner is on -->
+      <div class="dc-frame-body" id="cerShareBody"></div>
+      <div class="dc-frame-foot" id="cerShareFoot"></div>
     </div>
   </div>
 
@@ -3305,18 +3317,28 @@
   </div>
 
   <!-- CAL CREATE PLAYLIST MODAL -->
-  <div class="modal-overlay" id="calCreatePlModal" onclick="if(event.target===this)closeCalCreatePlModal()">
-    <div class="dc-modal cal-create-pl-box">
-      <div class="cal-create-pl-header">
-        <div class="cal-create-pl-title">+ Create Playlist</div>
-        <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close modal-close" onclick="closeCalCreatePlModal()" aria-label="Close" data-i18n-aria="set_close">✕</button>
+  <div class="modal-overlay" id="calCreatePlModal" onclick="if(event.target===this)closeCalCreatePlModal()" role="dialog" aria-modal="true" aria-labelledby="calCreatePlTitle">
+    <div class="dc-modal dc-frame cal-create-pl-box">
+      <div class="dc-frame-head">
+        <span class="dc-frame-icon" data-ico="listmusic"></span>
+        <div class="dc-frame-titles">
+          <h3 class="dc-frame-title" id="calCreatePlTitle" data-i18n="pl_create_title">New playlist</h3>
+          <p class="dc-frame-sub" id="calCreatePlSub"></p>
+        </div>
+        <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close" onclick="closeCalCreatePlModal()" aria-label="Close" data-i18n-aria="set_close">✕</button>
       </div>
-      <div class="cal-create-pl-sub" id="calCreatePlSub"></div>
-      <input class="cal-create-pl-input" id="calCreatePlName" type="text" maxlength="60" placeholder="Playlist name…"
-        onkeydown="if(event.key==='Enter')_calCreatePlConfirm()">
-      <div class="cal-create-pl-actions">
-        <button class="dc-btn dc-btn-main" onclick="_calCreatePlConfirm()">✓ Create Playlist</button>
-        <button class="dc-btn dc-btn-plain" onclick="closeCalCreatePlModal()">Cancel</button>
+      <div class="dc-frame-body">
+        <label class="dc-field">
+          <span data-i18n="pl_create_name">Name</span>
+          <input class="dc-input" id="calCreatePlName" type="text" maxlength="60" placeholder="Playlist name…" data-i18n-placeholder="pl_pick_name_ph"
+            onkeydown="if(event.key==='Enter')_calCreatePlConfirm()">
+        </label>
+      </div>
+      <div class="dc-frame-foot">
+        <div class="dc-frame-foot-start">
+          <button class="dc-btn dc-btn-plain" onclick="closeCalCreatePlModal()" data-i18n="btn_cancel">Cancel</button>
+        </div>
+        <button class="dc-btn dc-btn-main" onclick="_calCreatePlConfirm()"><span data-ico="check"></span><span data-i18n="pl_pick_create">Create playlist</span></button>
       </div>
     </div>
   </div>
@@ -3324,14 +3346,17 @@
   <!-- ADD TO PLAYLIST PICKER — shared by Time Machine, the chart YouTube buttons,
        the events sections and the Soundtrack reels. Body is rendered by
        _dcPickRenderList() / _dcPickShowNew(). -->
-  <div class="modal-overlay" id="dcPlPickModal" onclick="if(event.target===this)dcClosePlaylistPicker()">
-    <div class="dc-modal dc-plpick-box">
-      <div class="dc-plpick-header">
-        <div class="dc-plpick-title" data-i18n="pl_pick_title">♫ Add to Playlist</div>
-        <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close modal-close" onclick="dcClosePlaylistPicker()" aria-label="Close" data-i18n-aria="set_close">✕</button>
+  <div class="modal-overlay" id="dcPlPickModal" onclick="if(event.target===this)dcClosePlaylistPicker()" role="dialog" aria-modal="true" aria-labelledby="dcPlPickTitle">
+    <div class="dc-modal dc-frame dc-plpick-box">
+      <div class="dc-frame-head">
+        <span class="dc-frame-icon" data-ico="listmusic"></span>
+        <div class="dc-frame-titles">
+          <h3 class="dc-frame-title" id="dcPlPickTitle" data-i18n="pl_pick_title">Add to Playlist</h3>
+          <p class="dc-frame-sub" id="dcPlPickSub"></p>
+        </div>
+        <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close" onclick="dcClosePlaylistPicker()" aria-label="Close" data-i18n-aria="set_close">✕</button>
       </div>
-      <div class="dc-plpick-sub" id="dcPlPickSub"></div>
-      <div class="dc-plpick-body" id="dcPlPickBody"></div>
+      <div class="dc-frame-body dc-plpick-body" id="dcPlPickBody"></div>
     </div>
   </div>
 
@@ -3797,90 +3822,122 @@
 
   <button id="backToTop" data-i18n-title="tooltip_back_to_top" aria-label="Back to top">&#8679;</button>
 
-  <!-- ── Edit Scrobble Modal ── -->
-  <div id="editScrobbleModal" class="modal-overlay" role="dialog" aria-modal="true">
-    <div class="dc-modal src-modal-box scrobble-modal-box" style="position:relative">
-      <button onclick="closeEditScrobbleModal()" aria-label="Close" style="position:absolute;top:0.6rem;right:0.7rem;background:none;border:none;color:var(--text3);font-size:var(--fs-md);line-height:1;cursor:pointer;padding:0.1rem 0.3rem;">&times;</button>
-      <h3 class="src-modal-title" data-i18n="modal_edit_title">Edit Scrobble</h3>
-      <div class="src-field-group">
-        <label>
+  <!-- ── Small windows on the shared frame (phase 10 step 2) ──
+       Every one: .dc-frame-head (icon · title · ✕), .dc-frame-body (scrolls),
+       .dc-frame-foot (secondary left, main action right). Element ids are
+       unchanged — app.js fills and toggles them as before. -->
+
+  <!-- ── Edit a play (Raw Data → ✎) ── -->
+  <div id="editScrobbleModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="editScrobbleTitle">
+    <div class="dc-modal dc-frame src-modal-box scrobble-modal-box">
+      <div class="dc-frame-head">
+        <span class="dc-frame-icon" data-ico="edit"></span>
+        <div class="dc-frame-titles">
+          <h3 class="dc-frame-title" id="editScrobbleTitle" data-i18n="modal_edit_title">Edit Scrobble</h3>
+          <p class="dc-frame-sub" data-i18n="pop_edit_sub">Fix a misspelled name or the time it was played.</p>
+        </div>
+        <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close" onclick="closeEditScrobbleModal()" aria-label="Close" data-i18n-aria="set_close">✕</button>
+      </div>
+      <div class="dc-frame-body">
+        <label class="dc-field">
           <span data-i18n="modal_label_artist">Artist *</span>
-          <input type="text" id="editScrobbleArtist" placeholder="Artist name" data-i18n-placeholder="modal_placeholder_artist" list="editArtistList" autocomplete="off">
+          <input class="dc-input" type="text" id="editScrobbleArtist" placeholder="Artist name" data-i18n-placeholder="modal_placeholder_artist" list="editArtistList" autocomplete="off">
           <datalist id="editArtistList"></datalist>
         </label>
-        <label>
+        <label class="dc-field">
           <span data-i18n="modal_label_track">Track *</span>
-          <input type="text" id="editScrobbleTrack" placeholder="Track title" data-i18n-placeholder="modal_placeholder_track" list="editTrackList" autocomplete="off">
+          <input class="dc-input" type="text" id="editScrobbleTrack" placeholder="Track title" data-i18n-placeholder="modal_placeholder_track" list="editTrackList" autocomplete="off">
           <datalist id="editTrackList"></datalist>
         </label>
-        <label>
+        <label class="dc-field">
           <span data-i18n="modal_label_album">Album</span>
-          <input type="text" id="editScrobbleAlbum" placeholder="Album (optional)" data-i18n-placeholder="modal_placeholder_album" list="editAlbumList" autocomplete="off">
+          <input class="dc-input" type="text" id="editScrobbleAlbum" placeholder="Album (optional)" data-i18n-placeholder="modal_placeholder_album" list="editAlbumList" autocomplete="off">
           <datalist id="editAlbumList"></datalist>
         </label>
-        <label>
+        <label class="dc-field">
           <span data-i18n="modal_label_datetime">Date &amp; Time</span>
-          <div class="scrobble-time-row">
-            <input type="datetime-local" id="editScrobbleTime" step="1">
+          <span class="dc-field-row">
+            <input class="dc-input" type="datetime-local" id="editScrobbleTime" step="1">
             <button type="button" class="dc-btn dc-btn-normal" onclick="setEditScrobbleNow()" data-i18n="modal_now_btn">Now</button>
-          </div>
+          </span>
         </label>
-      </div>
-      <p id="editScrobbleHint" style="font-size:var(--fs-xs);color:var(--text3);margin:0.3rem 0 0.5rem;display:none" data-i18n="modal_edit_hint">Pushing to Last.fm adds a corrected scrobble — remove the original manually on the Last.fm website.</p>
-      <div style="display:flex;flex-direction:column;gap:0.3rem;margin:0.5rem 0 0.4rem">
-        <label style="display:flex;align-items:center;gap:0.5rem;font-size:var(--fs-xs);color:var(--text2);cursor:pointer">
+        <label class="dc-check">
           <input type="checkbox" id="editApplyAll">
           <span data-i18n="modal_edit_apply_all">Apply to all matching entries (same song, artist &amp; album)</span>
         </label>
-        <label style="display:flex;align-items:center;gap:0.5rem;font-size:var(--fs-xs);color:var(--text2);cursor:pointer">
+        <label class="dc-check">
           <input type="checkbox" id="editSaveRule">
           <span data-i18n="modal_edit_save_rule">Save as auto-correct rule for future imports</span>
         </label>
+        <p id="editScrobbleHint" class="dc-frame-note" style="display:none" data-i18n="modal_edit_hint">Pushing to Last.fm adds a corrected scrobble — remove the original manually on the Last.fm website.</p>
+        <div id="editScrobbleStatus" class="scrobble-status"></div>
       </div>
-      <div id="editScrobbleStatus" class="scrobble-status"></div>
-      <div class="src-modal-btns">
-        <button class="src-btn-cancel" onclick="closeEditScrobbleModal()" data-i18n="btn_cancel">Cancel</button>
-        <button class="src-btn-save" id="editSaveLocalBtn" onclick="saveEditLocally()" data-i18n="modal_save_locally">Save Locally</button>
-        <button class="src-btn-save" id="editPushLfmBtn" onclick="pushEditToLastfm()" style="display:none" data-i18n="modal_push_lfm">Push to Last.fm</button>
-        <button class="src-btn-save" id="editPushSheetBtn" onclick="pushEditToSheet()" style="display:none" data-i18n="modal_push_sheet">Push to Sheet</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── Auto-correct Rules Modal ── -->
-  <div id="rulesModal" class="modal-overlay" role="dialog" aria-modal="true">
-    <div class="dc-modal src-modal-box">
-      <h3 class="src-modal-title" data-i18n="modal_rules_title">Auto-correct Rules</h3>
-      <p style="font-size:var(--fs-xs);color:var(--text3);margin:0 0 0.7rem" data-i18n="modal_rules_desc">Rules apply automatically on every data load. Each rule matches an exact Artist + Song + Album combination and replaces it with your corrected values.</p>
-      <input type="text" id="rulesSearch" placeholder="Search rules…" data-i18n-placeholder="modal_rules_search_placeholder" oninput="renderRulesList()" style="width:100%;box-sizing:border-box;margin-bottom:0.5rem;padding:0.35rem 0.6rem;font-size:var(--fs-sm);border:1px solid var(--border);border-radius:4px;background:var(--bg2);color:var(--text2);outline:none">
-      <div id="rulesList" style="max-height:300px;overflow-y:auto;"></div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:0.8rem;gap:0.5rem;flex-wrap:wrap">
-        <div style="display:flex;gap:0.4rem">
-          <button onclick="exportRules()" style="font-size:var(--fs-xs);padding:0.3rem 0.7rem;border:1px solid var(--border);border-radius:4px;background:var(--bg2);color:var(--text2);cursor:pointer" data-i18n="modal_rules_export">Export JSON</button>
-          <button onclick="importRules()" style="font-size:var(--fs-xs);padding:0.3rem 0.7rem;border:1px solid var(--border);border-radius:4px;background:var(--bg2);color:var(--text2);cursor:pointer" data-i18n="modal_rules_import">Import JSON</button>
+      <div class="dc-frame-foot">
+        <div class="dc-frame-foot-start">
+          <button class="dc-btn dc-btn-plain" onclick="closeEditScrobbleModal()" data-i18n="btn_cancel">Cancel</button>
         </div>
-        <button class="src-btn-cancel" onclick="closeRulesModal()" data-i18n="btn_cancel">Close</button>
+        <button class="dc-btn dc-btn-normal" id="editPushLfmBtn" onclick="pushEditToLastfm()" style="display:none" data-i18n="modal_push_lfm">Push to Last.fm</button>
+        <button class="dc-btn dc-btn-normal" id="editPushSheetBtn" onclick="pushEditToSheet()" style="display:none" data-i18n="modal_push_sheet">Push to Sheet</button>
+        <button class="dc-btn dc-btn-main" id="editSaveLocalBtn" onclick="saveEditLocally()" data-i18n="modal_save_locally">Save Locally</button>
       </div>
     </div>
   </div>
 
-  <!-- ── Compilation Albums Modal ── -->
-  <div id="compilationsModal" class="modal-overlay modal-overlay--stacked" role="dialog" aria-modal="true">
-    <div class="dc-modal src-modal-box">
-      <h3 class="src-modal-title" data-i18n="comp_modal_title">Compilation Albums</h3>
-      <p style="font-size:var(--fs-xs);color:var(--text3);margin:0 0 0.7rem" data-i18n="comp_modal_desc">Each album listed here is counted as one record credited to Various Artists, however many singers appear on it. Nothing about the tracks changes: every song stays with the artist who sang it, in the artist charts and in its own certifications.</p>
-      <div style="display:flex;gap:0.4rem;margin-bottom:0.6rem">
-        <input type="text" id="compilationsInput" list="compilationsDatalist" placeholder="Album title…" data-i18n-placeholder="comp_modal_placeholder"
-          onkeydown="if(event.key==='Enter'){event.preventDefault();addCompilationFromInput();}"
-          style="flex:1;min-width:0;padding:0.35rem 0.6rem;font-size:var(--fs-sm);border:1px solid var(--border);border-radius:4px;background:var(--bg2);color:var(--text2);outline:none">
-        <datalist id="compilationsDatalist"></datalist>
-        <button onclick="addCompilationFromInput()" style="flex-shrink:0;font-size:var(--fs-xs);padding:0.3rem 0.8rem;border:1px solid var(--border);border-radius:4px;background:var(--bg2);color:var(--text2);cursor:pointer" data-i18n="comp_modal_add">Add</button>
+  <!-- ── Auto-correct rules ── -->
+  <div id="rulesModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="rulesTitle">
+    <div class="dc-modal dc-frame src-modal-box dc-frame-wide">
+      <div class="dc-frame-head">
+        <span class="dc-frame-icon" data-ico="wand"></span>
+        <div class="dc-frame-titles">
+          <h3 class="dc-frame-title" id="rulesTitle" data-i18n="modal_rules_title">Auto-correct Rules</h3>
+          <p class="dc-frame-sub" id="rulesCount"></p>
+        </div>
+        <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close" onclick="closeRulesModal()" aria-label="Close" data-i18n-aria="set_close">✕</button>
       </div>
-      <div id="compilationsList" style="max-height:300px;overflow-y:auto;"></div>
-      <div style="display:flex;justify-content:flex-end;margin-top:0.8rem">
+      <div class="dc-frame-body">
+        <p class="dc-frame-lead" data-i18n="modal_rules_desc">Rules apply automatically on every data load. Each rule matches an exact Artist + Song + Album combination and replaces it with your corrected values.</p>
+        <div class="dc-search dc-field-gap">
+          <span data-ico="search"></span>
+          <input class="dc-input" type="search" id="rulesSearch" placeholder="Search rules…" data-i18n-placeholder="modal_rules_search_placeholder" oninput="renderRulesList()">
+        </div>
+        <div id="rulesList"></div>
+      </div>
+      <div class="dc-frame-foot">
+        <div class="dc-frame-foot-start">
+          <button class="dc-btn dc-btn-plain" onclick="exportRules()"><span data-ico="download"></span><span data-i18n="modal_rules_export">Export JSON</span></button>
+          <button class="dc-btn dc-btn-plain" onclick="importRules()"><span data-ico="upload"></span><span data-i18n="modal_rules_import">Import JSON</span></button>
+        </div>
+        <button class="dc-btn dc-btn-normal" onclick="closeRulesModal()" data-i18n="comp_modal_close">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Compilation albums ── -->
+  <div id="compilationsModal" class="modal-overlay modal-overlay--stacked" role="dialog" aria-modal="true" aria-labelledby="compTitle">
+    <div class="dc-modal dc-frame src-modal-box dc-frame-wide">
+      <div class="dc-frame-head">
+        <span class="dc-frame-icon" data-ico="stack"></span>
+        <div class="dc-frame-titles">
+          <h3 class="dc-frame-title" id="compTitle" data-i18n="comp_modal_title">Compilation Albums</h3>
+          <p class="dc-frame-sub" id="compCount"></p>
+        </div>
+        <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close" onclick="closeCompilationsModal()" aria-label="Close" data-i18n-aria="set_close">✕</button>
+      </div>
+      <div class="dc-frame-body">
+        <p class="dc-frame-lead" data-i18n="comp_modal_desc">Each album listed here is counted as one record credited to Various Artists, however many singers appear on it. Nothing about the tracks changes: every song stays with the artist who sang it, in the artist charts and in its own certifications.</p>
+        <div class="dc-field-row dc-field-gap">
+          <input class="dc-input" type="text" id="compilationsInput" list="compilationsDatalist" placeholder="Album title…" data-i18n-placeholder="comp_modal_placeholder"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();addCompilationFromInput();}">
+          <datalist id="compilationsDatalist"></datalist>
+          <button class="dc-btn dc-btn-main" onclick="addCompilationFromInput()"><span data-ico="plus"></span><span data-i18n="comp_modal_add">Add</span></button>
+        </div>
+        <div id="compilationsList"></div>
+      </div>
+      <div class="dc-frame-foot">
         <!-- Every change here is already saved, so this dismisses rather than
              cancels — btn_cancel would be a lie about what the button does. -->
-        <button class="src-btn-cancel" onclick="closeCompilationsModal()" data-i18n="comp_modal_close">Close</button>
+        <span class="dc-frame-foot-start dc-frame-saved"><span data-ico="check"></span><span data-i18n="pop_saved_auto">Changes save as you go</span></span>
+        <button class="dc-btn dc-btn-normal" onclick="closeCompilationsModal()" data-i18n="comp_modal_close">Close</button>
       </div>
     </div>
   </div>
@@ -3890,29 +3947,37 @@
        list above it: a compilation counts as an album here, and marking a type
        changes nothing about the charts until the user separates that type in
        Settings. -->
-  <div id="releaseTypesModal" class="modal-overlay modal-overlay--stacked" role="dialog" aria-modal="true">
-    <div class="dc-modal src-modal-box">
-      <h3 class="src-modal-title" data-i18n="rtype_modal_title">Release Types</h3>
-      <p style="font-size:var(--fs-xs);color:var(--text3);margin:0 0 0.7rem" data-i18n="rtype_modal_desc">Mark what kind of record each release is — a single, an EP, a live album, a soundtrack. Singles and EPs are then certified on their own thresholds, since a hundred plays means something different for a two-track single. Your charts stay exactly as they are until you choose to separate a type in Settings.</p>
-      <div style="display:flex;gap:0.4rem;margin-bottom:0.35rem;flex-wrap:wrap">
-        <input type="text" id="releaseTypesInput" list="releaseTypesDatalist" placeholder="Album · Artist…" data-i18n-placeholder="rtype_modal_placeholder"
-          onkeydown="if(event.key==='Enter'){event.preventDefault();addReleaseTypeFromInput();}"
-          style="flex:1;min-width:0;padding:0.35rem 0.6rem;font-size:var(--fs-sm);border:1px solid var(--border);border-radius:4px;background:var(--bg2);color:var(--text2);outline:none">
-        <datalist id="releaseTypesDatalist"></datalist>
-        <select id="releaseTypesAddType"
-          style="flex-shrink:0;padding:0.35rem 0.5rem;font-size:var(--fs-sm);border:1px solid var(--border);border-radius:4px;background:var(--bg2);color:var(--text2)">
-          <option value="single" data-i18n="rtype_single">Single</option>
-          <option value="ep" data-i18n="rtype_ep">EP</option>
-          <option value="live" data-i18n="rtype_live">Live album</option>
-          <option value="soundtrack" data-i18n="rtype_soundtrack">Soundtrack</option>
-        </select>
-        <button onclick="addReleaseTypeFromInput()" style="flex-shrink:0;font-size:var(--fs-xs);padding:0.3rem 0.8rem;border:1px solid var(--border);border-radius:4px;background:var(--bg2);color:var(--text2);cursor:pointer" data-i18n="comp_modal_add">Add</button>
+  <div id="releaseTypesModal" class="modal-overlay modal-overlay--stacked" role="dialog" aria-modal="true" aria-labelledby="rtypeTitle">
+    <div class="dc-modal dc-frame src-modal-box dc-frame-wide">
+      <div class="dc-frame-head">
+        <span class="dc-frame-icon" data-ico="tag"></span>
+        <div class="dc-frame-titles">
+          <h3 class="dc-frame-title" id="rtypeTitle" data-i18n="rtype_modal_title">Release Types</h3>
+          <p class="dc-frame-sub" id="rtypeCount"></p>
+        </div>
+        <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close" onclick="closeReleaseTypesModal()" aria-label="Close" data-i18n-aria="set_close">✕</button>
       </div>
-      <div id="releaseTypesError" class="rt-error" style="display:none"></div>
-      <div id="releaseTypesList" style="max-height:300px;overflow-y:auto;"></div>
-      <div style="display:flex;justify-content:flex-end;margin-top:0.8rem">
+      <div class="dc-frame-body">
+        <p class="dc-frame-lead" data-i18n="rtype_modal_desc">Mark what kind of record each release is — a single, an EP, a live album, a soundtrack. Singles and EPs are then certified on their own thresholds, since a hundred plays means something different for a two-track single. Your charts stay exactly as they are until you choose to separate a type in Settings.</p>
+        <div class="dc-field-row dc-field-gap rt-add-row">
+          <input class="dc-input" type="text" id="releaseTypesInput" list="releaseTypesDatalist" placeholder="Album · Artist…" data-i18n-placeholder="rtype_modal_placeholder"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();addReleaseTypeFromInput();}">
+          <datalist id="releaseTypesDatalist"></datalist>
+          <select class="dc-input" id="releaseTypesAddType">
+            <option value="single" data-i18n="rtype_single">Single</option>
+            <option value="ep" data-i18n="rtype_ep">EP</option>
+            <option value="live" data-i18n="rtype_live">Live album</option>
+            <option value="soundtrack" data-i18n="rtype_soundtrack">Soundtrack</option>
+          </select>
+          <button class="dc-btn dc-btn-main" onclick="addReleaseTypeFromInput()"><span data-ico="plus"></span><span data-i18n="comp_modal_add">Add</span></button>
+        </div>
+        <div id="releaseTypesError" class="rt-error" style="display:none"></div>
+        <div id="releaseTypesList"></div>
+      </div>
+      <div class="dc-frame-foot">
         <!-- Saved on every change, like the compilations list — this dismisses. -->
-        <button class="src-btn-cancel" onclick="closeReleaseTypesModal()" data-i18n="comp_modal_close">Close</button>
+        <span class="dc-frame-foot-start dc-frame-saved"><span data-ico="check"></span><span data-i18n="pop_saved_auto">Changes save as you go</span></span>
+        <button class="dc-btn dc-btn-normal" onclick="closeReleaseTypesModal()" data-i18n="comp_modal_close">Close</button>
       </div>
     </div>
   </div>
@@ -3920,70 +3985,99 @@
   <!-- ── Release Type Detection Review ──
        Detection collects proposals; this is where they are seen and picked
        before anything is written. -->
-  <div id="rtDetectModal" class="modal-overlay modal-overlay--stacked" role="dialog" aria-modal="true">
-    <div class="dc-modal src-modal-box">
-      <h3 class="src-modal-title" data-i18n="rtd_modal_title">Detected Release Types</h3>
-      <p style="font-size:var(--fs-xs);color:var(--text3);margin:0 0 0.7rem" data-i18n="rtd_modal_desc">Everything found is listed here before anything is written. Untick what looks wrong — whatever you change becomes your own mark, and a later scan will not touch it again.</p>
-      <div id="rtDetectBody" style="max-height:340px;overflow-y:auto"></div>
-      <!-- Apply lives outside the scrolling list. Inside it, a sweep of three
-           hundred proposals buries the only button that does anything. -->
-      <div class="rtd-footer">
+  <div id="rtDetectModal" class="modal-overlay modal-overlay--stacked" role="dialog" aria-modal="true" aria-labelledby="rtdTitle">
+    <div class="dc-modal dc-frame src-modal-box dc-frame-wide">
+      <div class="dc-frame-head">
+        <span class="dc-frame-icon" data-ico="scan"></span>
+        <div class="dc-frame-titles">
+          <h3 class="dc-frame-title" id="rtdTitle" data-i18n="rtd_modal_title">Detected Release Types</h3>
+        </div>
+        <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close" onclick="closeRtDetectModal()" aria-label="Close" data-i18n-aria="set_close">✕</button>
+      </div>
+      <div class="dc-frame-body">
+        <p class="dc-frame-lead" data-i18n="rtd_modal_desc">Everything found is listed here before anything is written. Untick what looks wrong — whatever you change becomes your own mark, and a later scan will not touch it again.</p>
+        <div id="rtDetectBody"></div>
+      </div>
+      <!-- Apply lives in the footer, outside the scrolling list. Inside it, a
+           sweep of three hundred proposals buries the only button that does
+           anything. -->
+      <div class="dc-frame-foot rtd-footer">
+        <div class="dc-frame-foot-start">
+          <button class="dc-btn dc-btn-plain" onclick="closeRtDetectModal()" data-i18n="comp_modal_close">Close</button>
+        </div>
         <span id="rtDetectFooter"></span>
-        <button class="src-btn-cancel" onclick="closeRtDetectModal()" data-i18n="comp_modal_close">Close</button>
       </div>
     </div>
   </div>
 
-  <!-- ── Similar Rule Warning Modal ── -->
-  <div id="similarRuleModal" class="modal-overlay" role="dialog" aria-modal="true">
-    <div class="dc-modal src-modal-box" style="max-width:440px">
-      <h3 class="src-modal-title" data-i18n="modal_similar_title">Similar Rule Already Exists</h3>
-      <p style="font-size:var(--fs-xs);color:var(--text3);margin:0 0 0.8rem" data-i18n="modal_similar_desc">A rule already exists for the same artist and track. Select which existing rules to remove, or add the new one alongside them.</p>
-      <div id="similarRuleDetails" style="font-size:var(--fs-xs);background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:0.6rem 0.8rem;margin-bottom:0.8rem;line-height:1.7"></div>
-      <div class="src-modal-btns" style="flex-wrap:wrap;gap:0.4rem">
-        <button class="src-btn-cancel" id="similarRuleCancelBtn" data-i18n="btn_cancel">Cancel</button>
-        <button id="similarRuleAddBtn" style="padding:0.4rem 0.9rem;border:1px solid var(--border);border-radius:4px;background:var(--bg2);color:var(--text2);cursor:pointer;font-size:var(--fs-sm)" data-i18n="modal_similar_add">Add Anyway</button>
-        <button id="similarRuleOverrideBtn" class="src-btn-save" data-i18n="modal_similar_override">Override</button>
-        <button id="similarRuleRunBtn" class="src-btn-save" style="background:var(--accent2)" data-i18n="modal_similar_run">Override &amp; Apply to Sheet</button>
+  <!-- ── Similar Rule Warning ── -->
+  <div id="similarRuleModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="similarTitle">
+    <div class="dc-modal dc-frame src-modal-box">
+      <div class="dc-frame-head">
+        <span class="dc-frame-icon is-warn" data-ico="alert"></span>
+        <div class="dc-frame-titles">
+          <h3 class="dc-frame-title" id="similarTitle" data-i18n="modal_similar_title">Similar Rule Already Exists</h3>
+        </div>
+        <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close" data-pop-close onclick="document.getElementById('similarRuleCancelBtn').click()" aria-label="Close" data-i18n-aria="set_close">✕</button>
+      </div>
+      <div class="dc-frame-body">
+        <p class="dc-frame-lead" data-i18n="modal_similar_desc">A rule already exists for the same artist and track. Select which existing rules to remove, or add the new one alongside them.</p>
+        <div id="similarRuleDetails" class="dc-list similar-rule-details"></div>
+      </div>
+      <div class="dc-frame-foot">
+        <div class="dc-frame-foot-start">
+          <button class="dc-btn dc-btn-plain" id="similarRuleCancelBtn" data-i18n="btn_cancel">Cancel</button>
+        </div>
+        <button class="dc-btn dc-btn-normal" id="similarRuleAddBtn" data-i18n="modal_similar_add">Add Anyway</button>
+        <button class="dc-btn dc-btn-normal" id="similarRuleRunBtn" data-i18n="modal_similar_run">Override &amp; Apply to Sheet</button>
+        <button class="dc-btn dc-btn-main" id="similarRuleOverrideBtn" data-i18n="modal_similar_override">Override</button>
       </div>
     </div>
   </div>
 
-  <!-- ── Manual Scrobble Modal ── -->
-  <div id="scrobbleModal" class="modal-overlay" role="dialog" aria-modal="true">
-    <div class="dc-modal src-modal-box scrobble-modal-box">
-      <h3 class="src-modal-title" data-i18n="modal_manual_title">Manual Scrobble</h3>
-      <div class="src-field-group">
-        <label>
+  <!-- ── Add a play by hand ── -->
+  <div id="scrobbleModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="scrobbleTitle">
+    <div class="dc-modal dc-frame src-modal-box scrobble-modal-box">
+      <div class="dc-frame-head">
+        <span class="dc-frame-icon" data-ico="plus"></span>
+        <div class="dc-frame-titles">
+          <h3 class="dc-frame-title" id="scrobbleTitle" data-i18n="modal_manual_title">Manual Scrobble</h3>
+          <p class="dc-frame-sub" data-i18n="pop_manual_sub">Add a play you listened to somewhere else.</p>
+        </div>
+        <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close" onclick="closeScrobbleModal()" aria-label="Close" data-i18n-aria="set_close">✕</button>
+      </div>
+      <div class="dc-frame-body">
+        <label class="dc-field">
           <span data-i18n="modal_label_artist">Artist *</span>
-          <input type="text" id="scrobbleArtist" placeholder="Artist name" data-i18n-placeholder="modal_placeholder_artist" autocomplete="off">
+          <input class="dc-input" type="text" id="scrobbleArtist" placeholder="Artist name" data-i18n-placeholder="modal_placeholder_artist" autocomplete="off">
         </label>
-        <label>
+        <label class="dc-field">
           <span data-i18n="modal_label_track">Track *</span>
-          <input type="text" id="scrobbleTrack" placeholder="Track title" data-i18n-placeholder="modal_placeholder_track" autocomplete="off">
+          <input class="dc-input" type="text" id="scrobbleTrack" placeholder="Track title" data-i18n-placeholder="modal_placeholder_track" autocomplete="off">
         </label>
-        <label>
+        <label class="dc-field">
           <span data-i18n="modal_label_album">Album</span>
-          <input type="text" id="scrobbleAlbum" placeholder="Album (optional)" data-i18n-placeholder="modal_placeholder_album" autocomplete="off">
+          <input class="dc-input" type="text" id="scrobbleAlbum" placeholder="Album (optional)" data-i18n-placeholder="modal_placeholder_album" autocomplete="off">
         </label>
-        <label>
+        <label class="dc-field">
           <span data-i18n="modal_label_datetime">Date &amp; Time</span>
-          <div class="scrobble-time-row">
-            <input type="datetime-local" id="scrobbleTime" step="1">
+          <span class="dc-field-row">
+            <input class="dc-input" type="datetime-local" id="scrobbleTime" step="1">
             <button type="button" class="dc-btn dc-btn-normal" onclick="setScrobbleNow()" data-i18n="modal_now_btn">Now</button>
-          </div>
+          </span>
         </label>
+        <div id="scrobbleStatus" class="scrobble-status"></div>
+        <div id="scrobbleNoTarget" class="dc-frame-callout" style="display:none"><span data-ico="alert"></span><span data-i18n="modal_manual_no_target">Connect Last.fm or configure a Sheet write URL in Settings to add plays.</span></div>
       </div>
-      <div id="scrobbleStatus" class="scrobble-status"></div>
-      <div id="scrobbleNoTarget" class="scrobble-status" style="display:none" data-i18n="modal_manual_no_target">Connect Last.fm or configure a Sheet write URL in Settings to add plays.</div>
-      <div class="src-modal-btns">
-        <button class="src-btn-cancel" onclick="closeScrobbleModal()" data-i18n="btn_cancel">Cancel</button>
-        <button class="src-btn-save" id="scrobbleSheetBtn" onclick="submitToSheet()" style="display:none" data-i18n="modal_manual_add_sheet">Add to Sheet</button>
-        <button class="src-btn-save" id="scrobbleSubmitBtn" onclick="submitScrobble()" style="display:none" data-i18n="modal_manual_scrobble">Scrobble to Last.fm</button>
+      <div class="dc-frame-foot">
+        <div class="dc-frame-foot-start">
+          <button class="dc-btn dc-btn-plain" onclick="closeScrobbleModal()" data-i18n="btn_cancel">Cancel</button>
+        </div>
+        <button class="dc-btn dc-btn-main" id="scrobbleSheetBtn" onclick="submitToSheet()" style="display:none" data-i18n="modal_manual_add_sheet">Add to Sheet</button>
+        <button class="dc-btn dc-btn-main" id="scrobbleSubmitBtn" onclick="submitScrobble()" style="display:none" data-i18n="modal_manual_scrobble">Scrobble to Last.fm</button>
       </div>
     </div>
   </div>
-
   <!-- defer keeps app.js last in the script execution order (after translations,
        Chart.js and firebase.js) while letting the whole page parse and paint first -->
   <script defer src="changelog.js?v=417"></script>
@@ -3992,7 +4086,10 @@
   <script defer src="board.js?v=6"></script>
   <!-- The Charts Guide's words in four languages (read by dcRenderChartsGuideView) -->
   <script defer src="charts-guide-i18n.js?v=1"></script>
-  <script defer src="app.js?v=539"></script>
+  <!-- One behaviour and one icon set for every pop-up window (phase 10); before
+       app.js so dcIco() is there when app.js draws a window -->
+  <script defer src="popups.js?v=4"></script>
+  <script defer src="app.js?v=540"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
   <script defer src="replay.js?v=1"></script>
   <!-- All-Time chart stats ("Inside your Top N"); reads app.js globals, so it loads after it -->
@@ -5207,9 +5304,7 @@ function deleteGenreTriggers() {
 </div>
 
 <!-- Contact Support form (replaces the Zoho Desk widget) - see support.js -->
-<script defer src="support.js?v=3"></script>
-<!-- one behaviour for every pop-up window (phase 10 step 1) -->
-<script defer src="popups.js?v=1"></script>
+<script defer src="support.js?v=4"></script>
 
   <!-- STREAK DETAILS MODAL -->
   <div id="streakModal" class="modal-overlay" onclick="if(event.target===this)closeStreakModal()">

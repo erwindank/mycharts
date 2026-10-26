@@ -2290,28 +2290,31 @@ function checkSimilarRules(origArtist, origTitle, origAlbum, newArtist, newTitle
   return new Promise(resolve => {
     const details = document.getElementById('similarRuleDetails');
     const hasSheet = !!(getSheetWriteUrl() && getDataSource() === 'sheets');
+    // One row per rule already there (ticked = removed on save), then the
+    // new rule, so old and new can be compared line by line
+    const ruleLine = (art, ttl, alb) => `${esc(art)} — ${esc(ttl)}${alb ? ' — ' + esc(alb) : ''}`;
     details.innerHTML =
-      `<div style="font-size:var(--fs-xs);color:var(--text3);margin-bottom:0.5rem">Check the rules below to remove them when saving. Uncheck any you want to keep.</div>` +
+      `<div class="dc-list-head">${esc(t('rules_similar_pick'))}</div>` +
       similar.map((r, i) => `
-        <div data-rule-row="${i}" style="padding-bottom:0.5rem;margin-bottom:0.5rem;border-bottom:1px solid var(--border)">
-          <div style="display:flex;align-items:flex-start;gap:0.5rem">
-            <label style="display:flex;align-items:flex-start;gap:0.55rem;cursor:pointer;flex:1">
-              <input type="checkbox" class="similar-rule-cb" data-idx="${i}" checked style="margin-top:0.25rem;flex-shrink:0;cursor:pointer">
-              <div style="line-height:1.6">
-                <div>Match: <span style="color:var(--text2)">${esc(r.match.artist)} &mdash; ${esc(r.match.title)} &mdash; ${esc(r.match.album)}</span></div>
-                <div>&rarr; Replace: <span style="color:var(--accent)">${esc(r.replace.artist)} &mdash; ${esc(r.replace.title)} &mdash; ${esc(r.replace.album)}</span></div>
-              </div>
-            </label>
-            ${hasSheet ? `<button class="similar-rule-run-btn" data-idx="${i}" style="flex-shrink:0;font-size:var(--fs-xs);padding:0.2rem 0.5rem;border:1px solid var(--border);border-radius:3px;background:var(--bg2);color:var(--text2);cursor:pointer;align-self:center">Run</button>` : ''}
-            <button class="similar-rule-del-btn" data-idx="${i}" title="Delete this rule" style="flex-shrink:0;padding:0.15rem 0.4rem;border:1px solid var(--border);border-radius:3px;background:var(--bg2);color:#ef4444;cursor:pointer;align-self:center;font-size:0.9rem;line-height:1">🗑</button>
-          </div>
-          <div class="similar-rule-run-status" data-idx="${i}" style="font-size:var(--fs-xs);margin-top:0.25rem;display:none"></div>
+        <div class="dc-list-row" data-rule-row="${i}">
+          <label class="dc-check similar-rule-pick">
+            <input type="checkbox" class="similar-rule-cb" data-idx="${i}" checked>
+            <span class="dc-list-main">
+              <span class="dc-list-sub">${esc(t('rules_match'))} <span class="rule-was">${ruleLine(r.match.artist, r.match.title, r.match.album)}</span></span>
+              <span class="dc-list-title rule-now">${dcIco('next', 'rule-arrow')}${ruleLine(r.replace.artist, r.replace.title, r.replace.album)}</span>
+              <span class="similar-rule-run-status dc-list-sub" data-idx="${i}" style="display:none"></span>
+            </span>
+          </label>
+          ${hasSheet ? `<button class="dc-btn dc-btn-normal dc-btn-sm similar-rule-run-btn" data-idx="${i}" title="${esc(t('rules_run_hint'))}">${esc(t('rules_run'))}</button>` : ''}
+          <button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon dc-btn-danger similar-rule-del-btn" data-idx="${i}" title="${esc(t('rules_delete'))}" aria-label="${esc(t('rules_delete'))}">${dcIco('trash')}</button>
         </div>
       `).join('') +
-      `<div style="margin-top:0.3rem;line-height:1.6">
-        <div style="color:var(--text3);font-size:var(--fs-xs);margin-bottom:0.1rem">New rule being saved:</div>
-        <div>Match: <span style="color:var(--text2)">${esc(origArtist)} &mdash; ${esc(origTitle)} &mdash; ${esc(origAlbum || '&mdash;')}</span></div>
-        <div>&rarr; Replace: <span style="color:var(--accent)">${esc(newArtist)} &mdash; ${esc(newTitle)} &mdash; ${esc(newAlbum || '&mdash;')}</span></div>
+      `<div class="dc-list-head">${esc(t('rules_similar_new'))}</div>
+      <div class="dc-list-row">
+        <span class="dc-list-main">
+          <span class="dc-list-sub">${esc(t('rules_match'))} <span class="rule-was">${ruleLine(origArtist, origTitle, origAlbum)}</span></span>
+          <span class="dc-list-title rule-now">${dcIco('next', 'rule-arrow')}${ruleLine(newArtist, newTitle, newAlbum)}</span>
+        </span>
       </div>`;
 
     details.querySelectorAll('.similar-rule-run-btn').forEach(btn => {
@@ -2320,16 +2323,16 @@ function checkSimilarRules(origArtist, origTitle, origAlbum, newArtist, newTitle
         const statusEl = details.querySelector(`.similar-rule-run-status[data-idx="${btn.dataset.idx}"]`);
         btn.disabled = true;
         btn.textContent = '…';
-        if (statusEl) { statusEl.style.display = ''; statusEl.textContent = 'Running…'; statusEl.style.color = 'var(--text3)'; }
+        if (statusEl) { statusEl.style.display = ''; statusEl.textContent = t('rules_running'); statusEl.style.color = 'var(--text3)'; }
         const result = await applyRuleToSheet(r.match.artist, r.match.title, r.match.album, r.replace.artist, r.replace.title, r.replace.album);
         btn.disabled = false;
-        btn.textContent = 'Run';
+        btn.textContent = t('rules_run');
         if (statusEl) {
           if (result.error) {
-            statusEl.textContent = 'Failed: ' + result.error;
-            statusEl.style.color = 'var(--err, #ef4444)';
+            statusEl.textContent = t('rules_run_failed', { err: result.error });
+            statusEl.style.color = 'var(--rose)';
           } else {
-            statusEl.textContent = `✓ ${result.updated} entr${result.updated === 1 ? 'y' : 'ies'} updated in sheet`;
+            statusEl.textContent = '✓ ' + t('rules_run_done', { n: result.updated.toLocaleString() });
             statusEl.style.color = 'var(--accent)';
           }
         }
@@ -2534,23 +2537,27 @@ function renderRulesList() {
   const rules = q
     ? allRules.filter(r => [r.match.artist, r.match.title, r.match.album, r.replace.artist, r.replace.title, r.replace.album].some(s => s.toLowerCase().includes(q)))
     : allRules;
+  // How many rules there are, under the window's title
+  const count = document.getElementById('rulesCount');
+  if (count) count.textContent = allRules.length ? tCount('rules', allRules.length) : '';
   if (!allRules.length) {
-    el.innerHTML = '<p style="font-size:var(--fs-sm);color:var(--text3);text-align:center;padding:1rem 0">No rules saved yet.</p>';
+    el.innerHTML = `<div class="dc-empty">${dcIco('wand')}<span>${esc(t('rules_none'))}</span></div>`;
     return;
   }
   if (!rules.length) {
-    el.innerHTML = '<p style="font-size:var(--fs-sm);color:var(--text3);text-align:center;padding:1rem 0">No rules match your search.</p>';
+    el.innerHTML = `<div class="dc-empty">${dcIco('search')}<span>${esc(t('rules_no_match'))}</span></div>`;
     return;
   }
-  el.innerHTML = rules.map(r => `
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:0.5rem 0;border-bottom:1px solid var(--border);gap:0.7rem">
-      <div style="font-size:var(--fs-xs);flex:1;min-width:0;line-height:1.5">
-        <div style="color:var(--text3)">Match: <span style="color:var(--text2)">${esc(r.match.artist)} &mdash; ${esc(r.match.title)} &mdash; ${esc(r.match.album)}</span></div>
-        <div style="color:var(--text3)">&rarr; Replace: <span style="color:var(--accent)">${esc(r.replace.artist)} &mdash; ${esc(r.replace.title)} &mdash; ${esc(r.replace.album)}</span></div>
+  // One row per rule: what it looks for, then what it writes instead
+  el.innerHTML = '<div class="dc-list">' + rules.map(r => `
+    <div class="dc-list-row">
+      <div class="dc-list-main">
+        <div class="dc-list-sub">${esc(t('rules_match'))} <span class="rule-was">${esc(r.match.artist)} — ${esc(r.match.title)}${r.match.album ? ' — ' + esc(r.match.album) : ''}</span></div>
+        <div class="dc-list-title rule-now">${dcIco('next', 'rule-arrow')}${esc(r.replace.artist)} — ${esc(r.replace.title)}${r.replace.album ? ' — ' + esc(r.replace.album) : ''}</div>
       </div>
-      <button onclick="deleteAutocorrectRule('${esc(r.id)}')" style="flex-shrink:0;font-size:var(--fs-xs);padding:0.2rem 0.5rem;border:1px solid var(--border);border-radius:3px;background:var(--bg2);color:var(--text2);cursor:pointer">Delete</button>
+      <button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-danger" onclick="deleteAutocorrectRule('${esc(r.id)}')">${esc(t('rules_delete'))}</button>
     </div>
-  `).join('');
+  `).join('') + '</div>';
 }
 
 // ─── COMPILATION ALBUMS MANAGER ───────────────────────────────
@@ -2589,11 +2596,13 @@ function renderCompilationsList() {
   const el = document.getElementById('compilationsList');
   if (!el) return;
   const list = getCompilationAlbums().slice().sort((a, b) => a.localeCompare(b));
+  const count = document.getElementById('compCount');
+  if (count) count.textContent = list.length ? tCount('albums', list.length) : '';
   if (!list.length) {
-    el.innerHTML = `<p style="font-size:var(--fs-sm);color:var(--text3);text-align:center;padding:1rem 0">${t('comp_none')}</p>`;
+    el.innerHTML = `<div class="dc-empty">${dcIco('stack')}<span>${esc(t('comp_none'))}</span></div>`;
     return;
   }
-  el.innerHTML = list.map(function (name) {
+  el.innerHTML = '<div class="dc-list">' + list.map(function (name) {
     // How many singers this album actually merges — the number is the whole
     // reason the entry exists, so it is worth showing next to it.
     const singers = new Set();
@@ -2603,14 +2612,14 @@ function renderCompilationsList() {
       }
     }
     const note = singers.size ? t('comp_merges', { n: singers.size }) : t('comp_no_plays');
-    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:0.5rem 0;border-bottom:1px solid var(--border);gap:0.7rem">
-      <div style="font-size:var(--fs-xs);flex:1;min-width:0;line-height:1.4">
-        <div style="color:var(--text2)">${esc(name)}</div>
-        <div style="color:var(--text3);font-size:var(--fs-xs)">${esc(note)}</div>
+    return `<div class="dc-list-row">
+      <div class="dc-list-main">
+        <div class="dc-list-title">${esc(name)}</div>
+        <div class="dc-list-sub">${esc(note)}</div>
       </div>
-      <button onclick="removeCompilation(${esc(JSON.stringify(name))})" style="flex-shrink:0;font-size:var(--fs-xs);padding:0.2rem 0.5rem;border:1px solid var(--border);border-radius:3px;background:var(--bg2);color:var(--text2);cursor:pointer">${t('comp_remove')}</button>
+      <button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-danger" onclick="removeCompilation(${esc(JSON.stringify(name))})">${esc(t('comp_remove'))}</button>
     </div>`;
-  }).join('');
+  }).join('') + '</div>';
 }
 
 // Rebuilds every chart from scratch. albumArtist() decides album identity, so
@@ -3199,8 +3208,10 @@ function renderReleaseTypesList() {
   // Grouped by type, and 'album' never appears: it is the absence of a mark.
   const entries = getReleaseTypeEntries()
     .sort((a, b) => a.album.localeCompare(b.album));
+  const count = document.getElementById('rtypeCount');
+  if (count) count.textContent = entries.length ? tCount('releases', entries.length) : '';
   if (!entries.length) {
-    el.innerHTML = `<div class="rt-empty">${esc(t('rtype_none'))}</div>`;
+    el.innerHTML = `<div class="dc-empty">${dcIco('tag')}<span>${esc(t('rtype_none'))}</span></div>`;
     return;
   }
   let html = '';
@@ -4601,25 +4612,36 @@ function openImgPicker(o) {
   overlay.addEventListener('click', e => { if (e.target === overlay) closeImgPicker(); });
 
   const sources = ['deezer', 'itunes', 'lastfm', 'youtube'].filter(s => s !== 'youtube' || YOUTUBE_KEY);
-  overlay.innerHTML = `<div class="dc-modal imgpk-panel" role="dialog" aria-modal="true">
-    <div class="imgpk-head">
-      <div class="imgpk-titles">
-        <div class="imgpk-title">${t('imgpk_title')}</div>
-        <div class="imgpk-item">${esc(title)}${sub ? `<span class="imgpk-item-sub"> — ${esc(sub)}</span>` : ''}</div>
+  // On the shared window frame (phase 10 step 2): the picture in use sits in
+  // the header's icon tile, each source is a titled row of choices, a pasted
+  // link has its own row, and Automatic / No image are in the footer.
+  overlay.innerHTML = `<div class="dc-modal dc-frame imgpk-panel" role="dialog" aria-modal="true" aria-labelledby="imgpkTitle">
+    <div class="dc-frame-head">
+      <span class="dc-frame-icon imgpk-now${o.type === 'artist' ? ' is-round' : ''}">${currentUrl ? `<img src="${esc(currentUrl)}" alt="">` : dcIco('image')}</span>
+      <div class="dc-frame-titles">
+        <h3 class="dc-frame-title" id="imgpkTitle">${esc(title)}</h3>
+        <p class="dc-frame-sub">${esc(t('imgpk_title'))}${sub ? ' · ' + esc(sub) : ''}</p>
       </div>
       <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close imgpk-close" onclick="closeImgPicker()" aria-label="Close" data-i18n-aria="set_close">✕</button>
     </div>
-    <div class="imgpk-body">
+    <div class="dc-frame-body imgpk-body">
       ${sources.map(s => `<div class="imgpk-section" data-src="${s}">
         <div class="imgpk-src-label">${srcLabel(s)}</div>
-        <div class="imgpk-tiles"><div class="imgpk-loading">${t('imgpk_loading')}</div></div>
+        <div class="imgpk-tiles"><div class="imgpk-loading"><span class="dc-spinner"></span>${t('imgpk_loading')}</div></div>
       </div>`).join('')}
+      <div class="imgpk-section">
+        <div class="imgpk-src-label">${esc(t('imgpk_url_label'))}</div>
+        <div class="dc-field-row">
+          <input class="dc-input imgpk-url-input" type="url" placeholder="${t('imgpk_url_ph')}" spellcheck="false">
+          <button class="dc-btn dc-btn-normal imgpk-url-apply" data-act="custom">${t('imgpk_apply')}</button>
+        </div>
+      </div>
     </div>
-    <div class="imgpk-foot">
-      <button class="dc-btn dc-btn-normal dc-btn-sm" data-act="auto">${t('imgpk_auto')}</button>
-      <button class="dc-btn dc-btn-normal dc-btn-sm" data-act="off">${t('imgpk_none')}</button>
-      <input class="imgpk-url-input" type="url" placeholder="${t('imgpk_url_ph')}" spellcheck="false">
-      <button class="dc-btn dc-btn-main dc-btn-sm imgpk-url-apply" data-act="custom">${t('imgpk_apply')}</button>
+    <div class="dc-frame-foot">
+      <div class="dc-frame-foot-start">
+        <button class="dc-btn dc-btn-plain" data-act="off">${t('imgpk_none')}</button>
+      </div>
+      <button class="dc-btn dc-btn-normal" data-act="auto">${dcIco('refresh')}${esc(t('imgpk_auto'))}</button>
     </div>
   </div>`;
 
@@ -34051,24 +34073,27 @@ function _dcPickRenderList() {
   const names = Object.keys(_ytPlaylists);
   const staged = new Set(_dcPickTracks.map(_dcPickKey));
 
-  let html = `<button class="dc-plpick-new" onclick="_dcPickShowNew()">＋ ${esc(t('pl_pick_new'))}</button>`;
-  // For a playlist on a streaming service instead: Soundiiz imports this text
-  html += `<button class="dc-plpick-text" onclick="_dcPickExportText()">📋 Copy as text for Soundiiz</button>`;
+  // New playlist / copy as text side by side, then one row per playlist
+  let html = `<div class="dc-plpick-actions">
+    <button class="dc-btn dc-btn-normal dc-plpick-new" onclick="_dcPickShowNew()">${dcIco('plus')}${esc(t('pl_pick_new'))}</button>
+    <button class="dc-btn dc-btn-plain dc-plpick-text" onclick="_dcPickExportText()" title="${esc(t('pl_pick_text_hint'))}">${dcIco('copy')}${esc(t('pl_pick_text'))}</button>
+  </div>`;
 
   if (!names.length) {
-    html += `<div class="dc-plpick-empty">${esc(t('pl_pick_none_yet'))}</div>`;
+    html += `<div class="dc-empty">${dcIco('listmusic')}<span>${esc(t('pl_pick_none_yet'))}</span></div>`;
   } else {
-    html += `<div class="dc-plpick-list">` + names.map(n => {
+    html += `<div class="dc-list dc-plpick-list">` + names.map(n => {
       // How many of the staged tracks this playlist doesn't have yet — so the
       // user can see at a glance that a second click would be a no-op.
       const have = new Set((_ytPlaylists[n] || []).map(_dcPickKey));
       let fresh = 0;
       staged.forEach(k => { if (!have.has(k)) fresh++; });
       const full = fresh === 0;
-      return `<button class="dc-plpick-item${full ? ' dc-plpick-item-full' : ''}" onclick="_dcPickAddTo(${esc(JSON.stringify(n))})">` +
-        `<span class="dc-plpick-item-name">${esc(n)}</span>` +
-        `<span class="dc-plpick-item-count">${_ytPlaylists[n].length}</span>` +
-        `<span class="dc-plpick-item-add">${full ? '✓' : '+' + fresh}</span>` +
+      return `<button class="dc-list-row dc-plpick-item${full ? ' dc-plpick-item-full' : ''}" onclick="_dcPickAddTo(${esc(JSON.stringify(n))})">` +
+        `<span class="dc-plpick-item-ico">${dcIco('listmusic')}</span>` +
+        `<span class="dc-list-main"><span class="dc-list-title">${esc(n)}</span>` +
+        `<span class="dc-list-sub">${esc(tCount('songs', _ytPlaylists[n].length))}</span></span>` +
+        `<span class="dc-plpick-item-add">${full ? dcIco('check') + esc(t('pl_pick_has_all')) : dcIco('plus') + fresh}</span>` +
         `</button>`;
     }).join('') + `</div>`;
   }
@@ -34090,16 +34115,17 @@ function _dcPickShowNew() {
   const body = document.getElementById('dcPlPickBody');
   if (!body) return;
   body.innerHTML =
-    `<button class="dc-plpick-back" onclick="_dcPickRenderList()">‹ ${esc(t('pl_pick_back'))}</button>` +
-    `<input class="dc-plpick-input" id="dcPlPickName" type="text" maxlength="60" placeholder="${esc(t('pl_pick_name_ph'))}" ` +
-    `onkeydown="if(event.key==='Enter')_dcPickCreate()">` +
-    `<div class="dc-plpick-preview">` +
+    `<button class="dc-btn dc-btn-plain dc-btn-sm dc-plpick-back" onclick="_dcPickRenderList()">${dcIco('back')}${esc(t('pl_pick_back'))}</button>` +
+    `<label class="dc-field"><span>${esc(t('pl_create_name'))}</span>` +
+    `<input class="dc-input" id="dcPlPickName" type="text" maxlength="60" placeholder="${esc(t('pl_pick_name_ph'))}" ` +
+    `onkeydown="if(event.key==='Enter')_dcPickCreate()"></label>` +
+    `<div class="dc-list dc-plpick-preview">` +
     _dcPickTracks.slice(0, 5).map(tr =>
-      `<div class="dc-plpick-preview-row">${esc(tr.title)}${tr.artist ? ` <span>· ${esc(tr.artist)}</span>` : ''}</div>`
+      `<div class="dc-list-row"><span class="dc-list-main"><span class="dc-list-title">${esc(tr.title)}</span>${tr.artist ? `<span class="dc-list-sub">${esc(tr.artist)}</span>` : ''}</span></div>`
     ).join('') +
-    (_dcPickTracks.length > 5 ? `<div class="dc-plpick-preview-more">+ ${_dcPickTracks.length - 5}…</div>` : '') +
+    (_dcPickTracks.length > 5 ? `<div class="dc-list-head">+ ${_dcPickTracks.length - 5}…</div>` : '') +
     `</div>` +
-    `<button class="dc-plpick-create" onclick="_dcPickCreate()">✓ ${esc(t('pl_pick_create'))}</button>`;
+    `<button class="dc-btn dc-btn-main dc-plpick-create" onclick="_dcPickCreate()">${dcIco('check')}${esc(t('pl_pick_create'))}</button>`;
   const input = document.getElementById('dcPlPickName');
   if (input) { input.value = _dcPickSuggest.slice(0, 60); setTimeout(() => input.select(), 60); }
 }
@@ -37855,11 +37881,11 @@ function skAtRiskSavePl() {
   // Reuse the calendar create-playlist modal — populate it with at-risk songs
   _calCreatePlTracks = songs.map(s => ({ title: s.title, artist: s.artist, album: s.album || '' }));
   const today = new Date();
-  const dateLabel = today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const dateLabel = today.toLocaleDateString(hmLocale(), { month: 'short', day: 'numeric' });
   const subEl = document.getElementById('calCreatePlSub');
-  if (subEl) subEl.textContent = `${songs.length} song${songs.length !== 1 ? 's' : ''} · At Risk Today`;
+  if (subEl) subEl.textContent = tCount('songs', songs.length) + ' · ' + t('sk_pl_at_risk_today');
   const nameInput = document.getElementById('calCreatePlName');
-  if (nameInput) nameInput.value = `At Risk · ${dateLabel}`;
+  if (nameInput) nameInput.value = t('sk_pl_at_risk_name', { date: dateLabel });
   const modal = document.getElementById('calCreatePlModal');
   if (modal) { modal.classList.add('open'); setTimeout(() => nameInput && nameInput.select(), 80); }
 }
@@ -47269,7 +47295,7 @@ let _cerShareBusy = false;
 function openCeremonyShare() {
   const data = _awardsYearData[_awardsYear];
   if (!data || !_ceremonyCatsFor(data).length) { dcPlToast('Add some nominees before sharing the ceremony.'); return; }
-  document.getElementById('cerShareSub').textContent = `${_awardsYear} My Grammys`;
+  document.getElementById('cerShareSub').textContent = t('cer_share_sub', { year: _awardsYear });
   document.getElementById('cerShareModal').classList.add('open');
   _cerShareRender();
 }
@@ -47282,47 +47308,42 @@ function closeCeremonyShare() {
 // Draws whichever step the dialog is on: signed out, not shared yet, or live.
 function _cerShareRender(note) {
   const body = document.getElementById('cerShareBody');
+  const foot = document.getElementById('cerShareFoot');
   if (!body) return;
   const data = _awardsYearData[_awardsYear];
   const signedIn = typeof dcIsSignedIn === 'function' && dcIsSignedIn();
-  const noteHtml = note ? `<div class="cer-share-note">${esc(note)}</div>` : '';
+  const noteHtml = note ? `<div class="dc-frame-callout">${dcIco('alert')}<span>${esc(note)}</span></div>` : '';
+  const setFoot = html => { if (foot) { foot.innerHTML = html; foot.style.display = html ? '' : 'none'; } };
 
   // Writing the public copy needs an account, so the link can be updated or
   // taken down later by the person who made it — and only by them.
   if (!signedIn) {
-    body.innerHTML = `
-      <p class="cer-share-text">Sign in with Google to create a link. Anyone you send it to can watch the ceremony without an account.</p>
-      ${noteHtml}
-      <div class="cal-create-pl-actions">
-        <button class="dc-btn dc-btn-main" onclick="_cerShareSignIn()">Sign in with Google</button>
-      </div>`;
+    body.innerHTML = `<p class="dc-frame-lead">${esc(t('cer_share_signin_text'))}</p>${noteHtml}`;
+    setFoot(`<button class="dc-btn dc-btn-main" onclick="_cerShareSignIn()">${esc(t('cer_share_signin'))}</button>`);
     return;
   }
 
   if (!data?.shareId) {
-    body.innerHTML = `
-      <p class="cer-share-text">Creates a link anyone can open to watch this ceremony: the nominees, the envelopes, the winners and their artwork. Nothing else from your library is shared.</p>
-      ${noteHtml}
-      <div class="cal-create-pl-actions">
-        <button class="dc-btn dc-btn-main" onclick="_cerSharePublish()">🔗 Create link</button>
-      </div>`;
+    body.innerHTML = `<p class="dc-frame-lead">${esc(t('cer_share_create_text'))}</p>${noteHtml}`;
+    setFoot(`<button class="dc-btn dc-btn-main" onclick="_cerSharePublish()">${dcIco('link')}${esc(t('cer_share_create'))}</button>`);
     return;
   }
 
   const url = _cerShareUrl(data.shareId);
   const canNative = typeof navigator.share === 'function';
   body.innerHTML = `
-    <div class="cer-share-link-row">
-      <input class="cal-create-pl-input cer-share-link" id="cerShareLink" type="text" readonly value="${esc(url)}" onfocus="this.select()">
-      <button class="dc-btn dc-btn-main" onclick="_cerShareCopy()">Copy</button>
+    <div class="dc-field-row cer-share-link-row">
+      <input class="dc-input cer-share-link" id="cerShareLink" type="text" readonly value="${esc(url)}" onfocus="this.select()">
+      <button class="dc-btn dc-btn-main" onclick="_cerShareCopy()">${dcIco('copy')}${esc(t('cer_share_copy'))}</button>
     </div>
-    <p class="cer-share-text">Anyone with this link can watch. It's a snapshot — if you change nominees or winners, press Update link.</p>
-    ${noteHtml}
-    <div class="cal-create-pl-actions cer-share-actions">
-      <button class="dc-btn dc-btn-plain dc-btn-danger cer-share-stop" onclick="_cerShareStop()">Stop sharing</button>
-      <button class="dc-btn dc-btn-normal" onclick="_cerSharePublish()">↻ Update link</button>
-      ${canNative ? `<button class="dc-btn dc-btn-normal" onclick="_cerShareNative()">Share…</button>` : ''}
-    </div>`;
+    <p class="dc-frame-note">${esc(t('cer_share_live_text'))}</p>
+    ${noteHtml}`;
+  setFoot(`
+    <div class="dc-frame-foot-start">
+      <button class="dc-btn dc-btn-plain dc-btn-danger cer-share-stop" onclick="_cerShareStop()">${esc(t('cer_share_stop'))}</button>
+    </div>
+    <button class="dc-btn dc-btn-normal" onclick="_cerSharePublish()">${dcIco('refresh')}${esc(t('cer_share_update'))}</button>
+    ${canNative ? `<button class="dc-btn dc-btn-normal" onclick="_cerShareNative()">${dcIco('share')}${esc(t('cer_share_native'))}</button>` : ''}`);
 }
 
 async function _cerShareSignIn() {
@@ -47339,25 +47360,27 @@ async function _cerSharePublish() {
   if (!data) return;
   _cerShareBusy = true;
   const body = document.getElementById('cerShareBody');
-  body.innerHTML = `<p class="cer-share-text" id="cerShareProgress">Gathering artwork…</p>`;
+  body.innerHTML = `<div class="dc-empty"><span class="dc-spinner"></span><span id="cerShareProgress">${esc(t('cer_share_gathering'))}</span></div>`;
+  const foot = document.getElementById('cerShareFoot');
+  if (foot) foot.style.display = 'none';
   try {
     const payload = await _cerBuildShare(year, data, (done, total) => {
       const el = document.getElementById('cerShareProgress');
-      if (el) el.textContent = `Gathering artwork… ${done} / ${total}`;
+      if (el) el.textContent = t('cer_share_gathering_n', { done, total });
     });
     const el = document.getElementById('cerShareProgress');
-    if (el) el.textContent = 'Saving…';
+    if (el) el.textContent = t('cer_share_saving');
     const id = await dcShareCeremony(data.shareId || null, payload);
-    if (!id) { _cerShareBusy = false; _cerShareRender('Could not save the link. Check your connection and try again.'); return; }
+    if (!id) { _cerShareBusy = false; _cerShareRender(t('cer_share_err_save')); return; }
     const isNew = data.shareId !== id;
     data.shareId = id;
     if (isNew) _awardsSave(year);   // remember the link, on every device, so Update reuses it
     _cerShareBusy = false;
-    _cerShareRender(isNew ? 'Link created.' : 'Link updated.');
+    _cerShareRender(isNew ? t('cer_share_created') : t('cer_share_updated'));
   } catch (e) {
     console.warn('[dankcharts] Ceremony share failed:', e);
     _cerShareBusy = false;
-    _cerShareRender('Something went wrong creating the link. Try again.');
+    _cerShareRender(t('cer_share_err_create'));
   }
 }
 
@@ -47366,13 +47389,13 @@ async function _cerShareCopy() {
   if (!input) return;
   try { await navigator.clipboard.writeText(input.value); }
   catch (e) { input.select(); document.execCommand('copy'); }
-  dcPlToast('Link copied');
+  dcPlToast(t('cer_share_copied'));
 }
 
 function _cerShareNative() {
   const data = _awardsYearData[_awardsYear];
   if (!data?.shareId) return;
-  navigator.share({ title: `My ${_awardsYear} Grammys`, text: `Watch my ${_awardsYear} music awards ceremony`, url: _cerShareUrl(data.shareId) }).catch(() => {});
+  navigator.share({ title: t('cer_share_native_title', { year: _awardsYear }), text: t('cer_share_native_text', { year: _awardsYear }), url: _cerShareUrl(data.shareId) }).catch(() => {});
 }
 
 // Taking a link down deletes the public copy, so everyone who has it loses it.
@@ -47380,14 +47403,22 @@ async function _cerShareStop() {
   const year = _awardsYear;
   const data = _awardsYearData[year];
   if (!data?.shareId || _cerShareBusy) return;
-  if (!confirm('Stop sharing? The link will stop working for everyone who has it.')) return;
+  // The site's own warning window, never the browser's confirm()
+  if (typeof window.dcConfirmBox === 'function') {
+    window.dcConfirmBox(t('cer_share_stop_title'), t('cer_share_stop_text'), t('cer_share_stop'), _cerShareDoStop);
+  } else _cerShareDoStop();
+}
+async function _cerShareDoStop() {
+  const year = _awardsYear;
+  const data = _awardsYearData[year];
+  if (!data?.shareId || _cerShareBusy) return;
   _cerShareBusy = true;
   const ok = await dcUnshareCeremony(data.shareId);
   _cerShareBusy = false;
-  if (!ok) { _cerShareRender('Could not remove the link. Try again.'); return; }
+  if (!ok) { _cerShareRender(t('cer_share_err_stop')); return; }
   delete data.shareId;
   _awardsSave(year);
-  _cerShareRender('Link removed.');
+  _cerShareRender(t('cer_share_removed'));
 }
 
 /* ── Watching a shared link ───────────────────────────────────────────────── */
