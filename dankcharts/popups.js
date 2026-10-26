@@ -270,6 +270,9 @@
     if (e.key === 'Escape') {
       // A menu or picker open inside the window closes first, by its own code
       if (o.querySelector('[aria-expanded="true"]') || document.getElementById('awardsYearPicker')) return;
+      // …and so does the chart's ⋮ action menu, opened from a details panel
+      var menu = document.getElementById('eaMenu');
+      if (menu && menu.style.display === 'block') return;
       e.preventDefault();
       e.stopImmediatePropagation();
       closeTop();
@@ -304,6 +307,8 @@
     if (!o) return;
     var box = boxOf(o);
     if (!box || !box.contains(e.target)) return;
+    // The details side panel fills the phone screen and is not a sheet
+    if (box.classList.contains('dp-panel')) return;
     // Only from the handle or the top strip of the sheet, never from a
     // control, and only when the sheet is scrolled to its top
     var fromGrip = e.target.classList.contains('dc-sheet-grip');

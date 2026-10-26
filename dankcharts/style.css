@@ -1107,9 +1107,270 @@
     @keyframes dcSheetUp { from { transform: translateY(100%); } }
     @keyframes dcSheetDown { to { transform: translateY(100%); } }
 
+    /* ═══════════════════════════════════════════════════════════════
+       DETAILS SIDE PANEL — phase 10 step 3 (panel.js)
+       Song, album and artist details slide in from the right (full screen
+       on a phone) over a light scrim, so the chart stays in view.
+         .dp-overlay > .dp-panel > .dp-scroll
+           .dp-bar     ← back · kind · name (once scrolled) · ✕, sticky
+           .dp-hero    the cover large on a blurred copy of itself, title,
+                       links and the .dp-actions buttons
+           .dp-tabs    sticky under the bar; .dp-tab-ink slides between tabs
+           .dp-body    the parts, each a .dp-sec[data-dp-tab]; .dp-on shows
+       Comes after the pop-up engine's rules on purpose: same specificity,
+       so these win (the panel is never a bottom sheet).
+       ═══════════════════════════════════════════════════════════════ */
+    .dp-overlay.dc-pop.dc-pop {
+      padding: 0;
+      align-items: flex-end;
+      justify-content: flex-start;
+      overflow: hidden;
+      background: color-mix(in srgb, var(--scrim) 75%, transparent);
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
+    }
+    .dp-overlay.dc-pop.dc-pop > .dp-panel {
+      width: min(600px, 100vw);
+      max-width: none;
+      height: 100dvh;
+      max-height: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-radius: var(--r-lg) 0 0 var(--r-lg);
+      border-width: 0 0 0 1px;
+      box-shadow: -24px 0 64px rgba(0, 0, 0, 0.35);
+    }
+    .dp-panel > .dc-sheet-grip { display: none !important; }
+    .dp-scroll {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-gutter: stable;
+    }
+
+    /* In and out: a slide from the right edge. Stepping from one panel to
+       the next (song → album) is a short slide-and-fade instead. */
+    .dp-overlay.dc-pop-in > .dp-panel.dc-pop-box { animation: dpIn 0.34s cubic-bezier(0.2, 0.8, 0.2, 1); }
+    .dp-overlay.dc-pop-out > .dp-panel.dc-pop-box { animation: dpOut 0.2s ease-in forwards; }
+    .dp-overlay.dp-step.dc-pop.dc-pop-in { animation: none; }
+    .dp-overlay.dp-step.dc-pop-in > .dp-panel.dc-pop-box { animation: dpStep 0.26s var(--ease); }
+    .dp-overlay.dp-leaving.dc-pop.dc-pop { display: none !important; }
+    @keyframes dpIn { from { transform: translateX(100%); } }
+    @keyframes dpOut { to { transform: translateX(100%); } }
+    @keyframes dpStep { from { opacity: 0; transform: translateX(28px); } }
+
+    /* ── Top bar ── */
+    .dp-bar {
+      position: sticky;
+      top: 0;
+      z-index: 6;
+      display: flex;
+      align-items: center;
+      gap: var(--sp-2);
+      height: 56px;
+      margin-bottom: -56px;          /* lies over the header */
+      padding: 0 var(--sp-3);
+      transition: background var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+    }
+    .dp-bar .modal-close { position: static; margin: 0 0 0 auto; }
+    .dp-bar .dp-back[hidden] { display: none; }
+    /* the page's back-to-top button would float over the panel */
+    html.dc-pop-lock #backToTop { display: none !important; }
+    .dp-bar .dc-btn-icon { width: 36px; height: 36px; color: var(--text); background: color-mix(in srgb, var(--bg2) 55%, transparent); }
+    .dp-bar .dc-btn-icon:hover { background: color-mix(in srgb, var(--bg2) 85%, transparent); }
+    .dp-bar .dc-btn-icon svg { width: 18px; height: 18px; }
+    .dp-kicker {
+      font-size: var(--fs-xs);
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text2);
+      padding-left: var(--sp-2);
+    }
+    .dp-bar-title {
+      flex: 1;
+      min-width: 0;
+      font-weight: 700;
+      font-size: var(--fs-base);
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      opacity: 0;
+      transform: translateY(4px);
+      transition: opacity var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+    }
+    .dp-scrolled .dp-bar {
+      background: color-mix(in srgb, var(--bg2) 90%, transparent);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+    .dp-scrolled .dp-bar-title { opacity: 1; transform: none; }
+    .dp-scrolled .dp-kicker { display: none; }
+
+    /* ── Header ── */
+    .dp-hero {
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+      padding: 64px var(--sp-5) var(--sp-5);
+    }
+    .dp-hero-bg {
+      position: absolute;
+      inset: -60px;
+      z-index: -2;
+      background-size: cover;
+      background-position: center;
+      filter: blur(48px) saturate(1.5);
+      opacity: 0;
+      transform: scale(1.1);
+      transition: opacity 0.6s var(--ease);
+    }
+    .dp-hero-bg.has-img { opacity: 0.6; }
+    /* fades the colour into the panel, so the text below always reads */
+    .dp-hero::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background: linear-gradient(180deg, color-mix(in srgb, var(--bg2) 25%, transparent) 0%, color-mix(in srgb, var(--bg2) 70%, transparent) 55%, var(--bg2) 100%);
+    }
+    .dp-head { display: flex; align-items: flex-end; gap: var(--sp-5); }
+    .dp-head .modal-thumb-wrap { flex-shrink: 0; }
+    .dp-head .modal-thumb-wrap .thumb,
+    .dp-head .modal-thumb-wrap .thumb-initials {
+      width: 152px;
+      height: 152px;
+      border: 0;
+      border-radius: var(--r-md);
+      box-shadow: 0 18px 44px rgba(0, 0, 0, 0.4);
+    }
+    .dp-head .modal-thumb-wrap .thumb-initials { font-size: 3rem; }
+    #artistModal .dp-head .modal-thumb-wrap .thumb,
+    #artistModal .dp-head .modal-thumb-wrap .thumb-initials { border-radius: 50%; }
+    .dp-titles { flex: 1; min-width: 0; padding-bottom: 2px; }
+    .dp-titles .modal-artist-name {
+      font-family: var(--font-display);
+      font-size: clamp(1.5rem, 3.4vw, 2.15rem);
+      line-height: 1.08;
+      overflow-wrap: anywhere;
+    }
+    .dp-titles .modal-artist-sub { margin-top: var(--sp-2); font-size: var(--fs-sm); color: var(--text2); line-height: 1.5; }
+    .dp-titles .modal-artist-link { color: var(--text); font-weight: 600; text-decoration: none; }
+    .dp-titles .modal-artist-link:hover { text-decoration: underline; }
+
+    /* ── Buttons under the title ── */
+    .dp-actions { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-5); }
+    .dp-actions:empty { display: none; }
+    .dp-actions .dp-act {
+      width: auto;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      height: 38px;
+      padding: 0 15px;
+      border: 1px solid var(--border2);
+      border-radius: var(--r-sm);
+      background: color-mix(in srgb, var(--bg2) 55%, transparent);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: var(--fs-sm);
+      font-weight: 600;
+      cursor: pointer;
+      transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+    }
+    .dp-actions .dp-act:hover { background: var(--bg3); border-color: var(--text3); }
+    .dp-actions .dp-act:active { transform: scale(0.97); }
+    .dp-actions .dp-act svg { width: 16px; height: 16px; margin: 0; }
+    /* ▶ and ⋮ also carry the chart's .ea-sample / .ea-more (app.js runs them):
+       none of their small faded round look here */
+    .dp-actions .dp-act.ea-sample, .dp-actions .dp-act.ea-more { opacity: 1; flex-shrink: 0; }
+    .dp-actions .dp-act-main { background: var(--accent); border-color: transparent; color: var(--on-accent); }
+    .dp-actions .dp-act-main:hover { background: var(--accent); border-color: transparent; filter: brightness(1.1); }
+    .dp-actions .dp-act-icon { width: 38px; padding: 0; }
+    /* the sample playing / looking for a clip (classes set by app.js) */
+    .dp-actions .dp-act.ea-sample.is-loading { opacity: 0.7; }
+    .dp-actions .dp-act.ea-sample.is-on { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent); }
+    .dp-actions .dp-act.ea-sample.is-miss { background: var(--bg3); color: var(--text3); }
+
+    /* ── Tabs ── */
+    .dp-tabs {
+      position: sticky;
+      top: 56px;
+      z-index: 5;
+      display: flex;
+      gap: var(--sp-1);
+      padding: 0 var(--sp-4);
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .dp-tabs::-webkit-scrollbar { display: none; }
+    .dp-tabs[hidden] { display: none; }
+    .dp-tab {
+      flex-shrink: 0;
+      height: 46px;
+      padding: 0 var(--sp-3);
+      border: 0;
+      background: none;
+      color: var(--text3);
+      font-family: var(--font-sans);
+      font-size: var(--fs-sm);
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: color var(--t-fast) var(--ease);
+    }
+    .dp-tab:hover, .dp-tab.is-on { color: var(--text); }
+    .dp-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: -4px; border-radius: var(--r-sm); }
+    .dp-tab-ink {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 0;
+      height: 2px;
+      border-radius: 2px;
+      background: var(--accent);
+      transition: transform 0.28s var(--ease), width 0.28s var(--ease);
+    }
+    .dp-tab-ink.no-anim { transition: none; }
+
+    /* ── The parts ── */
+    .dp-body { padding: var(--sp-5); }
+    .dp-sec { display: none; }
+    .dp-sec.dp-on { display: block; }
+    .dp-sec.dp-in { animation: dpTabIn 0.24s var(--ease); }
+    .dp-sec > .modal-section-title:first-child { margin-top: 0; }
+    @keyframes dpTabIn { from { opacity: 0; transform: translateY(6px); } }
+
+    @media (max-width: 640px) {
+      .dp-overlay.dc-pop.dc-pop > .dp-panel { width: 100vw; border-radius: 0; border-width: 0; }
+      .dp-hero { padding: 60px var(--sp-4) var(--sp-4); }
+      .dp-head { gap: var(--sp-4); }
+      .dp-head .modal-thumb-wrap .thumb,
+      .dp-head .modal-thumb-wrap .thumb-initials { width: 108px; height: 108px; }
+      /* one row: Sample with its word, the rest as icons (their names stay
+         as tooltips / accessible names) */
+      .dp-actions { flex-wrap: nowrap; }
+      .dp-actions .dp-act { height: 42px; width: 42px; padding: 0; flex-shrink: 0; }
+      .dp-actions .dp-act:not(.dp-act-main) > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+      .dp-actions .dp-act-main { flex: 1 1 auto; width: auto; padding: 0 14px; }
+      .dp-tabs { padding: 0 var(--sp-2); }
+      .dp-body { padding: var(--sp-4); }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       .dc-pop.dc-pop.dc-pop-in, .dc-pop.dc-pop-in > .dc-pop-box.dc-pop-box,
-      .dc-pop.dc-pop.dc-pop-out, .dc-pop.dc-pop-out > .dc-pop-box.dc-pop-box { animation: none; }
+      .dc-pop.dc-pop.dc-pop-out, .dc-pop.dc-pop-out > .dc-pop-box.dc-pop-box,
+      .dp-overlay.dc-pop-in > .dp-panel.dc-pop-box, .dp-overlay.dc-pop-out > .dp-panel.dc-pop-box,
+      .dp-sec.dp-in { animation: none; }
+      .dp-tab-ink { transition: none; }
     }
 
     /* Phones: the ⋮ menu opened below its button and ran under the bottom

@@ -9,6 +9,20 @@ const TRANSLATIONS = {
 
   // ── ENGLISH ──────────────────────────────────────────────────────────────────
   en: {
+    dp_back: 'Back',
+    dp_kind_song: 'Song',
+    dp_kind_album: 'Album',
+    dp_kind_artist: 'Artist',
+    dp_playlist: 'Playlist',
+    dp_rate: 'Rate',
+    dp_share: 'Share',
+    dp_tab_overview: 'Overview',
+    dp_tab_charts: 'Charts',
+    dp_tab_listening: 'Listening',
+    dp_tab_awards: 'Awards',
+    dp_tab_tracks: 'Tracks',
+    dp_tab_rating: 'Rating',
+    dp_tab_music: 'Music',
     imgpk_url_label: 'From a link',
     pop_edit_sub: 'Fix a misspelled name or the time it was played.',
     pop_manual_sub: 'Add a play you listened to somewhere else.',
@@ -4064,6 +4078,20 @@ const TRANSLATIONS = {
 
   // ── SPANISH ───────────────────────────────────────────────────────────────────
   es: {
+    dp_back: 'Atrás',
+    dp_kind_song: 'Canción',
+    dp_kind_album: 'Álbum',
+    dp_kind_artist: 'Artista',
+    dp_playlist: 'Lista',
+    dp_rate: 'Puntuar',
+    dp_share: 'Compartir',
+    dp_tab_overview: 'Resumen',
+    dp_tab_charts: 'Listas',
+    dp_tab_listening: 'Escuchas',
+    dp_tab_awards: 'Premios',
+    dp_tab_tracks: 'Canciones',
+    dp_tab_rating: 'Puntuación',
+    dp_tab_music: 'Música',
     imgpk_url_label: 'Desde un enlace',
     pop_edit_sub: 'Corrige un nombre mal escrito o la hora en que sonó.',
     pop_manual_sub: 'Añade una escucha que hiciste en otro lugar.',
@@ -8004,6 +8032,20 @@ const TRANSLATIONS = {
 
   // ── PORTUGUESE — BRAZIL ───────────────────────────────────────────────────────
   'pt-BR': {
+    dp_back: 'Voltar',
+    dp_kind_song: 'Música',
+    dp_kind_album: 'Álbum',
+    dp_kind_artist: 'Artista',
+    dp_playlist: 'Playlist',
+    dp_rate: 'Avaliar',
+    dp_share: 'Compartilhar',
+    dp_tab_overview: 'Visão geral',
+    dp_tab_charts: 'Paradas',
+    dp_tab_listening: 'Audições',
+    dp_tab_awards: 'Prêmios',
+    dp_tab_tracks: 'Faixas',
+    dp_tab_rating: 'Avaliação',
+    dp_tab_music: 'Música',
     imgpk_url_label: 'De um link',
     pop_edit_sub: 'Corrija um nome escrito errado ou o horário em que tocou.',
     pop_manual_sub: 'Adicione algo que você ouviu em outro lugar.',
@@ -11945,6 +11987,20 @@ const TRANSLATIONS = {
 
   // ── PORTUGUESE — EUROPEAN ─────────────────────────────────────────────────────
   'pt-PT': {
+    dp_back: 'Voltar',
+    dp_kind_song: 'Música',
+    dp_kind_album: 'Álbum',
+    dp_kind_artist: 'Artista',
+    dp_playlist: 'Playlist',
+    dp_rate: 'Avaliar',
+    dp_share: 'Partilhar',
+    dp_tab_overview: 'Visão geral',
+    dp_tab_charts: 'Tabelas',
+    dp_tab_listening: 'Audições',
+    dp_tab_awards: 'Prémios',
+    dp_tab_tracks: 'Faixas',
+    dp_tab_rating: 'Avaliação',
+    dp_tab_music: 'Música',
     imgpk_url_label: 'A partir de uma ligação',
     pop_edit_sub: 'Corrige um nome mal escrito ou a hora em que tocou.',
     pop_manual_sub: 'Adiciona algo que ouviste noutro sítio.',
