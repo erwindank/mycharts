@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Your Soundtrack: a richer pop-up for new discoveries":
+    ["Tu Banda Sonora: una ventana más completa para los nuevos descubrimientos",
+     "Al hacer clic en una burbuja de Nuevos Descubrimientos en Tu Banda Sonora se abre una ventana renovada. Puedes escuchar una muestra, buscar al artista, cada canción y cada álbum en Spotify o YouTube, y guardar una tarjeta para compartir. También muestra tu próxima meta (reproducciones para subir al siguiente top), un gráfico de tus reproducciones desde que lo descubriste, las portadas de los álbumes, cómo lo descubriste (tu primera reproducción y lo que escuchaste justo antes) y artistas similares, separados entre los que ya te encantan y los nuevos para ti. Las flechas de arriba, o las teclas ← →, pasan al descubrimiento siguiente o anterior. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Your Soundtrack: pick a year or month straight away":
     ["Tu Banda Sonora: elige un año o mes directamente",
      "En Tu Banda Sonora ahora puedes hacer clic en el año entre las flechas para abrir la lista de todos los años en los que tienes reproducciones y saltar directamente a uno, como en Premios. En la vista Mes muestra los 12 meses, con flechas arriba para cambiar de año. Funciona con Last.fm, Google Sheets y archivos CSV."],

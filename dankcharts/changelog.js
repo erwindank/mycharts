@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 319;
+const DC_CL_I18N_V = 320;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-25', t: 'feature', a: 'soundtrack', h: 'a6e9995',
+    title: "Your Soundtrack: a richer pop-up for new discoveries",
+    detail: "Clicking a New Discoveries bubble in Your Soundtrack now opens a new-look pop-up. You can play a sample, search the artist, each song and each album on Spotify or YouTube, and save a share card. It also shows your next goal (plays to reach the next top spot), a chart of your plays since you found them, album covers, how you found them (your first play and what you played just before), and similar artists, split into ones you already love and ones that are new to you. The arrows at the top, or the ← → keys, go to the next or previous discovery. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-25', t: 'feature', a: 'soundtrack', h: '0af6697',
     title: "Your Soundtrack: pick a year or month straight away",
     detail: "In Your Soundtrack you can now click the year between the arrows to open a list of every year you have plays in and jump straight to one, like on Awards. In Month view it shows the 12 months, with arrows at the top to change the year. Works with Last.fm, Google Sheets and CSV uploads." },
