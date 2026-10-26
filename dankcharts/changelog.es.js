@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Share as image: one tidy window everywhere":
+    ["Compartir como imagen: una ventana ordenada en todas partes",
+     "Todas las ventanas de compartir como imagen —listas, recorridos, estadísticas, rachas, puntuaciones, las canciones de un álbum, las de un artista y el calendario Diario— se ven y funcionan ahora igual. La vista previa se apoya en un fondo suave y sigue visible mientras recorres las opciones, cada grupo de opciones (diseño, colores, formato, qué mostrar…) es una tarjeta que puedes plegar pulsando su título, y Copiar, Compartir y Descargar tienen iconos claros. En el móvil los grupos menos usados empiezan plegados para que la vista previa y las opciones principales quepan en pantalla. Copiar, Compartir y ¡Copiado! están ahora también en español y portugués, y la ventana del recorrido de una canción muestra su título tal como se escribe."],
   "Rating window: smoother, clearer and in your language":
     ["Ventana de puntuación: más fluida, más clara y en tu idioma",
      "Puntuar una canción o un álbum es más fácil de seguir: lo que puntúas y su nota se quedan arriba y el botón Listo abajo mientras recorres los criterios. Cada criterio es una tarjeta con un icono sencillo que se ilumina al puntuarlo, los deslizadores se rellenan al arrastrarlos y quedan alineados, y el anillo de la nota ahora se desliza hasta la nueva cifra en lugar de saltar. Toda la ventana de puntuación —los criterios y sus descripciones, los veredictos de Obra maestra a Mala, cada botón y cada ayuda— está ahora también en español y portugués, igual que los veredictos de los paneles de detalles y de las tarjetas para compartir."],

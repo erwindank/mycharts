@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Share as image: one tidy window everywhere":
+    ["Compartilhar como imagem: uma janela organizada em todo lugar",
+     "Todas as janelas de compartilhar como imagem — paradas, trajetórias, estatísticas, sequências, avaliações, as faixas de um álbum, as músicas de um artista e o calendário Diário — agora têm o mesmo visual e funcionam do mesmo jeito. A prévia fica sobre um fundo suave e continua à vista enquanto você percorre as opções, cada grupo de opções (design, cores, formato, o que mostrar…) é um cartão que você pode recolher clicando no título, e Copiar, Compartilhar e Baixar têm ícones claros. No celular os grupos menos usados começam recolhidos para a prévia e as opções principais caberem na tela. Copiar, Compartilhar e Copiado! agora estão também em espanhol e português, e a janela da trajetória de uma música mostra o título como ele é escrito."],
   "Rating window: smoother, clearer and in your language":
     ["Janela de avaliação: mais fluida, mais clara e no seu idioma",
      "Avaliar uma música ou um álbum ficou mais fácil de acompanhar: o que você avalia e a nota ficam no topo e o botão Pronto embaixo enquanto você percorre os critérios. Cada critério é um cartão com um ícone simples que acende quando recebe nota, os controles deslizantes se preenchem ao arrastar e ficam alinhados, e o anel da nota agora desliza até o novo número em vez de pular. A janela de avaliação inteira — os critérios e suas descrições, os veredictos de Obra-prima a Ruim, cada botão e cada dica — agora está também em espanhol e português, assim como os veredictos nos painéis de detalhes e nos cartões para compartilhar."],

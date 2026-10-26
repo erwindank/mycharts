@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 348;
+const DC_CL_I18N_V = 349;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-26', t: 'design', a: 'sharing', h: '97a3fc3',
+    title: "Share as image: one tidy window everywhere",
+    detail: "Every share-as-image window — charts, chart runs, stats, streaks, ratings, an album's tracks, an artist's songs and the Daily calendar — now looks and works the same. The preview sits on a soft stage and stays in view while you scroll the options, each group of options (design, colours, format, what to show…) is a card you can fold away by clicking its title, and Copy, Share and Download have clear icons. On a phone the less-used groups start folded so the preview and the main choices fit on screen. Copy, Share and Copied! are now in Spanish and Portuguese too, and a song's chart-run window shows its title as written." },
   { d: '2026-10-26', t: 'design', a: 'ratings', h: 'c0b7348',
     title: "Rating window: smoother, clearer and in your language",
     detail: "Rating a song or an album is easier to follow: what you're rating and its score stay at the top and the Done button at the bottom while you scroll the criteria. Each criterion is its own card with a simple icon that lights up once you've scored it, the sliders fill up as you drag and line up down the list, and the score ring now glides to the new number instead of jumping. The whole rating window — the criteria and their descriptions, the verdicts from Masterpiece to Poor, every button and hint — is now in Spanish and Portuguese too, and so are the verdicts shown in the details panels and on the share cards." },
