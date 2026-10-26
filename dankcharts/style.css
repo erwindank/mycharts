@@ -1210,9 +1210,12 @@
     }
 
     /* ═══════════════════════════════════════════════════════════════
-       DETAILS SIDE PANEL — phase 10 step 3 (panel.js)
-       Song, album and artist details slide in from the right (full screen
-       on a phone) over a light scrim, so the chart stays in view.
+       DETAILS WINDOW — phase 10 step 3 (panel.js), centred 2026-10-26
+       Song, album and artist details open in a large window in the middle
+       of the screen (full screen on a phone). From 1024px it splits in two:
+       the cover, title and buttons stay put on the left while the tabs
+       scroll on the right. The window takes its colour from the cover
+       (--dp-accent, set by panel.js; the theme accent until it is known).
          .dp-overlay > .dp-panel > .dp-scroll
            .dp-bar     ← back · kind · name (once scrolled) · ✕, sticky
            .dp-hero    the cover large on a blurred copy of itself, title,
@@ -1220,30 +1223,36 @@
            .dp-tabs    sticky under the bar; .dp-tab-ink slides between tabs
            .dp-body    the parts, each a .dp-sec[data-dp-tab]; .dp-on shows
        Comes after the pop-up engine's rules on purpose: same specificity,
-       so these win (the panel is never a bottom sheet).
+       so these win (the window is never a bottom sheet).
        ═══════════════════════════════════════════════════════════════ */
+    .dp-overlay { --dp-ac: var(--dp-accent, var(--accent)); --dp-on-ac: var(--dp-on-accent, var(--on-accent)); }
     .dp-overlay.dc-pop.dc-pop {
-      padding: 0;
-      align-items: flex-end;
-      justify-content: flex-start;
+      padding: var(--sp-5);
+      align-items: center;
+      justify-content: center;
       overflow: hidden;
-      background: color-mix(in srgb, var(--scrim) 75%, transparent);
-      backdrop-filter: blur(2px);
-      -webkit-backdrop-filter: blur(2px);
+      background: color-mix(in srgb, var(--scrim) 85%, transparent);
+      backdrop-filter: blur(8px) saturate(0.9);
+      -webkit-backdrop-filter: blur(8px) saturate(0.9);
     }
     .dp-overlay.dc-pop.dc-pop > .dp-panel {
-      width: min(600px, 100vw);
+      --dp-h: min(820px, calc(100dvh - 48px));
+      width: min(1120px, 100%);
       max-width: none;
-      height: 100dvh;
+      height: var(--dp-h);
       max-height: none;
       margin: 0;
       padding: 0;
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      border-radius: var(--r-lg) 0 0 var(--r-lg);
-      border-width: 0 0 0 1px;
-      box-shadow: -24px 0 64px rgba(0, 0, 0, 0.35);
+      border-radius: 24px;
+      border: 1px solid color-mix(in srgb, var(--dp-ac) 22%, var(--border));
+      box-shadow: 0 40px 120px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.03), 0 0 80px color-mix(in srgb, var(--dp-ac) 14%, transparent);
+    }
+    /* Narrower when the window shows a single column */
+    @media (max-width: 1023px) {
+      .dp-overlay.dc-pop.dc-pop > .dp-panel { width: min(720px, 100%); }
     }
     .dp-panel > .dc-sheet-grip { display: none !important; }
     /* The Stats / Soundtrack artist pop-up as a side panel: its own header,
@@ -1257,15 +1266,15 @@
       scrollbar-gutter: stable;
     }
 
-    /* In and out: a slide from the right edge. Stepping from one panel to
-       the next (song → album) is a short slide-and-fade instead. */
-    .dp-overlay.dc-pop-in > .dp-panel.dc-pop-box { animation: dpIn 0.34s cubic-bezier(0.2, 0.8, 0.2, 1); }
-    .dp-overlay.dc-pop-out > .dp-panel.dc-pop-box { animation: dpOut 0.2s ease-in forwards; }
+    /* In and out: the window rises and grows into place. Stepping from one
+       window to the next (song → album) is a short slide-and-fade instead. */
+    .dp-overlay.dc-pop-in > .dp-panel.dc-pop-box { animation: dpIn 0.42s cubic-bezier(0.16, 1, 0.3, 1); }
+    .dp-overlay.dc-pop-out > .dp-panel.dc-pop-box { animation: dpOut 0.18s ease-in forwards; }
     .dp-overlay.dp-step.dc-pop.dc-pop-in { animation: none; }
-    .dp-overlay.dp-step.dc-pop-in > .dp-panel.dc-pop-box { animation: dpStep 0.26s var(--ease); }
+    .dp-overlay.dp-step.dc-pop-in > .dp-panel.dc-pop-box { animation: dpStep 0.3s var(--ease); }
     .dp-overlay.dp-leaving.dc-pop.dc-pop { display: none !important; }
-    @keyframes dpIn { from { transform: translateX(100%); } }
-    @keyframes dpOut { to { transform: translateX(100%); } }
+    @keyframes dpIn { from { opacity: 0; transform: translateY(24px) scale(0.96); } }
+    @keyframes dpOut { to { opacity: 0; transform: translateY(10px) scale(0.98); } }
     @keyframes dpStep { from { opacity: 0; transform: translateX(28px); } }
 
     /* ── Top bar ── */
@@ -1361,6 +1370,8 @@
     .dp-titles .modal-artist-name {
       font-family: var(--font-display);
       font-size: clamp(1.5rem, 3.4vw, 2.15rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
       line-height: 1.08;
       overflow-wrap: anywhere;
     }
@@ -1395,12 +1406,12 @@
     /* ▶ and ⋮ also carry the chart's .ea-sample / .ea-more (app.js runs them):
        none of their small faded round look here */
     .dp-actions .dp-act.ea-sample, .dp-actions .dp-act.ea-more { opacity: 1; flex-shrink: 0; }
-    .dp-actions .dp-act-main { background: var(--accent); border-color: transparent; color: var(--on-accent); }
-    .dp-actions .dp-act-main:hover { background: var(--accent); border-color: transparent; filter: brightness(1.1); }
+    .dp-actions .dp-act-main { background: var(--dp-ac); border-color: transparent; color: var(--dp-on-ac); box-shadow: 0 10px 26px color-mix(in srgb, var(--dp-ac) 35%, transparent); }
+    .dp-actions .dp-act-main:hover { background: var(--dp-ac); border-color: transparent; filter: brightness(1.1); }
     .dp-actions .dp-act-icon { width: 38px; padding: 0; }
     /* the sample playing / looking for a clip (classes set by app.js) */
     .dp-actions .dp-act.ea-sample.is-loading { opacity: 0.7; }
-    .dp-actions .dp-act.ea-sample.is-on { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent); }
+    .dp-actions .dp-act.ea-sample.is-on { box-shadow: 0 0 0 3px color-mix(in srgb, var(--dp-ac) 40%, transparent); }
     .dp-actions .dp-act.ea-sample.is-miss { background: var(--bg3); color: var(--text3); }
 
     /* ── Tabs ── */
@@ -1433,7 +1444,7 @@
       transition: color var(--t-fast) var(--ease);
     }
     .dp-tab:hover, .dp-tab.is-on { color: var(--text); }
-    .dp-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: -4px; border-radius: var(--r-sm); }
+    .dp-tab:focus-visible { outline: 2px solid var(--dp-ac); outline-offset: -4px; border-radius: var(--r-sm); }
     .dp-tab-ink {
       position: absolute;
       left: 0;
@@ -1441,7 +1452,7 @@
       width: 0;
       height: 2px;
       border-radius: 2px;
-      background: var(--accent);
+      background: var(--dp-ac);
       transition: transform 0.28s var(--ease), width 0.28s var(--ease);
     }
     .dp-tab-ink.no-anim { transition: none; }
@@ -1493,7 +1504,7 @@
       transition: border-color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
     }
     .dp-body .modal-stat:hover { border-color: var(--border2); transform: translateY(-1px); }
-    .dp-body .modal-stat .se { margin-bottom: 4px; color: var(--accent); }
+    .dp-body .modal-stat .se { margin-bottom: 4px; color: var(--dp-ac); }
     .dp-body .dp-ico-cell svg { width: 18px; height: 18px; display: block; }
     /* an icon swapped in at the start of a heading cell or button */
     .dp-body .dp-ico { display: inline-flex; vertical-align: -2px; margin-right: 5px; }
@@ -1536,8 +1547,8 @@
       width: 42px;
       height: 42px;
       border-radius: var(--r-md);
-      background: color-mix(in srgb, var(--accent) 14%, transparent);
-      color: var(--accent);
+      background: color-mix(in srgb, var(--dp-ac) 16%, transparent);
+      color: var(--dp-ac);
     }
     .dp-body .mrc-icon svg { width: 20px; height: 20px; }
     .dp-body .modal-rank-card--gold .mrc-icon { background: rgba(245, 179, 1, 0.16); color: #f5b301; }
@@ -1567,8 +1578,8 @@
       width: 30px;
       height: 30px;
       border-radius: var(--r-sm);
-      background: var(--raised);
-      color: var(--accent);
+      background: color-mix(in srgb, var(--dp-ac) 14%, transparent);
+      color: var(--dp-ac);
     }
     .dp-body .acc-header .dp-ico svg { width: 16px; height: 16px; }
     /* the + / − becomes a chevron that turns when the row is open */
@@ -1594,7 +1605,8 @@
     }
 
     @media (max-width: 640px) {
-      .dp-overlay.dc-pop.dc-pop > .dp-panel { width: 100vw; border-radius: 0; border-width: 0; }
+      .dp-overlay.dc-pop.dc-pop { padding: 0; }
+      .dp-overlay.dc-pop.dc-pop > .dp-panel { width: 100vw; height: 100dvh; border-radius: 0; border-width: 0; box-shadow: none; }
       .dp-hero { padding: 60px var(--sp-4) var(--sp-4); }
       .dp-head { gap: var(--sp-4); }
       .dp-head .modal-thumb-wrap .thumb,
@@ -1607,6 +1619,121 @@
       .dp-actions .dp-act-main { flex: 1 1 auto; width: auto; padding: 0 14px; }
       .dp-tabs { padding: 0 var(--sp-2); }
       .dp-body { padding: var(--sp-4); }
+    }
+
+    /* ── The numbers and graphs, in the cover's colour ──
+       Tiles read left to right (label under a big display-font number),
+       tinted with the cover colour; the month bars use it too, the best
+       month at full strength. */
+    .dp-body .modal-stat {
+      align-items: flex-start;
+      justify-content: flex-start;
+      text-align: left;
+      padding: 14px 16px 12px;
+      background: color-mix(in srgb, var(--dp-ac) 6%, var(--bg2));
+      border-color: color-mix(in srgb, var(--dp-ac) 16%, var(--border));
+      transition: border-color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+    }
+    .dp-body .modal-stat:hover {
+      border-color: color-mix(in srgb, var(--dp-ac) 45%, var(--border));
+      background: color-mix(in srgb, var(--dp-ac) 10%, var(--bg2));
+      transform: translateY(-2px);
+    }
+    .dp-body .modal-stat .sv { font-family: var(--font-display); font-weight: 800; letter-spacing: -0.02em; font-size: 1.5rem; }
+    .dp-body .dp-statlist > .modal-stat:nth-child(-n+4) .sv { font-size: 2.1rem; }
+    .dp-body .modal-stat .sl { margin-top: 6px; color: var(--text2); }
+    .dp-body .modal-stat .se { margin-bottom: 8px; }
+    .dp-body .modal-section-title { font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; letter-spacing: -0.015em; }
+    .dp-body .mrc-rank { font-weight: 800; font-size: 1.9rem; letter-spacing: -0.02em; }
+    .dp-overlay[style*="--dp-accent"] .dp-body .alb-spark-bar { background: color-mix(in srgb, var(--dp-ac) 62%, var(--bg2)) !important; }
+    .dp-overlay[style*="--dp-accent"] .dp-body .dc-btn-main { background: var(--dp-ac); border-color: transparent; color: var(--dp-on-ac); }
+    .dp-overlay[style*="--dp-accent"] .dp-body .alb-sort-btn.active { background: color-mix(in srgb, var(--dp-ac) 24%, transparent); color: var(--text); }
+    .dp-overlay[style*="--dp-accent"] .dp-body .alb-spark-bar:hover,
+    .dp-overlay[style*="--dp-accent"] .dp-body .alb-spark-bar--peak { background: var(--dp-ac) !important; }
+
+    /* ── Two columns from 1024px ──
+       The header becomes a column of its own on the left, pinned while the
+       tabs and parts scroll on the right: the cover fills its width, the
+       title sits under it, the buttons at the foot (Sample on a row of its
+       own, the rest as icon-over-word buttons). The Stats artist window
+       (.dp-lite) keeps its own one-column layout. */
+    @media (min-width: 1024px) {
+      .dp-overlay:not(.dp-lite) .dp-scroll {
+        display: grid;
+        grid-template-columns: 340px minmax(0, 1fr);
+        grid-template-rows: 60px auto;
+        align-items: start;
+      }
+      /* the tabs and the ← / ✕ share the top row of the right column */
+      .dp-overlay:not(.dp-lite) .dp-bar {
+        grid-column: 2;
+        grid-row: 1;
+        height: 60px;
+        margin-bottom: 0;
+        justify-content: flex-end;
+        padding: 0 var(--sp-3);
+        pointer-events: none;
+      }
+      .dp-overlay:not(.dp-lite) .dp-bar > * { pointer-events: auto; }
+      .dp-overlay:not(.dp-lite) .dp-bar .modal-close { margin: 0; }
+      .dp-overlay:not(.dp-lite) .dp-bar .dc-btn-icon { background: var(--bg3); }
+      .dp-overlay:not(.dp-lite) .dp-bar-title,
+      .dp-overlay:not(.dp-lite) .dp-kicker,
+      .dp-overlay:not(.dp-lite).dp-scrolled .dp-kicker { display: none; }
+      .dp-overlay:not(.dp-lite).dp-scrolled .dp-bar { background: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
+      .dp-overlay:not(.dp-lite) .dp-hero {
+        grid-column: 1;
+        grid-row: 1 / span 2;
+        position: sticky;
+        top: 0;
+        height: calc(var(--dp-h) - 2px);
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        padding: var(--sp-6);
+        overflow: hidden auto;
+        scrollbar-width: none;
+        justify-content: center;
+        border-right: 1px solid color-mix(in srgb, var(--dp-ac) 14%, var(--border));
+      }
+      .dp-overlay:not(.dp-lite) .dp-titles::before {
+        content: attr(data-kicker);
+        display: block;
+        margin-bottom: 6px;
+        font-size: var(--fs-xs);
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--dp-ac);
+      }
+      .dp-overlay:not(.dp-lite) .dp-hero-bg.has-img { opacity: 0.85; }
+      .dp-overlay:not(.dp-lite) .dp-hero::after {
+        background: linear-gradient(180deg, color-mix(in srgb, var(--bg2) 15%, transparent) 0%, color-mix(in srgb, var(--bg2) 55%, transparent) 45%, color-mix(in srgb, var(--bg2) 88%, transparent) 100%);
+      }
+      .dp-overlay:not(.dp-lite) .dp-head { flex-direction: column; align-items: stretch; gap: var(--sp-5); }
+      .dp-overlay:not(.dp-lite) .dp-head .modal-thumb-wrap { width: 100%; }
+      .dp-overlay:not(.dp-lite) .dp-head .modal-thumb-wrap .thumb,
+      .dp-overlay:not(.dp-lite) .dp-head .modal-thumb-wrap .thumb-initials {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 1 / 1;
+        object-fit: cover;
+        border-radius: 18px;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5), 0 0 60px color-mix(in srgb, var(--dp-ac) 30%, transparent);
+      }
+      .dp-overlay:not(.dp-lite) .dp-head .modal-thumb-wrap .thumb-initials { font-size: 5rem; }
+      #artistModal .dp-head .modal-thumb-wrap .thumb,
+      #artistModal .dp-head .modal-thumb-wrap .thumb-initials { border-radius: 50%; }
+      .dp-overlay:not(.dp-lite) .dp-titles .modal-artist-name { font-size: 2.35rem; font-weight: 800; letter-spacing: -0.025em; line-height: 1.02; }
+      .dp-overlay:not(.dp-lite) .dp-titles .modal-artist-sub { font-size: var(--fs-base); }
+      .dp-overlay:not(.dp-lite) .dp-actions { margin-top: var(--sp-6); gap: 8px; }
+      .dp-overlay:not(.dp-lite) .dp-actions .dp-act { flex: 1 1 0; flex-direction: column; gap: 4px; height: 62px; padding: 0 4px; border-radius: 14px; font-size: var(--fs-xs); background: color-mix(in srgb, var(--bg2) 60%, transparent); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+      .dp-overlay:not(.dp-lite) .dp-actions .dp-act svg { width: 19px; height: 19px; }
+      .dp-overlay:not(.dp-lite) .dp-actions .dp-act-main { flex: 1 0 100%; flex-direction: row; gap: 10px; height: 50px; font-size: var(--fs-base); background: var(--dp-ac); }
+      .dp-overlay:not(.dp-lite) .dp-actions .dp-act-icon { flex: 0 0 52px; width: 52px; }
+      .dp-overlay:not(.dp-lite) .dp-tabs { grid-column: 2; grid-row: 1; top: 0; height: 60px; box-sizing: border-box; padding: 0 116px 0 var(--sp-5); gap: var(--sp-3); }
+      .dp-overlay:not(.dp-lite) .dp-tab { font-size: var(--fs-base); height: 59px; }
+      .dp-overlay:not(.dp-lite) .dp-body { grid-column: 2; grid-row: 2; padding: var(--sp-6); }
     }
 
     @media (prefers-reduced-motion: reduce) {

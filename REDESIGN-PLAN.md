@@ -3456,6 +3456,20 @@ modern, slick, interactive, high quality; Settings mostly better organised.
     panel's first open was held off screen for ~2.5 s by the one-off
     Records build its Hall of Fame part triggers; that build now waits
     until the artist's Charts tab is on screen.
+13. **Centred details window** (2026-10-26, after you said the side panel
+    looked boring; branch `redesign/details-window`). Song / album / artist
+    open in a large window in the middle (up to 1120 × 820), rising into
+    place. From 1024px two columns: cover, title and buttons pinned on the
+    left (Sample on its own row, the rest icon-over-word), tabs + ✕ in one
+    row on the right. The window takes the cover's colour (`--dp-accent`,
+    picked in panel.js from a 24px canvas copy, lightness set per theme;
+    grey covers and pictures that can't be read keep the theme accent):
+    Sample, tab line, icons, tiles, month bars, main buttons. Big numbers
+    in the display font, counting up on open. Phones unchanged (full
+    screen). The Stats artist window is centred too, one column. Checked
+    at 1440 / 1100 / 390 in Navy dark, Navy light, Yellow and Red light.
+    Ideas not built yet: ‹ › to the next / previous entry on the chart,
+    achievements as badges.
 
 The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in

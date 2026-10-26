@@ -87,6 +87,7 @@
     iconize(o);
     watchBody(o);
     buildTabs(kind, o, goingBack && tabNow[kind] ? tabNow[kind] : 'overview');
+    if (!goingBack) countUp(o);
     var back = o.querySelector('.dp-back');
     if (back) back.hidden = !hist.length;
     var sc = o.querySelector('.dp-scroll');
@@ -142,6 +143,9 @@
     }
     var kick = o.querySelector('.dp-kicker');
     if (kick) kick.textContent = tt('dp_kind_' + kind);
+    // the same word over the title when the header is a column of its own
+    var titles = o.querySelector('.dp-titles');
+    if (titles) titles.setAttribute('data-kicker', tt('dp_kind_' + kind));
     // The name again in the top bar, shown once the header has scrolled away
     var name = o.querySelector('.dp-titles .modal-artist-name'), barT = o.querySelector('.dp-bar-title');
     if (name && barT) barT.textContent = name.textContent;
@@ -159,11 +163,118 @@
       var src = img && (img.dataset.fullSrc || img.currentSrc || img.src);
       bg.style.backgroundImage = src ? 'url("' + src.replace(/"/g, '%22') + '")' : '';
       bg.classList.toggle('has-img', !!src);
+      coverColour(o, src || '');
     };
     paint();
     if (holder._dpObs) holder._dpObs.disconnect();
     holder._dpObs = new MutationObserver(paint);
     holder._dpObs.observe(holder, { childList: true, subtree: true, attributes: true, attributeFilter: ['src'] });
+  }
+
+  /* ── The window's colour, taken from the cover ───────────────────────────
+     The cover is drawn small on a canvas and its strongest colour (the hue
+     with the most saturated pixels) becomes --dp-accent: the Sample button,
+     the tab line, icons, tiles and bars use it. Its lightness is set for
+     the theme so it always reads; grey covers, and pictures whose server
+     does not allow reading them, keep the theme's accent. */
+  var colourCache = {};
+
+  function setAccent(o, rgb) {
+    if (!rgb) { o.style.removeProperty('--dp-accent'); o.style.removeProperty('--dp-on-accent'); return; }
+    var dark = isDarkTheme();
+    var hsl = toHsl(rgb[0], rgb[1], rgb[2]);
+    var s = Math.min(0.9, Math.max(0.62, hsl[1]));
+    var c = toRgb(hsl[0], s, dark ? 0.68 : 0.4);
+    var lum = (0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]) / 255;
+    o.style.setProperty('--dp-accent', 'rgb(' + c.join(',') + ')');
+    o.style.setProperty('--dp-on-accent', lum > 0.5 ? '#0b0f17' : '#ffffff');
+  }
+
+  function isDarkTheme() {
+    var m = getComputedStyle(document.body).backgroundColor.match(/\d+/g);
+    return !m || (+m[0] + +m[1] + +m[2]) / 3 < 128;
+  }
+
+  function coverColour(o, src) {
+    if (o._dpSrc === src) return;
+    o._dpSrc = src;
+    if (!src || colourCache[src] !== undefined) { setAccent(o, src ? colourCache[src] : null); return; }
+    setAccent(o, null);
+    var im = new Image();
+    im.crossOrigin = 'anonymous';
+    im.onload = function () {
+      var rgb = null;
+      try {
+        var cv = document.createElement('canvas');
+        cv.width = cv.height = 24;
+        var cx = cv.getContext('2d', { willReadFrequently: true });
+        cx.drawImage(im, 0, 0, 24, 24);
+        rgb = pickColour(cx.getImageData(0, 0, 24, 24).data);
+      } catch (e) { /* the picture's server does not allow reading it */ }
+      colourCache[src] = rgb;
+      if (o._dpSrc === src) setAccent(o, rgb);
+    };
+    im.onerror = function () { colourCache[src] = null; };
+    im.src = src;
+  }
+
+  // The hue (in 12 slices) with the most saturated, not-too-dark pixels; the
+  // average of that slice's pixels
+  function pickColour(px) {
+    var bins = [];
+    for (var b = 0; b < 12; b++) bins.push({ w: 0, r: 0, g: 0, b: 0 });
+    for (var i = 0; i < px.length; i += 4) {
+      var hsl = toHsl(px[i], px[i + 1], px[i + 2]);
+      if (hsl[1] < 0.25 || hsl[2] < 0.15 || hsl[2] > 0.9) continue;
+      var w = hsl[1] * (1 - Math.abs(hsl[2] - 0.5));
+      var bin = bins[Math.floor(hsl[0] * 12) % 12];
+      bin.w += w; bin.r += px[i] * w; bin.g += px[i + 1] * w; bin.b += px[i + 2] * w;
+    }
+    var best = bins.reduce(function (a, c) { return c.w > a.w ? c : a; });
+    if (best.w < 8) return null;
+    return [best.r / best.w, best.g / best.w, best.b / best.w].map(Math.round);
+  }
+
+  function toHsl(r, g, b) {
+    r /= 255; g /= 255; b /= 255;
+    var mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, h = 0, s = 0, d = mx - mn;
+    if (d) {
+      s = l > 0.5 ? d / (2 - mx - mn) : d / (mx + mn);
+      h = mx === r ? (g - b) / d + (g < b ? 6 : 0) : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+      h /= 6;
+    }
+    return [h, s, l];
+  }
+
+  function toRgb(h, s, l) {
+    var f = function (n) {
+      var k = (n + h * 12) % 12, a = s * Math.min(l, 1 - l);
+      return Math.round(255 * (l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1))));
+    };
+    return [f(0), f(8), f(4)];
+  }
+
+  /* ── The big numbers count up as the window opens ─────────────────────── */
+  function countUp(o) {
+    if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    o.querySelectorAll('.dp-statlist > .modal-stat:nth-child(-n+8) .sv, .mrc-rank').forEach(function (el) {
+      var node = el.firstChild;
+      if (!node || node.nodeType !== 3 || el.childNodes.length !== 1) return;
+      var txt = node.nodeValue, m = txt.trim().match(/^(#?)(\d[\d.,\s]*)$/);
+      if (!m) return;
+      var n = parseInt(m[2].replace(/\D/g, ''), 10);
+      if (!(n >= 10)) return;
+      var t0 = performance.now(), dur = 750;
+      // the text node is changed in place: no childList change, so the
+      // body watcher (iconize) is not woken every frame
+      var step = function (now) {
+        if (node.nodeValue === null || !node.parentNode) return;
+        var p = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+        node.nodeValue = p < 1 ? m[1] + Math.round(n * e).toLocaleString() : txt;
+        if (p < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    });
   }
 
   /* ── Tabs ─────────────────────────────────────────────────────────────── */
