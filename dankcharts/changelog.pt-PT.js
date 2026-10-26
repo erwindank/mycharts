@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Charts Guide: new top and icons":
+    ["Guia de Charts: novo topo e ícones",
+     "O Guia de Charts já não começa com uma faixa azul chamativa: tem o mesmo título de página dos outros separadores, uma linha curta sobre o que tem dentro, o teu progresso de primeiros passos e os botões Fazer a visita, Pesquisar a tua biblioteca e Rever as boas-vindas numa fila. Os emoji de todo o guia são agora ícones de linha, e cada separador em Os separadores mostra o mesmo ícone que tem no menu."],
   "Community Board: looks like the rest of the site":
     ["Fórum da comunidade: com o aspeto do resto do site",
      "O Fórum da comunidade tem agora o mesmo título de página dos outros separadores e já não fica dentro de uma caixa. As publicações são filas na página com uma linha entre elas, e a que está aberta fica marcada com uma margem colorida. Os emoji dos botões e etiquetas (fixar, respostas, editar, copiar ligação, eliminar) são agora ícones de linha simples, o seletor de ordem é igual ao do resto do site e o botão Cancelar do formulário de nova publicação voltou a ser um botão a sério."],

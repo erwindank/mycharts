@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Charts Guide: new top and icons":
+    ["Guía de Charts: nueva parte superior e iconos",
+     "La Guía de Charts ya no empieza con un llamativo cartel azul: tiene el mismo título de página que las demás pestañas, una línea corta sobre lo que contiene, tu progreso de primeros pasos y los botones Hacer el recorrido, Buscar en tu biblioteca y Ver de nuevo la bienvenida en una fila. Los emoji de toda la guía son ahora iconos de línea, y cada pestaña en Las pestañas muestra el mismo icono que tiene en el menú."],
   "Community Board: looks like the rest of the site":
     ["Foro de la comunidad: se parece al resto del sitio",
      "El Foro de la comunidad tiene ahora el mismo título de página que las demás pestañas y ya no está dentro de una caja. Las publicaciones son filas en la página con una línea entre ellas, y la que está abierta se marca con un borde de color. Los emoji de los botones y etiquetas (fijar, respuestas, editar, copiar enlace, eliminar) son ahora iconos de línea sencillos, el selector de orden es como el del resto del sitio y el botón Cancelar del formulario de nueva publicación vuelve a ser un botón de verdad."],

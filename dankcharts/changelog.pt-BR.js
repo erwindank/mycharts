@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Charts Guide: new top and icons":
+    ["Guia de Charts: novo topo e ícones",
+     "O Guia de Charts não começa mais com uma faixa azul chamativa: tem o mesmo título de página das outras abas, uma linha curta sobre o que tem dentro, o seu progresso de primeiros passos e os botões Fazer o tour, Pesquisar sua biblioteca e Rever as boas-vindas numa fileira. Os emoji de todo o guia agora são ícones de linha, e cada aba em As abas mostra o mesmo ícone que tem no menu."],
   "Community Board: looks like the rest of the site":
     ["Fórum da comunidade: com a cara do resto do site",
      "O Fórum da comunidade agora tem o mesmo título de página das outras abas e não fica mais dentro de uma caixa. As publicações são fileiras na página com uma linha entre elas, e a que está aberta ganha uma borda colorida. Os emoji dos botões e etiquetas (fixar, respostas, editar, copiar link, excluir) agora são ícones de linha simples, o seletor de ordem é igual ao do resto do site e o botão Cancelar do formulário de nova publicação voltou a ser um botão de verdade."],

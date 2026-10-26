@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 341;
+const DC_CL_I18N_V = 342;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-26', t: 'design', a: 'guide', h: '53616c1',
+    title: "Charts Guide: new top and icons",
+    detail: "The Charts Guide no longer opens with a bright blue banner: it has the same page title as the other tabs, a short line about what's inside, your first-steps progress and the Take the tour, Search your library and Replay the welcome buttons in one row. The emoji throughout the guide are now line icons, and each tab in The Tabs shows the same icon it has in the menu." },
   { d: '2026-10-26', t: 'design', a: 'ui', h: '8252e73',
     title: "Community Board: looks like the rest of the site",
     detail: "The Community Board now has the same page title as the other tabs and no longer sits inside a box. Posts are rows on the page with a line between them, and the open one is marked with a coloured edge. The emoji on the buttons and tags (pin, replies, edit, copy link, delete) are now simple line icons, the sort switch matches the rest of the site, and the Cancel button in the new-post form is a proper button again." },
