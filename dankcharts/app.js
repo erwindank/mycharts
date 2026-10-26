@@ -24670,7 +24670,7 @@ function _entryDescription(type, key, rank, period, ctx) {
   if (diff === 0) {
     if (rank === 1) {
       if (consAtRank >= 3) return t('desc_hold_1_cons', { n: consAtRank, units: _un(consAtRank) });
-      return t('desc_hold_1_run', { n: consAtRank, ord: _ord(consAtRank), unit: _u1 });
+      return t('desc_hold_1_run', { n: consAtRank, units: _un(consAtRank), ord: _ord(consAtRank), unit: _u1 });
     }
     if (consAtRank >= 4) return t('desc_locked', { rank, n: consAtRank, units: _un(consAtRank) });
     if (consTop10 >= 5 && rank <= 10) return t('desc_hold_top10', { rank, n: consTop10, units: _un(consTop10) });
