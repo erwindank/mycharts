@@ -22813,6 +22813,10 @@ body[class*="-light"] .tm-card-search:hover {
 .awards-year-chip:focus-visible { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--text1); outline: none; }
 .awards-year-chip.is-current { background: var(--accent); color: var(--on-accent); }
 @media (prefers-reduced-motion: reduce) { .awards-year-picker { animation: none; } }
+/* Soundtrack month picker: ‹ year › above the 12 month chips */
+.st-pick-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--sp-1); }
+.st-pick-year { font-family: var(--font-display); font-size: var(--fs-md, 1rem); font-weight: 700; color: var(--text1); font-variant-numeric: tabular-nums; }
+.awards-year-chip:disabled { opacity: 0.35; cursor: default; background: transparent; color: var(--text3); }
 /* Settings panel open */
 .awards-config-btn.active { border-color: var(--accent); }
 .awards-generate-btn:disabled { cursor: wait; }
@@ -27410,6 +27414,10 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
 .st-stepper { margin-right: 0; }
 /* The period name in the stepper: the Awards year's type, but not a button */
 .st-nav-label {
+  /* now a button (opens the period picker): no default button look */
+  border: none;
+  background: transparent;
+  cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;

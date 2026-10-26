@@ -41343,7 +41343,9 @@ function _awardsYearPickerKey(e) {
   if (e.key !== 'Escape') return;
   const kind = document.getElementById('awardsYearPicker')?.dataset.kind;
   _awardsCloseYearPicker();
-  document.getElementById(kind === 'reallife' ? 'realLifeYearLabel' : 'awardsYearLabel')?.focus();
+  // the Soundtrack's period picker borrows this popover too
+  const labelId = kind === 'soundtrack' ? 'stNavLabel' : kind === 'reallife' ? 'realLifeYearLabel' : 'awardsYearLabel';
+  document.getElementById(labelId)?.focus();
 }
 function _awardsCloseYearPicker() {
   document.getElementById('awardsYearPicker')?.remove();
@@ -47525,6 +47527,8 @@ function stGetPeriodLabel() {
 }
 
 function stSetPeriod(type) {
+  // an open period picker belongs to the old view, so close it
+  if (document.getElementById('awardsYearPicker')?.dataset.kind === 'soundtrack') _awardsCloseYearPicker();
   stPeriodType = type;
   document.querySelectorAll('.st-period-btn').forEach(b => b.classList.toggle('active', b.dataset.stPeriod === type));
   const navBar = document.getElementById('stNavBar');
@@ -47560,6 +47564,95 @@ function stNavigate(dir) {
     stYear = y; stMonth = m;
   }
   renderSoundtrack();
+}
+
+/* Period picker: click the year (or month) between the arrows to jump straight
+   to one. Year view = a grid of every year you have plays in, newest first.
+   Month view = the 12 months of a year, with ‹ › in the header to change year.
+   Reuses the Awards year picker's popover, chips and close handlers. */
+function stOpenPeriodPicker() {
+  const label = document.getElementById('stNavLabel');
+  const existing = document.getElementById('awardsYearPicker');
+  if (existing) {
+    const wasSame = existing.dataset.kind === 'soundtrack';
+    _awardsCloseYearPicker();
+    if (wasSame) return;   // a second click on the label closes it
+  }
+  if (!allPlays.length || stPeriodType === 'alltime') return;
+  const now = tzNow();
+  const maxYear = now.getFullYear();
+  let minTs = Infinity;
+  for (const p of allPlays) if (p.date < minTs) minTs = p.date;
+  const minYear = Math.min(tzDate(minTs).getFullYear(), stYear);
+
+  const pop = document.createElement('div');
+  pop.id = 'awardsYearPicker';
+  pop.className = 'awards-year-picker';
+  pop.dataset.kind = 'soundtrack';
+  pop.setAttribute('role', 'dialog');
+  pop.setAttribute('aria-label', stPeriodType === 'month' ? t('st_pick_month') : t('awx_pick_year'));
+
+  // Month view: which year's months are on show (starts on the selected one)
+  let pickYear = stYear;
+  const draw = () => {
+    if (stPeriodType === 'year') {
+      let chips = '';
+      for (let y = maxYear; y >= minYear; y--) {
+        chips += `<button type="button" class="awards-year-chip${y === stYear ? ' is-current' : ''}" data-year="${y}">${y}</button>`;
+      }
+      pop.innerHTML = `<div class="awards-year-picker-grid">${chips}</div>`;
+      return;
+    }
+    let chips = '';
+    for (let m = 1; m <= 12; m++) {
+      const future = pickYear === maxYear && m > now.getMonth() + 1;
+      const cur = pickYear === stYear && m === stMonth;
+      chips += `<button type="button" class="awards-year-chip${cur ? ' is-current' : ''}" data-month="${m}"${future ? ' disabled' : ''}>${esc(t(ST_MONTH_KEYS[m - 1]))}</button>`;
+    }
+    pop.innerHTML =
+      `<div class="st-pick-head">` +
+        `<button type="button" class="dc-btn dc-btn-plain dc-btn-icon awards-year-nav-btn" data-step="-1" aria-label="${esc(t('st_nav_prev'))}"${pickYear <= minYear ? ' disabled' : ''}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button>` +
+        `<span class="st-pick-year">${pickYear}</span>` +
+        `<button type="button" class="dc-btn dc-btn-plain dc-btn-icon awards-year-nav-btn" data-step="1" aria-label="${esc(t('st_nav_next'))}"${pickYear >= maxYear ? ' disabled' : ''}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></button>` +
+      `</div>` +
+      `<div class="awards-year-picker-grid">${chips}</div>`;
+  };
+  draw();
+  document.body.appendChild(pop);
+
+  // Under the stepper pill, left edges aligned, kept inside the viewport
+  const r = label.parentElement.getBoundingClientRect();
+  pop.style.top  = `${r.bottom + 8}px`;
+  pop.style.left = `${Math.max(8, Math.min(r.left, window.innerWidth - pop.offsetWidth - 8))}px`;
+  label.classList.add('is-open');
+  label.setAttribute('aria-expanded', 'true');
+
+  pop.addEventListener('click', e => {
+    const step = e.target.closest('[data-step]');
+    if (step) {
+      pickYear = Math.max(minYear, Math.min(maxYear, pickYear + +step.dataset.step));
+      draw();
+      pop.querySelector(`[data-step="${step.dataset.step}"]:not(:disabled)`)?.focus();
+      return;
+    }
+    const chip = e.target.closest('.awards-year-chip');
+    if (!chip || chip.disabled) return;
+    _awardsCloseYearPicker();
+    if (chip.dataset.year) stYear = +chip.dataset.year;
+    else { stYear = pickYear; stMonth = +chip.dataset.month; }
+    renderSoundtrack();
+    label.focus();
+  });
+  const cur = pop.querySelector('.is-current');
+  if (cur) { cur.scrollIntoView({ block: 'nearest' }); cur.focus({ preventScroll: true }); }
+
+  // Same outside click / Escape / scroll / resize closing as the Awards picker
+  setTimeout(() => {
+    document.addEventListener('pointerdown', _awardsYearPickerOutside, true);
+    document.addEventListener('keydown', _awardsYearPickerKey, true);
+    window.addEventListener('scroll', _awardsCloseYearPicker, { passive: true });
+    window.addEventListener('resize', _awardsCloseYearPicker);
+  }, 0);
 }
 
 // ── The Reel — ticker below the stats strip, driven by the active stat card ──
@@ -47704,7 +47797,10 @@ function renderSoundtrack() {
   _stFacts = {};
 
   const navLabel = document.getElementById('stNavLabel');
-  if (navLabel) navLabel.textContent = stGetPeriodLabel();
+  if (navLabel) {
+    navLabel.textContent = stGetPeriodLabel();
+    navLabel.title = stPeriodType === 'month' ? t('st_pick_month') : t('awx_pick_year');
+  }
 
   const heroPeriod = document.getElementById('stHeroPeriod');
   if (heroPeriod) {

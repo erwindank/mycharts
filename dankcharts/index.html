@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=662">
+  <link rel="stylesheet" href="style.css?v=663">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -2539,7 +2539,7 @@
       </div>
       <div class="awards-year-stepper st-stepper" id="stNavBar">
         <button class="dc-btn dc-btn-plain dc-btn-icon awards-year-nav-btn" onclick="stNavigate(-1)" aria-label="Previous" data-i18n-aria="st_nav_prev"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button>
-        <span class="st-nav-label" id="stNavLabel">2026</span>
+        <button class="awards-year-label st-nav-label" id="stNavLabel" onclick="stOpenPeriodPicker()" aria-haspopup="true" aria-expanded="false" title="Pick a year" data-i18n-title="awx_pick_year">2026</button>
         <button class="dc-btn dc-btn-plain dc-btn-icon awards-year-nav-btn" onclick="stNavigate(1)" aria-label="Next" data-i18n-aria="st_nav_next"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></button>
       </div>
       <span class="st-actions">
