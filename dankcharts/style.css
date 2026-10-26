@@ -1453,6 +1453,12 @@
     .dp-sec.dp-in { animation: dpTabIn 0.24s var(--ease); }
     .dp-sec > .modal-section-title:first-child { margin-top: 0; }
     @keyframes dpTabIn { from { opacity: 0; transform: translateY(6px); } }
+    /* Plays by month: a long history (10+ years of months) has to fit the
+       600px panel, so the bars may get thinner and the gaps 1px; the chart
+       never pushes the panel sideways */
+    .dp-body .alb-bars-area { gap: 1px; }
+    .dp-body .alb-spark-bar { min-width: 1px; }
+    .dp-body .alb-sparkline-wrap, .dp-body .alb-chart-area { max-width: 100%; overflow: hidden; }
 
     /* ── Inside the parts (phase 10 step 4) ──
        app.js's tiles, headings and achievement rows, restyled for the panel

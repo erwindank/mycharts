@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=709">
+  <link rel="stylesheet" href="style.css?v=710">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -4164,7 +4164,7 @@
   <!-- One behaviour and one icon set for every pop-up window (phase 10); before
        app.js so dcIco() is there when app.js draws a window -->
   <script defer src="popups.js?v=8"></script>
-  <script defer src="app.js?v=552"></script>
+  <script defer src="app.js?v=554"></script>
   <!-- The song / album / artist details side panel (phase 10 step 3); wraps app.js's open functions -->
   <script defer src="panel.js?v=10"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->

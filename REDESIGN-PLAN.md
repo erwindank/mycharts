@@ -1201,7 +1201,7 @@ themes (Navy dark, Navy light, Yellow dark, Red light; see 3.2) and on a phone.
 | **7** ✓ | **Done 2026-10-22** (branch `redesign/phase-7-layouts`, on `main`; see "Phase 7" below — step 9 skipped). **Chart table and layouts** (4.9b, 4.10, 4.11, 4.12): one item builder + one action menu + one details drawer so **every layout has every feature** (chart run, peak, plays change, player, playlist…), layouts on every period with paging, all six layouts restyled, buttons moved into the toolbar, short lists capped at 5. | The core of the product. Do the shared builder first, then restyle each layout on top of it. | Large |
 | **8** ✓ | **Done 2026-10-22** (branch `redesign/phase-8-components`) (11 steps, see "Phase 8" below). **Shared components:** one button, tab, segmented control, chip, card, table, carousel, pop-up frame. Replace the per-feature button families. | Makes 9–10 fast and keeps it consistent. | Large |
 | **9** | **Other views** in this order: Records (4.15), Stats (4.14), Raw Data (4.13), then Events, Awards, Soundtrack and the rest once seen on screen. | Records and Stats have the most concrete fixes already written down. | Large |
-| **10** | **Pop-ups and Settings** (4.20–4.21), including the side panel for song/artist/album. | | Medium |
+| **10** ✓ | **Done 2026-10-26** (12 steps, see "Phase 10" below). **Pop-ups and Settings** (4.20–4.21), including the side panel for song/artist/album. | | Medium |
 | **11** | **Final sweep:** move the 352 inline styles into classes, delete whatever old CSS and JS the earlier phases missed, reduce breakpoints to two, replace emoji in titles with icons. | Shrinks the 1.1 MB stylesheet and stops it drifting again. | Medium |
 
 ### What phase 1 changed for the later phases
@@ -3408,6 +3408,54 @@ modern, slick, interactive, high quality; Settings mostly better organised.
 12. **Screen check:** 1440 / 1100 / 390 touch × en / es / pt-BR / pt-PT ×
     Navy dark, Navy light, Yellow, Red light; real clicks, keyboard (Tab /
     Esc), drag-to-close, no sideways scroll, no errors.
+
+**What was done (all on 2026-10-26, on `main`, not pushed):**
+1. **Engine** (336b151): `popups.js` watches the page and adds the shared
+   behaviour to every pop-up without touching their open/close code: one
+   blurred backdrop, centred box, fade-and-rise in / out (also for windows
+   removed outright), scroll lock, focus in and back, Tab trap, Esc closes
+   the top one only (an open ⋮ menu first), newer windows stack on top
+   (`modal-overlay--stacked` / `modal-on-top` win when several open at
+   once). Phones: bottom sheet with a grab handle, drag down to close.
+2. **Frame** (93e1743): `.dc-frame` head / body / foot, `.dc-field`,
+   `.dc-input`, `.dc-list`, `.dc-empty`; `dcIco()` line-icon set (popups.js,
+   `[data-ico]` spans filled on open). On it: edit / add play, rules,
+   compilations, release types, detection, similar rule, playlist picker,
+   new playlist, PDF, ceremony share, picture picker, Contact Support (own
+   CSS, the setup guide loads it). Ceremony share and rules translated;
+   Stop sharing uses the site's warning window.
+3. **Side panel** (be3049e): `panel.js` wraps `openSongModal` /
+   `openAlbumModal` / `openArtistModal`: slides in from the right (full
+   screen on a phone), sticky top bar (back, kind, ✕), blurred-cover
+   header, Sample / Playlist / Rate / Share / ⋮ (the header is a `data-ea`
+   entry, so app.js's action menu runs; Details dropped, Chart run opens
+   the Charts tab), tabs over `.dp-sec[data-dp-tab]` parts, back history.
+4. **Song** (2108281), 5. **Album** (e6dca6e), 6. **Artist** (d1eed71):
+   `iconize()` swaps emoji for line icons at render (and on redraws);
+   card tiles, first four numbers larger, the rest folded after eight;
+   achievements a list; song Charts tab shows the chart run; empty Awards
+   tab hidden; all artist English translated. **Decision:** the Stats /
+   Soundtrack artist pop-up was *not* merged into the artist panel (it was
+   rebuilt the day before with period plays, discoveries and its own share
+   card); it slides in from the side the same way instead.
+7. **Rating** (c0b7348): on the frame, live ring that slides, criteria
+   cards with icons, filled sliders, everything translated incl. the 16
+   criteria and 7 verdicts (getters, so panels and share cards follow).
+8. **Share** (97a3fc3): one shell for every `.ig-modal-box`; folding
+   option groups; Copy / Share / Download icons drawn in CSS (their labels
+   are rewritten while busy); labels translated.
+9. **Bigger windows** (5630f1d): grab handle takes its own room; streaks
+   Share icon. The awards picker (phase 9) and the chart-record previews
+   (popovers, not windows) were left as they are.
+10. **Settings** (1f6c712): Data source · Charts · Releases · Profile;
+    search; Appearance (theme + language); Save bar only when dirty.
+11. **Languages** (cb14b40): sweep script C:/tmp/p10_lang.mjs; last
+    English in the artist panel and Settings fixed.
+12. **Screen check** (C:/tmp/p10_s12.mjs): found the plays-by-month chart
+    wider than the 600px panel (bars now 1px-gap) and that the artist
+    panel's first open was held off screen for ~2.5 s by the one-off
+    Records build its Hall of Fame part triggers; that build now waits
+    until the artist's Charts tab is on screen.
 
 The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in

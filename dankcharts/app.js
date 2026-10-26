@@ -11171,7 +11171,17 @@ function renderModalArtistRecords(artistName) {
   wait.textContent = t('modal_held_records_wait');
   if (_recModalBuildPending) return; // a previous open already queued it
   _recModalBuildPending = true;
-  setTimeout(function () {
+  /* The first build blocks for a couple of seconds. Since phase 10 these
+     records sit in the side panel's Charts tab, so the build waits until that
+     tab is actually on screen (checked every 300ms while the panel is open):
+     opening an artist stays instant, and nobody pays for records they never
+     look at. */
+  const build = function () {
+    const overlay = document.getElementById('artistModal');
+    if (!overlay || !overlay.classList.contains('open')) { _recModalBuildPending = false; return; }
+    const chartsOn = !overlay.querySelector('.dp-sec[data-dp-tab]') ||
+      !!overlay.querySelector('.dp-sec[data-dp-tab="charts"].dp-on');
+    if (!chartsOn) { setTimeout(build, 300); return; }
     _recModalBuildPending = false;
     if (!_recArtistTally) buildRecords();
     /* Paint for whichever artist's modal is open *now* — the user may have
@@ -11179,13 +11189,13 @@ function renderModalArtistRecords(artistName) {
        records into the new artist's modal would be worse than nothing. If the
        build produced no tally (no data), give up rather than re-queue. */
     const nameEl = document.getElementById('modalArtistName');
-    const overlay = document.getElementById('artistModal');
-    if (!_recArtistTally || !overlay || !overlay.classList.contains('open') || !nameEl) {
+    if (!_recArtistTally || !nameEl) {
       wait.style.display = 'none';
       return;
     }
     renderModalArtistRecords(nameEl.textContent);
-  }, 80);
+  };
+  setTimeout(build, 120);
 }
 
 function initAllRecTableResizableCols() {
