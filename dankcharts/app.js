@@ -47924,13 +47924,13 @@ function stFillGrammysHead() {
   const g = _stFacts.grammys;
   if (g && g.n) {
     stFillHead('grammys', {
-      label: t('st_grammys_title'),
-      title: stHeadTitle('st_ch_gram_title', g.n),
+      label: t('st_aw_title'),
+      title: stHeadTitle('st_ch_aw_title', g.n),
       sub: esc(g.top),
       bg: ['artist', g.top],
     });
   } else {
-    stFillHead('grammys', { label: t('st_grammys_title'), title: esc(t('st_ch_gram_none')), sub: esc(t('st_grammys_none')) });
+    stFillHead('grammys', { label: t('st_aw_title'), title: esc(t('st_ch_gram_none')) });
   }
 }
 
@@ -50383,8 +50383,9 @@ function stRenderStreaks(plays) {
   }
 
   // Key for the top streaks and the longest break (on All-Time, the whole list)
-  const runLegend = topRuns.map((r, i) => `<span class="st-cal-key is-s${i + 1}"><i></i><b>${r.n}</b> ${esc(t('st_streak_days_unit'))} · ${fmtDay(r.start)} – ${fmtDay(r.end)}</span>`).join('')
-    + (brk.n ? `<span class="st-cal-key is-break"><i></i>${esc(t('st_streak_legend_break'))}: <b>${brk.n}</b> · ${fmtDay(brk.start)} – ${fmtDay(brk.end)}</span>` : '');
+  const fmtSpan = (a, b) => a === b ? fmtDay(a) : `${fmtDay(a)} – ${fmtDay(b)}`; // one day: just its date
+  const runLegend = topRuns.map((r, i) => `<span class="st-cal-key is-s${i + 1}"><i></i><b>${r.n}</b> ${esc(t('st_streak_days_unit'))} · ${fmtSpan(r.start, r.end)}</span>`).join('')
+    + (brk.n ? `<span class="st-cal-key is-break"><i></i>${esc(t('st_streak_legend_break'))}: <b>${brk.n}</b> · ${fmtSpan(brk.start, brk.end)}</span>` : '');
 
   // The calendar: every day of a year (a week per column) or a month (one
   // row), lit by how much you played, with the top streaks and the longest
@@ -50634,8 +50635,19 @@ async function _fetchEntityStreakArt(kind, best) {
   } catch (e) { return null; }
 }
 
-// ── Grammy Overlay ────────────────────────────────────────────
+// ── Award winners in your charts ──────────────────────────────
+// Chapter 9: which of the period's top artists won an award that year — your
+// own My Grammys picks plus the real shows held that year (Grammys, VMAs, AMAs,
+// iHeartRadio, World Music, Billboard, ARIA, Juno, BRIT). A real show counts in
+// the year it was held, even though it honours the year before, so a year's
+// Soundtrack has its awards by the end of that year. Wins only.
 let _stGrammyLoadToken = 0;
+// Real wins already looked up, per period and set of artists, so a redraw
+// (language switch, ballot sync) doesn't look them all up again.
+//   "years|artist keys" → [{ ak, year, show, category, title }]
+const _stRealWins = {};
+const _stRealWinsBusy = new Set();
+const ST_AW_TOP = 20;   // how many of the period's artists are checked
 
 // The award years the Soundtrack period covers
 function stGrammyYears() {
@@ -50648,8 +50660,8 @@ function stGrammyYears() {
   return out;
 }
 
-// Redraws chapter 9 and its band once ballots arrive (or change in the cloud),
-// without re-rendering the whole Soundtrack.
+// Redraws chapter 9 and its band once ballots or real wins arrive (or change
+// in the cloud), without re-rendering the whole Soundtrack.
 function stRefreshGrammys() {
   if (!document.getElementById('stGrammysBody') || !_stCurrentPlays) return;
   delete _stFacts.grammys;
@@ -50658,23 +50670,84 @@ function stRefreshGrammys() {
   stNumberChapters();
 }
 
+// The real awards these artists won at shows held in these years, from the
+// same sources as Awards → Real-Life Awards: the Grammys through grammy-proxy
+// (one call per artist covers every year) and the other eight shows from
+// Wikipedia (one page per show and year, saved on the device for good).
+// All-Time only reads the Wikipedia years already saved: fetching every show
+// for every year at once would be a hundred-odd pages and could fill the
+// device's storage. Resolves to { wins: [{ ak, year, show, category, title }], failed }.
+async function stLoadRealWins(years, top, alltime) {
+  const want = new Set(years);
+  const wins = [];
+  const seen = new Set();
+  let failed = false;
+  const add = w => {
+    const k = [w.ak, w.year, w.show, w.category, w.title].join('|').toLowerCase();
+    if (!seen.has(k)) { seen.add(k); wins.push(w); }
+  };
+
+  // Grammys: each artist's whole record, kept to the years asked for
+  const records = await _grammyMapLimit(top, REAL_LIFE_CONCURRENCY, a => _grammyFetchArtist(a.artist));
+  records.forEach((data, i) => {
+    if (!data?.found) return;
+    for (const e of data.entries || []) {
+      if (e.won && want.has(e.year)) add({ ak: top[i].key, year: e.year, show: 'Grammys', category: e.category, title: e.title || '' });
+    }
+  });
+
+  // The Wikipedia shows, only in years each one was held
+  const byKey = new Map();   // _rlWikiKey(name) → top artist
+  for (const a of top) {
+    const k = _rlWikiKey(a.artist);
+    if (k.length >= 2 && !byKey.has(k)) byKey.set(k, a);
+  }
+  const stored = alltime ? _rlWikiStored() : null;
+  const jobs = [];
+  for (const [id, show] of Object.entries(RL_WIKI_SHOWS)) {
+    for (const y of years) {
+      if (y < show.first || (show.years && !show.years.includes(y))) continue;
+      if (stored && !stored[id + ':' + y]) continue;
+      jobs.push([id, y]);
+    }
+  }
+  // Two at a time: Wikipedia turns away a burst of requests
+  await _grammyMapLimit(jobs, 2, async ([id, y]) => {
+    const data = await _rlWikiFetchYear(id, y);
+    if (data?.error) failed = true;
+    if (!data?.found) return;
+    for (const cat of data.categories) for (const nom of cat.nominees) {
+      if (!nom.won) continue;
+      for (const a of _rlWikiMatch(nom, byKey)) add({ ak: a.key, year: y, show: RL_WIKI_SHOWS[id].short, category: cat.name, title: nom.title || '' });
+    }
+  });
+  return { wins, failed };
+}
+
 function stRenderGrammys(plays) {
   const el = document.getElementById('stGrammysBody');
   if (!el) return;
   // With no winners the chapter is a quiet line with a way to Awards, not a
-  // numbered chapter with a big "nothing" headline (stNumberChapters skips it)
+  // numbered chapter with a big "nothing" headline (stNumberChapters skips it).
+  // While the real shows are still being checked, the line says so instead.
   const sec = document.getElementById('stGrammysSection');
-  const quiet = () => {
+  const quiet = checking => {
     sec?.classList.add('st-chap--quiet');
-    el.innerHTML = `<p class="st-quiet">${stIco('trophy')}<span>${esc(t('st_grammys_none'))}</span>
-      <button type="button" class="dc-btn dc-btn-normal dc-btn-sm" onclick="dcGoTab('awards')">${esc(t('st_grammys_open'))}</button></p>`;
+    const msg = checking ? t('st_aw_checking')
+      : stPeriodType === 'alltime' ? t('st_aw_none_all') : t('st_aw_none', { period: stGetPeriodLabel() });
+    el.innerHTML = `<p class="st-quiet">${stIco('trophy')}<span>${esc(msg)}</span>
+      ${checking ? '' : `<button type="button" class="dc-btn dc-btn-normal dc-btn-sm" onclick="dcGoTab('awards')">${esc(t('st_grammys_open'))}</button>`}</p>`;
   };
   sec?.classList.remove('st-chap--quiet');
-  if (!plays.length) { quiet(); return; }
+  if (!plays.length) { quiet(false); return; }
 
-  const artistCounts = {};
-  for (const p of plays) artistCounts[p.artist.toLowerCase()] = (artistCounts[p.artist.toLowerCase()] || 0) + 1;
-  const topArtistKeys = Object.entries(artistCounts).sort((a, b) => b[1] - a[1]).slice(0, 20).map(([a]) => a);
+  const artistCounts = {}, artistNames = {};
+  for (const p of plays) {
+    const ak = p.artist.toLowerCase();
+    artistCounts[ak] = (artistCounts[ak] || 0) + 1;
+    if (!artistNames[ak]) artistNames[ak] = p.artist;
+  }
+  const topArtistKeys = Object.entries(artistCounts).sort((a, b) => b[1] - a[1]).slice(0, ST_AW_TOP).map(([a]) => a);
 
   // Only the period's own year counts (a month uses its year); All-Time takes
   // every year since the first play.
@@ -50691,8 +50764,29 @@ function stRenderGrammys(plays) {
     });
   }
 
-  // Build Grammy map from the user's own My Grammys picks for those years
+  // The real shows: looked up once per period, then drawn again when they land
+  const realKey = years.join(',') + '|' + topArtistKeys.join('\u0001');
+  const real = _stRealWins[realKey];
+  if (!real && !_stRealWinsBusy.has(realKey)) {
+    _stRealWinsBusy.add(realKey);
+    const top = topArtistKeys.map(ak => ({ key: ak, artist: artistNames[ak] }));
+    stLoadRealWins(years, top, stPeriodType === 'alltime')
+      .catch(() => ({ wins: [], failed: true }))
+      .then(({ wins, failed }) => {
+        _stRealWinsBusy.delete(realKey);
+        // Kept even if a show couldn't be reached, so the chapter still shows
+        // what did come back; the next visit to the tab tries the rest again
+        _stRealWins[realKey] = wins;
+        if (failed) setTimeout(() => { delete _stRealWins[realKey]; }, 0);
+        // Only redraw if this is still the period on screen
+        if (_stCurrentPlays === plays) stRefreshGrammys();
+      });
+  }
+  const checking = !real;
+
+  // Every win per artist: your My Grammys picks for those years, then the real ones
   const grammyMap = {};
+  const mine = t('awards_tab_mygrammys');
   if (typeof _awardsYearData !== 'undefined') {
     for (const yr of years) {
       const data = _awardsYearData[yr];
@@ -50701,26 +50795,31 @@ function stRenderGrammys(plays) {
         if (!cat.enabled || !cat.winner || !cat.winner.artist) continue;
         const ak = cat.winner.artist.toLowerCase();
         if (!grammyMap[ak]) grammyMap[ak] = [];
-        grammyMap[ak].push({ year: yr, category: AWARD_CATEGORIES.find(c => c.id === catId)?.label || catId, isWin: true });
+        grammyMap[ak].push({ year: +yr, show: mine, category: AWARD_CATEGORIES.find(c => c.id === catId)?.label || catId, title: cat.winner.title || '' });
       }
     }
+  }
+  for (const w of real || []) {
+    if (!grammyMap[w.ak]) grammyMap[w.ak] = [];
+    grammyMap[w.ak].push({ year: w.year, show: w.show, category: w.category, title: w.title, real: true });
   }
 
   const withAwards = topArtistKeys
     .filter(ak => grammyMap[ak] && grammyMap[ak].length > 0)
     .map(ak => ({
-      artist: plays.find(p => p.artist.toLowerCase() === ak)?.artist || ak,
+      artist: artistNames[ak] || ak,
       plays: artistCounts[ak],
       entries: grammyMap[ak]
     }));
 
-  if (!withAwards.length) { quiet(); return; }
+  if (!withAwards.length) { quiet(checking); return; }
 
   _stFacts.grammys = { n: withAwards.length, top: withAwards[0].artist };
   const shown = withAwards.slice(0, 8);
   el.innerHTML = `<div class="st-grammy-grid">${shown.map((item, i) => {
-    const wins = item.entries.filter(e => e.isWin).length;
-    const sorted = [...item.entries].sort((a, b) => b.year - a.year);
+    const wins = item.entries.length;
+    // Newest first; within a year the real shows before your own picks
+    const sorted = [...item.entries].sort((a, b) => b.year - a.year || (b.real ? 1 : 0) - (a.real ? 1 : 0));
     return `<div class="st-grammy-card" style="--i:${i}" onclick="stToggleGrammyCard(this)">
       <div class="st-grammy-card-photo">
         <img id="stGrammyArt_${i}" class="st-grammy-card-bg" src="" alt="" onload="this.classList.add('loaded')">
@@ -50733,11 +50832,12 @@ function stRenderGrammys(plays) {
         <div class="st-grammy-card-chevron">▾</div>
       </div>
       <div class="st-grammy-detail">${sorted.map(e => `<div class="st-grammy-detail-row">
-        <span class="st-grammy-detail-year">${esc(String(e.year))}</span>
+        <span class="st-grammy-detail-year">${esc(String(e.year))} · ${esc(e.show)}</span>
         <span class="st-grammy-detail-cat">${esc(e.category)}</span>
+        ${e.title ? `<span class="st-grammy-detail-work">${esc(e.title)}</span>` : ''}
       </div>`).join('')}</div>
     </div>`;
-  }).join('')}</div>`;
+  }).join('')}</div>${checking ? `<p class="st-aw-checking">${esc(t('st_aw_checking'))}</p>` : ''}`;
 
   // Queued through the shared queueImg() (see stLoyaltyImg above) instead of
   // firing every card's lookup at once.

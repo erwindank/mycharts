@@ -29137,6 +29137,14 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
 .st-streak-card[data-st-pick] { cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s; }
 .st-streak-card[data-st-pick]:hover { border-color: color-mix(in srgb, var(--fc) 60%, var(--border)); transform: translateY(-1px); }
 .st-streak-card[data-st-pick]:focus-visible { outline: 2px solid var(--fc); outline-offset: 2px; }
+/* The top cards share a row height (a badge makes one taller), so their
+   content sits in the middle rather than at the top */
+.st-streaks-grid:not(.st-streaks-grid--entity) > .st-streak-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
 .st-streak-card.is-picked {
   border-color: var(--fc);
   box-shadow: 0 0 0 1px var(--fc), 0 0 14px color-mix(in srgb, var(--fc) 28%, transparent);
@@ -29447,6 +29455,23 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
   margin-top: 0.1rem;
   white-space: normal;
   line-height: 1.25;
+}
+/* The winning song or album, when the award names one */
+.st-grammy-detail-work {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: var(--fs-xs);
+  font-style: italic;
+  color: var(--text3);
+  margin-top: 0.1rem;
+  line-height: 1.25;
+}
+/* Shown under the cards while the real award shows are still being checked */
+.st-aw-checking {
+  margin: 0.8rem 0 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-xs);
+  color: var(--text3);
 }
 
 /* ── Underrated Gem ──────────────────────────────────────────── */
