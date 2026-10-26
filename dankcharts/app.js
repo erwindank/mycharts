@@ -34267,8 +34267,11 @@ function dcRenderPlaylistsView() {
       html += `<div class="dc-card dc-pl-card${isExpanded ? ' dc-pl-card-open' : ''}">` +
         `<div class="dc-pl-card-header" onclick="dcPlToggleExpand(${nameJson})">` +
         `<svg class="dc-pl-chevron${isExpanded ? ' dc-pl-chevron-open' : ''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9,18 15,12 9,6"/></svg>` +
+        dcPlCollageHtml(tracks) +
+        `<span class="dc-pl-name-wrap">` +
         `<span class="dc-pl-name">${nameEsc}</span>` +
         `<span class="dc-pl-count">${tracks.length} track${tracks.length !== 1 ? 's' : ''}</span>` +
+        `</span>` +
         `<div class="dc-pl-actions" onclick="event.stopPropagation()">` +
         `<button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon" onclick="dcPlPlayFromStart(${nameJson})" title="Play playlist">` +
         `<svg class="dc-pl-ic" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>` +
@@ -34290,14 +34293,14 @@ function dcRenderPlaylistsView() {
             `ondragover="event.preventDefault();event.currentTarget.classList.add('dc-pl-drag-over')" ` +
             `ondragleave="event.currentTarget.classList.remove('dc-pl-drag-over')" ` +
             `ondrop="dcPlDrop(event,${nameJson},${idx})">` +
-            `<span class="dc-pl-drag-handle" title="Drag to reorder">⠿</span>` +
+            `<span class="dc-pl-drag-handle" title="Drag to reorder"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="6" cy="4" r="1.1"/><circle cx="10" cy="4" r="1.1"/><circle cx="6" cy="8" r="1.1"/><circle cx="10" cy="8" r="1.1"/><circle cx="6" cy="12" r="1.1"/><circle cx="10" cy="12" r="1.1"/></svg></span>` +
+            dcPlArtHtml(t) +
             `<div class="dc-pl-track-info">` +
             `<span class="dc-pl-track-title">${esc(t.title)}</span>` +
-            `<span class="dc-pl-track-sep"> – </span>` +
             `<span class="dc-pl-track-artist">${esc(t.artist)}</span>` +
             `</div>` +
             `<div class="dc-pl-track-actions">` +
-            `<button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon" onclick="dcPlPlayFromTrack(${nameJson},${idx})" title="Play from here">▶</button>` +
+            `<button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon" onclick="dcPlPlayFromTrack(${nameJson},${idx})" title="Play from here"><svg class="dc-pl-ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6,4 19,12 6,20"/></svg></button>` +
             `<button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon dc-btn-danger" onclick="dcPlRemoveTrack(${nameJson},${idx})" title="Remove track">✕</button>` +
             `</div>` +
             `</div>`; // end track
@@ -34312,6 +34315,43 @@ function dcRenderPlaylistsView() {
 
   html += `</div>`; // end view
   el.innerHTML = html;
+  dcPlLoadArt(el);
+}
+
+// ── Playlist covers ──
+// A playlist row shows a 2×2 collage of its first four songs' covers (one
+// cover when it has fewer than four); an open playlist shows a small cover
+// per song. Each slot starts as a plain tile and its cover is looked up
+// after the list is drawn (dcPlLoadArt), once per song per visit.
+const _dcPlArtCache = {};
+let _dcPlArtTok = 0;
+function dcPlArtHtml(tr, cls) {
+  return `<span class="dc-pl-art${cls ? ' ' + cls : ''}" data-pl-t="${esc(tr.title || '')}" data-pl-a="${esc(tr.artist || '')}" aria-hidden="true"></span>`;
+}
+function dcPlCollageHtml(tracks) {
+  const four = tracks.length >= 4;
+  const cells = (four ? tracks.slice(0, 4) : tracks.slice(0, 1)).map(tr => dcPlArtHtml(tr)).join('');
+  return `<span class="dc-pl-collage${four ? '' : ' is-one'}" aria-hidden="true">${cells}</span>`;
+}
+function dcPlLoadArt(root) {
+  const tok = ++_dcPlArtTok;
+  const paint = (el, url) => {
+    if (!url) return;
+    el.style.backgroundImage = `url("${sizedArtUrl(url, 120)}")`;
+    el.classList.add('is-loaded');
+  };
+  root.querySelectorAll('.dc-pl-art[data-pl-t]').forEach(el => {
+    const key = (el.dataset.plA + '|||' + el.dataset.plT).toLowerCase();
+    if (key in _dcPlArtCache) { paint(el, _dcPlArtCache[key]); return; }
+    queueImg(() => getArtAuto('song', el.dataset.plT, el.dataset.plA).then(url => {
+      _dcPlArtCache[key] = url || null;
+      // a later redraw made new slots; this one may be gone
+      if (tok === _dcPlArtTok && el.isConnected) paint(el, url);
+      else root.querySelectorAll('.dc-pl-art[data-pl-t]').forEach(e2 => {
+        if ((e2.dataset.plA + '|||' + e2.dataset.plT).toLowerCase() === key) paint(e2, url);
+      });
+    }), true);
+  });
 }
 
 // Toggle a playlist's track list open/closed

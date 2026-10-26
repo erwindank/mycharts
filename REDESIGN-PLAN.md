@@ -3217,6 +3217,18 @@ Steps:
    covers, initials until they load), name, song count, ▶ ✎ 🗑; opened:
    tracks with small covers, drag handle, ▶ / ✕. Release lists as
    sideways rows (stRowHtml-style, ‹ › on desktop).
+   **Done 2026-10-26:** each playlist row has a 52px 2×2 collage of its
+   first four songs' covers (one cover under four songs), the name with
+   "14 tracks" under it, then ▶ ✎ 🗑. Open, each song has a 36px cover,
+   title over artist, a dotted grip (svg, was ⠿) and line ▶ / ✕; on a
+   touch screen ▶ / ✕ always show (they were hover-only, so phones never
+   saw them). Covers start as plain tiles and are looked up after drawing
+   (dcPlLoadArt, getArtAuto, kept per visit in _dcPlArtCache so opening
+   another playlist doesn't ask again). The release lists stay the Events
+   reels: they already swipe sideways and are the shared reel, so a second
+   kind of row was not added. Checked 1440 and 390 touch (note: a
+   Playwright full-page screenshot drops the touch emulation, so hover-only
+   things vanish in it; check touch with a viewport shot).
 3. **Playlists in four languages.** Every string in
    dcRenderPlaylistsView() and its rename / delete / status lines into
    translations.js.

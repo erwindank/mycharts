@@ -21265,8 +21265,8 @@ body:has(#eventsStatus.is-loading) .dc-pl-ev-empty { display: none; }
 .dc-pl-card-header {
   display: flex;
   align-items: center;
-  gap: var(--sp-2);
-  padding: 0.55rem 0.65rem;
+  gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
   cursor: pointer;
   user-select: none;
 }
@@ -21279,8 +21279,15 @@ body:has(#eventsStatus.is-loading) .dc-pl-ev-empty { display: none; }
   transition: transform 0.18s;
 }
 .dc-pl-chevron-open { transform: rotate(90deg); }
-.dc-pl-name {
+/* Name with the song count under it */
+.dc-pl-name-wrap {
   flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.dc-pl-name {
   min-width: 0;
   font-size: var(--fs-base);
   font-weight: 600;
@@ -21289,6 +21296,28 @@ body:has(#eventsStatus.is-loading) .dc-pl-ev-empty { display: none; }
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* Covers: a plain tile until the picture arrives (dcPlLoadArt) */
+.dc-pl-art {
+  display: block;
+  background: var(--bg3) center / cover no-repeat;
+}
+.dc-pl-art.is-loaded { animation: dc-pl-art-in 0.25s ease-out; }
+@keyframes dc-pl-art-in { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .dc-pl-art.is-loaded { animation: none; } }
+/* The row's 2×2 collage (one cover when there are fewer than four songs) */
+.dc-pl-collage {
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  border-radius: var(--r-xs);
+  overflow: hidden;
+  background: var(--border);
+}
+.dc-pl-collage.is-one { grid-template-columns: 1fr; }
 .dc-pl-name-edit {
   flex: 1;
   min-width: 80px;
@@ -21304,7 +21333,6 @@ body:has(#eventsStatus.is-loading) .dc-pl-ev-empty { display: none; }
 .dc-pl-count {
   font-size: var(--fs-xs);
   color: var(--text3);
-  flex-shrink: 0;
 }
 .dc-pl-actions {
   display: flex;
@@ -21322,8 +21350,8 @@ body:has(#eventsStatus.is-loading) .dc-pl-ev-empty { display: none; }
 .dc-pl-track {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.3rem 0.65rem;
+  gap: var(--sp-3);
+  padding: 0.35rem var(--sp-3);
   cursor: default;
   transition: background 0.1s;
 }
@@ -21332,22 +21360,32 @@ body:has(#eventsStatus.is-loading) .dc-pl-ev-empty { display: none; }
 .dc-pl-drag-handle {
   color: var(--text3);
   cursor: grab;
-  font-size: var(--fs-base);
   flex-shrink: 0;
   user-select: none;
+  display: flex;
+}
+.dc-pl-drag-handle svg { width: 14px; height: 14px; fill: currentColor; }
+/* the song's small cover */
+.dc-pl-track > .dc-pl-art {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--r-xs);
 }
 .dc-pl-drag-handle:active { cursor: grabbing; }
+/* Title over artist, each cut with … when long */
 .dc-pl-track-info {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
   font-size: var(--fs-sm);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: 1.3;
 }
+.dc-pl-track-title,
+.dc-pl-track-artist { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .dc-pl-track-title  { color: var(--text1); font-weight: 500; }
-.dc-pl-track-sep    { color: var(--text3); }
-.dc-pl-track-artist { color: var(--text2); }
+.dc-pl-track-artist { color: var(--text3); font-size: var(--fs-xs); }
 .dc-pl-track-actions {
   display: flex;
   gap: 0.2rem;
@@ -21355,7 +21393,10 @@ body:has(#eventsStatus.is-loading) .dc-pl-ev-empty { display: none; }
   opacity: 0;
   transition: opacity 0.1s;
 }
-.dc-pl-track:hover .dc-pl-track-actions { opacity: 1; }
+.dc-pl-track:hover .dc-pl-track-actions,
+.dc-pl-track:focus-within .dc-pl-track-actions { opacity: 1; }
+/* no hover on a touch screen, so ▶ and ✕ always show there */
+@media (hover: none) { .dc-pl-track-actions { opacity: 1; } }
 
 /* ── Speed badge ── */
 .yt-speed-badge {
