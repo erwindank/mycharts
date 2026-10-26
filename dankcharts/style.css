@@ -36723,13 +36723,16 @@ body.red-light .modal-rank-card--year .mrc-rank {
     .rt-tt-more { align-self: flex-start; margin-top: 0.45rem; }
     .rt-block--pending { margin-top: 0.6rem; }
 
-    /* ═══ RATING EDITOR MODAL ═══════════════════════════════════ */
-    .rt-modal-box { max-width: 720px; }
-
-    /* .modal-close is absolutely positioned at top:0.85rem and this modal has no
-       .modal-header band to sit in front of, so the body needs to start below it
-       or the score ring in the top-right of the head lands underneath it. */
-    .rt-modal-box .modal-body { padding-top: 2.7rem; }
+    /* ═══ RATING EDITOR MODAL ═══════════════════════════════════
+       On the shared window frame since phase 10 step 7: #ratingModalBody
+       (.rt-frame) holds the head, body and foot, so it lays itself out as
+       if it were the frame. The rules after this block are the editor's
+       own; the "phase 10" block further down restyles the rows and sliders. */
+    .dc-modal.rt-modal-box { max-width: 720px; }
+    .rt-frame { display: contents; }
+    .rt-frame-head { align-items: center; }
+    .rt-frame-head .rt-edit-total { flex-shrink: 0; }
+    .rt-frame-head .rt-back { margin: -4px 0 4px -8px; padding: 0 8px; color: var(--accent); }
 
     .rt-back {
       background: none;
@@ -36957,6 +36960,92 @@ body.red-light .modal-rank-card--year .mrc-rank {
       margin-top: 1.2rem;
       padding-top: var(--sp-4);
       border-top: 1px solid var(--border);
+    }
+
+    /* ── Phase 10 step 7: the editor's rows, sliders and score boxes ──
+       Each criterion is a row with a line-icon tile; a slider shows its
+       filled part (--p, set by _ratingPaintSlider) in the accent, with a
+       larger thumb that grows while held; a row turns "scored" (.is-set). */
+    .rt-frame .rt-edit-kind { font-size: var(--fs-xs); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text3); }
+    .rt-frame .rt-edit-title { margin: 2px 0 0; }
+    .rt-frame .rt-mode-switch { margin: 0 0 var(--sp-3); }
+    .rt-frame .rt-edit-list { gap: var(--sp-2); }
+    .rt-frame .rt-edit-row {
+      display: grid;
+      grid-template-columns: 36px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: var(--sp-3);
+      padding: var(--sp-3);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      background: var(--raised);
+      transition: border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+    }
+    .rt-frame .rt-edit-row:last-child { border-bottom: 1px solid var(--border); }
+    .rt-frame .rt-edit-row:focus-within { border-color: color-mix(in srgb, var(--accent) 55%, var(--border)); }
+    .rt-frame .rt-edit-row.is-set .rt-edit-ico { background: var(--accent); color: var(--on-accent); }
+    .rt-edit-ico {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: var(--r-md);
+      background: color-mix(in srgb, var(--accent) 14%, transparent);
+      color: var(--accent);
+      transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+    }
+    .rt-edit-ico svg { width: 18px; height: 18px; }
+    .rt-frame .rt-edit-label { display: block; }
+    /* slider · score · N/A in fixed columns, so the sliders line up down the
+       list whether or not a row has N/A */
+    .rt-frame .rt-edit-controls { display: grid; grid-template-columns: 170px 3.4rem 52px; align-items: center; gap: var(--sp-2); }
+    .rt-frame .rt-edit-controls .rt-slider { width: 100%; }
+    .rt-frame .rt-edit-name { display: block; font-size: var(--fs-sm); }
+    .rt-frame .rt-edit-desc { display: block; margin-top: 2px; }
+    .rt-frame .rt-slider {
+      width: 170px;
+      height: 6px;
+      border-radius: 3px;
+      background: linear-gradient(to right, var(--accent) 0 var(--p, 50%), color-mix(in srgb, var(--border2) 80%, transparent) var(--p, 50%) 100%);
+    }
+    .rt-frame .rt-edit-row:not(.is-set) .rt-slider,
+    .rt-frame .rt-track-row:not(.is-set) .rt-slider { background: color-mix(in srgb, var(--border2) 80%, transparent); }
+    .rt-frame .rt-slider::-webkit-slider-thumb { width: 18px; height: 18px; border: 3px solid var(--bg2); box-shadow: 0 0 0 1px var(--accent), var(--shadow-1); transition: transform var(--t-fast) var(--ease); }
+    .rt-frame .rt-slider:active::-webkit-slider-thumb { transform: scale(1.2); }
+    .rt-frame .rt-slider::-moz-range-thumb { width: 14px; height: 14px; border: 3px solid var(--bg2); }
+    .rt-frame .rt-slider:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 35%, transparent); }
+    .rt-frame .rt-slider--big { width: 100%; height: 8px; }
+    .rt-frame .rt-num {
+      width: 3.4rem;
+      height: 34px;
+      background: var(--bg2);
+      border-color: var(--border2);
+      font-size: var(--fs-base);
+    }
+    .rt-frame .rt-num--big { width: 5rem; height: 44px; font-size: var(--fs-lg); }
+    .rt-frame .rt-num:focus { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
+    .rt-frame .rt-na-btn { height: 34px; padding: 0 10px; }
+    .rt-frame .rt-quick-wrap { padding: var(--sp-5) var(--sp-4); border: 1px solid var(--border); border-radius: var(--r-md); background: var(--raised); }
+    .rt-frame .rt-track-list { max-height: none; overflow: visible; gap: 2px; }
+    .rt-frame .rt-track-row { padding: 8px var(--sp-2); border-radius: var(--r-sm); border-bottom: 0; }
+    .rt-frame .rt-track-row:hover { background: var(--hover); }
+    .rt-track-n { width: 22px; flex-shrink: 0; text-align: right; font-size: var(--fs-xs); font-variant-numeric: tabular-nums; color: var(--text3); }
+    .rt-frame .rt-track-detail { width: 30px; height: 30px; }
+    .rt-frame .rt-track-detail svg { width: 16px; height: 16px; }
+    .rt-frame .rt-weight-row { border-radius: var(--r-md); }
+    .rt-frame .rt-weight-row .rt-slider { width: 100%; }
+    .rt-frame .rt-note { min-height: 84px; }
+    .rt-saved { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); color: var(--text3); }
+    .rt-saved svg { width: 14px; height: 14px; color: var(--green, #34d399); }
+    @media (max-width: 640px) {
+      .rt-frame .rt-edit-row { grid-template-columns: 32px minmax(0, 1fr); }
+      .rt-frame .rt-edit-controls { grid-column: 1 / -1; grid-template-columns: minmax(0, 1fr) 3.4rem 52px; }
+      .rt-frame .rt-edit-controls .rt-slider { flex: 1; width: auto; }
+      .rt-frame .rt-edit-ico { width: 32px; height: 32px; }
+      .rt-frame .rt-slider--track { width: 90px; }
+      .rt-saved { display: none; }
+      .rt-frame-head .rt-ring { transform: scale(0.85); transform-origin: right center; }
     }
 
     /* ═══ GRAPHS TAB — the ratings home ═════════════════════════ */

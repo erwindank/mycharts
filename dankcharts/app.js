@@ -54088,6 +54088,27 @@ const RATING_BANDS = [
   { min: 0.0, key: 'poor',        label: 'Poor',        cls: 'rt--poor'        }
 ];
 
+/* Phase 10 step 7: the criteria and verdict names follow the language
+   (rtc_<id> / rtc_<id>_d / rtb_<key> in translations.js, English when a key
+   is missing), and each criterion has a line icon (dcIco) for the editor.
+   Getters, so every place that reads crit.label or band.label — the editor,
+   the panels, the share cards — gets the translated words. */
+const RATING_CRIT_ICON = {
+  comp: 'note', lyr: 'edit', voc: 'mic', prod: 'sliders', mel: 'sparkle', rhy: 'bars', inst: 'listmusic',
+  orig: 'gem', emo: 'flame', rep: 'refresh', coh: 'stack', con: 'file', art: 'image', inn: 'rocket',
+  imp: 'star', lon: 'hourglass'
+};
+[...RATING_SONG_CRITERIA, ...RATING_ALBUM_CRITERIA].forEach(c => {
+  const en = { label: c.label, desc: c.desc };
+  Object.defineProperty(c, 'label', { get() { const k = 'rtc_' + c.id, v = t(k); return v === k ? en.label : v; } });
+  Object.defineProperty(c, 'desc', { get() { const k = 'rtc_' + c.id + '_d', v = t(k); return v === k ? en.desc : v; } });
+  c.ico = RATING_CRIT_ICON[c.id] || 'star';
+});
+RATING_BANDS.forEach(b => {
+  const en = b.label;
+  Object.defineProperty(b, 'label', { get() { const k = 'rtb_' + b.key, v = t(k); return v === k ? en : v; } });
+});
+
 function ratingBand(score) {
   if (score == null || isNaN(score)) return null;
   return RATING_BANDS.find(b => score >= b.min) || RATING_BANDS[RATING_BANDS.length - 1];
@@ -54622,14 +54643,60 @@ function renderRatingModal() {
   const view = ratingCurrentView();
   const el = document.getElementById('ratingModalBody');
   if (!view || !el) return;
-
-  const backBtn = _ratingNav.length > 1
-    ? `<button class="rt-back" onclick="ratingNavBack()">← ${esc(_ratingNav[_ratingNav.length - 2].kind === 'album' ? 'Back to album' : 'Back')}</button>`
-    : '';
-
-  el.innerHTML = backBtn + (view.kind === 'album' ? _ratingAlbumEditorHTML(view) : _ratingSongEditorHTML(view));
+  el.innerHTML = view.kind === 'album' ? _ratingAlbumEditorHTML(view) : _ratingSongEditorHTML(view);
+  if (typeof dcFillIcons === 'function') dcFillIcons(el);
   _ratingBindInputs(el);
+  _ratingPaintSliders(el);
   _ratingUpdateTotals();
+}
+
+/* Phase 10 step 7: the editor is on the shared window frame. The head (what is
+   being rated, the score ring) and the foot (Clear / Done) stay put while the
+   criteria scroll between them. */
+function _ratingHeadHTML(kindLabel, title, sub, score) {
+  const back = _ratingNav.length > 1
+    ? `<button class="dc-btn dc-btn-plain dc-btn-sm rt-back" onclick="ratingNavBack()"><span data-ico="back"></span>${esc(_ratingNav[_ratingNav.length - 2].kind === 'album' ? t('rte_back_album') : t('rte_back'))}</button>`
+    : '';
+  return `<div class="dc-frame-head rt-frame-head">
+      <div class="dc-frame-titles">
+        ${back}
+        <div class="rt-edit-kind">${esc(kindLabel)}</div>
+        <h3 class="dc-frame-title rt-edit-title">${esc(title)}</h3>
+        <p class="dc-frame-sub">${esc(sub)}</p>
+      </div>
+      <div class="rt-edit-total" id="rtEditTotal">${ratingRing(score, { size: 86 })}</div>
+      <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close" onclick="closeRatingModal()" aria-label="${esc(t('set_close'))}">✕</button>
+    </div>`;
+}
+
+// One criterion: icon tile, name and what it means, slider, score box (N/A)
+function _ratingCritRowHTML(kind, key, crit, v) {
+  const isNa = v === 'na';
+  const num = typeof v === 'number' ? v : null;
+  return `<div class="rt-edit-row${isNa ? ' rt-edit-row--na' : ''}${num == null ? '' : ' is-set'}" data-crit="${esc(crit.id)}">
+      <span class="rt-edit-ico" data-ico="${crit.ico}"></span>
+      <div class="rt-edit-label">
+        <span class="rt-edit-name">${esc(crit.label)}</span>
+        <span class="rt-edit-desc">${esc(crit.desc)}</span>
+      </div>
+      <div class="rt-edit-controls">
+        <input type="range" class="rt-slider" min="${RATING_MIN}" max="${RATING_MAX}" step="${RATING_STEP}"
+               value="${num == null ? 5 : num}" data-kind="${kind}" data-key="${esc(key)}" data-crit="${esc(crit.id)}"
+               ${isNa ? 'disabled' : ''} aria-label="${esc(crit.label)}">
+        <input type="number" class="rt-num" min="${RATING_MIN}" max="${RATING_MAX}" step="${RATING_STEP}"
+               value="${num == null ? '' : ratingFmt(num)}" placeholder="—" aria-label="${esc(crit.label)}"
+               data-kind="${kind}" data-key="${esc(key)}" data-crit="${esc(crit.id)}" ${isNa ? 'disabled' : ''}>
+        ${crit.skippable ? `<button class="rt-na-btn${isNa ? ' active' : ''}" data-na-kind="${kind}" data-na-key="${esc(key)}" data-na-crit="${esc(crit.id)}" title="${esc(t('rte_na_title'))}" aria-pressed="${isNa}">${esc(t('rte_na'))}</button>` : ''}
+      </div>
+    </div>`;
+}
+
+function _ratingNoteHTML(kind, key, e, ph) {
+  return `<div class="rt-note-wrap">
+      <label class="rt-note-label" for="rtNote">${esc(t('rte_note'))} <span class="rt-note-opt">${esc(t('rte_note_opt'))}</span></label>
+      <textarea id="rtNote" class="rt-note dc-input" rows="3" placeholder="${esc(ph)}"
+                data-note-kind="${kind}" data-note-key="${esc(key)}">${esc(e.note || '')}</textarea>
+    </div>`;
 }
 
 // ── Song editor ──
@@ -54638,67 +54705,35 @@ function _ratingSongEditorHTML(view) {
   const e = _ratingEnsureEntry('song', key);
   const { title, artist } = ratingSongNames(key);
   const quick = e.m === 'quick';
-  const score = ratingSongScore(key);
+  const jkey = esc(JSON.stringify(key));
+  const crits = ratingEnabledSongCriteria().map(crit => _ratingCritRowHTML('song', key, crit, e.c?.[crit.id])).join('');
 
-  const crits = ratingEnabledSongCriteria().map(crit => {
-    const v = e.c?.[crit.id];
-    const isNa = v === 'na';
-    const num = typeof v === 'number' ? v : null;
-    return `<div class="rt-edit-row${isNa ? ' rt-edit-row--na' : ''}" data-crit="${esc(crit.id)}">
-      <div class="rt-edit-label">
-        <span class="rt-edit-emoji">${crit.emoji}</span>
-        <span class="rt-edit-name">${esc(crit.label)}</span>
-        <span class="rt-edit-desc">${esc(crit.desc)}</span>
+  return _ratingHeadHTML(t('rte_kind_song'), title, artist, ratingSongScore(key)) + `
+    <div class="dc-frame-body">
+      <div class="rt-mode-switch">
+        <div class="dc-seg">
+          <button class="rt-mode-btn${quick ? '' : ' active'}" onclick="ratingSetSongMode(${jkey},'detailed')">${esc(t('rte_detailed'))}</button>
+          <button class="rt-mode-btn${quick ? ' active' : ''}" onclick="ratingSetSongMode(${jkey},'quick')">${esc(t('rte_quick'))}</button>
+        </div>
+        <span class="rt-mode-hint">${esc(quick ? t('rte_hint_quick') : t('rte_hint_detailed'))}</span>
       </div>
-      <div class="rt-edit-controls">
-        <input type="range" class="rt-slider" min="${RATING_MIN}" max="${RATING_MAX}" step="${RATING_STEP}"
-               value="${num == null ? 5 : num}" data-kind="song" data-key="${esc(key)}" data-crit="${esc(crit.id)}"
-               ${isNa ? 'disabled' : ''} aria-label="${esc(crit.label)}">
-        <input type="number" class="rt-num" min="${RATING_MIN}" max="${RATING_MAX}" step="${RATING_STEP}"
-               value="${num == null ? '' : ratingFmt(num)}" placeholder="—"
-               data-kind="song" data-key="${esc(key)}" data-crit="${esc(crit.id)}" ${isNa ? 'disabled' : ''}>
-        ${crit.skippable ? `<button class="rt-na-btn${isNa ? ' active' : ''}" data-na-kind="song" data-na-key="${esc(key)}" data-na-crit="${esc(crit.id)}" title="Does not apply to this track — leave it out of the average">N/A</button>` : ''}
-      </div>
-    </div>`;
-  }).join('');
-
-  return `
-    <div class="rt-edit-head">
-      <div class="rt-edit-titles">
-        <div class="rt-edit-kind">Rating a song</div>
-        <div class="rt-edit-title">${esc(title)}</div>
-        <div class="rt-edit-sub">${esc(artist)}</div>
-      </div>
-      <div class="rt-edit-total" id="rtEditTotal">${ratingRing(score, { size: 86 })}</div>
+      ${quick ? `
+        <div class="rt-quick-wrap">
+          <input type="range" class="rt-slider rt-slider--big" min="${RATING_MIN}" max="${RATING_MAX}" step="${RATING_STEP}"
+                 value="${e.q == null ? 5 : e.q}" data-kind="song" data-key="${esc(key)}" data-crit="__quick" aria-label="${esc(t('rte_overall'))}">
+          <input type="number" class="rt-num rt-num--big" min="${RATING_MIN}" max="${RATING_MAX}" step="${RATING_STEP}"
+                 value="${e.q == null ? '' : ratingFmt(e.q)}" placeholder="—" aria-label="${esc(t('rte_overall'))}"
+                 data-kind="song" data-key="${esc(key)}" data-crit="__quick">
+        </div>`
+      : `<div class="rt-edit-list">${crits}</div>`}
+      ${_ratingNoteHTML('song', key, e, t('rte_note_ph_song'))}
     </div>
-
-    <div class="rt-mode-switch">
-      <div class="dc-seg">
-      <button class="rt-mode-btn${quick ? '' : ' active'}" onclick="ratingSetSongMode(${esc(JSON.stringify(key))},'detailed')">Detailed</button>
-      <button class="rt-mode-btn${quick ? ' active' : ''}" onclick="ratingSetSongMode(${esc(JSON.stringify(key))},'quick')">Quick</button>
+    <div class="dc-frame-foot">
+      <div class="dc-frame-foot-start">
+        <button class="dc-btn dc-btn-plain dc-btn-danger" onclick="ratingClearEntry('song',${jkey})">${esc(t('rte_clear_song'))}</button>
       </div>
-      <span class="rt-mode-hint">${quick ? 'One gut score, no breakdown.' : 'Score each craft criterion; the total is their weighted average.'}</span>
-    </div>
-
-    ${quick ? `
-      <div class="rt-quick-wrap">
-        <input type="range" class="rt-slider rt-slider--big" min="${RATING_MIN}" max="${RATING_MAX}" step="${RATING_STEP}"
-               value="${e.q == null ? 5 : e.q}" data-kind="song" data-key="${esc(key)}" data-crit="__quick" aria-label="Overall score">
-        <input type="number" class="rt-num rt-num--big" min="${RATING_MIN}" max="${RATING_MAX}" step="${RATING_STEP}"
-               value="${e.q == null ? '' : ratingFmt(e.q)}" placeholder="—"
-               data-kind="song" data-key="${esc(key)}" data-crit="__quick">
-      </div>`
-    : `<div class="rt-edit-list">${crits}</div>`}
-
-    <div class="rt-note-wrap">
-      <label class="rt-note-label" for="rtNote">Review note <span class="rt-note-opt">optional</span></label>
-      <textarea id="rtNote" class="rt-note" rows="3" placeholder="What makes it work, or not…"
-                data-note-kind="song" data-note-key="${esc(key)}">${esc(e.note || '')}</textarea>
-    </div>
-
-    <div class="rt-edit-actions">
-      <button class="dc-btn dc-btn-plain dc-btn-danger" onclick="ratingClearEntry('song',${esc(JSON.stringify(key))})">Clear rating</button>
-      <button class="dc-btn dc-btn-main" onclick="closeRatingModal()">Done</button>
+      <span class="rt-saved"><span data-ico="check"></span>${esc(t('pop_saved_auto'))}</span>
+      <button class="dc-btn dc-btn-main" onclick="closeRatingModal()">${esc(t('rte_done'))}</button>
     </div>`;
 }
 
@@ -54710,95 +54745,78 @@ function _ratingAlbumEditorHTML(view) {
   const res = ratingAlbumScore(key);
   const tracks = ratingAlbumTrackKeys(key);
   const tw = Math.round((_ratings.cfg.trackWeight ?? 0.75) * 100);
+  const jkey = esc(JSON.stringify(key));
 
-  const aspectRows = RATING_ALBUM_CRITERIA.map(crit => {
-    const v = e.c?.[crit.id];
-    const num = typeof v === 'number' ? v : null;
-    return `<div class="rt-edit-row" data-crit="${esc(crit.id)}">
-      <div class="rt-edit-label">
-        <span class="rt-edit-emoji">${crit.emoji}</span>
-        <span class="rt-edit-name">${esc(crit.label)}</span>
-        <span class="rt-edit-desc">${esc(crit.desc)}</span>
-      </div>
-      <div class="rt-edit-controls">
-        <input type="range" class="rt-slider" min="${RATING_MIN}" max="${RATING_MAX}" step="${RATING_STEP}"
-               value="${num == null ? 5 : num}" data-kind="album" data-key="${esc(key)}" data-crit="${esc(crit.id)}" aria-label="${esc(crit.label)}">
-        <input type="number" class="rt-num" min="${RATING_MIN}" max="${RATING_MAX}" step="${RATING_STEP}"
-               value="${num == null ? '' : ratingFmt(num)}" placeholder="—"
-               data-kind="album" data-key="${esc(key)}" data-crit="${esc(crit.id)}">
-      </div>
-    </div>`;
-  }).join('');
+  const aspectRows = RATING_ALBUM_CRITERIA.map(crit => _ratingCritRowHTML('album', key, crit, e.c?.[crit.id])).join('');
 
   // Every track gets an inline quick score so a whole album can be rated in one
   // pass, plus a way into the full rubric for the tracks worth the detail.
-  const trackRows = tracks.length ? tracks.map(tr => {
+  const trackRows = tracks.length ? tracks.map((tr, i) => {
     const s = ratingSongScore(tr.key);
     const te = ratingSongEntry(tr.key);
     const detailed = te && te.m !== 'quick' && s != null;
-    return `<div class="rt-track-row">
+    return `<div class="rt-track-row${s == null ? '' : ' is-set'}">
+      <span class="rt-track-n">${i + 1}</span>
       <div class="rt-track-main">
         <div class="rt-track-title">${esc(tr.title)}</div>
-        <div class="rt-track-meta">${tr.count} ${tUnit('plays', tr.count)}${detailed ? ' · full rubric' : ''}</div>
+        <div class="rt-track-meta">${tCount('plays', tr.count)}${detailed ? ' · ' + esc(t('rte_full_rubric')) : ''}</div>
       </div>
       <input type="range" class="rt-slider rt-slider--track" min="${RATING_MIN}" max="${RATING_MAX}" step="${RATING_STEP}"
              value="${s == null ? 5 : s}" data-kind="song" data-key="${esc(tr.key)}" data-crit="__quick"
              ${detailed ? 'disabled' : ''} aria-label="${esc(tr.title)}"
-             title="${detailed ? 'Rated on the full rubric — open it to change the score' : 'Quick score'}">
+             title="${esc(detailed ? t('rte_track_detailed') : t('rte_track_quick'))}">
       <input type="number" class="rt-num rt-num--track" min="${RATING_MIN}" max="${RATING_MAX}" step="${RATING_STEP}"
-             value="${s == null ? '' : ratingFmt(s)}" placeholder="—" ${detailed ? 'disabled' : ''}
+             value="${s == null ? '' : ratingFmt(s)}" placeholder="—" ${detailed ? 'disabled' : ''} aria-label="${esc(tr.title)}"
              data-kind="song" data-key="${esc(tr.key)}" data-crit="__quick">
-      <button class="rt-track-detail" title="Open the full rubric for this track"
-              onclick="openRatingModal('song', ${esc(JSON.stringify(tr.key))}, {push:true})">⋮</button>
+      <button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon rt-track-detail" title="${esc(t('rte_open_rubric'))}" aria-label="${esc(t('rte_open_rubric'))}"
+              onclick="openRatingModal('song', ${esc(JSON.stringify(tr.key))}, {push:true})"><span data-ico="sliders"></span></button>
     </div>`;
-  }).join('') : `<div class="rt-empty">No tracks from this album in your listening history yet.</div>`;
+  }).join('') : `<div class="dc-empty"><span data-ico="disc"></span><span>${esc(t('rte_no_tracks'))}</span></div>`;
 
-  return `
-    <div class="rt-edit-head">
-      <div class="rt-edit-titles">
-        <div class="rt-edit-kind">Rating an album</div>
-        <div class="rt-edit-title">${esc(albumName)}</div>
-        <div class="rt-edit-sub">${esc(artistName)}</div>
+  return _ratingHeadHTML(t('rte_kind_album'), albumName, artistName, res ? res.score : null) + `
+    <div class="dc-frame-body">
+      <div class="rt-formula" id="rtFormula">${_ratingFormulaHTML(res)}</div>
+      <div class="dc-tabs rt-tabs">
+        <button class="rt-tab${view.tab === 'aspects' ? ' active' : ''}" onclick="ratingSwitchTab('aspects')">${esc(t('rte_aspects'))}</button>
+        <button class="rt-tab${view.tab === 'tracks' ? ' active' : ''}" onclick="ratingSwitchTab('tracks')">${esc(t('rte_tracks'))} <span class="rt-tab-count">${tracks.length}</span></button>
       </div>
-      <div class="rt-edit-total" id="rtEditTotal">${ratingRing(res ? res.score : null, { size: 86 })}</div>
+      ${view.tab === 'aspects' ? `
+        <div class="rt-edit-list">${aspectRows}</div>
+        <div class="rt-weight-row">
+          <label for="rtTrackWeight">${t('rte_weight', { pct: `<strong id="rtTrackWeightVal">${tw}%</strong>` })}</label>
+          <input type="range" id="rtTrackWeight" class="rt-slider" min="0" max="100" step="5" value="${tw}"
+                 oninput="ratingSetTrackWeight(this.value)">
+          <div class="rt-weight-hint" id="rtTrackWeightHint">${esc(t('rte_weight_hint', { pct: (100 - tw) + '%' }))}</div>
+        </div>
+        ${_ratingNoteHTML('album', key, e, t('rte_note_ph_album'))}`
+      : `<div class="rt-track-list">${trackRows}</div>`}
     </div>
-
-    <div class="rt-formula" id="rtFormula">${_ratingFormulaHTML(res)}</div>
-
-    <div class="dc-tabs rt-tabs">
-      <button class="rt-tab${view.tab === 'aspects' ? ' active' : ''}" onclick="ratingSwitchTab('aspects')">Album aspects</button>
-      <button class="rt-tab${view.tab === 'tracks' ? ' active' : ''}" onclick="ratingSwitchTab('tracks')">Tracks <span class="rt-tab-count">${tracks.length}</span></button>
-    </div>
-
-    ${view.tab === 'aspects' ? `
-      <div class="rt-edit-list">${aspectRows}</div>
-      <div class="rt-weight-row">
-        <label for="rtTrackWeight">Tracks count for <strong id="rtTrackWeightVal">${tw}%</strong> of the album score</label>
-        <input type="range" id="rtTrackWeight" class="rt-slider" min="0" max="100" step="5" value="${tw}"
-               oninput="ratingSetTrackWeight(this.value)">
-        <div class="rt-weight-hint">The remaining ${100 - tw}% comes from the aspects above. Applies to every album.</div>
+    <div class="dc-frame-foot">
+      <div class="dc-frame-foot-start">
+        <button class="dc-btn dc-btn-plain dc-btn-danger" onclick="ratingClearEntry('album',${jkey})">${esc(t('rte_clear_album'))}</button>
       </div>
-      <div class="rt-note-wrap">
-        <label class="rt-note-label" for="rtNote">Review note <span class="rt-note-opt">optional</span></label>
-        <textarea id="rtNote" class="rt-note" rows="3" placeholder="What this record does as a whole…"
-                  data-note-kind="album" data-note-key="${esc(key)}">${esc(e.note || '')}</textarea>
-      </div>`
-    : `<div class="rt-track-list">${trackRows}</div>`}
-
-    <div class="rt-edit-actions">
-      <button class="dc-btn dc-btn-plain dc-btn-danger" onclick="ratingClearEntry('album',${esc(JSON.stringify(key))})">Clear album aspects</button>
-      <button class="dc-btn dc-btn-main" onclick="closeRatingModal()">Done</button>
+      <span class="rt-saved"><span data-ico="check"></span>${esc(t('pop_saved_auto'))}</span>
+      <button class="dc-btn dc-btn-main" onclick="closeRatingModal()">${esc(t('rte_done'))}</button>
     </div>`;
 }
 
 function _ratingFormulaHTML(res) {
-  if (!res) return `<span class="rt-formula-empty">Rate some tracks or album aspects to build a score.</span>`;
+  if (!res) return `<span class="rt-formula-empty">${esc(t('rtf_empty'))}</span>`;
   const pct = Math.round(res.trackWeight * 100);
   const parts = [];
-  if (res.trackAvg != null)  parts.push(`<span class="rt-formula-part"><b>${ratingFmt(res.trackAvg)}</b> tracks<em>${res.aspectAvg != null ? ` × ${pct}%` : ''}</em></span>`);
-  if (res.aspectAvg != null) parts.push(`<span class="rt-formula-part"><b>${ratingFmt(res.aspectAvg)}</b> aspects<em>${res.trackAvg != null ? ` × ${100 - pct}%` : ''}</em></span>`);
+  if (res.trackAvg != null)  parts.push(`<span class="rt-formula-part"><b>${ratingFmt(res.trackAvg)}</b> ${esc(t('rtf_tracks'))}<em>${res.aspectAvg != null ? ` × ${pct}%` : ''}</em></span>`);
+  if (res.aspectAvg != null) parts.push(`<span class="rt-formula-part"><b>${ratingFmt(res.aspectAvg)}</b> ${esc(t('rtf_aspects'))}<em>${res.trackAvg != null ? ` × ${100 - pct}%` : ''}</em></span>`);
   return `${parts.join('<span class="rt-formula-op">+</span>')}<span class="rt-formula-op">=</span><span class="rt-formula-total">${ratingFmt(res.score)}</span>
-    <span class="rt-formula-note">${res.ratedTracks}/${res.totalTracks} tracks rated</span>`;
+    <span class="rt-formula-note">${esc(t('rtf_rated', { n: res.ratedTracks, total: res.totalTracks }))}</span>`;
+}
+
+// The filled part of each slider (CSS reads --p), and a row's "scored" mark
+function _ratingPaintSlider(sl) {
+  const min = +sl.min || 0, max = +sl.max || 10;
+  sl.style.setProperty('--p', (((+sl.value - min) / (max - min)) * 100).toFixed(1) + '%');
+}
+function _ratingPaintSliders(root) {
+  root.querySelectorAll('.rt-slider').forEach(_ratingPaintSlider);
 }
 
 function ratingSwitchTab(tab) {
@@ -54821,6 +54839,10 @@ function ratingSetTrackWeight(pct) {
   _ratings.cfgTs = Date.now();
   const lbl = document.getElementById('rtTrackWeightVal');
   if (lbl) lbl.textContent = pct + '%';
+  const hint = document.getElementById('rtTrackWeightHint');
+  if (hint) hint.textContent = t('rte_weight_hint', { pct: (100 - pct) + '%' });
+  const wsl = document.getElementById('rtTrackWeight');
+  if (wsl) _ratingPaintSlider(wsl);
   ratingsPersist();
   _ratingUpdateTotals();
 }
@@ -54859,6 +54881,8 @@ function _ratingBindInputs(root) {
       // (that would tear the slider out from under the user's pointer).
       const num = root.querySelector(`.rt-num[data-key="${CSS.escape(key)}"][data-crit="${CSS.escape(crit)}"]`);
       if (num) num.value = ratingFmt(ratingClamp(sl.value));
+      _ratingPaintSlider(sl);
+      sl.closest('.rt-edit-row, .rt-track-row')?.classList.add('is-set');
       _ratingUpdateTotals();
     });
   });
@@ -54905,14 +54929,35 @@ function _ratingUpdateTotals() {
   const view = ratingCurrentView();
   if (!view) return;
   const totalEl = document.getElementById('rtEditTotal');
+  let score;
   if (view.kind === 'album') {
     const res = ratingAlbumScore(view.key);
-    if (totalEl) totalEl.innerHTML = ratingRing(res ? res.score : null, { size: 86 });
+    score = res ? res.score : null;
     const f = document.getElementById('rtFormula');
     if (f) f.innerHTML = _ratingFormulaHTML(res);
-  } else if (totalEl) {
-    totalEl.innerHTML = ratingRing(ratingSongScore(view.key), { size: 86 });
+  } else {
+    score = ratingSongScore(view.key);
   }
+  if (totalEl) _ratingSetRing(totalEl, score);
+}
+
+/* Moves the ring already on screen to a new score: the arc slides (CSS
+   transition on stroke-dashoffset), the number and verdict change. Only draws
+   a fresh ring when there is none yet. */
+function _ratingSetRing(holder, score) {
+  const ring = holder.querySelector('.rt-ring');
+  const arc = ring && ring.querySelector('.rt-ring-arc');
+  if (!ring || !arc) { holder.innerHTML = ratingRing(score, { size: 86 }); return; }
+  const r = +arc.getAttribute('r');
+  const circ = 2 * Math.PI * r;
+  const pct = score == null ? 0 : score / RATING_MAX;
+  arc.setAttribute('stroke-dashoffset', (circ * (1 - pct)).toFixed(1));
+  const band = ratingBand(score);
+  ring.className = 'rt-ring ' + (band ? band.cls : 'rt--none');
+  const sc = ring.querySelector('.rt-ring-score');
+  if (sc) sc.textContent = ratingFmt(score);
+  const bd = ring.querySelector('.rt-ring-band');
+  if (bd) bd.textContent = band ? band.label : t('rtp_not_rated');
 }
 
 // ─── RATING SECTIONS INSIDE THE PROFILE MODALS ─────────────────
