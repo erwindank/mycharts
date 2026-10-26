@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 330;
+const DC_CL_I18N_V = 331;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-25', t: 'feature', a: 'soundtrack', h: '07af0fe',
+    title: "Your Soundtrack: real award show wins in the awards chapter",
+    detail: "The awards chapter is now \"Award Winners in Your Charts\". Next to your My Grammys picks, it shows the real awards your top 20 artists won at shows held that year: the Grammys, VMAs, AMAs, iHeartRadio, World Music, Billboard, ARIA, Juno and BRIT Awards. A show counts in the year it was held, even though it honours the music of the year before, so each year's Soundtrack has its awards by the end of that year. Wins only. Tap a card to see each award, the show and the winning song or album. All-Time adds every Grammy and the other shows you've already looked at. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-25', t: 'fix', a: 'soundtrack', h: 'b7e94dc',
     title: "Your Soundtrack: streak cards centred",
     detail: "In the Streaks chapter, each card's content now sits in the middle of the card, even when another card is taller because of its badge. The line under the calendar shows a single date for a one-day break. Works with Last.fm, Google Sheets and CSV uploads." },
