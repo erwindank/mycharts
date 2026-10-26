@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Rating window: smoother, clearer and in your language":
+    ["Janela de avaliação: mais fluida, mais clara e no seu idioma",
+     "Avaliar uma música ou um álbum ficou mais fácil de acompanhar: o que você avalia e a nota ficam no topo e o botão Pronto embaixo enquanto você percorre os critérios. Cada critério é um cartão com um ícone simples que acende quando recebe nota, os controles deslizantes se preenchem ao arrastar e ficam alinhados, e o anel da nota agora desliza até o novo número em vez de pular. A janela de avaliação inteira — os critérios e suas descrições, os veredictos de Obra-prima a Ruim, cada botão e cada dica — agora está também em espanhol e português, assim como os veredictos nos painéis de detalhes e nos cartões para compartilhar."],
   "Details panel: clean icons, tidy numbers, in your language":
     ["Painel de detalhes: ícones limpos, números organizados e no seu idioma",
      "Nos painéis de músicas, álbuns e artistas os emoji agora são ícones de linha simples, e os números ficam em cartões separados, com os quatro mais importantes em destaque; o resto fica recolhido atrás de um botão «Todos os números». As conquistas são uma lista organizada que abre com um clique em qualquer parte da linha. A aba Paradas de uma música agora mostra a trajetória no período que está na tela, a aba Prêmios só aparece quando há algo para mostrar, e a linha sob o nome de um artista diz quantos plays e desde quando. Todos os rótulos do painel de artista — as seções de paradas, os títulos das tabelas e as contagens — agora estão também em espanhol e português. O painel de artista das abas Estatísticas e Trilha sonora desliza do lado da mesma forma. Funciona com Last.fm, Google Sheets e arquivos CSV."],

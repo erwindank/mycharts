@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Rating window: smoother, clearer and in your language":
+    ["Ventana de puntuación: más fluida, más clara y en tu idioma",
+     "Puntuar una canción o un álbum es más fácil de seguir: lo que puntúas y su nota se quedan arriba y el botón Listo abajo mientras recorres los criterios. Cada criterio es una tarjeta con un icono sencillo que se ilumina al puntuarlo, los deslizadores se rellenan al arrastrarlos y quedan alineados, y el anillo de la nota ahora se desliza hasta la nueva cifra en lugar de saltar. Toda la ventana de puntuación —los criterios y sus descripciones, los veredictos de Obra maestra a Mala, cada botón y cada ayuda— está ahora también en español y portugués, igual que los veredictos de los paneles de detalles y de las tarjetas para compartir."],
   "Details panel: clean icons, tidy numbers, in your language":
     ["Panel de detalles: iconos limpios, cifras ordenadas y en tu idioma",
      "Dentro de los paneles de canciones, álbumes y artistas los emoji son ahora iconos de línea sencillos, y las cifras van en tarjetas separadas con las cuatro más importantes en grande; el resto se pliega tras un botón «Todas las cifras». Los logros son una lista ordenada que se abre pulsando en cualquier parte de la fila. La pestaña Listas de una canción muestra ahora su trayectoria en el periodo que ves, la pestaña Premios solo aparece cuando hay algo que mostrar, y la línea bajo el nombre de un artista dice cuántas escuchas tiene y desde cuándo. Todas las etiquetas del panel de artista —las secciones de listas, los títulos de las tablas y los recuentos— están ahora también en español y portugués. El panel de artista de las pestañas Estadísticas y Banda sonora se desliza desde el lado de la misma forma. Funciona con Last.fm, Google Sheets y archivos CSV."],

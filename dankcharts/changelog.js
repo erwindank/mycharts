@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 347;
+const DC_CL_I18N_V = 348;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-26', t: 'design', a: 'ratings', h: 'c0b7348',
+    title: "Rating window: smoother, clearer and in your language",
+    detail: "Rating a song or an album is easier to follow: what you're rating and its score stay at the top and the Done button at the bottom while you scroll the criteria. Each criterion is its own card with a simple icon that lights up once you've scored it, the sliders fill up as you drag and line up down the list, and the score ring now glides to the new number instead of jumping. The whole rating window — the criteria and their descriptions, the verdicts from Masterpiece to Poor, every button and hint — is now in Spanish and Portuguese too, and so are the verdicts shown in the details panels and on the share cards." },
   { d: '2026-10-26', t: 'design', a: 'ui', h: 'd1eed71',
     title: "Details panel: clean icons, tidy numbers, in your language",
     detail: "Inside the song, album and artist panels the emoji are now simple line icons, and the numbers sit on separate cards with the four most important ones larger; the rest fold away behind an \"All numbers\" button. Achievements are a tidy list you can open by clicking anywhere on a row. A song's Charts tab now shows its chart run for the period on screen, the Awards tab only appears when there is something to show, and the line under an artist's name says how many plays and since when. Every label in the artist panel — the chart sections, table headings and counts — is now in Spanish and Portuguese too. The artist pop-up on the Stats and Soundtrack tabs slides in from the side the same way. Works with Last.fm, Google Sheets and CSV uploads." },
