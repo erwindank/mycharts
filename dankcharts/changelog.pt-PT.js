@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Settings: better organised, with search":
+    ["Definições: mais arrumadas e com pesquisa",
+     "As Definições têm agora quatro separadores. Tops mantém a semana das tabelas, as secções da página de tabelas, o calendário de eventos e o comportamento; um novo separador Lançamentos reúne tudo sobre tipos de discos — tipos de lançamento, limiares de certificação e álbuns de compilação —, e Perfil ganha uma secção Aparência onde escolhes qualquer um dos dez temas e a língua. Uma caixa de pesquisa no topo encontra qualquer definição pelo nome e leva-te diretamente a ela. A barra de baixo é só um botão Fechar até mudares algo que precise de ser guardado; aí mostra «Alterações por guardar» com Cancelar e Guardar e carregar. Nada foi removido."],
   "Share as image: one tidy window everywhere":
     ["Partilhar como imagem: uma janela arrumada em todo o lado",
      "Todas as janelas de partilhar como imagem — tabelas, percursos, estatísticas, sequências, avaliações, as faixas de um álbum, as músicas de um artista e o calendário Diário — têm agora o mesmo aspeto e funcionam da mesma forma. A pré-visualização fica sobre um fundo suave e continua à vista enquanto percorres as opções, cada grupo de opções (design, cores, formato, o que mostrar…) é um cartão que podes recolher clicando no título, e Copiar, Partilhar e Descarregar têm ícones claros. No telemóvel os grupos menos usados começam recolhidos para a pré-visualização e as opções principais caberem no ecrã. Copiar, Partilhar e Copiado! estão agora também em espanhol e português, e a janela do percurso de uma música mostra o título tal como se escreve."],

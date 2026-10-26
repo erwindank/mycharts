@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Settings: better organised, with search":
+    ["Configurações: mais organizadas e com busca",
+     "As Configurações agora têm quatro abas. Paradas mantém a semana das paradas, as seções da página de paradas, o calendário de eventos e o comportamento; uma nova aba Lançamentos reúne tudo sobre tipos de discos — tipos de lançamento, limites de certificação e álbuns de coletânea —, e Perfil ganha uma seção Aparência onde você escolhe qualquer um dos dez temas e o idioma. Uma caixa de busca no topo encontra qualquer configuração pelo nome e leva direto até ela. A barra de baixo é só um botão Fechar até você mudar algo que precisa ser salvo; aí ela mostra «Mudanças não salvas» com Cancelar e Salvar e carregar. Nada foi removido."],
   "Share as image: one tidy window everywhere":
     ["Compartilhar como imagem: uma janela organizada em todo lugar",
      "Todas as janelas de compartilhar como imagem — paradas, trajetórias, estatísticas, sequências, avaliações, as faixas de um álbum, as músicas de um artista e o calendário Diário — agora têm o mesmo visual e funcionam do mesmo jeito. A prévia fica sobre um fundo suave e continua à vista enquanto você percorre as opções, cada grupo de opções (design, cores, formato, o que mostrar…) é um cartão que você pode recolher clicando no título, e Copiar, Compartilhar e Baixar têm ícones claros. No celular os grupos menos usados começam recolhidos para a prévia e as opções principais caberem na tela. Copiar, Compartilhar e Copiado! agora estão também em espanhol e português, e a janela da trajetória de uma música mostra o título como ele é escrito."],
