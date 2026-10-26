@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Pop-up windows: one smooth way to open and close":
+    ["Ventanas emergentes: una forma suave de abrir y cerrar",
+     "Todas las ventanas emergentes del sitio se comportan ahora igual. Aparecen sobre la página suavemente difuminada y se desvanecen al cerrarse; la página de detrás no se mueve mientras están abiertas; Esc cierra solo la ventana de arriba (así, cerrar una lista abierta desde Ajustes deja Ajustes abierto); y con teclado, Tab se queda dentro de la ventana y el foco vuelve al botón que pulsaste. En el móvil, las ventanas suben desde abajo como una hoja con un pequeño tirador: arrástralo hacia abajo para cerrarla."],
   "Charts Guide: up to date, in your language, shorter on phones":
     ["Guía de Charts: al día, en tu idioma y más corta en el móvil",
      "La Guía de Charts está ahora en español y portugués además de en inglés, y describe el sitio tal como es hoy: las pestañas agrupadas como en la barra superior (con Diario y Estadísticas), dónde están el inicio de semana y las opciones Mostrar y Acciones del menú de cada ranking, cómo corregir un nombre mal escrito desde Base de datos y los atajos de teclado actuales. Los nombres de las pestañas coinciden con el menú en todos los idiomas. En el móvil cada capítulo se pliega a su título, así que la guía es una lista corta en la que abres un capítulo cada vez. Funciona con Last.fm, Google Sheets y archivos CSV."],

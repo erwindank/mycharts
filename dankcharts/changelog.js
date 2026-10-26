@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 343;
+const DC_CL_I18N_V = 344;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-26', t: 'design', a: 'ui', h: '336b151',
+    title: "Pop-up windows: one smooth way to open and close",
+    detail: "Every pop-up window on the site now behaves the same way. It fades in over a softly blurred page and fades out when it closes; the page behind stays put while it is open; Esc closes only the window on top (so closing a list opened from Settings leaves Settings open); and with a keyboard, Tab stays inside the window and focus goes back to the button you pressed. On a phone, windows slide up from the bottom of the screen as a sheet with a small handle: drag it down to close." },
   { d: '2026-10-26', t: 'i18n', a: 'guide', h: '57386e4',
     title: "Charts Guide: up to date, in your language, shorter on phones",
     detail: "The Charts Guide is now in Spanish and Portuguese as well as English, and it describes the site as it is today: the tabs grouped the way the top bar groups them (with Daily and Stats), where week start and the chart menu's Show and Actions live, how to fix a misspelled name from Raw Data, and the current keyboard shortcuts. Tab names match the menu in every language. On a phone each chapter folds to its heading, so the guide is a short list you open one chapter of at a time. Works with Last.fm, Google Sheets and CSV uploads." },

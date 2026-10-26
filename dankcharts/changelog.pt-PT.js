@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Pop-up windows: one smooth way to open and close":
+    ["Janelas pop-up: uma forma suave de abrir e fechar",
+     "Todas as janelas pop-up do site comportam-se agora da mesma forma. Aparecem sobre a página ligeiramente desfocada e desaparecem ao fechar; a página por trás fica parada enquanto estão abertas; Esc fecha só a janela de cima (assim, fechar uma lista aberta a partir das Definições deixa as Definições abertas); e com o teclado, Tab fica dentro da janela e o foco volta ao botão que carregou. No telemóvel, as janelas sobem do fundo do ecrã como uma folha com uma pequena pega: arraste-a para baixo para fechar."],
   "Charts Guide: up to date, in your language, shorter on phones":
     ["Guia de Charts: atualizado, no teu idioma e mais curto no telemóvel",
      "O Guia de Charts está agora em espanhol e português além de inglês, e descreve o site como é hoje: os separadores agrupados como na barra de cima (com Diário e Estatísticas), onde ficam o início da semana e as opções Mostrar e Ações do menu de cada top, como corrigir um nome mal escrito em Dados brutos e os atalhos de teclado atuais. Os nomes dos separadores coincidem com o menu em todos os idiomas. No telemóvel cada capítulo fecha-se no título, por isso o guia é uma lista curta em que abres um capítulo de cada vez. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
