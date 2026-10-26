@@ -79,7 +79,7 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
-  { d: '2026-10-25', t: 'improvement', a: 'soundtrack', h: 'ce5be05',
+  { d: '2026-10-25', t: 'design', a: 'soundtrack', h: 'ce5be05',
     title: "Your Soundtrack: more album covers on the year banner",
     detail: "The Chapter 1 banner in Your Soundtrack now shows many more album covers: the tiles are smaller, the grid reaches further left with fewer gaps, and up to 96 different albums fit before any repeats. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-25', t: 'feature', a: 'soundtrack', h: 'a6e9995',
