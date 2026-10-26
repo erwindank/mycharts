@@ -79,7 +79,7 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
-  { d: '2026-10-26', t: 'design', a: 'sharing', h: '97a3fc3',
+  { d: '2026-10-26', t: 'design', a: 'share', h: '97a3fc3',
     title: "Share as image: one tidy window everywhere",
     detail: "Every share-as-image window — charts, chart runs, stats, streaks, ratings, an album's tracks, an artist's songs and the Daily calendar — now looks and works the same. The preview sits on a soft stage and stays in view while you scroll the options, each group of options (design, colours, format, what to show…) is a card you can fold away by clicking its title, and Copy, Share and Download have clear icons. On a phone the less-used groups start folded so the preview and the main choices fit on screen. Copy, Share and Copied! are now in Spanish and Portuguese too, and a song's chart-run window shows its title as written." },
   { d: '2026-10-26', t: 'design', a: 'ratings', h: 'c0b7348',
