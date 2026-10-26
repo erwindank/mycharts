@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 328;
+const DC_CL_I18N_V = 329;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-25', t: 'fix', a: 'soundtrack', h: '632251e',
+    title: "Your Soundtrack: Grammys chapter shows that year's awards, no Awards visit needed",
+    detail: "The Grammy winners chapter now only counts your My Grammys picks for the year you're looking at (a month uses its year; All-Time still counts every year). It also loads your saved ballots by itself, so the winners show up right away instead of only after you'd opened the Awards tab in that visit. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-25', t: 'i18n', a: 'soundtrack', h: '632251e',
     title: "Your Soundtrack: natural Spanish in Listening Streaks",
     detail: "The Spanish text in the Streaks chapter was rewritten to sound natural instead of translated word for word (\"Tu racha récord\", \"Lo que más sonó\", \"por estas fechas en 2025\", and no English-style capitals). Also, in every language a single day no longer shows as \"1 days\", and a one-day break shows just its date. Works with Last.fm, Google Sheets and CSV uploads." },

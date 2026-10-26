@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Your Soundtrack: Grammys chapter shows that year's awards, no Awards visit needed":
+    ["Sua trilha sonora: o capítulo do Grammy mostra os prêmios daquele ano, sem passar por Prêmios",
+     "O capítulo de vencedores do Grammy agora só conta suas escolhas do Meus Grammys do ano que você está vendo (um mês usa o seu ano; Todos os tempos continua contando todos os anos). Ele também carrega suas votações salvas sozinho, então os vencedores aparecem na hora, em vez de só depois de abrir a aba Prêmios. Funciona com Last.fm, Google Sheets e arquivos CSV."],
   "Your Soundtrack: natural Spanish in Listening Streaks":
     ["Sua Trilha Sonora: espanhol mais natural em Sequências",
      "Os textos em espanhol do capítulo de Sequências foram reescritos para soar naturais em vez de traduzidos palavra por palavra. Além disso, em todos os idiomas um único dia não aparece mais como «1 dias», e uma pausa de um dia mostra só a data. Funciona com Last.fm, Google Sheets e arquivos CSV."],

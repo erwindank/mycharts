@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Your Soundtrack: Grammys chapter shows that year's awards, no Awards visit needed":
+    ["Tu banda sonora: el capítulo de los Grammy muestra los premios de ese año, sin pasar por Premios",
+     "El capítulo de ganadores del Grammy ahora solo cuenta tus elecciones de Mis Grammy del año que estás viendo (un mes usa su año; Todo el tiempo sigue contando todos los años). Además carga tus votaciones guardadas por sí solo, así que los ganadores aparecen enseguida en lugar de solo después de abrir la pestaña Premios. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Your Soundtrack: natural Spanish in Listening Streaks":
     ["Tu Banda Sonora: un español más natural en Rachas",
      "Los textos del capítulo de Rachas se han reescrito para que suenen naturales en español en lugar de traducidos palabra por palabra: «Tu racha récord», «Tu racha diaria más larga de todos los tiempos», «Lo que más sonó», «Tu 2.ª racha más larga hasta ahora», «por estas fechas en 2025», y sin mayúsculas al estilo inglés. Además, en todos los idiomas un solo día ya no aparece como «1 días», y una pausa de un día muestra solo su fecha. Funciona con Last.fm, Google Sheets y archivos CSV."],
