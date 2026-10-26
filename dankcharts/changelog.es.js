@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Your Soundtrack: chapter pictures no longer fade out on light themes":
+    ["Tu banda sonora: las imágenes de los capítulos ya no se ven desvaídas en temas claros",
+     "En los temas claros, las imágenes detrás del encabezado de cada capítulo se veían desvaídas, casi invisibles. Ahora se ven con toda su fuerza a la derecha, mientras que el lado izquierdo sigue claro para que el título del capítulo se lea bien. Los temas oscuros no cambian. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Your Soundtrack: My Grammys tag no longer covers the wins ribbon":
     ["Tu banda sonora: la etiqueta de Mis Grammy ya no tapa la cinta de premios",
      "En el capítulo de premios, la etiqueta con estrella de tus elecciones de Mis Grammy ahora está justo encima del nombre del artista en lugar de arriba en la foto, así que ya no choca con la cinta dorada de premios de la esquina, ni siquiera en idiomas donde el texto es más largo. Funciona con Last.fm, Google Sheets y archivos CSV."],

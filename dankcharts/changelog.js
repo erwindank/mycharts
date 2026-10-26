@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 335;
+const DC_CL_I18N_V = 336;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-26', t: 'fix', a: 'soundtrack', h: 'e2701f2',
+    title: "Your Soundtrack: chapter pictures no longer fade out on light themes",
+    detail: "On light themes, the pictures behind each chapter's banner looked washed out, almost invisible. They now show at full strength on the right, while the left side stays pale so the chapter's title is still easy to read. Dark themes are unchanged. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-25', t: 'fix', a: 'soundtrack', h: '8ac4222',
     title: "Your Soundtrack: My Grammys tag no longer covers the wins ribbon",
     detail: "In the awards chapter, the star tag for your My Grammys picks now sits just above the artist's name instead of at the top of the photo, so it can't run into the gold wins ribbon in the corner, even in languages where the label is longer. Works with Last.fm, Google Sheets and CSV uploads." },
