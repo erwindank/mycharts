@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Your Soundtrack: more album covers on the year banner":
+    ["Sua Trilha Sonora: mais capas no banner do ano",
+     "O banner do Capítulo 1 na Sua Trilha Sonora agora mostra muito mais capas de álbuns: os quadrinhos são menores, a grade vai mais longe para a esquerda com menos buracos e cabem até 96 álbuns diferentes antes de repetir algum. Funciona com Last.fm, Google Sheets e arquivos CSV."],
   "Your Soundtrack: a richer pop-up for new discoveries":
     ["Sua Trilha Sonora: uma janela mais completa para as novas descobertas",
      "Clicar numa bolha de Novas Descobertas na Sua Trilha Sonora agora abre uma janela renovada. Você pode ouvir uma prévia, buscar o artista, cada música e cada álbum no Spotify ou no YouTube, e salvar um cartão para compartilhar. Ela também mostra sua próxima meta (plays para chegar ao próximo top), um gráfico dos seus plays desde que você descobriu o artista, as capas dos álbuns, como você descobriu (seu primeiro play e o que ouviu logo antes) e artistas parecidos, separados entre os que você já ama e os novos para você. As setas no topo, ou as teclas ← →, vão para a descoberta seguinte ou anterior. Funciona com Last.fm, Google Sheets e arquivos CSV."],
