@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Charts Guide: up to date, in your language, shorter on phones":
+    ["Guía de Charts: al día, en tu idioma y más corta en el móvil",
+     "La Guía de Charts está ahora en español y portugués además de en inglés, y describe el sitio tal como es hoy: las pestañas agrupadas como en la barra superior (con Diario y Estadísticas), dónde están el inicio de semana y las opciones Mostrar y Acciones del menú de cada ranking, cómo corregir un nombre mal escrito desde Base de datos y los atajos de teclado actuales. Los nombres de las pestañas coinciden con el menú en todos los idiomas. En el móvil cada capítulo se pliega a su título, así que la guía es una lista corta en la que abres un capítulo cada vez. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Charts Guide: new top and icons":
     ["Guía de Charts: nueva parte superior e iconos",
      "La Guía de Charts ya no empieza con un llamativo cartel azul: tiene el mismo título de página que las demás pestañas, una línea corta sobre lo que contiene, tu progreso de primeros pasos y los botones Hacer el recorrido, Buscar en tu biblioteca y Ver de nuevo la bienvenida en una fila. Los emoji de toda la guía son ahora iconos de línea, y cada pestaña en Las pestañas muestra el mismo icono que tiene en el menú."],

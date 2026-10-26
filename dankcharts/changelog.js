@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 342;
+const DC_CL_I18N_V = 343;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-26', t: 'i18n', a: 'guide', h: '57386e4',
+    title: "Charts Guide: up to date, in your language, shorter on phones",
+    detail: "The Charts Guide is now in Spanish and Portuguese as well as English, and it describes the site as it is today: the tabs grouped the way the top bar groups them (with Daily and Stats), where week start and the chart menu's Show and Actions live, how to fix a misspelled name from Raw Data, and the current keyboard shortcuts. Tab names match the menu in every language. On a phone each chapter folds to its heading, so the guide is a short list you open one chapter of at a time. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-26', t: 'design', a: 'guide', h: '53616c1',
     title: "Charts Guide: new top and icons",
     detail: "The Charts Guide no longer opens with a bright blue banner: it has the same page title as the other tabs, a short line about what's inside, your first-steps progress and the Take the tour, Search your library and Replay the welcome buttons in one row. The emoji throughout the guide are now line icons, and each tab in The Tabs shows the same icon it has in the menu." },

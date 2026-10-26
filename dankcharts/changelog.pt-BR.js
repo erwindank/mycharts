@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Charts Guide: up to date, in your language, shorter on phones":
+    ["Guia de Charts: atualizado, no seu idioma e mais curto no celular",
+     "O Guia de Charts agora está em espanhol e português além de inglês, e descreve o site como ele é hoje: as abas agrupadas como na barra de cima (com Diário e Estatísticas), onde ficam o início da semana e as opções Mostrar e Ações do menu de cada parada, como corrigir um nome escrito errado em Dados brutos e os atalhos de teclado atuais. Os nomes das abas batem com o menu em todos os idiomas. No celular cada capítulo se fecha no título, então o guia vira uma lista curta em que você abre um capítulo de cada vez. Funciona com Last.fm, Google Sheets e arquivos CSV."],
   "Charts Guide: new top and icons":
     ["Guia de Charts: novo topo e ícones",
      "O Guia de Charts não começa mais com uma faixa azul chamativa: tem o mesmo título de página das outras abas, uma linha curta sobre o que tem dentro, o seu progresso de primeiros passos e os botões Fazer o tour, Pesquisar sua biblioteca e Rever as boas-vindas numa fileira. Os emoji de todo o guia agora são ícones de linha, e cada aba em As abas mostra o mesmo ícone que tem no menu."],
