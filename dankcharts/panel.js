@@ -319,7 +319,7 @@
     '♫': 'note', '🌤': 'sun', '☀': 'sun', '🌸': 'sun', '🍂': 'sun', '❄': 'moon', '☁': 'cloud', '🎤': 'mic',
     '🎙': 'mic', '📋': 'listmusic', '📝': 'listmusic', '👑': 'crown', '🎉': 'sparkle', '✨': 'sparkle', '💯': 'target',
     '📉': 'trend', '♦': 'disc', '◈': 'disc', '👤': 'user', '🌍': 'globe', '🌎': 'globe', '🏁': 'flag', '📌': 'flag',
-    '🎬': 'video', '📺': 'video', '❤': 'star', '💜': 'star', '🎁': 'sparkle', '🧭': 'globe', '📣': 'mic', '🔢': 'bars'
+    '▶': 'play', '📤': 'share', '🖼': 'share', '🔗': 'link', '🎬': 'video', '📺': 'video', '❤': 'star', '💜': 'star', '🎁': 'sparkle', '🧭': 'globe', '📣': 'mic', '🔢': 'bars'
   };
   // A leading emoji (with its variation selectors / joiners) or symbol
   var LEAD = /^\s*((?:\p{Extended_Pictographic}|[★☆♦◈◆✦♪♫])(?:[️‍]|\p{Extended_Pictographic}|\p{Emoji_Modifier})*)\s*/u;
@@ -360,8 +360,9 @@
       el.innerHTML = ico(iconFor(txt));
       el.classList.add('dp-ico-cell');
     });
-    // Achievement rows: "🏆 Most played song…" → icon + words
-    body.querySelectorAll('.acc-header > span:not(.dp-ico)').forEach(function (sp) { swapLead(sp, 'icon'); });
+    // Achievement rows: "🏆 Most played song…" → icon + words; the same for
+    // table headings ("📊 Weekly"), their row labels and buttons ("📤 Share")
+    body.querySelectorAll('.acc-header > span:not(.dp-ico), th, td:first-child, button').forEach(function (sp) { swapLead(sp, 'icon'); });
     moreToggle(o);
   }
 

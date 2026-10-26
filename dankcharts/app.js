@@ -26031,8 +26031,8 @@ function openAlbumModal(albumKey) {
      its credit as plain text and says what it is instead. */
   const albIsComp = artistName === VARIOUS_ARTISTS;
   document.getElementById('albumModalSub').innerHTML = albIsComp
-    ? `${t('modal_compilation_by')} <span class="modal-artist-va">${esc(VARIOUS_ARTISTS)}</span> · ${t('modal_chart_profile')}`
-    : `${t('am_album_by')} <a class="modal-artist-link" href="javascript:void(0)" onclick="albumModal.classList.remove('open');setTimeout(()=>openArtistModal(${esc(JSON.stringify(artistName))}),50)">${esc(artistName)}</a> · ${t('modal_chart_profile')}`;
+    ? `${t('modal_compilation_by')} <span class="modal-artist-va">${esc(VARIOUS_ARTISTS)}</span>`
+    : `${t('am_album_by')} <a class="modal-artist-link" href="javascript:void(0)" onclick="albumModal.classList.remove('open');setTimeout(()=>openArtistModal(${esc(JSON.stringify(artistName))}),50)">${esc(artistName)}</a>`;
 
   // The compilation switch itself — the album is the only place you can see
   // whether it is merged, so it is the natural place to flip it.

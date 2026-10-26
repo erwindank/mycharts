@@ -1384,6 +1384,9 @@
     .dp-body .modal-stat:hover { border-color: var(--border2); transform: translateY(-1px); }
     .dp-body .modal-stat .se { margin-bottom: 4px; color: var(--accent); }
     .dp-body .dp-ico-cell svg { width: 18px; height: 18px; display: block; }
+    /* an icon swapped in at the start of a heading cell or button */
+    .dp-body .dp-ico { display: inline-flex; vertical-align: -2px; margin-right: 5px; }
+    .dp-body .dp-ico svg { width: 14px; height: 14px; }
     .dp-body .modal-stat .sv { font-size: 1.4rem; font-variant-numeric: tabular-nums; }
     .dp-body .modal-stat .sl { line-height: 1.3; }
     .dp-body .modal-stat--gold { border-color: color-mix(in srgb, #f5b301 45%, var(--border)); }
