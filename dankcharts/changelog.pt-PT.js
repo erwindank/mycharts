@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Your Soundtrack: natural Spanish in Listening Streaks":
+    ["A Tua Banda Sonora: espanhol mais natural em Sequências",
+     "Os textos em espanhol do capítulo de Sequências foram reescritos para soarem naturais em vez de traduzidos palavra a palavra. Além disso, em todos os idiomas um único dia já não aparece como «1 dias», e uma pausa de um dia mostra só a data. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
   "Your Soundtrack: “All-time best streak” card label":
     ["A Tua Banda Sonora: rótulo «Melhor sequência de sempre»",
      "No capítulo de Sequências, o cartão do recorde diz agora «Melhor sequência de sempre», mais curto e a condizer com «Melhor sequência de 2019» ao lado. Ao tocar nele, o painel de detalhes continua a mostrar o nome completo. Funciona com Last.fm, Google Sheets e ficheiros CSV."],

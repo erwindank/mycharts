@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Your Soundtrack: natural Spanish in Listening Streaks":
+    ["Tu Banda Sonora: un español más natural en Rachas",
+     "Los textos del capítulo de Rachas se han reescrito para que suenen naturales en español en lugar de traducidos palabra por palabra: «Tu racha récord», «Tu racha diaria más larga de todos los tiempos», «Lo que más sonó», «Tu 2.ª racha más larga hasta ahora», «por estas fechas en 2025», y sin mayúsculas al estilo inglés. Además, en todos los idiomas un solo día ya no aparece como «1 días», y una pausa de un día muestra solo su fecha. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Your Soundtrack: “All-time best streak” card label":
     ["Tu Banda Sonora: etiqueta «Mejor racha de siempre»",
      "En el capítulo de Rachas, la tarjeta del récord ahora dice «Mejor racha de siempre», que es más corto y combina con «Mejor racha de 2019» a su lado. Al tocarla, el panel de detalles sigue mostrando el nombre completo. Funciona con Last.fm, Google Sheets y archivos CSV."],
