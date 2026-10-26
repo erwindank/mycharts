@@ -53093,6 +53093,50 @@ function dcGuideSaveFeedback() {
    dashboard, not documentation. Reference-weight chapters (glossary,
    FAQ, changelog, export) collapse so the page stays scannable.
    ═══════════════════════════════════════════════════════════════════ */
+/* The Charts Guide's icons (redesign phase 9 part 7; they were emoji).
+   A tab's icon is the nav's own line drawing, copied from the nav button so
+   the guide always shows the same picture; the rest are drawn here on the
+   same 16px grid. */
+let _cgIcoN = 0;
+function cgNavIco(period, cls) {
+  const svg = document.querySelector(`#periodNav button[data-period="${period}"] .nav-icon svg`);
+  if (!svg) return '';
+  const c = svg.cloneNode(true);
+  // Yearly's page corner only shows while the tab is hovered; at rest it is
+  // folded away, so the copy leaves it out
+  c.querySelectorAll('.ni-curl').forEach(e => e.remove());
+  // the nav's animation hooks would make no sense here
+  c.querySelectorAll('[class], [style]').forEach(e => { e.removeAttribute('class'); e.removeAttribute('style'); });
+  c.setAttribute('class', cls || 'cg-ico');
+  // Gradients, clips and masks are found by id, and the nav's own copies sit
+  // in a hidden svg (the nav is collapsed behind the top bar), where Chrome
+  // won't paint them. Give this copy ids of its own.
+  let html = c.outerHTML;
+  const n = ++_cgIcoN;
+  [...c.querySelectorAll('[id]')].forEach(e => {
+    const id = e.id, nid = `${id}-cg${n}`;
+    html = html.split(`id="${id}"`).join(`id="${nid}"`).split(`url(#${id})`).join(`url(#${nid})`);
+  });
+  return html;
+}
+const CG_ICONS = {
+  gear: '<circle cx="8" cy="8" r="2.2"/><path d="M8 1.8v1.6M8 12.6v1.6M1.8 8h1.6M12.6 8h1.6M3.6 3.6l1.1 1.1M11.3 11.3l1.1 1.1M3.6 12.4l1.1-1.1M11.3 4.7l1.1-1.1"/>',
+  quality: '<path d="M8 1.8 13.2 4v3.6c0 3-2.2 5.4-5.2 6.6-3-1.2-5.2-3.6-5.2-6.6V4Z"/><path d="M5.6 8l1.7 1.7L10.6 6.4"/>',
+  source: '<circle cx="8" cy="11" r="1.2"/><path d="M5.2 8.4a4 4 0 0 1 5.6 0M3 6.2a7.1 7.1 0 0 1 10 0"/>',
+  steps: '<rect x="2.2" y="2.2" width="11.6" height="11.6" rx="2"/><path d="M5 8.2l2 2L11 6"/>',
+  keys: '<rect x="1.6" y="4" width="12.8" height="8" rx="1.4"/><path d="M4.2 6.6h.01M6.7 6.6h.01M9.3 6.6h.01M11.8 6.6h.01M5 9.4h6"/>',
+  gem: '<path d="M4.2 2.6h7.6L14.2 6 8 13.6 1.8 6Z"/><path d="M1.8 6h12.4M6.2 2.6 5.4 6 8 13.6 10.6 6l-.8-3.4"/>',
+  calendar: '<rect x="2" y="3.2" width="12" height="10.6" rx="1.6"/><path d="M2 6.6h12M5.2 1.8v2.6M10.8 1.8v2.6"/>',
+  clock: '<circle cx="8" cy="8" r="6"/><path d="M8 4.6V8l2.4 1.6"/>',
+  image: '<rect x="2" y="2.6" width="12" height="10.8" rx="1.6"/><circle cx="5.8" cy="6.2" r="1.2"/><path d="M2.4 12l3.8-3.6 2.6 2.4 2-1.8 3.2 3"/>',
+  search: '<circle cx="7" cy="7" r="4.4"/><path d="M10.3 10.3 14 14"/>',
+  wave: '<path d="M10.4 2.8c.9.5 1.2 1.6.7 2.5L9.3 8.4M3.4 9.2l2.9-5c.5-.9 1.6-1.2 2.5-.7s1.2 1.6.7 2.5l-.6 1"/><path d="M9.3 8.4l.7-1.2c.5-.9 1.6-1.2 2.5-.7s1.2 1.6.7 2.5l-1.6 2.8a4.6 4.6 0 0 1-8 .1L2.4 9.8c-.4-.7-.1-1.6.6-2s1.6-.1 2 .6l.7 1.2"/>',
+  play: '<path d="M5 3.2v9.6L12.8 8Z" fill="currentColor"/>'
+};
+function cgIco(name, cls) {
+  return `<svg class="${cls || 'cg-ico'}" viewBox="0 0 16 16" aria-hidden="true" focusable="false">${CG_ICONS[name] || ''}</svg>`;
+}
+
 function dcRenderChartsGuideView() {
   const el = document.getElementById('chartsguideView');
   if (!el) return;
@@ -53180,13 +53224,13 @@ function dcRenderChartsGuideView() {
   /* ── Personalised next steps ──────────────────────────────────── */
   const suggestions = [];
   if (n === 0) {
-    suggestions.push({ icon: '⚙️', text: 'Set up your data source to start exploring your charts', btn: 'Settings', action: 'openSourceModal()' });
+    suggestions.push({ ico: 'gear', text: 'Set up your data source to start exploring your charts', btn: 'Settings', action: 'openSourceModal()' });
   } else {
-    suggestions.push({ icon: '🏆', text: 'See all-time chart records — longest runs, best weeks, streaks', btn: 'Go to Records', action: 'document.querySelector(\'#periodNav button[data-period="records"]\').click()' });
-    if (uniqueArtists > 20) suggestions.push({ icon: '📅', text: 'See upcoming birthdays and album anniversaries for your artists', btn: 'Go to Events', action: 'document.querySelector(\'#periodNav button[data-period="events"]\').click()' });
-    if (n > 500)  suggestions.push({ icon: '📈', text: 'Visualize your heatmap, listening trends, and artist streaks', btn: 'Go to Graphs', action: 'document.querySelector(\'#periodNav button[data-period="graphs"]\').click()' });
-    if (n > 1000) suggestions.push({ icon: '🎵', text: 'Build and save playlists from any chart period', btn: 'Go to Playlists', action: 'document.querySelector(\'#periodNav button[data-period="playlists"]\').click()' });
-    suggestions.push({ icon: '🎬', text: 'Create a shareable image card from your current Weekly chart', btn: 'Go to Weekly', action: 'document.querySelector(\'#periodNav button[data-period="week"]\').click()' });
+    suggestions.push({ nav: 'records', text: 'See all-time chart records — longest runs, best weeks, streaks', btn: 'Go to Records', action: 'document.querySelector(\'#periodNav button[data-period="records"]\').click()' });
+    if (uniqueArtists > 20) suggestions.push({ nav: 'events', text: 'See upcoming birthdays and album anniversaries for your artists', btn: 'Go to Events', action: 'document.querySelector(\'#periodNav button[data-period="events"]\').click()' });
+    if (n > 500)  suggestions.push({ nav: 'graphs', text: 'Visualize your heatmap, listening trends, and artist streaks', btn: 'Go to Graphs', action: 'document.querySelector(\'#periodNav button[data-period="graphs"]\').click()' });
+    if (n > 1000) suggestions.push({ nav: 'playlists', text: 'Build and save playlists from any chart period', btn: 'Go to Playlists', action: 'document.querySelector(\'#periodNav button[data-period="playlists"]\').click()' });
+    suggestions.push({ nav: 'week', text: 'Create a shareable image card from your current Weekly chart', btn: 'Go to Weekly', action: 'document.querySelector(\'#periodNav button[data-period="week"]\').click()' });
   }
 
   /* ── Chapter 02 · The tabs, grouped exactly like the two nav rows ─
@@ -53197,25 +53241,25 @@ function dcRenderChartsGuideView() {
       group: 'Chart views',
       note:  'The top row of the nav bar. Same three charts — songs, artists, albums — over four different time windows, plus the raw plays behind them and the graphs drawn from them.',
       tabs: [
-        { name: 'Weekly',   period: 'week',    icon: '📅', desc: 'Your top songs, artists and albums for a single 7-day period, with movement, peaks and chart runs against last week.', use: 'Your main chart. Check it once a week.' },
-        { name: 'Monthly',  period: 'month',   icon: '🗓', desc: 'The same three charts counted over a calendar month, so a song needs sustained play rather than one heavy afternoon.', use: 'Spotting what actually stuck.' },
-        { name: 'Yearly',   period: 'year',    icon: '📆', desc: 'Year-end charts for any calendar year in your history, with movement, peaks and chart runs against the year before.', use: 'Your personal year-in-review, any year.' },
-        { name: 'All-Time', period: 'alltime', icon: '♾️', desc: 'Every play you have ever logged, counted once. No period boundaries, no movement — just the totals.', use: 'Settling "what is my most played song?"' },
-        { name: 'Raw Data', period: 'rawdata', icon: '🗃', desc: 'The play list every other tab is built from. Search, filter, edit a wrong timestamp, delete a bad scrobble, export the lot as CSV.', use: 'Fixing bad data, or taking it elsewhere.' },
-        { name: 'Graphs',   period: 'graphs',  icon: '📈', desc: 'Five charts at daily, monthly or yearly granularity: cumulative plays with artist comparison, play volume per period, volume compared across artists, new discoveries per period, and an animated play count race — plus the listening heatmap and the graveyard.', use: 'Seeing shape and habit rather than rank.' },
+        { name: 'Weekly',   period: 'week',    desc: 'Your top songs, artists and albums for a single 7-day period, with movement, peaks and chart runs against last week.', use: 'Your main chart. Check it once a week.' },
+        { name: 'Monthly',  period: 'month',   desc: 'The same three charts counted over a calendar month, so a song needs sustained play rather than one heavy afternoon.', use: 'Spotting what actually stuck.' },
+        { name: 'Yearly',   period: 'year',    desc: 'Year-end charts for any calendar year in your history, with movement, peaks and chart runs against the year before.', use: 'Your personal year-in-review, any year.' },
+        { name: 'All-Time', period: 'alltime', desc: 'Every play you have ever logged, counted once. No period boundaries, no movement — just the totals.', use: 'Settling "what is my most played song?"' },
+        { name: 'Raw Data', period: 'rawdata', desc: 'The play list every other tab is built from. Search, filter, edit a wrong timestamp, delete a bad scrobble, export the lot as CSV.', use: 'Fixing bad data, or taking it elsewhere.' },
+        { name: 'Graphs',   period: 'graphs',  desc: 'Five charts at daily, monthly or yearly granularity: cumulative plays with artist comparison, play volume per period, volume compared across artists, new discoveries per period, and an animated play count race — plus the listening heatmap and the graveyard.', use: 'Seeing shape and habit rather than rank.' },
       ],
     },
     {
       group: 'Insight views',
       note:  'The second row. Everything here is derived from the charts above — nothing needs extra setup, it all appears once your plays are loaded.',
       tabs: [
-        { name: 'Records',         period: 'records',    icon: '🏆', desc: 'Eleven sections behind the button row at the top: All #1s, Perfect All Kill, Most Chart Appearances, Biggest Debuts, Most Plays in a Period, Play Count Milestones, Fastest to Milestone, Certifications, Streak Records, New Charts and an Overview.', use: 'Your record book.' },
-        { name: 'Events',          period: 'events',     icon: '🎂', desc: 'A calendar of artist birthdays, album anniversaries and new releases for the artists in your charts.', use: 'Knowing when something is worth replaying.' },
-        { name: 'Awards',          period: 'awards',     icon: '🏅', desc: '53 categories generated from your own chart data — the four majors plus Best Collaboration, Song of the Summer, Best Comeback, Best Discovery, Most Obsessive Play and opt-in genre awards. Set an eligibility window, pick categories, then run the ceremony. Real-Life Awards sits alongside My Grammys, with the real Grammys, VMAs, AMAs, iHeartRadio, World Music, Billboard, ARIA, Juno and BRIT Awards your artists were up for.', use: 'The fun one. Run it every December.' },
-        { name: 'Your Soundtrack', period: 'soundtrack', icon: '🎬', desc: 'A full recap of any month, year or all time: a reel, headline stats, top charts, a featured artist, your listening patterns, discoveries, milestones, streaks, a mini awards run and a hidden gem — plus an animated chart replay and a shareable card.', use: 'The nostalgic pass through your history.' },
-        { name: 'Playlists',       period: 'playlists',  icon: '🎵', desc: 'Save any chart as a named playlist and queue tracks from anywhere, with recent releases and anniversaries alongside.', use: 'Turning a chart back into listening.' },
-        { name: 'Board',           period: 'board',      icon: '💬', desc: 'The community board: suggest features, report bugs, ask questions and talk with other listeners. Vote up the ideas you want most and follow their status from Planned to Done. Reading is open to everyone; posting needs Google sign-in.', use: 'Asking for the feature you wish existed.' },
-        { name: 'Charts Guide',    period: 'chartsguide',icon: '📖', desc: 'You are here. Setup checks, the tab breakdown, how charts are calculated, shortcuts, glossary, FAQ and your milestones.', use: 'Whenever something does not make sense.' },
+        { name: 'Records',         period: 'records',    desc: 'Eleven sections behind the button row at the top: All #1s, Perfect All Kill, Most Chart Appearances, Biggest Debuts, Most Plays in a Period, Play Count Milestones, Fastest to Milestone, Certifications, Streak Records, New Charts and an Overview.', use: 'Your record book.' },
+        { name: 'Events',          period: 'events',     desc: 'A calendar of artist birthdays, album anniversaries and new releases for the artists in your charts.', use: 'Knowing when something is worth replaying.' },
+        { name: 'Awards',          period: 'awards',     desc: '53 categories generated from your own chart data — the four majors plus Best Collaboration, Song of the Summer, Best Comeback, Best Discovery, Most Obsessive Play and opt-in genre awards. Set an eligibility window, pick categories, then run the ceremony. Real-Life Awards sits alongside My Grammys, with the real Grammys, VMAs, AMAs, iHeartRadio, World Music, Billboard, ARIA, Juno and BRIT Awards your artists were up for.', use: 'The fun one. Run it every December.' },
+        { name: 'Your Soundtrack', period: 'soundtrack', desc: 'A full recap of any month, year or all time: a reel, headline stats, top charts, a featured artist, your listening patterns, discoveries, milestones, streaks, a mini awards run and a hidden gem — plus an animated chart replay and a shareable card.', use: 'The nostalgic pass through your history.' },
+        { name: 'Playlists',       period: 'playlists',  desc: 'Save any chart as a named playlist and queue tracks from anywhere, with recent releases and anniversaries alongside.', use: 'Turning a chart back into listening.' },
+        { name: 'Board',           period: 'board',      desc: 'The community board: suggest features, report bugs, ask questions and talk with other listeners. Vote up the ideas you want most and follow their status from Planned to Done. Reading is open to everyone; posting needs Google sign-in.', use: 'Asking for the feature you wish existed.' },
+        { name: 'Charts Guide',    period: 'chartsguide',desc: 'You are here. Setup checks, the tab breakdown, how charts are calculated, shortcuts, glossary, FAQ and your milestones.', use: 'Whenever something does not make sense.' },
       ],
     },
   ];
@@ -53301,9 +53345,9 @@ function dcRenderChartsGuideView() {
 
   /* ── Export & share walkthroughs ──────────────────────────────── */
   const exportGuide = [
-    { icon: '🖼', title: 'Image Card (PNG)', steps: ['Open any Weekly, Monthly or Yearly chart', 'Open the ⋮ menu in the section header', 'Choose the image card export', 'Adjust format, layout and font sizes, then Download'] },
-    { icon: '📋', title: 'Raw Data CSV',     steps: ['Go to the Raw Data tab', 'Apply filters if you only want part of your history', 'Click Export CSV', 'The file downloads straight to your device'] },
-    { icon: '🎵', title: 'Playlist Export',  steps: ['Go to the Playlists tab', 'Queue tracks from any chart with + Play', 'Click Save Queue and give it a name', 'Use the share icon to export the track list'] },
+    { ico: cgIco('image', 'cg-ico cg-export-ico'), title: 'Image Card (PNG)', steps: ['Open any Weekly, Monthly or Yearly chart', 'Open the ⋮ menu in the section header', 'Choose the image card export', 'Adjust format, layout and font sizes, then Download'] },
+    { ico: cgNavIco('rawdata', 'cg-ico cg-export-ico'), title: 'Raw Data CSV',     steps: ['Go to the Raw Data tab', 'Apply filters if you only want part of your history', 'Click Export CSV', 'The file downloads straight to your device'] },
+    { ico: cgNavIco('playlists', 'cg-ico cg-export-ico'), title: 'Playlist Export',  steps: ['Go to the Playlists tab', 'Queue tracks from any chart with + Play', 'Click Save Queue and give it a name', 'Use the share icon to export the track list'] },
   ];
 
   const srcDescs = {
@@ -53314,12 +53358,12 @@ function dcRenderChartsGuideView() {
 
   /* ═══════════════════ BUILD HTML ═══════════════════════════════ */
   const chapters = [
-    { slug: 'start',    num: '01', icon: '🚩', label: 'Start Here' },
-    { slug: 'tabs',     num: '02', icon: '🗂', label: 'The Tabs' },
-    { slug: 'concepts', num: '03', icon: '📐', label: 'How Charts Work' },
-    { slug: 'tips',     num: '04', icon: '⌨',  label: 'Tips & Shortcuts' },
-    { slug: 'yourdata', num: '05', icon: '📊', label: 'Your Data' },
-    { slug: 'help',     num: '06', icon: '💬', label: 'Help & More' },
+    { slug: 'start',    num: '01', label: 'Start Here' },
+    { slug: 'tabs',     num: '02', label: 'The Tabs' },
+    { slug: 'concepts', num: '03', label: 'How Charts Work' },
+    { slug: 'tips',     num: '04', label: 'Tips & Shortcuts' },
+    { slug: 'yourdata', num: '05', label: 'Your Data' },
+    { slug: 'help',     num: '06', label: 'Help & More' },
   ];
 
   /* Chapter opener: number, title, and a sentence saying what the chapter
@@ -53346,30 +53390,30 @@ function dcRenderChartsGuideView() {
 
   let h = `<div class="cg-view">`;
 
-  /* ── Hero ───────────────────────────────────────────────────── */
+  /* ── Top: the shared page title (as Records / Stats / Events / Awards /
+     Soundtrack / Playlists / Board) with the nav's open book, a line saying
+     what the guide is, the first-steps progress, then one toolbar. It was a
+     solid accent banner. */
   /* Full greeting sentence: "Charts Guide, Erwin" read like the name was
      tacked onto a title, so the welcome is spelled out instead. */
-  const greeting = displayName ? ', ' + esc(displayName) : '';
-  h += `<div class="cg-welcome">
-    <div class="cg-welcome-text">
-      <div class="cg-welcome-kicker">The manual</div>
-      <h2 class="cg-welcome-title">Welcome to the Charts Guide${greeting}</h2>
-      <p class="cg-welcome-sub">We’ve broken this down into six chapters, following the exact questions you’ll have as you go: get set up, explore the tabs, see how a chart comes together, speed up your workflow, dive deep into your full listening history, and find help whenever you need it.</p>
-      <div class="cg-hero-progress">
-        <div class="cg-progress-track cg-hero-track"><div class="cg-checklist-bar" style="width:${Math.round(doneCount / checkItems.length * 100)}%"></div></div>
-        <span class="cg-hero-progress-text" id="cgHeroProgressText">${doneCount} of ${checkItems.length} first steps done</span>
-      </div>
+  const greeting = displayName ? 'Welcome, ' + esc(displayName) + '. ' : '';
+  h += `<div class="section-header cg-page-header"><h2 class="section-header-h2">${cgNavIco('chartsguide', 'graphs-h2-ico cg-h2-ico')}<span>${esc(t('nav_chartsguide'))}</span></h2><div class="section-rule"></div></div>
+  <p class="cg-intro">${greeting}Six chapters, in the order the questions come up: get set up, meet the tabs, see how a chart comes together, learn the shortcuts, look at your own data, and find help.</p>
+  <div class="cg-top-bar">
+    <div class="cg-hero-progress">
+      <div class="cg-progress-track cg-hero-track"><div class="cg-checklist-bar" style="width:${Math.round(doneCount / checkItems.length * 100)}%"></div></div>
+      <span class="cg-hero-progress-text" id="cgHeroProgressText">${doneCount} of ${checkItems.length} first steps done</span>
     </div>
-    <div class="cg-welcome-actions">
-      <button class="cg-tour-start-btn" onclick="dcStartChartsGuideTour()">▶ Take the tour</button>
-      <button class="cg-search-toggle-btn" onclick="dcToggleGuideSearch()">🔍 Search your library</button>
-      <button class="cg-search-toggle-btn cg-replay-gate-btn" onclick="dcReplayWelcomeGate()">👋 Replay the welcome</button>
+    <div class="cg-top-actions">
+      <button class="dc-btn dc-btn-main cg-top-btn" onclick="dcStartChartsGuideTour()">${cgIco('play')}Take the tour</button>
+      <button class="dc-btn dc-btn-normal cg-top-btn" onclick="dcToggleGuideSearch()">${cgIco('search')}Search your library</button>
+      <button class="dc-btn dc-btn-normal cg-top-btn" onclick="dcReplayWelcomeGate()">${cgIco('wave')}Replay the welcome</button>
     </div>
   </div>`;
 
   /* ── Sticky chapter rail ────────────────────────────────────── */
   h += `<div class="cg-toc-row">
-    ${chapters.map(c => `<button type="button" class="cg-toc-pill" data-slug="${c.slug}" onclick="dcGuideJump('${c.slug}')"><span class="cg-toc-num">${c.num}</span> ${c.icon} ${esc(c.label)}</button>`).join('')}
+    ${chapters.map(c => `<button type="button" class="cg-toc-pill" data-slug="${c.slug}" onclick="dcGuideJump('${c.slug}')"><span class="cg-toc-num">${c.num}</span> ${esc(c.label)}</button>`).join('')}
   </div>`;
 
   /* ── Library search (hidden until the hero button is pressed) ─ */
@@ -53417,7 +53461,7 @@ function dcRenderChartsGuideView() {
   /* Data status — setup checks, quality checks and source explainer in one panel */
   h += `<div class="cg-status-row">
     <div class="dc-card cg-panel">
-      <div class="cg-panel-title">⚙ Setup</div>
+      <div class="cg-panel-title">${cgIco('gear')}Setup</div>
       <div class="cg-status-items">
         <div class="cg-si ${srcOk ? 'ok' : 'warn'}"><span>${srcOk ? '✓' : '!'}</span>${esc(srcLabel)} ${srcOk ? 'connected' : 'not configured'}</div>
         <div class="cg-si ${n > 0 ? 'ok' : 'warn'}"><span>${n > 0 ? '✓' : '!'}</span>${n > 0 ? n.toLocaleString() + ' plays loaded' : 'No plays loaded'}</div>
@@ -53427,13 +53471,13 @@ function dcRenderChartsGuideView() {
       <button class="dc-btn dc-btn-normal dc-btn-sm cg-mini-btn" onclick="openSourceModal()">Open Settings →</button>
     </div>
     <div class="dc-card cg-panel">
-      <div class="cg-panel-title">📋 Data quality</div>
+      <div class="cg-panel-title">${cgIco('quality')}Data quality</div>
       <div class="cg-status-items">
         ${warnings.map(w => `<div class="cg-si ${w.type}"><span>${w.type === 'ok' ? '✓' : w.type === 'error' ? '✗' : '!'}</span>${esc(w.msg)}</div>`).join('')}
       </div>
     </div>
     <div class="dc-card cg-panel">
-      <div class="cg-panel-title">📡 Source: ${esc(srcLabel)}</div>
+      <div class="cg-panel-title">${cgIco('source')}Source: ${esc(srcLabel)}</div>
       <p class="cg-source-desc">${esc(srcDescs[src] || '')}</p>
       <div class="cg-source-dots">
         <span class="cg-dot ${src === 'lastfm' ? 'active' : ''}">Last.fm</span>
@@ -53445,7 +53489,7 @@ function dcRenderChartsGuideView() {
 
   /* First-steps checklist */
   h += `<div class="dc-card cg-panel cg-checklist-panel">
-    <div class="cg-panel-title">✅ First steps</div>
+    <div class="cg-panel-title">${cgIco('steps')}First steps</div>
     <div class="cg-progress-track"><div class="cg-checklist-bar" style="width:${Math.round(doneCount / checkItems.length * 100)}%"></div></div>
     <div class="cg-checklist-frac">${doneCount} of ${checkItems.length} done</div>
     <div class="cg-checklist-grid">
@@ -53466,7 +53510,7 @@ function dcRenderChartsGuideView() {
       <p class="cg-tabgroup-note">${esc(row.note)}</p>
       <div class="cg-tab-grid">
         ${row.tabs.map(t => `<div class="dc-card cg-tab-card${t.period === 'chartsguide' ? ' current' : ''}">
-          <div class="cg-tab-head"><span class="cg-tab-icon">${t.icon}</span><span class="cg-tab-name">${esc(t.name)}</span></div>
+          <div class="cg-tab-head"><span class="cg-tab-icon">${cgNavIco(t.period)}</span><span class="cg-tab-name">${esc(t.name)}</span></div>
           <p class="cg-tab-desc">${esc(t.desc)}</p>
           <p class="cg-tab-use"><span>Best for</span> ${esc(t.use)}</p>
           ${t.period === 'chartsguide' ? `<span class="cg-tab-here">You are here</span>` : `<button class="dc-btn dc-btn-normal dc-btn-sm cg-mini-btn" onclick="${goTab(t.period)}">Open ${esc(t.name)} →</button>`}
@@ -53508,14 +53552,14 @@ function dcRenderChartsGuideView() {
   h += chapterHead('tips', 'Everything with a key binding, then the things that are easy to miss entirely.');
   h += `<div class="cg-dual-row">
     <div class="dc-card cg-panel cg-shortcuts">
-      <div class="cg-panel-title">⌨ Keyboard & click shortcuts</div>
+      <div class="cg-panel-title">${cgIco('keys')}Keyboard & click shortcuts</div>
       ${shortcuts.map(([keys, desc]) => `<div class="cg-shortcut-row">
         <span class="cg-shortcut-keys">${esc(keys)}</span>
         <span class="cg-shortcut-desc">${esc(desc)}</span>
       </div>`).join('')}
     </div>
     <div class="dc-card cg-panel cg-gems">
-      <div class="cg-panel-title">💎 Easy to miss</div>
+      <div class="cg-panel-title">${cgIco('gem')}Easy to miss</div>
       ${tips.map(t => `<div class="cg-gem">• ${t}</div>`).join('')}
     </div>
   </div>`;
@@ -53538,7 +53582,7 @@ function dcRenderChartsGuideView() {
   h += `<div class="cg-sub-label">Where to go next</div>
   <div class="cg-suggestions">
     ${suggestions.map(s => `<div class="cg-suggestion" onclick="${s.action}">
-      <span class="cg-sugg-icon">${s.icon}</span>
+      <span class="cg-sugg-icon">${s.nav ? cgNavIco(s.nav) : cgIco(s.ico)}</span>
       <span class="cg-sugg-text">${esc(s.text)}</span>
       <span class="cg-sugg-btn">${esc(s.btn)} →</span>
     </div>`).join('')}
@@ -53547,7 +53591,7 @@ function dcRenderChartsGuideView() {
   const todayFmt = today.toLocaleDateString('en', { month: 'long', day: 'numeric' });
   h += `<div class="cg-dual-row">
     <div class="dc-card cg-panel">
-      <div class="cg-panel-title">📅 On this day — ${esc(todayFmt)}</div>
+      <div class="cg-panel-title">${cgIco('calendar')}On this day — ${esc(todayFmt)}</div>
       ${onThisDay.length === 0
         ? `<p class="cg-empty">${n === 0 ? 'Load your plays to see what you were listening to on this day in past years.' : 'No plays found on this date in previous years.'}</p>`
         : onThisDay.map(r => `<div class="cg-otd-row">
@@ -53556,7 +53600,7 @@ function dcRenderChartsGuideView() {
           </div>`).join('')}
     </div>
     <div class="dc-card cg-panel">
-      <div class="cg-panel-title">🕰 Milestones</div>
+      <div class="cg-panel-title">${cgIco('clock')}Milestones</div>
       ${milestones.length === 0
         ? `<p class="cg-empty">Load your plays to see your listening milestones.</p>`
         : `<div class="cg-timeline">` + milestones.map(m => {
@@ -53598,7 +53642,7 @@ function dcRenderChartsGuideView() {
   h += `<div class="cg-collapsible" id="cg-export-body" style="display:none">
     <div class="cg-export-grid">
       ${exportGuide.map(eg => `<div class="dc-card cg-panel">
-        <div class="cg-export-icon">${eg.icon}</div>
+        <div class="cg-export-icon">${eg.ico}</div>
         <div class="cg-panel-title">${esc(eg.title)}</div>
         <ol class="cg-export-steps">${eg.steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol>
       </div>`).join('')}

@@ -13066,6 +13066,7 @@
     #awardsView>.section-header .section-header-h2,
     #soundtrackView>.section-header .section-header-h2,
     .dc-pl-view>.section-header .section-header-h2,
+    .cg-view>.section-header .section-header-h2,
     #boardView .bd-section>.section-header .section-header-h2 {
       font-family: var(--font-display);
       font-size: var(--fs-lg);
@@ -33121,7 +33122,9 @@ body.red-light .modal-rank-card--year .mrc-rank {
     /* Container */
     #chartsguideView { padding: 0; }
     .cg-view {
-      padding: 1.25rem var(--sp-4) var(--sp-8);
+      /* top padding as Soundtrack / Playlists / Board, so the page titles
+         sit at the same height on every tab */
+      padding: var(--sp-2) var(--sp-4) var(--sp-8);
       max-width: 960px;
       margin: 0 auto;
       display: flex;
@@ -33151,46 +33154,29 @@ body.red-light .modal-rank-card--year .mrc-rank {
       margin-bottom: 0.6rem;
     }
 
-    /* ── 1 · Welcome ─────────────────────────────────────── */
-    .cg-welcome {
+    /* ── 1 · Top (redesign phase 9 part 7) ────────────────
+       The shared page title, a line under it, then the first-steps
+       progress beside the three buttons. It was a solid accent banner. */
+    .cg-intro { margin: 0; max-width: 68ch; font-size: var(--fs-sm); line-height: 1.55; color: var(--text3); }
+    .cg-top-bar {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: var(--sp-4);
-      background: var(--accent);
-      color: var(--on-accent);
-      border-radius: var(--r-sm);
-      padding: 1.1rem 1.2rem;
+      flex-wrap: wrap;
+      gap: var(--sp-3);
+      margin: var(--sp-1) 0 var(--sp-2);
     }
-    .cg-welcome-title {
-      margin: 0 0 0.2rem;
-      font-size: var(--fs-md);
-      font-weight: 700;
+    .cg-top-actions { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+    .cg-top-btn .cg-ico { width: 14px; height: 14px; margin-right: 0.45em; }
+
+    /* The guide's line icons (cgIco / cgNavIco) */
+    .cg-ico {
+      width: 1em; height: 1em; flex: none;
+      fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round;
+      vertical-align: -0.15em;
     }
-    .cg-welcome-sub {
-      margin: 0;
-      font-size: var(--fs-sm);
-      opacity: 0.88;
-    }
-    .cg-welcome-actions {
-      display: flex;
-      gap: var(--sp-2);
-      flex-shrink: 0;
-    }
-    .cg-tour-start-btn,
-    .cg-search-toggle-btn {
-      padding: 0.45rem 0.9rem;
-      border-radius: var(--r-xs);
-      font-size: var(--fs-xs);
-      font-weight: 600;
-      cursor: pointer;
-      border: 2px solid rgba(255,255,255,0.6);
-      background: rgba(255,255,255,0.15);
-      color: #fff;
-      transition: background 0.15s;
-    }
-    .cg-tour-start-btn:hover,
-    .cg-search-toggle-btn:hover { background: rgba(255,255,255,0.3); }
+    .cg-panel-title { display: flex; align-items: center; gap: 0.45em; }
+    .cg-panel-title .cg-ico { color: var(--accent); }
 
     /* ── 14 · Search ─────────────────────────────────────── */
     .cg-search-bar {
@@ -33364,7 +33350,7 @@ body.red-light .modal-rank-card--year .mrc-rank {
       transition: border-color 0.15s, background 0.15s;
     }
     .cg-suggestion:hover { border-color: var(--accent); background: var(--bg3); }
-    .cg-sugg-icon { font-size: 1.3rem; }
+    .cg-sugg-icon { display: flex; color: var(--accent); font-size: 1.35rem; }
     .cg-sugg-text { font-size: var(--fs-sm); color: var(--text); line-height: 1.4; flex: 1; }
     .cg-sugg-btn {
       font-size: var(--fs-xs);
@@ -33511,7 +33497,7 @@ body.red-light .modal-rank-card--year .mrc-rank {
       grid-template-columns: repeat(3, 1fr);
       gap: var(--sp-2);
     }
-    .cg-export-icon { font-size: 1.6rem; margin-bottom: 0.4rem; }
+    .cg-export-icon { display: flex; color: var(--accent); font-size: 1.6rem; margin-bottom: 0.4rem; }
     .cg-export-steps {
       margin: var(--sp-2) 0 0;
       padding-left: 1.1rem;
@@ -33747,7 +33733,6 @@ body.red-light .modal-rank-card--year .mrc-rank {
     }
     @media (max-width: 480px) {
       .cg-stats-row       { grid-template-columns: repeat(2, 1fr); }
-      .cg-welcome         { flex-direction: column; align-items: flex-start; }
       .cg-shortcut-keys   { width: 130px; }
     }
 
@@ -34026,26 +34011,11 @@ body.red-light .modal-rank-card--year .mrc-rank {
       margin-top: 0.7rem;
     }
 
-    /* ── Hero additions ───────────────────────────────────── */
-    .cg-welcome-text { min-width: 0; }
-    .cg-welcome-kicker {
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      font-weight: 700;
-      opacity: 0.75;
-      margin-bottom: var(--sp-1);
-    }
-    .cg-welcome-sub { max-width: 62ch; }
-    .cg-hero-progress { display: flex; align-items: center; gap: 0.6rem; margin-top: 0.8rem; }
-    .cg-hero-track { flex: 1; max-width: 220px; background: rgba(255,255,255,0.25); }
-    .cg-hero-track .cg-checklist-bar { background: var(--on-accent); }
+    /* ── First-steps progress beside the top buttons ─────────── */
+    .cg-hero-progress { display: flex; align-items: center; gap: 0.6rem; flex: 1 1 220px; min-width: 0; }
+    .cg-hero-track { flex: 1; max-width: 200px; }
     .cg-hero-progress-text { font-family: var(--font-mono);
-      font-variant-numeric: tabular-nums; font-size: var(--fs-xs); opacity: 0.85; white-space: nowrap; }
-    .cg-welcome-actions { flex-wrap: wrap; }
-    /* The hero sits on var(--accent); its buttons must use the paired
-       foreground token, never a hard-coded white (yellow-dark's accent is light) */
-    .cg-tour-start-btn, .cg-search-toggle-btn { color: var(--on-accent); }
-    .cg-replay-gate-btn { border-width: 1px; opacity: 0.85; }
+      font-variant-numeric: tabular-nums; font-size: var(--fs-xs); color: var(--text3); white-space: nowrap; }
 
     /* ── Chapter rail (sticky) ────────────────────────────── */
     .cg-toc-num { font-family: var(--font-mono);
@@ -34124,7 +34094,7 @@ body.red-light .modal-rank-card--year .mrc-rank {
     .cg-tab-card.current { border-style: dashed; opacity: 0.85; }
     .cg-tab-card.current:hover { transform: none; }
     .cg-tab-head { display: flex; align-items: center; gap: 0.45rem; }
-    .cg-tab-icon { font-size: 1rem; line-height: 1; }
+    .cg-tab-icon { display: flex; color: var(--accent); font-size: 1.1rem; }
     .cg-tab-name { font-size: var(--fs-base); font-weight: 700; color: var(--text); }
     .cg-tab-desc { margin: 0; font-size: var(--fs-sm); line-height: 1.5; color: var(--text3); flex: 1; }
     .cg-tab-use {
@@ -34238,20 +34208,19 @@ body.red-light .modal-rank-card--year .mrc-rank {
     @media (max-width: 720px) {
       .cg-checklist-grid { grid-template-columns: 1fr; }
       .cg-gloss-row      { grid-template-columns: 1fr; gap: 0.15rem; }
-      .cg-hero-progress  { width: 100%; }
+      .cg-hero-progress  { flex-basis: 100%; }
       .cg-hero-track     { max-width: none; }
     }
     @media (max-width: 560px) {
       .cg-tab-grid      { grid-template-columns: 1fr; }
       .cg-stats-row     { grid-template-columns: repeat(2, 1fr); }
-      .cg-welcome       { flex-direction: column; align-items: flex-start; }
       /* Narrow enough that the track and its label can't share a line */
       .cg-hero-progress      { flex-wrap: wrap; }
       .cg-hero-progress-text { white-space: normal; }
       .cg-chapter-head  { gap: 0.6rem; }
       .cg-chapter-num   { font-size: var(--fs-md); }
-      .cg-welcome-actions { width: 100%; }
-      .cg-welcome-actions button { flex: 1 1 auto; }
+      .cg-top-actions { width: 100%; }
+      .cg-top-actions .dc-btn { flex: 1 1 auto; }
     }
 
     /* ═══════════════════════════════════════════════════════════════

@@ -3263,6 +3263,19 @@ Steps:
 5. **Charts Guide, top and icons.** Shared page title and toolbar (Take
    the tour / Search your library / Replay the welcome) instead of the
    blue banner; line icons for every emoji in chips, cards and lists.
+   **Done 2026-10-26:** "Charts Guide" in the shared page title with the
+   nav's open book; a line under it ("Welcome, Erwin. Six chapters…"),
+   then the first-steps progress beside Take the tour (main) / Search your
+   library / Replay the welcome (shared buttons with line icons); the
+   accent banner and its button CSS are gone, and the title sits at the
+   same height as the other tabs. The chapter rail lost its emoji. Tab
+   cards, "Where to go next" and Export show each tab's own nav icon
+   (cgNavIco copies it from the nav, drops Yearly's hover-only corner and
+   renames the ids inside: the nav's gradients sit in a hidden svg and
+   Chrome won't paint a copy that points at them, so Awards' gold cup was
+   blank); panel titles use cgIco (gear, shield, signal, checklist, keys,
+   gem, calendar, clock, image). Concept glyphs (▸ ◷ # ↕ ★) are type, kept.
+   Checked 1440 and 390: no emoji left, no sideways scroll, no errors.
 6. **Charts Guide, text.** Bring it up to date with the top bar, More
    menu, Stats name and the current tabs, in four languages; chapters fold
    closed on a phone.
