@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 345;
+const DC_CL_I18N_V = 346;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-26', t: 'design', a: 'ui', h: 'be3049e',
+    title: "Song, album and artist details open as a side panel",
+    detail: "Clicking a song, album or artist now opens its details in a panel that slides in from the right, so the chart stays in view beside it (on a phone it fills the screen). The top shows the cover large over a soft blur of its own colours, with buttons right under the name: play a 30-second sample, add to a playlist, rate, share, and ⋯ for everything else (play the video, change the picture, search on YouTube or Spotify). The details are split into tabs — Overview, Charts, Listening and Awards, plus Tracks and Rating for an album and Music for an artist — instead of one very long page. Going from a song to its album or artist keeps your place: the ← button steps back. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-26', t: 'design', a: 'ui', h: '93e1743',
     title: "Small windows: one clean look",
     detail: "The smaller windows now share one design: a title with a simple line icon and a short line about what the window is for, the content in the middle, and the buttons at the bottom (Cancel on the left, the main action on the right). This covers adding or editing a play, auto-correct rules, compilation albums, release types, the add-to-playlist and new-playlist windows, the printable PDF, sharing a ceremony, choosing a picture and Contact Support. Lists show how many entries they hold and a friendly line when they are empty, the add-a-play window has a close button, and the rules list, ceremony sharing and their messages are now in Spanish and Portuguese too. Stopping a shared ceremony link now asks in the site's own warning window. Works with Last.fm, Google Sheets and CSV uploads." },
