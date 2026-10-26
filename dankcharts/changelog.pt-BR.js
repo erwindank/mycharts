@@ -22,6 +22,9 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
   "Your Soundtrack: Grammys chapter shows that year's awards, no Awards visit needed":
     ["Sua trilha sonora: o capítulo do Grammy mostra os prêmios daquele ano, sem passar por Prêmios",
      "O capítulo de vencedores do Grammy agora só conta suas escolhas do Meus Grammys do ano que você está vendo (um mês usa o seu ano; Todos os tempos continua contando todos os anos). Ele também carrega suas votações salvas sozinho, então os vencedores aparecem na hora, em vez de só depois de abrir a aba Prêmios. Funciona com Last.fm, Google Sheets e arquivos CSV."],
+  "Your Soundtrack: uppercase labels on the streak cards":
+    ["Sua Trilha Sonora: rótulos em maiúsculas nos cartões de sequências",
+     "Os cartões do topo do capítulo de Sequências agora mostram os rótulos em maiúsculas pequenas, como os outros quadros de estatísticas do site. Funciona com Last.fm, Google Sheets e arquivos CSV."],
   "Your Soundtrack: tidier Days with music card":
     ["Sua Trilha Sonora: cartão Dias com música mais limpo",
      "O cartão Dias com música do capítulo de Sequências não repete mais a palavra «dias»: agora diz «297 de 298 · Dias com música». Funciona com Last.fm, Google Sheets e arquivos CSV."],

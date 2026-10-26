@@ -22,6 +22,9 @@ window.DC_CHANGELOG_I18N['es'] = {
   "Your Soundtrack: Grammys chapter shows that year's awards, no Awards visit needed":
     ["Tu banda sonora: el capítulo de los Grammy muestra los premios de ese año, sin pasar por Premios",
      "El capítulo de ganadores del Grammy ahora solo cuenta tus elecciones de Mis Grammy del año que estás viendo (un mes usa su año; Todo el tiempo sigue contando todos los años). Además carga tus votaciones guardadas por sí solo, así que los ganadores aparecen enseguida en lugar de solo después de abrir la pestaña Premios. Funciona con Last.fm, Google Sheets y archivos CSV."],
+  "Your Soundtrack: uppercase labels on the streak cards":
+    ["Tu Banda Sonora: etiquetas en mayúsculas en las tarjetas de rachas",
+     "Las tarjetas de arriba del capítulo de Rachas ahora muestran sus etiquetas en mayúsculas pequeñas, como el resto de los recuadros de estadísticas del sitio. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Your Soundtrack: tidier Days with music card":
     ["Tu Banda Sonora: tarjeta Días con música más limpia",
      "La tarjeta Días con música del capítulo de Rachas ya no repite la palabra «días»: ahora dice «297 de 298 · Días con música». Funciona con Last.fm, Google Sheets y archivos CSV."],
