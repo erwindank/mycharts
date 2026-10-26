@@ -39587,6 +39587,8 @@ function _awardsReplaceInPlace(year, next) {
 }
 
 function _awardsRerenderIfShown(year) {
+  // The Soundtrack's Grammys chapter reads these ballots too
+  if (document.getElementById('stGrammysBody')?.offsetParent && typeof stRefreshGrammys === 'function') stRefreshGrammys();
   if (+year !== +_awardsYear) return;
   if (!document.getElementById('awardsCatList')?.offsetParent) return;
   awardsRenderYear(+year);
@@ -47916,6 +47918,22 @@ function stHeadThumbs(head, items) {
   });
 }
 
+// Chapter 9's band — on its own so stRefreshGrammys() can redraw it when a
+// ballot finishes loading after the rest of the page.
+function stFillGrammysHead() {
+  const g = _stFacts.grammys;
+  if (g && g.n) {
+    stFillHead('grammys', {
+      label: t('st_grammys_title'),
+      title: stHeadTitle('st_ch_gram_title', g.n),
+      sub: esc(g.top),
+      bg: ['artist', g.top],
+    });
+  } else {
+    stFillHead('grammys', { label: t('st_grammys_title'), title: esc(t('st_ch_gram_none')), sub: esc(t('st_grammys_none')) });
+  }
+}
+
 function stRenderChapters() {
   _stHeadToken++;
   const f = _stFacts;
@@ -48014,17 +48032,7 @@ function stRenderChapters() {
   }
 
   // Grammy winners (your own My Grammys picks)
-  const g = f.grammys;
-  if (g && g.n) {
-    stFillHead('grammys', {
-      label: t('st_grammys_title'),
-      title: stHeadTitle('st_ch_gram_title', g.n),
-      sub: esc(g.top),
-      bg: ['artist', g.top],
-    });
-  } else {
-    stFillHead('grammys', { label: t('st_grammys_title'), title: esc(t('st_ch_gram_none')), sub: esc(t('st_grammys_none')) });
-  }
+  stFillGrammysHead();
 
   // Underrated Gem: written when its Last.fm lookup comes back (stRenderGem)
   stFillHead('gem', { label: t('st_gem_title'), title: esc(t('st_gem_loading')) });
@@ -50493,7 +50501,9 @@ function stRenderStreaks(plays) {
   // one lights its days on the calendar and shows its details in the panel
   // under the cards (one panel, so the cards stay easy to read).
   const periodLabel = stGetPeriodLabel();
-  const range = (a, b) => a ? `${fmtDay(a)} – ${fmtDay(b)}` : '';
+  const range = (a, b) => !a ? '' : a === b ? fmtDay(a) : `${fmtDay(a)} – ${fmtDay(b)}`; // one day: just its date
+  // "1 day in a row" / "1 day without music", not "1 days"
+  const unitFor = (n, key) => t(n === 1 ? key + '_one' : key);
   // When the period's best streak is the all-time record, one card says both
   const sameStreak = stPeriodType !== 'alltime' && longestPeriod === longestAll
     && periodStart === longestStart && periodEnd === longestEnd;
@@ -50537,9 +50547,9 @@ function stRenderStreaks(plays) {
   el.innerHTML = `
     <div class="st-streaks-grid">
       ${card('days', activeDays, esc(t('st_streak_of_days', { total: totalDaysInPeriod })), esc(t('st_streak_days_lbl')))}
-      ${card('ever', longestAll, t('st_streak_days_unit'), esc(t('st_streak_alltime_best')), recordBadge, isNewRecord ? ' st-streak-card--record' : '')}
-      ${stPeriodType !== 'alltime' && !sameStreak ? card('period', longestPeriod, t('st_streak_days_unit'), esc(t('st_streak_best_period', { period: periodLabel }))) : ''}
-      ${card('break', brk.n, t('st_streak_break_unit'), esc(t('st_streak_break_short')), '', ' st-streak-card--break')}
+      ${card('ever', longestAll, unitFor(longestAll, 'st_streak_days_unit'), esc(t('st_streak_alltime_best')), recordBadge, isNewRecord ? ' st-streak-card--record' : '')}
+      ${stPeriodType !== 'alltime' && !sameStreak ? card('period', longestPeriod, unitFor(longestPeriod, 'st_streak_days_unit'), esc(t('st_streak_best_period', { period: periodLabel }))) : ''}
+      ${card('break', brk.n, unitFor(brk.n, 'st_streak_break_unit'), esc(t('st_streak_break_short')), '', ' st-streak-card--break')}
     </div>
     <div class="st-streak-detail" aria-live="polite">${esc(t('st_streak_pick_hint'))}</div>
     ${calHtml}
@@ -50625,6 +50635,29 @@ async function _fetchEntityStreakArt(kind, best) {
 }
 
 // ── Grammy Overlay ────────────────────────────────────────────
+let _stGrammyLoadToken = 0;
+
+// The award years the Soundtrack period covers
+function stGrammyYears() {
+  if (stPeriodType !== 'alltime') return [stYear];
+  if (!allPlays.length) return [];
+  const minYear = tzDate(allPlays[allPlays.length - 1].date).getFullYear();
+  const maxYear = tzNow().getFullYear();
+  const out = [];
+  for (let y = minYear; y <= maxYear; y++) out.push(y);
+  return out;
+}
+
+// Redraws chapter 9 and its band once ballots arrive (or change in the cloud),
+// without re-rendering the whole Soundtrack.
+function stRefreshGrammys() {
+  if (!document.getElementById('stGrammysBody') || !_stCurrentPlays) return;
+  delete _stFacts.grammys;
+  stRenderGrammys(_stCurrentPlays);
+  stFillGrammysHead();
+  stNumberChapters();
+}
+
 function stRenderGrammys(plays) {
   const el = document.getElementById('stGrammysBody');
   if (!el) return;
@@ -50643,13 +50676,29 @@ function stRenderGrammys(plays) {
   for (const p of plays) artistCounts[p.artist.toLowerCase()] = (artistCounts[p.artist.toLowerCase()] || 0) + 1;
   const topArtistKeys = Object.entries(artistCounts).sort((a, b) => b[1] - a[1]).slice(0, 20).map(([a]) => a);
 
-  // Build Grammy map from _awardsYearData (user's own My Grammys picks across all loaded years)
+  // Only the period's own year counts (a month uses its year); All-Time takes
+  // every year since the first play.
+  const years = stGrammyYears();
+  // A ballot saved earlier lives on the device / in the cloud but only reaches
+  // _awardsYearData once the Awards tab loads it. Load the missing years here so
+  // the chapter never needs a trip to Awards first, then draw it again.
+  const missing = years.filter(y => !_awardsYearData[y]);
+  if (missing.length) {
+    const token = ++_stGrammyLoadToken;
+    Promise.all(missing.map(y => _awardsLoad(y).catch(() => null))).then(() => {
+      if (token !== _stGrammyLoadToken) return;   // the period changed meanwhile
+      stRefreshGrammys();
+    });
+  }
+
+  // Build Grammy map from the user's own My Grammys picks for those years
   const grammyMap = {};
   if (typeof _awardsYearData !== 'undefined') {
-    for (const [yr, data] of Object.entries(_awardsYearData)) {
+    for (const yr of years) {
+      const data = _awardsYearData[yr];
       if (!data || !data.categories) continue;
       for (const [catId, cat] of Object.entries(data.categories)) {
-        if (!cat.winner || !cat.winner.artist) continue;
+        if (!cat.enabled || !cat.winner || !cat.winner.artist) continue;
         const ak = cat.winner.artist.toLowerCase();
         if (!grammyMap[ak]) grammyMap[ak] = [];
         grammyMap[ak].push({ year: yr, category: AWARD_CATEGORIES.find(c => c.id === catId)?.label || catId, isWin: true });
