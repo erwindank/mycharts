@@ -1084,11 +1084,41 @@ https://claude.ai/artifact/UJKWiWZXPfF8NAGYMqnXej):
   rows you swipe sideways (‹ › on desktop), with small covers instead of
   full photos.
 
-### 4.19 Playlists, Board, Charts Guide. From the code
+### 4.19 Playlists, Board, Charts Guide. Seen on screen (2026-10-26)
 
 These are drawn by JavaScript, so check them on screen. Apply the shared
 components. The Charts Guide becomes a help link in the More menu (4.3).
 The Board should look like the rest of the site, not like an embedded forum.
+
+**Now** (sample library, 1440 and 390 touch, navy dark):
+- **Playlists:** opens with Anniversaries and Recent Releases as two old
+  boxes (white tag titles) that stay empty for 10–20s with no loading line,
+  above the playlists. "My Playlists" is a small h2 in a narrower column
+  (756px) than the boxes (948px), not the shared page title. Playlists are
+  bordered cards that open into plain text lines (title – artist, no
+  covers). Every string in dcRenderPlaylistsView() is hard-coded English
+  ("My Playlists", "Save Queue", "14 tracks", the empty state, titles).
+- **Board:** works well on desktop and phone. Still one old box with a
+  white "💬 COMMUNITY BOARD" tag and no shared page title; Sign in and
+  New post are bright solid-blue buttons unlike the shared .dc-btn; 💬 in
+  the reply count.
+- **Charts Guide:** 6,400px on desktop, 10,600px on a phone. Solid bright
+  blue "The manual" banner; emoji in the chapter chips, tab cards, "Where
+  to go next" and lists. Out-of-date text: "Twelve tabs in two rows", "the
+  top row of the nav bar", Graphs (now Stats). "Your Data" repeats numbers
+  shown elsewhere (kept). Already in the More menu, so the 4.3 part is done.
+
+**Fix (decided 2026-10-26):** Playlists A, Board restyle only, Guide keep
+all + restyle + update.
+- **Playlists first:** shared page title; each playlist a row with a 2×2
+  cover collage, name, song count, ▶ ✎ 🗑 as today; opened, the tracks get
+  small covers. Anniversaries / Recent Releases move under the playlists as
+  titled parts with sideways rows and a loading line. Four languages.
+- **Board:** shared page title, no box, shared buttons and chips, posts as
+  plain rows with dividers, line icons for emoji. Same features.
+- **Charts Guide:** keep every chapter. Shared page title instead of the
+  blue banner, line icons for emoji, text brought up to date, chapters
+  fold closed on a phone.
 
 ### 4.20 Pop-up windows (27 of them). From the code
 
@@ -3162,6 +3192,35 @@ albums". Checked with singles and EPs separated and not, 1440 and 390.
 
 **Phase 9 part 6 (Your Soundtrack) is finished** (2026-10-25). Next is
 4.19 (Playlists, Board, Charts Guide), looked at on screen first.
+
+**Phase 9 part 7: Playlists, Board, Charts Guide. Planned 2026-10-26, one
+step per commit, on `main`.** Looked at on screen first (what was found is
+under 4.19). Decided with you: Playlists A, Board restyle only, Guide keep
+all.
+
+Steps:
+1. **Playlists, top and order.** Shared page title with the nav's icon;
+   the save-queue row and Resume in its toolbar; playlists first, then
+   Anniversaries and Recent Releases as titled parts (no boxes) with a
+   loading line while they fetch.
+2. **Playlist rows.** 2×2 cover collage per playlist (first four songs'
+   covers, initials until they load), name, song count, ▶ ✎ 🗑; opened:
+   tracks with small covers, drag handle, ▶ / ✕. Release lists as
+   sideways rows (stRowHtml-style, ‹ › on desktop).
+3. **Playlists in four languages.** Every string in
+   dcRenderPlaylistsView() and its rename / delete / status lines into
+   translations.js.
+4. **Board.** Shared page title, no box, shared .dc-btn for Sign in / New
+   post, shared chips for the filters, posts as rows with dividers, line
+   icons for 💬 and the rest.
+5. **Charts Guide, top and icons.** Shared page title and toolbar (Take
+   the tour / Search your library / Replay the welcome) instead of the
+   blue banner; line icons for every emoji in chips, cards and lists.
+6. **Charts Guide, text.** Bring it up to date with the top bar, More
+   menu, Stats name and the current tabs, in four languages; chapters fold
+   closed on a phone.
+7. **Screen check:** 1440 / 1100 / 390 × en / es / pt-BR / pt-PT × a few
+   themes, all three pages.
 
 The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in
