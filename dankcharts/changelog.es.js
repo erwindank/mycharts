@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Artist details fully in your language":
+    ["Detalles de artista completamente en tu idioma",
+     "Las últimas partes en inglés de los detalles de artista ya están también en español y portugués: los logros de canciones n.º 1 y de debuts en el n.º 1, la tabla de desglose por listas, el botón de categorías de los Grammy y la lista de álbumes por puntuar. La nota bajo Animar listas en Ajustes nombra ahora el botón de repetición como se llama en tu idioma."],
   "Settings: better organised, with search":
     ["Ajustes: mejor ordenados y con buscador",
      "Ajustes tiene ahora cuatro pestañas. Rankings conserva la semana de las listas, las secciones de la página de listas, el calendario de eventos y el comportamiento; una nueva pestaña Lanzamientos reúne todo sobre tipos de discos —tipos de lanzamiento, umbrales de certificación y álbumes recopilatorios—, y Perfil suma una sección Apariencia donde eliges cualquiera de los diez temas y el idioma. Un buscador arriba encuentra cualquier ajuste por su nombre y te lleva directo a él. La barra de abajo es solo un botón Cerrar hasta que cambias algo que hay que guardar; entonces muestra «Cambios sin guardar» con Cancelar y Guardar y cargar. No se ha quitado nada."],

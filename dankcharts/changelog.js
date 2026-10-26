@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 350;
+const DC_CL_I18N_V = 351;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-26', t: 'i18n', a: 'ui', h: 'cb14b40',
+    title: "Artist details fully in your language",
+    detail: "The last English bits in the artist details are now in Spanish and Portuguese too: the achievements for #1 songs and #1 debuts, the chart breakdown table, the Grammy categories button and the list of albums still to rate. The note under Animate charts in Settings now names the replay button the way it is called in your language." },
   { d: '2026-10-26', t: 'design', a: 'settings', h: '1f6c712',
     title: "Settings: better organised, with search",
     detail: "Settings now has four tabs. Charts keeps the chart week, the chart page sections, the events calendar and how things behave; a new Releases tab gathers everything about kinds of records — release types, certification thresholds and compilation albums; and Profile gains an Appearance section where you can pick any of the ten themes and the language. A search box at the top finds any setting by name and takes you straight to it. The bottom bar is just a Close button until you change something that needs saving, and then shows \"Unsaved changes\" with Cancel and Save & Load. Nothing was removed." },

@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Artist details fully in your language":
+    ["Detalhes do artista totalmente no seu idioma",
+     "As últimas partes em inglês dos detalhes do artista agora estão também em espanhol e português: as conquistas de músicas em nº 1 e de estreias em nº 1, a tabela de resumo das paradas, o botão de categorias dos Grammys e a lista de álbuns ainda por avaliar. A nota de Animar paradas nas Configurações agora chama o botão de repetição pelo nome que ele tem no seu idioma."],
   "Settings: better organised, with search":
     ["Configurações: mais organizadas e com busca",
      "As Configurações agora têm quatro abas. Paradas mantém a semana das paradas, as seções da página de paradas, o calendário de eventos e o comportamento; uma nova aba Lançamentos reúne tudo sobre tipos de discos — tipos de lançamento, limites de certificação e álbuns de coletânea —, e Perfil ganha uma seção Aparência onde você escolhe qualquer um dos dez temas e o idioma. Uma caixa de busca no topo encontra qualquer configuração pelo nome e leva direto até ela. A barra de baixo é só um botão Fechar até você mudar algo que precisa ser salvo; aí ela mostra «Mudanças não salvas» com Cancelar e Salvar e carregar. Nada foi removido."],

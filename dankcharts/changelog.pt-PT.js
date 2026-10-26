@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Artist details fully in your language":
+    ["Detalhes do artista totalmente na tua língua",
+     "As últimas partes em inglês dos detalhes do artista estão agora também em espanhol e português: as conquistas de músicas em n.º 1 e de estreias em n.º 1, a tabela de resumo dos tops, o botão de categorias dos Grammys e a lista de álbuns por avaliar. A nota de Animar tops nas Definições chama agora o botão de repetição pelo nome que tem na tua língua."],
   "Settings: better organised, with search":
     ["Definições: mais arrumadas e com pesquisa",
      "As Definições têm agora quatro separadores. Tops mantém a semana das tabelas, as secções da página de tabelas, o calendário de eventos e o comportamento; um novo separador Lançamentos reúne tudo sobre tipos de discos — tipos de lançamento, limiares de certificação e álbuns de compilação —, e Perfil ganha uma secção Aparência onde escolhes qualquer um dos dez temas e a língua. Uma caixa de pesquisa no topo encontra qualquer definição pelo nome e leva-te diretamente a ela. A barra de baixo é só um botão Fechar até mudares algo que precise de ser guardado; aí mostra «Alterações por guardar» com Cancelar e Guardar e carregar. Nada foi removido."],
