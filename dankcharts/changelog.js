@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 332;
+const DC_CL_I18N_V = 333;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-25', t: 'design', a: 'soundtrack', h: 'dbb4193',
+    title: "Your Soundtrack: your My Grammys picks look different from real wins",
+    detail: "In the awards chapter, the gold ribbon on each artist now counts only real award show wins. Your own My Grammys picks get their own star tag in your theme's colour, and in the list under the photo they're tinted that colour with a star, so you can always tell your picks from the real thing. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-25', t: 'fix', a: 'soundtrack', h: '8c03a62',
     title: "Your Soundtrack: tidier Days with music card",
     detail: "The Days with music card in the Streaks chapter no longer says \"days\" twice: it now reads \"297 of 298 · Days with music\". Works with Last.fm, Google Sheets and CSV uploads." },

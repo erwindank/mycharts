@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Your Soundtrack: your My Grammys picks look different from real wins":
+    ["Tu banda sonora: tus elecciones de Mis Grammy se ven distintas de los premios reales",
+     "En el capítulo de premios, la cinta dorada de cada artista ahora solo cuenta premios reales. Tus propias elecciones de Mis Grammy tienen su propia etiqueta con una estrella en el color de tu tema, y en la lista bajo la foto aparecen en ese color con una estrella, así que siempre distingues tus elecciones de los premios reales. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Your Soundtrack: real award show wins in the awards chapter":
     ["Tu banda sonora: premios reales en el capítulo de premios",
      "El capítulo de premios ahora se llama \"Ganadores de premios en tus listas\". Junto a tus elecciones de Mis Grammy, muestra los premios reales que ganaron tus 20 artistas top en las entregas celebradas ese año: Grammy, VMAs, AMAs, iHeartRadio, World Music, Billboard, ARIA, Juno y BRIT. Cada entrega cuenta en el año en que se celebró, aunque premie la música del año anterior, así que la banda sonora de cada año tiene sus premios antes de que termine. Solo victorias. Toca una tarjeta para ver cada premio, la entrega y la canción o el álbum ganador. Todo el tiempo suma todos los Grammy y las demás entregas que ya hayas consultado. Funciona con Last.fm, Google Sheets y archivos CSV."],

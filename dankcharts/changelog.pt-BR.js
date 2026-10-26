@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Your Soundtrack: your My Grammys picks look different from real wins":
+    ["Sua trilha sonora: suas escolhas do Meus Grammys aparecem diferentes dos prêmios reais",
+     "No capítulo de prêmios, a faixa dourada de cada artista agora só conta prêmios reais. Suas próprias escolhas do Meus Grammys ganham uma etiqueta com estrela na cor do seu tema, e na lista abaixo da foto aparecem nessa cor com uma estrela, então você sempre distingue suas escolhas dos prêmios reais. Funciona com Last.fm, Google Sheets e arquivos CSV."],
   "Your Soundtrack: real award show wins in the awards chapter":
     ["Sua trilha sonora: prêmios reais no capítulo de prêmios",
      "O capítulo de prêmios agora se chama \"Vencedores de prêmios nas suas paradas\". Ao lado das suas escolhas do Meus Grammys, ele mostra os prêmios reais que seus 20 artistas top ganharam nas premiações realizadas naquele ano: Grammy, VMAs, AMAs, iHeartRadio, World Music, Billboard, ARIA, Juno e BRIT. Cada premiação conta no ano em que aconteceu, mesmo premiando a música do ano anterior, então a trilha sonora de cada ano tem seus prêmios antes do fim do ano. Só vitórias. Toque num cartão para ver cada prêmio, a premiação e a música ou o álbum vencedor. Todos os tempos soma todos os Grammys e as outras premiações que você já consultou. Funciona com Last.fm, Google Sheets e arquivos CSV."],
