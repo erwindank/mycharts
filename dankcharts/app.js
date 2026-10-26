@@ -48206,7 +48206,7 @@ function stOnLanguageChange() {
 // covers; toward the left (where the big year sits) the tiles thin out,
 // shrink, drift and fade, as if the grid were coming apart. The pattern is
 // seeded from the period, so a re-render draws the same picture.
-const ST_MOSAIC_MAX = 48;
+const ST_MOSAIC_MAX = 96; // enough distinct covers that the denser grid rarely repeats one
 function stRenderYearMosaic() {
   const head = document.getElementById('stHeroCard');
   const box = document.getElementById('stYearMosaic');
@@ -48226,7 +48226,7 @@ function stRenderYearMosaic() {
   if (!albums.length) return;
 
   const W = head.clientWidth || 900, H = head.clientHeight || 200;
-  const size = W < 640 ? 44 : 58;
+  const size = W < 640 ? 36 : 46; // smaller tiles = more albums on the band
   const cols = Math.ceil(W / size), rows = Math.ceil(H / size);
   // small seeded random, so the same period always comes apart the same way
   let seed = 0;
@@ -48237,8 +48237,8 @@ function stRenderYearMosaic() {
   for (let c = cols - 1; c >= 0; c--) {
     for (let r = 0; r < rows; r++) {
       const x = (c + 0.5) / cols;                       // 0 = left edge, 1 = right edge
-      const solid = Math.min(1, Math.max(0, (x - 0.26) / 0.56)); // 0 left of 26%, 1 right of 82%
-      if (rnd() > solid * 0.92 + 0.04) continue;          // gaps grow toward the left
+      const solid = Math.min(1, Math.max(0, (x - 0.2) / 0.5)); // 0 left of 20%, 1 right of 70%
+      if (rnd() > solid * 0.9 + 0.08) continue;           // gaps grow toward the left
       const loose = 1 - solid;                            // how far this tile has come apart
       cells.push({
         left: c * size, top: r * size,
