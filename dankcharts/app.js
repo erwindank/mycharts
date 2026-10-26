@@ -50167,10 +50167,20 @@ function stRenderStreaks(plays) {
   // negative-UTC-offset timezones and undercounts the walk below.
   const prevDayKey = ds => { const d = new Date(ds + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() - 1); return d.toISOString().slice(0, 10); };
 
-  const allDaySet = new Set(allPlays.map(p => dayKey(p.date)));
+  // "Longest ever" means as of the period being looked at: a past year or
+  // month only counts days up to its last day, so 2023 shows the record as
+  // it stood at the end of 2023. All-Time has no cutoff.
+  const cutoffKey = stPeriodType === 'year' ? `${stYear}-12-31`
+    : stPeriodType === 'month' ? `${stYear}-${pad2(stMonth)}-${pad2(new Date(stYear, stMonth, 0).getDate())}`
+    : null;
+  const allDaySet = new Set();
+  for (const p of allPlays) {
+    const dk = dayKey(p.date);
+    if (!cutoffKey || dk <= cutoffKey) allDaySet.add(dk);
+  }
   const allDays = [...allDaySet].sort();
 
-  // Longest all-time streak
+  // Longest streak ever (up to the cutoff)
   let longestAll = allDays.length ? 1 : 0, curAll = 1, longestStart = allDays[0] || '', longestEnd = allDays[0] || '', curStart = allDays[0] || '';
   for (let i = 1; i < allDays.length; i++) {
     const diff = Math.round((new Date(allDays[i]) - new Date(allDays[i-1])) / 86400000);
@@ -50189,7 +50199,9 @@ function stRenderStreaks(plays) {
   const yd = new Date(now); yd.setDate(yd.getDate() - 1);
   const yestKey = `${yd.getFullYear()}-${pad2(yd.getMonth()+1)}-${pad2(yd.getDate())}`;
   let currentStreak = 0, currentStreakStart = '';
-  const anchorDay = allDaySet.has(todayKey) ? todayKey : (allDaySet.has(yestKey) ? yestKey : null);
+  // only a period that reaches today can have a live streak
+  const reachesToday = !cutoffKey || cutoffKey >= todayKey;
+  const anchorDay = !reachesToday ? null : allDaySet.has(todayKey) ? todayKey : (allDaySet.has(yestKey) ? yestKey : null);
   if (anchorDay) {
     let day = anchorDay;
     while (allDaySet.has(day)) {
