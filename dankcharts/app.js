@@ -50257,13 +50257,14 @@ function stRenderStreaks(plays) {
       : 0;
   } else if (stPeriodType === 'year') {
     totalDaysInPeriod = isCurrentYear
-      ? Math.round((now - new Date(stYear, 0, 1)) / 86400000) + 1
+      ? daysBetween(`${stYear}-01-01`, todayKey) + 1 // calendar days, so the time of day can't add one
       : (new Date(stYear, 1, 29).getMonth() === 1 ? 366 : 365);
   } else {
     totalDaysInPeriod = isCurrentMonth ? now.getDate() : new Date(stYear, stMonth, 0).getDate();
   }
   const activeDays = periodDays.length;
-  const activeDaysPct = totalDaysInPeriod ? Math.round((activeDays / totalDaysInPeriod) * 100) : 0;
+  // 100% only when no day was missed (297 of 298 would round up to it)
+  const activeDaysPct = totalDaysInPeriod ? Math.min(activeDays < totalDaysInPeriod ? 99 : 100, Math.round((activeDays / totalDaysInPeriod) * 100)) : 0;
 
   // The period's span as day keys. A year or month runs from its first day
   // (or your first play, if that's later) to its last day (or today, if
@@ -50293,6 +50294,11 @@ function stRenderStreaks(plays) {
       prev = d;
     }
   }
+
+  // All the days without music in the span, not just the longest run of them
+  // (same span as the break, so today only counts once it's over)
+  const missedTotal = brk.n ? daysBetween(rangeStart, breakEnd) + 1 - inRange.filter(x => x <= breakEnd).length : 0;
+  const missedKey = (stPeriodType === 'alltime' ? 'st_streak_break_total_all' : 'st_streak_break_total') + (missedTotal === 1 ? '_one' : '');
 
   // Every streak up to the cutoff: ranks the period's best, and finds the
   // record that a new record beat
@@ -50523,6 +50529,7 @@ function stRenderStreaks(plays) {
         </div>
         <div class="st-streak-lbl">${t('st_streak_break')}</div>
         <div class="st-streak-dates">${brk.n ? `${fmtDay(brk.start)} – ${fmtDay(brk.end)}` : t('st_streak_break_none')}</div>
+        ${missedTotal ? `<div class="st-streak-extra">${esc(t(missedKey, { n: missedTotal, period: stGetPeriodLabel() }))}</div>` : ''}
       </div>
     </div>
     ${calHtml}
