@@ -17128,6 +17128,7 @@ function crTile(label, valueHtml, cls) {
    On long runs the ribbon pins to the top while the boxes scroll. Callers wrap
    it in .cr-stats.cr-stats-sum, which lays it out as a block. */
 const CR_STICKY_MIN = 40;   // entries before the ribbon pins
+const CR_ALLTIME_RUNGS = [5000, 2500, 2000, 1000, 750, 500, 300, 200, 100, 50, 25, 10, 5];   // all-time Top N goals, biggest first
 
 // "5 weeks", "1 play" — full words, unlike tUnit's short chart units
 function _crU(unit, n) {
@@ -17244,8 +17245,8 @@ function _crNextCert(p, cfg) {
    "3 weeks from 30 on the chart". Chart-week goals only on the full run: on a
    range they would count the wrong thing. Certifications and all-time spots
    are lifetime plays, whatever the range. */
-function _crGoals(type, key, d, unit, fullRun, top1) {
-  const G = [], nx = (v, list) => list.find(x => x > v);
+function _crGoals(type, key, d, unit, fullRun, top1, extra) {
+  const G = extra ? extra.slice() : [], nx = (v, list) => list.find(x => x > v);
   if (fullRun) {
     const ladder = { week: [10, 20, 30, 40, 52, 75, 100, 150, 200, 300, 500], month: [6, 12, 24, 36, 48, 60, 100, 150],
       year: [3, 5, 10, 15, 20, 30], day: [7, 14, 30, 50, 100, 200, 365, 500] }[unit];
@@ -17266,24 +17267,29 @@ function _crGoals(type, key, d, unit, fullRun, top1) {
   }
   if (life && maps[type]) {
     const S = _crSortedPlays(maps, type), above = _crAbove(S, life), pos = above + 1;
-    const add = (v, kind) => {
+    const add = (v, kind, n) => {
       const to = _crAbove(S, v) + 1;
       if (to === 1) kind = 'top1';
       if (G.some(g => g.to === to)) return;
-      G.push({ ic: '🏆', t: v + 1, v: life, u: 'plays', to, from: pos, lbl: t('cr_g_at_' + kind, { p: to }), of: t('cr_g_at_' + kind + '_of', { p: to }) });
+      G.push({ ic: '🏆', t: v + 1, v: life, u: 'plays', to, from: pos, lbl: t('cr_g_at_' + kind, { p: to, n }), of: t('cr_g_at_' + kind + '_of', { p: to, n }) });
     };
     if (pos > 1) {
       add(S[above - 1], 'up');                       // the spot just above
-      if (pos > 10 && S.length >= 10) add(S[9], 'top10');
-      add(S[0], 'top1');
+      // The next rung of the all-time ladder above it: #1800 aims for the Top
+      // 1000, #640 for the Top 500, #14 for the Top 10 (was always the Top 10,
+      // too far off for most of a library)
+      const rung = CR_ALLTIME_RUNGS.find(n => n < pos);
+      if (rung && S.length >= rung) add(S[rung - 1], 'topn', rung);
+      if (pos <= 10) add(S[0], 'top1');              // #1 once it is in the Top 10
     }
   }
   if (!G.length) return { html: '', first: null };
-  G.sort((x, y) => (x.t - x.v) / x.t - (y.t - y.v) / y.t);
+  // A caller's own goals (the BU run's "make the chart this week") lead
+  G.sort((x, y) => (y.pin ? 1 : 0) - (x.pin ? 1 : 0) || (x.t - x.v) / x.t - (y.t - y.v) / y.t);
   const need = g => g.u === 'plays' ? _crU('plays', g.t - g.v) : _crU(g.u, g.t - g.v);
   const one = g => (g.t - g.v === 1 ? '_one' : '_other');
   const [g0, ...rest] = G;
-  const sub = g0.from ? t('cr_g_now' + one(g0), { r: g0.from, n: need(g0) }) : t('cr_g_left' + one(g0), { n: need(g0) });
+  const sub = g0.from ? t('cr_g_now' + one(g0), { r: g0.from, n: need(g0) }) : t((g0.subKey || 'cr_g_left') + one(g0), { n: need(g0) });
   const barCls = g0.cert ? 'is-cert' : g0.from ? 'is-gold' : '';
   // Label column + value column, so both rows line up under each other
   let html = `<div class="cr-goals"><span class="cr-goal-k">${esc(t('cr_g_next'))}</span><div class="cr-goal-v">`
@@ -17306,7 +17312,7 @@ function crRibbonFilter(btn, ev) {
   rb.querySelectorAll('.cr-rb-chip').forEach(b => b.setAttribute('aria-pressed', 'false'));
   if (on) btn.setAttribute('aria-pressed', 'true');
   const max = on ? +btn.dataset.max : 0;
-  const host = (btn.closest('.cr-stats') || rb).parentElement;
+  const host = btn.closest('.bu-cr-panel') || (btn.closest('.cr-stats') || rb).parentElement;
   host.querySelectorAll('.cr-box[data-rank]').forEach(b => {
     if (!b.closest('.cr-subsection')) b.classList.toggle('cr-dim', max > 0 && +b.dataset.rank > max);
   });
@@ -18977,7 +18983,7 @@ function buCrBoxesHTML(type, key) {
   const boxes = d.entries.flatMap((e, i) => {
     const isPeak = (e.buRank === d.peakBuRank);
     const cls = isPeak ? 'cr-box cr-box-peak' : 'cr-box';
-    const box = `<div class="${cls}" onclick="showBuCrPreview('${esc(e.periodKey)}','${type}','${safeKey}',this)">
+    const box = `<div class="${cls}" data-rank="${e.buRank}" onclick="showBuCrPreview('${esc(e.periodKey)}','${type}','${safeKey}',this)">
       <div class="cr-box-rank">${t('bucr_prefix')}${e.buRank}</div>
       <div class="cr-box-label">${esc(crPeriodLabel('week', e.periodKey))}</div>
     </div>`;
@@ -19112,10 +19118,10 @@ function toggleCrBuView(btn) {
   btn.textContent = showingChart ? t('cr_view_chart_only') : t('cr_view_with_bu');
 }
 
-// Builds the full BU chart run panel HTML (header + stat tiles + timeline).
-// Same look as the main chart run panel (buildCrPanelHTML): .cr-head header,
-// crTile tiles with the label on top, and a segmented control that switches
-// the timeline to a combined BU + official chart view.
+// Builds the full BU chart run panel HTML (header + summary + timeline +
+// milestones). Same look as the main chart run panel (buildCrPanelHTML):
+// .cr-head header, the crStats-style summary, and a segmented control that
+// switches the timeline to a combined BU + official chart view.
 function buildBuCrPanelHTML(type, key) {
   const d = buChartRunData?.result?.[crRunType(type)]?.[key];
   // Offer the combined view only when the entry also has official chart history
@@ -19151,21 +19157,65 @@ function buildBuCrPanelHTML(type, key) {
   }
   longestStreak = Math.max(longestStreak, curStreak);
 
-  const n = d.entries.length;
+  /* Same summary as the main chart run (crStats, 2026-10-26): a sentence, a
+     boxed row of counts that filters the boxes, and the next milestones under
+     the boxes. Was six tiles. */
+  const E = d.entries, n = E.length, P = t('bucr_prefix');
   const peak = d.peakBuRank; // 1 = closest to the chart
-  const at1 = d.entries.filter(e => e.buRank === 1).length; // weeks at BU1 (highest BU spot)
+  const overall = t('bucr_peak_overall', { n: chartSize + peak });
+  const cnt = max => E.filter(e => e.buRank <= max).length;
+  const b = (s, gold) => `<b${gold ? ' class="is-gold"' : ''}>${s}</b>`;
 
-  // Peak tile: the BU spot, with the overall rank it equals as a small note
-  // (was "Peak BU1 · closest to the chart (chart rank #11)" squeezed into one tile)
-  const peakHtml = `${t('bucr_prefix')}${peak}<span class="bu-cr-note">${esc(t('bucr_peak_overall', { n: chartSize + peak }))}</span>`;
-  const statsHtml = `<div class="cr-stats">
-    ${crTile(t('bucr_k_weeks'), n)}
-    ${crTile(t('cr_k_peak'), peakHtml, 'bu-cr-peak')}
-    ${at1 ? crTile(t('bucr_k_at1'), at1) : ''}
-    ${longestStreak > 1 ? crTile(t('bucr_k_streak'), `${longestStreak} ${tUnit('weeks_full', longestStreak)}`) : ''}
-    ${stints > 1 ? crTile(t('bucr_k_stints'), stints) : ''}
-    ${crTile(t('bucr_k_best'), d.peakPlays.toLocaleString(), 'cr-stat-total')}
-  </div>`;
+  const first = E[0].buRank, last = E[n - 1];
+  let story = t('bucr_story_first', { r: b(P + first, first === peak) + (first === peak ? ` (${esc(overall)})` : '') });
+  if (first !== peak) story += t('bucr_story_peak', { r: b(P + peak, true), o: esc(overall) });
+  story += t('bucr_story_total', { n: b(_crU('week', n)), c: chartSize });
+  const crD = allChartRun.week?.result?.[crRunType(type)]?.[key];
+  if (crD?.entries?.length) story += t('bucr_story_chart', { n: b(_crU('week', crD.entries.length)), r: b('#' + crD.peak, crD.peak === 1) });
+  const curKey = buChartRunData?.curKey;
+  if (curKey && last.periodKey === curKey) story += t('bucr_story_now');
+
+  // Tier chips (gold where the peak boxes are gold), only when they add something
+  let chips = '', prev = 0;
+  const chip = (max, c, lbl, sw) => `<button type="button" class="cr-rb-chip" aria-pressed="false" data-max="${max}" title="${esc(t('cr_rb_hint'))}" onclick="crRibbonFilter(this,event)"><span class="cr-rb-sw cr-rb-sw-${sw}"></span><b>${c.toLocaleString()}</b>${esc(lbl)}</button>`;
+  [1, 3, 5].forEach(max => {
+    const c = cnt(max);
+    if (c > prev && c < n) {
+      chips += chip(max, c, max === 1 ? t('bucr_rb_at1') : t('bucr_rb_range', { p: P, n: max }), max === 1 && peak === 1 ? 'gold' : 'top10');
+      prev = c;
+    }
+  });
+
+  /* Milestones: getting onto the chart this week, when it is bubbling under
+     right now and the week's chart is the same week — the plays of the last
+     spot on it, plus one — then the lifetime ones (certification, all-time) */
+  const extra = [];
+  const wk = allChartRun.week;
+  if (curKey && last.periodKey === curKey && wk?.curKey === curKey) {
+    let lastSpot = 0;
+    const res = wk.result?.[crRunType(type)] || {};
+    for (const k in res) {
+      const es = res[k].entries, e = es[es.length - 1];
+      if (e && e.periodKey === curKey && e.rank === chartSize) { lastSpot = e.plays || 0; break; }
+    }
+    if (lastSpot >= last.plays) {
+      extra.push({ ic: '🎯', pin: true, t: lastSpot + 1, v: last.plays, u: 'plays', subKey: 'cr_g_left',
+        lbl: t('bucr_g_enter', { n: chartSize }), of: t('bucr_g_enter_of', { n: chartSize }) });
+    }
+  }
+  const goals = _crGoals(type, key, { entries: E, peak: 0 }, 'week', false, 0, extra);
+
+  const sticky = n >= CR_STICKY_MIN;
+  const ribbon = `<div class="cr-ribbon${sticky ? ' is-sticky' : ''}">`
+    + `<span class="cr-rb-i"><b class="${peak === 1 ? 'is-gold' : ''}">${P}${peak}</b>${esc(t('cr_rb_peak'))} · ${esc(overall)}</span>`
+    + chips
+    + `<span class="cr-rb-i"><b>${n.toLocaleString()}</b>${esc(t('bucr_rb_weeks'))}</span>`
+    + (longestStreak > 1 ? `<span class="cr-rb-x">${esc(t('bucr_k_streak'))} <b>${esc(_crU('week', longestStreak))}</b></span>` : '')
+    + (stints > 1 ? `<span class="cr-rb-x">${esc(t('bucr_k_stints'))} <b>${stints}</b></span>` : '')
+    + `<span class="cr-rb-x">${esc(t('bucr_k_best'))} <b>${d.peakPlays.toLocaleString()}</b></span>`
+    + (sticky && goals.first ? `<span class="cr-rb-mini" title="${esc(goals.first.lbl)}">→ ${esc(goals.first.lbl)}</span>` : '')
+    + `</div>`;
+  const statsHtml = `<div class="cr-stats cr-stats-sum"><div class="cr-sum"><p class="cr-story">${story}</p>${ribbon}</div></div>`;
 
   // Dual-view: BU-only (default) and combined BU+chart (switched via the segmented control)
   const buView = `<div class="bu-cr-view-bu">${buCrBoxesHTML(type, key)}</div>`;
@@ -19173,7 +19223,7 @@ function buildBuCrPanelHTML(type, key) {
     ? `<div class="bu-cr-view-combined" style="display:none">${buildCombinedCrBoxesHTML(type, key)}</div>`
     : '';
 
-  return headerHtml + statsHtml + buView + combinedView;
+  return headerHtml + statsHtml + buView + combinedView + goals.html;
 }
 
 // Toggles a BU chart run expand row (same pattern as toggleChartRun).
