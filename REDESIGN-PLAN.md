@@ -3303,6 +3303,16 @@ Steps:
    "The Charts Guide tour") and the footer's "Questions or issues?".
 7. **Screen check:** 1440 / 1100 / 390 × en / es / pt-BR / pt-PT × a few
    themes, all three pages.
+   **Done 2026-10-26:** script check (C:/tmp/pb_s7.mjs) of Playlists (two
+   playlists, one open), Board and the Guide at 1440 / 1100 / 390 touch ×
+   en / es / pt-BR / pt-PT × Navy dark, Navy light, Yellow, Red light: no
+   sideways scroll, no English strings left on the pages, no errors. Light
+   theme screenshots (Navy light, Red light at 1440 and 390) read right:
+   titles, icons, collages, the board's rows and the guide's buttons.
+
+**Phase 9 part 7 (Playlists, Board, Charts Guide) is finished**
+(2026-10-26). Phase 9 is done; next is phase 10, pop-ups and Settings
+(4.20–4.21), looked at on screen first.
 
 The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in
