@@ -50537,7 +50537,7 @@ function stRenderStreaks(plays) {
   el.innerHTML = `
     <div class="st-streaks-grid">
       ${card('days', activeDays, esc(t('st_streak_of_days', { total: totalDaysInPeriod })), esc(t('st_streak_days_lbl')))}
-      ${card('ever', longestAll, t('st_streak_days_unit'), t('st_streak_longest'), recordBadge, isNewRecord ? ' st-streak-card--record' : '')}
+      ${card('ever', longestAll, t('st_streak_days_unit'), esc(t('st_streak_alltime_best')), recordBadge, isNewRecord ? ' st-streak-card--record' : '')}
       ${stPeriodType !== 'alltime' && !sameStreak ? card('period', longestPeriod, t('st_streak_days_unit'), esc(t('st_streak_best_period', { period: periodLabel }))) : ''}
       ${card('break', brk.n, t('st_streak_break_unit'), esc(t('st_streak_break_short')), '', ' st-streak-card--break')}
     </div>
