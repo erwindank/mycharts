@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 329;
+const DC_CL_I18N_V = 330;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-25', t: 'fix', a: 'soundtrack', h: 'b7e94dc',
+    title: "Your Soundtrack: streak cards centred",
+    detail: "In the Streaks chapter, each card's content now sits in the middle of the card, even when another card is taller because of its badge. The line under the calendar shows a single date for a one-day break. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-25', t: 'fix', a: 'soundtrack', h: '632251e',
     title: "Your Soundtrack: Grammys chapter shows that year's awards, no Awards visit needed",
     detail: "The Grammy winners chapter now only counts your My Grammys picks for the year you're looking at (a month uses its year; All-Time still counts every year). It also loads your saved ballots by itself, so the winners show up right away instead of only after you'd opened the Awards tab in that visit. Works with Last.fm, Google Sheets and CSV uploads." },
