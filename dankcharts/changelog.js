@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 353;
+const DC_CL_I18N_V = 354;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-26', t: 'feature', a: 'ui', h: '5d0667d',
+    title: "Search buttons and Share card in the details window",
+    detail: "The song, album and artist windows now have Spotify, YouTube and Last.fm buttons, like the new-artist window in Your Soundtrack. Spotify and YouTube search for what you are looking at; Last.fm opens its track, album or artist page. The Share button is now Share card and sits next to Playlist and Rate." },
   { d: '2026-10-26', t: 'design', a: 'ui', h: '8f97f0f',
     title: "Song, album and artist details in the middle of the screen",
     detail: "The details of a song, album or artist now open in a large window in the middle of the screen instead of a panel at the side. On a computer the cover, title and buttons stay on the left while you move through the tabs on the right. The window takes its colour from the cover: the Sample button, the tab line, the icons, the numbers and the plays-by-month bars all match the artwork. The big numbers are bolder and count up as the window opens. On a phone the details still fill the screen." },

@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Search buttons and Share card in the details window":
+    ["Botões de busca e Compartilhar cartão nos detalhes",
+     "As janelas de música, álbum e artista agora têm botões do Spotify, YouTube e Last.fm, como a janela de artista novo em Sua Trilha Sonora. Spotify e YouTube buscam o que você está vendo; o Last.fm abre a página da música, do álbum ou do artista. O botão Compartilhar agora é Compartilhar cartão e fica ao lado de Playlist e Avaliar."],
   "Song, album and artist details in the middle of the screen":
     ["Detalhes de música, álbum e artista no centro da tela",
      "Os detalhes de uma música, álbum ou artista agora abrem numa janela grande no centro da tela, em vez de um painel na lateral. No computador, a capa, o título e os botões ficam à esquerda enquanto você navega pelas abas à direita. A janela pega a cor da capa: o botão Prévia, a linha das abas, os ícones, os números e as barras de plays por mês combinam com a imagem. Os números grandes estão mais fortes e sobem contando quando a janela abre. No celular os detalhes continuam ocupando a tela inteira."],

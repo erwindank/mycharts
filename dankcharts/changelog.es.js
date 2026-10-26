@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Search buttons and Share card in the details window":
+    ["Botones de búsqueda y Compartir tarjeta en los detalles",
+     "Las ventanas de canción, álbum y artista tienen ahora botones de Spotify, YouTube y Last.fm, como la ventana de artista nuevo en Tu Banda Sonora. Spotify y YouTube buscan lo que estás viendo; Last.fm abre su página de canción, álbum o artista. El botón Compartir es ahora Compartir tarjeta y está junto a Lista y Puntuar."],
   "Song, album and artist details in the middle of the screen":
     ["Detalles de canción, álbum y artista en el centro de la pantalla",
      "Los detalles de una canción, un álbum o un artista se abren ahora en una ventana grande en el centro de la pantalla en lugar de un panel al costado. En computadora, la portada, el título y los botones se quedan a la izquierda mientras recorres las pestañas a la derecha. La ventana toma su color de la portada: el botón Fragmento, la línea de las pestañas, los íconos, los números y las barras de escuchas por mes combinan con la imagen. Los números grandes son más marcados y cuentan hacia arriba al abrirse la ventana. En el teléfono los detalles siguen ocupando toda la pantalla."],
