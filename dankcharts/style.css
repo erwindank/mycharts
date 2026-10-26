@@ -858,8 +858,9 @@
         position: sticky;
         top: 0;
         z-index: 6;
-        height: 24px;
-        margin-bottom: -24px;   /* sits over the header, takes no room */
+        height: 18px;
+        /* takes its own room at the top: laid over the header it covered
+           some titles */
         touch-action: none;
         cursor: grab;
         flex-shrink: 0;
@@ -868,7 +869,7 @@
         content: '';
         position: absolute;
         left: 50%;
-        top: 8px;
+        top: 7px;
         width: 40px;
         height: 4px;
         margin-left: -20px;
@@ -1096,7 +1097,7 @@
       .dc-pop.dc-pop > .dc-frame,
       .dc-pop.dc-pop > .ig-modal-box,
       .dc-pop.dc-pop > .dc-sup-box { overflow: hidden; max-height: calc(100dvh - var(--sp-6)); }
-      .dc-frame-head { padding: var(--sp-5) var(--sp-4) var(--sp-3); touch-action: none; }
+      .dc-frame-head { padding: var(--sp-2) var(--sp-4) var(--sp-3); touch-action: none; }
       .dc-frame-body { padding: 0 var(--sp-4) var(--sp-4); }
       .dc-frame-foot { padding: var(--sp-3) var(--sp-4); }
       /* thumb-sized buttons, the main action filling the row */
@@ -1200,7 +1201,7 @@
     .ig-modal-footer [id$="DownloadBtn"],
     .ig-modal-footer [id$="AllBtn"] { --dc-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3v12M7 10l5 5 5-5M5 21h14'/%3E%3C/svg%3E"); }
     @media (max-width: 640px) {
-      .ig-modal-box .ig-modal-header { padding: var(--sp-5) var(--sp-4) var(--sp-3); }
+      .ig-modal-box .ig-modal-header { padding: var(--sp-2) var(--sp-4) var(--sp-3); }
       .ig-modal-box .ig-modal-body { padding: 0 var(--sp-4) var(--sp-4); gap: var(--sp-3); }
       .ig-modal-box .ig-preview-panel { position: static; width: 100%; padding: var(--sp-3); box-sizing: border-box; }
       .ig-modal-box .ig-modal-footer { padding: var(--sp-3) var(--sp-4); }

@@ -37185,7 +37185,7 @@ function openStreakModal(opts) {
         (longestNow ? `<span class="dc-chip sk-chip sk-chip--long">${esc(t('sk_longest_now'))} <b>${longestNow.len}d</b> ${esc(longestNow.name)}</span>` : '') +
         `<span class="dc-chip sk-chip sk-chip--lost">${esc(t('sk_lost_yday'))} <b>${lost.length}</b></span>` +
         (weekStarted || weekEnded ? `<span class="dc-chip sk-chip" title="${esc(t('sk_week_title'))}">${esc(t('sk_this_week'))} <b>+${weekStarted}</b> / <b>−${weekEnded}</b></span>` : '') +
-        `<button type="button" class="dc-btn dc-btn-normal dc-btn-sm sk-chip--share" onclick="skOpenCard()">📤 ${esc(t('sk_share'))}</button>` +
+        `<button type="button" class="dc-btn dc-btn-normal dc-btn-sm sk-chip--share" onclick="skOpenCard()">${dcIco('share')}${esc(t('sk_share'))}</button>` +
       `</div>`
     : '';
   const ctToday = document.getElementById('skTabCtToday');
