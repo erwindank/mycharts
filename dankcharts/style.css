@@ -1108,6 +1108,107 @@
     @keyframes dcSheetDown { to { transform: translateY(100%); } }
 
     /* ═══════════════════════════════════════════════════════════════
+       SHARE WINDOWS — phase 10 step 8
+       Every share-as-image window (.ig-modal-box: charts, chart run,
+       stats, streaks, rating, track plays, artist, Daily calendar) on one
+       shell: the frame's header (popups.js adds the icon tile), the
+       preview on a soft stage that stays in view while the options
+       scroll, option groups as cards whose titles fold them, and Copy /
+       Share / Download with line icons drawn here (their labels are
+       rewritten while busy, so an icon inside them would be lost).
+       ═══════════════════════════════════════════════════════════════ */
+    .dc-modal.ig-modal-box { max-width: 980px; }
+    .ig-modal-box .ig-modal-header {
+      justify-content: flex-start;
+      gap: var(--sp-3);
+      padding: var(--sp-4) var(--sp-5);
+      background: none;
+    }
+    .ig-modal-box .ig-modal-header h3 {
+      flex: 1;
+      min-width: 0;
+      margin: 0;
+      font-size: var(--fs-md);
+      font-weight: 700;
+      color: var(--text);
+    }
+    .ig-modal-box .ig-modal-body { gap: var(--sp-5); padding: var(--sp-5); align-items: flex-start; }
+    .ig-modal-box .ig-preview-panel {
+      position: sticky;
+      top: 0;
+      padding: var(--sp-4);
+      border-radius: var(--r-lg);
+      background:
+        radial-gradient(120% 80% at 50% 0%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 70%),
+        var(--raised);
+      border: 1px solid var(--border);
+      box-sizing: content-box;   /* the 306px column stays 306px inside its padding: the previews size themselves from it */
+    }
+    .ig-modal-box .ig-preview-label { display: none; }
+    .ig-modal-box .ig-preview-frame { border: 0; border-radius: var(--r-sm); box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35); }
+    .ig-modal-box .ig-controls-panel { gap: var(--sp-2); }
+    .ig-modal-box .ig-controls-panel .sh-group {
+      gap: var(--sp-2);
+      padding: var(--sp-3) var(--sp-4);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      background: var(--raised);
+    }
+    .ig-modal-box .ig-controls-panel .sh-group:last-child { padding-bottom: var(--sp-3); border-bottom: 1px solid var(--border); }
+    .ig-modal-box .sh-group-title[role="button"] {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--sp-2);
+      margin: 0;
+      font-size: var(--fs-sm);
+      font-weight: 700;
+      color: var(--text);
+      cursor: pointer;
+      user-select: none;
+    }
+    .ig-modal-box .sh-group-title[role="button"]::after {
+      content: '';
+      width: 7px;
+      height: 7px;
+      margin-right: 4px;
+      border-right: 2px solid var(--text3);
+      border-bottom: 2px solid var(--text3);
+      transform: translateY(1px) rotate(-135deg);
+      transition: transform var(--t-fast) var(--ease);
+    }
+    .ig-modal-box .sh-group.is-folded > .sh-group-title[role="button"]::after { transform: translateY(-2px) rotate(45deg); }
+    .ig-modal-box .sh-group-title[role="button"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 2px; }
+    .ig-modal-box .sh-group.is-folded > :not(.sh-group-title) { display: none !important; }
+    .ig-modal-box .ig-modal-footer { padding: var(--sp-3) var(--sp-5); background: color-mix(in srgb, var(--bg3) 55%, transparent); }
+    .ig-modal-box .ig-modal-footer > .dc-btn-plain:first-child { margin-right: auto; }
+    /* Line icons on Copy / Share / Download, as masks so they take the text colour */
+    .ig-modal-footer [id$="CopyBtn"]::before,
+    .ig-modal-footer .ig-share-native-btn::before,
+    .ig-modal-footer [id$="DownloadBtn"]::before,
+    .ig-modal-footer [id$="AllBtn"]::before {
+      content: '';
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      background: currentColor;
+      -webkit-mask: var(--dc-mask) center / contain no-repeat;
+      mask: var(--dc-mask) center / contain no-repeat;
+    }
+    .ig-modal-footer [id$="CopyBtn"] { --dc-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='9' y='9' width='12' height='12' rx='2'/%3E%3Cpath d='M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1'/%3E%3C/svg%3E"); }
+    .ig-modal-footer .ig-share-native-btn { --dc-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 15V3M7 8l5-5 5 5'/%3E%3Cpath d='M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6'/%3E%3C/svg%3E"); }
+    .ig-modal-footer [id$="DownloadBtn"],
+    .ig-modal-footer [id$="AllBtn"] { --dc-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3v12M7 10l5 5 5-5M5 21h14'/%3E%3C/svg%3E"); }
+    @media (max-width: 640px) {
+      .ig-modal-box .ig-modal-header { padding: var(--sp-5) var(--sp-4) var(--sp-3); }
+      .ig-modal-box .ig-modal-body { padding: 0 var(--sp-4) var(--sp-4); gap: var(--sp-3); }
+      .ig-modal-box .ig-preview-panel { position: static; width: 100%; padding: var(--sp-3); box-sizing: border-box; }
+      .ig-modal-box .ig-modal-footer { padding: var(--sp-3) var(--sp-4); }
+      .ig-modal-box .ig-modal-footer > .dc-btn { height: 42px; }
+      .ig-modal-box .ig-modal-footer > .dc-btn-plain:first-child { margin-right: 0; }
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
        DETAILS SIDE PANEL — phase 10 step 3 (panel.js)
        Song, album and artist details slide in from the right (full screen
        on a phone) over a light scrim, so the chart stays in view.

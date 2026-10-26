@@ -9,6 +9,9 @@ const TRANSLATIONS = {
 
   // ── ENGLISH ──────────────────────────────────────────────────────────────────
   en: {
+    sh_copy: 'Copy',
+    sh_copied: 'Copied!',
+    sh_fold: 'Show or hide these options',
     rte_kind_song: 'Rating a song',
     rte_kind_album: 'Rating an album',
     rte_back: 'Back',
@@ -2182,7 +2185,7 @@ const TRANSLATIONS = {
 
     nav_hint_keyboard: 'arrow keys to navigate periods',
     nav_hint_swipe: 'swipe to navigate',
-    btn_download_image: '↓ Download Image',
+    btn_download_image: 'Download Image',
     btn_cancel: 'Cancel',
     btn_close: '✕ CLOSE',
     btn_add: '+ Add',
@@ -3179,9 +3182,9 @@ const TRANSLATIONS = {
     cr_type_song: '★ SONG',
     cr_type_artist: '♦ ARTIST',
     cr_type_album: '◈ ALBUM',
-    cr_modal_title_songs: '★ SONG CHART RUN',
-    cr_modal_title_artists: '♦ ARTIST CHART RUN',
-    cr_modal_title_albums: '◈ ALBUM CHART RUN',
+    cr_modal_title_songs: 'Song chart run',
+    cr_modal_title_artists: 'Artist chart run',
+    cr_modal_title_albums: 'Album chart run',
 
     // Export modal
     export_title: 'Export Playlist',
@@ -3800,7 +3803,7 @@ const TRANSLATIONS = {
     ra_card_opt_singles: 'Singles & EPs',
     ra_card_rated_of: '{{n}}/{{total}} rated',
     ra_card_opt_legend: 'Colour key',
-    ra_card_download_all: '↓ All pages',
+    ra_card_download_all: 'All pages',
     ra_card_sub: '{{albums}} albums · {{songs}} songs rated',
     ra_card_album_avg: 'Album average',
     ra_card_song_avg: 'Song average',
@@ -4182,6 +4185,9 @@ const TRANSLATIONS = {
 
   // ── SPANISH ───────────────────────────────────────────────────────────────────
   es: {
+    sh_copy: 'Copiar',
+    sh_copied: '¡Copiado!',
+    sh_fold: 'Mostrar u ocultar estas opciones',
     rte_kind_song: 'Puntuando una canción',
     rte_kind_album: 'Puntuando un álbum',
     rte_back: 'Atrás',
@@ -6340,7 +6346,7 @@ const TRANSLATIONS = {
 
     nav_hint_keyboard: 'Teclas de flecha para navegar entre periodos',
     nav_hint_swipe: 'deslizar para navegar',
-    btn_download_image: '↓ Descargar Imagen',
+    btn_download_image: 'Descargar imagen',
     btn_cancel: 'Cancelar',
     btn_close: '✕ CERRAR',
     btn_add: '+ Añadir',
@@ -7247,9 +7253,9 @@ const TRANSLATIONS = {
     cr_type_song: '★ CANCIÓN',
     cr_type_artist: '♦ ARTISTA',
     cr_type_album: '◈ ÁLBUM',
-    cr_modal_title_songs: '★ RECORRIDO EN EL RANKING DE CANCIONES',
-    cr_modal_title_artists: '♦ RECORRIDO EN EL RANKING DE ARTISTAS',
-    cr_modal_title_albums: '◈ RECORRIDO EN EL RANKING DE ÁLBUMES',
+    cr_modal_title_songs: 'Recorrido en el ranking de canciones',
+    cr_modal_title_artists: 'Recorrido en el ranking de artistas',
+    cr_modal_title_albums: 'Recorrido en el ranking de álbumes',
 
     // Export modal
     export_title: 'Exportar Playlist',
@@ -7864,7 +7870,7 @@ const TRANSLATIONS = {
     ra_card_opt_singles: 'Sencillos y EPs',
     ra_card_rated_of: '{{n}}/{{total}} calificadas',
     ra_card_opt_legend: 'Leyenda de colores',
-    ra_card_download_all: '↓ Todas las páginas',
+    ra_card_download_all: 'Todas las páginas',
     ra_card_sub: '{{albums}} álbumes · {{songs}} canciones calificadas',
     ra_card_album_avg: 'Promedio de álbumes',
     ra_card_song_avg: 'Promedio de canciones',
@@ -8240,6 +8246,9 @@ const TRANSLATIONS = {
 
   // ── PORTUGUESE — BRAZIL ───────────────────────────────────────────────────────
   'pt-BR': {
+    sh_copy: 'Copiar',
+    sh_copied: 'Copiado!',
+    sh_fold: 'Mostrar ou ocultar estas opções',
     rte_kind_song: 'Avaliando uma música',
     rte_kind_album: 'Avaliando um álbum',
     rte_back: 'Voltar',
@@ -10398,7 +10407,7 @@ const TRANSLATIONS = {
 
     nav_hint_keyboard: 'teclas de seta para navegar períodos',
     nav_hint_swipe: 'deslize para navegar',
-    btn_download_image: '↓ Baixar Imagem',
+    btn_download_image: 'Baixar imagem',
     btn_cancel: 'Cancelar',
     btn_close: '✕ FECHAR',
     btn_add: '+ Adicionar',
@@ -11306,9 +11315,9 @@ const TRANSLATIONS = {
     cr_type_song: '★ MÚSICA',
     cr_type_artist: '♦ ARTISTA',
     cr_type_album: '◈ ÁLBUM',
-    cr_modal_title_songs: '★ TRAJETÓRIA DA MÚSICA NA PARADA',
-    cr_modal_title_artists: '♦ TRAJETÓRIA DO ARTISTA NA PARADA',
-    cr_modal_title_albums: '◈ TRAJETÓRIA DO ÁLBUM NA PARADA',
+    cr_modal_title_songs: 'Trajetória da música na parada',
+    cr_modal_title_artists: 'Trajetória do artista na parada',
+    cr_modal_title_albums: 'Trajetória do álbum na parada',
 
     // Export modal
     export_title: 'Exportar Playlist',
@@ -11923,7 +11932,7 @@ const TRANSLATIONS = {
     ra_card_opt_singles: 'Singles e EPs',
     ra_card_rated_of: '{{n}}/{{total}} avaliadas',
     ra_card_opt_legend: 'Legenda de cores',
-    ra_card_download_all: '↓ Todas as páginas',
+    ra_card_download_all: 'Todas as páginas',
     ra_card_sub: '{{albums}} álbuns · {{songs}} faixas avaliadas',
     ra_card_album_avg: 'Média dos álbuns',
     ra_card_song_avg: 'Média das faixas',
@@ -12299,6 +12308,9 @@ const TRANSLATIONS = {
 
   // ── PORTUGUESE — EUROPEAN ─────────────────────────────────────────────────────
   'pt-PT': {
+    sh_copy: 'Copiar',
+    sh_copied: 'Copiado!',
+    sh_fold: 'Mostrar ou ocultar estas opções',
     rte_kind_song: 'A avaliar uma música',
     rte_kind_album: 'A avaliar um álbum',
     rte_back: 'Voltar',
@@ -14457,7 +14469,7 @@ const TRANSLATIONS = {
 
     nav_hint_keyboard: 'teclas de seta para navegar períodos',
     nav_hint_swipe: 'deslize para navegar',
-    btn_download_image: '↓ Descarregar Imagem',
+    btn_download_image: 'Descarregar imagem',
     btn_cancel: 'Cancelar',
     btn_close: '✕ FECHAR',
     btn_add: '+ Adicionar',
@@ -15364,9 +15376,9 @@ const TRANSLATIONS = {
     cr_type_song: '★ MÚSICA',
     cr_type_artist: '♦ ARTISTA',
     cr_type_album: '◈ ÁLBUM',
-    cr_modal_title_songs: '★ PERCURSO DA MÚSICA NO TOP',
-    cr_modal_title_artists: '♦ PERCURSO DO ARTISTA NO TOP',
-    cr_modal_title_albums: '◈ PERCURSO DO ÁLBUM NO TOP',
+    cr_modal_title_songs: 'Percurso da música no top',
+    cr_modal_title_artists: 'Percurso do artista no top',
+    cr_modal_title_albums: 'Percurso do álbum no top',
 
     // Export modal
     export_title: 'Exportar Playlist',
@@ -15981,7 +15993,7 @@ const TRANSLATIONS = {
     ra_card_opt_singles: 'Singles e EPs',
     ra_card_rated_of: '{{n}}/{{total}} avaliadas',
     ra_card_opt_legend: 'Legenda de cores',
-    ra_card_download_all: '↓ Todas as páginas',
+    ra_card_download_all: 'Todas as páginas',
     ra_card_sub: '{{albums}} álbuns · {{songs}} faixas avaliadas',
     ra_card_album_avg: 'Média dos álbuns',
     ra_card_song_avg: 'Média das faixas',

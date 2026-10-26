@@ -23311,12 +23311,12 @@ async function copyIgFromPreview() {
   if (!navigator.clipboard?.write) { downloadIgFromPreview(); return; }
   const btn = document.getElementById('igCopyBtn');
   const orig = btn.textContent;
-  btn.textContent = '⏳…'; btn.disabled = true;
+  btn.textContent = '…'; btn.disabled = true;
   try {
     const cvs = await shCapture('igCardCanvas', igOptions.format, igOptions.quality);
     const blob = await shCanvasBlob(cvs);
     await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-    btn.textContent = '✓ Copied!';
+    btn.textContent = '✓ ' + t('sh_copied');
     setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 1800);
   } catch (e) {
     btn.textContent = orig; btn.disabled = false;
@@ -23631,10 +23631,15 @@ function openCrIgModal(type, encodedKey, rank) {
 
   // Header title
   let name = key.split('|||')[0];
-  const crAny = allChartRun.day?.result?.[type]?.[key] || allChartRun.year?.result?.[type]?.[key] || allChartRun.month?.result?.[type]?.[key];
+  const crAny = allChartRun.day?.result?.[type]?.[key] || allChartRun.week?.result?.[type]?.[key] || allChartRun.year?.result?.[type]?.[key] || allChartRun.month?.result?.[type]?.[key];
   if (crAny) {
     if (type === 'songs') name = crAny._title || name;
     if (type === 'albums') name = crAny._album || name;
+  }
+  // Song keys are lower case: the title as it is written, from a play of it
+  if (type === 'songs' && name === key.split('|||')[0]) {
+    const p = allPlays.find(pl => songKey(pl) === key);
+    if (p) name = p.title;
   }
   const titleKey = { songs: 'cr_modal_title_songs', artists: 'cr_modal_title_artists', albums: 'cr_modal_title_albums' }[type];
   document.getElementById('crIgTitle').textContent = t(titleKey) + ' — ' + name.slice(0, 40);
@@ -24143,13 +24148,13 @@ async function copyCrIg() {
   if (!navigator.clipboard?.write) { downloadCrIg(); return; }
   const btn = document.getElementById('crIgCopyBtn');
   const orig = btn.textContent;
-  btn.textContent = '⏳…'; btn.disabled = true;
+  btn.textContent = '…'; btn.disabled = true;
   const design = crDesign();
   try {
     const c = await shCapture('crIgCanvas', design.format, design.quality);
     const blob = await shCanvasBlob(c);
     await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-    btn.textContent = '✓ Copied!';
+    btn.textContent = '✓ ' + t('sh_copied');
     setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 1800);
   } catch (e) {
     btn.textContent = orig; btn.disabled = false;
@@ -37834,7 +37839,7 @@ async function skCopyCard() {
   if (!navigator.clipboard?.write) { skDownloadCard(); return; }
   const btn = document.getElementById('skCardCopyBtn');
   const orig = btn.textContent;
-  btn.textContent = '⏳…'; btn.disabled = true;
+  btn.textContent = '…'; btn.disabled = true;
   try {
     const cvs = await shCapture('skCardCanvas', skCard.format, skCard.quality);
     const blob = await shCanvasBlob(cvs);
@@ -51820,12 +51825,12 @@ async function stCopyCard() {
   if (!navigator.clipboard?.write) { stDownloadCard(); return; }
   const btn = document.getElementById('stCardCopyBtn');
   const orig = btn.textContent;
-  btn.textContent = '⏳…'; btn.disabled = true;
+  btn.textContent = '…'; btn.disabled = true;
   try {
     const cvs = await shCapture('stCardCanvas', stCard.format, stCard.quality);
     const blob = await shCanvasBlob(cvs);
     await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-    btn.textContent = '✓ Copied!';
+    btn.textContent = '✓ ' + t('sh_copied');
     setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 1800);
   } catch (e) {
     btn.textContent = orig; btn.disabled = false;
@@ -55885,12 +55890,12 @@ async function rtCopyCard() {
   if (!navigator.clipboard?.write) { rtDownloadCard(); return; }
   const btn = document.getElementById('rtCardCopyBtn');
   const orig = btn.textContent;
-  btn.textContent = '⏳…'; btn.disabled = true;
+  btn.textContent = '…'; btn.disabled = true;
   try {
     const cvs = await shCapture('rtCardCanvas', rtCard.format, rtCard.quality);
     const blob = await shCanvasBlob(cvs);
     await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-    btn.textContent = '✓ Copied!';
+    btn.textContent = '✓ ' + t('sh_copied');
     setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 1800);
   } catch (e) {
     btn.textContent = orig; btn.disabled = false;
@@ -56684,12 +56689,12 @@ async function tpCopyCard() {
   if (!navigator.clipboard?.write) { tpDownloadCard(); return; }
   const btn = document.getElementById('tpCardCopyBtn');
   const orig = btn.textContent;
-  btn.textContent = '⏳…'; btn.disabled = true;
+  btn.textContent = '…'; btn.disabled = true;
   try {
     const cvs = await shCapture('tpCardCanvas', tpCard.format, tpCard.quality);
     const blob = await shCanvasBlob(cvs);
     await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-    btn.textContent = '✓ Copied!';
+    btn.textContent = '✓ ' + t('sh_copied');
     setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 1800);
   } catch (e) {
     btn.textContent = orig; btn.disabled = false;
@@ -57432,12 +57437,12 @@ async function raCopyCard() {
   if (!navigator.clipboard?.write) { raDownloadCard(); return; }
   const btn = document.getElementById('raCardCopyBtn');
   const orig = btn.textContent;
-  btn.textContent = '⏳…'; btn.disabled = true;
+  btn.textContent = '…'; btn.disabled = true;
   try {
     const cvs = await shCapture('raCardCanvas', raCard.format, raCard.quality);
     const blob = await shCanvasBlob(cvs);
     await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-    btn.textContent = '✓ Copied!';
+    btn.textContent = '✓ ' + t('sh_copied');
     setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 1800);
   } catch (e) {
     btn.textContent = orig; btn.disabled = false;

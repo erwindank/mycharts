@@ -167,6 +167,7 @@
     if (box) {
       addGrip(box);
       fillIcons(box);
+      if (box.classList.contains('ig-modal-box')) decorateShare(box);
       // Every ✕ drawn as the same line icon (they were a mix of ✕ and ×)
       var xs = box.querySelectorAll(CLOSE_BTN);
       for (var x = 0; x < xs.length; x++) {
@@ -189,6 +190,58 @@
       try { target.focus({ preventScroll: true }); } catch (e) {}
     });
   }
+
+  /* ── Share windows (phase 10 step 8) ─────────────────────────────────────
+     All the share-as-image windows (.ig-modal-box) get the same touches the
+     first time they open: an icon tile in the header, and each option group
+     can fold away under its title (on a phone only the first three start
+     open, so the preview and the main choices fit on screen). */
+  // A leading emoji or star on the title, the mode tabs and the option
+  // labels goes (titles are set again on each open, so this runs every time)
+  var SHARE_LEAD = /^\s*(?:\p{Extended_Pictographic}|[★☆♦◈])(?:[\uFE0F\u200D]|\p{Extended_Pictographic})*\s*/u;
+  function stripShareEmoji(box) {
+    var els = box.querySelectorAll('.ig-modal-header h3, .ig-modal-mode-bar > button, .ig-ctrl-row > span');
+    for (var i = 0; i < els.length; i++) {
+      var n = els[i].firstChild;
+      if (n && n.nodeType === 3 && SHARE_LEAD.test(n.nodeValue)) n.nodeValue = n.nodeValue.replace(SHARE_LEAD, '');
+    }
+  }
+  function decorateShare(box) {
+    stripShareEmoji(box);
+    if (box._dcShare) return;
+    box._dcShare = true;
+    var head = box.querySelector('.ig-modal-header');
+    if (head && !head.querySelector('.dc-frame-icon')) {
+      var tile = document.createElement('span');
+      tile.className = 'dc-frame-icon';
+      tile.innerHTML = dcIco('share');
+      head.insertBefore(tile, head.firstChild);
+    }
+    var groups = box.querySelectorAll('.ig-controls-panel .sh-group');
+    for (var i = 0; i < groups.length; i++) {
+      var title = groups[i].querySelector(':scope > .sh-group-title');
+      if (!title) continue;
+      title.setAttribute('role', 'button');
+      title.setAttribute('tabindex', '0');
+      title.setAttribute('title', typeof t === 'function' ? t('sh_fold') : '');
+      if (phone && phone.matches && i >= 3) groups[i].classList.add('is-folded');
+      title.setAttribute('aria-expanded', groups[i].classList.contains('is-folded') ? 'false' : 'true');
+    }
+  }
+  function foldShareGroup(title) {
+    var g = title.parentElement;
+    g.classList.toggle('is-folded');
+    title.setAttribute('aria-expanded', g.classList.contains('is-folded') ? 'false' : 'true');
+  }
+  document.addEventListener('click', function (e) {
+    var title = e.target.closest && e.target.closest('.ig-controls-panel .sh-group > .sh-group-title[role="button"]');
+    if (title) foldShareGroup(title);
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    var title = e.target.closest && e.target.closest('.sh-group-title[role="button"]');
+    if (title) { e.preventDefault(); foldShareGroup(title); }
+  });
 
   /* ── Closing ─────────────────────────────────────────────────────────── */
   function onClose(o) {

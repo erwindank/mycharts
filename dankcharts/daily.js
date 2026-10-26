@@ -1317,8 +1317,8 @@ function dyCalShareOpen() {
       </div>
       <div class="ig-modal-footer">
         <button class="dc-btn dc-btn-plain" onclick="dyCalShareClose()">${esc(t('btn_cancel'))}</button>
-        <button class="dc-btn dc-btn-normal" id="dyCalCopyBtn" onclick="dyCalShareCopy()">📋 ${esc(t('dy_cal_copy'))}</button>
-        <button class="dc-btn dc-btn-normal ig-share-native-btn" id="dyCalShareBtn" onclick="dyCalShareNow()">📤 ${esc(t('dy_cal_share'))}</button>
+        <button class="dc-btn dc-btn-normal" id="dyCalCopyBtn" onclick="dyCalShareCopy()">${esc(t('dy_cal_copy'))}</button>
+        <button class="dc-btn dc-btn-normal ig-share-native-btn" id="dyCalShareBtn" onclick="dyCalShareNow()">${esc(t('dy_cal_share'))}</button>
         <button class="dc-btn dc-btn-main" id="dyCalDownloadBtn" onclick="dyCalShareDownload()">${esc(t('btn_download_image'))}</button>
       </div>
     </div>`;
