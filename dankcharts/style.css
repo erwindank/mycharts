@@ -29132,6 +29132,130 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
 .st-streak-link a { color: var(--sc); text-decoration: none; font-weight: 600; }
 .st-streak-link a:hover { text-decoration: underline; }
 
+/* Small facts under a card's dates: rank, old record, most-played song,
+   change from the period before */
+.st-streak-extra {
+  font-family: var(--font-sans);
+  font-size: var(--fs-xs);
+  color: var(--text2);
+  margin-top: var(--sp-1);
+  line-height: 1.35;
+}
+
+/* Longest break: grey, it's the days without music (a class, not
+   nth-child, because on All-Time it's the third card) */
+.st-streaks-grid > .st-streak-card--break { --fc: var(--text2); animation: none; }
+
+/* Artist / album / song cards open that one's page */
+.st-streak-card--link { cursor: pointer; transition: border-color 0.15s, transform 0.15s; }
+.st-streak-card--link:hover { border-color: color-mix(in srgb, var(--fc) 65%, var(--border)); transform: translateY(-1px); }
+.st-streak-card--link:focus-visible { outline: 2px solid var(--fc); outline-offset: 2px; }
+
+/* ── Streaks calendar: every day of the year (a week per column) or the
+   month (one row), lit by plays, top 3 streaks in their own colours ── */
+.st-cal-wrap {
+  overflow-x: auto;
+  margin-bottom: var(--sp-2);
+  padding-bottom: 2px;
+}
+.st-cal { --gap: 3px; }
+.st-cal--year { min-width: 640px; }
+.st-cal--month { min-width: 520px; }
+.st-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); /* minmax: month labels must not widen a column */
+  gap: var(--gap);
+}
+.st-cal--year .st-cal-grid {
+  grid-template-rows: repeat(7, auto);
+  grid-auto-flow: column;
+}
+.st-cal-months {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); /* minmax: month labels must not widen a column */
+  column-gap: var(--gap);
+  margin-bottom: var(--sp-1);
+  font-family: var(--font-sans);
+  font-size: 10px;
+  color: var(--text3);
+}
+.st-cal-months span { grid-row: 1; white-space: nowrap; }
+.st-cal-day {
+  aspect-ratio: 1;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--text3) 14%, transparent);
+}
+.st-cal--month .st-cal-day {
+  aspect-ratio: auto;
+  height: 30px;
+  border-radius: var(--r-sm);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.st-cal-day em {
+  font-style: normal;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text3);
+  padding-bottom: 2px;
+}
+.st-cal-day.is-pad { background: transparent; }
+.st-cal-day.is-out { background: color-mix(in srgb, var(--text3) 5%, transparent); }
+.st-cal-day.lv1 { background: color-mix(in srgb, var(--rose) 28%, var(--bg3)); }
+.st-cal-day.lv2 { background: color-mix(in srgb, var(--rose) 48%, var(--bg3)); }
+.st-cal-day.lv3 { background: color-mix(in srgb, var(--rose) 70%, var(--bg3)); }
+.st-cal-day.lv4 { background: var(--rose); }
+.st-cal-day.is-s1, .st-cal-key.is-s1 i { background: var(--gold1); }
+.st-cal-day.is-s2, .st-cal-key.is-s2 i { background: var(--teal); }
+.st-cal-day.is-s3, .st-cal-key.is-s3 i { background: var(--green); }
+.st-cal-day.lv3 em, .st-cal-day.lv4 em,
+.st-cal-day.is-s1 em, .st-cal-day.is-s2 em, .st-cal-day.is-s3 em { color: var(--on-accent); }
+.st-cal-day.is-break, .st-cal-key.is-break i {
+  background: transparent;
+  outline: 1px dashed var(--text2);
+  outline-offset: -1px;
+}
+
+.st-cal-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-1) var(--sp-4);
+  margin-bottom: var(--sp-2);
+  font-family: var(--font-sans);
+  font-size: var(--fs-xs);
+  color: var(--text2);
+}
+.st-cal-key { display: inline-flex; align-items: center; gap: var(--sp-1); }
+.st-cal-key i { width: 10px; height: 10px; border-radius: 2px; flex: none; }
+.st-cal-key b { color: var(--text); font-weight: 700; }
+
+/* Bigger streaks: music every week / month / year */
+.st-streak-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-3);
+}
+.st-streak-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  font-family: var(--font-sans);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--text2);
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 0.2rem var(--sp-2);
+}
+.st-streak-chip.is-full {
+  color: var(--green);
+  border-color: color-mix(in srgb, var(--green) 40%, var(--border));
+  background: color-mix(in srgb, var(--green) 10%, var(--bg3));
+}
+
 @keyframes stFlamePulse {
   0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--fc) 0%, transparent); }
   50%       { box-shadow: 0 0 18px 1px color-mix(in srgb, var(--fc) 45%, transparent); }

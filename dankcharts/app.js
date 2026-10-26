@@ -49050,6 +49050,7 @@ const ST_ICO = {
   disc: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5"/>',
   repeat: '<path d="M17 2l3 3-3 3"/><path d="M4 11V9a4 4 0 0 1 4-4h12"/><path d="M7 22l-3-3 3-3"/><path d="M20 13v2a4 4 0 0 1-4 4H4"/>',
   gem: '<path d="M6 3h12l3 6-9 12L3 9Z"/><path d="M3 9h18M9 3l3 6 3-6M12 9v12"/>',
+  check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
 };
 function stIco(name) {
   return `<svg class="st-ico" viewBox="0 0 24 24" aria-hidden="true">${ST_ICO[name] || ''}</svg>`;
@@ -50166,6 +50167,20 @@ function stRenderStreaks(plays) {
   // Date with local setDate()/getDate(), which silently skips a day in
   // negative-UTC-offset timezones and undercounts the walk below.
   const prevDayKey = ds => { const d = new Date(ds + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() - 1); return d.toISOString().slice(0, 10); };
+  const nextDayKey = ds => { const d = new Date(ds + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + 1); return d.toISOString().slice(0, 10); };
+  const daysBetween = (a, b) => Math.round((new Date(b + 'T00:00:00Z') - new Date(a + 'T00:00:00Z')) / 86400000);
+  // Every run of back-to-back days in a sorted list of day keys
+  const runsOf = days => {
+    const out = [];
+    let s = days[0], prev = days[0];
+    for (let i = 1; i <= days.length; i++) {
+      const d = days[i];
+      if (d && daysBetween(prev, d) === 1) { prev = d; continue; }
+      if (s) out.push({ start: s, end: prev, n: daysBetween(s, prev) + 1 });
+      s = prev = d;
+    }
+    return out;
+  };
 
   // "Longest ever" means as of the period being looked at: a past year or
   // month only counts days up to its last day, so 2023 shows the record as
@@ -50250,6 +50265,150 @@ function stRenderStreaks(plays) {
   const activeDays = periodDays.length;
   const activeDaysPct = totalDaysInPeriod ? Math.round((activeDays / totalDaysInPeriod) * 100) : 0;
 
+  // The period's span as day keys. A year or month runs from its first day
+  // (or your first play, if that's later) to its last day (or today, if
+  // that's sooner); All-Time runs from the first play to the last.
+  const pStart = stPeriodType === 'year' ? `${stYear}-01-01`
+    : stPeriodType === 'month' ? `${stYear}-${pad2(stMonth)}-01` : periodDays[0];
+  const firstEverDay = allDays[0] || periodDays[0];
+  const rangeStart = firstEverDay > pStart ? firstEverDay : pStart;
+  const lastPlayDay = periodDays[periodDays.length - 1];
+  const rangeEnd = stPeriodType === 'alltime' ? (lastPlayDay < todayKey ? todayKey : lastPlayDay)
+    : (cutoffKey < todayKey ? cutoffKey : todayKey);
+  const inRange = periodDays.filter(d => d >= rangeStart && d <= rangeEnd);
+
+  // The period's three longest streaks (the calendar picks them out)
+  const topRuns = runsOf(periodDays).filter(r => r.n >= 2)
+    .sort((a, b) => b.n - a.n || (a.start < b.start ? -1 : 1)).slice(0, 3);
+
+  // Longest break: the most days in a row without music inside the span.
+  // Today doesn't count as missed until it's over.
+  const breakEnd = rangeEnd === todayKey && !periodDays.includes(todayKey) ? prevDayKey(todayKey) : rangeEnd;
+  let brk = { n: 0, start: '', end: '' };
+  {
+    let prev = prevDayKey(rangeStart); // a day before the span, so a gap at its start counts
+    for (const d of [...inRange.filter(x => x <= breakEnd), nextDayKey(breakEnd)]) {
+      const gap = daysBetween(prev, d) - 1;
+      if (gap > brk.n) brk = { n: gap, start: nextDayKey(prev), end: prevDayKey(d) };
+      prev = d;
+    }
+  }
+
+  // Every streak up to the cutoff: ranks the period's best, and finds the
+  // record that a new record beat
+  const allRuns = runsOf(allDays);
+  // a streak running past the period's edges is the period's own streak, so it's skipped
+  const periodRank = 1 + allRuns.filter(r => r.n > longestPeriod && !(r.start <= periodStart && r.end >= periodEnd)).length;
+  let beatOld = 0;
+  if (stPeriodType !== 'alltime' && longestStart >= pStart) {
+    for (const r of allRuns) if (r.end < longestStart && r.n > beatOld) beatOld = r.n;
+  }
+
+  // The song played most during a streak, with its artist
+  const topSongBetween = (from, to) => {
+    if (!from) return null;
+    const counts = new Map();
+    for (const p of allPlays) {
+      const dk = dayKey(p.date);
+      if (dk < from || dk > to) continue;
+      const k = songKey(p);
+      const rec = counts.get(k) || { title: p.title, artist: p.artist, n: 0 };
+      rec.n++; counts.set(k, rec);
+    }
+    let best = null;
+    for (const rec of counts.values()) if (!best || rec.n > best.n) best = rec;
+    return best;
+  };
+  const fuelLine = song => song ? `<div class="st-streak-extra">${esc(t('st_streak_fuel', { song: song.title, artist: song.artist }))}</div>` : '';
+
+  // Days you listened, against the period before (for a running period,
+  // against the same point of the period before)
+  let vsLine = '';
+  if (stPeriodType !== 'alltime') {
+    let prevStart, prevEndKey, prevLabel;
+    if (stPeriodType === 'year') {
+      prevStart = `${stYear - 1}-01-01`; prevEndKey = `${stYear - 1}-12-31`; prevLabel = String(stYear - 1);
+    } else {
+      const py = stMonth === 1 ? stYear - 1 : stYear, pm = stMonth === 1 ? 12 : stMonth - 1;
+      prevStart = `${py}-${pad2(pm)}-01`;
+      prevEndKey = `${py}-${pad2(pm)}-${pad2(new Date(py, pm, 0).getDate())}`;
+      prevLabel = t(ST_MONTH_KEYS[pm - 1]) + ' ' + py;
+    }
+    const soFar = reachesToday;
+    if (soFar) {
+      const d = new Date(prevStart + 'T00:00:00Z');
+      d.setUTCDate(d.getUTCDate() + daysBetween(pStart, todayKey));
+      const same = d.toISOString().slice(0, 10);
+      if (same < prevEndKey) prevEndKey = same;
+    }
+    const prevCount = allDays.filter(d => d >= prevStart && d <= prevEndKey).length;
+    if (prevCount) {
+      const diff = activeDays - prevCount, sfx = soFar ? '_sofar' : '';
+      const key = diff > 0 ? 'st_streak_vs_more' : diff < 0 ? 'st_streak_vs_fewer' : 'st_streak_vs_same';
+      vsLine = `<div class="st-streak-extra">${esc(t(key + sfx, { n: Math.abs(diff), prev: prevLabel }))}</div>`;
+    }
+  }
+
+  // Bigger streaks: music every week / month / year of the span
+  const chips = [];
+  {
+    const spanDays = daysBetween(rangeStart, rangeEnd) + 1;
+    const weeks = new Set(inRange.map(d => Math.floor(daysBetween(rangeStart, d) / 7)));
+    const months = new Set(inRange.map(d => d.slice(0, 7)));
+    const years = new Set(inRange.map(d => d.slice(0, 4)));
+    const totalWeeks = Math.ceil(spanDays / 7);
+    const totalMonths = (+rangeEnd.slice(0, 4) - +rangeStart.slice(0, 4)) * 12 + (+rangeEnd.slice(5, 7) - +rangeStart.slice(5, 7)) + 1;
+    const totalYears = +rangeEnd.slice(0, 4) - +rangeStart.slice(0, 4) + 1;
+    const chip = (n, total, keyAll, keyN) => {
+      const all = n >= total;
+      chips.push(`<span class="st-streak-chip${all ? ' is-full' : ''}">${all ? stIco('check') + ' ' : ''}${esc(all ? t(keyAll) : t(keyN, { n, total }))}</span>`);
+    };
+    if (totalWeeks > 1) chip(weeks.size, totalWeeks, 'st_streak_weeks_all', 'st_streak_weeks_n');
+    if (stPeriodType !== 'month' && totalMonths > 1) chip(months.size, totalMonths, 'st_streak_months_all', 'st_streak_months_n');
+    if (stPeriodType === 'alltime' && totalYears > 1) chip(years.size, totalYears, 'st_streak_years_all', 'st_streak_years_n');
+  }
+
+  // Key for the top streaks and the longest break (on All-Time, the whole list)
+  const runLegend = topRuns.map((r, i) => `<span class="st-cal-key is-s${i + 1}"><i></i><b>${r.n}</b> ${esc(t('st_streak_days_unit'))} · ${fmtDay(r.start)} – ${fmtDay(r.end)}</span>`).join('')
+    + (brk.n ? `<span class="st-cal-key is-break"><i></i>${esc(t('st_streak_legend_break'))}: <b>${brk.n}</b> · ${fmtDay(brk.start)} – ${fmtDay(brk.end)}</span>` : '');
+
+  // The calendar: every day of a year (a week per column) or a month (one
+  // row), lit by how much you played, with the top streaks and the longest
+  // break picked out. All-Time spans too many days for one, so it has none.
+  let calHtml = '';
+  if (stPeriodType !== 'alltime') {
+    const dayPlays = new Map();
+    for (const p of plays) { const dk = dayKey(p.date); dayPlays.set(dk, (dayPlays.get(dk) || 0) + 1); }
+    const maxN = Math.max(1, ...dayPlays.values());
+    const isYear = stPeriodType === 'year';
+    const cells = [];
+    if (isYear) { // empty cells so Jan 1 sits on its weekday (Monday first)
+      const wd = (new Date(pStart + 'T00:00:00Z').getUTCDay() + 6) % 7;
+      for (let i = 0; i < wd; i++) cells.push('<span class="st-cal-day is-pad"></span>');
+    }
+    const monthCols = []; // the week column each month starts in, for the labels
+    for (let d = pStart; d <= cutoffKey; d = nextDayKey(d)) {
+      if (isYear && d.slice(8) === '01') monthCols.push(Math.floor(cells.length / 7));
+      const n = dayPlays.get(d) || 0;
+      const ri = topRuns.findIndex(r => d >= r.start && d <= r.end);
+      const lv = n ? Math.max(1, Math.ceil(Math.sqrt(n / maxN) * 4)) : 0;
+      const inBreak = brk.n && d >= brk.start && d <= brk.end;
+      const cls = (d < rangeStart || d > rangeEnd) ? ' is-out'
+        : n ? ` lv${lv}${ri >= 0 ? ' is-s' + (ri + 1) : ''}` : (inBreak ? ' is-break' : '');
+      const tip = `${fmtDay(d)} · ${n ? (n === 1 ? t('st_streak_cal_play1') : t('st_streak_cal_plays', { n })) : t('st_streak_cal_none')}`;
+      cells.push(`<span class="st-cal-day${cls}" title="${esc(tip)}">${isYear ? '' : `<em>${+d.slice(8)}</em>`}</span>`);
+    }
+    const monthRow = isYear
+      ? `<div class="st-cal-months">${monthCols.map((c, m) => `<span style="grid-column:${c + 1}">${esc(t(ST_MONTH_KEYS[m]))}</span>`).join('')}</div>` : '';
+    calHtml = `
+    <div class="st-streak-subhead">${esc(t('st_streak_cal_title', { period: stGetPeriodLabel() }))}</div>
+    <div class="st-cal-wrap"><div class="st-cal ${isYear ? 'st-cal--year' : 'st-cal--month'}" style="--cols:${isYear ? Math.ceil(cells.length / 7) : cells.length}">${monthRow}<div class="st-cal-grid">${cells.join('')}</div></div></div>`;
+  } else if (runLegend) {
+    calHtml = `<div class="st-streak-subhead">${esc(t('st_streak_top_title'))}</div>`;
+  }
+  if (runLegend) calHtml += `<div class="st-cal-legend">${runLegend}</div>`;
+  if (chips.length) calHtml += `<div class="st-streak-chips">${chips.join('')}</div>`;
+
   // Longest streak reached by a single artist / album / song within the
   // current view (year, month, or all-time — whatever `plays` is scoped to).
   function bestEntityStreak(entryFn) {
@@ -50258,7 +50417,7 @@ function stRenderStreaks(plays) {
       const dk = dayKey(p.date);
       for (const e of entryFn(p)) {
         let rec = map[e.key];
-        if (!rec) rec = map[e.key] = { label: e.label, sub: e.sub, album: e.album, days: new Set() };
+        if (!rec) rec = map[e.key] = { label: e.label, sub: e.sub, album: e.album, open: e.open, days: new Set() };
         rec.days.add(dk);
       }
     }
@@ -50271,22 +50430,22 @@ function stRenderStreaks(plays) {
         if (diff === 1) { cur++; } else { if (cur > mx) { mx = cur; mxStart = curStart2; mxEnd = sorted[i-1]; } cur = 1; curStart2 = sorted[i]; }
       }
       if (cur > mx) { mx = cur; mxStart = curStart2; mxEnd = sorted[sorted.length - 1]; }
-      if (mx >= 2 && (!best || mx > best.count)) best = { label: rec.label, sub: rec.sub, album: rec.album, count: mx, start: mxStart, end: mxEnd };
+      if (mx >= 2 && (!best || mx > best.count)) best = { label: rec.label, sub: rec.sub, album: rec.album, open: rec.open, count: mx, start: mxStart, end: mxEnd };
     }
     return best;
   }
 
   const bestArtist = bestEntityStreak(p => {
     const arts = (p.artists && p.artists.length) ? p.artists : [p.artist];
-    return arts.map(a => ({ key: 'a:' + a, label: a }));
+    return arts.map(a => ({ key: 'a:' + a, label: a, open: a }));
   });
   const bestAlbum = bestEntityStreak(p => {
     if (!p.album || p.album === '—') return [];
     const ar = albumArtist(p);
-    return [{ key: 'al:' + ar + '|||' + p.album, label: p.album, sub: ar }];
+    return [{ key: 'al:' + ar + '|||' + p.album, label: p.album, sub: ar, open: albumKeyOf(p) }];
   });
   const bestSong = bestEntityStreak(p => ([{
-    key: songKey(p), label: p.title, sub: p.artist,
+    key: songKey(p), label: p.title, sub: p.artist, open: songKey(p),
     album: (p.album && p.album !== '—') ? p.album : null,
   }]));
 
@@ -50297,7 +50456,9 @@ function stRenderStreaks(plays) {
     if (!best) return '';
     const subject = best.sub ? `${esc(best.label)} · ${esc(best.sub)}` : esc(best.label);
     const fallback = initials(best.label);
-    return `<div class="st-streak-card st-streak-card--entity">
+    // the card opens that artist's, album's or song's page (see stOpenStreakEntity)
+    return `<div class="st-streak-card st-streak-card--entity st-streak-card--link" role="button" tabindex="0"
+        data-st-streak-open="${kind}" data-st-streak-key="${esc(best.open || '')}" title="${esc(t('st_streak_open'))}">
         <div class="st-streak-entity-art">
           <img id="stStreakArt_${kind}" class="st-streak-entity-bg" src="" alt=""
                onload="this.classList.add('loaded')">
@@ -50331,6 +50492,7 @@ function stRenderStreaks(plays) {
         </div>
         <div class="st-streak-lbl">${stPeriodType === 'alltime' ? t('st_streak_active_days') : t('st_streak_active_days_in', { period: stGetPeriodLabel() })}</div>
         <div class="st-streak-dates">${t('st_streak_active_days_sub', { pct: activeDaysPct, total: totalDaysInPeriod })}</div>
+        ${vsLine}
       </div>
       <div class="st-streak-card${isNewRecord ? ' st-streak-card--record' : ''}">
         <div class="st-streak-num-stack">
@@ -50340,6 +50502,8 @@ function stRenderStreaks(plays) {
         <div class="st-streak-lbl">${t('st_streak_longest')}</div>
         ${!reachesToday ? `<div class="st-streak-dates">${t('st_streak_longest_asof', { period: stGetPeriodLabel() })}</div>` : ''}
         ${longestStart ? `<div class="st-streak-dates">${fmtDay(longestStart)} – ${fmtDay(longestEnd)}</div>` : ''}
+        ${beatOld ? `<div class="st-streak-extra">${esc(t('st_streak_beat', { n: beatOld }))}</div>` : ''}
+        ${stPeriodType === 'alltime' ? fuelLine(topSongBetween(longestStart, longestEnd)) : ''}
         ${isNewRecord ? `<div class="st-streak-badge">${stIco('trophy')} ${t('st_streak_new_record')}</div>` : ''}
       </div>
       ${stPeriodType !== 'alltime' ? `<div class="st-streak-card">
@@ -50349,8 +50513,19 @@ function stRenderStreaks(plays) {
         </div>
         <div class="st-streak-lbl">${t('st_streak_in_period', { period: stGetPeriodLabel() })}</div>
         ${periodStart ? `<div class="st-streak-dates">${fmtDay(periodStart)} – ${fmtDay(periodEnd)}</div>` : ''}
+        ${periodRank > 1 ? `<div class="st-streak-extra">${esc(t('st_streak_rank', { n: periodRank }))}</div>` : ''}
+        ${longestPeriod >= 2 ? fuelLine(topSongBetween(periodStart, periodEnd)) : ''}
       </div>` : ''}
+      <div class="st-streak-card st-streak-card--break">
+        <div class="st-streak-num-stack">
+          <span class="st-streak-num">${brk.n}</span>
+          <span class="st-streak-unit">${t('st_streak_break_unit')}</span>
+        </div>
+        <div class="st-streak-lbl">${t('st_streak_break')}</div>
+        <div class="st-streak-dates">${brk.n ? `${fmtDay(brk.start)} – ${fmtDay(brk.end)}` : t('st_streak_break_none')}</div>
+      </div>
     </div>
+    ${calHtml}
     ${entityCardsHtml ? `
     <div class="st-streak-subhead">${stPeriodType === 'alltime' ? t('st_streak_category_title_all') : t('st_streak_category_title', { period: stGetPeriodLabel() })}</div>
     ${stRowHtml('st-streaks-grid--entity', entityCardsHtml)}` : ''}`;
@@ -50365,6 +50540,25 @@ function stRenderStreaks(plays) {
     });
   });
 }
+
+// An artist / album / song streak card opens that one's page
+function stOpenStreakEntity(card) {
+  const key = card.dataset.stStreakKey;
+  if (!key) return;
+  const kind = card.dataset.stStreakOpen;
+  if (kind === 'artist') openArtistModal(key);
+  else if (kind === 'album') openAlbumModal(key);
+  else if (kind === 'song') openSongModal(key);
+}
+document.addEventListener('click', e => {
+  const card = e.target.closest && e.target.closest('[data-st-streak-open]');
+  if (card) stOpenStreakEntity(card);
+});
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  const card = e.target.closest && e.target.closest('[data-st-streak-open]');
+  if (card) { e.preventDefault(); stOpenStreakEntity(card); }
+});
 
 async function _fetchEntityStreakArt(kind, best) {
   try {
