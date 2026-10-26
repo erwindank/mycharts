@@ -50325,7 +50325,7 @@ function stRenderStreaks(plays) {
     for (const rec of counts.values()) if (!best || rec.n > best.n) best = rec;
     return best;
   };
-  const fuelLine = song => song ? `<div class="st-streak-extra">${esc(t('st_streak_fuel', { song: song.title, artist: song.artist }))}</div>` : '';
+  const fuelText = song => song ? esc(t('st_streak_fuel', { song: song.title, artist: song.artist })) : '';
 
   // Days you listened, against the period before (for a running period,
   // against the same point of the period before)
@@ -50351,7 +50351,7 @@ function stRenderStreaks(plays) {
     if (prevCount) {
       const diff = activeDays - prevCount, sfx = soFar ? '_sofar' : '';
       const key = diff > 0 ? 'st_streak_vs_more' : diff < 0 ? 'st_streak_vs_fewer' : 'st_streak_vs_same';
-      vsLine = `<div class="st-streak-extra">${esc(t(key + sfx, { n: Math.abs(diff), prev: prevLabel }))}</div>`;
+      vsLine = esc(t(key + sfx, { n: Math.abs(diff), prev: prevLabel }));
     }
   }
 
@@ -50402,7 +50402,7 @@ function stRenderStreaks(plays) {
       const cls = (d < rangeStart || d > rangeEnd) ? ' is-out'
         : n ? ` lv${lv}${ri >= 0 ? ' is-s' + (ri + 1) : ''}` : (inBreak ? ' is-break' : '');
       const tip = `${fmtDay(d)} · ${n ? (n === 1 ? t('st_streak_cal_play1') : t('st_streak_cal_plays', { n })) : t('st_streak_cal_none')}`;
-      cells.push(`<span class="st-cal-day${cls}" title="${esc(tip)}">${isYear ? '' : `<em>${+d.slice(8)}</em>`}</span>`);
+      cells.push(`<span class="st-cal-day${cls}" data-d="${d}" title="${esc(tip)}">${isYear ? '' : `<em>${+d.slice(8)}</em>`}</span>`);
     }
     const monthRow = isYear
       ? `<div class="st-cal-months">${monthCols.map((c, m) => `<span style="grid-column:${c + 1}">${esc(t(ST_MONTH_KEYS[m]))}</span>`).join('')}</div>` : '';
@@ -50489,54 +50489,103 @@ function stRenderStreaks(plays) {
     + entityCard('album', stIco('disc'), 'st_streak_album', bestAlbum)
     + entityCard('song', stIco('repeat'), 'st_streak_song', bestSong);
 
+  // ── The four cards: just a number, its unit and a short label. Clicking
+  // one lights its days on the calendar and shows its details in the panel
+  // under the cards (one panel, so the cards stay easy to read).
+  const periodLabel = stGetPeriodLabel();
+  const range = (a, b) => a ? `${fmtDay(a)} – ${fmtDay(b)}` : '';
+  // When the period's best streak is the all-time record, one card says both
+  const sameStreak = stPeriodType !== 'alltime' && longestPeriod === longestAll
+    && periodStart === longestStart && periodEnd === longestEnd;
+  const everLines = [
+    range(longestStart, longestEnd),
+    !reachesToday ? esc(t('st_streak_longest_asof', { period: periodLabel })) : '',
+    beatOld ? esc(t('st_streak_beat', { n: beatOld })) : '',
+    (stPeriodType === 'alltime' || sameStreak) ? fuelText(topSongBetween(longestStart, longestEnd)) : '',
+  ];
+  const picks = {
+    days: {
+      title: stPeriodType === 'alltime' ? t('st_streak_active_days') : t('st_streak_active_days_in', { period: periodLabel }),
+      lines: [esc(t('st_streak_active_days_sub', { pct: activeDaysPct, total: totalDaysInPeriod })), vsLine],
+      hl: 'on',
+    },
+    ever: { title: t('st_streak_longest'), lines: everLines, hl: { start: longestStart, end: longestEnd } },
+    period: {
+      title: t('st_streak_in_period', { period: periodLabel }),
+      lines: [range(periodStart, periodEnd), periodRank > 1 ? esc(t('st_streak_rank', { n: periodRank })) : '',
+        longestPeriod >= 2 ? fuelText(topSongBetween(periodStart, periodEnd)) : ''],
+      hl: { start: periodStart, end: periodEnd },
+    },
+    break: {
+      title: t('st_streak_break'),
+      lines: [brk.n ? range(brk.start, brk.end) : esc(t('st_streak_break_none')),
+        missedTotal ? esc(t(missedKey, { n: missedTotal, period: periodLabel })) : ''],
+      hl: brk.n ? { start: brk.start, end: brk.end } : null,
+    },
+  };
+  const card = (key, num, unit, label, extra, cls) => `<div class="st-streak-card${cls || ''}" data-st-pick="${key}" role="button" tabindex="0" aria-pressed="false">
+        <div class="st-streak-num-stack">
+          <span class="st-streak-num">${num}</span>
+          <span class="st-streak-unit">${unit}</span>
+        </div>
+        <div class="st-streak-lbl">${label}</div>
+        ${extra || ''}
+      </div>`;
+  const recordBadge = isNewRecord ? `<div class="st-streak-badge">${stIco('trophy')} ${t('st_streak_new_record')}</div>`
+    : sameStreak ? `<div class="st-streak-badge">${stIco('trophy')} ${esc(t('st_streak_best_of', { period: periodLabel }))}</div>` : '';
+
   el.innerHTML = `
     <div class="st-streaks-grid">
-      <div class="st-streak-card">
-        <div class="st-streak-num-stack">
-          <span class="st-streak-num">${activeDays}</span>
-          <span class="st-streak-unit">${t('st_streak_days_streamed_unit')}</span>
-        </div>
-        <div class="st-streak-lbl">${stPeriodType === 'alltime' ? t('st_streak_active_days') : t('st_streak_active_days_in', { period: stGetPeriodLabel() })}</div>
-        <div class="st-streak-dates">${t('st_streak_active_days_sub', { pct: activeDaysPct, total: totalDaysInPeriod })}</div>
-        ${vsLine}
-      </div>
-      <div class="st-streak-card${isNewRecord ? ' st-streak-card--record' : ''}">
-        <div class="st-streak-num-stack">
-          <span class="st-streak-num">${longestAll}</span>
-          <span class="st-streak-unit">${t('st_streak_days_unit')}</span>
-        </div>
-        <div class="st-streak-lbl">${t('st_streak_longest')}</div>
-        ${!reachesToday ? `<div class="st-streak-dates">${t('st_streak_longest_asof', { period: stGetPeriodLabel() })}</div>` : ''}
-        ${longestStart ? `<div class="st-streak-dates">${fmtDay(longestStart)} – ${fmtDay(longestEnd)}</div>` : ''}
-        ${beatOld ? `<div class="st-streak-extra">${esc(t('st_streak_beat', { n: beatOld }))}</div>` : ''}
-        ${stPeriodType === 'alltime' ? fuelLine(topSongBetween(longestStart, longestEnd)) : ''}
-        ${isNewRecord ? `<div class="st-streak-badge">${stIco('trophy')} ${t('st_streak_new_record')}</div>` : ''}
-      </div>
-      ${stPeriodType !== 'alltime' ? `<div class="st-streak-card">
-        <div class="st-streak-num-stack">
-          <span class="st-streak-num">${longestPeriod}</span>
-          <span class="st-streak-unit">${t('st_streak_days_unit')}</span>
-        </div>
-        <div class="st-streak-lbl">${t('st_streak_in_period', { period: stGetPeriodLabel() })}</div>
-        ${periodStart ? `<div class="st-streak-dates">${fmtDay(periodStart)} – ${fmtDay(periodEnd)}</div>` : ''}
-        ${periodRank > 1 ? `<div class="st-streak-extra">${esc(t('st_streak_rank', { n: periodRank }))}</div>` : ''}
-        ${longestPeriod >= 2 ? fuelLine(topSongBetween(periodStart, periodEnd)) : ''}
-      </div>` : ''}
-      <div class="st-streak-card st-streak-card--break">
-        <div class="st-streak-num-stack">
-          <span class="st-streak-num">${brk.n}</span>
-          <span class="st-streak-unit">${t('st_streak_break_unit')}</span>
-        </div>
-        <div class="st-streak-lbl">${t('st_streak_break')}</div>
-        <div class="st-streak-dates">${brk.n ? `${fmtDay(brk.start)} – ${fmtDay(brk.end)}` : t('st_streak_break_none')}</div>
-        ${missedTotal ? `<div class="st-streak-extra">${esc(t(missedKey, { n: missedTotal, period: stGetPeriodLabel() }))}</div>` : ''}
-      </div>
+      ${card('days', activeDays, esc(t('st_streak_of_days', { total: totalDaysInPeriod })), esc(t('st_streak_days_lbl')))}
+      ${card('ever', longestAll, t('st_streak_days_unit'), t('st_streak_longest'), recordBadge, isNewRecord ? ' st-streak-card--record' : '')}
+      ${stPeriodType !== 'alltime' && !sameStreak ? card('period', longestPeriod, t('st_streak_days_unit'), esc(t('st_streak_best_period', { period: periodLabel }))) : ''}
+      ${card('break', brk.n, t('st_streak_break_unit'), esc(t('st_streak_break_short')), '', ' st-streak-card--break')}
     </div>
+    <div class="st-streak-detail" aria-live="polite">${esc(t('st_streak_pick_hint'))}</div>
     ${calHtml}
     ${entityCardsHtml ? `
     <div class="st-streak-subhead">${stPeriodType === 'alltime' ? t('st_streak_category_title_all') : t('st_streak_category_title', { period: stGetPeriodLabel() })}</div>
     ${stRowHtml('st-streaks-grid--entity', entityCardsHtml)}` : ''}`;
   stRowsInit(el);
+
+  // Picking a card: mark it, fill the panel, dim every other day on the
+  // calendar. Clicking the picked card again puts the hint back.
+  const panel = el.querySelector('.st-streak-detail');
+  const cal = el.querySelector('.st-cal');
+  const pick = key => {
+    const cur = el.dataset.pick === key ? '' : key;
+    el.dataset.pick = cur;
+    let fc = '';
+    el.querySelectorAll('[data-st-pick]').forEach(c => {
+      const on = c.dataset.stPick === cur;
+      c.classList.toggle('is-picked', on);
+      c.setAttribute('aria-pressed', on);
+      if (on) fc = getComputedStyle(c).getPropertyValue('--fc');
+    });
+    const info = picks[cur];
+    panel.classList.toggle('is-open', !!info);
+    panel.style.setProperty('--fc', fc || '');
+    panel.innerHTML = info
+      ? `<b>${esc(info.title)}</b>${info.lines.filter(Boolean).map(l => `<span>${l}</span>`).join('')}`
+      : esc(t('st_streak_pick_hint'));
+    if (!cal) return;
+    let any = false;
+    cal.querySelectorAll('.st-cal-day[data-d]').forEach(c => {
+      const d = c.dataset.d, hl = info && info.hl;
+      const on = !!hl && (hl === 'on' ? /\blv\d/.test(c.className) : d >= hl.start && d <= hl.end);
+      c.classList.toggle('is-hl', on);
+      if (on) any = true;
+    });
+    // nothing of it on this calendar (a record from an earlier year): don't dim it all
+    cal.classList.toggle('has-pick', any);
+  };
+  el.dataset.pick = '';
+  el.onclick = e => { const c = e.target.closest('[data-st-pick]'); if (c) pick(c.dataset.stPick); };
+  el.onkeydown = e => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const c = e.target.closest('[data-st-pick]');
+    if (c) { e.preventDefault(); pick(c.dataset.stPick); }
+  };
 
   [['artist', bestArtist], ['album', bestAlbum], ['song', bestSong]].forEach(([kind, best]) => {
     if (!best) return;

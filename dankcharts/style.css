@@ -29132,15 +29132,46 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
 .st-streak-link a { color: var(--sc); text-decoration: none; font-weight: 600; }
 .st-streak-link a:hover { text-decoration: underline; }
 
-/* Small facts under a card's dates: rank, old record, most-played song,
-   change from the period before */
-.st-streak-extra {
+/* The top cards can be picked: the picked one lights up, its details show
+   in the panel below and its days stay bright on the calendar */
+.st-streak-card[data-st-pick] { cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s; }
+.st-streak-card[data-st-pick]:hover { border-color: color-mix(in srgb, var(--fc) 60%, var(--border)); transform: translateY(-1px); }
+.st-streak-card[data-st-pick]:focus-visible { outline: 2px solid var(--fc); outline-offset: 2px; }
+.st-streak-card.is-picked {
+  border-color: var(--fc);
+  box-shadow: 0 0 0 1px var(--fc), 0 0 14px color-mix(in srgb, var(--fc) 28%, transparent);
+  animation: none;
+}
+
+/* The details panel: a quiet hint until a card is picked */
+.st-streak-detail {
+  --fc: var(--text3);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--sp-1) var(--sp-3);
+  margin-bottom: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px dashed var(--border2);
+  border-radius: var(--r-md, 12px);
   font-family: var(--font-sans);
   font-size: var(--fs-xs);
-  color: var(--text2);
-  margin-top: var(--sp-1);
-  line-height: 1.35;
+  color: var(--text3);
+  line-height: 1.4;
 }
+.st-streak-detail.is-open {
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--fc) 45%, var(--border));
+  background: color-mix(in srgb, var(--fc) 8%, var(--bg3));
+  color: var(--text2);
+}
+.st-streak-detail b { color: var(--fc); font-weight: 700; flex-basis: 100%; }
+/* a dot between the facts, so they don't run together */
+.st-streak-detail span + span::before { content: '·'; margin-right: var(--sp-3); color: var(--text3); }
+
+/* The calendar while a card is picked: everything else fades back */
+.st-cal-day { transition: opacity 0.2s; }
+.st-cal.has-pick .st-cal-day:not(.is-hl):not(.is-pad) { opacity: 0.18; }
 
 /* Longest break: grey, it's the days without music (a class, not
    nth-child, because on All-Time it's the third card) */
