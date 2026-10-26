@@ -83,6 +83,9 @@
     if (!o) return;
     var data = entryData(kind, arg);
     paintHero(kind, o, data);
+    if (kind === 'song') songChartRun(o, arg);
+    iconize(o);
+    watchBody(o);
     buildTabs(kind, o, goingBack && tabNow[kind] ? tabNow[kind] : 'overview');
     var back = o.querySelector('.dp-back');
     if (back) back.hidden = !hist.length;
@@ -172,6 +175,11 @@
       var k = kids[i];
       if (k.classList.contains('modal-section-title')) continue;
       if (k.style.display === 'none') continue;
+      // a row of tiles that are all 0 (no Grammy nominations yet) says nothing
+      if (k.classList.contains('modal-stats-strip')) {
+        var vals = Array.prototype.map.call(k.querySelectorAll('.sv'), function (v) { return v.textContent.trim(); });
+        if (vals.length && vals.every(function (v) { return v === '0' || v === '—'; })) continue;
+      }
       if ((k.textContent || '').trim() || k.querySelector('img, canvas, svg')) return true;
     }
     return false;
@@ -294,6 +302,133 @@
     var o = sc.closest('.dp-overlay');
     var hero = o.querySelector('.dp-hero');
     o.classList.toggle('dp-scrolled', sc.scrollTop > (hero ? hero.offsetHeight - 64 : 120));
+  }
+
+  /* ── Line icons for the parts (phase 10 step 4) ─────────────────────────
+     app.js draws the tiles, headings and achievement rows with emoji (in the
+     code and in the translations). Here each emoji becomes the matching line
+     icon from popups.js, and the headings lose theirs, so the three panels
+     look the same without touching every builder. Runs after a panel opens
+     and again whenever a part of it redraws. */
+  var EMOJI_ICON = {
+    '🎧': 'headphones', '📅': 'calendar', '🗓': 'calendar', '📆': 'calendar', '🔥': 'flame', '📈': 'trend',
+    '⭐': 'star', '★': 'star', '🌟': 'star', '⏰': 'clock', '🕐': 'clock', '🌙': 'moon', '🔄': 'refresh', '↩': 'refresh',
+    '🔁': 'refresh', '⏳': 'hourglass', '⌛': 'hourglass', '🎯': 'target', '📊': 'bars', '🏆': 'trophy', '🏅': 'medal',
+    '🥇': 'medal', '🥈': 'medal', '🥉': 'medal', '🚀': 'rocket', '🔝': 'trend', '💿': 'disc', '📀': 'disc',
+    '💽': 'disc', '💎': 'gem', '🔍': 'search', '🔎': 'search', '🎵': 'note', '🎶': 'note', '🎼': 'note', '♪': 'note',
+    '♫': 'note', '🌤': 'sun', '☀': 'sun', '🌸': 'sun', '🍂': 'sun', '❄': 'moon', '☁': 'cloud', '🎤': 'mic',
+    '🎙': 'mic', '📋': 'listmusic', '📝': 'listmusic', '👑': 'crown', '🎉': 'sparkle', '✨': 'sparkle', '💯': 'target',
+    '📉': 'trend', '♦': 'disc', '◈': 'disc', '👤': 'user', '🌍': 'globe', '🌎': 'globe', '🏁': 'flag', '📌': 'flag',
+    '🎬': 'video', '📺': 'video', '❤': 'star', '💜': 'star', '🎁': 'sparkle', '🧭': 'globe', '📣': 'mic', '🔢': 'bars'
+  };
+  // A leading emoji (with its variation selectors / joiners) or symbol
+  var LEAD = /^\s*((?:\p{Extended_Pictographic}|[★☆♦◈◆✦♪♫])(?:[️‍]|\p{Extended_Pictographic}|\p{Emoji_Modifier})*)\s*/u;
+
+  function iconFor(em) {
+    var base = em.replace(/[️‍]/g, '');
+    return EMOJI_ICON[base] || EMOJI_ICON[base.charAt(0)] || EMOJI_ICON[Array.from(base)[0]] || 'sparkle';
+  }
+
+  // Swaps a leading emoji in el's first text for an icon (or drops it)
+  function swapLead(el, mode) {
+    var node = el.firstChild;
+    while (node && node.nodeType === 1 && !node.textContent.trim()) node = node.nextSibling;
+    if (!node) return;
+    var textNode = node.nodeType === 3 ? node : null;
+    if (!textNode) return;
+    var m = textNode.nodeValue.match(LEAD);
+    if (!m) return;
+    textNode.nodeValue = textNode.nodeValue.slice(m[0].length);
+    if (mode === 'icon') {
+      var span = document.createElement('span');
+      span.className = 'dp-ico';
+      span.innerHTML = ico(iconFor(m[1]));
+      el.insertBefore(span, textNode);
+    }
+  }
+
+  function iconize(o) {
+    var body = o.querySelector('.dp-body');
+    if (!body) return;
+    // Headings: just the words
+    body.querySelectorAll('.modal-section-title, .cr-head-title, .cr-ig-share-btn').forEach(function (h) { swapLead(h, 'drop'); });
+    // Tile, rank-card and award icons: the whole cell is the emoji
+    body.querySelectorAll('.modal-stat > .se, .mrc-icon, .mge-icon').forEach(function (el) {
+      if (el.querySelector('svg')) return;
+      var txt = el.textContent.trim();
+      if (!txt) return;
+      el.innerHTML = ico(iconFor(txt));
+      el.classList.add('dp-ico-cell');
+    });
+    // Achievement rows: "🏆 Most played song…" → icon + words
+    body.querySelectorAll('.acc-header > span:not(.dp-ico)').forEach(function (sp) { swapLead(sp, 'icon'); });
+    moreToggle(o);
+  }
+
+  // Long lists of numbers show their first eight, with a button for the rest
+  function moreToggle(o) {
+    o.querySelectorAll('.dp-statlist').forEach(function (strip) {
+      var tiles = strip.querySelectorAll(':scope > .modal-stat');
+      var btn = strip.nextElementSibling && strip.nextElementSibling.classList.contains('dp-more') ? strip.nextElementSibling : null;
+      if (tiles.length <= 8) { if (btn) btn.remove(); strip.classList.remove('dp-folded'); return; }
+      if (!btn) {
+        btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'dc-btn dc-btn-plain dc-btn-sm dp-more';
+        strip.after(btn);
+        strip.classList.add('dp-folded');
+      }
+      var folded = strip.classList.contains('dp-folded');
+      // written only when it changes: this runs on every redraw of the panel
+      // (watchBody), and rewriting it would count as another redraw
+      var state = (folded ? 'f' : 'o') + tiles.length + (typeof currentLang !== 'undefined' ? currentLang : '');
+      if (btn.dataset.state === state) return;
+      btn.dataset.state = state;
+      btn.innerHTML = esc(folded ? tt('dp_more_stats', { n: tiles.length }) : tt('dp_fewer_stats')) + ico(folded ? 'next' : 'back');
+      btn.setAttribute('aria-expanded', folded ? 'false' : 'true');
+    });
+  }
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest && e.target.closest('.dp-more');
+    if (btn) {
+      var strip = btn.previousElementSibling;
+      strip.classList.toggle('dp-folded');
+      moreToggle(btn.closest('.dp-overlay'));
+      return;
+    }
+    // An achievement row opens from anywhere on it, not just its small +
+    var head = e.target.closest && e.target.closest('.dp-overlay .acc-header');
+    if (head && !e.target.closest('button, a')) {
+      var tog = head.querySelector('.acc-toggle');
+      if (tog) tog.click();
+    }
+  });
+
+  // Redraws inside a part (a rating saved, the heatmap opened) get the same
+  // treatment; batched to one pass per frame
+  function watchBody(o) {
+    var body = o.querySelector('.dp-body');
+    if (!body || body._dpObs) return;
+    var queued = false;
+    body._dpObs = new MutationObserver(function () {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(function () { queued = false; if (o.classList.contains('open')) iconize(o); });
+    });
+    body._dpObs.observe(body, { childList: true, subtree: true });
+  }
+
+  // The song's chart run, in its Charts tab — only where a chart period is
+  // on screen (the run is the run of that period's chart)
+  function songChartRun(o, key) {
+    var holder = o.querySelector('#songModalChartRun');
+    if (!holder) return;
+    holder.innerHTML = '';
+    var per = typeof currentPeriod !== 'undefined' ? currentPeriod : '';
+    if (['day', 'week', 'month', 'year'].indexOf(per) === -1 || typeof buildCrPanelHTML !== 'function') return;
+    try {
+      holder.innerHTML = '<div class="cr-panel dp-cr" data-crtype="songs" data-crkey="' + encodeURIComponent(key) + '">' + buildCrPanelHTML('songs', key) + '</div>';
+    } catch (e) { holder.innerHTML = ''; }
   }
 
   /* ── The ⋮ menu opened from the header ───────────────────────────────── */

@@ -16651,7 +16651,8 @@ function setCrRangeMode(mode, type, encodedKey) {
   // Every open panel for the entry: the Table's chart-run row and the details
   // drawer of the other layouts (step 3 missed the drawer, so its range
   // buttons did nothing)
-  document.querySelectorAll(`.cr-row.open .cr-panel[data-crtype="${type}"][data-crkey="${encodedKey}"], .ea-drawer .cr-panel[data-crtype="${type}"][data-crkey="${encodedKey}"]`).forEach(panel => {
+  // (and the details side panel's Charts tab, phase 10)
+  document.querySelectorAll(`.cr-row.open .cr-panel[data-crtype="${type}"][data-crkey="${encodedKey}"], .ea-drawer .cr-panel[data-crtype="${type}"][data-crkey="${encodedKey}"], .dp-overlay .cr-panel[data-crtype="${type}"][data-crkey="${encodedKey}"]`).forEach(panel => {
     const f = panel.dataset.crfacts ? _chartFacts[type].get(key) : undefined;
     panel.innerHTML = buildCrPanelHTML(type, key, f);
   });
@@ -26574,8 +26575,9 @@ function openSongModal(key) {
   document.getElementById('songModalTitle').textContent = propTitle;
   document.getElementById('songModalSub').innerHTML =
     `${t('sm_by')} <a class="modal-artist-link" href="javascript:void(0)" onclick="songModal.classList.remove('open');setTimeout(()=>openArtistModal(${esc(JSON.stringify(propArtist))}),50)">${esc(propArtist)}</a>` +
-    (propAlbum ? ` · <a class="modal-artist-link" href="javascript:void(0)" onclick="songModal.classList.remove('open');setTimeout(()=>openAlbumModal(${esc(JSON.stringify(propAlbum + '|||' + propArtist))}),50)">${esc(propAlbum)}</a>` : '') +
-    ` · ${t('sm_song_profile')}`;
+    (propAlbum ? ` · <a class="modal-artist-link" href="javascript:void(0)" onclick="songModal.classList.remove('open');setTimeout(()=>openAlbumModal(${esc(JSON.stringify(propAlbum + '|||' + propArtist))}),50)">${esc(propAlbum)}</a>` : '');
+  // ("· Song Profile" used to end this line; the side panel's top bar says
+  // "Song" now, phase 10 step 4)
 
   // ── IMAGE ─────────────────────────────────────────────────────
   // Same prefKey as the song's chart row, so a picture picked in either place
