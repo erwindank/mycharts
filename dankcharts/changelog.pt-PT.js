@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Your Soundtrack: “All-time best streak” card label":
+    ["A Tua Banda Sonora: rótulo «Melhor sequência de sempre»",
+     "No capítulo de Sequências, o cartão do recorde diz agora «Melhor sequência de sempre», mais curto e a condizer com «Melhor sequência de 2019» ao lado. Ao tocar nele, o painel de detalhes continua a mostrar o nome completo. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
   "Your Soundtrack: simpler streak cards, details on tap":
     ["A Tua Banda Sonora: cartões de sequências mais simples, detalhes ao tocar",
      "Os cartões do capítulo de Sequências mostram agora só o número e um rótulo curto («Dias com música», «Melhor sequência de 2019», «Maior pausa»). Toca num cartão para ver os detalhes (datas, posição, recorde batido, música mais ouvida, comparação com o ano anterior) num painel logo abaixo, e os seus dias acendem-se no calendário. Quando a melhor sequência do ano é também o teu recorde de sempre, os dois cartões passam a um só com a etiqueta «Também a melhor de 2017». Funciona com Last.fm, Google Sheets e ficheiros CSV."],

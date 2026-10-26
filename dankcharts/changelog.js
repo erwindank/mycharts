@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 326;
+const DC_CL_I18N_V = 327;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-25', t: 'change', a: 'soundtrack', h: 'af9cba1',
+    title: "Your Soundtrack: “All-time best streak” card label",
+    detail: "In the Streaks chapter, the record card now reads \"All-time best streak\": shorter, and it pairs with \"Best streak of 2019\" next to it. Tapping it still shows the full name in the details panel. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-25', t: 'design', a: 'soundtrack', h: 'ec6b1d1',
     title: "Your Soundtrack: simpler streak cards, details on tap",
     detail: "The Streaks chapter's cards now show just the number and a short label (\"Days with music\", \"Best streak of 2019\", \"Longest break\"). Tap a card to see its details (dates, rank, the record it beat, the song you played most, how it compares with the year before) in a panel under the cards, with its days lit up on the calendar. When the year's best streak is also your all-time record, the two cards are now one, marked \"Best of 2017 too\". Works with Last.fm, Google Sheets and CSV uploads." },

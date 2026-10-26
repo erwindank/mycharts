@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Your Soundtrack: “All-time best streak” card label":
+    ["Tu Banda Sonora: etiqueta «Mejor racha de siempre»",
+     "En el capítulo de Rachas, la tarjeta del récord ahora dice «Mejor racha de siempre», que es más corto y combina con «Mejor racha de 2019» a su lado. Al tocarla, el panel de detalles sigue mostrando el nombre completo. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Your Soundtrack: simpler streak cards, details on tap":
     ["Tu Banda Sonora: tarjetas de rachas más simples, detalles al tocar",
      "Las tarjetas del capítulo de Rachas ahora muestran solo el número y una etiqueta corta («Días con música», «Mejor racha de 2019», «Pausa más larga»). Toca una tarjeta para ver sus detalles (fechas, puesto, récord superado, canción más escuchada, comparación con el año anterior) en un panel debajo, y sus días se iluminan en el calendario. Cuando la mejor racha del año es también tu récord de siempre, ambas tarjetas se unen en una con la etiqueta «También la mejor de 2017». Funciona con Last.fm, Google Sheets y archivos CSV."],
