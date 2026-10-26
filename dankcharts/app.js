@@ -49048,6 +49048,7 @@ function stActivitySelectMonth(btn) {
 
 // ── Line icons (phase 9 part 6): the Soundtrack's emoji, redrawn ──
 const ST_ICO = {
+  star: '<path d="m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9Z"/>',
   trophy: '<path d="M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M7 6H4.5a2.5 2.5 0 0 0 2.6 3M17 6h2.5a2.5 2.5 0 0 1-2.6 3M12 14v3.5M8.5 20.5h7l-1-3h-5Z"/>',
   moon: '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z"/>',
   up: '<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
@@ -50823,22 +50824,27 @@ function stRenderGrammys(plays) {
   _stFacts.grammys = { n: withAwards.length, top: withAwards[0].artist };
   const shown = withAwards.slice(0, 8);
   el.innerHTML = `<div class="st-grammy-grid">${shown.map((item, i) => {
-    const wins = item.entries.length;
+    // Real wins and your own My Grammys picks are told apart everywhere: the
+    // gold ribbon counts only real wins, a star tag in the theme colour counts
+    // your picks, and your picks' rows below take that colour too
+    const wins = item.entries.filter(e => e.real).length;
+    const picks = item.entries.length - wins;
     // Newest first; within a year the real shows before your own picks
     const sorted = [...item.entries].sort((a, b) => b.year - a.year || (b.real ? 1 : 0) - (a.real ? 1 : 0));
     return `<div class="st-grammy-card" style="--i:${i}" onclick="stToggleGrammyCard(this)">
       <div class="st-grammy-card-photo">
         <img id="stGrammyArt_${i}" class="st-grammy-card-bg" src="" alt="" onload="this.classList.add('loaded')">
         <div class="st-grammy-card-fallback">${esc(initials(item.artist))}</div>
-        <div class="st-grammy-ribbon">${stIco('trophy')} ${wins} ${wins === 1 ? t('st_grammy_win') : t('st_grammy_wins')}</div>
+        ${wins ? `<div class="st-grammy-ribbon">${stIco('trophy')} ${wins} ${wins === 1 ? t('st_grammy_win') : t('st_grammy_wins')}</div>` : ''}
+        ${picks ? `<div class="st-grammy-mine">${stIco('star')} ${picks} · ${esc(t('awards_tab_mygrammys'))}</div>` : ''}
         <div class="st-grammy-card-overlay">
           <div class="st-grammy-card-artist" title="${esc(item.artist)}">${esc(item.artist)}</div>
           <div class="st-grammy-card-plays">${item.plays.toLocaleString()} ${tUnit('plays', item.plays)}</div>
         </div>
         <div class="st-grammy-card-chevron">▾</div>
       </div>
-      <div class="st-grammy-detail">${sorted.map(e => `<div class="st-grammy-detail-row">
-        <span class="st-grammy-detail-year">${esc(String(e.year))} · ${esc(e.show)}</span>
+      <div class="st-grammy-detail">${sorted.map(e => `<div class="st-grammy-detail-row${e.real ? '' : ' is-mine'}">
+        <span class="st-grammy-detail-year">${e.real ? '' : stIco('star')}${esc(String(e.year))} · ${esc(e.show)}</span>
         <span class="st-grammy-detail-cat">${esc(e.category)}</span>
         ${e.title ? `<span class="st-grammy-detail-work">${esc(e.title)}</span>` : ''}
       </div>`).join('')}</div>

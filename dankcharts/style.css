@@ -29381,6 +29381,31 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
   z-index: 2;
 }
 
+/* Your own My Grammys picks: a tag in the theme colour at the top left, so
+   they never read as the gold ribbon's real wins */
+.st-grammy-mine {
+  position: absolute;
+  top: 0.55rem;
+  left: 0.55rem;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  max-width: calc(100% - 4.5rem);
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--r-sm, 6px);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-family: var(--font-sans);
+  font-size: var(--fs-xs);
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+}
+.st-grammy-mine .st-ico { fill: currentColor; }
+
 .st-grammy-card-overlay {
   position: absolute;
   inset: 0;
@@ -29455,6 +29480,17 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
   margin-top: 0.1rem;
   white-space: normal;
   line-height: 1.25;
+}
+/* A My Grammys pick in the list: theme colour and a star instead of gold */
+.st-grammy-detail-row.is-mine {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+.st-grammy-detail-row.is-mine .st-grammy-detail-year {
+  color: var(--accent);
+}
+.st-grammy-detail-row.is-mine .st-grammy-detail-year .st-ico {
+  fill: currentColor;
+  margin-right: 0.25em;
 }
 /* The winning song or album, when the award names one */
 .st-grammy-detail-work {
