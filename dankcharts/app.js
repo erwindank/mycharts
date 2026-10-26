@@ -12731,12 +12731,12 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('awardsView').style.display = 'none';
     document.getElementById('soundtrackView').style.display = 'none';
     document.getElementById('chartsguideView').style.display = 'none';
-    // Show the Events tab's Recent Releases and Anniversaries alongside the
-    // playlist manager (dc-pl-mode hides the rest of Events)
+    // Recent Releases and Anniversaries live in #playlistsView, under the
+    // playlists. The Events view itself stays hidden; dc-pl-mode on it tells
+    // _evMode() to draw those two as reels whatever the Events page's view is.
     const _evPl = document.getElementById('eventsView');
-    if (_evPl) { _evPl.classList.add('dc-pl-mode'); _evPl.style.display = 'block'; }
-    // Those two show as reels here whatever the Events page's view is
-    // (_evMode); the reels are filled by the Events loader, which otherwise only runs
+    if (_evPl) { _evPl.classList.add('dc-pl-mode'); _evPl.style.display = 'none'; }
+    // The reels are filled by the Events loader, which otherwise only runs
     // on the Events tab; it reads its cache first, so this is cheap after once
     if (allPlays.length) loadEvents();
     document.getElementById('playlistsView').style.display = 'block';
@@ -34220,14 +34220,20 @@ let _dcPlExpandedName = null; // name of the playlist currently expanded in the 
 let _dcPlDragSrc      = null; // index of the track being dragged for reorder
 
 function dcRenderPlaylistsView() {
-  const el = document.getElementById('playlistsView');
+  // Only the top part is redrawn: the release sections under it are filled
+  // by the Events loader and must survive a redraw
+  const el = document.getElementById('dcPlMain');
   if (!el) return;
   const names = Object.keys(_ytPlaylists);
 
-  // Header with title, optional resume row, and save-current-queue form
+  // The shared page title (as Records / Stats / Events / Awards / Soundtrack)
+  // with the nav's playlist icon, then one toolbar: Resume, save the queue
   let html = `<div class="dc-pl-view">` +
-    `<div class="dc-pl-header">` +
-    `<h2 class="dc-pl-title">My Playlists</h2>`;
+    `<div class="section-header dc-pl-page-header">` +
+    `<h2 class="section-header-h2"><svg class="graphs-h2-ico dc-pl-h2-ico" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M2 3.9h8.4M2 7.5h8.4M2 11.1h5"/><path d="M10.5 9.9 14.3 12.1 10.5 14.3Z"/></svg><span>${esc(t('nav_playlists'))}</span></h2>` +
+    `<div class="section-rule"></div>` +
+    `</div>` +
+    `<div class="dc-pl-header">`;
 
   // Resume row: show if a track was playing (this session or restored from a prior session)
   if (_ytCurrentTrack && _ytCurrentTrack.title) {

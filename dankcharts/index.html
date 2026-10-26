@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=679">
+  <link rel="stylesheet" href="style.css?v=680">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=207"></script>
+  <script defer src="translations.js?v=208"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -2133,22 +2133,6 @@
         </div>
       </div>
 
-      <!-- Shown only on Playlists (.dc-pl-mode), with Recent Releases: on
-           Events the anniversaries are part of Coming up below. -->
-      <div class="chart-section" id="anniversariesSection" data-ev-group="">
-        <div class="section-header">
-          <h2 class="section-header-h2" data-i18n="ev_cal_anniversaries">Anniversaries</h2>
-          <div class="section-rule"></div>
-          <button class="dc-btn dc-btn-normal dc-btn-sm ev-sec-pl" id="anniversariesPlBtn"
-            onclick="evAddSectionToPlaylist('anniversaries')" data-i18n="pl_section_btn"
-            data-i18n-title="pl_section_btn_title" title="Save everything in this section to a playlist">＋ Playlist</button>
-        </div>
-        <div class="section-sub" data-i18n="ev_sec_anniversaries_sub">Releases celebrating anniversaries in the next 30 days</div>
-        <div class="section-body">
-          <div class="upcoming-grid" id="anniversariesGrid"></div>
-        </div>
-      </div>
-
       <!-- COMING UP (phase 9 part 4 step 5): birthdays, anniversaries,
            releases and shows in one list, grouped by how soon they are.
            Each group draws in the page's view; anniversaries are ranked
@@ -2209,22 +2193,6 @@
           <div id="evRecentEarlierGrid"></div>
         </div>
         <div class="upcoming-empty" id="evRecentEmpty" hidden data-i18n="ev_recent_empty">Nothing recent from your top artists.</div>
-      </div>
-
-      <!-- Shown only on Playlists (.dc-pl-mode), with Anniversaries: on
-           Events the recent releases are part of Recent above. -->
-      <div class="chart-section" id="eventsRecentSection" data-ev-group="">
-        <div class="section-header">
-          <h2 class="section-header-h2" data-i18n="ev_sec_recent_releases">Recent Releases</h2>
-          <div class="section-rule"></div>
-          <button class="dc-btn dc-btn-normal dc-btn-sm ev-sec-pl" id="eventsRecentPlBtn"
-            onclick="evAddSectionToPlaylist('eventsRecent')" data-i18n="pl_section_btn"
-            data-i18n-title="pl_section_btn_title" title="Save everything in this section to a playlist">＋ Playlist</button>
-        </div>
-        <div class="section-sub" data-i18n="ev_sec_recent_releases_sub">Releases from the past 6 months from your top artists</div>
-        <div class="section-body">
-          <div class="upcoming-grid" id="eventsRecentGrid"></div>
-        </div>
       </div>
 
       <!-- New Music Friday is out already and not filtered to your artists,
@@ -2734,7 +2702,39 @@
 
   <!-- PLAYLISTS VIEW -->
   <div id="playlistsView" style="display:none;">
-    <!-- Rendered by dcRenderPlaylistsView() -->
+    <!-- Title, toolbar and the playlists: rendered by dcRenderPlaylistsView() -->
+    <div id="dcPlMain"></div>
+
+    <!-- Releases from your top artists, under the playlists (redesign phase 9
+         part 7). Their grids are filled by the Events loader (loadEvents),
+         which the Playlists tab starts; the ids are the ones it writes to.
+         Until it has answered, the loading line shows (CSS reads
+         #eventsStatus.is-loading); after, an empty grid shows the empty line. -->
+    <section class="dc-pl-part" id="anniversariesSection">
+      <div class="dc-pl-part-head">
+        <h3 class="dc-pl-part-title" data-i18n="ev_cal_anniversaries">Anniversaries</h3>
+        <button class="dc-btn dc-btn-normal dc-btn-sm ev-sec-pl" id="anniversariesPlBtn"
+          onclick="evAddSectionToPlaylist('anniversaries')" data-i18n="pl_section_btn"
+          data-i18n-title="pl_section_btn_title" title="Save everything in this section to a playlist">＋ Playlist</button>
+      </div>
+      <p class="dc-pl-part-sub" data-i18n="ev_sec_anniversaries_sub">Releases celebrating anniversaries in the next 30 days</p>
+      <p class="dc-pl-ev-note dc-pl-ev-loading" data-i18n="pl_ev_loading">Looking up releases from your top artists…</p>
+      <p class="dc-pl-ev-note dc-pl-ev-empty" data-i18n="pl_ev_anniv_empty">No anniversaries in the next 30 days.</p>
+      <div class="upcoming-grid" id="anniversariesGrid"></div>
+    </section>
+
+    <section class="dc-pl-part" id="eventsRecentSection">
+      <div class="dc-pl-part-head">
+        <h3 class="dc-pl-part-title" data-i18n="ev_sec_recent_releases">Recent Releases</h3>
+        <button class="dc-btn dc-btn-normal dc-btn-sm ev-sec-pl" id="eventsRecentPlBtn"
+          onclick="evAddSectionToPlaylist('eventsRecent')" data-i18n="pl_section_btn"
+          data-i18n-title="pl_section_btn_title" title="Save everything in this section to a playlist">＋ Playlist</button>
+      </div>
+      <p class="dc-pl-part-sub" data-i18n="ev_sec_recent_releases_sub">Releases from the past 6 months from your top artists</p>
+      <p class="dc-pl-ev-note dc-pl-ev-loading" data-i18n="pl_ev_loading">Looking up releases from your top artists…</p>
+      <p class="dc-pl-ev-note dc-pl-ev-empty" data-i18n="pl_ev_recent_empty">No releases from your top artists in the past 6 months.</p>
+      <div class="upcoming-grid" id="eventsRecentGrid"></div>
+    </section>
   </div>
   <!-- END PLAYLISTS VIEW -->
 
@@ -3990,7 +3990,7 @@
   <!-- Community board tab (suggestions / bugs / discussion). Loaded before
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
   <script defer src="board.js?v=4"></script>
-  <script defer src="app.js?v=533"></script>
+  <script defer src="app.js?v=534"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
   <script defer src="replay.js?v=1"></script>
   <!-- All-Time chart stats ("Inside your Top N"); reads app.js globals, so it loads after it -->

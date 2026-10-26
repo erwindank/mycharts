@@ -3217,6 +3217,9 @@ const TRANSLATIONS = {
     pl_pick_all_dupes: '“{{name}}” already has all of these',
     pl_pick_created: 'Playlist “{{name}}” created · {{songs}}',
     pl_section_btn: '＋ Playlist',
+    pl_ev_loading: 'Looking up releases from your top artists…',
+    pl_ev_anniv_empty: 'No anniversaries in the next 30 days.',
+    pl_ev_recent_empty: 'No releases from your top artists in the past 6 months.',
     pl_section_btn_title: 'Save everything in this section to a playlist',
 
     // Landing / Onboarding
@@ -7091,6 +7094,9 @@ const TRANSLATIONS = {
     pl_pick_all_dupes: '«{{name}}» ya las tiene todas',
     pl_pick_created: 'Lista «{{name}}» creada · {{songs}}',
     pl_section_btn: '＋ Lista',
+    pl_ev_loading: 'Buscando lanzamientos de tus artistas principales…',
+    pl_ev_anniv_empty: 'No hay aniversarios en los próximos 30 días.',
+    pl_ev_recent_empty: 'No hay lanzamientos de tus artistas principales en los últimos 6 meses.',
     pl_section_btn_title: 'Guardar todo lo de esta sección en una lista',
 
     // Landing / Onboarding
@@ -10956,6 +10962,9 @@ const TRANSLATIONS = {
     pl_pick_all_dupes: '“{{name}}” já tem todas elas',
     pl_pick_created: 'Playlist “{{name}}” criada · {{songs}}',
     pl_section_btn: '＋ Playlist',
+    pl_ev_loading: 'Buscando lançamentos dos seus artistas principais…',
+    pl_ev_anniv_empty: 'Nenhum aniversário nos próximos 30 dias.',
+    pl_ev_recent_empty: 'Nenhum lançamento dos seus artistas principais nos últimos 6 meses.',
     pl_section_btn_title: 'Salvar tudo desta seção em uma playlist',
 
     // Landing / Onboarding
@@ -14820,6 +14829,9 @@ const TRANSLATIONS = {
     pl_pick_all_dupes: '“{{name}}” já as tem todas',
     pl_pick_created: 'Playlist “{{name}}” criada · {{songs}}',
     pl_section_btn: '＋ Playlist',
+    pl_ev_loading: 'A procurar lançamentos dos teus artistas principais…',
+    pl_ev_anniv_empty: 'Nenhum aniversário nos próximos 30 dias.',
+    pl_ev_recent_empty: 'Nenhum lançamento dos teus artistas principais nos últimos 6 meses.',
     pl_section_btn_title: 'Guardar tudo desta secção numa playlist',
 
     // Landing / Onboarding

@@ -2148,10 +2148,11 @@
       padding-top: var(--sp-5);
     }
 
-    /* Soundtrack, Board and the Charts Guide live after #mainApp in the page,
-       not inside it, so on those tabs #mainApp is empty and its padding was a
-       ~90px gap above them. */
-    body:is([data-view="soundtrack"], [data-view="board"], [data-view="chartsguide"]) #mainApp {
+    /* Soundtrack, Playlists, Board and the Charts Guide live after #mainApp in
+       the page, not inside it, so on those tabs #mainApp is empty and its
+       padding was a ~90px gap above them. (Playlists used to show Events'
+       release sections inside #mainApp; they moved under the playlists.) */
+    body:is([data-view="soundtrack"], [data-view="playlists"], [data-view="board"], [data-view="chartsguide"]) #mainApp {
       padding-block: 0;
     }
 
@@ -8233,7 +8234,8 @@
     #eventsView[data-ev-tab="calendar"] .events-view-btns { display: none; }
     /* Playlists borrows two sections with their own ＋ Playlist; on Events
        the toolbar's one button does it */
-    #eventsView:not(.dc-pl-mode) .ev-sec-pl { display: none; }
+    /* (the ＋ Playlist buttons of Anniversaries / Recent Releases now sit
+       on the Playlists tab, outside #eventsView) */
 
     /* Tiles: the Reel's card, in a grid */
     .ev-tiles {
@@ -13061,7 +13063,8 @@
     #rawDataView>.section-header .section-header-h2,
     #eventsView>.section-header .section-header-h2,
     #awardsView>.section-header .section-header-h2,
-    #soundtrackView>.section-header .section-header-h2 {
+    #soundtrackView>.section-header .section-header-h2,
+    .dc-pl-view>.section-header .section-header-h2 {
       font-family: var(--font-display);
       font-size: var(--fs-lg);
       font-weight: 500;
@@ -21143,27 +21146,70 @@ body.purple .landing-card-config input:focus {
 }
 .yt-pl-del-btn:hover { opacity: 1; color: var(--rose); }
 
-/* ── Full Playlist Manager View ── */
-/* Hide everything inside eventsView except Anniversaries and Recent Releases when shown on the Playlists tab */
-#eventsView.dc-pl-mode > :not(#anniversariesSection, #eventsRecentSection) { display: none !important; }
-
-.dc-pl-view {
-  max-width: 780px;
+/* ── Full Playlist Manager View ──
+   Redesign phase 9 part 7: the shared page title, the playlists first, then
+   Anniversaries and Recent Releases as titled parts (no boxes). The same
+   980px width as the other tabs. */
+#playlistsView {
+  max-width: 980px;
   margin: 0 auto;
-  padding: var(--sp-4) var(--sp-3) var(--sp-9);
+  padding: var(--sp-2) var(--sp-4) var(--sp-9);
 }
+.dc-pl-h2-ico path:last-child { fill: var(--accent); }
 .dc-pl-header {
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
-  margin-bottom: 1.25rem;
+  margin-bottom: var(--sp-5);
 }
-.dc-pl-title {
+
+/* The two release parts under the playlists */
+.dc-pl-part { margin-top: var(--sp-8); }
+.dc-pl-part-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+.dc-pl-part-title {
+  font-family: var(--font-display);
   font-size: var(--fs-md);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text1);
   margin: 0;
 }
+.dc-pl-part-sub {
+  font-size: var(--fs-sm);
+  color: var(--text3);
+  margin: var(--sp-1) 0 var(--sp-3);
+}
+/* Loading while the Events loader runs, the empty line once it is done and
+   found nothing; neither once the grid has something in it */
+.dc-pl-ev-note {
+  display: none;
+  font-size: var(--fs-sm);
+  color: var(--text3);
+  margin: 0;
+  padding: var(--sp-4) 0;
+}
+/* (the grid is the part's only other div; it loses its class when emptied) */
+.dc-pl-part:has(> div:empty) .dc-pl-ev-empty { display: block; }
+body:has(#eventsStatus.is-loading) .dc-pl-part:has(> div:empty) .dc-pl-ev-loading { display: block; }
+body:has(#eventsStatus.is-loading) .dc-pl-ev-empty { display: none; }
+.dc-pl-ev-loading::before {
+  content: "";
+  display: inline-block;
+  width: 0.8em;
+  height: 0.8em;
+  margin-right: 0.5em;
+  vertical-align: -0.05em;
+  border: 2px solid var(--border2);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: dc-pl-spin 0.9s linear infinite;
+}
+@keyframes dc-pl-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .dc-pl-ev-loading::before { animation: none; } }
 .dc-pl-save-row {
   display: flex;
   align-items: center;

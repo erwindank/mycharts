@@ -3203,6 +3203,16 @@ Steps:
    the save-queue row and Resume in its toolbar; playlists first, then
    Anniversaries and Recent Releases as titled parts (no boxes) with a
    loading line while they fetch.
+   **Done 2026-10-26:** "Playlists" in the shared page title with the
+   nav's list-and-play icon; the save-queue row (and Resume) under it. The
+   two release sections moved out of Events into #playlistsView, under the
+   playlists, as titled parts (h3 + ＋ Playlist, the sub) with no box; the
+   Events loader still fills them by id, and Events stays hidden on this
+   tab (dc-pl-mode still makes them reels). A spinner line ("Looking up
+   releases from your top artists…") shows while #eventsStatus is loading
+   and the grid is empty; an empty line after. Same 980px width and title
+   height (109px) as Soundtrack; the ~65px gap #mainApp left above it is
+   gone. Checked 1440 and 390.
 2. **Playlist rows.** 2×2 cover collage per playlist (first four songs'
    covers, initials until they load), name, song count, ▶ ✎ 🗑; opened:
    tracks with small covers, drag handle, ▶ / ✕. Release lists as
