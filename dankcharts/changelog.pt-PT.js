@@ -16,6 +16,9 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
   "Your Soundtrack: Grammys chapter shows that year's awards, no Awards visit needed":
     ["A tua banda sonora: o capítulo dos Grammy mostra os prémios desse ano, sem passar por Prémios",
      "O capítulo de vencedores dos Grammy agora só conta as tuas escolhas dos Meus Grammys do ano que estás a ver (um mês usa o seu ano; Todos os tempos continua a contar todos os anos). Também carrega sozinho as tuas votações guardadas, por isso os vencedores aparecem logo, em vez de só depois de abrires o separador Prémios. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
+  "Your Soundtrack: streak cards centred":
+    ["A Tua Banda Sonora: cartões de sequências centrados",
+     "No capítulo de Sequências, o conteúdo de cada cartão fica agora centrado na vertical, mesmo quando outro cartão é mais alto por causa da etiqueta. A linha por baixo do calendário mostra uma só data para uma pausa de um dia. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
   "Your Soundtrack: natural Spanish in Listening Streaks":
     ["A Tua Banda Sonora: espanhol mais natural em Sequências",
      "Os textos em espanhol do capítulo de Sequências foram reescritos para soarem naturais em vez de traduzidos palavra a palavra. Além disso, em todos os idiomas um único dia já não aparece como «1 dias», e uma pausa de um dia mostra só a data. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
