@@ -49236,6 +49236,8 @@ function stRenderDiscoveries(plays) {
     <div class="st-discoveries-count">${t('st_discoveries_count', { n: discovered.length })}</div>
     <div class="st-bubbles" id="stDiscoveriesBubbles"></div>`;
 
+  // the pop-up's ‹ › order: most played first
+  _stDiscovered = [...discovered].sort((a, b) => b.count - a.count || a.date - b.date).map(d => d.artist);
   stStartBubbles(discovered);
 }
 
@@ -49324,17 +49326,238 @@ function stPopBubble(bubble, artist) {
   setTimeout(() => stOpenArtistModal(artist), 200);
 }
 
+/* ── Discovery pop-up (2026-10-25 redo) ─────────────────────────────────────
+   Clicking a New Discoveries bubble opens this. Besides the numbers it lets
+   the user do something with the artist:
+     • ▶ store samples (the chart's ▶ — rows carry data-ea-* attributes, so
+       the shared _eaPlaySample listeners serve them), and Spotify / YouTube /
+       Last.fm searches for the artist, each song and each album
+     • a plays-per-day chart since the discovery, with a trend word
+     • "How you found them": the first play ever and what came right before
+     • album covers, a next-goal bar (plays to the next top-N), similar
+       artists from Deezer matched against the user's own library
+     • ‹ › to step through the period's discoveries (also ← → keys)
+     • a share card, drawn straight on a canvas (no html2canvas, so none of
+       its colour / blur / letter-spacing traps)
+   Works the same for Last.fm, Sheets and CSV: everything is read from plays. */
+
+let _stDiscovered = [];            // the period's discoveries, most played first — the ‹ › order
+let _stAmArtist = null;            // the artist the pop-up shows
+let _stAmInfo = null;              // its numbers, kept for the share card
+const _stAmRelated = new Map();    // lower-case artist → Promise of Deezer's similar artists (null = failed)
+let _stAmLib = null, _stAmLibLen = -1;   // all-time plays per artist (lower-case name → { name, count })
+let _stAmCard = null;              // { artist, file } share image ready ahead of a tap (touch screens)
+
+const _ST_AM_YT_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M23 7.2a3 3 0 0 0-2.1-2.1C19 4.6 12 4.6 12 4.6s-7 0-8.9.5A3 3 0 0 0 1 7.2 31 31 0 0 0 .5 12a31 31 0 0 0 .5 4.8 3 3 0 0 0 2.1 2.1c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 0 0 2.1-2.1 31 31 0 0 0 .5-4.8 31 31 0 0 0-.5-4.8zM9.7 15.1V8.9l5.8 3.1-5.8 3.1z"/></svg>';
+const _ST_AM_LF_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M10.6 17.2l-.8-2.2s-1.3 1.5-3.3 1.5c-1.8 0-3-1.5-3-4 0-3.2 1.6-4.3 3.2-4.3 2.3 0 3 1.5 3.6 3.4l.8 2.6c.8 2.4 2.3 4.4 6.8 4.4 3.2 0 5.4-1 5.4-3.6 0-2.1-1.2-3.2-3.4-3.7l-1.6-.4c-1.1-.2-1.4-.7-1.4-1.4 0-.9.7-1.4 1.8-1.4 1.2 0 1.9.5 2 1.5l2.6-.3c-.2-2.3-1.8-3.3-4.4-3.3-2.3 0-4.5.9-4.5 3.6 0 1.7.8 2.8 2.9 3.3l1.7.4c1.3.3 1.7.8 1.7 1.5 0 .9-.9 1.3-2.6 1.3-2.5 0-3.6-1.3-4.2-3.2l-.8-2.6C12.4 7.4 10.9 6 7.6 6 4 6 .8 8.3.8 12.6c0 4.1 2.1 6.4 5.9 6.4 3.1 0 3.9-1.8 3.9-1.8z"/></svg>';
+const _ST_AM_SHARE_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><path d="m7 8 5-5 5 5"/><path d="M20 15v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-4"/></svg>';
+
+// Search links: Spotify, YouTube (and Last.fm for the artist). Plain links,
+// so middle-click and open-in-new-tab work too.
+function _stAmLinks(q, withLastfm) {
+  const e = encodeURIComponent(q);
+  const sp = esc(t('tm_action_spotify')), yt = esc(t('awx_yt')), lf = esc(t('st_am_lastfm'));
+  return `<a class="st-am-link st-am-link--sp" href="https://open.spotify.com/search/${e}" target="_blank" rel="noopener" title="${sp}" aria-label="${sp}">${_EA_SP_SVG}</a>`
+    + `<a class="st-am-link st-am-link--yt" href="https://www.youtube.com/results?search_query=${e}" target="_blank" rel="noopener" title="${yt}" aria-label="${yt}">${_ST_AM_YT_SVG}</a>`
+    + (withLastfm ? `<a class="st-am-link st-am-link--lf" href="https://www.last.fm/music/${e}" target="_blank" rel="noopener" title="${lf}" aria-label="${lf}">${_ST_AM_LF_SVG}</a>` : '');
+}
+
+// Is the Soundtrack period still running? (a goal only makes sense then)
+function _stAmPeriodRunning() {
+  const now = tzNow();
+  if (stPeriodType === 'alltime') return true;
+  if (stPeriodType === 'year') return stYear === now.getFullYear();
+  return stYear === now.getFullYear() && stMonth === now.getMonth() + 1;
+}
+
+// Last day of the Soundtrack period, or today while it is running
+function _stAmPeriodEndDs() {
+  if (_stAmPeriodRunning()) return localDateStr(tzNow());
+  if (stPeriodType === 'year') return `${stYear}-12-31`;
+  const last = new Date(stYear, stMonth, 0).getDate();
+  return `${stYear}-${String(stMonth).padStart(2, '0')}-${String(last).padStart(2, '0')}`;
+}
+
+// Plays per day from the first play to the period's end, as small bars.
+// Over ~4 months the bars become weeks so they stay readable.
+function _stAmChartHtml(dayCounts, firstDs, peakDay) {
+  const endDs = _stAmPeriodEndDs();
+  const days = [];
+  for (let d = new Date(firstDs + 'T12:00:00'); ; d.setDate(d.getDate() + 1)) {
+    const ds = localDateStr(d);
+    if (ds > endDs || days.length > 4000) break;
+    days.push(ds);
+  }
+  if (!days.length) days.push(firstDs);
+  const byWeek = days.length > 120;
+  const vals = [];
+  if (byWeek) for (let i = 0; i < days.length; i += 7) vals.push(days.slice(i, i + 7).reduce((s, ds) => s + (dayCounts[ds] || 0), 0));
+  else days.forEach(ds => vals.push(dayCounts[ds] || 0));
+  const max = Math.max(1, ...vals);
+  const n = vals.length;
+  const bars = vals.map((v, i) => {
+    if (!v) return `<rect class="st-am-bar0" x="${i + 0.15}" y="99" width="0.7" height="1"/>`;
+    const h = Math.max(6, v / max * 100);
+    return `<rect class="st-am-bar" x="${i + 0.15}" y="${100 - h}" width="0.7" height="${h}"><title>${v}</title></rect>`;
+  }).join('');
+
+  // Trend: the later half against the earlier half of the days since the discovery
+  let trend = 'new';
+  if (days.length >= 14) {
+    const half = Math.floor(days.length / 2);
+    const a = days.slice(0, half).reduce((s, ds) => s + (dayCounts[ds] || 0), 0);
+    const b = days.slice(half).reduce((s, ds) => s + (dayCounts[ds] || 0), 0);
+    const recent = days.slice(-30).some(ds => dayCounts[ds]);
+    trend = !recent ? 'quiet' : b > a * 1.25 ? 'up' : b < a * 0.8 ? 'down' : 'steady';
+  }
+  const fmt = ds => new Date(ds + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  return `
+    <div class="st-am-card st-am-chart">
+      <div class="st-am-card-head">
+        <span class="st-am-h">${t('st_am_chart_title')}</span>
+        <span class="st-am-trend st-am-trend--${trend}">${t('st_am_trend_' + trend)}</span>
+      </div>
+      <svg class="st-am-bars" viewBox="0 0 ${n} 100" preserveAspectRatio="none" role="img" aria-label="${esc(t('st_am_chart_title'))}">${bars}</svg>
+      <div class="st-am-axis"><span>${fmt(days[0])}</span>${peakDay ? `<span class="st-am-peak">${t('st_am_best_day', { date: fmt(peakDay), n: dayCounts[peakDay], unit: tUnit('plays', dayCounts[peakDay]) })}</span>` : ''}<span>${fmt(days[days.length - 1])}</span></div>
+    </div>`;
+}
+
+// Next goal: plays still needed to pass the artist at the next top-N mark
+function _stAmGoalHtml(rank, totalPlays, ranked) {
+  if (!rank) return '';
+  const total = ranked.length;
+  if (!_stAmPeriodRunning()) {
+    return `<div class="st-am-card st-am-goal"><div class="st-am-goal-line"><span class="st-am-h">${t('st_am_goal_title')}</span><span class="st-am-goal-txt">${t('st_am_goal_done', { rank, total: total.toLocaleString() })}</span></div></div>`;
+  }
+  if (rank === 1) {
+    return `<div class="st-am-card st-am-goal"><div class="st-am-goal-line"><span class="st-am-h">${t('st_am_goal_title')}</span><span class="st-am-goal-txt">${t('st_am_goal_top')}</span></div><div class="st-am-meter"><i style="width:100%"></i></div></div>`;
+  }
+  const TIERS = [1000, 500, 250, 100, 50, 25, 10, 5, 3, 1];
+  const top = TIERS.find(n => n < rank);
+  const need = Math.max(1, ranked[top - 1][1] - totalPlays + 1);
+  const pct = Math.max(4, Math.min(100, totalPlays / (totalPlays + need) * 100));
+  const txt = top === 1 ? t('st_am_goal_one', { n: need, unit: tUnit('plays', need) })
+                        : t('st_am_goal', { n: need, unit: tUnit('plays', need), top });
+  return `
+    <div class="st-am-card st-am-goal">
+      <div class="st-am-goal-line"><span class="st-am-h">${t('st_am_goal_title')}</span><span class="st-am-goal-txt">${txt}</span></div>
+      <div class="st-am-meter" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(pct)}"><i style="width:${pct.toFixed(1)}%"></i></div>
+      <div class="st-am-goal-sub"><span>${t('st_am_goal_now', { rank, total: total.toLocaleString() })}</span><span>${totalPlays.toLocaleString()} → ${(totalPlays + need).toLocaleString()}</span></div>
+    </div>`;
+}
+
+// How they were found: the very first play (all time), whether it came in
+// through a collab, and what played in the hour(s) just before it
+function _stAmOriginHtml(artist) {
+  let first = null;
+  for (const p of allPlays) {
+    if ((p.artists || splitArtists(p.artist)).includes(artist) && (!first || +p.date < +first.date)) first = p;
+  }
+  if (!first) return '';
+  const t0 = +first.date;
+  const before = [];
+  let firstWeek = 0;
+  for (const p of allPlays) {
+    const d = +p.date;
+    // same listening session = up to 3 hours before
+    if (d < t0 && d >= t0 - 3 * 3600e3) before.push(p);
+    if (d >= t0 && d < t0 + 7 * 86400e3 && (p.artists || splitArtists(p.artist)).includes(artist)) firstWeek++;
+  }
+  before.sort((a, b) => b.date - a.date);
+  const when = tzDate(first.date);
+  const dateTxt = when.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  const timeTxt = when.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+  const others = (first.artists || splitArtists(first.artist)).filter(a => a !== artist);
+  const prev = before.slice(0, 3);
+  return `
+    <div class="st-am-card st-am-origin">
+      <div class="st-am-h">${t('st_am_origin_title')}</div>
+      <div class="st-am-origin-first">
+        <span class="st-am-origin-dot" aria-hidden="true"></span>
+        <div class="st-am-origin-txt">
+          <div class="st-am-origin-song">${esc(first.title)}</div>
+          <div class="st-am-origin-meta">${t('st_am_origin_when', { date: dateTxt, time: timeTxt })}${others.length ? ' · ' + t('st_am_origin_via', { names: esc(others.join(', ')) }) : ''}</div>
+        </div>
+      </div>
+      ${prev.length ? `<div class="st-am-origin-label">${t('st_am_origin_before')}</div>
+      <ol class="st-am-origin-prev">${prev.map(p => `<li><span class="st-am-origin-pt">${esc(p.title)}</span><span class="st-am-origin-pa">${esc(p.artist)}</span></li>`).join('')}</ol>`
+      : `<div class="st-am-origin-label">${t('st_am_origin_fresh')}</div>`}
+      <div class="st-am-origin-week">${t('st_am_origin_week', { n: firstWeek, unit: tUnit('plays', firstWeek) })}</div>
+    </div>`;
+}
+
+// All-time plays per artist, built once per library size
+function _stAmLibrary() {
+  if (_stAmLib && _stAmLibLen === allPlays.length) return _stAmLib;
+  const m = new Map();
+  for (const p of allPlays) {
+    for (const a of (p.artists || splitArtists(p.artist))) {
+      const k = a.toLowerCase();
+      const e = m.get(k);
+      if (e) e.count++; else m.set(k, { name: a, count: 1 });
+    }
+  }
+  _stAmLib = m; _stAmLibLen = allPlays.length;
+  return m;
+}
+
+// Deezer's similar artists (through the deezer-proxy), memoised per artist.
+// Only an exact name match is trusted: "MUNA" must not become "Muna".
+function _stAmRelatedFor(artist) {
+  const k = artist.toLowerCase();
+  if (!_stAmRelated.has(k)) {
+    _stAmRelated.set(k, (async () => {
+      const r = await deezerFetch(`search/artist?q=${encodeURIComponent(artist)}&limit=10`);
+      if (!r.ok) throw new Error('deezer ' + r.status);
+      const list = (await r.json())?.data || [];
+      const hit = list.filter(a => (a.name || '').toLowerCase() === k).sort((a, b) => (b.nb_fan || 0) - (a.nb_fan || 0))[0];
+      if (!hit) return [];
+      const r2 = await deezerFetch(`artist/${hit.id}/related?limit=40`);
+      if (!r2.ok) throw new Error('deezer ' + r2.status);
+      return ((await r2.json())?.data || []).map(a => ({ name: a.name, pic: a.picture_medium || '' }));
+    })().catch(() => { _stAmRelated.delete(k); return null; }));
+  }
+  return _stAmRelated.get(k);
+}
+
+async function _stAmFillSimilar(artist) {
+  const el = document.getElementById('stAmSimilar');
+  if (!el) return;
+  const rel = await _stAmRelatedFor(artist);
+  if (_stAmArtist !== artist || !document.getElementById('stAmSimilar')) return;
+  if (!rel || !rel.length) { el.innerHTML = `<div class="st-am-muted">${t('st_am_similar_none')}</div>`; return; }
+  const lib = _stAmLibrary();
+  const own = artist.toLowerCase();
+  const loved = [], fresh = [];
+  for (const a of rel) {
+    const k = a.name.toLowerCase();
+    if (k === own) continue;
+    const mine = lib.get(k);
+    if (mine) loved.push({ ...a, name: mine.name, count: mine.count }); else fresh.push(a);
+  }
+  loved.sort((a, b) => b.count - a.count);
+  const pic = a => a.pic ? `<img src="${esc(a.pic)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : `<span>${esc(initials(a.name))}</span>`;
+  // Artists already in the library open their full profile; new ones search Spotify
+  const lovedHtml = loved.slice(0, 6).map(a => `<button type="button" class="st-am-sim" data-st-am-profile="${esc(a.name)}" title="${esc(t('st_am_open_profile', { name: a.name }))}"><span class="st-am-sim-pic">${pic(a)}</span><span class="st-am-sim-name">${esc(a.name)}</span><span class="st-am-sim-sub">${a.count.toLocaleString()} ${tUnit('plays', a.count)}</span></button>`).join('');
+  const freshHtml = fresh.slice(0, 6).map(a => `<a class="st-am-sim st-am-sim--new" href="https://open.spotify.com/search/${encodeURIComponent(a.name)}" target="_blank" rel="noopener" title="${esc(t('tm_action_spotify'))}"><span class="st-am-sim-pic">${pic(a)}</span><span class="st-am-sim-name">${esc(a.name)}</span><span class="st-am-sim-sub">${t('st_am_similar_new')}</span></a>`).join('');
+  el.innerHTML = (lovedHtml ? `<div class="st-am-sub-h">${t('st_am_similar_love')}</div><div class="st-am-sims">${lovedHtml}</div>` : '')
+    + (freshHtml ? `<div class="st-am-sub-h">${t('st_am_similar_try')}</div><div class="st-am-sims">${freshHtml}</div>` : '');
+}
+
 function stOpenArtistModal(artist) {
   const modal = document.getElementById('stArtistModal');
   if (!modal) return;
+  if (_stAmArtist !== artist) _eaStopSample();
+  _stAmArtist = artist;
 
   const artistPlays = _stCurrentPlays.filter(p => (p.artists || splitArtists(p.artist)).includes(artist));
   const totalPlays = artistPlays.length;
 
+  // Songs keep what the ▶ sample needs (credited artist, album, key)
   const songCounts = {};
   for (const p of artistPlays) {
     const sk = songKey(p);
-    if (!songCounts[sk]) songCounts[sk] = { title: p.title, count: 0 };
+    if (!songCounts[sk]) songCounts[sk] = { title: p.title, artist: p.artist, album: p.album || '', key: sk, count: 0 };
     songCounts[sk].count++;
   }
   const topSongs = Object.values(songCounts).sort((a, b) => b.count - a.count).slice(0, 10);
@@ -49342,7 +49565,7 @@ function stOpenArtistModal(artist) {
   const albumCounts = {};
   for (const p of artistPlays) {
     if (!p.album || p.album === '—') continue;
-    if (!albumCounts[p.album]) albumCounts[p.album] = { album: p.album, count: 0 };
+    if (!albumCounts[p.album]) albumCounts[p.album] = { album: p.album, artist: albumArtist(p), count: 0 };
     albumCounts[p.album].count++;
   }
   const topAlbums = Object.values(albumCounts).sort((a, b) => b.count - a.count);
@@ -49370,51 +49593,338 @@ function stOpenArtistModal(artist) {
   for (const p of _stCurrentPlays) {
     for (const a of (p.artists || splitArtists(p.artist))) periodArtistCounts[a] = (periodArtistCounts[a] || 0) + 1;
   }
-  const rank = Object.entries(periodArtistCounts).sort((a, b) => b[1] - a[1]).findIndex(([a]) => a === artist) + 1;
-
-  document.getElementById('stArtistModalName').textContent = artist;
-  document.getElementById('stArtistModalSub').textContent = `${t('st_discoveries_title')} · ${stGetPeriodLabel()}`;
-
-  const avatarEl = document.getElementById('stArtistModalAvatar');
-  const cachedImg = imgCache['artist:' + artist.toLowerCase() + ':deezer'];
-  avatarEl.innerHTML = cachedImg ? thumbHtml(cachedImg, artist, false) : `<div class="thumb-initials">${esc(initials(artist))}</div>`;
-  if (!cachedImg) {
-    getArtAuto('artist', artist).then(url => {
-      if (document.getElementById('stArtistModalName')?.textContent === artist) avatarEl.innerHTML = thumbHtml(url, artist, false);
-    });
-  }
+  const ranked = Object.entries(periodArtistCounts).sort((a, b) => b[1] - a[1]);
+  const rank = ranked.findIndex(([a]) => a === artist) + 1;
 
   const fmtDay = ds => new Date(ds + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  _stAmInfo = { artist, totalPlays, activeDays, rank, discoveredDs, topSong: topSongs[0]?.title || '', period: stGetPeriodLabel() };
+
+  // ── Hero: photo backdrop, name, found date + rank, actions ──
+  document.getElementById('stArtistModalName').textContent = artist;
+  document.getElementById('stArtistModalSub').textContent = t('st_am_kicker', { period: stGetPeriodLabel() });
+  const meta = [];
+  if (discoveredDs) meta.push(t('st_am_found', { date: fmtDay(discoveredDs) }));
+  if (rank > 0) meta.push(t('st_am_rank', { n: rank }));
+  document.getElementById('stArtistModalMeta').textContent = meta.join(' · ');
+
+  const avatarEl = document.getElementById('stArtistModalAvatar');
+  const bgEl = document.getElementById('stArtistModalBg');
+  const setArt = url => {
+    avatarEl.innerHTML = url ? thumbHtml(url, artist, false) : `<div class="thumb-initials">${esc(initials(artist))}</div>`;
+    avatarEl.querySelector('img')?.setAttribute('loading', 'eager');
+    bgEl.style.backgroundImage = url ? `url("${String(url).replace(/"/g, '%22')}")` : '';
+    bgEl.classList.toggle('has-art', !!url);
+  };
+  const cachedImg = imgCache['artist:' + artist.toLowerCase() + ':deezer'];
+  setArt(cachedImg || null);
+  if (!cachedImg) {
+    getArtAuto('artist', artist).then(url => { if (_stAmArtist === artist && url) setArt(url); });
+  }
+
+  // ▶ plays the top song's sample: the hero carries that song's data-ea-*
+  // attributes, so it lights up together with the song's own row
+  const top = topSongs[0];
+  const play = top
+    ? `<span class="st-am-play-wrap"${_eaAttrs('songs', { title: top.title, artist: top.artist, album: top.album, key: top.key })}>`
+      + `<button type="button" class="ea-sample st-am-play" title="${esc(t('ea_sample'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="ea-ic-play" d="M8 5v14l11-7z"/><path class="ea-ic-stop" d="M7 6h3.5v12H7zM13.5 6H17v12h-3.5z"/></svg>`
+      + `<span class="st-am-play-lbl">${t('st_am_play')}</span></button></span>`
+    : '';
+  document.getElementById('stArtistModalActions').innerHTML = play
+    + `<span class="st-am-hero-links">${_stAmLinks(artist, true)}</span>`
+    + `<button type="button" class="st-am-share" onclick="stAmShare(this)">${_ST_AM_SHARE_SVG}<span>${t('st_am_share')}</span></button>`;
+
+  // ‹ › through the period's discoveries
+  const idx = _stDiscovered.indexOf(artist);
+  const nav = document.getElementById('stArtistModalNav');
+  nav.innerHTML = idx >= 0 && _stDiscovered.length > 1
+    ? `<button type="button" class="st-am-nav-btn" onclick="stAmStep(-1)" title="${esc(t('st_am_prev'))}" aria-label="${esc(t('st_am_prev'))}">‹</button>`
+      + `<span class="st-am-nav-pos">${t('st_am_pos', { i: idx + 1, n: _stDiscovered.length })}</span>`
+      + `<button type="button" class="st-am-nav-btn" onclick="stAmStep(1)" title="${esc(t('st_am_next'))}" aria-label="${esc(t('st_am_next'))}">›</button>`
+    : '';
+
+  // ── Body ──
+  const songRows = topSongs.map((s, i) => `
+    <div class="st-am-row"${_eaAttrs('songs', { title: s.title, artist: s.artist, album: s.album, key: s.key })}>
+      <span class="st-am-rank">${i + 1}</span>
+      ${_eaSampleBtn('st-am-row-play')}
+      <span class="st-am-title"><span class="st-am-t1">${esc(s.title)}</span>${s.album && s.album !== '—' ? `<span class="st-am-t2">${esc(s.album)}</span>` : ''}</span>
+      <span class="st-am-count">${s.count.toLocaleString()}</span>
+      <span class="st-am-links">${_stAmLinks(s.title + ' ' + artist)}</span>
+    </div>`).join('');
+
+  const albumRows = topAlbums.map((a, i) => `
+    <div class="st-am-row st-am-row--album">
+      <span class="st-am-cover" data-st-am-album="${i}"><span class="thumb-initials">${esc(initials(a.album))}</span></span>
+      <span class="st-am-title"><span class="st-am-t1">${esc(a.album)}</span><span class="st-am-t2">${a.count.toLocaleString()} ${tUnit('plays', a.count)}</span></span>
+      <span class="st-am-links">${_stAmLinks(a.album + ' ' + a.artist)}</span>
+    </div>`).join('');
 
   const body = document.getElementById('stArtistModalBody');
   body.innerHTML = `
-    <div class="modal-stats-strip">
-      <div class="modal-stat"><div class="se">▶</div><div class="sv" data-countup="${totalPlays}">${totalPlays.toLocaleString()}</div><div class="sl">${t('stat_total_plays')}</div></div>
-      <div class="modal-stat"><div class="se">🔥</div><div class="sv" data-countup="${longestStreak}">${longestStreak}</div><div class="sl">${t('modal_listening_days_streak')}</div></div>
-      <div class="modal-stat"><div class="se">📅</div><div class="sv" data-countup="${activeDays}">${activeDays}</div><div class="sl">${t('modal_calendar_days_played')}</div></div>
-      <div class="modal-stat"><div class="se">💿</div><div class="sv" data-countup="${topAlbums.length}">${topAlbums.length}</div><div class="sl">${t('st_bubble_albums_title')}</div></div>
-      <div class="modal-stat"><div class="se">🏔️</div><div class="sv" style="font-size:var(--fs-md)">${peakDay ? fmtDay(peakDay) : '—'}</div><div class="sl">${t('st_stat_peak_day')}</div></div>
-      <div class="modal-stat"><div class="se">✨</div><div class="sv" style="font-size:var(--fs-md)">${discoveredDs ? fmtDay(discoveredDs) : '—'}</div><div class="sl">${t('st_bubble_discovered')}</div></div>
-      ${rank > 0 ? `<div class="modal-stat${rank <= 3 ? ' modal-stat--gold' : ''}"><div class="se">🏆</div><div class="sv${rank <= 3 ? ' sv--gold' : ''}">#${rank}</div><div class="sl">${t('st_bubble_rank')}</div></div>` : ''}
+    <div class="modal-stats-strip st-am-stats">
+      <div class="modal-stat"><div class="sv" data-countup="${totalPlays}">${totalPlays.toLocaleString()}</div><div class="sl">${t('stat_total_plays')}</div></div>
+      <div class="modal-stat"><div class="sv" data-countup="${activeDays}">${activeDays}</div><div class="sl">${t('modal_calendar_days_played')}</div></div>
+      <div class="modal-stat"><div class="sv" data-countup="${longestStreak}">${longestStreak}</div><div class="sl">${t('modal_listening_days_streak')}</div></div>
+      <div class="modal-stat"><div class="sv" data-countup="${topAlbums.length}">${topAlbums.length}</div><div class="sl">${t('st_bubble_albums_title')}</div></div>
     </div>
 
-    <div class="modal-section-title">${t('st_top_songs')}</div>
-    <div class="st-bmodal-list">
-      ${topSongs.map((s, i) => `<div class="st-bmodal-row"><span class="st-bmodal-rank">${i + 1}</span><span class="st-bmodal-title">${esc(s.title)}</span><span class="st-bmodal-count">${s.count.toLocaleString()}</span></div>`).join('')}
+    ${_stAmGoalHtml(rank, totalPlays, ranked)}
+    ${days.length ? _stAmChartHtml(dayCounts, days[0], peakDay) : ''}
+
+    <div class="st-am-cols">
+      <div class="st-am-card st-am-list">
+        <div class="st-am-h">${t('st_top_songs')}</div>
+        ${songRows}
+      </div>
+      ${topAlbums.length ? `<div class="st-am-card st-am-list">
+        <div class="st-am-h">${t('st_bubble_albums_title')}</div>
+        ${albumRows}
+      </div>` : ''}
     </div>
 
-    ${topAlbums.length ? `
-    <div class="modal-section-title">${t('st_bubble_albums_title')}</div>
-    <div class="st-bmodal-list">
-      ${topAlbums.map(a => `<div class="st-bmodal-row"><span class="st-bmodal-title">${esc(a.album)}</span><span class="st-bmodal-count">${a.count.toLocaleString()} ${tUnit('plays', a.count)}</span></div>`).join('')}
-    </div>` : ''}`;
+    ${_stAmOriginHtml(artist)}
+
+    <div class="st-am-card">
+      <div class="st-am-h">${t('st_am_similar_title')}</div>
+      <div id="stAmSimilar"><div class="st-am-muted st-am-loading">${t('st_am_similar_loading')}</div></div>
+    </div>`;
+
+  // Album covers fill in as they arrive
+  topAlbums.forEach((a, i) => {
+    getArtAuto('album', a.album, a.artist).then(url => {
+      if (_stAmArtist !== artist || !url) return;
+      const slot = body.querySelector(`[data-st-am-album="${i}"]`);
+      if (slot) slot.innerHTML = thumbHtml(url, a.album, false);
+    }).catch(() => {});
+  });
+  _stAmFillSimilar(artist);
+  _eaPaintSamples();
 
   animateModalCountup(body);
+  // replay the fade when stepping to another discovery
+  const box = modal.querySelector('.st-artist-modal-box');
+  box.classList.remove('st-am-swap'); void box.offsetWidth; box.classList.add('st-am-swap');
+  if (!modal.classList.contains('open')) modal.scrollTop = 0;
   modal.classList.add('open');
+
+  // Touch screens share from a tap, which can't wait for the drawing — get it ready now
+  _stAmCard = null;
+  if (window.matchMedia && window.matchMedia('(hover: none)').matches && navigator.canShare) {
+    _stAmRenderCard().then(file => { if (file && _stAmArtist === artist) _stAmCard = { artist, file }; }).catch(() => {});
+  }
+}
+
+function stAmStep(dir) {
+  const n = _stDiscovered.length;
+  const i = _stDiscovered.indexOf(_stAmArtist);
+  if (n < 2 || i < 0) return;
+  stOpenArtistModal(_stDiscovered[(i + dir + n) % n]);
+  document.getElementById('stArtistModal').scrollTop = 0;
 }
 
 function stCloseArtistModal() {
   document.getElementById('stArtistModal')?.classList.remove('open');
+  _eaStopSample();
+  _stAmArtist = null;
+}
+
+// ← → step, Esc closes (and stops the sample)
+document.addEventListener('keydown', e => {
+  const modal = document.getElementById('stArtistModal');
+  if (!modal || !modal.classList.contains('open')) return;
+  if (e.target.closest && e.target.closest('input, textarea, select, [contenteditable]')) return;
+  if (e.key === 'ArrowLeft') { stAmStep(-1); e.preventDefault(); }
+  else if (e.key === 'ArrowRight') { stAmStep(1); e.preventDefault(); }
+  else if (e.key === 'Escape') stCloseArtistModal();
+});
+
+document.addEventListener('click', e => {
+  const chip = e.target.closest && e.target.closest('[data-st-am-profile]');
+  if (!chip) return;
+  const name = chip.dataset.stAmProfile;
+  stCloseArtistModal();
+  openArtistModal(name);
+});
+
+// The chart rows' right-click menu would open under this pop-up: keep the browser's own
+document.getElementById('stArtistModal')?.addEventListener('contextmenu', e => e.stopPropagation());
+
+// ── Share card ────────────────────────────────────────────────────────────
+// 1080×1350, drawn on a canvas: blurred photo, round portrait, name, three
+// numbers, the most played song. Returns a PNG File.
+async function _stAmRenderCard() {
+  const info = _stAmInfo;
+  if (!info) return null;
+  const W = 1080, H = 1350;
+  const cvs = document.createElement('canvas');
+  cvs.width = W; cvs.height = H;
+  const g = cvs.getContext('2d');
+  const css = getComputedStyle(document.documentElement);
+  const display = (css.getPropertyValue('--font-display') || 'sans-serif').trim();
+  const sans = (css.getPropertyValue('--font-sans') || 'sans-serif').trim();
+  try { await Promise.all([document.fonts.load(`800 100px ${display}`), document.fonts.load(`600 40px ${sans}`)]); } catch (e) {}
+
+  // The photo, inlined so the canvas isn't tainted
+  let img = null;
+  try {
+    const url = imgCache['artist:' + info.artist.toLowerCase() + ':deezer'] || await getArtAuto('artist', info.artist);
+    const data = url && await _igToDataUrl(shHiResArt(url));
+    if (data) {
+      img = new Image();
+      img.src = data;
+      await img.decode();
+    }
+  } catch (e) { img = null; }
+
+  const MINT = '#6ee7b7';
+  // Background: the photo blurred by drawing it tiny and scaling it back up
+  g.fillStyle = '#0a0f1c';
+  g.fillRect(0, 0, W, H);
+  const cover = (c, w, h) => {
+    const k = Math.max(w / img.naturalWidth, h / img.naturalHeight);
+    const sw = w / k, sh = h / k;
+    c.drawImage(img, (img.naturalWidth - sw) / 2, (img.naturalHeight - sh) / 2, sw, sh, 0, 0, w, h);
+  };
+  if (img) {
+    const tiny = document.createElement('canvas');
+    tiny.width = 27; tiny.height = 34;
+    cover(tiny.getContext('2d'), 27, 34);
+    g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+    g.globalAlpha = 0.85;
+    g.drawImage(tiny, -40, -40, W + 80, H + 80);
+    g.globalAlpha = 1;
+  } else {
+    const rg = g.createRadialGradient(W / 2, 380, 40, W / 2, 380, 900);
+    rg.addColorStop(0, '#134e4a'); rg.addColorStop(1, '#0a0f1c');
+    g.fillStyle = rg; g.fillRect(0, 0, W, H);
+  }
+  const shade = g.createLinearGradient(0, 0, 0, H);
+  shade.addColorStop(0, 'rgba(6,10,20,0.45)');
+  shade.addColorStop(0.5, 'rgba(6,10,20,0.72)');
+  shade.addColorStop(1, 'rgba(6,10,20,0.94)');
+  g.fillStyle = shade; g.fillRect(0, 0, W, H);
+
+  g.textAlign = 'center';
+  g.textBaseline = 'alphabetic';
+  // Largest font size (down to `min`) at which `text` fits; clip() trims what still doesn't
+  const fit = (text, font, size, min, maxW) => {
+    let s = size;
+    g.font = font(s);
+    while (s > min && g.measureText(text).width > maxW) { s -= 4; g.font = font(s); }
+    return s;
+  };
+  const clip = (text, maxW) => {
+    if (g.measureText(text).width <= maxW) return text;
+    let s = text;
+    while (s.length > 1 && g.measureText(s + '…').width > maxW) s = s.slice(0, -1);
+    return s + '…';
+  };
+
+  // Kicker
+  g.font = `600 34px ${sans}`;
+  g.fillStyle = MINT;
+  g.fillText(('✦ ' + t('st_am_kicker', { period: info.period })).toUpperCase(), W / 2, 112);
+
+  // Portrait with a glowing ring
+  const cx = W / 2, cy = 400, r = 220;
+  g.save();
+  g.shadowColor = 'rgba(110,231,183,0.55)'; g.shadowBlur = 60;
+  g.beginPath(); g.arc(cx, cy, r + 10, 0, Math.PI * 2); g.fillStyle = MINT; g.fill();
+  g.restore();
+  g.save();
+  g.beginPath(); g.arc(cx, cy, r, 0, Math.PI * 2); g.clip();
+  if (img) {
+    g.translate(cx - r, cy - r);
+    cover(g, r * 2, r * 2);
+  } else {
+    g.fillStyle = '#1f2e4a'; g.fillRect(cx - r, cy - r, r * 2, r * 2);
+    g.fillStyle = '#fff'; g.font = `800 150px ${display}`; g.textBaseline = 'middle';
+    g.fillText(initials(info.artist), cx, cy + 6);
+    g.textBaseline = 'alphabetic';
+  }
+  g.restore();
+
+  // Name, sized to fit
+  const nameFont = s => `800 ${s}px ${display}`;
+  fit(info.artist, nameFont, 128, 64, 960);
+  g.fillStyle = '#ffffff';
+  g.fillText(clip(info.artist, 960), W / 2, 790);
+
+  // Found on …
+  if (info.discoveredDs) {
+    g.font = `500 36px ${sans}`;
+    g.fillStyle = 'rgba(255,255,255,0.72)';
+    const d = new Date(info.discoveredDs + 'T12:00:00').toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
+    g.fillText(t('st_am_found', { date: d }), W / 2, 852);
+  }
+
+  // Three numbers
+  const stats = [
+    [info.totalPlays.toLocaleString(), t('stat_total_plays')],
+    [String(info.activeDays), t('st_am_card_days')],
+    [info.rank ? '#' + info.rank : '—', t('st_am_card_rank')],
+  ];
+  const colW = 300, x0 = W / 2 - colW;
+  const boxY = 910, boxH = 170;
+  g.fillStyle = 'rgba(255,255,255,0.07)';
+  g.beginPath();
+  if (g.roundRect) g.roundRect(90, boxY, W - 180, boxH, 28); else g.rect(90, boxY, W - 180, boxH);
+  g.fill();
+  stats.forEach(([v, l], i) => {
+    const x = x0 + i * colW;
+    g.font = `800 76px ${display}`;
+    g.fillStyle = i === 2 ? MINT : '#ffffff';
+    g.fillText(v, x, boxY + 98);
+    g.font = `600 24px ${sans}`;
+    g.fillStyle = 'rgba(255,255,255,0.6)';
+    g.fillText(clip(l.toUpperCase(), colW - 30), x, boxY + 140);
+  });
+
+  // Most played song
+  if (info.topSong) {
+    g.font = `600 24px ${sans}`;
+    g.fillStyle = 'rgba(255,255,255,0.6)';
+    g.fillText(t('st_am_card_top').toUpperCase(), W / 2, 1150);
+    g.font = `700 46px ${sans}`;
+    g.fillStyle = '#ffffff';
+    g.fillText(clip(info.topSong, 900), W / 2, 1210);
+  }
+
+  g.font = `600 30px ${sans}`;
+  g.fillStyle = 'rgba(255,255,255,0.5)';
+  g.fillText('dankcharts.fm', W / 2, 1300);
+
+  const blob = await new Promise(res => cvs.toBlob(res, 'image/png'));
+  if (!blob) return null;
+  const name = 'discovery-' + info.artist.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').toLowerCase() + '.png';
+  return new File([blob], name, { type: 'image/png' });
+}
+
+// Share card button: the phone's share sheet when the image is ready
+// (navigator.share needs the tap itself, so nothing may be awaited first),
+// otherwise draw it and download it
+async function stAmShare(btn) {
+  const ready = _stAmCard && _stAmCard.artist === _stAmArtist ? _stAmCard.file : null;
+  if (ready && navigator.canShare && navigator.canShare({ files: [ready] })) {
+    navigator.share({ files: [ready] }).catch(() => {});
+    return;
+  }
+  const lbl = btn.querySelector('span');
+  const orig = lbl ? lbl.textContent : '';
+  btn.disabled = true;
+  if (lbl) lbl.textContent = t('st_am_saving');
+  try {
+    const file = await _stAmRenderCard();
+    if (file) {
+      const a = document.createElement('a');
+      a.download = file.name;
+      a.href = URL.createObjectURL(file);
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    }
+  } catch (e) { console.error('stAmShare', e); }
+  btn.disabled = false;
+  if (lbl) lbl.textContent = orig;
 }
 
 function stStartBubbles(discovered) {

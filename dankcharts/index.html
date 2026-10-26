@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=663">
+  <link rel="stylesheet" href="style.css?v=667">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=197"></script>
+  <script defer src="translations.js?v=198"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -3990,7 +3990,7 @@
   <!-- Community board tab (suggestions / bugs / discussion). Loaded before
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
   <script defer src="board.js?v=4"></script>
-  <script defer src="app.js?v=517"></script>
+  <script defer src="app.js?v=518"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
   <script defer src="replay.js?v=1"></script>
   <!-- All-Time chart stats ("Inside your Top N"); reads app.js globals, so it loads after it -->
@@ -5289,12 +5289,19 @@ function deleteGenreTriggers() {
   <div id="stArtistModal" class="modal-overlay" onclick="if(event.target===this)stCloseArtistModal()">
     <div class="dc-modal modal-box st-artist-modal-box">
       <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close modal-close" onclick="stCloseArtistModal()" aria-label="Close" data-i18n-aria="set_close">✕</button>
+      <!-- hero: blurred photo backdrop, ‹ › through the discoveries, actions -->
       <div class="st-artist-modal-header">
-        <div class="st-artist-modal-avatar" id="stArtistModalAvatar"></div>
-        <div class="st-artist-modal-headtext">
-          <div class="st-artist-modal-name" id="stArtistModalName"></div>
-          <div class="st-artist-modal-sub" id="stArtistModalSub"></div>
+        <div class="st-am-hero-bg" id="stArtistModalBg" aria-hidden="true"></div>
+        <div class="st-am-nav" id="stArtistModalNav"></div>
+        <div class="st-am-hero-main">
+          <div class="st-artist-modal-avatar" id="stArtistModalAvatar"></div>
+          <div class="st-artist-modal-headtext">
+            <div class="st-artist-modal-sub" id="stArtistModalSub"></div>
+            <div class="st-artist-modal-name" id="stArtistModalName"></div>
+            <div class="st-am-meta" id="stArtistModalMeta"></div>
+          </div>
         </div>
+        <div class="st-am-actions" id="stArtistModalActions"></div>
       </div>
       <div class="modal-body" id="stArtistModalBody"></div>
     </div>

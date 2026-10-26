@@ -29803,91 +29803,492 @@ body.st-story-open { overflow: hidden; }
   }
 }
 
-/* ── Discovery bubble → artist detail modal ─────────────────────
+/* ── Discovery bubble → artist pop-up (redone 2026-10-25) ─────────
    Reuses the shared .modal-overlay/.modal-box/.modal-close/.modal-body
-   system (same one the artist/album/song/streak modals use) so open/close
-   mechanics, backdrop blur, and the mobile sticky-close behavior all come
-   for free — only the header/avatar and song/album rows are bespoke. */
-.st-artist-modal-box { max-width: 640px; }
+   system for open/close, backdrop and the mobile sticky close. The hero is
+   always dark (a blurred copy of the artist photo under a shade), whatever
+   the theme, so its text and buttons use fixed light colours — never theme
+   tokens, which are tuned for the page background (see the masthead note).
+   Everything under the hero is ordinary themed cards. */
+.st-artist-modal-box { max-width: 720px; }
 
 .st-artist-modal-header {
-  background: linear-gradient(135deg, color-mix(in srgb, var(--green) 14%, var(--bg3)), var(--bg3));
-  padding: var(--sp-5);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding: 60px var(--sp-5) var(--sp-5);
+  color: #fff;
+  background:
+    radial-gradient(120% 90% at 12% 0%, rgba(52, 211, 153, 0.30), transparent 60%),
+    radial-gradient(90% 80% at 100% 100%, rgba(56, 189, 248, 0.18), transparent 60%),
+    #0b1220;
+}
+/* the artist photo, blurred into a colour wash */
+.st-am-hero-bg {
+  position: absolute;
+  inset: -60px;
+  z-index: -2;
+  background-size: cover;
+  background-position: center 30%;
+  filter: blur(40px) saturate(1.35);
+  opacity: 0;
+  transition: opacity 0.5s var(--ease);
+}
+.st-am-hero-bg.has-art { opacity: 0.8; }
+.st-artist-modal-header::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(180deg, rgba(8, 12, 22, 0.30) 0%, rgba(8, 12, 22, 0.62) 55%, rgba(8, 12, 22, 0.88) 100%);
+}
+
+/* close button sits on the dark hero */
+.st-artist-modal-box > .modal-close {
+  z-index: 3;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+.st-artist-modal-box > .modal-close:hover { background: rgba(255, 255, 255, 0.24); }
+/* the hero follows the box's rounded top corners */
+.st-artist-modal-header { border-radius: inherit; border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+/* Phones: the shared rule makes the close button sticky and in the flow,
+   which left an empty strip above the hero. A negative bottom margin
+   (its 32px + 0.6rem top margin) lets it float over the hero instead, and
+   a dark glass fill keeps the white ✕ readable over the light cards below. */
+@media (max-width: 700px) {
+  .st-artist-modal-box > .modal-close {
+    width: 32px;
+    padding: 0;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: calc(-32px - 0.6rem);
+    background: rgba(11, 18, 32, 0.55);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+  }
+}
+
+/* ‹ 3 of 42 › */
+.st-am-nav {
+  position: absolute;
+  top: 14px;
+  left: var(--sp-4);
   display: flex;
   align-items: center;
-  gap: 1.1rem;
-  border-bottom: 1px solid var(--border);
+  gap: 6px;
+}
+.st-am-nav-btn {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0 2px;
+  border-radius: var(--r-md);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.10);
+  color: #fff;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease);
+}
+.st-am-nav-btn:hover { background: rgba(255, 255, 255, 0.24); }
+.st-am-nav-btn:focus-visible { outline: 2px solid #6ee7b7; outline-offset: 2px; }
+.st-am-nav-pos {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.75);
+  min-width: 4.5em;
+  text-align: center;
+  font-feature-settings: "tnum";
+}
+
+.st-am-hero-main {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
 }
 
 .st-artist-modal-avatar {
-  width: 72px;
-  height: 72px;
+  width: 112px;
+  height: 112px;
   flex-shrink: 0;
   border-radius: 50%;
   overflow: hidden;
-  background: var(--bg2);
-  border: 2px solid color-mix(in srgb, var(--green) 55%, var(--border2));
-  box-shadow: 0 0 16px color-mix(in srgb, var(--green) 35%, transparent);
+  background: #1f2e4a;
+  border: 3px solid rgba(110, 231, 183, 0.9);
+  box-shadow: 0 0 0 6px rgba(110, 231, 183, 0.14), 0 14px 40px rgba(0, 0, 0, 0.5);
 }
 .st-artist-modal-avatar .thumb { width: 100%; height: 100%; border-radius: 50%; border: none; }
-.st-artist-modal-avatar .thumb-initials { width: 100%; height: 100%; border-radius: 50%; border: none; font-size: 1.6rem; }
+.st-artist-modal-avatar .thumb-initials { width: 100%; height: 100%; border-radius: 50%; border: none; font-size: 2rem; color: #fff; background: #1f2e4a; }
 
 .st-artist-modal-headtext { min-width: 0; }
 
+/* kicker: "NEW DISCOVERY · 2026" */
+.st-artist-modal-sub {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #6ee7b7;
+}
+
 .st-artist-modal-name {
   font-family: var(--font-display);
-  font-size: clamp(1.3rem, 4vw, 1.9rem);
+  font-size: clamp(1.9rem, 5.5vw, 2.85rem);
   font-weight: 800;
-  color: var(--text1);
-  line-height: 1.15;
+  color: #fff;
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  margin-top: 0.35rem;
   overflow-wrap: break-word;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.35);
 }
 
-.st-artist-modal-sub {
+.st-am-meta {
   font-family: var(--font-sans);
-  font-size: var(--fs-xs);
-  color: var(--green);
-  margin-top: 0.3rem;
+  font-size: var(--fs-sm);
+  color: rgba(255, 255, 255, 0.78);
+  margin-top: 0.45rem;
 }
 
-.st-bmodal-list {
+/* actions: ▶ sample, Spotify / YouTube / Last.fm, share */
+.st-am-actions {
   display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-  margin-bottom: 1.1rem;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: var(--sp-5);
+}
+.st-am-play-wrap { display: inline-flex; }
+.st-am-hero-links { display: inline-flex; gap: 8px; }
+
+.st-artist-modal-header .ea-sample.st-am-play {
+  width: auto;
+  height: 40px;
+  padding: 0 16px 0 12px;
+  gap: 8px;
+  border-radius: var(--r-md);
+  background: #6ee7b7;
+  color: #052e1f;
+  opacity: 1;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  box-shadow: 0 6px 20px rgba(110, 231, 183, 0.28);
+  transition: transform var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+.st-artist-modal-header .ea-sample.st-am-play svg { width: 16px; height: 16px; margin-left: 0; }
+.st-artist-modal-header .ea-sample.st-am-play:hover { background: #a7f3d0; color: #052e1f; transform: translateY(-1px); }
+.st-artist-modal-header .ea-sample.st-am-play.is-on { background: #fff; color: #052e1f; }
+.st-artist-modal-header .ea-sample.st-am-play.is-miss { opacity: 0.55; }
+
+.st-am-hero-links .st-am-link,
+.st-am-share {
+  height: 40px;
+  border-radius: var(--r-md);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.10);
+  color: #fff;
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+.st-am-hero-links .st-am-link { width: 40px; }
+.st-am-hero-links .st-am-link svg { width: 18px; height: 18px; }
+.st-am-hero-links .st-am-link:hover { background: rgba(255, 255, 255, 0.22); }
+.st-am-hero-links .st-am-link--sp:hover { color: #1ed760; }
+.st-am-hero-links .st-am-link--yt:hover { color: #ff4e45; }
+.st-am-hero-links .st-am-link--lf:hover { color: #ff5a5f; }
+
+.st-am-share {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  padding: 0 14px;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+.st-am-share svg { width: 16px; height: 16px; }
+.st-am-share:hover { background: rgba(255, 255, 255, 0.22); }
+.st-am-share:disabled { opacity: 0.6; cursor: progress; }
+.st-am-share:focus-visible,
+.st-am-hero-links .st-am-link:focus-visible,
+.st-artist-modal-header .ea-sample.st-am-play:focus-visible { outline: 2px solid #6ee7b7; outline-offset: 2px; }
+
+/* ── body cards ── */
+#stArtistModalBody { display: flex; flex-direction: column; gap: 14px; }
+#stArtistModalBody .modal-stats-strip { margin-bottom: 0; }
+
+.st-am-stats { border-radius: var(--r-md); }
+.st-am-stats .modal-stat { padding: var(--sp-4) var(--sp-2); }
+.st-am-stats .sv { font-size: 1.75rem; font-weight: 800; }
+.st-am-stats .modal-stat:nth-child(1) .sv { color: var(--accent); }
+.st-am-stats .modal-stat:nth-child(2) .sv { color: var(--teal); }
+.st-am-stats .modal-stat:nth-child(3) .sv { color: var(--amber); }
+.st-am-stats .modal-stat:nth-child(4) .sv { color: var(--green); }
+.st-am-stats .sl {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-top: 6px;
 }
 
-.st-bmodal-row {
+.st-am-card {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: var(--sp-4);
+}
+
+.st-am-h {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+.st-am-card > .st-am-h { margin-bottom: 10px; }
+.st-am-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+
+.st-am-muted { font-size: var(--fs-sm); color: var(--text3); }
+.st-am-loading { animation: stAmPulse 1.2s ease-in-out infinite; }
+@keyframes stAmPulse { 50% { opacity: 0.45; } }
+
+/* next goal */
+.st-am-goal-line { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.st-am-goal-txt { font-size: var(--fs-sm); font-weight: 600; color: var(--text1); }
+.st-am-meter {
+  height: 8px;
+  margin-top: 12px;
+  border-radius: var(--r-full);
+  background: var(--surface);
+  overflow: hidden;
+}
+.st-am-meter i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--green), var(--teal));
+  animation: stAmGrow 0.9s var(--ease) both;
+  transform-origin: left;
+}
+@keyframes stAmGrow { from { transform: scaleX(0); } }
+.st-am-goal-sub {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 8px;
+  font-size: var(--fs-xs);
+  color: var(--text3);
+  font-feature-settings: "tnum";
+}
+
+/* plays since the discovery */
+.st-am-trend {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: var(--r-sm);
+  color: var(--text2);
+  background: var(--surface);
+}
+.st-am-trend--up { color: var(--green); background: color-mix(in srgb, var(--green) 15%, transparent); }
+.st-am-trend--down { color: var(--rose); background: color-mix(in srgb, var(--rose) 15%, transparent); }
+.st-am-trend--steady { color: var(--accent); background: color-mix(in srgb, var(--accent) 15%, transparent); }
+.st-am-trend--new { color: var(--amber); background: color-mix(in srgb, var(--amber) 15%, transparent); }
+.st-am-bars { display: block; width: 100%; height: 84px; }
+.st-am-bar { fill: var(--green); transition: fill var(--t-fast) var(--ease); }
+.st-am-bar:hover { fill: var(--teal); }
+.st-am-bar0 { fill: var(--border); }
+.st-am-axis {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text3);
+}
+.st-am-peak { color: var(--text2); text-align: center; }
+
+/* song and album rows */
+.st-am-cols { display: grid; grid-template-columns: 1fr; gap: 14px; }
+.st-am-list { padding: var(--sp-3) var(--sp-3) var(--sp-2); }
+.st-am-list > .st-am-h { padding: 4px 6px 0; }
+.st-am-row {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  padding: 0.4rem 0;
-  border-bottom: 1px solid var(--border-t);
-  font-family: var(--font-sans);
-  font-size: var(--fs-xs);
+  gap: 10px;
+  padding: 6px;
+  border-radius: var(--r-sm);
+  transition: background var(--t-fast) var(--ease);
 }
-.st-bmodal-row:last-child { border-bottom: none; }
-
-.st-bmodal-rank {
-  color: var(--green);
-  font-weight: 700;
-  min-width: 18px;
+.st-am-row:hover { background: var(--raised); }
+.st-am-row.ea-playing, .st-am-row.ea-loading { background: color-mix(in srgb, var(--green) 12%, transparent); }
+.st-am-rank {
+  width: 20px;
   flex-shrink: 0;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  color: var(--text3);
 }
+.st-am-row:first-of-type .st-am-rank { color: var(--green); }
+.st-am-title { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.st-am-t1, .st-am-t2 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.st-am-t1 { font-size: var(--fs-sm); font-weight: 600; color: var(--text1); }
+.st-am-t2 { font-size: var(--fs-xs); color: var(--text3); margin-top: 1px; }
+.st-am-count {
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--text2);
+  font-feature-settings: "tnum";
+}
+.st-am-links { display: inline-flex; gap: 2px; flex-shrink: 0; opacity: 0.55; transition: opacity var(--t-fast) var(--ease); }
+.st-am-row:hover .st-am-links, .st-am-links:focus-within { opacity: 1; }
+.st-am-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--r-sm);
+  color: var(--text3);
+  text-decoration: none;
+  transition: color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+.st-am-link svg { width: 16px; height: 16px; display: block; }
+.st-am-list .st-am-link:hover { background: var(--hover, var(--raised)); }
+.st-am-list .st-am-link--sp:hover { color: #1db954; }
+.st-am-list .st-am-link--yt:hover { color: #ff0033; }
+.st-am-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
-.st-bmodal-title {
-  flex: 1;
+.st-am-cover {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  background: var(--surface);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+.st-am-cover .thumb, .st-am-cover .thumb-initials { width: 100%; height: 100%; border-radius: 0; border: none; font-size: 13px; }
+
+/* how you found them */
+.st-am-origin-first { display: flex; gap: 12px; align-items: flex-start; }
+.st-am-origin-dot {
+  width: 12px;
+  height: 12px;
+  margin-top: 5px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--green) 22%, transparent);
+}
+.st-am-origin-txt { min-width: 0; }
+.st-am-origin-song { font-size: var(--fs-base); font-weight: 700; color: var(--text1); }
+.st-am-origin-meta { font-size: var(--fs-xs); color: var(--text3); margin-top: 2px; }
+.st-am-origin-label { font-size: var(--fs-xs); color: var(--text3); margin: 14px 0 6px; }
+.st-am-origin-prev {
+  list-style: none;
+  margin: 0 0 0 5px;
+  padding: 0 0 0 16px;
+  border-left: 2px dashed var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.st-am-origin-prev li { display: flex; gap: 8px; min-width: 0; font-size: var(--fs-sm); }
+.st-am-origin-pt { color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.st-am-origin-pa { color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 1; }
+.st-am-origin-week { margin-top: 14px; font-size: var(--fs-sm); font-weight: 600; color: var(--green); }
+
+/* similar artists */
+.st-am-sub-h { font-size: var(--fs-xs); font-weight: 600; color: var(--text2); margin: 4px 0 8px; }
+.st-am-sims + .st-am-sub-h { margin-top: 14px; }
+.st-am-sims { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 6px; }
+.st-am-sim {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
   min-width: 0;
+  padding: 10px 6px;
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+}
+.st-am-sim:hover { background: var(--raised); border-color: var(--border); transform: translateY(-2px); }
+.st-am-sim:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.st-am-sim-pic {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+  font-weight: 700;
+  color: var(--text2);
+}
+.st-am-sim-pic img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.st-am-sim-name {
+  max-width: 100%;
+  font-size: var(--fs-xs);
+  font-weight: 700;
   color: var(--text1);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.st-am-sim-sub { font-size: 11px; color: var(--text3); }
+.st-am-sim--new .st-am-sim-sub { color: var(--green); }
 
-.st-bmodal-count {
-  color: var(--text3);
-  flex-shrink: 0;
-  font-feature-settings: "tnum";
+/* fade in on open and on ‹ › */
+.st-am-swap .st-am-hero-main,
+.st-am-swap #stArtistModalBody { animation: stAmIn 0.35s var(--ease) both; }
+.st-am-swap #stArtistModalBody { animation-delay: 0.05s; }
+@keyframes stAmIn { from { opacity: 0; transform: translateY(8px); } }
+
+@media (hover: none) {
+  .st-am-links { opacity: 1; }
+}
+
+@media (max-width: 560px) {
+  .st-artist-modal-header { padding: 58px var(--sp-4) var(--sp-4); }
+  .st-artist-modal-avatar { width: 84px; height: 84px; }
+  .st-am-hero-main { gap: 1rem; }
+  .st-am-share { margin-left: 0; }
+  .st-am-share span { display: none; }
+  .st-am-share { width: 40px; padding: 0; justify-content: center; }
+  .st-am-stats { grid-template-columns: repeat(2, 1fr); }
+  .st-am-stats .sv { font-size: 1.5rem; }
+  .st-am-card { padding: var(--sp-3); }
+  .st-am-sims { grid-template-columns: repeat(3, 1fr); }
+  .st-am-sim-pic { width: 56px; height: 56px; }
+  .st-am-peak { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .st-am-swap .st-am-hero-main, .st-am-swap #stArtistModalBody, .st-am-meter i, .st-am-loading { animation: none; }
+  .st-am-sim:hover { transform: none; }
 }
 
 /* ── NOW STRIP flame and equaliser animations (phase 5 step 5 reuses them) ── */
