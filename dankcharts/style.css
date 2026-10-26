@@ -27522,6 +27522,16 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
     color-mix(in srgb, var(--bg) 82%, transparent) 40%,
     color-mix(in srgb, var(--bg) 45%, transparent) 100%);
 }
+/* Light themes: a pale page colour over a half-strength picture washed it out
+   to almost nothing, so the picture goes stronger and the fade thins out on
+   the right. The left stays near-solid, so the dark title still reads. */
+body[class*="-light"] .st-chap-bg.is-loaded { opacity: 1; }
+body[class*="-light"] .st-chap-head:not(.st-chap-head--artist):not(.st-chap-head--year)::after {
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--bg) 94%, transparent) 0%,
+    color-mix(in srgb, var(--bg) 80%, transparent) 36%,
+    color-mix(in srgb, var(--bg) 8%, transparent) 100%);
+}
 .st-chap-l { display: grid; gap: var(--sp-1); min-width: 0; }
 .st-chap-label {
   font-family: var(--font-sans);
