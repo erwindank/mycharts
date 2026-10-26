@@ -15969,7 +15969,7 @@ function buildCrPanelHTML(type, key, f) {
       // Each section counts plays over its own periodMap, so the total tracks
       // that section's granularity and cutoff rather than the panel's.
       const rangeOpts = { mode: getCrRangeMode(type, key), viewedYear: vy, cutoffKeys, periodMap: crData?.periodMap };
-      const bodyHtml = d ? `<div class="cr-stats">${crStats(type, key, id, null, d, rangeOpts)}</div>${crBoxesHTML(type, key, null, d, id)}` : `<div style="font-size:var(--fs-xs);color:var(--text3);padding:2px 0">${t('cr_no_history')}</div>`;
+      const bodyHtml = d ? `<div class="cr-stats cr-stats-sum">${crStats(type, key, id, null, d, rangeOpts)}</div>${crBoxesHTML(type, key, null, d, id)}` : `<div style="font-size:var(--fs-xs);color:var(--text3);padding:2px 0">${t('cr_no_history')}</div>`;
       return `<div class="cr-panel-section">
         <div class="cr-panel-section-header is-open" onclick="toggleCrPanelSection(this)">
           <span class="cr-subsection-toggle">▼</span>
@@ -15980,7 +15980,7 @@ function buildCrPanelHTML(type, key, f) {
     }).join('');
     // Year / All-Time split the run into three sections; this period's own
     // figures get a row of their own above them
-    if (nowTiles) sectionsHtml = `<div class="cr-stats cr-stats-now">${nowTiles}</div>` + sectionsHtml;
+    if (nowTiles) sectionsHtml = `<div class="cr-stats cr-stats-sum">${nowTiles}</div>` + sectionsHtml;
   } else {
     const crData = allChartRun[currentPeriod] || chartRunData;
     const rawD = crData?.result?.[crRunType(type)]?.[key];
@@ -15988,13 +15988,13 @@ function buildCrPanelHTML(type, key, f) {
     const rangeOpts = { mode: getCrRangeMode(type, key), viewedYear: vy, cutoffKeys, periodMap: crData?.periodMap };
     if (d && hasBuData) {
       // Two-view wrapper: chart-only (default) and combined chart+BU timeline
-      sectionsHtml = `<div class="cr-stats">${nowTiles}${crStats(type, key, currentPeriod, null, d, rangeOpts)}</div>
+      sectionsHtml = `<div class="cr-stats cr-stats-sum">${nowTiles}${crStats(type, key, currentPeriod, null, d, rangeOpts)}</div>
         <div class="cr-view-chart">${crBoxesHTML(type, key, null, d, currentPeriod)}</div>
         <div class="cr-view-combined" style="display:none;">${buildCrWithBuBoxesHTML(type, key, d)}</div>`;
     } else {
       sectionsHtml = d
-        ? `<div class="cr-stats">${nowTiles}${crStats(type, key, currentPeriod, null, d, rangeOpts)}</div>${crBoxesHTML(type, key, null, d, currentPeriod)}`
-        : (nowTiles ? `<div class="cr-stats">${nowTiles}</div>` : '') + `<div style="font-size:var(--fs-xs);color:var(--text3);padding:4px 0">${t('cr_no_history')}</div>`;
+        ? `<div class="cr-stats cr-stats-sum">${nowTiles}${crStats(type, key, currentPeriod, null, d, rangeOpts)}</div>${crBoxesHTML(type, key, null, d, currentPeriod)}`
+        : (nowTiles ? `<div class="cr-stats cr-stats-sum">${nowTiles}</div>` : '') + `<div style="font-size:var(--fs-xs);color:var(--text3);padding:4px 0">${t('cr_no_history')}</div>`;
     }
   }
 
@@ -17117,34 +17117,214 @@ function crTile(label, valueHtml, cls) {
   return `<div class="cr-stat${cls ? ' ' + cls : ''}"><span class="cr-stat-k">${esc(label)}</span><strong>${valueHtml}</strong></div>`;
 }
 
+/* The chart run's summary (2026-10-26). Replaces the grid of ten equal tiles
+   that sat between the range bar and the run, which took more room than the
+   run itself and repeated what the row above already showed. Three parts:
+     • one sentence telling the run ("Debuted at #1, spent 5 weeks at the top…")
+     • one ribbon of counts that is also the boxes' legend: tapping "5 wks at
+       #1" dims every other box (crRibbonFilter)
+     • the next milestones to chase: chart weeks, weeks at #1, the next
+       certification and the next all-time chart spot, closest first
+   On long runs the ribbon pins to the top while the boxes scroll. Callers wrap
+   it in .cr-stats.cr-stats-sum, which lays it out as a block. */
+const CR_STICKY_MIN = 40;   // entries before the ribbon pins
+
+// "5 weeks", "1 play" — full words, unlike tUnit's short chart units
+function _crU(unit, n) {
+  return `${n.toLocaleString()} ${t('cr_u_' + unit + (n === 1 ? '_one' : '_other'))}`;
+}
+
 function crStats(type, key, period, crData, preD, rangeOpts) {
   const data = crData || chartRunData;
   const d = preD !== undefined ? preD : (data?.result?.[type]?.[key]);
-  if (!d) return '';
+  if (!d || !d.entries.length) return '';
   const rng = rangeOpts || { mode: 'now', periodMap: data?.periodMap };
   const totalPlays = crTotalPlays(type, key, rng.periodMap, period, rng.mode, rng.viewedYear, rng.cutoffKeys);
-  const n = d.entries.length;
-  const peak = d.peak;
-  const top1 = d.entries.filter(e => e.rank === 1).length;
-  const top5 = d.entries.filter(e => e.rank <= 5).length;
-  const top10 = d.entries.filter(e => e.rank <= 10).length;
-  // Each tile says what it counts on top ("Weeks on chart") with the figure
-  // below, so a tile reads on its own (phase 7: was "1 wk / on Chart",
-  // "PEAK #5", the label and the unit split between two lines)
   const unit = period === 'day' ? 'day' : period === 'month' ? 'month' : period === 'year' ? 'year' : 'week';
-  let html = crTile(t('cr_k_on_chart_' + unit), n)
-    + (totalPlays ? crTile(t('cr_k_total'), totalPlays.toLocaleString(), 'cr-stat-total') : '')
-    + crTile(t('cr_k_peak'), '#' + peak)
-    + (top1 ? crTile(t('cr_k_at1_' + unit), top1) : '')
-    + (top5 ? crTile(t('cr_k_top5_' + unit), top5) : '')
-    + (top10 ? crTile(t('cr_k_top10_' + unit), top10) : '');
+  const E = d.entries, n = E.length;
+  const cnt = max => E.filter(e => e.rank <= max).length;
+  const top1 = cnt(1);
+
+  // The period on screen, so the story can say "back this week"
+  const run = crData || allChartRun?.[period] || (chartRunData?.period === period ? chartRunData : null);
+  const story = _crStory(d, unit, period, rng.mode === 'now', run?.curKey);
+
+  // Tier chips: only ones that add something (Top 5 is dropped when it holds
+  // the same weeks as Top 3, Top 10 when it is the whole run)
+  let chips = '', prev = 0;
+  const chip = (max, c, lbl, sw) => `<button type="button" class="cr-rb-chip" aria-pressed="false" data-max="${max}" title="${esc(t('cr_rb_hint'))}" onclick="crRibbonFilter(this,event)"><span class="cr-rb-sw cr-rb-sw-${sw}"></span><b>${c.toLocaleString()}</b>${esc(lbl)}</button>`;
+  if (top1) { chips += chip(1, top1, t('cr_rb_at1_' + unit), 'gold'); prev = top1; }
+  [[3, 'top3'], [5, 'top5'], [10, 'top10']].forEach(([max, sw]) => {
+    const c = cnt(max);
+    if (c > prev && c < n) { chips += chip(max, c, t('cr_rb_top', { n: max }), sw); prev = c; }
+  });
+  let extras = '';
   if (period === 'month') {
-    html += crTile(t('cr_peak_plays_month'), d.peakPlays) + crTile(t('cr_peak_days_month'), d.peakDays);
+    extras = `<span class="cr-rb-x">${esc(t('cr_peak_plays_month'))} <b>${d.peakPlays}</b></span><span class="cr-rb-x">${esc(t('cr_peak_days_month'))} <b>${d.peakDays}</b></span>`;
   } else if (period === 'year') {
-    html += crTile(t('cr_months_peak_year'), d.peakMonths) + crTile(t('cr_days_peak_year'), d.peakDays);
+    extras = `<span class="cr-rb-x">${esc(t('cr_months_peak_year'))} <b>${d.peakMonths}</b></span><span class="cr-rb-x">${esc(t('cr_days_peak_year'))} <b>${d.peakDays}</b></span>`;
   }
-  return html;
+
+  const goals = _crGoals(type, key, d, unit, rng.mode === 'now', top1);
+  const sticky = n >= CR_STICKY_MIN;
+  const ribbon = `<div class="cr-ribbon${sticky ? ' is-sticky' : ''}">`
+    + `<span class="cr-rb-i"><b class="${d.peak === 1 ? 'is-gold' : ''}">#${d.peak}</b>${esc(t('cr_rb_peak'))}</span>`
+    + chips
+    + `<span class="cr-rb-i"><b>${n.toLocaleString()}</b>${esc(t('cr_rb_on_chart'))}</span>`
+    + (totalPlays ? `<span class="cr-rb-i"><b>${totalPlays.toLocaleString()}</b>${esc(t('cr_u_plays' + (totalPlays === 1 ? '_one' : '_other')))}</span>` : '')
+    + extras
+    + (sticky && goals.first ? `<span class="cr-rb-mini" title="${esc(goals.first.lbl)}">→ ${esc(goals.first.lbl)}</span>` : '')
+    + `</div>`;
+  // The milestones go under the boxes, not here: every caller renders
+  // crBoxesHTML for the same run right after this, and it picks them up
+  _crGoalsNext = goals.html ? { id: type + '|' + key + '|' + period, html: goals.html } : null;
+  return `<div class="cr-sum"><p class="cr-story">${story}</p>${ribbon}</div>`;
 }
+let _crGoalsNext = null;   // crStats → crBoxesHTML hand-off, see above
+
+function _crStory(d, unit, period, fromStart, curKey) {
+  const E = d.entries, first = E[0].rank, top1 = E.filter(e => e.rank === 1).length;
+  const b = (s, gold) => `<b${gold ? ' class="is-gold"' : ''}>${s}</b>`;
+  let s;
+  if (fromStart) {
+    // The whole run: it starts at the debut
+    s = t('cr_story_debut', { r: b('#' + first, first === 1) });
+    if (top1) s += t('cr_story_top', { n: b(_crU(unit, top1), true) });
+    else if (d.peak !== first) s += t('cr_story_peak', { r: b('#' + d.peak) });
+  } else {
+    // A range (this year only…): its first box is not the debut
+    s = top1 ? t('cr_story_r_top', { n: b(_crU(unit, top1), true) }) : t('cr_story_r_peak', { r: b('#' + d.peak) });
+  }
+  s += t('cr_story_total', { n: b(_crU(unit, E.length)) });
+  const last = E[E.length - 1];
+  if (curKey && last.periodKey === curKey && E.length > 1) {
+    const gap = crPeriodGap(period, E[E.length - 2].periodKey, last.periodKey);
+    if (gap > 0) s += ' ' + t('cr_story_back_' + unit, { n: _crU(unit, gap) });
+  }
+  return s;
+}
+
+/* Lifetime plays per item. cumulativeMaps already holds them up to the period
+   on screen; on All-Time (where it is null) one all-time pass is built and
+   kept until the plays change. */
+let _crLifeCache = null;
+function _crLifeMaps() {
+  if (cumulativeMaps) return cumulativeMaps;
+  const sig = _playsVersion + '|' + _stampEpoch;
+  if (!_crLifeCache || _crLifeCache.sig !== sig) {
+    _crLifeCache = { sig, maps: buildCumulativeMapsForPeriod(new Date(8.64e15)) };
+  }
+  return _crLifeCache.maps;
+}
+
+// Every item's lifetime plays, most first, for the all-time positions
+const _crRankCache = new WeakMap();
+function _crSortedPlays(maps, type) {
+  let c = _crRankCache.get(maps);
+  if (!c) _crRankCache.set(maps, c = {});
+  return c[type] || (c[type] = Object.values(maps[type] || {}).sort((a, b) => b - a));
+}
+// How many items have more than v plays (sorted is most-first)
+function _crAbove(sorted, v) {
+  let lo = 0, hi = sorted.length;
+  while (lo < hi) { const m = (lo + hi) >> 1; if (sorted[m] > v) lo = m + 1; else hi = m; }
+  return lo;
+}
+
+// The next certification on a ladder, with the plays it lands at
+function _crNextCert(p, cfg) {
+  if (p < cfg.gold) return { at: cfg.gold, label: t('cert_gold'), icon: '📀' };
+  if (p < cfg.plat) return { at: cfg.plat, label: t('cert_plat'), icon: '💿' };
+  const m = Math.floor(p / cfg.diamond) + 1;
+  return { at: m * cfg.diamond, label: tDiamondLabel(m), icon: diamondMultiLabel(m).icon };
+}
+
+/* Next milestones, closest first (by how much of the target is still left).
+   The first gets a row of its own with a bar; the next three follow as
+   "3 weeks from 30 on the chart". Chart-week goals only on the full run: on a
+   range they would count the wrong thing. Certifications and all-time spots
+   are lifetime plays, whatever the range. */
+function _crGoals(type, key, d, unit, fullRun, top1) {
+  const G = [], nx = (v, list) => list.find(x => x > v);
+  if (fullRun) {
+    const ladder = { week: [10, 20, 30, 40, 52, 75, 100, 150, 200, 300, 500], month: [6, 12, 24, 36, 48, 60, 100, 150],
+      year: [3, 5, 10, 15, 20, 30], day: [7, 14, 30, 50, 100, 200, 365, 500] }[unit];
+    const n = d.entries.length, a = nx(n, ladder);
+    if (a) G.push({ ic: '📅', t: a, v: n, u: unit, lbl: t('cr_g_chart', { n: _crU(unit, a) }), of: t('cr_g_chart_of', { t: a }) });
+    if (d.peak === 1) {
+      const b = nx(top1, [2, 3, 5, 10, 15, 20, 30, 52, 100]);
+      if (b) G.push({ ic: '👑', t: b, v: top1, u: unit, lbl: t('cr_g_at1', { n: _crU(unit, b) }), of: t('cr_g_at1_of', { t: b }) });
+    }
+  }
+  const maps = _crLifeMaps();
+  const life = maps?.[type]?.[key] || 0;
+  if (life && (type === 'songs' || type === 'albums')) {
+    let cfg = CERT.song;
+    if (type === 'albums') { const [al, ar] = key.split('|||'); cfg = certCfgFor(al, ar); }
+    const c = _crNextCert(life, cfg);
+    G.push({ ic: c.icon, t: c.at, v: life, u: 'plays', cert: true, lbl: t('cr_g_cert', { c: c.label }), of: t('cr_g_cert_of', { c: c.label }) });
+  }
+  if (life && maps[type]) {
+    const S = _crSortedPlays(maps, type), above = _crAbove(S, life), pos = above + 1;
+    const add = (v, kind) => {
+      const to = _crAbove(S, v) + 1;
+      if (to === 1) kind = 'top1';
+      if (G.some(g => g.to === to)) return;
+      G.push({ ic: '🏆', t: v + 1, v: life, u: 'plays', to, from: pos, lbl: t('cr_g_at_' + kind, { p: to }), of: t('cr_g_at_' + kind + '_of', { p: to }) });
+    };
+    if (pos > 1) {
+      add(S[above - 1], 'up');                       // the spot just above
+      if (pos > 10 && S.length >= 10) add(S[9], 'top10');
+      add(S[0], 'top1');
+    }
+  }
+  if (!G.length) return { html: '', first: null };
+  G.sort((x, y) => (x.t - x.v) / x.t - (y.t - y.v) / y.t);
+  const need = g => g.u === 'plays' ? _crU('plays', g.t - g.v) : _crU(g.u, g.t - g.v);
+  const one = g => (g.t - g.v === 1 ? '_one' : '_other');
+  const [g0, ...rest] = G;
+  const sub = g0.from ? t('cr_g_now' + one(g0), { r: g0.from, n: need(g0) }) : t('cr_g_left' + one(g0), { n: need(g0) });
+  const barCls = g0.cert ? 'is-cert' : g0.from ? 'is-gold' : '';
+  // Label column + value column, so both rows line up under each other
+  let html = `<div class="cr-goals"><span class="cr-goal-k">${esc(t('cr_g_next'))}</span><div class="cr-goal-v">`
+    + `<strong>${g0.ic} ${esc(g0.lbl)}</strong>`
+    + `<span class="cr-goal-bar" title="${g0.v.toLocaleString()} / ${g0.t.toLocaleString()}"><i class="${barCls}" style="width:${Math.min(100, g0.v / g0.t * 100).toFixed(1)}%"></i></span>`
+    + `<span class="cr-goal-sub">${esc(sub)}</span></div>`;
+  if (rest.length) {
+    html += `<span class="cr-goal-k">${esc(t('cr_g_then'))}</span><div class="cr-goal-v">`
+      + rest.slice(0, 3).map(g => `<span class="cr-goal-next">${g.ic} ${t('cr_g_item', { n: `<b>${esc(need(g))}</b>`, of: esc(g.of) })}</span>`).join('<span class="cr-goal-dot">·</span>')
+      + `</div>`;
+  }
+  return { html: html + '</div>', first: g0 };
+}
+
+// A ribbon chip: dim every box of this run outside its tier; tap again to clear
+function crRibbonFilter(btn, ev) {
+  if (ev) ev.stopPropagation();
+  const on = btn.getAttribute('aria-pressed') !== 'true';
+  const rb = btn.closest('.cr-ribbon');
+  rb.querySelectorAll('.cr-rb-chip').forEach(b => b.setAttribute('aria-pressed', 'false'));
+  if (on) btn.setAttribute('aria-pressed', 'true');
+  const max = on ? +btn.dataset.max : 0;
+  const host = (btn.closest('.cr-stats') || rb).parentElement;
+  host.querySelectorAll('.cr-box[data-rank]').forEach(b => {
+    if (!b.closest('.cr-subsection')) b.classList.toggle('cr-dim', max > 0 && +b.dataset.rank > max);
+  });
+}
+
+// A pinned ribbon says so (shadow, next milestone) once its story has scrolled
+// out from under it. Capture, so scrolling inside a modal counts too.
+let _crStickRaf = 0;
+document.addEventListener('scroll', () => {
+  if (_crStickRaf) return;
+  _crStickRaf = requestAnimationFrame(() => {
+    _crStickRaf = 0;
+    document.querySelectorAll('.cr-ribbon.is-sticky').forEach(rb => {
+      const prev = rb.previousElementSibling;
+      rb.classList.toggle('is-stuck', !!prev && rb.getBoundingClientRect().top - prev.getBoundingClientRect().bottom > 16);
+    });
+  });
+}, { capture: true, passive: true });
 
 function crPeriodGap(period, keyA, keyB) {
   // Returns number of chart periods between keyA and keyB (exclusive), i.e. gap - 1
@@ -17236,8 +17416,11 @@ function toggleRecRun(btn, runId) {
 function crBoxesHTML(type, key, crData, preD, periodOverride) {
   const data = crData || chartRunData;
   const d = (preD !== undefined && preD !== null) ? preD : (data?.result?.[type]?.[key]);
-  if (!d) return '<div style="font-size:var(--fs-xs);color:var(--text3);padding:4px 0">No chart history yet.</div>';
+  if (!d) { _crGoalsNext = null; return '<div style="font-size:var(--fs-xs);color:var(--text3);padding:4px 0">No chart history yet.</div>'; }
   const period = periodOverride || data?.period || currentPeriod;
+  // The next milestones crStats just built for this same run sit under the boxes
+  const goals = _crGoalsNext && _crGoalsNext.id === type + '|' + key + '|' + period ? _crGoalsNext.html : '';
+  _crGoalsNext = null;
   const safeKey = encodeKeyForOnclick(key);
   const unit = (gap) => period === 'day' ? tUnit('days', gap) : period === 'week' ? tUnit('weeks', gap) : period === 'month' ? tUnit('months', gap) : tUnit('years', gap);
   const boxes = d.entries.flatMap((e, i) => {
@@ -17245,7 +17428,7 @@ function crBoxesHTML(type, key, crData, preD, periodOverride) {
     // Top-3 weeks that aren't the peak get a light accent tint, so the run's
     // strongest stretch reads at a glance without competing with the gold peak.
     const cls = isPeak ? 'cr-box cr-box-peak' : e.rank <= 3 ? 'cr-box cr-box-top3' : 'cr-box';
-    const box = `<div class="${cls}" onclick="showCrPreview('${esc(e.periodKey)}','${type}','${safeKey}',this,'${period}'${d._mixed ? ',1' : ''})">
+    const box = `<div class="${cls}" data-rank="${e.rank}" onclick="showCrPreview('${esc(e.periodKey)}','${type}','${safeKey}',this,'${period}'${d._mixed ? ',1' : ''})">
       <div class="cr-box-rank">#${e.rank}</div>
       <div class="cr-box-label">${esc(crPeriodLabel(period, e.periodKey))}</div>
     </div>`;
@@ -17255,7 +17438,7 @@ function crBoxesHTML(type, key, crData, preD, periodOverride) {
     const gapEl = `<div class="cr-box-gap"><div class="cr-box-gap-label">✕${gap}</div><div class="cr-box-gap-unit">${unit(gap)}</div></div>`;
     return [gapEl, box];
   }).join('');
-  return `<div class="cr-boxes-wrap"><div class="cr-boxes">${boxes}</div></div>`;
+  return `<div class="cr-boxes-wrap"><div class="cr-boxes">${boxes}</div></div>${goals}`;
 }
 
 function toggleChartRun(btn, rowId) {
@@ -20452,21 +20635,23 @@ window.addEventListener('scroll', () => _eaCloseMenu(), { passive: true });
    action module's own (.ea-sample plays and paints like ▶; data-dr-action
    runs _eaRunAction). */
 
-// This period's own figures, as the first tiles of the chart run's row.
-// Labels name the period ("Last week", "Plays this month").
+// This period's own figures, as one line above the chart run's summary (was a
+// row of tiles, 2026-10-26). Labels name the period ("Last week", "Plays this
+// month").
 function _crNowTiles(f) {
   const per = currentPeriod === 'month' || currentPeriod === 'year' || currentPeriod === 'day' ? currentPeriod : currentPeriod === 'week' ? 'week' : '';
+  const item = (label, valueHtml, cls) => `<span class="cr-now-i${cls ? ' ' + cls : ''}"><span class="cr-now-k">${esc(label)}</span>${valueHtml}</span>`;
   let h = '';
   // On the Daily tab the movement is against yesterday or the same weekday last week
   const prevLbl = per === 'day' && typeof dyCompare !== 'undefined' && dyCompare === 'weekday'
     ? t('dr_prev_day_wd', { day: dyDayName(dyViewedDay()) }) : t('dr_prev_' + (per || 'week'));
-  if (f.move) h += crTile(prevLbl, f.prevRank ? `#${f.prevRank} ${f.mvHtml}` : f.mvHtml, 'cr-stat-now');
+  if (f.move) h += item(prevLbl, f.prevRank ? `<b>#${f.prevRank}</b> ${f.mvHtml}` : f.mvHtml);
   // The change only means something against a previous rank (NEW / RE show above)
-  h += crTile(per ? t('dr_plays_' + per) : t('dr_plays'), `${f.count.toLocaleString()}${f.prevRank ? f.deltaHtml : ''}`, 'cr-stat-now');
-  if (f.certHtml) h += crTile(t('dr_cert'), f.certHtml, 'cr-stat-now');
-  if (f.isPlaysPeak) h += crTile(t('dr_best'), esc(t('dr_best_val')), 'cr-stat-now is-best');
-  if (f.ratingHtml) h += crTile(t('dr_score'), f.ratingHtml, 'cr-stat-now');
-  return h;
+  h += item(per ? t('dr_plays_' + per) : t('dr_plays'), `<b>${f.count.toLocaleString()}</b>${f.prevRank ? f.deltaHtml : ''}`);
+  if (f.certHtml) h += item(t('dr_cert'), f.certHtml);
+  if (f.isPlaysPeak) h += item(t('dr_best'), esc(t('dr_best_val')), 'is-best');
+  if (f.ratingHtml) h += item(t('dr_score'), f.ratingHtml);
+  return `<div class="cr-now">${h}</div>`;
 }
 
 // The top of an entry's details panel: links, actions and the close button
@@ -25318,7 +25503,7 @@ function _buildAlbTrackPanelHTML(s, totalPlays, crY, crM, crW, allTimeSPM) {
         <span class="cr-subsection-label">${label}</span>
       </div>
       <div class="cr-subsection-body" style="display:none;" data-loaded="1">
-        <div class="cr-stats">${crStats('songs', sk, period, crData)}</div>
+        <div class="cr-stats cr-stats-sum">${crStats('songs', sk, period, crData)}</div>
         ${crBoxesHTML('songs', sk, crData, null, period)}
       </div>
     </div>`;
@@ -25835,7 +26020,7 @@ function openArtistModal(artistName) {
         <td class="modal-date-col">${streak}d</td>
         <td class="modal-plays-col">${peakEntry.plays}</td>
       </tr>
-      <tr class="cr-row" id="${rowId}"><td colspan="7"><div class="cr-panel" data-crtype="songs" data-crkey="${ek}"><div class="cr-stats">${crStats('songs', s.key, 'year', crY)}</div>${crBoxesHTML('songs', s.key, crY, null, 'year')}</div></td></tr>`;
+      <tr class="cr-row" id="${rowId}"><td colspan="7"><div class="cr-panel" data-crtype="songs" data-crkey="${ek}"><div class="cr-stats cr-stats-sum">${crStats('songs', s.key, 'year', crY)}</div>${crBoxesHTML('songs', s.key, crY, null, 'year')}</div></td></tr>`;
     });
     return `<table class="dc-table modal-table"><tbody>${rows}</tbody></table>`;
   })();
@@ -25864,7 +26049,7 @@ function openArtistModal(artistName) {
         <td class="modal-date-col">${streak}d</td>
         <td class="modal-plays-col">${peakEntry.plays}</td>
       </tr>
-      <tr class="cr-row" id="${rowId}"><td colspan="7"><div class="cr-panel" data-crtype="songs" data-crkey="${ek}"><div class="cr-stats">${crStats('songs', s.key, 'month', crM)}</div>${crBoxesHTML('songs', s.key, crM, null, 'month')}</div></td></tr>`;
+      <tr class="cr-row" id="${rowId}"><td colspan="7"><div class="cr-panel" data-crtype="songs" data-crkey="${ek}"><div class="cr-stats cr-stats-sum">${crStats('songs', s.key, 'month', crM)}</div>${crBoxesHTML('songs', s.key, crM, null, 'month')}</div></td></tr>`;
     });
     return `<table class="dc-table modal-table"><tbody>${rows}</tbody></table>`;
   })();
@@ -25892,7 +26077,7 @@ function openArtistModal(artistName) {
         <td class="modal-date-col">${consec > 1 ? consec + '×' : '—'}</td>
         <td class="modal-plays-col">${peakEntry.plays}</td>
       </tr>
-      <tr class="cr-row" id="${rowId}"><td colspan="7"><div class="cr-panel" data-crtype="songs" data-crkey="${ek}"><div class="cr-stats">${crStats('songs', s.key, 'week', crW)}</div>${crBoxesHTML('songs', s.key, crW, null, 'week')}</div></td></tr>`;
+      <tr class="cr-row" id="${rowId}"><td colspan="7"><div class="cr-panel" data-crtype="songs" data-crkey="${ek}"><div class="cr-stats cr-stats-sum">${crStats('songs', s.key, 'week', crW)}</div>${crBoxesHTML('songs', s.key, crW, null, 'week')}</div></td></tr>`;
     });
     return `<table class="dc-table modal-table"><tbody>${rows}</tbody></table>`;
   })();
@@ -25964,7 +26149,7 @@ function openArtistModal(artistName) {
         <td class="modal-date-col">${streak}d</td>
         <td class="modal-plays-col">${peakEntry.plays}</td>
       </tr>
-      <tr class="cr-row" id="${rowId}"><td colspan="7"><div class="cr-panel" data-crtype="albums" data-crkey="${ek}"><div class="cr-stats">${crStats('albums', crKeyRaw, 'year', crY)}</div>${crBoxesHTML('albums', crKeyRaw, crY, null, 'year')}</div></td></tr>`;
+      <tr class="cr-row" id="${rowId}"><td colspan="7"><div class="cr-panel" data-crtype="albums" data-crkey="${ek}"><div class="cr-stats cr-stats-sum">${crStats('albums', crKeyRaw, 'year', crY)}</div>${crBoxesHTML('albums', crKeyRaw, crY, null, 'year')}</div></td></tr>`;
     });
     return `<table class="dc-table modal-table"><tbody>${rows}</tbody></table>`;
   })();
@@ -25994,7 +26179,7 @@ function openArtistModal(artistName) {
         <td class="modal-date-col">${streak}d</td>
         <td class="modal-plays-col">${peakEntry.plays}</td>
       </tr>
-      <tr class="cr-row" id="${rowId}"><td colspan="7"><div class="cr-panel" data-crtype="albums" data-crkey="${ek}"><div class="cr-stats">${crStats('albums', crKeyRaw, 'month', crM)}</div>${crBoxesHTML('albums', crKeyRaw, crM, null, 'month')}</div></td></tr>`;
+      <tr class="cr-row" id="${rowId}"><td colspan="7"><div class="cr-panel" data-crtype="albums" data-crkey="${ek}"><div class="cr-stats cr-stats-sum">${crStats('albums', crKeyRaw, 'month', crM)}</div>${crBoxesHTML('albums', crKeyRaw, crM, null, 'month')}</div></td></tr>`;
     });
     return `<table class="dc-table modal-table"><tbody>${rows}</tbody></table>`;
   })();
@@ -26023,7 +26208,7 @@ function openArtistModal(artistName) {
         <td class="modal-date-col">${consec > 1 ? consec + '×' : '—'}</td>
         <td class="modal-plays-col">${peakEntry.plays}</td>
       </tr>
-      <tr class="cr-row" id="${rowId}"><td colspan="7"><div class="cr-panel" data-crtype="albums" data-crkey="${ek}"><div class="cr-stats">${crStats('albums', crKeyRaw, 'week', crW)}</div>${crBoxesHTML('albums', crKeyRaw, crW, null, 'week')}</div></td></tr>`;
+      <tr class="cr-row" id="${rowId}"><td colspan="7"><div class="cr-panel" data-crtype="albums" data-crkey="${ek}"><div class="cr-stats cr-stats-sum">${crStats('albums', crKeyRaw, 'week', crW)}</div>${crBoxesHTML('albums', crKeyRaw, crW, null, 'week')}</div></td></tr>`;
     });
     return `<table class="dc-table modal-table"><tbody>${rows}</tbody></table>`;
   })();
@@ -26410,7 +26595,7 @@ function openAlbumModal(albumKey) {
           <span>${label}</span>
         </div>
         <div class="acc-detail" id="${sid}" style="padding:0.5rem 0">
-          <div class="cr-stats" style="margin-bottom:0.5rem">${crStats('albums', albumKey, period, crData)}</div>
+          <div class="cr-stats cr-stats-sum">${crStats('albums', albumKey, period, crData)}</div>
           ${crBoxesHTML('albums', albumKey, crData, null, period)}
         </div>
       </div>`;

@@ -42663,3 +42663,89 @@ body.sh-bars-open .sh-bars-tog svg { transform: rotate(180deg); }
 @media (prefers-reduced-motion: reduce) {
   .crp, .crp-it, .crp-pl, .crp-ghost { transition: none; }
 }
+
+/* ── Chart-run summary (crStats, 2026-10-26) ─────────────────────────────
+   One sentence, one row of counts that is also the boxes' legend and filter,
+   and two quiet rows of next milestones. Replaces the ten-tile grid that sat
+   between the range bar and the run. Text shares one left edge; the counts
+   sit in a box, with the tappable ones as pills so they read as buttons. */
+.cr-stats.cr-stats-sum { display: block; margin-bottom: var(--sp-3); }
+.cr-sum { display: grid; gap: 10px; }
+
+/* This period's figures (last week, plays, certification…), one line */
+.cr-now { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px; margin-bottom: 10px; font-size: var(--fs-sm); color: var(--text2); }
+.cr-now-i { display: inline-flex; align-items: center; gap: 6px; }
+.cr-now-k, .cr-goal-k { font-size: 0.66rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); }
+.cr-now-i b { color: var(--text); font-family: var(--font-display); font-feature-settings: "tnum"; }
+.cr-now-i.is-best { color: var(--accent); font-weight: 600; }
+.cr-now-i .m-new, .cr-now-i .m-re { margin-left: 0 !important; }
+
+.cr-story { margin: 0; max-width: 80ch; font-size: 0.92rem; line-height: 1.5; color: var(--text2); text-wrap: pretty; }
+.cr-story b { color: var(--text); font-weight: 700; }
+.cr-story b.is-gold { color: var(--medal-gold); }
+
+/* The counts row, in its own box: plain figures, with the filterable ones
+   as pills inside it */
+.cr-ribbon {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+  padding: 7px 10px; border-radius: var(--r-md);
+  background: color-mix(in srgb, var(--text) 5%, var(--bg2));
+  border: 1px solid color-mix(in srgb, var(--text) 7%, transparent);
+  font-size: var(--fs-sm); color: var(--text2);
+}
+.cr-ribbon b { font-family: var(--font-display); font-weight: 700; font-feature-settings: "tnum"; color: var(--text); margin-right: 4px; }
+.cr-ribbon b.is-gold { color: var(--medal-gold); }
+.cr-rb-i, .cr-rb-x { padding: 3px 6px; white-space: nowrap; }
+.cr-rb-x b { margin: 0 0 0 4px; }
+.cr-rb-chip {
+  display: inline-flex; align-items: center; padding: 3px 10px; white-space: nowrap;
+  font: inherit; color: inherit; cursor: pointer;
+  background: color-mix(in srgb, var(--text) 7%, transparent);
+  border: 1px solid transparent; border-radius: 999px;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.cr-rb-chip:hover { border-color: color-mix(in srgb, var(--accent) 45%, transparent); color: var(--text); }
+.cr-rb-chip[aria-pressed="true"] { background: color-mix(in srgb, var(--accent) 16%, transparent); border-color: var(--accent); color: var(--text); }
+.cr-rb-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+/* Colour key: the same colours the boxes below use (gold #1, blue Top 3),
+   on the swatch and on the count, so the chip and its boxes match at a glance */
+.cr-rb-sw { width: 10px; height: 10px; border-radius: 3px; margin-right: 7px; flex: none; }
+.cr-rb-sw-gold  { background: var(--medal-gold); }
+.cr-rb-sw-top3  { background: var(--accent); }
+.cr-rb-sw-top5  { background: color-mix(in srgb, var(--accent) 50%, var(--text2)); }
+.cr-rb-sw-top10 { background: var(--text2); }
+.cr-rb-chip:has(.cr-rb-sw-gold) b { color: var(--medal-gold); }
+.cr-rb-chip:has(.cr-rb-sw-top3) b { color: var(--accent); }
+.cr-rb-mini { display: none; margin-left: auto; max-width: 26ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--fs-xs); font-weight: 600; color: var(--accent); }
+
+/* Long runs: the row pins while the boxes scroll */
+.cr-ribbon.is-sticky { position: sticky; top: var(--topbar-offset, 0px); z-index: 3; transition: box-shadow 0.2s, border-color 0.2s; }
+.modal-body .cr-ribbon.is-sticky, .dp-overlay .cr-ribbon.is-sticky { top: 0; }
+.cr-ribbon.is-stuck { border-color: var(--border); box-shadow: 0 10px 20px color-mix(in srgb, #000 30%, transparent); }
+.cr-ribbon.is-stuck .cr-rb-mini { display: inline; }
+
+/* Boxes outside the tier picked on the ribbon */
+.cr-box.cr-dim { opacity: 0.22; }
+
+/* Next milestones, under the boxes: label column + value column */
+.cr-boxes-wrap + .cr-goals { margin-top: var(--sp-3); padding-top: var(--sp-3); border-top: 1px solid color-mix(in srgb, var(--text) 8%, transparent); }
+.cr-goals { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 14px; align-items: center; }
+.cr-goal-v { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 10px; font-size: var(--fs-sm); color: var(--text2); min-width: 0; }
+.cr-goal-v strong { font-weight: 700; color: var(--text); }
+.cr-goal-bar { display: inline-block; width: 64px; height: 4px; border-radius: 2px; overflow: hidden; background: color-mix(in srgb, var(--text) 12%, transparent); }
+.cr-goal-bar i { display: block; height: 100%; background: var(--accent); }
+.cr-goal-bar i.is-gold { background: var(--medal-gold); }
+.cr-goal-bar i.is-cert { background: color-mix(in srgb, var(--accent) 70%, var(--text)); }
+.cr-goal-sub { font-size: var(--fs-xs); color: var(--text3); }
+.cr-goal-next { white-space: nowrap; }
+.cr-goal-next b { color: var(--text); font-weight: 700; }
+.cr-goal-dot { color: var(--text3); }
+@media (max-width: 600px) {
+  .cr-goals { grid-template-columns: 1fr; gap: 2px; }
+  .cr-goal-v + .cr-goal-k { margin-top: 6px; }
+  .cr-goal-next { white-space: normal; width: 100%; }
+  .cr-goal-dot { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cr-rb-chip, .cr-ribbon.is-sticky { transition: none; }
+}
