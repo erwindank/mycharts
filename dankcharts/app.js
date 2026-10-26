@@ -50716,9 +50716,15 @@ async function stLoadRealWins(years, top, alltime) {
     const data = await _rlWikiFetchYear(id, y);
     if (data?.error) failed = true;
     if (!data?.found) return;
+    // Producer / engineer / photographer awards name the winner first and the
+    // artists they worked for after ("Cirkut: "APT.", Rosé and Bruno Mars; …"),
+    // so there only the person named first counts as having won
     for (const cat of data.categories) for (const nom of cat.nominees) {
       if (!nom.won) continue;
-      for (const a of _rlWikiMatch(nom, byKey)) add({ ak: a.key, year: y, show: RL_WIKI_SHOWS[id].short, category: cat.name, title: nom.title || '' });
+      const hits = /producer|engineer|non-performing|photographer/i.test(cat.name)
+        ? [byKey.get(_rlWikiKey((nom.who || '').split(/[:;,("]/)[0]))].filter(Boolean)
+        : _rlWikiMatch(nom, byKey);
+      for (const a of hits) add({ ak: a.key, year: y, show: RL_WIKI_SHOWS[id].short, category: cat.name, title: nom.title || '' });
     }
   });
   return { wins, failed };
