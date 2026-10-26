@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Artist details open straight away":
+    ["Os detalhes do artista abrem logo",
+     "Da primeira vez que abrias um artista, o painel podia demorar alguns segundos a aparecer enquanto se calculavam os recordes do Hall da Fama. Agora esses recordes só são calculados quando abres o separador Tabelas do artista, onde aparecem, por isso o painel desliza de imediato. O gráfico de reproduções por mês também cabe agora no painel, mesmo com um histórico longo."],
   "Artist details fully in your language":
     ["Detalhes do artista totalmente na tua língua",
      "As últimas partes em inglês dos detalhes do artista estão agora também em espanhol e português: as conquistas de músicas em n.º 1 e de estreias em n.º 1, a tabela de resumo dos tops, o botão de categorias dos Grammys e a lista de álbuns por avaliar. A nota de Animar tops nas Definições chama agora o botão de repetição pelo nome que tem na tua língua."],

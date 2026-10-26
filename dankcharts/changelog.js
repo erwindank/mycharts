@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 351;
+const DC_CL_I18N_V = 352;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-26', t: 'perf', a: 'ui', h: '8af4d11',
+    title: "Artist details open straight away",
+    detail: "The first time you opened an artist, the panel could take a few seconds to appear while their Hall of Fame records were being worked out. Those records are now only worked out when you open the artist's Charts tab, where they are shown, so the panel slides in at once. The plays-by-month chart also fits the panel now, even for a long listening history." },
   { d: '2026-10-26', t: 'i18n', a: 'ui', h: 'cb14b40',
     title: "Artist details fully in your language",
     detail: "The last English bits in the artist details are now in Spanish and Portuguese too: the achievements for #1 songs and #1 debuts, the chart breakdown table, the Grammy categories button and the list of albums still to rate. The note under Animate charts in Settings now names the replay button the way it is called in your language." },

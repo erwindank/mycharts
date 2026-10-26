@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Artist details open straight away":
+    ["Os detalhes do artista abrem na hora",
+     "Na primeira vez que você abria um artista, o painel podia levar alguns segundos para aparecer enquanto os recordes do Hall da Fama eram calculados. Agora esses recordes só são calculados quando você abre a aba Paradas do artista, onde eles aparecem, então o painel desliza na hora. O gráfico de plays por mês também cabe no painel agora, mesmo com um histórico longo."],
   "Artist details fully in your language":
     ["Detalhes do artista totalmente no seu idioma",
      "As últimas partes em inglês dos detalhes do artista agora estão também em espanhol e português: as conquistas de músicas em nº 1 e de estreias em nº 1, a tabela de resumo das paradas, o botão de categorias dos Grammys e a lista de álbuns ainda por avaliar. A nota de Animar paradas nas Configurações agora chama o botão de repetição pelo nome que ele tem no seu idioma."],

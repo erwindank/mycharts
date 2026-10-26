@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Artist details open straight away":
+    ["Los detalles de artista se abren al instante",
+     "La primera vez que abrías un artista, el panel podía tardar unos segundos en aparecer mientras se calculaban sus récords del Salón de la Fama. Ahora esos récords solo se calculan al abrir la pestaña Listas del artista, donde se muestran, así que el panel se desliza al momento. El gráfico de escuchas por mes también cabe ya en el panel, incluso con un historial largo."],
   "Artist details fully in your language":
     ["Detalles de artista completamente en tu idioma",
      "Las últimas partes en inglés de los detalles de artista ya están también en español y portugués: los logros de canciones n.º 1 y de debuts en el n.º 1, la tabla de desglose por listas, el botón de categorías de los Grammy y la lista de álbumes por puntuar. La nota bajo Animar listas en Ajustes nombra ahora el botón de repetición como se llama en tu idioma."],
