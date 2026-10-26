@@ -29115,6 +29115,17 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
   margin-top: 0.3rem;
   font-weight: 600;
 }
+/* The top cards' unit and label as compact uppercase labels, like the
+   site's other stat tiles (lowercase looked unfinished). CSS does the
+   capitals, so every language keeps its own natural casing in the text. */
+.st-streaks-grid:not(.st-streaks-grid--entity) .st-streak-unit,
+.st-streaks-grid:not(.st-streaks-grid--entity) .st-streak-lbl {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+.st-streaks-grid:not(.st-streaks-grid--entity) .st-streak-unit { opacity: 1; }
 
 .st-streak-dates {
   font-family: var(--font-mono);
