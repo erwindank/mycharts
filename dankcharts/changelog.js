@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 346;
+const DC_CL_I18N_V = 347;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-26', t: 'design', a: 'ui', h: 'd1eed71',
+    title: "Details panel: clean icons, tidy numbers, in your language",
+    detail: "Inside the song, album and artist panels the emoji are now simple line icons, and the numbers sit on separate cards with the four most important ones larger; the rest fold away behind an \"All numbers\" button. Achievements are a tidy list you can open by clicking anywhere on a row. A song's Charts tab now shows its chart run for the period on screen, the Awards tab only appears when there is something to show, and the line under an artist's name says how many plays and since when. Every label in the artist panel — the chart sections, table headings and counts — is now in Spanish and Portuguese too. The artist pop-up on the Stats and Soundtrack tabs slides in from the side the same way. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-26', t: 'design', a: 'ui', h: 'be3049e',
     title: "Song, album and artist details open as a side panel",
     detail: "Clicking a song, album or artist now opens its details in a panel that slides in from the right, so the chart stays in view beside it (on a phone it fills the screen). The top shows the cover large over a soft blur of its own colours, with buttons right under the name: play a 30-second sample, add to a playlist, rate, share, and ⋯ for everything else (play the video, change the picture, search on YouTube or Spotify). The details are split into tabs — Overview, Charts, Listening and Awards, plus Tracks and Rating for an album and Music for an artist — instead of one very long page. Going from a song to its album or artist keeps your place: the ← button steps back. Works with Last.fm, Google Sheets and CSV uploads." },

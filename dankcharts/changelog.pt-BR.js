@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Details panel: clean icons, tidy numbers, in your language":
+    ["Painel de detalhes: ícones limpos, números organizados e no seu idioma",
+     "Nos painéis de músicas, álbuns e artistas os emoji agora são ícones de linha simples, e os números ficam em cartões separados, com os quatro mais importantes em destaque; o resto fica recolhido atrás de um botão «Todos os números». As conquistas são uma lista organizada que abre com um clique em qualquer parte da linha. A aba Paradas de uma música agora mostra a trajetória no período que está na tela, a aba Prêmios só aparece quando há algo para mostrar, e a linha sob o nome de um artista diz quantos plays e desde quando. Todos os rótulos do painel de artista — as seções de paradas, os títulos das tabelas e as contagens — agora estão também em espanhol e português. O painel de artista das abas Estatísticas e Trilha sonora desliza do lado da mesma forma. Funciona com Last.fm, Google Sheets e arquivos CSV."],
   "Song, album and artist details open as a side panel":
     ["Detalhes de músicas, álbuns e artistas abrem em um painel lateral",
      "Ao clicar em uma música, álbum ou artista, os detalhes agora abrem em um painel que desliza da direita, então a parada continua à vista ao lado (no celular ele ocupa a tela toda). No topo aparece a capa em tamanho grande sobre um leve desfoque das próprias cores, com botões logo abaixo do nome: ouvir uma prévia de 30 segundos, adicionar à playlist, avaliar, compartilhar e ⋯ para todo o resto (ver o vídeo, trocar a imagem, buscar no YouTube ou no Spotify). Os detalhes ficam em abas — Visão geral, Paradas, Audições e Prêmios, além de Faixas e Avaliação para um álbum e Música para um artista — em vez de uma página muito longa. Ir de uma música para o álbum ou o artista guarda o seu lugar: o botão ← volta. Funciona com Last.fm, Google Sheets e arquivos CSV."],
