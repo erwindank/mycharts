@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Playlists: covers on every playlist and song":
+    ["Playlists: capas em cada playlist e música",
+     "Cada playlist agora mostra uma pequena colagem com as capas das suas quatro primeiras músicas ao lado do nome, com o número de músicas embaixo. Ao abrir uma playlist, cada música tem a sua capa, com o título acima do artista. No celular, os botões de tocar e remover de cada música agora aparecem sempre (antes só apareciam ao passar o mouse, então não dava para usá-los numa tela de toque). Funciona com Last.fm, Google Sheets e arquivos CSV."],
   "Playlists: your playlists first":
     ["Playlists: suas playlists primeiro",
      "A aba Playlists agora começa com as suas playlists, sob o mesmo título de página das outras abas, com a caixa para salvar a fila logo abaixo. Datas comemorativas e Lançamentos recentes foram para baixo das suas playlists como fileiras com título, sem caixas, e enquanto são buscados aparece uma linha de carregamento em vez de duas caixas vazias. Funciona com Last.fm, Google Sheets e arquivos CSV."],

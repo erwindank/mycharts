@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 338;
+const DC_CL_I18N_V = 339;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-26', t: 'design', a: 'playlists', h: '9f18c7b',
+    title: "Playlists: covers on every playlist and song",
+    detail: "Each playlist now shows a small collage of its first four songs' covers next to its name, with the song count under it. Open a playlist and every song has its cover, with the title above the artist. On phones the play and remove buttons on each song now always show (before, they only appeared when hovering with a mouse, so they couldn't be reached on a touch screen). Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-26', t: 'design', a: 'playlists', h: '5778bb1',
     title: "Playlists: your playlists first",
     detail: "The Playlists tab now opens with your playlists, under the same page title as the other tabs, with the save-queue box right below it. Anniversaries and Recent Releases moved under your playlists as plain titled rows instead of boxes, and while they are being looked up a loading line says so instead of showing two empty boxes. Works with Last.fm, Google Sheets and CSV uploads." },

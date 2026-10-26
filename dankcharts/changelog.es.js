@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Playlists: covers on every playlist and song":
+    ["Listas de reproducción: portadas en cada lista y canción",
+     "Cada lista muestra ahora un pequeño collage con las portadas de sus cuatro primeras canciones junto al nombre, con el número de canciones debajo. Al abrir una lista, cada canción tiene su portada, con el título encima del artista. En el móvil los botones de reproducir y quitar de cada canción se ven siempre (antes solo aparecían al pasar el ratón, así que no se podían usar en una pantalla táctil). Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Playlists: your playlists first":
     ["Listas de reproducción: tus listas primero",
      "La pestaña Listas de reproducción ahora empieza con tus listas, bajo el mismo título de página que las demás pestañas, con la casilla para guardar la cola justo debajo. Aniversarios y Lanzamientos recientes pasan debajo de tus listas como filas con título, sin cajas, y mientras se buscan aparece una línea de carga en lugar de dos cajas vacías. Funciona con Last.fm, Google Sheets y archivos CSV."],
