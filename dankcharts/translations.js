@@ -9,6 +9,13 @@ const TRANSLATIONS = {
 
   // ── ENGLISH ──────────────────────────────────────────────────────────────────
   en: {
+    acc_artist_no1_week: 'Has {{n}} #1 {{unit}} on the Weekly Songs chart',
+    acc_artist_no1_month: 'Has {{n}} #1 {{unit}} on the Monthly Songs chart',
+    acc_artist_debut_no1: '{{n}} {{unit}} debuted at #1 on the Weekly New Songs chart',
+    am_peak_rank: 'Peak #{{n}}',
+    rtp_rate_arrow: 'Rate →',
+    dp_show_all: 'Show all {{n}}',
+    dp_show_fewer: 'Show fewer',
     set_tab_releases: 'Releases',
     set_search_ph: 'Search settings…',
     set_search_none: 'No setting matches that.',
@@ -1970,7 +1977,7 @@ const TRANSLATIONS = {
     set_cp_cert_note: "The reel of plaques earned during the week or month on screen.",
     set_behavior: "Behavior",
     set_anim: "Animate charts on page load",
-    set_anim_note: "Replays how rankings shifted. The <strong>▶ Animate Chart</strong> button above each chart always works either way.",
+    set_anim_note: 'Replays how rankings shifted. The <strong>▶ Animate chart</strong> button above each chart always works either way.',
     set_nosplit: "Keep comma-separated names as one artist",
     set_nosplit_note: "\"Artist A, Artist B\" counts as one artist, not two. Match this to how your data is written.",
     set_credit: "Awards count for featured & collaborating artists",
@@ -4192,6 +4199,13 @@ const TRANSLATIONS = {
 
   // ── SPANISH ───────────────────────────────────────────────────────────────────
   es: {
+    acc_artist_no1_week: 'Tiene {{n}} {{unit}} n.º 1 en la lista semanal de canciones',
+    acc_artist_no1_month: 'Tiene {{n}} {{unit}} n.º 1 en la lista mensual de canciones',
+    acc_artist_debut_no1: '{{n}} {{unit}} debutaron en el n.º 1 de la lista semanal de novedades',
+    am_peak_rank: 'Mejor n.º {{n}}',
+    rtp_rate_arrow: 'Puntuar →',
+    dp_show_all: 'Ver los {{n}}',
+    dp_show_fewer: 'Ver menos',
     set_tab_releases: 'Lanzamientos',
     set_search_ph: 'Buscar en ajustes…',
     set_search_none: 'Ningún ajuste coincide.',
@@ -6138,7 +6152,7 @@ const TRANSLATIONS = {
     set_cp_cert_note: "La cinta de placas ganadas durante la semana o el mes en pantalla.",
     set_behavior: "Comportamiento",
     set_anim: "Animar los rankings al cargar la página",
-    set_anim_note: "Repite cómo cambiaron los puestos. El botón <strong>▶ Animate Chart</strong> encima de cada ranking funciona siempre, esté esto activado o no.",
+    set_anim_note: 'Repite cómo cambiaron los puestos. El botón <strong>▶ Animar la lista</strong> encima de cada ranking funciona siempre, esté esto activado o no.',
     set_nosplit: "Tratar los nombres separados por comas como un solo artista",
     set_nosplit_note: "“Artista A, Artista B” cuenta como un artista, no como dos. Ajústalo a cómo están escritos tus datos.",
     set_credit: "Los premios cuentan para artistas invitados y colaboradores",
@@ -8260,6 +8274,13 @@ const TRANSLATIONS = {
 
   // ── PORTUGUESE — BRAZIL ───────────────────────────────────────────────────────
   'pt-BR': {
+    acc_artist_no1_week: 'Tem {{n}} {{unit}} em nº 1 na parada semanal de músicas',
+    acc_artist_no1_month: 'Tem {{n}} {{unit}} em nº 1 na parada mensal de músicas',
+    acc_artist_debut_no1: '{{n}} {{unit}} estrearam em nº 1 na parada semanal de novidades',
+    am_peak_rank: 'Pico nº {{n}}',
+    rtp_rate_arrow: 'Avaliar →',
+    dp_show_all: 'Ver todos os {{n}}',
+    dp_show_fewer: 'Ver menos',
     set_tab_releases: 'Lançamentos',
     set_search_ph: 'Buscar nas configurações…',
     set_search_none: 'Nenhuma configuração corresponde.',
@@ -10206,7 +10227,7 @@ const TRANSLATIONS = {
     set_cp_cert_note: "A faixa de placas conquistadas na semana ou no mês na tela.",
     set_behavior: "Comportamento",
     set_anim: "Animar as paradas ao carregar a página",
-    set_anim_note: "Mostra de novo como as posições mudaram. O botão <strong>▶ Animate Chart</strong> acima de cada parada funciona sempre, com isto ligado ou não.",
+    set_anim_note: 'Mostra de novo como as posições mudaram. O botão <strong>▶ Animar a parada</strong> acima de cada parada funciona sempre, com isto ligado ou não.',
     set_nosplit: "Manter nomes separados por vírgula como um só artista",
     set_nosplit_note: "“Artista A, Artista B” conta como um artista, não dois. Ajuste conforme a forma como seus dados estão escritos.",
     set_credit: "Os prêmios contam para artistas convidados e colaboradores",
@@ -12329,6 +12350,13 @@ const TRANSLATIONS = {
 
   // ── PORTUGUESE — EUROPEAN ─────────────────────────────────────────────────────
   'pt-PT': {
+    acc_artist_no1_week: 'Tem {{n}} {{unit}} em n.º 1 no top semanal de músicas',
+    acc_artist_no1_month: 'Tem {{n}} {{unit}} em n.º 1 no top mensal de músicas',
+    acc_artist_debut_no1: '{{n}} {{unit}} estrearam em n.º 1 no top semanal de novidades',
+    am_peak_rank: 'Melhor n.º {{n}}',
+    rtp_rate_arrow: 'Avaliar →',
+    dp_show_all: 'Ver todos os {{n}}',
+    dp_show_fewer: 'Ver menos',
     set_tab_releases: 'Lançamentos',
     set_search_ph: 'Pesquisar nas definições…',
     set_search_none: 'Nenhuma definição corresponde.',
@@ -14275,7 +14303,7 @@ const TRANSLATIONS = {
     set_cp_cert_note: "A faixa de placas conquistadas na semana ou no mês no ecrã.",
     set_behavior: "Comportamento",
     set_anim: "Animar os tops ao carregar a página",
-    set_anim_note: "Mostra outra vez como as posições mudaram. O botão <strong>▶ Animate Chart</strong> acima de cada top funciona sempre, com isto ligado ou não.",
+    set_anim_note: 'Mostra outra vez como as posições mudaram. O botão <strong>▶ Animar o top</strong> acima de cada top funciona sempre, com isto ligado ou não.',
     set_nosplit: "Manter nomes separados por vírgulas como um só artista",
     set_nosplit_note: "“Artista A, Artista B” conta como um artista, não dois. Ajusta conforme a forma como os teus dados estão escritos.",
     set_credit: "Os prémios contam para artistas convidados e colaboradores",

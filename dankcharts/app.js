@@ -25568,26 +25568,26 @@ function openArtistModal(artistName) {
   document.getElementById('modalArtistChart').innerHTML = buildArtistSparklineHTML(artistPlays);
 
   // Chart breakdown grid: songs + albums across all chart types
-  const cbCell = (count, peak) => `<td class="modal-cb-cell"><div class="cv">${count > 0 ? count : '—'}</div>${count > 0 ? `<div class="cp">${peak ? 'Peak Rank #' + peak : '—'}</div>` : '<div class="cp"></div>'}</td>`;
+  const cbCell = (count, peak) => `<td class="modal-cb-cell"><div class="cv">${count > 0 ? count : '—'}</div>${count > 0 ? `<div class="cp">${peak ? t('am_peak_rank', { n: peak }) : '—'}</div>` : '<div class="cp"></div>'}</td>`;
   document.getElementById('modalChartBreakdown').innerHTML = `
     <table class="modal-cb-table">
       <thead><tr>
         <td class="modal-cb-empty"></td>
-        <th class="modal-cb-th modal-cb-th--weekly">📊 Weekly</th>
-        <th class="modal-cb-th modal-cb-th--monthly">🌙 Monthly</th>
-        <th class="modal-cb-th modal-cb-th--yearly">⭐ Yearly</th>
-        <th class="modal-cb-th modal-cb-th--alltime">🏆 All-Time</th>
+        <th class="modal-cb-th modal-cb-th--weekly">${t('modal_cb_weekly')}</th>
+        <th class="modal-cb-th modal-cb-th--monthly">${t('modal_cb_monthly')}</th>
+        <th class="modal-cb-th modal-cb-th--yearly">${t('modal_cb_yearly')}</th>
+        <th class="modal-cb-th modal-cb-th--alltime">${t('modal_cb_alltime')}</th>
       </tr></thead>
       <tbody>
         <tr>
-          <td class="modal-cb-label modal-cb-label--songs">🎵 Songs</td>
+          <td class="modal-cb-label modal-cb-label--songs">🎵 ${t('ig_type_songs')}</td>
           ${cbCell(weeklySongsCharted.length, weeklyBestSongPeak)}
           ${cbCell(monthlySongsCharted.length, monthlyBestSongPeak)}
           ${cbCell(yearlySongsCharted.length, yearlyBestSongPeak)}
           ${cbCell(chartSongs.length, bestSongPeak)}
         </tr>
         <tr>
-          <td class="modal-cb-label modal-cb-label--albums">💿 Albums &amp; Singles</td>
+          <td class="modal-cb-label modal-cb-label--albums">💿 ${esc(t('stat_albums'))}</td>
           ${cbCell(weeklyAlbumsCharted.length, weeklyBestAlbumPeak)}
           ${cbCell(monthlyAlbumsCharted.length, monthlyBestAlbumPeak)}
           ${cbCell(yearlyAlbumsCharted.length, yearlyBestAlbumPeak)}
@@ -25647,7 +25647,7 @@ function openArtistModal(artistName) {
   // Weekly #1 songs
   const weeklyNo1Songs = allSongsSorted.filter(s => allChartRun.week?.result.songs[songKey(s)]?.peak === 1);
   if (weeklyNo1Songs.length) {
-    acc.push(accRow('🎵', `Has <strong style="color:var(--text)">${weeklyNo1Songs.length}</strong> #1 ${tUnit('songs', weeklyNo1Songs.length)} on the Weekly Songs chart`,
+    acc.push(accRow('🎵', t('acc_artist_no1_week', { n: `<strong style="color:var(--text)">${weeklyNo1Songs.length}</strong>`, unit: tUnit('songs', weeklyNo1Songs.length) }),
       weeklyNo1Songs.map(s => {
         const d = allChartRun.week.result.songs[songKey(s)];
         const peakEntry = d.entries.find(e => e.rank === 1);
@@ -25657,7 +25657,7 @@ function openArtistModal(artistName) {
   // Monthly #1 songs
   const monthlyNo1Songs = allSongsSorted.filter(s => allChartRun.month?.result.songs[songKey(s)]?.peak === 1);
   if (monthlyNo1Songs.length) {
-    acc.push(accRow('🎵', `Has <strong style="color:var(--text)">${monthlyNo1Songs.length}</strong> #1 ${tUnit('songs', monthlyNo1Songs.length)} on the Monthly Songs chart`,
+    acc.push(accRow('🎵', t('acc_artist_no1_month', { n: `<strong style="color:var(--text)">${monthlyNo1Songs.length}</strong>`, unit: tUnit('songs', monthlyNo1Songs.length) }),
       monthlyNo1Songs.map(s => {
         const d = allChartRun.month.result.songs[songKey(s)];
         const peakEntry = d.entries.find(e => e.rank === 1);
@@ -25670,7 +25670,7 @@ function openArtistModal(artistName) {
     return d && d.entries[0]?.rank === 1;
   });
   if (debutNo1Songs.length) {
-    acc.push(accRow('🌟', `<strong style="color:var(--text)">${debutNo1Songs.length}</strong> ${tUnit('songs', debutNo1Songs.length)} debuted at #1 on the Weekly New Songs chart`,
+    acc.push(accRow('🌟', t('acc_artist_debut_no1', { n: `<strong style="color:var(--text)">${debutNo1Songs.length}</strong>`, unit: tUnit('songs', debutNo1Songs.length) }),
       debutNo1Songs.map(s => {
         const d = allChartRun.week.result.songs[songKey(s)];
         return { name: s.title + (s.album !== '—' ? ' · ' + s.album : ''), plays: d.entries[0].plays, date: crPeriodLabel('week', d.entries[0].periodKey) };
@@ -26019,7 +26019,7 @@ function openArtistModal(artistName) {
   })();
 
   document.getElementById('modalAlbums').innerHTML =
-    mcsSection('◈', 'All-Time Chart', allTimeAlbums.length, 'albums', allTimeAlbumsHTML) +
+    mcsSection('◈', t('am_sec_alltime'), allTimeAlbums.length, 'albums', allTimeAlbumsHTML) +
     mcsSection('📅', t('am_sec_yearly'), yearlyAlbumsData.length, 'albums', yearlyAlbumsHTML) +
     mcsSection('📆', t('am_sec_monthly'), monthlyAlbumsData.length, 'albums', monthlyAlbumsHTML) +
     mcsSection('📇', t('am_sec_weekly'), weeklyAlbumsData.length, 'albums', weeklyAlbumsHTML);
@@ -26055,7 +26055,7 @@ function toggleModalGrammyDetail(btn) {
   const open = list.style.display !== 'none';
   list.style.display = open ? 'none' : '';
   const n = btn.dataset.count;
-  btn.textContent = open ? `▾ Show all ${n} categor${n == 1 ? 'y' : 'ies'}` : '▴ Hide categories';
+  btn.textContent = open ? t(n == 1 ? 'sm_show_cats_one' : 'sm_show_cats', { n }) : t('sm_hide_cats');
 }
 
 // ─── ALBUM MODAL ───────────────────────────────────────────────
@@ -40233,7 +40233,7 @@ function _renderModalGrammyStrip(artistName) {
     const listHTML = entries.map(e =>
       `<div class="modal-grammy-entry${e.isWin ? ' modal-grammy-entry--win' : ''}"><span class="mge-icon">${e.isWin ? '🏆' : '🏅'}</span><span class="mge-year">${e.year}</span><span class="mge-cat">${esc(e.label)}</span></div>`
     ).join('');
-    detailEl.innerHTML = `<button class="modal-grammy-toggle" onclick="toggleModalGrammyDetail(this)" data-count="${n}">▾ Show all ${n} categor${n === 1 ? 'y' : 'ies'}</button><div class="modal-grammy-list" style="display:none">${listHTML}</div>`;
+    detailEl.innerHTML = `<button class="modal-grammy-toggle" onclick="toggleModalGrammyDetail(this)" data-count="${n}">${t(n === 1 ? 'sm_show_cats_one' : 'sm_show_cats', { n })}</button><div class="modal-grammy-list" style="display:none">${listHTML}</div>`;
   } else {
     detailEl.innerHTML = '';
   }
@@ -56938,13 +56938,13 @@ function _ratingArtistPendingHTML(artistName) {
   if (!list.length) return '';
   const shown = _ratingArtistPendingAll ? list : list.slice(0, RT_ARTIST_PENDING_SHOWN);
   const more = list.length - shown.length;
-  return `<div class="rt-sub-label">Not rated yet <span class="rt-sub-count">${list.length}</span></div>
+  return `<div class="rt-sub-label">${esc(t('rtp_not_rated_yet'))} <span class="rt-sub-count">${list.length}</span></div>
     <div class="rt-tracktable">
       ${shown.map(k => _ratingArtistAlbumRow(k, k.split('|||')[0],
-        `<span class="rt-tt-plays">${plays[k] || 0} ${tUnit('plays', plays[k] || 0)}</span>`, 'Rate →')).join('')}
+        `<span class="rt-tt-plays">${plays[k] || 0} ${tUnit('plays', plays[k] || 0)}</span>`, t('rtp_rate_arrow'))).join('')}
     </div>
     ${list.length > RT_ARTIST_PENDING_SHOWN ? `<button class="dc-btn dc-btn-normal dc-btn-sm rt-tt-more" onclick="ratingArtistTogglePending()">${
-      more ? `Show all ${list.length}` : 'Show fewer'}</button>` : ''}`;
+      more ? t('dp_show_all', { n: list.length }) : t('dp_show_fewer')}</button>` : ''}`;
 }
 
 function ratingArtistTogglePending() {
