@@ -137,8 +137,11 @@
       var h = b('ea-sample dp-act-main', 'play', tt('ea_s_sample'), ' title="' + esc(tt('ea_sample')) + '"');
       h += b('', 'listmusic', tt('dp_playlist'), ' data-dp-act="playlist" title="' + esc(tt('ea_add_playlist')) + '"');
       if (kind !== 'artist') h += b('', 'star', tt('dp_rate'), ' data-dp-act="rate"');
-      h += b('', 'share', tt('dp_share'), ' data-dp-act="share"');
       h += '<button type="button" class="dp-act dp-act-icon ea-more" title="' + esc(tt('ea_more')) + '" aria-label="' + esc(tt('ea_more')) + '" aria-haspopup="menu">' + ico('more') + '</button>';
+      // Search it on Spotify / YouTube / Last.fm, and the share card — the
+      // same row as the Soundtrack's new-artist window
+      h += '<div class="dp-links">' + searchLinks(kind, d)
+        + '<button type="button" class="dp-share-card" data-dp-act="share">' + svgConst('_ST_AM_SHARE_SVG') + '<span>' + esc(tt('st_am_share')) + '</span></button></div>';
       acts.innerHTML = h;
     }
     var kick = o.querySelector('.dp-kicker');
@@ -151,6 +154,28 @@
     if (name && barT) barT.textContent = name.textContent;
     o.classList.remove('dp-scrolled');
     watchCover(kind, o);
+  }
+
+  // app.js's brand icons (top-level consts, so not on window)
+  function svgConst(name) {
+    try { return { _EA_SP_SVG: _EA_SP_SVG, _ST_AM_YT_SVG: _ST_AM_YT_SVG, _ST_AM_LF_SVG: _ST_AM_LF_SVG, _ST_AM_SHARE_SVG: _ST_AM_SHARE_SVG }[name] || ''; }
+    catch (e) { return ''; }
+  }
+
+  // Spotify and YouTube search for "title artist"; Last.fm goes straight to
+  // the artist, album or track page
+  function searchLinks(kind, d) {
+    var name = kind === 'song' ? d.title : kind === 'album' ? d.album : d.artist;
+    var q = encodeURIComponent(kind === 'artist' ? name : name + ' ' + d.artist);
+    var lfPath = encodeURIComponent(d.artist).replace(/%20/g, '+');
+    if (kind === 'album') lfPath += '/' + encodeURIComponent(d.album).replace(/%20/g, '+');
+    if (kind === 'song') lfPath += '/_/' + encodeURIComponent(d.title).replace(/%20/g, '+');
+    var a = function (cls, href, label, svg) {
+      return '<a class="dp-link dp-link--' + cls + '" href="' + href + '" target="_blank" rel="noopener" title="' + esc(label) + '" aria-label="' + esc(label) + '">' + svg + '</a>';
+    };
+    return a('sp', 'https://open.spotify.com/search/' + q, tt('tm_action_spotify'), svgConst('_EA_SP_SVG'))
+      + a('yt', 'https://www.youtube.com/results?search_query=' + q, tt('awx_yt'), svgConst('_ST_AM_YT_SVG'))
+      + a('lf', 'https://www.last.fm/music/' + lfPath, tt('st_am_lastfm'), svgConst('_ST_AM_LF_SVG'));
   }
 
   // The blurred backdrop copies the cover once app.js's lookup has found it
