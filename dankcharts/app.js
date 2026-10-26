@@ -17337,10 +17337,12 @@ function _crGoals(type, key, d, unit, fullRun, top1, extra) {
     const ladder = { week: [10, 20, 30, 40, 52, 75, 100, 150, 200, 300, 500], month: [6, 12, 24, 36, 48, 60, 100, 150],
       year: [3, 5, 10, 15, 20, 30], day: [7, 14, 30, 50, 100, 200, 365, 500] }[unit];
     const n = d.entries.length, a = nx(n, ladder);
-    if (a) G.push({ ic: '📅', t: a, v: n, u: unit, lbl: t('cr_g_chart', { n: _crU(unit, a) }), of: t('cr_g_chart_of', { t: a }) });
+    // Which chart, by name: "52 at #1" alone could be days, weeks or months
+    const c = t('cr_g_c_' + unit);
+    if (a) G.push({ ic: '📅', t: a, v: n, u: unit, lbl: t('cr_g_chart', { n: _crU(unit, a), c }), of: t('cr_g_chart_of', { t: a, c }) });
     if (d.peak === 1) {
       const b = nx(top1, [2, 3, 5, 10, 15, 20, 30, 52, 100]);
-      if (b) G.push({ ic: '👑', t: b, v: top1, u: unit, lbl: t('cr_g_at1', { n: _crU(unit, b) }), of: t('cr_g_at1_of', { t: b }) });
+      if (b) G.push({ ic: '👑', t: b, v: top1, u: unit, lbl: t('cr_g_at1', { n: _crU(unit, b), c }), of: t('cr_g_at1_of', { t: b, c }) });
     }
   }
   const maps = _crLifeMaps();
