@@ -6028,7 +6028,7 @@ function populateTzSelect() {
 
 // Settings modal tabs. Panels are plain sections toggled with [hidden]; the
 // underline slides via --tab-i so no layout measuring is involved.
-const SETTINGS_TABS = ['source', 'charts', 'profile'];
+const SETTINGS_TABS = ['source', 'charts', 'releases', 'profile'];   // Releases: phase 10 step 10
 
 function switchSettingsTab(name) {
   const i = SETTINGS_TABS.indexOf(name);
@@ -6095,6 +6095,137 @@ function openSourceModal() {
   document.getElementById('srcChartAnim').checked = chartAnimEnabled;
   updateSourceModalFields();
   initSrcFileUpload();
+  // What the fields hold now, so the bar can tell when something needs Save
+  const search = document.getElementById('setSearch');
+  if (search) { search.value = ''; settingsSearch(''); }
+  settingsSnapshot();
+}
+
+/* ── Settings: the Save bar only when something needs saving (phase 10) ──
+   Most settings apply the moment they change. The ones Save & Load writes —
+   the data source fields, name, time zone, certification thresholds, events
+   limit and two switches — are snapshotted when Settings opens; any
+   difference flips the box to .is-dirty, which shows "Unsaved changes" with
+   Cancel / Save & Load instead of a single Close. */
+const SETTINGS_SAVED_FIELDS = '#setPanelSource input, #setPanelSource select, #setPanelSource textarea, ' +
+  '#srcDisplayName, #srcTimezone, .cert-input, #eventsArtistLimitSelect, #srcChartAnim, #srcNoArtistSplit';
+let _setSnap = new Map();
+
+function _setFieldVal(el) {
+  if (el.type === 'checkbox' || el.type === 'radio') return el.checked ? '1' : '0';
+  if (el.type === 'file') return el.files && el.files.length ? el.files[0].name + el.files[0].size : '';
+  return el.value;
+}
+function settingsSnapshot() {
+  _setSnap = new Map();
+  document.querySelectorAll(SETTINGS_SAVED_FIELDS).forEach(el => _setSnap.set(el, _setFieldVal(el)));
+  settingsCheckDirty();
+}
+function settingsCheckDirty() {
+  const box = document.querySelector('#sourceModal .set-box');
+  if (!box) return;
+  let dirty = false;
+  for (const [el, v] of _setSnap) { if (el.isConnected && _setFieldVal(el) !== v) { dirty = true; break; } }
+  box.classList.toggle('is-dirty', dirty);
+}
+['input', 'change'].forEach(ev => document.addEventListener(ev, e => {
+  if (e.target.closest && e.target.closest('#sourceModal') && e.target.matches && e.target.matches(SETTINGS_SAVED_FIELDS)) settingsCheckDirty();
+}, true));
+
+/* ── Settings: search (phase 10) ──
+   Every setting is a group heading, a row label or a switch name. Typing
+   lists the matches (with the tab each lives on); picking one opens that
+   tab, scrolls to the row and lights it up for a moment. */
+let _setSearchHits = [];
+let _setSearchActive = -1;
+
+function _settingsIndex() {
+  const out = [];
+  SETTINGS_TABS.forEach(tab => {
+    const pane = document.getElementById('setPanel' + tab.charAt(0).toUpperCase() + tab.slice(1));
+    if (!pane) return;
+    const tabName = document.getElementById('setTab' + tab.charAt(0).toUpperCase() + tab.slice(1))?.textContent.trim() || tab;
+    pane.querySelectorAll('.cert-config-title, .src-switch-label, .rt-sep-label, .src-field-group label > span:first-child, .set-row-label, .cert-config-col-hdr, .cert-row > span:first-child, .src-card-name, .rtd-opt > span')
+      .forEach(el => {
+        // a switch's name is its first span (the note under it is not)
+        const named = el.classList.contains('src-switch-label') ? (el.querySelector(':scope > span') || el) : el;
+        const text = named.textContent.replace(/\s+/g, ' ').trim();
+        if (!text || text.length > 90) return;
+        // the row to light up: the switch row / group around the label
+        const row = el.closest('.set-row, .src-switch-row, .src-field-group, .rtd-opt, .cert-config-col') || el.closest('.cert-config-group') || el;
+        const col = el.closest('.cert-config-col')?.querySelector('.cert-config-col-hdr')?.textContent.trim();
+        const group = (col && col !== text ? col + ' · ' : '') + (el.closest('.cert-config-group')?.querySelector('.cert-config-title')?.textContent.trim() || '');
+        out.push({ tab, tabName, text, group: group === text ? '' : group, row });
+      });
+  });
+  return out;
+}
+
+function _setNorm(x) { return x.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+
+function settingsSearch(q) {
+  const box = document.getElementById('setSearchResults');
+  const input = document.getElementById('setSearch');
+  if (!box) return;
+  const query = _setNorm((q || '').trim());
+  if (!query) {
+    box.hidden = true; box.innerHTML = ''; _setSearchHits = [];
+    input?.setAttribute('aria-expanded', 'false');
+    return;
+  }
+  const seen = new Set();
+  _setSearchHits = _settingsIndex().filter(h => {
+    if (!_setNorm(h.text + ' ' + h.group).includes(query)) return false;
+    const k = h.tab + '|' + h.text + '|' + h.group;
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  }).slice(0, 8);
+  _setSearchActive = _setSearchHits.length ? 0 : -1;
+  box.innerHTML = _setSearchHits.length
+    ? _setSearchHits.map((h, i) => `<button type="button" role="option" class="set-search-hit${i === 0 ? ' is-active' : ''}" id="setSearchHit${i}" aria-selected="${i === 0}" onclick="settingsSearchGo(${i})">
+        <span class="set-search-hit-text">${esc(h.text)}</span>
+        <span class="set-search-hit-where">${esc(h.tabName)}${h.group ? ' · ' + esc(h.group) : ''}</span>
+      </button>`).join('')
+    : `<div class="set-search-none">${esc(t('set_search_none'))}</div>`;
+  box.hidden = false;
+  input?.setAttribute('aria-expanded', 'true');
+  if (_setSearchHits.length) input?.setAttribute('aria-activedescendant', 'setSearchHit0');
+}
+
+function settingsSearchKey(e) {
+  if (e.key === 'Escape' && e.target.value) { e.preventDefault(); e.stopPropagation(); e.target.value = ''; settingsSearch(''); return; }
+  if (!_setSearchHits.length) return;
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    _setSearchActive = (_setSearchActive + (e.key === 'ArrowDown' ? 1 : -1) + _setSearchHits.length) % _setSearchHits.length;
+    document.querySelectorAll('#setSearchResults .set-search-hit').forEach((b, i) => {
+      b.classList.toggle('is-active', i === _setSearchActive);
+      b.setAttribute('aria-selected', i === _setSearchActive ? 'true' : 'false');
+    });
+    e.target.setAttribute('aria-activedescendant', 'setSearchHit' + _setSearchActive);
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    settingsSearchGo(Math.max(0, _setSearchActive));
+  }
+}
+
+function settingsSearchGo(i) {
+  const h = _setSearchHits[i];
+  if (!h) return;
+  const input = document.getElementById('setSearch');
+  if (input) input.value = '';
+  settingsSearch('');
+  switchSettingsTab(h.tab);
+  requestAnimationFrame(() => {
+    h.row.scrollIntoView({ block: 'center', behavior: _eaReduceMotion() ? 'auto' : 'smooth' });
+    h.row.classList.remove('set-found');
+    void h.row.offsetWidth;
+    h.row.classList.add('set-found');
+    setTimeout(() => h.row.classList.remove('set-found'), 1900);
+    const ctl = h.row.querySelector('input, select, button, textarea');
+    if (ctl) try { ctl.focus({ preventScroll: true }); } catch (e) {}
+  });
 }
 
 function closeSourceModal() {
@@ -48543,7 +48674,7 @@ function stRenderTopCharts(plays) {
 
   // Albums, the way the albums chart counts them: roll-up credit when singles
   // count toward their album on the charts, and singles / EPs that are
-  // separated in Settings → Charts in lists of their own (not in Top Albums)
+  // separated in Settings → Releases in lists of their own (not in Top Albums)
   const roll = rollupAffectsCharts();
   const albumMap = {};
   for (const p of plays) tallyAlbumPlay(albumMap, p, roll, k => {

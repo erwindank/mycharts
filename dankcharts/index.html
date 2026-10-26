@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=707">
+  <link rel="stylesheet" href="style.css?v=709">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=218"></script>
+  <script defer src="translations.js?v=219"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -4164,7 +4164,7 @@
   <!-- One behaviour and one icon set for every pop-up window (phase 10); before
        app.js so dcIco() is there when app.js draws a window -->
   <script defer src="popups.js?v=8"></script>
-  <script defer src="app.js?v=548"></script>
+  <script defer src="app.js?v=551"></script>
   <!-- The song / album / artist details side panel (phase 10 step 3); wraps app.js's open functions -->
   <script defer src="panel.js?v=10"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
@@ -4181,8 +4181,19 @@
   <div id="sourceModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="srcModalTitle">
     <div class="dc-modal src-modal-box set-box">
       <div class="src-modal-header">
+        <span class="dc-frame-icon" data-ico="gear"></span>
         <h3 class="src-modal-title" id="srcModalTitle" data-i18n="set_title">Settings</h3>
         <button type="button" class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close src-modal-close" onclick="closeSourceModal()" aria-label="Close" data-i18n-aria="set_close">✕</button>
+      </div>
+
+      <!-- Find a setting: matches show under the box; picking one opens its
+           tab and lights the row up (settingsSearch* in app.js) -->
+      <div class="set-search dc-search">
+        <span data-ico="search"></span>
+        <input type="search" class="dc-input" id="setSearch" placeholder="Search settings…" data-i18n-placeholder="set_search_ph"
+               autocomplete="off" spellcheck="false" oninput="settingsSearch(this.value)" onkeydown="settingsSearchKey(event)"
+               role="combobox" aria-expanded="false" aria-controls="setSearchResults" aria-autocomplete="list">
+        <div class="set-search-results" id="setSearchResults" role="listbox" hidden></div>
       </div>
 
       <!-- Tuner-dial tab strip: one sliding ink bar whose position comes from
@@ -4190,6 +4201,7 @@
       <div class="set-tabs" role="tablist" aria-label="Settings sections" data-i18n-aria="set_tabs_aria">
         <button type="button" class="set-tab is-active" id="setTabSource" role="tab" aria-selected="true" aria-controls="setPanelSource" onclick="switchSettingsTab('source')" data-i18n="set_tab_source">Data source</button>
         <button type="button" class="set-tab" id="setTabCharts" role="tab" aria-selected="false" aria-controls="setPanelCharts" onclick="switchSettingsTab('charts')" data-i18n="set_tab_charts">Charts</button>
+        <button type="button" class="set-tab" id="setTabReleases" role="tab" aria-selected="false" aria-controls="setPanelReleases" onclick="switchSettingsTab('releases')" data-i18n="set_tab_releases">Releases</button>
         <button type="button" class="set-tab" id="setTabProfile" role="tab" aria-selected="false" aria-controls="setPanelProfile" onclick="switchSettingsTab('profile')" data-i18n="set_tab_profile">Profile</button>
         <span class="set-tab-ink" aria-hidden="true"></span>
       </div>
@@ -4938,7 +4950,7 @@ function deleteGenreTriggers() {
            built by app.js (WEEK START DAY SELECTOR) and save at once — no
            Save needed, same as the other segmented rows in this tab. -->
       <div class="cert-config-group">
-        <div class="cert-config-title" data-i18n="set_week_title">Chart Week</div>
+        <div class="cert-config-title"><span class="set-group-ico" data-ico="calendar"></span><span data-i18n="set_week_title">Chart Week</span></div>
         <div class="set-row rt-sep-row">
           <span class="rt-sep-label" data-i18n="set_week_label">Weekly charts start on</span>
           <div class="dc-seg rt-sep-seg" role="group" id="daySwitcher"></div>
@@ -4946,45 +4958,51 @@ function deleteGenreTriggers() {
         <p class="src-modal-hint rt-sep-hint" data-i18n="set_week_hint">The day each weekly chart begins. Changing it rebuilds every week at once.</p>
       </div>
 
+
+
+
+
+      <!-- Chart page sections: each switch saves at once (setChartPageSection)
+           and hides that block on the charts page only -->
       <div class="cert-config-group">
-        <div class="cert-config-title" data-i18n="set_cert_title">Certification Thresholds (Plays)</div>
-        <div class="cert-config-grid">
-          <div class="cert-config-col">
-            <div class="cert-config-col-hdr" data-i18n="ig_type_albums">Albums</div>
-            <label class="cert-row"><span data-i18n="set_cert_gold">⭐ Gold</span> <input type="number" id="certAlbumGold" min="1" class="cert-input"></label>
-            <label class="cert-row"><span data-i18n="set_cert_plat">💿 Platinum</span> <input type="number" id="certAlbumPlat" min="1" class="cert-input"></label>
-            <label class="cert-row"><span data-i18n="set_cert_diamond">💎 Diamond</span> <input type="number" id="certAlbumDiamond" min="1" class="cert-input"></label>
-          </div>
-          <div class="cert-config-col">
-            <div class="cert-config-col-hdr" data-i18n="ig_type_songs">Songs</div>
-            <label class="cert-row"><span data-i18n="set_cert_gold">⭐ Gold</span> <input type="number" id="certSongGold" min="1" class="cert-input"></label>
-            <label class="cert-row"><span data-i18n="set_cert_plat">💿 Platinum</span> <input type="number" id="certSongPlat" min="1" class="cert-input"></label>
-            <label class="cert-row"><span data-i18n="set_cert_diamond">💎 Diamond</span> <input type="number" id="certSongDiamond" min="1" class="cert-input"></label>
-          </div>
-          <!-- Always shown: these apply to anything marked a single or an EP,
-               separated or not. The ladder follows what the record is, not
-               where it sits in the charts. -->
-          <div class="cert-config-col" id="certColSingle">
-            <div class="cert-config-col-hdr" data-i18n="rtype_single_plural">Singles</div>
-            <label class="cert-row"><span data-i18n="set_cert_gold">⭐ Gold</span> <input type="number" id="certSingleGold" min="1" class="cert-input"></label>
-            <label class="cert-row"><span data-i18n="set_cert_plat">💿 Platinum</span> <input type="number" id="certSinglePlat" min="1" class="cert-input"></label>
-            <label class="cert-row"><span data-i18n="set_cert_diamond">💎 Diamond</span> <input type="number" id="certSingleDiamond" min="1" class="cert-input"></label>
-          </div>
-          <div class="cert-config-col" id="certColEp">
-            <div class="cert-config-col-hdr" data-i18n="rtype_ep_plural">EPs</div>
-            <label class="cert-row"><span data-i18n="set_cert_gold">⭐ Gold</span> <input type="number" id="certEpGold" min="1" class="cert-input"></label>
-            <label class="cert-row"><span data-i18n="set_cert_plat">💿 Platinum</span> <input type="number" id="certEpPlat" min="1" class="cert-input"></label>
-            <label class="cert-row"><span data-i18n="set_cert_diamond">💎 Diamond</span> <input type="number" id="certEpDiamond" min="1" class="cert-input"></label>
-          </div>
+        <div class="cert-config-title"><span class="set-group-ico" data-ico="layout"></span><span data-i18n="set_cp_title">Chart page sections</span></div>
+        <div class="set-row">
+          <label class="src-switch-row">
+            <span class="src-switch-label"><span data-i18n="set_cp_tm">Time Machine</span>
+              <span class="set-switch-note" data-i18n="set_cp_tm_note">On the Events tab: what you were playing on this day in past years.</span>
+            </span>
+            <span class="src-switch">
+              <input type="checkbox" id="setCpTimeMachine" checked onchange="setChartPageSection('timeMachine', this.checked)">
+              <span class="src-switch-slider"></span>
+            </span>
+          </label>
         </div>
-        <div class="cert-config-footer">
-          <p class="src-modal-hint" data-i18n="set_cert_hint">Plays needed to earn each badge.</p>
-          <button type="button" class="cert-reset-btn" onclick="resetCertDefaults()" data-i18n="set_cert_reset">Reset to defaults</button>
+        <div class="set-row">
+          <label class="src-switch-row">
+            <span class="src-switch-label"><span data-i18n="set_cp_stats">Period stats</span>
+              <span class="set-switch-note" data-i18n="set_cp_stats_note">The row of stat cards under the date bar.</span>
+            </span>
+            <span class="src-switch">
+              <input type="checkbox" id="setCpPeriodStats" checked onchange="setChartPageSection('periodStats', this.checked)">
+              <span class="src-switch-slider"></span>
+            </span>
+          </label>
+        </div>
+        <div class="set-row">
+          <label class="src-switch-row">
+            <span class="src-switch-label"><span data-i18n="set_cp_cert">Certified this period</span>
+              <span class="set-switch-note" data-i18n="set_cp_cert_note">The reel of plaques earned during the week or month on screen.</span>
+            </span>
+            <span class="src-switch">
+              <input type="checkbox" id="setCpCertReel" checked onchange="setChartPageSection('certReel', this.checked)">
+              <span class="src-switch-slider"></span>
+            </span>
+          </label>
         </div>
       </div>
 
       <div class="cert-config-group">
-        <div class="cert-config-title" data-i18n="set_events_title">Events Calendar</div>
+        <div class="cert-config-title"><span class="set-group-ico" data-ico="sparkle"></span><span data-i18n="set_events_title">Events Calendar</span></div>
         <div class="set-row">
           <label class="cert-row set-row-inline">
             <span data-i18n="set_events_pre">Show birthdays &amp; anniversaries for your top</span>
@@ -5000,22 +5018,55 @@ function deleteGenreTriggers() {
         </div>
       </div>
 
-      <!-- Compilation albums: one album, many singers. Listing one here merges
-           it into a single record credited to Various Artists, without touching
-           the artist on any play. -->
       <div class="cert-config-group">
-        <div class="cert-config-title" data-i18n="comp_settings_title">Compilation Albums</div>
-        <div class="cert-config-footer">
-          <p class="src-modal-hint" data-i18n="comp_settings_hint">Albums whose tracks are each credited to a different singer (a soundtrack, a sampler) counted as one record by Various Artists. Artist and song charts are unaffected.</p>
-          <button type="button" class="cert-reset-btn" onclick="openCompilationsModal()" data-i18n="comp_settings_btn">Manage list</button>
+        <div class="cert-config-title"><span class="set-group-ico" data-ico="sliders"></span><span data-i18n="set_behavior">Behavior</span></div>
+        <div class="set-row">
+          <label class="src-switch-row">
+            <span class="src-switch-label"><span data-i18n="set_anim">Animate charts on page load</span>
+              <span class="set-switch-note" data-i18n-html="set_anim_note">Replays how rankings shifted. The <strong>▶ Animate Chart</strong> button above each chart always works either way.</span>
+            </span>
+            <span class="src-switch">
+              <input type="checkbox" id="srcChartAnim">
+              <span class="src-switch-slider"></span>
+            </span>
+          </label>
+        </div>
+        <div class="set-row">
+          <label class="src-switch-row">
+            <span class="src-switch-label"><span data-i18n="set_nosplit">Keep comma-separated names as one artist</span>
+              <span class="set-switch-note" data-i18n="set_nosplit_note">"Artist A, Artist B" counts as one artist, not two. Match this to how your data is written.</span>
+            </span>
+            <span class="src-switch">
+              <input type="checkbox" id="srcNoArtistSplit">
+              <span class="src-switch-slider"></span>
+            </span>
+          </label>
+        </div>
+        <!-- Mirror of the switch in My Grammys → Configure Year; both call
+             awardsSetCreditFeatures, which saves at once (no Save needed) -->
+        <div class="set-row">
+          <label class="src-switch-row">
+            <span class="src-switch-label"><span data-i18n="set_credit">Awards count for featured &amp; collaborating artists</span>
+              <span class="set-switch-note" data-i18n="set_credit_note">In My Grammys, a nomination or win also counts for everyone featured or collaborating on it, not just the lead artist.</span>
+            </span>
+            <span class="src-switch">
+              <input type="checkbox" id="srcAwardsCreditFeatures" onchange="awardsSetCreditFeatures(this.checked)">
+              <span class="src-switch-slider"></span>
+            </span>
+          </label>
         </div>
       </div>
+      </section>
 
+      <!-- ══ 03 · RELEASES ══ (phase 10 step 10: what used to be the lower half
+           of the Charts tab — what kind of record each release is, how many
+           plays each certification takes, and compilations) -->
+      <section class="set-panel" id="setPanelReleases" role="tabpanel" aria-labelledby="setTabReleases" hidden>
       <!-- Release types: what kind of record each album entry is. Stage 1 is
            the mark alone — nothing about the charts, certifications or records
            changes until a type is separated out, which is a later setting. -->
       <div class="cert-config-group">
-        <div class="cert-config-title" data-i18n="rtype_settings_title">Release Types</div>
+        <div class="cert-config-title"><span class="set-group-ico" data-ico="tag"></span><span data-i18n="rtype_settings_title">Release Types</span></div>
         <div class="cert-config-footer">
           <p class="src-modal-hint" data-i18n="rtype_settings_hint">Mark releases as singles, EPs, live albums or soundtracks. A single or an EP is then certified on its own thresholds; your charts stay as they are until you separate a type out.</p>
           <button type="button" class="cert-reset-btn" onclick="openReleaseTypesModal()" data-i18n="rtype_settings_btn">Manage types</button>
@@ -5087,86 +5138,56 @@ function deleteGenreTriggers() {
         <p class="src-modal-hint rt-sep-hint" id="rollupHint" data-i18n="rollup_hint">A single's plays are counted toward the album its song appears on, the way a streaming service shows them. The single keeps its own entry and its own count either way.</p>
       </div>
 
-      <!-- Chart page sections: each switch saves at once (setChartPageSection)
-           and hides that block on the charts page only -->
       <div class="cert-config-group">
-        <div class="cert-config-title" data-i18n="set_cp_title">Chart page sections</div>
-        <div class="set-row">
-          <label class="src-switch-row">
-            <span class="src-switch-label"><span data-i18n="set_cp_tm">⏳ Time Machine</span>
-              <span class="set-switch-note" data-i18n="set_cp_tm_note">On the Events tab: what you were playing on this day in past years.</span>
-            </span>
-            <span class="src-switch">
-              <input type="checkbox" id="setCpTimeMachine" checked onchange="setChartPageSection('timeMachine', this.checked)">
-              <span class="src-switch-slider"></span>
-            </span>
-          </label>
+        <div class="cert-config-title"><span class="set-group-ico" data-ico="medal"></span><span data-i18n="set_cert_title">Certification Thresholds (Plays)</span></div>
+        <div class="cert-config-grid">
+          <div class="cert-config-col">
+            <div class="cert-config-col-hdr" data-i18n="ig_type_albums">Albums</div>
+            <label class="cert-row"><span data-i18n="set_cert_gold">Gold</span> <input type="number" id="certAlbumGold" min="1" class="cert-input"></label>
+            <label class="cert-row"><span data-i18n="set_cert_plat">Platinum</span> <input type="number" id="certAlbumPlat" min="1" class="cert-input"></label>
+            <label class="cert-row"><span data-i18n="set_cert_diamond">Diamond</span> <input type="number" id="certAlbumDiamond" min="1" class="cert-input"></label>
+          </div>
+          <div class="cert-config-col">
+            <div class="cert-config-col-hdr" data-i18n="ig_type_songs">Songs</div>
+            <label class="cert-row"><span data-i18n="set_cert_gold">Gold</span> <input type="number" id="certSongGold" min="1" class="cert-input"></label>
+            <label class="cert-row"><span data-i18n="set_cert_plat">Platinum</span> <input type="number" id="certSongPlat" min="1" class="cert-input"></label>
+            <label class="cert-row"><span data-i18n="set_cert_diamond">Diamond</span> <input type="number" id="certSongDiamond" min="1" class="cert-input"></label>
+          </div>
+          <!-- Always shown: these apply to anything marked a single or an EP,
+               separated or not. The ladder follows what the record is, not
+               where it sits in the charts. -->
+          <div class="cert-config-col" id="certColSingle">
+            <div class="cert-config-col-hdr" data-i18n="rtype_single_plural">Singles</div>
+            <label class="cert-row"><span data-i18n="set_cert_gold">Gold</span> <input type="number" id="certSingleGold" min="1" class="cert-input"></label>
+            <label class="cert-row"><span data-i18n="set_cert_plat">Platinum</span> <input type="number" id="certSinglePlat" min="1" class="cert-input"></label>
+            <label class="cert-row"><span data-i18n="set_cert_diamond">Diamond</span> <input type="number" id="certSingleDiamond" min="1" class="cert-input"></label>
+          </div>
+          <div class="cert-config-col" id="certColEp">
+            <div class="cert-config-col-hdr" data-i18n="rtype_ep_plural">EPs</div>
+            <label class="cert-row"><span data-i18n="set_cert_gold">Gold</span> <input type="number" id="certEpGold" min="1" class="cert-input"></label>
+            <label class="cert-row"><span data-i18n="set_cert_plat">Platinum</span> <input type="number" id="certEpPlat" min="1" class="cert-input"></label>
+            <label class="cert-row"><span data-i18n="set_cert_diamond">Diamond</span> <input type="number" id="certEpDiamond" min="1" class="cert-input"></label>
+          </div>
         </div>
-        <div class="set-row">
-          <label class="src-switch-row">
-            <span class="src-switch-label"><span data-i18n="set_cp_stats">📊 Period stats</span>
-              <span class="set-switch-note" data-i18n="set_cp_stats_note">The row of stat cards under the date bar.</span>
-            </span>
-            <span class="src-switch">
-              <input type="checkbox" id="setCpPeriodStats" checked onchange="setChartPageSection('periodStats', this.checked)">
-              <span class="src-switch-slider"></span>
-            </span>
-          </label>
-        </div>
-        <div class="set-row">
-          <label class="src-switch-row">
-            <span class="src-switch-label"><span data-i18n="set_cp_cert">🏆 Certified this period</span>
-              <span class="set-switch-note" data-i18n="set_cp_cert_note">The reel of plaques earned during the week or month on screen.</span>
-            </span>
-            <span class="src-switch">
-              <input type="checkbox" id="setCpCertReel" checked onchange="setChartPageSection('certReel', this.checked)">
-              <span class="src-switch-slider"></span>
-            </span>
-          </label>
+        <div class="cert-config-footer">
+          <p class="src-modal-hint" data-i18n="set_cert_hint">Plays needed to earn each badge.</p>
+          <button type="button" class="cert-reset-btn" onclick="resetCertDefaults()" data-i18n="set_cert_reset">Reset to defaults</button>
         </div>
       </div>
 
+      <!-- Compilation albums: one album, many singers. Listing one here merges
+           it into a single record credited to Various Artists, without touching
+           the artist on any play. -->
       <div class="cert-config-group">
-        <div class="cert-config-title" data-i18n="set_behavior">Behavior</div>
-        <div class="set-row">
-          <label class="src-switch-row">
-            <span class="src-switch-label"><span data-i18n="set_anim">Animate charts on page load</span>
-              <span class="set-switch-note" data-i18n-html="set_anim_note">Replays how rankings shifted. The <strong>▶ Animate Chart</strong> button above each chart always works either way.</span>
-            </span>
-            <span class="src-switch">
-              <input type="checkbox" id="srcChartAnim">
-              <span class="src-switch-slider"></span>
-            </span>
-          </label>
-        </div>
-        <div class="set-row">
-          <label class="src-switch-row">
-            <span class="src-switch-label"><span data-i18n="set_nosplit">Keep comma-separated names as one artist</span>
-              <span class="set-switch-note" data-i18n="set_nosplit_note">"Artist A, Artist B" counts as one artist, not two. Match this to how your data is written.</span>
-            </span>
-            <span class="src-switch">
-              <input type="checkbox" id="srcNoArtistSplit">
-              <span class="src-switch-slider"></span>
-            </span>
-          </label>
-        </div>
-        <!-- Mirror of the switch in My Grammys → Configure Year; both call
-             awardsSetCreditFeatures, which saves at once (no Save needed) -->
-        <div class="set-row">
-          <label class="src-switch-row">
-            <span class="src-switch-label"><span data-i18n="set_credit">Awards count for featured &amp; collaborating artists</span>
-              <span class="set-switch-note" data-i18n="set_credit_note">In My Grammys, a nomination or win also counts for everyone featured or collaborating on it, not just the lead artist.</span>
-            </span>
-            <span class="src-switch">
-              <input type="checkbox" id="srcAwardsCreditFeatures" onchange="awardsSetCreditFeatures(this.checked)">
-              <span class="src-switch-slider"></span>
-            </span>
-          </label>
+        <div class="cert-config-title"><span class="set-group-ico" data-ico="stack"></span><span data-i18n="comp_settings_title">Compilation Albums</span></div>
+        <div class="cert-config-footer">
+          <p class="src-modal-hint" data-i18n="comp_settings_hint">Albums whose tracks are each credited to a different singer (a soundtrack, a sampler) counted as one record by Various Artists. Artist and song charts are unaffected.</p>
+          <button type="button" class="cert-reset-btn" onclick="openCompilationsModal()" data-i18n="comp_settings_btn">Manage list</button>
         </div>
       </div>
       </section>
 
-      <!-- ══ 03 · PROFILE ══ -->
+      <!-- ══ 04 · PROFILE ══ -->
       <section class="set-panel" id="setPanelProfile" role="tabpanel" aria-labelledby="setTabProfile" hidden>
         <div class="src-field-group">
           <label>
@@ -5184,12 +5205,39 @@ function deleteGenreTriggers() {
           <p class="src-modal-hint" data-i18n="set_timezone_hint">Chart weeks, months and years start at midnight here.</p>
         </div>
 
+        <!-- Appearance: the same theme and language choices as the top bar
+             (.theme-btn / .lang-btn, so app.js and setLanguage keep both in
+             step); they apply at once, no Save needed -->
+        <div class="cert-config-group set-appearance">
+          <div class="cert-config-title"><span class="set-group-ico" data-ico="palette"></span><span data-i18n="set_appearance">Appearance</span></div>
+          <div class="set-row-label" data-i18n="set_theme">Theme</div>
+          <div class="set-theme-grid">
+            <button type="button" class="theme-btn set-theme-swatch" data-theme="navy-dark" data-i18n-title="tooltip_theme_navy_dark"><span class="set-theme-dot" aria-hidden="true"></span><span class="set-theme-name" data-i18n="tooltip_theme_navy_dark"></span></button>
+            <button type="button" class="theme-btn set-theme-swatch" data-theme="navy-light" data-i18n-title="tooltip_theme_navy_light"><span class="set-theme-dot" aria-hidden="true"></span><span class="set-theme-name" data-i18n="tooltip_theme_navy_light"></span></button>
+            <button type="button" class="theme-btn set-theme-swatch" data-theme="purple" data-i18n-title="tooltip_theme_purple_dark"><span class="set-theme-dot" aria-hidden="true"></span><span class="set-theme-name" data-i18n="tooltip_theme_purple_dark"></span></button>
+            <button type="button" class="theme-btn set-theme-swatch" data-theme="purple-light" data-i18n-title="tooltip_theme_purple_light"><span class="set-theme-dot" aria-hidden="true"></span><span class="set-theme-name" data-i18n="tooltip_theme_purple_light"></span></button>
+            <button type="button" class="theme-btn set-theme-swatch" data-theme="red" data-i18n-title="tooltip_theme_red_dark"><span class="set-theme-dot" aria-hidden="true"></span><span class="set-theme-name" data-i18n="tooltip_theme_red_dark"></span></button>
+            <button type="button" class="theme-btn set-theme-swatch" data-theme="red-light" data-i18n-title="tooltip_theme_red_light"><span class="set-theme-dot" aria-hidden="true"></span><span class="set-theme-name" data-i18n="tooltip_theme_red_light"></span></button>
+            <button type="button" class="theme-btn set-theme-swatch" data-theme="yellow" data-i18n-title="tooltip_theme_yellow_dark"><span class="set-theme-dot" aria-hidden="true"></span><span class="set-theme-name" data-i18n="tooltip_theme_yellow_dark"></span></button>
+            <button type="button" class="theme-btn set-theme-swatch" data-theme="yellow-light" data-i18n-title="tooltip_theme_yellow_light"><span class="set-theme-dot" aria-hidden="true"></span><span class="set-theme-name" data-i18n="tooltip_theme_yellow_light"></span></button>
+            <button type="button" class="theme-btn set-theme-swatch" data-theme="pink" data-i18n-title="tooltip_theme_pink_dark"><span class="set-theme-dot" aria-hidden="true"></span><span class="set-theme-name" data-i18n="tooltip_theme_pink_dark"></span></button>
+            <button type="button" class="theme-btn set-theme-swatch" data-theme="pink-light" data-i18n-title="tooltip_theme_pink_light"><span class="set-theme-dot" aria-hidden="true"></span><span class="set-theme-name" data-i18n="tooltip_theme_pink_light"></span></button>
+          </div>
+          <div class="set-row-label" data-i18n="set_language">Language</div>
+          <div class="dc-seg dc-seg-fill set-lang-seg" role="group">
+            <button type="button" class="lang-btn" data-lang="en" onclick="setLanguage('en')">English</button>
+            <button type="button" class="lang-btn" data-lang="es" onclick="setLanguage('es')">Español</button>
+            <button type="button" class="lang-btn" data-lang="pt-BR" onclick="setLanguage('pt-BR')">Português (BR)</button>
+            <button type="button" class="lang-btn" data-lang="pt-PT" onclick="setLanguage('pt-PT')">Português (PT)</button>
+          </div>
+        </div>
+
         <!-- Backups: snapshots of settings, awards and ratings kept in the
              account (one a day, plus one at every risky hand-off between
              devices). The list is fetched by renderBackupsPanel() each time
              this tab opens. The file buttons work signed out too. -->
         <div class="cert-config-group set-backups">
-          <div class="cert-config-title" data-i18n="set_backups">Backups</div>
+          <div class="cert-config-title"><span class="set-group-ico" data-ico="cloud"></span><span data-i18n="set_backups">Backups</span></div>
           <p class="src-modal-hint" data-i18n="set_backups_hint">Copies of your settings, awards and ratings. Restoring one puts it back on every device.</p>
           <div id="setBackupsList" class="bk-list"></div>
           <div class="bk-actions">
@@ -5202,9 +5250,15 @@ function deleteGenreTriggers() {
         </div>
       </section>
 
-      <div class="src-modal-btns">
-        <button class="src-btn-cancel" onclick="closeSourceModal()" data-i18n="btn_cancel">Cancel</button>
-        <button class="src-btn-save" onclick="saveSourceConfig()" data-i18n="set_save_load">Save &amp; Load</button>
+      <!-- Most settings apply at once. Those that need Save & Load (the data
+           source, name, time zone, thresholds, two switches) flip the box to
+           .is-dirty when changed (settingsCheckDirty), and only then does the
+           bar offer Cancel / Save; otherwise it is a single Close. -->
+      <div class="src-modal-btns set-foot">
+        <span class="set-dirty-note"><span class="set-dirty-dot" aria-hidden="true"></span><span data-i18n="set_unsaved">Unsaved changes</span></span>
+        <button class="dc-btn dc-btn-plain set-cancel" onclick="closeSourceModal()" data-i18n="btn_cancel">Cancel</button>
+        <button class="dc-btn dc-btn-main set-save" onclick="saveSourceConfig()" data-i18n="set_save_load">Save &amp; Load</button>
+        <button class="dc-btn dc-btn-normal set-close" onclick="closeSourceModal()" data-i18n="comp_modal_close">Close</button>
       </div>
     </div>
   </div>

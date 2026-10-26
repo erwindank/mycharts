@@ -4103,6 +4103,153 @@
 
     .set-panel[hidden] { display: none; }
 
+    /* ── Settings, phase 10 step 10 ──────────────────────────────────
+       Four tabs (Releases is new), a search box under the title, a line
+       icon on every group heading, an Appearance group (theme + language)
+       in Profile, and a footer that only offers Save when a field that
+       needs it has changed (.is-dirty, set by settingsCheckDirty). */
+    #sourceModal .set-box { max-width: 600px; }
+    #sourceModal .set-tabs { --tab-count: 4; }
+    #sourceModal .src-modal-header { justify-content: flex-start; gap: var(--sp-3); }
+    #sourceModal .src-modal-header .src-modal-title { flex: 1; font-size: var(--fs-md); font-weight: 700; }
+    #sourceModal .src-modal-header .dc-frame-icon { width: 36px; height: 36px; }
+
+    .set-search { position: relative; margin: 0 0 var(--sp-4); }
+    .set-search-results {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: calc(100% + 6px);
+      z-index: 20;
+      max-height: 320px;
+      overflow-y: auto;
+      padding: 4px;
+      border: 1px solid var(--border2);
+      border-radius: var(--r-md);
+      background: var(--bg2);
+      box-shadow: var(--shadow-3);
+    }
+    .set-search-hit {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1px;
+      width: 100%;
+      padding: 8px 10px;
+      border: 0;
+      border-radius: var(--r-sm);
+      background: none;
+      color: var(--text);
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
+    .set-search-hit:hover, .set-search-hit.is-active { background: var(--hover); }
+    .set-search-hit-text { font-size: var(--fs-sm); font-weight: 600; }
+    .set-search-hit-where { font-size: var(--fs-xs); color: var(--text3); }
+    .set-search-none { padding: 10px; font-size: var(--fs-sm); color: var(--text3); }
+    /* the row a search jumped to glows for a moment */
+    .set-found { animation: setFound 1.8s var(--ease); border-radius: var(--r-sm); }
+    @keyframes setFound {
+      0%, 30% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 45%, transparent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
+      100% { box-shadow: 0 0 0 3px transparent; background: transparent; }
+    }
+
+    /* Group headings: icon tile + words (the hairline after them stays) */
+    .set-group-ico {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      border-radius: var(--r-sm);
+      background: color-mix(in srgb, var(--accent) 14%, transparent);
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+    .set-group-ico svg { width: 15px; height: 15px; }
+    #sourceModal .set-panel .cert-config-title { font-size: var(--fs-sm); font-weight: 700; color: var(--text); }
+
+    /* Certification levels: a coloured dot instead of the old emoji */
+    .cert-row > span[data-i18n^="set_cert_"]::before {
+      content: '';
+      display: inline-block;
+      width: 9px;
+      height: 9px;
+      margin-right: 7px;
+      border-radius: 50%;
+      vertical-align: 1px;
+    }
+    .cert-row > span[data-i18n="set_cert_gold"]::before { background: linear-gradient(135deg, #ffe27a, #d4a017); }
+    .cert-row > span[data-i18n="set_cert_plat"]::before { background: linear-gradient(135deg, #f1f4f8, #9aa6b8); }
+    .cert-row > span[data-i18n="set_cert_diamond"]::before { background: linear-gradient(135deg, #c9f2ff, #5cc8f0); }
+
+    /* Appearance: theme swatches with names, language as a segmented switch */
+    .set-row-label { margin: var(--sp-3) 0 var(--sp-2); font-size: var(--fs-xs); font-weight: 600; color: var(--text2); }
+    .set-theme-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--sp-2); }
+    #sourceModal .theme-btn.set-theme-swatch {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      width: auto;
+      height: auto;
+      padding: 10px 4px 8px;
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      background: var(--raised);
+      font-size: var(--fs-xs);
+      line-height: 1.2;
+      color: var(--text2);
+      transition: border-color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+    }
+    #sourceModal .theme-btn.set-theme-swatch:hover { transform: translateY(-1px); border-color: var(--border2); }
+    /* not the top bar's enlarged dot: the swatch only takes a ring */
+    #sourceModal .theme-btn.set-theme-swatch.active { transform: none; font-size: var(--fs-xs); }
+    #sourceModal .theme-btn.set-theme-swatch.active { border-color: var(--accent); color: var(--text); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent); }
+    .set-theme-dot { width: 22px; height: 22px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25); }
+    .set-theme-swatch[data-theme="navy-dark"] .set-theme-dot { background: linear-gradient(135deg, #0b1626 50%, #1a6eb5 50%); }
+    .set-theme-swatch[data-theme="navy-light"] .set-theme-dot { background: linear-gradient(135deg, #f4f8fc 50%, #1a6eb5 50%); }
+    .set-theme-swatch[data-theme="purple"] .set-theme-dot { background: linear-gradient(135deg, #14112a 50%, #7c6af7 50%); }
+    .set-theme-swatch[data-theme="purple-light"] .set-theme-dot { background: linear-gradient(135deg, #f7f5ff 50%, #7c6af7 50%); }
+    .set-theme-swatch[data-theme="red"] .set-theme-dot { background: linear-gradient(135deg, #1e0c0c 50%, #cc2020 50%); }
+    .set-theme-swatch[data-theme="red-light"] .set-theme-dot { background: linear-gradient(135deg, #fff6f6 50%, #cc2020 50%); }
+    .set-theme-swatch[data-theme="yellow"] .set-theme-dot { background: linear-gradient(135deg, #17150a 50%, #e0bd00 50%); }
+    .set-theme-swatch[data-theme="yellow-light"] .set-theme-dot { background: linear-gradient(135deg, #fffcef 50%, #c8a800 50%); }
+    .set-theme-swatch[data-theme="pink"] .set-theme-dot { background: linear-gradient(135deg, #1d0a17 50%, #cc2090 50%); }
+    .set-theme-swatch[data-theme="pink-light"] .set-theme-dot { background: linear-gradient(135deg, #fff5fb 50%, #cc2090 50%); }
+    .set-lang-seg { width: 100%; }
+    .set-lang-seg .lang-btn.active { background: var(--bg2); color: var(--text); box-shadow: var(--shadow-1); }
+
+    /* Footer: Close alone until something needs Save */
+    #sourceModal .set-foot { align-items: center; }
+    .set-dirty-note { display: none; align-items: center; gap: 7px; margin-right: auto; font-size: var(--fs-xs); font-weight: 600; color: var(--text2); }
+    .set-dirty-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gold, #f5b301); box-shadow: 0 0 0 3px color-mix(in srgb, #f5b301 25%, transparent); }
+    .set-box:not(.is-dirty) .set-foot .set-cancel,
+    .set-box:not(.is-dirty) .set-foot .set-save { display: none; }
+    .set-box.is-dirty .set-foot .set-close { display: none; }
+    .set-box.is-dirty .set-dirty-note { display: inline-flex; animation: dcPopFadeIn 0.2s ease-out; }
+    .set-box.is-dirty .set-foot .set-save { animation: dcPopRise 0.24s var(--ease); }
+    @media (min-width: 641px) {
+      /* the bar stays at the bottom of the screen while the tab scrolls */
+      #sourceModal .src-modal-btns.set-foot {
+        position: sticky;
+        bottom: calc(-1 * var(--sp-6));
+        z-index: 5;
+        margin: 1.4rem -1.6rem -1.6rem;
+        padding: 0.9rem 1.6rem;
+        background: var(--bg2);
+        border-top: 1px solid var(--border);
+        border-radius: 0 0 var(--r-lg) var(--r-lg);
+      }
+    }
+    @media (max-width: 640px) {
+      .set-theme-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+      .set-theme-name { display: none; }
+      #sourceModal .theme-btn.set-theme-swatch { padding: 8px 2px; }
+      .set-lang-seg .lang-btn { font-size: var(--fs-xs); padding: 0 6px; }
+    }
+
     /* One soft reveal per panel switch — cheaper and calmer than animating
        each field in the panel. */
     .set-panel {
