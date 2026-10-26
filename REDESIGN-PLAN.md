@@ -3314,6 +3314,101 @@ Steps:
 (2026-10-26). Phase 9 is done; next is phase 10, pop-ups and Settings
 (4.20–4.21), looked at on screen first.
 
+### Phase 10: pop-ups and Settings (planned 2026-10-26)
+
+**Seen on screen (2026-10-26,** script C:/tmp/p10_look.mjs, 29 pop-ups at
+1440 and 390, Navy dark):
+- **About 40 pop-ups**, not 27: 27 in index.html plus the image picker,
+  awards picker + confirm, board confirm, `dcConfirmBox`, Daily calendar
+  share, Contact Support, the chart-record previews and the ceremony share.
+- **Each opens its own way.** Three backdrops: `.modal-overlay` (blurred
+  scrim, box pinned 32px from the top, the page scrolls), `.ig-modal-overlay`
+  (flat 70% black, centred), and the JS ones (their own). No open or close
+  animation; Esc works on some only; focus is not moved into the window or
+  given back; the page behind still scrolls on some. The confirm box barely
+  dims the page. The scrobble form has no ✕. The streak share sits low and
+  off-centre.
+- **Song / album / artist** (the most used): 2,000 / 2,400 / 3,000px long
+  on desktop, 2,500–3,700 on a phone. A 72px cover, no buttons at all (no
+  sample, playlist, rate or share in the header), then a grid of 13–14 emoji
+  tiles with an empty filler cell, then a dozen emoji headings (🏅 📊 📈 ★),
+  three different tile styles, "SHOW HEATMAP" in capitals. The artist one
+  repeats the rating box and has English table headings. The Stats tab has a
+  second, different artist pop-up (`stArtistModal`).
+- **Share windows** (7 + Daily + ceremony) already share preview-left /
+  options-right and the design / palette / format pickers (phase 8). Long
+  option column; Copy has an emoji; no "Share" on phones.
+- **Rating:** works; emoji per criterion, plain sliders, the ring only at
+  the top.
+- **Small forms** (scrobble, rules, compilations, release types, detect,
+  similar rule, playlist picker, new playlist, PDF, image picker, support):
+  all different headers, small bold titles, Close / Cancel in different
+  places, emoji in titles (♫ 📋).
+- **Settings:** looks good (your words too). Data source is fine; Charts is
+  1,850px and mixes the chart week, certifications, events, compilations,
+  release types, page sections and behaviour; Profile is short. Emoji in
+  "Chart page sections". 520px wide.
+
+**Your picks (2026-10-26):** details panel with **tabs**; Settings in **4
+tabs**; phones get **bottom sheets** (details full screen); do every step
+and commit each, no push without asking. Goal in your words: very thorough,
+modern, slick, interactive, high quality; Settings mostly better organised.
+
+**Steps:**
+1. **One pop-up engine.** Without rewriting the ~40 open/close functions:
+   a watcher sees any overlay open or close and adds the shared behaviour.
+   One backdrop (theme scrim + blur) everywhere, the box centred, a short
+   fade-and-rise in and a quicker fade out (none with reduced motion), the
+   page behind stops scrolling, focus moves into the window and back to the
+   button that opened it, Tab stays inside, Esc closes the top window, a
+   window opened from another sits on top. **Phones (≤640px): bottom sheet**,
+   slides up, a grab handle, drag down to close, safe-area padding.
+2. **One frame inside.** Shared header (small line icon tile, title,
+   subtitle, ✕), the body scrolls between a header and footer that stay put,
+   footer: secondary left, main action right. Applied to every small form
+   and window: scrobble (gets its ✕), edit play, rules, compilations,
+   release types, detect, similar rule, playlist picker, new playlist, PDF,
+   image picker, support, confirms. Line icons for every emoji in titles;
+   nicer empty states.
+3. **Details side panel, the shell.** Slides in from the right (about
+   560px, full screen on a phone), the chart stays visible. Header: big cover
+   on a blurred copy of itself, title, links to the artist / album, and a
+   button row (▶ sample, ＋ playlist, ★ rate, share, ⋯ more: Spotify /
+   YouTube search, change picture). Tabs under it. ← back inside the panel:
+   song → album → artist and back without closing. Click outside or Esc
+   closes. One builder for all three kinds.
+4. **Song panel.** Overview (four big numbers, the all-time rank, first /
+   last played, rating summary, accomplishments), Charts (peaks, records,
+   chart run), Listening (plays by month, heatmap, history, usual
+   neighbours, seasons), Awards (My Grammies). Line icons, no empty tile,
+   same tile style throughout.
+5. **Album panel.** Same tabs, plus the track list with ▶ and plays, and
+   compilation / release type under ⋯ and in Overview.
+6. **Artist panel.** Same tabs, plus songs and albums; the Stats artist
+   pop-up opens this panel too (its extra parts kept). English table
+   headings translated.
+7. **Rating window.** The ring follows every slider live, each criterion a
+   row with a line icon, slider and score chip; quick / detailed as a
+   segmented switch; keyboard friendly; saved-state note.
+8. **One Share window.** The 7 share windows + Daily + ceremony on one
+   shell: preview sticky on the left, options grouped and folding, Copy /
+   Download / Share (phone share sheet where the browser has one). On a
+   phone the preview sits on top and the options scroll under it.
+9. **Bigger windows:** export, PDF, What's New, streaks, awards picker,
+   chart-record previews: on the frame, emoji to icons, same buttons.
+10. **Settings in 4 tabs:** Data source · Charts (week, page sections,
+    behaviour, events) · Releases (certifications, release types, singles /
+    EPs, compilations) · Profile (name, time zone, theme, language,
+    backups). A search box that finds any setting and jumps to it, grouped
+    rows with line icons, wider on desktop, the Save bar shows only when
+    something changed. Same settings, nothing removed; the tour and the
+    Charts Guide pointed at the new places.
+11. **Four languages** for every new word (en / es / pt-BR / pt-PT), and
+    the changelog entries.
+12. **Screen check:** 1440 / 1100 / 390 touch × en / es / pt-BR / pt-PT ×
+    Navy dark, Navy light, Yellow, Red light; real clicks, keyboard (Tab /
+    Esc), drag-to-close, no sideways scroll, no errors.
+
 The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in
 the top bar.
