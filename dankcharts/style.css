@@ -13065,7 +13065,8 @@
     #eventsView>.section-header .section-header-h2,
     #awardsView>.section-header .section-header-h2,
     #soundtrackView>.section-header .section-header-h2,
-    .dc-pl-view>.section-header .section-header-h2 {
+    .dc-pl-view>.section-header .section-header-h2,
+    #boardView .bd-section>.section-header .section-header-h2 {
       font-family: var(--font-display);
       font-size: var(--fs-lg);
       font-weight: 500;
@@ -37044,7 +37045,7 @@ body.cp-hide-cert-reel    #certReelSection { display: none !important; }
   max-width: 980px;
   width: 100%;
   margin: 0 auto;
-  padding: 0 var(--sp-4) var(--sp-9);
+  padding: var(--sp-2) var(--sp-4) var(--sp-9);
   box-sizing: border-box;
   --bd-suggestion: #a78bfa;
   --bd-bug:        #f87171;
@@ -37052,7 +37053,19 @@ body.cp-hide-cert-reel    #certReelSection { display: none !important; }
   --bd-discussion: #34d399;
   --bd-danger:     #D93F44;
 }
-.bd-section .section-body { display: flex; flex-direction: column; gap: 14px; }
+/* Redesign phase 9 part 7: the shared page title, no box; the sub under it */
+.bd-page-sub { margin: 0 0 var(--sp-4); font-size: var(--fs-sm); color: var(--text3); }
+.bd-body { display: flex; flex-direction: column; gap: 14px; }
+.bd-h2-ico path:last-child { fill: color-mix(in srgb, var(--accent) 22%, transparent); }
+/* the line icons in buttons, tags and the reply count */
+.bd-ico {
+  width: 14px; height: 14px; flex: none;
+  fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round;
+}
+.dc-btn .bd-ico { margin-right: 0.4em; }
+.bd-tag .bd-ico { width: 12px; height: 12px; }
+.bd-replies-link { display: inline-flex; align-items: center; gap: 4px; }
+.bd-replies-link .bd-ico { width: 13px; height: 13px; }
 
 /* Buttons and inputs */
 .bd-chip:focus-visible, .bd-vote:focus-visible,
@@ -37079,8 +37092,8 @@ body.cp-hide-cert-reel    #certReelSection { display: none !important; }
   display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); flex-wrap: wrap;
   padding: var(--sp-3) 14px;
   border-radius: var(--r-md);
-  border: 1px dashed color-mix(in srgb, var(--accent) 45%, var(--border));
-  background: color-mix(in srgb, var(--accent) 7%, transparent);
+  border: 1px solid var(--border);
+  background: var(--bg2);
   color: var(--text2); font-size: var(--fs-sm);
 }
 .bd-signin-sm { padding: 10px var(--sp-3); font-size: var(--fs-sm); }
@@ -37093,14 +37106,6 @@ body.cp-hide-cert-reel    #certReelSection { display: none !important; }
       font-variant-numeric: tabular-nums; font-size: var(--fs-xs); opacity: 0.7; }
 .bd-tools { display: flex; flex-wrap: wrap; gap: var(--sp-2); align-items: center; }
 .bd-search { flex: 1 1 180px; min-width: 0; }
-.bd-seg { display: inline-flex; border: 1px solid var(--border); border-radius: var(--r-md); overflow: hidden; }
-.bd-seg button {
-  padding: 7px var(--sp-3); border: 0; background: transparent; color: var(--text2);
-  font: inherit; font-size: var(--fs-xs); font-weight: 600; cursor: pointer;
-}
-.bd-seg button + button { border-left: 1px solid var(--border); }
-.bd-seg button:hover { color: var(--text1); }
-.bd-seg button.active { background: var(--surface2); color: var(--accent); }
 .bd-new-btn { margin-left: auto; }
 
 /* Category dots */
@@ -37139,19 +37144,20 @@ body.cp-hide-cert-reel    #certReelSection { display: none !important; }
 .bd-note { font-size: var(--fs-xs); color: var(--text3); line-height: 1.45; }
 
 /* Post list */
-.bd-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-2); }
+/* Posts are rows on the page with a line between them, like the site's
+   other lists; the open one gets a faint wash and an accent edge */
+.bd-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; border-top: 1px solid var(--border); }
 .bd-post {
   display: flex; gap: var(--sp-3); align-items: flex-start;
-  padding: var(--sp-3) 14px;
-  border-radius: var(--r-md);
-  border: 1px solid var(--border);
-  background: var(--surface1);
-  transition: border-color 0.12s;
+  padding: var(--sp-4) var(--sp-3);
+  border-bottom: 1px solid var(--border);
+  box-shadow: inset 2px 0 0 transparent;
+  transition: background-color 0.12s;
   scroll-margin-top: 90px;
 }
-.bd-post:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); }
-.bd-post.pinned { border-color: color-mix(in srgb, var(--accent) 55%, var(--border)); background: color-mix(in srgb, var(--accent) 5%, var(--surface1)); }
-.bd-post.open { border-color: var(--accent); }
+.bd-post:hover { background: var(--hover); }
+.bd-post.pinned { background: color-mix(in srgb, var(--accent) 4%, transparent); }
+.bd-post.open { background: var(--bg2); box-shadow: inset 2px 0 0 var(--accent); }
 
 .bd-vote {
   flex: none;
@@ -37248,7 +37254,7 @@ body.cp-hide-cert-reel    #certReelSection { display: none !important; }
 @media (prefers-reduced-motion: reduce) { .bd-toast { animation: none; } }
 
 @media (max-width: 600px) {
-  .bd-post { gap: 10px; padding: 11px var(--sp-3); }
+  .bd-post { gap: 10px; padding: var(--sp-3) var(--sp-2); }
   .bd-vote { width: 40px; }
   .bd-new-btn { margin-left: 0; flex: 1 1 100%; }
   .bd-seg { flex: 1 1 auto; }

@@ -25,7 +25,7 @@ const TRANSLATIONS = {
     nav_chartsguide: 'Charts Guide',
     // Community board (board.js)
     nav_board: "Board",
-    board_title: "💬 COMMUNITY BOARD",
+    board_title: "Community Board",
     board_sub: "Suggest features, report bugs, ask questions and talk music with other listeners.",
     board_anon: "Listener",
     board_just_now: "just now",
@@ -4029,7 +4029,7 @@ const TRANSLATIONS = {
     nav_chartsguide: 'Guía de Charts',
     // Community board (board.js)
     nav_board: "Foro",
-    board_title: "💬 FORO DE LA COMUNIDAD",
+    board_title: "Foro de la comunidad",
     board_sub: "Sugiere funciones, reporta errores, haz preguntas y habla de música con otros oyentes.",
     board_anon: "Oyente",
     board_just_now: "ahora mismo",
@@ -7918,7 +7918,7 @@ const TRANSLATIONS = {
     nav_chartsguide: 'Guia de Charts',
     // Community board (board.js)
     nav_board: "Fórum",
-    board_title: "💬 FÓRUM DA COMUNIDADE",
+    board_title: "Fórum da comunidade",
     board_sub: "Sugira recursos, relate bugs, tire dúvidas e converse sobre música com outros ouvintes.",
     board_anon: "Ouvinte",
     board_just_now: "agora mesmo",
@@ -11808,7 +11808,7 @@ const TRANSLATIONS = {
     nav_chartsguide: 'Guia de Charts',
     // Community board (board.js)
     nav_board: "Fórum",
-    board_title: "💬 FÓRUM DA COMUNIDADE",
+    board_title: "Fórum da comunidade",
     board_sub: "Sugere funcionalidades, reporta erros, faz perguntas e fala de música com outros ouvintes.",
     board_anon: "Ouvinte",
     board_just_now: "agora mesmo",

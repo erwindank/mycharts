@@ -3248,6 +3248,18 @@ Steps:
 4. **Board.** Shared page title, no box, shared .dc-btn for Sign in / New
    post, shared chips for the filters, posts as rows with dividers, line
    icons for 💬 and the rest.
+   **Done 2026-10-26:** "Community Board" (board_title lost its 💬 and
+   capitals in all four languages) in the shared page title with the
+   nav's two speech bubbles, the sub under it; no box. The sort switch is
+   the shared .dc-seg (its own .bd-seg look deleted); the composer's
+   Cancel was an unstyled .bd-btn, now .dc-btn normal. Posts are rows with
+   a line between them and a hover wash; the open one a faint panel with
+   an accent edge; pinned a faint accent wash. Line icons (ICONS / ico()
+   in board.js) for 📌 💬 ✎ 🔗 🗑 ＋. The sign-in strip is a plain panel
+   (was dashed accent). Sign in / New post were already the shared main
+   button. Checked 1440 and 390 touch: list, an open post with its
+   replies (real Firestore), the composer with a stand-in user; no emoji
+   left, no sideways scroll, no errors.
 5. **Charts Guide, top and icons.** Shared page title and toolbar (Take
    the tour / Search your library / Replay the welcome) instead of the
    blue banner; line icons for every emoji in chips, cards and lists.

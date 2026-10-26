@@ -366,13 +366,32 @@
     restoreDrafts(root, focus);
   }
 
+  // Line icons for the buttons and tags (redesign phase 9 part 7; they were
+  // emoji). Drawn on a 16px grid, stroked in the text colour.
+  var ICONS = {
+    pin: '<path d="M6 2.5h4M7 2.5v4L4.5 9h7L9 6.5v-4M8 9v4.5"/>',
+    reply: '<path d="M2.5 4.2c0-.8.6-1.4 1.4-1.4h8.2c.8 0 1.4.6 1.4 1.4v5.2c0 .8-.6 1.4-1.4 1.4H7l-3 2.4v-2.4h-.1c-.8 0-1.4-.6-1.4-1.4Z"/>',
+    edit: '<path d="M10.6 2.8l2.6 2.6L6 12.6l-3.2.6.6-3.2z"/>',
+    link: '<path d="M6.8 9.2l2.4-2.4"/><path d="M7.6 4.6l1-1a2.6 2.6 0 0 1 3.7 3.7l-1 1"/><path d="M8.4 11.4l-1 1a2.6 2.6 0 0 1-3.7-3.7l1-1"/>',
+    trash: '<path d="M2.8 4.4h10.4M6.2 4.4V3h3.6v1.4M4.2 4.4l.6 8.6h6.4l.6-8.6"/>',
+    plus: '<path d="M8 3v10M3 8h10"/>'
+  };
+  function ico(name) {
+    return '<svg class="bd-ico" viewBox="0 0 16 16" aria-hidden="true" focusable="false">' + ICONS[name] + '</svg>';
+  }
+
   function viewHTML() {
     var u = user();
     var h = '';
-    h += '<div class="chart-section bd-section">';
-    h += '<div class="section-header"><h2 class="section-title">' + esc(tr('board_title')) + '</h2><div class="section-rule"></div></div>';
-    h += '<div class="section-sub">' + esc(tr('board_sub')) + '</div>';
-    h += '<div class="section-body">';
+    // The shared page title (as Records / Stats / Events / Awards / Soundtrack /
+    // Playlists) with the nav's two speech bubbles, then the line under it.
+    // No box around the board: the posts are rows on the page.
+    h += '<div class="bd-section">';
+    h += '<div class="section-header bd-page-header"><h2 class="section-header-h2">' +
+      '<svg class="graphs-h2-ico bd-h2-ico" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M6.2 4.4V3.2c0-.8.6-1.4 1.4-1.4h5.6c.8 0 1.4.6 1.4 1.4v3.9c0 .8-.6 1.4-1.4 1.4h-.6v1.7l-1.8-1.7"/><path d="M1.4 6.4c0-.8.6-1.4 1.4-1.4h6.4c.8 0 1.4.6 1.4 1.4v4.3c0 .8-.6 1.4-1.4 1.4H5.4l-2.4 2v-2h-.2c-.8 0-1.4-.6-1.4-1.4Z"/></svg>' +
+      '<span>' + esc(tr('board_title')) + '</span></h2><div class="section-rule"></div></div>';
+    h += '<p class="bd-page-sub">' + esc(tr('board_sub')) + '</p>';
+    h += '<div class="bd-body">';
 
     // Account strip
     if (!u) {
@@ -396,11 +415,11 @@
       '<option value="all"' + (S.status === 'all' ? ' selected' : '') + '>' + esc(tr('board_status_all')) + '</option>' +
       STATUSES.map(function (s) { return '<option value="' + s + '"' + (S.status === s ? ' selected' : '') + '>' + esc(statusLabel(s)) + '</option>'; }).join('') +
       '</select>';
-    h += '<div class="bd-seg" role="group" aria-label="' + esc(tr('board_sort')) + '">' +
+    h += '<div class="dc-seg bd-seg" role="group" aria-label="' + esc(tr('board_sort')) + '">' +
       ['top', 'new', 'active'].map(function (s) {
         return '<button type="button" class="' + (S.sort === s ? 'active' : '') + '" aria-pressed="' + (S.sort === s) + '" onclick="dcBoard.setSort(\'' + s + '\')">' + esc(tr('board_sort_' + s)) + '</button>';
       }).join('') + '</div>';
-    h += '<button type="button" class="dc-btn dc-btn-main bd-new-btn" onclick="dcBoard.compose()">＋ ' + esc(tr('board_new')) + '</button>';
+    h += '<button type="button" class="dc-btn dc-btn-main bd-new-btn" onclick="dcBoard.compose()">' + ico('plus') + esc(tr('board_new')) + '</button>';
     h += '</div></div>';
 
     if (S.composing && u) h += composerHTML(null);
@@ -438,7 +457,7 @@
     h += '<textarea id="' + pre + 'Body" data-draft class="bd-input bd-textarea" maxlength="' + MAX_BODY + '" rows="5" placeholder="' + esc(tr('board_body_ph')) + '" aria-label="' + esc(tr('board_body_ph')) + '" oninput="dcBoard.count(this)">' + (post ? esc(post.body) : '') + '</textarea>';
     h += '<div class="bd-composer-foot"><span class="bd-note">' + (post ? '' : esc(tr('board_public_note'))) + '</span>' +
       '<span class="bd-count" data-for="' + pre + 'Body"></span>' +
-      '<button type="button" class="bd-btn" onclick="dcBoard.cancelCompose(' + (post ? 'true' : 'false') + ')">' + esc(tr('board_cancel')) + '</button>' +
+      '<button type="button" class="dc-btn dc-btn-normal" onclick="dcBoard.cancelCompose(' + (post ? 'true' : 'false') + ')">' + esc(tr('board_cancel')) + '</button>' +
       '<button type="submit" class="dc-btn dc-btn-main"' + (S.busy[post ? 'edit:' + post.id : 'create'] ? ' disabled' : '') + '>' + esc(post ? tr('board_save') : tr('board_post')) + '</button></div>';
     h += '</form>';
     return h;
@@ -459,7 +478,7 @@
     // Main column
     h += '<div class="bd-post-main">';
     h += '<div class="bd-tags">' +
-      (p.pinned ? '<span class="dc-chip bd-tag bd-tag-pin">📌 ' + esc(tr('board_pinned')) + '</span>' : '') +
+      (p.pinned ? '<span class="dc-chip bd-tag bd-tag-pin">' + ico('pin') + esc(tr('board_pinned')) + '</span>' : '') +
       '<span class="dc-chip bd-tag bd-tag-cat"><span class="bd-dot bd-cat-' + esc(p.category) + '"></span>' + esc(catLabel(p.category)) + '</span>' +
       (status !== 'open' ? '<span class="dc-chip bd-tag bd-status bd-status-' + esc(status) + '">' + esc(statusLabel(status)) + '</span>' : '') +
       '</div>';
@@ -474,7 +493,7 @@
       '<span class="bd-author">' + esc(p.authorName || tr('board_anon')) + '</span>' +
       '<span class="bd-sep">·</span><span title="' + esc(new Date(toMs(p.createdAt)).toLocaleString()) + '">' + esc(ago(toMs(p.createdAt))) + '</span>' +
       (p.editedAt ? '<span class="bd-sep">·</span><span>' + esc(tr('board_edited')) + '</span>' : '') +
-      '<span class="bd-sep">·</span><button type="button" class="bd-link" onclick="dcBoard.toggle(\'' + esc(p.id) + '\')">💬 ' +
+      '<span class="bd-sep">·</span><button type="button" class="bd-link bd-replies-link" onclick="dcBoard.toggle(\'' + esc(p.id) + '\')">' + ico('reply') +
       esc(tr((p.replyCount || 0) === 1 ? 'board_replies_one' : 'board_replies_other', { n: p.replyCount || 0 })) + '</button>' +
       '</div>';
     if (open) h += detailHTML(p);
@@ -489,18 +508,18 @@
     var h = '';
     if ((mine || S.isAdmin) && S.editingId !== p.id) {
       h += '<div class="bd-actions">';
-      if (mine) h += '<button type="button" class="dc-btn dc-btn-normal dc-btn-sm" onclick="dcBoard.edit(\'' + esc(p.id) + '\')">✎ ' + esc(tr('board_edit')) + '</button>';
-      h += '<button type="button" class="dc-btn dc-btn-normal dc-btn-sm" onclick="dcBoard.share(\'' + esc(p.id) + '\')">🔗 ' + esc(tr('board_copy_link')) + '</button>';
+      if (mine) h += '<button type="button" class="dc-btn dc-btn-normal dc-btn-sm" onclick="dcBoard.edit(\'' + esc(p.id) + '\')">' + ico('edit') + esc(tr('board_edit')) + '</button>';
+      h += '<button type="button" class="dc-btn dc-btn-normal dc-btn-sm" onclick="dcBoard.share(\'' + esc(p.id) + '\')">' + ico('link') + esc(tr('board_copy_link')) + '</button>';
       if (S.isAdmin) {
-        h += '<button type="button" class="dc-btn dc-btn-normal dc-btn-sm" onclick="dcBoard.pin(\'' + esc(p.id) + '\')">📌 ' + esc(tr(p.pinned ? 'board_unpin' : 'board_pin')) + '</button>';
+        h += '<button type="button" class="dc-btn dc-btn-normal dc-btn-sm" onclick="dcBoard.pin(\'' + esc(p.id) + '\')">' + ico('pin') + esc(tr(p.pinned ? 'board_unpin' : 'board_pin')) + '</button>';
         h += '<label class="bd-status-pick"><span>' + esc(tr('board_status_label')) + '</span><select class="bd-input bd-select" onchange="dcBoard.setPostStatus(\'' + esc(p.id) + '\', this.value)">' +
           STATUSES.map(function (s) { return '<option value="' + s + '"' + ((p.status || 'open') === s ? ' selected' : '') + '>' + esc(statusLabel(s)) + '</option>'; }).join('') +
           '</select></label>';
       }
-      h += '<button type="button" class="dc-btn dc-btn-plain dc-btn-sm dc-btn-danger" onclick="dcBoard.askDeletePost(\'' + esc(p.id) + '\')">🗑 ' + esc(tr('board_delete')) + '</button>';
+      h += '<button type="button" class="dc-btn dc-btn-plain dc-btn-sm dc-btn-danger" onclick="dcBoard.askDeletePost(\'' + esc(p.id) + '\')">' + ico('trash') + esc(tr('board_delete')) + '</button>';
       h += '</div>';
     } else if (S.editingId !== p.id) {
-      h += '<div class="bd-actions"><button type="button" class="dc-btn dc-btn-normal dc-btn-sm" onclick="dcBoard.share(\'' + esc(p.id) + '\')">🔗 ' + esc(tr('board_copy_link')) + '</button></div>';
+      h += '<div class="bd-actions"><button type="button" class="dc-btn dc-btn-normal dc-btn-sm" onclick="dcBoard.share(\'' + esc(p.id) + '\')">' + ico('link') + esc(tr('board_copy_link')) + '</button></div>';
     }
 
     var replies = S.replies[p.id];
