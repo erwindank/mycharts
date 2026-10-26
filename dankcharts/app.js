@@ -50836,8 +50836,8 @@ function stRenderGrammys(plays) {
         <img id="stGrammyArt_${i}" class="st-grammy-card-bg" src="" alt="" onload="this.classList.add('loaded')">
         <div class="st-grammy-card-fallback">${esc(initials(item.artist))}</div>
         ${wins ? `<div class="st-grammy-ribbon">${stIco('trophy')} ${wins} ${wins === 1 ? t('st_grammy_win') : t('st_grammy_wins')}</div>` : ''}
-        ${picks ? `<div class="st-grammy-mine">${stIco('star')} ${picks} · ${esc(t('awards_tab_mygrammys'))}</div>` : ''}
         <div class="st-grammy-card-overlay">
+          ${picks ? `<div class="st-grammy-mine">${stIco('star')} ${picks} · ${esc(t('awards_tab_mygrammys'))}</div>` : ''}
           <div class="st-grammy-card-artist" title="${esc(item.artist)}">${esc(item.artist)}</div>
           <div class="st-grammy-card-plays">${item.plays.toLocaleString()} ${tUnit('plays', item.plays)}</div>
         </div>

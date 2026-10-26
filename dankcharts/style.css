@@ -29392,17 +29392,16 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
   z-index: 2;
 }
 
-/* Your own My Grammys picks: a tag in the theme colour at the top left, so
-   they never read as the gold ribbon's real wins */
+/* Your own My Grammys picks: a tag in the theme colour just above the
+   artist's name, so they never read as the gold ribbon's real wins and never
+   run into it, however long the label is in another language */
 .st-grammy-mine {
-  position: absolute;
-  top: 0.55rem;
-  left: 0.55rem;
-  z-index: 2;
+  align-self: flex-start;
   display: inline-flex;
   align-items: center;
   gap: 0.3em;
-  max-width: calc(100% - 4.5rem);
+  max-width: 100%;
+  margin-bottom: 0.35rem;
   padding: 0.2rem 0.5rem;
   border-radius: var(--r-sm, 6px);
   background: var(--accent);
