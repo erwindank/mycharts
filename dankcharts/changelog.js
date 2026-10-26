@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 321;
+const DC_CL_I18N_V = 322;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-25', t: 'fix', a: 'soundtrack', h: '696ab4b',
+    title: "Your Soundtrack: longest streak ever as of the year you're viewing",
+    detail: "In the Streaks chapter of Your Soundtrack, the Longest Streak Ever card now only counts days up to the end of the year or month you're viewing, so 2019 shows the record as it stood at the end of 2019. A streak still going only counts when the period reaches today. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-25', t: 'design', a: 'soundtrack', h: 'ce5be05',
     title: "Your Soundtrack: more album covers on the year banner",
     detail: "The Chapter 1 banner in Your Soundtrack now shows many more album covers: the tiles are smaller, the grid reaches further left with fewer gaps, and up to 96 different albums fit before any repeats. Works with Last.fm, Google Sheets and CSV uploads." },

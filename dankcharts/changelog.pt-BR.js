@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Your Soundtrack: longest streak ever as of the year you're viewing":
+    ["Sua Trilha Sonora: a sequência mais longa de sempre conforme o ano que você vê",
+     "No capítulo de Sequências da Sua Trilha Sonora, o cartão Sequência Mais Longa de Sempre agora só conta os dias até o fim do ano ou mês que você está vendo, então 2019 mostra o recorde como estava no fim de 2019. Uma sequência em andamento só conta quando o período chega até hoje. Funciona com Last.fm, Google Sheets e arquivos CSV."],
   "Your Soundtrack: more album covers on the year banner":
     ["Sua Trilha Sonora: mais capas no banner do ano",
      "O banner do Capítulo 1 na Sua Trilha Sonora agora mostra muito mais capas de álbuns: os quadrinhos são menores, a grade vai mais longe para a esquerda com menos buracos e cabem até 96 álbuns diferentes antes de repetir algum. Funciona com Last.fm, Google Sheets e arquivos CSV."],

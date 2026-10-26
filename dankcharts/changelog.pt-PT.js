@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Your Soundtrack: longest streak ever as of the year you're viewing":
+    ["A Tua Banda Sonora: a sequência mais longa de sempre conforme o ano que vês",
+     "No capítulo de Sequências da Tua Banda Sonora, o cartão Sequência Mais Longa de Sempre conta agora só os dias até ao fim do ano ou mês que estás a ver, por isso 2019 mostra o recorde como estava no fim de 2019. Uma sequência em curso só conta quando o período chega até hoje. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
   "Your Soundtrack: more album covers on the year banner":
     ["A Tua Banda Sonora: mais capas no banner do ano",
      "O banner do Capítulo 1 na Tua Banda Sonora mostra agora muito mais capas de álbuns: os quadrados são mais pequenos, a grelha vai mais longe para a esquerda com menos espaços vazios e cabem até 96 álbuns diferentes antes de repetir algum. Funciona com Last.fm, Google Sheets e ficheiros CSV."],

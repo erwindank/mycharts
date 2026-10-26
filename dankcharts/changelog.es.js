@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Your Soundtrack: longest streak ever as of the year you're viewing":
+    ["Tu Banda Sonora: la racha más larga de siempre según el año que ves",
+     "En el capítulo de Rachas de Tu Banda Sonora, la tarjeta Racha Más Larga de Siempre ahora solo cuenta los días hasta el final del año o mes que estás viendo, así que 2019 muestra el récord tal como estaba a finales de 2019. Una racha en curso solo cuenta cuando el periodo llega hasta hoy. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Your Soundtrack: more album covers on the year banner":
     ["Tu Banda Sonora: más portadas en el banner del año",
      "El banner del Capítulo 1 en Tu Banda Sonora ahora muestra muchas más portadas de álbumes: las fichas son más pequeñas, la cuadrícula llega más lejos hacia la izquierda con menos huecos y caben hasta 96 álbumes distintos antes de repetir uno. Funciona con Last.fm, Google Sheets y archivos CSV."],
