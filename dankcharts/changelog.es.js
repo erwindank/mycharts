@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Song, album and artist details in the middle of the screen":
+    ["Detalles de canción, álbum y artista en el centro de la pantalla",
+     "Los detalles de una canción, un álbum o un artista se abren ahora en una ventana grande en el centro de la pantalla en lugar de un panel al costado. En computadora, la portada, el título y los botones se quedan a la izquierda mientras recorres las pestañas a la derecha. La ventana toma su color de la portada: el botón Fragmento, la línea de las pestañas, los íconos, los números y las barras de escuchas por mes combinan con la imagen. Los números grandes son más marcados y cuentan hacia arriba al abrirse la ventana. En el teléfono los detalles siguen ocupando toda la pantalla."],
   "Artist details open straight away":
     ["Los detalles de artista se abren al instante",
      "La primera vez que abrías un artista, el panel podía tardar unos segundos en aparecer mientras se calculaban sus récords del Salón de la Fama. Ahora esos récords solo se calculan al abrir la pestaña Listas del artista, donde se muestran, así que el panel se desliza al momento. El gráfico de escuchas por mes también cabe ya en el panel, incluso con un historial largo."],

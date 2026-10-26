@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Song, album and artist details in the middle of the screen":
+    ["Detalhes de música, álbum e artista no centro do ecrã",
+     "Os detalhes de uma música, álbum ou artista abrem agora numa janela grande no centro do ecrã, em vez de um painel ao lado. No computador, a capa, o título e os botões ficam à esquerda enquanto percorre os separadores à direita. A janela ganha a cor da capa: o botão Amostra, a linha dos separadores, os ícones, os números e as barras de plays por mês combinam com a imagem. Os números grandes estão mais fortes e sobem a contar quando a janela abre. No telemóvel os detalhes continuam a ocupar o ecrã inteiro."],
   "Artist details open straight away":
     ["Os detalhes do artista abrem logo",
      "Da primeira vez que abrias um artista, o painel podia demorar alguns segundos a aparecer enquanto se calculavam os recordes do Hall da Fama. Agora esses recordes só são calculados quando abres o separador Tabelas do artista, onde aparecem, por isso o painel desliza de imediato. O gráfico de reproduções por mês também cabe agora no painel, mesmo com um histórico longo."],

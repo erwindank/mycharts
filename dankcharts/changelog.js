@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 352;
+const DC_CL_I18N_V = 353;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-26', t: 'design', a: 'ui', h: '8f97f0f',
+    title: "Song, album and artist details in the middle of the screen",
+    detail: "The details of a song, album or artist now open in a large window in the middle of the screen instead of a panel at the side. On a computer the cover, title and buttons stay on the left while you move through the tabs on the right. The window takes its colour from the cover: the Sample button, the tab line, the icons, the numbers and the plays-by-month bars all match the artwork. The big numbers are bolder and count up as the window opens. On a phone the details still fill the screen." },
   { d: '2026-10-26', t: 'perf', a: 'ui', h: '8af4d11',
     title: "Artist details open straight away",
     detail: "The first time you opened an artist, the panel could take a few seconds to appear while their Hall of Fame records were being worked out. Those records are now only worked out when you open the artist's Charts tab, where they are shown, so the panel slides in at once. The plays-by-month chart also fits the panel now, even for a long listening history." },
