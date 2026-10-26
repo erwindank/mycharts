@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Playlists in your language, and a warning before deleting one":
+    ["Listas de reproducción en tu idioma, y un aviso antes de borrar una",
+     "Todo en la página de Listas de reproducción está ahora también en español y portugués: la casilla para guardar, Seguir, el número de canciones, la página vacía y la etiqueta de cada botón. Eliminar una lista entera ahora pregunta antes en la ventana de aviso del sitio (antes se borraba con un clic), y cambiarle el nombre a uno que ya usas pregunta en la misma ventana en lugar de la ventana del navegador. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Playlists: covers on every playlist and song":
     ["Listas de reproducción: portadas en cada lista y canción",
      "Cada lista muestra ahora un pequeño collage con las portadas de sus cuatro primeras canciones junto al nombre, con el número de canciones debajo. Al abrir una lista, cada canción tiene su portada, con el título encima del artista. En el móvil los botones de reproducir y quitar de cada canción se ven siempre (antes solo aparecían al pasar el ratón, así que no se podían usar en una pantalla táctil). Funciona con Last.fm, Google Sheets y archivos CSV."],

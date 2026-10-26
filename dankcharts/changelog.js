@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 339;
+const DC_CL_I18N_V = 340;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-26', t: 'i18n', a: 'playlists', h: '2f927e8',
+    title: "Playlists in your language, and a warning before deleting one",
+    detail: "Everything on the Playlists page is now in Spanish and Portuguese too: the save box, Resume, the song counts, the empty page and every button's label. Deleting a whole playlist now asks first in the site's own warning window (before, one click deleted it), and renaming a playlist to a name you already use asks in the same window instead of the browser's pop-up. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-26', t: 'design', a: 'playlists', h: '9f18c7b',
     title: "Playlists: covers on every playlist and song",
     detail: "Each playlist now shows a small collage of its first four songs' covers next to its name, with the song count under it. Open a playlist and every song has its cover, with the title above the artist. On phones the play and remove buttons on each song now always show (before, they only appeared when hovering with a mouse, so they couldn't be reached on a touch screen). Works with Last.fm, Google Sheets and CSV uploads." },

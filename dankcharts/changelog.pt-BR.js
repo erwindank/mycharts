@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Playlists in your language, and a warning before deleting one":
+    ["Playlists no seu idioma, e um aviso antes de excluir uma",
+     "Tudo na página de Playlists agora também está em espanhol e português: a caixa para salvar, Continuar, o número de músicas, a página vazia e o rótulo de cada botão. Excluir uma playlist inteira agora pergunta antes na janela de aviso do site (antes, um clique a excluía), e renomear uma playlist com um nome que você já usa pergunta na mesma janela em vez da janela do navegador. Funciona com Last.fm, Google Sheets e arquivos CSV."],
   "Playlists: covers on every playlist and song":
     ["Playlists: capas em cada playlist e música",
      "Cada playlist agora mostra uma pequena colagem com as capas das suas quatro primeiras músicas ao lado do nome, com o número de músicas embaixo. Ao abrir uma playlist, cada música tem a sua capa, com o título acima do artista. No celular, os botões de tocar e remover de cada música agora aparecem sempre (antes só apareciam ao passar o mouse, então não dava para usá-los numa tela de toque). Funciona com Last.fm, Google Sheets e arquivos CSV."],
