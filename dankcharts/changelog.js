@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 340;
+const DC_CL_I18N_V = 341;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-26', t: 'design', a: 'ui', h: '8252e73',
+    title: "Community Board: looks like the rest of the site",
+    detail: "The Community Board now has the same page title as the other tabs and no longer sits inside a box. Posts are rows on the page with a line between them, and the open one is marked with a coloured edge. The emoji on the buttons and tags (pin, replies, edit, copy link, delete) are now simple line icons, the sort switch matches the rest of the site, and the Cancel button in the new-post form is a proper button again." },
   { d: '2026-10-26', t: 'i18n', a: 'playlists', h: '2f927e8',
     title: "Playlists in your language, and a warning before deleting one",
     detail: "Everything on the Playlists page is now in Spanish and Portuguese too: the save box, Resume, the song counts, the empty page and every button's label. Deleting a whole playlist now asks first in the site's own warning window (before, one click deleted it), and renaming a playlist to a name you already use asks in the same window instead of the browser's pop-up. Works with Last.fm, Google Sheets and CSV uploads." },

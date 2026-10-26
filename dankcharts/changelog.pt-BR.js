@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Community Board: looks like the rest of the site":
+    ["Fórum da comunidade: com a cara do resto do site",
+     "O Fórum da comunidade agora tem o mesmo título de página das outras abas e não fica mais dentro de uma caixa. As publicações são fileiras na página com uma linha entre elas, e a que está aberta ganha uma borda colorida. Os emoji dos botões e etiquetas (fixar, respostas, editar, copiar link, excluir) agora são ícones de linha simples, o seletor de ordem é igual ao do resto do site e o botão Cancelar do formulário de nova publicação voltou a ser um botão de verdade."],
   "Playlists in your language, and a warning before deleting one":
     ["Playlists no seu idioma, e um aviso antes de excluir uma",
      "Tudo na página de Playlists agora também está em espanhol e português: a caixa para salvar, Continuar, o número de músicas, a página vazia e o rótulo de cada botão. Excluir uma playlist inteira agora pergunta antes na janela de aviso do site (antes, um clique a excluía), e renomear uma playlist com um nome que você já usa pergunta na mesma janela em vez da janela do navegador. Funciona com Last.fm, Google Sheets e arquivos CSV."],

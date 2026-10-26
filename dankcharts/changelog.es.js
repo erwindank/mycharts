@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Community Board: looks like the rest of the site":
+    ["Foro de la comunidad: se parece al resto del sitio",
+     "El Foro de la comunidad tiene ahora el mismo título de página que las demás pestañas y ya no está dentro de una caja. Las publicaciones son filas en la página con una línea entre ellas, y la que está abierta se marca con un borde de color. Los emoji de los botones y etiquetas (fijar, respuestas, editar, copiar enlace, eliminar) son ahora iconos de línea sencillos, el selector de orden es como el del resto del sitio y el botón Cancelar del formulario de nueva publicación vuelve a ser un botón de verdad."],
   "Playlists in your language, and a warning before deleting one":
     ["Listas de reproducción en tu idioma, y un aviso antes de borrar una",
      "Todo en la página de Listas de reproducción está ahora también en español y portugués: la casilla para guardar, Seguir, el número de canciones, la página vacía y la etiqueta de cada botón. Eliminar una lista entera ahora pregunta antes en la ventana de aviso del sitio (antes se borraba con un clic), y cambiarle el nombre a uno que ya usas pregunta en la misma ventana en lugar de la ventana del navegador. Funciona con Last.fm, Google Sheets y archivos CSV."],
