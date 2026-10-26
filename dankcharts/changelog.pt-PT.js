@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Bubbling Under summary and all-time goals within reach":
+    ["Resumo nos Aspirantes e metas de sempre ao seu alcance",
+     "A trajetória nos Aspirantes tem agora o mesmo resumo da trajetória no Top: uma frase que a conta (onde entrou nos Aspirantes, a melhor posição e a quanto equivale no geral, e a passagem pelo Top), uma linha de números que pode tocar para destacar as semanas em A1, A1–3 ou A1–5, e os próximos marcos por baixo dos quadrados. Se estiver nos Aspirantes esta semana, a primeira meta diz quantos plays faltam para entrar no Top 10. Nas duas trajetórias, a meta de sempre é agora o degrau seguinte a partir de onde está (Top 5000, 1000, 500, 100, 50, 10, etc.) em vez de sempre o Top 10, e o #1 de sempre só aparece quando já está no Top 10."],
   "A shorter chart run summary with milestones to chase":
     ["Um resumo mais curto da trajetória, com marcos a alcançar",
      "Os dez quadros de números acima da trajetória no Top saíram. No lugar: uma frase que conta a trajetória (\"Estreou em #1, passou 5 semanas no topo e soma 27 semanas no Top\") e uma linha de números que é também a legenda de cores dos quadrados. Toque em \"5 sem. em #1\" ou \"13 no Top 3\" e as outras semanas ficam esbatidas. Por baixo dos quadrados, Próximo marco mostra a meta mais próxima e as três seguintes: semanas no Top, semanas em #1, a próxima certificação e a próxima posição de sempre, com quanto falta para cada uma. Nas trajetórias longas a linha de números fica no topo enquanto percorre as semanas. Semana passada, plays, certificação e nota cabem agora numa só linha."],

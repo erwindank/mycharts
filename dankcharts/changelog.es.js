@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Bubbling Under summary and all-time goals within reach":
+    ["Resumen en Aspirantes y metas históricas a tu alcance",
+     "El Recorrido en Aspirantes tiene ahora el mismo resumen que el Recorrido en el Ranking: una frase que lo cuenta (dónde entró a Aspirantes, su mejor puesto y a cuánto equivale en general, y su paso por el Ranking), una fila de números que puedes tocar para resaltar las semanas en A1, A1–3 o A1–5, y los próximos hitos debajo de las casillas. Si está en Aspirantes esta semana, la primera meta dice cuántas escuchas le faltan para entrar al Top 10. En los dos recorridos, la meta histórica es ahora el siguiente escalón desde donde está (Top 5000, 1000, 500, 100, 50, 10, etc.) en lugar de siempre el Top 10, y el #1 histórico solo aparece cuando ya está en el Top 10."],
   "A shorter chart run summary with milestones to chase":
     ["Un resumen más corto del Recorrido, con hitos por alcanzar",
      "Las diez casillas de números sobre el Recorrido en el Ranking ya no están. En su lugar: una frase que cuenta el recorrido (\"Debutó en #1, pasó 5 semanas en la cima y lleva 27 semanas en el Ranking\") y una fila de números que también es la clave de colores de las casillas. Toca \"5 sem. en #1\" o \"13 en Top 3\" y las demás semanas se atenúan. Debajo de las casillas, Próximo hito muestra la meta más cercana y las tres siguientes: semanas en el Ranking, semanas en el #1, la próxima certificación y el próximo puesto en el Ranking histórico, con cuánto falta para cada una. En los recorridos largos la fila de números se queda arriba mientras recorres las semanas. Semana pasada, escuchas, certificación y nota caben ahora en una sola línea."],

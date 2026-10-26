@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 355;
+const DC_CL_I18N_V = 356;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-26', t: 'feature', a: 'charts', h: '48ad3be',
+    title: "Bubbling Under summary and all-time goals within reach",
+    detail: "The Bubbling Under run now has the same summary as the chart run: one sentence that tells it (where it first bubbled under, its best spot and what that equals overall, and its record on the chart), a row of counts you can tap to highlight weeks at BU1, BU1–3 or BU1–5, and the next milestones under the boxes. When an entry is bubbling under this week, the first goal says how many plays it needs to make the Top 10. In both runs, the all-time goal is now the next step up from where an entry sits (Top 5000, 1000, 500, 100, 50, 10 and so on) instead of always the Top 10, and #1 all-time only appears once an entry is in the Top 10." },
   { d: '2026-10-26', t: 'design', a: 'charts', h: 'd0316ed',
     title: "A shorter chart run summary with milestones to chase",
     detail: "The ten stat tiles above a chart run are gone. In their place: one sentence that tells the run (\"Debuted at #1, spent 5 weeks at the top and has 27 weeks on the chart\"), and one row of counts that is also the colour key for the boxes. Tap \"5 wks at #1\" or \"13 in Top 3\" and every other week dims. Under the boxes, Next milestone shows the closest goal and the three after it: weeks on the chart, weeks at #1, the next certification and the next all-time spot, with how far each one is. On long runs the counts row stays at the top while you scroll the weeks. Last week, plays, certification and score now fit on one line." },
