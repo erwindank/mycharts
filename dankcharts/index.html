@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=699">
+  <link rel="stylesheet" href="style.css?v=700">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=214"></script>
+  <script defer src="translations.js?v=215"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -4164,9 +4164,9 @@
   <!-- One behaviour and one icon set for every pop-up window (phase 10); before
        app.js so dcIco() is there when app.js draws a window -->
   <script defer src="popups.js?v=6"></script>
-  <script defer src="app.js?v=543"></script>
+  <script defer src="app.js?v=544"></script>
   <!-- The song / album / artist details side panel (phase 10 step 3); wraps app.js's open functions -->
-  <script defer src="panel.js?v=8"></script>
+  <script defer src="panel.js?v=10"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
   <script defer src="replay.js?v=1"></script>
   <!-- All-Time chart stats ("Inside your Top N"); reads app.js globals, so it loads after it -->
@@ -5462,9 +5462,13 @@ function deleteGenreTriggers() {
   <div id="skCardCanvas" style="position:fixed;left:-9999px;top:0;pointer-events:none;"></div>
 
   <!-- DISCOVERY BUBBLE ARTIST MODAL -->
-  <div id="stArtistModal" class="modal-overlay" onclick="if(event.target===this)stCloseArtistModal()">
-    <div class="dc-modal modal-box st-artist-modal-box">
+  <!-- Slides in from the right like the song / album / artist panel (phase 10
+       step 6), but keeps its own contents: the period's plays, ‹ › through the
+       discoveries and its share card. The ✕ stays outside the scrolling part. -->
+  <div id="stArtistModal" class="modal-overlay dp-overlay dp-lite" onclick="if(event.target===this)stCloseArtistModal()" role="dialog" aria-modal="true" aria-labelledby="stArtistModalName">
+    <div class="dc-modal modal-box st-artist-modal-box dp-panel">
       <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close modal-close" onclick="stCloseArtistModal()" aria-label="Close" data-i18n-aria="set_close">✕</button>
+      <div class="dp-scroll">
       <!-- hero: blurred photo backdrop, ‹ › through the discoveries, actions -->
       <div class="st-artist-modal-header">
         <div class="st-am-hero-bg" id="stArtistModalBg" aria-hidden="true"></div>
@@ -5480,6 +5484,7 @@ function deleteGenreTriggers() {
         <div class="st-am-actions" id="stArtistModalActions"></div>
       </div>
       <div class="modal-body" id="stArtistModalBody"></div>
+      </div>
     </div>
   </div>
 

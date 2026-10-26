@@ -319,7 +319,7 @@
     '♫': 'note', '🌤': 'sun', '☀': 'sun', '🌸': 'sun', '🍂': 'sun', '❄': 'moon', '☁': 'cloud', '🎤': 'mic',
     '🎙': 'mic', '📋': 'listmusic', '📝': 'listmusic', '👑': 'crown', '🎉': 'sparkle', '✨': 'sparkle', '💯': 'target',
     '📉': 'trend', '♦': 'disc', '◈': 'disc', '👤': 'user', '🌍': 'globe', '🌎': 'globe', '🏁': 'flag', '📌': 'flag',
-    '▶': 'play', '📤': 'share', '🖼': 'share', '🔗': 'link', '🎬': 'video', '📺': 'video', '❤': 'star', '💜': 'star', '🎁': 'sparkle', '🧭': 'globe', '📣': 'mic', '🔢': 'bars'
+    '▶': 'play', '📤': 'share', '🖼': 'share', '📇': 'calendar', '⚡': 'flame', '🔗': 'link', '🎬': 'video', '📺': 'video', '❤': 'star', '💜': 'star', '🎁': 'sparkle', '🧭': 'globe', '📣': 'mic', '🔢': 'bars'
   };
   // A leading emoji (with its variation selectors / joiners) or symbol
   var LEAD = /^\s*((?:\p{Extended_Pictographic}|[★☆♦◈◆✦♪♫])(?:[️‍]|\p{Extended_Pictographic}|\p{Emoji_Modifier})*)\s*/u;
@@ -362,7 +362,7 @@
     });
     // Achievement rows: "🏆 Most played song…" → icon + words; the same for
     // table headings ("📊 Weekly"), their row labels and buttons ("📤 Share")
-    body.querySelectorAll('.acc-header > span:not(.dp-ico), th, td:first-child, button').forEach(function (sp) { swapLead(sp, 'icon'); });
+    body.querySelectorAll('.acc-header > span:not(.dp-ico), th, td:first-child, button, .mcs-title, .alb-streak-label').forEach(function (sp) { swapLead(sp, 'icon'); });
     moreToggle(o);
   }
 

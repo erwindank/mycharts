@@ -1144,6 +1144,9 @@
       box-shadow: -24px 0 64px rgba(0, 0, 0, 0.35);
     }
     .dp-panel > .dc-sheet-grip { display: none !important; }
+    /* The Stats / Soundtrack artist pop-up as a side panel: its own header,
+       the ✕ pinned over it */
+    .dp-lite .dp-panel > .modal-close { position: absolute; top: 10px; right: 10px; z-index: 7; width: 36px; height: 36px; background: color-mix(in srgb, var(--bg2) 55%, transparent); color: var(--text); }
     .dp-scroll {
       flex: 1;
       min-height: 0;
