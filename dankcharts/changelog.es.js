@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Your Soundtrack: My Grammys tag no longer covers the wins ribbon":
+    ["Tu banda sonora: la etiqueta de Mis Grammy ya no tapa la cinta de premios",
+     "En el capítulo de premios, la etiqueta con estrella de tus elecciones de Mis Grammy ahora está justo encima del nombre del artista en lugar de arriba en la foto, así que ya no choca con la cinta dorada de premios de la esquina, ni siquiera en idiomas donde el texto es más largo. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Your Soundtrack: your My Grammys picks look different from real wins":
     ["Tu banda sonora: tus elecciones de Mis Grammy se ven distintas de los premios reales",
      "En el capítulo de premios, la cinta dorada de cada artista ahora solo cuenta premios reales. Tus propias elecciones de Mis Grammy tienen su propia etiqueta con una estrella en el color de tu tema, y en la lista bajo la foto aparecen en ese color con una estrella, así que siempre distingues tus elecciones de los premios reales. Funciona con Last.fm, Google Sheets y archivos CSV."],
