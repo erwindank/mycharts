@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Your Soundtrack: total days without music on the break card":
+    ["A Tua Banda Sonora: total de dias sem música no cartão de pausa",
+     "O cartão Maior Pausa Sem Música mostra agora também quantos dias passaste sem música no ano ou mês inteiro (por exemplo, «Total em 2017: 124 dias sem música»). Além disso, no ano em curso o cartão Dias em Que Ouviste contava um dia a mais e podia arredondar para 100% mesmo faltando um dia; ambas as coisas foram corrigidas. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
   "Your Soundtrack: a calendar and more facts in Listening Streaks":
     ["A Tua Banda Sonora: um calendário e mais dados em Sequências",
      "O capítulo de Sequências tem agora um calendário com cada dia do ano (ou do mês), mais forte quanto mais ouviste, com as tuas três maiores sequências na sua própria cor e a tua maior pausa assinalada. Um novo cartão mostra a Maior Pausa Sem Música. Os cartões dizem agora em que posição fica a sequência entre todas as tuas, que recorde anterior bateu, a música mais ouvida durante ela e quantos dias a mais ou a menos ouviste do que no ano ou mês anterior. Etiquetas mostram se ouviste música todas as semanas, meses ou anos. Os cartões de artista, álbum e música abrem a respetiva página ao clicar. Funciona com Last.fm, Google Sheets e ficheiros CSV."],

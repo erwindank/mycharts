@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Your Soundtrack: total days without music on the break card":
+    ["Tu Banda Sonora: total de días sin música en la tarjeta de pausa",
+     "La tarjeta Pausa Más Larga Sin Música ahora también muestra cuántos días pasaste sin música en todo el año o mes (por ejemplo, «Total en 2017: 124 días sin música»). Además, en el año en curso la tarjeta Días que Escuchaste contaba un día de más, y podía redondear a 100% aunque faltara un día; ambas cosas están corregidas. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Your Soundtrack: a calendar and more facts in Listening Streaks":
     ["Tu Banda Sonora: un calendario y más datos en Rachas",
      "El capítulo de Rachas tiene un calendario con cada día del año (o del mes), más intenso cuanto más escuchaste, con tus tres rachas más largas en su propio color y tu pausa más larga marcada. Una nueva tarjeta muestra la Pausa Más Larga Sin Música. Las tarjetas dicen ahora en qué puesto queda la racha entre todas las tuyas, qué récord anterior superó, la canción más escuchada durante ella y cuántos días más o menos escuchaste que el año o mes anterior. Unas etiquetas indican si escuchaste música todas las semanas, meses o años. Las tarjetas de artista, álbum y canción abren su página al hacer clic. Funciona con Last.fm, Google Sheets y archivos CSV."],
