@@ -598,6 +598,10 @@
     layer.querySelector('.awards-picker-confirm-cancel').focus();
   }
 
+  // Playlists (app.js) asks with the same window instead of the browser's
+  // confirm(), so the site has one kind of warning
+  window.dcConfirmBox = confirmBox;
+
   // ── Open / close a post (and its #t=board/<id> link) ───────────────────────
   function setHash(id) {
     try { history.replaceState(null, '', '#t=board' + (id ? '/' + id : '')); } catch (e) {}

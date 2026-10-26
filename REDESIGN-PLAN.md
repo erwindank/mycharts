@@ -3232,6 +3232,19 @@ Steps:
 3. **Playlists in four languages.** Every string in
    dcRenderPlaylistsView() and its rename / delete / status lines into
    translations.js.
+   **Done 2026-10-26:** 22 pl_view_* keys in four languages: the title,
+   Resume (svg ▶, "+ 3 in queue"), the save box (placeholder doubles as
+   its aria-label) and its status lines, the empty state, every button's
+   title / aria-label, "14 songs" through tCount('songs') (was "14
+   tracks"). The track loop's variable was called `t`, which hid the
+   translator; it is `tr` now. setLanguage() redraws the page when
+   Playlists is open. Renaming onto a name that exists used the browser's
+   confirm(); it is now the site's warning window (board.js's confirmBox,
+   shared as window.dcConfirmBox; Cancel / Replace), and deleting a whole
+   playlist asks first in the same window (it went at one click before;
+   removing one song still doesn't ask). Checked in Spanish with real
+   clicks: Cancel keeps it, Eliminar deletes it, Reemplazar renames; no
+   browser dialog.
 4. **Board.** Shared page title, no box, shared .dc-btn for Sign in / New
    post, shared chips for the filters, posts as rows with dividers, line
    icons for 💬 and the rest.

@@ -34240,22 +34240,22 @@ function dcRenderPlaylistsView() {
     const resumeLabel = esc(_ytCurrentTrack.title) + (_ytCurrentTrack.artist ? ` – ${esc(_ytCurrentTrack.artist)}` : '');
     html +=
       `<div class="dc-pl-resume-row">` +
-      `<button class="dc-btn dc-btn-main dc-pl-resume-btn" onclick="dcPlResume()" title="Resume where you left off">▶ Resume: ${resumeLabel}</button>` +
-      (_ytQueue.length > 0 ? `<span class="dc-pl-resume-hint">+ ${_ytQueue.length} in queue</span>` : '') +
+      `<button class="dc-btn dc-btn-main dc-pl-resume-btn" onclick="dcPlResume()" title="${esc(t('pl_view_resume_title'))}"><svg class="dc-pl-ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6,4 19,12 6,20"/></svg>${t('pl_view_resume', { track: resumeLabel })}</button>` +
+      (_ytQueue.length > 0 ? `<span class="dc-pl-resume-hint">${esc(t('pl_view_in_queue', { n: _ytQueue.length }))}</span>` : '') +
       `</div>`;
   }
 
   html +=
     `<div class="dc-pl-save-row">` +
-    `<input id="dcPlNewName" class="dc-pl-name-input" type="text" placeholder="Save current queue as…" maxlength="40" ` +
+    `<input id="dcPlNewName" class="dc-pl-name-input" type="text" placeholder="${esc(t('pl_view_save_ph'))}" aria-label="${esc(t('pl_view_save_ph'))}" maxlength="40" ` +
     `onkeydown="if(event.key==='Enter'){dcPlSaveQueue(this.value.trim());}">` +
-    `<button class="dc-btn dc-btn-normal" onclick="dcPlSaveQueue(document.getElementById('dcPlNewName').value.trim())">Save Queue</button>` +
+    `<button class="dc-btn dc-btn-normal" onclick="dcPlSaveQueue(document.getElementById('dcPlNewName').value.trim())">${esc(t('pl_view_save_btn'))}</button>` +
     `<span id="dcPlStatus" class="dc-pl-status"></span>` +
     `</div>` +
     `</div>`;
 
   if (names.length === 0) {
-    html += `<div class="dc-pl-empty-state">No saved playlists yet.<br>Start playing music and use the <strong>Save Queue</strong> button above (or the save icon in the player) to save your queue here.</div>`;
+    html += `<div class="dc-pl-empty-state">${esc(t('pl_view_empty_title'))}<br>${t('pl_view_empty_html')}</div>`;
   } else {
     html += `<div class="dc-pl-list">`;
     names.forEach(name => {
@@ -34270,16 +34270,16 @@ function dcRenderPlaylistsView() {
         dcPlCollageHtml(tracks) +
         `<span class="dc-pl-name-wrap">` +
         `<span class="dc-pl-name">${nameEsc}</span>` +
-        `<span class="dc-pl-count">${tracks.length} track${tracks.length !== 1 ? 's' : ''}</span>` +
+        `<span class="dc-pl-count">${esc(tCount('songs', tracks.length))}</span>` +
         `</span>` +
         `<div class="dc-pl-actions" onclick="event.stopPropagation()">` +
-        `<button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon" onclick="dcPlPlayFromStart(${nameJson})" title="Play playlist">` +
+        `<button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon" onclick="dcPlPlayFromStart(${nameJson})" title="${esc(t('pl_view_play'))}" aria-label="${esc(t('pl_view_play'))}">` +
         `<svg class="dc-pl-ic" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>` +
         `</button>` +
-        `<button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon" onclick="dcPlStartRename(${nameJson})" title="Rename">` +
+        `<button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon" onclick="dcPlStartRename(${nameJson})" title="${esc(t('pl_view_rename'))}" aria-label="${esc(t('pl_view_rename'))}">` +
         `<svg class="dc-pl-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>` +
         `</button>` +
-        `<button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon dc-btn-danger" onclick="dcPlDeleteFromView(${nameJson})" title="Delete playlist">` +
+        `<button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon dc-btn-danger" onclick="dcPlDeleteFromView(${nameJson})" title="${esc(t('pl_view_delete'))}" aria-label="${esc(t('pl_view_delete'))}">` +
         `<svg class="dc-pl-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,6 5,6 21,6"/><path d="M19,6l-1,14a2,2,0,0,1-2,2H8a2,2,0,0,1-2-2L5,6"/><path d="M10,11v6"/><path d="M14,11v6"/><path d="M9,6V4a1,1,0,0,1,1-1h4a1,1,0,0,1,1,1v2"/></svg>` +
         `</button>` +
         `</div>` +
@@ -34287,21 +34287,21 @@ function dcRenderPlaylistsView() {
 
       if (isExpanded) {
         html += `<div class="dc-pl-tracks">`;
-        tracks.forEach((t, idx) => {
+        tracks.forEach((tr, idx) => {
           html += `<div class="dc-pl-track" draggable="true" ` +
             `ondragstart="event.stopPropagation();dcPlDragStart(event,${nameJson},${idx})" ` +
             `ondragover="event.preventDefault();event.currentTarget.classList.add('dc-pl-drag-over')" ` +
             `ondragleave="event.currentTarget.classList.remove('dc-pl-drag-over')" ` +
             `ondrop="dcPlDrop(event,${nameJson},${idx})">` +
-            `<span class="dc-pl-drag-handle" title="Drag to reorder"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="6" cy="4" r="1.1"/><circle cx="10" cy="4" r="1.1"/><circle cx="6" cy="8" r="1.1"/><circle cx="10" cy="8" r="1.1"/><circle cx="6" cy="12" r="1.1"/><circle cx="10" cy="12" r="1.1"/></svg></span>` +
-            dcPlArtHtml(t) +
+            `<span class="dc-pl-drag-handle" title="${esc(t('pl_view_drag'))}"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="6" cy="4" r="1.1"/><circle cx="10" cy="4" r="1.1"/><circle cx="6" cy="8" r="1.1"/><circle cx="10" cy="8" r="1.1"/><circle cx="6" cy="12" r="1.1"/><circle cx="10" cy="12" r="1.1"/></svg></span>` +
+            dcPlArtHtml(tr) +
             `<div class="dc-pl-track-info">` +
-            `<span class="dc-pl-track-title">${esc(t.title)}</span>` +
-            `<span class="dc-pl-track-artist">${esc(t.artist)}</span>` +
+            `<span class="dc-pl-track-title">${esc(tr.title)}</span>` +
+            `<span class="dc-pl-track-artist">${esc(tr.artist)}</span>` +
             `</div>` +
             `<div class="dc-pl-track-actions">` +
-            `<button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon" onclick="dcPlPlayFromTrack(${nameJson},${idx})" title="Play from here"><svg class="dc-pl-ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6,4 19,12 6,20"/></svg></button>` +
-            `<button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon dc-btn-danger" onclick="dcPlRemoveTrack(${nameJson},${idx})" title="Remove track">✕</button>` +
+            `<button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon" onclick="dcPlPlayFromTrack(${nameJson},${idx})" title="${esc(t('pl_view_play_from'))}" aria-label="${esc(t('pl_view_play_from'))}"><svg class="dc-pl-ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6,4 19,12 6,20"/></svg></button>` +
+            `<button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon dc-btn-danger" onclick="dcPlRemoveTrack(${nameJson},${idx})" title="${esc(t('pl_view_remove'))}" aria-label="${esc(t('pl_view_remove'))}">✕</button>` +
             `</div>` +
             `</div>`; // end track
         });
@@ -34415,8 +34415,20 @@ function dcPlStartRename(oldName) {
 function dcPlConfirmRename(oldName, newName) {
   if (!newName || newName === oldName) { dcRenderPlaylistsView(); return; }
   if (_ytPlaylists[newName] !== undefined) {
-    if (!confirm(`A playlist named "${newName}" already exists. Overwrite it?`)) { dcRenderPlaylistsView(); return; }
+    // The list goes back to normal straight away; the rename happens only
+    // if Replace is pressed
+    dcRenderPlaylistsView();
+    if (typeof window.dcConfirmBox === 'function') {
+      window.dcConfirmBox(t('pl_view_overwrite_title', { name: newName }), t('pl_view_overwrite_text', { name: newName }),
+        t('pl_view_overwrite_ok'), () => _dcPlDoRename(oldName, newName));
+    }
+    return;
   }
+  _dcPlDoRename(oldName, newName);
+}
+
+function _dcPlDoRename(oldName, newName) {
+  if (_ytPlaylists[oldName] === undefined) return;
   const rebuilt = {};
   Object.keys(_ytPlaylists).forEach(k => {
     if (k === oldName)  rebuilt[newName] = _ytPlaylists[k];       // rename in-place
@@ -34432,6 +34444,16 @@ function dcPlConfirmRename(oldName, newName) {
 
 // Delete a playlist from the manager view
 function dcPlDeleteFromView(name) {
+  const pl = _ytPlaylists[name];
+  if (!pl) return;
+  if (typeof window.dcConfirmBox === 'function') {
+    window.dcConfirmBox(t('pl_view_delete_title', { name }), t('pl_view_delete_text', { songs: tCount('songs', pl.length) }),
+      t('pl_view_delete_ok'), () => _dcPlDoDelete(name));
+  } else _dcPlDoDelete(name);
+}
+
+function _dcPlDoDelete(name) {
+  if (_ytPlaylists[name] === undefined) return;
   _ytMarkPlaylistDeleted(name);
   if (_dcPlExpandedName === name) _dcPlExpandedName = null;
   _ytSavePlaylists();
@@ -34476,12 +34498,12 @@ function dcPlDrop(event, name, toIdx) {
 
 // Save the current player queue as a named playlist from the manager view
 function dcPlSaveQueue(name) {
-  if (!name) { dcPlShowStatus('Enter a playlist name first'); return; }
-  if (!_ytCurrentTrack && !_ytQueue.length) { dcPlShowStatus('No active playback to save — start playing music first'); return; }
+  if (!name) { dcPlShowStatus(t('pl_view_need_name')); return; }
+  if (!_ytCurrentTrack && !_ytQueue.length) { dcPlShowStatus(t('pl_view_nothing_playing')); return; }
   _ytSaveCurrentQueue(name);
   const input = document.getElementById('dcPlNewName');
   if (input) input.value = '';
-  dcPlShowStatus(`Saved "${name}"`);
+  dcPlShowStatus(t('pl_view_saved', { name }));
   dcRenderPlaylistsView();
 }
 

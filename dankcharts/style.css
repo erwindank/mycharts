@@ -800,6 +800,7 @@
     .cal-nav-btn { font-size: var(--fs-md); }
     /* Resume shows the track name: cut it with … instead of growing */
     .dc-pl-resume-btn { display: block; max-width: 360px; overflow: hidden; text-overflow: ellipsis; line-height: 30px; flex-shrink: 0; }
+    .dc-pl-resume-btn .dc-pl-ic { width: 12px; height: 12px; margin-right: 0.45em; vertical-align: -1px; }
 
     .theme-btn {
       width: 12px;
