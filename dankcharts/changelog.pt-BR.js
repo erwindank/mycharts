@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Small windows: one clean look":
+    ["Janelas pequenas: um visual limpo e único",
+     "As janelas menores agora têm o mesmo design: um título com um ícone de linha simples e uma frase curta sobre para que a janela serve, o conteúdo no meio e os botões embaixo (Cancelar à esquerda, a ação principal à direita). Isso vale para adicionar ou editar uma reprodução, regras de correção automática, álbuns de coletânea, tipos de lançamento, as janelas de adicionar à playlist e de nova playlist, o PDF para imprimir, compartilhar uma cerimônia, escolher uma imagem e Falar com o suporte. As listas mostram quantas entradas têm e uma frase amigável quando estão vazias, a janela de adicionar reprodução ganhou botão de fechar, e a lista de regras, o compartilhamento de cerimônias e suas mensagens agora estão também em espanhol e português. Parar de compartilhar o link de uma cerimônia agora pergunta na própria janela de aviso do site. Funciona com Last.fm, Google Sheets e arquivos CSV."],
   "Pop-up windows: one smooth way to open and close":
     ["Janelas pop-up: um jeito suave de abrir e fechar",
      "Todas as janelas pop-up do site agora se comportam do mesmo jeito. Elas aparecem sobre a página levemente desfocada e somem ao fechar; a página atrás fica parada enquanto estão abertas; Esc fecha só a janela de cima (então fechar uma lista aberta pelas Configurações mantém as Configurações abertas); e no teclado, Tab fica dentro da janela e o foco volta ao botão que você apertou. No celular, as janelas sobem da parte de baixo da tela como uma folha com uma pequena alça: arraste para baixo para fechar."],

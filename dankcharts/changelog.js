@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 344;
+const DC_CL_I18N_V = 345;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-26', t: 'design', a: 'ui', h: '93e1743',
+    title: "Small windows: one clean look",
+    detail: "The smaller windows now share one design: a title with a simple line icon and a short line about what the window is for, the content in the middle, and the buttons at the bottom (Cancel on the left, the main action on the right). This covers adding or editing a play, auto-correct rules, compilation albums, release types, the add-to-playlist and new-playlist windows, the printable PDF, sharing a ceremony, choosing a picture and Contact Support. Lists show how many entries they hold and a friendly line when they are empty, the add-a-play window has a close button, and the rules list, ceremony sharing and their messages are now in Spanish and Portuguese too. Stopping a shared ceremony link now asks in the site's own warning window. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-26', t: 'design', a: 'ui', h: '336b151',
     title: "Pop-up windows: one smooth way to open and close",
     detail: "Every pop-up window on the site now behaves the same way. It fades in over a softly blurred page and fades out when it closes; the page behind stays put while it is open; Esc closes only the window on top (so closing a list opened from Settings leaves Settings open); and with a keyboard, Tab stays inside the window and focus goes back to the button you pressed. On a phone, windows slide up from the bottom of the screen as a sheet with a small handle: drag it down to close." },

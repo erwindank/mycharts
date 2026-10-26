@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Small windows: one clean look":
+    ["Ventanas pequeñas: un único diseño limpio",
+     "Las ventanas más pequeñas comparten ahora un mismo diseño: un título con un icono de línea sencillo y una frase corta sobre para qué sirve la ventana, el contenido en el centro y los botones abajo (Cancelar a la izquierda, la acción principal a la derecha). Incluye añadir o editar una escucha, las reglas de autocorrección, los álbumes recopilatorios, los tipos de lanzamiento, las ventanas de añadir a una lista y de lista nueva, el PDF imprimible, compartir una ceremonia, elegir una imagen y Contactar con soporte. Las listas muestran cuántas entradas tienen y una frase amable cuando están vacías, la ventana de añadir una escucha tiene botón de cerrar, y la lista de reglas, compartir ceremonias y sus mensajes están ahora también en español y portugués. Dejar de compartir el enlace de una ceremonia pregunta ahora en la propia ventana de aviso del sitio. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Pop-up windows: one smooth way to open and close":
     ["Ventanas emergentes: una forma suave de abrir y cerrar",
      "Todas las ventanas emergentes del sitio se comportan ahora igual. Aparecen sobre la página suavemente difuminada y se desvanecen al cerrarse; la página de detrás no se mueve mientras están abiertas; Esc cierra solo la ventana de arriba (así, cerrar una lista abierta desde Ajustes deja Ajustes abierto); y con teclado, Tab se queda dentro de la ventana y el foco vuelve al botón que pulsaste. En el móvil, las ventanas suben desde abajo como una hoja con un pequeño tirador: arrástralo hacia abajo para cerrarla."],
