@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 337;
+const DC_CL_I18N_V = 338;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-26', t: 'design', a: 'playlists', h: '5778bb1',
+    title: "Playlists: your playlists first",
+    detail: "The Playlists tab now opens with your playlists, under the same page title as the other tabs, with the save-queue box right below it. Anniversaries and Recent Releases moved under your playlists as plain titled rows instead of boxes, and while they are being looked up a loading line says so instead of showing two empty boxes. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-26', t: 'design', a: 'soundtrack', h: '5ba09ed',
     title: "Your Soundtrack: your best month's banner is a collage of its top songs",
     detail: "The Monthly Activity chapter's banner now shows a faded collage of the covers of the songs you played most in your loudest month, instead of one photo of that month's top artist. If that month has only a few songs, the artist photo stays. Works with Last.fm, Google Sheets and CSV uploads." },

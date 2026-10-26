@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Playlists: your playlists first":
+    ["Playlists: as tuas playlists primeiro",
+     "O separador Playlists começa agora com as tuas playlists, sob o mesmo título de página dos outros separadores, com a caixa para guardar a fila logo abaixo. Datas comemorativas e Lançamentos recentes passaram para baixo das tuas playlists como filas com título, sem caixas, e enquanto são procurados aparece uma linha de carregamento em vez de duas caixas vazias. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
   "Your Soundtrack: your best month's banner is a collage of its top songs":
     ["A tua banda sonora: o cabeçalho do teu melhor mês é uma colagem das músicas mais ouvidas",
      "O cabeçalho do capítulo de Atividade mensal mostra agora uma colagem esbatida com as capas das músicas que mais ouviste no teu mês mais intenso, em vez de uma única foto do artista principal desse mês. Se esse mês tiver poucas músicas, a foto do artista mantém-se. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
