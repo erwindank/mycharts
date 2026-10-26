@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Your Soundtrack: clearer wording on the Listening Streaks cards":
+    ["Tu Banda Sonora: textos más claros en las tarjetas de Rachas",
+     "Las tarjetas del capítulo de Rachas ahora se entienden de un vistazo: «Días que Escuchaste en 2017», «Racha Diaria de Escucha Más Larga de Siempre» (en años y meses pasados indica que es tal como estaba a finales de ese periodo), «Racha Diaria de Escucha Más Larga en 2017», y «días seguidos» en lugar de «días de racha». La fila de artista, álbum y canción ahora se titula «Más días seguidos con un mismo artista, álbum o canción». Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Your Soundtrack: longest streak ever as of the year you're viewing":
     ["Tu Banda Sonora: la racha más larga de siempre según el año que ves",
      "En el capítulo de Rachas de Tu Banda Sonora, la tarjeta Racha Más Larga de Siempre ahora solo cuenta los días hasta el final del año o mes que estás viendo, así que 2019 muestra el récord tal como estaba a finales de 2019. Una racha en curso solo cuenta cuando el periodo llega hasta hoy. Funciona con Last.fm, Google Sheets y archivos CSV."],

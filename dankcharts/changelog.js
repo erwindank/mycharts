@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 322;
+const DC_CL_I18N_V = 323;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-25', t: 'change', a: 'soundtrack', h: 'bc1de22',
+    title: "Your Soundtrack: clearer wording on the Listening Streaks cards",
+    detail: "The Streaks chapter's cards now read at a glance: \"Days You Listened in 2017\", \"Longest Daily Listening Streak Ever\" (on past years and months it adds \"as it stood at the end of\" that period), \"Longest Daily Listening Streak in 2017\", and \"days in a row\" instead of \"days of streak\". The artist, album and song row is now headed \"Most days in a row with one artist, album or song\". Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-25', t: 'fix', a: 'soundtrack', h: '696ab4b',
     title: "Your Soundtrack: longest streak ever as of the year you're viewing",
     detail: "In the Streaks chapter of Your Soundtrack, the Longest Streak Ever card now only counts days up to the end of the year or month you're viewing, so 2019 shows the record as it stood at the end of 2019. A streak still going only counts when the period reaches today. Works with Last.fm, Google Sheets and CSV uploads." },

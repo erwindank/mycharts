@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Your Soundtrack: clearer wording on the Listening Streaks cards":
+    ["Sua Trilha Sonora: textos mais claros nos cartões de Sequências",
+     "Os cartões do capítulo de Sequências agora se entendem de primeira: «Dias em Que Você Ouviu em 2017», «Maior Sequência Diária de Escuta de Todos os Tempos» (em anos e meses passados diz que é como estava no fim daquele período), «Maior Sequência Diária de Escuta em 2017», e «dias seguidos» em vez de «dias de sequência». A linha de artista, álbum e música agora se chama «Mais dias seguidos com um mesmo artista, álbum ou música». Funciona com Last.fm, Google Sheets e arquivos CSV."],
   "Your Soundtrack: longest streak ever as of the year you're viewing":
     ["Sua Trilha Sonora: a sequência mais longa de sempre conforme o ano que você vê",
      "No capítulo de Sequências da Sua Trilha Sonora, o cartão Sequência Mais Longa de Sempre agora só conta os dias até o fim do ano ou mês que você está vendo, então 2019 mostra o recorde como estava no fim de 2019. Uma sequência em andamento só conta quando o período chega até hoje. Funciona com Last.fm, Google Sheets e arquivos CSV."],
