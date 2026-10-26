@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Your Soundtrack: pick a year or month straight away":
+    ["Sua Trilha Sonora: escolhe um ano ou mês diretamente",
+     "Na Sua Trilha Sonora podes agora clicar no ano entre as setas para abrir a lista de todos os anos em que tens reproduções e saltar diretamente para um, como nos Prémios. Na vista Mês aparecem os 12 meses, com setas no topo para mudar o ano. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
   "Your Soundtrack: Top Albums, and Top Singles and EPs":
     ["Sua Trilha Sonora: Top Álbuns, e Top Singles e EPs",
      "O capítulo de músicas top de Sua Trilha Sonora tem agora também um carrossel de Top Álbuns, depois de Top Músicas e Top Artistas, com até 50 álbuns do ano, do mês ou de Todo o período. Conta os álbuns da mesma forma que a tua tabela de álbuns. Se mostras singles ou EPs à parte em Definições → Tabelas, eles ganham os seus próprios carrosséis de Top Singles e Top EPs e ficam fora de Top Álbuns. Funciona com Last.fm, Google Sheets e ficheiros CSV."],

@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Your Soundtrack: pick a year or month straight away":
+    ["Tu Banda Sonora: elige un año o mes directamente",
+     "En Tu Banda Sonora ahora puedes hacer clic en el año entre las flechas para abrir la lista de todos los años en los que tienes reproducciones y saltar directamente a uno, como en Premios. En la vista Mes muestra los 12 meses, con flechas arriba para cambiar de año. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Your Soundtrack: Top Albums, and Top Singles and EPs":
     ["Tu Banda Sonora: Top Álbumes, y Top Sencillos y EP",
      "El capítulo de canciones top de Tu Banda Sonora ahora también tiene un carrusel de Top Álbumes, después de Top Canciones y Top Artistas, con hasta 50 álbumes del año, del mes o de Todo el tiempo. Cuenta los álbumes igual que tu lista de álbumes. Si muestras los sencillos o los EP por separado en Ajustes → Listas, tienen sus propios carruseles de Top Sencillos y Top EP y no entran en Top Álbumes. Funciona con Last.fm, Google Sheets y archivos CSV."],
