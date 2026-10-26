@@ -50329,7 +50329,7 @@ function stRenderStreaks(plays) {
           <span class="st-streak-num">${activeDays}</span>
           <span class="st-streak-unit">${t('st_streak_days_streamed_unit')}</span>
         </div>
-        <div class="st-streak-lbl">${t('st_streak_active_days')}</div>
+        <div class="st-streak-lbl">${stPeriodType === 'alltime' ? t('st_streak_active_days') : t('st_streak_active_days_in', { period: stGetPeriodLabel() })}</div>
         <div class="st-streak-dates">${t('st_streak_active_days_sub', { pct: activeDaysPct, total: totalDaysInPeriod })}</div>
       </div>
       <div class="st-streak-card${isNewRecord ? ' st-streak-card--record' : ''}">
@@ -50338,6 +50338,7 @@ function stRenderStreaks(plays) {
           <span class="st-streak-unit">${t('st_streak_days_unit')}</span>
         </div>
         <div class="st-streak-lbl">${t('st_streak_longest')}</div>
+        ${!reachesToday ? `<div class="st-streak-dates">${t('st_streak_longest_asof', { period: stGetPeriodLabel() })}</div>` : ''}
         ${longestStart ? `<div class="st-streak-dates">${fmtDay(longestStart)} – ${fmtDay(longestEnd)}</div>` : ''}
         ${isNewRecord ? `<div class="st-streak-badge">${stIco('trophy')} ${t('st_streak_new_record')}</div>` : ''}
       </div>
@@ -50351,7 +50352,7 @@ function stRenderStreaks(plays) {
       </div>` : ''}
     </div>
     ${entityCardsHtml ? `
-    <div class="st-streak-subhead">${t('st_streak_category_title', { period: stGetPeriodLabel() })}</div>
+    <div class="st-streak-subhead">${stPeriodType === 'alltime' ? t('st_streak_category_title_all') : t('st_streak_category_title', { period: stGetPeriodLabel() })}</div>
     ${stRowHtml('st-streaks-grid--entity', entityCardsHtml)}` : ''}`;
   stRowsInit(el);
 
