@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "A shorter chart run summary with milestones to chase":
+    ["Um resumo mais curto da trajetória, com marcos a alcançar",
+     "Os dez quadros de números acima da trajetória no Top saíram. No lugar: uma frase que conta a trajetória (\"Estreou em #1, passou 5 semanas no topo e soma 27 semanas no Top\") e uma linha de números que é também a legenda de cores dos quadrados. Toque em \"5 sem. em #1\" ou \"13 no Top 3\" e as outras semanas ficam esbatidas. Por baixo dos quadrados, Próximo marco mostra a meta mais próxima e as três seguintes: semanas no Top, semanas em #1, a próxima certificação e a próxima posição de sempre, com quanto falta para cada uma. Nas trajetórias longas a linha de números fica no topo enquanto percorre as semanas. Semana passada, plays, certificação e nota cabem agora numa só linha."],
   "Search buttons and Share card in the details window":
     ["Botões de pesquisa e Partilhar cartão nos detalhes",
      "As janelas de música, álbum e artista têm agora botões do Spotify, YouTube e Last.fm, como a janela de artista novo na Sua Trilha Sonora. O Spotify e o YouTube pesquisam o que está a ver; o Last.fm abre a página da música, do álbum ou do artista. O botão Partilhar passou a Partilhar cartão e fica ao lado de Playlist e Avaliar."],

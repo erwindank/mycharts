@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "A shorter chart run summary with milestones to chase":
+    ["Un resumen más corto del Recorrido, con hitos por alcanzar",
+     "Las diez casillas de números sobre el Recorrido en el Ranking ya no están. En su lugar: una frase que cuenta el recorrido (\"Debutó en #1, pasó 5 semanas en la cima y lleva 27 semanas en el Ranking\") y una fila de números que también es la clave de colores de las casillas. Toca \"5 sem. en #1\" o \"13 en Top 3\" y las demás semanas se atenúan. Debajo de las casillas, Próximo hito muestra la meta más cercana y las tres siguientes: semanas en el Ranking, semanas en el #1, la próxima certificación y el próximo puesto en el Ranking histórico, con cuánto falta para cada una. En los recorridos largos la fila de números se queda arriba mientras recorres las semanas. Semana pasada, escuchas, certificación y nota caben ahora en una sola línea."],
   "Search buttons and Share card in the details window":
     ["Botones de búsqueda y Compartir tarjeta en los detalles",
      "Las ventanas de canción, álbum y artista tienen ahora botones de Spotify, YouTube y Last.fm, como la ventana de artista nuevo en Tu Banda Sonora. Spotify y YouTube buscan lo que estás viendo; Last.fm abre su página de canción, álbum o artista. El botón Compartir es ahora Compartir tarjeta y está junto a Lista y Puntuar."],

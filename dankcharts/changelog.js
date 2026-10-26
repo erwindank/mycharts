@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 354;
+const DC_CL_I18N_V = 355;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-26', t: 'design', a: 'charts', h: 'd0316ed',
+    title: "A shorter chart run summary with milestones to chase",
+    detail: "The ten stat tiles above a chart run are gone. In their place: one sentence that tells the run (\"Debuted at #1, spent 5 weeks at the top and has 27 weeks on the chart\"), and one row of counts that is also the colour key for the boxes. Tap \"5 wks at #1\" or \"13 in Top 3\" and every other week dims. Under the boxes, Next milestone shows the closest goal and the three after it: weeks on the chart, weeks at #1, the next certification and the next all-time spot, with how far each one is. On long runs the counts row stays at the top while you scroll the weeks. Last week, plays, certification and score now fit on one line." },
   { d: '2026-10-26', t: 'feature', a: 'ui', h: '5d0667d',
     title: "Search buttons and Share card in the details window",
     detail: "The song, album and artist windows now have Spotify, YouTube and Last.fm buttons, like the new-artist window in Your Soundtrack. Spotify and YouTube search for what you are looking at; Last.fm opens its track, album or artist page. The Share button is now Share card and sits next to Playlist and Rate." },
