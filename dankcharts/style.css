@@ -777,6 +777,113 @@
     }
     .dc-modal-close { font-size: var(--fs-md); flex-shrink: 0; }
 
+    /* ═══════════════════════════════════════════════════════════════
+       POP-UP ENGINE — phase 10 step 1 (popups.js)
+       popups.js adds .dc-pop to any pop-up backdrop while it is open
+       (and .dc-pop-box to the window in it), whatever kind it is. So every
+       pop-up gets the same backdrop, a centred box that scrolls with the
+       backdrop when it is taller than the screen, and the same motion.
+       .dc-pop-in / .dc-pop-out run the open / close animations; the page
+       behind is locked with html.dc-pop-lock. Phones: a bottom sheet.
+       ═══════════════════════════════════════════════════════════════ */
+    html.dc-pop-lock, html.dc-pop-lock body { overflow: hidden; }
+
+    /* doubled class: must beat each backdrop's own display / padding */
+    .dc-pop.dc-pop {
+      display: flex !important;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      padding: var(--sp-6) var(--sp-4);
+      background: var(--scrim);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      animation: none;
+    }
+    /* A warning window inside another pop-up's layer: no second blur */
+    .dc-pop .dc-pop.dc-pop { backdrop-filter: none; -webkit-backdrop-filter: none; }
+    /* Zero specificity, so a window's own width wins; without one it fills
+       up to its max-width, as it did when the backdrop was a plain block */
+    :where(.dc-pop) > :where(.dc-pop-box) { width: 100%; }
+    /* auto margins centre it, and turn to 0 when it is taller than the
+       screen, so the top is never cut off */
+    .dc-pop.dc-pop > .dc-pop-box {
+      margin-top: auto;
+      margin-bottom: auto;
+      flex-shrink: 0;
+      animation: none;
+    }
+    .dc-pop-box:focus { outline: none; }
+    /* Settings stays near the top: its tabs change height */
+    #sourceModal.dc-pop { align-items: center; }
+    #sourceModal.dc-pop > .dc-pop-box { margin-top: min(6vh, 56px); }
+
+    .dc-pop.dc-pop.dc-pop-in { animation: dcPopFadeIn 0.2s ease-out; }
+    .dc-pop.dc-pop-in > .dc-pop-box.dc-pop-box { animation: dcPopRise 0.28s var(--ease); }
+    .dc-pop.dc-pop.dc-pop-out { animation: dcPopFadeOut 0.16s ease-in forwards; pointer-events: none; }
+    .dc-pop.dc-pop-out > .dc-pop-box.dc-pop-box { animation: dcPopSink 0.16s ease-in forwards; }
+    @keyframes dcPopFadeIn { from { opacity: 0; } }
+    @keyframes dcPopFadeOut { to { opacity: 0; } }
+    @keyframes dcPopRise { from { opacity: 0; transform: translateY(14px) scale(0.985); } }
+    @keyframes dcPopSink { to { opacity: 0; transform: translateY(8px) scale(0.985); } }
+
+    /* The grab handle popups.js puts at the top of every window; only
+       shown when the window is a bottom sheet */
+    .dc-sheet-grip { display: none; }
+
+    @media (max-width: 640px) {
+      .dc-pop.dc-pop {
+        padding: var(--sp-6) 0 0;
+        justify-content: flex-end;
+        overflow: hidden;
+      }
+      .dc-pop.dc-pop > .dc-pop-box {
+        width: 100%;
+        max-width: none;
+        margin: auto 0 0;
+        max-height: calc(100dvh - var(--sp-6));
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        border-radius: var(--r-lg) var(--r-lg) 0 0;
+        border-bottom-width: 0;
+        /* clear the phone's home bar */
+        border-bottom: env(safe-area-inset-bottom, 0px) solid var(--bg2);
+      }
+      .dc-pop.dc-pop-in > .dc-pop-box.dc-pop-box { animation: dcSheetUp 0.32s cubic-bezier(0.2, 0.8, 0.2, 1); }
+      .dc-pop.dc-pop-out > .dc-pop-box.dc-pop-box { animation: dcSheetDown 0.18s ease-in forwards; }
+      .dc-sheet-grip {
+        display: block;
+        position: sticky;
+        top: 0;
+        z-index: 6;
+        height: 24px;
+        margin-bottom: -24px;   /* sits over the header, takes no room */
+        touch-action: none;
+        cursor: grab;
+        flex-shrink: 0;
+      }
+      .dc-sheet-grip::before {
+        content: '';
+        position: absolute;
+        left: 50%;
+        top: 8px;
+        width: 40px;
+        height: 4px;
+        margin-left: -20px;
+        border-radius: 2px;
+        background: var(--border2);
+      }
+    }
+    @keyframes dcSheetUp { from { transform: translateY(100%); } }
+    @keyframes dcSheetDown { to { transform: translateY(100%); } }
+
+    @media (prefers-reduced-motion: reduce) {
+      .dc-pop.dc-pop.dc-pop-in, .dc-pop.dc-pop-in > .dc-pop-box.dc-pop-box,
+      .dc-pop.dc-pop.dc-pop-out, .dc-pop.dc-pop-out > .dc-pop-box.dc-pop-box { animation: none; }
+    }
+
     /* Phones: the ⋮ menu opened below its button and ran under the bottom
        tab bar, so the page scrolled to reach it. It now opens as a panel
        pinned just above the bar, the full width of the screen. */
