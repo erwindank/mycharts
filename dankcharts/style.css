@@ -27489,6 +27489,24 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
   transition: opacity 0.6s var(--ease);
 }
 .st-chap-bg.is-loaded { opacity: 0.5; }
+/* Chapter 4 (best month): a collage of that month's top song covers in
+   place of the one picture (stHeadCollage). Square tiles, never smaller
+   than 64px so they still fill the band's height on a phone; whatever
+   doesn't fit is cropped. The band's usual fade sits on top. */
+.st-chap-bg.st-chap-collage {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(64px, 1fr));
+  align-content: center;
+  gap: 2px;
+  overflow: hidden;
+}
+.st-collage-tile {
+  aspect-ratio: 1;
+  background: color-mix(in srgb, var(--surface2) 80%, transparent);
+  background-size: cover;
+  background-position: center;
+}
+.st-collage-tile:not(.is-loaded) { opacity: 0.35; }
 
 /* Chapter 2 (#1 artist): the photo big and at full strength, the way the old
    spotlight had it; the name sits low, over a fade into the page at the
@@ -27531,6 +27549,15 @@ body[class*="-light"] .st-chap-head:not(.st-chap-head--artist):not(.st-chap-head
     color-mix(in srgb, var(--bg) 94%, transparent) 0%,
     color-mix(in srgb, var(--bg) 80%, transparent) 36%,
     color-mix(in srgb, var(--bg) 8%, transparent) 100%);
+}
+/* on a phone the text runs the full width, so the right keeps more fade */
+@media (max-width: 640px) {
+  body[class*="-light"] .st-chap-head:not(.st-chap-head--artist):not(.st-chap-head--year)::after {
+    background: linear-gradient(90deg,
+      color-mix(in srgb, var(--bg) 94%, transparent) 0%,
+      color-mix(in srgb, var(--bg) 82%, transparent) 55%,
+      color-mix(in srgb, var(--bg) 55%, transparent) 100%);
+  }
 }
 .st-chap-l { display: grid; gap: var(--sp-1); min-width: 0; }
 .st-chap-label {

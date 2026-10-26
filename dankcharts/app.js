@@ -47903,6 +47903,31 @@ function stHeadBg(head, args) {
   }), true);
 }
 
+// A collage of song covers behind a band, in place of the one picture:
+// [{ title, artist }], most-played first. The list repeats to fill the band,
+// shifted by a few each row so the same cover doesn't stack straight down.
+// Same lookups as everywhere else, so covers already seen come from cache.
+function stHeadCollage(head, songs) {
+  const bg = head && head.querySelector('.st-chap-bg');
+  if (!bg) return;
+  bg.classList.add('st-chap-collage');
+  const COLS = 12, ROWS = 4; // more than a band shows; the extra is cropped
+  let html = '';
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) html += `<div class="st-collage-tile" data-s="${(c + r * 5) % songs.length}"></div>`;
+  }
+  bg.innerHTML = html;
+  const tok = _stHeadToken;
+  songs.forEach((s, si) => {
+    if (!bg.querySelector(`[data-s="${si}"]`)) return;
+    queueImg(() => getArtAuto('song', s.title, s.artist).then(url => {
+      if (!url || tok !== _stHeadToken || !bg.isConnected) return;
+      bg.querySelectorAll(`[data-s="${si}"]`).forEach(el => { el.style.backgroundImage = `url("${sizedArtUrl(url, 120)}")`; el.classList.add('is-loaded'); });
+      bg.classList.add('is-loaded');
+    }), true);
+  });
+}
+
 // Small covers / portraits on the band's right: [{ type, name, artist }]
 function stHeadThumbHtml(items, round) {
   return `<div class="st-chap-thumbs${round ? ' is-round' : ''}">${items.map((it, i) =>
@@ -47964,8 +47989,10 @@ function stRenderChapters() {
       label: t('st_activity_title'),
       title: esc(t('st_ch_act_title', { month: a.peak })),
       sub: esc(a.artist ? t('st_ch_act_sub', { plays: tCount('plays', a.plays), artist: a.artist }) : tCount('plays', a.plays)),
-      bg: a.artist ? ['artist', a.artist] : null,
+      // a few songs: a collage of their covers; too few to fill it: the artist's photo
+      bg: a.artist && !(a.songs && a.songs.length >= 4) ? ['artist', a.artist] : null,
     });
+    if (a.songs && a.songs.length >= 4) stHeadCollage(document.getElementById('stHead_activity'), a.songs);
   } else {
     stFillHead('activity', { label: t('st_activity_title'), title: esc(t('st_no_data')) });
   }
@@ -49007,7 +49034,17 @@ function stRenderActivity(plays) {
   // the band names the month in full ("April", or "April 2024" outside this year)
   const [peakY, peakM] = peakKey.split('-');
   const peakLong = t(_CR_MON_LONG[+peakM - 1]) + (peakY !== String(stYear) || stPeriodType === 'alltime' ? ' ' + peakY : '');
-  _stFacts.activity = { peak: peakLong, plays: byMonth[peakKey], artist: peakTop ? peakTop.name : null };
+  // the peak month's most-played songs, for the cover collage behind the band
+  const peakSongCounts = {};
+  for (const p of plays) {
+    const d = tzDateOf(p);
+    if (`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}` !== peakKey) continue;
+    const sk = songKey(p);
+    if (!peakSongCounts[sk]) peakSongCounts[sk] = { title: p.title, artist: p.artist, count: 0 };
+    peakSongCounts[sk].count++;
+  }
+  const peakSongs = Object.values(peakSongCounts).sort((a, b) => b.count - a.count).slice(0, 16);
+  _stFacts.activity = { peak: peakLong, plays: byMonth[peakKey], artist: peakTop ? peakTop.name : null, songs: peakSongs };
 
   // pre-fill the detail panel with the peak month so the tap interaction is discoverable, not empty
   const defaultBtn = el.querySelector('.st-activity-col.is-selected') || el.querySelector('.st-activity-col');
