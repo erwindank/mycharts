@@ -25697,6 +25697,60 @@ function _buildAlbTracksHTML(tracks, totalPlays, crY, crM, crW, allTimeSPM, albu
   </tr></thead><tbody>${rows}</tbody></table>`;
 }
 
+/* ── Artist overview: badge drawer + filter (2026-10-27) ────────────────
+   openArtistModal fills _aoBadges with the artist's achievements; a badge
+   click opens the drawer under the grid with what earned it (a second click,
+   or ✕, closes it). The filter chips show chart feats or certifications. */
+let _aoBadges = [];
+
+function aoBadgeOpen(btn) {
+  const tro = btn.closest('.ao-tro');
+  const drawer = tro && tro.querySelector('.ao-drawer');
+  const b = _aoBadges[+btn.dataset.i];
+  if (!drawer || !b) return;
+  const wasOpen = btn.classList.contains('is-open');
+  tro.querySelectorAll('.ao-badge.is-open').forEach(x => { x.classList.remove('is-open'); x.setAttribute('aria-expanded', 'false'); });
+  if (wasOpen) { drawer.hidden = true; return; }
+  btn.classList.add('is-open');
+  btn.setAttribute('aria-expanded', 'true');
+  const ic = n => typeof dcIco === 'function' ? dcIco(n) : '';
+  drawer.className = 'ao-drawer ao-drawer--' + b.tone;
+  drawer.innerHTML = `<div class="ao-drawer-head">
+      <span class="ao-drawer-title"><b>${typeof b.value === 'number' ? b.value.toLocaleString() : esc(b.value)}</b> ${esc(b.label)}
+        <span class="ao-drawer-tag">${esc(b.tag)}${b.sub ? ' · ' + esc(b.sub) : ''}</span></span>
+      <button type="button" class="dc-btn dc-btn-plain dc-btn-icon dc-btn-sm" onclick="aoDrawerClose(this)" aria-label="${esc(t('set_close'))}">✕</button>
+    </div>
+    <div class="ao-drawer-list">
+      ${b.rows.map((r, i) => `<button type="button" class="ao-row" onclick="${r.open}">
+        <span class="ao-row-n">${i + 1}</span>
+        <span class="ao-row-name">${esc(r.name)}${r.sub ? `<small>${esc(r.sub)}</small>` : ''}</span>
+        <span class="ao-row-meta"><b>${Number(r.plays).toLocaleString()}</b> ${tUnit('plays', r.plays)}${r.date ? `<small>${esc(r.date)}</small>` : ''}</span>
+        <span class="ao-row-go" aria-hidden="true">${ic('next')}</span>
+      </button>`).join('')}
+    </div>`;
+  drawer.hidden = false;
+  // re-run the slide-in on every open
+  drawer.classList.remove('ao-in'); void drawer.offsetWidth; drawer.classList.add('ao-in');
+  drawer.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+
+function aoDrawerClose(btn) {
+  const tro = btn.closest('.ao-tro');
+  if (!tro) return;
+  tro.querySelector('.ao-drawer').hidden = true;
+  tro.querySelectorAll('.ao-badge.is-open').forEach(x => { x.classList.remove('is-open'); x.setAttribute('aria-expanded', 'false'); });
+}
+
+function aoTroFilter(chip) {
+  const tro = chip.closest('.ao-tro');
+  if (!tro) return;
+  tro.dataset.filter = chip.dataset.f;
+  tro.querySelectorAll('.ao-chip').forEach(c => { const on = c === chip; c.classList.toggle('is-on', on); c.setAttribute('aria-pressed', on); });
+  // an open badge that the filter hides takes its drawer with it
+  const open = tro.querySelector('.ao-badge.is-open');
+  if (open && chip.dataset.f !== 'all' && open.dataset.group !== chip.dataset.f) aoDrawerClose(chip);
+}
+
 function openArtistModal(artistName) {
   // Close any open IG modals so they don't stack behind the artist modal
   document.getElementById('crIgModal')?.classList.remove('open');
@@ -25842,31 +25896,125 @@ function openArtistModal(artistName) {
   const topSong = allSongsSorted[0] || null;
   const topAlbum = allAlbumsSorted[0] || null;
 
-  // Stats strip — row 1: totals + all-time rank + peaks + extra stats
+  /* ── Overview (redone 2026-10-27) ──────────────────────────────────────
+     The fourteen look-alike tiles became three groups, so the eye has an
+     order to follow — every number is still here:
+       1. a headline card: total plays, all-time rank medal, the share of all
+          your plays, the first → last played span with how many of those days
+          had a play, and songs / albums / average plays per song under it;
+       2. favourites: the most played song and album as cards with artwork,
+          opening their own panels;
+       3. listening habits: days played, longest daily streak, best day, most
+          plays in a row, songs on the weekly chart — each with its date.
+     Numbers in .ao-count count up as the panel opens (panel.js countUp). */
   const peakCls = r => !r ? '' : r === 1 ? 'sv--gold' : r <= 3 ? 'sv--silver' : r <= 10 ? 'sv--bronze' : '';
+  const aoIco = n => typeof dcIco === 'function' ? dcIco(n) : '';
+  const noBr = s => String(s).replace(/<br\s*\/?>/gi, ' ');
+  const pctOf = (n, of) => of ? (n / of * 100 >= 10 ? Math.round(n / of * 100) : (n / of * 100).toFixed(1)) + '%' : '—';
+  // The best day, and when the longest daily streak ran, for the habit captions
+  let bestDayStr = null;
+  for (const [d, n] of Object.entries(dayPlayCounts)) if (n === peakPlaysInDay && (!bestDayStr || d < bestDayStr)) bestDayStr = d;
+  let streakEndStr = null;
+  {
+    let run = _sortedArtistDays.length ? 1 : 0;
+    if (run && longestStreak === 1) streakEndStr = _sortedArtistDays[0];
+    for (let i = 1; i < _sortedArtistDays.length; i++) {
+      const diff = Math.round((new Date(_sortedArtistDays[i]) - new Date(_sortedArtistDays[i - 1])) / 86400000);
+      run = diff === 1 ? run + 1 : 1;
+      if (run === longestStreak && !streakEndStr) streakEndStr = _sortedArtistDays[i];
+    }
+  }
+  const dayDate = s => s ? new Date(s + 'T00:00:00') : null;
+  const streakStart = streakEndStr ? new Date(dayDate(streakEndStr).getTime() - (longestStreak - 1) * 86400000) : null;
+  const spanDays = firstPlayed && lastPlayed
+    ? Math.max(1, Math.round((new Date(dayStrOf(artistPlays[0]) + 'T00:00:00') - new Date(dayStrOf(artistPlays[artistPlays.length - 1]) + 'T00:00:00')) / 86400000) + 1)
+    : 0;
+  const activePct = spanDays ? Math.min(100, calendarDays / spanDays * 100) : 0;
+  // Rank medal: gold #1, silver #2–3, bronze #4–10, the accent otherwise
+  const rankTone = !allTimeArtistRank ? 'none' : allTimeArtistRank === 1 ? 'gold' : allTimeArtistRank <= 3 ? 'silver' : allTimeArtistRank <= 10 ? 'bronze' : 'plain';
+
+  // A favourite: artwork, what it is, its plays and share of this artist's plays
+  const favCard = (kind, item) => {
+    if (!item) return '';
+    const isSong = kind === 'song';
+    const name = isSong ? item.title : item.album;
+    const key = isSong ? songKey(item) : item.album + '|||' + (item.primaryArtist || artistName);
+    const open = isSong ? `openSongModal(${esc(JSON.stringify(key))})` : `openAlbumModal(${esc(JSON.stringify(key))})`;
+    const share = totalPlays ? item.count / totalPlays * 100 : 0;
+    return `<button type="button" class="ao-fav" onclick="${open}">
+      <span class="ao-fav-art" id="aoFav-${kind}"><span class="thumb-initials">${esc(initials(name))}</span></span>
+      <span class="ao-fav-txt">
+        <span class="ao-kicker">${noBr(t(isSong ? 'modal_most_played_song' : 'modal_most_played_album'))}</span>
+        <span class="ao-fav-name">${esc(name)}</span>
+        <span class="ao-fav-meta"><b>${item.count.toLocaleString()}</b> ${tUnit('plays', item.count)} · ${t('ao_of_their_plays', { pct: pctOf(item.count, totalPlays) })}</span>
+        <span class="ao-meter"><span style="width:${share.toFixed(1)}%"></span></span>
+      </span>
+      <span class="ao-fav-go" aria-hidden="true">${aoIco('next')}</span>
+    </button>`;
+  };
+
+  // A listening habit: icon tile, the number, its label and a dated caption
+  const habit = (icon, value, label, caption, tip) => `<div class="ao-habit"${tip ? ` title="${esc(tip)}"` : ''}>
+      <span class="ao-habit-ico">${aoIco(icon)}</span>
+      <span class="ao-habit-txt">
+        <span class="ao-habit-val ao-count">${value}</span>
+        <span class="ao-habit-lbl">${noBr(label)}</span>
+        ${caption ? `<span class="ao-habit-cap">${caption}</span>` : ''}
+      </span>
+    </div>`;
+
   const modalStatsEl = document.getElementById('modalStats');
   modalStatsEl.innerHTML = `
-    <div class="modal-stat"><div class="se">🎧</div><div class="sv" data-countup="${totalPlays}">${totalPlays.toLocaleString()}</div><div class="sl">${t('stat_total_plays')}</div></div>
-    <div class="modal-stat"><div class="sv" style="font-size:var(--fs-sm)">${firstPlayed ? fmt(firstPlayed) : '—'}</div><div class="sl">${t('modal_first_played')}</div></div>
-    <div class="modal-stat"><div class="sv" style="font-size:var(--fs-sm)">${lastPlayed ? fmt(lastPlayed) : '—'}</div><div class="sl">${t('modal_last_played')}</div></div>
-    <div class="modal-stat"><div class="se">🎵</div><div class="sv" data-countup="${allSongsSorted.length}">${allSongsSorted.length}</div><div class="sl">${t('stat_unique_songs')}</div></div>
-    <div class="modal-stat"><div class="se">💿</div><div class="sv" data-countup="${allAlbumsSorted.length}">${allAlbumsSorted.length}</div><div class="sl">${t('stat_albums')}</div></div>
-    <div class="modal-stat"><div class="se">📅</div><div class="sv" data-countup="${calendarDays}">${calendarDays}</div><div class="sl">${t('modal_calendar_days_played')}</div></div>
-    <div class="modal-stat modal-stat--gold"><div class="se">🏆</div><div class="sv">${allTimeArtistRank ? '#' + allTimeArtistRank : '—'}</div><div class="sl">${t('am_most_heard_artist')}</div></div>
-    <div class="modal-stat"><div class="se">📊</div><div class="sv" data-countup="${avgPlaysPerSong}">${avgPlaysPerSong.toLocaleString()}</div><div class="sl">${t('modal_avg_plays_per_song')}</div></div>
-    <div class="modal-stat"><div class="se">🎤</div><div class="sv" style="font-size:var(--fs-xs);line-height:1.3;word-break:break-word;overflow-wrap:break-word;">${topSong ? esc(topSong.title) : '—'}</div><div class="sl">${t('modal_most_played_song')}</div></div>
-    <div class="modal-stat"><div class="se">💿</div><div class="sv" style="font-size:var(--fs-xs);line-height:1.3;word-break:break-word;overflow-wrap:break-word;">${topAlbum ? esc(topAlbum.album) : '—'}</div><div class="sl">${t('modal_most_played_album')}</div></div>
-    <div class="modal-stat"><div class="se">🔥</div><div class="sv" data-countup="${longestStreak}">${longestStreak}</div><div class="sl">${t('modal_listening_days_streak')}</div></div>
-    <div class="modal-stat"><div class="se">📋</div><div class="sv">${weeklySongsCharted.length || '—'}</div><div class="sl">${t('modal_songs_in_weekly')}</div></div>
-    <div class="modal-stat"><div class="se">⚡</div><div class="sv" data-countup="${peakPlaysInDay}">${peakPlaysInDay}</div><div class="sl">${t('am_peak_plays_day')}</div></div>
-    <div class="modal-stat"><div class="se">🎯</div><div class="sv" data-countup="${peakConsecutivePlays}">${peakConsecutivePlays}</div><div class="sl">${t('am_peak_plays_streak')}</div></div>
+    <div class="ao-hero">
+      <div class="ao-hero-top">
+        <div class="ao-hero-main">
+          <span class="ao-kicker">${t('stat_total_plays')}</span>
+          <span class="ao-hero-num ao-count">${totalPlays.toLocaleString()}</span>
+          <span class="ao-hero-sub">${t('ao_share_of_all', { pct: pctOf(totalPlays, allPlays.length) })}</span>
+        </div>
+        <div class="ao-rank ao-rank--${rankTone}" title="${esc(noBr(t('am_most_heard_artist')))}">
+          <span class="ao-rank-ring">${aoIco(rankTone === 'gold' ? 'crown' : 'trophy')}<span class="ao-rank-num">${allTimeArtistRank ? '#' + allTimeArtistRank : '—'}</span></span>
+          <span class="ao-rank-lbl">${noBr(t('am_most_heard_artist'))}</span>
+        </div>
+      </div>
+      <div class="ao-span">
+        <div class="ao-span-ends">
+          <span><span class="ao-kicker">${t('modal_first_played')}</span><b>${firstPlayed ? fmt(firstPlayed) : '—'}</b></span>
+          <span class="ao-span-r"><span class="ao-kicker">${t('modal_last_played')}</span><b>${lastPlayed ? fmt(lastPlayed) : '—'}</b></span>
+        </div>
+        <div class="ao-span-track" role="img" aria-label="${esc(t('ao_span', { played: calendarDays.toLocaleString(), span: spanDays.toLocaleString() }))}">
+          <span class="ao-span-fill" style="width:${activePct.toFixed(1)}%"></span>
+        </div>
+        <div class="ao-span-cap">${t('ao_span', { played: `<b>${calendarDays.toLocaleString()}</b>`, span: spanDays.toLocaleString() })}</div>
+      </div>
+      <div class="ao-trio">
+        <div class="ao-trio-cell ao-tone-songs"><span class="ao-trio-val ao-count">${allSongsSorted.length.toLocaleString()}</span><span class="ao-trio-lbl">${noBr(t('stat_unique_songs'))}</span></div>
+        <div class="ao-trio-cell ao-tone-albums"><span class="ao-trio-val ao-count">${allAlbumsSorted.length.toLocaleString()}</span><span class="ao-trio-lbl">${noBr(t('stat_albums'))}</span></div>
+        <div class="ao-trio-cell ao-tone-avg"><span class="ao-trio-val ao-count">${avgPlaysPerSong.toLocaleString()}</span><span class="ao-trio-lbl">${noBr(t('modal_avg_plays_per_song'))}</span></div>
+      </div>
+    </div>
+    ${topSong || topAlbum ? `<div class="ao-favs">${favCard('song', topSong)}${favCard('album', topAlbum)}</div>` : ''}
+    <div class="ao-head">${t('ao_habits')}</div>
+    <div class="ao-habits">
+      ${habit('calendar', calendarDays.toLocaleString(), t('modal_calendar_days_played'), '')}
+      ${habit('flame', longestStreak.toLocaleString(), t('modal_listening_days_streak'),
+        streakStart && longestStreak > 1 ? `${fmt(streakStart)} – ${fmt(dayDate(streakEndStr))}` : '')}
+      ${habit('bars', peakPlaysInDay.toLocaleString(), t('am_peak_plays_day'), bestDayStr ? fmt(dayDate(bestDayStr)) : '')}
+      ${habit('target', peakConsecutivePlays.toLocaleString(), t('am_peak_plays_streak'), '')}
+      ${habit('listmusic', weeklySongsCharted.length ? weeklySongsCharted.length.toLocaleString() : '—', t('modal_songs_in_weekly'), '')}
+    </div>
   `;
-  animateModalCountup(modalStatsEl);
+  // Favourites' artwork, through the same source cascade as the chart rows
+  if (topSong) fetchAndInjectImage(document.getElementById('aoFav-song'), { imgId: 'aoFav-song', name: topSong.title, title: topSong.title, artist: topSong.artist, album: topSong.album || '', prefKey: 'song:' + topSong.artist.toLowerCase() + '|||' + topSong.title.toLowerCase() }, 'song');
+  if (topAlbum) {
+    const _aa = topAlbum.primaryArtist || artistName;
+    fetchAndInjectImage(document.getElementById('aoFav-album'), { imgId: 'aoFav-album', name: topAlbum.album, title: topAlbum.album, artist: _aa, album: topAlbum.album, prefKey: 'album:' + _aa.toLowerCase() + '|||' + topAlbum.album.toLowerCase() }, 'album');
+  }
 
-  // Stats strip — row 2: artist chart peaks (larger display)
+  // Grand Slam — #1 on all three artist charts: a banner over the badges
   const grandSlam = weeklyArtistPeak === 1 && monthlyArtistPeak === 1 && yearlyArtistPeak === 1;
   document.getElementById('modalGrandSlam').innerHTML = grandSlam
-    ? `<div class="modal-grand-slam">✨ ${esc(t('am_grand_slam'))} ✨</div>`
+    ? `<div class="modal-grand-slam ao-slam"><span class="ao-slam-ico">${aoIco('crown')}</span><span>${esc(t('am_grand_slam'))}</span></div>`
     : '';
   document.getElementById('modalArtistPeaks').innerHTML = `
     <div class="modal-stat"><div class="se">📊</div><div class="sv ${peakCls(weeklyArtistPeak)}">${weeklyArtistPeak ? '#' + weeklyArtistPeak : '—'}</div><div class="sl">${t('am_artist_peak_week')}</div></div>
@@ -25935,7 +26083,14 @@ function openArtistModal(artistName) {
     </table>
   `;
 
-  // Accomplishments — with expandable detail panels
+  /* ── Chart accomplishments as badges (redone 2026-10-27) ─────────────────
+     Was one long list of sentences with a + on each. Now every achievement
+     is a badge — tier word, the count large, what it counts and the bar it
+     cleared — in a grid that can be filtered (All · Chart feats ·
+     Certifications). Clicking a badge opens a drawer under the grid with
+     what earned it, and every row there opens that song, album or week.
+     Same achievements, same order as before. Drawer + filter: aoBadgeOpen /
+     aoTroFilter further down. */
   // Helper: first-listened date for a song
   const firstPlay = (s) => {
     const plays = artistPlays.filter(p => songKey(p) === songKey(s));
@@ -25945,62 +26100,46 @@ function openArtistModal(artistName) {
     const plays = artistPlays.filter(p => p.album === album);
     return plays.length ? fmtDate(new Date(Math.min(...plays.map(p => p.date)))) : '—';
   };
+  // Drawer rows: what to show and what a click opens
+  const songRow = (s, plays, date) => ({
+    name: s.title, sub: s.album && s.album !== '—' ? s.album : '', plays, date,
+    open: `openSongModal(${esc(JSON.stringify(songKey(s)))})`
+  });
+  const albumRow = (a) => ({
+    name: a.album, sub: '', plays: a.count, date: firstAlbumPlay(a.album),
+    open: `openAlbumModal(${esc(JSON.stringify(a.album + '|||' + (a.primaryArtist || artistName)))})`
+  });
+  const atLeast = plays => `${plays.toLocaleString()}+ ${tUnit('plays', plays)}`;
 
-  // Helper: build a detail block for a list of songs, albums, or weeks
-  let accDetailId = 0;
-  const accRow = (icon, label, detailRows) => {
-    const id = 'acc-detail-' + (accDetailId++);
-    const detail = detailRows.length
-      ? detailRows.map(r => {
-        const navAttr = r.weekOffset !== undefined ? ` onclick="goToWeek(${r.weekOffset})" style="cursor:pointer;"` : '';
-        const viewTag = r.weekOffset !== undefined ? `<span style="color:var(--accent);font-size:var(--fs-xs);flex-shrink:0;margin-left:0.5rem;">→ VIEW</span>` : '';
-        return `<div class="acc-detail-row"${navAttr}><span class="acc-detail-name">${esc(r.name)}</span><span class="acc-detail-plays">${r.plays} ${tUnit('plays', r.plays)}</span>${r.date ? `<span class="acc-detail-date">${r.date}</span>` : ''}${viewTag}</div>`;
-      }).join('')
-      : `<div class="acc-detail-row"><span class="acc-detail-name" style="font-style:italic">${t('modal_no_detail')}</span></div>`;
-    return `<div class="acc-row">
-      <div class="acc-header">
-        <button class="acc-toggle" onclick="const d=document.getElementById('${id}');const open=d.classList.toggle('open');this.textContent=open?'−':'+';" title="${t('sm_expand')}">+</button>
-        <span>${icon} ${label}</span>
-      </div>
-      <div class="acc-detail" id="${id}">${detail}</div>
-    </div>`;
-  };
+  // tone: no1 | debut | peak | diamond | plat | gold — group: chart | cert
+  const badges = [];
 
-  const acc = [];
-
-  // Weekly #1 — find every week this artist topped the chart
+  // Weekly #1 — every week this artist topped the artists chart
   const no1Weeks = findWeeklyNo1s(artistName);
   if (no1Weeks.length) {
-    acc.push(accRow('🏆', t('acc_artist_no1', { n: no1Weeks.length, unit: tUnit('cr_week', no1Weeks.length) }),
-      no1Weeks.map(w => ({
-        name: t('period_week_of', { date: fmtDate(w.sunday) }),
-        plays: w.plays,
-        date: '',
-        weekOffset: weekOffset(w.sunday)
-      }))));
+    badges.push({ tone: 'no1', group: 'chart', tag: '#1', value: no1Weeks.length, label: noBr(t('sm_weeks_at1')),
+      rows: no1Weeks.map(w => ({ name: t('period_week_of', { date: fmtDate(w.sunday) }), sub: '', plays: w.plays, date: '', open: `goToWeek(${weekOffset(w.sunday)})` })) });
   } else if (artistPeak) {
-    acc.push(accRow('📈', t('acc_artist_peak', { peak: artistPeak, size: chartSize }), []));
+    badges.push({ tone: 'peak', group: 'chart', tag: t('ao_peak'), value: '#' + artistPeak, label: t('ao_best_rank'), rows: [] });
   }
 
   // Weekly #1 songs
   const weeklyNo1Songs = allSongsSorted.filter(s => allChartRun.week?.result.songs[songKey(s)]?.peak === 1);
   if (weeklyNo1Songs.length) {
-    acc.push(accRow('🎵', t('acc_artist_no1_week', { n: `<strong style="color:var(--text)">${weeklyNo1Songs.length}</strong>`, unit: tUnit('songs', weeklyNo1Songs.length) }),
-      weeklyNo1Songs.map(s => {
-        const d = allChartRun.week.result.songs[songKey(s)];
-        const peakEntry = d.entries.find(e => e.rank === 1);
-        return { name: s.title + (s.album !== '—' ? ' · ' + s.album : ''), plays: peakEntry?.plays || s.count, date: peakEntry ? crPeriodLabel('week', peakEntry.periodKey) : '' };
-      })));
+    badges.push({ tone: 'no1', group: 'chart', tag: '#1', value: weeklyNo1Songs.length, label: t('ao_no1_week_songs'),
+      rows: weeklyNo1Songs.map(s => {
+        const peakEntry = allChartRun.week.result.songs[songKey(s)].entries.find(e => e.rank === 1);
+        return songRow(s, peakEntry?.plays || s.count, peakEntry ? crPeriodLabel('week', peakEntry.periodKey) : '');
+      }) });
   }
   // Monthly #1 songs
   const monthlyNo1Songs = allSongsSorted.filter(s => allChartRun.month?.result.songs[songKey(s)]?.peak === 1);
   if (monthlyNo1Songs.length) {
-    acc.push(accRow('🎵', t('acc_artist_no1_month', { n: `<strong style="color:var(--text)">${monthlyNo1Songs.length}</strong>`, unit: tUnit('songs', monthlyNo1Songs.length) }),
-      monthlyNo1Songs.map(s => {
-        const d = allChartRun.month.result.songs[songKey(s)];
-        const peakEntry = d.entries.find(e => e.rank === 1);
-        return { name: s.title + (s.album !== '—' ? ' · ' + s.album : ''), plays: peakEntry?.plays || s.count, date: peakEntry ? crPeriodLabel('month', peakEntry.periodKey) : '' };
-      })));
+    badges.push({ tone: 'no1', group: 'chart', tag: '#1', value: monthlyNo1Songs.length, label: t('ao_no1_month_songs'),
+      rows: monthlyNo1Songs.map(s => {
+        const peakEntry = allChartRun.month.result.songs[songKey(s)].entries.find(e => e.rank === 1);
+        return songRow(s, peakEntry?.plays || s.count, peakEntry ? crPeriodLabel('month', peakEntry.periodKey) : '');
+      }) });
   }
   // New songs chart #1 — songs that debuted at #1 on the weekly chart
   const debutNo1Songs = allSongsSorted.filter(s => {
@@ -26008,89 +26147,64 @@ function openArtistModal(artistName) {
     return d && d.entries[0]?.rank === 1;
   });
   if (debutNo1Songs.length) {
-    acc.push(accRow('🌟', t('acc_artist_debut_no1', { n: `<strong style="color:var(--text)">${debutNo1Songs.length}</strong>`, unit: tUnit('songs', debutNo1Songs.length) }),
-      debutNo1Songs.map(s => {
+    badges.push({ tone: 'debut', group: 'chart', tag: t('ao_debut'), value: debutNo1Songs.length, label: t('ao_debut_no1'),
+      rows: debutNo1Songs.map(s => {
         const d = allChartRun.week.result.songs[songKey(s)];
-        return { name: s.title + (s.album !== '—' ? ' · ' + s.album : ''), plays: d.entries[0].plays, date: crPeriodLabel('week', d.entries[0].periodKey) };
-      })));
+        return songRow(s, d.entries[0].plays, crPeriodLabel('week', d.entries[0].periodKey));
+      }) });
   }
 
-  // Multi-level diamond songs (each song shows at its highest level only)
-  const maxSongMult = allSongsSorted.reduce((m, s) => Math.max(m, Math.floor(s.count / CERT.song.diamond)), 0);
-  for (let mult = maxSongMult; mult >= 1; mult--) {
-    const items = allSongsSorted.filter(s => Math.floor(s.count / CERT.song.diamond) === mult);
-    if (!items.length) continue;
-    const { icon } = diamondMultiLabel(mult);
-    const plays = mult * CERT.song.diamond;
-    acc.push(accRow(icon, t('acc_cert', { n: items.length, cert: tDiamondLabel(mult), unit: tUnit('songs', items.length), plays, plays_unit: tUnit('plays', plays) }),
-      items.map(s => ({ name: s.title + (s.album !== '—' ? ' · ' + s.album : ''), plays: s.count, date: firstPlay(s) }))));
-  }
-  if (platSongs) {
-    const items = allSongsSorted.filter(s => s.count >= CERT.song.plat && s.count < CERT.song.diamond);
-    acc.push(accRow('💿', t('acc_cert', { n: platSongs, cert: t('cert_plat'), unit: tUnit('songs', platSongs), plays: CERT.song.plat, plays_unit: tUnit('plays', CERT.song.plat) }),
-      items.map(s => ({ name: s.title + (s.album !== '—' ? ' · ' + s.album : ''), plays: s.count, date: firstPlay(s) }))));
-  }
-  if (goldSongs) {
-    const items = allSongsSorted.filter(s => s.count >= CERT.song.gold && s.count < CERT.song.plat);
-    acc.push(accRow('📀', t('acc_cert', { n: goldSongs, cert: t('cert_gold'), unit: tUnit('songs', goldSongs), plays: CERT.song.gold, plays_unit: tUnit('plays', CERT.song.gold) }),
-      items.map(s => ({ name: s.title + (s.album !== '—' ? ' · ' + s.album : ''), plays: s.count, date: firstPlay(s) }))));
-  }
-
-  // Multi-level diamond albums
-  const maxAlbumMult = certAlbums.reduce((m, a) => Math.max(m, Math.floor(a.count / CERT.album.diamond)), 0);
-  for (let mult = maxAlbumMult; mult >= 1; mult--) {
-    const items = certAlbums.filter(a => Math.floor(a.count / CERT.album.diamond) === mult);
-    if (!items.length) continue;
-    const { icon } = diamondMultiLabel(mult);
-    const plays = mult * CERT.album.diamond;
-    acc.push(accRow(icon, t('acc_cert', { n: items.length, cert: tDiamondLabel(mult), unit: tUnit('albums', items.length), plays, plays_unit: tUnit('plays', plays) }),
-      items.map(a => ({ name: a.album, plays: a.count, date: firstAlbumPlay(a.album) }))));
-  }
-  if (platAlbums) {
-    const items = certAlbums.filter(a => a.count >= CERT.album.plat && a.count < CERT.album.diamond);
-    acc.push(accRow('💿', t('acc_cert', { n: platAlbums, cert: t('cert_plat'), unit: tUnit('albums', platAlbums), plays: CERT.album.plat, plays_unit: tUnit('plays', CERT.album.plat) }),
-      items.map(a => ({ name: a.album, plays: a.count, date: firstAlbumPlay(a.album) }))));
-  }
-  if (goldAlbums) {
-    const items = certAlbums.filter(a => a.count >= CERT.album.gold && a.count < CERT.album.plat);
-    acc.push(accRow('📀', t('acc_cert', { n: goldAlbums, cert: t('cert_gold'), unit: tUnit('albums', goldAlbums), plays: CERT.album.gold, plays_unit: tUnit('plays', CERT.album.gold) }),
-      items.map(a => ({ name: a.album, plays: a.count, date: firstAlbumPlay(a.album) }))));
-  }
-
-  /* Rows of their own for each ladder. These are the records the albums block
-     above leaves out on purpose: a row names one threshold ("3 albums at 120
-     plays"), which stops being true the moment the group mixes ladders. A
-     single judged at 60 plays therefore gets its own row saying 60, rather
-     than being counted among records that needed twice that. */
+  /* Certifications, one badge per tier per ladder. Each badge names one
+     threshold, so a ladder (songs, albums, then singles / EPs on their own
+     ladders) never shares a badge with another — a single judged at 60
+     plays is not counted among records that needed twice that. Compilations
+     stay out (their certification belongs to the record, not each singer). */
+  const certBadges = (pool, cfg, unitKey, toRow) => {
+    const maxMult = pool.reduce((m, x) => Math.max(m, Math.floor(x.count / cfg.diamond)), 0);
+    for (let mult = maxMult; mult >= 1; mult--) {
+      const items = pool.filter(x => Math.floor(x.count / cfg.diamond) === mult);
+      if (items.length) badges.push({ tone: 'diamond', group: 'cert', tag: tDiamondLabel(mult), value: items.length, label: tUnit(unitKey, items.length), sub: atLeast(mult * cfg.diamond), rows: items.map(toRow) });
+    }
+    const plat = pool.filter(x => x.count >= cfg.plat && x.count < cfg.diamond);
+    if (plat.length) badges.push({ tone: 'plat', group: 'cert', tag: t('cert_plat'), value: plat.length, label: tUnit(unitKey, plat.length), sub: atLeast(cfg.plat), rows: plat.map(toRow) });
+    const gold = pool.filter(x => x.count >= cfg.gold && x.count < cfg.plat);
+    if (gold.length) badges.push({ tone: 'gold', group: 'cert', tag: t('cert_gold'), value: gold.length, label: tUnit(unitKey, gold.length), sub: atLeast(cfg.gold), rows: gold.map(toRow) });
+  };
+  certBadges(allSongsSorted, CERT.song, 'songs', s => songRow(s, s.count, firstPlay(s)));
+  certBadges(certAlbums, CERT.album, 'albums', albumRow);
   for (const ty of certLadderTypesInUse()) {
-    const cfg = CERT[ty];
-    const unitKey = ty === 'ep' ? 'eps' : 'singles';
     const pool = allAlbumsSorted.filter(a =>
       !isCompilationAlbum(a.album) && certKindFor(a.album, a.primaryArtist || artistName) === ty);
-    if (!pool.length) continue;
-    const maxMult = pool.reduce((m, a) => Math.max(m, Math.floor(a.count / cfg.diamond)), 0);
-    for (let mult = maxMult; mult >= 1; mult--) {
-      const items = pool.filter(a => Math.floor(a.count / cfg.diamond) === mult);
-      if (!items.length) continue;
-      const { icon } = diamondMultiLabel(mult);
-      const plays = mult * cfg.diamond;
-      acc.push(accRow(icon, t('acc_cert', { n: items.length, cert: tDiamondLabel(mult), unit: tUnit(unitKey, items.length), plays, plays_unit: tUnit('plays', plays) }),
-        items.map(a => ({ name: a.album, plays: a.count, date: firstAlbumPlay(a.album) }))));
-    }
-    const platN = pool.filter(a => a.count >= cfg.plat && a.count < cfg.diamond);
-    if (platN.length) {
-      acc.push(accRow('💿', t('acc_cert', { n: platN.length, cert: t('cert_plat'), unit: tUnit(unitKey, platN.length), plays: cfg.plat, plays_unit: tUnit('plays', cfg.plat) }),
-        platN.map(a => ({ name: a.album, plays: a.count, date: firstAlbumPlay(a.album) }))));
-    }
-    const goldN = pool.filter(a => a.count >= cfg.gold && a.count < cfg.plat);
-    if (goldN.length) {
-      acc.push(accRow('📀', t('acc_cert', { n: goldN.length, cert: t('cert_gold'), unit: tUnit(unitKey, goldN.length), plays: cfg.gold, plays_unit: tUnit('plays', cfg.gold) }),
-        goldN.map(a => ({ name: a.album, plays: a.count, date: firstAlbumPlay(a.album) }))));
-    }
+    if (pool.length) certBadges(pool, CERT[ty], ty === 'ep' ? 'eps' : 'singles', albumRow);
   }
 
-  if (!acc.length) acc.push(`<div style="font-family:var(--font-sans);font-style:italic;font-size:var(--fs-sm);color:var(--text3);padding:0.5rem 0;">${t('acc_none', { n: chartSize })}</div>`);
-  document.getElementById('modalAccomplishments').innerHTML = acc.join('');
+  _aoBadges = badges;
+  const accEl = document.getElementById('modalAccomplishments');
+  if (!badges.length) {
+    accEl.innerHTML = `<div class="ao-empty">${t('acc_none', { n: chartSize })}</div>`;
+  } else {
+    const nChart = badges.filter(b => b.group === 'chart').length;
+    const nCert = badges.length - nChart;
+    const toneIco = { no1: 'crown', debut: 'star', peak: 'trend', diamond: 'gem', plat: 'disc', gold: 'disc' };
+    const chip = (f, label, n) => `<button type="button" class="ao-chip${f === 'all' ? ' is-on' : ''}" data-f="${f}" aria-pressed="${f === 'all'}" onclick="aoTroFilter(this)">${label}<span class="ao-chip-n">${n}</span></button>`;
+    accEl.innerHTML = `<div class="ao-tro" data-filter="all">
+      ${nChart && nCert ? `<div class="ao-tro-bar" role="group">
+        ${chip('all', t('ao_all'), badges.length)}${chip('chart', t('ao_chart_feats'), nChart)}${chip('cert', t('ao_certs'), nCert)}
+      </div>` : ''}
+      <div class="ao-tro-grid">
+        ${badges.map((b, i) => `<button type="button" class="ao-badge ao-badge--${b.tone}" data-group="${b.group}" data-i="${i}"
+            ${b.rows.length ? 'aria-expanded="false" onclick="aoBadgeOpen(this)"' : 'aria-disabled="true"'}>
+          <span class="ao-badge-ico">${aoIco(toneIco[b.tone])}</span>
+          <span class="ao-badge-tag">${esc(b.tag)}</span>
+          <span class="ao-badge-val${typeof b.value === 'number' ? ' ao-count' : ''}">${typeof b.value === 'number' ? b.value.toLocaleString() : esc(b.value)}</span>
+          <span class="ao-badge-lbl">${esc(b.label)}</span>
+          ${b.sub ? `<span class="ao-badge-sub">${esc(b.sub)}</span>` : ''}
+        </button>`).join('')}
+      </div>
+      <div class="ao-drawer" hidden></div>
+      <div class="ao-tro-hint">${t('ao_tap_hint')}</div>
+    </div>`;
+  }
 
   // ─── SONGS ON CHART: 4 collapsible sections ──────────────────────────────
 
@@ -57187,6 +57301,8 @@ function renderArtistRatingSection(artistName) {
   if (_ratingArtistPendingFor !== artistName) { _ratingArtistPendingFor = artistName; _ratingArtistPendingAll = false; }
   const sum = ratingArtistSummary(artistName);
   const pending = _ratingArtistPendingHTML(artistName);
+  // The Overview tab shows a short version; this full one is the Ratings tab
+  _renderArtistRatingMini(sum);
 
   if (!sum.ratedAlbums && !sum.ratedSongs) {
     el.innerHTML = `<div class="rt-block rt-block--empty">
@@ -57237,6 +57353,44 @@ function renderArtistRatingSection(artistName) {
     ${albumList}
     ${pending}
     ${songList}
+  </div>`;
+}
+
+/* The artist Overview's ratings card (2026-10-27): the ring, the verdict and
+   the four numbers, the whole card opening the Ratings tab, where the album
+   lists (rated, not rated yet) and top songs now live. Those lists made the
+   Overview several screens long. */
+function _renderArtistRatingMini(sum) {
+  const el = document.getElementById('modalArtistRatingMini');
+  if (!el) return;
+  const go = `onclick="window.dcPanelShowTab && dcPanelShowTab('artist','rating')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}"`;
+  const chev = typeof dcIco === 'function' ? dcIco('next') : '›';
+  if (!sum.ratedAlbums && !sum.ratedSongs) {
+    el.innerHTML = `<div class="ao-rate ao-rate--empty" role="button" tabindex="0" ${go}>
+      ${ratingRing(null, { size: 56 })}
+      <div class="ao-rate-txt">
+        <div class="ao-rate-verdict">${esc(t('ao_no_ratings'))}</div>
+        <div class="ao-rate-sub">${esc(t('ao_rate_now'))}</div>
+      </div>
+      <span class="ao-rate-go" aria-hidden="true">${chev}</span>
+    </div>`;
+    return;
+  }
+  const headline = sum.albumAvg ?? sum.songAvg;
+  const band = ratingBand(headline);
+  const num = (v, label, cls) => `<span class="ao-rate-num"><b class="${cls || ''}">${v}</b>${esc(label)}</span>`;
+  el.innerHTML = `<div class="ao-rate" role="button" tabindex="0" ${go}>
+    ${ratingRing(headline, { size: 72 })}
+    <div class="ao-rate-txt">
+      <div class="ao-rate-verdict ${band.cls}">${esc(band.label)}</div>
+      <div class="ao-rate-nums">
+        ${num(ratingFmt(sum.albumAvg), t('ra_card_album_avg'), sum.albumAvg != null ? ratingBand(sum.albumAvg).cls : '')}
+        ${num(ratingFmt(sum.songAvg), t('ra_card_song_avg'), sum.songAvg != null ? ratingBand(sum.songAvg).cls : '')}
+        ${num(`${sum.ratedAlbums}/${sum.totalAlbums}`, t('rtg_albums_rated'))}
+        ${num(`${sum.ratedSongs}/${sum.totalSongs}`, t('rtg_songs_rated'))}
+      </div>
+    </div>
+    <span class="ao-rate-go"><span>${esc(t('ao_all_ratings'))}</span>${chev}</span>
   </div>`;
 }
 

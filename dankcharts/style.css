@@ -1635,6 +1635,386 @@
     .dp-body .acc-detail-row { padding: 6px 0; font-size: var(--fs-xs); }
     .dp-body .acc-detail-row:last-child { border-bottom: 0; }
 
+    /* ── Artist Overview (2026-10-27) ──────────────────────────────────────
+       Was fourteen identical tiles, the full ratings lists and a list of
+       achievement sentences. Now, top to bottom (app.js openArtistModal):
+         .ao-hero    total plays + all-time rank medal, the first → last
+                     played span, songs / albums / average under a divider
+         .ao-favs    most played song and album, artwork, opens their panel
+         .ao-habits  days played, streak, best day, plays in a row, weekly
+         .ao-tro     achievements as badges, filter chips, a drawer listing
+                     what earned the open badge (aoBadgeOpen / aoTroFilter)
+         .ao-rate    the ratings card, opening the Ratings tab
+       Colours are tokens (medals, violet, the panel accent) so every theme,
+       light ones included, gets its own legible version. */
+    /* diamond ice blue, darker on light themes (like the medals) */
+    .dp-body { --ao-diamond: #7dd3fc; }
+    body[class*="-light"] .dp-body { --ao-diamond: #0369a1; }
+
+    .dp-body .ao-kicker {
+      display: block;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text3);
+    }
+
+    /* Headline card */
+    .dp-body .ao-hero {
+      position: relative;
+      padding: var(--sp-5);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      background:
+        radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--dp-ac) 20%, transparent), transparent 62%),
+        var(--raised);
+      overflow: hidden;
+    }
+    .dp-body .ao-hero-top { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-4); }
+    .dp-body .ao-hero-main { min-width: 0; }
+    .dp-body .ao-hero-num {
+      display: block;
+      margin: 4px 0 2px;
+      font-family: var(--font-display);
+      font-size: 3.1rem;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.03em;
+      font-variant-numeric: tabular-nums;
+      background: linear-gradient(180deg, var(--text) 30%, color-mix(in srgb, var(--dp-ac) 75%, var(--text)));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .dp-body .ao-hero-sub { font-size: var(--fs-sm); color: var(--text2); }
+
+    /* All-time rank as a medal; tone by rank (gold 1, silver 2–3, bronze 4–10) */
+    .dp-body .ao-rank { --tone: var(--dp-ac); display: flex; flex-direction: column; align-items: center; gap: 6px; flex-shrink: 0; max-width: 128px; text-align: center; }
+    .dp-body .ao-rank--gold { --tone: var(--medal-gold); }
+    .dp-body .ao-rank--silver { --tone: var(--medal-silver); }
+    .dp-body .ao-rank--bronze { --tone: var(--medal-bronze); }
+    .dp-body .ao-rank--none { --tone: var(--text3); }
+    .dp-body .ao-rank-ring {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 84px;
+      height: 84px;
+      border-radius: 50%;
+      border: 2px solid color-mix(in srgb, var(--tone) 70%, transparent);
+      background: radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--tone) 24%, transparent), color-mix(in srgb, var(--tone) 6%, transparent) 70%);
+      box-shadow: 0 0 0 5px color-mix(in srgb, var(--tone) 10%, transparent), 0 10px 26px -12px var(--tone);
+      color: var(--tone);
+    }
+    .dp-body .ao-rank-ring svg { width: 16px; height: 16px; margin-bottom: 1px; }
+    .dp-body .ao-rank-num { font-family: var(--font-display); font-size: 1.55rem; font-weight: 800; line-height: 1; color: var(--text); }
+    .dp-body .ao-rank-lbl { font-size: 0.68rem; line-height: 1.3; color: var(--text2); }
+
+    /* First → last played, with the share of those days that had a play */
+    .dp-body .ao-span { margin-top: var(--sp-5); }
+    .dp-body .ao-span-ends { display: flex; justify-content: space-between; gap: var(--sp-3); margin-bottom: 8px; }
+    .dp-body .ao-span-ends b { font-size: var(--fs-sm); color: var(--text); font-weight: 600; }
+    .dp-body .ao-span-r { text-align: right; }
+    .dp-body .ao-span-track { height: 8px; border-radius: 8px; background: color-mix(in srgb, var(--text) 9%, transparent); overflow: hidden; }
+    .dp-body .ao-span-fill {
+      display: block;
+      height: 100%;
+      min-width: 6px;
+      border-radius: inherit;
+      background: linear-gradient(90deg, color-mix(in srgb, var(--dp-ac) 55%, transparent), var(--dp-ac));
+      transform-origin: left;
+      animation: aoGrow 0.9s var(--ease) both;
+    }
+    @keyframes aoGrow { from { transform: scaleX(0); } }
+    .dp-body .ao-span-cap { margin-top: 6px; font-size: var(--fs-xs); color: var(--text3); }
+    .dp-body .ao-span-cap b { color: var(--text); }
+
+    /* Songs · albums · average: centred, coloured numbers, thin dividers */
+    .dp-body .ao-trio {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      margin-top: var(--sp-5);
+      padding-top: var(--sp-4);
+      border-top: 1px solid var(--border);
+    }
+    .dp-body .ao-trio-cell { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 2px; padding: 0 var(--sp-2); }
+    .dp-body .ao-trio-cell + .ao-trio-cell { border-left: 1px solid var(--border); }
+    .dp-body .ao-trio-val { font-family: var(--font-display); font-size: 1.6rem; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; }
+    .dp-body .ao-trio-lbl { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text3); line-height: 1.3; }
+    .dp-body .ao-tone-songs .ao-trio-val { color: var(--violet); }
+    .dp-body .ao-tone-albums .ao-trio-val { color: var(--ao-diamond); }
+    .dp-body .ao-tone-avg .ao-trio-val { color: var(--dp-ac); }
+
+    /* Favourites */
+    .dp-body .ao-favs { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-2); margin-top: var(--sp-3); }
+    .dp-body .ao-fav {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-3);
+      min-width: 0;
+      padding: var(--sp-3);
+      font: inherit;
+      text-align: left;
+      color: var(--text);
+      background: var(--raised);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      cursor: pointer;
+      transition: border-color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+    }
+    .dp-body .ao-fav:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--dp-ac) 45%, var(--border)); box-shadow: var(--shadow-2); }
+    .dp-body .ao-fav-art {
+      position: relative;
+      flex-shrink: 0;
+      width: 58px;
+      height: 58px;
+      border-radius: var(--r-sm);
+      overflow: hidden;
+      background: color-mix(in srgb, var(--dp-ac) 18%, var(--bg3));
+      box-shadow: var(--shadow-1);
+    }
+    .dp-body .ao-fav-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .dp-body .ao-fav-art .thumb-initials { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--text2); }
+    .dp-body .ao-fav-txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+    .dp-body .ao-fav-name { font-weight: 700; font-size: var(--fs-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .dp-body .ao-fav-meta { font-size: var(--fs-xs); color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .dp-body .ao-fav-meta b { color: var(--text2); }
+    .dp-body .ao-meter { display: block; height: 3px; margin-top: 4px; border-radius: 3px; background: color-mix(in srgb, var(--text) 9%, transparent); overflow: hidden; }
+    .dp-body .ao-meter > span { display: block; height: 100%; border-radius: inherit; background: var(--dp-ac); transform-origin: left; animation: aoGrow 0.9s var(--ease) both; }
+    .dp-body .ao-fav-go { flex-shrink: 0; color: var(--text3); transition: transform var(--t-fast) var(--ease), color var(--t-fast) var(--ease); }
+    .dp-body .ao-fav-go svg { width: 16px; height: 16px; display: block; }
+    .dp-body .ao-fav:hover .ao-fav-go { color: var(--dp-ac); transform: translateX(2px); }
+
+    /* Listening habits */
+    .dp-body .ao-head { margin: var(--sp-5) 0 var(--sp-2); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); }
+    /* five in one row: the icon sits above the number so each card is narrow */
+    .dp-body .ao-habits { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--sp-2); }
+    .dp-body .ao-habit {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--sp-2);
+      min-width: 0;
+      padding: var(--sp-3);
+      background: var(--raised);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      transition: border-color var(--t-fast) var(--ease);
+    }
+    .dp-body .ao-habit:hover { border-color: var(--border2); }
+    .dp-body .ao-habit-ico {
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: var(--r-sm);
+      background: color-mix(in srgb, var(--dp-ac) 15%, transparent);
+      color: var(--dp-ac);
+    }
+    .dp-body .ao-habit-ico svg { width: 17px; height: 17px; }
+    .dp-body .ao-habit-txt { display: flex; flex-direction: column; min-width: 0; }
+    .dp-body .ao-habit-val { font-family: var(--font-display); font-size: 1.3rem; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; color: var(--text); }
+    .dp-body .ao-habit-lbl { font-size: var(--fs-xs); color: var(--text2); line-height: 1.3; }
+    .dp-body .ao-habit-cap { margin-top: 2px; font-size: 0.66rem; color: var(--text3); }
+
+    /* Achievements: Grand Slam banner, filter chips, badges, drawer */
+    .dp-body #modalAccomplishments { border: 0; border-radius: 0; overflow: visible; }
+    .dp-body .ao-slam {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--sp-2);
+      font-weight: 700;
+      font-size: var(--fs-sm);
+      color: var(--medal-gold);
+      border: 1px solid color-mix(in srgb, var(--medal-gold) 40%, transparent);
+      border-radius: var(--r-md);
+      padding: 0.7rem var(--sp-4);
+    }
+    .dp-body .ao-slam-ico svg { width: 18px; height: 18px; display: block; }
+
+    .dp-body .ao-tro-bar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: var(--sp-3); }
+    .dp-body .ao-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      font: inherit;
+      font-size: var(--fs-xs);
+      font-weight: 600;
+      color: var(--text2);
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      cursor: pointer;
+      transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+    }
+    .dp-body .ao-chip:hover { background: var(--hover); color: var(--text); }
+    .dp-body .ao-chip.is-on { color: var(--text); background: color-mix(in srgb, var(--dp-ac) 16%, transparent); border-color: color-mix(in srgb, var(--dp-ac) 50%, var(--border)); }
+    .dp-body .ao-chip-n { font-size: 0.66rem; padding: 0 5px; border-radius: 4px; background: color-mix(in srgb, var(--text) 10%, transparent); font-variant-numeric: tabular-nums; }
+    .dp-body .ao-tro[data-filter="chart"] .ao-badge[data-group="cert"],
+    .dp-body .ao-tro[data-filter="cert"] .ao-badge[data-group="chart"] { display: none; }
+
+    .dp-body .ao-tro-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); gap: var(--sp-2); }
+    .dp-body .ao-badge, .dp-body .ao-drawer { --tone: var(--dp-ac); }
+    .dp-body .ao-badge--debut,   .dp-body .ao-drawer--debut   { --tone: var(--violet); }
+    .dp-body .ao-badge--diamond, .dp-body .ao-drawer--diamond { --tone: var(--ao-diamond); }
+    .dp-body .ao-badge--plat,    .dp-body .ao-drawer--plat    { --tone: var(--medal-silver); }
+    .dp-body .ao-badge--gold,    .dp-body .ao-drawer--gold    { --tone: var(--medal-gold); }
+    .dp-body .ao-badge {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 1px;
+      min-width: 0;
+      padding: var(--sp-4) var(--sp-2) var(--sp-3);
+      font: inherit;
+      color: var(--text);
+      background:
+        radial-gradient(120% 70% at 50% 0%, color-mix(in srgb, var(--tone) 17%, transparent), transparent 72%),
+        var(--raised);
+      border: 1px solid color-mix(in srgb, var(--tone) 26%, var(--border));
+      border-radius: var(--r-md);
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+    }
+    /* a sheen that sweeps across on hover */
+    .dp-body .ao-badge::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(115deg, transparent 35%, color-mix(in srgb, var(--tone) 22%, transparent) 50%, transparent 65%);
+      transform: translateX(-110%);
+      transition: transform 0.7s var(--ease);
+      pointer-events: none;
+    }
+    .dp-body .ao-badge:not([aria-disabled]):hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--tone) 60%, var(--border)); box-shadow: 0 10px 24px -14px var(--tone); }
+    .dp-body .ao-badge:not([aria-disabled]):hover::after { transform: translateX(110%); }
+    .dp-body .ao-badge.is-open { border-color: var(--tone); box-shadow: 0 0 0 1px var(--tone), 0 10px 24px -14px var(--tone); }
+    .dp-body .ao-badge[aria-disabled] { cursor: default; }
+    .dp-body .ao-badge-ico {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      margin-bottom: 6px;
+      border-radius: 50%;
+      color: var(--tone);
+      background: color-mix(in srgb, var(--tone) 17%, transparent);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tone) 30%, transparent);
+    }
+    .dp-body .ao-badge-ico svg { width: 18px; height: 18px; }
+    .dp-body .ao-badge-tag { font-size: 0.62rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--tone); }
+    .dp-body .ao-badge-val { font-family: var(--font-display); font-size: 1.85rem; font-weight: 800; line-height: 1.05; font-variant-numeric: tabular-nums; }
+    .dp-body .ao-badge-lbl { font-size: var(--fs-xs); color: var(--text2); line-height: 1.25; }
+    .dp-body .ao-badge-sub { margin-top: 2px; font-size: 0.66rem; color: var(--text3); }
+
+    .dp-body .ao-drawer {
+      margin-top: var(--sp-2);
+      background: var(--raised);
+      border: 1px solid color-mix(in srgb, var(--tone) 45%, var(--border));
+      border-radius: var(--r-md);
+      overflow: hidden;
+    }
+    .dp-body .ao-drawer.ao-in { animation: dpTabIn 0.22s var(--ease); }
+    .dp-body .ao-drawer-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--sp-3);
+      padding: 10px var(--sp-3) 10px var(--sp-4);
+      background: color-mix(in srgb, var(--tone) 10%, transparent);
+      border-bottom: 1px solid var(--border);
+    }
+    .dp-body .ao-drawer-title { font-size: var(--fs-sm); color: var(--text2); }
+    .dp-body .ao-drawer-title b { font-family: var(--font-display); font-size: 1.05rem; color: var(--text); }
+    .dp-body .ao-drawer-tag { display: block; font-size: 0.66rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--tone); }
+    .dp-body .ao-drawer-list { max-height: 340px; overflow-y: auto; }
+    .dp-body .ao-row {
+      display: grid;
+      grid-template-columns: 22px 1fr auto 16px;
+      align-items: center;
+      gap: var(--sp-3);
+      width: 100%;
+      padding: 9px var(--sp-3) 9px var(--sp-4);
+      font: inherit;
+      text-align: left;
+      color: var(--text);
+      background: none;
+      border: 0;
+      border-top: 1px solid var(--border);
+      cursor: pointer;
+      transition: background var(--t-fast) var(--ease);
+    }
+    .dp-body .ao-row:first-child { border-top: 0; }
+    .dp-body .ao-row:hover { background: var(--hover); }
+    .dp-body .ao-row-n { font-size: var(--fs-xs); color: var(--text3); font-variant-numeric: tabular-nums; }
+    .dp-body .ao-row-name { min-width: 0; font-size: var(--fs-sm); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .dp-body .ao-row-name small,
+    .dp-body .ao-row-meta small { display: block; font-size: 0.68rem; font-weight: 400; color: var(--text3); overflow: hidden; text-overflow: ellipsis; }
+    .dp-body .ao-row-meta { text-align: right; font-size: var(--fs-xs); color: var(--text3); white-space: nowrap; }
+    .dp-body .ao-row-meta b { color: var(--text2); }
+    .dp-body .ao-row-go { color: var(--text3); transition: transform var(--t-fast) var(--ease), color var(--t-fast) var(--ease); }
+    .dp-body .ao-row-go svg { width: 14px; height: 14px; display: block; }
+    .dp-body .ao-row:hover .ao-row-go { color: var(--tone); transform: translateX(2px); }
+    .dp-body .ao-tro-hint { margin-top: var(--sp-2); font-size: var(--fs-xs); color: var(--text3); text-align: center; }
+    .dp-body .ao-tro:has(.ao-badge.is-open) .ao-tro-hint { display: none; }
+    .dp-body .ao-empty { padding: var(--sp-2) 0; font-size: var(--fs-sm); font-style: italic; color: var(--text3); }
+
+    /* Ratings card: opens the Ratings tab */
+    .dp-body .ao-rate {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-4);
+      padding: var(--sp-4);
+      background: var(--raised);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      cursor: pointer;
+      transition: border-color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+    }
+    .dp-body .ao-rate:hover { border-color: color-mix(in srgb, var(--dp-ac) 45%, var(--border)); transform: translateY(-1px); }
+    .dp-body .ao-rate .rt-ring { flex-shrink: 0; }
+    /* the verdict is written beside the ring, so not again under it; the
+       score sized to fit the smaller ring */
+    .dp-body .ao-rate .rt-ring-band { display: none; }
+    .dp-body .ao-rate .rt-ring-score { font-size: 1.25rem; line-height: 1; }
+    .dp-body .ao-rate .rt-ring-max { font-size: 0.58rem; }
+    .dp-body .ao-rate-txt { flex: 1; min-width: 0; }
+    .dp-body .ao-rate-verdict { font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; }
+    .dp-body .ao-rate-sub { font-size: var(--fs-xs); color: var(--text3); }
+    .dp-body .ao-rate-nums { display: flex; flex-wrap: wrap; gap: 4px var(--sp-5); margin-top: 6px; }
+    .dp-body .ao-rate-num { display: flex; flex-direction: column; font-size: 0.68rem; color: var(--text3); }
+    .dp-body .ao-rate-num b { font-family: var(--font-display); font-size: 1.05rem; color: var(--text); }
+    .dp-body .ao-rate-go { display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0; font-size: var(--fs-xs); font-weight: 600; color: var(--text2); }
+    .dp-body .ao-rate-go svg { width: 14px; height: 14px; }
+    .dp-body .ao-rate:hover .ao-rate-go { color: var(--dp-ac); }
+
+    @media (max-width: 640px) {
+      .dp-body .ao-hero { padding: var(--sp-4); }
+      .dp-body .ao-hero-num { font-size: 2.4rem; }
+      .dp-body .ao-rank-ring { width: 68px; height: 68px; }
+      .dp-body .ao-rank-num { font-size: 1.25rem; }
+      .dp-body .ao-trio-val { font-size: 1.3rem; }
+      .dp-body .ao-favs { grid-template-columns: 1fr; }
+      .dp-body .ao-habits { grid-template-columns: repeat(2, 1fr); }
+      .dp-body .ao-habit:last-child:nth-child(odd) { grid-column: 1 / -1; }
+      .dp-body .ao-tro-grid { grid-template-columns: repeat(2, 1fr); }
+      .dp-body .ao-rate-go > span { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .dp-body .ao-span-fill, .dp-body .ao-meter > span { animation: none; }
+      .dp-body .ao-badge::after { display: none; }
+    }
+
     @media (max-width: 640px) {
       .dp-body .modal-stats-strip { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); }
       .dp-body .dp-statlist { grid-template-columns: repeat(2, 1fr); }

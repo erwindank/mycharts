@@ -21,7 +21,9 @@
   var KINDS = {
     song:   { overlay: 'songModal',   img: 'songModalImg',   fn: 'openSongModal',   tabs: ['overview', 'charts', 'listening', 'awards'] },
     album:  { overlay: 'albumModal',  img: 'albumModalImg',  fn: 'openAlbumModal',  tabs: ['overview', 'tracks', 'charts', 'listening', 'rating'] },
-    artist: { overlay: 'artistModal', img: 'modalArtistImg', fn: 'openArtistModal', tabs: ['overview', 'music', 'charts', 'listening', 'awards'] }
+    // 'rating' holds the artist's full ratings since 2026-10-27 (the
+    // Overview keeps a short card that opens it)
+    artist: { overlay: 'artistModal', img: 'modalArtistImg', fn: 'openArtistModal', tabs: ['overview', 'music', 'charts', 'listening', 'rating', 'awards'] }
   };
 
   var hist = [];        // where ← back goes: [{ kind, arg, tab, scroll }]
@@ -282,7 +284,7 @@
   /* ── The big numbers count up as the window opens ─────────────────────── */
   function countUp(o) {
     if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    o.querySelectorAll('.dp-statlist > .modal-stat:nth-child(-n+8) .sv, .mrc-rank').forEach(function (el) {
+    o.querySelectorAll('.dp-statlist > .modal-stat:nth-child(-n+8) .sv, .mrc-rank, .ao-count').forEach(function (el) {
       var node = el.firstChild;
       if (!node || node.nodeType !== 3 || el.childNodes.length !== 1) return;
       var txt = node.nodeValue, m = txt.trim().match(/^(#?)(\d[\d.,\s]*)$/);
@@ -430,6 +432,11 @@
     if (bk) bk.hidden = !hist.length;
   }
   window.dcPanelBack = back;
+  // Opens one tab of an open panel (the artist Overview's ratings card → Ratings)
+  window.dcPanelShowTab = function (kind, tab) {
+    var o = overlayOf(kind);
+    if (o && o.querySelector('.dp-tab[data-tab="' + tab + '"]')) showTab(kind, o, tab);
+  };
 
   /* ── The header turns solid once it has scrolled away ────────────────── */
   function onScroll(e) {
