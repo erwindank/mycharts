@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 357;
+const DC_CL_I18N_V = 358;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-28', t: 'design', a: 'ui', h: 'b780184',
+    title: "A clearer Music tab in artist details",
+    detail: "The Music tab of an artist's details was eight closed drop-downs of tables. Now it shows one list at a time: pick Songs or Albums, then the All-time, Yearly, Monthly or Weekly chart, each with how many made it. A line says what the list is, and a summary shows how many there are, how many reached #1 and the Top 10, and their plays or time on the chart. Search the list or sort it by chart rank, most played, recently played or A–Z. Each row has artwork, its best rank as a gold, silver or bronze badge, its certification and a plays bar, with the chart facts as small labels under the name; Best week takes you to that chart. Tap a row to open the song or album, or the arrow for its chart run or play history." },
   { d: '2026-10-27', t: 'design', a: 'ui', h: '9963187',
     title: "A livelier artist Overview with badges you can open",
     detail: "The Overview of an artist's details was fourteen tiles that all looked the same. Now it starts with one headline card: total plays and what share of all your plays they are, the artist's all-time rank as a gold, silver or bronze medal, a bar from the first play to the last showing how many of those days you played them, and songs, albums and average plays per song. Under it, their most played song and album as cards with artwork that open their own details, then your listening habits with dates (longest streak, best day). Chart Accomplishments are now badges (#1s, Diamond, Platinum, Gold) that you can filter and tap: each opens a list of what earned it, and every song, album or week in it opens too. The long ratings lists have moved to a new Rating tab; the Overview keeps a short ratings card that takes you there." },
