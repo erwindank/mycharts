@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "A livelier artist Overview with badges you can open":
+    ["Un Resumen de artista más vivo, con insignias que se abren",
+     "El Resumen en los detalles de un artista eran catorce casillas iguales. Ahora empieza con una tarjeta principal: las escuchas totales y qué parte de todas tus escuchas son, el puesto histórico del artista como medalla de oro, plata o bronce, una barra desde la primera escucha hasta la última que muestra cuántos de esos días lo escuchaste, y canciones, álbumes y escuchas medias por canción. Debajo, su canción y su álbum más escuchados como tarjetas con portada que abren sus propios detalles, y luego tus hábitos de escucha con fechas (racha más larga, mejor día). Los Logros en el Ranking son ahora insignias (n.º 1, Diamante, Platino, Oro) que puedes filtrar y tocar: cada una abre la lista de lo que la consiguió, y cada canción, álbum o semana de esa lista también se abre. Las listas largas de puntuaciones están ahora en una pestaña Puntuación nueva; el Resumen guarda una tarjeta corta que te lleva allí."],
   "Bubbling Under summary and all-time goals within reach":
     ["Resumen en Aspirantes y metas históricas a tu alcance",
      "El Recorrido en Aspirantes tiene ahora el mismo resumen que el Recorrido en el Ranking: una frase que lo cuenta (dónde entró a Aspirantes, su mejor puesto y a cuánto equivale en general, y su paso por el Ranking), una fila de números que puedes tocar para resaltar las semanas en A1, A1–3 o A1–5, y los próximos hitos debajo de las casillas. Si está en Aspirantes esta semana, la primera meta dice cuántas escuchas le faltan para entrar al Top 10. En los dos recorridos, la meta histórica es ahora el siguiente escalón desde donde está (Top 5000, 1000, 500, 100, 50, 10, etc.) en lugar de siempre el Top 10, y el #1 histórico solo aparece cuando ya está en el Top 10."],

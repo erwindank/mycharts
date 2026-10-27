@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "A livelier artist Overview with badges you can open":
+    ["Uma Vista geral de artista mais viva, com selos que se abrem",
+     "A Vista geral nos detalhes de um artista eram catorze quadros iguais. Agora começa com um cartão principal: o total de reproduções e que parte são de todas as tuas reproduções, a posição histórica do artista como medalha de ouro, prata ou bronze, uma barra da primeira à última reprodução que mostra em quantos desses dias o ouviste, e músicas, álbuns e média de reproduções por música. Por baixo, a música e o álbum mais ouvidos em cartões com capa que abrem os próprios detalhes, e depois os teus hábitos de audição com datas (maior sequência, melhor dia). As Conquistas no Top são agora selos (n.º 1, Diamante, Platina, Ouro) que podes filtrar e tocar: cada um abre a lista do que o conquistou, e cada música, álbum ou semana dessa lista também abre. As listas longas de avaliações passaram para um novo separador Avaliação; a Vista geral mantém um cartão curto que leva até lá."],
   "Bubbling Under summary and all-time goals within reach":
     ["Resumo nos Aspirantes e metas de sempre ao seu alcance",
      "A trajetória nos Aspirantes tem agora o mesmo resumo da trajetória no Top: uma frase que a conta (onde entrou nos Aspirantes, a melhor posição e a quanto equivale no geral, e a passagem pelo Top), uma linha de números que pode tocar para destacar as semanas em A1, A1–3 ou A1–5, e os próximos marcos por baixo dos quadrados. Se estiver nos Aspirantes esta semana, a primeira meta diz quantos plays faltam para entrar no Top 10. Nas duas trajetórias, a meta de sempre é agora o degrau seguinte a partir de onde está (Top 5000, 1000, 500, 100, 50, 10, etc.) em vez de sempre o Top 10, e o #1 de sempre só aparece quando já está no Top 10."],

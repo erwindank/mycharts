@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 356;
+const DC_CL_I18N_V = 357;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-27', t: 'design', a: 'ui', h: '9963187',
+    title: "A livelier artist Overview with badges you can open",
+    detail: "The Overview of an artist's details was fourteen tiles that all looked the same. Now it starts with one headline card: total plays and what share of all your plays they are, the artist's all-time rank as a gold, silver or bronze medal, a bar from the first play to the last showing how many of those days you played them, and songs, albums and average plays per song. Under it, their most played song and album as cards with artwork that open their own details, then your listening habits with dates (longest streak, best day). Chart Accomplishments are now badges (#1s, Diamond, Platinum, Gold) that you can filter and tap: each opens a list of what earned it, and every song, album or week in it opens too. The long ratings lists have moved to a new Rating tab; the Overview keeps a short ratings card that takes you there." },
   { d: '2026-10-26', t: 'feature', a: 'charts', h: '48ad3be',
     title: "Bubbling Under summary and all-time goals within reach",
     detail: "The Bubbling Under run now has the same summary as the chart run: one sentence that tells it (where it first bubbled under, its best spot and what that equals overall, and its record on the chart), a row of counts you can tap to highlight weeks at BU1, BU1–3 or BU1–5, and the next milestones under the boxes. When an entry is bubbling under this week, the first goal says how many plays it needs to make the Top 10. In both runs, the all-time goal is now the next step up from where an entry sits (Top 5000, 1000, 500, 100, 50, 10 and so on) instead of always the Top 10, and #1 all-time only appears once an entry is in the Top 10." },

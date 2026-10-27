@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "A livelier artist Overview with badges you can open":
+    ["Uma Visão geral de artista mais viva, com selos que se abrem",
+     "A Visão geral nos detalhes de um artista eram catorze quadros iguais. Agora ela começa com um cartão principal: o total de plays e quanto isso representa de todos os seus plays, a posição histórica do artista como medalha de ouro, prata ou bronze, uma barra do primeiro ao último play mostrando em quantos desses dias você ouviu, e músicas, álbuns e média de plays por música. Embaixo, a música e o álbum mais ouvidos em cartões com capa que abrem os próprios detalhes, e depois seus hábitos de escuta com datas (maior sequência, melhor dia). As Conquistas na Parada agora são selos (nº 1, Diamante, Platina, Ouro) que você pode filtrar e tocar: cada um abre a lista do que o conquistou, e cada música, álbum ou semana dessa lista também abre. As listas longas de avaliações foram para uma nova aba Avaliação; a Visão geral mantém um cartão curto que leva até lá."],
   "Bubbling Under summary and all-time goals within reach":
     ["Resumo nos Aspirantes e metas do histórico ao seu alcance",
      "A trajetória nos Aspirantes agora tem o mesmo resumo da trajetória na parada: uma frase que a conta (onde entrou nos Aspirantes, a melhor posição e a quanto ela equivale no geral, e a passagem pela parada), uma linha de números que você pode tocar para destacar as semanas em A1, A1–3 ou A1–5, e os próximos marcos abaixo dos quadrinhos. Se estiver nos Aspirantes esta semana, a primeira meta diz quantos plays faltam para entrar no Top 10. Nas duas trajetórias, a meta do histórico agora é o próximo degrau a partir de onde está (Top 5000, 1000, 500, 100, 50, 10 etc.) em vez de sempre o Top 10, e o #1 do histórico só aparece quando já está no Top 10."],
