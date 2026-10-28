@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Single, then album: just Both and Album only":
+    ["Sencillo, luego álbum: solo Los dos y Solo álbum",
+     "La opción Solo sencillo ya no está en la ventana Sencillo, luego álbum. Una cara B o una versión de radio sale con el nombre de su propio sencillo, así que nunca lleva el nombre del álbum y nunca aparecía en esa lista. Ahora cada canción es Los dos (cuenta para el sencillo hasta que empieza el álbum y después para el álbum) o Solo álbum. Las canciones que tenías en Solo sencillo cuentan ahora como Los dos, así que nada pasa al álbum."],
   "A clearer \"Single, then album\" window":
     ["Una ventana \"Sencillo, luego álbum\" más clara",
      "La explicación de arriba de la ventana Sencillo, luego álbum es más fácil de seguir. Ahora dice por qué hace falta separarlos y luego tiene una línea por cada opción de los interruptores de canciones (Solo sencillo, Los dos y Solo álbum), con los mismos nombres que los botones, que dice dónde está la canción y para qué cuentan sus reproducciones."],

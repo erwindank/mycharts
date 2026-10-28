@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Single, then album: just Both and Album only":
+    ["Single, depois álbum: só Os dois e Só álbum",
+     "A opção Só single saiu da janela Single, depois álbum. Um lado B ou uma versão de rádio sai com o nome do próprio single, então nunca leva o nome do álbum e nunca aparecia nessa lista. Agora cada música é Os dois (conta para o single até o álbum começar e depois para o álbum) ou Só álbum. As músicas que estavam em Só single agora contam como Os dois, então nada passa para o álbum."],
   "A clearer \"Single, then album\" window":
     ["Uma janela \"Single, depois álbum\" mais clara",
      "A explicação no topo da janela Single, depois álbum ficou mais fácil de entender. Agora ela diz por que a divisão é necessária e depois tem uma linha para cada opção dos seletores de músicas (Só single, Os dois e Só álbum), com os mesmos nomes dos botões, dizendo onde a música está e para o que os plays dela contam."],

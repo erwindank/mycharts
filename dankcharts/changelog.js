@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 360;
+const DC_CL_I18N_V = 361;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-28', t: 'change', a: 'charts', h: 'b597196',
+    title: "Single, then album: just Both and Album only",
+    detail: "The Single only choice is gone from the Single, then album window. A B-side or radio edit comes out under its own single's name, so it never carries the album's name and never showed up in that list. Each song is now Both (counts for the single until the album starts, then for the album) or Album only. Songs you had set to Single only now count as Both, so nothing moves to the album." },
   { d: '2026-10-28', t: 'design', a: 'charts', h: 'e6cd230',
     title: "A clearer \"Single, then album\" window",
     detail: "The explanation at the top of the Single, then album window is easier to follow. It now says why the split is needed, then has one line for each choice in the song switches - Single only, Both and Album only - with the same names as the buttons, saying where the song is and what its plays count for." },
