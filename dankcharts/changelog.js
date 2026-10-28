@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 358;
+const DC_CL_I18N_V = 359;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,24 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-28', t: 'feature', a: 'charts', h: '0c1e41b',
+    title: "Singles that share their album's name",
+    detail: "A lead single often has the same name as its album, and a play only records the album name, so marking it a single turned the whole album into one, and marking it an album started the album's chart run on the day you first played the single. Now there is a new release type, Single, then album. It lists every song you played under that name and you sort each one: Single only (B-sides, remixes, edits), Both (the title song) or Album only. Songs only on the single always count for the single; songs on both count for the single until the album starts and for the album after; the rest count for the album. The album starts on the first day you played an album-only song, or on a date you set. The site makes the first guess from the tracklists on Deezer. The single then shows as its own release (\"Lover - Single\") on the charts, so with singles set Apart each one charts on its own. Pick it from Release type on an album page, or tap \"Shares its name with an album?\" on a single with four or more songs. Works for Last.fm, Google Sheets and CSV, and your sheet and files keep the real album name." },
+  { d: '2026-10-28', t: 'design', a: 'ratings', h: '49f1dc8',
+    title: "A clearer Rating tab in artist details",
+    detail: "The Rating tab of an artist's details was one long column. Now it opens with your verdict: a large score ring, what it averages, and bars for how many of their albums, singles and songs you have rated, with the Share card button. Next up shows their most played album without a score, one tap to rate it. Highest and lowest rated album and song sit side by side and open their rating. A spread shows how your scores fall across the seven verdicts; tap one to list only those. Below, switch between Albums, Singles, Songs and To rate, with search, sorting and Show all. Tap a row to edit its rating, or the arrow to open its page." },
+  { d: '2026-10-28', t: 'change', a: 'ratings', h: 'c3c563d',
+    title: "Singles and EPs rated apart from albums",
+    detail: "Ratings now follow what a release is, like certifications do: a single or EP no longer counts as an album, whether or not singles are set Apart in the charts. So an artist's verdict, their highest rated album and the rating records are about albums, and a 10.0 single no longer tops them. Singles get their own Highest rated single / EP record, and the artist share card still shows them behind its own switch. A release that looks like a single (a \" - Single\" title, Deezer's type, or a tracklist of three songs or fewer) is treated as one in ratings until you say otherwise." },
+  { d: '2026-10-28', t: 'feature', a: 'ui', h: '50b0229',
+    title: "Change cover art from an artist's Music tab",
+    detail: "Each cover in the Music tab of an artist's details now has the ✎ button, so you can pick different artwork right from the list, as you can on the charts and in Records." },
+  { d: '2026-10-28', t: 'feature', a: 'charts', h: 'b627c31',
+    title: "See an album's songs from the album charts",
+    detail: "Tap the Tracks count on the album charts to see the album's songs you played in that period, most played first. Each one has a ▶ sample and Spotify, Google and YouTube searches." },
+  { d: '2026-10-28', t: 'feature', a: 'charts', h: '1ce994a',
+    title: "Names on the charts open their details",
+    detail: "On the song and album charts, tap a song or album name to open its details, and an artist name to open the artist." },
   { d: '2026-10-28', t: 'design', a: 'ui', h: 'b780184',
     title: "A clearer Music tab in artist details",
     detail: "The Music tab of an artist's details was eight closed drop-downs of tables. Now it shows one list at a time: pick Songs or Albums, then the All-time, Yearly, Monthly or Weekly chart, each with how many made it. A line says what the list is, and a summary shows how many there are, how many reached #1 and the Top 10, and their plays or time on the chart. Search the list or sort it by chart rank, most played, recently played or A–Z. Each row has artwork, its best rank as a gold, silver or bronze badge, its certification and a plays bar, with the chart facts as small labels under the name; Best week takes you to that chart. Tap a row to open the song or album, or the arrow for its chart run or play history." },

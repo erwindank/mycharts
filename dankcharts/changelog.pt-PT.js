@@ -13,6 +13,24 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Singles that share their album's name":
+    ["Singles com o mesmo nome do álbum",
+     "Um single principal tem muitas vezes o mesmo nome do álbum, e uma reprodução só guarda o nome do álbum, por isso marcá-lo como single transformava o álbum inteiro num single, e marcá-lo como álbum fazia o percurso do álbum começar no dia em que ouviste o single pela primeira vez. Agora há um novo tipo de lançamento: Single, depois álbum. Mostra cada música que ouviste com esse nome e escolhes para cada uma: Só single (lados B, remisturas, edições), Os dois (a faixa-título) ou Só álbum. As músicas que só estão no single contam sempre para o single; as que estão nos dois contam para o single até o álbum começar e depois para o álbum; o resto conta para o álbum. O álbum começa no primeiro dia em que ouviste uma música que só está no álbum, ou numa data que escolheres. O site faz o primeiro palpite com as listas de faixas do Deezer. O single aparece então como lançamento próprio (\"Lover - Single\") nas tabelas, por isso com os singles À parte cada um entra por si. Escolhe em Tipo de lançamento na página de um álbum, ou toca em \"Tem o mesmo nome de um álbum?\" num single com quatro músicas ou mais. Funciona com Last.fm, Google Sheets e CSV, e a tua folha e os teus ficheiros mantêm o nome real do álbum."],
+  "A clearer Rating tab in artist details":
+    ["Uma aba Avaliação mais clara nos detalhes do artista",
+     "A aba Avaliação nos detalhes de um artista era uma coluna longa. Agora começa com o teu veredicto: um anel grande com a nota, de que é a média e barras de quantos álbuns, singles e músicas já avaliaste, com o botão do cartão para partilhar. A seguir mostra o álbum mais ouvido ainda sem nota, a um toque de avaliar. O álbum e a música com a nota mais alta e mais baixa ficam lado a lado e abrem a avaliação. Uma distribuição mostra como as tuas notas se repartem pelos sete veredictos; toca num para listar só esses. Em baixo, alterna entre Álbuns, Singles, Músicas e Por avaliar, com pesquisa, ordenação e Mostrar tudo. Toca numa linha para editar a nota, ou na seta para abrir a página."],
+  "Singles and EPs rated apart from albums":
+    ["Singles e EPs avaliados à parte dos álbuns",
+     "As avaliações seguem agora o que um lançamento é, como as certificações: um single ou EP já não conta como álbum, estejam ou não os singles À parte nas tabelas. Assim, o veredicto de um artista, o álbum com a nota mais alta e os recordes de avaliação falam de álbuns, e um single com 10.0 já não fica no topo. Os singles têm o seu próprio recorde de Single / EP com a nota mais alta, e o cartão de partilha do artista continua a mostrá-los atrás do seu próprio interruptor. Um lançamento que parece um single (um título \" - Single\", o tipo do Deezer ou uma lista de três faixas ou menos) conta como tal nas avaliações até dizeres o contrário."],
+  "Change cover art from an artist's Music tab":
+    ["Muda capas na aba Música do artista",
+     "Cada capa na aba Música dos detalhes de um artista tem agora o botão ✎, por isso podes escolher outra imagem diretamente da lista, como nas tabelas e em Recordes."],
+  "See an album's songs from the album charts":
+    ["Vê as faixas de um álbum nas tabelas de álbuns",
+     "Toca na contagem de faixas nas tabelas de álbuns para veres as músicas do álbum que ouviste nesse período, das mais ouvidas para as menos. Cada uma tem uma amostra ▶ e pesquisas no Spotify, Google e YouTube."],
+  "Names on the charts open their details":
+    ["Os nomes nas tabelas abrem os detalhes",
+     "Nas tabelas de músicas e álbuns, toca no nome de uma música ou álbum para abrir os detalhes, e no nome de um artista para abrir o artista."],
   "A clearer Music tab in artist details":
     ["Um separador Música mais claro nos detalhes do artista",
      "O separador Música nos detalhes de um artista eram oito listas fechadas de tabelas. Agora mostra uma lista de cada vez: escolhe Músicas ou Álbuns e depois o top Histórico, Anual, Mensal ou Semanal, cada um com quantos entraram. Uma frase diz o que é a lista, e um resumo mostra quantos são, quantos chegaram ao n.º 1 e ao Top 10, e as reproduções ou o tempo no top. Procura na lista ou ordena por posição, mais ouvidos, ouvidos recentemente ou A–Z. Cada linha tem capa, a melhor posição como selo de ouro, prata ou bronze, a certificação e uma barra de reproduções, com os dados do top em etiquetas por baixo do nome; Melhor semana leva a esse top. Toca numa linha para abrir a música ou o álbum, ou na seta para ver o percurso ou o histórico de reproduções."],
