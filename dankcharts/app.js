@@ -224,7 +224,13 @@ function stampPlays(plays) {
   // library has far more plays than distinct instants-that-matter — memoise on
   // the raw timestamp so repeat dates skip the Date maths entirely.
   const byTs = new Map();
+  /* "Single, then album" releases rename their single-side plays before the
+     album key is built (see _rsApply). A library without one skips it all,
+     apart from plays a since-removed split had renamed, which go back. */
+  const rsIdx = _rsIndex();
+  const rsStarts = rsIdx.byParent.size ? _rsStartDays(plays, rsIdx) : null;
   for (const p of plays) {
+    if (rsStarts || p._rsTo !== undefined) _rsApply(p, rsIdx, rsStarts || new Map());
     p._sk = _intern(iSk, p.title.toLowerCase().trim() + '|||' + p.artist.toLowerCase().trim());
     const aa = _intern(iAa, _albumArtistRaw(p));
     p._aa = aa;
@@ -1001,8 +1007,13 @@ let _releaseEpoch = 0;
 
 // Called by the Firestore sync when the map arrives from another device.
 window.dcResetReleaseTypesCache = () => {
+  const splitsBefore = _rsSig(_rtMap());
   _releaseTypeMap = null;
   _releaseEpoch++;
+  /* A "Single, then album" release set up on another device moves plays from
+     one release to another, which only a re-stamp does (see _rsApply). Marks
+     of any other kind keep the stamps as they are. */
+  if (_rsSig(_rtMap()) !== splitsBefore) _rsRestamp();
 };
 
 // The key an album entry is filed under. Artist is the album credit — what
@@ -1028,8 +1039,12 @@ function _rtMap() {
 function releaseTypeOf(album, artist) {
   if (!album || album === '—') return 'album';
   const m = _rtMap();
-  const e = m[releaseTypeKey(album, artist)];
-  return (e && RELEASE_TYPE_IDS.includes(e.t)) ? e.t : 'album';
+  const k = releaseTypeKey(album, artist);
+  const e = m[k];
+  if (e && RELEASE_TYPE_IDS.includes(e.t)) return e.t;
+  // The single half of a "Single, then album" release is a single without
+  // needing a mark of its own (the album half's 'split' entry reads as album)
+  return _rsIndex().byChild.has(k) ? 'single' : 'album';
 }
 
 // Same question asked of a play rather than an album entry.
@@ -1040,8 +1055,11 @@ function releaseTypeOfPlay(p) {
 // Was this mark made by hand, or detected? Stage 3 needs it so re-running
 // auto-detection never overwrites a correction.
 function releaseTypeSource(album, artist) {
-  const e = _rtMap()[releaseTypeKey(album, artist)];
-  return e ? (e.s === 'auto' ? 'auto' : 'user') : null;
+  const k = releaseTypeKey(album, artist);
+  const e = _rtMap()[k];
+  if (e) return e.s === 'auto' ? 'auto' : 'user';
+  // A split's single half was decided by hand, through its album half
+  return _rsIndex().byChild.has(k) ? 'user' : null;
 }
 
 /* Writes the map and pushes it straight to Firestore with the in-memory value.
@@ -1050,9 +1068,12 @@ function releaseTypeSource(album, artist) {
    once lost. Same reasoning as _saveCompilationAlbums(). */
 function _saveReleaseTypes(map) {
   const json = JSON.stringify(map);
+  const splitsBefore = _rsSig(_rtMap());
   localStorage.setItem(RELEASE_TYPES_KEY, json);
   _releaseTypeMap = map;
   _releaseEpoch++;
+  // Only a split moves plays between releases — see _rsApply()
+  if (_rsSig(map) !== splitsBefore) _rsRestamp();
   if (typeof dcInvalidateRecords === 'function') dcInvalidateRecords();
   if (typeof dcSaveReleaseTypesToFirestore === 'function') dcSaveReleaseTypesToFirestore(json);
 }
@@ -1139,7 +1160,8 @@ function getReleaseTypeEntries() {
       key: k,
       album:  e.n || parts[1] || '',
       artist: e.a || parts[0] || '',
-      type:   RELEASE_TYPE_IDS.includes(e.t) ? e.t : 'album',
+      // 'split' = Single, then album: its own group in the manager
+      type:   e.t === 'split' ? 'split' : RELEASE_TYPE_IDS.includes(e.t) ? e.t : 'album',
       src:    e.s === 'auto' ? 'auto' : 'user'
     };
   });
@@ -1151,6 +1173,174 @@ function releaseTypeCounts() {
   const out = {};
   for (const e of getReleaseTypeEntries()) out[e.type] = (out[e.type] || 0) + 1;
   return out;
+}
+
+// ─── SINGLE, THEN ALBUM ───────────────────────────────────────
+/* A lead single that carries the album's own name ("Lover" the single, then
+   "Lover" the album). A play only records the album name, so both land on one
+   release: marking it a single turned the whole album into one, and marking it
+   an album started the album's chart run on the day the single was first
+   played.
+
+   A 'split' entry in the release-type map (same artist|||album key, so it
+   syncs with the other marks) sorts that release's songs into three groups:
+     so  only on the single (B-sides, remixes, edits): always the single
+     sb  on both (the title song): the single before the album starts, the
+         album from then on — the only plays no data source can tell apart
+     —   everything else is only on the album: always the album
+   The album starts on `d` when the user set a date, otherwise on the first
+   day a song of the third group was played — the day they really started on
+   the album rather than its release day.
+
+   Plays on the single side are renamed "<album> - Single" while the library is
+   stamped (_rsApply), so every chart, record, certification and pop-up sees two
+   releases without having to know about any of this. That is the Apple Music
+   naming, so a library that already has "Lover - Single" plays merges with it.
+   Only plays whose album name is exactly the shared one are ever looked at:
+   "Lover (Deluxe)" or "Lover (Remixes) - EP" stay their own releases.
+
+   The rename is never written back anywhere — rawAlbumOf() gives the name the
+   play really carries, for the sheet, the caches and the edit window. */
+const RS_SUFFIX = ' - Single';
+
+// Song key inside a split: the title only, since the release fixes the artist
+function rsSongKey(title) {
+  return String(title || '').toLowerCase().trim();
+}
+
+/* Built from the map once per map object — _saveReleaseTypes() and the sync
+   reset both replace it, so an identity check is the whole invalidation. */
+let _rsIdx = null, _rsIdxMap = null;
+function _rsIndex() {
+  const m = _rtMap();
+  if (_rsIdx && _rsIdxMap === m) return _rsIdx;
+  const byParent = new Map(), byChild = new Map(), names = new Set();
+  const sfx = RS_SUFFIX.toLowerCase();
+  for (const k in m) {
+    const e = m[k];
+    if (!e || e.t !== 'split') continue;
+    const i = k.indexOf('|||');
+    if (i < 0) continue;
+    const albumLc = k.slice(i + 3);
+    const info = {
+      key: k,
+      album: e.n || albumLc,
+      artist: e.a || k.slice(0, i),
+      d: typeof e.d === 'string' ? e.d : '',
+      so: new Set(Array.isArray(e.so) ? e.so : []),
+      sb: new Set(Array.isArray(e.sb) ? e.sb : [])
+    };
+    byParent.set(k, info);
+    byChild.set(k + sfx, info);
+    names.add(albumLc);
+  }
+  _rsIdx = { byParent, byChild, names };
+  _rsIdxMap = m;
+  return _rsIdx;
+}
+
+// The split a release takes part in, asked of either half; null if none
+function releaseSplitOf(album, artist) {
+  const idx = _rsIndex();
+  if (!idx.byParent.size) return null;
+  const k = releaseTypeKey(album, artist);
+  return idx.byParent.get(k) || idx.byChild.get(k) || null;
+}
+
+// What the split entries say, as one string — a change to it means plays moved
+function _rsSig(map) {
+  let out = '';
+  for (const k in map) if (map[k] && map[k].t === 'split') out += k + '\u0001' + JSON.stringify(map[k]) + '\u0002';
+  return out;
+}
+
+/* The album name a play really carries, before any split renamed it. An edit
+   that changed p.album since leaves the rename stale, and then the new name
+   is the real one. */
+function rawAlbumOf(p) {
+  return (p._rsTo !== undefined && p.album === p._rsTo) ? p._rsFrom : p.album;
+}
+
+// The album credit of a play under its raw name — what _albumArtistRaw() gives
+function _rsArtistOf(p, album) {
+  if (album && isCompilationAlbum(album)) return VARIOUS_ARTISTS;
+  return (p.artists && p.artists[0]) || p.artist;
+}
+
+/* The day each split's album starts, keyed by split. A set date wins; without
+   one it is the first day a song from neither single group was played. A split
+   whose album was never played gets '' — everything stays the single. */
+function _rsStartDays(plays, idx) {
+  const out = new Map();
+  for (const info of idx.byParent.values()) out.set(info.key, info.d || '');
+  const open = [...idx.byParent.values()].filter(info => !info.d);
+  if (!open.length) return out;
+  const want = new Set(open.map(info => info.key.slice(info.key.indexOf('|||') + 3)));
+  for (const p of plays) {
+    const a = rawAlbumOf(p);
+    if (!a || a === '—') continue;
+    const lc = a.toLowerCase().trim();
+    if (!want.has(lc)) continue;
+    const info = idx.byParent.get(releaseTypeKey(a, _rsArtistOf(p, a)));
+    if (!info || info.d) continue;
+    const sk = rsSongKey(p.title);
+    if (info.so.has(sk) || info.sb.has(sk)) continue;
+    const ds = localDateStr(tzDate(p.date));
+    const cur = out.get(info.key);
+    if (!cur || ds < cur) out.set(info.key, ds);
+  }
+  return out;
+}
+
+// Does this play of a split release belong to the single?
+function _rsIsSingleSide(info, p, startDay) {
+  const sk = rsSongKey(p.title);
+  if (info.so.has(sk)) return true;
+  if (!info.sb.has(sk)) return false;
+  if (!startDay) return true;
+  return localDateStr(tzDate(p.date)) < startDay;
+}
+
+/* Renames (or un-renames) one play. Runs inside stampPlays() before the keys
+   are built, so _ak and everything after it follow the split. */
+function _rsApply(p, idx, starts) {
+  const base = rawAlbumOf(p);
+  let single = false;
+  if (idx.byParent.size && base && base !== '—' && idx.names.has(base.toLowerCase().trim())) {
+    const info = idx.byParent.get(releaseTypeKey(base, _rsArtistOf(p, base)));
+    if (info) single = _rsIsSingleSide(info, p, starts.get(info.key));
+  }
+  if (single) {
+    const child = base + RS_SUFFIX;
+    p.album = child; p._rsFrom = base; p._rsTo = child;
+  } else if (p._rsTo !== undefined) {
+    p.album = base; p._rsFrom = undefined; p._rsTo = undefined;
+  }
+}
+
+/* After a split changed: every stamp is stale, the certification timeline
+   and first-seen maps are built from album keys, and the charts redraw. */
+function _rsRestamp() {
+  if (!allPlays.length) return;   // finalizeLoad() stamps once the data lands
+  dcInvalidatePlayStamps();
+  firstSeenMaps = null;
+  _certTimeline = null;
+  if (typeof _rollupCache !== 'undefined') _rollupCache = null;
+  stampPlays(allPlays);
+  if (typeof renderAll === 'function') renderAll();
+}
+
+/* Saves (or replaces) a split. so / sb are song keys (rsSongKey). date is
+   'YYYY-MM-DD' or '' for "the first day I played an album-only song". */
+function setReleaseSplit(album, artist, so, sb, date) {
+  const name = String(album || '').trim();
+  if (!name || name === '—') return false;
+  const map = { ..._rtMap() };
+  const e = { t: 'split', s: 'user', a: String(artist || ''), n: name, so: [...so], sb: [...sb] };
+  if (/^\d{4}-\d{2}-\d{2}$/.test(date || '')) e.d = date;
+  map[releaseTypeKey(name, artist)] = e;
+  _saveReleaseTypes(map);
+  return true;
 }
 
 // ─── RELEASE TYPE SEPARATION ──────────────────────────────────
@@ -2378,7 +2568,8 @@ function applyAutocorrectRules(plays) {
     if (!ruleMap.has(key)) ruleMap.set(key, r); // first rule wins, same as rules.find()
   }
   return plays.map(p => {
-    const rule = ruleMap.get(ruleKey(p.artist, p.title, p.album));
+    // Rules match the name the play really carries, not a split's rename
+    const rule = ruleMap.get(ruleKey(p.artist, p.title, rawAlbumOf(p)));
     if (!rule) return p;
     const artist = rule.replace.artist;
     const title  = rule.replace.title;
@@ -2387,7 +2578,7 @@ function applyAutocorrectRules(plays) {
     // rewrote the title/artist/album those keys were built from, so an inherited
     // stamp would look current while describing the pre-correction song.
     return { ...p, artist, title, album, artists: splitArtists(artist),
-      _se: 0, _corrected: true, _orig: { artist: p.artist, title: p.title, album: p.album } };
+      _se: 0, _corrected: true, _orig: { artist: p.artist, title: p.title, album: rawAlbumOf(p) } };
   });
 }
 
@@ -3143,6 +3334,14 @@ function renderRtScanPanel() {
    in front of you is still the same album. Only the chip's own state and the
    manager list need refreshing. */
 function setAlbumReleaseType(albumName, artistName, type) {
+  /* "Single, then album" needs its songs sorted before anything is saved, so
+     it opens the editor and the select goes back to what is stored. */
+  if (type === 'split') {
+    const sel = document.querySelector('#albumModalCompRow .alb-rtype-toggle select');
+    if (sel) sel.value = releaseTypeOf(albumName, artistName);
+    openReleaseSplitModal(albumName, artistName);
+    return;
+  }
   setReleaseType(albumName, artistName, type);
   renderReleaseTypesList();
   /* The chip stays lit for a pinned album as well as a typed one: choosing
@@ -3218,14 +3417,15 @@ function renderReleaseTypesList() {
   /* Pinned albums are listed last and under their own heading: they are not a
      type the chart does anything with, they are a record of "I checked, this
      is an album" — which is what keeps detection from asking again. */
-  const order = RELEASE_TYPE_IDS.filter(id => id !== 'album').concat('album');
+  // Splits sit right after the singles they half are
+  const order = ['single', 'split'].concat(RELEASE_TYPE_IDS.filter(id => id !== 'album' && id !== 'single'), 'album');
   for (const id of order) {
     const group = entries.filter(e => e.type === id);
     if (!group.length) continue;
     const hdr = id === 'album' ? t('rtype_pinned_albums') : t('rtype_' + id);
     html += `<div class="rt-group-hdr">${esc(hdr)} <span class="rt-group-n">${group.length}</span></div>`;
     for (const e of group) {
-      const opts = RELEASE_TYPE_IDS.map(o =>
+      const opts = RELEASE_TYPE_IDS.concat('split').map(o =>
         `<option value="${o}" ${o === e.type ? 'selected' : ''}>${esc(t('rtype_' + o))}</option>`
       ).join('');
       html += `<div class="rt-row">
@@ -3234,6 +3434,7 @@ function renderReleaseTypesList() {
           <span class="rt-row-artist">${esc(e.artist)}</span>
         </div>
         ${e.src === 'auto' ? `<span class="rt-row-auto" title="${esc(t('rtype_auto_hint'))}">${esc(t('rtype_auto'))}</span>` : ''}
+        ${e.type === 'split' ? `<button class="dc-btn dc-btn-plain dc-btn-sm" onclick="openReleaseSplitModal(${esc(JSON.stringify(e.album))},${esc(JSON.stringify(e.artist))})">${esc(t('rs_edit_short'))}</button>` : ''}
         <select class="rt-row-select" onchange="changeReleaseTypeFromList(${esc(JSON.stringify(e.album))},${esc(JSON.stringify(e.artist))},this.value)">${opts}</select>
         <button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-danger rt-row-remove" onclick="clearReleaseTypeFromList(${esc(JSON.stringify(e.album))},${esc(JSON.stringify(e.artist))})" title="${esc(t('rtype_forget_hint'))}">${esc(t('comp_remove'))}</button>
       </div>`;
@@ -3243,6 +3444,8 @@ function renderReleaseTypesList() {
 }
 
 function changeReleaseTypeFromList(album, artist, type) {
+  // A split opens its editor; the row keeps its old type until Save
+  if (type === 'split') { renderReleaseTypesList(); openReleaseSplitModal(album, artist); return; }
   setReleaseType(album, artist, type);
   renderReleaseTypesList();
   if (typeof renderAll === 'function') renderAll();
@@ -3270,9 +3473,262 @@ function addReleaseTypeFromInput() {
     return;
   }
   if (err) err.style.display = 'none';
-  setReleaseType(pick.album, pick.artist, sel.value);
   input.value = '';
+  // A split needs its songs sorted first, so it opens the editor instead
+  if (sel.value === 'split') { openReleaseSplitModal(pick.album, pick.artist); return; }
+  setReleaseType(pick.album, pick.artist, sel.value);
   renderReleaseTypesList();
+}
+
+// ─── SINGLE, THEN ALBUM: THE EDITOR ───────────────────────────
+/* Where a split is set up and changed (the rules live by RS_SUFFIX). Lists
+   every song played under the shared name, each with a Single only / Both /
+   Album only switch, and shows the day the album starts with the choices as
+   they stand. Nothing is saved until Save, so trying choices out is free.
+
+   A new split starts from a guess: Deezer's tracklists for the album and the
+   single when it finds them, the song names when it does not. Only names go to
+   Deezer, so it works the same for Last.fm, Google Sheets and CSV libraries. */
+let _rsEd = null;   // { album, artist, songs:[{k,title,count,first}], pick:{k:'so'|'sb'|'al'}, existing, token }
+
+// The songs played under this release's real name, most played first
+function _rsCollectSongs(album, artist) {
+  const want = releaseTypeKey(album, artist);
+  const by = new Map();
+  for (const p of allPlays) {
+    const a = rawAlbumOf(p);
+    if (!a || a === '—') continue;
+    if (releaseTypeKey(a, _rsArtistOf(p, a)) !== want) continue;
+    const k = rsSongKey(p.title);
+    let s = by.get(k);
+    if (!s) by.set(k, s = { k, title: p.title, count: 0, first: Infinity });
+    s.count++;
+    const ms = +p.date;
+    if (ms < s.first) s.first = ms;
+  }
+  return [...by.values()].sort((a, b) => b.count - a.count || a.first - b.first);
+}
+
+// Loose title match for comparing library names with Deezer's
+function _rsNorm(s) {
+  return String(s || '').toLowerCase()
+    .replace(/[’`]/g, "'")
+    .replace(/\s*[\(\[](feat|ft|with)\.?\s[^\)\]]*[\)\]]/g, '')
+    .replace(/[^\p{L}\p{N}' ]+/gu, ' ')
+    .replace(/\s+/g, ' ').trim();
+}
+
+/* A delimited version tag: "(Radio Edit)", "- Acoustic", "[Sped Up]". The
+   delimiter matters — "Live Your Life" is a song, not a live version — and
+   "(Taylor's Version)"-style re-recordings are the album's own songs. */
+const RS_VERSION_RE = /(?:[\(\[]|\s[-–]\s)[^\)\]]*\b(remix|mix|edit|version|acoustic|instrumental|live|sped\s*up|slowed|demo|a\s*cappella|acapella|extended|rework|reprise|stripped)\b/i;
+function _rsIsVersion(title) {
+  const s = String(title || '');
+  if (/\b\w+'s version\b/i.test(s.replace(/’/g, "'"))) return false;
+  return RS_VERSION_RE.test(s);
+}
+
+// The song itself with its version tag cut off — "Lover (Remix)" -> "lover"
+function _rsBareTitle(title) {
+  return _rsNorm(String(title || '').replace(/\s*[\(\[][^\)\]]*[\)\]]/g, '').replace(/\s[-–]\s.*$/, ''));
+}
+
+/* The album's and the single's tracklists on Deezer, each a Set of _rsNorm
+   titles or null. Search results carry record_type, which is what tells the
+   two same-named releases apart. */
+async function _rsDeezerLists(album, artist) {
+  const lead = String(artist || '').split(/,|;|&|\bfeat\.?\b|\bft\.?\b|\bwith\b/i)[0].trim();
+  const r = await deezerFetch(`search/album?q=${encodeURIComponent(lead + ' ' + album)}&limit=25`);
+  if (!r.ok) throw new Error('album search ' + r.status);
+  const d = await r.json();
+  const wantT = _rsNorm(album), wantA = lead.toLowerCase();
+  const hits = (d?.data || []).filter(x =>
+    _rsNorm(x.title) === wantT &&
+    String(x.artist?.name || '').toLowerCase().includes(wantA));
+  const alb = hits.find(x => x.record_type === 'album') ||
+              hits.filter(x => x.record_type !== 'single' && (x.nb_tracks || 0) > 3)[0] || null;
+  const sgl = hits.find(x => x.record_type === 'single') || null;
+  const tracks = async x => {
+    if (!x) return null;
+    const tr = await deezerFetch(`album/${x.id}/tracks?limit=200`);
+    if (!tr.ok) return null;
+    const td = await tr.json();
+    const list = (td?.data || []).map(y => _rsNorm(y.title)).filter(Boolean);
+    return list.length ? new Set(list) : null;
+  };
+  const [A, S] = await Promise.all([tracks(alb), tracks(sgl)]);
+  return { A, S };
+}
+
+/* The first guess for a new split. With both tracklists it is exact: on the
+   single and not the album = single only, on both = both. With only the
+   album's, songs missing from it are the single's, and the title song (or the
+   first one played) is the one on both. With neither, version tags decide. */
+function _rsGuess(songs, album, lists) {
+  const A = lists && lists.A, S = lists && lists.S;
+  const bareAlbum = _rsNorm(album);
+  const pick = {};
+  for (const s of songs) {
+    const n = _rsNorm(s.title);
+    if (A && S) {
+      // A name on neither list is a spelling Deezer does not share: tags decide
+      pick[s.k] = S.has(n) ? (A.has(n) ? 'sb' : 'so') : A.has(n) ? 'al' : _rsIsVersion(s.title) ? 'so' : 'al';
+    } else if (A) pick[s.k] = A.has(n) ? 'al' : 'so';
+    else pick[s.k] = _rsIsVersion(s.title) ? 'so' : 'al';
+  }
+  // Exact tracklists already placed the shared song; otherwise name it
+  if (!(A && S) && !songs.some(s => pick[s.k] === 'sb')) {
+    const cands = songs.filter(s => pick[s.k] === 'al');
+    const title = cands.find(s => _rsBareTitle(s.title) === bareAlbum) ||
+                  cands.slice().sort((a, b) => a.first - b.first)[0];
+    if (title) pick[title.k] = 'sb';
+  }
+  return pick;
+}
+
+/* Opens the editor for a release — either half of an existing split names the
+   same one. Called from the album page and the release-type manager. */
+function openReleaseSplitModal(album, artist) {
+  const ex = releaseSplitOf(album, artist);
+  if (ex) { album = ex.album; artist = ex.artist; }
+  const songs = _rsCollectSongs(album, artist);
+  const pick = {};
+  if (ex) for (const s of songs) pick[s.k] = ex.so.has(s.k) ? 'so' : ex.sb.has(s.k) ? 'sb' : 'al';
+  _rsEd = { album, artist, songs, pick, existing: !!ex, token: {} };
+
+  document.getElementById('rsSub').textContent = album + ' · ' + artist;
+  document.getElementById('rsRemoveBtn').style.display = ex ? '' : 'none';
+  const manual = !!(ex && ex.d);
+  document.getElementById('rsManual').checked = manual;
+  const dateEl = document.getElementById('rsDate');
+  dateEl.value = manual ? ex.d : '';
+  dateEl.style.display = manual ? '' : 'none';
+  const guessEl = document.getElementById('rsGuess');
+  guessEl.textContent = '';
+
+  if (!ex && songs.length) {
+    // Names-only guess straight away, the Deezer one replaces it when it lands
+    Object.assign(pick, _rsGuess(songs, album, null));
+    guessEl.textContent = t('rs_guess_loading');
+    const token = _rsEd.token;
+    _rsDeezerLists(album, artist)
+      .catch(() => null)
+      .then(lists => {
+        if (!_rsEd || _rsEd.token !== token || _rsEd.touched) {
+          if (_rsEd && _rsEd.token === token) guessEl.textContent = '';
+          return;
+        }
+        if (lists && lists.A) Object.assign(_rsEd.pick, _rsGuess(songs, album, lists));
+        guessEl.textContent = t(lists && lists.A ? (lists.S ? 'rs_guess_deezer' : 'rs_guess_album_only') : 'rs_guess_names');
+        rsRenderSongs();
+      });
+  }
+  rsRenderSongs();
+  document.getElementById('releaseSplitModal').classList.add('open');
+}
+
+function closeReleaseSplitModal() {
+  document.getElementById('releaseSplitModal').classList.remove('open');
+  _rsEd = null;
+}
+
+function rsRenderSongs() {
+  const el = document.getElementById('rsSongs');
+  if (!el || !_rsEd) return;
+  if (!_rsEd.songs.length) {
+    el.innerHTML = `<div class="rt-empty">${esc(t('rs_none_played'))}</div>`;
+    rsRenderStart();
+    return;
+  }
+  el.innerHTML = _rsEd.songs.map((s, i) => {
+    const cur = _rsEd.pick[s.k] || 'al';
+    const btn = (g, key) => `<button type="button" class="${cur === g ? 'active' : ''}" aria-pressed="${cur === g}" onclick="rsPick(${i},'${g}')">${esc(t(key))}</button>`;
+    return `<div class="rt-row rs-row">
+      <div class="rt-row-name">
+        <span class="rt-row-album">${esc(s.title)}</span>
+        <span class="rt-row-artist">${esc(tCount('plays', s.count))} · ${esc(t('rs_first', { date: fmt(new Date(s.first)) }))}</span>
+      </div>
+      <div class="dc-seg rs-seg" role="group">${btn('so', 'rs_g_single')}${btn('sb', 'rs_g_both')}${btn('al', 'rs_g_album')}</div>
+    </div>`;
+  }).join('');
+  rsRenderStart();
+}
+
+function rsPick(i, g) {
+  if (!_rsEd || !_rsEd.songs[i]) return;
+  _rsEd.pick[_rsEd.songs[i].k] = g;
+  _rsEd.touched = true;   // a late Deezer guess must not undo a choice
+  rsRenderSongs();
+}
+
+function rsSetManual(on) {
+  const dateEl = document.getElementById('rsDate');
+  dateEl.style.display = on ? '' : 'none';
+  // Start the picker on the day the plays give, the likeliest correction
+  if (on && !dateEl.value) dateEl.value = _rsAutoStart() || '';
+  rsRenderStart();
+}
+
+// The day the album starts with the current choices and no set date
+function _rsAutoStart() {
+  if (!_rsEd) return '';
+  const want = releaseTypeKey(_rsEd.album, _rsEd.artist);
+  let best = '';
+  for (const p of allPlays) {
+    const a = rawAlbumOf(p);
+    if (!a || a === '—' || releaseTypeKey(a, _rsArtistOf(p, a)) !== want) continue;
+    if ((_rsEd.pick[rsSongKey(p.title)] || 'al') !== 'al') continue;
+    const ds = localDateStr(tzDate(p.date));
+    if (!best || ds < best) best = ds;
+  }
+  return best;
+}
+
+function rsRenderStart() {
+  const el = document.getElementById('rsStart');
+  if (!el || !_rsEd) return;
+  if (document.getElementById('rsManual').checked) { el.textContent = ''; return; }
+  const ds = _rsAutoStart();
+  if (!ds) { el.textContent = t('rs_start_none'); return; }
+  const [y, m, d] = ds.split('-').map(Number);
+  el.textContent = t('rs_start_auto', { date: fmt(new Date(y, m - 1, d)) });
+}
+
+function rsSave() {
+  if (!_rsEd) return;
+  const so = [], sb = [];
+  for (const s of _rsEd.songs) {
+    const g = _rsEd.pick[s.k] || 'al';
+    if (g === 'so') so.push(s.k); else if (g === 'sb') sb.push(s.k);
+  }
+  const manual = document.getElementById('rsManual').checked;
+  const date = manual ? document.getElementById('rsDate').value : '';
+  const { album, artist } = _rsEd;
+  setReleaseSplit(album, artist, so, sb, date);   // re-stamps and redraws
+  closeReleaseSplitModal();
+  _rsAfterChange(album, artist);
+}
+
+// Back to one undecided release, after a real warning window
+function rsRemove() {
+  if (!_rsEd) return;
+  const { album, artist } = _rsEd;
+  const go = () => {
+    clearReleaseType(album, artist);   // re-stamps and redraws
+    closeReleaseSplitModal();
+    _rsAfterChange(album, artist);
+  };
+  if (typeof window.dcConfirmBox === 'function') window.dcConfirmBox(t('rs_remove_title'), t('rs_remove_text', { album }), t('rs_remove'), go);
+  else go();
+}
+
+/* The manager list and an open album page are drawn from the old split. The
+   album page reopens on the album half: the page it showed may now hold
+   different plays, or (on the single half) none at all. */
+function _rsAfterChange(album, artist) {
+  renderReleaseTypesList();
+  const modal = document.getElementById('albumModal');
+  if (modal && modal.classList.contains('open')) openAlbumModal(album + '|||' + artist);
 }
 
 // ─── EDIT SCROBBLE ────────────────────────────────────────────
@@ -3287,7 +3743,8 @@ function _populateEditSuggestions() {
   for (const p of allPlays) {
     if (p.artist) artists.add(p.artist);
     if (p.title)  tracks.add(p.title);
-    if (p.album && p.album !== '—') albums.add(p.album);
+    const al = rawAlbumOf(p);   // never a split's "- Single" rename
+    if (al && al !== '—') albums.add(al);
   }
   const fill = (id, vals) => {
     const dl = document.getElementById(id);
@@ -3310,10 +3767,12 @@ function openEditScrobbleModal(rawIdx) {
   _populateEditSuggestions();
   _editPlay      = p;
   _editOrigTs    = p.date.getTime();
-  _editOrigMatch = { artist: p.artist, title: p.title, album: p.album };
+  // The album as the sheet / Last.fm has it — a split's rename is ours alone
+  const rawAlbum = rawAlbumOf(p);
+  _editOrigMatch = { artist: p.artist, title: p.title, album: rawAlbum };
   document.getElementById('editScrobbleArtist').value = p.artist;
   document.getElementById('editScrobbleTrack').value  = p.title;
-  document.getElementById('editScrobbleAlbum').value  = p.album === '—' ? '' : p.album;
+  document.getElementById('editScrobbleAlbum').value  = rawAlbum === '—' ? '' : rawAlbum;
   document.getElementById('editScrobbleTime').value   = scrobbleDatetimeLocal(p.date);
   document.getElementById('editScrobbleStatus').textContent = '';
   document.getElementById('editScrobbleStatus').className   = 'scrobble-status';
@@ -3377,7 +3836,7 @@ async function saveEditLocally() {
   }
   if (applyAll && orig) {
     allPlays.forEach(p => {
-      if (p.artist === orig.artist && p.title === orig.title && p.album === orig.album) {
+      if (p.artist === orig.artist && p.title === orig.title && rawAlbumOf(p) === orig.album) {
         p.title   = f.title;
         p.artist  = f.artist;
         p.artists = splitArtists(f.artist);
@@ -3437,7 +3896,8 @@ function _serializePlaysCsv() {
   const genreHead = Array.from({ length: maxGenres }, (_, i) => ',Genre ' + (i + 1)).join('');
   const rows = ['Song Title,Artist,Album,Date and Time' + genreHead];
   for (const p of allPlays) {
-    const cells = [esc(p.title), esc(p.artist), esc(p.album === '—' ? '' : p.album), fmtDate(p.date)];
+    const al = rawAlbumOf(p);   // the cache keeps the real name, never a split's rename
+    const cells = [esc(p.title), esc(p.artist), esc(al === '—' ? '' : al), fmtDate(p.date)];
     for (let i = 0; i < maxGenres; i++) cells.push(esc((p.genres && p.genres[i]) || ''));
     rows.push(cells.join(','));
   }
@@ -3478,7 +3938,7 @@ async function pushEditToSheet() {
     if (applyAll && orig) {
       isBatchUpdate = true;
       const matching = allPlays.filter(p =>
-        p.artist === orig.artist && p.title === orig.title && p.album === orig.album
+        p.artist === orig.artist && p.title === orig.title && rawAlbumOf(p) === orig.album
       );
       _batchTotal = matching.length;
       const t0 = Date.now();
@@ -3510,7 +3970,7 @@ async function pushEditToSheet() {
       if (batchData.status === 'error') throw new Error(batchData.message || 'Script error');
       _batchDone = batchData.updated || 0;
       allPlays.forEach(p => {
-        if (p.artist === orig.artist && p.title === orig.title && p.album === orig.album) {
+        if (p.artist === orig.artist && p.title === orig.title && rawAlbumOf(p) === orig.album) {
           p.title   = f.title;
           p.artist  = f.artist;
           p.artists = splitArtists(f.artist);
@@ -3578,7 +4038,7 @@ async function pushEditToSheet() {
     const isFetchError = e.message === 'Failed to fetch' || e.name === 'TypeError';
     if (isBatchUpdate && isFetchError) {
       allPlays.forEach(p => {
-        if (p.artist === orig.artist && p.title === orig.title && p.album === orig.album) {
+        if (p.artist === orig.artist && p.title === orig.title && rawAlbumOf(p) === orig.album) {
           p.title   = f.title;
           p.artist  = f.artist;
           p.artists = splitArtists(f.artist);
@@ -26609,17 +27069,29 @@ function openAlbumModal(albumKey) {
        charts on its own; separating a type out is an opt-in setting. */
     const curType = releaseTypeOf(albumName, artistName);
     const curPinned = !!releaseTypeSource(albumName, artistName);
-    const opts = RELEASE_TYPE_IDS.map(id =>
+    const opts = RELEASE_TYPE_IDS.concat('split').map(id =>
       `<option value="${id}" ${id === curType ? 'selected' : ''}>${esc(t('rtype_' + id))}</option>`
     ).join('');
+    const jsAlb = esc(JSON.stringify(albumName)), jsArt = esc(JSON.stringify(artistName));
+    /* Either half of a "Single, then album" release shows the split and opens
+       its editor, where it can also be removed. A plain single with more songs
+       than singles usually have asks whether it is one — the case that used to
+       turn a whole album into a single. */
+    const split = releaseSplitOf(albumName, artistName);
+    const typeChip = split
+      ? `<button type="button" class="alb-rtype-toggle is-set alb-rsplit-btn" onclick="openReleaseSplitModal(${jsAlb},${jsArt})">${esc(t('rs_edit'))}</button>`
+      : `<label class="alb-rtype-toggle${curPinned ? ' is-set' : ''}" title="${esc(t('rtype_toggle_hint'))}">
+      <span>${t('rtype_toggle_label')}</span>
+      <select onchange="setAlbumReleaseType(${jsAlb},${jsArt},this.value)">${opts}</select>
+    </label>` +
+      (curType === 'single' && allTracksSorted.length >= 4
+        ? `<button type="button" class="alb-rollup-note alb-rsplit-hint" title="${esc(t('rs_hint_tip', { n: allTracksSorted.length }))}" onclick="openReleaseSplitModal(${jsAlb},${jsArt})">${esc(t('rs_hint_btn'))}</button>`
+        : '');
     compRowEl.innerHTML = `<label class="alb-comp-toggle" title="${esc(t('comp_toggle_hint'))}">
-      <input type="checkbox" ${albIsComp ? 'checked' : ''} onchange="toggleAlbumCompilation(${esc(JSON.stringify(albumName))},this.checked)">
+      <input type="checkbox" ${albIsComp ? 'checked' : ''} onchange="toggleAlbumCompilation(${jsAlb},this.checked)">
       <span>${t('comp_toggle_label')}</span>
     </label>
-    <label class="alb-rtype-toggle${curPinned ? ' is-set' : ''}" title="${esc(t('rtype_toggle_hint'))}">
-      <span>${t('rtype_toggle_label')}</span>
-      <select onchange="setAlbumReleaseType(${esc(JSON.stringify(albumName))},${esc(JSON.stringify(artistName))},this.value)">${opts}</select>
-    </label>` +
+    ${typeChip}` +
     /* A merged total has to say so, or the page silently disagrees with the
        chart the user came from. Names the singles it counted, because which
        ones were attached is a guess the app made and the user should be able
@@ -32263,7 +32735,7 @@ async function importFileData(file) {
       const text = await readFileAsText(file);
       parseCsv(text, false);
       if (!allPlays.length) { if (statusEl) statusEl.textContent = t('set_file_none'); return; }
-      const compact = allPlays.map(p => [p.title, p.artist, p.album, Math.floor(p.date.getTime()/1000)]);
+      const compact = allPlays.map(p => [p.title, p.artist, rawAlbumOf(p), Math.floor(p.date.getTime()/1000)]);
       await saveToIDB(IDB_FILE_KEY, { ts: Date.now(), data: compact });
       localStorage.setItem('dc_source', 'file');
       if (statusEl) statusEl.textContent = t('set_file_loaded', { n: allPlays.length.toLocaleString() });
@@ -32291,7 +32763,7 @@ async function importFileData(file) {
     if (!plays.length) { if (statusEl) statusEl.textContent = t('set_file_none'); return; }
     plays.sort((a, b) => b.date - a.date);
     allPlays = plays;
-    const compact = allPlays.map(p => [p.title, p.artist, p.album, Math.floor(p.date.getTime()/1000)]);
+    const compact = allPlays.map(p => [p.title, p.artist, rawAlbumOf(p), Math.floor(p.date.getTime()/1000)]);
     await saveToIDB(IDB_FILE_KEY, { ts: Date.now(), data: compact });
     localStorage.setItem('dc_source', 'file');
     if (statusEl) statusEl.textContent = t('set_file_loaded', { n: allPlays.length.toLocaleString() });

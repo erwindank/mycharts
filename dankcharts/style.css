@@ -37430,6 +37430,42 @@ body.red-light .modal-rank-card--year .mrc-rank {
   cursor: help;
 }
 
+/* ── Single, then album ──
+   On the album page the split shows as a chip button (both halves open the
+   editor); the "shares its name with an album?" ask is the roll-up chip made
+   clickable. Both are buttons, so they drop the form defaults. */
+.alb-rsplit-btn,
+.alb-rsplit-hint {
+  font: inherit;
+  font-family: var(--font-sans);
+  font-size: var(--fs-xs);
+  color: currentColor;
+  cursor: pointer;
+}
+.alb-rsplit-btn { padding: 0.2rem 0.6rem; }
+.alb-rsplit-hint { background: transparent; }
+.alb-rsplit-hint:hover,
+.alb-rsplit-hint:focus-visible { opacity: 1; }
+
+/* The editor: one row per song, its three-way switch on the right. On a phone
+   the switch drops under the title rather than squeezing it to nothing. */
+.rs-row { flex-wrap: wrap; }
+.rs-row .rt-row-name { min-width: 10rem; }
+.rs-seg { flex-shrink: 0; }
+
+.rs-guess,
+.rs-note,
+.rs-start {
+  font-size: var(--fs-xs);
+  color: var(--text3);
+}
+.rs-guess:empty { display: none; }
+.rs-guess { margin: 0 0 var(--sp-2); }
+.rs-note { margin: var(--sp-2) 0 0; }
+.rs-start { margin: 0 0 var(--sp-2); color: var(--text2); }
+.rs-manual { margin: 0 0 var(--sp-2); }
+.rs-date { max-width: 12rem; }
+
 /* ── Auto-detection: settings sub-options and the review panel ── */
 .rtd-opt {
   display: flex;

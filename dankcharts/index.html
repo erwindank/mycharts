@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=717">
+  <link rel="stylesheet" href="style.css?v=725">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=225"></script>
+  <script defer src="translations.js?v=229"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -4051,6 +4051,7 @@
             <option value="ep" data-i18n="rtype_ep">EP</option>
             <option value="live" data-i18n="rtype_live">Live album</option>
             <option value="soundtrack" data-i18n="rtype_soundtrack">Soundtrack</option>
+            <option value="split" data-i18n="rtype_split">Single, then album</option>
           </select>
           <button class="dc-btn dc-btn-main" onclick="addReleaseTypeFromInput()"><span data-ico="plus"></span><span data-i18n="comp_modal_add">Add</span></button>
         </div>
@@ -4065,7 +4066,44 @@
     </div>
   </div>
 
+  <!-- ── Single, then album ──
+       A single that shares its album's name: each played song is sorted into
+       single only / both / album only, and the album start date is shown
+       (worked out from the plays, or set by hand). Filled by openReleaseSplitModal(). -->
+  <div id="releaseSplitModal" class="modal-overlay modal-overlay--stacked" role="dialog" aria-modal="true" aria-labelledby="rsTitle">
+    <div class="dc-modal dc-frame src-modal-box dc-frame-wide">
+      <div class="dc-frame-head">
+        <span class="dc-frame-icon" data-ico="tag"></span>
+        <div class="dc-frame-titles">
+          <h3 class="dc-frame-title" id="rsTitle" data-i18n="rs_title">Single, then album</h3>
+          <p class="dc-frame-sub" id="rsSub"></p>
+        </div>
+        <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close" onclick="closeReleaseSplitModal()" aria-label="Close" data-i18n-aria="set_close">✕</button>
+      </div>
+      <div class="dc-frame-body">
+        <p class="dc-frame-lead" data-i18n="rs_lead">For a single that has the same name as its album.</p>
+        <div class="rt-group-hdr" data-i18n="rs_songs_hdr">Your songs from this release</div>
+        <div id="rsGuess" class="rs-guess"></div>
+        <div id="rsSongs"></div>
+        <p class="rs-note" data-i18n="rs_autocorrect_note"></p>
+        <div class="rt-group-hdr" data-i18n="rs_start_hdr">When the album starts</div>
+        <div id="rsStart" class="rs-start"></div>
+        <label class="dc-check rs-manual">
+          <input type="checkbox" id="rsManual" onchange="rsSetManual(this.checked)">
+          <span data-i18n="rs_start_manual">Set the date myself</span>
+        </label>
+        <input class="dc-input rs-date" type="date" id="rsDate" onchange="rsRenderStart()" style="display:none">
+      </div>
+      <div class="dc-frame-foot">
+        <button class="dc-btn dc-btn-plain dc-btn-danger dc-frame-foot-start" id="rsRemoveBtn" onclick="rsRemove()" data-i18n="rs_remove" style="display:none">Remove split</button>
+        <button class="dc-btn dc-btn-normal" onclick="closeReleaseSplitModal()" data-i18n="rs_cancel">Cancel</button>
+        <button class="dc-btn dc-btn-main" onclick="rsSave()" data-i18n="rs_save">Save</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ── Release Type Detection Review ──
+
        Detection collects proposals; this is where they are seen and picked
        before anything is written. -->
   <div id="rtDetectModal" class="modal-overlay modal-overlay--stacked" role="dialog" aria-modal="true" aria-labelledby="rtdTitle">
@@ -4172,7 +4210,7 @@
   <!-- One behaviour and one icon set for every pop-up window (phase 10); before
        app.js so dcIco() is there when app.js draws a window -->
   <script defer src="popups.js?v=8"></script>
-  <script defer src="app.js?v=560"></script>
+  <script defer src="app.js?v=564"></script>
   <!-- The song / album / artist details side panel (phase 10 step 3); wraps app.js's open functions -->
   <script defer src="panel.js?v=13"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
