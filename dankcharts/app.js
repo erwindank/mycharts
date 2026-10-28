@@ -15705,7 +15705,7 @@ function renderPage(type, peaks) {
           ${_tblTags((pk ? peakBadge(pk) : '') + certBadge(cumAlbumPlays, certKindFor(a.album, a.artist)) + ratingAlbumBadge(ak))}
           ${dcPlBtnHtml('album', '', a.artist, a.album)}
         </td>
-        <td class="meta-col"><div class="song-artist">${tCount('tracks', a.tracks.size)}</div></td>
+        <td class="meta-col"><div class="song-artist">${albumTracksBtn(a.album, a.artist, a.tracks.size)}</div></td>
         ${ms ? mMthsCell(ak, 'albums', ms) : ''}
         <td>
           <div class="play-count">${tCountHtml('plays', a.count)}${ms ? deltaInline(a.count, ak, 'albums', ms) : ''}</div>
@@ -18902,7 +18902,7 @@ function renderAlbums(plays, peaks, monthlyStats) {
         ${_tblTags((pk ? peakBadge(pk) : '') + f.certHtml + f.ratingHtml)}
         ${dcPlBtnHtml('album', '', artist, album)}
       </td>
-      <td class="meta-col"><div class="song-artist">${tCount('tracks', tracks.size)}</div></td>
+      <td class="meta-col"><div class="song-artist">${albumTracksBtn(album, artist, tracks.size)}</div></td>
       ${monthlyStats ? mMthsCell(ak, 'albums', monthlyStats) : ''}
       <td>
         <div class="play-count">${tCountHtml('plays', count)}${f.deltaHtml}</div>
@@ -39129,6 +39129,108 @@ document.addEventListener('click', e => {
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && _arsTrigger) _arsHide(); });
 window.addEventListener('scroll', e => {
   if (_arsTrigger && !(e.target instanceof Element && e.target.closest('#arsTooltip'))) _arsHide();
+}, true);
+
+// ─── ALBUM TRACKS TOOLTIP ──────────────────────────────────────
+// The Tracks count on the album charts opens a list of the album's songs
+// played in this period, most played first, each with a 30-second sample
+// (the same ▶ as the charts: every <li> is a song entry, so _eaPlaySample and
+// its painting work unchanged) and Spotify / Google / YouTube searches.
+// Same look and closing rules as the artist songs tooltip above.
+function albumTracksBtn(album, artist, nTracks) {
+  return `<button type="button" class="ars-trigger alt-trigger" data-album="${esc(album)}" data-artist="${esc(artist)}" title="${esc(t('tooltip_album_tracks'))}" onclick="event.stopPropagation();_altToggle(this)">${tCount('tracks', nTracks)}</button>`;
+}
+
+const _altTooltip = (() => {
+  const el = document.createElement('div');
+  el.id = 'altTooltip';
+  el.className = 'ars-tooltip alt-tooltip';
+  el.style.display = 'none';
+  document.body.appendChild(el);
+  return el;
+})();
+let _altTrigger = null;
+
+const _ALT_G_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M21.6 12.2c0-.7-.1-1.4-.2-2H12v3.9h5.4a4.6 4.6 0 0 1-2 3v2.5h3.2c1.9-1.7 3-4.3 3-7.4zM12 22c2.7 0 5-.9 6.6-2.4l-3.2-2.5c-.9.6-2 1-3.4 1-2.6 0-4.8-1.8-5.6-4.1H3.1v2.6A10 10 0 0 0 12 22zM6.4 14a6 6 0 0 1 0-3.9V7.5H3.1a10 10 0 0 0 0 9zM12 6c1.5 0 2.8.5 3.8 1.5l2.9-2.9A10 10 0 0 0 3.1 7.5l3.3 2.6C7.2 7.8 9.4 6 12 6z"/></svg>';
+
+// Songs of one album in the current period, ranked by plays. Grouped by
+// title, like the chart's track count, and counted the same way the chart
+// counts the album (a rolled-up single's plays go to its parent too).
+// All-Time follows time travel (atPlays), the other periods their date range.
+function _altRanking(album, artist) {
+  const ak = album + '|||' + artist;
+  const all = currentPeriod === 'alltime';
+  const range = all ? null : getDateRange();
+  const s = all ? 0 : +range.start, e = all ? 0 : +range.end;
+  const roll = rollupAffectsCharts();
+  const byTitle = new Map();
+  for (const p of (all ? atPlays() : allPlays)) {
+    if (albumKeyOf(p) !== ak && !(roll && rollupParentOf(p) === ak)) continue;
+    if (!all) { const m = tzMsOf(p); if (m < s || m > e) continue; }
+    let row = byTitle.get(p.title);
+    if (!row) { row = { title: p.title, artist: p.artist, album: p.album, key: songKey(p), count: 0 }; byTitle.set(p.title, row); }
+    row.count++;
+  }
+  return [...byTitle.values()].sort((a, b) => b.count - a.count || a.title.localeCompare(b.title));
+}
+
+function _altHide() {
+  _altTooltip.style.display = 'none';
+  if (_altTrigger) _altTrigger.classList.remove('open');
+  _altTrigger = null;
+}
+
+function _altToggle(btn) {
+  if (_altTrigger === btn) { _altHide(); return; }
+  _altHide();
+  _arsHide();
+  const album = btn.dataset.album, artist = btn.dataset.artist;
+  const rows = _altRanking(album, artist);
+  const label = currentPeriod === 'alltime' ? '' : getDateRange().label;
+  const lSp = esc(t('tm_action_spotify')), lG = esc(t('tm_action_google')), lYt = esc(t('awx_yt'));
+  const link = (cls, href, lbl, svg) => `<a class="alt-link alt-link--${cls}" href="${href}" target="_blank" rel="noopener" title="${lbl}" aria-label="${lbl}">${svg}</a>`;
+  // Ties share a rank (1, 2, 2, 4), like the charts themselves
+  let rank = 0;
+  _altTooltip.innerHTML =
+    `<div class="ars-head"><span class="ars-head-artist">${esc(album)}</span>${label ? `<span class="ars-head-period">${esc(label)}</span>` : ''}</div>
+    <ol class="ars-list">${rows.map((r, i) => {
+      if (i === 0 || r.count !== rows[i - 1].count) rank = i + 1;
+      const q = encodeURIComponent(r.title + ' ' + r.artist);
+      return `<li class="ars-item alt-item"${_eaAttrs('songs', { title: r.title, artist: r.artist, album: r.album, key: r.key })}>
+        <span class="ars-rank">${rank}</span>
+        ${_eaSampleBtn('alt-sample')}
+        <a href="javascript:void(0)" class="ars-title" onclick="_altHide();openSongModal(${esc(JSON.stringify(r.key))})">${esc(r.title)}</a>
+        <span class="ars-count">${r.count}</span>
+        <span class="alt-links">${link('sp', 'https://open.spotify.com/search/' + q, lSp, _EA_SP_SVG)}${link('g', 'https://www.google.com/search?q=' + q, lG, _ALT_G_SVG)}${link('yt', 'https://www.youtube.com/results?search_query=' + q, lYt, _ST_AM_YT_SVG)}</span>
+      </li>`;
+    }).join('')}</ol>`;
+  _altTooltip.style.display = 'block';
+  _altTrigger = btn;
+  btn.classList.add('open');
+  // A sample already playing from this album shows as on
+  _eaPaintSamples();
+  // Below the count, flipped above it when there is no room
+  const rect = btn.getBoundingClientRect();
+  const ttW = _altTooltip.offsetWidth;
+  let left = rect.left;
+  let top = rect.bottom + 6;
+  if (left + ttW > window.innerWidth - 8) left = window.innerWidth - ttW - 8;
+  if (left < 8) left = 8;
+  if (top + _altTooltip.offsetHeight > window.innerHeight - 8) top = Math.max(8, rect.top - _altTooltip.offsetHeight - 6);
+  _altTooltip.style.left = left + 'px';
+  _altTooltip.style.top = top + 'px';
+}
+
+// Close on a click elsewhere, on Escape, or when the page scrolls under it.
+// The sample keeps playing after it closes, like the chart's own ▶.
+document.addEventListener('click', e => {
+  if (!_altTrigger) return;
+  if (e.target.closest('#altTooltip') || e.target.closest('.alt-trigger')) return;
+  _altHide();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && _altTrigger) _altHide(); });
+window.addEventListener('scroll', e => {
+  if (_altTrigger && !(e.target instanceof Element && e.target.closest('#altTooltip'))) _altHide();
 }, true);
 
 // ─── EVENTS CALENDAR MINI-CARD TOOLTIP ─────────────────────────

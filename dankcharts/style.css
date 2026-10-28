@@ -23882,6 +23882,52 @@ body[class*="-light"] .hero-stats [class*="hero-stat--streak-"] .hero-val {
   color: var(--text2);
 }
 
+/* ── Album tracks tooltip (Tracks column on the album charts) ──
+   Built on the .ars-* tooltip; adds a ▶ sample per row and three search links. */
+.alt-tooltip { min-width: 260px; max-width: 360px; }
+.alt-item { gap: 0.4rem; }
+.alt-item .alt-sample {
+  position: static;
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text2);
+  cursor: pointer;
+  opacity: 1;
+  transform: none;
+}
+.alt-item .alt-sample svg { width: 11px; height: 11px; fill: currentColor; }
+.alt-item .alt-sample .ea-ic-stop { display: none; }
+.alt-item .alt-sample.is-on .ea-ic-play { display: none; }
+.alt-item .alt-sample.is-on .ea-ic-stop { display: inline; }
+.alt-item .alt-sample:hover,
+.alt-item .alt-sample:focus-visible,
+.alt-item .alt-sample.is-on { color: var(--accent); border-color: var(--accent); }
+.alt-item .alt-sample.is-loading { opacity: 0.5; }
+.alt-item .alt-sample.is-miss { opacity: 0.35; }
+.alt-links { display: inline-flex; gap: 0.2rem; flex-shrink: 0; }
+.alt-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  color: var(--text2);
+  border-radius: var(--r-sm);
+  transition: color 0.12s;
+}
+.alt-link svg { width: 14px; height: 14px; }
+.alt-link--sp:hover, .alt-link--sp:focus-visible { color: #1db954; }
+.alt-link--g:hover, .alt-link--g:focus-visible { color: var(--accent); }
+.alt-link--yt:hover, .alt-link--yt:focus-visible { color: #ff0033; }
+
 /* ── Events Calendar mini-card tooltip ── */
 .cal-ev-tooltip {
   position: fixed;
