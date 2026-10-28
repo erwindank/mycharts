@@ -25844,12 +25844,12 @@ function amRenderList() {
         (r.run ? chip('flame', `<b>${esc(r.run.v)}</b>`, r.run.tip) : '');
     const isOpen = _am.open === r;
     return `<div class="am-row${isOpen ? ' is-open' : ''}" data-i="${i}">
-      <button type="button" class="am-main" onclick="amOpen(${i})">
+      <div class="am-main" role="button" tabindex="0" onclick="amOpen(${i})" onkeydown="if(event.target===this&&(event.key==='Enter'||event.key===' ')){event.preventDefault();amOpen(${i});}">
         <span class="am-rank am-rank--${tone(r.rank)}">${r.rank ? '#' + r.rank : '—'}</span>
         <span class="am-art" id="amImg-${i}"><span class="thumb-initials">${esc(initials(r.name))}</span></span>
         <span class="am-txt"><span class="am-name"><span class="am-name-t">${esc(r.name)}</span>${r.cert}</span>${r.sub ? `<span class="am-sub">${esc(r.sub)}</span>` : ''}</span>
         <span class="am-plays"><span><b>${r.plays.toLocaleString()}</b> ${esc(tUnit('plays', r.plays))}</span><span class="am-bar"><span style="width:${(r.plays / maxPlays * 100).toFixed(1)}%"></span></span></span>
-      </button>
+      </div>
       <button type="button" class="am-exp" aria-expanded="${isOpen}" onclick="amToggle(${i})" title="${esc(t(ch === 'all' ? 'am_stream_history' : 'tooltip_cr_toggle_btn_song'))}">${_amIco('next')}</button>
       <div class="am-meta">${meta}</div>
       <div class="am-detail"${isOpen ? '' : ' hidden'}>${isOpen ? r.panel() : ''}</div>
@@ -25860,7 +25860,10 @@ function amRenderList() {
 
   // Artwork as the rows scroll into view; the previous list's watcher retires
   if (_amImgObs) _amImgObs.disconnect();
-  _amImgObs = loadImages(shown.map((r, i) => Object.assign({ imgId: 'amImg-' + i }, r.img)), ty === 'songs' ? 'song' : 'album');
+  const imgItems = shown.map((r, i) => Object.assign({ imgId: 'amImg-' + i }, r.img));
+  _amImgObs = loadImages(imgItems, ty === 'songs' ? 'song' : 'album');
+  // ✎ on each cover opens the artwork picker (its click stops before the row's)
+  imgItems.forEach(it => { const el = document.getElementById(it.imgId); if (el) attachRecImgPicker(el, it, ty === 'songs' ? 'song' : 'album'); });
 }
 
 function amSetType(ty) {
