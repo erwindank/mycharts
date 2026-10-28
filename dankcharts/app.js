@@ -15623,8 +15623,8 @@ function renderPage(type, peaks) {
         ${ms ? mPrevCell(rank, k, 'songs', ms) : ''}
         <td class="thumb-cell"><div class="thumb-wrap ea-cover">${_eaCoverPlay()}<div id="${imgId}"><div class="thumb-initials">${esc(initials(s.title))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="song" data-prefkey="${esc(prefKey)}" data-name="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
         <td>
-          <div class="song-title">${esc(s.title)}</div>
-          <div class="song-artist">${esc(s.artist)}</div>
+          <div class="song-title">${chartNameLink(s.title, 'openSongModal', k)}</div>
+          <div class="song-artist">${chartArtistLinks(s.artist)}</div>
           ${_tblTags((pk ? peakBadge(pk) : '') + certBadge(cumSongPlays, 'song') + ratingSongBadge(k))}
           ${dcPlBtnHtml('song', s.title, s.artist, s.album)}
         </td>
@@ -15700,8 +15700,8 @@ function renderPage(type, peaks) {
         ${ms ? mPrevCell(rank, ak, 'albums', ms) : ''}
         <td class="thumb-cell"><div class="thumb-wrap ea-cover">${_eaCoverPlay()}<div id="${imgId}"><div class="thumb-initials">${esc(initials(a.album))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="album" data-prefkey="${esc(prefKey)}" data-name="${esc(a.album)}" data-artist="${esc(a.artist)}" data-album="${esc(a.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
         <td>
-          <div class="song-title">${esc(a.album)}</div>
-          <div class="song-artist">${esc(a.artist)}</div>
+          <div class="song-title">${chartNameLink(a.album, 'openAlbumModal', ak)}</div>
+          <div class="song-artist">${chartArtistLinks(a.artist)}</div>
           ${_tblTags((pk ? peakBadge(pk) : '') + certBadge(cumAlbumPlays, certKindFor(a.album, a.artist)) + ratingAlbumBadge(ak))}
           ${dcPlBtnHtml('album', '', a.artist, a.album)}
         </td>
