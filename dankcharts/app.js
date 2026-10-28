@@ -57411,72 +57411,261 @@ document.getElementById('tpCardModal')?.addEventListener('click', e => {
 });
 
 // ── Artist modal ──
+/* ── Artist Rating tab (redone 2026-10-28) ────────────────────────────────
+   Was one long column: the ring, five tiles, every rated album, every
+   unrated album and eight song pills — hard to move through. Now:
+     .ar-hero   the ring large, the verdict, what it averages, and two
+                progress bars: albums rated, songs rated
+     .ar-next   the most played album still without a score, one tap to
+                rate it (or a note once every album is rated)
+     .ar-highs  highest / lowest rated album and song, each opens its editor
+     .ar-dist   how the scores spread over the seven verdicts; tap one to
+                show only those in the list (tap again for all)
+     lists      Albums · Songs · To rate, with search, sort and "Show all"
+   A row opens the rating editor; ↗ opens the album or song page. The state
+   (_ar) survives the repaint that follows a saved rating, so the list stays
+   where it was. All data sources: it reads ratings + allPlays only. */
+let _ar = null;
+let _arImgObs = null;
+const AR_PAGE = 30;
+
 function renderArtistRatingSection(artistName) {
   const el = document.getElementById('modalArtistRating');
   if (!el || !artistName) return;
   _ratingArtistOpen = artistName;
-  if (_ratingArtistPendingFor !== artistName) { _ratingArtistPendingFor = artistName; _ratingArtistPendingAll = false; }
   const sum = ratingArtistSummary(artistName);
-  const pending = _ratingArtistPendingHTML(artistName);
-  // The Overview tab shows a short version; this full one is the Ratings tab
+  // The Overview tab shows a short version of this
   _renderArtistRatingMini(sum);
 
-  if (!sum.ratedAlbums && !sum.ratedSongs) {
-    el.innerHTML = `<div class="rt-block rt-block--empty">
-      ${ratingRing(null)}
-      <div class="rt-empty-copy">
-        <div class="rt-empty-title">Nothing rated for this artist yet</div>
-        <div class="rt-empty-sub">Pick one of their albums below to start scoring — the average lands back here.</div>
-      </div>
-    </div>${pending ? `<div class="rt-block rt-block--pending">${pending}</div>` : ''}`;
-    return;
+  // Albums with no score yet, most played first
+  const { albumKeys } = _ratingArtistKeys(artistName);
+  const plays = {};
+  for (const p of allPlays) {
+    if (!p.artists.includes(artistName) || !p.album || p.album === '—') continue;
+    const k = albumKeyOf(p);
+    if (albumKeys.has(k)) plays[k] = (plays[k] || 0) + 1;
   }
+  const todo = [...albumKeys].filter(k => !ratingAlbumScore(k)).sort((a, b) => (plays[b] || 0) - (plays[a] || 0));
 
-  // The artist's headline number is their album average when they have rated
-  // albums, and their song average otherwise. Averaging the two together would
-  // let a single rated one-off single swing an entire discography's standing.
+  const keep = _ar && _ar.artist === artistName ? _ar : null;
+  _ar = {
+    artist: artistName, sum, plays, todo,
+    view: keep ? keep.view : null, q: keep ? keep.q : '', sort: keep ? keep.sort : null,
+    band: keep ? keep.band : null, all: keep ? keep.all : false
+  };
+  const counts = { albums: sum.ratedAlbums, singles: sum.ratedSingles, songs: sum.ratedSongs, todo: todo.length };
+  if (!_ar.view || !counts[_ar.view]) _ar.view = ['albums', 'singles', 'songs', 'todo'].find(v => counts[v]) || 'todo';
+
+  const ic = _amIco;
   const headline = sum.albumAvg ?? sum.songAvg;
+  const band = ratingBand(headline);
+  const meter = (n, of, label) => `<div class="ar-meter">
+      <div class="ar-meter-top"><span>${esc(label)}</span><b>${n.toLocaleString()}<span> / ${of.toLocaleString()}</span></b></div>
+      <div class="ar-meter-track"><span style="width:${(of ? n / of * 100 : 0).toFixed(1)}%"></span></div>
+    </div>`;
+  const key = k => esc(JSON.stringify(k));
+  const onKey = `onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}"`;
 
-  const albumList = sum.albums.length ? `<div class="rt-sub-label">Rated albums</div>
-    <div class="rt-tracktable">
-      ${sum.albums.map(a => _ratingArtistAlbumRow(a.key, a.name,
-        `<span class="rt-tt-plays">${a.ratedTracks}/${a.totalTracks} tracks rated</span>${ratingChip(a.score)}`, 'Edit')).join('')}
-    </div>` : '';
-
-  const songList = sum.songs.length ? `<div class="rt-sub-label">Top rated songs</div>
-    <div class="rt-pill-row">
-      ${sum.songs.slice(0, 8).map(s => `<button class="rt-pill rt-pill--btn ${ratingBand(s.score).cls}"
-          onclick="openSongModal(${esc(JSON.stringify(s.key))})">${esc(s.title)} ${ratingFmt(s.score)}</button>`).join('')}
-    </div>` : '';
-
-  el.innerHTML = `<div class="rt-block">
-    <div class="rt-block-head">
-      ${ratingRing(headline)}
-      <div class="rt-block-meta">
-        <div class="rt-block-verdict ${ratingBand(headline).cls}">${esc(ratingBand(headline).label)}</div>
-        <div class="rt-block-sub">${sum.albumAvg != null ? 'Average across their rated albums' : 'Average across their rated songs'}</div>
-        ${sum.ratedAlbums ? `<div class="rt-btn-row">
-          <button class="dc-btn dc-btn-normal" onclick="raOpenCard(${esc(JSON.stringify(artistName))})">${esc(t('ra_card_btn'))}</button>
-        </div>` : ''}
-      </div>
+  const hero = `<div class="ar-hero ${band ? band.cls : 'rt--none'}">
+    ${ratingRing(headline, { size: 120 })}
+    <div class="ar-hero-txt">
+      <span class="ao-kicker">${esc(t('ar_kicker'))}</span>
+      <div class="ar-verdict">${esc(band ? band.label : t('ao_no_ratings'))}</div>
+      <div class="ar-hero-sub">${esc(headline == null ? t('ar_none_sub')
+        : sum.albumAvg != null ? t('ar_avg_albums', { n: sum.ratedAlbums }) : t('ar_avg_songs', { n: sum.ratedSongs }))}</div>
+      <div class="ar-meters">${meter(sum.ratedAlbums, sum.totalAlbums, t('rtg_albums_rated'))}${
+        sum.totalSingles ? meter(sum.ratedSingles, sum.totalSingles, t('ar_singles_rated')) : ''}${meter(sum.ratedSongs, sum.totalSongs, t('rtg_songs_rated'))}</div>
+      ${sum.ratedAlbums || sum.ratedSingles ? `<button class="dc-btn dc-btn-normal dc-btn-sm ar-share" onclick="raOpenCard(${key(artistName)})">${esc(t('ra_card_btn'))}</button>` : ''}
     </div>
-    <div class="modal-stats-strip rt-insights">
-      <div class="modal-stat"><div class="se">◈</div><div class="sv ${sum.albumAvg != null ? ratingBand(sum.albumAvg).cls : ''}">${ratingFmt(sum.albumAvg)}</div><div class="sl">${esc(t('ra_card_album_avg'))}</div></div>
-      <div class="modal-stat"><div class="se">♦</div><div class="sv ${sum.songAvg != null ? ratingBand(sum.songAvg).cls : ''}">${ratingFmt(sum.songAvg)}</div><div class="sl">${esc(t('ra_card_song_avg'))}</div></div>
-      <div class="modal-stat"><div class="se">🏆</div><div class="sv ${sum.bestAlbum ? ratingBand(sum.bestAlbum.score).cls : ''}">${ratingFmt(sum.bestAlbum?.score)}</div><div class="sl">${sum.bestAlbum ? esc(sum.bestAlbum.name) : 'Best album'}</div></div>
-      <div class="modal-stat"><div class="se">📋</div><div class="sv">${sum.ratedAlbums}/${sum.totalAlbums}</div><div class="sl">${esc(t('rtg_albums_rated'))}</div></div>
-      <div class="modal-stat"><div class="se">🎵</div><div class="sv">${sum.ratedSongs}/${sum.totalSongs}</div><div class="sl">${esc(t('rtg_songs_rated'))}</div></div>
-    </div>
-    ${albumList}
-    ${pending}
-    ${songList}
   </div>`;
+
+  // Next up: their most played album without a score (a single only when
+  // every album is rated)
+  const nk = todo.find(k => ratingReleaseKind(k).kind === 'album') || todo[0];
+  const next = nk ? `<div class="ar-next" role="button" tabindex="0" onclick="openRatingModal('album', ${key(nk)})" ${onKey}>
+      <span class="ar-next-art" id="arNextArt"><span class="thumb-initials">${esc(initials(nk.split('|||')[0]))}</span></span>
+      <span class="ar-next-txt">
+        <span class="ao-kicker">${esc(t('ar_next'))}</span>
+        <span class="ar-next-name">${esc(nk.split('|||')[0])}</span>
+        <span class="ar-next-sub">${(plays[nk] || 0).toLocaleString()} ${esc(tUnit('plays', plays[nk] || 0))} · ${esc(t('ar_next_left', { n: todo.length }))}</span>
+      </span>
+      <span class="ar-next-cta">${ic('star')}<span>${esc(t('rtp_rate_arrow'))}</span></span>
+    </div>`
+    : (albumKeys.size ? `<div class="ar-done">${ic('crown')}<span>${esc(t('ar_all_done'))}</span></div>` : '');
+
+  // Highest / lowest rated album and song
+  const hi = [];
+  const lastOf = arr => arr.length > 1 ? arr[arr.length - 1] : null;
+  if (sum.bestAlbum) hi.push({ lbl: t('ar_best_album'), name: sum.bestAlbum.name, score: sum.bestAlbum.score, kind: 'album', k: sum.bestAlbum.key, up: true });
+  if (lastOf(sum.albums)) hi.push({ lbl: t('ar_low_album'), name: lastOf(sum.albums).name, score: lastOf(sum.albums).score, kind: 'album', k: lastOf(sum.albums).key });
+  if (sum.songs[0]) hi.push({ lbl: t('ar_best_song'), name: sum.songs[0].title, score: sum.songs[0].score, kind: 'song', k: sum.songs[0].key, up: true });
+  if (lastOf(sum.songs)) hi.push({ lbl: t('ar_low_song'), name: lastOf(sum.songs).title, score: lastOf(sum.songs).score, kind: 'song', k: lastOf(sum.songs).key });
+  const highs = hi.length ? `<div class="ar-highs">${hi.map(h => {
+    const b = ratingBand(h.score);
+    return `<button type="button" class="ar-hi ${b.cls}" onclick="openRatingModal('${h.kind}', ${key(h.k)})">
+      <span class="ar-hi-lbl">${ic(h.up ? 'trend' : 'bars')}${esc(h.lbl)}</span>
+      <span class="ar-hi-score">${ratingFmt(h.score)}</span>
+      <span class="ar-hi-name">${esc(h.name)}</span>
+      <span class="ar-hi-band">${esc(b.label)}</span>
+    </button>`;
+  }).join('')}</div>` : '';
+
+  el.innerHTML = `<div class="ar">${hero}${next}${highs}<div class="ar-body"></div></div>`;
+  if (nk) {
+    const [an, aa] = nk.split('|||');
+    fetchAndInjectImage(document.getElementById('arNextArt'), { imgId: 'arNextArt', name: an, title: an, album: an, artist: aa || artistName, prefKey: 'album:' + (aa || artistName).toLowerCase() + '|||' + an.toLowerCase() }, 'album');
+  }
+  arRenderBody();
+}
+
+// The list part: Albums · Songs · To rate, the spread, search + sort
+function arRenderBody() {
+  const box = document.querySelector('#modalArtistRating .ar-body');
+  if (!box || !_ar) return;
+  const { sum, todo, view } = _ar;
+  // a sort the list does not offer falls back to its default
+  const sorts = view === 'todo' ? ['plays', 'az'] : ['high', 'low', 'az'];
+  if (!sorts.includes(_ar.sort)) _ar.sort = sorts[0];
+  const tab = (v, label, icon, n) => `<button type="button" role="tab" class="am-type-btn${v === view ? ' is-on' : ''}" aria-selected="${v === view}" ${n ? '' : 'disabled'} onclick="arSetView('${v}')">
+      ${_amIco(icon)}<span>${esc(label)}</span><span class="am-type-n">${n.toLocaleString()}</span></button>`;
+
+  // Spread of the scores over the seven verdicts, best first
+  let dist = '';
+  if (view !== 'todo') {
+    const scores = (view === 'albums' ? sum.albums : view === 'singles' ? sum.singles : sum.songs).map(x => x.score);
+    const per = RATING_BANDS.map(b => ({ b, n: scores.filter(s => ratingBand(s) === b).length }));
+    const max = Math.max(...per.map(p => p.n), 1);
+    dist = `<div class="ar-dist${_ar.band ? ' has-pick' : ''}" role="group" aria-label="${esc(t('ar_spread'))}">
+      <div class="ar-dist-head"><span class="ao-kicker">${esc(t('ar_spread'))}</span><span class="ar-dist-hint">${esc(t(_ar.band ? 'ar_spread_clear' : 'ar_spread_hint'))}</span></div>
+      <div class="ar-dist-cols">${per.map(p => `<button type="button" class="ar-dist-col ${p.b.cls}${_ar.band === p.b.key ? ' is-on' : ''}" ${p.n ? '' : 'disabled'}
+          aria-pressed="${_ar.band === p.b.key}" onclick="arSetBand('${p.b.key}')" title="${esc(p.b.label)}: ${p.n}">
+          <span class="ar-dist-n">${p.n || ''}</span>
+          <span class="ar-dist-bar"><span style="height:${(p.n / max * 100).toFixed(1)}%"></span></span>
+          <span class="ar-dist-lbl">${esc(p.b.label)}</span>
+        </button>`).join('')}</div>
+    </div>`;
+  }
+  const sortLbl = s => t(s === 'plays' ? 'am_sort_plays' : s === 'az' ? 'am_sort_az' : 'ar_sort_' + s);
+
+  box.innerHTML = `<div class="am-type ar-tabs" role="tablist">
+      ${tab('albums', t('ig_type_albums'), 'disc', sum.ratedAlbums)}${
+        sum.ratedSingles ? tab('singles', t('ar_singles'), 'disc', sum.ratedSingles) : ''}${tab('songs', t('ig_type_songs'), 'note', sum.ratedSongs)}${tab('todo', t('ar_todo'), 'star', todo.length)}
+    </div>
+    ${dist}
+    <div class="am-tools">
+      <label class="am-search">${_amIco('search')}<input type="search" placeholder="${esc(t('ar_search'))}" value="${esc(_ar.q)}" oninput="arSearch(this.value)" aria-label="${esc(t('ar_search'))}"></label>
+      <div class="am-sort" role="group">${sorts.map(s => `<button type="button" class="am-sort-btn${s === _ar.sort ? ' is-on' : ''}" aria-pressed="${s === _ar.sort}" onclick="arSort('${s}')">${esc(sortLbl(s))}</button>`).join('')}</div>
+    </div>
+    <div class="ar-list"></div>`;
+  arRenderList();
+}
+
+function arRenderList() {
+  const box = document.querySelector('#modalArtistRating .ar-list');
+  if (!box || !_ar) return;
+  const { sum, todo, plays, view } = _ar;
+  // One shape for all three lists
+  // rel: what the release counts as (album / single / ep) and whether that is a guess
+  const relRow = a => ({ kind: 'album', key: a.key, name: a.name, score: a.score, ratedTracks: a.ratedTracks, totalTracks: a.totalTracks, plays: plays[a.key] || 0, rel: { kind: a.kind, guess: a.guess } });
+  let rows = view === 'albums' ? sum.albums.map(relRow)
+    : view === 'singles' ? sum.singles.map(relRow)
+    : view === 'songs'
+      ? sum.songs.map(s => ({ kind: 'song', key: s.key, name: s.title, score: s.score, quick: ratingSongEntry(s.key)?.m === 'quick' }))
+      : todo.map(k => ({ kind: 'album', key: k, name: k.split('|||')[0], score: null, plays: plays[k] || 0, rel: ratingReleaseKind(k) }));
+  if (_ar.band && view !== 'todo') rows = rows.filter(r => ratingBand(r.score).key === _ar.band);
+  const q = _ar.q.trim().toLowerCase();
+  if (q) rows = rows.filter(r => r.name.toLowerCase().includes(q));
+  if (_ar.sort === 'low') rows.sort((a, b) => a.score - b.score);
+  else if (_ar.sort === 'az') rows.sort((a, b) => a.name.localeCompare(b.name));
+  else if (_ar.sort === 'plays') rows.sort((a, b) => b.plays - a.plays);
+  else rows.sort((a, b) => b.score - a.score);
+  _ar.rows = rows;
+  if (!rows.length) { box.innerHTML = `<div class="am-empty">${esc(q ? t('am_no_match', { q: _ar.q.trim() }) : t('ar_empty'))}</div>`; return; }
+
+  const shown = _ar.all ? rows : rows.slice(0, AR_PAGE);
+  const ic = _amIco;
+  box.innerHTML = shown.map((r, i) => {
+    const b = r.score != null ? ratingBand(r.score) : null;
+    // A single / EP says so; a guessed one asks, with one tap each way
+    let tag = '';
+    if (r.rel && r.rel.kind !== 'album') {
+      const word = esc(t(r.rel.kind === 'ep' ? 'ar_t_ep' : 'ar_t_single'));
+      tag = r.rel.guess
+        ? `<span class="ar-tag ar-tag--guess">${esc(t(r.rel.kind === 'ep' ? 'ar_guess_ep' : 'ar_guess_single'))}
+            <button type="button" class="ar-tag-btn" onclick="event.stopPropagation();arSetRelease(${i},'${r.rel.kind}')" title="${esc(t('ar_confirm_tip'))}">${ic('check')}${esc(t('ar_confirm'))}</button>
+            <button type="button" class="ar-tag-btn" onclick="event.stopPropagation();arSetRelease(${i},'album')" title="${esc(t('ar_reject_tip'))}">${ic('x')}${esc(t('ar_reject'))}</button></span>`
+        : `<span class="ar-tag">${word}</span>`;
+    }
+    let sub = '';
+    if (view === 'albums' || view === 'singles') sub = `<span class="ar-sub">${tag}${esc(t('ar_tracks_rated', { n: r.ratedTracks, of: r.totalTracks }))}</span>
+        <span class="ar-prog"><span style="width:${(r.totalTracks ? r.ratedTracks / r.totalTracks * 100 : 0).toFixed(1)}%"></span></span>`;
+    else if (view === 'songs') sub = `<span class="ar-sub">${esc(t(r.quick ? 'ar_quick' : 'ar_rubric'))}</span>`;
+    else sub = `<span class="ar-sub">${tag}${r.plays.toLocaleString()} ${esc(tUnit('plays', r.plays))}</span>`;
+    return `<div class="ar-row ${b ? b.cls : 'rt--none'}" role="button" tabindex="0" onclick="arEdit(${i})" onkeydown="if(event.target===this&&(event.key==='Enter'||event.key===' ')){event.preventDefault();arEdit(${i});}">
+      <span class="ar-score">${b ? ratingFmt(r.score) : ic('star')}</span>
+      <span class="am-art" id="arImg-${i}"><span class="thumb-initials">${esc(initials(r.name))}</span></span>
+      <span class="ar-txt"><span class="ar-name">${esc(r.name)}</span>${sub}</span>
+      <span class="ar-right">${b ? `<span class="ar-band">${esc(b.label)}</span>` : `<span class="ar-cta">${esc(t('rtp_rate_arrow'))}</span>`}
+        <span class="ar-edit" aria-hidden="true">${ic(b ? 'edit' : 'next')}</span></span>
+      <button type="button" class="ar-go" title="${esc(t(r.kind === 'album' ? 'ar_open_album' : 'ar_open_song'))}" aria-label="${esc(t(r.kind === 'album' ? 'ar_open_album' : 'ar_open_song'))}" onclick="event.stopPropagation();arOpenPage(${i})">${ic('external')}</button>
+    </div>`;
+  }).join('') + (rows.length > AR_PAGE
+    ? `<button type="button" class="dc-btn dc-btn-plain dc-btn-sm am-more" onclick="arShowAll()">${esc(_ar.all ? t('dp_show_fewer') : t('dp_show_all', { n: rows.length }))}</button>`
+    : '');
+
+  // Artwork as the rows come into view
+  if (_arImgObs) _arImgObs.disconnect();
+  const items = shown.map((r, i) => {
+    if (r.kind === 'album') {
+      const [an, aa] = r.key.split('|||');
+      const art = aa || _ar.artist;
+      return { imgId: 'arImg-' + i, name: an, album: an, artist: art, prefKey: 'album:' + art.toLowerCase() + '|||' + an.toLowerCase() };
+    }
+    const nm = ratingSongNames(r.key);
+    return { imgId: 'arImg-' + i, name: nm.title, title: nm.title, artist: nm.artist, album: '', prefKey: 'song:' + nm.artist.toLowerCase() + '|||' + nm.title.toLowerCase() };
+  });
+  _arImgObs = loadImages(items, view === 'songs' ? 'song' : 'album');
+  // ✎ on each cover opens the artwork picker (its click stops before the row's)
+  items.forEach(it => { const el = document.getElementById(it.imgId); if (el) attachRecImgPicker(el, it, view === 'songs' ? 'song' : 'album'); });
+}
+
+function arSetView(v) {
+  if (!_ar || _ar.view === v) return;
+  _ar.view = v; _ar.q = ''; _ar.band = null; _ar.all = false;
+  _ar.sort = v === 'todo' ? 'plays' : 'high';
+  arRenderBody();
+}
+function arSetBand(k) { if (!_ar) return; _ar.band = _ar.band === k ? null : k; _ar.all = false; arRenderBody(); }
+function arSearch(v) { if (!_ar) return; _ar.q = v; _ar.all = false; arRenderList(); }
+function arSort(s) {
+  if (!_ar) return;
+  _ar.sort = s;
+  document.querySelectorAll('#modalArtistRating .am-sort-btn').forEach(b => { const on = b.getAttribute('onclick').includes("'" + s + "'"); b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', on); });
+  arRenderList();
+}
+function arShowAll() { if (!_ar) return; _ar.all = !_ar.all; arRenderList(); }
+/* Settles a guessed single / EP: 'single' / 'ep' marks it (what the release
+   manager does — it then also takes that certification ladder, and moves to
+   its own chart if that type is set Apart), 'album' pins it as an album so
+   it is never guessed again. Either way the tab redraws from the new mark. */
+function arSetRelease(i, type) {
+  const r = _ar && _ar.rows[i];
+  if (!r || r.kind !== 'album') return;
+  const [album, artist] = r.key.split('|||');
+  // the album page's own path: the mark, the release manager list, the charts
+  setAlbumReleaseType(album, artist, type);
+  renderArtistRatingSection(_ar.artist);
+}
+// A row opens the rating editor; ↗ the album or song page
+function arEdit(i) { const r = _ar && _ar.rows[i]; if (r) openRatingModal(r.kind, r.key); }
+function arOpenPage(i) {
+  const r = _ar && _ar.rows[i];
+  if (!r) return;
+  if (r.kind === 'album') openAlbumModal(r.key); else openSongModal(r.key);
 }
 
 /* The artist Overview's ratings card (2026-10-27): the ring, the verdict and
-   the four numbers, the whole card opening the Ratings tab, where the album
-   lists (rated, not rated yet) and top songs now live. Those lists made the
-   Overview several screens long. */
+   the four numbers, the whole card opening the Ratings tab. */
 function _renderArtistRatingMini(sum) {
   const el = document.getElementById('modalArtistRatingMini');
   if (!el) return;
@@ -57509,56 +57698,6 @@ function _renderArtistRatingMini(sum) {
     </div>
     <span class="ao-rate-go"><span>${esc(t('ao_all_ratings'))}</span>${chev}</span>
   </div>`;
-}
-
-// One album row in the artist modal. The row itself opens the rating editor;
-// the small ↗ button beside it still goes to the album's page. A div with
-// role=button rather than a <button>, because a button can't contain another.
-function _ratingArtistAlbumRow(key, name, meta, cta) {
-  const k = esc(JSON.stringify(key));
-  return `<div class="rt-tracktable-row rt-tt-editable" role="button" tabindex="0"
-      onclick="openRatingModal('album', ${k})"
-      onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openRatingModal('album', ${k});}">
-    <span class="rt-tt-title">${esc(name)}</span>
-    ${meta}
-    <span class="rt-tt-cta">${esc(cta)}</span>
-    <button class="dc-btn dc-btn-normal dc-btn-sm dc-btn-icon" title="Open album page" aria-label="Open album page"
-      onclick="event.stopPropagation();openAlbumModal(${k})">↗</button>
-  </div>`;
-}
-
-// Albums by this artist that have no score yet, most played first. The first
-// few show straight away; the rest sit behind "Show all" so an artist with a
-// hundred releases doesn't bury the rest of the modal.
-let _ratingArtistPendingFor = null;
-let _ratingArtistPendingAll = false;
-const RT_ARTIST_PENDING_SHOWN = 6;
-
-function _ratingArtistPendingHTML(artistName) {
-  const { albumKeys } = _ratingArtistKeys(artistName);
-  const plays = {};
-  for (const p of allPlays) {
-    if (!p.artists.includes(artistName) || !p.album || p.album === '—') continue;
-    const k = albumKeyOf(p);
-    if (albumKeys.has(k)) plays[k] = (plays[k] || 0) + 1;
-  }
-  const list = [...albumKeys].filter(k => !ratingAlbumScore(k))
-    .sort((a, b) => (plays[b] || 0) - (plays[a] || 0));
-  if (!list.length) return '';
-  const shown = _ratingArtistPendingAll ? list : list.slice(0, RT_ARTIST_PENDING_SHOWN);
-  const more = list.length - shown.length;
-  return `<div class="rt-sub-label">${esc(t('rtp_not_rated_yet'))} <span class="rt-sub-count">${list.length}</span></div>
-    <div class="rt-tracktable">
-      ${shown.map(k => _ratingArtistAlbumRow(k, k.split('|||')[0],
-        `<span class="rt-tt-plays">${plays[k] || 0} ${tUnit('plays', plays[k] || 0)}</span>`, t('rtp_rate_arrow'))).join('')}
-    </div>
-    ${list.length > RT_ARTIST_PENDING_SHOWN ? `<button class="dc-btn dc-btn-normal dc-btn-sm rt-tt-more" onclick="ratingArtistTogglePending()">${
-      more ? t('dp_show_all', { n: list.length }) : t('dp_show_fewer')}</button>` : ''}`;
-}
-
-function ratingArtistTogglePending() {
-  _ratingArtistPendingAll = !_ratingArtistPendingAll;
-  if (_ratingArtistOpen) renderArtistRatingSection(_ratingArtistOpen);
 }
 
 // ─── DISCOGRAPHY SCORE SHARE CARD ──────────────────────────────
