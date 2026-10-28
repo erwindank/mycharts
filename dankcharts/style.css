@@ -37457,12 +37457,13 @@ body.red-light .modal-rank-card--year .mrc-rank {
 .rs-how { margin: 0 0 var(--sp-4); display: grid; gap: var(--sp-2); }
 .rs-how > div { display: flex; gap: var(--sp-3); align-items: baseline; }
 .rs-how dt {
-  flex: 0 0 7rem;
-  font-size: var(--fs-xs);
+  flex: 0 0 6.5rem;
+  font-size: var(--fs-sm);
   font-weight: 600;
   color: var(--accent);
 }
-.rs-how dd { margin: 0; color: var(--text2); }
+/* Same size and spacing as the intro line above it */
+.rs-how dd { margin: 0; font-size: var(--fs-sm); line-height: 1.55; color: var(--text2); }
 
 .rs-guess,
 .rs-note,
