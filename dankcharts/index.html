@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=725">
+  <link rel="stylesheet" href="style.css?v=726">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=229"></script>
+  <script defer src="translations.js?v=230"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -4081,7 +4081,13 @@
         <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close" onclick="closeReleaseSplitModal()" aria-label="Close" data-i18n-aria="set_close">✕</button>
       </div>
       <div class="dc-frame-body">
-        <p class="dc-frame-lead" data-i18n="rs_lead">For a single that has the same name as its album.</p>
+        <p class="dc-frame-lead" data-i18n="rs_lead">This single has the same name as its album.</p>
+        <!-- One line per choice in the song switches below, named the same way -->
+        <dl class="rs-how">
+          <div><dt data-i18n="rs_g_single">Single only</dt><dd data-i18n="rs_how_single">On the single but not the album.</dd></div>
+          <div><dt data-i18n="rs_g_both">Both</dt><dd data-i18n="rs_how_both">On the single and the album.</dd></div>
+          <div><dt data-i18n="rs_g_album">Album only</dt><dd data-i18n="rs_how_album">Only on the album.</dd></div>
+        </dl>
         <div class="rt-group-hdr" data-i18n="rs_songs_hdr">Your songs from this release</div>
         <div id="rsGuess" class="rs-guess"></div>
         <div id="rsSongs"></div>

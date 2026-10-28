@@ -37453,6 +37453,17 @@ body.red-light .modal-rank-card--year .mrc-rank {
 .rs-row .rt-row-name { min-width: 10rem; }
 .rs-seg { flex-shrink: 0; }
 
+/* How each choice counts: the switch label on the left, what it means beside it */
+.rs-how { margin: 0 0 var(--sp-4); display: grid; gap: var(--sp-2); }
+.rs-how > div { display: flex; gap: var(--sp-3); align-items: baseline; }
+.rs-how dt {
+  flex: 0 0 7rem;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--accent);
+}
+.rs-how dd { margin: 0; color: var(--text2); }
+
 .rs-guess,
 .rs-note,
 .rs-start {
