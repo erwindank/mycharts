@@ -54939,6 +54939,9 @@ function _rtMemoFresh() {
     _rtMemo.plays = plays;
     _rtMemo.len   = len;
   }
+  // A release marked single / EP / album moves between an artist's albums and
+  // singles (ratingReleaseKind), so their summaries are redone on a new mark
+  if (_rtMemo.rel !== _releaseEpoch) { _rtMemo.artist.clear(); _rtMemo.rel = _releaseEpoch; }
   return _rtMemo;
 }
 
@@ -55117,13 +55120,50 @@ function _ratingArtistKeys(artistName) {
   return out;
 }
 
+/* What a release counts as in ratings: 'album', 'single' or 'ep' (2026-10-28).
+   Ratings follow what a release IS, not where it sits on the charts — the
+   same rule certifications use (certKindFor): a single marked in the release
+   manager is a single here whether or not "Apart" is on in Settings. So an
+   artist's verdict, their highest album, the share card and the rating
+   records are about albums, and a 10.0 single does not top them.
+
+   An unmarked release can still be GUESSED a single or EP (guess: true) from
+   the signals the site already has, none of which costs a request:
+     1. the delimited title tags auto-detection uses (" - Single", "(EP)")
+     2. Deezer's record_type, which loading cover art caches for free
+     3. the official tracklist, once fetched, with three tracks or fewer
+   Never the library's own track count: one played song from a full album
+   would look like a single. A guess changes nothing outside ratings and
+   writes nothing — the Rating tab offers "Yes, single" (marks it) and "It's
+   an album" (pins it, so it is never guessed again). Anything the user or
+   detection decided (a pinned album, live, soundtrack) is not guessed. */
+function ratingReleaseKind(albumKey) {
+  const [album, artist = ''] = String(albumKey).split('|||');
+  const type = releaseTypeOf(album, artist);
+  if (type === 'single' || type === 'ep') return { kind: type, guess: false };
+  if (releaseTypeSource(album, artist)) return { kind: 'album', guess: false };
+  const byTitle = detectTypeFromTitle(album);
+  if (byTitle === 'single' || byTitle === 'ep') return { kind: byTitle, guess: true };
+  if (byTitle) return { kind: 'album', guess: false };
+  const dz = typeof deezerKnownReleaseType === 'function' ? deezerKnownReleaseType(album, artist) : undefined;
+  if (dz === 'single' || dz === 'ep') return { kind: dz, guess: true };
+  const official = _rtTracklistStore()[albumKey];
+  if (official && official.length && official.length <= 3) return { kind: 'single', guess: true };
+  return { kind: 'album', guess: false };
+}
+
 function _ratingArtistSummaryCalc(artistName) {
   const { albumKeys, songKeys } = _ratingArtistKeys(artistName);
 
-  const albums = [...albumKeys].map(k => {
+  // Rated releases, split into albums and singles / EPs (ratingReleaseKind)
+  const releases = [...albumKeys].map(k => {
     const r = ratingAlbumScore(k);
-    return r ? { key: k, name: k.split('|||')[0], ...r } : null;
+    return r ? { key: k, name: k.split('|||')[0], ...r, ...ratingReleaseKind(k) } : null;
   }).filter(Boolean).sort((a, b) => b.score - a.score);
+  const albums  = releases.filter(a => a.kind === 'album');
+  const singles = releases.filter(a => a.kind !== 'album');
+  let totalAlbums = 0;
+  for (const k of albumKeys) if (ratingReleaseKind(k).kind === 'album') totalAlbums++;
 
   const songs = [...songKeys].map(k => {
     const s = ratingSongScore(k);
@@ -55133,16 +55173,19 @@ function _ratingArtistSummaryCalc(artistName) {
   const avg = arr => arr.length ? Math.round((arr.reduce((a, b) => a + b.score, 0) / arr.length) * 10) / 10 : null;
 
   return {
-    albums, songs,
-    albumAvg: avg(albums),
-    songAvg:  avg(songs),
+    albums, singles, songs,
+    albumAvg:  avg(albums),
+    singleAvg: avg(singles),
+    songAvg:   avg(songs),
     bestAlbum:  albums[0] || null,
     worstAlbum: albums.length > 1 ? albums[albums.length - 1] : null,
     bestSong:   songs[0] || null,
-    ratedAlbums: albums.length,
-    ratedSongs:  songs.length,
-    totalAlbums: albumKeys.size,
-    totalSongs:  songKeys.size
+    ratedAlbums:  albums.length,
+    ratedSingles: singles.length,
+    ratedSongs:   songs.length,
+    totalAlbums,
+    totalSingles: albumKeys.size - totalAlbums,
+    totalSongs:   songKeys.size
   };
 }
 
@@ -57598,7 +57641,10 @@ function _raIsOn(a, picks) { return a.key in picks ? !!picks[a.key] : a.auto; }
 // background), first play, and the album's score.
 function _raAlbums(artist) {
   const sum = ratingArtistSummary(artist);
-  const keys = new Set(sum.albums.map(a => a.key));
+  // The summary keeps albums and singles / EPs apart; the card has its own
+  // "show singles" switch, so it takes both and marks which is which below
+  const rated = [...sum.albums, ...sum.singles];
+  const keys = new Set(rated.map(a => a.key));
   const first = {};
   for (const p of allPlays) {
     if (!p.album || p.album === '—') continue;
@@ -57607,7 +57653,7 @@ function _raAlbums(artist) {
     const ms = tzMsOf(p);
     if (first[k] == null || ms < first[k]) first[k] = ms;
   }
-  return sum.albums.map(a => {
+  return rated.map(a => {
     const [album, art] = a.key.split('|||');
     const year = _awardsAlbumYearCache[album.toLowerCase() + '|||' + (art || '').toLowerCase()] || null;
     // On the card by default only when it was rated as an album: its album
@@ -57633,6 +57679,8 @@ function _raIsSingle(key, album, artist) {
   if (type === 'single' || type === 'ep') return true;
   if (type === 'album' && releaseTypeSource(album, artist) === 'user') return false;
   if (type !== 'album') return false;   // live / soundtrack are full releases
+  // the ratings guess (title tag, Deezer's type, a short official tracklist)
+  if (ratingReleaseKind(key).kind !== 'album') return true;
   return _rtGridTracks(key).tracks.length <= 3;
 }
 
@@ -57949,7 +57997,9 @@ async function raPrefetch(artist) {
 
 // ── Modal ──
 function raOpenCard(artist) {
-  if (!artist || !ratingArtistSummary(artist).ratedAlbums) return;
+  // albums or singles / EPs: the card shows singles behind its own switch
+  const _sum = artist ? ratingArtistSummary(artist) : null;
+  if (!_sum || !(_sum.ratedAlbums || _sum.ratedSingles)) return;
   _raArtist = artist;
   _raPage = 0;
   raLoadCardSettings();
@@ -58382,15 +58432,22 @@ function renderRatingsGraphSection() {
 // Returns the rating-derived records, or null when there is not enough rated
 // material for any of them to mean anything.
 function ratingRecords() {
-  const albums = _ratingsAllRatedAlbums();
+  // Albums only: singles and EPs (marked, or guessed — ratingReleaseKind) get
+  // their own "Highest rated single" card instead of topping the album records
+  const releases = _ratingsAllRatedAlbums();
+  const albums  = releases.filter(a => ratingReleaseKind(a.key).kind === 'album');
+  const singles = releases.filter(a => ratingReleaseKind(a.key).kind !== 'album');
   const songs  = _ratingsAllRatedSongs();
-  if (!albums.length && !songs.length) return null;
+  if (!releases.length && !songs.length) return null;
 
   const out = [];
   const bestAlbum = [...albums].sort((a, b) => b.score - a.score)[0];
+  const bestSingle = [...singles].sort((a, b) => b.score - a.score)[0];
   const bestSong  = [...songs].sort((a, b) => b.score - a.score)[0];
   if (bestAlbum) out.push({ id: 'rt_best_album', icon: 'ri-rt-trophy', label: 'Highest rated album',
     value: ratingFmt(bestAlbum.score), detail: `${bestAlbum.name} — ${bestAlbum.artist}`, key: bestAlbum.key, kind: 'album' });
+  if (bestSingle) out.push({ id: 'rt_best_single', icon: 'ri-rt-trophy', label: 'Highest rated single / EP',
+    value: ratingFmt(bestSingle.score), detail: `${bestSingle.name} — ${bestSingle.artist}`, key: bestSingle.key, kind: 'album' });
   if (bestSong) out.push({ id: 'rt_best_song', icon: 'ri-rt-medal', label: 'Highest rated song',
     value: ratingFmt(bestSong.score), detail: `${bestSong.name} — ${bestSong.artist}`, key: bestSong.key, kind: 'song' });
 
