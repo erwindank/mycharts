@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "A clearer \"Single, then album\" window":
+    ["Uma janela \"Single, depois álbum\" mais clara",
+     "A explicação no topo da janela Single, depois álbum ficou mais fácil de entender. Agora ela diz por que a divisão é necessária e depois tem uma linha para cada opção dos seletores de músicas (Só single, Os dois e Só álbum), com os mesmos nomes dos botões, dizendo onde a música está e para o que os plays dela contam."],
   "Singles that share their album's name":
     ["Singles com o mesmo nome do álbum",
      "Um single principal muitas vezes tem o mesmo nome do álbum, e um play só guarda o nome do álbum, então marcar como single transformava o álbum inteiro em single, e marcar como álbum fazia a trajetória do álbum começar no dia em que você ouviu o single pela primeira vez. Agora existe um novo tipo de lançamento: Single, depois álbum. Ele lista cada música que você ouviu com esse nome e você escolhe para cada uma: Só single (lados B, remixes, edições), Os dois (a faixa-título) ou Só álbum. Músicas que só estão no single sempre contam para o single; as que estão nos dois contam para o single até o álbum começar e depois para o álbum; o resto conta para o álbum. O álbum começa no primeiro dia em que você ouviu uma música que só está no álbum, ou numa data que você escolher. O site faz o primeiro palpite com as listas de faixas do Deezer. O single então aparece como lançamento próprio (\"Lover - Single\") nas paradas, então com os singles Separados cada um entra por conta própria. Escolha em Tipo de lançamento na página de um álbum, ou toque em \"Tem o mesmo nome de um álbum?\" num single com quatro músicas ou mais. Funciona com Last.fm, Google Sheets e CSV, e sua planilha e seus arquivos mantêm o nome real do álbum."],

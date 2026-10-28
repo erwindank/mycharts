@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "A clearer \"Single, then album\" window":
+    ["Una ventana \"Sencillo, luego álbum\" más clara",
+     "La explicación de arriba de la ventana Sencillo, luego álbum es más fácil de seguir. Ahora dice por qué hace falta separarlos y luego tiene una línea por cada opción de los interruptores de canciones (Solo sencillo, Los dos y Solo álbum), con los mismos nombres que los botones, que dice dónde está la canción y para qué cuentan sus reproducciones."],
   "Singles that share their album's name":
     ["Sencillos que se llaman igual que su álbum",
      "Un sencillo principal suele llamarse igual que su álbum, y una reproducción solo guarda el nombre del álbum, así que marcarlo como sencillo convertía todo el álbum en uno, y marcarlo como álbum hacía que el recorrido del álbum empezara el día que escuchaste el sencillo por primera vez. Ahora hay un nuevo tipo de lanzamiento: Sencillo, luego álbum. Muestra cada canción que escuchaste con ese nombre y tú eliges para cada una: Solo sencillo (caras B, remixes, ediciones), Los dos (la canción que da nombre) o Solo álbum. Las canciones que solo están en el sencillo siempre cuentan para el sencillo; las que están en los dos cuentan para el sencillo hasta que empieza el álbum y después para el álbum; el resto cuenta para el álbum. El álbum empieza el primer día que escuchaste una canción que solo está en el álbum, o en la fecha que elijas. El sitio hace la primera propuesta con las listas de canciones de Deezer. El sencillo aparece entonces como su propio lanzamiento («Lover - Single») en los rankings, así que con los sencillos Aparte cada uno entra por separado. Elígelo en Tipo de lanzamiento en la página de un álbum, o toca «¿Se llama igual que un álbum?» en un sencillo con cuatro canciones o más. Funciona con Last.fm, Google Sheets y CSV, y tu hoja y tus archivos conservan el nombre real del álbum."],

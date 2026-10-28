@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 359;
+const DC_CL_I18N_V = 360;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-28', t: 'design', a: 'charts', h: 'e6cd230',
+    title: "A clearer \"Single, then album\" window",
+    detail: "The explanation at the top of the Single, then album window is easier to follow. It now says why the split is needed, then has one line for each choice in the song switches - Single only, Both and Album only - with the same names as the buttons, saying where the song is and what its plays count for." },
   { d: '2026-10-28', t: 'feature', a: 'charts', h: '0c1e41b',
     title: "Singles that share their album's name",
     detail: "A lead single often has the same name as its album, and a play only records the album name, so marking it a single turned the whole album into one, and marking it an album started the album's chart run on the day you first played the single. Now there is a new release type, Single, then album. It lists every song you played under that name and you sort each one: Single only (B-sides, remixes, edits), Both (the title song) or Album only. Songs only on the single always count for the single; songs on both count for the single until the album starts and for the album after; the rest count for the album. The album starts on the first day you played an album-only song, or on a date you set. The site makes the first guess from the tracklists on Deezer. The single then shows as its own release (\"Lover - Single\") on the charts, so with singles set Apart each one charts on its own. Pick it from Release type on an album page, or tap \"Shares its name with an album?\" on a single with four or more songs. Works for Last.fm, Google Sheets and CSV, and your sheet and files keep the real album name." },
