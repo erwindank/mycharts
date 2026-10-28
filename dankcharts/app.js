@@ -1183,11 +1183,14 @@ function releaseTypeCounts() {
    played.
 
    A 'split' entry in the release-type map (same artist|||album key, so it
-   syncs with the other marks) sorts that release's songs into three groups:
-     so  only on the single (B-sides, remixes, edits): always the single
+   syncs with the other marks) sorts that release's songs into two groups:
      sb  on both (the title song): the single before the album starts, the
          album from then on — the only plays no data source can tell apart
      —   everything else is only on the album: always the album
+   There is no "only on the single" group: a B-side or radio edit comes out
+   under its own single's name, so it never carries the album's name and never
+   reaches this list. Older saves may still hold an `so` list; it is read as
+   part of sb, so nothing that was on the single side disappears.
    The album starts on `d` when the user set a date, otherwise on the first
    day a song of the third group was played — the day they really started on
    the album rather than its release day.
@@ -1227,8 +1230,8 @@ function _rsIndex() {
       album: e.n || albumLc,
       artist: e.a || k.slice(0, i),
       d: typeof e.d === 'string' ? e.d : '',
-      so: new Set(Array.isArray(e.so) ? e.so : []),
-      sb: new Set(Array.isArray(e.sb) ? e.sb : [])
+      // Old "single only" songs (so) count as on both, see above
+      sb: new Set([...(Array.isArray(e.sb) ? e.sb : []), ...(Array.isArray(e.so) ? e.so : [])])
     };
     byParent.set(k, info);
     byChild.set(k + sfx, info);
@@ -1268,7 +1271,7 @@ function _rsArtistOf(p, album) {
 }
 
 /* The day each split's album starts, keyed by split. A set date wins; without
-   one it is the first day a song from neither single group was played. A split
+   one it is the first day an album-only song was played. A split
    whose album was never played gets '' — everything stays the single. */
 function _rsStartDays(plays, idx) {
   const out = new Map();
@@ -1284,7 +1287,7 @@ function _rsStartDays(plays, idx) {
     const info = idx.byParent.get(releaseTypeKey(a, _rsArtistOf(p, a)));
     if (!info || info.d) continue;
     const sk = rsSongKey(p.title);
-    if (info.so.has(sk) || info.sb.has(sk)) continue;
+    if (info.sb.has(sk)) continue;
     const ds = localDateStr(tzDate(p.date));
     const cur = out.get(info.key);
     if (!cur || ds < cur) out.set(info.key, ds);
@@ -1295,7 +1298,6 @@ function _rsStartDays(plays, idx) {
 // Does this play of a split release belong to the single?
 function _rsIsSingleSide(info, p, startDay) {
   const sk = rsSongKey(p.title);
-  if (info.so.has(sk)) return true;
   if (!info.sb.has(sk)) return false;
   if (!startDay) return true;
   return localDateStr(tzDate(p.date)) < startDay;
@@ -1330,13 +1332,14 @@ function _rsRestamp() {
   if (typeof renderAll === 'function') renderAll();
 }
 
-/* Saves (or replaces) a split. so / sb are song keys (rsSongKey). date is
-   'YYYY-MM-DD' or '' for "the first day I played an album-only song". */
-function setReleaseSplit(album, artist, so, sb, date) {
+/* Saves (or replaces) a split. sb is the song keys (rsSongKey) on both. date
+   is 'YYYY-MM-DD' or '' for "the first day I played an album-only song".
+   Saving writes no `so` list, so an old one is folded into sb from here on. */
+function setReleaseSplit(album, artist, sb, date) {
   const name = String(album || '').trim();
   if (!name || name === '—') return false;
   const map = { ..._rtMap() };
-  const e = { t: 'split', s: 'user', a: String(artist || ''), n: name, so: [...so], sb: [...sb] };
+  const e = { t: 'split', s: 'user', a: String(artist || ''), n: name, sb: [...sb] };
   if (/^\d{4}-\d{2}-\d{2}$/.test(date || '')) e.d = date;
   map[releaseTypeKey(name, artist)] = e;
   _saveReleaseTypes(map);
@@ -3482,14 +3485,14 @@ function addReleaseTypeFromInput() {
 
 // ─── SINGLE, THEN ALBUM: THE EDITOR ───────────────────────────
 /* Where a split is set up and changed (the rules live by RS_SUFFIX). Lists
-   every song played under the shared name, each with a Single only / Both /
-   Album only switch, and shows the day the album starts with the choices as
+   every song played under the shared name, each with a Both / Album only
+   switch, and shows the day the album starts with the choices as
    they stand. Nothing is saved until Save, so trying choices out is free.
 
    A new split starts from a guess: Deezer's tracklists for the album and the
    single when it finds them, the song names when it does not. Only names go to
    Deezer, so it works the same for Last.fm, Google Sheets and CSV libraries. */
-let _rsEd = null;   // { album, artist, songs:[{k,title,count,first}], pick:{k:'so'|'sb'|'al'}, existing, token }
+let _rsEd = null;   // { album, artist, songs:[{k,title,count,first}], pick:{k:'sb'|'al'}, existing, token }
 
 // The songs played under this release's real name, most played first
 function _rsCollectSongs(album, artist) {
@@ -3516,16 +3519,6 @@ function _rsNorm(s) {
     .replace(/\s*[\(\[](feat|ft|with)\.?\s[^\)\]]*[\)\]]/g, '')
     .replace(/[^\p{L}\p{N}' ]+/gu, ' ')
     .replace(/\s+/g, ' ').trim();
-}
-
-/* A delimited version tag: "(Radio Edit)", "- Acoustic", "[Sped Up]". The
-   delimiter matters — "Live Your Life" is a song, not a live version — and
-   "(Taylor's Version)"-style re-recordings are the album's own songs. */
-const RS_VERSION_RE = /(?:[\(\[]|\s[-–]\s)[^\)\]]*\b(remix|mix|edit|version|acoustic|instrumental|live|sped\s*up|slowed|demo|a\s*cappella|acapella|extended|rework|reprise|stripped)\b/i;
-function _rsIsVersion(title) {
-  const s = String(title || '');
-  if (/\b\w+'s version\b/i.test(s.replace(/’/g, "'"))) return false;
-  return RS_VERSION_RE.test(s);
 }
 
 // The song itself with its version tag cut off — "Lover (Remix)" -> "lover"
@@ -3560,24 +3553,19 @@ async function _rsDeezerLists(album, artist) {
   return { A, S };
 }
 
-/* The first guess for a new split. With both tracklists it is exact: on the
-   single and not the album = single only, on both = both. With only the
-   album's, songs missing from it are the single's, and the title song (or the
-   first one played) is the one on both. With neither, version tags decide. */
+/* The first guess for a new split. With both tracklists, a song on the single
+   is on both and the rest are the album's. Otherwise every song starts as the
+   album's and the title song (or the first one played) is the one on both. */
 function _rsGuess(songs, album, lists) {
   const A = lists && lists.A, S = lists && lists.S;
   const bareAlbum = _rsNorm(album);
   const pick = {};
   for (const s of songs) {
     const n = _rsNorm(s.title);
-    if (A && S) {
-      // A name on neither list is a spelling Deezer does not share: tags decide
-      pick[s.k] = S.has(n) ? (A.has(n) ? 'sb' : 'so') : A.has(n) ? 'al' : _rsIsVersion(s.title) ? 'so' : 'al';
-    } else if (A) pick[s.k] = A.has(n) ? 'al' : 'so';
-    else pick[s.k] = _rsIsVersion(s.title) ? 'so' : 'al';
+    pick[s.k] = (A && S && S.has(n)) ? 'sb' : 'al';
   }
-  // Exact tracklists already placed the shared song; otherwise name it
-  if (!(A && S) && !songs.some(s => pick[s.k] === 'sb')) {
+  // No song placed on both (no tracklists, or no name matched): name the title song
+  if (!songs.some(s => pick[s.k] === 'sb')) {
     const cands = songs.filter(s => pick[s.k] === 'al');
     const title = cands.find(s => _rsBareTitle(s.title) === bareAlbum) ||
                   cands.slice().sort((a, b) => a.first - b.first)[0];
@@ -3593,7 +3581,7 @@ function openReleaseSplitModal(album, artist) {
   if (ex) { album = ex.album; artist = ex.artist; }
   const songs = _rsCollectSongs(album, artist);
   const pick = {};
-  if (ex) for (const s of songs) pick[s.k] = ex.so.has(s.k) ? 'so' : ex.sb.has(s.k) ? 'sb' : 'al';
+  if (ex) for (const s of songs) pick[s.k] = ex.sb.has(s.k) ? 'sb' : 'al';
   _rsEd = { album, artist, songs, pick, existing: !!ex, token: {} };
 
   document.getElementById('rsSub').textContent = album + ' · ' + artist;
@@ -3648,7 +3636,7 @@ function rsRenderSongs() {
         <span class="rt-row-album">${esc(s.title)}</span>
         <span class="rt-row-artist">${esc(tCount('plays', s.count))} · ${esc(t('rs_first', { date: fmt(new Date(s.first)) }))}</span>
       </div>
-      <div class="dc-seg rs-seg" role="group">${btn('so', 'rs_g_single')}${btn('sb', 'rs_g_both')}${btn('al', 'rs_g_album')}</div>
+      <div class="dc-seg rs-seg" role="group">${btn('sb', 'rs_g_both')}${btn('al', 'rs_g_album')}</div>
     </div>`;
   }).join('');
   rsRenderStart();
@@ -3696,15 +3684,11 @@ function rsRenderStart() {
 
 function rsSave() {
   if (!_rsEd) return;
-  const so = [], sb = [];
-  for (const s of _rsEd.songs) {
-    const g = _rsEd.pick[s.k] || 'al';
-    if (g === 'so') so.push(s.k); else if (g === 'sb') sb.push(s.k);
-  }
+  const sb = _rsEd.songs.filter(s => _rsEd.pick[s.k] === 'sb').map(s => s.k);
   const manual = document.getElementById('rsManual').checked;
   const date = manual ? document.getElementById('rsDate').value : '';
   const { album, artist } = _rsEd;
-  setReleaseSplit(album, artist, so, sb, date);   // re-stamps and redraws
+  setReleaseSplit(album, artist, sb, date);   // re-stamps and redraws
   closeReleaseSplitModal();
   _rsAfterChange(album, artist);
 }

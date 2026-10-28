@@ -31,7 +31,7 @@
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=230"></script>
+  <script defer src="translations.js?v=231"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -4084,7 +4084,6 @@
         <p class="dc-frame-lead" data-i18n="rs_lead">This single has the same name as its album.</p>
         <!-- One line per choice in the song switches below, named the same way -->
         <dl class="rs-how">
-          <div><dt data-i18n="rs_g_single">Single only</dt><dd data-i18n="rs_how_single">On the single but not the album.</dd></div>
           <div><dt data-i18n="rs_g_both">Both</dt><dd data-i18n="rs_how_both">On the single and the album.</dd></div>
           <div><dt data-i18n="rs_g_album">Album only</dt><dd data-i18n="rs_how_album">Only on the album.</dd></div>
         </dl>
@@ -4216,7 +4215,7 @@
   <!-- One behaviour and one icon set for every pop-up window (phase 10); before
        app.js so dcIco() is there when app.js draws a window -->
   <script defer src="popups.js?v=8"></script>
-  <script defer src="app.js?v=564"></script>
+  <script defer src="app.js?v=565"></script>
   <!-- The song / album / artist details side panel (phase 10 step 3); wraps app.js's open functions -->
   <script defer src="panel.js?v=13"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
