@@ -47,6 +47,9 @@ the end. Next is phase 12.
 **Updated 2026-10-29 (evening):** phase 12 done (daily charts in every
 details window). Next is phase 13, daily records.
 
+**Updated 2026-10-29 (night):** phase 13 done (daily records). Next is
+phase 14, the Ratings page.
+
 **Seen on screen:**
 - Weekly: Albums and Songs, in all six chart layouts (Table, Card grid,
   Compact, Mosaic, Filmstrip, Stack)
@@ -3602,6 +3605,24 @@ Debuts, Most Plays, Milestones, Fastest, Certifications (where it applies),
 Streaks, New Charts, and the Overview. Built from `dyHistory()` once and
 cached, so opening Records does not slow down. The Hall of Fame reel in the
 details windows follows.
+
+**Phase 13 done (2026-10-29,** 3c2f47a + changelog d4dd15d, not pushed).
+A fourth `buildPeriodRecords('day', …)` pass at the daily chart sizes,
+movement against the day before only; `day` in the 28 record containers
+and `recSplitAlbums`. Daily first in All #1s (total and in a row), Perfect
+All Kill, Appearances (total and in a row), Debuts and Most Plays; a switch
+never touched opens on Weekly (`recPerTabState`, `recOvSlotFor`). Overview
+cards get Daily, four choices drawn 2×2 (`.rec-ov-sw-quad`); New Charts
+has no Daily (the Daily tab has no New Entries). The intro line names the
+daily size and days. The Hall of Fame reels and the hero count read every
+table row, so they include daily records. `crPeriodGap` uses cached day
+numbers for day / week keys. Checked at 1440 en / es / pt-PT and 390 en /
+pt-PT: no missing keys, no errors.
+**For phase 11:** the Records build at 223k plays was ~4.6 s and is now
+~6.2 s (once per data change, kept between visits). Worth splitting so the
+section on screen is built first and the rest after.
+**For phase 14:** the Ratings records empty state is English in every
+language ("Rate a few albums and songs…").
 
 **Phase 14: a Ratings page.** My Ratings moves out of Stats into its own
 page in the More menu (desktop and the phone's bottom bar): the summary,
