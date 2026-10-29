@@ -2695,6 +2695,203 @@
       .dp-body .rk-guide, .dp-body .rk-focus { transition: none; }
     }
 
+    /* ── Artist Listening tab (2026-10-29) ─────────────────────────────────
+       Was the plays-by-month chart alone. Now (app.js lsRender):
+         .ls-hero    on rotation / cooling off / taking a break, the last
+                     song played, a sentence, four numbers with ▲▼ chips
+         the plays-by-month chart (.alb-sparkline-wrap, unchanged)
+         .ls-eras    a sideways strip of eras, the latest at the right
+         .ls-clock   verdict + chips, hour and weekday bars, a readout
+         .ls-miles   a timeline of milestone plays, then .ls-next
+         .ls-cal     the calendar heatmap, drawn on first show
+       State tones: live = the panel accent, warm = gold, cold = muted. */
+    .dp-body .ls-hero {
+      --st: var(--dp-ac);
+      padding: var(--sp-5);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      background:
+        radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--st) 18%, transparent), transparent 62%),
+        var(--raised);
+      margin-bottom: var(--sp-4);
+    }
+    .dp-body .ls-hero--warm { --st: var(--medal-gold); }
+    .dp-body .ls-hero--cold { --st: var(--text3); }
+    .dp-body .ls-now { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 8px; font-size: var(--fs-sm); color: var(--text2); }
+    .dp-body .ls-pulse { position: relative; width: 9px; height: 9px; border-radius: 50%; background: var(--st); flex-shrink: 0; }
+    .dp-body .ls-hero--live .ls-pulse::after { content: ''; position: absolute; inset: -4px; border-radius: 50%; border: 2px solid var(--st); animation: lsPing 1.8s var(--ease) infinite; }
+    .dp-body .ls-state { font-size: 0.68rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--st); }
+    .dp-body .ls-now-sep { color: var(--text3); }
+    .dp-body .ls-now-song {
+      display: inline-flex; align-items: center; gap: 6px; min-width: 0; max-width: 100%;
+      margin-left: auto; padding: 4px 10px 4px 8px;
+      font: inherit; font-size: var(--fs-xs); font-weight: 600; color: var(--text);
+      background: color-mix(in srgb, var(--st) 12%, transparent);
+      border: 1px solid color-mix(in srgb, var(--st) 30%, transparent);
+      border-radius: 999px; cursor: pointer;
+      transition: background var(--t-fast) var(--ease);
+    }
+    .dp-body .ls-now-song:hover { background: color-mix(in srgb, var(--st) 22%, transparent); }
+    .dp-body .ls-now-song svg { width: 12px; height: 12px; flex-shrink: 0; color: var(--st); }
+    .dp-body .ls-now-song span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .dp-body .ls-story { margin: var(--sp-3) 0 0; font-size: var(--fs-md, 1rem); line-height: 1.5; color: var(--text2); }
+    .dp-body .ls-story b { color: var(--text); }
+    .dp-body .ls-stats { display: grid; grid-template-columns: repeat(4, 1fr); margin-top: var(--sp-4); padding-top: var(--sp-3); border-top: 1px dashed var(--border); }
+    .dp-body .ls-stat { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 2px; padding: 0 var(--sp-1); min-width: 0; }
+    .dp-body .ls-stat + .ls-stat { border-left: 1px solid var(--border); }
+    .dp-body .ls-stat-v { font-family: var(--font-display); font-size: 1.6rem; font-weight: 800; line-height: 1.1; color: var(--text); font-variant-numeric: tabular-nums; }
+    .dp-body .ls-stat-l { font-size: 0.7rem; color: var(--text3); line-height: 1.3; }
+    .dp-body .ls-stat-c { display: flex; flex-direction: column; align-items: center; gap: 2px; margin-top: 3px; }
+    .dp-body .ls-stat-c small { font-size: 0.64rem; color: var(--text3); }
+    .dp-body .ls-delta { padding: 1px 7px; font-size: 0.64rem; font-weight: 700; line-height: 1.5; border-radius: 5px; font-variant-numeric: tabular-nums; }
+    .dp-body .ls-delta--up { color: var(--green); background: color-mix(in srgb, var(--green) 14%, transparent); }
+    .dp-body .ls-delta--down { color: var(--rose); background: color-mix(in srgb, var(--rose) 14%, transparent); }
+    .dp-body .ls-delta--flat { color: var(--text3); background: color-mix(in srgb, var(--text) 8%, transparent); }
+
+    /* Eras: a sideways strip, snapping card by card */
+    .dp-body .ls-eras {
+      display: flex; gap: var(--sp-2);
+      overflow-x: auto; scroll-snap-type: x proximity; scroll-padding: 0 var(--sp-1);
+      padding: 2px 2px var(--sp-2);
+      scrollbar-width: thin;
+    }
+    .dp-body .ls-eras:focus-visible { outline: 2px solid var(--dp-ac); outline-offset: 2px; border-radius: var(--r-md); }
+    .dp-body .ls-era {
+      flex: 0 0 148px; scroll-snap-align: start;
+      display: flex; flex-direction: column; gap: 4px; min-width: 0;
+      padding: var(--sp-2) var(--sp-2) var(--sp-3);
+      font: inherit; text-align: left; color: var(--text);
+      background: var(--raised); border: 1px solid var(--border); border-radius: var(--r-md);
+      cursor: pointer;
+      animation: lsRise 0.45s var(--ease) both; animation-delay: calc(min(var(--i), 12) * 30ms);
+      transition: border-color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+    }
+    .dp-body .ls-era:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--dp-ac) 45%, var(--border)); box-shadow: var(--shadow-2); }
+    .dp-body .ls-era.is-big { border-color: color-mix(in srgb, var(--medal-gold) 55%, var(--border)); }
+    .dp-body .ls-era.is-now .ls-era-when { color: var(--dp-ac); }
+    .dp-body .ls-era-when { font-size: 0.66rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .dp-body .ls-era-art {
+      position: relative; width: 100%; aspect-ratio: 1; border-radius: var(--r-sm); overflow: hidden;
+      background: color-mix(in srgb, var(--dp-ac) 18%, var(--bg3)); box-shadow: var(--shadow-1);
+    }
+    .dp-body .ls-era-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .dp-body .ls-era-art .thumb-initials { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.3rem; color: var(--text2); }
+    .dp-body .ls-era-crown {
+      position: absolute; top: 6px; right: 6px; z-index: 1;
+      display: inline-flex; padding: 4px; border-radius: 50%;
+      color: var(--medal-gold); background: color-mix(in srgb, #000 55%, transparent);
+    }
+    .dp-body .ls-era-crown svg { width: 13px; height: 13px; }
+    .dp-body .ls-era-name { font-size: var(--fs-sm); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .dp-body .ls-era-meta { font-size: var(--fs-xs); color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .dp-body .ls-era-meta b { color: var(--text2); }
+    .dp-body .ls-era-share { font-size: 0.64rem; color: var(--text3); }
+
+    /* Clock */
+    .dp-body .ls-clock { padding: var(--sp-4); background: var(--raised); border: 1px solid var(--border); border-radius: var(--r-lg); }
+    .dp-body .ls-verdict { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--sp-2) var(--sp-3); align-items: center; }
+    .dp-body .ls-verdict-ico {
+      display: inline-flex; align-items: center; justify-content: center; width: 42px; height: 42px;
+      border-radius: var(--r-md); color: var(--dp-ac); background: color-mix(in srgb, var(--dp-ac) 15%, transparent);
+    }
+    .dp-body .ls-verdict-ico svg { width: 20px; height: 20px; }
+    .dp-body .ls-verdict-txt { display: flex; flex-direction: column; min-width: 0; }
+    .dp-body .ls-verdict-txt b { font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; color: var(--text); }
+    .dp-body .ls-verdict-txt span { font-size: var(--fs-xs); color: var(--text2); }
+    .dp-body .ls-verdict-chips { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; }
+    .dp-body .ls-chip {
+      display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px;
+      font-size: 0.7rem; font-weight: 600; color: var(--text2);
+      background: color-mix(in srgb, var(--text) 6%, transparent); border-radius: 999px;
+    }
+    .dp-body .ls-chip svg { width: 12px; height: 12px; color: var(--dp-ac); }
+    .dp-body .ls-charts { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 1.2fr); gap: var(--sp-4); margin-top: var(--sp-4); }
+    .dp-body .ls-bars { display: flex; align-items: flex-end; gap: 3px; height: 110px; padding-bottom: 1px; border-bottom: 1px solid var(--border); }
+    .dp-body .ls-chart--d .ls-bars { gap: 6px; }
+    .dp-body .ls-bar { flex: 1; height: 100%; display: flex; align-items: flex-end; min-width: 0; padding: 0; background: none; border: 0; cursor: pointer; }
+    .dp-body .ls-bar span {
+      display: block; width: 100%; height: var(--h); border-radius: 3px 3px 1px 1px;
+      background: color-mix(in srgb, var(--dp-ac) 45%, transparent);
+      transform-origin: bottom; animation: lsGrow 0.6s var(--ease) both; animation-delay: calc(var(--i) * 18ms);
+      transition: background var(--t-fast) var(--ease);
+    }
+    .dp-body .ls-bar.is-peak span { background: color-mix(in srgb, var(--dp-ac) 80%, transparent); }
+    .dp-body .ls-bar:hover span, .dp-body .ls-bar.is-on span { background: var(--dp-ac); box-shadow: 0 0 12px -2px var(--dp-ac); }
+    .dp-body .ls-bar:focus-visible { outline: 2px solid var(--dp-ac); outline-offset: 1px; border-radius: 3px; }
+    .dp-body .ls-axis { display: flex; justify-content: space-between; margin-top: 5px; font-size: 0.64rem; color: var(--text3); font-variant-numeric: tabular-nums; }
+    .dp-body .ls-chart--d .ls-axis span { flex: 1; text-align: center; }
+    .dp-body .ls-read {
+      display: flex; align-items: center; flex-wrap: wrap; gap: 4px var(--sp-3); min-height: 38px;
+      margin-top: var(--sp-3); padding: var(--sp-2) var(--sp-3);
+      font-size: var(--fs-xs); color: var(--text2);
+      background: color-mix(in srgb, var(--dp-ac) 8%, transparent); border-radius: var(--r-md);
+    }
+    .dp-body .ls-read-when { font-weight: 700; color: var(--text); }
+    .dp-body .ls-read-n b { color: var(--text); font-variant-numeric: tabular-nums; }
+    .dp-body .ls-read-song {
+      display: inline-flex; align-items: baseline; gap: 6px; min-width: 0; margin-left: auto; padding: 0;
+      font: inherit; font-weight: 600; color: var(--text); background: none; border: 0; cursor: pointer;
+    }
+    .dp-body .ls-read-song small { font-weight: 500; color: var(--text3); }
+    .dp-body .ls-read-song span { color: var(--dp-ac); font-variant-numeric: tabular-nums; }
+    .dp-body .ls-read-song:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+    /* Milestones: a timeline down the left, newest milestone lit */
+    .dp-body .ls-miles { position: relative; display: flex; flex-direction: column; }
+    .dp-body .ls-miles::before { content: ''; position: absolute; left: 11px; top: 14px; bottom: 14px; width: 2px; background: color-mix(in srgb, var(--dp-ac) 25%, var(--border)); border-radius: 2px; }
+    .dp-body .ls-ms {
+      position: relative; display: grid; grid-template-columns: 24px 96px minmax(0, 1fr) auto; align-items: center; gap: var(--sp-3);
+      padding: 8px var(--sp-2) 8px 0;
+      font: inherit; text-align: left; color: var(--text); background: none; border: 0; border-radius: var(--r-md); cursor: pointer;
+      animation: lsRise 0.4s var(--ease) both; animation-delay: calc(var(--i) * 40ms);
+      transition: background var(--t-fast) var(--ease);
+    }
+    .dp-body .ls-ms:hover { background: color-mix(in srgb, var(--text) 5%, transparent); }
+    .dp-body .ls-ms-dot { justify-self: center; width: 10px; height: 10px; border-radius: 50%; background: var(--raised); border: 2px solid var(--dp-ac); z-index: 1; }
+    .dp-body .ls-ms.is-last .ls-ms-dot { width: 14px; height: 14px; background: var(--dp-ac); box-shadow: 0 0 0 4px color-mix(in srgb, var(--dp-ac) 22%, transparent); }
+    .dp-body .ls-ms-n { font-family: var(--font-display); font-size: 0.95rem; font-weight: 800; color: var(--dp-ac); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .dp-body .ls-ms-song { display: flex; flex-direction: column; min-width: 0; font-size: var(--fs-sm); font-weight: 600; }
+    .dp-body .ls-ms-song, .dp-body .ls-ms-song small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .dp-body .ls-ms-song small, .dp-body .ls-ms-when small { font-size: 0.68rem; font-weight: 500; color: var(--text3); }
+    .dp-body .ls-ms-when { display: flex; flex-direction: column; align-items: flex-end; font-size: var(--fs-xs); color: var(--text2); white-space: nowrap; }
+    .dp-body .ls-next { margin-top: var(--sp-3); padding: var(--sp-3) var(--sp-4); border: 1px dashed color-mix(in srgb, var(--dp-ac) 45%, var(--border)); border-radius: var(--r-lg); }
+    .dp-body .ls-next-top { display: flex; align-items: center; gap: var(--sp-3); margin-bottom: var(--sp-3); }
+    .dp-body .ls-next-ico { display: inline-flex; color: var(--dp-ac); }
+    .dp-body .ls-next-ico svg { width: 20px; height: 20px; }
+    .dp-body .ls-next-txt { display: flex; flex-direction: column; font-size: var(--fs-xs); color: var(--text2); }
+    .dp-body .ls-next-txt b { font-size: var(--fs-sm); color: var(--text); }
+
+    .dp-body .ls-cal { overflow-x: auto; }
+    .dp-body .ls-more { margin-top: var(--sp-4); }
+    /* the month list's songs open their panel */
+    .dp-body .alb-month-track--go { width: 100%; padding: 4px 6px; margin: 0 -6px; font: inherit; font-size: var(--fs-xs); text-align: left; color: inherit; background: none; border: 0; border-radius: var(--r-sm); cursor: pointer; box-sizing: content-box; }
+    .dp-body .alb-month-track--go:hover { background: color-mix(in srgb, var(--text) 6%, transparent); }
+
+    @keyframes lsPing { from { opacity: 0.8; transform: scale(0.6); } to { opacity: 0; transform: scale(1.8); } }
+    @keyframes lsGrow { from { transform: scaleY(0); } }
+    @keyframes lsRise { from { opacity: 0; transform: translateY(6px); } }
+
+    @media (max-width: 640px) {
+      .dp-body .ls-hero { padding: var(--sp-4); }
+      .dp-body .ls-now-song { margin-left: 0; }
+      .dp-body .ls-stats { grid-template-columns: repeat(2, 1fr); row-gap: var(--sp-3); }
+      .dp-body .ls-stat:nth-child(3) { border-left: 0; }
+      .dp-body .ls-stat-v { font-size: 1.3rem; }
+      .dp-body .ls-era { flex-basis: 128px; }
+      .dp-body .ls-charts { grid-template-columns: 1fr; }
+      .dp-body .ls-bars { height: 90px; }
+      .dp-body .ls-bars { gap: 2px; }
+      .dp-body .ls-ms { grid-template-columns: 24px minmax(0, 1fr) auto; }
+      .dp-body .ls-ms-n { grid-column: 2; grid-row: 1; }
+      .dp-body .ls-ms-song { grid-column: 2 / -1; grid-row: 2; }
+      .dp-body .ls-ms-when { grid-column: 3; grid-row: 1; }
+      .dp-body .ls-ms-dot { grid-row: 1 / span 2; }
+      .dp-body .ls-read-song { margin-left: 0; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .dp-body .ls-era, .dp-body .ls-bar span, .dp-body .ls-ms, .dp-body .ls-hero--live .ls-pulse::after { animation: none; }
+    }
+
     /* ── Artist Rating tab (2026-10-28) ────────────────────────────────────
        app.js renderArtistRatingSection / arRenderBody / arRenderList:
          .ar-hero   ring, verdict, what it averages, albums / songs rated bars

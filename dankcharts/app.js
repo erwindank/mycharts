@@ -25887,7 +25887,7 @@ function artMonthClick(month) {
   const songCounts = {};
   for (const p of monthPlays) {
     const sk = songKey(p);
-    if (!songCounts[sk]) songCounts[sk] = { count: 0, title: p.title };
+    if (!songCounts[sk]) songCounts[sk] = { key: sk, count: 0, title: p.title };
     songCounts[sk].count++;
   }
   const topSongs = Object.values(songCounts).sort((a, b) => b.count - a.count).slice(0, 5);
@@ -25896,11 +25896,11 @@ function artMonthClick(month) {
   panel.innerHTML = `
     <div class="alb-month-detail-header">📅 ${label} — ${tCount('plays', monthPlays.length)}</div>
     <div class="alb-month-detail-tracks">
-      ${topSongs.map((s, i) => `<div class="alb-month-track">
+      ${topSongs.map((s, i) => `<button type="button" class="alb-month-track alb-month-track--go" onclick="openSongModal(${esc(JSON.stringify(s.key))})">
         <span class="alb-month-rank">#${i + 1}</span>
         <span class="alb-month-title">${esc(s.title)}</span>
         <span class="alb-month-count">${s.count}×</span>
-      </div>`).join('')}
+      </button>`).join('')}
     </div>`;
 }
 
@@ -27038,6 +27038,304 @@ function _rkCountUp(root) {
   });
 }
 
+/* ── Artist Listening tab (2026-10-29) ──────────────────────────────────
+   Was the plays-by-month chart on its own. Now, top to bottom (lsRender):
+     .ls-hero    where you are with them now: when you last played them,
+                 this year against the same stretch of last year, the last
+                 30 days, and how many months since the first had a play
+     the plays-by-month chart (buildArtistSparklineHTML); a month lists its
+                 songs, and each song opens its panel
+     .ls-eras    the song you played most each month, a run of the same
+                 song merged into one era; each card opens the song
+     .ls-clock   hour of day and day of week; pointing at a bar says how
+                 many plays and which song led there
+     .ls-miles   the 1st, 100th, 1,000th… play and the song it was, then
+                 how far off the next one is at the current pace
+     the calendar heatmap, drawn the first time the tab is shown (it is the
+     slow part), then streaks and the full history, closed.
+   _ls keeps what the clock's readout needs. */
+let _ls = null;
+const LS_MILESTONES = [1, 10, 50, 100, 250, 500, 1000, 2500, 5000, 10000, 25000, 50000, 100000];
+// Times of day for the clock's verdict: [first hour, last hour]
+const LS_PARTS = { morning: [5, 11], afternoon: [12, 16], evening: [17, 20], night: [21, 4] };
+
+function _lsLocale() { return { en: 'en-US', es: 'es', 'pt-BR': 'pt-BR', 'pt-PT': 'pt-PT' }[currentLang] || 'en-US'; }
+function _lsMonthKey(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; }
+function _lsMonthLabel(mk) {
+  const [y, m] = mk.split('-');
+  return `${new Date(2000, +m - 1, 1).toLocaleString(_lsLocale(), { month: 'short' })} ${y}`;
+}
+// "Feb – Apr 2025", "Dec 2024 – Feb 2025", or one month
+function _lsRangeLabel(a, b) {
+  if (a === b) return _lsMonthLabel(a);
+  const mo = mk => new Date(2000, +mk.slice(5) - 1, 1).toLocaleString(_lsLocale(), { month: 'short' });
+  return a.slice(0, 4) === b.slice(0, 4) ? `${mo(a)} – ${mo(b)} ${b.slice(0, 4)}` : `${_lsMonthLabel(a)} – ${_lsMonthLabel(b)}`;
+}
+function _lsHourLabel(h) { return new Date(2000, 0, 1, h).toLocaleTimeString(_lsLocale(), { hour: 'numeric' }); }
+function _lsDayName(d, style) { return new Date(2023, 0, 1 + d).toLocaleDateString(_lsLocale(), { weekday: style }); } // 1 Jan 2023 was a Sunday
+// Most played song in a { songKey: { count, title } } tally
+function _lsTop(tally) {
+  let best = null;
+  for (const s of Object.values(tally)) if (!best || s.count > best.count) best = s;
+  return best;
+}
+function _lsOpenSong(key) { return `openSongModal(${esc(JSON.stringify(key))})`; }
+
+function lsRender(artistName, artistPlays) {
+  const el = document.getElementById('modalListening');
+  if (!el) return;
+  const ic = _amIco;
+  if (!artistPlays.length) { el.innerHTML = ''; _ls = null; return; }
+  const total = artistPlays.length;
+  const DAY = 86400000;
+  const pct = (n, of) => of ? Math.round(n / of * 100) : 0;
+  const now = tzNow();
+  const todayStr = localDateStr(now);
+  const dayNum = ds => Math.round(new Date(ds + 'T00:00:00').getTime() / DAY);
+  const today = dayNum(todayStr);
+  const Y = now.getFullYear();
+
+  // One pass over the plays (newest first) fills every tally below
+  const monthCounts = {}, monthSongs = {}, hourCounts = Array(24).fill(0), dayCounts = Array(7).fill(0);
+  const hourSongs = Array.from({ length: 24 }, () => ({})), daySongs = Array.from({ length: 7 }, () => ({}));
+  let ytd = 0, lastYtd = 0, last30 = 0, prev30 = 0, last90 = 0;
+  const md = todayStr.slice(5);
+  const tally = (o, p) => { const k = songKey(p); (o[k] || (o[k] = { key: k, title: p.title, artist: p.artist, album: p.album, count: 0 })).count++; };
+  for (const p of artistPlays) {
+    const d = tzDateOf(p), ds = dayStrOf(p), mk = _lsMonthKey(d);
+    monthCounts[mk] = (monthCounts[mk] || 0) + 1;
+    tally(monthSongs[mk] || (monthSongs[mk] = {}), p);
+    const h = d.getHours(), w = d.getDay();
+    hourCounts[h]++; dayCounts[w]++;
+    tally(hourSongs[h], p); tally(daySongs[w], p);
+    const yr = +ds.slice(0, 4), ago = today - dayNum(ds);
+    if (yr === Y) ytd++;
+    else if (yr === Y - 1 && ds.slice(5) <= md) lastYtd++;
+    if (ago < 30) last30++; else if (ago < 60) prev30++;
+    if (ago < 90) last90++;
+  }
+  const months = Object.keys(monthCounts).sort();
+
+  /* ── Hero ── */
+  const lastDs = dayStrOf(artistPlays[0]), firstDs = dayStrOf(artistPlays[total - 1]);
+  const daysAgo = today - dayNum(lastDs);
+  const state = daysAgo <= 14 ? 'live' : daysAgo <= 90 ? 'warm' : 'cold';
+  const agoTxt = daysAgo <= 0 ? t('ls_last_today') : daysAgo === 1 ? t('ls_last_yesterday')
+    : daysAgo < 60 ? t('ls_last_days', { n: daysAgo }) : t('ls_last_months', { n: Math.floor(daysAgo / 30) });
+  const lastSong = artistPlays[0];
+  // months from the first one with a play to this one, and how many had one
+  const [fy, fm] = months[0].split('-').map(Number);
+  const spanMonths = (Y - fy) * 12 + (now.getMonth() + 1 - fm) + 1;
+  // the first play to today, in years and months
+  const spanY = Math.floor((spanMonths - 1) / 12), spanM = (spanMonths - 1) % 12;
+  const spanTxt = spanY ? `${tCount('years', spanY)}${spanM ? ', ' + tCount('months', spanM) : ''}`
+    : spanM ? tCount('months', spanM) : tCount('days', Math.max(1, today - dayNum(firstDs) + 1));
+  const peakMonth = months.reduce((b, m) => monthCounts[m] > monthCounts[b] ? m : b, months[0]);
+  const delta = (a, b) => b ? Math.round((a - b) / b * 100) : null;
+  const deltaChip = (a, b, vsKey) => {
+    const dv = delta(a, b);
+    if (dv === null) return a ? `<span class="ls-delta ls-delta--up">${esc(t('ls_new'))}</span>` : '';
+    const dir = dv > 0 ? 'up' : dv < 0 ? 'down' : 'flat';
+    return `<span class="ls-delta ls-delta--${dir}" title="${esc(t(vsKey, { n: b.toLocaleString() }))}">${dv > 0 ? '▲' : dv < 0 ? '▼' : '='} ${Math.abs(dv)}%</span>`;
+  };
+  const stat = (v, label, chip, cap) => `<div class="ls-stat">
+      <span class="ls-stat-v rk-count">${v.toLocaleString()}</span>
+      <span class="ls-stat-l">${esc(label)}</span>
+      ${chip || cap ? `<span class="ls-stat-c">${chip || ''}${cap ? `<small>${esc(cap)}</small>` : ''}</span>` : ''}
+    </div>`;
+
+  const hero = `<div class="ls-hero ls-hero--${state}">
+      <div class="ls-now">
+        <span class="ls-pulse" aria-hidden="true"></span>
+        <span class="ls-state">${esc(t('ls_state_' + state))}</span>
+        <span class="ls-now-sep" aria-hidden="true">·</span>
+        <span class="ls-now-when">${esc(agoTxt)}</span>
+        <button type="button" class="ls-now-song" onclick="${_lsOpenSong(songKey(lastSong))}">${ic('play')}<span>${esc(lastSong.title)}</span></button>
+      </div>
+      <p class="ls-story">${t('ls_story', {
+        span: `<b>${esc(spanTxt)}</b>`,
+        month: `<b>${esc(_lsMonthLabel(peakMonth))}</b>`,
+        n: `<b>${esc(tCount('plays', monthCounts[peakMonth]))}</b>`
+      })}</p>
+      <div class="ls-stats">
+        ${stat(ytd, t('ls_s_year', { year: Y }), lastYtd || ytd ? deltaChip(ytd, lastYtd, 'ls_vs_last_year') : '', '')}
+        ${stat(last30, t('ls_s_30d'), deltaChip(last30, prev30, 'ls_vs_prev_30'), '')}
+        ${stat(months.length, t('ls_s_months'), '', months.length < spanMonths ? t('ls_s_months_of', { n: spanMonths }) : '')}
+        ${stat(Math.round(total / months.length), t('ls_s_avg'), '', '')}
+      </div>
+    </div>`;
+
+  /* ── Eras: the top song of each month, runs of the same song merged ── */
+  const eras = [];
+  for (const m of months) {
+    const top = _lsTop(monthSongs[m]);
+    const prev = eras[eras.length - 1];
+    if (prev && prev.key === top.key) { prev.to = m; prev.plays += top.count; prev.all += monthCounts[m]; prev.n++; }
+    else eras.push({ key: top.key, title: top.title, artist: top.artist, album: top.album, from: m, to: m, plays: top.count, all: monthCounts[m], n: 1 });
+  }
+  const shownEras = eras.slice(-36);
+  const bigEra = shownEras.reduce((b, e) => e.plays > b.plays ? e : b, shownEras[0]);
+  const eraSongs = new Set(eras.map(e => e.key)).size;
+  const erasHTML = eras.length < 2 ? '' : `
+    <div class="ao-head rk-head">${esc(t('ls_h_eras'))}<span>${esc(t('ls_eras_hint', { n: eras.length, songs: eraSongs }))}</span></div>
+    <div class="ls-eras" tabindex="0" role="list" aria-label="${esc(t('ls_h_eras'))}">
+      ${shownEras.map((e, i) => `<button type="button" role="listitem" class="ls-era${e === bigEra ? ' is-big' : ''}${i === shownEras.length - 1 ? ' is-now' : ''}" style="--i:${i}" onclick="${_lsOpenSong(e.key)}">
+        <span class="ls-era-when">${esc(_lsRangeLabel(e.from, e.to))}</span>
+        <span class="ls-era-art" id="lsEra-${i}"><span class="thumb-initials">${esc(initials(e.title))}</span>${e === bigEra ? `<span class="ls-era-crown" title="${esc(t('ls_era_big'))}">${ic('crown')}</span>` : ''}</span>
+        <span class="ls-era-name">${esc(e.title)}</span>
+        <span class="ls-era-meta"><b>${e.plays.toLocaleString()}</b> ${esc(tUnit('plays', e.plays))} · ${esc(tCount('months', e.n))}</span>
+        <span class="ao-meter"><span style="width:${pct(e.plays, e.all)}%"></span></span>
+        <span class="ls-era-share">${esc(t('ls_era_share', { pct: pct(e.plays, e.all) + '%' }))}</span>
+      </button>`).join('')}
+    </div>`;
+
+  /* ── Clock: hour of day and day of week ── */
+  const order = Array.from({ length: 7 }, (_, i) => (weekStartDay + i) % 7);
+  const partOf = h => Object.keys(LS_PARTS).find(k => { const [a, b] = LS_PARTS[k]; return a <= b ? h >= a && h <= b : h >= a || h <= b; });
+  const partCounts = {};
+  hourCounts.forEach((n, h) => { const k = partOf(h); partCounts[k] = (partCounts[k] || 0) + n; });
+  const part = Object.keys(partCounts).reduce((b, k) => partCounts[k] > partCounts[b] ? k : b);
+  const peakHour = hourCounts.indexOf(Math.max(...hourCounts));
+  const peakDay = dayCounts.indexOf(Math.max(...dayCounts));
+  const weekend = dayCounts[0] + dayCounts[6];
+  const maxH = Math.max(...hourCounts), maxD = Math.max(...dayCounts);
+  _ls = { name: artistName, total, hourCounts, dayCounts, hourTop: hourSongs.map(_lsTop), dayTop: daySongs.map(_lsTop), heatmap: false };
+  const hourBars = hourCounts.map((n, h) => `<button type="button" class="ls-bar${h === peakHour ? ' is-peak' : ''}" style="--h:${Math.max(3, n / maxH * 100).toFixed(1)}%;--i:${h}" data-k="h" data-i="${h}" aria-label="${esc(_lsHourLabel(h))}: ${esc(tCount('plays', n))}"><span></span></button>`).join('');
+  const dayBars = order.map((w, i) => `<button type="button" class="ls-bar${w === peakDay ? ' is-peak' : ''}" style="--h:${Math.max(3, dayCounts[w] / maxD * 100).toFixed(1)}%;--i:${i}" data-k="d" data-i="${w}" aria-label="${esc(_lsDayName(w, 'long'))}: ${esc(tCount('plays', dayCounts[w]))}"><span></span></button>`).join('');
+  const [pa, pb] = LS_PARTS[part];
+  const clockHTML = `
+    <div class="ao-head rk-head">${esc(t('ls_h_clock'))}<span>${esc(t('ls_clock_hint'))}</span></div>
+    <div class="ls-clock">
+      <div class="ls-verdict">
+        <span class="ls-verdict-ico">${ic(part === 'night' ? 'moon' : part === 'morning' ? 'sun' : part === 'evening' ? 'sparkle' : 'headphones')}</span>
+        <span class="ls-verdict-txt">
+          <b>${esc(t('ls_p_' + part))}</b>
+          <span>${esc(t('ls_p_cap', { pct: pct(partCounts[part], total) + '%', from: _lsHourLabel(pa), to: _lsHourLabel((pb + 1) % 24) }))}</span>
+        </span>
+        <span class="ls-verdict-chips">
+          <span class="ls-chip">${ic('calendar')}${esc(t('ls_top_day', { day: _lsDayName(peakDay, 'long') }))}</span>
+          <span class="ls-chip">${ic('clock')}${esc(t('ls_top_hour', { hour: _lsHourLabel(peakHour) }))}</span>
+          <span class="ls-chip">${esc(t('ls_weekend', { pct: pct(weekend, total) + '%' }))}</span>
+        </span>
+      </div>
+      <div class="ls-charts">
+        <div class="ls-chart ls-chart--h">
+          <div class="ls-bars">${hourBars}</div>
+          <div class="ls-axis"><span>${esc(_lsHourLabel(0))}</span><span>${esc(_lsHourLabel(6))}</span><span>${esc(_lsHourLabel(12))}</span><span>${esc(_lsHourLabel(18))}</span><span></span></div>
+        </div>
+        <div class="ls-chart ls-chart--d">
+          <div class="ls-bars">${dayBars}</div>
+          <div class="ls-axis">${order.map(w => `<span>${esc(_lsDayName(w, 'narrow'))}</span>`).join('')}</div>
+        </div>
+      </div>
+      <div class="ls-read" aria-live="polite"></div>
+    </div>`;
+
+  /* ── Milestones ── */
+  const chrono = artistPlays;  // newest first: play n is chrono[total - n]
+  const firstP = chrono[total - 1];
+  const hit = LS_MILESTONES.filter(n => n <= total);
+  const next = LS_MILESTONES.find(n => n > total);
+  const msRow = (n, i) => {
+    const p = chrono[total - n];
+    const d = tzDateOf(p);
+    const isLast = i === hit.length - 1;
+    return `<button type="button" class="ls-ms${isLast ? ' is-last' : ''}" style="--i:${i}" onclick="${_lsOpenSong(songKey(p))}">
+        <span class="ls-ms-dot" aria-hidden="true"></span>
+        <span class="ls-ms-n">${n === 1 ? esc(t('ls_ms_first')) : esc(t('ls_ms_nth', { n: n.toLocaleString() }))}</span>
+        <span class="ls-ms-song">${esc(p.title)}${p.album && p.album !== '—' ? `<small>${esc(p.album)}</small>` : ''}</span>
+        <span class="ls-ms-when">${esc(fmt(d))}${n > 1 ? `<small>${esc(t('ls_ms_after', { time: fmtElapsed(p.date - firstP.date) }))}</small>` : ''}</span>
+      </button>`;
+  };
+  let nextHTML = '';
+  if (next) {
+    const prevN = hit[hit.length - 1] || 0;
+    const left = next - total;
+    const perDay = last90 / 90;
+    const eta = perDay > 0 ? new Date(now.getTime() + Math.ceil(left / perDay) * DAY) : null;
+    nextHTML = `<div class="ls-next">
+        <div class="ls-next-top">
+          <span class="ls-next-ico">${ic('target')}</span>
+          <span class="ls-next-txt"><b>${esc(t('ls_next', { n: next.toLocaleString() }))}</b>
+            <span>${esc(t('ls_next_left', { n: tCount('plays', left) }))}${eta ? ' · ' + esc(t('ls_next_eta', { date: fmt(eta) })) : ' · ' + esc(t('ls_next_idle'))}</span></span>
+        </div>
+        <div class="ao-span-track"><span class="ao-span-fill" style="width:${((total - prevN) / (next - prevN) * 100).toFixed(1)}%"></span></div>
+      </div>`;
+  }
+  const milesHTML = `
+    <div class="ao-head rk-head">${esc(t('ls_h_miles'))}<span>${esc(t('ls_miles_hint'))}</span></div>
+    <div class="ls-miles">${hit.map(msRow).join('')}</div>
+    ${nextHTML}`;
+
+  const sub = (label, kind) => `<div class="cr-subsection">
+      <div class="cr-subsection-header" onclick="toggleCrSubsection(this)"><span class="cr-subsection-toggle">▶</span><span class="cr-subsection-label">${label}</span></div>
+      <div class="cr-subsection-body" style="display:none;" data-crtype="artists" data-crkey="${esc(artistName)}" data-crkind="${kind}"></div>
+    </div>`;
+
+  el.innerHTML = `${hero}
+    ${buildArtistSparklineHTML(artistPlays)}
+    ${erasHTML}
+    ${clockHTML}
+    ${milesHTML}
+    <div class="ao-head rk-head">${esc(t('ls_h_calendar'))}</div>
+    <div class="ls-cal" id="lsHeatmap"><div class="modal-records-wait">${esc(t('ls_loading'))}</div></div>
+    <div class="ls-more">${sub(t('cr_sub_streaks'), 'streaks')}${sub(t('cr_sub_full_history'), 'rawdata')}</div>`;
+
+  // Era artwork through the same source cascade as the chart rows
+  shownEras.forEach((e, i) => {
+    const a = document.getElementById('lsEra-' + i);
+    if (a) fetchAndInjectImage(a, { imgId: 'lsEra-' + i, name: e.title, title: e.title, artist: e.artist, album: e.album || '', prefKey: 'song:' + e.artist.toLowerCase() + '|||' + e.title.toLowerCase() }, 'song');
+  });
+  // Clock: the readout follows the pointer / focus and starts on the peak hour
+  const clock = el.querySelector('.ls-clock');
+  const pick = b => {
+    if (!b) return;
+    clock.querySelectorAll('.ls-bar.is-on').forEach(x => x.classList.remove('is-on'));
+    b.classList.add('is-on');
+    lsReadout(b.dataset.k, +b.dataset.i);
+  };
+  clock.addEventListener('mouseover', e => pick(e.target.closest('.ls-bar')));
+  clock.addEventListener('focusin', e => pick(e.target.closest('.ls-bar')));
+  clock.addEventListener('click', e => pick(e.target.closest('.ls-bar')));
+  pick(clock.querySelector(`.ls-bar[data-k="h"][data-i="${peakHour}"]`));
+
+  const sec = el.closest('.dp-sec');
+  if (sec && sec.classList.contains('dp-on')) lsShow();
+  if (sec && !sec._lsShow) {
+    sec._lsShow = true;
+    sec.addEventListener('dp-show', lsShow);
+  }
+}
+
+// The tab came on screen: count the numbers up, draw the calendar once
+function lsShow() {
+  const el = document.getElementById('modalListening');
+  if (!el || !_ls) return;
+  _rkCountUp(el);
+  if (_ls.heatmap) return;
+  // the eras strip opens on the latest era (it has no width while hidden)
+  const strip = el.querySelector('.ls-eras');
+  if (strip) requestAnimationFrame(() => { strip.scrollLeft = strip.scrollWidth; });
+  _ls.heatmap = true;
+  const name = _ls.name;
+  // after the tab has painted, so switching to it stays instant
+  setTimeout(() => {
+    const box = document.getElementById('lsHeatmap');
+    if (box && _ls && _ls.name === name) box.innerHTML = buildItemHeatmapHTML('artists', name);
+  }, 60);
+}
+
+function lsReadout(kind, i) {
+  const el = document.querySelector('#modalListening .ls-read');
+  if (!el || !_ls) return;
+  const n = kind === 'h' ? _ls.hourCounts[i] : _ls.dayCounts[i];
+  const top = kind === 'h' ? _ls.hourTop[i] : _ls.dayTop[i];
+  const label = kind === 'h' ? `${_lsHourLabel(i)} – ${_lsHourLabel((i + 1) % 24)}` : _lsDayName(i, 'long');
+  el.innerHTML = `<span class="ls-read-when">${esc(label)}</span>
+    <span class="ls-read-n"><b>${n.toLocaleString()}</b> ${esc(tUnit('plays', n))} · ${_ls.total ? Math.round(n / _ls.total * 100) : 0}%</span>
+    ${top ? `<button type="button" class="ls-read-song" onclick="${_lsOpenSong(top.key)}"><small>${esc(t('ls_read_top'))}</small>${esc(top.title)}<span>${top.count.toLocaleString()}×</span></button>` : ''}`;
+}
+
 function openArtistModal(artistName) {
   // Close any open IG modals so they don't stack behind the artist modal
   document.getElementById('crIgModal')?.classList.remove('open');
@@ -27325,8 +27623,8 @@ function openArtistModal(artistName) {
   // Grammy strip — render current cache; async-loads any missing years after modal opens
   _renderModalGrammyStrip(artistName);
 
-  // Plays by month chart
-  document.getElementById('modalArtistChart').innerHTML = buildArtistSparklineHTML(artistPlays);
+  // Listening tab — now, the months, eras, clock, milestones (lsRender)
+  lsRender(artistName, artistPlays);
 
   /* ── Chart accomplishments as badges (redone 2026-10-27) ─────────────────
      Was one long list of sentences with a + on each. Now every achievement
