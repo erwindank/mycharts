@@ -42132,43 +42132,955 @@ async function _awardsEnsureAllYearsLoaded() {
   if (toLoad.length) await Promise.all(toLoad);
 }
 
-function _renderModalGrammyStrip(artistName) {
-  const catMap = Object.fromEntries(AWARD_CATEGORIES.map(c => [c.id, c]));
-  const entries = [];
-  for (const [year, yearData] of Object.entries(_awardsYearData)) {
-    if (!yearData?.categories) continue;
-    for (const [catId, cat] of Object.entries(yearData.categories)) {
-      if (!cat.enabled) continue;
-      const catInfo = catMap[catId];
-      if (!catInfo) continue;
-      // Credited the same way as the Stats & records summary: the full credit
-      // as written, the lead artist, and featured artists when the switch is on
-      const credited = n => !!n && (n.artist === artistName ||
-        _awardsCredits(n, _awardsCreditFeatures).some(a => a.toLowerCase() === artistName.toLowerCase()));
-      const inNominees = (cat.nominees || []).some(credited);
-      const isWinner = credited(cat.winner);
-      if (inNominees || isWinner) entries.push({ year: parseInt(year), label: catInfo.label, isWin: isWinner });
+/* ── Artist Awards tab (2026-10-29) ─────────────────────────────────────
+   Was two numbers and a folded list of categories. Now, top to bottom
+   (_renderModalGrammyStrip → awPaint):
+     .aw-hero    win rate as a ring, a verdict, where they rank among every
+                 artist on your ballots, and four numbers
+     .aw-big     the general field (Artist, Album, Song, Record of the Year,
+                 Best New Artist), lit when won, outlined when nominated
+     .aw-years   ceremony by ceremony; a year narrows the ballot below and
+                 the readout links to that ceremony in Awards
+     .aw-shelf   every win as a card with its artwork; opens the song/album
+     .aw-works   their most nominated songs and albums, one pip a race
+     .aw-rivals  head to head with the artists they met most in a decided race
+     .aw-ballot  every nomination: won, lost (and to whom) or undecided
+   Credited like the Stats & records summary: one nomination per nominated
+   work, the lead artist always, featured artists when the switch is on.
+   _aw keeps what the year and result filters need. */
+let _aw = null;
+const AW_BIG = ['artist_of_year', 'album_of_year', 'song_of_year', 'record_of_year', 'new_artist'];
+const AW_BALLOT_PAGE = 30;
+// The general field first, in AW_BIG's order
+function _awBigRank(e) { const i = AW_BIG.indexOf(e.cat.id); return i < 0 ? 99 : i; }
+
+// Every year from the first play to this one is in _awardsYearData
+function _awAllLoaded() {
+  if (!allPlays.length) return true;
+  const min = _awardsFirstPlayYear(), max = tzNow().getFullYear();
+  for (let y = min; y <= max; y++) if (!_awardsYearData[y]) return false;
+  return true;
+}
+
+// onclick for a nominee: its song or album panel, another artist's panel, or
+// nothing for this artist (their panel is the one open)
+function _awOpenJs(item, type, self) {
+  if (!item) return '';
+  if (type === 'song' && item.title) return `openSongModal(${esc(JSON.stringify(item.title.toLowerCase().trim() + '|||' + (item.artist || '').toLowerCase().trim()))})`;
+  if (type === 'album' && item.album) return `openAlbumModal(${esc(JSON.stringify(item.album + '|||' + (item.artist || '')))})`;
+  const lead = _awardsCredits(item, false)[0] || item.artist || '';
+  return lead && lead.toLowerCase() !== self ? `openArtistModal(${esc(JSON.stringify(lead))})` : '';
+}
+function _awName(item) { return item ? (item.title || item.album || item.artist || '') : ''; }
+// Artwork through the same source cascade as everywhere else
+function _awArt(id, item, type) {
+  const el = document.getElementById(id);
+  if (!el || !item) return;
+  if (type === 'song') fetchAndInjectImage(el, { imgId: id, name: item.title, title: item.title, artist: item.artist, album: item.album || '', prefKey: 'song:' + (item.artist || '').toLowerCase() + '|||' + item.title.toLowerCase() }, 'song');
+  else if (type === 'album') fetchAndInjectImage(el, { imgId: id, name: item.album, title: item.album, artist: item.artist, album: item.album, prefKey: 'album:' + (item.artist || '').toLowerCase() + '|||' + item.album.toLowerCase() }, 'album');
+  else {
+    const name = _awardsCredits(item, false)[0] || item.artist;
+    fetchAndInjectImage(el, { imgId: id, name, prefKey: 'artist:' + name.toLowerCase() }, 'artist');
+  }
+}
+// "2023, 2024" or "2019 – 2024" for a long run
+function _awYears(list) {
+  const ys = [...new Set(list)].sort();
+  return ys.length > 3 ? `${ys[0]} – ${ys[ys.length - 1]} (${ys.length})` : ys.join(', ');
+}
+
+function _awCollect(artistName) {
+  const lc = artistName.toLowerCase();
+  const known = Object.fromEntries(AWARD_CATEGORIES.map(c => [c.id, c]));
+  const creditsOf = n => n ? _awardsCredits(n, _awardsCreditFeatures).map(a => a.toLowerCase()) : [];
+  // Credited the same way as the Stats & records summary: the full credit
+  // as written, the lead artist, and featured artists when the switch is on
+  const isHis = n => !!n && (n.artist === artistName || creditsOf(n).includes(lc));
+  const entries = [], board = {}, h2h = {}, bigOn = new Set(), ballotYears = new Set();
+  const bump = (name, f) => { const k = name.toLowerCase(); (board[k] || (board[k] = { noms: 0, wins: 0 }))[f]++; };
+  for (const [ys, yd] of Object.entries(_awardsYearData)) {
+    const year = parseInt(ys, 10);
+    if (!yd?.categories) continue;
+    for (const [catId, cd] of Object.entries(yd.categories)) {
+      const cat = known[catId];
+      if (!cat || !cd?.enabled) continue;
+      const noms = cd.nominees || [];
+      const wk = cd.winner ? _awardItemKey(cd.winner) : null;
+      // A winner missing from an old ballot's list still earned the nomination
+      const field = (wk && !noms.some(n => _awardItemKey(n) === wk)) ? [...noms, cd.winner] : noms;
+      if (!field.length) continue;
+      ballotYears.add(year);
+      if (AW_BIG.includes(catId)) bigOn.add(catId);
+      for (const n of field) for (const a of _awardsCredits(n, _awardsCreditFeatures)) bump(a, 'noms');
+      if (cd.winner) for (const a of _awardsCredits(cd.winner, _awardsCreditFeatures)) bump(a, 'wins');
+      const mine = field.filter(isHis);
+      if (!mine.length) continue;
+      for (const n of mine) {
+        entries.push({ year, cat, item: n, decided: !!wk, isWin: !!wk && _awardItemKey(n) === wk, winner: cd.winner || null, field: field.length });
+      }
+      // Head to head: everyone else on a decided ballot, when one of the two won
+      if (!wk) continue;
+      const theyWon = isHis(cd.winner), winners = creditsOf(cd.winner);
+      const others = new Map();
+      for (const n of field) if (!isHis(n)) for (const a of _awardsCredits(n, _awardsCreditFeatures)) if (a.toLowerCase() !== lc) others.set(a.toLowerCase(), a);
+      for (const [k, name] of others) {
+        if (!theyWon && !winners.includes(k)) continue;
+        const r = h2h[k] || (h2h[k] = { name, w: 0, l: 0 });
+        if (theyWon) r.w++; else r.l++;
+      }
     }
   }
-  entries.sort((a, b) => (b.isWin - a.isWin) || (b.year - a.year));
+  return { lc, entries, board, h2h, bigOn, ballotYears };
+}
+
+function _renderModalGrammyStrip(artistName) {
+  const el = document.getElementById('modalAwards');
+  if (!el) return;
+  // Two views under one switch: your ballots (#awMine) and real life (#awReal)
+  if (!document.getElementById('awMine')) {
+    el.innerHTML = `<div class="aw-switch" role="tablist"></div>
+      <div class="aw-view" id="awMine" role="tabpanel"></div>
+      <div class="aw-view" id="awReal" role="tabpanel" hidden></div>`;
+    el.querySelector('.aw-switch').addEventListener('click', e => {
+      const b = e.target.closest('[data-aw-view]');
+      if (b) awSetView(b.dataset.awView);
+    });
+  }
+  const c = _awCollect(artistName);
+  const keep = _aw && _aw.name === artistName;
+  _aw = { name: artistName, ...c, year: keep ? _aw.year : null, filter: keep ? _aw.filter : 'all', limit: AW_BALLOT_PAGE };
+  if (!_awr || _awr.name !== artistName) _awr = { name: artistName, status: 'idle', year: null, show: null, filter: 'all', limit: AW_BALLOT_PAGE, allShows: false };
+  awPaint();
+  awSetView(_awView(), true);
+  const sec = el.closest('.dp-sec');
+  if (sec && sec.classList.contains('dp-on')) awrEnsure();
+  if (sec && !sec._awShow) {
+    sec._awShow = true;
+    sec.addEventListener('dp-show', () => {
+      awrEnsure();
+      _rkCountUp(document.getElementById(_awView() === 'real' ? 'awReal' : 'awMine'));
+    });
+  }
+}
+
+// Which view the switch is on, remembered per browser
+function _awView() {
+  try { return localStorage.getItem(AW_VIEW_LS) === 'real' ? 'real' : 'mine'; } catch (e) { return 'mine'; }
+}
+function awSetView(v, quiet) {
+  try { localStorage.setItem(AW_VIEW_LS, v); } catch (e) {}
+  const mine = document.getElementById('awMine'), real = document.getElementById('awReal');
+  if (!mine || !real) return;
+  mine.hidden = v === 'real';
+  real.hidden = v !== 'real';
+  awPaintSwitch();
+  if (v === 'real') { awrEnsure(); awrPaint(); }
+  if (!quiet) _rkCountUp(v === 'real' ? real : mine);
+}
+function awPaintSwitch() {
+  const box = document.querySelector('#modalAwards .aw-switch');
+  if (!box || !_aw) return;
+  const v = _awView();
+  const mineWins = _aw.entries.filter(e => e.isWin).length;
+  const realN = _awr && _awr.status === 'ok' ? _awr.rows.filter(r => r.res === 'w').length : null;
+  const btn = (key, label, icon, n) => `<button type="button" role="tab" class="aw-sw${v === key ? ' is-on' : ''}" data-aw-view="${key}" aria-selected="${v === key}">
+      ${_amIco(icon)}<span>${esc(label)}</span>${n == null ? (key === 'real' && _awr?.status === 'loading' ? '<i class="aw-sw-dots" aria-hidden="true"></i>' : '') : `<b title="${esc(tCount('aw_win', n))}">${_amIco('trophy')}${n.toLocaleString()}</b>`}
+    </button>`;
+  box.innerHTML = btn('mine', t('modal_grammies_title').replace(/^\W+/, ''), 'headphones', mineWins)
+    + btn('real', t('aw_view_real'), 'globe', realN);
+}
+
+function awPaint() {
+  const el = document.getElementById('awMine');
+  if (!el || !_aw) return;
+  const ic = _amIco;
+  const { entries, board, h2h, bigOn, lc } = _aw;
+  const pct = (n, of) => of ? Math.round(n / of * 100) : 0;
+
+  if (!entries.length) {
+    el.innerHTML = !_awAllLoaded()
+      ? `<div class="modal-records-wait">${esc(t('aw_loading'))}</div>`
+      : `<div class="aw-empty">
+          <span class="aw-empty-ico">${ic('trophy')}</span>
+          <b>${esc(t('aw_empty_t'))}</b>
+          <p>${esc(t('aw_empty_d', { name: _aw.name }))}</p>
+          <button type="button" class="dc-btn" onclick="awOpenCeremony(${_awardsYear})">${ic('trophy')}<span>${esc(t('aw_open_awards'))}</span></button>
+        </div>`;
+    return;
+  }
+
   const noms = entries.length;
   const wins = entries.filter(e => e.isWin).length;
-  const grammyEl = document.getElementById('modalGrammyStrip');
-  grammyEl.innerHTML = `
-    <div class="modal-stat"><div class="se">🏅</div><div class="sv" data-countup="${noms}">${noms}</div><div class="sl">${t('sm_nominations')}</div></div>
-    <div class="modal-stat ${wins > 0 ? 'modal-stat--gold' : ''}"><div class="se">🏆</div><div class="sv ${wins > 0 ? 'sv--gold' : ''}" data-countup="${wins}">${wins}</div><div class="sl">${t('sm_wins')}</div></div>
-  `;
-  animateModalCountup(grammyEl);
-  const detailEl = document.getElementById('modalGrammyDetail');
-  if (entries.length > 0) {
-    const n = entries.length;
-    const listHTML = entries.map(e =>
-      `<div class="modal-grammy-entry${e.isWin ? ' modal-grammy-entry--win' : ''}"><span class="mge-icon">${e.isWin ? '🏆' : '🏅'}</span><span class="mge-year">${e.year}</span><span class="mge-cat">${esc(e.label)}</span></div>`
-    ).join('');
-    detailEl.innerHTML = `<button class="modal-grammy-toggle" onclick="toggleModalGrammyDetail(this)" data-count="${n}">${t(n === 1 ? 'sm_show_cats_one' : 'sm_show_cats', { n })}</button><div class="modal-grammy-list" style="display:none">${listHTML}</div>`;
-  } else {
-    detailEl.innerHTML = '';
+  const decided = entries.filter(e => e.decided).length;
+  const pending = noms - decided;
+  const byYear = {};
+  for (const e of entries) {
+    const y = byYear[e.year] || (byYear[e.year] = { noms: 0, wins: 0 });
+    y.noms++; if (e.isWin) y.wins++;
   }
+  const years = Object.keys(byYear).map(Number).sort((a, b) => a - b);
+  const bestYear = years.reduce((b, y) => (byYear[y].wins > byYear[b].wins || (byYear[y].wins === byYear[b].wins && byYear[y].noms > byYear[b].noms)) ? y : b, years[0]);
+
+  /* ── Hero ── */
+  const others = Object.entries(board).filter(([k]) => k !== lc).map(([, v]) => v);
+  const rankOf = (f, v) => 1 + others.filter(o => o[f] > v).length;
+  const winRank = wins ? rankOf('wins', wins) : 0, nomRank = rankOf('noms', noms);
+  const rate = pct(wins, decided);
+  const verdict = winRank === 1 ? 'goat' : wins >= 3 && rate >= 50 ? 'sweep' : wins >= 10 ? 'hof'
+    : wins >= 3 ? 'regular' : wins ? 'winner' : decided >= 5 ? 'bridesmaid' : 'ballot';
+  const range = years[0] === years[years.length - 1] ? String(years[0]) : `${years[0]} – ${years[years.length - 1]}`;
+  const story = t(decided ? 'aw_story' : 'aw_story_open', {
+    noms: `<b>${esc(tCount('aw_nom', noms))}</b>`,
+    ceremonies: `<b>${esc(tCount('aw_cer', years.length))}</b>`,
+    range: esc(range),
+    pct: `<b>${rate}%</b>`
+  });
+  const chip = (icon, txt, gold) => `<span class="ls-chip${gold ? ' aw-chip--gold' : ''}">${icon ? ic(icon) : ''}${esc(txt)}</span>`;
+  const artists = Object.keys(board).length;
+  const stat = (v, label, cap, count) => `<div class="ls-stat">
+      <span class="ls-stat-v${count ? ' rk-count' : ''}">${typeof v === 'number' ? v.toLocaleString() : esc(v)}</span>
+      <span class="ls-stat-l">${esc(label)}</span>
+      ${cap ? `<span class="ls-stat-c"><small>${esc(cap)}</small></span>` : ''}
+    </div>`;
+  const hero = `<div class="aw-hero${wins ? ' aw-hero--won' : ''}">
+      <div class="aw-hero-top">
+        <div class="aw-ring" style="--p:${decided ? rate : 0}" role="img" aria-label="${esc(t('aw_rate'))}: ${decided ? rate + '%' : '—'}">
+          <span class="aw-ring-v">${decided ? rate + '<small>%</small>' : '—'}</span>
+          <span class="aw-ring-l">${esc(t('aw_rate'))}</span>
+        </div>
+        <div class="aw-hero-txt">
+          <span class="aw-kicker">${ic(wins ? 'trophy' : 'medal')}${esc(t('modal_grammies_title').replace(/^\W+/, ''))}</span>
+          <b class="aw-verdict">${esc(t('aw_v_' + verdict))}</b>
+          <p class="aw-story">${story}</p>
+          <div class="aw-chips">
+            ${wins ? chip(winRank === 1 ? 'crown' : 'trophy', t('aw_rank_wins', { n: winRank, of: artists.toLocaleString() }), winRank <= 3) : ''}
+            ${chip(nomRank === 1 ? 'crown' : 'medal', t('aw_rank_noms', { n: nomRank }), nomRank === 1 && !wins)}
+            ${pending ? chip('hourglass', t('aw_pending', { n: pending })) : ''}
+          </div>
+        </div>
+      </div>
+      <div class="ls-stats">
+        ${stat(noms, t('aw_s_noms'), '', true)}
+        ${stat(wins, t('aw_s_wins'), '', true)}
+        ${stat(years.length, t('aw_s_cers'), '', true)}
+        ${stat(String(bestYear), t('aw_s_best'), byYear[bestYear].wins ? tCount('aw_win', byYear[bestYear].wins) : tCount('aw_nom', byYear[bestYear].noms), false)}
+      </div>
+    </div>`;
+
+  /* ── The big ones ── */
+  const bigIds = AW_BIG.filter(id => bigOn.has(id));
+  let bigHTML = '';
+  if (bigIds.length) {
+    let bigWon = 0;
+    const tiles = bigIds.map((id, i) => {
+      const cat = AWARD_CATEGORIES.find(c => c.id === id);
+      const mine = entries.filter(e => e.cat.id === id);
+      const wonY = mine.filter(e => e.isWin).map(e => e.year);
+      const state = wonY.length ? 'won' : mine.length ? 'nom' : 'none';
+      if (wonY.length) bigWon++;
+      const line = state === 'won' ? t('aw_big_won', { years: _awYears(wonY) })
+        : state === 'nom' ? t('aw_big_nom', { years: _awYears(mine.map(e => e.year)) }) : t('aw_big_none');
+      return `<div class="aw-big-t aw-big-t--${state}" style="--i:${i}">
+          <span class="aw-big-emo" aria-hidden="true">${cat.emoji}</span>
+          <span class="aw-big-name">${esc(_ceremonyCatName(cat))}</span>
+          <span class="aw-big-st">${state === 'won' ? ic('trophy') : ''}${esc(line)}</span>
+        </div>`;
+    }).join('');
+    const sweep = bigWon === bigIds.length && bigIds.length >= 3;
+    bigHTML = `<div class="ao-head rk-head">${esc(t('aw_h_big'))}<span>${sweep ? `<b class="aw-sweep">${ic('crown')}${esc(t('aw_big_sweep'))}</b>` : esc(t('aw_big_hint', { n: bigWon, m: bigIds.length }))}</span></div>
+      <div class="aw-big">${tiles}</div>`;
+  }
+
+  /* ── Ceremony by ceremony ── */
+  const allYears = [..._aw.ballotYears].sort((a, b) => a - b);
+  const span = allYears.length ? Array.from({ length: allYears[allYears.length - 1] - allYears[0] + 1 }, (_, i) => allYears[0] + i) : years;
+  const maxN = Math.max(...years.map(y => byYear[y].noms));
+  const yearBars = span.map((y, i) => {
+    const d = byYear[y] || { noms: 0, wins: 0 };
+    const h = d.noms ? Math.max(8, d.noms / maxN * 100) : 0;
+    return `<button type="button" class="aw-yr${d.noms ? '' : ' is-zero'}${y === bestYear ? ' is-best' : ''}${_aw.year === y ? ' is-on' : ''}" data-aw-year="${y}" style="--i:${i}" aria-pressed="${_aw.year === y}" aria-label="${y}: ${esc(tCount('aw_nom', d.noms))}, ${esc(tCount('aw_win', d.wins))}">
+        <span class="aw-yr-n">${d.noms ? d.noms : ''}</span>
+        <span class="aw-yr-col" style="--h:${h.toFixed(1)}"><span class="aw-yr-win" style="--w:${d.noms ? (d.wins / d.noms * 100).toFixed(1) : 0}%"></span></span>
+        <span class="aw-yr-y">${y === bestYear ? ic('crown') : ''}${String(y).slice(span.length > 8 ? 2 : 0)}</span>
+      </button>`;
+  }).join('');
+  const yearsHTML = `<div class="ao-head rk-head">${esc(t('aw_h_years'))}<span>${esc(t('aw_years_hint'))}</span></div>
+    <div class="aw-years">
+      <div class="aw-yrs" style="--n:${span.length}">${yearBars}</div>
+      <div class="aw-legend"><span><i class="aw-key aw-key--nom"></i>${esc(t('aw_s_noms'))}</span><span><i class="aw-key aw-key--win"></i>${esc(t('aw_s_wins'))}</span></div>
+      <div class="ls-read aw-read" aria-live="polite"></div>
+    </div>`;
+
+  /* ── Trophy shelf ── */
+  const won = entries.filter(e => e.isWin).sort((a, b) => (b.year - a.year) || (_awBigRank(a) - _awBigRank(b)));
+  const shelfHTML = !won.length ? '' : `
+    <div class="ao-head rk-head">${esc(t('aw_h_shelf'))}<span>${esc(t('aw_shelf_hint'))}</span></div>
+    <div class="aw-shelf" tabindex="0" role="list" aria-label="${esc(t('aw_h_shelf'))}">
+      ${won.map((e, i) => {
+        const js = _awOpenJs(e.item, e.cat.type, lc);
+        const tag = js ? 'button type="button"' : 'div';
+        return `<${tag} role="listitem" class="aw-tro${_awBigRank(e) < 99 ? ' is-big' : ''}" style="--i:${i}"${js ? ` onclick="${js}"` : ''}>
+          <span class="aw-tro-art${e.cat.type === 'artist' ? ' is-round' : ''}" id="awTro-${i}"><span class="thumb-initials">${esc(initials(_awName(e.item)))}</span></span>
+          <span class="aw-tro-badge" aria-hidden="true">${ic('trophy')}<b>${e.year}</b></span>
+          <span class="aw-tro-cat"><i aria-hidden="true">${e.cat.emoji || '🏆'}</i>${esc(_ceremonyCatName(e.cat))}</span>
+          <span class="aw-tro-name">${esc(_awName(e.item))}</span>
+        </${tag.split(' ')[0]}>`;
+      }).join('')}
+    </div>`;
+
+  /* ── Most decorated songs and albums ── */
+  const works = {};
+  for (const e of entries) {
+    if (e.cat.type === 'artist') continue;
+    const k = e.cat.type + ':' + _awName(e.item).toLowerCase();
+    const w = works[k] || (works[k] = { type: e.cat.type, item: e.item, noms: 0, wins: 0, list: [] });
+    w.noms++; if (e.isWin) w.wins++;
+    w.list.push(e);
+  }
+  const topWorks = Object.values(works).sort((a, b) => (b.wins - a.wins) || (b.noms - a.noms)).slice(0, 5);
+  const worksHTML = !topWorks.length ? '' : `
+    <div class="ao-head rk-head">${esc(t('aw_h_works'))}<span>${esc(t('aw_works_hint'))}</span></div>
+    <div class="aw-works">
+      ${topWorks.map((w, i) => {
+        w.list.sort((a, b) => (a.year - b.year) || (b.isWin - a.isWin));
+        const pips = w.list.map(e => `<i class="aw-pip aw-pip--${e.isWin ? 'won' : e.decided ? 'lost' : 'open'}" title="${e.year} · ${esc(_ceremonyCatName(e.cat))}"></i>`).join('');
+        return `<button type="button" class="aw-work" style="--i:${i}" onclick="${_awOpenJs(w.item, w.type, lc)}">
+          <span class="aw-work-n">${i + 1}</span>
+          <span class="aw-work-art" id="awWork-${i}"><span class="thumb-initials">${esc(initials(_awName(w.item)))}</span></span>
+          <span class="aw-work-main">
+            <span class="aw-work-name">${esc(_awName(w.item))}</span>
+            <span class="aw-work-meta">${esc(t(w.type === 'album' ? 'aw_album' : 'aw_song'))} · ${esc(tCount('aw_nom', w.noms))}${w.wins ? ` · <b>${esc(tCount('aw_win', w.wins))}</b>` : ''}</span>
+          </span>
+          <span class="aw-pips">${pips}</span>
+        </button>`;
+      }).join('')}
+    </div>`;
+
+  /* ── Head to head ── */
+  const rivals = Object.values(h2h).sort((a, b) => (b.w + b.l - a.w - a.l) || (b.l - a.l) || a.name.localeCompare(b.name)).slice(0, 5);
+  const rivalsHTML = !rivals.length ? '' : `
+    <div class="ao-head rk-head">${esc(t('aw_h_rivals'))}<span>${esc(t('aw_rivals_hint'))}</span></div>
+    <div class="aw-rivals">
+      ${rivals.map((r, i) => {
+        const tone = r.w > r.l ? 'own' : r.l > r.w ? 'nemesis' : 'even';
+        return `<button type="button" class="aw-rv aw-rv--${tone}" style="--i:${i}" onclick="openArtistModal(${esc(JSON.stringify(r.name))})">
+          <span class="aw-rv-art" id="awRv-${i}"><span class="thumb-initials">${esc(initials(r.name))}</span></span>
+          <span class="aw-rv-main">
+            <span class="aw-rv-top"><span class="aw-rv-name">${esc(r.name)}</span><span class="aw-rv-tag">${esc(t('aw_rv_' + tone))}</span></span>
+            <span class="aw-rv-bar"><span style="--w:${pct(r.w, r.w + r.l)}%"></span></span>
+            <span class="aw-rv-cap">${esc(t('aw_rv_cap', { w: r.w, l: r.l }))}</span>
+          </span>
+          <span class="aw-rv-score"><b>${r.w}</b><i>–</i><span>${r.l}</span></span>
+        </button>`;
+      }).join('')}
+    </div>`;
+
+  el.innerHTML = `${hero}${bigHTML}${yearsHTML}${shelfHTML}${worksHTML}${rivalsHTML}
+    <div class="ao-head rk-head">${esc(t('aw_h_ballot'))}<span id="awBallotHint"></span></div>
+    <div class="aw-filters" role="group" aria-label="${esc(t('aw_h_ballot'))}"></div>
+    <div class="aw-ballot"></div>`;
+
+  won.forEach((e, i) => _awArt('awTro-' + i, e.item, e.cat.type));
+  topWorks.forEach((w, i) => _awArt('awWork-' + i, w.item, w.type));
+  rivals.forEach((r, i) => _awArt('awRv-' + i, { artist: r.name }, 'artist'));
+
+  if (!el._awWired) {
+    el._awWired = true;
+    el.addEventListener('click', e => {
+      const y = e.target.closest('[data-aw-year]');
+      if (y) { _aw.year = _aw.year === +y.dataset.awYear ? null : +y.dataset.awYear; _aw.limit = AW_BALLOT_PAGE; awPaintBallot(); return; }
+      const f = e.target.closest('[data-aw-filter]');
+      if (f) { _aw.filter = f.dataset.awFilter; _aw.limit = AW_BALLOT_PAGE; awPaintBallot(); return; }
+      if (e.target.closest('[data-aw-clear]')) { _aw.year = null; awPaintBallot(); return; }
+      if (e.target.closest('[data-aw-more]')) { _aw.limit = Infinity; awPaintBallot(); }
+    });
+  }
+  awPaintBallot();
+  const sec = el.closest('.dp-sec');
+  if (sec && sec.classList.contains('dp-on')) _rkCountUp(el);
+}
+
+// The parts a year or a filter changes: the bars' state, the readout, the ballot
+function awPaintBallot() {
+  const el = document.getElementById('awMine');
+  if (!el || !_aw) return;
+  const ic = _amIco;
+  const { entries, lc } = _aw;
+  el.querySelectorAll('.aw-yr').forEach(b => {
+    const on = +b.dataset.awYear === _aw.year;
+    b.classList.toggle('is-on', on);
+    b.setAttribute('aria-pressed', on);
+  });
+  el.querySelector('.aw-yrs')?.classList.toggle('has-pick', _aw.year != null);
+
+  // Readout: the year picked, or every ceremony
+  const read = el.querySelector('.aw-read');
+  if (read) {
+    const pool = _aw.year == null ? entries : entries.filter(e => e.year === _aw.year);
+    const w = pool.filter(e => e.isWin);
+    const star = w.slice().sort((a, b) => _awBigRank(a) - _awBigRank(b))[0];
+    read.innerHTML = `<span class="ls-read-when">${_aw.year == null ? esc(t('aw_read_all')) : _aw.year}</span>
+      <span class="ls-read-n">${pool.length ? `<b>${pool.length}</b> ${esc(tUnit('aw_nom', pool.length))} · <b>${w.length}</b> ${esc(tUnit('aw_win', w.length))}` : esc(t('aw_read_none'))}</span>
+      ${star ? `<span class="aw-read-star">${star.cat.emoji || '🏆'} ${esc(_ceremonyCatName(star.cat))}</span>` : ''}
+      ${_aw.year != null ? `<button type="button" class="ls-read-song" onclick="awOpenCeremony(${_aw.year})">${esc(t('aw_open_year', { year: _aw.year }))}<span>→</span></button>` : ''}`;
+  }
+
+  // Filter chips, with counts for the year picked
+  const inYear = _aw.year == null ? entries : entries.filter(e => e.year === _aw.year);
+  const test = { all: () => true, won: e => e.isWin, lost: e => e.decided && !e.isWin, pending: e => !e.decided };
+  const counts = Object.fromEntries(Object.keys(test).map(k => [k, inYear.filter(test[k]).length]));
+  if (_aw.filter !== 'all' && !counts[_aw.filter]) _aw.filter = 'all';
+  const filters = el.querySelector('.aw-filters');
+  if (filters) filters.innerHTML = Object.keys(test).filter(k => k === 'all' || counts[k]).map(k =>
+      `<button type="button" class="aw-f aw-f--${k}${_aw.filter === k ? ' is-on' : ''}" data-aw-filter="${k}" aria-pressed="${_aw.filter === k}">${esc(t('aw_f_' + k))}<b>${counts[k]}</b></button>`).join('')
+    + (_aw.year != null ? `<button type="button" class="aw-f aw-f--year" data-aw-clear>${_aw.year}<span aria-label="${esc(t('aw_clear_year'))}">✕</span></button>` : '');
+
+  // The ballot, newest ceremony first, wins then the big categories first
+  const list = inYear.filter(test[_aw.filter])
+    .sort((a, b) => (b.year - a.year) || (b.isWin - a.isWin) || (b.decided - a.decided) || (_awBigRank(a) - _awBigRank(b)));
+  const shown = list.slice(0, _aw.limit);
+  let html = '', lastYear = null;
+  for (const e of shown) {
+    if (e.year !== lastYear) {
+      lastYear = e.year;
+      const ye = inYear.filter(x => x.year === e.year);
+      html += `<div class="aw-bl-year"><b>${e.year}</b><span>${esc(t('aw_year_tally', { wins: ye.filter(x => x.isWin).length, noms: ye.length }))}</span></div>`;
+    }
+    const js = _awOpenJs(e.item, e.cat.type, lc);
+    const work = e.cat.type === 'artist' ? '' : (js
+      ? `<button type="button" class="aw-bl-work" onclick="${js}">${esc(_awName(e.item))}</button>`
+      : `<span class="aw-bl-work">${esc(_awName(e.item))}</span>`);
+    let res;
+    if (e.isWin) res = `<span class="aw-res aw-res--won">${ic('trophy')}${esc(t('aw_won'))}</span>`;
+    else if (!e.decided) res = `<span class="aw-res aw-res--open">${ic('hourglass')}${esc(t('aw_undecided'))}</span>`;
+    else {
+      const wjs = _awOpenJs(e.winner, e.cat.type, lc);
+      const by = e.cat.type === 'artist' ? '' : (_awardsCredits(e.winner, false)[0] || e.winner.artist || '');
+      res = `<span class="aw-res aw-res--lost"><small>${esc(t('aw_lost_to'))}</small>${wjs
+        ? `<button type="button" onclick="${wjs}">${esc(_awName(e.winner))}</button>` : `<span>${esc(_awName(e.winner))}</span>`}${by ? `<small class="aw-res-by">${esc(by)}</small>` : ''}</span>`;
+    }
+    html += `<div class="aw-bl aw-bl--${e.isWin ? 'won' : e.decided ? 'lost' : 'open'}">
+        <span class="aw-bl-emo" aria-hidden="true">${e.cat.emoji || '🏆'}</span>
+        <span class="aw-bl-main"><span class="aw-bl-cat">${esc(_ceremonyCatName(e.cat))}</span>${work}</span>
+        ${res}
+      </div>`;
+  }
+  if (list.length > shown.length) html += `<button type="button" class="aw-more" data-aw-more>${esc(t('aw_show_more', { n: list.length - shown.length }))}</button>`;
+  const box = el.querySelector('.aw-ballot');
+  if (box) box.innerHTML = html || `<div class="aw-none">${esc(t('aw_read_none'))}</div>`;
+  const hint = document.getElementById('awBallotHint');
+  if (hint) hint.textContent = _aw.year == null ? '' : String(_aw.year);
+}
+
+// The ceremony itself, in Awards → My Grammys, on that year
+function awOpenCeremony(year) {
+  document.getElementById('artistModal').classList.remove('open');
+  _awardsRememberYear('mygrammys', year);
+  _awardsYear = year;
+  _awardsSubTab = 'mygrammys';
+  document.querySelector('#periodNav button[data-period="awards"]')?.click();
+}
+
+/* ── Real-life awards (2026-10-29) ──────────────────────────────────────
+   The Awards tab's second view: the artist's real awards and nominations,
+   read from Wikipedia's "List of awards and nominations received by …"
+   page, or from the awards part of their article when they have no list
+   of their own. One or two requests, then kept on the device for a week.
+     .aw-hero    real wins, nominations, win rate, shows, Grammys
+     .awr-vs     you against the industry: what you both crowned, what only
+                 you did, what only the industry did
+     .awr-shows  the award shows they were up at most, Grammys first; a
+                 show narrows everything below it
+     .aw-years   year by year, as in My Grammies; a year narrows the list
+     .aw-works   their most nominated work (opens it when it's in your library)
+     .aw-ballot  every row, filtered by result, show and year
+   _awr holds the rows and the filters. */
+let _awr = null;
+const AW_VIEW_LS = 'dc_aw_view';
+const AWR_LS = 'dc_awr_cache';
+const AWR_TTL = 7 * 86400000;
+const AWR_KEEP = 20;   // artists kept on the device, most recently looked up
+const AWR_SHOWS = 8;   // award shows shown before "Show all"
+
+function _awrCacheAll() {
+  try { return JSON.parse(localStorage.getItem(AWR_LS) || '{}') || {}; } catch (e) { return {}; }
+}
+function _awrCacheRead(name) {
+  const c = _awrCacheAll()[name.toLowerCase()];
+  return c && Date.now() - c.at < AWR_TTL ? c : null;
+}
+// Rows are kept as [show, year, category, work, result] to stay small; a
+// full device drops the oldest half and tries once more
+function _awrCacheWrite(name, val) {
+  const all = _awrCacheAll();
+  all[name.toLowerCase()] = { at: Date.now(), title: val.title, rows: val.rows.map(r => [r.show, r.year, r.cat, r.work, r.res]) };
+  let keys = Object.keys(all).sort((a, b) => all[b].at - all[a].at);
+  for (const k of keys.slice(AWR_KEEP)) delete all[k];
+  try { localStorage.setItem(AWR_LS, JSON.stringify(all)); }
+  catch (e) {
+    keys = Object.keys(all).sort((a, b) => all[b].at - all[a].at);
+    for (const k of keys.slice(Math.max(1, keys.length >> 1))) delete all[k];
+    try { localStorage.setItem(AWR_LS, JSON.stringify(all)); } catch (e2) {}
+  }
+}
+
+async function _awrWiki(params) {
+  const url = 'https://en.wikipedia.org/w/api.php?' + new URLSearchParams({ ...params, format: 'json', formatversion: '2', redirects: '1', origin: '*' });
+  // Same as _rlWikiFetchPage: one short wait and a second try on a 429
+  let r = await fetch(url);
+  if (r.status === 429 || r.status >= 500) {
+    await new Promise(res => setTimeout(res, 1500));
+    r = await fetch(url);
+  }
+  if (!r.ok) throw new Error('wikipedia ' + r.status);
+  return r.json();
+}
+async function _awrParsePage(title) {
+  const j = await _awrWiki({ action: 'parse', page: title, prop: 'text' });
+  if (!j || j.error || !j.parse) return null;
+  return { title: j.parse.title, doc: new DOMParser().parseFromString(j.parse.text || '', 'text/html') };
+}
+// The artist's article: the search hit named like them (a "(singer)" suffix
+// is fine) that describes a music act, as wikiArtistImage does
+async function _awrFindArticle(name) {
+  const j = await _awrWiki({ action: 'query', generator: 'search', gsrsearch: name + ' music', gsrlimit: '5', prop: 'description' });
+  const pages = (j?.query?.pages || []).slice().sort((a, b) => (a.index || 0) - (b.index || 0));
+  const want = _artNorm(name);
+  const hit = pages.find(p => _artNorm(p.title.replace(/\s*\(.*\)$/, '')) === want &&
+    /singer|rapper|band|musician|music|dj|producer|songwriter|group|duo|composer|vocalist|artist/i.test(p.description || ''));
+  return hit ? hit.title : null;
+}
+
+// → { rows, title } — rows is empty when Wikipedia has nothing to go on
+async function _awrFetch(name) {
+  const LIST = 'List of awards and nominations received by ';
+  const page = await _awrParsePage(LIST + name);
+  if (page && page.title.startsWith('List of awards')) return { rows: _awrRows(page.doc, name, false), title: page.title };
+  // No list under that name. A list title can also redirect to the article's
+  // awards section; otherwise find the article by search.
+  const article = page ? page.title : await _awrFindArticle(name);
+  if (!article) return { rows: [], title: null };
+  const art = page || await _awrParsePage(article);
+  if (!art) return { rows: [], title: null };
+  // "Main article: List of awards…" under another spelling of the name
+  const base = _artNorm(article.replace(/\s*\(.*\)$/, ''));
+  for (const a of art.doc.querySelectorAll('a[href*="/wiki/List_of_awards_and_nominations_received_by_"]')) {
+    const t = decodeURIComponent(a.getAttribute('href').split('/wiki/')[1].split('#')[0]).replace(/_/g, ' ');
+    const who = _artNorm(t.slice(LIST.length).replace(/\s*\(.*\)$/, ''));
+    if (who !== base && who !== _artNorm(name)) continue;
+    const lp = await _awrParsePage(t);
+    const rows = lp ? _awrRows(lp.doc, name, false) : [];
+    if (rows.length) return { rows, title: lp.title };
+    break;
+  }
+  return { rows: _awrRows(art.doc, name, true), title: art.title };
+}
+
+// A cell's text without footnote marks, edit links or hidden sort keys
+const _awrTextCache = new WeakMap();
+function _awrText(el) {
+  if (!el) return '';
+  if (_awrTextCache.has(el)) return _awrTextCache.get(el);
+  const c = el.cloneNode(true);
+  c.querySelectorAll('sup, .reference, .mw-editsection, style, .sortkey, [style*="display:none"]').forEach(x => x.remove());
+  const s = c.textContent.replace(/\[(?:\d+|[a-z]|edit)\]/gi, '').replace(/\s+/g, ' ').trim();
+  _awrTextCache.set(el, s);
+  return s;
+}
+// A table as a grid with rowspans and colspans filled in: grid[row][col] = cell
+function _awrGrid(table) {
+  const grid = [];
+  const trs = [...table.querySelectorAll('tr')].filter(tr => tr.closest('table') === table);
+  trs.forEach((tr, r) => {
+    grid[r] = grid[r] || [];
+    let c = 0;
+    for (const cell of tr.children) {
+      if (cell.tagName !== 'TD' && cell.tagName !== 'TH') continue;
+      while (grid[r][c]) c++;
+      const rs = Math.min(parseInt(cell.getAttribute('rowspan'), 10) || 1, 600);
+      const cs = Math.min(parseInt(cell.getAttribute('colspan'), 10) || 1, 12);
+      for (let i = 0; i < rs; i++) for (let k = 0; k < cs; k++) (grid[r + i] = grid[r + i] || [])[c + k] = cell;
+      c += cs;
+    }
+  });
+  return grid.slice(0, trs.length);
+}
+
+/* Every awards table on a page → [{ show, year, cat, work, res }]. Columns
+   are found by their headings, since lists order them differently. A table
+   with no award column takes the show from the heading above it. Rows that
+   are not a result (a world record, a ranking) are left out. With
+   sectionOnly, only tables under an awards heading of an article count. */
+function _awrRows(doc, name, sectionOnly) {
+  const out = [], seen = new Set(), self = _artNorm(name);
+  const SKIP_H2 = /listicle|record|guinness|honorary|other accolades|ranking|notes|references|see also|external links/i;
+  let inAwards = !sectionOnly, heading = '';
+  for (const node of doc.querySelectorAll('h2, h3, h4, table.wikitable')) {
+    if (node.tagName !== 'TABLE') {
+      const txt = _awrText(node);
+      if (node.tagName === 'H2') {
+        inAwards = sectionOnly ? /award|accolade|nomination/i.test(txt) && !SKIP_H2.test(txt) : !SKIP_H2.test(txt);
+        heading = /^(awards?( and nominations)?|accolades|nominations)$/i.test(txt) ? '' : txt;
+      } else heading = txt;
+      continue;
+    }
+    if (!inAwards) continue;
+    const grid = _awrGrid(node);
+    const hr = grid.findIndex(row => row && row.length && row.every(c => c.tagName === 'TH'));
+    if (hr < 0) continue;
+    const heads = grid[hr].map(c => _awrText(c).toLowerCase());
+    const col = re => heads.findIndex(h => re.test(h));
+    const resCol = col(/^(results?|outcome)\b/);
+    let catCol = col(/^(categor|award category|nominated category)/);
+    let awardCol = col(/^(awards?|ceremon(?:y|ies)|organi[sz]ations?|associations?|events?|award shows?|awarding bod(?:y|ies))\b(?! category)/);
+    const yearCol = col(/^(year|date)/);
+    const workCol = col(/(nominee|nominated work|recipient|work|honoree|title)/);
+    const caption = _awrText(node.querySelector('caption'));
+    // "Year | Nominee | Award | Result" under a show's heading: Award is the category
+    if (catCol < 0 && awardCol >= 0 && (heading || caption)) { catCol = awardCol; awardCol = -1; }
+    if (resCol < 0 || catCol < 0) continue;
+    for (let r = hr + 1; r < grid.length; r++) {
+      const row = grid[r];
+      if (!row || !row[resCol] || row.every(c => c.tagName === 'TH')) continue;
+      const get = i => i < 0 ? '' : _awrText(row[i]);
+      const rc = row[resCol], rt = get(resCol), cls = rc.className || '';
+      const res = /table-yes|\byes\b/.test(cls) || /^(won|winner|win|inducted|honou?red|recipient)\b/i.test(rt) ? 'w'
+        : /table-tba|pending|\btba\b|upcoming/i.test(cls + ' ' + rt) ? 'p'
+        : /table-no|\bno\b|nominat|shortlist|longlist|runner|finalist|place|\d(st|nd|rd|th)\b/i.test(cls + ' ' + rt) ? 'n' : null;
+      if (!res) continue;
+      let show = awardCol >= 0 ? get(awardCol) : (heading || caption);
+      const year = +((get(yearCol) || show || get(catCol)).match(/\b(19[5-9]\d|20\d\d)\b/) || [])[1] || 0;
+      show = show.replace(/^(19|20)\d\d\s+/, '').replace(/\s*\((?:19|20)\d\d\)$/, '').trim();
+      const cat = get(catCol);
+      // "I Like It" (with Cardi B and J Balvin) → I Like It
+      let work = get(workCol);
+      const quoted = work.match(/^["“]([^"”]+)["”]/);
+      work = (quoted ? quoted[1] : work.replace(/^["“”'‘’]+|["“”'‘’]+$/g, '')).trim();
+      // The artist themselves: Herself, their own name ("Muse (with …)"), or
+      // their surname alone ("Swift")
+      const bare = _artNorm(work.replace(/\s*\(.*\)$/, ''));
+      if (/^(her|him|them|it|your|one)sel(f|ves)$|^self$/i.test(work) || bare === self || (bare && !bare.includes(' ') && self.split(' ').includes(bare))) work = '';
+      if (!show || !cat || !year) continue;
+      const key = [show, year, cat, work].join('|').toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push({ show, year, cat, work, res });
+    }
+  }
+  return out;
+}
+
+// Start the lookup once per artist: the device copy if it is fresh, else Wikipedia
+async function awrEnsure(force) {
+  const st = _awr;
+  if (!st || (!force && st.status !== 'idle')) return;
+  const cached = !force && _awrCacheRead(st.name);
+  if (cached) {
+    Object.assign(st, { status: cached.rows.length ? 'ok' : 'none', title: cached.title,
+      rows: cached.rows.map(([show, year, cat, work, res]) => ({ show, year, cat, work, res })) });
+    awPaintSwitch(); awrPaint();
+    return;
+  }
+  st.status = 'loading';
+  awPaintSwitch(); awrPaint();
+  try {
+    const got = await _awrFetch(st.name);
+    if (_awr !== st) return;   // another artist opened meanwhile
+    _awrCacheWrite(st.name, got);
+    Object.assign(st, { status: got.rows.length ? 'ok' : 'none', title: got.title, rows: got.rows });
+  } catch (e) {
+    if (_awr !== st) return;
+    st.status = 'error';
+  }
+  awPaintSwitch(); awrPaint();
+  const real = document.getElementById('awReal');
+  if (real && !real.hidden) _rkCountUp(real);
+}
+
+function awrPaint() {
+  const el = document.getElementById('awReal');
+  if (!el || !_awr || el.hidden) return;
+  const ic = _amIco, st = _awr;
+  if (!el._awrWired) {
+    el._awrWired = true;
+    el.addEventListener('click', awrClick);
+  }
+  if (st.status === 'idle' || st.status === 'loading') {
+    el.innerHTML = `<div class="awr-wait"><span class="aw-empty-ico">${ic('globe')}</span><span>${esc(t('awr_loading'))}</span></div>`;
+    return;
+  }
+  if (st.status !== 'ok') {
+    const err = st.status === 'error';
+    el.innerHTML = `<div class="aw-empty">
+        <span class="aw-empty-ico">${ic(err ? 'cloud' : 'globe')}</span>
+        <b>${esc(t(err ? 'awr_error_t' : 'awr_none_t'))}</b>
+        <p>${esc(t(err ? 'awr_error_d' : 'awr_none_d', { name: st.name }))}</p>
+        <button type="button" class="dc-btn" data-awr-refresh>${ic('refresh')}<span>${esc(t('awr_retry'))}</span></button>
+      </div>`;
+    return;
+  }
+
+  const rows = st.rows;
+  const pct = (n, of) => of ? Math.round(n / of * 100) : 0;
+  const noms = rows.length, wins = rows.filter(r => r.res === 'w').length;
+  const decided = rows.filter(r => r.res !== 'p').length, pending = noms - decided;
+  const rate = pct(wins, decided);
+  const byYear = {}, byShow = {};
+  for (const r of rows) {
+    const y = byYear[r.year] || (byYear[r.year] = { n: 0, w: 0 });
+    const s = byShow[r.show] || (byShow[r.show] = { name: r.show, n: 0, w: 0 });
+    y.n++; s.n++;
+    if (r.res === 'w') { y.w++; s.w++; }
+  }
+  const years = Object.keys(byYear).map(Number).sort((a, b) => a - b);
+  const bestYear = years.reduce((b, y) => (byYear[y].w > byYear[b].w || (byYear[y].w === byYear[b].w && byYear[y].n > byYear[b].n)) ? y : b, years[0]);
+  const isGrammy = s => /^grammy awards?$/i.test(s);
+  const shows = Object.values(byShow).sort((a, b) => (isGrammy(b.name) - isGrammy(a.name)) || (b.n - a.n) || (b.w - a.w));
+  const grammy = shows.find(s => isGrammy(s.name));
+
+  /* ── Hero ── */
+  const verdict = wins >= 100 ? 'legend' : wins >= 25 ? 'heavy' : wins >= 5 ? 'decorated' : wins ? 'winner' : decided ? 'chasing' : 'pending';
+  const range = years[0] === years[years.length - 1] ? String(years[0]) : `${years[0]} – ${years[years.length - 1]}`;
+  const story = t(decided ? 'awr_story' : 'awr_story_open', {
+    noms: `<b>${esc(tCount('aw_nom', noms))}</b>`,
+    shows: `<b>${esc(tCount('awr_show', shows.length))}</b>`,
+    range: esc(range),
+    pct: `<b>${rate}%</b>`
+  });
+  const chip = (icon, txt, gold) => `<span class="ls-chip${gold ? ' aw-chip--gold' : ''}">${icon ? ic(icon) : ''}${esc(txt)}</span>`;
+  const stat = (v, label, cap, count) => `<div class="ls-stat">
+      <span class="ls-stat-v${count ? ' rk-count' : ''}">${typeof v === 'number' ? v.toLocaleString() : esc(v)}</span>
+      <span class="ls-stat-l">${esc(label)}</span>
+      ${cap ? `<span class="ls-stat-c"><small>${esc(cap)}</small></span>` : ''}
+    </div>`;
+  const src = st.title ? `https://en.wikipedia.org/wiki/${encodeURIComponent(st.title.replace(/ /g, '_'))}` : 'https://en.wikipedia.org/';
+  const hero = `<div class="aw-hero aw-hero--real${wins ? ' aw-hero--won' : ''}">
+      <div class="aw-hero-top">
+        <div class="aw-ring" style="--p:${decided ? rate : 0}" role="img" aria-label="${esc(t('aw_rate'))}: ${decided ? rate + '%' : '—'}">
+          <span class="aw-ring-v">${decided ? rate + '<small>%</small>' : '—'}</span>
+          <span class="aw-ring-l">${esc(t('aw_rate'))}</span>
+        </div>
+        <div class="aw-hero-txt">
+          <span class="aw-kicker">${ic('globe')}${esc(t('aw_view_real'))}</span>
+          <b class="aw-verdict">${esc(t('awr_v_' + verdict))}</b>
+          <p class="aw-story">${story}</p>
+          <div class="aw-chips">
+            ${grammy ? chip('trophy', t('awr_grammys', { w: grammy.w, n: grammy.n }), grammy.w > 0) : ''}
+            ${pending ? chip('hourglass', t('awr_pending_n', { n: pending })) : ''}
+          </div>
+        </div>
+      </div>
+      <div class="ls-stats">
+        ${stat(noms, t('aw_s_noms'), '', true)}
+        ${stat(wins, t('aw_s_wins'), '', true)}
+        ${stat(shows.length, t('awr_s_shows'), '', true)}
+        ${stat(String(bestYear), t('aw_s_best'), byYear[bestYear].w ? tCount('aw_win', byYear[bestYear].w) : tCount('aw_nom', byYear[bestYear].n), false)}
+      </div>
+    </div>`;
+
+  /* ── Your library, to open what they were nominated for ── */
+  const nrm = s => String(s || '').toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/\s*[\(\[](feat|ft|with)\.?\s[^\)\]]*[\)\]]/gi, '').replace(/[^\p{L}\p{N}]+/gu, '');
+  const lib = {};
+  for (const p of allPlays) {
+    if (!p.artists || !p.artists.includes(st.name)) continue;
+    const tk = nrm(p.title);
+    if (tk && !lib[tk]) lib[tk] = { js: `openSongModal(${esc(JSON.stringify(songKey(p)))})`, type: 'song', item: { title: p.title, artist: p.artist, album: p.album } };
+    const ak = nrm(p.album);
+    if (ak && p.album !== '—' && !lib[ak]) lib[ak] = { js: `openAlbumModal(${esc(JSON.stringify(p.album + '|||' + albumArtist(p)))})`, type: 'album', item: { album: p.album, artist: albumArtist(p) } };
+  }
+
+  /* ── You vs the industry ── */
+  let vsHTML = '';
+  const realWon = new Map(), realAny = new Set();
+  for (const r of rows) {
+    if (!r.work) continue;
+    realAny.add(nrm(r.work));
+    if (r.res === 'w' && !realWon.has(nrm(r.work))) realWon.set(nrm(r.work), r.work);
+  }
+  const myWon = new Map();
+  for (const e of _aw.entries) if (e.isWin && e.cat.type !== 'artist') { const k = nrm(_awName(e.item)); if (k && !myWon.has(k)) myWon.set(k, e); }
+  const myWins = _aw.entries.filter(e => e.isWin).length;
+  if (_aw.entries.length || realWon.size) {
+    const both = [...myWon.keys()].filter(k => realWon.has(k));
+    const onlyYou = [...myWon.keys()].filter(k => !realWon.has(k));
+    const onlyThem = [...realWon.keys()].filter(k => !myWon.has(k));
+    const pill = (k, label) => {
+      const hit = lib[k];
+      return hit ? `<button type="button" class="awr-pill" onclick="${hit.js}">${esc(label)}</button>` : `<span class="awr-pill">${esc(label)}</span>`;
+    };
+    const col = (key, list, label) => `<div class="awr-vs-col awr-vs-col--${key}">
+        <span class="awr-vs-h">${esc(t('awr_vs_' + key))}<b>${list.length}</b></span>
+        <span class="awr-pills">${list.length ? list.slice(0, 5).map(k => pill(k, label(k))).join('') + (list.length > 5 ? `<span class="awr-pill awr-pill--more">+${list.length - 5}</span>` : '') : `<span class="awr-vs-none">${esc(t('awr_vs_none'))}</span>`}</span>
+      </div>`;
+    const lead = myWins > wins ? 'you' : wins > myWins ? 'them' : 'even';
+    vsHTML = `<div class="ao-head rk-head">${esc(t('awr_h_vs'))}<span>${esc(t('awr_vs_hint'))}</span></div>
+      <div class="awr-vs">
+        <div class="awr-vs-score">
+          <span class="awr-vs-side${lead === 'them' ? ' is-lead' : ''}"><b class="rk-count">${wins.toLocaleString()}</b><small>${esc(t('awr_vs_real'))}</small></span>
+          <span class="awr-vs-mid">${esc(t('awr_vs_' + (lead === 'even' ? 'tie' : lead === 'you' ? 'more_you' : 'more_them')))}</span>
+          <span class="awr-vs-side${lead === 'you' ? ' is-lead' : ''}"><b class="rk-count">${myWins.toLocaleString()}</b><small>${esc(t('awr_vs_mine'))}</small></span>
+        </div>
+        <div class="awr-vs-cols">
+          ${col('both', both, k => _awName(myWon.get(k).item))}
+          ${col('you', onlyYou, k => _awName(myWon.get(k).item))}
+          ${col('them', onlyThem, k => realWon.get(k))}
+        </div>
+      </div>`;
+  }
+
+  /* ── Award shows ── */
+  const shownShows = st.allShows ? shows : shows.slice(0, AWR_SHOWS);
+  const showsHTML = `<div class="ao-head rk-head">${esc(t('awr_h_shows'))}<span>${esc(t('awr_shows_hint'))}</span></div>
+    <div class="awr-shows">
+      ${shownShows.map((s, i) => `<button type="button" class="awr-show${s.w ? ' is-won' : ''}${isGrammy(s.name) ? ' is-grammy' : ''}" data-awr-show="${esc(s.name)}" style="--i:${Math.min(i, 12)}" aria-pressed="false">
+          <span class="awr-show-name">${isGrammy(s.name) ? ic('trophy') : ''}${esc(s.name)}</span>
+          <span class="awr-show-n"><b>${s.w}</b>/${s.n}<small>${esc(tUnit('aw_win', s.w))}</small></span>
+          <span class="ao-meter"><span style="width:${pct(s.w, s.n)}%"></span></span>
+        </button>`).join('')}
+    </div>
+    ${shows.length > AWR_SHOWS ? `<button type="button" class="aw-more" data-awr-allshows>${esc(t(st.allShows ? 'awr_shows_less' : 'awr_shows_all', { n: shows.length }))}</button>` : ''}`;
+
+  /* ── Year by year ── */
+  const span = Array.from({ length: years[years.length - 1] - years[0] + 1 }, (_, i) => years[0] + i);
+  const yearsHTML = `<div class="ao-head rk-head">${esc(t('awr_h_years'))}<span>${esc(t('aw_years_hint'))}</span></div>
+    <div class="aw-years">
+      <div class="aw-yrs" style="--n:${span.length}"></div>
+      <div class="aw-legend"><span><i class="aw-key aw-key--nom"></i>${esc(t('aw_s_noms'))}</span><span><i class="aw-key aw-key--win"></i>${esc(t('aw_s_wins'))}</span></div>
+      <div class="ls-read aw-read" aria-live="polite"></div>
+    </div>`;
+
+  /* ── Most nominated work ── */
+  const works = {};
+  for (const r of rows) {
+    if (!r.work) continue;
+    const k = nrm(r.work);
+    const w = works[k] || (works[k] = { k, name: r.work, n: 0, w: 0, list: [] });
+    w.n++; if (r.res === 'w') w.w++;
+    w.list.push(r);
+  }
+  const topWorks = Object.values(works).sort((a, b) => (b.w - a.w) || (b.n - a.n)).slice(0, 5);
+  const worksHTML = !topWorks.length ? '' : `
+    <div class="ao-head rk-head">${esc(t('aw_h_works'))}<span>${esc(t('awr_works_hint'))}</span></div>
+    <div class="aw-works">
+      ${topWorks.map((w, i) => {
+        const hit = lib[w.k];
+        w.list.sort((a, b) => a.year - b.year);
+        const pips = w.list.slice(0, 40).map(r => `<i class="aw-pip aw-pip--${r.res === 'w' ? 'won' : r.res === 'p' ? 'open' : 'lost'}" title="${r.year} · ${esc(r.show)} · ${esc(r.cat)}"></i>`).join('');
+        return `<${hit ? `button type="button" onclick="${hit.js}"` : 'div'} class="aw-work${hit ? '' : ' is-flat'}" style="--i:${i}">
+          <span class="aw-work-n">${i + 1}</span>
+          <span class="aw-work-art" id="awrWork-${i}"><span class="thumb-initials">${esc(initials(w.name))}</span></span>
+          <span class="aw-work-main">
+            <span class="aw-work-name">${esc(w.name)}</span>
+            <span class="aw-work-meta">${esc(tCount('aw_nom', w.n))}${w.w ? ` · <b>${esc(tCount('aw_win', w.w))}</b>` : ''}${hit ? ` · <span class="awr-inlib">${esc(t('awr_in_lib'))}</span>` : ''}</span>
+          </span>
+          <span class="aw-pips">${pips}</span>
+        </${hit ? 'button' : 'div'}>`;
+      }).join('')}
+    </div>`;
+
+  el.innerHTML = `${hero}${vsHTML}${showsHTML}${yearsHTML}${worksHTML}
+    <div class="ao-head rk-head">${esc(t('awr_h_list'))}<span></span></div>
+    <div class="aw-filters" role="group" aria-label="${esc(t('awr_h_list'))}"></div>
+    <div class="aw-ballot"></div>
+    <div class="awr-credit">${ic('globe')}<span>${t('awr_source', { link: `<a href="${esc(src)}" target="_blank" rel="noopener">Wikipedia</a>` })}</span>
+      <button type="button" data-awr-refresh>${ic('refresh')}${esc(t('awr_refresh'))}</button></div>`;
+
+  topWorks.forEach((w, i) => { const hit = lib[w.k]; if (hit) _awArt('awrWork-' + i, hit.item, hit.type); });
+  st.span = span;
+  awrPaintList();
+}
+
+// What the show, year and result filters change: the year bars, the
+// readout, the show tiles' state and the list
+function awrPaintList() {
+  const el = document.getElementById('awReal');
+  const st = _awr;
+  if (!el || !st || st.status !== 'ok' || !st.span) return;
+  const ic = _amIco;
+  const inShow = st.show ? st.rows.filter(r => r.show === st.show) : st.rows;
+  el.querySelectorAll('.awr-show').forEach(b => {
+    const on = b.dataset.awrShow === st.show;
+    b.classList.toggle('is-on', on);
+    b.setAttribute('aria-pressed', on);
+  });
+  el.querySelector('.awr-shows')?.classList.toggle('has-pick', !!st.show);
+
+  // Year columns for the show picked (or every show)
+  const by = {};
+  for (const r of inShow) { const y = by[r.year] || (by[r.year] = { n: 0, w: 0 }); y.n++; if (r.res === 'w') y.w++; }
+  const maxN = Math.max(1, ...Object.values(by).map(y => y.n));
+  const best = Object.keys(by).map(Number).reduce((b, y) => b == null || by[y].w > by[b].w || (by[y].w === by[b].w && by[y].n > by[b].n) ? y : b, null);
+  const yrs = el.querySelector('.aw-yrs');
+  if (yrs) {
+    yrs.classList.toggle('has-pick', st.year != null);
+    yrs.innerHTML = st.span.map((y, i) => {
+      const d = by[y] || { n: 0, w: 0 };
+      const h = d.n ? Math.max(8, d.n / maxN * 100) : 0;
+      return `<button type="button" class="aw-yr${d.n ? '' : ' is-zero'}${y === best ? ' is-best' : ''}${st.year === y ? ' is-on' : ''}" data-awr-year="${y}" style="--i:${Math.min(i, 30)}" aria-pressed="${st.year === y}" aria-label="${y}: ${esc(tCount('aw_nom', d.n))}, ${esc(tCount('aw_win', d.w))}">
+          <span class="aw-yr-n">${d.n || ''}</span>
+          <span class="aw-yr-col" style="--h:${h.toFixed(1)}"><span class="aw-yr-win" style="--w:${d.n ? (d.w / d.n * 100).toFixed(1) : 0}%"></span></span>
+          <span class="aw-yr-y">${y === best ? ic('crown') : ''}${String(y).slice(st.span.length > 8 ? 2 : 0)}</span>
+        </button>`;
+    }).join('');
+  }
+
+  const pool = st.year == null ? inShow : inShow.filter(r => r.year === st.year);
+  const read = el.querySelector('.aw-read');
+  if (read) {
+    const w = pool.filter(r => r.res === 'w');
+    const star = w.find(r => /^grammy/i.test(r.show)) || w[0];
+    read.innerHTML = `<span class="ls-read-when">${st.year == null ? esc(t('awr_read_all')) : st.year}${st.show ? ' · ' + esc(st.show) : ''}</span>
+      <span class="ls-read-n">${pool.length ? `<b>${pool.length}</b> ${esc(tUnit('aw_nom', pool.length))} · <b>${w.length}</b> ${esc(tUnit('aw_win', w.length))}` : esc(t('aw_read_none'))}</span>
+      ${star ? `<span class="aw-read-star">${ic('trophy')} ${esc(star.cat)}</span>` : ''}`;
+  }
+
+  const test = { all: () => true, won: r => r.res === 'w', nom: r => r.res === 'n', pending: r => r.res === 'p' };
+  const counts = Object.fromEntries(Object.keys(test).map(k => [k, pool.filter(test[k]).length]));
+  if (st.filter !== 'all' && !counts[st.filter]) st.filter = 'all';
+  const label = { all: t('aw_f_all'), won: t('aw_f_won'), nom: t('awr_nominated'), pending: t('awr_pending') };
+  const filters = el.querySelector('.aw-filters');
+  if (filters) filters.innerHTML = Object.keys(test).filter(k => k === 'all' || counts[k]).map(k =>
+      `<button type="button" class="aw-f aw-f--${k}${st.filter === k ? ' is-on' : ''}" data-awr-filter="${k}" aria-pressed="${st.filter === k}">${esc(label[k])}<b>${counts[k]}</b></button>`).join('')
+    + (st.show ? `<button type="button" class="aw-f aw-f--year" data-awr-clearshow>${esc(st.show)}<span aria-label="${esc(t('awr_all_shows'))}">✕</span></button>` : '')
+    + (st.year != null ? `<button type="button" class="aw-f aw-f--year" data-awr-clearyear>${st.year}<span aria-label="${esc(t('aw_clear_year'))}">✕</span></button>` : '');
+
+  const order = { w: 0, n: 1, p: 2 };
+  const list = pool.filter(test[st.filter]).sort((a, b) => (b.year - a.year) || (order[a.res] - order[b.res]) || a.show.localeCompare(b.show));
+  const shown = list.slice(0, st.limit);
+  let html = '', lastYear = null;
+  for (const r of shown) {
+    if (r.year !== lastYear) {
+      lastYear = r.year;
+      const ye = pool.filter(x => x.year === r.year);
+      html += `<div class="aw-bl-year"><b>${r.year}</b><span>${esc(t('aw_year_tally', { wins: ye.filter(x => x.res === 'w').length, noms: ye.length }))}</span></div>`;
+    }
+    const res = r.res === 'w' ? `<span class="aw-res aw-res--won">${ic('trophy')}${esc(t('aw_won'))}</span>`
+      : r.res === 'p' ? `<span class="aw-res aw-res--open">${ic('hourglass')}${esc(t('awr_pending'))}</span>`
+      : `<span class="aw-res aw-res--nom">${esc(t('awr_nominated'))}</span>`;
+    html += `<div class="aw-bl aw-bl--${r.res === 'w' ? 'won' : r.res === 'p' ? 'open' : 'lost'}">
+        <span class="aw-bl-emo" aria-hidden="true">${r.res === 'w' ? '🏆' : '🎖️'}</span>
+        <span class="aw-bl-main"><span class="aw-bl-cat">${esc(r.cat)}</span><span class="aw-bl-work">${esc(r.show)}${r.work ? ' · ' + esc(r.work) : ''}</span></span>
+        ${res}
+      </div>`;
+  }
+  if (list.length > shown.length) html += `<button type="button" class="aw-more" data-awr-more>${esc(t('aw_show_more', { n: list.length - shown.length }))}</button>`;
+  const box = el.querySelector('.aw-ballot');
+  if (box) box.innerHTML = html || `<div class="aw-none">${esc(t('aw_read_none'))}</div>`;
+}
+
+function awrClick(e) {
+  const st = _awr;
+  if (!st) return;
+  const at = sel => e.target.closest(sel);
+  let b;
+  if ((b = at('[data-awr-show]'))) { st.show = st.show === b.dataset.awrShow ? null : b.dataset.awrShow; st.year = null; st.limit = AW_BALLOT_PAGE; return awrPaintList(); }
+  if ((b = at('[data-awr-year]'))) { st.year = st.year === +b.dataset.awrYear ? null : +b.dataset.awrYear; st.limit = AW_BALLOT_PAGE; return awrPaintList(); }
+  if ((b = at('[data-awr-filter]'))) { st.filter = b.dataset.awrFilter; st.limit = AW_BALLOT_PAGE; return awrPaintList(); }
+  if (at('[data-awr-clearshow]')) { st.show = null; return awrPaintList(); }
+  if (at('[data-awr-clearyear]')) { st.year = null; return awrPaintList(); }
+  if (at('[data-awr-more]')) { st.limit = Infinity; return awrPaintList(); }
+  if (at('[data-awr-allshows]')) { st.allShows = !st.allShows; return awrPaint(); }
+  if (at('[data-awr-refresh]')) { Object.assign(st, { year: null, show: null, filter: 'all' }); awrEnsure(true); }
 }
 
 async function _awardsSave(year) {
