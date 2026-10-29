@@ -26514,7 +26514,14 @@ function _rkModel(per) {
 // The Rankings tab on screen: the artist's (#modalRankings) or the song's
 // (#songRankings). _rnk.type says which chart family the run is on.
 function _rkRoot() { return _rnk && document.getElementById(_rnk.root); }
-function _rkChartName(per) { return t(({ songs: 'rk_chart_s_', albums: 'rk_chart_a_' }[_rnk.type] || 'rk_chart_') + per); }
+function _rkChartName(per) { return t(_rkKeyFor('rk_chart_s_', 'rk_chart_a_', 'rk_chart_') + per); }
+// The key for the chart in view: song, artist, or an album's own bucket
+// (a single or an EP ranked apart has its own chart)
+function _rkKeyFor(songs, albums, artists) {
+  if (_rnk.type === 'songs') return songs;
+  if (_rnk.type !== 'albums') return artists;
+  return _rnk.bucket && _rnk.bucket !== 'album' ? albums.replace(/_a_?$/, '_' + _rnk.bucket + (albums.endsWith('_') ? '_' : '')) : albums;
+}
 // Opens that chart, closing the panel the Rankings tab is in
 function rkGoPeriod(per, key) {
   if (_rnk && _rnk.type === 'songs') goToPeriodFromSongModal(per, key);
@@ -26539,7 +26546,7 @@ function rkRender() {
   const head = `<div class="rk-top"><div class="am-type rk-type" role="tablist">${RK_CHARTS.map(chartBtn).join('')}</div></div>`;
   const music = _rnk.type === 'songs' ? _rkFamilyHTML() : _rkMusicHTML();
   if (!M) {
-    el.innerHTML = `${head}<div class="rk-none">${ic('bars')}<span>${esc(t({ songs: 'rk_none_s', albums: 'rk_none_a' }[_rnk.type] || 'rk_none'))}</span></div>${music}`;
+    el.innerHTML = `${head}<div class="rk-none">${ic('bars')}<span>${esc(t(_rkKeyFor('rk_none_s', 'rk_none_a', 'rk_none')))}</span></div>${music}`;
     return;
   }
   const { d, E, n, longest } = M;
@@ -26956,6 +26963,7 @@ function _rkMomentsHTML(M, per) {
 }
 
 function _rkMusicHTML() {
+  if (!_rnk.music) return '';
   const cols = [...RK_CHARTS, 'all'];
   const onAlbum = _rnk.type === 'albums';
   const row = ty => `<div class="rk-mu-row">
@@ -27024,7 +27032,9 @@ function _rkDetailHTML(M, i) {
     const pool = allChartRun?.[per]?.periodMap?.[e.periodKey]?.[ty];
     if (pool) {
       let best = null;
-      for (const k in pool) if (!best || rankSortWithStatus(pool[k], pool[best]) < 0) best = k;
+      // an album is ranked against its own bucket when singles / EPs are apart
+      const sameChart = ty === 'albums' && separatedTypes().length ? k => albumBucketOfKey(k) === (_rnk.bucket || 'album') : () => true;
+      for (const k in pool) if (sameChart(k) && (!best || rankSortWithStatus(pool[k], pool[best]) < 0)) best = k;
       // songs are keyed title|||artist (lower case), albums album|||artist;
       // the entry keeps the names
       const name = !best ? '' : ty === 'songs' ? pool[best]._title || best.split('|||')[0]
@@ -28003,9 +28013,15 @@ function openAlbumModal(albumKey) {
      linking it would open an empty artist modal. A compilation therefore names
      its credit as plain text and says what it is instead. */
   const albIsComp = artistName === VARIOUS_ARTISTS;
+  /* A single or an EP says so (2026-10-29): "Single by", its rank named on
+     the chart it is ranked on — its own when that type is apart, the albums
+     chart when it is not — and a one-song single leaves out the parts that
+     need several tracks. relType: what it is; bucket: the chart it ranks on. */
+  const relType = releaseTypeOf(albumName, artistName);
+  const bucket = albumBucketOf(albumName, artistName);
   document.getElementById('albumModalSub').innerHTML = albIsComp
     ? `${t('modal_compilation_by')} <span class="modal-artist-va">${esc(VARIOUS_ARTISTS)}</span>`
-    : `${t('am_album_by')} <a class="modal-artist-link" href="javascript:void(0)" onclick="albumModal.classList.remove('open');setTimeout(()=>openArtistModal(${esc(JSON.stringify(artistName))}),50)">${esc(artistName)}</a>`;
+    : `${t(relType !== 'album' ? 'rlt_by_' + relType : 'am_album_by')} <a class="modal-artist-link" href="javascript:void(0)" onclick="albumModal.classList.remove('open');setTimeout(()=>openArtistModal(${esc(JSON.stringify(artistName))}),50)">${esc(artistName)}</a>`;
 
   // The compilation switch itself — the album is the only place you can see
   // whether it is merged, so it is the natural place to flip it.
@@ -28067,9 +28083,10 @@ function openAlbumModal(albumKey) {
   const peakDayPlays = calendarDays ? Math.max(...Object.values(dayMap)) : 0;
   const peakDayDate = peakDayPlays ? _sortedDays.find(k => dayMap[k] === peakDayPlays) : null;
   const dayGap = (a, b) => Math.round((new Date(b) - new Date(a)) / DAY);
-  let streakEnd = null, longestGap = 0, gapFrom = null, gapTo = null;
+  let streakEnd = null, longestGap = 0, gapFrom = null, gapTo = null, comebacks = 0;
   for (let i = 0, run = 0; i < _sortedDays.length; i++) {
     const g = i ? dayGap(_sortedDays[i - 1], _sortedDays[i]) : 0;
+    if (g > 30) comebacks++;
     run = i && g === 1 ? run + 1 : 1;
     if (run === longestStreak && !streakEnd) streakEnd = _sortedDays[i];
     if (g > longestGap) { longestGap = g; gapFrom = _sortedDays[i - 1]; gapTo = _sortedDays[i]; }
@@ -28107,6 +28124,9 @@ function openAlbumModal(albumKey) {
   // ── OVERVIEW: headline card ───────────────────────────────────
   const rankTone = _rkTone(allTimeAlbumRank);
   const cert = certBadge(totalPlays, certKindFor(albumName, artistName));
+  const rankLbl = bucket !== 'album' ? 'al_rank_' + bucket
+    : relType === 'single' || relType === 'ep' ? 'al_rank_on_albums' : 'modal_most_heard_album';
+  const oneSong = nTracks === 1;
   const topTrack = allTracksSorted[0] || null;
   // Lately: the track played most in the last 90 days, when it isn't the top one
   const since = tzNow().getTime() - 90 * DAY, recent = {};
@@ -28126,7 +28146,10 @@ function openAlbumModal(albumKey) {
       </span>
       <span class="ao-fav-go" aria-hidden="true">${ic('next')}</span>
     </button>`;
-  const favs = (topTrack ? favCard('top', noBr(t('modal_top_track')), topTrack,
+  const songRank = oneSong && topTrack ? allTimeSPM[songKey(topTrack)] : null;
+  const favs = oneSong && topTrack ? favCard('top', t('al_the_song'), topTrack,
+      `<b>${topTrack.count.toLocaleString()}</b> ${esc(tUnit('plays', topTrack.count))} · ${esc(songRank ? t('al_song_rank', { n: songRank }) : t('al_song_norank'))}`, 100)
+    : (topTrack ? favCard('top', noBr(t('modal_top_track')), topTrack,
       `<b>${topTrack.count.toLocaleString()}</b> ${esc(tUnit('plays', topTrack.count))} · ${esc(t('so_share', { pct: pctOf(topTrack.count, totalPlays) }))}`,
       totalPlays ? topTrack.count / totalPlays * 100 : 0) : '')
     + (lately ? favCard('late', t('al_lately'), lately, esc(t('al_lately_n', { n: recent[lateKey].toLocaleString() })),
@@ -28149,9 +28172,9 @@ function openAlbumModal(albumKey) {
           <span class="ao-hero-num ao-count">${totalPlays.toLocaleString()}</span>
           <span class="ao-hero-sub">${artistTotal ? esc(t('so_share_of_artist', { pct: pctOf(totalPlays, artistTotal), artist: artistName })) : ''}${cert ? ' ' + cert : ''}</span>
         </div>
-        <div class="ao-rank ao-rank--${rankTone}" title="${esc(noBr(t('modal_most_heard_album')))}">
+        <div class="ao-rank ao-rank--${rankTone}" title="${esc(noBr(t(rankLbl)))}">
           <span class="ao-rank-ring">${ic(rankTone === 'gold' ? 'crown' : 'trophy')}<span class="ao-rank-num">${allTimeAlbumRank ? '#' + allTimeAlbumRank : '—'}</span></span>
-          <span class="ao-rank-lbl">${noBr(t('modal_most_heard_album'))}</span>
+          <span class="ao-rank-lbl">${noBr(t(rankLbl))}</span>
         </div>
       </div>
       <div class="ao-span">
@@ -28165,20 +28188,25 @@ function openAlbumModal(albumKey) {
         <div class="ao-span-cap">${t('ao_span', { played: `<b>${calendarDays.toLocaleString()}</b>`, span: spanDays.toLocaleString() })}</div>
       </div>
       <div class="ao-trio">
-        <div class="ao-trio-cell ao-tone-songs"><span class="ao-trio-val ao-count">${nTracks.toLocaleString()}</span><span class="ao-trio-lbl">${noBr(t('modal_tracks'))}</span></div>
-        <div class="ao-trio-cell ao-tone-albums"><span class="ao-trio-val ao-count">${avgPlaysPerTrack.toLocaleString()}</span><span class="ao-trio-lbl">${noBr(t('modal_avg_plays_per_track'))}</span></div>
+        ${oneSong
+          ? `<div class="ao-trio-cell ao-tone-songs"><span class="ao-trio-val ao-count">${calendarDays.toLocaleString()}</span><span class="ao-trio-lbl">${noBr(t('sm_days_played'))}</span></div>
+        <div class="ao-trio-cell ao-tone-albums"><span class="ao-trio-val">${calendarDays ? (totalPlays / calendarDays).toFixed(1) : '0'}</span><span class="ao-trio-lbl">${noBr(t('sm_avg_per_day'))}</span></div>`
+          : `<div class="ao-trio-cell ao-tone-songs"><span class="ao-trio-val ao-count">${nTracks.toLocaleString()}</span><span class="ao-trio-lbl">${noBr(t('modal_tracks'))}</span></div>
+        <div class="ao-trio-cell ao-tone-albums"><span class="ao-trio-val ao-count">${avgPlaysPerTrack.toLocaleString()}</span><span class="ao-trio-lbl">${noBr(t('modal_avg_plays_per_track'))}</span></div>`}
         <div class="ao-trio-cell ao-tone-avg"><span class="ao-trio-val ao-count">${(nextCert.at - totalPlays).toLocaleString()}</span><span class="ao-trio-lbl">${esc(t('modal_plays_to_cert', { cert: nextCert.label }))}</span></div>
       </div>
     </div>
-    ${favs ? `<div class="ao-favs">${favs}</div>` : ''}
+    ${favs ? `<div class="ao-favs${favs.split('class="ao-fav"').length === 2 ? ' is-one' : ''}">${favs}</div>` : ''}
     <div class="ao-head">${t('ao_habits')}</div>
     <div class="ao-habits">
       ${habit('flame', longestStreak.toLocaleString(), t('modal_listening_days_streak'),
         streakStart && longestStreak > 1 ? `${fmt(streakStart)} – ${fmt(dayDate(streakEnd))}` : '')}
       ${habit('bars', peakDayPlays.toLocaleString(), t('am_peak_plays_day'), peakDayDate ? fmt(dayDate(peakDayDate)) : '')}
       ${habit('target', inARow.toLocaleString(), t('am_peak_plays_streak'), '')}
-      ${habit('disc', nTracks >= 4 ? fullListens.length.toLocaleString() : '—', t('al_full'), nTracks >= 4 ? t('al_full_cap', { n: fullNeed, total: nTracks }) : '')}
-      ${habit('hourglass', longestGap > 1 ? tCount('days', longestGap) : '—', t('so_longest_break'), gapFrom ? `${fmt(dayDate(gapFrom))} → ${fmt(dayDate(gapTo))}` : '')}
+      ${nTracks >= 4
+        ? habit('disc', fullListens.length.toLocaleString(), t('al_full'), t('al_full_cap', { n: fullNeed, total: nTracks }))
+        : habit('refresh', comebacks.toLocaleString(), t('so_comebacks'), t('so_comebacks_cap'))}
+      ${habit('hourglass', longestGap > 1 ? tCount('days', longestGap) : '—', t('so_longest_break'), longestGap > 1 ? `${fmt(dayDate(gapFrom))} → ${fmt(dayDate(gapTo))}` : '')}
     </div>`;
   if (topTrack) fetchAndInjectImage(document.getElementById('alFav-top'), { imgId: 'alFav-top', name: topTrack.title, title: topTrack.title, artist: topTrack.artist, album: albumName, prefKey: 'song:' + topTrack.artist.toLowerCase() + '|||' + topTrack.title.toLowerCase() }, 'song');
   const second = lately || firstHeard;
@@ -28187,7 +28215,7 @@ function openAlbumModal(albumKey) {
   // ── OVERVIEW: Grand Slam + achievements as badges ─────────────
   const grandSlam = weeklyAlbumPeak === 1 && monthlyAlbumPeak === 1 && yearlyAlbumPeak === 1;
   document.getElementById('albumModalGrandSlam').innerHTML = grandSlam
-    ? `<div class="modal-grand-slam ao-slam"><span class="ao-slam-ico">${ic('crown')}</span><span>${noBr(t('modal_grand_slam'))}</span></div>` : '';
+    ? `<div class="modal-grand-slam ao-slam"><span class="ao-slam-ico">${ic('crown')}</span><span>${noBr(t(bucket !== 'album' ? 'sm_grand_slam' : 'modal_grand_slam'))}</span></div>` : '';
   const badges = [];
   const runs = { week: albumCrW, month: albumCrM, year: albumCrY };
   const entryRow = per => e => ({ name: crPeriodTitle(per, e.periodKey), sub: '#' + e.rank, plays: e.plays, date: '',
@@ -28240,9 +28268,9 @@ function openAlbumModal(albumKey) {
 
   // ── RANKINGS: the album's chart run, its tracks on each chart ──
   _rnk = {
-    name: albumName, type: 'albums', root: 'albumRankings', key: albumKey,
+    name: albumName, type: 'albums', root: 'albumRankings', key: albumKey, bucket,
     runs,
-    music: { songs: {
+    music: oneSong ? null : { songs: {
       week: [chartTracksWeekly.length, bestTrackPeakWeekly], month: [chartTracksMonthly.length, bestTrackPeakMonthly],
       year: [chartTracksYearly.length, bestTrackPeakYearly], all: [chartTracksAllTime.length, bestTrackPeakAllTime]
     } },
@@ -28343,7 +28371,7 @@ function openAlbumModal(albumKey) {
           <div class="cert-info">
             <div class="cert-title">${esc(name)}</div>
             <div class="cert-artist">${esc(p.artist || artistName)}</div>
-            <div class="cert-tier-name">${esc(p.label)} <span class="cert-tier-of">${t(p.type === 'Album' ? 'am_cert_album' : 'am_cert_song')}</span></div>
+            <div class="cert-tier-name">${esc(p.label)} <span class="cert-tier-of">${t(p.type !== 'Album' ? 'am_cert_song' : relType === 'single' || relType === 'ep' ? 'al_cert_' + relType : 'am_cert_album')}</span></div>
             <div class="cert-date">${p.plays.toLocaleString()} ${tUnit('plays', p.plays)}</div>
           </div>
         </div>
@@ -28373,7 +28401,8 @@ function openAlbumModal(albumKey) {
       ${splitTop.map((s, i) => `<span class="at-split-seg" style="flex:${s.count};--k:${(1 - i / (SPLIT_N + 2)).toFixed(2)}" title="${esc(s.title)}: ${esc(tCount('plays', s.count))} · ${pctOf(s.count, totalPlays)}">${s.count / totalPlays >= 0.12 ? `<b>${esc(s.title)}</b>${pctOf(s.count, totalPlays)}` : ''}</span>`).join('')}
       ${splitRest ? `<span class="at-split-seg is-rest" style="flex:${splitRest}" title="${esc(t('at_split_rest', { n: nTracks - SPLIT_N }))}: ${esc(tCount('plays', splitRest))}"></span>` : ''}
     </div>` : '';
-  _am = {
+  if (oneSong) document.getElementById('albumModalTracks').innerHTML = '';
+  else _am = {
     root: 'albumModalTracks', artistName, albumKey,
     lists: {
       songs: {
@@ -28386,7 +28415,7 @@ function openAlbumModal(albumKey) {
     },
     type: 'songs', chart: 'all', q: '', sort: 'plays', open: null, all: false, split: splitHTML
   };
-  amMusicRender();
+  if (!oneSong) amMusicRender();
 
   // Full album evaluation — score, formula breakdown, aspects and track scores.
   renderAlbumRatingSection(albumKey);
@@ -28558,7 +28587,10 @@ function openSongModal(key) {
       <span class="ao-fav-go" aria-hidden="true">${ic('next')}</span>
     </button>`;
   const albumName = albumKey ? albumKey.split('|||')[0] : '';
-  const favs = (albumKey && albumTotal ? favCard('album', t('so_on_album'), albumName, `openAlbumModal(${esc(JSON.stringify(albumKey))})`, placeIn(famAlbum), Object.keys(famAlbum).length, 'tracks', albumTotal) : '')
+  // a single / EP is named as one
+  const albType = albumKey ? releaseTypeOf(albumName, albumKey.split('|||')[1]) : 'album';
+  const albWord = albType === 'single' || albType === 'ep' ? albType : 'album';
+  const favs = (albumKey && albumTotal ? favCard('album', t('so_on_' + albWord), albumName, `openAlbumModal(${esc(JSON.stringify(albumKey))})`, placeIn(famAlbum), Object.keys(famAlbum).length, 'tracks', albumTotal) : '')
     + (artistTotal ? favCard('artist', t('so_by_artist'), famArtistName, `openArtistModal(${esc(JSON.stringify(famArtistName))})`, placeIn(famArtist), Object.keys(famArtist).length, 'songs', artistTotal) : '');
   const habit = (icon, value, label, caption) => `<div class="ao-habit">
       <span class="ao-habit-ico">${ic(icon)}</span>
@@ -28605,7 +28637,7 @@ function openSongModal(key) {
         bestStreak && bestStreak.len > 1 ? `${fmt(dayDate(bestStreak.start))} – ${fmt(dayDate(bestStreak.end))}` : '')}
       ${habit('bars', peakDayPlays.toLocaleString(), t('am_peak_plays_day'), peakDayDate ? fmt(dayDate(peakDayDate)) : '')}
       ${habit('target', inARow.toLocaleString(), t('am_peak_plays_streak'), '')}
-      ${habit('hourglass', longestGap > 1 ? tCount('days', longestGap) : '—', t('so_longest_break'), gapFrom ? `${fmt(dayDate(gapFrom))} → ${fmt(dayDate(gapTo))}` : '')}
+      ${habit('hourglass', longestGap > 1 ? tCount('days', longestGap) : '—', t('so_longest_break'), longestGap > 1 ? `${fmt(dayDate(gapFrom))} → ${fmt(dayDate(gapTo))}` : '')}
       ${habit('refresh', comebacks.toLocaleString(), t('so_comebacks'), t('so_comebacks_cap'))}
     </div>`;
   if (albumKey && albumTotal) {
@@ -28651,7 +28683,7 @@ function openSongModal(key) {
     name: propTitle, type: 'songs', root: 'songRankings', key,
     runs,
     family: {
-      album: albumKey && albumTotal ? { key: albumKey, label: albumName, keys: Object.keys(famAlbum), titles: titlesOf(famAlbum) } : null,
+      album: albumKey && albumTotal ? { key: albumKey, label: albumName, word: albWord, keys: Object.keys(famAlbum), titles: titlesOf(famAlbum) } : null,
       artist: artistTotal ? { key: famArtistName, label: famArtistName, keys: Object.keys(famArtist), titles: titlesOf(famArtist) } : null
     },
     models: {}, focus: null, pin: null
@@ -28795,7 +28827,7 @@ function _rkFamilyHTML() {
     const open = kind === 'album' ? `openAlbumModal(${esc(JSON.stringify(grp.key))})` : `openArtistModal(${esc(JSON.stringify(grp.key))})`;
     return `<button type="button" class="rk-fam" onclick="${open}">
       <span class="rk-fam-ico">${_amIco(kind === 'album' ? 'disc' : 'user')}</span>
-      <span class="rk-fam-txt"><span class="ao-kicker">${esc(t('rk_fam_' + kind))}</span><b>${esc(grp.label)}</b><small>${note}</small></span>
+      <span class="rk-fam-txt"><span class="ao-kicker">${esc(t('rk_fam_' + (grp.word || kind)))}</span><b>${esc(grp.label)}</b><small>${note}</small></span>
       <span class="rk-fam-pos rk-r--${_rkTone(pos)}"><b>#${pos}</b><small>${esc(t('rk_fam_of', { n: list.length }))}</small></span>
       <span class="rk-fam-go" aria-hidden="true">${_amIco('next')}</span>
     </button>`;

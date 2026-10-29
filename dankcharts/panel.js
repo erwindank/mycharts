@@ -146,11 +146,17 @@
         + '<button type="button" class="dp-share-card" data-dp-act="share">' + svgConst('_ST_AM_SHARE_SVG') + '<span>' + esc(tt('st_am_share')) + '</span></button></div>';
       acts.innerHTML = h;
     }
+    // an album says what kind of record it is: Single, EP, Live album…
+    var word = tt('dp_kind_' + kind);
+    if (kind === 'album' && typeof releaseTypeOf === 'function') {
+      var rt = releaseTypeOf(d.album, d.artist);
+      if (rt && rt !== 'album') word = tt('rtype_' + rt);
+    }
     var kick = o.querySelector('.dp-kicker');
-    if (kick) kick.textContent = tt('dp_kind_' + kind);
+    if (kick) kick.textContent = word;
     // the same word over the title when the header is a column of its own
     var titles = o.querySelector('.dp-titles');
-    if (titles) titles.setAttribute('data-kicker', tt('dp_kind_' + kind));
+    if (titles) titles.setAttribute('data-kicker', word);
     // The name again in the top bar, shown once the header has scrolled away
     var name = o.querySelector('.dp-titles .modal-artist-name'), barT = o.querySelector('.dp-bar-title');
     if (name && barT) barT.textContent = name.textContent;
