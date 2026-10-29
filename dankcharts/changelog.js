@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 364;
+const DC_CL_I18N_V = 365;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-29', t: 'design', a: 'ui', h: '78c26d0',
+    title: "Song details redone, with a zoomable chart graph and the day you found it",
+    detail: "A song's details now work like an artist's. Overview opens with a headline card: total plays, its all-time rank as a medal, its share of the artist's plays, first and last played, days played, plays per day and how far it is from the next certification. Its album and artist sit under it as cards that say where the song ranks among their songs, then your listening habits with it (streak, best day, plays in a row, longest break, comebacks). Your rating stays where it was, and the achievements are now badges you can tap to see the weeks that earned them. The Charts tab has the artist's graph: pick Weekly, Monthly or Yearly, see the peak as a medal and the run in one sentence, read any week on the zoomable graph (with the song that was #1 then), and jump to the chart moments. It also shows how the song's run compares with the rest of its album and its artist, every record it holds, and the chart run you already knew, under all of it. The Listening tab shows whether it is on rotation, this year against last, plays by month, the day you found it with what played around it, the songs you play alongside it, when you listen, seasons, milestones with the day and time, year by year and the calendar. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-29', t: 'feature', a: 'ui', h: '7e986cc',
     title: "A new Awards tab in artist details, with their real-life awards",
     detail: "The Awards tab of an artist's details was two numbers and a folded list. Now a switch at the top flips between My Grammies and Real life. My Grammies shows the artist's win rate as a ring, a verdict, where they rank among every artist on your ballots, and their nominations, wins, ceremonies and best year. The big categories (Artist, Album, Song and Record of the Year, Best New Artist) light up when won. A chart goes ceremony by ceremony: tap a year to see only its ballot and open that ceremony. Every win sits on a trophy shelf with its artwork, their most nominated songs and albums show one dot per race, Head to head gives their record against the artists they met most, and the full list says what they won, what they lost and to whom. Nominations now count each nominated song or album, the same as the Stats & records summary. Real life shows the artist's actual awards and nominations from Wikipedia: wins, nominations and Grammys, You vs. the industry (what you both crowned, what only you did and what only the industry did), the award shows they were up at, which narrow everything below, year by year, their most awarded work (opening what's in your library) and the full list. It is saved on your device for a week, with a Refresh button. Works with Last.fm, Google Sheets and CSV uploads." },
