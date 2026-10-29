@@ -56182,6 +56182,20 @@ function ratingBand(score) {
   return RATING_BANDS.find(b => score >= b.min) || RATING_BANDS[RATING_BANDS.length - 1];
 }
 
+/* An artist's overall score reads on the same bands (same thresholds and
+   colours) but under its own names: "Masterpiece" fits a record, not a
+   whole body of work. rtba_<key> in translations.js, English when missing. */
+const RATING_ARTIST_LABELS = {
+  masterpiece: 'Legendary', essential: 'Elite', great: 'Excellent', good: 'Solid',
+  mixed: 'Hit or Miss', weak: 'Underwhelming', poor: 'Not for Me'
+};
+function ratingArtistBand(score) {
+  const b = ratingBand(score);
+  if (!b) return null;
+  const k = 'rtba_' + b.key, v = t(k);
+  return { key: b.key, cls: b.cls, min: b.min, label: v === k ? RATING_ARTIST_LABELS[b.key] : v };
+}
+
 // Clamp to the scale and snap to the 0.1 step. Everything that writes a score
 // goes through here, so a hand-typed 8.37 or a stray 12 can never get stored.
 function ratingClamp(v) {
@@ -58864,8 +58878,8 @@ function renderArtistRatingSection(artistName) {
 
   const ic = _amIco;
   const headline = sum.albumAvg ?? sum.songAvg;
-  const band = ratingBand(headline);
-  const meter = (n, of, label) => `<div class="ar-meter">
+  const band = ratingArtistBand(headline);
+  const meter =(n, of, label) => `<div class="ar-meter">
       <div class="ar-meter-top"><span>${esc(label)}</span><b>${n.toLocaleString()}<span> / ${of.toLocaleString()}</span></b></div>
       <div class="ar-meter-track"><span style="width:${(of ? n / of * 100 : 0).toFixed(1)}%"></span></div>
     </div>`;
@@ -58902,8 +58916,11 @@ function renderArtistRatingSection(artistName) {
   // Highest / lowest rated album and song
   const hi = [];
   const lastOf = arr => arr.length > 1 ? arr[arr.length - 1] : null;
-  if (sum.bestAlbum) hi.push({ lbl: t('ar_best_album'), name: sum.bestAlbum.name, score: sum.bestAlbum.score, kind: 'album', k: sum.bestAlbum.key, up: true });
-  if (lastOf(sum.albums)) hi.push({ lbl: t('ar_low_album'), name: lastOf(sum.albums).name, score: lastOf(sum.albums).score, kind: 'album', k: lastOf(sum.albums).key });
+  // Albums only; singles / EPs stand in only when no album is rated
+  const rel = sum.albums.length ? sum.albums : sum.singles;
+  const relLbl = sum.albums.length ? ['ar_best_album', 'ar_low_album'] : ['ar_best_single', 'ar_low_single'];
+  if (rel[0]) hi.push({ lbl: t(relLbl[0]), name: rel[0].name, score: rel[0].score, kind: 'album', k: rel[0].key, up: true });
+  if (lastOf(rel)) hi.push({ lbl: t(relLbl[1]), name: lastOf(rel).name, score: lastOf(rel).score, kind: 'album', k: lastOf(rel).key });
   if (sum.songs[0]) hi.push({ lbl: t('ar_best_song'), name: sum.songs[0].title, score: sum.songs[0].score, kind: 'song', k: sum.songs[0].key, up: true });
   if (lastOf(sum.songs)) hi.push({ lbl: t('ar_low_song'), name: lastOf(sum.songs).title, score: lastOf(sum.songs).score, kind: 'song', k: lastOf(sum.songs).key });
   const highs = hi.length ? `<div class="ar-highs">${hi.map(h => {
@@ -58922,6 +58939,29 @@ function renderArtistRatingSection(artistName) {
     fetchAndInjectImage(document.getElementById('arNextArt'), { imgId: 'arNextArt', name: an, title: an, album: an, artist: aa || artistName, prefKey: 'album:' + (aa || artistName).toLowerCase() + '|||' + an.toLowerCase() }, 'album');
   }
   arRenderBody();
+  _arCheckReleaseTypes(artistName, sum);
+}
+
+/* A rated "album" Deezer has not been asked about yet (its cover came from
+   somewhere else) could still be an unmarked single or EP, which would then
+   sit in the album average and the highest / lowest album cards. Ask once,
+   in the background; if any turns out a single / EP, redo the summary and
+   the tab. deezerReleaseType caches the answer, so a repaint asks nothing. */
+async function _arCheckReleaseTypes(artistName, sum) {
+  const unknown = sum.albums.filter(a => {
+    const [album, artist = ''] = a.key.split('|||');
+    return !releaseTypeSource(album, artist) && deezerKnownReleaseType(album, artist) === undefined;
+  });
+  if (!unknown.length) return;
+  let moved = false;
+  for (const a of unknown) {
+    const [album, artist = ''] = a.key.split('|||');
+    const rt = await deezerReleaseType(album, artist);
+    if (rt === 'single' || rt === 'ep') moved = true;
+  }
+  if (!moved) return;
+  ratingMemoInvalidate();
+  if (_ratingArtistOpen === artistName && document.getElementById('modalArtistRating')) renderArtistRatingSection(artistName);
 }
 
 // The list part: Albums · Songs · To rate, the spread, search + sort
@@ -59089,8 +59129,8 @@ function _renderArtistRatingMini(sum) {
     return;
   }
   const headline = sum.albumAvg ?? sum.songAvg;
-  const band = ratingBand(headline);
-  const num = (v, label, cls) => `<span class="ao-rate-num"><b class="${cls || ''}">${v}</b>${esc(label)}</span>`;
+  const band = ratingArtistBand(headline);
+  const num =(v, label, cls) => `<span class="ao-rate-num"><b class="${cls || ''}">${v}</b>${esc(label)}</span>`;
   el.innerHTML = `<div class="ao-rate" role="button" tabindex="0" ${go}>
     ${ratingRing(headline, { size: 72 })}
     <div class="ao-rate-txt">
@@ -59310,7 +59350,7 @@ function _raScoreBlock(ctx, size, align) {
   const p = ctx.p;
   const s = v => _shS(ctx, v);
   const hl = _raHeadline(ctx);
-  const band = ratingBand(hl.main);
+  const band = ratingArtistBand(hl.main);
   return `<div style="flex-shrink:0;text-align:${align};">
     <div style="font-family:${SH_FONT.display};font-size:${s(size)}px;font-weight:800;line-height:0.9;color:${_rtGridHex(p, hl.main)};">${ratingFmt(hl.main)}</div>
     <div style="margin-top:${s(8)}px;font-family:${SH_FONT.mono};font-size:${s(17)}px;font-weight:700;letter-spacing:0.14em;color:${p.text};text-transform:uppercase;white-space:nowrap;">${esc(band ? band.label : '')}</div>
