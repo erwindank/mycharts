@@ -11617,6 +11617,24 @@ function recSongRecordsFor(key) {
   return bucket.records.filter(r => r.type === 'song' && (r.name || '').trim().toLowerCase() === title);
 }
 
+// An album's records: from its artist's bucket, the album rows by name
+function recAlbumRecordsFor(albumKey) {
+  if (!_recArtistTally) return null;
+  const [album, artist] = albumKey.split('|||');
+  const bucket = _recArtistTally[(splitArtists(artist)[0] || artist).trim().toLowerCase()];
+  if (!bucket) return null;
+  const a = album.trim().toLowerCase();
+  return bucket.records.filter(r => r.type === 'album' && (r.name || '').trim().toLowerCase() === a);
+}
+
+function renderAlbumHeldRecords(albumKey) {
+  _renderHeldRecords({
+    prefix: 'albumHeldRecords', overlay: 'albumModal', reel: 'recalbum',
+    records: () => recAlbumRecordsFor(albumKey),
+    again: () => { if (_currentAlbumKey) renderAlbumHeldRecords(_currentAlbumKey); }
+  });
+}
+
 function renderSongHeldRecords(key) {
   _renderHeldRecords({
     prefix: 'songHeldRecords', overlay: 'songModal', reel: 'recsong',
@@ -25765,35 +25783,6 @@ function albMonthClick(month) {
 // ─── ALBUM MODAL — CHART BREAKDOWN DRILL-DOWN ──────────────────────────────
 // Populated by openAlbumModal: one entry per column, each holding the tracks
 // that charted in that period so a cell click can list them.
-let _albCbData = null;
-
-function albCbClick(period) {
-  const panel = document.getElementById('alb-cb-detail');
-  if (!panel || !_albCbData || !_albCbData[period]) return;
-  const wasOpen = panel.dataset.period === period;
-  document.querySelectorAll('#albumModalBreakdown .modal-cb-cell--open')
-    .forEach(c => c.classList.remove('modal-cb-cell--open'));
-  if (wasOpen) {
-    panel.dataset.period = '';
-    panel.innerHTML = '';
-    panel.style.display = 'none';
-    return;
-  }
-  panel.dataset.period = period;
-  const cell = document.querySelector(`#albumModalBreakdown .modal-cb-cell[data-period="${period}"]`);
-  if (cell) cell.classList.add('modal-cb-cell--open');
-  const { label, rows } = _albCbData[period];
-  const pk = r => r === 1 ? ' modal-cb-detail-peak--gold' : r <= 3 ? ' modal-cb-detail-peak--silver' : r <= 10 ? ' modal-cb-detail-peak--bronze' : '';
-  panel.innerHTML = `<div class="modal-cb-detail-title">${t('modal_cb_detail_title', { period: label })}</div>` + (rows.length
-    ? rows.map(r => `<div class="modal-cb-detail-row">
-        <span class="modal-cb-detail-peak${pk(r.peak)}">#${r.peak}</span>
-        <span class="modal-cb-detail-name">${esc(r.title)}</span>
-        <span class="modal-cb-detail-plays">${r.plays.toLocaleString()} ${tUnit('plays', r.plays)}</span>
-      </div>`).join('')
-    : `<div class="modal-cb-detail-row"><span class="modal-cb-detail-name" style="font-style:italic">${t('modal_cb_detail_none')}</span></div>`);
-  panel.style.display = '';
-}
-
 function albChartPlay() {
   const wrap = document.getElementById('albSparklineWrap');
   if (!wrap) return;
@@ -26042,42 +26031,8 @@ function computeTrackPeaks(sk) {
   return { peakDay: top(dayBuckets), peakWeek: top(weekBuckets), peakMonth: top(monthBuckets), peakYear: top(yearBuckets) };
 }
 
-let _albCurrentTrackSort = 'plays';
+// The album's tracks (and plays) for its share card (tpOpenCard)
 let _albCurrentAlbumCtx = null;
-
-function sortAlbumTracksBy(criterion) {
-  _albCurrentTrackSort = criterion;
-  if (!_albCurrentAlbumCtx) return;
-  const { tracks, totalPlays, crY, crM, crW, allTimeSPM, ek } = _albCurrentAlbumCtx;
-  const sorted = _sortAlbTracks([...tracks], criterion, crY, crM, crW, allTimeSPM);
-  document.getElementById('albumModalTracks').innerHTML =
-    _albSortBarHTML(criterion) + _buildAlbTracksHTML(sorted, totalPlays, crY, crM, crW, allTimeSPM, ek);
-}
-
-// The sort buttons above the album's track list, plus the button that turns the
-// list into a share image (tpOpenCard — "ALBUM TRACK PLAYS SHARE CARD").
-function _albSortBarHTML(criterion) {
-  const btns = ['plays','rank','firstPlayed','lastPlayed'].map(s =>
-    `<button class="alb-sort-btn${criterion === s ? ' active' : ''}" data-sort="${s}" onclick="sortAlbumTracksBy('${s}')">${
-      t(s === 'plays' ? 'am_sort_plays' : s === 'rank' ? 'am_sort_rank' : s === 'firstPlayed' ? 'am_sort_first' : 'am_sort_recent')
-    }</button>`).join('');
-  return `<div class="alb-sort-bar"><span class="alb-sort-label">${t('am_sort')}</span><div class="dc-seg">${btns}</div>
-    <button class="dc-btn dc-btn-normal dc-btn-sm alb-share-btn" onclick="tpOpenCard()">${esc(t('tp_card_open'))}</button></div>`;
-}
-
-function _sortAlbTracks(tracks, criterion, crY, crM, crW, allTimeSPM) {
-  if (criterion === 'rank') {
-    return tracks.sort((a, b) => {
-      const ra = allTimeSPM[songKey(a)] || 99999, rb = allTimeSPM[songKey(b)] || 99999;
-      return ra - rb || b.count - a.count;
-    });
-  } else if (criterion === 'firstPlayed') {
-    return tracks.sort((a, b) => a.firstPlayed - b.firstPlayed);
-  } else if (criterion === 'lastPlayed') {
-    return tracks.sort((a, b) => b.lastPlayed - a.lastPlayed);
-  }
-  return tracks.sort((a, b) => b.count - a.count);
-}
 
 function _buildAlbTrackPanelHTML(s, totalPlays, crY, crM, crW, allTimeSPM) {
   const sk = songKey(s);
@@ -26148,41 +26103,6 @@ function _buildAlbTrackPanelHTML(s, totalPlays, crY, crM, crW, allTimeSPM) {
     <div class="cr-subsection"><div class="cr-subsection-header" onclick="toggleCrSubsection(this)"><span class="cr-subsection-toggle">▶</span><span class="cr-subsection-label">${t('cr_sub_heatmap')}</span></div><div class="cr-subsection-body" style="display:none;" data-crtype="songs" data-crkey="${esc(sk)}" data-crkind="heatmap"></div></div>
     <div class="cr-subsection"><div class="cr-subsection-header" onclick="toggleCrSubsection(this)"><span class="cr-subsection-toggle">▶</span><span class="cr-subsection-label">${t('cr_sub_full_history')}</span></div><div class="cr-subsection-body" style="display:none;" data-crtype="songs" data-crkey="${esc(sk)}" data-crkind="rawdata"></div></div>
   </div>`;
-}
-
-function _buildAlbTracksHTML(tracks, totalPlays, crY, crM, crW, allTimeSPM, albumEk) {
-  if (!tracks.length) return `<div style="font-style:italic;color:var(--text3);padding:0.5rem 0;font-size:var(--fs-sm)">${t('am_no_tracks')}</div>`;
-  let rows = '';
-  tracks.forEach((s, i) => {
-    const sk = songKey(s);
-    const atRank = allTimeSPM[sk];
-    const pct = totalPlays ? (s.count / totalPlays * 100).toFixed(1) : 0;
-    const rowId = 'albt-row-' + albumEk + '-' + i;
-    const panelHTML = _buildAlbTrackPanelHTML(s, totalPlays, crY, crM, crW, allTimeSPM);
-    rows += `<tr>
-      <td style="width:28px">
-        <button class="cr-toggle-btn alb-track-toggle" title="${t('am_track_details')}" aria-label="${t('am_track_details')}" aria-expanded="false" onclick="event.stopPropagation();(function(btn,id){const r=document.getElementById(id);const open=r.classList.toggle('open');btn.classList.toggle('active',open);btn.setAttribute('aria-expanded',open);})(this,'${rowId}')"><svg class="alb-track-icon" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-      </td>
-      <td class="modal-rank-col">${atRank ? '#' + atRank : '—'}</td>
-      <td>
-        <div class="song-title">${esc(s.title)}${certBadge(s.count, 'song')}</div>
-        <div class="alb-share-wrap" style="margin-top:0.2rem">
-          <div class="alb-share-bar"><div class="alb-share-fill" style="width:${pct}%"></div></div>
-          <span class="alb-share-pct">${pct}%</span>
-        </div>
-      </td>
-      <td class="modal-date-col">${fmt(s.firstPlayed)}</td>
-      <td class="modal-date-col">${fmt(s.lastPlayed)}</td>
-      <td>${s.count} ${tUnit('plays', s.count)}</td>
-    </tr>
-    <tr class="cr-row" id="${rowId}"><td colspan="6">${panelHTML}</td></tr>`;
-  });
-  return `<table class="dc-table modal-table"><thead><tr class="modal-table-header">
-    <td></td><td>${t('th_rank')}</td><td>${t('th_track')}</td>
-    <td class="modal-date-col">${t('modal_first_played')}</td>
-    <td class="modal-date-col">${t('modal_last_played')}</td>
-    <td>${t('th_plays')}</td>
-  </tr></thead><tbody>${rows}</tbody></table>`;
 }
 
 /* ── Artist overview: badge drawer + filter (2026-10-27) ────────────────
@@ -26280,10 +26200,70 @@ const AM_CHARTS = ['all', 'year', 'month', 'week'];
 const AM_PAGE = 30;   // rows drawn before "Show all"
 
 function _amIco(n) { return typeof dcIco === 'function' ? dcIco(n) : ''; }
+// The box the list is in: the artist's Music tab (#modalMusic) or, since
+// 2026-10-29, the album's Tracks tab (_am.root 'albumModalTracks', songs only)
+function _amRoot() { return document.getElementById((_am && _am.root) || 'modalMusic'); }
+
+/* The rows, shared by both panels. ctx: { artistName, songAlbumKey(x) — the
+   album a song row's second line opens, songSub(x) — that line }. */
+function _amRow(kind, x, rank, extra, ctx) {
+  const isSong = kind === 'songs';
+  const art = isSong ? x.artist : (x.primaryArtist || ctx.artistName);
+  return Object.assign({
+    kind, rank,
+    name: isSong ? x.title : x.album,
+    sub: isSong ? ctx.songSub(x) : `${x.tracks.size} ${tUnit('tracks', x.tracks.size)}`,
+    plays: x.count,
+    cert: certBadge(x.count, isSong ? 'song' : 'album'),
+    first: x.firstPlayed, last: x.lastPlayed,
+    openKey: isSong ? songKey(x) : x.album + '|||' + art,
+    // the album a song row's second line names, so it can open it too
+    albumKey: isSong ? ctx.songAlbumKey(x) : x.album + '|||' + art,
+    artist: art,
+    img: isSong
+      ? { name: x.title, title: x.title, artist: art, album: '', prefKey: 'song:' + art.toLowerCase() + '|||' + x.title.toLowerCase() }
+      : { name: x.album, album: x.album, artist: art, prefKey: 'album:' + art.toLowerCase() + '|||' + x.album.toLowerCase() }
+  }, extra);
+}
+// The rows on one chart (year / month / week), best rank first
+function _amPeriodRows(kind, period, D, items, crKeyOf, ctx) {
+  if (!D) return [];
+  const isSong = kind === 'songs';
+  return items.map(x => {
+    const crKeyRaw = crKeyOf(x);
+    const cr = crKeyRaw ? D.result[kind][crKeyRaw] : null;
+    if (!cr) return null;
+    const peakEntry = cr.entries.find(e => e.rank === cr.peak) || cr.entries[0];
+    const bestKey = peakEntry.periodKey;
+    let run;
+    if (period === 'week') {
+      const consec = isSong ? maxConsecutivePlaysWeek(crKeyRaw, bestKey) : maxConsecutivePlaysWeekAlbum(crKeyRaw, bestKey);
+      run = consec > 1 ? { v: consec + '×', tip: t('am_th_consec') } : null;
+    } else {
+      const daySet = D.periodMap[bestKey]?.[isSong ? 'daySongs' : 'dayAlbums']?.[crKeyRaw];
+      const streak = daySet ? longestConsecutiveDays(daySet) : 0;
+      run = streak > 1 ? { v: streak + 'd', tip: t('am_th_streak') } : null;
+    }
+    const ek = encodeURIComponent(crKeyRaw);
+    return _amRow(kind, x, cr.peak, {
+      best: { period, key: bestKey, label: period === 'year' ? bestKey : crPeriodLabel(period, bestKey) },
+      bestPlays: peakEntry.plays, days: peakEntry.days, run, spells: cr.entries.length,
+      panel: () => `<div class="cr-panel" data-crtype="${kind}" data-crkey="${ek}"><div class="cr-stats cr-stats-sum">${crStats(kind, crKeyRaw, period, D)}</div>${crBoxesHTML(kind, crKeyRaw, D, null, period)}</div>`
+    }, ctx);
+  }).filter(Boolean).sort((a, b) => a.rank - b.rank);
+}
+// The play-history panel the all-time rows unfold (heatmap + every play)
+function _amHistoryPanel(kind, dataKey) {
+  return () => `<div class="am-hist">
+      <div class="cr-subsection"><div class="cr-subsection-header" onclick="toggleCrSubsection(this)"><span class="cr-subsection-toggle">▶</span><span class="cr-subsection-label">${t('cr_sub_heatmap')}</span></div><div class="cr-subsection-body" style="display:none;" data-crtype="${kind}" data-crkey="${esc(dataKey)}" data-crkind="heatmap"></div></div>
+      <div class="cr-subsection"><div class="cr-subsection-header" onclick="toggleCrSubsection(this)"><span class="cr-subsection-toggle">▶</span><span class="cr-subsection-label">${t('cr_sub_full_history')}</span></div><div class="cr-subsection-body" style="display:none;" data-crtype="${kind}" data-crkey="${esc(dataKey)}" data-crkind="rawdata"></div></div>
+    </div>`;
+}
 
 function amMusicRender() {
-  const el = document.getElementById('modalMusic');
+  const el = _amRoot();
   if (!el || !_am) return;
+  const onAlbum = _am.root === 'albumModalTracks';
   const L = _am.lists, ty = _am.type, ch = _am.chart, list = L[ty][ch];
   // How many different songs / albums made any chart, for the switch
   const distinct = k => new Set(AM_CHARTS.flatMap(c => L[k][c].map(r => r.openKey))).size;
@@ -26302,12 +26282,20 @@ function amMusicRender() {
   const sumCell = (v, l, tone) => `<div class="am-sum-cell am-tone-${tone}"><span class="am-sum-v">${v.toLocaleString()}</span><span class="am-sum-l">${esc(l)}</span></div>`;
   const what = t(ty === 'songs' ? 'ig_type_songs' : 'ig_type_albums');
 
+  // On an album: no Songs / Albums switch, its own words, the album's share card
+  const intro = onAlbum
+    ? (ch === 'all' ? esc(t('at_intro_all')) : t('at_intro', { chart: esc(t('am_in_' + ch)) }))
+    : t('am_intro', { what: esc(what), chart: esc(t('am_in_' + ch)) });
+  const share = onAlbum
+    ? `<button class="dc-btn dc-btn-normal dc-btn-sm am-share" onclick="tpOpenCard()">${esc(t('tp_card_open'))}</button>`
+    : ty === 'songs' ? `<button class="dc-btn dc-btn-normal dc-btn-sm am-share" onclick="tpOpenArtistCard(${esc(JSON.stringify(_am.artistName))})">${esc(t('tp_card_open_artist'))}</button>` : '';
   el.innerHTML = `<div class="am">
     <div class="am-top">
-      <div class="am-type" role="tablist">${typeBtn('songs', t('ig_type_songs'), 'note')}${typeBtn('albums', t('ig_type_albums'), 'disc')}</div>
-      ${ty === 'songs' ? `<button class="dc-btn dc-btn-normal dc-btn-sm am-share" onclick="tpOpenArtistCard(${esc(JSON.stringify(_am.artistName))})">${esc(t('tp_card_open_artist'))}</button>` : ''}
+      ${onAlbum ? '' : `<div class="am-type" role="tablist">${typeBtn('songs', t('ig_type_songs'), 'note')}${typeBtn('albums', t('ig_type_albums'), 'disc')}</div>`}
+      ${share}
     </div>
-    <p class="am-intro">${t('am_intro', { what: esc(what), chart: esc(t('am_in_' + ch)) })} <span>${esc(t(ch === 'all' ? 'am_tap_hist' : 'am_tap_run'))}</span></p>
+    <p class="am-intro">${intro} <span>${esc(t(ch === 'all' ? 'am_tap_hist' : 'am_tap_run'))}</span></p>
+    ${onAlbum && _am.split ? _am.split : ''}
     <div class="am-charts">${AM_CHARTS.map(chartBtn).join('')}</div>
     ${list.length ? `<div class="am-sum">
       ${sumCell(list.length, tUnit(ty, list.length), 'count')}
@@ -26316,7 +26304,7 @@ function amMusicRender() {
       ${sumCell(last.v, last.l, 'accent')}
     </div>
     <div class="am-tools">
-      <label class="am-search">${_amIco('search')}<input type="search" placeholder="${esc(t('am_search_' + ty))}" value="${esc(_am.q)}" oninput="amSearch(this.value)" aria-label="${esc(t('am_search_' + ty))}"></label>
+      <label class="am-search">${_amIco('search')}<input type="search" placeholder="${esc(t(onAlbum ? 'at_search' : 'am_search_' + ty))}" value="${esc(_am.q)}" oninput="amSearch(this.value)" aria-label="${esc(t(onAlbum ? 'at_search' : 'am_search_' + ty))}"></label>
       <div class="am-sort" role="group">${['rank', 'plays', 'recent', 'az'].map(s =>
         `<button type="button" class="am-sort-btn${s === _am.sort ? ' is-on' : ''}" aria-pressed="${s === _am.sort}" onclick="amSort('${s}')">${esc(t('am_sort_' + s))}</button>`).join('')}</div>
     </div>` : ''}
@@ -26326,7 +26314,7 @@ function amMusicRender() {
 }
 
 function amRenderList() {
-  const box = document.querySelector('#modalMusic .am-list');
+  const box = _amRoot()?.querySelector('.am-list');
   if (!box || !_am) return;
   const ty = _am.type, ch = _am.chart, base = _am.lists[ty][ch];
   if (!base.length) {
@@ -26350,6 +26338,7 @@ function amRenderList() {
   const tone = r => !r ? 'none' : r === 1 ? 'gold' : r <= 3 ? 'silver' : r <= 10 ? 'bronze' : 'plain';
   const chip = (icon, text, tip) => `<span class="am-m"${tip ? ` title="${esc(tip)}"` : ''}>${_amIco(icon)}${text}</span>`;
   const unitKey = { week: 'weeks', month: 'months', year: 'years' }[ch];
+  const imgPre = _am.root === 'albumModalTracks' ? 'atImg-' : 'amImg-';
   const bestKey = { week: 'am_th_best_week', month: 'am_th_best_month', year: 'am_th_best_year' }[ch];
 
   box.innerHTML = shown.map((r, i) => {
@@ -26371,10 +26360,10 @@ function amRenderList() {
     const q = encodeURIComponent(r.name + ' ' + r.artist);
     const acts = `<span class="am-acts">${_eaSampleBtn('am-act am-act-play')}${_eaSpotifyBtn(r.kind, r.name, r.artist).replace('class="ea-spotify"', 'class="ea-spotify am-act am-act-sp"')}<a class="am-act am-act-yt" href="https://www.youtube.com/results?search_query=${q}" target="_blank" rel="noopener" title="${esc(t('awx_yt'))}" aria-label="${esc(t('awx_yt'))}" onclick="event.stopPropagation()">${_ST_AM_YT_SVG}</a></span>`;
     return `<div class="am-row${isOpen ? ' is-open' : ''}" data-i="${i}" onclick="amRowClick(event,${i})"
-      data-ea-type="${r.kind}" data-ea-title="${esc(isSong ? r.name : '')}" data-ea-artist="${esc(r.artist)}" data-ea-album="${esc(isSong ? (r.sub || '') : r.name)}" data-ea-key="${esc(r.openKey)}" data-ea-img="amImg-${i}">
+      data-ea-type="${r.kind}" data-ea-title="${esc(isSong ? r.name : '')}" data-ea-artist="${esc(r.artist)}" data-ea-album="${esc(isSong ? (r.albumName || r.sub || '') : r.name)}" data-ea-key="${esc(r.openKey)}" data-ea-img="${imgPre}${i}">
       <div class="am-main" role="button" tabindex="0" aria-expanded="${isOpen}" onkeydown="if(event.target===this&&(event.key==='Enter'||event.key===' ')){event.preventDefault();amToggle(${i});}">
         <span class="am-rank am-rank--${tone(r.rank)}">${r.rank ? '#' + r.rank : '—'}</span>
-        <span class="am-art" id="amImg-${i}"><span class="thumb-initials">${esc(initials(r.name))}</span></span>
+        <span class="am-art" id="${imgPre}${i}"><span class="thumb-initials">${esc(initials(r.name))}</span></span>
         <span class="am-txt"><span class="am-name">${nameEl}${r.cert}</span>${subEl}</span>
         <span class="am-plays"><span><b>${r.plays.toLocaleString()}</b> ${esc(tUnit('plays', r.plays))}</span><span class="am-bar"><span style="width:${(r.plays / maxPlays * 100).toFixed(1)}%"></span></span></span>
       </div>
@@ -26388,7 +26377,7 @@ function amRenderList() {
 
   // Artwork as the rows scroll into view; the previous list's watcher retires
   if (_amImgObs) _amImgObs.disconnect();
-  const imgItems = shown.map((r, i) => Object.assign({ imgId: 'amImg-' + i }, r.img));
+  const imgItems = shown.map((r, i) => Object.assign({ imgId: imgPre + i }, r.img));
   _amImgObs = loadImages(imgItems, ty === 'songs' ? 'song' : 'album');
   // ✎ on each cover opens the artwork picker (its click stops before the row's)
   imgItems.forEach(it => { const el = document.getElementById(it.imgId); if (el) attachRecImgPicker(el, it, ty === 'songs' ? 'song' : 'album'); });
@@ -26409,7 +26398,7 @@ function amSearch(v) { if (!_am) return; _am.q = v; _am.all = false; amRenderLis
 function amSort(s) {
   if (!_am) return;
   _am.sort = s;
-  document.querySelectorAll('#modalMusic .am-sort-btn').forEach(b => { const on = b.getAttribute('onclick').includes("'" + s + "'"); b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', on); });
+  _amRoot()?.querySelectorAll('.am-sort-btn').forEach(b => { const on = b.getAttribute('onclick').includes("'" + s + "'"); b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', on); });
   amRenderList();
 }
 function amShowAll() { if (!_am) return; _am.all = !_am.all; amRenderList(); }
@@ -26433,7 +26422,7 @@ function amRowClick(e, i) {
 // ▾ unfolds the chart run (chart lists) or play history (all-time); built on first open
 function amToggle(i) {
   const r = _am && _am.view[i];
-  const row = document.querySelector(`#modalMusic .am-row[data-i="${i}"]`);
+  const row = _amRoot()?.querySelector(`.am-row[data-i="${i}"]`);
   if (!r || !row) return;
   const det = row.querySelector('.am-detail');
   const open = det.hidden;
@@ -26525,10 +26514,11 @@ function _rkModel(per) {
 // The Rankings tab on screen: the artist's (#modalRankings) or the song's
 // (#songRankings). _rnk.type says which chart family the run is on.
 function _rkRoot() { return _rnk && document.getElementById(_rnk.root); }
-function _rkChartName(per) { return t((_rnk.type === 'songs' ? 'rk_chart_s_' : 'rk_chart_') + per); }
+function _rkChartName(per) { return t(({ songs: 'rk_chart_s_', albums: 'rk_chart_a_' }[_rnk.type] || 'rk_chart_') + per); }
 // Opens that chart, closing the panel the Rankings tab is in
 function rkGoPeriod(per, key) {
   if (_rnk && _rnk.type === 'songs') goToPeriodFromSongModal(per, key);
+  else if (_rnk && _rnk.type === 'albums') goToPeriodFromAlbumModal(per, key);
   else goToPeriodFromArtistModal(per, key);
 }
 
@@ -26549,7 +26539,7 @@ function rkRender() {
   const head = `<div class="rk-top"><div class="am-type rk-type" role="tablist">${RK_CHARTS.map(chartBtn).join('')}</div></div>`;
   const music = _rnk.type === 'songs' ? _rkFamilyHTML() : _rkMusicHTML();
   if (!M) {
-    el.innerHTML = `${head}<div class="rk-none">${ic('bars')}<span>${esc(t(_rnk.type === 'songs' ? 'rk_none_s' : 'rk_none'))}</span></div>${music}`;
+    el.innerHTML = `${head}<div class="rk-none">${ic('bars')}<span>${esc(t({ songs: 'rk_none_s', albums: 'rk_none_a' }[_rnk.type] || 'rk_none'))}</span></div>${music}`;
     return;
   }
   const { d, E, n, longest } = M;
@@ -26967,22 +26957,23 @@ function _rkMomentsHTML(M, per) {
 
 function _rkMusicHTML() {
   const cols = [...RK_CHARTS, 'all'];
+  const onAlbum = _rnk.type === 'albums';
   const row = ty => `<div class="rk-mu-row">
       <span class="rk-mu-lbl">${_amIco(ty === 'songs' ? 'note' : 'disc')}${esc(t(ty === 'songs' ? 'ig_type_songs' : 'ig_type_albums'))}</span>
       ${cols.map(c => {
         const [cnt, best] = _rnk.music[ty][c];
         const on = c === _rnk.chart ? ' is-on' : '';
         if (!cnt) return `<span class="rk-mu-cell is-empty${on}"><span class="rk-mu-n">—</span></span>`;
-        return `<button type="button" class="rk-mu-cell${on}" onclick="rkOpenMusic('${ty}','${c}')" title="${esc(t('rk_music_open'))}">
+        return `<button type="button" class="rk-mu-cell${on}" onclick="rkOpenMusic('${ty}','${c}')" title="${esc(t(onAlbum ? 'rk_tracks_open' : 'rk_music_open'))}">
           <span class="rk-mu-n">${cnt.toLocaleString()}</span>
           ${best ? `<span class="rk-mu-best rk-r--${_rkTone(best)}">${esc(t('am_peak_rank', { n: best }))}</span>` : ''}
         </button>`;
       }).join('')}
     </div>`;
-  return `<div class="ao-head rk-head">${esc(t('rk_h_music'))}<span>${esc(t('rk_music_hint'))}</span></div>
+  return `<div class="ao-head rk-head">${esc(t(onAlbum ? 'rk_h_tracks' : 'rk_h_music'))}<span>${esc(t('rk_music_hint'))}</span></div>
     <div class="rk-mu">
       <div class="rk-mu-row rk-mu-hd"><span></span>${cols.map(c => `<span class="${c === _rnk.chart ? 'is-on' : ''}">${_amIco(RK_ICON[c])}${esc(t('am_c_' + c))}</span>`).join('')}</div>
-      ${row('songs')}${row('albums')}
+      ${row('songs')}${onAlbum ? '' : row('albums')}
     </div>`;
 }
 
@@ -27029,14 +27020,16 @@ function _rkDetailHTML(M, i) {
   let top = '';
   if (e.rank === 1) top = `<span class="rk-dt-top is-me">${ic('crown')}${esc(t('rk_top_spot'))}</span>`;
   else {
-    const songs = _rnk.type === 'songs';
-    const pool = allChartRun?.[per]?.periodMap?.[e.periodKey]?.[songs ? 'songs' : 'artists'];
+    const ty = _rnk.type;
+    const pool = allChartRun?.[per]?.periodMap?.[e.periodKey]?.[ty];
     if (pool) {
       let best = null;
       for (const k in pool) if (!best || rankSortWithStatus(pool[k], pool[best]) < 0) best = k;
-      // songs are keyed title|||artist (lower case); the entry keeps the names
-      const name = best && songs ? pool[best]._title || best.split('|||')[0] : best;
-      const open = songs ? `openSongModal(${esc(JSON.stringify(best))})` : `openArtistModal(${esc(JSON.stringify(best))})`;
+      // songs are keyed title|||artist (lower case), albums album|||artist;
+      // the entry keeps the names
+      const name = !best ? '' : ty === 'songs' ? pool[best]._title || best.split('|||')[0]
+        : ty === 'albums' ? pool[best]._album || best.split('|||')[0] : best;
+      const open = `${{ songs: 'openSongModal', albums: 'openAlbumModal' }[ty] || 'openArtistModal'}(${esc(JSON.stringify(best))})`;
       if (best) top = `<button type="button" class="rk-dt-top" onclick="${open}">${ic('crown')}${t('rk_no1_was', { name: `<b>${esc(name)}</b>` })}</button>`;
     }
   }
@@ -27093,7 +27086,7 @@ function rkOpenMusic(ty, c) {
     _am.chart = _am.lists[ty][c].length ? c : (AM_CHARTS.find(x => _am.lists[ty][x].length) || 'all');
     amMusicRender();
   }
-  if (typeof dcPanelShowTab === 'function') dcPanelShowTab('artist', 'music');
+  if (typeof dcPanelShowTab === 'function') dcPanelShowTab(_rnk && _rnk.type === 'albums' ? 'album' : 'artist', _rnk && _rnk.type === 'albums' ? 'tracks' : 'music');
 }
 
 function _rkCountUp(root) {
@@ -27161,7 +27154,7 @@ function _lsOpenSong(key) { return `openSongModal(${esc(JSON.stringify(key))})`;
    the song, which is always itself. Defaults are the artist's. */
 function lsRender(artistName, artistPlays, opts) {
   const o = Object.assign({ root: 'modalListening', type: 'artists', key: artistName }, opts);
-  const isSong = o.type === 'songs';
+  const isSong = o.type === 'songs', isAlbum = o.type === 'albums';
   const el = document.getElementById(o.root);
   if (!el) return;
   const ic = _amIco;
@@ -27265,7 +27258,7 @@ function lsRender(artistName, artistPlays, opts) {
         <span class="ls-era-name">${esc(e.title)}</span>
         <span class="ls-era-meta"><b>${e.plays.toLocaleString()}</b> ${esc(tUnit('plays', e.plays))} · ${esc(tCount('months', e.n))}</span>
         <span class="ao-meter"><span style="width:${pct(e.plays, e.all)}%"></span></span>
-        <span class="ls-era-share">${esc(t('ls_era_share', { pct: pct(e.plays, e.all) + '%' }))}</span>
+        <span class="ls-era-share">${esc(t(isAlbum ? 'ls_era_share_a' : 'ls_era_share', { pct: pct(e.plays, e.all) + '%' }))}</span>
       </button>`).join('')}
     </div>`;
 
@@ -27359,15 +27352,16 @@ function lsRender(artistName, artistPlays, opts) {
     </div>`;
 
   el.innerHTML = `${hero}
-    ${isSong ? o.chart || '' : buildArtistSparklineHTML(artistPlays)}
+    ${o.chart != null ? o.chart : buildArtistSparklineHTML(artistPlays)}
     ${erasHTML}
+    ${o.full || ''}
     ${o.found || ''}
     ${o.along || ''}
     ${clockHTML}
     ${o.seasons || ''}
     ${milesHTML}
     ${o.years || ''}
-    <div class="ao-head rk-head">${esc(t(isSong ? 'ls_h_calendar_s' : 'ls_h_calendar'))}</div>
+    <div class="ao-head rk-head">${esc(t(isSong ? 'ls_h_calendar_s' : isAlbum ? 'ls_h_calendar_a' : 'ls_h_calendar'))}</div>
     <div class="ls-cal" id="${o.root}Heat"><div class="modal-records-wait">${esc(t('ls_loading'))}</div></div>
     <div class="ls-more">${sub(t('cr_sub_streaks'), 'streaks')}${sub(t('cr_sub_full_history'), 'rawdata')}</div>`;
 
@@ -27825,59 +27819,14 @@ function openArtistModal(artistName) {
      album, and ▾ unfolds the same chart run / play history as before (built
      only when opened now, not for every row up front).
      Here only the rows are gathered into _am; amMusicRender() draws them. */
-  const periodRows = (kind, period, D, items, crKeyOf) => {
-    if (!D) return [];
-    const isSong = kind === 'songs';
-    return items.map(x => {
-      const crKeyRaw = crKeyOf(x);
-      const cr = crKeyRaw ? D.result[kind][crKeyRaw] : null;
-      if (!cr) return null;
-      const peakEntry = cr.entries.find(e => e.rank === cr.peak) || cr.entries[0];
-      const bestKey = peakEntry.periodKey;
-      let run;
-      if (period === 'week') {
-        const consec = isSong ? maxConsecutivePlaysWeek(crKeyRaw, bestKey) : maxConsecutivePlaysWeekAlbum(crKeyRaw, bestKey);
-        run = consec > 1 ? { v: consec + '×', tip: t('am_th_consec') } : null;
-      } else {
-        const daySet = D.periodMap[bestKey]?.[isSong ? 'daySongs' : 'dayAlbums']?.[crKeyRaw];
-        const streak = daySet ? longestConsecutiveDays(daySet) : 0;
-        run = streak > 1 ? { v: streak + 'd', tip: t('am_th_streak') } : null;
-      }
-      const ek = encodeURIComponent(crKeyRaw);
-      return amRow(kind, x, cr.peak, {
-        best: { period, key: bestKey, label: period === 'year' ? bestKey : crPeriodLabel(period, bestKey) },
-        bestPlays: peakEntry.plays, days: peakEntry.days, run, spells: cr.entries.length,
-        panel: () => `<div class="cr-panel" data-crtype="${kind}" data-crkey="${ek}"><div class="cr-stats cr-stats-sum">${crStats(kind, crKeyRaw, period, D)}</div>${crBoxesHTML(kind, crKeyRaw, D, null, period)}</div>`
-      });
-    }).filter(Boolean).sort((a, b) => a.rank - b.rank);
+  const amCtx = {
+    artistName,
+    songSub: x => x.album && x.album !== '—' ? x.album : '',
+    songAlbumKey: x => x.album && x.album !== '—' ? x.album + '|||' + (albumCounts[x.album]?.primaryArtist || x.artist) : null
   };
-  // One row's data. Songs and albums share the shape; only the keys differ.
-  const amRow = (kind, x, rank, extra) => {
-    const isSong = kind === 'songs';
-    const art = isSong ? x.artist : (x.primaryArtist || artistName);
-    return Object.assign({
-      kind, rank,
-      name: isSong ? x.title : x.album,
-      sub: isSong ? (x.album && x.album !== '—' ? x.album : '') : `${x.tracks.size} ${tUnit('tracks', x.tracks.size)}`,
-      plays: x.count,
-      cert: certBadge(x.count, isSong ? 'song' : 'album'),
-      first: x.firstPlayed, last: x.lastPlayed,
-      openKey: isSong ? songKey(x) : x.album + '|||' + art,
-      // the album a song row's second line names, so it can open it too
-      albumKey: isSong
-        ? (x.album && x.album !== '—' ? x.album + '|||' + (albumCounts[x.album]?.primaryArtist || x.artist) : null)
-        : x.album + '|||' + art,
-      artist: art,
-      img: isSong
-        ? { name: x.title, title: x.title, artist: art, album: '', prefKey: 'song:' + art.toLowerCase() + '|||' + x.title.toLowerCase() }
-        : { name: x.album, album: x.album, artist: art, prefKey: 'album:' + art.toLowerCase() + '|||' + x.album.toLowerCase() }
-    }, extra);
-  };
-  // The play-history panel the all-time rows unfold (heatmap + every play)
-  const historyPanel = (kind, dataKey) => () => `<div class="am-hist">
-      <div class="cr-subsection"><div class="cr-subsection-header" onclick="toggleCrSubsection(this)"><span class="cr-subsection-toggle">▶</span><span class="cr-subsection-label">${t('cr_sub_heatmap')}</span></div><div class="cr-subsection-body" style="display:none;" data-crtype="${kind}" data-crkey="${esc(dataKey)}" data-crkind="heatmap"></div></div>
-      <div class="cr-subsection"><div class="cr-subsection-header" onclick="toggleCrSubsection(this)"><span class="cr-subsection-toggle">▶</span><span class="cr-subsection-label">${t('cr_sub_full_history')}</span></div><div class="cr-subsection-body" style="display:none;" data-crtype="${kind}" data-crkey="${esc(dataKey)}" data-crkind="rawdata"></div></div>
-    </div>`;
+  const amRow = (kind, x, rank, extra) => _amRow(kind, x, rank, extra, amCtx);
+  const periodRows = (kind, period, D, items, crKeyOf) => _amPeriodRows(kind, period, D, items, crKeyOf, amCtx);
+  const historyPanel = _amHistoryPanel;
   const findAlbumCrKey = (a, crData) => crData ? Object.keys(crData.result.albums).find(k => k.startsWith(a.album + '|||')) : null;
 
   const songLists = {
@@ -27900,8 +27849,8 @@ function openArtistModal(artistName) {
   };
 
   // Keep the Songs/Albums and chart picked last time when this artist has them
-  const prevAm = _am || {};
-  _am = { artistName, lists: { songs: songLists, albums: albumLists }, type: prevAm.type || 'songs', chart: prevAm.chart || 'all', q: '', sort: 'rank', open: null, all: false };
+  const prevAm = _am && _am.root === 'modalMusic' ? _am : {};
+  _am = { root: 'modalMusic', artistName, lists: { songs: songLists, albums: albumLists }, type: prevAm.type || 'songs', chart: prevAm.chart || 'all', q: '', sort: 'rank', open: null, all: false };
   if (!_am.lists[_am.type][_am.chart].length) {
     const firstWith = ['all', 'year', 'month', 'week'].find(c => _am.lists[_am.type][c].length);
     if (firstWith) _am.chart = firstWith;
@@ -27964,9 +27913,18 @@ if (albumsBody) {
 }
 
 let _currentAlbumKey = null;
+/* ── Album panel (redone 2026-10-29, after the artist's and the song's) ──
+   Overview: a headline card (plays, all-time album rank medal, share of the
+   artist's plays, first → last span, tracks / plays per track / plays to the
+   next certification), the top track and the one played most lately, habits
+   (with front-to-back listens), the rating card, the achievements as badges
+   (_aoTroHTML) and the plaques. Tracks: the artist Music list (amMusicRender
+   on #albumModalTracks) with how the plays split. Rankings: rkRender on the
+   album charts, its tracks on each chart, the records it holds and the old
+   chart run. Listening: lsRender with eras of its tracks and the
+   front-to-back listens. */
 function openAlbumModal(albumKey) {
   _currentAlbumKey = albumKey;
-  _albCurrentTrackSort = 'plays';
   ensureAllChartRun();
 
   const [albumName, artistName] = albumKey.split('|||');
@@ -28034,18 +27992,10 @@ function openAlbumModal(albumKey) {
   const bestTrackPeakMonthly  = chartTracksMonthly.length  ? Math.min(...chartTracksMonthly.map(s => crM.result.songs[songKey(s)].peak)) : null;
   const bestTrackPeakYearly   = chartTracksYearly.length   ? Math.min(...chartTracksYearly.map(s => crY.result.songs[songKey(s)].peak)) : null;
 
-  // Avg plays per track + next cert milestone
+  // Avg plays per track + next cert milestone (on the album's own ladder)
   const avgPlaysPerTrack = allTracksSorted.length ? Math.round(totalPlays / allTracksSorted.length) : 0;
-  let nextCert;
   const _mCfg = certCfgFor(albumName, artistName);
-  if (totalPlays >= _mCfg.diamond) {
-    const nextMult = Math.floor(totalPlays / _mCfg.diamond) + 1;
-    nextCert = [nextMult * _mCfg.diamond, tDiamondLabel(nextMult)];
-  } else {
-    nextCert = [[_mCfg.gold, t('cert_gold')], [_mCfg.plat, t('cert_plat')], [_mCfg.diamond, t('cert_diamond')]].find(([thr]) => totalPlays < thr);
-  }
-
-  const peakCls = r => !r ? '' : r === 1 ? 'sv--gold' : r <= 3 ? 'sv--silver' : r <= 10 ? 'sv--bronze' : '';
+  const nextCert = _crNextCert(totalPlays, _mCfg);
 
   // ── HEADER ────────────────────────────────────────────────────────────────
   document.getElementById('albumModalName').textContent = albumName;
@@ -28105,183 +28055,204 @@ function openAlbumModal(albumKey) {
   loadModalArt(document.getElementById('albumModalImg'), 'album',
     { name: albumName, artist: artistName, album: albumName, prefKey: 'album:' + artistName.toLowerCase() + '|||' + albumName.toLowerCase() });
 
-  // ── STATS STRIP ROW 1: core totals + all-time hero ───────────────────────
-  document.getElementById('albumModalStats').innerHTML = `
-    <div class="modal-stat"><div class="se">🎧</div><div class="sv">${totalPlays.toLocaleString()}</div><div class="sl">${t('stat_total_plays')}</div></div>
-    <div class="modal-stat"><div class="sv" style="font-size:var(--fs-sm)">${firstPlayed ? fmt(firstPlayed) : '—'}</div><div class="sl">${t('modal_first_played')}</div></div>
-    <div class="modal-stat"><div class="sv" style="font-size:var(--fs-sm)">${lastPlayed ? fmt(lastPlayed) : '—'}</div><div class="sl">${t('modal_last_played')}</div></div>
-    <div class="modal-stat"><div class="se">🎵</div><div class="sv">${allTracksSorted.length}</div><div class="sl">${t('modal_tracks')}</div></div>
-    <div class="modal-stat"><div class="se">📅</div><div class="sv">${calendarDays}</div><div class="sl">${t('modal_calendar_days_played')}</div></div>
-    <div class="modal-stat"><div class="se">📊</div><div class="sv">${avgPlaysPerTrack.toLocaleString()}</div><div class="sl">${t('modal_avg_plays_per_track')}</div></div>
-    <div class="modal-stat modal-stat--gold"><div class="se">🏆</div><div class="sv">${allTimeAlbumRank ? (currentLang === 'en' ? ordinalSuffix(allTimeAlbumRank) : allTimeAlbumRank + '.º') : '—'}</div><div class="sl">${t('modal_most_heard_album')}</div></div>
-    <div class="modal-stat"><div class="se">📊</div><div class="sv ${peakCls(weeklyAlbumPeak)}">${weeklyAlbumPeak ? '#' + weeklyAlbumPeak : '—'}</div><div class="sl">${t('modal_weekly_peak_tile')}</div></div>
-    <div class="modal-stat"><div class="se">🌙</div><div class="sv ${peakCls(monthlyAlbumPeak)}">${monthlyAlbumPeak ? '#' + monthlyAlbumPeak : '—'}</div><div class="sl">${t('modal_monthly_peak_tile')}</div></div>
-    <div class="modal-stat"><div class="se">⭐</div><div class="sv ${peakCls(yearlyAlbumPeak)}">${yearlyAlbumPeak ? '#' + yearlyAlbumPeak : '—'}</div><div class="sl">${t('modal_yearly_peak_tile')}</div></div>
-    <div class="modal-stat"><div class="se">🎤</div><div class="sv" style="font-size:var(--fs-xs);line-height:1.3;white-space:normal;overflow-wrap:break-word;max-width:100%">${allTracksSorted.length ? esc(allTracksSorted[0].title) : '—'}</div><div class="sl">${t('modal_top_track')}</div></div>
-    <div class="modal-stat"><div class="se">🔥</div><div class="sv">${longestStreak}</div><div class="sl">${t('modal_day_streak')}</div></div>
-    <div class="modal-stat"><div class="se">📋</div><div class="sv">${chartTracksWeekly.length || '—'}</div><div class="sl">${t('modal_tracks_in_weekly')}</div></div>
-    ${nextCert ? `<div class="modal-stat"><div class="se">🎯</div><div class="sv">${(nextCert[0] - totalPlays).toLocaleString()}</div><div class="sl">${t('modal_plays_to_cert', { cert: nextCert[1] })}</div></div>` : ''}
-  `;
+  const ic = _amIco;
+  const noBr = s => String(s).replace(/<br\s*\/?>/gi, ' ');
+  const pctOf = (n, of) => of ? (n / of * 100 >= 10 ? Math.round(n / of * 100) : (n / of * 100).toFixed(1)) + '%' : '—';
+  const DAY = 86400000;
+  const dayDate = s => s ? new Date(s + 'T00:00:00') : null;
 
-  // ── GRAND SLAM BANNER ─────────────────────────────────────────────────────
+  // ── Days: best day, the longest streak's dates, the longest break ──
+  const dayMap = {};
+  for (const p of albumPlays) { const dk = localDateStr(tzDateOf(p)); dayMap[dk] = (dayMap[dk] || 0) + 1; }
+  const peakDayPlays = calendarDays ? Math.max(...Object.values(dayMap)) : 0;
+  const peakDayDate = peakDayPlays ? _sortedDays.find(k => dayMap[k] === peakDayPlays) : null;
+  const dayGap = (a, b) => Math.round((new Date(b) - new Date(a)) / DAY);
+  let streakEnd = null, longestGap = 0, gapFrom = null, gapTo = null;
+  for (let i = 0, run = 0; i < _sortedDays.length; i++) {
+    const g = i ? dayGap(_sortedDays[i - 1], _sortedDays[i]) : 0;
+    run = i && g === 1 ? run + 1 : 1;
+    if (run === longestStreak && !streakEnd) streakEnd = _sortedDays[i];
+    if (g > longestGap) { longestGap = g; gapFrom = _sortedDays[i - 1]; gapTo = _sortedDays[i]; }
+  }
+  const streakStart = streakEnd ? new Date(dayDate(streakEnd).getTime() - (longestStreak - 1) * DAY) : null;
+  const spanDays = calendarDays ? dayGap(_sortedDays[0], _sortedDays[_sortedDays.length - 1]) + 1 : 0;
+
+  // Album plays back to back (any of its tracks)
+  const inAlbum = new Set(albumPlays);
+  let inARow = 0;
+  for (let i = 0, run = 0; i < allPlays.length; i++) { run = inAlbum.has(allPlays[i]) ? run + 1 : 0; if (run > inARow) inARow = run; }
+
+  /* Front-to-back listens: a sitting (album plays no more than SL_WINDOW
+     apart) that covered most of its tracks — 70% of the tracks you've
+     played from it, at least 3. Only for records of 4 tracks or more. */
+  const nTracks = allTracksSorted.length;
+  const fullNeed = Math.max(3, Math.ceil(nTracks * 0.7));
+  const fullListens = [];
+  if (nTracks >= 4) {
+    let cur = null;
+    const close = () => { if (cur && cur.tracks.size >= fullNeed) fullListens.push({ start: cur.start, end: cur.end, n: cur.tracks.size }); };
+    for (let i = albumPlays.length - 1; i >= 0; i--) {
+      const p = albumPlays[i], tp = +p.date;
+      if (!cur || tp - cur.end > SL_WINDOW) { close(); cur = { start: tp, end: tp, tracks: new Set() }; }
+      cur.end = tp;
+      cur.tracks.add(songKey(p));
+    }
+    close();
+  }
+
+  // The artist's plays, for the album's share of them (not on a compilation)
+  let artistTotal = 0;
+  if (!albIsComp) for (const p of allPlays) if (p.artists.includes(artistName)) artistTotal++;
+
+  // ── OVERVIEW: headline card ───────────────────────────────────
+  const rankTone = _rkTone(allTimeAlbumRank);
+  const cert = certBadge(totalPlays, certKindFor(albumName, artistName));
+  const topTrack = allTracksSorted[0] || null;
+  // Lately: the track played most in the last 90 days, when it isn't the top one
+  const since = tzNow().getTime() - 90 * DAY, recent = {};
+  for (const p of albumPlays) { if (+p.date < since) break; const k = songKey(p); recent[k] = (recent[k] || 0) + 1; }
+  const lateKey = Object.keys(recent).sort((a, b) => recent[b] - recent[a])[0];
+  const lately = lateKey && (!topTrack || lateKey !== songKey(topTrack)) ? allTracksSorted.find(s => songKey(s) === lateKey) : null;
+  // …or else the track you heard first, so the top track never stands alone
+  const firstP = albumPlays[albumPlays.length - 1];
+  const firstHeard = !lately && firstP && topTrack && songKey(firstP) !== songKey(topTrack) ? allTracksSorted.find(s => songKey(s) === songKey(firstP)) : null;
+  const favCard = (id, kicker, s, meta, share) => `<button type="button" class="ao-fav" onclick="openSongModal(${esc(JSON.stringify(songKey(s)))})">
+      <span class="ao-fav-art" id="alFav-${id}"><span class="thumb-initials">${esc(initials(s.title))}</span></span>
+      <span class="ao-fav-txt">
+        <span class="ao-kicker">${esc(kicker)}</span>
+        <span class="ao-fav-name">${esc(s.title)}</span>
+        <span class="ao-fav-meta">${meta}</span>
+        <span class="ao-meter"><span style="width:${share.toFixed(1)}%"></span></span>
+      </span>
+      <span class="ao-fav-go" aria-hidden="true">${ic('next')}</span>
+    </button>`;
+  const favs = (topTrack ? favCard('top', noBr(t('modal_top_track')), topTrack,
+      `<b>${topTrack.count.toLocaleString()}</b> ${esc(tUnit('plays', topTrack.count))} · ${esc(t('so_share', { pct: pctOf(topTrack.count, totalPlays) }))}`,
+      totalPlays ? topTrack.count / totalPlays * 100 : 0) : '')
+    + (lately ? favCard('late', t('al_lately'), lately, esc(t('al_lately_n', { n: recent[lateKey].toLocaleString() })),
+      recent[lateKey] / Math.max(...Object.values(recent)) * 100) : '')
+    + (firstHeard ? favCard('late', t('al_first'), firstHeard, esc(t('al_first_n', { date: fmt(firstP.date) })),
+      totalPlays ? firstHeard.count / totalPlays * 100 : 0) : '');
+  const habit = (icon, value, label, caption) => `<div class="ao-habit">
+      <span class="ao-habit-ico">${ic(icon)}</span>
+      <span class="ao-habit-txt">
+        <span class="ao-habit-val ao-count">${value}</span>
+        <span class="ao-habit-lbl">${esc(noBr(label))}</span>
+        ${caption ? `<span class="ao-habit-cap">${esc(caption)}</span>` : ''}
+      </span>
+    </div>`;
+  document.getElementById('albumModalStats').innerHTML = `
+    <div class="ao-hero">
+      <div class="ao-hero-top">
+        <div class="ao-hero-main">
+          <span class="ao-kicker">${t('stat_total_plays')}</span>
+          <span class="ao-hero-num ao-count">${totalPlays.toLocaleString()}</span>
+          <span class="ao-hero-sub">${artistTotal ? esc(t('so_share_of_artist', { pct: pctOf(totalPlays, artistTotal), artist: artistName })) : ''}${cert ? ' ' + cert : ''}</span>
+        </div>
+        <div class="ao-rank ao-rank--${rankTone}" title="${esc(noBr(t('modal_most_heard_album')))}">
+          <span class="ao-rank-ring">${ic(rankTone === 'gold' ? 'crown' : 'trophy')}<span class="ao-rank-num">${allTimeAlbumRank ? '#' + allTimeAlbumRank : '—'}</span></span>
+          <span class="ao-rank-lbl">${noBr(t('modal_most_heard_album'))}</span>
+        </div>
+      </div>
+      <div class="ao-span">
+        <div class="ao-span-ends">
+          <span><span class="ao-kicker">${t('modal_first_played')}</span><b>${firstPlayed ? fmt(firstPlayed) : '—'}</b></span>
+          <span class="ao-span-r"><span class="ao-kicker">${t('modal_last_played')}</span><b>${lastPlayed ? fmt(lastPlayed) : '—'}</b></span>
+        </div>
+        <div class="ao-span-track" role="img" aria-label="${esc(t('ao_span', { played: calendarDays.toLocaleString(), span: spanDays.toLocaleString() }))}">
+          <span class="ao-span-fill" style="width:${(spanDays ? Math.min(100, calendarDays / spanDays * 100) : 0).toFixed(1)}%"></span>
+        </div>
+        <div class="ao-span-cap">${t('ao_span', { played: `<b>${calendarDays.toLocaleString()}</b>`, span: spanDays.toLocaleString() })}</div>
+      </div>
+      <div class="ao-trio">
+        <div class="ao-trio-cell ao-tone-songs"><span class="ao-trio-val ao-count">${nTracks.toLocaleString()}</span><span class="ao-trio-lbl">${noBr(t('modal_tracks'))}</span></div>
+        <div class="ao-trio-cell ao-tone-albums"><span class="ao-trio-val ao-count">${avgPlaysPerTrack.toLocaleString()}</span><span class="ao-trio-lbl">${noBr(t('modal_avg_plays_per_track'))}</span></div>
+        <div class="ao-trio-cell ao-tone-avg"><span class="ao-trio-val ao-count">${(nextCert.at - totalPlays).toLocaleString()}</span><span class="ao-trio-lbl">${esc(t('modal_plays_to_cert', { cert: nextCert.label }))}</span></div>
+      </div>
+    </div>
+    ${favs ? `<div class="ao-favs">${favs}</div>` : ''}
+    <div class="ao-head">${t('ao_habits')}</div>
+    <div class="ao-habits">
+      ${habit('flame', longestStreak.toLocaleString(), t('modal_listening_days_streak'),
+        streakStart && longestStreak > 1 ? `${fmt(streakStart)} – ${fmt(dayDate(streakEnd))}` : '')}
+      ${habit('bars', peakDayPlays.toLocaleString(), t('am_peak_plays_day'), peakDayDate ? fmt(dayDate(peakDayDate)) : '')}
+      ${habit('target', inARow.toLocaleString(), t('am_peak_plays_streak'), '')}
+      ${habit('disc', nTracks >= 4 ? fullListens.length.toLocaleString() : '—', t('al_full'), nTracks >= 4 ? t('al_full_cap', { n: fullNeed, total: nTracks }) : '')}
+      ${habit('hourglass', longestGap > 1 ? tCount('days', longestGap) : '—', t('so_longest_break'), gapFrom ? `${fmt(dayDate(gapFrom))} → ${fmt(dayDate(gapTo))}` : '')}
+    </div>`;
+  if (topTrack) fetchAndInjectImage(document.getElementById('alFav-top'), { imgId: 'alFav-top', name: topTrack.title, title: topTrack.title, artist: topTrack.artist, album: albumName, prefKey: 'song:' + topTrack.artist.toLowerCase() + '|||' + topTrack.title.toLowerCase() }, 'song');
+  const second = lately || firstHeard;
+  if (second) fetchAndInjectImage(document.getElementById('alFav-late'), { imgId: 'alFav-late', name: second.title, title: second.title, artist: second.artist, album: albumName, prefKey: 'song:' + second.artist.toLowerCase() + '|||' + second.title.toLowerCase() }, 'song');
+
+  // ── OVERVIEW: Grand Slam + achievements as badges ─────────────
   const grandSlam = weeklyAlbumPeak === 1 && monthlyAlbumPeak === 1 && yearlyAlbumPeak === 1;
   document.getElementById('albumModalGrandSlam').innerHTML = grandSlam
-    ? `<div class="modal-grand-slam">✨ ${t('modal_grand_slam')} ✨</div>` : '';
-
-  // ── STATS STRIP ROW 2: period peaks ──────────────────────────────────────
-  document.getElementById('albumModalPeaks').innerHTML = `
-    <div class="modal-stat"><div class="se">📊</div><div class="sv ${peakCls(weeklyAlbumPeak)}">${weeklyAlbumPeak ? '#' + weeklyAlbumPeak : '—'}</div><div class="sl">${t('modal_weekly_chart_peak')}</div></div>
-    <div class="modal-stat"><div class="se">🌙</div><div class="sv ${peakCls(monthlyAlbumPeak)}">${monthlyAlbumPeak ? '#' + monthlyAlbumPeak : '—'}</div><div class="sl">${t('modal_monthly_chart_peak')}</div></div>
-    <div class="modal-stat"><div class="se">⭐</div><div class="sv ${peakCls(yearlyAlbumPeak)}">${yearlyAlbumPeak ? '#' + yearlyAlbumPeak : '—'}</div><div class="sl">${t('modal_yearly_chart_peak')}</div></div>
-  `;
-
-  // ── SPARKLINE + CHART BREAKDOWN GRID ─────────────────────────────────────
-  // Drill-down data — one entry per column, tracks ordered by peak then plays
-  const cbRows = (tracks, peakOf) => tracks
-    .map(s => ({ title: s.title, peak: peakOf(s), plays: s.count }))
-    .sort((a, b) => a.peak - b.peak || b.plays - a.plays);
-  _albCbData = {
-    weekly:  { label: t('modal_cb_weekly'),  rows: cbRows(chartTracksWeekly,  s => crW.result.songs[songKey(s)].peak) },
-    monthly: { label: t('modal_cb_monthly'), rows: cbRows(chartTracksMonthly, s => crM.result.songs[songKey(s)].peak) },
-    yearly:  { label: t('modal_cb_yearly'),  rows: cbRows(chartTracksYearly,  s => crY.result.songs[songKey(s)].peak) },
-    alltime: { label: t('modal_cb_alltime'), rows: cbRows(chartTracksAllTime, s => allTimeSPM[songKey(s)]) }
+    ? `<div class="modal-grand-slam ao-slam"><span class="ao-slam-ico">${ic('crown')}</span><span>${noBr(t('modal_grand_slam'))}</span></div>` : '';
+  const badges = [];
+  const runs = { week: albumCrW, month: albumCrM, year: albumCrY };
+  const entryRow = per => e => ({ name: crPeriodTitle(per, e.periodKey), sub: '#' + e.rank, plays: e.plays, date: '',
+    open: `goToPeriodFromAlbumModal('${per}','${esc(e.periodKey)}')` });
+  const trackRow = (s, plays, date) => ({ name: s.title, sub: s.artist !== artistName ? s.artist : '', plays, date: date || '',
+    open: `openSongModal(${esc(JSON.stringify(songKey(s)))})` });
+  for (const per of ['week', 'month', 'year']) {
+    const d = runs[per];
+    if (!d) continue;
+    const at1 = d.entries.filter(e => e.rank === 1);
+    if (at1.length) badges.push({ tone: 'no1', group: 'chart', tag: '#1', value: at1.length, label: noBr(t('sm_' + per + 's_at1')), rows: at1.map(entryRow(per)) });
+    const top10 = d.entries.filter(e => e.rank <= 10);
+    if (top10.length > at1.length) badges.push({ tone: 'peak', group: 'chart', tag: t('so_b_top10'), value: top10.length, label: t('so_b_top10_' + per), rows: top10.map(entryRow(per)) });
+  }
+  const debutPer = ['week', 'month', 'year'].find(p => runs[p]?.entries.length);
+  if (debutPer) {
+    const e = runs[debutPer].entries[0];
+    badges.push({ tone: 'debut', group: 'chart', tag: t('ao_debut'), value: '#' + e.rank, label: t('so_b_debut_' + debutPer), sub: crPeriodLabel(debutPer, e.periodKey), rows: [entryRow(debutPer)(e)] });
+  }
+  // Its tracks that topped the weekly / monthly song chart
+  for (const [per, D, lbl] of [['week', crW, 'ao_no1_week_songs'], ['month', crM, 'ao_no1_month_songs']]) {
+    const no1 = allTracksSorted.filter(s => D?.result.songs[songKey(s)]?.peak === 1);
+    if (no1.length) badges.push({ tone: 'no1', group: 'chart', tag: '#1', value: no1.length, label: t(lbl),
+      rows: no1.map(s => { const e = D.result.songs[songKey(s)].entries.find(x => x.rank === 1); return trackRow(s, e?.plays || s.count, e ? crPeriodLabel(per, e.periodKey) : ''); }) });
+  }
+  // Certifications: the album on its own ladder (album, single or EP), then
+  // its tracks on the song ladder, one badge per tier
+  const tierOf = (n, cfg) => {
+    const mult = Math.floor(n / cfg.diamond);
+    if (mult) return { tone: 'diamond', tag: tDiamondLabel(mult), at: mult * cfg.diamond, mult };
+    if (n >= cfg.plat) return { tone: 'plat', tag: t('cert_plat'), at: cfg.plat, mult: 0 };
+    if (n >= cfg.gold) return { tone: 'gold', tag: t('cert_gold'), at: cfg.gold, mult: 0 };
+    return null;
   };
+  const atLeast = n => `${n.toLocaleString()}+ ${tUnit('plays', n)}`;
+  const albTier = tierOf(totalPlays, _mCfg);
+  if (albTier) badges.push({ tone: albTier.tone, group: 'cert', tag: albTier.tag, value: totalPlays, label: tUnit('plays', totalPlays), sub: atLeast(albTier.at), rows: [] });
+  const trackTiers = {};
+  for (const s of allTracksSorted) {
+    const tr = tierOf(s.count, CERT.song);
+    if (!tr) continue;
+    const k = tr.tone + tr.mult;
+    (trackTiers[k] || (trackTiers[k] = { ...tr, items: [] })).items.push(s);
+  }
+  Object.values(trackTiers).sort((a, b) => b.at - a.at).forEach(tr =>
+    badges.push({ tone: tr.tone, group: 'cert', tag: tr.tag, value: tr.items.length, label: tUnit('tracks', tr.items.length), sub: atLeast(tr.at),
+      rows: tr.items.map(s => trackRow(s, s.count, fmt(s.firstPlayed))) }));
+  document.getElementById('albumModalAccomplishments').innerHTML = badges.length
+    ? _aoTroHTML(badges) : `<div class="ao-empty">${t('acc_none', { n: chartSize })}</div>`;
 
-  const cbCell = (period, count, peak) => count > 0
-    ? `<td class="modal-cb-cell modal-cb-cell--live" data-period="${period}" onclick="albCbClick('${period}')">
-         <div class="cv">${count}</div>
-         <div class="cp">${peak ? t('modal_best_peak', { n: peak }) : '—'}</div>
-         <span class="cx">▾</span>
-       </td>`
-    : `<td class="modal-cb-cell" data-period="${period}"><div class="cv">—</div><div class="cp"></div></td>`;
-  document.getElementById('albumModalBreakdown').innerHTML =
-    buildAlbumSparklineHTML(albumPlays) +
-    `<div class="modal-chart-breakdown"><table class="modal-cb-table">
-      <thead><tr>
-        <td class="modal-cb-empty"></td>
-        <th class="modal-cb-th modal-cb-th--weekly">${t('modal_cb_weekly')}</th>
-        <th class="modal-cb-th modal-cb-th--monthly">${t('modal_cb_monthly')}</th>
-        <th class="modal-cb-th modal-cb-th--yearly">${t('modal_cb_yearly')}</th>
-        <th class="modal-cb-th modal-cb-th--alltime">${t('modal_cb_alltime')}</th>
-      </tr></thead>
-      <tbody><tr>
-        <td class="modal-cb-label modal-cb-label--tracks">${t('modal_tracks_charted_row')}</td>
-        ${cbCell('weekly', chartTracksWeekly.length, bestTrackPeakWeekly)}
-        ${cbCell('monthly', chartTracksMonthly.length, bestTrackPeakMonthly)}
-        ${cbCell('yearly', chartTracksYearly.length, bestTrackPeakYearly)}
-        ${cbCell('alltime', chartTracksAllTime.length, bestTrackPeakAllTime)}
-      </tr></tbody>
-    </table>
-    <div class="modal-cb-hint">${t('modal_cb_hint')}</div>
-    <div id="alb-cb-detail" class="modal-cb-detail" style="display:none"></div></div>`;
-
-  // ── ACCOMPLISHMENTS ───────────────────────────────────────────────────────
-  let albAccId = 0;
-  const albAccRow = (icon, label, detailRows) => {
-    const id = 'alb-acc-' + (albAccId++);
-    const detail = detailRows.length
-      ? detailRows.map(r => {
-          const navAttr = r.weekOffset !== undefined
-            ? ` onclick="goToWeek(${r.weekOffset});albumModal.classList.remove('open')" style="cursor:pointer"`
-            : r.period ? ` onclick="goToPeriodFromAlbumModal('${r.period}','${r.periodKey}')" style="cursor:pointer"` : '';
-          const viewTag = (r.weekOffset !== undefined || r.period)
-            ? `<span style="color:var(--accent);font-size:var(--fs-xs);flex-shrink:0;margin-left:0.5rem;">${t('sm_view')}</span>` : '';
-          return `<div class="acc-detail-row"${navAttr}><span class="acc-detail-name">${esc(r.name)}</span><span class="acc-detail-plays">${r.plays} ${tUnit('plays', r.plays)}</span>${r.date ? `<span class="acc-detail-date">${r.date}</span>` : ''}${viewTag}</div>`;
-        }).join('')
-      : `<div class="acc-detail-row"><span class="acc-detail-name" style="font-style:italic">${t('modal_no_detail')}</span></div>`;
-    return `<div class="acc-row">
-      <div class="acc-header">
-        <button class="acc-toggle" onclick="const d=document.getElementById('${id}');const open=d.classList.toggle('open');this.textContent=open?'−':'+';" title="${t('sm_expand')}">+</button>
-        <span>${icon} ${label}</span>
-      </div>
-      <div class="acc-detail" id="${id}">${detail}</div>
-    </div>`;
+  // ── RANKINGS: the album's chart run, its tracks on each chart ──
+  _rnk = {
+    name: albumName, type: 'albums', root: 'albumRankings', key: albumKey,
+    runs,
+    music: { songs: {
+      week: [chartTracksWeekly.length, bestTrackPeakWeekly], month: [chartTracksMonthly.length, bestTrackPeakMonthly],
+      year: [chartTracksYearly.length, bestTrackPeakYearly], all: [chartTracksAllTime.length, bestTrackPeakAllTime]
+    } },
+    models: {}, focus: null, pin: null
   };
+  _rnk.chart = runs[currentPeriod]?.entries.length ? currentPeriod : RK_CHARTS.find(c => runs[c]?.entries.length) || 'week';
+  rkRender();
+  renderAlbumHeldRecords(albumKey);
 
-  const acc = [];
-
-  // All-time rank
-  if (allTimeAlbumRank) acc.push(albAccRow('🏆', t('alb_acc_most_heard', { rank: ordinalSuffix(allTimeAlbumRank), n: allTimeAlbumRank }), []));
-
-  // Weekly #1 / top 5 / top 10
-  if (albumCrW) {
-    const wNo1 = albumCrW.entries.filter(e => e.rank === 1);
-    if (wNo1.length) acc.push(albAccRow('🥇', t('alb_acc_no1_weekly', { n: wNo1.length, unit: tUnit('cr_week', wNo1.length) }),
-      wNo1.map(e => ({ name: crPeriodLabel('week', e.periodKey), plays: e.plays, weekOffset: weekOffset(new Date(e.periodKey + 'T00:00:00')) }))));
-    const wTop5 = albumCrW.entries.filter(e => e.rank > 1 && e.rank <= 5);
-    if (wTop5.length) acc.push(albAccRow('🔝', t('alb_acc_top5_weekly', { n: wTop5.length, unit: tUnit('cr_week', wTop5.length) }),
-      wTop5.map(e => ({ name: `#${e.rank} · ${crPeriodLabel('week', e.periodKey)}`, plays: e.plays, weekOffset: weekOffset(new Date(e.periodKey + 'T00:00:00')) }))));
-    const wTop10 = albumCrW.entries.filter(e => e.rank > 5 && e.rank <= 10);
-    if (wTop10.length) acc.push(albAccRow('📊', t('alb_acc_top10_weekly', { n: wTop10.length, unit: tUnit('cr_week', wTop10.length) }),
-      wTop10.map(e => ({ name: `#${e.rank} · ${crPeriodLabel('week', e.periodKey)}`, plays: e.plays, weekOffset: weekOffset(new Date(e.periodKey + 'T00:00:00')) }))));
-  }
-
-  // Monthly #1 / top 5 / top 10
-  if (albumCrM) {
-    const mNo1 = albumCrM.entries.filter(e => e.rank === 1);
-    if (mNo1.length) acc.push(albAccRow('🥇', t('alb_acc_no1_monthly', { n: mNo1.length, unit: tUnit('months', mNo1.length) }),
-      mNo1.map(e => ({ name: crPeriodLabel('month', e.periodKey), plays: e.plays, period: 'month', periodKey: e.periodKey }))));
-    const mTop5 = albumCrM.entries.filter(e => e.rank > 1 && e.rank <= 5);
-    if (mTop5.length) acc.push(albAccRow('🔝', t('alb_acc_top5_monthly', { n: mTop5.length, unit: tUnit('months', mTop5.length) }),
-      mTop5.map(e => ({ name: `#${e.rank} · ${crPeriodLabel('month', e.periodKey)}`, plays: e.plays, period: 'month', periodKey: e.periodKey }))));
-    const mTop10 = albumCrM.entries.filter(e => e.rank > 5 && e.rank <= 10);
-    if (mTop10.length) acc.push(albAccRow('📆', t('alb_acc_top10_monthly', { n: mTop10.length, unit: tUnit('months', mTop10.length) }),
-      mTop10.map(e => ({ name: `#${e.rank} · ${crPeriodLabel('month', e.periodKey)}`, plays: e.plays, period: 'month', periodKey: e.periodKey }))));
-  }
-
-  // Yearly #1 / top 5 / top 10
-  if (albumCrY) {
-    const yNo1 = albumCrY.entries.filter(e => e.rank === 1);
-    if (yNo1.length) acc.push(albAccRow('🥇', t('alb_acc_no1_yearly', { n: yNo1.length, unit: tUnit('years', yNo1.length) }),
-      yNo1.map(e => ({ name: e.periodKey, plays: e.plays, period: 'year', periodKey: e.periodKey }))));
-    const yTop5 = albumCrY.entries.filter(e => e.rank > 1 && e.rank <= 5);
-    if (yTop5.length) acc.push(albAccRow('🔝', t('alb_acc_top5_yearly', { n: yTop5.length, unit: tUnit('years', yTop5.length) }),
-      yTop5.map(e => ({ name: `#${e.rank} · ${e.periodKey}`, plays: e.plays, period: 'year', periodKey: e.periodKey }))));
-    const yTop10 = albumCrY.entries.filter(e => e.rank > 5 && e.rank <= 10);
-    if (yTop10.length) acc.push(albAccRow('⭐', t('alb_acc_top10_yearly', { n: yTop10.length, unit: tUnit('years', yTop10.length) }),
-      yTop10.map(e => ({ name: `#${e.rank} · ${e.periodKey}`, plays: e.plays, period: 'year', periodKey: e.periodKey }))));
-  }
-
-  // Best track peak (all-time #1 tracks)
-  if (bestTrackPeakAllTime === 1) {
-    const no1tracks = chartTracksAllTime.filter(s => allTimeSPM[songKey(s)] === 1);
-    acc.push(albAccRow('🎵', t('acc_no1_tracks', { n: no1tracks.length, unit: tUnit('tracks', no1tracks.length) }),
-      no1tracks.map(s => ({ name: s.title, plays: s.count }))));
-  }
-
-  // Album certification
-  if (totalPlays >= CERT.album.diamond) {
-    const mult = Math.floor(totalPlays / CERT.album.diamond);
-    const { icon } = diamondMultiLabel(mult);
-    const plays = mult * CERT.album.diamond;
-    acc.push(albAccRow(icon, t('acc_cert_single_album', { cert: tDiamondLabel(mult), plays, plays_unit: tUnit('plays', plays) }), []));
-  } else if (totalPlays >= CERT.album.plat) {
-    acc.push(albAccRow('💿', t('acc_cert_single_album', { cert: t('cert_plat'), plays: CERT.album.plat, plays_unit: tUnit('plays', CERT.album.plat) }), []));
-  } else if (totalPlays >= CERT.album.gold) {
-    acc.push(albAccRow('📀', t('acc_cert_single_album', { cert: t('cert_gold'), plays: CERT.album.gold, plays_unit: tUnit('plays', CERT.album.gold) }), []));
-  }
-
-  // Track certifications (multi-level diamond)
-  const maxTrackMult = allTracksSorted.reduce((m, s) => Math.max(m, Math.floor(s.count / CERT.song.diamond)), 0);
-  for (let mult = maxTrackMult; mult >= 1; mult--) {
-    const items = allTracksSorted.filter(s => Math.floor(s.count / CERT.song.diamond) === mult);
-    if (!items.length) continue;
-    const { icon } = diamondMultiLabel(mult);
-    const plays = mult * CERT.song.diamond;
-    acc.push(albAccRow(icon, t('acc_cert', { n: items.length, cert: tDiamondLabel(mult), unit: tUnit('tracks', items.length), plays, plays_unit: tUnit('plays', plays) }),
-      items.map(s => ({ name: s.title, plays: s.count }))));
-  }
-  const platTracks = allTracksSorted.filter(s => s.count >= CERT.song.plat && s.count < CERT.song.diamond);
-  if (platTracks.length) acc.push(albAccRow('💿', t('acc_cert', { n: platTracks.length, cert: t('cert_plat'), unit: tUnit('tracks', platTracks.length), plays: CERT.song.plat, plays_unit: tUnit('plays', CERT.song.plat) }),
-    platTracks.map(s => ({ name: s.title, plays: s.count }))));
-  const goldTracks = allTracksSorted.filter(s => s.count >= CERT.song.gold && s.count < CERT.song.plat);
-  if (goldTracks.length) acc.push(albAccRow('📀', t('acc_cert', { n: goldTracks.length, cert: t('cert_gold'), unit: tUnit('tracks', goldTracks.length), plays: CERT.song.gold, plays_unit: tUnit('plays', CERT.song.gold) }),
-    goldTracks.map(s => ({ name: s.title, plays: s.count }))));
-
-  if (!acc.length) acc.push(`<div style="font-family:var(--font-sans);font-style:italic;font-size:var(--fs-sm);color:var(--text3);padding:0.5rem 0">${t('acc_none', { n: chartSize })}</div>`);
-  document.getElementById('albumModalAccomplishments').innerHTML = acc.join('');
-
-  // ── CHART RUN HISTORY: 3 collapsible sections ─────────────────────────────
+  // ── CHART RUN HISTORY: 3 collapsible sections (kept under Rankings) ──
   const crTitleEl = document.getElementById('albumModalChartRunTitle');
   const crEl = document.getElementById('albumModalChartRun');
   const hasCr = albumCrY || albumCrM || albumCrW;
@@ -28310,25 +28281,26 @@ function openAlbumModal(albumKey) {
     crEl.innerHTML = '';
   }
 
-  // ── HEATMAP SECTION ───────────────────────────────────────────────────────
-  document.getElementById('albumModalHeatmapSection').innerHTML = `
-    <div class="modal-section-title">${t('modal_heatmap_title')}</div>
-    <div class="cr-subsection">
-      <div class="cr-subsection-header" onclick="toggleCrSubsection(this)">
-        <span class="cr-subsection-toggle">▶</span><span class="cr-subsection-label">${t('modal_show_heatmap')}</span>
-      </div>
-      <div class="cr-subsection-body" style="display:none;" data-crtype="albums" data-crkey="${esc(albumKey)}" data-crkind="heatmap"></div>
-    </div>`;
-
-  // ── STREAMING HISTORY SECTION ─────────────────────────────────────────────
-  document.getElementById('albumModalStreamSection').innerHTML = `
-    <div class="modal-section-title">${t('modal_stream_title')}</div>
-    <div class="cr-subsection">
-      <div class="cr-subsection-header" onclick="toggleCrSubsection(this)">
-        <span class="cr-subsection-toggle">▶</span><span class="cr-subsection-label">${t('modal_show_full_history')}</span>
-      </div>
-      <div class="cr-subsection-body" style="display:none;" data-crtype="albums" data-crkey="${esc(albumKey)}" data-crkind="rawdata"></div>
-    </div>`;
+  // ── LISTENING: lsRender, with the front-to-back listens after the eras ──
+  let fullHTML = '';
+  if (nTracks >= 4) {
+    const latest = fullListens.slice(-6).reverse();
+    fullHTML = `<div class="ao-head rk-head">${esc(t('al_h_full'))}<span>${esc(t('al_full_hint', { n: fullNeed, total: nTracks }))}</span></div>
+      <div class="al-full">${latest.length ? `
+        <div class="al-full-sum"><b class="rk-count">${fullListens.length.toLocaleString()}</b><span>${esc(t('al_full_sum'))}</span></div>
+        ${latest.map((f, i) => `<div class="al-full-row" style="--i:${i}">
+          <span class="al-full-when">${esc(fmt(new Date(f.start)))}<small>${esc(tzDate(new Date(f.start)).toLocaleTimeString(_lsLocale(), { hour: 'numeric', minute: '2-digit' }))} · ${esc(fmtElapsed(f.end - f.start + 4 * 60000))}</small></span>
+          <span class="al-full-bar"><span style="width:${Math.min(100, f.n / nTracks * 100).toFixed(1)}%"></span></span>
+          <span class="al-full-n">${esc(t('al_full_n', { n: f.n, total: nTracks }))}</span>
+        </div>`).join('')}`
+        : `<div class="ao-empty">${esc(t('al_full_none'))}</div>`}
+      </div>`;
+  }
+  lsRender(albumName, albumPlays, {
+    root: 'albumListening', type: 'albums', key: albumKey,
+    chart: buildAlbumSparklineHTML(albumPlays),
+    full: fullHTML
+  });
 
   // ── CERTIFICATION PLAQUES ─────────────────────────────────────────────────
   const certTitleEl = document.getElementById('albumModalCertTitle');
@@ -28383,12 +28355,38 @@ function openAlbumModal(albumKey) {
     certPlaquesEl.innerHTML = '';
   }
 
-  // ── TRACKS SECTION ────────────────────────────────────────────────────────
-  _albCurrentAlbumCtx = { tracks: allTracksSorted, totalPlays, crY, crM, crW, allTimeSPM, ek };
-  const sortedTracks = _sortAlbTracks([...allTracksSorted], _albCurrentTrackSort, crY, crM, crW, allTimeSPM);
-  document.getElementById('albumModalTracks').innerHTML =
-    _albSortBarHTML(_albCurrentTrackSort) +
-    _buildAlbTracksHTML(sortedTracks, totalPlays, crY, crM, crW, allTimeSPM, ek);
+  // ── TRACKS: the artist's Music list, songs only, with how plays split ──
+  _albCurrentAlbumCtx = { tracks: allTracksSorted };
+  const amCtx = {
+    artistName,
+    // the line under a track: who sings it, when that isn't the album's artist
+    songSub: x => x.artist !== artistName ? x.artist : '',
+    songAlbumKey: () => null
+  };
+  const albRow = (s, rank, extra) => _amRow('songs', s, rank, Object.assign({ albumName }, extra), amCtx);
+  const periodTracks = (per, D) => _amPeriodRows('songs', per, D, allTracksSorted, s => songKey(s), amCtx).map(r => Object.assign(r, { albumName }));
+  // How the plays split across the tracks: the eight most played, then the rest
+  const SPLIT_N = 8;
+  const splitTop = allTracksSorted.slice(0, SPLIT_N);
+  const splitRest = allTracksSorted.slice(SPLIT_N).reduce((n, s) => n + s.count, 0);
+  const splitHTML = nTracks > 1 && totalPlays ? `<div class="at-split" role="img" aria-label="${esc(t('at_split'))}">
+      ${splitTop.map((s, i) => `<span class="at-split-seg" style="flex:${s.count};--k:${(1 - i / (SPLIT_N + 2)).toFixed(2)}" title="${esc(s.title)}: ${esc(tCount('plays', s.count))} · ${pctOf(s.count, totalPlays)}">${s.count / totalPlays >= 0.12 ? `<b>${esc(s.title)}</b>${pctOf(s.count, totalPlays)}` : ''}</span>`).join('')}
+      ${splitRest ? `<span class="at-split-seg is-rest" style="flex:${splitRest}" title="${esc(t('at_split_rest', { n: nTracks - SPLIT_N }))}: ${esc(tCount('plays', splitRest))}"></span>` : ''}
+    </div>` : '';
+  _am = {
+    root: 'albumModalTracks', artistName, albumKey,
+    lists: {
+      songs: {
+        // every track played, not only those on the all-time chart
+        all: allTracksSorted.map(s => albRow(s, allTimeSPM[songKey(s)] || null,
+          { panel: () => _buildAlbTrackPanelHTML(s, totalPlays, crY, crM, crW, allTimeSPM) })),
+        year: periodTracks('year', crY), month: periodTracks('month', crM), week: periodTracks('week', crW)
+      },
+      albums: { all: [], year: [], month: [], week: [] }
+    },
+    type: 'songs', chart: 'all', q: '', sort: 'plays', open: null, all: false, split: splitHTML
+  };
+  amMusicRender();
 
   // Full album evaluation — score, formula breakdown, aspects and track scores.
   renderAlbumRatingSection(albumKey);
@@ -58022,7 +58020,43 @@ function renderSongRatingSection(key) {
 }
 
 // ── Album modal ──
+// The album Overview's rating card: score and verdict, or a nudge; opens Rating
+function _renderAlbumRatingMini(albumKey) {
+  const el = document.getElementById('albumModalRatingMini');
+  if (!el) return;
+  const res = ratingAlbumScore(albumKey);
+  const go = `onclick="window.dcPanelShowTab && dcPanelShowTab('album','rating')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}"`;
+  const chev = typeof dcIco === 'function' ? dcIco('next') : '›';
+  if (!res) {
+    const n = ratingAlbumTrackKeys(albumKey).length;
+    el.innerHTML = `<div class="ao-rate ao-rate--empty" role="button" tabindex="0" ${go}>
+      ${ratingRing(null, { size: 56 })}
+      <div class="ao-rate-txt">
+        <div class="ao-rate-verdict">${esc(t('rtp_not_rated_yet'))}</div>
+        <div class="ao-rate-sub">${t('rtp_album_sub', { n, unit: tUnit('tracks', n) })}</div>
+      </div>
+      <span class="ao-rate-go" aria-hidden="true">${chev}</span>
+    </div>`;
+    return;
+  }
+  const band = ratingBand(res.score);
+  const num = (v, label, cls) => `<span class="ao-rate-num"><b class="${cls || ''}">${v}</b>${esc(label)}</span>`;
+  el.innerHTML = `<div class="ao-rate" role="button" tabindex="0" ${go}>
+    ${ratingRing(res.score, { size: 72 })}
+    <div class="ao-rate-txt">
+      <div class="ao-rate-verdict ${band.cls}">${esc(band.label)}</div>
+      <div class="ao-rate-nums">
+        ${num(ratingFmt(res.trackAvg), t('al_rate_tracks'), res.trackAvg != null ? ratingBand(res.trackAvg).cls : '')}
+        ${num(ratingFmt(res.aspectAvg), t('al_rate_aspects'), res.aspectAvg != null ? ratingBand(res.aspectAvg).cls : '')}
+        ${num(`${res.ratedTracks}/${res.totalTracks}`, t('al_rate_rated'))}
+      </div>
+    </div>
+    <span class="ao-rate-go"><span>${esc(t('al_rate_open'))}</span>${chev}</span>
+  </div>`;
+}
+
 function renderAlbumRatingSection(albumKey) {
+  _renderAlbumRatingMini(albumKey);
   const el = document.getElementById('albumModalRating');
   if (!el || !albumKey) return;
   const res = ratingAlbumScore(albumKey);

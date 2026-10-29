@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=730">
+  <link rel="stylesheet" href="style.css?v=731">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=235"></script>
+  <script defer src="translations.js?v=236"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -3469,27 +3469,41 @@
         </div>
         <div class="dp-tabs" role="tablist" hidden></div>
         <div class="modal-body dp-body">
+          <!-- Overview (redone 2026-10-29, after the artist's): headline card,
+               top track / lately, habits (#albumModalStats), the rating card,
+               the achievements as badges and the plaques. openAlbumModal(). -->
           <section class="dp-sec" data-dp-tab="overview">
-            <div class="modal-stats-strip dp-statlist" id="albumModalStats"></div>
-            <div id="albumModalGrandSlam"></div>
+            <div class="ao" id="albumModalStats"></div>
+            <div class="modal-section-title" data-i18n="modal_rating_album">★ My Evaluation</div>
+            <div id="albumModalRatingMini"></div>
             <div class="modal-section-title" data-i18n="modal_accomplishments">★ Chart Accomplishments</div>
+            <div id="albumModalGrandSlam"></div>
             <div id="albumModalAccomplishments"></div>
             <div class="modal-section-title" id="albumModalCertTitle" style="display:none" data-i18n="modal_cert_plaques">💿 Certification Plaques</div>
             <div id="albumModalCertPlaques"></div>
           </section>
           <section class="dp-sec" data-dp-tab="tracks">
-            <div class="modal-section-title" data-i18n="modal_album_tracks">♦ Album Tracks</div>
+            <!-- The artist Music list on this album's tracks (amMusicRender),
+                 with how the plays split across them -->
             <div id="albumModalTracks"></div>
           </section>
           <section class="dp-sec" data-dp-tab="charts">
-            <div class="modal-stats-strip" id="albumModalPeaks"></div>
-            <div id="albumModalBreakdown"></div>
+            <!-- Rankings (redone 2026-10-29): rkRender on the album charts and
+                 its tracks on each chart, the records it holds, then the old
+                 chart run, kept -->
+            <div class="rk" id="albumRankings"></div>
+            <div class="modal-section-title" id="albumHeldRecordsTitle" style="display:none"></div>
+            <div class="modal-records-wait" id="albumHeldRecordsWait" style="display:none"></div>
+            <div class="rec-hero-reel modal-records-reel" id="albumHeldRecordsReel" style="display:none">
+              <div class="rec-hero-track" id="albumHeldRecordsTrack"></div>
+            </div>
             <div class="modal-section-title" id="albumModalChartRunTitle" style="display:none" data-i18n="modal_chart_run_title">📊 Chart Run History</div>
             <div id="albumModalChartRun"></div>
           </section>
           <section class="dp-sec" data-dp-tab="listening">
-            <div id="albumModalHeatmapSection"></div>
-            <div id="albumModalStreamSection"></div>
+            <!-- Listening (redone 2026-10-29): lsRender with the eras of its
+                 tracks and the front-to-back listens -->
+            <div class="ls" id="albumListening"></div>
           </section>
           <section class="dp-sec" data-dp-tab="rating">
             <!-- Full album evaluation — weighted score, album aspects, auto-derived
@@ -4229,7 +4243,7 @@
   <!-- One behaviour and one icon set for every pop-up window (phase 10); before
        app.js so dcIco() is there when app.js draws a window -->
   <script defer src="popups.js?v=8"></script>
-  <script defer src="app.js?v=569"></script>
+  <script defer src="app.js?v=570"></script>
   <!-- The song / album / artist details side panel (phase 10 step 3); wraps app.js's open functions -->
   <script defer src="panel.js?v=15"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->

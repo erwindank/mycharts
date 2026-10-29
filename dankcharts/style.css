@@ -2313,6 +2313,12 @@
       /* the certification drops under the name so the name keeps its width */
       .dp-body .am-name { flex-wrap: wrap; row-gap: 3px; }
       .dp-body .am-name-t { max-width: 100%; }
+      /* diamonds as emoji, like the phone chart table, so "TRIPLE DIAMOND"
+         never runs into the plays column */
+      .dp-body .am-name .cert-diamond .cert-icon,
+      .dp-body .am-name .cert-diamond .cert-label { display: none; }
+      .dp-body .am-name .cert-diamond .cert-short { display: inline; font-size: 13px; line-height: 1; letter-spacing: 0; white-space: nowrap; }
+      .dp-body .am-name .cert-diamond { padding: 1px 4px; }
       .dp-body .am-charts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
       .dp-body .am-chip { justify-content: center; padding: 6px 4px; gap: 4px; font-size: 0.7rem; }
       .dp-body .am-sort { width: 100%; }
@@ -2999,12 +3005,43 @@
     .dp-body .sa-card.is-win .sa-txt small { color: var(--tone); font-weight: 700; }
     .dp-body .sa-year { font-family: var(--font-display); font-weight: 800; color: var(--text2); font-variant-numeric: tabular-nums; }
 
+    /* ── Album panel (2026-10-29) ──────────────────────────────────────────
+       The same ao- / am- / rk- / ls- parts; only an album has these:
+         .at-split   how the plays split across its tracks, one bar
+         .al-full    the front-to-back listens: a count and the latest ones */
+    .dp-body #albumModalAccomplishments { border: 0; border-radius: 0; overflow: visible; }
+    .dp-body .at-split { display: flex; gap: 2px; height: 34px; margin: 0 0 var(--sp-3); border-radius: var(--r-md); overflow: hidden; }
+    .dp-body .at-split-seg {
+      display: flex; flex-direction: column; justify-content: center; min-width: 4px; padding: 0 8px;
+      font-size: 0.66rem; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden;
+      background: color-mix(in srgb, var(--dp-ac) calc(var(--k) * 70%), var(--raised));
+      transform-origin: left; animation: aoGrow 0.8s var(--ease) both;
+    }
+    .dp-body .at-split-seg b { font-size: var(--fs-xs); overflow: hidden; text-overflow: ellipsis; }
+    .dp-body .at-split-seg.is-rest { background: color-mix(in srgb, var(--text) 10%, var(--raised)); }
+
+    .dp-body .al-full {
+      display: flex; flex-direction: column; gap: 6px; padding: var(--sp-3) var(--sp-4);
+      background: var(--raised); border: 1px solid var(--border); border-radius: var(--r-lg);
+    }
+    .dp-body .al-full-sum { display: flex; align-items: baseline; gap: var(--sp-2); margin-bottom: 4px; font-size: var(--fs-sm); color: var(--text2); }
+    .dp-body .al-full-sum b { font-family: var(--font-display); font-size: 1.6rem; font-weight: 800; color: var(--dp-ac); font-variant-numeric: tabular-nums; }
+    .dp-body .al-full-row { display: grid; grid-template-columns: 128px minmax(0, 1fr) auto; align-items: center; gap: var(--sp-3); font-size: var(--fs-xs); animation: lsRise 0.4s var(--ease) both; animation-delay: calc(var(--i) * 40ms); }
+    .dp-body .al-full-when { display: flex; flex-direction: column; font-weight: 600; color: var(--text); }
+    .dp-body .al-full-when small { font-weight: 500; color: var(--text3); }
+    .dp-body .al-full-bar { height: 8px; border-radius: 6px; background: color-mix(in srgb, var(--text) 8%, transparent); overflow: hidden; }
+    .dp-body .al-full-bar > span { display: block; height: 100%; border-radius: inherit; background: var(--dp-ac); transform-origin: left; animation: aoGrow 0.8s var(--ease) both; }
+    .dp-body .al-full-n { color: var(--text2); white-space: nowrap; font-variant-numeric: tabular-nums; }
+
     @media (max-width: 640px) {
+      .dp-body .al-full-row { grid-template-columns: 96px minmax(0, 1fr); }
+      .dp-body .al-full-n { grid-column: 2; }
       .dp-body .rk-fam { grid-template-columns: auto minmax(0, 1fr) auto; }
       .dp-body .rk-fam-go { display: none; }
     }
     @media (prefers-reduced-motion: reduce) {
-      .dp-body .sl-season, .dp-body .sl-yr, .dp-body .sl-yr-bar > span, .dp-body .sa-card { animation: none; }
+      .dp-body .sl-season, .dp-body .sl-yr, .dp-body .sl-yr-bar > span, .dp-body .sa-card,
+      .dp-body .at-split-seg, .dp-body .al-full-row, .dp-body .al-full-bar > span { animation: none; }
     }
 
     /* ── Artist Awards tab (2026-10-29) ────────────────────────────────────
