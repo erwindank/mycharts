@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 368;
+const DC_CL_I18N_V = 369;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-29', t: 'feature', a: 'ui', h: '2c24473',
+    title: "Daily charts in every artist, song, album, single and EP",
+    detail: "Song, album, artist, single and EP details now count the daily charts too. In the Charts tab, Daily sits first in the chart switch: the peak, the run in one sentence, days on the chart, at #1 and in the Top 10, the chart moments and the zoomable graph, which opens on the last three months (with new 1 month and 3 months ranges). A single's switch to its song chart has it as well. The Overview badges add days at #1 and in the Top 10 on the daily chart, an artist's days at #1 on the daily artist chart, and the songs or tracks that topped the daily song chart. The Music and Tracks lists get Daily in their chart picker, with each entry's best day and days on the chart, an album's chart run list gets a Daily section, and \"Open that chart\" now opens that exact day. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-29', t: 'design', a: 'ui', h: '202212b',
     title: "Album details redone, with a track list like the artist's and front-to-back listens",
     detail: "An album's details now work like an artist's. Overview opens with a headline card: total plays, its all-time rank as a medal, its share of the artist's plays, first and last played, tracks, plays per track and how far it is from the next certification. Under it are the top track and the one you've played most lately (or the first track you heard), your listening habits with it, including front-to-back listens (times you played most of its tracks in one sitting), a rating card that opens the Rating tab, the achievements as badges you can tap, and the plaques. The Tracks tab is now the artist's Music list: every track you've played as a card with artwork, its rank, its certification and Sample, Spotify and YouTube buttons, a bar showing how your plays split across the tracks, a chart picker, search and sort. Tap a card for its stats and chart runs. The Charts tab has the zoomable graph on the album charts (with the album that was #1 each week), the chart moments, its tracks on each song chart, every record it holds and the chart run you already knew. The Listening tab shows whether it is on rotation, plays by month, the eras of its tracks, the front-to-back listens, when you listen, milestones and the calendar. On a phone, diamond certifications in these lists show as 💎. Singles and EPs are called singles and EPs, their rank is named for the chart they're ranked on, and a one-song single shows the song instead of a track list. A single's Charts tab lets you switch between its run on the singles (or albums) chart and its song's run on the song charts. Works with Last.fm, Google Sheets and CSV uploads." },
