@@ -583,7 +583,9 @@
     var per = typeof currentPeriod !== 'undefined' ? currentPeriod : '';
     if (['day', 'week', 'month', 'year'].indexOf(per) === -1 || typeof buildCrPanelHTML !== 'function') return;
     try {
-      holder.innerHTML = '<div class="cr-panel dp-cr" data-crtype="songs" data-crkey="' + encodeURIComponent(key) + '">' + buildCrPanelHTML('songs', key) + '</div>';
+      // under the Rankings graph since 2026-10-29, with a heading of its own
+      holder.innerHTML = '<div class="ao-head rk-head">' + esc(tt('so_h_run_now')) + '</div>'
+        + '<div class="cr-panel dp-cr" data-crtype="songs" data-crkey="' + encodeURIComponent(key) + '">' + buildCrPanelHTML('songs', key) + '</div>';
     } catch (e) { holder.innerHTML = ''; }
   }
 

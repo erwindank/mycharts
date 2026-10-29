@@ -2892,6 +2892,121 @@
       .dp-body .ls-era, .dp-body .ls-bar span, .dp-body .ls-ms, .dp-body .ls-hero--live .ls-pulse::after { animation: none; }
     }
 
+    /* ── Song panel (2026-10-29) ───────────────────────────────────────────
+       The artist's Overview, Rankings and Listening parts (ao-, rk-, ls-)
+       carry the song panel too; these are the parts only a song has
+       (app.js openSongModal):
+         .so-favs    its album and artist, round art for the artist
+         .rk-fam     the song against its album / artist on the chart in view
+         .sl-found   the first play with the plays around it
+         .sl-along   songs heard in the same session (an .ls-eras strip)
+         .sl-seasons share of plays per season, one bar
+         .sl-years   plays per year as bars, the best year lit
+         .sa-card    a Grammy nomination; gold edge when won */
+    .dp-body #songModalAccomplishments { border: 0; border-radius: 0; overflow: visible; }
+    .dp-body .ao-fav-art.is-round { border-radius: 50%; }
+    /* a milestone on a song opens nothing: no hover */
+    .dp-body div.ls-ms { cursor: default; }
+    .dp-body div.ls-ms:hover { background: none; }
+
+    .dp-body .rk-fam-list { display: grid; gap: var(--sp-2); }
+    .dp-body .rk-fam {
+      display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: var(--sp-3);
+      padding: var(--sp-3); font: inherit; text-align: left; color: var(--text);
+      background: var(--raised); border: 1px solid var(--border); border-radius: var(--r-md); cursor: pointer;
+      transition: border-color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+    }
+    .dp-body .rk-fam:hover { transform: translateY(-1px); border-color: color-mix(in srgb, var(--dp-ac) 45%, var(--border)); }
+    .dp-body .rk-fam-ico {
+      display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px;
+      border-radius: var(--r-sm); color: var(--dp-ac); background: color-mix(in srgb, var(--dp-ac) 15%, transparent);
+    }
+    .dp-body .rk-fam-ico svg { width: 18px; height: 18px; }
+    .dp-body .rk-fam-txt { display: flex; flex-direction: column; min-width: 0; }
+    .dp-body .rk-fam-txt > b { font-size: var(--fs-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .dp-body .rk-fam-txt small { font-size: var(--fs-xs); color: var(--text3); }
+    .dp-body .rk-fam-txt small b { color: var(--text2); }
+    .dp-body .rk-fam-txt small .rk-r { color: var(--tone); }
+    .dp-body .rk-fam-pos { display: flex; flex-direction: column; align-items: flex-end; text-align: right; }
+    .dp-body .rk-fam-pos b { font-family: var(--font-display); font-size: 1.35rem; font-weight: 800; line-height: 1; color: var(--tone); font-variant-numeric: tabular-nums; }
+    .dp-body .rk-fam-pos small { font-size: 0.66rem; color: var(--text3); white-space: nowrap; }
+    .dp-body .rk-fam-go { color: var(--text3); display: inline-flex; }
+    .dp-body .rk-fam-go svg { width: 15px; height: 15px; }
+    .dp-body .rk-fam:hover .rk-fam-go { color: var(--dp-ac); }
+
+    .dp-body .sl-found {
+      display: flex; flex-direction: column; padding: var(--sp-2);
+      background: var(--raised); border: 1px solid var(--border); border-radius: var(--r-lg);
+    }
+    .dp-body .sl-f {
+      display: grid; grid-template-columns: 64px minmax(0, 1fr); align-items: center; gap: var(--sp-3);
+      padding: 7px var(--sp-2); font: inherit; text-align: left; color: var(--text2);
+      background: none; border: 0; border-radius: var(--r-sm); cursor: pointer;
+      transition: background var(--t-fast) var(--ease);
+    }
+    .dp-body button.sl-f:hover { background: color-mix(in srgb, var(--text) 5%, transparent); color: var(--text); }
+    .dp-body .sl-f-t { font-size: var(--fs-xs); color: var(--text3); font-variant-numeric: tabular-nums; }
+    .dp-body .sl-f-name { display: flex; align-items: center; gap: var(--sp-2); min-width: 0; font-size: var(--fs-sm); }
+    .dp-body .sl-f-name > span { display: flex; flex-direction: column; min-width: 0; }
+    .dp-body .sl-f-name > span, .dp-body .sl-f-name small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .dp-body .sl-f-name small { font-size: 0.68rem; color: var(--text3); }
+    .dp-body .sl-f.is-me { cursor: default; color: var(--text); font-weight: 700; background: color-mix(in srgb, var(--dp-ac) 12%, transparent); }
+    .dp-body .sl-f.is-me .sl-f-t { color: var(--dp-ac); font-weight: 700; }
+    .dp-body .sl-f.is-me svg { width: 15px; height: 15px; flex-shrink: 0; color: var(--dp-ac); }
+    .dp-body .sl-f.is-me small { font-weight: 500; }
+
+    .dp-body .sl-seasons { display: flex; gap: 3px; height: 44px; border-radius: var(--r-md); overflow: hidden; }
+    .dp-body .sl-season {
+      display: flex; flex-direction: column; justify-content: center; min-width: 0; padding: 0 var(--sp-2);
+      font-size: var(--fs-xs); font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden;
+      transform-origin: left; animation: aoGrow 0.8s var(--ease) both;
+    }
+    .dp-body .sl-season b { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text2); overflow: hidden; text-overflow: ellipsis; }
+    .dp-body .sl-season--spring { background: color-mix(in srgb, #4ade80 30%, var(--raised)); }
+    .dp-body .sl-season--summer { background: color-mix(in srgb, var(--medal-gold) 34%, var(--raised)); }
+    .dp-body .sl-season--autumn { background: color-mix(in srgb, #f97316 30%, var(--raised)); }
+    .dp-body .sl-season--winter { background: color-mix(in srgb, #60a5fa 30%, var(--raised)); }
+
+    .dp-body .sl-years { display: grid; gap: 6px; }
+    .dp-body .sl-yr { display: grid; grid-template-columns: 44px minmax(0, 1fr) 56px; align-items: center; gap: var(--sp-3); font-size: var(--fs-xs); animation: lsRise 0.4s var(--ease) both; animation-delay: calc(min(var(--i), 12) * 40ms); }
+    .dp-body .sl-yr-y { font-weight: 700; color: var(--text2); font-variant-numeric: tabular-nums; }
+    .dp-body .sl-yr-bar { height: 10px; border-radius: 6px; background: color-mix(in srgb, var(--text) 8%, transparent); overflow: hidden; }
+    .dp-body .sl-yr-bar > span { display: block; height: 100%; border-radius: inherit; background: color-mix(in srgb, var(--dp-ac) 55%, transparent); transform-origin: left; animation: aoGrow 0.8s var(--ease) both; }
+    .dp-body .sl-yr.is-peak .sl-yr-bar > span { background: var(--dp-ac); }
+    .dp-body .sl-yr.is-peak .sl-yr-y { color: var(--dp-ac); }
+    .dp-body .sl-yr-n { text-align: right; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+
+    .dp-body .sa-list { display: grid; gap: var(--sp-2); margin-top: var(--sp-3); }
+    .dp-body .sa-card {
+      --tone: var(--dp-ac);
+      display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--sp-3);
+      padding: var(--sp-3); background: var(--raised); border: 1px solid var(--border); border-radius: var(--r-md);
+      animation: lsRise 0.4s var(--ease) both; animation-delay: calc(min(var(--i), 12) * 40ms);
+    }
+    .dp-body .sa-card.is-win {
+      --tone: var(--medal-gold);
+      border-color: color-mix(in srgb, var(--medal-gold) 50%, var(--border));
+      background: radial-gradient(120% 120% at 0% 0%, color-mix(in srgb, var(--medal-gold) 12%, transparent), transparent 60%), var(--raised);
+    }
+    .dp-body .sa-ico {
+      display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px;
+      border-radius: 50%; color: var(--tone); background: color-mix(in srgb, var(--tone) 16%, transparent);
+    }
+    .dp-body .sa-ico svg { width: 17px; height: 17px; }
+    .dp-body .sa-txt { display: flex; flex-direction: column; min-width: 0; }
+    .dp-body .sa-txt b { font-size: var(--fs-sm); }
+    .dp-body .sa-txt small { font-size: var(--fs-xs); color: var(--text3); }
+    .dp-body .sa-card.is-win .sa-txt small { color: var(--tone); font-weight: 700; }
+    .dp-body .sa-year { font-family: var(--font-display); font-weight: 800; color: var(--text2); font-variant-numeric: tabular-nums; }
+
+    @media (max-width: 640px) {
+      .dp-body .rk-fam { grid-template-columns: auto minmax(0, 1fr) auto; }
+      .dp-body .rk-fam-go { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .dp-body .sl-season, .dp-body .sl-yr, .dp-body .sl-yr-bar > span, .dp-body .sa-card { animation: none; }
+    }
+
     /* ── Artist Awards tab (2026-10-29) ────────────────────────────────────
        Was two stat boxes and a folded list. Now (app.js awPaint):
          .aw-hero    win-rate ring, verdict, story, rank chips, four numbers

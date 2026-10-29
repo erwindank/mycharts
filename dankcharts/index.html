@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=729">
+  <link rel="stylesheet" href="style.css?v=730">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=234"></script>
+  <script defer src="translations.js?v=235"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -3385,30 +3385,37 @@
         </div>
         <div class="dp-tabs" role="tablist" hidden></div>
         <div class="modal-body dp-body">
+          <!-- Overview (redone 2026-10-29, after the artist's): headline card,
+               where it lives (album / artist), habits (#songModalStats), the
+               rating, then the achievements as badges. openSongModal(). -->
           <section class="dp-sec" data-dp-tab="overview">
-            <div id="songModalRankCards"></div>
-            <div class="modal-stats-strip dp-statlist" id="songModalStats"></div>
+            <div class="ao" id="songModalStats"></div>
             <!-- My Rating — this song's own evaluation plus a link to the full
                  album evaluation. Filled by renderSongRatingSection(). -->
             <div class="modal-section-title" data-i18n="modal_rating_song">★ My Rating</div>
             <div id="songModalRating"></div>
-            <div id="songModalGrandSlam"></div>
             <div class="modal-section-title" data-i18n="modal_accomplishments">★ Chart Accomplishments</div>
+            <div id="songModalGrandSlam"></div>
             <div id="songModalAccomplishments"></div>
           </section>
           <section class="dp-sec" data-dp-tab="charts">
-            <div class="modal-section-title" data-i18n="modal_chart_peaks_title">📊 Chart Peaks</div>
-            <div class="modal-stats-strip" id="songModalPeaks"></div>
-            <div class="modal-section-title" data-i18n="modal_chart_records_title">📈 Chart Records</div>
-            <div class="modal-stats-strip" id="songModalRecords"></div>
-            <!-- the chart run of the period on screen (panel.js) -->
+            <!-- Rankings (redone 2026-10-29): the artist's chart-run view on
+                 the song charts, the song against its album and artist
+                 (rkRender), the records it holds (renderSongHeldRecords),
+                 then the chart run of the period on screen (panel.js). -->
+            <div class="rk" id="songRankings"></div>
+            <div class="modal-section-title" id="songHeldRecordsTitle" style="display:none"></div>
+            <div class="modal-records-wait" id="songHeldRecordsWait" style="display:none"></div>
+            <div class="rec-hero-reel modal-records-reel" id="songHeldRecordsReel" style="display:none">
+              <div class="rec-hero-track" id="songHeldRecordsTrack"></div>
+            </div>
             <div id="songModalChartRun"></div>
           </section>
           <section class="dp-sec" data-dp-tab="listening">
-            <div id="songModalSparkline"></div>
-            <div id="songModalExtraStats"></div>
-            <div id="songModalHeatmapSection"></div>
-            <div id="songModalStreamSection"></div>
+            <!-- Listening (redone 2026-10-29): lsRender with the song's own
+                 parts — the day you found it, heard alongside, seasons,
+                 year by year. -->
+            <div class="ls" id="songListening"></div>
           </section>
           <section class="dp-sec" data-dp-tab="awards">
             <div class="modal-section-title" data-i18n="modal_grammies_title">🏅 My Grammies</div>
@@ -4222,9 +4229,9 @@
   <!-- One behaviour and one icon set for every pop-up window (phase 10); before
        app.js so dcIco() is there when app.js draws a window -->
   <script defer src="popups.js?v=8"></script>
-  <script defer src="app.js?v=568"></script>
+  <script defer src="app.js?v=569"></script>
   <!-- The song / album / artist details side panel (phase 10 step 3); wraps app.js's open functions -->
-  <script defer src="panel.js?v=14"></script>
+  <script defer src="panel.js?v=15"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
   <script defer src="replay.js?v=1"></script>
   <!-- All-Time chart stats ("Inside your Top N"); reads app.js globals, so it loads after it -->
