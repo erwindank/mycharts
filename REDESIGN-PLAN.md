@@ -44,6 +44,9 @@ what they leave for phase 11. Next: look at the landing page and a phone
 windows, daily records, a Ratings page, Stats rebuilt; phase 11 moves to
 the end. Next is phase 12.
 
+**Updated 2026-10-29 (evening):** phase 12 done (daily charts in every
+details window). Next is phase 13, daily records.
+
 **Seen on screen:**
 - Weekly: Albums and Songs, in all six chart layouts (Table, Card grid,
   Compact, Mosaic, Filmstrip, Stack)
@@ -3578,6 +3581,20 @@ single, EP).
 5. Charts tab (song, album): the chart run already supports `day`; the song
    against its album and artist on the daily chart; the records reel.
 6. Four languages for every new word, changelog entry, screen check.
+
+**Phase 12 done (2026-10-29,** 2c24473 + changelog a71e8aa, on `main`,
+not pushed). `dyFullRun()` gives `allChartRun.day` (whole history, each
+release type on its own chart, `albumsMixed` kept); `ensureAllChartRun`
+adds it, so only the details windows pay for it: ~0.9 s once at 220k plays,
+then cached. The artist window already took ~2.7 s to open the first time
+before this (now ~3.1 s); worth a look in phase 11. Rankings: Daily first
+in the switch, opening on Weekly (or the chart on screen); the daily graph
+opens on its last 3 months, 1 / 3 month ranges added. Badges, Music /
+Tracks lists, the album's chart-run list, the song's place among its
+album's and artist's songs, and day links (`navigateToRecPeriod('day')`,
+`#chart/day/…`). Not changed: the Grand Slam banner (still week / month /
+year) and the Hall of Fame reel, which follows Records (phase 13). Checked
+at 1440 en / es and 390 pt-BR: no missing keys, no errors.
 
 **Phase 13: daily records in Records.** Every sub-tab that has Weekly /
 Monthly / Yearly gets Daily first: All #1s, Perfect All Kill, Appearances,
