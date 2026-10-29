@@ -314,6 +314,66 @@ function dyChartRun(h, ds) {
   return (h._run = { period: 'day', curKey: ds, periodMap, result });
 }
 
+/* The whole daily history as one chart run, for the details windows
+   (2026-10-29): allChartRun.day next to week / month / year, set by
+   ensureAllChartRun. dyChartRun above is the chart on screen, up to the
+   viewed day and only the release type in view; this one runs to the last
+   day and ranks albums the way the weekly run does: each type on its own
+   chart while types are kept apart ('albums'), and every release on the
+   combined chart under 'albumsMixed'. Ties break as on the daily chart.
+   Cached until the plays or the chart settings change. */
+let _dyFull = null;
+function dyFullRun() {
+  const h = dyHistory();
+  const sep = separatedTypes().length > 0;
+  const gen = h.gen + '|' + separatedTypes().join(',');
+  if (_dyFull && _dyFull.gen === gen) return _dyFull.run;
+
+  const types = sep ? ['songs', 'artists', 'albumsMixed', 'albums'] : ['songs', 'artists', 'albums'];
+  const result = {}, prev = {}, ever = {};
+  for (const type of types) { result[type] = {}; prev[type] = new Map(); ever[type] = new Set(); }
+  const periodMap = {};
+  let lastDs = null;
+  for (const ds of h.days) {
+    const x = h.byDay[ds];
+    periodMap[ds] = x;
+    const label = crPeriodLabel('day', ds);
+    // Movement is against the day before only, as on the daily chart
+    const joined = lastDs === dyShift(ds, -1);
+    for (const type of types) {
+      const src = type === 'albumsMixed' ? 'albums' : type;
+      const groups = type === 'albums' && sep ? _crBucketAlbums(x.albums) : [Object.entries(x[src])];
+      const ranks = new Map();
+      for (const group of groups) {
+        const rows = group.map(([k, e]) => {
+          const pr = joined ? prev[type].get(k) : undefined;
+          return { k, count: e.count, first: e.first, status: pr ? 0 : ever[type].has(k) ? 1 : 2, prevRank: pr || Infinity };
+        });
+        rows.sort((a, b) => b.count - a.count || a.status - b.status || a.prevRank - b.prevRank || a.first - b.first);
+        rows.slice(0, dySizeOf(src)).forEach((r, i) => {
+          const rank = i + 1;
+          ranks.set(r.k, rank);
+          ever[type].add(r.k);
+          let d = result[type][r.k];
+          if (!d) {
+            d = result[type][r.k] = { entries: [], peak: rank, peakPlays: 0, peakDays: 0, peakMonths: 0, _mixed: type === 'albumsMixed' || undefined };
+            if (type === 'songs') { const s = x.songs[r.k]; d._title = s.title; d._artist = s.artist; }
+            else if (src === 'albums') { const j = r.k.lastIndexOf('|||'); d._album = j < 0 ? r.k : r.k.slice(0, j); d._artist = j < 0 ? '' : r.k.slice(j + 3); }
+          }
+          d.entries.push({ periodKey: ds, label, rank, plays: r.count });
+          if (rank < d.peak) d.peak = rank;
+          if (r.count > d.peakPlays) d.peakPlays = r.count;
+        });
+      }
+      prev[type] = ranks;
+    }
+    lastDs = ds;
+  }
+  const run = { period: 'day', curKey: lastDs, periodMap, result };
+  _dyFull = { gen, run };
+  return run;
+}
+
 // One day's chart, for the pop-up a chart-run box opens: [{ rank, name, key }]
 function dyChartOf(type, ds) {
   const h = dyHistory();

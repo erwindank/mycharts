@@ -7774,6 +7774,9 @@ function navigateToRecPeriod(period, periodKey) {
     offset = (now.getFullYear() - yr) * 12 + (now.getMonth() + 1 - mo);
   } else if (period === 'year') {
     offset = now.getFullYear() - parseInt(periodKey, 10);
+  } else if (period === 'day') {
+    // Days back from today, as the Daily tab counts them (dyViewedDay)
+    offset = Math.round((dyDate(localDateStr(now)) - dyDate(periodKey)) / 86400000);
   }
   if (offset >= 0) {
     savedOffsets[currentPeriod] = currentOffset;
@@ -7803,7 +7806,7 @@ function navigateToRecPeriod(period, periodKey) {
 // ─── CHART HASH ROUTING ───────────────────────────────────────
 // Allows "Open in new tab" on chart-period links via #chart/period/periodKey
 function handleChartHash() {
-  const m = window.location.hash.match(/^#chart\/(week|month|year)\/(.+)$/);
+  const m = window.location.hash.match(/^#chart\/(day|week|month|year)\/(.+)$/);
   if (m) navigateToRecPeriod(m[1], m[2]);
 }
 window.addEventListener('hashchange', handleChartHash);
@@ -17585,8 +17588,10 @@ function buildAllChartRun() {
 
 function ensureAllChartRun() {
   // Only skip rebuild if we already have full history (offset=0 for all 3)
-  if (allChartRunIsFullHistory) return;
-  buildAllChartRun();
+  if (!allChartRunIsFullHistory) buildAllChartRun();
+  // The daily chart's whole history too (daily.js, cached there), for the
+  // details windows. Only they call this, so the charts never pay for it.
+  if (allPlays?.length) allChartRun.day = dyFullRun();
 }
 
 const _CR_MON_SHORT = ['month_jan','month_feb','month_mar','month_apr','month_may_short','month_jun','month_jul','month_aug','month_sep','month_oct','month_nov','month_dec'];
@@ -26196,7 +26201,7 @@ function aoTroFilter(chip) {
    _am.view is the list on screen, which the row handlers index into. */
 let _am = null;
 let _amImgObs = null;
-const AM_CHARTS = ['all', 'year', 'month', 'week'];
+const AM_CHARTS = ['all', 'year', 'month', 'week', 'day'];
 const AM_PAGE = 30;   // rows drawn before "Show all"
 
 function _amIco(n) { return typeof dcIco === 'function' ? dcIco(n) : ''; }
@@ -26236,7 +26241,9 @@ function _amPeriodRows(kind, period, D, items, crKeyOf, ctx) {
     const peakEntry = cr.entries.find(e => e.rank === cr.peak) || cr.entries[0];
     const bestKey = peakEntry.periodKey;
     let run;
-    if (period === 'week') {
+    if (period === 'day') {
+      run = null;
+    } else if (period === 'week') {
       const consec = isSong ? maxConsecutivePlaysWeek(crKeyRaw, bestKey) : maxConsecutivePlaysWeekAlbum(crKeyRaw, bestKey);
       run = consec > 1 ? { v: consec + '×', tip: t('am_th_consec') } : null;
     } else {
@@ -26337,9 +26344,9 @@ function amRenderList() {
   const shown = _am.all ? view : view.slice(0, AM_PAGE);
   const tone = r => !r ? 'none' : r === 1 ? 'gold' : r <= 3 ? 'silver' : r <= 10 ? 'bronze' : 'plain';
   const chip = (icon, text, tip) => `<span class="am-m"${tip ? ` title="${esc(tip)}"` : ''}>${_amIco(icon)}${text}</span>`;
-  const unitKey = { week: 'weeks', month: 'months', year: 'years' }[ch];
+  const unitKey = { day: 'days', week: 'weeks', month: 'months', year: 'years' }[ch];
   const imgPre = _am.root === 'albumModalTracks' ? 'atImg-' : 'amImg-';
-  const bestKey = { week: 'am_th_best_week', month: 'am_th_best_month', year: 'am_th_best_year' }[ch];
+  const bestKey = { day: 'am_th_best_day', week: 'am_th_best_week', month: 'am_th_best_month', year: 'am_th_best_year' }[ch];
 
   box.innerHTML = shown.map((r, i) => {
     const meta = ch === 'all'
@@ -26347,7 +26354,7 @@ function amRenderList() {
       : `<button type="button" class="am-m am-m-link" onclick="goToPeriodFromArtistModal('${r.best.period}','${esc(r.best.key)}')" title="${esc(t('am_open_chart'))}">${_amIco('trophy')}${esc(t(bestKey))} <b>${esc(r.best.label)}</b>${_amIco('next')}</button>` +
         chip('bars', `<b>${r.spells}</b> ${esc(tUnit(unitKey, r.spells))}`, t('am_on_chart')) +
         chip('headphones', `<b>${r.bestPlays}</b> ${esc(tUnit('plays', r.bestPlays))}`, t('am_best_plays_tip')) +
-        chip('calendar', `<b>${r.days}</b>d`, t('am_th_days')) +
+        (r.days ? chip('calendar', `<b>${r.days}</b>d`, t('am_th_days')) : '') +
         (r.run ? chip('flame', `<b>${esc(r.run.v)}</b>`, r.run.tip) : '');
     const isOpen = _am.open === r;
     const isSong = r.kind === 'songs';
@@ -26452,8 +26459,13 @@ function amToggle(i) {
    The Hall of Fame reel follows (renderModalArtistRecords). openArtistModal
    fills _rnk; derived numbers per chart are worked out once (_rkModel). */
 let _rnk = null;
-const RK_CHARTS = ['week', 'month', 'year'];
-const RK_ICON = { week: 'bars', month: 'moon', year: 'star', all: 'trophy' };
+// Daily first, as on the Charts page (2026-10-29); a window still opens on
+// Weekly when it charted there (_rkFirst)
+const RK_CHARTS = ['day', 'week', 'month', 'year'];
+const RK_ICON = { day: 'sun', week: 'bars', month: 'moon', year: 'star', all: 'trophy' };
+function _rkFirst(runs) {
+  return runs.week?.entries.length ? 'week' : RK_CHARTS.find(c => runs[c]?.entries.length) || 'week';
+}
 const RK_DOTS_MAX = 60;   // entries above this draw only the notable dots
 
 function _rkTone(r) { return !r ? 'none' : r === 1 ? 'gold' : r <= 3 ? 'silver' : r <= 10 ? 'bronze' : 'plain'; }
@@ -26535,7 +26547,7 @@ function rkSetSource(v) {
   const V = _rnk && _rnk.views && _rnk.views[v];
   if (!V || _rnk.view === v) return;
   Object.assign(_rnk, { view: v, type: V.type, key: V.key, runs: V.runs, bucket: V.bucket, models: {} });
-  if (!_rnk.runs[_rnk.chart]?.entries.length) _rnk.chart = RK_CHARTS.find(c => _rnk.runs[c]?.entries.length) || 'week';
+  if (!_rnk.runs[_rnk.chart]?.entries.length) _rnk.chart = _rkFirst(_rnk.runs);
   rkRender();
 }
 
@@ -26545,8 +26557,9 @@ function rkRender() {
   const per = _rnk.chart, M = _rkModel(per);
   const ic = _amIco;
   _rnk.focus = _rnk.pin = M ? M.n - 1 : null;
-  // the graph starts on the whole history
-  _rnk.view = M ? { a: 0, b: M.span } : null;
+  // the graph starts on the whole history; the daily one on its last three
+  // months, since years of days in one graph is a wall of spikes
+  _rnk.view = M ? { a: per === 'day' && M.span > 182 ? M.span - 91 : 0, b: M.span } : null;
 
   const chartBtn = c => {
     const n = _rnk.runs[c]?.entries.length || 0;
@@ -26642,8 +26655,8 @@ function rkRender() {
      • keys on the graph: + / − zoom, 0 shows everything
    The frame (rank lines, marker) is drawn once; the stage inside it
    (ticks, line, dots) is redrawn for each view by _rkDrawStage. */
-const RK_MIN_SPAN = { week: 8, month: 4, year: 2 };
-const RK_PRESETS = { week: [[26, 'rk_z_6m'], [52, 'rk_z_1y'], [156, 'rk_z_3y']], month: [[12, 'rk_z_1y'], [36, 'rk_z_3y'], [60, 'rk_z_5y']], year: [] };
+const RK_MIN_SPAN = { day: 14, week: 8, month: 4, year: 2 };
+const RK_PRESETS = { day: [[30, 'rk_z_1m'], [91, 'rk_z_3m'], [182, 'rk_z_6m'], [365, 'rk_z_1y']], week: [[26, 'rk_z_6m'], [52, 'rk_z_1y'], [156, 'rk_z_3y']], month: [[12, 'rk_z_1y'], [36, 'rk_z_3y'], [60, 'rk_z_5y']], year: [] };
 
 function _rkCanZoom(M, per) { return !!M && M.n > 1 && M.span > RK_MIN_SPAN[per] * 1.5; }
 // A calendar position on screen (percent across the graph) and back
@@ -26652,13 +26665,14 @@ function _rkPosAt(x) { const v = _rnk.view; return v.a + (x - 3) / 94 * (v.b - v
 
 // The first day of a calendar position, and its key in the chart's format
 function _rkPosDate(per, first, p) {
+  if (per === 'day') { const d = new Date(first + 'T00:00:00'); d.setDate(d.getDate() + Math.round(p)); return d; }
   if (per === 'week') { const d = new Date(first + 'T00:00:00'); d.setDate(d.getDate() + Math.round(p) * 7); return d; }
   if (per === 'month') { const [y, m] = first.split('-').map(Number); return new Date(y, m - 1 + Math.round(p), 1); }
   return new Date(+first + Math.round(p), 0, 1);
 }
 function _rkPosKey(per, first, p) {
   const d = _rkPosDate(per, first, p), pad = v => String(v).padStart(2, '0');
-  return per === 'week' ? `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+  return per === 'week' || per === 'day' ? `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
     : per === 'month' ? `${d.getFullYear()}-${pad(d.getMonth() + 1)}` : String(d.getFullYear());
 }
 
@@ -26740,9 +26754,10 @@ function _rkDrawStage() {
   let ticks = '';
   if (n > 1) {
     const first = E[0].periodKey;
-    const months = per === 'week' ? (v.b - v.a) / 4.35 : per === 'month' ? v.b - v.a : (v.b - v.a) * 12;
+    const months = per === 'day' ? (v.b - v.a) / 30.44 : per === 'week' ? (v.b - v.a) / 4.35 : per === 'month' ? v.b - v.a : (v.b - v.a) * 12;
     const d0 = _rkPosDate(per, first, Math.floor(v.a)), d1 = _rkPosDate(per, first, Math.ceil(v.b) + 1);
-    const posOf = dt => per === 'week' ? (dt - new Date(first + 'T00:00:00')) / (7 * 86400000)
+    const posOf = dt => per === 'day' ? (dt - new Date(first + 'T00:00:00')) / 86400000
+      : per === 'week' ? (dt - new Date(first + 'T00:00:00')) / (7 * 86400000)
       : per === 'month' ? (dt.getFullYear() - +first.slice(0, 4)) * 12 + dt.getMonth() - (+first.slice(5, 7) - 1)
       : dt.getFullYear() - +first;
     const byYear = per === 'year' || months > 30;
@@ -27484,7 +27499,7 @@ function openArtistModal(artistName) {
 
   // Always use all-time peaks for the artist modal (modal always shows all-time profile)
   const peaks = buildAllTimePeaks();
-  const crY = allChartRun.year, crM = allChartRun.month, crW = allChartRun.week;
+  const crY = allChartRun.year, crM = allChartRun.month, crW = allChartRun.week, crD = allChartRun.day;
 
   // Build the all-time song rank map inline so chart membership is always accurate.
   // Using peaks.songPeakMap alone was unreliable: if chartSizeAllTime is unexpected or
@@ -27545,6 +27560,8 @@ function openArtistModal(artistName) {
   const monthlyBestSongPeak = monthlySongsCharted.length ? Math.min(...monthlySongsCharted.map(s => crM.result.songs[songKey(s)].peak)) : null;
   const yearlySongsCharted = crY ? allSongsSorted.filter(s => crY.result.songs[songKey(s)]) : [];
   const yearlyBestSongPeak = yearlySongsCharted.length ? Math.min(...yearlySongsCharted.map(s => crY.result.songs[songKey(s)].peak)) : null;
+  const dailySongsCharted = crD ? allSongsSorted.filter(s => crD.result.songs[songKey(s)]) : [];
+  const dailyBestSongPeak = dailySongsCharted.length ? Math.min(...dailySongsCharted.map(s => crD.result.songs[songKey(s)].peak)) : null;
 
   // Per-chart-type album counts + best peaks
   const _albumCrKey = (a, cr) => cr ? Object.keys(cr.result.albums).find(k => k.startsWith(a.album + '|||')) : null;
@@ -27554,6 +27571,8 @@ function openArtistModal(artistName) {
   const monthlyBestAlbumPeak = monthlyAlbumsCharted.length ? Math.min(...monthlyAlbumsCharted.map(a => { const k = _albumCrKey(a, crM); return k ? crM.result.albums[k].peak : 999; })) : null;
   const yearlyAlbumsCharted = crY ? allAlbumsSorted.filter(a => _albumCrKey(a, crY)) : [];
   const yearlyBestAlbumPeak = yearlyAlbumsCharted.length ? Math.min(...yearlyAlbumsCharted.map(a => { const k = _albumCrKey(a, crY); return k ? crY.result.albums[k].peak : 999; })) : null;
+  const dailyAlbumsCharted = crD ? allAlbumsSorted.filter(a => _albumCrKey(a, crD)) : [];
+  const dailyBestAlbumPeak = dailyAlbumsCharted.length ? Math.min(...dailyAlbumsCharted.map(a => { const k = _albumCrKey(a, crD); return k ? crD.result.albums[k].peak : 999; })) : null;
 
   // Populate modal
   document.getElementById('modalArtistName').textContent = artistName;
@@ -27715,16 +27734,16 @@ function openArtistModal(artistName) {
   // and albums made each chart with the best rank among them (rkRender)
   _rnk = {
     name: artistName, type: 'artists', root: 'modalRankings',
-    runs: { week: crW?.result.artists[artistName], month: crM?.result.artists[artistName], year: crY?.result.artists[artistName] },
+    runs: { day: crD?.result.artists[artistName], week: crW?.result.artists[artistName], month: crM?.result.artists[artistName], year: crY?.result.artists[artistName] },
     music: {
-      songs: { week: [weeklySongsCharted.length, weeklyBestSongPeak], month: [monthlySongsCharted.length, monthlyBestSongPeak],
+      songs: { day: [dailySongsCharted.length, dailyBestSongPeak], week: [weeklySongsCharted.length, weeklyBestSongPeak], month: [monthlySongsCharted.length, monthlyBestSongPeak],
         year: [yearlySongsCharted.length, yearlyBestSongPeak], all: [chartSongs.length, bestSongPeak] },
-      albums: { week: [weeklyAlbumsCharted.length, weeklyBestAlbumPeak], month: [monthlyAlbumsCharted.length, monthlyBestAlbumPeak],
+      albums: { day: [dailyAlbumsCharted.length, dailyBestAlbumPeak], week: [weeklyAlbumsCharted.length, weeklyBestAlbumPeak], month: [monthlyAlbumsCharted.length, monthlyBestAlbumPeak],
         year: [yearlyAlbumsCharted.length, yearlyBestAlbumPeak], all: [chartAlbums.length, allTimeBestAlbumPeak] }
     },
     models: {}, focus: null, pin: null
   };
-  _rnk.chart = RK_CHARTS.find(c => _rnk.runs[c]?.entries.length) || 'week';
+  _rnk.chart = _rkFirst(_rnk.runs);
   rkRender();
 
   // Hall of Fame reel — every record this artist holds, as on the hero banner
@@ -27776,6 +27795,13 @@ function openArtistModal(artistName) {
     badges.push({ tone: 'peak', group: 'chart', tag: t('ao_peak'), value: '#' + artistPeak, label: t('ao_best_rank'), rows: [] });
   }
 
+  // Days at #1 on the daily artist chart, each day opening that chart
+  const no1Days = crD?.result.artists[artistName]?.entries.filter(e => e.rank === 1) || [];
+  if (no1Days.length) {
+    badges.push({ tone: 'no1', group: 'chart', tag: '#1', value: no1Days.length, label: noBr(t('sm_days_at1')),
+      rows: no1Days.map(e => ({ name: crPeriodTitle('day', e.periodKey), sub: '', plays: e.plays, date: '', open: `goToPeriodFromArtistModal('day','${e.periodKey}')` })) });
+  }
+
   // Weekly #1 songs
   const weeklyNo1Songs = allSongsSorted.filter(s => allChartRun.week?.result.songs[songKey(s)]?.peak === 1);
   if (weeklyNo1Songs.length) {
@@ -27792,6 +27818,15 @@ function openArtistModal(artistName) {
       rows: monthlyNo1Songs.map(s => {
         const peakEntry = allChartRun.month.result.songs[songKey(s)].entries.find(e => e.rank === 1);
         return songRow(s, peakEntry?.plays || s.count, peakEntry ? crPeriodLabel('month', peakEntry.periodKey) : '');
+      }) });
+  }
+  // Daily #1 songs
+  const dailyNo1Songs = allSongsSorted.filter(s => crD?.result.songs[songKey(s)]?.peak === 1);
+  if (dailyNo1Songs.length) {
+    badges.push({ tone: 'no1', group: 'chart', tag: '#1', value: dailyNo1Songs.length, label: t('ao_no1_day_songs'),
+      rows: dailyNo1Songs.map(s => {
+        const peakEntry = crD.result.songs[songKey(s)].entries.find(e => e.rank === 1);
+        return songRow(s, peakEntry?.plays || s.count, peakEntry ? crPeriodLabel('day', peakEntry.periodKey) : '');
       }) });
   }
   // New songs chart #1 — songs that debuted at #1 on the weekly chart
@@ -27860,6 +27895,7 @@ function openArtistModal(artistName) {
     year: periodRows('songs', 'year', crY, allSongsSorted, s => songKey(s)),
     month: periodRows('songs', 'month', crM, allSongsSorted, s => songKey(s)),
     week: periodRows('songs', 'week', crW, allSongsSorted, s => songKey(s)),
+    day: periodRows('songs', 'day', crD, allSongsSorted, s => songKey(s)),
   };
   const albumLists = {
     all: chartAlbums.map(a => {
@@ -27871,13 +27907,14 @@ function openArtistModal(artistName) {
     year: periodRows('albums', 'year', crY, allAlbumsSorted, a => findAlbumCrKey(a, crY)),
     month: periodRows('albums', 'month', crM, allAlbumsSorted, a => findAlbumCrKey(a, crM)),
     week: periodRows('albums', 'week', crW, allAlbumsSorted, a => findAlbumCrKey(a, crW)),
+    day: periodRows('albums', 'day', crD, allAlbumsSorted, a => findAlbumCrKey(a, crD)),
   };
 
   // Keep the Songs/Albums and chart picked last time when this artist has them
   const prevAm = _am && _am.root === 'modalMusic' ? _am : {};
   _am = { root: 'modalMusic', artistName, lists: { songs: songLists, albums: albumLists }, type: prevAm.type || 'songs', chart: prevAm.chart || 'all', q: '', sort: 'rank', open: null, all: false };
   if (!_am.lists[_am.type][_am.chart].length) {
-    const firstWith = ['all', 'year', 'month', 'week'].find(c => _am.lists[_am.type][c].length);
+    const firstWith = AM_CHARTS.find(c => _am.lists[_am.type][c].length);
     if (firstWith) _am.chart = firstWith;
   }
   amMusicRender();
@@ -27984,10 +28021,11 @@ function openAlbumModal(albumKey) {
   const allTimeSPM = allTimePeaks.songPeakMap;
 
   // Per-period chart run data (always use full-history runs)
-  const crY = allChartRun.year, crM = allChartRun.month, crW = allChartRun.week;
+  const crY = allChartRun.year, crM = allChartRun.month, crW = allChartRun.week, crD = allChartRun.day;
   const albumCrY = crY?.result?.albums?.[albumKey];
   const albumCrM = crM?.result?.albums?.[albumKey];
   const albumCrW = crW?.result?.albums?.[albumKey];
+  const albumCrD = crD?.result?.albums?.[albumKey];
 
   const weeklyAlbumPeak = albumCrW?.peak ?? null;
   const monthlyAlbumPeak = albumCrM?.peak ?? null;
@@ -28010,12 +28048,14 @@ function openAlbumModal(albumKey) {
   const chartTracksWeekly  = crW ? allTracksSorted.filter(s => crW.result.songs[songKey(s)]) : [];
   const chartTracksMonthly = crM ? allTracksSorted.filter(s => crM.result.songs[songKey(s)]) : [];
   const chartTracksYearly  = crY ? allTracksSorted.filter(s => crY.result.songs[songKey(s)]) : [];
+  const chartTracksDaily   = crD ? allTracksSorted.filter(s => crD.result.songs[songKey(s)]) : [];
 
   // Best track peaks per period
   const bestTrackPeakAllTime  = chartTracksAllTime.length  ? Math.min(...chartTracksAllTime.map(s => allTimeSPM[songKey(s)])) : null;
   const bestTrackPeakWeekly   = chartTracksWeekly.length   ? Math.min(...chartTracksWeekly.map(s => crW.result.songs[songKey(s)].peak)) : null;
   const bestTrackPeakMonthly  = chartTracksMonthly.length  ? Math.min(...chartTracksMonthly.map(s => crM.result.songs[songKey(s)].peak)) : null;
   const bestTrackPeakYearly   = chartTracksYearly.length   ? Math.min(...chartTracksYearly.map(s => crY.result.songs[songKey(s)].peak)) : null;
+  const bestTrackPeakDaily    = chartTracksDaily.length    ? Math.min(...chartTracksDaily.map(s => crD.result.songs[songKey(s)].peak)) : null;
 
   // Avg plays per track + next cert milestone (on the album's own ladder)
   const avgPlaysPerTrack = allTracksSorted.length ? Math.round(totalPlays / allTracksSorted.length) : 0;
@@ -28232,12 +28272,12 @@ function openAlbumModal(albumKey) {
   document.getElementById('albumModalGrandSlam').innerHTML = grandSlam
     ? `<div class="modal-grand-slam ao-slam"><span class="ao-slam-ico">${ic('crown')}</span><span>${noBr(t(bucket !== 'album' ? 'sm_grand_slam' : 'modal_grand_slam'))}</span></div>` : '';
   const badges = [];
-  const runs = { week: albumCrW, month: albumCrM, year: albumCrY };
+  const runs = { day: albumCrD, week: albumCrW, month: albumCrM, year: albumCrY };
   const entryRow = per => e => ({ name: crPeriodTitle(per, e.periodKey), sub: '#' + e.rank, plays: e.plays, date: '',
     open: `goToPeriodFromAlbumModal('${per}','${esc(e.periodKey)}')` });
   const trackRow = (s, plays, date) => ({ name: s.title, sub: s.artist !== artistName ? s.artist : '', plays, date: date || '',
     open: `openSongModal(${esc(JSON.stringify(songKey(s)))})` });
-  for (const per of ['week', 'month', 'year']) {
+  for (const per of ['week', 'month', 'year', 'day']) {
     const d = runs[per];
     if (!d) continue;
     const at1 = d.entries.filter(e => e.rank === 1);
@@ -28251,7 +28291,7 @@ function openAlbumModal(albumKey) {
     badges.push({ tone: 'debut', group: 'chart', tag: t('ao_debut'), value: '#' + e.rank, label: t('so_b_debut_' + debutPer), sub: crPeriodLabel(debutPer, e.periodKey), rows: [entryRow(debutPer)(e)] });
   }
   // Its tracks that topped the weekly / monthly song chart
-  for (const [per, D, lbl] of [['week', crW, 'ao_no1_week_songs'], ['month', crM, 'ao_no1_month_songs']]) {
+  for (const [per, D, lbl] of [['week', crW, 'ao_no1_week_songs'], ['month', crM, 'ao_no1_month_songs'], ['day', crD, 'ao_no1_day_songs']]) {
     const no1 = allTracksSorted.filter(s => D?.result.songs[songKey(s)]?.peak === 1);
     if (no1.length) badges.push({ tone: 'no1', group: 'chart', tag: '#1', value: no1.length, label: t(lbl),
       rows: no1.map(s => { const e = D.result.songs[songKey(s)].entries.find(x => x.rank === 1); return trackRow(s, e?.plays || s.count, e ? crPeriodLabel(per, e.periodKey) : ''); }) });
@@ -28286,6 +28326,7 @@ function openAlbumModal(albumKey) {
     name: albumName, type: 'albums', root: 'albumRankings', key: albumKey, bucket,
     runs,
     music: oneSong ? null : { songs: {
+      day: [chartTracksDaily.length, bestTrackPeakDaily],
       week: [chartTracksWeekly.length, bestTrackPeakWeekly], month: [chartTracksMonthly.length, bestTrackPeakMonthly],
       year: [chartTracksYearly.length, bestTrackPeakYearly], all: [chartTracksAllTime.length, bestTrackPeakAllTime]
     } },
@@ -28296,18 +28337,18 @@ function openAlbumModal(albumKey) {
     const sk = songKey(topTrack);
     _rnk.views = {
       release: { type: 'albums', key: albumKey, runs, bucket, label: t(bucket !== 'album' ? 'rk_src_' + bucket : 'rk_src_album') },
-      song: { type: 'songs', key: sk, runs: { week: crW?.result?.songs?.[sk], month: crM?.result?.songs?.[sk], year: crY?.result?.songs?.[sk] }, bucket: null, label: t('rk_src_song') }
+      song: { type: 'songs', key: sk, runs: { day: crD?.result?.songs?.[sk], week: crW?.result?.songs?.[sk], month: crM?.result?.songs?.[sk], year: crY?.result?.songs?.[sk] }, bucket: null, label: t('rk_src_song') }
     };
     _rnk.view = 'release';
   }
-  _rnk.chart = runs[currentPeriod]?.entries.length ? currentPeriod : RK_CHARTS.find(c => runs[c]?.entries.length) || 'week';
+  _rnk.chart = runs[currentPeriod]?.entries.length ? currentPeriod : _rkFirst(runs);
   rkRender();
   renderAlbumHeldRecords(albumKey);
 
   // ── CHART RUN HISTORY: 3 collapsible sections (kept under Rankings) ──
   const crTitleEl = document.getElementById('albumModalChartRunTitle');
   const crEl = document.getElementById('albumModalChartRun');
-  const hasCr = albumCrY || albumCrM || albumCrW;
+  const hasCr = albumCrY || albumCrM || albumCrW || albumCrD;
   if (hasCr) {
     crTitleEl.style.display = '';
     const crSection = (label, period, crData) => {
@@ -28327,7 +28368,8 @@ function openAlbumModal(albumKey) {
     crEl.innerHTML =
       crSection(t('modal_cr_yearly'), 'year', crY) +
       crSection(t('modal_cr_monthly'), 'month', crM) +
-      crSection(t('modal_cr_weekly'), 'week', crW);
+      crSection(t('modal_cr_weekly'), 'week', crW) +
+      crSection(t('modal_cr_daily'), 'day', crD);
   } else {
     crTitleEl.style.display = 'none';
     crEl.innerHTML = '';
@@ -28433,9 +28475,10 @@ function openAlbumModal(albumKey) {
         // every track played, not only those on the all-time chart
         all: allTracksSorted.map(s => albRow(s, allTimeSPM[songKey(s)] || null,
           { panel: () => _buildAlbTrackPanelHTML(s, totalPlays, crY, crM, crW, allTimeSPM) })),
-        year: periodTracks('year', crY), month: periodTracks('month', crM), week: periodTracks('week', crW)
+        year: periodTracks('year', crY), month: periodTracks('month', crM), week: periodTracks('week', crW),
+        day: periodTracks('day', allChartRun.day)
       },
-      albums: { all: [], year: [], month: [], week: [] }
+      albums: { all: [], year: [], month: [], week: [], day: [] }
     },
     type: 'songs', chart: 'all', q: '', sort: 'plays', open: null, all: false, split: splitHTML
   };
@@ -28508,10 +28551,11 @@ function openSongModal(key) {
   const lastPlayed  = songPlays.length ? songPlays[0].date : null;
 
   // ── Chart runs and the all-time rank ──────────────────────────
-  const crY = allChartRun.year, crM = allChartRun.month, crW = allChartRun.week;
+  const crY = allChartRun.year, crM = allChartRun.month, crW = allChartRun.week, crD = allChartRun.day;
   const songCrY = crY?.result?.songs?.[key];
   const songCrM = crM?.result?.songs?.[key];
   const songCrW = crW?.result?.songs?.[key];
+  const songCrD = crD?.result?.songs?.[key];
   const allTimeSongRank = buildAllTimePeaks().songPeakMap[key];
 
   // ── Per day / year / season ───────────────────────────────────
@@ -28675,10 +28719,10 @@ function openSongModal(key) {
   document.getElementById('songModalGrandSlam').innerHTML = grandSlam
     ? `<div class="modal-grand-slam ao-slam"><span class="ao-slam-ico">${ic('crown')}</span><span>${esc(noBr(t('sm_grand_slam')))}</span></div>` : '';
   const badges = [];
-  const runs = { week: songCrW, month: songCrM, year: songCrY };
+  const runs = { day: songCrD, week: songCrW, month: songCrM, year: songCrY };
   const entryRow = per => e => ({ name: crPeriodTitle(per, e.periodKey), sub: '#' + e.rank, plays: e.plays, date: '',
     open: `goToPeriodFromSongModal('${per}','${esc(e.periodKey)}')` });
-  for (const per of ['week', 'month', 'year']) {
+  for (const per of ['week', 'month', 'year', 'day']) {
     const d = runs[per];
     if (!d) continue;
     const at1 = d.entries.filter(e => e.rank === 1);
@@ -28713,7 +28757,7 @@ function openSongModal(key) {
     models: {}, focus: null, pin: null
   };
   // the chart being viewed first, when the song is on it
-  _rnk.chart = runs[currentPeriod]?.entries.length ? currentPeriod : RK_CHARTS.find(c => runs[c]?.entries.length) || 'week';
+  _rnk.chart = runs[currentPeriod]?.entries.length ? currentPeriod : _rkFirst(runs);
   rkRender();
   // Every record the song holds on the Records tab, in the artist panel's reel
   renderSongHeldRecords(key);
