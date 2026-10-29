@@ -33,6 +33,12 @@ step 9.
 saw a mockup; step 10 (the Around the chart box) done the same day; next is
 step 11.
 
+**Updated 2026-10-29:** phases 0–10 are done and on `main`, pushed. The 43
+commits since 2026-10-26 (the details window filled in tab by tab) are
+written up under "After phase 10" at the end of the phase 10 section, with
+what they leave for phase 11. Next: look at the landing page and a phone
+(section 6), then phase 11.
+
 **Seen on screen:**
 - Weekly: Albums and Songs, in all six chart layouts (Table, Card grid,
   Compact, Mosaic, Filmstrip, Stack)
@@ -40,12 +46,12 @@ step 11.
 - Raw Data, Graphs
 - Records: Overview, All #1s, Perfect All Kill, Appearances, Debuts, Most
   Plays, Milestones, Fastest
-- Events (2026-10-23)
+- Events (2026-10-23), Awards (10-24), Soundtrack (10-25), Playlists, Board,
+  Charts Guide (10-26), the pop-ups and Settings (10-26)
 
-**Not seen yet (judged from the code only):** Records → Certifications,
-Streaks, New Charts; Awards; Soundtrack; Playlists; Board; Charts
-Guide; the pop-up windows; Settings; the landing page; phones. Those findings
-are about structure (how many controls, how things are laid out). Look at each
+**Not seen yet (judged from the code only):** the landing page and phones
+(the rest was seen during phases 9 and 10). Those findings are about
+structure (how many controls, how things are laid out). Look at each
 one on screen before changing it. Section 6 lists them.
 
 ---
@@ -3469,7 +3475,63 @@ modern, slick, interactive, high quality; Settings mostly better organised.
     screen). The Stats artist window is centred too, one column. Checked
     at 1440 / 1100 / 390 in Navy dark, Navy light, Yellow and Red light.
     Ideas not built yet: ‹ › to the next / previous entry on the chart,
-    achievements as badges.
+    achievements as badges (built 2026-10-27, see below).
+
+### After phase 10: the details window, tab by tab (2026-10-26 to 10-29)
+
+Not a planned phase. 43 commits on `main` after the plan's last update
+(`0f86863` to `352a2d5`, about 9,800 lines added and 2,000 removed in 166
+files), all pushed. The details window from step 13 was filled in tab by
+tab, artist first, then song and album built on the artist's code.
+
+- **Window header** (5d0667d): Spotify / YouTube search and Last.fm
+  buttons, as in the Soundtrack's new-artist window; Share becomes Share
+  card.
+- **Chart run summary** (d0316ed, 48ad3be, 5e426b7, 3affde4): the ten stat
+  tiles become a sentence, a counts row that is also the colour key and
+  filter, and the next milestones (chart weeks, #1s, certification, a ladder
+  of all-time Top N spots, live day / week / month / year goals ordered by
+  pace). Bubbling Under runs get the same.
+- **Artist panel:** Overview (9963187: headline card, favourites, habits,
+  achievements as badges with a drawer), Music (b780184: one list with
+  switches, chart picker, summary, search; cover change from the list,
+  50b0229), Rating (49f1dc8, new tab: verdict, next to rate, highs and lows,
+  score spread), Rankings (22d785d: one chart at a time, zoomable rank graph,
+  chart moments), Listening (ed4b3be: now, eras, clock, milestones,
+  calendar), Awards (7e986cc: My Grammies in depth, plus real-life awards
+  read from Wikipedia and kept for a week). X on a panel opened from another
+  steps back instead of closing all.
+- **Song panel** (78c26d0) and **album panel** (202212b) redone on the
+  artist's code: `rkRender`, `lsRender`, the badge grid and the records
+  reel now take the panel they draw into, so one copy serves all three. The
+  album gets a Tracks tab (the Music list on its tracks); its old track
+  table, sort bar and tracks-charted grid were deleted.
+- **Singles and EPs:** rated apart from albums (c3c563d); the album panel
+  says Single / EP (89f4b82); a single's Charts tab switches between its
+  release chart and its song chart (e4076fc). "Single, then album" release
+  type (0c1e41b and fixes): a single sharing its album's name splits by
+  song and date.
+- **Charts:** song, album and artist names in every chart open their
+  details (1ce994a); the album Tracks count opens the songs played
+  (b627c31).
+
+**What this leaves for phase 11:**
+- The song and album Charts tabs keep **the old chart run under the new
+  graph** (78c26d0, 202212b). Decide whether it stays or goes; if it goes,
+  its CSS and builder go with it.
+- The panels were rebuilt mostly by adding code (9,800 in, 2,000 out). The
+  artist parts that the song and album now share were moved, not copied,
+  but the old song / album tile grid, `iconize()` targets and achievement
+  rows from steps 4–6 may still have CSS with nothing left to style. Sweep
+  `panel.js`, `app.js` and `style.css` for `.dp-*` rules with no element.
+- **Known phone issue:** diamonds show as emoji in the Music / Tracks cards
+  on a phone (202212b). Fix it with the emoji-to-icons part of phase 11.
+- **Not checked on screen** at the four themes × four languages the way
+  each phase was. Each commit was checked as it went; do the full grid at
+  the end of phase 11 instead of separately.
+
+**Next:** the two screens never looked at (the signed-out landing page and
+a real phone, section 6), then phase 11.
 
 The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in
@@ -3648,13 +3710,13 @@ There is no automated check for looks. For each phase:
 
 Send screenshots of these and they'll be added the same way:
 
-- Records → Certifications, Streaks, New Charts
+- ~~Records → Certifications, Streaks, New Charts~~ seen 2026-10-22, phase 9 part 1
 - ~~Events (and its calendar)~~ seen 2026-10-23, see 4.16
-- Awards (My Grammys, Real-Life Awards, the ceremony screen)
-- Your Soundtrack
-- Playlists, Board, Charts Guide
-- A song, an artist and an album pop-up
-- One share-as-image window
-- Settings (all three tabs)
+- ~~Awards (My Grammys, Real-Life Awards, the ceremony screen)~~ seen 2026-10-24, see 4.17
+- ~~Your Soundtrack~~ seen 2026-10-25, see 4.18
+- ~~Playlists, Board, Charts Guide~~ seen 2026-10-26, see 4.19
+- ~~A song, an artist and an album pop-up~~ seen 2026-10-26, see phase 10
+- ~~One share-as-image window~~ seen 2026-10-26, see phase 10
+- ~~Settings (all three tabs)~~ seen 2026-10-26, see phase 10
 - The landing page (signed out)
 - **Any page on a phone.** The most useful one still missing.
