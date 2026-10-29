@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 363;
+const DC_CL_I18N_V = 364;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-29', t: 'feature', a: 'ui', h: '7e986cc',
+    title: "A new Awards tab in artist details, with their real-life awards",
+    detail: "The Awards tab of an artist's details was two numbers and a folded list. Now a switch at the top flips between My Grammies and Real life. My Grammies shows the artist's win rate as a ring, a verdict, where they rank among every artist on your ballots, and their nominations, wins, ceremonies and best year. The big categories (Artist, Album, Song and Record of the Year, Best New Artist) light up when won. A chart goes ceremony by ceremony: tap a year to see only its ballot and open that ceremony. Every win sits on a trophy shelf with its artwork, their most nominated songs and albums show one dot per race, Head to head gives their record against the artists they met most, and the full list says what they won, what they lost and to whom. Nominations now count each nominated song or album, the same as the Stats & records summary. Real life shows the artist's actual awards and nominations from Wikipedia: wins, nominations and Grammys, You vs. the industry (what you both crowned, what only you did and what only the industry did), the award shows they were up at, which narrow everything below, year by year, their most awarded work (opening what's in your library) and the full list. It is saved on your device for a week, with a Refresh button. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-29', t: 'design', a: 'ui', h: '22d785d',
     title: "A livelier Charts tab in artist details, with a graph you can zoom",
     detail: "The Charts tab of an artist's details was rows of look-alike tiles and a table. Now pick the Weekly, Monthly or Yearly chart and see the artist's peak as a gold, silver or bronze medal with the week it was reached, the run told in one sentence, and four numbers: time on the chart, at #1, in the Top 10 and the longest streak, each saying whether those weeks came in a row. A graph shows the rank over time: move over it or tap it to read any week (its rank, its move, its plays and who was #1 then), and open that chart from there. Long histories can be zoomed: pick 6 months, 1 year or 3 years, use − and +, pinch or Ctrl + scroll, drag to move along, or drag the window on the small overview strip under the graph. Chart moments list the debut, the first Top 10, the first #1, the biggest climb, the longest run at #1 and the comebacks, and each one jumps the graph to its week. Their songs and albums on each chart are now tiles that open the Music tab on that list. In the Music tab, tapping a card now unfolds its chart run, the name opens the song or album, and each card has Sample, Spotify and YouTube buttons. The ✕ on a song or album opened from another panel now goes back to it instead of closing everything." },
