@@ -39,6 +39,11 @@ written up under "After phase 10" at the end of the phase 10 section, with
 what they leave for phase 11. Next: look at the landing page and a phone
 (section 6), then phase 11.
 
+**Updated 2026-10-29 (later):** landing page and phone looked at (fixes in
+4b20742). New work planned as phases 12–15: daily charts in the details
+windows, daily records, a Ratings page, Stats rebuilt; phase 11 moves to
+the end. Next is phase 12.
+
 **Seen on screen:**
 - Weekly: Albums and Songs, in all six chart layouts (Table, Card grid,
   Compact, Mosaic, Filmstrip, Stack)
@@ -3533,6 +3538,82 @@ tab, artist first, then song and album built on the artist's code.
 **Next:** the two screens never looked at (the signed-out landing page and
 a real phone, section 6), then phase 11.
 
+**Landing page and phone, seen on screen (2026-10-29).** Landing at 1440 /
+1100 / 390 touch × en / es / pt-BR / pt-PT × Navy dark, Navy light, Yellow,
+Red light, each source card opened: no sideways scroll, no raw keys, no
+errors. Fixed (4b20742): on phones the theme / language buttons were empty
+circles (phase 5 dropped their short face; now the dot and the drawn globe,
+which also replaces 🌐), the stacked cards were 240px tall whatever they held
+and the Recommended ribbon ran into the next card's badge, and es / pt
+called the charts "charts" / "gráficos". The app with the demo data at 390
+touch, all 13 tabs: no sideways scroll (the only wide things are tickers and
+carousels inside their own boxes), no errors. Still English: the Charts
+Guide welcome window and tour (known, see "The Charts Guide tour").
+
+### Phase 12–15: daily charts everywhere, Ratings page, Stats rebuilt (planned 2026-10-29)
+
+**Your picks (2026-10-29):** daily charts first, then Stats; My Ratings
+leaves Stats for **its own page**; the new Stats leans into **all four**:
+story and insights, games and quizzes, a compare studio, better versions of
+today's charts. Phase 11 (the sweep) moves to the end so it cleans up after
+this work too.
+
+**What is there now.** Daily charts (`daily.js`) are built from allPlays
+(`dyHistory()`, cached) and already give a chart run in the same shape as
+the other periods (`dyChartRun()`); `crPeriodGap` / `crPeriodLabel` know
+days. But nothing outside the Daily tab reads them: the details windows use
+`RK_CHARTS = ['week', 'month', 'year']` and `allChartRun.week/month/year`,
+and every Records builder loops over the same three.
+
+**Phase 12: daily charts in every details window** (artist, song, album,
+single, EP).
+1. `allChartRun.day` from `dyChartRun(dyHistory(), today)`, built with the
+   others in `ensureAllChartRun`, only when there are plays.
+2. Rankings tab: Daily first in the chart switch (the Charts page's order),
+   the graph, moments, the run sentence and the four numbers in days; a
+   single's two charts both get it.
+3. Overview badges: days at #1, days in the Top 10, daily debut; an album's
+   tracks that topped the daily song chart.
+4. Music / Tracks lists: Daily in the chart picker, with the summary.
+5. Charts tab (song, album): the chart run already supports `day`; the song
+   against its album and artist on the daily chart; the records reel.
+6. Four languages for every new word, changelog entry, screen check.
+
+**Phase 13: daily records in Records.** Every sub-tab that has Weekly /
+Monthly / Yearly gets Daily first: All #1s, Perfect All Kill, Appearances,
+Debuts, Most Plays, Milestones, Fastest, Certifications (where it applies),
+Streaks, New Charts, and the Overview. Built from `dyHistory()` once and
+cached, so opening Records does not slow down. The Hall of Fame reel in the
+details windows follows.
+
+**Phase 14: a Ratings page.** My Ratings moves out of Stats into its own
+page in the More menu (desktop and the phone's bottom bar): the summary,
+verdicts, albums / singles / EPs / songs, best and worst, score spread,
+next to rate, share cards. The tour, Charts Guide and deep links point at
+it.
+
+**Phase 15: Stats rebuilt.** Looked at on screen first, then a mockup for
+you before building. Direction:
+- **A hero** for the range picked: plays, hours, songs, artists, against
+  the same stretch before, with a sparkline; one sentence about it.
+- **Story and insights:** your obsession of each stretch, eras, taste
+  drift (how your top 10 changed year to year, as a bump chart), loyalty vs
+  variety, comfort songs vs new finds, discoveries and where they are now,
+  fun comparisons (hours as flights, days), milestones.
+- **Games and quizzes:** higher or lower (which has more plays), guess the
+  year, which came first, guess the #1 of a week; best scores kept on the
+  device; share a score.
+- **Compare studio:** pick artists, songs, albums or years and see them
+  side by side: cumulative, per period, chart runs, head-to-head verdict.
+  Replaces the two artist comparison charts.
+- **Better versions of today's charts:** play count race, heatmap, play
+  volume, discoveries, listening clock; redrawn, tap to drill into a week
+  or a song, in a clear order.
+- Four languages, the changelog, the tour and the Charts Guide, screen
+  check (1440 / 1100 / 390 touch × four languages × the check themes).
+
+Then **phase 11** (the sweep), as planned.
+
 The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in
 the top bar.
@@ -3718,5 +3799,5 @@ Send screenshots of these and they'll be added the same way:
 - ~~A song, an artist and an album pop-up~~ seen 2026-10-26, see phase 10
 - ~~One share-as-image window~~ seen 2026-10-26, see phase 10
 - ~~Settings (all three tabs)~~ seen 2026-10-26, see phase 10
-- The landing page (signed out)
-- **Any page on a phone.** The most useful one still missing.
+- ~~The landing page (signed out)~~ seen 2026-10-29
+- ~~**Any page on a phone.**~~ seen 2026-10-29 (390 touch, all tabs)
