@@ -2166,7 +2166,6 @@
       border-radius: var(--r-md) 0 0 0;
       cursor: pointer;
     }
-    .dp-body .am-main:hover .am-name-t { color: var(--dp-ac); }
     .dp-body .am-main:focus-visible { outline: 2px solid var(--dp-ac); outline-offset: -2px; }
     .dp-body .am-rank {
       --tone: var(--text2);
@@ -2255,7 +2254,49 @@
     }
     .dp-body .am-m-link:hover { color: var(--text); background: color-mix(in srgb, var(--dp-ac) 18%, transparent); }
     .dp-body .am-m-link svg:first-child { color: var(--dp-ac); }
-    .dp-body .am-detail { grid-area: det; min-width: 0; padding: var(--sp-3); border-top: 1px solid var(--border); }
+    /* The card unfolds; its name opens the song / album, a song's album line
+       its album (2026-10-29) */
+    .dp-body .am-row { cursor: pointer; }
+    .dp-body .am-link {
+      max-width: 100%;
+      padding: 0;
+      font: inherit;
+      text-align: left;
+      color: inherit;
+      background: none;
+      border: 0;
+      cursor: pointer;
+      text-decoration: underline transparent;
+      text-underline-offset: 3px;
+      transition: color var(--t-fast) var(--ease), text-decoration-color var(--t-fast) var(--ease);
+    }
+    .dp-body .am-name-t.am-link { font-size: var(--fs-sm); font-weight: 700; }
+    .dp-body .am-sub.am-link { font-size: var(--fs-xs); color: var(--text3); }
+    .dp-body .am-link:hover { color: var(--dp-ac); text-decoration-color: currentColor; }
+    /* Sample · Spotify · YouTube, at the end of the facts line */
+    .dp-body .am-acts { display: inline-flex; align-items: center; gap: 4px; margin-left: auto; }
+    .dp-body .am-act {
+      width: 30px;
+      height: 30px;
+      opacity: 1;
+      border: 1px solid var(--border);
+      border-radius: var(--r-full);
+      background: color-mix(in srgb, var(--text) 4%, transparent);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+    }
+    .dp-body .am-act svg { width: 14px; height: 14px; display: block; }
+    .dp-body .am-act-play { color: var(--dp-ac); }
+    .dp-body .am-act-play:hover { color: var(--dp-ac); background: color-mix(in srgb, var(--dp-ac) 16%, transparent); border-color: color-mix(in srgb, var(--dp-ac) 50%, var(--border)); }
+    .dp-body .am-act-play.is-on { color: var(--on-accent, #fff); background: var(--dp-ac); border-color: var(--dp-ac); }
+    .dp-body .am-act-sp:hover { background: color-mix(in srgb, #1DB954 14%, transparent); border-color: color-mix(in srgb, #1DB954 50%, var(--border)); }
+    .dp-body .am-act-yt { color: #ff3b3b; }
+    .dp-body .am-act-yt svg { width: 15px; height: 15px; }
+    .dp-body .am-act-yt:hover { background: color-mix(in srgb, #ff3b3b 14%, transparent); border-color: color-mix(in srgb, #ff3b3b 50%, var(--border)); }
+    .dp-body .am-detail { grid-area: det; min-width: 0; padding: var(--sp-3); border-top: 1px solid var(--border); cursor: auto; }
     .dp-body .am-detail:not([hidden]) { animation: dpTabIn 0.2s var(--ease); }
     .dp-body .am-more { display: flex; margin: var(--sp-2) auto 0; }
     .dp-body .am-empty { padding: var(--sp-4) 0; font-size: var(--fs-sm); font-style: italic; color: var(--text3); text-align: center; }
@@ -2276,6 +2317,382 @@
       .dp-body .am-chip { justify-content: center; padding: 6px 4px; gap: 4px; font-size: 0.7rem; }
       .dp-body .am-sort { width: 100%; }
       .dp-body .am-sort-btn { flex: 1; padding: 0 6px; }
+    }
+
+    /* ── Artist Rankings tab (2026-10-29) ──────────────────────────────────
+       app.js rkRender. One chart at a time (the .am-type switch, reused):
+         .rk-hero     peak medal, when, the run in a sentence, four numbers
+         .rk-plot     rank over time — square-root scale, Top 10 band, gold
+                      #1 line; the marker (.rk-focus) and .rk-detail follow
+                      the pointer, a click pins them
+         .rk-moments  a timeline of the run's moments; each focuses the graph
+         .rk-mu       songs / albums × chart; a cell opens the Music tab
+       Medal tones: --tone, gold #1 · silver 2–3 · bronze 4–10 · accent. */
+    .dp-body .rk-top { margin-bottom: var(--sp-3); }
+    .dp-body .rk-type { display: flex; }
+    .dp-body .rk-ch { flex: 1; justify-content: center; }
+    .dp-body .rk-ch:disabled { opacity: 0.4; cursor: default; }
+    .dp-body .rk-ch.is-on .am-type-n { color: var(--dp-ac); background: color-mix(in srgb, var(--dp-ac) 16%, transparent); }
+
+    .dp-body .rk-medal--gold, .dp-body .rk-hero--gold, .dp-body .rk-dt--gold, .dp-body .rk-focus--gold, .dp-body .rk-r--gold { --tone: var(--medal-gold); }
+    .dp-body .rk-medal--silver, .dp-body .rk-hero--silver, .dp-body .rk-dt--silver, .dp-body .rk-focus--silver, .dp-body .rk-r--silver { --tone: var(--medal-silver); }
+    .dp-body .rk-medal--bronze, .dp-body .rk-hero--bronze, .dp-body .rk-dt--bronze, .dp-body .rk-focus--bronze, .dp-body .rk-r--bronze { --tone: var(--medal-bronze); }
+    .dp-body .rk-medal--plain, .dp-body .rk-hero--plain, .dp-body .rk-dt--plain, .dp-body .rk-focus--plain, .dp-body .rk-r--plain,
+    .dp-body .rk-r--none { --tone: var(--dp-ac); }
+
+    /* The peak */
+    .dp-body .rk-hero {
+      padding: var(--sp-4);
+      background:
+        radial-gradient(90% 120% at 0% 0%, color-mix(in srgb, var(--tone) 16%, transparent), transparent 60%),
+        var(--raised);
+      border: 1px solid color-mix(in srgb, var(--tone) 28%, var(--border));
+      border-radius: var(--r-lg);
+    }
+    .dp-body .rk-hero-top { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--sp-4); align-items: center; }
+    .dp-body .rk-medal {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 92px;
+      height: 92px;
+      border-radius: 50%;
+      color: var(--tone);
+      background: radial-gradient(circle at 30% 25%, color-mix(in srgb, var(--tone) 30%, transparent), color-mix(in srgb, var(--tone) 8%, transparent) 70%);
+      box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--tone) 60%, transparent), 0 0 0 6px color-mix(in srgb, var(--tone) 9%, transparent), 0 14px 30px -16px var(--tone);
+      overflow: hidden;
+      animation: rkPop 0.5s var(--ease) both;
+    }
+    .dp-body .rk-medal-ico svg { width: 18px; height: 18px; display: block; }
+    .dp-body .rk-medal-n { font-family: var(--font-display); font-size: 1.9rem; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+    /* a light passing over the gold one */
+    .dp-body .rk-medal--gold::after {
+      content: '';
+      position: absolute;
+      inset: -20%;
+      background: linear-gradient(115deg, transparent 40%, rgba(255, 255, 255, 0.45) 50%, transparent 60%);
+      transform: translateX(-100%);
+      animation: rkShine 2.6s 0.6s var(--ease) both;
+      pointer-events: none;
+    }
+    .dp-body .rk-hero-txt { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-width: 0; }
+    .dp-body .rk-kicker { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--tone); }
+    .dp-body .rk-hero-when {
+      padding: 0;
+      font: inherit;
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 800;
+      text-align: left;
+      color: var(--text);
+      background: none;
+      border: 0;
+      cursor: pointer;
+      text-decoration: underline dotted color-mix(in srgb, var(--text) 30%, transparent);
+      text-underline-offset: 4px;
+      transition: color var(--t-fast) var(--ease);
+    }
+    .dp-body .rk-hero-when:hover { color: var(--tone); }
+    .dp-body .rk-hero-when span { font-family: var(--font-body, inherit); font-size: var(--fs-xs); font-weight: 600; color: var(--text3); }
+    .dp-body .rk-story { margin: 4px 0 0; font-size: var(--fs-sm); line-height: 1.5; color: var(--text2); }
+    .dp-body .rk-story b { color: var(--text); }
+    .dp-body .rk-story b.is-gold { color: var(--medal-gold); }
+
+    .dp-body .rk-stats { display: grid; grid-template-columns: repeat(4, 1fr); margin-top: var(--sp-4); padding-top: var(--sp-3); border-top: 1px dashed var(--border); }
+    .dp-body .rk-stat { --st: var(--text); display: flex; flex-direction: column; align-items: center; text-align: center; padding: 0 var(--sp-1); }
+    .dp-body .rk-stat + .rk-stat { border-left: 1px solid var(--border); }
+    .dp-body .rk-stat-v { font-family: var(--font-display); font-size: 1.6rem; font-weight: 800; line-height: 1.1; color: var(--st); font-variant-numeric: tabular-nums; }
+    .dp-body .rk-stat-u { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--st); opacity: 0.85; }
+    .dp-body .rk-stat-l { font-size: 0.7rem; color: var(--text3); line-height: 1.3; }
+    /* in a row or not: under "at #1" and "in the Top 10" */
+    .dp-body .rk-stat-c { margin-top: 5px; padding: 1px 7px; font-size: 0.64rem; font-weight: 700; line-height: 1.5; color: var(--st); background: color-mix(in srgb, var(--st) 13%, transparent); border-radius: 5px; }
+    .dp-body .rk-tone-count { --st: var(--violet); }
+    .dp-body .rk-tone-gold { --st: var(--medal-gold); }
+    .dp-body .rk-tone-silver { --st: var(--medal-silver); }
+    .dp-body .rk-tone-accent { --st: var(--dp-ac); }
+    .dp-body .rk-tone-dim { --st: var(--text3); }
+
+    .dp-body .rk-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-3); flex-wrap: wrap; }
+    .dp-body .rk-head span { font-size: 0.7rem; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--text3); }
+
+    /* The graph */
+    .dp-body .rk-plot-wrap { padding: 26px 0 0 38px; }
+    .dp-body .rk-plot {
+      position: relative;
+      height: 200px;
+      background: var(--raised);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      cursor: crosshair;
+      touch-action: pan-y;
+      outline: none;
+    }
+    .dp-body .rk-plot:focus-visible { box-shadow: 0 0 0 2px var(--focus-ring, var(--dp-ac)); }
+    .dp-body .rk-gl { position: absolute; left: 0; right: 0; height: 0; border-top: 1px dashed var(--border); pointer-events: none; }
+    .dp-body .rk-gl b { position: absolute; right: calc(100% + 8px); top: 0; transform: translateY(-50%); font-size: 0.66rem; font-weight: 700; color: var(--text3); font-variant-numeric: tabular-nums; }
+    .dp-body .rk-gl--1 { border-top-color: color-mix(in srgb, var(--medal-gold) 55%, transparent); }
+    .dp-body .rk-gl--1 b { color: var(--medal-gold); }
+    .dp-body .rk-tick { position: absolute; top: 0; bottom: 0; border-left: 1px solid color-mix(in srgb, var(--text) 7%, transparent); pointer-events: none; }
+    .dp-body .rk-tick b { position: absolute; bottom: 4px; left: 5px; font-size: 0.62rem; font-weight: 700; color: var(--text3); }
+    .dp-body .rk-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; animation: rkReveal 0.9s var(--ease) both; }
+    .dp-sec.dp-in .rk-svg { animation-name: rkReveal2; }
+    .dp-body .rk-svg stop { stop-color: var(--dp-ac); }
+    .dp-body .rk-band { fill: color-mix(in srgb, var(--dp-ac) 7%, transparent); }
+    .dp-body .rk-area { fill: url(#rkFill); }
+    .dp-body .rk-line { fill: none; stroke: var(--dp-ac); stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+    .dp-body .rk-dots { position: absolute; inset: 0; pointer-events: none; }
+    .dp-body .rk-dot {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--raised);
+      border: 2px solid var(--dp-ac);
+      transform: translate(-50%, -50%);
+      animation: rkDot 0.3s calc(0.35s + var(--i) * 14ms) var(--ease) both;
+    }
+    .dp-body .rk-dot--peak { background: var(--dp-ac); }
+    .dp-body .rk-dot--gold { width: 10px; height: 10px; background: var(--medal-gold); border-color: var(--medal-gold); box-shadow: 0 0 10px color-mix(in srgb, var(--medal-gold) 70%, transparent); }
+    .dp-body .rk-guide { position: absolute; top: 0; bottom: 0; width: 0; border-left: 1px solid color-mix(in srgb, var(--text) 22%, transparent); pointer-events: none; transition: left 0.12s var(--ease); }
+    .dp-body .rk-focus {
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--tone);
+      border: 3px solid var(--raised);
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--tone) 28%, transparent);
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      transition: left 0.12s var(--ease), top 0.12s var(--ease);
+    }
+    .dp-body .rk-focus b {
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 2px 8px;
+      font-size: 0.74rem;
+      font-weight: 800;
+      white-space: nowrap;
+      color: var(--bg);
+      background: var(--text);
+      border-radius: 6px;
+      box-shadow: var(--shadow-1);
+    }
+    .dp-body .rk-axis { display: flex; justify-content: space-between; margin: 6px 0 0 38px; font-size: 0.68rem; color: var(--text3); font-variant-numeric: tabular-nums; }
+
+    /* Zoom (2026-10-29): range chips and − / + over the graph, the stage the
+       window is drawn in, and the overview strip under it */
+    .dp-body .rk-plot-wrap.can-zoom { padding-top: 0; }
+    .dp-body .rk-zoom { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); flex-wrap: wrap; margin-bottom: 30px; }
+    .dp-body .rk-zoom-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .dp-body .rk-zc { padding: 5px 11px; }
+    .dp-body .rk-zoom-btns { display: inline-flex; border: 1px solid var(--border); border-radius: var(--r-md); overflow: hidden; }
+    .dp-body .rk-zb { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 30px; padding: 0; color: var(--text2); background: var(--raised); border: 0; cursor: pointer; transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease); }
+    .dp-body .rk-zb + .rk-zb { border-left: 1px solid var(--border); }
+    .dp-body .rk-zb:hover { color: var(--text); background: color-mix(in srgb, var(--dp-ac) 16%, var(--raised)); }
+    .dp-body .rk-zb svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+    .dp-body .rk-stage { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; pointer-events: none; }
+    .dp-body .rk-plot-wrap.is-zoomed .rk-plot { cursor: grab; }
+    .dp-body .rk-plot.is-dragging { cursor: grabbing; }
+    .dp-body .rk-plot.rk-live .rk-svg, .dp-body .rk-plot.rk-live .rk-dot { animation: none; }
+    .dp-body .rk-tick--yr { border-left-color: color-mix(in srgb, var(--text) 14%, transparent); }
+    .dp-body .rk-tick--yr b { color: var(--text2); }
+    .dp-body .rk-brush {
+      position: relative;
+      height: 38px;
+      margin: 10px 0 0 38px;
+      background: color-mix(in srgb, var(--text) 4%, transparent);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      cursor: pointer;
+      touch-action: none;
+      user-select: none;
+      overflow: hidden;
+    }
+    .dp-body .rk-brush svg { position: absolute; inset: 4px 0; width: 100%; height: calc(100% - 8px); overflow: visible; }
+    .dp-body .rk-brush path { fill: none; stroke: color-mix(in srgb, var(--dp-ac) 70%, transparent); stroke-width: 1.2; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+    .dp-body .rk-win {
+      position: absolute;
+      top: -1px;
+      bottom: -1px;
+      min-width: 10px;
+      background: color-mix(in srgb, var(--dp-ac) 16%, transparent);
+      border: 1.5px solid var(--dp-ac);
+      border-radius: var(--r-sm);
+      box-shadow: 0 0 0 9999px color-mix(in srgb, var(--bg) 35%, transparent);
+      cursor: grab;
+    }
+    .dp-body .rk-brush.is-dragging, .dp-body .rk-brush.is-dragging .rk-win { cursor: grabbing; }
+    .dp-body .rk-win-h { position: absolute; top: 50%; width: 14px; height: 26px; transform: translate(-50%, -50%); cursor: ew-resize; }
+    .dp-body .rk-win-h::after { content: ''; position: absolute; left: 50%; top: 50%; width: 4px; height: 16px; transform: translate(-50%, -50%); border-radius: 2px; background: var(--dp-ac); box-shadow: 0 0 0 2px var(--raised); }
+    .dp-body .rk-win-h--l { left: 0; }
+    .dp-body .rk-win-h--r { left: 100%; }
+
+    /* The entry in focus */
+    .dp-body .rk-dt {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: var(--sp-3);
+      align-items: center;
+      margin-top: var(--sp-3);
+      padding: var(--sp-3);
+      background: var(--raised);
+      border: 1px solid color-mix(in srgb, var(--tone) 30%, var(--border));
+      border-radius: var(--r-md);
+    }
+    .dp-body .rk-dt-rank {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 54px;
+      height: 54px;
+      padding: 0 6px;
+      border-radius: var(--r-md);
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--tone);
+      background: color-mix(in srgb, var(--tone) 14%, transparent);
+      font-variant-numeric: tabular-nums;
+    }
+    .dp-body .rk-dt-txt { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .dp-body .rk-dt-when { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; font-size: var(--fs-sm); font-weight: 700; color: var(--text); }
+    .dp-body .rk-mv { font-size: 0.66rem; font-weight: 800; letter-spacing: 0.03em; text-transform: uppercase; padding: 2px 7px; border-radius: 5px; color: var(--text2); background: color-mix(in srgb, var(--text) 8%, transparent); }
+    .dp-body .rk-mv--up { color: var(--chart-up); background: color-mix(in srgb, var(--chart-up) 14%, transparent); }
+    .dp-body .rk-mv--down { color: var(--chart-down); background: color-mix(in srgb, var(--chart-down) 14%, transparent); }
+    .dp-body .rk-mv--new { color: var(--chart-new); background: color-mix(in srgb, var(--chart-new) 14%, transparent); }
+    .dp-body .rk-mv--re { color: var(--chart-re); background: color-mix(in srgb, var(--chart-re) 14%, transparent); }
+    .dp-body .rk-dt-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; font-size: var(--fs-xs); color: var(--text3); }
+    .dp-body .rk-dt-meta > span, .dp-body .rk-dt-top { display: inline-flex; align-items: center; gap: 5px; }
+    .dp-body .rk-dt-meta svg { width: 13px; height: 13px; flex-shrink: 0; }
+    .dp-body .rk-dt-meta b { color: var(--text2); font-weight: 700; }
+    .dp-body .rk-dt-top { padding: 0; font: inherit; color: var(--text3); background: none; border: 0; cursor: pointer; min-width: 0; text-align: left; }
+    .dp-body button.rk-dt-top:hover, .dp-body button.rk-dt-top:hover b { color: var(--dp-ac); }
+    .dp-body .rk-dt-top svg { color: var(--medal-gold); }
+    .dp-body .rk-dt-top.is-me { color: var(--medal-gold); font-weight: 700; }
+    .dp-body .rk-dt-go { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+    .dp-body .rk-dt-go svg { width: 14px; height: 14px; }
+
+    /* The moments */
+    .dp-body .rk-moments { position: relative; display: flex; flex-direction: column; gap: 2px; }
+    .dp-body .rk-moments::before { content: ''; position: absolute; left: 25px; top: 20px; bottom: 20px; width: 2px; background: var(--border); border-radius: 2px; }
+    .dp-body .rk-mo {
+      --mt: var(--dp-ac);
+      position: relative;
+      display: grid;
+      grid-template-columns: 32px minmax(0, 1fr) auto;
+      gap: var(--sp-3);
+      align-items: center;
+      padding: 8px 10px;
+      font: inherit;
+      text-align: left;
+      color: var(--text2);
+      background: none;
+      border: 1px solid transparent;
+      border-radius: var(--r-md);
+      cursor: pointer;
+      animation: dpTabIn 0.3s calc(0.1s + var(--n, 0) * 40ms) var(--ease) both;
+      transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+    }
+    .dp-body .rk-mo:nth-child(2) { --n: 1; } .dp-body .rk-mo:nth-child(3) { --n: 2; } .dp-body .rk-mo:nth-child(4) { --n: 3; }
+    .dp-body .rk-mo:nth-child(5) { --n: 4; } .dp-body .rk-mo:nth-child(6) { --n: 5; } .dp-body .rk-mo:nth-child(n+7) { --n: 6; }
+    .dp-body .rk-mo:hover { background: var(--hover); }
+    .dp-body .rk-mo.is-on { background: color-mix(in srgb, var(--dp-ac) 9%, transparent); border-color: color-mix(in srgb, var(--dp-ac) 35%, transparent); }
+    .dp-body .rk-mo-ico {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      color: var(--mt);
+      background: var(--raised);
+      box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--mt) 55%, transparent);
+    }
+    .dp-body .rk-mo-ico svg { width: 15px; height: 15px; }
+    .dp-body .rk-mo-txt { font-size: var(--fs-sm); line-height: 1.4; }
+    .dp-body .rk-mo-txt b { color: var(--text); }
+    .dp-body .rk-mo-when { font-size: var(--fs-xs); color: var(--text3); white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .dp-body .rk-mo--debut { --mt: var(--chart-new); }
+    .dp-body .rk-mo--gold { --mt: var(--medal-gold); }
+    .dp-body .rk-mo--gold .rk-mo-ico { background: color-mix(in srgb, var(--medal-gold) 16%, var(--raised)); }
+    .dp-body .rk-mo--peak { --mt: var(--medal-bronze); }
+    .dp-body .rk-mo--now { --mt: var(--chart-up); }
+    .dp-body .rk-mo--dim { --mt: var(--text3); }
+    .dp-body b.rk-r { font-family: var(--font-display); font-weight: 800; color: var(--tone); }
+
+    /* Songs and albums on each chart */
+    .dp-body .rk-mu { display: flex; flex-direction: column; gap: 6px; }
+    .dp-body .rk-mu-row { display: grid; grid-template-columns: 120px repeat(4, minmax(0, 1fr)); gap: 6px; align-items: stretch; }
+    .dp-body .rk-mu-hd > span { display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 0.66rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text3); }
+    .dp-body .rk-mu-hd > span.is-on { color: var(--dp-ac); }
+    .dp-body .rk-mu-hd svg { width: 13px; height: 13px; }
+    .dp-body .rk-mu-lbl { display: flex; align-items: center; gap: 8px; font-size: var(--fs-sm); font-weight: 700; color: var(--text); }
+    .dp-body .rk-mu-lbl svg { width: 16px; height: 16px; color: var(--dp-ac); }
+    .dp-body .rk-mu-cell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      min-height: 62px;
+      padding: 8px 4px;
+      font: inherit;
+      color: var(--text);
+      background: var(--raised);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      cursor: pointer;
+      transition: border-color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+    }
+    .dp-body button.rk-mu-cell:hover { border-color: color-mix(in srgb, var(--dp-ac) 55%, var(--border)); transform: translateY(-2px); box-shadow: 0 10px 20px -14px var(--dp-ac); }
+    .dp-body .rk-mu-cell.is-on { background: color-mix(in srgb, var(--dp-ac) 9%, var(--raised)); border-color: color-mix(in srgb, var(--dp-ac) 35%, var(--border)); }
+    .dp-body .rk-mu-cell.is-empty { color: var(--text3); background: transparent; border-style: dashed; cursor: default; }
+    .dp-body .rk-mu-n { font-family: var(--font-display); font-size: 1.3rem; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; }
+    .dp-body .rk-mu-best { font-size: 0.68rem; font-weight: 700; color: var(--tone); }
+
+    .dp-body .rk-none { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-4); font-size: var(--fs-sm); color: var(--text3); background: var(--raised); border: 1px dashed var(--border); border-radius: var(--r-lg); }
+    .dp-body .rk-none svg { width: 20px; height: 20px; flex-shrink: 0; }
+
+    /* The Hall of Fame reel waiting on its first build */
+    .dp-body .modal-records-wait { display: flex; align-items: center; gap: 10px; }
+    .dp-body .modal-records-wait::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--dp-ac); animation: rkPulse 1s ease-in-out infinite alternate; }
+
+    @keyframes rkReveal { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+    @keyframes rkReveal2 { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+    @keyframes rkDot { from { opacity: 0; transform: translate(-50%, -50%) scale(0.2); } }
+    @keyframes rkPop { from { opacity: 0; transform: scale(0.7); } }
+    @keyframes rkShine { to { transform: translateX(100%); } }
+    @keyframes rkPulse { from { opacity: 0.3; transform: scale(0.8); } }
+
+    /* the reel's heading reads like the other headings of this tab */
+    .dp-body #modalHeldRecordsTitle { margin: var(--sp-5) 0 var(--sp-2); font-family: inherit; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); }
+
+    @media (max-width: 640px) {
+      .dp-body .rk-ch { min-width: 0; gap: 5px; padding: 8px 4px; }
+      .dp-body .rk-ch svg { display: none; }
+      .dp-body .rk-medal { width: 76px; height: 76px; }
+      .dp-body .rk-medal-n { font-size: 1.5rem; }
+      .dp-body .rk-hero { padding: var(--sp-3); }
+      .dp-body .rk-stat-v { font-size: 1.25rem; }
+      .dp-body .rk-stat-u { font-size: 0.56rem; }
+      .dp-body .rk-plot { height: 170px; }
+      .dp-body .rk-dt { grid-template-columns: auto minmax(0, 1fr); }
+      .dp-body .rk-dt-go { grid-column: 1 / -1; justify-content: center; }
+      .dp-body .rk-mu-row { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .dp-body .rk-mu-hd > span:first-child { display: none; }
+      .dp-body .rk-mu-lbl { grid-column: 1 / -1; margin-top: 4px; }
+      .dp-body .rk-mu-hd > span { font-size: 0.58rem; letter-spacing: 0.02em; }
+      .dp-body .rk-mu-hd svg { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .dp-body .rk-medal, .dp-body .rk-medal--gold::after, .dp-body .rk-svg, .dp-body .rk-dot, .dp-body .rk-mo, .dp-body .modal-records-wait::before { animation: none; }
+      .dp-body .rk-guide, .dp-body .rk-focus { transition: none; }
     }
 
     /* ── Artist Rating tab (2026-10-28) ────────────────────────────────────

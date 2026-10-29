@@ -358,6 +358,8 @@
       var on = secs[i].getAttribute('data-dp-tab') === tab;
       secs[i].classList.toggle('dp-on', on);
       if (on && !instant) { secs[i].classList.remove('dp-in'); void secs[i].offsetWidth; secs[i].classList.add('dp-in'); }
+      // a part that animates its own content listens for this (Rankings)
+      if (on) secs[i].dispatchEvent(new CustomEvent('dp-show'));
     }
     var btns = o.querySelectorAll('.dp-tab'), active = null;
     for (var j = 0; j < btns.length; j++) {
@@ -432,6 +434,16 @@
     if (bk) bk.hidden = !hist.length;
   }
   window.dcPanelBack = back;
+  // ✕ on a panel opened from another one (a song from an artist) steps back
+  // like ← instead of closing everything; with nothing behind it, it closes.
+  // Capture phase, so app.js's own close listener on the button never runs.
+  document.addEventListener('click', function (e) {
+    var x = e.target.closest && e.target.closest('.dp-overlay .dc-modal-close');
+    if (!x || !hist.length) return;
+    e.stopPropagation();
+    e.preventDefault();
+    back();
+  }, true);
   // Opens one tab of an open panel (the artist Overview's ratings card → Ratings)
   window.dcPanelShowTab = function (kind, tab) {
     var o = overlayOf(kind);

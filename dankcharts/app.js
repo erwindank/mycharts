@@ -26303,15 +26303,25 @@ function amRenderList() {
         chip('calendar', `<b>${r.days}</b>d`, t('am_th_days')) +
         (r.run ? chip('flame', `<b>${esc(r.run.v)}</b>`, r.run.tip) : '');
     const isOpen = _am.open === r;
-    return `<div class="am-row${isOpen ? ' is-open' : ''}" data-i="${i}">
-      <div class="am-main" role="button" tabindex="0" onclick="amOpen(${i})" onkeydown="if(event.target===this&&(event.key==='Enter'||event.key===' ')){event.preventDefault();amOpen(${i});}">
+    const isSong = r.kind === 'songs';
+    // the name opens the song / album; a song's album line opens the album
+    const nameEl = `<button type="button" class="am-name-t am-link" onclick="event.stopPropagation();amOpen(${i})" title="${esc(t(isSong ? 'am_open_song' : 'am_open_album'))}">${esc(r.name)}</button>`;
+    const subEl = !r.sub ? ''
+      : isSong && r.albumKey ? `<button type="button" class="am-sub am-link" onclick="event.stopPropagation();amOpenAlbum(${i})" title="${esc(t('am_open_album'))}">${esc(r.sub)}</button>`
+      : `<span class="am-sub">${esc(r.sub)}</span>`;
+    // Sample, Spotify and YouTube; the sample reads the row's data-ea-*
+    const q = encodeURIComponent(r.name + ' ' + r.artist);
+    const acts = `<span class="am-acts">${_eaSampleBtn('am-act am-act-play')}${_eaSpotifyBtn(r.kind, r.name, r.artist).replace('class="ea-spotify"', 'class="ea-spotify am-act am-act-sp"')}<a class="am-act am-act-yt" href="https://www.youtube.com/results?search_query=${q}" target="_blank" rel="noopener" title="${esc(t('awx_yt'))}" aria-label="${esc(t('awx_yt'))}" onclick="event.stopPropagation()">${_ST_AM_YT_SVG}</a></span>`;
+    return `<div class="am-row${isOpen ? ' is-open' : ''}" data-i="${i}" onclick="amRowClick(event,${i})"
+      data-ea-type="${r.kind}" data-ea-title="${esc(isSong ? r.name : '')}" data-ea-artist="${esc(r.artist)}" data-ea-album="${esc(isSong ? (r.sub || '') : r.name)}" data-ea-key="${esc(r.openKey)}" data-ea-img="amImg-${i}">
+      <div class="am-main" role="button" tabindex="0" aria-expanded="${isOpen}" onkeydown="if(event.target===this&&(event.key==='Enter'||event.key===' ')){event.preventDefault();amToggle(${i});}">
         <span class="am-rank am-rank--${tone(r.rank)}">${r.rank ? '#' + r.rank : '—'}</span>
         <span class="am-art" id="amImg-${i}"><span class="thumb-initials">${esc(initials(r.name))}</span></span>
-        <span class="am-txt"><span class="am-name"><span class="am-name-t">${esc(r.name)}</span>${r.cert}</span>${r.sub ? `<span class="am-sub">${esc(r.sub)}</span>` : ''}</span>
+        <span class="am-txt"><span class="am-name">${nameEl}${r.cert}</span>${subEl}</span>
         <span class="am-plays"><span><b>${r.plays.toLocaleString()}</b> ${esc(tUnit('plays', r.plays))}</span><span class="am-bar"><span style="width:${(r.plays / maxPlays * 100).toFixed(1)}%"></span></span></span>
       </div>
-      <button type="button" class="am-exp" aria-expanded="${isOpen}" onclick="amToggle(${i})" title="${esc(t(ch === 'all' ? 'am_stream_history' : 'tooltip_cr_toggle_btn_song'))}">${_amIco('next')}</button>
-      <div class="am-meta">${meta}</div>
+      <button type="button" class="am-exp" aria-expanded="${isOpen}" onclick="event.stopPropagation();amToggle(${i})" title="${esc(t(ch === 'all' ? 'am_stream_history' : 'tooltip_cr_toggle_btn_song'))}">${_amIco('next')}</button>
+      <div class="am-meta">${meta}${acts}</div>
       <div class="am-detail"${isOpen ? '' : ' hidden'}>${isOpen ? r.panel() : ''}</div>
     </div>`;
   }).join('') + (view.length > AM_PAGE
@@ -26345,11 +26355,22 @@ function amSort(s) {
   amRenderList();
 }
 function amShowAll() { if (!_am) return; _am.all = !_am.all; amRenderList(); }
-// A row opens its own song / album panel
+// The name opens its own song / album panel
 function amOpen(i) {
   const r = _am && _am.view[i];
   if (!r) return;
   if (r.kind === 'songs') openSongModal(r.openKey); else openAlbumModal(r.openKey);
+}
+// A song row's album line opens that album
+function amOpenAlbum(i) {
+  const r = _am && _am.view[i];
+  if (r && r.albumKey) openAlbumModal(r.albumKey);
+}
+// Anywhere else on the card unfolds its chart run / play history, the same
+// as the arrow. Buttons, links and the unfolded part keep their own clicks.
+function amRowClick(e, i) {
+  if (e.target.closest('button, a, input, .am-detail')) return;
+  amToggle(i);
 }
 // ▾ unfolds the chart run (chart lists) or play history (all-time); built on first open
 function amToggle(i) {
@@ -26363,6 +26384,658 @@ function amToggle(i) {
   row.classList.toggle('is-open', open);
   row.querySelector('.am-exp').setAttribute('aria-expanded', open);
   _am.open = open ? r : null;
+}
+
+/* ── Artist Rankings tab (2026-10-29) ─────────────────────────────────────
+   Was three rows of look-alike tiles (peaks, "records", a debut) and a
+   table of song / album counts. Now one chart at a time — Weekly, Monthly
+   or Yearly — told in order:
+     .rk-hero    the peak as a medal, when it was reached, one sentence of
+                 the run (_crStory, the chart run's own) and four numbers:
+                 on the chart, at #1, in the Top 10, longest streak
+     .rk-plot    the rank over time. Moving over it (or the arrow keys)
+                 walks the entries; a click pins one. Under it, the entry
+                 in focus: the period, its rank and move, plays, who was #1
+                 then (opens that artist), and a link to that chart
+     .rk-moments debut, first Top 10, peak / first #1, biggest climb,
+                 longest streak, latest comeback, latest entry; each one
+                 puts the graph on its entry
+     .rk-music   songs and albums on each chart with their best rank; a
+                 cell opens the Music tab on that list
+   The Hall of Fame reel follows (renderModalArtistRecords). openArtistModal
+   fills _rnk; derived numbers per chart are worked out once (_rkModel). */
+let _rnk = null;
+const RK_CHARTS = ['week', 'month', 'year'];
+const RK_ICON = { week: 'bars', month: 'moon', year: 'star', all: 'trophy' };
+const RK_DOTS_MAX = 60;   // entries above this draw only the notable dots
+
+function _rkTone(r) { return !r ? 'none' : r === 1 ? 'gold' : r <= 3 ? 'silver' : r <= 10 ? 'bronze' : 'plain'; }
+
+// The longest stretch of entries in a row (no period between them) that all
+// pass test — weeks at #1 in a row, say. { len, start } with start an index.
+function _rkRunOf(per, E, test) {
+  let best = { len: 0, start: -1 }, len = 0, start = -1;
+  E.forEach((e, i) => {
+    if (!test(e)) { len = 0; return; }
+    const joined = len && crPeriodGap(per, E[i - 1].periodKey, e.periodKey) === 0;
+    if (joined) len++; else { len = 1; start = i; }
+    if (len > best.len) best = { len, start };
+  });
+  return best;
+}
+
+// Under a count: whether those weeks came in a row. All of them, never two
+// together, or the longest stretch (only said when there is more than one)
+function _rkRowNote(per, total, run) {
+  if (total < 2) return '';
+  if (run.len === total) return t('rk_row_all_' + per);
+  if (run.len < 2) return t('rk_row_none_' + per);
+  return t('rk_row_max_' + per, { n: run.len });
+}
+
+function _rkModel(per) {
+  if (_rnk.models[per]) return _rnk.models[per];
+  const d = _rnk.runs[per];
+  if (!d || !d.entries.length) return (_rnk.models[per] = null);
+  const E = d.entries, n = E.length;
+  // Calendar position of each entry from the first, so gaps show as gaps
+  const pos = E.map(e => e === E[0] ? 0 : crPeriodGap(per, E[0].periodKey, e.periodKey) + 1);
+  const span = pos[n - 1] || 1;
+  // Runs without a break off the chart
+  const streaks = [];
+  E.forEach((e, i) => {
+    if (i && crPeriodGap(per, E[i - 1].periodKey, e.periodKey) === 0) streaks[streaks.length - 1].end = i;
+    else streaks.push({ start: i, end: i });
+  });
+  const longest = streaks.reduce((b, s) => s.end - s.start > b.end - b.start ? s : b, streaks[0]);
+  // The y scale: square root, so the top of the chart gets the room
+  const worst = Math.max(...E.map(e => e.rank));
+  const maxR = [10, 20, 25, 50, 75, 100, 150, 200, 250, 500, 1000].find(v => v >= worst) || worst;
+  const y = r => 6 + Math.sqrt(r - 1) / Math.sqrt(maxR - 1) * 88;
+  const peakI = E.findIndex(e => e.rank === d.peak);
+  return (_rnk.models[per] = {
+    d, E, n, pos, span, streaks, longest, maxR, y, peakI,
+    at1: E.filter(e => e.rank === 1).length,
+    at1Run: _rkRunOf(per, E, e => e.rank === 1),
+    top10Run: _rkRunOf(per, E, e => e.rank <= 10),
+    top10: E.filter(e => e.rank <= 10).length,
+    peakTimes: E.filter(e => e.rank === d.peak).length,
+    curKey: allChartRun?.[per]?.curKey
+  });
+}
+
+function rkRender() {
+  const el = document.getElementById('modalRankings');
+  if (!el || !_rnk) return;
+  const per = _rnk.chart, M = _rkModel(per);
+  const ic = _amIco;
+  _rnk.focus = _rnk.pin = M ? M.n - 1 : null;
+  // the graph starts on the whole history
+  _rnk.view = M ? { a: 0, b: M.span } : null;
+
+  const chartBtn = c => {
+    const n = _rnk.runs[c]?.entries.length || 0;
+    return `<button type="button" role="tab" class="am-type-btn rk-ch${c === per ? ' is-on' : ''}" aria-selected="${c === per}" ${n ? '' : 'disabled'} onclick="rkSetChart('${c}')">
+      ${ic(RK_ICON[c])}<span>${esc(t('am_c_' + c))}</span><span class="am-type-n">${n ? '#' + _rnk.runs[c].peak : '—'}</span></button>`;
+  };
+  const head = `<div class="rk-top"><div class="am-type rk-type" role="tablist">${RK_CHARTS.map(chartBtn).join('')}</div></div>`;
+  const music = _rkMusicHTML();
+  if (!M) {
+    el.innerHTML = `${head}<div class="rk-none">${ic('bars')}<span>${esc(t('rk_none'))}</span></div>${music}`;
+    return;
+  }
+  const { d, E, n, longest } = M;
+  const unit = per;
+  const u = c => t('cr_u_' + unit + (c === 1 ? '_one' : '_other'));
+  const stat = (v, unitWord, label, tone, note) => `<div class="rk-stat rk-tone-${tone}">
+      <span class="rk-stat-v rk-count">${v.toLocaleString()}</span>
+      <span class="rk-stat-u">${esc(unitWord)}</span>
+      <span class="rk-stat-l">${esc(label)}</span>
+      ${note ? `<span class="rk-stat-c">${esc(note)}</span>` : ''}</div>`;
+  // The sentence says how many at the top; this says whether in a row
+  const at1Note = _rkRowNote(per, M.at1, M.at1Run);
+  const story = _crStory(d, unit, per, true, M.curKey) + (at1Note ? ' ' + esc(t('rk_story_at1', { note: at1Note })) : '');
+  const streakLen = longest.end - longest.start + 1;
+  const peakE = E[M.peakI];
+  const tone = _rkTone(d.peak);
+
+  el.innerHTML = `${head}
+    <div class="rk-hero rk-hero--${tone}">
+      <div class="rk-hero-top">
+        <div class="rk-medal rk-medal--${tone}">
+          <span class="rk-medal-ico">${ic(d.peak === 1 ? 'crown' : 'trophy')}</span>
+          <span class="rk-medal-n">#${d.peak}</span>
+        </div>
+        <div class="rk-hero-txt">
+          <span class="rk-kicker">${esc(t('rk_peak_on', { chart: t('rk_chart_' + per) }))}</span>
+          <button type="button" class="rk-hero-when" onclick="rkFocus(${M.peakI},true,true)">${esc(crPeriodTitle(per, peakE.periodKey))}${M.peakTimes > 1 ? ` <span>· ${esc(t('rk_peak_times', { n: M.peakTimes }))}</span>` : ''}</button>
+          <p class="rk-story">${story}</p>
+        </div>
+      </div>
+      <div class="rk-stats">
+        ${stat(n, u(n), t('cr_rb_on_chart'), 'count')}
+        ${stat(M.at1, u(M.at1), t('am_sum_no1'), M.at1 ? 'gold' : 'dim', at1Note)}
+        ${stat(M.top10, u(M.top10), t('am_sum_top10'), M.top10 ? 'silver' : 'dim', _rkRowNote(per, M.top10, M.top10Run))}
+        ${stat(streakLen, u(streakLen), t('rk_s_streak'), 'accent')}
+      </div>
+    </div>
+
+    <div class="ao-head rk-head">${esc(t('rk_h_run'))}<span>${esc(t(!_rkCanZoom(M, per) ? 'rk_plot_hint'
+      : window.matchMedia && matchMedia('(pointer: coarse)').matches ? 'rk_plot_hint_touch' : 'rk_plot_hint_zoom'))}</span></div>
+    ${_rkPlotHTML(M, per)}
+    <div class="rk-detail" aria-live="polite"></div>
+
+    <div class="ao-head rk-head">${esc(t('rk_h_moments'))}</div>
+    <div class="rk-moments">${_rkMomentsHTML(M, per)}</div>
+    ${music}`;
+
+  _rkDrawStage();
+  _rkWirePlot(el);
+  rkFocus(_rnk.pin, true);
+  _rkCountUp(el);
+  // Replay the line and the numbers whenever the tab comes back on screen
+  const sec = el.closest('.dp-sec');
+  if (sec && !sec._rkShow) {
+    sec._rkShow = true;
+    // the ticks are spaced by the graph's real width, which is 0 while hidden
+    const redraw = () => { if (_rnk && _rnk.view && sec.classList.contains('dp-on')) { _rkDrawStage(); rkFocus(_rnk.focus); } };
+    sec.addEventListener('dp-show', () => { _rkCountUp(document.getElementById('modalRankings')); requestAnimationFrame(redraw); });
+    let rt = 0;
+    window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(redraw, 150); });
+  }
+}
+
+/* ── Zooming the graph (2026-10-29) ──────────────────────────────────────
+   A long history (100+ weeks) squeezed every week into a pixel or two, so
+   the graph now shows a window of it, _rnk.view = { a, b } in periods from
+   the first entry. Ways to move it:
+     • the range chips (6 months · 1 year · 3 years · All) and − / +;
+       a range is centred on the entry in focus, so the latest by default
+     • Ctrl + scroll / a trackpad pinch zooms around the pointer, sideways
+       scroll pans; a plain scroll still scrolls the panel
+     • dragging the graph with the mouse pans; two fingers pinch and pan
+     • the overview strip under it (.rk-brush): the whole history small,
+       with the window drawn on it — drag it, pull its edges, or tap the
+       strip to jump there
+     • keys on the graph: + / − zoom, 0 shows everything
+   The frame (rank lines, marker) is drawn once; the stage inside it
+   (ticks, line, dots) is redrawn for each view by _rkDrawStage. */
+const RK_MIN_SPAN = { week: 8, month: 4, year: 2 };
+const RK_PRESETS = { week: [[26, 'rk_z_6m'], [52, 'rk_z_1y'], [156, 'rk_z_3y']], month: [[12, 'rk_z_1y'], [36, 'rk_z_3y'], [60, 'rk_z_5y']], year: [] };
+
+function _rkCanZoom(M, per) { return !!M && M.n > 1 && M.span > RK_MIN_SPAN[per] * 1.5; }
+// A calendar position on screen (percent across the graph) and back
+function _rkXOf(p) { const v = _rnk.view; return 3 + (p - v.a) / Math.max(1e-9, v.b - v.a) * 94; }
+function _rkPosAt(x) { const v = _rnk.view; return v.a + (x - 3) / 94 * (v.b - v.a); }
+
+// The first day of a calendar position, and its key in the chart's format
+function _rkPosDate(per, first, p) {
+  if (per === 'week') { const d = new Date(first + 'T00:00:00'); d.setDate(d.getDate() + Math.round(p) * 7); return d; }
+  if (per === 'month') { const [y, m] = first.split('-').map(Number); return new Date(y, m - 1 + Math.round(p), 1); }
+  return new Date(+first + Math.round(p), 0, 1);
+}
+function _rkPosKey(per, first, p) {
+  const d = _rkPosDate(per, first, p), pad = v => String(v).padStart(2, '0');
+  return per === 'week' ? `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+    : per === 'month' ? `${d.getFullYear()}-${pad(d.getMonth() + 1)}` : String(d.getFullYear());
+}
+
+function _rkPlotHTML(M, per) {
+  const { n, y, maxR } = M;
+  const grid = [1, ...(maxR > 10 ? [10] : [5]), maxR];
+  const gridHTML = grid.map(r => `<span class="rk-gl${r === 1 ? ' rk-gl--1' : ''}" style="top:${y(r).toFixed(2)}%"><b>#${r}</b></span>`).join('');
+  const label = t('rk_plot_aria', { chart: t('rk_chart_' + per) });
+  const zoom = _rkCanZoom(M, per);
+  const ic = _amIco;
+  const tools = zoom ? `<div class="rk-zoom">
+      <div class="rk-zoom-chips">${RK_PRESETS[per].filter(([w]) => w < M.span).map(([w, k]) =>
+        `<button type="button" class="am-chip rk-zc" data-w="${w}" onclick="rkZoomTo(${w})">${esc(t(k))}</button>`).join('')}
+        <button type="button" class="am-chip rk-zc" data-w="all" onclick="rkZoomTo(0)">${esc(t('rk_z_all'))}</button></div>
+      <div class="rk-zoom-btns">
+        <button type="button" class="rk-zb" onclick="rkZoom(2)" title="${esc(t('rk_zoom_out'))}" aria-label="${esc(t('rk_zoom_out'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12"/></svg></button>
+        <button type="button" class="rk-zb" onclick="rkZoom(0.5)" title="${esc(t('rk_zoom_in'))}" aria-label="${esc(t('rk_zoom_in'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12M12 6v12"/></svg></button>
+      </div>
+    </div>` : '';
+  // The overview strip: the whole run, small, under a window that can be dragged
+  let brush = '';
+  if (zoom) {
+    const bx = p => (p / M.span * 100).toFixed(2);
+    let line = '';
+    for (const s of M.streaks) {
+      const pts = [];
+      for (let i = s.start; i <= s.end; i++) pts.push(`${bx(M.pos[i])},${y(M.E[i].rank).toFixed(2)}`);
+      line += s.end === s.start ? `M${pts[0]}l0.01,0` : `M${pts.join('L')}`;
+    }
+    brush = `<div class="rk-brush" role="group" aria-label="${esc(t('rk_brush_aria'))}">
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="${line}"/></svg>
+      <span class="rk-win"><span class="rk-win-h rk-win-h--l"></span><span class="rk-win-h rk-win-h--r"></span></span>
+    </div>`;
+  }
+  return `<div class="rk-plot-wrap${zoom ? ' can-zoom' : ''}">
+    ${tools}
+    <div class="rk-plot" tabindex="0" role="slider" aria-label="${esc(label)}" aria-valuemin="1" aria-valuemax="${n}">
+      ${gridHTML}
+      <div class="rk-stage"></div>
+      <span class="rk-guide" aria-hidden="true"></span>
+      <span class="rk-focus" aria-hidden="true"><b></b></span>
+    </div>
+    <div class="rk-axis"><span></span><span></span></div>
+    ${brush}
+  </div>`;
+}
+
+// Ticks, line, area and dots for the window on screen
+function _rkDrawStage() {
+  const root = document.getElementById('modalRankings');
+  const M = _rnk && _rkModel(_rnk.chart);
+  const stage = root && root.querySelector('.rk-stage');
+  if (!M || !stage) return;
+  const per = _rnk.chart, { E, n, y, maxR, streaks, d, pos } = M, v = _rnk.view;
+  const xs = _rnk.xs = n === 1 ? [50] : pos.map(_rkXOf);
+  const pt = i => `${xs[i].toFixed(2)},${y(E[i].rank).toFixed(2)}`;
+  let line = '', area = '';
+  for (const s of streaks) {
+    if (s.end === s.start) continue;
+    // a streak wholly outside the window is skipped
+    if (xs[s.end] < -5 || xs[s.start] > 105) continue;
+    const pts = [];
+    for (let i = s.start; i <= s.end; i++) pts.push(pt(i));
+    line += `M${pts.join('L')}`;
+    area += `M${xs[s.start].toFixed(2)},100L${pts.join('L')}L${xs[s.end].toFixed(2)},100Z`;
+  }
+  const band = `<rect x="-10" y="0" width="120" height="${y(Math.min(10, maxR)).toFixed(2)}" class="rk-band"/>`;
+  // Dots: every one in sight on a short window; the notable ones on a long one
+  const seen = xs.filter(x => x >= -1 && x <= 101).length;
+  const many = seen > RK_DOTS_MAX;
+  const dots = E.map((e, i) => {
+    if (xs[i] < -1 || xs[i] > 101) return '';
+    const alone = streaks.some(s => s.start === i && s.end === i);
+    if (many && !(e.rank === 1 || e.rank === d.peak || i === 0 || i === n - 1 || alone)) return '';
+    const cls = e.rank === 1 ? ' rk-dot--gold' : e.rank === d.peak ? ' rk-dot--peak' : '';
+    return `<span class="rk-dot${cls}" style="left:${xs[i].toFixed(2)}%;top:${y(e.rank).toFixed(2)}%;--i:${Math.min(i, 40)}"></span>`;
+  }).join('');
+  // Ticks: years on a long window, months on a short one (January as its year)
+  let ticks = '';
+  if (n > 1) {
+    const first = E[0].periodKey;
+    const months = per === 'week' ? (v.b - v.a) / 4.35 : per === 'month' ? v.b - v.a : (v.b - v.a) * 12;
+    const d0 = _rkPosDate(per, first, Math.floor(v.a)), d1 = _rkPosDate(per, first, Math.ceil(v.b) + 1);
+    const posOf = dt => per === 'week' ? (dt - new Date(first + 'T00:00:00')) / (7 * 86400000)
+      : per === 'month' ? (dt.getFullYear() - +first.slice(0, 4)) * 12 + dt.getMonth() - (+first.slice(5, 7) - 1)
+      : dt.getFullYear() - +first;
+    const byYear = per === 'year' || months > 30;
+    // as many labels as fit, about one per 44px of graph
+    const fit = Math.max(2, (stage.clientWidth || 600) / 44);
+    const steps = byYear ? [1, 2, 5, 10] : [1, 2, 3, 6];
+    const count = byYear ? months / 12 : months;
+    const step = steps.find(s => count / s <= fit) || steps[steps.length - 1];
+    const cur = byYear ? new Date(d0.getFullYear(), 0, 1) : new Date(d0.getFullYear(), d0.getMonth(), 1);
+    for (let guard = 0; cur <= d1 && guard < 200; guard++) {
+      const x = _rkXOf(posOf(cur));
+      const show = byYear ? cur.getFullYear() % step === 0 : cur.getMonth() % step === 0;
+      if (show && x > 1 && x < 99) {
+        const lbl = byYear || cur.getMonth() === 0 ? String(cur.getFullYear()) : t(_CR_MON_SHORT[cur.getMonth()]);
+        ticks += `<span class="rk-tick${byYear || cur.getMonth() === 0 ? ' rk-tick--yr' : ''}" style="left:${x.toFixed(2)}%">${x > 4 && x < 93 ? `<b>${esc(lbl)}</b>` : ''}</span>`;
+      }
+      if (byYear) cur.setFullYear(cur.getFullYear() + 1); else cur.setMonth(cur.getMonth() + 1);
+    }
+  }
+  stage.innerHTML = `${ticks}
+    <svg class="rk-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      <defs><linearGradient id="rkFill" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-opacity="0.32"/><stop offset="1" stop-opacity="0"/>
+      </linearGradient></defs>
+      ${band}
+      <path d="${area}" class="rk-area"/>
+      <path d="${line}" class="rk-line"/>
+    </svg>
+    <div class="rk-dots">${dots}</div>`;
+  // The dates at the two ends of the window
+  const ax = root.querySelectorAll('.rk-axis span');
+  if (ax.length === 2) {
+    ax[0].textContent = crPeriodLabel(per, n === 1 ? E[0].periodKey : _rkPosKey(per, E[0].periodKey, Math.max(0, v.a)));
+    ax[1].textContent = n === 1 ? '' : crPeriodLabel(per, _rkPosKey(per, E[0].periodKey, Math.min(M.span, v.b)));
+  }
+  // The window on the overview strip, and which range chip it matches
+  const win = root.querySelector('.rk-win');
+  if (win) {
+    win.style.left = (v.a / M.span * 100).toFixed(2) + '%';
+    win.style.width = ((v.b - v.a) / M.span * 100).toFixed(2) + '%';
+  }
+  const w = v.b - v.a, all = w >= M.span - 0.5;
+  root.querySelectorAll('.rk-zc').forEach(c => c.classList.toggle('is-on', c.dataset.w === 'all' ? all : !all && Math.abs(+c.dataset.w - w) < 1));
+  root.querySelector('.rk-plot-wrap')?.classList.toggle('is-zoomed', !all);
+}
+
+// Moves the window to [a, b], kept inside the history and no narrower than
+// a few periods, then redraws
+function _rkSetView(a, b) {
+  const M = _rnk && _rkModel(_rnk.chart);
+  if (!M || !_rnk.view) return;
+  const S = M.span, minW = Math.min(S, RK_MIN_SPAN[_rnk.chart]);
+  let w = Math.min(S, Math.max(minW, b - a));
+  a = Math.max(0, Math.min(S - w, a));
+  if (Math.abs(a - _rnk.view.a) < 1e-6 && Math.abs(a + w - _rnk.view.b) < 1e-6) return;
+  _rnk.view = { a, b: a + w };
+  document.querySelector('#modalRankings .rk-plot')?.classList.add('rk-live');
+  _rkDrawStage();
+  rkFocus(_rnk.focus);
+}
+// Zoom by f (0.5 = in, 2 = out) around calendar position c — by default the
+// entry in focus when it is in sight, else the middle of the window
+function rkZoom(f, c) {
+  const M = _rnk && _rkModel(_rnk.chart), v = _rnk && _rnk.view;
+  if (!M || !v) return;
+  if (c == null) { const p = M.pos[_rnk.pin ?? 0]; c = p >= v.a && p <= v.b ? p : (v.a + v.b) / 2; }
+  const a = c - (c - v.a) * f;
+  _rkSetView(a, a + (v.b - v.a) * f);
+}
+// A range chip: w periods centred on the entry in focus; 0 = everything
+function rkZoomTo(w) {
+  const M = _rnk && _rkModel(_rnk.chart);
+  if (!M) return;
+  if (!w) return _rkSetView(0, M.span);
+  const c = M.pos[_rnk.pin ?? M.n - 1];
+  _rkSetView(c - w / 2, c + w / 2);
+}
+// Pans so entry i is in sight (keyboard, moments, the peak link)
+function _rkReveal(i) {
+  const M = _rkModel(_rnk.chart), v = _rnk.view, p = M.pos[i], w = v.b - v.a;
+  if (p < v.a + w * 0.03 || p > v.b - w * 0.03) _rkSetView(p - w / 2, p + w / 2);
+}
+
+// The pointer on the graph and on the strip: scrub, click, drag, pinch, wheel
+function _rkWirePlot(root) {
+  const plot = root.querySelector('.rk-plot');
+  if (!plot) return;
+  const ptrs = new Map();
+  let drag = null, pinch = null, noClick = false;
+  const pctX = ev => { const r = plot.getBoundingClientRect(); return (ev.clientX - r.left) / r.width * 100; };
+  plot.addEventListener('pointerdown', ev => {
+    ptrs.set(ev.pointerId, ev);
+    if (ptrs.size === 2 && _rkCanZoom(_rkModel(_rnk.chart), _rnk.chart)) {
+      const [p1, p2] = [...ptrs.values()];
+      pinch = { d0: Math.abs(p1.clientX - p2.clientX) || 1, v0: { ..._rnk.view }, c: _rkPosAt((pctX(p1) + pctX(p2)) / 2) };
+      drag = null;
+    } else if (ev.pointerType === 'mouse' && ev.button === 0) {
+      drag = { x0: ev.clientX, v0: { ..._rnk.view }, moved: false };
+    }
+  });
+  plot.addEventListener('pointermove', ev => {
+    if (ptrs.has(ev.pointerId)) ptrs.set(ev.pointerId, ev);
+    if (pinch && ptrs.size === 2) {
+      const [p1, p2] = [...ptrs.values()];
+      const w = (pinch.v0.b - pinch.v0.a) * pinch.d0 / (Math.abs(p1.clientX - p2.clientX) || 1);
+      const mid = ((pctX(p1) + pctX(p2)) / 2 - 3) / 94;
+      _rkSetView(pinch.c - mid * w, pinch.c - mid * w + w);
+      return;
+    }
+    if (drag && (ev.buttons & 1)) {
+      const dx = ev.clientX - drag.x0;
+      if (Math.abs(dx) > 4) drag.moved = true;
+      if (drag.moved) {
+        const dp = -dx / plot.getBoundingClientRect().width / 0.94 * (drag.v0.b - drag.v0.a);
+        _rkSetView(drag.v0.a + dp, drag.v0.b + dp);
+        plot.classList.add('is-dragging');
+      }
+      return;
+    }
+    if (ev.pointerType === 'touch' && !ev.isPrimary) return;
+    const i = _rkNearest(ev);
+    if (i != null && i !== _rnk.focus) rkFocus(i, ev.pointerType === 'touch');
+  });
+  const up = ev => {
+    ptrs.delete(ev.pointerId);
+    if (ptrs.size < 2) pinch = null;
+    if (drag && drag.moved) noClick = true;
+    drag = null;
+    plot.classList.remove('is-dragging');
+  };
+  plot.addEventListener('pointerup', up);
+  plot.addEventListener('pointercancel', up);
+  plot.addEventListener('pointerleave', ev => { if (ev.pointerType === 'mouse' && !drag) rkPlotLeave(); });
+  plot.addEventListener('click', ev => {
+    if (noClick) { noClick = false; return; }
+    const i = _rkNearest(ev);
+    if (i != null) rkFocus(i, true);
+  });
+  plot.addEventListener('dblclick', ev => { if (_rkCanZoom(_rkModel(_rnk.chart), _rnk.chart)) rkZoom(0.5, _rkPosAt(pctX(ev))); });
+  plot.addEventListener('keydown', rkPlotKey);
+  // Ctrl + wheel (and a trackpad pinch, which arrives as one) zooms; a
+  // sideways scroll pans; anything else is left to scroll the panel
+  plot.addEventListener('wheel', ev => {
+    if (!_rkCanZoom(_rkModel(_rnk.chart), _rnk.chart)) return;
+    const v = _rnk.view;
+    if (ev.ctrlKey || ev.metaKey) {
+      ev.preventDefault();
+      rkZoom(Math.exp(Math.max(-1, Math.min(1, ev.deltaY * 0.01))), _rkPosAt(pctX(ev)));
+    } else if (Math.abs(ev.deltaX) > Math.abs(ev.deltaY) || ev.shiftKey) {
+      ev.preventDefault();
+      const dp = (ev.deltaX || ev.deltaY) / plot.getBoundingClientRect().width / 0.94 * (v.b - v.a);
+      _rkSetView(v.a + dp, v.b + dp);
+    }
+  }, { passive: false });
+
+  // The overview strip
+  const brush = root.querySelector('.rk-brush');
+  if (!brush) return;
+  let bd = null;
+  const posOfB = ev => { const r = brush.getBoundingClientRect(); return (ev.clientX - r.left) / r.width * _rkModel(_rnk.chart).span; };
+  brush.addEventListener('pointerdown', ev => {
+    ev.preventDefault();
+    brush.setPointerCapture(ev.pointerId);
+    const v = _rnk.view, p = posOfB(ev), h = ev.target.closest('.rk-win-h');
+    if (h) bd = { mode: h.classList.contains('rk-win-h--l') ? 'l' : 'r' };
+    else {
+      // outside the window: the window jumps there first, then follows
+      if (!ev.target.closest('.rk-win')) { const w = v.b - v.a; _rkSetView(p - w / 2, p + w / 2); }
+      bd = { mode: 'move', off: p - _rnk.view.a };
+    }
+    brush.classList.add('is-dragging');
+  });
+  brush.addEventListener('pointermove', ev => {
+    if (!bd) return;
+    const v = _rnk.view, p = posOfB(ev), minW = RK_MIN_SPAN[_rnk.chart], S = _rkModel(_rnk.chart).span;
+    if (bd.mode === 'move') { const w = v.b - v.a; _rkSetView(p - bd.off, p - bd.off + w); }
+    // an edge stops at the ends of the history rather than pushing the other edge
+    else if (bd.mode === 'l') _rkSetView(Math.max(0, Math.min(p, v.b - minW)), v.b);
+    else _rkSetView(v.a, Math.min(S, Math.max(p, v.a + minW)));
+  });
+  const bup = () => { bd = null; brush.classList.remove('is-dragging'); };
+  brush.addEventListener('pointerup', bup);
+  brush.addEventListener('pointercancel', bup);
+}
+
+function _rkMomentsHTML(M, per) {
+  const { E, n, d, longest } = M;
+  const b = (r) => `<b class="rk-r rk-r--${_rkTone(r)}">#${r}</b>`;
+  const unitN = c => _crU(per, c);
+  const list = [];
+  const add = (i, icon, html, tone) => list.push({ i, icon, html, tone });
+  add(0, 'rocket', t('cr_story_debut', { r: b(E[0].rank) }), 'debut');
+  if (E[0].rank > 10) {
+    const i = E.findIndex(e => e.rank <= 10);
+    if (i > 0) add(i, 'trend', t('rk_m_top10', { r: b(E[i].rank) }), 'top');
+  }
+  if (M.peakI > 0) {
+    if (d.peak === 1) add(M.peakI, 'crown', t('rk_m_no1'), 'gold');
+    else add(M.peakI, 'trophy', t('rk_m_peak', { r: b(d.peak) }), 'peak');
+  }
+  // Biggest climb between two periods in a row
+  let climb = null;
+  for (let i = 1; i < n; i++) {
+    if (crPeriodGap(per, E[i - 1].periodKey, E[i].periodKey) !== 0) continue;
+    const up = E[i - 1].rank - E[i].rank;
+    if (up >= 2 && (!climb || up > climb.up)) climb = { i, up };
+  }
+  if (climb) add(climb.i, 'trend', t('rk_m_climb', { n: `<b>${climb.up}</b>`, r: b(E[climb.i].rank) }), 'top');
+  // The longest stretch at #1 in a row, when there was one
+  if (M.at1Run.len > 1) add(M.at1Run.start, 'crown', t('rk_m_at1run', { n: `<b>${esc(unitN(M.at1Run.len))}</b>` }), 'gold');
+  const streakLen = longest.end - longest.start + 1;
+  if (streakLen > 1 && n > streakLen) add(longest.start, 'flame', t('rk_m_streak', { n: `<b>${esc(unitN(streakLen))}</b>` }), 'accent');
+  // The latest comeback, counted from the last streak
+  const lastS = M.streaks[M.streaks.length - 1];
+  const cameBack = M.streaks.length > 1;
+  if (cameBack) {
+    const i = lastS.start, gap = crPeriodGap(per, E[i - 1].periodKey, E[i].periodKey);
+    add(i, 'refresh', t('rk_m_back', { r: b(E[i].rank), n: `<b>${esc(unitN(gap))}</b>` }), 'accent');
+  }
+  // The latest entry — unless the comeback above already is it, and it is past
+  const now = M.curKey && E[n - 1].periodKey === M.curKey;
+  if (n > 1 && (now || !(cameBack && lastS.start === n - 1))) {
+    add(n - 1, now ? 'sparkle' : 'clock', t(now ? 'rk_m_now' : 'rk_m_last', { r: b(E[n - 1].rank) }), now ? 'now' : 'dim');
+  }
+  // In the order they happened; one entry can hold one moment only
+  const seen = new Set();
+  return list.sort((a, b2) => a.i - b2.i).filter(m => !seen.has(m.i + m.icon) && seen.add(m.i + m.icon)).map(m =>
+    `<button type="button" class="rk-mo rk-mo--${m.tone}" data-i="${m.i}" onclick="rkFocus(${m.i},true,true)">
+      <span class="rk-mo-ico">${_amIco(m.icon)}</span>
+      <span class="rk-mo-txt">${m.html}</span>
+      <span class="rk-mo-when">${esc(crPeriodLabel(per, E[m.i].periodKey))}</span>
+    </button>`).join('');
+}
+
+function _rkMusicHTML() {
+  const cols = [...RK_CHARTS, 'all'];
+  const row = ty => `<div class="rk-mu-row">
+      <span class="rk-mu-lbl">${_amIco(ty === 'songs' ? 'note' : 'disc')}${esc(t(ty === 'songs' ? 'ig_type_songs' : 'ig_type_albums'))}</span>
+      ${cols.map(c => {
+        const [cnt, best] = _rnk.music[ty][c];
+        const on = c === _rnk.chart ? ' is-on' : '';
+        if (!cnt) return `<span class="rk-mu-cell is-empty${on}"><span class="rk-mu-n">—</span></span>`;
+        return `<button type="button" class="rk-mu-cell${on}" onclick="rkOpenMusic('${ty}','${c}')" title="${esc(t('rk_music_open'))}">
+          <span class="rk-mu-n">${cnt.toLocaleString()}</span>
+          ${best ? `<span class="rk-mu-best rk-r--${_rkTone(best)}">${esc(t('am_peak_rank', { n: best }))}</span>` : ''}
+        </button>`;
+      }).join('')}
+    </div>`;
+  return `<div class="ao-head rk-head">${esc(t('rk_h_music'))}<span>${esc(t('rk_music_hint'))}</span></div>
+    <div class="rk-mu">
+      <div class="rk-mu-row rk-mu-hd"><span></span>${cols.map(c => `<span class="${c === _rnk.chart ? 'is-on' : ''}">${_amIco(RK_ICON[c])}${esc(t('am_c_' + c))}</span>`).join('')}</div>
+      ${row('songs')}${row('albums')}
+    </div>`;
+}
+
+// The entry the detail card and the marker show. pin: a click (it stays when
+// the pointer leaves); scroll: bring the graph into view (from a moment)
+function rkFocus(i, pin, scroll) {
+  const M = _rnk && _rkModel(_rnk.chart);
+  const root = document.getElementById('modalRankings');
+  if (!M || !root || i == null) return;
+  i = Math.max(0, Math.min(M.n - 1, i));
+  _rnk.focus = i;
+  if (pin) _rnk.pin = i;
+  // from a moment or the keyboard the window follows to the entry
+  if (scroll && _rnk.view) _rkReveal(i);
+  const e = M.E[i], xv = _rnk.xs ? _rnk.xs[i] : 50;
+  const x = xv.toFixed(2) + '%', yy = M.y(e.rank).toFixed(2) + '%';
+  const plot = root.querySelector('.rk-plot');
+  const guide = root.querySelector('.rk-guide'), mk = root.querySelector('.rk-focus');
+  // out of the window on screen: no marker, the card below still says it
+  const inView = xv >= 0 && xv <= 100;
+  guide.hidden = mk.hidden = !inView;
+  guide.style.left = x;
+  mk.style.left = x; mk.style.top = yy;
+  mk.className = 'rk-focus rk-focus--' + _rkTone(e.rank);
+  mk.querySelector('b').textContent = '#' + e.rank;
+  plot.setAttribute('aria-valuenow', i + 1);
+  plot.setAttribute('aria-valuetext', crPeriodTitle(_rnk.chart, e.periodKey) + ': #' + e.rank);
+  root.querySelectorAll('.rk-mo').forEach(m => m.classList.toggle('is-on', +m.dataset.i === _rnk.pin));
+  root.querySelector('.rk-detail').innerHTML = _rkDetailHTML(M, i);
+  if (scroll) plot.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+
+function _rkDetailHTML(M, i) {
+  const per = _rnk.chart, e = M.E[i], ic = _amIco;
+  // Its move: a debut, back after a break, or up / down / same as last time
+  let mv;
+  if (!i) mv = `<span class="rk-mv rk-mv--new">${esc(t('rk_mv_new'))}</span>`;
+  else if (crPeriodGap(per, M.E[i - 1].periodKey, e.periodKey) > 0) mv = `<span class="rk-mv rk-mv--re">${esc(t('rk_mv_re'))}</span>`;
+  else {
+    const dlt = M.E[i - 1].rank - e.rank;
+    mv = dlt > 0 ? `<span class="rk-mv rk-mv--up">▲ ${dlt}</span>` : dlt < 0 ? `<span class="rk-mv rk-mv--down">▼ ${-dlt}</span>` : `<span class="rk-mv">= ${esc(t('rk_mv_same'))}</span>`;
+  }
+  // Who was #1 then (the same order the chart itself was ranked in)
+  let top = '';
+  if (e.rank === 1) top = `<span class="rk-dt-top is-me">${ic('crown')}${esc(t('rk_top_spot'))}</span>`;
+  else {
+    const pool = allChartRun?.[per]?.periodMap?.[e.periodKey]?.artists;
+    if (pool) {
+      let best = null;
+      for (const k in pool) if (!best || rankSortWithStatus(pool[k], pool[best]) < 0) best = k;
+      if (best) top = `<button type="button" class="rk-dt-top" onclick="openArtistModal(${esc(JSON.stringify(best))})">${ic('crown')}${t('rk_no1_was', { name: `<b>${esc(best)}</b>` })}</button>`;
+    }
+  }
+  return `<div class="rk-dt rk-dt--${_rkTone(e.rank)}">
+    <span class="rk-dt-rank">#${e.rank}</span>
+    <span class="rk-dt-txt">
+      <span class="rk-dt-when">${esc(crPeriodTitle(per, e.periodKey))} ${mv}</span>
+      <span class="rk-dt-meta"><span>${ic('headphones')}<b>${e.plays.toLocaleString()}</b> ${esc(tUnit('plays', e.plays))}</span>${top}</span>
+    </span>
+    <button type="button" class="dc-btn dc-btn-normal dc-btn-sm rk-dt-go" onclick="goToPeriodFromArtistModal('${per}','${esc(e.periodKey)}')">${esc(t('am_open_chart'))}${ic('next')}</button>
+  </div>`;
+}
+
+// The entry nearest the pointer, by its place along the bottom (only the
+// ones in the window on screen)
+function _rkNearest(ev) {
+  const M = _rnk && _rkModel(_rnk.chart), xs = _rnk && _rnk.xs;
+  const plot = document.querySelector('#modalRankings .rk-plot');
+  if (!M || !plot || !xs) return null;
+  const r = plot.getBoundingClientRect();
+  const px = (ev.clientX - r.left) / r.width * 100;
+  let best = null;
+  for (let i = 0; i < M.n; i++) {
+    if (xs[i] < 0 || xs[i] > 100) continue;
+    if (best === null || Math.abs(xs[i] - px) < Math.abs(xs[best] - px)) best = i;
+  }
+  return best;
+}
+function rkPlotLeave() { if (_rnk && _rnk.focus !== _rnk.pin) rkFocus(_rnk.pin); }
+function rkPlotKey(ev) {
+  if (!_rnk) return;
+  const M = _rkModel(_rnk.chart);
+  const k = ev.key, cur = _rnk.pin ?? 0;
+  const to = k === 'ArrowLeft' || k === 'ArrowDown' ? cur - 1 : k === 'ArrowRight' || k === 'ArrowUp' ? cur + 1
+    : k === 'Home' ? 0 : k === 'End' ? M.n - 1 : k === 'PageUp' ? cur - 10 : k === 'PageDown' ? cur + 10 : null;
+  const zoom = _rkCanZoom(M, _rnk.chart);
+  if (to !== null) { ev.preventDefault(); rkFocus(to, true, true); }
+  else if (zoom && (k === '+' || k === '=')) { ev.preventDefault(); rkZoom(0.5); }
+  else if (zoom && (k === '-' || k === '_')) { ev.preventDefault(); rkZoom(2); }
+  else if (zoom && k === '0') { ev.preventDefault(); rkZoomTo(0); }
+  else if (k === 'Enter') goToPeriodFromArtistModal(_rnk.chart, M.E[cur].periodKey);
+}
+
+function rkSetChart(c) {
+  if (!_rnk || _rnk.chart === c) return;
+  _rnk.chart = c;
+  rkRender();
+}
+
+// A songs / albums cell opens the Music tab on that list
+function rkOpenMusic(ty, c) {
+  if (_am) {
+    _am.type = ty; _am.q = ''; _am.all = false; _am.open = null;
+    _am.chart = _am.lists[ty][c].length ? c : (AM_CHARTS.find(x => _am.lists[ty][x].length) || 'all');
+    amMusicRender();
+  }
+  if (typeof dcPanelShowTab === 'function') dcPanelShowTab('artist', 'music');
+}
+
+function _rkCountUp(root) {
+  if (!root || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
+  root.querySelectorAll('.rk-count').forEach(el => {
+    const txt = el.dataset.v || (el.dataset.v = el.textContent);
+    const n = parseInt(txt.replace(/\D/g, ''), 10);
+    if (!(n >= 2)) return;
+    const t0 = performance.now(), dur = 650;
+    const step = now => {
+      const p = Math.min(1, (now - t0) / dur), k = 1 - Math.pow(1 - p, 3);
+      el.textContent = p < 1 ? Math.round(n * k).toLocaleString() : txt;
+      if (p < 1 && el.isConnected) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  });
 }
 
 function openArtistModal(artistName) {
@@ -26630,33 +27303,21 @@ function openArtistModal(artistName) {
   document.getElementById('modalGrandSlam').innerHTML = grandSlam
     ? `<div class="modal-grand-slam ao-slam"><span class="ao-slam-ico">${aoIco('crown')}</span><span>${esc(t('am_grand_slam'))}</span></div>`
     : '';
-  document.getElementById('modalArtistPeaks').innerHTML = `
-    <div class="modal-stat"><div class="se">📊</div><div class="sv ${peakCls(weeklyArtistPeak)}">${weeklyArtistPeak ? '#' + weeklyArtistPeak : '—'}</div><div class="sl">${t('am_artist_peak_week')}</div></div>
-    <div class="modal-stat"><div class="se">🌙</div><div class="sv ${peakCls(monthlyArtistPeak)}">${monthlyArtistPeak ? '#' + monthlyArtistPeak : '—'}</div><div class="sl">${t('am_artist_peak_month')}</div></div>
-    <div class="modal-stat"><div class="se">⭐</div><div class="sv ${peakCls(yearlyArtistPeak)}">${yearlyArtistPeak ? '#' + yearlyArtistPeak : '—'}</div><div class="sl">${t('am_artist_peak_year')}</div></div>
-  `;
-
-  // Records strip — chart appearance counts and #1 milestones from allChartRun
-  const artistCrW = crW?.result.artists[artistName];
-  const artistCrM = crM?.result.artists[artistName];
-  const artistCrY = crY?.result.artists[artistName];
-  const weeksAtNo1 = artistCrW?.entries.filter(e => e.rank === 1).length || 0;
-  const monthsAtNo1 = artistCrM?.entries.filter(e => e.rank === 1).length || 0;
-  const yearsAtNo1 = artistCrY?.entries.filter(e => e.rank === 1).length || 0;
-  const weeklyApps = artistCrW?.entries.length || 0;
-  const monthlyApps = artistCrM?.entries.length || 0;
-  const _firstWkEntry = artistCrW?.entries.slice().sort((a, b) => a.periodKey < b.periodKey ? -1 : 1)[0] ?? null;
-  const weeklyDebutRank = _firstWkEntry ? _firstWkEntry.rank : null;
-  const recordsEl = document.getElementById('modalRecordsStrip');
-  recordsEl.innerHTML = `
-    <div class="modal-stat ${weeksAtNo1 > 0 ? 'modal-stat--gold' : ''}"><div class="se">🥇</div><div class="sv ${weeksAtNo1 > 0 ? 'sv--gold' : ''}" data-countup="${weeksAtNo1}">${weeksAtNo1}</div><div class="sl">${t('sm_weeks_at1')}</div></div>
-    <div class="modal-stat"><div class="se">🌙</div><div class="sv ${monthsAtNo1 > 0 ? 'sv--gold' : ''}" data-countup="${monthsAtNo1}">${monthsAtNo1}</div><div class="sl">${t('sm_months_at1')}</div></div>
-    <div class="modal-stat"><div class="se">⭐</div><div class="sv ${yearsAtNo1 > 0 ? 'sv--gold' : ''}" data-countup="${yearsAtNo1}">${yearsAtNo1}</div><div class="sl">${t('sm_years_at1')}</div></div>
-    <div class="modal-stat"><div class="se">📅</div><div class="sv" data-countup="${weeklyApps}">${weeklyApps}</div><div class="sl">${t('am_week_apps')}</div></div>
-    <div class="modal-stat"><div class="se">🗓️</div><div class="sv" data-countup="${monthlyApps}">${monthlyApps}</div><div class="sl">${t('am_month_apps')}</div></div>
-    ${weeklyDebutRank ? `<div class="modal-stat"><div class="se">🚀</div><div class="sv ${peakCls(weeklyDebutRank)}">#${weeklyDebutRank}</div><div class="sl">${t('am_week_debut')}</div></div>` : ''}
-  `;
-  animateModalCountup(recordsEl);
+  // Rankings tab — the artist's own chart runs, and how many of their songs
+  // and albums made each chart with the best rank among them (rkRender)
+  _rnk = {
+    name: artistName,
+    runs: { week: crW?.result.artists[artistName], month: crM?.result.artists[artistName], year: crY?.result.artists[artistName] },
+    music: {
+      songs: { week: [weeklySongsCharted.length, weeklyBestSongPeak], month: [monthlySongsCharted.length, monthlyBestSongPeak],
+        year: [yearlySongsCharted.length, yearlyBestSongPeak], all: [chartSongs.length, bestSongPeak] },
+      albums: { week: [weeklyAlbumsCharted.length, weeklyBestAlbumPeak], month: [monthlyAlbumsCharted.length, monthlyBestAlbumPeak],
+        year: [yearlyAlbumsCharted.length, yearlyBestAlbumPeak], all: [chartAlbums.length, allTimeBestAlbumPeak] }
+    },
+    models: {}, focus: null, pin: null
+  };
+  _rnk.chart = RK_CHARTS.find(c => _rnk.runs[c]?.entries.length) || 'week';
+  rkRender();
 
   // Hall of Fame reel — every record this artist holds, as on the hero banner
   renderModalArtistRecords(artistName);
@@ -26666,36 +27327,6 @@ function openArtistModal(artistName) {
 
   // Plays by month chart
   document.getElementById('modalArtistChart').innerHTML = buildArtistSparklineHTML(artistPlays);
-
-  // Chart breakdown grid: songs + albums across all chart types
-  const cbCell = (count, peak) => `<td class="modal-cb-cell"><div class="cv">${count > 0 ? count : '—'}</div>${count > 0 ? `<div class="cp">${peak ? t('am_peak_rank', { n: peak }) : '—'}</div>` : '<div class="cp"></div>'}</td>`;
-  document.getElementById('modalChartBreakdown').innerHTML = `
-    <table class="modal-cb-table">
-      <thead><tr>
-        <td class="modal-cb-empty"></td>
-        <th class="modal-cb-th modal-cb-th--weekly">${t('modal_cb_weekly')}</th>
-        <th class="modal-cb-th modal-cb-th--monthly">${t('modal_cb_monthly')}</th>
-        <th class="modal-cb-th modal-cb-th--yearly">${t('modal_cb_yearly')}</th>
-        <th class="modal-cb-th modal-cb-th--alltime">${t('modal_cb_alltime')}</th>
-      </tr></thead>
-      <tbody>
-        <tr>
-          <td class="modal-cb-label modal-cb-label--songs">🎵 ${t('ig_type_songs')}</td>
-          ${cbCell(weeklySongsCharted.length, weeklyBestSongPeak)}
-          ${cbCell(monthlySongsCharted.length, monthlyBestSongPeak)}
-          ${cbCell(yearlySongsCharted.length, yearlyBestSongPeak)}
-          ${cbCell(chartSongs.length, bestSongPeak)}
-        </tr>
-        <tr>
-          <td class="modal-cb-label modal-cb-label--albums">💿 ${esc(t('stat_albums'))}</td>
-          ${cbCell(weeklyAlbumsCharted.length, weeklyBestAlbumPeak)}
-          ${cbCell(monthlyAlbumsCharted.length, monthlyBestAlbumPeak)}
-          ${cbCell(yearlyAlbumsCharted.length, yearlyBestAlbumPeak)}
-          ${cbCell(chartAlbums.length, allTimeBestAlbumPeak)}
-        </tr>
-      </tbody>
-    </table>
-  `;
 
   /* ── Chart accomplishments as badges (redone 2026-10-27) ─────────────────
      Was one long list of sentences with a + on each. Now every achievement
@@ -26868,6 +27499,11 @@ function openArtistModal(artistName) {
       cert: certBadge(x.count, isSong ? 'song' : 'album'),
       first: x.firstPlayed, last: x.lastPlayed,
       openKey: isSong ? songKey(x) : x.album + '|||' + art,
+      // the album a song row's second line names, so it can open it too
+      albumKey: isSong
+        ? (x.album && x.album !== '—' ? x.album + '|||' + (albumCounts[x.album]?.primaryArtist || x.artist) : null)
+        : x.album + '|||' + art,
+      artist: art,
       img: isSong
         ? { name: x.title, title: x.title, artist: art, album: '', prefKey: 'song:' + art.toLowerCase() + '|||' + x.title.toLowerCase() }
         : { name: x.album, album: x.album, artist: art, prefKey: 'album:' + art.toLowerCase() + '|||' + x.album.toLowerCase() }
