@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 362;
+const DC_CL_I18N_V = 363;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-29', t: 'design', a: 'ui', h: '22d785d',
+    title: "A livelier Charts tab in artist details, with a graph you can zoom",
+    detail: "The Charts tab of an artist's details was rows of look-alike tiles and a table. Now pick the Weekly, Monthly or Yearly chart and see the artist's peak as a gold, silver or bronze medal with the week it was reached, the run told in one sentence, and four numbers: time on the chart, at #1, in the Top 10 and the longest streak, each saying whether those weeks came in a row. A graph shows the rank over time: move over it or tap it to read any week (its rank, its move, its plays and who was #1 then), and open that chart from there. Long histories can be zoomed: pick 6 months, 1 year or 3 years, use − and +, pinch or Ctrl + scroll, drag to move along, or drag the window on the small overview strip under the graph. Chart moments list the debut, the first Top 10, the first #1, the biggest climb, the longest run at #1 and the comebacks, and each one jumps the graph to its week. Their songs and albums on each chart are now tiles that open the Music tab on that list. In the Music tab, tapping a card now unfolds its chart run, the name opens the song or album, and each card has Sample, Spotify and YouTube buttons. The ✕ on a song or album opened from another panel now goes back to it instead of closing everything." },
   { d: '2026-10-28', t: 'design', a: 'charts', h: 'e6cd230',
     title: "A clearer \"Single, then album\" window",
     detail: "The explanation at the top of the Single, then album window is easier to follow. It now says why the split is needed, then has one line for each choice in the song switches - Single only, Both and Album only - with the same names as the buttons, saying where the song is and what its plays count for." },
