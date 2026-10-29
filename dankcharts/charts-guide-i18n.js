@@ -100,7 +100,7 @@ window.CG_TEXT = {
       { group: 'Insights',
         note: 'The other tabs in the top bar. Everything here is worked out from your plays; nothing needs extra setup.',
         tabs: [
-          { period: 'graphs', desc: 'Your listening as graphs, by day, month or year: cumulative plays per artist, play volume, artists side by side, new discoveries, an animated play count race, your ratings and a heatmap of every day you listened.', use: 'Seeing shape and habit rather than rank.' },
+          { period: 'graphs', desc: 'Your listening as graphs, by day, month or year: cumulative plays per artist, play volume, artists side by side, new discoveries, an animated play count race and a heatmap of every day you listened.', use: 'Seeing shape and habit rather than rank.' },
           { period: 'records', desc: 'Eleven sections: {{sections}}.', use: 'Your record book.' },
           { period: 'awards', desc: 'Your own awards show, built from your chart data: the four big categories plus ones like Best Collaboration, Song of the Summer, Best Comeback and Best Discovery, and genre awards if you want them. Set the eligibility dates, pick nominees, then run the ceremony. Real-Life Awards sits alongside, with the Grammys, VMAs, AMAs, BRITs and more that your artists were up for.', use: 'The fun one. Run it every December.' },
           { period: 'soundtrack', desc: 'A month, a year or all time told in chapters: the year in numbers, your top songs, artists and albums, your #1 artist, listening patterns, discoveries, milestones, streaks, award winners in your charts, a chart replay and a share card. Play your year shows it as a full-screen story.', use: 'The nostalgic pass through your history.' }
@@ -108,6 +108,7 @@ window.CG_TEXT = {
       { group: 'More',
         note: 'Under More in the top bar.',
         tabs: [
+          { period: 'ratings', desc: 'Every album, single and song you have scored: your average and its verdict, what to rate next, your highest and lowest, your critical records, the artists you rate best, what you rated lately and the full list.', use: 'Seeing what kind of critic you are.' },
           { period: 'events', desc: 'Today, Coming up, Recent and a Calendar: artist birthdays, album anniversaries, new releases and concerts for the artists in your charts, New Music Friday, and the Time Machine.', use: 'Knowing when something is worth replaying.' },
           { period: 'playlists', desc: 'Your saved playlists: play them, rename them, drag songs into order, and save whatever is in the player’s queue. Under them, anniversaries and recent releases from your top artists, one click from becoming a playlist.', use: 'Turning a chart back into listening.' },
           { period: 'rawdata', desc: 'The list of plays every other tab is built from. Search, filter, fix a wrong timestamp, delete a bad scrobble, export the lot as CSV.', use: 'Fixing bad data, or taking it elsewhere.' },
@@ -315,7 +316,7 @@ window.CG_TEXT = {
       { group: 'Análisis',
         note: 'Las otras pestañas de la barra superior. Todo se calcula a partir de tus reproducciones; no hace falta configurar nada más.',
         tabs: [
-          { period: 'graphs', desc: 'Tu escucha en gráficas, por día, mes o año: reproducciones acumuladas por artista, volumen de escucha, artistas lado a lado, descubrimientos, una carrera animada de reproducciones, tus valoraciones y un mapa de calor de cada día que escuchaste.', use: 'Ver formas y costumbres más que posiciones.' },
+          { period: 'graphs', desc: 'Tu escucha en gráficas, por día, mes o año: reproducciones acumuladas por artista, volumen de escucha, artistas lado a lado, descubrimientos, una carrera animada de reproducciones y un mapa de calor de cada día que escuchaste.', use: 'Ver formas y costumbres más que posiciones.' },
           { period: 'records', desc: 'Once secciones: {{sections}}.', use: 'Tu libro de récords.' },
           { period: 'awards', desc: 'Tu propia gala de premios, hecha con los datos de tus rankings: las cuatro grandes categorías y otras como Mejor colaboración, Canción del verano, Mejor regreso y Mejor descubrimiento, más premios por género si los quieres. Elige las fechas, los nominados y celebra la gala. Al lado están los premios reales: los Grammy, VMAs, AMAs, BRIT y otros a los que se presentaron tus artistas.', use: 'La más divertida. Celébrala cada diciembre.' },
           { period: 'soundtrack', desc: 'Un mes, un año o todo tu historial contado en capítulos: el año en cifras, tus canciones, artistas y álbumes principales, tu artista #1, costumbres, descubrimientos, hitos, rachas, premiados en tus rankings, una repetición del ranking y una tarjeta para compartir. Reproduce tu año lo muestra como una historia a pantalla completa.', use: 'El repaso nostálgico de tu historial.' }
@@ -323,6 +324,7 @@ window.CG_TEXT = {
       { group: 'Más',
         note: 'En Más, en la barra superior.',
         tabs: [
+          { period: 'ratings', desc: 'Cada álbum, single y canción que has puntuado: tu promedio y su veredicto, qué puntuar después, tus notas más altas y más bajas, tus récords de crítico, los artistas que mejor valoras, lo último que puntuaste y la lista completa.', use: 'Ver qué clase de crítico eres.' },
           { period: 'events', desc: 'Hoy, Próximamente, Reciente y un Calendario: cumpleaños de artistas, aniversarios de álbumes, lanzamientos y conciertos de los artistas de tus rankings, New Music Friday y la Máquina del tiempo.', use: 'Saber cuándo merece la pena volver a escuchar algo.' },
           { period: 'playlists', desc: 'Tus listas guardadas: reprodúcelas, cámbiales el nombre, ordena las canciones arrastrándolas y guarda lo que haya en la cola del reproductor. Debajo, aniversarios y lanzamientos recientes de tus artistas principales, a un clic de ser una lista.', use: 'Convertir un ranking otra vez en música.' },
           { period: 'rawdata', desc: 'La lista de reproducciones con la que se hace todo lo demás. Busca, filtra, corrige una hora equivocada, borra un scrobble erróneo y exporta todo en CSV.', use: 'Corregir datos o llevártelos a otra parte.' },
@@ -530,7 +532,7 @@ window.CG_TEXT = {
       { group: 'Análises',
         note: 'As outras abas da barra de cima. Tudo aqui é calculado a partir dos seus plays; não precisa configurar nada a mais.',
         tabs: [
-          { period: 'graphs', desc: 'Sua escuta em gráficos, por dia, mês ou ano: plays acumulados por artista, volume de escuta, artistas lado a lado, descobertas, uma corrida animada de plays, suas avaliações e um mapa de calor de cada dia em que você ouviu.', use: 'Ver formas e hábitos em vez de posições.' },
+          { period: 'graphs', desc: 'Sua escuta em gráficos, por dia, mês ou ano: plays acumulados por artista, volume de escuta, artistas lado a lado, descobertas, uma corrida animada de plays e um mapa de calor de cada dia em que você ouviu.', use: 'Ver formas e hábitos em vez de posições.' },
           { period: 'records', desc: 'Onze seções: {{sections}}.', use: 'Seu livro de recordes.' },
           { period: 'awards', desc: 'Sua própria premiação, feita com os dados das suas paradas: as quatro grandes categorias e outras como Melhor colaboração, Música do verão, Melhor retorno e Melhor descoberta, além de prêmios por gênero se você quiser. Escolha as datas, os indicados e faça a cerimônia. Ao lado ficam os prêmios reais: Grammy, VMAs, AMAs, BRIT e outros em que seus artistas concorreram.', use: 'A mais divertida. Faça todo dezembro.' },
           { period: 'soundtrack', desc: 'Um mês, um ano ou todo o seu histórico contado em capítulos: o ano em números, suas principais músicas, artistas e álbuns, seu artista #1, hábitos, descobertas, marcos, sequências, premiados nas suas paradas, um replay da parada e um cartão para compartilhar. Reproduzir seu ano mostra tudo como uma história em tela cheia.', use: 'A volta nostálgica pelo seu histórico.' }
@@ -538,6 +540,7 @@ window.CG_TEXT = {
       { group: 'Mais',
         note: 'Em Mais, na barra de cima.',
         tabs: [
+          { period: 'ratings', desc: 'Cada álbum, single e música que você avaliou: sua média e o veredicto, o que avaliar em seguida, suas notas mais altas e mais baixas, seus recordes de crítico, os artistas que você avalia melhor, o que avaliou por último e a lista completa.', use: 'Ver que tipo de crítico você é.' },
           { period: 'events', desc: 'Hoje, Em breve, Recentes e um Calendário: aniversários de artistas, datas comemorativas de álbuns, lançamentos e shows dos artistas das suas paradas, New Music Friday e a Máquina do tempo.', use: 'Saber quando vale a pena ouvir algo de novo.' },
           { period: 'playlists', desc: 'Suas playlists salvas: toque, renomeie, arraste as músicas para ordenar e salve o que estiver na fila do player. Embaixo, datas comemorativas e lançamentos recentes dos seus artistas principais, a um clique de virar uma playlist.', use: 'Transformar uma parada em música de novo.' },
           { period: 'rawdata', desc: 'A lista de plays de onde vem todo o resto. Pesquise, filtre, corrija um horário errado, apague um scrobble errado e exporte tudo em CSV.', use: 'Corrigir dados ou levá-los para outro lugar.' },
@@ -745,7 +748,7 @@ window.CG_TEXT = {
       { group: 'Análises',
         note: 'Os outros separadores da barra de cima. Tudo aqui é calculado a partir dos teus plays; não é preciso configurar mais nada.',
         tabs: [
-          { period: 'graphs', desc: 'A tua audição em gráficos, por dia, mês ou ano: plays acumulados por artista, volume de audição, artistas lado a lado, descobertas, uma corrida animada de plays, as tuas avaliações e um mapa de calor de cada dia em que ouviste.', use: 'Ver formas e hábitos em vez de posições.' },
+          { period: 'graphs', desc: 'A tua audição em gráficos, por dia, mês ou ano: plays acumulados por artista, volume de audição, artistas lado a lado, descobertas, uma corrida animada de plays e um mapa de calor de cada dia em que ouviste.', use: 'Ver formas e hábitos em vez de posições.' },
           { period: 'records', desc: 'Onze secções: {{sections}}.', use: 'O teu livro de recordes.' },
           { period: 'awards', desc: 'A tua própria gala de prémios, feita com os dados dos teus tops: as quatro grandes categorias e outras como Melhor colaboração, Música do verão, Melhor regresso e Melhor descoberta, mais prémios por género se quiseres. Escolhe as datas, os nomeados e faz a cerimónia. Ao lado estão os prémios reais: Grammy, VMAs, AMAs, BRIT e outros a que os teus artistas concorreram.', use: 'A mais divertida. Fá-la todos os dezembros.' },
           { period: 'soundtrack', desc: 'Um mês, um ano ou todo o histórico contado em capítulos: o ano em números, as tuas principais músicas, artistas e álbuns, o teu artista #1, hábitos, descobertas, marcos, sequências, premiados nos teus tops, uma repetição do top e um cartão para partilhar. Reproduzir o teu ano mostra tudo como uma história em ecrã inteiro.', use: 'A volta nostálgica pelo teu histórico.' }
@@ -753,6 +756,7 @@ window.CG_TEXT = {
       { group: 'Mais',
         note: 'Em Mais, na barra de cima.',
         tabs: [
+          { period: 'ratings', desc: 'Cada álbum, single e música que avaliaste: a tua média e o veredicto, o que avaliar a seguir, as tuas notas mais altas e mais baixas, os teus recordes de crítico, os artistas que avalias melhor, o que avaliaste por último e a lista completa.', use: 'Ver que tipo de crítico és.' },
           { period: 'events', desc: 'Hoje, Em breve, Recentes e um Calendário: aniversários de artistas, datas comemorativas de álbuns, lançamentos e concertos dos artistas dos teus tops, New Music Friday e a Máquina do tempo.', use: 'Saber quando vale a pena voltar a ouvir algo.' },
           { period: 'playlists', desc: 'As tuas playlists guardadas: reproduz, muda o nome, arrasta as músicas para as ordenar e guarda o que estiver na fila do leitor. Por baixo, datas comemorativas e lançamentos recentes dos teus artistas principais, a um clique de virarem uma playlist.', use: 'Transformar um top outra vez em música.' },
           { period: 'rawdata', desc: 'A lista de plays de onde vem tudo o resto. Pesquisa, filtra, corrige uma hora errada, apaga um scrobble errado e exporta tudo em CSV.', use: 'Corrigir dados ou levá-los para outro lado.' },

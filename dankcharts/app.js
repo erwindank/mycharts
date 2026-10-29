@@ -7865,12 +7865,8 @@ function buildRecords() {
   const _bk = _recBuildKey();
   if (_bk === _recBuiltKey && _recArtistTally) {
     _recReattachImageObservers();
-    // Ratings are not part of _recBuildKey (they change without the play data
-    // changing), so this section is refreshed even on the early-out path.
-    renderRatingRecordsSection();
     return;
   }
-  renderRatingRecordsSection();
   _recBuiltKey = _bk;
 
   const wSizeSongs = chartSizeSongsW, wSizeArtists = chartSizeArtistsW, wSizeAlbums = chartSizeAlbumsW;
@@ -12170,9 +12166,6 @@ function runRecordsSearch(q) {
     el.classList.toggle('rec-search-hidden', !el.querySelector('.rec-search-hit'));
   });
   let sections = 0;
-  // Rating Records has nothing to match against, so a search hides it.
-  const ratingsSec = document.getElementById('recRatingsSection');
-  if (ratingsSec) ratingsSec.style.display = 'none';
   REC_SECTION_IDS.forEach(function (id) {
     const el = document.getElementById(id);
     if (!el) return;
@@ -12514,10 +12507,6 @@ function applyRecordsViewFilter(view) {
     if (!el) return;
     el.style.display = view === id ? '' : 'none';
   });
-  // Rating Records is not a sub-tab of its own: it belongs to Overview, under
-  // the cards, and stays out of every other sub-tab.
-  const ratingsSec = document.getElementById('recRatingsSection');
-  if (ratingsSec) ratingsSec.style.display = view === 'recOverviewSection' ? '' : 'none';
   document.querySelectorAll('#recordsNav .records-nav-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.recView === view);
   });
@@ -13191,7 +13180,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
      Raw Data left Stats, Events and Awards on screen under it, and Stats and
      Records left Awards. (Playlists shows part of Events again on purpose.) */
   ['rawDataView', 'graphsView', 'recordsView', 'eventsView', 'awardsView',
-   'soundtrackView', 'playlistsView', 'chartsguideView'].forEach(id => {
+   'soundtrackView', 'playlistsView', 'chartsguideView', 'ratingsView'].forEach(id => {
     const v = document.getElementById(id);
     if (v) v.style.display = 'none';
   });
@@ -13255,9 +13244,6 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('chartsguideView').style.display = 'none';
     document.getElementById('graphsView').style.display = 'block';
     if (allPlays.length) renderGraphs();
-    // The ratings home lives in this tab too; it has its own data and does not
-    // go through renderGraphs().
-    if (allPlays.length) renderRatingsGraphSection();
     updateScrobbleBtn();
     return;
   }
@@ -13481,6 +13467,26 @@ document.getElementById('periodNav').addEventListener('click', e => {
     return;
   }
 
+  if (btn.dataset.period === 'ratings') {
+    // The Ratings page (2026-10-29): My Ratings from Stats and Rating Records
+    // from Records, on one page
+    savedOffsets[currentPeriod] = currentOffset;
+    currentPeriod = 'ratings';
+    localStorage.setItem('dc_period', currentPeriod);
+    ['chartTypeToggleBar', 'exportPlaylistBtn', 'dateNav', 'navHint', 'statsStrip', 'statsStrip2', 'statsStrip3',
+     'songsSection', 'artistsSection', 'albumsSection', 'buSongsSection', 'buArtistsSection', 'buAlbumsSection'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
+    COLLAPSE_ALL_TYPES.forEach(hideOffSection);
+    NEW_ENTRY_SECTIONS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+    document.getElementById('ratingsView').style.display = 'block';
+    renderRatingsPage();
+    if (typeof window._refreshBackToTop === 'function') window._refreshBackToTop();
+    updateScrobbleBtn();
+    return;
+  }
+
   if (btn.dataset.period === 'chartsguide') {
     // Switch to charts guide view
     savedOffsets[currentPeriod] = currentOffset;
@@ -13516,7 +13522,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
   }
 
   // Leaving raw data, graphs, records, events, awards, soundtrack, playlists, chartsguide or board view — restore chart UI
-  if (currentPeriod === 'rawdata' || currentPeriod === 'graphs' || currentPeriod === 'records' || currentPeriod === 'events' || currentPeriod === 'awards' || currentPeriod === 'soundtrack' || currentPeriod === 'playlists' || currentPeriod === 'chartsguide' || currentPeriod === 'board') {
+  if (currentPeriod === 'rawdata' || currentPeriod === 'graphs' || currentPeriod === 'records' || currentPeriod === 'events' || currentPeriod === 'awards' || currentPeriod === 'soundtrack' || currentPeriod === 'playlists' || currentPeriod === 'chartsguide' || currentPeriod === 'board' || currentPeriod === 'ratings') {
     document.getElementById('dateNav').style.display = '';
     document.getElementById('navHint').style.display = '';
     document.getElementById('statsStrip').style.display = '';
@@ -13536,7 +13542,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
   }
 
 
-  savedOffsets[(currentPeriod === 'rawdata' || currentPeriod === 'graphs' || currentPeriod === 'records' || currentPeriod === 'events' || currentPeriod === 'awards' || currentPeriod === 'playlists' || currentPeriod === 'chartsguide' || currentPeriod === 'board') ? btn.dataset.period : currentPeriod] = currentOffset;
+  savedOffsets[(currentPeriod === 'rawdata' || currentPeriod === 'graphs' || currentPeriod === 'records' || currentPeriod === 'events' || currentPeriod === 'awards' || currentPeriod === 'playlists' || currentPeriod === 'chartsguide' || currentPeriod === 'board' || currentPeriod === 'ratings') ? btn.dataset.period : currentPeriod] = currentOffset;
   currentPeriod = btn.dataset.period;
   localStorage.setItem('dc_period', currentPeriod);
   currentOffset = savedOffsets[currentPeriod];
@@ -30621,7 +30627,7 @@ window.dcTopbarHome = dcTopbarHome;
 // it clicks that tab, so there is still exactly one place where views switch.
 // "charts" is the exception: it reopens the chart period you used last.
 const DC_CHART_PERIODS = ['day', 'week', 'month', 'year', 'alltime'];
-const DC_MORE_VIEWS = ['events', 'playlists', 'rawdata', 'board', 'chartsguide'];
+const DC_MORE_VIEWS = ['ratings', 'events', 'playlists', 'rawdata', 'board', 'chartsguide'];
 // Keyboard shortcuts (initNavShortcuts) shown in the tab tooltips
 const DC_TAB_SHORTCUT = { charts: '1–4', graphs: '6', records: '7', awards: '9', events: '8', rawdata: '5' };
 
@@ -55443,7 +55449,7 @@ let _cgTourTimers = [];// every pending auto-advance / sequence timer
 let _cgTourAppliedStep = -1; // last step index actually applied, so tab switches fire once per step
 const _cgTourSteps = [
   { title: 'Welcome',
-    content: 'Somewhere in your listening history is your number one song from a year you barely remember, the album you played to death one winter, and the artist who has quietly sat in your top ten ever since. dankcharts digs all of it out. Every song you have played becomes a chart you can flip through — week by week, year by year, right back to your very first scrobble. This tour visits all thirteen tabs in about four minutes, and you can stop it any time.',
+    content: 'Somewhere in your listening history is your number one song from a year you barely remember, the album you played to death one winter, and the artist who has quietly sat in your top ten ever since. dankcharts digs all of it out. Every song you have played becomes a chart you can flip through — week by week, year by year, right back to your very first scrobble. This tour visits all fourteen tabs in about four minutes, and you can stop it any time.',
     nav: null },
 
   /* Written as short labelled lines rather than one dense paragraph — the
@@ -55600,6 +55606,10 @@ const _cgTourSteps = [
     content: 'Your record book, and much bigger than it looks — eleven separate sections behind the row of buttons at the top. All #1s, Perfect All Kill, Most Chart Appearances, Biggest Debuts, Most Plays in a Period, Play Count Milestones, Fastest to Milestone, a Certifications leaderboard, Streak Records, New Charts and an Overview. Pick a section from that row rather than scrolling.',
     nav: 'records' },
 
+  { title: 'Ratings',
+    content: 'Every album, single and song you have scored, in one place. Your average album as a ring with its verdict, the most played album you have not rated yet, your highest and lowest scores, your critical records (most overplayed, most underplayed, most consistent), the artists you rate best, what you rated lately, and the full list with a To rate tab for what you play a lot but have never judged.',
+    nav: 'ratings' },
+
   { title: 'Events',
     content: 'A calendar built from the artists in your charts, opening with the Time Machine (what you were playing on this day in past years): artist birthdays, album anniversaries, upcoming releases and recent ones, plus recent birthdays and anniversaries you may have just missed. Switch between calendar and reel layouts per section. It is the tab that tells you when something in your library is worth replaying today.',
     nav: 'events' },
@@ -55625,7 +55635,7 @@ const _cgTourSteps = [
     nav: 'chartsguide' },
 
   { title: 'That is the whole app',
-    content: 'You have now seen all thirteen tabs. The Charts Guide stays in the nav bar, and you can restart this tour any time from the button at the top of it. Go and look at your Weekly chart.',
+    content: 'You have now seen all fourteen tabs. The Charts Guide stays in the nav bar, and you can restart this tour any time from the button at the top of it. Go and look at your Weekly chart.',
     nav: null },
 ];
 
@@ -56191,7 +56201,7 @@ function dcGuideSaveFeedback() {
    different questions, in the order a new user actually asks them:
 
      01 Start Here        — is my setup right, and what do I do first?
-     02 The Tabs          — what is each of these thirteen tabs for?
+     02 The Tabs          — what is each of these fourteen tabs for?
      03 How Charts Work   — what do these numbers and badges mean?
      04 Tips & Shortcuts  — how do I go faster?
      05 Your Data         — what does the app know about me?
@@ -56373,7 +56383,8 @@ function dcRenderChartsGuideView() {
   const TAB_NAME_KEYS = {
     day: 'nav_daily', week: 'nav_weekly', month: 'nav_monthly', year: 'nav_yearly', alltime: 'nav_alltime',
     graphs: 'tab_stats', records: 'nav_records', awards: 'nav_awards', soundtrack: 'nav_soundtrack',
-    events: 'nav_events', playlists: 'nav_playlists', rawdata: 'nav_rawdata', board: 'nav_board', chartsguide: 'nav_chartsguide'
+    events: 'nav_events', playlists: 'nav_playlists', rawdata: 'nav_rawdata', board: 'nav_board', chartsguide: 'nav_chartsguide',
+    ratings: 'nav_ratings'
   };
   const recSections = ['rec_nav_overview', 'rec_nav_all_ones', 'rec_nav_pak', 'rec_nav_appearances', 'rec_nav_debuts', 'rec_nav_new_charts',
     'rec_nav_peak_plays', 'rec_nav_milestones', 'rec_nav_fastest', 'rec_nav_streaks', 'rec_nav_certs'].map(k => t(k)).join(', ');
@@ -57305,8 +57316,7 @@ window.dcMergeRatings = dcMergeRatings;
 // a new score to appear on it.
 function ratingsRefreshUI() {
   try {
-    if (document.getElementById('ratingsGraphCard')?.offsetParent) renderRatingsGraphSection();
-    if (document.getElementById('recRatingsBody')?.offsetParent)   renderRatingRecordsSection();
+    if (document.getElementById('ratingsView')?.offsetParent) renderRatingsPage();
     if (['day', 'week', 'month', 'year', 'alltime'].includes(currentPeriod) && allPlays?.length) renderAll();
   } catch (e) {
     console.warn('[dankcharts] ratings UI refresh:', e);
@@ -59881,8 +59891,13 @@ document.getElementById('tpCardModal')?.addEventListener('click', e => {
    A row opens the rating editor; ↗ opens the album or song page. The state
    (_ar) survives the repaint that follows a saved rating, so the list stays
    where it was. All data sources: it reads ratings + allPlays only. */
-let _ar = null;
-let _arImgObs = null;
+/* Two scopes share this code (2026-10-29): 'a' the artist window's Rating
+   tab, 'p' the Ratings page (the whole library). Each keeps its own state
+   and artwork observer, so a window opened over the page leaves it as it
+   was. Every handler names its scope. */
+const _arS = { a: null, p: null };
+const _arImgObs = { a: null, p: null };
+const AR_ROOT = { a: '#modalArtistRating', p: '#ratingsPageBody' };
 const AR_PAGE = 30;
 
 function renderArtistRatingSection(artistName) {
@@ -59903,8 +59918,9 @@ function renderArtistRatingSection(artistName) {
   }
   const todo = [...albumKeys].filter(k => !ratingAlbumScore(k)).sort((a, b) => (plays[b] || 0) - (plays[a] || 0));
 
-  const keep = _ar && _ar.artist === artistName ? _ar : null;
-  _ar = {
+  const prev = _arS.a;
+  const keep = prev && prev.artist === artistName ? prev : null;
+  const _ar = _arS.a = {
     artist: artistName, sum, plays, todo,
     view: keep ? keep.view : null, q: keep ? keep.q : '', sort: keep ? keep.sort : null,
     band: keep ? keep.band : null, all: keep ? keep.all : false
@@ -59974,7 +59990,7 @@ function renderArtistRatingSection(artistName) {
     const [an, aa] = nk.split('|||');
     fetchAndInjectImage(document.getElementById('arNextArt'), { imgId: 'arNextArt', name: an, title: an, album: an, artist: aa || artistName, prefKey: 'album:' + (aa || artistName).toLowerCase() + '|||' + an.toLowerCase() }, 'album');
   }
-  arRenderBody();
+  arRenderBody('a');
   _arCheckReleaseTypes(artistName, sum);
 }
 
@@ -60001,14 +60017,15 @@ async function _arCheckReleaseTypes(artistName, sum) {
 }
 
 // The list part: Albums · Songs · To rate, the spread, search + sort
-function arRenderBody() {
-  const box = document.querySelector('#modalArtistRating .ar-body');
+function arRenderBody(sc) {
+  const _ar = _arS[sc];
+  const box = document.querySelector(AR_ROOT[sc] + ' .ar-body');
   if (!box || !_ar) return;
   const { sum, todo, view } = _ar;
   // a sort the list does not offer falls back to its default
   const sorts = view === 'todo' ? ['plays', 'az'] : ['high', 'low', 'az'];
   if (!sorts.includes(_ar.sort)) _ar.sort = sorts[0];
-  const tab = (v, label, icon, n) => `<button type="button" role="tab" class="am-type-btn${v === view ? ' is-on' : ''}" aria-selected="${v === view}" ${n ? '' : 'disabled'} onclick="arSetView('${v}')">
+  const tab = (v, label, icon, n) => `<button type="button" role="tab" class="am-type-btn${v === view ? ' is-on' : ''}" aria-selected="${v === view}" ${n ? '' : 'disabled'} onclick="arSetView('${sc}','${v}')">
       ${_amIco(icon)}<span>${esc(label)}</span><span class="am-type-n">${n.toLocaleString()}</span></button>`;
 
   // Spread of the scores over the seven verdicts, best first
@@ -60020,7 +60037,7 @@ function arRenderBody() {
     dist = `<div class="ar-dist${_ar.band ? ' has-pick' : ''}" role="group" aria-label="${esc(t('ar_spread'))}">
       <div class="ar-dist-head"><span class="ao-kicker">${esc(t('ar_spread'))}</span><span class="ar-dist-hint">${esc(t(_ar.band ? 'ar_spread_clear' : 'ar_spread_hint'))}</span></div>
       <div class="ar-dist-cols">${per.map(p => `<button type="button" class="ar-dist-col ${p.b.cls}${_ar.band === p.b.key ? ' is-on' : ''}" ${p.n ? '' : 'disabled'}
-          aria-pressed="${_ar.band === p.b.key}" onclick="arSetBand('${p.b.key}')" title="${esc(p.b.label)}: ${p.n}">
+          aria-pressed="${_ar.band === p.b.key}" onclick="arSetBand('${sc}','${p.b.key}')" title="${esc(p.b.label)}: ${p.n}">
           <span class="ar-dist-n">${p.n || ''}</span>
           <span class="ar-dist-bar"><span style="height:${(p.n / max * 100).toFixed(1)}%"></span></span>
           <span class="ar-dist-lbl">${esc(p.b.label)}</span>
@@ -60035,28 +60052,29 @@ function arRenderBody() {
     </div>
     ${dist}
     <div class="am-tools">
-      <label class="am-search">${_amIco('search')}<input type="search" placeholder="${esc(t('ar_search'))}" value="${esc(_ar.q)}" oninput="arSearch(this.value)" aria-label="${esc(t('ar_search'))}"></label>
-      <div class="am-sort" role="group">${sorts.map(s => `<button type="button" class="am-sort-btn${s === _ar.sort ? ' is-on' : ''}" aria-pressed="${s === _ar.sort}" onclick="arSort('${s}')">${esc(sortLbl(s))}</button>`).join('')}</div>
+      <label class="am-search">${_amIco('search')}<input type="search" placeholder="${esc(t('ar_search'))}" value="${esc(_ar.q)}" oninput="arSearch('${sc}',this.value)" aria-label="${esc(t('ar_search'))}"></label>
+      <div class="am-sort" role="group">${sorts.map(s => `<button type="button" class="am-sort-btn${s === _ar.sort ? ' is-on' : ''}" aria-pressed="${s === _ar.sort}" onclick="arSort('${sc}','${s}')">${esc(sortLbl(s))}</button>`).join('')}</div>
     </div>
     <div class="ar-list"></div>`;
-  arRenderList();
+  arRenderList(sc);
 }
 
-function arRenderList() {
-  const box = document.querySelector('#modalArtistRating .ar-list');
+function arRenderList(sc) {
+  const _ar = _arS[sc];
+  const box = document.querySelector(AR_ROOT[sc] + ' .ar-list');
   if (!box || !_ar) return;
   const { sum, todo, plays, view } = _ar;
   // One shape for all three lists
   // rel: what the release counts as (album / single / ep) and whether that is a guess
-  const relRow = a => ({ kind: 'album', key: a.key, name: a.name, score: a.score, ratedTracks: a.ratedTracks, totalTracks: a.totalTracks, plays: plays[a.key] || 0, rel: { kind: a.kind, guess: a.guess } });
+  const relRow = a => ({ kind: 'album', key: a.key, name: a.name, artist: a.key.split('|||')[1] || '', score: a.score, ratedTracks: a.ratedTracks, totalTracks: a.totalTracks, plays: plays[a.key] || 0, rel: { kind: a.kind, guess: a.guess } });
   let rows = view === 'albums' ? sum.albums.map(relRow)
     : view === 'singles' ? sum.singles.map(relRow)
     : view === 'songs'
-      ? sum.songs.map(s => ({ kind: 'song', key: s.key, name: s.title, score: s.score, quick: ratingSongEntry(s.key)?.m === 'quick' }))
-      : todo.map(k => ({ kind: 'album', key: k, name: k.split('|||')[0], score: null, plays: plays[k] || 0, rel: ratingReleaseKind(k) }));
+      ? sum.songs.map(s => ({ kind: 'song', key: s.key, name: s.title, artist: s.artist || '', score: s.score, quick: ratingSongEntry(s.key)?.m === 'quick' }))
+      : todo.map(k => ({ kind: 'album', key: k, name: k.split('|||')[0], artist: k.split('|||')[1] || '', score: null, plays: plays[k] || 0, rel: ratingReleaseKind(k) }));
   if (_ar.band && view !== 'todo') rows = rows.filter(r => ratingBand(r.score).key === _ar.band);
   const q = _ar.q.trim().toLowerCase();
-  if (q) rows = rows.filter(r => r.name.toLowerCase().includes(q));
+  if (q) rows = rows.filter(r => r.name.toLowerCase().includes(q) || (sc === 'p' && r.artist.toLowerCase().includes(q)));
   if (_ar.sort === 'low') rows.sort((a, b) => a.score - b.score);
   else if (_ar.sort === 'az') rows.sort((a, b) => a.name.localeCompare(b.name));
   else if (_ar.sort === 'plays') rows.sort((a, b) => b.plays - a.plays);
@@ -60074,8 +60092,8 @@ function arRenderList() {
       const word = esc(t(r.rel.kind === 'ep' ? 'ar_t_ep' : 'ar_t_single'));
       tag = r.rel.guess
         ? `<span class="ar-tag ar-tag--guess">${esc(t(r.rel.kind === 'ep' ? 'ar_guess_ep' : 'ar_guess_single'))}
-            <button type="button" class="ar-tag-btn" onclick="event.stopPropagation();arSetRelease(${i},'${r.rel.kind}')" title="${esc(t('ar_confirm_tip'))}">${ic('check')}${esc(t('ar_confirm'))}</button>
-            <button type="button" class="ar-tag-btn" onclick="event.stopPropagation();arSetRelease(${i},'album')" title="${esc(t('ar_reject_tip'))}">${ic('x')}${esc(t('ar_reject'))}</button></span>`
+            <button type="button" class="ar-tag-btn" onclick="event.stopPropagation();arSetRelease('${sc}',${i},'${r.rel.kind}')" title="${esc(t('ar_confirm_tip'))}">${ic('check')}${esc(t('ar_confirm'))}</button>
+            <button type="button" class="ar-tag-btn" onclick="event.stopPropagation();arSetRelease('${sc}',${i},'album')" title="${esc(t('ar_reject_tip'))}">${ic('x')}${esc(t('ar_reject'))}</button></span>`
         : `<span class="ar-tag">${word}</span>`;
     }
     let sub = '';
@@ -60083,65 +60101,68 @@ function arRenderList() {
         <span class="ar-prog"><span style="width:${(r.totalTracks ? r.ratedTracks / r.totalTracks * 100 : 0).toFixed(1)}%"></span></span>`;
     else if (view === 'songs') sub = `<span class="ar-sub">${esc(t(r.quick ? 'ar_quick' : 'ar_rubric'))}</span>`;
     else sub = `<span class="ar-sub">${tag}${r.plays.toLocaleString()} ${esc(tUnit('plays', r.plays))}</span>`;
-    return `<div class="ar-row ${b ? b.cls : 'rt--none'}" role="button" tabindex="0" onclick="arEdit(${i})" onkeydown="if(event.target===this&&(event.key==='Enter'||event.key===' ')){event.preventDefault();arEdit(${i});}">
+    return `<div class="ar-row ${b ? b.cls : 'rt--none'}" role="button" tabindex="0" onclick="arEdit('${sc}',${i})" onkeydown="if(event.target===this&&(event.key==='Enter'||event.key===' ')){event.preventDefault();arEdit('${sc}',${i});}">
       <span class="ar-score">${b ? ratingFmt(r.score) : ic('star')}</span>
-      <span class="am-art" id="arImg-${i}"><span class="thumb-initials">${esc(initials(r.name))}</span></span>
-      <span class="ar-txt"><span class="ar-name">${esc(r.name)}</span>${sub}</span>
+      <span class="am-art" id="arImg-${sc}-${i}"><span class="thumb-initials">${esc(initials(r.name))}</span></span>
+      <span class="ar-txt"><span class="ar-name">${esc(r.name)}</span>${sc === 'p' && r.artist ? `<span class="ar-artist">${esc(r.artist)}</span>` : ''}${sub}</span>
       <span class="ar-right">${b ? `<span class="ar-band">${esc(b.label)}</span>` : `<span class="ar-cta">${esc(t('rtp_rate_arrow'))}</span>`}
         <span class="ar-edit" aria-hidden="true">${ic(b ? 'edit' : 'next')}</span></span>
-      <button type="button" class="ar-go" title="${esc(t(r.kind === 'album' ? 'ar_open_album' : 'ar_open_song'))}" aria-label="${esc(t(r.kind === 'album' ? 'ar_open_album' : 'ar_open_song'))}" onclick="event.stopPropagation();arOpenPage(${i})">${ic('external')}</button>
+      <button type="button" class="ar-go" title="${esc(t(r.kind === 'album' ? 'ar_open_album' : 'ar_open_song'))}" aria-label="${esc(t(r.kind === 'album' ? 'ar_open_album' : 'ar_open_song'))}" onclick="event.stopPropagation();arOpenPage('${sc}',${i})">${ic('external')}</button>
     </div>`;
   }).join('') + (rows.length > AR_PAGE
-    ? `<button type="button" class="dc-btn dc-btn-plain dc-btn-sm am-more" onclick="arShowAll()">${esc(_ar.all ? t('dp_show_fewer') : t('dp_show_all', { n: rows.length }))}</button>`
+    ? `<button type="button" class="dc-btn dc-btn-plain dc-btn-sm am-more" onclick="arShowAll('${sc}')">${esc(_ar.all ? t('dp_show_fewer') : t('dp_show_all', { n: rows.length }))}</button>`
     : '');
 
   // Artwork as the rows come into view
-  if (_arImgObs) _arImgObs.disconnect();
+  if (_arImgObs[sc]) _arImgObs[sc].disconnect();
   const items = shown.map((r, i) => {
     if (r.kind === 'album') {
       const [an, aa] = r.key.split('|||');
       const art = aa || _ar.artist;
-      return { imgId: 'arImg-' + i, name: an, album: an, artist: art, prefKey: 'album:' + art.toLowerCase() + '|||' + an.toLowerCase() };
+      return { imgId: 'arImg-' + sc + '-' + i, name: an, album: an, artist: art, prefKey: 'album:' + art.toLowerCase() + '|||' + an.toLowerCase() };
     }
     const nm = ratingSongNames(r.key);
-    return { imgId: 'arImg-' + i, name: nm.title, title: nm.title, artist: nm.artist, album: '', prefKey: 'song:' + nm.artist.toLowerCase() + '|||' + nm.title.toLowerCase() };
+    return { imgId: 'arImg-' + sc + '-' + i, name: nm.title, title: nm.title, artist: nm.artist, album: '', prefKey: 'song:' + nm.artist.toLowerCase() + '|||' + nm.title.toLowerCase() };
   });
-  _arImgObs = loadImages(items, view === 'songs' ? 'song' : 'album');
+  _arImgObs[sc] = loadImages(items, view === 'songs' ? 'song' : 'album');
   // ✎ on each cover opens the artwork picker (its click stops before the row's)
   items.forEach(it => { const el = document.getElementById(it.imgId); if (el) attachRecImgPicker(el, it, view === 'songs' ? 'song' : 'album'); });
 }
 
-function arSetView(v) {
+function arSetView(sc, v) {
+  const _ar = _arS[sc];
   if (!_ar || _ar.view === v) return;
   _ar.view = v; _ar.q = ''; _ar.band = null; _ar.all = false;
   _ar.sort = v === 'todo' ? 'plays' : 'high';
-  arRenderBody();
+  arRenderBody(sc);
 }
-function arSetBand(k) { if (!_ar) return; _ar.band = _ar.band === k ? null : k; _ar.all = false; arRenderBody(); }
-function arSearch(v) { if (!_ar) return; _ar.q = v; _ar.all = false; arRenderList(); }
-function arSort(s) {
+function arSetBand(sc, k) { const _ar = _arS[sc]; if (!_ar) return; _ar.band = _ar.band === k ? null : k; _ar.all = false; arRenderBody(sc); }
+function arSearch(sc, v) { const _ar = _arS[sc]; if (!_ar) return; _ar.q = v; _ar.all = false; arRenderList(sc); }
+function arSort(sc, s) {
+  const _ar = _arS[sc];
   if (!_ar) return;
   _ar.sort = s;
-  document.querySelectorAll('#modalArtistRating .am-sort-btn').forEach(b => { const on = b.getAttribute('onclick').includes("'" + s + "'"); b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', on); });
-  arRenderList();
+  document.querySelectorAll(AR_ROOT[sc] + ' .am-sort-btn').forEach(b => { const on = b.getAttribute('onclick').includes("'" + s + "'"); b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', on); });
+  arRenderList(sc);
 }
-function arShowAll() { if (!_ar) return; _ar.all = !_ar.all; arRenderList(); }
+function arShowAll(sc) { const _ar = _arS[sc]; if (!_ar) return; _ar.all = !_ar.all; arRenderList(sc); }
 /* Settles a guessed single / EP: 'single' / 'ep' marks it (what the release
    manager does — it then also takes that certification ladder, and moves to
    its own chart if that type is set Apart), 'album' pins it as an album so
    it is never guessed again. Either way the tab redraws from the new mark. */
-function arSetRelease(i, type) {
+function arSetRelease(sc, i, type) {
+  const _ar = _arS[sc];
   const r = _ar && _ar.rows[i];
   if (!r || r.kind !== 'album') return;
   const [album, artist] = r.key.split('|||');
   // the album page's own path: the mark, the release manager list, the charts
   setAlbumReleaseType(album, artist, type);
-  renderArtistRatingSection(_ar.artist);
+  if (sc === 'a') renderArtistRatingSection(_ar.artist); else renderRatingsPage();
 }
 // A row opens the rating editor; ↗ the album or song page
-function arEdit(i) { const r = _ar && _ar.rows[i]; if (r) openRatingModal(r.kind, r.key); }
-function arOpenPage(i) {
-  const r = _ar && _ar.rows[i];
+function arEdit(sc, i) { const r = _arS[sc] && _arS[sc].rows[i]; if (r) openRatingModal(r.kind, r.key); }
+function arOpenPage(sc, i) {
+  const r = _arS[sc] && _arS[sc].rows[i];
   if (!r) return;
   if (r.kind === 'album') openAlbumModal(r.key); else openSongModal(r.key);
 }
@@ -60826,86 +60847,7 @@ document.getElementById('raCardModal')?.addEventListener('click', e => {
   if (e.target === document.getElementById('raCardModal')) raCloseCard();
 });
 
-// ─── RATINGS HOME — inside the Graphs tab ──────────────────────
-// The Graphs tab is where the whole rated library lives: the score
-// distribution, the ranked library, best/worst, rating activity, and the
-// prompts for records played a lot but never judged.
-
-let _ratingsLibFilter = 'albums';   // 'albums' | 'songs'
-let _ratingsLibSort   = 'score';    // 'score' | 'plays' | 'recent' | 'title'
-let _ratingsLibDir    = 'desc';
-
-// Every rated album, with its play count folded in so the library can be sorted
-// by either. Play counts come from allPlays, so this is identical for Last.fm,
-// Google Sheets and CSV sources.
-function _ratingsAllRatedAlbums() {
-  const plays = {};
-  for (const p of allPlays) {
-    if (!p.album || p.album === '—') continue;
-    const k = albumKeyOf(p);
-    plays[k] = (plays[k] || 0) + 1;
-  }
-  return Object.keys(_ratings.albums).map(k => {
-    const res = ratingAlbumScore(k);
-    if (!res) return null;
-    const [name, artist] = k.split('|||');
-    return { key: k, kind: 'album', name, artist, score: res.score, plays: plays[k] || 0,
-             ts: _ratings.albums[k]?.ts || 0, ratedTracks: res.ratedTracks, totalTracks: res.totalTracks };
-  }).filter(Boolean);
-}
-
-function _ratingsAllRatedSongs() {
-  const plays = {};
-  for (const p of allPlays) { const k = songKey(p); plays[k] = (plays[k] || 0) + 1; }
-  return Object.keys(_ratings.songs).map(k => {
-    const s = ratingSongScore(k);
-    if (s == null) return null;
-    const { title: name, artist } = ratingSongNames(k);
-    return { key: k, kind: 'song', name, artist, score: s, plays: plays[k] || 0,
-             ts: _ratings.songs[k]?.ts || 0, mode: _ratings.songs[k]?.m || 'detailed' };
-  }).filter(Boolean);
-}
-
-function ratingsLibSetFilter(f) { _ratingsLibFilter = f; renderRatingsGraphSection(); }
-function ratingsLibSetSort(s) {
-  // Clicking the active sort flips direction — the usual table affordance.
-  if (_ratingsLibSort === s) _ratingsLibDir = _ratingsLibDir === 'desc' ? 'asc' : 'desc';
-  else { _ratingsLibSort = s; _ratingsLibDir = s === 'title' ? 'asc' : 'desc'; }
-  renderRatingsGraphSection();
-}
-
-// Score distribution. Ten one-point buckets across the scale, drawn as a plain
-// column chart: one series, so no legend — the count sits on the bar and the
-// bucket sits under it, meaning colour never carries information on its own.
-function _ratingsDistributionHTML(items) {
-  if (!items.length) return '';
-  const buckets = Array.from({ length: 10 }, (_, i) => ({ lo: i, hi: i + 1, n: 0 }));
-  for (const it of items) {
-    // 10.0 belongs in the top bucket rather than falling off the end.
-    const idx = Math.min(9, Math.floor(it.score));
-    buckets[idx].n++;
-  }
-  const max = Math.max(...buckets.map(b => b.n)) || 1;
-  return `<div class="rt-dist">
-    <div class="rt-dist-plot">
-      ${buckets.map(b => {
-        const h = (b.n / max) * 100;
-        const band = ratingBand(b.lo + 0.5);
-        // Shade by score (phase 9 part 2 step 4): the 0 bucket is the accent
-        // mixed 40% into the card, the 9–10 bucket the full accent.
-        const mix = Math.round(40 + b.lo * (60 / 9));
-        const one = v => v.toLocaleString(hmLocale(), { minimumFractionDigits: 1 });
-        return `<div class="rt-dist-col" title="${esc(t(b.n === 1 ? 'rtg_dist_tip_one' : 'rtg_dist_tip_other', { n: b.n, lo: one(b.lo), hi: one(b.hi) }))}">
-          <div class="rt-dist-count">${b.n || ''}</div>
-          <div class="rt-dist-bar-wrap">${b.n ? `<div class="rt-dist-bar ${band.cls}" style="height:${h}%;--rt-mix:${mix}%"></div>` : ''}</div>
-          <div class="rt-dist-tick">${b.lo}</div>
-        </div>`;
-      }).join('')}
-    </div>
-    <div class="rt-dist-axis">${esc(t('rtg_sort_score'))}</div>
-  </div>`;
-}
-
+// ─── RATINGS PAGE HELPERS ──────────────────────────────────────
 // Records played a lot but never judged — the most useful prompt the feature can
 // offer, because the biggest gap in any rated library is always the stuff you
 // listen to so often you never stopped to rate it.
@@ -60958,118 +60900,259 @@ function _ratingsActivity() {
   return { days: sorted.length, longest, last: sorted[sorted.length - 1] || null };
 }
 
-function renderRatingsGraphSection() {
-  const el = document.getElementById('ratingsGraphBody');
-  if (!el) return;
+/* ── Ratings page (2026-10-29) ──────────────────────────────────────────────
+   My Ratings had been the first card on Stats, and its critical records a
+   block under the Records Overview. They are one feature, so they get one
+   page (More → Ratings), drawn with the artist Rating tab's own parts at the
+   scale of the whole library:
+     .ar-hero     your average album as the ring, its verdict, how much of
+                  what you play is rated, and when you rate
+     .ar-next     the most played album still without a score
+     .ar-highs    highest / lowest album, single or EP, song
+     .rp-recs     your critical records (ratingRecords)
+     .rp-duo      top rated artists · recently rated
+     lists        Albums · Singles / EPs · Songs · To rate, with the spread,
+                  search and sort (arRenderBody, scope 'p')
+   Reads ratings + allPlays only, so it works for every data source. */
 
-  const albums = _ratingsAllRatedAlbums();
-  const songs  = _ratingsAllRatedSongs();
-  const items  = _ratingsLibFilter === 'albums' ? albums : songs;
-
-  if (!albums.length && !songs.length) {
-    el.innerHTML = `<div class="rt-empty rt-empty--big">
-      <div class="rt-empty-title">${esc(t('rtg_empty_title'))}</div>
-      <div class="rt-empty-sub">${esc(t('rtg_empty_sub'))}</div>
-      ${_ratingsUnratedHTML()}
-    </div>`;
-    return;
+// The library as ratingArtistSummary shapes an artist, plus what the page
+// adds: plays per album, the albums still to rate, every rated entry by time
+const RP_TODO_MIN = 10;
+function ratingLibrarySummary() {
+  const albumPlays = {}, songPlays = {}, songAlbums = {};
+  for (const p of allPlays) {
+    const sk = songKey(p);
+    songPlays[sk] = (songPlays[sk] || 0) + 1;
+    if (!p.album || p.album === '—') continue;
+    const ak = albumKeyOf(p);
+    albumPlays[ak] = (albumPlays[ak] || 0) + 1;
+    (songAlbums[sk] || (songAlbums[sk] = new Set())).add(ak);
   }
+  // An album is rated through its own scores or through its tracks', so the
+  // candidates are the albums with an entry and the albums of rated songs
+  const cand = new Set(Object.keys(_ratings.albums));
+  for (const sk of Object.keys(_ratings.songs)) for (const ak of songAlbums[sk] || []) cand.add(ak);
+  const releases = [...cand].map(k => {
+    const r = ratingAlbumScore(k);
+    if (!r) return null;
+    const [name, artist = ''] = k.split('|||');
+    return { key: k, name, artist, ...r, ...ratingReleaseKind(k), plays: albumPlays[k] || 0 };
+  }).filter(Boolean).sort((a, b) => b.score - a.score);
+  const albums = releases.filter(a => a.kind === 'album');
+  const singles = releases.filter(a => a.kind !== 'album');
+  const songs = Object.keys(_ratings.songs).map(k => {
+    const s = ratingSongScore(k);
+    if (s == null) return null;
+    const nm = ratingSongNames(k);
+    return { key: k, title: nm.title, artist: nm.artist, score: s, plays: songPlays[k] || 0, ts: _ratings.songs[k]?.ts || 0 };
+  }).filter(Boolean).sort((a, b) => b.score - a.score);
+
+  const rated = new Set(releases.map(r => r.key));
+  const allAlbums = Object.keys(albumPlays);
+  let totalAlbums = 0;
+  for (const k of allAlbums) if (ratingReleaseKind(k).kind === 'album') totalAlbums++;
+  // To rate: what you have played at least RP_TODO_MIN times, most played
+  // first. Every unrated album would be thousands of rows nobody scrolls.
+  const todo = allAlbums.filter(k => !rated.has(k) && albumPlays[k] >= RP_TODO_MIN).sort((a, b) => albumPlays[b] - albumPlays[a]);
+
+  // Every rated album and song by when it was last scored, newest first
+  const recent = [];
+  for (const k of Object.keys(_ratings.albums)) if (_ratings.albums[k]?.ts && rated.has(k)) recent.push({ kind: 'album', key: k, ts: _ratings.albums[k].ts });
+  for (const s of songs) if (s.ts) recent.push({ kind: 'song', key: s.key, ts: s.ts });
+  recent.sort((a, b) => b.ts - a.ts);
 
   const avg = arr => arr.length ? Math.round((arr.reduce((a, b) => a + b.score, 0) / arr.length) * 10) / 10 : null;
-  const albumAvg = avg(albums), songAvg = avg(songs);
-  const act = _ratingsActivity();
-  const bestAlbum  = [...albums].sort((a, b) => b.score - a.score)[0];
-  const worstAlbum = [...albums].sort((a, b) => a.score - b.score)[0];
-
-  // Sort the library table.
-  const dir = _ratingsLibDir === 'desc' ? -1 : 1;
-  const sorted = [...items].sort((a, b) => {
-    switch (_ratingsLibSort) {
-      case 'plays':  return (a.plays - b.plays) * dir;
-      case 'recent': return (a.ts - b.ts) * dir;
-      case 'title':  return a.name.localeCompare(b.name) * dir;
-      default:       return (a.score - b.score) * dir;
-    }
-  });
-
-  const arrow = col => _ratingsLibSort === col ? (_ratingsLibDir === 'desc' ? ' ▾' : ' ▴') : '';
-
-  el.innerHTML = `
-    <div class="modal-stats-strip rt-insights">
-      <div class="modal-stat"><div class="se">◈</div><div class="sv ${albumAvg != null ? ratingBand(albumAvg).cls : ''}">${ratingFmt(albumAvg)}</div><div class="sl">${esc(t('ra_card_album_avg'))}</div></div>
-      <div class="modal-stat"><div class="se">♦</div><div class="sv ${songAvg != null ? ratingBand(songAvg).cls : ''}">${ratingFmt(songAvg)}</div><div class="sl">${esc(t('ra_card_song_avg'))}</div></div>
-      <div class="modal-stat"><div class="se">📋</div><div class="sv">${albums.length}</div><div class="sl">${esc(t('rtg_albums_rated'))}</div></div>
-      <div class="modal-stat"><div class="se">🎵</div><div class="sv">${songs.length}</div><div class="sl">${esc(t('rtg_songs_rated'))}</div></div>
-      <div class="modal-stat"><div class="se">📅</div><div class="sv">${act.days}</div><div class="sl">${esc(t('rtg_days_rating'))}</div></div>
-      <div class="modal-stat"><div class="se">🔥</div><div class="sv">${act.longest}</div><div class="sl">${esc(t('rtg_longest_streak'))}</div></div>
-    </div>
-
-    ${bestAlbum ? `<div class="rt-bestworst">
-      <button class="dc-card-inset rt-bw-card rt-bw-card--best" onclick="openAlbumModal(${esc(JSON.stringify(bestAlbum.key))})">
-        <div class="rt-bw-lead">${esc(t('rtg_best_album'))}</div>
-        <div class="rt-bw-name">${esc(bestAlbum.name)}</div>
-        <div class="rt-bw-artist">${esc(bestAlbum.artist)}</div>
-        ${ratingChip(bestAlbum.score)}
-      </button>
-      ${worstAlbum && worstAlbum.key !== bestAlbum.key ? `<button class="dc-card-inset rt-bw-card rt-bw-card--worst" onclick="openAlbumModal(${esc(JSON.stringify(worstAlbum.key))})">
-        <div class="rt-bw-lead">${esc(t('rtg_worst_album'))}</div>
-        <div class="rt-bw-name">${esc(worstAlbum.name)}</div>
-        <div class="rt-bw-artist">${esc(worstAlbum.artist)}</div>
-        ${ratingChip(worstAlbum.score)}
-      </button>` : ''}
-    </div>` : ''}
-
-    <div class="rt-sub-label">${esc(t(_ratingsLibFilter === 'albums' ? 'rtg_dist_albums' : 'rtg_dist_songs'))}</div>
-    ${_ratingsDistributionHTML(items)}
-
-    <div class="rt-lib-controls">
-      <div class="dc-seg rt-lib-filter">
-        <button class="graphs-btn${_ratingsLibFilter === 'albums' ? ' active' : ''}" onclick="ratingsLibSetFilter('albums')">${esc(t('race_albums'))} <span class="rt-tab-count">${albums.length}</span></button>
-        <button class="graphs-btn${_ratingsLibFilter === 'songs' ? ' active' : ''}" onclick="ratingsLibSetFilter('songs')">${esc(t('race_songs'))} <span class="rt-tab-count">${songs.length}</span></button>
-      </div>
-      <div class="dc-seg rt-lib-sort">
-        <button class="graphs-btn${_ratingsLibSort === 'score' ? ' active' : ''}" onclick="ratingsLibSetSort('score')">${esc(t('rtg_sort_score'))}${arrow('score')}</button>
-        <button class="graphs-btn${_ratingsLibSort === 'plays' ? ' active' : ''}" onclick="ratingsLibSetSort('plays')">${esc(t('th_plays_mobile'))}${arrow('plays')}</button>
-        <button class="graphs-btn${_ratingsLibSort === 'recent' ? ' active' : ''}" onclick="ratingsLibSetSort('recent')">${esc(t('rtg_sort_rated'))}${arrow('recent')}</button>
-        <button class="graphs-btn${_ratingsLibSort === 'title' ? ' active' : ''}" onclick="ratingsLibSetSort('title')">${esc(t('rtg_sort_title'))}${arrow('title')}</button>
-      </div>
-    </div>
-
-    <div class="rt-lib-table">
-      ${sorted.map((it, i) => `<button class="rt-lib-row" onclick="${it.kind === 'album' ? 'openAlbumModal' : 'openSongModal'}(${esc(JSON.stringify(it.key))})">
-        <span class="rt-lib-rank">${i + 1}</span>
-        <span class="rt-lib-name">${esc(it.name)}<span class="rt-lib-artist">${esc(it.artist)}</span></span>
-        <span class="rt-lib-plays">${it.plays} ${tUnit('plays', it.plays)}</span>
-        ${ratingChip(it.score)}
-      </button>`).join('')}
-    </div>
-
-    <div class="rt-sub-label">${esc(t('rtg_unrated'))}</div>
-    ${_ratingsUnratedHTML()}
-  `;
+  return {
+    albums, singles, songs, todo, recent, albumPlays,
+    albumAvg: avg(albums), singleAvg: avg(singles), songAvg: avg(songs),
+    ratedAlbums: albums.length, ratedSingles: singles.length, ratedSongs: songs.length,
+    totalAlbums, totalSingles: allAlbums.length - totalAlbums, totalSongs: Object.keys(songPlays).length
+  };
 }
 
-// ─── RATINGS IN THE RECORDS TAB ────────────────────────────────
-// Returns the rating-derived records, or null when there is not enough rated
-// material for any of them to mean anything.
-function ratingRecords() {
+// Artists by the average of their rated albums (two or more, so one 10.0
+// cannot top it); by their rated songs (three or more) when no artist has two
+// rated albums
+function _rpTopArtists(sum) {
+  const group = (rows, min) => {
+    const by = {};
+    for (const r of rows) for (const a of splitArtists(r.artist)) { const n = a.trim(); if (n) (by[n] || (by[n] = [])).push(r.score); }
+    return Object.entries(by).filter(([, v]) => v.length >= min)
+      .map(([name, v]) => ({ name, n: v.length, avg: Math.round(v.reduce((x, y) => x + y, 0) / v.length * 10) / 10 }))
+      .sort((a, b) => b.avg - a.avg || b.n - a.n).slice(0, 8);
+  };
+  const byAlbums = group(sum.albums, 2);
+  return byAlbums.length ? { list: byAlbums, unit: 'albums' } : { list: group(sum.songs, 3), unit: 'songs' };
+}
+
+function renderRatingsPage() {
+  const view = document.getElementById('ratingsView');
+  if (!view) return;
+  const ic = _amIco;
+  const key = k => esc(JSON.stringify(k));
+  const onKey = `onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}"`;
+  const head = `<div class="section-header rp-header"><h2 class="section-header-h2">${typeof cgNavIco === 'function' ? cgNavIco('ratings', 'graphs-h2-ico') : ''}<span>${esc(t('nav_ratings'))}</span></h2><div class="section-rule"></div></div>
+    <p class="rp-intro">${esc(t('rp_intro'))}</p>`;
+  if (!allPlays.length) { view.innerHTML = head; return; }
+
+  const sum = ratingLibrarySummary();
+  const prev = _arS.p;
+  const _ar = _arS.p = {
+    artist: null, sum, plays: sum.albumPlays, todo: sum.todo,
+    view: prev ? prev.view : null, q: prev ? prev.q : '', sort: prev ? prev.sort : null,
+    band: prev ? prev.band : null, all: prev ? prev.all : false
+  };
+  const counts = { albums: sum.ratedAlbums, singles: sum.ratedSingles, songs: sum.ratedSongs, todo: sum.todo.length };
+  if (!_ar.view || !counts[_ar.view]) _ar.view = ['albums', 'singles', 'songs', 'todo'].find(v => counts[v]) || 'todo';
+
+  // ── Hero: your average album, its verdict, how much is rated, when you rate
+  const headline = sum.albumAvg ?? sum.songAvg;
+  const band = headline != null ? ratingBand(headline) : null;
+  const act = _ratingsActivity();
+  const meter = (n, of, label) => `<div class="ar-meter">
+      <div class="ar-meter-top"><span>${esc(label)}</span><b>${n.toLocaleString()}<span> / ${of.toLocaleString()}</span></b></div>
+      <div class="ar-meter-track"><span style="width:${(of ? Math.max(n ? 1.5 : 0, n / of * 100) : 0).toFixed(1)}%"></span></div>
+    </div>`;
+  const chip = (icon, html) => `<span class="rp-act">${ic(icon)}<span>${html}</span></span>`;
+  const acts = act.days ? `<div class="rp-acts">
+      ${chip('calendar', t('rp_act_days', { n: `<b>${act.days.toLocaleString()}</b>` }))}
+      ${act.longest > 1 ? chip('flame', t('rp_act_run', { n: `<b>${act.longest}</b>` })) : ''}
+      ${act.last ? chip('clock', t('rp_act_last', { date: `<b>${esc(fmt(new Date(act.last + 'T12:00:00')))}</b>` })) : ''}
+    </div>` : '';
+  const hero = `<div class="ar-hero rp-hero ${band ? band.cls : 'rt--none'}">
+    ${ratingRing(headline, { size: 132 })}
+    <div class="ar-hero-txt">
+      <span class="ao-kicker">${esc(t(sum.albumAvg != null ? 'rp_kicker_album' : 'rp_kicker_song'))}</span>
+      <div class="ar-verdict">${esc(band ? band.label : t('ao_no_ratings'))}</div>
+      <div class="ar-hero-sub">${esc(headline == null ? t('rp_none_sub')
+        : sum.albumAvg != null ? t('ar_avg_albums', { n: sum.ratedAlbums }) : t('ar_avg_songs', { n: sum.ratedSongs }))}</div>
+      <div class="ar-meters">${meter(sum.ratedAlbums, sum.totalAlbums, t('rtg_albums_rated'))}${
+        sum.totalSingles ? meter(sum.ratedSingles, sum.totalSingles, t('ar_singles_rated')) : ''}${meter(sum.ratedSongs, sum.totalSongs, t('rtg_songs_rated'))}</div>
+      ${acts}
+    </div>
+  </div>`;
+
+  // ── Next up: the most played album without a score
+  const nk = sum.todo.find(k => ratingReleaseKind(k).kind === 'album') || sum.todo[0];
+  const next = nk ? `<div class="ar-next" role="button" tabindex="0" onclick="openRatingModal('album', ${key(nk)})" ${onKey}>
+      <span class="ar-next-art" id="rpNextArt"><span class="thumb-initials">${esc(initials(nk.split('|||')[0]))}</span></span>
+      <span class="ar-next-txt">
+        <span class="ao-kicker">${esc(t('ar_next'))}</span>
+        <span class="ar-next-name">${esc(nk.split('|||')[0])}</span>
+        <span class="ar-next-sub">${esc(nk.split('|||')[1] || '')} · ${(sum.albumPlays[nk] || 0).toLocaleString()} ${esc(tUnit('plays', sum.albumPlays[nk] || 0))}</span>
+      </span>
+      <span class="ar-next-cta">${ic('star')}<span>${esc(t('rtp_rate_arrow'))}</span></span>
+    </div>` : '';
+
+  // ── Highs and lows
+  const hi = [];
+  const lastOf = arr => arr.length > 1 ? arr[arr.length - 1] : null;
+  if (sum.albums[0]) hi.push({ lbl: t('ar_best_album'), x: sum.albums[0], name: sum.albums[0].name, kind: 'album', up: true });
+  if (lastOf(sum.albums)) hi.push({ lbl: t('ar_low_album'), x: lastOf(sum.albums), name: lastOf(sum.albums).name, kind: 'album' });
+  if (sum.singles[0]) hi.push({ lbl: t('ar_best_single'), x: sum.singles[0], name: sum.singles[0].name, kind: 'album', up: true });
+  if (sum.songs[0]) hi.push({ lbl: t('ar_best_song'), x: sum.songs[0], name: sum.songs[0].title, kind: 'song', up: true });
+  if (lastOf(sum.songs)) hi.push({ lbl: t('ar_low_song'), x: lastOf(sum.songs), name: lastOf(sum.songs).title, kind: 'song' });
+  const highs = hi.length ? `<div class="ar-highs rp-highs">${hi.map(h => {
+    const b = ratingBand(h.x.score);
+    return `<button type="button" class="ar-hi ${b.cls}" onclick="openRatingModal('${h.kind}', ${key(h.x.key)})">
+      <span class="ar-hi-lbl">${ic(h.up ? 'trend' : 'bars')}${esc(h.lbl)}</span>
+      <span class="ar-hi-score">${ratingFmt(h.x.score)}</span>
+      <span class="ar-hi-name">${esc(h.name)}</span>
+      <span class="ar-hi-artist">${esc(h.x.artist || '')}</span>
+      <span class="ar-hi-band">${esc(b.label)}</span>
+    </button>`;
+  }).join('')}</div>` : '';
+
+  // ── Your critical records (were under the Records Overview)
+  const recs = ratingRecords(sum);
+  const open = r => r.kind === 'album' ? `openAlbumModal(${key(r.key)})` : r.kind === 'song' ? `openSongModal(${key(r.key)})` : `openArtistModal(${key(r.key)})`;
+  const recsHtml = recs ? `<div class="rp-block">
+      <div class="ao-head rk-head">${esc(t('rp_recs'))}</div>
+      <p class="rp-block-sub">${esc(t('rec_ratings_sub'))}</p>
+      <div class="rt-rec-grid">${recs.map(r => `<button class="dc-card-inset rt-rec-card" onclick="${open(r)}">
+        <svg class="rt-rec-ico" aria-hidden="true" focusable="false"><use href="#${r.icon}" /></svg>
+        <div class="rt-rec-value">${esc(r.value)}</div>
+        <div class="rt-rec-label">${esc(r.label)}</div>
+        <div class="rt-rec-detail">${esc(r.detail)}</div>
+      </button>`).join('')}</div>
+    </div>` : '';
+
+  // ── Top rated artists · recently rated
+  const top = _rpTopArtists(sum);
+  const topHtml = top.list.length ? `<div class="rp-col">
+      <div class="ao-head rk-head">${esc(t('rp_top_artists'))}</div>
+      <ol class="rp-rank">${top.list.map((a, i) => `<li><button type="button" class="rp-rank-row" onclick="rpOpenArtist(${key(a.name)})">
+        <span class="rp-rank-n">${i + 1}</span>
+        <span class="am-art rp-rank-art" id="rpArt-${i}"><span class="thumb-initials">${esc(initials(a.name))}</span></span>
+        <span class="rp-rank-txt"><span class="rp-rank-name">${esc(a.name)}</span><span class="rp-rank-sub">${esc(t(top.unit === 'albums' ? 'rp_n_albums' : 'rp_n_songs', { n: a.n }))}</span></span>
+        ${ratingChip(a.avg)}
+      </button></li>`).join('')}</ol>
+    </div>` : '';
+  const recent = sum.recent.slice(0, 8);
+  const recentHtml = recent.length ? `<div class="rp-col">
+      <div class="ao-head rk-head">${esc(t('rp_recent'))}</div>
+      <ol class="rp-rank rp-recent">${recent.map((r, i) => {
+        const isAlbum = r.kind === 'album';
+        const nm = isAlbum ? { title: r.key.split('|||')[0], artist: r.key.split('|||')[1] || '' } : ratingSongNames(r.key);
+        const score = isAlbum ? ratingAlbumScore(r.key)?.score : ratingSongScore(r.key);
+        return `<li><button type="button" class="rp-rank-row" onclick="openRatingModal('${r.kind}', ${key(r.key)})">
+          <span class="am-art rp-rank-art" id="rpRec-${i}"><span class="thumb-initials">${esc(initials(nm.title))}</span></span>
+          <span class="rp-rank-txt"><span class="rp-rank-name">${esc(nm.title)}</span><span class="rp-rank-sub">${esc(nm.artist)} · ${esc(fmt(new Date(r.ts)))}</span></span>
+          ${score != null ? ratingChip(score) : ''}
+        </button></li>`;
+      }).join('')}</ol>
+    </div>` : '';
+  const duo = topHtml || recentHtml ? `<div class="rp-duo">${topHtml}${recentHtml}</div>` : '';
+
+  // ── Nothing rated yet: the prompt, and what you play most without a score
+  const empty = !sum.ratedAlbums && !sum.ratedSingles && !sum.ratedSongs
+    ? `<div class="rp-block"><div class="ao-head rk-head">${esc(t('rtg_unrated'))}</div>${_ratingsUnratedHTML()}</div>` : '';
+
+  // .dp-body: the details window's styles for these parts apply here too
+  view.innerHTML = `${head}<div class="dp-body rp-page"><div class="ar rp" id="ratingsPageBody">${hero}${next}${empty}${highs}${recsHtml}${duo}<div class="ar-body"></div></div></div>`;
+
+  // Artwork: the next-up cover, the artists, the recent ones
+  if (nk) {
+    const [an, aa = ''] = nk.split('|||');
+    fetchAndInjectImage(document.getElementById('rpNextArt'), { imgId: 'rpNextArt', name: an, title: an, album: an, artist: aa, prefKey: 'album:' + aa.toLowerCase() + '|||' + an.toLowerCase() }, 'album');
+  }
+  loadImages(top.list.map((a, i) => ({ imgId: 'rpArt-' + i, name: a.name, artist: a.name, prefKey: 'artist:' + a.name.toLowerCase() })), 'artist');
+  const recAlb = [], recSong = [];
+  recent.forEach((r, i) => {
+    if (r.kind === 'album') { const [an, aa = ''] = r.key.split('|||'); recAlb.push({ imgId: 'rpRec-' + i, name: an, album: an, artist: aa, prefKey: 'album:' + aa.toLowerCase() + '|||' + an.toLowerCase() }); }
+    else { const nm = ratingSongNames(r.key); recSong.push({ imgId: 'rpRec-' + i, name: nm.title, title: nm.title, artist: nm.artist, album: '', prefKey: 'song:' + nm.artist.toLowerCase() + '|||' + nm.title.toLowerCase() }); }
+  });
+  if (recAlb.length) loadImages(recAlb, 'album');
+  if (recSong.length) loadImages(recSong, 'song');
+  arRenderBody('p');
+}
+
+// An artist row opens that artist on their Rating tab
+function rpOpenArtist(name) {
+  openArtistModal(name);
+  if (window.dcPanelShowTab) dcPanelShowTab('artist', 'rating');
+}
+
+// ─── CRITICAL RECORDS (the Ratings page) ───────────────────────
+// The rating-derived records, from ratingLibrarySummary(), or null when there
+// is not enough rated material for any of them to mean anything. Were under
+// the Records Overview until 2026-10-29.
+function ratingRecords(sum) {
   // Albums only: singles and EPs (marked, or guessed — ratingReleaseKind) get
   // their own "Highest rated single" card instead of topping the album records
-  const releases = _ratingsAllRatedAlbums();
-  const albums  = releases.filter(a => ratingReleaseKind(a.key).kind === 'album');
-  const singles = releases.filter(a => ratingReleaseKind(a.key).kind !== 'album');
-  const songs  = _ratingsAllRatedSongs();
-  if (!releases.length && !songs.length) return null;
+  const albums = sum.albums, singles = sum.singles;
+  const songs = sum.songs.map(s => ({ ...s, name: s.title }));
+  if (!albums.length && !singles.length && !songs.length) return null;
 
   const out = [];
   const bestAlbum = [...albums].sort((a, b) => b.score - a.score)[0];
   const bestSingle = [...singles].sort((a, b) => b.score - a.score)[0];
   const bestSong  = [...songs].sort((a, b) => b.score - a.score)[0];
-  if (bestAlbum) out.push({ id: 'rt_best_album', icon: 'ri-rt-trophy', label: 'Highest rated album',
+  if (bestAlbum) out.push({ id: 'rt_best_album', icon: 'ri-rt-trophy', label: t('rp_rec_best_album'),
     value: ratingFmt(bestAlbum.score), detail: `${bestAlbum.name} — ${bestAlbum.artist}`, key: bestAlbum.key, kind: 'album' });
-  if (bestSingle) out.push({ id: 'rt_best_single', icon: 'ri-rt-trophy', label: 'Highest rated single / EP',
+  if (bestSingle) out.push({ id: 'rt_best_single', icon: 'ri-rt-trophy', label: t('rp_rec_best_single'),
     value: ratingFmt(bestSingle.score), detail: `${bestSingle.name} — ${bestSingle.artist}`, key: bestSingle.key, kind: 'album' });
-  if (bestSong) out.push({ id: 'rt_best_song', icon: 'ri-rt-medal', label: 'Highest rated song',
+  if (bestSong) out.push({ id: 'rt_best_song', icon: 'ri-rt-medal', label: t('rp_rec_best_song'),
     value: ratingFmt(bestSong.score), detail: `${bestSong.name} — ${bestSong.artist}`, key: bestSong.key, kind: 'song' });
 
   // Overrated / underrated by the user's own numbers: rank each rated album by
@@ -61084,10 +61167,10 @@ function ratingRecords() {
     const gaps = albums.map(a => ({ ...a, gap: scoreRank.get(a.key) - playRank.get(a.key) }));
     const over  = [...gaps].sort((a, b) => b.gap - a.gap)[0];   // played high, scored low
     const under = [...gaps].sort((a, b) => a.gap - b.gap)[0];   // scored high, played low
-    if (over && over.gap > 0)  out.push({ id: 'rt_overplayed', icon: 'ri-rt-repeat', label: 'Most overplayed',
+    if (over && over.gap > 0)  out.push({ id: 'rt_overplayed', icon: 'ri-rt-repeat', label: t('rp_rec_overplayed'),
       value: ratingFmt(over.score), detail: `${over.name} — ${over.plays} ${tUnit('plays', over.plays)}`, key: over.key, kind: 'album' });
-    if (under && under.gap < 0) out.push({ id: 'rt_underplayed', icon: 'ri-rt-gem', label: 'Most underplayed',
-      value: ratingFmt(under.score), detail: `${under.name} — only ${under.plays} ${tUnit('plays', under.plays)}`, key: under.key, kind: 'album' });
+    if (under && under.gap < 0) out.push({ id: 'rt_underplayed', icon: 'ri-rt-gem', label: t('rp_rec_underplayed'),
+      value: ratingFmt(under.score), detail: `${under.name} — ${t('rp_rec_only', { n: tCount('plays', under.plays) })}`, key: under.key, kind: 'album' });
   }
 
   // Most consistent album — the one whose tracks vary least. Needs at least
@@ -61098,7 +61181,7 @@ function ratingRecords() {
     if (!ins || ins.ratedCount < 3) continue;
     if (!bestCons || ins.consistency > bestCons.consistency) bestCons = { ...a, consistency: ins.consistency };
   }
-  if (bestCons) out.push({ id: 'rt_consistent', icon: 'ri-rt-level', label: 'Most consistent album',
+  if (bestCons) out.push({ id: 'rt_consistent', icon: 'ri-rt-level', label: t('rp_rec_consistent'),
     value: ratingFmt(bestCons.consistency), detail: `${bestCons.name} — ${bestCons.artist}`, key: bestCons.key, kind: 'album' });
 
   // Best rated artist, over artists with at least two rated albums, so a single
@@ -61109,30 +61192,10 @@ function ratingRecords() {
     .filter(([, arr]) => arr.length >= 2)
     .map(([name, arr]) => ({ name, avg: Math.round((arr.reduce((x, y) => x + y, 0) / arr.length) * 10) / 10, n: arr.length }))
     .sort((a, b) => b.avg - a.avg);
-  if (artistAvgs[0]) out.push({ id: 'rt_best_artist', icon: 'ri-ones', label: 'Best rated artist',
-    value: ratingFmt(artistAvgs[0].avg), detail: `${artistAvgs[0].name} — ${artistAvgs[0].n} albums`, kind: 'artist', key: artistAvgs[0].name });
+  if (artistAvgs[0]) out.push({ id: 'rt_best_artist', icon: 'ri-ones', label: t('rp_rec_best_artist'),
+    value: ratingFmt(artistAvgs[0].avg), detail: `${artistAvgs[0].name} — ${t('rp_n_albums', { n: artistAvgs[0].n })}`, kind: 'artist', key: artistAvgs[0].name });
 
   return out.length ? out : null;
 }
 
-function renderRatingRecordsSection() {
-  const el = document.getElementById('recRatingsBody');
-  if (!el) return;
-  const recs = ratingRecords();
-  if (!recs) {
-    el.innerHTML = `<div class="rt-empty">Rate a few albums and songs and your critical records show up here — highest rated, most overplayed, most consistent.</div>`;
-    return;
-  }
-  const open = r => r.kind === 'album' ? `openAlbumModal(${esc(JSON.stringify(r.key))})`
-              : r.kind === 'song'  ? `openSongModal(${esc(JSON.stringify(r.key))})`
-              : `openArtistModal(${esc(JSON.stringify(r.key))})`;
-  el.innerHTML = `<div class="rt-rec-grid">
-    ${recs.map(r => `<button class="dc-card-inset rt-rec-card" onclick="${open(r)}">
-      <svg class="rt-rec-ico" aria-hidden="true" focusable="false"><use href="#${r.icon}" /></svg>
-      <div class="rt-rec-value">${esc(r.value)}</div>
-      <div class="rt-rec-label">${esc(r.label)}</div>
-      <div class="rt-rec-detail">${esc(r.detail)}</div>
-    </button>`).join('')}
-  </div>`;
-}
 

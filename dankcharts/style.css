@@ -16060,6 +16060,7 @@
     #soundtrackView>.section-header .section-header-h2,
     .dc-pl-view>.section-header .section-header-h2,
     .cg-view>.section-header .section-header-h2,
+    #ratingsView>.section-header .section-header-h2,
     #boardView .bd-section>.section-header .section-header-h2 {
       font-family: var(--font-display);
       font-size: var(--fs-lg);
@@ -39811,6 +39812,63 @@ body.red-light .modal-rank-card--year .mrc-rank {
     .rt-unrated-artist { font-size: var(--fs-xs); color: var(--text3); font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .rt-unrated-plays { flex: 0 0 auto; font-size: var(--fs-xs); color: var(--text3); font-variant-numeric: tabular-nums; }
     .rt-unrated-cta { flex: 0 0 auto; font-size: var(--fs-xs); font-weight: 800; color: var(--accent); }
+
+    /* ═══ RATINGS PAGE (2026-10-29) ══════════════════════════════
+       More → Ratings. Built from the artist Rating tab's parts: the page
+       body carries .dp-body so those rules apply, with the theme accent
+       standing in for the cover colour a details window takes. */
+    #ratingsView { max-width: 1100px; margin: 0 auto; padding: 0 var(--sp-4) var(--sp-8); }
+    #ratingsView .rp-intro { margin: calc(-1 * var(--sp-2)) 0 var(--sp-5); max-width: 62ch; font-size: var(--fs-sm); color: var(--text2); }
+    #ratingsView .rp-page { --dp-ac: var(--accent); --dp-on-ac: var(--on-accent); padding: 0; }
+    #ratingsView .rp > * + * { margin-top: var(--sp-5); }
+    #ratingsView .rp-hero { padding: var(--sp-6); }
+    #ratingsView .rp-hero .ar-verdict { font-size: 2.6rem; }
+    /* When you rate: three quiet facts under the bars */
+    .rp-acts { display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-4); margin-top: var(--sp-4); }
+    .rp-act { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); color: var(--text3); }
+    .rp-act b { color: var(--text); font-variant-numeric: tabular-nums; }
+    .rp-act svg { width: 14px; height: 14px; }
+    /* The highs carry the artist too, the page being the whole library */
+    #ratingsView .ar-highs { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+    .dp-body .ar-hi-artist { width: 100%; margin-top: -2px; font-size: var(--fs-xs); color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .dp-body .ar-artist { font-size: var(--fs-xs); color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .rp-block-sub { margin: calc(-1 * var(--sp-1)) 0 var(--sp-3); font-size: var(--fs-sm); color: var(--text3); }
+    /* six records fit one row on a desktop instead of five and one */
+    #ratingsView .rt-rec-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+    /* Top rated artists · recently rated, side by side from 900px */
+    .rp-duo { display: grid; grid-template-columns: 1fr; gap: var(--sp-5); }
+    @media (min-width: 900px) { .rp-duo { grid-template-columns: 1fr 1fr; } }
+    .rp-rank { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+    .rp-rank-row {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-3);
+      width: 100%;
+      padding: 6px var(--sp-3) 6px 6px;
+      color: var(--text);
+      text-align: left;
+      font: inherit;
+      background: var(--raised);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      cursor: pointer;
+      transition: transform var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+    }
+    .rp-rank-row:hover { transform: translateY(-1px); border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); }
+    .rp-rank-row:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .rp-rank-n { width: 1.6em; flex-shrink: 0; text-align: center; font-family: var(--font-display); font-weight: 800; color: var(--text3); font-variant-numeric: tabular-nums; }
+    .rp-rank li:first-child .rp-rank-n { color: var(--gold1); }
+    .dp-body .rp-rank-art { width: 40px; height: 40px; flex-shrink: 0; }
+    .rp-recent .rp-rank-art { margin-left: 2px; }
+    .rp-rank-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+    .rp-rank-name { font-size: var(--fs-sm); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .rp-rank-sub { font-size: var(--fs-xs); color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    @media (max-width: 640px) {
+      #ratingsView { padding: 0 var(--sp-3) var(--sp-7); }
+      #ratingsView .rp-hero { padding: var(--sp-4); }
+      #ratingsView .rp-hero .ar-verdict { font-size: 2rem; }
+      .rp-acts { justify-content: center; }
+    }
 
     /* ═══ RECORDS TAB ═══════════════════════════════════════════ */
     .rt-rec-grid {
