@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 369;
+const DC_CL_I18N_V = 370;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-29', t: 'feature', a: 'ui', h: '3c2f47a',
+    title: "Daily chart records in Records",
+    detail: "Records now counts the daily charts too. All #1s (in total and in a row), Perfect All Kill, Appearances (in total and in a row), Debuts and Most Plays each get a Daily choice first in their period switch, so you can see which song spent the most days at #1, the longest daily run on the chart, the biggest daily debut and the most plays in one day. A switch you haven't touched still opens on Weekly. The Overview cards get a Daily choice as well, now laid out two by two, and the line under the title shows the daily chart's size and how many days it covers. Daily records also count toward the Hall of Fame reels in artist, song and album details. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-29', t: 'feature', a: 'ui', h: '2c24473',
     title: "Daily charts in every artist, song, album, single and EP",
     detail: "Song, album, artist, single and EP details now count the daily charts too. In the Charts tab, Daily sits first in the chart switch: the peak, the run in one sentence, days on the chart, at #1 and in the Top 10, the chart moments and the zoomable graph, which opens on the last three months (with new 1 month and 3 months ranges). A single's switch to its song chart has it as well. The Overview badges add days at #1 and in the Top 10 on the daily chart, an artist's days at #1 on the daily artist chart, and the songs or tracks that topped the daily song chart. The Music and Tracks lists get Daily in their chart picker, with each entry's best day and days on the chart, an album's chart run list gets a Daily section, and \"Open that chart\" now opens that exact day. Works with Last.fm, Google Sheets and CSV uploads." },

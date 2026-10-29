@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Daily chart records in Records":
+    ["Recordes das paradas diárias em Recordes",
+     "Recordes agora também conta as paradas diárias. Todos os #1 (no total e seguidos), Domínio Total, Aparições (no total e seguidas), Estreias e Mais Plays ganham a opção Diário primeiro no seletor de período, para você ver qual música passou mais dias em #1, a maior sequência diária na parada, a maior estreia diária e o maior número de plays em um dia. Um seletor que você não mexeu continua abrindo em Semanal. Os cartões da Visão geral também ganham a opção Diário, agora em dois por dois, e a linha abaixo do título mostra o tamanho da parada diária e quantos dias ela cobre. Os recordes diários também contam nos carrosséis do Hall da Fama nos detalhes de artistas, músicas e álbuns. Funciona com Last.fm, Google Sheets e arquivos CSV."],
   "Daily charts in every artist, song, album, single and EP":
     ["Paradas diárias em cada artista, música, álbum, single e EP",
      "Os detalhes de músicas, álbuns, artistas, singles e EPs agora também contam as paradas diárias. Na aba Paradas, Diário vem primeiro no seletor: a melhor posição, a trajetória numa frase, os dias na parada, em nº 1 e no Top 10, os momentos e o gráfico com zoom, que abre nos últimos três meses (com os novos intervalos de 1 mês e 3 meses). A troca de um single para a parada de músicas também tem. Os selos do Visão geral somam os dias em nº 1 e no Top 10 da parada diária, os dias de um artista em nº 1 na parada diária de artistas e as músicas ou faixas que chegaram ao nº 1 da parada diária de músicas. As listas de Música e Faixas ganham Diário no seletor, com o melhor dia e os dias na parada de cada uma, a trajetória de um álbum ganha uma seção Diário, e \"Abrir essa parada\" agora abre esse mesmo dia. Funciona com Last.fm, Google Sheets e arquivos CSV."],

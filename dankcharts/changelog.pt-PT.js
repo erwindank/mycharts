@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Daily chart records in Records":
+    ["Recordes dos tops diários em Recordes",
+     "Recordes agora também conta os tops diários. Todos os #1 (no total e seguidos), Domínio Total, Aparições (no total e seguidas), Estreias e Mais Plays ganham a opção Diário primeiro no seletor de período, para veres que música passou mais dias em #1, a maior sequência diária no top, a maior estreia diária e o maior número de plays num dia. Um seletor em que não mexeste continua a abrir em Semanal. Os cartões da Visão geral também ganham a opção Diário, agora em dois por dois, e a linha por baixo do título mostra o tamanho do top diário e quantos dias abrange. Os recordes diários também contam nos carrosséis do Hall da Fama nos detalhes de artistas, músicas e álbuns. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
   "Daily charts in every artist, song, album, single and EP":
     ["Tops diários em cada artista, música, álbum, single e EP",
      "Os detalhes de músicas, álbuns, artistas, singles e EPs agora também contam os tops diários. No separador Tabelas, Diário vem primeiro no seletor: a melhor posição, o percurso numa frase, os dias no top, em n.º 1 e no Top 10, os momentos e o gráfico com zoom, que abre nos últimos três meses (com os novos intervalos de 1 mês e 3 meses). A troca de um single para o top de músicas também o tem. Os selos da Visão geral somam os dias em n.º 1 e no Top 10 do top diário, os dias de um artista em n.º 1 no top diário de artistas e as músicas ou faixas que chegaram ao n.º 1 do top diário de músicas. As listas de Música e Faixas ganham Diário no seletor, com o melhor dia e os dias no top de cada uma, o percurso de um álbum ganha uma secção Diário, e \"Abrir esse top\" agora abre esse mesmo dia. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
