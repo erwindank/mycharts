@@ -22957,6 +22957,14 @@ body.pink-light .lfm-signup-link:hover {
   z-index: 10;
 }
 
+/* The drawn globe the top bar uses, in place of the 🌐 emoji; alone in the
+   phone's round button, next to the word on wider screens. */
+.landing-controls .tb-globe {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+}
+
 .landing-controls .ctrl-group-panel {
   right: 0;
   left: auto;
@@ -23061,11 +23069,16 @@ body.purple .landing-card-config input:focus {
     justify-content: flex-start;
     padding-top: var(--sp-7);
   }
+  /* Room for the stickers that straddle each card's edge: the Recommended
+     ribbon under one card and the badge on top of the next. */
   .landing-cards {
     flex-direction: column;
     align-items: center;
+    gap: var(--sp-7);
   }
+  /* In a column the row's 240px flex-basis would become each card's height. */
   .landing-card {
+    flex: 0 0 auto;
     max-width: 100%;
     width: 100%;
   }

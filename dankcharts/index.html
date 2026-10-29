@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=733">
+  <link rel="stylesheet" href="style.css?v=734">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=238"></script>
+  <script defer src="translations.js?v=239"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -52,6 +52,7 @@
       <div class="ctrl-group" id="landingThemeGroup">
         <button class="ctrl-group-btn" aria-label="Theme" title="Theme">
           <span class="ctrl-btn-wide"><span class="ctrl-theme-dot"></span><span data-i18n="ctrl_btn_theme">THEME</span></span>
+          <span class="ctrl-btn-narrow"><span class="ctrl-theme-dot"></span></span>
         </button>
         <div class="ctrl-group-panel">
           <button class="theme-btn active" data-theme="navy-dark" data-i18n-title="tooltip_theme_navy_dark">●</button>
@@ -68,7 +69,8 @@
       </div>
       <div class="ctrl-group" id="landingLangGroup">
         <button class="ctrl-group-btn" aria-label="Language" title="Language">
-          <span class="ctrl-btn-wide">🌐 <span data-i18n="ctrl_btn_language">LANGUAGE</span></span>
+          <span class="ctrl-btn-wide"><svg class="tb-globe" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><circle cx="8" cy="8" r="6.2"/><ellipse cx="8" cy="8" rx="2.6" ry="6.2"/><line x1="1.8" y1="8" x2="14.2" y2="8"/></svg><span data-i18n="ctrl_btn_language">LANGUAGE</span></span>
+          <span class="ctrl-btn-narrow"><svg class="tb-globe" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><circle cx="8" cy="8" r="6.2"/><ellipse cx="8" cy="8" rx="2.6" ry="6.2"/><line x1="1.8" y1="8" x2="14.2" y2="8"/></svg></span>
         </button>
         <div class="ctrl-group-panel">
           <div class="lang-switcher">
