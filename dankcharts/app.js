@@ -60023,7 +60023,8 @@ function arRenderBody(sc) {
   if (!box || !_ar) return;
   const { sum, todo, view } = _ar;
   // a sort the list does not offer falls back to its default
-  const sorts = view === 'todo' ? ['plays', 'az'] : ['high', 'low', 'az'];
+  // Releases can also be ordered by how many tracks they have (2026-10-29)
+  const sorts = view === 'todo' ? ['plays', 'az'] : view === 'songs' ? ['high', 'low', 'az'] : ['high', 'low', 'tracks', 'az'];
   if (!sorts.includes(_ar.sort)) _ar.sort = sorts[0];
   const tab = (v, label, icon, n) => `<button type="button" role="tab" class="am-type-btn${v === view ? ' is-on' : ''}" aria-selected="${v === view}" ${n ? '' : 'disabled'} onclick="arSetView('${sc}','${v}')">
       ${_amIco(icon)}<span>${esc(label)}</span><span class="am-type-n">${n.toLocaleString()}</span></button>`;
@@ -60078,6 +60079,8 @@ function arRenderList(sc) {
   if (_ar.sort === 'low') rows.sort((a, b) => a.score - b.score || _rpTieOrder(a, b));
   else if (_ar.sort === 'az') rows.sort((a, b) => a.name.localeCompare(b.name));
   else if (_ar.sort === 'plays') rows.sort((a, b) => b.plays - a.plays);
+  // most tracks first; the same count by how many are rated, then the score
+  else if (_ar.sort === 'tracks') rows.sort((a, b) => (b.totalTracks || 0) - (a.totalTracks || 0) || (b.ratedTracks || 0) - (a.ratedTracks || 0) || b.score - a.score);
   else rows.sort((a, b) => b.score - a.score || _rpTieOrder(a, b));
   _ar.rows = rows;
   if (!rows.length) { box.innerHTML = `<div class="am-empty">${esc(q ? t('am_no_match', { q: _ar.q.trim() }) : t('ar_empty'))}</div>`; return; }
