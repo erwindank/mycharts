@@ -50,6 +50,9 @@ details window). Next is phase 13, daily records.
 **Updated 2026-10-29 (night):** phase 13 done (daily records). Next is
 phase 14, the Ratings page.
 
+**Updated 2026-10-29 (late):** phase 14 done (the Ratings page). Next is
+phase 15, Stats rebuilt: look at it on screen, then a mockup first.
+
 **Seen on screen:**
 - Weekly: Albums and Songs, in all six chart layouts (Table, Card grid,
   Compact, Mosaic, Filmstrip, Stack)
@@ -3629,6 +3632,22 @@ page in the More menu (desktop and the phone's bottom bar): the summary,
 verdicts, albums / singles / EPs / songs, best and worst, score spread,
 next to rate, share cards. The tour, Charts Guide and deep links point at
 it.
+
+**Phase 14 done (2026-10-29,** 7324b11 + changelog, not pushed). More →
+Ratings (`ratingsView`, `renderRatingsPage`): hero (average album ring,
+verdict, rated meters, when you rate), next to rate, highs and lows with
+artists, critical records (`ratingRecords(sum)`, translated, now counting
+albums rated through their tracks), top rated artists, recently rated, and
+the list (Albums · Singles / EPs · Songs · To rate = unrated albums with
+10+ plays). `ratingLibrarySummary()` mirrors `ratingArtistSummary`. The
+artist Rating tab's list code takes a scope ('a' / 'p', `_arS`); the page
+wears `.dp-body` so the window's `.ar-*` / `.am-*` styles apply. Removed:
+the Stats card, `renderRatingsGraphSection` and its sort state and score
+chart, the Records block and `renderRatingRecordsSection`, the two library
+lists, 16 unused keys. Guide card in four languages, an English tour stop
+(the tour is still English only), "fourteen tabs". Checked at 1440 en,
+1100 pt-BR Red light, 390 es Navy light, and the guide in pt-PT: no missing
+keys, no errors.
 
 **Phase 15: Stats rebuilt.** Looked at on screen first, then a mockup for
 you before building. Direction:
