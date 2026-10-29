@@ -16703,6 +16703,24 @@
       border-top: 1px solid var(--border);
     }
 
+    /* Four periods (Daily, Weekly, Monthly, Yearly) as two by two rather than
+       three and one left alone underneath */
+    .rec-ov-sw-quad .rec-ov-sw-btn {
+      flex-basis: 50%;
+    }
+
+    .rec-ov-sw-quad .rec-ov-sw-btn:nth-child(3) {
+      border-left: 0;
+    }
+
+    .rec-ov-sw-quad .rec-ov-sw-btn:nth-child(4) {
+      border-left: 1px solid var(--border);
+    }
+
+    .rec-ov-sw-quad .rec-ov-sw-btn:nth-child(n+3) {
+      border-top: 1px solid var(--border);
+    }
+
     .rec-ov-sw-btn:hover {
       background: var(--bg3);
       color: var(--text);

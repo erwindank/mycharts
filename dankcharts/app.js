@@ -7878,6 +7878,8 @@ function buildRecords() {
   const ySizeSongs   = isFinite(chartSizeSongsY)   ? chartSizeSongsY   : 999999;
   const ySizeArtists = isFinite(chartSizeArtistsY) ? chartSizeArtistsY : 999999;
   const ySizeAlbums  = isFinite(chartSizeAlbumsY)  ? chartSizeAlbumsY  : 999999;
+  // The daily chart's own sizes (daily.js), for the daily records (2026-10-29)
+  const dSizeSongs = dySizeOf('songs'), dSizeArtists = dySizeOf('artists'), dSizeAlbums = dySizeOf('albums');
 
   // Name lookup tables
   const songNames = {}, albumNames = {};
@@ -7889,6 +7891,7 @@ function buildRecords() {
   }
 
   function fmtPeriodKey(pk, pt) {
+    if (pt === 'day') return fmt(new Date(pk + 'T12:00:00'));
     if (pt === 'week') { const d = new Date(pk + 'T00:00:00'); return t('period_week_of', { date: fmt(d) }); }
     if (pt === 'month') {
       const [yr, mo] = pk.split('-');
@@ -7910,11 +7913,11 @@ function buildRecords() {
     if (dim === 'months') return fmtPeriodKey(key, 'month');
     return key;
   }
-  function periodAtOneHeader(pt) { return pt === 'week' ? t('rec_th_weeks_at_1') : pt === 'month' ? t('rec_th_months_at_1') : t('rec_th_years_at_1'); }
+  function periodAtOneHeader(pt) { return pt === 'day' ? t('rec_th_days_at_1') : pt === 'week' ? t('rec_th_weeks_at_1') : pt === 'month' ? t('rec_th_months_at_1') : t('rec_th_years_at_1'); }
   // Same three headers for the consecutive twin of each All #1s table. Kept as
   // three keys rather than one "Consecutive {{unit}}" template because the
   // adjective is gendered in es/pt and has to agree with Semanas/Meses/Años.
-  function consecAtOneHeader(pt) { return pt === 'week' ? t('rec_th_consec_weeks_at_1') : pt === 'month' ? t('rec_th_consec_months_at_1') : t('rec_th_consec_years_at_1'); }
+  function consecAtOneHeader(pt) { return pt === 'day' ? t('rec_th_consec_days_at_1') : pt === 'week' ? t('rec_th_consec_weeks_at_1') : pt === 'month' ? t('rec_th_consec_months_at_1') : t('rec_th_consec_years_at_1'); }
 
   // Group plays by period
   // Sort on the raw numeric stamp rather than subtracting Date objects — this
@@ -7922,14 +7925,16 @@ function buildRecords() {
   // msOf(), not tzMsOf(): the original ordered by real time, and a timezone
   // shift is not guaranteed monotonic across a DST boundary.
   const chron = allPlays.slice().sort((a, b) => msOf(a) - msOf(b));
-  const weekPlaysMap = {}, monthPlaysMap = {}, yearPlaysMap = {};
+  const dayPlaysMap = {}, weekPlaysMap = {}, monthPlaysMap = {}, yearPlaysMap = {};
   for (const p of chron) {
-    // All three are cached per-play stamps; none needs a Date built.
+    // All four are cached per-play stamps; none needs a Date built.
     const wk = playWeekKeyOf(p), mk = monthKeyOf(p), yk = yearKeyOf(p);
+    (dayPlaysMap[dayStrOf(p)] || (dayPlaysMap[dayStrOf(p)] = [])).push(p);
     (weekPlaysMap[wk] || (weekPlaysMap[wk] = [])).push(p);
     (monthPlaysMap[mk] || (monthPlaysMap[mk] = [])).push(p);
     (yearPlaysMap[yk] || (yearPlaysMap[yk] = [])).push(p);
   }
+  const dayKeys = Object.keys(dayPlaysMap).sort();
   const weekKeys = Object.keys(weekPlaysMap).sort();
   const monthKeys = Object.keys(monthPlaysMap).sort();
   const yearKeys = Object.keys(yearPlaysMap).sort();
@@ -7957,35 +7962,37 @@ function buildRecords() {
   }
 
   // Records containers
-  const song1s = { week: {}, month: {}, year: {} };
-  const artist1s = { week: {}, month: {}, year: {} };
-  const album1s = { week: {}, month: {}, year: {} };
-  const songApps = { week: {}, month: {}, year: {} };
-  const artistApps = { week: {}, month: {}, year: {} };
-  const albumApps = { week: {}, month: {}, year: {} };
-  const songDebuts = { week: {}, month: {}, year: {} };
-  const artistDebuts = { week: {}, month: {}, year: {} };
-  const albumDebuts = { week: {}, month: {}, year: {} };
-  const songPP = { week: {}, month: {}, year: {} };
-  const artistPP = { week: {}, month: {}, year: {} };
-  const albumPP = { week: {}, month: {}, year: {} };
+  const song1s = { day: {}, week: {}, month: {}, year: {} };
+  const artist1s = { day: {}, week: {}, month: {}, year: {} };
+  const album1s = { day: {}, week: {}, month: {}, year: {} };
+  const songApps = { day: {}, week: {}, month: {}, year: {} };
+  const artistApps = { day: {}, week: {}, month: {}, year: {} };
+  const albumApps = { day: {}, week: {}, month: {}, year: {} };
+  const songDebuts = { day: {}, week: {}, month: {}, year: {} };
+  const artistDebuts = { day: {}, week: {}, month: {}, year: {} };
+  const albumDebuts = { day: {}, week: {}, month: {}, year: {} };
+  const songPP = { day: {}, week: {}, month: {}, year: {} };
+  const artistPP = { day: {}, week: {}, month: {}, year: {} };
+  const albumPP = { day: {}, week: {}, month: {}, year: {} };
   /* Perfect All Kill, one list per chart. A PAK is one artist holding #1 on the
      artist, song and album charts at the same time, and that is as true of a
      month or a year as it is of a week — a yearly PAK is simply a much rarer
      thing than a weekly one, which makes it its own record rather than a filter
      over this one. Keyed by period so the three never mix. */
-  const pakPeriods = { week: [], month: [], year: [] };
+  const pakPeriods = { day: [], week: [], month: [], year: [] };
   const newCountPerPeriod = {
+    day: { songs: {}, artists: {}, albums: {} },
     week: { songs: {}, artists: {}, albums: {} },
     month: { songs: {}, artists: {}, albums: {} },
     year: { songs: {}, artists: {}, albums: {} }
   };
-  const newSongDebutsByArtist = { week: {}, month: {}, year: {} };
-  const newSongsByArtistPerPeriod = { week: {}, month: {}, year: {} };
-  const artistNewDebutPeriods = { week: {}, month: {}, year: {} };
-  const song1stNo1Period = { week: {}, month: {}, year: {} };
-  const albumNewTrackCount = { week: {}, month: {}, year: {} };
+  const newSongDebutsByArtist = { day: {}, week: {}, month: {}, year: {} };
+  const newSongsByArtistPerPeriod = { day: {}, week: {}, month: {}, year: {} };
+  const artistNewDebutPeriods = { day: {}, week: {}, month: {}, year: {} };
+  const song1stNo1Period = { day: {}, week: {}, month: {}, year: {} };
+  const albumNewTrackCount = { day: {}, week: {}, month: {}, year: {} };
   const rawNewCountPerPeriod = {
+    day: { songs: {}, artists: {}, albums: {} },
     week: { songs: {}, artists: {}, albums: {} },
     month: { songs: {}, artists: {}, albums: {} },
     year: { songs: {}, artists: {}, albums: {} }
@@ -7994,8 +8001,12 @@ function buildRecords() {
   function buildPeriodRecords(pt, playsMap, keys, sizeSongs, sizeArtists, sizeAlbums) {
     let prevSong = {}, prevArtist = {}, prevAlbum = {};
     const everSong = new Set(), everArtist = new Set(), everAlbum = new Set();
+    let lastPk = null;
     for (const pk of keys) {
       const plays = playsMap[pk];
+      // A day with no plays has no chart, so the next one starts fresh
+      if (pt === 'day' && lastPk && crPeriodGap('day', lastPk, pk) > 0) { prevSong = {}; prevArtist = {}; prevAlbum = {}; }
+      lastPk = pk;
       const sc = {}, ac = {}, lc = {};
       for (const p of plays) {
         const sk = songKey(p);
@@ -8074,19 +8085,20 @@ function buildRecords() {
     }
   }
 
+  buildPeriodRecords('day', dayPlaysMap, dayKeys, dSizeSongs, dSizeArtists, dSizeAlbums);
   buildPeriodRecords('week', weekPlaysMap, weekKeys, wSizeSongs, wSizeArtists, wSizeAlbums);
   buildPeriodRecords('month', monthPlaysMap, monthKeys, mSizeSongs, mSizeArtists, mSizeAlbums);
   buildPeriodRecords('year', yearPlaysMap, yearKeys, ySizeSongs, ySizeArtists, ySizeAlbums);
 
   // ── New Charts Records: compute from actual New Songs/Artists/Albums charts ──
   // Uses first-ever play per item, matching the renderNewEntries logic.
-  const ncSongDebuts = { week: {}, month: {}, year: {} };
-  const ncArtistDebuts = { week: {}, month: {}, year: {} };
-  const ncAlbumDebuts = { week: {}, month: {}, year: {} };
-  const ncNewSongDebutsByArtist = { week: {}, month: {}, year: {} };
-  const ncNewSongsByArtistPerPeriod = { week: {}, month: {}, year: {} };
-  const ncArtistNewDebutPeriods = { week: {}, month: {}, year: {} };
-  const ncAlbumNewTrackCount = { week: {}, month: {}, year: {} };
+  const ncSongDebuts = { day: {}, week: {}, month: {}, year: {} };
+  const ncArtistDebuts = { day: {}, week: {}, month: {}, year: {} };
+  const ncAlbumDebuts = { day: {}, week: {}, month: {}, year: {} };
+  const ncNewSongDebutsByArtist = { day: {}, week: {}, month: {}, year: {} };
+  const ncNewSongsByArtistPerPeriod = { day: {}, week: {}, month: {}, year: {} };
+  const ncArtistNewDebutPeriods = { day: {}, week: {}, month: {}, year: {} };
+  const ncAlbumNewTrackCount = { day: {}, week: {}, month: {}, year: {} };
   // The New Songs/Artists/Albums charts only ever show the top N of a period.
   // Records built from every first-ever appearance were ranking entries that
   // never made the chart (a #247 "debut" on a top-20 chart, an album credited
@@ -8098,9 +8110,9 @@ function buildRecords() {
     year:  { songs: chartSizeSongsY, artists: chartSizeArtistsY, albums: chartSizeAlbumsY },
   };
   {
-    const sfp = { week: {}, month: {}, year: {} };
-    const afp = { week: {}, month: {}, year: {} };
-    const lfp = { week: {}, month: {}, year: {} };
+    const sfp = { day: {}, week: {}, month: {}, year: {} };
+    const afp = { day: {}, week: {}, month: {}, year: {} };
+    const lfp = { day: {}, week: {}, month: {}, year: {} };
     for (const p of chron) {
       const wk = playWeekKeyOf(p);
       const _td = tzDateOf(p);
@@ -8196,7 +8208,7 @@ function buildRecords() {
   }
 
   // ── Build ncPeriodMap for tooltip use (inverted by period) ───
-  ncPeriodMap = { week: {}, month: {}, year: {} };
+  ncPeriodMap = { day: {}, week: {}, month: {}, year: {} };
   for (const pt of ['week', 'month', 'year']) {
     for (const [sk, d] of Object.entries(ncSongDebuts[pt])) {
       if (!ncPeriodMap[pt][d.period]) ncPeriodMap[pt][d.period] = { songs: [], artists: [], albums: [] };
@@ -8628,6 +8640,7 @@ function buildRecords() {
   // under a heading that already says Records is noise at this size. Both sets
   // are translated in all four languages, so this costs no coverage.
   const recIntroCols = [
+    { label: t('nav_daily'), size: dSizeSongs, span: tCount('days', dayKeys.length) },
     { label: t('nav_weekly'), size: wSizeSongs, span: tCount('weeks_full', weekKeys.length) },
     { label: t('nav_monthly'), size: mSizeSongs, span: tCount('months', monthKeys.length) },
     { label: t('nav_yearly'), size: chartSizeYearly, span: tCount('years', yearKeys.length) },
@@ -8686,6 +8699,7 @@ function buildRecords() {
      from; `short` is the bare period the pill row wears, because the title
      right under it already spells the chart name out in full. */
   const typeConfig = [
+    { pt: 'day', label: t('rec_daily_label'), short: t('nav_daily'), size: dSizeSongs },
     { pt: 'week', label: t('rec_weekly_label'), short: t('nav_weekly'), size: wSizeSongs },
     { pt: 'month', label: t('rec_monthly_label'), short: t('nav_monthly'), size: mSizeSongs },
     { pt: 'year', label: t('rec_yearly_label'), short: t('nav_yearly'), size: isFinite(chartSizeSongsY) ? chartSizeSongsY : '∞' },
@@ -8884,6 +8898,7 @@ function buildRecords() {
        Portuguese inflect the article with the noun's gender), and `size` is the
        chart depth the empty state quotes. */
     const pakCfg = [
+      { pt: 'day',   unitKey: 'days',       big: t('rec_period_days'),   nav: t('nav_daily'),   label: t('rec_daily_label'),   all: 'rec_pak_all_day',   size: dSizeSongs },
       { pt: 'week',  unitKey: 'weeks_full', big: t('rec_period_weeks'),  nav: t('nav_weekly'),  label: t('rec_weekly_label'),  all: 'rec_pak_all_week',  size: wSizeSongs },
       { pt: 'month', unitKey: 'months',     big: t('rec_period_months'), nav: t('nav_monthly'), label: t('rec_monthly_label'), all: 'rec_pak_all_month', size: mSizeSongs },
       { pt: 'year',  unitKey: 'years',      big: t('rec_period_years'),  nav: t('nav_yearly'),  label: t('rec_yearly_label'),  all: 'rec_pak_all_year',  size: isFinite(chartSizeSongsY) ? chartSizeSongsY : '∞' },
@@ -9061,6 +9076,7 @@ function buildRecords() {
      chart out), `big` the capitalised plural the "Weeks on Chart" column header
      needs, and `unitKey` the lowercase prose plural of the count cell. */
   const appCfg = [
+    { pt: 'day',   label: t('rec_daily_label'),   nav: t('nav_daily'),   big: t('rec_period_days'),   unitKey: 'days' },
     { pt: 'week',  label: t('rec_weekly_label'),  nav: t('nav_weekly'),  big: t('rec_period_weeks'),  unitKey: 'weeks_full' },
     { pt: 'month', label: t('rec_monthly_label'), nav: t('nav_monthly'), big: t('rec_period_months'), unitKey: 'months' },
     { pt: 'year',  label: t('rec_yearly_label'),  nav: t('nav_yearly'),  big: t('rec_period_years'),  unitKey: 'years' },
@@ -9355,6 +9371,7 @@ function buildRecords() {
      column is headed with, and `unitKey` the prose plural the period preview
      link needs. */
   const debCfg = [
+    { pt: 'day',   nav: t('nav_daily'),   unitLabel: t('rec_th_day'),   unitKey: 'days' },
     { pt: 'week',  nav: t('nav_weekly'),  unitLabel: t('rec_th_week'),  unitKey: 'weeks_full' },
     { pt: 'month', nav: t('nav_monthly'), unitLabel: t('rec_th_month'), unitKey: 'months' },
     { pt: 'year',  nav: t('nav_yearly'),  unitLabel: t('rec_th_year'),  unitKey: 'years' },
@@ -9626,6 +9643,7 @@ function buildRecords() {
      ("Week"); `short` is the bare period the pill row wears, the same pair All
      #1s keeps above. */
   const ptCfg = [
+    { pt: 'day', unitLabel: t('rec_th_day'), short: t('nav_daily'), sPP: songPP.day, aPP: artistPP.day, lPP: albumPP.day },
     { pt: 'week', unitLabel: t('rec_th_week'), short: t('nav_weekly'), sPP: songPP.week, aPP: artistPP.week, lPP: albumPP.week },
     { pt: 'month', unitLabel: t('rec_th_month'), short: t('nav_monthly'), sPP: songPP.month, aPP: artistPP.month, lPP: albumPP.month },
     { pt: 'year', unitLabel: t('rec_th_year'), short: t('nav_yearly'), sPP: songPP.year, aPP: artistPP.year, lPP: albumPP.year },
@@ -10563,8 +10581,8 @@ function buildRecords() {
   // each one counts in, and the label lookup. Weekly keeps the untranslated
   // base key so existing translations stay valid; monthly and yearly get their
   // own strings, and anything period-neutral (a PAK is a PAK) reuses the base.
-  const OV_PERIODS = ['week', 'month', 'year'];
-  const OV_UNIT = { week: 'weeks_full', month: 'months', year: 'years' };
+  const OV_PERIODS = ['day', 'week', 'month', 'year'];
+  const OV_UNIT = { day: 'days', week: 'weeks_full', month: 'months', year: 'years' };
   const ovL = function (base, pd) { return t(pd === 'week' ? base : base + '_' + pd); };
   // Single-pass "best entry" helpers — cheaper and clearer than sorting to take [0].
   function topNum(map) {
@@ -10819,6 +10837,7 @@ function buildRecords() {
 
   // Biggest debut on the New Songs / New Artists / New Albums charts
   for (const pd of OV_PERIODS) {
+    if (pd === 'day') continue;   // no New Entries charts on the Daily tab
     const L = ovL('rec_ov_new_charts', pd);
     const val = d => t('rec_ov_debut_value', { rank: d.rank, plays: tCount('plays', d.plays || 0) });
     const s = topBy(ncSongDebuts[pd], byDebut), a = topBy(ncArtistDebuts[pd], byDebut), l = topBy(ncAlbumDebuts[pd], byDebut);
@@ -10879,6 +10898,7 @@ const REC_OV_TYPES = [
    adding a records section means adding its slots here, and forgetting leaves
    a gap rather than an empty tile or a wrong figure. */
 const OV_CHART_SLOTS = [
+  { slot: 'day', tag: 'nav_daily' },
   { slot: 'week', tag: 'nav_weekly' },
   { slot: 'month', tag: 'nav_monthly' },
   { slot: 'year', tag: 'nav_yearly' },
@@ -10901,7 +10921,8 @@ const REC_OV_SLOTS = {
     { slot: 'years', tag: 'nav_yearly' },
     { slot: 'runs', tag: 'rec_per_runs' },
   ],
-  recNewChartsSection: OV_CHART_SLOTS,
+  // The Daily tab has no New Entries charts, so no daily slot here
+  recNewChartsSection: OV_CHART_SLOTS.filter(s => s.slot !== 'day'),
 };
 
 // Held so the Songs/Artists/Albums toggle and the card switches can re-render from memory
@@ -10950,7 +10971,10 @@ function recOvSlotFor(id) {
   const slots = REC_OV_SLOTS[id] || [];
   let map = {};
   try { map = JSON.parse(localStorage.getItem('dc_rec_ov_slots') || '{}') || {}; } catch (e) { map = {}; }
-  return slots.some(function (s) { return s.slot === map[id]; }) ? map[id] : (slots[0] ? slots[0].slot : null);
+  if (slots.some(function (s) { return s.slot === map[id]; })) return map[id];
+  // Daily sits first (2026-10-29); untouched cards still open on Weekly
+  if (slots.some(function (s) { return s.slot === 'week'; })) return 'week';
+  return slots[0] ? slots[0].slot : null;
 }
 
 function recOvSetSlot(id, slot) {
@@ -11052,7 +11076,7 @@ function renderRecordsOverview(highlights) {
     // The card's own period switch. Lifetime records have nothing to switch,
     // so they say "All-Time" in the same spot and every card lines up.
     if (slots.length > 1) {
-      card += '<div class="rec-ov-sw' + (slots.length > 3 ? ' rec-ov-sw-wrap' : '') +
+      card += '<div class="rec-ov-sw' + (slots.length === 4 ? ' rec-ov-sw-wrap rec-ov-sw-quad' : slots.length > 3 ? ' rec-ov-sw-wrap' : '') +
         '" role="group" aria-label="' + esc(t('rec_ov_period_label')) + '">' +
         slots.map(function (s) {
           return '<button type="button" class="rec-ov-sw-btn' + (s.slot === slot ? ' active' : '') +
@@ -12776,8 +12800,8 @@ function recAlbumEnts() {
    is separated, so the common path allocates nothing. */
 function recSplitAlbums(container, bucket) {
   if (!separatedTypes().length) return container;
-  const out = { week: {}, month: {}, year: {} };
-  for (const pt of ['week', 'month', 'year']) {
+  const out = { day: {}, week: {}, month: {}, year: {} };
+  for (const pt of ['day', 'week', 'month', 'year']) {
     const src = container[pt] || {};
     for (const k in src) if (albumBucketOfKey(k) === bucket) out[pt][k] = src[k];
   }
@@ -12896,7 +12920,9 @@ document.addEventListener('click', function (e) {
    other and each choice remembered on its own. */
 function recPerTabState(scope, keys) {
   const stored = localStorage.getItem('dc_rec_per_' + scope);
-  return keys.indexOf(stored) === -1 ? keys[0] : stored;
+  if (keys.indexOf(stored) !== -1) return stored;
+  // Daily sits first (2026-10-29), but a switch nobody has touched opens on Weekly
+  return keys.indexOf('week') !== -1 ? 'week' : keys[0];
 }
 
 function applyRecPerTabs() {
@@ -17936,13 +17962,26 @@ document.addEventListener('scroll', () => {
   });
 }, { capture: true, passive: true });
 
+/* A 'YYYY-MM-DD' key as a whole day number, cached. The streak and run code
+   asks for the gap between neighbouring keys hundreds of thousands of times
+   once daily runs are in (2026-10-29), and building two Dates each time was
+   most of Records' cost. UTC, so a daylight-saving change is never a gap. */
+const _crDayNums = new Map();
+function _crDayNum(k) {
+  let n = _crDayNums.get(k);
+  if (n === undefined) {
+    n = Math.round(Date.UTC(+k.slice(0, 4), +k.slice(5, 7) - 1, +k.slice(8, 10)) / 86400000);
+    _crDayNums.set(k, n);
+  }
+  return n;
+}
+
 function crPeriodGap(period, keyA, keyB) {
   // Returns number of chart periods between keyA and keyB (exclusive), i.e. gap - 1
   if (period === 'day') {
-    return Math.round((new Date(keyB + 'T12:00:00') - new Date(keyA + 'T12:00:00')) / 86400000) - 1;
+    return _crDayNum(keyB) - _crDayNum(keyA) - 1;
   } else if (period === 'week') {
-    const a = new Date(keyA + 'T00:00:00'), b = new Date(keyB + 'T00:00:00');
-    return Math.round((b - a) / (7 * 86400000)) - 1;
+    return Math.round((_crDayNum(keyB) - _crDayNum(keyA)) / 7) - 1;
   } else if (period === 'month') {
     const [ay, am] = keyA.split('-').map(Number);
     const [by, bm] = keyB.split('-').map(Number);
@@ -17954,7 +17993,7 @@ function crPeriodGap(period, keyA, keyB) {
 
 function rec1sBoxesHTML(periods, pt) {
   if (!periods || !periods.length) return '';
-  const unit = function(gap) { return pt === 'week' ? tUnit('weeks', gap) : pt === 'month' ? tUnit('months', gap) : tUnit('years', gap); };
+  const unit = function(gap) { return pt === 'day' ? tUnit('days', gap) : pt === 'week' ? tUnit('weeks', gap) : pt === 'month' ? tUnit('months', gap) : tUnit('years', gap); };
   const boxes = periods.flatMap(function(pk, i) {
     const box = '<div class="cr-box cr-box-peak rec-1s-box" onclick="navigateToRecPeriod(\'' + pt + '\',\'' + pk + '\')">'
       + '<div class="cr-box-rank">#1</div>'
