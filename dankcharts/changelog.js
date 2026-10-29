@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 371;
+const DC_CL_I18N_V = 372;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -81,7 +81,7 @@ const DC_CHANGELOG = [
   /* ========== OCTOBER 2026 ========== */
   { d: '2026-10-29', t: 'feature', a: 'ui', h: '7324b11',
     title: "A Ratings page with everything you have scored",
-    detail: "Your ratings have a page of their own, under More → Ratings, instead of opening the Stats tab. At the top is your average album as a ring with its verdict, how much of what you play you have rated, and when you rate: the days, your longest run and the last time. Under it are the most played album you haven't rated yet (one tap to rate it), your highest and lowest album, single or EP and song, and your critical records: highest rated, most overplayed, most underplayed, most consistent album and best rated artist. These used to sit under the Records Overview, only in English, and they now count albums you rated through their tracks too. Then the artists you rate best (each opens their Rating tab), what you rated lately, and the full list with Albums, Singles / EPs, Songs and To rate (albums you've played 10 or more times), with the score spread, search and sort. Works with Last.fm, Google Sheets and CSV uploads." },
+    detail: "Your ratings have a page of their own, under More → Ratings, instead of opening the Stats tab. At the top is your average album as a ring with its verdict, how much of what you play you have rated, and when you rate: the days, your longest run and the last time. Under it are the most played album you haven't rated yet (one tap to rate it), cards for your highest and lowest album, single or EP and song that slide through every one at that score (a dozen albums at 10.0 all get their turn; tap the one showing to open it), and your critical records: most overplayed, most underplayed, most consistent album and best rated artist. These used to sit under the Records Overview, only in English, and they now count albums you rated through their tracks too. Then the artists you rate best (each opens their Rating tab), what you rated lately, and the full list with Albums, Singles / EPs, Songs and To rate (albums you've played 10 or more times), with the score spread, search and sort. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-29', t: 'feature', a: 'ui', h: '3c2f47a',
     title: "Daily chart records in Records",
     detail: "Records now counts the daily charts too. All #1s (in total and in a row), Perfect All Kill, Appearances (in total and in a row), Debuts and Most Plays each get a Daily choice first in their period switch, so you can see which song spent the most days at #1, the longest daily run on the chart, the biggest daily debut and the most plays in one day. A switch you haven't touched still opens on Weekly. The Overview cards get a Daily choice as well, now laid out two by two, and the line under the title shows the daily chart's size and how many days it covers. Daily records also count toward the Hall of Fame reels in artist, song and album details. Works with Last.fm, Google Sheets and CSV uploads." },

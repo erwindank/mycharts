@@ -39834,7 +39834,21 @@ body.red-light .modal-rank-card--year .mrc-rank {
     .dp-body .ar-artist { font-size: var(--fs-xs); color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .rp-block-sub { margin: calc(-1 * var(--sp-1)) 0 var(--sp-3); font-size: var(--fs-sm); color: var(--text3); }
     /* six records fit one row on a desktop instead of five and one */
-    #ratingsView .rt-rec-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+    #ratingsView .rt-rec-grid { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+    /* Highs and lows slide through every entry at their score: the name and
+       artist move, the score and label stay. Dots and "3 / 12" underneath. */
+    #ratingsView .rp-hi { cursor: pointer; overflow: hidden; }
+    #ratingsView .rp-hi:focus-visible { outline: 2px solid var(--rt-c); outline-offset: 2px; }
+    .rp-hi-win { display: block; width: 100%; overflow: hidden; }
+    .rp-hi-track { display: flex; transition: transform 0.55s var(--ease); will-change: transform; }
+    .rp-hi-slide { flex: 0 0 100%; min-width: 0; overflow: hidden; display: flex; flex-direction: column; gap: 2px; }
+    .rp-hi-dots { flex-wrap: nowrap; }
+    .rp-hi-foot { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); width: 100%; margin-top: 6px; }
+    .rp-hi-dots { display: flex; flex-wrap: wrap; gap: 4px; min-width: 0; }
+    .rp-hi-dot { width: 6px; height: 6px; padding: 0; border: 0; border-radius: 50%; background: color-mix(in srgb, var(--rt-c) 28%, transparent); cursor: pointer; transition: background var(--t-fast) var(--ease), transform var(--t-fast) var(--ease); }
+    .rp-hi-dot.is-on { background: var(--rt-c); transform: scale(1.3); }
+    .rp-hi-n { flex-shrink: 0; font-size: var(--fs-xs); color: var(--text3); font-variant-numeric: tabular-nums; }
+    @media (prefers-reduced-motion: reduce) { .rp-hi-track { transition: none; } }
     /* Top rated artists · recently rated, side by side from 900px */
     .rp-duo { display: grid; grid-template-columns: 1fr; gap: var(--sp-5); }
     @media (min-width: 900px) { .rp-duo { grid-template-columns: 1fr 1fr; } }

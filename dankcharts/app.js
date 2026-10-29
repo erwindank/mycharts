@@ -60075,10 +60075,10 @@ function arRenderList(sc) {
   if (_ar.band && view !== 'todo') rows = rows.filter(r => ratingBand(r.score).key === _ar.band);
   const q = _ar.q.trim().toLowerCase();
   if (q) rows = rows.filter(r => r.name.toLowerCase().includes(q) || (sc === 'p' && r.artist.toLowerCase().includes(q)));
-  if (_ar.sort === 'low') rows.sort((a, b) => a.score - b.score);
+  if (_ar.sort === 'low') rows.sort((a, b) => a.score - b.score || _rpTieOrder(a, b));
   else if (_ar.sort === 'az') rows.sort((a, b) => a.name.localeCompare(b.name));
   else if (_ar.sort === 'plays') rows.sort((a, b) => b.plays - a.plays);
-  else rows.sort((a, b) => b.score - a.score);
+  else rows.sort((a, b) => b.score - a.score || _rpTieOrder(a, b));
   _ar.rows = rows;
   if (!rows.length) { box.innerHTML = `<div class="am-empty">${esc(q ? t('am_no_match', { q: _ar.q.trim() }) : t('ar_empty'))}</div>`; return; }
 
@@ -60918,6 +60918,21 @@ function _ratingsActivity() {
 // The library as ratingArtistSummary shapes an artist, plus what the page
 // adds: plays per album, the albums still to rate, every rated entry by time
 const RP_TODO_MIN = 10;
+
+/* Ties (2026-10-29). Scores are kept to one decimal, so a library soon has a
+   dozen albums at 10.0 and "highest rated" alone names one of them at random.
+   Equal scores are ordered by how fully they were reviewed (the share of an
+   album's tracks rated; a detailed song score before a quick one), then by
+   plays; the highs and lows cards slide through every entry at their score. */
+const _rpScore10 = x => Math.round(x * 10);
+function _rpFullness(x) {
+  if (x.totalTracks) return x.ratedTracks / x.totalTracks;
+  return x.quick ? 0 : 1;
+}
+function _rpTieOrder(a, b) {
+  return _rpFullness(b) - _rpFullness(a) || (b.plays || 0) - (a.plays || 0);
+}
+
 function ratingLibrarySummary() {
   const albumPlays = {}, songPlays = {}, songAlbums = {};
   for (const p of allPlays) {
@@ -60937,15 +60952,15 @@ function ratingLibrarySummary() {
     if (!r) return null;
     const [name, artist = ''] = k.split('|||');
     return { key: k, name, artist, ...r, ...ratingReleaseKind(k), plays: albumPlays[k] || 0 };
-  }).filter(Boolean).sort((a, b) => b.score - a.score);
+  }).filter(Boolean).sort((a, b) => _rpScore10(b.score) - _rpScore10(a.score) || _rpTieOrder(a, b));
   const albums = releases.filter(a => a.kind === 'album');
   const singles = releases.filter(a => a.kind !== 'album');
   const songs = Object.keys(_ratings.songs).map(k => {
     const s = ratingSongScore(k);
     if (s == null) return null;
     const nm = ratingSongNames(k);
-    return { key: k, title: nm.title, artist: nm.artist, score: s, plays: songPlays[k] || 0, ts: _ratings.songs[k]?.ts || 0 };
-  }).filter(Boolean).sort((a, b) => b.score - a.score);
+    return { key: k, title: nm.title, artist: nm.artist, score: s, plays: songPlays[k] || 0, ts: _ratings.songs[k]?.ts || 0, quick: _ratings.songs[k]?.m === 'quick' };
+  }).filter(Boolean).sort((a, b) => _rpScore10(b.score) - _rpScore10(a.score) || _rpTieOrder(a, b));
 
   const rated = new Set(releases.map(r => r.key));
   const allAlbums = Object.keys(albumPlays);
@@ -61044,23 +61059,33 @@ function renderRatingsPage() {
       <span class="ar-next-cta">${ic('star')}<span>${esc(t('rtp_rate_arrow'))}</span></span>
     </div>` : '';
 
-  // ── Highs and lows
-  const hi = [];
-  const lastOf = arr => arr.length > 1 ? arr[arr.length - 1] : null;
-  if (sum.albums[0]) hi.push({ lbl: t('ar_best_album'), x: sum.albums[0], name: sum.albums[0].name, kind: 'album', up: true });
-  if (lastOf(sum.albums)) hi.push({ lbl: t('ar_low_album'), x: lastOf(sum.albums), name: lastOf(sum.albums).name, kind: 'album' });
-  if (sum.singles[0]) hi.push({ lbl: t('ar_best_single'), x: sum.singles[0], name: sum.singles[0].name, kind: 'album', up: true });
-  if (sum.songs[0]) hi.push({ lbl: t('ar_best_song'), x: sum.songs[0], name: sum.songs[0].title, kind: 'song', up: true });
-  if (lastOf(sum.songs)) hi.push({ lbl: t('ar_low_song'), x: lastOf(sum.songs), name: lastOf(sum.songs).title, kind: 'song' });
-  const highs = hi.length ? `<div class="ar-highs rp-highs">${hi.map(h => {
-    const b = ratingBand(h.x.score);
-    return `<button type="button" class="ar-hi ${b.cls}" onclick="openRatingModal('${h.kind}', ${key(h.x.key)})">
-      <span class="ar-hi-lbl">${ic(h.up ? 'trend' : 'bars')}${esc(h.lbl)}</span>
-      <span class="ar-hi-score">${ratingFmt(h.x.score)}</span>
-      <span class="ar-hi-name">${esc(h.name)}</span>
-      <span class="ar-hi-artist">${esc(h.x.artist || '')}</span>
-      <span class="ar-hi-band">${esc(b.label)}</span>
-    </button>`;
+  // ── Highs and lows: one card per list end, sliding through every entry at
+  // that score (2026-10-29). Scores have one decimal, so a dozen albums at
+  // 10.0 is normal; naming one of them was arbitrary.
+  const ends = (arr, top) => {
+    if (!arr.length || (!top && arr.length < 2)) return [];
+    const v = _rpScore10(arr[top ? 0 : arr.length - 1].score);
+    return arr.filter(x => _rpScore10(x.score) === v);
+  };
+  const HI = [
+    ['ar_best_album', sum.albums, true, 'album'], ['ar_low_album', sum.albums, false, 'album'],
+    ['ar_best_single', sum.singles, true, 'album'], ['ar_low_single', sum.singles, false, 'album'],
+    ['ar_best_song', sum.songs, true, 'song'], ['ar_low_song', sum.songs, false, 'song'],
+  ].map(([lbl, arr, top, kind]) => ({ lbl, top, kind, items: ends(arr, top) })).filter(h => h.items.length);
+  _rpHi = HI;
+  const highs = HI.length ? `<div class="ar-highs rp-highs">${HI.map((h, ci) => {
+    const x0 = h.items[0], b = ratingBand(x0.score), many = h.items.length > 1;
+    return `<div class="ar-hi rp-hi ${b.cls}" role="button" tabindex="0" data-hi="${ci}" data-at="0"
+        onclick="rpHiOpen(${ci})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();rpHiOpen(${ci});}">
+      <span class="ar-hi-lbl">${ic(h.top ? 'trend' : 'bars')}${esc(t(h.lbl))}</span>
+      <span class="ar-hi-score">${ratingFmt(x0.score)}</span>
+      <span class="rp-hi-win"><span class="rp-hi-track">${h.items.map(x => `<span class="rp-hi-slide">
+          <span class="ar-hi-name">${esc(x.name || x.title)}</span>
+          <span class="ar-hi-artist">${esc(x.artist || '')}</span>
+        </span>`).join('')}</span></span>
+      ${many ? `<span class="rp-hi-foot"><span class="rp-hi-dots">${h.items.slice(0, RP_HI_DOTS).map((x, i) => `<button type="button" class="rp-hi-dot${i ? '' : ' is-on'}" aria-label="${i + 1}" onclick="event.stopPropagation();rpHiGo(${ci},${i})"></button>`).join('')}</span><span class="rp-hi-n">1 / ${h.items.length}</span></span>`
+        : `<span class="ar-hi-band">${esc(b.label)}</span>`}
+    </div>`;
   }).join('')}</div>` : '';
 
   // ── Your critical records (were under the Records Overview)
@@ -61125,6 +61150,44 @@ function renderRatingsPage() {
   if (recAlb.length) loadImages(recAlb, 'album');
   if (recSong.length) loadImages(recSong, 'song');
   arRenderBody('p');
+  _rpHiStart();
+}
+
+/* The sliding highs and lows. Every RP_HI_EVERY ms each card with more than
+   one entry moves on one, the cards a beat apart so they do not all turn at
+   once; a card under the pointer or with focus waits. No auto-advance with
+   reduced motion: the dots still move it. A tap opens the entry on screen. */
+const RP_HI_EVERY = 4200, RP_HI_DOTS = 8;
+let _rpHi = [], _rpHiTimer = null, _rpHiTick = 0;
+function rpHiGo(ci, i) {
+  const card = document.querySelector(`#ratingsPageBody .rp-hi[data-hi="${ci}"]`), h = _rpHi[ci];
+  if (!card || !h) return;
+  const n = h.items.length, at = ((i % n) + n) % n;
+  card.dataset.at = at;
+  card.querySelector('.rp-hi-track').style.transform = `translateX(${-100 * at}%)`;
+  card.querySelectorAll('.rp-hi-dot').forEach((d, k) => d.classList.toggle('is-on', k === Math.min(at, RP_HI_DOTS - 1)));
+  const lbl = card.querySelector('.rp-hi-n');
+  if (lbl) lbl.textContent = `${at + 1} / ${n}`;
+}
+function rpHiOpen(ci) {
+  const card = document.querySelector(`#ratingsPageBody .rp-hi[data-hi="${ci}"]`), h = _rpHi[ci];
+  const x = h && h.items[+(card?.dataset.at || 0)];
+  if (x) openRatingModal(h.kind, x.key);
+}
+function _rpHiStart() {
+  clearInterval(_rpHiTimer);
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  _rpHiTimer = setInterval(() => {
+    const view = document.getElementById('ratingsView');
+    if (!view || !view.offsetParent || document.hidden) return;
+    _rpHiTick++;
+    // one card per tick, in turn
+    const cards = [...view.querySelectorAll('.rp-hi')].filter(c => _rpHi[+c.dataset.hi]?.items.length > 1);
+    if (!cards.length) return;
+    const card = cards[_rpHiTick % cards.length];
+    if (card.matches(':hover, :focus-within')) return;
+    rpHiGo(+card.dataset.hi, +card.dataset.at + 1);
+  }, RP_HI_EVERY / 2);
 }
 
 // An artist row opens that artist on their Rating tab
@@ -61145,15 +61208,7 @@ function ratingRecords(sum) {
   if (!albums.length && !singles.length && !songs.length) return null;
 
   const out = [];
-  const bestAlbum = [...albums].sort((a, b) => b.score - a.score)[0];
-  const bestSingle = [...singles].sort((a, b) => b.score - a.score)[0];
-  const bestSong  = [...songs].sort((a, b) => b.score - a.score)[0];
-  if (bestAlbum) out.push({ id: 'rt_best_album', icon: 'ri-rt-trophy', label: t('rp_rec_best_album'),
-    value: ratingFmt(bestAlbum.score), detail: `${bestAlbum.name} — ${bestAlbum.artist}`, key: bestAlbum.key, kind: 'album' });
-  if (bestSingle) out.push({ id: 'rt_best_single', icon: 'ri-rt-trophy', label: t('rp_rec_best_single'),
-    value: ratingFmt(bestSingle.score), detail: `${bestSingle.name} — ${bestSingle.artist}`, key: bestSingle.key, kind: 'album' });
-  if (bestSong) out.push({ id: 'rt_best_song', icon: 'ri-rt-medal', label: t('rp_rec_best_song'),
-    value: ratingFmt(bestSong.score), detail: `${bestSong.name} — ${bestSong.artist}`, key: bestSong.key, kind: 'song' });
+  // The highest rated album, single and song are the page's sliding cards
 
   // Overrated / underrated by the user's own numbers: rank each rated album by
   // plays and by score, and find where those two rankings disagree most. An
@@ -61184,16 +61239,11 @@ function ratingRecords(sum) {
   if (bestCons) out.push({ id: 'rt_consistent', icon: 'ri-rt-level', label: t('rp_rec_consistent'),
     value: ratingFmt(bestCons.consistency), detail: `${bestCons.name} — ${bestCons.artist}`, key: bestCons.key, kind: 'album' });
 
-  // Best rated artist, over artists with at least two rated albums, so a single
-  // 10.0 one-off cannot top the list.
-  const byArtist = {};
-  for (const a of albums) (byArtist[a.artist] ||= []).push(a.score);
-  const artistAvgs = Object.entries(byArtist)
-    .filter(([, arr]) => arr.length >= 2)
-    .map(([name, arr]) => ({ name, avg: Math.round((arr.reduce((x, y) => x + y, 0) / arr.length) * 10) / 10, n: arr.length }))
-    .sort((a, b) => b.avg - a.avg);
-  if (artistAvgs[0]) out.push({ id: 'rt_best_artist', icon: 'ri-ones', label: t('rp_rec_best_artist'),
-    value: ratingFmt(artistAvgs[0].avg), detail: `${artistAvgs[0].name} — ${t('rp_n_albums', { n: artistAvgs[0].n })}`, kind: 'artist', key: artistAvgs[0].name });
+  // Best rated artist: the top of the page's Top rated artists, so the two
+  // never disagree (two or more rated albums, so one 10.0 cannot top it)
+  const topArt = _rpTopArtists(sum);
+  if (topArt.unit === 'albums' && topArt.list[0]) out.push({ id: 'rt_best_artist', icon: 'ri-ones', label: t('rp_rec_best_artist'),
+    value: ratingFmt(topArt.list[0].avg), detail: `${topArt.list[0].name} — ${t('rp_n_albums', { n: topArt.list[0].n })}`, kind: 'artist', key: topArt.list[0].name });
 
   return out.length ? out : null;
 }
