@@ -5048,7 +5048,7 @@ const TRANSLATIONS = {
     rk_chart_a_year: 'Ranking anual de álbumes',
     rk_none_a: 'Todavía no ha entrado en ningún Ranking de álbumes.',
     rk_h_tracks: 'Sus pistas en los Rankings de canciones',
-    rk_tracks_open: 'Verlas en la pestaña Pistas',
+    rk_tracks_open: 'Verlas en la pestaña Canciones',
     ls_h_calendar_a: 'Cada día que lo escuchaste',
     ls_era_share_a: '{{pct}} de las escuchas del álbum entonces',
     al_lately: 'Últimamente',
