@@ -378,6 +378,10 @@ const TRANSLATIONS = {
     rk_story_at1: 'At #1: {{note}}.',
     rk_m_at1run: 'Longest run at #1: {{n}} without a break',
     // Album panel (2026-10-29)
+    rk_src_single: 'Singles chart',
+    rk_src_ep: 'EP chart',
+    rk_src_album: 'Albums chart',
+    rk_src_song: 'Songs chart',
     rlt_by_single: 'Single by',
     rlt_by_ep: 'EP by',
     rlt_by_live: 'Live album by',
@@ -5062,6 +5066,10 @@ const TRANSLATIONS = {
     rk_story_at1: 'En el n.º 1: {{note}}.',
     rk_m_at1run: 'Racha más larga en el n.º 1: {{n}} sin bajar',
     // Album panel (2026-10-29)
+    rk_src_single: 'Ranking de singles',
+    rk_src_ep: 'Ranking de EP',
+    rk_src_album: 'Ranking de álbumes',
+    rk_src_song: 'Ranking de canciones',
     rlt_by_single: 'Single de',
     rlt_by_ep: 'EP de',
     rlt_by_live: 'Álbum en vivo de',
@@ -9631,6 +9639,10 @@ const TRANSLATIONS = {
     rk_story_at1: 'No nº 1: {{note}}.',
     rk_m_at1run: 'Maior sequência no nº 1: {{n}} sem cair',
     // Album panel (2026-10-29)
+    rk_src_single: 'Parada de singles',
+    rk_src_ep: 'Parada de EPs',
+    rk_src_album: 'Parada de álbuns',
+    rk_src_song: 'Parada de músicas',
     rlt_by_single: 'Single de',
     rlt_by_ep: 'EP de',
     rlt_by_live: 'Álbum ao vivo de',
@@ -14201,6 +14213,10 @@ const TRANSLATIONS = {
     rk_story_at1: 'No n.º 1: {{note}}.',
     rk_m_at1run: 'Maior sequência no n.º 1: {{n}} sem cair',
     // Album panel (2026-10-29)
+    rk_src_single: 'Top de singles',
+    rk_src_ep: 'Top de EPs',
+    rk_src_album: 'Top de álbuns',
+    rk_src_song: 'Top de músicas',
     rlt_by_single: 'Single de',
     rlt_by_ep: 'EP de',
     rlt_by_live: 'Álbum ao vivo de',

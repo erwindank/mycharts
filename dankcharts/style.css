@@ -3010,6 +3010,9 @@
          .at-split   how the plays split across its tracks, one bar
          .al-full    the front-to-back listens: a count and the latest ones */
     .dp-body #albumModalAccomplishments { border: 0; border-radius: 0; overflow: visible; }
+    /* a single's Rankings: its release chart or its song's */
+    .dp-body .rk-src { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: var(--sp-3); }
+    .dp-body .rk-src .am-chip svg { width: 14px; height: 14px; }
     /* a one-song single has one card: the song, full width */
     .dp-body .ao-favs.is-one { grid-template-columns: 1fr; }
     .dp-body .at-split { display: flex; gap: 2px; height: 34px; margin: 0 0 var(--sp-3); border-radius: var(--r-md); overflow: hidden; }

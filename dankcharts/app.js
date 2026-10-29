@@ -26524,9 +26524,19 @@ function _rkKeyFor(songs, albums, artists) {
 }
 // Opens that chart, closing the panel the Rankings tab is in
 function rkGoPeriod(per, key) {
-  if (_rnk && _rnk.type === 'songs') goToPeriodFromSongModal(per, key);
-  else if (_rnk && _rnk.type === 'albums') goToPeriodFromAlbumModal(per, key);
-  else goToPeriodFromArtistModal(per, key);
+  _rkRoot()?.closest('.dp-overlay')?.classList.remove('open');
+  navigateToRecPeriod(per, key);
+}
+
+/* A single's Rankings show two runs (2026-10-29): the release on its chart
+   (singles when apart, albums when not) and its song on the song charts.
+   _rnk.views holds both; the switch copies one into _rnk. */
+function rkSetSource(v) {
+  const V = _rnk && _rnk.views && _rnk.views[v];
+  if (!V || _rnk.view === v) return;
+  Object.assign(_rnk, { view: v, type: V.type, key: V.key, runs: V.runs, bucket: V.bucket, models: {} });
+  if (!_rnk.runs[_rnk.chart]?.entries.length) _rnk.chart = RK_CHARTS.find(c => _rnk.runs[c]?.entries.length) || 'week';
+  rkRender();
 }
 
 function rkRender() {
@@ -26543,8 +26553,13 @@ function rkRender() {
     return `<button type="button" role="tab" class="am-type-btn rk-ch${c === per ? ' is-on' : ''}" aria-selected="${c === per}" ${n ? '' : 'disabled'} onclick="rkSetChart('${c}')">
       ${ic(RK_ICON[c])}<span>${esc(t('am_c_' + c))}</span><span class="am-type-n">${n ? '#' + _rnk.runs[c].peak : '—'}</span></button>`;
   };
-  const head = `<div class="rk-top"><div class="am-type rk-type" role="tablist">${RK_CHARTS.map(chartBtn).join('')}</div></div>`;
-  const music = _rnk.type === 'songs' ? _rkFamilyHTML() : _rkMusicHTML();
+  // A single: the release's chart or its song's, each with its best peak
+  const srcBar = !_rnk.views ? '' : `<div class="rk-src" role="tablist">${['release', 'song'].map(v => {
+    const V = _rnk.views[v], best = Math.min(...RK_CHARTS.map(c => V.runs[c]?.peak || Infinity));
+    return `<button type="button" role="tab" class="am-chip${_rnk.view === v ? ' is-on' : ''}" aria-selected="${_rnk.view === v}" onclick="rkSetSource('${v}')">${ic(v === 'song' ? 'note' : 'disc')}<span>${esc(V.label)}</span>${isFinite(best) ? `<span class="am-chip-n">#${best}</span>` : ''}</button>`;
+  }).join('')}</div>`;
+  const head = `${srcBar}<div class="rk-top"><div class="am-type rk-type" role="tablist">${RK_CHARTS.map(chartBtn).join('')}</div></div>`;
+  const music = _rnk.root === 'songRankings' ? _rkFamilyHTML() : _rkMusicHTML();
   if (!M) {
     el.innerHTML = `${head}<div class="rk-none">${ic('bars')}<span>${esc(t(_rkKeyFor('rk_none_s', 'rk_none_a', 'rk_none')))}</span></div>${music}`;
     return;
@@ -26965,7 +26980,7 @@ function _rkMomentsHTML(M, per) {
 function _rkMusicHTML() {
   if (!_rnk.music) return '';
   const cols = [...RK_CHARTS, 'all'];
-  const onAlbum = _rnk.type === 'albums';
+  const onAlbum = _rnk.root === 'albumRankings';
   const row = ty => `<div class="rk-mu-row">
       <span class="rk-mu-lbl">${_amIco(ty === 'songs' ? 'note' : 'disc')}${esc(t(ty === 'songs' ? 'ig_type_songs' : 'ig_type_albums'))}</span>
       ${cols.map(c => {
@@ -27096,7 +27111,7 @@ function rkOpenMusic(ty, c) {
     _am.chart = _am.lists[ty][c].length ? c : (AM_CHARTS.find(x => _am.lists[ty][x].length) || 'all');
     amMusicRender();
   }
-  if (typeof dcPanelShowTab === 'function') dcPanelShowTab(_rnk && _rnk.type === 'albums' ? 'album' : 'artist', _rnk && _rnk.type === 'albums' ? 'tracks' : 'music');
+  if (typeof dcPanelShowTab === 'function') dcPanelShowTab(_rnk && _rnk.root === 'albumRankings' ? 'album' : 'artist', _rnk && _rnk.root === 'albumRankings' ? 'tracks' : 'music');
 }
 
 function _rkCountUp(root) {
@@ -28276,6 +28291,15 @@ function openAlbumModal(albumKey) {
     } },
     models: {}, focus: null, pin: null
   };
+  // A single also shows its song on the song charts (its most played track)
+  if (relType === 'single' && topTrack) {
+    const sk = songKey(topTrack);
+    _rnk.views = {
+      release: { type: 'albums', key: albumKey, runs, bucket, label: t(bucket !== 'album' ? 'rk_src_' + bucket : 'rk_src_album') },
+      song: { type: 'songs', key: sk, runs: { week: crW?.result?.songs?.[sk], month: crM?.result?.songs?.[sk], year: crY?.result?.songs?.[sk] }, bucket: null, label: t('rk_src_song') }
+    };
+    _rnk.view = 'release';
+  }
   _rnk.chart = runs[currentPeriod]?.entries.length ? currentPeriod : RK_CHARTS.find(c => runs[c]?.entries.length) || 'week';
   rkRender();
   renderAlbumHeldRecords(albumKey);
