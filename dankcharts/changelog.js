@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 373;
+const DC_CL_I18N_V = 374;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-30', t: 'feature', a: 'ui', h: 'f7b2082',
+    title: "Stats Charts: volume and discoveries in one, a listening clock and your week",
+    detail: "The Charts tab in Stats has been redone. Play volume and New Discoveries are now one chart with a Plays / New finds switch: Plays splits each period's bars into songs you already knew and songs you heard for the first time, and New finds shows how many songs, artists and albums were new each period. Tap a bar to look inside: the period's plays, its top 5 songs, its top 5 new finds and a button to open that period's chart. Two new cards sit side by side under it. The listening clock shows when in the day you play music, with your busiest hour in gold, and Your week shows the average plays on each day. Tap an hour or a day to see its plays and your most played artist. Both follow the date range at the top. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-30', t: 'feature', a: 'ui', h: '96aaad3',
     title: "Stats in tabs, starting with an Overview of your listening",
     detail: "The Stats page now has tabs under the date range: Overview, Compare and Charts, with more to come. Overview opens first. It sums up the range you picked in one sentence (how much you played, against the same stretch before, your top artist and how many songs were new to you), with four tiles for Plays, Songs, Artists and Albums. Each tile shows the change against the stretch before, a small line of how it went over the range, and plays a day, your best day, or how many were new. Compare holds the artist charts and the Play Count Race, and Charts holds play volume, new discoveries and the heatmap. The range bar also has a new 4 wk button for the last four weeks. Works with Last.fm, Google Sheets and CSV uploads." },
