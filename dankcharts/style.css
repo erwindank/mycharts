@@ -11153,6 +11153,72 @@
     .sx-verdict-tile b { display: block; margin-top: 2px; font-family: var(--font-display); font-size: var(--fs-sm); color: var(--c, var(--text)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .sx-verdict-tile em { display: block; font-style: normal; font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--text2); }
 
+    /* Story (step 5): artist picture slots */
+    .sx-face {
+      display: grid; place-items: center; overflow: hidden; flex-shrink: 0;
+      width: 100%; aspect-ratio: 1; border-radius: var(--r-sm); background: var(--bg3);
+    }
+    .sx-face img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .sx-face .thumb-initials { width: 100%; height: 100%; border: 0; border-radius: 0; font-size: 0.8rem; }
+    .sx-face-sm { width: 30px; height: 30px; }
+    .sx-face-sm .thumb-initials { font-size: 0.6rem; }
+
+    /* Your obsession: one tile per month (or week), scrolling sideways when long */
+    .sx-obs-strip {
+      display: grid; grid-auto-flow: column; grid-auto-columns: minmax(84px, 1fr); gap: var(--sp-2);
+      overflow-x: auto; padding: var(--sp-1) 0 var(--sp-2); margin-top: var(--sp-3);
+      scroll-snap-type: x proximity;
+    }
+    .sx-obs {
+      display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0;
+      padding: var(--sp-2) 6px; background: var(--bg3); border: 1px solid transparent; border-radius: var(--r-md);
+      color: var(--text); font: inherit; cursor: pointer; scroll-snap-align: start;
+    }
+    .sx-obs:hover { border-color: var(--border2); }
+    .sx-obs .sx-face { margin-bottom: 4px; }
+    .sx-obs-when { font-family: var(--font-mono); font-size: 0.6875rem; color: var(--text3); text-transform: capitalize; }
+    .sx-obs-name { font-size: var(--fs-xs); font-weight: 600; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sx-obs-n { font-family: var(--font-mono); font-size: 0.6875rem; color: var(--text2); }
+
+    /* Your eras: the range as one band, eras coloured, the rest faint */
+    .sx-era-band { display: flex; height: 34px; margin-top: var(--sp-3); border-radius: var(--r-sm); overflow: hidden; background: var(--bg3); }
+    .sx-era { background: var(--c); border-right: 1px solid var(--bg2); }
+    .sx-era-gap { background: transparent; }
+    .sx-era-axis { display: flex; justify-content: space-between; margin-top: 4px; font-family: var(--font-mono); font-size: 0.6875rem; color: var(--text3); }
+    .sx-era-list { list-style: none; margin: var(--sp-3) 0 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px var(--sp-4); }
+    @media (max-width: 700px) { .sx-era-list { grid-template-columns: 1fr; } }
+    .sx-era-row {
+      display: grid; grid-template-columns: 4px 30px minmax(0, 1fr) auto; gap: var(--sp-2); align-items: center;
+      width: 100%; padding: 0.35rem 0.25rem; background: none; border: 0; border-radius: var(--r-sm);
+      color: var(--text); font: inherit; text-align: left; cursor: pointer;
+    }
+    .sx-era-row:hover { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+    .sx-era-row > i { width: 4px; height: 26px; border-radius: 2px; }
+    .sx-era-t { min-width: 0; }
+    .sx-era-t b, .sx-era-t span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sx-era-t b { font-size: var(--fs-sm); font-weight: 600; }
+    .sx-era-t span { font-size: var(--fs-xs); color: var(--text2); }
+    .sx-era-n { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--text2); }
+
+    /* Taste drift: the bump chart (scrolls sideways on a phone) */
+    .sx-drift-wrap { overflow-x: auto; margin-top: var(--sp-3); }
+    .sx-drift { display: block; width: 100%; min-width: 560px; height: auto; }
+    .sx-drift-yr { fill: var(--text3); font: 12px var(--font-mono); text-anchor: middle; }
+    .sx-drift-rk { fill: var(--text3); font: 11px var(--font-mono); text-anchor: end; }
+    .sx-drift-line { cursor: pointer; transition: opacity .15s; }
+    .sx-drift-line path { fill: none; stroke: var(--c); stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round; }
+    .sx-drift-line.is-lead path { stroke-width: 3; }
+    .sx-drift-line:not(.is-lead) { opacity: .7; }
+    .sx-drift-line circle { fill: var(--c); }
+    .sx-drift-name { fill: var(--c); font: 600 12px var(--font-sans); }
+    .sx-drift-line:not(.is-lead) .sx-drift-name { fill: var(--text3); font-weight: 400; }
+    .sx-drift-line:focus-visible { outline: none; }
+    .sx-drift-line:focus-visible path { stroke-width: 4; }
+    .sx-drift-card.has-pick .sx-drift-line:not(.is-picked) { opacity: .15; }
+    .sx-drift-card.has-pick .sx-drift-key:not(.is-picked) { opacity: .5; }
+    .sx-drift-keys { margin-top: var(--sp-3); }
+    .sx-drift-key { cursor: pointer; padding-right: 0.55rem; }
+
     /* Card head: title (and description) on the left, the chart's tools as
        small icon buttons on the right. */
     .graph-card-head {

@@ -927,3 +927,188 @@ function sxCmpRace(picks) {
   }
   initRace();
 }
+
+// ── Story (steps 5–6) ─────────────────────────────────────────────────────
+/* What the range was about, as cards one under the other (sxRenderStory):
+     Your obsession   the top artist of each month (weeks for a short range)
+     Your eras        stretches where one artist was #1 on the weekly chart
+                      week after week
+     Taste drift      how your yearly top 10 artists moved, year to year
+   Step 6 adds more cards after these. Artist pictures come through
+   fetchAndInjectImage, so a picture picked by hand (✎) shows here too. */
+
+// An artist picture slot, filled after the HTML is on the page
+let _sxFaceN = 0;
+const _sxFaces = [];
+function _sxFace(name, cls) {
+  const id = 'sx-face-' + (++_sxFaceN);
+  _sxFaces.push({ id, name });
+  return `<span class="sx-face ${cls || ''}" id="${id}"><span class="thumb-initials">${esc(initials(name))}</span></span>`;
+}
+function _sxLoadFaces() {
+  _sxFaces.splice(0).forEach(f => {
+    const el = document.getElementById(f.id);
+    if (el) fetchAndInjectImage(el, { imgId: f.id, name: f.name, prefKey: 'artist:' + f.name.toLowerCase() }, 'artist');
+  });
+}
+
+// The start of the week a date falls in (the week start day from Settings)
+function _sxWeekKey(d) {
+  const w = new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay() - weekStartDay + 7) % 7));
+  return localDateStr(w);
+}
+
+function _sxCard(title, sub, body, extra) {
+  return `<section class="dc-card graph-card sx-story-card${extra ? ' ' + extra : ''}">` +
+    `<div class="graph-card-title">${esc(title)}</div>${sub ? `<div class="graph-card-sub">${esc(sub)}</div>` : ''}${body}</section>`;
+}
+
+function sxRenderStory() {
+  const box = document.getElementById('sxStory');
+  if (!box || !allPlays.length) return;
+  _sxFaces.length = 0;
+  const { fromTs, toTs } = graphRangeTs();
+  const cards = [_sxObsessionCard(fromTs, toTs), _sxErasCard(fromTs, toTs), _sxDriftCard()];
+  if (typeof _sxStoryMore === 'function') cards.push(..._sxStoryMore(fromTs, toTs));
+  box.innerHTML = cards.filter(Boolean).join('');
+  _sxLoadFaces();
+  _sxDriftWire();
+}
+
+// ── Your obsession ──
+function _sxObsessionCard(fromTs, toTs) {
+  const short = toTs - fromTs < 62 * _SX_DAY;
+  const per = short ? 'week' : 'month';
+  const buckets = new Map();
+  for (const p of allPlays) {
+    const d = tzDateOf(p), ts = d.getTime();
+    if (ts < fromTs || ts > toTs) continue;
+    const k = short ? _sxWeekKey(d) : localDateStr(d).slice(0, 7);
+    let m = buckets.get(k);
+    if (!m) buckets.set(k, m = new Map());
+    for (const a of p.artists) m.set(a, (m.get(a) || 0) + 1);
+  }
+  // At most the last 36 (an All range would be too long a strip)
+  const keys = [...buckets.keys()].sort().slice(-36);
+  if (!keys.length) return '';
+  // The charts' own labels ("Mar 26", "Mar 3, 26"), with translated month names
+  const label = k => crPeriodLabel(per, k);
+  const tiles = keys.map(k => {
+    const top = _sxTop(buckets.get(k)), n = buckets.get(k).get(top);
+    const tip = `${label(k)}: ${top} (${n.toLocaleString()})`;
+    return `<button type="button" class="sx-obs" title="${esc(tip)}" onclick="navigateToRecPeriod('${per}', ${esc(JSON.stringify(k))})">` +
+      `${_sxFace(top)}<span class="sx-obs-when">${esc(label(k))}</span><span class="sx-obs-name">${esc(top)}</span>` +
+      `<span class="sx-obs-n">${n.toLocaleString()}</span></button>`;
+  }).join('');
+  // The artist who topped the most of them
+  const wins = new Map();
+  keys.forEach(k => { const a = _sxTop(buckets.get(k)); wins.set(a, (wins.get(a) || 0) + 1); });
+  const champ = _sxTop(wins);
+  const line = t(short ? 'sx_obs_line_w' : 'sx_obs_line_m').replace('{artist}', champ).replace('{n}', wins.get(champ)).replace('{of}', keys.length);
+  return _sxCard(t(short ? 'sx_obs_title_w' : 'sx_obs_title_m'), t('sx_obs_sub'),
+    `<div class="sx-obs-strip">${tiles}</div><p class="sx-note">${esc(line)}</p>`);
+}
+
+// ── Your eras ──
+/* Runs of at least three weeks in a row with the same #1 artist on the
+   weekly chart (_crFull('week'), the real chart, with its tie rules). */
+function _sxErasCard(fromTs, toTs) {
+  const run = _crFull('week');
+  const ones = new Map();
+  const tab = run.result.artists || {};
+  for (const a in tab) for (const e of tab[a].entries) if (e.rank === 1 && !ones.has(e.periodKey)) ones.set(e.periodKey, a);
+  const weeks = Object.keys(run.periodMap).filter(k => { const s = new Date(k + 'T00:00:00').getTime(); return s >= fromTs - 6 * _SX_DAY && s <= toTs; }).sort();
+  if (weeks.length < 3) return '';
+  const eras = [];
+  let cur = null;
+  weeks.forEach((w, i) => {
+    const a = ones.get(w) || null;
+    if (cur && a === cur.artist) { cur.end = w; cur.n++; }
+    else { if (cur) eras.push(cur); cur = { artist: a, start: w, end: w, n: 1, i }; }
+  });
+  if (cur) eras.push(cur);
+  const real = eras.filter(e => e.artist && e.n >= 3);
+  if (!real.length) return _sxCard(t('sx_eras_title'), t('sx_eras_sub'), `<p class="sx-note">${esc(t('sx_eras_none'))}</p>`);
+  // One colour per era artist, in order of first appearance
+  const colorOf = new Map();
+  real.forEach(e => { if (!colorOf.has(e.artist)) colorOf.set(e.artist, colorOf.size); });
+  const locale = currentLang === 'en' ? 'en-US' : currentLang;
+  const day = k => new Date(k + 'T12:00:00').toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' });
+  const band = eras.map(e => {
+    const isEra = e.artist && e.n >= 3;
+    const w = (e.n / weeks.length * 100).toFixed(3);
+    if (!isEra) return `<span class="sx-era-gap" style="width:${w}%"></span>`;
+    const tip = `${t('sx_era_name').replace('{artist}', e.artist)} · ${day(e.start)} – ${day(e.end)} · ${t('sx_era_weeks').replace('{n}', e.n)}`;
+    return `<span class="sx-era" style="width:${w}%;--c:${_sxCmpColor(colorOf.get(e.artist) % 8)}" title="${esc(tip)}"></span>`;
+  }).join('');
+  const list = [...real].sort((a, b) => b.n - a.n).slice(0, 6).map(e =>
+    `<li><button type="button" class="sx-era-row" onclick="navigateToRecPeriod('week', ${esc(JSON.stringify(e.start))})">` +
+    `<i style="background:${_sxCmpColor(colorOf.get(e.artist) % 8)}"></i>${_sxFace(e.artist, 'sx-face-sm')}` +
+    `<span class="sx-era-t"><b>${esc(t('sx_era_name').replace('{artist}', e.artist))}</b><span>${esc(day(e.start))} – ${esc(day(e.end))}</span></span>` +
+    `<span class="sx-era-n">${esc(t('sx_era_weeks').replace('{n}', e.n))}</span></button></li>`).join('');
+  const axis = `<div class="sx-era-axis"><span>${esc(day(weeks[0]))}</span><span>${esc(day(weeks[weeks.length - 1]))}</span></div>`;
+  return _sxCard(t('sx_eras_title'), t('sx_eras_sub'), `<div class="sx-era-band">${band}</div>${axis}<ul class="sx-era-list">${list}</ul>`);
+}
+
+// ── Taste drift ──
+/* A bump chart of your yearly top 10 artists (the yearly chart), the last
+   eight years. Always years, whatever the range: drift needs time. The six
+   artists with the most top-10 years get colours, the rest are grey; tap a
+   line (or a name) to follow one artist. */
+function _sxDriftCard() {
+  const run = _crFull('year');
+  const tab = run.result.artists || {};
+  const years = Object.keys(run.periodMap).sort().slice(-8);
+  if (years.length < 2) return '';
+  const rows = [];
+  for (const a in tab) {
+    const ranks = years.map(y => { const e = tab[a].entries.find(x => x.periodKey === y); return e && e.rank <= 10 ? e.rank : null; });
+    const n = ranks.filter(r => r != null).length;
+    if (n) rows.push({ a, ranks, n, best: Math.min(...ranks.filter(r => r != null)) });
+  }
+  rows.sort((x, y) => y.n - x.n || x.best - y.best);
+  // Coloured: this year's top 3 first, then the most top-10 years
+  const lastI = years.length - 1;
+  const lead = rows.filter(r => r.ranks[lastI] != null && r.ranks[lastI] <= 3).sort((x, y) => x.ranks[lastI] - y.ranks[lastI]).map(r => r.a);
+  for (const r of rows) { if (lead.length >= 6) break; if (!lead.includes(r.a)) lead.push(r.a); }
+  const W = 900, H = 330, L = 40, R = 760, T = 30, B = 312;
+  const x = i => L + i * (R - L) / (years.length - 1), y = r => T + (r - 1) * (B - T) / 9;
+  let svg = `<svg class="sx-drift" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(t('sx_drift_title'))}">`;
+  years.forEach((yr, i) => { svg += `<text class="sx-drift-yr" x="${x(i)}" y="14">${yr}</text>`; });
+  for (let r = 1; r <= 10; r++) svg += `<text class="sx-drift-rk" x="${L - 16}" y="${y(r) + 4}">#${r}</text>`;
+  const line = (row, color, lead) => {
+    let d = '', dots = '';
+    row.ranks.forEach((r, i) => {
+      if (r == null) return;
+      d += (row.ranks[i - 1] == null ? 'M' : 'L') + x(i) + ',' + y(r);
+      dots += `<circle cx="${x(i)}" cy="${y(r)}" r="${lead ? 5 : 2.5}"/>`;
+    });
+    const last = row.ranks.length - 1;
+    const tag = row.ranks[last] != null ? `<text class="sx-drift-name" x="${R + 14}" y="${y(row.ranks[last]) + 4}">${esc(row.a)}</text>` : '';
+    return `<g class="sx-drift-line${lead ? ' is-lead' : ''}" data-a="${esc(row.a)}" style="--c:${color}" tabindex="0" role="button" aria-label="${esc(row.a)}">` +
+      `<title>${esc(row.a)}</title><path d="${d}"/>${dots}${tag}</g>`;
+  };
+  rows.filter(r => !lead.includes(r.a)).forEach(r => { svg += line(r, 'var(--border2)', false); });
+  lead.forEach((a, i) => { svg += line(rows.find(r => r.a === a), _sxCmpColor(i), true); });
+  svg += '</svg>';
+  const legend = lead.map((a, i) => `<button type="button" class="sx-chip sx-drift-key" data-a="${esc(a)}"><i style="background:${_sxCmpColor(i)}"></i>${esc(a)}</button>`).join('');
+  return _sxCard(t('sx_drift_title'), t('sx_drift_sub').replace('{a}', years[0]).replace('{b}', years[years.length - 1]),
+    `<div class="sx-drift-wrap">${svg}</div><div class="sx-chips sx-drift-keys">${legend}</div>`, 'sx-drift-card');
+}
+
+// Tap a line or a name: that artist stands out, the rest fade; tap again to clear
+function _sxDriftWire() {
+  const card = document.querySelector('#sxStory .sx-drift-card');
+  if (!card) return;
+  const pick = a => {
+    const on = card.dataset.pick === a ? '' : a;
+    card.dataset.pick = on;
+    card.classList.toggle('has-pick', !!on);
+    card.querySelectorAll('[data-a]').forEach(g => g.classList.toggle('is-picked', g.dataset.a === on));
+  };
+  card.addEventListener('click', e => { const g = e.target.closest('[data-a]'); if (g) pick(g.dataset.a); });
+  card.addEventListener('keydown', e => {
+    const g = e.target.closest && e.target.closest('g[data-a]');
+    if (g && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); pick(g.dataset.a); }
+  });
+}
