@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 372;
+const DC_CL_I18N_V = 373;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-30', t: 'feature', a: 'ui', h: '96aaad3',
+    title: "Stats in tabs, starting with an Overview of your listening",
+    detail: "The Stats page now has tabs under the date range: Overview, Compare and Charts, with more to come. Overview opens first. It sums up the range you picked in one sentence (how much you played, against the same stretch before, your top artist and how many songs were new to you), with four tiles for Plays, Songs, Artists and Albums. Each tile shows the change against the stretch before, a small line of how it went over the range, and plays a day, your best day, or how many were new. Compare holds the artist charts and the Play Count Race, and Charts holds play volume, new discoveries and the heatmap. The range bar also has a new 4 wk button for the last four weeks. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-29', t: 'feature', a: 'ui', h: '7324b11',
     title: "A Ratings page with everything you have scored",
     detail: "Your ratings have a page of their own, under More → Ratings, instead of opening the Stats tab. At the top is your average album as a ring with its verdict, how much of what you play you have rated, and when you rate: the days, your longest run and the last time. Under it are the most played album you haven't rated yet (one tap to rate it), cards for your highest and lowest album, single or EP and song that slide through every one at that score (a dozen albums at 10.0 all get their turn; tap the one showing to open it), and your critical records: most overplayed, most underplayed, most consistent album and best rated artist. These used to sit under the Records Overview, only in English, and they now count albums you rated through their tracks too. Then the artists you rate best (each opens their Rating tab), what you rated lately, and the full list with Albums, Singles / EPs, Songs and To rate (albums you've played 10 or more times), with the score spread, search and sort. Works with Last.fm, Google Sheets and CSV uploads." },
