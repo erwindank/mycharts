@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=742">
+  <link rel="stylesheet" href="style.css?v=743">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=248"></script>
+  <script defer src="translations.js?v=249"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -1350,7 +1350,7 @@
            Replaces the two artist comparison charts. -->
       <div class="dc-card graph-card sx-cmp" data-st-group="compare">
         <div class="graph-card-title" data-i18n="sx_cmp_title">Compare</div>
-        <div class="graph-card-sub" data-i18n="sx_cmp_sub">Put up to 10 artists, songs, albums or years side by side.</div>
+        <div class="graph-card-sub" data-i18n="sx_cmp_sub">Put up to 10 artists, songs, albums or years side by side, or race them.</div>
         <div class="sx-cmp-bar">
           <div class="dc-seg" id="sxCmpType" role="group" aria-label="Compare" data-i18n-aria="sx_cmp_title">
             <button type="button" data-ctype="artists" data-i18n="sx_cmp_type_artists">Artists</button>
@@ -1362,6 +1362,7 @@
             <button type="button" data-cmode="cum" data-i18n="sx_cmp_mode_cum">Running total</button>
             <button type="button" data-cmode="per" data-i18n="sx_cmp_mode_per">Per period</button>
             <button type="button" data-cmode="run" data-i18n="sx_cmp_mode_run">Chart run</button>
+            <button type="button" data-cmode="race" data-i18n="sx_cmp_mode_race">Race</button>
           </div>
           <div class="dc-seg" id="sxCmpRun" role="group" aria-label="Chart" data-i18n-aria="sx_cmp_chart" hidden>
             <button type="button" data-crun="day" data-i18n="nav_daily">Daily</button>
@@ -1380,6 +1381,39 @@
           </div>
         </div>
         <div class="graph-canvas-wrap sx-cmp-canvas"><canvas id="sxCmpChart"></canvas></div>
+        <!-- Race mode (phase 15 step 4): the old Play Count Race, racing the
+             picks above. Its own range starts at the first play. -->
+        <div id="sxCmpRaceBox" class="sx-cmp-race" hidden>
+          <div class="graph-ctrl-row">
+            <span data-i18n="speed_label" class="graph-ctrl-label">Speed</span>
+            <div id="raceSpeedBtns" class="dc-seg">
+              <button class="graphs-btn" data-speed="0.5">0.5×</button>
+              <button class="graphs-btn active" data-speed="1">1×</button>
+              <button class="graphs-btn" data-speed="2">2×</button>
+              <button class="graphs-btn" data-speed="4">4×</button>
+            </div>
+            <span data-i18n="range_label" class="graph-ctrl-label">Range</span>
+            <input id="raceFrom" type="date" class="graph-input">
+            <span data-i18n="range_to" class="graph-ctrl-label">to</span>
+            <input id="raceTo" type="date" class="graph-input">
+            <button id="raceResetRange" class="dc-btn dc-btn-normal dc-btn-sm" data-i18n="btn_reset">Reset</button>
+          </div>
+          <div class="graph-ctrl-row">
+            <button id="raceRestartBtn" class="dc-btn dc-btn-normal dc-btn-sm" data-i18n="race_start" data-i18n-title="tooltip_race_start">↩
+              Start</button>
+            <button id="raceStepBackBtn" class="dc-btn dc-btn-normal dc-btn-sm" data-i18n-title="tooltip_race_step_back">◀◀</button>
+            <button id="racePlayBtn" class="dc-btn dc-btn-main dc-btn-sm race-play-btn" data-i18n="race_play">▶
+              Play</button>
+            <button id="raceStepFwdBtn" class="dc-btn dc-btn-normal dc-btn-sm" data-i18n-title="tooltip_race_step_forward">▶▶</button>
+            <button id="raceEndBtn" class="dc-btn dc-btn-normal dc-btn-sm" data-i18n="race_end" data-i18n-title="tooltip_race_end">↪
+              End</button>
+            <button id="raceGifBtn" class="dc-btn dc-btn-normal dc-btn-sm race-gif-btn" data-i18n="btn_download_gif"
+              data-i18n-title="tooltip_download_gif">⬇
+              GIF</button>
+          </div>
+          <input id="raceSeekSlider" class="race-seek" type="range" min="0" max="100" value="0">
+          <canvas id="gBarRace" class="race-canvas"></canvas>
+        </div>
         <div id="sxCmpNote" class="sx-note" aria-live="polite"></div>
         <div id="sxCmpVerdict" class="sx-verdict"></div>
       </div>
@@ -1409,71 +1443,6 @@
         </div>
         <div class="graph-canvas-wrap"><canvas id="gTotalVolume"></canvas></div>
         <div id="sxVolDrill" class="sx-drill" hidden></div>
-      </div>
-
-      <!-- Bar Chart Race -->
-      <div class="dc-card graph-card" data-st-group="compare">
-        <div class="graph-card-title" data-i18n="graph_race_title">🏁 Play Count Race</div>
-        <div class="graph-card-sub" data-i18n="graph_race_sub">Cumulative plays over time — watch entries compete for
-          the top spot</div>
-
-        <!-- Row 1: Type + Playback controls -->
-        <div class="graph-ctrl-row">
-          <span data-i18n="type_label" class="graph-ctrl-label">Type</span>
-          <div id="raceTypeBtns" class="dc-seg">
-            <button class="graphs-btn active" data-racetype="artists" data-i18n="race_artists">Artists</button>
-            <button class="graphs-btn" data-racetype="songs" data-i18n="race_songs">Songs</button>
-            <button class="graphs-btn" data-racetype="albums" data-i18n="race_albums">Albums</button>
-          </div>
-          <span data-i18n="speed_label" class="graph-ctrl-label">Speed</span>
-          <div id="raceSpeedBtns" class="dc-seg">
-            <button class="graphs-btn" data-speed="0.5">0.5×</button>
-            <button class="graphs-btn active" data-speed="1">1×</button>
-            <button class="graphs-btn" data-speed="2">2×</button>
-            <button class="graphs-btn" data-speed="4">4×</button>
-          </div>
-        </div>
-
-        <!-- Row 2: Show N -->
-        <div class="graph-ctrl-row">
-          <span data-i18n="show_label" class="graph-ctrl-label">Show</span>
-          <div id="raceTopNBtns" class="dc-seg">
-            <button class="graphs-btn" data-topn="5">Top 5</button>
-            <button class="graphs-btn active" data-topn="10">Top 10</button>
-            <button class="graphs-btn" data-topn="15">Top 15</button>
-            <button class="graphs-btn" data-topn="20">Top 20</button>
-            <button class="graphs-btn" data-topn="30">Top 30</button>
-            <button class="graphs-btn" data-topn="50">Top 50</button>
-            <button class="graphs-btn" data-topn="100">Top 100</button>
-          </div>
-        </div>
-
-        <!-- Row 3: Date range -->
-        <div class="graph-ctrl-row">
-          <span data-i18n="range_label" class="graph-ctrl-label">Range</span>
-          <input id="raceFrom" type="date" class="graph-input">
-          <span data-i18n="range_to" class="graph-ctrl-label">to</span>
-          <input id="raceTo" type="date" class="graph-input">
-          <button id="raceResetRange" class="dc-btn dc-btn-normal dc-btn-sm" data-i18n="btn_reset">Reset</button>
-        </div>
-
-        <!-- Row 4: Transport -->
-        <div class="graph-ctrl-row">
-          <button id="raceRestartBtn" class="dc-btn dc-btn-normal dc-btn-sm" data-i18n="race_start" data-i18n-title="tooltip_race_start">↩
-            Start</button>
-          <button id="raceStepBackBtn" class="dc-btn dc-btn-normal dc-btn-sm" data-i18n-title="tooltip_race_step_back">◀◀</button>
-          <button id="racePlayBtn" class="dc-btn dc-btn-main dc-btn-sm race-play-btn" data-i18n="race_play">▶
-            Play</button>
-          <button id="raceStepFwdBtn" class="dc-btn dc-btn-normal dc-btn-sm" data-i18n-title="tooltip_race_step_forward">▶▶</button>
-          <button id="raceEndBtn" class="dc-btn dc-btn-normal dc-btn-sm" data-i18n="race_end" data-i18n-title="tooltip_race_end">↪
-            End</button>
-          <button id="raceGifBtn" class="dc-btn dc-btn-normal dc-btn-sm race-gif-btn" data-i18n="btn_download_gif"
-            data-i18n-title="tooltip_download_gif">⬇
-            GIF</button>
-        </div>
-
-        <input id="raceSeekSlider" class="race-seek" type="range" min="0" max="100" value="0">
-        <canvas id="gBarRace" class="race-canvas"></canvas>
       </div>
 
       <!-- When you listen (phase 15 step 2): the hours of the day as a
@@ -4241,7 +4210,7 @@
   <!-- One behaviour and one icon set for every pop-up window (phase 10); before
        app.js so dcIco() is there when app.js draws a window -->
   <script defer src="popups.js?v=8"></script>
-  <script defer src="app.js?v=580"></script>
+  <script defer src="app.js?v=581"></script>
   <!-- The song / album / artist details side panel (phase 10 step 3); wraps app.js's open functions -->
   <script defer src="panel.js?v=16"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
@@ -4250,7 +4219,7 @@
   <script defer src="insights.js?v=9"></script>
   <script defer src="daily.js?v=39"></script>
   <!-- The Stats page's tabs, Overview, Story, Games and Compare (phase 15); reads app.js globals -->
-  <script defer src="stats.js?v=4"></script>
+  <script defer src="stats.js?v=5"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at

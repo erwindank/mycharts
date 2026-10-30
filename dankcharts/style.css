@@ -11145,6 +11145,8 @@
     /* The verdict row: who won what, in the winner's series colour */
     .sx-verdict { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--sp-2); margin-top: var(--sp-3); }
     .sx-verdict:empty { display: none; }
+    .sx-verdict[hidden], .sx-cmp-race[hidden], .graph-canvas-wrap[hidden] { display: none; }
+    .sx-cmp-race { margin-top: var(--sp-2); }
     @media (max-width: 760px) { .sx-verdict { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     .sx-verdict-tile { background: var(--bg3); border-radius: var(--r-sm); padding: var(--sp-2) var(--sp-3); text-align: center; min-width: 0; }
     .sx-verdict-tile span { display: block; font-size: 0.6875rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--text3); }

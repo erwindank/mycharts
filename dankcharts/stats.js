@@ -586,7 +586,14 @@ function _sxCmpColor(i) {
 // Your top n of a type for the range (years: the last n with plays)
 function _sxCmpTop(type, n) {
   if (type === 'years') return [..._sxIndex().years.keys()].sort().slice(-n).reverse();
-  const { fromTs, toTs } = graphRangeTs();
+  let { fromTs, toTs } = graphRangeTs();
+  // Race mode counts over the race's own range (from the first play), so
+  // "Fill with my top 10" gives the classic all-time race
+  if (sxCmp.mode === 'race') {
+    const f = document.getElementById('raceFrom')?.value, to = document.getElementById('raceTo')?.value;
+    fromTs = f ? new Date(f + 'T00:00:00').getTime() : -Infinity;
+    toTs = to ? new Date(to + 'T23:59:59').getTime() : Infinity;
+  }
   const c = new Map();
   for (const p of allPlays) {
     const ts = tzDateOf(p).getTime();
@@ -614,15 +621,20 @@ function _sxCmpPaint() {
   set('#sxCmpType [data-ctype]', 'ctype', sxCmp.type);
   set('#sxCmpMode [data-cmode]', 'cmode', sxCmp.mode);
   set('#sxCmpRun [data-crun]', 'crun', sxCmp.run);
-  // Years have no chart run
-  const runBtn = document.querySelector('#sxCmpMode [data-cmode="run"]');
-  if (runBtn) runBtn.disabled = sxCmp.type === 'years';
+  // Years have no chart run and no race
+  document.querySelectorAll('#sxCmpMode [data-cmode="run"], #sxCmpMode [data-cmode="race"]')
+    .forEach(b => { b.disabled = sxCmp.type === 'years'; });
   const runSeg = document.getElementById('sxCmpRun');
   if (runSeg) runSeg.hidden = sxCmp.mode !== 'run';
   const input = document.getElementById('sxCmpInput');
   if (input) input.placeholder = t('sx_cmp_add_' + sxCmp.type);
   const top = document.getElementById('sxCmpTop');
-  if (top) { top.textContent = t('sx_cmp_top').replace('{n}', 3); top.title = t('sx_cmp_top_tip').replace('{n}', 3); }
+  // Race mode fills ten, so the classic top-10 race is one tap away
+  if (top) {
+    const n = _sxCmpTopN();
+    top.textContent = n === 10 ? t('sx_cmp_fill10') : t('sx_cmp_top').replace('{n}', n);
+    top.title = t('sx_cmp_top_tip').replace('{n}', n);
+  }
 }
 
 function _sxCmpChips(picks) {
@@ -690,7 +702,7 @@ function sxRenderCompare() {
   const canvas = document.getElementById('sxCmpChart');
   if (!canvas || !allPlays.length) return;
   if (graphCharts.compare) { try { graphCharts.compare.destroy(); } catch (e) { } delete graphCharts.compare; }
-  if (sxCmp.type === 'years' && sxCmp.mode === 'run') sxCmp.mode = 'cum';
+  if (sxCmp.type === 'years' && (sxCmp.mode === 'run' || sxCmp.mode === 'race')) sxCmp.mode = 'cum';
   const type = sxCmp.type, picks = _sxCmpPicks();
   _sxCmpPaint();
   _sxCmpChips(picks);
@@ -879,4 +891,39 @@ document.getElementById('sxCmpInput')?.addEventListener('keydown', e => { if (e.
 document.getElementById('sxCmpInput')?.addEventListener('change', e => {
   if (_sxIndex().byText[sxCmp.type].has((e.target.value || '').trim().toLowerCase())) sxCmpAdd();
 });
-document.getElementById('sxCmpTop')?.addEventListener('click', () => sxCmpFillTop(3));
+document.getElementById('sxCmpTop')?.addEventListener('click', () => sxCmpFillTop(_sxCmpTopN()));
+const _sxCmpTopN = () => (sxCmp.mode === 'race' ? 10 : 3);
+
+// ── Race mode (step 4) ────────────────────────────────────────────────────
+/* The old Play Count Race, now a Compare mode: it races whatever is picked
+   (artists, songs or albums) instead of a fixed top N. "Fill with my top 10"
+   brings back the classic race. Its own range still starts at the first
+   play. app.js's buildRaceFrames reads sxRaceKeys() to race only the picks. */
+function sxRaceKeys() {
+  if (sxCmp.mode !== 'race' || sxCmp.type === 'years') return null;
+  return new Set(sxCmp.picks[sxCmp.type] || []);
+}
+
+function sxCmpRaceShow(on) {
+  const box = document.getElementById('sxCmpRaceBox');
+  if (box) box.hidden = !on;
+  const wrap = document.querySelector('.sx-cmp-canvas');
+  if (wrap) wrap.hidden = on;
+  const v = document.getElementById('sxCmpVerdict');
+  if (v) v.hidden = on;
+  // Leaving the race stops it
+  if (!on && typeof racePlaying !== 'undefined' && racePlaying) document.getElementById('racePlayBtn')?.click();
+}
+
+function sxCmpRace(picks) {
+  if (!picks.length) { document.getElementById('sxCmpNote').textContent = t('sx_cmp_empty_race'); }
+  raceType = sxCmp.type;
+  raceTopN = Math.max(1, picks.length);
+  // The race's own range: from the first play to today, until changed
+  const rf = document.getElementById('raceFrom');
+  if (rf && !rf.value) {
+    rf.value = localDateStr(tzDate(allPlays[allPlays.length - 1].date));
+    document.getElementById('raceTo').value = localDateStr(tzNow());
+  }
+  initRace();
+}

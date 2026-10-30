@@ -7454,16 +7454,8 @@ function finalizeLoad() {
     raceSpeed = parseFloat(savedRaceSpeed);
     document.querySelectorAll('#raceSpeedBtns button').forEach(b => b.classList.toggle('active', b.dataset.speed === savedRaceSpeed));
   }
-  const savedRaceTopN = localStorage.getItem('dc_raceTopN');
-  if (savedRaceTopN) {
-    raceTopN = parseInt(savedRaceTopN);
-    document.querySelectorAll('#raceTopNBtns button').forEach(b => b.classList.toggle('active', b.dataset.topn === savedRaceTopN));
-  }
-  const savedRaceType = localStorage.getItem('dc_raceType');
-  if (savedRaceType) {
-    raceType = savedRaceType;
-    document.querySelectorAll('#raceTypeBtns button').forEach(b => b.classList.toggle('active', b.dataset.racetype === savedRaceType));
-  }
+  // The race's Show (top N) and Type buttons went with phase 15 step 4:
+  // it runs inside Compare and races the picks (stats.js, sxCmpRace).
   const savedRaceFrom = localStorage.getItem('dc_raceFrom');
   if (savedRaceFrom) document.getElementById('raceFrom').value = savedRaceFrom;
   const savedRaceTo = localStorage.getItem('dc_raceTo');
@@ -29413,27 +29405,9 @@ function renderGraphs() {
   // The listening clock and the week (phase 15 step 2)
   if (onCharts) sxRenderWhen();
 
-  // ── Bar Race: set default date range ──────────────────────
-  if (onCompare) {
-    const rfEl = document.getElementById('raceFrom');
-    if (!rfEl.value && allPlays.length) {
-      rfEl.value = localDateStr(tzDate(allPlays[allPlays.length - 1].date));
-      document.getElementById('raceTo').value = localDateStr(tzNow());
-    }
-  }
-  if (onCompare) initRace();
-  if (onCompare) {
-    const savedFrameIdx = localStorage.getItem('dc_raceFrameIdx');
-    if (savedFrameIdx !== null) {
-      const idx = parseInt(savedFrameIdx);
-      if (idx > 0 && idx < raceFrames.length) {
-        raceFrameIdx = idx; raceProgress = 0;
-        const slider = document.getElementById('raceSeekSlider');
-        if (slider) slider.value = idx;
-        drawRace(raceFrameIdx, 0);
-      }
-    }
-  }
+  // The Play Count Race is the Compare studio's Race mode (phase 15
+  // step 4); sxRenderCompare starts it (sxCmpRace).
+
   if (onCharts) renderHeatmap();
 }
 
@@ -29603,6 +29577,10 @@ function buildRaceFrames() {
   for (const p of filtered) allKeys.add(graphKey(p.date));
   const sortedKeys = [...allKeys].sort();
 
+  // Phase 15 step 4: the race runs in the Compare studio and races only
+  // what is picked there (a Set of artist names, song keys or album keys)
+  const only = typeof sxRaceKeys === 'function' ? sxRaceKeys() : null;
+
   const periodPlays = {};
   for (const p of filtered) {
     const k = graphKey(p.date);
@@ -29618,15 +29596,18 @@ function buildRaceFrames() {
     for (const p of (periodPlays[key] || [])) {
       if (raceType === 'artists') {
         for (const a of p.artists) {
+          if (only && !only.has(a)) continue;
           totals[a] = (totals[a] || 0) + 1;
           if (!metaMap[a]) metaMap[a] = { type: 'artists', name: a, display: a, sub: '' };
         }
       } else if (raceType === 'songs') {
+        if (only && !only.has(songKey(p))) continue;
         const mainArtist = (p.artists && p.artists[0]) || p.artist;
         const imgKey = `${mainArtist}||${p.title}`;
         totals[imgKey] = (totals[imgKey] || 0) + 1;
         if (!metaMap[imgKey]) metaMap[imgKey] = { type: 'songs', name: p.title, artist: mainArtist, display: p.title, sub: mainArtist };
       } else { // albums
+        if (only && !only.has(albumKeyOf(p))) continue;
         const mainArtist = (p.artists && p.artists[0]) || p.artist;
         const imgKey = `${mainArtist}||${p.album}`;
         totals[imgKey] = (totals[imgKey] || 0) + 1;
@@ -29689,12 +29670,15 @@ function drawRace(frameIdx, progress, targetCanvas) {
   const gc = getGraphColors();
   const eased = easeRace(progress);
 
-  const LABEL_W = 148;
+  // Narrow screens (a phone is ~320px here) get slimmer name and count
+  // columns, or the bars had no room left at all (phase 15 step 4)
+  const narrow = W < 480;
+  const LABEL_W = narrow ? 100 : 148;
   const PAD_TOP = 12;
   const BAR_H = raceTopN > 15 ? 26 : 32;
   const SLOT_H = raceTopN > 15 ? 36 : 42;
   const AV_R = raceTopN > 15 ? 12 : 15;
-  const CNT_W = 74;
+  const CNT_W = narrow ? 50 : 74;
   const BAR_X = LABEL_W + 6;
   const BAR_MAX_W = W - BAR_X - AV_R * 2 - 8 - CNT_W;
 
@@ -29918,15 +29902,6 @@ document.getElementById('raceSpeedBtns').addEventListener('click', e => {
   localStorage.setItem('dc_raceSpeed', btn.dataset.speed);
 });
 
-document.getElementById('raceTopNBtns').addEventListener('click', e => {
-  const btn = e.target.closest('[data-topn]'); if (!btn) return;
-  document.querySelectorAll('#raceTopNBtns button').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  raceTopN = parseInt(btn.dataset.topn);
-  localStorage.setItem('dc_raceTopN', btn.dataset.topn);
-  if (currentPeriod === 'graphs') initRace();
-});
-
 document.getElementById('raceSeekSlider').addEventListener('input', e => {
   if (racePlaying) {
     racePlaying = false;
@@ -29940,15 +29915,6 @@ document.getElementById('raceSeekSlider').addEventListener('input', e => {
   raceLastTime = null;
   localStorage.setItem('dc_raceFrameIdx', raceFrameIdx);
   drawRace(raceFrameIdx, raceProgress);
-});
-
-document.getElementById('raceTypeBtns').addEventListener('click', e => {
-  const btn = e.target.closest('[data-racetype]'); if (!btn) return;
-  document.querySelectorAll('#raceTypeBtns button').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  raceType = btn.dataset.racetype;
-  localStorage.setItem('dc_raceType', raceType);
-  if (currentPeriod === 'graphs') initRace();
 });
 
 document.getElementById('raceFrom').addEventListener('change', () => {
