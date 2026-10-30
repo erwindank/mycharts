@@ -55144,8 +55144,8 @@ const _cgTourSteps = [
     content: 'The single list of plays that every other tab is built from. Search and filter it, edit a wrong timestamp, delete a bad scrobble, add one by hand, or export the whole history as CSV. If a chart ever looks wrong, this is where you find out why.',
     nav: 'rawdata' },
 
-  { title: 'Graphs',
-    content: 'Five charts over your whole history, switchable between daily, monthly and yearly granularity: cumulative plays over time with artist-by-artist comparison, total play volume per period, volume compared across artists, new discoveries per period, and an animated play count race. Also where the listening heatmap and the graveyard of artists who have gone quiet live.',
+  { title: 'Stats',
+    content: 'Five tabs for the date range at the top. Overview sums it up in a sentence and four tiles. Story tells what it was about: your obsession each month, your eras, how your taste drifted, discoveries and milestones. Games are quizzes on your own library, played full screen. Compare puts up to 10 artists, songs, albums or years side by side, or races them. Charts has play volume and discoveries, the listening clock, your week and the heatmap.',
     nav: 'graphs' },
 
   { title: 'Records',

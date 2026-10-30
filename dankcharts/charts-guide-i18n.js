@@ -100,7 +100,7 @@ window.CG_TEXT = {
       { group: 'Insights',
         note: 'The other tabs in the top bar. Everything here is worked out from your plays; nothing needs extra setup.',
         tabs: [
-          { period: 'graphs', desc: 'Your listening as graphs, by day, month or year: cumulative plays per artist, play volume, artists side by side, new discoveries, an animated play count race and a heatmap of every day you listened.', use: 'Seeing shape and habit rather than rank.' },
+          { period: 'graphs', desc: 'Your listening for any date range, in five tabs: an Overview in one sentence and four tiles; your Story (your obsession each month, eras, taste drift, discoveries, milestones); Games, quizzes on your own library; Compare, up to 10 artists, songs, albums or years side by side or as a race; and Charts, with play volume and discoveries, the listening clock, your week and the heatmap.', use: 'Seeing shape and habit rather than rank.' },
           { period: 'records', desc: 'Eleven sections: {{sections}}.', use: 'Your record book.' },
           { period: 'awards', desc: 'Your own awards show, built from your chart data: the four big categories plus ones like Best Collaboration, Song of the Summer, Best Comeback and Best Discovery, and genre awards if you want them. Set the eligibility dates, pick nominees, then run the ceremony. Real-Life Awards sits alongside, with the Grammys, VMAs, AMAs, BRITs and more that your artists were up for.', use: 'The fun one. Run it every December.' },
           { period: 'soundtrack', desc: 'A month, a year or all time told in chapters: the year in numbers, your top songs, artists and albums, your #1 artist, listening patterns, discoveries, milestones, streaks, award winners in your charts, a chart replay and a share card. Play your year shows it as a full-screen story.', use: 'The nostalgic pass through your history.' }
@@ -184,7 +184,7 @@ window.CG_TEXT = {
       settings: { text: 'Set up your data source to start exploring your charts', btn: 'Settings' },
       records: { text: 'See your chart records — longest runs, biggest debuts, streaks', btn: 'Go to Records' },
       events: { text: 'See upcoming birthdays and album anniversaries for your artists', btn: 'Go to Events' },
-      graphs: { text: 'See your heatmap, listening trends and play count race', btn: 'Go to Stats' },
+      graphs: { text: 'See your listening summed up, your story, games and side-by-side comparisons', btn: 'Go to Stats' },
       playlists: { text: 'Build and save playlists from any chart', btn: 'Go to Playlists' },
       week: { text: 'Share your current Weekly chart as an image', btn: 'Go to Weekly' }
     },
@@ -316,7 +316,7 @@ window.CG_TEXT = {
       { group: 'Análisis',
         note: 'Las otras pestañas de la barra superior. Todo se calcula a partir de tus reproducciones; no hace falta configurar nada más.',
         tabs: [
-          { period: 'graphs', desc: 'Tu escucha en gráficas, por día, mes o año: reproducciones acumuladas por artista, volumen de escucha, artistas lado a lado, descubrimientos, una carrera animada de reproducciones y un mapa de calor de cada día que escuchaste.', use: 'Ver formas y costumbres más que posiciones.' },
+          { period: 'graphs', desc: 'Tu escucha en cualquier rango de fechas, en cinco pestañas: un Resumen en una frase y cuatro tarjetas; Tu historia (tu obsesión de cada mes, tus eras, cómo cambian tus gustos, descubrimientos e hitos); Juegos, pruebas con tu propia biblioteca; Comparar, hasta 10 artistas, canciones, álbumes o años lado a lado o en una carrera; y Gráficos, con el volumen de reproducciones y los descubrimientos, el reloj de escucha, tu semana y el mapa de calor.', use: 'Ver formas y costumbres más que posiciones.' },
           { period: 'records', desc: 'Once secciones: {{sections}}.', use: 'Tu libro de récords.' },
           { period: 'awards', desc: 'Tu propia gala de premios, hecha con los datos de tus rankings: las cuatro grandes categorías y otras como Mejor colaboración, Canción del verano, Mejor regreso y Mejor descubrimiento, más premios por género si los quieres. Elige las fechas, los nominados y celebra la gala. Al lado están los premios reales: los Grammy, VMAs, AMAs, BRIT y otros a los que se presentaron tus artistas.', use: 'La más divertida. Celébrala cada diciembre.' },
           { period: 'soundtrack', desc: 'Un mes, un año o todo tu historial contado en capítulos: el año en cifras, tus canciones, artistas y álbumes principales, tu artista #1, costumbres, descubrimientos, hitos, rachas, premiados en tus rankings, una repetición del ranking y una tarjeta para compartir. Reproduce tu año lo muestra como una historia a pantalla completa.', use: 'El repaso nostálgico de tu historial.' }
@@ -400,7 +400,7 @@ window.CG_TEXT = {
       settings: { text: 'Configura tu fuente de datos para empezar a explorar tus rankings', btn: 'Ajustes' },
       records: { text: 'Mira tus récords: las trayectorias más largas, los mayores debuts, las rachas', btn: 'Ir a Récords' },
       events: { text: 'Mira los próximos cumpleaños y aniversarios de álbumes de tus artistas', btn: 'Ir a Eventos' },
-      graphs: { text: 'Mira tu mapa de calor, tus tendencias de escucha y la carrera de reproducciones', btn: 'Ir a Estadísticas' },
+      graphs: { text: 'Mira tu escucha resumida, tu historia, juegos y comparaciones lado a lado', btn: 'Ir a Estadísticas' },
       playlists: { text: 'Crea y guarda listas a partir de cualquier ranking', btn: 'Ir a Listas de reproducción' },
       week: { text: 'Comparte tu ranking semanal actual como imagen', btn: 'Ir a Semanal' }
     },
@@ -532,7 +532,7 @@ window.CG_TEXT = {
       { group: 'Análises',
         note: 'As outras abas da barra de cima. Tudo aqui é calculado a partir dos seus plays; não precisa configurar nada a mais.',
         tabs: [
-          { period: 'graphs', desc: 'Sua escuta em gráficos, por dia, mês ou ano: plays acumulados por artista, volume de escuta, artistas lado a lado, descobertas, uma corrida animada de plays e um mapa de calor de cada dia em que você ouviu.', use: 'Ver formas e hábitos em vez de posições.' },
+          { period: 'graphs', desc: 'Sua escuta em qualquer período, em cinco abas: um Resumo em uma frase e quatro cartões; Sua história (sua obsessão de cada mês, suas eras, como seu gosto muda, descobertas e marcos); Jogos, desafios com a sua própria biblioteca; Comparar, até 10 artistas, músicas, álbuns ou anos lado a lado ou numa corrida; e Gráficos, com o volume de plays e as descobertas, o relógio de escuta, sua semana e o mapa de calor.', use: 'Ver formas e hábitos em vez de posições.' },
           { period: 'records', desc: 'Onze seções: {{sections}}.', use: 'Seu livro de recordes.' },
           { period: 'awards', desc: 'Sua própria premiação, feita com os dados das suas paradas: as quatro grandes categorias e outras como Melhor colaboração, Música do verão, Melhor retorno e Melhor descoberta, além de prêmios por gênero se você quiser. Escolha as datas, os indicados e faça a cerimônia. Ao lado ficam os prêmios reais: Grammy, VMAs, AMAs, BRIT e outros em que seus artistas concorreram.', use: 'A mais divertida. Faça todo dezembro.' },
           { period: 'soundtrack', desc: 'Um mês, um ano ou todo o seu histórico contado em capítulos: o ano em números, suas principais músicas, artistas e álbuns, seu artista #1, hábitos, descobertas, marcos, sequências, premiados nas suas paradas, um replay da parada e um cartão para compartilhar. Reproduzir seu ano mostra tudo como uma história em tela cheia.', use: 'A volta nostálgica pelo seu histórico.' }
@@ -616,7 +616,7 @@ window.CG_TEXT = {
       settings: { text: 'Configure sua fonte de dados para começar a explorar suas paradas', btn: 'Configurações' },
       records: { text: 'Veja seus recordes — trajetórias mais longas, maiores estreias, sequências', btn: 'Ir para Recordes' },
       events: { text: 'Veja os próximos aniversários e datas comemorativas de álbuns dos seus artistas', btn: 'Ir para Eventos' },
-      graphs: { text: 'Veja seu mapa de calor, suas tendências de escuta e a corrida de plays', btn: 'Ir para Estatísticas' },
+      graphs: { text: 'Veja sua escuta resumida, sua história, jogos e comparações lado a lado', btn: 'Ir para Estatísticas' },
       playlists: { text: 'Monte e salve playlists a partir de qualquer parada', btn: 'Ir para Playlists' },
       week: { text: 'Compartilhe sua parada semanal atual como imagem', btn: 'Ir para Semanal' }
     },
@@ -748,7 +748,7 @@ window.CG_TEXT = {
       { group: 'Análises',
         note: 'Os outros separadores da barra de cima. Tudo aqui é calculado a partir dos teus plays; não é preciso configurar mais nada.',
         tabs: [
-          { period: 'graphs', desc: 'A tua audição em gráficos, por dia, mês ou ano: plays acumulados por artista, volume de audição, artistas lado a lado, descobertas, uma corrida animada de plays e um mapa de calor de cada dia em que ouviste.', use: 'Ver formas e hábitos em vez de posições.' },
+          { period: 'graphs', desc: 'A tua audição em qualquer período, em cinco separadores: um Resumo numa frase e quatro cartões; A tua história (a tua obsessão de cada mês, as tuas eras, como o teu gosto muda, descobertas e marcos); Jogos, desafios com a tua própria biblioteca; Comparar, até 10 artistas, músicas, álbuns ou anos lado a lado ou numa corrida; e Gráficos, com o volume de plays e as descobertas, o relógio de escuta, a tua semana e o mapa de calor.', use: 'Ver formas e hábitos em vez de posições.' },
           { period: 'records', desc: 'Onze secções: {{sections}}.', use: 'O teu livro de recordes.' },
           { period: 'awards', desc: 'A tua própria gala de prémios, feita com os dados dos teus tops: as quatro grandes categorias e outras como Melhor colaboração, Música do verão, Melhor regresso e Melhor descoberta, mais prémios por género se quiseres. Escolhe as datas, os nomeados e faz a cerimónia. Ao lado estão os prémios reais: Grammy, VMAs, AMAs, BRIT e outros a que os teus artistas concorreram.', use: 'A mais divertida. Fá-la todos os dezembros.' },
           { period: 'soundtrack', desc: 'Um mês, um ano ou todo o histórico contado em capítulos: o ano em números, as tuas principais músicas, artistas e álbuns, o teu artista #1, hábitos, descobertas, marcos, sequências, premiados nos teus tops, uma repetição do top e um cartão para partilhar. Reproduzir o teu ano mostra tudo como uma história em ecrã inteiro.', use: 'A volta nostálgica pelo teu histórico.' }
@@ -832,7 +832,7 @@ window.CG_TEXT = {
       settings: { text: 'Configura a tua fonte de dados para começares a explorar os teus tops', btn: 'Definições' },
       records: { text: 'Vê os teus recordes — percursos mais longos, maiores estreias, sequências', btn: 'Ir para Recordes' },
       events: { text: 'Vê os próximos aniversários e datas comemorativas de álbuns dos teus artistas', btn: 'Ir para Eventos' },
-      graphs: { text: 'Vê o teu mapa de calor, as tuas tendências de audição e a corrida de plays', btn: 'Ir para Estatísticas' },
+      graphs: { text: 'Vê a tua audição resumida, a tua história, jogos e comparações lado a lado', btn: 'Ir para Estatísticas' },
       playlists: { text: 'Cria e guarda playlists a partir de qualquer top', btn: 'Ir para Playlists' },
       week: { text: 'Partilha o teu top semanal atual como imagem', btn: 'Ir para Semanal' }
     },

@@ -3716,6 +3716,34 @@ Games buttons carry `hidden` until built. The All sentence counts artists
 light, 390 touch es Navy light: no raw keys, no sideways scroll, no
 errors.
 
+**Steps 2–8 done (2026-10-30,** not pushed; you said "build them all").
+The new Stats code uses an **sx** prefix (sx_ keys, .sx- classes, sx
+ids): st / .st-* is the Soundtrack's, and .st-hero / .st-up clashed.
+- **2 Charts** (f7b2082): volume and discoveries in one chart with a
+  Plays / New finds switch; tap a bar for the look-inside box (top
+  songs, new finds, Open this chart); listening clock and Your week
+  cards. The heatmap's Listening Patterns are kept (they follow its
+  year; the new cards follow the range).
+- **3 Compare** (c3d1b0c): the studio (Artists / Songs / Albums / Years;
+  Running total / Per period / Chart run; up to 10; verdict row). The
+  two artist chart cards and their code are gone. renderGraphs draws
+  only the open tab's charts.
+- **4 Race** (08e4613): a Compare mode; buildRaceFrames reads
+  sxRaceKeys(); "Fill with my top 10" counts over the race's own range.
+  Type / Show buttons gone. The race now has room for its bars on a
+  phone (narrower name and count columns under 480px).
+- **5–6 Story** (574cc54, 8729e63): obsession, eras (weekly #1 runs of
+  3+), taste drift (yearly top 10 bump chart, last 8 years), loyalty,
+  comfort vs new, discoveries now, "to put it another way" (plays a
+  day, top song, steps; no hours), milestones.
+- **7–8 Games** (4ca4d2a, 20d2608): full-screen stage, four games, best
+  scores in dc_sxGameBest, a canvas share card.
+Changelog entries for each (Story and Games one each).
+**For phase 11:** the old keys graph_volume_*, graph_discoveries_*,
+graph_cumulative_*, graph_volume_comp_*, race_artists / songs /
+albums, show_label and type_label are unused now (.graph-chips is still
+used by the heatmap's chips).
+
 Then **phase 11** (the sweep), as planned.
 
 The period picker does not need moving into one place:

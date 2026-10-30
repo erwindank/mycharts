@@ -124,7 +124,7 @@ function _sxSub(val, label, plain) {
 }
 
 function _sxTile(cat, labelKey, val, prev, trendVals, subHtml) {
-  const vs = prev !== null ? `<span class="sx-vs">${esc(t('sx_vs').replace('{n}', prev.toLocaleString()))}</span>` : '';
+  const vs = prev !== null ? `<span class="sx-vsprev">${esc(t('sx_vs').replace('{n}', prev.toLocaleString()))}</span>` : '';
   const foot = prev !== null ? `<div class="stat-foot">${_sxDelta(val, prev)}${vs}</div>` : '';
   return `<div class="stat-box sx-tile" data-cat="${cat}">
     <div class="stat-head"><span class="stat-label">${esc(t(labelKey))}</span></div>
