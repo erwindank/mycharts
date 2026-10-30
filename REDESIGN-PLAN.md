@@ -3669,6 +3669,44 @@ you before building. Direction:
 - Four languages, the changelog, the tour and the Charts Guide, screen
   check (1440 / 1100 / 390 touch × four languages × the check themes).
 
+**Phase 15 mockup and your picks (2026-10-30).** Mockup:
+https://claude.ai/artifact/DTKwyYJsexWSHZNoKZNuLy. Picks: **five sub-tabs**
+(Overview · Story · Games · Compare · Charts), one at a time like Records;
+**games play full screen**, like the awards ceremony; **Compare opens on
+your top 3 artists** for the range; **the race becomes a fourth Compare
+mode** ("Race", racing whatever is picked) with a **"Fill with my top 10"**
+button so the classic race is one tap away. The hero has no Hours tile:
+there is no song length in the data, and "minutes listened" was turned
+down for Daily. It shows Plays / Songs / Artists / Albums instead.
+
+**Phase 15 steps.** New code goes in its own file, `stats.js`, like
+`daily.js` and `insights.js`.
+1. **Sub-tabs and the Overview hero.** The five tabs under the range bar
+   (Story and Games hidden until built); today's cards sorted into Compare
+   (two artist charts, race) and Charts (volume, discoveries, heatmap) as a
+   stop-gap. Overview: one sentence, four tiles (Plays / Songs / Artists /
+   Albums) against the same stretch before, a trend line, small stats under
+   a divider. A "4 wk" quick range.
+2. **Charts tab redone:** volume and discoveries in one chart, tap a bar to
+   see that month (top songs, new finds, a link to its chart); a listening
+   clock and a weekday card (from the heatmap's patterns); heatmap kept.
+3. **Compare studio:** Artists / Songs / Albums / Years; Running total /
+   Per period / Chart run; up to 6 picks; opens on your top 3 artists for
+   the range; the verdict row. Replaces the two artist charts.
+4. **Race as a Compare mode,** with "Fill with my top 10"; the old race
+   card goes.
+5. **Story, part 1:** your obsession each month, eras, taste drift (bump
+   chart of yearly top 10s).
+6. **Story, part 2:** loyal or adventurous, comfort songs vs new finds,
+   discoveries and where they are now, "to put it another way",
+   milestones.
+7. **Games, part 1:** the full-screen game window, Higher or lower, best
+   scores on the device, a share card.
+8. **Games, part 2:** Guess the year, Which came first, Guess the #1.
+9. **Finish:** four languages checked, the tour and Charts Guide, changelog,
+   screen check (1440 / 1100 / 390 touch × four languages × the check
+   themes).
+
 Then **phase 11** (the sweep), as planned.
 
 The period picker does not need moving into one place:
