@@ -53,6 +53,9 @@ phase 14, the Ratings page.
 **Updated 2026-10-29 (late):** phase 14 done (the Ratings page). Next is
 phase 15, Stats rebuilt: look at it on screen, then a mockup first.
 
+**Updated 2026-10-30:** phase 15 done (Stats rebuilt in five tabs, all 9
+steps, fc6563c), on `main`, not pushed. Next is phase 11, the sweep.
+
 **Seen on screen:**
 - Weekly: Albums and Songs, in all six chart layouts (Table, Card grid,
   Compact, Mosaic, Filmstrip, Stack)
