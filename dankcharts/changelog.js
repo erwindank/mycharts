@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 376;
+const DC_CL_I18N_V = 377;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-30', t: 'feature', a: 'ui', h: '574cc54',
+    title: "A Story tab in Stats: what your listening was about",
+    detail: "Stats has a Story tab that tells what the date range was about, card by card. Your obsession shows the artist you played most each month (each week for a short range), with their picture; tap one to open that chart. Your eras finds the stretches where one artist was #1 on your weekly chart three weeks or more in a row. Taste drift draws how your yearly top 10 artists moved over the last eight years; tap a line or a name to follow one artist. Then: how loyal or adventurous you were (the share that went to your top 10), comfort songs against new finds, your biggest new artists and whether they are still going, cooling off or faded, your plays put another way (a day, your top song, and as steps), and the round numbers you passed, like your 200,000th play or an artist reaching 2,500 plays. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-30', t: 'feature', a: 'ui', h: '08e4613',
     title: "The Play Count Race races whatever you pick",
     detail: "The Play Count Race is now the Race view of the Compare studio in Stats. Instead of a fixed top 5 to top 100, it races the artists, songs or albums you picked there, so you can watch any two favourites fight it out from your first play. Fill with my top 10 brings back the classic race of your 10 most played in one tap. Speed, its own date range, play, step, the seek bar and the GIF download work as before. On phones the race also has room for its bars now: the names and counts take less space. Works with Last.fm, Google Sheets and CSV uploads." },

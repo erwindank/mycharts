@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "A Story tab in Stats: what your listening was about":
+    ["Uma aba Sua história em Estatísticas: do que foi feito o que você ouviu",
+     "Estatísticas ganhou a aba Sua história, que conta do que foi feito o período escolhido, cartão por cartão. Sua obsessão mostra o artista que você mais ouviu em cada mês (cada semana num período curto), com a foto; toque em um para abrir aquela parada. Suas eras encontra as fases em que um artista foi #1 na sua parada semanal por três semanas seguidas ou mais. Como seu gosto muda desenha como seu top 10 anual de artistas se moveu nos últimos oito anos; toque numa linha ou num nome para seguir um artista. Depois: o quanto você foi fiel ou aventureiro (o que foi para o seu top 10), músicas de sempre contra novidades, seus maiores artistas novos e se seguem fortes, estão esfriando ou sumiram, seus plays em outras palavras (por dia, sua música mais ouvida e em passos) e os números redondos que você alcançou, como seu play n.º 200.000 ou um artista chegando a 2.500 plays. Funciona com Last.fm, Google Sheets e arquivos CSV."],
   "The Play Count Race races whatever you pick":
     ["A Corrida de Plays corre com o que você escolher",
      "A Corrida de Plays agora é a visualização Corrida do estúdio Comparar em Estatísticas. Em vez de um top fixo de 5 a 100, ela faz correr os artistas, músicas ou álbuns que você escolheu ali, para ver dois favoritos disputando desde o seu primeiro play. Preencher com meu top 10 traz de volta a corrida clássica dos seus 10 mais ouvidos com um toque. Velocidade, o período próprio, reproduzir, avançar, a barra de posição e o download em GIF funcionam como antes. No celular a corrida também tem espaço para as barras agora: os nomes e números ocupam menos. Funciona com Last.fm, Google Sheets e arquivos CSV."],

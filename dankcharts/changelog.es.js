@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "A Story tab in Stats: what your listening was about":
+    ["Una pestaña Tu historia en Estadísticas: de qué fue lo que escuchaste",
+     "Estadísticas tiene una pestaña Tu historia que cuenta de qué fue el rango de fechas, tarjeta a tarjeta. Tu obsesión muestra el artista que más escuchaste cada mes (cada semana en un rango corto), con su foto; toca uno para abrir ese ranking. Tus eras encuentra las rachas en las que un artista fue #1 en tu ranking semanal tres semanas seguidas o más. Cómo cambian tus gustos dibuja cómo se movió tu top 10 anual de artistas en los últimos ocho años; toca una línea o un nombre para seguir a un artista. Después: lo fiel o aventurero que fuiste (lo que fue para tu top 10), canciones de siempre frente a novedades, tus mayores artistas nuevos y si siguen fuertes, se enfrían o se apagaron, tus reproducciones dichas de otra forma (al día, tu canción más escuchada y como pasos) y los números redondos que alcanzaste, como tu reproducción 200.000 o un artista que llega a 2.500 reproducciones. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "The Play Count Race races whatever you pick":
     ["La Carrera de Reproducciones hace competir lo que elijas",
      "La Carrera de Reproducciones ahora es la vista Carrera del estudio Comparar en Estadísticas. En lugar de un top fijo del 5 al 100, hace competir a los artistas, canciones o álbumes que elegiste allí, así puedes ver a dos favoritos enfrentarse desde tu primera reproducción. Rellenar con mi top 10 trae de vuelta la carrera clásica de tus 10 más escuchados con un toque. La velocidad, su propio rango de fechas, reproducir, avanzar, la barra de posición y la descarga en GIF funcionan como antes. En el móvil la carrera también tiene sitio para sus barras: los nombres y los números ocupan menos. Funciona con Last.fm, Google Sheets y archivos CSV."],
