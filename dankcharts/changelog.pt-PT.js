@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "The Play Count Race races whatever you pick":
+    ["A Corrida de Plays corre com o que escolheres",
+     "A Corrida de Plays é agora a vista Corrida do estúdio Comparar nas Estatísticas. Em vez de um top fixo de 5 a 100, põe a correr os artistas, músicas ou álbuns que escolheste lá, para veres dois favoritos a disputar desde o teu primeiro play. Preencher com o meu top 10 traz de volta a corrida clássica dos teus 10 mais ouvidos com um toque. A velocidade, o período próprio, reproduzir, avançar, a barra de posição e a transferência em GIF funcionam como antes. No telemóvel a corrida também tem espaço para as barras: os nomes e números ocupam menos. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
   "Compare anything side by side in Stats":
     ["Compara o que quiseres nas Estatísticas",
      "O separador Comparar das Estatísticas tem um estúdio novo que põe até 10 artistas, músicas, álbuns ou anos lado a lado. Escolhe um tipo, adiciona o que quiseres escrevendo ou a partir da lista, e abre com o teu top 3 do período. Total acumulado soma os plays ao longo do período, Por período mostra-os dia a dia, mês a mês ou ano a ano, e Percurso mostra a posição de cada um no top diário, semanal, mensal ou anual. Os anos são comparados mês a mês no mesmo eixo, para veres como este ano está a correr face aos anteriores. Por baixo do gráfico, quatro cartões dizem quem ganhou o quê: mais plays, mais semanas em #1, em alta nas últimas quatro semanas e quem está contigo há mais tempo (para anos: mais plays, mais artistas, mais músicas novas e o mês mais movimentado). Substitui os dois gráficos de comparação de artistas. Funciona com Last.fm, Google Sheets e ficheiros CSV."],

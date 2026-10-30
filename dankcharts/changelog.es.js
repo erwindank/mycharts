@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "The Play Count Race races whatever you pick":
+    ["La Carrera de Reproducciones hace competir lo que elijas",
+     "La Carrera de Reproducciones ahora es la vista Carrera del estudio Comparar en Estadísticas. En lugar de un top fijo del 5 al 100, hace competir a los artistas, canciones o álbumes que elegiste allí, así puedes ver a dos favoritos enfrentarse desde tu primera reproducción. Rellenar con mi top 10 trae de vuelta la carrera clásica de tus 10 más escuchados con un toque. La velocidad, su propio rango de fechas, reproducir, avanzar, la barra de posición y la descarga en GIF funcionan como antes. En el móvil la carrera también tiene sitio para sus barras: los nombres y los números ocupan menos. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Compare anything side by side in Stats":
     ["Compara lo que quieras en Estadísticas",
      "La pestaña Comparar de Estadísticas tiene un nuevo estudio que pone hasta 10 artistas, canciones, álbumes o años uno al lado del otro. Elige un tipo, añade lo que quieras escribiendo o desde la lista, y se abre con tu top 3 del rango de fechas. Total acumulado suma sus reproducciones a lo largo del rango, Por periodo las muestra día a día, mes a mes o año a año, y Trayectoria muestra en qué puesto quedó cada uno en el ranking diario, semanal, mensual o anual. Los años se comparan mes a mes en un mismo eje, así puedes ver cómo va este año frente a los anteriores. Bajo el gráfico, cuatro tarjetas dicen quién ganó qué: más reproducciones, más semanas en el #1, más en racha en las últimas cuatro semanas y quién lleva más tiempo contigo (en años: más reproducciones, más artistas, más canciones nuevas y el mes con más escucha). Sustituye a los dos gráficos de comparación de artistas. Funciona con Last.fm, Google Sheets y archivos CSV."],
