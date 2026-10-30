@@ -3707,6 +3707,15 @@ down for Daily. It shows Plays / Songs / Artists / Albums instead.
    screen check (1440 / 1100 / 390 touch × four languages × the check
    themes).
 
+**Step 1 done (2026-10-30,** 96aaad3 + changelog b9307f5, not pushed).
+`stats.js`: `statsTab` / `setStatsTab` (dc_stats_tab), `stRenderOverview`.
+`renderGraphs()` hands Overview to stats.js and returns; the other tabs
+draw their charts when opened (hidden charts come out 0 wide). Story and
+Games buttons carry `hidden` until built. The All sentence counts artists
+(every song was new once). Checked at 1440 en Navy dark, 1100 pt-BR Red
+light, 390 touch es Navy light: no raw keys, no sideways scroll, no
+errors.
+
 Then **phase 11** (the sweep), as planned.
 
 The period picker does not need moving into one place:
