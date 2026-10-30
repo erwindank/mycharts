@@ -29249,14 +29249,14 @@ let graphCharts = {};
 
 /* ── The page-wide date range ─────────────────────────────────────────
    One range for every Stats chart except the Play Count Race (which keeps
-   its own, starting at the first play). `preset` is 12m / 3y / all, or
+   its own, starting at the first play). `preset` is 4w / 12m / 3y / all, or
    custom when a date box was changed by hand; from / to are YYYY-MM-DD and
    only used for custom. Stored in dc_gRange. Defaults to the last 12 months,
    so a long library no longer draws a flat line with a spike at the end. */
 let graphRange = { preset: '12m', from: '', to: '' };
 try {
   const savedRange = JSON.parse(localStorage.getItem('dc_gRange') || 'null');
-  if (savedRange && ['12m', '3y', 'all', 'custom'].indexOf(savedRange.preset) !== -1) graphRange = savedRange;
+  if (savedRange && ['4w', '12m', '3y', 'all', 'custom'].indexOf(savedRange.preset) !== -1) graphRange = savedRange;
 } catch (e) { }
 
 // The range as YYYY-MM-DD strings, worked out from the preset.
@@ -29266,7 +29266,9 @@ function graphRangeDates() {
   if (graphRange.preset === 'custom') return { from: graphRange.from || first, to: graphRange.to || today };
   if (graphRange.preset === 'all') return { from: first, to: today };
   const d = tzNow();
-  d.setFullYear(d.getFullYear() - (graphRange.preset === '3y' ? 3 : 1));
+  // 4w (phase 15): the last 28 days, today included
+  if (graphRange.preset === '4w') d.setDate(d.getDate() - 28);
+  else d.setFullYear(d.getFullYear() - (graphRange.preset === '3y' ? 3 : 1));
   d.setDate(d.getDate() + 1);
   const from = localDateStr(d);
   return { from: from < first ? first : from, to: today };
@@ -29390,6 +29392,14 @@ function graphLegend(gc) {
 
 function renderGraphs() {
   if (!allPlays.length) return;
+  // Phase 15: the page is in tabs (stats.js). Overview is drawn by stats.js;
+  // the charts below are only drawn for the tab that shows them, because a
+  // chart drawn while hidden comes out 0 wide.
+  if (typeof statsTab !== 'undefined' && statsTab === 'overview') {
+    paintGraphRange();
+    stRenderOverview();
+    return;
+  }
   destroyGraphCharts();
   const gc = getGraphColors();
   paintGraphRange();

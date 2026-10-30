@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=737">
+  <link rel="stylesheet" href="style.css?v=740">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=244"></script>
+  <script defer src="translations.js?v=246"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -1317,6 +1317,7 @@
         </div>
         <span class="graphs-ctrl-sep" aria-hidden="true"></span>
         <div class="dc-seg" id="graphRangePresets" role="group" aria-label="Date range" data-i18n-aria="range_aria">
+          <button type="button" data-range="4w" data-i18n="range_4w">4 wk</button>
           <button type="button" data-range="12m" data-i18n="range_12m">12 mo</button>
           <button type="button" data-range="3y" data-i18n="range_3y">3 yr</button>
           <button type="button" data-range="all" data-i18n="range_all">All</button>
@@ -1328,8 +1329,23 @@
         </div>
       </div>
 
+      <!-- Phase 15: the page in five tabs, one shown at a time like Records.
+           The open tab sits on #graphsView as data-st-tab; CSS hides every
+           card whose data-st-group is another tab (stats.js, setStatsTab).
+           Story and Games stay hidden until they are built. -->
+      <div class="dc-tabs stats-tabs" role="tablist" aria-label="Stats" data-i18n-aria="sec_graphs_title">
+        <button type="button" role="tab" data-st-tab="overview" onclick="setStatsTab('overview')" data-i18n="st_tab_overview">Overview</button>
+        <button type="button" role="tab" data-st-tab="story" onclick="setStatsTab('story')" data-i18n="st_tab_story" hidden>Story</button>
+        <button type="button" role="tab" data-st-tab="games" onclick="setStatsTab('games')" data-i18n="st_tab_games" hidden>Games</button>
+        <button type="button" role="tab" data-st-tab="compare" onclick="setStatsTab('compare')" data-i18n="st_tab_compare">Compare</button>
+        <button type="button" role="tab" data-st-tab="charts" onclick="setStatsTab('charts')" data-i18n="st_tab_charts">Charts</button>
+      </div>
+
+      <!-- Overview: one sentence and four tiles for the range (stRenderOverview) -->
+      <div id="stOverview" class="st-overview" data-st-group="overview"></div>
+
       <!-- Chart 1: Cumulative plays over time -->
-      <div class="dc-card graph-card">
+      <div class="dc-card graph-card" data-st-group="compare">
         <!-- Title on the left, the chart's two tools as small icons on the
              right: show labels on the chart, and reset the zoom. -->
         <div class="graph-card-head">
@@ -1353,7 +1369,7 @@
       </div>
 
       <!-- Chart 2: Total play volume -->
-      <div class="dc-card graph-card">
+      <div class="dc-card graph-card" data-st-group="charts">
         <div class="graph-card-head">
           <div class="graph-card-text">
             <div class="graph-card-title" data-i18n="graph_volume_title">📊 Total Play Volume by Period</div>
@@ -1372,7 +1388,7 @@
       </div>
 
       <!-- Chart 3: Play volume by artist comparison -->
-      <div class="dc-card graph-card">
+      <div class="dc-card graph-card" data-st-group="compare">
         <div class="graph-card-head">
           <div class="graph-card-title" data-i18n="graph_volume_comp_title">📊 Play Volume by Period — Artist Comparison
           </div>
@@ -1394,7 +1410,7 @@
       </div>
 
       <!-- Chart 4: New discoveries per period -->
-      <div class="dc-card graph-card">
+      <div class="dc-card graph-card" data-st-group="charts">
         <div class="graph-card-head">
           <div class="graph-card-text">
             <div class="graph-card-title" data-i18n="graph_discoveries_title">✨ New Discoveries per Period</div>
@@ -1413,7 +1429,7 @@
       </div>
 
       <!-- Bar Chart Race -->
-      <div class="dc-card graph-card">
+      <div class="dc-card graph-card" data-st-group="compare">
         <div class="graph-card-title" data-i18n="graph_race_title">🏁 Play Count Race</div>
         <div class="graph-card-sub" data-i18n="graph_race_sub">Cumulative plays over time — watch entries compete for
           the top spot</div>
@@ -1478,7 +1494,7 @@
       </div>
 
       <!-- Chart 6: Listening Activity Heatmap -->
-      <div class="dc-card graph-card" id="heatmapCard">
+      <div class="dc-card graph-card" id="heatmapCard" data-st-group="charts">
         <div class="graph-card-title" data-i18n="hm_title">🔥 Listening Activity Heatmap</div>
         <div class="graph-card-sub" data-i18n="hm_sub">Your music mapped day by day: the stronger the color, the more you played. Hover or tap any square to see what you were listening to.</div>
         <div class="graph-ctrl-row">
@@ -4224,7 +4240,7 @@
   <!-- One behaviour and one icon set for every pop-up window (phase 10); before
        app.js so dcIco() is there when app.js draws a window -->
   <script defer src="popups.js?v=8"></script>
-  <script defer src="app.js?v=577"></script>
+  <script defer src="app.js?v=578"></script>
   <!-- The song / album / artist details side panel (phase 10 step 3); wraps app.js's open functions -->
   <script defer src="panel.js?v=16"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
@@ -4232,6 +4248,8 @@
   <!-- All-Time chart stats ("Inside your Top N"); reads app.js globals, so it loads after it -->
   <script defer src="insights.js?v=9"></script>
   <script defer src="daily.js?v=39"></script>
+  <!-- The Stats page's tabs, Overview, Story, Games and Compare (phase 15); reads app.js globals -->
+  <script defer src="stats.js?v=1"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at

@@ -10998,6 +10998,63 @@
 
     .graph-card { padding: 1.1rem 1.1rem var(--sp-3); margin-bottom: 1.25rem; }
 
+    /* ── Stats in five tabs (phase 15, stats.js) ─────────────────────────
+       The open tab is #graphsView[data-st-tab]; every block tagged
+       data-st-group for another tab is hidden. */
+    .stats-tabs { margin: 0 0 1.25rem; }
+    /* Story and Games wait in the row, hidden, until they are built */
+    .stats-tabs > button[hidden] { display: none; }
+    #graphsView[data-st-tab="overview"] [data-st-group]:not([data-st-group="overview"]),
+    #graphsView[data-st-tab="story"] [data-st-group]:not([data-st-group="story"]),
+    #graphsView[data-st-tab="games"] [data-st-group]:not([data-st-group="games"]),
+    #graphsView[data-st-tab="compare"] [data-st-group]:not([data-st-group="compare"]),
+    #graphsView[data-st-tab="charts"] [data-st-group]:not([data-st-group="charts"]) { display: none; }
+    /* Daily / Monthly / Yearly only means something for the charts */
+    #graphsView:not([data-st-tab="charts"]):not([data-st-tab="compare"]) #graphGranularity,
+    #graphsView:not([data-st-tab="charts"]):not([data-st-tab="compare"]) .graphs-ctrl-sep { display: none; }
+
+    /* Overview hero: the sentence over the four tiles, on a soft accent wash */
+    .st-hero {
+      padding: var(--sp-5);
+      border: 1px solid var(--border2);
+      border-radius: var(--r-lg);
+      background:
+        radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 60%),
+        var(--bg2);
+      box-shadow: var(--shadow-1);
+      margin-bottom: 1.25rem;
+    }
+    .st-hero-line {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: var(--fs-md);
+      line-height: 1.45;
+      margin: 0 0 var(--sp-4);
+      max-width: 62rem;
+      text-wrap: pretty;
+    }
+    .st-hero-line b { color: var(--accent); font-weight: 700; }
+    .st-up { color: var(--green); }
+    .st-down { color: var(--rose); }
+    /* The top artist opens their details window */
+    .st-link {
+      font: inherit; color: var(--accent); background: none; border: 0; padding: 0;
+      cursor: pointer; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px;
+    }
+    .st-link:hover { text-decoration-thickness: 2px; }
+    .st-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    @media (max-width: 760px) {
+      .st-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .st-hero { padding: var(--sp-4); }
+    }
+    .st-tile { background: color-mix(in srgb, var(--bg) 45%, var(--bg2)); }
+    .st-tile .stat-foot { display: flex; gap: var(--sp-2); align-items: center; justify-content: center; flex-wrap: wrap; }
+    .st-vs { font-size: var(--fs-xs); color: var(--text3); font-variant-numeric: tabular-nums; }
+    /* The tile's trend over the range, in its own colour */
+    .st-trend { display: block; width: 100%; height: 28px; margin: var(--sp-2) 0 var(--sp-1); color: var(--cat-color, var(--accent)); }
+    .st-trend polygon { fill: currentColor; opacity: .14; }
+    .st-trend polyline { fill: none; stroke: currentColor; stroke-width: 1.5; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
+
     /* Card head: title (and description) on the left, the chart's tools as
        small icon buttons on the right. */
     .graph-card-head {
