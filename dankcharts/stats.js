@@ -1299,3 +1299,255 @@ function _sxMilestonesCard(fromTs, toTs) {
   }).join('');
   return _sxCard(t('sx_miles_title'), t('sx_miles_sub'), `<ol class="sx-miles">${items}</ol>`);
 }
+
+// ── Games (steps 7–8) ─────────────────────────────────────────────────────
+/* Quizzes on your own library, played full screen like the awards
+   ceremony. They use the whole history, not the range. Best scores stay on
+   this device (dc_sxGameBest); at the end a score can be shared as a
+   picture. Each game is { title, desc, icon, unit, start() } and draws its
+   rounds into the stage with _sxStage(). */
+const SX_GAMES = {};
+let _sxGameBest = (() => { try { return JSON.parse(localStorage.getItem('dc_sxGameBest') || '{}') || {}; } catch (e) { return {}; } })();
+let _sxGame = null;      // the game on screen: { id, score, round, ... }
+let _sxGameFocus = null; // the button that opened it, focused again on close
+
+// Drawn icons for the game cards (no emoji)
+const _SX_GAME_ICO = {
+  hl: '<path d="M8 3v10M4.5 6.5 8 3l3.5 3.5"/><path d="M8 13l-2-2M8 13l2-2" opacity=".55"/>',
+  year: '<rect x="2.5" y="3.5" width="11" height="10" rx="1.5"/><path d="M2.5 6.5h11M5.5 2v3M10.5 2v3"/><path d="M6 10h4"/>',
+  first: '<circle cx="8" cy="8.5" r="5"/><path d="M8 5.5v3l2 1.5M6.5 1.5h3"/>',
+  one: '<path d="M3 12.5h10M4 12.5 3 5l3 2.5L8 3l2 4.5L13 5l-1 7.5"/>',
+};
+const _sxGameIco = id => `<svg class="sx-ico sx-game-ico" viewBox="0 0 16 16" aria-hidden="true" focusable="false">${_SX_GAME_ICO[id]}</svg>`;
+
+function sxRenderGames() {
+  const box = document.getElementById('sxGames');
+  if (!box) return;
+  const ready = Object.keys(SX_GAMES);
+  box.innerHTML = `<p class="sx-games-intro">${esc(t('sx_games_intro'))}</p><div class="sx-games-grid">` +
+    ['hl', 'year', 'first', 'one'].map(id => {
+      const g = SX_GAMES[id], best = _sxGameBest[id];
+      const bestTxt = best != null ? t('sx_game_best').replace('{n}', best.toLocaleString()) : t('sx_game_new');
+      const on = ready.includes(id);
+      return `<section class="dc-card sx-game-card">${_sxGameIco(id)}<h3>${esc(t('sx_game_' + id))}</h3>` +
+        `<p>${esc(t('sx_game_' + id + '_desc'))}</p><span class="sx-game-best">${esc(on ? bestTxt : t('sx_game_soon'))}</span>` +
+        `<button type="button" class="dc-btn dc-btn-main dc-btn-sm" ${on ? `onclick="sxGameOpen('${id}', this)"` : 'disabled'}>${esc(t('sx_game_play'))}</button></section>`;
+    }).join('') + '</div>';
+}
+
+// ── The full-screen stage ──
+function sxGameOpen(id, opener) {
+  const g = SX_GAMES[id];
+  if (!g || !allPlays.length) return;
+  let el = document.getElementById('sxGameLayer');
+  // Play again keeps the button that first opened the game
+  if (!el) _sxGameFocus = opener || document.activeElement;
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'sxGameLayer';
+    el.className = 'sx-game';
+    el.setAttribute('role', 'dialog');
+    el.setAttribute('aria-modal', 'true');
+    el.setAttribute('aria-labelledby', 'sxGameTitle');
+    document.body.appendChild(el);
+    el.addEventListener('keydown', _sxGameKeys);
+  }
+  el.innerHTML = `<div class="sx-game-top"><div class="sx-game-head">${_sxGameIco(id)}<div><h2 id="sxGameTitle">${esc(t('sx_game_' + id))}</h2>` +
+    `<span id="sxGameScore" class="sx-game-score"></span></div></div>` +
+    `<button type="button" class="dc-btn dc-btn-plain dc-btn-icon sx-game-close" onclick="sxGameClose()" aria-label="${esc(t('sx_drill_close'))}" title="${esc(t('sx_drill_close'))}">` +
+    `<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="m4 4 8 8M12 4l-8 8"/></svg></button></div>` +
+    `<div id="sxGameStage" class="sx-game-stage" aria-live="polite"></div>`;
+  document.documentElement.classList.add('sx-game-open');
+  requestAnimationFrame(() => el.classList.add('is-in'));
+  _sxGame = { id, score: 0, round: 0 };
+  g.start();
+}
+
+function sxGameClose() {
+  const el = document.getElementById('sxGameLayer');
+  const id = _sxGame && _sxGame.id;
+  if (_sxGame && _sxGame.timer) clearTimeout(_sxGame.timer);
+  _sxGame = null;
+  if (el) el.remove();
+  document.documentElement.classList.remove('sx-game-open');
+  // The cards are drawn again (new best), so focus goes to the same game's
+  // new Play button rather than the old one
+  sxRenderGames();
+  const again = id ? document.querySelector(`#sxGames [onclick^="sxGameOpen('${id}'"]`) : null;
+  try { (again || (document.contains(_sxGameFocus) ? _sxGameFocus : null))?.focus(); } catch (e) { }
+}
+
+// Esc closes; Tab stays inside the stage; each game can add its own keys
+function _sxGameKeys(e) {
+  if (e.key === 'Escape') { e.preventDefault(); sxGameClose(); return; }
+  if (e.key === 'Tab') {
+    const f = [...document.querySelectorAll('#sxGameLayer button:not([disabled]), #sxGameLayer input')].filter(x => x.offsetParent);
+    if (!f.length) return;
+    const i = f.indexOf(document.activeElement);
+    if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); }
+    else if (!e.shiftKey && i === f.length - 1) { e.preventDefault(); f[0].focus(); }
+    return;
+  }
+  const g = _sxGame && SX_GAMES[_sxGame.id];
+  if (g && g.key) g.key(e);
+}
+
+function _sxStage(html, focusSel) {
+  const st = document.getElementById('sxGameStage');
+  if (!st) return null;
+  st.innerHTML = html;
+  const f = focusSel && st.querySelector(focusSel);
+  if (f) f.focus({ preventScroll: true });
+  return st;
+}
+
+function _sxScoreLine(txt) {
+  const el = document.getElementById('sxGameScore');
+  if (el) el.textContent = txt;
+}
+
+// Pictures for the songs on the stage (picked pictures win)
+function _sxSongArt(el, s) {
+  if (el) fetchAndInjectImage(el, { imgId: el.id, title: s.title, name: s.title, artist: s.artist, prefKey: 'song:' + s.artist.toLowerCase() + '|||' + s.title.toLowerCase() }, 'song');
+}
+
+/* The end of a game: the score, a new best when it is one, and Play again /
+   Share score / Back to games. better(a, b) says if a beats b. */
+function _sxGameOver(score, scoreTxt, extraHtml) {
+  const id = _sxGame.id, old = _sxGameBest[id];
+  const isBest = old == null || score > old;
+  if (isBest) { _sxGameBest[id] = score; try { localStorage.setItem('dc_sxGameBest', JSON.stringify(_sxGameBest)); } catch (e) { } }
+  _sxGame.done = { score, scoreTxt };
+  _sxStage(`<div class="sx-game-over">` +
+    `<span class="sx-game-over-k">${esc(t('sx_game_over'))}</span>` +
+    `<div class="sx-game-over-n">${esc(scoreTxt)}</div>` +
+    (isBest && old != null ? `<div class="sx-game-newbest">${esc(t('sx_game_newbest'))}</div>`
+      : `<div class="sx-game-over-best">${esc(t('sx_game_best').replace('{n}', (_sxGameBest[id]).toLocaleString()))}</div>`) +
+    (extraHtml || '') +
+    `<div class="sx-game-over-btns"><button type="button" class="dc-btn dc-btn-main" onclick="sxGameOpen('${id}')">${esc(t('sx_game_again'))}</button>` +
+    `<button type="button" class="dc-btn dc-btn-normal" onclick="sxGameShare(this)">${esc(t('sx_game_share'))}</button>` +
+    `<button type="button" class="dc-btn dc-btn-plain" onclick="sxGameClose()">${esc(t('sx_game_back'))}</button></div></div>`, '.dc-btn-main');
+}
+
+/* A square score card drawn on a canvas, in the theme's colours, then
+   handed to the phone's share sheet or downloaded. */
+async function sxGameShare(btn) {
+  if (!_sxGame || !_sxGame.done) return;
+  const id = _sxGame.id, { scoreTxt } = _sxGame.done;
+  const gc = getGraphColors(), S = 1080;
+  const c = document.createElement('canvas');
+  c.width = S; c.height = S;
+  const x = c.getContext('2d');
+  const g = x.createLinearGradient(0, 0, S, S);
+  g.addColorStop(0, mixHex(gc.accent, gc.bg, 0.28)); g.addColorStop(0.55, gc.bg); g.addColorStop(1, gc.bg);
+  x.fillStyle = g; x.fillRect(0, 0, S, S);
+  try { await document.fonts.load('800 120px "Bricolage Grotesque"'); } catch (e) { }
+  x.textAlign = 'center';
+  x.fillStyle = gc.accent; x.font = '600 40px "IBM Plex Sans", sans-serif';
+  x.fillText(t('sx_game_' + id).toUpperCase(), S / 2, 300);
+  x.fillStyle = gc.text; x.font = '800 150px "Bricolage Grotesque", sans-serif';
+  // Long score lines ("7 / 10") shrink to fit
+  let size = 150;
+  while (x.measureText(scoreTxt).width > S - 140 && size > 60) { size -= 10; x.font = `800 ${size}px "Bricolage Grotesque", sans-serif`; }
+  x.fillText(scoreTxt, S / 2, 520);
+  x.fillStyle = gc.text3; x.font = '400 38px "IBM Plex Sans", sans-serif';
+  x.fillText(t('sx_game_share_line'), S / 2, 620);
+  x.fillStyle = gc.text; x.font = '700 46px "Bricolage Grotesque", sans-serif';
+  x.fillText('dankcharts.fm', S / 2, S - 110);
+  const blob = await new Promise(r => c.toBlob(r, 'image/png'));
+  if (!blob) return;
+  const name = 'dankcharts-' + id + '.png';
+  const file = new File([blob], name, { type: 'image/png' });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file] }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
+  }
+  const a = document.createElement('a');
+  a.download = name; a.href = URL.createObjectURL(blob); a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  if (btn) { const o = btn.textContent; btn.textContent = '✓ ' + t('sx_game_saved'); setTimeout(() => { btn.textContent = o; }, 2000); }
+}
+
+/* Songs for the games: every song with 3+ plays, most played first, with
+   its first play. Rebuilt when the plays change. */
+let _sxPool = null;
+function _sxSongPool() {
+  const gen = _sxIndex().gen;
+  if (_sxPool && _sxPool.gen === gen) return _sxPool.list;
+  if (!firstSeenMaps) firstSeenMaps = buildFirstSeenMaps();
+  const list = [];
+  _sxIndex().songs.forEach((o, sk) => { if (o.n >= 3) list.push({ sk, title: o.label, artist: o.sub, n: o.n, first: firstSeenMaps.songFirst[sk] }); });
+  list.sort((a, b) => b.n - a.n);
+  _sxPool = { gen, list };
+  return list;
+}
+const _sxRand = n => Math.floor(Math.random() * n);
+
+// A song card on the stage: picture, title, artist and a line under it
+let _sxArtN = 0;
+function _sxSongCard(s, valHtml, cls) {
+  const id = 'sx-gart-' + (++_sxArtN);
+  return { id, html: `<div class="sx-gsong ${cls || ''}"><span class="sx-gart" id="${id}"><span class="thumb-initials">${esc(initials(s.title))}</span></span>` +
+    `<span class="sx-gtxt"><b>${esc(s.title)}</b><span>${esc(s.artist)}</span></span><div class="sx-gval">${valHtml}</div></div>` };
+}
+
+// ── Higher or lower ──
+/* Which song has more plays? The left one shows its count; say if the right
+   one is higher or lower. Keep going until a wrong answer. Pairs come from
+   the top 600 songs and are kept close (no more than 3x apart), with
+   different counts. Keys: ↑ higher, ↓ lower. */
+SX_GAMES.hl = {
+  start() {
+    const pool = _sxSongPool().slice(0, 600);
+    if (pool.length < 10) { _sxStage(`<p class="sx-note">${esc(t('sx_game_small'))}</p>`); return; }
+    _sxGame.pool = pool;
+    _sxGame.left = pool[_sxRand(pool.length)];
+    this.round();
+  },
+  pickRight(left) {
+    const pool = _sxGame.pool;
+    for (let i = 0; i < 200; i++) {
+      const s = pool[_sxRand(pool.length)];
+      if (s.sk !== left.sk && s.n !== left.n && s.n <= left.n * 3 && s.n * 3 >= left.n) return s;
+    }
+    return pool.find(s => s.sk !== left.sk && s.n !== left.n);
+  },
+  round() {
+    const G = _sxGame, L = G.left, R = G.right = this.pickRight(L);
+    G.locked = false;
+    _sxScoreLine(t('sx_hl_streak').replace('{n}', G.score) + ' · ' + t('sx_game_best').replace('{n}', Math.max(G.score, _sxGameBest.hl || 0).toLocaleString()));
+    const a = _sxSongCard(L, `<em>${L.n.toLocaleString()}</em> ${esc(t('sx_plays'))}`);
+    const b = _sxSongCard(R, `<em id="sxHlAns">?</em>` +
+      `<div class="sx-hl-btns"><button type="button" class="dc-btn dc-btn-main" data-hl="hi">▲ ${esc(t('sx_hl_higher'))}</button>` +
+      `<button type="button" class="dc-btn dc-btn-normal" data-hl="lo">▼ ${esc(t('sx_hl_lower'))}</button></div>`);
+    const st = _sxStage(`<p class="sx-game-q">${esc(t('sx_hl_q').replace('{song}', R.title))}</p>` +
+      `<div class="sx-hl">${a.html}<span class="sx-vs">${esc(t('sx_vs_short'))}</span>${b.html}</div><p id="sxHlRes" class="sx-game-res"></p>`, '[data-hl="hi"]');
+    if (!st) return;
+    _sxSongArt(document.getElementById(a.id), L);
+    _sxSongArt(document.getElementById(b.id), R);
+    st.querySelectorAll('[data-hl]').forEach(btn => btn.addEventListener('click', () => this.answer(btn.dataset.hl)));
+  },
+  key(e) {
+    if (e.key === 'ArrowUp') { e.preventDefault(); this.answer('hi'); }
+    if (e.key === 'ArrowDown') { e.preventDefault(); this.answer('lo'); }
+  },
+  answer(dir) {
+    const G = _sxGame;
+    if (!G || G.locked || !G.right) return;
+    G.locked = true;
+    const L = G.left, R = G.right, right = dir === 'hi' ? R.n > L.n : R.n < L.n;
+    document.querySelectorAll('#sxGameStage [data-hl]').forEach(b => { b.disabled = true; });
+    const ans = document.getElementById('sxHlAns');
+    if (ans) { ans.textContent = R.n.toLocaleString(); ans.classList.add(right ? 'is-right' : 'is-wrong'); }
+    const res = document.getElementById('sxHlRes');
+    if (right) {
+      G.score++;
+      if (res) res.innerHTML = `<span class="sx-right">${esc(t('sx_game_right'))}</span>`;
+      _sxScoreLine(t('sx_hl_streak').replace('{n}', G.score) + ' · ' + t('sx_game_best').replace('{n}', Math.max(G.score, _sxGameBest.hl || 0).toLocaleString()));
+      // The right song moves to the left for the next pair
+      G.timer = setTimeout(() => { if (_sxGame === G) { G.left = R; this.round(); } }, 1300);
+    } else {
+      if (res) res.innerHTML = `<span class="sx-wrong">${esc(t(R.n > L.n ? 'sx_hl_was_more' : 'sx_hl_was_less').replace('{song}', R.title))}</span>`;
+      G.timer = setTimeout(() => { if (_sxGame === G) _sxGameOver(G.score, t('sx_hl_final').replace('{n}', G.score)); }, 1600);
+    }
+  },
+};

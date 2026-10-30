@@ -29379,6 +29379,11 @@ function renderGraphs() {
     sxRenderStory();
     return;
   }
+  if (typeof statsTab !== 'undefined' && statsTab === 'games') {
+    paintGraphRange();
+    sxRenderGames();
+    return;
+  }
   destroyGraphCharts();
   const gc = getGraphColors();
   paintGraphRange();

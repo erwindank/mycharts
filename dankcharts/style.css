@@ -11256,6 +11256,77 @@
     .sx-miles b { display: block; font-family: var(--font-display); font-size: var(--fs-sm); }
     .sx-miles span { display: block; font-size: var(--fs-xs); color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
+    /* Games (step 7): the range doesn't apply, so its bar steps aside */
+    #graphsView[data-st-tab="games"] .graphs-controls { display: none; }
+    .sx-games-intro { margin: 0 0 var(--sp-4); color: var(--text2); font-size: var(--fs-sm); }
+    .sx-games-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--sp-4); }
+    @media (max-width: 1000px) { .sx-games-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 480px) { .sx-games-grid { grid-template-columns: 1fr; } }
+    .sx-game-card { display: flex; flex-direction: column; gap: var(--sp-2); padding: var(--sp-4); margin: 0; }
+    .sx-game-card h3 { margin: var(--sp-1) 0 0; font-family: var(--font-display); font-size: var(--fs-md); }
+    .sx-game-card p { margin: 0; color: var(--text2); font-size: var(--fs-sm); flex: 1; }
+    .sx-game-best { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--text3); }
+    .sx-game-card .dc-btn { align-self: flex-start; }
+
+    /* The full-screen stage */
+    html.sx-game-open, html.sx-game-open body { overflow: hidden; }
+    .sx-game {
+      position: fixed; inset: 0; z-index: var(--z-stage);
+      display: flex; flex-direction: column;
+      background:
+        radial-gradient(120% 80% at 50% 0%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 65%),
+        var(--bg);
+      opacity: 0; transform: translateY(8px); transition: opacity .2s ease, transform .25s ease;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+    .sx-game.is-in { opacity: 1; transform: none; }
+    @media (prefers-reduced-motion: reduce) { .sx-game { transition: none; } }
+    .sx-game-top { display: flex; justify-content: space-between; align-items: center; gap: var(--sp-3); padding: var(--sp-4) var(--sp-5); border-bottom: 1px solid var(--border); }
+    .sx-game-head { display: flex; align-items: center; gap: var(--sp-3); min-width: 0; }
+    .sx-game-head h2 { margin: 0; font-family: var(--font-display); font-size: var(--fs-lg); line-height: 1.1; }
+    .sx-game-score { font-family: var(--font-mono); font-size: var(--fs-sm); color: var(--text2); }
+    .sx-game-close svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 1.8; fill: none; stroke-linecap: round; }
+    .sx-game-stage { flex: 1; overflow-y: auto; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--sp-4); padding: var(--sp-5); }
+    .sx-game-q { margin: 0; font-family: var(--font-display); font-size: var(--fs-md); font-weight: 600; text-align: center; max-width: 40rem; }
+    .sx-game-res { min-height: 1.6em; margin: 0; font-weight: 600; text-align: center; }
+    .sx-right { color: var(--green); }
+    .sx-wrong { color: var(--rose); }
+    /* A song on the stage: picture, title, artist, a value or the buttons */
+    .sx-gsong { display: flex; flex-direction: column; align-items: center; gap: 4px; width: min(280px, 100%); padding: var(--sp-4);
+      background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r-lg); text-align: center; }
+    .sx-gart { display: grid; place-items: center; overflow: hidden; width: min(180px, 42vw); aspect-ratio: 1; margin-bottom: var(--sp-2);
+      border-radius: var(--r-md); background: var(--bg3); }
+    .sx-gart img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .sx-gart .thumb-initials { width: 100%; height: 100%; border: 0; border-radius: 0; font-size: 2rem; }
+    .sx-gtxt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .sx-gtxt b { font-family: var(--font-display); font-size: var(--fs-md); line-height: 1.2; }
+    .sx-gtxt span { font-size: var(--fs-sm); color: var(--text2); }
+    .sx-gval { margin-top: var(--sp-2); font-size: var(--fs-sm); color: var(--text2); }
+    .sx-gval em { display: block; font-style: normal; font-family: var(--font-display); font-weight: 800; font-size: var(--fs-xl); color: var(--accent); line-height: 1.1; }
+    .sx-gval em.is-right { color: var(--green); }
+    .sx-gval em.is-wrong { color: var(--rose); }
+    /* Higher or lower: two songs side by side (stacked on a phone) */
+    .sx-hl { display: flex; align-items: center; justify-content: center; gap: var(--sp-4); width: 100%; }
+    .sx-vs { display: grid; place-items: center; width: 44px; height: 44px; flex-shrink: 0; border: 1px solid var(--border2); border-radius: 50%;
+      font-family: var(--font-display); font-weight: 700; color: var(--text3); }
+    .sx-hl-btns { display: flex; flex-direction: column; gap: var(--sp-2); margin-top: var(--sp-2); }
+    @media (max-width: 600px) {
+      .sx-hl { flex-direction: column; gap: var(--sp-2); }
+      .sx-hl .sx-gsong { flex-direction: row; flex-wrap: wrap; align-items: center; text-align: left; gap: var(--sp-2) var(--sp-3); padding: var(--sp-3); }
+      .sx-hl .sx-gart { width: 72px; margin: 0; }
+      .sx-hl .sx-gtxt { flex: 1 1 0; }
+      .sx-hl .sx-gval { flex: 1 1 100%; text-align: center; }
+      .sx-hl-btns { flex-direction: row; justify-content: center; }
+      .sx-game-stage { justify-content: flex-start; padding: var(--sp-4); }
+    }
+    /* Game over */
+    .sx-game-over { display: flex; flex-direction: column; align-items: center; gap: var(--sp-2); text-align: center; }
+    .sx-game-over-k { font-size: var(--fs-xs); font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--text3); }
+    .sx-game-over-n { font-family: var(--font-display); font-weight: 800; font-size: clamp(2.5rem, 9vw, 4.5rem); line-height: 1.05; color: var(--accent); }
+    .sx-game-newbest { font-weight: 700; color: var(--gold1); }
+    .sx-game-over-best { font-family: var(--font-mono); font-size: var(--fs-sm); color: var(--text2); }
+    .sx-game-over-btns { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--sp-2); margin-top: var(--sp-4); }
+
     /* Card head: title (and description) on the left, the chart's tools as
        small icon buttons on the right. */
     .graph-card-head {
