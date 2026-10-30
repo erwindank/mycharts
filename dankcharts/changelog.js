@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 374;
+const DC_CL_I18N_V = 375;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-30', t: 'feature', a: 'ui', h: 'c3d1b0c',
+    title: "Compare anything side by side in Stats",
+    detail: "The Compare tab in Stats has a new studio that puts up to 10 artists, songs, albums or years side by side. Pick a type, add what you want by typing or from the list, and it opens on your top 3 for the date range. Running total adds up their plays over the range, Per period shows them day by day, month by month or year by year, and Chart run shows where each one ranked on the daily, weekly, monthly or yearly chart. Years are compared month by month on one axis, so you can see how this year is shaping up against the last ones. Under the chart, four tiles say who won what: most plays, most weeks at #1, hottest in the last four weeks and who has been with you longest (for years: most plays, most artists, most new songs and the busiest month). It replaces the two artist comparison charts. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-30', t: 'feature', a: 'ui', h: 'f7b2082',
     title: "Stats Charts: volume and discoveries in one, a listening clock and your week",
     detail: "The Charts tab in Stats has been redone. Play volume and New Discoveries are now one chart with a Plays / New finds switch: Plays splits each period's bars into songs you already knew and songs you heard for the first time, and New finds shows how many songs, artists and albums were new each period. Tap a bar to look inside: the period's plays, its top 5 songs, its top 5 new finds and a button to open that period's chart. Two new cards sit side by side under it. The listening clock shows when in the day you play music, with your busiest hour in gold, and Your week shows the average plays on each day. Tap an hour or a day to see its plays and your most played artist. Both follow the date range at the top. Works with Last.fm, Google Sheets and CSV uploads." },
