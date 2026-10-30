@@ -7433,13 +7433,8 @@ function finalizeLoad() {
   // A loaded size that isn't a preset shows in the Custom row instead
   _dcSyncCustomSizeRows();
 
-  // Restore graph settings (cumulative, total volume, volume comparison)
-  const savedCumArtists = localStorage.getItem('dc_gCumulativeArtists');
-  if (savedCumArtists) try { gCumulativeArtists = JSON.parse(savedCumArtists); renderCumulativeChips(); } catch (e) { }
-  if (localStorage.getItem('dc_gCumulativeLabels') === '1') {
-    gCumulativeLabels = true;
-    updateLabelButton('gCumulativeLabelsBtn', true);
-  }
+  // Restore graph settings. The two artist comparison charts became the
+  // Compare studio (phase 15 step 3, stats.js, dc_sxCmp).
   // The per-chart ranges were replaced by one page range (dc_gRange)
   ['dc_gCumulativeFrom', 'dc_gCumulativeTo', 'dc_gTotalVolumeFrom', 'dc_gTotalVolumeTo', 'dc_gVolumeFrom', 'dc_gVolumeTo']
     .forEach(k => localStorage.removeItem(k));
@@ -7449,17 +7444,9 @@ function finalizeLoad() {
     updateLabelButton('gTotalVolumeLabelsBtn', true);
   }
 
-  const savedVolArtists = localStorage.getItem('dc_gVolumeArtists');
-  if (savedVolArtists) try { gVolumeArtists = JSON.parse(savedVolArtists); renderVolumeChips(); } catch (e) { }
-  if (localStorage.getItem('dc_gVolumeLabels') === '1') {
-    gVolumeLabels = true;
-    updateLabelButton('gVolumeLabelsBtn', true);
-  }
   // The Labels buttons are icons with the state in their tooltip: set it for
   // the ones that are off too, in the current language.
-  updateLabelButton('gCumulativeLabelsBtn', gCumulativeLabels);
   updateLabelButton('gTotalVolumeLabelsBtn', gTotalVolumeLabels);
-  updateLabelButton('gVolumeLabelsBtn', gVolumeLabels);
 
   // Restore race/graph settings
   const savedRaceSpeed = localStorage.getItem('dc_raceSpeed');
@@ -29410,54 +29397,32 @@ function renderGraphs() {
   const legendOpts = graphLegend(gc);
   const ptRadius = labels.length > 100 ? 0 : 2;
 
-  // ── Chart 1: Cumulative plays — artist comparison ─────────
-  {
-    const artistTotals = {};
-    for (const p of allPlays) for (const a of p.artists) artistTotals[a] = (artistTotals[a] || 0) + 1;
-    const sorted = Object.keys(artistTotals).sort((a, b) => artistTotals[b] - artistTotals[a]);
-    const dl = document.getElementById('gCumulativeArtistList');
-    dl.innerHTML = sorted.map(a => `<option value="${a.replace(/"/g, '&quot;')}">`).join('');
-    // Seed with top artist if list is empty
-    if (!gCumulativeArtists.length && sorted.length) {
-      gCumulativeArtists.push(sorted[0]);
-      renderCumulativeChips();
-    }
-  }
-  renderCumulativeChart(sortedKeys, labels, ptRadius, gc, axisOpts, legendOpts);
+  // Only the open tab's charts are drawn (phase 15)
+  const onCompare = statsTab === 'compare', onCharts = statsTab === 'charts';
 
-  // ── Chart 2: Total play volume ─────────────────────────────
-  renderTotalVolumeChart(sortedKeys, gc, axisOpts, legendOpts);
+  // ── Charts 1 and 3 (the artist comparison charts) are the Compare
+  // studio now (phase 15 step 3, stats.js)
+  if (onCompare) sxRenderCompare();
 
-  // ── Chart 3: Artist comparison volume ─────────────────────
-  {
-    const artistTotals = {};
-    for (const p of allPlays) for (const a of p.artists) artistTotals[a] = (artistTotals[a] || 0) + 1;
-    const sorted = Object.keys(artistTotals).sort((a, b) => artistTotals[b] - artistTotals[a]);
-    document.getElementById('gVolumeArtistList').innerHTML =
-      sorted.map(a => `<option value="${a.replace(/"/g, '&quot;')}">`).join('');
-    if (!gVolumeArtists.length && sorted.length) {
-      gVolumeArtists.push(sorted[0]);
-      renderVolumeChips();
-    }
-  }
-  renderVolumeChart(sortedKeys, gc, axisOpts, legendOpts);
+  // ── Chart 2: Play volume and discoveries (stats.js) ───────
+  if (onCharts) renderTotalVolumeChart(sortedKeys, gc, axisOpts, legendOpts);
 
   // Chart 4 (New discoveries per period) is now the New finds view of the
   // volume chart above (phase 15 step 2, stats.js).
 
   // The listening clock and the week (phase 15 step 2)
-  sxRenderWhen();
+  if (onCharts) sxRenderWhen();
 
   // ── Bar Race: set default date range ──────────────────────
-  {
+  if (onCompare) {
     const rfEl = document.getElementById('raceFrom');
     if (!rfEl.value && allPlays.length) {
       rfEl.value = localDateStr(tzDate(allPlays[allPlays.length - 1].date));
       document.getElementById('raceTo').value = localDateStr(tzNow());
     }
   }
-  initRace();
-  {
+  if (onCompare) initRace();
+  if (onCompare) {
     const savedFrameIdx = localStorage.getItem('dc_raceFrameIdx');
     if (savedFrameIdx !== null) {
       const idx = parseInt(savedFrameIdx);
@@ -29469,13 +29434,9 @@ function renderGraphs() {
       }
     }
   }
-  renderHeatmap();
+  if (onCharts) renderHeatmap();
 }
 
-let gCumulativeArtists = [];
-let gCumulativeLabels = false;
-let gVolumeLabels = false;
-let gVolumeArtists = [];
 let gTotalVolumeLabels = false;
 
 let heatmapType = 'all';
@@ -29512,145 +29473,6 @@ function restoreChartZoom(chart, key) {
   } catch (e) { }
 }
 
-function renderCumulativeChips() {
-  const wrap = document.getElementById('gCumulativeChips');
-  wrap.innerHTML = gCumulativeArtists.map((a, i) => {
-    const col = artistSeriesColor(i, gCumulativeArtists.length);
-    return `<span style="display:inline-flex;align-items:center;gap:4px;background:${col}22;border:1px solid ${col};
-              color:var(--text);font-family:var(--font-sans);font-size:var(--fs-xs);padding:2px 8px;border-radius:20px;
-              ">
-              ${esc(a)}
-              <button onclick="removeCumulativeArtist(${i})" style="background:none;border:none;color:var(--text2);
-                cursor:pointer;font-size:0.75rem;line-height:1;padding:0 0 1px 2px;">×</button>
-            </span>`;
-  }).join('');
-}
-
-function removeCumulativeArtist(idx) {
-  gCumulativeArtists.splice(idx, 1);
-  localStorage.setItem('dc_gCumulativeArtists', JSON.stringify(gCumulativeArtists));
-  renderCumulativeChips();
-  triggerCumulativeUpdate();
-}
-
-function renderCumulativeChart(sortedKeys, labels, ptRadius, gc, axisOpts, legendOpts) {
-  if (graphCharts.cumulative) { try { graphCharts.cumulative.destroy(); } catch (e) { } delete graphCharts.cumulative; }
-
-  // The page-wide range (the bar at the top of Stats)
-  const { fromTs, toTs } = graphRangeTs();
-
-  // Filter sortedKeys to range
-  const filteredKeys = sortedKeys.filter(k => {
-    const d = graphGranularity === 'day' ? new Date(k + 'T00:00:00') :
-      graphGranularity === 'month' ? new Date(k + '-01T00:00:00') :
-        new Date(k + '-01-01T00:00:00');
-    return d.getTime() >= fromTs && d.getTime() <= toTs;
-  });
-  const filteredLabels = filteredKeys.map(graphKeyLabel);
-  const filtPtRadius = filteredLabels.length > 100 ? 0 : 2;
-
-  const datasets = gCumulativeArtists.map((artistName, i) => {
-    const col = artistSeriesColor(i, gCumulativeArtists.length);
-    const countByKey = {};
-    for (const p of allPlays) {
-      if (p.date.getTime() < fromTs || p.date.getTime() > toTs) continue;
-      if (p.artists.some(a => a.toLowerCase() === artistName.toLowerCase())) {
-        const k = graphKey(p.date); countByKey[k] = (countByKey[k] || 0) + 1;
-      }
-    }
-    let running = 0;
-    return {
-      label: artistName, data: filteredKeys.map(k => { running += countByKey[k] || 0; return running; }),
-      borderColor: col, backgroundColor: col + '18',
-      fill: gCumulativeArtists.length === 1, tension: 0.3, pointRadius: filtPtRadius, borderWidth: 2
-    };
-  });
-  const labelsPlugin = {
-    id: 'cumulativeLabels',
-    afterDatasetsDraw(chart) {
-      if (!gCumulativeLabels) return;
-      const ctx = chart.ctx;
-      chart.data.datasets.forEach((ds, di) => {
-        const meta = chart.getDatasetMeta(di);
-        if (meta.hidden) return;
-        meta.data.forEach((pt, i) => {
-          const val = ds.data[i];
-          if (val == null) return;
-          ctx.save();
-          ctx.font = '600 10px "JetBrains Mono", monospace';
-          ctx.fillStyle = ds.borderColor;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'bottom';
-          ctx.fillText(val.toLocaleString(), pt.x, pt.y - 4);
-          ctx.restore();
-        });
-      });
-    }
-  };
-
-  graphCharts.cumulative = new Chart(document.getElementById('gCumulative'), {
-    type: 'line',
-    data: { labels: filteredLabels, datasets },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: legendOpts,
-        zoom: {
-          pan: { enabled: true, mode: 'x', onPanComplete: ({ chart }) => saveChartZoom(chart, 'cumulative') },
-          zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x', onZoomComplete: ({ chart }) => saveChartZoom(chart, 'cumulative') }
-        }
-      },
-      scales: axisOpts(false)
-    },
-    plugins: [labelsPlugin]
-  });
-  restoreChartZoom(graphCharts.cumulative, 'cumulative');
-}
-
-function triggerCumulativeUpdate() {
-  if (currentPeriod !== 'graphs' || !allPlays.length) return;
-  const gc = getGraphColors();
-  const allKeys = new Set();
-  for (const p of allPlays) allKeys.add(graphKey(p.date));
-  const sortedKeys = [...allKeys].sort();
-  const labels = sortedKeys.map(graphKeyLabel);
-  const ptRadius = labels.length > 100 ? 0 : 2;
-  const maxTicks = 24;
-  const axisOpts = () => graphAxes(gc, { maxTicks });
-  const legendOpts = graphLegend(gc);
-  renderCumulativeChart(sortedKeys, labels, ptRadius, gc, axisOpts, legendOpts);
-}
-
-function addCumulativeArtist() {
-  const input = document.getElementById('gCumulativeArtistInput');
-  const name = input.value.trim();
-  if (!name) return;
-  // Case-insensitive dedup
-  if (gCumulativeArtists.some(a => a.toLowerCase() === name.toLowerCase())) { input.value = ''; return; }
-  gCumulativeArtists.push(name);
-  localStorage.setItem('dc_gCumulativeArtists', JSON.stringify(gCumulativeArtists));
-  input.value = '';
-  renderCumulativeChips();
-  triggerCumulativeUpdate();
-}
-
-document.getElementById('gCumulativeArtistBtn').addEventListener('click', addCumulativeArtist);
-document.getElementById('gCumulativeArtistInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') addCumulativeArtist();
-});
-document.getElementById('gCumulativeLabelsBtn').addEventListener('click', () => {
-  gCumulativeLabels = !gCumulativeLabels;
-  localStorage.setItem('dc_gCumulativeLabels', gCumulativeLabels ? '1' : '0');
-  updateLabelButton('gCumulativeLabelsBtn', gCumulativeLabels);
-  triggerCumulativeUpdate();
-});
-
-document.getElementById('gCumulativeResetZoom').addEventListener('click', () => {
-  if (graphCharts.cumulative) graphCharts.cumulative.resetZoom();
-  localStorage.removeItem('dc_zoom_cumulative');
-});
-
-
 // ── Total volume chart (no artist filter) ────────────────────
 /* Play volume and discoveries (phase 15 step 2): drawn by stats.js
    (sxRenderVolume), which merged this chart with New Discoveries. Kept as
@@ -29671,122 +29493,6 @@ function triggerTotalVolumeUpdate() {
   renderTotalVolumeChart(sortedKeys, gc, axisOpts, legendOpts);
 }
 
-// ── Artist comparison volume chart ────────────────────────────
-function renderVolumeChips() {
-  const wrap = document.getElementById('gVolumeChips');
-  wrap.innerHTML = gVolumeArtists.map((a, i) => {
-    const col = artistSeriesColor(i, gVolumeArtists.length);
-    return `<span style="display:inline-flex;align-items:center;gap:4px;background:${col}22;border:1px solid ${col};
-              color:var(--text);font-family:var(--font-sans);font-size:var(--fs-xs);padding:2px 8px;border-radius:20px;
-              ">
-              ${esc(a)}
-              <button onclick="removeVolumeArtist(${i})" style="background:none;border:none;color:var(--text2);
-                cursor:pointer;font-size:0.75rem;line-height:1;padding:0 0 1px 2px;">×</button>
-            </span>`;
-  }).join('');
-}
-
-function removeVolumeArtist(idx) {
-  gVolumeArtists.splice(idx, 1);
-  localStorage.setItem('dc_gVolumeArtists', JSON.stringify(gVolumeArtists));
-  renderVolumeChips();
-  triggerVolumeUpdate();
-}
-
-function renderVolumeChart(sortedKeys, gc, axisOpts, legendOpts) {
-  if (graphCharts.volume) { try { graphCharts.volume.destroy(); } catch (e) { } delete graphCharts.volume; }
-
-  // The page-wide range (the bar at the top of Stats)
-  const { fromTs, toTs } = graphRangeTs();
-
-  const filteredKeys = sortedKeys.filter(k => {
-    const d = graphGranularity === 'day' ? new Date(k + 'T00:00:00') :
-      graphGranularity === 'month' ? new Date(k + '-01T00:00:00') :
-        new Date(k + '-01-01T00:00:00');
-    return d.getTime() >= fromTs && d.getTime() <= toTs;
-  });
-  const filteredLabels = filteredKeys.map(graphKeyLabel);
-
-  const datasets = gVolumeArtists.map((artistName, i) => {
-    const col = artistSeriesColor(i, gVolumeArtists.length);
-    const countByKey = {};
-    for (const p of allPlays) {
-      if (p.date.getTime() < fromTs || p.date.getTime() > toTs) continue;
-      if (p.artists.some(a => a.toLowerCase() === artistName.toLowerCase())) {
-        const k = graphKey(p.date); countByKey[k] = (countByKey[k] || 0) + 1;
-      }
-    }
-    return {
-      label: artistName, data: filteredKeys.map(k => countByKey[k] || 0),
-      backgroundColor: col, borderColor: col, borderWidth: 0, borderRadius: 3, borderSkipped: 'start'
-    };
-  });
-
-  const volumeLabelsPlugin = {
-    id: 'volumeLabels',
-    afterDatasetsDraw(chart) {
-      if (!gVolumeLabels) return;
-      const ctx = chart.ctx;
-      chart.data.datasets.forEach((ds, di) => {
-        const meta = chart.getDatasetMeta(di);
-        if (meta.hidden) return;
-        meta.data.forEach((bar, i) => {
-          const val = ds.data[i];
-          if (!val) return;
-          ctx.save();
-          ctx.font = '600 10px "JetBrains Mono", monospace';
-          ctx.fillStyle = ds.borderColor;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'bottom';
-          ctx.fillText(val.toLocaleString(), bar.x, bar.y - 2);
-          ctx.restore();
-        });
-      });
-    }
-  };
-
-  graphCharts.volume = new Chart(document.getElementById('gVolume'), {
-    type: 'bar',
-    data: { labels: filteredLabels, datasets },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: legendOpts,
-        zoom: { pan: { enabled: true, mode: 'x', onPanComplete: ({ chart }) => saveChartZoom(chart, 'volume') }, zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x', onZoomComplete: ({ chart }) => saveChartZoom(chart, 'volume') } }
-      },
-      scales: axisOpts(false)
-    },
-    plugins: [volumeLabelsPlugin]
-  });
-  restoreChartZoom(graphCharts.volume, 'volume');
-}
-
-function triggerVolumeUpdate() {
-  if (currentPeriod !== 'graphs' || !allPlays.length) return;
-  const gc = getGraphColors();
-  const allKeys = new Set();
-  for (const p of allPlays) allKeys.add(graphKey(p.date));
-  const sortedKeys = [...allKeys].sort();
-  const maxTicks = 24;
-  const axisOpts = () => graphAxes(gc, { maxTicks });
-  const legendOpts = graphLegend(gc);
-  renderVolumeChart(sortedKeys, gc, axisOpts, legendOpts);
-}
-
-function addVolumeArtist() {
-  const input = document.getElementById('gVolumeArtistInput');
-  const name = input.value.trim();
-  if (!name) return;
-  if (gVolumeArtists.some(a => a.toLowerCase() === name.toLowerCase())) { input.value = ''; return; }
-  gVolumeArtists.push(name);
-  localStorage.setItem('dc_gVolumeArtists', JSON.stringify(gVolumeArtists));
-  input.value = '';
-  renderVolumeChips();
-  triggerVolumeUpdate();
-}
-document.getElementById('gVolumeArtistBtn').addEventListener('click', addVolumeArtist);
-document.getElementById('gVolumeArtistInput').addEventListener('keydown', e => { if (e.key === 'Enter') addVolumeArtist(); });
-
 document.getElementById('gTotalVolumeResetZoom').addEventListener('click', () => {
   if (graphCharts.totalVolume) graphCharts.totalVolume.resetZoom();
   localStorage.removeItem('dc_zoom_totalVolume');
@@ -29796,17 +29502,6 @@ document.getElementById('gTotalVolumeLabelsBtn').addEventListener('click', () =>
   localStorage.setItem('dc_gTotalVolumeLabels', gTotalVolumeLabels ? '1' : '0');
   updateLabelButton('gTotalVolumeLabelsBtn', gTotalVolumeLabels);
   triggerTotalVolumeUpdate();
-});
-
-document.getElementById('gVolumeResetZoom').addEventListener('click', () => {
-  if (graphCharts.volume) graphCharts.volume.resetZoom();
-  localStorage.removeItem('dc_zoom_volume');
-});
-document.getElementById('gVolumeLabelsBtn').addEventListener('click', () => {
-  gVolumeLabels = !gVolumeLabels;
-  localStorage.setItem('dc_gVolumeLabels', gVolumeLabels ? '1' : '0');
-  updateLabelButton('gVolumeLabelsBtn', gVolumeLabels);
-  triggerVolumeUpdate();
 });
 
 // ─── BAR CHART RACE ────────────────────────────────────────────

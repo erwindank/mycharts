@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=741">
+  <link rel="stylesheet" href="style.css?v=742">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=247"></script>
+  <script defer src="translations.js?v=248"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -1344,28 +1344,44 @@
       <!-- Overview: one sentence and four tiles for the range (sxRenderOverview) -->
       <div id="sxOverview" class="sx-overview" data-st-group="overview"></div>
 
-      <!-- Chart 1: Cumulative plays over time -->
-      <div class="dc-card graph-card" data-st-group="compare">
-        <!-- Title on the left, the chart's two tools as small icons on the
-             right: show labels on the chart, and reset the zoom. -->
-        <div class="graph-card-head">
-          <div class="graph-card-title" data-i18n="graph_cumulative_title">📈 Cumulative Plays Over Time — Artist
-            Comparison</div>
-          <div class="graph-card-tools">
-            <button id="gCumulativeLabelsBtn" type="button" class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon graph-tool"
-              aria-pressed="false" title="Labels: Off" aria-label="Labels: Off"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M2.5 3.5h7l4 4.5-4 4.5h-7z" /><path d="M5.5 8h3" /></svg></button>
-            <button id="gCumulativeResetZoom" type="button" class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon graph-tool"
-              data-i18n-title="tooltip_reset_zoom" data-i18n-aria="btn_reset_zoom" title="Reset the chart zoom to show the full date range"
-              aria-label="Reset Zoom"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="7" cy="7" r="4.5" /><path d="m10.4 10.4 3.6 3.6M5 7h4" /></svg></button>
+      <!-- Compare studio (phase 15 step 3, stats.js): up to ten artists,
+           songs, albums or years side by side, as a running total, per
+           period or as a chart run, with a verdict row under the chart.
+           Replaces the two artist comparison charts. -->
+      <div class="dc-card graph-card sx-cmp" data-st-group="compare">
+        <div class="graph-card-title" data-i18n="sx_cmp_title">Compare</div>
+        <div class="graph-card-sub" data-i18n="sx_cmp_sub">Put up to 10 artists, songs, albums or years side by side.</div>
+        <div class="sx-cmp-bar">
+          <div class="dc-seg" id="sxCmpType" role="group" aria-label="Compare" data-i18n-aria="sx_cmp_title">
+            <button type="button" data-ctype="artists" data-i18n="sx_cmp_type_artists">Artists</button>
+            <button type="button" data-ctype="songs" data-i18n="sx_cmp_type_songs">Songs</button>
+            <button type="button" data-ctype="albums" data-i18n="sx_cmp_type_albums">Albums</button>
+            <button type="button" data-ctype="years" data-i18n="sx_cmp_type_years">Years</button>
+          </div>
+          <div class="dc-seg" id="sxCmpMode" role="group" aria-label="View" data-i18n-aria="sx_cmp_view">
+            <button type="button" data-cmode="cum" data-i18n="sx_cmp_mode_cum">Running total</button>
+            <button type="button" data-cmode="per" data-i18n="sx_cmp_mode_per">Per period</button>
+            <button type="button" data-cmode="run" data-i18n="sx_cmp_mode_run">Chart run</button>
+          </div>
+          <div class="dc-seg" id="sxCmpRun" role="group" aria-label="Chart" data-i18n-aria="sx_cmp_chart" hidden>
+            <button type="button" data-crun="day" data-i18n="nav_daily">Daily</button>
+            <button type="button" data-crun="week" data-i18n="nav_weekly">Weekly</button>
+            <button type="button" data-crun="month" data-i18n="nav_monthly">Monthly</button>
+            <button type="button" data-crun="year" data-i18n="nav_yearly">Yearly</button>
           </div>
         </div>
-        <div class="graph-add-row">
-          <input id="gCumulativeArtistInput" type="text" class="graph-input" list="gCumulativeArtistList" data-i18n-placeholder="graph_add_artist" placeholder="Add an artist…">
-          <datalist id="gCumulativeArtistList"></datalist>
-          <button id="gCumulativeArtistBtn" class="dc-btn dc-btn-main dc-btn-sm" data-i18n="btn_add">+ Add</button>
+        <div class="sx-cmp-picks">
+          <div id="sxCmpChips" class="sx-chips"></div>
+          <div class="sx-cmp-add">
+            <input id="sxCmpInput" type="text" class="graph-input" list="sxCmpList" placeholder="Add an artist…" autocomplete="off">
+            <datalist id="sxCmpList"></datalist>
+            <button id="sxCmpAddBtn" type="button" class="dc-btn dc-btn-main dc-btn-sm" data-i18n="btn_add">+ Add</button>
+            <button id="sxCmpTop" type="button" class="dc-btn dc-btn-normal dc-btn-sm">Top 3</button>
+          </div>
         </div>
-        <div id="gCumulativeChips" class="graph-chips"></div>
-        <div class="graph-canvas-wrap"><canvas id="gCumulative"></canvas></div>
+        <div class="graph-canvas-wrap sx-cmp-canvas"><canvas id="sxCmpChart"></canvas></div>
+        <div id="sxCmpNote" class="sx-note" aria-live="polite"></div>
+        <div id="sxCmpVerdict" class="sx-verdict"></div>
       </div>
 
       <!-- Chart 2: Play volume and discoveries (phase 15 step 2). The total
@@ -1393,28 +1409,6 @@
         </div>
         <div class="graph-canvas-wrap"><canvas id="gTotalVolume"></canvas></div>
         <div id="sxVolDrill" class="sx-drill" hidden></div>
-      </div>
-
-      <!-- Chart 3: Play volume by artist comparison -->
-      <div class="dc-card graph-card" data-st-group="compare">
-        <div class="graph-card-head">
-          <div class="graph-card-title" data-i18n="graph_volume_comp_title">📊 Play Volume by Period — Artist Comparison
-          </div>
-          <div class="graph-card-tools">
-            <button id="gVolumeLabelsBtn" type="button" class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon graph-tool"
-              aria-pressed="false" title="Labels: Off" aria-label="Labels: Off"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M2.5 3.5h7l4 4.5-4 4.5h-7z" /><path d="M5.5 8h3" /></svg></button>
-            <button id="gVolumeResetZoom" type="button" class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon graph-tool"
-              data-i18n-title="tooltip_reset_zoom" data-i18n-aria="btn_reset_zoom" title="Reset the chart zoom to show the full date range"
-              aria-label="Reset Zoom"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="7" cy="7" r="4.5" /><path d="m10.4 10.4 3.6 3.6M5 7h4" /></svg></button>
-          </div>
-        </div>
-        <div class="graph-add-row">
-          <input id="gVolumeArtistInput" type="text" class="graph-input" list="gVolumeArtistList" data-i18n-placeholder="graph_add_artist" placeholder="Add an artist…">
-          <datalist id="gVolumeArtistList"></datalist>
-          <button id="gVolumeArtistBtn" class="dc-btn dc-btn-main dc-btn-sm" data-i18n="btn_add">+ Add</button>
-        </div>
-        <div id="gVolumeChips" class="graph-chips"></div>
-        <div class="graph-canvas-wrap"><canvas id="gVolume"></canvas></div>
       </div>
 
       <!-- Bar Chart Race -->
@@ -4247,7 +4241,7 @@
   <!-- One behaviour and one icon set for every pop-up window (phase 10); before
        app.js so dcIco() is there when app.js draws a window -->
   <script defer src="popups.js?v=8"></script>
-  <script defer src="app.js?v=579"></script>
+  <script defer src="app.js?v=580"></script>
   <!-- The song / album / artist details side panel (phase 10 step 3); wraps app.js's open functions -->
   <script defer src="panel.js?v=16"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
@@ -4256,7 +4250,7 @@
   <script defer src="insights.js?v=9"></script>
   <script defer src="daily.js?v=39"></script>
   <!-- The Stats page's tabs, Overview, Story, Games and Compare (phase 15); reads app.js globals -->
-  <script defer src="stats.js?v=3"></script>
+  <script defer src="stats.js?v=4"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at

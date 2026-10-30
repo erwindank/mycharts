@@ -503,3 +503,380 @@ document.getElementById('sxWeek')?.addEventListener('click', e => {
     .replace('{day}', _sxDayLabel(d, true)).replace('{avg}', Math.round(_sxWhen.avg[d]).toLocaleString())
     .replace('{artist}', _sxTop(_sxWhen.dayArt[d]) || '–');
 });
+
+// ── Compare studio (step 3) ───────────────────────────────────────────────
+/* Up to ten artists, songs, albums or years side by side. Replaces the two
+   artist comparison charts (Cumulative Plays and Play Volume by artist).
+     Running total  plays added up over the range (the old cumulative chart)
+     Per period     plays in each day / month / year (the old volume chart)
+     Chart run      where each one ranked on the daily / weekly / monthly /
+                    yearly chart, period by period (not for years)
+   Under the chart, a verdict row says who won what. Years are compared
+   month by month over whole years, so the date range doesn't apply to them.
+   A type opens on your top 3 for the range until you change its picks;
+   picks are kept per type in dc_sxCmp. */
+const SX_CMP_MAX = 10;
+const SX_CMP_TYPES = ['artists', 'songs', 'albums', 'years'];
+let sxCmp = (() => {
+  const d = { type: 'artists', mode: 'cum', run: 'week', picks: { artists: null, songs: null, albums: null, years: null } };
+  try {
+    const s = JSON.parse(localStorage.getItem('dc_sxCmp') || 'null');
+    if (s && SX_CMP_TYPES.includes(s.type)) return { ...d, ...s, picks: { ...d.picks, ...(s.picks || {}) } };
+  } catch (e) { }
+  return d;
+})();
+function _sxCmpSave() { try { localStorage.setItem('dc_sxCmp', JSON.stringify(sxCmp)); } catch (e) { } }
+
+// The keys a play counts towards, for each type
+function _sxPlayKeys(type, p) {
+  if (type === 'artists') return p.artists;
+  if (type === 'songs') return [songKey(p)];
+  if (type === 'albums') return p.album && p.album !== '—' ? [albumKeyOf(p)] : [];
+  return [String(tzDateOf(p).getFullYear())];
+}
+
+/* Names, totals and first plays of everything, per type, for the picker,
+   the chips and the verdict. Built once per data change. */
+let _sxIdx = null;
+function _sxIndex() {
+  const gen = allPlays.length + '|' + (typeof _playsVersion !== 'undefined' ? _playsVersion : '') + '|' + (typeof _stampEpoch !== 'undefined' ? _stampEpoch : '');
+  if (_sxIdx && _sxIdx.gen === gen) return _sxIdx;
+  const idx = { gen };
+  for (const type of SX_CMP_TYPES) idx[type] = new Map();
+  for (const p of allPlays) {
+    for (const type of SX_CMP_TYPES) {
+      for (const k of _sxPlayKeys(type, p)) {
+        let o = idx[type].get(k);
+        if (!o) {
+          const label = type === 'songs' ? p.title : type === 'albums' ? p.album : k;
+          const sub = type === 'songs' || type === 'albums' ? p.artist : '';
+          idx[type].set(k, o = { label, sub, n: 0 });
+        }
+        o.n++;
+      }
+    }
+  }
+  // The picker's choices: most played first; songs and albums read "Title — Artist"
+  idx.lists = {};
+  idx.byText = {};
+  for (const type of SX_CMP_TYPES) {
+    const all = [...idx[type].entries()].sort((a, b) => type === 'years' ? b[0].localeCompare(a[0]) : b[1].n - a[1].n);
+    const top = type === 'songs' || type === 'albums' ? all.slice(0, 4000) : all;
+    idx.byText[type] = new Map();
+    idx.lists[type] = top.map(([k, o]) => {
+      const text = o.sub ? o.label + ' — ' + o.sub : o.label;
+      idx.byText[type].set(text.toLowerCase(), k);
+      return text;
+    });
+  }
+  return (_sxIdx = idx);
+}
+
+function _sxCmpLabel(type, k) {
+  const o = _sxIndex()[type].get(k);
+  return o ? o.label : k;
+}
+
+// Series colours: the eight comparison colours, then lighter, dashed copies
+function _sxCmpColor(i) {
+  const gc = getGraphColors();
+  return i < 8 ? graphColor(i) : mixHex(graphColor(i - 8), gc.text, 0.55);
+}
+
+// Your top n of a type for the range (years: the last n with plays)
+function _sxCmpTop(type, n) {
+  if (type === 'years') return [..._sxIndex().years.keys()].sort().slice(-n).reverse();
+  const { fromTs, toTs } = graphRangeTs();
+  const c = new Map();
+  for (const p of allPlays) {
+    const ts = tzDateOf(p).getTime();
+    if (ts < fromTs || ts > toTs) continue;
+    for (const k of _sxPlayKeys(type, p)) c.set(k, (c.get(k) || 0) + 1);
+  }
+  return [...c.entries()].sort((a, b) => b[1] - a[1]).slice(0, n).map(e => e[0]);
+}
+
+function _sxCmpPicks() {
+  const type = sxCmp.type;
+  if (!Array.isArray(sxCmp.picks[type])) sxCmp.picks[type] = _sxCmpTop(type, 3);
+  // Drop picks that are no longer in the library (another data source)
+  const idx = _sxIndex()[type];
+  sxCmp.picks[type] = sxCmp.picks[type].filter(k => idx.has(k)).slice(0, SX_CMP_MAX);
+  return sxCmp.picks[type];
+}
+
+function _sxCmpPaint() {
+  const set = (sel, attr, val) => document.querySelectorAll(sel).forEach(b => {
+    const on = b.dataset[attr] === val;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-pressed', String(on));
+  });
+  set('#sxCmpType [data-ctype]', 'ctype', sxCmp.type);
+  set('#sxCmpMode [data-cmode]', 'cmode', sxCmp.mode);
+  set('#sxCmpRun [data-crun]', 'crun', sxCmp.run);
+  // Years have no chart run
+  const runBtn = document.querySelector('#sxCmpMode [data-cmode="run"]');
+  if (runBtn) runBtn.disabled = sxCmp.type === 'years';
+  const runSeg = document.getElementById('sxCmpRun');
+  if (runSeg) runSeg.hidden = sxCmp.mode !== 'run';
+  const input = document.getElementById('sxCmpInput');
+  if (input) input.placeholder = t('sx_cmp_add_' + sxCmp.type);
+  const top = document.getElementById('sxCmpTop');
+  if (top) { top.textContent = t('sx_cmp_top').replace('{n}', 3); top.title = t('sx_cmp_top_tip').replace('{n}', 3); }
+}
+
+function _sxCmpChips(picks) {
+  const wrap = document.getElementById('sxCmpChips');
+  if (!wrap) return;
+  const idx = _sxIndex()[sxCmp.type];
+  wrap.innerHTML = picks.map((k, i) => {
+    const o = idx.get(k), name = o ? o.label : k;
+    const tip = o && o.sub ? name + ' — ' + o.sub : name;
+    return `<span class="sx-chip" title="${esc(tip)}"><i style="background:${_sxCmpColor(i)}"></i>${esc(name)}` +
+      `<button type="button" onclick="sxCmpRemove(${i})" aria-label="${esc(t('sx_cmp_remove').replace('{name}', name))}">` +
+      `<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="m4.5 4.5 7 7M11.5 4.5l-7 7"/></svg></button></span>`;
+  }).join('');
+  const dl = document.getElementById('sxCmpList');
+  if (dl && dl.dataset.type !== sxCmp.type + _sxIndex().gen) {
+    dl.dataset.type = sxCmp.type + _sxIndex().gen;
+    dl.innerHTML = _sxIndex().lists[sxCmp.type].map(v => `<option value="${esc(v)}">`).join('');
+  }
+}
+
+function sxCmpRemove(i) {
+  _sxCmpPicks().splice(i, 1);
+  _sxCmpSave();
+  sxRenderCompare();
+}
+
+function sxCmpAdd() {
+  const input = document.getElementById('sxCmpInput');
+  const note = document.getElementById('sxCmpNote');
+  const q = (input.value || '').trim();
+  if (!q) return;
+  const type = sxCmp.type, idx = _sxIndex();
+  let k = idx.byText[type].get(q.toLowerCase());
+  // Typed a bare title or name: take the most played one that matches
+  if (!k) {
+    const ql = q.toLowerCase();
+    let best = null, bestN = -1;
+    idx[type].forEach((o, key) => { if (o.label.toLowerCase() === ql && o.n > bestN) { best = key; bestN = o.n; } });
+    k = best;
+  }
+  if (!k) { if (note) note.textContent = t('sx_cmp_not_found').replace('{q}', q); return; }
+  const picks = _sxCmpPicks();
+  if (!picks.includes(k)) {
+    if (picks.length >= SX_CMP_MAX) { if (note) note.textContent = t('sx_cmp_full').replace('{n}', SX_CMP_MAX); return; }
+    picks.push(k);
+  }
+  input.value = '';
+  _sxCmpSave();
+  sxRenderCompare();
+}
+
+function sxCmpFillTop(n) {
+  sxCmp.picks[sxCmp.type] = _sxCmpTop(sxCmp.type, n);
+  _sxCmpSave();
+  sxRenderCompare();
+}
+
+// The verdict row: four tiles, each naming the pick that won it
+function _sxVerdictTile(label, name, i, val) {
+  if (name == null) return `<div class="sx-verdict-tile"><span>${esc(label)}</span><b>–</b></div>`;
+  return `<div class="sx-verdict-tile"><span>${esc(label)}</span><b style="--c:${_sxCmpColor(i)}">${esc(name)}</b>${val ? `<em>${esc(val)}</em>` : ''}</div>`;
+}
+
+function sxRenderCompare() {
+  const canvas = document.getElementById('sxCmpChart');
+  if (!canvas || !allPlays.length) return;
+  if (graphCharts.compare) { try { graphCharts.compare.destroy(); } catch (e) { } delete graphCharts.compare; }
+  if (sxCmp.type === 'years' && sxCmp.mode === 'run') sxCmp.mode = 'cum';
+  const type = sxCmp.type, picks = _sxCmpPicks();
+  _sxCmpPaint();
+  _sxCmpChips(picks);
+  const note = document.getElementById('sxCmpNote');
+  const verdict = document.getElementById('sxCmpVerdict');
+  note.textContent = '';
+  // Race mode (step 4) draws its own canvas
+  if (typeof sxCmpRaceShow === 'function') sxCmpRaceShow(sxCmp.mode === 'race');
+  if (sxCmp.mode === 'race') { if (typeof sxCmpRace === 'function') sxCmpRace(picks); verdict.innerHTML = ''; return; }
+  if (!picks.length) { note.textContent = t('sx_cmp_empty'); verdict.innerHTML = ''; return; }
+
+  const gc = getGraphColors();
+  const pickIdx = new Map(picks.map((k, i) => [k, i]));
+  const { fromTs, toTs } = graphRangeTs();
+  const names = picks.map(k => _sxCmpLabel(type, k));
+  const style = i => ({ borderColor: _sxCmpColor(i), backgroundColor: _sxCmpColor(i), borderDash: i >= 8 ? [5, 4] : undefined });
+  let labels, datasets, yOpts = {};
+
+  if (type === 'years') {
+    // ── Years: twelve months on one axis, one line or bar set per year ──
+    const locale = currentLang === 'en' ? 'en-US' : currentLang;
+    labels = Array.from({ length: 12 }, (_, m) => new Date(2001, m, 1).toLocaleDateString(locale, { month: 'short' }));
+    const cnt = picks.map(() => new Array(12).fill(0));
+    for (const p of allPlays) {
+      const d = tzDateOf(p), i = pickIdx.get(String(d.getFullYear()));
+      if (i !== undefined) cnt[i][d.getMonth()]++;
+    }
+    // The months of this year still to come are left empty, not flat
+    const now = tzNow();
+    datasets = picks.map((k, i) => {
+      let run = 0;
+      const data = (sxCmp.mode === 'cum' ? cnt[i].map(v => (run += v)) : cnt[i])
+        .map((v, m) => +k === now.getFullYear() && m > now.getMonth() ? null : v);
+      return { label: names[i], data, ...style(i) };
+    });
+    note.textContent = t('sx_cmp_years_note');
+  } else if (sxCmp.mode === 'run') {
+    // ── Chart run: the rank in each period the pick was on the chart ──
+    const per = sxCmp.run;
+    const full = per === 'day' ? (typeof dyFullRun === 'function' ? dyFullRun() : null) : _crFull(per);
+    const table = full && full.result ? full.result[type] : null;
+    const pkStart = k => per === 'year' ? new Date(k + '-01-01T00:00:00').getTime() : per === 'month' ? new Date(k + '-01T00:00:00').getTime() : new Date(k + 'T00:00:00').getTime();
+    const rankAt = picks.map(k => {
+      const m = new Map();
+      const e = table && table[k];
+      if (e) for (const x of e.entries) { const s = pkStart(x.periodKey); if (s >= fromTs - 6 * _SX_DAY && s <= toTs) m.set(x.periodKey, x.rank); }
+      return m;
+    });
+    const keys = [...new Set(rankAt.flatMap(m => [...m.keys()]))].sort();
+    labels = keys.map(k => crPeriodLabel(per, k));
+    datasets = picks.map((k, i) => ({ label: names[i], data: keys.map(pk => rankAt[i].get(pk) ?? null), spanGaps: false, pointRadius: keys.length > 60 ? 0 : 3, ...style(i) }));
+    yOpts = { reverse: true, min: 1, ticks: { precision: 0, callback: v => '#' + v } };
+    if (!keys.length) note.textContent = t('sx_cmp_run_none');
+  } else {
+    // ── Running total / per period, in the bar's Daily / Monthly / Yearly ──
+    const keys = [];
+    const seen = new Set();
+    const cnt = picks.map(() => new Map());
+    for (let j = allPlays.length - 1; j >= 0; j--) {
+      const p = allPlays[j], ts = p.date.getTime();
+      if (ts < fromTs || ts > toTs) continue;
+      const gk = graphKey(p.date);
+      if (!seen.has(gk)) { seen.add(gk); keys.push(gk); }
+      for (const k of _sxPlayKeys(type, p)) {
+        const i = pickIdx.get(k);
+        if (i !== undefined) cnt[i].set(gk, (cnt[i].get(gk) || 0) + 1);
+      }
+    }
+    keys.sort();
+    labels = keys.map(graphKeyLabel);
+    datasets = picks.map((k, i) => {
+      let run = 0;
+      const data = keys.map(gk => sxCmp.mode === 'cum' ? (run += cnt[i].get(gk) || 0) : (cnt[i].get(gk) || 0));
+      return { label: names[i], data, pointRadius: keys.length > 60 ? 0 : 2, ...style(i) };
+    });
+  }
+
+  const isBar = sxCmp.mode === 'per';
+  // Ranks are drawn straight: a curve would dip above #1
+  if (!isBar) datasets.forEach(d => { d.tension = sxCmp.mode === 'run' ? 0 : 0.25; d.borderWidth = 2; d.backgroundColor = d.borderColor; d.fill = false; });
+  else datasets.forEach(d => { d.borderWidth = 0; d.borderRadius = 3; });
+  const axes = graphAxes(gc, { maxTicks: 24 });
+  Object.assign(axes.y, yOpts);
+  graphCharts.compare = new Chart(canvas, {
+    type: isBar ? 'bar' : 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: { itemSort: (a, b) => sxCmp.mode === 'run' ? a.raw - b.raw : b.raw - a.raw,
+          callbacks: { label: c => ` ${c.dataset.label}: ${sxCmp.mode === 'run' ? '#' + c.raw : (c.raw || 0).toLocaleString()}` } },
+      },
+      scales: axes
+    }
+  });
+
+  // ── The verdict ──
+  verdict.innerHTML = _sxCmpVerdict(type, picks, names);
+}
+
+function _sxCmpVerdict(type, picks, names) {
+  if (!picks.length) return '';
+  const best = arr => { let bi = -1, bv = -Infinity; arr.forEach((v, i) => { if (v != null && v > bv) { bv = v; bi = i; } }); return bi < 0 || bv <= 0 ? null : bi; };
+  const fmtN = n => n.toLocaleString();
+  const tiles = [];
+  if (type === 'years') {
+    if (!firstSeenMaps) firstSeenMaps = buildFirstSeenMaps();
+    const plays = picks.map(() => 0), arts = picks.map(() => new Set()), news = picks.map(() => 0), months = picks.map(() => new Array(12).fill(0));
+    const pi = new Map(picks.map((k, i) => [k, i]));
+    for (const p of allPlays) {
+      const d = tzDateOf(p), i = pi.get(String(d.getFullYear()));
+      if (i === undefined) continue;
+      plays[i]++; months[i][d.getMonth()]++;
+      for (const a of p.artists) arts[i].add(a);
+    }
+    for (const [sk, d] of Object.entries(firstSeenMaps.songFirst)) { const i = pi.get(String(d.getFullYear())); if (i !== undefined) news[i]++; }
+    let mI = null, mM = 0, mV = 0;
+    months.forEach((ms, i) => ms.forEach((v, m) => { if (v > mV) { mV = v; mI = i; mM = m; } }));
+    const locale = currentLang === 'en' ? 'en-US' : currentLang;
+    const a = best(plays), b = best(arts.map(s => s.size)), c = best(news);
+    tiles.push(_sxVerdictTile(t('sx_v_most'), a == null ? null : names[a], a, a == null ? '' : fmtN(plays[a])));
+    tiles.push(_sxVerdictTile(t('sx_v_artists'), b == null ? null : names[b], b, b == null ? '' : fmtN(arts[b].size)));
+    tiles.push(_sxVerdictTile(t('sx_v_new'), c == null ? null : names[c], c, c == null ? '' : fmtN(news[c])));
+    tiles.push(_sxVerdictTile(t('sx_v_month'), mI == null ? null : new Date(+picks[mI], mM, 1).toLocaleDateString(locale, { month: 'long', year: 'numeric' }), mI, mI == null ? '' : fmtN(mV)));
+    return tiles.join('');
+  }
+  // Plays in the range and in its last four weeks
+  const { fromTs, toTs } = graphRangeTs();
+  const recentFrom = Math.max(fromTs, toTs - 28 * _SX_DAY);
+  const pi = new Map(picks.map((k, i) => [k, i]));
+  const plays = picks.map(() => 0), recent = picks.map(() => 0);
+  for (const p of allPlays) {
+    const ts = tzDateOf(p).getTime();
+    if (ts < fromTs || ts > toTs) continue;
+    for (const k of _sxPlayKeys(type, p)) {
+      const i = pi.get(k);
+      if (i === undefined) continue;
+      plays[i]++;
+      if (ts >= recentFrom) recent[i]++;
+    }
+  }
+  // Weeks at #1 on the weekly chart, all time
+  const wk = _crFull('week').result[type] || {};
+  const ones = picks.map(k => (wk[k] ? wk[k].entries.filter(e => e.rank === 1).length : 0));
+  // First play ever
+  if (!firstSeenMaps) firstSeenMaps = buildFirstSeenMaps();
+  const fm = type === 'artists' ? firstSeenMaps.artistFirst : type === 'songs' ? firstSeenMaps.songFirst : firstSeenMaps.albumFirst;
+  // Earliest first play wins (best() looks for the biggest number, so not it)
+  let d = null;
+  picks.forEach((k, i) => { if (fm[k] && (d == null || fm[k] < fm[picks[d]])) d = i; });
+  const a = best(plays), b = best(ones), c = best(recent);
+  tiles.push(_sxVerdictTile(t('sx_v_most'), a == null ? null : names[a], a, a == null ? '' : fmtN(plays[a])));
+  tiles.push(_sxVerdictTile(t('sx_v_ones'), b == null ? null : names[b], b, b == null ? '' : fmtN(ones[b])));
+  tiles.push(_sxVerdictTile(t('sx_v_now'), c == null ? null : names[c], c, c == null ? '' : fmtN(recent[c])));
+  tiles.push(_sxVerdictTile(t('sx_v_longest'), d == null ? null : names[d], d, d == null ? '' : t('sx_v_since').replace('{y}', fm[picks[d]].getFullYear())));
+  return tiles.join('');
+}
+
+// The studio's controls
+document.getElementById('sxCmpType')?.addEventListener('click', e => {
+  const b = e.target.closest('[data-ctype]');
+  if (!b || b.dataset.ctype === sxCmp.type) return;
+  sxCmp.type = b.dataset.ctype;
+  _sxCmpSave();
+  sxRenderCompare();
+});
+document.getElementById('sxCmpMode')?.addEventListener('click', e => {
+  const b = e.target.closest('[data-cmode]');
+  if (!b || b.disabled || b.dataset.cmode === sxCmp.mode) return;
+  sxCmp.mode = b.dataset.cmode;
+  _sxCmpSave();
+  sxRenderCompare();
+});
+document.getElementById('sxCmpRun')?.addEventListener('click', e => {
+  const b = e.target.closest('[data-crun]');
+  if (!b || b.dataset.crun === sxCmp.run) return;
+  sxCmp.run = b.dataset.crun;
+  _sxCmpSave();
+  sxRenderCompare();
+});
+document.getElementById('sxCmpAddBtn')?.addEventListener('click', sxCmpAdd);
+document.getElementById('sxCmpInput')?.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); sxCmpAdd(); } });
+// Picking from the list adds it straight away
+document.getElementById('sxCmpInput')?.addEventListener('change', e => {
+  if (_sxIndex().byText[sxCmp.type].has((e.target.value || '').trim().toLowerCase())) sxCmpAdd();
+});
+document.getElementById('sxCmpTop')?.addEventListener('click', () => sxCmpFillTop(3));
