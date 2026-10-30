@@ -7448,10 +7448,6 @@ function finalizeLoad() {
     gTotalVolumeLabels = true;
     updateLabelButton('gTotalVolumeLabelsBtn', true);
   }
-  if (localStorage.getItem('dc_gDiscoveriesLabels') === '1') {
-    gDiscoveriesLabels = true;
-    updateLabelButton('gDiscoveriesLabelsBtn', true);
-  }
 
   const savedVolArtists = localStorage.getItem('dc_gVolumeArtists');
   if (savedVolArtists) try { gVolumeArtists = JSON.parse(savedVolArtists); renderVolumeChips(); } catch (e) { }
@@ -7464,7 +7460,6 @@ function finalizeLoad() {
   updateLabelButton('gCumulativeLabelsBtn', gCumulativeLabels);
   updateLabelButton('gTotalVolumeLabelsBtn', gTotalVolumeLabels);
   updateLabelButton('gVolumeLabelsBtn', gVolumeLabels);
-  updateLabelButton('gDiscoveriesLabelsBtn', gDiscoveriesLabels);
 
   // Restore race/graph settings
   const savedRaceSpeed = localStorage.getItem('dc_raceSpeed');
@@ -29397,7 +29392,7 @@ function renderGraphs() {
   // chart drawn while hidden comes out 0 wide.
   if (typeof statsTab !== 'undefined' && statsTab === 'overview') {
     paintGraphRange();
-    stRenderOverview();
+    sxRenderOverview();
     return;
   }
   destroyGraphCharts();
@@ -29447,71 +29442,11 @@ function renderGraphs() {
   }
   renderVolumeChart(sortedKeys, gc, axisOpts, legendOpts);
 
-  // ── Chart 4: New discoveries per period ───────────────────
-  {
-    const seenSong = {}, seenArtist = {}, seenAlbum = {};
-    const nSong = {}, nArtist = {}, nAlbum = {};
-    sortedKeys.forEach(k => { nSong[k] = 0; nArtist[k] = 0; nAlbum[k] = 0; });
-    const chrono = [...allPlays].sort((a, b) => a.date - b.date);
-    for (const p of chrono) {
-      const k = graphKey(p.date);
-      const sk = songKey(p);
-      if (!seenSong[sk]) { seenSong[sk] = 1; if (nSong[k] !== undefined) nSong[k]++; }
-      for (const a of p.artists) if (!seenArtist[a]) { seenArtist[a] = 1; if (nArtist[k] !== undefined) nArtist[k]++; }
-      if (p.album && p.album !== '—') {
-        const ak = albumKeyOf(p);
-        if (!seenAlbum[ak]) { seenAlbum[ak] = 1; if (nAlbum[k] !== undefined) nAlbum[k]++; }
-      }
-    }
-    const discoveriesLabelsPlugin = {
-      id: 'discoveriesLabels',
-      afterDatasetsDraw(chart) {
-        if (!gDiscoveriesLabels) return;
-        const ctx = chart.ctx;
-        const lastMeta = chart.getDatasetMeta(chart.data.datasets.length - 1);
-        lastMeta.data.forEach((bar, i) => {
-          const total = chart.data.datasets.reduce((sum, ds) => sum + (ds.data[i] || 0), 0);
-          if (!total) return;
-          ctx.save();
-          ctx.font = '600 10px "JetBrains Mono", monospace';
-          ctx.fillStyle = gc.text;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'bottom';
-          ctx.fillText(total.toLocaleString(), bar.x, bar.y - 2);
-          ctx.restore();
-        });
-      }
-    };
-    /* Shown for the page range only. The counting above still runs over the
-       whole history, so "new" keeps meaning heard for the first time ever. */
-    const { fromTs: dFromTs, toTs: dToTs } = graphRangeTs();
-    const dKeys = sortedKeys.filter(k => {
-      const d = graphGranularity === 'day' ? new Date(k + 'T00:00:00') :
-        graphGranularity === 'month' ? new Date(k + '-01T00:00:00') :
-          new Date(k + '-01-01T00:00:00');
-      return d.getTime() >= dFromTs && d.getTime() <= dToTs;
-    });
-    graphCharts.discoveries = new Chart(document.getElementById('gDiscoveries'), {
-      type: 'bar',
-      data: {
-        labels: dKeys.map(graphKeyLabel), datasets: [
-          { label: t('graph_new_songs'), data: dKeys.map(k => nSong[k]), backgroundColor: graphColor(0), borderColor: gc.cardBg, borderWidth: { top: 2 }, stack: 'disc' },
-          { label: t('graph_new_artists'), data: dKeys.map(k => nArtist[k]), backgroundColor: graphColor(1), borderColor: gc.cardBg, borderWidth: { top: 2 }, stack: 'disc' },
-          { label: t('graph_new_albums'), data: dKeys.map(k => nAlbum[k]), backgroundColor: graphColor(2), borderColor: gc.cardBg, borderWidth: { top: 2 }, stack: 'disc' },
-        ]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: {
-          legend: legendOpts,
-          zoom: { pan: { enabled: true, mode: 'x', onPanComplete: ({ chart }) => saveChartZoom(chart, 'discoveries') }, zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x', onZoomComplete: ({ chart }) => saveChartZoom(chart, 'discoveries') } }
-        },
-        scales: graphAxes(gc, { maxTicks, stacked: true })
-      },
-      plugins: [discoveriesLabelsPlugin]
-    });
-    restoreChartZoom(graphCharts.discoveries, 'discoveries');
-  }
+  // Chart 4 (New discoveries per period) is now the New finds view of the
+  // volume chart above (phase 15 step 2, stats.js).
+
+  // The listening clock and the week (phase 15 step 2)
+  sxRenderWhen();
 
   // ── Bar Race: set default date range ──────────────────────
   {
@@ -29542,7 +29477,6 @@ let gCumulativeLabels = false;
 let gVolumeLabels = false;
 let gVolumeArtists = [];
 let gTotalVolumeLabels = false;
-let gDiscoveriesLabels = false;
 
 let heatmapType = 'all';
 let heatmapFilters = [];
@@ -29718,69 +29652,11 @@ document.getElementById('gCumulativeResetZoom').addEventListener('click', () => 
 
 
 // ── Total volume chart (no artist filter) ────────────────────
+/* Play volume and discoveries (phase 15 step 2): drawn by stats.js
+   (sxRenderVolume), which merged this chart with New Discoveries. Kept as
+   a name because the Labels button and renderGraphs call it. */
 function renderTotalVolumeChart(sortedKeys, gc, axisOpts, legendOpts) {
-  if (graphCharts.totalVolume) { try { graphCharts.totalVolume.destroy(); } catch (e) { } delete graphCharts.totalVolume; }
-
-  // The page-wide range (the bar at the top of Stats)
-  const { fromTs, toTs } = graphRangeTs();
-
-  const filteredKeys = sortedKeys.filter(k => {
-    const d = graphGranularity === 'day' ? new Date(k + 'T00:00:00') :
-      graphGranularity === 'month' ? new Date(k + '-01T00:00:00') :
-        new Date(k + '-01-01T00:00:00');
-    return d.getTime() >= fromTs && d.getTime() <= toTs;
-  });
-  const filteredLabels = filteredKeys.map(graphKeyLabel);
-
-  const countByKey = {};
-  for (const p of allPlays) {
-    if (p.date.getTime() < fromTs || p.date.getTime() > toTs) continue;
-    const k = graphKey(p.date); countByKey[k] = (countByKey[k] || 0) + 1;
-  }
-  const col = gc.accent;
-
-  const totalVolumeLabelsPlugin = {
-    id: 'totalVolumeLabels',
-    afterDatasetsDraw(chart) {
-      if (!gTotalVolumeLabels) return;
-      const ctx = chart.ctx;
-      chart.data.datasets.forEach((ds, di) => {
-        const meta = chart.getDatasetMeta(di);
-        if (meta.hidden) return;
-        meta.data.forEach((bar, i) => {
-          const val = ds.data[i];
-          if (!val) return;
-          ctx.save();
-          ctx.font = '600 10px "JetBrains Mono", monospace';
-          ctx.fillStyle = ds.borderColor;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'bottom';
-          ctx.fillText(val.toLocaleString(), bar.x, bar.y - 2);
-          ctx.restore();
-        });
-      });
-    }
-  };
-
-  graphCharts.totalVolume = new Chart(document.getElementById('gTotalVolume'), {
-    type: 'bar',
-    data: {
-      labels: filteredLabels, datasets: [{
-        label: t('th_plays_mobile'), data: filteredKeys.map(k => countByKey[k] || 0),
-        backgroundColor: col, borderColor: col, borderWidth: 0, borderRadius: 3, borderSkipped: 'start'
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        zoom: { pan: { enabled: true, mode: 'x', onPanComplete: ({ chart }) => saveChartZoom(chart, 'totalVolume') }, zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x', onZoomComplete: ({ chart }) => saveChartZoom(chart, 'totalVolume') } }
-      },
-      scales: axisOpts(false)
-    },
-    plugins: [totalVolumeLabelsPlugin]
-  });
-  restoreChartZoom(graphCharts.totalVolume, 'totalVolume');
+  sxRenderVolume(sortedKeys, gc);
 }
 
 function triggerTotalVolumeUpdate() {
@@ -29931,17 +29807,6 @@ document.getElementById('gVolumeLabelsBtn').addEventListener('click', () => {
   localStorage.setItem('dc_gVolumeLabels', gVolumeLabels ? '1' : '0');
   updateLabelButton('gVolumeLabelsBtn', gVolumeLabels);
   triggerVolumeUpdate();
-});
-
-document.getElementById('gDiscoveriesResetZoom').addEventListener('click', () => {
-  if (graphCharts.discoveries) graphCharts.discoveries.resetZoom();
-  localStorage.removeItem('dc_zoom_discoveries');
-});
-document.getElementById('gDiscoveriesLabelsBtn').addEventListener('click', () => {
-  gDiscoveriesLabels = !gDiscoveriesLabels;
-  localStorage.setItem('dc_gDiscoveriesLabels', gDiscoveriesLabels ? '1' : '0');
-  updateLabelButton('gDiscoveriesLabelsBtn', gDiscoveriesLabels);
-  if (graphCharts.discoveries) graphCharts.discoveries.update();
 });
 
 // ─── BAR CHART RACE ────────────────────────────────────────────

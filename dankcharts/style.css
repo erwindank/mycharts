@@ -11014,7 +11014,7 @@
     #graphsView:not([data-st-tab="charts"]):not([data-st-tab="compare"]) .graphs-ctrl-sep { display: none; }
 
     /* Overview hero: the sentence over the four tiles, on a soft accent wash */
-    .st-hero {
+    .sx-hero {
       padding: var(--sp-5);
       border: 1px solid var(--border2);
       border-radius: var(--r-lg);
@@ -11024,7 +11024,7 @@
       box-shadow: var(--shadow-1);
       margin-bottom: 1.25rem;
     }
-    .st-hero-line {
+    .sx-hero-line {
       font-family: var(--font-display);
       font-weight: 600;
       font-size: var(--fs-md);
@@ -11033,27 +11033,88 @@
       max-width: 62rem;
       text-wrap: pretty;
     }
-    .st-hero-line b { color: var(--accent); font-weight: 700; }
-    .st-up { color: var(--green); }
-    .st-down { color: var(--rose); }
+    .sx-hero-line b { color: var(--accent); font-weight: 700; }
+    .sx-up { color: var(--green); }
+    .sx-down { color: var(--rose); }
     /* The top artist opens their details window */
-    .st-link {
+    .sx-link {
       font: inherit; color: var(--accent); background: none; border: 0; padding: 0;
       cursor: pointer; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px;
     }
-    .st-link:hover { text-decoration-thickness: 2px; }
-    .st-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .sx-link:hover { text-decoration-thickness: 2px; }
+    .sx-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     @media (max-width: 760px) {
-      .st-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .st-hero { padding: var(--sp-4); }
+      .sx-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .sx-hero { padding: var(--sp-4); }
     }
-    .st-tile { background: color-mix(in srgb, var(--bg) 45%, var(--bg2)); }
-    .st-tile .stat-foot { display: flex; gap: var(--sp-2); align-items: center; justify-content: center; flex-wrap: wrap; }
-    .st-vs { font-size: var(--fs-xs); color: var(--text3); font-variant-numeric: tabular-nums; }
+    .sx-tile { background: color-mix(in srgb, var(--bg) 45%, var(--bg2)); }
+    .sx-tile .stat-foot { display: flex; gap: var(--sp-2); align-items: center; justify-content: center; flex-wrap: wrap; }
+    .sx-vs { font-size: var(--fs-xs); color: var(--text3); font-variant-numeric: tabular-nums; }
     /* The tile's trend over the range, in its own colour */
-    .st-trend { display: block; width: 100%; height: 28px; margin: var(--sp-2) 0 var(--sp-1); color: var(--cat-color, var(--accent)); }
-    .st-trend polygon { fill: currentColor; opacity: .14; }
-    .st-trend polyline { fill: none; stroke: currentColor; stroke-width: 1.5; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
+    .sx-trend { display: block; width: 100%; height: 28px; margin: var(--sp-2) 0 var(--sp-1); color: var(--cat-color, var(--accent)); }
+    .sx-trend polygon { fill: currentColor; opacity: .14; }
+    .sx-trend polyline { fill: none; stroke: currentColor; stroke-width: 1.5; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
+
+    /* Charts tab (step 2): Plays / New finds switch over the volume chart */
+    .sx-vol-mode { margin: 0 0 var(--sp-3); }
+
+    /* The look-inside box under the volume chart */
+    .sx-drill {
+      margin-top: var(--sp-3);
+      padding: var(--sp-3) var(--sp-4);
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      border-radius: var(--r-md);
+    }
+    .sx-drill[hidden] { display: none; }
+    .sx-drill-head { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--sp-3); }
+    .sx-drill-head b { font-family: var(--font-display); font-size: var(--fs-md); display: block; }
+    .sx-drill-head span { font-size: var(--fs-sm); color: var(--text2); }
+    .sx-drill-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-2) var(--sp-5); margin-top: var(--sp-3); }
+    @media (max-width: 600px) { .sx-drill-cols { grid-template-columns: 1fr; } }
+    .sx-drill h4 { margin: 0 0 var(--sp-1); font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: .06em; color: var(--text3); }
+    .sx-drill-foot { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-3); padding-top: var(--sp-3); border-top: 1px solid var(--border); font-size: var(--fs-sm); color: var(--text2); }
+    /* Song rows (look-inside box, Story lists): rank, title over artist, count */
+    .sx-rows { list-style: none; margin: 0; padding: 0; }
+    .sx-row {
+      display: grid; grid-template-columns: 1.4rem minmax(0, 1fr) auto; gap: var(--sp-2); align-items: center;
+      width: 100%; padding: 0.35rem 0.25rem; background: none; border: 0; border-radius: var(--r-sm);
+      color: var(--text); font: inherit; text-align: left; cursor: pointer;
+    }
+    .sx-row:hover { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+    .sx-row-n { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--text3); text-align: right; }
+    .sx-row-t { min-width: 0; }
+    .sx-row-t b, .sx-row-t span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sx-row-t b { font-weight: 600; font-size: var(--fs-sm); }
+    .sx-row-t span { font-size: var(--fs-xs); color: var(--text2); }
+    .sx-row-v { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--text2); font-variant-numeric: tabular-nums; }
+    .sx-note { margin: var(--sp-2) 0 0; font-size: var(--fs-sm); color: var(--text2); min-height: 1.4em; }
+
+    /* The clock and the week, side by side (one column on phones) */
+    .sx-row2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; margin-bottom: 1.25rem; }
+    .sx-row2 > .graph-card { margin-bottom: 0; }
+    @media (max-width: 760px) { .sx-row2 { grid-template-columns: 1fr; } }
+    .sx-clock svg { display: block; width: 100%; max-width: 300px; margin: var(--sp-2) auto 0; overflow: visible; }
+    .sx-clock-ring { fill: none; stroke: var(--rule); }
+    .sx-clock-bar { fill: var(--accent); opacity: var(--o, 1); cursor: pointer; transition: opacity .15s; }
+    .sx-clock-bar.is-peak { fill: var(--gold1); opacity: 1; }
+    .sx-clock-bar:hover, .sx-clock-bar.is-picked { opacity: 1; stroke: var(--text); stroke-width: 1.5; }
+    .sx-clock-bar:focus-visible { outline: none; stroke: var(--accent); stroke-width: 2.5; }
+    .sx-clock-lbl { fill: var(--text3); font: 11px var(--font-mono); text-anchor: middle; }
+    .sx-clock-mid { fill: var(--text); font: 700 17px var(--font-display); text-anchor: middle; }
+    .sx-clock-mid-sub { fill: var(--text3); font: 10.5px var(--font-sans); text-anchor: middle; }
+    .sx-week { display: flex; flex-direction: column; gap: 0.35rem; margin-top: var(--sp-3); }
+    .sx-week-row {
+      display: grid; grid-template-columns: 3.2rem minmax(0, 1fr) 3rem; gap: var(--sp-2); align-items: center;
+      padding: 0.3rem 0.35rem; background: none; border: 1px solid transparent; border-radius: var(--r-sm);
+      color: var(--text2); font: inherit; font-size: var(--fs-sm); cursor: pointer; text-align: left;
+    }
+    .sx-week-row:hover, .sx-week-row.is-picked { border-color: var(--border2); background: var(--bg3); }
+    .sx-week-day { text-transform: capitalize; }
+    .sx-week-bar { height: 18px; background: color-mix(in srgb, var(--accent) 8%, transparent); border-radius: 4px; overflow: hidden; }
+    .sx-week-bar i { display: block; height: 100%; background: var(--accent); border-radius: 4px; opacity: .85; }
+    .sx-week-row.is-peak .sx-week-bar i { background: var(--gold1); opacity: 1; }
+    .sx-week-val { font-family: var(--font-mono); font-size: var(--fs-xs); text-align: right; font-variant-numeric: tabular-nums; }
 
     /* Card head: title (and description) on the left, the chart's tools as
        small icon buttons on the right. */

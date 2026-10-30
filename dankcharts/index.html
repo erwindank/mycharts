@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=740">
+  <link rel="stylesheet" href="style.css?v=741">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=246"></script>
+  <script defer src="translations.js?v=247"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -1334,15 +1334,15 @@
            card whose data-st-group is another tab (stats.js, setStatsTab).
            Story and Games stay hidden until they are built. -->
       <div class="dc-tabs stats-tabs" role="tablist" aria-label="Stats" data-i18n-aria="sec_graphs_title">
-        <button type="button" role="tab" data-st-tab="overview" onclick="setStatsTab('overview')" data-i18n="st_tab_overview">Overview</button>
-        <button type="button" role="tab" data-st-tab="story" onclick="setStatsTab('story')" data-i18n="st_tab_story" hidden>Story</button>
-        <button type="button" role="tab" data-st-tab="games" onclick="setStatsTab('games')" data-i18n="st_tab_games" hidden>Games</button>
-        <button type="button" role="tab" data-st-tab="compare" onclick="setStatsTab('compare')" data-i18n="st_tab_compare">Compare</button>
-        <button type="button" role="tab" data-st-tab="charts" onclick="setStatsTab('charts')" data-i18n="st_tab_charts">Charts</button>
+        <button type="button" role="tab" data-st-tab="overview" onclick="setStatsTab('overview')" data-i18n="sx_tab_overview">Overview</button>
+        <button type="button" role="tab" data-st-tab="story" onclick="setStatsTab('story')" data-i18n="sx_tab_story" hidden>Story</button>
+        <button type="button" role="tab" data-st-tab="games" onclick="setStatsTab('games')" data-i18n="sx_tab_games" hidden>Games</button>
+        <button type="button" role="tab" data-st-tab="compare" onclick="setStatsTab('compare')" data-i18n="sx_tab_compare">Compare</button>
+        <button type="button" role="tab" data-st-tab="charts" onclick="setStatsTab('charts')" data-i18n="sx_tab_charts">Charts</button>
       </div>
 
-      <!-- Overview: one sentence and four tiles for the range (stRenderOverview) -->
-      <div id="stOverview" class="st-overview" data-st-group="overview"></div>
+      <!-- Overview: one sentence and four tiles for the range (sxRenderOverview) -->
+      <div id="sxOverview" class="sx-overview" data-st-group="overview"></div>
 
       <!-- Chart 1: Cumulative plays over time -->
       <div class="dc-card graph-card" data-st-group="compare">
@@ -1368,13 +1368,16 @@
         <div class="graph-canvas-wrap"><canvas id="gCumulative"></canvas></div>
       </div>
 
-      <!-- Chart 2: Total play volume -->
+      <!-- Chart 2: Play volume and discoveries (phase 15 step 2). The total
+           volume and New Discoveries cards in one: Plays shows each period's
+           plays split into songs you knew and songs new to you; New finds
+           shows the songs / artists / albums heard for the first time. Tap a
+           bar to look inside that period (stats.js, sxShowVolDrill). -->
       <div class="dc-card graph-card" data-st-group="charts">
         <div class="graph-card-head">
           <div class="graph-card-text">
-            <div class="graph-card-title" data-i18n="graph_volume_title">📊 Total Play Volume by Period</div>
-            <div class="graph-card-sub" data-i18n="graph_volume_sub">How many songs you played each period across all
-              artists</div>
+            <div class="graph-card-title" data-i18n="sx_vol_title">Play volume and discoveries</div>
+            <div class="graph-card-sub" data-i18n="sx_vol_sub">Plays each period, with the part that was new to you. Tap a bar to look inside.</div>
           </div>
           <div class="graph-card-tools">
             <button id="gTotalVolumeLabelsBtn" type="button" class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon graph-tool"
@@ -1384,7 +1387,12 @@
               aria-label="Reset Zoom"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="7" cy="7" r="4.5" /><path d="m10.4 10.4 3.6 3.6M5 7h4" /></svg></button>
           </div>
         </div>
+        <div class="dc-seg sx-vol-mode" id="sxVolMode" role="group" aria-label="Show" data-i18n-aria="sx_vol_show">
+          <button type="button" data-vmode="plays" data-i18n="sx_vol_mode_plays">Plays</button>
+          <button type="button" data-vmode="new" data-i18n="sx_vol_mode_new">New finds</button>
+        </div>
         <div class="graph-canvas-wrap"><canvas id="gTotalVolume"></canvas></div>
+        <div id="sxVolDrill" class="sx-drill" hidden></div>
       </div>
 
       <!-- Chart 3: Play volume by artist comparison -->
@@ -1407,25 +1415,6 @@
         </div>
         <div id="gVolumeChips" class="graph-chips"></div>
         <div class="graph-canvas-wrap"><canvas id="gVolume"></canvas></div>
-      </div>
-
-      <!-- Chart 4: New discoveries per period -->
-      <div class="dc-card graph-card" data-st-group="charts">
-        <div class="graph-card-head">
-          <div class="graph-card-text">
-            <div class="graph-card-title" data-i18n="graph_discoveries_title">✨ New Discoveries per Period</div>
-            <div class="graph-card-sub" data-i18n="graph_discoveries_sub">Songs, artists and albums heard for the first time
-              each period</div>
-          </div>
-          <div class="graph-card-tools">
-            <button id="gDiscoveriesLabelsBtn" type="button" class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon graph-tool"
-              aria-pressed="false" title="Labels: Off" aria-label="Labels: Off"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M2.5 3.5h7l4 4.5-4 4.5h-7z" /><path d="M5.5 8h3" /></svg></button>
-            <button id="gDiscoveriesResetZoom" type="button" class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon graph-tool"
-              data-i18n-title="tooltip_reset_zoom" data-i18n-aria="btn_reset_zoom" title="Reset the chart zoom to show the full date range"
-              aria-label="Reset Zoom"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="7" cy="7" r="4.5" /><path d="m10.4 10.4 3.6 3.6M5 7h4" /></svg></button>
-          </div>
-        </div>
-        <div class="graph-canvas-wrap"><canvas id="gDiscoveries"></canvas></div>
       </div>
 
       <!-- Bar Chart Race -->
@@ -1491,6 +1480,24 @@
 
         <input id="raceSeekSlider" class="race-seek" type="range" min="0" max="100" value="0">
         <canvas id="gBarRace" class="race-canvas"></canvas>
+      </div>
+
+      <!-- When you listen (phase 15 step 2): the hours of the day as a
+           clock, and the days of the week, for the range in the bar. Tap an
+           hour or a day for its top artist and song. -->
+      <div class="sx-row2" data-st-group="charts">
+        <div class="dc-card graph-card sx-clock-card">
+          <div class="graph-card-title" data-i18n="sx_clock_title">Listening clock</div>
+          <div class="graph-card-sub" data-i18n="sx_clock_sub">When in the day you play music</div>
+          <div id="sxClock" class="sx-clock"></div>
+          <div id="sxClockNote" class="sx-note" aria-live="polite"></div>
+        </div>
+        <div class="dc-card graph-card sx-week-card">
+          <div class="graph-card-title" data-i18n="sx_week_title">Your week</div>
+          <div class="graph-card-sub" data-i18n="sx_week_sub">Average plays on each day of the week</div>
+          <div id="sxWeek" class="sx-week"></div>
+          <div id="sxWeekNote" class="sx-note" aria-live="polite"></div>
+        </div>
       </div>
 
       <!-- Chart 6: Listening Activity Heatmap -->
@@ -4240,7 +4247,7 @@
   <!-- One behaviour and one icon set for every pop-up window (phase 10); before
        app.js so dcIco() is there when app.js draws a window -->
   <script defer src="popups.js?v=8"></script>
-  <script defer src="app.js?v=578"></script>
+  <script defer src="app.js?v=579"></script>
   <!-- The song / album / artist details side panel (phase 10 step 3); wraps app.js's open functions -->
   <script defer src="panel.js?v=16"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
@@ -4249,7 +4256,7 @@
   <script defer src="insights.js?v=9"></script>
   <script defer src="daily.js?v=39"></script>
   <!-- The Stats page's tabs, Overview, Story, Games and Compare (phase 15); reads app.js globals -->
-  <script defer src="stats.js?v=1"></script>
+  <script defer src="stats.js?v=3"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at
