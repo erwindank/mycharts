@@ -1112,3 +1112,190 @@ function _sxDriftWire() {
     if (g && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); pick(g.dataset.a); }
   });
 }
+
+// ── Story, part 2 (step 6) ────────────────────────────────────────────────
+/* More cards after taste drift, for the range in the bar:
+     Loyal or adventurous?   the share of plays that went to the top 10
+     Comfort vs new finds    plays of songs known before the range, against
+                             songs first heard in it
+     Discoveries             the biggest new artists, and how they are doing
+     To put it another way   the plays turned into everyday numbers (no
+                             hours: the data has no song lengths)
+     Milestones              round numbers passed in the range */
+
+// Small drawn icons for "To put it another way" (no emoji, phase 11)
+const _SX_ICO = {
+  day: '<path d="M3 5.5h10v8H3z"/><path d="M3 8h10M6 3.5v3M10 3.5v3"/>',
+  loop: '<path d="M4 6.5h7.5l-2-2M12 9.5H4.5l2 2"/>',
+  step: '<path d="M5.5 3.2c1.2 0 1.8 1.4 1.6 3s-1 2.3-1.9 2.3-1.4-1-1.3-2.4 .4-2.9 1.6-2.9zM4.4 10.2l2.5.3-.3 2.3-2.4-.3zM10.5 5.2c1.2 0 1.6 1.4 1.4 3s-1 2.3-1.9 2.2-1.4-1.1-1.2-2.5.5-2.7 1.7-2.7zM9.4 12.2l2.5.2-.2 2.2-2.5-.2z"/>',
+};
+const _sxIco = k => `<svg class="sx-ico" viewBox="0 0 16 16" aria-hidden="true" focusable="false">${_SX_ICO[k]}</svg>`;
+
+function _sxStoryMore(fromTs, toTs) {
+  if (!firstSeenMaps) firstSeenMaps = buildFirstSeenMaps();
+  const { songFirst, artistFirst } = firstSeenMaps;
+  const span = toTs - fromTs + 1;
+  const firstPlayTs = Math.min(...Object.values(artistFirst).map(d => d.getTime()));
+  const hasPrev = graphRange.preset !== 'all' && fromTs - span >= firstPlayTs - _SX_DAY;
+
+  // One pass over the range (and the stretch before it, for loyalty)
+  const art = new Map(), prevArt = new Map(), songs = new Map(), lastPlay = new Map();
+  let plays = 0, prevPlays = 0, oldPlays = 0;
+  const recentFrom = toTs - 28 * _SX_DAY;
+  const recent = new Map();
+  for (const p of allPlays) {
+    const ts = tzDateOf(p).getTime();
+    if (ts >= fromTs && ts <= toTs) {
+      plays++;
+      for (const a of p.artists) {
+        art.set(a, (art.get(a) || 0) + 1);
+        if (ts >= recentFrom) recent.set(a, (recent.get(a) || 0) + 1);
+        if (!lastPlay.has(a) || lastPlay.get(a) < ts) lastPlay.set(a, ts);
+      }
+      const sk = songKey(p);
+      let o = songs.get(sk);
+      if (!o) songs.set(sk, o = { n: 0, p });
+      o.n++;
+      if (songFirst[sk] && songFirst[sk].getTime() < fromTs) oldPlays++;
+    } else if (hasPrev && ts >= fromTs - span && ts < fromTs) {
+      prevPlays++;
+      for (const a of p.artists) prevArt.set(a, (prevArt.get(a) || 0) + 1);
+    }
+  }
+  if (!plays) return [];
+  const cards = [];
+
+  // ── Loyal or adventurous? ──
+  // Artist plays are counted per credited artist, so the share is taken
+  // of all artist credits, not of plays (a duet counts for both).
+  const share = (m) => {
+    const v = [...m.values()].sort((a, b) => b - a), all = v.reduce((a, b) => a + b, 0);
+    return all ? v.slice(0, 10).reduce((a, b) => a + b, 0) / all : 0;
+  };
+  const pct = Math.round(share(art) * 100);
+  const credits = [...art.values()].sort((a, b) => b - a), allCredits = credits.reduce((a, b) => a + b, 0);
+  let half = 0, run = 0;
+  for (const v of credits) { half++; run += v; if (run >= allCredits / 2) break; }
+  let loyalNote = '';
+  if (hasPrev && prevPlays) {
+    const pp = Math.round(share(prevArt) * 100);
+    if (pp !== pct) loyalNote = t(pct > pp ? 'sx_loyal_more' : 'sx_loyal_less').replace('{pct}', pp);
+  }
+  // The meter: 0% (every play a different artist) to 100% (only ten artists)
+  const loyal = _sxCard(t('sx_loyal_title'), t('sx_loyal_sub'),
+    `<div class="sx-big">${esc(t('sx_loyal_big').replace('{pct}', pct))}</div>` +
+    `<div class="sx-meter" role="img" aria-label="${pct}%"><i style="left:${pct}%"></i></div>` +
+    `<div class="sx-meter-ends"><span>${esc(t('sx_loyal_adv'))}</span><span>${esc(t('sx_loyal_loyal'))}</span></div>` +
+    `<p class="sx-note">${esc(t('sx_loyal_half').replace('{n}', half.toLocaleString()))}${loyalNote ? ' ' + esc(loyalNote) : ''}</p>`);
+
+  // ── Comfort songs vs new finds ──
+  const oldPct = Math.round(oldPlays / plays * 100), newPct = 100 - oldPct;
+  let topOld = null, topNew = null;
+  songs.forEach((o, sk) => {
+    const isOld = songFirst[sk] && songFirst[sk].getTime() < fromTs;
+    if (isOld) { if (!topOld || o.n > topOld.o.n) topOld = { sk, o }; }
+    else if (!topNew || o.n > topNew.o.n) topNew = { sk, o };
+  });
+  const locale = currentLang === 'en' ? 'en-US' : currentLang;
+  const when = d => d.toLocaleDateString(locale, { month: 'short', year: 'numeric' });
+  const songRow = (x, label) => x
+    ? `<li><button type="button" class="sx-row sx-row-plain" onclick="openSongModal(${esc(JSON.stringify(x.sk))})">` +
+      `<span class="sx-row-t"><b>${esc(x.o.p.title)} · ${esc(x.o.p.artist)}</b><span>${esc(label)}</span></span><span class="sx-row-v">${x.o.n.toLocaleString()}</span></button></li>`
+    : '';
+  const split = `<div class="sx-split" role="img" aria-label="${oldPct}% / ${newPct}%">` +
+    (oldPct ? `<span class="is-old" style="width:${oldPct}%">${oldPct}% ${esc(t('sx_comfort_old'))}</span>` : '') +
+    (newPct ? `<span class="is-new" style="width:${newPct}%">${newPct}% ${esc(t('sx_comfort_new'))}</span>` : '') + '</div>';
+  const comfort = _sxCard(t('sx_comfort_title'), t('sx_comfort_sub'), split +
+    `<ul class="sx-rows">${songRow(topOld, topOld ? t('sx_comfort_top_old').replace('{y}', songFirst[topOld.sk].getFullYear()) : '')}` +
+    `${songRow(topNew, topNew ? t('sx_comfort_top_new').replace('{d}', when(songFirst[topNew.sk])) : '')}</ul>`);
+  cards.push(`<div class="sx-row2">${loyal}${comfort}</div>`);
+
+  // ── Discoveries, and where they are now ──
+  // New artists of the range by plays in it; "now" is the last four weeks
+  // of the range against their usual four weeks since they were found.
+  const finds = [...art.entries()].filter(([a]) => artistFirst[a] && artistFirst[a].getTime() >= fromTs)
+    .sort((x, y) => y[1] - x[1]).slice(0, 5);
+  const wk = _crFull('week').result.artists || {};
+  let discBody;
+  if (!finds.length) discBody = `<p class="sx-note">${esc(t('sx_disc_none'))}</p>`;
+  else discBody = '<ul class="sx-rows">' + finds.map(([a, n]) => {
+    const since = artistFirst[a].getTime();
+    const weeks4 = Math.max(1, (toTs - since) / (28 * _SX_DAY));
+    const usual = n / weeks4, now = recent.get(a) || 0;
+    const status = now === 0 ? 'gone' : now >= usual * 0.6 ? 'hot' : 'cool';
+    const peak = wk[a] ? Math.min(...wk[a].entries.filter(e => new Date(e.periodKey + 'T00:00:00').getTime() >= fromTs - 6 * _SX_DAY).map(e => e.rank).concat([Infinity])) : Infinity;
+    const sub = t('sx_disc_found').replace('{d}', when(artistFirst[a])) + (peak < Infinity ? ' · ' + t('sx_disc_peak').replace('{r}', peak) : '');
+    return `<li><button type="button" class="sx-row sx-row-face" onclick="openArtistModal(${esc(JSON.stringify(a))})">${_sxFace(a, 'sx-face-sm')}` +
+      `<span class="sx-row-t"><b>${esc(a)}</b><span>${esc(sub)}</span></span>` +
+      `<span class="sx-disc-st is-${status}">${esc(t('sx_disc_' + status))}</span></button></li>`;
+  }).join('') + '</ul>';
+  const disc = _sxCard(t('sx_disc_title'), t('sx_disc_sub'), discBody);
+
+  // ── To put it another way ──
+  const days = Math.max(1, Math.round(span / _SX_DAY));
+  let top = null;
+  songs.forEach((o, sk) => { if (!top || o.n > top.o.n) top = { sk, o }; });
+  const every = (days / top.o.n);
+  const km = Math.round(plays * 0.75 / 1000);
+  const fun = (ico, big, sub) => `<div class="sx-fun-row">${_sxIco(ico)}<div><b>${esc(big)}</b><span>${esc(sub)}</span></div></div>`;
+  const funCard = _sxCard(t('sx_fun_title'), '',
+    `<div class="sx-fun">` +
+    fun('day', t('sx_fun_day').replace('{n}', Math.round(plays / days).toLocaleString()), t('sx_fun_day_sub')) +
+    fun('loop', t('sx_fun_song').replace('{n}', top.o.n.toLocaleString()).replace('{song}', top.o.p.title),
+      t(every < 1 ? 'sx_fun_song_sub_day' : 'sx_fun_song_sub').replace('{d}', every < 1 ? (1 / every).toFixed(1) : every.toFixed(1))) +
+    fun('step', t('sx_fun_walk').replace('{km}', km.toLocaleString()), t('sx_fun_walk_sub')) +
+    `</div>`);
+  cards.push(`<div class="sx-row2">${disc}${funCard}</div>`);
+
+  // ── Milestones in this stretch ──
+  cards.push(_sxMilestonesCard(fromTs, toTs));
+  return cards;
+}
+
+/* Round numbers passed inside the range: the library's total plays, how
+   many different songs and artists, and artists reaching big play counts.
+   Needs the whole history, oldest first, to count up to the range. */
+function _sxMilestonesCard(fromTs, toTs) {
+  const out = [];
+  let total = 0;
+  const seenSong = new Set(), seenArtist = new Set(), artN = new Map();
+  const ART_STEPS = [1000, 2500, 5000, 10000, 15000, 20000, 25000, 50000, 100000];
+  for (let i = allPlays.length - 1; i >= 0; i--) {
+    const p = allPlays[i], ts = tzDateOf(p).getTime();
+    if (ts > toTs) break;
+    const inRange = ts >= fromTs;
+    total++;
+    const step = total >= 100000 ? 50000 : total >= 10000 ? 10000 : 1000;
+    if (inRange && total % step === 0) out.push({ ts, k: 'plays', n: total, p, w: 3 });
+    const sk = songKey(p);
+    if (!seenSong.has(sk)) {
+      seenSong.add(sk);
+      const s = seenSong.size, st = s >= 10000 ? 5000 : 1000;
+      if (inRange && s % st === 0) out.push({ ts, k: 'songs', n: s, p, w: 2 });
+    }
+    for (const a of p.artists) {
+      if (!seenArtist.has(a)) {
+        seenArtist.add(a);
+        const s = seenArtist.size, st = s >= 1000 ? 500 : 100;
+        if (inRange && s % st === 0) out.push({ ts, k: 'artists', n: s, p, a, w: 2 });
+      }
+      const c = (artN.get(a) || 0) + 1;
+      artN.set(a, c);
+      if (inRange && ART_STEPS.includes(c)) out.push({ ts, k: 'artist', n: c, a, p, w: c >= 10000 ? 3 : 1 });
+    }
+  }
+  if (!out.length) return _sxCard(t('sx_miles_title'), t('sx_miles_sub'), `<p class="sx-note">${esc(t('sx_miles_none'))}</p>`);
+  // The twelve biggest, shown in date order
+  const pick = out.map((m, i) => ({ ...m, i })).sort((a, b) => b.w - a.w || b.n - a.n).slice(0, 12).sort((a, b) => a.ts - b.ts);
+  const locale = currentLang === 'en' ? 'en-US' : currentLang;
+  const items = pick.map(m => {
+    const date = new Date(m.ts).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' });
+    const title = m.k === 'plays' ? t('sx_mile_plays').replace('{n}', m.n.toLocaleString())
+      : m.k === 'songs' ? t('sx_mile_songs').replace('{n}', m.n.toLocaleString())
+      : m.k === 'artists' ? t('sx_mile_artists').replace('{n}', m.n.toLocaleString())
+      : t('sx_mile_artist').replace('{artist}', m.a).replace('{n}', m.n.toLocaleString());
+    const what = m.k === 'artists' ? m.a : m.p.title + ' · ' + m.p.artist;
+    return `<li><b>${esc(title)}</b><span>${esc(date)} · ${esc(what)}</span></li>`;
+  }).join('');
+  return _sxCard(t('sx_miles_title'), t('sx_miles_sub'), `<ol class="sx-miles">${items}</ol>`);
+}

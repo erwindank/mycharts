@@ -11219,6 +11219,43 @@
     .sx-drift-keys { margin-top: var(--sp-3); }
     .sx-drift-key { cursor: pointer; padding-right: 0.55rem; }
 
+    /* Story part 2 (step 6) */
+    .sx-story .sx-row2 { margin-bottom: 1.25rem; }
+    .sx-big { font-family: var(--font-display); font-weight: 800; font-size: var(--fs-lg); margin-top: var(--sp-3); color: var(--accent); }
+    /* Loyal or adventurous: a track with a marker */
+    .sx-meter { position: relative; height: 10px; margin: var(--sp-4) 0 var(--sp-1); border-radius: 5px;
+      background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 15%, var(--bg3)), color-mix(in srgb, var(--accent) 55%, var(--bg3))); }
+    .sx-meter i { position: absolute; top: -5px; width: 4px; height: 20px; margin-left: -2px; border-radius: 2px; background: var(--text); box-shadow: 0 0 0 2px var(--bg2); }
+    .sx-meter-ends { display: flex; justify-content: space-between; font-size: var(--fs-xs); color: var(--text3); }
+    /* Comfort vs new: one split bar */
+    .sx-split { display: flex; height: 28px; margin: var(--sp-3) 0 var(--sp-2); border-radius: var(--r-sm); overflow: hidden;
+      font-family: var(--font-mono); font-size: var(--fs-xs); font-weight: 700; }
+    .sx-split span { display: flex; align-items: center; padding: 0 var(--sp-2); white-space: nowrap; overflow: hidden; min-width: 0; }
+    .sx-split .is-old { background: var(--accent); color: var(--on-accent, #fff); }
+    .sx-split .is-new { background: color-mix(in srgb, var(--green) 75%, var(--bg2)); color: var(--bg); }
+    /* Discoveries: picture, name, how they are doing */
+    .sx-row-face { grid-template-columns: 30px minmax(0, 1fr) auto; }
+    .sx-row-plain { grid-template-columns: minmax(0, 1fr) auto; }
+    .sx-disc-st { font-size: var(--fs-xs); font-weight: 600; padding: 2px 8px; border-radius: var(--r-sm); white-space: nowrap; }
+    .sx-disc-st.is-hot { color: var(--green); background: color-mix(in srgb, var(--green) 13%, transparent); }
+    .sx-disc-st.is-cool { color: var(--gold1); background: color-mix(in srgb, var(--gold1) 13%, transparent); }
+    .sx-disc-st.is-gone { color: var(--text3); background: color-mix(in srgb, var(--text3) 12%, transparent); }
+    /* To put it another way */
+    .sx-fun { display: flex; flex-direction: column; gap: var(--sp-3); margin-top: var(--sp-3); }
+    .sx-fun-row { display: grid; grid-template-columns: 38px minmax(0, 1fr); gap: var(--sp-3); align-items: center; }
+    .sx-ico { width: 38px; height: 38px; padding: 9px; border-radius: var(--r-md); background: var(--bg3);
+      fill: none; stroke: var(--accent); stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+    .sx-fun-row b { display: block; font-family: var(--font-display); font-size: var(--fs-md); font-weight: 700; overflow-wrap: anywhere; }
+    .sx-fun-row span { display: block; font-size: var(--fs-xs); color: var(--text2); }
+    /* Milestones: a list in up to three columns, each with a dot */
+    .sx-miles { list-style: none; margin: var(--sp-3) 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-3) var(--sp-5); }
+    @media (max-width: 860px) { .sx-miles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 520px) { .sx-miles { grid-template-columns: 1fr; } }
+    .sx-miles li { position: relative; padding-left: 18px; min-width: 0; }
+    .sx-miles li::before { content: ''; position: absolute; left: 0; top: 5px; width: 9px; height: 9px; border-radius: 50%; background: var(--accent); }
+    .sx-miles b { display: block; font-family: var(--font-display); font-size: var(--fs-sm); }
+    .sx-miles span { display: block; font-size: var(--fs-xs); color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
     /* Card head: title (and description) on the left, the chart's tools as
        small icon buttons on the right. */
     .graph-card-head {
