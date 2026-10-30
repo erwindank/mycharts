@@ -11327,6 +11327,30 @@
     .sx-game-over-best { font-family: var(--font-mono); font-size: var(--fs-sm); color: var(--text2); }
     .sx-game-over-btns { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--sp-2); margin-top: var(--sp-4); }
 
+    /* Games, step 8 */
+    .sx-gval em.sx-gsmall { font-size: var(--fs-md); margin-top: var(--sp-2); }
+    .sx-gval em.is-other { color: var(--text3); }
+    /* Guess the year: one button per year, the right one green after */
+    .sx-year-btns { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--sp-2); max-width: 44rem; }
+    .sx-year-btn { font-family: var(--font-mono); min-width: 4.2rem; }
+    .sx-year-btn.is-right, .sx-one-opt.is-right { background: color-mix(in srgb, var(--green) 22%, var(--bg2)); border-color: var(--green); color: var(--text); opacity: 1; }
+    .sx-year-btn.is-wrong, .sx-one-opt.is-wrong { background: color-mix(in srgb, var(--rose) 18%, var(--bg2)); border-color: var(--rose); color: var(--text); opacity: 1; }
+    /* Guess the #1: four songs to pick from */
+    .sx-one-opts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-3); width: min(46rem, 100%); }
+    @media (max-width: 600px) { .sx-one-opts { grid-template-columns: 1fr; } }
+    .sx-one-opt {
+      display: grid; grid-template-columns: auto 56px minmax(0, 1fr); gap: var(--sp-3); align-items: center;
+      padding: var(--sp-3); background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r-md);
+      color: var(--text); font: inherit; text-align: left; cursor: pointer;
+    }
+    .sx-one-opt:hover:not(:disabled) { border-color: var(--accent); }
+    .sx-one-opt:disabled { cursor: default; opacity: .7; }
+    .sx-one-k { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--text3); }
+    .sx-gart.sx-gart-sm { width: 56px; margin: 0; }
+    .sx-gart-sm .thumb-initials { font-size: 0.9rem; }
+    .sx-one-opt .sx-gtxt b { font-size: var(--fs-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sx-one-opt .sx-gtxt span { font-size: var(--fs-xs); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
     /* Card head: title (and description) on the left, the chart's tools as
        small icon buttons on the right. */
     .graph-card-head {

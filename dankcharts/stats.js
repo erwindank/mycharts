@@ -1551,3 +1551,199 @@ SX_GAMES.hl = {
     }
   },
 };
+
+// ── Guess the year (step 8) ──
+/* Ten songs; for each, tap the year you first played it. Spot on is 100
+   points, a year off 50, two years off 20, so the most is 1,000. Songs are
+   drawn year by year, so every year of the library turns up. Keys: the
+   year buttons are ordinary buttons (Tab / Enter). */
+SX_GAMES.year = {
+  start() {
+    const pool = _sxSongPool().slice(0, 2000).filter(s => s.first);
+    const byYear = new Map();
+    pool.forEach(s => { const y = s.first.getFullYear(); if (!byYear.has(y)) byYear.set(y, []); byYear.get(y).push(s); });
+    const years = [...byYear.keys()].sort();
+    if (years.length < 2) { _sxStage(`<p class="sx-note">${esc(t('sx_game_small'))}</p>`); return; }
+    _sxGame.years = years;
+    _sxGame.byYear = byYear;
+    _sxGame.seen = new Set();
+    this.round();
+  },
+  round() {
+    const G = _sxGame;
+    G.round++;
+    G.locked = false;
+    // A random year, then a random song from it not asked yet
+    let s = null;
+    for (let i = 0; i < 50 && !s; i++) {
+      const list = G.byYear.get(G.years[_sxRand(G.years.length)]);
+      const c = list[_sxRand(list.length)];
+      if (!G.seen.has(c.sk)) s = c;
+    }
+    G.song = s;
+    G.seen.add(s.sk);
+    _sxScoreLine(t('sx_round').replace('{n}', G.round).replace('{of}', 10) + ' · ' + t('sx_points').replace('{n}', G.score.toLocaleString()));
+    const card = _sxSongCard(s, `<em class="sx-gsmall">${s.n.toLocaleString()} ${esc(t('sx_plays'))}</em>`);
+    const btns = G.years.map(y => `<button type="button" class="dc-btn dc-btn-normal sx-year-btn" data-y="${y}">${y}</button>`).join('');
+    const st = _sxStage(`<p class="sx-game-q">${esc(t('sx_year_q'))}</p>${card.html}<div class="sx-year-btns">${btns}</div><p id="sxGameRes" class="sx-game-res"></p>`, '.sx-year-btn');
+    _sxSongArt(document.getElementById(card.id), s);
+    st.querySelectorAll('[data-y]').forEach(b => b.addEventListener('click', () => this.answer(+b.dataset.y)));
+  },
+  answer(y) {
+    const G = _sxGame;
+    if (!G || G.locked) return;
+    G.locked = true;
+    const real = G.song.first.getFullYear(), off = Math.abs(y - real);
+    const pts = off === 0 ? 100 : off === 1 ? 50 : off === 2 ? 20 : 0;
+    G.score += pts;
+    document.querySelectorAll('#sxGameStage [data-y]').forEach(b => {
+      b.disabled = true;
+      if (+b.dataset.y === real) b.classList.add('is-right');
+      else if (+b.dataset.y === y) b.classList.add('is-wrong');
+    });
+    const locale = currentLang === 'en' ? 'en-US' : currentLang;
+    const date = G.song.first.toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' });
+    const res = document.getElementById('sxGameRes');
+    if (res) res.innerHTML = `<span class="${pts ? 'sx-right' : 'sx-wrong'}">${esc(t(pts === 100 ? 'sx_year_exact' : pts ? 'sx_year_close' : 'sx_year_miss').replace('{pts}', pts).replace('{date}', date))}</span>`;
+    _sxScoreLine(t('sx_round').replace('{n}', G.round).replace('{of}', 10) + ' · ' + t('sx_points').replace('{n}', G.score.toLocaleString()));
+    G.timer = setTimeout(() => {
+      if (_sxGame !== G) return;
+      if (G.round >= 10) _sxGameOver(G.score, t('sx_points').replace('{n}', G.score.toLocaleString()));
+      else this.round();
+    }, 1900);
+  },
+};
+
+// ── Which came first? (step 8) ──
+/* Two songs: tap the one you played first. Their first plays are at least
+   30 days apart. Keep going until a wrong answer. Keys: ← / →. */
+SX_GAMES.first = {
+  start() {
+    const pool = _sxSongPool().slice(0, 1500).filter(s => s.first);
+    if (pool.length < 10) { _sxStage(`<p class="sx-note">${esc(t('sx_game_small'))}</p>`); return; }
+    _sxGame.pool = pool;
+    this.round();
+  },
+  round() {
+    const G = _sxGame, pool = G.pool;
+    G.locked = false;
+    let a = null, b = null;
+    for (let i = 0; i < 300; i++) {
+      a = pool[_sxRand(pool.length)]; b = pool[_sxRand(pool.length)];
+      if (a.sk !== b.sk && Math.abs(a.first - b.first) >= 30 * _SX_DAY) break;
+    }
+    G.pair = [a, b];
+    _sxScoreLine(t('sx_hl_streak').replace('{n}', G.score) + ' · ' + t('sx_game_best').replace('{n}', Math.max(G.score, _sxGameBest.first || 0).toLocaleString()));
+    const ca = _sxSongCard(a, `<button type="button" class="dc-btn dc-btn-main" data-f="0">${esc(t('sx_first_this'))}</button><em class="sx-gsmall" id="sxF0"></em>`);
+    const cb = _sxSongCard(b, `<button type="button" class="dc-btn dc-btn-main" data-f="1">${esc(t('sx_first_this'))}</button><em class="sx-gsmall" id="sxF1"></em>`);
+    const st = _sxStage(`<p class="sx-game-q">${esc(t('sx_first_q'))}</p><div class="sx-hl">${ca.html}<span class="sx-vs">${esc(t('sx_vs_short'))}</span>${cb.html}</div><p id="sxGameRes" class="sx-game-res"></p>`, '[data-f="0"]');
+    _sxSongArt(document.getElementById(ca.id), a);
+    _sxSongArt(document.getElementById(cb.id), b);
+    st.querySelectorAll('[data-f]').forEach(x => x.addEventListener('click', () => this.answer(+x.dataset.f)));
+  },
+  key(e) {
+    if (e.key === 'ArrowLeft') { e.preventDefault(); this.answer(0); }
+    if (e.key === 'ArrowRight') { e.preventDefault(); this.answer(1); }
+  },
+  answer(i) {
+    const G = _sxGame;
+    if (!G || G.locked || !G.pair) return;
+    G.locked = true;
+    const [a, b] = G.pair, firstI = a.first < b.first ? 0 : 1, right = i === firstI;
+    const locale = currentLang === 'en' ? 'en-US' : currentLang;
+    [a, b].forEach((s, j) => {
+      const el = document.getElementById('sxF' + j);
+      if (el) { el.textContent = s.first.toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' }); el.classList.add(j === firstI ? 'is-right' : 'is-other'); }
+    });
+    document.querySelectorAll('#sxGameStage [data-f]').forEach(x => { x.disabled = true; });
+    const res = document.getElementById('sxGameRes');
+    if (right) {
+      G.score++;
+      if (res) res.innerHTML = `<span class="sx-right">${esc(t('sx_game_right'))}</span>`;
+      _sxScoreLine(t('sx_hl_streak').replace('{n}', G.score) + ' · ' + t('sx_game_best').replace('{n}', Math.max(G.score, _sxGameBest.first || 0).toLocaleString()));
+      G.timer = setTimeout(() => { if (_sxGame === G) this.round(); }, 1600);
+    } else {
+      if (res) res.innerHTML = `<span class="sx-wrong">${esc(t('sx_first_wrong').replace('{song}', [a, b][firstI].title))}</span>`;
+      G.timer = setTimeout(() => { if (_sxGame === G) _sxGameOver(G.score, t('sx_hl_final').replace('{n}', G.score)); }, 1900);
+    }
+  },
+};
+
+// ── Guess the #1 (step 8) ──
+/* Ten weeks from your weekly chart; for each, pick its #1 song from four.
+   The other three charted that same week (or near it), so it takes
+   memory, not just knowing your favourites. Keys: 1–4. */
+SX_GAMES.one = {
+  start() {
+    const run = _crFull('week');
+    const tab = run.result.songs || {};
+    const weeks = new Map(); // week -> [{ sk, rank }]
+    for (const sk in tab) for (const e of tab[sk].entries) {
+      if (e.rank > 15) continue;
+      if (!weeks.has(e.periodKey)) weeks.set(e.periodKey, []);
+      weeks.get(e.periodKey).push({ sk, rank: e.rank });
+    }
+    const usable = [...weeks.entries()].filter(([, l]) => l.some(x => x.rank === 1) && l.length >= 4).map(([w]) => w);
+    if (usable.length < 10) { _sxStage(`<p class="sx-note">${esc(t('sx_game_small'))}</p>`); return; }
+    _sxGame.weeks = weeks;
+    _sxGame.usable = usable;
+    _sxGame.tab = tab;
+    _sxGame.seen = new Set();
+    this.round();
+  },
+  song(sk) {
+    const e = _sxGame.tab[sk], o = _sxIndex().songs.get(sk);
+    return { sk, title: (e && e._title) || (o && o.label) || sk, artist: (e && e._artist) || (o && o.sub) || '' };
+  },
+  round() {
+    const G = _sxGame;
+    G.round++;
+    G.locked = false;
+    let w;
+    do { w = G.usable[_sxRand(G.usable.length)]; } while (G.seen.has(w) && G.seen.size < G.usable.length);
+    G.seen.add(w);
+    const list = G.weeks.get(w);
+    const one = list.find(x => x.rank === 1);
+    const others = list.filter(x => x.rank !== 1).sort(() => Math.random() - 0.5).slice(0, 3);
+    const opts = [one, ...others].sort(() => Math.random() - 0.5).map(x => this.song(x.sk));
+    G.ans = opts.findIndex(o => o.sk === one.sk);
+    G.opts = opts;
+    _sxScoreLine(t('sx_round').replace('{n}', G.round).replace('{of}', 10) + ' · ' + t('sx_one_score').replace('{n}', G.score));
+    const ids = [];
+    const html = opts.map((o, i) => {
+      const id = 'sx-gart-' + (++_sxArtN);
+      ids.push(id);
+      return `<button type="button" class="sx-one-opt" data-o="${i}"><span class="sx-one-k">${i + 1}</span>` +
+        `<span class="sx-gart sx-gart-sm" id="${id}"><span class="thumb-initials">${esc(initials(o.title))}</span></span>` +
+        `<span class="sx-gtxt"><b>${esc(o.title)}</b><span>${esc(o.artist)}</span></span></button>`;
+    }).join('');
+    const st = _sxStage(`<p class="sx-game-q">${esc(t('sx_one_q').replace('{week}', crPeriodTitle('week', w)))}</p>` +
+      `<div class="sx-one-opts">${html}</div><p id="sxGameRes" class="sx-game-res"></p>`, '.sx-one-opt');
+    opts.forEach((o, i) => _sxSongArt(document.getElementById(ids[i]), o));
+    st.querySelectorAll('[data-o]').forEach(b => b.addEventListener('click', () => this.answer(+b.dataset.o)));
+  },
+  key(e) {
+    if (/^[1-4]$/.test(e.key)) { e.preventDefault(); this.answer(+e.key - 1); }
+  },
+  answer(i) {
+    const G = _sxGame;
+    if (!G || G.locked || !G.opts || i >= G.opts.length) return;
+    G.locked = true;
+    const right = i === G.ans;
+    if (right) G.score++;
+    document.querySelectorAll('#sxGameStage [data-o]').forEach(b => {
+      b.disabled = true;
+      if (+b.dataset.o === G.ans) b.classList.add('is-right');
+      else if (+b.dataset.o === i) b.classList.add('is-wrong');
+    });
+    const res = document.getElementById('sxGameRes');
+    if (res) res.innerHTML = right ? `<span class="sx-right">${esc(t('sx_game_right'))}</span>`
+      : `<span class="sx-wrong">${esc(t('sx_one_was').replace('{song}', G.opts[G.ans].title))}</span>`;
+    _sxScoreLine(t('sx_round').replace('{n}', G.round).replace('{of}', 10) + ' · ' + t('sx_one_score').replace('{n}', G.score));
+    G.timer = setTimeout(() => {
+      if (_sxGame !== G) return;
+      if (G.round >= 10) _sxGameOver(G.score, t('sx_one_final').replace('{n}', G.score));
+      else this.round();
+    }, 1700);
+  },
+};
