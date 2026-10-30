@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 377;
+const DC_CL_I18N_V = 378;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-30', t: 'feature', a: 'ui', h: '4ca4d2a',
+    title: "Games in Stats: how well do you know your own music?",
+    detail: "Stats has a Games tab with four quizzes made from your own library, played full screen. Higher or lower: does this song have more or fewer plays than that one? Keep the streak going. Guess the year: when did you first play this song? Ten songs, up to 100 points each. Which came first: two songs, which one did you find first? Guess the #1: a week from your past, pick its #1 song from four that charted that week. Your best score for each stays on this device, and at the end you can share your score as a picture. The games use your whole history, so the date range steps aside on that tab. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-30', t: 'feature', a: 'ui', h: '574cc54',
     title: "A Story tab in Stats: what your listening was about",
     detail: "Stats has a Story tab that tells what the date range was about, card by card. Your obsession shows the artist you played most each month (each week for a short range), with their picture; tap one to open that chart. Your eras finds the stretches where one artist was #1 on your weekly chart three weeks or more in a row. Taste drift draws how your yearly top 10 artists moved over the last eight years; tap a line or a name to follow one artist. Then: how loyal or adventurous you were (the share that went to your top 10), comfort songs against new finds, your biggest new artists and whether they are still going, cooling off or faded, your plays put another way (a day, your top song, and as steps), and the round numbers you passed, like your 200,000th play or an artist reaching 2,500 plays. Works with Last.fm, Google Sheets and CSV uploads." },
