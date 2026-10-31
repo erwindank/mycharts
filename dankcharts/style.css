@@ -11332,6 +11332,32 @@
     .sx-ts-col { min-width: 0; border-top: 3px solid var(--c); padding-top: var(--sp-2); }
     .sx-ts-head { margin-bottom: var(--sp-1); }
 
+    /* Listening habits (phase 17 step 7): three facts, then hour and day cells */
+    .sx-hab-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-3); margin: 0 0 var(--sp-4); padding: 0; list-style: none; }
+    @media (max-width: 640px) { .sx-hab-facts { grid-template-columns: 1fr; } }
+    .sx-hab-facts li { background: var(--bg3); border-radius: var(--r-sm); padding: var(--sp-3) var(--sp-4); min-width: 0; }
+    .sx-hab-facts span { display: block; font-size: 0.6875rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--text3); }
+    .sx-hab-facts div { margin-top: 0.2rem; font-family: var(--font-display); font-size: var(--fs-md); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sx-hab-facts em { font-style: normal; font-size: var(--fs-xs); color: var(--text2); }
+    .sx-hab-wrap { overflow-x: auto; }
+    .sx-hab { display: flex; flex-direction: column; gap: 4px; min-width: 40rem; }
+    .sx-hab-row { display: grid; grid-template-columns: 11rem minmax(0, 24fr) minmax(0, 7fr); gap: var(--sp-3); align-items: center; }
+    .sx-hab-h, .sx-hab-d { display: grid; gap: 2px; }
+    .sx-hab-h { grid-template-columns: repeat(24, minmax(0, 1fr)); }
+    .sx-hab-d { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+    .sx-hab-h i, .sx-hab-d i { display: block; height: 22px; border-radius: 3px; background: var(--bg3); overflow: hidden; }
+    .sx-hab-h b, .sx-hab-d b { display: block; width: 100%; height: 100%; background: var(--c); }
+    .sx-hab-name { min-width: 0; }
+    .sx-hab-axis span { font-family: var(--font-mono); font-size: 0.625rem; color: var(--text3); text-align: left; }
+    .sx-hab-axis .sx-hab-d span { text-align: center; }
+    @media (max-width: 640px) {
+      .sx-hab { min-width: 30rem; }
+      .sx-hab-row { grid-template-columns: 6.5rem minmax(0, 24fr) minmax(0, 7fr); gap: var(--sp-2); }
+      .sx-hab-h i, .sx-hab-d i { height: 18px; }
+      .sx-hab-facts li { padding: var(--sp-2) var(--sp-3); }
+      .sx-hab-facts div { font-size: var(--fs-sm); }
+    }
+
     /* Story (step 5): artist picture slots */
     .sx-face {
       display: grid; place-items: center; overflow: hidden; flex-shrink: 0;

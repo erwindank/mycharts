@@ -2054,6 +2054,44 @@ function _sxCmpTopSongs(T, names) {
   return `<div class="sx-ts">${cols}</div>`;
 }
 
+// ── Listening habits (step 7) ──
+/* When each pick gets played: a row of 24 hour cells and a row of 7 day
+   cells per pick, each cell as strong as its share of that pick's own
+   plays (so a small pick's habits read as clearly as a big one's). Above
+   them, which pick is your morning one, your night one and your weekend
+   one: the biggest share of plays from 5:00 to 11:59, from 21:00 to 4:59,
+   and on Saturday and Sunday. Picks with fewer than 10 plays sit those out. */
+function _sxCmpHabits(T, names) {
+  if (!T.total) return '';
+  const who = i => `<b style="color:${_sxCmpColor(i)}">${esc(names[i])}</b>`;
+  const share = (o, f) => o.plays ? f(o) / o.plays : 0;
+  const morning = o => o.hours.slice(5, 12).reduce((a, b) => a + b, 0);
+  const night = o => o.hours.slice(21).reduce((a, b) => a + b, 0) + o.hours.slice(0, 5).reduce((a, b) => a + b, 0);
+  const weekend = o => o.dow[0] + o.dow[6];
+  const facts = [['sx_hab_morning', morning], ['sx_hab_night', night], ['sx_hab_weekend', weekend]].map(([key, f]) => {
+    let bi = -1, bv = 0;
+    T.per.forEach((o, i) => { if (o.plays >= 10) { const v = share(o, f); if (v > bv) { bv = v; bi = i; } } });
+    if (bi < 0 || T.picks.length < 2) return '';
+    return `<li><span>${esc(t(key))}</span><div>${who(bi)}</div><em>${esc(t('sx_hab_pct').replace('{pct}', Math.round(bv * 100)))}</em></li>`;
+  }).join('');
+  const days = Array.from({ length: 7 }, (_, j) => (weekStartDay + j) % 7);
+  const cells = (vals, tips) => {
+    const max = Math.max(...vals, 1);
+    return vals.map((v, j) => `<i title="${esc(tips[j] + ': ' + t('sx_n_plays').replace('{n}', v.toLocaleString()))}"><b style="opacity:${v ? (0.15 + 0.85 * v / max).toFixed(2) : 0}"></b></i>`).join('');
+  };
+  const hourTips = Array.from({ length: 24 }, (_, h) => String(h).padStart(2, '0') + ':00');
+  const dayTips = days.map(d => _sxDayLabel(d, true));
+  const rows = T.per.map((o, i) => o.plays ? `<div class="sx-hab-row" style="--c:${_sxCmpColor(i)}">` +
+    `<div class="sx-hab-name">${_sxCmpName(T.type, T.picks[i], i, names[i])}</div>` +
+    `<div class="sx-hab-h">${cells(o.hours, hourTips)}</div>` +
+    `<div class="sx-hab-d">${cells(days.map(d => o.dow[d]), dayTips)}</div></div>` : '').join('');
+  const axis = `<div class="sx-hab-row sx-hab-axis" aria-hidden="true"><div></div>` +
+    `<div class="sx-hab-h">${Array.from({ length: 24 }, (_, h) => `<span>${h % 6 === 0 ? h : ''}</span>`).join('')}</div>` +
+    `<div class="sx-hab-d">${days.map(d => `<span>${esc(_sxDayLabel(d).slice(0, 1).toUpperCase())}</span>`).join('')}</div></div>`;
+  return (facts ? `<ul class="sx-hab-facts">${facts}</ul>` : '') +
+    `<div class="sx-hab-wrap"><div class="sx-hab">${rows}${axis}</div></div>`;
+}
+
 function _sxCmpMore(type, picks) {
   const box = document.getElementById('sxCmpMore');
   if (!box) return;
@@ -2077,6 +2115,8 @@ function _sxCmpMore(type, picks) {
     // Step 6: each pick's top songs
     const ts = _sxCmpTopSongs(T, names);
     if (ts) html += _sxCmpCard('sx-cmp-ts', t('sx_ts_title'), t('sx_ts_sub_' + T.type), ts);
+    // Step 7: when each one gets played
+    html += _sxCmpCard('sx-cmp-hab', t('sx_hab_title'), t('sx_hab_sub'), _sxCmpHabits(T, names));
   }
   box.innerHTML = html;
   // The 1-vs-1 pictures, once the slots are on the page
