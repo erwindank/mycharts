@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=754">
+  <link rel="stylesheet" href="style.css?v=755">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -164,12 +164,12 @@
           <input type="text" id="landingSheetId" placeholder="Paste your Google Sheets URL or Sheet ID" data-i18n-placeholder="landing_sheets_url_placeholder" onclick="event.stopPropagation()" autocomplete="off">
           <input type="text" id="landingSheetTab" placeholder="Tab name (default: Full Raw Listening History)" data-i18n-placeholder="landing_sheets_tab_placeholder" onclick="event.stopPropagation()" autocomplete="off">
           <p class="landing-hint" data-i18n="landing_sheets_hint_share">The sheet must be shared as "Anyone with the link can view"</p>
-          <p class="landing-hint" style="margin-top:0.3rem"><a href="setup-guide.html?tab=sheets" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:color-mix(in srgb, var(--green) 78%, black)" data-i18n="landing_sheets_setup_guide">📄 Setup guide</a></p>
-          <p class="landing-hint" style="margin-top:0.2rem"><span data-i18n="landing_sheets_nosample">Just exploring?</span> <a href="#" onclick="event.stopPropagation(); loadSampleData(); return false;" style="color:color-mix(in srgb, var(--green) 78%, black)" data-i18n="landing_sheets_sample_link">Try with sample data →</a></p>
-          <details class="lfm-new-user-info" onclick="event.stopPropagation()" style="margin-top:0.5rem">
-            <summary style="font-size:var(--fs-sm);cursor:pointer" data-i18n="landing_sheets_howwork">How does this work?</summary>
-            <div class="lfm-new-user-body" style="font-size:var(--fs-xs);line-height:1.7;margin-top:0.4rem">
-              <p style="margin:0" data-i18n-html="landing_sheets_howwork_body">Your music history lives in <em>your</em> spreadsheet — every song you've ever listened to, all in one place, with no limits. Last.fm tracks your plays automatically, and you keep full control: edit, add, or explore your data however you like. Full setup in the <a href="setup-guide.html?tab=sheets" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:color-mix(in srgb, var(--green) 78%, black)">setup guide</a>.</p>
+          <p class="landing-hint landing-hint-next"><a href="setup-guide.html?tab=sheets" target="_blank" rel="noopener" onclick="event.stopPropagation()" data-i18n="landing_sheets_setup_guide">📄 Setup guide</a></p>
+          <p class="landing-hint landing-hint-next"><span data-i18n="landing_sheets_nosample">Just exploring?</span> <a href="#" onclick="event.stopPropagation(); loadSampleData(); return false;" data-i18n="landing_sheets_sample_link">Try with sample data →</a></p>
+          <details class="lfm-new-user-info" onclick="event.stopPropagation()">
+            <summary data-i18n="landing_sheets_howwork">How does this work?</summary>
+            <div class="lfm-new-user-body">
+              <p data-i18n-html="landing_sheets_howwork_body">Your music history lives in <em>your</em> spreadsheet — every song you've ever listened to, all in one place, with no limits. Last.fm tracks your plays automatically, and you keep full control: edit, add, or explore your data however you like. Full setup in the <a href="setup-guide.html?tab=sheets" target="_blank" rel="noopener" onclick="event.stopPropagation()">setup guide</a>.</p>
             </div>
           </details>
         </div>
@@ -211,7 +211,7 @@
                stops there. Editing and pushing scrobbles back needs your own API
                key + shared secret, which is the guide's 4-step setup — say so
                here, or the card reads as everything Last.fm can do. -->
-          <p class="landing-hint" style="margin-top:0.3rem"><span data-i18n="landing_lastfm_full_setup">Want the full setup? Connect your own API key to fix and push scrobbles.</span> <a class="landing-guide-link" href="setup-guide.html?tab=lastfm" target="_blank" rel="noopener" onclick="event.stopPropagation()" data-i18n="landing_lastfm_setup_guide">📄 Last.fm setup guide →</a></p>
+          <p class="landing-hint landing-hint-next"><span data-i18n="landing_lastfm_full_setup">Want the full setup? Connect your own API key to fix and push scrobbles.</span> <a class="landing-guide-link" href="setup-guide.html?tab=lastfm" target="_blank" rel="noopener" onclick="event.stopPropagation()" data-i18n="landing_lastfm_setup_guide">📄 Last.fm setup guide →</a></p>
         </div>
       </div>
 
@@ -233,7 +233,7 @@
           <!-- Same affordance the Sheets card carries: the file path has the most
                prep work of the three (requesting an export, reshaping a CSV), so
                the guide needs to be reachable before the file picker, not after. -->
-          <p class="landing-hint" style="margin-top:0.3rem"><a class="landing-guide-link" href="setup-guide.html?tab=file" target="_blank" rel="noopener" onclick="event.stopPropagation()" data-i18n="landing_file_setup_guide">📄 Setup guide</a></p>
+          <p class="landing-hint landing-hint-next"><a class="landing-guide-link" href="setup-guide.html?tab=file" target="_blank" rel="noopener" onclick="event.stopPropagation()" data-i18n="landing_file_setup_guide">📄 Setup guide</a></p>
         </div>
       </div>
 
@@ -250,7 +250,7 @@
 
     <div class="landing-support-note">
       <span data-i18n="landing_support_text">Questions or need help?</span> <button class="landing-support-link" onclick="openSupport()" data-i18n="landing_support_btn">Contact Support</button>
-      &nbsp;·&nbsp; <a href="terms.html" target="_blank" rel="noopener" style="color:var(--text3);font-size:var(--fs-sm);" data-i18n="landing_terms_privacy">Terms &amp; Privacy</a>
+      &nbsp;·&nbsp; <a class="landing-terms-link" href="terms.html" target="_blank" rel="noopener" data-i18n="landing_terms_privacy">Terms &amp; Privacy</a>
     </div>
   </div>
 
@@ -714,10 +714,10 @@
           <thead>
             <tr id="songsHeadRow">
               <th>RANK</th>
-              <th style="width:52px;"></th>
+              <th class="th-art"></th>
               <th>Title · Artist</th>
               <th>Album</th>
-              <th style="text-align:right;">Plays</th>
+              <th class="th-right">Plays</th>
             </tr>
           </thead>
           <tbody id="songsBody"></tbody>
@@ -805,9 +805,9 @@
           <thead>
             <tr>
               <th>RANK</th>
-              <th style="width:52px;"></th>
+              <th class="th-art"></th>
               <th>Title · Artist</th>
-              <th class="plays-th" style="text-align:center;">Plays</th>
+              <th class="plays-th th-center">Plays</th>
             </tr>
           </thead>
           <tbody id="newSongsBody"></tbody>
@@ -922,10 +922,10 @@
           <thead>
             <tr id="artistsHeadRow">
               <th>RANK</th>
-              <th style="width:52px;"></th>
+              <th class="th-art"></th>
               <th>Artist</th>
               <th>Unique Songs</th>
-              <th style="text-align:right;">Total Plays</th>
+              <th class="th-right">Total Plays</th>
             </tr>
           </thead>
           <tbody id="artistsBody"></tbody>
@@ -1013,9 +1013,9 @@
           <thead>
             <tr>
               <th>RANK</th>
-              <th style="width:52px;"></th>
+              <th class="th-art"></th>
               <th>Artist</th>
-              <th class="plays-th" style="text-align:center;">Plays</th>
+              <th class="plays-th th-center">Plays</th>
             </tr>
           </thead>
           <tbody id="newArtistsBody"></tbody>
@@ -1132,10 +1132,10 @@
           <thead>
             <tr id="albumsHeadRow">
               <th>RANK</th>
-              <th style="width:52px;"></th>
+              <th class="th-art"></th>
               <th>Album · Artist</th>
               <th>Tracks</th>
-              <th style="text-align:right;">Total Plays</th>
+              <th class="th-right">Total Plays</th>
             </tr>
           </thead>
           <tbody id="albumsBody"></tbody>
@@ -1223,9 +1223,9 @@
           <thead>
             <tr>
               <th>RANK</th>
-              <th style="width:52px;"></th>
+              <th class="th-art"></th>
               <th id="newAlbumsThName">Album · Artist</th>
-              <th class="plays-th" style="text-align:center;">Plays</th>
+              <th class="plays-th th-center">Plays</th>
             </tr>
           </thead>
           <tbody id="newAlbumsBody"></tbody>
@@ -1560,7 +1560,7 @@
                 class="sort-arrow">↕</span></th>
             <th class="raw-th" data-col="album" data-i18n-raw-th="raw_th_album">Album<span class="sort-arrow">↕</span>
             </th>
-            <th style="width:2rem;"></th>
+            <th class="th-narrow"></th>
           </tr>
         </thead>
         <tbody id="rawBody"></tbody>
@@ -1570,7 +1570,7 @@
 
     <!-- RECORDS VIEW -->
     <div id="recordsView" style="display:none;">
-      <div class="section-header" style="margin-bottom:0.5rem;">
+      <div class="section-header section-header--tight">
         <h2 class="section-header-h2" data-i18n="sec_records_title">🏆 Records &amp; Hall of Fame</h2>
         <div class="section-rule"></div>
       </div>
@@ -1587,7 +1587,7 @@
            crosshair for the three-way #1 lock, a flame for streaks. Every path
            is stroke-only on a 16-unit grid so `currentColor` carries them
            through all ten themes with no per-theme fill to maintain. -->
-      <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+      <svg class="svg-sprite" width="0" height="0" aria-hidden="true" focusable="false">
         <defs>
           <symbol id="ri-overview" viewBox="0 0 16 16">
             <rect x="2" y="2" width="5" height="5" rx="1" />
@@ -2176,7 +2176,7 @@
         <div id="nmfStatus" class="upcoming-status"></div>
         <div class="section-body">
           <div class="nmf-cal-outer" id="nmfCalOuter" style="display:none;">
-            <div class="events-calendar-header" style="margin-bottom:0.5rem;">
+            <div class="events-calendar-header events-calendar-header--gap">
               <button class="dc-btn dc-btn-normal dc-btn-sm dc-btn-icon cal-nav-btn" onclick="nmfCalPrev()">&#8249;</button>
               <span id="nmfCalTitle" class="cal-title"></span>
               <button class="dc-btn dc-btn-normal dc-btn-sm dc-btn-icon cal-nav-btn" onclick="nmfCalNext()">&#8250;</button>
@@ -2812,12 +2812,12 @@
   <div class="page-footer">
     <span data-i18n="footer_line1">dankcharts.fm · Your Personal Music Charts · Est. 2016</span><br>
     <span data-i18n="footer_line2">All data stays in your browser. Nothing is uploaded or stored externally.</span><br>
-    <a href="terms.html" target="_blank" rel="noopener" style="color:var(--text3);font-size:var(--fs-xs);text-decoration:none;">Terms of Service &amp; Privacy Policy</a>
+    <a href="terms.html" target="_blank" rel="noopener">Terms of Service &amp; Privacy Policy</a>
     <!-- The changelog lives here rather than in the Charts Guide: the guide
          answers "how do I use this", the changelog answers "what changed".
          Different question, different reader, so a different door. -->
-    <span style="color:var(--text3);font-size:var(--fs-xs);"> · </span>
-    <a href="#changelog" onclick="event.preventDefault();openChangelog()" style="color:var(--text3);font-size:var(--fs-xs);text-decoration:none;" data-i18n="footer_changelog">What&rsquo;s New</a>
+    <span> · </span>
+    <a href="#changelog" onclick="event.preventDefault();openChangelog()" data-i18n="footer_changelog">What&rsquo;s New</a>
   </div>
 
   <!-- ── CHANGELOG ──
@@ -2912,7 +2912,7 @@
               <span class="sh-slider-val" id="igTopNLabel">10</span>
             </div>
             <div class="sh-hint" data-i18n="sh_entries_hint">0 = use the current chart size</div>
-            <div class="sh-group-title" style="margin-top:0.6rem;" data-i18n="sh_text_size">Text size</div>
+            <div class="sh-group-title sh-group-title--gap" data-i18n="sh_text_size">Text size</div>
             <div class="sh-slider-row">
               <input type="range" id="igTextScale" min="80" max="130" value="100" step="2" oninput="updateIgPreview()">
               <span class="sh-slider-val" id="igTextScaleLabel">100%</span>
@@ -3022,7 +3022,7 @@
                 <input type="range" id="crTextScale" min="80" max="130" value="100" step="2" oninput="updateCrIgPreview()">
                 <span class="sh-slider-val" id="crTextScaleLabel">100%</span>
               </div>
-              <div class="sh-group-title" style="margin-top:0.6rem;" data-i18n="sh_quality">Quality</div>
+              <div class="sh-group-title sh-group-title--gap" data-i18n="sh_quality">Quality</div>
               <div class="dc-seg dc-seg-fill sh-seg" id="crQualityBtns">
                 <button class="sh-seg-btn" data-q="1" onclick="setCrQuality(1)" data-i18n="sh_quality_std">Standard</button>
                 <button class="sh-seg-btn active" data-q="2" onclick="setCrQuality(2)" data-i18n="sh_quality_high">High</button>
@@ -3092,7 +3092,7 @@
                 <input type="range" id="epTextScale" min="80" max="130" value="100" step="2" oninput="updateCrIgPreview()">
                 <span class="sh-slider-val" id="epTextScaleLabel">100%</span>
               </div>
-              <div class="sh-group-title" style="margin-top:0.6rem;" data-i18n="sh_quality">Quality</div>
+              <div class="sh-group-title sh-group-title--gap" data-i18n="sh_quality">Quality</div>
               <div class="dc-seg dc-seg-fill sh-seg" id="epQualityBtns">
                 <button class="sh-seg-btn" data-q="1" onclick="setEpQuality(1)" data-i18n="sh_quality_std">Standard</button>
                 <button class="sh-seg-btn active" data-q="2" onclick="setEpQuality(2)" data-i18n="sh_quality_high">High</button>
@@ -3110,7 +3110,7 @@
       </div>
     </div>
   </div>
-  <div id="crIgCanvas" style="position:fixed;left:-9999px;top:0;pointer-events:none;"></div>
+  <div id="crIgCanvas" class="share-stage"></div>
 
   <!-- YOUR SOUNDTRACK SHARE MODAL -->
   <div class="ig-modal-overlay" id="stCardModal">
@@ -3174,7 +3174,7 @@
               <input type="range" id="stTopN" min="3" max="10" value="5" step="1" oninput="stUpdateCardPreview()">
               <span class="sh-slider-val" id="stTopNLabel">5</span>
             </div>
-            <div class="sh-group-title" style="margin-top:0.6rem;" data-i18n="sh_text_size">Text size</div>
+            <div class="sh-group-title sh-group-title--gap" data-i18n="sh_text_size">Text size</div>
             <div class="sh-slider-row">
               <input type="range" id="stTextScale" min="80" max="130" value="100" step="2" oninput="stUpdateCardPreview()">
               <span class="sh-slider-val" id="stTextScaleLabel">100%</span>
@@ -3198,7 +3198,7 @@
       </div>
     </div>
   </div>
-  <div id="stCardCanvas" style="position:fixed;left:-9999px;top:0;pointer-events:none;"></div>
+  <div id="stCardCanvas" class="share-stage"></div>
 
   <!-- EXPORT PLAYLIST MODAL — three steps read top to bottom: pick a name,
        copy (or download) the songs, import them on Soundiiz. Every dynamic part
@@ -3561,7 +3561,7 @@
             </div>
             <div class="sh-hint" data-i18n="rt_card_fit_hint">Tracks that don't fit the format are left off.</div>
             </div>
-            <div class="sh-group-title" style="margin-top:0.6rem;" data-i18n="sh_text_size">Text size</div>
+            <div class="sh-group-title sh-group-title--gap" data-i18n="sh_text_size">Text size</div>
             <div class="sh-slider-row">
               <input type="range" id="rtTextScale" min="80" max="130" value="100" step="2" oninput="rtUpdateCardPreview()">
               <span class="sh-slider-val" id="rtTextScaleLabel">100%</span>
@@ -3585,7 +3585,7 @@
       </div>
     </div>
   </div>
-  <div id="rtCardCanvas" style="position:fixed;left:-9999px;top:0;pointer-events:none;"></div>
+  <div id="rtCardCanvas" class="share-stage"></div>
 
 
   <!-- ARTIST PROFILE MODAL -->
@@ -3768,7 +3768,7 @@
               <span class="sh-slider-val" id="tpTopNLabel">12</span>
             </div>
             <div class="sh-hint" data-i18n="rt_card_fit_hint">Tracks that don't fit the format are left off.</div>
-            <div class="sh-group-title" style="margin-top:0.6rem;" data-i18n="sh_text_size">Text size</div>
+            <div class="sh-group-title sh-group-title--gap" data-i18n="sh_text_size">Text size</div>
             <div class="sh-slider-row">
               <input type="range" id="tpTextScale" min="80" max="130" value="100" step="2" oninput="tpUpdateCardPreview()">
               <span class="sh-slider-val" id="tpTextScaleLabel">100%</span>
@@ -3792,7 +3792,7 @@
       </div>
     </div>
   </div>
-  <div id="tpCardCanvas" style="position:fixed;left:-9999px;top:0;pointer-events:none;"></div>
+  <div id="tpCardCanvas" class="share-stage"></div>
 
   <!-- ── Discography scores share image ──
        Declared after #artistModal on purpose: every overlay shares one
@@ -3841,7 +3841,7 @@
               <input type="range" id="raPerPage" min="1" max="12" value="6" step="1" oninput="raUpdateCardPreview()">
               <span class="sh-slider-val" id="raPerPageLabel">6</span>
             </div>
-            <div class="sh-group-title" style="margin-top:0.6rem;" data-i18n="ra_card_order">Order</div>
+            <div class="sh-group-title sh-group-title--gap" data-i18n="ra_card_order">Order</div>
             <div class="dc-seg dc-seg-fill sh-seg" id="raOrderBtns">
               <button class="sh-seg-btn active" data-order="year" onclick="setRaOrder('year')" data-i18n="ra_card_order_year">Release year</button>
               <button class="sh-seg-btn" data-order="first" onclick="setRaOrder('first')" data-i18n="ra_card_order_first">First played</button>
@@ -3900,7 +3900,7 @@
       </div>
     </div>
   </div>
-  <div id="raCardCanvas" style="position:fixed;left:-9999px;top:0;pointer-events:none;"></div>
+  <div id="raCardCanvas" class="share-stage"></div>
 
   <button id="backToTop" data-i18n-title="tooltip_back_to_top" aria-label="Back to top">&#8679;</button>
 
@@ -4964,7 +4964,7 @@ function deleteGenreTriggers() {
           <div class="set-dropzone-types">.csv &nbsp;·&nbsp; .zip &nbsp;·&nbsp; .xlsx &nbsp;·&nbsp; .xls</div>
         </div>
         <input type="file" id="srcFileInput" accept=".csv,.zip,.xlsx,.xls" style="display:none">
-        <div id="srcFileStatus" class="src-modal-hint" style="margin-top:0.5rem;"></div>
+        <div id="srcFileStatus" class="src-modal-hint src-modal-hint--gap"></div>
         <p class="src-modal-hint" data-i18n-html="file_upload_hint">Upload your listening history. Supported formats: <strong>Last.fm CSV</strong>, <strong>mycharts CSV</strong>, <strong>Spotify ZIP</strong> (extended streaming history), <strong>Deezer XLSX</strong>.</p>
       </div>
 
@@ -4982,7 +4982,7 @@ function deleteGenreTriggers() {
         <p id="lfmConnectHint" class="src-modal-hint" data-i18n="set_lfm_hint_idle">Lets you add and edit plays from this site, and shows what you're playing right now in the ON AIR bar.</p>
         <details class="lfm-custom-creds set-disclosure">
           <summary data-i18n="set_lfm_custom">Use custom API credentials</summary>
-          <div class="src-field-group" style="margin-top:0.7rem">
+          <div class="src-field-group src-field-group--gap">
             <label>
               <span data-i18n="set_lfm_api_key">API Key</span>
               <input type="text" id="srcLfmApiKey" placeholder="API key from last.fm/api/account" data-i18n-placeholder="set_lfm_api_key_ph" autocomplete="off">
@@ -5250,7 +5250,7 @@ function deleteGenreTriggers() {
           <p class="src-modal-hint" data-i18n="set_display_name_hint">Appears in the page footer and the browser tab, as in "Your Name's Personal Music Charts".</p>
         </div>
 
-        <div class="src-field-group" style="margin-top:1.2rem">
+        <div class="src-field-group src-field-group--section">
           <label>
             <span data-i18n="set_timezone">Time zone</span>
             <select id="srcTimezone"></select>
@@ -5566,7 +5566,7 @@ function deleteGenreTriggers() {
       </div>
     </div>
   </div>
-  <div id="skCardCanvas" style="position:fixed;left:-9999px;top:0;pointer-events:none;"></div>
+  <div id="skCardCanvas" class="share-stage"></div>
 
   <!-- DISCOVERY BUBBLE ARTIST MODAL -->
   <!-- Slides in from the right like the song / album / artist panel (phase 10

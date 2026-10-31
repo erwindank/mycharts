@@ -3790,9 +3790,14 @@
         padding: var(--sp-6);
         overflow: hidden auto;
         scrollbar-width: none;
-        justify-content: center;
         border-right: 1px solid color-mix(in srgb, var(--dp-ac) 14%, var(--border));
       }
+      /* Centred with auto margins, not justify-content: center — that pushed
+         the top of a long title (cover, kicker) above the scroll start where
+         it couldn't be reached. Auto margins centre short content and fall
+         back to top-aligned + scrollable when it's taller than the panel. */
+      .dp-overlay:not(.dp-lite) .dp-hero > .dp-head { margin-top: auto; }
+      .dp-overlay:not(.dp-lite) .dp-hero > .dp-actions { margin-bottom: auto; }
       .dp-overlay:not(.dp-lite) .dp-titles::before {
         content: attr(data-kicker);
         display: block;
@@ -8884,6 +8889,7 @@
       margin-bottom: 0.85rem;
       flex-wrap: wrap;
     }
+    .section-header--tight { margin-bottom: var(--sp-2); }
 
     /* Fold (−/+) on the three chart sections only — left out of phase 8 with
        the charts. Every other fold button is a .dc-btn icon button. */
@@ -10443,6 +10449,7 @@
       font-size: var(--fs-xs);
       color: var(--text3);
     }
+    .sh-group-title--gap { margin-top: var(--sp-2); }
 
     .sh-tpl-row {
       display: flex;
@@ -12246,6 +12253,7 @@
       color: var(--text3);
       background: var(--bg);
     }
+    .page-footer a { color: var(--text3); text-decoration: none; }
 
     /* CERTIFICATIONS */
     .cert {
@@ -21416,6 +21424,9 @@ body.pink-light .landing-screen:has(.landing-card:hover) .landing-eq-skyline {
   line-height: 1.4;
   margin: 0;
 }
+/* A hint that follows another one in the same card (was inline, phase 11) */
+.landing-hint-next { margin-top: var(--sp-1); }
+.landing-terms-link { color: var(--text3); font-size: var(--fs-sm); }
 
 /* Guide links inside a card's config block. Without a rule of their own these
    fell back to the UA's #0000EE, which is unreadable on every dark theme and
@@ -21916,6 +21927,14 @@ body.pink-light .landing-screen:has(.landing-card:hover) .landing-eq-skyline {
 #landingConfigSheets .lfm-new-user-body {
   border-top-color: color-mix(in srgb, var(--green) 12%, transparent);
 }
+
+/* Sheets card links and "How does this work?" box: same darkened green as
+   the summary text above (was inline, phase 11) */
+#landingConfigSheets .landing-hint a,
+#landingConfigSheets .lfm-new-user-body a { color: color-mix(in srgb, var(--green) 78%, black); }
+#landingConfigSheets .lfm-new-user-info { margin-top: var(--sp-2); }
+#landingConfigSheets .lfm-new-user-info summary { font-size: var(--fs-sm); }
+#landingConfigSheets .lfm-new-user-body { margin-top: var(--sp-2); }
 
 /* Template CTA fill — darkened well past raw --green (which is a light
    mint/teal in dark themes) so white button text clears AA contrast. */
@@ -43896,3 +43915,21 @@ body.sh-bars-open .sh-bars-tog svg { transform: rotate(180deg); }
 @media (prefers-reduced-motion: reduce) {
   .cr-rb-chip, .cr-ribbon.is-sticky { transition: none; }
 }
+
+/* ==========================================================================
+   Small helpers that replaced inline styles in index.html (phase 11)
+   ========================================================================== */
+/* Chart table header cells: the cover column, right / centred numbers, the
+   narrow action column on Raw Data */
+th.th-art { width: 52px; }
+th.th-right { text-align: right; }
+th.th-center { text-align: center; }
+th.th-narrow { width: 2rem; }
+/* The icon sprite: takes no room in the page */
+.svg-sprite { position: absolute; }
+/* Off-screen stages the share cards are drawn in before html2canvas reads them */
+.share-stage { position: fixed; left: -9999px; top: 0; pointer-events: none; }
+.events-calendar-header--gap { margin-bottom: var(--sp-2); }
+.src-modal-hint--gap { margin-top: var(--sp-2); }
+.src-field-group--gap { margin-top: var(--sp-3); }
+.src-field-group--section { margin-top: var(--sp-4); }
