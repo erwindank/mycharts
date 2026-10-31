@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "A faster Stats Overview":
+    ["Un Resumen de Estadísticas más rápido",
+     "El Resumen de Estadísticas se abre ahora unas dos veces más rápido en bibliotecas grandes, con las mismas cifras de antes. El botón Mezclar de Datos curiosos combina con el botón Compartir, y la barra ¿Nuevo o conocido? usa colores fáciles de distinguir en todos los temas, también en Amarillo. La Guía de Charts describe ahora las nuevas tarjetas del Resumen."],
   "Share your Stats Overview, and tiles that lead somewhere":
     ["Comparte tu Resumen de Estadísticas, y cifras que llevan a algún sitio",
      "El Resumen de Estadísticas tiene un botón Compartir junto a su frase: crea una imagen con la frase y las cuatro cifras en los colores de tu tema, lista para publicar, o la guarda si tu dispositivo no puede compartir. Cada cifra tiene además un enlace a su vista completa: Reproducciones a tus reproducciones en el tiempo, Canciones Únicas a tus descubrimientos en Tu historia, y Artistas y Álbumes a Comparar, con tu top 3 del periodo. Funciona con Last.fm, Google Sheets y archivos CSV."],

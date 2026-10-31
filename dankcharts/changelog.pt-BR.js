@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "A faster Stats Overview":
+    ["Uma Visão geral das Estatísticas mais rápida",
+     "A Visão geral das Estatísticas agora abre cerca de duas vezes mais rápido em bibliotecas grandes, com os mesmos números de antes. O botão Embaralhar das Curiosidades combina com o botão Compartilhar, e a barra Novo ou conhecido? usa cores fáceis de distinguir em todos os temas, inclusive o Amarelo. O Guia de Charts agora descreve os novos cards da Visão geral."],
   "Share your Stats Overview, and tiles that lead somewhere":
     ["Compartilhe sua Visão geral, e números que levam a algum lugar",
      "A Visão geral das Estatísticas tem um botão Compartilhar ao lado da frase: ele cria uma imagem com a frase e os quatro números nas cores do seu tema, pronta para postar, ou a salva se seu aparelho não puder compartilhar. Cada número agora tem também um link para a visão completa: Plays para seus plays ao longo do tempo, Músicas Únicas para suas descobertas em Sua história, e Artistas e Álbuns para Comparar, com seu top 3 do período. Funciona com Last.fm, Google Sheets e arquivos CSV."],

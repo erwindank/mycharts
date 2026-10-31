@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 394;
+const DC_CL_I18N_V = 395;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-31', t: 'perf', a: 'graphs', h: 'aaf4e71',
+    title: "A faster Stats Overview",
+    detail: "The Stats Overview now opens about twice as fast on big libraries, with the same numbers as before. The Shuffle button on Fun facts matches the Share button, and the New or familiar bar uses colours that stay easy to tell apart in every theme, including Yellow. The Charts Guide now describes the new Overview cards." },
   { d: '2026-10-31', t: 'feature', a: 'graphs', h: 'f9fba26',
     title: "Share your Stats Overview, and tiles that lead somewhere",
     detail: "The Stats Overview has a Share button beside its sentence: it makes a picture of the sentence and the four stat tiles in your theme's colours, ready to post, or saves it if your device can't share. Each tile now also has a link to its longer view: Total Plays to your plays over time, Unique Songs to your discoveries in Story, and Artists and Albums to Compare, filled with your top 3 for the range. Works with Last.fm, Google Sheets and CSV uploads." },
