@@ -17614,11 +17614,6 @@ function crPeriodTitle(period, key) {
 // rangeOpts — { mode, viewedYear, cutoffKeys, periodMap } from the panel's RANGE
 // bar. Omitted by callers that render an unfiltered run (Records rows, modals),
 // which then get the all-time total.
-// One chart-run stat tile: what it counts, then the figure (HTML allowed)
-function crTile(label, valueHtml, cls) {
-  return `<div class="cr-stat${cls ? ' ' + cls : ''}"><span class="cr-stat-k">${esc(label)}</span><strong>${valueHtml}</strong></div>`;
-}
-
 /* The chart run's summary (2026-10-26). Replaces the grid of ten equal tiles
    that sat between the range bar and the run, which took more room than the
    run itself and repeated what the row above already showed. Three parts:
@@ -18053,15 +18048,6 @@ function crBoxesHTML(type, key, crData, preD, periodOverride) {
     return [gapEl, box];
   }).join('');
   return `<div class="cr-boxes-wrap"><div class="cr-boxes">${boxes}</div></div>${goals}`;
-}
-
-function toggleChartRun(btn, rowId) {
-  event.stopPropagation();
-  const row = document.getElementById(rowId);
-  if (!row) return;
-  const open = !row.classList.contains('open');
-  row.classList.toggle('open', open);
-  btn.classList.toggle('active', open);
 }
 
 function toggleAppCr(rowId, btn) {
@@ -19834,7 +19820,7 @@ function buildBuCrPanelHTML(type, key) {
   return headerHtml + statsHtml + buView + combinedView + goals.html;
 }
 
-// Toggles a BU chart run expand row (same pattern as toggleChartRun).
+// Toggles a BU chart run expand row.
 function toggleBuCr(btn, rowId) {
   event.stopPropagation();
   const row = document.getElementById(rowId);
@@ -27949,14 +27935,6 @@ function encodeKeyForOnclick(key) {
   return encodeURIComponent(key).replace(/'/g, '%27');
 }
 
-function toggleModalGrammyDetail(btn) {
-  const list = btn.nextElementSibling;
-  const open = list.style.display !== 'none';
-  list.style.display = open ? 'none' : '';
-  const n = btn.dataset.count;
-  btn.textContent = open ? t(n == 1 ? 'sm_show_cats_one' : 'sm_show_cats', { n }) : t('sm_hide_cats');
-}
-
 // ─── ALBUM MODAL ───────────────────────────────────────────────
 const albumModal = document.getElementById('albumModal');
 document.getElementById('albumModalClose').addEventListener('click', () => {
@@ -29171,11 +29149,6 @@ function upcomingDateLabel(dateStr) {
   return { label: fmt, soon: days <= 14 };
 }
 
-function sortUpcomingReleases(releases) {
-  return releases.filter(r => r.release?.date).sort((a, b) =>
-    (a.release.date || '').localeCompare(b.release.date || ''));
-}
-
 // ─── RECENT RELEASES ───────────────────────────────────────────
 
 async function fetchRecentReleasesForMBID(mbid) {
@@ -29329,11 +29302,6 @@ function graphPalette() {
 function graphColor(i) {
   const pal = graphPalette();
   return pal[i % pal.length];
-}
-// An artist chart with one artist uses the theme accent, like every other
-// single-series chart; with two or more each artist gets its palette colour.
-function artistSeriesColor(i, n) {
-  return n === 1 ? getGraphColors().accent : graphColor(i);
 }
 
 // Shared axes for the Stats charts: no vertical gridlines, faint horizontal
@@ -31953,11 +31921,6 @@ function _evSaveViewModes() {
   try { localStorage.setItem('dc_events_view_modes', JSON.stringify(eventsViewModes)); } catch (e) {}
   if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
 }
-/* How often the Upcoming/Recent release loops are allowed to repaint while
-   they walk the Top 200. Each repaint rebuilds the whole section, so in Reel
-   view it remounts the carousel and re-fires every artwork fetch — once per
-   artist was enough to make the reel unusable until the loop finished. */
-const EV_PROGRESS_PAINT_MS = 1500;
 let _eventsLastData = null;
 // The sections that still have a grid of their own. Birthdays, upcoming
 // releases and shows are drawn into Coming up's groups instead (step 5), the
@@ -35809,17 +35772,6 @@ function dcPlBtnHtml(kind, title, artist, album, extraCls) {
 // A chart section's type ('songs'/'artists'/'albums') → the picker's kind.
 function dcPlKindFor(type) {
   return type === 'artists' ? 'artist' : type === 'albums' ? 'album' : 'song';
-}
-
-// The ▶ buttons in the weekly view's Card Grid, Coverflow and Stack layouts are
-// those layouts' play buttons — the same role the YouTube button plays in the
-// table — so they carry the same option. Those three build their cards from the
-// same `ttl`/`sub` pair: for a song that's title + artist, for an artist the
-// name is the title, and for an album it's the album + its artist.
-function dcPlBtnForWv(type, ttl, sub, album, extraCls) {
-  if (type === 'artists') return dcPlBtnHtml('artist', '', ttl, '', extraCls);
-  if (type === 'albums')  return dcPlBtnHtml('album', ttl, sub, album || ttl, extraCls);
-  return dcPlBtnHtml('song', ttl, sub, album || '', extraCls);
 }
 
 function dcPlBtnClick(btn) {
@@ -55275,7 +55227,7 @@ function _dcTourRestoreRevealed() {
 
 /* Some phases are better shown than described — opening a chart run says more
    than a sentence about it. Only ever point this at a pure DOM toggle
-   (toggleChartRun flips two classes and persists nothing); clicking it again
+   (a chart run toggle flips two classes and persists nothing); clicking it again
    on the way out puts the page back. */
 let _cgTourClicked = [];
 
