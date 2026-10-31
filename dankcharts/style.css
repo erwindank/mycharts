@@ -11088,6 +11088,26 @@
     .sx-otd-when b { font-family: var(--font-display); font-size: var(--fs-md); color: var(--accent); }
     .sx-otd-when span { font-size: var(--fs-xs); color: var(--text3); }
     .sx-otd-row .ea-sample { margin-right: var(--sp-2); }
+
+    /* Where your plays went: two stacked bars with their legends */
+    .sx-split-row + .sx-split-row { margin-top: var(--sp-5); padding-top: var(--sp-4); border-top: 1px solid var(--rule); }
+    .sx-split-q { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px var(--sp-3); margin-bottom: var(--sp-2); }
+    .sx-split-q b { font-family: var(--font-display); font-size: var(--fs-md); font-weight: 700; }
+    .sx-split-q span { font-size: var(--fs-sm); color: var(--text2); }
+    .sx-split-bar { display: flex; gap: 2px; height: 22px; border-radius: var(--r-sm); overflow: hidden; }
+    .sx-split-bar i { display: block; flex-basis: 0; min-width: 3px; transition: filter var(--t-fast) var(--ease); }
+    .sx-split-bar i:hover { filter: brightness(1.15); }
+    .sx-split-legend { list-style: none; margin: var(--sp-3) 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-4); }
+    .sx-split-item {
+      display: inline-flex; align-items: baseline; gap: 6px; padding: 0; border: 0; background: none; color: var(--text); font: inherit; font-size: var(--fs-sm);
+    }
+    button.sx-split-item { cursor: pointer; }
+    button.sx-split-item:hover .sx-split-lbl { text-decoration: underline; text-underline-offset: 3px; }
+    .sx-split-item i { align-self: center; display: block; width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+    .sx-split-lbl { max-width: 14rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .sx-split-item b { font-variant-numeric: tabular-nums; }
+    .sx-split-n { font-size: var(--fs-xs); color: var(--text3); }
+    @media (max-width: 640px) { .sx-split-lbl { max-width: none; white-space: normal; } }
     .sx-otd-btn .sx-t5-txt > span.sx-mv-where { white-space: normal; }
     @media (max-width: 640px) { .sx-otd-btn { grid-template-columns: 3rem 44px minmax(0, 1fr); gap: var(--sp-2); } .sx-otd-btn .sx-t5-art { width: 44px; height: 44px; } }
     .sx-tile .stat-foot { display: flex; gap: var(--sp-2); align-items: center; justify-content: center; flex-wrap: wrap; }

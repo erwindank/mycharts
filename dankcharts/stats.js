@@ -251,6 +251,7 @@ function sxRenderOverview() {
         <section class="dc-card sx-ov-card sx-cal" id="sxCal"></section>
         <section class="dc-card sx-ov-card sx-otd" id="sxOtd"></section>
       </div>
+      <section class="dc-card sx-ov-card sx-shares" id="sxSplit"></section>
     </div>`;
   animateStatStrip(box, 900);
   // Kept for the cards below the hero, so their switches don't scan again
@@ -261,6 +262,7 @@ function sxRenderOverview() {
   sxPaintFun();
   sxPaintCal();
   sxPaintOtd();
+  sxPaintSplit();
 }
 
 // ── Your top 5 (phase 16 step 1) ──────────────────────────────────────────
@@ -773,6 +775,66 @@ function sxPaintOtd() {
   }).join('');
   box.innerHTML = head + `<ol class="sx-otd-list">${rows}</ol>`;
   arts.forEach(([e, id]) => _sxTop5Load('songs', e, id));
+}
+
+// ── Where your plays went (phase 16 step 5) ───────────────────────────────
+/* Two bars. The first splits the range's plays by how long you had known
+   the song when you played it: new finds (under 30 days), recent
+   favourites (under a year) and old favourites (a year or more). That is
+   counted per play, so it means the same on All. The second shows how much
+   of the range your top 5 artists took, each in its Compare colour, and
+   everyone else. */
+
+function _sxBar(segs, total) {
+  return `<div class="sx-split-bar" role="img" aria-label="${esc(segs.map(x => `${x.label}: ${_sxPct(x.n, total)}%`).join(', '))}">` +
+    segs.filter(x => x.n).map(x => `<i style="flex-grow:${x.n};background:${x.color}" title="${esc(`${x.label}: ${_sxPct(x.n, total)}%`)}"></i>`).join('') + `</div>`;
+}
+function _sxLegend(segs, total) {
+  return `<ul class="sx-split-legend">${segs.filter(x => x.n).map(x => {
+    const inner = `<i style="background:${x.color}"></i><span class="sx-split-lbl">${esc(x.label)}</span>` +
+      `<b>${_sxPct(x.n, total)}%</b><span class="sx-split-n">${esc(t('sx_top5_plays').replace('{n}', x.n.toLocaleString()))}</span>`;
+    return `<li>${x.open ? `<button type="button" class="sx-split-item" onclick="${x.open}">${inner}</button>` : `<span class="sx-split-item">${inner}</span>`}</li>`;
+  }).join('')}</ul>`;
+}
+
+function sxPaintSplit() {
+  const box = document.getElementById('sxSplit');
+  if (!box || !_sxOv || !_sxOv.cur.plays) return;
+  const { fromTs, toTs, cur } = _sxOv;
+  const songFirst = firstSeenMaps ? firstSeenMaps.songFirst : {};
+  let fresh = 0, recent = 0, old = 0;
+  for (const p of allPlays) {
+    const ts = tzMsOf(p);
+    if (ts < fromTs || ts > toTs) continue;
+    const f = songFirst[songKey(p)];
+    const age = f ? ts - f.getTime() : 0;
+    if (age < 30 * _SX_DAY) fresh++; else if (age < 365 * _SX_DAY) recent++; else old++;
+  }
+  const total = fresh + recent + old || 1;
+  const age = [
+    { label: t('sx_split_new'), n: fresh, color: 'var(--green)' },
+    { label: t('sx_split_recent'), n: recent, color: 'var(--accent)' },
+    { label: t('sx_split_old'), n: old, color: 'var(--gold1)' },
+  ];
+  // Top 5 artists against the rest. A play with two artists counts for
+  // each, so the shares are of artist credits, not plays.
+  const credits = [...cur.artistPlays.values()].reduce((a, b) => a + b, 0) || 1;
+  const top = [...cur.artistPlays.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const rest = credits - top.reduce((a, [, n]) => a + n, 0);
+  const art = top.map(([a, n], i) => ({ label: a, n, color: _sxCmpColor(i), open: `openArtistModal(${esc(JSON.stringify(a))})` }));
+  art.push({ label: t('sx_split_rest').replace('{n}', Math.max(0, cur.artists.size - top.length).toLocaleString()), n: rest, color: 'color-mix(in srgb, var(--text3) 45%, var(--bg3))' });
+  const topPct = _sxPct(credits - rest, credits);
+
+  box.innerHTML = `<div class="sx-ov-head"><div><h3 class="graph-card-title">${esc(t('sx_split_title'))}</h3>` +
+    `<div class="graph-card-sub">${esc(t('sx_split_sub'))}</div></div></div>
+    <div class="sx-split-row">
+      <div class="sx-split-q"><b>${esc(t('sx_split_age_q'))}</b><span>${esc(t('sx_split_age_a').replace('{pct}', _sxPct(old, total)))}</span></div>
+      ${_sxBar(age, total)}${_sxLegend(age, total)}
+    </div>
+    <div class="sx-split-row">
+      <div class="sx-split-q"><b>${esc(t('sx_split_art_q'))}</b><span>${esc(t('sx_split_art_a').replace('{pct}', topPct))}</span></div>
+      ${_sxBar(art, credits)}${_sxLegend(art, credits)}
+    </div>`;
 }
 
 // The movers' Songs / Artists / Albums switch
