@@ -11327,6 +11327,11 @@
       .sx-vs-label { grid-column: 1 / -1; grid-row: 1; }
     }
 
+    /* Top songs side by side (phase 17 step 6): one column per pick */
+    .sx-ts { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: var(--sp-3) var(--sp-4); }
+    .sx-ts-col { min-width: 0; border-top: 3px solid var(--c); padding-top: var(--sp-2); }
+    .sx-ts-head { margin-bottom: var(--sp-1); }
+
     /* Story (step 5): artist picture slots */
     .sx-face {
       display: grid; place-items: center; overflow: hidden; flex-shrink: 0;

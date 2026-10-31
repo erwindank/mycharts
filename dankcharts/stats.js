@@ -2033,6 +2033,27 @@ function _sxCmpBucketsWon(T) {
   return won;
 }
 
+// ── Top songs side by side (step 6) ──
+/* Each pick's three most played songs in the range, one small column per
+   pick (artists, albums and years; a song has no songs of its own). A row
+   opens the song's details. The line under the title is the album for an
+   artist's songs and the artist otherwise. */
+function _sxCmpTopSongs(T, names) {
+  if (T.type === 'songs' || !T.total) return '';
+  const cols = T.per.map((o, i) => {
+    if (!o.plays) return '';
+    const top = [...o.songs.entries()].sort((a, b) => b[1].n - a[1].n || a[1].p.title.localeCompare(b[1].p.title)).slice(0, 3);
+    const rows = top.map(([sk, x], j) => {
+      const sub = T.type === 'artists' ? (x.p.album && x.p.album !== '—' ? x.p.album : '') : x.p.artist;
+      return `<li><button type="button" class="sx-row" onclick="openSongModal(${esc(JSON.stringify(sk))})">` +
+        `<span class="sx-row-n">${j + 1}</span><span class="sx-row-t"><b>${esc(x.p.title)}</b>${sub ? `<span>${esc(sub)}</span>` : ''}</span>` +
+        `<span class="sx-row-v">${x.n.toLocaleString()}</span></button></li>`;
+    }).join('');
+    return `<div class="sx-ts-col" style="--c:${_sxCmpColor(i)}"><div class="sx-ts-head">${_sxCmpName(T.type, T.picks[i], i, names[i])}</div><ol class="sx-rows">${rows}</ol></div>`;
+  }).join('');
+  return `<div class="sx-ts">${cols}</div>`;
+}
+
 function _sxCmpMore(type, picks) {
   const box = document.getElementById('sxCmpMore');
   if (!box) return;
@@ -2053,6 +2074,9 @@ function _sxCmpMore(type, picks) {
     // Step 4: the biggest gaps (two picks or more)
     const gaps = _sxCmpGaps(T, names);
     if (gaps) html += _sxCmpCard('sx-cmp-gaps', t('sx_gap_title'), t('sx_gap_sub'), gaps);
+    // Step 6: each pick's top songs
+    const ts = _sxCmpTopSongs(T, names);
+    if (ts) html += _sxCmpCard('sx-cmp-ts', t('sx_ts_title'), t('sx_ts_sub_' + T.type), ts);
   }
   box.innerHTML = html;
   // The 1-vs-1 pictures, once the slots are on the page
