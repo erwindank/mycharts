@@ -3909,6 +3909,39 @@ scroll-to-top button over the plays column (phase 5).
 
 **Portuguese and reduced motion:** checked 2026-10-14 with phase 6 step 5.
 
+### Phase 16: a fuller Stats Overview (planned 2026-10-31)
+
+The Overview tab was one sentence and four tiles, with a lot of empty
+space under them. You picked all eleven ideas (2026-10-31). Overview
+stays a quick look: each piece is small, and most lead into Story,
+Compare or Charts for the long version. All of it comes from the plays
+in the range, so it works the same for Last.fm, Google Sheets and CSV.
+Code in `stats.js` (sx prefix), one commit per step plus a changelog
+entry, and you look at each step before the next.
+
+1. **Your top 5:** songs / artists / albums switch; the #1 big with its
+   picture, plays, share of the range and a ▶ sample; #2–5 as rows.
+   A click opens the details window.
+2. **Song of the period and biggest movers:** one big card for the #1
+   song (a line of its daily plays, "played on 24 of 28 days"); the 3
+   that climbed most and the 3 that dropped most against the stretch
+   before (hidden when there is no stretch before).
+3. **Fun facts and your listening personality:** 3–4 short facts that
+   change with the range (longest repeat run, busiest hour, top artist
+   vs the next three...) with a shuffle button; a playful label
+   ("The Loyalist", "The Explorer", "Night Owl"...) with one line saying
+   why.
+4. **Calendar strip and On this day:** one small square per day of the
+   range, coloured by plays, a click opens that day; what you played most
+   on this date 1, 2 and 3 years ago.
+5. **Two share bars:** new finds / recent favourites / old favourites as
+   one bar; how much of the range your top 5 artists took.
+6. **Links and Share:** each tile leads to its longer view (Unique Songs
+   to discoveries in Story, Artists to Compare...); a Share button for
+   the sentence and tiles as an image.
+7. **Finish:** four languages, the Charts Guide, changelog, screen check
+   (1440 / 1100 / 390 touch, the check themes).
+
 ### Done outside the phases (to 2026-10-18)
 
 Work that isn't a plan step but changes what the later phases start from.

@@ -73,6 +73,8 @@ function _sxDate(ts) {
 function _sxTally(fromTs, toTs, trend) {
   const songs = new Set(), artists = new Set(), albums = new Set();
   const artistPlays = new Map(), dayPlays = new Map();
+  // Plays per song and per album, with one play kept for its names (the top 5)
+  const songPlays = new Map(), albumPlays = new Map();
   let plays = 0;
   // Buckets for the trend lines: days for a short range, weeks up to ~3
   // years, months beyond that, so each line has 28–160 points.
@@ -89,9 +91,15 @@ function _sxTally(fromTs, toTs, trend) {
     plays++;
     const sk = songKey(p);
     songs.add(sk);
+    const so = songPlays.get(sk);
+    if (so) so.n++; else songPlays.set(sk, { n: 1, p });
     for (const a of p.artists) { artists.add(a); artistPlays.set(a, (artistPlays.get(a) || 0) + 1); }
     const ak = p.album && p.album !== '—' ? albumKeyOf(p) : null;
-    if (ak) albums.add(ak);
+    if (ak) {
+      albums.add(ak);
+      const ao = albumPlays.get(ak);
+      if (ao) ao.n++; else albumPlays.set(ak, { n: 1, p });
+    }
     const dk = localDateStr(d);
     dayPlays.set(dk, (dayPlays.get(dk) || 0) + 1);
     if (trend) {
@@ -103,7 +111,7 @@ function _sxTally(fromTs, toTs, trend) {
     }
   }
   return {
-    plays, songs, artists, albums, artistPlays, dayPlays,
+    plays, songs, artists, albums, artistPlays, dayPlays, songPlays, albumPlays,
     trend: trend ? { plays: bPlays, songs: bSongs.map(s => s.size), artists: bArtists.map(s => s.size), albums: bAlbums.map(s => s.size) } : null,
   };
 }
@@ -228,9 +236,129 @@ function sxRenderOverview() {
   box.innerHTML = `<div class="sx-hero">
       <p class="sx-hero-line">${line}${line2 ? ' ' + line2 : ''}</p>
       <div class="stats-strip sx-tiles">${tiles}</div>
+    </div>
+    <div class="sx-ov-grid">
+      <section class="dc-card sx-ov-card sx-top5" id="sxTop5"></section>
     </div>`;
   animateStatStrip(box, 900);
+  // Kept for the cards below the hero, so their switches don't scan again
+  _sxOv = { cur, prev, fromTs, toTs };
+  sxPaintTop5();
 }
+
+// ── Your top 5 (phase 16 step 1) ──────────────────────────────────────────
+/* The range's five most played songs, artists or albums. The #1 is big:
+   its picture, plays, share of all plays, the lead over #2 and a ▶ sample
+   (the charts' own .ea-sample, so it plays through the same store lookup
+   and never touches YouTube). #2–5 are rows with a bar against the #1.
+   Every entry carries the charts' data-ea-* attributes, so right-click (a
+   hold on touch) opens the same action menu as on a chart. */
+
+let _sxOv = null;
+let sxTop5Type = localStorage.getItem('dc_sxTop5') || 'songs';
+let _sxTop5N = 0;
+
+// The top 5 of a type as { key, n, title, artist, album }
+function _sxTop5List(type) {
+  const c = _sxOv.cur, out = [];
+  if (type === 'artists') c.artistPlays.forEach((n, a) => out.push({ key: a, n, title: a, artist: a, album: '' }));
+  else (type === 'songs' ? c.songPlays : c.albumPlays).forEach((o, k) => out.push({
+    key: k, n: o.n, title: type === 'songs' ? o.p.title : o.p.album,
+    // An album is credited to its album artist (the second half of its key)
+    artist: type === 'songs' ? o.p.artist : k.split('|||')[1] || o.p.artist, album: o.p.album,
+  }));
+  return out.sort((a, b) => b.n - a.n || a.title.localeCompare(b.title)).slice(0, 5);
+}
+
+// What opens an entry's details window
+function _sxOpenJs(type, e) {
+  const fn = type === 'songs' ? 'openSongModal' : type === 'albums' ? 'openAlbumModal' : 'openArtistModal';
+  return `${fn}(${esc(JSON.stringify(e.key))})`;
+}
+
+// The data-ea-* attributes for an entry (▶ and the action menu read them)
+function _sxEa(type, e, imgId) {
+  return type === 'artists'
+    ? _eaAttrs('artists', { artist: e.title, key: e.key, imgId })
+    : _eaAttrs(type, { title: type === 'songs' ? e.title : '', artist: e.artist, album: e.album, key: e.key, imgId });
+}
+
+// A picture slot, filled once the HTML is on the page
+function _sxTop5Art(type, e, cls) {
+  const id = 'sx-t5-' + (++_sxTop5N);
+  return { id, html: `<span class="sx-t5-art${cls ? ' ' + cls : ''}${type === 'artists' ? ' is-round' : ''}" id="${id}"><span class="thumb-initials">${esc(initials(e.title))}</span></span>` };
+}
+function _sxTop5Load(type, e, id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const low = s => (s || '').toLowerCase();
+  if (type === 'artists') fetchAndInjectImage(el, { imgId: id, name: e.title, prefKey: 'artist:' + low(e.title) }, 'artist');
+  else if (type === 'songs') fetchAndInjectImage(el, { imgId: id, name: e.title, title: e.title, artist: e.artist, album: e.album || '', prefKey: 'song:' + low(e.artist) + '|||' + low(e.title) }, 'song');
+  else fetchAndInjectImage(el, { imgId: id, name: e.album, title: e.album, artist: e.artist, album: e.album, prefKey: 'album:' + low(e.artist) + '|||' + low(e.album) }, 'album');
+}
+
+function sxPaintTop5() {
+  const box = document.getElementById('sxTop5');
+  if (!box || !_sxOv) return;
+  const type = sxTop5Type;
+  const list = _sxTop5List(type);
+  const seg = ['songs', 'artists', 'albums'].map(k =>
+    `<button type="button" data-t5="${k}" aria-pressed="${k === type}">${esc(t('sx_cmp_type_' + k))}</button>`).join('');
+  const head = `<div class="sx-ov-head"><div><h3 class="graph-card-title">${esc(t('sx_top5_title'))}</h3>` +
+    `<div class="graph-card-sub">${esc(t('sx_top5_sub'))}</div></div>` +
+    `<div class="dc-seg" role="group" aria-label="${esc(t('sx_top5_title'))}">${seg}</div></div>`;
+  if (!list.length) { box.innerHTML = head; return; }
+
+  const arts = [];
+  const lead = list[0], total = _sxOv.cur.plays || 1;
+  const la = _sxTop5Art(type, lead, 'is-lead');
+  arts.push([lead, la.id]);
+  const pct = Math.round(lead.n / total * 1000) / 10;
+  const ahead = list[1] ? lead.n - list[1].n : 0;
+  const sampleLbl = t('sx_top5_sample');
+  const leadHtml = `<div class="sx-t5-lead"${_sxEa(type, lead, la.id)}>
+      <button type="button" class="sx-t5-lead-art" onclick="${_sxOpenJs(type, lead)}" aria-label="${esc(lead.title)}">${la.html}<span class="sx-t5-rank">1</span></button>
+      <div class="sx-t5-lead-info">
+        <span class="sx-t5-kicker">${esc(t('sx_top5_lead_' + type))}</span>
+        <button type="button" class="sx-t5-name" onclick="${_sxOpenJs(type, lead)}">${esc(lead.title)}</button>
+        ${type !== 'artists' ? `<span class="sx-t5-by">${esc(lead.artist)}</span>` : ''}
+        <div class="sx-t5-nums"><b>${esc(t('sx_top5_plays').replace('{n}', lead.n.toLocaleString()))}</b>
+          <span>${esc(t('sx_top5_share').replace('{pct}', pct.toLocaleString()))}</span>
+          ${ahead > 0 ? `<span>${esc(t('sx_top5_ahead').replace('{n}', ahead.toLocaleString()))}</span>` : ''}</div>
+        <button type="button" class="ea-sample sx-t5-play" title="${esc(sampleLbl)}" aria-label="${esc(sampleLbl)}">` +
+          `<svg viewBox="0 0 24 24" aria-hidden="true"><path class="ea-ic-play" d="M8 5v14l11-7z"/><path class="ea-ic-stop" d="M7 6h3.5v12H7zM13.5 6H17v12h-3.5z"/></svg>` +
+          `<span class="sx-t5-play-go">${esc(sampleLbl)}</span><span class="sx-t5-play-stop">${esc(t('sx_top5_stop'))}</span></button>
+      </div>
+    </div>`;
+
+  // #2–5: a bar against the #1, so the gaps read at a glance
+  const rows = list.slice(1).map((e, i) => {
+    const a = _sxTop5Art(type, e);
+    arts.push([e, a.id]);
+    const w = Math.max(4, Math.round(e.n / lead.n * 100));
+    return `<li class="sx-t5-row"${_sxEa(type, e, a.id)}>
+        <button type="button" class="sx-t5-row-btn" onclick="${_sxOpenJs(type, e)}">
+          <span class="sx-t5-n">${i + 2}</span>${a.html}
+          <span class="sx-t5-txt"><b>${esc(e.title)}</b>${type !== 'artists' ? `<span>${esc(e.artist)}</span>` : ''}
+            <span class="sx-t5-bar" aria-hidden="true"><i style="width:${w}%"></i></span></span>
+          <span class="sx-t5-v">${e.n.toLocaleString()}</span>
+        </button>${_eaSampleBtn()}
+      </li>`;
+  }).join('');
+
+  box.innerHTML = head + `<div class="sx-t5-body">${leadHtml}${rows ? `<ol class="sx-t5-rows">${rows}</ol>` : ''}</div>`;
+  arts.forEach(([e, id]) => _sxTop5Load(type, e, id));
+  if (typeof _eaPaintSamples === 'function') _eaPaintSamples();   // a sample already playing shows as on
+}
+
+// The Songs / Artists / Albums switch
+document.addEventListener('click', e => {
+  const b = e.target.closest('#sxTop5 [data-t5]');
+  if (!b) return;
+  sxTop5Type = b.dataset.t5;
+  try { localStorage.setItem('dc_sxTop5', sxTop5Type); } catch (err) { }
+  sxPaintTop5();
+});
 
 // ── Charts: play volume and discoveries (step 2) ──────────────────────────
 /* The old Total Play Volume and New Discoveries cards in one. Two views:

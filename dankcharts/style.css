@@ -10883,6 +10883,94 @@
       .sx-hero { padding: var(--sp-4); }
     }
     .sx-tile { background: color-mix(in srgb, var(--bg) 45%, var(--bg2)); }
+
+    /* ── Overview cards under the hero (phase 16) ── */
+    .sx-ov-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.25rem; margin-bottom: 1.25rem; }
+    .sx-ov-card { padding: var(--sp-5); margin: 0; }
+    @media (max-width: 640px) { .sx-ov-card { padding: var(--sp-4); } }
+    /* Title and sub on the left, the card's switch on the right */
+    .sx-ov-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-3); flex-wrap: wrap; margin-bottom: var(--sp-4); }
+    .sx-ov-head .graph-card-title { margin: 0; }
+    .sx-ov-head .graph-card-sub { margin: 2px 0 0; }
+
+    /* Your top 5: the #1 big on the left, #2–5 as rows on the right */
+    .sx-t5-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: var(--sp-5); align-items: center; }
+    @media (max-width: 1023px) { .sx-t5-body { grid-template-columns: 1fr; gap: var(--sp-4); } }
+    .sx-t5-art {
+      display: grid; place-items: center; overflow: hidden; flex-shrink: 0;
+      width: 40px; height: 40px; border-radius: var(--r-sm); background: var(--bg3);
+    }
+    .sx-t5-art.is-round { border-radius: 50%; }
+    .sx-t5-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .sx-t5-art .thumb-initials { width: 100%; height: 100%; border: 0; border-radius: 0; font-size: 0.8rem; }
+    .sx-t5-art.is-lead { width: 100%; height: 100%; border-radius: var(--r-md); }
+    .sx-t5-art.is-lead.is-round { border-radius: 50%; }
+    .sx-t5-art.is-lead .thumb-initials { font-size: 2rem; }
+
+    .sx-t5-lead {
+      display: grid; grid-template-columns: 148px minmax(0, 1fr); gap: var(--sp-4); align-items: center;
+      padding: var(--sp-4); border-radius: var(--r-lg); border: 1px solid var(--border2);
+      background:
+        radial-gradient(120% 120% at 0% 0%, color-mix(in srgb, var(--gold1) 14%, transparent), transparent 65%),
+        color-mix(in srgb, var(--bg) 45%, var(--bg2));
+    }
+    @media (max-width: 640px) { .sx-t5-lead { grid-template-columns: 104px minmax(0, 1fr); gap: var(--sp-3); padding: var(--sp-3); } }
+    .sx-t5-lead-art {
+      position: relative; display: block; width: 100%; aspect-ratio: 1; padding: 0; border: 0; background: none; cursor: pointer;
+      border-radius: var(--r-md); box-shadow: var(--shadow-1); transition: transform var(--t-fast) var(--ease);
+    }
+    .sx-t5-lead-art:has(.is-round) { border-radius: 50%; }
+    .sx-t5-lead-art:hover { transform: translateY(-2px); }
+    .sx-t5-lead-art:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    /* The gold #1 badge on the picture's corner */
+    .sx-t5-rank {
+      position: absolute; left: -6px; top: -6px; display: grid; place-items: center;
+      width: 30px; height: 30px; border-radius: 50%;
+      background: var(--accent); color: var(--on-accent); font-family: var(--font-display); font-weight: 800; font-size: var(--fs-sm);
+      box-shadow: 0 2px 6px rgb(0 0 0 / 0.35);
+    }
+    .sx-t5-lead-info { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; }
+    .sx-t5-kicker { font-size: var(--fs-xs); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold1); }
+    .sx-t5-name {
+      font-family: var(--font-display); font-size: var(--fs-lg); font-weight: 700; line-height: 1.2; color: var(--text);
+      background: none; border: 0; padding: 0; text-align: left; cursor: pointer; max-width: 100%; overflow-wrap: anywhere;
+    }
+    .sx-t5-name:hover { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+    .sx-t5-by { font-size: var(--fs-sm); color: var(--text2); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    /* Plays on top, then the share and the lead, one to a line */
+    .sx-t5-nums { display: flex; flex-direction: column; gap: 1px; margin-top: var(--sp-2); font-size: var(--fs-xs); color: var(--text2); }
+    .sx-t5-nums b { color: var(--text); font-size: var(--fs-sm); }
+    /* ▶ with words on the #1 (always shown, unlike the charts' quiet ▶) */
+    .ea-sample.sx-t5-play {
+      width: auto; height: 32px; gap: 6px; padding: 0 12px 0 10px; margin-top: var(--sp-3); opacity: 1;
+      border-radius: var(--r-full); background: var(--accent); color: var(--on-accent);
+      font: inherit; font-size: var(--fs-xs); font-weight: 600;
+    }
+    .ea-sample.sx-t5-play svg { margin-left: 0; }
+    .ea-sample.sx-t5-play:hover { background: color-mix(in srgb, var(--accent) 85%, var(--text)); color: var(--on-accent); }
+    .ea-sample.sx-t5-play.is-miss { background: var(--bg3); color: var(--text3); }
+    /* Its words follow the icon: "Play a sample" / "Stop" while it plays */
+    .sx-t5-play-stop, .sx-t5-play.is-on .sx-t5-play-go { display: none; }
+    .sx-t5-play.is-on .sx-t5-play-stop { display: inline; }
+    @media (max-width: 640px) { .sx-t5-name { font-size: var(--fs-md); } }
+
+    .sx-t5-rows { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+    .sx-t5-row { display: flex; align-items: center; gap: 2px; border-radius: var(--r-sm); }
+    .sx-t5-row:hover { background: color-mix(in srgb, var(--accent) 8%, transparent); }
+    .sx-t5-row-btn {
+      flex: 1 1 auto; min-width: 0; display: grid; grid-template-columns: 1.2rem 40px minmax(0, 1fr) auto; gap: var(--sp-3); align-items: center;
+      padding: 0.4rem 0.35rem; background: none; border: 0; border-radius: var(--r-sm); color: var(--text); font: inherit; text-align: left; cursor: pointer;
+    }
+    .sx-t5-row-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+    .sx-t5-n { font-family: var(--font-mono); font-size: var(--fs-sm); color: var(--text3); text-align: right; }
+    .sx-t5-txt { min-width: 0; }
+    .sx-t5-txt b, .sx-t5-txt > span:not(.sx-t5-bar) { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sx-t5-txt b { font-weight: 600; font-size: var(--fs-sm); }
+    .sx-t5-txt > span:not(.sx-t5-bar) { font-size: var(--fs-xs); color: var(--text2); }
+    /* A thin bar against the #1 */
+    .sx-t5-bar { display: block; height: 4px; margin-top: 5px; border-radius: 2px; background: var(--bg3); overflow: hidden; }
+    .sx-t5-bar i { display: block; height: 100%; border-radius: 2px; background: var(--accent); }
+    .sx-t5-v { font-family: var(--font-mono); font-size: var(--fs-sm); color: var(--text2); font-variant-numeric: tabular-nums; }
     .sx-tile .stat-foot { display: flex; gap: var(--sp-2); align-items: center; justify-content: center; flex-wrap: wrap; }
     /* "vs 51,416" on an Overview tile (not .sx-vs, the games' round badge) */
     .sx-vsprev { font-size: var(--fs-xs); color: var(--text3); font-variant-numeric: tabular-nums; }
