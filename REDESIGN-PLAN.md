@@ -56,6 +56,9 @@ phase 15, Stats rebuilt: look at it on screen, then a mockup first.
 **Updated 2026-10-30:** phase 15 done (Stats rebuilt in five tabs, all 9
 steps, fc6563c), on `main`, not pushed. Next is phase 11, the sweep.
 
+**Updated 2026-10-30 (later):** phase 11 split into 10 steps (see "Phase
+11" in section 5). Next is step 1, the named leftovers.
+
 **Seen on screen:**
 - Weekly: Albums and Songs, in all six chart layouts (Table, Card grid,
   Compact, Mosaic, Filmstrip, Stack)
@@ -3748,6 +3751,56 @@ albums, show_label and type_label are unused now (.graph-chips is still
 used by the heatmap's chips).
 
 Then **phase 11** (the sweep), as planned.
+
+### Phase 11: the final sweep (planned 2026-10-30)
+
+**Where it starts (counted 2026-10-30, `dankcharts/`):** style.css is
+1.69 MB / 45,385 lines with 180 `!important`s (it was 1.1 MB when this plan
+was written: phases 12–15 added to it). 4,839 class names in it; 419 appear
+nowhere in the HTML or JS, 129 of those not even as a prefix that JS could
+build them from (mostly `modal-*`, `rt-*`, `sk-*`, `streak-*`, `alb-*`,
+`dropout-*`, `bu-*`). Inline `style="` : 239 in index.html, 736 in JS
+strings. 30 different `@media` widths (600, 640, 700, 480, 560, 520, 760,
+620, 860, 900, 960, 980, 1000, 1023…). Emoji: ~165 in index.html, ~730 in
+app.js, ~80 in panel.js, ~60 in daily.js, ~140 in the English translations.
+
+**Rule for every step:** only remove what is provably unused (search HTML,
+CSS and JS, including names built in JS strings); one commit per step, the
+commit message lists what went; nothing visible should change except where
+a step says so; bump `style.css?v=`.
+
+**Steps:**
+1. **Named leftovers.** The unused translation keys (graph_volume_*,
+   graph_discoveries_*, graph_cumulative_*, graph_volume_comp_*, race_*,
+   show_label, type_label) in all four languages; `.stat-chip` /
+   `bestday` / `new-*`, `masthead_est`, the unused `.dp-*` panel rules.
+   The old chart run under the new graph on the song / album Charts tabs
+   **stays** unless you say otherwise (removals are asked first).
+2. **Dead CSS.** The 129 classes nothing can build, then the other 290
+   checked one by one; rules whose every selector is dead go, mixed rules
+   lose only the dead selectors. Then `!important`s that no longer fight
+   anything.
+3. **Dead JS.** Functions in app.js and the other files that nothing calls
+   (also not from onclick strings or `window.*`), and old builders replaced
+   by phases 7–15.
+4. **Inline styles in index.html** (239) into classes, using the tokens.
+   Ones set from JS at run time (`display`, widths) stay.
+5. **Inline styles in JS strings** (736): the fixed ones into classes; ones
+   with a computed value (bar widths, cover colours, positions) stay inline.
+6. **Two breakpoints:** phone ≤ 640px and tablet ≤ 1023px. Every other
+   width is moved to the nearer of the two and checked at 390 / 768 / 1100 /
+   1440. `hover: none` and `prefers-reduced-motion` stay as they are.
+7. **Emoji to icons** in titles, headings, buttons and tabs (the icon set
+   from 3.5), including the diamonds that show as emoji on a phone in the
+   Music / Tracks cards. Emoji that are content (the user's own text, board
+   posts, certification marks in share images) stay.
+8. **Speed:** the Records build (~4.6 s at 223k plays) and the Stats first
+   build (~3.1 s); share the walks over allPlays where it is safe.
+9. **Screen check:** every page at 390 / 768 / 1440 × the four check themes
+   × the four languages, all 10 themes once, reduce motion on; fix what
+   it finds.
+10. **Wrap-up:** DESIGN.md brought in line with what is left (tokens,
+    breakpoints, icon rule), changelog entry, this plan marked done.
 
 The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in
