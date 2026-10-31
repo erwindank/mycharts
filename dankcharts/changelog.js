@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 396;
+const DC_CL_I18N_V = 397;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-31', t: 'feature', a: 'graphs', h: 'f80e952',
+    title: "Head to head in Compare",
+    detail: "Stats → Compare now says who leads and by how much (\"Taylor Swift leads with 17% of these plays, 765 ahead of Slayyyter\"), with a table under it: one row per pick with plays, share, first play, weeks at #1, best month, longest streak and songs played. Years show artists and new songs instead, and songs show the days you played them. Tap a column to sort; the best in each column is shown in that pick's colour. It shows in Race mode too. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-31', t: 'fix', a: 'graphs', h: '9dd4ff8',
     title: "Every racer on the starting line",
     detail: "In Stats → Compare, Race mode now shows a bar for every pick from the very start, lined up at 0, instead of only the ones you played in the first month. Each bar also takes the same colour as its chip above, so you can tell at a glance who is who. Works with Last.fm, Google Sheets and CSV uploads." },

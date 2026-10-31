@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Head to head in Compare":
+    ["Cara a cara en Comparar",
+     "Estadísticas → Comparar dice ahora quién va en cabeza y por cuánto (\"Taylor Swift va en cabeza con el 17% de estas reproducciones, 765 más que Slayyyter\"), con una tabla debajo: una fila por elección con reproducciones, cuota, primera escucha, semanas en el #1, mejor mes, racha más larga y canciones escuchadas. Los años muestran artistas y canciones nuevas, y las canciones, los días en que las escuchaste. Toca una columna para ordenar; el mejor de cada columna sale en el color de su elección. También aparece en el modo Carrera. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Every racer on the starting line":
     ["Todos en la línea de salida",
      "En Estadísticas → Comparar, el modo Carrera muestra ahora una barra para cada elección desde el principio, alineadas en 0, en lugar de solo las que escuchaste el primer mes. Cada barra tiene además el mismo color que su etiqueta de arriba, para ver de un vistazo quién es quién. Funciona con Last.fm, Google Sheets y archivos CSV."],
