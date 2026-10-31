@@ -17309,7 +17309,7 @@ function setCrRangeMode(mode, type, encodedKey) {
   // drawer of the other layouts (step 3 missed the drawer, so its range
   // buttons did nothing)
   // (and the details side panel's Charts tab, phase 10)
-  document.querySelectorAll(`.cr-row.open .cr-panel[data-crtype="${type}"][data-crkey="${encodedKey}"], .ea-drawer .cr-panel[data-crtype="${type}"][data-crkey="${encodedKey}"], .dp-overlay .cr-panel[data-crtype="${type}"][data-crkey="${encodedKey}"]`).forEach(panel => {
+  document.querySelectorAll(`.cr-row.open .cr-panel[data-crtype="${type}"][data-crkey="${encodedKey}"], .dropout-cr.open .cr-panel[data-crtype="${type}"][data-crkey="${encodedKey}"], .ea-drawer .cr-panel[data-crtype="${type}"][data-crkey="${encodedKey}"], .dp-overlay .cr-panel[data-crtype="${type}"][data-crkey="${encodedKey}"]`).forEach(panel => {
     const f = panel.dataset.crfacts ? _chartFacts[type].get(key) : undefined;
     panel.innerHTML = buildCrPanelHTML(type, key, f);
   });
@@ -21149,6 +21149,8 @@ function _eaRunAction(action, el, arg) {
     // The entry's details panel holds the chart run in every layout;
     // a Bubbling Under row opens its own Bubbling Under run instead
     if (el.classList.contains('bu-row')) { const b = el.querySelector('.bu-cr-btn'); if (b && !b.classList.contains('active')) b.click(); }
+    // an Off the Chart row opens the chart run under it
+    else if (el.classList.contains('dropout-row')) { const box = el.nextElementSibling; if (box && box.classList.contains('dropout-cr') && !box.classList.contains('open')) _offRowClick(null, el, box.id); }
     else if (!el.classList.contains('ea-open') && !el.classList.contains('cr-panel')) _drToggle(el);
   } else if (action === 'cover') {
     const name = d.type === 'songs' ? d.title : d.type === 'albums' ? d.album : d.artist;
@@ -22316,7 +22318,10 @@ function renderOffChart(type, plays, periodStats, buPool, lowestChartCount) {
     const nowPct = count > 0 ? Math.max(4, Math.round(thisWeekCount / count * 100)) : 0;
     const wasLbl = esc(t('off_chart_rank_was'));
 
-    return `<div class="dropout-row atc-off${severeCls}"${_eaAttrs(type, { title: ytTitle, artist: ytArtist, album: ytAlbum, key: k, imgId })}>
+    // A click on the row opens its chart run underneath (_offRowClick); the
+    // panel is built on first open, so a long dropout list costs nothing
+    const offCrId = `off-cr-${type}-${offIdx - 1}`;
+    return `<div class="dropout-row atc-off${severeCls}"${_eaAttrs(type, { title: ytTitle, artist: ytArtist, album: ytAlbum, key: k, imgId })} onclick="_offRowClick(event,this,'${offCrId}')">
       <div class="atc-was"><small>${wasLbl}</small>${rank}</div>
       <div class="atc-offcov">${cov.html}</div>
       <div class="atc-offtext">
@@ -22333,12 +22338,33 @@ function renderOffChart(type, plays, periodStats, buPool, lowestChartCount) {
           : `<div class="atc-ln" data-cap="${esc(t('off_cap_nostreak'))}"><span class="atc-short">–</span></div>`}
       </div>
       <div class="dropout-actions">${ytBtn}</div>
-    </div>`;
+    </div>
+    <div class="dropout-cr" id="${offCrId}" data-crtype="${type}" data-crkey="${encodeURIComponent(k)}"></div>`;
   }).join('');
 
   const contentEl = document.getElementById('off' + ucType + 'Content');
   if (contentEl) contentEl.innerHTML = rows;
   if (offImgs.length) loadImages(offImgs, type === 'songs' ? 'song' : type === 'artists' ? 'artist' : 'album');
+}
+
+// A click on an Off the Chart row opens (or closes) its chart run under it,
+// like a click on a chart row. Clicks on links, buttons and the cover's own
+// controls do their own thing, and selecting text doesn't count as a click.
+function _offRowClick(e, row, crId) {
+  if (e && e.target.closest('a, button, input, .img-src-btn')) return;
+  if (window.getSelection && window.getSelection().toString().length > 0) return;
+  const box = document.getElementById(crId);
+  if (!box) return;
+  const open = !box.classList.contains('open');
+  // Built the first time it opens: the entry's full chart run (no facts, as
+  // it is no longer on this week's chart)
+  if (open && !box.firstChild) {
+    const type = box.dataset.crtype, enc = box.dataset.crkey, key = decodeURIComponent(enc);
+    box.innerHTML = `<div class="cr-panel" data-crtype="${type}" data-crkey="${enc}">${buildCrPanelHTML(type, key)}</div>`;
+  }
+  box.classList.toggle('open', open);
+  row.classList.toggle('ea-open', open);
+  if (open && typeof _eaPaintSamples === 'function') _eaPaintSamples();
 }
 
 // The latest instant among a week's plays (for Off the Chart's dates)

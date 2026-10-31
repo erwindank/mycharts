@@ -42825,6 +42825,10 @@ html body:not(.albums-hide-bu-legend)  #buAlbumsSection.bu-legend-open .bu-legen
 .atc-arrow { color: var(--text3); }
 .atc-short { display: none; }
 .atc-off .dropout-actions { align-self: center; display: flex; align-items: center; padding: 0 8px; }
+/* A click on the row opens its chart run underneath (_offRowClick) */
+.dropout-row.atc-off { cursor: pointer; }
+.dropout-cr { display: none; }
+.dropout-cr.open { display: block; margin: -2px 0 8px; cursor: auto; }
 
 /* ── New Entries ───────────────────────────────────────────────────────── */
 .ne-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 10px; }
