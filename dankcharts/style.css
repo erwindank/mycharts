@@ -3860,7 +3860,7 @@
     /* Phones: the ⋮ menu opened below its button and ran under the bottom
        tab bar, so the page scrolled to reach it. It now opens as a panel
        pinned just above the bar, the full width of the screen. */
-    @media (max-width: 600px) {
+    @media (max-width: 640px) {
       /* doubled class: must beat the base .kebab-menu rules further down */
       .kebab-menu.kebab-menu {
         position: fixed;
@@ -5020,7 +5020,7 @@
 
     /* Phones: tighter gaps and a smaller wordmark; on the narrowest screens
        the .fm badge and the language code go so the row still fits. */
-    @media (max-width: 700px) {
+    @media (max-width: 640px) {
       .topbar-inner {
         padding: 0 var(--sp-3);
         gap: var(--sp-2);
@@ -5265,7 +5265,7 @@
 
     /* Below this width the five tabs, More and the buttons no longer fit in
        one top bar row even compacted, so the tabs move to the bottom bar. */
-    @media (max-width: 960px) {
+    @media (max-width: 1023px) {
       #topbarNav {
         display: none;
       }
@@ -5561,7 +5561,7 @@
     }
 
     /* Phones: the switch takes the full first line, the date the second */
-    @media (max-width: 700px) {
+    @media (max-width: 640px) {
       #dateNav {
         flex-wrap: wrap;
         row-gap: var(--sp-1);
@@ -5685,7 +5685,7 @@
       color: var(--text);
     }
 
-    @media (max-width: 960px) {
+    @media (max-width: 1023px) {
       .sync-toast {
         top: auto;
         right: var(--sp-3);
@@ -6081,7 +6081,7 @@
     /* On mobile, the Data Source form runs much taller than the viewport.
        Pin the title/close and the Cancel/Save row so they're always reachable
        without scrolling through the whole form to find them. */
-    @media (max-width: 700px) {
+    @media (max-width: 640px) {
       /* Kill the overlay's own top padding so the sticky header locks flush
          to the real viewport edge — otherwise, at max scroll, whatever content
          naturally lands in that reserved gap peeks through above the header. */
@@ -7323,7 +7323,7 @@
       margin-top: 0.1rem;
     }
 
-    @media (max-width: 480px) {
+    @media (max-width: 640px) {
       .set-gain-grid { grid-template-columns: 1fr; }
     }
 
@@ -7363,7 +7363,7 @@
        wrapping mid-word. The icon and numeral survive the squeeze; the tilted
        sticker doesn't, because a row has no top edge to straddle without
        landing on the card's own first line. */
-    @media (max-width: 480px) {
+    @media (max-width: 640px) {
       .src-cards { grid-template-columns: 1fr; gap: 0.45rem; margin-top: 0.2rem; }
 
       .src-card {
@@ -8548,7 +8548,7 @@
     .cr-panel .cr-stat {
       flex: 1 1 220px;
     }
-    @media (max-width: 600px) {
+    @media (max-width: 640px) {
       .cr-panel .cr-stat {
         flex-basis: 40%;
       }
@@ -8698,7 +8698,7 @@
     /* Phones: the Plays column squeezed titles and badges. Drop it and show
        the count under the artist instead; rank and ▶ ⋮ sit at the top of the
        row next to the title rather than floating in the middle. */
-    @media (max-width: 600px) {
+    @media (max-width: 640px) {
       .bu-plays-cell { display: none; }
       .bu-play-inline {
         display: block;
@@ -9033,7 +9033,7 @@
       background: var(--border);
     }
 
-    @media (max-width: 600px) {
+    @media (max-width: 640px) {
       /* Three equal segments across the phone, the filter on its own line */
       .chart-type-seg { flex: 1 1 100%; }
       .chart-type-seg .chart-type-toggle-btn { flex: 1 1 0; justify-content: center; }
@@ -9070,7 +9070,7 @@
       margin-bottom: 0;
     }
 
-    @media (max-width: 600px) {
+    @media (max-width: 640px) {
       /* No room beside the title on a phone: the note takes its own line.
          Beats the phone rule that keeps kebab headers on one row (see "Keep
          the panel on-screen"); only the note wraps, ordered last, so the ⋮
@@ -9964,7 +9964,7 @@
     /* the "new" cell jumps to its New Songs / Artists / Albums section */
     .stat-sub-cell.is-link { cursor: pointer; }
     .stat-sub-cell.is-link:hover .stat-sub-lbl { color: var(--accent); text-decoration: underline; }
-    @media (max-width: 600px) {
+    @media (max-width: 640px) {
       .stat-sub { gap: var(--sp-3); }
     }
 
@@ -9985,7 +9985,7 @@
       grid-template-columns: minmax(0, 1fr);
       gap: var(--sp-3);
     }
-    @media (min-width: 900px) {
+    @media (min-width: 1024px) {
       .stats-strip3 {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: var(--sp-3);
@@ -10719,7 +10719,7 @@
 
     /* Phones: four buttons don't fit on one line. Download (the main one)
        gets its own full-width row on top, the rest share the row below. */
-    @media (max-width: 600px) {
+    @media (max-width: 640px) {
       .ig-modal-footer { flex-wrap: wrap; }
       .ig-modal-footer > .dc-btn { flex: 1 1 0; }
       .ig-modal-footer > .dc-btn-main { order: -1; flex-basis: 100%; }
@@ -10731,7 +10731,7 @@
       display: none;
     }
 
-    @media (max-width: 768px) {
+    @media (max-width: 640px) {
       .dc-btn.ig-share-native-btn {
         display: inline-flex;
       }
@@ -10801,7 +10801,7 @@
 
     /* Sticky from tablet width up. On a phone the bar wraps to three rows,
        too tall to keep on screen, so there it scrolls away with the page. */
-    @media (min-width: 601px) {
+    @media (min-width: 641px) {
       .graphs-controls {
         position: sticky;
         top: calc(var(--topbar-offset) + var(--sp-2));
@@ -10812,7 +10812,7 @@
     }
 
     /* On a phone the bar wraps: switches on one line, dates on the next. */
-    @media (max-width: 600px) {
+    @media (max-width: 640px) {
       .graphs-ctrl-sep {
         display: none;
       }
@@ -10878,7 +10878,7 @@
     }
     .sx-link:hover { text-decoration-thickness: 2px; }
     .sx-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-    @media (max-width: 760px) {
+    @media (max-width: 640px) {
       .sx-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .sx-hero { padding: var(--sp-4); }
     }
@@ -10907,7 +10907,7 @@
     .sx-drill-head b { font-family: var(--font-display); font-size: var(--fs-md); display: block; }
     .sx-drill-head span { font-size: var(--fs-sm); color: var(--text2); }
     .sx-drill-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-2) var(--sp-5); margin-top: var(--sp-3); }
-    @media (max-width: 600px) { .sx-drill-cols { grid-template-columns: 1fr; } }
+    @media (max-width: 640px) { .sx-drill-cols { grid-template-columns: 1fr; } }
     .sx-drill h4 { margin: 0 0 var(--sp-1); font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: .06em; color: var(--text3); }
     .sx-drill-foot { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-3); padding-top: var(--sp-3); border-top: 1px solid var(--border); font-size: var(--fs-sm); color: var(--text2); }
     /* Song rows (look-inside box, Story lists): rank, title over artist, count */
@@ -10929,7 +10929,7 @@
     /* The clock and the week, side by side (one column on phones) */
     .sx-row2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; margin-bottom: 1.25rem; }
     .sx-row2 > .graph-card { margin-bottom: 0; }
-    @media (max-width: 760px) { .sx-row2 { grid-template-columns: 1fr; } }
+    @media (max-width: 640px) { .sx-row2 { grid-template-columns: 1fr; } }
     .sx-clock svg { display: block; width: 100%; max-width: 300px; margin: var(--sp-2) auto 0; overflow: visible; }
     .sx-clock-ring { fill: none; stroke: var(--rule); }
     .sx-clock-bar { fill: var(--accent); opacity: var(--o, 1); cursor: pointer; transition: opacity .15s; }
@@ -10976,14 +10976,14 @@
     .sx-cmp-add { display: flex; gap: var(--sp-2); flex: 1 1 18rem; min-width: 0; }
     .sx-cmp-add .graph-input { flex: 1; min-width: 0; }
     .graph-canvas-wrap.sx-cmp-canvas { height: 340px; }
-    @media (max-width: 600px) { .graph-canvas-wrap.sx-cmp-canvas { height: 280px; } }
+    @media (max-width: 640px) { .graph-canvas-wrap.sx-cmp-canvas { height: 280px; } }
 
     /* The verdict row: who won what, in the winner's series colour */
     .sx-verdict { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--sp-2); margin-top: var(--sp-3); }
     .sx-verdict:empty { display: none; }
     .sx-verdict[hidden], .sx-cmp-race[hidden], .graph-canvas-wrap[hidden] { display: none; }
     .sx-cmp-race { margin-top: var(--sp-2); }
-    @media (max-width: 760px) { .sx-verdict { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 640px) { .sx-verdict { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     .sx-verdict-tile { background: var(--bg3); border-radius: var(--r-sm); padding: var(--sp-2) var(--sp-3); text-align: center; min-width: 0; }
     .sx-verdict-tile span { display: block; font-size: 0.6875rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--text3); }
     .sx-verdict-tile b { display: block; margin-top: 2px; font-family: var(--font-display); font-size: var(--fs-sm); color: var(--c, var(--text)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -11022,7 +11022,7 @@
     .sx-era-gap { background: transparent; }
     .sx-era-axis { display: flex; justify-content: space-between; margin-top: 4px; font-family: var(--font-mono); font-size: 0.6875rem; color: var(--text3); }
     .sx-era-list { list-style: none; margin: var(--sp-3) 0 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px var(--sp-4); }
-    @media (max-width: 700px) { .sx-era-list { grid-template-columns: 1fr; } }
+    @media (max-width: 640px) { .sx-era-list { grid-template-columns: 1fr; } }
     .sx-era-row {
       display: grid; grid-template-columns: 4px 30px minmax(0, 1fr) auto; gap: var(--sp-2); align-items: center;
       width: 100%; padding: 0.35rem 0.25rem; background: none; border: 0; border-radius: var(--r-sm);
@@ -11085,8 +11085,8 @@
     .sx-fun-row span { display: block; font-size: var(--fs-xs); color: var(--text2); }
     /* Milestones: a list in up to three columns, each with a dot */
     .sx-miles { list-style: none; margin: var(--sp-3) 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-3) var(--sp-5); }
-    @media (max-width: 860px) { .sx-miles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-    @media (max-width: 520px) { .sx-miles { grid-template-columns: 1fr; } }
+    @media (max-width: 1023px) { .sx-miles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 640px) { .sx-miles { grid-template-columns: 1fr; } }
     .sx-miles li { position: relative; padding-left: 18px; min-width: 0; }
     .sx-miles li::before { content: ''; position: absolute; left: 0; top: 5px; width: 9px; height: 9px; border-radius: 50%; background: var(--accent); }
     .sx-miles b { display: block; font-family: var(--font-display); font-size: var(--fs-sm); }
@@ -11096,8 +11096,8 @@
     #graphsView[data-st-tab="games"] .graphs-controls { display: none; }
     .sx-games-intro { margin: 0 0 var(--sp-4); color: var(--text2); font-size: var(--fs-sm); }
     .sx-games-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--sp-4); }
-    @media (max-width: 1000px) { .sx-games-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-    @media (max-width: 480px) { .sx-games-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 1023px) { .sx-games-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 640px) { .sx-games-grid { grid-template-columns: 1fr; } }
     .sx-game-card { display: flex; flex-direction: column; gap: var(--sp-2); padding: var(--sp-4); margin: 0; }
     .sx-game-card h3 { margin: var(--sp-1) 0 0; font-family: var(--font-display); font-size: var(--fs-md); }
     .sx-game-card p { margin: 0; color: var(--text2); font-size: var(--fs-sm); flex: 1; }
@@ -11146,7 +11146,7 @@
     .sx-vs { display: grid; place-items: center; width: 44px; height: 44px; flex-shrink: 0; border: 1px solid var(--border2); border-radius: 50%;
       font-family: var(--font-display); font-weight: 700; color: var(--text3); }
     .sx-hl-btns { display: flex; flex-direction: column; gap: var(--sp-2); margin-top: var(--sp-2); }
-    @media (max-width: 600px) {
+    @media (max-width: 640px) {
       .sx-hl { flex-direction: column; gap: var(--sp-2); }
       .sx-hl .sx-gsong { flex-direction: row; flex-wrap: wrap; align-items: center; text-align: left; gap: var(--sp-2) var(--sp-3); padding: var(--sp-3); }
       .sx-hl .sx-gart { width: 72px; margin: 0; }
@@ -11173,7 +11173,7 @@
     .sx-year-btn.is-wrong, .sx-one-opt.is-wrong { background: color-mix(in srgb, var(--rose) 18%, var(--bg2)); border-color: var(--rose); color: var(--text); opacity: 1; }
     /* Guess the #1: four songs to pick from */
     .sx-one-opts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-3); width: min(46rem, 100%); }
-    @media (max-width: 600px) { .sx-one-opts { grid-template-columns: 1fr; } }
+    @media (max-width: 640px) { .sx-one-opts { grid-template-columns: 1fr; } }
     .sx-one-opt {
       display: grid; grid-template-columns: auto 56px minmax(0, 1fr); gap: var(--sp-3); align-items: center;
       padding: var(--sp-3); background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r-md);
@@ -11373,7 +11373,7 @@
     #gHeatmap { overflow-x: auto; padding-bottom: 0.25rem; }
     /* On a phone the swatches wrap onto their own line, which would leave the
        divider hanging at the end of the View row. */
-    @media (max-width: 600px) { .hm-ctrl-sep { display: none; } }
+    @media (max-width: 640px) { .hm-ctrl-sep { display: none; } }
     /* The tooltip's gold and amber lines are tuned for dark themes; on a light
        tooltip they need darker shades to stay readable (all ≥5:1 on every
        light theme's --bg). */
@@ -11427,7 +11427,7 @@
     #gHeatmap .heatmap-cell.has-data:hover { outline: 2px solid var(--text); outline-offset: 0; }
     /* On a phone the squares would shrink to dots: keep them readable and let
        the year scroll sideways (app.js opens it at the latest month). */
-    @media (max-width: 600px) {
+    @media (max-width: 640px) {
       .hm-y-grid { min-width: 640px; }
       /* the day names stay put while the weeks scroll under them */
       .hm-y-dows { position: sticky; left: 0; z-index: 1; background: var(--bg2); }
@@ -11767,7 +11767,7 @@
       text-align: right;
     }
     /* Phones: the date on the left, then title, artist and type stacked */
-    @media (max-width: 600px) {
+    @media (max-width: 640px) {
       .ev-list-row {
         grid-template-columns: 84px minmax(0, 1fr);
         grid-template-areas: "date title" "date artist" "date type";
@@ -11954,7 +11954,7 @@
 
     /* Phones: seven columns leave no room for titles (Month or Week), so a
        cell shows its icons in a row and the day opens the list */
-    @media (max-width: 600px) {
+    @media (max-width: 640px) {
       .events-cal-grid .cal-cell { padding: 2px; }
       .events-cal-grid:not(.cal-week-grid) .cal-cell { min-height: 56px; }
       .events-cal-grid .cal-cell-events { flex-direction: row; flex-wrap: wrap; gap: 2px; align-content: flex-start; }
@@ -12325,7 +12325,7 @@
     /* Phone chart table, every language: diamonds as emoji ("DOUBLE DIAMOND"
        → 💎💎, "TRIPLE DIAMOND" → 3×💎, 4×💎…). Gold and Platinum keep their
        words (your call, 2026-10-18). */
-    @media (max-width: 600px) {
+    @media (max-width: 640px) {
       .chart-table .cert-diamond .cert-icon,
       .chart-table .cert-diamond .cert-label { display: none; }
       .chart-table .cert-diamond .cert-short {
@@ -12862,7 +12862,7 @@
     }
 
     /* Phones: list a bit shorter, copy gets its own row, hints drop */
-    @media (max-width: 700px) {
+    @media (max-width: 640px) {
       .export-modal-box { padding: var(--sp-4); }
       .export-tracklist { max-height: 42vh; }
       .export-actions { flex-wrap: wrap; }
@@ -12956,7 +12956,7 @@
        Note: .modal-overlay uses backdrop-filter, which traps position:fixed
        descendants to itself instead of the real viewport — so `sticky` (which
        isn't affected by that trap) is used here instead of `fixed`. */
-    @media (max-width: 700px) {
+    @media (max-width: 640px) {
       /* .modal-box's own overflow:hidden (there to clip .modal-header's
          corners) also traps the sticky close button to the box instead of
          letting it stick to the real scroll container — allow it to escape. */
@@ -13014,7 +13014,7 @@
     }
 
     /* Phones: keep the enlarged type readable but inside the modal width */
-    @media (max-width: 600px) {
+    @media (max-width: 640px) {
       .alb-sparkline-label { font-size: var(--fs-xs); }
       .alb-sparkline-hint  { font-size: var(--fs-xs); }
       .alb-y-axis, .alb-bars-area { height: 170px; }
@@ -13597,7 +13597,7 @@
     .chart-table .m-col .m-prev-rank { margin-top: 3px; }
     /* Phones: slimmer pills so the movement column doesn't push the table
        wider than the section */
-    @media (max-width: 600px) {
+    @media (max-width: 640px) {
       .chart-table .m-col > .m-up,
       .chart-table .m-col > .m-down,
       .chart-table .m-col > .m-same,
@@ -13853,7 +13853,7 @@
 
     /* Phones: tighter card so the panel doesn't widen the table past the
        section (the chart table is already at its narrowest at 390px) */
-    @media (max-width: 600px) {
+    @media (max-width: 640px) {
       .cr-panel {
         padding: var(--sp-3) 0.65rem 0.8rem;
         border-radius: 12px;
@@ -14608,7 +14608,7 @@
        on one line → streak / Bubbling Under notes. .dropout-info is
        flattened (display: contents) so the stats line can slot in right
        under the artist via `order`. */
-    @media (max-width: 600px) {
+    @media (max-width: 640px) {
       .dropout-row {
         display: grid;
         grid-template-columns: auto minmax(0, 1fr) auto;
@@ -14692,7 +14692,7 @@
       box-shadow: inset 0 -1px 0 var(--border2);
     }
 
-    @media (min-width: 601px) {
+    @media (min-width: 641px) {
       .raw-filters {
         position: sticky;
         top: var(--topbar-offset);
@@ -14929,7 +14929,7 @@
       background: var(--hover);
     }
 
-    @media (max-width: 600px) {
+    @media (max-width: 640px) {
       .raw-table.cr-rawdata-table thead th,
       .raw-table.cr-rawdata-table td {
         padding: 0.3rem 0.35rem;
@@ -15066,7 +15066,7 @@
     }
 
     /* Phones: arrows only, the words go */
-    @media (max-width: 600px) {
+    @media (max-width: 640px) {
       .raw-pager {
         justify-content: center;
         scroll-margin-top: var(--topbar-offset);
@@ -15078,7 +15078,7 @@
     }
 
     /* CTRL GROUP — mobile: compact circle buttons */
-    @media (max-width: 700px) {
+    @media (max-width: 640px) {
 
       .ctrl-group-btn {
         width: 30px;
@@ -15134,7 +15134,7 @@
     }
 
     /* RESPONSIVE */
-    @media (max-width: 600px) {
+    @media (max-width: 640px) {
       .song-album {
         display: none;
       }
@@ -15509,7 +15509,7 @@
     .th-rank-short,
     .th-period-short { display: none; }
 
-    @media (max-width: 600px) and (orientation: portrait) {
+    @media (max-width: 640px) and (orientation: portrait) {
       .th-plays-full,
       .th-prev-full,
       .th-rank-full,
@@ -15685,7 +15685,7 @@
         color-mix(in srgb, var(--bg2) 88%, transparent) 100%);
     }
 
-    @media (min-width: 640px) {
+    @media (min-width: 641px) {
       .rec-hero-banner { min-height: 420px; }
     }
 
@@ -15698,7 +15698,7 @@
       text-align: center;
     }
 
-    @media (min-width: 640px) {
+    @media (min-width: 641px) {
       .rec-hero-main { margin-top: -180px; }
     }
 
@@ -16405,7 +16405,7 @@
       color: var(--text3);
     }
 
-    @media (max-width: 560px) {
+    @media (max-width: 640px) {
       /* Two up rather than one: a single-column square on a phone is a card
          the height of the viewport, and ten of them is a very long scroll. */
       .rec-ov-grid {
@@ -17603,7 +17603,7 @@
        also puts .rec-cards on every table that opts in — a table with its
        own phone layout simply doesn't get the class.
        ═══════════════════════════════════════════════════════════ */
-    @media (max-width: 767px) {
+    @media (max-width: 640px) {
       #recordsView .rec-cards,
       #recordsView .rec-cards > tbody,
       #recordsView .rec-cards > tbody > tr > td {
@@ -18788,7 +18788,7 @@
 
     /* Phones: the date column is what gives, not the node — the tier number is
        the one thing a milestone row cannot be read without. */
-    @media (max-width: 620px) {
+    @media (max-width: 640px) {
       .mil-row {
         grid-template-columns: 4.25rem 2.2rem minmax(0, 1fr);
         grid-template-areas:
@@ -19331,7 +19331,7 @@
        Sorting goes away with the header on this breakpoint — that is the
        trade, and the same reason the podium is worth keeping here: it is the
        only ranking affordance left. */
-    @media (max-width: 700px) {
+    @media (max-width: 640px) {
       .nc-podium {
         grid-template-columns: 1fr;
         gap: var(--sp-2);
@@ -19703,7 +19703,7 @@
        labels, the desktop flex row has zero slack left by ~700px, so this
        is the width where a fixed-basis row stops being viable, not a
        generic device-size guess. */
-    @media (max-width: 700px) {
+    @media (max-width: 640px) {
       .period-nav-row {
         display: grid;
         /* minmax(0, 1fr), not bare 1fr — a track's automatic minimum size
@@ -20318,7 +20318,7 @@
     }
 
     /* Tablet: the arithmetic drops under the title rather than squeezing it. */
-    @media (max-width: 900px) {
+    @media (max-width: 1023px) {
       .certd-row {
         grid-template-columns: 42px minmax(0, 1fr);
       }
@@ -20337,7 +20337,7 @@
     }
 
     /* Phone: the spine lies down as a header bar across the top of the line. */
-    @media (max-width: 560px) {
+    @media (max-width: 640px) {
       .certd {
         padding: 0.7rem 0.6rem var(--sp-3);
       }
@@ -20709,7 +20709,7 @@
       text-shadow: 0 1px 2px rgba(0,0,0,0.8);
     }
 
-    @media (max-width: 600px) {
+    @media (max-width: 640px) {
       /* One plaque per row below this width. Two columns of an award this wide
          would put the cover, five records and a four-line caption inside 165px,
          and the fan is the first thing that stops being countable. */
@@ -20791,7 +20791,7 @@
       filter: brightness(1.12);
     }
 
-    @media (max-width: 500px) {
+    @media (max-width: 640px) {
       .cwall-filter-row {
         flex-direction: column;
         align-items: flex-start;
@@ -22169,7 +22169,7 @@ body.pink-light .landing-screen:has(.landing-card:hover) .landing-eq-skyline {
 }
 
 /* Compact fit for narrow screens (375px must not wrap) */
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   .landing-demo-btn {
     font-size: var(--fs-base);
     padding: 0.9rem 1.7rem;
@@ -24508,7 +24508,7 @@ body[class*="-light"] .hero-stats [class*="hero-stat--streak-"] .hero-val {
 }
 
 /* Mobile: 2×2 grid */
-@media (max-width: 560px) {
+@media (max-width: 640px) {
   .hero-stats {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -24918,7 +24918,7 @@ body[class*="-light"] .hero-stats [class*="hero-stat--streak-"] .hero-val {
   50% { transform: translateX(4px); }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .nav-hint-keyboard { display: none; }
   .nav-hint-swipe {
     display: inline-flex;
@@ -26693,7 +26693,7 @@ body[class*="-light"] .tm-card-search:hover {
   font-weight: 700;
 }
 
-@media (max-width: 560px) {
+@media (max-width: 640px) {
   .awards-view-bar { justify-content: flex-start; }
   .awards-view-pick { margin-left: 0; }
   .awards-view-bar-label { display: none; }
@@ -27542,7 +27542,7 @@ body[class*="-light"] .tm-card-search:hover {
   font-size: var(--fs-xs);
   color: var(--text3);
 }
-@media (max-width: 560px) {
+@media (max-width: 640px) {
   .awards-picker-statline { padding-left: 0; }
   .aw-pst-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .aw-pst-chart-name { width: 100%; }
@@ -27736,7 +27736,7 @@ body.pink-light .awards-picker-yt-btn:hover { color: #CC0000; border-color: #CC0
 @media (prefers-reduced-motion: reduce) {
   .awards-picker-clip-btn.is-loading { animation: none; }
 }
-@media (max-width: 560px) {
+@media (max-width: 640px) {
   .awards-picker-selected { grid-template-columns: minmax(0, 1fr); max-height: 176px; }
   .awards-picker-ballot { margin: 0 10px; }
   .awards-picker-ballot-hint { display: none; }
@@ -27753,7 +27753,7 @@ body.pink-light .awards-picker-yt-btn:hover { color: #CC0000; border-color: #CC0
   .awards-picker-lbl { white-space: normal; overflow-wrap: anywhere; }
   .awards-picker-genre-tags { flex-shrink: 1; min-width: 0; }
 }
-@media (max-width: 560px) {
+@media (max-width: 640px) {
   .awards-picker-preview-bigcover .awards-picker-preview-cover { width: min(260px, 32vh, 100%); }
   .awards-picker-preview-album .awards-picker-preview-cover { width: 84px; }
   .awards-picker-preview-about { max-height: 84px; }
@@ -27887,7 +27887,7 @@ body.pink-light .awards-picker-yt-btn:hover { color: #CC0000; border-color: #CC0
 }
 /* On a phone the portrait gives up half its width rather than squeezing the
    category and the work it was nominated for into nothing. */
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .awards-reallife-card { gap: 10px; padding: 10px var(--sp-3); }
   /* A square at the top of the card rather than a strip running its full
      height — at this width that stretch turns into a sliver. */
@@ -27943,7 +27943,7 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
 /* Five shows don't fit across a phone, so the tabs wrap onto a second row
    instead of scrolling the one you picked out of sight; the tray squares off a
    little so two rows still read as one control */
-@media (max-width: 520px) {
+@media (max-width: 640px) {
   .awards-show-seg { flex-wrap: wrap; overflow: visible; border-radius: var(--r-lg); }
 }
 
@@ -28144,7 +28144,7 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
 .ceremony-stage > .ceremony-cat-name,
 .ceremony-stage > .ceremony-slide { width: 100%; max-width: 1300px; }
 /* Big covers on a wide screen: eight fit one row at 1100px and up */
-@media (min-width: 601px) {
+@media (min-width: 641px) {
   .cer-nominees { gap: 12px; }
   .cer-nom-card { width: clamp(110px, 10.5vw, 150px); }
   .cer-nom-name { font-size: var(--fs-sm); }
@@ -29033,7 +29033,7 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
 
 .aw-sum-rank-more { font-size: var(--fs-xs); color: var(--text3); padding-left: 88px; margin-top: var(--sp-1); }
 
-@media (max-width: 760px) {
+@media (max-width: 640px) {
   .aw-sum { padding: 14px; gap: var(--sp-4); }
   .aw-sum-recs { grid-template-columns: minmax(0, 1fr); }
   .ceremony-slide .aw-sum-rec-head { flex-direction: row; align-items: center; }
@@ -29099,7 +29099,7 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
 .ceremony-progress { font-size: var(--fs-xs); color: var(--text3); font-family: var(--font-sans); font-weight: 600; }
 
 /* Mobile responsiveness */
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   /* Phone: the label on ☰ goes, the dots shrink, and the whole slide up to
      Open envelope fits without scrolling (four small covers a row) */
   .ceremony-cats-btn span { display: none; }
@@ -29430,7 +29430,7 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
   border: 1px solid color-mix(in srgb, var(--green) 25%, transparent);
 }
 @media (prefers-reduced-motion: reduce) { .sk-saved--new { animation: none; } .sk-keep-bar i { transition: none; } }
-@media (max-width: 520px) {
+@media (max-width: 640px) {
   .sk-plan-row { grid-template-columns: auto minmax(0, 1fr) auto auto; }
   .sk-plan-row .sk-saves { display: none; }
   .sk-keptby { display: none; }
@@ -29983,7 +29983,7 @@ body[class*="-light"] .st-chap-head:not(.st-chap-head--artist):not(.st-chap-head
   font-size: 3rem;
   letter-spacing: -0.01em;
 }
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   .st-hero-period { font-size: 3.6rem; }
   .st-hero-period--long { font-size: var(--fs-xl); }
 }
@@ -30003,7 +30003,7 @@ body[class*="-light"] .st-chap-head:not(.st-chap-head--artist):not(.st-chap-head
 }
 /* Phone: two across, Plays (the headline number) the full width on top, so
    the five tiles fill three rows with no gap and "53,342" is never cut */
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .st-stats-strip { grid-template-columns: repeat(2, 1fr); }
   .st-stat:first-child { grid-column: 1 / -1; }
 }
@@ -30182,7 +30182,7 @@ body[class*="-light"] .st-chap-head:not(.st-chap-head--artist):not(.st-chap-head
 .st-fa-stat:nth-child(4n+3) .st-fa-stat-v { color: var(--accent); }
 .st-fa-stat:nth-child(4n+4) .st-fa-stat-v { color: var(--green); }
 .st-fa-stat-n { font-size: var(--fs-xs); color: var(--text3); }
-@media (max-width: 860px) {
+@media (max-width: 1023px) {
   .st-fa-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); row-gap: var(--sp-4); }
 }
 /* phone: stacked; two stats across with the first (it has a note) on top */
@@ -30382,7 +30382,7 @@ body[class*="-light"] .st-chap-head:not(.st-chap-head--artist):not(.st-chap-head
 .st-cf-nav:hover { background: var(--sc); color: var(--bg1); transform: translateY(-50%) scale(1.08); }
 .st-cf-nav-prev { left: 0.6rem; }
 .st-cf-nav-next { right: 0.6rem; }
-@media (max-width: 620px) { .st-cf-nav { display: none; } }
+@media (max-width: 640px) { .st-cf-nav { display: none; } }
 
 .st-cf-meta {
   text-align: center;
@@ -30430,7 +30430,7 @@ body[class*="-light"] .st-chap-head:not(.st-chap-head--artist):not(.st-chap-head
   transition: width 0.3s cubic-bezier(0.4,0,0.2,1);
 }
 
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   .st-cf-viewport { height: 190px; }
   .st-cf-card { width: 128px; height: 128px; }
   .st-cf-art .thumb-initials { font-size: 1.6rem; }
@@ -30636,7 +30636,7 @@ body[class*="-light"] .st-chap-head:not(.st-chap-head--artist):not(.st-chap-head
 
 /* On a phone the months keep room for a five-digit count ("4,511") and the
    chart scrolls sideways instead of squeezing the numbers into each other. */
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   .st-activity-chart { height: 158px; }
   .st-activity-bar-wrap { height: 94px; }
   .st-activity-col { min-width: 46px; }
@@ -30652,7 +30652,7 @@ body[class*="-light"] .st-chap-head:not(.st-chap-head--artist):not(.st-chap-head
   gap: var(--sp-5);
   padding: 0.4rem 0 0.7rem;
 }
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   .st-loyalty-score { flex-direction: column; text-align: center; }
 }
 
@@ -30699,7 +30699,7 @@ body[class*="-light"] .st-chap-head:not(.st-chap-head--artist):not(.st-chap-head
 .st-loyalty-pct-sign { font-size: var(--fs-base); font-weight: 600; opacity: 0.65; }
 
 .st-loyalty-text { min-width: 0; flex: 1; }
-@media (max-width: 480px) { .st-loyalty-text { display: flex; flex-direction: column; align-items: center; } }
+@media (max-width: 640px) { .st-loyalty-text { display: flex; flex-direction: column; align-items: center; } }
 
 /* highlighter swipe stands in for the old pill badge — a background
    gradient on the element itself, not a z-index trick, so it can't
@@ -30725,7 +30725,7 @@ body[class*="-light"] .st-chap-head:not(.st-chap-head--artist):not(.st-chap-head
 
 /* dot tally: filled = returning artist, hollow = the rest of last year's top 10 */
 .st-loyalty-tally { display: flex; gap: 0.32rem; flex-wrap: wrap; }
-@media (max-width: 480px) { .st-loyalty-tally { justify-content: center; } }
+@media (max-width: 640px) { .st-loyalty-tally { justify-content: center; } }
 .st-loyalty-dot {
   width: 7px;
   height: 7px;
@@ -31247,7 +31247,7 @@ body[class*="-light"] .st-chap-head:not(.st-chap-head--artist):not(.st-chap-head
 }
 /* phone: two across, the third the full width under them (three in a row
    squeezed the dates and the New Record badge onto three lines) */
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   .st-streaks-grid > .st-streak-card { min-width: calc(50% - 0.35rem); }
 }
 
@@ -32145,7 +32145,7 @@ body[class*="-light"] .st-chap-head:not(.st-chap-head--artist):not(.st-chap-head
 
 /* Narrow screens: drop the count column and shrink the avatar/badge so the
    row still fits without truncating the artist name. */
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   .st-replay-avatar .thumb, .st-replay-avatar .thumb-initials { width: 28px; height: 28px; font-size: 0.65rem; }
   .st-replay-move { min-width: 1.6rem; font-size: var(--fs-xs); }
   .st-replay-count { display: none; }
@@ -32418,7 +32418,7 @@ body.st-story-open { overflow: hidden; }
    which left an empty strip above the hero. A negative bottom margin
    (its 32px + 0.6rem top margin) lets it float over the hero instead, and
    a dark glass fill keeps the white ✕ readable over the light cards below. */
-@media (max-width: 700px) {
+@media (max-width: 640px) {
   .st-artist-modal-box > .modal-close {
     width: 32px;
     padding: 0;
@@ -32832,7 +32832,7 @@ body.st-story-open { overflow: hidden; }
   .st-am-links { opacity: 1; }
 }
 
-@media (max-width: 560px) {
+@media (max-width: 640px) {
   .st-artist-modal-header { padding: 58px var(--sp-4) var(--sp-4); }
   .st-artist-modal-avatar { width: 84px; height: 84px; }
   .st-am-hero-main { gap: 1rem; }
@@ -33542,7 +33542,7 @@ button.ns-art {
   white-space: nowrap;
 }
 
-@media (max-width: 1000px) {
+@media (max-width: 1023px) {
   .ns-more {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
@@ -33602,7 +33602,7 @@ body[class*="-light"] [class*="ns-tier-"] .ns-flame {
 }
 
 /* ═══ Phones: option C ═══ */
-@media (max-width: 700px) {
+@media (max-width: 640px) {
   .now-strip {
     display: flex;
     flex-direction: column;
@@ -33912,7 +33912,7 @@ body[class*="-light"] [class*="ns-tier-"] .ns-flame {
 .colw-handle:hover::after,
 body.colw-dragging .colw-handle::after { background: var(--accent); opacity: 1; }
 body.colw-dragging { cursor: col-resize; user-select: none; }
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .colw-handle { display: none; }
 }
 /* ⋮ → Size: shown only while the table has custom widths */
@@ -34017,11 +34017,11 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
    tablets, 2 on phones; "Bigger covers" makes it 3 / 2 / 1. */
 .wv-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--sp-3); padding: var(--sp-1); }
 .wv-grid-lg { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-@media (max-width: 980px) {
+@media (max-width: 1023px) {
   .wv-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .wv-grid-lg { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .wv-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-2); }
   .wv-grid-lg { grid-template-columns: minmax(0, 1fr); }
 }
@@ -34260,7 +34260,7 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
 
 /* Phones: Title over Artist, no time-on-chart column, tighter numbers.
    Was ~20px for the title on a 390px phone; now about 200px. */
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   /* Rank and Move share the first column (move chip under the number,
      2026-10-20), so the separate Move column is gone */
   /* Plays and ⋮ slimmed (2026-10-20) so Title · Artist gets the room */
@@ -34387,7 +34387,7 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
 .wv-mos-capture .wv-r3 .wv-mos-item-inner { border: 2px solid var(--medal-bronze); }
 
 /* Phones: #1 across the whole width, #2–#5 two to a row, the rest three */
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .wv-mosaic { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
   .wv-mos-xl { grid-column: span 6; grid-row: auto; aspect-ratio: 1; }
   .wv-mos-md { grid-column: span 3; }
@@ -34586,7 +34586,7 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
 .wv-film-big .wv-stat-pb .ppb-full { display: none; }
 .wv-film-big .wv-stat-pb .ppb-short { display: inline; }
 /* Tablets: the three share the width */
-@media (min-width: 601px) and (max-width: 980px) {
+@media (min-width: 641px) and (max-width: 1023px) {
   .wv-film-podium { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-3); }
 }
 
@@ -34654,7 +34654,7 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
 .wv-film-capture .wv-film-auto-track { padding: 0; }
 .wv-film-capture .wv-grid-card::before { animation: none; opacity: 0.8; }
 
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   /* #1 across the top with its cover on the left, #2 and #3 side by side */
   .wv-film-podium { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-3) var(--sp-2); }
   .wv-film-podium { justify-content: stretch; }
@@ -34771,7 +34771,7 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
 .wv-stat-now b { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-weight: 700; color: var(--text); }
 /* Spotify · ▶ · ⋮ (_wvActs) */
 .wv-acts { display: inline-flex; align-items: center; gap: 2px; flex: none; }
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .wv-stack-2col { display: flex; flex-direction: column; }
   .wv-stk-row { gap: 8px; padding: var(--sp-2) 4px var(--sp-2) 6px; }
   .wv-stk-pos { min-width: 34px; }
@@ -35809,13 +35809,13 @@ body.red-light :is(.sv--bronze, .modal-cb-detail-peak--bronze) {
     .cg-tour-end-btn { margin-left: auto; }
 
     /* ── Responsive ──────────────────────────────────────── */
-    @media (max-width: 720px) {
+    @media (max-width: 640px) {
       .cg-stats-row   { grid-template-columns: repeat(3, 1fr); }
       .cg-status-row  { grid-template-columns: 1fr; }
       .cg-dual-row    { grid-template-columns: 1fr; }
       .cg-export-grid { grid-template-columns: 1fr; }
     }
-    @media (max-width: 480px) {
+    @media (max-width: 640px) {
       .cg-stats-row       { grid-template-columns: repeat(2, 1fr); }
       .cg-shortcut-keys   { width: 130px; }
     }
@@ -36032,7 +36032,7 @@ body.red-light :is(.sv--bronze, .modal-cb-detail-peak--bronze) {
     }
     .cg-gate-skip:hover { color: var(--text); }
 
-    @media (max-width: 480px) {
+    @media (max-width: 640px) {
       .cg-gate-box   { padding: 1.4rem 1.15rem 1.15rem; }
       .cg-gate-title { font-size: var(--fs-lg); }
       .cg-gate-hook  { font-size: var(--fs-lg); }
@@ -36290,17 +36290,17 @@ body.red-light :is(.sv--bronze, .modal-cb-detail-peak--bronze) {
     }
 
     /* ── Responsive (chapters) ────────────────────────────── */
-    @media (max-width: 860px) {
+    @media (max-width: 1023px) {
       .cg-tab-grid     { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .cg-concept-grid { grid-template-columns: 1fr; }
     }
-    @media (max-width: 720px) {
+    @media (max-width: 640px) {
       .cg-checklist-grid { grid-template-columns: 1fr; }
       .cg-gloss-row      { grid-template-columns: 1fr; gap: 0.15rem; }
       .cg-hero-progress  { flex-basis: 100%; }
       .cg-hero-track     { max-width: none; }
     }
-    @media (max-width: 560px) {
+    @media (max-width: 640px) {
       .cg-tab-grid      { grid-template-columns: 1fr; }
       .cg-stats-row     { grid-template-columns: repeat(2, 1fr); }
       /* Narrow enough that the track and its label can't share a line */
@@ -36677,7 +36677,7 @@ body.red-light :is(.sv--bronze, .modal-cb-detail-peak--bronze) {
     }
 
     /* Mobile: keep the panel on-screen next to a header that's already tight */
-    @media (max-width: 600px) {
+    @media (max-width: 640px) {
       .kebab-menu {
         width: 200px;
       }
@@ -37317,7 +37317,7 @@ body.red-light :is(.sv--bronze, .modal-cb-detail-peak--bronze) {
       border-color: color-mix(in srgb, #b35a00 70%, transparent);
     }
 
-    @media (max-width: 620px) {
+    @media (max-width: 640px) {
       .cr-stk-row {
         grid-template-columns: 1.1rem 0.6rem minmax(34px, 1fr) auto auto auto;
         gap: 0.38rem;
@@ -38744,7 +38744,7 @@ body.red-light :is(.sv--bronze, .modal-cb-detail-peak--bronze) {
     @media (prefers-reduced-motion: reduce) { .rp-hi-track { transition: none; } }
     /* Top rated artists · recently rated, side by side from 900px */
     .rp-duo { display: grid; grid-template-columns: 1fr; gap: var(--sp-5); }
-    @media (min-width: 900px) { .rp-duo { grid-template-columns: 1fr 1fr; } }
+    @media (min-width: 1024px) { .rp-duo { grid-template-columns: 1fr 1fr; } }
     .rp-rank { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
     .rp-rank-row {
       display: flex;
@@ -39113,7 +39113,7 @@ body.red-light :is(.sv--bronze, .modal-cb-detail-peak--bronze) {
 }
 
 /* -- Narrow screens ------------------------------------------------------ */
-@media (max-width: 620px) {
+@media (max-width: 640px) {
   .cl-box { max-height: calc(100vh - 2rem); }
   .cl-head { padding: 0.9rem 0.9rem 0.7rem; }
   .cl-body { padding: 0 0.9rem var(--sp-4); }
@@ -39389,7 +39389,7 @@ body.cp-hide-cert-reel    #certReelSection { display: none !important; }
 @keyframes bdToastIn { from { opacity: 0; transform: translate(-50%, 8px); } }
 @media (prefers-reduced-motion: reduce) { .bd-toast { animation: none; } }
 
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .bd-post { gap: 10px; padding: var(--sp-3) var(--sp-2); }
   .bd-vote { width: 40px; }
   .bd-new-btn { margin-left: 0; flex: 1 1 100%; }
@@ -39491,7 +39491,7 @@ body.cp-hide-cert-reel    #certReelSection { display: none !important; }
 }
 /* Phones: ⋮ takes the chart-run icon's place (Chart run is in its menu),
    so the row is no wider than before */
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .chart-table .cr-cell { width: 30px; }
   .chart-table .cr-cell .cr-toggle-btn { display: none; }
   .chart-table .cr-cell .ea-more { width: 22px; }
@@ -39539,7 +39539,7 @@ body.cp-hide-cert-reel    #certReelSection { display: none !important; }
 .wv-stk-row .ea-sample.ea-cover-play svg { width: 12px; height: 12px; }
 /* Phones: the Table's row ends with ⋮ alone; Search on Spotify is in that
    menu (your call, 2026-10-19), so Title · Artist keeps the room */
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .chart-table:is(#songsTable, #artistsTable, #albumsTable) .cr-cell .ea-spotify { display: none; }
   /* Always shown on touch: smaller on the phone Table's 36px covers */
   .chart-table .ea-sample.ea-cover-play { width: 16px; height: 16px; right: 1px; bottom: 1px; }
@@ -39640,7 +39640,7 @@ body.cp-hide-cert-reel    #certReelSection { display: none !important; }
 .cr-panel .ea-dr-btn.ea-sample.is-on .ea-dr-ic { color: inherit; }
 /* Phones: the toolbar spans the width as five even columns, icon above a
    small word, so it stays one tidy row instead of wrapping into a blob */
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .ea-dr-acts { display: grid; grid-template-columns: repeat(5, 1fr); width: 100%; border-radius: var(--r-md); }
   .cr-panel .ea-dr-btn {
     flex-direction: column; justify-content: center; gap: 2px; padding: 6px 2px;
@@ -39678,7 +39678,7 @@ body.cp-hide-cert-reel    #certReelSection { display: none !important; }
 }
 .wv-mos-dr-btn:hover { background: rgba(255,255,255,0.24); }
 
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .ea-drawer { padding: var(--sp-3); }
   .chart-table tr.cr-row td > .ea-drawer { margin: var(--sp-2) 0 0; }
 }
@@ -39929,12 +39929,12 @@ body:not([data-view="alltime"]) #atInsights { display: none !important; }
 @keyframes atiGrowX { from { transform: scaleX(0); } }
 @keyframes atiGrowY { from { transform: scaleY(0); } }
 
-@media (max-width: 760px) {
+@media (max-width: 640px) {
   .ati-grid { grid-template-columns: minmax(0, 1fr); gap: var(--sp-2); }
   .ati-grid > .ati-block + .ati-block > .ati-h:first-child { margin-top: var(--sp-5); }
   .ati-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .ati-hero { grid-template-columns: auto 1fr; gap: var(--sp-3); padding: var(--sp-3) var(--sp-4); }
   .ati-hero-next { grid-column: 1 / -1; justify-self: start; }
   .ati-art--hero { width: 64px; height: 64px; }
@@ -40105,7 +40105,7 @@ body[data-view="day"] .daily-view {
 /* Phones: every row full width like the Songs / Artists / Albums switch
    above. Was a sideways-scrolling actions tray that hid half its buttons;
    now a 3 × 2 grid, icon over label, so all six show at once. */
-@media (max-width: 700px) {
+@media (max-width: 640px) {
   /* Wraps so a long "Compare with" (es / pt: "vs mesmo dia da semana
      passada") puts its buttons on their own line instead of pushing the
      page sideways (phase 7 step 12); English still fits on one line */
@@ -40560,7 +40560,7 @@ body[data-view="day"] .daily-view {
   background: color-mix(in srgb, var(--accent) 70%, var(--raised));
 }
 
-@media (max-width: 700px) {
+@media (max-width: 640px) {
   .dy-ptop {
     grid-template-columns: minmax(0, 1fr);
     row-gap: var(--sp-3);
@@ -41026,7 +41026,7 @@ body[data-view="day"] .daily-view {
   color: var(--text3);
 }
 
-@media (max-width: 700px) {
+@media (max-width: 640px) {
   .dy-parts {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -41301,13 +41301,13 @@ body[data-view="day"] .daily-view {
   color: var(--text3);
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1023px) {
   .dy-pat-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 700px) {
+@media (max-width: 640px) {
   .dy-pat-big {
     font-size: var(--fs-md);
   }
@@ -41552,7 +41552,7 @@ body[data-view="day"] .daily-view {
   text-decoration: underline;
 }
 
-@media (max-width: 700px) {
+@media (max-width: 640px) {
   .dy-tod {
     padding: var(--sp-3);
   }
@@ -42145,7 +42145,7 @@ body.dy-recap-open {
 }
 
 /* Phones: the moods in two rows of four */
-@media (max-width: 560px) {
+@media (max-width: 640px) {
   .dy-moods {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
@@ -42203,7 +42203,7 @@ body.navy-light .sk-t-eternal, body.purple-light .sk-t-eternal, body.yellow-ligh
 .sk-kind .sk-ti { color: inherit; width: 10px; height: 10px; }
 /* Leading type icon(s) before a row's name — phones only, in place of the tag. */
 .sk-nm-ic { display: none; }
-@media (max-width: 520px) {
+@media (max-width: 640px) {
   .sk-row-nm .sk-kind { display: none; }
   .sk-nm-ic { display: inline-flex; gap: 0.15rem; margin-right: 0.3rem; vertical-align: -1px; }
   .sk-nm-ic .sk-ti { width: 12px; height: 12px; }
@@ -42261,7 +42261,7 @@ body.navy-light .sk-t-eternal, body.purple-light .sk-t-eternal, body.yellow-ligh
 .sk-tier-legend b { font-family: var(--font-mono); font-weight: 600; color: var(--sk-tier); }
 .sk-fire--flat .sk-podium, .sk-fire--flat .sk-tier-legend { display: none; }
 
-@media (max-width: 520px) {
+@media (max-width: 640px) {
   .sk-row { grid-template-columns: 32px minmax(0, 1fr) auto; gap: 0.5rem; }
   .sk-art { width: 32px; height: 32px; }
   .sk-art--lg { width: 44px; height: 44px; }
@@ -42397,7 +42397,7 @@ body.navy-light .sk-t-eternal, body.purple-light .sk-t-eternal, body.yellow-ligh
 /* the entry a badge's back jumped to: a short glow */
 .sk-tl-it--hi { animation: skTlHi 1.6s ease-out; }
 @keyframes skTlHi { 0%, 30% { background: color-mix(in srgb, var(--gold1) 16%, transparent); } 100% { background: transparent; } }
-@media (max-width: 520px) {
+@media (max-width: 640px) {
   .sk-tl-it { --tl-when: 3.3rem; gap: 0.45rem; }
   .sk-tl-it::before { left: calc(var(--tl-when) + 0.45rem + 1rem - 1px); }
 }
@@ -42423,7 +42423,7 @@ body.navy-light .sk-t-eternal, body.purple-light .sk-t-eternal, body.yellow-ligh
 .sk-stone-foot { display: flex; flex-wrap: wrap; gap: 0.3rem; align-items: center; margin-top: 0.35rem; font-size: 0.7rem; }
 .sk-grave-nav { padding: 0 1.4rem var(--sp-3); }
 
-@media (max-width: 520px) {
+@media (max-width: 640px) {
   .sk-badges { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .sk-stones { grid-template-columns: 1fr; padding: 0 0.9rem var(--sp-3); }
   .sk-hof-row { grid-template-columns: 1.6rem 32px minmax(0, 1fr) auto; }
@@ -42464,7 +42464,7 @@ body.pink-light .sk-hm-tswatch.active, body.red-light .sk-hm-tswatch.active { bo
 .sk-hm-chip--album { border-color: color-mix(in srgb, var(--teal, var(--accent)) 35%, transparent); }
 .sk-hm-chip--song { border-color: color-mix(in srgb, var(--green) 35%, transparent); }
 .sk-hm-chip--more { border-style: dashed; color: var(--text3); }
-@media (max-width: 520px) {
+@media (max-width: 640px) {
   .sk-hm-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .sk-hm-themes { margin-left: 0; }
 }
@@ -42576,7 +42576,7 @@ body.pink-light .sk-hm-tswatch.active, body.red-light .sk-hm-tswatch.active { bo
   .streak-modal-icon[data-tier] { animation: none; }
   .sk-burst { display: none; }
 }
-@media (max-width: 520px) {
+@media (max-width: 640px) {
   .sk-sotd, .sk-ms-today { margin-left: 0.9rem; margin-right: 0.9rem; }
 }
 
@@ -42841,7 +42841,7 @@ html body:not(.albums-hide-bu-legend)  #buAlbumsSection.bu-legend-open .bu-legen
 .atc-plays .cnt-unit { font: 500 11px var(--font-sans); color: var(--text3); }
 
 /* ── Phones ───────────────────────────────────────────────────────────── */
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .atc-bar { padding-left: var(--sp-3); }
   .atc-ttl { display: none; }
   .atc-tab { padding: 11px 10px 9px; }
@@ -42935,7 +42935,7 @@ html body:not(.albums-hide-bu-legend)  #buAlbumsSection.bu-legend-open .bu-legen
 }
 :is(#songsTable, #artistsTable, #albumsTable) .thumb-cell .img-src-btn { top: 5px; right: 5px; }
 :is(#songsTable, #artistsTable, #albumsTable) .thumb-cell .ea-sample.ea-cover-play { right: 5px; bottom: 5px; }
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   :is(#songsTable, #artistsTable, #albumsTable) { --tbl-cov: 52px; }
   :is(#songsTable, #artistsTable, #albumsTable) .thumb-cell .ea-sample.ea-cover-play { right: 3px; bottom: 3px; }
 }
@@ -42954,7 +42954,7 @@ html body:not(.albums-hide-bu-legend)  #buAlbumsSection.bu-legend-open .bu-legen
    the short one at every width already, and phones do in every language. */
 /* Desktop only: phones show the short label anyway, and there the container
    (which leaves the tag out of the column's sizing) squeezed the column */
-@media (min-width: 601px) { .chart-table .ppb-box { container-type: inline-size; } }
+@media (min-width: 641px) { .chart-table .ppb-box { container-type: inline-size; } }
 @container (max-width: 100px) {
   .plays-peak-badge .ppb-full { display: none; }
   .plays-peak-badge .ppb-short { display: inline; }
@@ -42975,7 +42975,7 @@ html[lang="en"] .plays-peak-badge .ppb-short { display: inline; }
    _rankMove in app.js); the separate Move column is hidden. The Weeks /
    Months column is also a td.m-col (it holds .m-mths), so it stays. */
 .chart-table .rank-mv { display: none; }
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .chart-table thead th.m-th-prev,
   .chart-table td.m-col:not(:has(.m-mths)) { display: none; }
   .chart-table .rank-cell,
@@ -43038,7 +43038,7 @@ html[lang="en"] .plays-peak-badge .ppb-short { display: inline; }
 
 /* Compact on phones: the tags match the phone Table's smaller sizes above
    (asked 2026-10-20), so both layouts carry the same size of tag */
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .wv-compact .wv-cx-badges > .peak-badge-1,
   .wv-compact .wv-cx-badges > .peak-badge-2,
   .wv-compact .wv-cx-badges > .peak-badge-3,
@@ -43073,7 +43073,7 @@ html[lang="en"] .plays-peak-badge .ppb-short { display: inline; }
 }
 .wv-cx-plays .plays-peak-badge .ppb-full { display: none; }
 .wv-cx-plays .plays-peak-badge .ppb-short { display: inline; }
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .wv-cx-plays .plays-peak-badge { padding: 0 4px; }
 }
 
@@ -43081,7 +43081,7 @@ html[lang="en"] .plays-peak-badge .ppb-short { display: inline; }
    diamond tag is just 💎 (no words), so it came out shorter and its emoji
    looked tiny next to GOLD / PEAK; the emoji is sized up and each tag gets
    the peak tag's height (17px) as a floor (2026-10-20). */
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .chart-table .song-tags > *,
   .wv-compact .wv-cx-badges > * {
     box-sizing: border-box;
@@ -43111,7 +43111,7 @@ html[lang="en"] .plays-peak-badge .ppb-short { display: inline; }
   /* the top padding leaves the face / covers clear above the name */
   padding: 150px var(--sp-4) var(--sp-4);
 }
-@media (min-width: 640px) {
+@media (min-width: 641px) {
   .sh-hero.sh-on { padding: 190px var(--sp-5) var(--sp-5); }
 }
 /* Only the chart tabs show the banner at all (the other tabs hide
@@ -43133,7 +43133,7 @@ body:not([data-view="day"]):not([data-view="week"]):not([data-view="month"]):not
   background-color: color-mix(in srgb, var(--accent) 12%, var(--bg2));
   background-image: radial-gradient(ellipse 90% 100% at 50% 0%, color-mix(in srgb, var(--accent) 20%, transparent) 0%, transparent 70%);
 }
-@media (min-width: 640px) { .sh-bg { height: 460px; } }
+@media (min-width: 641px) { .sh-bg { height: 460px; } }
 /* Clear over the face / covers, solid card colour by the tiles. One
    full-size layer (a partial one leaves a hairline in html2canvas). */
 .sh-bg::after {
@@ -43528,7 +43528,7 @@ body.sh-bars-open .sh-bars-tog svg { transform: rotate(180deg); }
 /* Phones: the strips wrapper is a 2-column grid there and #statsStrip
    normally dissolves into it (display:contents). Inside the banner the
    tiles keep their own 2-column grid instead. */
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .sh-hero { grid-column: 1 / -1; }
   .sh-hero #statsStrip {
     display: grid;
@@ -43662,7 +43662,7 @@ body.sh-bars-open .sh-bars-tog svg { transform: rotate(180deg); }
 .crp-at { margin-left: auto; flex: none; color: var(--text3); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .crp-empty { color: var(--text3); }
 .crp-keys { font-size: 0.7rem; color: var(--text3); }
-@media (max-width: 700px) {
+@media (max-width: 640px) {
   .crp-keys { display: none; }
   .crp-cell { font-size: 0.56rem; }
   .crp-cell b { font-size: 0.68rem; }
@@ -43812,7 +43812,7 @@ body.sh-bars-open .sh-bars-tog svg { transform: rotate(180deg); }
 .crp-lay-mosaic .crp-it[data-pos="1"] .crp-pl { bottom: auto; top: 6px; right: auto; left: 50px; }
 .crp-lay-mosaic .crp-it.crp-r1 { box-shadow: 0 0 0 2px var(--medal-gold), 0 0 22px color-mix(in srgb, var(--medal-gold) 40%, transparent); }
 
-@media (max-width: 700px) {
+@media (max-width: 640px) {
   .crp-lay-table .crp-it { grid-template-columns: 34px 52px minmax(0, 1fr) auto; column-gap: var(--sp-2); padding-right: 8px; }
   .crp-lay-table .crp-cv { width: 52px; }
   .crp-lay-table .crp-rk { font-size: 1.1rem; }
@@ -43906,7 +43906,7 @@ body.sh-bars-open .sh-bars-tog svg { transform: rotate(180deg); }
 .cr-goal-next { white-space: nowrap; }
 .cr-goal-next b { color: var(--text); font-weight: 700; }
 .cr-goal-dot { color: var(--text3); }
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .cr-goals { grid-template-columns: 1fr; gap: 2px; }
   .cr-goal-v + .cr-goal-k { margin-top: 6px; }
   .cr-goal-next { white-space: normal; width: 100%; }

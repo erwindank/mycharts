@@ -15098,7 +15098,7 @@ function _colwFixedW(th) {
   if (col === 'thumb' || col === 'cr') return parseInt(th.dataset.w0, 10) || null;
   return null;
 }
-const _colwDesktop = window.matchMedia('(min-width: 601px)');
+const _colwDesktop = window.matchMedia('(min-width: 641px)');
 
 /* Saved widths → whole pixels for the table's current width. Percentages
    left to the browser land between pixels, and the #1 row's tint then
