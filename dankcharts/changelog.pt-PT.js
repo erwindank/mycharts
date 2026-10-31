@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Compare's new cards in the Charts Guide":
+    ["Os novos cartões do Comparar no Guia de Charts",
+     "O Guia de Charts descreve agora tudo o que há de novo em Estatísticas → Comparar. Com uma só escolha, os cartões que só fazem sentido com duas ou mais (Quem esteve no topo e As maiores diferenças) ficam de fora, e a tabela, as músicas top e os hábitos de audição mantêm-se."],
   "Saved comparisons":
     ["Comparações guardadas",
      "Em Estatísticas → Comparar podes agora guardar um conjunto de escolhas: toca em Guardar estas, dá-lhe um nome, e fica por baixo das escolhas como um botão que traz o conjunto inteiro de volta num toque. Cada tipo (artistas, músicas, álbuns, anos) tem as suas, até 20, neste dispositivo. Funciona com Last.fm, Google Sheets e ficheiros CSV."],

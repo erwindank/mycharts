@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 404;
+const DC_CL_I18N_V = 405;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-31', t: 'change', a: 'graphs', h: 'b5a6929',
+    title: "Compare's new cards in the Charts Guide",
+    detail: "The Charts Guide now describes everything new in Stats → Compare. With a single pick, the cards that only make sense for two or more (Who was on top and Biggest gaps) are left out, while the table, top songs and listening habits stay." },
   { d: '2026-10-31', t: 'feature', a: 'graphs', h: '643fba6',
     title: "Saved comparisons",
     detail: "In Stats → Compare you can now keep a set of picks: tap Save these, give it a name, and it sits under the picks as a button that brings the whole set back in one tap. Each type (artists, songs, albums, years) keeps its own, up to 20, on this device. Works with Last.fm, Google Sheets and CSV uploads." },
