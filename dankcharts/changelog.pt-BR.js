@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "The Appearances table header no longer covers the #1 row":
+    ["O cabeçalho da tabela de Aparições não cobre mais o nº 1",
+     "Em Recordes → Aparições, os títulos das colunas deslizavam por cima da entrada nº 1 e deixavam uma faixa vazia acima. Agora eles ficam logo abaixo da barra superior enquanto você rola a lista, como nas outras tabelas de Recordes. Em telas mais estreitas, onde a tabela rola para o lado, eles ficam no topo da tabela."],
   "Line icons instead of emoji, everywhere":
     ["Ícones de linha no lugar de emojis, em todo lugar",
      "Títulos, botões e abas de todo o site agora usam os mesmos ícones de linha dos menus, no lugar de emojis que ficavam diferentes em cada celular e computador. As linhas dos menus simplesmente perdem o seu, para as palavras ficarem alinhadas. As carinhas de humor do Diário, a chama 🔥 de sequência, os ícones dos blocos de estatísticas e as certificações 💎 💿 📀 continuam como estão."],

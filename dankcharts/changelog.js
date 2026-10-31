@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 382;
+const DC_CL_I18N_V = 383;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-31', t: 'fix', a: 'records', h: 'a7369e2',
+    title: "The Appearances table header no longer covers the #1 row",
+    detail: "In Records → Appearances, the column titles of the table slid down over the #1 entry and left an empty strip above them. They now stay just under the top bar as you scroll the list, like the other Records tables. On narrower screens, where the table scrolls sideways, they stay at the top of the table." },
   { d: '2026-10-31', t: 'design', a: 'ui', h: 'a48d1c3',
     title: "Line icons instead of emoji, everywhere",
     detail: "Titles, buttons and tabs across the site now use the same line icons as the menus, instead of emoji that looked different on every phone and computer. Menu rows simply lose theirs, so the words line up. The Daily mood faces, the 🔥 streak flame, the stat tile icons and the 💎 💿 📀 certification marks stay as they are." },
