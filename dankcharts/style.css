@@ -11010,6 +11010,37 @@
     .sx-mv-d { font-family: var(--font-mono); font-size: var(--fs-xs); font-weight: 600; padding: 2px 7px; border-radius: var(--r-sm); white-space: nowrap; font-variant-numeric: tabular-nums; }
     .sx-mv-d.is-up { color: var(--green); background: color-mix(in srgb, var(--green) 13%, transparent); }
     .sx-mv-d.is-down { color: var(--rose); background: color-mix(in srgb, var(--rose) 13%, transparent); }
+
+    /* Personality (narrower) beside the fun facts */
+    .sx-ov-pair.sx-ov-pair-fun { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); }
+    @media (max-width: 1023px) { .sx-ov-pair.sx-ov-pair-fun { grid-template-columns: minmax(0, 1fr); } }
+    .sx-persona {
+      background:
+        radial-gradient(110% 90% at 50% 0%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 70%),
+        var(--bg2);
+    }
+    .sx-persona-body { display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--sp-2); padding: var(--sp-2) 0; }
+    .sx-persona-emoji { font-size: 3.4rem; line-height: 1; filter: drop-shadow(0 4px 10px rgb(0 0 0 / 0.25)); }
+    .sx-persona-name { font-family: var(--font-display); font-size: var(--fs-xl); font-weight: 800; color: var(--accent); line-height: 1.15; }
+    .sx-persona-why { margin: 0; max-width: 26rem; font-size: var(--fs-sm); color: var(--text2); text-wrap: pretty; }
+    .sx-persona-also { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: var(--sp-2); margin-top: var(--sp-2); font-size: var(--fs-xs); color: var(--text3); }
+    .sx-persona-tag { padding: 3px 9px; border-radius: var(--r-sm); background: var(--bg3); color: var(--text2); font-weight: 600; }
+
+    /* Fun facts: an emoji, a big value, a short line; two columns when wide */
+    .sx-fact-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-3); }
+    @media (max-width: 640px) { .sx-fact-list { grid-template-columns: minmax(0, 1fr); } }
+    .sx-fact {
+      display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: var(--sp-3); align-items: center;
+      padding: var(--sp-3); border-radius: var(--r-md); border: 1px solid var(--border); background: color-mix(in srgb, var(--bg) 45%, var(--bg2));
+      animation: sxFactIn .35s var(--ease) both;
+    }
+    .sx-fact:nth-child(2) { animation-delay: .05s; } .sx-fact:nth-child(3) { animation-delay: .1s; } .sx-fact:nth-child(4) { animation-delay: .15s; }
+    @keyframes sxFactIn { from { opacity: 0; transform: translateY(6px); } }
+    @media (prefers-reduced-motion: reduce) { .sx-fact { animation: none; } }
+    .sx-fact-emoji { display: grid; place-items: center; width: 44px; height: 44px; border-radius: var(--r-md); background: var(--bg3); font-size: 1.4rem; }
+    .sx-fact-txt { min-width: 0; }
+    .sx-fact-txt b { display: block; font-family: var(--font-display); font-size: var(--fs-md); font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .sx-fact-txt span { display: block; font-size: var(--fs-xs); color: var(--text2); line-height: 1.35; }
     .sx-tile .stat-foot { display: flex; gap: var(--sp-2); align-items: center; justify-content: center; flex-wrap: wrap; }
     /* "vs 51,416" on an Overview tile (not .sx-vs, the games' round badge) */
     .sx-vsprev { font-size: var(--fs-xs); color: var(--text3); font-variant-numeric: tabular-nums; }

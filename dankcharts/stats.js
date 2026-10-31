@@ -243,13 +243,18 @@ function sxRenderOverview() {
         <section class="dc-card sx-ov-card sx-sotp" id="sxSotp"></section>
         ${prev ? '<section class="dc-card sx-ov-card sx-movers" id="sxMovers"></section>' : ''}
       </div>
+      <div class="sx-ov-pair sx-ov-pair-fun">
+        <section class="dc-card sx-ov-card sx-persona" id="sxPersona"></section>
+        <section class="dc-card sx-ov-card sx-facts" id="sxFacts"></section>
+      </div>
     </div>`;
   animateStatStrip(box, 900);
   // Kept for the cards below the hero, so their switches don't scan again
-  _sxOv = { cur, prev, fromTs, toTs };
+  _sxOv = { cur, prev, fromTs, toTs, newSongs, days };
   sxPaintTop5();
   sxPaintSotp();
   sxPaintMovers();
+  sxPaintFun();
 }
 
 // ── Your top 5 (phase 16 step 1) ──────────────────────────────────────────
@@ -522,6 +527,154 @@ function sxPaintMovers() {
   box.innerHTML = head + `<div class="sx-mv-body">${col('up', up)}${col('down', down)}</div>`;
   arts.forEach(([m, id]) => _sxTop5Load(type, m, id));
 }
+
+// ── Fun facts and your listening personality (phase 16 step 3) ────────────
+/* One pass over the range's plays for the small things: the longest run of
+   one song back to back, plays by hour and weekday, the biggest one-artist
+   day, the days each artist was played. From those, a pool of short facts
+   (four shown, Shuffle shows the next four) and a playful label for how you
+   listened, picked by how far each trait is past its line. */
+
+function _sxFunData() {
+  if (_sxOv.fun) return _sxOv.fun;
+  const { fromTs, toTs, cur } = _sxOv;
+  const hours = new Array(24).fill(0), wdays = new Array(7).fill(0);
+  const artistDays = new Map(), dayArtist = new Map();
+  let run = 0, runKey = null, bestRun = 0, bestRunP = null, firstP = null;
+  // allPlays is newest first: the last play seen in range is the first played
+  for (const p of allPlays) {
+    const d = tzDateOf(p), ts = d.getTime();
+    if (ts < fromTs || ts > toTs) { runKey = null; continue; }
+    firstP = p;
+    const sk = songKey(p);
+    run = sk === runKey ? run + 1 : 1;
+    runKey = sk;
+    if (run > bestRun) { bestRun = run; bestRunP = p; }
+    hours[d.getHours()]++;
+    wdays[d.getDay()]++;
+    const dk = localDateStr(d);
+    for (const a of p.artists) {
+      let ds = artistDays.get(a);
+      if (!ds) artistDays.set(a, ds = new Set());
+      ds.add(dk);
+      const k = dk + '\u0001' + a;
+      dayArtist.set(k, (dayArtist.get(k) || 0) + 1);
+    }
+  }
+  let binge = null, bingeN = 0;
+  dayArtist.forEach((n, k) => { if (n > bingeN) { bingeN = n; binge = k.split('\u0001'); } });
+  let loyal = null, loyalN = 0;
+  artistDays.forEach((ds, a) => { if (ds.size > loyalN) { loyalN = ds.size; loyal = a; } });
+  let once = 0;
+  cur.songPlays.forEach(o => { if (o.n === 1) once++; });
+  const artistsSorted = [...cur.artistPlays.entries()].sort((a, b) => b[1] - a[1]);
+  return _sxOv.fun = { hours, wdays, bestRun, bestRunP, firstP, binge, bingeN, loyal, loyalN, once, artistsSorted, activeDays: new Set([...dayArtist.keys()].map(k => k.split('\u0001')[0])).size };
+}
+
+const _sxPct = (n, of) => of ? Math.round(n / of * 100) : 0;
+
+// ── Your listening personality ──
+/* Each trait has a score: how far past its line the range is (1 = just on
+   it). The highest wins; under every line it's The All-Rounder. Runner-ups
+   past their line show as small "also" tags. */
+function _sxPersonas() {
+  const c = _sxOv.cur, f = _sxFunData(), plays = c.plays || 1;
+  const top10 = f.artistsSorted.slice(0, 10).reduce((n, [, v]) => n + v, 0);
+  const night = [22, 23, 0, 1, 2, 3].reduce((n, h) => n + f.hours[h], 0);
+  const early = [5, 6, 7, 8].reduce((n, h) => n + f.hours[h], 0);
+  const weekend = f.wdays[0] + f.wdays[6];
+  const perDay = c.plays / Math.max(1, f.activeDays);
+  const newShare = c.songs.size ? (_sxOv.newSongs || 0) / c.songs.size : 0;
+  const topShare = f.artistsSorted.length ? f.artistsSorted[0][1] / plays : 0;
+  const perSong = c.songs.size ? c.plays / c.songs.size : 0;
+  const pct = v => Math.round(v * 100);
+  const list = [
+    { id: 'night', emoji: '🦉', score: night / plays / 0.30, why: { pct: pct(night / plays) } },
+    { id: 'early', emoji: '🌅', score: early / plays / 0.18, why: { pct: pct(early / plays) } },
+    // On All every song was new once, so being an explorer can't be told there
+    { id: 'explorer', emoji: '🧭', score: graphRange.preset === 'all' ? 0 : newShare / 0.40, why: { pct: pct(newShare) } },
+    { id: 'loyal', emoji: '💍', score: top10 / plays / 0.55, why: { pct: pct(top10 / plays) } },
+    { id: 'superfan', emoji: '👑', score: topShare / 0.15, why: { pct: pct(topShare), artist: f.artistsSorted.length ? f.artistsSorted[0][0] : '' } },
+    { id: 'repeat', emoji: '🔁', score: perSong / 8, why: { n: perSong.toFixed(1) } },
+    { id: 'weekend', emoji: '🎉', score: weekend / plays / 0.36, why: { pct: pct(weekend / plays) } },
+    { id: 'marathon', emoji: '🏃', score: perDay / 140, why: { n: Math.round(perDay) } },
+    { id: 'wander', emoji: '🎲', score: topShare ? 0.025 / topShare : 0, why: { pct: Math.round(topShare * 1000) / 10 } },
+  ].filter(x => x.score >= 1).sort((a, b) => b.score - a.score);
+  return list.length ? list : [{ id: 'allround', emoji: '🎚️', score: 1, why: {} }];
+}
+
+function sxPaintFun() {
+  const pBox = document.getElementById('sxPersona'), fBox = document.getElementById('sxFacts');
+  if (!pBox || !fBox || !_sxOv || !_sxOv.cur.plays) return;
+  const fill = (s, o) => s.replace(/\{(\w+)\}/g, (m, k) => o[k] !== undefined ? o[k] : m);
+  const list = _sxPersonas(), main = list[0];
+  const also = list.slice(1, 4).map(x => `<span class="sx-persona-tag">${x.emoji} ${esc(t('sx_pers_' + x.id))}</span>`).join('');
+  pBox.innerHTML = `<div class="sx-ov-head"><div><h3 class="graph-card-title">${esc(t('sx_pers_title'))}</h3>` +
+    `<div class="graph-card-sub">${esc(t('sx_pers_sub'))}</div></div></div>
+    <div class="sx-persona-body">
+      <span class="sx-persona-emoji" aria-hidden="true">${main.emoji}</span>
+      <div class="sx-persona-name">${esc(t('sx_pers_' + main.id))}</div>
+      <p class="sx-persona-why">${esc(fill(t('sx_pers_' + main.id + '_why'), main.why))}</p>
+      ${also ? `<div class="sx-persona-also"><span>${esc(t('sx_pers_also'))}</span>${also}</div>` : ''}
+    </div>`;
+  _sxFacts = _sxFactPool();
+  _sxFactAt = 0;
+  _sxPaintFacts();
+}
+
+// ── Fun facts ──
+let _sxFacts = [], _sxFactAt = 0;
+
+function _sxFactPool() {
+  const c = _sxOv.cur, f = _sxFunData(), plays = c.plays || 1;
+  const out = [];
+  const fact = (emoji, big, small) => out.push({ emoji, big, small });
+  const n = v => v.toLocaleString();
+  if (f.bestRun >= 3 && f.bestRunP)
+    fact('🔁', t('sx_fact_run_big').replace('{n}', f.bestRun), t('sx_fact_run').replace('{song}', f.bestRunP.title).replace('{artist}', f.bestRunP.artist));
+  const hr = f.hours.indexOf(Math.max(...f.hours));
+  fact('🕙', _sxHourLabel(hr), t('sx_fact_hour').replace('{pct}', _sxPct(f.hours[hr], plays)));
+  const wd = f.wdays.indexOf(Math.max(...f.wdays));
+  fact('📅', _sxDayLabel(wd, true), t('sx_fact_wday').replace('{pct}', _sxPct(f.wdays[wd], plays)));
+  const A = f.artistsSorted;
+  if (A.length >= 4 && A[0][1] > A[1][1] + A[2][1] + A[3][1])
+    fact('👑', A[0][0], t('sx_fact_top3'));
+  else if (A.length)
+    fact('👑', _sxPct(A[0][1], plays) + '%', t('sx_fact_topshare').replace('{artist}', A[0][0]));
+  if (f.binge && f.bingeN >= 5)
+    fact('🎧', t('sx_top5_plays').replace('{n}', n(f.bingeN)), t('sx_fact_binge').replace('{artist}', f.binge[1]).replace('{date}', _sxDate(new Date(f.binge[0] + 'T12:00:00').getTime())));
+  if (f.loyal && f.activeDays > 2)
+    fact('📆', `${n(f.loyalN)}/${n(f.activeDays)}`, t('sx_fact_loyal').replace('{artist}', f.loyal));
+  if (f.once)
+    fact('🎯', n(f.once), t('sx_fact_once').replace('{pct}', _sxPct(f.once, c.songs.size)));
+  const night = [0, 1, 2, 3, 4].reduce((s, h) => s + f.hours[h], 0);
+  if (night)
+    fact('🌙', _sxPct(night, plays) + '%', t('sx_fact_night'));
+  if (f.firstP)
+    fact('🏁', f.firstP.title, t('sx_fact_first').replace('{artist}', f.firstP.artist));
+  return out;
+}
+
+function _sxPaintFacts() {
+  const box = document.getElementById('sxFacts');
+  if (!box) return;
+  const show = [];
+  for (let i = 0; i < Math.min(4, _sxFacts.length); i++) show.push(_sxFacts[(_sxFactAt + i) % _sxFacts.length]);
+  const more = _sxFacts.length > 4;
+  box.innerHTML = `<div class="sx-ov-head"><div><h3 class="graph-card-title">${esc(t('sx_fact_title'))}</h3>` +
+    `<div class="graph-card-sub">${esc(t('sx_fact_sub'))}</div></div>` +
+    (more ? `<button type="button" class="dc-btn dc-btn-sm sx-fact-shuffle" id="sxFactShuffle">🔀 ${esc(t('sx_fact_shuffle'))}</button>` : '') + `</div>
+    <ul class="sx-fact-list">${show.map(x => `<li class="sx-fact"><span class="sx-fact-emoji" aria-hidden="true">${x.emoji}</span>` +
+      `<span class="sx-fact-txt"><b>${esc(x.big)}</b><span>${esc(x.small)}</span></span></li>`).join('')}</ul>`;
+}
+
+// Shuffle: the next four facts of the pool
+document.addEventListener('click', e => {
+  if (!e.target.closest('#sxFactShuffle')) return;
+  _sxFactAt = (_sxFactAt + 4) % Math.max(1, _sxFacts.length);
+  _sxPaintFacts();
+  document.getElementById('sxFactShuffle')?.focus();
+});
 
 // The movers' Songs / Artists / Albums switch
 document.addEventListener('click', e => {
