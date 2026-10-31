@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Top songs side by side":
+    ["Canciones top lado a lado",
+     "Cuando comparas artistas, álbumes o años en Estadísticas → Comparar, una tarjeta nueva muestra las tres canciones más escuchadas de cada uno en su propia columna, bajo su color. Toca una canción para abrirla. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "One on one in Compare":
     ["Uno contra uno en Comparar",
      "Elige exactamente dos en Estadísticas → Comparar y aparece la tarjeta Uno contra uno: los dos con sus imágenes y, medida a medida (reproducciones, semanas en el #1, meses ganados, mejor mes, racha más larga, días con escuchas, canciones), barras enfrentadas con el ganador de cada fila en su color, y un marcador como \"Taylor Swift gana 5–2\". Los años comparan también artistas y canciones nuevas. Funciona con Last.fm, Google Sheets y archivos CSV."],

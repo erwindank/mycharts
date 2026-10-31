@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 400;
+const DC_CL_I18N_V = 401;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-31', t: 'feature', a: 'graphs', h: 'bc1c433',
+    title: "Top songs side by side",
+    detail: "When you compare artists, albums or years in Stats → Compare, a new card shows each one's three most played songs in its own small column, under its colour. Tap a song to open it. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-31', t: 'feature', a: 'graphs', h: '0742d22',
     title: "One on one in Compare",
     detail: "Pick exactly two in Stats → Compare and a One on one card appears: both with their pictures, then measure by measure (plays, weeks at #1, months won, best month, longest streak, days played, songs) with mirrored bars and the winner of each row in its colour, and a score such as \"Taylor Swift wins 5–2\". Years compare artists and new songs too. Works with Last.fm, Google Sheets and CSV uploads." },
