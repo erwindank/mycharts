@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Off the Chart rows open their chart run":
+    ["Las filas de Fuera del Ranking abren su historial",
+     "En la lista Fuera del Ranking de los rankings semanales, un clic en una fila abre ahora el historial de esa canción, artista o álbum justo debajo, igual que en el ranking principal. Otro clic lo cierra."],
   "Charts fit their card again with custom column widths":
     ["Los rankings vuelven a caber en su tarjeta con anchos de columna propios",
      "Si habías arrastrado el ancho de las columnas del ranking, desde la última limpieza la tabla y el historial abierto se salían por el borde derecho de la tarjeta, cortando el final del historial y los botones. Ya vuelven a caber."],

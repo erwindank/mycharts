@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 386;
+const DC_CL_I18N_V = 387;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-31', t: 'feature', a: 'charts', h: '11776f7',
+    title: "Off the Chart rows open their chart run",
+    detail: "On the weekly charts' Off the Chart list, a click on a row now opens that song, artist or album's chart run right under it, the same as on the chart itself. Click it again to close it." },
   { d: '2026-10-31', t: 'fix', a: 'charts', h: '1540c86',
     title: "Charts fit their card again with custom column widths",
     detail: "If you had dragged the chart's column widths, the table and an open chart run ran past the right edge of the card since the last clean-up, cutting off the end of the run and the buttons. They fit again." },

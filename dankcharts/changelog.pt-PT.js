@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Off the Chart rows open their chart run":
+    ["As linhas de Fora do Top abrem o respetivo histórico",
+     "Na lista Fora do Top das tabelas semanais, um clique numa linha abre agora o histórico dessa música, artista ou álbum logo abaixo, tal como na tabela principal. Outro clique fecha-o."],
   "Charts fit their card again with custom column widths":
     ["Os tops voltam a caber no cartão com larguras de coluna próprias",
      "Se tinhas arrastado a largura das colunas do top, desde a última limpeza a tabela e a trajetória aberta passavam da margem direita do cartão, cortando o fim da trajetória e os botões. Agora voltam a caber."],

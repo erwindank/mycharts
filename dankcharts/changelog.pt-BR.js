@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Off the Chart rows open their chart run":
+    ["As linhas de Fora da Parada abrem seu histórico",
+     "Na lista Fora da Parada das paradas semanais, um clique em uma linha agora abre o histórico daquela música, artista ou álbum logo abaixo, como na parada principal. Outro clique fecha."],
   "Charts fit their card again with custom column widths":
     ["As paradas voltam a caber no cartão com larguras de coluna próprias",
      "Se você tinha arrastado a largura das colunas da parada, desde a última limpeza a tabela e a trajetória aberta passavam da borda direita do cartão, cortando o fim da trajetória e os botões. Agora voltam a caber."],
