@@ -3942,6 +3942,27 @@ entry, and you look at each step before the next.
 7. **Finish:** four languages, the Charts Guide, changelog, screen check
    (1440 / 1100 / 390 touch, the check themes).
 
+**Phase 16 done (2026-10-31),** each step committed and pushed as it was
+finished (you said go straight through): 1 Top 5 (667569f), 2 Song of the
+period + Biggest movers (95c2738), 3 personality + fun facts (eca2d48),
+4 Day by day + On this day (9841486), 5 Where your plays went (d053b2d),
+6 tile links + Share picture (f9fba26), 7 finish (this commit). Each has
+a changelog entry.
+- The Overview keeps its tally in `_sxOv`, so the cards' switches repaint
+  without going through the plays again. `_sxTally` also counts plays
+  per song and album.
+- Step 7 made it about twice as fast (All, 222k plays: 0.64 s to 0.28 s):
+  date formatters made once per language (`_sxFmt`), day keys worked out
+  once per day instead of per play (`_sxDayKeyer`), one artist map per day
+  for the fun facts, On this day compares times, not date strings.
+- `.sx-split` is Story's comfort-vs-new bar, so the new card is
+  `.sx-shares`.
+- Checked at 1440 / 1100 / 390 touch in all four languages and Navy dark,
+  Navy light, Red light and Yellow dark: no raw keys, no sideways scroll,
+  no errors; switches, tile links, Share (download), calendar days and On
+  this day clicked for real. Scripts: C:/tmp/p16.mjs, p16_s6.mjs,
+  p16_s7.mjs, p16_perf.mjs.
+
 ### Done outside the phases (to 2026-10-18)
 
 Work that isn't a plan step but changes what the later phases start from.

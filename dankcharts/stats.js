@@ -62,10 +62,33 @@ _syncStatsTab();
 
 const _SX_DAY = 86400000;
 
+// Date formatters, made once per language and kept (a new toLocaleDateString
+// per call is slow when a calendar draws hundreds of tooltips)
+const _sxFmts = {};
+function _sxFmt(kind, opts) {
+  const k = currentLang + '|' + kind;
+  return _sxFmts[k] || (_sxFmts[k] = new Intl.DateTimeFormat(currentLang === 'en' ? 'en-US' : currentLang, opts));
+}
+
 // "12 Mar 2026" / "Mar 12, 2026" in the page language
 function _sxDate(ts) {
-  const locale = currentLang === 'en' ? 'en-US' : currentLang;
-  return new Date(ts).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' });
+  return _sxFmt('dmy', { day: 'numeric', month: 'short', year: 'numeric' }).format(ts);
+}
+
+/* The local date key ("2026-10-31") of a play's time-zone date, remembered
+   for the day it falls in: plays come newest first, so the key is only
+   worked out again when the day changes, not for every play. */
+function _sxDayKeyer() {
+  let from = 0, to = -1, key = '';
+  return d => {
+    const ts = d.getTime();
+    if (ts < from || ts >= to) {
+      key = localDateStr(d);
+      from = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+      to = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1).getTime();
+    }
+    return key;
+  };
 }
 
 // Totals for plays whose (time-zone) time is in [fromTs, toTs]. `trend` adds
@@ -85,6 +108,7 @@ function _sxTally(fromTs, toTs, trend) {
   const bSongs = trend ? Array.from({ length: nB }, () => new Set()) : null;
   const bArtists = trend ? Array.from({ length: nB }, () => new Set()) : null;
   const bAlbums = trend ? Array.from({ length: nB }, () => new Set()) : null;
+  const dayKey = _sxDayKeyer();
   for (const p of allPlays) {
     const d = tzDateOf(p), ts = d.getTime();
     if (ts < fromTs || ts > toTs) continue;
@@ -100,7 +124,7 @@ function _sxTally(fromTs, toTs, trend) {
       const ao = albumPlays.get(ak);
       if (ao) ao.n++; else albumPlays.set(ak, { n: 1, p });
     }
-    const dk = localDateStr(d);
+    const dk = dayKey(d);
     dayPlays.set(dk, (dayPlays.get(dk) || 0) + 1);
     if (trend) {
       const b = Math.min(nB - 1, Math.floor((ts - fromTs) / bucketMs));
@@ -490,8 +514,7 @@ function sxPaintTop5() {
 
 // "Oct 12" in the page language
 function _sxDayMon(ts) {
-  const locale = currentLang === 'en' ? 'en-US' : currentLang;
-  return new Date(ts).toLocaleDateString(locale, { day: 'numeric', month: 'short' });
+  return _sxFmt('dm', { day: 'numeric', month: 'short' }).format(ts);
 }
 
 function sxPaintSotp() {
@@ -519,6 +542,7 @@ function sxPaintSotp() {
   const nB = Math.max(1, Math.ceil(rangeMs / bucketMs));
   const bars = new Array(nB).fill(0);
   const dayN = new Map();
+  const dayKey = _sxDayKeyer();
   let total = 0;
   for (const p of allPlays) {
     if (songKey(p) !== top.key) continue;
@@ -526,7 +550,7 @@ function sxPaintSotp() {
     const d = tzDateOf(p), ts = d.getTime();
     if (ts < startTs || ts > toTs) continue;
     bars[Math.min(nB - 1, Math.floor((ts - startTs) / bucketMs))]++;
-    const dk = localDateStr(d);
+    const dk = dayKey(d);
     dayN.set(dk, (dayN.get(dk) || 0) + 1);
   }
   // Best day and the longest run of days in a row
@@ -659,7 +683,20 @@ function _sxFunData() {
   if (_sxOv.fun) return _sxOv.fun;
   const { fromTs, toTs, cur } = _sxOv;
   const hours = new Array(24).fill(0), wdays = new Array(7).fill(0);
-  const artistDays = new Map(), dayArtist = new Map();
+  // Each day's plays per artist, closed when the day changes: it adds to
+  // each artist's count of days and may be the biggest one-artist day
+  const artistDays = new Map();
+  let day = null, dayMap = new Map(), activeDays = 0, binge = null, bingeN = 0;
+  const closeDay = () => {
+    if (day === null) return;
+    activeDays++;
+    dayMap.forEach((n, a) => {
+      artistDays.set(a, (artistDays.get(a) || 0) + 1);
+      if (n > bingeN) { bingeN = n; binge = [day, a]; }
+    });
+    dayMap = new Map();
+  };
+  const dayKey = _sxDayKeyer();
   let run = 0, runKey = null, bestRun = 0, bestRunP = null, firstP = null;
   // allPlays is newest first: the last play seen in range is the first played
   for (const p of allPlays) {
@@ -672,23 +709,17 @@ function _sxFunData() {
     if (run > bestRun) { bestRun = run; bestRunP = p; }
     hours[d.getHours()]++;
     wdays[d.getDay()]++;
-    const dk = localDateStr(d);
-    for (const a of p.artists) {
-      let ds = artistDays.get(a);
-      if (!ds) artistDays.set(a, ds = new Set());
-      ds.add(dk);
-      const k = dk + '\u0001' + a;
-      dayArtist.set(k, (dayArtist.get(k) || 0) + 1);
-    }
+    const dk = dayKey(d);
+    if (dk !== day) { closeDay(); day = dk; }
+    for (const a of p.artists) dayMap.set(a, (dayMap.get(a) || 0) + 1);
   }
-  let binge = null, bingeN = 0;
-  dayArtist.forEach((n, k) => { if (n > bingeN) { bingeN = n; binge = k.split('\u0001'); } });
+  closeDay();
   let loyal = null, loyalN = 0;
-  artistDays.forEach((ds, a) => { if (ds.size > loyalN) { loyalN = ds.size; loyal = a; } });
+  artistDays.forEach((n, a) => { if (n > loyalN) { loyalN = n; loyal = a; } });
   let once = 0;
   cur.songPlays.forEach(o => { if (o.n === 1) once++; });
   const artistsSorted = [...cur.artistPlays.entries()].sort((a, b) => b[1] - a[1]);
-  return _sxOv.fun = { hours, wdays, bestRun, bestRunP, firstP, binge, bingeN, loyal, loyalN, once, artistsSorted, activeDays: new Set([...dayArtist.keys()].map(k => k.split('\u0001')[0])).size };
+  return _sxOv.fun = { hours, wdays, bestRun, bestRunP, firstP, binge, bingeN, loyal, loyalN, once, artistsSorted, activeDays };
 }
 
 const _sxPct = (n, of) => of ? Math.round(n / of * 100) : 0;
@@ -783,7 +814,7 @@ function _sxPaintFacts() {
   const more = _sxFacts.length > 4;
   box.innerHTML = `<div class="sx-ov-head"><div><h3 class="graph-card-title">${esc(t('sx_fact_title'))}</h3>` +
     `<div class="graph-card-sub">${esc(t('sx_fact_sub'))}</div></div>` +
-    (more ? `<button type="button" class="dc-btn dc-btn-sm sx-fact-shuffle" id="sxFactShuffle">🔀 ${esc(t('sx_fact_shuffle'))}</button>` : '') + `</div>
+    (more ? `<button type="button" class="dc-btn dc-btn-normal dc-btn-sm sx-fact-shuffle" id="sxFactShuffle">🔀 ${esc(t('sx_fact_shuffle'))}</button>` : '') + `</div>
     <ul class="sx-fact-list">${show.map(x => `<li class="sx-fact"><span class="sx-fact-emoji" aria-hidden="true">${x.emoji}</span>` +
       `<span class="sx-fact-txt"><b>${esc(x.big)}</b><span>${esc(x.small)}</span></span></li>`).join('')}</ul>`;
 }
@@ -855,10 +886,15 @@ function sxPaintOtd() {
   for (let y = 1; y <= 10; y++) {
     const d = new Date(now.getFullYear() - y, now.getMonth(), now.getDate());
     if (d.getMonth() !== now.getMonth()) continue;   // 29 Feb in a year without one
-    want.set(localDateStr(d), { y, songs: new Map(), n: 0 });
+    const to = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1).getTime();
+    want.set(localDateStr(d), { y, songs: new Map(), n: 0, from: d.getTime(), to });
   }
+  const days = [...want.values()];
+  const lo = Math.min(...days.map(w => w.from)), hi = Math.max(...days.map(w => w.to));
   for (const p of allPlays) {
-    const w = want.get(localDateStr(tzDateOf(p)));
+    const ts = tzMsOf(p);
+    if (ts < lo || ts >= hi) continue;
+    const w = days.find(x => ts >= x.from && ts < x.to);
     if (!w) continue;
     w.n++;
     const sk = songKey(p), o = w.songs.get(sk);
@@ -924,9 +960,11 @@ function sxPaintSplit() {
   }
   const total = fresh + recent + old || 1;
   const age = [
+    // The chart colours, so the three stay apart in every theme (accent and
+    // gold are near each other in Yellow)
     { label: t('sx_split_new'), n: fresh, color: 'var(--green)' },
-    { label: t('sx_split_recent'), n: recent, color: 'var(--accent)' },
-    { label: t('sx_split_old'), n: old, color: 'var(--gold1)' },
+    { label: t('sx_split_recent'), n: recent, color: _sxCmpColor(0) },
+    { label: t('sx_split_old'), n: old, color: _sxCmpColor(3) },
   ];
   // Top 5 artists against the rest. A play with two artists counts for
   // each, so the shares are of artist credits, not plays.
