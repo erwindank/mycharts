@@ -2092,6 +2092,91 @@ function _sxCmpHabits(T, names) {
     `<div class="sx-hab-wrap"><div class="sx-hab">${rows}${axis}</div></div>`;
 }
 
+// ── Share picture (step 8) ──
+/* A 1080 × 1350 picture in the theme's colours: what is compared and over
+   when, the summary line, a row per pick (most plays first) with its share
+   as a bar, and the Who was on top strip. Shared where the device can,
+   saved otherwise, like the Overview's picture. */
+async function sxShareCompare(btn) {
+  const type = sxCmp.type, picks = _sxCmpPicks();
+  if (!picks.length) return;
+  const T = _sxCmpTally(type, picks);
+  if (!T.total) return;
+  const names = picks.map(k => _sxCmpLabel(type, k));
+  const gc = getGraphColors(), W = 1080, H = 1350, L = 80;
+  const c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  const x = c.getContext('2d');
+  const g = x.createLinearGradient(0, 0, W, H);
+  g.addColorStop(0, mixHex(gc.accent, gc.bg, 0.28)); g.addColorStop(0.5, gc.bg); g.addColorStop(1, gc.bg);
+  x.fillStyle = g; x.fillRect(0, 0, W, H);
+  try { await document.fonts.load('800 96px "Bricolage Grotesque"'); await document.fonts.load('600 40px "IBM Plex Sans"'); } catch (e) { }
+  const disp = '"Bricolage Grotesque", sans-serif', body = '"IBM Plex Sans", sans-serif';
+  const fit = (s, w) => { if (x.measureText(s).width <= w) return s; while (s.length > 1 && x.measureText(s + '…').width > w) s = s.slice(0, -1); return s + '…'; };
+  // What and when
+  const from = isFinite(T.fromTs) ? T.fromTs : T.minTs, to = isFinite(T.toTs) ? T.toTs : T.maxTs;
+  const when = type === 'years' ? '' : '  ·  ' + _sxDate(from) + ' – ' + _sxDate(to);
+  x.fillStyle = gc.accent; x.font = `600 32px ${body}`;
+  x.fillText(fit((t('sx_cmp_title') + '  ·  ' + t('sx_cmp_type_' + type) + when).toUpperCase(), W - 2 * L), L, 130);
+  // The summary line, shrunk until it fits in three lines
+  const line = (document.querySelector('#sxCmpMore .sx-cmp-summary') || {}).textContent || '';
+  let size = 56, lines;
+  do { x.font = `700 ${size}px ${disp}`; lines = _sxWrap(x, line.replace(/\s+/g, ' ').trim(), W - 2 * L); size -= 4; } while (lines.length > 3 && size > 32);
+  const lh = (size + 4) * 1.25;
+  x.fillStyle = gc.text;
+  lines.forEach((l, i) => x.fillText(l, L, 220 + i * lh));
+  // One row per pick, most plays first
+  const order = T.per.map((o, i) => i).sort((a, b) => T.per[b].plays - T.per[a].plays);
+  const stripY = H - 270, top = 220 + lines.length * lh + 40;
+  const rowH = Math.min(84, (stripY - 70 - top) / order.length);
+  const maxP = T.per[order[0]].plays || 1;
+  order.forEach((i, r) => {
+    const o = T.per[i], Y = top + r * rowH, col = _sxCmpColor(i);
+    x.fillStyle = gc.text3; x.font = `600 ${Math.round(rowH * 0.34)}px ${body}`;
+    x.textAlign = 'right'; x.fillText(String(r + 1), L + 34, Y + rowH * 0.42); x.textAlign = 'left';
+    x.fillStyle = col; _sxRound(x, L + 52, Y + rowH * 0.42 - rowH * 0.22, rowH * 0.26, rowH * 0.26, 4); x.fill();
+    x.fillStyle = gc.text; x.font = `700 ${Math.round(rowH * 0.38)}px ${disp}`;
+    x.fillText(fit(names[i], W - 2 * L - 300), L + 52 + rowH * 0.4, Y + rowH * 0.45);
+    x.textAlign = 'right'; x.font = `600 ${Math.round(rowH * 0.32)}px ${body}`;
+    x.fillText(o.plays.toLocaleString() + '  ·  ' + Math.round(o.plays / T.total * 100) + '%', W - L, Y + rowH * 0.45);
+    x.textAlign = 'left';
+    // the bar
+    const bx = L + 52, bw = W - L - bx, by = Y + rowH * 0.6, bh = Math.max(6, rowH * 0.14);
+    x.fillStyle = mixHex(gc.text, gc.bg, 0.1); _sxRound(x, bx, by, bw, bh, bh / 2); x.fill();
+    x.fillStyle = col; _sxRound(x, bx, by, Math.max(bh, bw * o.plays / maxP), bh, bh / 2); x.fill();
+  });
+  // Who was on top
+  const B = _sxCmpBuckets(T);
+  if (B.keys.length) {
+    x.fillStyle = gc.text3; x.font = `600 28px ${body}`;
+    x.fillText(t('sx_own_title').toUpperCase(), L, stripY - 20);
+    const gap = B.keys.length > 60 ? 1 : 4, bw = (W - 2 * L - gap * (B.keys.length - 1)) / B.keys.length;
+    B.keys.forEach((k, j) => {
+      let bi = -1, bv = 0;
+      for (let i = 0; i < T.picks.length; i++) { const v = B.counts[i].get(k) || 0; if (v > bv) { bv = v; bi = i; } }
+      x.fillStyle = bi < 0 ? mixHex(gc.text, gc.bg, 0.1) : _sxCmpColor(bi);
+      _sxRound(x, L + j * (bw + gap), stripY, Math.max(1, bw), 56, Math.min(6, bw / 2)); x.fill();
+    });
+    x.fillStyle = gc.text3; x.font = `500 24px ${body}`;
+    x.fillText(B.label(B.keys[0]), L, stripY + 92);
+    x.textAlign = 'right'; x.fillText(B.label(B.keys[B.keys.length - 1]), W - L, stripY + 92); x.textAlign = 'left';
+  }
+  x.textAlign = 'center';
+  x.fillStyle = gc.text; x.font = `700 46px ${disp}`;
+  x.fillText('dankcharts.fm', W / 2, H - 60);
+  const blob = await new Promise(r => c.toBlob(r, 'image/png'));
+  if (!blob) return;
+  const name = 'dankcharts-compare.png';
+  const file = new File([blob], name, { type: 'image/png' });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file] }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
+  }
+  const a = document.createElement('a');
+  a.download = name; a.href = URL.createObjectURL(blob); a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  if (btn) { const o = btn.textContent; btn.textContent = '✓ ' + t('sx_game_saved'); setTimeout(() => { btn.textContent = o; }, 2000); }
+}
+
 function _sxCmpMore(type, picks) {
   const box = document.getElementById('sxCmpMore');
   if (!box) return;
@@ -2099,7 +2184,9 @@ function _sxCmpMore(type, picks) {
   const T = _sxCmpTally(type, picks);
   const names = picks.map(k => _sxCmpLabel(type, k));
   const sub = type === 'years' ? t('sx_h2h_sub_years') : t('sx_h2h_sub');
-  let html = _sxCmpCard('sx-cmp-h2h', t('sx_h2h_title'), sub, _sxCmpSummary(T, names) + _sxCmpH2H(T, names));
+  // Step 8: the Share button sits in the head-to-head card's corner
+  const share = T.total ? `<button type="button" class="dc-btn dc-btn-normal dc-btn-sm" onclick="sxShareCompare(this)">${esc(t('sx_share'))}</button>` : '';
+  let html = _sxCmpCard('sx-cmp-h2h', t('sx_h2h_title'), sub, _sxCmpSummary(T, names) + _sxCmpH2H(T, names), share);
   // Step 5: with exactly two picks, 1-vs-1 comes first
   const vs = _sxCmpVs(T, names);
   const vsArts = _sxVsArts;
