@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Your listening personality and Fun facts":
+    ["Tu personalidad musical y Datos curiosos",
+     "El Resumen de Estadísticas le da ahora una personalidad musical al rango de fechas, como El Búho Nocturno, El Explorador, El Fiel, El Superfan, El Repetidor, El Guerrero del Finde, El Maratonista o El Trotamundos, con una línea que explica por qué y los otros rasgos que también encajan. A su lado, Datos curiosos muestra cuatro detalles del periodo, como tu racha más larga de una canción repetida, tu hora y tu día de la semana con más música, tu mayor día con un solo artista, cuántas canciones escuchaste solo una vez y la primera canción del periodo. Mezclar muestra los cuatro siguientes. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Song of the period and Biggest movers":
     ["Canción del periodo y Mayores cambios",
      "El Resumen de Estadísticas tiene dos tarjetas más. Canción del periodo es tu canción más escuchada del rango de fechas, con una barra por cada día (o semana, o mes en rangos largos), cuántos días la escuchaste desde que la descubriste, su mejor día, su racha más larga de días seguidos, cuándo la escuchaste por primera vez y sus reproducciones en total, más un botón para escuchar un fragmento. Mayores cambios compara el rango con el mismo tramo anterior: las tres canciones, artistas o álbumes que escuchaste más y las tres que escuchaste menos, con su puesto actual y el anterior. Funciona con Last.fm, Google Sheets y archivos CSV."],

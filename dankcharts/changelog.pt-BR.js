@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Your listening personality and Fun facts":
+    ["Sua personalidade musical e Curiosidades",
+     "A Visão geral das Estatísticas agora dá ao intervalo de datas uma personalidade musical, como A Coruja Noturna, O Explorador, O Fiel, O Superfã, O Repetidor, O Guerreiro do Fim de Semana, O Maratonista ou O Andarilho, com uma linha dizendo por quê e os outros traços que também combinam. Ao lado, Curiosidades mostra quatro detalhes do período, como sua maior sequência de uma música repetida, seu horário e dia da semana mais movimentados, seu maior dia com um só artista, quantas músicas você ouviu só uma vez e a primeira música do período. Embaralhar mostra as próximas quatro. Funciona com Last.fm, Google Sheets e arquivos CSV."],
   "Song of the period and Biggest movers":
     ["Música do período e Maiores mudanças",
      "A Visão geral das Estatísticas tem mais dois cards. Música do período é sua música mais tocada no intervalo de datas, com uma barra para cada dia (ou semana, ou mês em intervalos longos), em quantos dias você a ouviu desde que a descobriu, o melhor dia, a maior sequência de dias seguidos, quando a ouviu pela primeira vez e os plays no total, além de um botão para ouvir uma prévia. Maiores mudanças compara o intervalo com o mesmo trecho anterior: as três músicas, artistas ou álbuns que você ouviu mais e os três que ouviu menos, com a posição de agora e a de antes. Funciona com Last.fm, Google Sheets e arquivos CSV."],

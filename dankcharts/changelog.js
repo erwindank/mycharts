@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 390;
+const DC_CL_I18N_V = 391;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-31', t: 'feature', a: 'graphs', h: 'eca2d48',
+    title: "Your listening personality and Fun facts",
+    detail: "The Stats Overview now gives the date range a listening personality, like The Night Owl, The Explorer, The Loyalist, The Superfan, The Repeater, The Weekend Warrior, The Marathoner or The Wanderer, with one line on why and any other traits that also fit. Beside it, Fun facts shows four small things from the range, such as your longest run of one song back to back, your busiest hour and day of the week, your biggest one-artist day, how many songs you played just once and the first song of the range. Shuffle shows the next four. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-31', t: 'feature', a: 'graphs', h: '95c2738',
     title: "Song of the period and Biggest movers",
     detail: "The Stats Overview has two more cards. Song of the period is your most played song of the date range with a bar for each day (or week, or month on long ranges), how many days you played it since you found it, its best day, its longest run of days in a row, when you first heard it and its plays all time, plus a Play a sample button. Biggest movers compares the range with the same stretch before it: the three songs, artists or albums you played more and the three you played less, with where they rank now and where they were. Works with Last.fm, Google Sheets and CSV uploads." },
