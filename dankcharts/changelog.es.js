@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Charts fit their card again with custom column widths":
+    ["Los rankings vuelven a caber en su tarjeta con anchos de columna propios",
+     "Si habías arrastrado el ancho de las columnas del ranking, desde la última limpieza la tabla y el historial abierto se salían por el borde derecho de la tarjeta, cortando el final del historial y los botones. Ya vuelven a caber."],
   "Emoji are back":
     ["¡Vuelven los emojis!",
      "Los iconos de línea que habían reemplazado a los emojis en todo el sitio ya no están: títulos como 🏆 Récords y Salón de la Fama, las tarjetas de Diario y sus pestañas, Reproducir todo, Aleatorio y Exportar del menú del ranking y los demás botones vuelven a mostrar su emoji. Las pestañas Canciones, Artistas y Álbumes y los títulos de los rankings usan ahora 🎵 🎤 💿 también."],

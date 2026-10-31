@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 385;
+const DC_CL_I18N_V = 386;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-31', t: 'fix', a: 'charts', h: '1540c86',
+    title: "Charts fit their card again with custom column widths",
+    detail: "If you had dragged the chart's column widths, the table and an open chart run ran past the right edge of the card since the last clean-up, cutting off the end of the run and the buttons. They fit again." },
   { d: '2026-10-31', t: 'design', a: 'ui', h: 'bcfb2de',
     title: "Emoji are back",
     detail: "The line icons that replaced emoji across the site are gone: titles like 🏆 Records & Hall of Fame, the Daily cards and their tabs, the chart menu's Play all, Shuffle and Export, and the other buttons show their emoji again. The Songs, Artists and Albums tabs and the chart headings now use 🎵 🎤 💿 too." },

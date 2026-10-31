@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Charts fit their card again with custom column widths":
+    ["Os tops voltam a caber no cartão com larguras de coluna próprias",
+     "Se tinhas arrastado a largura das colunas do top, desde a última limpeza a tabela e a trajetória aberta passavam da margem direita do cartão, cortando o fim da trajetória e os botões. Agora voltam a caber."],
   "Emoji are back":
     ["Os emojis voltaram",
      "Os ícones de linha que tinham substituído os emojis em todo o site saíram: títulos como 🏆 Recordes e Hall da Fama, os cartões do Diário e os seus separadores, Reproduzir tudo, Aleatório e Exportar no menu do top e os outros botões voltam a mostrar o seu emoji. Os separadores Músicas, Artistas e Álbuns e os títulos dos tops usam agora 🎵 🎤 💿 também."],

@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Charts fit their card again with custom column widths":
+    ["As paradas voltam a caber no cartão com larguras de coluna próprias",
+     "Se você tinha arrastado a largura das colunas da parada, desde a última limpeza a tabela e a trajetória aberta passavam da borda direita do cartão, cortando o fim da trajetória e os botões. Agora voltam a caber."],
   "Emoji are back":
     ["Os emojis voltaram",
      "Os ícones de linha que tinham substituído os emojis em todo o site saíram: títulos como 🏆 Recordes e Hall da Fama, os cartões do Diário e suas abas, Tocar tudo, Aleatório e Exportar no menu da parada e os outros botões mostram seu emoji de novo. As abas Músicas, Artistas e Álbuns e os títulos das paradas agora usam 🎵 🎤 💿 também."],
