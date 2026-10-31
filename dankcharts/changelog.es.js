@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Listening habits in Compare":
+    ["Hábitos de escucha en Comparar",
+     "Estadísticas → Comparar muestra ahora cuándo se escucha cada elección: una fila de casillas para las 24 horas del día y los 7 días de la semana, más intensas donde caen más de sus reproducciones. Encima indica el de tus mañanas, el de tus noches y el de tus fines de semana. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Top songs side by side":
     ["Canciones top lado a lado",
      "Cuando comparas artistas, álbumes o años en Estadísticas → Comparar, una tarjeta nueva muestra las tres canciones más escuchadas de cada uno en su propia columna, bajo su color. Toca una canción para abrirla. Funciona con Last.fm, Google Sheets y archivos CSV."],

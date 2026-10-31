@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 401;
+const DC_CL_I18N_V = 402;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-31', t: 'feature', a: 'graphs', h: 'fabd074',
+    title: "Listening habits in Compare",
+    detail: "Stats → Compare now shows when each pick gets played: a row of cells for the 24 hours of the day and the 7 days of the week, stronger where more of its plays fall. Above them it names your morning one, your night one and your weekend one. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-31', t: 'feature', a: 'graphs', h: 'bc1c433',
     title: "Top songs side by side",
     detail: "When you compare artists, albums or years in Stats → Compare, a new card shows each one's three most played songs in its own small column, under its colour. Tap a song to open it. Works with Last.fm, Google Sheets and CSV uploads." },

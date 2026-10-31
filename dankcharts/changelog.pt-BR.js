@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Listening habits in Compare":
+    ["Hábitos de escuta no Comparar",
+     "Estatísticas → Comparar agora mostra quando cada escolha é ouvida: uma fileira de casas para as 24 horas do dia e os 7 dias da semana, mais fortes onde caem mais dos seus plays. Acima, aponta o das suas manhãs, o das suas noites e o dos seus fins de semana. Funciona com Last.fm, Google Sheets e arquivos CSV."],
   "Top songs side by side":
     ["Músicas top lado a lado",
      "Quando você compara artistas, álbuns ou anos em Estatísticas → Comparar, um cartão novo mostra as três músicas mais ouvidas de cada um na sua própria coluna, sob a sua cor. Toque numa música para abri-la. Funciona com Last.fm, Google Sheets e arquivos CSV."],
