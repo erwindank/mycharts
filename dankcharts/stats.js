@@ -1965,6 +1965,74 @@ function _sxCmpGaps(T, names) {
   return tiles.length ? `<div class="sx-gaps">${tiles.join('')}</div>` : '';
 }
 
+// ── 1-vs-1 (step 5) ──
+/* With exactly two picks: both names and pictures at the top, then one row
+   per measure with the two values and mirrored bars, the winner of each row
+   in its colour, and the score of rows won ("Taylor Swift wins 5–2").
+   Tied rows count for nobody. */
+let _sxVsArts = [];
+function _sxCmpVsSide(T, i, names) {
+  const k = T.picks[i], type = T.type;
+  const o = _sxIndex()[type].get(k) || {};
+  let pic = '';
+  if (type === 'years') pic = `<span class="sx-vs-year" style="--c:${_sxCmpColor(i)}">${esc(k)}</span>`;
+  else {
+    const any = T.per[i].songs.values().next().value;
+    const e = {
+      key: k, title: names[i],
+      artist: type === 'artists' ? names[i] : type === 'albums' ? (k.split('|||')[1] || o.sub) : o.sub,
+      album: type === 'albums' ? names[i] : any ? any.p.album : '',
+    };
+    const a = _sxTop5Art(type, e, 'sx-vs-art');
+    _sxVsArts.push([type, e, a.id]);
+    pic = `<button type="button" class="sx-vs-pic" style="--c:${_sxCmpColor(i)}" onclick="${_sxOpenJs(type, e)}" aria-label="${esc(names[i])}">${a.html}</button>`;
+  }
+  return `<div class="sx-vs-side${i ? ' is-right' : ''}">${pic}<div class="sx-vs-who">${_sxCmpName(type, k, i, names[i])}</div></div>`;
+}
+
+function _sxCmpVs(T, names) {
+  if (T.picks.length !== 2 || !T.total) return '';
+  const [A, B] = T.per;
+  const won = _sxCmpBucketsWon(T);
+  const rows = [
+    ['sx_h2h_plays', o => o.plays],
+    ...(T.type === 'years'
+      ? [['sx_h2h_artists', o => o.artists.size], ['sx_h2h_new', o => o.news]]
+      : [['sx_h2h_ones', o => o.ones]]),
+    [T.type === 'years' || _sxCmpBuckets(T).unit === 'month' ? 'sx_own_won_months' : 'sx_own_won_weeks', (o, i) => won[i]],
+    ['sx_vs_bestmonth', o => o.bestMonthN],
+    ['sx_h2h_streak', o => o.streak],
+    ['sx_vs_days', o => o.days.size],
+    T.type === 'songs' ? null : ['sx_h2h_songs', o => o.songs.size],
+  ].filter(Boolean);
+  let sa = 0, sb = 0;
+  const body = rows.map(([key, f]) => {
+    const a = f(A, 0) || 0, b = f(B, 1) || 0, max = Math.max(a, b, 1);
+    if (a > b) sa++; else if (b > a) sb++;
+    const cell = (v, i, win) => `<span class="sx-vs-v${win ? ' is-win' : ''}" style="--c:${_sxCmpColor(i)}">${v.toLocaleString()}</span>`;
+    const bar = (v, i, win) => `<span class="sx-vs-bar${i ? ' is-right' : ''}"><i style="width:${Math.round(v / max * 100)}%;background:${_sxCmpColor(i)}${win ? '' : ';opacity:.45'}"></i></span>`;
+    return `<li>${cell(a, 0, a > b)}${bar(a, 0, a > b)}<span class="sx-vs-label">${esc(t(key))}</span>${bar(b, 1, b > a)}${cell(b, 1, b > a)}</li>`;
+  }).join('');
+  const who = i => `<b style="color:${_sxCmpColor(i)}">${esc(names[i])}</b>`;
+  const score = sa === sb
+    ? esc(t('sx_vs_draw')).replace('{n}', sa)
+    : esc(t('sx_vs_wins')).replace('{a}', who(sa > sb ? 0 : 1)).replace('{s}', Math.max(sa, sb) + '–' + Math.min(sa, sb));
+  _sxVsArts = [];
+  const head = `<div class="sx-vs-head">${_sxCmpVsSide(T, 0, names)}<span class="sx-vs-x">${esc(t('sx_vs_x'))}</span>${_sxCmpVsSide(T, 1, names)}</div>`;
+  return head + `<p class="sx-vs-score">${score}</p><ol class="sx-vs-rows">${body}</ol>`;
+}
+
+// How many months / weeks each pick won (Who was on top's legend numbers)
+function _sxCmpBucketsWon(T) {
+  const B = _sxCmpBuckets(T), won = new Array(T.picks.length).fill(0);
+  for (const k of B.keys) {
+    let bi = -1, bv = 0;
+    for (let i = 0; i < T.picks.length; i++) { const v = B.counts[i].get(k) || 0; if (v > bv) { bv = v; bi = i; } }
+    if (bi >= 0) won[bi]++;
+  }
+  return won;
+}
+
 function _sxCmpMore(type, picks) {
   const box = document.getElementById('sxCmpMore');
   if (!box) return;
@@ -1973,6 +2041,10 @@ function _sxCmpMore(type, picks) {
   const names = picks.map(k => _sxCmpLabel(type, k));
   const sub = type === 'years' ? t('sx_h2h_sub_years') : t('sx_h2h_sub');
   let html = _sxCmpCard('sx-cmp-h2h', t('sx_h2h_title'), sub, _sxCmpSummary(T, names) + _sxCmpH2H(T, names));
+  // Step 5: with exactly two picks, 1-vs-1 comes first
+  const vs = _sxCmpVs(T, names);
+  const vsArts = _sxVsArts;
+  if (vs) html = _sxCmpCard('sx-cmp-vs', t('sx_vs_title'), t('sx_vs_sub'), vs) + html;
   // Step 3: who won each piece of the range, and the lead changes
   if (T.total) {
     const B = _sxCmpBuckets(T);
@@ -1983,6 +2055,8 @@ function _sxCmpMore(type, picks) {
     if (gaps) html += _sxCmpCard('sx-cmp-gaps', t('sx_gap_title'), t('sx_gap_sub'), gaps);
   }
   box.innerHTML = html;
+  // The 1-vs-1 pictures, once the slots are on the page
+  vsArts.forEach(([ty, e, id]) => _sxTop5Load(ty, e, id));
 }
 
 // Sorting the table: a click on a column head (again flips the order)

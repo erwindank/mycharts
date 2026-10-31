@@ -11297,6 +11297,36 @@
     .sx-gap-val { font-family: var(--font-display); font-size: var(--fs-md); font-weight: 700; color: var(--text); margin-top: auto; }
     .sx-gap-foot { font-size: var(--fs-xs); color: var(--text2); }
 
+    /* 1-vs-1 (phase 17 step 5): two sides, the score, mirrored bars */
+    .sx-vs-head { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: var(--sp-3); }
+    .sx-vs-side { display: flex; align-items: center; gap: var(--sp-3); min-width: 0; }
+    .sx-vs-side.is-right { flex-direction: row-reverse; text-align: right; }
+    .sx-vs-side.is-right .sx-cmp-name { flex-direction: row-reverse; text-align: right; margin-left: auto; }
+    .sx-vs-who { min-width: 0; }
+    .sx-vs-who .sx-cmp-name b { font-family: var(--font-display); font-size: var(--fs-md); }
+    .sx-vs-pic { flex-shrink: 0; padding: 3px; border: 2px solid var(--c); border-radius: var(--r-sm); background: none; cursor: pointer; }
+    .sx-vs-pic .sx-t5-art { width: 64px; height: 64px; }
+    .sx-vs-pic:has(.is-round) { border-radius: 50%; }
+    .sx-vs-year { font-family: var(--font-display); font-size: 2.25rem; font-weight: 800; color: var(--c); line-height: 1; }
+    .sx-vs-x { font-family: var(--font-mono); font-size: var(--fs-xs); font-weight: 700; color: var(--text3); text-transform: uppercase; }
+    .sx-vs-score { margin: var(--sp-4) 0 var(--sp-3); text-align: center; font-family: var(--font-display); font-size: var(--fs-lg); color: var(--text); }
+    .sx-vs-rows { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 0.45rem; }
+    .sx-vs-rows li { display: grid; grid-template-columns: 4.5rem minmax(0, 1fr) 9rem minmax(0, 1fr) 4.5rem; align-items: center; gap: var(--sp-2); }
+    .sx-vs-label { text-align: center; font-size: 0.6875rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--text3); }
+    .sx-vs-v { font-family: var(--font-mono); font-size: var(--fs-sm); color: var(--text2); font-variant-numeric: tabular-nums; }
+    .sx-vs-rows li > .sx-vs-v:first-child { text-align: right; }
+    .sx-vs-v.is-win { color: var(--c); font-weight: 700; }
+    .sx-vs-bar { display: flex; justify-content: flex-end; height: 14px; background: var(--bg3); border-radius: 4px; overflow: hidden; }
+    .sx-vs-bar.is-right { justify-content: flex-start; }
+    .sx-vs-bar i { display: block; height: 100%; border-radius: 4px; }
+    @media (max-width: 640px) {
+      .sx-vs-pic .sx-t5-art { width: 44px; height: 44px; }
+      .sx-vs-side { flex-direction: column; align-items: flex-start; gap: var(--sp-2); }
+      .sx-vs-side.is-right { flex-direction: column; align-items: flex-end; }
+      .sx-vs-rows li { grid-template-columns: 3.4rem minmax(0, 1fr) minmax(0, 1fr) 3.4rem; row-gap: 2px; }
+      .sx-vs-label { grid-column: 1 / -1; grid-row: 1; }
+    }
+
     /* Story (step 5): artist picture slots */
     .sx-face {
       display: grid; place-items: center; overflow: hidden; flex-shrink: 0;
