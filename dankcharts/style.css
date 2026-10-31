@@ -11041,6 +11041,55 @@
     .sx-fact-txt { min-width: 0; }
     .sx-fact-txt b { display: block; font-family: var(--font-display); font-size: var(--fs-md); font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .sx-fact-txt span { display: block; font-size: var(--fs-xs); color: var(--text2); line-height: 1.35; }
+
+    /* Calendar strip beside On this day */
+    .sx-ov-pair.sx-ov-pair-cal { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); }
+    @media (max-width: 1023px) { .sx-ov-pair.sx-ov-pair-cal { grid-template-columns: minmax(0, 1fr); } }
+    .sx-cal-wd { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin-bottom: 4px; }
+    .sx-cal-wd span { font-size: var(--fs-xs); color: var(--text3); text-align: center; text-transform: capitalize; }
+    .sx-cal-grid { display: grid; gap: 4px; }
+    /* Up to six weeks: a month-style calendar, a row a week */
+    .sx-cal-grid.is-short { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+    /* Longer: week columns, a row per weekday (the Charts heatmap's shape) */
+    .sx-cal-grid.is-long { grid-auto-flow: column; grid-template-rows: repeat(7, auto); grid-template-columns: repeat(var(--weeks), minmax(0, 1fr)); gap: 2px; }
+    .sx-cal-d {
+      display: grid; place-items: center; aspect-ratio: 1; min-width: 0; padding: 0; border: 0; border-radius: 3px;
+      font: inherit; font-size: var(--fs-xs); font-variant-numeric: tabular-nums; color: var(--text2); cursor: pointer;
+      background: var(--bg3);
+    }
+    .sx-cal-grid.is-short .sx-cal-d { border-radius: var(--r-sm); aspect-ratio: 3 / 2; }
+    .sx-cal-grid.is-long .sx-cal-d { border-radius: 2px; }
+    .sx-cal-d.is-out { background: none; cursor: default; }
+    .sx-cal-d.l1, .sx-cal-legend .l1 { background: color-mix(in srgb, var(--accent) 25%, var(--bg3)); }
+    .sx-cal-d.l2, .sx-cal-legend .l2 { background: color-mix(in srgb, var(--accent) 50%, var(--bg3)); }
+    .sx-cal-d.l3, .sx-cal-legend .l3 { background: color-mix(in srgb, var(--accent) 75%, var(--bg3)); color: var(--on-accent); }
+    .sx-cal-d.l4, .sx-cal-legend .l4 { background: var(--accent); color: var(--on-accent); font-weight: 700; }
+    .sx-cal-legend .l0 { background: var(--bg3); }
+    .sx-cal-d:not(.is-out):hover { outline: 2px solid var(--text); outline-offset: -1px; }
+    .sx-cal-d:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .sx-cal-foot { display: flex; justify-content: space-between; align-items: center; gap: var(--sp-3); flex-wrap: wrap; margin-top: var(--sp-3); }
+    .sx-cal-foot .sx-note { margin: 0; }
+    .sx-cal-legend { display: flex; align-items: center; gap: 3px; font-size: var(--fs-xs); color: var(--text3); }
+    .sx-cal-legend i { display: block; width: 11px; height: 11px; border-radius: 2px; }
+    .sx-cal-legend span { margin: 0 4px; }
+    .sx-cal-more { font-size: var(--fs-sm); margin-top: var(--sp-2); }
+
+    /* On this day: a row per year back */
+    .sx-otd-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-2); }
+    .sx-otd-row { display: flex; align-items: center; gap: 2px; border-radius: var(--r-md); border: 1px solid var(--border); background: color-mix(in srgb, var(--bg) 45%, var(--bg2)); }
+    .sx-otd-row:hover { border-color: var(--border2); }
+    .sx-otd-btn {
+      flex: 1 1 auto; min-width: 0; display: grid; grid-template-columns: 3.6rem 48px minmax(0, 1fr); gap: var(--sp-3); align-items: center;
+      padding: var(--sp-2) var(--sp-3); background: none; border: 0; color: var(--text); font: inherit; text-align: left; cursor: pointer; border-radius: var(--r-md);
+    }
+    .sx-otd-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+    .sx-otd-btn .sx-t5-art { width: 48px; height: 48px; }
+    .sx-otd-when { display: flex; flex-direction: column; line-height: 1.15; }
+    .sx-otd-when b { font-family: var(--font-display); font-size: var(--fs-md); color: var(--accent); }
+    .sx-otd-when span { font-size: var(--fs-xs); color: var(--text3); }
+    .sx-otd-row .ea-sample { margin-right: var(--sp-2); }
+    .sx-otd-btn .sx-t5-txt > span.sx-mv-where { white-space: normal; }
+    @media (max-width: 640px) { .sx-otd-btn { grid-template-columns: 3rem 44px minmax(0, 1fr); gap: var(--sp-2); } .sx-otd-btn .sx-t5-art { width: 44px; height: 44px; } }
     .sx-tile .stat-foot { display: flex; gap: var(--sp-2); align-items: center; justify-content: center; flex-wrap: wrap; }
     /* "vs 51,416" on an Overview tile (not .sx-vs, the games' round badge) */
     .sx-vsprev { font-size: var(--fs-xs); color: var(--text3); font-variant-numeric: tabular-nums; }

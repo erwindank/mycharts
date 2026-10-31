@@ -247,6 +247,10 @@ function sxRenderOverview() {
         <section class="dc-card sx-ov-card sx-persona" id="sxPersona"></section>
         <section class="dc-card sx-ov-card sx-facts" id="sxFacts"></section>
       </div>
+      <div class="sx-ov-pair sx-ov-pair-cal">
+        <section class="dc-card sx-ov-card sx-cal" id="sxCal"></section>
+        <section class="dc-card sx-ov-card sx-otd" id="sxOtd"></section>
+      </div>
     </div>`;
   animateStatStrip(box, 900);
   // Kept for the cards below the hero, so their switches don't scan again
@@ -255,6 +259,8 @@ function sxRenderOverview() {
   sxPaintSotp();
   sxPaintMovers();
   sxPaintFun();
+  sxPaintCal();
+  sxPaintOtd();
 }
 
 // ── Your top 5 (phase 16 step 1) ──────────────────────────────────────────
@@ -675,6 +681,99 @@ document.addEventListener('click', e => {
   _sxPaintFacts();
   document.getElementById('sxFactShuffle')?.focus();
 });
+
+// ── Calendar strip (phase 16 step 4) ──────────────────────────────────────
+/* A square for each day of the range, coloured by plays (four steps, from
+   the range's own quartiles). Up to six weeks it is a month-style calendar
+   with the day numbers; longer ranges show their last 53 weeks as a strip
+   of week columns (the full heatmap is in Charts). A click opens the day. */
+
+function _sxCalLevel(n, q) { return !n ? 0 : n <= q[0] ? 1 : n <= q[1] ? 2 : n <= q[2] ? 3 : 4; }
+
+function sxPaintCal() {
+  const box = document.getElementById('sxCal');
+  if (!box || !_sxOv) return;
+  const { cur, toTs } = _sxOv;
+  const P = graphRange.preset;
+  const fromTs = P === 'all' ? new Date(graphRangeDates().from + 'T00:00:00').getTime() : _sxOv.fromTs;
+  const vals = [...cur.dayPlays.values()].sort((a, b) => a - b);
+  const q = [0.25, 0.5, 0.75].map(f => vals[Math.floor(f * (vals.length - 1))] || 0);
+  const fromD = new Date(fromTs), toD = new Date(toTs);
+  fromD.setHours(0, 0, 0, 0); toD.setHours(0, 0, 0, 0);
+  const short = (toD - fromD) / _SX_DAY < 42;
+  // The first cell: the week start on or before the first day shown
+  let first = short ? new Date(fromD) : new Date(toD.getFullYear(), toD.getMonth(), toD.getDate() - 52 * 7);
+  if (first < fromD) first = new Date(fromD);
+  const lead = (first.getDay() - weekStartDay + 7) % 7;
+  const start = new Date(first.getFullYear(), first.getMonth(), first.getDate() - lead);
+  const cells = [];
+  let shown = 0, played = 0;
+  for (let d = new Date(start); d <= toD; d.setDate(d.getDate() + 1)) {
+    if (d < first) { cells.push('<span class="sx-cal-d is-out"></span>'); continue; }
+    const k = localDateStr(d), n = cur.dayPlays.get(k) || 0;
+    shown++; if (n) played++;
+    const tip = `${_sxDate(d.getTime())}: ${t('sx_top5_plays').replace('{n}', n.toLocaleString())}`;
+    cells.push(`<button type="button" class="sx-cal-d l${_sxCalLevel(n, q)}" title="${esc(tip)}" aria-label="${esc(tip)}" ` +
+      `onclick="navigateToRecPeriod('day', '${k}')">${short ? d.getDate() : ''}</button>`);
+  }
+  const weeks = Math.ceil(cells.length / 7);
+  const wdHead = short ? `<div class="sx-cal-wd">${[0, 1, 2, 3, 4, 5, 6].map(i => `<span>${esc(_sxDayLabel((weekStartDay + i) % 7, false))}</span>`).join('')}</div>` : '';
+  const legend = `<div class="sx-cal-legend"><span>${esc(t('sx_cal_less'))}</span>${[0, 1, 2, 3, 4].map(l => `<i class="l${l}"></i>`).join('')}<span>${esc(t('sx_cal_more'))}</span></div>`;
+  const note = t('sx_cal_note').replace('{n}', played.toLocaleString()).replace('{of}', shown.toLocaleString());
+  box.innerHTML = `<div class="sx-ov-head"><div><h3 class="graph-card-title">${esc(t('sx_cal_title'))}</h3>` +
+    `<div class="graph-card-sub">${esc(t(short ? 'sx_cal_sub' : 'sx_cal_sub_long'))}</div></div></div>` +
+    wdHead +
+    `<div class="sx-cal-grid ${short ? 'is-short' : 'is-long'}" style="--weeks:${weeks}">${cells.join('')}</div>` +
+    (short ? '' : `<div class="sx-sotp-axis"><span>${esc(_sxDayMon(first.getTime()))}</span><span>${esc(_sxDayMon(toTs))}</span></div>`) +
+    `<div class="sx-cal-foot"><p class="sx-note">${esc(note)}</p>${legend}</div>` +
+    (short ? '' : `<button type="button" class="sx-link sx-cal-more" onclick="setStatsTab('charts')">${esc(t('sx_cal_heatmap'))}</button>`);
+}
+
+// ── On this day (phase 16 step 4) ─────────────────────────────────────────
+/* Today's date in past years (up to 10 back, the 3 most recent with plays):
+   that day's most played song, with its picture, and the day's plays. It
+   doesn't follow the range: it is about today. A click opens the day. */
+function sxPaintOtd() {
+  const box = document.getElementById('sxOtd');
+  if (!box) return;
+  const now = tzNow();
+  const want = new Map();
+  for (let y = 1; y <= 10; y++) {
+    const d = new Date(now.getFullYear() - y, now.getMonth(), now.getDate());
+    if (d.getMonth() !== now.getMonth()) continue;   // 29 Feb in a year without one
+    want.set(localDateStr(d), { y, songs: new Map(), n: 0 });
+  }
+  for (const p of allPlays) {
+    const w = want.get(localDateStr(tzDateOf(p)));
+    if (!w) continue;
+    w.n++;
+    const sk = songKey(p), o = w.songs.get(sk);
+    if (o) o.n++; else w.songs.set(sk, { n: 1, p });
+  }
+  const years = [...want.entries()].filter(([, w]) => w.n).sort((a, b) => a[1].y - b[1].y).slice(0, 3);
+  const locale = currentLang === 'en' ? 'en-US' : currentLang;
+  const today = now.toLocaleDateString(locale, { day: 'numeric', month: 'long' });
+  const head = `<div class="sx-ov-head"><div><h3 class="graph-card-title">${esc(t('sx_otd_title'))}</h3>` +
+    `<div class="graph-card-sub">${esc(t('sx_otd_sub').replace('{date}', today))}</div></div></div>`;
+  if (!years.length) { box.innerHTML = head + `<p class="sx-note">${esc(t('sx_otd_none'))}</p>`; return; }
+  const arts = [];
+  const rows = years.map(([k, w]) => {
+    let top = null;
+    w.songs.forEach((o, sk) => { if (!top || o.n > top.n) top = { key: sk, n: o.n, title: o.p.title, artist: o.p.artist, album: o.p.album }; });
+    const a = _sxTop5Art('songs', top);
+    arts.push([top, a.id]);
+    const ago = t(w.y === 1 ? 'sx_otd_ago1' : 'sx_otd_ago').replace('{n}', w.y);
+    return `<li class="sx-otd-row"${_sxEa('songs', top, a.id)}>
+        <button type="button" class="sx-otd-btn" onclick="navigateToRecPeriod('day', '${k}')">
+          <span class="sx-otd-when"><b>${esc(k.slice(0, 4))}</b><span>${esc(ago)}</span></span>${a.html}
+          <span class="sx-t5-txt"><b>${esc(top.title)}</b><span>${esc(top.artist)}</span>
+            <span class="sx-mv-where">${esc(t('sx_otd_day').replace('{n}', w.n.toLocaleString()).replace('{s}', top.n.toLocaleString()))}</span></span>
+        </button>${_eaSampleBtn()}
+      </li>`;
+  }).join('');
+  box.innerHTML = head + `<ol class="sx-otd-list">${rows}</ol>`;
+  arts.forEach(([e, id]) => _sxTop5Load('songs', e, id));
+}
 
 // The movers' Songs / Artists / Albums switch
 document.addEventListener('click', e => {
