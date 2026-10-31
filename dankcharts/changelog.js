@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 398;
+const DC_CL_I18N_V = 399;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-31', t: 'feature', a: 'graphs', h: '9302755',
+    title: "Biggest gaps in Compare",
+    detail: "Stats → Compare now shows four tiles when you compare two or more: the closest race (the two with the nearest totals), the biggest lead anyone ever had on the running total and when, the fastest rise from one month or week to the next, and who spent longest in front. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-31', t: 'feature', a: 'graphs', h: '3965de2',
     title: "Who was on top",
     detail: "Stats → Compare has a new card, Who was on top: a strip with one block per month (per week for short ranges) in the colour of the pick you played most that month, with how many months each one won. Under it, every time the lead on the running total changed hands, such as \"Feb 2026: Taylor Swift passes Tate McRae\". Comparing years goes January to December, showing which year owned each month. Works with Last.fm, Google Sheets and CSV uploads." },

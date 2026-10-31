@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Biggest gaps in Compare":
+    ["Las mayores distancias en Comparar",
+     "Estadísticas → Comparar muestra ahora cuatro cifras cuando comparas dos o más: la carrera más ajustada (los dos con totales más cercanos), la mayor ventaja que alguien tuvo en el total acumulado y cuándo, la subida más rápida de un mes o semana al siguiente, y quién pasó más tiempo delante. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Who was on top":
     ["Quién estuvo arriba",
      "Estadísticas → Comparar tiene una tarjeta nueva, Quién estuvo arriba: una franja con un bloque por mes (por semana en periodos cortos) en el color de la elección que más escuchaste ese mes, con cuántos meses ganó cada una. Debajo, cada vez que el liderato del total acumulado cambió de manos, como \"feb 2026: Taylor Swift supera a Tate McRae\". Al comparar años va de enero a diciembre y muestra qué año se quedó cada mes. Funciona con Last.fm, Google Sheets y archivos CSV."],
