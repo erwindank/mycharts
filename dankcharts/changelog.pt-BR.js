@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Row buttons sit clear of the edge":
+    ["Os botões das linhas se afastam da borda",
+     "Nas tabelas das paradas, os botões do Spotify, ⋮ e trajetória no fim de cada linha não ficam mais colados na borda direita: a coluna está um pouco mais larga, com espaço à direita e entre os botões."],
   "Off the Chart rows open their chart run":
     ["As linhas de Fora da Parada abrem seu histórico",
      "Na lista Fora da Parada das paradas semanais, um clique em uma linha agora abre o histórico daquela música, artista ou álbum logo abaixo, como na parada principal. Outro clique fecha."],

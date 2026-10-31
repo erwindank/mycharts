@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Row buttons sit clear of the edge":
+    ["Los botones de las filas se separan del borde",
+     "En las tablas de los rankings, los botones de Spotify, ⋮ e historial al final de cada fila ya no quedan pegados al borde derecho: la columna es un poco más ancha, con espacio a la derecha y entre los botones."],
   "Off the Chart rows open their chart run":
     ["Las filas de Fuera del Ranking abren su historial",
      "En la lista Fuera del Ranking de los rankings semanales, un clic en una fila abre ahora el historial de esa canción, artista o álbum justo debajo, igual que en el ranking principal. Otro clic lo cierra."],

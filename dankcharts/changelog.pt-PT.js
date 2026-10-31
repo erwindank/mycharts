@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Row buttons sit clear of the edge":
+    ["Os botões das linhas afastam-se da margem",
+     "Nas tabelas dos tops, os botões do Spotify, ⋮ e trajetória no fim de cada linha já não ficam colados à margem direita: a coluna está um pouco mais larga, com espaço à direita e entre os botões."],
   "Off the Chart rows open their chart run":
     ["As linhas de Fora do Top abrem o respetivo histórico",
      "Na lista Fora do Top das tabelas semanais, um clique numa linha abre agora o histórico dessa música, artista ou álbum logo abaixo, tal como na tabela principal. Outro clique fecha-o."],

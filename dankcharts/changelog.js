@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 387;
+const DC_CL_I18N_V = 388;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-31', t: 'design', a: 'charts', h: '89b055d',
+    title: "Row buttons sit clear of the edge",
+    detail: "On the chart tables, the Spotify, ⋮ and chart run buttons at the end of each row no longer press against the row's right edge: the column is a little wider, with some room on the right and between the buttons." },
   { d: '2026-10-31', t: 'feature', a: 'charts', h: '11776f7',
     title: "Off the Chart rows open their chart run",
     detail: "On the weekly charts' Off the Chart list, a click on a row now opens that song, artist or album's chart run right under it, the same as on the chart itself. Click it again to close it." },
