@@ -1903,6 +1903,68 @@ function _sxCmpLeadsHtml(T, names) {
   return `<div class="sx-leads"><p class="sx-leads-head">${esc(head).replace('\u0001', who(ev[0].to))}</p><ol class="sx-leads-list">${items}</ol>${more}</div>`;
 }
 
+// ── Biggest gaps (step 4) ──
+/* Four tiles, from the same pieces as Who was on top:
+     Closest race     the two picks whose totals are nearest
+     Biggest lead     the widest gap between #1 and #2 on the running total
+     Fastest rise     the biggest jump from one piece to the next
+     Longest in front the pick that led the running total for most pieces */
+function _sxCmpGaps(T, names) {
+  const n = T.picks.length;
+  if (n < 2 || !T.total) return '';
+  const B = _sxCmpBuckets(T);
+  const who = i => `<b style="color:${_sxCmpColor(i)}">${esc(names[i])}</b>`;
+  const tile = (label, what, val, foot) => `<div class="sx-gap"><span class="sx-gap-label">${esc(label)}</span>` +
+    `<div class="sx-gap-what">${what}</div><div class="sx-gap-val">${esc(val)}</div>${foot ? `<div class="sx-gap-foot">${esc(foot)}</div>` : ''}</div>`;
+  const tiles = [];
+  // Closest race: nearest totals among the picks that were played
+  const played = T.per.map((o, i) => i).filter(i => T.per[i].plays).sort((a, b) => T.per[b].plays - T.per[a].plays);
+  if (played.length >= 2) {
+    let a = played[0], b = played[1];
+    for (let j = 1; j < played.length; j++) {
+      const x = played[j - 1], y = played[j];
+      if (T.per[x].plays - T.per[y].plays < T.per[a].plays - T.per[b].plays) { a = x; b = y; }
+    }
+    const d = T.per[a].plays - T.per[b].plays;
+    tiles.push(tile(t('sx_gap_close'), `${who(a)} <span>${esc(t('sx_gap_and'))}</span> ${who(b)}`,
+      d ? t('sx_gap_apart').replace('{n}', d.toLocaleString()) : t('sx_gap_level'), ''));
+  }
+  // Running totals piece by piece: the biggest lead, and time in front
+  const run = new Array(n).fill(0), front = new Array(n).fill(0);
+  let big = null;
+  for (const k of B.keys) {
+    for (let i = 0; i < n; i++) run[i] += B.counts[i].get(k) || 0;
+    let f = -1, s = -1;
+    for (let i = 0; i < n; i++) {
+      if (f < 0 || run[i] > run[f]) { s = f; f = i; } else if (s < 0 || run[i] > run[s]) s = i;
+    }
+    if (!run[f]) continue;
+    front[f]++;
+    const gap = run[f] - run[s];
+    if (!big || gap > big.gap) big = { k, f, s, gap };
+  }
+  if (big && big.gap) tiles.push(tile(t('sx_gap_lead'), `${who(big.f)} <span>${esc(t('sx_gap_over'))}</span> ${who(big.s)}`,
+    t('sx_n_plays').replace('{n}', big.gap.toLocaleString()), (T.type === 'years' ? t('sx_lead_by').replace('{m}', B.label(big.k)) : B.label(big.k))));
+  // Fastest rise: the biggest jump on the piece before
+  let rise = null;
+  for (let i = 0; i < n; i++) {
+    for (let j = 1; j < B.keys.length; j++) {
+      const d = (B.counts[i].get(B.keys[j]) || 0) - (B.counts[i].get(B.keys[j - 1]) || 0);
+      if (d > 0 && (!rise || d > rise.d)) rise = { i, j, d };
+    }
+  }
+  if (rise) tiles.push(tile(t('sx_gap_rise'), who(rise.i), '+' + t('sx_n_plays').replace('{n}', rise.d.toLocaleString()),
+    t('sx_gap_rise_when').replace('{a}', B.label(B.keys[rise.j])).replace('{b}', B.label(B.keys[rise.j - 1]))));
+  // Longest in front
+  let lf = 0;
+  front.forEach((v, i) => { if (v > front[lf]) lf = i; });
+  if (front[lf]) {
+    const unitKey = T.type === 'years' || B.unit === 'month' ? 'sx_gap_front_m' : 'sx_gap_front_w';
+    tiles.push(tile(t('sx_gap_front'), who(lf), t(unitKey).replace('{n}', front[lf]).replace('{of}', B.keys.length), ''));
+  }
+  return tiles.length ? `<div class="sx-gaps">${tiles.join('')}</div>` : '';
+}
+
 function _sxCmpMore(type, picks) {
   const box = document.getElementById('sxCmpMore');
   if (!box) return;
@@ -1916,6 +1978,9 @@ function _sxCmpMore(type, picks) {
     const B = _sxCmpBuckets(T);
     const ownSub = T.type === 'years' ? t('sx_own_sub_years') : t(B.unit === 'week' ? 'sx_own_sub_week' : 'sx_own_sub_month');
     html += _sxCmpCard('sx-cmp-own', t('sx_own_title'), ownSub, _sxCmpOwners(T, names) + _sxCmpLeadsHtml(T, names));
+    // Step 4: the biggest gaps (two picks or more)
+    const gaps = _sxCmpGaps(T, names);
+    if (gaps) html += _sxCmpCard('sx-cmp-gaps', t('sx_gap_title'), t('sx_gap_sub'), gaps);
   }
   box.innerHTML = html;
 }
