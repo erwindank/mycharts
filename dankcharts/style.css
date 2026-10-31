@@ -11229,6 +11229,23 @@
     .sx-verdict-tile b { display: block; margin-top: 2px; font-family: var(--font-display); font-size: var(--fs-sm); color: var(--c, var(--text)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .sx-verdict-tile em { display: block; font-style: normal; font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--text2); }
 
+    /* Saved comparisons (phase 17 step 9): a row of named sets */
+    .sx-cmp-saved { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); margin: calc(-1 * var(--sp-1)) 0 var(--sp-3); }
+    .sx-cmp-saved:empty { display: none; }
+    .sx-saved-label { font-size: 0.6875rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--text3); margin-right: var(--sp-1); }
+    .sx-saved { display: inline-flex; align-items: center; border: 1px dashed var(--border2); border-radius: var(--r-sm); max-width: 16rem; }
+    .sx-saved.is-on { border-style: solid; border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
+    .sx-saved > button:first-child {
+      background: none; border: 0; padding: 0.25rem 0.3rem 0.25rem 0.6rem; cursor: pointer; min-width: 0;
+      font: inherit; font-size: var(--fs-xs); font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .sx-saved small { font-family: var(--font-mono); color: var(--text3); margin-left: 0.2rem; }
+    .sx-saved-x { display: grid; place-items: center; width: 22px; height: 22px; margin-right: 2px; flex-shrink: 0; background: none; border: 0; border-radius: 4px; color: var(--text2); cursor: pointer; }
+    .sx-saved-x:hover { background: var(--bg3); color: var(--text); }
+    .sx-saved-x svg { width: 12px; height: 12px; stroke: currentColor; stroke-width: 1.8; fill: none; stroke-linecap: round; }
+    .sx-saved-name { display: inline-flex; gap: var(--sp-2); align-items: center; flex: 1 1 18rem; min-width: 0; }
+    .sx-saved-name .graph-input { flex: 1; min-width: 0; }
+
     /* More under Compare (phase 17): cards after the studio */
     .sx-cmp-more { display: flex; flex-direction: column; gap: var(--sp-4); margin-top: var(--sp-4); }
     .sx-cmp-more:empty { display: none; }

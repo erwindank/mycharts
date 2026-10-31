@@ -1479,6 +1479,9 @@ function sxRenderCompare() {
   const type = sxCmp.type, picks = _sxCmpPicks();
   _sxCmpPaint();
   _sxCmpChips(picks);
+  // Changing the picks drops a half-typed name
+  _sxSavedNaming = false;
+  _sxCmpSavedPaint();
   const note = document.getElementById('sxCmpNote');
   const verdict = document.getElementById('sxCmpVerdict');
   note.textContent = '';
@@ -1637,6 +1640,76 @@ function _sxCmpVerdict(type, picks, names) {
   tiles.push(_sxVerdictTile(t('sx_v_longest'), d == null ? null : names[d], d, d == null ? '' : t('sx_v_since').replace('{y}', fm[picks[d]].getFullYear())));
   return tiles.join('');
 }
+
+// ── Saved comparisons (phase 17 step 9) ──────────────────────────────────
+/* Named sets of picks, kept per type in dc_sxCmpSaved (on this device, like
+   the picks themselves), up to 20 per type. A tap loads a set; the set
+   matching the picks shows as on. Save these asks for a name in place
+   (it starts as the first two names), and deleting asks in the site's own
+   warning window. */
+const SX_SAVED_MAX = 20;
+let sxCmpSaved = (() => { try { const v = JSON.parse(localStorage.getItem('dc_sxCmpSaved') || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } })();
+let _sxSavedNaming = false;
+function _sxCmpSavedStore() { try { localStorage.setItem('dc_sxCmpSaved', JSON.stringify(sxCmpSaved)); } catch (e) { } }
+
+function _sxCmpSavedPaint() {
+  const box = document.getElementById('sxCmpSaved');
+  if (!box) return;
+  const type = sxCmp.type, picks = _sxCmpPicks();
+  const same = set => set.picks.length === picks.length && set.picks.every((k, i) => k === picks[i]);
+  const mine = sxCmpSaved.filter(x => x.type === type);
+  const sets = mine.map(x => `<span class="sx-saved${same(x) ? ' is-on' : ''}">` +
+    `<button type="button" data-sload="${esc(x.id)}" aria-pressed="${same(x)}">${esc(x.name)} <small>${x.picks.length}</small></button>` +
+    `<button type="button" class="sx-saved-x" data-sdel="${esc(x.id)}" aria-label="${esc(t('sx_saved_delete').replace('{name}', x.name))}">` +
+    `<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="m4.5 4.5 7 7M11.5 4.5l-7 7"/></svg></button></span>`).join('');
+  let tail = '';
+  if (_sxSavedNaming) {
+    const names = picks.slice(0, 2).map(k => _sxCmpLabel(type, k));
+    const def = names.join(' vs ') + (picks.length > 2 ? ' +' + (picks.length - 2) : '');
+    tail = `<span class="sx-saved-name"><input id="sxSavedName" type="text" class="graph-input" maxlength="40" value="${esc(def)}" aria-label="${esc(t('sx_saved_name'))}">` +
+      `<button type="button" class="dc-btn dc-btn-main dc-btn-sm" data-sact="ok">${esc(t('sx_saved_ok'))}</button>` +
+      `<button type="button" class="dc-btn dc-btn-plain dc-btn-sm" data-sact="cancel">${esc(t('btn_cancel'))}</button></span>`;
+  } else if (picks.length && !mine.some(same) && mine.length < SX_SAVED_MAX) {
+    tail = `<button type="button" class="dc-btn dc-btn-plain dc-btn-sm" data-sact="save">+ ${esc(t('sx_saved_save'))}</button>`;
+  }
+  // The Saved label only once there is something saved
+  box.innerHTML = (sets ? `<span class="sx-saved-label">${esc(t('sx_saved_title'))}</span>` : '') + sets + tail;
+  if (_sxSavedNaming) { const i = document.getElementById('sxSavedName'); if (i) { i.focus(); i.select(); } }
+}
+
+function _sxCmpSavedAdd() {
+  const name = (document.getElementById('sxSavedName')?.value || '').trim();
+  _sxSavedNaming = false;
+  if (name) {
+    sxCmpSaved.push({ id: Date.now().toString(36), name: name.slice(0, 40), type: sxCmp.type, picks: _sxCmpPicks().slice() });
+    _sxCmpSavedStore();
+  }
+  _sxCmpSavedPaint();
+}
+
+document.getElementById('sxCmpSaved')?.addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  if (b.dataset.sload) {
+    const set = sxCmpSaved.find(x => x.id === b.dataset.sload);
+    if (!set) return;
+    sxCmp.picks[sxCmp.type] = set.picks.slice(0, SX_CMP_MAX);
+    _sxCmpSave();
+    sxRenderCompare();
+  } else if (b.dataset.sdel) {
+    const set = sxCmpSaved.find(x => x.id === b.dataset.sdel);
+    if (!set) return;
+    const go = () => { sxCmpSaved = sxCmpSaved.filter(x => x.id !== set.id); _sxCmpSavedStore(); _sxCmpSavedPaint(); };
+    if (typeof window.dcConfirmBox === 'function') window.dcConfirmBox(t('sx_saved_del_title'), t('sx_saved_del_text').replace('{name}', set.name), t('sx_saved_del_ok'), go);
+  } else if (b.dataset.sact === 'save') { _sxSavedNaming = true; _sxCmpSavedPaint(); }
+  else if (b.dataset.sact === 'ok') _sxCmpSavedAdd();
+  else if (b.dataset.sact === 'cancel') { _sxSavedNaming = false; _sxCmpSavedPaint(); }
+});
+document.getElementById('sxCmpSaved')?.addEventListener('keydown', e => {
+  if (e.target.id !== 'sxSavedName') return;
+  if (e.key === 'Enter') { e.preventDefault(); _sxCmpSavedAdd(); }
+  else if (e.key === 'Escape') { _sxSavedNaming = false; _sxCmpSavedPaint(); }
+});
 
 // ── More under the chart (phase 17) ───────────────────────────────────────
 /* Cards under the Compare studio, shown in every mode (the race too):
