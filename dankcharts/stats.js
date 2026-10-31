@@ -1484,6 +1484,8 @@ function sxRenderCompare() {
   note.textContent = '';
   // Race mode (step 4) draws its own canvas
   if (typeof sxCmpRaceShow === 'function') sxCmpRaceShow(sxCmp.mode === 'race');
+  // The cards under the studio (phase 17), in every mode
+  _sxCmpMore(type, picks);
   if (sxCmp.mode === 'race') { if (typeof sxCmpRace === 'function') sxCmpRace(picks); verdict.innerHTML = ''; return; }
   if (!picks.length) { note.textContent = t('sx_cmp_empty'); verdict.innerHTML = ''; return; }
 
@@ -1635,6 +1637,203 @@ function _sxCmpVerdict(type, picks, names) {
   tiles.push(_sxVerdictTile(t('sx_v_longest'), d == null ? null : names[d], d, d == null ? '' : t('sx_v_since').replace('{y}', fm[picks[d]].getFullYear())));
   return tiles.join('');
 }
+
+// ── More under the chart (phase 17) ───────────────────────────────────────
+/* Cards under the Compare studio, shown in every mode (the race too):
+     step 2  a summary line and the head-to-head table
+   One pass over the plays (_sxCmpTally) feeds all of them; it is kept until
+   the type, the picks, the range or the data change, so sorting the table
+   or switching a card doesn't go through the plays again. Years cover
+   whole years; the race counts over its own range, like its picks. */
+
+// The range the cards count over: the race's own in Race mode
+function _sxCmpRange() {
+  if (sxCmp.mode === 'race') {
+    const f = document.getElementById('raceFrom')?.value, to = document.getElementById('raceTo')?.value;
+    return { fromTs: f ? new Date(f + 'T00:00:00').getTime() : -Infinity, toTs: to ? new Date(to + 'T23:59:59').getTime() : Infinity };
+  }
+  return graphRangeTs();
+}
+
+// "2026-03" for a date (the month key used all through the tally)
+const _sxMonthKey = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+
+let _sxCT = null;
+function _sxCmpTally(type, picks) {
+  const { fromTs, toTs } = type === 'years' ? { fromTs: -Infinity, toTs: Infinity } : _sxCmpRange();
+  const gen = _sxIndex().gen + '|' + type + '|' + picks.join('\u0001') + '|' + fromTs + '|' + toTs + '|' + weekStartDay;
+  if (_sxCT && _sxCT.gen === gen) return _sxCT;
+  const pi = new Map(picks.map((k, i) => [k, i]));
+  const per = picks.map(() => ({
+    plays: 0, days: new Map(), months: new Map(), hours: new Array(24).fill(0), dow: new Array(7).fill(0),
+    songs: new Map(), artists: new Set(), firstTs: Infinity, lastTs: -Infinity,
+  }));
+  const dayKey = _sxDayKeyer();
+  let minTs = Infinity, maxTs = -Infinity;
+  for (const p of allPlays) {
+    const d = tzDateOf(p), ts = d.getTime();
+    if (ts < fromTs || ts > toTs) continue;
+    const keys = type === 'years' ? [String(d.getFullYear())] : _sxPlayKeys(type, p);
+    let dk = null;
+    for (const k of keys) {
+      const i = pi.get(k);
+      if (i === undefined) continue;
+      const o = per[i];
+      o.plays++;
+      if (dk === null) dk = dayKey(d);
+      o.days.set(dk, (o.days.get(dk) || 0) + 1);
+      const mk = _sxMonthKey(d);
+      o.months.set(mk, (o.months.get(mk) || 0) + 1);
+      o.hours[d.getHours()]++;
+      o.dow[d.getDay()]++;
+      const sk = songKey(p);
+      const so = o.songs.get(sk);
+      if (so) so.n++; else o.songs.set(sk, { n: 1, p });
+      for (const a of p.artists) o.artists.add(a);
+      if (ts < o.firstTs) o.firstTs = ts;
+      if (ts > o.lastTs) o.lastTs = ts;
+      if (ts < minTs) minTs = ts;
+      if (ts > maxTs) maxTs = ts;
+    }
+  }
+  // Longest run of days in a row with a play, and when it ended
+  const dayNo = k => Math.round(new Date(k + 'T00:00:00').getTime() / _SX_DAY);
+  for (const o of per) {
+    const ns = [...o.days.keys()].map(dayNo).sort((a, b) => a - b);
+    let best = ns.length ? 1 : 0, run = 1;
+    for (let j = 1; j < ns.length; j++) { run = ns[j] === ns[j - 1] + 1 ? run + 1 : 1; if (run > best) best = run; }
+    o.streak = best;
+    let bm = null, bn = 0;
+    o.months.forEach((n, m) => { if (n > bn || (n === bn && m < bm)) { bn = n; bm = m; } });
+    o.bestMonth = bm; o.bestMonthN = bn;
+  }
+  // Weeks at #1 on the weekly chart inside the range (not for years)
+  if (type !== 'years') {
+    const wk = (_crFull('week').result || {})[type] || {};
+    picks.forEach((k, i) => {
+      const e = wk[k];
+      per[i].ones = e ? e.entries.filter(x => x.rank === 1 && (s => s >= fromTs - 6 * _SX_DAY && s <= toTs)(new Date(x.periodKey + 'T00:00:00').getTime())).length : 0;
+    });
+    if (!firstSeenMaps) firstSeenMaps = buildFirstSeenMaps();
+    const fm = type === 'artists' ? firstSeenMaps.artistFirst : type === 'songs' ? firstSeenMaps.songFirst : firstSeenMaps.albumFirst;
+    picks.forEach((k, i) => { per[i].firstEver = fm[k] ? fm[k].getTime() : null; });
+  } else {
+    // Years: songs heard for the first time that year
+    if (!firstSeenMaps) firstSeenMaps = buildFirstSeenMaps();
+    per.forEach(o => { o.news = 0; });
+    for (const d of Object.values(firstSeenMaps.songFirst)) { const i = pi.get(String(d.getFullYear())); if (i !== undefined) per[i].news++; }
+  }
+  const total = per.reduce((s, o) => s + o.plays, 0);
+  return (_sxCT = { gen, type, picks, per, total, fromTs, toTs, minTs, maxTs });
+}
+
+// "Mar 2026" for a month key
+function _sxMonthLabel(mk, long) {
+  if (!mk) return '–';
+  const [y, m] = mk.split('-');
+  return _sxFmt(long ? 'my-long' : 'my', { month: long ? 'long' : 'short', year: 'numeric' }).format(new Date(+y, +m - 1, 1));
+}
+
+// The name of a pick, as a link to its details window (years: plain)
+function _sxCmpName(type, k, i, name) {
+  const dot = `<i class="sx-cmp-dot" style="background:${_sxCmpColor(i)}"></i>`;
+  if (type === 'years') return `<span class="sx-cmp-name">${dot}<b>${esc(name)}</b></span>`;
+  const fn = type === 'songs' ? 'openSongModal' : type === 'albums' ? 'openAlbumModal' : 'openArtistModal';
+  const sub = type !== 'artists' ? (_sxIndex()[type].get(k) || {}).sub : '';
+  return `<button type="button" class="sx-cmp-name" onclick="${fn}(${esc(JSON.stringify(k))})">${dot}` +
+    `<span><b>${esc(name)}</b>${sub ? `<em>${esc(sub)}</em>` : ''}</span></button>`;
+}
+
+// A card under the studio
+function _sxCmpCard(cls, title, sub, body, tools) {
+  return `<section class="dc-card graph-card sx-ov-card sx-cmp-card ${cls}">` +
+    `<div class="sx-ov-head"><div><h3 class="graph-card-title">${esc(title)}</h3>` +
+    (sub ? `<div class="graph-card-sub">${esc(sub)}</div>` : '') + `</div>${tools || ''}</div>${body}</section>`;
+}
+
+// The head-to-head table's columns: [id, label key, value, shown as]
+function _sxH2HCols(type) {
+  const n = v => (v || 0).toLocaleString();
+  const cols = [
+    ['plays', 'sx_h2h_plays', o => o.plays, o => n(o.plays)],
+    ['share', 'sx_h2h_share', (o, T) => T.total ? o.plays / T.total : 0, (o, T) => (T.total ? Math.round(o.plays / T.total * 100) : 0) + '%'],
+  ];
+  if (type === 'years') {
+    cols.push(['artists', 'sx_h2h_artists', o => o.artists.size, o => n(o.artists.size)]);
+    cols.push(['news', 'sx_h2h_new', o => o.news, o => n(o.news)]);
+  } else {
+    // Earliest first play sorts first, so its value is the negative time
+    cols.push(['first', 'sx_h2h_first', o => o.firstEver == null ? -Infinity : -o.firstEver, o => o.firstEver == null ? '–' : _sxDate(o.firstEver)]);
+    cols.push(['ones', 'sx_h2h_ones', o => o.ones, o => n(o.ones)]);
+  }
+  cols.push(['month', 'sx_h2h_month', o => o.bestMonthN, o => o.bestMonth ? `${_sxMonthLabel(o.bestMonth)} <small>${n(o.bestMonthN)}</small>` : '–']);
+  cols.push(['streak', 'sx_h2h_streak', o => o.streak, o => o.streak ? t('sx_h2h_days').replace('{n}', n(o.streak)) : '–']);
+  // Songs played (a song: the days it was played on)
+  if (type === 'songs') cols.push(['days', 'sx_h2h_daysplayed', o => o.days.size, o => n(o.days.size)]);
+  else cols.push(['songs', 'sx_h2h_songs', o => o.songs.size, o => n(o.songs.size)]);
+  return cols;
+}
+
+let sxH2HSort = { col: 'plays', dir: -1 };
+
+// "Taylor Swift leads with 38% of these plays, 120 ahead of Sia."
+function _sxCmpSummary(T, names) {
+  const order = T.per.map((o, i) => i).sort((a, b) => T.per[b].plays - T.per[a].plays);
+  const a = order[0], b = order[1];
+  if (!T.per[a].plays) return `<p class="sx-cmp-summary">${esc(t('sx_sum_none'))}</p>`;
+  const who = i => `<b style="color:${_sxCmpColor(i)}">${esc(names[i])}</b>`;
+  // The text is escaped first, then the names (already safe HTML) go in
+  let line;
+  if (b === undefined) line = esc(t('sx_sum_one')).replace('{n}', T.per[a].plays.toLocaleString());
+  else {
+    const gap = T.per[a].plays - T.per[b].plays;
+    line = esc(t(gap ? 'sx_sum_lead' : 'sx_sum_tie')).replace('{pct}', Math.round(T.per[a].plays / T.total * 100))
+      .replace('{n}', gap.toLocaleString()).replace('{b}', who(b));
+  }
+  return `<p class="sx-cmp-summary">${line.replace('{a}', who(a))}</p>`;
+}
+
+function _sxCmpH2H(T, names) {
+  const cols = _sxH2HCols(T.type);
+  const sc = cols.find(c => c[0] === sxH2HSort.col) || cols[0];
+  const rows = T.per.map((o, i) => i).sort((a, b) => (sc[2](T.per[b], T) - sc[2](T.per[a], T)) * (sxH2HSort.dir < 0 ? 1 : -1) || a - b);
+  // The best value in each column gets the pick's colour
+  const best = cols.map(c => { let bi = -1, bv = -Infinity; T.per.forEach((o, i) => { const v = c[2](o, T); if (o.plays && v > bv) { bv = v; bi = i; } }); return bi; });
+  const head = `<tr><th scope="col">${esc(t('sx_h2h_name_' + T.type))}</th>` + cols.map(c => {
+    const on = c[0] === sxH2HSort.col;
+    return `<th scope="col" aria-sort="${on ? (sxH2HSort.dir < 0 ? 'descending' : 'ascending') : 'none'}">` +
+      `<button type="button" data-h2h="${c[0]}" class="${on ? 'is-on' : ''}">${esc(t(c[1]))}${on ? (sxH2HSort.dir < 0 ? ' ↓' : ' ↑') : ''}</button></th>`;
+  }).join('') + '</tr>';
+  const body = rows.map(i => `<tr><th scope="row">${_sxCmpName(T.type, T.picks[i], i, names[i])}</th>` +
+    cols.map((c, ci) => `<td${best[ci] === i && T.picks.length > 1 ? ` class="is-best" style="--c:${_sxCmpColor(i)}"` : ''}>${c[3](T.per[i], T)}</td>`).join('') + '</tr>').join('');
+  return `<div class="sx-h2h-wrap"><table class="sx-h2h"><thead>${head}</thead><tbody>${body}</tbody></table></div>`;
+}
+
+function _sxCmpMore(type, picks) {
+  const box = document.getElementById('sxCmpMore');
+  if (!box) return;
+  if (!picks.length || !allPlays.length) { box.innerHTML = ''; return; }
+  const T = _sxCmpTally(type, picks);
+  const names = picks.map(k => _sxCmpLabel(type, k));
+  const sub = type === 'years' ? t('sx_h2h_sub_years') : t('sx_h2h_sub');
+  box.innerHTML = _sxCmpCard('sx-cmp-h2h', t('sx_h2h_title'), sub, _sxCmpSummary(T, names) + _sxCmpH2H(T, names));
+}
+
+// Sorting the table: a click on a column head (again flips the order)
+document.getElementById('sxCmpMore')?.addEventListener('click', e => {
+  const b = e.target.closest('[data-h2h]');
+  if (!b) return;
+  sxH2HSort = b.dataset.h2h === sxH2HSort.col ? { col: b.dataset.h2h, dir: -sxH2HSort.dir } : { col: b.dataset.h2h, dir: -1 };
+  _sxCmpMore(sxCmp.type, _sxCmpPicks());
+  document.querySelector(`#sxCmpMore [data-h2h="${b.dataset.h2h}"]`)?.focus();
+});
+// The race's own range changes what the cards count in Race mode
+['raceFrom', 'raceTo'].forEach(id => document.getElementById(id)?.addEventListener('change', () => {
+  if (sxCmp.mode === 'race') _sxCmpMore(sxCmp.type, _sxCmpPicks());
+}));
+document.getElementById('raceResetRange')?.addEventListener('click', () => {
+  if (sxCmp.mode === 'race') _sxCmpMore(sxCmp.type, _sxCmpPicks());
+});
 
 // The studio's controls
 document.getElementById('sxCmpType')?.addEventListener('click', e => {

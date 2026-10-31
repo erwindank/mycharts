@@ -11229,6 +11229,44 @@
     .sx-verdict-tile b { display: block; margin-top: 2px; font-family: var(--font-display); font-size: var(--fs-sm); color: var(--c, var(--text)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .sx-verdict-tile em { display: block; font-style: normal; font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--text2); }
 
+    /* More under Compare (phase 17): cards after the studio */
+    .sx-cmp-more { display: flex; flex-direction: column; gap: var(--sp-4); margin-top: var(--sp-4); }
+    .sx-cmp-more:empty { display: none; }
+    .sx-cmp-summary { margin: 0 0 var(--sp-3); font-family: var(--font-display); font-size: var(--fs-lg); line-height: 1.35; color: var(--text); text-wrap: pretty; }
+    .sx-cmp-dot { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
+    .sx-cmp-name {
+      display: flex; align-items: center; gap: 0.45rem; min-width: 0; max-width: 15rem;
+      background: none; border: 0; padding: 0; font: inherit; color: var(--text); text-align: left;
+    }
+    button.sx-cmp-name { cursor: pointer; }
+    button.sx-cmp-name:hover b { text-decoration: underline; text-underline-offset: 2px; }
+    .sx-cmp-name > span { min-width: 0; }
+    .sx-cmp-name b, .sx-cmp-name em { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sx-cmp-name b { font-weight: 600; font-size: var(--fs-sm); }
+    .sx-cmp-name em { font-style: normal; font-size: var(--fs-xs); color: var(--text2); }
+
+    /* Head-to-head table: scrolls sideways inside its card on small screens */
+    .sx-h2h-wrap { overflow-x: auto; margin: 0 calc(-1 * var(--sp-2)); padding: 0 var(--sp-2); }
+    .sx-h2h { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
+    .sx-h2h th, .sx-h2h td { padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--border); text-align: right; white-space: nowrap; }
+    .sx-h2h tbody tr:last-child > * { border-bottom: 0; }
+    .sx-h2h th:first-child { text-align: left; position: sticky; left: 0; background: var(--bg2); z-index: 1; }
+    .sx-h2h thead th { font-weight: 400; vertical-align: bottom; }
+    .sx-h2h thead button {
+      background: none; border: 0; padding: 0; cursor: pointer; font: inherit; white-space: nowrap;
+      font-size: 0.6875rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--text3);
+    }
+    .sx-h2h thead button:hover, .sx-h2h thead button.is-on { color: var(--text); }
+    .sx-h2h thead th:first-child { font-size: 0.6875rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--text3); }
+    .sx-h2h td { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--text2); font-variant-numeric: tabular-nums; }
+    .sx-h2h td small { color: var(--text3); font-size: inherit; margin-left: 0.25rem; }
+    .sx-h2h td.is-best { color: var(--c); font-weight: 700; }
+    .sx-h2h tbody tr:hover > * { background: var(--bg3); }
+    @media (max-width: 640px) {
+      .sx-cmp-summary { font-size: var(--fs-md); }
+      .sx-cmp-name { max-width: 9.5rem; }
+    }
+
     /* Story (step 5): artist picture slots */
     .sx-face {
       display: grid; place-items: center; overflow: hidden; flex-shrink: 0;
