@@ -1809,6 +1809,100 @@ function _sxCmpH2H(T, names) {
   return `<div class="sx-h2h-wrap"><table class="sx-h2h"><thead>${head}</thead><tbody>${body}</tbody></table></div>`;
 }
 
+// ── Who was on top (step 3) ──
+/* The range cut into months (weeks when it is four months or less; years:
+   January to December), with each pick's plays per piece, worked out from
+   the tally's day counts. */
+function _sxCmpBuckets(T) {
+  if (T.bk) return T.bk;
+  let unit, keys, keyOf;
+  if (T.type === 'years') {
+    unit = 'month';
+    keys = Array.from({ length: 12 }, (_, m) => String(m + 1).padStart(2, '0'));
+    keyOf = dk => dk.slice(5, 7);
+  } else {
+    const from = Math.max(T.fromTs, T.minTs), to = Math.min(T.toTs, T.maxTs);
+    unit = to - from <= 122 * _SX_DAY ? 'week' : 'month';
+    keyOf = unit === 'week' ? dk => _sxWeekKey(new Date(dk + 'T00:00:00')) : dk => dk.slice(0, 7);
+    keys = [];
+    if (isFinite(from) && isFinite(to)) {
+      const d = new Date(from);
+      const end = unit === 'week' ? _sxWeekKey(new Date(to)) : _sxMonthKey(new Date(to));
+      let k = unit === 'week' ? _sxWeekKey(d) : _sxMonthKey(d);
+      const step = unit === 'week'
+        ? x => { const n = new Date(x + 'T00:00:00'); n.setDate(n.getDate() + 7); return localDateStr(n); }
+        : x => { const [y, m] = x.split('-').map(Number); return m === 12 ? (y + 1) + '-01' : y + '-' + String(m + 1).padStart(2, '0'); };
+      while (k <= end && keys.length < 2000) { keys.push(k); k = step(k); }
+    }
+  }
+  const counts = T.per.map(o => {
+    const m = new Map();
+    o.days.forEach((n, dk) => { const k = keyOf(dk); m.set(k, (m.get(k) || 0) + n); });
+    return m;
+  });
+  const label = k => T.type === 'years'
+    ? _sxFmt('mon', { month: 'short' }).format(new Date(2001, +k - 1, 1))
+    : unit === 'week' ? t('sx_own_week_of').replace('{d}', _sxDate(new Date(k + 'T00:00:00').getTime())) : _sxMonthLabel(k);
+  return (T.bk = { unit, keys, counts, label });
+}
+
+function _sxCmpOwners(T, names) {
+  const B = _sxCmpBuckets(T);
+  if (!B.keys.length) return '';
+  const n = T.picks.length;
+  // Each piece goes to the pick with the most plays in it (a tie: the
+  // pick listed first); pieces nobody played in stay empty
+  const won = new Array(n).fill(0);
+  const blocks = B.keys.map(k => {
+    let bi = -1, bv = 0;
+    for (let i = 0; i < n; i++) { const v = B.counts[i].get(k) || 0; if (v > bv) { bv = v; bi = i; } }
+    if (bi >= 0) won[bi]++;
+    const tip = bi < 0 ? `${B.label(k)}: ${t('sx_own_nobody')}` : `${B.label(k)}: ${names[bi]}, ${t('sx_n_plays').replace('{n}', bv.toLocaleString())}`;
+    return `<i${bi >= 0 ? ` style="background:${_sxCmpColor(bi)}"` : ' class="is-empty"'} title="${esc(tip)}"></i>`;
+  }).join('');
+  const ends = `<div class="sx-own-ends"><span>${esc(B.label(B.keys[0]))}</span><span>${esc(B.label(B.keys[B.keys.length - 1]))}</span></div>`;
+  const legend = won.map((w, i) => [w, i]).filter(x => x[0]).sort((a, b) => b[0] - a[0])
+    .map(([w, i]) => `<li><i class="sx-cmp-dot" style="background:${_sxCmpColor(i)}"></i>${esc(names[i])} <b>${w.toLocaleString()}</b></li>`).join('');
+  const unitKey = T.type === 'years' ? 'sx_own_won_months' : B.unit === 'week' ? 'sx_own_won_weeks' : 'sx_own_won_months';
+  return `<div class="sx-own"><div class="sx-own-strip" role="img" aria-label="${esc(t('sx_own_title'))}">${blocks}</div>${ends}` +
+    `<div class="sx-own-legend"><span>${esc(t(unitKey))}</span><ul>${legend}</ul></div></div>`;
+}
+
+/* Every time the lead on the running total changed hands, piece by piece.
+   A tie keeps the leader it had. */
+function _sxCmpLeads(T, names) {
+  const B = _sxCmpBuckets(T);
+  const n = T.picks.length, run = new Array(n).fill(0);
+  const ev = [];
+  let lead = -1;
+  for (const k of B.keys) {
+    for (let i = 0; i < n; i++) run[i] += B.counts[i].get(k) || 0;
+    let bi = lead, bv = lead >= 0 ? run[lead] : 0;
+    for (let i = 0; i < n; i++) if (run[i] > bv) { bv = run[i]; bi = i; }
+    if (bi !== lead && bi >= 0) { ev.push({ k, from: lead, to: bi, gap: bv - (lead >= 0 ? run[lead] : 0) }); lead = bi; }
+  }
+  return ev;
+}
+
+function _sxCmpLeadsHtml(T, names) {
+  if (T.picks.length < 2) return '';
+  const B = _sxCmpBuckets(T), ev = _sxCmpLeads(T, names);
+  if (!ev.length) return '';
+  const who = i => `<b style="color:${_sxCmpColor(i)}">${esc(names[i])}</b>`;
+  const MAX = 8;
+  const shown = ev.slice(-MAX).reverse();
+  const items = shown.map(e => {
+    const line = e.from < 0 ? esc(t('sx_lead_first')).replace('{a}', who(e.to))
+      : esc(t('sx_lead_pass')).replace('{a}', who(e.to)).replace('{b}', who(e.from));
+    const when = T.type === 'years' ? t('sx_lead_by').replace('{m}', B.label(e.k)) : B.label(e.k);
+    return `<li><span class="sx-lead-when">${esc(when)}</span><span class="sx-lead-what">${line}</span></li>`;
+  }).join('');
+  const changes = ev.length - 1;
+  const head = changes ? t(changes === 1 ? 'sx_lead_count1' : 'sx_lead_count').replace('{n}', changes) : t('sx_lead_never').replace('{a}', '\u0001');
+  const more = ev.length > MAX ? `<p class="sx-note">${esc(t('sx_lead_more').replace('{n}', ev.length - MAX))}</p>` : '';
+  return `<div class="sx-leads"><p class="sx-leads-head">${esc(head).replace('\u0001', who(ev[0].to))}</p><ol class="sx-leads-list">${items}</ol>${more}</div>`;
+}
+
 function _sxCmpMore(type, picks) {
   const box = document.getElementById('sxCmpMore');
   if (!box) return;
@@ -1816,7 +1910,14 @@ function _sxCmpMore(type, picks) {
   const T = _sxCmpTally(type, picks);
   const names = picks.map(k => _sxCmpLabel(type, k));
   const sub = type === 'years' ? t('sx_h2h_sub_years') : t('sx_h2h_sub');
-  box.innerHTML = _sxCmpCard('sx-cmp-h2h', t('sx_h2h_title'), sub, _sxCmpSummary(T, names) + _sxCmpH2H(T, names));
+  let html = _sxCmpCard('sx-cmp-h2h', t('sx_h2h_title'), sub, _sxCmpSummary(T, names) + _sxCmpH2H(T, names));
+  // Step 3: who won each piece of the range, and the lead changes
+  if (T.total) {
+    const B = _sxCmpBuckets(T);
+    const ownSub = T.type === 'years' ? t('sx_own_sub_years') : t(B.unit === 'week' ? 'sx_own_sub_week' : 'sx_own_sub_month');
+    html += _sxCmpCard('sx-cmp-own', t('sx_own_title'), ownSub, _sxCmpOwners(T, names) + _sxCmpLeadsHtml(T, names));
+  }
+  box.innerHTML = html;
 }
 
 // Sorting the table: a click on a column head (again flips the order)

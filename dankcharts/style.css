@@ -11267,6 +11267,25 @@
       .sx-cmp-name { max-width: 9.5rem; }
     }
 
+    /* Who was on top (phase 17 step 3): a strip of blocks, then the lead changes */
+    .sx-own-strip { display: flex; gap: 2px; height: 34px; }
+    .sx-own-strip i { flex: 1 1 0; min-width: 2px; border-radius: 3px; }
+    .sx-own-strip i.is-empty { background: var(--bg3); }
+    .sx-own-ends { display: flex; justify-content: space-between; margin-top: 0.3rem; font-size: var(--fs-xs); color: var(--text3); }
+    .sx-own-legend { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--sp-2) var(--sp-3); margin-top: var(--sp-3); font-size: var(--fs-sm); }
+    .sx-own-legend > span { font-size: 0.6875rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--text3); }
+    .sx-own-legend ul { display: flex; flex-wrap: wrap; gap: var(--sp-1) var(--sp-3); margin: 0; padding: 0; list-style: none; }
+    .sx-own-legend li { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--text2); }
+    .sx-own-legend b { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--text); }
+    .sx-leads { margin-top: var(--sp-5); padding-top: var(--sp-4); border-top: 1px solid var(--border); }
+    .sx-leads-head { margin: 0 0 var(--sp-3); font-size: var(--fs-sm); color: var(--text2); }
+    .sx-leads-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; }
+    .sx-leads-list li { display: grid; grid-template-columns: 9.5rem minmax(0, 1fr); gap: var(--sp-3); padding: 0.4rem 0; border-bottom: 1px solid var(--border); font-size: var(--fs-sm); }
+    .sx-leads-list li:last-child { border-bottom: 0; }
+    .sx-lead-when { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--text3); align-self: center; }
+    .sx-lead-what { color: var(--text2); min-width: 0; }
+    @media (max-width: 640px) { .sx-leads-list li { grid-template-columns: 1fr; gap: 0; } }
+
     /* Story (step 5): artist picture slots */
     .sx-face {
       display: grid; place-items: center; overflow: hidden; flex-shrink: 0;
