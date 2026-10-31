@@ -3829,8 +3829,8 @@ the big cut the plan hoped for: phases 12–15 added more than the sweep
 could find unused, and most of what is left is in use.
 
 **Left open, for you to decide or for later:**
-- The old chart run under the new graph on the song and album Charts tabs
-  is still there (removals are asked first).
+- The old chart run (the box grid) under the new graph on the song and
+  album Charts tabs: **stays** (your call, 2026-10-31).
 - The ~180 `!important`s were not gone through one by one.
 - `buildRecords()` is still one ~3.5 s pass on a first visit; the tab no
   longer freezes, but splitting it so the section on screen comes first
