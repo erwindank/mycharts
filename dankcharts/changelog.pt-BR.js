@@ -13,6 +13,15 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Line icons instead of emoji, everywhere":
+    ["Ícones de linha no lugar de emojis, em todo lugar",
+     "Títulos, botões e abas de todo o site agora usam os mesmos ícones de linha dos menus, no lugar de emojis que ficavam diferentes em cada celular e computador. As linhas dos menus simplesmente perdem o seu, para as palavras ficarem alinhadas. As certificações também viraram ícones, na cor do seu selo: uma música diamante continua aparecendo como 💎💎 ou 3×💎 na parada do celular e nas listas de Músicas e Faixas, agora desenhada como um diamante limpo em vez de um emoji. As carinhas de humor do Diário continuam como estão."],
+  "Records opens at once":
+    ["Recordes abre na hora",
+     "Abrir Recordes com uma biblioteca grande travava a página por alguns segundos enquanto cada recorde era calculado. Agora a aba abre na hora com uma linha dizendo Calculando seus recordes…, e os recordes aparecem um instante depois. Depois de calculados, ela abre sem espera até seus plays mudarem."],
+  "Tidier layouts on tablets, and a lighter site":
+    ["Layouts mais organizados em tablets, e um site mais leve",
+     "O site agora muda de layout em duas larguras, celular e tablet, em vez de umas trinta, então tablets e janelas estreitas têm um layout claro: Estatísticas, o Guia das paradas e as tabelas de Recordes usam antes a sua forma larga, sem nada saindo pela lateral. Por dentro foram removidas umas 1.500 linhas de estilos sem uso, funções antigas e uns 100 textos sem uso, e duas mensagens que só existiam em inglês (na trajetória na parada e no mapa de calor de Estatísticas) agora estão em todos os idiomas."],
   "Games in Stats: how well do you know your own music?":
     ["Jogos em Estatísticas: quanto você conhece sua própria música?",
      "Estatísticas ganhou a aba Jogos, com quatro desafios feitos com a sua própria biblioteca, em tela cheia. Mais ou menos: esta música tem mais ou menos plays que aquela? Mantenha a sequência. Adivinhe o ano: quando você ouviu esta música pela primeira vez? Dez músicas, até 100 pontos cada. Qual veio primeiro: duas músicas, qual você descobriu antes? Adivinhe o #1: uma semana do seu passado, escolha a música #1 entre quatro que estavam na parada naquela semana. Seu recorde em cada jogo fica salvo neste dispositivo e, no fim, você pode compartilhar a pontuação como imagem. Os jogos usam todo o seu histórico, então o período escolhido some nessa aba. Funciona com Last.fm, Google Sheets e arquivos CSV."],

@@ -59,6 +59,10 @@ steps, fc6563c), on `main`, not pushed. Next is phase 11, the sweep.
 **Updated 2026-10-30 (later):** phase 11 split into 10 steps (see "Phase
 11" in section 5). Next is step 1, the named leftovers.
 
+**Updated 2026-10-31:** phase 11 done, all 10 steps, on `main` and pushed.
+Every phase of the redesign (0–15) is finished. What phase 11 left open is
+listed under "Phase 11 done" in section 5.
+
 **Seen on screen:**
 - Weekly: Albums and Songs, in all six chart layouts (Table, Card grid,
   Compact, Mosaic, Filmstrip, Stack)
@@ -1228,7 +1232,7 @@ themes (Navy dark, Navy light, Yellow dark, Red light; see 3.2) and on a phone.
 | **8** ✓ | **Done 2026-10-22** (branch `redesign/phase-8-components`) (11 steps, see "Phase 8" below). **Shared components:** one button, tab, segmented control, chip, card, table, carousel, pop-up frame. Replace the per-feature button families. | Makes 9–10 fast and keeps it consistent. | Large |
 | **9** | **Other views** in this order: Records (4.15), Stats (4.14), Raw Data (4.13), then Events, Awards, Soundtrack and the rest once seen on screen. | Records and Stats have the most concrete fixes already written down. | Large |
 | **10** ✓ | **Done 2026-10-26** (12 steps, see "Phase 10" below). **Pop-ups and Settings** (4.20–4.21), including the side panel for song/artist/album. | | Medium |
-| **11** | **Final sweep:** move the 352 inline styles into classes, delete whatever old CSS and JS the earlier phases missed, reduce breakpoints to two, replace emoji in titles with icons. | Shrinks the 1.1 MB stylesheet and stops it drifting again. | Medium |
+| **11** ✓ | **Done 2026-10-31** (10 steps, see "Phase 11" below). **Final sweep:** move the 352 inline styles into classes, delete whatever old CSS and JS the earlier phases missed, reduce breakpoints to two, replace emoji in titles with icons. | Shrinks the 1.1 MB stylesheet and stops it drifting again. | Medium |
 
 ### What phase 1 changed for the later phases
 
@@ -3801,6 +3805,39 @@ a step says so; bump `style.css?v=`.
    it finds.
 10. **Wrap-up:** DESIGN.md brought in line with what is left (tokens,
     breakpoints, icon rule), changelog entry, this plan marked done.
+
+**Phase 11 done (2026-10-31).** One commit per step, all on `main`:
+1. b0c8312: 12 unused translation keys, the masthead code, the hidden
+   second stats row and its `.stat-chip` CSS.
+2. 5987063: 371 selectors for 175 class names nothing uses (~1,400 lines).
+3. 900ddf0: 6 dead functions, 1 constant, 96 unused translation keys.
+4. 27207b7: the 52 fixed inline styles in index.html into classes.
+5. 5987bf1: the fixed inline styles in JS-built HTML into classes; two
+   English-only messages translated.
+6. bc7e7d3: two breakpoints (640 / 1023) instead of 30 widths, with a few
+   named content guards (now in DESIGN.md).
+7. a48d1c3: line icons instead of emoji, site-wide, from popups.js; the
+   💎 short form on phones drawn as icons.
+8. 50a597e: Records answers the click at once (5 ms instead of ~3.7 s
+   blocked); the icon swap made cheap (~0.6 s → ~0.16 s in Records).
+9. 6d343da: screen check, 3 widths × 4 themes × 4 languages, all 10 themes,
+   reduced motion; fixed the gap after the icon in big titles.
+10. This plan, DESIGN.md and the changelog.
+
+style.css went from 1.64 MB to 1.60 MB (45,385 → 44,002 lines). It is not
+the big cut the plan hoped for: phases 12–15 added more than the sweep
+could find unused, and most of what is left is in use.
+
+**Left open, for you to decide or for later:**
+- The old chart run under the new graph on the song and album Charts tabs
+  is still there (removals are asked first).
+- The ~180 `!important`s were not gone through one by one.
+- `buildRecords()` is still one ~3.5 s pass on a first visit; the tab no
+  longer freezes, but splitting it so the section on screen comes first
+  would mean re-plumbing how Overview reads every category.
+- At 641–1023px the "of the moment" cards stack in one column (the 2×2
+  step was tied to the old 900px width).
+- Share-card templates keep their inline styles on purpose.
 
 The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in

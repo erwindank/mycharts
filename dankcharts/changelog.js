@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 378;
+const DC_CL_I18N_V = 379;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,15 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-31', t: 'design', a: 'ui', h: 'a48d1c3',
+    title: "Line icons instead of emoji, everywhere",
+    detail: "Titles, buttons and tabs across the site now use the same line icons as the menus, instead of emoji that looked different on every phone and computer. Menu rows simply lose theirs, so the words line up. The certification marks are icons too, in the badge's own colour: a diamond song still shows as 💎💎 or 3×💎 in the phone chart and in the Music and Tracks lists, now drawn as a clean diamond instead of an emoji. The Daily mood faces stay as they are." },
+  { d: '2026-10-31', t: 'perf', a: 'records', h: '50a597e',
+    title: "Records opens at once",
+    detail: "Opening Records on a big library used to freeze the page for a few seconds while every record was worked out. Now the tab opens straight away with a short Building your records… line, and the records fill in a moment later. Once built, it opens with no wait until your plays change." },
+  { d: '2026-10-31', t: 'design', a: 'ui', h: 'bc7e7d3',
+    title: "Tidier layouts on tablets, and a lighter site",
+    detail: "The site now switches layout at two widths, phone and tablet, instead of about thirty, so tablets and narrow windows get one clear layout: Stats, the Charts Guide and the Records tables use their wider form sooner, with nothing running off the side. Behind the scenes about 1,500 lines of unused styles, old functions and around 100 unused texts were removed, and two messages that were only in English (in the chart run and the Stats heatmap) now come in every language." },
   { d: '2026-10-30', t: 'feature', a: 'ui', h: '4ca4d2a',
     title: "Games in Stats: how well do you know your own music?",
     detail: "Stats has a Games tab with four quizzes made from your own library, played full screen. Higher or lower: does this song have more or fewer plays than that one? Keep the streak going. Guess the year: when did you first play this song? Ten songs, up to 100 points each. Which came first: two songs, which one did you find first? Guess the #1: a week from your past, pick its #1 song from four that charted that week. Your best score for each stays on this device, and at the end you can share your score as a picture. The games use your whole history, so the date range steps aside on that tab. Works with Last.fm, Google Sheets and CSV uploads." },

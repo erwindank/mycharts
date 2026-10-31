@@ -13,6 +13,15 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Line icons instead of emoji, everywhere":
+    ["Ícones de linha em vez de emojis, em todo o lado",
+     "Os títulos, botões e separadores de todo o site usam agora os mesmos ícones de linha dos menus, em vez de emojis que ficavam diferentes em cada telemóvel e computador. As linhas dos menus simplesmente perdem o seu, para as palavras ficarem alinhadas. As certificações também passaram a ícones, na cor do seu selo: uma música diamante continua a aparecer como 💎💎 ou 3×💎 no top do telemóvel e nas listas de Músicas e Faixas, agora desenhada como um diamante limpo em vez de um emoji. As caras de humor do Diário ficam como estão."],
+  "Records opens at once":
+    ["Os Recordes abrem logo",
+     "Abrir os Recordes com uma biblioteca grande bloqueava a página durante alguns segundos enquanto cada recorde era calculado. Agora o separador abre logo com uma linha a dizer A calcular os seus recordes…, e os recordes aparecem um instante depois. Depois de calculados, abre sem espera até os seus plays mudarem."],
+  "Tidier layouts on tablets, and a lighter site":
+    ["Esquemas mais arrumados em tablets, e um site mais leve",
+     "O site muda agora de esquema em duas larguras, telemóvel e tablet, em vez de umas trinta, por isso tablets e janelas estreitas têm um esquema claro: as Estatísticas, o Guia dos tops e as tabelas dos Recordes usam mais cedo a sua forma larga, sem nada a sair pela lateral. Por dentro foram retiradas cerca de 1.500 linhas de estilos sem uso, funções antigas e cerca de 100 textos sem uso, e duas mensagens que só existiam em inglês (no percurso no top e no mapa de calor das Estatísticas) passaram a estar em todas as línguas."],
   "Games in Stats: how well do you know your own music?":
     ["Jogos nas Estatísticas: quanto conheces a tua própria música?",
      "As Estatísticas têm um separador Jogos com quatro desafios feitos com a tua própria biblioteca, em ecrã inteiro. Mais ou menos: esta música tem mais ou menos plays do que aquela? Mantém a sequência. Adivinha o ano: quando ouviste esta música pela primeira vez? Dez músicas, até 100 pontos cada. Qual veio primeiro: duas músicas, qual descobriste primeiro? Adivinha o #1: uma semana do teu passado, escolhe a música #1 entre quatro que estavam no top nessa semana. O teu recorde em cada jogo fica guardado neste dispositivo e, no fim, podes partilhar a pontuação como imagem. Os jogos usam todo o teu histórico, por isso o período escolhido desaparece nesse separador. Funciona com Last.fm, Google Sheets e ficheiros CSV."],

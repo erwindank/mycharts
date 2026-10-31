@@ -382,6 +382,11 @@ Each has a dark-theme value (barely there) and a light-theme value (soft and vis
 
 **The Glow-Not-Shadow Rule for Badges.** Badges signal importance with the gold glow, not a drop shadow. Shadows mean elevation; glow means "earned".
 
+### Breakpoints
+Two (phase 11): **phone** `max-width: 640px` (`min-width: 641px` for "not a phone") and **tablet** `max-width: 1023px` (`min-width: 1024px` for desktop). JS checks use the same numbers.
+
+A few content guards keep their own width on purpose, because they match the point where one piece of content runs out of room, not a layout tier: the tiny-phone fixes at 340 / 350 / 380 / 400 / 420px, the top bar's squeeze at 1100px, and the Records wide layout at 1259 / 1260px. Add a new one only for the same reason, and say why next to it.
+
 ### Motion
 Interactive feedback is `transform`/`opacity` only. The accepted exception is layout-property transitions on collapse/expand affordances (the nav-indicator underline, collapsible section headers, period-nav pill widths), which need the box itself to grow or slide; they are small and short (~200–320ms). Don't extend layout-property animation to large surfaces (modals, full sections, images).
 
@@ -417,6 +422,10 @@ Copy Records → Most Plays: plain rows, title over artist, numbers in mono and 
 
 ### Icons
 One SVG line-icon set everywhere (the period-nav icons are the style). **No emoji in the interface:** not in section titles, menus or buttons. Flags in the language picker are fine.
+
+- The set is `dcIco(name)` in `popups.js` (about 70 icons); new code draws icons with it, or with `data-ico="name"` in the HTML.
+- Older titles and buttons still carry a leading emoji in their text and translations. `popups.js` swaps it for the matching icon on load, after a language switch and on anything added later (phase 11): titles, buttons and tabs get the icon, menu rows drop the emoji so the words line up, and icon slots and certification marks (💎 💿 📀) are drawn as icons in their own colour. A new emoji needs an entry in its `EMOJI_ICON` map, or it shows as a sparkle.
+- Emoji that are content stay emoji: the Daily mood faces, board posts, the changelog, share images.
 
 ### Hints and system messages
 - **One-time hints** ("arrow keys to navigate…", "Click any card for options…") show once and never again, or live behind a small ⓘ tooltip.
@@ -455,6 +464,8 @@ Small circular swatches, one per theme; the active one gets a ring.
 - **Don't** use raw hex, `rgba(255,255,255,…)` washes or `color: #fff` on an accent; use the roles.
 - **Don't** give tiles, labels or tags their own colors, or rely on color alone for movement or certifications.
 - **Don't** use initials as a placeholder for art, or emoji as interface icons.
+- **Don't** write fixed inline styles (`style="margin-top:…"`) in the HTML or in HTML built by JS; use a class. Inline styles are for values worked out in code (a bar's width, a cover's colour), the `display` that JS toggles, and the share-card templates, which are drawn from the format and palette.
+- **Don't** invent a media query width: use the two breakpoints.
 - **Don't** put a drop shadow on a badge; badges get the gold glow.
 - **Don't** add a second accent hue within one theme.
 - **Don't** remove a feature to make the page calmer. Change its default, move it behind a switch or a menu, and keep it reachable. Precise stats stay precise; they're the product.

@@ -13,6 +13,15 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Line icons instead of emoji, everywhere":
+    ["Iconos de línea en lugar de emojis, en todas partes",
+     "Los títulos, botones y pestañas de todo el sitio usan ahora los mismos iconos de línea que los menús, en lugar de emojis que se veían distintos en cada teléfono y computadora. Las filas de los menús simplemente pierden el suyo, para que las palabras queden alineadas. Las certificaciones también son iconos, en el color de su insignia: una canción diamante sigue apareciendo como 💎💎 o 3×💎 en el ranking del teléfono y en las listas de Música y Canciones, ahora dibujada como un diamante limpio en lugar de un emoji. Las caras de ánimo de Diario se quedan como están."],
+  "Records opens at once":
+    ["Récords se abre al instante",
+     "Abrir Récords con una biblioteca grande congelaba la página unos segundos mientras se calculaba cada récord. Ahora la pestaña se abre de inmediato con una línea que dice Calculando tus récords…, y los récords aparecen un momento después. Una vez calculados, se abre sin espera hasta que cambien tus reproducciones."],
+  "Tidier layouts on tablets, and a lighter site":
+    ["Diseños más ordenados en tabletas, y un sitio más ligero",
+     "El sitio cambia ahora de diseño en dos anchos, teléfono y tableta, en lugar de unos treinta, así que las tabletas y las ventanas estrechas tienen un diseño claro: Estadísticas, la Guía de rankings y las tablas de Récords usan antes su forma ancha, sin que nada se salga por el costado. Por dentro se quitaron unas 1.500 líneas de estilos sin uso, funciones viejas y unos 100 textos sin uso, y dos mensajes que solo estaban en inglés (en la trayectoria en el ranking y en el mapa de calor de Estadísticas) ahora están en todos los idiomas."],
   "Games in Stats: how well do you know your own music?":
     ["Juegos en Estadísticas: ¿cuánto conoces tu propia música?",
      "Estadísticas tiene una pestaña Juegos con cuatro pruebas hechas con tu propia biblioteca, a pantalla completa. Más o menos: ¿esta canción tiene más o menos reproducciones que esa? Mantén la racha. Adivina el año: ¿cuándo escuchaste esta canción por primera vez? Diez canciones, hasta 100 puntos cada una. ¿Cuál llegó primero?: dos canciones, ¿cuál descubriste antes? Adivina el #1: una semana de tu pasado, elige su canción #1 entre cuatro que estuvieron en el ranking esa semana. Tu mejor puntuación de cada juego se guarda en este dispositivo y al final puedes compartirla como imagen. Los juegos usan todo tu historial, así que el rango de fechas se oculta en esa pestaña. Funciona con Last.fm, Google Sheets y archivos CSV."],
