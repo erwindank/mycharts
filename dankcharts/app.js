@@ -15103,11 +15103,15 @@ function _colwMinFor(th) {
 // Width a column starts at when nothing is saved for it: Plays fits
 // "3 veces -51" plus its bar (older saved widths have no Plays entry)
 const _COLW_DEFAULT = { plays: 150 };
-// Columns that never change size: cover and buttons use the width set on
-// their header in renderTableHeaders, whatever was saved
+// Columns that never change size: cover and buttons, whatever was saved.
+// Their widths moved from inline styles into style.css (th.thumb-th /
+// th.cr-th) in phase 11, so they are known here too: without them saved
+// widths filled the whole table and these two came on top, pushing the
+// table (and an open chart run) past the card's right edge
+const _COLW_FIXED = { thumb: 64, cr: 72 };
 function _colwFixedW(th) {
   const col = th.dataset.col;
-  if (col === 'thumb' || col === 'cr') return parseInt(th.dataset.w0, 10) || null;
+  if (col === 'thumb' || col === 'cr') return parseInt(th.dataset.w0, 10) || _COLW_FIXED[col];
   return null;
 }
 const _colwDesktop = window.matchMedia('(min-width: 641px)');
