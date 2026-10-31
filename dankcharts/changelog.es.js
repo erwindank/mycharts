@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Song of the period and Biggest movers":
+    ["Canción del periodo y Mayores cambios",
+     "El Resumen de Estadísticas tiene dos tarjetas más. Canción del periodo es tu canción más escuchada del rango de fechas, con una barra por cada día (o semana, o mes en rangos largos), cuántos días la escuchaste desde que la descubriste, su mejor día, su racha más larga de días seguidos, cuándo la escuchaste por primera vez y sus reproducciones en total, más un botón para escuchar un fragmento. Mayores cambios compara el rango con el mismo tramo anterior: las tres canciones, artistas o álbumes que escuchaste más y las tres que escuchaste menos, con su puesto actual y el anterior. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Your top 5 on the Stats Overview":
     ["Tu top 5 en el Resumen de Estadísticas",
      "El Resumen de Estadísticas tiene ahora Tu top 5 debajo de las cifras: las canciones, artistas o álbumes más escuchados del periodo, con un selector entre ellos. El #1 aparece en grande con su imagen, reproducciones, su parte del total y la ventaja sobre el #2, más un botón para escuchar un fragmento. Del #2 al #5 llevan una barra comparada con el #1. Haz clic en cualquiera para ver sus detalles, o clic derecho para el mismo menú que en los rankings. Funciona con Last.fm, Google Sheets y archivos CSV."],
