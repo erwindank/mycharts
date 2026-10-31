@@ -151,10 +151,11 @@
   var DROP_AT = '.kebab-row-label > span, .kebab-row-label, .bu-type-label, .tm-hint';
   // Slots that hold only emoji (a tile's icon, a tab's icon) or a short tally
   // with them ("3×💎", "17× 💎 19× 💿"): every emoji in them becomes its icon
-  // (not the streak flame .ns-fire or the stat tile icons .stat-cat-icon:
+  // (not the streak flame .ns-fire, the stat tile icons .stat-cat-icon or
+  // the certification marks .cert-icon / .cert-short:
   // they stay emoji, user's call)
   var CELL_AT = '.dy-sec-ic, .dy-tab-ic, .dy-thumb.is-emoji, .awards-cat-emoji, ' +
-    '.cert-icon, .cert-short, .rec-hero-card-fig-v, .rec-hero-card-meta-i, .rec-hero-card-sub';
+    '.rec-hero-card-fig-v, .rec-hero-card-meta-i, .rec-hero-card-sub';
   // Never touched: user text, the changelog, share cards (they become images)
   var SKIP = '.share-stage, [id$="Canvas"], .board-post, .bp-body, .cl-overlay, #changelogOverlay, ' +
     '[contenteditable], .ceremony-stage';

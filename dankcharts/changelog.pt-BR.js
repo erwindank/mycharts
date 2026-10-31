@@ -15,7 +15,7 @@ window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
   "Line icons instead of emoji, everywhere":
     ["Ícones de linha no lugar de emojis, em todo lugar",
-     "Títulos, botões e abas de todo o site agora usam os mesmos ícones de linha dos menus, no lugar de emojis que ficavam diferentes em cada celular e computador. As linhas dos menus simplesmente perdem o seu, para as palavras ficarem alinhadas. As certificações também viraram ícones, na cor do seu selo: uma música diamante continua aparecendo como 💎💎 ou 3×💎 na parada do celular e nas listas de Músicas e Faixas, agora desenhada como um diamante limpo em vez de um emoji. As carinhas de humor do Diário, a chama 🔥 de sequência e os ícones dos blocos de estatísticas continuam como estão."],
+     "Títulos, botões e abas de todo o site agora usam os mesmos ícones de linha dos menus, no lugar de emojis que ficavam diferentes em cada celular e computador. As linhas dos menus simplesmente perdem o seu, para as palavras ficarem alinhadas. As carinhas de humor do Diário, a chama 🔥 de sequência, os ícones dos blocos de estatísticas e as certificações 💎 💿 📀 continuam como estão."],
   "Records opens at once":
     ["Recordes abre na hora",
      "Abrir Recordes com uma biblioteca grande travava a página por alguns segundos enquanto cada recorde era calculado. Agora a aba abre na hora com uma linha dizendo Calculando seus recordes…, e os recordes aparecem um instante depois. Depois de calculados, ela abre sem espera até seus plays mudarem."],
