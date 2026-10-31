@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Where your plays went":
+    ["Adónde fueron tus reproducciones",
+     "El Resumen de Estadísticas tiene ahora dos barras que dividen las reproducciones del rango de fechas. ¿Nuevo o conocido? muestra cuántas fueron para canciones que habías descubierto hacía menos de 30 días, menos de un año, o un año o más. ¿Cuánto fue para tus 5 artistas principales? muestra a cada uno con su color frente a todos los demás; haz clic en un nombre para abrir al artista. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Day by day and On this day":
     ["Día a día y Un día como hoy",
      "El Resumen de Estadísticas tiene ahora Día a día: un cuadrado por cada día del rango de fechas, más oscuro cuanto más escuchaste, como un pequeño calendario en rangos cortos y como las últimas 53 semanas en rangos largos. Toca un día para abrirlo. A su lado, Un día como hoy muestra la fecha de hoy hace uno, dos y tres años (los tres últimos años con reproducciones) con la canción más escuchada de ese día y su imagen. Toca una para abrir ese día. Funciona con Last.fm, Google Sheets y archivos CSV."],

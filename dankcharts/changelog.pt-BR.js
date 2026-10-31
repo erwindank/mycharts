@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Where your plays went":
+    ["Para onde foram seus plays",
+     "A Visão geral das Estatísticas agora tem duas barras que dividem os plays do intervalo de datas. Novo ou conhecido? mostra quantos plays foram de músicas que você tinha descoberto havia menos de 30 dias, menos de um ano, ou um ano ou mais. Quanto foi para seus 5 artistas principais? mostra cada um com sua cor contra todos os outros; clique num nome para abrir o artista. Funciona com Last.fm, Google Sheets e arquivos CSV."],
   "Day by day and On this day":
     ["Dia a dia e Neste dia",
      "A Visão geral das Estatísticas agora tem Dia a dia: um quadrado para cada dia do intervalo de datas, mais escuro quanto mais você ouviu, como um pequeno calendário em intervalos curtos e como as últimas 53 semanas nos longos. Toque em um dia para abri-lo. Ao lado, Neste dia mostra a data de hoje há um, dois e três anos (os três últimos anos com plays) com a música mais tocada daquele dia e sua imagem. Toque em uma para abrir aquele dia. Funciona com Last.fm, Google Sheets e arquivos CSV."],

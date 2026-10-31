@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 392;
+const DC_CL_I18N_V = 393;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-31', t: 'feature', a: 'graphs', h: 'd053b2d',
+    title: "Where your plays went",
+    detail: "The Stats Overview now has two bars that split the date range's plays. New or familiar? shows how many plays went to songs you had found less than 30 days before, less than a year before, or a year or more before. How much went to your top 5 artists? shows each of them in their own colour against everyone else; click a name to open the artist. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-31', t: 'feature', a: 'graphs', h: '9841486',
     title: "Day by day and On this day",
     detail: "The Stats Overview now has Day by day: a square for each day of the date range, darker the more you played, as a small calendar for short ranges and as the last 53 weeks for long ones. Tap a day to open it. Beside it, On this day shows today's date one, two and three years ago (the latest three years with plays) with that day's most played song and its picture. Tap one to open that day. Works with Last.fm, Google Sheets and CSV uploads." },
