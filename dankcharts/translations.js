@@ -3317,6 +3317,7 @@ const TRANSLATIONS = {
     rec_ent_tabs_label: 'Record type',
     // The row one level under it, which picks which chart the record is for.
     rec_per_tabs_label: 'Chart period',
+    rec_building: 'Building your records…',
     // The timeline has no visible column headers, so this only ever reaches a
     // screen reader — it has to work for songs, artists and albums alike.
     mil_th_first_to_reach: 'First to Reach It',
@@ -8008,6 +8009,7 @@ const TRANSLATIONS = {
     fast_pick_post: 'reprods',
     rec_ent_tabs_label: 'Tipo de récord',
     rec_per_tabs_label: 'Período del ranking',
+    rec_building: 'Calculando tus récords…',
     mil_th_first_to_reach: 'Primero en alcanzarlo',
     mil_no_data_albums: 'Aún no hay hitos de álbumes. Los álbumes solo cuentan reproducciones con etiqueta de álbum, así que los scrobbles sin ella — algo común en las subidas CSV — quedan fuera de esta escala.',
     mil_ladder_songs: 'Primero a 10 reproducciones, luego cada {{n}} reproducciones hasta arriba',
@@ -12681,6 +12683,7 @@ const TRANSLATIONS = {
     fast_pick_post: 'plays',
     rec_ent_tabs_label: 'Tipo de recorde',
     rec_per_tabs_label: 'Período da parada',
+    rec_building: 'Calculando seus recordes…',
     mil_th_first_to_reach: 'Primeiro a atingir',
     mil_no_data_albums: 'Ainda não há marcos de álbuns. Os álbuns só contam plays com tag de álbum, então scrobbles sem ela — comuns em uploads de CSV — ficam de fora desta escala.',
     mil_ladder_songs: 'Primeiro a 10 plays, depois a cada {{n}} plays até o topo',
@@ -17353,6 +17356,7 @@ const TRANSLATIONS = {
     fast_pick_post: 'plays',
     rec_ent_tabs_label: 'Tipo de recorde',
     rec_per_tabs_label: 'Período do top',
+    rec_building: 'A calcular os seus recordes…',
     mil_th_first_to_reach: 'Primeiro a atingir',
     mil_no_data_albums: 'Ainda não há marcos de álbuns. Os álbuns só contam plays com etiqueta de álbum, por isso os scrobbles sem ela — comuns em carregamentos CSV — ficam de fora desta escala.',
     mil_ladder_songs: 'Primeiro a 10 plays, depois a cada {{n}} plays até ao topo',

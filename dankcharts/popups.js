@@ -208,23 +208,40 @@
     });
   }
 
+  // Quick test for "this text might hold an emoji or symbol": arrows,
+  // dingbats, shapes and anything outside the basic plane
+  var MAYBE_EMOJI = /[←-⯿\uD83C-\uDBFF]/;
+  // ...and the exact rule, for text that passed the quick test (▲ ▼ ↑ and
+  // other plain symbols on every chart row fail it, so they cost nothing more)
+  var IS_EMOJI = /\p{Extended_Pictographic}|[★♦◈⊞✎✚]/u;
+
+  // Only text that holds an emoji is looked at (one native walk over the text
+  // nodes), not every element: Records alone adds thousands of them at once,
+  // and selector searches over all of those took ~0.6 s (phase 11 step 8)
   function iconizeIn(root) {
     if (!root || root.nodeType !== 1) return;
     if (root.closest(SKIP)) return;
-    var list = [];
-    if (root.matches(ICON_AT)) list.push([root, 'icon']);
-    if (root.matches(DROP_AT)) list.push([root, 'drop']);
-    root.querySelectorAll(ICON_AT).forEach(function (el) { list.push([el, 'icon']); });
-    root.querySelectorAll(DROP_AT).forEach(function (el) { list.push([el, 'drop']); });
-    list.forEach(function (p) {
-      if (p[0].closest(SKIP_LEAD)) return;
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    var hits = [], n;
+    while ((n = walker.nextNode())) if (MAYBE_EMOJI.test(n.nodeValue) && IS_EMOJI.test(n.nodeValue)) hits.push(n);
+    if (!hits.length) return;
+    var done = new Set();
+    hits.forEach(function (tn) {
+      var el = tn.parentElement;
+      if (!el || el.closest(SKIP)) return;
+      var cell = el.closest(CELL_AT);
+      if (cell) { if (!done.has(cell)) { done.add(cell); swapCell(cell); } return; }
+      var lead = el.closest(ICON_AT), drop = el.closest(DROP_AT);
+      // the nearer of the two when the text sits inside both
+      var target = lead && drop ? (lead.contains(drop) ? drop : lead) : (lead || drop);
+      if (!target || done.has(target)) return;
+      done.add(target);
+      if (target.closest(SKIP_LEAD)) return;
+      var mode = target === drop ? 'drop' : 'icon';
       // text set again (a language switch): the old mark no longer applies
-      if (p[0].dataset.dcIco === '1' && !p[0].querySelector(':scope > .dc-lead-ico') && p[1] === 'icon') delete p[0].dataset.dcIco;
-      swapLead(p[0], p[1]);
+      if (mode === 'icon' && target.dataset.dcIco === '1' && !target.querySelector(':scope > .dc-lead-ico')) delete target.dataset.dcIco;
+      swapLead(target, mode);
     });
-    var cells = root.matches(CELL_AT) ? [root] : [];
-    root.querySelectorAll(CELL_AT).forEach(function (el) { cells.push(el); });
-    cells.forEach(function (el) { if (!el.closest(SKIP)) swapCell(el); });
   }
   window.dcIconizeLead = iconizeIn;
 

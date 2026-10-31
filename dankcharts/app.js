@@ -13248,10 +13248,22 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('recordsView').style.display = 'block';
     initRecordsViewUI();
     restoreRecordSectionCollapseState();
-    buildRecords();
-    applyRecordsViewFilter(localStorage.getItem('dc_records_active_view') || REC_DEFAULT_VIEW);
-    if (typeof window._refreshBackToTop === 'function') window._refreshBackToTop();
     updateScrobbleBtn();
+    const recFinish = () => {
+      buildRecords();
+      applyRecordsViewFilter(localStorage.getItem('dc_records_active_view') || REC_DEFAULT_VIEW);
+      if (typeof window._refreshBackToTop === 'function') window._refreshBackToTop();
+    };
+    // A first build takes a few seconds on a big library. Paint the tab with a
+    // "Building your records…" line first so the click is answered at once,
+    // then build on the next frame (phase 11 step 8). Already built: no wait.
+    const recNote = document.getElementById('recBuilding');
+    if (recNote && allPlays.length && !(_recBuildKey() === _recBuiltKey && _recArtistTally)) {
+      recNote.hidden = false;
+      requestAnimationFrame(() => setTimeout(() => {
+        try { recFinish(); } finally { recNote.hidden = true; }
+      }, 0));
+    } else recFinish();
     return;
   }
 

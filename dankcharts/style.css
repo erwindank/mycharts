@@ -43985,3 +43985,16 @@ th.cr-th { width: 72px; }
 .skeleton-cell--half { width: 50%; }
 .skeleton-cell--num { width: 32px; margin-left: auto; }
 .streak-empty--pad { padding: var(--sp-4) var(--sp-5); }
+
+/* Records: the line shown while a first build runs (phase 11 step 8) */
+.rec-building {
+  display: flex; align-items: center; justify-content: center; gap: var(--sp-2);
+  padding: var(--sp-6) 0; color: var(--text3); font-size: var(--fs-sm);
+}
+.rec-building[hidden] { display: none; }
+.rec-building-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--accent);
+  animation: recBuildingPulse 1s ease-in-out infinite alternate;
+}
+@keyframes recBuildingPulse { from { opacity: 0.3; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .rec-building-dot { animation: none; } }

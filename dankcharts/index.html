@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=758">
+  <link rel="stylesheet" href="style.css?v=759">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -1570,6 +1570,8 @@
 
     <!-- RECORDS VIEW -->
     <div id="recordsView" style="display:none;">
+      <!-- shown while a first build runs (phase 11 step 8) -->
+      <div id="recBuilding" class="rec-building" role="status" hidden><span class="rec-building-dot"></span><span data-i18n="rec_building">Building your records…</span></div>
       <div class="section-header section-header--tight">
         <h2 class="section-header-h2" data-i18n="sec_records_title">🏆 Records &amp; Hall of Fame</h2>
         <div class="section-rule"></div>
