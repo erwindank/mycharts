@@ -947,7 +947,7 @@ function atiRender() {
     if (_atiLsGet(ATI_LS_HINT) === '1') return hide();
     el.hidden = false;
     el.innerHTML = `<div class="ati-tip">
-      <svg class="ati-tip-ic" viewBox="0 0 16 16" width="18" height="18" aria-hidden="true"><path d="M3 13V8M6.5 13V4M10 13V6.5M13.5 13V2.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <span class="ati-tip-ic" aria-hidden="true">📊</span>
       <p class="ati-tip-tx">${esc(_atiT('ati_hint'))}</p>
       <button type="button" class="ati-btn ati-btn--primary" data-ati="size" data-type="${type}">${esc(_atiT('ati_hint_btn'))}</button>
       <button type="button" class="ati-x" data-ati="hint-off" aria-label="${esc(_atiT('ati_hint_close'))}" title="${esc(_atiT('ati_hint_close'))}">×</button>
