@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 399;
+const DC_CL_I18N_V = 400;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-31', t: 'feature', a: 'graphs', h: '0742d22',
+    title: "One on one in Compare",
+    detail: "Pick exactly two in Stats → Compare and a One on one card appears: both with their pictures, then measure by measure (plays, weeks at #1, months won, best month, longest streak, days played, songs) with mirrored bars and the winner of each row in its colour, and a score such as \"Taylor Swift wins 5–2\". Years compare artists and new songs too. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-31', t: 'feature', a: 'graphs', h: '9302755',
     title: "Biggest gaps in Compare",
     detail: "Stats → Compare now shows four tiles when you compare two or more: the closest race (the two with the nearest totals), the biggest lead anyone ever had on the running total and when, the fastest rise from one month or week to the next, and who spent longest in front. Works with Last.fm, Google Sheets and CSV uploads." },

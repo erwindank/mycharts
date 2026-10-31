@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "One on one in Compare":
+    ["Uno contra uno en Comparar",
+     "Elige exactamente dos en Estadísticas → Comparar y aparece la tarjeta Uno contra uno: los dos con sus imágenes y, medida a medida (reproducciones, semanas en el #1, meses ganados, mejor mes, racha más larga, días con escuchas, canciones), barras enfrentadas con el ganador de cada fila en su color, y un marcador como \"Taylor Swift gana 5–2\". Los años comparan también artistas y canciones nuevas. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Biggest gaps in Compare":
     ["Las mayores distancias en Comparar",
      "Estadísticas → Comparar muestra ahora cuatro cifras cuando comparas dos o más: la carrera más ajustada (los dos con totales más cercanos), la mayor ventaja que alguien tuvo en el total acumulado y cuándo, la subida más rápida de un mes o semana al siguiente, y quién pasó más tiempo delante. Funciona con Last.fm, Google Sheets y archivos CSV."],
