@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Saved comparisons":
+    ["Comparaciones guardadas",
+     "En Estadísticas → Comparar ahora puedes guardar un grupo de elecciones: toca Guardar estas, ponle un nombre y queda bajo las elecciones como un botón que recupera todo el grupo de un toque. Cada tipo (artistas, canciones, álbumes, años) tiene las suyas, hasta 20, en este dispositivo. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Share your Compare":
     ["Comparte tu Comparar",
      "Estadísticas → Comparar tiene un botón Compartir en la tarjeta Cara a cara. Crea una imagen en los colores de tu tema con quién va en cabeza, una barra por elección con sus reproducciones y su cuota, y la franja Quién estuvo arriba, lista para publicar, o la guarda si tu dispositivo no puede compartir. Funciona con Last.fm, Google Sheets y archivos CSV."],

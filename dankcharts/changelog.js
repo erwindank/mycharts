@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 403;
+const DC_CL_I18N_V = 404;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-31', t: 'feature', a: 'graphs', h: '643fba6',
+    title: "Saved comparisons",
+    detail: "In Stats → Compare you can now keep a set of picks: tap Save these, give it a name, and it sits under the picks as a button that brings the whole set back in one tap. Each type (artists, songs, albums, years) keeps its own, up to 20, on this device. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-31', t: 'feature', a: 'graphs', h: 'd6e5524',
     title: "Share your Compare",
     detail: "Stats → Compare has a Share button on the Head to head card. It makes a picture in your theme's colours with who leads, a bar for each pick with its plays and share, and the Who was on top strip, ready to post, or saves it if your device can't share. Works with Last.fm, Google Sheets and CSV uploads." },
