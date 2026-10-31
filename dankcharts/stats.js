@@ -2264,14 +2264,17 @@ function _sxCmpMore(type, picks) {
   const vs = _sxCmpVs(T, names);
   const vsArts = _sxVsArts;
   if (vs) html = _sxCmpCard('sx-cmp-vs', t('sx_vs_title'), t('sx_vs_sub'), vs) + html;
-  // Step 3: who won each piece of the range, and the lead changes
-  if (T.total) {
+  // Step 3: who won each piece of the range, and the lead changes (two
+  // picks or more: with one, it would only ever be that one)
+  if (T.total && T.picks.length > 1) {
     const B = _sxCmpBuckets(T);
     const ownSub = T.type === 'years' ? t('sx_own_sub_years') : t(B.unit === 'week' ? 'sx_own_sub_week' : 'sx_own_sub_month');
     html += _sxCmpCard('sx-cmp-own', t('sx_own_title'), ownSub, _sxCmpOwners(T, names) + _sxCmpLeadsHtml(T, names));
     // Step 4: the biggest gaps (two picks or more)
     const gaps = _sxCmpGaps(T, names);
     if (gaps) html += _sxCmpCard('sx-cmp-gaps', t('sx_gap_title'), t('sx_gap_sub'), gaps);
+  }
+  if (T.total) {
     // Step 6: each pick's top songs
     const ts = _sxCmpTopSongs(T, names);
     if (ts) html += _sxCmpCard('sx-cmp-ts', t('sx_ts_title'), t('sx_ts_sub_' + T.type), ts);

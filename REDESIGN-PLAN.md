@@ -3996,6 +3996,31 @@ commit per step plus a changelog entry, no push without asking.
 10. **Finish:** four languages, the Charts Guide, screen check (1440 /
     1100 / 390 touch, the check themes).
 
+**Phase 17 done (2026-10-31),** each step committed with a changelog
+entry, not pushed: 1 race fixes (9dd4ff8), 2 summary + head to head
+(f80e952), 3 Who was on top (3965de2), 4 Biggest gaps (9302755),
+5 One on one (0742d22), 6 Top songs side by side (bc1c433), 7 Listening
+habits (fabd074), 8 Share picture (d6e5524), 9 Saved comparisons
+(643fba6), 10 finish (this commit).
+- The cards live in `#sxCmpMore` (its own `data-st-group="compare"`
+  block after the studio card) and show in every mode, the race too.
+  In Race mode they count over the race's own range (`_sxCmpRange`).
+- `_sxCmpTally` is one pass over the plays, kept in `_sxCT` until the
+  type, picks, range, week start or data change; `_sxCmpBuckets` (months,
+  weeks for ranges of 4 months or less, Jan–Dec for years) is worked out
+  from its day counts and kept on it. All, 222k plays, 10 picks: 30–130
+  ms cold, 8–53 ms warm.
+- Race: `racePickColors` in app.js gives each racer its chip colour;
+  every pick that plays has a bar from the zero frame.
+- Saved sets are `dc_sxCmpSaved` in localStorage (on this device, like
+  `dc_sxCmp`), not synced to Firestore.
+- Who was on top and Biggest gaps need two picks; One on one exactly two.
+- Checked at 1440 / 1100 / 390 touch in all four languages and Navy dark,
+  Navy light, Red light, Pink light and Yellow dark, every mode and type:
+  no raw keys, no sideways scroll, no errors. Share, Save / load / delete
+  (through the site's warning window) clicked for real. Scripts:
+  C:/tmp/p17.mjs, p17_share.mjs, p17_saved.mjs, p17_perf.mjs.
+
 ### Done outside the phases (to 2026-10-18)
 
 Work that isn't a plan step but changes what the later phases start from.
