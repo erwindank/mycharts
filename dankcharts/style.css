@@ -1558,23 +1558,6 @@
     .dp-body .dp-more svg { transform: rotate(90deg); }
 
     /* All-time rank, year rank, debut: icon tile, the rank big, its label */
-    .dp-body .modal-rank-cards-row {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-      gap: var(--sp-2);
-      margin-bottom: var(--sp-2);
-    }
-    .dp-body .modal-rank-card {
-      display: grid;
-      grid-template-columns: auto 1fr;
-      column-gap: var(--sp-3);
-      row-gap: 2px;
-      align-items: center;
-      text-align: left;
-      min-width: 0;
-      padding: var(--sp-3) var(--sp-4);
-      border-radius: var(--r-md);
-    }
     .dp-body .mrc-icon {
       grid-row: 1 / span 2;
       display: inline-flex;
@@ -1587,9 +1570,7 @@
       color: var(--dp-ac);
     }
     .dp-body .mrc-icon svg { width: 20px; height: 20px; }
-    .dp-body .modal-rank-card--gold .mrc-icon { background: rgba(245, 179, 1, 0.16); color: #f5b301; }
     .dp-body .mrc-rank { align-self: end; font-family: var(--font-display); font-size: 1.55rem; }
-    .dp-body .mrc-label { align-self: start; }
 
     /* Achievements: a list of rows, each opening anywhere on it (panel.js) */
     .dp-body [id$="Accomplishments"] { border: 1px solid var(--border); border-radius: var(--r-md); overflow: hidden; }
@@ -1632,8 +1613,6 @@
     .dp-body .acc-row:has(.acc-detail.open) .acc-toggle::before { transform: translateY(1px) rotate(-135deg); }
     .dp-body .acc-detail { padding: 0 var(--sp-3) var(--sp-3) 52px; }
     .dp-body .acc-detail.open { animation: dpTabIn 0.2s var(--ease); }
-    .dp-body .acc-detail-row { padding: 6px 0; font-size: var(--fs-xs); }
-    .dp-body .acc-detail-row:last-child { border-bottom: 0; }
 
     /* ── Artist Overview (2026-10-27) ──────────────────────────────────────
        Was fourteen identical tiles, the full ratings lists and a list of
@@ -3766,7 +3745,6 @@
     .dp-body .mrc-rank { font-weight: 800; font-size: 1.9rem; letter-spacing: -0.02em; }
     .dp-overlay[style*="--dp-accent"] .dp-body .alb-spark-bar { background: color-mix(in srgb, var(--dp-ac) 62%, var(--bg2)) !important; }
     .dp-overlay[style*="--dp-accent"] .dp-body .dc-btn-main { background: var(--dp-ac); border-color: transparent; color: var(--dp-on-ac); }
-    .dp-overlay[style*="--dp-accent"] .dp-body .alb-sort-btn.active { background: color-mix(in srgb, var(--dp-ac) 24%, transparent); color: var(--text); }
     .dp-overlay[style*="--dp-accent"] .dp-body .alb-spark-bar:hover,
     .dp-overlay[style*="--dp-accent"] .dp-body .alb-spark-bar--peak { background: var(--dp-ac) !important; }
 
@@ -5993,10 +5971,6 @@
       .lfm-auth-dot.pending { animation: none; }
     }
 
-
-
-
-
     .lfm-custom-creds {
       margin-top: 0.7rem;
     }
@@ -6014,16 +5988,6 @@
 
     /* ── Scrobble Modal ── */
     .scrobble-modal-box { max-width: 380px; }
-
-    .scrobble-time-row {
-      display: flex;
-      gap: var(--sp-2);
-      align-items: center;
-    }
-
-    .scrobble-time-row input { flex: 1; }
-
-
 
     .scrobble-status {
       font-size: var(--fs-sm);
@@ -6095,35 +6059,6 @@
       justify-content: flex-end;
     }
 
-    .src-btn-cancel {
-      background: none;
-      border: 1px solid var(--border);
-      color: var(--text3);
-      padding: 0.45rem var(--sp-4);
-      border-radius: var(--r-sm);
-      cursor: pointer;
-      font-size: var(--fs-sm);
-      font-family: inherit;
-      transition: background 0.15s;
-    }
-
-    .src-btn-cancel:hover { background: var(--surface); }
-
-    .src-btn-save {
-      background: var(--accent);
-      border: 1px solid var(--accent);
-      color: var(--on-accent);
-      padding: 0.45rem 1.2rem;
-      border-radius: var(--r-sm);
-      cursor: pointer;
-      font-size: var(--fs-sm);
-      font-weight: 600;
-      font-family: inherit;
-      transition: opacity 0.15s;
-    }
-
-    .src-btn-save:hover { opacity: 0.85; }
-
     /* Title row + close button, used by the long Data Source form */
     .src-modal-header {
       display: flex;
@@ -6137,8 +6072,6 @@
 
     .src-modal-close {
       flex: none; }
-
-
 
     /* On mobile, the Data Source form runs much taller than the viewport.
        Pin the title/close and the Cancel/Save row so they're always reachable
@@ -7407,22 +7340,6 @@
 
     /* Save button carries the landing's "Start Charting →" weight and glow —
        it's the same commitment, so it should look like the same button. */
-    #sourceModal .src-btn-save {
-      border-radius: var(--r-md);
-      padding: 0.55rem 1.6rem;
-      box-shadow: 0 4px 20px color-mix(in srgb, var(--accent) 35%, transparent);
-      transition: background 0.18s, box-shadow 0.18s, transform 0.15s;
-    }
-
-    #sourceModal .src-btn-save:hover {
-      opacity: 1;
-      background: var(--accent2);
-      border-color: var(--accent2);
-      box-shadow: 0 6px 28px color-mix(in srgb, var(--accent) 50%, transparent);
-      transform: translateY(-2px);
-    }
-
-    #sourceModal .src-btn-save:active { transform: translateY(0); }
 
     @media (prefers-reduced-motion: reduce) {
       .set-panel,
@@ -7435,7 +7352,6 @@
       .src-card:hover .landing-card-icon,
       .src-card:has(input:checked) .landing-card-icon { transform: scale(0.74); }
       .src-card:hover .sheets-grid::after { animation: none; }
-      #sourceModal .src-btn-save:hover { transform: none; }
     }
 
     /* Narrow screens: the three cards become a stacked list so the labels stop
@@ -9594,22 +9510,6 @@
       overflow: hidden;
     }
 
-    .play-bar-fill {
-      height: 100%;
-      background: var(--accent);
-      border-radius: var(--r-full);
-      transition: width 0.5s ease;
-    }
-
-    .rank-1 .play-bar-fill {
-      background: var(--gold1);
-    }
-
-    body[data-period="year"] .play-bar-fill,
-    body[data-period="alltime"] .play-bar-fill {
-      transition: none;
-    }
-
     /* CHART THUMBNAILS */
     .thumb {
       width: 44px;
@@ -10246,12 +10146,6 @@
       color: var(--text3);
     }
 
-    .bd-month-long { display: none; }
-    @media (min-width: 769px) {
-      .bd-month-long { display: inline; }
-      .bd-month-short { display: none; }
-    }
-
     /* PAGINATED SEARCH */
     .paginated-search {
       display: none;
@@ -10493,10 +10387,6 @@
       font-weight: 500;
     }
 
-
-
-
-
     .ig-modal-body {
       display: flex;
       gap: 1.25rem;
@@ -10647,10 +10537,6 @@
       white-space: nowrap;
     }
 
-
-
-
-
     .sh-slider-row {
       display: flex;
       align-items: center;
@@ -10767,9 +10653,6 @@
       flex-shrink: 0;
     }
 
-
-
-
     .sh-textarea {
       width: 100%;
       resize: vertical;
@@ -10816,9 +10699,6 @@
 
     .ig-modal-mode-bar { flex-shrink: 0; background: var(--bg3); }
     .ig-modal-mode-bar > button { flex: 1; }
-
-
-
 
     .ig-modal-footer {
       padding: 0.85rem 1.2rem;
@@ -10943,11 +10823,6 @@
         min-width: 0;
       }
     }
-
-
-
-
-
 
     .graph-card { padding: 1.1rem 1.1rem var(--sp-3); margin-bottom: 1.25rem; }
 
@@ -11504,13 +11379,9 @@
     /* Best day glow */
     .heatmap-cell.hm-best-day { box-shadow: 0 0 0 1.5px #ffd030, 0 0 5px #ffd03055; }
     /* Year-in-review card */
-    .hm-year-review { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; margin-top: 0.45rem; padding: 0.32rem 0.55rem; background: var(--bg2); border-radius: var(--r-sm); border: 1px solid var(--border); }
-    .hm-yr-stat { font-family: var(--font-mono);
-      font-variant-numeric: tabular-nums; font-size: var(--fs-xs); color: var(--text3); white-space: nowrap; }
     .hm-yr-num { color: var(--text); font-weight: 600; }
     .hm-yr-name { color: var(--text); }
     .hm-yr-muted { opacity: 0.6; }
-    .hm-yr-dot { color: var(--text3); opacity: 0.4; }
     /* Listening patterns section */
     .hm-patterns-section { margin-top: 1.1rem; border-top: 1px solid var(--border); padding-top: 0.8rem; }
     .hm-patterns-header { font-family: var(--font-sans); font-size: var(--fs-xs); color: var(--text3); margin-bottom: 0.7rem;
@@ -11628,8 +11499,6 @@
       text-align: center;
     }
 
-
-
     /* EVENTS VIEW */
     /* Title row: the title, its rule, then ⓘ (status) and ↻ (refetch all) */
     .events-header { margin-bottom: var(--sp-2); }
@@ -11736,14 +11605,8 @@
       vertical-align: -2px;
     }
 
-
-
-
-
     /* TABLE VIEW */
     .ev-table-wrap { overflow-x: auto; padding: 0 0.85rem var(--sp-3); }
-
-
 
     .ev-table tbody tr:last-child td { border-bottom: none; }
 
@@ -11956,8 +11819,6 @@
       letter-spacing: -0.01em;
     }
 
-
-
     .events-cal-grid {
       display: grid;
       grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -12108,70 +11969,11 @@
 
     .cal-view-btns { margin-left: auto; }
 
-
-
-
-
-
-
-
-
-
     /* CAL CREATE PLAYLIST MODAL */
     .cal-create-pl-box {
       max-width: 420px;
       margin: 0 auto;
       padding: var(--sp-5); }
-
-    .cal-create-pl-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: var(--sp-3);
-    }
-
-    .cal-create-pl-title {
-      font-family: var(--font-sans);
-      font-size: var(--fs-sm);
-      font-weight: bold;
-      color: var(--text);
-    }
-
-    .cal-create-pl-sub {
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      color: var(--text3);
-      margin-bottom: var(--sp-4);
-    }
-
-    .cal-create-pl-input {
-      width: 100%;
-      box-sizing: border-box;
-      background: var(--surface);
-      border: 1px solid var(--border2);
-      border-radius: var(--r-sm);
-      color: var(--text);
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      padding: var(--sp-2) var(--sp-3);
-      margin-bottom: var(--sp-4);
-      outline: none;
-      transition: border-color 0.12s;
-    }
-
-    .cal-create-pl-input:focus {
-      border-color: var(--accent);
-    }
-
-    .cal-create-pl-actions {
-      display: flex;
-      gap: var(--sp-2);
-      justify-content: flex-end;
-    }
-
-
-
-
 
     /* ADD TO PLAYLIST PICKER — shared modal (see dcOpenPlaylistPicker).
        On the shared window frame since phase 10 step 2: New playlist and
@@ -12376,7 +12178,6 @@
       min-height: 160px;
       max-height: none;
     }
-
 
     /* DAY VIEW */
     /* The day's list: the same cards as Today (_evDayBodyHtml) */
@@ -12773,9 +12574,6 @@
 
     /* Segmented control for track order */
 
-
-
-
     /* Album switch (a <label> wrapping a visually hidden checkbox) */
     .export-switch {
       position: relative;
@@ -13144,8 +12942,6 @@
       top: 0.85rem;
       right: 0.85rem; }
 
-
-
     /* Several .modal-box modals (song/album/artist detail, streak) render far
        taller than a phone screen with real data. Pin the close button so it's
        always reachable instead of scrolling away with the content.
@@ -13209,156 +13005,8 @@
       margin-top: var(--sp-1);
     }
 
-    /* CHART BREAKDOWN GRID */
-    .modal-chart-breakdown {
-      margin-bottom: var(--sp-5);
-      border-radius: var(--r-sm);
-      overflow: hidden;
-      border: 1px solid var(--border);
-    }
-
-    .modal-cb-table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    .modal-cb-th {
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      color: var(--text3);
-      background: var(--bg2);
-      padding: 0.55rem var(--sp-2);
-      text-align: center;
-      border: 1px solid var(--border);
-      font-weight: normal;
-    }
-
-    .modal-cb-empty {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      width: 5rem;
-    }
-
-    .modal-cb-label {
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      color: var(--text3);
-      background: var(--bg2);
-      padding: 0.6rem 0.85rem;
-      border: 1px solid var(--border);
-      white-space: nowrap;
-    }
-
-    .modal-cb-cell {
-      background: var(--bg3);
-      text-align: center;
-      padding: 0.65rem var(--sp-2) 0.55rem;
-      border: 1px solid var(--border);
-      transition: background 0.15s, box-shadow 0.15s;
-    }
-
-    .modal-cb-cell .cv {
-      font-family: var(--font-display);
-      font-size: var(--fs-lg);
-      color: var(--text);
-      line-height: 1;
-    }
-
-    .modal-cb-cell .cp {
-      font-family: var(--font-mono);
-      font-variant-numeric: tabular-nums;
-      font-size: var(--fs-xs);
-      color: var(--text3);
-      margin-top: 0.3rem;
-      min-height: 0.9rem;
-    }
-
-    /* CHART BREAKDOWN — CLICKABLE CELLS + DETAIL PANEL */
-    .modal-cb-cell--live { cursor: pointer; }
-    .modal-cb-cell--live:hover {
-      background: var(--bg2);
-      box-shadow: inset 0 0 0 1px rgba(100,200,255,0.35);
-    }
-    .modal-cb-cell--live:hover .cv { color: var(--accent); }
-    .modal-cb-cell--open {
-      background: var(--bg2);
-      box-shadow: inset 0 0 0 1px rgba(100,200,255,0.5);
-    }
-    .modal-cb-cell--open .cv { color: var(--accent); }
-    .modal-cb-cell .cx {
-      display: block;
-      font-family: var(--font-mono);
-      font-variant-numeric: tabular-nums;
-      font-size: var(--fs-xs);
-      color: var(--text3);
-      opacity: 0.5;
-      line-height: 1;
-      margin-top: var(--sp-1);
-      transition: transform 0.2s, opacity 0.15s, color 0.15s;
-    }
-    .modal-cb-cell--live:hover .cx { opacity: 1; color: var(--accent); }
-    .modal-cb-cell--open .cx { transform: rotate(180deg); opacity: 1; color: var(--accent); }
-
-    .modal-cb-hint {
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      color: var(--text3);
-      opacity: 0.75;
-      padding: 0.45rem var(--sp-3) var(--sp-2);
-    }
-
-    .modal-cb-detail {
-      border-top: 1px solid var(--border);
-      background: var(--bg2);
-      padding: 0.6rem var(--sp-3) 0.7rem;
-      animation: albRise 0.2s ease-out both;
-      transform-origin: top;
-    }
-    .modal-cb-detail-title {
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      color: var(--accent);
-      margin-bottom: 0.45rem;
-    }
-    .modal-cb-detail-row {
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      padding: 0.22rem 0;
-      border-bottom: 1px solid var(--border);
-    }
-    .modal-cb-detail-row:last-child { border-bottom: none; }
-    .modal-cb-detail-peak {
-      min-width: 2.6rem;
-      color: var(--text3);
-      flex-shrink: 0;
-    }
-    .modal-cb-detail-peak--gold   { color: #ffd700; }
-    .modal-cb-detail-peak--silver { color: #c0c8d8; }
-    .modal-cb-detail-peak--bronze { color: #cd7f32; }
-    .modal-cb-detail-name {
-      flex: 1;
-      color: var(--text1);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .modal-cb-detail-plays { color: var(--accent); flex-shrink: 0; }
-
     /* Phones: keep the enlarged type readable but inside the modal width */
     @media (max-width: 600px) {
-      .modal-cb-th    { font-size: var(--fs-xs); padding: var(--sp-2) var(--sp-1); }
-      .modal-cb-empty { width: 3.5rem; }
-      .modal-cb-label { font-size: var(--fs-xs); padding: 0.55rem var(--sp-2); white-space: normal; }
-      .modal-cb-cell  { padding: 0.55rem var(--sp-1) 0.45rem; }
-      .modal-cb-cell .cv { font-size: var(--fs-lg); }
-      .modal-cb-cell .cp { font-size: var(--fs-xs); }
-      .modal-cb-hint  { font-size: var(--fs-xs); }
-      .modal-cb-detail-row { font-size: var(--fs-xs); gap: 0.4rem; }
       .alb-sparkline-label { font-size: var(--fs-xs); }
       .alb-sparkline-hint  { font-size: var(--fs-xs); }
       .alb-y-axis, .alb-bars-area { height: 170px; }
@@ -13410,21 +13058,6 @@
     }
 
     /* SONG MODAL — RANK CARDS ROW */
-    .modal-rank-cards-row {
-      display: flex;
-      gap: 0.6rem;
-      flex-wrap: wrap;
-      margin-bottom: var(--sp-3);
-    }
-    .modal-rank-card { flex: 1; min-width: 120px; display: flex; flex-direction: column; align-items: center; gap: 0.2rem; padding: 0.7rem 0.8rem; text-align: center; }
-    .modal-rank-card--gold {
-      background: linear-gradient(135deg, rgba(255,215,0,0.12), rgba(255,180,0,0.06));
-      border-color: rgba(255,215,0,0.35);
-    }
-    .modal-rank-card--year {
-      background: linear-gradient(135deg, rgba(100,180,255,0.12), rgba(60,130,255,0.06));
-      border-color: rgba(100,180,255,0.35);
-    }
     .mrc-icon { font-size: 1.3rem; }
     .mrc-rank {
       font-family: var(--font-mono);
@@ -13433,13 +13066,6 @@
       font-weight: 700;
       color: var(--text1);
       line-height: 1;
-    }
-    .modal-rank-card--gold .mrc-rank  { color: #ffd700; }
-    .modal-rank-card--year .mrc-rank  { color: #60a5fa; }
-    .mrc-label {
-      font-size: var(--fs-xs);
-      color: var(--text3);
-      line-height: 1.3;
     }
     /* SONG MODAL — POSITION MOVEMENT CHART */
     .song-pos-chart {
@@ -13455,18 +13081,6 @@
 
     /* CERTIFICATION PLAQUES — album modal reuses the .cwall-grid / .cert-card
        vinyl-plaque styles defined further down (Certifications Wall section) */
-
-    /* CHART BREAKDOWN COLORED COLUMN HEADERS */
-    .modal-cb-th--weekly  { color: #60a5fa !important; border-top: 2px solid #60a5fa; }
-    .modal-cb-th--monthly { color: #34d399 !important; border-top: 2px solid #34d399; }
-    .modal-cb-th--yearly  { color: #fb923c !important; border-top: 2px solid #fb923c; }
-    .modal-cb-th--alltime { color: #fbbf24 !important; border-top: 2px solid #fbbf24; }
-
-    /* CHART BREAKDOWN COLORED ROW LABELS — the label color alone carries the
-       category; the legacy 3px side stripes were dropped (2026 redesign) */
-    .modal-cb-label--songs  { color: #93c5fd; }
-    .modal-cb-label--albums { color: #c4b5fd; }
-    .modal-cb-label--tracks { color: #6ee7b7; }
 
     /* ARTIST LINK IN ALBUM MODAL SUBTITLE */
     .modal-artist-link {
@@ -13714,46 +13328,6 @@
       box-shadow: var(--shadow-2);
     }
 
-    /* ALBUM SORT BAR */
-    .alb-sort-bar {
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-      margin-bottom: var(--sp-3);
-      flex-wrap: wrap;
-    }
-    .alb-sort-label {
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      color: var(--text3);
-      margin-right: 0.2rem;
-    }
-    /* "Share tracks" — pushed to the right end of the sort bar, opens the track plays share card. */
-    .alb-share-btn { margin-left: auto; }
-
-    /* TRACK SHARE BAR */
-    .alb-share-wrap { display: flex; align-items: center; gap: 0.4rem; }
-    .alb-share-bar {
-      width: 60px;
-      height: 4px;
-      background: var(--bg2);
-      border-radius: 2px;
-      overflow: hidden;
-      flex-shrink: 0;
-    }
-    .alb-share-fill {
-      height: 100%;
-      background: var(--accent);
-      border-radius: 2px;
-    }
-    .alb-share-pct {
-      font-family: var(--font-mono);
-      font-variant-numeric: tabular-nums;
-      font-size: var(--fs-xs);
-      color: var(--text3);
-      min-width: 3ch;
-    }
-
     /* TRACK EXPANDED PANEL */
     .alb-track-panel {
       padding: var(--sp-3) var(--sp-2) var(--sp-2);
@@ -13844,38 +13418,6 @@
       display: block;
     }
 
-    .acc-detail-row {
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      color: var(--text3);
-      padding: 0.2rem 0;
-      display: flex;
-      gap: var(--sp-3);
-      border-bottom: 1px solid var(--border);
-    }
-
-    .acc-detail-row:last-child {
-      border-bottom: none;
-    }
-
-    .acc-detail-name {
-      color: var(--text2);
-      flex: 1;
-      min-width: 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .acc-detail-plays {
-      flex-shrink: 0;
-    }
-
-    .acc-detail-date {
-      flex-shrink: 0;
-      color: var(--text3);
-    }
-
     .modal-section-title {
       font-family: var(--font-sans);
       font-size: var(--fs-xs);
@@ -13886,101 +13428,7 @@
       font-weight: 500;
     }
 
-    .modal-grammy-toggle {
-      display: block;
-      width: 100%;
-      background: none;
-      border: 1px dashed var(--border);
-      border-radius: var(--r-sm);
-      color: var(--text3);
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      padding: 0.35rem var(--sp-3);
-      margin-top: var(--sp-2);
-      cursor: pointer;
-      text-align: left;
-      transition: color 0.15s, border-color 0.15s;
-    }
-    .modal-grammy-toggle:hover {
-      color: var(--text);
-      border-color: var(--accent2);
-    }
-    .modal-grammy-list {
-      margin-top: 0.4rem;
-      border: 1px solid var(--border);
-      border-radius: var(--r-sm);
-      overflow: hidden;
-    }
-    .modal-grammy-entry {
-      display: flex;
-      align-items: center;
-      gap: var(--sp-2);
-      padding: 0.4rem var(--sp-3);
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      color: var(--text);
-      border-bottom: 1px solid var(--border);
-    }
-    .modal-grammy-entry:last-child { border-bottom: none; }
-    .modal-grammy-entry--win {
-      background: linear-gradient(90deg, rgba(255,200,60,0.1), transparent);
-      color: var(--text);
-    }
     .mge-icon { font-size: 0.9rem; flex-shrink: 0; }
-    .mge-year { color: var(--text3); flex-shrink: 0; min-width: 2.8rem; }
-    .mge-cat { flex: 1; }
-
-
-
-    .modal-table td {
-      color: var(--text); }
-
-    .modal-table tr:last-child td {
-      border-bottom: none;
-    }
-
-    .modal-table td:first-child {
-      width: 28px;
-      padding: 0 2px 0 var(--sp-1);
-      text-align: center;
-    }
-
-    .modal-table .modal-rank-col {
-      font-family: var(--font-display);
-      font-size: var(--fs-md);
-      color: var(--text3);
-      width: 36px;
-      text-align: center;
-    }
-
-    .modal-table .modal-date-col {
-      font-family: var(--font-mono);
-      font-variant-numeric: tabular-nums;
-      font-size: var(--fs-xs);
-      color: var(--text3);
-      white-space: nowrap;
-      text-align: center;
-      padding: 0.45rem 0.6rem;
-    }
-
-    .modal-table-header td {
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      color: var(--text3);
-      padding-top: 0.3rem;
-      padding-bottom: 0.3rem;
-      border-bottom: 1px solid var(--border2);
-    }
-
-    .modal-table td:last-child {
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      text-align: right;
-      color: var(--text3);
-      white-space: nowrap;
-    }
 
     .artist-row {
       cursor: pointer;
@@ -14205,47 +13653,6 @@
     /* Album track list: opens the track's stats row. Was an outlined circle with
        a ▶ triangle, which read as a play button (2026-10-17). Now a soft rounded
        square with a chevron that flips up when the row is open. */
-    .alb-track-toggle {
-      width: 28px;
-      height: 28px;
-      padding: 0;
-      margin-right: 2px;
-      border-radius: var(--r-sm);
-      border: 0;
-      background: color-mix(in srgb, var(--accent) 10%, transparent);
-      color: var(--accent);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.2s, color 0.2s;
-    }
-
-    .alb-track-toggle:hover {
-      background: color-mix(in srgb, var(--accent) 20%, transparent);
-      color: var(--accent);
-      box-shadow: none;
-    }
-
-    .alb-track-toggle:focus-visible {
-      outline: 2px solid var(--accent);
-      outline-offset: 2px;
-    }
-
-    .alb-track-toggle.active {
-      background: var(--accent);
-      color: var(--on-accent);
-      box-shadow: none;
-    }
-
-    .alb-track-icon {
-      display: block;
-      flex-shrink: 0;
-      transition: transform 0.25s var(--ease, ease);
-    }
-
-    .alb-track-toggle.active .alb-track-icon {
-      transform: rotate(180deg);
-    }
 
     .cr-row {
       display: none;
@@ -14256,34 +13663,6 @@
     }
 
     /* ── Modal chart sections (artist/album modal 4-part layout) ── */
-    .modal-chart-section {
-      border: 1px solid var(--border);
-      border-radius: var(--r-sm);
-      margin-bottom: 0.6rem;
-      overflow: hidden;
-    }
-
-    .modal-chart-section-header {
-      display: flex;
-      align-items: center;
-      gap: var(--sp-2);
-      padding: 0.55rem var(--sp-3);
-      cursor: pointer;
-      user-select: none;
-      /* phase 3: theme washes instead of white ones (invisible on light themes) */
-      background: color-mix(in srgb, var(--text) 2%, transparent);
-    }
-
-    .modal-chart-section-header:hover {
-      background: var(--hover);
-    }
-
-    .mcs-tog {
-      font-size: var(--fs-xs);
-      color: var(--text3);
-      flex-shrink: 0;
-      width: 0.75rem;
-    }
 
     .mcs-title {
       font-family: var(--font-sans);
@@ -14302,38 +13681,6 @@
 
     .modal-chart-section-body {
       border-top: 1px solid var(--border);
-    }
-
-    .modal-chart-section-body .modal-table {
-      margin: 0;
-    }
-
-    .mcs-empty {
-      padding: 0.65rem var(--sp-3);
-      font-style: italic;
-      font-size: var(--fs-sm);
-      color: var(--text3);
-    }
-
-    .modal-plays-col {
-      font-family: var(--font-mono);
-      font-variant-numeric: tabular-nums;
-      font-size: var(--fs-xs);
-      color: var(--text2);
-      white-space: nowrap;
-    }
-
-    .modal-period-link {
-      color: var(--accent);
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      text-decoration: none;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-
-    .modal-period-link:hover {
-      text-decoration: underline;
     }
 
     .cr-row>td {
@@ -15224,138 +14571,11 @@
       border-bottom: 1px solid var(--border);
     }
 
-    .dropout-rank {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 1px;
-      font-family: var(--font-mono);
-      font-variant-numeric: tabular-nums;
-      font-size: var(--fs-base);
-      font-weight: 700;
-      color: var(--text3);
-      min-width: 40px;
-      flex-shrink: 0;
-      line-height: 1;
-    }
-
-    /* "Was" label — makes clear this is where the entry USED to rank, not
-       where it ranks now (it isn't on the chart anymore). */
-    .dropout-rank-was {
-      font-size: var(--fs-xs);
-      font-weight: 600;
-      color: var(--text3);
-      opacity: 0.65;
-    }
-
-    .dropout-info {
-      flex: 1;
-      min-width: 0;
-    }
-
-    /* Flex row so a peak badge (idea 1) always stays fully visible — only the
-       name itself truncates when the two don't both fit. */
-    .dropout-name-row {
-      display: flex;
-      align-items: center;
-      min-width: 0;
-    }
-
-    .dropout-name {
-      font-size: var(--fs-base);
-      font-weight: 600;
-      color: var(--text);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      min-width: 0;
-    }
-
-    .dropout-artist {
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      color: var(--text3);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    /* Links a dropout to its Bubbling Under continuation (idea 3+5) — reuses
-       the same .bu-badge chips shown in the Bubbling Under section itself. */
-    .dropout-bu-line {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: var(--sp-1);
-      margin: 3px 0;
-    }
-
-    .dropout-bu-now {
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      font-weight: 600;
-      color: var(--accent2);
-    }
-
-    /* Fully dropped out — didn't even land in Bubbling Under. Deliberately
-       muted/italic so it reads as "confirmed gone" in contrast to the
-       accent-colored .dropout-bu-now line for a soft landing. */
-    .dropout-bu-gone {
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      font-style: italic;
-      color: var(--text3);
-      opacity: 0.75;
-    }
-
-    .dropout-stats {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 1px;
-      flex-shrink: 0;
-    }
-
     /* ▶ sample + ⋮ menu: their own trailing column, after the stats */
     .dropout-actions {
       display: flex;
       align-items: center;
       flex-shrink: 0;
-    }
-
-    .dropout-plays {
-      font-family: var(--font-mono);
-      font-variant-numeric: tabular-nums;
-      font-size: var(--fs-xs);
-      font-weight: 700;
-      color: var(--text2);
-    }
-
-    .dropout-wks {
-      font-family: var(--font-mono);
-      font-variant-numeric: tabular-nums;
-      font-size: var(--fs-xs);
-      color: var(--text3);
-    }
-
-    /* An entry that has ONLY ever charted this one week, period — shouldn't
-       carry the same visual weight as a real lifetime tally. */
-    .dropout-wks--flash {
-      font-style: italic;
-      opacity: 0.7;
-    }
-
-    /* Consecutive run immediately before this drop — distinct from the
-       lifetime total above, and explicitly worded so it can't be mistaken for
-       an earlier streak elsewhere in the entry's history. Same fuchsia/🔥
-       language as the Bubbling Under streak badge, so the two read as one
-       vocabulary across the app. */
-    .dropout-streak-note {
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      font-weight: 600;
-      color: #e879f9;
-      margin: 3px 0;
     }
 
     /* A dropout that fell from a top-tier rank reads as bigger news than one
@@ -15365,11 +14585,6 @@
       border-left: 2px solid #ff7070;
       margin-left: -0.5rem;
       padding-left: calc(var(--sp-2) - 2px);
-    }
-
-    .dropout-row--severe .dropout-rank {
-      color: #ff7070;
-      font-weight: 700;
     }
 
     .dropout-empty {
@@ -15396,31 +14611,8 @@
       }
       /* The desktop -0.5rem pull-out clips "Was #1" against the card edge here */
       .dropout-row--severe { margin-left: 0; padding-left: var(--sp-1); }
-      .dropout-rank   { grid-column: 1; grid-row: 1 / span 6; min-width: 34px; padding-top: 2px; }
       .dropout-actions { grid-column: 3; grid-row: 1 / span 6; align-self: start; margin-top: -4px; }
-      .dropout-info { display: contents; }
-      .dropout-info > *, .dropout-stats { grid-column: 2; }
-      .dropout-name-row      { order: 1; flex-wrap: wrap; gap: 2px var(--sp-1); }
-      .dropout-artist        { order: 2; }
-      .dropout-stats         { order: 3; }
-      .dropout-streak-note   { order: 4; }
-      .dropout-bu-line       { order: 5; }
 
-      /* Title wraps to as many lines as it needs instead of "die for my a…" */
-      .dropout-name { white-space: normal; overflow: visible; line-height: 1.25; }
-
-      /* Plays + weeks side by side, left-aligned, dot between */
-      .dropout-stats {
-        flex-direction: row;
-        flex-wrap: wrap;
-        align-items: baseline;
-        gap: 0 var(--sp-1);
-        margin-top: 3px;
-      }
-      .dropout-wks::before { content: '·'; margin-right: var(--sp-1); opacity: 0.6; font-style: normal; }
-
-      .dropout-streak-note { margin: 3px 0 0; }
-      .dropout-bu-line { margin: 3px 0 0; }
     }
 
     /* RAW DATA VIEW */
@@ -15792,8 +14984,6 @@
         opacity: 1;
       }
     }
-
-
 
     /* Page controls (step 4): the same bar above and below the table.
        ‹ › and « » with a page box between them; the top bar also holds
@@ -16285,11 +15475,6 @@
 
       /* Events view toggle buttons: compact size on small phones */
 
-      /* Album modal tracks: hide date columns so table fits within modal width,
-         preventing the expanded track panel from overflowing horizontally */
-      #albumModalTracks .modal-date-col {
-        display: none;
-      }
     }
 
     /* Extra-narrow phones (iPhone SE, small Android): shave a bit more off the
@@ -16866,7 +16051,6 @@
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
-
 
     /* The same reel inside the artist modal. --hc is set on .rec-hero and does
        not reach here, so the cards' rank disc, spotlight and figure labels
@@ -17895,7 +17079,6 @@
     .fast-tabs,
     .rec-ent-tabs { margin-bottom: var(--sp-2); }
 
-
     /* Now a box round an <svg> rather than a slot for a text glyph, so it is
        sized by its child and no longer needs a font-size of its own. */
     .nc-rec-tab-icon,
@@ -17906,8 +17089,6 @@
       line-height: 1;
     }
 
-
-
     /* .rec-per-* is the generic version of this row. Six sections wear it now —
        All #1s, Perfect All Kill, Appearances, Debuts, Most Plays and Streaks —
        under their Songs/Artists/Albums pills, to pick which chart the record on
@@ -17916,10 +17097,6 @@
        apart. */
     .nc-rec-subtabs,
     .rec-per-tabs { margin-bottom: 1.1rem; }
-
-
-
-
 
     /* ── Songs / Artists / Albums glyphs ──────────────────────────────
        Drawn inline by recEntIco() in app.js — a beamed pair of notes, a stage
@@ -18660,10 +17837,6 @@
       margin-bottom: 0.3rem;
     }
 
-
-
-
-
     .rec-section-sub-wrapper {
       margin-bottom: var(--sp-2);
     }
@@ -18863,7 +18036,6 @@
     /* Row separators live on the cells: a border set on <tr> is not painted in
        the separated model. */
 
-
     /* Last row in the DOM, not the last row still visible under the
        entries-per-table limit — the same caveat this rule has always carried. */
     .rec-table tbody tr:last-child td {
@@ -18877,8 +18049,6 @@
     .rec-table tbody tr:last-child td:last-child {
       border-bottom-right-radius: 7px;
     }
-
-
 
     .rec-run-detail {
       display: none;
@@ -18930,8 +18100,6 @@
     .rec-1s-box .cr-box-rank {
       font-size: 0.75rem;
     }
-
-
 
     .rec-rank {
       text-align: center;
@@ -19381,8 +18549,6 @@
     .milestone-table th {
       background: var(--bg3);
       position: relative; }
-
-
 
     .milestone-table tr:last-child td {
       border-bottom: none;
@@ -21597,9 +20763,6 @@
       color: var(--text3);
       margin-right: 0.1rem;
     }
-
-
-
 
     /* The direction arrow, drawn only on the sort in force. Its box is held
        open on all four buttons so the row keeps its widths when the active one
@@ -25163,23 +24326,6 @@ body.yellow-light .hero-icon-crown {
     drop-shadow(0 1px 5px color-mix(in srgb, #f0b429 40%, transparent));
 }
 
-/* ---- Day streak: a flame that grows with the tier -------------------------
-   Replaces the old 📆/🔥/🌟 emoji swap. One object throughout: the tier class
-   set by the count-up drives its size, colour and flicker via custom
-   properties, so the flame grows continuously as the number climbs instead of
-   cutting between three unrelated glyphs. Teardrop = a square with one sharp
-   corner, rotated so that corner points up; a paler core sits inside it. */
-.hero-icon-flame {
-  /* tier 0 / no streak — cold, small, and using the masthead's own muted text
-     colour so it recedes rather than pretending there's a streak */
-  --flame-1: color-mix(in srgb, var(--text3) 75%, transparent);
-  --flame-2: color-mix(in srgb, var(--text3) 40%, transparent);
-  --flame-scale: 0.8;
-  --flame-glow: 3px;
-  filter: drop-shadow(0 0 var(--flame-glow) color-mix(in srgb, var(--flame-1) 60%, transparent));
-  transition: filter 0.4s ease;
-}
-
 /* The outer scaleY is what stops this reading as a water droplet: a rotated
    square is symmetric top-to-bottom, and fire is taller than it is wide.
    Applied outside the rotation (transforms compose right to left) so it
@@ -25199,43 +24345,6 @@ body.yellow-light .hero-icon-crown {
   transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.4s ease;
 }
 
-.hero-flame-core {
-  position: absolute;
-  left: 50%;
-  bottom: 0.06rem;
-  width: 0.36rem;
-  height: 0.36rem;
-  margin-left: -0.18rem;
-  border-radius: 50% 1px 50% 50%;
-  transform-origin: bottom center;
-  transform: scaleY(1.24) rotate(-45deg) scale(var(--flame-scale));
-  background: color-mix(in srgb, #fff 55%, var(--flame-2));
-  opacity: 0.75;
-  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.4s ease;
-}
-
-/* Tier ramp — the same colour progression the streak number already walks
-   through (see .hero-stat--streak-N .hero-val above), so icon and number
-   change together on the same frame. */
-.hero-stat--streak-1 .hero-icon-flame {
-  --flame-1: #e0952e; --flame-2: #f5cf72; --flame-scale: 0.86; --flame-glow: 4px;
-}
-.hero-stat--streak-2 .hero-icon-flame {
-  --flame-1: #ff6a00; --flame-2: #ffb347; --flame-scale: 0.93; --flame-glow: 6px;
-}
-.hero-stat--streak-3 .hero-icon-flame {
-  --flame-1: #ff5400; --flame-2: #ffa02a; --flame-scale: 0.99; --flame-glow: 8px;
-}
-.hero-stat--streak-4 .hero-icon-flame {
-  --flame-1: #ff3d00; --flame-2: #ff9500; --flame-scale: 1.05; --flame-glow: 10px;
-}
-.hero-stat--streak-5 .hero-icon-flame {
-  --flame-1: #ff2200; --flame-2: #ff7a1a; --flame-scale: 1.11; --flame-glow: 12px;
-}
-.hero-stat--streak-6 .hero-icon-flame {
-  --flame-1: #ff8c00; --flame-2: #ffd700; --flame-scale: 1.18; --flame-glow: 14px;
-}
-
 /* The core gutters once the fire is real; faster the hotter it gets */
 @keyframes hero-flame-flicker {
   0%, 100% { opacity: 0.75; }
@@ -25243,21 +24352,8 @@ body.yellow-light .hero-icon-crown {
   55%      { opacity: 0.5; }
   80%      { opacity: 0.95; }
 }
-.hero-stat--streak-3 .hero-flame-core,
-.hero-stat--streak-4 .hero-flame-core {
-  animation: hero-flame-flicker 1.6s ease-in-out infinite;
-}
-.hero-stat--streak-5 .hero-flame-core,
-.hero-stat--streak-6 .hero-flame-core {
-  animation: hero-flame-flicker 0.7s ease-in-out infinite;
-}
 
 /* Legend tier gets the same travelling gold sweep as the number */
-.hero-stat--streak-6 .hero-flame-body {
-  background: linear-gradient(to top right, #ff8c00, #ffd700, #ff8c00);
-  background-size: 220% 220%;
-  animation: hero-flame-legend 2s linear infinite;
-}
 @keyframes hero-flame-legend {
   0%   { background-position: 0% 50%; }
   100% { background-position: 220% 50%; }
@@ -25269,13 +24365,11 @@ body.yellow-light .hero-icon-crown {
   .hero-icon-bars i,
   .hero-crown-body,
   .hero-flame-body,
-  .hero-flame-core,
   .hero-vinyl-disc::before {
     transition: none;
   }
   .hero-vinyl-disc,
   .hero-flame-body,
-  .hero-flame-core,
   .hero-crown-body::before {
     animation: none;
   }
@@ -25302,15 +24396,6 @@ body.yellow-light .hero-icon-crown {
   color: var(--text3);
 }
 
-.hero-stat-pb {
-  font-family: var(--font-mono);
-      font-variant-numeric: tabular-nums;
-  font-size: var(--fs-xs);
-  color: var(--text3);
-  opacity: 0.65;
-  margin-top: 0.1rem;
-}
-
 .hero-stat-sep {
   color: var(--border2);
   font-size: var(--fs-lg);
@@ -25319,43 +24404,12 @@ body.yellow-light .hero-icon-crown {
   opacity: 0.6;
 }
 
-/* Streak intensity tiers */
-.hero-stat--streak-1 .hero-val {
-  color: #f0c060;
-}
 /* The flame ramp was tuned for the old dark masthead. Since phase 5 the
    strip sits on the page, and on the five light themes the yellows and
    oranges wash out. One filter darkens the whole ramp (gradient text too)
    instead of a second set of six colours. */
 body[class*="-light"] .hero-stats [class*="hero-stat--streak-"] .hero-val {
   filter: brightness(0.72) saturate(1.25);
-}
-.hero-stat--streak-2 .hero-val {
-  color: #ff8c00;
-  text-shadow: 0 0 14px rgba(255, 140, 0, 0.45);
-}
-.hero-stat--streak-3 .hero-val {
-  color: #ff6a00;
-  text-shadow: 0 0 14px rgba(255, 106, 0, 0.55);
-  animation: streak-glow-3 3s ease-in-out infinite;
-}
-.hero-stat--streak-4 .hero-val {
-  color: #ff4500;
-  text-shadow: 0 0 18px rgba(255, 69, 0, 0.65);
-  animation: streak-glow-4 2s ease-in-out infinite;
-}
-.hero-stat--streak-5 .hero-val {
-  color: #ff2200;
-  text-shadow: 0 0 22px rgba(255, 34, 0, 0.75);
-  animation: streak-flicker 0.6s ease-in-out infinite;
-}
-.hero-stat--streak-6 .hero-val {
-  background: linear-gradient(90deg, #ffd700, #ff8c00, #ffd700);
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: streak-legend 2s linear infinite;
 }
 @keyframes streak-glow-3 {
   0%, 100% { text-shadow: 0 0 10px rgba(255, 106, 0, 0.35); }
@@ -25869,9 +24923,6 @@ body[class*="-light"] .hero-stats [class*="hero-stat--streak-"] .hero-val {
 
 /* ─── TIME MACHINE TICKER ────────────────────────────────────── */
 .tm-toggle-btns { margin-left: 10px; flex-shrink: 0; }
-
-
-
 
 /* The Time Machine and the Soundtrack reel share this chrome. Neither is a CSS
    marquee any more: both are scrolled from JS by the shared reel engine (see
@@ -30104,18 +29155,6 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
   margin-bottom: 0.55rem;
 }
 
-.streak-item {
-  display: flex;
-  align-items: baseline;
-  gap: 0.45rem;
-  padding: 0.26rem 0;
-  font-size: var(--fs-sm);
-  color: var(--text);
-  line-height: 1.3;
-}
-
-.streak-fire { font-size: var(--fs-sm); flex-shrink: 0; }
-
 .streak-days {
   font-family: var(--font-mono);
       font-variant-numeric: tabular-nums;
@@ -30134,48 +29173,9 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
 
 .streak-sub { color: var(--text2); font-size: var(--fs-sm); }
 
-.streak-name-link {
-  color: inherit;
-  text-decoration: none;
-}
-.streak-name-link:hover {
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
 .streak-name-link--play {
   cursor: pointer;
 }
-
-.streak-type-tag {
-  font-family: var(--font-sans);
-  font-size: var(--fs-xs);
-  color: var(--text3);
-  border: 1px solid var(--border2);
-  border-radius: var(--r-xs);
-  padding: 0.1rem 0.32rem;
-  flex-shrink: 0;
-}
-.streak-type-tag--artist {
-  color: var(--rose);
-  border-color: var(--rose);
-  box-shadow: 0 0 5px color-mix(in srgb, var(--rose) 35%, transparent);
-}
-.streak-type-tag--song {
-  color: var(--green);
-  border-color: var(--green);
-  box-shadow: 0 0 5px color-mix(in srgb, var(--green) 35%, transparent);
-}
-.streak-type-tag--album {
-  color: var(--teal);
-  border-color: var(--teal);
-  box-shadow: 0 0 5px color-mix(in srgb, var(--teal) 35%, transparent);
-}
-
-.streak-item--lost .streak-label,
-.streak-item--lost .streak-days { color: var(--text2); }
-
-.streak-item--risk .streak-label,
-.streak-item--risk .streak-days { color: #e8a020; }
 
 .streak-empty {
   font-family: var(--font-sans);
@@ -30183,8 +29183,6 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
   color: var(--text3);
   padding: 0.2rem 0 0.4rem;
 }
-
-#hero-streak-stat { cursor: pointer; }
 
 /* ── Streak modal: expanded layout ── */
 .streak-modal-box { max-width: 640px; }
@@ -30228,13 +29226,6 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
 .streak-modal-header { align-items: flex-start; flex-wrap: wrap; gap: 0.6rem; padding-right: 6.5rem; }
 .streak-hdr-text { flex: 1; min-width: 0; }
 
-.sk-summary {
-  display: flex;
-  gap: 0.4rem;
-  align-items: center;
-  flex-shrink: 0;
-  margin-top: 0.1rem;
-}
 .sk-stat {
   font-family: var(--font-mono);
       font-variant-numeric: tabular-nums;
@@ -30245,8 +29236,6 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
   border-radius: var(--r-xs);
   padding: 0.15rem 0.45rem;
 }
-.sk-stat--risk { color: #e8a020; border-color: rgba(232,160,32,0.3); }
-.sk-stat--lost { color: var(--text3); }
 
 /* ── Header: kept-today bar + chips (redesign phase 1) ──
    Sits under the title row at full width. Kept part is the fire gradient, the
@@ -30377,13 +29366,7 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
   .sk-play--over svg { width: 10px; height: 10px;
   }
 }
-.streak-item .sk-play { align-self: center; margin-left: 0.15rem; }
 .sk-keptby { font-size: 0.7rem; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 40%; flex-shrink: 1; }
-
-.sk-atrisk-btn--primary {
-  background: linear-gradient(135deg, #ff6a3d, #e8365d); border-color: transparent; color: #fff; font-weight: 600;
-}
-.sk-atrisk-btn--primary:hover { color: #fff; border-color: transparent; filter: brightness(1.1); background: linear-gradient(135deg, #ff6a3d, #e8365d); }
 
 /* Save-plan action bar: one big "▶ Play all N" in the streak fire gradient (same
    as the kept-today bar) + three ghost icon buttons on the right. */
@@ -30478,22 +29461,6 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
 .sk-chev { font-size: 0.58rem; flex-shrink: 0; }
 .streak-count { font-size: var(--fs-xs); opacity: 0.55; font-weight: normal; }
 
-/* ── At Risk section action buttons (Play All / Queue All / Save Playlist) ── */
-.sk-sec-btns { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 0.3rem; margin-left: 0.4rem; }
-.sk-atrisk-btn {
-  background: none;
-  border: 1px solid var(--border2);
-  border-radius: var(--r-xs);
-  color: var(--text2);
-  cursor: pointer;
-  font-family: var(--font-sans);
-  font-size: var(--fs-xs);
-  padding: 2px 6px;
-  white-space: nowrap;
-  transition: color 0.15s, border-color 0.15s;
-}
-.sk-atrisk-btn:hover { background: var(--surface); color: #FF0000; border-color: #FF0000; }
-
 /* ── Item extras ── */
 .sk-since {
   font-family: var(--font-mono);
@@ -30503,7 +29470,6 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
   flex-shrink: 0;
   white-space: nowrap;
 }
-.sk-pb { font-size: var(--fs-xs); flex-shrink: 0; cursor: default; line-height: 1; }
 .sk-ms {
   font-family: var(--font-mono);
       font-variant-numeric: tabular-nums;
@@ -30544,115 +29510,11 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
 }
 .sk-cal-trig:hover { opacity: 1; color: var(--accent); }
 
-/* ── Urgency banners ── */
-.sk-urgency {
-  font-family: var(--font-mono);
-      font-variant-numeric: tabular-nums;
-  font-size: var(--fs-xs);
-  padding: 0.45rem 1.4rem;
-  border-bottom: 1px solid var(--border);
-}
-.sk-urg--critical { background: rgba(220,50,50,0.1); color: #ff7070; }
-.sk-urg--warning  { background: rgba(232,160,32,0.09); color: #e8a020; }
-.sk-urg--mild     { background: rgba(255,200,80,0.05); color: var(--text2); }
-.sk-urg--safe     { color: var(--text3); }
-
-/* ── Weekly digest ── */
-.sk-weekly {
-  font-family: var(--font-mono);
-      font-variant-numeric: tabular-nums;
-  font-size: var(--fs-xs);
-  color: var(--text2);
-  padding: var(--sp-2) 1.4rem;
-  border-bottom: 1px solid var(--border);
-  background: rgba(255,255,255,0.015);
-}
-.sk-weekly strong { color: var(--text); }
-
 /* ── Hall of Fame section ── */
 .streak-section--fame .streak-section-title { color: #f0c040; }
 
 /* ── Hall of Fame plaque grid ── */
-.sk-hof-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-  gap: 0.55rem;
-  padding: 0.65rem 0.9rem 0.9rem;
-}
-.sk-hof-card {
-  display: flex;
-  gap: 0.55rem;
-  background: color-mix(in srgb, #c89b3c 5%, var(--bg2));
-  /* gold tint carries the Hall-of-Fame accent — side stripe dropped (2026 redesign) */
-  border: 1px solid color-mix(in srgb, #c89b3c 35%, var(--border));
-  border-radius: var(--r-sm);
-  padding: 0.6rem 0.7rem;
-}
-.sk-hof-rank {
-  font-family: var(--font-mono);
-      font-variant-numeric: tabular-nums;
-  font-size: var(--fs-xs);
-  font-weight: 700;
-  color: #c89b3c;
-  min-width: 1.6rem;
-  padding-top: 0.1rem;
-  flex-shrink: 0;
-}
 .sk-hof-body { flex: 1; min-width: 0; }
-.sk-hof-name {
-  font-size: var(--fs-sm);
-  font-weight: 600;
-  color: var(--text);
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  flex-wrap: wrap;
-  line-height: 1.3;
-  margin-bottom: 0.1rem;
-}
-.sk-hof-sub {
-  font-size: var(--fs-xs);
-  color: var(--text2);
-  margin-bottom: 0.28rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.sk-hof-record {
-  font-family: var(--font-mono);
-      font-variant-numeric: tabular-nums;
-  font-size: var(--fs-xs);
-  color: #f0c040;
-  font-weight: 700;
-  margin-bottom: 0.18rem;
-}
-.sk-hof-record .streak-days { font-size: var(--fs-base); }
-.sk-hof-dates {
-  font-family: var(--font-mono);
-      font-variant-numeric: tabular-nums;
-  font-size: var(--fs-xs);
-  color: var(--text3);
-  margin-bottom: 0.28rem;
-}
-.sk-hof-foot { display: flex; align-items: center; gap: 0.35rem; }
-.sk-hof-badge {
-  font-family: var(--font-sans);
-  font-size: var(--fs-xs);
-  padding: 0.1rem 0.3rem;
-  border-radius: var(--r-xs);
-}
-.sk-hof-badge--active {
-  background: rgba(255, 120, 40, 0.13);
-  color: #ff8840;
-  border: 1px solid rgba(255, 120, 40, 0.28);
-}
-.sk-hof-badge--ended {
-  background: transparent;
-  color: var(--text3);
-  border: 1px solid var(--border);
-}
-.sk-hof-cal { font-size: var(--fs-xs); color: var(--text3); cursor: pointer; }
-.sk-hof-cal:hover { color: var(--text2); }
 
 /* ── Graveyard tab ── */
 .sk-grave-hdr {
@@ -30668,7 +29530,6 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
   border-radius: var(--r-sm);
   margin: var(--sp-3) 1.4rem var(--sp-4);
 }
-.sk-tab-pane > .streak-item { padding: 0.26rem 1.4rem; }
 
 /* ── Calendar strip tooltip ── */
 .sk-cal-tip {
@@ -30740,24 +29601,10 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
 
 /* Controls */
 .sk-hm-controls { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.65rem; }
-.sk-hm-ranges { display: flex; gap: 3px; flex-wrap: wrap; }
-.sk-hm-rbtn {
-  font-family: var(--font-sans); font-size: var(--fs-xs); padding: 2px 7px;
-  border-radius: var(--r-xs); border: 1px solid var(--border2); background: transparent;
-  color: var(--text3); cursor: pointer; transition: background 0.13s, color 0.13s;
-}
-.sk-hm-rbtn:hover { background: var(--hover); color: var(--text2); } /* phase 3: was a white wash, invisible on light themes */
-.sk-hm-rbtn.active { background: var(--raised); color: var(--text); border-color: var(--border2); } /* phase 3: was a white wash, invisible on light themes */
 .sk-hm-themes { display: flex; gap: var(--sp-1); align-items: center; }
 .sk-hm-tswatch { width: 20px; height: 9px; border-radius: 2px; cursor: pointer; border: 1.5px solid transparent; transition: border-color 0.15s; }
 .sk-hm-tswatch.active { border-color: rgba(255,255,255,0.55); }
 .sk-hm-tswatch:hover { border-color: rgba(255,255,255,0.3); }
-
-/* Summary stats */
-.sk-hm-summary { display: flex; gap: var(--sp-4); flex-wrap: wrap; margin-bottom: 0.3rem; }
-.sk-hm-stat { font-family: var(--font-mono);
-      font-variant-numeric: tabular-nums; font-size: var(--fs-xs); color: var(--text3); }
-.sk-hm-stat strong { color: var(--text2); }
 
 /* Callout */
 .sk-hm-callout { font-family: var(--font-sans); font-size: var(--fs-xs); color: var(--text3); margin-bottom: 0.55rem; }
@@ -30786,14 +29633,6 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
 }
 .sk-hm-col-anim { animation: sk-hm-pop 0.18s ease-out both; transform-origin: bottom; }
 
-/* Category breakdown */
-.sk-hm-cats { margin-top: 1.2rem; display: flex; flex-direction: column; gap: 1.1rem; }
-.sk-hm-cat-label { font-family: var(--font-sans); font-size: 0.52rem; color: var(--text3); margin-bottom: 3px; }
-.sk-hm-cat-grid { display: flex; gap: 2px; }
-.sk-hm-cat-col { display: flex; flex-direction: column; gap: 2px; }
-.sk-hm-cat-cell { width: 9px; height: 9px; border-radius: 1.5px; flex-shrink: 0; }
-.sk-hm-cat-has { cursor: pointer; }
-
 /* Legend row */
 .sk-hm-leg-row { display: flex; align-items: center; justify-content: space-between; margin-top: 0.7rem; }
 .sk-hm-legend-inner { display: flex; align-items: flex-end; gap: 3px; font-family: var(--font-sans); font-size: 0.55rem; color: var(--text3); }
@@ -30820,10 +29659,6 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
 /* Drill-down panel */
 .sk-hm-drill { margin-top: 0.8rem; background: rgba(255,255,255,0.04); border: 1px solid var(--border2, rgba(255,255,255,0.08)); border-radius: var(--r-sm); padding: 0.65rem 0.9rem; }
 .sk-hm-drill-hdr { font-family: var(--font-sans); font-size: var(--fs-xs); color: var(--text2); font-weight: 600; margin-bottom: 0.45rem; }
-.sk-hm-drill-list { margin: 0; padding-left: 1.1rem; font-family: var(--font-sans); font-size: var(--fs-xs); color: var(--text3); column-count: 2; column-gap: var(--sp-5); }
-.sk-hm-drill-list li { padding: 1.5px 0; break-inside: avoid; }
-
-#hero-streak-stat:hover { opacity: 0.85; }
 
 /* ═══════════════════════════════════════════════════════════════
    YOUR SOUNDTRACK — Wrapped-style story page
@@ -34017,7 +32852,6 @@ body.st-story-open { overflow: hidden; }
   50%       { transform: scale(1.22); filter: drop-shadow(0 0 10px rgba(128,200,255,0.9)) brightness(1.3); }
 }
 
-
 @keyframes np-eq-bounce {
   0%, 100% { transform: scaleY(0.25); }
   50%      { transform: scaleY(1); }
@@ -35024,8 +33858,6 @@ body[class*="-light"] [class*="ns-tier-"] .ns-flame {
   }
 }
 
-
-
 /* ── ADJUSTABLE COLUMNS (chart tables, _colw* in app.js) ──
    A drag handle on the right edge of each resizable header; once a table has
    saved widths it switches to fixed layout so the header widths are exact. */
@@ -35462,7 +34294,6 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
   .wv-compact .pk-label { display: none; }
   .wv-compact .pk-medal { display: inline; margin-right: 2px; }
 }
-
 
 /* ── MOSAIC ── (phase 7 step 8, 4.9b): a ranked grid of square tiles
    (it was a treemap sized by plays, which read in a jumble). A 20-column
@@ -35954,10 +34785,10 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
 .wv-title-link { cursor: pointer; }
 .wv-title-link:hover { color: var(--accent); text-decoration: underline; }
 /* phase 3: neutral, like .yt-play-btn */
-.wv-bar-fill.wv-bar-up,   .play-bar-fill.wv-bar-up   { background: var(--chart-up); }
-.wv-bar-fill.wv-bar-down, .play-bar-fill.wv-bar-down { background: var(--chart-down); }
-.wv-bar-fill.wv-bar-new,  .play-bar-fill.wv-bar-new  { background: var(--chart-new); }
-.wv-bar-fill.wv-bar-re,   .play-bar-fill.wv-bar-re   { background: var(--chart-re); }
+.wv-bar-fill.wv-bar-up { background: var(--chart-up); }
+.wv-bar-fill.wv-bar-down { background: var(--chart-down); }
+.wv-bar-fill.wv-bar-new { background: var(--chart-new); }
+.wv-bar-fill.wv-bar-re { background: var(--chart-re); }
 
 /* ═══════════════════════════════════════════════════════════════════════
    LIGHT THEME CONTRAST FIXES
@@ -36052,15 +34883,6 @@ body.red-light .bu-count-pill {
   color: var(--teal);
   background: var(--surface);
   border-color: var(--border2);
-}
-
-/* 7b. BU badges — the per-colour light overrides were removed in the phase 3
-   colour pass: tags now use --raised / --text2 / --chart-up / --chart-down,
-   which already have light-theme values. */
-body.navy-light .dropout-streak-note,   body.purple-light .dropout-streak-note,
-body.yellow-light .dropout-streak-note, body.pink-light .dropout-streak-note,
-body.red-light .dropout-streak-note {
-  color: #701a75;
 }
 
 /* 7c. BU chart run boxes + toggle buttons — neon rank text and invisible white border */
@@ -36300,21 +35122,6 @@ body.red-light .streak-modal-header {
   background: linear-gradient(135deg, var(--surface), var(--bg3));
 }
 
-/* Urgency banners: neon colors unreadable on light backgrounds */
-body.navy-light .sk-urg--critical,   body.purple-light .sk-urg--critical,
-body.yellow-light .sk-urg--critical, body.pink-light .sk-urg--critical,
-body.red-light .sk-urg--critical {
-  color: #b91c1c;
-  background: rgba(220, 38, 38, 0.08);
-}
-
-body.navy-light .sk-urg--warning,   body.purple-light .sk-urg--warning,
-body.yellow-light .sk-urg--warning, body.pink-light .sk-urg--warning,
-body.red-light .sk-urg--warning {
-  color: #92400e;
-  background: rgba(146, 64, 14, 0.07);
-}
-
 /* Off the Chart severe-dropout marker: #ff7070 too light on light backgrounds */
 body.navy-light .dropout-row--severe,   body.purple-light .dropout-row--severe,
 body.yellow-light .dropout-row--severe, body.pink-light .dropout-row--severe,
@@ -36323,40 +35130,7 @@ body.red-light .dropout-row--severe {
   border-left-color: #b91c1c;
 }
 
-body.navy-light .dropout-row--severe .dropout-rank,   body.purple-light .dropout-row--severe .dropout-rank,
-body.yellow-light .dropout-row--severe .dropout-rank, body.pink-light .dropout-row--severe .dropout-rank,
-body.red-light .dropout-row--severe .dropout-rank {
-  color: #b91c1c;
-}
-
-/* At-risk streak items: #e8a020 orange too light on light backgrounds */
-body.navy-light .streak-item--risk .streak-label,
-body.navy-light .streak-item--risk .streak-days,
-body.purple-light .streak-item--risk .streak-label,
-body.purple-light .streak-item--risk .streak-days,
-body.yellow-light .streak-item--risk .streak-label,
-body.yellow-light .streak-item--risk .streak-days,
-body.pink-light .streak-item--risk .streak-label,
-body.pink-light .streak-item--risk .streak-days,
-body.red-light .streak-item--risk .streak-label,
-body.red-light .streak-item--risk .streak-days {
-  color: #92400e;
-}
-
-/* Risk stat chip in modal header */
-body.navy-light .sk-stat--risk,   body.purple-light .sk-stat--risk,
-body.yellow-light .sk-stat--risk, body.pink-light .sk-stat--risk,
-body.red-light .sk-stat--risk {
-  color: #92400e;
-  border-color: rgba(146, 64, 14, 0.3);
-}
-
 /* Hall of Fame: gold #f0c040 near-invisible on white/light backgrounds */
-body.navy-light .sk-hof-record,   body.purple-light .sk-hof-record,
-body.yellow-light .sk-hof-record, body.pink-light .sk-hof-record,
-body.red-light .sk-hof-record {
-  color: #92400e;
-}
 
 body.navy-light .streak-section--fame .streak-section-title,
 body.purple-light .streak-section--fame .streak-section-title,
@@ -36366,65 +35140,12 @@ body.red-light .streak-section--fame .streak-section-title {
   color: #92400e;
 }
 
-/* HoF active badge: #ff8840 orange unreadable on light */
-body.navy-light .sk-hof-badge--active,   body.purple-light .sk-hof-badge--active,
-body.yellow-light .sk-hof-badge--active, body.pink-light .sk-hof-badge--active,
-body.red-light .sk-hof-badge--active {
-  color: #92400e;
-  background: rgba(146, 64, 14, 0.09);
-  border-color: rgba(146, 64, 14, 0.28);
-}
-
 /* Milestone badge: neon green tint invisible/jarring on light backgrounds */
 body.navy-light .sk-ms,   body.purple-light .sk-ms,
 body.yellow-light .sk-ms, body.pink-light .sk-ms,
 body.red-light .sk-ms {
   background: rgba(0, 0, 0, 0.04);
   border-color: rgba(0, 0, 0, 0.15);
-}
-
-/* Chart Breakdown table (artist/album modals): the weekly/monthly/yearly/
-   all-time neon header hues (#60a5fa/#34d399/#fb923c/#fbbf24) and the
-   songs/albums/tracks row-label pastels are unreadable on light backgrounds
-   — swap in darker AA-contrast versions of the same hues. */
-body.navy-light .modal-cb-th--weekly,   body.purple-light .modal-cb-th--weekly,
-body.yellow-light .modal-cb-th--weekly, body.pink-light .modal-cb-th--weekly,
-body.red-light .modal-cb-th--weekly {
-  color: #1d4ed8 !important;
-  border-top-color: #1d4ed8;
-}
-body.navy-light .modal-cb-th--monthly,   body.purple-light .modal-cb-th--monthly,
-body.yellow-light .modal-cb-th--monthly, body.pink-light .modal-cb-th--monthly,
-body.red-light .modal-cb-th--monthly {
-  color: #047857 !important;
-  border-top-color: #047857;
-}
-body.navy-light .modal-cb-th--yearly,   body.purple-light .modal-cb-th--yearly,
-body.yellow-light .modal-cb-th--yearly, body.pink-light .modal-cb-th--yearly,
-body.red-light .modal-cb-th--yearly {
-  color: #c2410c !important;
-  border-top-color: #c2410c;
-}
-body.navy-light .modal-cb-th--alltime,   body.purple-light .modal-cb-th--alltime,
-body.yellow-light .modal-cb-th--alltime, body.pink-light .modal-cb-th--alltime,
-body.red-light .modal-cb-th--alltime {
-  color: #92400e !important;
-  border-top-color: #92400e;
-}
-body.navy-light .modal-cb-label--songs,   body.purple-light .modal-cb-label--songs,
-body.yellow-light .modal-cb-label--songs, body.pink-light .modal-cb-label--songs,
-body.red-light .modal-cb-label--songs {
-  color: #1d4ed8;
-}
-body.navy-light .modal-cb-label--albums,   body.purple-light .modal-cb-label--albums,
-body.yellow-light .modal-cb-label--albums, body.pink-light .modal-cb-label--albums,
-body.red-light .modal-cb-label--albums {
-  color: #6d28d9;
-}
-body.navy-light .modal-cb-label--tracks,   body.purple-light .modal-cb-label--tracks,
-body.yellow-light .modal-cb-label--tracks, body.pink-light .modal-cb-label--tracks,
-body.red-light .modal-cb-label--tracks {
-  color: #047857;
 }
 
 /* Modal peak/rank medals — #ffd700 gold (~1.4:1), #c0c8d8 silver and the
@@ -36455,16 +35176,6 @@ body.pink-light :is(.sv--bronze, .modal-cb-detail-peak--bronze),
 body.red-light :is(.sv--bronze, .modal-cb-detail-peak--bronze) {
   color: var(--medal-bronze);
   text-shadow: none;
-}
-body.navy-light .modal-rank-card--gold,   body.purple-light .modal-rank-card--gold,
-body.yellow-light .modal-rank-card--gold, body.pink-light .modal-rank-card--gold,
-body.red-light .modal-rank-card--gold {
-  border-color: color-mix(in srgb, var(--medal-gold) 35%, transparent);
-}
-body.navy-light .modal-rank-card--year .mrc-rank,   body.purple-light .modal-rank-card--year .mrc-rank,
-body.yellow-light .modal-rank-card--year .mrc-rank, body.pink-light .modal-rank-card--year .mrc-rank,
-body.red-light .modal-rank-card--year .mrc-rank {
-  color: #1d4ed8;
 }
 
 /* ── RESPONSIVE ── */
@@ -38884,9 +37595,6 @@ body.red-light .modal-rank-card--year .mrc-rank {
 
 .rt-sep-seg { flex-shrink: 0; }
 
-
-
-
 .rt-sep-hint {
   margin-top: 0.55rem;
 }
@@ -38894,7 +37602,6 @@ body.red-light .modal-rank-card--year .mrc-rank {
 /* The charts level of the roll-up needs singles separated, so it sits there
    visibly unavailable rather than vanishing — the row would otherwise change
    shape depending on a setting three lines above it. */
-
 
 /* Says the album total counted its singles. A quiet chip beside the release
    controls: the number above it is not the one the user would get by adding
@@ -38992,7 +37699,6 @@ body.red-light .modal-rank-card--year .mrc-rank {
   color: var(--text3);
   line-height: 1.5;
 }
-
 
 .rtd-stop-btn { margin-top: 0.6rem; }
 
@@ -39202,11 +37908,8 @@ body.red-light .modal-rank-card--year .mrc-rank {
   display: none;
 }
 
-
 /* Same chip as the Certifications Wall's filter buttons — the two controls do
    the same job on the same plaques, so they should not look like two ideas. */
-
-
 
 /* The count rides a step quieter than its label — it is the supporting fact,
    not the name of the button. On the active chip it inherits the accent's own
@@ -39535,7 +38238,6 @@ body.red-light .modal-rank-card--year .mrc-rank {
       font-weight: 900;
       margin-bottom: 0.3rem;
     }
-    .rt-block-sub { font-size: var(--fs-sm); color: var(--text3); margin-bottom: 0.55rem; }
     .rt-block-note {
       margin: 0 0 0.6rem;
       padding-left: 0.7rem;
@@ -39613,8 +38315,6 @@ body.red-light .modal-rank-card--year .mrc-rank {
       font-size: var(--fs-xs);
       font-weight: 700;
     }
-    .rt-pill--btn { cursor: pointer; }
-    .rt-pill--btn:hover { background: color-mix(in srgb, var(--rt-c) 24%, transparent); }
 
     /* ── Track / album score tables ─────────────────────────────── */
     .rt-tracktable { display: flex; flex-direction: column; gap: 1px; }
@@ -39639,23 +38339,8 @@ body.red-light .modal-rank-card--year .mrc-rank {
     .rt-tt-plays { flex: 0 0 auto; font-size: var(--fs-xs); color: var(--text3); font-variant-numeric: tabular-nums; }
     .rt-tt-unrated { flex: 0 0 auto; font-size: var(--fs-xs); color: var(--text3); font-style: italic; }
 
-    /* Artist modal album rows: the row opens the rating editor, the arrow button opens the album. */
-    .rt-tt-editable:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
-    .rt-tt-cta {
-      flex: 0 0 auto;
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      color: var(--accent);
-      opacity: 0;
-      transition: opacity 0.12s ease;
-    }
-    .rt-tt-editable:hover .rt-tt-cta,
-    .rt-tt-editable:focus-visible .rt-tt-cta { opacity: 1; }
     /* Touch screens have no hover, so the hint stays visible there. */
-    @media (hover: none) { .rt-tt-cta { opacity: 1; } }
     .rt-sub-count { margin-left: 0.3rem; color: var(--text3); font-weight: 400; }
-    .rt-tt-more { align-self: flex-start; margin-top: 0.45rem; }
-    .rt-block--pending { margin-top: 0.6rem; }
 
     /* ═══ RATING EDITOR MODAL ═══════════════════════════════════
        On the shared window frame since phase 10 step 7: #ratingModalBody
@@ -39679,22 +38364,12 @@ body.red-light .modal-rank-card--year .mrc-rank {
     }
     .rt-back:hover { text-decoration: underline; }
 
-    .rt-edit-head {
-      display: flex;
-      align-items: flex-start;
-      gap: 1.2rem;
-      padding-bottom: var(--sp-4);
-      border-bottom: 1px solid var(--border);
-      flex-wrap: wrap;
-    }
-    .rt-edit-titles { flex: 1 1 220px; min-width: 0; }
     .rt-edit-kind {
       font-size: var(--fs-xs);
       color: var(--text3);
       font-weight: 800;
     }
     .rt-edit-title { font-size: var(--fs-md); font-weight: 900; line-height: 1.25; margin: 0.15rem 0; }
-    .rt-edit-sub { font-size: var(--fs-sm); color: var(--text2); }
 
     /* Live formula readout — shows exactly how the album total is being built,
        so the weighting is never a black box. */
@@ -39758,7 +38433,6 @@ body.red-light .modal-rank-card--year .mrc-rank {
     .rt-edit-row:last-child { border-bottom: none; }
     .rt-edit-row--na { opacity: 0.5; }
     .rt-edit-label { flex: 1 1 210px; min-width: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.35rem; }
-    .rt-edit-emoji { font-size: var(--fs-base); }
     .rt-edit-name { font-size: var(--fs-sm); font-weight: 700; color: var(--text); }
     .rt-edit-desc { flex: 1 1 100%; font-size: var(--fs-xs); color: var(--text3); line-height: 1.4; }
     .rt-edit-controls { display: flex; align-items: center; gap: var(--sp-2); flex: 0 0 auto; }
@@ -39887,15 +38561,6 @@ body.red-light .modal-rank-card--year .mrc-rank {
     }
     .rt-note:focus { border-color: var(--accent); outline: none; }
 
-    .rt-edit-actions {
-      display: flex;
-      justify-content: space-between;
-      gap: 0.6rem;
-      margin-top: 1.2rem;
-      padding-top: var(--sp-4);
-      border-top: 1px solid var(--border);
-    }
-
     /* ── Phase 10 step 7: the editor's rows, sliders and score boxes ──
        Each criterion is a row with a line-icon tile; a slider shows its
        filled part (--p, set by _ratingPaintSlider) in the accent, with a
@@ -39986,15 +38651,6 @@ body.red-light .modal-rank-card--year .mrc-rank {
     /* Score distribution. One series, so no legend; the count sits above each
        column and the bucket below it, which is what keeps the encoding readable
        without relying on the band colour. */
-    .rt-dist { margin-bottom: 0.4rem; }
-    .rt-dist-plot {
-      display: flex;
-      align-items: flex-end;
-      gap: 2px;                 /* 2px surface gap between adjacent bars */
-      height: 132px;
-      padding-top: 0.4rem;
-    }
-    .rt-dist-col { flex: 1 1 0; display: flex; flex-direction: column; height: 100%; min-width: 0; }
     .rt-dist-count {
       font-size: var(--fs-xs);
       font-weight: 800;
@@ -40003,86 +38659,8 @@ body.red-light .modal-rank-card--year .mrc-rank {
       height: 1rem;
       font-variant-numeric: tabular-nums;
     }
-    .rt-dist-bar-wrap { flex: 1 1 auto; display: flex; align-items: flex-end; }
-    .rt-dist-bar {
-      width: 100%;
-      /* Keeps a bucket with very few entries visible next to a tall one. Empty
-         buckets emit no bar at all, so this never paints a bare colour sliver. */
-      min-height: 3px;
-      /* Phase 3 colour pass: one colour for every bar. Each bar used to take
-         its score band's colour (a rainbow), which looked like it meant
-         something beyond the tick under it. The band class is still on the
-         bar from app.js; the score chips elsewhere keep their band colours. */
-      background: var(--accent);
-      /* Phase 9 part 2 step 4: still one colour, but lighter or darker by
-         score. app.js sets --rt-mix per bucket (40% for 0, 100% for 9–10),
-         mixed into the card colour, so low scores recede on every theme. */
-      background: color-mix(in srgb, var(--accent) var(--rt-mix, 100%), var(--bg2));
-      /* Rounded data-end only, anchored flat to the baseline. */
-      border-radius: var(--r-xs) 4px 0 0;
-    }
-    .rt-dist-tick {
-      font-size: var(--fs-xs);
-      color: var(--text3);
-      text-align: center;
-      padding-top: var(--sp-1);
-      border-top: 1px solid var(--border);   /* recessive baseline */
-      margin-top: 0.2rem;
-      font-variant-numeric: tabular-nums;
-    }
-    .rt-dist-axis { font-size: var(--fs-xs); color: var(--text3); text-align: center; margin-top: 0.15rem; }
 
-    .rt-bestworst {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 0.7rem;
-      margin-top: var(--sp-4);
-    }
-    .rt-bw-card { padding: 0.85rem var(--sp-4); color: var(--text); cursor: pointer; text-align: left; transition: border-color 0.15s ease, transform 0.12s ease; }
-    .rt-bw-card:hover { border-color: var(--accent); transform: translateY(-2px); }
-    .rt-bw-lead {
-      font-size: var(--fs-xs);
-      color: var(--text3);
-      font-weight: 800;
-      margin-bottom: 0.35rem;
-    }
-    .rt-bw-name { font-size: var(--fs-base); font-weight: 800; line-height: 1.3; }
-    .rt-bw-artist { font-size: var(--fs-sm); color: var(--text2); margin-bottom: 0.4rem; }
-
-    .rt-lib-controls {
-      display: flex;
-      justify-content: space-between;
-      gap: 0.7rem;
-      flex-wrap: wrap;
-      margin: 1.1rem 0 0.6rem;
-    }
     
-
-    .rt-lib-table { display: flex; flex-direction: column; gap: 1px; max-height: 520px; overflow-y: auto; }
-    .rt-lib-row {
-      display: flex;
-      align-items: center;
-      gap: 0.7rem;
-      padding: var(--sp-2) 0.7rem;
-      background: var(--bg2);
-      border: none;
-      border-left: 2px solid transparent;
-      color: var(--text);
-      cursor: pointer;
-      text-align: left;
-      transition: background 0.12s ease, border-color 0.12s ease;
-    }
-    .rt-lib-row:hover { background: var(--surface); border-left-color: var(--accent); }
-    .rt-lib-rank {
-      flex: 0 0 2rem;
-      font-size: var(--fs-xs);
-      font-weight: 800;
-      color: var(--text3);
-      font-variant-numeric: tabular-nums;
-    }
-    .rt-lib-name { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; font-size: var(--fs-sm); font-weight: 600; }
-    .rt-lib-artist { font-size: var(--fs-xs); color: var(--text3); font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .rt-lib-plays { flex: 0 0 auto; font-size: var(--fs-xs); color: var(--text3); font-variant-numeric: tabular-nums; }
 
     .rt-unrated-grid {
       display: grid;
@@ -40230,7 +38808,6 @@ body.red-light .modal-rank-card--year .mrc-rank {
       text-align: center;
       line-height: 1.5;
     }
-    .rt-empty--big { padding: var(--sp-5) var(--sp-4); }
     .rt-quick-note { font-size: var(--fs-sm); color: var(--text3); font-style: italic; margin-top: 0.8rem; }
 
     /* ── Narrow screens ─────────────────────────────────────────── */
@@ -40240,8 +38817,6 @@ body.red-light .modal-rank-card--year .mrc-rank {
       .rt-slider { width: 100%; flex: 1 1 auto; }
       .rt-slider--track { width: auto; }
       .rt-formula-note { margin-left: 0; flex: 1 1 100%; }
-      .rt-lib-controls { flex-direction: column; }
-      .rt-dist-plot { height: 104px; }
       .rt-dist-count { font-size: var(--fs-xs); }
     }
 
@@ -40294,7 +38869,6 @@ body.red-light .modal-rank-card--year .mrc-rank {
 
 .cl-close {
   flex: 0 0 auto; }
-
 
 /* Stat strip: the shape of the whole history in one line. */
 .cl-stats {
@@ -40538,7 +39112,6 @@ body.red-light .modal-rank-card--year .mrc-rank {
 .pdf-scope { margin: var(--sp-1) 0 var(--sp-3); }
 .pdf-scope .sh-seg-btn { flex: 1; }
 .pdf-box .src-switch-row { margin-bottom: var(--sp-2); }
-.pdf-hint { margin: var(--sp-3) 0 var(--sp-4); }
 
 /* "Descriptions" switch in each chart's ⋮ → Show menu (toggleSectionDisplay 'desc')
    hides the grey one-line explainers under that chart's headings */
@@ -41060,7 +39633,6 @@ body.cp-hide-cert-reel    #certReelSection { display: none !important; }
 .cr-panel .ea-dr-btn.ea-sample.is-loading { animation: eaPulse 1s ease-in-out infinite; }
 .cr-panel .ea-dr-btn.ea-sample.is-miss { opacity: 0.5; }
 .ea-dr-btn:focus-visible, .ea-dr-close:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-
 
 /* The drawer shows everything, whatever ⋮ → Show hides on the chart's face.
    Those switches hide badges with !important rules under the section id, so
@@ -43988,7 +42560,6 @@ body.pink-light .sk-hm-tswatch.active, body.red-light .sk-hm-tswatch.active { bo
 @media (max-width: 520px) {
   .sk-sotd, .sk-ms-today { margin-left: 0.9rem; margin-right: 0.9rem; }
 }
-
 
 /* ═══ AROUND THE CHART (phase 7 step 10) ═════════════════════════════════════
    Bubbling Under, Off the Chart and New Entries as three tabs of one box
