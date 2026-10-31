@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Share your Stats Overview, and tiles that lead somewhere":
+    ["Partilha a tua Visão geral, e números que levam a algum lado",
+     "A Visão geral das Estatísticas tem um botão Partilhar ao lado da frase: cria uma imagem com a frase e os quatro números nas cores do teu tema, pronta a publicar, ou guarda-a se o teu dispositivo não puder partilhar. Cada número tem agora também uma ligação para a vista completa: Plays para os teus plays ao longo do tempo, Músicas Únicas para as tuas descobertas em A tua história, e Artistas e Álbuns para Comparar, com o teu top 3 do período. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
   "Where your plays went":
     ["Para onde foram os teus plays",
      "A Visão geral das Estatísticas tem agora duas barras que dividem os plays do intervalo de datas. Novo ou conhecido? mostra quantos plays foram de músicas que tinhas descoberto há menos de 30 dias, menos de um ano, ou um ano ou mais. Quanto foi para os teus 5 artistas principais? mostra cada um com a sua cor contra todos os outros; clica num nome para abrir o artista. Funciona com Last.fm, Google Sheets e ficheiros CSV."],

@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Share your Stats Overview, and tiles that lead somewhere":
+    ["Comparte tu Resumen de Estadísticas, y cifras que llevan a algún sitio",
+     "El Resumen de Estadísticas tiene un botón Compartir junto a su frase: crea una imagen con la frase y las cuatro cifras en los colores de tu tema, lista para publicar, o la guarda si tu dispositivo no puede compartir. Cada cifra tiene además un enlace a su vista completa: Reproducciones a tus reproducciones en el tiempo, Canciones Únicas a tus descubrimientos en Tu historia, y Artistas y Álbumes a Comparar, con tu top 3 del periodo. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Where your plays went":
     ["Adónde fueron tus reproducciones",
      "El Resumen de Estadísticas tiene ahora dos barras que dividen las reproducciones del rango de fechas. ¿Nuevo o conocido? muestra cuántas fueron para canciones que habías descubierto hacía menos de 30 días, menos de un año, o un año o más. ¿Cuánto fue para tus 5 artistas principales? muestra a cada uno con su color frente a todos los demás; haz clic en un nombre para abrir al artista. Funciona con Last.fm, Google Sheets y archivos CSV."],

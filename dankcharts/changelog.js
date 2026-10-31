@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 393;
+const DC_CL_I18N_V = 394;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-31', t: 'feature', a: 'graphs', h: 'f9fba26',
+    title: "Share your Stats Overview, and tiles that lead somewhere",
+    detail: "The Stats Overview has a Share button beside its sentence: it makes a picture of the sentence and the four stat tiles in your theme's colours, ready to post, or saves it if your device can't share. Each tile now also has a link to its longer view: Total Plays to your plays over time, Unique Songs to your discoveries in Story, and Artists and Albums to Compare, filled with your top 3 for the range. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-31', t: 'feature', a: 'graphs', h: 'd053b2d',
     title: "Where your plays went",
     detail: "The Stats Overview now has two bars that split the date range's plays. New or familiar? shows how many plays went to songs you had found less than 30 days before, less than a year before, or a year or more before. How much went to your top 5 artists? shows each of them in their own colour against everyone else; click a name to open the artist. Works with Last.fm, Google Sheets and CSV uploads." },
