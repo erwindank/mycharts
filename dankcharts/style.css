@@ -10883,6 +10883,19 @@
       .sx-hero { padding: var(--sp-4); }
     }
     .sx-tile { background: color-mix(in srgb, var(--bg) 45%, var(--bg2)); }
+    /* The sentence with Share beside it (under it on phones) */
+    .sx-hero-top { display: flex; align-items: flex-start; gap: var(--sp-4); margin-bottom: var(--sp-4); }
+    .sx-hero-top .sx-hero-line { flex: 1 1 auto; margin-bottom: 0; }
+    .sx-hero-share { flex: none; }
+    @media (max-width: 640px) { .sx-hero-top { flex-direction: column; gap: var(--sp-3); } }
+    /* Each tile's link to its longer view */
+    .sx-tile { display: flex; flex-direction: column; }
+    .sx-tile-go {
+      margin-top: auto; align-self: center; padding: var(--sp-2) var(--sp-2) 0; background: none; border: 0; cursor: pointer;
+      font: inherit; font-size: var(--fs-xs); font-weight: 600; color: var(--accent);
+    }
+    .sx-tile-go:hover { text-decoration: underline; text-underline-offset: 3px; }
+    .sx-tile-go:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: var(--r-sm); }
 
     /* ── Overview cards under the hero (phase 16) ── */
     .sx-ov-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.25rem; margin-bottom: 1.25rem; }

@@ -131,7 +131,7 @@ function _sxSub(val, label, plain) {
   return `<div class="stat-sub-cell${plain ? ' is-plain' : ''}"><span class="stat-sub-val">${val}</span><span class="stat-sub-lbl">${esc(label)}</span></div>`;
 }
 
-function _sxTile(cat, labelKey, val, prev, trendVals, subHtml) {
+function _sxTile(cat, labelKey, val, prev, trendVals, subHtml, go) {
   const vs = prev !== null ? `<span class="sx-vsprev">${esc(t('sx_vs').replace('{n}', prev.toLocaleString()))}</span>` : '';
   const foot = prev !== null ? `<div class="stat-foot">${_sxDelta(val, prev)}${vs}</div>` : '';
   return `<div class="stat-box sx-tile" data-cat="${cat}">
@@ -139,6 +139,7 @@ function _sxTile(cat, labelKey, val, prev, trendVals, subHtml) {
     <div class="stat-val" data-val="${val}">${val.toLocaleString()}</div>
     ${foot}${_sxTrendSvg(trendVals)}
     ${subHtml ? `<div class="stat-sub">${subHtml}</div>` : ''}
+    ${go ? `<button type="button" class="sx-tile-go" onclick="sxGoFromTile('${go}')">${esc(t('sx_go_' + go))} →</button>` : ''}
   </div>`;
 }
 
@@ -225,16 +226,19 @@ function sxRenderOverview() {
     (bestDay ? _sxSub(bestN.toLocaleString(), t('stat_best_day_short') + ' · ' + bestDayTxt) : '');
   const songPct = cur.songs.size ? Math.round(newSongs / cur.songs.size * 100) : 0;
   const tiles =
-    _sxTile('plays', 'stat_total_plays', cur.plays, pv('plays'), cur.trend.plays, playsSub) +
+    _sxTile('plays', 'stat_total_plays', cur.plays, pv('plays'), cur.trend.plays, playsSub, 'plays') +
     _sxTile('songs', 'stat_unique_songs', cur.songs.size, prev ? prev.songs.size : null, cur.trend.songs,
-      _sxSub('+' + newSongs.toLocaleString(), t('stat_sub_new_songs')) + _sxSub(songPct + '%', t('stat_sub_of_total'))) +
+      _sxSub('+' + newSongs.toLocaleString(), t('stat_sub_new_songs')) + _sxSub(songPct + '%', t('stat_sub_of_total')), 'songs') +
     _sxTile('artists', 'stat_artists', cur.artists.size, prev ? prev.artists.size : null, cur.trend.artists,
-      _sxSub('+' + newArtists.toLocaleString(), t('stat_sub_new_artists'))) +
+      _sxSub('+' + newArtists.toLocaleString(), t('stat_sub_new_artists')), 'artists') +
     _sxTile('albums', 'stat_albums', cur.albums.size, prev ? prev.albums.size : null, cur.trend.albums,
-      _sxSub('+' + newAlbums.toLocaleString(), t('stat_sub_new_albums')));
+      _sxSub('+' + newAlbums.toLocaleString(), t('stat_sub_new_albums')), 'albums');
 
   box.innerHTML = `<div class="sx-hero">
-      <p class="sx-hero-line">${line}${line2 ? ' ' + line2 : ''}</p>
+      <div class="sx-hero-top">
+        <p class="sx-hero-line">${line}${line2 ? ' ' + line2 : ''}</p>
+        <button type="button" class="dc-btn dc-btn-normal dc-btn-sm sx-hero-share" onclick="sxShareOverview(this)">${esc(t('sx_share'))}</button>
+      </div>
       <div class="stats-strip sx-tiles">${tiles}</div>
     </div>
     <div class="sx-ov-grid">
@@ -263,6 +267,114 @@ function sxRenderOverview() {
   sxPaintCal();
   sxPaintOtd();
   sxPaintSplit();
+}
+
+// ── Tile links and Share (phase 16 step 6) ────────────────────────────────
+/* Each tile leads to its longer view: Total Plays to the Charts tab (play
+   volume), Unique Songs to the discoveries in Story, Artists and Albums to
+   Compare, filled with the range's top 3. */
+function sxGoFromTile(go) {
+  if (go === 'artists' || go === 'albums') {
+    sxCmp.type = go;
+    if (sxCmp.mode === 'race') sxCmp.mode = 'cum';
+    sxCmp.picks[go] = _sxCmpTop(go, 3);
+    _sxCmpSave();
+  }
+  setStatsTab(go === 'plays' ? 'charts' : go === 'songs' ? 'story' : 'compare');
+  // The tab is drawn by now; bring its card into view under the sticky bars
+  setTimeout(() => {
+    const el = go === 'songs' ? document.querySelector('#sxStory .sx-disc-card') : document.querySelector('.stats-tabs');
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: go === 'songs' ? 'center' : 'start' });
+  }, 60);
+}
+
+/* Share: the sentence and the four tiles as a 1080×1350 picture in the
+   page's theme colours (each tile's number keeps its colour, read from the
+   page). Shared through the phone's share sheet where there is one, else
+   downloaded. Drawn on a canvas like the Games' score card. */
+function _sxWrap(x, text, maxW) {
+  const words = text.split(/\s+/), lines = [];
+  let line = '';
+  for (const w of words) {
+    const tryL = line ? line + ' ' + w : w;
+    if (x.measureText(tryL).width > maxW && line) { lines.push(line); line = w; } else line = tryL;
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+function _sxRound(x, X, Y, w, h, r) {
+  x.beginPath();
+  if (x.roundRect) x.roundRect(X, Y, w, h, r); else x.rect(X, Y, w, h);
+}
+async function sxShareOverview(btn) {
+  const hero = document.querySelector('#sxOverview .sx-hero');
+  if (!hero || !_sxOv) return;
+  const gc = getGraphColors(), W = 1080, H = 1350;
+  const c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  const x = c.getContext('2d');
+  const g = x.createLinearGradient(0, 0, W, H);
+  g.addColorStop(0, mixHex(gc.accent, gc.bg, 0.28)); g.addColorStop(0.5, gc.bg); g.addColorStop(1, gc.bg);
+  x.fillStyle = g; x.fillRect(0, 0, W, H);
+  try { await document.fonts.load('800 96px "Bricolage Grotesque"'); await document.fonts.load('600 40px "IBM Plex Sans"'); } catch (e) { }
+  const disp = '"Bricolage Grotesque", sans-serif', body = '"IBM Plex Sans", sans-serif';
+  // The dates of the range
+  x.fillStyle = gc.accent; x.font = `600 34px ${body}`;
+  const P = graphRange.preset;
+  const from = P === 'all' ? new Date(graphRangeDates().from + 'T00:00:00').getTime() : _sxOv.fromTs;
+  x.fillText((_sxDate(from) + ' – ' + _sxDate(_sxOv.toTs)).toUpperCase(), 80, 130);
+  // The sentence, shrunk until it fits in six lines
+  const text = hero.querySelector('.sx-hero-line').textContent.replace(/\s+/g, ' ').trim();
+  let size = 52, lines;
+  do { x.font = `700 ${size}px ${disp}`; lines = _sxWrap(x, text, W - 160); size -= 4; } while (lines.length > 6 && size > 30);
+  x.fillStyle = gc.text;
+  const lh = (size + 4) * 1.3;
+  lines.forEach((l, i) => x.fillText(l, 80, 220 + i * lh));
+  // The four tiles, 2 × 2
+  const tiles = [...hero.querySelectorAll('.sx-tile')].map(tl => {
+    const v = tl.querySelector('.stat-val');
+    const d = tl.querySelector('.stat-delta');
+    return {
+      label: tl.querySelector('.stat-label').textContent.trim(),
+      val: Number(v.dataset.val || 0).toLocaleString(), color: getComputedStyle(v).color,
+      delta: d ? d.textContent.trim() : '', up: d && d.classList.contains('up'), down: d && d.classList.contains('down'),
+      vs: (tl.querySelector('.sx-vsprev') || {}).textContent || '',
+    };
+  });
+  const top = 220 + lines.length * lh + 50, gap = 30, tw = (W - 160 - gap) / 2, th = 250;
+  tiles.forEach((tl, i) => {
+    const X = 80 + (i % 2) * (tw + gap), Y = top + Math.floor(i / 2) * (th + gap);
+    _sxRound(x, X, Y, tw, th, 28);
+    // mixHex(a, b, w) leans to a by w: a light wash of the text colour
+    x.fillStyle = mixHex(gc.text, gc.bg, 0.06); x.fill();
+    x.strokeStyle = mixHex(gc.text, gc.bg, 0.16); x.lineWidth = 2; x.stroke();
+    x.textAlign = 'center';
+    x.fillStyle = gc.text3; x.font = `600 32px ${body}`;
+    x.fillText(tl.label, X + tw / 2, Y + 62);
+    x.fillStyle = tl.color; x.font = `800 104px ${disp}`;
+    x.fillText(tl.val, X + tw / 2, Y + 162);
+    if (tl.delta) {
+      x.font = `600 30px ${body}`;
+      x.fillStyle = tl.up ? gc.green || '#22c55e' : tl.down ? gc.rose || '#f43f5e' : gc.text3;
+      x.fillText(tl.delta + (tl.vs ? '  ' : ''), X + tw / 2 - (tl.vs ? x.measureText(tl.vs).width / 2 : 0), Y + 214);
+      if (tl.vs) { x.fillStyle = gc.text3; x.fillText(tl.vs, X + tw / 2 + x.measureText(tl.delta + '  ').width / 2, Y + 214); }
+    }
+    x.textAlign = 'left';
+  });
+  x.textAlign = 'center';
+  x.fillStyle = gc.text; x.font = `700 46px ${disp}`;
+  x.fillText('dankcharts.fm', W / 2, H - 70);
+  const blob = await new Promise(r => c.toBlob(r, 'image/png'));
+  if (!blob) return;
+  const name = 'dankcharts-stats.png';
+  const file = new File([blob], name, { type: 'image/png' });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file] }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
+  }
+  const a = document.createElement('a');
+  a.download = name; a.href = URL.createObjectURL(blob); a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  if (btn) { const o = btn.textContent; btn.textContent = '✓ ' + t('sx_game_saved'); setTimeout(() => { btn.textContent = o; }, 2000); }
 }
 
 // ── Your top 5 (phase 16 step 1) ──────────────────────────────────────────
@@ -1852,7 +1964,7 @@ function _sxStoryMore(fromTs, toTs) {
       `<span class="sx-row-t"><b>${esc(a)}</b><span>${esc(sub)}</span></span>` +
       `<span class="sx-disc-st is-${status}">${esc(t('sx_disc_' + status))}</span></button></li>`;
   }).join('') + '</ul>';
-  const disc = _sxCard(t('sx_disc_title'), t('sx_disc_sub'), discBody);
+  const disc = _sxCard(t('sx_disc_title'), t('sx_disc_sub'), discBody, 'sx-disc-card');
 
   // ── To put it another way ──
   const days = Math.max(1, Math.round(span / _SX_DAY));
