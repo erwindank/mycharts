@@ -39481,7 +39481,11 @@ body.cp-hide-cert-reel    #certReelSection { display: none !important; }
 .wv-mos-back-acts { display: flex; align-items: center; gap: var(--sp-1); margin-top: auto; padding-top: var(--sp-2); }
 
 /* Where the pair sits in each layout */
-.chart-table .cr-cell { width: 72px; white-space: nowrap; }
+/* 92px = Spotify · ⋮ · chart run (22 + 22 + ~28) with small gaps, plus
+   10px on the right so the chart-run icon no longer touches the row's
+   rounded edge (it sat flush against it at 72px with no padding) */
+.chart-table .cr-cell { width: 92px; white-space: nowrap; padding-right: 10px !important; text-align: right; }
+.chart-table .cr-cell > * + * { margin-left: 2px; }
 .chart-table .cr-cell .ea-sample, .chart-table .cr-cell .ea-more { width: 22px; height: 24px; }
 /* Spotify takes ▶'s old place (▶ is on the cover now) at the same 22px, so
    Spotify · ⋮ · chart run still fit the 72px cell (at its default 28px it
@@ -39499,12 +39503,12 @@ body.cp-hide-cert-reel    #certReelSection { display: none !important; }
 @media (hover: none) {
   .ea-sample { opacity: 1; }
   .ea-more { opacity: 1; }
-  .chart-table .cr-cell { width: 68px; }
+  .chart-table .cr-cell { width: 92px; }
 }
 /* Phones: ⋮ takes the chart-run icon's place (Chart run is in its menu),
    so the row is no wider than before */
 @media (max-width: 640px) {
-  .chart-table .cr-cell { width: 30px; }
+  .chart-table .cr-cell { width: 30px; padding-right: 0 !important; text-align: center; }
   .chart-table .cr-cell .cr-toggle-btn { display: none; }
   .chart-table .cr-cell .ea-more { width: 22px; }
 }
@@ -43956,7 +43960,7 @@ th.th-narrow { width: 2rem; }
 .rec-section-title--gap { margin-top: var(--sp-3); }
 .rec-meta--nowrap { white-space: nowrap; }
 th.thumb-th { width: 64px; }               /* = --tbl-cov; phones override */
-th.cr-th { width: 72px; }
+th.cr-th { width: 92px; }              /* = .chart-table .cr-cell */
 .cr-ig-share-btn--end { margin-left: auto; }
 /* "No chart history yet" under a chart run, and the link in a week preview */
 .cr-empty-note,

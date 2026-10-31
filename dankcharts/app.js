@@ -15038,7 +15038,7 @@ function renderTableHeaders() {
   // Rank: just "#" on portrait phones, where every px goes to Title · Artist
   const rankTh = `<th><span class="th-rank-full">${t('th_rank')}</span><span class="th-rank-short">#</span></th>`;
   // Trailing icon-only column for the chart-run toggle button, now separate from rank-cell.
-  // 72px = the ▶ · ⋮ · chart-run buttons side by side (.cr-cell in style.css)
+  // 92px = the Spotify · ⋮ · chart-run buttons side by side (.cr-cell in style.css)
   const crTh = `<th class="cr-th"></th>`;
   if (hasPeriodStats) {
     document.getElementById('songsHeadRow').innerHTML = `${rankTh}${prevTh}${thumbTh}<th>${t('th_title_artist')}</th><th class="meta-col">${t('th_album')}</th>${periodTh}<th class="plays-th"><span class="th-plays-full">${t('th_plays')}</span><span class="th-plays-short">${t('th_plays_mobile')}</span></th>${crTh}`;
@@ -15108,7 +15108,7 @@ const _COLW_DEFAULT = { plays: 150 };
 // th.cr-th) in phase 11, so they are known here too: without them saved
 // widths filled the whole table and these two came on top, pushing the
 // table (and an open chart run) past the card's right edge
-const _COLW_FIXED = { thumb: 64, cr: 72 };
+const _COLW_FIXED = { thumb: 64, cr: 92 };   // = th.thumb-th / th.cr-th in style.css
 function _colwFixedW(th) {
   const col = th.dataset.col;
   if (col === 'thumb' || col === 'cr') return parseInt(th.dataset.w0, 10) || _COLW_FIXED[col];
