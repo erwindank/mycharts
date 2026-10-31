@@ -18977,8 +18977,20 @@
       font-size: var(--fs-xs);
     }
 
+    /* The sideways scroll makes this wrapper the header's sticky container, so
+       the header stuck to the wrapper instead of the page: it was pushed down by
+       the top bar's height and sat over row #1 with an empty band above it.
+       While the wrapper scrolls, the header just stays at the top of the table. */
     .app-table-wrap {
       overflow-x: auto;
+    }
+    .app-table-wrap .rec-table thead th { top: 0; }
+
+    /* On wide screens the table fits, so the wrapper drops its scroll and the
+       header can stick to the page under the top bar again. */
+    @media (min-width: 1024px) {
+      .app-table-wrap { overflow-x: visible; }
+      .app-table-wrap .rec-table thead th { top: var(--topbar-offset); }
     }
 
     .debut-week-link {
