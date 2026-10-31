@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Your top 5 on the Stats Overview":
+    ["Tu top 5 en el Resumen de Estadísticas",
+     "El Resumen de Estadísticas tiene ahora Tu top 5 debajo de las cifras: las canciones, artistas o álbumes más escuchados del periodo, con un selector entre ellos. El #1 aparece en grande con su imagen, reproducciones, su parte del total y la ventaja sobre el #2, más un botón para escuchar un fragmento. Del #2 al #5 llevan una barra comparada con el #1. Haz clic en cualquiera para ver sus detalles, o clic derecho para el mismo menú que en los rankings. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Row buttons sit clear of the edge":
     ["Los botones de las filas se separan del borde",
      "En las tablas de los rankings, los botones de Spotify, ⋮ e historial al final de cada fila ya no quedan pegados al borde derecho: la columna es un poco más ancha, con espacio a la derecha y entre los botones."],

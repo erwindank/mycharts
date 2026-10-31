@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 388;
+const DC_CL_I18N_V = 389;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-31', t: 'feature', a: 'graphs', h: '667569f',
+    title: "Your top 5 on the Stats Overview",
+    detail: "The Stats Overview now has Your top 5 under the stat tiles: the most played songs, artists or albums of the date range, with a switch between them. The #1 is shown big with its picture, plays, its share of all your plays and how far ahead of #2 it is, plus a Play a sample button. #2 to #5 have a bar against the #1. Click any of them for its details, or right-click for the same menu as on the charts. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-31', t: 'design', a: 'charts', h: '89b055d',
     title: "Row buttons sit clear of the edge",
     detail: "On the chart tables, the Spotify, ⋮ and chart run buttons at the end of each row no longer press against the row's right edge: the column is a little wider, with some room on the right and between the buttons." },

@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Your top 5 on the Stats Overview":
+    ["O teu top 5 na Visão geral das Estatísticas",
+     "A Visão geral das Estatísticas tem agora O teu top 5 por baixo dos números: as músicas, artistas ou álbuns mais ouvidos do período, com um seletor entre eles. O #1 aparece em grande com a imagem, os plays, a parte do total e a vantagem sobre o #2, mais um botão para ouvir uma amostra. Do #2 ao #5 há uma barra comparada com o #1. Clica em qualquer um para ver os detalhes, ou com o botão direito para o mesmo menu dos tops. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
   "Row buttons sit clear of the edge":
     ["Os botões das linhas afastam-se da margem",
      "Nas tabelas dos tops, os botões do Spotify, ⋮ e trajetória no fim de cada linha já não ficam colados à margem direita: a coluna está um pouco mais larga, com espaço à direita e entre os botões."],
