@@ -1048,6 +1048,16 @@
     .dc-btn-sm .dc-ico { width: 14px; height: 14px; }
     [data-ico] { display: inline-flex; align-items: center; }
     .dc-modal-close .dc-ico { width: 18px; height: 18px; }
+    /* The line icon that replaced a title's or button's leading emoji
+       (popups.js, phase 11): sized to the text, a small gap before the words */
+    .dc-lead-ico { display: inline-flex; align-items: center; vertical-align: -0.125em; margin-right: 0.4em; }
+    .dc-lead-ico .dc-ico { width: 1.05em; height: 1.05em; }
+    .dc-btn .dc-lead-ico .dc-ico { width: 16px; height: 16px; }
+    .dc-btn .dc-lead-ico { margin-right: 0; }
+    /* Emoji-only slots (tile and tab icons, the 💎 💿 📀 marks) drawn as line
+       icons in the slot's own colour */
+    .dc-cell-ico { width: 1.1em; height: 1.1em; vertical-align: -0.15em; }
+    .cert .dc-cell-ico { width: 1.15em; height: 1.15em; vertical-align: -0.2em; }
 
     /* "Changes save as you go" in a footer with only Close */
     .dc-frame-saved { gap: 6px; font-size: var(--fs-xs); color: var(--text3); }

@@ -114,6 +114,144 @@
   }
   window.dcFillIcons = fillIcons;
 
+  /* ── Line icons instead of emoji, site-wide (phase 11 step 7) ────────────
+     Titles, buttons and tabs are written with a leading emoji, in the code
+     and in the translations ("🏆 Records & Hall of Fame", "📤 Export"). Emoji
+     look different on every device and clash with the line icons, so the
+     leading one is swapped for the matching icon here (or dropped, in menu
+     rows), as the details panel already did. Runs on load, after every
+     language switch and on anything added to the page later.
+     Left alone: user text (board posts), the changelog, share-card stages
+     (they become images), certification marks, and anything that is only
+     symbols, like a row of rating stars. */
+  var EMOJI_ICON = {
+    '🎧': 'headphones', '📅': 'calendar', '🗓': 'calendar', '📆': 'calendar', '🔥': 'flame', '📈': 'trend',
+    '⭐': 'star', '★': 'star', '🌟': 'star', '⏰': 'clock', '🕐': 'clock', '🌙': 'moon', '🔄': 'refresh', '↩': 'refresh',
+    '🔁': 'refresh', '⏳': 'hourglass', '⌛': 'hourglass', '🎯': 'target', '📊': 'bars', '🏆': 'trophy', '🏅': 'medal',
+    '🥇': 'medal', '🥈': 'medal', '🥉': 'medal', '🚀': 'rocket', '🔝': 'trend', '💿': 'disc', '📀': 'disc',
+    '💽': 'disc', '💎': 'gem', '🔍': 'search', '🔎': 'search', '🎵': 'note', '🎶': 'note', '🎼': 'note', '♪': 'note',
+    '♫': 'note', '🌤': 'sun', '☀': 'sun', '🌸': 'sun', '🍂': 'sun', '❄': 'moon', '☁': 'cloud', '🎤': 'mic',
+    '🎙': 'mic', '📋': 'listmusic', '📝': 'listmusic', '👑': 'crown', '🎉': 'sparkle', '✨': 'sparkle', '💯': 'target',
+    '📉': 'trend', '♦': 'gem', '◈': 'gem', '👤': 'user', '🌍': 'globe', '🌎': 'globe', '🌐': 'globe', '🏁': 'flag', '📌': 'flag',
+    '▶': 'play', '📤': 'share', '🖼': 'image', '📇': 'calendar', '⚡': 'flame', '🔗': 'link', '🎬': 'video', '📺': 'video',
+    '❤': 'star', '💜': 'star', '🎁': 'sparkle', '🧭': 'globe', '📣': 'mic', '🔢': 'bars', '📷': 'image', '📸': 'image',
+    '📄': 'file', '📂': 'file', '📁': 'file', '📃': 'file', '⬇': 'download', '⬆': 'upload', '📥': 'download',
+    '🖨': 'printer', '✉': 'mail', '📧': 'mail', '🗑': 'trash', '⚙': 'gear', '🔊': 'play', '🎨': 'palette',
+    '🛡': 'shield', '☁️': 'cloud', '🔒': 'shield', '👁': 'eye', '🎚': 'sliders', '🎛': 'sliders', '🆕': 'sparkle',
+    '🔜': 'clock', '🎂': 'sparkle', '⊞': 'layout', '🧩': 'layout', '📦': 'disc', '🌱': 'sparkle', '💀': 'moon',
+    '🪦': 'moon', '🕰': 'clock', '⏱': 'clock', '🏷': 'tag', '✏': 'edit', '✎': 'edit', '➕': 'plus', '✚': 'plus',
+    '🤝': 'user', '🏖': 'sun', '💪': 'flame', '🔭': 'search', '📼': 'video', '💤': 'moon', '📝': 'edit'
+  };
+  // A leading emoji (with variation selectors / joiners / skin tones) or symbol
+  var LEAD = /^\s*((?:\p{Extended_Pictographic}|[★☆♦◈◆✦♪♫⊞✎✚])(?:[️‍]|\p{Extended_Pictographic}|\p{Emoji_Modifier})*)\s*/u;
+  // Where a leading emoji becomes an icon, and where it is simply dropped
+  var ICON_AT = 'h1, h2, h3, h4, .section-header-h2, .section-title, .graph-card-title, .modal-section-title, ' +
+    '.rec-section-title, .modal-title, .dc-modal-title, [role="tab"], button, a.set-chip, a.landing-guide-link, ' +
+    '.landing-hint > a, .ig-mode-btn, .dc-btn';
+  var DROP_AT = '.kebab-row-label > span, .kebab-row-label, .bu-type-label, .tm-hint';
+  // Slots that hold only emoji (a tile's icon, a tab's icon) or a short tally
+  // with them ("3×💎", "17× 💎 19× 💿"): every emoji in them becomes its icon
+  var CELL_AT = '.stat-cat-icon, .dy-sec-ic, .dy-tab-ic, .dy-thumb.is-emoji, .awards-cat-emoji, .ns-fire, ' +
+    '.cert-icon, .cert-short, .rec-hero-card-fig-v, .rec-hero-card-meta-i, .rec-hero-card-sub';
+  // Never touched: user text, the changelog, share cards (they become images)
+  var SKIP = '.share-stage, [id$="Canvas"], .board-post, .bp-body, .cl-overlay, #changelogOverlay, ' +
+    '[contenteditable], .ceremony-stage';
+  // The details panel swaps its own headings (panel.js); only its cells are done here
+  var SKIP_LEAD = SKIP + ', .cert, .dp-overlay .dp-body';
+  var ANY_EMOJI = /(?:\p{Extended_Pictographic})(?:[️‍]|\p{Extended_Pictographic}|\p{Emoji_Modifier})*/gu;
+
+  function iconFor(em) {
+    var base = em.replace(/[️‍]/g, '');
+    return EMOJI_ICON[base] || EMOJI_ICON[Array.from(base)[0]] || 'sparkle';
+  }
+
+  // Swaps (or drops) the leading emoji in el's first piece of text. Only when
+  // words follow it: a button that is just "▶" or a row of stars is left as is.
+  function swapLead(el, mode) {
+    if (el.dataset.dcIco === '1') return;
+    var node = el.firstChild;
+    while (node && node.nodeType === 1 && !node.textContent.trim() && !node.matches('svg')) node = node.nextSibling;
+    if (!node || node.nodeType !== 3) return;
+    var m = node.nodeValue.match(LEAD);
+    if (!m) return;
+    var rest = node.nodeValue.slice(m[0].length) + Array.prototype.slice.call(el.childNodes, 1).map(function (n) { return n.textContent; }).join('');
+    if (!/[\p{L}\p{N}]/u.test(rest)) return;
+    node.nodeValue = node.nodeValue.slice(m[0].length);
+    if (mode === 'icon') {
+      var span = document.createElement('span');
+      span.className = 'dc-lead-ico';
+      span.innerHTML = dcIco(iconFor(m[1]));
+      el.insertBefore(span, node);
+    }
+    el.dataset.dcIco = '1';
+  }
+
+  // Every emoji in a cell's text becomes its icon; the words and numbers stay
+  function swapCell(el) {
+    // each of the cell's own text pieces (a tally can sit beside a <b>)
+    Array.prototype.slice.call(el.childNodes).forEach(function (node) {
+      if (node.nodeType !== 3) return;
+      var txt = node.nodeValue;
+      ANY_EMOJI.lastIndex = 0;
+      if (!ANY_EMOJI.test(txt)) return;
+      ANY_EMOJI.lastIndex = 0;
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = ANY_EMOJI.exec(txt))) {
+        if (m.index > last) frag.appendChild(document.createTextNode(txt.slice(last, m.index)));
+        var holder = document.createElement('span');
+        holder.innerHTML = dcIco(iconFor(m[0]), 'dc-ico dc-cell-ico');
+        frag.appendChild(holder.firstChild);
+        last = m.index + m[0].length;
+      }
+      if (last < txt.length) frag.appendChild(document.createTextNode(txt.slice(last)));
+      el.replaceChild(frag, node);
+    });
+  }
+
+  function iconizeIn(root) {
+    if (!root || root.nodeType !== 1) return;
+    if (root.closest(SKIP)) return;
+    var list = [];
+    if (root.matches(ICON_AT)) list.push([root, 'icon']);
+    if (root.matches(DROP_AT)) list.push([root, 'drop']);
+    root.querySelectorAll(ICON_AT).forEach(function (el) { list.push([el, 'icon']); });
+    root.querySelectorAll(DROP_AT).forEach(function (el) { list.push([el, 'drop']); });
+    list.forEach(function (p) {
+      if (p[0].closest(SKIP_LEAD)) return;
+      // text set again (a language switch): the old mark no longer applies
+      if (p[0].dataset.dcIco === '1' && !p[0].querySelector(':scope > .dc-lead-ico') && p[1] === 'icon') delete p[0].dataset.dcIco;
+      swapLead(p[0], p[1]);
+    });
+    var cells = root.matches(CELL_AT) ? [root] : [];
+    root.querySelectorAll(CELL_AT).forEach(function (el) { cells.push(el); });
+    cells.forEach(function (el) { if (!el.closest(SKIP)) swapCell(el); });
+  }
+  window.dcIconizeLead = iconizeIn;
+
+  // Anything added or re-texted later: gather the changed elements and do
+  // them together on the next frame
+  var pending = new Set(), queued = false;
+  function flush() {
+    queued = false;
+    var items = Array.from(pending); pending.clear();
+    items.forEach(function (el) { if (el.isConnected) iconizeIn(el); });
+  }
+  new MutationObserver(function (muts) {
+    for (var i = 0; i < muts.length; i++) {
+      var t = muts[i].target;
+      if (t.nodeType === 3) t = t.parentElement;
+      if (!t) continue;
+      if (muts[i].type === 'childList') {
+        // a re-set text (textContent =) replaces the text node: redo the element
+        if (t.dataset && t.dataset.dcIco === '1' && !t.querySelector(':scope > .dc-lead-ico')) delete t.dataset.dcIco;
+        pending.add(t);
+      }
+    }
+    if (pending.size && !queued) { queued = true; requestAnimationFrame(flush); }
+  }).observe(document.documentElement, { childList: true, subtree: true });
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { iconizeIn(document.body); });
+  else iconizeIn(document.body);
+
   var stack = [];          // open overlays, oldest first
   var reduced = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)');
   var phone = window.matchMedia && matchMedia('(max-width: 640px)');
