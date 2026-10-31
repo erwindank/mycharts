@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Emoji are back":
+    ["Os emojis voltaram",
+     "Os ícones de linha que tinham substituído os emojis em todo o site saíram: títulos como 🏆 Recordes e Hall da Fama, os cartões do Diário e suas abas, Tocar tudo, Aleatório e Exportar no menu da parada e os outros botões mostram seu emoji de novo. As abas Músicas, Artistas e Álbuns e os títulos das paradas agora usam 🎵 🎤 💿 também."],
   "Bubbling Under names and rows are clickable again":
     ["Os nomes e as linhas de Aspirantes ao Top voltam a ser clicáveis",
      "Na lista Aspirantes ao Top das paradas semanais, os nomes de músicas, artistas e álbuns voltam a abrir sua janela, e um clique em qualquer outra parte de uma linha abre o histórico dela entre os aspirantes, como na parada principal. As duas coisas tinham parado de funcionar depois do redesign."],

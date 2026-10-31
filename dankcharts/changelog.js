@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 384;
+const DC_CL_I18N_V = 385;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-31', t: 'design', a: 'ui', h: 'bcfb2de',
+    title: "Emoji are back",
+    detail: "The line icons that replaced emoji across the site are gone: titles like 🏆 Records & Hall of Fame, the Daily cards and their tabs, the chart menu's Play all, Shuffle and Export, and the other buttons show their emoji again. The Songs, Artists and Albums tabs and the chart headings now use 🎵 🎤 💿 too." },
   { d: '2026-10-31', t: 'fix', a: 'charts', h: '6af4121',
     title: "Bubbling Under names and rows are clickable again",
     detail: "On the weekly charts' Bubbling Under list, the song, artist and album names open their pop-ups again, and a click anywhere else on a row opens its Bubbling Under chart run, the same as on the chart itself. Both had stopped working after the redesign." },

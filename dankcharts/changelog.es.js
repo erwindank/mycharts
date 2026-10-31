@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Emoji are back":
+    ["¡Vuelven los emojis!",
+     "Los iconos de línea que habían reemplazado a los emojis en todo el sitio ya no están: títulos como 🏆 Récords y Salón de la Fama, las tarjetas de Diario y sus pestañas, Reproducir todo, Aleatorio y Exportar del menú del ranking y los demás botones vuelven a mostrar su emoji. Las pestañas Canciones, Artistas y Álbumes y los títulos de los rankings usan ahora 🎵 🎤 💿 también."],
   "Bubbling Under names and rows are clickable again":
     ["Los nombres y las filas de Aspirantes al Top vuelven a poder pulsarse",
      "En la lista Aspirantes al Top de las listas semanales, los nombres de canciones, artistas y álbumes vuelven a abrir su ventana, y un clic en cualquier otra parte de una fila abre su historial entre los aspirantes, igual que en la lista principal. Ambas cosas dejaron de funcionar tras el rediseño."],
