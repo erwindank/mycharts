@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 397;
+const DC_CL_I18N_V = 398;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-31', t: 'feature', a: 'graphs', h: '3965de2',
+    title: "Who was on top",
+    detail: "Stats → Compare has a new card, Who was on top: a strip with one block per month (per week for short ranges) in the colour of the pick you played most that month, with how many months each one won. Under it, every time the lead on the running total changed hands, such as \"Feb 2026: Taylor Swift passes Tate McRae\". Comparing years goes January to December, showing which year owned each month. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-31', t: 'feature', a: 'graphs', h: 'f80e952',
     title: "Head to head in Compare",
     detail: "Stats → Compare now says who leads and by how much (\"Taylor Swift leads with 17% of these plays, 765 ahead of Slayyyter\"), with a table under it: one row per pick with plays, share, first play, weeks at #1, best month, longest streak and songs played. Years show artists and new songs instead, and songs show the days you played them. Tap a column to sort; the best in each column is shown in that pick's colour. It shows in Race mode too. Works with Last.fm, Google Sheets and CSV uploads." },

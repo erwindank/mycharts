@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Who was on top":
+    ["Quem esteve no topo",
+     "Estatísticas → Comparar tem um cartão novo, Quem esteve no topo: uma faixa com um bloco por mês (por semana em períodos curtos) na cor da escolha que mais ouviste nesse mês, com quantos meses cada uma ganhou. Por baixo, cada vez que a liderança no total acumulado mudou de mãos, como \"fev 2026: Taylor Swift passa Tate McRae\". Ao comparar anos vai de janeiro a dezembro e mostra que ano ficou com cada mês. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
   "Head to head in Compare":
     ["Frente a frente no Comparar",
      "Estatísticas → Comparar diz agora quem lidera e por quanto (\"Taylor Swift lidera com 17% destas reproduções, 765 à frente de Slayyyter\"), com uma tabela por baixo: uma linha por escolha com reproduções, fatia, primeira reprodução, semanas no #1, melhor mês, maior sequência e músicas ouvidas. Os anos mostram artistas e músicas novas, e as músicas, os dias em que as ouviste. Toca numa coluna para ordenar; o melhor de cada coluna aparece na cor da escolha. Aparece também no modo Corrida. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
