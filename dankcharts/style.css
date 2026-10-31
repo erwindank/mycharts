@@ -43933,3 +43933,45 @@ th.th-narrow { width: 2rem; }
 .src-modal-hint--gap { margin-top: var(--sp-2); }
 .src-field-group--gap { margin-top: var(--sp-3); }
 .src-field-group--section { margin-top: var(--sp-4); }
+
+/* ==========================================================================
+   Helpers that replaced fixed inline styles in JS-built HTML (phase 11)
+   ========================================================================== */
+.rec-section-title--gap { margin-top: var(--sp-3); }
+.rec-meta--nowrap { white-space: nowrap; }
+th.thumb-th { width: 64px; }               /* = --tbl-cov; phones override */
+th.cr-th { width: 72px; }
+.cr-ig-share-btn--end { margin-left: auto; }
+/* "No chart history yet" under a chart run, and the link in a week preview */
+.cr-empty-note,
+.cr-preview-link { font-size: var(--fs-xs); color: var(--text3); padding: var(--sp-1) 0; }
+.cr-album-run { padding: var(--sp-2) 0 var(--sp-3); }
+.heatmap-week-col.heatmap-month-header-row { position: relative; }
+.heatmap-cell.is-blank,
+.sk-hm-cell.is-blank { background: transparent; cursor: default; }
+.heatmap-weeks-row--months { height: 16px; margin-bottom: 3px; }
+.heatmap-legend--gap { margin-top: var(--sp-2); }
+.heatmap-empty-note { font-family: var(--font-sans); font-size: var(--fs-xs); color: var(--text3); padding: var(--sp-4) 0; }
+/* Movement next to a name in the records lists */
+.m-inline { font-size: var(--fs-xs); margin-left: var(--sp-2); }
+.alb-grid-line--top { top: 0; }
+.alb-grid-line--mid { top: 50%; }
+.alb-grid-line--bot { bottom: 0; }
+.acc-detail.acc-detail--flat { padding: var(--sp-2) 0; }
+/* Stats heatmap filter chips: the colour comes from the filter, inline */
+.hm-filter-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  border: 1px solid transparent; border-radius: 20px; padding: 2px 8px;
+  color: var(--text); font-family: var(--font-sans); font-size: var(--fs-xs);
+}
+.hm-filter-chip-x {
+  background: none; border: none; color: var(--text2); cursor: pointer;
+  font-size: var(--fs-xs); line-height: 1; padding: 0 0 1px 2px;
+}
+/* Loading rows in the chart table: rank, title, artist, plays */
+.skeleton-cell--rank { width: 28px; }
+.skeleton-cell--title { width: 55%; margin-bottom: 6px; }
+.skeleton-cell--sub { width: 35%; }
+.skeleton-cell--half { width: 50%; }
+.skeleton-cell--num { width: 32px; margin-left: auto; }
+.streak-empty--pad { padding: var(--sp-4) var(--sp-5); }

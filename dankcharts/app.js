@@ -8963,7 +8963,7 @@ function buildRecords() {
       // Closes .rec-section-sub-wrapper: the full list below is not part of the
       // leaderboard and its .pak-items are not rows the tally walks.
       ph += '</tbody></table></div>';
-      ph += '<br><div class="rec-section-title" style="margin-top:0.75rem;">' + t(cfg.all) + '</div><div class="pak-list">';
+      ph += '<br><div class="rec-section-title rec-section-title--gap">' + t(cfg.all) + '</div><div class="pak-list">';
       const pakGlobalIdx = {};
       const pakArtistOcc = {};
       const _artOccTmp = {};
@@ -10096,7 +10096,7 @@ function buildRecords() {
           // The name opens the artist modal. It stays a plain-looking name — the
           // underline only appears on hover — so the column still reads as a list.
           + '<td><div class="rec-name"><a href="javascript:void(0)" class="rec-artist-link" onclick="event.stopPropagation();openArtistModal(' + esc(JSON.stringify(e.art)) + ')">' + esc(e.art) + '</a></div></td>'
-          + '<td class="rec-meta" style="white-space:nowrap">' + sc2 + '</td><td class="rec-meta" style="white-space:nowrap">' + ac2 + '</td>'
+          + '<td class="rec-meta rec-meta--nowrap">' + sc2 + '</td><td class="rec-meta rec-meta--nowrap">' + ac2 + '</td>'
           + '<td class="rec-run-toggle-cell"><button class="rec-run-toggle-btn" title="' + esc(t('certd_open_ledger')) + '" onclick="event.stopPropagation();toggleCertLedger(this,\'' + ledgerId + '\',' + i + ')">▶</button></td>';
       }),
       lim,
@@ -15022,12 +15022,12 @@ function renderTableHeaders() {
   const periodTh = `<th class="m-th"><span class="th-period-full">${periodLabel}</span><span class="th-period-short">${periodLabelMobile}</span></th>`;
   // thumb-th / meta-col are class-based (not nth-child) because the Previous column only
   // exists in the hasPeriodStats branch, shifting later columns' position between branches.
-  const thumbTh = `<th class="thumb-th" style="width:64px;"></th>`;   // = --tbl-cov in style.css
+  const thumbTh = `<th class="thumb-th"></th>`;   // 64px = --tbl-cov, set in style.css
   // Rank: just "#" on portrait phones, where every px goes to Title · Artist
   const rankTh = `<th><span class="th-rank-full">${t('th_rank')}</span><span class="th-rank-short">#</span></th>`;
   // Trailing icon-only column for the chart-run toggle button, now separate from rank-cell.
   // 72px = the ▶ · ⋮ · chart-run buttons side by side (.cr-cell in style.css)
-  const crTh = `<th class="cr-th" style="width:72px;"></th>`;
+  const crTh = `<th class="cr-th"></th>`;
   if (hasPeriodStats) {
     document.getElementById('songsHeadRow').innerHTML = `${rankTh}${prevTh}${thumbTh}<th>${t('th_title_artist')}</th><th class="meta-col">${t('th_album')}</th>${periodTh}<th class="plays-th"><span class="th-plays-full">${t('th_plays')}</span><span class="th-plays-short">${t('th_plays_mobile')}</span></th>${crTh}`;
     document.getElementById('artistsHeadRow').innerHTML = `${rankTh}${prevTh}${thumbTh}<th>${t('th_artist')}</th><th class="meta-col">${t('th_unique_songs')}</th>${periodTh}<th class="plays-th"><span class="th-plays-full">${t('th_total_plays')}</span><span class="th-plays-short">${t('th_total_plays_mobile')}</span></th>${crTh}`;
@@ -16450,7 +16450,7 @@ function buildCrPanelHTML(type, key, f) {
     <div class="cr-seg">${['year', 'uptoYear', 'now'].map(m =>
     `<button class="cr-range-btn${getCrRangeMode(type, key) === m ? ' active' : ''}" onclick="setCrRangeMode('${m}','${type}','${encodeKeyForOnclick(key)}');event.stopPropagation()">${modeLabels[m]}</button>`
   ).join('')}</div>
-    <button class="cr-ig-share-btn" style="margin-left:auto;" onclick="openCrIgModalFromPanel('${type}','${encodeKeyForOnclick(key)}');event.stopPropagation()">${t('cr_share_btn')}</button>
+    <button class="cr-ig-share-btn cr-ig-share-btn--end" onclick="openCrIgModalFromPanel('${type}','${encodeKeyForOnclick(key)}');event.stopPropagation()">${t('cr_share_btn')}</button>
   </div>`;
 
   const nowTiles = f ? _crNowTiles(f) : '';
@@ -16469,7 +16469,7 @@ function buildCrPanelHTML(type, key, f) {
       // Each section counts plays over its own periodMap, so the total tracks
       // that section's granularity and cutoff rather than the panel's.
       const rangeOpts = { mode: getCrRangeMode(type, key), viewedYear: vy, cutoffKeys, periodMap: crData?.periodMap };
-      const bodyHtml = d ? `<div class="cr-stats cr-stats-sum">${crStats(type, key, id, null, d, rangeOpts)}</div>${crBoxesHTML(type, key, null, d, id)}` : `<div style="font-size:var(--fs-xs);color:var(--text3);padding:2px 0">${t('cr_no_history')}</div>`;
+      const bodyHtml = d ? `<div class="cr-stats cr-stats-sum">${crStats(type, key, id, null, d, rangeOpts)}</div>${crBoxesHTML(type, key, null, d, id)}` : `<div class="cr-empty-note">${t('cr_no_history')}</div>`;
       return `<div class="cr-panel-section">
         <div class="cr-panel-section-header is-open" onclick="toggleCrPanelSection(this)">
           <span class="cr-subsection-toggle">▼</span>
@@ -16494,7 +16494,7 @@ function buildCrPanelHTML(type, key, f) {
     } else {
       sectionsHtml = d
         ? `<div class="cr-stats cr-stats-sum">${nowTiles}${crStats(type, key, currentPeriod, null, d, rangeOpts)}</div>${crBoxesHTML(type, key, null, d, currentPeriod)}`
-        : (nowTiles ? `<div class="cr-stats cr-stats-sum">${nowTiles}</div>` : '') + `<div style="font-size:var(--fs-xs);color:var(--text3);padding:4px 0">${t('cr_no_history')}</div>`;
+        : (nowTiles ? `<div class="cr-stats cr-stats-sum">${nowTiles}</div>` : '') + `<div class="cr-empty-note">${t('cr_no_history')}</div>`;
     }
   }
 
@@ -16709,7 +16709,7 @@ function buildItemHeatmapHTML(type, key) {
     for (const week of weeks) {
       const month = new Date(week[0].dk + 'T00:00:00').getMonth();
       if (week[0].inRange && month !== lastMonth) {
-        monthHtml += `<div class="heatmap-week-col heatmap-month-header-row" style="position:relative;"><span class="heatmap-month-label">${hmMonth(month)}</span></div>`;
+        monthHtml += `<div class="heatmap-week-col heatmap-month-header-row"><span class="heatmap-month-label">${hmMonth(month)}</span></div>`;
         lastMonth = month;
       } else monthHtml += '<div class="heatmap-week-col heatmap-month-header-row"></div>';
     }
@@ -16717,7 +16717,7 @@ function buildItemHeatmapHTML(type, key) {
     for (const week of weeks) {
       cellsHtml += '<div class="heatmap-week-col">';
       for (const cell of week) {
-        if (!cell.inRange) { cellsHtml += '<div class="heatmap-cell" style="background:transparent;cursor:default;"></div>'; continue; }
+        if (!cell.inRange) { cellsHtml += '<div class="heatmap-cell is-blank"></div>'; continue; }
         const bg = cell.count === 0 ? 'transparent' : hmCellColor(cell.count, maxCount);
         const cls = cell.count > 0 ? 'heatmap-cell has-data' : 'heatmap-cell';
         const dkAttr = cell.count > 0 ? ` data-dk="${cell.dk}"` : '';
@@ -16738,7 +16738,7 @@ function buildItemHeatmapHTML(type, key) {
       <div class="heatmap-outer">
         <div class="heatmap-dow-labels">${hmDowLabels().map(l => `<div class="heatmap-dow-label">${l}</div>`).join('')}</div>
         <div class="heatmap-inner"><div class="heatmap-grid-wrap">
-          <div class="heatmap-weeks-row" style="height:16px;margin-bottom:3px;">${monthHtml}</div>
+          <div class="heatmap-weeks-row heatmap-weeks-row--months">${monthHtml}</div>
           <div class="heatmap-weeks-row">${cellsHtml}</div>
         </div></div>
       </div>
@@ -16748,7 +16748,7 @@ function buildItemHeatmapHTML(type, key) {
     const cnt = r === 0 ? 0 : Math.round(Math.exp(r * Math.log1p(maxCount)) - 1);
     return `<div class="heatmap-cell" style="background:${hmCellColor(cnt, maxCount)};cursor:default;"></div>`;
   }).join('');
-  html += `<div class="heatmap-legend" style="margin-top:0.5rem;"><span class="heatmap-legend-label">${esc(t('sk_hm_less'))}</span>${legendCells}<span class="heatmap-legend-label">${esc(t('sk_hm_more'))}</span></div>`;
+  html += `<div class="heatmap-legend heatmap-legend--gap"><span class="heatmap-legend-label">${esc(t('sk_hm_less'))}</span>${legendCells}<span class="heatmap-legend-label">${esc(t('sk_hm_more'))}</span></div>`;
   return `<div class="cr-item-heatmap" id="${containerId}">${html}</div>`;
 }
 
@@ -18025,7 +18025,7 @@ function toggleRecRun(btn, runId) {
 function crBoxesHTML(type, key, crData, preD, periodOverride) {
   const data = crData || chartRunData;
   const d = (preD !== undefined && preD !== null) ? preD : (data?.result?.[type]?.[key]);
-  if (!d) { _crGoalsNext = null; return '<div style="font-size:var(--fs-xs);color:var(--text3);padding:4px 0">No chart history yet.</div>'; }
+  if (!d) { _crGoalsNext = null; return `<div class="cr-empty-note">${t('cr_no_history')}</div>`; }
   const period = periodOverride || data?.period || currentPeriod;
   // The next milestones crStats just built for this same run sit under the boxes
   const goals = _crGoalsNext && _crGoalsNext.id === type + '|' + key + '|' + period ? _crGoalsNext.html : '';
@@ -18546,7 +18546,7 @@ function showPakPeriodPreview(pt, periodKey, triggerEl) {
   const unit = tUnit(pt === 'week' ? 'weeks_full' : pt === 'month' ? 'months' : 'years', 1);
   const navigateLink = `<a class="cr-preview-link" href="#chart/${pt}/${periodKey}" onclick="event.preventDefault();hidePakWeekPreview();navigateToRecPeriod('${pt}','${periodKey}')">${t('rec_pak_period_preview_link', { unit: unit })}</a>`;
   if (!crData || !crData.periodMap[weekKey]) {
-    popup.innerHTML = `<button class="cr-preview-close" onclick="hidePakWeekPreview()">✕</button><div class="cr-preview-title">${esc(title)}</div><div style="padding:4px 0;font-size:var(--fs-xs);color:var(--text3);">${navigateLink}</div>`;
+    popup.innerHTML = `<button class="cr-preview-close" onclick="hidePakWeekPreview()">✕</button><div class="cr-preview-title">${esc(title)}</div><div class="cr-preview-link">${navigateLink}</div>`;
   } else {
     const pm = crData.periodMap[weekKey];
     const types = [
@@ -18601,7 +18601,7 @@ function showDebutPeriodPreview(pt, weekKey, triggerEl, event) {
   const unit = tUnit(pt === 'week' ? 'weeks_full' : pt === 'month' ? 'months' : 'years', 1);
   const navigateLink = `<a class="cr-preview-link" href="#chart/${pt}/${weekKey}" onclick="event.preventDefault();hideDebutWeekPreview();navigateToRecPeriod('${pt}','${weekKey}')">${t('rec_pak_period_preview_link', { unit: unit })}</a>`;
   if (!crData || !crData.periodMap || !crData.periodMap[weekKey]) {
-    popup.innerHTML = `<button class="cr-preview-close" onclick="hideDebutWeekPreview()">✕</button><div class="cr-preview-title">${esc(title)}</div><div style="padding:4px 0;font-size:var(--fs-xs);color:var(--text3);">${navigateLink}</div>`;
+    popup.innerHTML = `<button class="cr-preview-close" onclick="hideDebutWeekPreview()">✕</button><div class="cr-preview-title">${esc(title)}</div><div class="cr-preview-link">${navigateLink}</div>`;
   } else {
     const pm = crData.periodMap[weekKey];
     const types = [
@@ -18649,7 +18649,7 @@ function showNewChartRecPreview(pt, periodKey, triggerEl, event) {
   const title = crPeriodTitle(pt, periodKey);
   const navigateLink = `<a class="cr-preview-link" href="#chart/${pt}/${periodKey}" onclick="event.preventDefault();hideNewChartRecPreview();navigateToRecPeriod('${pt}','${periodKey}')">${t('rec_pak_week_preview_link')}</a>`;
   if (!pm) {
-    popup.innerHTML = `<button class="cr-preview-close" onclick="hideNewChartRecPreview()">✕</button><div class="cr-preview-title">${esc(title)}</div><div style="padding:4px 0;font-size:var(--fs-xs);color:var(--text3);">${navigateLink}</div>`;
+    popup.innerHTML = `<button class="cr-preview-close" onclick="hideNewChartRecPreview()">✕</button><div class="cr-preview-title">${esc(title)}</div><div class="cr-preview-link">${navigateLink}</div>`;
   } else {
     const types = [
       { key: 'songs', icon: recEntIco('songs'), label: t('rec_th_songs'), nameOf: (d) => d.title },
@@ -18902,13 +18902,13 @@ function deltaInline(curCount, key, type, ms) {
     const isRe = ms.everChartedBefore[type].has(key);
     const badgeKey = isRe ? 'badge_re' : (type === 'songs' ? 'badge_new_songs' : 'badge_new');
     const label = t(badgeKey);
-    return `<span class="m-${isRe ? 're' : 'new'}" style="font-size:var(--fs-xs);margin-left:0.4rem">${label}</span>`;
+    return `<span class="m-${isRe ? 're' : 'new'} m-inline">${label}</span>`;
   }
   const diff = curCount - prev.count;
-  if (diff === 0) return `<span class="m-same" style="font-size:var(--fs-xs);margin-left:0.4rem">=</span>`;
+  if (diff === 0) return `<span class="m-same m-inline">=</span>`;
   const dir = diff > 0 ? 'up' : 'down';
   const sign = diff > 0 ? '+' : '';
-  return `<span class="m-${dir}" style="font-size:var(--fs-xs);margin-left:0.4rem">${sign}${diff}</span>`;
+  return `<span class="m-${dir} m-inline">${sign}${diff}</span>`;
 }
 
 function mMthsCell(key, type, ms) {
@@ -25855,9 +25855,9 @@ function buildAlbumSparklineHTML(albumPlays) {
       </div>
       <div class="alb-chart-body">
         <div class="alb-bars-area">
-          <div class="alb-grid-line" style="top:0"></div>
-          <div class="alb-grid-line" style="top:50%"></div>
-          <div class="alb-grid-line" style="bottom:0"></div>
+          <div class="alb-grid-line alb-grid-line--top"></div>
+          <div class="alb-grid-line alb-grid-line--mid"></div>
+          <div class="alb-grid-line alb-grid-line--bot"></div>
           <div class="alb-avg-line" style="bottom:${avgPct}%">
             <span class="alb-avg-label">${t('alb_avg_label', {n: avgVal})}</span>
           </div>
@@ -25992,9 +25992,9 @@ function buildArtistSparklineHTML(artistPlays) {
       </div>
       <div class="alb-chart-body">
         <div class="alb-bars-area">
-          <div class="alb-grid-line" style="top:0"></div>
-          <div class="alb-grid-line" style="top:50%"></div>
-          <div class="alb-grid-line" style="bottom:0"></div>
+          <div class="alb-grid-line alb-grid-line--top"></div>
+          <div class="alb-grid-line alb-grid-line--mid"></div>
+          <div class="alb-grid-line alb-grid-line--bot"></div>
           <div class="alb-avg-line" style="bottom:${avgPct}%">
             <span class="alb-avg-label">${t('alb_avg_label', {n: avgVal})}</span>
           </div>
@@ -28341,7 +28341,7 @@ function openAlbumModal(albumKey) {
           <button class="acc-toggle" onclick="const b=document.getElementById('${sid}');const open=b.classList.toggle('open');this.textContent=open?'−':'+';" title="${t('sm_expand')}">+</button>
           <span>${label}</span>
         </div>
-        <div class="acc-detail" id="${sid}" style="padding:0.5rem 0">
+        <div class="acc-detail acc-detail--flat" id="${sid}">
           <div class="cr-stats cr-stats-sum">${crStats('albums', albumKey, period, crData)}</div>
           ${crBoxesHTML('albums', albumKey, crData, null, period)}
         </div>
@@ -28958,9 +28958,9 @@ function buildSongSparklineHTML(plays, title, key) {
       <div class="alb-y-axis"><span>${maxVal}</span><span>${midVal}</span><span>0</span></div>
       <div class="alb-chart-body">
         <div class="alb-bars-area">
-          <div class="alb-grid-line" style="top:0"></div>
-          <div class="alb-grid-line" style="top:50%"></div>
-          <div class="alb-grid-line" style="bottom:0"></div>
+          <div class="alb-grid-line alb-grid-line--top"></div>
+          <div class="alb-grid-line alb-grid-line--mid"></div>
+          <div class="alb-grid-line alb-grid-line--bot"></div>
           <div class="alb-avg-line" style="bottom:${avgPct}%"><span class="alb-avg-label">${t('alb_avg_label', { n: avgVal })}</span></div>
           ${barsHTML}
         </div>
@@ -36391,11 +36391,9 @@ function renderHeatmapChips() {
   if (!wrap) return;
   wrap.innerHTML = heatmapFilters.map((f, i) => {
     const col = graphColor(i);
-    return `<span style="display:inline-flex;align-items:center;gap:4px;background:${col}22;border:1px solid ${col};
-              color:var(--text);font-family:var(--font-sans);font-size:var(--fs-xs);padding:2px 8px;border-radius:20px;
-              ">${esc(f)}
-              <button onclick="removeHeatmapFilter(${i})" style="background:none;border:none;color:var(--text2);
-                cursor:pointer;font-size:0.75rem;line-height:1;padding:0 0 1px 2px;">×</button>
+    // only the filter's own colour stays inline; the rest is .hm-filter-chip
+    return `<span class="hm-filter-chip" style="background:${col}22;border-color:${col};">${esc(f)}
+              <button class="hm-filter-chip-x" onclick="removeHeatmapFilter(${i})">×</button>
             </span>`;
   }).join('');
 }
@@ -36575,7 +36573,7 @@ function renderHeatmap() {
   const allDayKeys = Object.keys(dayMap).sort();
 
   if (!allDayKeys.length) {
-    container.innerHTML = '<div style="font-family:var(--font-sans);font-size:var(--fs-xs);color:var(--text3);padding:1rem 0;">No scrobbles found for the selected filters.</div>';
+    container.innerHTML = '<div class="heatmap-empty-note">' + esc(t('hm_no_scrobbles')) + '</div>';
     return;
   }
 
@@ -36969,14 +36967,14 @@ document.getElementById('heatmapFilterInput').addEventListener('keydown', e => {
 function showSkeleton() {
   const skRow = () => `
     <tr class="skeleton-row">
-      <td><div class="skeleton-cell" style="width:28px"></div></td>
+      <td><div class="skeleton-cell skeleton-cell--rank"></div></td>
       <td><div class="skeleton-cell skeleton-thumb"></div></td>
       <td>
-        <div class="skeleton-cell" style="width:55%;margin-bottom:6px"></div>
-        <div class="skeleton-cell" style="width:35%"></div>
+        <div class="skeleton-cell skeleton-cell--title"></div>
+        <div class="skeleton-cell skeleton-cell--sub"></div>
       </td>
-      <td><div class="skeleton-cell" style="width:50%"></div></td>
-      <td><div class="skeleton-cell" style="width:32px;margin-left:auto"></div></td>
+      <td><div class="skeleton-cell skeleton-cell--half"></div></td>
+      <td><div class="skeleton-cell skeleton-cell--num"></div></td>
     </tr>`;
   ['songsBody', 'artistsBody', 'albumsBody'].forEach(id => {
     const el = document.getElementById(id);
@@ -38963,7 +38961,7 @@ function openStreakModal(opts) {
     const listHtml = graveyardAll.length
       ? `<div class="sk-grave-hdr">🪦 ${esc(t('sk_grave_title'))} <span class="streak-count">(${graveyardAll.length})</span></div>` +
         `<div class="sk-stones">${pageItems.map(graveHtml).join('')}</div>`
-      : `<div class="streak-empty" style="padding:1.2rem 1.4rem">${esc(t('sk_grave_none'))}</div>`;
+      : `<div class="streak-empty streak-empty--pad">${esc(t('sk_grave_none'))}</div>`;
     const pagerHtml = graveyardAll.length > GRAVE_PAGE_SIZE
       ? `<div class="page-nav sk-grave-nav">` +
           `<button class="page-nav-first" onclick="_skGraveGoToPage(0)"${gravePage === 0 ? ' disabled' : ''} title="First page">|◄</button>` +
@@ -39778,7 +39776,7 @@ function _skHmGenHTML() {
     gridHtml += `<div class="sk-hm-col sk-hm-col-anim" style="animation-delay:${w * 5}ms">`;
     for (let d = 0; d < 7; d++) {
       const dt = dayAt(w * 7 + d);
-      if (!inRange(dt)) { gridHtml += '<div class="sk-hm-cell" style="background:transparent"></div>'; continue; }
+      if (!inRange(dt)) { gridHtml += '<div class="sk-hm-cell is-blank"></div>'; continue; }
       const ds = localDateStr(dt);
       const cnt = _skHmCnt(ds);
       let cls = 'sk-hm-cell';

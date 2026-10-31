@@ -1367,6 +1367,7 @@ const TRANSLATIONS = {
     sk_hm_dense: 'Longest run of days with 2+ streaks: {{n}} days',
     sk_hm_less: 'Less',
     sk_hm_more: 'More',
+    hm_no_scrobbles: 'No scrobbles found for the selected filters.',
     sk_hm_copy: 'Copy image',
     sk_hm_copied: 'Copied',
     sk_hof_title: 'Hall of Fame',
@@ -6144,6 +6145,7 @@ const TRANSLATIONS = {
     sk_hm_dense: 'Racha más larga de días con 2+ rachas: {{n}} días',
     sk_hm_less: 'Menos',
     sk_hm_more: 'Más',
+    hm_no_scrobbles: 'No hay scrobbles para los filtros elegidos.',
     sk_hm_copy: 'Copiar imagen',
     sk_hm_copied: 'Copiada',
     sk_hof_title: 'Salón de la Fama',
@@ -10815,6 +10817,7 @@ const TRANSLATIONS = {
     sk_hm_dense: 'Maior série de dias com 2+ sequências: {{n}} dias',
     sk_hm_less: 'Menos',
     sk_hm_more: 'Mais',
+    hm_no_scrobbles: 'Nenhum scrobble encontrado para os filtros escolhidos.',
     sk_hm_copy: 'Copiar imagem',
     sk_hm_copied: 'Copiada',
     sk_hof_title: 'Hall da Fama',
@@ -15487,6 +15490,7 @@ const TRANSLATIONS = {
     sk_hm_dense: 'Maior série de dias com 2+ sequências: {{n}} dias',
     sk_hm_less: 'Menos',
     sk_hm_more: 'Mais',
+    hm_no_scrobbles: 'Nenhum scrobble encontrado para os filtros escolhidos.',
     sk_hm_copy: 'Copiar imagem',
     sk_hm_copied: 'Copiada',
     sk_hof_title: 'Hall da Fama',
@@ -19058,7 +19062,7 @@ function setLanguage(lang) {
   if (albumModal?.classList.contains('open') && typeof _currentAlbumKey !== 'undefined' && _currentAlbumKey) {
     const crEl = document.getElementById('albumModalChartRun');
     if (crEl && typeof chartRunData !== 'undefined' && chartRunData?.result?.albums?.[_currentAlbumKey]) {
-      crEl.innerHTML = `<div style="padding:0.4rem 0 0.7rem"><div class="cr-stats cr-stats-sum">${crStats('albums', _currentAlbumKey, chartRunData.period)}</div>${crBoxesHTML('albums', _currentAlbumKey)}</div>`;
+      crEl.innerHTML = `<div class="cr-album-run"><div class="cr-stats cr-stats-sum">${crStats('albums', _currentAlbumKey, chartRunData.period)}</div>${crBoxesHTML('albums', _currentAlbumKey)}</div>`;
     }
   }
 

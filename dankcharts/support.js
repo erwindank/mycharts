@@ -59,6 +59,9 @@
     '.dc-sup-box{position:relative;display:flex;flex-direction:column;width:100%;max-width:460px;max-height:calc(100vh - 32px);overflow:hidden;box-sizing:border-box;padding:0;border-radius:16px;' +
       'background:var(--bg2,#141c2b);color:var(--text,#fff);border:1px solid var(--border2,rgba(255,255,255,.14));box-shadow:0 24px 64px rgba(0,0,0,.45);font-family:var(--font-sans,system-ui,sans-serif)}' +
     '.dc-sup-head{display:flex;gap:12px;align-items:flex-start;padding:20px 20px 14px}' +
+    // the "Message sent" screen: no gap under the head, a plain full-width Close
+    '.dc-sup-head--done{padding-bottom:0}.dc-sup-spacer{flex:1}' +
+    '.dc-sup-foot--plain{border-top:0;background:none}.dc-sup-done-btn{flex:1}' +
     '.dc-sup-ico{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;color:var(--accent,#58aaf6);background:color-mix(in srgb,var(--accent,#58aaf6) 14%,transparent)}' +
     '.dc-sup-titles{flex:1;min-width:0}' +
     '.dc-sup-box h2{margin:1px 0 0;font-size:1.1rem;font-weight:700;line-height:1.25}' +
@@ -205,15 +208,15 @@
       .then(function (res) {
         if (!res || !res.success) throw new Error(res && res.message || 'send failed');
         overlay.querySelector('.dc-sup-box').innerHTML =
-          '<div class="dc-sup-head" style="padding-bottom:0"><span style="flex:1"></span>' +
+          '<div class="dc-sup-head dc-sup-head--done"><span class="dc-sup-spacer"></span>' +
             '<button type="button" class="dc-sup-close" aria-label="' + esc(tr('sup_close', 'Close')) + '">' + XICO + '</button></div>' +
           '<div class="dc-sup-done">' +
             '<span class="dc-sup-done-ico">' + CHECK + '</span>' +
             '<h2 id="dcSupTitle">' + esc(tr('sup_sent_title', 'Message sent')) + '</h2>' +
             '<p>' + esc(tr('sup_sent_text', 'Thanks! We will reply to {{email}} as soon as we can.').replace('{{email}}', email)) + '</p>' +
           '</div>' +
-          '<div class="dc-sup-foot" style="border-top:0;background:none">' +
-            '<button type="button" class="dc-sup-btn dc-sup-send dc-sup-done-btn" style="flex:1">' + esc(tr('sup_close', 'Close')) + '</button>' +
+          '<div class="dc-sup-foot dc-sup-foot--plain">' +
+            '<button type="button" class="dc-sup-btn dc-sup-send dc-sup-done-btn">' + esc(tr('sup_close', 'Close')) + '</button>' +
           '</div>';
         overlay.querySelectorAll('.dc-sup-close, .dc-sup-done-btn').forEach(function (b) {
           b.addEventListener('click', closeSupport);
