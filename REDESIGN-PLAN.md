@@ -3963,6 +3963,39 @@ a changelog entry.
   this day clicked for real. Scripts: C:/tmp/p16.mjs, p16_s6.mjs,
   p16_s7.mjs, p16_perf.mjs.
 
+### Phase 17: a fuller Compare (planned 2026-10-31)
+
+The Compare tab was the picker, one chart and a verdict row, and in Race
+mode only the race. You asked for all nine ideas (2026-10-31): "do them
+all". Everything is worked out from the plays, so it works the same for
+Last.fm, Google Sheets and CSV. Code in `stats.js` (sx prefix), one
+commit per step plus a changelog entry, no push without asking.
+
+1. **Race fixes:** every pick has a bar from the start (it showed only
+   the ones played in the first period, at 0), in the same colour as its
+   chip.
+2. **Summary line and head-to-head table:** "Taylor Swift leads with 38%
+   of the plays"; one row per pick with plays, share, first play, best
+   month, weeks at #1, longest daily streak and songs played (artists and
+   albums), sortable by any column. Years get their own columns.
+3. **Lead changes and who owned each period:** a strip with one block per
+   month (week for short ranges) in the winner's colour, and a list of
+   the times the lead changed hands on the running total.
+4. **Biggest gaps:** the closest race, the biggest lead ever and the
+   fastest rise (most plays in one month).
+5. **1-vs-1:** with exactly two picks, a mirrored bar card, row by row,
+   with a score ("Taylor wins 5–2").
+6. **Top songs side by side:** each pick's top 3 songs (artists, albums,
+   years) in small columns.
+7. **Listening habits:** each pick's plays by hour of day and day of the
+   week, with "your morning artist" / "your night one".
+8. **Share picture** of the summary line, the table's top rows and the
+   strip.
+9. **Saved comparisons:** keep named sets of picks per type; load or
+   delete them.
+10. **Finish:** four languages, the Charts Guide, screen check (1440 /
+    1100 / 390 touch, the check themes).
+
 ### Done outside the phases (to 2026-10-18)
 
 Work that isn't a plan step but changes what the later phases start from.

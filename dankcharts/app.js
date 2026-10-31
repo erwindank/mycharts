@@ -29521,7 +29521,12 @@ const raceAvatarCache = {};
 const raceArtistColors = {};
 const BASE_FRAME_MS = 600;
 
+// Phase 17 step 1: in Compare, each racer takes its chip's colour
+// (imgKey -> hex, filled by buildRaceFrames); otherwise the palette order
+let racePickColors = null;
+
 function getRaceColor(name) {
+  if (racePickColors && racePickColors[name]) return racePickColors[name];
   if (!raceArtistColors[name]) {
     const n = Object.keys(raceArtistColors).length;
     raceArtistColors[name] = n;
@@ -29617,6 +29622,9 @@ function buildRaceFrames() {
   const totals = {}; // imgKey -> count
   const metaMap = {}; // imgKey -> { type, name, artist, display, sub }
   const frames = [];
+  // Which Compare pick each racer is (imgKey -> artist name / song key /
+  // album key), for the chip colours and the starting line-up
+  const pickOf = {};
 
   for (const key of sortedKeys) {
     for (const p of (periodPlays[key] || [])) {
@@ -29625,6 +29633,7 @@ function buildRaceFrames() {
           if (only && !only.has(a)) continue;
           totals[a] = (totals[a] || 0) + 1;
           if (!metaMap[a]) metaMap[a] = { type: 'artists', name: a, display: a, sub: '' };
+          pickOf[a] = a;
         }
       } else if (raceType === 'songs') {
         if (only && !only.has(songKey(p))) continue;
@@ -29632,12 +29641,14 @@ function buildRaceFrames() {
         const imgKey = `${mainArtist}||${p.title}`;
         totals[imgKey] = (totals[imgKey] || 0) + 1;
         if (!metaMap[imgKey]) metaMap[imgKey] = { type: 'songs', name: p.title, artist: mainArtist, display: p.title, sub: mainArtist };
+        pickOf[imgKey] = songKey(p);
       } else { // albums
         if (only && !only.has(albumKeyOf(p))) continue;
         const mainArtist = (p.artists && p.artists[0]) || p.artist;
         const imgKey = `${mainArtist}||${p.album}`;
         totals[imgKey] = (totals[imgKey] || 0) + 1;
         if (!metaMap[imgKey]) metaMap[imgKey] = { type: 'albums', name: p.album, artist: mainArtist, display: p.album, sub: mainArtist };
+        pickOf[imgKey] = albumKeyOf(p);
       }
     }
     const ranked = Object.entries(totals).sort((a, b) => b[1] - a[1]);
@@ -29651,8 +29662,31 @@ function buildRaceFrames() {
     });
   }
 
-  // Prepend a zero frame so bars grow from nothing at the start
-  if (frames.length) {
+  // Compare picks (phase 17 step 1): every pick that plays at all in the
+  // range has a bar from the very first frame, at 0 until its first play,
+  // instead of only the ones played in the first period
+  racePickColors = null;
+  if (only && frames.length) {
+    const picks = [...only];
+    const order = k => picks.indexOf(pickOf[k]);
+    const everyone = Object.keys(totals).sort((a, b) => order(a) - order(b));
+    for (const f of frames) {
+      const have = new Set(f.artists.map(a => a.imgKey));
+      for (const k of everyone) {
+        if (have.has(k)) continue;
+        const m = metaMap[k];
+        f.artists.push({ imgKey: k, name: m.display, sub: m.sub, count: 0 });
+      }
+    }
+    if (typeof _sxCmpColor === 'function') {
+      racePickColors = {};
+      for (const k of everyone) racePickColors[k] = _sxCmpColor(order(k));
+    }
+    // The zero frame lines everyone up in pick order
+    frames.unshift({ key: '__zero__', label: frames[0].label,
+      artists: everyone.map(k => ({ imgKey: k, name: metaMap[k].display, sub: metaMap[k].sub, count: 0 })) });
+  } else if (frames.length) {
+    // Prepend a zero frame so bars grow from nothing at the start
     const zeroArtists = frames[0].artists.map(a => ({ ...a, count: 0 }));
     frames.unshift({ key: '__zero__', label: frames[0].label, artists: zeroArtists });
   }
