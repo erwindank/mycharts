@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Every racer on the starting line":
+    ["Todos en la línea de salida",
+     "En Estadísticas → Comparar, el modo Carrera muestra ahora una barra para cada elección desde el principio, alineadas en 0, en lugar de solo las que escuchaste el primer mes. Cada barra tiene además el mismo color que su etiqueta de arriba, para ver de un vistazo quién es quién. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "A faster Stats Overview":
     ["Un Resumen de Estadísticas más rápido",
      "El Resumen de Estadísticas se abre ahora unas dos veces más rápido en bibliotecas grandes, con las mismas cifras de antes. El botón Mezclar de Datos curiosos combina con el botón Compartir, y la barra ¿Nuevo o conocido? usa colores fáciles de distinguir en todos los temas, también en Amarillo. La Guía de Charts describe ahora las nuevas tarjetas del Resumen."],
