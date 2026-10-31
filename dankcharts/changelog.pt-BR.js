@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Share your Compare":
+    ["Compartilhe seu Comparar",
+     "Estatísticas → Comparar tem um botão Compartilhar no cartão Frente a frente. Ele cria uma imagem nas cores do seu tema com quem lidera, uma barra por escolha com seus plays e sua fatia, e a faixa Quem esteve no topo, pronta para postar, ou a salva se o seu dispositivo não puder compartilhar. Funciona com Last.fm, Google Sheets e arquivos CSV."],
   "Listening habits in Compare":
     ["Hábitos de escuta no Comparar",
      "Estatísticas → Comparar agora mostra quando cada escolha é ouvida: uma fileira de casas para as 24 horas do dia e os 7 dias da semana, mais fortes onde caem mais dos seus plays. Acima, aponta o das suas manhãs, o das suas noites e o dos seus fins de semana. Funciona com Last.fm, Google Sheets e arquivos CSV."],
