@@ -1054,6 +1054,8 @@
     .dc-lead-ico .dc-ico { width: 1.05em; height: 1.05em; }
     .dc-btn .dc-lead-ico .dc-ico { width: 16px; height: 16px; }
     .dc-btn .dc-lead-ico { margin-right: 0; }
+    /* rows that already space their items with a gap */
+    :is(.section-header-h2, .section-title, .section-replay-btn) > .dc-lead-ico { margin-right: 0; }
     /* Emoji-only slots (tile and tab icons, the 💎 💿 📀 marks) drawn as line
        icons in the slot's own colour */
     .dc-cell-ico { width: 1.1em; height: 1.1em; vertical-align: -0.15em; }
