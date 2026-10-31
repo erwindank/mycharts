@@ -10971,6 +10971,45 @@
     .sx-t5-bar { display: block; height: 4px; margin-top: 5px; border-radius: 2px; background: var(--bg3); overflow: hidden; }
     .sx-t5-bar i { display: block; height: 100%; border-radius: 2px; background: var(--accent); }
     .sx-t5-v { font-family: var(--font-mono); font-size: var(--fs-sm); color: var(--text2); font-variant-numeric: tabular-nums; }
+
+    /* Song of the period and Biggest movers, side by side (stacked below 1024) */
+    .sx-ov-pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1.25rem; }
+    .sx-ov-pair.is-single { grid-template-columns: minmax(0, 1fr); }
+    @media (max-width: 1023px) { .sx-ov-pair { grid-template-columns: minmax(0, 1fr); } }
+
+    /* Song of the period: picture and name, small numbers, a bar per day */
+    .sx-sotp-body { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: var(--sp-4); align-items: center; }
+    .sx-sotp-info { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; }
+    .sx-sotp-info .sx-t5-play { margin-top: var(--sp-2); }
+    .sx-sotp-chips { display: grid; grid-template-columns: repeat(auto-fit, minmax(5.5rem, 1fr)); gap: var(--sp-2); margin: var(--sp-4) 0 var(--sp-3); }
+    .sx-sotp-chip {
+      display: flex; flex-direction: column; align-items: center; text-align: center; gap: 1px;
+      padding: var(--sp-2); border-radius: var(--r-md); background: color-mix(in srgb, var(--bg) 45%, var(--bg2)); border: 1px solid var(--border);
+    }
+    .sx-sotp-chip b { font-family: var(--font-display); font-size: var(--fs-lg); font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
+    .sx-sotp-chip b small { font-size: var(--fs-xs); color: var(--text3); font-weight: 600; }
+    .sx-sotp-chip span { font-size: var(--fs-xs); color: var(--text2); line-height: 1.25; }
+    @media (max-width: 640px) { .sx-sotp-chips { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    .sx-sotp-bars { display: block; width: 100%; height: 64px; }
+    .sx-sotp-bars rect { fill: color-mix(in srgb, var(--accent) 70%, transparent); }
+    .sx-sotp-bars rect.is-peak { fill: var(--gold1); }
+    .sx-sotp-bars rect:hover { fill: var(--accent); }
+    .sx-sotp-axis { display: flex; justify-content: space-between; margin-top: 4px; font-size: var(--fs-xs); color: var(--text3); }
+
+    /* Biggest movers: Climbing and Dropping, two columns (one on phones) */
+    .sx-mv-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--sp-4); }
+    @media (max-width: 640px) { .sx-mv-body { grid-template-columns: minmax(0, 1fr); } }
+    .sx-ov-pair:not(.is-single) .sx-mv-body { grid-template-columns: minmax(0, 1fr); }
+    @media (max-width: 1023px) and (min-width: 641px) { .sx-ov-pair .sx-mv-body { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+    .sx-mv-h { margin: 0 0 var(--sp-1); font-size: var(--fs-xs); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .sx-mv-h.is-up { color: var(--green); }
+    .sx-mv-h.is-down { color: var(--rose); }
+    .sx-t5-row-btn.sx-mv-row { grid-template-columns: 40px minmax(0, 1fr) auto; }
+    /* now #3, was #41: its own quieter line */
+    .sx-t5-txt > span.sx-mv-where { color: var(--text3); }
+    .sx-mv-d { font-family: var(--font-mono); font-size: var(--fs-xs); font-weight: 600; padding: 2px 7px; border-radius: var(--r-sm); white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .sx-mv-d.is-up { color: var(--green); background: color-mix(in srgb, var(--green) 13%, transparent); }
+    .sx-mv-d.is-down { color: var(--rose); background: color-mix(in srgb, var(--rose) 13%, transparent); }
     .sx-tile .stat-foot { display: flex; gap: var(--sp-2); align-items: center; justify-content: center; flex-wrap: wrap; }
     /* "vs 51,416" on an Overview tile (not .sx-vs, the games' round badge) */
     .sx-vsprev { font-size: var(--fs-xs); color: var(--text3); font-variant-numeric: tabular-nums; }

@@ -239,11 +239,17 @@ function sxRenderOverview() {
     </div>
     <div class="sx-ov-grid">
       <section class="dc-card sx-ov-card sx-top5" id="sxTop5"></section>
+      <div class="sx-ov-pair${prev ? '' : ' is-single'}">
+        <section class="dc-card sx-ov-card sx-sotp" id="sxSotp"></section>
+        ${prev ? '<section class="dc-card sx-ov-card sx-movers" id="sxMovers"></section>' : ''}
+      </div>
     </div>`;
   animateStatStrip(box, 900);
   // Kept for the cards below the hero, so their switches don't scan again
   _sxOv = { cur, prev, fromTs, toTs };
   sxPaintTop5();
+  sxPaintSotp();
+  sxPaintMovers();
 }
 
 // ── Your top 5 (phase 16 step 1) ──────────────────────────────────────────
@@ -350,6 +356,181 @@ function sxPaintTop5() {
   arts.forEach(([e, id]) => _sxTop5Load(type, e, id));
   if (typeof _eaPaintSamples === 'function') _eaPaintSamples();   // a sample already playing shows as on
 }
+
+// ── Song of the period (phase 16 step 2) ──────────────────────────────────
+/* The range's #1 song with its own small story: a bar for each day (week,
+   month on long ranges) of the range, how many of the days it was played,
+   its best day, its longest run of days in a row, when you first heard it
+   and its plays all time. One pass over the plays, for that song only. */
+
+// "Oct 12" in the page language
+function _sxDayMon(ts) {
+  const locale = currentLang === 'en' ? 'en-US' : currentLang;
+  return new Date(ts).toLocaleDateString(locale, { day: 'numeric', month: 'short' });
+}
+
+function sxPaintSotp() {
+  const box = document.getElementById('sxSotp');
+  if (!box || !_sxOv) return;
+  const { fromTs, toTs } = _sxOv;
+  const top = _sxTop5List('songs')[0];
+  const P = graphRange.preset;
+  const span = P === 'all' ? t('sx_sotp_span_all') : P === 'custom'
+    ? t('sx_span_custom').replace('{from}', _sxDate(fromTs)).replace('{to}', _sxDate(toTs))
+    : t('sx_span_' + P);
+  const head = `<div class="sx-ov-head"><div><h3 class="graph-card-title">${esc(t('sx_sotp_title'))}</h3>` +
+    `<div class="graph-card-sub">${esc(t('sx_sotp_sub').replace('{span}', span))}</div></div></div>`;
+  if (!top) { box.innerHTML = head; return; }
+
+  // The bars and the day count start when you found the song, if that was
+  // inside the range (else a new song sits at the far end of empty bars)
+  const firstMap = firstSeenMaps && firstSeenMaps.songFirst;
+  const first = firstMap && firstMap[top.key];
+  const rangeFrom = P === 'all' ? new Date(graphRangeDates().from + 'T00:00:00').getTime() : fromTs;
+  const startTs = first ? Math.max(rangeFrom, new Date(localDateStr(first) + 'T00:00:00').getTime()) : rangeFrom;
+  // Buckets like the tiles' trend lines: days, weeks up to ~3 years, months
+  const rangeMs = toTs - startTs;
+  const bucketMs = rangeMs <= 62 * _SX_DAY ? _SX_DAY : rangeMs <= 3.2 * 365 * _SX_DAY ? 7 * _SX_DAY : 30.44 * _SX_DAY;
+  const nB = Math.max(1, Math.ceil(rangeMs / bucketMs));
+  const bars = new Array(nB).fill(0);
+  const dayN = new Map();
+  let total = 0;
+  for (const p of allPlays) {
+    if (songKey(p) !== top.key) continue;
+    total++;
+    const d = tzDateOf(p), ts = d.getTime();
+    if (ts < startTs || ts > toTs) continue;
+    bars[Math.min(nB - 1, Math.floor((ts - startTs) / bucketMs))]++;
+    const dk = localDateStr(d);
+    dayN.set(dk, (dayN.get(dk) || 0) + 1);
+  }
+  // Best day and the longest run of days in a row
+  let bestD = null, bestN = 0;
+  dayN.forEach((n, d) => { if (n > bestN) { bestN = n; bestD = d; } });
+  const dayKeys = [...dayN.keys()].sort();
+  let run = 0, best = 0, last = null;
+  for (const k of dayKeys) {
+    const ts = new Date(k + 'T12:00:00').getTime();
+    run = last !== null && Math.round((ts - last) / _SX_DAY) === 1 ? run + 1 : 1;
+    if (run > best) best = run;
+    last = ts;
+  }
+  // The days it could have been played: the range, from when you found it
+  const rangeDays = Math.max(1, Math.round((toTs - startTs) / _SX_DAY));
+
+  const art = _sxTop5Art('songs', top, 'is-lead');
+  const max = Math.max(...bars, 1), w = 100 / nB;
+  const per = bucketMs === _SX_DAY ? 'day' : bucketMs === 7 * _SX_DAY ? 'week' : 'month';
+  const svg = `<svg class="sx-sotp-bars" viewBox="0 0 100 40" preserveAspectRatio="none" role="img" aria-label="${esc(t('sx_sotp_bars_' + per))}">` +
+    bars.map((v, i) => {
+      const h = v ? Math.max(1.5, v / max * 38) : 0;
+      const tip = `${_sxDayMon(startTs + i * bucketMs)}: ${t('sx_top5_plays').replace('{n}', v.toLocaleString())}`;
+      return `<rect x="${(i * w + w * 0.12).toFixed(2)}" y="${(40 - h).toFixed(2)}" width="${(w * 0.76).toFixed(2)}" height="${h.toFixed(2)}"${v === max ? ' class="is-peak"' : ''}><title>${esc(tip)}</title></rect>`;
+    }).join('') + `</svg>`;
+
+  const chip = (v, l) => `<div class="sx-sotp-chip"><b>${v}</b><span>${esc(l)}</span></div>`;
+  const chips =
+    chip(top.n.toLocaleString(), t('sx_sotp_plays')) +
+    chip(`${dayN.size.toLocaleString()}<small>/${rangeDays.toLocaleString()}</small>`, t('sx_sotp_days')) +
+    (bestD ? chip(bestN.toLocaleString(), t('sx_sotp_best').replace('{date}', _sxDayMon(new Date(bestD + 'T12:00:00').getTime()))) : '') +
+    (best > 1 ? chip(best.toLocaleString(), t('sx_sotp_run')) : '');
+  const foot = [first ? t('sx_sotp_first').replace('{date}', _sxDate(first.getTime())) : '',
+    t('sx_sotp_total').replace('{n}', total.toLocaleString())].filter(Boolean).join(' · ');
+  const sampleLbl = t('sx_top5_sample');
+
+  box.innerHTML = head + `<div class="sx-sotp-body"${_sxEa('songs', top, art.id)}>
+      <button type="button" class="sx-t5-lead-art sx-sotp-art" onclick="${_sxOpenJs('songs', top)}" aria-label="${esc(top.title)}">${art.html}</button>
+      <div class="sx-sotp-info">
+        <button type="button" class="sx-t5-name" onclick="${_sxOpenJs('songs', top)}">${esc(top.title)}</button>
+        <span class="sx-t5-by">${esc(top.artist)}</span>
+        <button type="button" class="ea-sample sx-t5-play" title="${esc(sampleLbl)}" aria-label="${esc(sampleLbl)}">` +
+          `<svg viewBox="0 0 24 24" aria-hidden="true"><path class="ea-ic-play" d="M8 5v14l11-7z"/><path class="ea-ic-stop" d="M7 6h3.5v12H7zM13.5 6H17v12h-3.5z"/></svg>` +
+          `<span class="sx-t5-play-go">${esc(sampleLbl)}</span><span class="sx-t5-play-stop">${esc(t('sx_top5_stop'))}</span></button>
+      </div>
+    </div>
+    <div class="sx-sotp-chips">${chips}</div>
+    ${svg}
+    <div class="sx-sotp-axis"><span>${esc(_sxDayMon(startTs))}</span><span>${esc(_sxDayMon(toTs))}</span></div>
+    <p class="sx-note">${esc(foot)}</p>`;
+  _sxTop5Load('songs', top, art.id);
+  if (typeof _eaPaintSamples === 'function') _eaPaintSamples();
+}
+
+// ── Biggest movers (phase 16 step 2) ──────────────────────────────────────
+/* Against the same stretch just before: the three songs (artists, albums)
+   whose plays went up the most and the three that went down the most, with
+   their rank now and then. Only when there is a stretch before. */
+
+let sxMoversType = localStorage.getItem('dc_sxMovers') || 'songs';
+
+// Plays per key for a type in a tally, and each key's names
+function _sxTypeMap(tally, type) {
+  const m = new Map();
+  if (type === 'artists') tally.artistPlays.forEach((n, a) => m.set(a, { n, title: a, artist: a, album: '' }));
+  else (type === 'songs' ? tally.songPlays : tally.albumPlays).forEach((o, k) => m.set(k, {
+    n: o.n, title: type === 'songs' ? o.p.title : o.p.album,
+    artist: type === 'songs' ? o.p.artist : k.split('|||')[1] || o.p.artist, album: o.p.album,
+  }));
+  return m;
+}
+// Rank of each key (1 = most played)
+function _sxRanks(m) {
+  const r = new Map();
+  [...m.entries()].sort((a, b) => b[1].n - a[1].n).forEach(([k], i) => r.set(k, i + 1));
+  return r;
+}
+
+function sxPaintMovers() {
+  const box = document.getElementById('sxMovers');
+  if (!box || !_sxOv || !_sxOv.prev) return;
+  const type = sxMoversType;
+  const cur = _sxTypeMap(_sxOv.cur, type), prev = _sxTypeMap(_sxOv.prev, type);
+  const rc = _sxRanks(cur), rp = _sxRanks(prev);
+  const all = new Set([...cur.keys(), ...prev.keys()]);
+  const moves = [];
+  all.forEach(k => {
+    const a = cur.get(k), b = prev.get(k);
+    const info = a || b;
+    moves.push({ key: k, title: info.title, artist: info.artist, album: info.album, n: a ? a.n : 0, d: (a ? a.n : 0) - (b ? b.n : 0), now: rc.get(k), was: rp.get(k) });
+  });
+  const up = moves.filter(m => m.d > 0).sort((a, b) => b.d - a.d).slice(0, 3);
+  const down = moves.filter(m => m.d < 0).sort((a, b) => a.d - b.d).slice(0, 3);
+
+  const seg = ['songs', 'artists', 'albums'].map(k =>
+    `<button type="button" data-mv="${k}" aria-pressed="${k === type}">${esc(t('sx_cmp_type_' + k))}</button>`).join('');
+  const P = graphRange.preset;
+  const head = `<div class="sx-ov-head"><div><h3 class="graph-card-title">${esc(t('sx_mov_title'))}</h3>` +
+    `<div class="graph-card-sub">${esc(t('sx_mov_sub').replace('{prev}', t('sx_prev_' + P)))}</div></div>` +
+    `<div class="dc-seg" role="group" aria-label="${esc(t('sx_mov_title'))}">${seg}</div></div>`;
+
+  const arts = [];
+  const row = m => {
+    const a = _sxTop5Art(type, m);
+    arts.push([m, a.id]);
+    const where = !m.was ? t('sx_mov_new').replace('{now}', m.now)
+      : !m.now ? t('sx_mov_gone').replace('{was}', m.was)
+      : t('sx_mov_rank').replace('{now}', m.now).replace('{was}', m.was);
+    return `<li class="sx-t5-row"${_sxEa(type, m, a.id)}>
+        <button type="button" class="sx-t5-row-btn sx-mv-row" onclick="${_sxOpenJs(type, m)}">${a.html}
+          <span class="sx-t5-txt"><b>${esc(m.title)}</b>${type !== 'artists' ? `<span>${esc(m.artist)}</span>` : ''}<span class="sx-mv-where">${esc(where)}</span></span>
+          <span class="sx-mv-d ${m.d > 0 ? 'is-up' : 'is-down'}">${m.d > 0 ? '▲ +' : '▼ −'}${Math.abs(m.d).toLocaleString()}</span>
+        </button>
+      </li>`;
+  };
+  const col = (key, list) => `<div class="sx-mv-col"><h4 class="sx-mv-h ${key === 'up' ? 'is-up' : 'is-down'}">${esc(t('sx_mov_' + key))}</h4>` +
+    (list.length ? `<ol class="sx-t5-rows">${list.map(row).join('')}</ol>` : `<p class="sx-note">${esc(t('sx_mov_none'))}</p>`) + `</div>`;
+  box.innerHTML = head + `<div class="sx-mv-body">${col('up', up)}${col('down', down)}</div>`;
+  arts.forEach(([m, id]) => _sxTop5Load(type, m, id));
+}
+
+// The movers' Songs / Artists / Albums switch
+document.addEventListener('click', e => {
+  const b = e.target.closest('#sxMovers [data-mv]');
+  if (!b) return;
+  sxMoversType = b.dataset.mv;
+  try { localStorage.setItem('dc_sxMovers', sxMoversType); } catch (err) { }
+  sxPaintMovers();
+});
 
 // The Songs / Artists / Albums switch
 document.addEventListener('click', e => {
