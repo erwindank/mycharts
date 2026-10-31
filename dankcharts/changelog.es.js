@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Day by day and On this day":
+    ["Día a día y Un día como hoy",
+     "El Resumen de Estadísticas tiene ahora Día a día: un cuadrado por cada día del rango de fechas, más oscuro cuanto más escuchaste, como un pequeño calendario en rangos cortos y como las últimas 53 semanas en rangos largos. Toca un día para abrirlo. A su lado, Un día como hoy muestra la fecha de hoy hace uno, dos y tres años (los tres últimos años con reproducciones) con la canción más escuchada de ese día y su imagen. Toca una para abrir ese día. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Your listening personality and Fun facts":
     ["Tu personalidad musical y Datos curiosos",
      "El Resumen de Estadísticas le da ahora una personalidad musical al rango de fechas, como El Búho Nocturno, El Explorador, El Fiel, El Superfan, El Repetidor, El Guerrero del Finde, El Maratonista o El Trotamundos, con una línea que explica por qué y los otros rasgos que también encajan. A su lado, Datos curiosos muestra cuatro detalles del periodo, como tu racha más larga de una canción repetida, tu hora y tu día de la semana con más música, tu mayor día con un solo artista, cuántas canciones escuchaste solo una vez y la primera canción del periodo. Mezclar muestra los cuatro siguientes. Funciona con Last.fm, Google Sheets y archivos CSV."],

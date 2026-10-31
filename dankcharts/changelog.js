@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 391;
+const DC_CL_I18N_V = 392;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-31', t: 'feature', a: 'graphs', h: '9841486',
+    title: "Day by day and On this day",
+    detail: "The Stats Overview now has Day by day: a square for each day of the date range, darker the more you played, as a small calendar for short ranges and as the last 53 weeks for long ones. Tap a day to open it. Beside it, On this day shows today's date one, two and three years ago (the latest three years with plays) with that day's most played song and its picture. Tap one to open that day. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-10-31', t: 'feature', a: 'graphs', h: 'eca2d48',
     title: "Your listening personality and Fun facts",
     detail: "The Stats Overview now gives the date range a listening personality, like The Night Owl, The Explorer, The Loyalist, The Superfan, The Repeater, The Weekend Warrior, The Marathoner or The Wanderer, with one line on why and any other traits that also fit. Beside it, Fun facts shows four small things from the range, such as your longest run of one song back to back, your busiest hour and day of the week, your biggest one-artist day, how many songs you played just once and the first song of the range. Shuffle shows the next four. Works with Last.fm, Google Sheets and CSV uploads." },

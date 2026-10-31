@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Day by day and On this day":
+    ["Dia a dia e Neste dia",
+     "A Visão geral das Estatísticas agora tem Dia a dia: um quadrado para cada dia do intervalo de datas, mais escuro quanto mais você ouviu, como um pequeno calendário em intervalos curtos e como as últimas 53 semanas nos longos. Toque em um dia para abri-lo. Ao lado, Neste dia mostra a data de hoje há um, dois e três anos (os três últimos anos com plays) com a música mais tocada daquele dia e sua imagem. Toque em uma para abrir aquele dia. Funciona com Last.fm, Google Sheets e arquivos CSV."],
   "Your listening personality and Fun facts":
     ["Sua personalidade musical e Curiosidades",
      "A Visão geral das Estatísticas agora dá ao intervalo de datas uma personalidade musical, como A Coruja Noturna, O Explorador, O Fiel, O Superfã, O Repetidor, O Guerreiro do Fim de Semana, O Maratonista ou O Andarilho, com uma linha dizendo por quê e os outros traços que também combinam. Ao lado, Curiosidades mostra quatro detalhes do período, como sua maior sequência de uma música repetida, seu horário e dia da semana mais movimentados, seu maior dia com um só artista, quantas músicas você ouviu só uma vez e a primeira música do período. Embaralhar mostra as próximas quatro. Funciona com Last.fm, Google Sheets e arquivos CSV."],
