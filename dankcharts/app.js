@@ -19842,6 +19842,20 @@ function toggleBuCr(btn, rowId) {
   btn.classList.toggle('active', open);
 }
 
+// A click on a Bubbling Under row opens (or closes) its chart run, the same
+// as its history button. Clicks on the names, buttons and the cover's own
+// controls do their own thing, and selecting text doesn't count as a click.
+function _buRowClick(e, tr, rowId) {
+  if (e.target.closest('a, button, input, .img-src-btn')) return;
+  if (window.getSelection && window.getSelection().toString().length > 0) return;
+  const btn = tr.querySelector('.bu-cr-btn');
+  const row = document.getElementById(rowId);
+  if (!row) return;
+  const open = !row.classList.contains('open');
+  row.classList.toggle('open', open);
+  if (btn) btn.classList.toggle('active', open);
+}
+
 // Shows a popup tooltip for a BU chart run box — same pattern as showCrPreview.
 // Lists the full BU zone ranking for that week with the active entry highlighted,
 // plus a link to navigate to that week's chart.
@@ -20195,12 +20209,17 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
     const buEa = _eaAttrs(type, { title: ytTitle, artist: ytArtist, album: ytAlbum, key, imgId });
     // Like the chart row: rank, cover, name with the plain tag line under it,
     // then plays with "N away" under it, then the buttons side by side
-    const mainRow = `<tr class="bu-row atc-row"${buEa} data-bur="${rank}">
+    // Names open their pop-up, as on the chart: the song / album / artist
+    // itself, and each credited artist under it
+    const modalFn = type === 'songs' ? 'openSongModal' : type === 'albums' ? 'openAlbumModal' : 'openArtistModal';
+    // A click anywhere else on the row opens its Bubbling Under chart run
+    // (_buRowClick), like a click on a chart row opens its chart run
+    const mainRow = `<tr class="bu-row atc-row"${buEa} data-bur="${rank}" onclick="_buRowClick(event,this,'${buCrRowId}')">
       <td class="atc-rank">${rank}</td>
       <td class="atc-cov">${cov.html}</td>
       <td class="atc-name">
-        <div class="atc-title">${esc(displayName)}</div>
-        ${subName ? `<div class="atc-sub">${esc(subName)}</div>` : ''}
+        <div class="atc-title">${chartNameLink(displayName, modalFn, key)}</div>
+        ${subName ? `<div class="atc-sub">${chartArtistLinks(subName)}</div>` : ''}
         ${storyLine ? `<div class="bu-story">${storyLine}</div>` : ''}
       </td>
       <td class="atc-status bu-plays">
@@ -21123,8 +21142,10 @@ function _eaRunAction(action, el, arg) {
   } else if (action === 'artist') {
     openArtistModal(arg || d.artist);
   } else if (action === 'chartrun') {
-    // The entry's details panel holds the chart run in every layout
-    if (!el.classList.contains('ea-open') && !el.classList.contains('cr-panel')) _drToggle(el);
+    // The entry's details panel holds the chart run in every layout;
+    // a Bubbling Under row opens its own Bubbling Under run instead
+    if (el.classList.contains('bu-row')) { const b = el.querySelector('.bu-cr-btn'); if (b && !b.classList.contains('active')) b.click(); }
+    else if (!el.classList.contains('ea-open') && !el.classList.contains('cr-panel')) _drToggle(el);
   } else if (action === 'cover') {
     const name = d.type === 'songs' ? d.title : d.type === 'albums' ? d.album : d.artist;
     const prefkey = d.type === 'songs' ? 'song:' + d.artist.toLowerCase() + '|||' + d.title.toLowerCase()
