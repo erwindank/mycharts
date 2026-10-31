@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 380;
+const DC_CL_I18N_V = 381;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -81,7 +81,7 @@ const DC_CHANGELOG = [
   /* ========== OCTOBER 2026 ========== */
   { d: '2026-10-31', t: 'design', a: 'ui', h: 'a48d1c3',
     title: "Line icons instead of emoji, everywhere",
-    detail: "Titles, buttons and tabs across the site now use the same line icons as the menus, instead of emoji that looked different on every phone and computer. Menu rows simply lose theirs, so the words line up. The certification marks are icons too, in the badge's own colour: a diamond song still shows as 💎💎 or 3×💎 in the phone chart and in the Music and Tracks lists, now drawn as a clean diamond instead of an emoji. The Daily mood faces and the 🔥 streak flame stay as they are." },
+    detail: "Titles, buttons and tabs across the site now use the same line icons as the menus, instead of emoji that looked different on every phone and computer. Menu rows simply lose theirs, so the words line up. The certification marks are icons too, in the badge's own colour: a diamond song still shows as 💎💎 or 3×💎 in the phone chart and in the Music and Tracks lists, now drawn as a clean diamond instead of an emoji. The Daily mood faces, the 🔥 streak flame and the stat tile icons stay as they are." },
   { d: '2026-10-31', t: 'perf', a: 'records', h: '50a597e',
     title: "Records opens at once",
     detail: "Opening Records on a big library used to freeze the page for a few seconds while every record was worked out. Now the tab opens straight away with a short Building your records… line, and the records fill in a moment later. Once built, it opens with no wait until your plays change." },

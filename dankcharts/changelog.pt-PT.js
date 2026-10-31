@@ -15,7 +15,7 @@ window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
   "Line icons instead of emoji, everywhere":
     ["Ícones de linha em vez de emojis, em todo o lado",
-     "Os títulos, botões e separadores de todo o site usam agora os mesmos ícones de linha dos menus, em vez de emojis que ficavam diferentes em cada telemóvel e computador. As linhas dos menus simplesmente perdem o seu, para as palavras ficarem alinhadas. As certificações também passaram a ícones, na cor do seu selo: uma música diamante continua a aparecer como 💎💎 ou 3×💎 no top do telemóvel e nas listas de Músicas e Faixas, agora desenhada como um diamante limpo em vez de um emoji. As caras de humor do Diário e a chama 🔥 de sequência ficam como estão."],
+     "Os títulos, botões e separadores de todo o site usam agora os mesmos ícones de linha dos menus, em vez de emojis que ficavam diferentes em cada telemóvel e computador. As linhas dos menus simplesmente perdem o seu, para as palavras ficarem alinhadas. As certificações também passaram a ícones, na cor do seu selo: uma música diamante continua a aparecer como 💎💎 ou 3×💎 no top do telemóvel e nas listas de Músicas e Faixas, agora desenhada como um diamante limpo em vez de um emoji. As caras de humor do Diário, a chama 🔥 de sequência e os ícones dos blocos de estatísticas ficam como estão."],
   "Records opens at once":
     ["Os Recordes abrem logo",
      "Abrir os Recordes com uma biblioteca grande bloqueava a página durante alguns segundos enquanto cada recorde era calculado. Agora o separador abre logo com uma linha a dizer A calcular os seus recordes…, e os recordes aparecem um instante depois. Depois de calculados, abre sem espera até os seus plays mudarem."],
