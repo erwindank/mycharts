@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Bubbling Under names and rows are clickable again":
+    ["Os nomes e as linhas de Aspirantes ao Top voltam a ser clicáveis",
+     "Na lista Aspirantes ao Top das paradas semanais, os nomes de músicas, artistas e álbuns voltam a abrir sua janela, e um clique em qualquer outra parte de uma linha abre o histórico dela entre os aspirantes, como na parada principal. As duas coisas tinham parado de funcionar depois do redesign."],
   "The Appearances table header no longer covers the #1 row":
     ["O cabeçalho da tabela de Aparições não cobre mais o nº 1",
      "Em Recordes → Aparições, os títulos das colunas deslizavam por cima da entrada nº 1 e deixavam uma faixa vazia acima. Agora eles ficam logo abaixo da barra superior enquanto você rola a lista, como nas outras tabelas de Recordes. Em telas mais estreitas, onde a tabela rola para o lado, eles ficam no topo da tabela."],

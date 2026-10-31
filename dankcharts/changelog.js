@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 383;
+const DC_CL_I18N_V = 384;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+  { d: '2026-10-31', t: 'fix', a: 'charts', h: '6af4121',
+    title: "Bubbling Under names and rows are clickable again",
+    detail: "On the weekly charts' Bubbling Under list, the song, artist and album names open their pop-ups again, and a click anywhere else on a row opens its Bubbling Under chart run, the same as on the chart itself. Both had stopped working after the redesign." },
   { d: '2026-10-31', t: 'fix', a: 'records', h: 'a7369e2',
     title: "The Appearances table header no longer covers the #1 row",
     detail: "In Records → Appearances, the column titles of the table slid down over the #1 entry and left an empty strip above them. They now stay just under the top bar as you scroll the list, like the other Records tables. On narrower screens, where the table scrolls sideways, they stay at the top of the table." },
