@@ -2993,18 +2993,10 @@ const TRANSLATIONS = {
     graph_new_albums: 'New Albums',
     range_from: 'From',
     range_until: 'To',
-    type_label: 'Type',
     speed_label: 'Speed',
-    show_label: 'Show',
     graph_add_artist: 'Add an artist…',
 
     // Graph card titles / subtitles
-    graph_cumulative_title: '📈 Cumulative Plays Over Time — Artist Comparison',
-    graph_volume_title: '📊 Total Play Volume by Period',
-    graph_volume_sub: 'How many songs you played each period across all artists',
-    graph_volume_comp_title: '📊 Play Volume by Period — Artist Comparison',
-    graph_discoveries_title: '✨ New Discoveries per Period',
-    graph_discoveries_sub: 'Songs, artists and albums heard for the first time each period',
     graph_race_title: '🏁 Play Count Race',
     graph_race_sub: 'Cumulative plays over time — watch entries compete for the top spot',
 
@@ -3012,7 +3004,6 @@ const TRANSLATIONS = {
     race_start: '↩ Start',
     race_play: '▶ Play',
     race_end: '↪ End',
-    race_artists: 'Artists',
     race_songs: 'Songs',
     race_albums: 'Albums',
 
@@ -3424,13 +3415,10 @@ const TRANSLATIONS = {
     // Calendar & Date labels
 
     // Masthead
-    masthead_est: "★ {{possessive}} Personal Music Charts · Est. {{year}} ★",
-    masthead_est_default: "★ Your Personal Music Charts · Est. {{year}} ★",
     masthead_tagline: "Your listening history. Your charts. Your life's soundtrack.",
-    masthead_streaming: 'Streaming since {{date}}',
 
     // Footer
-    // Same name-aware pair as masthead_est: {{possessive}} when a display name is
+    // Name-aware pair: {{possessive}} when a display name is
     // set in Settings, the _default wording when it isn't. Stamped by
     // updateMastheadDynamic(), not by the plain applyI18n() pass.
     footer_line1: "dankcharts.fm · {{possessive}} Personal Music Charts · Est. {{year}}",
@@ -7871,18 +7859,10 @@ const TRANSLATIONS = {
     graph_new_albums: 'Álbumes nuevos',
     range_from: 'Desde',
     range_until: 'Hasta',
-    type_label: 'Tipo',
     speed_label: 'Velocidad',
-    show_label: 'Mostrar',
     graph_add_artist: 'Añadir un artista…',
 
     // Graph card titles / subtitles
-    graph_cumulative_title: '📈 Reproducciones Acumuladas — Comparación de Artistas',
-    graph_volume_title: '📊 Volumen Total de Reproducciones por Período',
-    graph_volume_sub: 'Cuántas canciones escuchaste cada período en todos los artistas',
-    graph_volume_comp_title: '📊 Volumen de Reproducciones por Período — Comparación de Artistas',
-    graph_discoveries_title: '✨ Nuevos Descubrimientos por Período',
-    graph_discoveries_sub: 'Canciones, artistas y álbumes escuchados por primera vez cada período',
     graph_race_title: '🏁 Carrera de Reproducciones',
     graph_race_sub: 'Reproducciones acumuladas — mira cómo compiten las entradas por el primer lugar',
 
@@ -7890,7 +7870,6 @@ const TRANSLATIONS = {
     race_start: '↩ Inicio',
     race_play: '▶ Reproducir',
     race_end: '↪ Fin',
-    race_artists: 'Artistas',
     race_songs: 'Canciones',
     race_albums: 'Álbumes',
     rec_nav_overview: 'Resumen',
@@ -8218,10 +8197,7 @@ const TRANSLATIONS = {
     // Calendar & Date labels
 
     // Masthead
-    masthead_est: "★ Rankings Personales de Música de {{name}} · Est. {{year}} ★",
-    masthead_est_default: "★ Tus Rankings Personales de Música · Est. {{year}} ★",
     masthead_tagline: 'Tu historial de escucha. Tus rankings. La banda sonora de tu vida.',
-    masthead_streaming: 'Escuchando desde el {{date}}',
 
     // Footer
     footer_line1: "dankcharts.fm · Rankings Personales de Música de {{name}} · Est. {{year}}",
@@ -12651,18 +12627,10 @@ const TRANSLATIONS = {
     graph_new_albums: 'Álbuns novos',
     range_from: 'De',
     range_until: 'Até',
-    type_label: 'Tipo',
     speed_label: 'Velocidade',
-    show_label: 'Mostrar',
     graph_add_artist: 'Adicionar um artista…',
 
     // Graph card titles / subtitles
-    graph_cumulative_title: '📈 Plays Acumulados — Comparação de Artistas',
-    graph_volume_title: '📊 Volume Total de Plays por Período',
-    graph_volume_sub: 'Quantas músicas você ouviu em cada período em todos os artistas',
-    graph_volume_comp_title: '📊 Volume de Plays por Período — Comparação de Artistas',
-    graph_discoveries_title: '✨ Novas Descobertas por Período',
-    graph_discoveries_sub: 'Músicas, artistas e álbuns ouvidos pela primeira vez em cada período',
     graph_race_title: '🏁 Corrida de Plays',
     graph_race_sub: 'Plays acumulados — veja as entradas competindo pelo topo',
 
@@ -12670,7 +12638,6 @@ const TRANSLATIONS = {
     race_start: '↩ Início',
     race_play: '▶ Reproduzir',
     race_end: '↪ Fim',
-    race_artists: 'Artistas',
     race_songs: 'Músicas',
     race_albums: 'Álbuns',
     rec_nav_overview: 'Visão geral',
@@ -12998,10 +12965,7 @@ const TRANSLATIONS = {
     // Calendar & Date labels
 
     // Masthead
-    masthead_est: "★ Paradas Musicais Pessoais de {{name}} · Est. {{year}} ★",
-    masthead_est_default: "★ Suas Paradas Musicais Pessoais · Est. {{year}} ★",
     masthead_tagline: 'Seu histórico de escuta. Suas paradas. A trilha sonora da sua vida.',
-    masthead_streaming: 'Ouvindo desde {{date}}',
 
     // Footer
     footer_line1: "dankcharts.fm · Paradas Musicais Pessoais de {{name}} · Est. {{year}}",
@@ -17431,18 +17395,10 @@ const TRANSLATIONS = {
     graph_new_albums: 'Álbuns novos',
     range_from: 'De',
     range_until: 'Até',
-    type_label: 'Tipo',
     speed_label: 'Velocidade',
-    show_label: 'Mostrar',
     graph_add_artist: 'Adicionar um artista…',
 
     // Graph card titles / subtitles
-    graph_cumulative_title: '📈 Plays Acumulados — Comparação de Artistas',
-    graph_volume_title: '📊 Volume Total de Plays por Período',
-    graph_volume_sub: 'Quantas músicas ouviu em cada período em todos os artistas',
-    graph_volume_comp_title: '📊 Volume de Plays por Período — Comparação de Artistas',
-    graph_discoveries_title: '✨ Novas Descobertas por Período',
-    graph_discoveries_sub: 'Músicas, artistas e álbuns ouvidos pela primeira vez em cada período',
     graph_race_title: '🏁 Corrida de Plays',
     graph_race_sub: 'Plays acumulados — veja as entradas a competir pelo topo',
 
@@ -17450,7 +17406,6 @@ const TRANSLATIONS = {
     race_start: '↩ Início',
     race_play: '▶ Reproduzir',
     race_end: '↪ Fim',
-    race_artists: 'Artistas',
     race_songs: 'Músicas',
     race_albums: 'Álbuns',
     rec_nav_overview: 'Visão geral',
@@ -17777,10 +17732,7 @@ const TRANSLATIONS = {
     // Calendar & Date labels
 
     // Masthead
-    masthead_est: "★ Tops Pessoais de Música de {{name}} · Est. {{year}} ★",
-    masthead_est_default: "★ Os Seus Tops Pessoais de Música · Est. {{year}} ★",
     masthead_tagline: 'O seu histórico de escuta. Os seus tops. A banda sonora da sua vida.',
-    masthead_streaming: 'A ouvir desde {{date}}',
 
     // Footer
     footer_line1: "dankcharts.fm · Tops Pessoais de Música de {{name}} · Est. {{year}}",
@@ -19307,14 +19259,8 @@ function updateMastheadDynamic() {
   // and ignore the possessive, so both are handed to every string.
   const possessive = name ? (name.match(/s$/i) ? name + "'" : name + "'s") : '';
 
-  const estEl = document.querySelector('[data-i18n="masthead_est"]');
-  if (estEl) {
-    const key = name ? 'masthead_est' : 'masthead_est_default';
-    estEl.textContent = t(key, { name, possessive, year });
-  }
-
-  // The footer carries the same line as the masthead, so it follows the same rule:
-  // the display name from Settings when there is one, "Your…" when there isn't.
+  // The footer line follows the display name from Settings when there is one,
+  // "Your…" when there isn't.
   const footEl = document.querySelector('[data-i18n="footer_line1"]');
   if (footEl) {
     footEl.textContent = t(name ? 'footer_line1' : 'footer_line1_default', { name, possessive, year });
@@ -19323,26 +19269,13 @@ function updateMastheadDynamic() {
   // And so does the browser tab / search-result headline. Nobody visiting without a
   // display name should ever see someone else's name here.
   document.title = t(name ? 'page_title' : 'page_title_default', { name, possessive, year });
-
-  const streamEl = document.querySelector('[data-i18n="masthead_streaming"]');
-  if (streamEl) {
-    if (firstDate) {
-      const localeMap = { en: 'en-US', es: 'es', 'pt-BR': 'pt-BR', 'pt-PT': 'pt-PT' };
-      const locale = localeMap[currentLang] || 'en-US';
-      const dateStr = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', year: 'numeric' }).format(firstDate);
-      streamEl.textContent = t('masthead_streaming', { date: dateStr });
-    } else {
-      streamEl.textContent = t('masthead_streaming', { date: '—' });
-    }
-  }
 }
 
 function applyI18n() {
   document.querySelectorAll('[data-i18n]').forEach(el => {
-    // These three carry the display name and the first-scrobble year, so they are
+    // The footer line carries the display name and the first-scrobble year, so it is
     // stamped by updateMastheadDynamic() below instead of with the raw template.
-    if (el.dataset.i18n === 'masthead_est' || el.dataset.i18n === 'masthead_streaming'
-        || el.dataset.i18n === 'footer_line1') return;
+    if (el.dataset.i18n === 'footer_line1') return;
     // #syncStatus carries a live status set by app.js (sync results, page counters,
     // errors…). Once one has been set, re-stamping the static placeholder here would
     // clobber it — e.g. a language switch used to permanently replace "✓ Synced" with

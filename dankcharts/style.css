@@ -9777,9 +9777,8 @@
        STATS SECTION — three-tier hierarchy (2026 redesign)
        Tier 1 .stats-strip   — core totals (Plays/Songs/Artists/Albums): the
                                 hero row, elevated cards, biggest numbers.
-       Tier 2 .stats-strip2  — highlights (Best Day/New entries): one shared
-                                ticker strip instead of 4 separate boxed cards,
-                                so it visibly reads as secondary to Tier 1.
+       Tier 2 (Best Day / New entries) became small stats under a divider
+                                inside the Tier 1 tiles (.stat-sub, 2026-10).
        Tier 3 .stats-strip3  — spotlight ("of the moment"): horizontal,
                                 image-forward cards — the shareable/fun tier.
        ========================================================================== */
@@ -9794,22 +9793,18 @@
     [data-cat="songs"]       { --cat-color: #a78bfa; }
     [data-cat="artists"]     { --cat-color: #cbd5e1; }
     [data-cat="albums"]      { --cat-color: var(--gold1); }
-    [data-cat="bestday"]     { --cat-color: var(--accent); }
-    [data-cat="new-songs"]   { --cat-color: var(--green); }
-    [data-cat="new-artists"] { --cat-color: var(--rose); }
-    [data-cat="new-albums"]  { --cat-color: var(--gold1); }
     [data-cat="sotm"]        { --cat-color: var(--gold1); }
     [data-cat="rising"]      { --cat-color: var(--green); }
     [data-cat="aotm"]        { --cat-color: var(--rose); }
     [data-cat="albumotm"]    { --cat-color: var(--amber); }
 
-    /* Total Plays / Best Day keep their blue accent even on the Red, Pink and
+    /* Total Plays keeps its blue accent even on the Red, Pink and
        Purple themes, instead of following those themes' own --accent —
-       a deliberate exception to "one accent per theme" for these two cards.
+       a deliberate exception to "one accent per theme" for this card.
        Purple added 2026-10-12: its violet accent matched the violet Songs tile. */
-    body.red [data-cat="plays"], body.red [data-cat="bestday"],
-    body.pink [data-cat="plays"], body.pink [data-cat="bestday"],
-    body.purple [data-cat="plays"], body.purple [data-cat="bestday"] {
+    body.red [data-cat="plays"],
+    body.pink [data-cat="plays"],
+    body.purple [data-cat="plays"] {
       --cat-color: #58aaf6;
     }
     /* Light themes: deeper violet / slate so the numbers hold contrast
@@ -9820,9 +9815,9 @@
     body.navy-light [data-cat="artists"], body.purple-light [data-cat="artists"],
     body.yellow-light [data-cat="artists"], body.pink-light [data-cat="artists"],
     body.red-light [data-cat="artists"] { --cat-color: #475569; }
-    body.red-light [data-cat="plays"], body.red-light [data-cat="bestday"],
-    body.pink-light [data-cat="plays"], body.pink-light [data-cat="bestday"],
-    body.purple-light [data-cat="plays"], body.purple-light [data-cat="bestday"] {
+    body.red-light [data-cat="plays"],
+    body.pink-light [data-cat="plays"],
+    body.purple-light [data-cat="plays"] {
       --cat-color: #0852a8;
     }
 
@@ -9936,11 +9931,10 @@
       overflow: visible;
     }
 
-    /* Tier 1 + Tier 2 tile — content centred (the user prefers it centred).
+    /* Tier 1 tile — content centred (the user prefers it centred).
        The category colour shows as a faint wash in the top-right corner
        instead of a glowing outlined pill around the label. */
-    .stat-box,
-    .stat-chip {
+    .stat-box {
       min-width: 0;
       position: relative;
       background:
@@ -9960,8 +9954,7 @@
     }
 
     /* Header: small tinted icon tile + plain uppercase label */
-    .stat-head,
-    .stat-chip-head {
+    .stat-head {
       display: flex;
       align-items: center;
       gap: var(--sp-2);
@@ -9971,12 +9964,8 @@
     .stat-head {
       margin-bottom: 0.65rem;
     }
-    .stat-chip-head {
-      margin-bottom: var(--sp-2);
-    }
 
-    .stat-cat-icon,
-    .stat-chip-icon {
+    .stat-cat-icon {
       flex-shrink: 0;
       display: grid;
       place-items: center;
@@ -9987,14 +9976,8 @@
       font-size: 0.78rem;
       line-height: 1;
     }
-    .stat-chip-icon {
-      width: 22px;
-      height: 22px;
-      font-size: 0.7rem;
-    }
 
-    .stat-box .stat-label,
-    .stat-chip-label {
+    .stat-box .stat-label {
       font-family: var(--font-sans);
       font-size: var(--fs-xs);
       color: var(--text2);
@@ -10003,7 +9986,6 @@
       text-wrap: balance;
       line-height: 1.3;
     }
-    .stat-chip-label { font-size: var(--fs-xs); }
 
     .stat-box .stat-val {
       font-family: var(--font-sans);
@@ -10020,12 +10002,10 @@
     /* Number + footer are pushed to the bottom of the tile (margin-top:auto
        on the number), so the numbers in one row line up even when one card's
        title wraps to two lines ("Albums, EPs, & Singles") */
-    .stat-box .stat-val,
-    .stat-chip .stat-val {
+    .stat-box .stat-val {
       margin-top: auto;
     }
-    .stat-foot,
-    .stat-chip-sub {
+    .stat-foot {
       display: flex;
       align-items: center;
       justify-content: center;
@@ -10034,10 +10014,6 @@
       padding-top: 0.55rem;
       font-family: var(--font-sans);
       font-size: var(--fs-xs);
-    }
-    .stat-chip-sub {
-      font-size: var(--fs-xs);
-      color: var(--text3);
     }
     .stat-foot-sep {
       color: var(--text3);
@@ -10091,29 +10067,6 @@
       font-variant-numeric: tabular-nums;
       font-size: var(--fs-xs);
       color: var(--teal);
-    }
-
-    /* ---- Tier 2: highlights — separate cards, same language as Tier 1 but
-       a smaller number so they still read as secondary to the totals above. ---- */
-    .stats-strip2 {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      gap: var(--sp-3);
-    }
-
-    /* Tier 2 tile — same build as Tier 1 (shared rule above), one size down */
-    .stat-chip {
-      padding: var(--sp-3) var(--sp-4) 0.8rem;
-    }
-
-    .stat-chip .stat-val {
-      font-family: var(--font-sans);
-      font-weight: 700;
-      font-size: var(--fs-lg);
-      letter-spacing: -0.02em;
-      color: var(--cat-color, var(--text));
-      line-height: 1;
-      font-variant-numeric: tabular-nums;
     }
 
     /* ---- Tier 3: spotlight — horizontal, image-forward cards ----
@@ -16291,16 +16244,10 @@
         border-radius: 0;
       }
 
-      /* 2026-10: Tier 2 is merged into the Tier 1 tiles, so the highlights
-         row is always hidden and this grid simply shows the four totals two
-         by two. The bestday / new-* order rules below no longer match
-         anything; kept until the old Tier 2 classes are cleaned up (phase 11).
-         Stats on mobile: Tier 1 (totals) and Tier 2 (highlights) interleave
-         into one shared 2-column grid so each total sits beside its related
-         counterpart (Total Plays next to Best Day, Unique Songs next to New
-         Songs, etc.) — the pairing the user asked to restore. #statsStrip and
-         .stats-strip2 collapse with display:contents so their cards become
-         direct children of .stats-strips-wrap and can be freely reordered.
+      /* Stats on mobile: the four totals two by two in one shared 2-column
+         grid (Best Day and the New counts now live inside the tiles, 2026-10).
+         #statsStrip collapses with display:contents so its cards become
+         direct children of .stats-strips-wrap and can be ordered.
          Tier 3 (spotlight) stays its own real grid item, spanning full width
          below, and keeps its own single-column stack internally. */
       .stats-strips-wrap {
@@ -16308,27 +16255,22 @@
         grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
         gap: 10px;
       }
-      #statsStrip,
-      .stats-strip2 {
+      #statsStrip {
         display: contents;
       }
-      .stat-box, .stat-chip {
+      .stat-box {
         min-width: 0;
       }
 
       [data-cat="plays"]       { order: 1; }
-      [data-cat="bestday"]     { order: 2; }
       [data-cat="songs"]       { order: 3; }
-      [data-cat="new-songs"]   { order: 4; }
       [data-cat="artists"]     { order: 5; }
-      [data-cat="new-artists"] { order: 6; }
       [data-cat="albums"]      { order: 7; }
-      [data-cat="new-albums"]  { order: 8; }
 
       /* Tier 3: spans both columns as one block, spotlight cards stay a
          single full-width column inside it (the base rule already does this).
          Needs an explicit order too — otherwise it defaults to order:0 and
-         jumps above the ordered Tier 1/2 pairs instead of following them. */
+         jumps above the ordered totals instead of following them. */
       .stats-strip3 {
         grid-column: 1 / -1;
         order: 9;

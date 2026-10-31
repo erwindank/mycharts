@@ -223,7 +223,7 @@ function dyRenderAll(plays, start, end) {
   document.getElementById('prevBtn').disabled = prevDis;
   document.querySelector('.swipe-arrow-right')?.classList.toggle('swipe-arrow-off', prevDis);
 
-  ['statsStrip2', 'statsStrip3'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+  const s3El = document.getElementById('statsStrip3'); if (s3El) s3El.style.display = 'none';
   const ati = document.getElementById('atInsights'); if (ati) ati.hidden = true;
   document.getElementById('statsStrip').style.display = '';
   dyRenderTiles(h, ds, plays);

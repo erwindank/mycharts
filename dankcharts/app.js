@@ -13170,7 +13170,6 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('navHint').style.display = 'none';
     document.getElementById('statsStrip').style.display = 'none';
-    document.getElementById('statsStrip2').style.display = 'none';
     const _s3 = document.getElementById('statsStrip3'); if (_s3) _s3.style.display = 'none';
     document.getElementById('songsSection').style.display = 'none';
     document.getElementById('artistsSection').style.display = 'none';
@@ -13200,7 +13199,6 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('navHint').style.display = 'none';
     document.getElementById('statsStrip').style.display = 'none';
-    document.getElementById('statsStrip2').style.display = 'none';
     const _s3 = document.getElementById('statsStrip3'); if (_s3) _s3.style.display = 'none';
     document.getElementById('songsSection').style.display = 'none';
     document.getElementById('artistsSection').style.display = 'none';
@@ -13232,7 +13230,6 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('navHint').style.display = 'none';
     document.getElementById('statsStrip').style.display = 'none';
-    document.getElementById('statsStrip2').style.display = 'none';
     const _s3 = document.getElementById('statsStrip3'); if (_s3) _s3.style.display = 'none';
     document.getElementById('songsSection').style.display = 'none';
     document.getElementById('artistsSection').style.display = 'none';
@@ -13267,7 +13264,6 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('navHint').style.display = 'none';
     document.getElementById('statsStrip').style.display = 'none';
-    document.getElementById('statsStrip2').style.display = 'none';
     const _s3 = document.getElementById('statsStrip3'); if (_s3) _s3.style.display = 'none';
     document.getElementById('songsSection').style.display = 'none';
     document.getElementById('artistsSection').style.display = 'none';
@@ -13306,7 +13302,6 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('navHint').style.display = 'none';
     document.getElementById('statsStrip').style.display = 'none';
-    document.getElementById('statsStrip2').style.display = 'none';
     const _s3aw = document.getElementById('statsStrip3'); if (_s3aw) _s3aw.style.display = 'none';
     document.getElementById('songsSection').style.display = 'none';
     document.getElementById('artistsSection').style.display = 'none';
@@ -13339,7 +13334,6 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('navHint').style.display = 'none';
     document.getElementById('statsStrip').style.display = 'none';
-    document.getElementById('statsStrip2').style.display = 'none';
     const _s3st = document.getElementById('statsStrip3'); if (_s3st) _s3st.style.display = 'none';
     document.getElementById('songsSection').style.display = 'none';
     document.getElementById('artistsSection').style.display = 'none';
@@ -13373,7 +13367,6 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('navHint').style.display = 'none';
     document.getElementById('statsStrip').style.display = 'none';
-    document.getElementById('statsStrip2').style.display = 'none';
     const _s3pl = document.getElementById('statsStrip3'); if (_s3pl) _s3pl.style.display = 'none';
     document.getElementById('songsSection').style.display = 'none';
     document.getElementById('artistsSection').style.display = 'none';
@@ -13414,7 +13407,6 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('navHint').style.display = 'none';
     document.getElementById('statsStrip').style.display = 'none';
-    document.getElementById('statsStrip2').style.display = 'none';
     const _s3bd = document.getElementById('statsStrip3'); if (_s3bd) _s3bd.style.display = 'none';
     document.getElementById('songsSection').style.display = 'none';
     document.getElementById('artistsSection').style.display = 'none';
@@ -13447,7 +13439,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     savedOffsets[currentPeriod] = currentOffset;
     currentPeriod = 'ratings';
     localStorage.setItem('dc_period', currentPeriod);
-    ['chartTypeToggleBar', 'exportPlaylistBtn', 'dateNav', 'navHint', 'statsStrip', 'statsStrip2', 'statsStrip3',
+    ['chartTypeToggleBar', 'exportPlaylistBtn', 'dateNav', 'navHint', 'statsStrip', 'statsStrip3',
      'songsSection', 'artistsSection', 'albumsSection', 'buSongsSection', 'buArtistsSection', 'buAlbumsSection'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.style.display = 'none';
@@ -13471,7 +13463,6 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('navHint').style.display = 'none';
     document.getElementById('statsStrip').style.display = 'none';
-    document.getElementById('statsStrip2').style.display = 'none';
     const _s3cg = document.getElementById('statsStrip3'); if (_s3cg) _s3cg.style.display = 'none';
     document.getElementById('songsSection').style.display = 'none';
     document.getElementById('artistsSection').style.display = 'none';
@@ -15630,10 +15621,9 @@ function renderAll() {
   shLoadFaces(_faces);
   renderStatsHero({ period: currentPeriod, offset: currentOffset, plays, start, end, cutoffKey, tally: _tally, peakStats, peakAtTimeStats, usual: _usual && _usual.n ? _usual : null });
 
-  // Second stats strip: song of the moment + new songs/artists/albums
-  const strip2El = document.getElementById('statsStrip2');
-  const showStrip2 = _showStrip2;
-  if (showStrip2 && strip2El) {
+  // Spotlight ("of the moment") cards. The old second strip (#statsStrip2,
+  // best day + new entries) is gone: those moved into the four total tiles.
+  if (_showStrip2) {
     if (!firstSeenMaps) firstSeenMaps = buildFirstSeenMaps();
     const { artistFirst } = firstSeenMaps;
 
@@ -15767,9 +15757,6 @@ function renderAll() {
         </div>`
       : '';
 
-    // The highlights row is merged into the four total tiles above (see _hl)
-    strip2El.innerHTML = '';
-
     const strip3El = document.getElementById('statsStrip3');
     if (strip3El) {
       const strip3Content = currentPeriod === 'week' ? sotmBox + risingArtistBox + aotmBox + albumotmBox : '';
@@ -15822,9 +15809,7 @@ function renderAll() {
       }, 'album');
     }
 
-    strip2El.style.display = 'none';
-  } else if (strip2El) {
-    strip2El.style.display = 'none';
+  } else {
     const strip3ElFallback = document.getElementById('statsStrip3');
     if (strip3ElFallback) strip3ElFallback.style.display = 'none';
   }
@@ -55016,7 +55001,7 @@ const _cgTourSteps = [
         hold: 9000 },
 
       { content: 'Your week in numbers: plays, unique songs, artists, albums, best day. Then the "of the moment" cards — the song, artist and album running hottest right now, not just the ones with the highest totals.',
-        spotlight: '#statsStrip, #statsStrip2, #statsStrip3',
+        spotlight: '#statsStrip, #statsStrip3',
         hold: 12000 },
 
       { content: 'Pick which chart you are reading: songs, artists or albums. Which parts of it show (the chart itself, Bubbling Under, Off the Chart, New Entries) is up to you, in the chart\'s ⋮ menu under Show. Each chart type remembers its own.',
