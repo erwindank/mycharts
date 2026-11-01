@@ -20860,7 +20860,9 @@ function _eaCoverPlay() {
 
 // Search on Spotify, in a new tab: a song or album with its artist, or the
 // artist. A link, so it never starts the sample or opens the drawer.
-const _EA_SP_SVG = '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7.5" fill="currentColor"/><path d="M4.2 6.1c2.6-.8 5.4-.6 7.7.7M4.6 8.3c2.1-.6 4.4-.4 6.3.6M5 10.4c1.7-.4 3.4-.3 4.9.5" fill="none" stroke="#000" stroke-opacity=".75" stroke-width="1.15" stroke-linecap="round"/></svg>';
+// The three waves are cut out of the circle (evenodd), not drawn in black on
+// top: light themes have dark text, and black waves on a dark circle vanished.
+const _EA_SP_SVG = '<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M8 .5a7.5 7.5 0 1 0 0 15a7.5 7.5 0 1 0 0-15zM4.03 5.55L4.86 5.33L5.69 5.17L6.53 5.08L7.37 5.05L8.21 5.09L9.04 5.19L9.86 5.37L10.66 5.61L11.43 5.92L12.18 6.3A0.57 0.57 0 0 1 11.62 7.3L10.96 6.97L10.28 6.69L9.57 6.48L8.85 6.33L8.11 6.24L7.37 6.2L6.62 6.23L5.86 6.31L5.11 6.45L4.37 6.65A0.57 0.57 0 0 1 4.03 5.55zM4.44 7.75L5.12 7.58L5.81 7.47L6.5 7.4L7.19 7.39L7.88 7.43L8.56 7.52L9.24 7.66L9.9 7.85L10.54 8.09L11.17 8.39A0.57 0.57 0 0 1 10.63 9.41L10.09 9.15L9.53 8.94L8.96 8.77L8.37 8.65L7.77 8.57L7.17 8.54L6.56 8.55L5.95 8.61L5.35 8.71L4.76 8.85A0.57 0.57 0 0 1 4.44 7.75zM4.87 9.84L5.41 9.73L5.95 9.65L6.5 9.61L7.04 9.6L7.58 9.63L8.11 9.7L8.64 9.81L9.16 9.96L9.67 10.15L10.17 10.39A0.57 0.57 0 0 1 9.63 11.41L9.22 11.21L8.79 11.05L8.36 10.92L7.92 10.83L7.47 10.77L7.02 10.75L6.55 10.75L6.08 10.79L5.61 10.86L5.13 10.96A0.57 0.57 0 0 1 4.87 9.84z"/></svg>';
 function _eaSpotifyBtn(type, name, artist) {
   const q = encodeURIComponent(type === 'artists' || !artist ? name : name + ' ' + artist);
   const lbl = esc(t('tm_action_spotify'));
@@ -38746,7 +38748,8 @@ function openStreakModal(opts) {
   // Spotify: opens a Spotify search for the song in a new tab, so an at-risk
   // streak can be saved by playing it there (a Spotify scrobble counts too).
   // Was on every at-risk song before the 2026-10-16 redesign; brought back.
-  const SK_SP_SVG = '<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><circle cx="8" cy="8" r="7.5" fill="currentColor"/><path d="M4.2 6.1c2.6-.8 5.4-.6 7.7.7M4.6 8.3c2.1-.6 4.4-.4 6.3.6M5 10.4c1.7-.4 3.4-.3 4.9.5" fill="none" stroke="#000" stroke-opacity=".75" stroke-width="1.15" stroke-linecap="round"/></svg>';
+  // same mark as _EA_SP_SVG (waves cut out, so it shows on light themes too)
+  const SK_SP_SVG = _EA_SP_SVG.replace('<svg ', '<svg width="15" height="15" ');
   function skSpLink(title, artist) {
     const q = encodeURIComponent(title + (artist ? ' ' + artist : ''));
     const lbl = esc('Search "' + title + '" on Spotify');
