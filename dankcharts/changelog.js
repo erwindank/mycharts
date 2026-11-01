@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 410;
+const DC_CL_I18N_V = 411;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-01', t: 'feature', a: 'charts', h: '4633b01',
+    title: "Dank 100 records and a shareable top 10",
+    detail: "Under The Dank 100 chart: records for songs, artists and albums, from most weeks at #1 and the longest run to the biggest climb, the highest debut and the most listeners in a week. Share top 10 makes an image of the week's top 10 with cover art, ready for your phone's share sheet or as a download. The Charts Guide and the tour now cover The Dank 100, and the privacy policy explains what a sent week holds and who can see it." },
   { d: '2026-11-01', t: 'feature', a: 'charts', h: '5985dda',
     title: "The Dank 100: older weeks, runs and number ones",
     detail: "Look back at any earlier Dank 100 with the week picker (or the arrows beside it). Click any song, artist or album to see its run right under it: a line of its positions week by week, with its debut, peak, weeks on the chart and weeks at #1. Below the chart, Number ones lists every #1 with how many weeks it held the top spot; click one to open that week." },

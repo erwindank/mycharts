@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Dank 100 records and a shareable top 10":
+    ["Recordes do The Dank 100 e um top 10 para partilhar",
+     "Por baixo do top The Dank 100: recordes de músicas, artistas e álbuns, de mais semanas em 1.º e maior sequência até à maior subida, a melhor estreia e mais ouvintes numa semana. Partilhar top 10 cria uma imagem do top 10 da semana com capas, pronta a partilhar pelo telemóvel ou a descarregar. O Guia dos tops e a visita guiada já falam do The Dank 100, e a política de privacidade explica o que uma semana enviada guarda e quem a pode ver."],
   "The Dank 100: older weeks, runs and number ones":
     ["The Dank 100: semanas anteriores, percursos e números um",
      "Volta a qualquer Dank 100 anterior com o seletor de semana (ou as setas ao lado). Clica em qualquer música, artista ou álbum para veres o percurso logo por baixo: uma linha com as posições semana a semana, a estreia, o pico, as semanas no top e as semanas em 1.º. Por baixo do top, Números um mostra cada 1.º lugar e quantas semanas lá ficou; clica num para abrires essa semana."],
