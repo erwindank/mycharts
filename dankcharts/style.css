@@ -11667,6 +11667,65 @@
     .sx-one-opt .sx-gtxt b { font-size: var(--fs-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .sx-one-opt .sx-gtxt span { font-size: var(--fs-xs); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
+    /* The newer eight games (2026-11-01) */
+    /* Text-only answers (artists, chart bands, times of day) */
+    .sx-one-opt.is-text { grid-template-columns: auto minmax(0, 1fr); min-height: 56px; }
+    .sx-one-opt.is-text .sx-gtxt b { font-size: var(--fs-base); }
+    /* A blurred cover (Whose song?), sharp again once answered */
+    .sx-gart.is-blur img, .sx-gart.is-blur .thumb-initials { filter: blur(10px); transform: scale(1.15); }
+    .sx-gart img, .sx-gart .thumb-initials { transition: filter var(--t-slow) var(--ease), transform var(--t-slow) var(--ease); }
+    /* Name that tune: a big disc to hear the sample again */
+    .sx-tune { display: flex; flex-direction: column; align-items: center; gap: var(--sp-2); }
+    .sx-tune-disc { display: grid; place-items: center; width: 112px; height: 112px; border-radius: 50%; cursor: pointer; font-size: 2.6rem;
+      background: radial-gradient(circle, var(--bg2) 0 18%, color-mix(in srgb, var(--g) 30%, var(--bg3)) 19% 100%);
+      border: 2px solid var(--g); color: var(--text); }
+    .sx-tune-disc:disabled { cursor: default; opacity: .55; }
+    .sx-tune-disc.is-on { animation: sx-tune-pulse 1.2s var(--ease) infinite; }
+    @keyframes sx-tune-pulse { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--g) 50%, transparent); } 50% { box-shadow: 0 0 0 14px transparent; } }
+    @media (prefers-reduced-motion: reduce) { .sx-tune-disc.is-on { animation: none; box-shadow: 0 0 0 4px color-mix(in srgb, var(--g) 40%, transparent); } }
+    .sx-tune-note { font-size: var(--fs-sm); color: var(--text2); }
+    /* How many plays? the guess, the slider and its ends */
+    .sx-plays { display: flex; flex-direction: column; align-items: center; gap: var(--sp-2); width: min(28rem, 100%); }
+    .sx-plays-out { font-family: var(--font-display); font-weight: 800; font-size: var(--fs-xl); color: var(--g); line-height: 1.1; }
+    .sx-plays-in { width: 100%; accent-color: var(--g); }
+    .sx-plays-ends { display: flex; justify-content: space-between; width: 100%; font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--text3); }
+    /* Top 5 in order: five rows, tapped from #1 down */
+    .sx-t5o-hint { margin: calc(-1 * var(--sp-2)) 0 0; font-size: var(--fs-sm); color: var(--text2); text-align: center; }
+    .sx-t5o-list { display: flex; flex-direction: column; gap: var(--sp-2); width: min(34rem, 100%); }
+    .sx-t5o { display: grid; grid-template-columns: 44px 56px minmax(0, 1fr) auto; gap: var(--sp-3); align-items: center; padding: var(--sp-2) var(--sp-3);
+      background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r-md); color: var(--text); font: inherit; text-align: left; cursor: pointer; }
+    .sx-t5o:hover:not(:disabled) { border-color: var(--g); }
+    .sx-t5o:disabled { cursor: default; }
+    .sx-t5o-n { display: grid; place-items: center; height: 32px; border-radius: var(--r-sm); background: var(--bg3);
+      font-family: var(--font-mono); font-size: var(--fs-sm); color: var(--text3); }
+    .sx-t5o.is-picked .sx-t5o-n { background: var(--g); color: var(--bg); font-family: var(--font-display); font-weight: 800; }
+    .sx-t5o .sx-gtxt b { font-size: var(--fs-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sx-t5o .sx-gtxt span { font-size: var(--fs-xs); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sx-t5o-real { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--text2); white-space: nowrap; }
+    .sx-t5o.is-right { background: color-mix(in srgb, var(--green) 18%, var(--bg2)); border-color: var(--green); }
+    .sx-t5o.is-wrong { background: color-mix(in srgb, var(--rose) 14%, var(--bg2)); border-color: var(--rose); }
+    .sx-t5o-btns { display: flex; justify-content: center; min-height: 36px; }
+    @media (max-width: 640px) {
+      .sx-t5o { grid-template-columns: 40px 44px minmax(0, 1fr); }
+      .sx-t5o .sx-gart.sx-gart-sm { width: 44px; }
+      .sx-t5o-real { grid-column: 3; }
+    }
+    /* Their biggest song: the artist's picture and name */
+    .sx-big { display: flex; flex-direction: column; align-items: center; gap: var(--sp-1); }
+    .sx-big .sx-gart { width: min(140px, 36vw); border-radius: 50%; margin: 0; }
+    .sx-big b { font-family: var(--font-display); font-size: var(--fs-lg); }
+    /* Teasers for the newer games */
+    .sx-tz-cov.is-sm { width: 52px; margin: 0 3px; }
+    .sx-tz-cov.is-odd { transform: rotate(10deg) translateY(-8px); outline: 2px solid var(--g); outline-offset: 2px; }
+    .sx-tz-cov.is-front { z-index: 1; margin: 0 -22px; }
+    .sx-tz-top5 .sx-tz-cov.is-back { width: 70px; opacity: .8; }
+    .sx-tz-big .sx-tz-week, .sx-tz-whose .sx-tz-week { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 var(--sp-3); }
+    .sx-tz-big .sx-tz-cov, .sx-tz-whose .sx-tz-cov { margin-top: 10px; }
+    .sx-tz-badge { z-index: 2; max-width: calc(100% - 16px); overflow: hidden; text-overflow: ellipsis; }
+    @media (hover: hover) {
+      .sx-game-card:hover .sx-tz-cov.is-odd { transform: rotate(16deg) translateY(-12px); }
+    }
+
     /* Card head: title (and description) on the left, the chart's tools as
        small icon buttons on the right. */
     .graph-card-head {
