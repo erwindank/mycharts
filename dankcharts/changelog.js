@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-01', t: 'feature', a: 'charts', h: '20984e3',
+    title: "A Dank 100 invite on the Charts page",
+    detail: "The chart tabs now show a small banner about The Dank 100 with a button that takes you straight to sending your year (or your week). It goes away once you have joined, or when you close it with the ×." },
   { d: '2026-11-01', t: 'fix', a: 'themes', h: 'a97fc1e',
     title: "Spotify button shows on light themes",
     detail: "On light themes the Spotify button in the artist, song and album windows (and beside chart rows) showed only a black dot, because its sound waves were drawn in black. The waves are now cut out of the circle, so the Spotify logo shows on every theme." },

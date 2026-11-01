@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "A Dank 100 invite on the Charts page":
+    ["Una invitación a The Dank 100 en Listas",
+     "Las pestañas de listas muestran ahora un pequeño aviso sobre The Dank 100 con un botón que te lleva directamente a enviar tu año (o tu semana). Desaparece cuando ya participas o cuando lo cierras con la ×."],
   "Spotify button shows on light themes":
     ["El botón de Spotify se ve en los temas claros",
      "En los temas claros, el botón de Spotify en las ventanas de artista, canción y álbum (y junto a las filas de las listas) se veía solo como un punto negro, porque sus ondas estaban dibujadas en negro. Ahora las ondas están recortadas del círculo, así que el logo de Spotify se ve en todos los temas."],

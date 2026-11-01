@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "A Dank 100 invite on the Charts page":
+    ["Um convite para a The Dank 100 em Paradas",
+     "As abas de paradas agora mostram um pequeno aviso sobre a The Dank 100 com um botão que leva direto para enviar seu ano (ou sua semana). Ele some quando você já participa ou quando você o fecha no ×."],
   "Spotify button shows on light themes":
     ["O botão do Spotify aparece nos temas claros",
      "Nos temas claros, o botão do Spotify nas janelas de artista, música e álbum (e ao lado das linhas das paradas) aparecia só como um ponto preto, porque as ondas eram desenhadas em preto. Agora as ondas são recortadas do círculo, então o logo do Spotify aparece em todos os temas."],
