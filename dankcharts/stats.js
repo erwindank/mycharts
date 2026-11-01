@@ -2750,32 +2750,139 @@ let _sxGameBest = (() => { try { return JSON.parse(localStorage.getItem('dc_sxGa
 let _sxGame = null;      // the game on screen: { id, score, round, ... }
 let _sxGameFocus = null; // the button that opened it, focused again on close
 
-// Drawn icons for the game cards (no emoji)
-const _SX_GAME_ICO = {
-  hl: '<path d="M8 3v10M4.5 6.5 8 3l3.5 3.5"/><path d="M8 13l-2-2M8 13l2-2" opacity=".55"/>',
-  year: '<rect x="2.5" y="3.5" width="11" height="10" rx="1.5"/><path d="M2.5 6.5h11M5.5 2v3M10.5 2v3"/><path d="M6 10h4"/>',
-  first: '<circle cx="8" cy="8.5" r="5"/><path d="M8 5.5v3l2 1.5M6.5 1.5h3"/>',
-  one: '<path d="M3 12.5h10M4 12.5 3 5l3 2.5L8 3l2 4.5L13 5l-1 7.5"/>',
+// The four games in card order. Each has an emoji and its own colour (a
+// theme token, so it follows light and dark themes), used on its card, its
+// teaser and the full-screen stage.
+const SX_GAME_IDS = ['hl', 'year', 'first', 'one'];
+const _SX_GAME_LOOK = {
+  hl: { emoji: '📈', color: 'var(--green)' },
+  year: { emoji: '📅', color: 'var(--amber)' },
+  first: { emoji: '⏱️', color: 'var(--teal)' },
+  one: { emoji: '👑', color: 'var(--rose)' },
 };
-const _sxGameIco = id => `<svg class="sx-ico sx-game-ico" viewBox="0 0 16 16" aria-hidden="true" focusable="false">${_SX_GAME_ICO[id]}</svg>`;
+const _sxGameIco = id => `<span class="sx-game-emoji" aria-hidden="true">${_SX_GAME_LOOK[id].emoji}</span>`;
+
+/* Game of the day: one of the four games each day (they take turns), with
+   the random picks seeded by the date, so it is the same puzzle all day.
+   The first finished try counts; Play again after that is practice. Kept on
+   this device (dc_sxGameDaily): { date, id, scoreTxt, last, streak }. */
+let _sxDaily = (() => { try { return JSON.parse(localStorage.getItem('dc_sxGameDaily') || '{}') || {}; } catch (e) { return {}; } })();
+const _sxDayKey = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+function _sxDailyToday() {
+  const now = new Date(), key = _sxDayKey(now);
+  // Days since 1970 by the local calendar picks the game in turn
+  const n = Math.floor(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) / _SX_DAY);
+  let seed = 0;
+  for (const ch of key) seed = (Math.imul(seed, 31) + ch.charCodeAt(0)) | 0;
+  return { key, id: SX_GAME_IDS[n % SX_GAME_IDS.length], seed };
+}
+// The day streak still counts if the last daily was today or yesterday
+function _sxDailyStreak() {
+  if (!_sxDaily.last) return 0;
+  const y = new Date(); y.setDate(y.getDate() - 1);
+  return _sxDaily.last === _sxDayKey(new Date()) || _sxDaily.last === _sxDayKey(y) ? (_sxDaily.streak || 0) : 0;
+}
+// A small seeded random (mulberry32), so a seed always gives the same picks
+function _sxSeeded(seed) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6D2B79F5) >>> 0;
+    let x = Math.imul(a ^ (a >>> 15), 1 | a);
+    x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x;
+    return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/* Teasers: a little picture from your own library on each card (covers of
+   real songs), drawn from your top songs with the date as the seed, so they
+   stay put all day instead of jumping each time the tab is drawn. */
+function _sxTeaser(id, rnd, big) {
+  const pool = _sxSongPool().slice(0, 60);
+  const arts = []; // [element id, song] for the pictures, filled in after
+  const cov = (s, cls) => {
+    if (!s) return `<span class="sx-tz-cov ${cls || ''}"></span>`;
+    const el = 'sx-tz-' + (++_sxArtN);
+    arts.push([el, s]);
+    return `<span class="sx-tz-cov ${cls || ''}" id="${el}"><span class="thumb-initials">${esc(initials(s.title))}</span></span>`;
+  };
+  const pick = () => pool.length ? pool[Math.floor(rnd() * pool.length)] : null;
+  let a = pick(), b = pick();
+  for (let i = 0; i < 10 && a && b && a.sk === b.sk && pool.length > 1; i++) b = pick();
+  const locale = currentLang === 'en' ? 'en-US' : currentLang;
+  let html;
+  if (id === 'hl') {
+    html = `${cov(a, 'is-l')}<span class="sx-tz-mid">?</span>${cov(b, 'is-r')}`;
+  } else if (id === 'year') {
+    // The year's first two digits are real, the rest is the question
+    const y = a && a.first ? String(a.first.getFullYear()).slice(0, 2) + '??' : '????';
+    html = `${cov(a, 'is-c')}<span class="sx-tz-badge">${y}</span>`;
+  } else if (id === 'first') {
+    html = `${cov(a, 'is-l is-back')}<span class="sx-tz-mid">⏱️</span>${cov(b, 'is-r')}`;
+  } else {
+    // A real week from your history and an empty #1 slot over a blurred cover
+    const wk = a && a.first ? a.first.toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+    html = `${cov(a, 'is-c is-blur')}<span class="sx-tz-badge">#1 ?</span>` +
+      (wk ? `<span class="sx-tz-week">${esc(t('sx_games_week').replace('{date}', wk))}</span>` : '');
+  }
+  return { html: `<div class="sx-tz sx-tz-${id}${big ? ' is-big' : ''}" aria-hidden="true">${html}</div>`, arts };
+}
 
 function sxRenderGames() {
   const box = document.getElementById('sxGames');
   if (!box) return;
   const ready = Object.keys(SX_GAMES);
-  box.innerHTML = `<p class="sx-games-intro">${esc(t('sx_games_intro'))}</p><div class="sx-games-grid">` +
-    ['hl', 'year', 'first', 'one'].map(id => {
-      const g = SX_GAMES[id], best = _sxGameBest[id];
-      const bestTxt = best != null ? t('sx_game_best').replace('{n}', best.toLocaleString()) : t('sx_game_new');
-      const on = ready.includes(id);
-      return `<section class="dc-card sx-game-card">${_sxGameIco(id)}<h3>${esc(t('sx_game_' + id))}</h3>` +
-        `<p>${esc(t('sx_game_' + id + '_desc'))}</p><span class="sx-game-best">${esc(on ? bestTxt : t('sx_game_soon'))}</span>` +
-        `<button type="button" class="dc-btn dc-btn-main dc-btn-sm" ${on ? `onclick="sxGameOpen('${id}', this)"` : 'disabled'}>${esc(t('sx_game_play'))}</button></section>`;
-    }).join('') + '</div>';
+  const today = _sxDailyToday();
+  const rnd = _sxSeeded(today.seed);
+  const arts = [];
+  const look = id => `style="--g: ${_SX_GAME_LOOK[id].color}"`;
+
+  // The tally at the top: games played, the daily streak
+  const played = SX_GAME_IDS.filter(id => _sxGameBest[id] != null).length;
+  const streak = _sxDailyStreak();
+  const tally = `<div class="sx-games-tally">` +
+    `<span><b>${played}/${SX_GAME_IDS.length}</b> ${esc(t('sx_games_played'))}</span>` +
+    `<span><b>🔥 ${streak}</b> ${esc(t('sx_games_streak'))}</span></div>`;
+
+  // Game of the day: a wide card above the four
+  const dId = today.id, done = _sxDaily.date === today.key;
+  const dTz = _sxTeaser(dId, rnd, true);
+  arts.push(...dTz.arts);
+  const locale = currentLang === 'en' ? 'en-US' : currentLang;
+  const dDate = new Date().toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' });
+  const daily = `<section class="sx-daily${done ? ' is-done' : ''}" ${look(dId)}>` +
+    `<div class="sx-daily-body"><span class="sx-daily-k">${esc(t('sx_daily_k'))} · ${esc(dDate)}</span>` +
+    `<h3>${_sxGameIco(dId)} ${esc(t('sx_game_' + dId))}</h3>` +
+    `<p>${esc(done ? t('sx_daily_done').replace('{score}', _sxDaily.scoreTxt || '') : t('sx_daily_desc'))}</p>` +
+    `<div class="sx-daily-btns">` +
+    (done ? `<button type="button" class="dc-btn dc-btn-normal" onclick="sxGameOpen('${dId}', this)">${esc(t('sx_daily_practice'))}</button>`
+      : `<button type="button" class="dc-btn dc-btn-main sx-daily-go" onclick="sxGameOpen('${dId}', this, true)">${esc(t('sx_daily_play'))} ▸</button>`) +
+    `</div></div>${dTz.html}</section>`;
+
+  const cards = SX_GAME_IDS.map(id => {
+    const best = _sxGameBest[id], on = ready.includes(id);
+    const tz = _sxTeaser(id, rnd);
+    arts.push(...tz.arts);
+    // A medal with the best score, or a New tag for games not played yet
+    const tag = !on ? `<span class="sx-game-tag">${esc(t('sx_game_soon'))}</span>`
+      : best != null ? `<span class="sx-game-medal">🏅 ${esc(t('sx_game_best').replace('{n}', best.toLocaleString()))}</span>`
+      : `<span class="sx-game-tag is-new">${esc(t('sx_games_new'))}</span>`;
+    // The Play button stretches over the whole card, so a click anywhere plays
+    return `<section class="sx-game-card" ${look(id)}>${tz.html}<div class="sx-game-body">` +
+      `<div class="sx-game-meta">${_sxGameIco(id)}${tag}</div>` +
+      `<h3>${esc(t('sx_game_' + id))}</h3><p>${esc(t('sx_game_' + id + '_desc'))}</p>` +
+      `<button type="button" class="dc-btn dc-btn-main sx-game-go" ${on ? `onclick="sxGameOpen('${id}', this)"` : 'disabled'}>${esc(t('sx_game_play'))} ▸</button>` +
+      `</div></section>`;
+  }).join('');
+
+  box.innerHTML = `<div class="sx-games-head"><div><h2 class="sx-games-title">${esc(t('sx_games_title'))}</h2>` +
+    `<p class="sx-games-intro">${esc(t('sx_games_intro'))}</p></div>${tally}</div>` +
+    daily + `<div class="sx-games-grid">${cards}</div>`;
+  arts.forEach(([el, s]) => _sxSongArt(document.getElementById(el), s));
 }
 
 // ── The full-screen stage ──
-function sxGameOpen(id, opener) {
+// daily: true for Game of the day (seeded picks, the result is kept)
+function sxGameOpen(id, opener, daily) {
   const g = SX_GAMES[id];
   if (!g || !allPlays.length) return;
   let el = document.getElementById('sxGameLayer');
@@ -2791,28 +2898,36 @@ function sxGameOpen(id, opener) {
     document.body.appendChild(el);
     el.addEventListener('keydown', _sxGameKeys);
   }
-  el.innerHTML = `<div class="sx-game-top"><div class="sx-game-head">${_sxGameIco(id)}<div><h2 id="sxGameTitle">${esc(t('sx_game_' + id))}</h2>` +
+  // The stage takes the game's colour
+  el.style.setProperty('--g', _SX_GAME_LOOK[id].color);
+  el.innerHTML = `<div class="sx-game-top"><div class="sx-game-head">${_sxGameIco(id)}<div>` +
+    (daily ? `<span class="sx-game-kick">${esc(t('sx_daily_k'))}</span>` : '') +
+    `<h2 id="sxGameTitle">${esc(t('sx_game_' + id))}</h2>` +
     `<span id="sxGameScore" class="sx-game-score"></span></div></div>` +
     `<button type="button" class="dc-btn dc-btn-plain dc-btn-icon sx-game-close" onclick="sxGameClose()" aria-label="${esc(t('sx_drill_close'))}" title="${esc(t('sx_drill_close'))}">` +
     `<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="m4 4 8 8M12 4l-8 8"/></svg></button></div>` +
     `<div id="sxGameStage" class="sx-game-stage" aria-live="polite"></div>`;
   document.documentElement.classList.add('sx-game-open');
   requestAnimationFrame(() => el.classList.add('is-in'));
-  _sxGame = { id, score: 0, round: 0 };
+  _sxGame = { id, score: 0, round: 0, daily: !!daily };
+  // Game of the day draws its picks from the date's seed, other games at random
+  _sxRng = daily ? _sxSeeded(_sxDailyToday().seed) : Math.random;
   g.start();
 }
 
 function sxGameClose() {
   const el = document.getElementById('sxGameLayer');
-  const id = _sxGame && _sxGame.id;
+  const id = _sxGame && _sxGame.id, wasDaily = _sxGame && _sxGame.daily;
   if (_sxGame && _sxGame.timer) clearTimeout(_sxGame.timer);
   _sxGame = null;
+  _sxRng = Math.random;
   if (el) el.remove();
   document.documentElement.classList.remove('sx-game-open');
   // The cards are drawn again (new best), so focus goes to the same game's
-  // new Play button rather than the old one
+  // new Play button rather than the old one (the daily card's for the daily)
   sxRenderGames();
-  const again = id ? document.querySelector(`#sxGames [onclick^="sxGameOpen('${id}'"]`) : null;
+  const again = wasDaily ? document.querySelector('#sxGames .sx-daily .dc-btn')
+    : id ? document.querySelector(`#sxGames .sx-game-card [onclick^="sxGameOpen('${id}'"]`) : null;
   try { (again || (document.contains(_sxGameFocus) ? _sxGameFocus : null))?.focus(); } catch (e) { }
 }
 
@@ -2856,13 +2971,26 @@ function _sxGameOver(score, scoreTxt, extraHtml) {
   const id = _sxGame.id, old = _sxGameBest[id];
   const isBest = old == null || score > old;
   if (isBest) { _sxGameBest[id] = score; try { localStorage.setItem('dc_sxGameBest', JSON.stringify(_sxGameBest)); } catch (e) { } }
+  // Game of the day: the first finished try today is kept, and the day
+  // streak goes up by one (or starts again after a missed day)
+  let dailyLine = '';
+  if (_sxGame.daily) {
+    const today = _sxDailyToday().key;
+    if (_sxDaily.date !== today) {
+      const y = new Date(); y.setDate(y.getDate() - 1);
+      const streak = _sxDaily.last === _sxDayKey(y) ? (_sxDaily.streak || 0) + 1 : 1;
+      _sxDaily = { date: today, id, scoreTxt, last: today, streak };
+      try { localStorage.setItem('dc_sxGameDaily', JSON.stringify(_sxDaily)); } catch (e) { }
+    }
+    dailyLine = `<div class="sx-game-daily-line">🔥 ${esc(t('sx_daily_over').replace('{n}', _sxDailyStreak()))}</div>`;
+  }
   _sxGame.done = { score, scoreTxt };
   _sxStage(`<div class="sx-game-over">` +
     `<span class="sx-game-over-k">${esc(t('sx_game_over'))}</span>` +
     `<div class="sx-game-over-n">${esc(scoreTxt)}</div>` +
     (isBest && old != null ? `<div class="sx-game-newbest">${esc(t('sx_game_newbest'))}</div>`
       : `<div class="sx-game-over-best">${esc(t('sx_game_best').replace('{n}', (_sxGameBest[id]).toLocaleString()))}</div>`) +
-    (extraHtml || '') +
+    dailyLine + (extraHtml || '') +
     `<div class="sx-game-over-btns"><button type="button" class="dc-btn dc-btn-main" onclick="sxGameOpen('${id}')">${esc(t('sx_game_again'))}</button>` +
     `<button type="button" class="dc-btn dc-btn-normal" onclick="sxGameShare(this)">${esc(t('sx_game_share'))}</button>` +
     `<button type="button" class="dc-btn dc-btn-plain" onclick="sxGameClose()">${esc(t('sx_game_back'))}</button></div></div>`, '.dc-btn-main');
@@ -2872,7 +3000,7 @@ function _sxGameOver(score, scoreTxt, extraHtml) {
    handed to the phone's share sheet or downloaded. */
 async function sxGameShare(btn) {
   if (!_sxGame || !_sxGame.done) return;
-  const id = _sxGame.id, { scoreTxt } = _sxGame.done;
+  const id = _sxGame.id, { scoreTxt } = _sxGame.done, daily = _sxGame.daily;
   const gc = getGraphColors(), S = 1080;
   const c = document.createElement('canvas');
   c.width = S; c.height = S;
@@ -2884,6 +3012,12 @@ async function sxGameShare(btn) {
   x.textAlign = 'center';
   x.fillStyle = gc.accent; x.font = '600 40px "IBM Plex Sans", sans-serif';
   x.fillText(t('sx_game_' + id).toUpperCase(), S / 2, 300);
+  // Game of the day says so, with the date, under the game's name
+  if (daily) {
+    const locale = currentLang === 'en' ? 'en-US' : currentLang;
+    x.fillStyle = gc.text3; x.font = '500 32px "IBM Plex Sans", sans-serif';
+    x.fillText(t('sx_daily_k') + ' · ' + new Date().toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' }), S / 2, 355);
+  }
   x.fillStyle = gc.text; x.font = '800 150px "Bricolage Grotesque", sans-serif';
   // Long score lines ("7 / 10") shrink to fit
   let size = 150;
@@ -2919,7 +3053,9 @@ function _sxSongPool() {
   _sxPool = { gen, list };
   return list;
 }
-const _sxRand = n => Math.floor(Math.random() * n);
+// The games' random: Math.random, or the date's seed during Game of the day
+let _sxRng = Math.random;
+const _sxRand = n => Math.floor(_sxRng() * n);
 
 // A song card on the stage: picture, title, artist and a line under it
 let _sxArtN = 0;
@@ -3143,8 +3279,8 @@ SX_GAMES.one = {
     G.seen.add(w);
     const list = G.weeks.get(w);
     const one = list.find(x => x.rank === 1);
-    const others = list.filter(x => x.rank !== 1).sort(() => Math.random() - 0.5).slice(0, 3);
-    const opts = [one, ...others].sort(() => Math.random() - 0.5).map(x => this.song(x.sk));
+    const others = list.filter(x => x.rank !== 1).sort(() => _sxRng() - 0.5).slice(0, 3);
+    const opts = [one, ...others].sort(() => _sxRng() - 0.5).map(x => this.song(x.sk));
     G.ans = opts.findIndex(o => o.sk === one.sk);
     G.opts = opts;
     _sxScoreLine(t('sx_round').replace('{n}', G.round).replace('{of}', 10) + ' · ' + t('sx_one_score').replace('{n}', G.score));
