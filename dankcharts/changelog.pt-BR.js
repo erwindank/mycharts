@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "The Dank 100: older weeks, runs and number ones":
+    ["The Dank 100: semanas anteriores, trajetórias e números um",
+     "Volte a qualquer Dank 100 anterior com o seletor de semana (ou as setas ao lado). Clique em qualquer música, artista ou álbum para ver a trajetória logo abaixo: uma linha com as posições semana a semana, a estreia, o pico, as semanas na parada e as semanas em 1º. Abaixo da parada, Números um mostra cada 1º lugar e quantas semanas ficou no topo; clique em um para abrir aquela semana."],
   "The Dank 100 chart is here":
     ["A parada The Dank 100 chegou",
      "A aba The Dank 100 agora mostra a parada semanal mais recente, feita com os envios de todo mundo. Alterne entre Músicas, Artistas e Álbuns. Cada linha mostra como se moveu desde a semana passada (ou NOVO / RE), seus pontos, quantos ouvintes a tinham, a posição anterior, o pico e as semanas na parada. As linhas que seu envio ajudou a colocar têm a marca Você. Toda segunda sai uma parada nova."],

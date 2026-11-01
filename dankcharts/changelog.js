@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 409;
+const DC_CL_I18N_V = 410;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-01', t: 'feature', a: 'charts', h: '5985dda',
+    title: "The Dank 100: older weeks, runs and number ones",
+    detail: "Look back at any earlier Dank 100 with the week picker (or the arrows beside it). Click any song, artist or album to see its run right under it: a line of its positions week by week, with its debut, peak, weeks on the chart and weeks at #1. Below the chart, Number ones lists every #1 with how many weeks it held the top spot; click one to open that week." },
   { d: '2026-11-01', t: 'feature', a: 'charts', h: '4679756',
     title: "The Dank 100 chart is here",
     detail: "The Dank 100 tab now shows the latest weekly chart, built from everyone's entries. Switch between Songs, Artists and Albums. Each row shows how it moved since last week (or NEW / RE), its points, how many listeners charted it, last week's spot, its peak and its weeks on the chart. Rows your own entry helped chart are marked You. A new chart comes out every Monday." },
