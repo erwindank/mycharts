@@ -1118,6 +1118,7 @@
       });
     }, Promise.resolve()).then(function () {
       if (sent) lsSet(yearKey(uid), JSON.stringify({ at: Date.now(), n: sent }));
+      renderPromo();
       // Tell the server, then show the recounted charts. Asked twice if the
       // first try fails: without it the new weeks would wait for someone else's.
       var ask = function () {
@@ -1134,6 +1135,57 @@
     });
   }
 
+  // ── The invite banner on the chart tabs ──
+  // Tells people The Dank 100 exists and asks them to join. Hidden for the
+  // demo library, after the × (dc_d100_promo_off), and once this browser has
+  // sent anything for the signed-in account (a week or the year).
+  var PROMO_OFF = 'dc_d100_promo_off';
+  function hasJoined() {
+    var uid = signedInUid();
+    if (!uid) return false;
+    try {
+      for (var i = 0; i < localStorage.length; i++) {
+        var k = localStorage.key(i);
+        if (k && (k.indexOf('dc_d100_sent_' + uid + '_') === 0 || k === yearKey(uid))) return true;
+      }
+    } catch (e) {}
+    return false;
+  }
+  function renderPromo() {
+    var el = document.getElementById('d100Promo');
+    if (!el) return;
+    if (lsGet(PROMO_OFF) === '1' || isDemo() || !hasPlays() || hasJoined()) {
+      el.style.display = 'none'; el.innerHTML = '';
+      return;
+    }
+    var year = historyOpen();
+    var day = fmtDay(HISTORY_CLOSES - 1, { month: 'long', day: 'numeric' });
+    el.innerHTML =
+      '<div class="d100-promo-ico" aria-hidden="true">' + TITLE_ICO + '</div>' +
+      '<div class="d100-promo-body">' +
+        '<div class="d100-promo-title"><span class="d100-promo-new">' + esc(tr('d100_promo_new')) + '</span>' + esc(tr('d100_title')) + '</div>' +
+        '<p>' + esc(tr(year ? 'd100_promo_text_year' : 'd100_promo_text', { day: day })) + '</p>' +
+      '</div>' +
+      '<div class="d100-promo-actions">' +
+        '<button type="button" class="dc-btn dc-btn-main" onclick="dcDank100.openFromPromo()">' + esc(tr(year ? 'd100_promo_btn_year' : 'd100_promo_btn')) + '</button>' +
+        '<button type="button" class="d100-promo-x" aria-label="' + esc(tr('d100_promo_hide')) + '" title="' + esc(tr('d100_promo_hide')) + '" onclick="dcDank100.hidePromo()">×</button>' +
+      '</div>';
+    el.style.display = '';
+  }
+  // Opens the tab and brings the "Send my year" card (or this week's) into view
+  function openFromPromo() {
+    if (typeof dcGoTab === 'function') dcGoTab('dank100');
+    setTimeout(function () {
+      var target = document.querySelector('#dank100View .d100-year') || document.querySelector('#dank100View .d100-entries') ||
+        document.querySelector('#dank100View .d100-signin');
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 250);
+  }
+  function hidePromo() {
+    lsSet(PROMO_OFF, '1');
+    renderPromo();
+  }
+
   // ── Actions ──
   function send(w, quiet) {
     var uid = signedInUid();
@@ -1142,6 +1194,7 @@
     if (!quiet) render();
     return sendEntry(w).then(function () {
       lsSet(sentKey(uid, w), String(Date.now()));
+      renderPromo();
       lsSet(backKey(uid, w), null);          // sending again undoes a take-back
       return getMyEntry(w).then(function (e) { S.mine[w] = e; }, function () {});
     }).then(function () { return true; }, function (err) {
@@ -1175,6 +1228,7 @@
   var _autoRunning = false;
   function autoSend() {
     syncSwitch();
+    renderPromo();          // called after every data load (app.js finalizeLoad)
     var uid = signedInUid();
     if (_autoRunning || !uid || !autoOn() || isDemo() || !hasPlays()) return;
     var due = openWeeks().filter(function (w) {
@@ -1217,6 +1271,7 @@
       firebase.auth().onAuthStateChanged(function () {
         S.mine = {}; S.err = {};
         syncSwitch();
+        renderPromo();
         if (S.active) { render(); loadMine().then(render); if (C.week) loadMyKeys(C.week); }
         // Give the cloud settings a moment to land in localStorage first
         setTimeout(autoSend, 4000);
@@ -1242,6 +1297,9 @@
     showAll: function () { C.all = true; render(); },
     reloadChart: function () { C.tries = 0; loadChart(true, C.week); },
     sendYear: sendYear,
+    renderPromo: renderPromo,
+    openFromPromo: openFromPromo,
+    hidePromo: hidePromo,
     send: function (w) { return send(w, false); },
     takeBack: takeBack,
     autoSend: autoSend,

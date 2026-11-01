@@ -44823,3 +44823,42 @@ th.cr-th { width: 92px; }              /* = .chart-table .cr-cell */
 @media (max-width: 640px) {
   .d100-year { flex-direction: column; gap: 8px; }
 }
+
+/* The Dank 100 invite banner (#d100Promo) on the chart tabs only */
+body:not(:is([data-view="day"], [data-view="week"], [data-view="month"], [data-view="year"], [data-view="alltime"])) #d100Promo { display: none !important; }
+.d100-promo {
+  display: flex; align-items: center; gap: var(--sp-4);
+  margin: 0 0 var(--sp-3);
+  padding: 14px var(--sp-4);
+  border-radius: var(--r-md);
+  border: 1px solid color-mix(in srgb, #2dd4bf 45%, var(--border));
+  background: linear-gradient(110deg, color-mix(in srgb, #2dd4bf 16%, var(--bg2)), var(--bg2) 70%);
+}
+.d100-promo-ico {
+  flex: none; width: 46px; height: 46px; border-radius: 12px;
+  display: grid; place-items: center;
+  background: color-mix(in srgb, #2dd4bf 22%, transparent);
+}
+.d100-promo-ico svg { width: 26px; height: 26px; fill: none; stroke: color-mix(in srgb, #2dd4bf 70%, var(--text)); stroke-width: 1.2; stroke-linejoin: round; }
+.d100-promo-ico svg path { fill: color-mix(in srgb, #2dd4bf 70%, var(--text)); stroke: none; }
+.d100-promo-body { flex: 1; min-width: 0; }
+.d100-promo-title { display: flex; align-items: center; gap: 8px; font-family: var(--font-display); font-weight: 600; font-size: var(--fs-md); color: var(--text); }
+.d100-promo-new {
+  padding: 1px 7px; border-radius: 4px;
+  font-family: var(--font-sans, inherit); font-size: 0.66rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase;
+  color: #062b26; background: #2dd4bf;
+}
+.d100-promo-body p { margin: 2px 0 0; font-size: var(--fs-sm); color: var(--text2); }
+.d100-promo-actions { flex: none; display: flex; align-items: center; gap: 6px; }
+.d100-promo-x {
+  width: 32px; height: 32px; border-radius: var(--r-sm);
+  border: 0; background: none; color: var(--text3); font-size: 1.4rem; line-height: 1; cursor: pointer;
+}
+.d100-promo-x:hover { color: var(--text); background: color-mix(in srgb, var(--text) 6%, transparent); }
+.d100-promo-x:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (max-width: 640px) {
+  .d100-promo { flex-wrap: wrap; gap: 10px; padding: 12px; }
+  .d100-promo-ico { width: 38px; height: 38px; }
+  .d100-promo-body { flex-basis: calc(100% - 48px - 10px); }
+  .d100-promo-actions { width: 100%; justify-content: space-between; }
+}

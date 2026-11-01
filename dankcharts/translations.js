@@ -689,6 +689,12 @@ const TRANSLATIONS = {
     d100_year_sending: "Sending week {{i}} of {{n}}…",
     d100_year_sent: "Sent {{n}} weeks · {{when}}",
     d100_year_err: "Some weeks couldn't be sent. Try again.",
+    d100_promo_new: "New",
+    d100_promo_text_year: "Everyone's weekly charts, added up into one. Send your year before {{day}} and your favourites go into the chart's history.",
+    d100_promo_text: "Everyone's weekly charts, added up into one new chart every Monday. Send your week and see where your favourites land.",
+    d100_promo_btn_year: "Send my year",
+    d100_promo_btn: "Join in",
+    d100_promo_hide: "Hide",
     board_title: "Community Board",
     board_sub: "Suggest features, report bugs, ask questions and talk music with other listeners.",
     board_anon: "Listener",
@@ -5798,6 +5804,12 @@ const TRANSLATIONS = {
     d100_year_sending: "Enviando la semana {{i}} de {{n}}…",
     d100_year_sent: "Enviadas {{n}} semanas · {{when}}",
     d100_year_err: "Algunas semanas no se pudieron enviar. Inténtalo de nuevo.",
+    d100_promo_new: "Nuevo",
+    d100_promo_text_year: "Las listas semanales de todos, sumadas en una sola. Envía tu año antes del {{day}} y tus favoritas entrarán en el historial de la lista.",
+    d100_promo_text: "Las listas semanales de todos, sumadas en una lista nueva cada lunes. Envía tu semana y mira dónde acaban tus favoritas.",
+    d100_promo_btn_year: "Enviar mi año",
+    d100_promo_btn: "Participar",
+    d100_promo_hide: "Ocultar",
     board_title: "Foro de la comunidad",
     board_sub: "Sugiere funciones, reporta errores, haz preguntas y habla de música con otros oyentes.",
     board_anon: "Oyente",
@@ -10792,6 +10804,12 @@ const TRANSLATIONS = {
     d100_year_sending: "Enviando a semana {{i}} de {{n}}…",
     d100_year_sent: "{{n}} semanas enviadas · {{when}}",
     d100_year_err: "Algumas semanas não foram enviadas. Tente de novo.",
+    d100_promo_new: "Novo",
+    d100_promo_text_year: "As paradas semanais de todo mundo, somadas em uma só. Envie seu ano antes de {{day}} e suas favoritas entram no histórico da parada.",
+    d100_promo_text: "As paradas semanais de todo mundo, somadas em uma parada nova toda segunda. Envie sua semana e veja onde suas favoritas ficam.",
+    d100_promo_btn_year: "Enviar meu ano",
+    d100_promo_btn: "Participar",
+    d100_promo_hide: "Ocultar",
     board_title: "Fórum da comunidade",
     board_sub: "Sugira recursos, relate bugs, tire dúvidas e converse sobre música com outros ouvintes.",
     board_anon: "Ouvinte",
@@ -15787,6 +15805,12 @@ const TRANSLATIONS = {
     d100_year_sending: "A enviar a semana {{i}} de {{n}}…",
     d100_year_sent: "{{n}} semanas enviadas · {{when}}",
     d100_year_err: "Algumas semanas não foram enviadas. Tenta outra vez.",
+    d100_promo_new: "Novo",
+    d100_promo_text_year: "Os tops semanais de toda a gente, somados num só. Envia o teu ano antes de {{day}} e as tuas favoritas entram no histórico do top.",
+    d100_promo_text: "Os tops semanais de toda a gente, somados num top novo todas as segundas. Envia a tua semana e vê onde ficam as tuas favoritas.",
+    d100_promo_btn_year: "Enviar o meu ano",
+    d100_promo_btn: "Participar",
+    d100_promo_hide: "Ocultar",
     board_title: "Fórum da comunidade",
     board_sub: "Sugere funcionalidades, reporta erros, faz perguntas e fala de música com outros ouvintes.",
     board_anon: "Ouvinte",
@@ -20358,6 +20382,8 @@ function setLanguage(lang) {
   if (typeof currentPeriod !== 'undefined' && currentPeriod === 'board' && window.dcBoard) window.dcBoard.rerender();
   // ...and The Dank 100, for the same reason
   if (typeof currentPeriod !== 'undefined' && currentPeriod === 'dank100' && window.dcDank100) window.dcDank100.rerender();
+  // ...and its invite banner on the chart tabs
+  if (window.dcDank100) window.dcDank100.renderPromo();
 
   // Re-render records tab if active (renderAll does not handle the records period)
   if (typeof currentPeriod !== 'undefined' && currentPeriod === 'records' && typeof buildRecords === 'function') {
