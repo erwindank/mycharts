@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "The Dank 100: send in your week":
+    ["The Dank 100: envía tu semana",
+     "Una pestaña nueva en Más: The Dank 100, donde las listas semanales de todos se suman en una sola lista compartida. Inicia sesión y envía tu semana con un clic. Primero ves tus canciones más escuchadas; puedes actualizar tu envío hasta el domingo después de que acabe la semana, o retirarlo. Las semanas van de viernes a jueves (UTC) para todos. Los puntos salen de las posiciones, no de las reproducciones, así que cada oyente cuenta lo mismo. Activa Ajustes → Rankings → Enviar mi semana automáticamente y se hace solo cada vez que abres el sitio. Solo la lista combinada es pública. La primera lista llega pronto."],
   "Eight more games":
     ["Ocho juegos más",
      "Estadísticas → Juegos ahora tiene doce juegos. Nuevos: Adivina la canción (escucha unos segundos de una de tus canciones y elígela), ¿Cuántas reproducciones? (adivina con un control deslizante), Top 5 en orden (ordena de nuevo el top 5 de un año), Su canción más escuchada, Posición máxima, ¿De quién es?, El intruso (tres #1 y una que nunca lo fue) y ¿Día o noche? (cuándo sueles escuchar una canción). Todos se turnan como Juego del día. Funciona con Last.fm, Google Sheets y archivos CSV; ¿Día o noche? necesita reproducciones con hora."],
