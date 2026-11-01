@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "The Dank 100 chart is here":
+    ["Ya está la lista The Dank 100",
+     "La pestaña The Dank 100 ya muestra la última lista semanal, hecha con los envíos de todos. Cambia entre Canciones, Artistas y Álbumes. Cada fila muestra cómo se movió desde la semana pasada (o NUEVO / RE), sus puntos, cuántos oyentes la tenían, su puesto anterior, su pico y sus semanas en la lista. Las filas que tu envío ayudó a meter llevan la marca Tú. Cada lunes sale una lista nueva."],
   "The Dank 100: send in your week":
     ["The Dank 100: envía tu semana",
      "Una pestaña nueva en Más: The Dank 100, donde las listas semanales de todos se suman en una sola lista compartida. Inicia sesión y envía tu semana con un clic. Primero ves tus canciones más escuchadas; puedes actualizar tu envío hasta el domingo después de que acabe la semana, o retirarlo. Las semanas van de viernes a jueves (UTC) para todos. Los puntos salen de las posiciones, no de las reproducciones, así que cada oyente cuenta lo mismo. Activa Ajustes → Rankings → Enviar mi semana automáticamente y se hace solo cada vez que abres el sitio. Solo la lista combinada es pública. La primera lista llega pronto."],

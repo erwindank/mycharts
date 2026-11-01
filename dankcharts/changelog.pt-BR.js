@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "The Dank 100 chart is here":
+    ["A parada The Dank 100 chegou",
+     "A aba The Dank 100 agora mostra a parada semanal mais recente, feita com os envios de todo mundo. Alterne entre Músicas, Artistas e Álbuns. Cada linha mostra como se moveu desde a semana passada (ou NOVO / RE), seus pontos, quantos ouvintes a tinham, a posição anterior, o pico e as semanas na parada. As linhas que seu envio ajudou a colocar têm a marca Você. Toda segunda sai uma parada nova."],
   "The Dank 100: send in your week":
     ["The Dank 100: envie sua semana",
      "Uma aba nova em Mais: a The Dank 100, onde as paradas semanais de todo mundo são somadas em uma parada compartilhada. Entre e envie sua semana com um clique. Primeiro você vê suas músicas mais ouvidas; dá para atualizar o envio até o domingo depois do fim da semana, ou retirá-lo. As semanas vão de sexta a quinta (UTC) para todos. Os pontos vêm das posições, não das reproduções, então todo ouvinte conta igual. Ative Configurações → Paradas → Enviar minha semana automaticamente e isso acontece sozinho sempre que você abre o site. Só a parada combinada é pública. A primeira parada chega em breve."],

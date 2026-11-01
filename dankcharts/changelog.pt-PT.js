@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "The Dank 100 chart is here":
+    ["O top The Dank 100 chegou",
+     "O separador The Dank 100 mostra agora o top semanal mais recente, feito com os envios de toda a gente. Alterna entre Músicas, Artistas e Álbuns. Cada linha mostra como se mexeu desde a semana passada (ou NOVO / RE), os pontos, quantos ouvintes a tinham, a posição anterior, o pico e as semanas no top. As linhas que o teu envio ajudou a pôr têm a marca Tu. Todas as segundas sai um top novo."],
   "The Dank 100: send in your week":
     ["The Dank 100: envia a tua semana",
      "Um separador novo em Mais: o The Dank 100, onde os tops semanais de toda a gente são somados num top partilhado. Inicia sessão e envia a tua semana com um clique. Primeiro vês as tuas músicas mais ouvidas; podes atualizar o envio até ao domingo depois do fim da semana, ou retirá-lo. As semanas vão de sexta a quinta (UTC) para todos. Os pontos vêm das posições, não das reproduções, por isso cada ouvinte conta o mesmo. Ativa Definições → Tops → Enviar a minha semana automaticamente e acontece sozinho sempre que abres o site. Só o top combinado é público. O primeiro top chega em breve."],

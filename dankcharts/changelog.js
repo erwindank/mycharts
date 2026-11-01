@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 408;
+const DC_CL_I18N_V = 409;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-01', t: 'feature', a: 'charts', h: '4679756',
+    title: "The Dank 100 chart is here",
+    detail: "The Dank 100 tab now shows the latest weekly chart, built from everyone's entries. Switch between Songs, Artists and Albums. Each row shows how it moved since last week (or NEW / RE), its points, how many listeners charted it, last week's spot, its peak and its weeks on the chart. Rows your own entry helped chart are marked You. A new chart comes out every Monday." },
   { d: '2026-11-01', t: 'feature', a: 'charts', h: '3449b86',
     title: "The Dank 100: send in your week",
     detail: "A new tab under More: The Dank 100, where everyone's weekly charts are added up into one shared chart. Sign in and send your week with one click. You see your top songs first, you can update your entry until the Sunday after the week ends, or take it back. Weeks run Friday to Thursday (UTC) for everyone. Points come from chart positions, not play counts, so every listener counts the same. Turn on Settings → Charts → Send my week automatically and it happens by itself each time you open the site. Only the combined chart is public. The first chart itself is coming soon." },
