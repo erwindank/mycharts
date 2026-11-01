@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 406;
+const DC_CL_I18N_V = 407;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-01', t: 'feature', a: 'graphs', h: 'c6777fa',
+    title: "Eight more games",
+    detail: "Stats → Games now has twelve games. New: Name that tune (hear a few seconds of one of your songs and pick it), How many plays? (guess a song's play count on a slider), Top 5 in order (put a year's top 5 back in order), Their biggest song, Peak position, Whose song?, Odd one out (three #1s and one that never was) and Day or night? (when you usually play a song). They all take turns as the Game of the day. Works with Last.fm, Google Sheets and CSV uploads; Day or night? needs plays with times of day." },
   { d: '2026-11-01', t: 'feature', a: 'graphs', h: 'b6b21ad',
     title: "Livelier Games, and a Game of the day",
     detail: "Stats → Games got a new look: each game has its own colour, a little preview made from your own songs (real covers, a 20?? year, a real week with an empty #1 slot), a medal with your best score or a New tag, and you can tap anywhere on a card to play. On top, a Game of the day: one puzzle a day, the same all day, where your first try counts and keeps your day streak going. Works with Last.fm, Google Sheets and CSV uploads." },

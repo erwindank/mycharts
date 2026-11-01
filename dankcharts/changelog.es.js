@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Eight more games":
+    ["Ocho juegos más",
+     "Estadísticas → Juegos ahora tiene doce juegos. Nuevos: Adivina la canción (escucha unos segundos de una de tus canciones y elígela), ¿Cuántas reproducciones? (adivina con un control deslizante), Top 5 en orden (ordena de nuevo el top 5 de un año), Su canción más escuchada, Posición máxima, ¿De quién es?, El intruso (tres #1 y una que nunca lo fue) y ¿Día o noche? (cuándo sueles escuchar una canción). Todos se turnan como Juego del día. Funciona con Last.fm, Google Sheets y archivos CSV; ¿Día o noche? necesita reproducciones con hora."],
   "Livelier Games, and a Game of the day":
     ["Juegos más vivos y un Juego del día",
      "Estadísticas → Juegos tiene un nuevo aspecto: cada juego tiene su color, una pequeña vista previa hecha con tus propias canciones (portadas reales, un año 20??, una semana real con el #1 vacío), una medalla con tu mejor puntuación o una etiqueta Nuevo, y puedes tocar en cualquier parte de la tarjeta para jugar. Arriba, un Juego del día: un reto al día, el mismo todo el día, donde cuenta tu primer intento y mantiene tus días seguidos. Funciona con Last.fm, Google Sheets y archivos CSV."],
