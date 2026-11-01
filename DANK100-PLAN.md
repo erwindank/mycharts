@@ -90,7 +90,7 @@ Rules changes must be **pasted into the Firebase Console**, as before.
   `week` must be the open week).
 - Test: the same plays as a CSV and as Sheets give the same entry.
 
-### 2. Send-in card
+### 2. Send-in card — done 2026-11-01 (in More, first item)
 - New **Dank 100** tab. At the top: "Your entry for week 44". It shows a short
   preview (your top 10 songs), a **Send my week** button, then "Sent ✓ · Update"
   once it's in.
