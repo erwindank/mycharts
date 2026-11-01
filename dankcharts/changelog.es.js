@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Send your year to The Dank 100":
+    ["Envía tu año a The Dank 100",
+     "The Dank 100 ahora empieza el 2 de enero. En la pestaña The Dank 100, Enviar mi año envía tu lista de cada semana desde entonces de una vez, y esas semanas aparecen enseguida en el historial, marcadas como hechas con el historial de escucha. Hasta el 30 de noviembre, el historial se vuelve a contar cada vez que alguien envía su año, así que se completa a medida que se une más gente; después queda fijo."],
   "Dank 100 records and a shareable top 10":
     ["Récords de The Dank 100 y un top 10 para compartir",
      "Debajo de la lista The Dank 100: récords de canciones, artistas y álbumes, desde más semanas en el n.º 1 y la racha más larga hasta la mayor subida, el mejor debut y más oyentes en una semana. Compartir top 10 crea una imagen del top 10 de la semana con portadas, lista para compartir desde el móvil o descargar. La Guía de listas y el recorrido ya explican The Dank 100, y la política de privacidad cuenta qué guarda una semana enviada y quién puede verla."],
