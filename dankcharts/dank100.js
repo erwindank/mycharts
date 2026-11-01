@@ -279,6 +279,10 @@
   var PREVIEW_ROWS = 5;
 
   var TYPES = ['songs', 'artists', 'albums'];
+  // Where the Cloudflare Function lives. It only runs on the real site, so a
+  // local copy (Live Server, python http.server, file://) asks the live one;
+  // the function answers any origin (Access-Control-Allow-Origin: *).
+  var API = (typeof location !== 'undefined' && /^(localhost|127\.0\.0\.1|\[::1\]|)$/.test(location.hostname)) ? 'https://dankcharts.fm' : '';
   // The chart on screen (step 4): week, data from the function, loading state
   var C = { week: null, data: null, loading: false, err: false, mine: null };
 
@@ -507,7 +511,7 @@
     render();
     // no-store: never reuse a browser-saved answer (an old 'no chart yet' for
     // a week stuck around for an hour once the history weeks were added)
-    fetch('/dank100/chart?week=' + encodeURIComponent(week), { cache: 'no-store' })
+    fetch(API + '/dank100/chart?week=' + encodeURIComponent(week), { cache: 'no-store' })
       .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
       .then(function (d) {
         if (C.week !== week) return;          // picked another week meanwhile
@@ -535,7 +539,7 @@
 
   function loadArchive(through) {
     if (C.arch && C.arch.through === through) return;
-    fetch('/dank100/archive?through=' + encodeURIComponent(through), { cache: 'no-store' })
+    fetch(API + '/dank100/archive?through=' + encodeURIComponent(through), { cache: 'no-store' })
       .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
       .then(function (a) {
         if (!a || !Array.isArray(a.weeks)) return;
@@ -1117,7 +1121,7 @@
       // Tell the server, then show the recounted charts. Asked twice if the
       // first try fails: without it the new weeks would wait for someone else's.
       var ask = function () {
-        return fetch('/dank100/dirty', { method: 'POST' }).then(function (r) { if (!r.ok) throw new Error('http ' + r.status); });
+        return fetch(API + '/dank100/dirty', { method: 'POST' }).then(function (r) { if (!r.ok) throw new Error('http ' + r.status); });
       };
       return ask().catch(function () {
         return new Promise(function (res) { setTimeout(res, 2000); }).then(ask);
