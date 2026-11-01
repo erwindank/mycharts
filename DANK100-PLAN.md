@@ -117,7 +117,7 @@ Rules changes must be **pasted into the Firebase Console**, as before.
 - Header: "The Dank 100 · week of Oct 24–30 · built from 14 listeners".
 - **Your part**: a small marker on the rows you helped chart.
 
-### 5. Weeks and history
+### 5. Weeks and history — done 2026-11-01 (run opens under the row; `GET /dank100/archive`)
 - Week picker for older charts (same date bar style as the main chart).
 - Click a song for its Dank 100 run: a mini chart of its positions over the weeks,
   its peak, and its weeks at #1.

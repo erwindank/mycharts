@@ -10,6 +10,8 @@
                                           the spot by the first visitor after
                                           the week closes, then just read
      GET /dank100/chart                   the latest closed week
+     GET /dank100/archive?through=…       every published week up to then, and
+                                          each row's run (step 5)
      GET /dank100/count?week=…            how many entries a week has so far
                                           (a number only, never whose)
 
@@ -195,6 +197,16 @@ function fsClient(token) {
       if (r.status !== 200 || !Array.isArray(r.json)) throw new HttpError(502, 'firestore-query');
       return r.json.filter(x => x.document).map(x => ({ id: x.document.name.split('/').pop(), data: docData(x.document) }));
     },
+    // Several documents in one request; missing ones come back as null.
+    async getMany(col, ids) {
+      if (!ids.length) return [];
+      const names = ids.map(id => `projects/${PROJECT}/databases/(default)/documents/${col}/${encodeURIComponent(id)}`);
+      const r = await call('POST', ':batchGet', { documents: names });
+      if (r.status !== 200 || !Array.isArray(r.json)) throw new HttpError(502, 'firestore-read');
+      const byName = {};
+      r.json.forEach(x => { if (x.found) byName[x.found.name] = docData(x.found); });
+      return names.map(n => byName[n] || null);
+    },
     // Ids in a (small) collection.
     async ids(col) {
       const out = []; let page = '';
@@ -350,6 +362,40 @@ async function ensureChart(db, week, depth = 0) {
   }
 }
 
+// ── The archive (step 5) ────────────────────────────────────────────────────
+// Every published week up to `through`, and each row's run, in one answer:
+//   weeks: [{ w, status, entries }]                oldest first
+//   runs:  { songs: { k: { t, a, r: [[i, p], …] } }, artists, albums }
+// where i indexes `weeks` and p is the position that week. The page draws the
+// week picker, a song's run and the list of number ones from it. A finished
+// week never changes, so the answer is cached by `through`.
+export function buildArchive(weekIds, charts) {
+  const weeks = [], runs = { songs: {}, artists: {}, albums: {} };
+  weekIds.forEach((w, idx) => {
+    const c = charts[idx];
+    if (!c || (c.status !== 'done' && c.status !== 'small')) return;
+    const i = weeks.length;
+    weeks.push({ w, status: c.status, entries: c.entries || 0 });
+    for (const type of TYPES) {
+      for (const row of c[type] || []) {
+        let x = runs[type][row.k];
+        // The newest spelling wins (later weeks overwrite)
+        if (!x) x = runs[type][row.k] = { r: [] };
+        x.t = row.t; if (row.a) x.a = row.a;
+        x.r.push([i, row.p]);
+      }
+    }
+  });
+  return { weeks, runs };
+}
+
+async function archive(db, through) {
+  const ids = [];
+  for (let w = through; w >= FIRST_WEEK; w = prevWeek(w)) ids.unshift(w);
+  const charts = await db.getMany('dank100Charts', ids);
+  return Object.assign({ through }, buildArchive(ids, charts));
+}
+
 // ── The request ─────────────────────────────────────────────────────────────
 function reply(body, status, maxAge) {
   return new Response(JSON.stringify(body), {
@@ -377,6 +423,20 @@ export async function onRequestGet(context) {
       const chart = await ensureChart(db, week);
       // A finished chart never changes, so the edge may keep it a while.
       return reply(chart, 200, chart.status === 'building' ? 0 : 600);
+    }
+    if (route === 'archive') {
+      const through = url.searchParams.get('through') || latestClosedWeek(now);
+      const b = weekBounds(through);
+      if (!b || now < b.closes) return reply({ error: 'bad-week' }, 400);
+      // Cloudflare's own cache: one Firestore read per week per data centre
+      const cache = caches.default;
+      const cacheKey = new Request(url.origin + '/dank100/archive?through=' + through);
+      const hit = await cache.match(cacheKey);
+      if (hit) return hit;
+      const db = fsClient(await googleToken(context.env));
+      const res = reply(await archive(db, through), 200, 600);
+      context.waitUntil(cache.put(cacheKey, res.clone()));
+      return res;
     }
     if (route === 'count') {
       const week = url.searchParams.get('week') || weekIdOf(now);

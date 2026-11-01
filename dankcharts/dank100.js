@@ -441,11 +441,13 @@
     observeArt(root);
   }
 
-  // ══ Step 4: the chart ════════════════════════════════════════════════════
-  // The latest closed week's chart, from the Cloudflare Function
-  // (functions/dank100), which builds it on the first visit after the week
-  // closes. Songs / Artists / Albums switch; rows the user's own entry helped
-  // chart are marked "You".
+  // ══ Steps 4–5: the chart, older weeks, runs and number ones ══════════════
+  // Charts come from the Cloudflare Function (functions/dank100), which
+  // builds a week on the first visit after it closes. Songs / Artists /
+  // Albums switch; rows the user's own entry helped chart are marked "You".
+  // Step 5 adds the archive (/dank100/archive): every published week and each
+  // row's positions over them, which feeds the week picker, the run that opens
+  // under a row when it is clicked, and the list of number ones.
 
   var CHART_STEP = 50;          // rows shown before "Show all 100"
   var BUILD_RETRY_MS = 5000;    // someone else is counting: look again
@@ -453,6 +455,9 @@
 
   C.type = 'songs';
   C.all = false;
+  C.cache = {};                 // week -> finished chart (they never change)
+  C.arch = null;                // { through, weeks: [{ w, status, entries }], runs }
+  C.open = null;                // key of the row whose run is open
 
   // The newest week whose sending has closed (dank100Charts id).
   function latestClosedWeek() {
@@ -460,22 +465,36 @@
     return weekIdOf(new Date(+weekBounds(w[w.length - 1]).start - DAY_MS));
   }
 
-  function loadChart(force) {
-    var week = latestClosedWeek();
+  // `week` defaults to the newest closed week. `force` re-asks the server
+  // (used while another visitor is still counting it).
+  function loadChart(force, week) {
+    var latest = latestClosedWeek();
+    week = week || C.week || latest;
+    if (week > latest) week = latest;
     if (!force && C.week === week && (C.data || C.loading)) return;
-    C.week = week; C.loading = true; C.err = false;
+    if (C.week !== week) { C.open = null; C.all = false; }
+    C.week = week; C.err = false;
+    if (!force && C.cache[week]) {
+      C.data = C.cache[week]; C.loading = false;
+      loadMyKeys(week); render();
+      return;
+    }
+    C.loading = true;
     if (!force) C.data = null;
     C.tries = C.tries || 0;
     render();
     fetch('/dank100/chart?week=' + encodeURIComponent(week))
       .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
       .then(function (d) {
+        if (C.week !== week) return;          // picked another week meanwhile
         C.loading = false;
         C.data = d;
+        if (d.status === 'done' || d.status === 'small') C.cache[week] = d;
         if (d.status === 'building' && C.tries < BUILD_RETRIES) {
           C.tries++;
-          setTimeout(function () { if (C.week === week) loadChart(true); }, BUILD_RETRY_MS);
+          setTimeout(function () { if (C.week === week) loadChart(true, week); }, BUILD_RETRY_MS);
         } else C.tries = 0;
+        if (week === latest && d.status !== 'building') loadArchive(latest);
         loadMyKeys(week);
         render();
       }, function (err) {
@@ -483,6 +502,17 @@
         C.loading = false; C.err = true; C.tries = 0;
         render();
       });
+  }
+
+  function loadArchive(through) {
+    if (C.arch && C.arch.through === through) return;
+    fetch('/dank100/archive?through=' + encodeURIComponent(through))
+      .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+      .then(function (a) {
+        if (!a || !Array.isArray(a.weeks)) return;
+        C.arch = a;
+        render();
+      }, function (err) { console.warn('[dankcharts] Dank 100 archive failed:', err && err.message); });
   }
 
   // Which rows the user's own entry for that week helped chart.
@@ -505,21 +535,28 @@
     if (r.st === 're') return '<span class="d100-mv d100-mv-re">' + esc(tr('badge_re')) + '</span>';
     var diff = (r.lw || r.p) - r.p;
     if (!diff) return '<span class="d100-mv d100-mv-same" aria-label="=">=</span>';
-    return '<span class="d100-mv ' + (diff > 0 ? 'd100-mv-up">\u25b2' : 'd100-mv-down">\u25bc') + Math.abs(diff) + '</span>';
+    return '<span class="d100-mv ' + (diff > 0 ? 'd100-mv-up">▲' : 'd100-mv-down">▼') + Math.abs(diff) + '</span>';
   }
 
   function initials(s) {
     return String(s || '').split(/\s+/).filter(Boolean).slice(0, 2).map(function (w) { return w[0]; }).join('').toUpperCase() || '♪';
   }
 
+  function artHTML(type, t, a) {
+    var artType = type === 'songs' ? 'song' : type === 'artists' ? 'artist' : 'album';
+    return '<span class="d100-art" data-art="' + artType + '" data-t="' + esc(t) + '" data-a="' + esc(a || '') + '">' +
+      '<span class="d100-art-ini" aria-hidden="true">' + esc(initials(t)) + '</span></span>';
+  }
+
+  // Each row is a button: clicking it opens the row's Dank 100 run under it.
   function rowHTML(r) {
     var mine = C.mine && C.mine[C.type] && C.mine[C.type][r.k];
-    var artType = C.type === 'songs' ? 'song' : C.type === 'artists' ? 'artist' : 'album';
-    var h = '<li class="d100-row' + (r.p === 1 ? ' d100-row-1' : '') + (mine ? ' d100-row-mine' : '') + '">';
+    var open = C.open === r.k;
+    var h = '<li class="d100-li' + (r.p === 1 ? ' d100-row-1' : '') + (mine ? ' d100-row-mine' : '') + (open ? ' is-open' : '') + '">';
+    h += '<button type="button" class="d100-row" data-k="' + esc(r.k) + '" aria-expanded="' + open + '" onclick="dcDank100.toggleRun(this)">';
     h += '<span class="d100-pos">' + r.p + '</span>';
     h += '<span class="d100-move">' + moveHTML(r) + '</span>';
-    h += '<span class="d100-art" data-art="' + artType + '" data-t="' + esc(r.t) + '" data-a="' + esc(r.a || '') + '">' +
-      '<span class="d100-art-ini" aria-hidden="true">' + esc(initials(r.t)) + '</span></span>';
+    h += artHTML(C.type, r.t, r.a);
     h += '<span class="d100-name"><span class="d100-t">' + esc(r.t) +
       (mine ? ' <span class="d100-you" title="' + esc(tr('d100_you_legend')) + '">' + esc(tr('d100_you')) + '</span>' : '') + '</span>' +
       (r.a ? '<span class="d100-a">' + esc(r.a) + '</span>' : '') + '</span>';
@@ -528,7 +565,81 @@
     h += '<span class="d100-num d100-lw">' + (r.lw || '–') + '</span>';
     h += '<span class="d100-num d100-pk">' + r.pk + '</span>';
     h += '<span class="d100-num d100-wk">' + r.wk + '</span>';
+    h += '</button>';
+    if (open) h += runHTML(r);
     h += '</li>';
+    return h;
+  }
+
+  // ── A row's run: its positions week by week, from its debut to the newest
+  // chart, as a small line (gaps where it was off the chart) plus four facts.
+  function runHTML(r) {
+    var a = C.arch, run = a && a.runs && a.runs[C.type] && a.runs[C.type][r.k];
+    var h = '<div class="d100-run">';
+    if (!run || !run.r.length) {
+      // Archive not here yet (or failed): the row's own numbers still tell most of it
+      h += '<div class="d100-run-facts">' + fact('d100_run_peak', '#' + r.pk) + fact('d100_run_weeks', r.wk) + '</div></div>';
+      return h;
+    }
+    var pts = run.r, first = pts[0][0], last = a.weeks.length - 1;
+    // Scale to the run itself (at least #1–#5), so a run in the top 3 isn't a
+    // flat line along the top of a #1–#100 box
+    var maxP = 5;
+    pts.forEach(function (x) { if (x[1] > maxP) maxP = x[1]; });
+    maxP = Math.min(100, Math.ceil(maxP / 5) * 5);
+    // In percent of the box: the line is an SVG stretched to fit, the dots are
+    // HTML on top so they stay round at any width
+    var X = function (i) { return last > first ? 3 + (i - first) / (last - first) * 94 : 50; };
+    var Y = function (p) { return 8 + (p - 1) / (maxP - 1) * 84; };
+    // Break the line where the row left the chart
+    var path = '', prevI = null;
+    pts.forEach(function (x) {
+      path += (prevI !== null && x[0] === prevI + 1 ? ' L' : ' M') + X(x[0]).toFixed(2) + ' ' + Y(x[1]).toFixed(2);
+      prevI = x[0];
+    });
+    var dots = pts.map(function (x) {
+      return '<span class="d100-run-dot' + (x[1] === 1 ? ' is-1' : '') + '" style="left:' + X(x[0]).toFixed(2) + '%;top:' + Y(x[1]).toFixed(2) + '%"' +
+        ' title="' + esc(rangeLabel(weekBounds(a.weeks[x[0]].w))) + ': #' + x[1] + '"></span>';
+    }).join('');
+    h += '<div class="d100-run-plot" role="img" aria-label="' + esc(tr('d100_run_title')) + '">' +
+      '<span class="d100-run-lbl d100-run-lbl-top">#1</span><span class="d100-run-lbl d100-run-lbl-bot">#' + maxP + '</span>' +
+      '<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">' +
+      '<line class="d100-run-top" x1="0" x2="100" y1="' + Y(1) + '" y2="' + Y(1) + '"/>' +
+      '<path d="' + path.trim() + '"/></svg>' + dots + '</div>';
+    var peak = 100, at1 = 0;
+    pts.forEach(function (x) { if (x[1] < peak) peak = x[1]; if (x[1] === 1) at1++; });
+    h += '<div class="d100-run-facts">' +
+      fact('d100_run_debut', '#' + pts[0][1] + ' · ' + fmtDay(weekBounds(a.weeks[first].w).start)) +
+      fact('d100_run_peak', '#' + peak) +
+      fact('d100_run_weeks', pts.length) +
+      fact('d100_run_at1', at1) + '</div>';
+    h += '</div>';
+    return h;
+  }
+  function fact(key, val) {
+    return '<div class="d100-fact"><div class="d100-fact-v">' + esc(val) + '</div><div class="d100-fact-k">' + esc(tr(key)) + '</div></div>';
+  }
+
+  // ── Week picker: ‹ previous, a list of every published week, next ›
+  function weekIds() {
+    var ids = C.arch ? C.arch.weeks.map(function (w) { return w.w; }) : [];
+    if (C.week && ids.indexOf(C.week) < 0) ids.push(C.week);
+    return ids.sort();
+  }
+  function weekNavHTML() {
+    var ids = weekIds();
+    if (!ids.length) return '';
+    var i = ids.indexOf(C.week);
+    var h = '<div class="d100-weeknav">';
+    h += '<button type="button" class="d100-wk-btn" aria-label="' + esc(tr('d100_prev_week')) + '"' + (i <= 0 ? ' disabled' : '') +
+      ' onclick="dcDank100.pickWeek(\'' + (ids[i - 1] || '') + '\')">‹</button>';
+    h += '<select class="d100-wk-select" aria-label="' + esc(tr('d100_pick_week')) + '" onchange="dcDank100.pickWeek(this.value)">' +
+      ids.slice().reverse().map(function (w) {
+        return '<option value="' + w + '"' + (w === C.week ? ' selected' : '') + '>' + esc(tr('d100_week_of', { range: rangeLabel(weekBounds(w)) })) + '</option>';
+      }).join('') + '</select>';
+    h += '<button type="button" class="d100-wk-btn" aria-label="' + esc(tr('d100_next_week')) + '"' + (i < 0 || i >= ids.length - 1 ? ' disabled' : '') +
+      ' onclick="dcDank100.pickWeek(\'' + (ids[i + 1] || '') + '\')">›</button>';
+    h += '</div>';
     return h;
   }
 
@@ -536,21 +647,20 @@
     var d = C.data;
     var h = '<section class="d100-chart" aria-live="polite">';
     if (C.loading && !d) {
-      h += '<p class="d100-chart-msg">' + esc(tr('d100_loading')) + '</p>';
+      h += weekNavHTML() + '<p class="d100-chart-msg">' + esc(tr('d100_loading')) + '</p>';
     } else if (C.err) {
-      h += '<p class="d100-chart-msg">' + esc(tr('d100_err_chart')) +
+      h += weekNavHTML() + '<p class="d100-chart-msg">' + esc(tr('d100_err_chart')) +
         ' <button type="button" class="d100-link" onclick="dcDank100.reloadChart()">' + esc(tr('d100_retry')) + '</button></p>';
     } else if (!d || d.status === 'none' || d.status === 'open') {
       return '';    // no chart yet: the "next chart" box below says when
     } else if (d.status === 'building') {
       h += '<p class="d100-chart-msg">' + esc(tr('d100_building')) + '</p>';
     } else if (d.status === 'small' || !d.songs) {
-      h += '<p class="d100-chart-msg">' + esc(tr('d100_empty_week', { range: rangeLabel(weekBounds(d.week)) })) + '</p>';
+      h += weekNavHTML() + '<p class="d100-chart-msg">' + esc(tr('d100_empty_week', { range: rangeLabel(weekBounds(d.week)) })) + '</p>';
     } else {
-      var b = weekBounds(d.week);
       var n = d.entries || 0;
-      h += '<header class="d100-chart-head"><div class="d100-chart-meta">' +
-        esc(tr('d100_chart_meta', { range: rangeLabel(b), n: n, unit: tr(n === 1 ? 'd100_listener_one' : 'd100_listener_other') })) + '</div>';
+      h += '<header class="d100-chart-head">' + weekNavHTML() +
+        '<div class="d100-chart-meta">' + esc(tr('d100_from', { n: n, unit: tr(n === 1 ? 'd100_listener_one' : 'd100_listener_other') })) + '</div>';
       h += '<div class="dc-seg d100-seg" role="group" aria-label="' + esc(tr('d100_title')) + '">' +
         TYPES.map(function (type) {
           return '<button type="button" class="' + (C.type === type ? 'active' : '') + '" aria-pressed="' + (C.type === type) +
@@ -559,7 +669,7 @@
       var rows = d[C.type] || [];
       var shown = C.all ? rows : rows.slice(0, CHART_STEP);
       // An empty list (say, nobody's plays had album names) keeps the switch above
-      if (!rows.length) return h + '<p class="d100-chart-msg">' + esc(tr('d100_empty_list')) + '</p></section>';
+      if (!rows.length) return h + '<p class="d100-chart-msg">' + esc(tr('d100_empty_list')) + '</p></section>' + numberOnesHTML();
       h += '<div class="d100-cols" aria-hidden="true"><span></span><span></span><span></span><span></span>' +
         '<span>' + esc(tr('d100_col_pts')) + '</span><span>' + esc(tr('d100_col_l')) + '</span>' +
         '<span>' + esc(tr('d100_col_lw')) + '</span><span>' + esc(tr('d100_col_pk')) + '</span><span>' + esc(tr('d100_col_wk')) + '</span></div>';
@@ -568,9 +678,45 @@
         h += '<button type="button" class="dc-btn dc-btn-normal d100-more" onclick="dcDank100.showAll()">' +
           esc(tr('d100_show_all', { n: rows.length })) + '</button>';
       }
-      if (C.mine) h += '<p class="d100-legend"><span class="d100-you">' + esc(tr('d100_you')) + '</span> ' + esc(tr('d100_you_legend')) + '</p>';
+      var legend = [];
+      if (C.mine) legend.push('<span class="d100-you">' + esc(tr('d100_you')) + '</span> ' + esc(tr('d100_you_legend')));
+      legend.push(esc(tr('d100_click_hint')));
+      h += '<p class="d100-legend">' + legend.join(' · ') + '</p>';
     }
     h += '</section>';
+    return h + numberOnesHTML();
+  }
+
+  // ── Number ones: every #1 of the chosen type, newest first, a run of
+  // weeks in a row shown once ("3 weeks"). Clicking one opens that week.
+  function numberOnesHTML() {
+    var a = C.arch;
+    if (!a || !a.weeks.length) return '';
+    var byWeek = {};
+    var runs = a.runs[C.type] || {};
+    Object.keys(runs).forEach(function (k) {
+      runs[k].r.forEach(function (x) { if (x[1] === 1) byWeek[x[0]] = k; });
+    });
+    var groups = [];
+    for (var i = 0; i < a.weeks.length; i++) {
+      var k = byWeek[i];
+      if (!k) continue;
+      var g = groups[groups.length - 1];
+      if (g && g.k === k && g.to === i - 1) { g.to = i; g.n++; }
+      else groups.push({ k: k, from: i, to: i, n: 1 });
+    }
+    if (!groups.length) return '';
+    var h = '<section class="d100-no1"><h3 class="d100-h3">' + esc(tr('d100_no1_title')) + '</h3><ol class="d100-no1-list">';
+    groups.reverse().forEach(function (g) {
+      var x = runs[g.k], w = a.weeks[g.from].w;
+      h += '<li><button type="button" class="d100-no1-row" onclick="dcDank100.pickWeek(\'' + a.weeks[g.to].w + '\')">' +
+        artHTML(C.type, x.t, x.a) +
+        '<span class="d100-name"><span class="d100-t">' + esc(x.t) + '</span>' + (x.a ? '<span class="d100-a">' + esc(x.a) + '</span>' : '') + '</span>' +
+        '<span class="d100-no1-when">' + esc(fmtDay(weekBounds(w).start)) + '</span>' +
+        '<span class="d100-no1-n">' + esc(tr(g.n === 1 ? 'd100_no1_weeks_one' : 'd100_no1_weeks_other', { n: g.n })) + '</span>' +
+        '</button></li>';
+    });
+    h += '</ol></section>';
     return h;
   }
 
@@ -619,8 +765,25 @@
 
   function setType(type) {
     if (TYPES.indexOf(type) < 0) return;
-    C.type = type; C.all = false;
+    C.type = type; C.all = false; C.open = null;
     render();
+  }
+
+  function toggleRun(btn) {
+    var k = btn && btn.getAttribute('data-k');
+    if (!k) return;
+    C.open = C.open === k ? null : k;
+    render();
+    // Keep focus on the same row after the redraw
+    var again = document.querySelector('#dank100View .d100-row[data-k="' + (window.CSS && CSS.escape ? CSS.escape(k) : k) + '"]');
+    if (again) again.focus({ preventScroll: true });
+  }
+
+  function pickWeek(w) {
+    if (!weekBounds(w)) return;
+    loadChart(false, w);
+    var el = document.querySelector('#dank100View .d100-chart');
+    if (el && el.getBoundingClientRect().top < 0) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   // ── Actions ──
@@ -725,8 +888,10 @@
     hide: hide,
     rerender: render,
     setType: setType,
+    toggleRun: toggleRun,
+    pickWeek: pickWeek,
     showAll: function () { C.all = true; render(); },
-    reloadChart: function () { C.tries = 0; loadChart(true); },
+    reloadChart: function () { C.tries = 0; loadChart(true, C.week); },
     send: function (w) { return send(w, false); },
     takeBack: takeBack,
     autoSend: autoSend,
