@@ -123,7 +123,7 @@ Rules changes must be **pasted into the Firebase Console**, as before.
   its peak, and its weeks at #1.
 - **Number ones**: a list of every #1 by week.
 
-### 6. Records, sharing, finishing
+### 6. Records, sharing, finishing — done 2026-11-01 (share card drawn on canvas; tour step added)
 - Dank 100 records: most weeks at #1, longest run, biggest jump, most listeners.
 - Share card for the week's top 10 (uses the share-image system).
 - Translations (en, es, pt-BR, pt-PT), a Charts Guide section, and a paragraph in

@@ -44785,3 +44785,18 @@ th.cr-th { width: 92px; }              /* = .chart-table .cr-cell */
   .d100-no1-row { grid-template-columns: 40px minmax(0, 1fr) auto; }
   .d100-no1-when { display: none; }
 }
+
+/* The Dank 100, step 6: records and the share button */
+.d100-share-btn { white-space: nowrap; }
+.d100-recs { display: flex; flex-direction: column; gap: 8px; }
+.d100-rec-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+.d100-rec {
+  display: flex; flex-direction: column; gap: 6px;
+  padding: 12px 14px; border-radius: var(--r-md);
+  border: 1px solid var(--border); background: var(--bg2);
+}
+.d100-rec-k { font-size: var(--fs-xs); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text3); }
+.d100-rec-v { font-family: var(--font-display); font-weight: 700; font-size: 1.35rem; color: var(--accent); }
+.d100-rec-x { font-family: inherit; font-size: var(--fs-sm); font-weight: 500; color: var(--text3); }
+.d100-rec-who { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 10px; align-items: center; }
+.d100-rec-who .d100-art { width: 40px; height: 40px; }

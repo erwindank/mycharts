@@ -4,7 +4,8 @@
    Plan: DANK100-PLAN.md (repo root). Step 1 is the data side (the week,
    match keys, building and saving an entry); step 2 is the Dank 100 tab with
    the send-in card and the auto-send switch in Settings → Charts; step 4 is
-   the chart itself, read from the Cloudflare Function (functions/dank100).
+   the chart itself, read from the Cloudflare Function (functions/dank100);
+   step 5 older weeks, runs and number ones; step 6 records and the share card.
 
    Every listener can send in their own chart for a week. A Cloudflare Function
    (step 3) adds all the entries up into The Dank 100 (songs), Dank 100 Artists
@@ -439,6 +440,7 @@
     if (!root || !S.active) return;
     root.innerHTML = viewHTML();
     observeArt(root);
+    schedulePrepare();
   }
 
   // ══ Steps 4–5: the chart, older weeks, runs and number ones ══════════════
@@ -665,11 +667,13 @@
         TYPES.map(function (type) {
           return '<button type="button" class="' + (C.type === type ? 'active' : '') + '" aria-pressed="' + (C.type === type) +
             '" onclick="dcDank100.setType(\'' + type + '\')">' + esc(tr('d100_type_' + type)) + '</button>';
-        }).join('') + '</div></header>';
+        }).join('') + '</div>' +
+        '<button type="button" class="dc-btn dc-btn-normal dc-btn-sm d100-share-btn" onclick="dcDank100.share(this)"' +
+        ((d[C.type] || []).length ? '' : ' disabled') + '>' + esc(tr('d100_share')) + '</button></header>';
       var rows = d[C.type] || [];
       var shown = C.all ? rows : rows.slice(0, CHART_STEP);
       // An empty list (say, nobody's plays had album names) keeps the switch above
-      if (!rows.length) return h + '<p class="d100-chart-msg">' + esc(tr('d100_empty_list')) + '</p></section>' + numberOnesHTML();
+      if (!rows.length) return h + '<p class="d100-chart-msg">' + esc(tr('d100_empty_list')) + '</p></section>' + numberOnesHTML() + recordsHTML();
       h += '<div class="d100-cols" aria-hidden="true"><span></span><span></span><span></span><span></span>' +
         '<span>' + esc(tr('d100_col_pts')) + '</span><span>' + esc(tr('d100_col_l')) + '</span>' +
         '<span>' + esc(tr('d100_col_lw')) + '</span><span>' + esc(tr('d100_col_pk')) + '</span><span>' + esc(tr('d100_col_wk')) + '</span></div>';
@@ -684,7 +688,7 @@
       h += '<p class="d100-legend">' + legend.join(' · ') + '</p>';
     }
     h += '</section>';
-    return h + numberOnesHTML();
+    return h + numberOnesHTML() + recordsHTML();
   }
 
   // ── Number ones: every #1 of the chosen type, newest first, a run of
@@ -718,6 +722,237 @@
     });
     h += '</ol></section>';
     return h;
+  }
+
+  // ══ Step 6: records and the share card ═══════════════════════════════════
+
+  // ── Dank 100 records, from the archive, for the chosen type. Each record is
+  // one winner (ties go to whoever got there first).
+  function recordsList() {
+    var a = C.arch;
+    if (!a || !a.weeks.length) return [];
+    var runs = a.runs[C.type] || {};
+    var best = {};
+    function offer(id, k, val, extra, lowerWins) {
+      var cur = best[id];
+      if (!cur || (lowerWins ? val < cur.val : val > cur.val)) best[id] = { k: k, val: val, extra: extra || '' };
+    }
+    Object.keys(runs).forEach(function (k) {
+      var r = runs[k].r;
+      var at1 = 0, streak = 1, longest = 1, maxL = 0;
+      r.forEach(function (x, j) {
+        if (x[1] === 1) at1++;
+        if (j > 0) {
+          if (x[0] === r[j - 1][0] + 1) {
+            streak++;
+            // A climb only counts between two weeks in a row
+            var climb = r[j - 1][1] - x[1];
+            if (climb > 0) offer('jump', k, climb, '#' + r[j - 1][1] + ' → #' + x[1]);
+          } else streak = 1;
+          if (streak > longest) longest = streak;
+        }
+        if ((x[2] || 0) > maxL) maxL = x[2];
+      });
+      if (at1) offer('at1', k, at1);
+      offer('weeks', k, r.length);
+      offer('run', k, longest);
+      offer('debut', k, r[0][1], fmtDay(weekBounds(a.weeks[r[0][0]].w).start), true);
+      if (maxL) offer('listeners', k, maxL);
+    });
+    var unit = function (n) { return tr(n === 1 ? 'd100_no1_weeks_one' : 'd100_no1_weeks_other', { n: n }); };
+    var defs = [
+      ['at1', 'd100_rec_at1', function (v) { return unit(v); }],
+      ['weeks', 'd100_rec_weeks', function (v) { return unit(v); }],
+      ['run', 'd100_rec_run', function (v) { return unit(v); }],
+      ['jump', 'd100_rec_jump', function (v) { return '+' + v; }],
+      ['debut', 'd100_rec_debut', function (v) { return '#' + v; }],
+      ['listeners', 'd100_rec_listeners', function (v) { return v + ' ' + tr(v === 1 ? 'd100_listener_one' : 'd100_listener_other'); }]
+    ];
+    return defs.filter(function (d) { return best[d[0]]; }).map(function (d) {
+      var b = best[d[0]], x = runs[b.k];
+      return { label: tr(d[1]), value: d[2](b.val), extra: b.extra, t: x.t, a: x.a };
+    });
+  }
+
+  function recordsHTML() {
+    var recs = recordsList();
+    if (!recs.length) return '';
+    var h = '<section class="d100-recs"><h3 class="d100-h3">' + esc(tr('d100_rec_title')) + '</h3><div class="d100-rec-grid">';
+    recs.forEach(function (r) {
+      h += '<div class="d100-rec">' +
+        '<div class="d100-rec-k">' + esc(r.label) + '</div>' +
+        '<div class="d100-rec-v">' + esc(r.value) + (r.extra ? ' <span class="d100-rec-x">' + esc(r.extra) + '</span>' : '') + '</div>' +
+        '<div class="d100-rec-who">' + artHTML(C.type, r.t, r.a) +
+        '<span class="d100-name"><span class="d100-t">' + esc(r.t) + '</span>' + (r.a ? '<span class="d100-a">' + esc(r.a) + '</span>' : '') + '</span></div>' +
+        '</div>';
+    });
+    h += '</div></section>';
+    return h;
+  }
+
+  // ── Share card: the week's top 10 of the chosen type as a 1080×1350 PNG,
+  // drawn straight onto a canvas (no html2canvas). Artwork is inlined as data
+  // URLs (_igToDataUrl) so the canvas isn't tainted. The finished file is kept
+  // per week/type/language: on phones navigator.share() needs the tap itself,
+  // so a ready file is shared at once, otherwise the card is drawn and saved.
+  var _card = { key: '', file: null, busy: null };
+  function cardKey() { return C.week + '|' + C.type + '|' + (typeof currentLang !== 'undefined' ? currentLang : ''); }
+
+  function loadCardImg(type, t, a) {
+    if (typeof getArtAuto !== 'function' || typeof _igToDataUrl !== 'function') return Promise.resolve(null);
+    var p = type === 'artists' ? getArtAuto('artist', t) : type === 'albums' ? getArtAuto('album', t, a, t) : getArtAuto('song', t, a);
+    return p.then(function (url) {
+      if (!url) return null;
+      return _igToDataUrl(typeof shHiResArt === 'function' ? shHiResArt(url) : url);
+    }).then(function (data) {
+      if (!data) return null;
+      var img = new Image();
+      img.src = data;
+      return img.decode().then(function () { return img; });
+    }).catch(function () { return null; });
+  }
+
+  function renderCard() {
+    var d = C.data, type = C.type;
+    var rows = (d && d[type] || []).slice(0, 10);
+    if (!rows.length) return Promise.resolve(null);
+    var W = 1080, H = 1350;
+    var cvs = document.createElement('canvas');
+    cvs.width = W; cvs.height = H;
+    var g = cvs.getContext('2d');
+    var css = getComputedStyle(document.documentElement);
+    var display = (css.getPropertyValue('--font-display') || 'sans-serif').trim();
+    var sans = (css.getPropertyValue('--font-sans') || 'sans-serif').trim();
+    var TEAL = '#2dd4bf', UP = '#4ade80', DOWN = '#fb7185';
+    var fonts = Promise.all([document.fonts.load('800 100px ' + display), document.fonts.load('600 40px ' + sans)]).catch(function () {});
+    return Promise.all([fonts].concat(rows.map(function (r) { return loadCardImg(type, r.t, r.a); }))).then(function (res) {
+      var imgs = res.slice(1);
+      var clip = function (s, max) {
+        s = String(s || '');
+        if (g.measureText(s).width <= max) return s;
+        while (s.length > 1 && g.measureText(s + '…').width > max) s = s.slice(0, -1);
+        return s + '…';
+      };
+      // Background: deep navy with a teal glow in the corner
+      g.fillStyle = '#0a0f1c'; g.fillRect(0, 0, W, H);
+      var glow = g.createRadialGradient(W, 0, 0, W, 0, 900);
+      glow.addColorStop(0, 'rgba(45,212,191,0.28)'); glow.addColorStop(1, 'rgba(45,212,191,0)');
+      g.fillStyle = glow; g.fillRect(0, 0, W, H);
+
+      // Header
+      g.textBaseline = 'alphabetic'; g.textAlign = 'left';
+      g.font = '800 92px ' + display; g.fillStyle = '#ffffff';
+      g.fillText('THE DANK', 80, 150);
+      var wDank = g.measureText('THE DANK ').width;
+      g.fillStyle = TEAL; g.fillText('100', 80 + wDank, 150);
+      g.font = '600 32px ' + sans; g.fillStyle = 'rgba(255,255,255,0.7)';
+      var n = d.entries || 0;
+      g.fillText(clip(tr('d100_type_' + type) + ' · ' + tr('d100_week_of', { range: rangeLabel(weekBounds(d.week)) }) + ' · ' +
+        tr('d100_from', { n: n, unit: tr(n === 1 ? 'd100_listener_one' : 'd100_listener_other') }), W - 160), 80, 205);
+
+      // Rows
+      var top = 260, rowH = 96, art = 76;
+      rows.forEach(function (r, i) {
+        var y = top + i * rowH;
+        if (i === 0) {
+          g.fillStyle = 'rgba(45,212,191,0.14)';
+          g.beginPath();
+          if (g.roundRect) g.roundRect(56, y - 6, W - 112, rowH - 4, 20); else g.rect(56, y - 6, W - 112, rowH - 4);
+          g.fill();
+        }
+        var mid = y + rowH / 2 - 4;
+        g.textAlign = 'right';
+        g.font = '800 ' + (i === 0 ? 56 : 46) + 'px ' + display;
+        g.fillStyle = i === 0 ? TEAL : '#ffffff';
+        g.fillText(String(r.p), 150, mid + 18);
+        // Move
+        g.textAlign = 'center'; g.font = '800 22px ' + sans;
+        var mv, col;
+        if (r.st === 'new') { mv = tr(type === 'songs' ? 'badge_new_songs' : 'badge_new'); col = TEAL; }
+        else if (r.st === 're') { mv = tr('badge_re'); col = TEAL; }
+        else {
+          var diff = (r.lw || r.p) - r.p;
+          mv = diff ? (diff > 0 ? '▲' : '▼') + Math.abs(diff) : '=';
+          col = diff > 0 ? UP : diff < 0 ? DOWN : 'rgba(255,255,255,0.5)';
+        }
+        g.fillStyle = col; g.fillText(mv, 215, mid + 8);
+        // Artwork (round for artists)
+        var ax = 265, ay = mid - art / 2;
+        g.save();
+        g.beginPath();
+        if (type === 'artists') g.arc(ax + art / 2, ay + art / 2, art / 2, 0, Math.PI * 2);
+        else if (g.roundRect) g.roundRect(ax, ay, art, art, 12); else g.rect(ax, ay, art, art);
+        g.clip();
+        g.fillStyle = 'rgba(45,212,191,0.18)'; g.fillRect(ax, ay, art, art);
+        var img = imgs[i];
+        if (img) {
+          var k = Math.max(art / img.naturalWidth, art / img.naturalHeight);
+          var sw = art / k, sh = art / k;
+          g.drawImage(img, (img.naturalWidth - sw) / 2, (img.naturalHeight - sh) / 2, sw, sh, ax, ay, art, art);
+        } else {
+          g.textAlign = 'center'; g.font = '700 26px ' + sans; g.fillStyle = 'rgba(255,255,255,0.6)';
+          g.fillText(initials(r.t), ax + art / 2, ay + art / 2 + 9);
+        }
+        g.restore();
+        // Title and artist
+        g.textAlign = 'left';
+        var tx = ax + art + 28, tw = W - tx - 90;
+        g.font = '700 36px ' + sans; g.fillStyle = '#ffffff';
+        g.fillText(clip(r.t, tw), tx, r.a ? mid - 2 : mid + 12);
+        if (r.a) {
+          g.font = '500 27px ' + sans; g.fillStyle = 'rgba(255,255,255,0.6)';
+          g.fillText(clip(r.a, tw), tx, mid + 34);
+        }
+      });
+
+      // Footer
+      g.textAlign = 'center'; g.font = '600 30px ' + sans; g.fillStyle = 'rgba(255,255,255,0.5)';
+      g.fillText('dankcharts.fm', W / 2, H - 50);
+
+      return new Promise(function (res2) { cvs.toBlob(res2, 'image/png'); });
+    }).then(function (blob) {
+      if (!blob) return null;
+      return new File([blob], 'dank100-' + d.week + '-' + type + '.png', { type: 'image/png' });
+    });
+  }
+
+  // Drawn ahead of time (after the chart shows) so the Share tap can use it.
+  function prepareCard() {
+    var key = cardKey();
+    if (_card.key === key && (_card.file || _card.busy)) return _card.busy || Promise.resolve(_card.file);
+    _card.key = key; _card.file = null;
+    _card.busy = renderCard().then(function (f) {
+      if (_card.key === key) { _card.file = f; _card.busy = null; }
+      return f;
+    }, function (e) { console.warn('[dankcharts] Dank 100 card failed:', e); if (_card.key === key) _card.busy = null; return null; });
+    return _card.busy;
+  }
+
+  function shareCard(btn) {
+    var ready = _card.key === cardKey() ? _card.file : null;
+    if (ready && navigator.canShare && navigator.canShare({ files: [ready] })) {
+      navigator.share({ files: [ready] }).catch(function () {});
+      return;
+    }
+    var orig = btn ? btn.textContent : '';
+    if (btn) { btn.disabled = true; btn.textContent = tr('d100_share_busy'); }
+    prepareCard().then(function (file) {
+      if (file) {
+        var a = document.createElement('a');
+        a.download = file.name;
+        a.href = URL.createObjectURL(file);
+        a.click();
+        setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+      }
+    }).then(function () { if (btn) { btn.disabled = false; btn.textContent = orig; } });
+  }
+
+  // Only phones share files; there, draw the card while the user reads.
+  var _prepTimer = null;
+  function schedulePrepare() {
+    if (!(navigator.canShare && C.data && C.data.status === 'done')) return;
+    clearTimeout(_prepTimer);
+    _prepTimer = setTimeout(prepareCard, 1500);
   }
 
   // Artwork, fetched only once a row scrolls into view (getArtAuto in
@@ -889,6 +1124,7 @@
     rerender: render,
     setType: setType,
     toggleRun: toggleRun,
+    share: shareCard,
     pickWeek: pickWeek,
     showAll: function () { C.all = true; render(); },
     reloadChart: function () { C.tries = 0; loadChart(true, C.week); },

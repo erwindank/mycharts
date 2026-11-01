@@ -55236,6 +55236,10 @@ const _cgTourSteps = [
     content: 'Save any chart as a named playlist, queue tracks from anywhere in the app with + Play, and keep the queue across sessions. Recent releases and anniversaries sit alongside it so there is always something to add.',
     nav: 'playlists' },
 
+  { title: 'The Dank 100',
+    content: 'Everyone\'s weekly charts added up into one shared chart, out every Monday. Send your week in with one click (or switch on automatic sending in Settings → Charts), then see where your songs landed: movement, peaks, weeks on the chart, each song\'s run, the number ones and the Dank 100 records. Points come from chart positions, not play counts, so every listener counts the same.',
+    nav: 'dank100' },
+
   { title: 'Board',
     content: 'The community board. Suggest a feature, report a bug, ask a question or just talk music with other listeners. Vote up the ideas you want most, and watch them move from Planned to In progress to Done. Anyone can read it; sign in with Google to post, reply and vote.',
     nav: 'board' },
@@ -55994,6 +55998,7 @@ function dcRenderChartsGuideView() {
     day: 'nav_daily', week: 'nav_weekly', month: 'nav_monthly', year: 'nav_yearly', alltime: 'nav_alltime',
     graphs: 'tab_stats', records: 'nav_records', awards: 'nav_awards', soundtrack: 'nav_soundtrack',
     events: 'nav_events', playlists: 'nav_playlists', rawdata: 'nav_rawdata', board: 'nav_board', chartsguide: 'nav_chartsguide',
+    dank100: 'nav_dank100',
     ratings: 'nav_ratings'
   };
   const recSections = ['rec_nav_overview', 'rec_nav_all_ones', 'rec_nav_pak', 'rec_nav_appearances', 'rec_nav_debuts', 'rec_nav_new_charts',

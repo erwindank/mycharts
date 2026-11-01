@@ -266,7 +266,7 @@
   <main class="terms-page">
 
     <h1 class="terms-title">Privacy Policy</h1>
-    <p class="terms-meta">Effective date: May 14, 2026 &nbsp;·&nbsp; Last updated: May 14, 2026</p>
+    <p class="terms-meta">Effective date: May 14, 2026 &nbsp;·&nbsp; Last updated: November 1, 2026</p>
 
     <div class="info-box" style="margin-bottom:2.5rem; border-left-color: var(--green);">
       <strong>TL;DR:</strong> Your music history stays in your browser — it never touches our servers. We only store your settings (theme, data source, etc.) if you sign in with Google. Analytics are cookie-free and collect no personal data. We don't sell your information to anyone.
@@ -350,7 +350,16 @@
       </ul>
       <p>This data is used exclusively to restore your setup when you return to the Service.</p>
 
-      <h3>3.3 Analytics data</h3>
+      <h3>3.3 The Dank 100 entries — only when you send one</h3>
+      <p>The Dank 100 is an optional shared weekly chart. If you are signed in and press <strong>Send my week</strong> (or switch on <em>Send my week automatically</em> in Settings → Charts), the following is stored in Firebase Firestore, linked to your Google UID, for that week:</p>
+      <ul>
+        <li>Your top 100 songs, artists and albums for the week (titles, artist names and how many times you played each)</li>
+        <li>Your total number of plays that week</li>
+        <li>When the entry was sent</li>
+      </ul>
+      <p>Only you can read your own entry. Everyone's entries are added up on our server into one combined chart, and only that combined chart is public. It never shows who sent what. If very few people sent in a week, the combined chart can still look a lot like one person's chart. You can take an entry back while its week is open, and ask us to delete older ones (see section 8).</p>
+
+      <h3>3.4 Analytics data</h3>
       <p>The Service uses <strong>GoatCounter</strong> for page-view analytics. GoatCounter is a privacy-respecting tool that:</p>
       <ul>
         <li>Sets no cookies</li>
@@ -360,9 +369,9 @@
       </ul>
       <p>Aggregate traffic counts are publicly visible at <a href="https://erwindank.goatcounter.com" target="_blank" rel="noopener">erwindank.goatcounter.com</a>. No personal data is included.</p>
 
-      <h3>3.4 Data we do NOT collect</h3>
+      <h3>3.5 Data we do NOT collect</h3>
       <ul>
-        <li>Your listening history, scrobbles, or any music data</li>
+        <li>Your listening history, scrobbles, or any music data, apart from the weekly top 100 you choose to send to The Dank 100 (section 3.3)</li>
         <li>Spotify, Apple Music, or any other streaming service credentials</li>
         <li>Payment information (the core Service is free; if paid features are introduced, payment processing would be handled by a third-party provider at that time)</li>
         <li>Precise location data</li>
@@ -450,6 +459,7 @@
     <section class="terms-section" id="data-retention">
       <h2>8. Data Retention &amp; Deletion</h2>
       <p>Your account and preferences data in Firebase is retained for as long as you maintain a signed-in account with the Service.</p>
+      <p>The Dank 100 entries are kept with your account so the site can show which rows you helped chart. The combined weekly charts contain no personal data and are kept indefinitely.</p>
       <p>To delete your data:</p>
       <ol>
         <li>Email <a href="mailto:yourdata@dankcharts.fm">yourdata@dankcharts.fm</a> with the subject line <strong>"Delete my account"</strong>.</li>

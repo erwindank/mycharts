@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=794">
+  <link rel="stylesheet" href="style.css?v=795">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=274"></script>
+  <script defer src="translations.js?v=275"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -4230,11 +4230,11 @@
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
   <script defer src="board.js?v=6"></script>
   <!-- The Charts Guide's words in four languages (read by dcRenderChartsGuideView) -->
-  <script defer src="charts-guide-i18n.js?v=7"></script>
+  <script defer src="charts-guide-i18n.js?v=8"></script>
   <!-- One behaviour and one icon set for every pop-up window (phase 10); before
        app.js so dcIco() is there when app.js draws a window -->
   <script defer src="popups.js?v=12"></script>
-  <script defer src="app.js?v=589"></script>
+  <script defer src="app.js?v=590"></script>
   <!-- The song / album / artist details side panel (phase 10 step 3); wraps app.js's open functions -->
   <script defer src="panel.js?v=16"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
@@ -4245,7 +4245,7 @@
   <!-- The Stats page's tabs, Overview, Story, Games and Compare (phase 15); reads app.js globals -->
   <script defer src="stats.js?v=40"></script>
   <!-- The Dank 100: weekly entries for the shared community chart; reads app.js and firebase.js globals -->
-  <script defer src="dank100.js?v=7"></script>
+  <script defer src="dank100.js?v=8"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at
