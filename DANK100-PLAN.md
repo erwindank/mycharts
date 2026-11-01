@@ -80,10 +80,10 @@ Rules changes must be **pasted into the Firebase Console**, as before.
 
 ## Steps
 
-### 1. My entry (data only)
+### 1. My entry (data only) — done 2026-11-01
 - `dank100.js` (new file, loaded like `board.js`). It holds the week helper
-  (`dank100WeekId(date)` → e.g. `2026-W44`, and Fri–Thu UTC bounds) and
-  `dank100BuildEntry(week)`, which turns plays into a ranked top 100 for songs,
+  (`weekIdOf(date)` → the week's Friday, e.g. `2026-10-30`, and Fri–Thu UTC
+  bounds) and `buildEntry(week)`, which turns plays into a ranked top 100 for songs,
   artists and albums, with autocorrect and match keys applied.
 - It uses the same play list as the rest of the site, so all three sources work.
 - Firestore: `dank100Entries` doc shape + rules (own uid only, size limits,

@@ -62,6 +62,46 @@ service cloud.firestore {
       allow delete: if signedIn();
     }
 
+    // ── The Dank 100 (dank100.js) ──────────────────────────────────────────
+    // One entry per account per week: dank100Entries/{week}_{uid}, where week
+    // is the Friday (UTC) that starts the tracking week, e.g. "2026-10-30".
+    // Only the owner can read or change their entry, and only while the week
+    // is open: from its Friday until the Sunday after it ends (10 days). The
+    // combined chart is built by a Cloudflare Function with the service
+    // account, which skips these rules. Lists are capped at 100 rows each
+    // (MAX_ROWS in dank100.js); the function cleans each row when it counts.
+    function d100Owner(entryId) {
+      return signedIn() && entryId.split('_').size() == 2 && entryId.split('_')[1] == request.auth.uid;
+    }
+    function d100RowsOk(v) { return v is list && v.size() <= 100; }
+
+    match /dank100Entries/{entryId} {
+      allow get: if d100Owner(entryId);
+      allow list: if false;
+      allow create, update: if d100Owner(entryId)
+        && request.resource.data.keys().hasOnly(['uid', 'week', 'weekStart', 'updatedAt', 'v',
+             'plays', 'songs', 'artists', 'albums'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.week is string
+        && request.resource.data.week.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && entryId == request.resource.data.week + '_' + request.auth.uid
+        // weekStart must be the Friday the id names, at midnight UTC
+        && request.resource.data.weekStart == timestamp.date(
+             int(request.resource.data.week[0:4]),
+             int(request.resource.data.week[5:7]),
+             int(request.resource.data.week[8:10]))
+        && request.resource.data.weekStart.dayOfWeek() == 5
+        && request.time >= request.resource.data.weekStart
+        && request.time < request.resource.data.weekStart + duration.value(10, 'd')
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.v is int
+        && request.resource.data.plays is int && request.resource.data.plays >= 1
+        && d100RowsOk(request.resource.data.songs)
+        && d100RowsOk(request.resource.data.artists)
+        && d100RowsOk(request.resource.data.albums);
+      allow delete: if d100Owner(entryId);
+    }
+
     match /boardAdmins/{uid} {
       allow get: if signedIn() && request.auth.uid == uid;
       allow list, write: if false;
