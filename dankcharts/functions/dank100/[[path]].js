@@ -33,6 +33,8 @@
      dank100Entries/{week}_{uid}   read      the entries (dank100.js writes them)
      dank100Excluded/{uid}         read      accounts kept out of the count
      dank100Charts/{week}          write     the public chart (rules: anyone may get)
+     dank100Flags/{week}           write     private: pairs of entries that look
+                                             copied (findCopies), for a person
      dank100History/{week}         write     private running record of every key
                                              that ever charted (peak, weeks on),
                                              so next week can tell NEW from RE
@@ -302,6 +304,47 @@ export function withHistory(charts, prevChart, history) {
   return hist;
 }
 
+// ── Spotting copies ─────────────────────────────────────────────────────────
+// Fake accounts tend to send the same list. Every pair of entries is compared
+// on their song keys; a pair that shares COPY_SIMILAR or more of its songs
+// (Jaccard: shared / all distinct) is written to dank100Flags/{week}. Nothing
+// is blocked: the chart is built as usual, and an account is only kept out
+// once someone adds it to dank100Excluded by hand (Firebase Console for now,
+// the admin page later).
+const COPY_SIMILAR = 0.8;      // 80% the same songs
+const COPY_MIN_SONGS = 10;     // shorter lists overlap by chance too easily
+const COPY_MAX_PAIRS = 300;    // keeps the flags doc small
+
+export function findCopies(entries) {
+  const lists = entries.map(e => {
+    const songs = Array.isArray(e.songs) ? e.songs.slice(0, MAX_ROWS) : [];
+    const keys = new Set(songs.map(r => r && r.k).filter(k => typeof k === 'string'));
+    // Same songs AND same play counts = an exact copy
+    const sig = songs.map(r => r && (r.k + ':' + r.n)).sort().join('|');
+    return { uid: e.uid, keys, sig };
+  }).filter(x => x.keys.size >= COPY_MIN_SONGS);
+  const pairs = [];
+  for (let i = 0; i < lists.length; i++) {
+    for (let j = i + 1; j < lists.length; j++) {
+      const a = lists[i], b = lists[j];
+      // Quick skip: sizes too far apart can't reach the threshold
+      const small = Math.min(a.keys.size, b.keys.size), big = Math.max(a.keys.size, b.keys.size);
+      if (small / big < COPY_SIMILAR) continue;
+      let shared = 0;
+      for (const k of a.keys) if (b.keys.has(k)) shared++;
+      const sim = shared / (a.keys.size + b.keys.size - shared);
+      if (sim >= COPY_SIMILAR) pairs.push({ a: a.uid, b: b.uid, sim: Math.round(sim * 100) / 100, same: a.sig === b.sig });
+    }
+  }
+  pairs.sort((x, y) => (y.same - x.same) || (y.sim - x.sim));
+  // Accounts in the most flagged pairs first: a ring of fakes shows up as one
+  // uid paired with many others
+  const count = {};
+  pairs.forEach(p => { count[p.a] = (count[p.a] || 0) + 1; count[p.b] = (count[p.b] || 0) + 1; });
+  const accounts = Object.keys(count).sort((x, y) => count[y] - count[x]).map(uid => ({ uid, pairs: count[uid] }));
+  return { pairs: pairs.slice(0, COPY_MAX_PAIRS), accounts, total: pairs.length };
+}
+
 // ── Building one week ───────────────────────────────────────────────────────
 async function buildWeek(db, week, depth) {
   // Last week's chart first, so the movement arrows have something to compare
@@ -331,6 +374,9 @@ async function buildWeek(db, week, depth) {
     if (history) await db.set('dank100History', week, history);
     return Object.assign(base, { status: 'small', min: MIN_ENTRIES });
   }
+  // Copies are noted for a person to look at; they don't change the chart
+  const copies = findCopies(entries);
+  if (copies.total) await db.set('dank100Flags', week, Object.assign({ week, builtAt: new Date(), entries: entries.length }, copies));
   const charts = tally(entries);
   const hist = withHistory(charts, prevChart, history);
   await db.set('dank100History', week, hist);

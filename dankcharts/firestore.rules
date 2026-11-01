@@ -112,6 +112,10 @@ service cloud.firestore {
     match /dank100History/{week} {
       allow read, write: if false;
     }
+    // Entries that look copied, written by the function when it builds a week
+    match /dank100Flags/{week} {
+      allow read, write: if false;
+    }
     match /dank100Excluded/{uid} {
       allow read, write: if false;
     }

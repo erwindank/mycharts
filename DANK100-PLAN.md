@@ -132,6 +132,15 @@ Rules changes must be **pasted into the Firebase Console**, as before.
 
 ---
 
+## Fake accounts (2026-11-01)
+- **Spot copies (done):** when a week is built, every pair of entries is
+  compared on its songs. Pairs sharing 80%+ of their songs (lists of 10+
+  songs) are written to `dank100Flags/{week}` (private), exact copies marked
+  `same`. Nothing is blocked automatically; add a uid to `dank100Excluded` to
+  keep it out. Shown on the admin page later.
+- Ideas not built yet: a wait before a new account's entries count; a "looks
+  like real listening" check; more trust for Last.fm-sourced entries.
+
 ## Open questions (answer at the step they belong to)
 - Friday–Thursday UTC week, or Monday–Sunday? (step 1)
 - Artists and albums: also top 100, or top 50 while there are few users? (step 4)
