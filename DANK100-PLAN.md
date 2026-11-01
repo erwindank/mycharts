@@ -109,7 +109,7 @@ Rules changes must be **pasted into the Firebase Console**, as before.
 - A lock field stops it being built twice. Charts are never rebuilt after
   publishing, unless an admin forces it.
 
-### 4. The chart page
+### 4. The chart page — done 2026-11-01 (first 50 rows, then Show all)
 - Songs / Artists / Albums switch. Rows show position, a move arrow (or NEW / RE),
   artwork, title, artist, points, listeners, last week, peak and weeks on.
 - Reuses the existing chart row styles and artwork lookup, so it matches the rest

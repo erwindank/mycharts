@@ -3,7 +3,8 @@
    ===========================================================================
    Plan: DANK100-PLAN.md (repo root). Step 1 is the data side (the week,
    match keys, building and saving an entry); step 2 is the Dank 100 tab with
-   the send-in card and the auto-send switch in Settings → Charts.
+   the send-in card and the auto-send switch in Settings → Charts; step 4 is
+   the chart itself, read from the Cloudflare Function (functions/dank100).
 
    Every listener can send in their own chart for a week. A Cloudflare Function
    (step 3) adds all the entries up into The Dank 100 (songs), Dank 100 Artists
@@ -258,6 +259,10 @@
   var SAMPLE_SHEET_ID = '1ulWuTKxreKLUWGBEI0g2d5iMgjHu6y02IFzg6A7BzVA';
   var PREVIEW_ROWS = 5;
 
+  var TYPES = ['songs', 'artists', 'albums'];
+  // The chart on screen (step 4): week, data from the function, loading state
+  var C = { week: null, data: null, loading: false, err: false, mine: null };
+
   var S = {
     active: false,     // tab on screen
     mine: {},          // weekId -> saved entry, null (none) or undefined (not looked up)
@@ -399,7 +404,10 @@
       h += '<div class="bd-signin d100-signin"><span>' + esc(tr('d100_demo')) + '</span></div>';
     }
 
-    // The chart itself arrives in step 4: for now, when the next one is out
+    // The latest finished chart (step 4)
+    h += chartHTML();
+
+    // When the next one is out
     var closed = weekBounds(weeks[weeks.length - 1]);
     h += '<section class="d100-soon"><div class="d100-soon-n" aria-hidden="true">100</div><div>' +
       '<div class="d100-soon-title">' + esc(tr('d100_soon_title')) + '</div>' +
@@ -430,6 +438,189 @@
     var root = document.getElementById('dank100View');
     if (!root || !S.active) return;
     root.innerHTML = viewHTML();
+    observeArt(root);
+  }
+
+  // ══ Step 4: the chart ════════════════════════════════════════════════════
+  // The latest closed week's chart, from the Cloudflare Function
+  // (functions/dank100), which builds it on the first visit after the week
+  // closes. Songs / Artists / Albums switch; rows the user's own entry helped
+  // chart are marked "You".
+
+  var CHART_STEP = 50;          // rows shown before "Show all 100"
+  var BUILD_RETRY_MS = 5000;    // someone else is counting: look again
+  var BUILD_RETRIES = 6;
+
+  C.type = 'songs';
+  C.all = false;
+
+  // The newest week whose sending has closed (dank100Charts id).
+  function latestClosedWeek() {
+    var w = openWeeks();
+    return weekIdOf(new Date(+weekBounds(w[w.length - 1]).start - DAY_MS));
+  }
+
+  function loadChart(force) {
+    var week = latestClosedWeek();
+    if (!force && C.week === week && (C.data || C.loading)) return;
+    C.week = week; C.loading = true; C.err = false;
+    if (!force) C.data = null;
+    C.tries = C.tries || 0;
+    render();
+    fetch('/dank100/chart?week=' + encodeURIComponent(week))
+      .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+      .then(function (d) {
+        C.loading = false;
+        C.data = d;
+        if (d.status === 'building' && C.tries < BUILD_RETRIES) {
+          C.tries++;
+          setTimeout(function () { if (C.week === week) loadChart(true); }, BUILD_RETRY_MS);
+        } else C.tries = 0;
+        loadMyKeys(week);
+        render();
+      }, function (err) {
+        console.warn('[dankcharts] Dank 100 chart failed:', err && err.message);
+        C.loading = false; C.err = true; C.tries = 0;
+        render();
+      });
+  }
+
+  // Which rows the user's own entry for that week helped chart.
+  function loadMyKeys(week) {
+    C.mine = null;
+    if (!signedInUid()) return;
+    getMyEntry(week).then(function (e) {
+      if (!e || C.week !== week) return;
+      C.mine = {};
+      TYPES.forEach(function (type) {
+        C.mine[type] = {};
+        (e[type] || []).forEach(function (r) { C.mine[type][r.k] = 1; });
+      });
+      render();
+    }, function () {});
+  }
+
+  function moveHTML(r) {
+    if (r.st === 'new') return '<span class="d100-mv d100-mv-new">' + esc(tr(C.type === 'songs' ? 'badge_new_songs' : 'badge_new')) + '</span>';
+    if (r.st === 're') return '<span class="d100-mv d100-mv-re">' + esc(tr('badge_re')) + '</span>';
+    var diff = (r.lw || r.p) - r.p;
+    if (!diff) return '<span class="d100-mv d100-mv-same" aria-label="=">=</span>';
+    return '<span class="d100-mv ' + (diff > 0 ? 'd100-mv-up">\u25b2' : 'd100-mv-down">\u25bc') + Math.abs(diff) + '</span>';
+  }
+
+  function initials(s) {
+    return String(s || '').split(/\s+/).filter(Boolean).slice(0, 2).map(function (w) { return w[0]; }).join('').toUpperCase() || '♪';
+  }
+
+  function rowHTML(r) {
+    var mine = C.mine && C.mine[C.type] && C.mine[C.type][r.k];
+    var artType = C.type === 'songs' ? 'song' : C.type === 'artists' ? 'artist' : 'album';
+    var h = '<li class="d100-row' + (r.p === 1 ? ' d100-row-1' : '') + (mine ? ' d100-row-mine' : '') + '">';
+    h += '<span class="d100-pos">' + r.p + '</span>';
+    h += '<span class="d100-move">' + moveHTML(r) + '</span>';
+    h += '<span class="d100-art" data-art="' + artType + '" data-t="' + esc(r.t) + '" data-a="' + esc(r.a || '') + '">' +
+      '<span class="d100-art-ini" aria-hidden="true">' + esc(initials(r.t)) + '</span></span>';
+    h += '<span class="d100-name"><span class="d100-t">' + esc(r.t) +
+      (mine ? ' <span class="d100-you" title="' + esc(tr('d100_you_legend')) + '">' + esc(tr('d100_you')) + '</span>' : '') + '</span>' +
+      (r.a ? '<span class="d100-a">' + esc(r.a) + '</span>' : '') + '</span>';
+    h += '<span class="d100-num d100-pts">' + r.pts + '</span>';
+    h += '<span class="d100-num d100-l">' + r.l + '</span>';
+    h += '<span class="d100-num d100-lw">' + (r.lw || '–') + '</span>';
+    h += '<span class="d100-num d100-pk">' + r.pk + '</span>';
+    h += '<span class="d100-num d100-wk">' + r.wk + '</span>';
+    h += '</li>';
+    return h;
+  }
+
+  function chartHTML() {
+    var d = C.data;
+    var h = '<section class="d100-chart" aria-live="polite">';
+    if (C.loading && !d) {
+      h += '<p class="d100-chart-msg">' + esc(tr('d100_loading')) + '</p>';
+    } else if (C.err) {
+      h += '<p class="d100-chart-msg">' + esc(tr('d100_err_chart')) +
+        ' <button type="button" class="d100-link" onclick="dcDank100.reloadChart()">' + esc(tr('d100_retry')) + '</button></p>';
+    } else if (!d || d.status === 'none' || d.status === 'open') {
+      return '';    // no chart yet: the "next chart" box below says when
+    } else if (d.status === 'building') {
+      h += '<p class="d100-chart-msg">' + esc(tr('d100_building')) + '</p>';
+    } else if (d.status === 'small' || !d.songs) {
+      h += '<p class="d100-chart-msg">' + esc(tr('d100_empty_week', { range: rangeLabel(weekBounds(d.week)) })) + '</p>';
+    } else {
+      var b = weekBounds(d.week);
+      var n = d.entries || 0;
+      h += '<header class="d100-chart-head"><div class="d100-chart-meta">' +
+        esc(tr('d100_chart_meta', { range: rangeLabel(b), n: n, unit: tr(n === 1 ? 'd100_listener_one' : 'd100_listener_other') })) + '</div>';
+      h += '<div class="dc-seg d100-seg" role="group" aria-label="' + esc(tr('d100_title')) + '">' +
+        TYPES.map(function (type) {
+          return '<button type="button" class="' + (C.type === type ? 'active' : '') + '" aria-pressed="' + (C.type === type) +
+            '" onclick="dcDank100.setType(\'' + type + '\')">' + esc(tr('d100_type_' + type)) + '</button>';
+        }).join('') + '</div></header>';
+      var rows = d[C.type] || [];
+      var shown = C.all ? rows : rows.slice(0, CHART_STEP);
+      // An empty list (say, nobody's plays had album names) keeps the switch above
+      if (!rows.length) return h + '<p class="d100-chart-msg">' + esc(tr('d100_empty_list')) + '</p></section>';
+      h += '<div class="d100-cols" aria-hidden="true"><span></span><span></span><span></span><span></span>' +
+        '<span>' + esc(tr('d100_col_pts')) + '</span><span>' + esc(tr('d100_col_l')) + '</span>' +
+        '<span>' + esc(tr('d100_col_lw')) + '</span><span>' + esc(tr('d100_col_pk')) + '</span><span>' + esc(tr('d100_col_wk')) + '</span></div>';
+      h += '<ol class="d100-list d100-list-' + C.type + '">' + shown.map(rowHTML).join('') + '</ol>';
+      if (rows.length > shown.length) {
+        h += '<button type="button" class="dc-btn dc-btn-normal d100-more" onclick="dcDank100.showAll()">' +
+          esc(tr('d100_show_all', { n: rows.length })) + '</button>';
+      }
+      if (C.mine) h += '<p class="d100-legend"><span class="d100-you">' + esc(tr('d100_you')) + '</span> ' + esc(tr('d100_you_legend')) + '</p>';
+    }
+    h += '</section>';
+    return h;
+  }
+
+  // Artwork, fetched only once a row scrolls into view (getArtAuto in
+  // app.js: the same lookup and picked pictures as the rest of the site).
+  var _artCache = {};
+  var _artObs = null;
+  function paintArt(el, url) {
+    if (!url) return;
+    var img = new Image();
+    img.alt = '';
+    img.decoding = 'async';
+    img.onload = function () { el.classList.add('has-img'); };
+    img.src = typeof sizedArtUrl === 'function' ? sizedArtUrl(url, 96) : url;
+    el.appendChild(img);
+  }
+  function loadArt(el) {
+    var type = el.getAttribute('data-art'), t = el.getAttribute('data-t'), a = el.getAttribute('data-a');
+    var key = type + '|' + t + '|' + a;
+    if (key in _artCache) {
+      if (_artCache[key] && typeof _artCache[key].then === 'function') _artCache[key].then(function (u) { paintArt(el, u); });
+      else paintArt(el, _artCache[key]);
+      return;
+    }
+    if (typeof getArtAuto !== 'function') return;
+    var p = (type === 'artist' ? getArtAuto('artist', t)
+      : type === 'album' ? getArtAuto('album', t, a, t)
+      : getArtAuto('song', t, a)).catch(function () { return null; });
+    _artCache[key] = p;
+    p.then(function (u) { _artCache[key] = u || null; paintArt(el, u); });
+  }
+  function observeArt(root) {
+    if (_artObs) _artObs.disconnect();
+    var els = root.querySelectorAll('.d100-art[data-art]');
+    if (!els.length) return;
+    if (!('IntersectionObserver' in window)) { Array.prototype.forEach.call(els, loadArt); return; }
+    _artObs = new IntersectionObserver(function (list) {
+      list.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        _artObs.unobserve(en.target);
+        loadArt(en.target);
+      });
+    }, { rootMargin: '200px' });
+    Array.prototype.forEach.call(els, function (el) { _artObs.observe(el); });
+  }
+
+  function setType(type) {
+    if (TYPES.indexOf(type) < 0) return;
+    C.type = type; C.all = false;
+    render();
   }
 
   // ── Actions ──
@@ -505,6 +696,7 @@
     S.active = true;
     render();
     loadMine().then(render);
+    loadChart();
   }
   function hide() { S.active = false; }
 
@@ -514,7 +706,7 @@
       firebase.auth().onAuthStateChanged(function () {
         S.mine = {}; S.err = {};
         syncSwitch();
-        if (S.active) { render(); loadMine().then(render); }
+        if (S.active) { render(); loadMine().then(render); if (C.week) loadMyKeys(C.week); }
         // Give the cloud settings a moment to land in localStorage first
         setTimeout(autoSend, 4000);
       });
@@ -532,6 +724,9 @@
     show: show,
     hide: hide,
     rerender: render,
+    setType: setType,
+    showAll: function () { C.all = true; render(); },
+    reloadChart: function () { C.tries = 0; loadChart(true); },
     send: function (w) { return send(w, false); },
     takeBack: takeBack,
     autoSend: autoSend,

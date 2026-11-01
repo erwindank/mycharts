@@ -44645,3 +44645,80 @@ th.cr-th { width: 92px; }              /* = .chart-table .cr-cell */
 }
 .d100-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .d100-how { margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 6px; font-size: var(--fs-sm); color: var(--text2); }
+
+/* The Dank 100, step 4: the chart. One grid for the column labels and every
+   row, so the numbers line up; phones keep position, move, art, name and
+   points, and drop the history columns. */
+.d100-chart { display: flex; flex-direction: column; gap: 10px; }
+.d100-chart-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); flex-wrap: wrap; }
+.d100-chart-meta { font-size: var(--fs-sm); color: var(--text2); }
+.d100-chart-msg {
+  margin: 0; padding: var(--sp-4);
+  border-radius: var(--r-md); border: 1px dashed var(--border);
+  font-size: var(--fs-sm); color: var(--text2);
+}
+.d100-cols, .d100-row {
+  display: grid;
+  grid-template-columns: 2.2em 3.4em 44px minmax(0, 1fr) 4.6em 4.8em 4.8em 3.4em 3.8em;
+  column-gap: 10px; align-items: center;
+}
+.d100-cols {
+  padding: 0 10px;
+  font-size: var(--fs-xs); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text3);
+}
+.d100-cols span { text-align: right; }
+.d100-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; }
+.d100-row {
+  padding: 8px 10px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+}
+.d100-row:last-child { border-bottom: 0; }
+.d100-pos {
+  font-family: var(--font-display); font-weight: 700; font-size: 1.15rem;
+  text-align: right; color: var(--text); font-variant-numeric: tabular-nums;
+}
+.d100-row-1 {
+  border-radius: var(--r-md); border-bottom-color: transparent;
+  background: linear-gradient(100deg, color-mix(in srgb, var(--accent) 16%, transparent), transparent 75%);
+}
+.d100-row-1 .d100-pos { color: var(--accent); font-size: 1.5rem; }
+.d100-move { text-align: center; }
+.d100-mv {
+  display: inline-block; min-width: 2.4em; padding: 2px 5px; border-radius: 5px;
+  font-size: 0.66rem; font-weight: 800; letter-spacing: 0.03em; text-align: center;
+  color: var(--text3); background: color-mix(in srgb, var(--text) 7%, transparent);
+}
+.d100-mv-up   { color: var(--chart-up);   background: color-mix(in srgb, var(--chart-up) 14%, transparent); }
+.d100-mv-down { color: var(--chart-down); background: color-mix(in srgb, var(--chart-down) 14%, transparent); }
+.d100-mv-new  { color: var(--chart-new);  background: color-mix(in srgb, var(--chart-new) 14%, transparent); }
+.d100-mv-re   { color: var(--chart-re);   background: color-mix(in srgb, var(--chart-re) 14%, transparent); }
+.d100-art {
+  position: relative; width: 44px; height: 44px; border-radius: 6px; overflow: hidden;
+  background: color-mix(in srgb, var(--accent) 14%, var(--bg2));
+  display: grid; place-items: center;
+}
+.d100-list-artists .d100-art { border-radius: 50%; }
+.d100-art-ini { font-size: 0.8rem; font-weight: 700; color: var(--text3); }
+.d100-art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.25s; }
+.d100-art.has-img img { opacity: 1; }
+.d100-name { display: flex; flex-direction: column; min-width: 0; }
+.d100-t, .d100-a { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.d100-t { font-weight: 600; color: var(--text); }
+.d100-a { font-size: var(--fs-sm); color: var(--text3); }
+.d100-num { text-align: right; font-variant-numeric: tabular-nums; font-size: var(--fs-sm); color: var(--text2); }
+.d100-pts { font-weight: 600; color: var(--text); }
+/* "You": rows the user's own entry helped chart */
+.d100-you {
+  display: inline-block; vertical-align: 1px; margin-left: 4px; padding: 1px 6px; border-radius: 4px;
+  font-size: 0.62rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+  color: var(--on-accent); background: var(--accent);
+}
+.d100-legend { margin: 0; font-size: var(--fs-xs); color: var(--text3); }
+.d100-legend .d100-you { margin: 0 4px 0 0; }
+.d100-more { align-self: center; }
+@media (max-width: 640px) {
+  .d100-cols, .d100-row { grid-template-columns: 1.8em 2.9em 40px minmax(0, 1fr) 3.6em; column-gap: 8px; }
+  .d100-art { width: 40px; height: 40px; }
+  .d100-cols span:nth-child(n+6), .d100-l, .d100-lw, .d100-pk, .d100-wk { display: none; }
+  .d100-row { padding: 8px 4px; }
+}
