@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 412;
+const DC_CL_I18N_V = 413;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,9 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-01', t: 'fix', a: 'themes', h: 'a97fc1e',
+    title: "Spotify button shows on light themes",
+    detail: "On light themes the Spotify button in the artist, song and album windows (and beside chart rows) showed only a black dot, because its sound waves were drawn in black. The waves are now cut out of the circle, so the Spotify logo shows on every theme." },
   { d: '2026-11-01', t: 'feature', a: 'charts', h: 'b5266b2',
     title: "Send your year to The Dank 100",
     detail: "The Dank 100 now goes back to January 2. On the Dank 100 tab, Send my year sends your chart for every week since then in one go, and those weeks show up in the chart history right away, marked as built from listening history. Until November 30, the history is counted again each time someone sends their year, so it fills in as more people join; after that it stays as it is." },

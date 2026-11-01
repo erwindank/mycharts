@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Spotify button shows on light themes":
+    ["O botão do Spotify aparece nos temas claros",
+     "Nos temas claros, o botão do Spotify nas janelas de artista, música e álbum (e ao lado das linhas das tabelas) aparecia só como um ponto preto, porque as ondas eram desenhadas a preto. Agora as ondas estão recortadas do círculo, por isso o logótipo do Spotify aparece em todos os temas."],
   "Send your year to The Dank 100":
     ["Envia o teu ano para o The Dank 100",
      "O The Dank 100 começa agora a 2 de janeiro. No separador The Dank 100, Enviar o meu ano envia o teu top de cada semana desde então de uma vez, e essas semanas aparecem logo no histórico, marcadas como feitas com o histórico de audição. Até 30 de novembro, o histórico é contado de novo sempre que alguém envia o seu ano, por isso vai ficando completo à medida que entra mais gente; depois fica fixo."],
