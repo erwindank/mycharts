@@ -490,9 +490,10 @@ async function archive(db, through) {
 // ── After "Send my year" ────────────────────────────────────────────────────
 // POST /dank100/dirty: someone just sent history entries, so every chart
 // built before now is out of date and gets recounted on the next look. Only
-// while the history weeks are open, and at most every DIRTY_EVERY_MS (it costs
-// nothing but a recount, so no sign-in is asked for).
-const DIRTY_EVERY_MS = 20000;
+// while the history weeks are open (it costs nothing but a recount, so no
+// sign-in is asked for). Every call moves dirtyAt to now: an earlier version
+// skipped calls within 20 s of the last one, and a year sent while another
+// recount was running (2026-11-01) was then never counted.
 export async function onRequestPost(context) {
   const url = new URL(context.request.url);
   const route = url.pathname.replace(/^\/dank100\/?/, '').replace(/\/$/, '');
@@ -502,7 +503,6 @@ export async function onRequestPost(context) {
     if (!historyOpen(now)) return reply({ ok: false, reason: 'closed' }, 200);
     const db = fsClient(await googleToken(context.env));
     const meta = await getMeta(db);
-    if (meta.dirtyAt && +now - Date.parse(meta.dirtyAt) < DIRTY_EVERY_MS) return reply({ ok: true, dirtyAt: meta.dirtyAt }, 200);
     await db.set('dank100Meta', 'state', Object.assign({}, meta, { dirtyAt: now }));
     return reply({ ok: true, dirtyAt: now.toISOString() }, 200);
   } catch (e) {

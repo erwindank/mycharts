@@ -1112,8 +1112,14 @@
       });
     }, Promise.resolve()).then(function () {
       if (sent) lsSet(yearKey(uid), JSON.stringify({ at: Date.now(), n: sent }));
-      // Tell the server, then show the recounted charts
-      return fetch('/dank100/dirty', { method: 'POST' }).catch(function () {});
+      // Tell the server, then show the recounted charts. Asked twice if the
+      // first try fails: without it the new weeks would wait for someone else's.
+      var ask = function () {
+        return fetch('/dank100/dirty', { method: 'POST' }).then(function (r) { if (!r.ok) throw new Error('http ' + r.status); });
+      };
+      return ask().catch(function () {
+        return new Promise(function (res) { setTimeout(res, 2000); }).then(ask);
+      }).catch(function (e) { console.warn('[dankcharts] Dank 100 recount signal failed:', e && e.message); });
     }).then(function () {
       Y.busy = false;
       C.cache = {}; C.arch = null; C.pendTries = 0;
