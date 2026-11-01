@@ -505,7 +505,9 @@
     if (!force) C.data = null;
     C.tries = C.tries || 0;
     render();
-    fetch('/dank100/chart?week=' + encodeURIComponent(week))
+    // no-store: never reuse a browser-saved answer (an old 'no chart yet' for
+    // a week stuck around for an hour once the history weeks were added)
+    fetch('/dank100/chart?week=' + encodeURIComponent(week), { cache: 'no-store' })
       .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
       .then(function (d) {
         if (C.week !== week) return;          // picked another week meanwhile
@@ -533,7 +535,7 @@
 
   function loadArchive(through) {
     if (C.arch && C.arch.through === through) return;
-    fetch('/dank100/archive?through=' + encodeURIComponent(through))
+    fetch('/dank100/archive?through=' + encodeURIComponent(through), { cache: 'no-store' })
       .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
       .then(function (a) {
         if (!a || !Array.isArray(a.weeks)) return;

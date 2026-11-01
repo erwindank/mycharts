@@ -532,7 +532,8 @@ export async function onRequestGet(context) {
       const week = url.searchParams.get('week') || latestClosedWeek(now);
       const b = weekBounds(week);
       if (!b) return reply({ error: 'bad-week' }, 400);
-      if (week < FIRST_WEEK) return reply({ week, status: 'none' }, 200, 3600);
+      // (not cached: moving FIRST_WEEK back once left an hour-old 'none' in browsers)
+      if (week < FIRST_WEEK) return reply({ week, status: 'none' }, 200, 0);
       if (now < b.closes) return reply({ week, status: 'open', closes: b.closes.toISOString() }, 200, 60);
       const db = fsClient(await googleToken(context.env));
       const chart = await ensureChart(db, week);
