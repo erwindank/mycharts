@@ -44662,11 +44662,13 @@ th.cr-th { width: 92px; }              /* = .chart-table .cr-cell */
   grid-template-columns: 2.2em 3.4em 44px minmax(0, 1fr) 4.8em 6.6em 5.6em 3.8em 4.4em;
   column-gap: 10px; align-items: center;
 }
+/* The grid's columns are sized in em, so the label row keeps the rows' font
+   size (same em = same widths) and only the labels themselves are small */
 .d100-cols {
   padding: 0 10px;
-  font-size: var(--fs-xs); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text3);
+  font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text3);
 }
-.d100-cols span { text-align: right; }
+.d100-cols span { text-align: right; font-size: var(--fs-xs); }
 .d100-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; }
 /* Step 5: each row is a button (it opens the row's run), inside an <li> that
    carries the divider and the #1 / open highlight */
