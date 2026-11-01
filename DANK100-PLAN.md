@@ -56,7 +56,7 @@ first visit after the week closes ──▶ functions/dank100/[[path]].js (Cloud
   charted, then to total plays.
 - Each row also stores **listeners** (how many people had it in their chart).
   That figure is shown, because it's the honest one.
-- Minimum to publish: **3 entries** for the week. Fewer than that shows "Not
+- Minimum to publish: **1 entry** (changed from 3 on 2026-11-01, so it works from day one) for the week. Fewer than that shows "Not
   enough listeners this week" with the count, not a thin chart.
 
 ### Matching names
@@ -134,7 +134,6 @@ Rules changes must be **pasted into the Firebase Console**, as before.
 
 ## Open questions (answer at the step they belong to)
 - Friday–Thursday UTC week, or Monday–Sunday? (step 1)
-- Minimum entries before a chart is published: 3, 5, or 10? (step 3)
 - Artists and albums: also top 100, or top 50 while there are few users? (step 4)
 - Should a brand-new account be able to count straight away, or only after a
   week or two (against fake accounts)? (step 3)

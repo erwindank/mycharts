@@ -44,7 +44,8 @@ const PROJECT = 'dankcharts';
 const FS = `https://firestore.googleapis.com/v1/projects/${PROJECT}/databases/(default)/documents`;
 const TYPES = ['songs', 'artists', 'albums'];
 const MAX_ROWS = 100;          // per list, in an entry and in the chart (dank100.js MAX_ROWS)
-const MIN_ENTRIES = 3;         // fewer entries than this: no chart, just the count
+const MIN_ENTRIES = 1;         // fewer entries than this: no chart, just the count
+                               // (was 3; the user chose 1 on 2026-11-01 so the chart works from day one)
 const MAX_TEXT = 200;          // longest title / name kept (dank100.js MAX_TEXT)
 const LOCK_STALE_MS = 3 * 60000; // a build that hasn't finished in 3 min is taken over
 // The first Dank 100 week. Earlier weeks have no entries, so a build never
@@ -313,7 +314,7 @@ async function buildWeek(db, week, depth) {
 
   const base = { week, builtAt: new Date(), entries: entries.length, v: 1 };
   if (entries.length < MIN_ENTRIES) {
-    // Too few to publish (and too few to keep anyone's taste private). The
+    // Too few to publish (no entries at all). The
     // history is carried over unchanged so the next week still knows RE.
     if (history) await db.set('dank100History', week, history);
     return Object.assign(base, { status: 'small', min: MIN_ENTRIES });
