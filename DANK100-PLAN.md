@@ -100,7 +100,7 @@ Rules changes must be **pasted into the Firebase Console**, as before.
   CSV users only send when they open the site, which is fine.
 - Note: "Only the combined chart is public."
 
-### 3. Building the chart (server)
+### 3. Building the chart (server) — done 2026-11-01 (also `GET /dank100/count`)
 - `functions/dank100/[[path]].js`: `GET /dank100/chart?week=` returns the saved
   chart. If the week is closed and there's no chart yet, it builds one first.
 - Building means: read all entries for the week (skipping excluded accounts),

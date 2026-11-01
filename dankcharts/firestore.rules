@@ -101,6 +101,20 @@ service cloud.firestore {
         && d100RowsOk(request.resource.data.albums);
       allow delete: if d100Owner(entryId);
     }
+    // The finished charts, one per week (functions/dank100). Anyone can read
+    // one; only the function (service account) writes them.
+    match /dank100Charts/{week} {
+      allow get: if true;
+      allow list, write: if false;
+    }
+    // Private to the function: the running history behind NEW / RE / peak,
+    // and accounts kept out of the count (added by hand in the Console).
+    match /dank100History/{week} {
+      allow read, write: if false;
+    }
+    match /dank100Excluded/{uid} {
+      allow read, write: if false;
+    }
 
     match /boardAdmins/{uid} {
       allow get: if signedIn() && request.auth.uid == uid;
