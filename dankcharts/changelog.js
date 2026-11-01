@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 405;
+const DC_CL_I18N_V = 406;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -77,6 +77,11 @@ const DC_CL_AREAS = {
    Newest first. Backfilled from the full git history, 679 entries.
    ------------------------------------------------------------------------- */
 const DC_CHANGELOG = [
+
+  /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-01', t: 'feature', a: 'graphs', h: 'b6b21ad',
+    title: "Livelier Games, and a Game of the day",
+    detail: "Stats → Games got a new look: each game has its own colour, a little preview made from your own songs (real covers, a 20?? year, a real week with an empty #1 slot), a medal with your best score or a New tag, and you can tap anywhere on a card to play. On top, a Game of the day: one puzzle a day, the same all day, where your first try counts and keeps your day streak going. Works with Last.fm, Google Sheets and CSV uploads." },
 
   /* ========== OCTOBER 2026 ========== */
   { d: '2026-10-31', t: 'change', a: 'graphs', h: 'b5a6929',

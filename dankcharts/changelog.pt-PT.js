@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Livelier Games, and a Game of the day":
+    ["Jogos mais vivos e um Jogo do dia",
+     "Estatísticas → Jogos tem um novo visual: cada jogo tem a sua cor, uma pequena pré-visualização feita com as tuas próprias músicas (capas reais, um ano 20??, uma semana real com o #1 vazio), uma medalha com a tua melhor pontuação ou uma etiqueta Novo, e podes tocar em qualquer parte do cartão para jogar. No topo, um Jogo do dia: um desafio por dia, o mesmo o dia todo, em que conta a tua primeira tentativa e mantém os teus dias seguidos. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
   "Compare's new cards in the Charts Guide":
     ["Os novos cartões do Comparar no Guia de Charts",
      "O Guia de Charts descreve agora tudo o que há de novo em Estatísticas → Comparar. Com uma só escolha, os cartões que só fazem sentido com duas ou mais (Quem esteve no topo e As maiores diferenças) ficam de fora, e a tabela, as músicas top e os hábitos de audição mantêm-se."],
