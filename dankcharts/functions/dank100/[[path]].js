@@ -13,6 +13,8 @@
      GET /dank100/archive?through=…       every published week up to then, and
                                           each row's run (step 5)
      GET /dank100/count?week=…            how many entries a week has so far
+     POST /dank100/dirty                  history entries came in: recount
+                                          (only until HISTORY_CLOSES)
                                           (a number only, never whose)
 
    Why a server piece: if a browser added the chart up and saved it, anyone
@@ -33,6 +35,9 @@
      dank100Entries/{week}_{uid}   read      the entries (dank100.js writes them)
      dank100Excluded/{uid}         read      accounts kept out of the count
      dank100Charts/{week}          write     the public chart (rules: anyone may get)
+     dank100Meta/state             both      { dirtyAt }: when history entries
+                                             last came in (charts built before
+                                             that are recounted)
      dank100Flags/{week}           write     private: pairs of entries that look
                                              copied (findCopies), for a person
      dank100History/{week}         write     private running record of every key
@@ -53,9 +58,14 @@ const MIN_ENTRIES = 1;         // fewer entries than this: no chart, just the co
 const MAX_TEXT = 200;          // longest title / name kept (dank100.js MAX_TEXT)
 const LOCK_STALE_MS = 3 * 60000; // a build that hasn't finished in 3 min is taken over
 // The first Dank 100 week. Earlier weeks have no entries, so a build never
-// walks back past it looking for last week's chart.
-const FIRST_WEEK = '2026-10-23';
-const MAX_BACKFILL = 6;        // closed weeks nobody opened, built on the way
+// walks back past it looking for last week's chart. It starts on 2 January
+// 2026: the weeks up to HISTORY_LAST are history weeks, sent in all at once
+// with "Send my year" (dank100.js) until HISTORY_CLOSES, and recounted each
+// time someone sends theirs. After that they are fixed like any other week.
+const FIRST_WEEK = '2026-01-02';
+const HISTORY_LAST = '2026-10-16';
+const HISTORY_CLOSES = Date.UTC(2026, 11, 1);   // 1 Dec 2026 00:00 UTC (end of 30 Nov)
+const historyOpen = now => +now < HISTORY_CLOSES;
 
 // ── The week (kept in step with dank100.js) ─────────────────────────────────
 const DAY_MS = 86400000, WEEK_MS = 7 * DAY_MS, GRACE_DAYS = 3, WEEK_START_DOW = 5;
@@ -345,18 +355,33 @@ export function findCopies(entries) {
   return { pairs: pairs.slice(0, COPY_MAX_PAIRS), accounts, total: pairs.length };
 }
 
-// ── Building one week ───────────────────────────────────────────────────────
-async function buildWeek(db, week, depth) {
-  // Last week's chart first, so the movement arrows have something to compare
-  // with. A closed week nobody opened yet is built on the way (a few at most).
+// ── Building weeks ──────────────────────────────────────────────────────────
+// A chart is "current" when it is finished and was built after the last time
+// history entries came in (dank100Meta/state.dirtyAt). While the history
+// weeks are open, each "Send my year" marks everything dirty, and the charts
+// are counted again, oldest first, the next time someone looks: a week's
+// arrows and peaks need the week before it, so a later week can only be
+// rebuilt once all earlier ones are current. One request builds at most
+// BUILD_PER_REQUEST weeks (Cloudflare caps the calls one visit may make); the
+// page asks again until it gets its chart ("pending" answers say how far).
+const BUILD_PER_REQUEST = 4;
+
+async function getMeta(db) {
+  const m = await db.get('dank100Meta', 'state');
+  return (m && m.data) || {};
+}
+function isCurrent(chart, meta) {
+  if (!chart || (chart.status !== 'done' && chart.status !== 'small')) return false;
+  if (!meta.dirtyAt) return true;
+  return Date.parse(chart.builtAt) > Date.parse(meta.dirtyAt);
+}
+
+// One week, assuming the week before it is current.
+async function buildWeek(db, week) {
   let prevChart = null, history = null;
   const pw = prevWeek(week);
   if (pw >= FIRST_WEEK) {
-    let prev = await db.get('dank100Charts', pw);
-    if ((!prev || prev.data.status !== 'done' && prev.data.status !== 'small') && depth < MAX_BACKFILL) {
-      await ensureChart(db, pw, depth + 1);
-      prev = await db.get('dank100Charts', pw);
-    }
+    const prev = await db.get('dank100Charts', pw);
     if (prev && prev.data.status === 'done') prevChart = prev.data;
     const h = await db.get('dank100History', pw);
     if (h) history = h.data;
@@ -368,10 +393,11 @@ async function buildWeek(db, week, depth) {
     .map(d => d.data);
 
   const base = { week, builtAt: new Date(), entries: entries.length, v: 1 };
+  if (week <= HISTORY_LAST) base.hist = true;   // built from listening history
   if (entries.length < MIN_ENTRIES) {
-    // Too few to publish (no entries at all). The
-    // history is carried over unchanged so the next week still knows RE.
-    if (history) await db.set('dank100History', week, history);
+    // No entries at all. The history is carried over unchanged so the next
+    // week still knows RE (and an old one is replaced on a recount).
+    await db.set('dank100History', week, history || {});
     return Object.assign(base, { status: 'small', min: MIN_ENTRIES });
   }
   // Copies are noted for a person to look at; they don't change the chart
@@ -383,29 +409,47 @@ async function buildWeek(db, week, depth) {
   return Object.assign(base, { status: 'done' }, charts);
 }
 
-// The saved chart for a closed week, building it first if nobody has.
-async function ensureChart(db, week, depth = 0) {
-  const have = await db.get('dank100Charts', week);
-  if (have && (have.data.status === 'done' || have.data.status === 'small')) return have.data;
-
-  // Take the lock: create a 'building' doc, or take over a stale one.
+// Lock, build, save. Returns the chart, or null when someone else holds the lock.
+async function lockAndBuild(db, week, have) {
   const lock = { week, status: 'building', lockedAt: new Date() };
   let mine;
   if (!have) mine = await db.create('dank100Charts', week, lock);
+  else if (have.data.status !== 'building') mine = await db.set('dank100Charts', week, Object.assign({}, have.data, lock), have.updateTime);
   // (A lock with no readable time counts as stale, so it can never stick.)
   else if (!(Date.now() - Date.parse(have.data.lockedAt) <= LOCK_STALE_MS)) mine = await db.set('dank100Charts', week, lock, have.updateTime);
   else mine = false;
-  if (!mine) return { week, status: 'building' };
+  if (!mine) return null;
+  // A failure leaves the lock behind; it goes stale after LOCK_STALE_MS and
+  // the next visitor retries.
+  const chart = await buildWeek(db, week);
+  await db.set('dank100Charts', week, chart);
+  return chart;
+}
 
-  try {
-    const chart = await buildWeek(db, week, depth);
-    await db.set('dank100Charts', week, chart);
-    return chart;
-  } catch (e) {
-    // Leave a stale-able lock rather than a half chart; the next visitor
-    // retries once LOCK_STALE_MS has passed.
-    throw e;
+// The chart for a closed week: the saved one if current, otherwise built,
+// together with any earlier weeks that are out of date (a few per request).
+async function ensureChart(db, week, meta) {
+  meta = meta || await getMeta(db);
+  const ids = [];
+  for (let w = week; w >= FIRST_WEEK; w = prevWeek(w)) ids.unshift(w);
+  const docs = await db.getMany('dank100Charts', ids);
+  const target = docs[docs.length - 1];
+  if (isCurrent(target, meta)) return target;
+
+  // The oldest week that is out of date; everything after it needs a rebuild
+  let from = docs.findIndex(c => !isCurrent(c, meta));
+  let built = 0;
+  for (let i = from; i < ids.length; i++) {
+    if (built >= BUILD_PER_REQUEST) return { week, status: 'pending', next: ids[i], left: ids.length - i };
+    const have = docs[i] ? { data: docs[i], updateTime: null } : null;
+    // Re-read for the update time the lock needs
+    const fresh = have ? await db.get('dank100Charts', ids[i]) : null;
+    const chart = await lockAndBuild(db, ids[i], fresh);
+    if (!chart) return { week, status: 'building' };
+    built++;
+    if (i === ids.length - 1) return chart;
   }
+  return { week, status: 'building' };
 }
 
 // ── The archive (step 5) ────────────────────────────────────────────────────
@@ -443,6 +487,30 @@ async function archive(db, through) {
   return Object.assign({ through }, buildArchive(ids, charts));
 }
 
+// ── After "Send my year" ────────────────────────────────────────────────────
+// POST /dank100/dirty: someone just sent history entries, so every chart
+// built before now is out of date and gets recounted on the next look. Only
+// while the history weeks are open, and at most every DIRTY_EVERY_MS (it costs
+// nothing but a recount, so no sign-in is asked for).
+const DIRTY_EVERY_MS = 20000;
+export async function onRequestPost(context) {
+  const url = new URL(context.request.url);
+  const route = url.pathname.replace(/^\/dank100\/?/, '').replace(/\/$/, '');
+  const now = new Date();
+  try {
+    if (route !== 'dirty') return reply({ error: 'not-found' }, 404);
+    if (!historyOpen(now)) return reply({ ok: false, reason: 'closed' }, 200);
+    const db = fsClient(await googleToken(context.env));
+    const meta = await getMeta(db);
+    if (meta.dirtyAt && +now - Date.parse(meta.dirtyAt) < DIRTY_EVERY_MS) return reply({ ok: true, dirtyAt: meta.dirtyAt }, 200);
+    await db.set('dank100Meta', 'state', Object.assign({}, meta, { dirtyAt: now }));
+    return reply({ ok: true, dirtyAt: now.toISOString() }, 200);
+  } catch (e) {
+    console.error('dank100', e && (e.code || e.message));
+    return reply({ error: (e && e.code) || 'failed' }, (e && e.status) || 500);
+  }
+}
+
 // ── The request ─────────────────────────────────────────────────────────────
 function reply(body, status, maxAge) {
   return new Response(JSON.stringify(body), {
@@ -468,20 +536,24 @@ export async function onRequestGet(context) {
       if (now < b.closes) return reply({ week, status: 'open', closes: b.closes.toISOString() }, 200, 60);
       const db = fsClient(await googleToken(context.env));
       const chart = await ensureChart(db, week);
-      // A finished chart never changes, so the edge may keep it a while.
-      return reply(chart, 200, chart.status === 'building' ? 0 : 600);
+      // A finished chart never changes once history is closed, so browsers
+      // may keep it a while; until then a recount can replace it any time.
+      const done = chart.status === 'done' || chart.status === 'small';
+      return reply(chart, 200, done && !historyOpen(now) ? 600 : 0);
     }
     if (route === 'archive') {
       const through = url.searchParams.get('through') || latestClosedWeek(now);
       const b = weekBounds(through);
       if (!b || now < b.closes) return reply({ error: 'bad-week' }, 400);
       // Cloudflare's own cache: one Firestore read per week per data centre
+      // (keyed by the last recount too, so a recount never serves an old copy)
+      const db = fsClient(await googleToken(context.env));
+      const meta = await getMeta(db);
       const cache = caches.default;
-      const cacheKey = new Request(url.origin + '/dank100/archive?through=' + through);
+      const cacheKey = new Request(url.origin + '/dank100/archive?through=' + through + '&d=' + encodeURIComponent(meta.dirtyAt || ''));
       const hit = await cache.match(cacheKey);
       if (hit) return hit;
-      const db = fsClient(await googleToken(context.env));
-      const res = reply(await archive(db, through), 200, 600);
+      const res = reply(await archive(db, through), 200, historyOpen(now) ? 60 : 600);
       context.waitUntil(cache.put(cacheKey, res.clone()));
       return res;
     }

@@ -44800,3 +44800,24 @@ th.cr-th { width: 92px; }              /* = .chart-table .cr-cell */
 .d100-rec-x { font-family: inherit; font-size: var(--fs-sm); font-weight: 500; color: var(--text3); }
 .d100-rec-who { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 10px; align-items: center; }
 .d100-rec-who .d100-art { width: 40px; height: 40px; }
+
+/* The Dank 100: "Send my year" (history weeks) and the history label */
+.d100-year {
+  display: flex; align-items: flex-start; gap: var(--sp-4);
+  padding: var(--sp-4); border-radius: var(--r-md);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+  background: var(--bg2);
+}
+.d100-year-n {
+  flex: none; min-width: 1.6em; text-align: center;
+  font-family: var(--font-display); font-weight: 700; font-size: 40px; line-height: 1; color: var(--accent);
+}
+.d100-year-body { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.d100-year-title { font-weight: 600; color: var(--text); }
+.d100-year-body p { margin: 0; font-size: var(--fs-sm); color: var(--text2); }
+.d100-year-status { font-weight: 600; }
+.d100-year-status.d100-status-sent { border: 0; background: none; padding: 0; }
+.d100-hist-label { margin: 0; font-size: var(--fs-xs); color: var(--text3); font-style: italic; }
+@media (max-width: 640px) {
+  .d100-year { flex-direction: column; gap: 8px; }
+}

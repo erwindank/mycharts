@@ -66,7 +66,8 @@ service cloud.firestore {
     // One entry per account per week: dank100Entries/{week}_{uid}, where week
     // is the Friday (UTC) that starts the tracking week, e.g. "2026-10-30".
     // Only the owner can read or change their entry, and only while the week
-    // is open: from its Friday until the Sunday after it ends (10 days). The
+    // is open: from its Friday until the Sunday after it ends (10 days), or,
+    // for the history weeks of 2026 sent with "Send my year", until 30 Nov. The
     // combined chart is built by a Cloudflare Function with the service
     // account, which skips these rules. Lists are capped at 100 rows each
     // (MAX_ROWS in dank100.js); the function cleans each row when it counts.
@@ -92,7 +93,13 @@ service cloud.firestore {
              int(request.resource.data.week[8:10]))
         && request.resource.data.weekStart.dayOfWeek() == 5
         && request.time >= request.resource.data.weekStart
-        && request.time < request.resource.data.weekStart + duration.value(10, 'd')
+        && (
+          // a live week: from its Friday until the Sunday after it ends
+          request.time < request.resource.data.weekStart + duration.value(10, 'd')
+          // or a history week (2 Jan – 22 Oct 2026, "Send my year"), until 30 Nov
+          || (request.resource.data.week >= '2026-01-02'
+              && request.resource.data.week <= '2026-10-16'
+              && request.time < timestamp.date(2026, 12, 1)))
         && request.resource.data.updatedAt == request.time
         && request.resource.data.v is int
         && request.resource.data.plays is int && request.resource.data.plays >= 1
@@ -110,6 +117,10 @@ service cloud.firestore {
     // Private to the function: the running history behind NEW / RE / peak,
     // and accounts kept out of the count (added by hand in the Console).
     match /dank100History/{week} {
+      allow read, write: if false;
+    }
+    // When history entries last came in (functions/dank100); function only
+    match /dank100Meta/{doc} {
       allow read, write: if false;
     }
     // Entries that look copied, written by the function when it builds a week

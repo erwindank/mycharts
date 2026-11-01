@@ -132,6 +132,18 @@ Rules changes must be **pasted into the Firebase Console**, as before.
 
 ---
 
+## History weeks: "Send my year" (2026-11-01)
+- The Dank 100 starts on 2 Jan 2026. Weeks 2 Jan – 16 Oct are history weeks:
+  each user can send all of them at once ("Send my year", weeks with plays
+  only) until 30 Nov (rules: `week` between 2026-01-02 and 2026-10-16 and
+  `request.time` before 1 Dec).
+- After a year is sent, the page calls `POST /dank100/dirty`, which sets
+  `dank100Meta/state.dirtyAt`. Any chart built before that is out of date and
+  is recounted, oldest week first, the next time someone looks (4 weeks per
+  request; the server answers `pending` and the page asks again).
+- History charts carry `hist: true` and a label. After 30 Nov `/dirty` is
+  refused, so the history is fixed from then on.
+
 ## Fake accounts (2026-11-01)
 - **Spot copies (done):** when a week is built, every pair of entries is
   compared on its songs. Pairs sharing 80%+ of their songs (lists of 10+

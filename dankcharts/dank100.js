@@ -199,6 +199,24 @@
     };
   }
 
+  // ── History weeks ("Send my year") ─────────────────────────────────────────
+  // Every week of 2026 before the first live week can be sent in one go until
+  // 30 Nov; those charts are recounted each time someone sends theirs, then
+  // fixed. Kept in step with functions/dank100 and firestore.rules.
+  var HISTORY_FIRST = '2026-01-02';
+  var HISTORY_LAST = '2026-10-16';
+  var HISTORY_CLOSES = Date.UTC(2026, 11, 1);     // 1 Dec 2026 00:00 UTC
+
+  function historyOpen() { return Date.now() < HISTORY_CLOSES; }
+  function isHistoryWeek(w) { return w >= HISTORY_FIRST && w <= HISTORY_LAST; }
+  function historyWeeks() {
+    var out = [];
+    for (var w = HISTORY_FIRST; w <= HISTORY_LAST; w = weekIdOf(new Date(+weekBounds(w).start + 7 * DAY_MS))) out.push(w);
+    return out;
+  }
+  // A week an entry may be sent (or replaced) for right now.
+  function canSend(w) { return openWeeks().indexOf(w) >= 0 || (isHistoryWeek(w) && historyOpen()); }
+
   // ── Firestore ──────────────────────────────────────────────────────────────
 
   function signedInUid() {
@@ -211,7 +229,7 @@
   function sendEntry(weekId) {
     var uid = signedInUid();
     if (!uid) return Promise.reject(new Error('signed-out'));
-    if (openWeeks().indexOf(weekId) < 0) return Promise.reject(new Error('week-closed'));
+    if (!canSend(weekId)) return Promise.reject(new Error('week-closed'));
     var e = buildEntry(weekId);
     if (!e.plays) return Promise.reject(new Error('no-plays'));
     return _ensureDb().then(function (db) {
@@ -421,6 +439,8 @@
     weeks.slice().reverse().forEach(function (w, i, arr) { h += entryCardHTML(w, arr.length > 1 && i === 0); });
     h += '</div>';
 
+    h += yearCardHTML();
+
     if (u && !isDemo()) {
       h += '<p class="d100-auto-line">' + esc(tr(autoOn() ? 'd100_auto_is_on' : 'd100_auto_is_off')) +
         ' <button type="button" class="d100-link" onclick="dcDank100.openSettings()">' + esc(tr('d100_auto_settings')) + '</button></p>';
@@ -492,11 +512,16 @@
         C.loading = false;
         C.data = d;
         if (d.status === 'done' || d.status === 'small') C.cache[week] = d;
-        if (d.status === 'building' && C.tries < BUILD_RETRIES) {
+        if (d.status === 'pending' && (C.pendTries || 0) < 60) {
+          // The server is counting earlier weeks first, a few per request
+          C.pendTries = (C.pendTries || 0) + 1;
+          C.pending = d.left || 0;
+          setTimeout(function () { if (C.week === week) loadChart(true, week); }, 60);
+        } else if (d.status === 'building' && C.tries < BUILD_RETRIES) {
           C.tries++;
           setTimeout(function () { if (C.week === week) loadChart(true, week); }, BUILD_RETRY_MS);
-        } else C.tries = 0;
-        if (week === latest && d.status !== 'building') loadArchive(latest);
+        } else { C.tries = 0; C.pendTries = 0; C.pending = 0; }
+        if (week === latest && d.status !== 'building' && d.status !== 'pending') loadArchive(latest);
         loadMyKeys(week);
         render();
       }, function (err) {
@@ -624,7 +649,8 @@
 
   // ── Week picker: ‹ previous, a list of every published week, next ›
   function weekIds() {
-    var ids = C.arch ? C.arch.weeks.map(function (w) { return w.w; }) : [];
+    // Weeks nobody sent (the history weeks before anyone's year) stay out of the list
+    var ids = C.arch ? C.arch.weeks.filter(function (w) { return w.entries > 0; }).map(function (w) { return w.w; }) : [];
     if (C.week && ids.indexOf(C.week) < 0) ids.push(C.week);
     return ids.sort();
   }
@@ -657,6 +683,8 @@
       return '';    // no chart yet: the "next chart" box below says when
     } else if (d.status === 'building') {
       h += '<p class="d100-chart-msg">' + esc(tr('d100_building')) + '</p>';
+    } else if (d.status === 'pending') {
+      h += '<p class="d100-chart-msg">' + esc(tr('d100_counting', { n: C.pending || d.left || '' })) + '</p>';
     } else if (d.status === 'small' || !d.songs) {
       h += weekNavHTML() + '<p class="d100-chart-msg">' + esc(tr('d100_empty_week', { range: rangeLabel(weekBounds(d.week)) })) + '</p>';
     } else {
@@ -670,6 +698,10 @@
         }).join('') + '</div>' +
         '<button type="button" class="dc-btn dc-btn-normal dc-btn-sm d100-share-btn" onclick="dcDank100.share(this)"' +
         ((d[C.type] || []).length ? '' : ' disabled') + '>' + esc(tr('d100_share')) + '</button></header>';
+      if (d.hist) {
+        h += '<p class="d100-hist-label">' + esc(tr(historyOpen() ? 'd100_hist_label' : 'd100_hist_label_done',
+          { day: fmtDay(HISTORY_CLOSES - 1, { month: 'long', day: 'numeric' }) })) + '</p>';
+      }
       var rows = d[C.type] || [];
       var shown = C.all ? rows : rows.slice(0, CHART_STEP);
       // An empty list (say, nobody's plays had album names) keeps the switch above
@@ -1021,6 +1053,75 @@
     if (el && el.getBoundingClientRect().top < 0) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
+  // ── "Send my year": every history week with plays, one after the other,
+  // then the server is told to recount (POST /dank100/dirty).
+  var Y = { busy: false, i: 0, n: 0, err: 0 };
+  var _yearCount = { key: '', n: 0 };
+  function yearKey(uid) { return 'dc_d100_year_' + uid; }
+  // How many history weeks have plays (cached: it walks every play per week)
+  function yearWeeksWithPlays() {
+    if (!hasPlays()) return [];
+    var key = allPlays.length + '|' + (allPlays[0] && +allPlays[0].date);
+    if (_yearCount.key !== key) {
+      _yearCount = { key: key, weeks: historyWeeks().filter(function (w) { return buildEntry(w).plays > 0; }) };
+    }
+    return _yearCount.weeks;
+  }
+
+  function yearCardHTML() {
+    if (!historyOpen()) return '';
+    var u = signedInUid();
+    if (!u || isDemo() || !hasPlays()) return '';
+    var weeks = yearWeeksWithPlays();
+    if (!weeks.length) return '';
+    var done = null;
+    try { done = JSON.parse(lsGet(yearKey(u)) || 'null'); } catch (e) {}
+    var closeDay = fmtDay(HISTORY_CLOSES - 1, { month: 'long', day: 'numeric' });
+    var h = '<section class="d100-year">';
+    h += '<div class="d100-year-n" aria-hidden="true">' + weeks.length + '</div><div class="d100-year-body">';
+    h += '<div class="d100-year-title">' + esc(tr('d100_year_title')) + '</div>';
+    h += '<p>' + esc(tr('d100_year_text', { n: weeks.length, day: closeDay })) + '</p>';
+    if (Y.busy) {
+      h += '<p class="d100-year-status">' + esc(tr('d100_year_sending', { i: Y.i, n: Y.n })) + '</p>';
+    } else if (Y.err) {
+      h += '<p class="d100-err" role="alert">' + esc(tr('d100_year_err')) + '</p>';
+    } else if (done) {
+      h += '<p class="d100-year-status d100-status-sent">✓ ' + esc(tr('d100_year_sent', { n: done.n, when: fmtWhen(done.at) })) + '</p>';
+    }
+    h += '<div class="d100-actions"><button type="button" class="dc-btn ' + (done ? 'dc-btn-normal' : 'dc-btn-main') + '"' + (Y.busy ? ' disabled' : '') +
+      ' onclick="dcDank100.sendYear()">' + esc(tr(done ? 'd100_year_again' : 'd100_year_btn')) + '</button></div>';
+    h += '</div></section>';
+    return h;
+  }
+
+  function sendYear() {
+    var uid = signedInUid();
+    if (Y.busy || !uid || isDemo() || !historyOpen()) return;
+    var weeks = yearWeeksWithPlays();
+    if (!weeks.length) return;
+    Y = { busy: true, i: 0, n: weeks.length, err: 0 };
+    render();
+    var sent = 0;
+    weeks.reduce(function (p, w) {
+      return p.then(function () {
+        Y.i++; render();
+        return sendEntry(w).then(function () { sent++; }, function (e) {
+          console.warn('[dankcharts] Dank 100 year week failed:', w, e && (e.code || e.message));
+          Y.err++;
+        });
+      });
+    }, Promise.resolve()).then(function () {
+      if (sent) lsSet(yearKey(uid), JSON.stringify({ at: Date.now(), n: sent }));
+      // Tell the server, then show the recounted charts
+      return fetch('/dank100/dirty', { method: 'POST' }).catch(function () {});
+    }).then(function () {
+      Y.busy = false;
+      C.cache = {}; C.arch = null; C.pendTries = 0;
+      render();
+      loadChart(true, C.week || latestClosedWeek());
+    });
+  }
+
   // ── Actions ──
   function send(w, quiet) {
     var uid = signedInUid();
@@ -1128,6 +1229,7 @@
     pickWeek: pickWeek,
     showAll: function () { C.all = true; render(); },
     reloadChart: function () { C.tries = 0; loadChart(true, C.week); },
+    sendYear: sendYear,
     send: function (w) { return send(w, false); },
     takeBack: takeBack,
     autoSend: autoSend,
