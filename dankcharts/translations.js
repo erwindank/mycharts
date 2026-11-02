@@ -9,6 +9,15 @@ const TRANSLATIONS = {
 
   // ── ENGLISH ──────────────────────────────────────────────────────────────────
   en: {
+    rec1_th_when_total: "When at #1",
+    rec1_th_reign: "Reign",
+    rec1_sort: "Sort",
+    rec1_sort_rank: "Rank",
+    rec1_sort_recent: "Most recent",
+    rec1_sort_oldest: "Oldest first",
+    rec1_sort_name: "Name A–Z",
+    rec1_showing: "Showing {{n}} of {{total}}",
+    rec1_showing_all: "Showing all {{total}}",
     rec1_eyebrow_total: "Most {{unit}} at #1",
     rec1_eyebrow_consec: "Longest run at #1",
     rec1_fig_total: "{{unit}} at #1",
@@ -5202,6 +5211,15 @@ const TRANSLATIONS = {
 
   // ── SPANISH ───────────────────────────────────────────────────────────────────
   es: {
+    rec1_th_when_total: "Cuándo en el #1",
+    rec1_th_reign: "Reinado",
+    rec1_sort: "Ordenar",
+    rec1_sort_rank: "Posición",
+    rec1_sort_recent: "Más recientes",
+    rec1_sort_oldest: "Más antiguos",
+    rec1_sort_name: "Nombre A–Z",
+    rec1_showing: "Mostrando {{n}} de {{total}}",
+    rec1_showing_all: "Mostrando los {{total}}",
     rec1_eyebrow_total: "Más tiempo en el #1",
     rec1_eyebrow_consec: "Racha más larga en el #1",
     rec1_fig_total: "{{unit}} en el #1",
@@ -10280,6 +10298,15 @@ const TRANSLATIONS = {
 
   // ── PORTUGUESE — BRAZIL ───────────────────────────────────────────────────────
   'pt-BR': {
+    rec1_th_when_total: "Quando no #1",
+    rec1_th_reign: "Reinado",
+    rec1_sort: "Ordenar",
+    rec1_sort_rank: "Posição",
+    rec1_sort_recent: "Mais recentes",
+    rec1_sort_oldest: "Mais antigos",
+    rec1_sort_name: "Nome A–Z",
+    rec1_showing: "Mostrando {{n}} de {{total}}",
+    rec1_showing_all: "Mostrando todos os {{total}}",
     rec1_eyebrow_total: "Mais tempo no #1",
     rec1_eyebrow_consec: "Maior sequência no #1",
     rec1_fig_total: "{{unit}} no #1",
@@ -15359,6 +15386,15 @@ const TRANSLATIONS = {
 
   // ── PORTUGUESE — EUROPEAN ─────────────────────────────────────────────────────
   'pt-PT': {
+    rec1_th_when_total: "Quando no n.º 1",
+    rec1_th_reign: "Reinado",
+    rec1_sort: "Ordenar",
+    rec1_sort_rank: "Posição",
+    rec1_sort_recent: "Mais recentes",
+    rec1_sort_oldest: "Mais antigos",
+    rec1_sort_name: "Nome A–Z",
+    rec1_showing: "A mostrar {{n}} de {{total}}",
+    rec1_showing_all: "A mostrar todos os {{total}}",
     rec1_eyebrow_total: "Mais tempo no n.º 1",
     rec1_eyebrow_consec: "Maior sequência no n.º 1",
     rec1_fig_total: "{{unit}} no n.º 1",

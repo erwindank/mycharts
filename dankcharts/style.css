@@ -46233,3 +46233,159 @@ body:not(:is([data-view="day"], [data-view="week"], [data-view="month"], [data-v
 /* Long Total runs scroll inside the card; the fade says there is more. */
 .rec1-champ .cr-boxes-wrap { max-height: 96px; -webkit-mask-image: linear-gradient(#000 75%, transparent); mask-image: linear-gradient(#000 75%, transparent); }
 .rec1-champ .cr-boxes-wrap:not(:has(.cr-box:nth-child(9))) { -webkit-mask-image: none; mask-image: none; }
+
+/* ── Phase 20 step 3: the All #1s list ────────────────────────────────
+   Still a <table> (search, sort, the row limit and the hero reel read its
+   rows) but drawn as a list: no box, no column rules, quiet headers, a
+   "when" cell holding the strip and a short date line, the count big on the
+   right. Selectors carry #recordsView + .rec1-table to outrank the generic
+   .rec-table rules above. */
+#recordsView .rec1-table { width: 100%; background: none; border: 0; border-radius: 0; margin-bottom: 0; table-layout: auto; }
+#recordsView .rec1-table thead { background: none; }
+#recordsView .rec1-table thead th {
+  background: var(--bg2);
+  border-right: 0;
+  border-bottom: 1px solid var(--border-t);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: .07em;
+  color: var(--text3);
+  padding: 0.5rem 0.75rem;
+}
+#recordsView .rec1-table thead th:first-child { border-radius: 0; }
+#recordsView .rec1-table .col-resize-handle { display: none; }
+#recordsView .rec1-table tbody td {
+  border-bottom: 1px solid var(--border-t);
+  border-right: 0;
+  padding: 0.7rem 0.75rem;
+  vertical-align: middle;
+  background: none;
+}
+#recordsView .rec1-table tbody tr:not(.rec-run-detail) { cursor: pointer; }
+#recordsView .rec1-table tbody tr:not(.rec-run-detail):hover { background: var(--hover); }
+#recordsView .rec1-table tbody tr:last-child td { border-bottom: 0; }
+
+/* The old date columns: kept for the reel and for sorts, not shown. */
+#recordsView .rec1-table .rec1-hcol,
+#recordsView .rec1-table thead th:has(> .rec1-hmark) { display: none; }
+
+#recordsView .rec1-table .rec-rank { font-weight: 700; font-size: 1.15rem; width: 44px; }
+#recordsView .rec1-table .rec-rank-1 .rec-rank { color: var(--medal-gold); }
+#recordsView .rec1-table .rec-rank-2 .rec-rank { color: var(--medal-silver); }
+#recordsView .rec1-table .rec-rank-3 .rec-rank { color: var(--medal-bronze); }
+#recordsView .rec1-table .thumb-cell { width: 64px; padding: 0.45rem 0.4rem !important; }
+#recordsView .rec1-table .rec-name { font-size: 0.92rem; font-weight: 600; }
+#recordsView .rec1-table .rec-sub { color: var(--text2); }
+
+.rec1-when-cell { width: 34%; min-width: 200px; }
+.rec1-bar {
+  display: flex;
+  gap: 2px;
+  height: 8px;
+  border-radius: 5px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--text) 9%, transparent);
+}
+.rec1-bar i { flex: 1; background: var(--accent); }
+.rec1-bar i.is-off { background: transparent; }
+.rec1-bar.is-solid i { flex: none; border-radius: 5px; }
+.rec1-tl {
+  position: relative;
+  height: 10px;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--text) 9%, transparent);
+}
+.rec1-tl i {
+  position: absolute;
+  top: 1px;
+  width: 4px;
+  height: 8px;
+  margin-left: -2px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+.rec1-range { margin-top: 6px; font-size: var(--fs-xs, 0.75rem); color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rec1-range .rec-date-link { color: inherit; text-decoration: none; }
+.rec1-range .rec-date-link:hover { color: var(--accent); text-decoration: underline; }
+
+#recordsView .rec1-table .rec1-count { text-align: right; white-space: nowrap; width: 92px; }
+.rec1-count b { display: block; font-family: var(--font-display); font-weight: 800; font-size: 1.4rem; line-height: 1; color: var(--text); }
+.rec1-count span { display: block; margin-top: 2px; font-size: 0.72rem; color: var(--text3); }
+#recordsView .rec1-table .rec-rank-1 .rec1-count b { color: var(--medal-gold); }
+
+#recordsView .rec1-table .rec-run-toggle-btn { border-color: transparent; width: 28px; height: 28px; border-radius: 8px; }
+#recordsView .rec1-table .rec-run-toggle-btn:hover,
+#recordsView .rec1-table .rec-run-toggle-btn.active { border-color: var(--border); color: var(--text); }
+#recordsView .rec1-table .rec-expand-all-btn { opacity: .7; }
+
+/* Sort menu, at the end of the switch row. */
+.rec1-wrap > .rec1-sort { order: 4; margin-left: auto; position: relative; }
+.rec1-sort-btn { gap: 6px; }
+.rec1-sort-btn b { font-weight: 600; color: var(--text); }
+.rec1-sort-caret { color: var(--text3); font-size: 0.7em; }
+.rec1-sort-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 20;
+  min-width: 190px;
+  padding: 6px;
+  border-radius: 12px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-3, 0 12px 30px rgba(0, 0, 0, .3));
+}
+.rec1-sort-menu[hidden] { display: none; }
+.rec1-sort-menu button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: var(--fs-sm);
+  cursor: pointer;
+}
+.rec1-sort-menu button:hover { background: var(--hover); }
+.rec1-sort-menu button[aria-checked="true"] { color: var(--accent); font-weight: 600; }
+#recordsView.rec-searching .rec1-sort,
+#recordsView.rec-searching .rec1-foot-note { display: none; }
+
+/* Foot: how many rows show, and the Show switch moved here from the header. */
+.rec1-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; margin-top: var(--sp-4, 1rem); }
+.rec1-foot-note { font-size: var(--fs-sm); color: var(--text3); }
+.rec1-foot-note:empty { display: none; }
+.rec1-foot-show #recordsSizeBar { margin: 0; }
+
+/* Phones (by the panel's width): each row is two lines, rank and cover on
+   the left, name and count on top, the strip and dates under them. A tap on
+   the row opens its boxes, so the ▶ column goes. */
+@container (max-width: 640px) {
+  #recordsView .rec1-table,
+  #recordsView .rec1-table tbody { display: block; }
+  #recordsView .rec1-table thead { display: none; }
+  #recordsView .rec1-table tbody tr:not(.rec-run-detail) {
+    display: grid;
+    grid-template-columns: 28px 48px minmax(0, 1fr) auto;
+    grid-template-areas: "rk cv nm ct" "rk cv wh wh";
+    column-gap: 10px;
+    row-gap: 6px;
+    align-items: center;
+    padding: 10px 2px;
+    border-bottom: 1px solid var(--border-t);
+  }
+  #recordsView .rec1-table tbody td { border: 0; padding: 0 !important; width: auto; min-width: 0; }
+  #recordsView .rec1-table .rec-rank { grid-area: rk; width: auto; font-size: 1rem; }
+  #recordsView .rec1-table .thumb-cell { grid-area: cv; }
+  #recordsView .rec1-table tbody td:nth-child(3) { grid-area: nm; }
+  #recordsView .rec1-table .rec1-when-cell { grid-area: wh; }
+  #recordsView .rec1-table .rec1-count { grid-area: ct; width: auto; }
+  #recordsView .rec1-table .rec1-count b { font-size: 1.15rem; }
+  #recordsView .rec1-table .rec-run-toggle-cell { display: none; }
+  #recordsView .rec1-table tr.rec-run-detail.open { display: block; }
+  #recordsView .rec1-table tr.rec-run-detail td { display: block; padding: 4px 0 12px !important; }
+}

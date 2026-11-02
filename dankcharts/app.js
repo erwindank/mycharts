@@ -8750,7 +8750,7 @@ function buildRecords() {
           + '<div class="rec1-when">' + esc(when) + '</div>'
           + boxes
           + '<div class="rec1-acts">' + sample
-          + '<button type="button" class="dc-btn dc-btn-sm rec1-details" onclick="' + open + '">' + esc(t('ea_details')) + '</button></div>'
+          + '<button type="button" class="dc-btn dc-btn-normal rec1-details" onclick="' + open + '">' + esc(t('ea_details')) + '</button></div>'
           + '</div></article>';
       }
       return '<article class="rec1-runner rec1-runner-' + (i + 1) + '"' + ea + '>'
@@ -8769,6 +8769,63 @@ function buildRecords() {
       + '</div>';
     return { html: html, imgs: imgs };
   }
+
+  /* The All #1s list (phase 20 step 3). The table stays a table (search, the
+     row limit, sorting and the hero reel all read its rows), but a row now
+     reads like Stats' top list: one "when" cell with a strip that carries the
+     scale and a short linked date line, then the count big on the right.
+     The old date columns are still built, hidden (.rec1-hcol), so the reel
+     keeps naming "First at #1" and a rebuild can put back a sort on them. */
+  const REC1_KEYS = { day: dayKeys, week: weekKeys, month: monthKeys, year: yearKeys };
+  const rec1KeyIdx = {};
+  function rec1Pos(pt, pk) {
+    if (!rec1KeyIdx[pt]) {
+      rec1KeyIdx[pt] = {};
+      REC1_KEYS[pt].forEach(function (k, i) { rec1KeyIdx[pt][k] = i; });
+    }
+    const i = rec1KeyIdx[pt][pk], n = REC1_KEYS[pt].length;
+    return i === undefined ? null : (n > 1 ? i / (n - 1) : 0.5);
+  }
+  function rec1Link(pt, pk, text) {
+    return '<a href="#chart/' + pt + '/' + pk + '" class="rec-date-link" onclick="event.preventDefault();navigateToRecPeriod(\'' + pt + '\',\'' + pk + '\')">' + esc(text) + '</a>';
+  }
+  // A period key as a sortable number: "2023-08-06" → 20230806.
+  const rec1Num = function (pk) { return String(pk || '').replace(/-/g, ''); };
+  /* In a row: one segment per period, against the longest run in the table,
+     so 2 next to 3 is visibly two thirds. Past 24 segments they would be
+     slivers, so it turns into a plain bar. */
+  function rec1WhenConsec(pt, st, max) {
+    let bar = '';
+    if (max <= 24) {
+      bar = '<div class="rec1-bar" aria-hidden="true">';
+      for (let k = 0; k < max; k++) bar += '<i' + (k < st.len ? '' : ' class="is-off"') + '></i>';
+      bar += '</div>';
+    } else {
+      bar = '<div class="rec1-bar is-solid" aria-hidden="true"><i style="width:' + Math.max(3, Math.round(st.len / max * 100)) + '%"></i></div>';
+    }
+    return '<td class="rec1-when-cell" data-sort="' + rec1Num(st.end) + '">' + bar
+      + '<div class="rec1-range">' + rec1Link(pt, st.start, recRangeText(st.start, st.end, pt)) + '</div></td>';
+  }
+  /* Total: where each #1 fell on the line from the first chart to the latest,
+     so a comeback shows as a gap and a reign as a cluster. */
+  function rec1WhenTotal(pt, d) {
+    let tl = '<div class="rec1-tl" aria-hidden="true">';
+    d.periods.forEach(function (pk) {
+      const x = rec1Pos(pt, pk);
+      if (x !== null) tl += '<i style="left:' + (x * 100).toFixed(2) + '%"></i>';
+    });
+    tl += '</div>';
+    const line = d.firstPeriod === d.lastPeriod
+      ? rec1Link(pt, d.firstPeriod, crPeriodTitle(pt, d.firstPeriod))
+      : t('rec1_first_last', { a: rec1Link(pt, d.firstPeriod, recPeriodShort(pt, d.firstPeriod)), b: rec1Link(pt, d.lastPeriod, recPeriodShort(pt, d.lastPeriod)) });
+    return '<td class="rec1-when-cell" data-sort="' + rec1Num(d.lastPeriod) + '">' + tl + '<div class="rec1-range">' + line + '</div></td>';
+  }
+  function rec1CountCell(pt, n) {
+    const unitKey = pt === 'day' ? 'days' : pt === 'week' ? 'weeks_full' : pt === 'month' ? 'months' : 'years';
+    return '<td class="rec-count rec1-count" data-sort="' + n + '"><b>' + n.toLocaleString() + '</b> <span>' + esc(tUnit(unitKey, n)) + '</span></td>';
+  }
+  // Marks a header whose column is kept but not shown (see .rec1-hcol).
+  const rec1Hidden = function (label) { return '<span class="rec1-hmark"></span>' + label; };
 
   // ── All #1s ──────────────────────────────────────────────────
   /* `label` is the full chart name ("Weekly Chart") the record titles are built
@@ -8824,6 +8881,7 @@ function buildRecords() {
      count. Built here, where the ranked entries are in hand, and swapped in by
      rec1SyncStory() whenever a switch changes. */
   _rec1Stories = {};
+  _rec1Totals = {};
   for (const ent of entityConfig) {
     const perScope = 'ones-' + ent.key;
     // A segmented switch like the type pills beside it, so both sit in one row.
@@ -8853,6 +8911,7 @@ function buildRecords() {
         + ent.icon + ' ' + ent.label + ' &mdash; ' + t('rec_most_times_1_on', { period: cfg.label })
         + ' ' + t('rec_suffix_non_consec') + '</div>';
       _rec1Stories[ent.key + '|' + cfg.pt + '|total'] = rec1Story(ent, cfg, entries, 'total');
+      _rec1Totals[ent.key + '|' + cfg.pt + '|total'] = entries.length;
       const tableId = 'rec-1s-tbl-' + ent.key + '-' + cfg.pt;
       const runBaseId = 'rec-1s-run-' + ent.key + '-' + cfg.pt;
       // The podium needs a fourth row for the table to go on with, and a
@@ -8863,8 +8922,8 @@ function buildRecords() {
         }), 'total', tableId)
         : null;
       if (podT) h += podT.html;
-      const headers = ['#', '', ent.label, periodAtOneHeader(cfg.pt), t('rec_th_first_at_1')];
-      if (cfg.pt !== 'year') headers.push(t('rec_th_date_at_peak'));
+      const headers = ['#', '', ent.label, t('rec1_th_when_total'), periodAtOneHeader(cfg.pt), rec1Hidden(t('rec_th_first_at_1'))];
+      if (cfg.pt !== 'year') headers.push(rec1Hidden(t('rec_th_date_at_peak')));
       // Same glyph family as the Appearances tables — one "expand all" action,
       // one pair of glyphs (▶▶ closed / ▼▼ open) everywhere in Records.
       headers.push('<button class="rec-expand-all-btn" onclick="event.stopPropagation();toggleAllRecRuns(\'' + tableId + '\',this)" title="' + t('rec_expand_all') + '">▶▶</button>');
@@ -8872,9 +8931,10 @@ function buildRecords() {
         entries.map(function (e, i) {
           const imgId = 'rec-img-' + ent.key + '-' + cfg.pt + '-' + i;
           const runId = runBaseId + '-' + i;
-          let row = ent.nameRow(e[0], e[1], i, imgId) + '<td class="rec-count">' + e[1].count + '</td><td class="rec-meta">' + fmtPeriodKey(e[1].firstPeriod, cfg.pt) + '</td>';
+          let row = ent.nameRow(e[0], e[1], i, imgId) + rec1WhenTotal(cfg.pt, e[1]) + rec1CountCell(cfg.pt, e[1].count)
+            + '<td class="rec-meta rec1-hcol">' + fmtPeriodKey(e[1].firstPeriod, cfg.pt) + '</td>';
           if (cfg.pt !== 'year') {
-            row += '<td class="rec-meta"><a href="#chart/' + cfg.pt + '/' + e[1].lastPeriod + '" class="rec-date-link" onclick="event.preventDefault();navigateToRecPeriod(\'' + cfg.pt + '\',\'' + e[1].lastPeriod + '\')">' + fmtPeriodKey(e[1].lastPeriod, cfg.pt) + '</a></td>';
+            row += '<td class="rec-meta rec1-hcol">' + fmtPeriodKey(e[1].lastPeriod, cfg.pt) + '</td>';
           }
           row += '<td class="rec-run-toggle-cell"><button class="rec-run-toggle-btn" onclick="event.stopPropagation();toggleRecRun(this,\'' + runId + '\')">▶</button></td>';
           return row;
@@ -8943,21 +9003,23 @@ function buildRecords() {
         + ent.icon + ' ' + ent.label + ' &mdash; ' + t('rec_most_times_1_on', { period: cfg.label })
         + ' ' + t('rec_suffix_consec') + '</div>';
       _rec1Stories[ent.key + '|' + cfg.pt + '|consec'] = rec1Story(ent, cfg, streakRows, 'consec');
+      _rec1Totals[ent.key + '|' + cfg.pt + '|consec'] = streakRows.length;
       if (podC) h += podC.html;
       // A streak has a start and an end rather than a "first at #1" and a peak
       // date, so the two middle columns are its own — on the yearly chart too,
       // where the total table drops its last column.
-      const cHeaders = ['#', '', ent.label, consecAtOneHeader(cfg.pt), t('rec_th_streak_start'), t('rec_th_streak_end'),
+      const cMax = streakRows.length ? streakRows[0].streak.len : 1;
+      const cHeaders = ['#', '', ent.label, t('rec1_th_reign'), consecAtOneHeader(cfg.pt), rec1Hidden(t('rec_th_streak_start')), rec1Hidden(t('rec_th_streak_end')),
         '<button class="rec-expand-all-btn" onclick="event.stopPropagation();toggleAllRecRuns(\'' + cTableId + '\',this)" title="' + t('rec_expand_all') + '">▶▶</button>'];
       h += recTable(cHeaders,
         streakRows.map(function (s, i) {
           const imgId = 'rec-1sc-img-' + ent.key + '-' + cfg.pt + '-' + i;
           const runId = cRunBaseId + '-' + i;
           const dateCell = function (pk) {
-            return '<td class="rec-meta"><a href="#chart/' + cfg.pt + '/' + pk + '" class="rec-date-link" onclick="event.preventDefault();navigateToRecPeriod(\'' + cfg.pt + '\',\'' + pk + '\')">' + fmtPeriodKey(pk, cfg.pt) + '</a></td>';
+            return '<td class="rec-meta rec1-hcol">' + fmtPeriodKey(pk, cfg.pt) + '</td>';
           };
           return ent.nameRow(s.e[0], s.e[1], i, imgId)
-            + '<td class="rec-count">' + s.streak.len + '</td>'
+            + rec1WhenConsec(cfg.pt, s.streak, cMax) + rec1CountCell(cfg.pt, s.streak.len)
             + dateCell(s.streak.start) + dateCell(s.streak.end)
             + '<td class="rec-run-toggle-cell"><button class="rec-run-toggle-btn" onclick="event.stopPropagation();toggleRecRun(this,\'' + runId + '\')">▶</button></td>';
         }),
@@ -11419,6 +11481,8 @@ function recRowDetails(row, name, artist) {
     // control, and its header holds the "expand all" glyph rather than a label.
     if (td.classList.contains('rec-rank') || td.classList.contains('thumb-cell')) continue;
     if (td.classList.contains('rec-run-toggle-cell') || td.querySelector('button')) continue;
+    // All #1s' strip + date line: the same dates sit in its hidden columns.
+    if (td.classList.contains('rec1-when-cell')) continue;
 
     // The cell that names the record's subject is already the card's title.
     const nameEl = td.querySelector('.rec-name');
@@ -12043,6 +12107,7 @@ function applyRecSort(table, colIndex, dir) {
   // telling the truth and can come back; any other sort retires it.
   if (colIndex === 0 && dir === 'asc') restorePodium(table);
   else standDownPodium(table);
+  if (table.classList.contains('rec1-table')) rec1SortSync();
 }
 
 /* A podium shows a table's canonical top three and hides those three rows so
@@ -12150,7 +12215,7 @@ function tagRecCellLabels() {
     /* .rec-cards is what the card-layout media query keys off, and opting a
        table out is a matter of not adding it. The New Songs debut table has
        its own phone layout, built to the podium's anatomy, so it opts out. */
-    if (!table.classList.contains('nc-sd-table')) table.classList.add('rec-cards');
+    if (!table.classList.contains('nc-sd-table') && !table.classList.contains('rec1-table')) table.classList.add('rec-cards');
     const labels = Array.from(table.querySelectorAll('thead th')).map(function (th) {
       /* The header carries furniture the label must not: the sort caret this
          column may have picked up, and the column-resize grip. A <br> is a
@@ -12242,6 +12307,7 @@ function applyRecordsLimitChange() {
        that — otherwise the build guard would see a changed limit next time the
        tab is opened and rebuild everything for a change already applied. */
     _recBuiltKey = _recBuildKey();
+    rec1SyncStory(); // the "Showing 25 of 358" line under All #1s
     return;
   }
   const sorts = captureRecSortState();
@@ -12664,7 +12730,11 @@ function applyRecordsViewFilter(view) {
   // for it to act on.
   const sizeBar = document.getElementById('recordsSizeBar');
   if (sizeBar) {
-    const hdr = view !== 'recOverviewSection' ? document.querySelector('#' + view + ' > .section-header') : null;
+    // All #1s (phase 20) keeps it at the foot of the list, under the rows it
+    // counts; the other sections keep it on their heading line.
+    const hdr = view !== 'recOverviewSection'
+      ? (document.querySelector('#' + view + ' .rec1-foot-show') || document.querySelector('#' + view + ' > .section-header'))
+      : null;
     if (hdr && sizeBar.parentNode !== hdr) hdr.appendChild(sizeBar);
     sizeBar.style.display = hdr ? '' : 'none';
   }
@@ -13101,7 +13171,97 @@ function rec1SyncStory() {
   const pt = recPerTabState('ones-' + ent, pers);
   const mode = sec.dataset.recRun === 'consec' ? 'consec' : 'total';
   box.innerHTML = _rec1Stories[ent + '|' + pt + '|' + mode] || '';
+  // "Showing 25 of 358" beside the Show switch at the foot.
+  const note = document.getElementById('rec1FootNote');
+  if (note) {
+    const total = _rec1Totals[ent + '|' + pt + '|' + mode] || 0;
+    const shown = recLimit === 0 ? total : Math.min(recLimit, total);
+    note.textContent = !total ? '' : shown >= total
+      ? t('rec1_showing_all', { total: total.toLocaleString() })
+      : t('rec1_showing', { n: shown.toLocaleString(), total: total.toLocaleString() });
+  }
+  rec1SortSync();
 }
+let _rec1Totals = {};
+
+/* ── All #1s Sort menu (phase 20 step 3) ──────────────────────────────
+   The column headers still sort, but on a phone they are hidden and on a
+   desktop the dates live in one cell, so the common orders get a menu. Each
+   choice is an ordinary column sort (applyRecSort), so a rebuild puts it back
+   and the podium steps aside and returns exactly as it does for a header. */
+const REC1_SORTS = {
+  rank: { col: 'rank', dir: 'asc' },
+  recent: { col: 'when', dir: 'desc' },
+  oldest: { col: 'when', dir: 'asc' },
+  name: { col: 'name', dir: 'asc' },
+};
+function rec1VisibleTable() {
+  return Array.from(document.querySelectorAll('#recAllOnesSection .rec1-table')).find(function (tb) { return tb.offsetParent; }) || null;
+}
+function rec1ColIndex(table, col) {
+  if (col === 'rank') return 0;
+  if (col === 'name') return 2;
+  const row = table.tBodies[0] && table.tBodies[0].rows[0];
+  return row ? Array.from(row.cells).findIndex(function (c) { return c.classList.contains('rec1-when-cell'); }) : -1;
+}
+function rec1SortSync() {
+  const lbl = document.getElementById('rec1SortLbl');
+  const menu = document.getElementById('rec1SortMenu');
+  const table = rec1VisibleTable();
+  if (!lbl || !menu || !table) return;
+  const ths = Array.from(table.querySelectorAll('thead th'));
+  const on = ths.findIndex(function (th) { return !!th.dataset.sortDir; });
+  let key = on === -1 ? 'rank' : '';
+  if (!key) {
+    const dir = ths[on].dataset.sortDir;
+    Object.keys(REC1_SORTS).forEach(function (k) {
+      if (!key && rec1ColIndex(table, REC1_SORTS[k].col) === on && REC1_SORTS[k].dir === dir) key = k;
+    });
+  }
+  menu.querySelectorAll('[data-rec1-sort]').forEach(function (b) {
+    b.setAttribute('aria-checked', b.dataset.rec1Sort === key ? 'true' : 'false');
+  });
+  // A header sort the menu has no name for shows that column's own name.
+  lbl.textContent = key ? t('rec1_sort_' + key)
+    : recThText(ths[on]).trim() + (ths[on].dataset.sortDir === 'asc' ? ' ▲' : ' ▼');
+}
+function rec1SortOpen(open) {
+  const btn = document.getElementById('rec1SortBtn');
+  const menu = document.getElementById('rec1SortMenu');
+  if (!btn || !menu) return;
+  menu.hidden = !open;
+  btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+document.addEventListener('click', function (e) {
+  const btn = e.target.closest('#rec1SortBtn');
+  if (btn) { rec1SortOpen(btn.getAttribute('aria-expanded') !== 'true'); return; }
+  const pick = e.target.closest('#rec1SortMenu [data-rec1-sort]');
+  if (pick) {
+    const table = rec1VisibleTable();
+    const how = REC1_SORTS[pick.dataset.rec1Sort];
+    if (table && how) {
+      const idx = rec1ColIndex(table, how.col);
+      if (idx >= 0) applyRecSort(table, idx, how.dir);
+    }
+    rec1SortOpen(false);
+    return;
+  }
+  if (!e.target.closest('#rec1SortMenu')) rec1SortOpen(false);
+});
+document.addEventListener('keydown', function (e) {
+  if (e.key !== 'Escape') return;
+  const btn = document.getElementById('rec1SortBtn');
+  if (btn && btn.getAttribute('aria-expanded') === 'true') { rec1SortOpen(false); btn.focus(); }
+});
+
+/* A click anywhere on an All #1s row opens its run of #1 boxes, as the ▶ at
+   its end does, unless it landed on something with a job of its own. */
+document.addEventListener('click', function (e) {
+  const row = e.target.closest('#recAllOnesSection .rec1-table tbody tr:not(.rec-run-detail)');
+  if (!row || e.target.closest('a, button, .thumb-cell, input')) return;
+  const tog = row.querySelector('.rec-run-toggle-btn');
+  if (tog) tog.click();
+});
 
 document.addEventListener('click', function (e) {
   const btn = e.target.closest('#recordsView .rec-per-tab');

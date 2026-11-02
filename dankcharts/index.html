@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=839">
+  <link rel="stylesheet" href="style.css?v=840">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=295"></script>
+  <script defer src="translations.js?v=296"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -1911,8 +1911,23 @@
             <button type="button" data-rec-run="total" aria-pressed="true" data-i18n="rec_run_total">Total</button>
             <button type="button" data-rec-run="consec" aria-pressed="false" data-i18n="rec_run_consec">In a row</button>
           </div>
+          <!-- Sort: the common orders as one menu (rec1SortSync in app.js). -->
+          <div class="rec1-sort">
+            <button type="button" class="dc-btn dc-btn-normal rec1-sort-btn" id="rec1SortBtn" aria-haspopup="true"
+              aria-expanded="false" aria-controls="rec1SortMenu"><span data-i18n="rec1_sort">Sort</span>
+              <b id="rec1SortLbl">Rank</b><span class="rec1-sort-caret" aria-hidden="true">▾</span></button>
+            <div class="rec1-sort-menu" id="rec1SortMenu" role="menu" hidden>
+              <button type="button" role="menuitemradio" aria-checked="true" data-rec1-sort="rank" data-i18n="rec1_sort_rank">Rank</button>
+              <button type="button" role="menuitemradio" aria-checked="false" data-rec1-sort="recent" data-i18n="rec1_sort_recent">Most recent</button>
+              <button type="button" role="menuitemradio" aria-checked="false" data-rec1-sort="oldest" data-i18n="rec1_sort_oldest">Oldest first</button>
+              <button type="button" role="menuitemradio" aria-checked="false" data-rec1-sort="name" data-i18n="rec1_sort_name">Name A–Z</button>
+            </div>
+          </div>
           <div class="section-body" id="recAllOnesBody"></div>
         </div>
+        <!-- Under the list: how many rows show, and the Show switch, which
+             applyRecordsViewFilter moves into .rec1-foot-show. -->
+        <div class="rec1-foot"><span class="rec1-foot-note" id="rec1FootNote"></span><span class="rec1-foot-show"></span></div>
       </div>
 
       <div class="chart-section" id="recPAKSection">
@@ -4318,7 +4333,7 @@
   <!-- One behaviour and one icon set for every pop-up window (phase 10); before
        app.js so dcIco() is there when app.js draws a window -->
   <script defer src="popups.js?v=12"></script>
-  <script defer src="app.js?v=601"></script>
+  <script defer src="app.js?v=603"></script>
   <!-- The song / album / artist details side panel (phase 10 step 3); wraps app.js's open functions -->
   <script defer src="panel.js?v=16"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
