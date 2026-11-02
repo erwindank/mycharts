@@ -11217,15 +11217,43 @@
     .sx-row2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; margin-bottom: 1.25rem; }
     .sx-row2 > .graph-card { margin-bottom: 0; }
     @media (max-width: 640px) { .sx-row2 { grid-template-columns: 1fr; } }
-    .sx-clock svg { display: block; width: 100%; max-width: 300px; margin: var(--sp-2) auto 0; overflow: visible; }
-    .sx-clock-ring { fill: none; stroke: var(--rule); }
-    .sx-clock-bar { fill: var(--accent); opacity: var(--o, 1); cursor: pointer; transition: opacity .15s; }
-    .sx-clock-bar.is-peak { fill: var(--gold1); opacity: 1; }
+    /* Listening clock (phase 19 step 3): wedges on a faint track, hour ticks,
+       an arc per part of the day (the busiest lit), the busiest hour in the
+       accent with a soft glow, a hub in the middle. */
+    .sx-clock svg { display: block; width: 100%; max-width: 360px; margin: 0 auto; overflow: visible; }
+    .sx-clock-track { fill: none; stroke: color-mix(in srgb, var(--accent) 6%, transparent); }
+    .sx-clock-part { fill: none; stroke: var(--border2); stroke-width: 2; stroke-linecap: round; }
+    .sx-clock-part.is-top { stroke: var(--accent); stroke-width: 4; }
+    .sx-clock-tick { stroke: var(--border2); stroke-width: 1; stroke-linecap: round; }
+    .sx-clock-tick.is-big { stroke: var(--text2); stroke-width: 1.5; }
+    .sx-clock-bar {
+      fill: var(--accent); opacity: var(--o, 1); cursor: pointer;
+      stroke: var(--bg2); stroke-width: 1; transition: opacity .15s, filter .15s;
+    }
+    .sx-clock-bar.is-peak { opacity: 1; filter: drop-shadow(0 0 5px color-mix(in srgb, var(--accent) 55%, transparent)); }
     .sx-clock-bar:hover, .sx-clock-bar.is-picked { opacity: 1; stroke: var(--text); stroke-width: 1.5; }
     .sx-clock-bar:focus-visible { outline: none; stroke: var(--accent); stroke-width: 2.5; }
-    .sx-clock-lbl { fill: var(--text3); font: 11px var(--font-mono); text-anchor: middle; }
-    .sx-clock-mid { fill: var(--text); font: 700 17px var(--font-display); text-anchor: middle; }
-    .sx-clock-mid-sub { fill: var(--text3); font: 10.5px var(--font-sans); text-anchor: middle; }
+    .sx-clock-lbl { fill: var(--text2); font: 600 11px var(--font-sans); }
+    .sx-clock-hub { fill: var(--bg2); stroke: var(--border); }
+    .sx-clock-mid { fill: var(--text); font: 700 19px var(--font-display); text-anchor: middle; }
+    .sx-clock-mid-sub { fill: var(--text2); font: 10.5px var(--font-sans); text-anchor: middle; }
+    /* The parts of the day under the clock */
+    /* Two by two; four in a row once the card is wide enough (container query) */
+    .sx-clock-card { container-type: inline-size; }
+    .sx-parts { list-style: none; margin: var(--sp-4) 0 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-2); }
+    @container (min-width: 620px) { .sx-parts { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+    .sx-parts li {
+      display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 2px 6px; min-width: 0;
+      padding: var(--sp-2) var(--sp-3); border: 1px solid var(--border); border-radius: var(--r-md);
+    }
+    .sx-parts li.is-top { border-color: color-mix(in srgb, var(--accent) 55%, var(--border)); background: color-mix(in srgb, var(--accent) 7%, transparent); }
+    .sx-part-e { font-size: 1rem; line-height: 1; }
+    .sx-part-n { font-size: var(--fs-xs); font-weight: 600; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sx-parts b { grid-column: 1 / -1; font-family: var(--font-display); font-size: 1.2rem; font-weight: 700; line-height: 1.2; font-variant-numeric: tabular-nums; }
+    .sx-parts li.is-top b { color: var(--accent); }
+    .sx-part-m { grid-column: 1 / -1; height: 4px; border-radius: 2px; background: color-mix(in srgb, var(--accent) 10%, transparent); overflow: hidden; }
+    .sx-part-m i { display: block; height: 100%; border-radius: 2px; background: var(--accent); }
+    .sx-part-h { grid-column: 1 / -1; font-size: 10.5px; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .sx-week { display: flex; flex-direction: column; gap: 0.35rem; margin-top: var(--sp-3); }
     .sx-week-row {
       display: grid; grid-template-columns: 3.2rem minmax(0, 1fr) 3rem; gap: var(--sp-2); align-items: center;

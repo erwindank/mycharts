@@ -1270,6 +1270,19 @@ function _sxDayLabel(d, long) {
   // 2023-01-01 was a Sunday, so day d is Jan 1 + d
   return new Date(2023, 0, 1 + d).toLocaleDateString(locale, { weekday: long ? 'long' : 'short' });
 }
+// Parts of the day: key, emoji, from hour, to hour (to is not included).
+// The same split as Compare's habits strip.
+const SX_DAY_PARTS = [['morning', '🌅', 5, 12], ['afternoon', '☀️', 12, 17], ['evening', '🌆', 17, 21], ['night', '🌙', 21, 5]];
+/* The clock's middle: the busiest hour, or hour h (pointed at or tapped)
+   with its plays and share */
+function _sxClockMid(h) {
+  const w = _sxWhen, mid = document.querySelector('#sxClock .sx-clock-mid'), sub = document.querySelector('#sxClock .sx-clock-mid-sub');
+  if (!w || !mid || !sub) return;
+  if (!w.total) { mid.textContent = '–'; sub.textContent = ''; return; }
+  if (h == null) { mid.textContent = _sxHourLabel(w.peak); sub.textContent = t('sx_clock_peak'); return; }
+  mid.textContent = _sxHourLabel(h);
+  sub.textContent = t('sx_n_plays').replace('{n}', w.hours[h].toLocaleString()) + ' · ' + Math.round(w.hours[h] / w.total * 100) + '%';
+}
 const _sxTop = m => { let best = null, n = 0; m.forEach((c, a) => { if (c > n) { n = c; best = a; } }); return best; };
 
 function sxRenderWhen() {
@@ -1296,32 +1309,69 @@ function sxRenderWhen() {
     for (; d.getTime() <= toTs; d.setDate(d.getDate() + 1)) nDays[d.getDay()]++;
   }
   const avg = days.map((n, i) => nDays[i] ? n / nDays[i] : 0);
-  _sxWhen = { hours, total, avg, hourArt, dayArt };
+  _sxWhen = { hours, total, avg, hourArt, dayArt, picked: null };
 
-  // ── The clock: 24 wedges, longer = more plays; 12 am at the top ──
-  const cx = 150, cy = 150, r0 = 46, r1 = 128, max = Math.max(...hours, 1);
+  /* ── The clock (phase 19 step 3): 24 wedges on a faint track, longer and
+     stronger = more plays, 12 am at the top. Round it: a tick per hour,
+     four labels set clear of the ring, and an arc per part of the day
+     (the busiest part lit). The middle names the busiest hour, or the
+     hour under the pointer (_sxClockMid). ── */
+  const cx = 160, cy = 160, r0 = 52, r1 = 120, max = Math.max(...hours, 1);
   const peak = hours.indexOf(Math.max(...hours));
   const low = hours.indexOf(Math.min(...hours));
+  const ang = h => h / 24 * 2 * Math.PI - Math.PI / 2;
   const pt = (a, r) => (cx + Math.cos(a) * r).toFixed(1) + ',' + (cy + Math.sin(a) * r).toFixed(1);
-  let svg = `<svg viewBox="0 0 300 300" role="group" aria-label="${esc(t('sx_clock_title'))}">`;
-  svg += `<circle class="sx-clock-ring" cx="${cx}" cy="${cy}" r="${r0 + (r1 - r0) / 2}"/><circle class="sx-clock-ring" cx="${cx}" cy="${cy}" r="${r1}"/>`;
+  const arc = (a0, a1, r) => `M${pt(a0, r)} A${r},${r} 0 ${a1 - a0 > Math.PI ? 1 : 0} 1 ${pt(a1, r)}`;
+  // Parts of the day, as in Compare's habits: hours [from, to)
+  const parts = SX_DAY_PARTS.map(([key, emoji, from, to]) => {
+    let n = 0;
+    for (let h = from; h !== to; h = (h + 1) % 24) n += hours[h];
+    return { key, emoji, from, to, n };
+  });
+  const topPart = parts.reduce((m, x) => x.n > m.n ? x : m, parts[0]);
+  let svg = `<svg viewBox="-30 0 380 320" role="group" aria-label="${esc(t('sx_clock_title'))}">`;
+  svg += `<circle class="sx-clock-track" cx="${cx}" cy="${cy}" r="${(r0 + r1) / 2}" stroke-width="${r1 - r0}"/>`;
+  parts.forEach(x => {
+    const a0 = ang(x.from) + 0.03, a1 = ang(x.to < x.from ? x.to + 24 : x.to) - 0.03;
+    svg += `<path class="sx-clock-part${x === topPart && total ? ' is-top' : ''}" d="${arc(a0, a1, r1 + 9)}"/>`;
+  });
+  for (let h = 0; h < 24; h++) {
+    const big = h % 6 === 0, a = ang(h);
+    svg += `<line class="sx-clock-tick${big ? ' is-big' : ''}" x1="${(cx + Math.cos(a) * (r1 + 15)).toFixed(1)}" y1="${(cy + Math.sin(a) * (r1 + 15)).toFixed(1)}"` +
+      ` x2="${(cx + Math.cos(a) * (r1 + (big ? 21 : 18))).toFixed(1)}" y2="${(cy + Math.sin(a) * (r1 + (big ? 21 : 18))).toFixed(1)}"/>`;
+  }
   hours.forEach((n, h) => {
-    const a0 = h / 24 * 2 * Math.PI - Math.PI / 2 + 0.018, a1 = (h + 1) / 24 * 2 * Math.PI - Math.PI / 2 - 0.018;
-    const r = r0 + (r1 - r0) * (n / max);
+    const a0 = ang(h) + 0.02, a1 = ang(h + 1) - 0.02;
+    // A quiet hour keeps a short stub, so the ring never has a hole
+    const r = r0 + 3 + (r1 - r0 - 3) * Math.max(n / max, 0.04);
     const lbl = `${_sxHourLabel(h)}: ${n.toLocaleString()}`;
-    svg += `<path class="sx-clock-bar${h === peak ? ' is-peak' : ''}" data-h="${h}" tabindex="0" role="button" aria-label="${esc(lbl)}" style="--o:${(0.4 + 0.6 * n / max).toFixed(2)}"` +
-      ` d="M${pt(a0, r0)} L${pt(a0, r)} A${r},${r} 0 0 1 ${pt(a1, r)} L${pt(a1, r0)} A${r0},${r0} 0 0 0 ${pt(a0, r0)}Z"><title>${esc(lbl)}</title></path>`;
+    svg += `<path class="sx-clock-bar${h === peak && total ? ' is-peak' : ''}" data-h="${h}" tabindex="0" role="button" aria-label="${esc(lbl)}" style="--o:${(0.3 + 0.7 * n / max).toFixed(2)};--i:${h}"` +
+      ` d="M${pt(a0, r0 + 3)} L${pt(a0, r)} A${r},${r} 0 0 1 ${pt(a1, r)} L${pt(a1, r0 + 3)} A${r0 + 3},${r0 + 3} 0 0 0 ${pt(a0, r0 + 3)}Z"></path>`;
   });
+  // Labels: right side starts at the point, left side ends there
   [0, 6, 12, 18].forEach(h => {
-    const a = h / 24 * 2 * Math.PI - Math.PI / 2;
-    svg += `<text class="sx-clock-lbl" x="${(cx + Math.cos(a) * 141).toFixed(1)}" y="${(cy + Math.sin(a) * 141 + 4).toFixed(1)}">${esc(_sxHourLabel(h))}</text>`;
+    const a = ang(h), x = cx + Math.cos(a) * (r1 + 28), y = cy + Math.sin(a) * (r1 + 28);
+    const anchor = h === 6 ? 'start' : h === 18 ? 'end' : 'middle';
+    svg += `<text class="sx-clock-lbl" text-anchor="${anchor}" x="${x.toFixed(1)}" y="${(y + (h === 0 ? -1 : h === 12 ? 9 : 4)).toFixed(1)}">${esc(_sxHourLabel(h))}</text>`;
   });
-  svg += `<text class="sx-clock-mid" x="${cx}" y="${cy + 2}">${esc(total ? _sxHourLabel(peak) : '–')}</text>` +
-    `<text class="sx-clock-mid-sub" x="${cx}" y="${cy + 18}">${esc(t('sx_clock_peak'))}</text></svg>`;
+  svg += `<circle class="sx-clock-hub" cx="${cx}" cy="${cy}" r="${r0 - 2}"/>` +
+    `<text class="sx-clock-mid" x="${cx}" y="${cy + 1}"></text>` +
+    `<text class="sx-clock-mid-sub" x="${cx}" y="${cy + 18}"></text></svg>`;
   clock.innerHTML = svg;
+  _sxWhen.peak = peak;
+  _sxClockMid(null);
   document.getElementById('sxClockNote').textContent = total
     ? t('sx_clock_note').replace('{peak}', _sxHourLabel(peak)).replace('{pct}', Math.round(hours[peak] / total * 100)).replace('{low}', _sxHourLabel(low))
     : '';
+  // The parts of the day under the clock: share, a meter and the hours
+  const partsBox = document.getElementById('sxClockParts');
+  if (partsBox) partsBox.innerHTML = total ? parts.map(x => {
+    const pct = Math.round(x.n / total * 100);
+    return `<li class="${x === topPart ? 'is-top' : ''}"><span class="sx-part-e" aria-hidden="true">${x.emoji}</span>` +
+      `<span class="sx-part-n">${esc(t('sx_part_' + x.key))}</span><b>${pct}%</b>` +
+      `<span class="sx-part-m" aria-hidden="true"><i style="width:${pct}%"></i></span>` +
+      `<span class="sx-part-h">${esc(_sxHourLabel(x.from) + '–' + _sxHourLabel(x.to))}</span></li>`;
+  }).join('') : '';
 
   // ── The week: one bar per day, starting on the week start day ──
   const order = Array.from({ length: 7 }, (_, i) => (weekStartDay + i) % 7);
@@ -1343,11 +1393,19 @@ document.getElementById('sxClock')?.addEventListener('click', e => {
   if (!b || !_sxWhen) return;
   const h = +b.dataset.h, n = _sxWhen.hours[h];
   document.querySelectorAll('#sxClock .sx-clock-bar').forEach(x => x.classList.toggle('is-picked', x === b));
+  _sxWhen.picked = h; _sxClockMid(h);
   document.getElementById('sxClockNote').textContent = t('sx_clock_pick')
     .replace('{hour}', _sxHourLabel(h)).replace('{n}', n.toLocaleString())
     .replace('{pct}', _sxWhen.total ? Math.round(n / _sxWhen.total * 100) : 0)
     .replace('{artist}', _sxTop(_sxWhen.hourArt[h]) || '–');
 });
+// Pointing at an hour shows it in the middle; leaving goes back to the
+// tapped hour, or the busiest
+document.getElementById('sxClock')?.addEventListener('pointerover', e => {
+  const b = e.target.closest('[data-h]');
+  if (b && e.pointerType === 'mouse') _sxClockMid(+b.dataset.h);
+});
+document.getElementById('sxClock')?.addEventListener('pointerleave', () => { if (_sxWhen) _sxClockMid(_sxWhen.picked ?? null); });
 document.getElementById('sxClock')?.addEventListener('keydown', e => {
   const b = e.target.closest && e.target.closest('[data-h]');
   if (b && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); b.dispatchEvent(new MouseEvent('click', { bubbles: true })); }

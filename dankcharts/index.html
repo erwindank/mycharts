@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=811">
+  <link rel="stylesheet" href="style.css?v=813">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=285"></script>
+  <script defer src="translations.js?v=286"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -1512,10 +1512,16 @@
            clock, and the days of the week, for the range in the bar. Tap an
            hour or a day for its top artist and song. -->
       <div class="sx-row2" data-st-group="charts">
-        <div class="dc-card graph-card sx-clock-card">
-          <div class="graph-card-title" data-i18n="sx_clock_title">Listening clock</div>
-          <div class="graph-card-sub" data-i18n="sx_clock_sub">When in the day you play music</div>
+        <!-- Phase 19 step 3: the clock, then the parts of the day (sxClockParts) -->
+        <div class="dc-card graph-card sx-ch sx-clock-card">
+          <div class="sx-ch-head">
+            <div class="graph-card-text">
+              <div class="graph-card-title" data-i18n="sx_clock_title">Listening clock</div>
+              <div class="graph-card-sub" data-i18n="sx_clock_sub">When in the day you play music</div>
+            </div>
+          </div>
           <div id="sxClock" class="sx-clock"></div>
+          <ul id="sxClockParts" class="sx-parts"></ul>
           <div id="sxClockNote" class="sx-note" aria-live="polite"></div>
         </div>
         <div class="dc-card graph-card sx-week-card">
@@ -4297,7 +4303,7 @@
   <script defer src="insights.js?v=10"></script>
   <script defer src="daily.js?v=39"></script>
   <!-- The Stats page's tabs, Overview, Story, Games and Compare (phase 15); reads app.js globals -->
-  <script defer src="stats.js?v=50"></script>
+  <script defer src="stats.js?v=52"></script>
   <!-- The Dank 100: weekly entries for the shared community chart; reads app.js and firebase.js globals -->
   <script defer src="dank100.js?v=13"></script>
 
