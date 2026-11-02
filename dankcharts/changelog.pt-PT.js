@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Certifications gets plaques for the top three":
+    ["Certificações ganha placas para os três primeiros",
+     "Recordes → Certificações começa agora com três placas para os artistas com mais certificações: a fotografia, todas as certificações num número grande, uma barra que mostra quantas são Diamante, Platina e Ouro, e as contagens de músicas e álbuns. Ver todas as certificações abre o registo completo desse artista logo abaixo das placas, o mesmo registo que qualquer outra linha abre, por isso os três primeiros já não o perdem. As contagens na lista abaixo têm agora a cor do nível. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
   "Milestones folds repeats, and New Charts speaks your language":
     ["Marcos agrupa as repetições, e Novidades fala a tua língua",
      "Em Recordes → Marcos, uma música (ou artista, ou álbum) que atingiu vários marcos seguidos aparece agora uma só vez, no mais alto, com um botão \"+5 mais\" para abrir o resto, e a linha do tempo mostra quem dominou cada troço em vez do mesmo nome seis vezes. Os recordes de Novidades, que estavam em inglês em todas as línguas, estão agora traduzidos, e o seletor Músicas / Artistas / Álbuns da Visão geral condiz com o resto de Recordes. Funciona com Last.fm, Google Sheets e ficheiros CSV."],

@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 450;
+const DC_CL_I18N_V = 451;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -326,6 +326,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-02', t: 'design', a: 'records', h: 'e2d0afd',
+    title: "Certifications gets plaques for the top three",
+    detail: "Records → Certifications now opens with three plaques for the artists with the most certifications: their photo, every certification in one big number, a bar showing how many are Diamond, Platinum and Gold, and their song and album tallies. Show every certification opens that artist's full ledger right under the plaques, the same ledger every other row opens, so the top three no longer lose it. The tallies in the list below are now coloured by tier. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-11-02', t: 'design', a: 'records', h: '749b57d',
     title: "Milestones folds repeats, and New Charts speaks your language",
     detail: "In Records → Milestones, a song (or artist, or album) that took several milestones in a row now shows once, at its highest, with a \"+5 more\" button to unfold the rest, so the timeline shows who held each stretch instead of the same name six times. The New Charts records, which were English in every language, are now translated, and the Overview's Songs / Artists / Albums switch matches the rest of Records. Works with Last.fm, Google Sheets and CSV uploads." },
