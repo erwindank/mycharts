@@ -45770,21 +45770,44 @@ th.cr-th { width: 92px; }              /* = .chart-table .cr-cell */
 /* The grid's columns are sized in em, so the label row keeps the rows' font
    size (same em = same widths) and only the labels themselves are small */
 .d100-cols {
-  padding: 0 10px;
+  /* right side also leaves room for the rows' three buttons (.d100-acts) */
+  padding: 0 calc(10px + 96px) 0 10px;
   font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text3);
 }
 .d100-cols span { text-align: right; font-size: var(--fs-xs); }
 .d100-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; }
 /* Step 5: each row is a button (it opens the row's run), inside an <li> that
    carries the divider and the #1 / open highlight */
-.d100-li { border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent); }
+.d100-li {
+  --d100-acts-w: 96px;
+  display: grid; grid-template-columns: minmax(0, 1fr) var(--d100-acts-w); align-items: center;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+}
+/* The open run spans the row and its buttons */
+.d100-li > .d100-run { grid-column: 1 / -1; }
+/* Sample, Spotify and YouTube beside each row; quiet until the row is hovered */
+.d100-acts { display: inline-flex; align-items: center; justify-content: flex-end; gap: 2px; padding-right: 6px; }
+.d100-li:hover .d100-acts .ea-sample, .d100-li:hover .d100-acts .ea-spotify, .d100-li:hover .d100-yt { opacity: 1; }
+.d100-yt {
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  width: 28px; height: 28px; border-radius: var(--r-full); color: #FF0033; text-decoration: none;
+  opacity: 0.55; transition: opacity var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+.d100-yt svg { width: 16px; height: 16px; display: block; }
+.d100-yt:hover { background: var(--hover); opacity: 1; }
+.d100-yt:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; opacity: 1; }
+@media (hover: none) { .d100-acts .ea-sample, .d100-yt { opacity: 1; } }
+/* The row whose sample is playing */
+.d100-li:has(.d100-acts.ea-playing) { background: color-mix(in srgb, var(--accent) 8%, transparent); }
 .d100-li:last-child { border-bottom: 0; }
 .d100-row {
   width: 100%; padding: 8px 10px; margin: 0;
   background: none; border: 0; border-radius: var(--r-md);
   font: inherit; color: inherit; text-align: left; cursor: pointer;
 }
-.d100-row:hover { background: color-mix(in srgb, var(--text) 4%, transparent); }
+/* Hover lights the whole <li>, so the buttons beside the row are inside it
+   (background-color only: the #1 row's gradient is a background-image) */
+.d100-li:hover { background-color: color-mix(in srgb, var(--text) 4%, transparent); border-radius: var(--r-md); }
 .d100-row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .d100-li.is-open { background: color-mix(in srgb, var(--text) 3%, transparent); border-radius: var(--r-md); }
 .d100-pos {
@@ -45835,6 +45858,12 @@ th.cr-th { width: 92px; }              /* = .chart-table .cr-cell */
   .d100-art { width: 40px; height: 40px; }
   .d100-cols span:nth-child(n+6), .d100-l, .d100-lw, .d100-pk, .d100-wk { display: none; }
   .d100-row { padding: 8px 4px; }
+  /* Phones: slimmer buttons so the title keeps its room */
+  .d100-li { --d100-acts-w: 72px; }
+  .d100-cols { padding: 0 calc(4px + 72px) 0 4px; }
+  .d100-cols, .d100-row { grid-template-columns: 1.6em 2.6em 40px minmax(0, 1fr) 2.8em; column-gap: 6px; }
+  .d100-acts { gap: 0; padding-right: 0; }
+  .d100-acts .ea-sample, .d100-acts .ea-spotify, .d100-yt { width: 24px; }
 }
 
 /* The Dank 100, step 5: week picker, a row's run, number ones */

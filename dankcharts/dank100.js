@@ -599,9 +599,32 @@
     h += '<span class="d100-num d100-pk">' + r.pk + '</span>';
     h += '<span class="d100-num d100-wk">' + r.wk + '</span>';
     h += '</button>';
+    h += actsHTML(r);
     if (open) h += runHTML(r);
     h += '</li>';
     return h;
+  }
+
+  // ── A row's three buttons: play a sample, search on Spotify, search on
+  // YouTube. They sit beside the row's button (a button can't hold buttons).
+  // The data-ea-* attributes live on this little box only, not on the whole
+  // row, so app.js's sample player (.ea-sample) reads the entry from here,
+  // and right-clicking the row itself doesn't open the library's ⋮ menu for
+  // something the user may never have played.
+  function actsHTML(r) {
+    if (typeof _eaSampleBtn !== 'function') return '';   // app.js not loaded (node tests)
+    var type = C.type, isArtist = type === 'artists';
+    var artist = isArtist ? r.t : (r.a || '');
+    var q = encodeURIComponent(isArtist || !r.a ? r.t : r.t + ' ' + r.a);
+    var yt = esc(tr('awx_yt'));
+    return '<span class="d100-acts" data-ea-type="' + type + '"' +
+      ' data-ea-title="' + esc(type === 'songs' ? r.t : '') + '" data-ea-artist="' + esc(artist) + '"' +
+      ' data-ea-album="' + esc(type === 'albums' ? r.t : '') + '" data-ea-key="' + esc('d100:' + r.k) + '">' +
+      _eaSampleBtn() +
+      _eaSpotifyBtn(type, r.t, isArtist ? '' : r.a) +
+      '<a class="d100-yt" href="https://www.youtube.com/results?search_query=' + q + '" target="_blank" rel="noopener"' +
+      ' title="' + yt + '" aria-label="' + yt + '">' + (typeof _ST_AM_YT_SVG !== 'undefined' ? _ST_AM_YT_SVG : '▶') + '</a>' +
+      '</span>';
   }
 
   // ── A row's run: its positions week by week, from its debut to the newest
