@@ -4449,6 +4449,15 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 /* Highlight cards (DC_CL_HIGHLIGHTS in changelog.js), keyed by id. */
 window.DC_CL_HIGHLIGHTS_I18N = window.DC_CL_HIGHLIGHTS_I18N || {};
 window.DC_CL_HIGHLIGHTS_I18N["pt-PT"] = {
+  "charts-look": {
+    title: "Gráficos tem um visual novo",
+    intro: "Estatísticas → Gráficos está mais claro e mais bonito, e o volume diário num intervalo longo já não parece vazio.",
+    points: [
+      "O volume abre com os teus plays, quantos eram novos e o teu mês mais ouvido, e desenha uma área suave quando há dias a mais para barras.",
+      "O relógio de audição acende a tua hora mais ouvida e mostra a tua manhã, tarde, fim de tarde e noite. A tua semana põe os dias úteis contra o fim de semana.",
+      "O mapa de calor é colorido pelos dias calmos e movimentados de cada ano, com um esquema O teu tema e os números do ano.",
+      "Os Padrões de audição são uma grelha legível de horas por dia com a tua hora mais ouvida da semana marcada."
+    ] },
   "compare-look": {
     title: "Comparar tem um visual novo",
     intro: "Estatísticas → Comparar está mais fácil de usar e mais bonito, desde a escolha do que comparar até cada cartão em baixo.",

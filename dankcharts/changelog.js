@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 432;
+const DC_CL_I18N_V = 433;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -98,6 +98,16 @@ const DC_CL_AREAS = {
    by id, as { title, intro, points }. A missing one shows in English.
    ------------------------------------------------------------------------- */
 const DC_CL_HIGHLIGHTS = [
+  { id: "charts-look", d: "2026-11-01", a: "graphs", img: "whatsnew/charts-look.webp", go: "graphs", then: [["setStatsTab", "charts"]],
+    title: "Charts got a fresh look",
+    intro: "Stats → Charts is clearer and nicer to look at, and Daily play volume over a long range no longer looks empty.",
+    points: [
+      "Play volume opens with your plays, how many were new to you and your busiest month, and draws a smooth area when there are too many days for bars.",
+      "The listening clock lights your busiest hour and shows your morning, afternoon, evening and night. Your week puts weekdays against the weekend.",
+      "The heatmap is shaded by each year's own quiet and busy days, with a Your theme colour scheme and the year's figures.",
+      "Listening Patterns is a readable hour-by-day grid with your busiest hour of the week ringed.",
+    ],
+    also: ["f7d333f", "170264e", "c512edc", "90ced93", "e482666", "bf41555", "0a7d7ef"] },
   { id: "compare-look", d: "2026-11-01", a: "graphs", img: "whatsnew/compare-look.webp", go: "graphs", then: [["setStatsTab", "compare"]],
     title: "Compare got a fresh look",
     intro: "Stats → Compare is easier to use and nicer to look at, from picking what to compare to every card below.",

@@ -4453,6 +4453,15 @@ window.DC_CHANGELOG_I18N['es'] = {
 /* Highlight cards (DC_CL_HIGHLIGHTS in changelog.js), keyed by id. */
 window.DC_CL_HIGHLIGHTS_I18N = window.DC_CL_HIGHLIGHTS_I18N || {};
 window.DC_CL_HIGHLIGHTS_I18N["es"] = {
+  "charts-look": {
+    title: "Gráficos tiene un aspecto nuevo",
+    intro: "Estadísticas → Gráficos es más claro y más bonito, y el volumen diario con un rango largo ya no se ve vacío.",
+    points: [
+      "El volumen empieza con tus reproducciones, cuántas eran nuevas y tu mes con más escuchas, y dibuja un área suave cuando hay demasiados días para barras.",
+      "El reloj de escucha ilumina tu hora con más escuchas y muestra tu mañana, tarde, atardecer y noche. Tu semana enfrenta los días entre semana al fin de semana.",
+      "El mapa de calor se colorea según los días tranquilos y activos de cada año, con un esquema Tu tema y las cifras del año.",
+      "Los Patrones de escucha son una cuadrícula legible de horas por día con tu hora con más escuchas de la semana marcada."
+    ] },
   "compare-look": {
     title: "Comparar tiene un aspecto nuevo",
     intro: "Estadísticas → Comparar es más fácil de usar y más bonito, desde elegir qué comparar hasta cada tarjeta de abajo.",
