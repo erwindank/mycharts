@@ -46171,7 +46171,10 @@ body:not(:is([data-view="day"], [data-view="week"], [data-view="month"], [data-v
 
 /* Sized by the room the panel has, not the window: the side menu and the
    page width change that room independently. */
-.rec1-wrap .rec-per-panel { container-type: inline-size; }
+/* New Charts' panels (.nc-rec-panel) are the same kind of room; without
+   this their podium kept the wide layout on phones (2026-11-02). */
+.rec1-wrap .rec-per-panel,
+.rec1-wrap .nc-rec-panel { container-type: inline-size; }
 @container (max-width: 860px) {
   .rec1-podium { grid-template-columns: 1fr; }
   .rec1-runners { grid-template-columns: 1fr 1fr; }

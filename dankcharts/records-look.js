@@ -172,7 +172,9 @@ document.addEventListener('change', function (e) { if (e.target.closest && e.tar
    restorePodium in app.js, which find it by data-rec1-podium-for).
    Built only for tables actually on screen, on first sight, so a build costs
    nothing extra and only three covers are looked up per list opened. */
-const RECX_NO_PODIUM = ['recNewChartsSection', 'recMilestonesSection']; // own podium / a timeline
+// Milestones is a timeline, not a ranking. (New Charts had its own podium
+// until 2026-11-02; it now takes this one too.)
+const RECX_NO_PODIUM = ['recMilestonesSection'];
 let _recxTblN = 0, _recxPodN = 0;
 
 // The row a record's detail (its chart run) sits in, if it has one.
@@ -302,7 +304,7 @@ function recxPodiums(sec) {
   if (RECX_NO_PODIUM.indexOf(sec.id) !== -1) return;
   sec.querySelectorAll('table.rec-table').forEach(function (table) {
     if (!recxVisible(table) || !table.tBodies[0]) return;
-    if (table.classList.contains('nc-sd-table') || table.classList.contains('rec1-table')) return;
+    if (table.classList.contains('rec1-table')) return;
     recxBars(table);
     if (table.dataset.recxPod) return;
     table.dataset.recxPod = '1';

@@ -10455,52 +10455,24 @@ function buildRecords() {
   const ncPeriodTd = (pt, pk, cls) => '<td class="rec-meta' + (cls ? ' ' + cls : '') + '"><a href="javascript:void(0)" class="rec-date-link" onclick="showNewChartRecPreview(\'' + pt + '\',\'' + esc(pk) + '\',this,event)">' + fmtPeriodKey(pk, pt) + '</a></td>';
 
   // ── 1. Biggest New Song Debut ─────────────────────────────────
-  // The richest table in the section: cover art per row, a podium for the top
-  // three, and (via CSS) a card layout on phones, because eight columns cannot
-  // survive a 390px viewport.
+  // The richest table in the section: cover art per row and (via CSS) a card
+  // layout on phones, because eight columns cannot survive a 390px viewport.
+  // Its top three go on the shared Records podium (records-look.js,
+  // recxPodiums), like every other list since phase 20; the old New Charts
+  // podium (.nc-podium) was retired 2026-11-02 because it showed no covers
+  // and did not match the new look.
   function ncRecSongDebut(pt) {
     const sorted = Object.entries(ncSongDebuts[pt]).sort((a, b) => b[1].plays - a[1].plays || a[1].rank - b[1].rank || a[1].period.localeCompare(b[1].period));
     const tableId = 'nc-sd-tbl-' + pt;
-    // A podium is only worth it when there is still a table left under it —
-    // both in the data and after the entries-per-table limit has had its say.
-    const hasPodium = sorted.length >= 4 && lim >= 4;
 
     // Artwork is queued, not fetched: loadImages() runs after this HTML is in
-    // the DOM. imgCache is keyed by track+source, so the top three appearing in
-    // both the podium and the (hidden) table row cost one lookup, not two.
+    // the DOM.
     function queueArt(sk, d, imgId) {
       const nm = songNames[sk] || {};
       ncImgQueue.push({
         imgId, name: d.title, title: d.title, artist: d.artist, album: nm.album || '',
         prefKey: 'song:' + (d.artist || '').toLowerCase() + '|||' + (d.title || '').toLowerCase()
       });
-    }
-
-    /* The podium carries the canonical top three, so those three rows are
-       hidden from the table below and it starts at #4. That trade only holds
-       while the table is in its canonical order — searching or re-sorting a
-       column makes "the top three" a different set, so both paths stand the
-       podium down and put the rows back (see applyRecSort() and the
-       .nc-podium rules in style.css). */
-    let podHtml = '';
-    if (hasPodium) {
-      podHtml = '<div class="nc-podium" data-nc-podium-for="' + tableId + '">';
-      sorted.slice(0, 3).forEach(([sk, d], i) => {
-        const imgId = 'nc-pod-img-' + pt + '-' + i;
-        queueArt(sk, d, imgId);
-        podHtml += '<div class="nc-podium-card nc-podium-' + (i + 1) + '">'
-          + '<div class="nc-podium-medal">' + (i + 1) + '</div>'
-          + '<div class="nc-podium-art" id="' + imgId + '"><div class="pak-mini-initials">' + esc(initials(d.title)) + '</div></div>'
-          + '<div class="nc-podium-title">' + esc(d.title) + '</div>'
-          + '<div class="nc-podium-artist">' + esc(d.artist) + '</div>'
-          + '<div class="nc-podium-figure"><span class="nc-podium-num">' + (d.plays || 0).toLocaleString() + '</span>'
-          + '<span class="nc-podium-unit">' + t('rec_th_plays') + ' @ #' + d.rank + '</span></div>'
-          + '<div class="nc-podium-meta">'
-          + '<span class="nc-podium-total">' + (songCP[sk] || 0).toLocaleString() + ' ' + t('th_total_plays') + '</span>'
-          + '<a href="javascript:void(0)" class="rec-date-link" onclick="showNewChartRecPreview(\'' + pt + '\',\'' + esc(d.period) + '\',this,event)">' + fmtPeriodKey(d.period, pt) + '</a>'
-          + '</div></div>';
-      });
-      podHtml += '</div>';
     }
 
     // "Debut Plays" is what the song did in its debut period; "Total Plays" is
@@ -10531,13 +10503,12 @@ function buildRecords() {
       }),
       lim, null, tableId,
       {
-        tableCls: 'nc-sd-table' + (hasPodium ? ' nc-podium-on' : ''),
-        rowCls: i => (hasPodium && i < 3 ? 'nc-podium-row' : ''),
+        tableCls: 'nc-sd-table',
         rowAttrs: i => recRowAttrs(sorted[i][1].artist, 'song', sorted[i][1].title)
       }
     );
 
-    return ncSec(recEntIco('songs') + ' ' + t('rec_th_songs') + ' &mdash; ' + t('nc_t_biggest_debut'), podHtml + table);
+    return ncSec(recEntIco('songs') + ' ' + t('rec_th_songs') + ' &mdash; ' + t('nc_t_biggest_debut'), table);
   }
 
   // ── 2. Biggest New Artist Debut ────────────────────────────────
