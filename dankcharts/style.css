@@ -11254,18 +11254,35 @@
     .sx-part-m { grid-column: 1 / -1; height: 4px; border-radius: 2px; background: color-mix(in srgb, var(--accent) 10%, transparent); overflow: hidden; }
     .sx-part-m i { display: block; height: 100%; border-radius: 2px; background: var(--accent); }
     .sx-part-h { grid-column: 1 / -1; font-size: 10.5px; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .sx-week { display: flex; flex-direction: column; gap: 0.35rem; margin-top: var(--sp-3); }
-    .sx-week-row {
-      display: grid; grid-template-columns: 3.2rem minmax(0, 1fr) 3rem; gap: var(--sp-2); align-items: center;
-      padding: 0.3rem 0.35rem; background: none; border: 1px solid transparent; border-radius: var(--r-sm);
-      color: var(--text2); font: inherit; font-size: var(--fs-sm); cursor: pointer; text-align: left;
+    /* Your week (phase 19 step 4): three figures (the side of the week that
+       plays more is coloured), then a column per day. Weekend columns sit
+       on a faint tint; the busiest column is solid, the rest lighter. */
+    .sx-figs.sx-figs-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .sx-figs-3 .sx-fig:nth-child(n) { border-top: 0; }
+    .sx-figs-3 .sx-fig:nth-child(n+2) { border-left: 1px solid var(--border); }
+    .sx-fig.is-win .sx-fig-v { color: var(--accent); }
+    @container (max-width: 400px) { .sx-figs-3 .sx-fig { padding: var(--sp-2) var(--sp-3); } .sx-figs-3 .sx-fig-v { font-size: 1.1rem; } }
+    .sx-week-card { container-type: inline-size; display: flex; flex-direction: column; }
+    .sx-wk { flex: 1 1 auto; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; min-height: 200px; }
+    .sx-wk-col {
+      display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; height: 100%;
+      padding: var(--sp-2) 0 var(--sp-1); background: none; border: 0; border-radius: var(--r-md);
+      font: inherit; color: inherit; cursor: pointer; transition: background var(--t-fast) var(--ease);
     }
-    .sx-week-row:hover, .sx-week-row.is-picked { border-color: var(--border2); background: var(--bg3); }
-    .sx-week-day { text-transform: capitalize; }
-    .sx-week-bar { height: 18px; background: color-mix(in srgb, var(--accent) 8%, transparent); border-radius: 4px; overflow: hidden; }
-    .sx-week-bar i { display: block; height: 100%; background: var(--accent); border-radius: 4px; opacity: .85; }
-    .sx-week-row.is-peak .sx-week-bar i { background: var(--gold1); opacity: 1; }
-    .sx-week-val { font-family: var(--font-mono); font-size: var(--fs-xs); text-align: right; font-variant-numeric: tabular-nums; }
+    .sx-wk-col.is-wkend { background: color-mix(in srgb, var(--accent) 6%, transparent); }
+    .sx-wk-col:hover, .sx-wk-col.is-picked { background: var(--hover); }
+    .sx-wk-col:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .sx-wk-v { font-family: var(--font-mono); font-size: var(--fs-xs); font-weight: 600; color: var(--text2); font-variant-numeric: tabular-nums; }
+    .sx-wk-bar { flex: 1 1 auto; width: min(68%, 38px); display: flex; align-items: flex-end; }
+    .sx-wk-bar i {
+      display: block; width: 100%; height: max(var(--h), 3px); border-radius: 7px 7px 3px 3px;
+      background: var(--accent); opacity: .5; transform-origin: bottom; transition: opacity var(--t-fast) var(--ease);
+    }
+    .sx-wk-col:hover .sx-wk-bar i, .sx-wk-col.is-picked .sx-wk-bar i { opacity: .8; }
+    .sx-wk-col.is-peak .sx-wk-bar i { opacity: 1; box-shadow: 0 4px 14px -4px color-mix(in srgb, var(--accent) 60%, transparent); }
+    .sx-wk-col.is-peak .sx-wk-v { color: var(--accent); font-weight: 700; }
+    .sx-wk-d { font-size: var(--fs-xs); font-weight: 600; color: var(--text2); text-transform: capitalize; white-space: nowrap; }
+    .sx-wk-col.is-peak .sx-wk-d { color: var(--text); }
 
     /* Compare studio (step 3): type + view switches, then the picks */
     .sx-cmp-bar [hidden] { display: none; }

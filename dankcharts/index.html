@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=813">
+  <link rel="stylesheet" href="style.css?v=814">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=286"></script>
+  <script defer src="translations.js?v=287"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -1524,10 +1524,17 @@
           <ul id="sxClockParts" class="sx-parts"></ul>
           <div id="sxClockNote" class="sx-note" aria-live="polite"></div>
         </div>
-        <div class="dc-card graph-card sx-week-card">
-          <div class="graph-card-title" data-i18n="sx_week_title">Your week</div>
-          <div class="graph-card-sub" data-i18n="sx_week_sub">Average plays on each day of the week</div>
-          <div id="sxWeek" class="sx-week"></div>
+        <!-- Phase 19 step 4: weekdays / weekend / busiest day figures, then a
+             column per day -->
+        <div class="dc-card graph-card sx-ch sx-week-card">
+          <div class="sx-ch-head">
+            <div class="graph-card-text">
+              <div class="graph-card-title" data-i18n="sx_week_title">Your week</div>
+              <div class="graph-card-sub" data-i18n="sx_week_sub">Average plays on each day of the week</div>
+            </div>
+          </div>
+          <div id="sxWeekFigs" class="sx-figs sx-figs-3"></div>
+          <div id="sxWeek" class="sx-wk"></div>
           <div id="sxWeekNote" class="sx-note" aria-live="polite"></div>
         </div>
       </div>
@@ -4303,7 +4310,7 @@
   <script defer src="insights.js?v=10"></script>
   <script defer src="daily.js?v=39"></script>
   <!-- The Stats page's tabs, Overview, Story, Games and Compare (phase 15); reads app.js globals -->
-  <script defer src="stats.js?v=52"></script>
+  <script defer src="stats.js?v=53"></script>
   <!-- The Dank 100: weekly entries for the shared community chart; reads app.js and firebase.js globals -->
   <script defer src="dank100.js?v=13"></script>
 

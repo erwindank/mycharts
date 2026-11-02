@@ -1373,18 +1373,40 @@ function sxRenderWhen() {
       `<span class="sx-part-h">${esc(_sxHourLabel(x.from) + '–' + _sxHourLabel(x.to))}</span></li>`;
   }).join('') : '';
 
-  // ── The week: one bar per day, starting on the week start day ──
+  /* ── The week (phase 19 step 4): figures for weekdays, the weekend and
+     the busiest day, then a column per day from the week start day. The
+     weekend columns sit on a tint; the busiest is solid. ── */
   const order = Array.from({ length: 7 }, (_, i) => (weekStartDay + i) % 7);
   const amax = Math.max(...avg, 1);
   const wPeak = avg.indexOf(Math.max(...avg)), wLow = avg.indexOf(Math.min(...avg));
+  const isWkend = d => d === 0 || d === 6;
+  // Plays a day over all weekdays / weekend days in the range
+  const per = test => {
+    let n = 0, c = 0;
+    for (let d = 0; d < 7; d++) if (test(d)) { n += days[d]; c += nDays[d]; }
+    return c ? n / c : 0;
+  };
+  const wkd = per(d => !isWkend(d)), wke = per(isWkend);
+  const figs = document.getElementById('sxWeekFigs');
+  if (figs) figs.innerHTML = total ? [
+    [t('sx_wk_weekdays'), Math.round(wkd).toLocaleString(), t('sx_wk_per_day'), wkd >= wke],
+    [t('sx_wk_weekend'), Math.round(wke).toLocaleString(), t('sx_wk_per_day'), wke > wkd],
+    [t('sx_fig_busiest_day'), _sxDayLabel(wPeak, true), t('sx_wk_n_per_day').replace('{n}', Math.round(avg[wPeak]).toLocaleString()), false],
+  ].map(([l, v, sub, win]) => `<div class="sx-fig${win ? ' is-win' : ''}"><span class="sx-fig-l">${esc(l)}</span>` +
+    `<b class="sx-fig-v">${esc(v)}</b><span class="sx-fig-s">${esc(sub)}</span></div>`).join('') : '';
   week.innerHTML = order.map(d =>
-    `<button type="button" class="sx-week-row${d === wPeak ? ' is-peak' : ''}" data-d="${d}">` +
-    `<span class="sx-week-day">${esc(_sxDayLabel(d))}</span>` +
-    `<span class="sx-week-bar"><i style="width:${(avg[d] / amax * 100).toFixed(1)}%"></i></span>` +
-    `<span class="sx-week-val">${Math.round(avg[d]).toLocaleString()}</span></button>`).join('');
-  document.getElementById('sxWeekNote').textContent = total
-    ? t('sx_week_note').replace('{peak}', _sxDayLabel(wPeak, true)).replace('{low}', _sxDayLabel(wLow, true))
+    `<button type="button" class="sx-wk-col${d === wPeak && total ? ' is-peak' : ''}${isWkend(d) ? ' is-wkend' : ''}" data-d="${d}" style="--h:${(avg[d] / amax * 100).toFixed(1)}%"` +
+    ` aria-label="${esc(_sxDayLabel(d, true) + ': ' + t('sx_wk_n_per_day').replace('{n}', Math.round(avg[d]).toLocaleString()))}">` +
+    `<span class="sx-wk-v">${Math.round(avg[d]).toLocaleString()}</span>` +
+    `<span class="sx-wk-bar"><i></i></span>` +
+    `<span class="sx-wk-d">${esc(_sxDayLabel(d))}</span></button>`).join('');
+  // The note adds how much more the busier side of the week plays
+  const lo = Math.min(wkd, wke), more = lo ? Math.round((Math.max(wkd, wke) / lo - 1) * 100) : 0;
+  const side = more >= 5 ? ' ' + t(wkd >= wke ? 'sx_wk_more_weekdays' : 'sx_wk_more_weekend').replace('{pct}', more) : '';
+  _sxWhen.weekNote = total
+    ? t('sx_week_note').replace('{peak}', _sxDayLabel(wPeak, true)).replace('{low}', _sxDayLabel(wLow, true)) + side
     : '';
+  document.getElementById('sxWeekNote').textContent = _sxWhen.weekNote;
 }
 
 // Tap an hour or a day: its numbers and most played artist in the note
@@ -1414,7 +1436,7 @@ document.getElementById('sxWeek')?.addEventListener('click', e => {
   const b = e.target.closest('[data-d]');
   if (!b || !_sxWhen) return;
   const d = +b.dataset.d;
-  document.querySelectorAll('#sxWeek .sx-week-row').forEach(x => x.classList.toggle('is-picked', x === b));
+  document.querySelectorAll('#sxWeek .sx-wk-col').forEach(x => x.classList.toggle('is-picked', x === b));
   document.getElementById('sxWeekNote').textContent = t('sx_week_pick')
     .replace('{day}', _sxDayLabel(d, true)).replace('{avg}', Math.round(_sxWhen.avg[d]).toLocaleString())
     .replace('{artist}', _sxTop(_sxWhen.dayArt[d]) || '–');
