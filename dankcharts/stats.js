@@ -2194,24 +2194,36 @@ function _sxCmpOwners(T, names) {
     `<div class="sx-own-legend"><span>${esc(t(unitKey))}</span><ul>${legend}</ul></div></div>`;
 }
 
-// The strip's hover box: one box for all blocks, placed over the block
-// under the pointer (or the finger), kept inside the card
+// The hover box of Who was on top's strip and of the habit cells (phase 18
+// steps 5 and 7): one box per card, placed under the block or cell under
+// the pointer (or the finger), kept inside the card
 function _sxOwnTip(e) {
-  const blk = e.target.closest && e.target.closest('.sx-own-strip i');
-  const own = e.target.closest && e.target.closest('.sx-own');
-  const tip = own && own.querySelector('.sx-own-tip');
+  const blk = e.target.closest && e.target.closest('.sx-own-strip i, .sx-hab i[data-tip]');
+  const own = e.target.closest && e.target.closest('.sx-own, .sx-hab-box');
+  const tip = own && own.querySelector(':scope > .sx-own-tip');
   if (!tip) return;
   if (!blk || !blk.dataset.tip) { tip.hidden = true; return; }
   const lines = blk.dataset.tip.split('\n');
   tip.innerHTML = `<b>${esc(lines[0].charAt(0).toUpperCase() + lines[0].slice(1))}</b>` + lines.slice(1).map(l => `<span>${esc(l)}</span>`).join('');
-  if (blk.style.getPropertyValue('--c')) tip.style.setProperty('--c', blk.style.getPropertyValue('--c')); else tip.style.removeProperty('--c');
+  // The colour comes from the block, or from the habit cell's row
+  const c = blk.style.getPropertyValue('--c') || (blk.closest('[style*="--c"]') || blk).style.getPropertyValue('--c');
+  if (c) tip.style.setProperty('--c', c); else tip.style.removeProperty('--c');
   tip.hidden = false;
   const or = own.getBoundingClientRect(), br = blk.getBoundingClientRect();
   const x = Math.max(tip.offsetWidth / 2, Math.min(or.width - tip.offsetWidth / 2, br.left + br.width / 2 - or.left));
   tip.style.left = x + 'px';
+  tip.style.top = (br.bottom - or.top + 8) + 'px';
 }
-document.getElementById('sxCmpMore')?.addEventListener('mouseover', _sxOwnTip);
-document.getElementById('sxCmpMore')?.addEventListener('click', e => { if (e.target.closest('.sx-own-strip')) _sxOwnTip(e); });
+// Right after a touch the browser may send mouse events from elsewhere,
+// which would hide the box the tap just opened: those are ignored
+let _sxTouchT = 0;
+document.getElementById('sxCmpMore')?.addEventListener('touchstart', () => { _sxTouchT = Date.now(); }, { passive: true });
+document.getElementById('sxCmpMore')?.addEventListener('mouseover', e => { if (Date.now() - _sxTouchT > 800) _sxOwnTip(e); });
+// A tap on a block or cell opens its box; a tap anywhere else closes them
+document.getElementById('sxCmpMore')?.addEventListener('click', e => {
+  if (e.target.closest('.sx-own-strip, .sx-hab')) _sxOwnTip(e);
+  else document.querySelectorAll('#sxCmpMore .sx-own-tip').forEach(x => { x.hidden = true; });
+});
 document.getElementById('sxCmpMore')?.addEventListener('mouseleave', () => document.querySelectorAll('.sx-own-tip').forEach(x => { x.hidden = true; }));
 
 /* Every time the lead on the running total changed hands, piece by piece.
@@ -2445,24 +2457,44 @@ function _sxCmpHabits(T, names) {
     let bi = -1, bv = 0;
     T.per.forEach((o, i) => { if (o.plays >= 10) { const v = share(o, f); if (v > bv) { bv = v; bi = i; } } });
     if (bi < 0 || T.picks.length < 2) return '';
-    return `<li><span>${esc(t(key))}</span><div>${who(bi)}</div><em>${esc(t('sx_hab_pct').replace('{pct}', Math.round(bv * 100)))}</em></li>`;
+    // Phase 18 step 6–7: an emoji, the winner's colour and a meter for the share
+    const emoji = { sx_hab_morning: '🌅', sx_hab_night: '🌙', sx_hab_weekend: '🎉' }[key];
+    return `<li style="--c:${_sxCmpColor(bi)}"><span>${esc(t(key))}</span><i class="sx-hab-emoji" aria-hidden="true">${emoji}</i><div>${who(bi)}</div>` +
+      `<em>${esc(t('sx_hab_pct').replace('{pct}', Math.round(bv * 100)))}</em><span class="sx-hab-meter" aria-hidden="true"><b style="width:${Math.round(bv * 100)}%"></b></span></li>`;
   }).join('');
+  /* Phase 18 step 7: cells shaded from the card's colour to the pick's
+     (--v, so a quiet cell stays readable instead of a muddy see-through),
+     each pick's busiest hour and day ringed, a hover box (data-tip) like
+     Who was on top's, parts of the day marked over the hours, and a last
+     column naming the peak */
   const days = Array.from({ length: 7 }, (_, j) => (weekStartDay + j) % 7);
-  const cells = (vals, tips) => {
-    const max = Math.max(...vals, 1);
-    return vals.map((v, j) => `<i title="${esc(tips[j] + ': ' + t('sx_n_plays').replace('{n}', v.toLocaleString()))}"><b style="opacity:${v ? (0.15 + 0.85 * v / max).toFixed(2) : 0}"></b></i>`).join('');
+  const cells = (vals, tips, name) => {
+    const max = Math.max(...vals, 1), sum = vals.reduce((a, b) => a + b, 0) || 1;
+    const top = vals.indexOf(Math.max(...vals));
+    return vals.map((v, j) => `<i${v && j === top ? ' class="is-peak"' : ''} style="--v:${v ? Math.round(12 + 88 * v / max) : 0}%" ` +
+      `data-tip="${esc(name + '\n' + tips[j] + '\n' + t('sx_n_plays').replace('{n}', v.toLocaleString()) + ' (' + Math.round(v / sum * 100) + '%)')}"></i>`).join('');
   };
   const hourTips = Array.from({ length: 24 }, (_, h) => String(h).padStart(2, '0') + ':00');
   const dayTips = days.map(d => _sxDayLabel(d, true));
-  const rows = T.per.map((o, i) => o.plays ? `<div class="sx-hab-row" style="--c:${_sxCmpColor(i)}">` +
-    `<div class="sx-hab-name">${_sxCmpName(T.type, T.picks[i], i, names[i])}</div>` +
-    `<div class="sx-hab-h">${cells(o.hours, hourTips)}</div>` +
-    `<div class="sx-hab-d">${cells(days.map(d => o.dow[d]), dayTips)}</div></div>` : '').join('');
+  const rows = T.per.map((o, i) => {
+    if (!o.plays) return '';
+    const ph = o.hours.indexOf(Math.max(...o.hours)), pd = o.dow.indexOf(Math.max(...o.dow));
+    return `<div class="sx-hab-row" style="--c:${_sxCmpColor(i)}">` +
+      `<div class="sx-hab-name">${_sxCmpName(T.type, T.picks[i], i, names[i])}</div>` +
+      `<div class="sx-hab-h">${cells(o.hours, hourTips, names[i])}</div>` +
+      `<div class="sx-hab-d">${cells(days.map(d => o.dow[d]), dayTips, names[i])}</div>` +
+      `<div class="sx-hab-peak"><b>${hourTips[ph]}</b><span>${esc(_sxDayLabel(pd))}</span></div></div>`;
+  }).join('');
+  // Parts of the day over the hours: night, morning, afternoon, evening, night
+  const parts = [['🌙', 5], ['🌅', 7], ['☀️', 5], ['🌆', 4], ['🌙', 3]];
+  const head = `<div class="sx-hab-row sx-hab-parts" aria-hidden="true"><div></div>` +
+    `<div class="sx-hab-h">${parts.map(([e, n]) => `<span style="grid-column:span ${n}">${e}</span>`).join('')}</div><div></div>` +
+    `<div class="sx-hab-peak-h">${esc(t('sx_hab_peak'))}</div></div>`;
   const axis = `<div class="sx-hab-row sx-hab-axis" aria-hidden="true"><div></div>` +
-    `<div class="sx-hab-h">${Array.from({ length: 24 }, (_, h) => `<span>${h % 6 === 0 ? h : ''}</span>`).join('')}</div>` +
-    `<div class="sx-hab-d">${days.map(d => `<span>${esc(_sxDayLabel(d).slice(0, 1).toUpperCase())}</span>`).join('')}</div></div>`;
-  return (facts ? `<ul class="sx-hab-facts">${facts}</ul>` : '') +
-    `<div class="sx-hab-wrap"><div class="sx-hab">${rows}${axis}</div></div>`;
+    `<div class="sx-hab-h">${Array.from({ length: 24 }, (_, h) => `<span>${h % 3 === 0 ? h : ''}</span>`).join('')}</div>` +
+    `<div class="sx-hab-d">${days.map(d => `<span>${esc(_sxDayLabel(d).slice(0, 2))}</span>`).join('')}</div><div></div></div>`;
+  return `<div class="sx-hab-box">` + (facts ? `<ul class="sx-hab-facts">${facts}</ul>` : '') +
+    `<div class="sx-hab-wrap"><div class="sx-hab">${head}${rows}${axis}</div></div><div class="sx-own-tip" hidden></div></div>`;
 }
 
 // ── Share picture (step 8) ──
