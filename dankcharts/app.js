@@ -8732,11 +8732,11 @@ function buildRecords() {
         ? (x.a === x.b ? crPeriodTitle(cfg.pt, x.a) : t('rec1_first_last', { a: recPeriodShort(cfg.pt, x.a), b: recPeriodShort(cfg.pt, x.b) }))
         : recRangeText(x.a, x.b, cfg.pt);
       const art = '<div class="rec1-pod-art' + (ent.type === 'artist' ? ' is-round' : '') + '" id="' + imgId + '"><div class="thumb-initials">' + esc(initials(name)) + '</div></div>';
+      // Every #1 period as a box that opens that chart; a Total run keeps its
+      // ✕n gaps, so a comeback reads as one. All three cards carry it.
+      const boxes = mode === 'total' ? rec1sBoxesHTML(x.periods, cfg.pt)
+        : recStreakBoxesHTML(x.periods.map(function (pk) { return { periodKey: pk, rank: 1 }; }), cfg.pt);
       if (i === 0) {
-        // Every #1 period as a box that opens that chart; a Total run keeps
-        // its ✕n gaps, so a comeback reads as one.
-        const boxes = mode === 'total' ? rec1sBoxesHTML(x.periods, cfg.pt)
-          : recStreakBoxesHTML(x.periods.map(function (pk) { return { periodKey: pk, rank: 1 }; }), cfg.pt);
         const sample = typeof _sxSampleBtn === 'function' ? _sxSampleBtn() : _eaSampleBtn();
         return '<article class="rec1-champ"' + ea + '>'
           + '<div class="rec1-champ-bg" aria-hidden="true" data-no-picker="1" id="' + imgId + '-bg"></div>'
@@ -8761,7 +8761,9 @@ function buildRecords() {
         + (by ? '<span class="rec1-by">' + esc(by) + '</span>' : '')
         + fig
         + '<div class="rec1-when">' + esc(when) + '</div>'
-        + '</div>' + _eaSampleBtn('rec1-runner-play') + '</article>';
+        + '</div>' + _eaSampleBtn('rec1-runner-play')
+        // Under the cover and name, the full width of the card.
+        + '<div class="rec1-runner-run">' + boxes + '</div></article>';
     };
     const html = '<div class="rec1-podium" data-rec1-podium-for="' + tableId + '">'
       + card(top[0], 0)
