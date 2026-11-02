@@ -10953,18 +10953,57 @@
     /* Plays on top, then the share and the lead, one to a line */
     .sx-t5-nums { display: flex; flex-direction: column; gap: 1px; margin-top: var(--sp-2); font-size: var(--fs-xs); color: var(--text2); }
     .sx-t5-nums b { color: var(--text); font-size: var(--fs-sm); }
-    /* ▶ with words on the #1 (always shown, unlike the charts' quiet ▶) */
+    /* ▶ with words on the #1 (always shown, unlike the charts' quiet ▶).
+       Upgraded 2026-11-01: a soft tinted button with an accent edge (no
+       pill), a round accent disc holding the icon, and while it plays the
+       word Stop and a small moving equalizer. Loading spins a ring round
+       the disc; no sample found goes quiet. */
     .ea-sample.sx-t5-play {
-      width: auto; height: 32px; gap: 6px; padding: 0 12px 0 10px; margin-top: var(--sp-3); opacity: 1;
-      border-radius: var(--r-full); background: var(--accent); color: var(--on-accent);
-      font: inherit; font-size: var(--fs-xs); font-weight: 600;
+      width: auto; height: 38px; gap: 9px; padding: 0 14px 0 5px; margin-top: var(--sp-3); opacity: 1;
+      border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border)); border-radius: var(--r-md);
+      background: color-mix(in srgb, var(--accent) 12%, var(--bg2)); color: var(--text);
+      font: inherit; font-size: var(--fs-sm); font-weight: 600; letter-spacing: .01em;
+      box-shadow: 0 1px 0 color-mix(in srgb, var(--text) 6%, transparent) inset, 0 6px 16px -10px color-mix(in srgb, var(--accent) 70%, transparent);
+      transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
     }
-    .ea-sample.sx-t5-play svg { margin-left: 0; }
-    .ea-sample.sx-t5-play:hover { background: color-mix(in srgb, var(--accent) 85%, var(--text)); color: var(--on-accent); }
-    .ea-sample.sx-t5-play.is-miss { background: var(--bg3); color: var(--text3); }
+    .ea-sample.sx-t5-play:hover { background: color-mix(in srgb, var(--accent) 20%, var(--bg2)); border-color: var(--accent); color: var(--text); }
+    .ea-sample.sx-t5-play:active { transform: scale(.97); }
+    .sx-play-disc {
+      position: relative; flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center;
+      background: var(--accent); color: var(--on-accent);
+      box-shadow: 0 2px 8px -2px color-mix(in srgb, var(--accent) 80%, transparent);
+      transition: transform var(--t-fast) var(--ease);
+    }
+    .ea-sample.sx-t5-play:hover .sx-play-disc { transform: scale(1.08); }
+    .ea-sample.sx-t5-play .sx-play-disc svg { width: 13px; height: 13px; margin-left: 2px; fill: currentColor; }
+    .ea-sample.sx-t5-play.is-on .sx-play-disc svg { margin-left: 0; width: 11px; height: 11px; }
+    /* Playing: the button lights up; the disc keeps the stop icon */
+    .ea-sample.sx-t5-play.is-on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+    .ea-sample.sx-t5-play.is-on .sx-play-disc { background: var(--on-accent); color: var(--accent); box-shadow: none; }
+    /* Loading: a ring spins round the disc */
+    .ea-sample.sx-t5-play.is-loading { animation: none; color: var(--text); }
+    .ea-sample.sx-t5-play.is-loading .sx-play-disc::after {
+      content: ''; position: absolute; inset: -4px; border-radius: 50%;
+      border: 2px solid transparent; border-top-color: var(--accent); border-right-color: var(--accent);
+      animation: sxPlaySpin .8s linear infinite;
+    }
+    .ea-sample.sx-t5-play.is-miss { background: var(--bg3); border-color: var(--border); color: var(--text2); box-shadow: none; }
+    .ea-sample.sx-t5-play.is-miss .sx-play-disc { background: var(--border2); color: var(--text2); box-shadow: none; }
     /* Its words follow the icon: "Play a sample" / "Stop" while it plays */
     .sx-t5-play-stop, .sx-t5-play.is-on .sx-t5-play-go { display: none; }
     .sx-t5-play.is-on .sx-t5-play-stop { display: inline; }
+    /* The equalizer, only while playing */
+    .sx-play-eq { display: none; align-items: flex-end; gap: 2px; height: 14px; margin-left: 2px; }
+    .sx-t5-play.is-on .sx-play-eq { display: inline-flex; }
+    .sx-play-eq i { display: block; width: 3px; height: 100%; border-radius: 2px; background: currentColor; transform-origin: bottom; transform: scaleY(.4); }
+    @media (prefers-reduced-motion: no-preference) {
+      .sx-t5-play.is-on .sx-play-eq i { animation: sxPlayEq .9s ease-in-out infinite; }
+      .sx-t5-play.is-on .sx-play-eq i:nth-child(2) { animation-delay: -.3s; }
+      .sx-t5-play.is-on .sx-play-eq i:nth-child(3) { animation-delay: -.6s; }
+      .sx-t5-play.is-on .sx-play-eq i:nth-child(4) { animation-delay: -.15s; }
+    }
+    @keyframes sxPlayEq { 0%, 100% { transform: scaleY(.3); } 50% { transform: scaleY(1); } }
+    @keyframes sxPlaySpin { to { transform: rotate(360deg); } }
     @media (max-width: 640px) { .sx-t5-name { font-size: var(--fs-md); } }
 
     .sx-t5-rows { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }

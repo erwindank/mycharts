@@ -425,6 +425,18 @@ function _sxTop5List(type) {
   return out.sort((a, b) => b.n - a.n || a.title.localeCompare(b.title)).slice(0, 5);
 }
 
+// The labelled ▶ sample button (Top 5, Song of the period, the look-inside
+// box). A round disc with the icon, the words, and while it plays a small
+// moving equalizer; loading spins a ring round the disc. app.js
+// (_eaPaintSamples) sets is-on / is-loading / is-miss and the tooltip.
+function _sxSampleBtn() {
+  const lbl = t('sx_top5_sample');
+  return `<button type="button" class="ea-sample sx-t5-play" title="${esc(lbl)}" aria-label="${esc(lbl)}">` +
+    `<span class="sx-play-disc"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="ea-ic-play" d="M8 5v14l11-7z"/><path class="ea-ic-stop" d="M7 7h10v10H7z"/></svg></span>` +
+    `<span class="sx-t5-play-go">${esc(lbl)}</span><span class="sx-t5-play-stop">${esc(t('sx_top5_stop'))}</span>` +
+    `<span class="sx-play-eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span></button>`;
+}
+
 // What opens an entry's details window
 function _sxOpenJs(type, e) {
   const fn = type === 'songs' ? 'openSongModal' : type === 'albums' ? 'openAlbumModal' : 'openArtistModal';
@@ -470,7 +482,6 @@ function sxPaintTop5() {
   arts.push([lead, la.id]);
   const pct = Math.round(lead.n / total * 1000) / 10;
   const ahead = list[1] ? lead.n - list[1].n : 0;
-  const sampleLbl = t('sx_top5_sample');
   const leadHtml = `<div class="sx-t5-lead"${_sxEa(type, lead, la.id)}>
       <button type="button" class="sx-t5-lead-art" onclick="${_sxOpenJs(type, lead)}" aria-label="${esc(lead.title)}">${la.html}<span class="sx-t5-rank">1</span></button>
       <div class="sx-t5-lead-info">
@@ -480,9 +491,7 @@ function sxPaintTop5() {
         <div class="sx-t5-nums"><b>${esc(t('sx_top5_plays').replace('{n}', lead.n.toLocaleString()))}</b>
           <span>${esc(t('sx_top5_share').replace('{pct}', pct.toLocaleString()))}</span>
           ${ahead > 0 ? `<span>${esc(t('sx_top5_ahead').replace('{n}', ahead.toLocaleString()))}</span>` : ''}</div>
-        <button type="button" class="ea-sample sx-t5-play" title="${esc(sampleLbl)}" aria-label="${esc(sampleLbl)}">` +
-          `<svg viewBox="0 0 24 24" aria-hidden="true"><path class="ea-ic-play" d="M8 5v14l11-7z"/><path class="ea-ic-stop" d="M7 6h3.5v12H7zM13.5 6H17v12h-3.5z"/></svg>` +
-          `<span class="sx-t5-play-go">${esc(sampleLbl)}</span><span class="sx-t5-play-stop">${esc(t('sx_top5_stop'))}</span></button>
+        ${_sxSampleBtn()}
       </div>
     </div>`;
 
@@ -585,16 +594,13 @@ function sxPaintSotp() {
     (best > 1 ? chip(best.toLocaleString(), t('sx_sotp_run')) : '');
   const foot = [first ? t('sx_sotp_first').replace('{date}', _sxDate(first.getTime())) : '',
     t('sx_sotp_total').replace('{n}', total.toLocaleString())].filter(Boolean).join(' · ');
-  const sampleLbl = t('sx_top5_sample');
 
   box.innerHTML = head + `<div class="sx-sotp-body"${_sxEa('songs', top, art.id)}>
       <button type="button" class="sx-t5-lead-art sx-sotp-art" onclick="${_sxOpenJs('songs', top)}" aria-label="${esc(top.title)}">${art.html}</button>
       <div class="sx-sotp-info">
         <button type="button" class="sx-t5-name" onclick="${_sxOpenJs('songs', top)}">${esc(top.title)}</button>
         <span class="sx-t5-by">${esc(top.artist)}</span>
-        <button type="button" class="ea-sample sx-t5-play" title="${esc(sampleLbl)}" aria-label="${esc(sampleLbl)}">` +
-          `<svg viewBox="0 0 24 24" aria-hidden="true"><path class="ea-ic-play" d="M8 5v14l11-7z"/><path class="ea-ic-stop" d="M7 6h3.5v12H7zM13.5 6H17v12h-3.5z"/></svg>` +
-          `<span class="sx-t5-play-go">${esc(sampleLbl)}</span><span class="sx-t5-play-stop">${esc(t('sx_top5_stop'))}</span></button>
+        ${_sxSampleBtn()}
       </div>
     </div>
     <div class="sx-sotp-chips">${chips}</div>
@@ -1317,7 +1323,7 @@ function sxShowVolDrill(k, opts = {}) {
     const [sk, o] = ranked[0], e = { title: o.p.title, artist: o.p.artist, album: o.p.album, key: sk };
     const art = _sxTop5Art('songs', e, 'is-lead');
     pics.push(['songs', e, art.id]);
-    const open = _sxOpenJs('songs', e), sampleLbl = t('sx_top5_sample');
+    const open = _sxOpenJs('songs', e);
     const ahead = ranked[1] ? o.n - ranked[1][1].n : 0;
     hero = `<div class="sx-dr-hero"${_sxEa('songs', e, art.id)}>
         <button type="button" class="sx-dr-hero-art" onclick="${open}" aria-label="${esc(e.title)}">${art.html}<span class="sx-t5-rank">1</span></button>
@@ -1328,9 +1334,7 @@ function sxShowVolDrill(k, opts = {}) {
           <div class="sx-dr-hero-n"><b>${esc(t('sx_fig_n_plays').replace('{n}', N(o.n)))}</b>` +
       `<span>${esc(t('sx_dr_share').replace('{pct}', total ? Math.round(o.n / total * 1000) / 10 : 0))}</span>` +
       (ahead > 0 ? `<span>${esc(t('sx_top5_ahead').replace('{n}', N(ahead)))}</span>` : '') + `</div>
-          <button type="button" class="ea-sample sx-t5-play" title="${esc(sampleLbl)}" aria-label="${esc(sampleLbl)}">` +
-      `<svg viewBox="0 0 24 24" aria-hidden="true"><path class="ea-ic-play" d="M8 5v14l11-7z"/><path class="ea-ic-stop" d="M7 6h3.5v12H7zM13.5 6H17v12h-3.5z"/></svg>` +
-      `<span class="sx-t5-play-go">${esc(sampleLbl)}</span><span class="sx-t5-play-stop">${esc(t('sx_top5_stop'))}</span></button>
+          ${_sxSampleBtn()}
         </div></div>`;
   }
 
