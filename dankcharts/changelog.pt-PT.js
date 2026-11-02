@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Compare: a cleaner toolbar and a Saved menu":
+    ["Comparar: uma barra mais limpa e um menu Guardadas",
+     "O topo de Estatísticas → Comparar está mais calmo: Artistas, Músicas, Álbuns e Anos são agora separadores com o seu emoji, numa só barra com a troca de vista. Top 3 e Guardadas ficam no canto do cartão. Guardadas abre um pequeno menu com as tuas comparações guardadas desse tipo (uma marca na que estás a ver) e Guardar estas em baixo, e o botão mostra o nome da que tens aberta."],
   "Compare: your picks as cards, and a better search":
     ["Comparar: as tuas escolhas como cartões e uma pesquisa melhor",
      "Em Estatísticas → Comparar, cada escolha é agora um cartão com a sua foto ou capa, a sua cor, a sua posição entre as escolhas, as suas reproduções e a sua parte delas, com uma barra em baixo. Para adicionar, escreve no cartão Adicionar: uma lista mostra o que corresponde, com imagens e reproduções, o mais ouvido primeiro. Deixa a caixa vazia para veres os que mais ouves e ainda não escolheste. Funciona com Last.fm, Google Sheets e ficheiros CSV."],

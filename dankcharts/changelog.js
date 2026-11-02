@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 417;
+const DC_CL_I18N_V = 418;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -296,6 +296,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-01', t: 'design', a: 'graphs', h: '9a2aae9',
+    title: "Compare: a cleaner toolbar and a Saved menu",
+    detail: "The top of Stats → Compare is calmer: Artists, Songs, Albums and Years are now tabs with their emoji, sharing one bar with the view switch. Top 3 and Saved sit in the card's corner. Saved opens a small menu with your saved comparisons for that type (a tick on the one you're looking at) and Save these at the bottom, and the button shows the name of the saved set you have open." },
   { d: '2026-11-01', t: 'design', a: 'graphs', h: '616532e',
     title: "Compare: your picks as cards, and a better search",
     detail: "On Stats → Compare, each pick is now a card with its photo or cover, its colour, where it ranks among your picks, its plays and its share of them, with a bar along the bottom. To add one, type in the Add card: a list shows what matches, with pictures and play counts, most played first. Leave the box empty to see your most played ones you haven't picked yet. Works with Last.fm, Google Sheets and CSV uploads." },
