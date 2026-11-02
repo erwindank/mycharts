@@ -4401,7 +4401,7 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 /* Highlight cards (DC_CL_HIGHLIGHTS in changelog.js), keyed by id. */
 window.DC_CL_HIGHLIGHTS_I18N = window.DC_CL_HIGHLIGHTS_I18N || {};
 window.DC_CL_HIGHLIGHTS_I18N["pt-BR"] = {
-  dank100: {
+  "dank100": {
     title: "The Dank 100 chegou",
     intro: "Uma parada semanal compartilhada, feita com o que todo mundo ouve. Envie sua semana e ajude a decidir o que é o nº 1.",
     points: [
@@ -4409,5 +4409,166 @@ window.DC_CL_HIGHLIGHTS_I18N["pt-BR"] = {
       "Os pontos vêm das posições na parada, não do número de reproduções, então cada ouvinte conta igual.",
       "Clique em qualquer música, artista ou álbum para ver a trajetória: estreia, pico e semanas em nº 1.",
       "Veja semanas anteriores, recordes e cada nº 1, e compartilhe o top 10 como imagem."
+    ] },
+  "games": {
+    title: "Doze jogos sobre a sua própria música",
+    intro: "Estatísticas tem uma aba Jogos: desafios rápidos feitos com a sua própria biblioteca, e um Jogo do dia novo todo dia.",
+    points: [
+      "Adivinhe a música, chute o número de reproduções, coloque o top 5 de um ano de volta em ordem e mais nove.",
+      "O Jogo do dia é um desafio só, o mesmo o dia todo. Sua primeira tentativa conta e mantém sua sequência.",
+      "Cada jogo guarda sua melhor pontuação, então sempre há algo para superar."
+    ] },
+  "compare": {
+    title: "Compare o que quiser, lado a lado",
+    intro: "Coloque até dez artistas, músicas, álbuns ou anos um ao lado do outro e veja quem fica na frente.",
+    points: [
+      "Totais acumulados, reproduções por período, trajetórias na parada e uma corrida, tudo em um gráfico.",
+      "Frente a frente e Um contra um: quem liderou, por quanto e por quanto tempo.",
+      "Músicas principais e hábitos de escuta lado a lado, e as maiores diferenças entre eles.",
+      "Salve uma comparação para voltar depois, ou compartilhe como imagem."
+    ] },
+  "stats": {
+    title: "Uma página de Estatísticas mais completa, em abas",
+    intro: "Estatísticas agora se divide em Resumo, Sua história, Jogos, Comparar e Gráficos, e o Resumo conta sua escuta em palavras simples.",
+    points: [
+      "Uma frase sobre o seu período e quatro quadros que o comparam com o anterior.",
+      "Seu top 5, a música do período, quem mais se mexeu e para onde foram suas reproduções.",
+      "Sua personalidade de ouvinte, curiosidades e um calendário dia a dia com Neste dia.",
+      "Uma aba Sua história sobre o que marcou sua escuta, e o Resumo para compartilhar como imagem."
+    ] },
+  "ratings": {
+    title: "Uma página de Avaliações com tudo o que você pontuou",
+    intro: "Cada álbum, single e música que você avaliou agora tem uma página própria, em Mais → Avaliações.",
+    points: [
+      "Sua nota média de álbum, a mais alta e a mais baixa, e seus recordes de crítico.",
+      "O álbum mais ouvido que você ainda não avaliou, a um toque de uma nota.",
+      "Avalie os álbuns de um artista direto da página dele.",
+      "Compartilhe a nota de um álbum, ou a discografia inteira de um artista, como imagem."
+    ] },
+  "details": {
+    title: "Mais dentro de cada artista, música e álbum",
+    intro: "Clique em qualquer nome de uma parada para abrir a janela dele. Agora tem muito mais lá dentro.",
+    points: [
+      "Uma aba Prêmios com o histórico do artista em Meus Grammys e seus prêmios reais.",
+      "Paradas diárias em cada artista, música, álbum, single e EP, e recordes da parada diária em Recordes.",
+      "Troque a capa pela aba Música de um artista.",
+      "Botões de busca e um cartão para compartilhar em cada janela."
+    ] },
+  "rows": {
+    title: "Cada linha da parada faz mais",
+    intro: "As linhas das suas paradas agora levam a tudo sobre aquela música, artista ou álbum.",
+    points: [
+      "Clique em qualquer nome de uma parada para abrir os detalhes.",
+      "Cada linha tem uma amostra para ouvir, um menu só e uma gaveta de detalhes embaixo.",
+      "Veja as músicas de um álbum direto das paradas de álbuns.",
+      "As linhas de Fora da parada abrem a trajetória."
+    ] },
+  "soundtrack": {
+    title: "Sua Trilha Sonora conta o seu ano como uma história",
+    intro: "Toque em Tocar seu ano e Sua Trilha Sonora abre em tela cheia, um capítulo por vez: seu artista nº 1, sua música do ano, suas descobertas e mais.",
+    points: [
+      "Toque para seguir, como uma história. Funciona também para um mês e para Todo o período.",
+      "Álbuns principais, e Singles e EPs principais.",
+      "Uma janela mais completa para cada nova descoberta, com amostras e artistas parecidos.",
+      "Um calendário em Sequências de escuta e prêmios reais no capítulo de prêmios."
+    ] },
+  "layouts": {
+    title: "Suas paradas, do seu jeito",
+    intro: "Escolha a aparência das suas paradas e quantas posições elas têm, e veja como se formam reprodução por reprodução.",
+    points: [
+      "Os layouts da parada são botões acima dela, e cada layout funciona em todo período.",
+      "Escolha qualquer tamanho de parada de 5 a 500, e ajuste a largura das colunas.",
+      "Animar parada repete suas reproduções uma a uma, em todos os layouts.",
+      "Capas maiores na tabela e mais espaço para os títulos no celular."
+    ] },
+  "streaks": {
+    title: "Uma nova janela de Sequências diárias, com medalhas",
+    intro: "Clique na sua sequência de escuta para ver o que ouvir hoje para manter suas sequências, e cada medalha que você ganhou.",
+    points: [
+      "Uma aba Hoje com a sequência do dia e as músicas que salvam suas sequências.",
+      "Recordes de sequências: o top 5 de cada tipo.",
+      "Mais de 60 medalhas. Toque em uma e ela vira para mostrar quando você ganhou.",
+      "Compartilhe suas sequências como imagem."
+    ] },
+  "alltime": {
+    title: "Viaje no tempo na parada de Todo o período",
+    intro: "Veja suas paradas de Todo o período como estavam em qualquer dia do passado, e descubra o que há dentro das suas músicas principais.",
+    points: [
+      "Volte um mês por vez, ou escolha qualquer dia desde a sua primeira reprodução.",
+      "As paradas, as estatísticas e os dados contam só as reproduções até aquele dia.",
+      "Dentro do seu Top 100: quem tem mais músicas, quantos anos ela tem, quais músicas entraram mais rápido e mais."
+    ] },
+  "banner": {
+    title: "Um banner em volta das suas estatísticas",
+    intro: "Os quadros de estatísticas de cada parada agora ficam em um grande banner, com o artista nº 1 do período na frente.",
+    points: [
+      "Uma foto para uma semana, mês ou ano encerrado, e um mosaico de capas para o que ainda está rolando.",
+      "Barrinhas comparando com a vez anterior e com o seu normal, e anéis para os recordes.",
+      "Reproduções por dia embaixo dos quadros: toque em um dia para abri-lo em Diário.",
+      "Compartilhe o banner inteiro como imagem."
+    ] },
+  "daily": {
+    title: "Uma parada diária",
+    intro: "Uma parada para cada dia, com tudo sobre como aquele dia soou.",
+    points: [
+      "O dia num relance, os horários em que você ouviu e lembranças do mesmo dia em anos anteriores.",
+      "Um calendário, atualizações ao vivo e os marcos que estão perto.",
+      "Toque, compartilhe ou reviva um dia, ou salve as músicas dele como playlist."
+    ] },
+  "board": {
+    title: "Um mural da comunidade",
+    intro: "Um lugar para sugerir recursos, relatar bugs, tirar dúvidas e falar de música com outros ouvintes.",
+    points: [
+      "Vote nas ideias que você mais quer e veja cada uma ir de Planejado a Feito.",
+      "Qualquer pessoa pode ler. Entre com o Google para postar, responder e votar.",
+      "Seu nome e sua foto aparecem nos seus posts, nunca o seu e-mail."
+    ] },
+  "share": {
+    title: "Mais para compartilhar como imagem",
+    intro: "Novas imagens para compartilhar de artistas e álbuns, feitas com as suas próprias reproduções.",
+    points: [
+      "As músicas mais ouvidas de um artista.",
+      "Quanto você ouviu cada faixa de um álbum, com a imagem que escolher, em cores.",
+      "Paradas de artistas com nomes clicáveis e um ranking de músicas de cada artista."
+    ] },
+  "print": {
+    title: "Imprima qualquer parada e escolha o que a página mostra",
+    intro: "Gere um PDF limpo para imprimir de qualquer parada, e esconda as partes da página de paradas que você não usa.",
+    points: [
+      "PDF para imprimir fica ao lado de Compartilhar como imagem: uma parada ou as três, com ou sem capas.",
+      "Escolha quais seções a página de paradas mostra e esconda as descrições curtas embaixo dos títulos.",
+      "O dia em que sua semana começa agora acompanha você em todos os aparelhos."
+    ] },
+  "mygrammys": {
+    title: "Meus Grammys: dezenas de categorias novas e uma escolha mais fácil",
+    intro: "Faça sua própria premiação do seu ano na música. Agora há muito mais categorias, e escolher os indicados ficou bem mais fácil.",
+    points: [
+      "Novos grupos de Pop, Rock, Vídeos, Gospel e cristã e Instrumental, além de prêmios de fim de ano e Melhor música ouvida em show.",
+      "O seletor de indicados mostra o quanto cada candidato se encaixa, com ano, gêneros, amostras e estatísticas.",
+      "Marque suas categorias favoritas, recolha ou esconda as já decididas e reordene os indicados nos próprios cartões."
+    ] },
+  "reallife": {
+    title: "Prêmios Reais: mais oito premiações",
+    intro: "Veja como seus artistas se saíram nas premiações reais. Além do Grammy, agora há mais oito.",
+    points: [
+      "VMA, AMA, iHeartRadio, World Music Awards, Billboard, ARIA, Juno e BRIT.",
+      "As indicações reais ao Grammy, cruzadas com o que você ouviu naquele ano.",
+      "Cada premiação mostra as indicações e vitórias dos seus artistas, com o que você ouviu na temporada."
+    ] },
+  "backups": {
+    title: "Backups que você pode restaurar",
+    intro: "Suas configurações, prêmios e avaliações são salvos na sua conta todo dia, e você pode trazer qualquer um de volta.",
+    points: [
+      "Configurações → Perfil mostra seus últimos 30 backups. Restaure um em todos os aparelhos com um clique.",
+      "Faça um backup na hora ou baixe um arquivo de backup para guardar.",
+      "Escolher indicados em dois celulares não apaga mais as escolhas mais recentes."
+    ] },
+  "ceremony": {
+    title: "Compartilhe sua cerimônia de premiação",
+    intro: "Mande para qualquer pessoa um link para assistir à sua cerimônia: os indicados, os envelopes lacrados e a revelação dos vencedores, sem precisar de conta.",
+    points: [
+      "Só a cerimônia é compartilhada, nada mais da sua biblioteca.",
+      "Mudou um vencedor? Toque em Atualizar link e o link que você mandou mostra a nova versão.",
+      "Estatísticas finais no fim, estatísticas e recordes no topo de cada ano e uma playlist com os indicados de qualquer categoria."
     ] },
 };

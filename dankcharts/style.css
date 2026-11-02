@@ -39690,7 +39690,15 @@ body.red-light :is(.sv--bronze, .modal-cb-detail-peak--bronze) {
 }
 .cl-section-head-first { padding-top: 1rem; }
 .cl-section-head[hidden],
-.cl-hl-wrap[hidden] { display: none; }
+.cl-hl-wrap[hidden],
+.cl-hl[hidden] { display: none; }
+
+/* Below the first few cards: opens the rest. */
+.cl-hl-showmore {
+  display: block;
+  width: 100%;
+  margin: calc(-1 * var(--sp-2)) 0 var(--sp-2);
+}
 
 .cl-hl {
   margin-bottom: var(--sp-5);

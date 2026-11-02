@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 414;
+const DC_CL_I18N_V = 415;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -87,6 +87,8 @@ const DC_CL_AREAS = {
      img     screenshot in whatsnew/, 1200px wide .webp, taken with the
              sample data so it never shows anyone's real library
      go      the data-period of the tab "Take me there" opens (optional)
+     then    [function name, argument] calls made after that, for a
+             sub-tab or a window, e.g. [['setStatsTab', 'games']] (optional)
      title   headline, in plain words
      intro   one or two sentences: what it is and why you would care
      points  2-4 short bullets of what you can do with it
@@ -96,7 +98,7 @@ const DC_CL_AREAS = {
    by id, as { title, intro, points }. A missing one shows in English.
    ------------------------------------------------------------------------- */
 const DC_CL_HIGHLIGHTS = [
-  { id: 'dank100', d: '2026-11-01', a: 'charts', img: 'whatsnew/dank100.webp', go: 'dank100',
+  { id: "dank100", d: "2026-11-01", a: "charts", img: "whatsnew/dank100.webp", go: "dank100",
     title: "The Dank 100 is here",
     intro: "One shared weekly chart, made from everyone's listening. Send in your week and help decide what's #1.",
     points: [
@@ -105,7 +107,187 @@ const DC_CL_HIGHLIGHTS = [
       "Click any song, artist or album to see its run: debut, peak and weeks at #1.",
       "Look back at older weeks, records and every #1, and share the top 10 as an image.",
     ],
-    also: ['20984e3', 'b5266b2', '4633b01', '5985dda', '4679756', '3449b86'] },
+    also: ["20984e3", "b5266b2", "4633b01", "5985dda", "4679756", "3449b86"] },
+  { id: "games", d: "2026-11-01", a: "graphs", img: "whatsnew/games.webp", go: "graphs", then: [["setStatsTab", "games"]],
+    title: "Twelve games about your own music",
+    intro: "Stats has a Games tab: quick quizzes made from your own library, and a new Game of the day every day.",
+    points: [
+      "Name that tune, guess the play count, put a year's top 5 back in order, and nine more.",
+      "The Game of the day is one puzzle, the same all day. Your first try counts and keeps your streak going.",
+      "Every game keeps your best score, so there is always something to beat.",
+    ],
+    also: ["c6777fa", "b6b21ad", "4ca4d2a"] },
+  { id: "compare", d: "2026-10-31", a: "graphs", img: "whatsnew/compare.webp", go: "graphs", then: [["setStatsTab", "compare"]],
+    title: "Compare anything side by side",
+    intro: "Put up to ten artists, songs, albums or years next to each other and see who comes out on top.",
+    points: [
+      "Running totals, plays per period, chart runs and a race, all on one chart.",
+      "Head to head and One on one: who led, by how much and for how long.",
+      "Top songs and listening habits side by side, and the biggest gaps between them.",
+      "Save a comparison to come back to, or share it as an image.",
+    ],
+    also: ["643fba6", "d6e5524", "fabd074", "bc1c433", "0742d22", "9302755", "3965de2", "f80e952", "c3d1b0c", "08e4613"] },
+  { id: "stats", d: "2026-10-31", a: "graphs", img: "whatsnew/stats-overview.webp", go: "graphs", then: [["setStatsTab", "overview"]],
+    title: "A fuller Stats page, in tabs",
+    intro: "Stats is now split into Overview, Story, Games, Compare and Charts, and the Overview sums up your listening in plain words.",
+    points: [
+      "One sentence about your period, and four tiles that compare it with the one before.",
+      "Your top 5, song of the period, biggest movers and where your plays went.",
+      "Your listening personality, fun facts, and a day-by-day calendar with On this day.",
+      "A Story tab about what your listening was about, and the Overview to share as an image.",
+    ],
+    also: ["96aaad3", "574cc54", "f7b2082", "667569f", "95c2738", "eca2d48", "9841486", "d053b2d", "f9fba26"] },
+  { id: "ratings", d: "2026-10-29", a: "ratings", img: null, go: "ratings",
+    title: "A Ratings page for everything you've scored",
+    intro: "Every album, single and song you have rated now has a page of its own, under More → Ratings.",
+    points: [
+      "Your average album score, your highest and lowest, and your critical records.",
+      "The most played album you haven't rated yet, one tap away from a score.",
+      "Rate an artist's albums straight from their page.",
+      "Share an album's score, or an artist's whole discography, as an image.",
+    ],
+    also: ["7324b11", "e0be351", "c2b1f9c", "e8ac289", "90bf474", "71ed437"] },
+  { id: "details", d: "2026-10-29", a: "ui", img: "whatsnew/artist-window.webp", go: "week",
+    title: "More inside every artist, song and album",
+    intro: "Click any name on a chart to open its window. There is a lot more in it now.",
+    points: [
+      "An Awards tab with the artist's My Grammys record and their real-life awards.",
+      "Daily charts in every artist, song, album, single and EP, and daily chart records in Records.",
+      "Change the cover art from an artist's Music tab.",
+      "Search buttons and a Share card in every window.",
+    ],
+    also: ["7e986cc", "2c24473", "3c2f47a", "50b0229", "5d0667d"] },
+  { id: "rows", d: "2026-10-28", a: "charts", img: null, go: "week",
+    title: "Every chart row does more",
+    intro: "The rows on your charts are now a way into everything about that song, artist or album.",
+    points: [
+      "Click any name on a chart to open its details.",
+      "Every row has a sample to play, one menu, and a details drawer underneath.",
+      "See an album's songs straight from the album charts.",
+      "Off the Chart rows open their chart run.",
+    ],
+    also: ["1ce994a", "b627c31", "11776f7", "6cfb4c9", "eec9d14", "0c1e41b"] },
+  { id: "soundtrack", d: "2026-10-25", a: "soundtrack", img: "whatsnew/soundtrack.webp", go: "soundtrack",
+    title: "Your Soundtrack plays your year as a story",
+    intro: "Press Play your year and Your Soundtrack opens full screen, one chapter at a time: your #1 artist, your song of the year, your discoveries and more.",
+    points: [
+      "Tap to go on, like a story. It works for a month and for All-Time too.",
+      "Top Albums, and Top Singles and EPs.",
+      "A richer pop-up for each new discovery, with samples and similar artists.",
+      "A calendar in Listening Streaks, and real award show wins in the awards chapter.",
+    ],
+    also: ["1beb813", "81c6004", "0af6697", "a6e9995", "0eaeca3", "b95d180", "07af0fe"] },
+  { id: "layouts", d: "2026-10-22", a: "charts", img: "whatsnew/chart-layouts.webp", go: "week",
+    title: "Your charts, your way",
+    intro: "Pick how your charts look and how long they are, and watch them build up play by play.",
+    points: [
+      "Chart layouts are buttons above the chart, and every layout works on every period.",
+      "Pick any chart size from 5 to 500, and resize the table's columns.",
+      "Animate Chart replays your plays one by one, in every layout.",
+      "Bigger covers in the table, and more room for titles on phones.",
+    ],
+    also: ["d526475", "7899764", "0681898", "98e03fc", "9239863", "d7069fd", "a405103", "d02cebd"] },
+  { id: "streaks", d: "2026-10-21", a: "charts", img: "whatsnew/streaks.webp", go: "week", then: [["openStreakModal", null]],
+    title: "A new Daily Streaks window, with badges",
+    intro: "Click your listening streak to see what to play today to keep your streaks alive, and every badge you have earned.",
+    points: [
+      "A Today tab with the streak of the day and the songs that save your streaks.",
+      "Streak records: the top 5 of each kind.",
+      "Over 60 badges. Tap one and it flips over to show when you earned it.",
+      "Share your streaks as an image.",
+    ],
+    also: ["f2e654a", "d98ed4a", "3ac63ef", "401b187", "Badges flip over, and a badge timeline", "a918c94", "4670b1f", "db3096c"] },
+  { id: "alltime", d: "2026-10-21", a: "charts", img: "whatsnew/all-time.webp", go: "alltime",
+    title: "Travel back in time on the All-Time chart",
+    intro: "See your All-Time charts as they stood on any day in the past, and find out what's inside your top songs.",
+    points: [
+      "Step back a month at a time, or pick any day since your first play.",
+      "The charts, the stats and the insights all count only the plays up to that day.",
+      "Inside your Top 100: who has the most songs in it, how old it is, which songs got in fastest, and more.",
+    ],
+    also: ["0c25610", "Stats about your all-time charts"] },
+  { id: "banner", d: "2026-10-20", a: "charts", img: "whatsnew/stats-banner.webp", go: "week",
+    title: "A banner around your stats",
+    intro: "The stats tiles on every chart now sit in a big banner, with the period's #1 artist up front.",
+    points: [
+      "A photo for a finished week, month or year, and a cover mosaic for the one still going.",
+      "Small bars against last time and your usual, and rings for record highs.",
+      "Plays by day under the tiles: tap a day to open it on Daily.",
+      "Share the whole banner as an image.",
+    ],
+    also: ["A banner around the stats tiles", "The stats banner on Daily too"] },
+  { id: "daily", d: "2026-10-16", a: "charts", img: "whatsnew/daily.webp", go: "day",
+    title: "A Daily chart",
+    intro: "A chart for every single day, with everything about how that day sounded.",
+    points: [
+      "The day at a glance, the time of day you listened, and memories from the same day in past years.",
+      "A calendar, live updates and the milestones you're close to.",
+      "Play, share or relive a day, or save its songs as a playlist.",
+    ],
+    also: ["eba0669", "208a86f", "4f74d71", "689e744", "9991d33", "83ca66a", "478326d", "b714c9c", "61ac42f", "0b7dc37"] },
+  { id: "board", d: "2026-10-06", a: "ui", img: "whatsnew/board.webp", go: "board",
+    title: "A Community Board",
+    intro: "A place to suggest features, report bugs, ask questions and talk music with other listeners.",
+    points: [
+      "Vote up the ideas you want most, and see each one go from Planned to Done.",
+      "Anyone can read it. Sign in with Google to post, reply and vote.",
+      "Your name and picture show with your posts, never your email.",
+    ],
+    also: ["97db66b"] },
+  { id: "share", d: "2026-10-05", a: "share", img: null, go: "week",
+    title: "More to share as images",
+    intro: "New share images for artists and albums, made from your own plays.",
+    points: [
+      "An artist's most played songs.",
+      "How much you've played every track of an album, with the picture you pick, in full colour.",
+      "Artist charts with clickable names and a song ranking for each artist.",
+    ],
+    also: ["1053917", "15957b9", "de567a5", "d809690", "db9f019"] },
+  { id: "print", d: "2026-10-03", a: "charts", img: null, go: "week",
+    title: "Print any chart, and pick what the page shows",
+    intro: "Make a clean printable PDF of any chart, and hide the parts of the charts page you don't use.",
+    points: [
+      "Printable PDF sits next to Share as image: one chart or all three, with or without covers.",
+      "Choose which sections the charts page shows, and hide the short descriptions under headings.",
+      "Your week start day now follows you to every device.",
+    ],
+    also: ["b4ac5c4", "f64e490", "750643b", "e0efde1"] },
+  { id: "mygrammys", d: "2026-10-03", a: "awards", img: "whatsnew/my-grammys.webp", go: "awards", then: [["awardsSubTab", "mygrammys"]],
+    title: "My Grammys: dozens of new categories, and smarter picking",
+    intro: "Hold your own awards for your year in music. There are many more categories now, and picking nominees is much easier.",
+    points: [
+      "New groups for Pop, Rock, Videos, Gospel & Christian and Instrumental, plus holiday awards and Best Song Heard in Concert.",
+      "The nominee picker shows how well each candidate fits, with its year, genres, samples and stats.",
+      "Star your favorite categories, fold or hide the ones already decided, and reorder nominees right on the cards.",
+    ],
+    also: ["30 new awards: a Pop group and a Videos group", "14 new awards: Gospel & Christian and Instrumental groups", "Two holiday awards: Best Holiday Season Song and Album", "a2f0f9c", "3fd0ea7", "27a776b", "2e140e6", "9eebb3c", "c92abfd", "b052e5a", "931e8cc", "524c95e"] },
+  { id: "reallife", d: "2026-10-02", a: "awards", img: "whatsnew/real-life-awards.webp", go: "awards", then: [["awardsSubTab", "reallife"]],
+    title: "Real-Life Awards: eight more award shows",
+    intro: "See how your artists did at the real award shows. On top of the Grammys, there are now eight more.",
+    points: [
+      "The VMAs, AMAs, iHeartRadio, World Music Awards, Billboard, ARIA, Juno and BRIT Awards.",
+      "The real Grammy nominations, matched against what you played that year.",
+      "Each show lists your artists' nominations and wins, with what you played that season.",
+    ],
+    also: ["6fc55fc", "79cf383", "692bc04", "8efc477", "3545048", "2f3eea1", "7244db5", "b5b282f", "1c78a5b"] },
+  { id: "backups", d: "2026-09-24", a: "data", img: null, go: null, then: [["openSourceModal", null], ["switchSettingsTab", "profile"]],
+    title: "Backups you can restore",
+    intro: "Your settings, awards and ratings are backed up to your account every day, and you can bring any of them back.",
+    points: [
+      "Settings → Profile lists your last 30 backups. Restore one on every device in one click.",
+      "Back up by hand, or download a backup file to keep yourself.",
+      "Picking nominees on two phones no longer wipes the newer picks.",
+    ],
+    also: ["Backups you can restore from Settings", "Switching phones no longer wipes your nominations"] },
+  { id: "ceremony", d: "2026-09-23", a: "awards", img: null, go: "awards", then: [["awardsSubTab", "mygrammys"]],
+    title: "Share your awards ceremony",
+    intro: "Send anyone a link to watch your awards ceremony: the nominees, the sealed envelopes and the winner reveals, no account needed.",
+    points: [
+      "Only the ceremony is shared, nothing else from your library.",
+      "Changed a winner? Press Update link and the link you sent shows the new version.",
+      "Final stats at the end, stats and records at the top of every year, and a playlist of any category's nominees.",
+    ],
+    also: ["1840849", "558999f", "91bd87d", "c14b612", "5109aa4"] },
 ];
 
 /* -- The record -------------------------------------------------------------

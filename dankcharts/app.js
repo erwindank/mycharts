@@ -56673,17 +56673,28 @@ function dcClLongDate(iso) {
 
 function dcClHighlightsHtml() {
   if (typeof DC_CL_HIGHLIGHTS === 'undefined' || !DC_CL_HIGHLIGHTS.length) return '';
-  /* Entries looked up by hash, for each card's "every change" fold. */
-  const byHash = {};
-  DC_CHANGELOG.forEach((e, i) => { if (e.h) byHash[e.h] = { e: e, i: i }; });
+  /* Entries looked up by hash or by English title, for each card's "every
+     change" fold. A few entries have no hash, and one commit can hold several
+     entries, so those are listed by title instead. */
+  const byKey = {};
+  DC_CHANGELOG.forEach((e, i) => {
+    if (e.h && !byKey[e.h]) byKey[e.h] = { e: e, i: i };
+    byKey[e.title] = { e: e, i: i };
+  });
   const cutoff = dcClRenderCutoff;
   let h = '<section class="cl-hl-wrap" id="clHighlights">' +
           '<div class="cl-section-head cl-section-head-first"><span>' + esc(t('cl_hl_heading')) + '</span></div>';
+  /* The newest few show straight away (all the unread ones, if there are
+     more); the rest wait behind a "Show more" button so the full list below
+     is not twenty cards away. */
+  const unread = cutoff ? DC_CL_HIGHLIGHTS.filter(x => x.d > cutoff).length : 0;
+  const shown = Math.max(DC_CL_HL_SHOWN, unread);
   DC_CL_HIGHLIGHTS.forEach((hl, n) => {
     const tx = dcClHighlightText(hl);
     const isNew = !!cutoff && hl.d > cutoff;
-    const also = (hl.also || []).map(x => byHash[x]).filter(Boolean);
-    h += '<article class="cl-hl' + (isNew ? ' cl-hl-new' : '') + '">' +
+    const also = (hl.also || []).map(x => byKey[x]).filter(Boolean);
+    h += '<article class="cl-hl' + (isNew ? ' cl-hl-new' : '') + (n >= shown ? ' cl-hl-extra' : '') + '"' +
+         (n >= shown ? ' hidden' : '') + '>' +
       (hl.img ? '<div class="cl-hl-shot"><img src="' + esc(hl.img) + '" alt="" loading="lazy" decoding="async"></div>' : '') +
       '<div class="cl-hl-body">' +
         '<div class="cl-hl-meta">' +
@@ -56695,7 +56706,7 @@ function dcClHighlightsHtml() {
         (tx.intro ? '<p class="cl-hl-intro">' + esc(tx.intro) + '</p>' : '') +
         (tx.points.length ? '<ul class="cl-hl-points">' + tx.points.map(p => '<li>' + esc(p) + '</li>').join('') + '</ul>' : '') +
         '<div class="cl-hl-actions">' +
-          (hl.go ? '<button class="dc-btn dc-btn-main dc-btn-sm cl-hl-go" onclick="dcClGo(' + esc(JSON.stringify(hl.go)) + ')">' +
+          (hl.go || hl.then ? '<button class="dc-btn dc-btn-main dc-btn-sm cl-hl-go" onclick="dcClGo(' + n + ')">' +
                    esc(t('cl_hl_go')) + ' <span aria-hidden="true">&rarr;</span></button>' : '') +
           (also.length ? '<button class="dc-btn dc-btn-plain dc-btn-sm cl-hl-more" aria-expanded="false" onclick="dcClToggleAlso(' + n + ',this)">' +
                          esc(t('cl_hl_also', { n: also.length })) + '</button>' : '') +
@@ -56708,7 +56719,21 @@ function dcClHighlightsHtml() {
       '</div>' +
     '</article>';
   });
+  const rest = DC_CL_HIGHLIGHTS.length - shown;
+  if (rest > 0) {
+    h += '<button class="dc-btn dc-btn-normal cl-hl-showmore" id="clHlShowMore" onclick="dcClShowAllHighlights()">' +
+         esc(t('cl_hl_showmore', { n: rest })) + '</button>';
+  }
   return h + '</section>';
+}
+
+/* How many highlight cards show before "Show more". */
+const DC_CL_HL_SHOWN = 4;
+
+function dcClShowAllHighlights() {
+  document.querySelectorAll('#clHighlights .cl-hl-extra').forEach(el => { el.hidden = false; });
+  const b = document.getElementById('clHlShowMore');
+  if (b) b.remove();
 }
 
 /* Show or hide the type and area pills under the search box. */
@@ -56745,14 +56770,23 @@ function dcClJumpToEntry(i) {
   row.classList.remove('cl-entry-flash'); void row.offsetWidth; row.classList.add('cl-entry-flash');
 }
 
-/* "Take me there": close What's New and open the tab the update is about.
-   Clicks the real nav button so the tab opens exactly as it does by hand. */
-function dcClGo(period) {
-  const btn = document.querySelector('#periodNav button[data-period="' + period + '"]');
+/* "Take me there": close What's New and open the part of the site highlight
+   n is about. `go` clicks the real nav button, so the tab opens exactly as it
+   does by hand; `then` is a list of [function name, argument] calls made after
+   it, for a sub-tab or a window (setStatsTab, openStreakModal...). */
+function dcClGo(n) {
+  const hl = (typeof DC_CL_HIGHLIGHTS !== 'undefined') ? DC_CL_HIGHLIGHTS[n] : null;
+  if (!hl) return;
   closeChangelog();
-  if (!btn) return;
-  btn.click();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (hl.go) {
+    const btn = document.querySelector('#periodNav button[data-period="' + hl.go + '"]');
+    if (btn) btn.click();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  /* A beat later, so the tab has been drawn before a sub-tab or window opens. */
+  if (hl.then) setTimeout(() => {
+    hl.then.forEach(c => { if (typeof window[c[0]] === 'function') window[c[0]](c[1]); });
+  }, hl.go ? 350 : 0);
 }
 
 /* Expand or collapse one entry's detail. */

@@ -4401,13 +4401,174 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 /* Highlight cards (DC_CL_HIGHLIGHTS in changelog.js), keyed by id. */
 window.DC_CL_HIGHLIGHTS_I18N = window.DC_CL_HIGHLIGHTS_I18N || {};
 window.DC_CL_HIGHLIGHTS_I18N["pt-PT"] = {
-  dank100: {
+  "dank100": {
     title: "The Dank 100 chegou",
-    intro: "Uma tabela semanal partilhada, feita com o que toda a gente ouve. Envie a sua semana e ajude a decidir o que é o n.º 1.",
+    intro: "Uma tabela semanal partilhada, feita com o que toda a gente ouve. Envia a tua semana e ajuda a decidir o que é o n.º 1.",
     points: [
-      "Envie a sua semana com um clique, ou o seu ano inteiro desde janeiro.",
+      "Envia a tua semana com um clique, ou o teu ano inteiro desde janeiro.",
       "Os pontos vêm das posições na tabela, não do número de reproduções, por isso cada ouvinte conta o mesmo.",
-      "Clique em qualquer música, artista ou álbum para ver o percurso: estreia, pico e semanas em n.º 1.",
-      "Veja semanas anteriores, recordes e cada n.º 1, e partilhe o top 10 como imagem."
+      "Clica em qualquer música, artista ou álbum para veres o percurso: estreia, pico e semanas em n.º 1.",
+      "Vê semanas anteriores, recordes e cada n.º 1, e partilha o top 10 como imagem."
+    ] },
+  "games": {
+    title: "Doze jogos sobre a tua própria música",
+    intro: "Estatísticas tem um separador Jogos: desafios rápidos feitos com a tua própria biblioteca, e um Jogo do dia novo todos os dias.",
+    points: [
+      "Adivinha a música, calcula o número de reproduções, volta a ordenar o top 5 de um ano e mais nove.",
+      "O Jogo do dia é um só desafio, o mesmo o dia inteiro. A tua primeira tentativa conta e mantém a tua sequência.",
+      "Cada jogo guarda a tua melhor pontuação, por isso há sempre algo para bater."
+    ] },
+  "compare": {
+    title: "Compara o que quiseres, lado a lado",
+    intro: "Coloca até dez artistas, músicas, álbuns ou anos lado a lado e vê quem fica à frente.",
+    points: [
+      "Totais acumulados, reproduções por período, percursos na tabela e uma corrida, tudo num gráfico.",
+      "Frente a frente e Um contra um: quem liderou, por quanto e durante quanto tempo.",
+      "Músicas principais e hábitos de audição lado a lado, e as maiores diferenças entre eles.",
+      "Guarda uma comparação para voltares mais tarde, ou partilha-a como imagem."
+    ] },
+  "stats": {
+    title: "Uma página de Estatísticas mais completa, em separadores",
+    intro: "Estatísticas divide-se agora em Resumo, A tua história, Jogos, Comparar e Gráficos, e o Resumo conta a tua audição em palavras simples.",
+    points: [
+      "Uma frase sobre o teu período e quatro quadros que o comparam com o anterior.",
+      "O teu top 5, a música do período, quem mais se mexeu e para onde foram as tuas reproduções.",
+      "A tua personalidade de ouvinte, curiosidades e um calendário dia a dia com Neste dia.",
+      "Um separador A tua história sobre o que marcou a tua audição, e o Resumo para partilhar como imagem."
+    ] },
+  "ratings": {
+    title: "Uma página de Avaliações com tudo o que pontuaste",
+    intro: "Cada álbum, single e música que avaliaste tem agora uma página própria, em Mais → Avaliações.",
+    points: [
+      "A tua nota média de álbum, a mais alta e a mais baixa, e os teus recordes de crítico.",
+      "O álbum mais ouvido que ainda não avaliaste, a um toque de uma nota.",
+      "Avalia os álbuns de um artista diretamente na página dele.",
+      "Partilha a nota de um álbum, ou a discografia inteira de um artista, como imagem."
+    ] },
+  "details": {
+    title: "Mais dentro de cada artista, música e álbum",
+    intro: "Clica em qualquer nome de uma tabela para abrir a janela dele. Agora há muito mais lá dentro.",
+    points: [
+      "Um separador Prémios com o historial do artista em Os Meus Grammys e os seus prémios reais.",
+      "Tabelas diárias em cada artista, música, álbum, single e EP, e recordes da tabela diária em Recordes.",
+      "Muda a capa no separador Música de um artista.",
+      "Botões de pesquisa e um cartão para partilhar em cada janela."
+    ] },
+  "rows": {
+    title: "Cada linha da tabela faz mais",
+    intro: "As linhas das tuas tabelas levam agora a tudo sobre essa música, artista ou álbum.",
+    points: [
+      "Clica em qualquer nome de uma tabela para abrir os detalhes.",
+      "Cada linha tem uma amostra para ouvir, um só menu e uma gaveta de detalhes por baixo.",
+      "Vê as músicas de um álbum diretamente nas tabelas de álbuns.",
+      "As linhas de Fora da tabela abrem o percurso."
+    ] },
+  "soundtrack": {
+    title: "Sua Trilha Sonora conta o teu ano como uma história",
+    intro: "Toca em Reproduzir o teu ano e Sua Trilha Sonora abre em ecrã inteiro, um capítulo de cada vez: o teu artista n.º 1, a tua música do ano, as tuas descobertas e mais.",
+    points: [
+      "Toca para avançar, como uma história. Também funciona para um mês e para Todo o período.",
+      "Álbuns principais, e Singles e EPs principais.",
+      "Uma janela mais completa para cada nova descoberta, com amostras e artistas parecidos.",
+      "Um calendário em Sequências de audição e prémios reais no capítulo de prémios."
+    ] },
+  "layouts": {
+    title: "As tuas tabelas, à tua maneira",
+    intro: "Escolhe o aspeto das tuas tabelas e quantas posições têm, e vê-as formar-se reprodução a reprodução.",
+    points: [
+      "Os esquemas da tabela são botões acima dela, e cada esquema funciona em todos os períodos.",
+      "Escolhe qualquer tamanho de tabela entre 5 e 500, e ajusta a largura das colunas.",
+      "Animar tabela repete as tuas reproduções uma a uma, em todos os esquemas.",
+      "Capas maiores na tabela e mais espaço para os títulos no telemóvel."
+    ] },
+  "streaks": {
+    title: "Uma nova janela de Sequências diárias, com medalhas",
+    intro: "Clica na tua sequência de audição para veres o que ouvir hoje para manter as tuas sequências, e cada medalha que ganhaste.",
+    points: [
+      "Um separador Hoje com a sequência do dia e as músicas que salvam as tuas sequências.",
+      "Recordes de sequências: o top 5 de cada tipo.",
+      "Mais de 60 medalhas. Toca numa e ela vira para mostrar quando a ganhaste.",
+      "Partilha as tuas sequências como imagem."
+    ] },
+  "alltime": {
+    title: "Viaja no tempo na tabela de Todo o período",
+    intro: "Vê as tuas tabelas de Todo o período tal como estavam em qualquer dia do passado, e descobre o que há dentro das tuas músicas principais.",
+    points: [
+      "Recua um mês de cada vez, ou escolhe qualquer dia desde a tua primeira reprodução.",
+      "As tabelas, as estatísticas e os dados contam só as reproduções até esse dia.",
+      "Dentro do teu Top 100: quem tem mais músicas, que idade tem, que músicas entraram mais depressa e mais."
+    ] },
+  "banner": {
+    title: "Um banner à volta das tuas estatísticas",
+    intro: "Os quadros de estatísticas de cada tabela estão agora num grande banner, com o artista n.º 1 do período à frente.",
+    points: [
+      "Uma fotografia para uma semana, mês ou ano terminado, e um mosaico de capas para o que ainda está a decorrer.",
+      "Barrinhas em comparação com a vez anterior e com o habitual, e anéis para os recordes.",
+      "Reproduções por dia por baixo dos quadros: toca num dia para o abrires em Diário.",
+      "Partilha o banner inteiro como imagem."
+    ] },
+  "daily": {
+    title: "Uma tabela diária",
+    intro: "Uma tabela para cada dia, com tudo sobre como esse dia soou.",
+    points: [
+      "O dia num relance, as horas a que ouviste e memórias do mesmo dia em anos anteriores.",
+      "Um calendário, atualizações em direto e os marcos que estão perto.",
+      "Ouve, partilha ou revive um dia, ou guarda as músicas dele como playlist."
+    ] },
+  "board": {
+    title: "Um quadro da comunidade",
+    intro: "Um sítio para sugerir funcionalidades, comunicar erros, fazer perguntas e falar de música com outros ouvintes.",
+    points: [
+      "Vota nas ideias que mais queres e vê cada uma passar de Planeado a Feito.",
+      "Qualquer pessoa pode ler. Inicia sessão com o Google para publicar, responder e votar.",
+      "O teu nome e a tua fotografia aparecem nas tuas publicações, nunca o teu e-mail."
+    ] },
+  "share": {
+    title: "Mais para partilhar como imagem",
+    intro: "Novas imagens para partilhar de artistas e álbuns, feitas com as tuas próprias reproduções.",
+    points: [
+      "As músicas mais ouvidas de um artista.",
+      "Quanto ouviste cada faixa de um álbum, com a imagem que escolheres, a cores.",
+      "Tabelas de artistas com nomes clicáveis e um ranking de músicas de cada artista."
+    ] },
+  "print": {
+    title: "Imprime qualquer tabela e escolhe o que a página mostra",
+    intro: "Cria um PDF limpo para imprimir de qualquer tabela, e esconde as partes da página de tabelas que não usas.",
+    points: [
+      "PDF para imprimir está ao lado de Partilhar como imagem: uma tabela ou as três, com ou sem capas.",
+      "Escolhe que secções a página de tabelas mostra e esconde as descrições curtas por baixo dos títulos.",
+      "O dia em que a tua semana começa acompanha-te agora em todos os dispositivos."
+    ] },
+  "mygrammys": {
+    title: "Os Meus Grammys: dezenas de categorias novas e uma escolha mais fácil",
+    intro: "Faz os teus próprios prémios do teu ano na música. Há agora muito mais categorias, e escolher os nomeados é muito mais fácil.",
+    points: [
+      "Novos grupos de Pop, Rock, Vídeos, Gospel e cristã e Instrumental, além de prémios de Natal e Melhor música ouvida em concerto.",
+      "O seletor de nomeados mostra quanto cada candidato se encaixa, com ano, géneros, amostras e estatísticas.",
+      "Marca as tuas categorias favoritas, recolhe ou esconde as já decididas e reordena os nomeados nos próprios cartões."
+    ] },
+  "reallife": {
+    title: "Prémios Reais: mais oito cerimónias",
+    intro: "Vê como os teus artistas se saíram nas cerimónias de prémios reais. Além dos Grammy, há agora mais oito.",
+    points: [
+      "VMA, AMA, iHeartRadio, World Music Awards, Billboard, ARIA, Juno e BRIT.",
+      "As nomeações reais aos Grammy, cruzadas com o que ouviste nesse ano.",
+      "Cada cerimónia mostra as nomeações e vitórias dos teus artistas, com o que ouviste nessa temporada."
+    ] },
+  "backups": {
+    title: "Cópias de segurança que podes restaurar",
+    intro: "As tuas definições, prémios e avaliações são guardados na tua conta todos os dias, e podes recuperar qualquer um deles.",
+    points: [
+      "Definições → Perfil mostra as tuas últimas 30 cópias. Restaura uma em todos os dispositivos com um clique.",
+      "Faz uma cópia à mão ou descarrega um ficheiro de cópia para guardares.",
+      "Escolher nomeados em dois telemóveis já não apaga as escolhas mais recentes."
+    ] },
+  "ceremony": {
+    title: "Partilha a tua cerimónia de prémios",
+    intro: "Envia a quem quiseres uma ligação para ver a tua cerimónia: os nomeados, os envelopes fechados e a revelação dos vencedores, sem precisar de conta.",
+    points: [
+      "Só a cerimónia é partilhada, mais nada da tua biblioteca.",
+      "Mudaste um vencedor? Toca em Atualizar ligação e a ligação que enviaste mostra a nova versão.",
+      "Estatísticas finais no fim, estatísticas e recordes no topo de cada ano e uma playlist com os nomeados de qualquer categoria."
     ] },
 };

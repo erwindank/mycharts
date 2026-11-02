@@ -4405,7 +4405,7 @@ window.DC_CHANGELOG_I18N['es'] = {
 /* Highlight cards (DC_CL_HIGHLIGHTS in changelog.js), keyed by id. */
 window.DC_CL_HIGHLIGHTS_I18N = window.DC_CL_HIGHLIGHTS_I18N || {};
 window.DC_CL_HIGHLIGHTS_I18N["es"] = {
-  dank100: {
+  "dank100": {
     title: "The Dank 100 ya está aquí",
     intro: "Una lista semanal compartida, hecha con lo que escucha todo el mundo. Envía tu semana y ayuda a decidir qué es el n.º 1.",
     points: [
@@ -4413,5 +4413,166 @@ window.DC_CL_HIGHLIGHTS_I18N["es"] = {
       "Los puntos salen de las posiciones en la lista, no de las reproducciones, así que cada oyente cuenta igual.",
       "Haz clic en cualquier canción, artista o álbum para ver su recorrido: debut, pico y semanas en el n.º 1.",
       "Vuelve a semanas anteriores, récords y cada n.º 1, y comparte el top 10 como imagen."
+    ] },
+  "games": {
+    title: "Doce juegos sobre tu propia música",
+    intro: "Estadísticas tiene una pestaña Juegos: pruebas rápidas hechas con tu propia biblioteca, y un Juego del día nuevo cada día.",
+    points: [
+      "Adivina la canción, calcula las reproducciones, vuelve a ordenar el top 5 de un año y nueve más.",
+      "El Juego del día es un solo reto, el mismo todo el día. Cuenta tu primer intento y mantiene tu racha.",
+      "Cada juego guarda tu mejor puntuación, así que siempre hay algo que superar."
+    ] },
+  "compare": {
+    title: "Compara lo que quieras, lado a lado",
+    intro: "Pon hasta diez artistas, canciones, álbumes o años uno junto a otro y mira quién queda arriba.",
+    points: [
+      "Totales acumulados, reproducciones por periodo, recorridos en la lista y una carrera, todo en un gráfico.",
+      "Cara a cara y Uno contra uno: quién iba delante, por cuánto y durante cuánto tiempo.",
+      "Canciones principales y hábitos de escucha lado a lado, y las mayores diferencias entre ellos.",
+      "Guarda una comparación para volver a ella, o compártela como imagen."
+    ] },
+  "stats": {
+    title: "Una página de Estadísticas más completa, en pestañas",
+    intro: "Estadísticas se divide ahora en Resumen, Tu historia, Juegos, Comparar y Gráficos, y el Resumen cuenta tu escucha con palabras sencillas.",
+    points: [
+      "Una frase sobre tu periodo y cuatro recuadros que lo comparan con el anterior.",
+      "Tu top 5, la canción del periodo, los que más se movieron y adónde fueron tus reproducciones.",
+      "Tu personalidad de oyente, datos curiosos y un calendario día a día con Tal día como hoy.",
+      "Una pestaña Tu historia sobre de qué fue tu escucha, y el Resumen para compartir como imagen."
+    ] },
+  "ratings": {
+    title: "Una página de Valoraciones con todo lo que has puntuado",
+    intro: "Cada álbum, single y canción que has valorado tiene ahora su propia página, en Más → Valoraciones.",
+    points: [
+      "Tu nota media de álbum, la más alta y la más baja, y tus récords de crítico.",
+      "El álbum más escuchado que aún no has valorado, a un toque de su nota.",
+      "Valora los álbumes de un artista directamente desde su página.",
+      "Comparte la nota de un álbum, o toda la discografía de un artista, como imagen."
+    ] },
+  "details": {
+    title: "Más dentro de cada artista, canción y álbum",
+    intro: "Haz clic en cualquier nombre de una lista para abrir su ventana. Ahora hay mucho más dentro.",
+    points: [
+      "Una pestaña Premios con el historial del artista en Mis Grammys y sus premios reales.",
+      "Listas diarias en cada artista, canción, álbum, single y EP, y récords de la lista diaria en Récords.",
+      "Cambia la portada desde la pestaña Música de un artista.",
+      "Botones de búsqueda y una tarjeta para compartir en cada ventana."
+    ] },
+  "rows": {
+    title: "Cada fila de la lista hace más",
+    intro: "Las filas de tus listas son ahora una puerta a todo sobre esa canción, artista o álbum.",
+    points: [
+      "Haz clic en cualquier nombre de una lista para abrir sus detalles.",
+      "Cada fila tiene una muestra para escuchar, un solo menú y un panel de detalles debajo.",
+      "Mira las canciones de un álbum directamente desde las listas de álbumes.",
+      "Las filas de Fuera de la lista abren su recorrido."
+    ] },
+  "soundtrack": {
+    title: "Tu Banda Sonora cuenta tu año como una historia",
+    intro: "Pulsa Reproducir tu año y Tu Banda Sonora se abre a pantalla completa, capítulo a capítulo: tu artista n.º 1, tu canción del año, tus descubrimientos y más.",
+    points: [
+      "Toca para seguir, como una historia. También funciona para un mes y para Todo el tiempo.",
+      "Álbumes principales, y Singles y EPs principales.",
+      "Una ventana más completa para cada nuevo descubrimiento, con muestras y artistas parecidos.",
+      "Un calendario en Rachas de escucha y premios reales en el capítulo de premios."
+    ] },
+  "layouts": {
+    title: "Tus listas, a tu manera",
+    intro: "Elige cómo se ven tus listas y cuántas entradas tienen, y míralas formarse reproducción a reproducción.",
+    points: [
+      "Los diseños de lista son botones encima de la lista, y cada diseño funciona en cada periodo.",
+      "Elige cualquier tamaño de lista entre 5 y 500, y cambia el ancho de las columnas.",
+      "Animar lista repite tus reproducciones una a una, en cada diseño.",
+      "Portadas más grandes en la tabla y más espacio para los títulos en el móvil."
+    ] },
+  "streaks": {
+    title: "Una nueva ventana de Rachas diarias, con insignias",
+    intro: "Haz clic en tu racha de escucha para ver qué escuchar hoy para mantener tus rachas, y cada insignia que has ganado.",
+    points: [
+      "Una pestaña Hoy con la racha del día y las canciones que salvan tus rachas.",
+      "Récords de rachas: el top 5 de cada tipo.",
+      "Más de 60 insignias. Toca una y se da la vuelta para mostrar cuándo la ganaste.",
+      "Comparte tus rachas como imagen."
+    ] },
+  "alltime": {
+    title: "Viaja en el tiempo en la lista de Todo el tiempo",
+    intro: "Mira tus listas de Todo el tiempo tal como estaban cualquier día del pasado, y descubre qué hay dentro de tus canciones principales.",
+    points: [
+      "Retrocede mes a mes, o elige cualquier día desde tu primera reproducción.",
+      "Las listas, las estadísticas y los datos cuentan solo las reproducciones hasta ese día.",
+      "Dentro de tu Top 100: quién tiene más canciones, qué edad tiene, qué canciones entraron más rápido y más."
+    ] },
+  "banner": {
+    title: "Un banner alrededor de tus estadísticas",
+    intro: "Los recuadros de estadísticas de cada lista están ahora en un gran banner, con el artista n.º 1 del periodo delante.",
+    points: [
+      "Una foto para una semana, mes o año terminado, y un mosaico de portadas para el que sigue en curso.",
+      "Barras pequeñas frente a la vez anterior y a lo habitual, y anillos para los récords.",
+      "Reproducciones por día debajo de los recuadros: toca un día para abrirlo en Diario.",
+      "Comparte el banner entero como imagen."
+    ] },
+  "daily": {
+    title: "Una lista diaria",
+    intro: "Una lista para cada día, con todo sobre cómo sonó ese día.",
+    points: [
+      "El día de un vistazo, a qué horas escuchaste y recuerdos del mismo día en años anteriores.",
+      "Un calendario, actualizaciones en directo y los hitos que tienes cerca.",
+      "Escucha, comparte o revive un día, o guarda sus canciones como lista de reproducción."
+    ] },
+  "board": {
+    title: "Un tablón de la comunidad",
+    intro: "Un lugar para sugerir funciones, avisar de errores, hacer preguntas y hablar de música con otros oyentes.",
+    points: [
+      "Vota las ideas que más quieres y mira cómo pasan de Planeado a Hecho.",
+      "Cualquiera puede leerlo. Inicia sesión con Google para publicar, responder y votar.",
+      "Tu nombre y tu foto aparecen con tus mensajes, nunca tu correo."
+    ] },
+  "share": {
+    title: "Más para compartir como imagen",
+    intro: "Nuevas imágenes para compartir de artistas y álbumes, hechas con tus propias reproducciones.",
+    points: [
+      "Las canciones más escuchadas de un artista.",
+      "Cuánto has escuchado cada pista de un álbum, con la imagen que elijas, a todo color.",
+      "Listas de artistas con nombres en los que se puede hacer clic y un ranking de canciones de cada artista."
+    ] },
+  "print": {
+    title: "Imprime cualquier lista y elige qué muestra la página",
+    intro: "Crea un PDF limpio para imprimir de cualquier lista, y oculta las partes de la página de listas que no usas.",
+    points: [
+      "PDF para imprimir está junto a Compartir como imagen: una lista o las tres, con o sin portadas.",
+      "Elige qué secciones muestra la página de listas y oculta las descripciones cortas bajo los títulos.",
+      "El día en que empieza tu semana ahora te sigue a todos tus dispositivos."
+    ] },
+  "mygrammys": {
+    title: "Mis Grammys: decenas de categorías nuevas y una elección más fácil",
+    intro: "Celebra tus propios premios de tu año en música. Ahora hay muchas más categorías y elegir nominados es mucho más fácil.",
+    points: [
+      "Nuevos grupos de Pop, Rock, Vídeos, Góspel y cristiana e Instrumental, además de premios navideños y Mejor canción escuchada en concierto.",
+      "El selector de nominados muestra lo bien que encaja cada candidato, con su año, géneros, muestras y estadísticas.",
+      "Marca tus categorías favoritas, pliega u oculta las ya decididas y reordena los nominados en las propias tarjetas."
+    ] },
+  "reallife": {
+    title: "Premios Reales: ocho galas más",
+    intro: "Mira cómo les fue a tus artistas en las galas de premios reales. Además de los Grammy, ahora hay ocho más.",
+    points: [
+      "Los VMA, AMA, iHeartRadio, World Music Awards, Billboard, ARIA, Juno y BRIT.",
+      "Las nominaciones reales a los Grammy, cruzadas con lo que escuchaste ese año.",
+      "Cada gala muestra las nominaciones y victorias de tus artistas, con lo que escuchaste esa temporada."
+    ] },
+  "backups": {
+    title: "Copias de seguridad que puedes restaurar",
+    intro: "Tus ajustes, premios y valoraciones se guardan en tu cuenta cada día, y puedes recuperar cualquiera de ellos.",
+    points: [
+      "Ajustes → Perfil muestra tus últimas 30 copias. Restaura una en todos tus dispositivos con un clic.",
+      "Haz una copia a mano o descarga un archivo de copia para guardarlo tú.",
+      "Elegir nominados en dos móviles ya no borra las elecciones más nuevas."
+    ] },
+  "ceremony": {
+    title: "Comparte tu ceremonia de premios",
+    intro: "Envía a quien quieras un enlace para ver tu ceremonia: los nominados, los sobres cerrados y los ganadores, sin necesidad de cuenta.",
+    points: [
+      "Solo se comparte la ceremonia, nada más de tu biblioteca.",
+      "¿Cambiaste un ganador? Pulsa Actualizar enlace y el enlace que enviaste muestra la nueva versión.",
+      "Estadísticas finales al terminar, estadísticas y récords al principio de cada año y una lista con los nominados de cualquier categoría."
     ] },
 };
