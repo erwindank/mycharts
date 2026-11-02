@@ -7884,6 +7884,8 @@ function buildRecords() {
   _recBuiltKey = _bk;
   // The rows the stored detail markup belonged to are about to be replaced.
   _recLazyHtml.clear();
+  // Phase 20: the shared frame for the other sections (records-look.js), once.
+  if (typeof recxInitFrames === 'function') recxInitFrames();
 
   const wSizeSongs = chartSizeSongsW, wSizeArtists = chartSizeArtistsW, wSizeAlbums = chartSizeAlbumsW;
   const mSizeSongs = chartSizeSongsM, mSizeArtists = chartSizeArtistsM, mSizeAlbums = chartSizeAlbumsM;
@@ -9265,7 +9267,7 @@ function buildRecords() {
     if (!pakCfg.some(function (cfg) { return pakPeriods[cfg.pt].length; })) {
       document.getElementById('recPAKBody').innerHTML = pakEmpty(pakCfg[0]);
     } else {
-      let ph = '<div class="dc-tabs rec-per-tabs" data-rec-per-scope="pak" role="tablist"'
+      let ph = '<div class="dc-seg rec-per-tabs" data-rec-per-scope="pak" role="tablist"'
         + ' aria-label="' + esc(t('rec_per_tabs_label')) + '">';
       for (const cfg of pakCfg) {
         ph += '<button type="button" class="rec-per-tab" role="tab"'
@@ -9560,7 +9562,7 @@ function buildRecords() {
     // One period pill row per entity panel, so Songs can sit on Weekly while
     // Albums sits on Yearly — 'app-songs' is a different stored choice.
     const perScope = 'app-' + ent.key;
-    let html = '<div class="dc-tabs rec-per-tabs" data-rec-per-scope="' + esc(perScope) + '"'
+    let html = '<div class="dc-seg rec-per-tabs" data-rec-per-scope="' + esc(perScope) + '"'
       + ' role="tablist" aria-label="' + esc(t('rec_per_tabs_label')) + '">';
     for (const cfg of appCfg) {
       html += '<button type="button" class="rec-per-tab" role="tab"'
@@ -9839,7 +9841,7 @@ function buildRecords() {
     // 'deb-songs' is a different stored period choice from 'deb-albums', so
     // each entity remembers the chart you last looked at it on.
     const perScope = 'deb-' + ent.key;
-    let html = '<div class="dc-tabs rec-per-tabs" data-rec-per-scope="' + esc(perScope) + '"'
+    let html = '<div class="dc-seg rec-per-tabs" data-rec-per-scope="' + esc(perScope) + '"'
       + ' role="tablist" aria-label="' + esc(t('rec_per_tabs_label')) + '">';
     for (const cfg of debCfg) {
       html += '<button type="button" class="rec-per-tab" role="tab"'
@@ -9938,7 +9940,7 @@ function buildRecords() {
     // One period pill row per entity panel, so each entity remembers its own
     // period — 'pp-songs' is a different stored choice from 'pp-albums'.
     const perScope = 'pp-' + ent.key;
-    let html = '<div class="dc-tabs rec-per-tabs" data-rec-per-scope="' + esc(perScope) + '"'
+    let html = '<div class="dc-seg rec-per-tabs" data-rec-per-scope="' + esc(perScope) + '"'
       + ' role="tablist" aria-label="' + esc(t('rec_per_tabs_label')) + '">';
     for (const cfg of ptCfg) {
       html += '<button type="button" class="rec-per-tab" role="tab"'
@@ -10645,7 +10647,7 @@ function buildRecords() {
     nch += '<button type="button" class="nc-rec-tab" role="tab" data-nc-type="' + ty.key + '">'
       + '<span class="nc-rec-tab-icon" aria-hidden="true">' + ty.icon + '</span>' + ty.label + '</button>';
   }
-  nch += '</div><div class="dc-tabs nc-rec-subtabs" id="ncRecPeriodTabs" role="tablist" aria-label="Chart period">';
+  nch += '</div><div class="dc-seg nc-rec-subtabs" id="ncRecPeriodTabs" role="tablist" aria-label="Chart period">';
   for (const p of NC_REC_PERIODS) {
     nch += '<button type="button" class="nc-rec-subtab" role="tab" data-nc-period="' + p.key + '">' + p.label + '</button>';
   }
@@ -10710,7 +10712,7 @@ function buildRecords() {
     const perScope = 'streaks-' + ent.key;
     // Artists are their own credit; everything else carries one underneath.
     const nameTh = ent.kind === 'artist' ? ent.label : ent.label + ' &middot; ' + t('rec_th_artist');
-    let html = '<div class="dc-tabs rec-per-tabs" data-rec-per-scope="' + esc(perScope) + '"'
+    let html = '<div class="dc-seg rec-per-tabs" data-rec-per-scope="' + esc(perScope) + '"'
       + ' role="tablist" aria-label="' + esc(t('rec_per_tabs_label')) + '">';
     for (const cfg of STREAK_PERIODS) {
       html += '<button type="button" class="rec-per-tab" role="tab"'
@@ -11111,6 +11113,7 @@ function buildRecords() {
   renderRecordsHeroArtist(recTallyArtistRecords());
 
   if (recSearchQuery()) runRecordsSearch(recSearchQuery());
+  if (typeof recxSync === 'function') recxSync();
 }
 
 /* ── Records overview ──────────────────────────────────────────────────
@@ -12808,6 +12811,7 @@ function applyRecordsViewFilter(view) {
   applyRecEntTabs();
   applyRecPerTabs();
   recEnsureBuiltForView();
+  if (typeof recxSync === 'function') recxSync();
   if (typeof window._refreshBackToTop === 'function') window._refreshBackToTop();
 }
 
@@ -13345,19 +13349,10 @@ document.addEventListener('click', function (e) {
 });
 
 function restoreRecordSectionCollapseState() {
-  // All #1s has no collapse button since phase 20, so a stored "collapsed"
-  // must not be able to hide it with no way back.
-  const ids = [
-    'recPAKSection',
-    'recAppearancesSection',
-    'recDebutsSection',
-    'recPeakPlaysSection',
-    'recMilestonesSection',
-    'recFastestSection',
-    'recCertsSection',
-    'recStreaksSection',
-    'recNewChartsSection'
-  ];
+  /* No Records section has a collapse button since phase 20 (one section is
+     on screen at a time), so a stored "collapsed" must not be able to hide
+     one with no way back. Kept as a list so a section can opt back in. */
+  const ids = [];
   ids.forEach(id => {
     const section = document.getElementById(id);
     if (!section) return;
@@ -13376,8 +13371,9 @@ function setupRecordSubsectionCollapse() {
   if (!root) return;
   root.querySelectorAll('.rec-section').forEach(section => {
     if (section.dataset.collapseReady === '1') return;
-    // All #1s (phase 20) shows one record at a time and has no −/+ to offer.
-    if (section.dataset.recNoCollapse === '1') return;
+    // All #1s (phase 20) shows one record at a time and has no −/+ to offer,
+    // and neither do the sections that wear its frame (records-look.js).
+    if (section.dataset.recNoCollapse === '1' || section.closest('.recx-one')) return;
     const title = section.querySelector('.rec-section-title');
     if (!title) return;
     const header = document.createElement('div');

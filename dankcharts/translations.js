@@ -9,6 +9,10 @@ const TRANSLATIONS = {
 
   // ── ENGLISH ──────────────────────────────────────────────────────────────────
   en: {
+    recx_story: "{{name}} holds it: {{figure}}.",
+    recx_story_by: "{{name}} by {{artist}} holds it: {{figure}}.",
+    recx_story_nofig: "{{name}} holds it.",
+    recx_story_by_nofig: "{{name}} by {{artist}} holds it.",
     rec1_th_when_total: "When at #1",
     rec1_th_reign: "Reign",
     rec1_sort: "Sort",
@@ -5211,6 +5215,10 @@ const TRANSLATIONS = {
 
   // ── SPANISH ───────────────────────────────────────────────────────────────────
   es: {
+    recx_story: "{{name}} tiene el récord: {{figure}}.",
+    recx_story_by: "{{name}} de {{artist}} tiene el récord: {{figure}}.",
+    recx_story_nofig: "{{name}} tiene el récord.",
+    recx_story_by_nofig: "{{name}} de {{artist}} tiene el récord.",
     rec1_th_when_total: "Cuándo en el #1",
     rec1_th_reign: "Reinado",
     rec1_sort: "Ordenar",
@@ -10298,6 +10306,10 @@ const TRANSLATIONS = {
 
   // ── PORTUGUESE — BRAZIL ───────────────────────────────────────────────────────
   'pt-BR': {
+    recx_story: "{{name}} tem o recorde: {{figure}}.",
+    recx_story_by: "{{name}}, de {{artist}}, tem o recorde: {{figure}}.",
+    recx_story_nofig: "{{name}} tem o recorde.",
+    recx_story_by_nofig: "{{name}}, de {{artist}}, tem o recorde.",
     rec1_th_when_total: "Quando no #1",
     rec1_th_reign: "Reinado",
     rec1_sort: "Ordenar",
@@ -15386,6 +15398,10 @@ const TRANSLATIONS = {
 
   // ── PORTUGUESE — EUROPEAN ─────────────────────────────────────────────────────
   'pt-PT': {
+    recx_story: "{{name}} tem o recorde: {{figure}}.",
+    recx_story_by: "{{name}}, de {{artist}}, tem o recorde: {{figure}}.",
+    recx_story_nofig: "{{name}} tem o recorde.",
+    recx_story_by_nofig: "{{name}}, de {{artist}}, tem o recorde.",
     rec1_th_when_total: "Quando no n.º 1",
     rec1_th_reign: "Reinado",
     rec1_sort: "Ordenar",

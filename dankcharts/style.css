@@ -46395,3 +46395,49 @@ body:not(:is([data-view="day"], [data-view="week"], [data-view="month"], [data-v
 .rec1-runner-run .cr-boxes-wrap { max-height: 96px; overflow-y: auto; -webkit-mask-image: linear-gradient(#000 75%, transparent); mask-image: linear-gradient(#000 75%, transparent); }
 .rec1-runner-run .cr-boxes-wrap:not(:has(.cr-box:nth-child(9))) { -webkit-mask-image: none; mask-image: none; }
 .rec1-runner-run .cr-box { cursor: pointer; }
+
+/* ── Phase 20 step 4: the All #1s frame on every Records section ───────
+   records-look.js adds .rec1 .recx to each section, a .recx-story sentence
+   under the title and a .recx-wrap round the switches and body. The
+   .rec1-wrap rules above already line up the type and period pills; these
+   add the switches the other sections use. */
+.recx-eyebrow {
+  display: block;
+  margin-bottom: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+.recx-story:empty { display: none; }
+#recordsView .recx .recx-about { margin: 6px 0 0; max-width: 70ch; font-size: var(--fs-sm); color: var(--text3); }
+
+.rec1-wrap .nc-rec-tabs,
+.rec1-wrap .mil-tabs,
+.rec1-wrap .fast-tabs { order: 1; margin: 0; }
+.rec1-wrap .nc-rec-subtabs { order: 2; margin: 0; }
+.rec1-wrap .fast-panel { display: contents; }
+.rec1-wrap .fast-pick { order: 3; margin: 0; }
+.rec1-wrap .nc-rec-panel,
+.rec1-wrap .mil-panel,
+.rec1-wrap .fast-panel > .rec-section,
+.rec1-wrap > .section-body > .rec-section,
+.rec1-wrap > .section-body > :not(.dc-seg):not(.dc-tabs):not(.rec-ent-panel):not(.fast-panel):not(.rec-ent-tabs):not(.rec-per-tabs) {
+  order: 10;
+  flex: 0 0 100%;
+  min-width: 0;
+}
+.rec1-wrap .nc-rec-panel,
+.rec1-wrap .mil-panel,
+.rec1-wrap .fast-panel > .rec-section { margin-top: var(--sp-3, 0.75rem); }
+
+/* One record on screen: its own title and −/+ step aside for the sentence
+   (they come back during a search, where several records show at once).
+   PAK's second list keeps its heading (--gap). */
+#recordsView:not(.rec-searching) .recx-one .rec-section-title:not(.rec-section-title--gap),
+#recordsView:not(.rec-searching) .recx-one .rec-section-header { display: none; }
+#recordsView.rec-searching .recx-story { display: none; }
+/* PAK's caption says what the sentence's eyebrow already says. */
+#recordsView:not(.rec-searching) .recx-one .rec-section-sub-wrapper > .rec-section-sub { display: none; }
