@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 456;
+const DC_CL_I18N_V = 457;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -326,6 +326,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-02', t: 'feature', a: 'charts', h: 'be94eca',
+    title: "Export The Dank 100 as a playlist",
+    detail: "The Dank 100 has a new Export playlist button next to Share top 10. On Songs it exports the week's chart. On Artists you get each artist's top 2 songs, and on Albums the top 2 songs of each album: songs that are on that week's Dank 100 come first, and the rest are filled in with the most popular songs on Deezer, with no song added twice. Copy the list or download it, then import it into Spotify, Apple Music and more." },
   { d: '2026-11-02', t: 'feature', a: 'charts', h: '986a1c8',
     title: "A full Chart Run on The Dank 100",
     detail: "Click an entry on The Dank 100 and, under its line and four numbers, you now get the same Chart Run as your own charts: a one-line story of its run, its peak, weeks at #1 and weeks in the Top 3, 5, 10 and 40, and a box for every week it charted, with the weeks it was away in between. Click a number to highlight those weeks, or click a box to see that week's chart in a small window, with a link to open the whole week." },

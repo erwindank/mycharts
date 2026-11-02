@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Export The Dank 100 as a playlist":
+    ["Exporte o The Dank 100 como playlist",
+     "O The Dank 100 tem um novo botão Exportar playlist ao lado de Compartilhar top 10. Em Músicas ele exporta a parada da semana. Em Artistas você recebe as 2 melhores músicas de cada artista, e em Álbuns as 2 melhores de cada álbum: primeiro as que estão no The Dank 100 naquela semana, e o resto é completado com as mais populares no Deezer, sem repetir nenhuma. Copie a lista ou baixe e importe no Spotify, Apple Music e outros."],
   "A full Chart Run on The Dank 100":
     ["Uma trajetória completa no The Dank 100",
      "Clique em uma entrada do The Dank 100 e, abaixo da linha e dos quatro números, agora aparece a mesma trajetória das suas próprias paradas: uma frase que resume o percurso, o pico, as semanas no #1 e no Top 3, 5, 10 e 40, e um quadro para cada semana na parada, com as semanas em que ficou de fora no meio. Clique em um número para destacar essas semanas, ou em um quadro para ver a parada daquela semana numa janelinha, com um link para abrir a semana inteira."],
