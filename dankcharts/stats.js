@@ -1105,6 +1105,23 @@ function sxRenderVolume(sortedKeys, gc) {
     }
   };
 
+  // The open look-inside period: a soft column behind its bar
+  const pickPlugin = {
+    id: 'sxVolPick',
+    beforeDatasetsDraw(chart) {
+      const j = _sxDrKey ? keys.indexOf(_sxDrKey) : -1;
+      if (j < 0 || document.getElementById('sxVolDrill')?.hidden) return;
+      const x = chart.scales.x, ca = chart.chartArea, w = Math.max(3, (ca.right - ca.left) / keys.length);
+      const cx = x.getPixelForValue(j), ctx = chart.ctx;
+      ctx.save();
+      ctx.fillStyle = _sxAlpha(gc.accent, 0.14);
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(cx - w / 2, ca.top, w, ca.bottom - ca.top, Math.min(6, w / 3)); else ctx.rect(cx - w / 2, ca.top, w, ca.bottom - ca.top);
+      ctx.fill();
+      ctx.restore();
+    }
+  };
+
   graphCharts.totalVolume = new Chart(canvas, {
     type: area ? 'line' : 'bar',
     data: { labels: keys.map(graphKeyLabel), datasets },
@@ -1133,12 +1150,15 @@ function sxRenderVolume(sortedKeys, gc) {
       },
       scales: _sxFlatX(graphAxes(gc, { maxTicks: 12, stacked: true }))
     },
-    plugins: [labelsPlugin]
+    plugins: [labelsPlugin, pickPlugin]
   });
   restoreChartZoom(graphCharts.totalVolume, 'totalVolume');
   // A box left open for a period no longer on the chart is closed
   const box = document.getElementById('sxVolDrill');
-  if (box && !box.hidden && !inKey.has(box.dataset.key)) box.hidden = true;
+  if (box && !box.hidden) {
+    if (inKey.has(box.dataset.key)) sxShowVolDrill(box.dataset.key, { quiet: true });
+    else { box.hidden = true; _sxDrKey = null; }
+  }
 }
 
 /* Phase 19: the Charts tab's hover box, in the card's own colours instead
@@ -1215,43 +1235,204 @@ document.getElementById('sxVolMode')?.addEventListener('click', e => {
   if (typeof triggerTotalVolumeUpdate === 'function') triggerTotalVolumeUpdate();
 });
 
-// One song row in the look-inside box; opens the song's details
-function _sxSongRow(i, sk, p, cnt) {
-  return `<li><button type="button" class="sx-row" onclick="openSongModal(${esc(JSON.stringify(sk))})">` +
-    `<span class="sx-row-n">${i + 1}</span><span class="sx-row-t"><b>${esc(p.title)}</b><span>${esc(p.artist)}</span></span>` +
-    `<span class="sx-row-v">${cnt.toLocaleString()}</span></button></li>`;
+/* ── The look-inside box (redone 2026-11-01, after phase 19) ─────────────
+   Tap a bar (or the busiest-period figure) and the box under the chart
+   tells that period's story:
+     head      ‹ › to step to the period before / after (← → keys too),
+               the period in full, its plays against the one before, close
+     figures   plays (share of the range), new to you, songs, artists
+     left      the #1 song big with its cover and a ▶ sample, then the
+               period's rhythm: a bar per hour / day / month, busiest named
+     right     Top songs (#2 on) / New finds / Top artists, with pictures
+               and a bar against the leader
+     foot      the first-time counts and a way to that chart
+   The chart lights the open period's bar (sxVolPick plugin). */
+let _sxDrTab = (() => { try { const v = localStorage.getItem('dc_sxDrTab'); return ['top', 'new', 'art'].includes(v) ? v : 'top'; } catch (e) { return 'top'; } })();
+let _sxDrKey = null;   // the period open in the box
+let _sxDr = null;      // its tallies, for the tabs
+
+// The period in full: "August 2025", "Thursday, Aug 14, 2025", "2025"
+function _sxDrLabel(k, gran) {
+  if (gran === 'year') return k;
+  if (gran === 'month') return _sxFmt('my', { month: 'long', year: 'numeric' }).format(new Date(+k.slice(0, 4), +k.slice(5, 7) - 1, 1)).replace(/^./, c => c.toUpperCase());
+  return _sxFmt('wdmy', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(k + 'T12:00:00')).replace(/^./, c => c.toUpperCase());
 }
 
-/* The look-inside box under the chart: the period's plays, its top songs,
-   the songs first heard in it, the first-time counts and a way to its
-   chart (navigateToRecPeriod). */
-function sxShowVolDrill(k) {
+function sxShowVolDrill(k, opts = {}) {
   const box = document.getElementById('sxVolDrill');
   if (!box || !_sxVol) return;
-  const v = _sxVol, songs = new Map();
+  const v = _sxVol, gran = v.gran, wasOpen = !box.hidden;
+  // One pass over the period's plays: songs, artists and the rhythm
+  const nB = gran === 'day' ? 24 : gran === 'year' ? 12 : new Date(+k.slice(0, 4), +k.slice(5, 7), 0).getDate();
+  const rh = new Array(nB).fill(0), songs = new Map(), arts = new Map();
   for (const p of allPlays) {
     if (graphKey(p.date) !== k) continue;
     const sk = songKey(p), o = songs.get(sk);
     if (o) o.n++; else songs.set(sk, { n: 1, p });
+    for (const a of p.artists) arts.set(a, (arts.get(a) || 0) + 1);
+    const d = p.date;
+    rh[gran === 'day' ? d.getHours() : gran === 'year' ? d.getMonth() : d.getDate() - 1]++;
   }
-  const ranked = [...songs.entries()].sort((a, b) => b[1].n - a[1].n);
-  const finds = ranked.filter(([sk]) => v.firstKey.get(sk) === k);
-  const label = graphKeyLabel(k);
-  const list = rows => rows.length
-    ? `<ol class="sx-rows">${rows.slice(0, 5).map(([sk, o], i) => _sxSongRow(i, sk, o.p, o.n)).join('')}</ol>`
-    : `<p class="sx-note">${esc(t('sx_drill_none'))}</p>`;
-  const playsTxt = t('sx_drill_plays').replace('{n}', (v.plays[k] || 0).toLocaleString()).replace('{m}', (v.newPlays[k] || 0).toLocaleString());
+  const ranked = [...songs.entries()].sort((x, y) => y[1].n - x[1].n);
+  _sxDr = {
+    k, gran,
+    top: ranked.slice(1, 6),
+    finds: ranked.filter(([sk]) => v.firstKey.get(sk) === k).slice(0, 5),
+    arts: [...arts.entries()].sort((x, y) => y[1] - x[1]).slice(0, 5),
+  };
+  _sxDrKey = k;
+  const N = x => x.toLocaleString();
+  const total = v.plays[k] || 0, nw = v.newPlays[k] || 0;
+  const i = v.keys.indexOf(k), prevK = v.keys[i - 1], nextK = v.keys[i + 1];
+  const rangeTotal = v.keys.reduce((a, x) => a + (v.plays[x] || 0), 0) || 1;
+
+  // Against the period before: ▲ / ▼ and the change
+  let vs = '';
+  if (prevK && v.plays[prevK]) {
+    const pct = Math.round((total / v.plays[prevK] - 1) * 100);
+    const cls = pct > 0 ? 'is-up' : pct < 0 ? 'is-down' : '';
+    const txt = pct ? (pct > 0 ? '▲ ' : '▼ ') + t('sx_dr_vs').replace('{pct}', (pct > 0 ? '+' : '') + pct) : t('sx_dr_same');
+    vs = `<span class="sx-dr-vs ${cls}">${esc(txt.replace('{p}', graphKeyLabel(prevK)))}</span>`;
+  }
+  const stepBtn = (dir, key) => `<button type="button" class="sx-dr-step" data-dr-step="${dir}"${key ? '' : ' disabled'}` +
+    ` aria-label="${esc(t(dir < 0 ? 'sx_dr_prev' : 'sx_dr_next'))}" title="${esc(key ? graphKeyLabel(key) : t(dir < 0 ? 'sx_dr_prev' : 'sx_dr_next'))}">` +
+    `<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="${dir < 0 ? 'M10 3 5 8l5 5' : 'm6 3 5 5-5 5'}"/></svg></button>`;
+  const head = `<div class="sx-dr-head">
+      <div class="sx-dr-nav">${stepBtn(-1, prevK)}
+        <div class="sx-dr-when"><b>${esc(_sxDrLabel(k, gran))}</b>${vs}</div>${stepBtn(1, nextK)}</div>
+      <button type="button" class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon" data-dr-close aria-label="${esc(t('sx_drill_close'))}" title="${esc(t('sx_drill_close'))}">` +
+    `<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="m4 4 8 8M12 4l-8 8"/></svg></button></div>`;
+
+  const fig = (label, val, sub) => `<div class="sx-fig"><span class="sx-fig-l">${esc(label)}</span><b class="sx-fig-v">${esc(val)}</b>${sub ? `<span class="sx-fig-s">${esc(sub)}</span>` : ''}</div>`;
+  const figs = `<div class="sx-figs sx-dr-figs">` +
+    fig(t('sx_fig_plays'), N(total), t('sx_dr_of_range').replace('{pct}', Math.round(total / rangeTotal * 1000) / 10)) +
+    fig(t('sx_vol_new'), (total ? Math.round(nw / total * 100) : 0) + '%', t('sx_fig_n_plays').replace('{n}', N(nw))) +
+    fig(t('sx_dr_songs'), N(songs.size), t('sx_dr_n_new').replace('{n}', N(v.nSong[k] || 0))) +
+    fig(t('sx_dr_artists'), N(arts.size), t('sx_dr_n_new').replace('{n}', N(v.nArtist[k] || 0))) + `</div>`;
+
+  // The #1 song, big, with a ▶ sample
+  const pics = [];
+  let hero = `<p class="sx-note">${esc(t('sx_drill_none'))}</p>`;
+  if (ranked.length) {
+    const [sk, o] = ranked[0], e = { title: o.p.title, artist: o.p.artist, album: o.p.album, key: sk };
+    const art = _sxTop5Art('songs', e, 'is-lead');
+    pics.push(['songs', e, art.id]);
+    const open = _sxOpenJs('songs', e), sampleLbl = t('sx_top5_sample');
+    const ahead = ranked[1] ? o.n - ranked[1][1].n : 0;
+    hero = `<div class="sx-dr-hero"${_sxEa('songs', e, art.id)}>
+        <button type="button" class="sx-dr-hero-art" onclick="${open}" aria-label="${esc(e.title)}">${art.html}<span class="sx-t5-rank">1</span></button>
+        <div class="sx-dr-hero-info">
+          <span class="sx-dr-kicker">${esc(t('sx_dr_no1'))}</span>
+          <button type="button" class="sx-dr-hero-t" onclick="${open}">${esc(e.title)}</button>
+          <span class="sx-dr-hero-a">${esc(e.artist)}</span>
+          <div class="sx-dr-hero-n"><b>${esc(t('sx_fig_n_plays').replace('{n}', N(o.n)))}</b>` +
+      `<span>${esc(t('sx_dr_share').replace('{pct}', total ? Math.round(o.n / total * 1000) / 10 : 0))}</span>` +
+      (ahead > 0 ? `<span>${esc(t('sx_top5_ahead').replace('{n}', N(ahead)))}</span>` : '') + `</div>
+          <button type="button" class="ea-sample sx-t5-play" title="${esc(sampleLbl)}" aria-label="${esc(sampleLbl)}">` +
+      `<svg viewBox="0 0 24 24" aria-hidden="true"><path class="ea-ic-play" d="M8 5v14l11-7z"/><path class="ea-ic-stop" d="M7 6h3.5v12H7zM13.5 6H17v12h-3.5z"/></svg>` +
+      `<span class="sx-t5-play-go">${esc(sampleLbl)}</span><span class="sx-t5-play-stop">${esc(t('sx_top5_stop'))}</span></button>
+        </div></div>`;
+  }
+
+  // The rhythm: a bar per hour / day / month, the busiest lit
+  const y = +k.slice(0, 4), m = +k.slice(5, 7) - 1;
+  const bLabel = j => gran === 'day' ? _sxHourLabel(j) : gran === 'year' ? hmMonth(j) : _sxDayMon(new Date(y, m, j + 1));
+  const rmax = Math.max(...rh, 1), rpk = rh.indexOf(Math.max(...rh));
+  const bars = rh.map((n, j) => `<i class="${j === rpk && n ? 'is-peak' : ''}" style="--h:${(n / rmax * 100).toFixed(1)}%;--i:${j}" title="${esc(bLabel(j) + ': ' + t('sx_fig_n_plays').replace('{n}', N(n)))}"></i>`).join('');
+  const axis = [0, Math.floor((nB - 1) / 2), nB - 1].map(j => `<span>${esc(gran === 'month' ? String(j + 1) : bLabel(j))}</span>`).join('');
+  const rhythm = `<div class="sx-dr-rh">
+      <div class="sx-dr-sub">${esc(t('sx_dr_rh_' + gran))}</div>
+      <div class="sx-dr-spark" style="--n:${nB}">${bars}</div>
+      <div class="sx-dr-axis">${axis}</div>
+      ${total ? `<div class="sx-dr-peak">${esc(t('sx_dr_peak').replace('{when}', bLabel(rpk)).replace('{n}', N(rh[rpk])))}</div>` : ''}
+    </div>`;
+
+  const tabs = ['top', 'new', 'art'].map(x =>
+    `<button type="button" data-dr-tab="${x}" aria-pressed="${x === _sxDrTab}">${esc(t('sx_dr_tab_' + x))}</button>`).join('');
   box.dataset.key = k;
-  box.innerHTML =
-    `<div class="sx-drill-head"><div><b>${esc(label)}</b><span>${esc(playsTxt)}</span></div>` +
-    `<button type="button" class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon" onclick="this.closest('.sx-drill').hidden=true" aria-label="${esc(t('sx_drill_close'))}" title="${esc(t('sx_drill_close'))}">` +
-    `<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="m4 4 8 8M12 4l-8 8"/></svg></button></div>` +
-    `<div class="sx-drill-cols"><div><h4>${esc(t('sx_drill_top'))}</h4>${list(ranked)}</div>` +
-    `<div><h4>${esc(t('sx_drill_finds'))}</h4>${list(finds)}</div></div>` +
+  box.innerHTML = head + figs +
+    `<div class="sx-dr-body"><div class="sx-dr-left">${hero}${rhythm}</div>` +
+    `<div class="sx-dr-right"><div class="dc-seg sx-dr-tabs" role="group" aria-label="${esc(t('sx_dr_show'))}">${tabs}</div>` +
+    `<ol class="sx-dr-rows" id="sxDrRows"></ol></div></div>` +
     `<div class="sx-drill-foot"><span>${esc(_sxNewCounts(k))}</span>` +
-    `<button type="button" class="dc-btn dc-btn-normal dc-btn-sm" onclick="navigateToRecPeriod(${esc(JSON.stringify(v.gran))}, ${esc(JSON.stringify(k))})">${esc(t('sx_drill_open'))} →</button></div>`;
+    `<button type="button" class="dc-btn dc-btn-normal dc-btn-sm" onclick="navigateToRecPeriod(${esc(JSON.stringify(gran))}, ${esc(JSON.stringify(k))})">${esc(t('sx_drill_open'))} →</button></div>`;
   box.hidden = false;
+  // Opening plays the rise-in; stepping only cross-fades the content
+  box.classList.remove('is-open', 'is-step');
+  void box.offsetWidth;
+  box.classList.add(wasOpen ? 'is-step' : 'is-open');
+  pics.forEach(([type, e, id]) => _sxTop5Load(type, e, id));
+  _sxDrPaintRows();
+  if (graphCharts.totalVolume) graphCharts.totalVolume.draw();
+  // Opened from the chart: bring the box into view if it starts below the fold
+  if (!wasOpen && !opts.quiet) {
+    const r = box.getBoundingClientRect();
+    if (r.top > innerHeight - 160) box.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'nearest' });
+  }
 }
+
+// The list on the right for the open tab
+function _sxDrPaintRows() {
+  const ol = document.getElementById('sxDrRows');
+  if (!ol || !_sxDr) return;
+  const N = x => x.toLocaleString(), pics = [];
+  let rows = [];
+  if (_sxDrTab === 'art') {
+    const lead = _sxDr.arts[0] ? _sxDr.arts[0][1] : 1;
+    rows = _sxDr.arts.map(([a, n], j) => {
+      const e = { title: a, key: a }, art = _sxTop5Art('artists', e);
+      pics.push(['artists', e, art.id]);
+      return `<li class="sx-dr-row" style="--w:${Math.max(4, Math.round(n / lead * 100))}%;--i:${j}"${_sxEa('artists', e, art.id)}>` +
+        `<button type="button" class="sx-dr-row-btn" onclick="${_sxOpenJs('artists', e)}"><span class="sx-dr-n">${j + 1}</span>${art.html}` +
+        `<span class="sx-dr-t"><b>${esc(a)}</b></span><span class="sx-dr-v">${N(n)}</span></button></li>`;
+    });
+  } else {
+    const list = _sxDrTab === 'new' ? _sxDr.finds : _sxDr.top, from = _sxDrTab === 'new' ? 1 : 2;
+    const lead = list[0] ? list[0][1].n : 1;
+    rows = list.map(([sk, o], j) => {
+      const e = { title: o.p.title, artist: o.p.artist, album: o.p.album, key: sk }, art = _sxTop5Art('songs', e);
+      pics.push(['songs', e, art.id]);
+      return `<li class="sx-dr-row" style="--w:${Math.max(4, Math.round(o.n / lead * 100))}%;--i:${j}"${_sxEa('songs', e, art.id)}>` +
+        `<button type="button" class="sx-dr-row-btn" onclick="${_sxOpenJs('songs', e)}"><span class="sx-dr-n">${j + from}</span>${art.html}` +
+        `<span class="sx-dr-t"><b>${esc(e.title)}</b><span>${esc(e.artist)}</span></span><span class="sx-dr-v">${N(o.n)}</span></button>${_eaSampleBtn()}</li>`;
+    });
+  }
+  ol.innerHTML = rows.length ? rows.join('') : `<li class="sx-dr-empty">${esc(t('sx_drill_none'))}</li>`;
+  document.querySelectorAll('#sxVolDrill [data-dr-tab]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.drTab === _sxDrTab)));
+  pics.forEach(([type, e, id]) => _sxTop5Load(type, e, id));
+  if (typeof _eaPaintSamples === 'function') _eaPaintSamples();
+}
+
+function _sxDrClose() {
+  const box = document.getElementById('sxVolDrill');
+  if (box) box.hidden = true;
+  _sxDrKey = null;
+  if (graphCharts.totalVolume) graphCharts.totalVolume.draw();
+}
+
+function _sxDrStep(dir) {
+  if (!_sxVol || !_sxDrKey) return;
+  const k = _sxVol.keys[_sxVol.keys.indexOf(_sxDrKey) + dir];
+  if (k) sxShowVolDrill(k);
+}
+
+// Steps, tabs and close (the box redraws its HTML, so one listener on it)
+document.getElementById('sxVolDrill')?.addEventListener('click', e => {
+  const step = e.target.closest('[data-dr-step]'), tab = e.target.closest('[data-dr-tab]');
+  if (step && !step.disabled) {
+    _sxDrStep(+step.dataset.drStep);
+    document.querySelector(`#sxVolDrill [data-dr-step="${step.dataset.drStep}"]:not(:disabled)`)?.focus({ preventScroll: true });
+  } else if (tab && tab.dataset.drTab !== _sxDrTab) {
+    _sxDrTab = tab.dataset.drTab;
+    try { localStorage.setItem('dc_sxDrTab', _sxDrTab); } catch (err) { }
+    _sxDrPaintRows();
+  } else if (e.target.closest('[data-dr-close]')) _sxDrClose();
+});
+// ← → step while focus is in the box; Escape closes it
+document.getElementById('sxVolDrill')?.addEventListener('keydown', e => {
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); _sxDrStep(e.key === 'ArrowLeft' ? -1 : 1); }
+  else if (e.key === 'Escape') _sxDrClose();
+});
 
 // ── Charts: the listening clock and your week (step 2) ────────────────────
 /* For the range in the bar: plays by hour of the day (drawn as a clock) and
