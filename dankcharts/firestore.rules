@@ -67,7 +67,7 @@ service cloud.firestore {
     // is the Friday (UTC) that starts the tracking week, e.g. "2026-10-30".
     // Only the owner can read or change their entry, and only while the week
     // is open: from its Friday until the Sunday after it ends (10 days), or,
-    // for the history weeks of 2026 sent with "Send my year", until 30 Nov. The
+    // for any 2026 week sent with "Send my year", until 30 Nov. The
     // combined chart is built by a Cloudflare Function with the service
     // account, which skips these rules. Lists are capped at 100 rows each
     // (MAX_ROWS in dank100.js); the function cleans each row when it counts.
@@ -96,9 +96,11 @@ service cloud.firestore {
         && (
           // a live week: from its Friday until the Sunday after it ends
           request.time < request.resource.data.weekStart + duration.value(10, 'd')
-          // or a history week (2 Jan – 22 Oct 2026, "Send my year"), until 30 Nov
+          // or any week since 2 Jan 2026 with "Send my year", until 30 Nov:
+          // the weeks before the first live one, and (since 2026-11-01) the
+          // live weeks that already closed, so late joiners get them too.
+          // Weeks that haven't started are still refused by the check above.
           || (request.resource.data.week >= '2026-01-02'
-              && request.resource.data.week <= '2026-10-16'
               && request.time < timestamp.date(2026, 12, 1)))
         && request.resource.data.updatedAt == request.time
         && request.resource.data.v is int

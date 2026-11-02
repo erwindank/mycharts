@@ -62,6 +62,8 @@ const LOCK_STALE_MS = 3 * 60000; // a build that hasn't finished in 3 min is tak
 // 2026: the weeks up to HISTORY_LAST are history weeks, sent in all at once
 // with "Send my year" (dank100.js) until HISTORY_CLOSES, and recounted each
 // time someone sends theirs. After that they are fixed like any other week.
+// Since 2026-11-01 "Send my year" also sends the live weeks that already
+// closed; /dank100/dirty already recounts every week, so nothing changes here.
 const FIRST_WEEK = '2026-01-02';
 const HISTORY_LAST = '2026-10-16';
 const HISTORY_CLOSES = Date.UTC(2026, 11, 1);   // 1 Dec 2026 00:00 UTC (end of 30 Nov)

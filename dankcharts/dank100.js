@@ -200,18 +200,23 @@
   }
 
   // ── History weeks ("Send my year") ─────────────────────────────────────────
-  // Every week of 2026 before the first live week can be sent in one go until
-  // 30 Nov; those charts are recounted each time someone sends theirs, then
-  // fixed. Kept in step with functions/dank100 and firestore.rules.
+  // Every closed week of 2026 can be sent in one go until 30 Nov: the weeks
+  // before the first live week, and since 2026-11-01 also the live weeks that
+  // have already closed, so someone joining late still gets those counted.
+  // Those charts are recounted each time someone sends theirs (the function
+  // recounts every week after /dank100/dirty), then fixed. Kept in step with
+  // functions/dank100 and firestore.rules.
   var HISTORY_FIRST = '2026-01-02';
-  var HISTORY_LAST = '2026-10-16';
+  var HISTORY_LAST = '2026-10-16';                // last week before the live ones
   var HISTORY_CLOSES = Date.UTC(2026, 11, 1);     // 1 Dec 2026 00:00 UTC
 
   function historyOpen() { return Date.now() < HISTORY_CLOSES; }
-  function isHistoryWeek(w) { return w >= HISTORY_FIRST && w <= HISTORY_LAST; }
+  // Any closed week from 2 Jan on (latestClosedWeek is further down; hoisted)
+  function isHistoryWeek(w) { return w >= HISTORY_FIRST && w <= latestClosedWeek(); }
+  function nextWeek(w) { return weekIdOf(new Date(+weekBounds(w).start + 7 * DAY_MS)); }
   function historyWeeks() {
-    var out = [];
-    for (var w = HISTORY_FIRST; w <= HISTORY_LAST; w = weekIdOf(new Date(+weekBounds(w).start + 7 * DAY_MS))) out.push(w);
+    var out = [], last = latestClosedWeek();
+    for (var w = HISTORY_FIRST; w <= last; w = nextWeek(w)) out.push(w);
     return out;
   }
   // A week an entry may be sent (or replaced) for right now.
@@ -1140,22 +1145,73 @@
         });
       });
     }, Promise.resolve()).then(function () {
-      if (sent) lsSet(yearKey(uid), JSON.stringify({ at: Date.now(), n: sent }));
+      // `through` = the newest week this send covered; catchUpYear() sends
+      // the ones that close after it
+      if (sent) lsSet(yearKey(uid), JSON.stringify({ at: Date.now(), n: sent, through: weeks[weeks.length - 1] }));
       renderPromo();
-      // Tell the server, then show the recounted charts. Asked twice if the
-      // first try fails: without it the new weeks would wait for someone else's.
-      var ask = function () {
-        return fetch(API + '/dank100/dirty', { method: 'POST' }).then(function (r) { if (!r.ok) throw new Error('http ' + r.status); });
-      };
-      return ask().catch(function () {
-        return new Promise(function (res) { setTimeout(res, 2000); }).then(ask);
-      }).catch(function (e) { console.warn('[dankcharts] Dank 100 recount signal failed:', e && e.message); });
+      return askRecount();
     }).then(function () {
       Y.busy = false;
       C.cache = {}; C.arch = null; C.pendTries = 0;
       render();
       loadChart(true, C.week || latestClosedWeek());
     });
+  }
+
+  // Tells the server history entries came in, so it recounts. Asked twice if
+  // the first try fails: without it the new weeks would wait for someone else's.
+  function askRecount() {
+    var ask = function () {
+      return fetch(API + '/dank100/dirty', { method: 'POST' }).then(function (r) { if (!r.ok) throw new Error('http ' + r.status); });
+    };
+    return ask().catch(function () {
+      return new Promise(function (res) { setTimeout(res, 2000); }).then(ask);
+    }).catch(function (e) { console.warn('[dankcharts] Dank 100 recount signal failed:', e && e.message); });
+  }
+
+  // For people who already pressed "Send my year": the weeks that were still
+  // running when they pressed it (so it couldn't send them) are sent by
+  // themselves once they close, until 30 Nov. Older sends kept no `through`;
+  // those covered up to HISTORY_LAST. Weeks the user took back are skipped.
+  // Runs after every data load and sign-in (autoSend), only in the browser
+  // that sent the year (the marker is in localStorage).
+  var _catchUpRunning = false;
+  function catchUpYear() {
+    var uid = signedInUid();
+    if (_catchUpRunning || !uid || isDemo() || !hasPlays() || !historyOpen() || Y.busy) return;
+    var done = null;
+    try { done = JSON.parse(lsGet(yearKey(uid)) || 'null'); } catch (e) {}
+    if (!done || !done.at) return;
+    var through = done.through || HISTORY_LAST, last = latestClosedWeek();
+    var weeks = [];
+    for (var w = nextWeek(through); w <= last; w = nextWeek(w)) {
+      if (+weekBounds(w).start >= done.at) break;   // started after the send: not part of it
+      weeks.push(w);
+    }
+    if (!weeks.length) return;
+    _catchUpRunning = true;
+    var sent = 0, failed = 0;
+    weeks.reduce(function (p, w) {
+      return p.then(function () {
+        if (lsGet(backKey(uid, w)) || !(buildEntry(w).plays > 0)) return;
+        return sendEntry(w).then(function () { sent++; lsSet(sentKey(uid, w), String(Date.now())); }, function (e) {
+          console.warn('[dankcharts] Dank 100 catch-up week failed:', w, e && (e.code || e.message));
+          failed++;
+        });
+      });
+    }, Promise.resolve()).then(function () {
+      // Only move on once every week went in, so a failed one is tried again
+      if (!failed) {
+        done.through = weeks[weeks.length - 1];
+        done.n = (done.n || 0) + sent;
+        lsSet(yearKey(uid), JSON.stringify(done));
+      }
+      if (!sent) return;
+      return askRecount().then(function () {
+        C.cache = {}; C.arch = null; C.pendTries = 0;
+        if (S.active) { render(); loadChart(true, C.week || latestClosedWeek()); }
+      });
+    }).then(function () { _catchUpRunning = false; }, function () { _catchUpRunning = false; });
   }
 
   // ── The invite banner on the chart tabs ──
@@ -1252,6 +1308,7 @@
   function autoSend() {
     syncSwitch();
     renderPromo();          // called after every data load (app.js finalizeLoad)
+    catchUpYear();          // weeks a "Send my year" couldn't send yet (own check, no switch needed)
     var uid = signedInUid();
     if (_autoRunning || !uid || !autoOn() || isDemo() || !hasPlays()) return;
     var due = openWeeks().filter(function (w) {
