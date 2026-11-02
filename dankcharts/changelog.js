@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 416;
+const DC_CL_I18N_V = 417;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -296,6 +296,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-01', t: 'design', a: 'graphs', h: '616532e',
+    title: "Compare: your picks as cards, and a better search",
+    detail: "On Stats → Compare, each pick is now a card with its photo or cover, its colour, where it ranks among your picks, its plays and its share of them, with a bar along the bottom. To add one, type in the Add card: a list shows what matches, with pictures and play counts, most played first. Leave the box empty to see your most played ones you haven't picked yet. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-11-01', t: 'feature', a: 'ui', h: 'cb0896a',
     title: "What's New opens with Highlights",
     detail: "What's New now starts with Highlights: the big updates of the last two months as cards, each with a picture, a few plain bullet points, a Take me there button that opens that part of the site, and the list of every change in that update. The newest show first and Show more opens the rest. The full list of every change is still below, and its filter buttons now fold away behind a Filter button next to the search box." },

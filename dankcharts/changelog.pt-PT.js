@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Compare: your picks as cards, and a better search":
+    ["Comparar: as tuas escolhas como cartões e uma pesquisa melhor",
+     "Em Estatísticas → Comparar, cada escolha é agora um cartão com a sua foto ou capa, a sua cor, a sua posição entre as escolhas, as suas reproduções e a sua parte delas, com uma barra em baixo. Para adicionar, escreve no cartão Adicionar: uma lista mostra o que corresponde, com imagens e reproduções, o mais ouvido primeiro. Deixa a caixa vazia para veres os que mais ouves e ainda não escolheste. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
   "What's New opens with Highlights":
     ["Novidades abre com Destaques",
      "Novidades começa agora com Destaques: as grandes novidades dos últimos dois meses em cartões, cada um com uma imagem, alguns pontos simples, um botão Levar-me até lá que abre essa parte do site e a lista de todas as alterações dessa novidade. As mais recentes aparecem primeiro e o botão Ver mais abre o resto. A lista completa de alterações continua por baixo, e os botões de filtro ficam agora recolhidos atrás de um botão Filtrar ao lado da pesquisa."],
