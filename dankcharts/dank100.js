@@ -866,6 +866,8 @@
           return '<button type="button" class="' + (C.type === type ? 'active' : '') + '" aria-pressed="' + (C.type === type) +
             '" onclick="dcDank100.setType(\'' + type + '\')">' + esc(tr('d100_type_' + type)) + '</button>';
         }).join('') + '</div>' +
+        '<button type="button" class="dc-btn dc-btn-normal dc-btn-sm d100-share-btn" onclick="dcDank100.exportPlaylist(this)"' +
+        ((d[C.type] || []).length && typeof dcOpenTextExport === 'function' ? '' : ' disabled') + '>' + esc(tr('d100_export')) + '</button>' +
         '<button type="button" class="dc-btn dc-btn-normal dc-btn-sm d100-share-btn" onclick="dcDank100.share(this)"' +
         ((d[C.type] || []).length ? '' : ' disabled') + '>' + esc(tr('d100_share')) + '</button></header>';
       if (d.hist) {
@@ -1128,6 +1130,177 @@
       return f;
     }, function (e) { console.warn('[dankcharts] Dank 100 card failed:', e); if (_card.key === key) _card.busy = null; return null; });
     return _card.busy;
+  }
+
+  // ── Export the week as a playlist, through app.js's export window
+  // (dcOpenTextExport: copy, .txt/.csv, Soundiiz steps).
+  // Songs: the chart as it is. Artists and albums: two songs each, in chart
+  // order. The picks favour songs that are on that week's Dank 100 songs
+  // chart (best rank first), then fill from Deezer: an artist's top tracks,
+  // or the album's tracklist by Deezer's popularity. A song already used by
+  // an artist or album higher up is skipped, so the list has no repeats.
+  var PER_ITEM = 2;
+  var EXPORT_PARALLEL = 4;          // Deezer lookups at once (the proxy retries busy answers)
+  var _exportBusy = false;
+
+  // Lead artist of a song row, as its key has it ("title|artist")
+  function songArtistKey(r) { return String(r.k || '').split('|').slice(1).join('|'); }
+  function songTitleKey(r) { return String(r.k || '').split('|')[0]; }
+
+  // Deezer: the artist profile with this exact name and the most fans
+  function dzArtist(name) {
+    return deezerFetch('search/artist?q=' + encodeURIComponent(name) + '&limit=10')
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        var items = (d && d.data) || [], want = baseKey(name);
+        var exact = items.filter(function (x) { return baseKey(x.name) === want; })
+          .sort(function (a, b) { return (b.nb_fan || 0) - (a.nb_fan || 0); });
+        return exact[0] || null;
+      });
+  }
+  function dzArtistTop(name) {
+    return dzArtist(name).then(function (a) {
+      if (!a) return [];
+      return deezerFetch('artist/' + a.id + '/top?limit=10')
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) {
+          return ((d && d.data) || []).map(function (x) { return { title: x.title_short || x.title, artist: (x.artist && x.artist.name) || name, album: (x.album && x.album.title) || '' }; });
+        });
+    });
+  }
+  // Album titles as stores tag them: "[Explicit]", "[Clean]", "(Deluxe
+  // Version)", " - Single", " - EP". Only used for a second search and for
+  // matching, never shown.
+  function plainAlbum(s) {
+    return String(s || '')
+      .replace(/\s*[\(\[][^\)\]]*[\)\]]/g, '')
+      .replace(/\s+-\s+(single|ep)\s*$/i, '')
+      .trim() || String(s || '');
+  }
+  // Deezer's credit vs ours: "Cheryl" / "Cheryl Cole", "Black Eyed Peas" /
+  // "The Black Eyed Peas"; soundtracks sit under "Various Artists"
+  function sameArtist(dzName, artist) {
+    var x = baseKey(dzName).replace(/^the /, ''), y = baseKey(artist).replace(/^the /, '');
+    if (!x || !y) return false;
+    return x === y || x.indexOf(y + ' ') === 0 || y.indexOf(x + ' ') === 0 || x === 'various artists';
+  }
+  function sameAlbum(dzTitle, album) {
+    var x = titleKey(plainAlbum(dzTitle)), y = titleKey(plainAlbum(album));
+    return !!x && !!y && (x === y || x.indexOf(y) === 0 || y.indexOf(x) === 0);
+  }
+  function dzSearchAlbum(q, album, artist) {
+    return deezerFetch('search/album?q=' + encodeURIComponent(q) + '&limit=10')
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        var items = ((d && d.data) || []).filter(function (x) { return x.artist && sameArtist(x.artist.name, artist); });
+        // An exact title first, then "starts with" (a deluxe edition)
+        var tk = titleKey(album);
+        return items.filter(function (x) { return titleKey(x.title) === tk; })[0] ||
+          items.filter(function (x) { return sameAlbum(x.title, album); })[0] || null;
+      });
+  }
+  // The album by title + artist (a second try with the store tags taken
+  // off), then its tracks, most played on Deezer first
+  function dzAlbumTracks(album, artist) {
+    var plain = plainAlbum(album);
+    return dzSearchAlbum(artist + ' ' + album, album, artist).then(function (hit) {
+      if (hit || plain === album) return hit;
+      return dzSearchAlbum(artist + ' ' + plain, plain, artist);
+    }).then(function (hit) {
+      if (!hit) return [];
+      return deezerFetch('album/' + hit.id + '/tracks?limit=100')
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (t) {
+          return ((t && t.data) || []).slice().sort(function (a, b) { return (b.rank || 0) - (a.rank || 0); })
+            .map(function (x) { return { title: x.title_short || x.title, artist: (x.artist && x.artist.name) || artist, album: hit.title }; });
+        });
+    });
+  }
+  // Last try for an album Deezer doesn't list (often a single named after its
+  // song): the song with the album's name by the same artist
+  function dzTitleTrack(album, artist) {
+    var plain = plainAlbum(album);
+    return deezerFetch('search/track?q=' + encodeURIComponent(artist + ' ' + plain) + '&limit=10')
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        var x = ((d && d.data) || []).filter(function (x) {
+          return x.artist && sameArtist(x.artist.name, artist) && titleKey(x.title_short || x.title) === titleKey(plain);
+        })[0];
+        return x ? [{ title: x.title_short || x.title, artist: x.artist.name, album: (x.album && x.album.title) || '' }] : [];
+      });
+  }
+
+  // Two songs for one artist or album row. `used` holds the title|artist
+  // keys already in the playlist.
+  function pickTwo(type, r, songs) {
+    var aKey = type === 'artists' ? r.k : baseKey(r.a);
+    var mine = songs.filter(function (s) { return songArtistKey(s) === aKey; });   // chart order = best rank first
+    if (type === 'artists') {
+      var fromChart = mine.map(function (s) { return { title: s.t, artist: s.a }; });
+      if (fromChart.length >= PER_ITEM + 1) return Promise.resolve(fromChart);
+      return dzArtistTop(r.t).then(function (dz) { return fromChart.concat(dz); }, function () { return fromChart; });
+    }
+    // Albums: Deezer says which songs are on it; charting ones go first
+    return dzAlbumTracks(r.t, r.a).then(function (tracks) {
+      if (tracks.length) return tracks;
+      // Not on Deezer as an album: a charting song with the album's name, or
+      // Deezer's song of that name
+      var same = mine.filter(function (x) { return songTitleKey(x) === titleKey(plainAlbum(r.t)); })
+        .map(function (x) { return { title: x.t, artist: x.a }; });
+      return same.length ? same : dzTitleTrack(r.t, r.a);
+    }).then(function (tracks) {
+      var onChart = {};
+      mine.forEach(function (s, i) { onChart[songTitleKey(s)] = i + 1; });
+      return tracks.map(function (x, i) { return { s: x, c: onChart[titleKey(x.title)] || 999, i: i }; })
+        .sort(function (a, b) { return (a.c - b.c) || (a.i - b.i); })
+        .map(function (o) { return o.s; });
+    }, function () { return []; });
+  }
+
+  function exportPlaylist(btn) {
+    var d = C.data, type = C.type;
+    if (!d || _exportBusy || typeof dcOpenTextExport !== 'function') return;
+    var rows = d[type] || [], songs = d.songs || [];
+    var week = tr('d100_week_of', { range: rangeLabel(weekBounds(C.week)) });
+    var label = tr('nav_dank100') + ' · ' + tr('d100_type_' + type) + ' · ' + week;
+    var names = [tr('nav_dank100') + ' — ' + week, tr('nav_dank100') + ' ' + tr('d100_type_' + type) + ' — ' + week];
+    if (type === 'songs') {
+      dcOpenTextExport(rows.map(function (s) { return { title: s.t, artist: s.a }; }), label, names);
+      return;
+    }
+    // Artists / albums: look the songs up a few at a time, then add them in
+    // chart order (lookups finish in any order)
+    _exportBusy = true;
+    var orig = btn ? btn.textContent : '', done = 0, picks = new Array(rows.length), next = 0;
+    var tick = function () { if (btn) btn.textContent = tr('d100_export_busy', { n: done, total: rows.length }); };
+    if (btn) btn.disabled = true;
+    tick();
+    var worker = function () {
+      if (next >= rows.length) return Promise.resolve();
+      var i = next++;
+      return pickTwo(type, rows[i], songs).then(function (list) { picks[i] = list; }, function () { picks[i] = []; })
+        .then(function () { done++; tick(); return worker(); });
+    };
+    var workers = [];
+    for (var w = 0; w < EXPORT_PARALLEL; w++) workers.push(worker());
+    Promise.all(workers).then(function () {
+      var used = {}, out = [], missed = 0;
+      picks.forEach(function (list) {
+        var got = 0;
+        (list || []).forEach(function (s) {
+          if (got >= PER_ITEM || !s.title) return;
+          var key = titleKey(s.title) + '|' + baseKey(s.artist);
+          if (used[key]) return;
+          used[key] = 1; got++;
+          out.push(s);
+        });
+        if (!got) missed++;
+      });
+      _exportBusy = false;
+      if (btn) { btn.disabled = false; btn.textContent = orig; }
+      if (!out.length) { if (typeof dcPlToast === 'function') dcPlToast(tr('d100_export_none')); return; }
+      dcOpenTextExport(out, label + ' · ' + tr('d100_export_two') + (missed ? ' · ' + tr('d100_export_missed', { n: missed }) : ''), names);
+    });
   }
 
   function shareCard(btn) {
@@ -1520,6 +1693,7 @@
     setType: setType,
     toggleRun: toggleRun,
     share: shareCard,
+    exportPlaylist: exportPlaylist,
     pickWeek: pickWeek,
     weekPreview: weekPreview,
     hideWeekPreview: hideWeekPreview,
