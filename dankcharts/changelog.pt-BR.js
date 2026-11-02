@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "A nicer Play a sample button":
+    ["Um botão de prévia mais bonito",
+     "Os botões de ouvir uma prévia em Estatísticas (seu top 5, a música do período e o interior de cada barra) têm um visual mais limpo: um disco redondo de play, um botão com um tom suave, um anel que gira enquanto a prévia carrega e um pequeno equalizador em movimento ao lado de Parar enquanto toca."],
   "Graphs: a richer look inside each bar":
     ["Gráficos: muito mais dentro de cada barra",
      "Toque numa barra do volume de reproduções em Estatísticas → Gráficos e agora você vê a história toda daquele período: sua música mais ouvida em destaque com a capa e uma prévia, uma barra para cada dia (ou hora, ou mês) com o mais ouvido indicado, e abas de músicas top, descobertas e artistas top com as fotos. Vá para o período anterior ou seguinte com as setas (ou as teclas de seta), veja como ele se compara com o anterior e veja a barra dele acender no gráfico."],

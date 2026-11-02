@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 435;
+const DC_CL_I18N_V = 436;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -316,6 +316,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-01', t: 'design', a: 'graphs', h: '0bfcf87',
+    title: "A nicer Play a sample button",
+    detail: "The Play a sample buttons on Stats (your top 5, song of the period and the look inside each bar) have a cleaner design: a round play disc, a soft tinted button, a spinning ring while the sample loads, and a little moving equalizer next to Stop while it plays." },
   { d: '2026-11-01', t: 'design', a: 'graphs', h: 'a542eb8',
     title: "Graphs: a richer look inside each bar",
     detail: "Tap a bar in Play volume on Stats → Graphs and you now get that period's whole story: your most played song big with its cover and a sample, a bar for each day (or hour, or month) with your busiest one named, and tabs for top songs, new finds and top artists with their pictures. Step to the period before or after with the arrows (or your arrow keys), see how it compares with the one before, and watch its bar light up in the chart." },

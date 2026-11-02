@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "A nicer Play a sample button":
+    ["Un botón de muestra más bonito",
+     "Los botones de escuchar una muestra en Estadísticas (tu top 5, la canción del periodo y el interior de cada barra) tienen un diseño más limpio: un disco redondo de reproducir, un botón con un tono suave, un anillo que gira mientras carga la muestra y un pequeño ecualizador en movimiento junto a Detener mientras suena."],
   "Graphs: a richer look inside each bar":
     ["Gráficos: mucho más dentro de cada barra",
      "Toca una barra del volumen de reproducciones en Estadísticas → Gráficos y ahora ves toda la historia de ese periodo: tu canción más escuchada en grande con su portada y una muestra, una barra por cada día (u hora, o mes) con el de más escuchas señalado, y pestañas de canciones top, descubrimientos y artistas top con sus fotos. Pasa al periodo anterior o siguiente con las flechas (o las teclas de flecha), mira cómo se compara con el anterior y ve cómo su barra se ilumina en la gráfica."],
