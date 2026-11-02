@@ -1301,9 +1301,15 @@
     else go();
   }
 
-  // Called after every data load (app.js finalizeLoad) and on sign-in. Sends
-  // each open week that has plays, at most every AUTO_EVERY_MS, unless the
-  // user took that week's entry back.
+  // Called after every data load (app.js finalizeLoad) and on sign-in.
+  // Auto-send waits for the end of the window so users have time to fix
+  // their plays (autocorrect, late scrobbles) first:
+  //  - the running week is never sent by itself;
+  //  - Fri/Sat after a week ends, it sends one safety copy only if that week
+  //    was never sent from this device (in case the site isn't opened Sunday);
+  //  - on Sunday (UTC), the last day, it sends the final version and keeps
+  //    updating it at most every AUTO_EVERY_MS until sending closes.
+  // A week the user took back is never sent again by itself.
   var _autoRunning = false;
   function autoSend() {
     syncSwitch();
@@ -1311,10 +1317,15 @@
     catchUpYear();          // weeks a "Send my year" couldn't send yet (own check, no switch needed)
     var uid = signedInUid();
     if (_autoRunning || !uid || !autoOn() || isDemo() || !hasPlays()) return;
+    var now = Date.now();
     var due = openWeeks().filter(function (w) {
+      var b = weekBounds(w);
+      if (now < +b.end) return false;                    // week still running
       if (lsGet(backKey(uid, w))) return false;
       var last = +lsGet(sentKey(uid, w)) || 0;
-      return Date.now() - last >= AUTO_EVERY_MS && buildEntry(w).plays > 0;
+      var finalDay = now >= +b.closes - DAY_MS;         // Sunday 00:00 UTC on
+      if (!finalDay && last) return false;               // safety copy already sent
+      return now - last >= AUTO_EVERY_MS && buildEntry(w).plays > 0;
     });
     if (!due.length) return;
     _autoRunning = true;

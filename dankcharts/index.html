@@ -31,7 +31,7 @@
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=292"></script>
+  <script defer src="translations.js?v=293"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -4326,7 +4326,7 @@
   <!-- The Stats page's tabs, Overview, Story, Games and Compare (phase 15); reads app.js globals -->
   <script defer src="stats.js?v=59"></script>
   <!-- The Dank 100: weekly entries for the shared community chart; reads app.js and firebase.js globals -->
-  <script defer src="dank100.js?v=15"></script>
+  <script defer src="dank100.js?v=16"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at
@@ -5181,7 +5181,7 @@ function deleteGenreTriggers() {
         <div class="set-row">
           <label class="src-switch-row">
             <span class="src-switch-label"><span data-i18n="d100_auto">Send my week automatically</span>
-              <span class="set-switch-note" data-i18n="d100_auto_note">Each time you open the site, your chart for this week is sent to The Dank 100. Only the combined chart is public.</span>
+              <span class="set-switch-note" data-i18n="d100_auto_note">Your week is sent to The Dank 100 on Sunday (UTC), the last day, so you have time to fix your plays first. If you open the site on Friday or Saturday, a first copy is sent just in case. Only the combined chart is public.</span>
             </span>
             <span class="src-switch">
               <input type="checkbox" id="setD100Auto" onchange="dcDank100.setAutoSend(this.checked)">
