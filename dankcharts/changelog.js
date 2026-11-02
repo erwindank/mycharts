@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 421;
+const DC_CL_I18N_V = 422;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -296,6 +296,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-01', t: 'design', a: 'graphs', h: '5864cfd',
+    title: "Compare: top songs with covers, livelier Biggest gaps",
+    detail: "Top songs side by side now shows each pick as a card: its #1 song big with its cover, #2 and #3 with small covers, and a bar for each song. The Biggest gaps tiles got an emoji, a touch of the winner's colour, a bigger number and a small bar to show the gap at a glance." },
   { d: '2026-11-01', t: 'design', a: 'graphs', h: 'cc78ff9',
     title: "Compare: a richer Who was on top",
     detail: "Who was on top on Stats → Compare has a taller strip with the years marked underneath, and each block is brighter the more clearly that month was won. Point at a block (or tap it on a phone) to see the month, who won it with how many plays, and who came next. Months won is now a ranked list with a bar each, and the times the lead changed hands read as a timeline." },

@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Compare: top songs with covers, livelier Biggest gaps":
+    ["Comparar: músicas top com capas e Maiores distâncias mais vivas",
+     "As músicas top lado a lado agora mostram cada escolha como um cartão: a música #1 em destaque com a capa, a #2 e a #3 com capas pequenas, e uma barra para cada música. Os cartões de Maiores distâncias ganharam um emoji, um toque da cor do vencedor, um número maior e uma pequena barra para ver a distância de relance."],
   "Compare: a richer Who was on top":
     ["Comparar: um Quem esteve no topo mais completo",
      "Quem esteve no topo em Estatísticas → Comparar tem uma faixa mais alta com os anos marcados embaixo, e cada bloco brilha mais quanto mais clara foi a vitória daquele mês. Passe o cursor num bloco (ou toque no celular) para ver o mês, quem venceu e com quantas reproduções, e quem veio depois. Os meses vencidos agora são uma lista em ordem com uma barra cada, e as trocas de liderança aparecem como uma linha do tempo."],
