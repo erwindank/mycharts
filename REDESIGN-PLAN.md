@@ -4048,6 +4048,41 @@ push without asking. Code in `stats.js` (`_sxCmp*`), `index.html`
 8. **Finish:** gentle motion, four languages, the Charts Guide, changelog,
    screen check (1440 / 1100 / 390 touch, the check themes).
 
+**Phase 18 done (2026-11-01),** each step committed with a changelog
+entry, not pushed: 1 line-up + search list (616532e), 2 toolbar + Saved
+menu (9a2aae9), 3 legend + race player (fc17259), 4 head to head
+(bf83fbe), 5 Who was on top (cc78ff9), 6 top songs + gaps (5864cfd),
+7 habits (99f8a99), 8 finish (e583e45), plus a What's New card
+(f1962fb, whatsnew/compare-look.webp).
+- Line-up cards are `_sxCmpChips` (the name stayed); the Add card and its
+  search list (`#sxCmpSug`, `_sxCmpSuggest`) are static in index.html so
+  typing survives repaints. The browser datalist is gone; `idx.keys` holds
+  the picker order and song entries keep an album for covers.
+- Saved comparisons are a menu (`#sxCmpSavedBtn` + `#sxCmpSaved`). Its
+  outside-click close ignores clicks on buttons the menu just repainted
+  (`!e.target.isConnected`).
+- Legend: `_sxCmpHidden` (type + key) survives repaints until reload.
+  The hover fade does a full `update()` with the animation off, because
+  `update('none')` keeps Chart.js's shared point colours.
+- Race: `initRace` opens on the last frame; `raceSetPlayBtn` in app.js owns
+  the round play button; `raceSliderFill` sets the scrubber's `--p`;
+  `drawRace` writes the date beside it (`#sxRaceDate`).
+- One hover box serves Who was on top and the habit cells (`_sxOwnTip`,
+  `.sx-own-tip` inside `.sx-own` / `.sx-hab-box`). Mouse events within
+  800 ms of a touch are ignored, or the box a tap opened closes again.
+- Cards rise in only when `T.gen` changes (`#sxCmpMore.is-new`), so sorting
+  doesn't replay it.
+- Gotcha for scripts: the Bash tool halves backslashes inside heredocs, so
+  a Python edit with `'
+'` wrote a real line break into stats.js. Write
+  edit scripts with the Write tool, or use Edit.
+- Checked at 1440 / 1100 / 390 touch in all four languages and Navy dark,
+  Navy light, Red light, Pink light and Yellow, every view and type and two
+  picks: no raw keys, no sideways scroll, no errors. Search, Saved menu,
+  legend, race buttons, strip and habit hover boxes clicked or tapped for
+  real. Scripts: C:/tmp/p18.mjs, p18_saved.mjs, p18_s3.mjs, p18_s5.mjs,
+  p18_s7.mjs, p18_hl.mjs (the What's New picture).
+
 ### Done outside the phases (to 2026-10-18)
 
 Work that isn't a plan step but changes what the later phases start from.
