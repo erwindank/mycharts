@@ -12809,6 +12809,13 @@ function applyRecordsViewFilter(view) {
   if (typeof window._refreshBackToTop === 'function') window._refreshBackToTop();
 }
 
+/* The extra album-side pill keys ('singles', 'eps') a user has separated.
+   The *_REC_TYPES_ORDER lists below only hold the fixed three, so without
+   these a stored Singles or EPs pick was thrown away and fell back to Songs. */
+function recAlbumTypeKeys() {
+  return recAlbumEnts().map(function (ae) { return ae.key; }).filter(function (k) { return k !== 'albums'; });
+}
+
 /* ── New Charts record sub-tabs ───────────────────────────────────────
    New Charts alone is ten records across three entities and two period types.
    Two exclusive pill rows narrow that to one table set: the type row picks
@@ -12820,7 +12827,7 @@ const NC_REC_PERIODS_ORDER = ['day', 'week', 'month', 'year'];
 function ncRecTabState() {
   let type = localStorage.getItem('dc_nc_rec_type');
   let period = localStorage.getItem('dc_nc_rec_period');
-  if (NC_REC_TYPES_ORDER.indexOf(type) === -1) type = 'songs';
+  if (NC_REC_TYPES_ORDER.concat(recAlbumTypeKeys()).indexOf(type) === -1) type = 'songs';
   if (NC_REC_PERIODS_ORDER.indexOf(period) === -1) period = 'week';
   return { type: type, period: period };
 }
@@ -12871,7 +12878,7 @@ const MIL_REC_TYPES_ORDER = ['songs', 'artists', 'albums'];
 
 function milRecTabState() {
   let type = localStorage.getItem('dc_mil_rec_type');
-  if (MIL_REC_TYPES_ORDER.indexOf(type) === -1) type = 'songs';
+  if (MIL_REC_TYPES_ORDER.concat(recAlbumTypeKeys()).indexOf(type) === -1) type = 'songs';
   return type;
 }
 
@@ -12914,7 +12921,7 @@ const FAST_REC_TYPES_ORDER = ['songs', 'artists', 'albums'];
 
 function fastRecTabState() {
   let type = localStorage.getItem('dc_fast_rec_type');
-  if (FAST_REC_TYPES_ORDER.indexOf(type) === -1) type = 'songs';
+  if (FAST_REC_TYPES_ORDER.concat(recAlbumTypeKeys()).indexOf(type) === -1) type = 'songs';
   return type;
 }
 
