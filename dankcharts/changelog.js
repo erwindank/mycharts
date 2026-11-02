@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 444;
+const DC_CL_I18N_V = 445;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -316,6 +316,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-02', t: 'perf', a: 'records', h: '49d689d',
+    title: "Records loads faster, and All stops at 1,000",
+    detail: "Records now builds each row's chart run only when you open it, instead of building them all in advance and hiding them. The tab is about half the size it was, so it opens and switches faster. Show → All now stops at 1,000 rows per list, and the line under All #1s says how many there are in total. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-11-02', t: 'fix', a: 'records', h: 'fcc42db',
     title: "Show → All in Records no longer crashes the page",
     detail: "Picking All under a Records list froze the page and could crash the browser on big libraries, because it filled every list in every Records section at once (hundreds of thousands of rows). All now fills the section you're looking at; the other sections fill in when you open them, behind a short \"Building your records…\" line. On a large library, All on All #1s now takes a few seconds. Works with Last.fm, Google Sheets and CSV uploads." },

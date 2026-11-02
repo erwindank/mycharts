@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Records loads faster, and All stops at 1,000":
+    ["Recordes carrega mais rápido, e Todos para em 1.000",
+     "Recordes agora monta a trajetória de cada linha só quando você a abre, em vez de montar todas antes e escondê-las. A aba ficou com metade do tamanho, então abre e troca mais rápido. Mostrar → Todos agora para em 1.000 linhas por lista, e a linha abaixo de Todos os #1 diz quantas existem no total. Funciona com Last.fm, Google Sheets e arquivos CSV."],
   "Show → All in Records no longer crashes the page":
     ["Mostrar → Todos em Recordes não trava mais a página",
      "Escolher Todos numa lista de Recordes congelava a página e podia derrubar o navegador em bibliotecas grandes, porque preenchia todas as listas de todas as seções de uma vez (centenas de milhares de linhas). Agora Todos preenche a seção que você está vendo; as outras são preenchidas quando você as abre, com um aviso rápido \"Montando seus recordes…\". Numa biblioteca grande, Todos em Todos os #1 agora leva alguns segundos. Funciona com Last.fm, Google Sheets e arquivos CSV."],
