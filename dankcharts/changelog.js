@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 424;
+const DC_CL_I18N_V = 425;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -98,6 +98,16 @@ const DC_CL_AREAS = {
    by id, as { title, intro, points }. A missing one shows in English.
    ------------------------------------------------------------------------- */
 const DC_CL_HIGHLIGHTS = [
+  { id: "compare-look", d: "2026-11-01", a: "graphs", img: "whatsnew/compare-look.webp", go: "graphs", then: [["setStatsTab", "compare"]],
+    title: "Compare got a fresh look",
+    intro: "Stats → Compare is easier to use and nicer to look at, from picking what to compare to every card below.",
+    points: [
+      "Your picks are cards with their photo or cover, rank, plays and share. Add more with a search that shows pictures.",
+      "Tap a name in the legend to hide its line, or point at it to make it stand out. The race opens on its result, with a player bar.",
+      "Head to head has a colour strip and bars, Who was on top has a hover box and a timeline, top songs show their covers.",
+      "Listening habits mark the parts of the day and each pick's peak hour and day.",
+    ],
+    also: ["616532e", "9a2aae9", "fc17259", "bf83fbe", "cc78ff9", "5864cfd", "99f8a99", "e583e45"] },
   { id: "dank100", d: "2026-11-01", a: "charts", img: "whatsnew/dank100.webp", go: "dank100",
     title: "The Dank 100 is here",
     intro: "One shared weekly chart, made from everyone's listening. Send in your week and help decide what's #1.",

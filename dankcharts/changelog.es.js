@@ -4432,6 +4432,15 @@ window.DC_CHANGELOG_I18N['es'] = {
 /* Highlight cards (DC_CL_HIGHLIGHTS in changelog.js), keyed by id. */
 window.DC_CL_HIGHLIGHTS_I18N = window.DC_CL_HIGHLIGHTS_I18N || {};
 window.DC_CL_HIGHLIGHTS_I18N["es"] = {
+  "compare-look": {
+    title: "Comparar tiene un aspecto nuevo",
+    intro: "Estadísticas → Comparar es más fácil de usar y más bonito, desde elegir qué comparar hasta cada tarjeta de abajo.",
+    points: [
+      "Tus elecciones son tarjetas con su foto o portada, puesto, reproducciones y parte. Añade más con una búsqueda con imágenes.",
+      "Toca un nombre en la leyenda para ocultar su línea, o pasa el cursor para destacarla. La carrera se abre con su resultado y una barra de reproductor.",
+      "El cara a cara tiene una franja de colores y barras, Quién estuvo arriba un cuadro al pasar el cursor y una línea de tiempo, y las canciones top sus portadas.",
+      "Los hábitos de escucha marcan las partes del día y la hora y el día pico de cada elección."
+    ] },
   "dank100": {
     title: "The Dank 100 ya está aquí",
     intro: "Una lista semanal compartida, hecha con lo que escucha todo el mundo. Envía tu semana y ayuda a decidir qué es el n.º 1.",
