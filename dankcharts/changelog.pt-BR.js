@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Graphs: a richer look inside each bar":
+    ["Gráficos: muito mais dentro de cada barra",
+     "Toque numa barra do volume de reproduções em Estatísticas → Gráficos e agora você vê a história toda daquele período: sua música mais ouvida em destaque com a capa e uma prévia, uma barra para cada dia (ou hora, ou mês) com o mais ouvido indicado, e abas de músicas top, descobertas e artistas top com as fotos. Vá para o período anterior ou seguinte com as setas (ou as teclas de seta), veja como ele se compara com o anterior e veja a barra dele acender no gráfico."],
   "Graphs: smoother when it draws":
     ["Gráficos: mais suave ao desenhar",
      "Ao abrir Estatísticas → Gráficos ou mudar as datas, os números aparecem, o relógio de escuta percorre o mostrador e as colunas da semana e as barras crescem até o lugar. Tudo fica parado se o seu aparelho pede menos movimento. O Guia das paradas descreve a nova aba Gráficos."],

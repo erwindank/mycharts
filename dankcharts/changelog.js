@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 434;
+const DC_CL_I18N_V = 435;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -316,6 +316,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-01', t: 'design', a: 'graphs', h: 'a542eb8',
+    title: "Graphs: a richer look inside each bar",
+    detail: "Tap a bar in Play volume on Stats → Graphs and you now get that period's whole story: your most played song big with its cover and a sample, a bar for each day (or hour, or month) with your busiest one named, and tabs for top songs, new finds and top artists with their pictures. Step to the period before or after with the arrows (or your arrow keys), see how it compares with the one before, and watch its bar light up in the chart." },
   { d: '2026-11-01', t: 'design', a: 'graphs', h: '0a7d7ef',
     title: "Graphs: smoother when it draws",
     detail: "When you open Stats → Graphs or change the dates, the numbers rise in, the listening clock sweeps round its dial, and the week's columns and the bars grow into place. It stays still if your device asks for less motion. The Charts Guide describes the new Charts tab." },

@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Graphs: a richer look inside each bar":
+    ["Gráficos: mucho más dentro de cada barra",
+     "Toca una barra del volumen de reproducciones en Estadísticas → Gráficos y ahora ves toda la historia de ese periodo: tu canción más escuchada en grande con su portada y una muestra, una barra por cada día (u hora, o mes) con el de más escuchas señalado, y pestañas de canciones top, descubrimientos y artistas top con sus fotos. Pasa al periodo anterior o siguiente con las flechas (o las teclas de flecha), mira cómo se compara con el anterior y ve cómo su barra se ilumina en la gráfica."],
   "Graphs: smoother when it draws":
     ["Gráficos: más fluido al dibujarse",
      "Al abrir Estadísticas → Gráficos o cambiar las fechas, las cifras aparecen, el reloj de escucha recorre su esfera y las columnas de la semana y las barras crecen hasta su sitio. Se queda quieto si tu dispositivo pide menos movimiento. La Guía de listas describe la nueva pestaña Gráficos."],
