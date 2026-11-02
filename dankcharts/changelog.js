@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 454;
+const DC_CL_I18N_V = 455;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -326,6 +326,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-02', t: 'feature', a: 'charts', h: '986a1c8',
+    title: "A full Chart Run on The Dank 100",
+    detail: "Click an entry on The Dank 100 and, under its line and four numbers, you now get the same Chart Run as your own charts: a one-line story of its run, its peak, weeks at #1 and weeks in the Top 3, 5, 10 and 40, and a box for every week it charted, with the weeks it was away in between. Click a number to highlight those weeks, or click a box to open that week's chart." },
   { d: '2026-11-02', t: 'design', a: 'records', h: '3173f17',
     title: "Open and close arrows in Records no longer look like Play",
     detail: "The small triangles that open a row's chart run or certification ledger, and the double triangle that opens every row, looked like Play buttons. Across all of Records they are now arrows that point down and turn to point up once the row is open. Works with Last.fm, Google Sheets and CSV uploads." },
