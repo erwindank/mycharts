@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Charts: Your week, weekdays against the weekend":
+    ["Gráficos: Tu semana, entre semana contra el fin de semana",
+     "Tu semana en Estadísticas → Gráficos ahora muestra una columna por día, con el fin de semana sombreado y tu día con más escuchas destacado. Encima, tus reproducciones al día entre semana y el fin de semana aparecen juntas con tu mejor día, y la línea de debajo te dice cuánto más escuchas en la parte más activa de la semana."],
   "Charts: a new listening clock":
     ["Gráficos: un nuevo reloj de escucha",
      "El reloj de escucha de Estadísticas → Gráficos se lee mejor: marcas de cada hora alrededor, etiquetas que ya no tocan el anillo y tu hora con más escuchas iluminada con el color de tu tema. Pasa el cursor (o toca) cualquier hora para ver sus reproducciones en el centro. Debajo, tu mañana, tarde, atardecer y noche muestran qué parte de tu escucha se lleva cada una."],

@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Charts: Your week, weekdays against the weekend":
+    ["Gráficos: Sua semana, dias úteis contra o fim de semana",
+     "Sua semana em Estatísticas → Gráficos agora mostra uma coluna por dia, com o fim de semana sombreado e seu dia mais ouvido em destaque. Acima, seus plays por dia nos dias úteis e no fim de semana ficam lado a lado com seu melhor dia, e a linha embaixo diz quanto a mais você ouve no lado mais ativo da semana."],
   "Charts: a new listening clock":
     ["Gráficos: um novo relógio de escuta",
      "O relógio de escuta de Estatísticas → Gráficos ficou mais fácil de ler: marcas de cada hora ao redor, rótulos que não encostam mais no anel e sua hora mais ouvida acesa na cor do seu tema. Passe o cursor (ou toque) em qualquer hora para ver os plays dela no centro. Embaixo, sua manhã, tarde, fim de tarde e noite mostram a parte da sua escuta que cada uma leva."],
