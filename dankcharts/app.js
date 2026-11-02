@@ -29475,7 +29475,8 @@ let gTotalVolumeLabels = false;
 
 let heatmapType = 'all';
 let heatmapFilters = [];
-let hmTheme = 'default';
+// 'theme' (phase 19 step 5) = shades of the site theme's accent
+let hmTheme = 'theme';
 // Heatmap year on screen (phase 9 part 2 step 5). null = the current year,
 // so the heatmap always opens on this year; ‹ › and the year strip change it.
 let hmYear = null;
@@ -36374,7 +36375,7 @@ const HM_THEMES = {
   forest:  ['#0a1a0a', '#174d17', '#2a8c2a', '#5cc45c', '#b0f0b0'],
   ember:   ['#140303', '#4a0a08', '#991818', '#d44000', '#f09000'],
 };
-const HM_TYPE_THEME = { all: 'default', artist: 'fire', song: 'ocean', album: 'forest' };
+const HM_TYPE_THEME = { all: 'theme', artist: 'fire', song: 'ocean', album: 'forest' };
 // Month and weekday names in the page language, short and without the
 // trailing dot some languages add ("jan." -> "Jan"). Weekdays run Mon..Sun.
 function hmLocale() { return currentLang === 'en' ? 'en-US' : currentLang; }
@@ -36406,13 +36407,34 @@ function hmLerpColor(h1, h2, t) {
 let _hmStopsKey = '', _hmStopsVal = null;
 function hmStops() {
   const light = [...document.body.classList].some(c => c.endsWith('-light'));
-  const key = hmTheme + '|' + (light ? document.body.className : '');
+  const key = hmTheme + '|' + (light || hmTheme === 'theme' ? document.body.className : '');
   if (key === _hmStopsKey) return _hmStopsVal;
+  /* "Your theme" (phase 19 step 5): from the card colour to the accent, and
+     one step past it toward the text colour, so the busiest days get
+     brighter on a dark theme and darker on a light one. */
+  if (hmTheme === 'theme') {
+    const gc = getGraphColors(), hex = /^#[0-9a-f]{6}$/i;
+    const acc = hex.test(gc.accent) ? gc.accent : '#4080d0', card = hex.test(gc.cardBg) ? gc.cardBg : '#131c2c';
+    const txt = hex.test(gc.text) ? gc.text : '#e8f0ff';
+    const empty = getComputedStyle(document.body).getPropertyValue('--bg3').trim();
+    _hmStopsKey = key;
+    _hmStopsVal = [hex.test(empty) ? empty : mixHex(txt, card, 0.08),
+      mixHex(acc, card, 0.3), mixHex(acc, card, 0.6), acc, mixHex(acc, txt, 0.55)];
+    return _hmStopsVal;
+  }
   const stops = HM_THEMES[hmTheme] || HM_THEMES.default;
   const empty = light && getComputedStyle(document.body).getPropertyValue('--bg3').trim();
   _hmStopsKey = key;
   _hmStopsVal = light && /^#[0-9a-f]{6}$/i.test(empty) ? [empty, ...stops.slice(1).reverse()] : stops;
   return _hmStopsVal;
+}
+
+// The colour at ratio r (0 = no plays, 1 = the most) along the scheme
+function hmColorAt(r) {
+  const stops = hmStops();
+  const idx = Math.max(0, Math.min(1, r)) * (stops.length - 1);
+  const lo = Math.floor(idx), hi = Math.min(lo + 1, stops.length - 1);
+  return lo === hi ? stops[lo] : hmLerpColor(stops[lo], stops[hi], idx - lo);
 }
 
 function hmCellColor(count, max) {
@@ -36761,8 +36783,8 @@ function renderHeatmap() {
   let streakHtml = '';
   if (bestStreak > 1 || curStreak > 0) {
     const chips = [];
-    if (curStreak > 0) chips.push(`<span class="dc-chip hm-streak-chip">${esc(t(curStreak === 1 ? 'hm_streak_now_one' : 'hm_streak_now_other', { n: curStreak }))}</span>`);
-    if (bestStreak > 1) chips.push(`<span class="dc-chip hm-streak-chip">${esc(t('hm_best_streak', { n: bestStreak }))}</span>`);
+    if (curStreak > 0) chips.push(`<span class="hm-streak-chip is-now">${esc(t(curStreak === 1 ? 'hm_streak_now_one' : 'hm_streak_now_other', { n: curStreak }))}</span>`);
+    if (bestStreak > 1) chips.push(`<span class="hm-streak-chip">${esc(t('hm_best_streak', { n: bestStreak }))}</span>`);
     streakHtml = `<div class="hm-streak-bar">${chips.join('')}</div>`;
   }
 
@@ -36817,6 +36839,20 @@ function renderHeatmap() {
     }
   }
 
+  /* Phase 19 step 5: shades follow the open year's own spread of days.
+     One all-time log scale put nearly every day of a busy year on the
+     darkest step; now a day's shade is where it ranks among that year's
+     days with plays (the quietest a light step, the busiest the strongest). */
+  const yrCounts = [];
+  for (const w of weeks) for (const c of w) if (c.inRange && c.count && c.dk.startsWith(yr + '-')) yrCounts.push(c.count);
+  yrCounts.sort((a, b) => a - b);
+  const rankRatio = c => {
+    if (!yrCounts.length) return 0;
+    let lo = 0, hi = yrCounts.length;
+    while (lo < hi) { const m = (lo + hi) >> 1; if (yrCounts[m] <= c) lo = m + 1; else hi = m; }
+    return 0.22 + 0.78 * (lo / yrCounts.length);
+  };
+
   let cellsHtml = '';
   for (const week of weeks) {
     for (const cell of week) {
@@ -36838,30 +36874,38 @@ function renderHeatmap() {
           const c2 = graphColor(idxs[1]);
           bg = `linear-gradient(135deg,${c1} 50%,${c2} 50%)`;
         } else {
-          bg = hmCellColor(cell.count, maxCount);
+          bg = hmColorAt(rankRatio(cell.count));
         }
       }
       cellsHtml += `<div class="${cls}"${bg ? ` style="background:${bg};"` : ''}${attr}></div>`;
     }
   }
 
-  // The open year's numbers, next to the year
+  /* The open year's numbers as figures (phase 19 step 5), like the cards
+     above. All: plays, best day, top artist (opens their details), new
+     artists. Artist / Song / Album: plays, best day, days played. */
+  const fig = (label, val, sub, go) => {
+    const inner = `<span class="sx-fig-l">${esc(label)}</span><b class="sx-fig-v">${esc(val)}</b>${sub ? `<span class="sx-fig-s">${esc(sub)}</span>` : ''}`;
+    return go ? `<button type="button" class="sx-fig is-go" onclick="${go}">${inner}</button>` : `<div class="sx-fig">${inner}</div>`;
+  };
+  let yTot = 0, yDays = 0, yBestDk = '', yBest = 0;
+  for (const w of weeks) for (const c of w) {
+    if (!c.inRange || !c.dk.startsWith(yr + '-') || !c.count) continue;
+    yTot += c.count; yDays++;
+    if (c.count > yBest) { yBest = c.count; yBestDk = c.dk; }
+  }
+  const bestDayStr = yBestDk ? new Date(yBestDk + 'T00:00:00').toLocaleDateString(hmLocale(), { month: 'short', day: 'numeric' }) : '—';
+  const playsFig = fig(t('sx_fig_plays'), yTot.toLocaleString(), '');
+  const bestFig = fig(t('hm_best_day'), bestDayStr, yBest ? t('sx_fig_n_plays').replace('{n}', yBest.toLocaleString()) : '');
   let reviewHtml;
   if (yearStats && yearStats[yr]) {
     const ys = yearStats[yr];
-    const bd = ys.bestDk ? new Date(ys.bestDk + 'T00:00:00') : null;
-    const bestDayStr = bd ? bd.toLocaleDateString(hmLocale(), { month: 'short', day: 'numeric' }) : '—';
-    reviewHtml = `<div class="hm-y-stats">
-      <span><span class="hm-yr-num">${ys.total.toLocaleString()}</span> ${tUnit('plays', ys.total)}</span>
-      <span>${t('hm_best_day')} <span class="hm-yr-num">${bestDayStr}</span> <span class="hm-yr-muted">(${ys.bestDay.toLocaleString()})</span></span>
-      <span>${t('hm_top')} <span class="hm-yr-name">${esc(ys.topArtist)}</span></span>
-      ${ys.newArtists > 0 ? `<span><span class="hm-yr-num">${ys.newArtists.toLocaleString()}</span> ${t('hm_new_artists')}</span>` : ''}
-    </div>`;
+    reviewHtml = `<div class="sx-figs hm-figs">${playsFig}${bestFig}` +
+      fig(t('hm_top_artist'), ys.topArtist || '—', '', ys.topArtist ? esc('openArtistModal(' + JSON.stringify(ys.topArtist) + ')') : '') +
+      fig(t('hm_new_artists_cap'), ys.newArtists.toLocaleString(), '') + `</div>`;
   } else {
-    // Artist / Song / Album views: just that year's plays of what you picked
-    let tot = 0;
-    for (const w of weeks) for (const c of w) if (c.inRange && c.dk.startsWith(yr + '-')) tot += c.count;
-    reviewHtml = `<div class="hm-y-stats"><span><span class="hm-yr-num">${tot.toLocaleString()}</span> ${tUnit('plays', tot)}</span></div>`;
+    reviewHtml = `<div class="sx-figs sx-figs-3 hm-figs">${playsFig}${bestFig}` +
+      fig(t('hm_days_played'), yDays.toLocaleString(), '') + `</div>`;
   }
 
   let html = `<div class="hm-yearbar">
@@ -36870,8 +36914,9 @@ function renderHeatmap() {
       <span class="hm-y-num">${yr}</span>
       <button type="button" class="hm-step" data-hm-step="1" aria-label="${esc(t('hm_next_year'))}" title="${esc(t('hm_next_year'))}"${yi >= years.length - 1 ? ' disabled' : ''}>›</button>
     </div>
-    ${reviewHtml}
+    ${streakHtml}
   </div>
+  ${reviewHtml}
   <div class="hm-y-scroll">
     <div class="hm-y-grid" style="--hm-weeks:${weeks.length}">
       <div class="hm-y-months">${monthHtml}</div>
@@ -36880,12 +36925,11 @@ function renderHeatmap() {
     </div>
   </div>`;
 
-  const legendCells = [0, 0.2, 0.45, 0.7, 1].map(r => {
-    const cnt = r === 0 ? 0 : Math.round(Math.exp(r * Math.log1p(maxCount)) - 1);
-    return `<div class="heatmap-cell" style="background:${hmCellColor(cnt, maxCount)};cursor:default;"></div>`;
-  }).join('');
-  // Streaks on the left, the key on the right
-  html += `<div class="hm-y-foot">${streakHtml}<div class="heatmap-legend"><span class="heatmap-legend-label">${esc(t('sk_hm_less'))}</span>${legendCells}<span class="heatmap-legend-label">${esc(t('sk_hm_more'))}</span></div></div>`;
+  // The key: no plays, then the quietest to the busiest of the year
+  const legendCells = [0, 0.22, 0.48, 0.74, 1].map(r =>
+    `<div class="heatmap-cell" style="background:${hmColorAt(r)};cursor:default;"></div>`).join('');
+  // The key on the right (the streaks moved up beside the year, phase 19)
+  html += `<div class="hm-y-foot"><div class="heatmap-legend"><span class="heatmap-legend-label">${esc(t('sk_hm_less'))}</span>${legendCells}<span class="heatmap-legend-label">${esc(t('sk_hm_more'))}</span></div></div>`;
 
   // Year strip: one thumbnail per year, a bar per week. Bar heights share one
   // scale across all years, so busy and quiet years look different.
@@ -36901,7 +36945,7 @@ function renderHeatmap() {
       const bars = wt.map((v, x) => {
         if (!v) return '';
         const h = Math.max(1, (v / weekMax) * 18);
-        return `<rect x="${x * 1.5}" y="${(18 - h).toFixed(2)}" width="1.2" height="${h.toFixed(2)}" fill="${hmCellColor(Math.round(v / 7), maxCount)}"/>`;
+        return `<rect x="${x * 1.5}" y="${(18 - h).toFixed(2)}" width="1.2" height="${h.toFixed(2)}" fill="${hmColorAt(0.35 + 0.65 * v / weekMax)}"/>`;
       }).join('');
       const sum = wt.reduce((a, b) => a + b, 0);
       const short = sum >= 1000 ? (sum / 1000).toFixed(1) + 'k' : String(sum);

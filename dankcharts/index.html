@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=814">
+  <link rel="stylesheet" href="style.css?v=816">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=287"></script>
+  <script defer src="translations.js?v=288"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -1539,22 +1539,27 @@
         </div>
       </div>
 
-      <!-- Chart 6: Listening Activity Heatmap -->
-      <div class="dc-card graph-card" id="heatmapCard" data-st-group="charts">
-        <div class="graph-card-title" data-i18n="hm_title">🔥 Listening Activity Heatmap</div>
-        <div class="graph-card-sub" data-i18n="hm_sub">Your music mapped day by day: the stronger the color, the more you played. Hover or tap any square to see what you were listening to.</div>
-        <div class="graph-ctrl-row">
-          <span class="graph-ctrl-label" data-i18n="hm_view">View</span>
-          <div id="heatmapTypeBtns" class="dc-seg">
+      <!-- Chart 6: Listening Activity Heatmap. Phase 19 step 5: one slim
+           toolbar (what to show on the left, colour scheme on the right). -->
+      <div class="dc-card graph-card sx-ch" id="heatmapCard" data-st-group="charts">
+        <div class="sx-ch-head">
+          <div class="graph-card-text">
+            <div class="graph-card-title" data-i18n="hm_title">🔥 Listening Activity Heatmap</div>
+            <div class="graph-card-sub" data-i18n="hm_sub">Your music mapped day by day: the stronger the color, the more you played. Hover or tap any square to see what you were listening to.</div>
+          </div>
+        </div>
+        <div class="hm-bar">
+          <div id="heatmapTypeBtns" class="dc-seg" role="group" aria-label="View" data-i18n-aria="hm_view">
             <button class="graphs-btn active" data-hmtype="all" data-i18n="hm_type_all">All</button>
             <button class="graphs-btn" data-hmtype="artist" data-i18n="hm_type_artist">Artist</button>
             <button class="graphs-btn" data-hmtype="song" data-i18n="hm_type_song">Song</button>
             <button class="graphs-btn" data-hmtype="album" data-i18n="hm_type_album">Album</button>
           </div>
-          <span class="hm-ctrl-sep" aria-hidden="true"></span>
           <div id="heatmapThemeBtns" class="hm-theme-btns" role="group" title="Color scheme" aria-label="Color scheme"
             data-i18n-title="hm_scheme" data-i18n-aria="hm_scheme">
-            <button class="hm-theme-swatch active" data-hmtheme="default" title="Cosmic" aria-label="Cosmic"
+            <button class="hm-theme-swatch active" data-hmtheme="theme" title="Your theme" aria-label="Your theme"
+              data-i18n-title="hm_scheme_theme" data-i18n-aria="hm_scheme_theme"></button>
+            <button class="hm-theme-swatch" data-hmtheme="default" title="Cosmic" aria-label="Cosmic"
               data-i18n-title="hm_scheme_default" data-i18n-aria="hm_scheme_default"></button>
             <button class="hm-theme-swatch" data-hmtheme="fire" title="Fire" aria-label="Fire"
               data-i18n-title="hm_scheme_fire" data-i18n-aria="hm_scheme_fire"></button>
@@ -4301,7 +4306,7 @@
   <!-- One behaviour and one icon set for every pop-up window (phase 10); before
        app.js so dcIco() is there when app.js draws a window -->
   <script defer src="popups.js?v=12"></script>
-  <script defer src="app.js?v=594"></script>
+  <script defer src="app.js?v=595"></script>
   <!-- The song / album / artist details side panel (phase 10 step 3); wraps app.js's open functions -->
   <script defer src="panel.js?v=16"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
