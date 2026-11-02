@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 415;
+const DC_CL_I18N_V = 416;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -296,6 +296,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-01', t: 'feature', a: 'ui', h: 'cb0896a',
+    title: "What's New opens with Highlights",
+    detail: "What's New now starts with Highlights: the big updates of the last two months as cards, each with a picture, a few plain bullet points, a Take me there button that opens that part of the site, and the list of every change in that update. The newest show first and Show more opens the rest. The full list of every change is still below, and its filter buttons now fold away behind a Filter button next to the search box." },
   { d: '2026-11-01', t: 'feature', a: 'charts', h: '20984e3',
     title: "A Dank 100 invite on the Charts page",
     detail: "The chart tabs now show a small banner about The Dank 100 with a button that takes you straight to sending your year (or your week). It goes away once you have joined, or when you close it with the ×." },

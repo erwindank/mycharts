@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "What's New opens with Highlights":
+    ["Novedades empieza con Lo más destacado",
+     "Novedades empieza ahora con Lo más destacado: las grandes novedades de los dos últimos meses en tarjetas, cada una con una imagen, unos pocos puntos sencillos, un botón Llévame allí que abre esa parte del sitio y la lista de todos los cambios de esa novedad. Las más recientes salen primero y el botón Ver más abre el resto. La lista completa de cambios sigue debajo, y sus botones de filtro ahora se pliegan detrás de un botón Filtrar junto al buscador."],
   "A Dank 100 invite on the Charts page":
     ["Una invitación a The Dank 100 en Listas",
      "Las pestañas de listas muestran ahora un pequeño aviso sobre The Dank 100 con un botón que te lleva directamente a enviar tu año (o tu semana). Desaparece cuando ya participas o cuando lo cierras con la ×."],
