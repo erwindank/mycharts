@@ -1058,6 +1058,7 @@ function sxRenderVolume(sortedKeys, gc) {
   }
   _sxVol = { keys, plays, newPlays, nSong, nArtist, nAlbum, firstKey, gran: graphGranularity };
   _sxPaintVolMode();
+  _sxPaintVolFigs(gc);
 
   const n = (o, k) => o[k] || 0;
   /* Phase 19 step 1: past SX_VOL_MAX_BARS periods (Daily over a year or
@@ -1079,6 +1080,11 @@ function sxRenderVolume(sortedKeys, gc) {
   ];
   // Each area stacks on the one under it (the first on the axis)
   if (area) datasets.forEach((d, i) => { d.fill = i ? '-1' : 'origin'; });
+  // Bars: the top of each stack is rounded, and bars keep a sane width
+  // (a plain number: Chart.js then rounds only the outer ends of a stack)
+  else datasets.forEach(d => {
+    Object.assign(d, { categoryPercentage: 0.78, barPercentage: 0.9, maxBarThickness: 56, borderRadius: 6 });
+  });
 
   // Labels button: the bar's total over each stack
   const labelsPlugin = {
@@ -1109,8 +1115,10 @@ function sxRenderVolume(sortedKeys, gc) {
       onClick: (e, els) => { if (els.length) sxShowVolDrill(keys[els[0].index]); },
       onHover: (e, els) => { e.native.target.style.cursor = els.length ? 'pointer' : ''; },
       plugins: {
-        legend: graphLegend(gc),
+        // The figures over the chart carry the colour key (phase 19)
+        legend: { display: false },
         tooltip: {
+          ..._sxTip(gc),
           callbacks: {
             // Plays view: the period's first-time counts; New finds: its plays
             footer: items => {
@@ -1123,7 +1131,7 @@ function sxRenderVolume(sortedKeys, gc) {
         },
         zoom: { pan: { enabled: true, mode: 'x', onPanComplete: ({ chart }) => saveChartZoom(chart, 'totalVolume') }, zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x', onZoomComplete: ({ chart }) => saveChartZoom(chart, 'totalVolume') } }
       },
-      scales: graphAxes(gc, { maxTicks: 24, stacked: true })
+      scales: _sxFlatX(graphAxes(gc, { maxTicks: 12, stacked: true }))
     },
     plugins: [labelsPlugin]
   });
@@ -1131,6 +1139,59 @@ function sxRenderVolume(sortedKeys, gc) {
   // A box left open for a period no longer on the chart is closed
   const box = document.getElementById('sxVolDrill');
   if (box && !box.hidden && !inKey.has(box.dataset.key)) box.hidden = true;
+}
+
+/* Phase 19: the Charts tab's hover box, in the card's own colours instead
+   of Chart.js's black box. */
+function _sxTip(gc) {
+  return {
+    backgroundColor: gc.card, borderColor: gc.grid, borderWidth: 1,
+    titleColor: gc.text, bodyColor: gc.axis, footerColor: gc.axis,
+    titleFont: { weight: '700', size: 13 }, bodyFont: { size: 12 }, footerFont: { size: 11, weight: '500' },
+    padding: 10, cornerRadius: 8, boxPadding: 4, usePointStyle: true, caretSize: 5,
+  };
+}
+// Flat x labels (no slant): fewer of them, spaced apart
+function _sxFlatX(scales) {
+  Object.assign(scales.x.ticks, { maxRotation: 0, autoSkip: true, autoSkipPadding: 18 });
+  return scales;
+}
+
+/* Phase 19 step 2: the figures over the chart. Plays: the total (with the
+   average per period), songs you knew, new to you (with its share) and the
+   busiest period. New finds: new songs / artists / albums and the period
+   with the most new songs. A coloured dot ties a figure to its part of the
+   chart, so the chart needs no legend of its own. The busiest period opens
+   its look-inside box. */
+function _sxPaintVolFigs(gc) {
+  const box = document.getElementById('sxVolFigs');
+  if (!box || !_sxVol) return;
+  const v = _sxVol, g = v.gran, N = x => x.toLocaleString();
+  const sum = o => v.keys.reduce((a, k) => a + (o[k] || 0), 0);
+  const best = o => { let bk = null, bn = 0; for (const k of v.keys) if ((o[k] || 0) > bn) { bn = o[k]; bk = k; } return [bk, bn]; };
+  const fig = (label, val, sub, dot, go) => {
+    const inner = `<span class="sx-fig-l">${dot ? `<i style="background:${dot}"></i>` : ''}${esc(label)}</span>` +
+      `<b class="sx-fig-v">${esc(val)}</b>${sub ? `<span class="sx-fig-s">${esc(sub)}</span>` : ''}`;
+    return go
+      ? `<button type="button" class="sx-fig is-go" onclick="sxShowVolDrill(${esc(JSON.stringify(go))})">${inner}</button>`
+      : `<div class="sx-fig">${inner}</div>`;
+  };
+  if (sxVolMode === 'new') {
+    const [fk, fn] = best(v.nSong);
+    box.innerHTML =
+      fig(t('graph_new_songs'), N(sum(v.nSong)), '', graphColor(0)) +
+      fig(t('graph_new_artists'), N(sum(v.nArtist)), '', graphColor(1)) +
+      fig(t('graph_new_albums'), N(sum(v.nAlbum)), '', graphColor(2)) +
+      fig(t('sx_fig_most_finds'), fk ? graphKeyLabel(fk) : '–', fk ? t('sx_fig_n_songs').replace('{n}', N(fn)) : '', '', fk);
+  } else {
+    const total = sum(v.plays), nw = sum(v.newPlays), [pk, pn] = best(v.plays);
+    const avg = v.keys.length ? Math.round(total / v.keys.length) : 0;
+    box.innerHTML =
+      fig(t('sx_fig_plays'), N(total), t('sx_fig_avg_' + g).replace('{n}', N(avg))) +
+      fig(t('sx_vol_known'), N(total - nw), '', gc.accent) +
+      fig(t('sx_vol_new'), N(nw), t('sx_fig_share').replace('{pct}', total ? Math.round(nw / total * 100) : 0), graphColor(2)) +
+      fig(t('sx_fig_busiest_' + g), pk ? graphKeyLabel(pk) : '–', pk ? t('sx_fig_n_plays').replace('{n}', N(pn)) : '', '', pk);
+  }
 }
 
 function _sxNewCounts(k) {

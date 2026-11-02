@@ -11132,7 +11132,54 @@
     .sx-trend polyline { fill: none; stroke: currentColor; stroke-width: 1.5; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
 
     /* Charts tab (step 2): Plays / New finds switch over the volume chart */
-    .sx-vol-mode { margin: 0 0 var(--sp-3); }
+    /* ── Charts tab cards (phase 19) ──
+       .sx-ch: roomier padding; .sx-ch-head: title and sub on the left, the
+       card's switch and tools on the right (under it on phones). */
+    .graph-card.sx-ch { padding: var(--sp-5); }
+    @media (max-width: 640px) { .graph-card.sx-ch { padding: var(--sp-4); } }
+    .sx-ch-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-2) var(--sp-3); flex-wrap: wrap; margin-bottom: var(--sp-4); }
+    .sx-ch-head .graph-card-text { flex: 1 1 16rem; min-width: 0; }
+    .sx-ch-head .graph-card-sub { margin-bottom: 0; }
+    .sx-ch-acts { display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; }
+    .sx-ch-acts .graph-card-tools { margin: 0; }
+
+    /* Figures over a chart (phase 19 step 2): a small uppercase label, a big
+       number, a line under it. A dot is that figure's colour in the chart,
+       so the chart needs no legend. A figure that opens something is a
+       button with an arrow. */
+    .sx-figs {
+      display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin-bottom: var(--sp-4); border: 1px solid var(--border); border-radius: var(--r-md); overflow: hidden;
+      background: color-mix(in srgb, var(--bg) 35%, var(--bg2));
+    }
+    .sx-fig {
+      display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: var(--sp-3) var(--sp-4);
+      text-align: left; background: none; border: 0; border-left: 1px solid var(--border); font: inherit; color: inherit;
+    }
+    .sx-fig:first-child { border-left: 0; }
+    .sx-fig.is-go { cursor: pointer; transition: background var(--t-fast) var(--ease); }
+    .sx-fig.is-go:hover { background: var(--hover); }
+    .sx-fig.is-go:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+    .sx-fig.is-go .sx-fig-s::after { content: ' →'; color: var(--accent); }
+    .sx-fig-l {
+      display: flex; align-items: center; gap: 6px; min-width: 0;
+      font-size: 10.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--text2);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .sx-fig-l i { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+    .sx-fig-v {
+      font-family: var(--font-display); font-size: 1.45rem; font-weight: 700; line-height: 1.2; color: var(--text);
+      font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .sx-fig-s { font-size: var(--fs-xs); color: var(--text2); }
+    @media (max-width: 760px) {
+      .sx-figs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .sx-fig:nth-child(3) { border-left: 0; }
+      .sx-fig:nth-child(n+3) { border-top: 1px solid var(--border); }
+      .sx-fig-v { font-size: 1.2rem; }
+    }
+    .graph-canvas-wrap.sx-vol-canvas { height: 300px; }
+    @media (max-width: 640px) { .graph-canvas-wrap.sx-vol-canvas { height: 240px; } }
 
     /* The look-inside box under the volume chart */
     .sx-drill {

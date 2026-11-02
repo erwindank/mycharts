@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=810">
+  <link rel="stylesheet" href="style.css?v=811">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=284"></script>
+  <script defer src="translations.js?v=285"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -1480,25 +1480,31 @@
            plays split into songs you knew and songs new to you; New finds
            shows the songs / artists / albums heard for the first time. Tap a
            bar to look inside that period (stats.js, sxShowVolDrill). -->
-      <div class="dc-card graph-card" data-st-group="charts">
-        <div class="graph-card-head">
+      <!-- Phase 19 step 2: the head holds the Plays / New finds switch and the
+           tools on the right; under it a row of figures (sxVolFigs) that sums
+           up the range and doubles as the chart's colour key. -->
+      <div class="dc-card graph-card sx-ch sx-vol-card" data-st-group="charts">
+        <div class="sx-ch-head">
           <div class="graph-card-text">
             <div class="graph-card-title" data-i18n="sx_vol_title">Play volume and discoveries</div>
             <div class="graph-card-sub" data-i18n="sx_vol_sub">Plays each period, with the part that was new to you. Tap a bar to look inside.</div>
           </div>
-          <div class="graph-card-tools">
-            <button id="gTotalVolumeLabelsBtn" type="button" class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon graph-tool"
-              aria-pressed="false" title="Labels: Off" aria-label="Labels: Off"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M2.5 3.5h7l4 4.5-4 4.5h-7z" /><path d="M5.5 8h3" /></svg></button>
-            <button id="gTotalVolumeResetZoom" type="button" class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon graph-tool"
-              data-i18n-title="tooltip_reset_zoom" data-i18n-aria="btn_reset_zoom" title="Reset the chart zoom to show the full date range"
-              aria-label="Reset Zoom"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="7" cy="7" r="4.5" /><path d="m10.4 10.4 3.6 3.6M5 7h4" /></svg></button>
+          <div class="sx-ch-acts">
+            <div class="dc-seg sx-vol-mode" id="sxVolMode" role="group" aria-label="Show" data-i18n-aria="sx_vol_show">
+              <button type="button" data-vmode="plays" data-i18n="sx_vol_mode_plays">Plays</button>
+              <button type="button" data-vmode="new" data-i18n="sx_vol_mode_new">New finds</button>
+            </div>
+            <div class="graph-card-tools">
+              <button id="gTotalVolumeLabelsBtn" type="button" class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon graph-tool"
+                aria-pressed="false" title="Labels: Off" aria-label="Labels: Off"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M2.5 3.5h7l4 4.5-4 4.5h-7z" /><path d="M5.5 8h3" /></svg></button>
+              <button id="gTotalVolumeResetZoom" type="button" class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon graph-tool"
+                data-i18n-title="tooltip_reset_zoom" data-i18n-aria="btn_reset_zoom" title="Reset the chart zoom to show the full date range"
+                aria-label="Reset Zoom"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="7" cy="7" r="4.5" /><path d="m10.4 10.4 3.6 3.6M5 7h4" /></svg></button>
+            </div>
           </div>
         </div>
-        <div class="dc-seg sx-vol-mode" id="sxVolMode" role="group" aria-label="Show" data-i18n-aria="sx_vol_show">
-          <button type="button" data-vmode="plays" data-i18n="sx_vol_mode_plays">Plays</button>
-          <button type="button" data-vmode="new" data-i18n="sx_vol_mode_new">New finds</button>
-        </div>
-        <div class="graph-canvas-wrap"><canvas id="gTotalVolume"></canvas></div>
+        <div id="sxVolFigs" class="sx-figs"></div>
+        <div class="graph-canvas-wrap sx-vol-canvas"><canvas id="gTotalVolume"></canvas></div>
         <div id="sxVolDrill" class="sx-drill" hidden></div>
       </div>
 
@@ -4291,7 +4297,7 @@
   <script defer src="insights.js?v=10"></script>
   <script defer src="daily.js?v=39"></script>
   <!-- The Stats page's tabs, Overview, Story, Games and Compare (phase 15); reads app.js globals -->
-  <script defer src="stats.js?v=49"></script>
+  <script defer src="stats.js?v=50"></script>
   <!-- The Dank 100: weekly entries for the shared community chart; reads app.js and firebase.js globals -->
   <script defer src="dank100.js?v=13"></script>
 
