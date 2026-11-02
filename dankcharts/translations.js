@@ -3661,6 +3661,8 @@ const TRANSLATIONS = {
     rec_repeat_runs_sub_song: 'Most consecutive listens to the same song without playing anything else',
     rec_repeat_runs_sub_artist: 'Most consecutive plays credited to the same artist without anyone else in between',
     rec_repeat_runs_sub_album: 'Most consecutive plays from the same album without anything else in between',
+    rec_repeat_runs_sub_single: 'Most consecutive plays from the same single without anything else in between',
+    rec_repeat_runs_sub_ep: 'Most consecutive plays from the same EP without anything else in between',
     rec_artists_with_certs: 'Artists with Most Certifications',
     rec_certs_thresholds: 'Song: Gold={{sg}} · Platinum={{sp}} · Diamond={{sd}} plays | Album: Gold={{ag}} · Platinum={{ap}} · Diamond={{ad}} plays',
 
@@ -8807,6 +8809,8 @@ const TRANSLATIONS = {
     rec_repeat_runs_sub_song: 'Más escuchas consecutivas de la misma canción sin reproducir ninguna otra',
     rec_repeat_runs_sub_artist: 'Más reproducciones consecutivas del mismo artista sin nadie más en medio',
     rec_repeat_runs_sub_album: 'Más reproducciones consecutivas del mismo álbum sin nada más en medio',
+    rec_repeat_runs_sub_single: 'Más reproducciones consecutivas del mismo sencillo sin nada más en medio',
+    rec_repeat_runs_sub_ep: 'Más reproducciones consecutivas del mismo EP sin nada más en medio',
     rec_artists_with_certs: 'Artistas con Más Certificaciones',
     rec_certs_thresholds: 'Canción: Oro={{sg}} · Platino={{sp}} · Diamante={{sd}} reprods | Álbum: Oro={{ag}} · Platino={{ap}} · Diamante={{ad}} reprods',
 
@@ -13921,6 +13925,8 @@ const TRANSLATIONS = {
     rec_repeat_runs_sub_song: 'Mais escutas consecutivas da mesma música sem reproduzir nenhuma outra',
     rec_repeat_runs_sub_artist: 'Mais plays consecutivos do mesmo artista sem mais ninguém pelo meio',
     rec_repeat_runs_sub_album: 'Mais plays consecutivos do mesmo álbum sem mais nada pelo meio',
+    rec_repeat_runs_sub_single: 'Mais plays consecutivos do mesmo single sem mais nada pelo meio',
+    rec_repeat_runs_sub_ep: 'Mais plays consecutivos do mesmo EP sem mais nada pelo meio',
     rec_artists_with_certs: 'Artistas com Mais Certificações',
     rec_certs_thresholds: 'Música: Ouro={{sg}} · Platina={{sp}} · Diamante={{sd}} plays | Álbum: Ouro={{ag}} · Platina={{ap}} · Diamante={{ad}} plays',
 
@@ -19034,6 +19040,8 @@ const TRANSLATIONS = {
     rec_repeat_runs_sub_song: 'Mais escutas consecutivas da mesma música sem reproduzir nenhuma outra',
     rec_repeat_runs_sub_artist: 'Mais plays consecutivos do mesmo artista sem mais ninguém pelo meio',
     rec_repeat_runs_sub_album: 'Mais plays consecutivos do mesmo álbum sem mais nada pelo meio',
+    rec_repeat_runs_sub_single: 'Mais plays consecutivos do mesmo single sem mais nada pelo meio',
+    rec_repeat_runs_sub_ep: 'Mais plays consecutivos do mesmo EP sem mais nada pelo meio',
     rec_artists_with_certs: 'Artistas com Mais Certificações',
     rec_certs_thresholds: 'Música: Ouro={{sg}} · Platina={{sp}} · Diamante={{sd}} plays | Álbum: Ouro={{ag}} · Platina={{ap}} · Diamante={{ad}} plays',
 

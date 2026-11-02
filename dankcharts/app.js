@@ -10251,7 +10251,9 @@ function buildRecords() {
       return {
         key: ae.key, icon: ae.icon, label: ae.label,
         ms: recSplitFlat(albumMS, ae.bucket), first: albumFirst,
-        unit: 'albums', type: 'album',
+        // unit follows the pill ('singles' / 'eps'), so the count line reads
+        // "8 singles have reached…" rather than calling them albums.
+        unit: ae.key, type: 'album',
         title: function (m) { return t('rec_fastest_to', { type: ae.icon + ' ' + ae.label, n: m.toLocaleString(), s: 's' }); },
         head: ae.label + ' &middot; ' + t('rec_th_artist'),
         nm: function (k) { return (albumNames[k] || {}).album || String(k).split('|||')[0]; },
@@ -10736,7 +10738,8 @@ function buildRecords() {
         + '<div class="rec-section"><div class="rec-section-title">'
         + ent.icon + ' ' + ent.label + ' &mdash; ' + cfg.title + '</div>'
         + '<div class="rec-section-sub">'
-        + (isRuns ? t('rec_repeat_runs_sub_' + ent.kind) : t('rec_streak_sub_' + cfg.pd)) + '</div>';
+        // Singles and EPs get their own runs blurb ("same single"), not the album one.
+        + (isRuns ? t('rec_repeat_runs_sub_' + (ent.bucket && ent.bucket !== 'album' ? ent.bucket : ent.kind)) : t('rec_streak_sub_' + cfg.pd)) + '</div>';
       if (!entries.length) {
         html += '<div class="rec-empty">' + t(isRuns ? 'rec_no_repeat_runs' : 'rec_no_data') + '</div>';
       } else {
