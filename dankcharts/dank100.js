@@ -674,8 +674,68 @@
       fact('d100_run_peak', '#' + peak) +
       fact('d100_run_weeks', pts.length) +
       fact('d100_run_at1', at1) + '</div>';
+    h += crRunHTML(pts, peak, at1);
     h += '</div>';
     return h;
+  }
+
+  // ── The same "Chart Run" the user's own charts have (app.js crStats +
+  // crBoxesHTML), built from the Dank 100 archive: a one-line story, the
+  // ribbon of totals and a box per week on the chart, with ✕N gaps for the
+  // weeks it was off. The classes are app.js's, so it looks the same; a box
+  // opens that week's Dank 100 instead of the personal week preview.
+  function crRunHTML(pts, peak, at1) {
+    var a = C.arch, n = pts.length;
+    var B = function (s, gold) { return '<b' + (gold ? ' class="is-gold"' : '') + '>' + esc(s) + '</b>'; };
+    var U = function (k) { return k.toLocaleString() + ' ' + tr('cr_u_week' + (k === 1 ? '_one' : '_other')); };
+    // Story: "Debuted at #68, spent 1 week at the top and has 10 weeks on the chart."
+    var s = tr('cr_story_debut', { r: B('#' + pts[0][1], pts[0][1] === 1) });
+    if (at1) s += tr('cr_story_top', { n: B(U(at1), true) });
+    else if (peak !== pts[0][1]) s += tr('cr_story_peak', { r: B('#' + peak) });
+    s += tr('cr_story_total', { n: B(U(n)) });
+    // "Back this week after 3 weeks away." when the week on screen is a return
+    var lastPt = pts[n - 1];
+    if (n > 1 && a.weeks[lastPt[0]].w === C.week && lastPt[0] - pts[n - 2][0] > 1) {
+      s += ' ' + tr('cr_story_back_week', { n: U(lastPt[0] - pts[n - 2][0] - 1) });
+    }
+    // Ribbon: peak, weeks at #1, then the Top 3/5/10/40 tiers that add
+    // something (app.js's rule: skip a tier holding the same weeks as the one
+    // before it, or the whole run). The chips dim boxes outside their tier
+    // through app.js's crRibbonFilter.
+    var cnt = function (max) { return pts.filter(function (x) { return x[1] <= max; }).length; };
+    var chip = function (max, c, lbl, sw) {
+      return '<button type="button" class="cr-rb-chip" aria-pressed="false" data-max="' + max + '" title="' + esc(tr('cr_rb_hint')) + '"' +
+        (typeof crRibbonFilter === 'function' ? ' onclick="crRibbonFilter(this,event)"' : '') + '>' +
+        '<span class="cr-rb-sw cr-rb-sw-' + sw + '"></span><b>' + c.toLocaleString() + '</b>' + esc(lbl) + '</button>';
+    };
+    var chips = '', prev = 0;
+    if (at1) { chips += chip(1, at1, tr('cr_rb_at1_week'), 'gold'); prev = at1; }
+    [[3, 'top3'], [5, 'top5'], [10, 'top10'], [40, 'top10']].forEach(function (tt) {
+      var c = cnt(tt[0]);
+      if (c > prev && c < n) { chips += chip(tt[0], c, tr('cr_rb_top', { n: tt[0] }), tt[1]); prev = c; }
+    });
+    var ribbon = '<div class="cr-ribbon">' +
+      '<span class="cr-rb-i"><b class="' + (peak === 1 ? 'is-gold' : '') + '">#' + peak + '</b>' + esc(tr('cr_rb_peak')) + '</span>' +
+      chips +
+      '<span class="cr-rb-i"><b>' + n.toLocaleString() + '</b>' + esc(tr('cr_rb_on_chart')) + '</span></div>';
+    // Boxes: one per charting week, gold for the peak, a tint for the top 3,
+    // an outline on the week being looked at; ✕N between them for weeks off
+    var boxes = pts.map(function (x, i) {
+      var w = a.weeks[x[0]].w;
+      var cls = 'cr-box' + (x[1] === peak ? ' cr-box-peak' : x[1] <= 3 ? ' cr-box-top3' : '') + (w === C.week ? ' d100-cr-here' : '');
+      var lbl = typeof crPeriodLabel === 'function' ? crPeriodLabel('week', w) : fmtDay(weekBounds(w).start);
+      var box = '<button type="button" class="' + cls + '" data-rank="' + x[1] + '" title="' + esc(rangeLabel(weekBounds(w))) + '"' +
+        ' onclick="event.stopPropagation();dcDank100.pickWeek(\'' + w + '\')">' +
+        '<div class="cr-box-rank">#' + x[1] + '</div><div class="cr-box-label">' + esc(lbl) + '</div></button>';
+      var gap = i ? x[0] - pts[i - 1][0] - 1 : 0;
+      if (gap <= 0) return box;
+      return '<div class="cr-box-gap"><div class="cr-box-gap-label">✕' + gap + '</div>' +
+        '<div class="cr-box-gap-unit">' + esc(typeof tUnit === 'function' ? tUnit('weeks', gap) : tr('cr_u_week' + (gap === 1 ? '_one' : '_other'))) + '</div></div>' + box;
+    }).join('');
+    return '<div class="d100-cr">' +
+      '<div class="d100-cr-title">' + esc(tr('cr_chart_run')) + '</div>' +
+      '<div class="cr-stats cr-stats-sum"><div class="cr-sum"><p class="cr-story">' + s + '</p>' + ribbon + '</div></div>' +
+      '<div class="cr-boxes-wrap"><div class="cr-boxes">' + boxes + '</div></div></div>';
   }
   function fact(key, val) {
     return '<div class="d100-fact"><div class="d100-fact-v">' + esc(val) + '</div><div class="d100-fact-k">' + esc(tr(key)) + '</div></div>';
