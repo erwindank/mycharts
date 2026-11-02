@@ -4229,8 +4229,16 @@ over every other section from the built tables:
 - step 6 (1c54bf2) row style + `recxBars` (only for one-number,
   same-unit columns), desktop only; phones keep cards.
 - New Charts keeps its own podium and titles; Milestones keeps its
-  timeline. Steps 7 (Milestones/Certs/Overview polish) and 8 (Charts
-  Guide, What's New card) are still open.
+  timeline.
+- New Charts titles/columns translated (5d5ae00, nc_t_* / nc_th_*).
+- step 7 (749b57d): Milestones folds runs of one record
+  (`recxGroupMilestones`, "+5 more · 525 – 625"); Overview's type switch
+  is a .dc-seg. Certifications needed nothing more.
+- step 8 (44f6f99): What's New card records-look (go records, then
+  `window.dcOpenRecordsView`), Charts Guide line in 4 languages + the
+  English tab tour. **Phase 20 finished 2026-11-02.** Final check: all 11
+  sections at 1440 / 1100 / 390, four languages, five themes: clean.
+  Scripts: C:/tmp/p20_sweep.mjs, p20_hl.mjs, p20_card.mjs.
 
 ### Done outside the phases (to 2026-10-18)
 
