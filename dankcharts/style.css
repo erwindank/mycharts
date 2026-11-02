@@ -5334,6 +5334,22 @@
       background: color-mix(in srgb, var(--accent) 10%, transparent);
     }
 
+    /* What's New opens a window, not a page: a thin line sets it apart */
+    .tb-more-item.tb-more-sep {
+      position: relative;
+      margin-top: calc(var(--sp-2) + 1px);
+    }
+    .tb-more-item.tb-more-sep::before {
+      content: "";
+      position: absolute;
+      left: var(--sp-2);
+      right: var(--sp-2);
+      top: calc(-1 * var(--sp-1) - 1px);
+      height: 1px;
+      background: var(--border);
+      pointer-events: none;
+    }
+
     /* OLD PERIOD NAV, since step 2: only the Week / Month / Year / All-time
        switch, and only on the Charts page. The other buttons stay in the DOM
        (they are what the new tabs click) but are never shown. */
