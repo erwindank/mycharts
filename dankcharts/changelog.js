@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 439;
+const DC_CL_I18N_V = 440;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -316,6 +316,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-02', t: 'design', a: 'records', h: 'e296b06',
+    title: "All #1s tells you its record in a sentence",
+    detail: "Records → All #1s now opens with one sentence about the list you picked, for example: \"36 singles have reached #1 on your weekly chart. We Can Be Anything held on longest: 3 weeks in a row, 6 – 20 Aug 2023.\" When the top spot is shared, it says so. The type, chart and Total / In a row switches now sit side by side in one row, and the second heading and the − buttons above the table are gone. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-11-01', t: 'feature', a: 'settings', h: 'a4a335f',
     title: "Search on Apple Music or Deezer instead of Spotify",
     detail: "A new choice in Settings, on the Charts tab: Search buttons. Pick Spotify, Apple Music or Deezer, and every search button on the site opens that service instead: next to each song, artist and album on the charts, in the menus, on artist pages, in the streaks list and on The Dank 100. The button changes its logo and colour to match, and the choice follows your account to other devices." },

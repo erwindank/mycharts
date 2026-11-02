@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "All #1s tells you its record in a sentence":
+    ["Todos os n.º 1 conta o recorde numa frase",
+     "Recordes → Todos os n.º 1 começa agora com uma frase sobre a lista escolhida, por exemplo: \"36 singles chegaram ao n.º 1 no teu top semanal. We Can Be Anything teve o reinado mais longo: 3 semanas sem interrupção, 6 – 20 ago 2023.\" Quando o primeiro lugar é partilhado, a frase di-lo. Os seletores de tipo, top e Total / Seguidas ficam agora lado a lado numa só linha, e o segundo título e os botões − por cima da tabela desapareceram. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
   "Search on Apple Music or Deezer instead of Spotify":
     ["Pesquise no Apple Music ou no Deezer em vez do Spotify",
      "Uma opção nova nas Definições, no separador Tops: Botões de pesquisa. Escolha Spotify, Apple Music ou Deezer, e todos os botões de pesquisa do site abrem esse serviço: ao lado de cada música, artista e álbum nos tops, nos menus, nas páginas de artista, na lista de sequências e no The Dank 100. O botão muda de logótipo e de cor, e a escolha acompanha a sua conta noutros dispositivos."],
