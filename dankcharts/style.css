@@ -11315,7 +11315,7 @@
       .sx-sug { width: 100%; }
     }
     @media (prefers-reduced-motion: reduce) { .sx-lu-card { animation: none; transition: none; } }
-    .graph-canvas-wrap.sx-cmp-canvas { height: 340px; }
+    .graph-canvas-wrap.sx-cmp-canvas { height: 400px; }
     @media (max-width: 640px) { .graph-canvas-wrap.sx-cmp-canvas { height: 280px; } }
 
     /* The verdict row: who won what, in the winner's series colour */
@@ -11324,9 +11324,10 @@
     .sx-verdict[hidden], .sx-cmp-race[hidden], .graph-canvas-wrap[hidden] { display: none; }
     .sx-cmp-race { margin-top: var(--sp-2); }
     @media (max-width: 640px) { .sx-verdict { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-    .sx-verdict-tile { background: var(--bg3); border-radius: var(--r-sm); padding: var(--sp-2) var(--sp-3); text-align: center; min-width: 0; }
+    /* Phase 18 step 3: each tile washed in its winner's colour */
+    .sx-verdict-tile { background: linear-gradient(160deg, color-mix(in srgb, var(--c, var(--bg3)) 14%, var(--bg3)), var(--bg3) 75%); border: 1px solid color-mix(in srgb, var(--c, var(--border)) 22%, var(--border)); border-radius: var(--r-md); padding: var(--sp-3); text-align: center; min-width: 0; }
     .sx-verdict-tile span { display: block; font-size: 0.6875rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--text3); }
-    .sx-verdict-tile b { display: block; margin-top: 2px; font-family: var(--font-display); font-size: var(--fs-sm); color: var(--c, var(--text)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sx-verdict-tile b { display: block; margin-top: 4px; font-family: var(--font-display); font-size: var(--fs-md); color: var(--c, var(--text)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .sx-verdict-tile em { display: block; font-style: normal; font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--text2); }
 
     /* The studio's head and toolbar (phase 18 step 2): title on the left,
@@ -12006,6 +12007,68 @@
       accent-color: var(--accent);
       cursor: pointer;
     }
+
+    /* The race player (phase 18 step 3): one bar under the race, like a
+       video player. Round play button, icon buttons either side, a slim
+       scrubber that fills as the race runs (--p, set in app.js) with the
+       date beside it, then speed and GIF. */
+    .sx-race-player {
+      display: flex; align-items: center; gap: var(--sp-3); flex-wrap: wrap;
+      margin-top: var(--sp-3); padding: 0.5rem 0.75rem;
+      background: var(--bg3); border: 1px solid var(--border); border-radius: var(--r-md);
+    }
+    .sx-race-btns { display: flex; align-items: center; gap: 2px; }
+    .sx-race-ic, .sx-race-play { display: grid; place-items: center; padding: 0; border: 0; cursor: pointer; }
+    .sx-race-ic { width: 32px; height: 32px; border-radius: var(--r-sm); background: none; color: var(--text2); }
+    .sx-race-ic:hover, .sx-race-ic:focus-visible { background: var(--bg2); color: var(--text); }
+    .sx-race-ic svg { width: 16px; height: 16px; fill: currentColor; }
+    .sx-race-play {
+      width: 44px; height: 44px; margin: 0 4px; border-radius: 50%;
+      background: var(--accent); color: var(--on-accent);
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent);
+      transition: transform .15s var(--ease), box-shadow .15s;
+    }
+    .sx-race-play:hover { transform: scale(1.06); box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 22%, transparent); }
+    .sx-race-play svg { width: 20px; height: 20px; fill: currentColor; }
+    .sx-race-play:not(.is-playing) svg { margin-left: 2px; }
+    .sx-race-track { flex: 1 1 14rem; min-width: 10rem; display: flex; align-items: center; gap: var(--sp-3); }
+    .sx-race-player .race-seek {
+      flex: 1; min-width: 0; height: 6px; margin: 0; border-radius: 3px; appearance: none; -webkit-appearance: none;
+      background: linear-gradient(to right, var(--accent) var(--p, 100%), var(--border) var(--p, 100%));
+    }
+    .sx-race-player .race-seek::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
+      background: var(--text); border: 3px solid var(--accent); box-shadow: var(--shadow-1);
+    }
+    .sx-race-player .race-seek::-moz-range-thumb { width: 12px; height: 12px; border-radius: 50%; background: var(--text); border: 3px solid var(--accent); }
+    .sx-race-date { flex-shrink: 0; min-width: 5.5rem; text-align: right; font-family: var(--font-mono); font-size: var(--fs-sm); font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+    .sx-race-end { display: flex; align-items: center; gap: var(--sp-2); }
+    .sx-race-end .race-gif-btn { margin-left: 0; }
+    .sx-race-range { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-2); font-size: var(--fs-xs); }
+    .sx-race-range .graph-input { font-size: var(--fs-xs); }
+    @media (max-width: 640px) {
+      .sx-race-player { padding: 0.5rem; gap: var(--sp-2); justify-content: center; }
+      .sx-race-track { order: -1; flex-basis: 100%; }
+      .sx-race-end { width: 100%; justify-content: space-between; }
+    }
+
+    /* The chart's legend (phase 18 step 3): a click hides or shows a line,
+       hovering one (or its line-up card) brings it forward */
+    .sx-cmp-legend { display: flex; flex-wrap: wrap; gap: 0.25rem 0.4rem; margin: 0 0 var(--sp-2); }
+    .sx-cmp-legend:empty { display: none; }
+    .sx-cmp-legend button {
+      display: inline-flex; align-items: center; gap: 0.4rem; max-width: 14rem; padding: 0.2rem 0.5rem;
+      background: none; border: 1px solid transparent; border-radius: var(--r-sm); cursor: pointer;
+      font: inherit; font-size: var(--fs-xs); font-weight: 600; color: var(--text2);
+      transition: color .15s, border-color .15s, opacity .15s;
+    }
+    .sx-cmp-legend button > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .sx-cmp-legend button:hover, .sx-cmp-legend button:focus-visible { color: var(--text); border-color: var(--border); }
+    .sx-cmp-legend i { width: 14px; height: 3px; border-radius: 2px; flex-shrink: 0; background: var(--c); }
+    .sx-cmp-legend i.is-dash { background: repeating-linear-gradient(to right, var(--c) 0 4px, transparent 4px 7px); }
+    .sx-cmp-legend button[aria-pressed="false"] { opacity: .45; text-decoration: line-through; }
+    .sx-cmp-legend-tip { margin-left: auto; align-self: center; font-size: var(--fs-xs); color: var(--text3); }
+    @media (max-width: 640px) { .sx-cmp-legend-tip { display: none; } }
 
     .race-canvas {
       display: block;

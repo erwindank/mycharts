@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=803">
+  <link rel="stylesheet" href="style.css?v=804">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=281"></script>
+  <script defer src="translations.js?v=282"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -1421,39 +1421,52 @@
             </div>
           </div>
         </div>
+        <!-- The chart's legend (phase 18 step 3, stats.js _sxCmpLegend) -->
+        <div id="sxCmpLegend" class="sx-cmp-legend"></div>
         <div class="graph-canvas-wrap sx-cmp-canvas"><canvas id="sxCmpChart"></canvas></div>
         <!-- Race mode (phase 15 step 4): the old Play Count Race, racing the
              picks above. Its own range starts at the first play. -->
+        <!-- Phase 18 step 3: the race opens on its finished result, with a
+             player bar under it (start, step back, round play, step on,
+             end, the scrubber and its date, speed, GIF) and the race's
+             own range on a quieter row below. -->
         <div id="sxCmpRaceBox" class="sx-cmp-race" hidden>
-          <div class="graph-ctrl-row">
-            <span data-i18n="speed_label" class="graph-ctrl-label">Speed</span>
-            <div id="raceSpeedBtns" class="dc-seg">
-              <button class="graphs-btn" data-speed="0.5">0.5×</button>
-              <button class="graphs-btn active" data-speed="1">1×</button>
-              <button class="graphs-btn" data-speed="2">2×</button>
-              <button class="graphs-btn" data-speed="4">4×</button>
+          <canvas id="gBarRace" class="race-canvas"></canvas>
+          <div class="sx-race-player">
+            <div class="sx-race-btns">
+              <button id="raceRestartBtn" type="button" class="sx-race-ic" data-i18n-title="tooltip_race_start" data-i18n-aria="tooltip_race_start" title="Go to start" aria-label="Go to start">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h2.2v14H6zM19 5v14L9 12z"/></svg></button>
+              <button id="raceStepBackBtn" type="button" class="sx-race-ic" data-i18n-title="tooltip_race_step_back" data-i18n-aria="tooltip_race_step_back" title="Step back" aria-label="Step back">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6v12L4 12zM20 6v12l-8-6z"/></svg></button>
+              <button id="racePlayBtn" type="button" class="sx-race-play" aria-label="Play" title="Play">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button>
+              <button id="raceStepFwdBtn" type="button" class="sx-race-ic" data-i18n-title="tooltip_race_step_forward" data-i18n-aria="tooltip_race_step_forward" title="Step forward" aria-label="Step forward">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6v12l8-6zM12 6v12l8-6z"/></svg></button>
+              <button id="raceEndBtn" type="button" class="sx-race-ic" data-i18n-title="tooltip_race_end" data-i18n-aria="tooltip_race_end" title="Go to end" aria-label="Go to end">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.8 5H18v14h-2.2zM5 5v14l10-7z"/></svg></button>
             </div>
+            <div class="sx-race-track">
+              <input id="raceSeekSlider" class="race-seek" type="range" min="0" max="100" value="0" aria-label="Date" data-i18n-aria="sx_race_seek">
+              <span id="sxRaceDate" class="sx-race-date" aria-live="off"></span>
+            </div>
+            <div class="sx-race-end">
+              <div id="raceSpeedBtns" class="dc-seg" role="group" aria-label="Speed" data-i18n-aria="speed_label">
+                <button class="graphs-btn" data-speed="0.5">0.5×</button>
+                <button class="graphs-btn active" data-speed="1">1×</button>
+                <button class="graphs-btn" data-speed="2">2×</button>
+                <button class="graphs-btn" data-speed="4">4×</button>
+              </div>
+              <button id="raceGifBtn" class="dc-btn dc-btn-normal dc-btn-sm race-gif-btn" data-i18n="btn_download_gif"
+                data-i18n-title="tooltip_download_gif">⬇ GIF</button>
+            </div>
+          </div>
+          <div class="sx-race-range">
             <span data-i18n="range_label" class="graph-ctrl-label">Range</span>
             <input id="raceFrom" type="date" class="graph-input">
             <span data-i18n="range_to" class="graph-ctrl-label">to</span>
             <input id="raceTo" type="date" class="graph-input">
-            <button id="raceResetRange" class="dc-btn dc-btn-normal dc-btn-sm" data-i18n="btn_reset">Reset</button>
+            <button id="raceResetRange" class="dc-btn dc-btn-plain dc-btn-sm" data-i18n="btn_reset">Reset</button>
           </div>
-          <div class="graph-ctrl-row">
-            <button id="raceRestartBtn" class="dc-btn dc-btn-normal dc-btn-sm" data-i18n="race_start" data-i18n-title="tooltip_race_start">↩
-              Start</button>
-            <button id="raceStepBackBtn" class="dc-btn dc-btn-normal dc-btn-sm" data-i18n-title="tooltip_race_step_back">◀◀</button>
-            <button id="racePlayBtn" class="dc-btn dc-btn-main dc-btn-sm race-play-btn" data-i18n="race_play">▶
-              Play</button>
-            <button id="raceStepFwdBtn" class="dc-btn dc-btn-normal dc-btn-sm" data-i18n-title="tooltip_race_step_forward">▶▶</button>
-            <button id="raceEndBtn" class="dc-btn dc-btn-normal dc-btn-sm" data-i18n="race_end" data-i18n-title="tooltip_race_end">↪
-              End</button>
-            <button id="raceGifBtn" class="dc-btn dc-btn-normal dc-btn-sm race-gif-btn" data-i18n="btn_download_gif"
-              data-i18n-title="tooltip_download_gif">⬇
-              GIF</button>
-          </div>
-          <input id="raceSeekSlider" class="race-seek" type="range" min="0" max="100" value="0">
-          <canvas id="gBarRace" class="race-canvas"></canvas>
         </div>
         <div id="sxCmpNote" class="sx-note" aria-live="polite"></div>
         <div id="sxCmpVerdict" class="sx-verdict"></div>
@@ -4269,7 +4282,7 @@
   <!-- One behaviour and one icon set for every pop-up window (phase 10); before
        app.js so dcIco() is there when app.js draws a window -->
   <script defer src="popups.js?v=12"></script>
-  <script defer src="app.js?v=593"></script>
+  <script defer src="app.js?v=594"></script>
   <!-- The song / album / artist details side panel (phase 10 step 3); wraps app.js's open functions -->
   <script defer src="panel.js?v=16"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
@@ -4278,7 +4291,7 @@
   <script defer src="insights.js?v=10"></script>
   <script defer src="daily.js?v=39"></script>
   <!-- The Stats page's tabs, Overview, Story, Games and Compare (phase 15); reads app.js globals -->
-  <script defer src="stats.js?v=42"></script>
+  <script defer src="stats.js?v=43"></script>
   <!-- The Dank 100: weekly entries for the shared community chart; reads app.js and firebase.js globals -->
   <script defer src="dank100.js?v=13"></script>
 

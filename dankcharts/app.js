@@ -29898,6 +29898,13 @@ function drawRace(frameIdx, progress, targetCanvas) {
     ctx.globalAlpha = 1;
   }
 
+  // The date beside the player's scrubber (phase 18 step 3)
+  if (!targetCanvas) {
+    const dl = document.getElementById('sxRaceDate');
+    const lbl = progress > 0.5 ? frameB.label : frameA.label;
+    if (dl && dl.textContent !== lbl) dl.textContent = lbl;
+  }
+
   // Date — bottom right, crossfade between frame labels
   ctx.globalAlpha = 1;
   ctx.font = 'bold 18px "JetBrains Mono", monospace';
@@ -29922,7 +29929,7 @@ function raceAnimate(ts) {
     if (raceFrameIdx >= raceFrames.length - 1) {
       raceFrameIdx = raceFrames.length - 1; raceProgress = 0; racePlaying = false;
       const btn = document.getElementById('racePlayBtn');
-      btn.textContent = t('race_play'); btn.classList.add('active');
+      raceSetPlayBtn(false);
       drawRace(raceFrameIdx, 0); raceUpdateSlider(); return;
     }
   }
@@ -29933,7 +29940,12 @@ function raceAnimate(ts) {
 
 function raceUpdateSlider() {
   const s = document.getElementById('raceSeekSlider');
-  if (s) s.value = raceFrameIdx + raceProgress;
+  if (s) { s.value = raceFrameIdx + raceProgress; raceSliderFill(s); }
+}
+// The played part of the scrubber's track (phase 18 step 3)
+function raceSliderFill(s) {
+  const max = +s.max || 1;
+  s.style.setProperty('--p', Math.min(100, (+s.value / max) * 100).toFixed(2) + '%');
 }
 
 function initRace() {
@@ -29956,10 +29968,26 @@ function initRace() {
   canvas.getContext('2d').setTransform(dpr, 0, 0, dpr, 0, 0);
 
   const slider = document.getElementById('raceSeekSlider');
-  slider.max = Math.max(1, raceFrames.length - 1); slider.value = 0;
-  document.getElementById('racePlayBtn').textContent = t('race_play');
-  document.getElementById('racePlayBtn').classList.add('active');
-  drawRace(0, 0);
+  slider.max = Math.max(1, raceFrames.length - 1);
+  // Phase 18 step 3: open on the finished race, not an empty first frame;
+  // Play starts it from the beginning (the play handler rewinds at the end)
+  raceFrameIdx = Math.max(0, raceFrames.length - 1);
+  raceUpdateSlider();
+  raceSetPlayBtn(false);
+  drawRace(raceFrameIdx, 0);
+}
+
+// The round play / pause button of the race player (phase 18 step 3)
+function raceSetPlayBtn(playing) {
+  const btn = document.getElementById('racePlayBtn');
+  if (!btn) return;
+  const label = t(playing ? 'race_pause' : 'race_play').replace(/^[^\p{L}]+/u, '');
+  btn.innerHTML = playing
+    ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/></svg>'
+    : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
+  btn.setAttribute('aria-label', label);
+  btn.title = label;
+  btn.classList.toggle('is-playing', !!playing);
 }
 
 document.getElementById('racePlayBtn').addEventListener('click', () => {
@@ -29969,8 +29997,7 @@ document.getElementById('racePlayBtn').addEventListener('click', () => {
   }
   racePlaying = !racePlaying;
   const btn = document.getElementById('racePlayBtn');
-  btn.textContent = t(racePlaying ? 'race_pause' : 'race_play');
-  btn.classList.toggle('active', racePlaying);
+  raceSetPlayBtn(racePlaying);
   if (racePlaying) { raceLastTime = null; raceAnimId = requestAnimationFrame(raceAnimate); }
   else {
     if (raceAnimId) { cancelAnimationFrame(raceAnimId); raceAnimId = null; }
@@ -29983,8 +30010,7 @@ document.getElementById('raceRestartBtn').addEventListener('click', () => {
   if (raceAnimId) { cancelAnimationFrame(raceAnimId); raceAnimId = null; }
   raceFrameIdx = 0; raceProgress = 0; raceLastTime = null;
   localStorage.removeItem('dc_raceFrameIdx');
-  document.getElementById('racePlayBtn').textContent = t('race_play');
-  document.getElementById('racePlayBtn').classList.add('active');
+  raceSetPlayBtn(false);
   raceUpdateSlider(); drawRace(0, 0);
 });
 
@@ -30001,13 +30027,14 @@ document.getElementById('raceSeekSlider').addEventListener('input', e => {
     racePlaying = false;
     if (raceAnimId) { cancelAnimationFrame(raceAnimId); raceAnimId = null; }
     const btn = document.getElementById('racePlayBtn');
-    btn.textContent = t('race_play'); btn.classList.add('active');
+    raceSetPlayBtn(false);
   }
   const v = parseFloat(e.target.value);
   raceFrameIdx = Math.min(Math.floor(v), raceFrames.length - 1);
   raceProgress = v - Math.floor(v);
   raceLastTime = null;
   localStorage.setItem('dc_raceFrameIdx', raceFrameIdx);
+  raceSliderFill(e.target);
   drawRace(raceFrameIdx, raceProgress);
 });
 
@@ -30034,7 +30061,7 @@ document.getElementById('raceStepBackBtn').addEventListener('click', () => {
     racePlaying = false;
     if (raceAnimId) { cancelAnimationFrame(raceAnimId); raceAnimId = null; }
     const btn = document.getElementById('racePlayBtn');
-    btn.textContent = t('race_play'); btn.classList.add('active');
+    raceSetPlayBtn(false);
   }
   raceProgress = 0;
   raceFrameIdx = Math.max(0, raceFrameIdx - 1);
@@ -30049,7 +30076,7 @@ document.getElementById('raceStepFwdBtn').addEventListener('click', () => {
     racePlaying = false;
     if (raceAnimId) { cancelAnimationFrame(raceAnimId); raceAnimId = null; }
     const btn = document.getElementById('racePlayBtn');
-    btn.textContent = t('race_play'); btn.classList.add('active');
+    raceSetPlayBtn(false);
   }
   raceProgress = 0;
   raceFrameIdx = Math.min(raceFrames.length - 1, raceFrameIdx + 1);
@@ -30064,7 +30091,7 @@ document.getElementById('raceEndBtn').addEventListener('click', () => {
     racePlaying = false;
     if (raceAnimId) { cancelAnimationFrame(raceAnimId); raceAnimId = null; }
     const btn = document.getElementById('racePlayBtn');
-    btn.textContent = t('race_play'); btn.classList.add('active');
+    raceSetPlayBtn(false);
   }
   raceProgress = 0;
   raceFrameIdx = raceFrames.length - 1;

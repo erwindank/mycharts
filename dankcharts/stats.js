@@ -1443,7 +1443,7 @@ function _sxCmpChips(picks) {
     }
     const nameHtml = type === 'years' ? `<b class="sx-lu-name">${esc(name)}</b>`
       : `<button type="button" class="sx-lu-name" onclick="${_sxOpenJs(type, { key: k })}">${esc(name)}</button>`;
-    return `<div class="sx-lu-card" style="--c:${_sxCmpColor(i)}" title="${esc(tip)}">` +
+    return `<div class="sx-lu-card" data-i="${i}" style="--c:${_sxCmpColor(i)}" title="${esc(tip)}">` +
       `${pic}<div class="sx-lu-info">${nameHtml}${o.sub ? `<span class="sx-lu-sub">${esc(o.sub)}</span>` : ''}` +
       `<span class="sx-lu-nums"><span class="sx-lu-rank">#${rank.get(i)}</span><b>${per.plays.toLocaleString()}</b><span>${esc(pct + '%')}</span></span></div>` +
       `<button type="button" class="sx-lu-x" onclick="sxCmpRemove(${i})" aria-label="${esc(t('sx_cmp_remove').replace('{name}', name))}">` +
@@ -1589,8 +1589,61 @@ function sxCmpFillTop(n) {
 // The verdict row: four tiles, each naming the pick that won it
 function _sxVerdictTile(label, name, i, val) {
   if (name == null) return `<div class="sx-verdict-tile"><span>${esc(label)}</span><b>–</b></div>`;
-  return `<div class="sx-verdict-tile"><span>${esc(label)}</span><b style="--c:${_sxCmpColor(i)}">${esc(name)}</b>${val ? `<em>${esc(val)}</em>` : ''}</div>`;
+  // The colour sits on the tile, so its wash and border match the winner
+  return `<div class="sx-verdict-tile" style="--c:${_sxCmpColor(i)}"><span>${esc(label)}</span><b>${esc(name)}</b>${val ? `<em>${esc(val)}</em>` : ''}</div>`;
 }
+
+/* The chart's legend (phase 18 step 3): one button per pick. A click hides
+   or shows its line (kept per pick until the page reloads); hovering a
+   legend button or a line-up card fades the other lines so that one
+   stands out. */
+const _sxCmpHidden = new Set();
+function _sxCmpLegend(picks, names) {
+  const box = document.getElementById('sxCmpLegend');
+  if (!box) return;
+  if (!picks.length || sxCmp.mode === 'race') { box.innerHTML = ''; return; }
+  box.innerHTML = picks.map((k, i) => {
+    const on = !_sxCmpHidden.has(sxCmp.type + '\u0001' + k);
+    return `<button type="button" data-li="${i}" aria-pressed="${on}" style="--c:${_sxCmpColor(i)}"><i${i >= 8 ? ' class="is-dash"' : ''}></i><span>${esc(names[i])}</span></button>`;
+  }).join('') + (picks.length > 1 ? `<span class="sx-cmp-legend-tip">${esc(t('sx_cmp_legend_tip'))}</span>` : '');
+}
+// Fade every line but i (i = -1 puts them all back)
+function _sxCmpFocus(i) {
+  const ch = graphCharts.compare;
+  if (!ch) return;
+  ch.data.datasets.forEach((d, j) => {
+    if (!d._c) d._c = d.borderColor;
+    const c = i < 0 || j === i ? d._c : mixHex(d._c, getGraphColors().bg || '#0d141f', 0.25);
+    d.borderColor = c; d.backgroundColor = c; d.pointBackgroundColor = c; d.pointBorderColor = c;
+    d.borderWidth = sxCmp.mode === 'per' ? 0 : (j === i ? 3 : 2);
+    d.order = j === i ? -1 : 0;
+  });
+  // update('none') keeps the dots' old colours (Chart.js shares them), so
+  // update fully with the animation switched off for this one call
+  const anim = ch.options.animation;
+  ch.options.animation = false;
+  ch.update();
+  ch.options.animation = anim;
+}
+document.getElementById('sxCmpLegend')?.addEventListener('click', e => {
+  const b = e.target.closest('[data-li]');
+  const ch = graphCharts.compare;
+  if (!b || !ch) return;
+  const i = +b.dataset.li, k = sxCmp.type + '\u0001' + _sxCmpPicks()[i];
+  const show = _sxCmpHidden.has(k);
+  if (show) _sxCmpHidden.delete(k); else _sxCmpHidden.add(k);
+  b.setAttribute('aria-pressed', String(show));
+  ch.setDatasetVisibility(i, show);
+  ch.update();
+});
+['mouseover', 'focusin'].forEach(ev => document.querySelector('.sx-cmp')?.addEventListener(ev, e => {
+  const el = e.target.closest('#sxCmpLegend [data-li], .sx-lu-card[data-i]');
+  if (el) _sxCmpFocus(+(el.dataset.li ?? el.dataset.i));
+}));
+['mouseout', 'focusout'].forEach(ev => document.querySelector('.sx-cmp')?.addEventListener(ev, e => {
+  const el = e.target.closest('#sxCmpLegend [data-li], .sx-lu-card[data-i]');
+  if (el && !el.contains(e.relatedTarget)) _sxCmpFocus(-1);
+}));
 
 function sxRenderCompare() {
   const canvas = document.getElementById('sxCmpChart');
@@ -1610,13 +1663,14 @@ function sxRenderCompare() {
   if (typeof sxCmpRaceShow === 'function') sxCmpRaceShow(sxCmp.mode === 'race');
   // The cards under the studio (phase 17), in every mode
   _sxCmpMore(type, picks);
+  const names = picks.map(k => _sxCmpLabel(type, k));
+  _sxCmpLegend(picks, names);
   if (sxCmp.mode === 'race') { if (typeof sxCmpRace === 'function') sxCmpRace(picks); verdict.innerHTML = ''; return; }
   if (!picks.length) { note.textContent = t('sx_cmp_empty'); verdict.innerHTML = ''; return; }
 
   const gc = getGraphColors();
   const pickIdx = new Map(picks.map((k, i) => [k, i]));
   const { fromTs, toTs } = graphRangeTs();
-  const names = picks.map(k => _sxCmpLabel(type, k));
   const style = i => ({ borderColor: _sxCmpColor(i), backgroundColor: _sxCmpColor(i), borderDash: i >= 8 ? [5, 4] : undefined });
   let labels, datasets, yOpts = {};
 
@@ -1680,6 +1734,8 @@ function sxRenderCompare() {
   }
 
   const isBar = sxCmp.mode === 'per';
+  // Lines hidden from the legend stay hidden
+  datasets.forEach((d, i) => { d.hidden = _sxCmpHidden.has(type + '\u0001' + picks[i]); });
   // Ranks are drawn straight: a curve would dip above #1
   if (!isBar) datasets.forEach(d => { d.tension = sxCmp.mode === 'run' ? 0 : 0.25; d.borderWidth = 2; d.backgroundColor = d.borderColor; d.fill = false; });
   else datasets.forEach(d => { d.borderWidth = 0; d.borderRadius = 3; });
