@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 452;
+const DC_CL_I18N_V = 453;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -326,6 +326,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-02', t: 'design', a: 'records', h: 'abacc4f',
+    title: "Cover art in the Certifications list and ledger",
+    detail: "The Certifications leaderboard now shows each artist's photo next to their name, and every card in the Certification Ledger shows the cover of its song or album beside the title. Click a cover to open the song or album, or use ✎ to pick a different picture. Covers load as you scroll. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-11-02', t: 'design', a: 'records', h: 'b512f03',
     title: "A clearer Certification Ledger",
     detail: "Every line in the Certification Ledger is now its own card: a medal with the tier and the play count it was awarded at, the title with its plays per day and plays now in big type, and a timeline from the first play to the day it was certified, with the time it took on the line and how long after the previous tier it came. The next tier shows as a bar with a percentage. The filters now say Songs, Albums, Diamond, Platinum and Gold, and the summary at the top is bigger. Nothing was taken out. Works with Last.fm, Google Sheets and CSV uploads." },

@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Cover art in the Certifications list and ledger":
+    ["Portadas en la lista y el registro de Certificaciones",
+     "La clasificación de Certificaciones ahora muestra la foto de cada artista junto a su nombre, y cada tarjeta del Registro de Certificaciones muestra la portada de su canción o álbum junto al título. Haz clic en una portada para abrir la canción o el álbum, o usa ✎ para elegir otra imagen. Las portadas se cargan al desplazarte. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "A clearer Certification Ledger":
     ["Un Registro de Certificaciones más claro",
      "Cada línea del Registro de Certificaciones es ahora su propia tarjeta: una medalla con el nivel y las reproducciones con las que se consiguió, el título con sus reproducciones por día y sus reproducciones actuales en grande, y una línea de tiempo desde la primera reproducción hasta el día de la certificación, con el tiempo que tardó sobre la línea y cuánto después del nivel anterior llegó. El siguiente nivel aparece como una barra con porcentaje. Los filtros ahora dicen Canciones, Álbumes, Diamante, Platino y Oro, y el resumen de arriba es más grande. No se quitó nada. Funciona con Last.fm, Google Sheets y archivos CSV."],
