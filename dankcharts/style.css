@@ -46697,3 +46697,39 @@ body:not(:is([data-view="day"], [data-view="week"], [data-view="month"], [data-v
 .cert-tl--d { --ct: var(--teal); }
 .cert-tl--p { --ct: var(--medal-silver); }
 .cert-tl--g { --ct: var(--gold1); }
+
+/* ── Cover art for the Certifications leaderboard and ledger (2026-11-02) ──
+   The leaderboard's artist photo sits in the name cell (app.js); each ledger
+   card shows its song's or album's cover beside the title. */
+.cert-lb-name { display: flex; align-items: center; gap: 12px; }
+.cert-lb-name .thumb-wrap { flex: none; }
+.cert-lb-art { width: 40px; height: 40px; flex: none; background: var(--surface); display: grid; place-items: center; }
+.cert-lb-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cert-lb-art .thumb-initials { font-size: .72rem; }
+
+.certd-head { justify-content: flex-start; }
+.certd-name { flex: 1 1 auto; }
+.certd-cover { flex: none; cursor: pointer; }
+.certd-cover-img {
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--surface);
+  display: grid;
+  place-items: center;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .3);
+}
+.certd-cover-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.certd-cover-img .thumb-initials { font-size: .8rem; color: var(--text2); }
+.certd-cover:hover .certd-cover-img { filter: brightness(1.08); }
+/* Narrower rooms stack the head (see .certd-head above); keep the cover
+   beside the title there and let the figures wrap under both. */
+@media (max-width: 1023px) {
+  .certd-head { flex-direction: row; flex-wrap: wrap; }
+  .certd-name { flex: 1 1 0; }
+  .certd-kpis { flex: 1 1 100%; }
+}
+@media (max-width: 640px) {
+  .certd-cover-img { width: 46px; height: 46px; }
+}

@@ -10390,7 +10390,11 @@ function buildRecords() {
         return '<td class="rec-rank">' + (i + 1) + '</td>'
           // The name opens the artist modal. It stays a plain-looking name — the
           // underline only appears on hover — so the column still reads as a list.
-          + '<td><div class="rec-name"><a href="javascript:void(0)" class="rec-artist-link" onclick="event.stopPropagation();openArtistModal(' + esc(JSON.stringify(e.art)) + ')">' + esc(e.art) + '</a></div></td>'
+          // The artist's photo sits inside the name cell rather than in a column
+          // of its own, so the columns sorting and the hero reel read stay put
+          // (loadImages below fills it and adds the ✎ picker).
+          + '<td><div class="rec-name cert-lb-name"><div class="thumb-wrap"><div id="rec-cert-img-' + i + '" class="app-art-circle cert-lb-art"><div class="thumb-initials">' + esc(initials(e.art)) + '</div></div></div>'
+          + '<a href="javascript:void(0)" class="rec-artist-link" onclick="event.stopPropagation();openArtistModal(' + esc(JSON.stringify(e.art)) + ')">' + esc(e.art) + '</a></div></td>'
           + '<td class="rec-meta rec-meta--nowrap">' + sc2 + '</td><td class="rec-meta rec-meta--nowrap">' + ac2 + '</td>'
           + '<td class="rec-run-toggle-cell"><button class="rec-run-toggle-btn" title="' + esc(t('certd_open_ledger')) + '" onclick="event.stopPropagation();toggleCertLedger(this,\'' + ledgerId + '\',' + i + ')">▶</button></td>';
       }),
@@ -10404,6 +10408,10 @@ function buildRecords() {
   }
   ch += '</div>';
   document.getElementById('recCertsBody').innerHTML = ch;
+  // The leaderboard's artist photos, as they scroll into view.
+  loadImages(certW.map(function (e, i) {
+    return { imgId: 'rec-cert-img-' + i, name: e.art, artist: e.art, prefKey: 'artist:' + e.art.toLowerCase() };
+  }), 'artist');
 
   // ── Certifications Wall ───────────────────────────────────────
   /* Built from the same certification history the ledger reads, so a plaque
@@ -18713,7 +18721,8 @@ function certLedgerRows(items, cfg) {
 }
 
 // One ledger line.
-function certLedgerRowHTML(r) {
+// imgId: the cover's slot, filled by buildCertLedger's loadImages.
+function certLedgerRowHTML(r, imgId) {
   const meta = certTierMeta(r.tier, r.mult);
   const isSong = r.kind === 'song';
   // Both modals take the same key this ledger was built from — songKey() for a
@@ -18766,6 +18775,8 @@ function certLedgerRowHTML(r) {
     + '</div>'
     + '<div class="certd-body">'
       + '<div class="certd-head">'
+        // The song's or album's cover; it opens the record like the title.
+        + '<div class="certd-cover" onclick="if(!event.target.closest(\'.img-src-btn\')){event.stopPropagation();' + open + '}"><div class="thumb-wrap"><div class="certd-cover-img" id="' + imgId + '"><div class="thumb-initials">' + esc(initials(r.title)) + '</div></div></div></div>'
         + '<div class="certd-name">'
           + '<a href="javascript:void(0)" class="certd-title" onclick="event.stopPropagation();' + open + '">' + esc(r.title) + '</a>'
           + '<div class="certd-sub">' + sub + '</div>'
@@ -18864,7 +18875,7 @@ function certLedgerHTML(idx, artist, rows) {
       + '</select></label>'
     + '</div>';
 
-  h += '<div class="certd-list">' + rows.map(certLedgerRowHTML).join('') + '</div>';
+  h += '<div class="certd-list">' + rows.map(function (r, k) { return certLedgerRowHTML(r, 'certd-img-' + idx + '-' + k); }).join('') + '</div>';
   h += '<div class="certd-empty" hidden>' + t('certd_none') + '</div>';
   h += '<button type="button" class="certd-more" hidden onclick="event.stopPropagation();certLedgerToggleMore(' + idx + ')"></button>';
   return h;
@@ -18886,6 +18897,20 @@ function buildCertLedger(idx) {
   host.dataset.certdExpanded = '0';
   const rows = certLedgerRows(src.songs, CERT.song).concat(certLedgerRows(src.albums, CERT.album));
   host.innerHTML = certLedgerHTML(idx, src.artist, rows);
+  /* Covers load as their cards scroll into view, so a 190-line ledger only
+     looks up the dozen it shows (hidden lines never intersect). */
+  const covers = { song: [], album: [] };
+  rows.forEach(function (r, k) {
+    const low = function (x) { return String(x || '').toLowerCase(); };
+    const isSong = r.kind === 'song';
+    const album = isSong ? (r.album || '') : r.title;
+    covers[isSong ? 'song' : 'album'].push({
+      imgId: 'certd-img-' + idx + '-' + k, name: r.title, title: r.title, artist: r.artist, album: album,
+      prefKey: isSong ? 'song:' + low(r.artist) + '|||' + low(r.title) : 'album:' + low(r.artist) + '|||' + low(album)
+    });
+  });
+  if (covers.song.length) loadImages(covers.song, 'song');
+  if (covers.album.length) loadImages(covers.album, 'album');
   certLedgerApply(idx);
 }
 
