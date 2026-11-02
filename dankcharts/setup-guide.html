@@ -151,11 +151,28 @@
       --accent: #b0006a; --accent2: #8a0052; --teal: #0c4a6e;
       --green: #15803d; --amber: #78350f; --rose: #be185d; --gold1: #924800;
     }
+    body.green {
+      --bg: #0b140f; --bg2: #111d16; --bg3: #17271e; --surface: #1d3226;
+      --border: #2b4636; --border2: #3e6450;
+      --text: #edf8f1; --text2: #b0d9c1; --text3: #8cc2a3;
+      --accent: #3fd68a; --accent2: #74e8ad; --teal: #38bdf8;
+      --green: #4ade80; --amber: #fbbf24; --rose: #fb7185; --gold1: #f0aa30;
+      /* Mint accent: white ink on it is ~1.9:1, so filled buttons take the
+         deep pine page ink instead (same as yellow dark). */
+      --btn-ink: #0b140f;
+    }
+    body.green-light {
+      --bg: #eef7f1; --bg2: #ffffff; --bg3: #ecf6f0; --surface: #d9efe2;
+      --border: #9cc7ae; --border2: #4f9a70;
+      --text: #04170c; --text2: #0b3a20; --text3: #2f6146;
+      --accent: #0d6b38; --accent2: #0a5a2f; --teal: #0c4a6e;
+      --green: #15803d; --amber: #78350f; --rose: #be123c; --gold1: #78380e;
+    }
 
     /* Light themes: solid surfaces instead of translucent film, and a much
        lighter shadow — the same swap style.css makes for .landing-card. */
     body.navy-light, body.purple-light, body.red-light,
-    body.yellow-light, body.pink-light {
+    body.yellow-light, body.pink-light, body.green-light {
       --glass:        var(--surface);
       --glass-hi:     var(--bg3);
       --glass-line:   var(--border);
@@ -242,7 +259,8 @@
     body.purple-light .guide-orb,
     body.red-light .guide-orb,
     body.yellow-light .guide-orb,
-    body.pink-light .guide-orb { opacity: 0.35; }
+    body.pink-light .guide-orb,
+    body.green-light .guide-orb { opacity: 0.35; }
 
     @keyframes orb-drift {
       0%, 100% { transform: translate(var(--mx, 0px), var(--my, 0px)) scale(1); }
@@ -304,7 +322,8 @@
     body.purple-light .guide-eq-skyline,
     body.red-light .guide-eq-skyline,
     body.yellow-light .guide-eq-skyline,
-    body.pink-light .guide-eq-skyline { opacity: 0.2; }
+    body.pink-light .guide-eq-skyline,
+    body.green-light .guide-eq-skyline { opacity: 0.2; }
 
     /* ── Controls bar ───────────────────────────────────────────────────
        Same theme/language switchers as the app, floated over the wash on a
@@ -392,6 +411,8 @@
     .guide-controls .theme-btn[data-theme="yellow-light"] { background: #ffe040; }
     .guide-controls .theme-btn[data-theme="pink"]         { background: #cc2090; }
     .guide-controls .theme-btn[data-theme="pink-light"]   { background: #ffaadd; }
+    .guide-controls .theme-btn[data-theme="green"]        { background: #1f9d55; }
+    .guide-controls .theme-btn[data-theme="green-light"]  { background: #8fe0b0; }
     .guide-controls .theme-btn.active { border-color: var(--accent); transform: scale(1.2); }
     .guide-controls .theme-btn:hover  { border-color: var(--text2);  transform: scale(1.15); }
     .guide-controls .lang-switcher { display: flex; gap: 4px; }
@@ -1978,6 +1999,8 @@
       <button class="theme-btn" data-theme="yellow-light" data-i18n-title="tooltip_theme_yellow_light"></button>
       <button class="theme-btn" data-theme="pink" data-i18n-title="tooltip_theme_pink_dark"></button>
       <button class="theme-btn" data-theme="pink-light" data-i18n-title="tooltip_theme_pink_light"></button>
+      <button class="theme-btn" data-theme="green" data-i18n-title="tooltip_theme_green_dark"></button>
+      <button class="theme-btn" data-theme="green-light" data-i18n-title="tooltip_theme_green_light"></button>
     </div>
   </div>
   <div class="ctrl-group" id="guideLangGroup">
@@ -2885,13 +2908,14 @@
     relabelGuide();
   };
 
-  var THEME_CLASSES = ['navy-light','purple','purple-light','red','red-light','yellow','yellow-light','pink','pink-light'];
+  var THEME_CLASSES = ['navy-light','purple','purple-light','red','red-light','yellow','yellow-light','pink','pink-light','green','green-light'];
   var THEME_DOT_COLORS = {
     'navy-dark':'#1a6eb5','navy-light':'#90c4f4',
     'purple':'#7c6af7','purple-light':'#c4b8ff',
     'red':'#cc2020','red-light':'#ff9999',
     'yellow':'#c8a800','yellow-light':'#ffe040',
-    'pink':'#cc2090','pink-light':'#ffaadd'
+    'pink':'#cc2090','pink-light':'#ffaadd',
+    'green':'#1f9d55','green-light':'#8fe0b0'
   };
 
   function applyTheme(theme) {

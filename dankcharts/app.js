@@ -384,14 +384,15 @@ let certWallSortAsc = cwallSortDefaultAsc(certWallSort);
 const themeLabel = document.getElementById('themeLabel');
 const themeBtns = document.querySelectorAll('.theme-btn');
 
-const THEME_CLASSES = ['navy-light', 'purple', 'purple-light', 'red', 'red-light', 'yellow', 'yellow-light', 'pink', 'pink-light'];
+const THEME_CLASSES = ['navy-light', 'purple', 'purple-light', 'red', 'red-light', 'yellow', 'yellow-light', 'pink', 'pink-light', 'green', 'green-light'];
 
 const THEME_DOT_COLORS = {
   'navy-dark': '#1a6eb5', 'navy-light': '#90c4f4',
   'purple': '#7c6af7', 'purple-light': '#c4b8ff',
   'red': '#cc2020', 'red-light': '#ff9999',
   'yellow': '#c8a800', 'yellow-light': '#ffe040',
-  'pink': '#cc2090', 'pink-light': '#ffaadd'
+  'pink': '#cc2090', 'pink-light': '#ffaadd',
+  'green': '#1f9d55', 'green-light': '#8fe0b0'
 };
 
 function applyTheme(theme, preview = false) {

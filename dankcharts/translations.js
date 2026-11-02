@@ -4206,6 +4206,8 @@ const TRANSLATIONS = {
     tooltip_theme_yellow_light: 'Yellow Light',
     tooltip_theme_pink_dark: 'Pink Dark',
     tooltip_theme_pink_light: 'Pink Light',
+    tooltip_theme_green_dark: 'Green Dark',
+    tooltip_theme_green_light: 'Green Light',
     ctrl_btn_theme: 'THEME',
     ctrl_btn_language: 'LANGUAGE',
     // Top bar (phase 5): icon-button tooltips and the account menu
@@ -9277,6 +9279,8 @@ const TRANSLATIONS = {
     tooltip_theme_yellow_light: 'Amarillo Claro',
     tooltip_theme_pink_dark: 'Rosa Oscuro',
     tooltip_theme_pink_light: 'Rosa Claro',
+    tooltip_theme_green_dark: 'Verde Oscuro',
+    tooltip_theme_green_light: 'Verde Claro',
     ctrl_btn_theme: 'TEMA',
     ctrl_btn_language: 'IDIOMA',
     // Top bar (phase 5): icon-button tooltips and the account menu
@@ -14339,6 +14343,8 @@ const TRANSLATIONS = {
     tooltip_theme_yellow_light: 'Amarelo Claro',
     tooltip_theme_pink_dark: 'Rosa Escuro',
     tooltip_theme_pink_light: 'Rosa Claro',
+    tooltip_theme_green_dark: 'Verde Escuro',
+    tooltip_theme_green_light: 'Verde Claro',
     ctrl_btn_theme: 'TEMA',
     ctrl_btn_language: 'IDIOMA',
     // Top bar (phase 5): icon-button tooltips and the account menu
@@ -19400,6 +19406,8 @@ const TRANSLATIONS = {
     tooltip_theme_yellow_light: 'Amarelo Claro',
     tooltip_theme_pink_dark: 'Rosa Escuro',
     tooltip_theme_pink_light: 'Rosa Claro',
+    tooltip_theme_green_dark: 'Verde Escuro',
+    tooltip_theme_green_light: 'Verde Claro',
     ctrl_btn_theme: 'TEMA',
     ctrl_btn_language: 'IDIOMA',
     // Top bar (phase 5): icon-button tooltips and the account menu

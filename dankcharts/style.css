@@ -411,6 +411,74 @@
       --raised: #f8e4e4;
     }
 
+    /* ── GREEN DARK (added 2026-11-01) ──
+       Deep pine-slate base with a mint accent. The accent sits close to the
+       "up" green of the movement chips, so NEW/RE go neutral on both green
+       themes (see the --chart-new rule below). */
+    body.green {
+      --bg: #0b140f;
+      --bg2: #111d16;
+      --bg3: #17271e;
+      --surface: #1d3226;
+      --border: #2b4636;
+      --border2: #3e6450;
+      --text: #edf8f1;
+      --text2: #b0d9c1;
+      --text3: #8cc2a3;
+      --surface1: var(--bg2);
+      --surface2: var(--bg3);
+      --surface3: var(--surface);
+      --text1: var(--text);
+      /* 7.3:1 on surface */
+      --accent: #3fd68a;
+      --accent2: #74e8ad;
+      --teal: #38bdf8;
+      --green: #4ade80;
+      --amber: #fbbf24;
+      --rose: #fb7185;
+      --gold1: #f0aa30;
+      --gold2: #fcd34d;
+      /* chart gridlines (plain hex — read by JS) */
+      --rule: #22382b;
+      /* Light accent like yellow dark — white on #3fd68a is 1.9:1, so filled
+         "selected" states get the deep pine ink instead (≈10:1). */
+      --on-accent: #0b140f;
+      /* hover, selected, dropdowns and tags — a step above --surface */
+      --raised: #25402f;
+    }
+
+    /* ── GREEN LIGHT (added 2026-11-01) ──
+       Soft sage frame with a forest accent. */
+    body.green-light {
+      --bg: #eef7f1;
+      --bg2: #ffffff;
+      --bg3: #ecf6f0;
+      --surface: #d9efe2;
+      --border: #9cc7ae;
+      --border2: #4f9a70;
+      --text: #04170c;
+      --text2: #0b3a20;
+      --text3: #2f6146;
+      --surface1: var(--bg2);
+      --surface2: var(--bg3);
+      --surface3: var(--surface);
+      --text1: var(--text);
+      /* 5.5:1 on surface */
+      --accent: #0d6b38;
+      /* 6.9:1 on surface */
+      --accent2: #0a5a2f;
+      --teal: #0c4a6e;
+      --green: #15803d;
+      --amber: #78350f;
+      --rose: #be123c;
+      --gold1: #78380e;
+      --gold2: #c07818;
+      /* light gridlines (plain hex — read by JS) */
+      --rule: #c6decf;
+      /* hover, selected, dropdowns and tags — light tint of the hue */
+      --raised: #e2f2e8;
+    }
+
     /* ── DERIVED SEMANTIC TOKENS ──
        Defined on body (not :root) so color-mix() resolves against the
        ACTIVE theme's palette — the theme class lives on body, and
@@ -456,9 +524,12 @@
 
     /* Red and Pink: the accent IS the "down" red/rose, so a NEW in the
        accent looked like a drop. NEW/RE go neutral there (DESIGN.md §2,
-       Collisions); the word still says what it is. */
+       Collisions); the word still says what it is.
+       Green (added 2026-11-01): the accent is green like an "up" move, so a
+       NEW would read as a climber — same neutral fix. */
     body.red, body.red-light,
-    body.pink, body.pink-light {
+    body.pink, body.pink-light,
+    body.green, body.green-light {
       --chart-new: var(--text2);
     }
 
@@ -467,7 +538,8 @@
     body.purple-light,
     body.red-light,
     body.yellow-light,
-    body.pink-light {
+    body.pink-light,
+    body.green-light {
       --surface-glass: color-mix(in srgb, var(--bg2) 82%, transparent);
       --border-t: color-mix(in srgb, var(--text) 14%, transparent);
       --hover: color-mix(in srgb, var(--text) 7%, transparent);
@@ -3935,6 +4007,14 @@
       background: #ffaadd;
     }
 
+    .theme-btn[data-theme="green"] {
+      background: #1f9d55;
+    }
+
+    .theme-btn[data-theme="green-light"] {
+      background: #8fe0b0;
+    }
+
     .theme-btn.active {
       border-color: rgba(255, 255, 255, 0.85);
       transform: scale(1.25);
@@ -4194,13 +4274,16 @@
 
     /* Purple Light — control buttons (landing screen; the app's top bar sets
        its own colours on #topbar). Dark text on the pale ground. */
-    body.purple-light .ctrl-group-btn {
+    body.purple-light .ctrl-group-btn,
+    body.green-light .ctrl-group-btn {
       color: var(--text2);
       border-color: var(--border);
     }
 
     body.purple-light .ctrl-group-btn:hover,
-    body.purple-light .ctrl-group.open .ctrl-group-btn {
+    body.purple-light .ctrl-group.open .ctrl-group-btn,
+    body.green-light .ctrl-group-btn:hover,
+    body.green-light .ctrl-group.open .ctrl-group-btn {
       background: var(--bg3);
       border-color: var(--border2);
       color: var(--text);
@@ -4232,7 +4315,8 @@
     body.purple-light .lang-btn,
     body.red-light .lang-btn,
     body.yellow-light .lang-btn,
-    body.pink-light .lang-btn {
+    body.pink-light .lang-btn,
+    body.green-light .lang-btn {
       color: var(--text2);
       border-color: var(--border);
     }
@@ -4240,7 +4324,8 @@
     body.purple-light .lang-btn:hover,
     body.red-light .lang-btn:hover,
     body.yellow-light .lang-btn:hover,
-    body.pink-light .lang-btn:hover {
+    body.pink-light .lang-btn:hover,
+    body.green-light .lang-btn:hover {
       border-color: var(--border2);
       color: var(--text);
     }
@@ -4248,7 +4333,8 @@
     body.purple-light .lang-btn.active,
     body.red-light .lang-btn.active,
     body.yellow-light .lang-btn.active,
-    body.pink-light .lang-btn.active {
+    body.pink-light .lang-btn.active,
+    body.green-light .lang-btn.active {
       background: var(--bg3);
       border-color: var(--border2);
       color: var(--text);
@@ -4276,18 +4362,38 @@
       border-color: rgba(196, 184, 255, 0.35);
     }
 
+    body.green .wordmark-fm {
+      color: #9cf0c0;
+      background: rgba(61, 214, 140, 0.18);
+      border-color: rgba(156, 240, 192, 0.35);
+    }
+
     body.purple-light .wordmark-dank {
       color: #120e28;
+    }
+
+    body.green-light .wordmark-dank {
+      color: #06200f;
     }
 
     body.purple-light .wordmark-station {
       color: #2e2460;
     }
 
+    body.green-light .wordmark-station {
+      color: #12402a;
+    }
+
     body.purple-light .wordmark-fm {
       color: #4232c0;
       background: rgba(97, 82, 232, 0.14);
       border-color: rgba(97, 82, 232, 0.35);
+    }
+
+    body.green-light .wordmark-fm {
+      color: #0d6b38;
+      background: rgba(13, 107, 56, 0.12);
+      border-color: rgba(13, 107, 56, 0.35);
     }
 
     /* Red Dark masthead — background now derives from theme tokens in the base .masthead rule */
@@ -4324,7 +4430,9 @@
     body.purple .section-header h2,
     body.purple .section-header-h2,
     body.red .section-header h2,
-    body.red .section-header-h2 {
+    body.red .section-header-h2,
+    body.green .section-header h2,
+    body.green .section-header-h2 {
       color: #2a5888;
       background: #ffffff;
       padding: 2px var(--sp-2);
@@ -4334,6 +4442,11 @@
     body.purple .section-header h2,
     body.purple .section-header-h2 {
       color: #1a0e40;
+    }
+
+    body.green .section-header h2,
+    body.green .section-header-h2 {
+      color: #0a2a18;
     }
 
     body.red .section-header h2,
@@ -4356,7 +4469,9 @@
     }
 
     body.purple-light .section-header h2,
-    body.purple-light .section-header-h2 {
+    body.purple-light .section-header-h2,
+    body.green-light .section-header h2,
+    body.green-light .section-header-h2 {
       color: var(--accent2);
       background: none;
       padding: 0;
@@ -4364,7 +4479,8 @@
 
     .section-sub,
     body.purple .section-sub,
-    body.red .section-sub {
+    body.red .section-sub,
+    body.green .section-sub {
       color: #ffffff;
     }
 
@@ -4423,16 +4539,32 @@
       background: linear-gradient(135deg, #3828a8, #4a38c8);
     }
 
+    body.green-light .modal-header {
+      background: linear-gradient(135deg, #0a5a2f, #0d7a40);
+    }
+
     body.purple-light .modal-header .modal-artist-name {
       color: #f0eeff;
+    }
+
+    body.green-light .modal-header .modal-artist-name {
+      color: #eefcf3;
     }
 
     body.purple-light .modal-header .modal-artist-sub {
       color: rgba(220, 210, 255, 0.9);
     }
 
+    body.green-light .modal-header .modal-artist-sub {
+      color: rgba(200, 240, 215, 0.9);
+    }
+
     body.purple-light .modal-header .modal-artist-link {
       color: #f0eeff;
+    }
+
+    body.green-light .modal-header .modal-artist-link {
+      color: #eefcf3;
     }
 
     body.navy-light .modal-header {
@@ -4475,7 +4607,8 @@
     }
 
     /* Yellow dark: accent (#f5d000) on dark bg is fine; no override needed for period-nav (uses var(--accent)) */
-    body.yellow .chart-size-bar .size-btns button.active {
+    body.yellow .chart-size-bar .size-btns button.active,
+    body.green .chart-size-bar .size-btns button.active {
       color: #1a1a00;
     }
 
@@ -4488,7 +4621,9 @@
     body.yellow .period-nav button:not(.active):hover,
     body.yellow .chart-size-bar .size-btns button:not(.active):hover,
     body.pink .period-nav button:not(.active):hover,
-    body.pink .chart-size-bar .size-btns button:not(.active):hover {
+    body.pink .chart-size-bar .size-btns button:not(.active):hover,
+    body.green .period-nav button:not(.active):hover,
+    body.green .chart-size-bar .size-btns button:not(.active):hover {
       color: #ffffff;
       font-weight: 700;
     }
@@ -4502,12 +4637,15 @@
     body.yellow-light .period-nav button:not(.active):hover,
     body.yellow-light .chart-size-bar .size-btns button:not(.active):hover,
     body.pink-light .period-nav button:not(.active):hover,
-    body.pink-light .chart-size-bar .size-btns button:not(.active):hover {
+    body.pink-light .chart-size-bar .size-btns button:not(.active):hover,
+    body.green-light .period-nav button:not(.active):hover,
+    body.green-light .chart-size-bar .size-btns button:not(.active):hover {
       color: var(--text);
       font-weight: 700;
     }
 
-    body.yellow #syncNowBtn:hover {
+    body.yellow #syncNowBtn:hover,
+    body.green #syncNowBtn:hover {
       color: #1a1a00;
     }
 
@@ -4516,7 +4654,8 @@
       color: #7a5c00;
     }
 
-    body.yellow .export-btn-copy {
+    body.yellow .export-btn-copy,
+    body.green .export-btn-copy {
       color: #1a1a00;
     }
 
@@ -4542,6 +4681,11 @@
     body.purple-light .picker-input {
       color-scheme: light;
       accent-color: #4430c0;
+    }
+
+    body.green-light .picker-input {
+      color-scheme: light;
+      accent-color: #0d6b38;
     }
 
     body.yellow-light .section-header h2,
@@ -6419,6 +6563,8 @@
     .set-theme-swatch[data-theme="yellow-light"] .set-theme-dot { background: linear-gradient(135deg, #fffcef 50%, #c8a800 50%); }
     .set-theme-swatch[data-theme="pink"] .set-theme-dot { background: linear-gradient(135deg, #1d0a17 50%, #cc2090 50%); }
     .set-theme-swatch[data-theme="pink-light"] .set-theme-dot { background: linear-gradient(135deg, #fff5fb 50%, #cc2090 50%); }
+    .set-theme-swatch[data-theme="green"] .set-theme-dot { background: linear-gradient(135deg, #0c1a12 50%, #1f9d55 50%); }
+    .set-theme-swatch[data-theme="green-light"] .set-theme-dot { background: linear-gradient(135deg, #f3fbf6 50%, #1f9d55 50%); }
     .set-lang-seg { width: 100%; }
     .set-lang-seg .lang-btn.active { background: var(--bg2); color: var(--text); box-shadow: var(--shadow-1); }
 
@@ -8321,7 +8467,11 @@
     body.pink-light #gRangeFrom,
     body.pink-light #gRangeTo,
     body.pink-light #raceFrom,
-    body.pink-light #raceTo {
+    body.pink-light #raceTo,
+    body.green-light #gRangeFrom,
+    body.green-light #gRangeTo,
+    body.green-light #raceFrom,
+    body.green-light #raceTo {
       color-scheme: light;
     }
 
@@ -9206,7 +9356,8 @@
 
     body.navy-light .section-sub,
     body.purple-light .section-sub,
-    body.red-light .section-sub {
+    body.red-light .section-sub,
+    body.green-light .section-sub {
       color: var(--text3);
     }
 
@@ -9710,20 +9861,24 @@
        Purple added 2026-10-12: its violet accent matched the violet Songs tile. */
     body.red [data-cat="plays"],
     body.pink [data-cat="plays"],
-    body.purple [data-cat="plays"] {
+    body.purple [data-cat="plays"],
+    body.green [data-cat="plays"] {
       --cat-color: #58aaf6;
     }
     /* Light themes: deeper violet / slate so the numbers hold contrast
        on the white tiles (#6d28d9 ≈ 7.1:1, #475569 ≈ 7.6:1 on white) */
     body.navy-light [data-cat="songs"], body.purple-light [data-cat="songs"],
     body.yellow-light [data-cat="songs"], body.pink-light [data-cat="songs"],
-    body.red-light [data-cat="songs"] { --cat-color: #6d28d9; }
+    body.red-light [data-cat="songs"],
+    body.green-light [data-cat="songs"] { --cat-color: #6d28d9; }
     body.navy-light [data-cat="artists"], body.purple-light [data-cat="artists"],
     body.yellow-light [data-cat="artists"], body.pink-light [data-cat="artists"],
-    body.red-light [data-cat="artists"] { --cat-color: #475569; }
+    body.red-light [data-cat="artists"],
+    body.green-light [data-cat="artists"] { --cat-color: #475569; }
     body.red-light [data-cat="plays"],
     body.pink-light [data-cat="plays"],
-    body.purple-light [data-cat="plays"] {
+    body.purple-light [data-cat="plays"],
+    body.green-light [data-cat="plays"] {
       --cat-color: #0852a8;
     }
 
@@ -10095,7 +10250,8 @@
     body.purple-light .stat-label-aotm,
     body.yellow-light .stat-label-aotm,
     body.pink-light .stat-label-aotm,
-    body.red-light .stat-label-aotm {
+    body.red-light .stat-label-aotm,
+    body.green-light .stat-label-aotm {
       background: linear-gradient(90deg, var(--rose), color-mix(in srgb, var(--rose) 70%, var(--text)), var(--rose));
       -webkit-background-clip: text;
       background-clip: text;
@@ -10340,7 +10496,9 @@
     }
 
     body.yellow .ig-share-btn:hover,
-    body.yellow .chart-export-btn:hover {
+    body.yellow .chart-export-btn:hover,
+    body.green .ig-share-btn:hover,
+    body.green .chart-export-btn:hover {
       color: #1a1600;
     }
 
@@ -14928,7 +15086,8 @@
       border-color: var(--accent);
     }
 
-    body.yellow .cr-ig-share-btn:hover {
+    body.yellow .cr-ig-share-btn:hover,
+    body.green .cr-ig-share-btn:hover {
       color: #1a1600;
     }
 
@@ -14982,7 +15141,8 @@
       box-shadow: 0 1px 6px color-mix(in srgb, var(--accent) 35%, transparent);
     }
 
-    body.yellow .cr-range-btn.active {
+    body.yellow .cr-range-btn.active,
+    body.green .cr-range-btn.active {
       color: #1a1600;
     }
 
@@ -16818,7 +16978,8 @@
 
     /* Same carve-out the records nav needs: on the yellow themes the accent is
        light enough that --on-accent would sit white-on-yellow. */
-    body.yellow .rec-ov-type.active {
+    body.yellow .rec-ov-type.active,
+    body.green .rec-ov-type.active {
       color: #1a1a00;
     }
 
@@ -17065,7 +17226,8 @@
     body.navy-light .rec-cert-mark,
     body.purple-light .rec-cert-mark,
     body.yellow-light .rec-cert-mark,
-    body.red-light .rec-cert-mark {
+    body.red-light .rec-cert-mark,
+    body.green-light .rec-cert-mark {
       filter: drop-shadow(0 0 1px color-mix(in srgb, var(--gold2) 70%, transparent))
               drop-shadow(0 0 3px color-mix(in srgb, var(--gold1) 30%, transparent));
     }
@@ -22169,7 +22331,8 @@ body.navy-light .landing-eq-skyline,
 body.purple-light .landing-eq-skyline,
 body.red-light .landing-eq-skyline,
 body.yellow-light .landing-eq-skyline,
-body.pink-light .landing-eq-skyline {
+body.pink-light .landing-eq-skyline,
+body.green-light .landing-eq-skyline {
   opacity: 0.22;
 }
 
@@ -22188,7 +22351,10 @@ body.yellow-light .landing-screen:has(.landing-google-btn:hover) .landing-eq-sky
 body.yellow-light .landing-screen:has(.landing-card:hover) .landing-eq-skyline,
 body.pink-light .landing-screen:has(.landing-demo-btn:hover) .landing-eq-skyline,
 body.pink-light .landing-screen:has(.landing-google-btn:hover) .landing-eq-skyline,
-body.pink-light .landing-screen:has(.landing-card:hover) .landing-eq-skyline {
+body.pink-light .landing-screen:has(.landing-card:hover) .landing-eq-skyline,
+body.green-light .landing-screen:has(.landing-demo-btn:hover) .landing-eq-skyline,
+body.green-light .landing-screen:has(.landing-google-btn:hover) .landing-eq-skyline,
+body.green-light .landing-screen:has(.landing-card:hover) .landing-eq-skyline {
   opacity: 0.4;
 }
 
@@ -23498,7 +23664,8 @@ body.navy-light .landing-screen,
 body.purple-light .landing-screen,
 body.red-light .landing-screen,
 body.yellow-light .landing-screen,
-body.pink-light .landing-screen {
+body.pink-light .landing-screen,
+body.green-light .landing-screen {
   background-image:
     radial-gradient(ellipse at 20% 40%, rgba(0, 0, 0, 0.04) 0%, transparent 55%),
     radial-gradient(ellipse at 80% 70%, rgba(0, 0, 0, 0.03) 0%, transparent 50%),
@@ -23517,7 +23684,9 @@ body.red-light .landing-orb-2,
 body.yellow-light .landing-orb-1,
 body.yellow-light .landing-orb-2,
 body.pink-light .landing-orb-1,
-body.pink-light .landing-orb-2 {
+body.pink-light .landing-orb-2,
+body.green-light .landing-orb-1,
+body.green-light .landing-orb-2 {
   opacity: 0.35;
 }
 
@@ -23525,7 +23694,8 @@ body.navy-light .landing-card,
 body.purple-light .landing-card,
 body.red-light .landing-card,
 body.yellow-light .landing-card,
-body.pink-light .landing-card {
+body.pink-light .landing-card,
+body.green-light .landing-card {
   background: var(--surface);
   border-color: var(--border);
   box-shadow: var(--shadow-2);
@@ -23535,7 +23705,8 @@ body.navy-light .landing-card:hover,
 body.purple-light .landing-card:hover,
 body.red-light .landing-card:hover,
 body.yellow-light .landing-card:hover,
-body.pink-light .landing-card:hover {
+body.pink-light .landing-card:hover,
+body.green-light .landing-card:hover {
   background: var(--bg3);
   border-color: var(--border2);
   box-shadow: var(--shadow-2);
@@ -23545,7 +23716,8 @@ body.navy-light .landing-card.active,
 body.purple-light .landing-card.active,
 body.red-light .landing-card.active,
 body.yellow-light .landing-card.active,
-body.pink-light .landing-card.active {
+body.pink-light .landing-card.active,
+body.green-light .landing-card.active {
   background: var(--bg3);
   border-color: var(--accent);
   box-shadow: 0 0 0 1px var(--accent), 0 8px 24px rgba(0, 0, 0, 0.13);
@@ -23555,7 +23727,8 @@ body.navy-light .landing-card-config,
 body.purple-light .landing-card-config,
 body.red-light .landing-card-config,
 body.yellow-light .landing-card-config,
-body.pink-light .landing-card-config {
+body.pink-light .landing-card-config,
+body.green-light .landing-card-config {
   border-top-color: var(--border);
 }
 
@@ -23563,7 +23736,8 @@ body.navy-light .landing-card-config input,
 body.purple-light .landing-card-config input,
 body.red-light .landing-card-config input,
 body.yellow-light .landing-card-config input,
-body.pink-light .landing-card-config input {
+body.pink-light .landing-card-config input,
+body.green-light .landing-card-config input {
   background: var(--bg2);
   border-color: var(--border);
 }
@@ -23572,7 +23746,8 @@ body.navy-light .landing-card-config input:focus,
 body.purple-light .landing-card-config input:focus,
 body.red-light .landing-card-config input:focus,
 body.yellow-light .landing-card-config input:focus,
-body.pink-light .landing-card-config input:focus {
+body.pink-light .landing-card-config input:focus,
+body.green-light .landing-card-config input:focus {
   border-color: var(--accent);
   background: var(--bg2);
 }
@@ -23581,7 +23756,8 @@ body.navy-light .landing-start-btn,
 body.purple-light .landing-start-btn,
 body.red-light .landing-start-btn,
 body.yellow-light .landing-start-btn,
-body.pink-light .landing-start-btn {
+body.pink-light .landing-start-btn,
+body.green-light .landing-start-btn {
   box-shadow: var(--shadow-2);
 }
 
@@ -23589,7 +23765,8 @@ body.navy-light .landing-start-btn:hover,
 body.purple-light .landing-start-btn:hover,
 body.red-light .landing-start-btn:hover,
 body.yellow-light .landing-start-btn:hover,
-body.pink-light .landing-start-btn:hover {
+body.pink-light .landing-start-btn:hover,
+body.green-light .landing-start-btn:hover {
   box-shadow: var(--shadow-2);
 }
 
@@ -23597,7 +23774,8 @@ body.navy-light .lfm-new-user-info,
 body.purple-light .lfm-new-user-info,
 body.red-light .lfm-new-user-info,
 body.yellow-light .lfm-new-user-info,
-body.pink-light .lfm-new-user-info {
+body.pink-light .lfm-new-user-info,
+body.green-light .lfm-new-user-info {
   background: var(--bg2);
   border-color: var(--border);
 }
@@ -23606,7 +23784,8 @@ body.navy-light .lfm-new-user-body,
 body.purple-light .lfm-new-user-body,
 body.red-light .lfm-new-user-body,
 body.yellow-light .lfm-new-user-body,
-body.pink-light .lfm-new-user-body {
+body.pink-light .lfm-new-user-body,
+body.green-light .lfm-new-user-body {
   border-top-color: var(--border);
 }
 
@@ -23614,7 +23793,8 @@ body.navy-light .lfm-services-chips span,
 body.purple-light .lfm-services-chips span,
 body.red-light .lfm-services-chips span,
 body.yellow-light .lfm-services-chips span,
-body.pink-light .lfm-services-chips span {
+body.pink-light .lfm-services-chips span,
+body.green-light .lfm-services-chips span {
   background: var(--bg3);
   color: var(--accent);
 }
@@ -23623,7 +23803,8 @@ body.navy-light .lfm-signup-link,
 body.purple-light .lfm-signup-link,
 body.red-light .lfm-signup-link,
 body.yellow-light .lfm-signup-link,
-body.pink-light .lfm-signup-link {
+body.pink-light .lfm-signup-link,
+body.green-light .lfm-signup-link {
   border-color: var(--border2);
 }
 
@@ -23631,7 +23812,8 @@ body.navy-light .lfm-signup-link:hover,
 body.purple-light .lfm-signup-link:hover,
 body.red-light .lfm-signup-link:hover,
 body.yellow-light .lfm-signup-link:hover,
-body.pink-light .lfm-signup-link:hover {
+body.pink-light .lfm-signup-link:hover,
+body.green-light .lfm-signup-link:hover {
   background: var(--bg3);
 }
 
@@ -23689,7 +23871,8 @@ body.navy-light #landingThemeGroup .ctrl-group-panel .theme-btn.active,
 body.purple-light #landingThemeGroup .ctrl-group-panel .theme-btn.active,
 body.red-light #landingThemeGroup .ctrl-group-panel .theme-btn.active,
 body.yellow-light #landingThemeGroup .ctrl-group-panel .theme-btn.active,
-body.pink-light #landingThemeGroup .ctrl-group-panel .theme-btn.active {
+body.pink-light #landingThemeGroup .ctrl-group-panel .theme-btn.active,
+body.green-light #landingThemeGroup .ctrl-group-panel .theme-btn.active {
   border-color: rgba(0, 0, 0, 0.7);
 }
 
@@ -23697,7 +23880,8 @@ body.navy-light #landingThemeGroup .ctrl-group-panel .theme-btn:hover,
 body.purple-light #landingThemeGroup .ctrl-group-panel .theme-btn:hover,
 body.red-light #landingThemeGroup .ctrl-group-panel .theme-btn:hover,
 body.yellow-light #landingThemeGroup .ctrl-group-panel .theme-btn:hover,
-body.pink-light #landingThemeGroup .ctrl-group-panel .theme-btn:hover {
+body.pink-light #landingThemeGroup .ctrl-group-panel .theme-btn:hover,
+body.green-light #landingThemeGroup .ctrl-group-panel .theme-btn:hover {
   border-color: rgba(0, 0, 0, 0.45);
 }
 
@@ -23723,7 +23907,8 @@ body.pink-light .landing-wordmark .wordmark-fm {
 }
 
 /* Purple dark — cards nearly invisible on very dark bg; boost contrast */
-body.purple .landing-card {
+body.purple .landing-card,
+body.green .landing-card {
   background: var(--surface);
   border-color: var(--border);
 }
@@ -23734,20 +23919,30 @@ body.purple .landing-card:hover {
   box-shadow: 0 18px 48px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(136, 120, 255, 0.2);
 }
 
-body.purple .landing-card.active {
+body.green .landing-card:hover {
+  background: var(--bg3);
+  border-color: var(--border2);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(61, 214, 140, 0.2);
+}
+
+body.purple .landing-card.active,
+body.green .landing-card.active {
   background: var(--bg3);
 }
 
-body.purple .landing-card-config {
+body.purple .landing-card-config,
+body.green .landing-card-config {
   border-top-color: var(--border);
 }
 
-body.purple .landing-card-config input {
+body.purple .landing-card-config input,
+body.green .landing-card-config input {
   background: var(--bg2);
   border-color: var(--border);
 }
 
-body.purple .landing-card-config input:focus {
+body.purple .landing-card-config input:focus,
+body.green .landing-card-config input:focus {
   border-color: var(--accent);
   background: var(--bg2);
 }
@@ -28910,7 +29105,8 @@ body.navy-light .awards-picker-modal,
 body.purple-light .awards-picker-modal,
 body.red-light .awards-picker-modal,
 body.yellow-light .awards-picker-modal,
-body.pink-light .awards-picker-modal {
+body.pink-light .awards-picker-modal,
+body.green-light .awards-picker-modal {
   --pk-gold: var(--medal-gold);
   --pk-danger: var(--rose);
   box-shadow: var(--shadow-3);
@@ -28919,7 +29115,8 @@ body.navy-light .awards-picker-yt-btn:hover,
 body.purple-light .awards-picker-yt-btn:hover,
 body.red-light .awards-picker-yt-btn:hover,
 body.yellow-light .awards-picker-yt-btn:hover,
-body.pink-light .awards-picker-yt-btn:hover { color: #CC0000; border-color: #CC0000; }
+body.pink-light .awards-picker-yt-btn:hover,
+body.green-light .awards-picker-yt-btn:hover { color: #CC0000; border-color: #CC0000; }
 @keyframes awardsClipSpin { to { transform: rotate(360deg); } }
 .awards-picker-nom-row .awards-picker-clip-btn,
 .awards-picker-nom-row .awards-picker-yt-btn { width: 24px; height: 22px; font-size: var(--fs-xs); }
@@ -29111,12 +29308,14 @@ body.navy-light .awards-reallife-badge.won,
 body.purple-light .awards-reallife-badge.won,
 body.red-light .awards-reallife-badge.won,
 body.yellow-light .awards-reallife-badge.won,
-body.pink-light .awards-reallife-badge.won { background: #FFD70033; color: var(--medal-gold); border-color: var(--medal-gold); }
+body.pink-light .awards-reallife-badge.won,
+body.green-light .awards-reallife-badge.won { background: #FFD70033; color: var(--medal-gold); border-color: var(--medal-gold); }
 body.navy-light .awards-reallife-badge.nom,
 body.purple-light .awards-reallife-badge.nom,
 body.red-light .awards-reallife-badge.nom,
 body.yellow-light .awards-reallife-badge.nom,
-body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366f1aa; }
+body.pink-light .awards-reallife-badge.nom,
+body.green-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366f1aa; }
 /* Category on the left, the work it was nominated for on the right — until the
    screen is too narrow for both, where they stack instead of wrapping the
    category down three lines. */
@@ -36012,7 +36211,8 @@ body.navy-light .chart-table thead th,
 body.purple-light .chart-table thead th,
 body.yellow-light .chart-table thead th,
 body.pink-light .chart-table thead th,
-body.red-light .chart-table thead th { font-weight: 700; }
+body.red-light .chart-table thead th,
+body.green-light .chart-table thead th { font-weight: 700; }
 
 /* 2 & 3. RE / NEW / delta in plays column — bolder + slightly larger to overcome tiny inline size */
 body.navy-light .play-count .m-re,   body.navy-light .play-count .m-new,
@@ -36024,7 +36224,11 @@ body.yellow-light .play-count .m-up, body.yellow-light .play-count .m-down,
 body.pink-light .play-count .m-re,   body.pink-light .play-count .m-new,
 body.pink-light .play-count .m-up,   body.pink-light .play-count .m-down,
 body.red-light .play-count .m-re,    body.red-light .play-count .m-new,
-body.red-light .play-count .m-up,    body.red-light .play-count .m-down {
+body.red-light .play-count .m-up,    body.red-light .play-count .m-down,
+body.green-light .play-count .m-re,
+body.green-light .play-count .m-new,
+body.green-light .play-count .m-up,
+body.green-light .play-count .m-down {
   font-size: var(--fs-xs) !important;
   font-weight: 700;
 }
@@ -36032,7 +36236,8 @@ body.red-light .play-count .m-up,    body.red-light .play-count .m-down {
 /* 4. Cert badges — bright dark-theme hues (#fbbf24, #cbd5e1, #38bdf8) fail on white cards */
 body.navy-light .cert-gold,   body.purple-light .cert-gold,
 body.yellow-light .cert-gold, body.pink-light .cert-gold,
-body.red-light .cert-gold {
+body.red-light .cert-gold,
+body.green-light .cert-gold {
   color: var(--gold1);
   background: rgba(120, 56, 14, 0.08);
   border-color: rgba(120, 56, 14, 0.35);
@@ -36040,7 +36245,8 @@ body.red-light .cert-gold {
 
 body.navy-light .cert-plat,   body.purple-light .cert-plat,
 body.yellow-light .cert-plat, body.pink-light .cert-plat,
-body.red-light .cert-plat {
+body.red-light .cert-plat,
+body.green-light .cert-plat {
   color: #475569;
   background: rgba(71, 85, 105, 0.08);
   border-color: rgba(71, 85, 105, 0.35);
@@ -36048,7 +36254,8 @@ body.red-light .cert-plat {
 
 body.navy-light .cert-diamond,   body.purple-light .cert-diamond,
 body.yellow-light .cert-diamond, body.pink-light .cert-diamond,
-body.red-light .cert-diamond {
+body.red-light .cert-diamond,
+body.green-light .cert-diamond {
   color: var(--teal);
   background: rgba(12, 74, 110, 0.08);
   border-color: rgba(12, 74, 110, 0.35);
@@ -36057,40 +36264,47 @@ body.red-light .cert-diamond {
 /* 6. Album text — bump from text3 to text2 so the smaller monospace stays legible */
 body.navy-light .song-album,   body.purple-light .song-album,
 body.yellow-light .song-album, body.pink-light .song-album,
-body.red-light .song-album { color: var(--text2); }
+body.red-light .song-album,
+body.green-light .song-album { color: var(--text2); }
 
 /* 7. Bubbling Under section — the faint #7dd3fc border is invisible on light
    backgrounds. One neutral border all round: --border2 on the left edge drew
    a coloured stripe (red in Red light, the "down" colour). */
 body.navy-light .bu-section,   body.purple-light .bu-section,
 body.yellow-light .bu-section, body.pink-light .bu-section,
-body.red-light .bu-section { border-color: var(--border); }
+body.red-light .bu-section,
+body.green-light .bu-section { border-color: var(--border); }
 
 body.navy-light .bu-section-header,   body.purple-light .bu-section-header,
 body.yellow-light .bu-section-header, body.pink-light .bu-section-header,
-body.red-light .bu-section-header {
+body.red-light .bu-section-header,
+body.green-light .bu-section-header {
   border-color: var(--border);
   background: var(--surface);
 }
 
 body.navy-light .bu-section-header:hover,   body.purple-light .bu-section-header:hover,
 body.yellow-light .bu-section-header:hover, body.pink-light .bu-section-header:hover,
-body.red-light .bu-section-header:hover {
+body.red-light .bu-section-header:hover,
+body.green-light .bu-section-header:hover {
   background: var(--bg3);
   border-color: var(--border2);
 }
 
 body.navy-light .bu-section-title,   body.purple-light .bu-section-title,
 body.yellow-light .bu-section-title, body.pink-light .bu-section-title,
-body.red-light .bu-section-title { color: var(--teal); }
+body.red-light .bu-section-title,
+body.green-light .bu-section-title { color: var(--teal); }
 
 body.navy-light .bu-bubble-emoji,   body.purple-light .bu-bubble-emoji,
 body.yellow-light .bu-bubble-emoji, body.pink-light .bu-bubble-emoji,
-body.red-light .bu-bubble-emoji { color: var(--teal); }
+body.red-light .bu-bubble-emoji,
+body.green-light .bu-bubble-emoji { color: var(--teal); }
 
 body.navy-light .bu-count-pill,   body.purple-light .bu-count-pill,
 body.yellow-light .bu-count-pill, body.pink-light .bu-count-pill,
-body.red-light .bu-count-pill {
+body.red-light .bu-count-pill,
+body.green-light .bu-count-pill {
   color: var(--teal);
   background: var(--surface);
   border-color: var(--border2);
@@ -36103,7 +36317,8 @@ body.red-light .bu-count-pill {
    set their own border colour in the rules below). */
 body.navy-light .cr-box,   body.purple-light .cr-box,
 body.yellow-light .cr-box, body.pink-light .cr-box,
-body.red-light .cr-box {
+body.red-light .cr-box,
+body.green-light .cr-box {
   border-color: transparent;
 }
 
@@ -36111,7 +36326,8 @@ body.red-light .cr-box {
    doesn't interfere with .cr-box-official / .cr-box-bu-entry in combined view) */
 body.navy-light .bu-cr-view-bu .cr-box,   body.purple-light .bu-cr-view-bu .cr-box,
 body.yellow-light .bu-cr-view-bu .cr-box, body.pink-light .bu-cr-view-bu .cr-box,
-body.red-light .bu-cr-view-bu .cr-box {
+body.red-light .bu-cr-view-bu .cr-box,
+body.green-light .bu-cr-view-bu .cr-box {
   background: rgba(99, 102, 241, 0.18);
   border-color: rgba(99, 102, 241, 0.45);
 }
@@ -36119,7 +36335,8 @@ body.red-light .bu-cr-view-bu .cr-box {
 /* Peak box in BU-only view: override the indigo above with gold (higher specificity) */
 body.navy-light .bu-cr-view-bu .cr-box.cr-box-peak,   body.purple-light .bu-cr-view-bu .cr-box.cr-box-peak,
 body.yellow-light .bu-cr-view-bu .cr-box.cr-box-peak, body.pink-light .bu-cr-view-bu .cr-box.cr-box-peak,
-body.red-light .bu-cr-view-bu .cr-box.cr-box-peak {
+body.red-light .bu-cr-view-bu .cr-box.cr-box-peak,
+body.green-light .bu-cr-view-bu .cr-box.cr-box-peak {
   background: rgba(245, 158, 11, 0.22);
   border-color: rgba(245, 158, 11, 0.6);
 }
@@ -36127,7 +36344,8 @@ body.red-light .bu-cr-view-bu .cr-box.cr-box-peak {
 /* Peak box anywhere (amber) — boost so the gold highlight shows on light */
 body.navy-light .cr-box-peak,   body.purple-light .cr-box-peak,
 body.yellow-light .cr-box-peak, body.pink-light .cr-box-peak,
-body.red-light .cr-box-peak {
+body.red-light .cr-box-peak,
+body.green-light .cr-box-peak {
   background: rgba(245, 158, 11, 0.18);
   border-color: rgba(245, 158, 11, 0.55);
 }
@@ -36135,7 +36353,8 @@ body.red-light .cr-box-peak {
 /* Official chart box (green) — strong tint so chart vs BU is obvious at a glance */
 body.navy-light .cr-box-official,   body.purple-light .cr-box-official,
 body.yellow-light .cr-box-official, body.pink-light .cr-box-official,
-body.red-light .cr-box-official {
+body.red-light .cr-box-official,
+body.green-light .cr-box-official {
   background: rgba(34, 197, 94, 0.32);
   border-color: rgba(34, 197, 94, 0.65);
 }
@@ -36143,7 +36362,8 @@ body.red-light .cr-box-official {
 /* BU entry box (indigo) — boost opacity + dark rank text */
 body.navy-light .cr-box-bu-entry,   body.purple-light .cr-box-bu-entry,
 body.yellow-light .cr-box-bu-entry, body.pink-light .cr-box-bu-entry,
-body.red-light .cr-box-bu-entry {
+body.red-light .cr-box-bu-entry,
+body.green-light .cr-box-bu-entry {
   background: rgba(99, 102, 241, 0.18);
   border-color: rgba(99, 102, 241, 0.45);
 }
@@ -36151,7 +36371,8 @@ body.red-light .cr-box-bu-entry {
 /* BU miss box (red) — boost opacity + dark rank text */
 body.navy-light .cr-box-bu-miss,   body.purple-light .cr-box-bu-miss,
 body.yellow-light .cr-box-bu-miss, body.pink-light .cr-box-bu-miss,
-body.red-light .cr-box-bu-miss {
+body.red-light .cr-box-bu-miss,
+body.green-light .cr-box-bu-miss {
   background: rgba(220, 38, 38, 0.18);
   border-color: rgba(220, 38, 38, 0.45);
 }
@@ -36161,7 +36382,8 @@ body.red-light .cr-box-bu-miss {
    restore their gold/green peak highlight, which the general rules would stomp. */
 body.navy-light .cr-box-bu-entry.cr-box-peak,   body.purple-light .cr-box-bu-entry.cr-box-peak,
 body.yellow-light .cr-box-bu-entry.cr-box-peak, body.pink-light .cr-box-bu-entry.cr-box-peak,
-body.red-light .cr-box-bu-entry.cr-box-peak {
+body.red-light .cr-box-bu-entry.cr-box-peak,
+body.green-light .cr-box-bu-entry.cr-box-peak {
   background: rgba(245, 158, 11, 0.22);
   border-color: rgba(109, 40, 217, 0.7);
   box-shadow: 0 0 6px rgba(109, 40, 217, 0.2);
@@ -36171,13 +36393,15 @@ body.navy-light .cr-box-bu-entry.cr-box-peak .cr-box-rank,
 body.purple-light .cr-box-bu-entry.cr-box-peak .cr-box-rank,
 body.yellow-light .cr-box-bu-entry.cr-box-peak .cr-box-rank,
 body.pink-light .cr-box-bu-entry.cr-box-peak .cr-box-rank,
-body.red-light .cr-box-bu-entry.cr-box-peak .cr-box-rank {
+body.red-light .cr-box-bu-entry.cr-box-peak .cr-box-rank,
+body.green-light .cr-box-bu-entry.cr-box-peak .cr-box-rank {
   color: #5b21b6; /* dark violet, readable on light */
 }
 
 body.navy-light .cr-box-official.cr-box-official-peak,   body.purple-light .cr-box-official.cr-box-official-peak,
 body.yellow-light .cr-box-official.cr-box-official-peak, body.pink-light .cr-box-official.cr-box-official-peak,
-body.red-light .cr-box-official.cr-box-official-peak {
+body.red-light .cr-box-official.cr-box-official-peak,
+body.green-light .cr-box-official.cr-box-official-peak {
   background: rgba(34, 197, 94, 0.38);
   border-color: rgba(245, 158, 11, 0.7);
   box-shadow: 0 0 6px rgba(245, 158, 11, 0.25);
@@ -36186,7 +36410,8 @@ body.red-light .cr-box-official.cr-box-official-peak {
 /* Combined view: official chart box rank text — #4ade80 / #86efac are neon on light */
 body.navy-light .cr-box-official .cr-box-rank,   body.purple-light .cr-box-official .cr-box-rank,
 body.yellow-light .cr-box-official .cr-box-rank, body.pink-light .cr-box-official .cr-box-rank,
-body.red-light .cr-box-official .cr-box-rank {
+body.red-light .cr-box-official .cr-box-rank,
+body.green-light .cr-box-official .cr-box-rank {
   color: #166534;
 }
 
@@ -36194,21 +36419,24 @@ body.navy-light .cr-box-official.cr-box-official-peak .cr-box-rank,
 body.purple-light .cr-box-official.cr-box-official-peak .cr-box-rank,
 body.yellow-light .cr-box-official.cr-box-official-peak .cr-box-rank,
 body.pink-light .cr-box-official.cr-box-official-peak .cr-box-rank,
-body.red-light .cr-box-official.cr-box-official-peak .cr-box-rank {
+body.red-light .cr-box-official.cr-box-official-peak .cr-box-rank,
+body.green-light .cr-box-official.cr-box-official-peak .cr-box-rank {
   color: var(--gold1); /* dark amber on light themes, matches peak visual language */
 }
 
 /* Combined view: BU entry box rank text — #a5b4fc lavender is unreadable on light */
 body.navy-light .cr-box-bu-entry .cr-box-rank,   body.purple-light .cr-box-bu-entry .cr-box-rank,
 body.yellow-light .cr-box-bu-entry .cr-box-rank, body.pink-light .cr-box-bu-entry .cr-box-rank,
-body.red-light .cr-box-bu-entry .cr-box-rank {
+body.red-light .cr-box-bu-entry .cr-box-rank,
+body.green-light .cr-box-bu-entry .cr-box-rank {
   color: #3730a3;
 }
 
 /* Chart run + BU view: BU miss boxes — #f87171 / #fca5a5 are too light on light themes */
 body.navy-light .cr-box-bu-miss .cr-box-rank,   body.purple-light .cr-box-bu-miss .cr-box-rank,
 body.yellow-light .cr-box-bu-miss .cr-box-rank, body.pink-light .cr-box-bu-miss .cr-box-rank,
-body.red-light .cr-box-bu-miss .cr-box-rank {
+body.red-light .cr-box-bu-miss .cr-box-rank,
+body.green-light .cr-box-bu-miss .cr-box-rank {
   color: #991b1b;
 }
 
@@ -36216,7 +36444,8 @@ body.navy-light .cr-box-bu-miss.cr-box-bu-miss-peak,
 body.purple-light .cr-box-bu-miss.cr-box-bu-miss-peak,
 body.yellow-light .cr-box-bu-miss.cr-box-bu-miss-peak,
 body.pink-light .cr-box-bu-miss.cr-box-bu-miss-peak,
-body.red-light .cr-box-bu-miss.cr-box-bu-miss-peak {
+body.red-light .cr-box-bu-miss.cr-box-bu-miss-peak,
+body.green-light .cr-box-bu-miss.cr-box-bu-miss-peak {
   background: rgba(251, 146, 60, 0.22);
   border-color: rgba(220, 38, 38, 0.75);
 }
@@ -36225,14 +36454,16 @@ body.navy-light .cr-box-bu-miss.cr-box-bu-miss-peak .cr-box-rank,
 body.purple-light .cr-box-bu-miss.cr-box-bu-miss-peak .cr-box-rank,
 body.yellow-light .cr-box-bu-miss.cr-box-bu-miss-peak .cr-box-rank,
 body.pink-light .cr-box-bu-miss.cr-box-bu-miss-peak .cr-box-rank,
-body.red-light .cr-box-bu-miss.cr-box-bu-miss-peak .cr-box-rank {
+body.red-light .cr-box-bu-miss.cr-box-bu-miss-peak .cr-box-rank,
+body.green-light .cr-box-bu-miss.cr-box-bu-miss-peak .cr-box-rank {
   color: #92400e; /* dark amber, matches the orange-gold peak styling */
 }
 
 /* "+ Chart" toggle (BU panel) active state — #4ade80 neon green is unreadable on light */
 body.navy-light .bu-combined-toggle.active,   body.purple-light .bu-combined-toggle.active,
 body.yellow-light .bu-combined-toggle.active, body.pink-light .bu-combined-toggle.active,
-body.red-light .bu-combined-toggle.active {
+body.red-light .bu-combined-toggle.active,
+body.green-light .bu-combined-toggle.active {
   color: #166534;
   background: rgba(22, 101, 52, 0.07);
   border-color: rgba(22, 101, 52, 0.35);
@@ -36241,7 +36472,8 @@ body.red-light .bu-combined-toggle.active {
 /* "+ BU" toggle (chart run panel) active state — #f87171 neon red is unreadable on light */
 body.navy-light .cr-bu-toggle.active,   body.purple-light .cr-bu-toggle.active,
 body.yellow-light .cr-bu-toggle.active, body.pink-light .cr-bu-toggle.active,
-body.red-light .cr-bu-toggle.active {
+body.red-light .cr-bu-toggle.active,
+body.green-light .cr-bu-toggle.active {
   color: #991b1b;
   background: rgba(153, 27, 27, 0.07);
   border-color: rgba(153, 27, 27, 0.35);
@@ -36250,50 +36482,58 @@ body.red-light .cr-bu-toggle.active {
 /* Legend labels in combined BU+Chart view — #4ade80 green and #a5b4fc lavender */
 body.navy-light .bu-combined-legend-chart,   body.purple-light .bu-combined-legend-chart,
 body.yellow-light .bu-combined-legend-chart, body.pink-light .bu-combined-legend-chart,
-body.red-light .bu-combined-legend-chart {
+body.red-light .bu-combined-legend-chart,
+body.green-light .bu-combined-legend-chart {
   color: #166534;
 }
 
 body.navy-light .bu-combined-legend-bu,   body.purple-light .bu-combined-legend-bu,
 body.yellow-light .bu-combined-legend-bu, body.pink-light .bu-combined-legend-bu,
-body.red-light .bu-combined-legend-bu {
+body.red-light .bu-combined-legend-bu,
+body.green-light .bu-combined-legend-bu {
   color: #3730a3;
 }
 
 /* Legend label in chart run + BU view — #f87171 light red */
 body.navy-light .bu-combined-legend-bu-miss,   body.purple-light .bu-combined-legend-bu-miss,
 body.yellow-light .bu-combined-legend-bu-miss, body.pink-light .bu-combined-legend-bu-miss,
-body.red-light .bu-combined-legend-bu-miss {
+body.red-light .bu-combined-legend-bu-miss,
+body.green-light .bu-combined-legend-bu-miss {
   color: #991b1b;
 }
 
 /* 8. New Entries section — hardcoded #2dd4bf is near-invisible on light backgrounds */
 body.navy-light .ne-section-header,   body.purple-light .ne-section-header,
 body.yellow-light .ne-section-header, body.pink-light .ne-section-header,
-body.red-light .ne-section-header {
+body.red-light .ne-section-header,
+body.green-light .ne-section-header {
   border-color: var(--border);
   background: var(--surface);
 }
 
 body.navy-light .ne-section-header:hover,   body.purple-light .ne-section-header:hover,
 body.yellow-light .ne-section-header:hover, body.pink-light .ne-section-header:hover,
-body.red-light .ne-section-header:hover {
+body.red-light .ne-section-header:hover,
+body.green-light .ne-section-header:hover {
   background: var(--bg3);
   border-color: var(--border2);
 }
 
 body.navy-light .ne-title-text,   body.purple-light .ne-title-text,
 body.yellow-light .ne-title-text, body.pink-light .ne-title-text,
-body.red-light .ne-title-text { color: var(--teal) !important; }
+body.red-light .ne-title-text,
+body.green-light .ne-title-text { color: var(--teal) !important; }
 
 body.navy-light .ne-sparkle-emoji,   body.purple-light .ne-sparkle-emoji,
 body.yellow-light .ne-sparkle-emoji, body.pink-light .ne-sparkle-emoji,
-body.red-light .ne-sparkle-emoji { color: var(--teal); }
+body.red-light .ne-sparkle-emoji,
+body.green-light .ne-sparkle-emoji { color: var(--teal); }
 
 /* 9. Peak badges — #94a3b8 (silver) and #c07850 (medium bronze) fail on white cards */
 body.navy-light .peak-badge-2,   body.purple-light .peak-badge-2,
 body.yellow-light .peak-badge-2, body.pink-light .peak-badge-2,
-body.red-light .peak-badge-2 {
+body.red-light .peak-badge-2,
+body.green-light .peak-badge-2 {
   color: #475569;
   background: rgba(71, 85, 105, 0.05);
   border-color: rgba(71, 85, 105, 0.35);
@@ -36301,7 +36541,8 @@ body.red-light .peak-badge-2 {
 
 body.navy-light .peak-badge-3,   body.purple-light .peak-badge-3,
 body.yellow-light .peak-badge-3, body.pink-light .peak-badge-3,
-body.red-light .peak-badge-3 {
+body.red-light .peak-badge-3,
+body.green-light .peak-badge-3 {
   color: #7c4b2a;
   background: rgba(124, 75, 42, 0.08);
   border-color: rgba(124, 75, 42, 0.3);
@@ -36312,7 +36553,8 @@ body.red-light .peak-badge-3 {
    themselves already re-derived for light themes (see DERIVED SEMANTIC TOKENS). */
 body.navy-light .play-bar,   body.purple-light .play-bar,
 body.yellow-light .play-bar, body.pink-light .play-bar,
-body.red-light .play-bar { height: 4px; }
+body.red-light .play-bar,
+body.green-light .play-bar { height: 4px; }
 
 /* section-sub: yellow-light / pink-light were missing from the existing override (white on light bg) */
 body.yellow-light .section-sub,
@@ -36321,7 +36563,8 @@ body.pink-light .section-sub { color: var(--text3); }
 /* 11. Grand Slam banner — #ffd700 gold text is unreadable on light themes' pale gradient background */
 body.navy-light .modal-grand-slam,   body.purple-light .modal-grand-slam,
 body.yellow-light .modal-grand-slam, body.pink-light .modal-grand-slam,
-body.red-light .modal-grand-slam {
+body.red-light .modal-grand-slam,
+body.green-light .modal-grand-slam {
   color: #8a6300;
 }
 
@@ -36329,14 +36572,16 @@ body.red-light .modal-grand-slam {
 /* Header has a hardcoded dark gradient; on light themes --text is dark → dark-on-dark */
 body.navy-light .streak-modal-header,   body.purple-light .streak-modal-header,
 body.yellow-light .streak-modal-header, body.pink-light .streak-modal-header,
-body.red-light .streak-modal-header {
+body.red-light .streak-modal-header,
+body.green-light .streak-modal-header {
   background: linear-gradient(135deg, var(--surface), var(--bg3));
 }
 
 /* Off the Chart severe-dropout marker: #ff7070 too light on light backgrounds */
 body.navy-light .dropout-row--severe,   body.purple-light .dropout-row--severe,
 body.yellow-light .dropout-row--severe, body.pink-light .dropout-row--severe,
-body.red-light .dropout-row--severe {
+body.red-light .dropout-row--severe,
+body.green-light .dropout-row--severe {
   background: rgba(220, 38, 38, 0.06);
   border-left-color: #b91c1c;
 }
@@ -36347,14 +36592,16 @@ body.navy-light .streak-section--fame .streak-section-title,
 body.purple-light .streak-section--fame .streak-section-title,
 body.yellow-light .streak-section--fame .streak-section-title,
 body.pink-light .streak-section--fame .streak-section-title,
-body.red-light .streak-section--fame .streak-section-title {
+body.red-light .streak-section--fame .streak-section-title,
+body.green-light .streak-section--fame .streak-section-title {
   color: #92400e;
 }
 
 /* Milestone badge: neon green tint invisible/jarring on light backgrounds */
 body.navy-light .sk-ms,   body.purple-light .sk-ms,
 body.yellow-light .sk-ms, body.pink-light .sk-ms,
-body.red-light .sk-ms {
+body.red-light .sk-ms,
+body.green-light .sk-ms {
   background: rgba(0, 0, 0, 0.04);
   border-color: rgba(0, 0, 0, 0.15);
 }
@@ -36368,7 +36615,8 @@ body.navy-light :is(.sv--gold, .modal-rank-card--gold .mrc-rank, .modal-cb-detai
 body.purple-light :is(.sv--gold, .modal-rank-card--gold .mrc-rank, .modal-cb-detail-peak--gold),
 body.yellow-light :is(.sv--gold, .modal-rank-card--gold .mrc-rank, .modal-cb-detail-peak--gold),
 body.pink-light :is(.sv--gold, .modal-rank-card--gold .mrc-rank, .modal-cb-detail-peak--gold),
-body.red-light :is(.sv--gold, .modal-rank-card--gold .mrc-rank, .modal-cb-detail-peak--gold) {
+body.red-light :is(.sv--gold, .modal-rank-card--gold .mrc-rank, .modal-cb-detail-peak--gold),
+body.green-light :is(.sv--gold, .modal-rank-card--gold .mrc-rank, .modal-cb-detail-peak--gold) {
   color: var(--medal-gold);
   text-shadow: none;
 }
@@ -36376,7 +36624,8 @@ body.navy-light :is(.sv--silver, .modal-cb-detail-peak--silver),
 body.purple-light :is(.sv--silver, .modal-cb-detail-peak--silver),
 body.yellow-light :is(.sv--silver, .modal-cb-detail-peak--silver),
 body.pink-light :is(.sv--silver, .modal-cb-detail-peak--silver),
-body.red-light :is(.sv--silver, .modal-cb-detail-peak--silver) {
+body.red-light :is(.sv--silver, .modal-cb-detail-peak--silver),
+body.green-light :is(.sv--silver, .modal-cb-detail-peak--silver) {
   color: var(--medal-silver);
   text-shadow: none;
 }
@@ -36384,7 +36633,8 @@ body.navy-light :is(.sv--bronze, .modal-cb-detail-peak--bronze),
 body.purple-light :is(.sv--bronze, .modal-cb-detail-peak--bronze),
 body.yellow-light :is(.sv--bronze, .modal-cb-detail-peak--bronze),
 body.pink-light :is(.sv--bronze, .modal-cb-detail-peak--bronze),
-body.red-light :is(.sv--bronze, .modal-cb-detail-peak--bronze) {
+body.red-light :is(.sv--bronze, .modal-cb-detail-peak--bronze),
+body.green-light :is(.sv--bronze, .modal-cb-detail-peak--bronze) {
   color: var(--medal-bronze);
   text-shadow: none;
 }
@@ -37728,7 +37978,8 @@ body.red-light :is(.sv--bronze, .modal-cb-detail-peak--bronze) {
        text, so the tinted row above reads as a muddy olive that looks *dimmer* than
        its unselected white siblings — selection has to fall back to the solid accent
        fill the rest of the app's selected states use. */
-    body.yellow .kebab-panel .size-btns button.active {
+    body.yellow .kebab-panel .size-btns button.active,
+    body.green .kebab-panel .size-btns button.active {
       background: var(--accent);
       color: var(--on-accent);
     }
@@ -37804,10 +38055,12 @@ body.red-light :is(.sv--bronze, .modal-cb-detail-peak--bronze) {
     }
     /* Yellow dark: same reason as the preset rows above — the tint reads dim,
        so the label carries the selection with the solid accent instead */
-    body.yellow .size-custom.active .size-custom-row {
+    body.yellow .size-custom.active .size-custom-row,
+    body.green .size-custom.active .size-custom-row {
       background: var(--accent);
     }
-    body.yellow .size-custom.active .size-custom-label {
+    body.yellow .size-custom.active .size-custom-label,
+    body.green .size-custom.active .size-custom-label {
       color: var(--on-accent);
     }
     .size-custom-note {
@@ -38458,7 +38711,8 @@ body.red-light :is(.sv--bronze, .modal-cb-detail-peak--bronze) {
     body.purple-light .cr-stk-t1,
     body.yellow-light .cr-stk-t1,
     body.red-light .cr-stk-t1,
-    body.pink-light .cr-stk-t1 {
+    body.pink-light .cr-stk-t1,
+    body.green-light .cr-stk-t1 {
       --flame-1: #a35d00; --flame-2: #d18b1f; --heat-1: #8a5310; --heat-2: #c07d14;
     }
 
@@ -38466,7 +38720,8 @@ body.red-light :is(.sv--bronze, .modal-cb-detail-peak--bronze) {
     body.purple-light .cr-stk-t2,
     body.yellow-light .cr-stk-t2,
     body.red-light .cr-stk-t2,
-    body.pink-light .cr-stk-t2 {
+    body.pink-light .cr-stk-t2,
+    body.green-light .cr-stk-t2 {
       --flame-1: #c94f00; --flame-2: #e08a2a; --heat-1: #b34700; --heat-2: #e08a2a;
     }
 
@@ -38474,7 +38729,8 @@ body.red-light :is(.sv--bronze, .modal-cb-detail-peak--bronze) {
     body.purple-light .cr-stk-t6,
     body.yellow-light .cr-stk-t6,
     body.red-light .cr-stk-t6,
-    body.pink-light .cr-stk-t6 {
+    body.pink-light .cr-stk-t6,
+    body.green-light .cr-stk-t6 {
       --flame-1: #0b57d0; --flame-2: #2f8fdc; --heat-1: #0b57d0; --heat-2: #1a78cc;
     }
 
@@ -38489,7 +38745,9 @@ body.red-light :is(.sv--bronze, .modal-cb-detail-peak--bronze) {
     body.purple-light .cr-stk-t6 .cr-stk-bar > i,
     body.yellow-light .cr-stk-t6 .cr-stk-bar > i,
     body.red-light .cr-stk-t6 .cr-stk-bar > i,
-    body.pink-light .cr-stk-t6 .cr-stk-bar > i {
+    body.pink-light .cr-stk-t6 .cr-stk-bar > i,
+    body.green-light .cr-stk-t6 .cr-stk-flame-body,
+    body.green-light .cr-stk-t6 .cr-stk-bar > i {
       background: linear-gradient(90deg, #0b57d0, #2f8fdc, #0b57d0);
       background-size: 220% 100%;
     }
@@ -38504,7 +38762,9 @@ body.red-light :is(.sv--bronze, .modal-cb-detail-peak--bronze) {
     body.purple-light .cr-stk-chip-live,
     body.yellow-light .cr-stk-chip-live,
     body.red-light .cr-stk-chip-live,
-    body.pink-light .cr-stk-chip-live {
+    body.pink-light .cr-stk-chip-live,
+    body.green-light .cr-stk-live,
+    body.green-light .cr-stk-chip-live {
       color: #b35a00;
       border-color: color-mix(in srgb, #b35a00 70%, transparent);
     }
@@ -39294,7 +39554,8 @@ body.red-light :is(.sv--bronze, .modal-cb-detail-peak--bronze) {
     body.purple-light,
     body.yellow-light,
     body.pink-light,
-    body.red-light {
+    body.red-light,
+    body.green-light {
       --rt-teal-src:    #0f766e;
       --rt-masterpiece: color-mix(in srgb, var(--green) 70%, var(--text));
       --rt-essential:   color-mix(in srgb, var(--green) 40%, var(--text));
@@ -43542,10 +43803,14 @@ body.dy-recap-open {
 .sk-t-blaze   { --sk-tier: #ff7a3d; }
 .sk-t-inferno { --sk-tier: #ff4d6d; }
 .sk-t-eternal { --sk-tier: #c084fc; }
-body.navy-light .sk-t-flame, body.purple-light .sk-t-flame, body.yellow-light .sk-t-flame, body.pink-light .sk-t-flame, body.red-light .sk-t-flame { --sk-tier: #b45309; }
-body.navy-light .sk-t-blaze, body.purple-light .sk-t-blaze, body.yellow-light .sk-t-blaze, body.pink-light .sk-t-blaze, body.red-light .sk-t-blaze { --sk-tier: #c2410c; }
-body.navy-light .sk-t-inferno, body.purple-light .sk-t-inferno, body.yellow-light .sk-t-inferno, body.pink-light .sk-t-inferno, body.red-light .sk-t-inferno { --sk-tier: #be123c; }
-body.navy-light .sk-t-eternal, body.purple-light .sk-t-eternal, body.yellow-light .sk-t-eternal, body.pink-light .sk-t-eternal, body.red-light .sk-t-eternal { --sk-tier: #7e22ce; }
+body.navy-light .sk-t-flame, body.purple-light .sk-t-flame, body.yellow-light .sk-t-flame, body.pink-light .sk-t-flame, body.red-light .sk-t-flame,
+body.green-light .sk-t-flame { --sk-tier: #b45309; }
+body.navy-light .sk-t-blaze, body.purple-light .sk-t-blaze, body.yellow-light .sk-t-blaze, body.pink-light .sk-t-blaze, body.red-light .sk-t-blaze,
+body.green-light .sk-t-blaze { --sk-tier: #c2410c; }
+body.navy-light .sk-t-inferno, body.purple-light .sk-t-inferno, body.yellow-light .sk-t-inferno, body.pink-light .sk-t-inferno, body.red-light .sk-t-inferno,
+body.green-light .sk-t-inferno { --sk-tier: #be123c; }
+body.navy-light .sk-t-eternal, body.purple-light .sk-t-eternal, body.yellow-light .sk-t-eternal, body.pink-light .sk-t-eternal, body.red-light .sk-t-eternal,
+body.green-light .sk-t-eternal { --sk-tier: #7e22ce; }
 
 .sk-row {
   display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; gap: 0.65rem; align-items: center;
@@ -43821,7 +44086,8 @@ body.navy-light .sk-t-eternal, body.purple-light .sk-t-eternal, body.yellow-ligh
 button.sk-hm-tswatch { padding: 0; appearance: none; -webkit-appearance: none; }
 button.sk-hm-tswatch:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 body.navy-light .sk-hm-tswatch.active, body.purple-light .sk-hm-tswatch.active, body.yellow-light .sk-hm-tswatch.active,
-body.pink-light .sk-hm-tswatch.active, body.red-light .sk-hm-tswatch.active { border-color: var(--text); }
+body.pink-light .sk-hm-tswatch.active, body.red-light .sk-hm-tswatch.active,
+body.green-light .sk-hm-tswatch.active { border-color: var(--text); }
 .sk-hm-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.5rem; margin-bottom: 0.5rem; }
 .sk-hm-tile { min-width: 0; padding: 0.45rem 0.6rem; }
 .sk-hm-tile-v { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: var(--fs-md); font-weight: 700; color: var(--text); }

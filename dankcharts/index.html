@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=824">
+  <link rel="stylesheet" href="style.css?v=826">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -65,6 +65,8 @@
           <button class="theme-btn" data-theme="yellow-light" data-i18n-title="tooltip_theme_yellow_light">●</button>
           <button class="theme-btn" data-theme="pink" data-i18n-title="tooltip_theme_pink_dark">●</button>
           <button class="theme-btn" data-theme="pink-light" data-i18n-title="tooltip_theme_pink_light">●</button>
+          <button class="theme-btn" data-theme="green" data-i18n-title="tooltip_theme_green_dark">●</button>
+          <button class="theme-btn" data-theme="green-light" data-i18n-title="tooltip_theme_green_light">●</button>
         </div>
       </div>
       <div class="ctrl-group" id="landingLangGroup">
@@ -329,6 +331,8 @@
           <button class="theme-btn" data-theme="yellow-light" data-i18n-title="tooltip_theme_yellow_light">●</button>
           <button class="theme-btn" data-theme="pink" data-i18n-title="tooltip_theme_pink_dark">●</button>
           <button class="theme-btn" data-theme="pink-light" data-i18n-title="tooltip_theme_pink_light">●</button>
+          <button class="theme-btn" data-theme="green" data-i18n-title="tooltip_theme_green_dark">●</button>
+          <button class="theme-btn" data-theme="green-light" data-i18n-title="tooltip_theme_green_light">●</button>
           <span id="themeLabel">Navy</span>
         </div>
       </div>
@@ -5386,6 +5390,8 @@ function deleteGenreTriggers() {
             <button type="button" class="theme-btn set-theme-swatch" data-theme="yellow-light" data-i18n-title="tooltip_theme_yellow_light"><span class="set-theme-dot" aria-hidden="true"></span><span class="set-theme-name" data-i18n="tooltip_theme_yellow_light"></span></button>
             <button type="button" class="theme-btn set-theme-swatch" data-theme="pink" data-i18n-title="tooltip_theme_pink_dark"><span class="set-theme-dot" aria-hidden="true"></span><span class="set-theme-name" data-i18n="tooltip_theme_pink_dark"></span></button>
             <button type="button" class="theme-btn set-theme-swatch" data-theme="pink-light" data-i18n-title="tooltip_theme_pink_light"><span class="set-theme-dot" aria-hidden="true"></span><span class="set-theme-name" data-i18n="tooltip_theme_pink_light"></span></button>
+            <button type="button" class="theme-btn set-theme-swatch" data-theme="green" data-i18n-title="tooltip_theme_green_dark"><span class="set-theme-dot" aria-hidden="true"></span><span class="set-theme-name" data-i18n="tooltip_theme_green_dark"></span></button>
+            <button type="button" class="theme-btn set-theme-swatch" data-theme="green-light" data-i18n-title="tooltip_theme_green_light"><span class="set-theme-dot" aria-hidden="true"></span><span class="set-theme-name" data-i18n="tooltip_theme_green_light"></span></button>
           </div>
           <div class="set-row-label" data-i18n="set_language">Language</div>
           <div class="dc-seg dc-seg-fill set-lang-seg" role="group">

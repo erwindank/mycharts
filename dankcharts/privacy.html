@@ -35,6 +35,8 @@
     body.yellow-light { --bg: #f8f5e6; --bg2: #ffffff; --bg3: #faf6e0; --surface: #f7eecb; --border: #c2b76a; --text: #1a1800; --text2: #3a3400; --text3: #5a5000; --accent: #766000; }
     body.pink { --bg: #130a10; --bg2: #1a0f16; --bg3: #22141d; --surface: #2f1c27; --border: #4c2c3e; --text: #ffffff; --text2: #ffffff; --text3: #e8d0e0; --accent: #f65cb2; }
     body.pink-light { --bg: #f9eff6; --bg2: #ffffff; --bg3: #faf0f7; --surface: #f8def0; --border: #d5a3c6; --text: #1a0010; --text2: #4a0030; --text3: #6e3058; --accent: #b0006a; }
+    body.green { --bg: #0b140f; --bg2: #111d16; --bg3: #17271e; --surface: #1d3226; --border: #2b4636; --text: #edf8f1; --text2: #b0d9c1; --text3: #8cc2a3; --accent: #3fd68a; }
+    body.green-light { --bg: #eef7f1; --bg2: #ffffff; --bg3: #ecf6f0; --surface: #d9efe2; --border: #9cc7ae; --text: #04170c; --text2: #0b3a20; --text3: #2f6146; --accent: #0d6b38; }
 
     html, body { min-height: 100vh; background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 15px; line-height: 1.7; }
 
@@ -113,6 +115,8 @@
     .theme-btn[data-theme="yellow-light"] { background: #ffe040; }
     .theme-btn[data-theme="pink"]         { background: #cc2090; }
     .theme-btn[data-theme="pink-light"]   { background: #ffaadd; }
+    .theme-btn[data-theme="green"]        { background: #1f9d55; }
+    .theme-btn[data-theme="green-light"]  { background: #8fe0b0; }
     .theme-btn.active { border-color: var(--accent); transform: scale(1.2); }
     .theme-btn:hover  { border-color: var(--text2);  transform: scale(1.15); }
 
@@ -258,6 +262,8 @@
           <button class="theme-btn" data-theme="yellow-light"></button>
           <button class="theme-btn" data-theme="pink"></button>
           <button class="theme-btn" data-theme="pink-light"></button>
+          <button class="theme-btn" data-theme="green"></button>
+          <button class="theme-btn" data-theme="green-light"></button>
         </div>
       </div>
     </div>
@@ -565,7 +571,7 @@
       document.body.className = t === 'navy-dark' ? '' : t;
       document.querySelectorAll('.theme-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === t));
       const dots = document.querySelectorAll('.ctrl-theme-dot');
-      const colors = {'navy-dark':'#1a6eb5','navy-light':'#90c4f4','purple':'#7c6af7','purple-light':'#c4b8ff','red':'#cc2020','red-light':'#ff9999','yellow':'#c8a800','yellow-light':'#ffe040','pink':'#cc2090','pink-light':'#ffaadd'};
+      const colors = {'navy-dark':'#1a6eb5','navy-light':'#90c4f4','purple':'#7c6af7','purple-light':'#c4b8ff','red':'#cc2020','red-light':'#ff9999','yellow':'#c8a800','yellow-light':'#ffe040','pink':'#cc2090','pink-light':'#ffaadd','green':'#1f9d55','green-light':'#8fe0b0'};
       dots.forEach(d => d.style.background = colors[t] || '#1a6eb5');
       localStorage.setItem('dankcharts-theme', t);
     }
