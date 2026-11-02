@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Charts: Listening Patterns you can read":
+    ["Gráficos: Padrões de audição que se conseguem ler",
+     "Os Padrões de audição por baixo do mapa de calor de Estatísticas → Gráficos usavam texto e quadrados minúsculos. Agora têm um título a sério, barras por dia maiores e uma grelha de horas por dia que enche o cartão, com manhã, tarde, fim de tarde e noite marcados em cima e as horas em baixo. A tua hora mais ouvida da semana fica marcada e nomeada, e passar o cursor (ou tocar) em qualquer quadrado mostra os plays dele."],
   "Charts: a heatmap you can actually read":
     ["Gráficos: um mapa de calor que se consegue ler",
      "Num ano muito ouvido, quase todos os quadrados do mapa de calor de Estatísticas → Gráficos ficavam na cor mais escura. Agora cada ano é colorido pelos seus próprios dias calmos e movimentados, por isso o padrão aparece. Um novo esquema O teu tema usa as cores do site (os outros cinco continuam lá), os controlos ficam numa só barra, os plays, o melhor dia, o artista top e os artistas novos do ano aparecem numa fila de números (toca no artista para veres os detalhes), e a faixa de anos mostra todos sem cortar o primeiro."],

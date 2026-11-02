@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 430;
+const DC_CL_I18N_V = 431;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -306,6 +306,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-01', t: 'design', a: 'graphs', h: 'bf41555',
+    title: "Charts: Listening Patterns you can read",
+    detail: "Listening Patterns under the Stats → Charts heatmap used tiny text and squares. It now has a proper title, bigger weekday bars, and an hour-by-day grid that fills the card, with morning, afternoon, evening and night marked over it and the hours under it. Your busiest hour of the week is ringed and named, and pointing at (or tapping) any square shows its plays." },
   { d: '2026-11-01', t: 'design', a: 'graphs', h: 'e482666',
     title: "Charts: a heatmap you can actually read",
     detail: "On a busy year almost every square of the Stats → Charts heatmap was the darkest colour. Each year is now shaded by its own quiet and busy days, so the pattern shows. A new Your theme colour scheme matches the site's colours (the other five are still there), the controls sit in one tidy bar, the year's plays, best day, top artist and new artists sit in a row of figures (tap the artist for their details), and the year strip shows every year without cutting the first one off." },

@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Charts: Listening Patterns you can read":
+    ["Gráficos: Patrones de escucha que se pueden leer",
+     "Los Patrones de escucha bajo el mapa de calor de Estadísticas → Gráficos usaban texto y cuadros diminutos. Ahora tienen un título de verdad, barras por día más grandes y una cuadrícula de horas por día que llena la tarjeta, con la mañana, la tarde, el atardecer y la noche marcados encima y las horas debajo. Tu hora con más escuchas de la semana va marcada y nombrada, y al pasar el cursor (o tocar) cualquier cuadro ves sus reproducciones."],
   "Charts: a heatmap you can actually read":
     ["Gráficos: un mapa de calor que se puede leer",
      "En un año con muchas escuchas, casi todos los cuadros del mapa de calor de Estadísticas → Gráficos tenían el color más oscuro. Ahora cada año se colorea según sus propios días tranquilos y activos, así que se ve el patrón. Un nuevo esquema Tu tema usa los colores del sitio (los otros cinco siguen ahí), los controles van en una sola barra, las reproducciones, el mejor día, el artista top y los artistas nuevos del año aparecen en una fila de cifras (toca el artista para ver sus detalles), y la tira de años muestra todos sin cortar el primero."],
