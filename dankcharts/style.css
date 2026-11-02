@@ -46466,6 +46466,9 @@ body:not(:is([data-view="day"], [data-view="week"], [data-view="month"], [data-v
     font-weight: 600;
     letter-spacing: .07em;
     color: var(--text3);
+    /* Mono headers are wider; long ones ("Semanas na Parada") wrap rather
+       than push the table past the page at ~1100px. */
+    white-space: normal;
   }
   #recordsView .recx .rec-table thead th:first-child { border-radius: 0; }
   #recordsView .recx .rec-table .col-resize-handle { display: none; }
@@ -46482,8 +46485,9 @@ body:not(:is([data-view="day"], [data-view="week"], [data-view="month"], [data-v
     font-size: 1.1rem;
     font-weight: 800;
     color: var(--text);
-    white-space: nowrap;
-    min-width: 120px;
+    /* Room for the bar, but free to wrap: at ~1100px with the side menu a
+       nowrap here pushed Appearances wider than the page. */
+    min-width: 84px;
   }
   #recordsView .recx .rec-table .rec-run-toggle-btn,
   #recordsView .recx .rec-table .rec-cr-toggle { border-color: transparent; border-radius: 8px; }
