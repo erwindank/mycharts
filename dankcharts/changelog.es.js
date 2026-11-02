@@ -4401,3 +4401,17 @@ window.DC_CHANGELOG_I18N['es'] = {
      'Se añadieron charts para las canciones que salieron, y cada fila del chart ganó su posición anterior, su número de reproducciones y sus semanas o meses en el chart. De paso se corrigieron las etiquetas de pico.'],
 
 };
+
+/* Highlight cards (DC_CL_HIGHLIGHTS in changelog.js), keyed by id. */
+window.DC_CL_HIGHLIGHTS_I18N = window.DC_CL_HIGHLIGHTS_I18N || {};
+window.DC_CL_HIGHLIGHTS_I18N["es"] = {
+  dank100: {
+    title: "The Dank 100 ya está aquí",
+    intro: "Una lista semanal compartida, hecha con lo que escucha todo el mundo. Envía tu semana y ayuda a decidir qué es el n.º 1.",
+    points: [
+      "Envía tu semana con un clic, o todo tu año desde enero.",
+      "Los puntos salen de las posiciones en la lista, no de las reproducciones, así que cada oyente cuenta igual.",
+      "Haz clic en cualquier canción, artista o álbum para ver su recorrido: debut, pico y semanas en el n.º 1.",
+      "Vuelve a semanas anteriores, récords y cada n.º 1, y comparte el top 10 como imagen."
+    ] },
+};

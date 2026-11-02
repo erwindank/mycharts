@@ -56442,6 +56442,10 @@ function openChangelog() {
     });
   }
   dcClMarkSeen();
+  /* "Take me there" needs the app behind the overlay. On the landing screen
+     (no data loaded yet) there is no tab to go to, so the buttons hide. */
+  const app = document.getElementById('mainApp');
+  m.classList.toggle('cl-noapp', !app || app.style.display === 'none');
   m.classList.add('open');
   document.body.style.overflow = 'hidden';   // the overlay scrolls, not the page
   // Deep link, so a specific changelog can be sent to someone.
@@ -56556,7 +56560,7 @@ function dcRenderChangelog() {
       Object.keys(DC_CL_TYPES).filter(ty => counts[ty]).map(ty => {
         const key = 'cl_stat_type_' + ty;
         const s = t(key);
-        return '<span class="cl-stat"><b>' + counts[ty] + '</b> ' +
+        return '<span class="cl-stat cl-stat-type"><b>' + counts[ty] + '</b> ' +
                esc(s !== key ? s : dcClTypeLabel(ty).toLowerCase()) + '</span>';
       }).join('') +
       (since ? '<span class="cl-stat cl-stat-since">' + esc(t('cl_stat_since', { date: since })) + '</span>' : '');
@@ -56593,7 +56597,11 @@ function dcRenderChangelog() {
      but new) means no rule at all - a divider with nothing above or below it
      is just a line. */
   let dividerDone = !newCount;
-  let h = '', lastMonth = '';
+  /* The highlight cards come first; the full list follows under its own
+     heading, which only shows when there are highlights to set it apart from. */
+  const hl = dcClHighlightsHtml();
+  let h = hl ? hl + '<div class="cl-section-head" id="clAllHead"><span>' + esc(t('cl_all_heading')) + '</span></div>' : '';
+  let lastMonth = '';
   DC_CHANGELOG.forEach((e, i) => {
     /* Guarded on the cutoff itself: an empty one would mark the whole list
        as new, which is worse than marking none of it. */
@@ -56641,6 +56649,112 @@ function dcRenderChangelog() {
   body.innerHTML = h;
 }
 
+/* -- Highlight cards ----------------------------------------------------------
+   The big updates (DC_CL_HIGHLIGHTS in changelog.js), drawn as release notes:
+   screenshot, headline, a few bullets, a button to the tab it is about, and a
+   fold listing the full-list entries the update is made of. */
+
+/* Title, intro and bullets for one highlight in the current language. */
+function dcClHighlightText(hl) {
+  const dict = currentLang !== 'en' && window.DC_CL_HIGHLIGHTS_I18N ? window.DC_CL_HIGHLIGHTS_I18N[currentLang] : null;
+  const tr = dict ? dict[hl.id] : null;
+  return tr ? { title: tr.title || hl.title, intro: tr.intro || hl.intro || '', points: tr.points || hl.points || [] }
+            : { title: hl.title, intro: hl.intro || '', points: hl.points || [] };
+}
+
+/* Full date ("November 1, 2026") in the current language. */
+function dcClLongDate(iso) {
+  const localeMap = { en: 'en-US', es: 'es', 'pt-BR': 'pt-BR', 'pt-PT': 'pt-PT' };
+  const p = iso.split('-');
+  const d = new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10));
+  return new Intl.DateTimeFormat(localeMap[currentLang] || 'en-US',
+                                 { month: 'long', day: 'numeric', year: 'numeric' }).format(d);
+}
+
+function dcClHighlightsHtml() {
+  if (typeof DC_CL_HIGHLIGHTS === 'undefined' || !DC_CL_HIGHLIGHTS.length) return '';
+  /* Entries looked up by hash, for each card's "every change" fold. */
+  const byHash = {};
+  DC_CHANGELOG.forEach((e, i) => { if (e.h) byHash[e.h] = { e: e, i: i }; });
+  const cutoff = dcClRenderCutoff;
+  let h = '<section class="cl-hl-wrap" id="clHighlights">' +
+          '<div class="cl-section-head cl-section-head-first"><span>' + esc(t('cl_hl_heading')) + '</span></div>';
+  DC_CL_HIGHLIGHTS.forEach((hl, n) => {
+    const tx = dcClHighlightText(hl);
+    const isNew = !!cutoff && hl.d > cutoff;
+    const also = (hl.also || []).map(x => byHash[x]).filter(Boolean);
+    h += '<article class="cl-hl' + (isNew ? ' cl-hl-new' : '') + '">' +
+      (hl.img ? '<div class="cl-hl-shot"><img src="' + esc(hl.img) + '" alt="" loading="lazy" decoding="async"></div>' : '') +
+      '<div class="cl-hl-body">' +
+        '<div class="cl-hl-meta">' +
+          (isNew ? '<span class="cl-hl-fresh">' + esc(t('cl_hl_new')) + '</span>' : '') +
+          '<span>' + esc(dcClAreaLabel(hl.a)) + '</span><span aria-hidden="true">·</span>' +
+          '<time datetime="' + esc(hl.d) + '">' + esc(dcClLongDate(hl.d)) + '</time>' +
+        '</div>' +
+        '<h4 class="cl-hl-title">' + esc(tx.title) + '</h4>' +
+        (tx.intro ? '<p class="cl-hl-intro">' + esc(tx.intro) + '</p>' : '') +
+        (tx.points.length ? '<ul class="cl-hl-points">' + tx.points.map(p => '<li>' + esc(p) + '</li>').join('') + '</ul>' : '') +
+        '<div class="cl-hl-actions">' +
+          (hl.go ? '<button class="dc-btn dc-btn-main dc-btn-sm cl-hl-go" onclick="dcClGo(' + esc(JSON.stringify(hl.go)) + ')">' +
+                   esc(t('cl_hl_go')) + ' <span aria-hidden="true">&rarr;</span></button>' : '') +
+          (also.length ? '<button class="dc-btn dc-btn-plain dc-btn-sm cl-hl-more" aria-expanded="false" onclick="dcClToggleAlso(' + n + ',this)">' +
+                         esc(t('cl_hl_also', { n: also.length })) + '</button>' : '') +
+        '</div>' +
+        (also.length ? '<ul class="cl-hl-also" id="cl-hl-also-' + n + '" hidden>' + also.map(o => {
+            const ty = DC_CL_TYPES[o.e.t] || { cls: 'data' };
+            return '<li><span class="cl-badge cl-badge-' + ty.cls + '">' + esc(dcClTypeLabel(o.e.t)) + '</span>' +
+                   '<button class="cl-hl-also-title" onclick="dcClJumpToEntry(' + o.i + ')">' + esc(dcClEntryText(o.e).title) + '</button></li>';
+          }).join('') + '</ul>' : '') +
+      '</div>' +
+    '</article>';
+  });
+  return h + '</section>';
+}
+
+/* Show or hide the type and area pills under the search box. */
+function dcClToggleFilters() {
+  const wrap = document.getElementById('clFilterWrap');
+  const btn  = document.getElementById('clFilterBtn');
+  if (!wrap) return;
+  wrap.hidden = !wrap.hidden;
+  if (btn) btn.setAttribute('aria-expanded', String(!wrap.hidden));
+}
+
+/* Open or close a card's list of the changes it is made of. */
+function dcClToggleAlso(n, btn) {
+  const ul = document.getElementById('cl-hl-also-' + n);
+  if (!ul) return;
+  ul.hidden = !ul.hidden;
+  if (btn) btn.setAttribute('aria-expanded', String(!ul.hidden));
+}
+
+/* From a card's list down to that entry in the full list, opened. */
+function dcClJumpToEntry(i) {
+  const row = document.querySelector('#clBody .cl-entry[data-cli="' + i + '"]');
+  if (!row) return;
+  if (row.hidden) {   // filtered out - clear the search and pills first
+    const q = document.getElementById('clSearch');
+    if (q) q.value = '';
+    dcClActiveTypes.clear(); dcClActiveAreas.clear();
+    document.querySelectorAll('#changelogModal .cl-pill.on').forEach(b => b.classList.remove('on'));
+    dcChangelogFilter();
+  }
+  const d = document.getElementById('cl-detail-' + i);
+  if (d && d.hidden) dcClToggleEntry(i);
+  row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  row.classList.remove('cl-entry-flash'); void row.offsetWidth; row.classList.add('cl-entry-flash');
+}
+
+/* "Take me there": close What's New and open the tab the update is about.
+   Clicks the real nav button so the tab opens exactly as it does by hand. */
+function dcClGo(period) {
+  const btn = document.querySelector('#periodNav button[data-period="' + period + '"]');
+  closeChangelog();
+  if (!btn) return;
+  btn.click();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 /* Expand or collapse one entry's detail. */
 function dcClToggleEntry(i) {
   const d = document.getElementById('cl-detail-' + i);
@@ -56683,8 +56797,20 @@ function dcChangelogFilter() {
   /* "Since your last visit" only reads as true in the full, date-ordered list.
      Once a pill or a search reorders what is on screen, its position is
      arbitrary, so it goes away until the filters are cleared again. */
+  const filtering = !!(q || dcClActiveTypes.size || dcClActiveAreas.size);
+  /* With the pills folded away, the Filter button shows how many are on. */
+  const nOn = dcClActiveTypes.size + dcClActiveAreas.size;
+  const fN = document.getElementById('clFilterN');
+  if (fN) fN.textContent = nOn ? ' · ' + nOn : '';
   const divider = document.getElementById('clNewDivider');
-  if (divider) divider.hidden = !!(q || dcClActiveTypes.size || dcClActiveAreas.size);
+  if (divider) divider.hidden = filtering;
+
+  /* The highlight cards are for reading, not searching: while a search or a
+     pill is on, only the matching rows of the full list are shown. */
+  const hls = document.getElementById('clHighlights');
+  if (hls) hls.hidden = filtering;
+  const allHead = document.getElementById('clAllHead');
+  if (allHead) allHead.hidden = filtering;
 
   const empty = document.getElementById('clEmpty');
   if (empty) empty.hidden = shown > 0;

@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 413;
+const DC_CL_I18N_V = 414;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -72,6 +72,41 @@ const DC_CL_AREAS = {
   mobile:     'Mobile',
   ui:         'Interface',
 };
+
+/* -- Highlights -------------------------------------------------------------
+   The big updates, told as release notes rather than as a log. They sit above
+   the full list in the What's New window: a screenshot, a plain headline, a
+   few bullet points, a button that opens the part of the site it is about,
+   and a fold with every entry below that belongs to the same update.
+
+   Only big updates get one. Fixes and small changes stay in the full list.
+
+     id      short name, also the key for its translations
+     d       ISO date the update finished landing
+     a       area (DC_CL_AREAS)
+     img     screenshot in whatsnew/, 1200px wide .webp, taken with the
+             sample data so it never shows anyone's real library
+     go      the data-period of the tab "Take me there" opens (optional)
+     title   headline, in plain words
+     intro   one or two sentences: what it is and why you would care
+     points  2-4 short bullets of what you can do with it
+     also    hashes (h) of the entries in DC_CHANGELOG this update is made of
+
+   Translations live in changelog.<lang>.js under DC_CL_HIGHLIGHTS_I18N, keyed
+   by id, as { title, intro, points }. A missing one shows in English.
+   ------------------------------------------------------------------------- */
+const DC_CL_HIGHLIGHTS = [
+  { id: 'dank100', d: '2026-11-01', a: 'charts', img: 'whatsnew/dank100.webp', go: 'dank100',
+    title: "The Dank 100 is here",
+    intro: "One shared weekly chart, made from everyone's listening. Send in your week and help decide what's #1.",
+    points: [
+      "Send your week with one click, or your whole year since January.",
+      "Points come from chart positions, not play counts, so every listener counts the same.",
+      "Click any song, artist or album to see its run: debut, peak and weeks at #1.",
+      "Look back at older weeks, records and every #1, and share the top 10 as an image.",
+    ],
+    also: ['20984e3', 'b5266b2', '4633b01', '5985dda', '4679756', '3449b86'] },
+];
 
 /* -- The record -------------------------------------------------------------
    Newest first. Backfilled from the full git history, 679 entries.
