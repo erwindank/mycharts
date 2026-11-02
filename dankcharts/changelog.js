@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 436;
+const DC_CL_I18N_V = 437;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -316,6 +316,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-01', t: 'feature', a: 'themes', h: '77b2565',
+    title: "Green dark and Green light themes",
+    detail: "Two new themes: Green dark, with a deep pine background and a mint accent, and Green light, with a soft sage background and a forest green accent. Pick them from the theme dots in the top bar or in Settings. On both, the NEW and RE tags in the charts are grey instead of green, so a new entry never looks like a song moving up." },
   { d: '2026-11-01', t: 'design', a: 'graphs', h: '0bfcf87',
     title: "A nicer Play a sample button",
     detail: "The Play a sample buttons on Stats (your top 5, song of the period and the look inside each bar) have a cleaner design: a round play disc, a soft tinted button, a spinning ring while the sample loads, and a little moving equalizer next to Stop while it plays." },

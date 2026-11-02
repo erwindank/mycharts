@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Green dark and Green light themes":
+    ["Temas Verde oscuro y Verde claro",
+     "Dos temas nuevos: Verde oscuro, con un fondo de pino profundo y un acento menta, y Verde claro, con un fondo salvia suave y un acento verde bosque. Elígelos en los puntos de tema de la barra superior o en Ajustes. En los dos, las etiquetas NEW y RE de las listas son grises en vez de verdes, para que una entrada nueva nunca parezca una canción que sube."],
   "A nicer Play a sample button":
     ["Un botón de muestra más bonito",
      "Los botones de escuchar una muestra en Estadísticas (tu top 5, la canción del periodo y el interior de cada barra) tienen un diseño más limpio: un disco redondo de reproducir, un botón con un tono suave, un anillo que gira mientras carga la muestra y un pequeño ecualizador en movimiento junto a Detener mientras suena."],

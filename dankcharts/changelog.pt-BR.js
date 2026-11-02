@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Green dark and Green light themes":
+    ["Temas Verde Escuro e Verde Claro",
+     "Dois temas novos: Verde Escuro, com um fundo verde-pinho profundo e destaque menta, e Verde Claro, com um fundo sálvia suave e destaque verde-floresta. Escolha nos pontos de tema da barra superior ou em Configurações. Nos dois, as etiquetas NEW e RE das paradas ficam cinza em vez de verdes, para que uma estreia nunca pareça uma música subindo."],
   "A nicer Play a sample button":
     ["Um botão de prévia mais bonito",
      "Os botões de ouvir uma prévia em Estatísticas (seu top 5, a música do período e o interior de cada barra) têm um visual mais limpo: um disco redondo de play, um botão com um tom suave, um anel que gira enquanto a prévia carrega e um pequeno equalizador em movimento ao lado de Parar enquanto toca."],
