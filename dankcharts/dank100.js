@@ -680,7 +680,7 @@
   // crBoxesHTML), built from the Dank 100 archive: a one-line story, the
   // ribbon of totals and a box per week on the chart, with ✕N gaps for the
   // weeks it was off. The classes are app.js's, so it looks the same; a box
-  // opens that week's Dank 100 instead of the personal week preview.
+  // opens that week's Dank 100 preview (weekPreview), not the personal one.
   function crRunHTML(pts, peak, at1) {
     var a = C.arch, n = pts.length;
     var B = function (s, gold) { return '<b' + (gold ? ' class="is-gold"' : '') + '>' + esc(s) + '</b>'; };
@@ -722,7 +722,7 @@
       var cls = 'cr-box' + (x[1] === peak ? ' cr-box-peak' : x[1] <= 3 ? ' cr-box-top3' : '') + (w === C.week ? ' d100-cr-here' : '');
       var lbl = typeof crPeriodLabel === 'function' ? crPeriodLabel('week', w) : fmtDay(weekBounds(w).start);
       var box = '<button type="button" class="' + cls + '" data-rank="' + x[1] + '" title="' + esc(rangeLabel(weekBounds(w))) + '"' +
-        ' onclick="event.stopPropagation();dcDank100.pickWeek(\'' + w + '\')">' +
+        ' onclick="event.stopPropagation();dcDank100.weekPreview(\'' + w + '\',this)">' +
         '<div class="cr-box-rank">#' + x[1] + '</div><div class="cr-box-label">' + esc(lbl) + '</div></button>';
       var gap = i ? x[0] - pts[i - 1][0] - 1 : 0;
       if (gap <= 0) return box;
@@ -736,6 +736,85 @@
   }
   function fact(key, val) {
     return '<div class="d100-fact"><div class="d100-fact-v">' + esc(val) + '</div><div class="d100-fact-k">' + esc(tr(key)) + '</div></div>';
+  }
+
+  // ── A run box's preview: that week's top of the chart in app.js's
+  // .cr-preview pop-up (the same one the user's own run boxes open), with
+  // this row picked out and a link that opens the full week.
+  var PREVIEW_TOP = 30;
+  var _pvClose = null;
+  function hideWeekPreview() {
+    var el = document.getElementById('d100Preview');
+    if (el) el.remove();
+    if (_pvClose) { _pvClose(); _pvClose = null; }
+  }
+  function weekPreview(w, box) {
+    var same = document.getElementById('d100Preview');
+    hideWeekPreview();
+    if (same && same.getAttribute('data-w') === w) return;   // second click closes it
+    var type = C.type, k = C.open;
+    var pop = document.createElement('div');
+    pop.className = 'cr-preview d100-preview-pop';
+    pop.id = 'd100Preview';
+    pop.setAttribute('data-w', w);
+    pop.style.position = 'fixed';
+    document.body.appendChild(pop);   // first, so fill() can scroll inside it
+    var title = tr('d100_week_of', { range: rangeLabel(weekBounds(w)) });
+    var unit = typeof tUnit === 'function' ? tUnit('weeks_full', 1) : '';
+    var fill = function (body) {
+      // The title, ✕ and "View full week" stay pinned at the top while the
+      // list scrolls under them
+      pop.innerHTML = '<div class="d100-pv-head"><button class="cr-preview-close" onclick="dcDank100.hideWeekPreview()">✕</button>' +
+        '<div class="cr-preview-title">' + esc(title) + ' · ' + esc(tr('d100_type_' + type)) +
+        '<a class="cr-preview-link d100-pv-link" href="#" onclick="event.preventDefault();dcDank100.hideWeekPreview();dcDank100.pickWeek(\'' + w + '\')">' +
+        esc(tr('rec_pak_period_preview_link', { unit: unit })) + '</a></div></div>' + body;
+      // Bring the picked-out row into view inside the pop-up (not the page:
+      // a page scroll would close it)
+      var hl = pop.querySelector('.highlighted');
+      if (hl && pop.isConnected) pop.scrollTop = Math.max(0, hl.offsetTop - (pop.clientHeight + pop.querySelector(".d100-pv-head").offsetHeight) / 2);
+    };
+    var list = function (d) {
+      var all = d[type] || [], rows = all.slice(0, PREVIEW_TOP);
+      var mine = all.filter(function (r) { return r.k === k; })[0];
+      // The row itself, even when it sat below the top 30 that week
+      if (mine && rows.indexOf(mine) < 0) rows = rows.concat([mine]);
+      return rows.map(function (r) {
+        return '<div class="cr-preview-item' + (r.k === k ? ' highlighted' : '') + '"><span class="cr-preview-rank">#' + r.p + '</span>' +
+          '<span>' + esc(r.t) + (r.a ? ' <span class="d100-pv-a">' + esc(r.a) + '</span>' : '') + '</span></div>';
+      }).join('');
+    };
+    var note = function (key) { return '<div class="cr-preview-item">' + esc(tr(key)) + '</div>'; };
+    if (C.cache[w]) fill(list(C.cache[w]));
+    else {
+      fill(note('d100_loading'));
+      fetch(API + '/dank100/chart?week=' + encodeURIComponent(w), { cache: 'no-store' })
+        .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+        .then(function (d) {
+          if (d.status === 'done' || d.status === 'small') C.cache[w] = d;
+          if (pop.isConnected) fill(d[type] ? list(d) : note('d100_err_chart'));
+        }, function () {
+          if (pop.isConnected) fill(note('d100_err_chart'));
+        });
+    }
+    // Under the box, or above it when there's no room below
+    var rect = box.getBoundingClientRect(), pw = 280, ph = 320;
+    var top = rect.bottom + 6, left = rect.left;
+    if (left + pw > window.innerWidth) left = window.innerWidth - pw - 8;
+    if (top + ph > window.innerHeight) top = rect.top - ph - 6;
+    pop.style.top = Math.max(4, top) + 'px';
+    pop.style.left = Math.max(4, left) + 'px';
+    // Closes on a click outside it (not on another box: that opens its own),
+    // and on page scroll, since a fixed pop-up would drift off its box
+    var onClick = function (e) { if (!pop.contains(e.target) && !e.target.closest('.d100-cr .cr-box')) hideWeekPreview(); };
+    var onScroll = function (e) { if (!pop.contains(e.target)) hideWeekPreview(); };
+    setTimeout(function () {
+      document.addEventListener('click', onClick, true);
+      document.addEventListener('scroll', onScroll, true);
+    }, 0);
+    _pvClose = function () {
+      document.removeEventListener('click', onClick, true);
+      document.removeEventListener('scroll', onScroll, true);
+    };
   }
 
   // ── Week picker: ‹ previous, a list of every published week, next ›
@@ -1442,6 +1521,8 @@
     toggleRun: toggleRun,
     share: shareCard,
     pickWeek: pickWeek,
+    weekPreview: weekPreview,
+    hideWeekPreview: hideWeekPreview,
     showAll: function () { C.all = true; render(); },
     reloadChart: function () { C.tries = 0; loadChart(true, C.week); },
     sendYear: sendYear,

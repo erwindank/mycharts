@@ -45987,6 +45987,11 @@ th.cr-th { width: 92px; }              /* = .chart-table .cr-cell */
 .d100-cr .cr-box { font: inherit; color: inherit; }
 /* The week on screen right now */
 .d100-cr .cr-box.d100-cr-here { outline: 2px solid var(--accent); outline-offset: 1px; }
+/* Its week preview pop-up (dank100.js weekPreview): artist after the title, dimmer */
+.d100-preview-pop .d100-pv-a { color: var(--text3); }
+/* Pinned header: covers the pop-up's top padding so rows don't show above it */
+.d100-preview-pop .d100-pv-head { position: sticky; top: -0.55rem; margin: -0.55rem -0.65rem 0; padding: 0.55rem 0.65rem 0; background: var(--bg2); z-index: 1; }
+.d100-preview-pop .d100-pv-link { display: block; margin-top: 3px; font-weight: 600; }
 
 .d100-no1 { display: flex; flex-direction: column; gap: 8px; }
 .d100-no1-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
