@@ -3670,6 +3670,7 @@ const TRANSLATIONS = {
        The expandable panel behind every Certifications Leaderboard row:
        one line per certification, with the arithmetic behind it. */
     certd_open_ledger: 'Show every certification',
+    certw_hide_ledger: 'Hide certifications',
     certd_title: 'Certification Ledger',
     certd_awards: 'certifications',
     certd_split: 'Songs / Albums',
@@ -8818,6 +8819,7 @@ const TRANSLATIONS = {
        The expandable panel behind every Certifications Leaderboard row:
        one line per certification, with the arithmetic behind it. */
     certd_open_ledger: 'Ver todas las certificaciones',
+    certw_hide_ledger: 'Ocultar certificaciones',
     certd_title: 'Registro de Certificaciones',
     certd_awards: 'certificaciones',
     certd_split: 'Canciones / Álbumes',
@@ -13934,6 +13936,7 @@ const TRANSLATIONS = {
        The expandable panel behind every Certifications Leaderboard row:
        one line per certification, with the arithmetic behind it. */
     certd_open_ledger: 'Ver todas as certificações',
+    certw_hide_ledger: 'Ocultar certificações',
     certd_title: 'Registro de Certificações',
     certd_awards: 'certificações',
     certd_split: 'Músicas / Álbuns',
@@ -19049,6 +19052,7 @@ const TRANSLATIONS = {
        The expandable panel behind every Certifications Leaderboard row:
        one line per certification, with the arithmetic behind it. */
     certd_open_ledger: 'Ver todas as certificações',
+    certw_hide_ledger: 'Ocultar certificações',
     certd_title: 'Registo de Certificações',
     certd_awards: 'certificações',
     certd_split: 'Músicas / Álbuns',

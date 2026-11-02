@@ -10357,7 +10357,11 @@ function buildRecords() {
      handed over as source items, not markup: a heavy catalogue holds well over
      a hundred certifications, and only the ledgers actually opened are ever
      built (see buildCertLedger). */
-  _certLedgers = certW.map(function (e) { return { artist: e.art, songs: e.songs, albums: e.albums }; });
+  /* The tallies ride along for the plaque wall over the top three
+     (recxCertWallFor in records-look.js), which reads them by row index. */
+  _certLedgers = certW.map(function (e) {
+    return { artist: e.art, songs: e.songs, albums: e.albums, sd: e.sd, sp: e.sp, sg: e.sg, ad: e.ad, ap: e.ap, ag: e.ag };
+  });
   let ch = '<div class="rec-section"><div class="rec-section-title">' + t('rec_artists_with_certs') + '</div>';
   ch += '<div class="rec-section-sub">' + t('rec_certs_thresholds', { sg: CERT.song.gold, sp: CERT.song.plat, sd: CERT.song.diamond, ag: CERT.album.gold, ap: CERT.album.plat, ad: CERT.album.diamond })
     /* A separated type is judged on its own ladder, so the line that states the
@@ -10377,8 +10381,11 @@ function buildRecords() {
     ch += recTable(['#', t('rec_th_artist'), t('rec_th_song_cert'), t('rec_th_album_cert'),
         '<button class="rec-expand-all-btn" onclick="event.stopPropagation();toggleAllCertLedgers(\'' + certTblId + '\',this)" title="' + esc(t('rec_expand_all')) + '">▶▶</button>'],
       certW.map(function (e, i) {
-        const sc2 = [e.sd ? e.sd + '× 💎' : '', e.sp ? e.sp + '× 💿' : '', e.sg ? e.sg + '× 📀' : ''].filter(Boolean).join(' ') || '—';
-        const ac2 = [e.ad ? e.ad + '× 💎' : '', e.ap ? e.ap + '× 💿' : '', e.ag ? e.ag + '× 📀' : ''].filter(Boolean).join(' ') || '—';
+        // Each tally is its own chip (.cert-tl in style.css); the text inside
+        // is unchanged ("4× 💎 26× 💿"), so sorting and search read it as before.
+        const tl = function (n, icon, cls) { return n ? '<span class="cert-tl cert-tl--' + cls + '">' + n + '× ' + icon + '</span>' : ''; };
+        const sc2 = [tl(e.sd, '💎', 'd'), tl(e.sp, '💿', 'p'), tl(e.sg, '📀', 'g')].filter(Boolean).join(' ') || '—';
+        const ac2 = [tl(e.ad, '💎', 'd'), tl(e.ap, '💿', 'p'), tl(e.ag, '📀', 'g')].filter(Boolean).join(' ') || '—';
         const ledgerId = 'rec-cert-ledger-' + i;
         return '<td class="rec-rank">' + (i + 1) + '</td>'
           // The name opens the artist modal. It stays a plain-looking name — the
@@ -18949,6 +18956,9 @@ function toggleCertLedger(btn, rowId, idx) {
   if (!row) return;
   const open = !row.classList.contains('open');
   recFillLazy(row); // puts the ledger's empty host in (recLazy) before it is built
+  // The plaque wall over the top three may have borrowed this ledger to show
+  // it under the plaques; the row takes it back (records-look.js).
+  if (typeof recxCertReturn === 'function') recxCertReturn(idx);
   if (open) buildCertLedger(idx);
   row.classList.toggle('open', open);
   btn.classList.toggle('active', open);
@@ -18962,7 +18972,8 @@ function toggleAllCertLedgers(tableId, btn) {
   const btns = table.querySelectorAll('button.rec-run-toggle-btn');
   const anyOpen = Array.from(rows).some(function (r) { return r.classList.contains('open'); });
   rows.forEach(function (r, i) {
-    if (!anyOpen) { recFillLazy(r); buildCertLedger(i); }
+    // A ledger the plaque wall borrowed comes home first (records-look.js).
+    if (!anyOpen) { recFillLazy(r); if (typeof recxCertReturn === 'function') recxCertReturn(i); buildCertLedger(i); }
     r.classList.toggle('open', !anyOpen);
   });
   btns.forEach(function (b) { b.classList.toggle('active', !anyOpen); b.textContent = anyOpen ? '▶' : '▼'; });

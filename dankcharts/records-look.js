@@ -311,6 +311,132 @@ function recxPodiumFor(table) {
   return { html: html, rows: top, loads: loads, podOnly: !rows[count] };
 }
 
+/* ── The plaque wall (Certifications, 2026-11-02) ──────────────────────
+   Certifications does not take the podium above: its rows open onto a whole
+   ledger, which the podium had no room or button for, so the top three lost
+   it. Instead three equal plaques: the artist's photo, every certification
+   in one big number, a bar of how it splits into 💎 / 💿 / 📀, the song and
+   album tallies, and "Show every certification", which opens that artist's
+   ledger full width under the wall (one at a time). The ledger is the one
+   the hidden table row would open: its .certd host is borrowed into the
+   wall's stage and handed back when the row's own ▶ is used
+   (recxCertReturn, called by toggleCertLedger in app.js). */
+const RECX_CERT_TABLE = 'rec-certs-tbl';
+
+function recxCertWallFor(table) {
+  const all = Array.from(table.tBodies[0].rows).filter(function (r) { return !r.matches(REC_DETAIL_ROW_SEL); });
+  const rows = [];
+  for (let i = 0; i < 3; i++) {
+    const r = all.find(function (x) { return x.dataset.recIdx === String(i); });
+    if (!r || !_certLedgers[i]) break;
+    rows.push(r);
+  }
+  if (!rows.length) return null;
+  const n = ++_recxPodN;
+  const loads = [];
+  // One tally line: "Songs  17× 💎  19× 💿  50× 📀", zeros left out.
+  const tally = function (label, d, p, g) {
+    const chip = function (v, icon, cls) {
+      return v ? '<span class="certw-chip certw-chip--' + cls + '"><b>' + v.toLocaleString() + '×</b> ' + icon + '</span>' : '';
+    };
+    const chips = chip(d, '💎', 'd') + chip(p, '💿', 'p') + chip(g, '📀', 'g');
+    return '<div class="certw-tally"><span class="certw-tally-l">' + esc(label) + '</span>'
+      + '<span class="certw-chips">' + (chips || '<span class="certw-none">—</span>') + '</span></div>';
+  };
+  const cards = rows.map(function (row, i) {
+    const src = _certLedgers[i];
+    const imgId = 'recx-certw-' + n + '-' + i;
+    loads.push({ type: 'artist', item: { imgId: imgId, name: src.artist, title: src.artist, artist: src.artist, album: '', prefKey: 'artist:' + src.artist.toLowerCase() } });
+    // Every certification the ledger lists (Gold, Platinum and each Diamond
+    // are their own line there), so this number and the ledger's agree.
+    const per = { d: 0, p: 0, g: 0 };
+    src.songs.concat(src.albums).forEach(function (it) {
+      it.events.forEach(function (ev) { per[ev.tier === 'diamond' ? 'd' : ev.tier === 'plat' ? 'p' : 'g']++; });
+    });
+    const total = per.d + per.p + per.g;
+    const pct = function (v) { return total ? (v / total * 100).toFixed(2) : 0; };
+    const open = 'openArtistModal(' + esc(JSON.stringify(src.artist)) + ')';
+    return '<article class="certw-card certw-card--' + (i + 1) + '" data-certw-idx="' + i + '">'
+      + '<div class="certw-head">'
+        + '<div class="certw-art" onclick="if(!event.target.closest(\'.img-src-btn\'))' + open + '">'
+          + '<div class="rec1-pod-art is-round" id="' + imgId + '"><div class="thumb-initials">' + esc(initials(src.artist)) + '</div></div>'
+          + '<span class="rec1-medal rec1-medal-' + (i + 1) + '">' + (i + 1) + '</span>'
+        + '</div>'
+        + '<div class="certw-id">'
+          + '<button type="button" class="certw-name" onclick="' + open + '">' + esc(src.artist) + '</button>'
+          + '<div class="certw-total"><b>' + total.toLocaleString() + '</b><span>' + esc(t('certd_awards')) + '</span></div>'
+        + '</div>'
+      + '</div>'
+      // How the total splits by tier, as one bar.
+      + '<div class="certw-bar" title="💎 ' + per.d + ' · 💿 ' + per.p + ' · 📀 ' + per.g + '">'
+        + (per.d ? '<i class="certw-bar--d" style="width:' + pct(per.d) + '%"></i>' : '')
+        + (per.p ? '<i class="certw-bar--p" style="width:' + pct(per.p) + '%"></i>' : '')
+        + (per.g ? '<i class="certw-bar--g" style="width:' + pct(per.g) + '%"></i>' : '')
+      + '</div>'
+      + tally(t('rec_th_song_cert'), src.sd, src.sp, src.sg)
+      + tally(t('rec_th_album_cert'), src.ad, src.ap, src.ag)
+      + '<button type="button" class="dc-btn dc-btn-normal certw-open" aria-expanded="false" onclick="recxCertToggle(this,' + i + ')">'
+        + '<span class="certw-open-l">' + esc(t('certd_open_ledger')) + '</span><span class="certw-caret" aria-hidden="true">▾</span></button>'
+      + '</article>';
+  }).join('');
+  if (!table.id) table.id = 'recx-tbl-' + (++_recxTblN);
+  const html = '<div class="recx-pod-room"><div class="certw" data-rec1-podium-for="' + table.id + '">'
+    + '<div class="certw-wall certw-n' + rows.length + '">' + cards + '</div>'
+    + '<div class="certw-stage" hidden></div>'
+    + '</div></div>';
+  return { html: html, rows: rows, loads: loads, podOnly: !all.some(function (r) { return r.dataset.recIdx === String(rows.length); }) };
+}
+
+// Opens (or closes) one plaque's ledger in the stage under the wall.
+function recxCertToggle(btn, idx) {
+  const wall = btn.closest('.certw');
+  const stage = wall && wall.querySelector('.certw-stage');
+  if (!stage) return;
+  const wasOpen = btn.getAttribute('aria-expanded') === 'true';
+  // One ledger at a time: whatever is on the stage goes back to its row.
+  Array.from(stage.querySelectorAll('.certd')).forEach(function (h) { recxCertReturn(+h.id.replace('certd-', '')); });
+  wall.querySelectorAll('.certw-open').forEach(function (b) {
+    b.setAttribute('aria-expanded', 'false');
+    b.querySelector('.certw-open-l').textContent = t('certd_open_ledger');
+    b.closest('.certw-card').classList.remove('is-open');
+  });
+  stage.hidden = true;
+  if (wasOpen) return;
+  const row = document.getElementById('rec-cert-ledger-' + idx);
+  if (!row) return;
+  recFillLazy(row); // the ledger's empty host, from the on-demand store
+  // Closed in the table first, so the row's own ▶ and this stay in step.
+  row.classList.remove('open');
+  const rowBtn = row.previousElementSibling && row.previousElementSibling.querySelector('.rec-run-toggle-btn');
+  if (rowBtn) { rowBtn.classList.remove('active'); rowBtn.textContent = '▶'; }
+  buildCertLedger(idx);
+  const host = document.getElementById('certd-' + idx);
+  if (!host) return;
+  stage.appendChild(host);
+  stage.hidden = false;
+  btn.setAttribute('aria-expanded', 'true');
+  btn.querySelector('.certw-open-l').textContent = t('certw_hide_ledger');
+  btn.closest('.certw-card').classList.add('is-open');
+  host.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// Hands a borrowed ledger back to its table row (and resets its plaque).
+function recxCertReturn(idx) {
+  const host = document.getElementById('certd-' + idx);
+  const row = document.getElementById('rec-cert-ledger-' + idx);
+  if (!host || !row || !host.closest('.certw-stage')) return;
+  const stage = host.closest('.certw-stage');
+  // recFillLazy puts the host straight into the row's one cell.
+  (row.cells[0] || row).appendChild(host);
+  if (!stage.querySelector('.certd')) stage.hidden = true;
+  const b = stage.parentElement.querySelector('.certw-card[data-certw-idx="' + idx + '"] .certw-open');
+  if (b) {
+    b.setAttribute('aria-expanded', 'false');
+    b.querySelector('.certw-open-l').textContent = t('certd_open_ledger');
+    b.closest('.certw-card').classList.remove('is-open');
+  }
+}
+
 function recxPodiums(sec) {
   if (RECX_NO_PODIUM.indexOf(sec.id) !== -1) return;
   sec.querySelectorAll('table.rec-table').forEach(function (table) {
@@ -319,7 +445,7 @@ function recxPodiums(sec) {
     recxBars(table);
     if (table.dataset.recxPod) return;
     table.dataset.recxPod = '1';
-    const pod = recxPodiumFor(table);
+    const pod = table.id === RECX_CERT_TABLE ? recxCertWallFor(table) : recxPodiumFor(table);
     if (!pod) return;
     const anchor = table.closest('.app-table-wrap') || table;
     anchor.insertAdjacentHTML('beforebegin', pod.html);

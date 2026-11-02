@@ -46498,3 +46498,102 @@ body:not(:is([data-view="day"], [data-view="week"], [data-view="month"], [data-v
 .recx-mil-more[aria-expanded="true"] { color: var(--accent); border-color: var(--accent); }
 #recordsView.rec-searching .recx-mil-more,
 .mil-timeline.recx-mil-unfold .recx-mil-more { display: none; }
+
+/* ── Certifications: the plaque wall over the top three (records-look.js,
+   recxCertWallFor, 2026-11-02) ─────────────────────────────────────────
+   Three equal plaques instead of the shared podium: photo, total, a tier
+   bar, the song and album tallies and "Show every certification", which
+   opens that artist's ledger full width in the stage under the wall.
+   Tier colours are the ledger's own (.certd-row--*). */
+.certw { --cw-d: var(--teal); --cw-p: var(--medal-silver); --cw-g: var(--gold1); margin-bottom: var(--sp-4, 1rem); }
+#recordsView.rec-searching .certw,
+.certw.nc-podium-retired { display: none; }
+.certw-wall { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.certw-wall.certw-n1 { grid-template-columns: minmax(0, 1fr); }
+.certw-wall.certw-n2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@container (max-width: 760px) { .certw-wall, .certw-wall.certw-n2 { grid-template-columns: 1fr; } }
+
+.certw-card {
+  --cw-medal: var(--medal-gold);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--cw-medal) 32%, var(--border));
+  /* The ledger's certificate look, quieter: a wash of the medal colour at
+     the top over a faint engraved hatch. */
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--cw-medal) 9%, transparent) 0, transparent 120px),
+    repeating-linear-gradient(115deg, color-mix(in srgb, var(--text) 3%, transparent) 0 1px, transparent 1px 7px),
+    var(--bg3);
+  transition: border-color .2s, box-shadow .2s, transform .2s;
+}
+.certw-card--2 { --cw-medal: var(--medal-silver); }
+.certw-card--3 { --cw-medal: var(--medal-bronze); }
+.certw-card:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(0, 0, 0, .22); }
+.certw-card.is-open { border-color: var(--cw-medal); box-shadow: 0 0 0 1px var(--cw-medal), 0 10px 28px rgba(0, 0, 0, .22); }
+
+.certw-head { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 14px; align-items: center; }
+.certw-art { position: relative; cursor: pointer; }
+.certw-art .rec1-pod-art { box-shadow: 0 0 0 2px color-mix(in srgb, var(--cw-medal) 70%, transparent), 0 8px 22px rgba(0, 0, 0, .3); }
+.certw-art:hover .rec1-pod-art { filter: brightness(1.06); }
+.certw-art .rec1-medal { left: -4px; top: -4px; width: 24px; height: 24px; font-size: .75rem; }
+.certw-id { min-width: 0; }
+.certw-name {
+  padding: 0; border: 0; background: none; cursor: pointer; text-align: left; max-width: 100%;
+  color: var(--text); font: 700 1.2rem/1.15 var(--font-display); overflow-wrap: anywhere;
+}
+.certw-name:hover { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.certw-total { display: flex; align-items: baseline; gap: 6px; margin-top: 4px; }
+.certw-total b { font: 800 2.1rem/1 var(--font-display); color: var(--cw-medal); font-variant-numeric: tabular-nums; }
+.certw-total span { font-size: var(--fs-sm); color: var(--text2); }
+
+/* The split of every certification by tier, as one bar. */
+.certw-bar { display: flex; height: 8px; border-radius: 99px; overflow: hidden; background: var(--surface); gap: 2px; }
+.certw-bar i { display: block; height: 100%; }
+.certw-bar--d { background: var(--cw-d); }
+.certw-bar--p { background: var(--cw-p); }
+.certw-bar--g { background: var(--cw-g); }
+
+.certw-tally { display: flex; flex-direction: column; gap: 6px; }
+.certw-tally-l { font: 700 .66rem var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--text3); }
+.certw-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.certw-chip {
+  display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 8px;
+  font-size: var(--fs-sm); white-space: nowrap;
+  border: 1px solid color-mix(in srgb, var(--ct) 35%, transparent);
+  background: color-mix(in srgb, var(--ct) 10%, transparent);
+}
+.certw-chip b { font-family: var(--font-display); color: var(--ct); font-variant-numeric: tabular-nums; }
+.certw-chip--d { --ct: var(--cw-d); }
+.certw-chip--p { --ct: var(--cw-p); }
+.certw-chip--g { --ct: var(--cw-g); }
+.certw-none { color: var(--text3); }
+
+.certw-open { margin-top: auto; width: 100%; justify-content: center; gap: 8px; }
+.certw-caret { transition: transform .2s; }
+.certw-open[aria-expanded="true"] .certw-caret { transform: rotate(180deg); }
+
+/* The borrowed ledger, full width under the wall. */
+.certw-stage { margin-top: 14px; }
+.certw-stage > .certd { animation: certw-in .22s ease-out; }
+@keyframes certw-in { from { opacity: 0; transform: translateY(-6px); } }
+@media (prefers-reduced-motion: reduce) {
+  .certw-card, .certw-caret { transition: none; }
+  .certw-card:hover { transform: none; }
+  .certw-stage > .certd { animation: none; }
+}
+
+/* The leaderboard rows under the wall: each tally a small chip, in the
+   same tier colours (the chips' text is unchanged, so sort and search
+   read the cells as before). */
+.cert-tl {
+  display: inline-block; padding: 2px 7px; margin: 1px 0; border-radius: 7px; white-space: nowrap;
+  border: 1px solid color-mix(in srgb, var(--ct) 30%, transparent);
+  background: color-mix(in srgb, var(--ct) 9%, transparent);
+}
+.cert-tl--d { --ct: var(--teal); }
+.cert-tl--p { --ct: var(--medal-silver); }
+.cert-tl--g { --ct: var(--gold1); }
