@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 448;
+const DC_CL_I18N_V = 449;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -316,6 +316,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-02', t: 'design', a: 'records', h: '749b57d',
+    title: "Milestones folds repeats, and New Charts speaks your language",
+    detail: "In Records → Milestones, a song (or artist, or album) that took several milestones in a row now shows once, at its highest, with a \"+5 more\" button to unfold the rest, so the timeline shows who held each stretch instead of the same name six times. The New Charts records, which were English in every language, are now translated, and the Overview's Songs / Artists / Albums switch matches the rest of Records. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-11-02', t: 'design', a: 'records', h: '1c54bf2',
     title: "Records lists get bars and a cleaner look",
     detail: "The lists in every Records section now look like All #1s: no boxes or column lines, ranks in gold, silver and bronze, the main figure in big type, and a bar under it showing how close each entry is to the #1. Lists whose figures mix units, like Fastest's hours and days, keep plain numbers. On phones the lists stay as cards. Works with Last.fm, Google Sheets and CSV uploads." },

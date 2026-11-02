@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Milestones folds repeats, and New Charts speaks your language":
+    ["Hitos agrupa las repeticiones, y Novedades habla tu idioma",
+     "En Récords → Hitos, una canción (o artista, o álbum) que logró varios hitos seguidos ahora aparece una sola vez, en el más alto, con un botón \"+5 más\" para desplegar el resto, así la línea de tiempo muestra quién dominó cada tramo en vez del mismo nombre seis veces. Los récords de Novedades, que estaban en inglés en todos los idiomas, ahora están traducidos, y el selector Canciones / Artistas / Álbumes del Resumen coincide con el resto de Récords. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Records lists get bars and a cleaner look":
     ["Las listas de Récords tienen barras y un aspecto más limpio",
      "Las listas de todas las secciones de Récords ahora se ven como Todos los #1: sin cajas ni líneas de columna, posiciones en oro, plata y bronce, la cifra principal en grande y una barra debajo que muestra lo cerca que está cada entrada del #1. Las listas que mezclan unidades, como las horas y días de Más Rápido, mantienen los números solos. En el móvil las listas siguen como tarjetas. Funciona con Last.fm, Google Sheets y archivos CSV."],

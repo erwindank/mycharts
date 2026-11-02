@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Milestones folds repeats, and New Charts speaks your language":
+    ["Marcos agrupa as repetições, e Novidades fala a tua língua",
+     "Em Recordes → Marcos, uma música (ou artista, ou álbum) que atingiu vários marcos seguidos aparece agora uma só vez, no mais alto, com um botão \"+5 mais\" para abrir o resto, e a linha do tempo mostra quem dominou cada troço em vez do mesmo nome seis vezes. Os recordes de Novidades, que estavam em inglês em todas as línguas, estão agora traduzidos, e o seletor Músicas / Artistas / Álbuns da Visão geral condiz com o resto de Recordes. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
   "Records lists get bars and a cleaner look":
     ["As listas de Recordes ganham barras e um aspeto mais limpo",
      "As listas de todas as secções de Recordes têm agora o aspeto de Todos os #1: sem caixas nem linhas de coluna, posições em ouro, prata e bronze, o número principal em destaque e uma barra por baixo a mostrar quão perto cada entrada está do n.º 1. Listas que misturam unidades, como as horas e dias de Mais Rápido, mantêm só os números. No telemóvel as listas continuam em cartões. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
