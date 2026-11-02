@@ -46441,3 +46441,11 @@ body:not(:is([data-view="day"], [data-view="week"], [data-view="month"], [data-v
 #recordsView.rec-searching .recx-story { display: none; }
 /* PAK's caption says what the sentence's eyebrow already says. */
 #recordsView:not(.rec-searching) .recx-one .rec-section-sub-wrapper > .rec-section-sub { display: none; }
+
+/* ── Phase 20 step 5: podiums on the other sections (records-look.js) ── */
+#recordsView:not(.rec-searching) .rec1-podium-on .rec1-podium-row + .app-cr-row,
+#recordsView:not(.rec-searching) .rec1-podium-on .rec1-podium-row + .pak-expand-row { display: none !important; }
+/* A figure that is a phrase, not a number (certification tallies, "1d 0h"). */
+.rec1-fig.is-long b { font-size: 1.5rem; }
+.rec1-runner .rec1-fig.is-long b { font-size: 1.1rem; }
+.recx-podium { margin-top: 2px; }

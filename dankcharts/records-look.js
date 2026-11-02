@@ -146,6 +146,7 @@ function recxSync() {
     if (!story) return;
     if (!recxVisible(sec)) return;
     story.innerHTML = recxStoryFor(sec);
+    if (!document.getElementById('recordsView').classList.contains('rec-searching')) recxPodiums(sec);
   });
 }
 
@@ -160,3 +161,163 @@ function recxSoon() {
 }
 document.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('#recordsView')) recxSoon(); });
 document.addEventListener('change', function (e) { if (e.target.closest && e.target.closest('#recordsView')) recxSoon(); });
+
+/* ── The podium (phase 20 step 5) ──────────────────────────────────────
+   The list on screen gets the All #1s podium: its #1 on a big card, #2 and
+   #3 beside it, all read off the table's own top three rows. Those rows stay
+   in the table, hidden while the podium is up (.rec1-podium-on), so search,
+   the hero reel and the row limit see what they always saw; a column sort
+   retires the podium and a sort by rank brings it back (standDownPodium /
+   restorePodium in app.js, which find it by data-rec1-podium-for).
+   Built only for tables actually on screen, on first sight, so a build costs
+   nothing extra and only three covers are looked up per list opened. */
+const RECX_NO_PODIUM = ['recNewChartsSection', 'recMilestonesSection']; // own podium / a timeline
+let _recxTblN = 0, _recxPodN = 0;
+
+// The row a record's detail (its chart run) sits in, if it has one.
+function recxDetailRowOf(row) {
+  const next = row.nextElementSibling;
+  return next && next.matches(REC_DETAIL_ROW_SEL) ? next : null;
+}
+
+// A row's chart-run boxes, without opening the row: from the on-demand
+// store (recLazy) or from the row itself once it has been opened.
+function recxBoxesOf(row) {
+  const det = recxDetailRowOf(row);
+  if (!det) return '';
+  let html = '';
+  if (_recLazyHtml.has(det.id)) {
+    html = _recLazyHtml.get(det.id);
+    if (typeof html === 'function') { html = html(); _recLazyHtml.set(det.id, html); }
+  } else html = det.innerHTML;
+  return html.indexOf('cr-boxes') !== -1 ? html : '';
+}
+
+// What the picture slot asks for: the row's own ✎ picker button carries it
+// when there is one; otherwise the row's data-rec-* attributes.
+function recxImgItem(row, rec, imgId) {
+  const btn = row.querySelector('.img-src-btn[data-type]');
+  const d = btn ? btn.dataset : null;
+  const type = d ? d.type : (rec.type || 'song');
+  return {
+    type: type,
+    item: {
+      imgId: imgId,
+      name: d ? d.name : rec.name,
+      title: d ? d.name : rec.name,
+      artist: d ? d.artist : rec.artist,
+      album: d ? (d.album || '') : (type === 'album' ? rec.name : ''),
+      prefKey: d ? d.prefkey : rec.prefKey
+    }
+  };
+}
+
+// What opens the record's details window, by the keys app.js uses.
+function recxOpenJs(type, rec) {
+  const low = function (x) { return String(x || '').toLowerCase().trim(); };
+  if (type === 'artist') return 'openArtistModal(' + esc(JSON.stringify(rec.name)) + ')';
+  if (type === 'album') return 'openAlbumModal(' + esc(JSON.stringify(rec.name + '|||' + rec.artist)) + ')';
+  return 'openSongModal(' + esc(JSON.stringify(low(rec.name) + '|||' + low(rec.artist))) + ')';
+}
+
+// "30 weeks" → a big "30" and "weeks"; "6h" and other short codes stay whole.
+function recxFigHtml(fig) {
+  if (!fig) return '';
+  const v = /^[\d.,]+$/.test(fig.value) ? fig.value + ' ' + fig.label.toLowerCase() : fig.value;
+  const m = v.match(/^([\d.,]+)\s+(.+)$/);
+  const big = m ? m[1] : v, unit = m ? m[2] : '';
+  return '<div class="rec1-fig' + (big.length > 9 ? ' is-long' : '') + '"><b>' + esc(big) + '</b>'
+    + (unit ? '<span>' + esc(unit) + '</span>' : '') + '</div>';
+}
+
+function recxPodiumFor(table) {
+  const rows = [0, 1, 2, 3].map(function (i) {
+    return Array.from(table.tBodies[0].rows).find(function (r) {
+      return r.dataset.recIdx === String(i) && !r.matches(REC_DETAIL_ROW_SEL);
+    });
+  });
+  if (rows.some(function (r) { return !r; })) return null;   // needs a #4 to go on with
+  const top = rows.slice(0, 3);
+  const recs = top.map(recRowRecord);
+  if (recs.some(function (r) { return !r; })) return null;
+  const n = ++_recxPodN;
+  const loads = [];
+  const card = function (row, rec, i) {
+    const imgId = 'recx-pod-' + n + '-' + i;
+    const img = recxImgItem(row, rec, imgId);
+    loads.push(img);
+    if (i === 0) loads.push({ type: img.type, item: Object.assign({}, img.item, { imgId: imgId + '-bg' }) });
+    const hi = rec.details.length ? pickHeadlineDetail(rec.details) : -1;
+    const fig = hi >= 0 ? rec.details[hi] : null;
+    // The other figures, one short line: "First streamed 16 Jun 2017 · …"
+    const more = rec.details.filter(function (d, k) { return k !== hi; }).slice(0, 2)
+      .map(function (d) { return d.label + ' ' + d.value; }).join(' · ');
+    const solo = img.type === 'artist' || rec.name === rec.artist;
+    const open = recxOpenJs(img.type, rec);
+    // The cover opens the details too, for the mouse (the ✎ picker lands
+    // inside it, so it is a box, not a button; the name is the keyboard way).
+    const artOpen = 'if(!event.target.closest(\'.img-src-btn\'))' + open;
+    const eaType = img.type === 'artist' ? 'artists' : img.type === 'album' ? 'albums' : 'songs';
+    const ea = _eaAttrs(eaType, img.type === 'artist'
+      ? { artist: rec.name, key: rec.name, imgId: imgId }
+      : { title: img.type === 'song' ? rec.name : '', artist: rec.artist, album: img.item.album, key: '', imgId: imgId });
+    const art = '<div class="rec1-pod-art' + (img.type === 'artist' ? ' is-round' : '') + '" id="' + imgId + '"><div class="thumb-initials">' + esc(initials(rec.name)) + '</div></div>';
+    const boxes = recxBoxesOf(row);
+    if (i === 0) {
+      const sample = typeof _sxSampleBtn === 'function' ? _sxSampleBtn() : _eaSampleBtn();
+      return '<article class="rec1-champ"' + ea + '>'
+        + '<div class="rec1-champ-bg" aria-hidden="true" data-no-picker="1" id="' + imgId + '-bg"></div>'
+        + '<div class="rec1-champ-art" onclick="' + artOpen + '">' + art + '<span class="rec1-medal rec1-medal-1">1</span></div>'
+        + '<div class="rec1-champ-info">'
+        + (fig ? '<span class="rec1-eyebrow">' + esc(fig.label) + '</span>' : '')
+        + '<button type="button" class="rec1-champ-name" onclick="' + open + '">' + esc(rec.name) + '</button>'
+        + (solo ? '' : '<span class="rec1-by">' + esc(rec.artist) + '</span>')
+        + recxFigHtml(fig)
+        + (more ? '<div class="rec1-when">' + esc(more) + '</div>' : '')
+        + boxes
+        + '<div class="rec1-acts">' + sample
+        + '<button type="button" class="dc-btn dc-btn-normal rec1-details" onclick="' + open + '">' + esc(t('ea_details')) + '</button></div>'
+        + '</div></article>';
+    }
+    return '<article class="rec1-runner rec1-runner-' + (i + 1) + '"' + ea + '>'
+      + '<div class="rec1-runner-art" onclick="' + artOpen + '">' + art + '<span class="rec1-medal rec1-medal-' + (i + 1) + '">' + (i + 1) + '</span></div>'
+      + '<div class="rec1-runner-info">'
+      + '<button type="button" class="rec1-runner-name" onclick="' + open + '">' + esc(rec.name) + '</button>'
+      + (solo ? '' : '<span class="rec1-by">' + esc(rec.artist) + '</span>')
+      + recxFigHtml(fig)
+      + (more ? '<div class="rec1-when">' + esc(more) + '</div>' : '')
+      + '</div>' + _eaSampleBtn('rec1-runner-play')
+      + (boxes ? '<div class="rec1-runner-run">' + boxes + '</div>' : '')
+      + '</article>';
+  };
+  if (!table.id) table.id = 'recx-tbl-' + (++_recxTblN);
+  const html = '<div class="rec1-podium recx-podium" data-rec1-podium-for="' + table.id + '">'
+    + card(top[0], recs[0], 0)
+    + '<div class="rec1-runners">' + card(top[1], recs[1], 1) + card(top[2], recs[2], 2) + '</div></div>';
+  return { html: html, rows: top, loads: loads };
+}
+
+function recxPodiums(sec) {
+  if (RECX_NO_PODIUM.indexOf(sec.id) !== -1) return;
+  sec.querySelectorAll('table.rec-table').forEach(function (table) {
+    if (table.dataset.recxPod || !recxVisible(table) || !table.tBodies[0]) return;
+    if (table.classList.contains('nc-sd-table') || table.classList.contains('rec1-table')) return;
+    table.dataset.recxPod = '1';
+    const pod = recxPodiumFor(table);
+    if (!pod) return;
+    const anchor = table.closest('.app-table-wrap') || table;
+    anchor.insertAdjacentHTML('beforebegin', pod.html);
+    pod.rows.forEach(function (r) { r.classList.add('rec1-podium-row'); });
+    table.classList.add('rec1-podium-on');
+    /* A sort put back after a rebuild arrived before this podium did: if the
+       table is not in rank order, the podium starts retired. */
+    const ths = Array.from(table.tHead ? table.tHead.rows[0].cells : []);
+    const on = ths.findIndex(function (th) { return !!th.dataset.sortDir; });
+    if (on !== -1 && !(on === 0 && ths[0].dataset.sortDir === 'asc')) standDownPodium(table);
+    pod.loads.forEach(function (x) {
+      const el = document.getElementById(x.item.imgId);
+      if (el) fetchAndInjectImage(el, x.item, x.type);
+    });
+  });
+  if (typeof _eaPaintSamples === 'function') _eaPaintSamples();
+}
