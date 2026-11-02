@@ -2614,6 +2614,17 @@ function _sxCmpMore(type, picks) {
     html += _sxCmpCard('sx-cmp-hab', t('sx_hab_title'), t('sx_hab_sub'), _sxCmpHabits(T, names));
   }
   box.innerHTML = html;
+  // Phase 18 step 8: the cards rise in, one after another, when what is
+  // compared changes (not when the table is sorted or a card repaints)
+  const k = T.gen;
+  if (box.dataset.k !== k) {
+    box.dataset.k = k;
+    box.classList.remove('is-new');
+    void box.offsetWidth;
+    box.classList.add('is-new');
+    clearTimeout(box._newT);
+    box._newT = setTimeout(() => box.classList.remove('is-new'), 1200);
+  }
   // The 1-vs-1 pictures and the top songs' covers, once the slots are on the page
   vsArts.forEach(([ty, e, id]) => _sxTop5Load(ty, e, id));
   _sxTsArts.splice(0).forEach(([ty, e, id]) => _sxTop5Load(ty, e, id));

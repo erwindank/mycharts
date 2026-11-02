@@ -11401,6 +11401,26 @@
     /* More under Compare (phase 17): cards after the studio */
     .sx-cmp-more { display: flex; flex-direction: column; gap: var(--sp-4); margin-top: var(--sp-4); }
     .sx-cmp-more:empty { display: none; }
+    /* Phase 18 step 8: when what is compared changes, the cards under the
+       studio rise in one after another, and their bars grow in */
+    .sx-cmp-more.is-new > .sx-cmp-card { animation: sxCardIn .45s var(--ease) both; }
+    .sx-cmp-more.is-new > .sx-cmp-card:nth-child(2) { animation-delay: .06s; }
+    .sx-cmp-more.is-new > .sx-cmp-card:nth-child(3) { animation-delay: .12s; }
+    .sx-cmp-more.is-new > .sx-cmp-card:nth-child(4) { animation-delay: .18s; }
+    .sx-cmp-more.is-new > .sx-cmp-card:nth-child(n+5) { animation-delay: .24s; }
+    @keyframes sxCardIn { from { opacity: 0; transform: translateY(8px); } }
+    .sx-cmp-more.is-new .sx-h2h-bar i, .sx-cmp-more.is-new .sx-own-wbar i, .sx-cmp-more.is-new .sx-ts-bar i,
+    .sx-cmp-more.is-new .sx-gap-pair i, .sx-cmp-more.is-new .sx-gap-part i, .sx-cmp-more.is-new .sx-hab-meter b {
+      animation: sxGrow .7s var(--ease) both; transform-origin: left;
+    }
+    .sx-cmp-more.is-new .sx-h2h-bar i { transform-origin: right; }
+    @media (max-width: 640px) { .sx-cmp-more.is-new .sx-h2h-bar i { transform-origin: left; } }
+    @media (prefers-reduced-motion: reduce) {
+      .sx-cmp-more.is-new > .sx-cmp-card, .sx-cmp-more.is-new .sx-h2h-bar i, .sx-cmp-more.is-new .sx-own-wbar i,
+      .sx-cmp-more.is-new .sx-ts-bar i, .sx-cmp-more.is-new .sx-gap-pair i, .sx-cmp-more.is-new .sx-gap-part i,
+      .sx-cmp-more.is-new .sx-hab-meter b { animation: none; }
+    }
+
     .sx-cmp-summary { margin: 0 0 var(--sp-3); font-family: var(--font-display); font-size: var(--fs-lg); line-height: 1.35; color: var(--text); text-wrap: pretty; }
     .sx-cmp-dot { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
     .sx-cmp-name {
@@ -11559,7 +11579,7 @@
     .sx-gap-emoji { position: absolute; top: 0.7rem; right: 0.8rem; font-size: 1.35rem; line-height: 1; }
     .sx-gap-what { font-size: var(--fs-sm); line-height: 1.35; color: var(--text); overflow-wrap: anywhere; }
     .sx-gap-what > span { color: var(--text3); }
-    .sx-gap-val { margin-top: auto; padding-top: var(--sp-2); font-family: var(--font-display); font-size: var(--fs-lg); font-weight: 800; line-height: 1.15; color: var(--text); }
+    .sx-gap-val { margin-top: auto; padding-top: var(--sp-2); font-family: var(--font-display); font-size: 1.3rem; font-weight: 800; line-height: 1.15; color: var(--text); }
     .sx-gap-foot { font-size: var(--fs-xs); color: var(--text2); }
     .sx-gap-pair { display: flex; flex-direction: column; gap: 3px; margin-top: 0.2rem; }
     .sx-gap-pair i, .sx-gap-part i { display: block; height: 5px; border-radius: 3px; }
