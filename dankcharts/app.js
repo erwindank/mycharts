@@ -10507,7 +10507,7 @@ function buildRecords() {
     // its all-time count from songCP, so a huge debut that went nowhere is
     // visibly different from one that kept growing.
     const table = recTable(
-      ['#', '', t('rec_th_songs'), t('rec_th_artist'), 'Debut ' + t('rec_th_plays'), t('th_total_plays'), 'Debut Rank', ncPeriodTh(pt)],
+      ['#', '', t('rec_th_songs'), t('rec_th_artist'), t('nc_th_debut_plays'), t('th_total_plays'), t('rec_th_debut_rank'), ncPeriodTh(pt)],
       sorted.map((e, i) => {
         const d = e[1];
         const imgId = 'nc-sd-img-' + pt + '-' + i;
@@ -10537,14 +10537,14 @@ function buildRecords() {
       }
     );
 
-    return ncSec(recEntIco('songs') + ' ' + t('rec_th_songs') + ' &mdash; Biggest New Chart Debut', podHtml + table);
+    return ncSec(recEntIco('songs') + ' ' + t('rec_th_songs') + ' &mdash; ' + t('nc_t_biggest_debut'), podHtml + table);
   }
 
   // ── 2. Biggest New Artist Debut ────────────────────────────────
   function ncRecArtistDebut(pt) {
     const sorted = Object.entries(ncArtistDebuts[pt]).sort((a, b) => b[1].plays - a[1].plays || a[1].rank - b[1].rank || a[1].period.localeCompare(b[1].period));
-    return ncSec(recEntIco('artists') + ' ' + t('rec_th_artists') + ' &mdash; Biggest New Chart Debut',
-      recTable(['#', t('rec_th_artist'), t('rec_th_plays'), 'Debut Rank', ncPeriodTh(pt)],
+    return ncSec(recEntIco('artists') + ' ' + t('rec_th_artists') + ' &mdash; ' + t('nc_t_biggest_debut'),
+      recTable(['#', t('rec_th_artist'), t('rec_th_plays'), t('rec_th_debut_rank'), ncPeriodTh(pt)],
         sorted.map((e, i) => { const d = e[1]; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + (d.plays || 0) + '</td><td class="rec-count">#' + d.rank + '</td>' + ncPeriodTd(pt, d.period); }), lim, null, null,
         { rowAttrs: i => recRowAttrs(sorted[i][0], 'artist', sorted[i][0]) }));
   }
@@ -10552,8 +10552,8 @@ function buildRecords() {
   // ── 3. Biggest New Album Debut ─────────────────────────────────
   function ncRecAlbumDebut(pt) {
     const sorted = Object.entries(ncAlbumDebuts[pt]).sort((a, b) => b[1].plays - a[1].plays || a[1].rank - b[1].rank || a[1].period.localeCompare(b[1].period));
-    return ncSec(recEntIco('albums') + ' ' + t('rec_th_albums') + ' &mdash; Biggest New Chart Debut',
-      recTable(['#', t('rec_th_albums'), t('rec_th_artist'), t('rec_th_plays'), 'Debut Rank', ncPeriodTh(pt)],
+    return ncSec(recEntIco('albums') + ' ' + t('rec_th_albums') + ' &mdash; ' + t('nc_t_biggest_debut'),
+      recTable(['#', t('rec_th_albums'), t('rec_th_artist'), t('rec_th_plays'), t('rec_th_debut_rank'), ncPeriodTh(pt)],
         sorted.map((e, i) => { const d = e[1]; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(d.album) + '</div></td><td><div class="rec-sub">' + esc(d.artist) + '</div></td><td class="rec-count">' + (d.plays || 0) + '</td><td class="rec-count">#' + d.rank + '</td>' + ncPeriodTd(pt, d.period); }), lim, null, null,
         { rowAttrs: i => recRowAttrs(sorted[i][1].artist, 'album', sorted[i][1].album) }));
   }
@@ -10568,10 +10568,10 @@ function buildRecords() {
     // Named for an entity like the debut tables above it, so it takes the same
     // glyph rather than a topic emoji — inside the Songs panel, one section
     // headed with a note and the next with 🔢 read as two different systems.
-    return ncSec(recEntIco(kind === 'songs' ? 'songs' : 'artists') + ' ' + (kind === 'songs' ? t('rec_th_songs') : t('rec_th_artists')) + ' &mdash; Busiest Discovery Period',
-      recTable(['#', ncPeriodTh(pt), kind === 'songs' ? 'New Songs' : 'New Artists'],
+    return ncSec(recEntIco(kind === 'songs' ? 'songs' : 'artists') + ' ' + (kind === 'songs' ? t('rec_th_songs') : t('rec_th_artists')) + ' &mdash; ' + t('nc_t_busiest'),
+      recTable(['#', ncPeriodTh(pt), kind === 'songs' ? t('sec_new_songs') : t('sec_new_artists')],
         sorted.map((e, i) => '<td class="rec-rank">' + (i + 1) + '</td>' + ncPeriodTd(pt, e[0]) + '<td class="rec-count">' + e[1] + '</td>'), lim),
-      'Counts every ' + (kind === 'songs' ? 'song' : 'artist') + ' heard for the first time, including the ones that finished below the chart cut-off.');
+      t(kind === 'songs' ? 'nc_note_busiest_songs' : 'nc_note_busiest_artists'));
   }
 
   // ── 6. Artist with Most Songs on One New Chart ─────────────────
@@ -10583,8 +10583,8 @@ function buildRecords() {
       }
     }
     const sorted = Object.entries(best).sort((a, b) => b[1].count - a[1].count || a[1].period.localeCompare(b[1].period));
-    return ncSec(recEntIco('songs') + ' Most Songs on a Single New Chart (by Artist)',
-      recTable(['#', t('rec_th_artist'), 'New Songs', ncPeriodTh(pt)],
+    return ncSec(recEntIco('songs') + ' ' + t('nc_t_most_songs_one'),
+      recTable(['#', t('rec_th_artist'), t('sec_new_songs'), ncPeriodTh(pt)],
         sorted.map((e, i) => '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + e[1].count + '</td>' + ncPeriodTd(pt, e[1].period)), lim, null, null,
         { rowAttrs: i => recRowAttrs(sorted[i][0], 'artist', sorted[i][0]) }));
   }
@@ -10592,8 +10592,8 @@ function buildRecords() {
   // ── 7. Most New Song Debuts All-Time by Artist ─────────────────
   function ncRecMostDebutsAllTime(pt) {
     const sorted = Object.entries(ncNewSongDebutsByArtist[pt]).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
-    return ncSec('📈 Most New Song Debuts (All-Time, by Artist)',
-      recTable(['#', t('rec_th_artist'), 'Total Debut Appearances'],
+    return ncSec('📈 ' + t('nc_t_most_debuts'),
+      recTable(['#', t('rec_th_artist'), t('nc_th_total_debuts')],
         sorted.map((e, i) => '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + e[1] + '</td>'), lim, null, null,
         { rowAttrs: i => recRowAttrs(sorted[i][0], 'artist', sorted[i][0]) }));
   }
@@ -10601,8 +10601,8 @@ function buildRecords() {
   // ── 8. Longest Consecutive Debut Streak by Artist ─────────────
   function ncRecDebutStreak(pt) {
     const sorted = Object.entries(artistConsecNewDebuts[pt]).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
-    return ncSec('🔁 Longest Consecutive Debut Streak (by Artist)',
-      recTable(['#', t('rec_th_artist'), 'Consecutive ' + (pt === 'week' ? 'Weeks' : 'Months')],
+    return ncSec('🔁 ' + t('nc_t_debut_streak'),
+      recTable(['#', t('rec_th_artist'), t(pt === 'week' ? 'nc_th_consec_weeks' : 'nc_th_consec_months')],
         sorted.map((e, i) => '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + e[1] + ' ' + tUnit(pt === 'week' ? 'weeks_full' : 'months', e[1]) + '</td>'), lim, null, null,
         { rowAttrs: i => recRowAttrs(sorted[i][0], 'artist', sorted[i][0]) }));
   }
@@ -10610,10 +10610,10 @@ function buildRecords() {
   // ── 9. New Song → #1 Fastest ──────────────────────────────────
   function ncRecNewTo1(pt) {
     const sorted = Object.entries(songNewTo1[pt]).sort((a, b) => a[1].periods - b[1].periods || a[1].debutPeriod.localeCompare(b[1].debutPeriod) || b[1].debutPlays - a[1].debutPlays);
-    const colP = pt === 'week' ? 'Weeks to #1' : 'Months to #1';
-    return ncSec('⚡ New Song &rarr; #1 Fastest',
-      recTable(['#', t('rec_th_songs'), t('rec_th_artist'), colP, 'Debut', '#1 Achieved'],
-        sorted.map((e, i) => { const d = e[1]; const pStr = d.periods === 0 ? 'Debuted at #1' : d.periods + ' ' + tUnit(pt === 'week' ? 'weeks_full' : 'months', d.periods); return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(d.title) + '</div></td><td><div class="rec-sub">' + esc(d.artist) + '</div></td><td class="rec-count">' + pStr + '</td>' + ncPeriodTd(pt, d.debutPeriod) + ncPeriodTd(pt, d.no1Period); }), lim, null, null,
+    const colP = t(pt === 'week' ? 'nc_th_weeks_to_1' : 'nc_th_months_to_1');
+    return ncSec('⚡ ' + t('nc_t_new_to_1'),
+      recTable(['#', t('rec_th_songs'), t('rec_th_artist'), colP, t('nc_th_debut'), t('nc_th_1_achieved')],
+        sorted.map((e, i) => { const d = e[1]; const pStr = d.periods === 0 ? t('nc_debuted_at_1') : d.periods + ' ' + tUnit(pt === 'week' ? 'weeks_full' : 'months', d.periods); return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(d.title) + '</div></td><td><div class="rec-sub">' + esc(d.artist) + '</div></td><td class="rec-count">' + pStr + '</td>' + ncPeriodTd(pt, d.debutPeriod) + ncPeriodTd(pt, d.no1Period); }), lim, null, null,
         { rowAttrs: i => recRowAttrs(sorted[i][1].artist, 'song', sorted[i][1].title) }));
   }
 
@@ -10625,9 +10625,9 @@ function buildRecords() {
       return { ak, cnt, album: deb.album || ak.split('|||')[0], artist: deb.artist || '', plays: deb.plays || 0, period: deb.period || '', rank: deb.rank || 0 };
     });
     combined.sort((a, b) => b.cnt - a.cnt || b.plays - a.plays || a.period.localeCompare(b.period));
-    return ncSec(recEntIco('albums') + ' New Album with Most Tracks Also Debuting',
+    return ncSec(recEntIco('albums') + ' ' + t('nc_t_album_tracks'),
       combined.length
-        ? recTable(['#', t('rec_th_albums'), t('rec_th_artist'), 'Tracks Debuting', t('rec_th_plays'), ncPeriodTh(pt)],
+        ? recTable(['#', t('rec_th_albums'), t('rec_th_artist'), t('nc_th_tracks_debuting'), t('rec_th_plays'), ncPeriodTh(pt)],
           combined.map((e, i) => '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e.album) + '</div></td><td><div class="rec-sub">' + esc(e.artist) + '</div></td><td class="rec-count">' + e.cnt + '</td><td class="rec-count">' + e.plays + '</td>' + ncPeriodTd(pt, e.period)), lim, null, null,
           { rowAttrs: i => recRowAttrs(combined[i].artist, 'album', combined[i].album) })
         : '<div class="rec-empty">' + t('rec_no_data') + '</div>');
