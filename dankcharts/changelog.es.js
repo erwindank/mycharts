@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Charts: smoother when it draws":
+    ["Gráficos: más fluido al dibujarse",
+     "Al abrir Estadísticas → Gráficos o cambiar las fechas, las cifras aparecen, el reloj de escucha recorre su esfera y las columnas de la semana y las barras crecen hasta su sitio. Se queda quieto si tu dispositivo pide menos movimiento. La Guía de listas describe la nueva pestaña Gráficos."],
   "Charts: Listening Patterns you can read":
     ["Gráficos: Patrones de escucha que se pueden leer",
      "Los Patrones de escucha bajo el mapa de calor de Estadísticas → Gráficos usaban texto y cuadros diminutos. Ahora tienen un título de verdad, barras por día más grandes y una cuadrícula de horas por día que llena la tarjeta, con la mañana, la tarde, el atardecer y la noche marcados encima y las horas debajo. Tu hora con más escuchas de la semana va marcada y nombrada, y al pasar el cursor (o tocar) cualquier cuadro ves sus reproducciones."],

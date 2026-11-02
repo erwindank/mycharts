@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Charts: smoother when it draws":
+    ["Gráficos: mais suave ao desenhar",
+     "Ao abrires Estatísticas → Gráficos ou mudares as datas, os números aparecem, o relógio de audição percorre o mostrador e as colunas da semana e as barras crescem até ao lugar. Tudo fica parado se o teu dispositivo pedir menos movimento. O Guia das tabelas descreve o novo separador Gráficos."],
   "Charts: Listening Patterns you can read":
     ["Gráficos: Padrões de audição que se conseguem ler",
      "Os Padrões de audição por baixo do mapa de calor de Estatísticas → Gráficos usavam texto e quadrados minúsculos. Agora têm um título a sério, barras por dia maiores e uma grelha de horas por dia que enche o cartão, com manhã, tarde, fim de tarde e noite marcados em cima e as horas em baixo. A tua hora mais ouvida da semana fica marcada e nomeada, e passar o cursor (ou tocar) em qualquer quadrado mostra os plays dele."],
