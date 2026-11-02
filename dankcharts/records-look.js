@@ -239,11 +239,14 @@ function recxPodiumFor(table) {
       return r.dataset.recIdx === String(i) && !r.matches(REC_DETAIL_ROW_SEL);
     });
   });
-  // A top three is enough (2026-11-02: lists of exactly three, like a new
-  // EPs list, kept the plain table). With no #4 the whole list is on the
-  // podium, so the table under it hides too (podOnly, see recxPodiums).
-  if (rows.slice(0, 3).some(function (r) { return !r; })) return null;
-  const top = rows.slice(0, 3);
+  // Any list gets the podium, however short (2026-11-02: lists of three or
+  // fewer, like a new EPs list, kept the plain table). One or two entries
+  // make a smaller podium: the #1 alone, or the #1 and one runner-up
+  // (.recx-pod-1 / .recx-pod-2 in style.css). When nothing is left after
+  // the podium the table under it hides too (podOnly, see recxPodiums).
+  const count = rows.slice(0, 3).filter(Boolean).length;
+  if (!count || rows.slice(0, count).some(function (r) { return !r; })) return null;
+  const top = rows.slice(0, count);
   const recs = top.map(recRowRecord);
   if (recs.some(function (r) { return !r; })) return null;
   const n = ++_recxPodN;
@@ -297,10 +300,15 @@ function recxPodiumFor(table) {
       + '</article>';
   };
   if (!table.id) table.id = 'recx-tbl-' + (++_recxTblN);
-  const html = '<div class="rec1-podium recx-podium" data-rec1-podium-for="' + table.id + '">'
+  const runners = top.slice(1).map(function (r, k) { return card(r, recs[k + 1], k + 1); }).join('');
+  // The .recx-pod-room around it is the podium's own sizing room, so its
+  // phone layout kicks in wherever it sits (Fastest's .fast-panel and other
+  // panels are not size containers; 2026-11-02 the podium stayed two
+  // columns on phones there).
+  const html = '<div class="recx-pod-room"><div class="rec1-podium recx-podium' + (count < 3 ? ' recx-pod-' + count : '') + '" data-rec1-podium-for="' + table.id + '">'
     + card(top[0], recs[0], 0)
-    + '<div class="rec1-runners">' + card(top[1], recs[1], 1) + card(top[2], recs[2], 2) + '</div></div>';
-  return { html: html, rows: top, loads: loads, podOnly: !rows[3] };
+    + (runners ? '<div class="rec1-runners">' + runners + '</div>' : '') + '</div></div>';
+  return { html: html, rows: top, loads: loads, podOnly: !rows[count] };
 }
 
 function recxPodiums(sec) {

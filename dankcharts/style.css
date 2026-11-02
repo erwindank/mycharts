@@ -46178,9 +46178,17 @@ body:not(:is([data-view="day"], [data-view="week"], [data-view="month"], [data-v
    this their podium kept the wide layout on phones (2026-11-02). */
 .rec1-wrap .rec-per-panel,
 .rec1-wrap .nc-rec-panel { container-type: inline-size; }
+/* Every Records-look podium also sits in its own room (records-look.js),
+   for panels that are not containers, like Fastest's. */
+.recx-pod-room { container-type: inline-size; }
+/* Short lists (records-look.js): a lone #1 takes the whole row; with one
+   runner-up it keeps the #1 + side card layout, and that runner never sits
+   in a half-empty two-column row on narrower rooms. */
+.rec1-podium.recx-pod-1 { grid-template-columns: minmax(0, 1fr); }
 @container (max-width: 860px) {
   .rec1-podium { grid-template-columns: 1fr; }
   .rec1-runners { grid-template-columns: 1fr 1fr; }
+  .recx-pod-2 .rec1-runners { grid-template-columns: 1fr; }
 }
 @container (max-width: 560px) {
   .rec1-runners { grid-template-columns: 1fr; }
