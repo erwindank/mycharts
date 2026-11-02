@@ -4106,6 +4106,32 @@ steps, one commit plus a changelog entry each, no push without asking.
 7. **Finish:** gentle motion, four languages, the Charts Guide, changelog,
    screen check (1440 / 1100 / 390 touch, the check themes).
 
+**Phase 19 done (2026-11-01),** each step committed with a changelog
+entry, not pushed: 1 Daily area (f7d333f), 2 volume figures (170264e),
+3 clock + parts of the day (c512edc), 4 week columns (90ced93), 5 heatmap
+(e482666), 6 Listening Patterns grid (bf41555), 7 finish (0a7d7ef), plus a
+What's New card (de97eac, whatsnew/charts-look.webp).
+- Shared bits for the Charts cards: `.sx-ch` (padding), `.sx-ch-head`
+  (title left, switch/tools right), `.sx-figs` / `.sx-fig` (figure row;
+  `.is-go` = a button, `.sx-figs-3` = three), `_sxTip(gc)` (hover box in
+  card colours), `_sxFlatX` (flat x labels), `_sxAlpha` (hex + alpha).
+- Volume: past `SX_VOL_MAX_BARS` (180) periods it is a stacked line/area;
+  the figures carry the colour key, so the Chart.js legend is off.
+  `borderRadius` must be a plain number for Chart.js to round only the
+  outer end of a stack.
+- Day parts live in `SX_DAY_PARTS` (stats.js), the same split as Compare's
+  habits; app.js's Listening Patterns reads it too.
+- Heatmap: `hmTheme` now starts as `'theme'` (accent shades, built in
+  `hmStops`); `hmColorAt(r)` gives a colour along the scheme. Calendar and
+  pattern cells shade by rank within the open year (or grid), not by the
+  all-time log scale. The Records per-entry heatmap still calls
+  `hmCellColor`, so it follows the picked scheme as before.
+- Checked at 1440 / 1100 / 390 touch in all four languages and Navy dark,
+  Navy light, Red light, Pink light, Yellow and Purple: no raw keys, no
+  sideways scroll, no errors; motion proven by sampling transforms. Scripts:
+  C:/tmp/p19.mjs, p19_blank.mjs, p19_click2/3/5.mjs, p19_touch.mjs,
+  p19_motion.mjs, p19_hl.mjs.
+
 ### Done outside the phases (to 2026-10-18)
 
 Work that isn't a plan step but changes what the later phases start from.
