@@ -2075,7 +2075,14 @@ function _sxCmpSummary(T, names) {
     line = esc(t(gap ? 'sx_sum_lead' : 'sx_sum_tie')).replace('{pct}', Math.round(T.per[a].plays / T.total * 100))
       .replace('{n}', gap.toLocaleString()).replace('{b}', who(b));
   }
-  return `<p class="sx-cmp-summary">${line.replace('{a}', who(a))}</p>`;
+  // Phase 18 step 4: one strip under the sentence, split by each pick's
+  // share of the plays, biggest first (a label on pieces wide enough)
+  const bar = T.picks.length > 1 ? `<div class="sx-sharebar" role="img" aria-label="${esc(order.filter(i => T.per[i].plays).map(i => names[i] + ' ' + Math.round(T.per[i].plays / T.total * 100) + '%').join(', '))}">` +
+    order.filter(i => T.per[i].plays).map(i => {
+      const pct = T.per[i].plays / T.total * 100;
+      return `<i style="flex:${pct.toFixed(3)} 1 0;--c:${_sxCmpColor(i)}" title="${esc(names[i] + ' · ' + Math.round(pct) + '%')}">${pct >= 9 ? `<span>${Math.round(pct)}%</span>` : ''}</i>`;
+    }).join('') + '</div>' : '';
+  return `<p class="sx-cmp-summary">${line.replace('{a}', who(a))}</p>${bar}`;
 }
 
 function _sxCmpH2H(T, names) {
@@ -2089,8 +2096,17 @@ function _sxCmpH2H(T, names) {
     return `<th scope="col" aria-sort="${on ? (sxH2HSort.dir < 0 ? 'descending' : 'ascending') : 'none'}">` +
       `<button type="button" data-h2h="${c[0]}" class="${on ? 'is-on' : ''}">${esc(t(c[1]))}${on ? (sxH2HSort.dir < 0 ? ' ↓' : ' ↑') : ''}</button></th>`;
   }).join('') + '</tr>';
-  const body = rows.map(i => `<tr><th scope="row">${_sxCmpName(T.type, T.picks[i], i, names[i])}</th>` +
-    cols.map((c, ci) => `<td${best[ci] === i && T.picks.length > 1 ? ` class="is-best" style="--c:${_sxCmpColor(i)}"` : ''}>${c[3](T.per[i], T)}</td>`).join('') + '</tr>').join('');
+  // Phase 18 step 4: a place number by the current sort, a bar under each
+  // play count, the best in each column as a tinted badge, and a label on
+  // each cell for the phone layout (a card per row)
+  const maxPlays = Math.max(1, ...T.per.map(o => o.plays));
+  const body = rows.map((i, pos) => `<tr style="--c:${_sxCmpColor(i)}"><th scope="row"><span class="sx-h2h-who"><span class="sx-h2h-pos">${pos + 1}</span>${_sxCmpName(T.type, T.picks[i], i, names[i])}</span></th>` +
+    cols.map((c, ci) => {
+      const isBest = best[ci] === i && T.picks.length > 1;
+      const val = isBest ? `<span class="sx-h2h-best">${c[3](T.per[i], T)}</span>` : c[3](T.per[i], T);
+      const bar = c[0] === 'plays' ? `<span class="sx-h2h-bar" aria-hidden="true"><i style="width:${Math.max(1, Math.round(T.per[i].plays / maxPlays * 100))}%"></i></span>` : '';
+      return `<td data-label="${esc(t(c[1]))}"${isBest ? ' class="is-best"' : ''}>${val}${bar}</td>`;
+    }).join('') + '</tr>').join('');
   return `<div class="sx-h2h-wrap"><table class="sx-h2h"><thead>${head}</thead><tbody>${body}</tbody></table></div>`;
 }
 

@@ -11436,6 +11436,56 @@
       .sx-cmp-name { max-width: 9.5rem; }
     }
 
+    /* Head to head, phase 18 step 4: the share strip under the sentence,
+       place numbers, bigger numbers, a bar under each play count and the
+       best in each column as a tinted badge */
+    .sx-sharebar { display: flex; gap: 2px; height: 26px; margin: 0 0 var(--sp-4); border-radius: var(--r-sm); overflow: hidden; }
+    .sx-sharebar i {
+      display: flex; align-items: center; justify-content: center; min-width: 3px; overflow: hidden;
+      background: var(--c); animation: sxGrow .6s var(--ease) both; transform-origin: left;
+    }
+    .sx-sharebar span { font-style: normal; font-family: var(--font-mono); font-size: 0.6875rem; font-weight: 700; color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, .45); }
+    @keyframes sxGrow { from { transform: scaleX(0); } }
+    .sx-h2h td { font-size: var(--fs-sm); }
+    .sx-h2h-who { display: flex; align-items: center; gap: 0.5rem; }
+    .sx-h2h-pos { flex-shrink: 0; width: 1.4rem; font-family: var(--font-mono); font-size: var(--fs-xs); font-weight: 700; color: var(--text3); text-align: right; }
+    .sx-h2h tbody tr:first-child .sx-h2h-pos { color: var(--c); }
+    .sx-h2h-best {
+      display: inline-block; padding: 0.1rem 0.4rem; margin: -0.1rem -0.4rem;
+      border-radius: var(--r-xs); background: color-mix(in srgb, var(--c) 16%, transparent);
+    }
+    .sx-h2h-bar { display: block; height: 3px; margin-top: 4px; margin-left: auto; width: 100%; min-width: 3.5rem; border-radius: 2px; background: var(--bg3); }
+    .sx-h2h-bar i { display: block; height: 100%; margin-left: auto; border-radius: 2px; background: var(--c); }
+    @media (prefers-reduced-motion: reduce) { .sx-sharebar i { animation: none; } }
+    /* Phones: one card per row; the column heads become a row of sort
+       buttons you can scroll */
+    @media (max-width: 640px) {
+      .sx-h2h-wrap { overflow: visible; margin: 0; padding: 0; }
+      .sx-h2h, .sx-h2h tbody { display: block; }
+      .sx-h2h thead { display: block; margin-bottom: var(--sp-2); }
+      .sx-h2h thead tr { display: flex; gap: var(--sp-1); overflow-x: auto; scrollbar-width: none; }
+      .sx-h2h thead th { padding: 0; border: 0; flex-shrink: 0; }
+      .sx-h2h thead th:first-child { display: none; }
+      .sx-h2h thead button { padding: 0.35rem 0.55rem; border: 1px solid var(--border); border-radius: var(--r-sm); }
+      .sx-h2h thead button.is-on { border-color: var(--accent); color: var(--accent); }
+      .sx-h2h tbody tr {
+        display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.4rem var(--sp-2); margin-bottom: var(--sp-2); padding: var(--sp-3);
+        background: var(--bg3); border: 1px solid color-mix(in srgb, var(--c) 25%, var(--border)); border-radius: var(--r-md);
+      }
+      .sx-h2h tbody tr:hover > * { background: none; }
+      .sx-h2h tbody th, .sx-h2h tbody td { padding: 0; border: 0; white-space: normal; }
+      .sx-h2h tbody th[scope="row"] { grid-column: 1 / -1; position: static; background: none; margin-bottom: 0.2rem; }
+      .sx-h2h .sx-cmp-name { max-width: none; }
+      .sx-h2h tbody td { display: block; min-width: 0; text-align: left; font-size: var(--fs-xs); }
+      .sx-h2h tbody td::before {
+        content: attr(data-label); display: block; margin-bottom: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-sans); font-size: 0.625rem; font-weight: 700;
+        letter-spacing: .07em; text-transform: uppercase; color: var(--text3);
+      }
+      .sx-h2h-best { margin: -0.1rem -0.4rem -0.1rem -0.4rem; }
+      .sx-h2h-bar { margin-left: 0; }
+      .sx-h2h-bar i { margin-left: 0; }
+    }
+
     /* Who was on top (phase 17 step 3): a strip of blocks, then the lead changes */
     .sx-own-strip { display: flex; gap: 2px; height: 34px; }
     .sx-own-strip i { flex: 1 1 0; min-width: 2px; border-radius: 3px; }
