@@ -4180,6 +4180,34 @@ everything is restyled or regrouped. The search and the hero tally read
    + What's New card, screen check (1440 / 1100 / 390 touch, the check
    themes, all three data sources).
 
+**Steps 1–3 done (2026-11-02),** look A (podium) from the mockup
+(https://claude.ai/artifact/3rhbAHXh8C3M5qedf6LsFH), each step committed
+with a changelog entry, not pushed: 1 sentence + one switch row (e296b06),
+2 podium (e7271bb), 3 list rows + Sort + Show at the foot (9d59ac0).
+Waiting for your review before steps 4–8.
+- Sentence: `rec1Story()` in buildRecords, kept in `_rec1Stories` and
+  swapped by `rec1SyncStory()` (called from `applyRecPerTabs`, the
+  Total / In a row switch and the limit change). Ties say so.
+- One switch row: `.rec1-wrap` is the flex row; `.section-body` and the open
+  `.rec-ent-panel` are `display: contents`, so switches at three DOM depths
+  line up. `.rec-section-title` stays in the DOM (search, reel, Overview
+  read it) and only shows while searching (`.rec1-title`).
+- Podium: `rec1PodiumHtml()`; rows 1–3 stay in the table, hidden by
+  `.rec1-podium-on .rec1-podium-row`. `standDownPodium` / `restorePodium` /
+  `recPodiumFor` serve both podiums; sorting by rank ascending brings a
+  podium back (New Charts too). The blurred backdrop is a second image slot
+  with `data-no-picker` (else `attachRecImgPicker` wraps it). Cover boxes
+  are divs, not buttons, because the ✎ picker button lands inside them.
+- List: `rec1WhenConsec` / `rec1WhenTotal` / `rec1CountCell`. Old date
+  columns are kept hidden (`.rec1-hcol`, header marked `.rec1-hmark`);
+  `recRowDetails` skips `.rec1-when-cell`. `.rec1-table` opts out of the
+  generic `.rec-cards` phone cards and has its own two-line rows, sized by
+  container queries on `.rec-per-panel`. Sort menu = `REC1_SORTS` →
+  `applyRecSort`. Show bar goes to `.rec1-foot-show`.
+- Note: sorts only reorder the rows built (the Show limit), as before.
+- Scripts: C:/tmp/p20_ones.mjs, p20_click2.mjs, p20_click3.mjs, p20_tr.py
+  (adds translation keys), p19_cl.py (changelog).
+
 ### Done outside the phases (to 2026-10-18)
 
 Work that isn't a plan step but changes what the later phases start from.
