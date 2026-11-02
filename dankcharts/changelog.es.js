@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Listen to The Dank 100":
+    ["Escucha The Dank 100",
+     "Cada entrada de The Dank 100 tiene ahora tres botones a la derecha: escuchar una muestra corta, buscarla en Spotify y buscarla en YouTube. Funciona con canciones, artistas y álbumes."],
   "Green dark and Green light themes":
     ["Temas Verde oscuro y Verde claro",
      "Dos temas nuevos: Verde oscuro, con un fondo de pino profundo y un acento menta, y Verde claro, con un fondo salvia suave y un acento verde bosque. Elígelos en los puntos de tema de la barra superior o en Ajustes. En los dos, las etiquetas NEW y RE de las listas son grises en vez de verdes, para que una entrada nueva nunca parezca una canción que sube."],

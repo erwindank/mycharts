@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 437;
+const DC_CL_I18N_V = 438;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -316,6 +316,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-01', t: 'feature', a: 'charts', h: 'ccf9ed1',
+    title: "Listen to The Dank 100",
+    detail: "Every entry on The Dank 100 now has three buttons on its right: play a short sample, search for it on Spotify, and search for it on YouTube. Works for songs, artists and albums." },
   { d: '2026-11-01', t: 'feature', a: 'themes', h: '77b2565',
     title: "Green dark and Green light themes",
     detail: "Two new themes: Green dark, with a deep pine background and a mint accent, and Green light, with a soft sage background and a forest green accent. Pick them from the theme dots in the top bar or in Settings. On both, the NEW and RE tags in the charts are grey instead of green, so a new entry never looks like a song moving up." },
