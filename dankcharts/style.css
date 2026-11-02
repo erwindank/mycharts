@@ -11261,6 +11261,9 @@
     .sx-figs-3 .sx-fig:nth-child(n) { border-top: 0; }
     .sx-figs-3 .sx-fig:nth-child(n+2) { border-left: 1px solid var(--border); }
     .sx-fig.is-win .sx-fig-v { color: var(--accent); }
+    /* a long day name (pt "segunda-feira") or label wraps instead of being cut */
+    .sx-figs-3 .sx-fig-v, .sx-figs-3 .sx-fig-l { white-space: normal; overflow-wrap: break-word; }
+    @container (min-width: 401px) { .sx-figs-3 .sx-fig-v { font-size: 1.25rem; } }
     @container (max-width: 400px) { .sx-figs-3 .sx-fig { padding: var(--sp-2) var(--sp-3); } .sx-figs-3 .sx-fig-v { font-size: 1.1rem; } }
     .sx-week-card { container-type: inline-size; display: flex; flex-direction: column; }
     .sx-wk { flex: 1 1 auto; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; min-height: 200px; }
@@ -11283,6 +11286,27 @@
     .sx-wk-col.is-peak .sx-wk-v { color: var(--accent); font-weight: 700; }
     .sx-wk-d { font-size: var(--fs-xs); font-weight: 600; color: var(--text2); text-transform: capitalize; white-space: nowrap; }
     .sx-wk-col.is-peak .sx-wk-d { color: var(--text); }
+
+    /* Phase 19 step 7: gentle motion when the Charts tab draws (a tab
+       switch or a new range). The figures rise in one after another, the
+       clock's wedges sweep out round the dial, the week's columns and the
+       meters grow, the heatmap year fades in. Still when the device asks
+       for less motion. */
+    @media (prefers-reduced-motion: no-preference) {
+      .sx-ch .sx-fig { animation: sxChRise .4s var(--ease) both; }
+      .sx-ch .sx-fig:nth-child(2) { animation-delay: 50ms; }
+      .sx-ch .sx-fig:nth-child(3) { animation-delay: 100ms; }
+      .sx-ch .sx-fig:nth-child(4) { animation-delay: 150ms; }
+      .sx-clock-bar { transform-box: view-box; transform-origin: 160px 160px; animation: sxClockIn .5s var(--ease) both; animation-delay: calc(var(--i, 0) * 14ms); }
+      .sx-wk-bar i { animation: sxGrowY .5s var(--ease) both; animation-delay: calc(var(--i, 0) * 40ms); }
+      .sx-part-m i, .hm-pat-bar-fill { transform-origin: left center; animation: sxGrowX .6s var(--ease) both; }
+      #gHeatmap .hm-y-cells, #gHeatmap .hm-pat-grid { animation: sxChFade .35s var(--ease) both; }
+    }
+    @keyframes sxChRise { from { opacity: 0; transform: translateY(6px); } }
+    @keyframes sxClockIn { from { opacity: 0; transform: scale(.6); } }
+    @keyframes sxGrowY { from { transform: scaleY(0); } }
+    @keyframes sxGrowX { from { transform: scaleX(0); } }
+    @keyframes sxChFade { from { opacity: 0; } }
 
     /* Compare studio (step 3): type + view switches, then the picks */
     .sx-cmp-bar [hidden] { display: none; }

@@ -1391,11 +1391,11 @@ function sxRenderWhen() {
   if (figs) figs.innerHTML = total ? [
     [t('sx_wk_weekdays'), Math.round(wkd).toLocaleString(), t('sx_wk_per_day'), wkd >= wke],
     [t('sx_wk_weekend'), Math.round(wke).toLocaleString(), t('sx_wk_per_day'), wke > wkd],
-    [t('sx_fig_busiest_day'), _sxDayLabel(wPeak, true), t('sx_wk_n_per_day').replace('{n}', Math.round(avg[wPeak]).toLocaleString()), false],
+    [t('sx_fig_busiest_day'), _sxDayLabel(wPeak, true).replace(/^./, c => c.toUpperCase()), t('sx_wk_n_per_day').replace('{n}', Math.round(avg[wPeak]).toLocaleString()), false],
   ].map(([l, v, sub, win]) => `<div class="sx-fig${win ? ' is-win' : ''}"><span class="sx-fig-l">${esc(l)}</span>` +
     `<b class="sx-fig-v">${esc(v)}</b><span class="sx-fig-s">${esc(sub)}</span></div>`).join('') : '';
-  week.innerHTML = order.map(d =>
-    `<button type="button" class="sx-wk-col${d === wPeak && total ? ' is-peak' : ''}${isWkend(d) ? ' is-wkend' : ''}" data-d="${d}" style="--h:${(avg[d] / amax * 100).toFixed(1)}%"` +
+  week.innerHTML = order.map((d, i) =>
+    `<button type="button" class="sx-wk-col${d === wPeak && total ? ' is-peak' : ''}${isWkend(d) ? ' is-wkend' : ''}" data-d="${d}" style="--h:${(avg[d] / amax * 100).toFixed(1)}%;--i:${i}"` +
     ` aria-label="${esc(_sxDayLabel(d, true) + ': ' + t('sx_wk_n_per_day').replace('{n}', Math.round(avg[d]).toLocaleString()))}">` +
     `<span class="sx-wk-v">${Math.round(avg[d]).toLocaleString()}</span>` +
     `<span class="sx-wk-bar"><i></i></span>` +
