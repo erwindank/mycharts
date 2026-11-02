@@ -4021,6 +4021,33 @@ habits (fabd074), 8 Share picture (d6e5524), 9 Saved comparisons
   (through the site's warning window) clicked for real. Scripts:
   C:/tmp/p17.mjs, p17_share.mjs, p17_saved.mjs, p17_perf.mjs.
 
+### Phase 18: Compare, a modern look (planned 2026-11-01)
+
+Phase 17 filled the Compare tab, but you found it "stiff and old": a wall
+of same-weight buttons on top, picks as small text chips, a race that
+opens empty, a head-to-head that reads like a spreadsheet, and every card
+the same box. Nothing is removed; everything is restyled or regrouped.
+You said do all eight steps, one commit plus a changelog entry each, no
+push without asking. Code in `stats.js` (`_sxCmp*`), `index.html`
+(`.sx-cmp`), `style.css`.
+
+1. **Line-up:** the picks become cards with a photo or cover, their
+   colour, plays and share; "Add" is an empty card with a search list
+   that shows pictures and play counts (instead of the plain datalist).
+2. **Toolbar:** one slim bar for type and view; Save and Fill top N in it.
+3. **Main chart and race player:** a bigger chart; a click on a name
+   highlights or hides it. The race opens on a filled frame, with a
+   media-player bar (round play button, a scrubber with the date).
+4. **Head to head:** a share bar in each row, the best in each column
+   marked, cards on phones.
+5. **Who was on top:** a taller strip with years marked and hover details;
+   lead changes as a timeline.
+6. **Top songs and Biggest gaps:** with cover art, laid out more clearly.
+7. **Listening habits:** hour and day labels, hover details, cleaner
+   colours.
+8. **Finish:** gentle motion, four languages, the Charts Guide, changelog,
+   screen check (1440 / 1100 / 390 touch, the check themes).
+
 ### Done outside the phases (to 2026-10-18)
 
 Work that isn't a plan step but changes what the later phases start from.

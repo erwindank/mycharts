@@ -1323,7 +1323,8 @@ function _sxIndex() {
         if (!o) {
           const label = type === 'songs' ? p.title : type === 'albums' ? p.album : k;
           const sub = type === 'songs' || type === 'albums' ? p.artist : '';
-          idx[type].set(k, o = { label, sub, n: 0 });
+          // Songs keep an album, so the search list (phase 18) can find a cover
+          idx[type].set(k, o = { label, sub, n: 0, album: type === 'songs' ? p.album : '' });
         }
         o.n++;
       }
@@ -1332,10 +1333,12 @@ function _sxIndex() {
   // The picker's choices: most played first; songs and albums read "Title — Artist"
   idx.lists = {};
   idx.byText = {};
+  idx.keys = {};
   for (const type of SX_CMP_TYPES) {
     const all = [...idx[type].entries()].sort((a, b) => type === 'years' ? b[0].localeCompare(a[0]) : b[1].n - a[1].n);
     const top = type === 'songs' || type === 'albums' ? all.slice(0, 4000) : all;
     idx.byText[type] = new Map();
+    idx.keys[type] = top.map(e => e[0]);
     idx.lists[type] = top.map(([k, o]) => {
       const text = o.sub ? o.label + ' — ' + o.sub : o.label;
       idx.byText[type].set(text.toLowerCase(), k);
@@ -1399,8 +1402,6 @@ function _sxCmpPaint() {
     .forEach(b => { b.disabled = sxCmp.type === 'years'; });
   const runSeg = document.getElementById('sxCmpRun');
   if (runSeg) runSeg.hidden = sxCmp.mode !== 'run';
-  const input = document.getElementById('sxCmpInput');
-  if (input) input.placeholder = t('sx_cmp_add_' + sxCmp.type);
   const top = document.getElementById('sxCmpTop');
   // Race mode fills ten, so the classic top-10 race is one tap away
   if (top) {
@@ -1410,22 +1411,139 @@ function _sxCmpPaint() {
   }
 }
 
+/* The line-up (phase 18 step 1): each pick as a card with its picture,
+   colour, rank among the picks, plays in the range and share of them, in
+   place of the old text chips. The Add card after them is static in
+   index.html, so typing in it survives a repaint. */
 function _sxCmpChips(picks) {
   const wrap = document.getElementById('sxCmpChips');
   if (!wrap) return;
-  const idx = _sxIndex()[sxCmp.type];
+  const type = sxCmp.type, idx = _sxIndex()[type];
+  const T = picks.length ? _sxCmpTally(type, picks) : null;
+  const max = T ? Math.max(1, ...T.per.map(o => o.plays)) : 1;
+  const order = T ? T.per.map((o, i) => i).sort((a, b) => T.per[b].plays - T.per[a].plays) : [];
+  const rank = new Map(order.map((i, r) => [i, r + 1]));
+  const arts = [];
   wrap.innerHTML = picks.map((k, i) => {
-    const o = idx.get(k), name = o ? o.label : k;
-    const tip = o && o.sub ? name + ' — ' + o.sub : name;
-    return `<span class="sx-chip" title="${esc(tip)}"><i style="background:${_sxCmpColor(i)}"></i>${esc(name)}` +
-      `<button type="button" onclick="sxCmpRemove(${i})" aria-label="${esc(t('sx_cmp_remove').replace('{name}', name))}">` +
-      `<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="m4.5 4.5 7 7M11.5 4.5l-7 7"/></svg></button></span>`;
+    const o = idx.get(k) || {}, name = o.label || k;
+    const tip = o.sub ? name + ' — ' + o.sub : name;
+    const per = T.per[i], pct = T.total ? Math.round(per.plays / T.total * 100) : 0;
+    let pic;
+    if (type === 'years') pic = `<span class="sx-lu-year">${esc(k)}</span>`;
+    else {
+      const any = per.songs.values().next().value;
+      const e = {
+        key: k, title: name,
+        artist: type === 'artists' ? name : type === 'albums' ? (k.split('|||')[1] || o.sub) : o.sub,
+        album: type === 'albums' ? name : any ? any.p.album : (o.album || ''),
+      };
+      const a = _sxTop5Art(type, e, 'sx-lu-art');
+      arts.push([type, e, a.id]);
+      pic = `<button type="button" class="sx-lu-pic" onclick="${_sxOpenJs(type, e)}" aria-label="${esc(name)}" tabindex="-1">${a.html}</button>`;
+    }
+    const nameHtml = type === 'years' ? `<b class="sx-lu-name">${esc(name)}</b>`
+      : `<button type="button" class="sx-lu-name" onclick="${_sxOpenJs(type, { key: k })}">${esc(name)}</button>`;
+    return `<div class="sx-lu-card" style="--c:${_sxCmpColor(i)}" title="${esc(tip)}">` +
+      `${pic}<div class="sx-lu-info">${nameHtml}${o.sub ? `<span class="sx-lu-sub">${esc(o.sub)}</span>` : ''}` +
+      `<span class="sx-lu-nums"><span class="sx-lu-rank">#${rank.get(i)}</span><b>${per.plays.toLocaleString()}</b><span>${esc(pct + '%')}</span></span></div>` +
+      `<button type="button" class="sx-lu-x" onclick="sxCmpRemove(${i})" aria-label="${esc(t('sx_cmp_remove').replace('{name}', name))}">` +
+      `<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="m4.5 4.5 7 7M11.5 4.5l-7 7"/></svg></button>` +
+      `<span class="sx-lu-bar" aria-hidden="true"><i style="width:${Math.max(2, Math.round(per.plays / max * 100))}%"></i></span></div>`;
   }).join('');
-  const dl = document.getElementById('sxCmpList');
-  if (dl && dl.dataset.type !== sxCmp.type + _sxIndex().gen) {
-    dl.dataset.type = sxCmp.type + _sxIndex().gen;
-    dl.innerHTML = _sxIndex().lists[sxCmp.type].map(v => `<option value="${esc(v)}">`).join('');
+  arts.forEach(([ty, e, id]) => _sxTop5Load(ty, e, id));
+  // The Add card: closed at ten, and counts how many are in
+  const full = picks.length >= SX_CMP_MAX;
+  const input = document.getElementById('sxCmpInput');
+  document.getElementById('sxCmpAddCard')?.classList.toggle('is-full', full);
+  if (input) {
+    input.disabled = full;
+    input.placeholder = full ? t('sx_lu_full').replace('{n}', SX_CMP_MAX) : t('sx_cmp_add_' + type);
   }
+  const count = document.getElementById('sxCmpCount');
+  if (count) count.textContent = t('sx_lu_count').replace('{n}', picks.length).replace('{max}', SX_CMP_MAX);
+}
+
+/* The search list under the Add card (replaces the browser's plain
+   datalist): what matches the text, most played first, names that start
+   with it before ones that only contain it, each with a picture and its
+   plays. An empty box lists your most played ones not picked yet. Arrow
+   keys move, Enter adds, Escape closes. */
+let _sxSug = { keys: [], at: -1 };
+let _sxSugArtT = 0;
+function _sxCmpSuggest() {
+  const input = document.getElementById('sxCmpInput');
+  const list = document.getElementById('sxCmpSug');
+  if (!input || !list || input.disabled || !allPlays.length) return;
+  const type = sxCmp.type, idx = _sxIndex(), all = idx.keys[type], picks = _sxCmpPicks();
+  const q = input.value.trim().toLowerCase();
+  let keys;
+  if (!q) keys = all.filter(k => !picks.includes(k)).slice(0, 8);
+  else {
+    const starts = [], has = [];
+    for (const k of all) {
+      const o = idx[type].get(k), l = o.label.toLowerCase();
+      if (l.startsWith(q)) starts.push(k);
+      else if (has.length < 8 && (l.includes(q) || (o.sub && o.sub.toLowerCase().includes(q)))) has.push(k);
+      if (starts.length >= 8) break;
+    }
+    keys = starts.concat(has).slice(0, 8);
+  }
+  // Typing highlights the first one not picked yet, so Enter adds it
+  _sxSug = { keys, at: q ? keys.findIndex(k => !picks.includes(k)) : -1 };
+  const arts = [];
+  list.innerHTML = (q ? '' : `<li class="sx-sug-head" role="presentation">${esc(t('sx_lu_suggest'))}</li>`) +
+    (keys.length ? keys.map((k, j) => {
+      const o = idx[type].get(k), on = picks.includes(k);
+      let pic;
+      if (type === 'years') pic = `<span class="sx-t5-art sx-sug-art sx-sug-yr">’${esc(k.slice(2))}</span>`;
+      else {
+        const e = { key: k, title: o.label, artist: type === 'artists' ? o.label : o.sub, album: type === 'albums' ? o.label : (o.album || '') };
+        const a = _sxTop5Art(type, e, 'sx-sug-art');
+        arts.push([type, e, a.id]);
+        pic = a.html;
+      }
+      return `<li id="sxSug${j}" role="option" class="sx-sug-item${j === _sxSug.at ? ' is-at' : ''}${on ? ' is-in' : ''}" aria-selected="${j === _sxSug.at}" aria-disabled="${on}" data-k="${esc(k)}">` +
+        `${pic}<span class="sx-sug-txt"><b>${esc(o.label)}</b>${o.sub ? `<em>${esc(o.sub)}</em>` : ''}</span>` +
+        `<span class="sx-sug-n">${on ? '✓' : esc(t('sx_top5_plays').replace('{n}', o.n.toLocaleString()))}</span></li>`;
+    }).join('') : `<li class="sx-sug-none" role="presentation">${esc(t('sx_cmp_not_found').replace('{q}', input.value.trim()))}</li>`);
+  list.hidden = false;
+  input.setAttribute('aria-expanded', 'true');
+  if (_sxSug.at >= 0) input.setAttribute('aria-activedescendant', 'sxSug' + _sxSug.at); else input.removeAttribute('aria-activedescendant');
+  // Pictures once typing pauses, so a fast typist doesn't start forty lookups
+  clearTimeout(_sxSugArtT);
+  _sxSugArtT = setTimeout(() => arts.forEach(([ty, e, id]) => _sxTop5Load(ty, e, id)), 220);
+}
+function _sxCmpSugClose() {
+  const list = document.getElementById('sxCmpSug'), input = document.getElementById('sxCmpInput');
+  if (list) list.hidden = true;
+  if (input) { input.setAttribute('aria-expanded', 'false'); input.removeAttribute('aria-activedescendant'); }
+  _sxSug = { keys: [], at: -1 };
+}
+function _sxCmpSugMove(d) {
+  const n = _sxSug.keys.length;
+  if (!n) return;
+  _sxSug.at = (_sxSug.at + d + n) % n;
+  document.querySelectorAll('#sxCmpSug .sx-sug-item').forEach((li, j) => {
+    li.classList.toggle('is-at', j === _sxSug.at);
+    li.setAttribute('aria-selected', String(j === _sxSug.at));
+    if (j === _sxSug.at) li.scrollIntoView({ block: 'nearest' });
+  });
+  document.getElementById('sxCmpInput')?.setAttribute('aria-activedescendant', 'sxSug' + _sxSug.at);
+}
+
+// Adds one pick by its key (a click or Enter in the search list)
+function sxCmpAddKey(k) {
+  const picks = _sxCmpPicks();
+  const note = document.getElementById('sxCmpNote');
+  if (!picks.includes(k)) {
+    if (picks.length >= SX_CMP_MAX) { if (note) note.textContent = t('sx_cmp_full').replace('{n}', SX_CMP_MAX); return; }
+    picks.push(k);
+  }
+  const input = document.getElementById('sxCmpInput');
+  if (input) input.value = '';
+  _sxCmpSugClose();
+  _sxCmpSave();
+  sxRenderCompare();
 }
 
 function sxCmpRemove(i) {
@@ -1437,6 +1555,8 @@ function sxCmpRemove(i) {
 function sxCmpAdd() {
   const input = document.getElementById('sxCmpInput');
   const note = document.getElementById('sxCmpNote');
+  // The highlighted line in the search list wins over the typed text
+  if (_sxSug.at >= 0 && _sxSug.keys[_sxSug.at]) return sxCmpAddKey(_sxSug.keys[_sxSug.at]);
   const q = (input.value || '').trim();
   if (!q) return;
   const type = sxCmp.type, idx = _sxIndex();
@@ -1455,6 +1575,7 @@ function sxCmpAdd() {
     picks.push(k);
   }
   input.value = '';
+  _sxCmpSugClose();
   _sxCmpSave();
   sxRenderCompare();
 }
@@ -2325,10 +2446,22 @@ document.getElementById('sxCmpRun')?.addEventListener('click', e => {
   sxRenderCompare();
 });
 document.getElementById('sxCmpAddBtn')?.addEventListener('click', sxCmpAdd);
-document.getElementById('sxCmpInput')?.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); sxCmpAdd(); } });
-// Picking from the list adds it straight away
-document.getElementById('sxCmpInput')?.addEventListener('change', e => {
-  if (_sxIndex().byText[sxCmp.type].has((e.target.value || '').trim().toLowerCase())) sxCmpAdd();
+// The search box and its list (phase 18 step 1)
+document.getElementById('sxCmpInput')?.addEventListener('keydown', e => {
+  const open = !document.getElementById('sxCmpSug')?.hidden;
+  if (e.key === 'Enter') { e.preventDefault(); sxCmpAdd(); }
+  else if (e.key === 'ArrowDown') { e.preventDefault(); if (open) _sxCmpSugMove(1); else _sxCmpSuggest(); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); if (open) _sxCmpSugMove(-1); }
+  else if (e.key === 'Escape' && open) { e.preventDefault(); _sxCmpSugClose(); }
+});
+document.getElementById('sxCmpInput')?.addEventListener('input', _sxCmpSuggest);
+document.getElementById('sxCmpInput')?.addEventListener('focus', _sxCmpSuggest);
+document.getElementById('sxCmpInput')?.addEventListener('blur', () => setTimeout(_sxCmpSugClose, 150));
+// mousedown, not click: a click would blur the box and close the list first
+document.getElementById('sxCmpSug')?.addEventListener('mousedown', e => {
+  e.preventDefault();
+  const li = e.target.closest('.sx-sug-item');
+  if (li && li.getAttribute('aria-disabled') !== 'true') sxCmpAddKey(li.dataset.k);
 });
 document.getElementById('sxCmpTop')?.addEventListener('click', () => sxCmpFillTop(_sxCmpTopN()));
 const _sxCmpTopN = () => (sxCmp.mode === 'race' ? 10 : 3);

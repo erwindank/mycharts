@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=801">
+  <link rel="stylesheet" href="style.css?v=802">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=279"></script>
+  <script defer src="translations.js?v=280"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -1387,13 +1387,23 @@
             <button type="button" data-crun="year" data-i18n="nav_yearly">Yearly</button>
           </div>
         </div>
-        <div class="sx-cmp-picks">
-          <div id="sxCmpChips" class="sx-chips"></div>
-          <div class="sx-cmp-add">
-            <input id="sxCmpInput" type="text" class="graph-input" list="sxCmpList" placeholder="Add an artist…" autocomplete="off">
-            <datalist id="sxCmpList"></datalist>
-            <button id="sxCmpAddBtn" type="button" class="dc-btn dc-btn-main dc-btn-sm" data-i18n="btn_add">+ Add</button>
-            <button id="sxCmpTop" type="button" class="dc-btn dc-btn-normal dc-btn-sm">Top 3</button>
+        <!-- The line-up (phase 18 step 1): one card per pick (stats.js
+             _sxCmpChips fills #sxCmpChips), then the Add card with its own
+             search list (_sxCmpSuggest), which stays put between repaints. -->
+        <div class="sx-lu">
+          <div id="sxCmpChips" class="sx-lu-cards"></div>
+          <div id="sxCmpAddCard" class="sx-lu-add">
+            <div class="sx-lu-search">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
+              <input id="sxCmpInput" type="text" placeholder="Add an artist…" autocomplete="off" spellcheck="false"
+                role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="sxCmpSug" aria-label="Add" data-i18n-aria="btn_add">
+              <button id="sxCmpAddBtn" type="button" class="sx-lu-go" data-i18n="btn_add">+ Add</button>
+            </div>
+            <ul id="sxCmpSug" class="sx-sug" role="listbox" hidden></ul>
+            <div class="sx-lu-add-foot">
+              <span id="sxCmpCount" class="sx-lu-count"></span>
+              <button id="sxCmpTop" type="button" class="dc-btn dc-btn-plain dc-btn-sm">Top 3</button>
+            </div>
           </div>
         </div>
         <!-- Saved comparisons (phase 17 step 9, stats.js _sxCmpSavedPaint) -->
@@ -4255,7 +4265,7 @@
   <script defer src="insights.js?v=10"></script>
   <script defer src="daily.js?v=39"></script>
   <!-- The Stats page's tabs, Overview, Story, Games and Compare (phase 15); reads app.js globals -->
-  <script defer src="stats.js?v=40"></script>
+  <script defer src="stats.js?v=41"></script>
   <!-- The Dank 100: weekly entries for the shared community chart; reads app.js and firebase.js globals -->
   <script defer src="dank100.js?v=13"></script>
 

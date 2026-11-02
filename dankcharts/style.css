@@ -11196,7 +11196,6 @@
     .sx-cmp-bar { display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-3); margin: var(--sp-3) 0; }
     .sx-cmp-bar [hidden] { display: none; }
     .sx-cmp-bar button:disabled { opacity: .4; cursor: not-allowed; }
-    .sx-cmp-picks { display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-3); align-items: center; margin-bottom: var(--sp-3); }
     .sx-chips { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
     .sx-chips:empty { display: none; }
     .sx-chip {
@@ -11213,8 +11212,110 @@
     }
     .sx-chip button:hover { background: var(--bg2); color: var(--text); }
     .sx-chip svg { width: 12px; height: 12px; stroke: currentColor; stroke-width: 1.8; fill: none; stroke-linecap: round; }
-    .sx-cmp-add { display: flex; gap: var(--sp-2); flex: 1 1 18rem; min-width: 0; }
-    .sx-cmp-add .graph-input { flex: 1; min-width: 0; }
+
+    /* The line-up (phase 18 step 1): one card per pick in a grid, then the
+       Add card with its search list. Each card wears its pick's colour as
+       a soft wash and a share bar along the bottom. */
+    .sx-lu { display: grid; grid-template-columns: repeat(auto-fill, minmax(13.5rem, 1fr)); gap: var(--sp-2); margin-bottom: var(--sp-4); }
+    .sx-lu-cards { display: contents; }
+    .sx-lu-card {
+      position: relative; display: flex; align-items: center; gap: var(--sp-3); min-width: 0;
+      padding: 0.6rem 0.55rem 0.8rem 0.6rem; overflow: hidden;
+      background: linear-gradient(135deg, color-mix(in srgb, var(--c) 16%, var(--bg3)), var(--bg3) 70%);
+      border: 1px solid color-mix(in srgb, var(--c) 28%, var(--border));
+      border-radius: var(--r-md);
+      animation: sxLuIn .35s var(--ease) both;
+      transition: border-color .15s, transform .15s var(--ease);
+    }
+    .sx-lu-card:hover { border-color: color-mix(in srgb, var(--c) 60%, var(--border)); transform: translateY(-1px); }
+    @keyframes sxLuIn { from { opacity: 0; transform: translateY(4px); } }
+    .sx-lu-pic { flex-shrink: 0; padding: 0; border: 0; background: none; cursor: pointer; border-radius: var(--r-sm); }
+    .sx-lu-pic:has(.is-round) { border-radius: 50%; }
+    .sx-t5-art.sx-lu-art { width: 46px; height: 46px; box-shadow: 0 0 0 2px var(--c); }
+    .sx-lu-year {
+      flex-shrink: 0; display: grid; place-items: center; width: 46px; height: 46px; border-radius: var(--r-sm);
+      background: color-mix(in srgb, var(--c) 22%, transparent); color: var(--c);
+      font-family: var(--font-display); font-size: var(--fs-sm); font-weight: 800;
+    }
+    .sx-lu-info { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 1px; }
+    .sx-lu-name {
+      padding: 0; border: 0; background: none; text-align: left; cursor: pointer;
+      font-family: var(--font-display); font-size: var(--fs-sm); font-weight: 700; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    button.sx-lu-name:hover { text-decoration: underline; text-underline-offset: 2px; }
+    .sx-lu-sub { font-size: var(--fs-xs); color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sx-lu-nums { display: flex; align-items: baseline; gap: 0.45rem; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .sx-lu-nums b { font-family: var(--font-mono); font-size: var(--fs-sm); color: var(--text); }
+    .sx-lu-nums > span { font-size: var(--fs-xs); color: var(--text2); }
+    .sx-lu-nums .sx-lu-rank { font-family: var(--font-mono); font-weight: 700; color: var(--c); }
+    /* The × sits in the corner, so the name gets the card's full width */
+    .sx-lu-info { padding-right: 14px; }
+    .sx-lu-x {
+      position: absolute; top: 4px; right: 4px; display: grid; place-items: center; width: 24px; height: 24px;
+      padding: 0; border: 0; border-radius: var(--r-xs);
+      background: none; color: var(--text3); cursor: pointer;
+    }
+    .sx-lu-x:hover, .sx-lu-x:focus-visible { background: var(--bg2); color: var(--text); }
+    .sx-lu-x svg { width: 12px; height: 12px; stroke: currentColor; stroke-width: 1.8; fill: none; stroke-linecap: round; }
+    .sx-lu-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: color-mix(in srgb, var(--c) 14%, transparent); }
+    .sx-lu-bar i { display: block; height: 100%; background: var(--c); border-radius: 0 2px 2px 0; transition: width .4s var(--ease); }
+
+    /* The Add card: a dashed slot holding the search box */
+    .sx-lu-add {
+      position: relative; display: flex; flex-direction: column; justify-content: center; gap: 0.35rem; min-width: 0;
+      padding: 0.5rem 0.55rem; border: 1px dashed var(--border2); border-radius: var(--r-md);
+    }
+    .sx-lu-add:focus-within { border-style: solid; border-color: var(--accent); }
+    .sx-lu-search { display: flex; align-items: center; gap: 0.4rem; min-width: 0; }
+    .sx-lu-search > svg { width: 16px; height: 16px; flex-shrink: 0; stroke: var(--text3); stroke-width: 2; fill: none; stroke-linecap: round; }
+    .sx-lu-search input {
+      flex: 1; min-width: 0; padding: 0.3rem 0; border: 0; background: none; outline: none;
+      font: inherit; font-size: var(--fs-sm); color: var(--text);
+    }
+    .sx-lu-search input::placeholder { color: var(--text3); }
+    /* The card's own border lights up instead (.sx-lu-add:focus-within) */
+    .sx-lu-search input:focus-visible { outline: none; box-shadow: none; }
+    .sx-lu-go {
+      flex-shrink: 0; padding: 0.25rem 0.55rem; border: 0; border-radius: var(--r-sm);
+      background: var(--accent); color: var(--on-accent); font-size: var(--fs-xs); font-weight: 700; cursor: pointer;
+    }
+    .sx-lu-go:hover { filter: brightness(1.08); }
+    .sx-lu-add-foot { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); }
+    .sx-lu-count { font-size: var(--fs-xs); color: var(--text3); font-variant-numeric: tabular-nums; }
+    .sx-lu-add-foot .dc-btn { margin-right: -0.35rem; }
+    .sx-lu-add.is-full { border-style: solid; opacity: .7; }
+    .sx-lu-add.is-full .sx-lu-go { display: none; }
+
+    /* The search list: a floating panel under the Add card */
+    .sx-sug {
+      position: absolute; z-index: 30; top: calc(100% + 4px); left: 0; width: max(100%, 20rem); max-width: calc(100vw - 2rem);
+      max-height: 22rem; overflow-y: auto; margin: 0; padding: 0.3rem; list-style: none;
+      background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r-md); box-shadow: var(--shadow-3);
+    }
+    .sx-sug[hidden] { display: none; }
+    .sx-sug-head { padding: 0.35rem 0.5rem 0.25rem; font-size: 0.6875rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--text3); }
+    .sx-sug-none { padding: 0.6rem 0.5rem; font-size: var(--fs-sm); color: var(--text2); }
+    .sx-sug-item { display: flex; align-items: center; gap: 0.6rem; padding: 0.35rem 0.5rem; border-radius: var(--r-sm); cursor: pointer; }
+    .sx-sug-item.is-at, .sx-sug-item:hover { background: var(--bg3); }
+    .sx-sug-item.is-in { cursor: default; opacity: .55; }
+    .sx-t5-art.sx-sug-art { width: 34px; height: 34px; }
+    .sx-sug-yr { font-family: var(--font-display); font-size: var(--fs-xs); font-weight: 800; color: var(--text2); }
+    .sx-sug-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+    .sx-sug-txt b, .sx-sug-txt em { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sx-sug-txt b { font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
+    .sx-sug-txt em { font-style: normal; font-size: var(--fs-xs); color: var(--text2); }
+    .sx-sug-n { flex-shrink: 0; font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--text3); }
+    @media (max-width: 640px) {
+      .sx-lu { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .sx-lu-card { gap: var(--sp-2); padding: 0.5rem 0.45rem 0.7rem; }
+      .sx-t5-art.sx-lu-art, .sx-lu-year { width: 32px; height: 32px; }
+      .sx-lu-year { font-size: var(--fs-xs); }
+      .sx-lu-nums { gap: 0.3rem; }
+      .sx-lu-add { grid-column: 1 / -1; }
+      .sx-sug { width: 100%; }
+    }
+    @media (prefers-reduced-motion: reduce) { .sx-lu-card { animation: none; transition: none; } }
     .graph-canvas-wrap.sx-cmp-canvas { height: 340px; }
     @media (max-width: 640px) { .graph-canvas-wrap.sx-cmp-canvas { height: 280px; } }
 
