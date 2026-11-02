@@ -11548,12 +11548,24 @@
     .sx-gaps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--sp-3); }
     @media (max-width: 900px) { .sx-gaps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     @media (max-width: 420px) { .sx-gaps { grid-template-columns: 1fr; } }
-    .sx-gap { background: var(--bg3); border-radius: var(--r-sm); padding: var(--sp-3) var(--sp-4); min-width: 0; display: flex; flex-direction: column; gap: 0.3rem; }
-    .sx-gap-label { font-size: 0.6875rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--text3); }
+    /* Phase 18 step 6: a wash in the tile's main pick's colour, an emoji
+       in the corner, a bigger number and a small meter under it */
+    .sx-gap {
+      position: relative; min-width: 0; display: flex; flex-direction: column; gap: 0.3rem; padding: var(--sp-4);
+      background: linear-gradient(160deg, color-mix(in srgb, var(--c, var(--bg3)) 15%, var(--bg3)), var(--bg3) 70%);
+      border: 1px solid color-mix(in srgb, var(--c, var(--border)) 22%, var(--border)); border-radius: var(--r-md);
+    }
+    .sx-gap-label { padding-right: 2rem; font-size: 0.6875rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--text3); }
+    .sx-gap-emoji { position: absolute; top: 0.7rem; right: 0.8rem; font-size: 1.35rem; line-height: 1; }
     .sx-gap-what { font-size: var(--fs-sm); line-height: 1.35; color: var(--text); overflow-wrap: anywhere; }
     .sx-gap-what > span { color: var(--text3); }
-    .sx-gap-val { font-family: var(--font-display); font-size: var(--fs-md); font-weight: 700; color: var(--text); margin-top: auto; }
+    .sx-gap-val { margin-top: auto; padding-top: var(--sp-2); font-family: var(--font-display); font-size: var(--fs-lg); font-weight: 800; line-height: 1.15; color: var(--text); }
     .sx-gap-foot { font-size: var(--fs-xs); color: var(--text2); }
+    .sx-gap-pair { display: flex; flex-direction: column; gap: 3px; margin-top: 0.2rem; }
+    .sx-gap-pair i, .sx-gap-part i { display: block; height: 5px; border-radius: 3px; }
+    .sx-gap-pair.is-rise i:first-child { opacity: .4; }
+    .sx-gap-part { margin-top: 0.2rem; height: 5px; border-radius: 3px; background: color-mix(in srgb, var(--c) 18%, transparent); }
+    .sx-gap-part i { height: 100%; background: var(--c); }
 
     /* 1-vs-1 (phase 17 step 5): two sides, the score, mirrored bars */
     .sx-vs-head { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: var(--sp-3); }
@@ -11586,9 +11598,34 @@
     }
 
     /* Top songs side by side (phase 17 step 6): one column per pick */
-    .sx-ts { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: var(--sp-3) var(--sp-4); }
-    .sx-ts-col { min-width: 0; border-top: 3px solid var(--c); padding-top: var(--sp-2); }
-    .sx-ts-head { margin-bottom: var(--sp-1); }
+    .sx-ts { display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: var(--sp-3); }
+    /* Phase 18 step 6: each pick a card; its #1 song with a big cover */
+    .sx-ts-col {
+      min-width: 0; padding: var(--sp-3);
+      background: linear-gradient(180deg, color-mix(in srgb, var(--c) 13%, var(--bg3)), var(--bg3) 45%);
+      border: 1px solid color-mix(in srgb, var(--c) 22%, var(--border)); border-radius: var(--r-md);
+    }
+    .sx-ts-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); margin-bottom: var(--sp-2); }
+    .sx-ts-head .sx-cmp-name { min-width: 0; }
+    .sx-ts-total { flex-shrink: 0; font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--text3); }
+    .sx-ts-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 2px; }
+    .sx-ts-row {
+      display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--sp-3); width: 100%;
+      padding: 0.35rem; border: 0; border-radius: var(--r-sm); background: none; cursor: pointer; text-align: left; color: inherit; font: inherit;
+    }
+    .sx-ts-row:hover, .sx-ts-row:focus-visible { background: color-mix(in srgb, var(--c) 10%, transparent); }
+    .sx-t5-art.sx-ts-art { width: 36px; height: 36px; }
+    .sx-t5-art.sx-ts-art.is-big { width: 64px; height: 64px; border-radius: var(--r-sm); box-shadow: 0 4px 14px rgba(0, 0, 0, .3); }
+    .sx-ts-t { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+    .sx-ts-t b, .sx-ts-t > span:not(.sx-ts-bar) { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sx-ts-t b { font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
+    .is-top .sx-ts-t b { font-family: var(--font-display); font-size: var(--fs-md); font-weight: 700; line-height: 1.2; white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+    .sx-ts-t > span:not(.sx-ts-bar) { font-size: var(--fs-xs); color: var(--text2); }
+    .sx-ts-bar { display: block; height: 3px; margin-top: 4px; border-radius: 2px; background: color-mix(in srgb, var(--c) 14%, transparent); }
+    .sx-ts-bar i { display: block; height: 100%; border-radius: 2px; background: var(--c); }
+    .sx-ts-v { display: flex; flex-direction: column; align-items: flex-end; font-variant-numeric: tabular-nums; }
+    .sx-ts-v b { font-family: var(--font-mono); font-size: var(--fs-sm); color: var(--text); }
+    .sx-ts-n { font-family: var(--font-mono); font-size: 0.6875rem; font-weight: 700; color: var(--c); }
 
     /* Listening habits (phase 17 step 7): three facts, then hour and day cells */
     .sx-hab-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-3); margin: 0 0 var(--sp-4); padding: 0; list-style: none; }

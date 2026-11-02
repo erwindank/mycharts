@@ -2260,8 +2260,18 @@ function _sxCmpGaps(T, names) {
   if (n < 2 || !T.total) return '';
   const B = _sxCmpBuckets(T);
   const who = i => `<b style="color:${_sxCmpColor(i)}">${esc(names[i])}</b>`;
-  const tile = (label, what, val, foot) => `<div class="sx-gap"><span class="sx-gap-label">${esc(label)}</span>` +
-    `<div class="sx-gap-what">${what}</div><div class="sx-gap-val">${esc(val)}</div>${foot ? `<div class="sx-gap-foot">${esc(foot)}</div>` : ''}</div>`;
+  // Phase 18 step 6: each tile has an emoji, a wash in its main pick's
+  // colour (c) and, where it helps, a small meter (two bars, or a part of
+  // a whole) under the number
+  const tile = (label, what, val, foot, o = {}) => `<div class="sx-gap"${o.c != null ? ` style="--c:${_sxCmpColor(o.c)}"` : ''}>` +
+    `<span class="sx-gap-label">${esc(label)}</span>${o.emoji ? `<span class="sx-gap-emoji" aria-hidden="true">${o.emoji}</span>` : ''}` +
+    `<div class="sx-gap-what">${what}</div><div class="sx-gap-val">${esc(val)}</div>${o.meter || ''}` +
+    `${foot ? `<div class="sx-gap-foot">${esc(foot)}</div>` : ''}</div>`;
+  // Two bars side by side, as long as each one's total
+  const pair = (a, b, va, vb) => {
+    const m = Math.max(va, vb, 1);
+    return `<div class="sx-gap-pair" aria-hidden="true"><i style="width:${Math.round(va / m * 100)}%;background:${_sxCmpColor(a)}"></i><i style="width:${Math.round(vb / m * 100)}%;background:${_sxCmpColor(b)}"></i></div>`;
+  };
   const tiles = [];
   // Closest race: nearest totals among the picks that were played
   const played = T.per.map((o, i) => i).filter(i => T.per[i].plays).sort((a, b) => T.per[b].plays - T.per[a].plays);
@@ -2273,7 +2283,8 @@ function _sxCmpGaps(T, names) {
     }
     const d = T.per[a].plays - T.per[b].plays;
     tiles.push(tile(t('sx_gap_close'), `${who(a)} <span>${esc(t('sx_gap_and'))}</span> ${who(b)}`,
-      d ? t('sx_gap_apart').replace('{n}', d.toLocaleString()) : t('sx_gap_level'), ''));
+      d ? t('sx_gap_apart').replace('{n}', d.toLocaleString()) : t('sx_gap_level'), '',
+      { emoji: '🤏', c: a, meter: pair(a, b, T.per[a].plays, T.per[b].plays) }));
   }
   // Running totals piece by piece: the biggest lead, and time in front
   const run = new Array(n).fill(0), front = new Array(n).fill(0);
@@ -2287,26 +2298,29 @@ function _sxCmpGaps(T, names) {
     if (!run[f]) continue;
     front[f]++;
     const gap = run[f] - run[s];
-    if (!big || gap > big.gap) big = { k, f, s, gap };
+    if (!big || gap > big.gap) big = { k, f, s, gap, va: run[f], vb: run[s] };
   }
   if (big && big.gap) tiles.push(tile(t('sx_gap_lead'), `${who(big.f)} <span>${esc(t('sx_gap_over'))}</span> ${who(big.s)}`,
-    t('sx_n_plays').replace('{n}', big.gap.toLocaleString()), (T.type === 'years' ? t('sx_lead_by').replace('{m}', B.label(big.k)) : B.label(big.k))));
+    t('sx_n_plays').replace('{n}', big.gap.toLocaleString()), (T.type === 'years' ? t('sx_lead_by').replace('{m}', B.label(big.k)) : B.label(big.k)),
+    { emoji: '🏁', c: big.f, meter: pair(big.f, big.s, big.va, big.vb) }));
   // Fastest rise: the biggest jump on the piece before
   let rise = null;
   for (let i = 0; i < n; i++) {
     for (let j = 1; j < B.keys.length; j++) {
       const d = (B.counts[i].get(B.keys[j]) || 0) - (B.counts[i].get(B.keys[j - 1]) || 0);
-      if (d > 0 && (!rise || d > rise.d)) rise = { i, j, d };
+      if (d > 0 && (!rise || d > rise.d)) rise = { i, j, d, before: B.counts[i].get(B.keys[j - 1]) || 0 };
     }
   }
   if (rise) tiles.push(tile(t('sx_gap_rise'), who(rise.i), '+' + t('sx_n_plays').replace('{n}', rise.d.toLocaleString()),
-    t('sx_gap_rise_when').replace('{a}', B.label(B.keys[rise.j])).replace('{b}', B.label(B.keys[rise.j - 1]))));
+    t('sx_gap_rise_when').replace('{a}', B.label(B.keys[rise.j])).replace('{b}', B.label(B.keys[rise.j - 1])),
+    { emoji: '🚀', c: rise.i, meter: `<div class="sx-gap-pair is-rise" aria-hidden="true"><i style="width:${Math.round(rise.before / (rise.before + rise.d) * 100)}%;background:${_sxCmpColor(rise.i)}"></i><i style="width:100%;background:${_sxCmpColor(rise.i)}"></i></div>` }));
   // Longest in front
   let lf = 0;
   front.forEach((v, i) => { if (v > front[lf]) lf = i; });
   if (front[lf]) {
     const unitKey = T.type === 'years' || B.unit === 'month' ? 'sx_gap_front_m' : 'sx_gap_front_w';
-    tiles.push(tile(t('sx_gap_front'), who(lf), t(unitKey).replace('{n}', front[lf]).replace('{of}', B.keys.length), ''));
+    tiles.push(tile(t('sx_gap_front'), who(lf), t(unitKey).replace('{n}', front[lf]).replace('{of}', B.keys.length), '',
+      { emoji: '👑', c: lf, meter: `<div class="sx-gap-part" aria-hidden="true"><i style="width:${Math.round(front[lf] / B.keys.length * 100)}%"></i></div>` }));
   }
   return tiles.length ? `<div class="sx-gaps">${tiles.join('')}</div>` : '';
 }
@@ -2317,6 +2331,8 @@ function _sxCmpGaps(T, names) {
    in its colour, and the score of rows won ("Taylor Swift wins 5–2").
    Tied rows count for nobody. */
 let _sxVsArts = [];
+// Top songs' covers, filled after the cards are on the page (phase 18 step 6)
+let _sxTsArts = [];
 function _sxCmpVsSide(T, i, names) {
   const k = T.picks[i], type = T.type;
   const o = _sxIndex()[type].get(k) || {};
@@ -2386,16 +2402,27 @@ function _sxCmpBucketsWon(T) {
    artist's songs and the artist otherwise. */
 function _sxCmpTopSongs(T, names) {
   if (T.type === 'songs' || !T.total) return '';
+  // Phase 18 step 6: each pick is a small card. Its #1 song leads with a
+  // big cover, #2 and #3 follow as rows with small covers; each song has a
+  // bar as long as its plays against that pick's #1. Covers load once the
+  // HTML is on the page (_sxTsArts, see _sxCmpMore).
+  _sxTsArts = [];
   const cols = T.per.map((o, i) => {
     if (!o.plays) return '';
     const top = [...o.songs.entries()].sort((a, b) => b[1].n - a[1].n || a[1].p.title.localeCompare(b[1].p.title)).slice(0, 3);
+    const max = top.length ? top[0][1].n : 1;
     const rows = top.map(([sk, x], j) => {
       const sub = T.type === 'artists' ? (x.p.album && x.p.album !== '—' ? x.p.album : '') : x.p.artist;
-      return `<li><button type="button" class="sx-row" onclick="openSongModal(${esc(JSON.stringify(sk))})">` +
-        `<span class="sx-row-n">${j + 1}</span><span class="sx-row-t"><b>${esc(x.p.title)}</b>${sub ? `<span>${esc(sub)}</span>` : ''}</span>` +
-        `<span class="sx-row-v">${x.n.toLocaleString()}</span></button></li>`;
+      const e = { key: sk, title: x.p.title, artist: x.p.artist, album: x.p.album || '' };
+      const a = _sxTop5Art('songs', e, j ? 'sx-ts-art' : 'sx-ts-art is-big');
+      _sxTsArts.push(['songs', e, a.id]);
+      return `<li${j ? '' : ' class="is-top"'}><button type="button" class="sx-ts-row" onclick="openSongModal(${esc(JSON.stringify(sk))})">` +
+        `${a.html}<span class="sx-ts-t"><b>${esc(x.p.title)}</b>${sub ? `<span>${esc(sub)}</span>` : ''}` +
+        `<span class="sx-ts-bar" aria-hidden="true"><i style="width:${Math.max(4, Math.round(x.n / max * 100))}%"></i></span></span>` +
+        `<span class="sx-ts-v"><b>${x.n.toLocaleString()}</b><span class="sx-ts-n">#${j + 1}</span></span></button></li>`;
     }).join('');
-    return `<div class="sx-ts-col" style="--c:${_sxCmpColor(i)}"><div class="sx-ts-head">${_sxCmpName(T.type, T.picks[i], i, names[i])}</div><ol class="sx-rows">${rows}</ol></div>`;
+    return `<div class="sx-ts-col" style="--c:${_sxCmpColor(i)}"><div class="sx-ts-head">${_sxCmpName(T.type, T.picks[i], i, names[i])}` +
+      `<span class="sx-ts-total">${esc(t('sx_n_plays').replace('{n}', o.plays.toLocaleString()))}</span></div><ol class="sx-ts-list">${rows}</ol></div>`;
   }).join('');
   return `<div class="sx-ts">${cols}</div>`;
 }
@@ -2555,8 +2582,9 @@ function _sxCmpMore(type, picks) {
     html += _sxCmpCard('sx-cmp-hab', t('sx_hab_title'), t('sx_hab_sub'), _sxCmpHabits(T, names));
   }
   box.innerHTML = html;
-  // The 1-vs-1 pictures, once the slots are on the page
+  // The 1-vs-1 pictures and the top songs' covers, once the slots are on the page
   vsArts.forEach(([ty, e, id]) => _sxTop5Load(ty, e, id));
+  _sxTsArts.splice(0).forEach(([ty, e, id]) => _sxTop5Load(ty, e, id));
 }
 
 // Sorting the table: a click on a column head (again flips the order)
