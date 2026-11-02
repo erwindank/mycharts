@@ -9,6 +9,7 @@ const TRANSLATIONS = {
 
   // ── ENGLISH ──────────────────────────────────────────────────────────────────
   en: {
+    recx_mil_more: "+{{n}} more · {{from}} – {{to}}",
     nc_t_biggest_debut: "Biggest New Chart Debut",
     nc_t_busiest: "Busiest Discovery Period",
     nc_t_most_songs_one: "Most Songs on a Single New Chart (by Artist)",
@@ -5234,6 +5235,7 @@ const TRANSLATIONS = {
 
   // ── SPANISH ───────────────────────────────────────────────────────────────────
   es: {
+    recx_mil_more: "+{{n}} más · {{from}} – {{to}}",
     nc_t_biggest_debut: "Mayor debut en Novedades",
     nc_t_busiest: "Período con más descubrimientos",
     nc_t_most_songs_one: "Más canciones en un solo ranking de Novedades (por artista)",
@@ -10344,6 +10346,7 @@ const TRANSLATIONS = {
 
   // ── PORTUGUESE — BRAZIL ───────────────────────────────────────────────────────
   'pt-BR': {
+    recx_mil_more: "+{{n}} mais · {{from}} – {{to}}",
     nc_t_biggest_debut: "Maior estreia em Novidades",
     nc_t_busiest: "Período com mais descobertas",
     nc_t_most_songs_one: "Mais músicas numa só parada de Novidades (por artista)",
@@ -15455,6 +15458,7 @@ const TRANSLATIONS = {
 
   // ── PORTUGUESE — EUROPEAN ─────────────────────────────────────────────────────
   'pt-PT': {
+    recx_mil_more: "+{{n}} mais · {{from}} – {{to}}",
     nc_t_biggest_debut: "Maior estreia em Novidades",
     nc_t_busiest: "Período com mais descobertas",
     nc_t_most_songs_one: "Mais músicas num só top de Novidades (por artista)",

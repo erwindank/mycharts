@@ -11255,7 +11255,7 @@ function renderRecordsOverview(highlights) {
   const type = recOverviewType();
 
   let html = '<p class="rec-ov-intro">' + esc(t('rec_ov_intro')) + '</p>';
-  html += '<div class="rec-ov-types" role="group" aria-label="' + esc(t('rec_ov_type_label')) + '">';
+  html += '<div class="dc-seg rec-ov-types" role="group" aria-label="' + esc(t('rec_ov_type_label')) + '">';
   html += REC_OV_TYPES.map(function (ty) {
     return '<button type="button" class="rec-ov-type' + (ty.key === type ? ' active' : '') +
       '" data-rec-ov-type="' + ty.key + '" aria-pressed="' + (ty.key === type) + '">' +

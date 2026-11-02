@@ -16956,50 +16956,13 @@
       max-width: 62ch;
     }
 
-    /* Songs / Artists / Albums toggle. Shares the shape of the section nav
-       pills above it so the two rows read as the same kind of control. */
+    /* Songs / Artists / Albums toggle. Since phase 20 it is the site's
+       segmented switch (.dc-seg, added in renderRecordsOverview), the same
+       one every Records section wears; this only places it in the grid. */
     .rec-ov-types {
       grid-column: 1 / -1;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.35rem;
+      justify-self: start;
       margin-bottom: 0.2rem;
-    }
-
-    .rec-ov-type {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      color: var(--text2);
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      padding: 0.34rem var(--sp-3);
-      border-radius: var(--r-xs);
-      cursor: pointer;
-      transition: background 0.15s, color 0.15s, border-color 0.15s;
-    }
-
-    .rec-ov-type:hover {
-      background: var(--bg3);
-      color: var(--text);
-      border-color: var(--border2);
-    }
-
-    .rec-ov-type:focus-visible {
-      outline: 2px solid var(--accent);
-      outline-offset: 2px;
-    }
-
-    .rec-ov-type.active {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: var(--on-accent);
-    }
-
-    /* Same carve-out the records nav needs: on the yellow themes the accent is
-       light enough that --on-accent would sit white-on-yellow. */
-    body.yellow .rec-ov-type.active,
-    body.green .rec-ov-type.active {
-      color: #1a1a00;
     }
 
     /* ── Records hero: most-decorated artist ──────────────────────────
@@ -46502,3 +46465,22 @@ body:not(:is([data-view="day"], [data-view="week"], [data-view="month"], [data-v
 }
 .recx-bar i { display: block; height: 100%; border-radius: 4px; background: var(--accent); }
 @media (max-width: 640px) { .recx-bar { display: none; } }
+
+/* ── Phase 20 step 7: Milestones fold runs of one record ───────────── */
+#recordsView:not(.rec-searching) .mil-timeline:not(.recx-mil-unfold) tr.recx-mil-folded:not(.recx-mil-open) { display: none; }
+.recx-mil-more {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: none;
+  color: var(--text2);
+  font: inherit;
+  font-size: 0.72rem;
+  cursor: pointer;
+}
+.recx-mil-more:hover { color: var(--text); border-color: var(--border2); }
+.recx-mil-more[aria-expanded="true"] { color: var(--accent); border-color: var(--accent); }
+#recordsView.rec-searching .recx-mil-more,
+.mil-timeline.recx-mil-unfold .recx-mil-more { display: none; }

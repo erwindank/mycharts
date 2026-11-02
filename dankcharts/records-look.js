@@ -147,6 +147,7 @@ function recxSync() {
     if (!recxVisible(sec)) return;
     story.innerHTML = recxStoryFor(sec);
     if (!document.getElementById('recordsView').classList.contains('rec-searching')) recxPodiums(sec);
+    if (id === 'recMilestonesSection') recxGroupMilestones(sec);
   });
 }
 
@@ -357,3 +358,50 @@ function recxBars(table) {
     td.insertAdjacentHTML('beforeend', '<span class="recx-bar" aria-hidden="true"><i style="width:' + Math.max(3, Math.round(vals[i] / max * 100)) + '%"></i></span>');
   });
 }
+
+/* ── Milestones: one row per run (phase 20 step 7) ─────────────────────
+   The timeline lists every rung, so one song that took every milestone
+   from 525 to 650 filled six rows in a row. A run of the same record now
+   shows as its top rung, with "+5 more · 525 – 625" to unfold the rest.
+   The folded rows stay in the table (search finds them, and shows them,
+   since the fold only applies outside a search); a column sort unfolds
+   everything, because sorted rows no longer sit in runs. */
+let _recxMilN = 0;
+function recxGroupMilestones(sec) {
+  sec.querySelectorAll('table.mil-timeline').forEach(function (table) {
+    if (!recxVisible(table) || !table.tBodies[0]) return;
+    // A sort by any column breaks the runs apart: show every rung.
+    const sorted = Array.from(table.tHead ? table.tHead.rows[0].cells : []).some(function (th) { return !!th.dataset.sortDir; });
+    table.classList.toggle('recx-mil-unfold', sorted);
+    if (table.dataset.recxGroup) return;
+    table.dataset.recxGroup = '1';
+    const rows = Array.from(table.tBodies[0].rows).filter(function (r) { return r.classList.contains('mil-row'); });
+    let i = 0;
+    while (i < rows.length) {
+      const key = rows[i].dataset.recPrefkey;
+      let j = i + 1;
+      while (j < rows.length && key && rows[j].dataset.recPrefkey === key) j++;
+      const run = rows.slice(i, j);
+      if (run.length >= 3) {
+        const id = 'recx-mil-' + (++_recxMilN);
+        const num = function (r) { const n = r.querySelector('.milestone-number'); return n ? n.textContent.trim() : ''; };
+        run.slice(1).forEach(function (r) { r.classList.add('recx-mil-folded'); r.dataset.recxGrp = id; });
+        const who = run[0].querySelector('.mil-who');
+        if (who) {
+          who.insertAdjacentHTML('beforeend', '<button type="button" class="recx-mil-more" aria-expanded="false" data-recx-grp="' + id + '">'
+            + esc(t('recx_mil_more', { n: run.length - 1, from: num(run[run.length - 1]), to: num(run[1]) })) + '</button>');
+        }
+      }
+      i = j;
+    }
+  });
+}
+document.addEventListener('click', function (e) {
+  const btn = e.target.closest && e.target.closest('.recx-mil-more');
+  if (!btn) return;
+  const open = btn.getAttribute('aria-expanded') !== 'true';
+  btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  document.querySelectorAll('tr[data-recx-grp="' + btn.dataset.recxGrp + '"]').forEach(function (r) {
+    r.classList.toggle('recx-mil-open', open);
+  });
+});
