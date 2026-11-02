@@ -1016,6 +1016,17 @@ document.addEventListener('click', e => {
    look inside that period (sxShowVolDrill). */
 let sxVolMode = (() => { try { return localStorage.getItem('dc_sxVolMode') === 'new' ? 'new' : 'plays'; } catch (e) { return 'plays'; } })();
 let _sxVol = null; // the last drawn data, for the look-inside box
+// More periods than this and the volume chart draws an area, not bars
+const SX_VOL_MAX_BARS = 180;
+// A hex colour (#rgb or #rrggbb) made see-through; anything else is kept
+function _sxAlpha(c, a) {
+  const m = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(String(c).trim());
+  if (!m) return c;
+  let h = m[1];
+  if (h.length === 3) h = h.replace(/./g, x => x + x);
+  const v = parseInt(h, 16);
+  return `rgba(${v >> 16},${(v >> 8) & 255},${v & 255},${a})`;
+}
 
 function _sxKeyStart(k) {
   if (graphGranularity === 'day') return new Date(k + 'T00:00:00').getTime();
@@ -1049,21 +1060,32 @@ function sxRenderVolume(sortedKeys, gc) {
   _sxPaintVolMode();
 
   const n = (o, k) => o[k] || 0;
-  const bar = { borderColor: gc.cardBg, borderWidth: { top: 2 }, stack: 'v' };
+  /* Phase 19 step 1: past SX_VOL_MAX_BARS periods (Daily over a year or
+     more) each bar would be thinner than a pixel and the chart looked
+     empty, so the same numbers are drawn as a stacked area instead. */
+  const area = keys.length > SX_VOL_MAX_BARS;
+  const bar = area
+    ? { stack: 'v', fill: true, pointRadius: 0, pointHitRadius: 4, borderWidth: 1, tension: 0.25 }
+    : { borderColor: gc.cardBg, borderWidth: { top: 2 }, stack: 'v' };
+  // An area takes a see-through fill and a solid edge of the same colour
+  const paint = c => area ? { borderColor: c, backgroundColor: _sxAlpha(c, 0.55) } : { backgroundColor: c };
   const datasets = sxVolMode === 'new' ? [
-    { label: t('graph_new_songs'), data: keys.map(k => n(nSong, k)), backgroundColor: graphColor(0), ...bar },
-    { label: t('graph_new_artists'), data: keys.map(k => n(nArtist, k)), backgroundColor: graphColor(1), ...bar },
-    { label: t('graph_new_albums'), data: keys.map(k => n(nAlbum, k)), backgroundColor: graphColor(2), ...bar },
+    { label: t('graph_new_songs'), data: keys.map(k => n(nSong, k)), ...paint(graphColor(0)), ...bar },
+    { label: t('graph_new_artists'), data: keys.map(k => n(nArtist, k)), ...paint(graphColor(1)), ...bar },
+    { label: t('graph_new_albums'), data: keys.map(k => n(nAlbum, k)), ...paint(graphColor(2)), ...bar },
   ] : [
-    { label: t('sx_vol_known'), data: keys.map(k => n(plays, k) - n(newPlays, k)), backgroundColor: gc.accent, ...bar },
-    { label: t('sx_vol_new'), data: keys.map(k => n(newPlays, k)), backgroundColor: graphColor(2), ...bar },
+    { label: t('sx_vol_known'), data: keys.map(k => n(plays, k) - n(newPlays, k)), ...paint(gc.accent), ...bar },
+    { label: t('sx_vol_new'), data: keys.map(k => n(newPlays, k)), ...paint(graphColor(2)), ...bar },
   ];
+  // Each area stacks on the one under it (the first on the axis)
+  if (area) datasets.forEach((d, i) => { d.fill = i ? '-1' : 'origin'; });
 
   // Labels button: the bar's total over each stack
   const labelsPlugin = {
     id: 'sxVolLabels',
     afterDatasetsDraw(chart) {
-      if (!gTotalVolumeLabels) return;
+      // Not on an area: a number over every day would be a smudge
+      if (!gTotalVolumeLabels || area) return;
       const ctx = chart.ctx, last = chart.getDatasetMeta(chart.data.datasets.length - 1);
       last.data.forEach((el, i) => {
         const total = chart.data.datasets.reduce((s, ds) => s + (ds.data[i] || 0), 0);
@@ -1078,10 +1100,12 @@ function sxRenderVolume(sortedKeys, gc) {
   };
 
   graphCharts.totalVolume = new Chart(canvas, {
-    type: 'bar',
+    type: area ? 'line' : 'bar',
     data: { labels: keys.map(graphKeyLabel), datasets },
     options: {
       responsive: true, maintainAspectRatio: false,
+      // An area has no bars to hit, so it answers for the nearest day
+      interaction: area ? { mode: 'index', intersect: false } : undefined,
       onClick: (e, els) => { if (els.length) sxShowVolDrill(keys[els[0].index]); },
       onHover: (e, els) => { e.native.target.style.cursor = els.length ? 'pointer' : ''; },
       plugins: {

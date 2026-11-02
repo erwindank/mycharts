@@ -4083,6 +4083,29 @@ menu (9a2aae9), 3 legend + race player (fc17259), 4 head to head
   real. Scripts: C:/tmp/p18.mjs, p18_saved.mjs, p18_s3.mjs, p18_s5.mjs,
   p18_s7.mjs, p18_hl.mjs (the What's New picture).
 
+### Phase 19: Stats → Charts, a modern look (planned 2026-11-01)
+
+You found the Charts sub-tab "stiff and old". Two real faults too: Daily
+over a long range drew 3,298 bars thinner than a pixel (the chart looked
+empty), and the heatmap colours were nearly all the darkest step. Nothing
+is removed; everything is restyled or regrouped. You said do all seven
+steps, one commit plus a changelog entry each, no push without asking.
+
+1. **Daily on long ranges:** past a few hundred bars, a smooth area
+   instead of bars, so it never looks empty.
+2. **Volume card:** big numbers on top (total, average, peak, % new), a
+   slim Plays / New finds switch, cleaner bars and hover box.
+3. **Listening clock:** labels clear of the ring, hour ticks, the busiest
+   hour in the accent colour, a morning / afternoon / evening / night split.
+4. **Your week:** weekdays against the weekend, numbers in the bars, the
+   best day marked cleanly.
+5. **Heatmap:** one slim toolbar, a colour scale where days differ, a year
+   strip that shows every year, nicer streak chips.
+6. **Listening Patterns:** a readable weekday × hour grid with labels and
+   hover details (was 8px text).
+7. **Finish:** gentle motion, four languages, the Charts Guide, changelog,
+   screen check (1440 / 1100 / 390 touch, the check themes).
+
 ### Done outside the phases (to 2026-10-18)
 
 Work that isn't a plan step but changes what the later phases start from.
