@@ -7815,6 +7815,8 @@ function _recBuildKey() {
 
 // Rows each section keeps under Show → All while it is not on screen.
 const REC_ALL_OTHERS = 25;
+// The most rows Show → All builds for one list (user's call, 2026-11-02).
+const REC_ALL_CAP = 1000;
 
 /* Under Show → All, opening another section has to build its full lists.
    The section shows at once with what it has; the rebuild follows on the
@@ -7880,6 +7882,8 @@ function buildRecords() {
     return;
   }
   _recBuiltKey = _bk;
+  // The rows the stored detail markup belonged to are about to be replaced.
+  _recLazyHtml.clear();
 
   const wSizeSongs = chartSizeSongsW, wSizeArtists = chartSizeArtistsW, wSizeAlbums = chartSizeAlbumsW;
   const mSizeSongs = chartSizeSongsM, mSizeArtists = chartSizeArtistsM, mSizeAlbums = chartSizeAlbumsM;
@@ -8696,7 +8700,7 @@ function buildRecords() {
         const rowAttrs = opts.rowAttrs ? opts.rowAttrs(i) : '';
         if (!slicedDetails || !slicedDetails[i]) return '<tr class="' + rankCls + '"' + rowAttrs + '>' + r + '</tr>';
         return '<tr class="' + rankCls + '"' + rowAttrs + '>' + r + '</tr>'
-          + '<tr class="rec-run-detail" id="' + slicedDetails[i].id + '"><td colspan="' + colCount + '">' + slicedDetails[i].html + '</td></tr>';
+          + '<tr class="rec-run-detail" id="' + slicedDetails[i].id + '"><td colspan="' + colCount + '">' + recLazy(slicedDetails[i].id, slicedDetails[i].html) + '</td></tr>';
       }).join('') +
       '</tbody></table>';
   }
@@ -8706,7 +8710,9 @@ function buildRecords() {
      memory. The other sections stay at REC_ALL_OTHERS until opened, which
      rebuilds (see recEnsureBuiltForView). `lim` is set again at the top of
      each section below. */
-  const limFull = recLimit === 0 ? Infinity : recLimit;
+  // And All stops at REC_ALL_CAP rows per list: Appearances alone had lists
+  // of several thousand, ~98,000 rows and ~15 s for one section.
+  const limFull = recLimit === 0 ? REC_ALL_CAP : recLimit;
   const recActiveSec = localStorage.getItem('dc_records_active_view') || REC_DEFAULT_VIEW;
   const recLimFor = function (sec) { return recLimit === 0 && sec !== recActiveSec ? REC_ALL_OTHERS : limFull; };
   let lim = limFull;
@@ -9351,7 +9357,7 @@ function buildRecords() {
         ah += '<td class="rec-count">' + tCount(cfg.unitKey, count) + '</td>';
         ah += '<td class="rec-cr-btn-cell"><button class="rec-cr-toggle" onclick="toggleAppCr(\'' + crRowId + '\',this)" title="' + t('cr_chart_run') + '">▶</button></td>';
         ah += '</tr>';
-        ah += '<tr class="app-cr-row" id="' + crRowId + '" style="display:none"><td colspan="9"><div class="app-cr-content">' + crBoxesHTML('songs', k, allChartRun[cfg.pt]) + '</div></td></tr>';
+        ah += '<tr class="app-cr-row" id="' + crRowId + '" style="display:none"><td colspan="9"><div class="app-cr-content">' + recLazy(crRowId, function () { return crBoxesHTML('songs', k, allChartRun[cfg.pt]); }) + '</div></td></tr>';
         appImgQueue.push({ imgId, imgType: 'song', name: title, prefKey: 'song:' + artist.toLowerCase() + '|||' + title.toLowerCase(), title, artist, album });
         appImgQueue.push({ imgId: artImgId, imgType: 'artist', name: artist, prefKey: 'artist:' + artist.toLowerCase() });
       }
@@ -9391,7 +9397,7 @@ function buildRecords() {
         ah += '<td class="rec-count">' + tCount(cfg.unitKey, count) + '</td>';
         ah += '<td class="rec-cr-btn-cell"><button class="rec-cr-toggle" onclick="toggleAppCr(\'' + crRowId + '\',this)" title="' + t('cr_chart_run') + '">▶</button></td>';
         ah += '</tr>';
-        ah += '<tr class="app-cr-row" id="' + crRowId + '" style="display:none"><td colspan="8"><div class="app-cr-content">' + crBoxesHTML('artists', a, allChartRun[cfg.pt]) + '</div></td></tr>';
+        ah += '<tr class="app-cr-row" id="' + crRowId + '" style="display:none"><td colspan="8"><div class="app-cr-content">' + recLazy(crRowId, function () { return crBoxesHTML('artists', a, allChartRun[cfg.pt]); }) + '</div></td></tr>';
         appImgQueue.push({ imgId, imgType: 'artist', name: a, prefKey: 'artist:' + a.toLowerCase() });
       }
       ah += '</tbody></table></div></div>';
@@ -9437,7 +9443,7 @@ function buildRecords() {
         ah += '<td class="rec-count">' + tCount(cfg.unitKey, count) + '</td>';
         ah += '<td class="rec-cr-btn-cell"><button class="rec-cr-toggle" onclick="toggleAppCr(\'' + crRowId + '\',this)" title="' + t('cr_chart_run') + '">▶</button></td>';
         ah += '</tr>';
-        ah += '<tr class="app-cr-row" id="' + crRowId + '" style="display:none"><td colspan="9"><div class="app-cr-content">' + crBoxesHTML('albums', k, allChartRun[cfg.pt]) + '</div></td></tr>';
+        ah += '<tr class="app-cr-row" id="' + crRowId + '" style="display:none"><td colspan="9"><div class="app-cr-content">' + recLazy(crRowId, function () { return crBoxesHTML('albums', k, allChartRun[cfg.pt]); }) + '</div></td></tr>';
         appImgQueue.push({ imgId, imgType: 'album', name: album, prefKey: 'album:' + artist.toLowerCase() + '|||' + album.toLowerCase(), album, artist });
         appImgQueue.push({ imgId: artImgId, imgType: 'artist', name: artist, prefKey: 'artist:' + artist.toLowerCase() });
       }
@@ -13234,7 +13240,7 @@ function rec1SyncStory() {
   const note = document.getElementById('rec1FootNote');
   if (note) {
     const total = _rec1Totals[ent + '|' + pt + '|' + mode] || 0;
-    const shown = recLimit === 0 ? total : Math.min(recLimit, total);
+    const shown = Math.min(recLimit === 0 ? REC_ALL_CAP : recLimit, total);
     note.textContent = !total ? '' : shown >= total
       ? t('rec1_showing_all', { total: total.toLocaleString() })
       : t('rec1_showing', { n: shown.toLocaleString(), total: total.toLocaleString() });
@@ -18504,9 +18510,32 @@ function recStreakBoxesHTML(entries, pt) {
   return '<div class="cr-boxes-wrap"><div class="cr-boxes">' + boxes + '</div></div>';
 }
 
+/* ── Detail rows built on demand (2026-11-02) ─────────────────────────
+   Every Records row used to carry its run of chart boxes in a hidden row
+   below it, built up front: about 150,000 of the tab's 280,000 elements at
+   25 rows a list, nearly all of them never opened. recLazy() keeps the
+   markup (or a function that makes it) by row id and writes nothing;
+   recFillLazy() puts it in the first time the row opens. The store is
+   emptied at the start of every build, with the rows it belongs to. */
+const _recLazyHtml = new Map();
+function recLazy(id, html) {
+  if (!id || !html) return typeof html === 'string' ? html : '';
+  _recLazyHtml.set(id, html);
+  return '';
+}
+function recFillLazy(row) {
+  if (!row || !_recLazyHtml.has(row.id)) return;
+  let html = _recLazyHtml.get(row.id);
+  _recLazyHtml.delete(row.id);
+  if (typeof html === 'function') html = html();
+  const slot = row.querySelector('.app-cr-content') || row.cells[0];
+  if (slot) slot.innerHTML = html;
+}
+
 function toggleRecRun(btn, runId) {
   const row = document.getElementById(runId);
   if (!row) return;
+  recFillLazy(row);
   const open = row.classList.toggle('open');
   btn.classList.toggle('active', open);
   btn.textContent = open ? '▼' : '▶';
@@ -18543,6 +18572,7 @@ function crBoxesHTML(type, key, crData, preD, periodOverride) {
 function toggleAppCr(rowId, btn) {
   const row = document.getElementById(rowId);
   if (!row) return;
+  recFillLazy(row);
   const isOpen = row.style.display !== 'none';
   row.style.display = isOpen ? 'none' : '';
   btn.classList.toggle('active', !isOpen);
@@ -18556,6 +18586,7 @@ function toggleAllRecRuns(tableId, btn) {
   const detailRows = table.querySelectorAll('tr.rec-run-detail');
   const toggleBtns = table.querySelectorAll('button.rec-run-toggle-btn');
   const anyOpen = Array.from(detailRows).some(r => r.classList.contains('open'));
+  if (!anyOpen) detailRows.forEach(recFillLazy);
   detailRows.forEach(r => r.classList.toggle('open', !anyOpen));
   toggleBtns.forEach(b => { b.classList.toggle('active', !anyOpen); b.textContent = anyOpen ? '▶' : '▼'; });
   btn.classList.toggle('active', !anyOpen);
@@ -18569,6 +18600,7 @@ function toggleAllAppCr(tableId, btn) {
   const crRows = table.querySelectorAll('tr.app-cr-row');
   const crBtns = table.querySelectorAll('button.rec-cr-toggle');
   const anyOpen = Array.from(crRows).some(r => r.style.display !== 'none');
+  if (!anyOpen) crRows.forEach(recFillLazy);
   crRows.forEach(r => { r.style.display = anyOpen ? 'none' : ''; });
   crBtns.forEach(b => { b.classList.toggle('active', !anyOpen); b.textContent = anyOpen ? '▶' : '▼'; });
   btn.classList.toggle('active', !anyOpen);
@@ -18916,6 +18948,7 @@ function toggleCertLedger(btn, rowId, idx) {
   const row = document.getElementById(rowId);
   if (!row) return;
   const open = !row.classList.contains('open');
+  recFillLazy(row); // puts the ledger's empty host in (recLazy) before it is built
   if (open) buildCertLedger(idx);
   row.classList.toggle('open', open);
   btn.classList.toggle('active', open);
@@ -18929,7 +18962,7 @@ function toggleAllCertLedgers(tableId, btn) {
   const btns = table.querySelectorAll('button.rec-run-toggle-btn');
   const anyOpen = Array.from(rows).some(function (r) { return r.classList.contains('open'); });
   rows.forEach(function (r, i) {
-    if (!anyOpen) buildCertLedger(i);
+    if (!anyOpen) { recFillLazy(r); buildCertLedger(i); }
     r.classList.toggle('open', !anyOpen);
   });
   btns.forEach(function (b) { b.classList.toggle('active', !anyOpen); b.textContent = anyOpen ? '▶' : '▼'; });
