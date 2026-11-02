@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Compare: smoother when you change what you compare":
+    ["Comparar: mais suave ao mudares o que comparas",
+     "Ao trocares de tipo ou de escolhas em Estatísticas → Comparar, os cartões em baixo entram um a seguir ao outro e as barras crescem até ao lugar. Ordenar uma tabela não repete isso, e tudo fica parado se o teu dispositivo pedir menos movimento. O Guia das tabelas descreve o novo visual de Comparar."],
   "Compare: clearer listening habits":
     ["Comparar: hábitos de audição mais claros",
      "Os hábitos de audição de Estatísticas → Comparar estão mais fáceis de ler: os cartões de manhã, noite e fim de semana têm um emoji, a cor do vencedor e uma barra para a parte. A grelha de horas mostra as partes do dia, a hora e o dia mais ouvidos de cada escolha ficam marcados, uma coluna Pico nomeia-os, e passar o cursor (ou tocar) em qualquer quadrado mostra as reproduções exatas."],
