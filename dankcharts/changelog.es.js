@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Open and close arrows in Records no longer look like Play":
+    ["Las flechas de abrir y cerrar en Récords ya no parecen Reproducir",
+     "Los pequeños triángulos que abren la trayectoria de una fila o su registro de certificaciones, y el triángulo doble que abre todas las filas, parecían botones de Reproducir. En todo Récords ahora son flechas que apuntan hacia abajo y giran hacia arriba cuando la fila está abierta. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Cover art in the Certifications list and ledger":
     ["Portadas en la lista y el registro de Certificaciones",
      "La clasificación de Certificaciones ahora muestra la foto de cada artista junto a su nombre, y cada tarjeta del Registro de Certificaciones muestra la portada de su canción o álbum junto al título. Haz clic en una portada para abrir la canción o el álbum, o usa ✎ para elegir otra imagen. Las portadas se cargan al desplazarte. Funciona con Last.fm, Google Sheets y archivos CSV."],

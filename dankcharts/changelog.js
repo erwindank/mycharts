@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 453;
+const DC_CL_I18N_V = 454;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -326,6 +326,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-02', t: 'design', a: 'records', h: '3173f17',
+    title: "Open and close arrows in Records no longer look like Play",
+    detail: "The small triangles that open a row's chart run or certification ledger, and the double triangle that opens every row, looked like Play buttons. Across all of Records they are now arrows that point down and turn to point up once the row is open. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-11-02', t: 'design', a: 'records', h: 'abacc4f',
     title: "Cover art in the Certifications list and ledger",
     detail: "The Certifications leaderboard now shows each artist's photo next to their name, and every card in the Certification Ledger shows the cover of its song or album beside the title. Click a cover to open the song or album, or use ✎ to pick a different picture. Covers load as you scroll. Works with Last.fm, Google Sheets and CSV uploads." },

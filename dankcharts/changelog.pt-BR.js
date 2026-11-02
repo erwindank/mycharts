@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Open and close arrows in Records no longer look like Play":
+    ["As setas de abrir e fechar em Recordes não parecem mais Tocar",
+     "Os pequenos triângulos que abrem a trajetória de uma linha ou o registro de certificações, e o triângulo duplo que abre todas as linhas, pareciam botões de Tocar. Em todo Recordes agora são setas que apontam para baixo e viram para cima quando a linha está aberta. Funciona com Last.fm, Google Sheets e arquivos CSV."],
   "Cover art in the Certifications list and ledger":
     ["Capas na lista e no registro de Certificações",
      "A classificação de Certificações agora mostra a foto de cada artista ao lado do nome, e cada cartão do Registro de Certificações mostra a capa da música ou do álbum ao lado do título. Clique numa capa para abrir a música ou o álbum, ou use ✎ para escolher outra imagem. As capas carregam conforme você rola. Funciona com Last.fm, Google Sheets e arquivos CSV."],
