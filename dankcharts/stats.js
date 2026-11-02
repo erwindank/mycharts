@@ -2154,20 +2154,65 @@ function _sxCmpOwners(T, names) {
   // Each piece goes to the pick with the most plays in it (a tie: the
   // pick listed first); pieces nobody played in stay empty
   const won = new Array(n).fill(0);
+  // Phase 18 step 5: a block is as strong as its win was clear (the
+  // winner's share of that piece's plays among the picks), and its hover
+  // box names the winner, the plays and the runner-up
   const blocks = B.keys.map(k => {
-    let bi = -1, bv = 0;
-    for (let i = 0; i < n; i++) { const v = B.counts[i].get(k) || 0; if (v > bv) { bv = v; bi = i; } }
+    let bi = -1, bv = 0, sum = 0, ri = -1, rv = 0;
+    for (let i = 0; i < n; i++) {
+      const v = B.counts[i].get(k) || 0;
+      sum += v;
+      if (v > bv) { ri = bi; rv = bv; bv = v; bi = i; } else if (v > rv) { rv = v; ri = i; }
+    }
     if (bi >= 0) won[bi]++;
-    const tip = bi < 0 ? `${B.label(k)}: ${t('sx_own_nobody')}` : `${B.label(k)}: ${names[bi]}, ${t('sx_n_plays').replace('{n}', bv.toLocaleString())}`;
-    return `<i${bi >= 0 ? ` style="background:${_sxCmpColor(bi)}"` : ' class="is-empty"'} title="${esc(tip)}"></i>`;
+    if (bi < 0) return `<i class="is-empty" data-tip="${esc(B.label(k) + '\n' + t('sx_own_nobody'))}"></i>`;
+    const share = bv / sum;
+    const tip = `${B.label(k)}\n${names[bi]} · ${t('sx_n_plays').replace('{n}', bv.toLocaleString())} (${Math.round(share * 100)}%)` +
+      (ri >= 0 && rv ? `\n${t('sx_own_next')} ${names[ri]} · ${rv.toLocaleString()}` : '');
+    return `<i style="--c:${_sxCmpColor(bi)};--o:${(0.62 + 0.38 * Math.min(1, (share - 1 / n) / (1 - 1 / n || 1))).toFixed(2)}" data-tip="${esc(tip)}"></i>`;
   }).join('');
-  const ends = `<div class="sx-own-ends"><span>${esc(B.label(B.keys[0]))}</span><span>${esc(B.label(B.keys[B.keys.length - 1]))}</span></div>`;
+  // Marks under the strip: each new year (each new month for weeks, each
+  // month for years), skipping marks that would sit too close together
+  const marks = [];
+  let last = -1;
+  B.keys.forEach((k, j) => {
+    const lab = T.type === 'years' ? B.label(k) : B.unit === 'week' ? (j === 0 || k.slice(5, 7) !== B.keys[j - 1].slice(5, 7) ? _sxFmt('mon', { month: 'short' }).format(new Date(k + 'T00:00:00')) : null)
+      : (j === 0 || k.slice(0, 4) !== B.keys[j - 1].slice(0, 4) ? k.slice(0, 4) : null);
+    if (lab == null) return;
+    if (last >= 0 && (j - last) / B.keys.length < 0.055) return;
+    marks.push(`<span style="left:${(j / B.keys.length * 100).toFixed(2)}%">${esc(lab)}</span>`);
+    last = j;
+  });
+  // Months (weeks) won, as a ranked list with a bar each
+  const wmax = Math.max(1, ...won);
   const legend = won.map((w, i) => [w, i]).filter(x => x[0]).sort((a, b) => b[0] - a[0])
-    .map(([w, i]) => `<li><i class="sx-cmp-dot" style="background:${_sxCmpColor(i)}"></i>${esc(names[i])} <b>${w.toLocaleString()}</b></li>`).join('');
+    .map(([w, i]) => `<li style="--c:${_sxCmpColor(i)}"><span class="sx-own-who"><i class="sx-cmp-dot"></i>${esc(names[i])}</span><b>${w.toLocaleString()}</b>` +
+      `<span class="sx-own-wbar" aria-hidden="true"><i style="width:${Math.round(w / wmax * 100)}%"></i></span></li>`).join('');
   const unitKey = T.type === 'years' ? 'sx_own_won_months' : B.unit === 'week' ? 'sx_own_won_weeks' : 'sx_own_won_months';
-  return `<div class="sx-own"><div class="sx-own-strip" role="img" aria-label="${esc(t('sx_own_title'))}">${blocks}</div>${ends}` +
+  return `<div class="sx-own"><div class="sx-own-strip" role="img" aria-label="${esc(t('sx_own_title'))}">${blocks}</div>` +
+    `<div class="sx-own-marks" aria-hidden="true">${marks.join('')}</div><div class="sx-own-tip" hidden></div>` +
     `<div class="sx-own-legend"><span>${esc(t(unitKey))}</span><ul>${legend}</ul></div></div>`;
 }
+
+// The strip's hover box: one box for all blocks, placed over the block
+// under the pointer (or the finger), kept inside the card
+function _sxOwnTip(e) {
+  const blk = e.target.closest && e.target.closest('.sx-own-strip i');
+  const own = e.target.closest && e.target.closest('.sx-own');
+  const tip = own && own.querySelector('.sx-own-tip');
+  if (!tip) return;
+  if (!blk || !blk.dataset.tip) { tip.hidden = true; return; }
+  const lines = blk.dataset.tip.split('\n');
+  tip.innerHTML = `<b>${esc(lines[0].charAt(0).toUpperCase() + lines[0].slice(1))}</b>` + lines.slice(1).map(l => `<span>${esc(l)}</span>`).join('');
+  if (blk.style.getPropertyValue('--c')) tip.style.setProperty('--c', blk.style.getPropertyValue('--c')); else tip.style.removeProperty('--c');
+  tip.hidden = false;
+  const or = own.getBoundingClientRect(), br = blk.getBoundingClientRect();
+  const x = Math.max(tip.offsetWidth / 2, Math.min(or.width - tip.offsetWidth / 2, br.left + br.width / 2 - or.left));
+  tip.style.left = x + 'px';
+}
+document.getElementById('sxCmpMore')?.addEventListener('mouseover', _sxOwnTip);
+document.getElementById('sxCmpMore')?.addEventListener('click', e => { if (e.target.closest('.sx-own-strip')) _sxOwnTip(e); });
+document.getElementById('sxCmpMore')?.addEventListener('mouseleave', () => document.querySelectorAll('.sx-own-tip').forEach(x => { x.hidden = true; }));
 
 /* Every time the lead on the running total changed hands, piece by piece.
    A tie keeps the leader it had. */
@@ -2196,7 +2241,7 @@ function _sxCmpLeadsHtml(T, names) {
     const line = e.from < 0 ? esc(t('sx_lead_first')).replace('{a}', who(e.to))
       : esc(t('sx_lead_pass')).replace('{a}', who(e.to)).replace('{b}', who(e.from));
     const when = T.type === 'years' ? t('sx_lead_by').replace('{m}', B.label(e.k)) : B.label(e.k);
-    return `<li><span class="sx-lead-when">${esc(when)}</span><span class="sx-lead-what">${line}</span></li>`;
+    return `<li style="--c:${_sxCmpColor(e.to)}"><span class="sx-lead-when">${esc(when)}</span><span class="sx-lead-what">${line}</span></li>`;
   }).join('');
   const changes = ev.length - 1;
   const head = changes ? t(changes === 1 ? 'sx_lead_count1' : 'sx_lead_count').replace('{n}', changes) : t('sx_lead_never').replace('{a}', '\u0001');
