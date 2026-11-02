@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Compare: clearer listening habits":
+    ["Comparar: hábitos de escucha más claros",
+     "Los hábitos de escucha de Estadísticas → Comparar se leen mejor: las tarjetas de mañana, noche y fin de semana tienen un emoji, el color del ganador y una barra para la parte. La cuadrícula de horas muestra las partes del día, la hora y el día con más escuchas de cada elección van marcados, una columna Pico los nombra, y al pasar el cursor (o tocar) cualquier cuadro ves las reproducciones exactas."],
   "Compare: top songs with covers, livelier Biggest gaps":
     ["Comparar: canciones top con portadas y Las mayores distancias más vivas",
      "Las canciones top una al lado de la otra muestran ahora cada elección como una tarjeta: su canción #1 en grande con su portada, la #2 y la #3 con portadas pequeñas, y una barra para cada canción. Las tarjetas de Las mayores distancias tienen un emoji, un toque del color del ganador, un número más grande y una pequeña barra para ver la distancia de un vistazo."],

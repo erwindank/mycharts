@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Compare: clearer listening habits":
+    ["Comparar: hábitos de escuta mais claros",
+     "Os hábitos de escuta de Estatísticas → Comparar ficaram mais fáceis de ler: os cartões de manhã, noite e fim de semana têm um emoji, a cor do vencedor e uma barra para a parte. A grade de horas mostra as partes do dia, a hora e o dia mais ouvidos de cada escolha ficam marcados, uma coluna Pico os nomeia, e passar o cursor (ou tocar) em qualquer quadrado mostra as reproduções exatas."],
   "Compare: top songs with covers, livelier Biggest gaps":
     ["Comparar: músicas top com capas e Maiores distâncias mais vivas",
      "As músicas top lado a lado agora mostram cada escolha como um cartão: a música #1 em destaque com a capa, a #2 e a #3 com capas pequenas, e uma barra para cada música. Os cartões de Maiores distâncias ganharam um emoji, um toque da cor do vencedor, um número maior e uma pequena barra para ver a distância de relance."],

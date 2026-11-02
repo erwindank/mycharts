@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 422;
+const DC_CL_I18N_V = 423;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -296,6 +296,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-01', t: 'design', a: 'graphs', h: '99f8a99',
+    title: "Compare: clearer listening habits",
+    detail: "Listening habits on Stats → Compare reads more easily: the morning, night and weekend tiles have an emoji, the winner's colour and a bar for the share. The hour grid shows the parts of the day, each pick's busiest hour and day are ringed, a Peak column names them, and pointing at (or tapping) any square tells you the exact plays." },
   { d: '2026-11-01', t: 'design', a: 'graphs', h: '5864cfd',
     title: "Compare: top songs with covers, livelier Biggest gaps",
     detail: "Top songs side by side now shows each pick as a card: its #1 song big with its cover, #2 and #3 with small covers, and a bar for each song. The Biggest gaps tiles got an emoji, a touch of the winner's colour, a bigger number and a small bar to show the gap at a glance." },
