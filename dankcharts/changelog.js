@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 442;
+const DC_CL_I18N_V = 443;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -316,6 +316,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-02', t: 'design', a: 'records', h: '912b8c7',
+    title: "#2 and #3 on the All #1s podium show their weeks at #1",
+    detail: "The silver and bronze cards on the All #1s podium now show every week (or day, month, year) they spent at #1, like the big card does, with gaps between comebacks. Click a box to open that chart. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-11-02', t: 'design', a: 'records', h: '9d59ac0',
     title: "All #1s reads as a list, with bars and short dates",
     detail: "The All #1s table is now a cleaner list. Each row shows the cover, the name, a bar and the count in big type. On In a row the bar has one segment per week (or day, month, year), so you can see how a 2-week run compares with the record. On Total it marks where each #1 fell between your first chart and today, so comebacks show as gaps. Dates are one short line, such as \"27 May – 10 Jun 2018\", and still open that chart when clicked. A new Sort menu offers Rank, Most recent, Oldest first and Name A–Z, clicking a row shows every week it spent at #1, and the Show switch moved under the list with \"Showing 25 of 358\". Works with Last.fm, Google Sheets and CSV uploads." },

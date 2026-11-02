@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "#2 and #3 on the All #1s podium show their weeks at #1":
+    ["O n.º 2 e o n.º 3 do pódio de Todos os #1 mostram as semanas no n.º 1",
+     "Os cartões de prata e bronze do pódio de Todos os #1 mostram agora cada semana (ou dia, mês, ano) que passaram no n.º 1, como o cartão grande, com os intervalos entre regressos. Clica numa caixa para abrir esse top. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
   "All #1s reads as a list, with bars and short dates":
     ["Todos os #1 passa a ser uma lista, com barras e datas curtas",
      "A tabela de Todos os #1 é agora uma lista mais limpa. Cada linha mostra a capa, o nome, uma barra e o número em destaque. Em Seguidas a barra tem um troço por semana (ou dia, mês, ano), para veres como uma sequência de 2 semanas se compara com o recorde. Em Total marca onde caiu cada n.º 1 entre o teu primeiro top e hoje, e os regressos aparecem como intervalos. As datas são uma linha curta, como \"27 mai – 10 jun 2018\", e continuam a abrir esse top ao clicar. Um menu novo, Ordenar, tem Posição, Mais recentes, Mais antigos e Nome A–Z; clicar numa linha mostra cada semana no n.º 1, e o seletor Mostrar passou para baixo da lista com \"A mostrar 25 de 358\". Funciona com Last.fm, Google Sheets e ficheiros CSV."],
