@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 419;
+const DC_CL_I18N_V = 420;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -296,6 +296,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-01', t: 'design', a: 'graphs', h: 'bf83fbe',
+    title: "Compare: a clearer head to head",
+    detail: "Head to head on Stats → Compare is easier to read: a colour strip under the sentence shows each pick's share of the plays at a glance, every row has its place and a small bar under the play count, and the best in each column is marked with a soft badge in that pick's colour. On phones each pick is its own card, and you sort with a row of buttons on top." },
   { d: '2026-11-01', t: 'design', a: 'graphs', h: 'fc17259',
     title: "Compare: a clickable legend and a race player",
     detail: "The Compare chart is bigger and has a legend: tap a name to hide or show its line, and point at a name (or its card) to make that line stand out. The race now opens on the finished result instead of a row of empty bars, and its buttons became one player bar, like a video: a round play button, step and jump buttons, a bar you can drag with the date beside it, speed and GIF. The race's own dates sit on a quieter row underneath." },

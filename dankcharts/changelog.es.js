@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Compare: a clearer head to head":
+    ["Comparar: un cara a cara más claro",
+     "El cara a cara de Estadísticas → Comparar se lee mejor: una franja de colores bajo la frase muestra de un vistazo la parte de reproducciones de cada elección, cada fila tiene su puesto y una pequeña barra bajo las reproducciones, y lo mejor de cada columna se marca con una etiqueta suave del color de esa elección. En el móvil cada elección es su propia tarjeta y ordenas con una fila de botones arriba."],
   "Compare: a clickable legend and a race player":
     ["Comparar: una leyenda que se puede tocar y un reproductor para la carrera",
      "El gráfico de Comparar es más grande y tiene leyenda: toca un nombre para ocultar o mostrar su línea, y pasa el cursor por un nombre (o su tarjeta) para destacar esa línea. La carrera ahora se abre con el resultado final en lugar de barras vacías, y sus botones son una sola barra de reproductor, como un vídeo: un botón redondo de reproducir, botones para avanzar y saltar, una barra que puedes arrastrar con la fecha al lado, velocidad y GIF. Las fechas de la carrera están en una fila más discreta debajo."],

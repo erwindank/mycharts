@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Compare: a clearer head to head":
+    ["Comparar: um frente a frente mais claro",
+     "O frente a frente de Estatísticas → Comparar ficou mais fácil de ler: uma faixa de cores sob a frase mostra de relance a parte das reproduções de cada escolha, cada linha tem sua posição e uma pequena barra sob as reproduções, e o melhor de cada coluna ganha uma etiqueta suave na cor dessa escolha. No celular cada escolha é um cartão, e você ordena com uma fileira de botões no topo."],
   "Compare: a clickable legend and a race player":
     ["Comparar: uma legenda clicável e um player para a corrida",
      "O gráfico de Comparar ficou maior e tem legenda: toque num nome para esconder ou mostrar sua linha, e passe o cursor num nome (ou no cartão) para destacar essa linha. A corrida agora abre no resultado final em vez de barras vazias, e seus botões viraram uma só barra de player, como um vídeo: um botão redondo de tocar, botões de avançar e pular, uma barra que dá para arrastar com a data ao lado, velocidade e GIF. As datas da corrida ficam numa linha mais discreta embaixo."],
