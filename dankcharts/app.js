@@ -4913,7 +4913,9 @@ function loadImages(items, type) {
     // Mosaic, Filmstrip) get the ✎ picker here; the Table writes its own. The
     // button is also what refreshImgInstances() finds, so a picture picked
     // anywhere now redraws these covers too (it used to wait for a re-render).
-    if (el.closest('#recordsView, [id^="weeklyAltView-"]')) attachRecImgPicker(el, item, type);
+    // data-no-picker: a second copy of a picture used as decoration (the
+    // blurred backdrop behind the All #1s podium) needs no ✎ of its own.
+    if (el.closest('#recordsView, [id^="weeklyAltView-"]') && !el.dataset.noPicker) attachRecImgPicker(el, item, type);
   }
   // Returned so callers that re-render (the certifications wall re-renders on
   // every filter, sort and search change) can retire the previous observer
@@ -8698,6 +8700,76 @@ function buildRecords() {
     return out;
   }
 
+  /* The All #1s podium (phase 20 step 2): the record holder on a big card
+     with every one of its #1 periods as boxes, #2 and #3 on smaller cards
+     beside it. `top` is up to three { e: [key, data], n, a, b, periods } in
+     rank order. Returns the markup plus the picture slots to fill, so the
+     caller queues them with the rest of the section's artwork. The table rows
+     for these three stay in the DOM, hidden while the podium is up (search,
+     the hero reel and the row limit all read them). */
+  function rec1PodiumHtml(ent, cfg, top, mode, tableId) {
+    const unitKey = cfg.pt === 'day' ? 'days' : cfg.pt === 'week' ? 'weeks_full' : cfg.pt === 'month' ? 'months' : 'years';
+    const eaType = ent.type === 'song' ? 'songs' : ent.type === 'artist' ? 'artists' : 'albums';
+    const openFn = ent.type === 'song' ? 'openSongModal' : ent.type === 'artist' ? 'openArtistModal' : 'openAlbumModal';
+    const imgs = [];
+    const card = function (x, i) {
+      const d = x.e[1], key = x.e[0];
+      const name = ent.type === 'artist' ? key : ent.type === 'song' ? d.title : d.album;
+      const by = ent.type === 'artist' ? '' : d.artist;
+      const imgId = 'rec1-pod-' + ent.key + '-' + cfg.pt + '-' + mode + '-' + i;
+      imgs.push({ imgId: imgId, e: x.e });
+      const open = openFn + '(' + esc(JSON.stringify(key)) + ')';
+      /* The cover opens the details too, for the mouse; it is a plain box
+         rather than a button because the ✎ picker button lands inside it
+         (attachRecImgPicker), and the name button is the keyboard way in. */
+      const artOpen = 'if(!event.target.closest(\'.img-src-btn\'))' + open;
+      const ea = _eaAttrs(eaType, ent.type === 'artist'
+        ? { artist: key, key: key, imgId: imgId }
+        : { title: ent.type === 'song' ? d.title : '', artist: d.artist, album: ent.type === 'song' ? d.album : d.album, key: key, imgId: imgId });
+      const fig = '<div class="rec1-fig"><b>' + x.n.toLocaleString() + '</b><span>'
+        + esc(t(mode === 'total' ? 'rec1_fig_total' : 'rec1_fig_consec', { unit: tUnit(unitKey, x.n) })) + '</span></div>';
+      const when = mode === 'total'
+        ? (x.a === x.b ? crPeriodTitle(cfg.pt, x.a) : t('rec1_first_last', { a: recPeriodShort(cfg.pt, x.a), b: recPeriodShort(cfg.pt, x.b) }))
+        : recRangeText(x.a, x.b, cfg.pt);
+      const art = '<div class="rec1-pod-art' + (ent.type === 'artist' ? ' is-round' : '') + '" id="' + imgId + '"><div class="thumb-initials">' + esc(initials(name)) + '</div></div>';
+      if (i === 0) {
+        // Every #1 period as a box that opens that chart; a Total run keeps
+        // its ✕n gaps, so a comeback reads as one.
+        const boxes = mode === 'total' ? rec1sBoxesHTML(x.periods, cfg.pt)
+          : recStreakBoxesHTML(x.periods.map(function (pk) { return { periodKey: pk, rank: 1 }; }), cfg.pt);
+        const sample = typeof _sxSampleBtn === 'function' ? _sxSampleBtn() : _eaSampleBtn();
+        return '<article class="rec1-champ"' + ea + '>'
+          + '<div class="rec1-champ-bg" aria-hidden="true" data-no-picker="1" id="' + imgId + '-bg"></div>'
+          + '<div class="rec1-champ-art" onclick="' + artOpen + '">' + art
+          + '<span class="rec1-medal rec1-medal-1">1</span></div>'
+          + '<div class="rec1-champ-info">'
+          + '<span class="rec1-eyebrow">' + esc(t(mode === 'total' ? 'rec1_eyebrow_total' : 'rec1_eyebrow_consec', { unit: tUnit(unitKey, 2) })) + '</span>'
+          + '<button type="button" class="rec1-champ-name" onclick="' + open + '">' + esc(name) + '</button>'
+          + (by ? '<span class="rec1-by">' + esc(by) + '</span>' : '')
+          + fig
+          + '<div class="rec1-when">' + esc(when) + '</div>'
+          + boxes
+          + '<div class="rec1-acts">' + sample
+          + '<button type="button" class="dc-btn dc-btn-sm rec1-details" onclick="' + open + '">' + esc(t('ea_details')) + '</button></div>'
+          + '</div></article>';
+      }
+      return '<article class="rec1-runner rec1-runner-' + (i + 1) + '"' + ea + '>'
+        + '<div class="rec1-runner-art" onclick="' + artOpen + '">' + art
+        + '<span class="rec1-medal rec1-medal-' + (i + 1) + '">' + (i + 1) + '</span></div>'
+        + '<div class="rec1-runner-info">'
+        + '<button type="button" class="rec1-runner-name" onclick="' + open + '">' + esc(name) + '</button>'
+        + (by ? '<span class="rec1-by">' + esc(by) + '</span>' : '')
+        + fig
+        + '<div class="rec1-when">' + esc(when) + '</div>'
+        + '</div>' + _eaSampleBtn('rec1-runner-play') + '</article>';
+    };
+    const html = '<div class="rec1-podium" data-rec1-podium-for="' + tableId + '">'
+      + card(top[0], 0)
+      + '<div class="rec1-runners">' + top.slice(1).map(function (x, j) { return card(x, j + 1); }).join('') + '</div>'
+      + '</div>';
+    return { html: html, imgs: imgs };
+  }
+
   // ── All #1s ──────────────────────────────────────────────────
   /* `label` is the full chart name ("Weekly Chart") the record titles are built
      from; `short` is the bare period the pill row wears, because the title
@@ -8783,6 +8855,14 @@ function buildRecords() {
       _rec1Stories[ent.key + '|' + cfg.pt + '|total'] = rec1Story(ent, cfg, entries, 'total');
       const tableId = 'rec-1s-tbl-' + ent.key + '-' + cfg.pt;
       const runBaseId = 'rec-1s-run-' + ent.key + '-' + cfg.pt;
+      // The podium needs a fourth row for the table to go on with, and a
+      // limit that shows it.
+      const podT = entries.length >= 4 && lim >= 4
+        ? rec1PodiumHtml(ent, cfg, entries.slice(0, 3).map(function (e) {
+          return { e: e, n: e[1].count, a: e[1].firstPeriod, b: e[1].lastPeriod, periods: e[1].periods };
+        }), 'total', tableId)
+        : null;
+      if (podT) h += podT.html;
       const headers = ['#', '', ent.label, periodAtOneHeader(cfg.pt), t('rec_th_first_at_1')];
       if (cfg.pt !== 'year') headers.push(t('rec_th_date_at_peak'));
       // Same glyph family as the Appearances tables — one "expand all" action,
@@ -8803,7 +8883,11 @@ function buildRecords() {
         entries.map(function (e, i) {
           return { id: runBaseId + '-' + i, html: rec1sBoxesHTML(e[1].periods, cfg.pt) };
         }),
-        tableId
+        tableId,
+        {
+          tableCls: 'rec1-table' + (podT ? ' rec1-podium-on' : ''),
+          rowCls: function (i) { return podT && i < 3 ? 'rec1-podium-row' : ''; }
+        }
       );
       // Closes .rec-section.
       h += '</div>';
@@ -8823,6 +8907,11 @@ function buildRecords() {
       // Collect image items for loading — flushed after the innerHTML below.
       entries.forEach(function (e, i) {
         queueOnesImg('rec-img-' + ent.key + '-' + cfg.pt + '-' + i, e);
+      });
+      // The podium's own picture slots, plus the blurred backdrop of its #1.
+      if (podT) podT.imgs.forEach(function (x, i) {
+        queueOnesImg(x.imgId, x.e);
+        if (i === 0) queueOnesImg(x.imgId + '-bg', x.e);
       });
 
       /* ── The same #1s, counted consecutively ──────────────────
@@ -8845,10 +8934,16 @@ function buildRecords() {
         });
       const cTableId = 'rec-1sc-tbl-' + ent.key + '-' + cfg.pt;
       const cRunBaseId = 'rec-1sc-run-' + ent.key + '-' + cfg.pt;
+      const podC = streakRows.length >= 4 && lim >= 4
+        ? rec1PodiumHtml(ent, cfg, streakRows.slice(0, 3).map(function (r) {
+          return { e: r.e, n: r.streak.len, a: r.streak.start, b: r.streak.end, periods: r.streak.periods };
+        }), 'consec', cTableId)
+        : null;
       h += '<div class="rec-section rec-run-consec rec1-sec" data-rec-no-collapse="1"><div class="rec-section-title rec1-title">'
         + ent.icon + ' ' + ent.label + ' &mdash; ' + t('rec_most_times_1_on', { period: cfg.label })
         + ' ' + t('rec_suffix_consec') + '</div>';
       _rec1Stories[ent.key + '|' + cfg.pt + '|consec'] = rec1Story(ent, cfg, streakRows, 'consec');
+      if (podC) h += podC.html;
       // A streak has a start and an end rather than a "first at #1" and a peak
       // date, so the two middle columns are its own — on the yearly chart too,
       // where the total table drops its last column.
@@ -8875,7 +8970,11 @@ function buildRecords() {
             html: recStreakBoxesHTML(s.streak.periods.map(function (pk) { return { periodKey: pk, rank: 1 }; }), cfg.pt)
           };
         }),
-        cTableId
+        cTableId,
+        {
+          tableCls: 'rec1-table' + (podC ? ' rec1-podium-on' : ''),
+          rowCls: function (i) { return podC && i < 3 ? 'rec1-podium-row' : ''; }
+        }
       );
       // How ties are broken, under the table it applies to.
       h += '<div class="rec-section-sub rec1-note">' + t('rec_consec_sub_1') + '</div>';
@@ -8883,6 +8982,10 @@ function buildRecords() {
       h += '</div>';
       streakRows.forEach(function (s, i) {
         queueOnesImg('rec-1sc-img-' + ent.key + '-' + cfg.pt + '-' + i, s.e);
+      });
+      if (podC) podC.imgs.forEach(function (x, i) {
+        queueOnesImg(x.imgId, x.e);
+        if (i === 0) queueOnesImg(x.imgId + '-bg', x.e);
       });
       /* Closes .rec-per-panel — and only that. This loop opens exactly two
          elements per period (the panel and the .rec-section inside it) and must
@@ -11936,7 +12039,10 @@ function applyRecSort(table, colIndex, dir) {
   const ind = th.querySelector('.rec-sort-ind');
   if (ind) ind.textContent = dir === 'asc' ? '▲' : '▼';
   sortRecTable(table, colIndex, dir);
-  standDownPodium(table);
+  // Rank, lowest first, is the table's own order again, so the podium is
+  // telling the truth and can come back; any other sort retires it.
+  if (colIndex === 0 && dir === 'asc') restorePodium(table);
+  else standDownPodium(table);
 }
 
 /* A podium shows a table's canonical top three and hides those three rows so
@@ -11947,11 +12053,30 @@ function applyRecSort(table, colIndex, dir) {
    (applyRecSort always sets a direction), so this is deliberately one-way; a
    rebuild is what brings the podium back. */
 function standDownPodium(table) {
-  if (!table.classList.contains('nc-podium-on')) return;
-  table.classList.remove('nc-podium-on');
-  if (!table.id) return;
-  const pod = document.querySelector('.nc-podium[data-nc-podium-for="' + table.id + '"]');
+  // Two podiums share this: New Charts' (nc-) and All #1s' (rec1-, phase 20).
+  const cls = table.classList.contains('nc-podium-on') ? 'nc-podium-on'
+    : table.classList.contains('rec1-podium-on') ? 'rec1-podium-on' : '';
+  if (!cls) return;
+  table.classList.remove(cls);
+  table.dataset.podiumOff = cls;
+  const pod = recPodiumFor(table);
   if (pod) pod.classList.add('nc-podium-retired');
+}
+
+/* The way back (phase 20): sorting by rank, lowest first, puts the table in
+   its canonical order again, so the podium it retired is true again. */
+function restorePodium(table) {
+  const cls = table.dataset.podiumOff;
+  if (!cls) return;
+  table.classList.add(cls);
+  delete table.dataset.podiumOff;
+  const pod = recPodiumFor(table);
+  if (pod) pod.classList.remove('nc-podium-retired');
+}
+
+function recPodiumFor(table) {
+  if (!table.id) return null;
+  return document.querySelector('[data-nc-podium-for="' + table.id + '"], [data-rec1-podium-for="' + table.id + '"]');
 }
 
 /* Tables are keyed by position, not id: most of them have no id, but the same
@@ -18090,6 +18215,14 @@ function rec1sBoxesHTML(periods, pt) {
    "6 – 20 Aug 2023", "28 Dec 2025 – 4 Jan 2026", "Mar – May 2024",
    "2019 – 2021". One period alone reads as the chart names it
    ("Week of 6 Aug 2023"). Day-first order matches fmt() in every language. */
+// A chart period as a bare date ("30 Aug 2020", "Aug 2020", "2020"), for
+// lines that already say what kind of period it is.
+function recPeriodShort(pt, pk) {
+  if (pt === 'day' || pt === 'week') return fmt(new Date(pk + 'T12:00:00'));
+  if (pt === 'month') return crPeriodTitle('month', pk);
+  return pk;
+}
+
 function recRangeText(a, b, pt) {
   if (!a) return '';
   if (!b || a === b) return crPeriodTitle(pt, a);

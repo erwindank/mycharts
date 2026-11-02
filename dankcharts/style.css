@@ -46067,3 +46067,169 @@ body:not(:is([data-view="day"], [data-view="week"], [data-view="month"], [data-v
 /* The section title at the size the rest of the site's page titles use. */
 #recordsView .rec1 .section-header-h2 { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.01em; }
 #recordsView .rec1 .section-header-h2 .rec-h2-ico { width: 1.4rem; height: 1.4rem; }
+
+/* ── Phase 20 step 2: the All #1s podium ──────────────────────────────
+   The record holder on a big card (cover, figure, every #1 period as a box,
+   ▶ sample, Details), #2 and #3 on smaller cards beside it. Medal colours
+   come from the --medal-* tokens, so #2 is silver and #3 bronze on every
+   theme (the table used to colour #2 plain and #3 orange). */
+.rec1-podium {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: 14px;
+  margin-bottom: var(--sp-4, 1rem);
+}
+.rec1-champ {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: 172px minmax(0, 1fr);
+  gap: 20px;
+  padding: 20px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--medal-gold) 35%, var(--border));
+  background: var(--bg3);
+}
+/* The cover again, blurred and faint behind the card: it tints the card in
+   the record's own colours. Its slot is filled by loadImages like any other. */
+.rec1-champ-bg { position: absolute; inset: -40px; z-index: -1; opacity: .26; pointer-events: none; }
+.rec1-champ-bg img { width: 100%; height: 100%; object-fit: cover; filter: blur(38px) saturate(1.3); }
+.rec1-champ-bg .thumb-initials,
+.rec1-champ-bg button { display: none; }
+
+.rec1-champ-art,
+.rec1-runner-art {
+  position: relative;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  align-self: start;
+}
+.rec1-pod-art {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--surface);
+  display: grid;
+  place-items: center;
+}
+.rec1-pod-art.is-round { border-radius: 50%; }
+.rec1-pod-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.rec1-pod-art .thumb-initials { font-family: var(--font-display); font-weight: 700; font-size: 1.6rem; color: var(--text2); }
+.rec1-champ-art .rec1-pod-art { box-shadow: 0 14px 34px rgba(0, 0, 0, .35); }
+.rec1-champ-art:hover .rec1-pod-art,
+.rec1-runner-art:hover .rec1-pod-art { filter: brightness(1.06); }
+
+.rec1-medal {
+  position: absolute;
+  left: 7px;
+  top: 7px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font: 700 0.8rem var(--font-mono);
+  color: #10161f;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .35);
+}
+/* Fixed light metals in both themes, so the dark digit always reads. */
+.rec1-medal-1 { background: #f2c14e; }
+.rec1-medal-2 { background: #c8d3e0; }
+.rec1-medal-3 { background: #d29a6b; }
+
+.rec1-champ-info,
+.rec1-runner-info { min-width: 0; display: flex; flex-direction: column; align-items: flex-start; }
+.rec1-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--medal-gold);
+}
+.rec1-champ-name,
+.rec1-runner-name {
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+}
+.rec1-champ-name { margin-top: 4px; font-size: 1.75rem; line-height: 1.1; text-wrap: balance; }
+.rec1-runner-name { font-size: 1.05rem; line-height: 1.2; }
+.rec1-champ-name:hover,
+.rec1-runner-name:hover { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.rec1-by { margin-top: 2px; font-size: var(--fs-sm); color: var(--text2); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.rec1-fig { display: flex; align-items: baseline; gap: 8px; margin-top: 12px; }
+.rec1-fig b { font-family: var(--font-display); font-weight: 800; font-size: 2.75rem; line-height: 1; color: var(--medal-gold); }
+.rec1-fig span { font-size: var(--fs-sm); color: var(--text2); }
+.rec1-when { margin-top: 4px; font-size: var(--fs-sm); color: var(--text3); }
+.rec1-champ .cr-boxes-wrap { margin-top: 10px; max-height: 104px; overflow-y: auto; max-width: 100%; }
+.rec1-champ .cr-box { cursor: pointer; }
+.rec1-acts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 14px; }
+.rec1-acts .ea-sample.sx-t5-play { margin-top: 0; }
+.rec1-details { height: 38px; }
+
+.rec1-runners { display: grid; gap: 14px; align-content: start; }
+.rec1-runner {
+  position: relative;
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--bg3);
+}
+.rec1-runner .rec1-fig { margin-top: 6px; }
+.rec1-runner .rec1-fig b { font-size: 1.6rem; }
+.rec1-runner-2 .rec1-fig b { color: var(--medal-silver); }
+.rec1-runner-3 .rec1-fig b { color: var(--medal-bronze); }
+.rec1-runner .rec1-medal { width: 22px; height: 22px; left: 5px; top: 5px; font-size: 0.72rem; }
+.rec1-runner-play { align-self: start; opacity: 1; }
+
+/* While the podium is up its three rows wait in the table, hidden; a search
+   or a sort by anything but rank puts them back (standDownPodium). */
+#recordsView:not(.rec-searching) .rec1-podium-on .rec1-podium-row,
+#recordsView:not(.rec-searching) .rec1-podium-on .rec1-podium-row + .rec-run-detail { display: none; }
+#recordsView.rec-searching .rec1-podium,
+.rec1-podium.nc-podium-retired { display: none; }
+
+/* Sized by the room the panel has, not the window: the side menu and the
+   page width change that room independently. */
+.rec1-wrap .rec-per-panel { container-type: inline-size; }
+@container (max-width: 860px) {
+  .rec1-podium { grid-template-columns: 1fr; }
+  .rec1-runners { grid-template-columns: 1fr 1fr; }
+}
+@container (max-width: 560px) {
+  .rec1-runners { grid-template-columns: 1fr; }
+  .rec1-champ { grid-template-columns: 1fr; padding: 16px; gap: 14px; }
+  .rec1-champ-art { width: min(180px, 70%); }
+  .rec1-champ-name { font-size: 1.45rem; }
+  .rec1-fig b { font-size: 2.2rem; }
+  .rec1-runner { grid-template-columns: 72px minmax(0, 1fr) auto; padding: 12px; gap: 12px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .rec1-champ, .rec1-runner { animation: rec1-rise 360ms cubic-bezier(.2, .7, .2, 1) both; }
+  .rec1-runner-2 { animation-delay: 60ms; }
+  .rec1-runner-3 { animation-delay: 120ms; }
+}
+@keyframes rec1-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+/* The ✎ picker's holder (attachRecImgPicker) fills the cover box. */
+.rec1-champ-art .rec-thumb-wrap,
+.rec1-runner-art .rec-thumb-wrap { display: block; width: 100%; }
+/* Long Total runs scroll inside the card; the fade says there is more. */
+.rec1-champ .cr-boxes-wrap { max-height: 96px; -webkit-mask-image: linear-gradient(#000 75%, transparent); mask-image: linear-gradient(#000 75%, transparent); }
+.rec1-champ .cr-boxes-wrap:not(:has(.cr-box:nth-child(9))) { -webkit-mask-image: none; mask-image: none; }

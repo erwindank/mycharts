@@ -9,6 +9,11 @@ const TRANSLATIONS = {
 
   // ── ENGLISH ──────────────────────────────────────────────────────────────────
   en: {
+    rec1_eyebrow_total: "Most {{unit}} at #1",
+    rec1_eyebrow_consec: "Longest run at #1",
+    rec1_fig_total: "{{unit}} at #1",
+    rec1_fig_consec: "{{unit}} in a row at #1",
+    rec1_first_last: "First {{a}} · last {{b}}",
     rec1_story_lead: "{{n}} have reached #1 on your {{chart}}.",
     rec1_story_total: "{{name}} spent the most time on top: {{run}} in all.",
     rec1_story_consec: "{{name}} held on longest: {{run}} in a row, {{when}}.",
@@ -5197,6 +5202,11 @@ const TRANSLATIONS = {
 
   // ── SPANISH ───────────────────────────────────────────────────────────────────
   es: {
+    rec1_eyebrow_total: "Más tiempo en el #1",
+    rec1_eyebrow_consec: "Racha más larga en el #1",
+    rec1_fig_total: "{{unit}} en el #1",
+    rec1_fig_consec: "{{unit}} sin interrupción en el #1",
+    rec1_first_last: "Primera vez: {{a}} · última: {{b}}",
     rec1_story_lead: "{{n}} han llegado al #1 en tu {{chart}}.",
     rec1_story_total: "{{name}} es quien más tiempo pasó arriba: {{run}} en total.",
     rec1_story_consec: "{{name}} tuvo el reinado más largo: {{run}} sin interrupción, {{when}}.",
@@ -10270,6 +10280,11 @@ const TRANSLATIONS = {
 
   // ── PORTUGUESE — BRAZIL ───────────────────────────────────────────────────────
   'pt-BR': {
+    rec1_eyebrow_total: "Mais tempo no #1",
+    rec1_eyebrow_consec: "Maior sequência no #1",
+    rec1_fig_total: "{{unit}} no #1",
+    rec1_fig_consec: "{{unit}} sem interrupção no #1",
+    rec1_first_last: "Primeira vez: {{a}} · última: {{b}}",
     rec1_story_lead: "{{n}} chegaram ao #1 na sua {{chart}}.",
     rec1_story_total: "{{name}} passou mais tempo no topo: {{run}} no total.",
     rec1_story_consec: "{{name}} teve o reinado mais longo: {{run}} sem interrupção, {{when}}.",
@@ -15344,6 +15359,11 @@ const TRANSLATIONS = {
 
   // ── PORTUGUESE — EUROPEAN ─────────────────────────────────────────────────────
   'pt-PT': {
+    rec1_eyebrow_total: "Mais tempo no n.º 1",
+    rec1_eyebrow_consec: "Maior sequência no n.º 1",
+    rec1_fig_total: "{{unit}} no n.º 1",
+    rec1_fig_consec: "{{unit}} sem interrupção no n.º 1",
+    rec1_first_last: "Primeira vez: {{a}} · última: {{b}}",
     rec1_story_lead: "{{n}} chegaram ao n.º 1 no teu {{chart}}.",
     rec1_story_total: "{{name}} passou mais tempo no topo: {{run}} no total.",
     rec1_story_consec: "{{name}} teve o reinado mais longo: {{run}} sem interrupção, {{when}}.",
