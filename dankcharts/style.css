@@ -46733,3 +46733,79 @@ body:not(:is([data-view="day"], [data-view="week"], [data-view="month"], [data-v
 @media (max-width: 640px) {
   .certd-cover-img { width: 46px; height: 46px; }
 }
+
+/* ── Records: open/close chevrons instead of ▶ / ▼ (2026-11-02) ─────────
+   The ▶ that opens a row's chart run or ledger, and the ▶▶ that opens
+   every row, read as Play buttons. They now draw a chevron that points
+   down (closed: "there is more below") and turns to point up once open.
+   The glyph text the buttons still carry is hidden (font-size: 0), so the
+   open/close code in app.js, which rewrites it, is untouched. ▶▶ gets two
+   stacked chevrons. Perfect All Kill's ▼ marker gets the same chevron. */
+#recordsView .rec-run-toggle-btn,
+#recordsView .rec-cr-toggle,
+#recordsView .rec-expand-all-btn {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  font-size: 0 !important;
+  line-height: 0;
+  color: var(--text2);
+}
+#recordsView .rec-run-toggle-btn::before,
+#recordsView .rec-cr-toggle::before,
+#recordsView .rec-expand-all-btn::before,
+#recordsView .rec-expand-all-btn::after,
+#recordsView .pak-expand-icon::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: translate(-50%, -75%) rotate(45deg);
+  transition: transform .2s ease;
+}
+#recordsView .rec-run-toggle-btn.active::before,
+#recordsView .rec-cr-toggle.active::before {
+  transform: translate(-50%, -25%) rotate(225deg);
+}
+/* Two chevrons for "open every row". */
+#recordsView .rec-expand-all-btn::before { transform: translate(-50%, -110%) rotate(45deg); }
+#recordsView .rec-expand-all-btn::after  { transform: translate(-50%, -30%) rotate(45deg); }
+#recordsView .rec-expand-all-btn.active::before { transform: translate(-50%, -70%) rotate(225deg); }
+#recordsView .rec-expand-all-btn.active::after  { transform: translate(-50%, 10%) rotate(225deg); }
+
+#recordsView .rec-run-toggle-btn:hover,
+#recordsView .rec-cr-toggle:hover,
+#recordsView .rec-expand-all-btn:hover { color: var(--text); background: var(--hover); }
+#recordsView .rec-run-toggle-btn.active,
+#recordsView .rec-cr-toggle.active,
+#recordsView .rec-expand-all-btn.active { color: var(--gold1); }
+
+/* PAK's marker: a span the row's open class turns (style.css above). */
+#recordsView .pak-expand-icon {
+  position: relative;
+  width: 14px;
+  height: 14px;
+  font-size: 0;
+  vertical-align: middle;
+}
+#recordsView .pak-expand-icon::before { width: 6px; height: 6px; }
+@media (prefers-reduced-motion: reduce) {
+  #recordsView .rec-run-toggle-btn::before,
+  #recordsView .rec-cr-toggle::before,
+  #recordsView .rec-expand-all-btn::before,
+  #recordsView .rec-expand-all-btn::after,
+  #recordsView .pak-expand-icon::before { transition: none; }
+}
+
+/* Phone: the ledger's filters carry words since 2026-11-02 and no longer
+   fit one line; they wrap instead of running off the card. */
+@media (max-width: 640px) {
+  .certd-seg { flex-wrap: wrap; border-radius: var(--r-md); }
+}
