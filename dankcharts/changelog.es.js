@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Charts: a heatmap you can actually read":
+    ["Gráficos: un mapa de calor que se puede leer",
+     "En un año con muchas escuchas, casi todos los cuadros del mapa de calor de Estadísticas → Gráficos tenían el color más oscuro. Ahora cada año se colorea según sus propios días tranquilos y activos, así que se ve el patrón. Un nuevo esquema Tu tema usa los colores del sitio (los otros cinco siguen ahí), los controles van en una sola barra, las reproducciones, el mejor día, el artista top y los artistas nuevos del año aparecen en una fila de cifras (toca el artista para ver sus detalles), y la tira de años muestra todos sin cortar el primero."],
   "Charts: Your week, weekdays against the weekend":
     ["Gráficos: Tu semana, entre semana contra el fin de semana",
      "Tu semana en Estadísticas → Gráficos ahora muestra una columna por día, con el fin de semana sombreado y tu día con más escuchas destacado. Encima, tus reproducciones al día entre semana y el fin de semana aparecen juntas con tu mejor día, y la línea de debajo te dice cuánto más escuchas en la parte más activa de la semana."],

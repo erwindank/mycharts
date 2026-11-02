@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 429;
+const DC_CL_I18N_V = 430;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -306,6 +306,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-01', t: 'design', a: 'graphs', h: 'e482666',
+    title: "Charts: a heatmap you can actually read",
+    detail: "On a busy year almost every square of the Stats → Charts heatmap was the darkest colour. Each year is now shaded by its own quiet and busy days, so the pattern shows. A new Your theme colour scheme matches the site's colours (the other five are still there), the controls sit in one tidy bar, the year's plays, best day, top artist and new artists sit in a row of figures (tap the artist for their details), and the year strip shows every year without cutting the first one off." },
   { d: '2026-11-01', t: 'design', a: 'graphs', h: '90ced93',
     title: "Charts: Your week, weekdays against the weekend",
     detail: "Your week on Stats → Charts now shows a column for each day, with the weekend shaded and your busiest day standing out. Above it, your plays a day on weekdays and at the weekend sit side by side with your busiest day, and the line under it tells you how much more you play on the busier side of the week." },
