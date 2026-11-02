@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "A podium for the All #1s record holder":
+    ["Um pódio para o recorde de Todos os #1",
+     "A música, artista ou álbum com o recorde de Todos os #1 agora ganha um cartão grande no topo: a capa, quanto tempo ficou no #1, quando, cada semana (ou dia, mês, ano) no #1 como uma caixa que abre aquela parada, Ouvir um trecho e Detalhes. O #2 e o #3 ficam ao lado em cartões menores de prata e bronze, e a tabela continua a partir do #4. Ordenar a tabela por outra coluna devolve os três primeiros a ela; ordenar por posição traz o pódio de volta. Também vale para o pódio de Novidades. Funciona com Last.fm, Google Sheets e arquivos CSV."],
   "All #1s tells you its record in a sentence":
     ["Todos os #1 conta o recorde numa frase",
      "Recordes → Todos os #1 agora começa com uma frase sobre a lista escolhida, por exemplo: \"36 singles chegaram ao #1 na sua parada semanal. We Can Be Anything teve o reinado mais longo: 3 semanas sem interrupção, 6 – 20 ago 2023.\" Quando o primeiro lugar é dividido, ela diz isso. Os seletores de tipo, parada e Total / Seguidas agora ficam lado a lado numa só linha, e o segundo título e os botões − acima da tabela saíram. Funciona com Last.fm, Google Sheets e arquivos CSV."],
