@@ -15,7 +15,7 @@ window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
   "A full Chart Run on The Dank 100":
     ["Una trayectoria completa en The Dank 100",
-     "Haz clic en una entrada de The Dank 100 y, debajo de su línea y sus cuatro números, ahora verás la misma trayectoria que en tus propios rankings: una frase que resume su recorrido, su pico, las semanas en el #1 y en el Top 3, 5, 10 y 40, y una casilla por cada semana en el ranking, con las semanas que estuvo fuera entre medias. Haz clic en un número para resaltar esas semanas, o en una casilla para abrir el ranking de esa semana."],
+     "Haz clic en una entrada de The Dank 100 y, debajo de su línea y sus cuatro números, ahora verás la misma trayectoria que en tus propios rankings: una frase que resume su recorrido, su pico, las semanas en el #1 y en el Top 3, 5, 10 y 40, y una casilla por cada semana en el ranking, con las semanas que estuvo fuera entre medias. Haz clic en un número para resaltar esas semanas, o en una casilla para ver el ranking de esa semana en una ventanita, con un enlace para abrir la semana completa."],
   "Open and close arrows in Records no longer look like Play":
     ["Las flechas de abrir y cerrar en Récords ya no parecen Reproducir",
      "Los pequeños triángulos que abren la trayectoria de una fila o su registro de certificaciones, y el triángulo doble que abre todas las filas, parecían botones de Reproducir. En todo Récords ahora son flechas que apuntan hacia abajo y giran hacia arriba cuando la fila está abierta. Funciona con Last.fm, Google Sheets y archivos CSV."],

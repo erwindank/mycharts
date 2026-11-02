@@ -15,7 +15,7 @@ window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
   "A full Chart Run on The Dank 100":
     ["Uma trajetória completa no The Dank 100",
-     "Clique numa entrada do The Dank 100 e, por baixo da linha e dos quatro números, aparece agora a mesma trajetória dos seus próprios tops: uma frase que resume o percurso, o pico, as semanas no #1 e no Top 3, 5, 10 e 40, e um quadrado para cada semana no top, com as semanas em que esteve de fora pelo meio. Clique num número para realçar essas semanas, ou num quadrado para abrir o top dessa semana."],
+     "Clique numa entrada do The Dank 100 e, por baixo da linha e dos quatro números, aparece agora a mesma trajetória dos seus próprios tops: uma frase que resume o percurso, o pico, as semanas no #1 e no Top 3, 5, 10 e 40, e um quadrado para cada semana no top, com as semanas em que esteve de fora pelo meio. Clique num número para realçar essas semanas, ou num quadrado para ver o top dessa semana numa pequena janela, com uma ligação para abrir a semana inteira."],
   "Open and close arrows in Records no longer look like Play":
     ["As setas de abrir e fechar em Recordes já não parecem Reproduzir",
      "Os pequenos triângulos que abrem a trajetória de uma linha ou o registo de certificações, e o triângulo duplo que abre todas as linhas, pareciam botões de Reproduzir. Em todo o Recordes são agora setas que apontam para baixo e rodam para cima quando a linha está aberta. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
