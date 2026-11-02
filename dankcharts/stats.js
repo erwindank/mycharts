@@ -1780,7 +1780,7 @@ function _sxCmpSavedPaint() {
   const same = set => set.picks.length === picks.length && set.picks.every((k, i) => k === picks[i]);
   const mine = sxCmpSaved.filter(x => x.type === type);
   const sets = mine.map(x => `<span class="sx-saved${same(x) ? ' is-on' : ''}">` +
-    `<button type="button" data-sload="${esc(x.id)}" aria-pressed="${same(x)}">${esc(x.name)} <small>${x.picks.length}</small></button>` +
+    `<button type="button" data-sload="${esc(x.id)}" aria-pressed="${same(x)}"><span>${esc(x.name)}</span> <small>${x.picks.length}</small></button>` +
     `<button type="button" class="sx-saved-x" data-sdel="${esc(x.id)}" aria-label="${esc(t('sx_saved_delete').replace('{name}', x.name))}">` +
     `<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="m4.5 4.5 7 7M11.5 4.5l-7 7"/></svg></button></span>`).join('');
   let tail = '';
@@ -1792,11 +1792,45 @@ function _sxCmpSavedPaint() {
       `<button type="button" class="dc-btn dc-btn-plain dc-btn-sm" data-sact="cancel">${esc(t('btn_cancel'))}</button></span>`;
   } else if (picks.length && !mine.some(same) && mine.length < SX_SAVED_MAX) {
     tail = `<button type="button" class="dc-btn dc-btn-plain dc-btn-sm" data-sact="save">+ ${esc(t('sx_saved_save'))}</button>`;
+  } else if (mine.some(same)) tail = `<p class="sx-saved-note">${esc(t('sx_saved_is_on'))}</p>`;
+  // Phase 18 step 2: a menu under the Saved button. The sets of this type
+  // as rows (or a line saying there are none yet), then Save these.
+  box.innerHTML = `<span class="sx-saved-label">${esc(t('sx_saved_title'))}</span>` +
+    (sets ? `<div class="sx-saved-list">${sets}</div>`
+      : `<p class="sx-saved-empty">${esc(t('sx_saved_none'))}</p>`) +
+    (tail ? `<div class="sx-saved-foot">${tail}</div>` : '');
+  // The button names the set that is on, else counts the saved ones
+  const btn = document.getElementById('sxCmpSavedBtn');
+  if (btn) {
+    const on = mine.find(same);
+    btn.innerHTML = `<span aria-hidden="true">${on ? '★' : '☆'}</span><span>${esc(on ? on.name : t('sx_saved_title'))}</span>` +
+      (!on && mine.length ? ` <small>${mine.length}</small>` : '');
+    btn.classList.toggle('is-on', !!on);
   }
-  // The Saved label only once there is something saved
-  box.innerHTML = (sets ? `<span class="sx-saved-label">${esc(t('sx_saved_title'))}</span>` : '') + sets + tail;
   if (_sxSavedNaming) { const i = document.getElementById('sxSavedName'); if (i) { i.focus(); i.select(); } }
 }
+
+// Opens and closes the Saved menu
+function _sxCmpSavedOpen(open) {
+  const box = document.getElementById('sxCmpSaved'), btn = document.getElementById('sxCmpSavedBtn');
+  if (!box || !btn) return;
+  if (!open && _sxSavedNaming) { _sxSavedNaming = false; _sxCmpSavedPaint(); }
+  box.hidden = !open;
+  btn.setAttribute('aria-expanded', String(open));
+}
+document.getElementById('sxCmpSavedBtn')?.addEventListener('click', () => _sxCmpSavedOpen(document.getElementById('sxCmpSaved').hidden));
+// A click anywhere else, or Escape, closes it. A click on a button the menu
+// has just repainted is no longer on the page: that one counts as inside.
+document.addEventListener('click', e => {
+  const box = document.getElementById('sxCmpSaved');
+  if (!box || box.hidden || !e.target.isConnected || e.target.closest('.sx-saved-menu, .dc-confirm, [role="dialog"]')) return;
+  _sxCmpSavedOpen(false);
+});
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape' || document.getElementById('sxCmpSaved')?.hidden !== false || e.target.id === 'sxSavedName') return;
+  _sxCmpSavedOpen(false);
+  document.getElementById('sxCmpSavedBtn')?.focus();
+});
 
 function _sxCmpSavedAdd() {
   const name = (document.getElementById('sxSavedName')?.value || '').trim();
@@ -1816,6 +1850,7 @@ document.getElementById('sxCmpSaved')?.addEventListener('click', e => {
     if (!set) return;
     sxCmp.picks[sxCmp.type] = set.picks.slice(0, SX_CMP_MAX);
     _sxCmpSave();
+    _sxCmpSavedOpen(false);
     sxRenderCompare();
   } else if (b.dataset.sdel) {
     const set = sxCmpSaved.find(x => x.id === b.dataset.sdel);

@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=802">
+  <link rel="stylesheet" href="style.css?v=803">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=280"></script>
+  <script defer src="translations.js?v=281"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -1365,15 +1365,30 @@
            period or as a chart run, with a verdict row under the chart.
            Replaces the two artist comparison charts. -->
       <div class="dc-card graph-card sx-cmp" data-st-group="compare">
-        <div class="graph-card-title" data-i18n="sx_cmp_title">Compare</div>
-        <div class="graph-card-sub" data-i18n="sx_cmp_sub">Put up to 10 artists, songs, albums or years side by side, or race them.</div>
-        <div class="sx-cmp-bar">
-          <div class="dc-seg" id="sxCmpType" role="group" aria-label="Compare" data-i18n-aria="sx_cmp_title">
-            <button type="button" data-ctype="artists" data-i18n="sx_cmp_type_artists">Artists</button>
-            <button type="button" data-ctype="songs" data-i18n="sx_cmp_type_songs">Songs</button>
-            <button type="button" data-ctype="albums" data-i18n="sx_cmp_type_albums">Albums</button>
-            <button type="button" data-ctype="years" data-i18n="sx_cmp_type_years">Years</button>
+        <!-- Head and toolbar (phase 18 step 2): Top N and the Saved menu
+             in the corner; type tabs and the view switch in one bar -->
+        <div class="sx-cmp-head">
+          <div>
+            <div class="graph-card-title" data-i18n="sx_cmp_title">Compare</div>
+            <div class="graph-card-sub" data-i18n="sx_cmp_sub">Put up to 10 artists, songs, albums or years side by side, or race them.</div>
           </div>
+          <div class="sx-cmp-tools">
+            <button id="sxCmpTop" type="button" class="dc-btn dc-btn-normal dc-btn-sm">Top 3</button>
+            <!-- Saved comparisons (phase 17 step 9, stats.js _sxCmpSavedPaint) -->
+            <div class="sx-saved-menu">
+              <button id="sxCmpSavedBtn" type="button" class="dc-btn dc-btn-normal dc-btn-sm" aria-expanded="false" aria-controls="sxCmpSaved"></button>
+              <div id="sxCmpSaved" class="sx-cmp-saved" hidden></div>
+            </div>
+          </div>
+        </div>
+        <div class="sx-cmp-bar">
+          <div class="sx-cmp-types" id="sxCmpType" role="group" aria-label="Compare" data-i18n-aria="sx_cmp_title">
+            <button type="button" data-ctype="artists"><span aria-hidden="true">🎤</span><span data-i18n="sx_cmp_type_artists">Artists</span></button>
+            <button type="button" data-ctype="songs"><span aria-hidden="true">🎵</span><span data-i18n="sx_cmp_type_songs">Songs</span></button>
+            <button type="button" data-ctype="albums"><span aria-hidden="true">💿</span><span data-i18n="sx_cmp_type_albums">Albums</span></button>
+            <button type="button" data-ctype="years"><span aria-hidden="true">📅</span><span data-i18n="sx_cmp_type_years">Years</span></button>
+          </div>
+          <div class="sx-cmp-views">
           <div class="dc-seg" id="sxCmpMode" role="group" aria-label="View" data-i18n-aria="sx_cmp_view">
             <button type="button" data-cmode="cum" data-i18n="sx_cmp_mode_cum">Running total</button>
             <button type="button" data-cmode="per" data-i18n="sx_cmp_mode_per">Per period</button>
@@ -1385,6 +1400,7 @@
             <button type="button" data-crun="week" data-i18n="nav_weekly">Weekly</button>
             <button type="button" data-crun="month" data-i18n="nav_monthly">Monthly</button>
             <button type="button" data-crun="year" data-i18n="nav_yearly">Yearly</button>
+          </div>
           </div>
         </div>
         <!-- The line-up (phase 18 step 1): one card per pick (stats.js
@@ -1402,12 +1418,9 @@
             <ul id="sxCmpSug" class="sx-sug" role="listbox" hidden></ul>
             <div class="sx-lu-add-foot">
               <span id="sxCmpCount" class="sx-lu-count"></span>
-              <button id="sxCmpTop" type="button" class="dc-btn dc-btn-plain dc-btn-sm">Top 3</button>
             </div>
           </div>
         </div>
-        <!-- Saved comparisons (phase 17 step 9, stats.js _sxCmpSavedPaint) -->
-        <div id="sxCmpSaved" class="sx-cmp-saved"></div>
         <div class="graph-canvas-wrap sx-cmp-canvas"><canvas id="sxCmpChart"></canvas></div>
         <!-- Race mode (phase 15 step 4): the old Play Count Race, racing the
              picks above. Its own range starts at the first play. -->
@@ -4265,7 +4278,7 @@
   <script defer src="insights.js?v=10"></script>
   <script defer src="daily.js?v=39"></script>
   <!-- The Stats page's tabs, Overview, Story, Games and Compare (phase 15); reads app.js globals -->
-  <script defer src="stats.js?v=41"></script>
+  <script defer src="stats.js?v=42"></script>
   <!-- The Dank 100: weekly entries for the shared community chart; reads app.js and firebase.js globals -->
   <script defer src="dank100.js?v=13"></script>
 
