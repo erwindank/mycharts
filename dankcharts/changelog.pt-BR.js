@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Podiums on every Records list":
+    ["Pódios em todas as listas de Recordes",
+     "Cada lista de Recordes agora começa com um pódio como o de Todos os #1: quem tem o recorde num cartão grande com a capa, o recorde em destaque, os outros números, a trajetória quando houver, Ouvir um trecho e Detalhes, com o #2 e o #3 em cartões de prata e bronze ao lado. A lista continua a partir do #4. Ordenar por outra coluna devolve os três primeiros à lista, e ordenar por posição traz o pódio de volta. Funciona com Last.fm, Google Sheets e arquivos CSV."],
   "Every Records section tells you its record":
     ["Cada seção de Recordes conta o seu recorde",
      "Perfect All Kill, Aparições, Estreias, Novidades, Mais Plays, Mais Rápido, Sequências, Marcos e Certificações agora começam como Todos os #1: o nome do recorde e uma frase dizendo quem o tem, por exemplo \"My Body, de Slayyyter, tem o recorde: 45 dias.\" Ela muda quando você troca o tipo ou a parada. Os seletores ficam numa só linha, Mostrar foi para baixo da lista e os botões − saíram. Funciona com Last.fm, Google Sheets e arquivos CSV."],

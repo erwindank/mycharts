@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 446;
+const DC_CL_I18N_V = 447;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -316,6 +316,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-02', t: 'design', a: 'records', h: '853c768',
+    title: "Podiums on every Records list",
+    detail: "Every Records list now opens with a podium like All #1s: the record holder on a big card with its cover, the record in big type, its other figures, its chart run where it has one, Play a sample and Details, with #2 and #3 on silver and bronze cards beside it. The list carries on from #4. Sorting by another column puts the top three back in the list, and sorting by rank brings the podium back. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-11-02', t: 'design', a: 'records', h: '3f18f40',
     title: "Every Records section tells you its record",
     detail: "Perfect All Kill, Appearances, Debuts, New Charts, Most Plays, Fastest, Streaks, Milestones and Certifications now open the way All #1s does: the record's name, then one sentence saying who holds it, for example \"My Body by Slayyyter holds it: 45 days.\" It changes as you switch type or chart. The switches sit in one row, Show moved under the list, and the − buttons are gone. Works with Last.fm, Google Sheets and CSV uploads." },
