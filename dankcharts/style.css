@@ -889,7 +889,10 @@
     }
     .dc-pop-box:focus { outline: none; }
     /* Settings stays near the top: its tabs change height */
-    #sourceModal.dc-pop { align-items: center; }
+    /* justify-content: flex-start must out-rank #sourceModal.open (later in
+       the file), whose "center" pushed a tall tab (Charts) half above the
+       top and below the scroll range, so its bottom could not be reached */
+    #sourceModal.dc-pop.dc-pop { align-items: center; justify-content: flex-start; }
     #sourceModal.dc-pop > .dc-pop-box { margin-top: min(6vh, 56px); }
 
     .dc-pop.dc-pop.dc-pop-in { animation: dcPopFadeIn 0.2s ease-out; }
