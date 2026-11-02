@@ -4208,6 +4208,30 @@ Waiting for your review before steps 4–8.
 - Scripts: C:/tmp/p20_ones.mjs, p20_click2.mjs, p20_click3.mjs, p20_tr.py
   (adds translation keys), p19_cl.py (changelog).
 
+**Then (2026-11-02, pushed up to 78890fd, the rest not yet):** #2/#3 podium
+cards got their #1 boxes; Show → All fixed (it froze the browser even
+before phase 20: a quadratic header lookup per row, and the limit applied
+to all ~55 tables). All now fills only the section on screen
+(`recLimFor`, `REC_ALL_OTHERS`, `recEnsureBuiltForView`) and stops at
+`REC_ALL_CAP` = 1,000 rows a list (your call). Chart-run detail rows are
+built when opened (`recLazy` / `recFillLazy`): Records at 25 rows went
+from 282k to 132k elements.
+
+**Steps 4–6 done differently from the list above:** instead of rewriting
+nine builders section by section, `records-look.js` lays the All #1s look
+over every other section from the built tables:
+- step 4 (3f18f40) frame: `recxInitFrames` (sentence, one switch row, Show
+  at the foot, no −/+), `recxSync` writes the sentence from the top row
+  (`recRowRecord` + `pickHeadlineDetail`), eyebrow = the record's title.
+- step 5 (853c768) podiums: `recxPodiums` builds one per list on first
+  sight from its rows 0–2 (data-rec1-podium-for, so the sort retire /
+  restore works), with chart-run boxes from the lazy store.
+- step 6 (1c54bf2) row style + `recxBars` (only for one-number,
+  same-unit columns), desktop only; phones keep cards.
+- New Charts keeps its own podium and titles; Milestones keeps its
+  timeline. Steps 7 (Milestones/Certs/Overview polish) and 8 (Charts
+  Guide, What's New card) are still open.
+
 ### Done outside the phases (to 2026-10-18)
 
 Work that isn't a plan step but changes what the later phases start from.
