@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Charts: a clearer Play volume card":
+    ["Gráficos: um cartão de volume mais claro",
+     "O volume de reproduções em Estatísticas → Gráficos agora abre com os números que importam: seus plays e a média, quantos eram músicas que você já conhecia e quantos eram novos, e seu mês mais ouvido (toque para ver por dentro). Os pontos coloridos servem de legenda, as barras têm o topo arredondado e datas retas, e a caixa ao passar o cursor segue o seu tema."],
   "Charts: Daily play volume no longer looks empty":
     ["Gráficos: o volume diário não parece mais vazio",
      "Em Estatísticas → Gráficos, o volume de reproduções em Diário com um período longo desenhava milhares de barras mais finas que um pixel, e o gráfico parecia vazio. Agora ele desenha os mesmos números como uma área suave, e passar o cursor (ou tocar) ainda mostra aquele dia e o que você ouviu."],

@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 426;
+const DC_CL_I18N_V = 427;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -306,6 +306,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-01', t: 'design', a: 'graphs', h: '170264e',
+    title: "Charts: a clearer Play volume card",
+    detail: "Play volume on Stats → Charts now opens with the numbers that matter: your plays and average, how many were songs you knew and how many were new, and your busiest month (tap it to look inside). The coloured dots double as the chart's key, the bars have rounded tops and flat date labels, and the hover box matches your theme." },
   { d: '2026-11-01', t: 'fix', a: 'graphs', h: 'f7d333f',
     title: "Charts: Daily play volume no longer looks empty",
     detail: "On Stats → Charts, Play volume with Daily over a long range drew thousands of bars thinner than a pixel, so the chart looked blank. It now draws the same numbers as a smooth area, and pointing at it (or tapping) still shows that day and opens what you played." },
