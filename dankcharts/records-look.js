@@ -300,8 +300,10 @@ function recxPodiumFor(table) {
 function recxPodiums(sec) {
   if (RECX_NO_PODIUM.indexOf(sec.id) !== -1) return;
   sec.querySelectorAll('table.rec-table').forEach(function (table) {
-    if (table.dataset.recxPod || !recxVisible(table) || !table.tBodies[0]) return;
+    if (!recxVisible(table) || !table.tBodies[0]) return;
     if (table.classList.contains('nc-sd-table') || table.classList.contains('rec1-table')) return;
+    recxBars(table);
+    if (table.dataset.recxPod) return;
     table.dataset.recxPod = '1';
     const pod = recxPodiumFor(table);
     if (!pod) return;
@@ -320,4 +322,38 @@ function recxPodiums(sec) {
     });
   });
   if (typeof _eaPaintSamples === 'function') _eaPaintSamples();
+}
+
+/* ── Bars under the figure (phase 20 step 6) ───────────────────────────
+   Each list's headline figure (its first count column) gets a bar against
+   the list's #1, so "21 weeks" next to "30 weeks" reads at a glance, as in
+   All #1s. Only where every row is one number with the same unit: a column
+   of mixed units ("6h", "1d 0h") or of tallies would make the bars lie, so
+   it gets none. The bar carries no text, so sorting, search and the hero
+   reel read the cell exactly as before. */
+function recxBars(table) {
+  if (table.dataset.recxBars) return;
+  table.dataset.recxBars = '1';
+  const rows = Array.from(table.tBodies[0].rows).filter(function (r) { return !r.matches(REC_DETAIL_ROW_SEL); });
+  if (rows.length < 2) return;
+  const first = rows[0].querySelector('td.rec-count');
+  if (!first) return;
+  const col = Array.prototype.indexOf.call(rows[0].cells, first);
+  let unit = null, ok = true, max = 0;
+  const vals = rows.map(function (r) {
+    const td = r.cells[col];
+    const m = td ? td.textContent.replace(/\s+/g, ' ').trim().match(/^([\d.,]+)\s*([^\d\s]*)$/) : null;
+    if (!m) { ok = false; return null; }
+    if (unit === null) unit = m[2];
+    else if (m[2] !== unit) ok = false;
+    const v = parseFloat(m[1].replace(/,/g, ''));
+    if (v > max) max = v;
+    return v;
+  });
+  if (!ok || !max) return;
+  rows.forEach(function (r, i) {
+    const td = r.cells[col];
+    td.classList.add('recx-fig-cell');
+    td.insertAdjacentHTML('beforeend', '<span class="recx-bar" aria-hidden="true"><i style="width:' + Math.max(3, Math.round(vals[i] / max * 100)) + '%"></i></span>');
+  });
 }

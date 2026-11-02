@@ -46449,3 +46449,52 @@ body:not(:is([data-view="day"], [data-view="week"], [data-view="month"], [data-v
 .rec1-fig.is-long b { font-size: 1.5rem; }
 .rec1-runner .rec1-fig.is-long b { font-size: 1.1rem; }
 .recx-podium { margin-top: 2px; }
+
+/* ── Phase 20 step 6: the All #1s row style on the other sections ──────
+   Above 640px (below it the tables are cards already): no box, no column
+   rules, quiet mono headers, medal ranks, the counts in big type with a
+   bar against the list's #1 (recxBars in records-look.js). */
+@media (min-width: 641px) {
+  #recordsView .recx .rec-table { background: none; border: 0; border-radius: 0; }
+  #recordsView .recx .rec-table thead { background: none; }
+  #recordsView .recx .rec-table thead th {
+    background: var(--bg2);
+    border-right: 0;
+    border-bottom: 1px solid var(--border-t);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: .07em;
+    color: var(--text3);
+  }
+  #recordsView .recx .rec-table thead th:first-child { border-radius: 0; }
+  #recordsView .recx .rec-table .col-resize-handle { display: none; }
+  #recordsView .recx .rec-table tbody td { border-right: 0; border-bottom: 1px solid var(--border-t); padding-top: 0.65rem; padding-bottom: 0.65rem; }
+  #recordsView .recx .rec-table tbody tr:last-child td { border-bottom: 0; }
+  #recordsView .recx .rec-table tbody tr:not(.rec-run-detail):not(.app-cr-row):not(.pak-expand-row):hover { background: var(--hover); }
+  #recordsView .recx .rec-table .rec-rank { font-weight: 700; font-size: 1.15rem; }
+  #recordsView .recx .rec-table .rec-rank-1 .rec-rank { color: var(--medal-gold); }
+  #recordsView .recx .rec-table .rec-rank-2 .rec-rank { color: var(--medal-silver); }
+  #recordsView .recx .rec-table .rec-rank-3 .rec-rank { color: var(--medal-bronze); }
+  #recordsView .recx .rec-table .rec-name { font-weight: 600; }
+  #recordsView .recx .rec-table td.recx-fig-cell {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--text);
+    white-space: nowrap;
+    min-width: 120px;
+  }
+  #recordsView .recx .rec-table .rec-run-toggle-btn,
+  #recordsView .recx .rec-table .rec-cr-toggle { border-color: transparent; border-radius: 8px; }
+}
+.recx-bar {
+  display: block;
+  height: 6px;
+  margin-top: 6px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--text) 9%, transparent);
+  overflow: hidden;
+}
+.recx-bar i { display: block; height: 100%; border-radius: 4px; background: var(--accent); }
+@media (max-width: 640px) { .recx-bar { display: none; } }
