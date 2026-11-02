@@ -8118,7 +8118,9 @@ function buildRecords() {
   // never made the chart (a #247 "debut" on a top-20 chart, an album credited
   // with 36 debuting tracks when only 20 fit), so mirror renderNewEntries'
   // per-section limits exactly and let a record come only from a charting entry.
+  // Daily mirrors renderNewEntries too: the daily New charts show at least 20.
   const ncLimits = {
+    day:   { songs: Math.max(20, chartSizeSongsD), artists: Math.max(20, chartSizeArtistsD), albums: Math.max(20, chartSizeAlbumsD) },
     week:  { songs: Math.max(20, chartSizeSongsW), artists: Math.max(20, chartSizeArtistsW), albums: Math.max(20, chartSizeAlbumsW) },
     month: { songs: chartSizeSongsM, artists: chartSizeArtistsM, albums: chartSizeAlbumsM },
     year:  { songs: chartSizeSongsY, artists: chartSizeArtistsY, albums: chartSizeAlbumsY },
@@ -8129,26 +8131,30 @@ function buildRecords() {
     const lfp = { day: {}, week: {}, month: {}, year: {} };
     for (const p of chron) {
       const wk = playWeekKeyOf(p);
+      const dk = dayStrOf(p);
       const _td = tzDateOf(p);
       const mk = _td.getFullYear() + '-' + String(_td.getMonth() + 1).padStart(2, '0');
       const yk = String(_td.getFullYear());
       const sk = songKey(p);
+      if (!sfp.day[sk]) sfp.day[sk] = { period: dk, title: p.title, artist: p.artist, album: p.album, artists_: p.artists };
       if (!sfp.week[sk]) sfp.week[sk] = { period: wk, title: p.title, artist: p.artist, album: p.album, artists_: p.artists };
       if (!sfp.month[sk]) sfp.month[sk] = { period: mk, title: p.title, artist: p.artist, album: p.album, artists_: p.artists };
       if (!sfp.year[sk]) sfp.year[sk] = { period: yk, title: p.title, artist: p.artist, album: p.album, artists_: p.artists };
       for (const artist of p.artists) {
+        if (!afp.day[artist]) afp.day[artist] = dk;
         if (!afp.week[artist]) afp.week[artist] = wk;
         if (!afp.month[artist]) afp.month[artist] = mk;
         if (!afp.year[artist]) afp.year[artist] = yk;
       }
       if (p.album && p.album !== '—') {
         const ak = albumKeyOf(p);
+        if (!lfp.day[ak]) lfp.day[ak] = { period: dk, album: p.album, artist: albumArtist(p) };
         if (!lfp.week[ak]) lfp.week[ak] = { period: wk, album: p.album, artist: albumArtist(p) };
         if (!lfp.month[ak]) lfp.month[ak] = { period: mk, album: p.album, artist: albumArtist(p) };
         if (!lfp.year[ak]) lfp.year[ak] = { period: yk, album: p.album, artist: albumArtist(p) };
       }
     }
-    for (const [pt, playsMap, keys] of [['week', weekPlaysMap, weekKeys], ['month', monthPlaysMap, monthKeys], ['year', yearPlaysMap, yearKeys]]) {
+    for (const [pt, playsMap, keys] of [['day', dayPlaysMap, dayKeys], ['week', weekPlaysMap, weekKeys], ['month', monthPlaysMap, monthKeys], ['year', yearPlaysMap, yearKeys]]) {
       const sbyp = {};
       for (const [sk, info] of Object.entries(sfp[pt])) {
         const pk = info.period;
@@ -8223,7 +8229,7 @@ function buildRecords() {
 
   // ── Build ncPeriodMap for tooltip use (inverted by period) ───
   ncPeriodMap = { day: {}, week: {}, month: {}, year: {} };
-  for (const pt of ['week', 'month', 'year']) {
+  for (const pt of ['day', 'week', 'month', 'year']) {
     for (const [sk, d] of Object.entries(ncSongDebuts[pt])) {
       if (!ncPeriodMap[pt][d.period]) ncPeriodMap[pt][d.period] = { songs: [], artists: [], albums: [] };
       ncPeriodMap[pt][d.period].songs.push({ rank: d.rank, title: d.title, artist: d.artist });
@@ -8245,36 +8251,46 @@ function buildRecords() {
 
   // ── New Charts Records: post-processing ──────────────────────
   // Record 8: Longest consecutive periods where artist had a new debut
-  const artistConsecNewDebuts = { week: {}, month: {} };
-  for (const [pt, ptKeys] of [['week', weekKeys], ['month', monthKeys]]) {
+  // Days and years (added 2026-11-02) count calendar neighbours via
+  // crPeriodGap, since days with no plays are missing from dayKeys and a run
+  // across a silent day is not a run. Weeks and months keep their old count.
+  const artistConsecNewDebuts = { day: {}, week: {}, month: {}, year: {} };
+  for (const [pt, ptKeys] of [['day', dayKeys], ['week', weekKeys], ['month', monthKeys], ['year', yearKeys]]) {
     const pidx = {};
     ptKeys.forEach((k, i) => { pidx[k] = i; });
+    const calendar = pt === 'day' || pt === 'year';
     for (const [artist, periods] of Object.entries(ncArtistNewDebutPeriods[pt])) {
       const uniq = [...new Set(periods)].sort();
       let max = 1, cur = 1;
       for (let i = 1; i < uniq.length; i++) {
         const pi = pidx[uniq[i - 1]], ci = pidx[uniq[i]];
-        if (pi !== undefined && ci !== undefined && ci === pi + 1) { if (++cur > max) max = cur; } else cur = 1;
+        const next = calendar ? crPeriodGap(pt, uniq[i - 1], uniq[i]) === 0
+          : (pi !== undefined && ci !== undefined && ci === pi + 1);
+        if (next) { if (++cur > max) max = cur; } else cur = 1;
       }
       artistConsecNewDebuts[pt][artist] = max;
     }
   }
   // Record 9: New Song → #1 fastest (fewest periods from debut on New Songs chart to first main-chart #1)
-  const songNewTo1 = { week: {}, month: {} };
-  for (const [pt, ptKeys] of [['week', weekKeys], ['month', monthKeys]]) {
+  // Days and years measure calendar distance (crPeriodGap + 1), like the streak above.
+  const songNewTo1 = { day: {}, week: {}, month: {}, year: {} };
+  for (const [pt, ptKeys] of [['day', dayKeys], ['week', weekKeys], ['month', monthKeys], ['year', yearKeys]]) {
     const pidx = {};
     ptKeys.forEach((k, i) => { pidx[k] = i; });
+    const calendar = pt === 'day' || pt === 'year';
     for (const [sk, deb] of Object.entries(ncSongDebuts[pt])) {
       if (!song1stNo1Period[pt][sk]) continue;
       const di = pidx[deb.period], n1i = pidx[song1stNo1Period[pt][sk]];
       if (di === undefined || n1i === undefined) continue;
-      songNewTo1[pt][sk] = { periods: n1i - di, debutPeriod: deb.period, no1Period: song1stNo1Period[pt][sk], debutPlays: deb.plays, title: deb.title, artist: deb.artist };
+      const dist = calendar ? crPeriodGap(pt, deb.period, song1stNo1Period[pt][sk]) + 1 : n1i - di;
+      if (dist < 0) continue;
+      songNewTo1[pt][sk] = { periods: dist, debutPeriod: deb.period, no1Period: song1stNo1Period[pt][sk], debutPlays: deb.plays, title: deb.title, artist: deb.artist };
     }
   }
 
   // Records 4 & 5: Raw new discovery counts — all unique first appearances,
   // not limited by chart size
-  for (const [pt, playsMap, keys] of [['week', weekPlaysMap, weekKeys], ['month', monthPlaysMap, monthKeys], ['year', yearPlaysMap, yearKeys]]) {
+  for (const [pt, playsMap, keys] of [['day', dayPlaysMap, dayKeys], ['week', weekPlaysMap, weekKeys], ['month', monthPlaysMap, monthKeys], ['year', yearPlaysMap, yearKeys]]) {
     const everS = new Set(), everA = new Set(), everL = new Set();
     for (const pk of keys) {
       for (const p of playsMap[pk]) {
@@ -10424,17 +10440,24 @@ function buildRecords() {
   // Ten records × three entities × two period types is twenty tables, and they
   // used to render as one scroll. The pills below make it one entity and one
   // period at a time: a type row (Songs/Artists/Albums) and, under it, a
-  // Weekly/Monthly row. Both are exclusive — picking Songs hides Artists and
-  // Albums entirely, picking Weekly hides every monthly table.
+  // Daily/Weekly/Monthly/Yearly row (Daily and Yearly added 2026-11-02). Both
+  // are exclusive — picking Songs hides Artists and Albums entirely, picking
+  // Weekly hides every other period's tables.
   const NC_REC_TYPES = [
     { key: 'songs', icon: recEntIco('songs'), label: t('rec_th_songs') },
     { key: 'artists', icon: recEntIco('artists'), label: t('rec_th_artists') },
     { key: 'albums', icon: recEntIco('albums'), label: t('rec_th_albums') },
   ];
   const NC_REC_PERIODS = [
+    { key: 'day', label: t('rec_daily_label') },
     { key: 'week', label: t('rec_weekly_label') },
     { key: 'month', label: t('rec_monthly_label') },
+    { key: 'year', label: t('rec_yearly_label') },
   ];
+  // Per-period words for the column headers and counts below.
+  const NC_UNIT = { day: 'days', week: 'weeks_full', month: 'months', year: 'years' };
+  const NC_CONSEC_TH = { day: 'rec_th_consec_days', week: 'nc_th_consec_weeks', month: 'nc_th_consec_months', year: 'rec_th_consec_years' };
+  const NC_TO1_TH = { day: 'nc_th_days_to_1', week: 'nc_th_weeks_to_1', month: 'nc_th_months_to_1', year: 'nc_th_years_to_1' };
   // Artwork requested by the record builders below, flushed once the panels are
   // in the DOM. loadImages() observes intersection, so the art inside a panel
   // that is currently hidden behind a pill only loads when that pill is picked.
@@ -10450,7 +10473,7 @@ function buildRecords() {
   }
   // Period column header + the clickable period cell, both needed by nearly
   // every table below.
-  const ncPeriodTh = pt => pt === 'week' ? t('rec_th_week') : t('rec_th_month');
+  const ncPeriodTh = pt => t('rec_th_' + pt);
   // `cls` is optional, for tables whose phone layout has to address this cell.
   const ncPeriodTd = (pt, pk, cls) => '<td class="rec-meta' + (cls ? ' ' + cls : '') + '"><a href="javascript:void(0)" class="rec-date-link" onclick="showNewChartRecPreview(\'' + pt + '\',\'' + esc(pk) + '\',this,event)">' + fmtPeriodKey(pk, pt) + '</a></td>';
 
@@ -10573,18 +10596,18 @@ function buildRecords() {
   function ncRecDebutStreak(pt) {
     const sorted = Object.entries(artistConsecNewDebuts[pt]).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
     return ncSec('🔁 ' + t('nc_t_debut_streak'),
-      recTable(['#', t('rec_th_artist'), t(pt === 'week' ? 'nc_th_consec_weeks' : 'nc_th_consec_months')],
-        sorted.map((e, i) => '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + e[1] + ' ' + tUnit(pt === 'week' ? 'weeks_full' : 'months', e[1]) + '</td>'), lim, null, null,
+      recTable(['#', t('rec_th_artist'), t(NC_CONSEC_TH[pt])],
+        sorted.map((e, i) => '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + e[1] + ' ' + tUnit(NC_UNIT[pt], e[1]) + '</td>'), lim, null, null,
         { rowAttrs: i => recRowAttrs(sorted[i][0], 'artist', sorted[i][0]) }));
   }
 
   // ── 9. New Song → #1 Fastest ──────────────────────────────────
   function ncRecNewTo1(pt) {
     const sorted = Object.entries(songNewTo1[pt]).sort((a, b) => a[1].periods - b[1].periods || a[1].debutPeriod.localeCompare(b[1].debutPeriod) || b[1].debutPlays - a[1].debutPlays);
-    const colP = t(pt === 'week' ? 'nc_th_weeks_to_1' : 'nc_th_months_to_1');
+    const colP = t(NC_TO1_TH[pt]);
     return ncSec('⚡ ' + t('nc_t_new_to_1'),
       recTable(['#', t('rec_th_songs'), t('rec_th_artist'), colP, t('nc_th_debut'), t('nc_th_1_achieved')],
-        sorted.map((e, i) => { const d = e[1]; const pStr = d.periods === 0 ? t('nc_debuted_at_1') : d.periods + ' ' + tUnit(pt === 'week' ? 'weeks_full' : 'months', d.periods); return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(d.title) + '</div></td><td><div class="rec-sub">' + esc(d.artist) + '</div></td><td class="rec-count">' + pStr + '</td>' + ncPeriodTd(pt, d.debutPeriod) + ncPeriodTd(pt, d.no1Period); }), lim, null, null,
+        sorted.map((e, i) => { const d = e[1]; const pStr = d.periods === 0 ? t('nc_debuted_at_1') : d.periods + ' ' + tUnit(NC_UNIT[pt], d.periods); return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(d.title) + '</div></td><td><div class="rec-sub">' + esc(d.artist) + '</div></td><td class="rec-count">' + pStr + '</td>' + ncPeriodTd(pt, d.debutPeriod) + ncPeriodTd(pt, d.no1Period); }), lim, null, null,
         { rowAttrs: i => recRowAttrs(sorted[i][1].artist, 'song', sorted[i][1].title) }));
   }
 
@@ -12792,7 +12815,7 @@ function applyRecordsViewFilter(view) {
    Songs, Artists or Albums, the row under it picks Weekly or Monthly. Both
    choices stick, so coming back to the section lands where you left it. */
 const NC_REC_TYPES_ORDER = ['songs', 'artists', 'albums'];
-const NC_REC_PERIODS_ORDER = ['week', 'month'];
+const NC_REC_PERIODS_ORDER = ['day', 'week', 'month', 'year'];
 
 function ncRecTabState() {
   let type = localStorage.getItem('dc_nc_rec_type');
