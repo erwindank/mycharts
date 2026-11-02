@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 418;
+const DC_CL_I18N_V = 419;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -296,6 +296,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-01', t: 'design', a: 'graphs', h: 'fc17259',
+    title: "Compare: a clickable legend and a race player",
+    detail: "The Compare chart is bigger and has a legend: tap a name to hide or show its line, and point at a name (or its card) to make that line stand out. The race now opens on the finished result instead of a row of empty bars, and its buttons became one player bar, like a video: a round play button, step and jump buttons, a bar you can drag with the date beside it, speed and GIF. The race's own dates sit on a quieter row underneath." },
   { d: '2026-11-01', t: 'design', a: 'graphs', h: '9a2aae9',
     title: "Compare: a cleaner toolbar and a Saved menu",
     detail: "The top of Stats → Compare is calmer: Artists, Songs, Albums and Years are now tabs with their emoji, sharing one bar with the view switch. Top 3 and Saved sit in the card's corner. Saved opens a small menu with your saved comparisons for that type (a tick on the one you're looking at) and Save these at the bottom, and the button shows the name of the saved set you have open." },

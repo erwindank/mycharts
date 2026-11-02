@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Compare: a clickable legend and a race player":
+    ["Comparar: una leyenda que se puede tocar y un reproductor para la carrera",
+     "El gráfico de Comparar es más grande y tiene leyenda: toca un nombre para ocultar o mostrar su línea, y pasa el cursor por un nombre (o su tarjeta) para destacar esa línea. La carrera ahora se abre con el resultado final en lugar de barras vacías, y sus botones son una sola barra de reproductor, como un vídeo: un botón redondo de reproducir, botones para avanzar y saltar, una barra que puedes arrastrar con la fecha al lado, velocidad y GIF. Las fechas de la carrera están en una fila más discreta debajo."],
   "Compare: a cleaner toolbar and a Saved menu":
     ["Comparar: una barra más limpia y un menú Guardadas",
      "La parte de arriba de Estadísticas → Comparar es más tranquila: Artistas, Canciones, Álbumes y Años son ahora pestañas con su emoji, en una sola barra con el cambio de vista. Top 3 y Guardadas están en la esquina de la tarjeta. Guardadas abre un pequeño menú con tus comparaciones guardadas de ese tipo (una marca en la que estás viendo) y Guardar estas abajo, y el botón muestra el nombre de la que tienes abierta."],
