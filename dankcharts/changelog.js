@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 447;
+const DC_CL_I18N_V = 448;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -316,6 +316,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-02', t: 'design', a: 'records', h: '1c54bf2',
+    title: "Records lists get bars and a cleaner look",
+    detail: "The lists in every Records section now look like All #1s: no boxes or column lines, ranks in gold, silver and bronze, the main figure in big type, and a bar under it showing how close each entry is to the #1. Lists whose figures mix units, like Fastest's hours and days, keep plain numbers. On phones the lists stay as cards. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-11-02', t: 'design', a: 'records', h: '853c768',
     title: "Podiums on every Records list",
     detail: "Every Records list now opens with a podium like All #1s: the record holder on a big card with its cover, the record in big type, its other figures, its chart run where it has one, Play a sample and Details, with #2 and #3 on silver and bronze cards beside it. The list carries on from #4. Sorting by another column puts the top three back in the list, and sorting by rank brings the podium back. Works with Last.fm, Google Sheets and CSV uploads." },

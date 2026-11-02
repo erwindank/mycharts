@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Records lists get bars and a cleaner look":
+    ["Las listas de Récords tienen barras y un aspecto más limpio",
+     "Las listas de todas las secciones de Récords ahora se ven como Todos los #1: sin cajas ni líneas de columna, posiciones en oro, plata y bronce, la cifra principal en grande y una barra debajo que muestra lo cerca que está cada entrada del #1. Las listas que mezclan unidades, como las horas y días de Más Rápido, mantienen los números solos. En el móvil las listas siguen como tarjetas. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Podiums on every Records list":
     ["Podios en todas las listas de Récords",
      "Cada lista de Récords ahora empieza con un podio como el de Todos los #1: quien tiene el récord en una tarjeta grande con su portada, el récord en grande, sus otras cifras, su trayectoria cuando la tiene, Escuchar un fragmento y Detalles, con el #2 y el #3 en tarjetas de plata y bronce al lado. La lista sigue desde el #4. Ordenar por otra columna devuelve los tres primeros a la lista, y ordenar por posición trae el podio de vuelta. Funciona con Last.fm, Google Sheets y archivos CSV."],
