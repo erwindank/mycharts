@@ -18727,13 +18727,17 @@ function certLedgerRowHTML(r) {
     // gap between the two.
     : (t('certd_album') + (r.comp ? ' · ' + t('certd_compilation') : ''));
 
-  // Value + caption + optional third micro-line. The caption sits under the
-  // figure so the numbers themselves stay on one scannable baseline.
-  const m = function (cls, value, label, note, title) {
-    return '<div class="certd-m ' + cls + '"' + (title ? ' title="' + esc(title) + '"' : '') + '>'
-      + '<span class="certd-mv">' + value + '</span>'
-      + '<span class="certd-ml">' + label + '</span>'
-      + (note ? '<span class="certd-mn">' + note + '</span>' : '')
+  /* Redone 2026-11-02 to read at a glance, with every figure kept:
+     a medal on the left (tier, and the play count it was awarded at), the
+     title, two big figures (pace, plays now), and the climb as a timeline:
+     first play → certified, with the time it took on the line between
+     them and, under it, how long after the previous tier it came. */
+  // One big figure with its caption (and an optional note under it).
+  const kpi = function (value, label, note, title) {
+    return '<div class="certd-kpi"' + (title ? ' title="' + esc(title) + '"' : '') + '>'
+      + '<span class="certd-kpi-v">' + value + '</span>'
+      + '<span class="certd-kpi-l">' + label + '</span>'
+      + (note ? '<span class="certd-kpi-n">' + note + '</span>' : '')
       + '</div>';
   };
 
@@ -18741,46 +18745,55 @@ function certLedgerRowHTML(r) {
   if (r.next) {
     const nm = certTierMeta(r.next.tier, r.next.mult);
     foot = '<div class="certd-next">'
-      + '<div class="certd-next-bar"><i style="width:' + r.next.pct + '%"></i></div>'
       + '<div class="certd-next-label">' + t('certd_next', {
           tier: nm.icon + ' ' + esc(nm.label),
           n: '<b>' + r.next.remaining.toLocaleString() + '</b>',
           unit: tUnit('plays', r.next.remaining)
         }) + '</div>'
+      + '<div class="certd-next-bar"><i style="width:' + r.next.pct + '%"></i></div>'
+      + '<span class="certd-next-pct">' + r.next.pct + '%</span>'
       + '</div>';
   }
 
   return '<div class="certd-row certd-row--' + meta.cls + '" data-kind="' + r.kind + '"'
     + ' data-tier="' + meta.cls + '" data-tw="' + certTierWeight(r.tier, r.mult) + '"'
     + ' data-d="' + (+r.date) + '" data-e="' + r.elapsed + '" data-p="' + r.pace + '" data-pl="' + r.plays + '">'
-    // The rail is the spine of the plaque: medal above, the play count that
-    // earned it set vertically below, like the edge of a framed award.
-    + '<div class="certd-rail" title="' + esc(meta.label + ' · ' + tCount('plays', r.n)) + '">'
-      + '<span class="certd-rail-icon">' + meta.icon + '</span>'
-      + '<span class="certd-rail-n">' + r.n.toLocaleString() + '</span>'
+    // The medal: which award, and the play count that earned it.
+    + '<div class="certd-medal" title="' + esc(meta.label + ' · ' + tCount('plays', r.n)) + '">'
+      + '<span class="certd-medal-icon">' + meta.icon + '</span>'
+      + '<span class="certd-medal-tier">' + esc(meta.label) + '</span>'
+      + '<span class="certd-medal-at">' + t('certd_at_plays', { n: r.n.toLocaleString() }) + '</span>'
     + '</div>'
-    + '<div class="certd-main">'
-      // The leader is the dotted rule that carries the eye from the title
-      // across to the figures, the way a printed register does.
-      + '<div class="certd-titlerow">'
-        + '<a href="javascript:void(0)" class="certd-title" onclick="event.stopPropagation();' + open + '">' + esc(r.title) + '</a>'
-        + '<span class="certd-leader" aria-hidden="true"></span>'
+    + '<div class="certd-body">'
+      + '<div class="certd-head">'
+        + '<div class="certd-name">'
+          + '<a href="javascript:void(0)" class="certd-title" onclick="event.stopPropagation();' + open + '">' + esc(r.title) + '</a>'
+          + '<div class="certd-sub">' + sub + '</div>'
+        + '</div>'
+        + '<div class="certd-kpis">'
+          + kpi(certdPace(r.pace), t('certd_pace'), '', t('certd_pace_help', { n: r.n.toLocaleString(), time: certdExact(r.elapsed) }))
+          + kpi(r.plays.toLocaleString(), t('certd_plays_now'),
+              r.since > 0 ? t('certd_since_cert', { n: r.since.toLocaleString() }) : '')
+        + '</div>'
       + '</div>'
-      + '<div class="certd-sub"><span class="certd-tier">' + esc(meta.label) + '</span>' + sub + '</div>'
+      // The climb: first play ── time taken ──▶ certified.
+      + '<div class="certd-journey">'
+        + '<div class="certd-j-end" title="' + esc(fmtDate(r.first)) + '">'
+          + '<span class="certd-j-l">' + t('certd_first_play') + '</span>'
+          + '<span class="certd-j-v">' + fmtDate(r.first) + '</span>'
+        + '</div>'
+        + '<div class="certd-j-line" title="' + esc(t('certd_time_taken') + ': ' + certdExact(r.elapsed)) + '">'
+          + '<span class="certd-j-dur">' + fmtElapsed(r.elapsed) + '</span>'
+          + (r.gap !== null ? '<span class="certd-j-gap">' + t('certd_from_prev', { time: fmtElapsed(r.gap), tier: r.gapTier.icon + ' ' + esc(r.gapTier.label) }) + '</span>' : '')
+        + '</div>'
+        + '<div class="certd-j-end certd-j-end--cert">'
+          + '<span class="certd-j-l">' + t('certd_certified') + '</span>'
+          + '<span class="certd-j-v">' + fmtDate(r.date) + '</span>'
+          + '<span class="certd-j-ago">' + t('certd_held', { time: fmtElapsed(Date.now() - r.date) }) + '</span>'
+        + '</div>'
+      + '</div>'
+      + foot
     + '</div>'
-    + '<div class="certd-metrics">'
-      + m('', fmtDate(r.first), t('certd_first_play'), '', fmtDate(r.first))
-      + m('certd-m-stamp', fmtDate(r.date), t('certd_certified'),
-          t('certd_held', { time: fmtElapsed(Date.now() - r.date) }))
-      + m('', fmtElapsed(r.elapsed), t('certd_time_taken'),
-          r.gap !== null ? t('certd_from_prev', { time: fmtElapsed(r.gap), tier: r.gapTier.icon }) : '',
-          certdExact(r.elapsed))
-      + m('', certdPace(r.pace), t('certd_pace'),
-          '', t('certd_pace_help', { n: r.n.toLocaleString(), time: certdExact(r.elapsed) }))
-      + m('', r.plays.toLocaleString(), t('certd_plays_now'),
-          r.since > 0 ? t('certd_since_cert', { n: r.since.toLocaleString() }) : '')
-    + '</div>'
-    + foot
     + '</div>';
 }
 
@@ -18831,14 +18844,16 @@ function certLedgerHTML(idx, artist, rows) {
   h += '<div class="certd-controls">'
     + '<div class="certd-seg" role="group" aria-label="' + esc(t('certd_filter_type')) + '">'
       + certdBtn(idx, 'kind', 'all', t('certd_all'), true)
-      + (songs ? certdBtn(idx, 'kind', 'song', '🎵 ' + songs, false) : '')
-      + (albums ? certdBtn(idx, 'kind', 'album', '◈ ' + albums, false) : '')
+      // Each filter says what it is in words as well as its icon, with its
+      // count dimmed after it.
+      + (songs ? certdBtn(idx, 'kind', 'song', '🎵 ' + esc(t('certd_songs')) + ' <span class="certd-chip-n">' + songs + '</span>', false) : '')
+      + (albums ? certdBtn(idx, 'kind', 'album', '◈ ' + esc(t('certd_albums')) + ' <span class="certd-chip-n">' + albums + '</span>', false) : '')
     + '</div>'
     + '<div class="certd-seg certd-seg-tier" role="group" aria-label="' + esc(t('certd_filter_tier')) + '">'
       + certdBtn(idx, 'tier', 'all', t('certd_all'), true)
-      + (byTier.diamond ? certdBtn(idx, 'tier', 'diamond', '💎 ' + byTier.diamond, false) : '')
-      + (byTier.plat ? certdBtn(idx, 'tier', 'plat', '💿 ' + byTier.plat, false) : '')
-      + (byTier.gold ? certdBtn(idx, 'tier', 'gold', '📀 ' + byTier.gold, false) : '')
+      + (byTier.diamond ? certdBtn(idx, 'tier', 'diamond', '💎 ' + esc(tDiamondLabel(1)) + ' <span class="certd-chip-n">' + byTier.diamond + '</span>', false) : '')
+      + (byTier.plat ? certdBtn(idx, 'tier', 'plat', '💿 ' + esc(t('cert_plat')) + ' <span class="certd-chip-n">' + byTier.plat + '</span>', false) : '')
+      + (byTier.gold ? certdBtn(idx, 'tier', 'gold', '📀 ' + esc(t('cert_gold')) + ' <span class="certd-chip-n">' + byTier.gold + '</span>', false) : '')
     + '</div>'
     + '<label class="certd-sortwrap"><span class="certd-sortlabel">' + t('certd_sort') + '</span>'
       + '<select class="certd-select" onclick="event.stopPropagation()" onchange="certLedgerSet(' + idx + ',\'ord\',this.value)">'
