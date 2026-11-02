@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Every Records section tells you its record":
+    ["Cada sección de Récords te dice su récord",
+     "Dominio Total, Apariciones, Debuts, Novedades, Más Reproducciones, Más Rápido, Rachas, Hitos y Certificaciones ahora empiezan como Todos los #1: el nombre del récord y una frase que dice quién lo tiene, por ejemplo \"My Body de Slayyyter tiene el récord: 45 días.\" Cambia al cambiar de tipo o ranking. Los selectores están en una sola fila, Mostrar pasó debajo de la lista y los botones − ya no están. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Records loads faster, and All stops at 1,000":
     ["Récords carga más rápido, y Todos se detiene en 1.000",
      "Récords ahora prepara la trayectoria de cada fila solo cuando la abres, en vez de prepararlas todas por adelantado y ocultarlas. La pestaña pesa la mitad que antes, así que abre y cambia más rápido. Mostrar → Todos ahora se detiene en 1.000 filas por lista, y la línea bajo Todos los #1 dice cuántas hay en total. Funciona con Last.fm, Google Sheets y archivos CSV."],

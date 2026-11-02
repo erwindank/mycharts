@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Every Records section tells you its record":
+    ["Cada secção de Recordes diz o seu recorde",
+     "Perfect All Kill, Aparições, Estreias, Novidades, Mais Reproduções, Mais Rápido, Sequências, Marcos e Certificações começam agora como Todos os #1: o nome do recorde e uma frase a dizer quem o tem, por exemplo \"My Body, de Slayyyter, tem o recorde: 45 dias.\" Muda quando trocas de tipo ou de top. Os seletores ficam numa só linha, Mostrar passou para baixo da lista e os botões − desapareceram. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
   "Records loads faster, and All stops at 1,000":
     ["Recordes carrega mais depressa, e Todos para nos 1.000",
      "Recordes prepara agora a trajetória de cada linha só quando a abres, em vez de as preparar todas antes e escondê-las. O separador ficou com metade do tamanho, por isso abre e muda mais depressa. Mostrar → Todos para agora nas 1.000 linhas por lista, e a linha por baixo de Todos os #1 diz quantas há no total. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
