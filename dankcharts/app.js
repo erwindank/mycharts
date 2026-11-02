@@ -36679,41 +36679,64 @@ function hmRenderPatterns(dayMap, year) {
   }
   const maxHour = Math.max(...grid.flat(), 1);
 
-  const stops = hmStops();
-  const accent = stops[stops.length - 1];
-
+  /* Phase 19 step 6: readable at last (it was 8px text and 9px squares).
+     The weekday bars on the left, a 7 × 24 grid on the right that fills the
+     card: parts of the day over it, hours under it, cells shaded by where
+     they rank (like the calendar), the busiest hour of the week ringed and
+     named under the grid. Hover / tap a cell for its plays (the tooltip
+     reads data-hm-pattern). */
+  const barCol = hmColorAt(0.8);
+  const peakDow = dowAvg.indexOf(Math.max(...dowAvg));
   const barsHtml = dowLabels.map((label, i) => {
     const avg = dowAvg[i];
     const w = Math.round((avg / maxAvg) * 100);
-    const alpha = 0.45 + 0.55 * (avg / maxAvg);
-    return `<div class="hm-pat-bar-row">
+    return `<div class="hm-pat-bar-row${i === peakDow && avg ? ' is-peak' : ''}">
       <span class="hm-pat-dow-label">${label}</span>
-      <div class="hm-pat-bar-track"><div class="hm-pat-bar-fill" style="width:${w}%;background:${accent};opacity:${alpha.toFixed(2)};"></div></div>
+      <div class="hm-pat-bar-track"><div class="hm-pat-bar-fill" style="width:${w}%;background:${barCol};"></div></div>
       <span class="hm-pat-bar-val">${esc(t('hm_per_day', { n: (Number.isInteger(avg) ? avg : +avg.toFixed(1)).toLocaleString(hmLocale()) }))}</span>
     </div>`;
   }).join('');
 
-  const hourHeaderCells = Array(24).fill(0).map((_, h) => {
-    const label = h % 6 ? '' : t('hm_hours').split('|')[h / 6];
-    return `<div class="hm-pat-hour-label">${label}</div>`;
-  }).join('');
+  // Rank shading over the cells with plays
+  const flat = grid.flat().filter(c => c > 0).sort((x, y) => x - y);
+  const rankR = c => {
+    let lo = 0, hi = flat.length;
+    while (lo < hi) { const m = (lo + hi) >> 1; if (flat[m] <= c) lo = m + 1; else hi = m; }
+    return 0.22 + 0.78 * (lo / (flat.length || 1));
+  };
+  let pDow = 0, pHr = 0;
+  for (let d = 0; d < 7; d++) for (let h = 0; h < 24; h++) if (grid[d][h] > grid[pDow][pHr]) { pDow = d; pHr = h; }
+  const hourName = h => new Date(2000, 0, 1, h).toLocaleTimeString(hmLocale(), { hour: 'numeric' });
 
-  let gridRows = '';
+  let cells = '';
   for (let dow = 0; dow < 7; dow++) {
-    gridRows += '<div class="hm-pat-grid-row">';
+    cells += `<span class="hm-pat-row-l">${dowLabels[dow]}</span>`;
     for (let hr = 0; hr < 24; hr++) {
       const cnt = grid[dow][hr];
-      const bg = hmCellColor(cnt, maxHour);
-      gridRows += cnt > 0
-        ? `<div class="hm-pat-cell has-data" style="background:${bg};" data-hm-pattern="${dow},${hr}" data-hm-pat-count="${cnt}"></div>`
-        : `<div class="hm-pat-cell" style="background:${stops[0]};"></div>`;
+      cells += cnt > 0
+        ? `<div class="hm-pat-cell has-data${dow === pDow && hr === pHr ? ' is-peak' : ''}" style="background:${hmColorAt(rankR(cnt))};" data-hm-pattern="${dow},${hr}" data-hm-pat-count="${cnt}"></div>`
+        : `<div class="hm-pat-cell"></div>`;
     }
-    gridRows += '</div>';
   }
+  // Parts of the day over the grid (the clock's split), hours under it
+  const parts = SX_DAY_PARTS.flatMap(([key, emoji, from, to]) => to > from
+    ? [[key, emoji, from, to - from]]
+    : [[key, emoji, from, 24 - from], [key, emoji, 0, to]]).sort((x, y) => x[2] - y[2]);
+  const partsHtml = parts.map(([key, emoji, from, n]) =>
+    `<span class="hm-pat-part" style="grid-column:${from + 2} / span ${n}" title="${esc(t('sx_part_' + key))}">${emoji}<em>${n >= 4 ? esc(t('sx_part_' + key)) : ''}</em></span>`).join('');
+  const axisHtml = Array.from({ length: 24 }, (_, h) =>
+    `<span class="hm-pat-hr" style="grid-column:${h + 2}">${h % 3 === 0 ? esc(hourName(h)) : ''}</span>`).join('');
+  const peakTxt = flat.length ? t('hm_pat_peak', {
+    day: hmCap(new Date(2024, 0, 1 + pDow).toLocaleDateString(hmLocale(), { weekday: 'long' })),
+    hour: hourName(pHr), n: grid[pDow][pHr].toLocaleString(hmLocale()),
+  }) : '';
 
   return `<div class="hm-patterns-section">
     <div class="hm-patterns-header">
-      <span>${esc(t('hm_patterns'))}</span>
+      <div>
+        <div class="hm-pat-title">${esc(t('hm_patterns'))}</div>
+        <div class="hm-pat-sub">${esc(t('hm_pat_sub'))}</div>
+      </div>
       <div class="dc-seg hm-pat-scope" role="group" aria-label="${esc(t('hm_pat_scope_aria'))}">
         <button type="button" class="graphs-btn${year != null ? ' active' : ''}" data-hm-pat="year" aria-pressed="${year != null}">${year != null ? year : esc(t('hm_pat_year'))}</button>
         <button type="button" class="graphs-btn${year == null ? ' active' : ''}" data-hm-pat="all" aria-pressed="${year == null}">${esc(t('hm_pat_all'))}</button>
@@ -36726,10 +36749,10 @@ function hmRenderPatterns(dayMap, year) {
       </div>
       <div class="hm-pat-hourblock">
         <div class="hm-pat-sublabel">${esc(t('hm_hour_of_day'))}</div>
-        <div class="hm-pat-hour-grid">
-          <div class="hm-pat-dow-col">${dowLabels.map(l => `<div class="hm-pat-dow-side-label">${l}</div>`).join('')}</div>
-          <div><div class="hm-pat-hour-row">${hourHeaderCells}</div>${gridRows}</div>
-        </div>
+        <div class="hm-pat-scroll"><div class="hm-pat-grid">
+          ${partsHtml}${cells}${axisHtml}
+        </div></div>
+        ${peakTxt ? `<div class="hm-pat-peak">${esc(peakTxt)}</div>` : ''}
       </div>
     </div>
   </div>`;
