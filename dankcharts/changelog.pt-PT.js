@@ -13,25 +13,25 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
-  "Charts: smoother when it draws":
+  "Graphs: smoother when it draws":
     ["Gráficos: mais suave ao desenhar",
      "Ao abrires Estatísticas → Gráficos ou mudares as datas, os números aparecem, o relógio de audição percorre o mostrador e as colunas da semana e as barras crescem até ao lugar. Tudo fica parado se o teu dispositivo pedir menos movimento. O Guia das tabelas descreve o novo separador Gráficos."],
-  "Charts: Listening Patterns you can read":
+  "Graphs: Listening Patterns you can read":
     ["Gráficos: Padrões de audição que se conseguem ler",
      "Os Padrões de audição por baixo do mapa de calor de Estatísticas → Gráficos usavam texto e quadrados minúsculos. Agora têm um título a sério, barras por dia maiores e uma grelha de horas por dia que enche o cartão, com manhã, tarde, fim de tarde e noite marcados em cima e as horas em baixo. A tua hora mais ouvida da semana fica marcada e nomeada, e passar o cursor (ou tocar) em qualquer quadrado mostra os plays dele."],
-  "Charts: a heatmap you can actually read":
+  "Graphs: a heatmap you can actually read":
     ["Gráficos: um mapa de calor que se consegue ler",
      "Num ano muito ouvido, quase todos os quadrados do mapa de calor de Estatísticas → Gráficos ficavam na cor mais escura. Agora cada ano é colorido pelos seus próprios dias calmos e movimentados, por isso o padrão aparece. Um novo esquema O teu tema usa as cores do site (os outros cinco continuam lá), os controlos ficam numa só barra, os plays, o melhor dia, o artista top e os artistas novos do ano aparecem numa fila de números (toca no artista para veres os detalhes), e a faixa de anos mostra todos sem cortar o primeiro."],
-  "Charts: Your week, weekdays against the weekend":
+  "Graphs: Your week, weekdays against the weekend":
     ["Gráficos: A tua semana, dias úteis contra o fim de semana",
      "A tua semana em Estatísticas → Gráficos mostra agora uma coluna por dia, com o fim de semana sombreado e o teu dia mais ouvido em destaque. Por cima, os teus plays por dia nos dias úteis e ao fim de semana ficam lado a lado com o teu melhor dia, e a linha em baixo diz quanto mais ouves no lado mais ativo da semana."],
-  "Charts: a new listening clock":
+  "Graphs: a new listening clock":
     ["Gráficos: um novo relógio de audição",
      "O relógio de audição de Estatísticas → Gráficos está mais fácil de ler: marcas de cada hora à volta, etiquetas que já não tocam no anel e a tua hora mais ouvida acesa na cor do teu tema. Passa o cursor (ou toca) em qualquer hora para veres os plays dela no centro. Em baixo, a tua manhã, tarde, fim de tarde e noite mostram a parte da tua audição que cada uma leva."],
-  "Charts: a clearer Play volume card":
+  "Graphs: a clearer Play volume card":
     ["Gráficos: um cartão de volume mais claro",
      "O volume de reproduções em Estatísticas → Gráficos abre agora com os números que importam: os teus plays e a média, quantos eram músicas que já conhecias e quantos eram novos, e o teu mês mais ouvido (toca para veres por dentro). Os pontos coloridos servem de legenda, as barras têm o topo arredondado e datas direitas, e a caixa ao passar o cursor segue o teu tema."],
-  "Charts: Daily play volume no longer looks empty":
+  "Graphs: Daily play volume no longer looks empty":
     ["Gráficos: o volume diário já não parece vazio",
      "Em Estatísticas → Gráficos, o volume de reproduções em Diário com um intervalo longo desenhava milhares de barras mais finas que um píxel, e o gráfico parecia vazio. Agora desenha os mesmos números como uma área suave, e passar o cursor (ou tocar) continua a mostrar esse dia e o que ouviste."],
   "Compare: smoother when you change what you compare":

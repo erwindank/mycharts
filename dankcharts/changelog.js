@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 433;
+const DC_CL_I18N_V = 434;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -99,8 +99,8 @@ const DC_CL_AREAS = {
    ------------------------------------------------------------------------- */
 const DC_CL_HIGHLIGHTS = [
   { id: "charts-look", d: "2026-11-01", a: "graphs", img: "whatsnew/charts-look.webp", go: "graphs", then: [["setStatsTab", "charts"]],
-    title: "Charts got a fresh look",
-    intro: "Stats → Charts is clearer and nicer to look at, and Daily play volume over a long range no longer looks empty.",
+    title: "Graphs got a fresh look",
+    intro: "Stats → Graphs is clearer and nicer to look at, and Daily play volume over a long range no longer looks empty.",
     points: [
       "Play volume opens with your plays, how many were new to you and your busiest month, and draws a smooth area when there are too many days for bars.",
       "The listening clock lights your busiest hour and shows your morning, afternoon, evening and night. Your week puts weekdays against the weekend.",
@@ -317,26 +317,26 @@ const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
   { d: '2026-11-01', t: 'design', a: 'graphs', h: '0a7d7ef',
-    title: "Charts: smoother when it draws",
-    detail: "When you open Stats → Charts or change the dates, the numbers rise in, the listening clock sweeps round its dial, and the week's columns and the bars grow into place. It stays still if your device asks for less motion. The Charts Guide describes the new Charts tab." },
+    title: "Graphs: smoother when it draws",
+    detail: "When you open Stats → Graphs or change the dates, the numbers rise in, the listening clock sweeps round its dial, and the week's columns and the bars grow into place. It stays still if your device asks for less motion. The Charts Guide describes the new Charts tab." },
   { d: '2026-11-01', t: 'design', a: 'graphs', h: 'bf41555',
-    title: "Charts: Listening Patterns you can read",
-    detail: "Listening Patterns under the Stats → Charts heatmap used tiny text and squares. It now has a proper title, bigger weekday bars, and an hour-by-day grid that fills the card, with morning, afternoon, evening and night marked over it and the hours under it. Your busiest hour of the week is ringed and named, and pointing at (or tapping) any square shows its plays." },
+    title: "Graphs: Listening Patterns you can read",
+    detail: "Listening Patterns under the Stats → Graphs heatmap used tiny text and squares. It now has a proper title, bigger weekday bars, and an hour-by-day grid that fills the card, with morning, afternoon, evening and night marked over it and the hours under it. Your busiest hour of the week is ringed and named, and pointing at (or tapping) any square shows its plays." },
   { d: '2026-11-01', t: 'design', a: 'graphs', h: 'e482666',
-    title: "Charts: a heatmap you can actually read",
-    detail: "On a busy year almost every square of the Stats → Charts heatmap was the darkest colour. Each year is now shaded by its own quiet and busy days, so the pattern shows. A new Your theme colour scheme matches the site's colours (the other five are still there), the controls sit in one tidy bar, the year's plays, best day, top artist and new artists sit in a row of figures (tap the artist for their details), and the year strip shows every year without cutting the first one off." },
+    title: "Graphs: a heatmap you can actually read",
+    detail: "On a busy year almost every square of the Stats → Graphs heatmap was the darkest colour. Each year is now shaded by its own quiet and busy days, so the pattern shows. A new Your theme colour scheme matches the site's colours (the other five are still there), the controls sit in one tidy bar, the year's plays, best day, top artist and new artists sit in a row of figures (tap the artist for their details), and the year strip shows every year without cutting the first one off." },
   { d: '2026-11-01', t: 'design', a: 'graphs', h: '90ced93',
-    title: "Charts: Your week, weekdays against the weekend",
-    detail: "Your week on Stats → Charts now shows a column for each day, with the weekend shaded and your busiest day standing out. Above it, your plays a day on weekdays and at the weekend sit side by side with your busiest day, and the line under it tells you how much more you play on the busier side of the week." },
+    title: "Graphs: Your week, weekdays against the weekend",
+    detail: "Your week on Stats → Graphs now shows a column for each day, with the weekend shaded and your busiest day standing out. Above it, your plays a day on weekdays and at the weekend sit side by side with your busiest day, and the line under it tells you how much more you play on the busier side of the week." },
   { d: '2026-11-01', t: 'design', a: 'graphs', h: 'c512edc',
-    title: "Charts: a new listening clock",
-    detail: "The listening clock on Stats → Charts is easier to read: hour ticks round the edge, labels that no longer run into the ring, and your busiest hour lit in your theme's colour. Point at (or tap) any hour to see its plays in the middle. Under the clock, your morning, afternoon, evening and night show what share of your listening each one gets." },
+    title: "Graphs: a new listening clock",
+    detail: "The listening clock on Stats → Graphs is easier to read: hour ticks round the edge, labels that no longer run into the ring, and your busiest hour lit in your theme's colour. Point at (or tap) any hour to see its plays in the middle. Under the clock, your morning, afternoon, evening and night show what share of your listening each one gets." },
   { d: '2026-11-01', t: 'design', a: 'graphs', h: '170264e',
-    title: "Charts: a clearer Play volume card",
-    detail: "Play volume on Stats → Charts now opens with the numbers that matter: your plays and average, how many were songs you knew and how many were new, and your busiest month (tap it to look inside). The coloured dots double as the chart's key, the bars have rounded tops and flat date labels, and the hover box matches your theme." },
+    title: "Graphs: a clearer Play volume card",
+    detail: "Play volume on Stats → Graphs now opens with the numbers that matter: your plays and average, how many were songs you knew and how many were new, and your busiest month (tap it to look inside). The coloured dots double as the chart's key, the bars have rounded tops and flat date labels, and the hover box matches your theme." },
   { d: '2026-11-01', t: 'fix', a: 'graphs', h: 'f7d333f',
-    title: "Charts: Daily play volume no longer looks empty",
-    detail: "On Stats → Charts, Play volume with Daily over a long range drew thousands of bars thinner than a pixel, so the chart looked blank. It now draws the same numbers as a smooth area, and pointing at it (or tapping) still shows that day and opens what you played." },
+    title: "Graphs: Daily play volume no longer looks empty",
+    detail: "On Stats → Graphs, Play volume with Daily over a long range drew thousands of bars thinner than a pixel, so the chart looked blank. It now draws the same numbers as a smooth area, and pointing at it (or tapping) still shows that day and opens what you played." },
   { d: '2026-11-01', t: 'design', a: 'graphs', h: 'e583e45',
     title: "Compare: smoother when you change what you compare",
     detail: "When you switch type or change your picks on Stats → Compare, the cards below now slide in one after another and their bars grow into place. Sorting a table doesn't replay it, and it stays still if your device asks for less motion. The Charts Guide describes the new Compare look." },

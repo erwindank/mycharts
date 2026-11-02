@@ -2825,7 +2825,7 @@ const TRANSLATIONS = {
     sx_tab_story: 'Story',
     sx_tab_games: 'Games',
     sx_tab_compare: 'Compare',
-    sx_tab_charts: 'Charts',
+    sx_tab_charts: 'Graphs',
     sx_vs: 'vs {n}',
     sx_hero_main: 'You played {plays} songs {span}, {change} {prev}.',
     sx_hero_main_noprev: 'You played {plays} songs {span}.',
