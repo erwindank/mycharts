@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 427;
+const DC_CL_I18N_V = 428;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -306,6 +306,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-01', t: 'design', a: 'graphs', h: 'c512edc',
+    title: "Charts: a new listening clock",
+    detail: "The listening clock on Stats → Charts is easier to read: hour ticks round the edge, labels that no longer run into the ring, and your busiest hour lit in your theme's colour. Point at (or tap) any hour to see its plays in the middle. Under the clock, your morning, afternoon, evening and night show what share of your listening each one gets." },
   { d: '2026-11-01', t: 'design', a: 'graphs', h: '170264e',
     title: "Charts: a clearer Play volume card",
     detail: "Play volume on Stats → Charts now opens with the numbers that matter: your plays and average, how many were songs you knew and how many were new, and your busiest month (tap it to look inside). The coloured dots double as the chart's key, the bars have rounded tops and flat date labels, and the hover box matches your theme." },

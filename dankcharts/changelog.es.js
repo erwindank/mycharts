@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Charts: a new listening clock":
+    ["Gráficos: un nuevo reloj de escucha",
+     "El reloj de escucha de Estadísticas → Gráficos se lee mejor: marcas de cada hora alrededor, etiquetas que ya no tocan el anillo y tu hora con más escuchas iluminada con el color de tu tema. Pasa el cursor (o toca) cualquier hora para ver sus reproducciones en el centro. Debajo, tu mañana, tarde, atardecer y noche muestran qué parte de tu escucha se lleva cada una."],
   "Charts: a clearer Play volume card":
     ["Gráficos: una tarjeta de volumen más clara",
      "El volumen de reproducciones en Estadísticas → Gráficos ahora empieza con las cifras que importan: tus reproducciones y la media, cuántas eran canciones que ya conocías y cuántas nuevas, y tu mes con más escuchas (tócalo para verlo por dentro). Los puntos de color sirven de leyenda, las barras tienen la parte de arriba redondeada y fechas rectas, y el cuadro al pasar el cursor sigue tu tema."],
