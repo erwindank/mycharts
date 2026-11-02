@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 438;
+const DC_CL_I18N_V = 439;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -316,6 +316,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-01', t: 'feature', a: 'settings', h: 'a4a335f',
+    title: "Search on Apple Music or Deezer instead of Spotify",
+    detail: "A new choice in Settings, on the Charts tab: Search buttons. Pick Spotify, Apple Music or Deezer, and every search button on the site opens that service instead: next to each song, artist and album on the charts, in the menus, on artist pages, in the streaks list and on The Dank 100. The button changes its logo and colour to match, and the choice follows your account to other devices." },
   { d: '2026-11-01', t: 'feature', a: 'charts', h: 'ccf9ed1',
     title: "Listen to The Dank 100",
     detail: "Every entry on The Dank 100 now has three buttons on its right: play a short sample, search for it on Spotify, and search for it on YouTube. Works for songs, artists and albums." },

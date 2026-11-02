@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Search on Apple Music or Deezer instead of Spotify":
+    ["Busque no Apple Music ou no Deezer em vez do Spotify",
+     "Uma opção nova em Configurações, na aba Paradas: Botões de busca. Escolha Spotify, Apple Music ou Deezer, e todos os botões de busca do site abrem esse serviço: ao lado de cada música, artista e álbum nas paradas, nos menus, nas páginas de artista, na lista de sequências e no The Dank 100. O botão muda de logo e de cor, e a escolha acompanha sua conta em outros aparelhos."],
   "Listen to The Dank 100":
     ["Ouça o The Dank 100",
      "Cada entrada do The Dank 100 agora tem três botões à direita: ouvir uma prévia curta, buscar no Spotify e buscar no YouTube. Funciona com músicas, artistas e álbuns."],
