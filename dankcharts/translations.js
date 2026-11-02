@@ -9,6 +9,11 @@ const TRANSLATIONS = {
 
   // ── ENGLISH ──────────────────────────────────────────────────────────────────
   en: {
+    rec1_story_lead: "{{n}} have reached #1 on your {{chart}}.",
+    rec1_story_total: "{{name}} spent the most time on top: {{run}} in all.",
+    rec1_story_consec: "{{name}} held on longest: {{run}} in a row, {{when}}.",
+    rec1_story_tie_total: "{{k}} {{type}} share the record: {{run}} at #1 each.",
+    rec1_story_tie_consec: "{{k}} {{type}} share the record: {{run}} in a row each. {{name}} got there first.",
     acc_artist_no1_month: 'Has {{n}} #1 {{unit}} on the Monthly Songs chart',
     am_peak_rank: 'Peak: #{{n}}',
     rtp_rate_arrow: 'Rate →',
@@ -5192,6 +5197,11 @@ const TRANSLATIONS = {
 
   // ── SPANISH ───────────────────────────────────────────────────────────────────
   es: {
+    rec1_story_lead: "{{n}} han llegado al #1 en tu {{chart}}.",
+    rec1_story_total: "{{name}} es quien más tiempo pasó arriba: {{run}} en total.",
+    rec1_story_consec: "{{name}} tuvo el reinado más largo: {{run}} sin interrupción, {{when}}.",
+    rec1_story_tie_total: "{{k}} {{type}} comparten el récord: {{run}} en el #1.",
+    rec1_story_tie_consec: "{{k}} {{type}} comparten el récord: {{run}} sin interrupción. {{name}} llegó primero.",
     acc_artist_no1_month: 'Tiene {{n}} {{unit}} n.º 1 en el ranking mensual de canciones',
     am_peak_rank: 'Mejor: n.º {{n}}',
     rtp_rate_arrow: 'Puntuar →',
@@ -10260,6 +10270,11 @@ const TRANSLATIONS = {
 
   // ── PORTUGUESE — BRAZIL ───────────────────────────────────────────────────────
   'pt-BR': {
+    rec1_story_lead: "{{n}} chegaram ao #1 na sua {{chart}}.",
+    rec1_story_total: "{{name}} passou mais tempo no topo: {{run}} no total.",
+    rec1_story_consec: "{{name}} teve o reinado mais longo: {{run}} sem interrupção, {{when}}.",
+    rec1_story_tie_total: "{{k}} {{type}} dividem o recorde: {{run}} no #1.",
+    rec1_story_tie_consec: "{{k}} {{type}} dividem o recorde: {{run}} sem interrupção. {{name}} chegou lá primeiro.",
     acc_artist_no1_month: 'Tem {{n}} {{unit}} em nº 1 na parada mensal de músicas',
     am_peak_rank: 'Pico: nº {{n}}',
     rtp_rate_arrow: 'Avaliar →',
@@ -15329,6 +15344,11 @@ const TRANSLATIONS = {
 
   // ── PORTUGUESE — EUROPEAN ─────────────────────────────────────────────────────
   'pt-PT': {
+    rec1_story_lead: "{{n}} chegaram ao n.º 1 no teu {{chart}}.",
+    rec1_story_total: "{{name}} passou mais tempo no topo: {{run}} no total.",
+    rec1_story_consec: "{{name}} teve o reinado mais longo: {{run}} sem interrupção, {{when}}.",
+    rec1_story_tie_total: "{{k}} {{type}} partilham o recorde: {{run}} no n.º 1.",
+    rec1_story_tie_consec: "{{k}} {{type}} partilham o recorde: {{run}} sem interrupção. {{name}} chegou lá primeiro.",
     acc_artist_no1_month: 'Tem {{n}} {{unit}} em n.º 1 no top mensal de músicas',
     am_peak_rank: 'Melhor: n.º {{n}}',
     rtp_rate_arrow: 'Avaliar →',

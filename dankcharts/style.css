@@ -46013,3 +46013,57 @@ body:not(:is([data-view="day"], [data-view="week"], [data-view="month"], [data-v
   .d100-promo-body { flex-basis: calc(100% - 48px - 10px); }
   .d100-promo-actions { width: 100%; justify-content: space-between; }
 }
+
+/* ══ Phase 20: Records, a modern look (2026-11-02) ════════════════════════
+   All #1s first. Step 1, the frame: a sentence under the title that tells the
+   record (#rec1Story, written by rec1SyncStory() in app.js), and every switch
+   in one row. The switches live at three depths of the DOM (Total / In a row
+   in index.html, the type pills in the body, the chart pills inside each type
+   panel), so .rec1-wrap is the flex row and the two wrappers in between step
+   out of the way with display: contents. Inactive panels keep their inline
+   display: none, so only the open one joins the row. */
+.rec1-story {
+  margin: 4px 0 0;
+  max-width: 62ch;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--text);
+  text-wrap: pretty;
+}
+.rec1-story:empty { display: none; }
+.rec1-hl { color: var(--accent); }
+.rec1-gd { color: var(--gold1); }
+
+.rec1-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: var(--sp-4, 1rem);
+  padding-top: var(--sp-4, 1rem);
+  border-top: 1px solid var(--border-t, var(--border));
+}
+.rec1-wrap > .section-body,
+.rec1-wrap .rec-ent-panel { display: contents; }
+.rec1-wrap .rec-ent-tabs { order: 1; margin: 0; }
+.rec1-wrap .rec-per-tabs { order: 2; margin: 0; }
+.rec1-wrap > .rec-run-seg { order: 3; margin: 0; }
+.rec1-wrap .rec-per-panel { order: 10; flex: 0 0 100%; min-width: 0; margin-top: var(--sp-3, 0.75rem); }
+.rec1-wrap .rec-empty { order: 10; flex: 0 0 100%; }
+
+/* The record's own title only shows while searching, where several of them
+   are on screen at once and need telling apart. */
+#recordsView:not(.rec-searching) .rec1-title { display: none; }
+#recordsView.rec-searching .rec1-story { display: none; }
+.rec1-note { margin-top: var(--sp-2, 0.5rem); font-size: var(--fs-sm); color: var(--text3); }
+
+@media (max-width: 640px) {
+  .rec1-story { font-size: 1rem; }
+  .rec1-wrap { gap: 8px; }
+  .rec1-wrap .dc-seg { max-width: 100%; overflow-x: auto; }
+}
+/* The section title at the size the rest of the site's page titles use. */
+#recordsView .rec1 .section-header-h2 { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.01em; }
+#recordsView .rec1 .section-header-h2 .rec-h2-ico { width: 1.4rem; height: 1.4rem; }

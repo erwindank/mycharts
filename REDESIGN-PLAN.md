@@ -4132,6 +4132,54 @@ What's New card (de97eac, whatsnew/charts-look.webp).
   C:/tmp/p19.mjs, p19_blank.mjs, p19_click2/3/5.mjs, p19_touch.mjs,
   p19_motion.mjs, p19_hl.mjs.
 
+### Phase 20: Records, a modern look (planned 2026-11-02)
+
+You found Records "boring and not high quality", off from the rest of the
+site, and asked to start with All #1s. Seen on screen next to Stats
+Overview (the look the rest of the site now has):
+- **Three control rows stacked** (Total / In a row, the type pills, the
+  period tabs), then a second heading that repeats the section title with
+  its own "–" button. Stats has one slim bar.
+- **Every record is a spreadsheet.** The holder of the record (the whole
+  point) gets the same thin row as #25. Stats gives its #1 a big card and
+  the rest a list with bars.
+- **No sense of scale:** "3" and "2" sit alone in a number column; you
+  can't see at a glance how far ahead #1 is.
+- **Dates wrap** ("Week of 6 Aug / 2023", twice per row) and "Week of"
+  repeats in every cell.
+- **The run is hidden** behind a ▶ on each row, the most visual part.
+- Rank colours: #1 gold, #3 orange, #2 plain. The "–" buttons read as
+  stray dashes. Long tails of letter squares where covers are missing.
+
+Nothing is removed (sorting, Show 25/50/100/All, expand all, date links,
+search, Daily/Weekly/Monthly/Yearly, Total/In a row, every type all stay);
+everything is restyled or regrouped. The search and the hero tally read
+`.rec-section-title`, so those titles stay in the DOM.
+
+1. **All #1s, the frame:** one header (title + a sentence that tells the
+   story: "36 singles have reached #1 on your weekly chart. *We Can Be
+   Anything* reigned longest: 3 weeks in a row."), then one slim toolbar:
+   type · period · Total / In a row · Sort · Show. The repeated inner
+   heading and the "–" buttons go.
+2. **All #1s, the podium:** the record holder as a big card (large cover,
+   name, "3 weeks at #1" big, the reign as a strip of week boxes, dates,
+   Play a sample, opens the details). #2 and #3 as smaller cards beside it.
+3. **All #1s, the list:** rows like Stats' top list: cover, name and
+   artist, a bar scaled to the leader, the count big on the right, one
+   short date range ("6–20 Aug 2023", linked), the run as a slim strip in
+   the row (click opens the full boxes as today). Ranks stay 1, 2, 3 (no tied ranks).
+   Cards on phones.
+4. **Chart records:** the same frame, podium and list for Perfect All
+   Kill, Appearances, Debuts and New Charts.
+5. **Play records:** the same for Most Plays, Fastest and Streaks.
+6. **Milestones and Certifications:** tidy to match (cards, figures,
+   covers); keep the timeline and the wall.
+7. **Overview and side menu:** line up the hero, cards and menu with the
+   new sections.
+8. **Finish:** gentle motion, four languages, the Charts Guide, changelog
+   + What's New card, screen check (1440 / 1100 / 390 touch, the check
+   themes, all three data sources).
+
 ### Done outside the phases (to 2026-10-18)
 
 Work that isn't a plan step but changes what the later phases start from.

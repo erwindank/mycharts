@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=834">
+  <link rel="stylesheet" href="style.css?v=835">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=293"></script>
+  <script defer src="translations.js?v=294"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -1894,22 +1894,25 @@
         <div class="rec-ov-board" id="recOverviewBody"></div>
       </div>
 
-      <div class="chart-section" id="recAllOnesSection">
+      <!-- Phase 20 (2026-11-02): All #1s has no collapse button (it is the only
+           thing on screen when picked) and no fixed sub-line. The sentence under
+           the title is written per type, chart and count by rec1SyncStory(), and
+           the switches sit in one row inside .rec1-wrap (see style.css). -->
+      <div class="chart-section rec1" id="recAllOnesSection">
         <div class="section-header">
-          <button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon section-collapse-btn" data-target="recAllOnesSection"
-            data-i18n-title="tooltip_collapse">−</button>
           <h2 class="section-header-h2"><svg class="rec-h2-ico" aria-hidden="true" focusable="false"><use
                 href="#ri-ones" /></svg><span data-i18n="rec_all_ones_title">All #1s</span></h2>
           <div class="section-rule"></div>
         </div>
-        <div class="section-sub" data-i18n="rec_all_ones_sub">Artists, albums &amp; tracks that reached the top spot on
-          your charts — including how many times each held #1</div>
-        <div class="dc-seg rec-run-seg" data-rec-run-sec="recAllOnesSection" role="group" aria-label="How to count"
-          data-i18n-aria="rec_run_label">
-          <button type="button" data-rec-run="total" aria-pressed="true" data-i18n="rec_run_total">Total</button>
-          <button type="button" data-rec-run="consec" aria-pressed="false" data-i18n="rec_run_consec">In a row</button>
+        <p class="rec1-story" id="rec1Story"></p>
+        <div class="rec1-wrap">
+          <div class="dc-seg rec-run-seg" data-rec-run-sec="recAllOnesSection" role="group" aria-label="How to count"
+            data-i18n-aria="rec_run_label">
+            <button type="button" data-rec-run="total" aria-pressed="true" data-i18n="rec_run_total">Total</button>
+            <button type="button" data-rec-run="consec" aria-pressed="false" data-i18n="rec_run_consec">In a row</button>
+          </div>
+          <div class="section-body" id="recAllOnesBody"></div>
         </div>
-        <div class="section-body" id="recAllOnesBody"></div>
       </div>
 
       <div class="chart-section" id="recPAKSection">
@@ -4315,7 +4318,7 @@
   <!-- One behaviour and one icon set for every pop-up window (phase 10); before
        app.js so dcIco() is there when app.js draws a window -->
   <script defer src="popups.js?v=12"></script>
-  <script defer src="app.js?v=597"></script>
+  <script defer src="app.js?v=598"></script>
   <!-- The song / album / artist details side panel (phase 10 step 3); wraps app.js's open functions -->
   <script defer src="panel.js?v=16"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->

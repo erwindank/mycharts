@@ -8669,6 +8669,35 @@ function buildRecords() {
   }
   const lim = recLimit === 0 ? Infinity : recLimit;
 
+  /* The All #1s sentence (phase 20): how many reached #1 on this chart, and
+     who holds the record. `rows` is the ranked list for that count: entries
+     ([key, data]) for Total, streak rows ({ e, streak }) for In a row. Names
+     and figures are wrapped for colour; the template itself is translated. */
+  function rec1Story(ent, cfg, rows, mode) {
+    if (!rows.length) return '';
+    // weeks_full: the plain "weeks" key is the short "wks" the tables use.
+    const unitKey = cfg.pt === 'day' ? 'days' : cfg.pt === 'week' ? 'weeks_full' : cfg.pt === 'month' ? 'months' : 'years';
+    const hl = function (s) { return '<span class="rec1-hl">' + s + '</span>'; };
+    const gd = function (s) { return '<span class="rec1-gd">' + s + '</span>'; };
+    const nameOf = function (e) { return ent.type === 'artist' ? e[0] : ent.type === 'song' ? e[1].title : e[1].album; };
+    const type = ent.label.toLowerCase();
+    let out = t('rec1_story_lead', { n: hl(rows.length.toLocaleString() + ' ' + esc(type)), chart: esc(cfg.label.toLowerCase()) });
+    const top = mode === 'total' ? rows[0][1].count : rows[0].streak.len;
+    const tied = rows.filter(function (r) { return (mode === 'total' ? r[1].count : r.streak.len) === top; }).length;
+    const lead = mode === 'total' ? rows[0] : rows[0].e;
+    const run = gd(tCount(unitKey, top));
+    if (tied > 1) {
+      out += ' ' + t(mode === 'total' ? 'rec1_story_tie_total' : 'rec1_story_tie_consec',
+        { k: tied.toLocaleString(), type: esc(type), run: run, name: gd(esc(nameOf(lead))) });
+    } else if (mode === 'total') {
+      out += ' ' + t('rec1_story_total', { name: gd(esc(nameOf(lead))), run: run });
+    } else {
+      out += ' ' + t('rec1_story_consec', { name: gd(esc(nameOf(lead))), run: run,
+        when: esc(recRangeText(rows[0].streak.start, rows[0].streak.end, cfg.pt)) });
+    }
+    return out;
+  }
+
   // ── All #1s ──────────────────────────────────────────────────
   /* `label` is the full chart name ("Weekly Chart") the record titles are built
      from; `short` is the bare period the pill row wears, because the title
@@ -8719,9 +8748,14 @@ function buildRecords() {
      rows that the innerHTML assignment below was about to destroy. That is why
      All #1s covers so rarely appeared. */
   const onesImgQueue = [];
+  /* The sentence under the All #1s title (phase 20), one per type × chart ×
+     count. Built here, where the ranked entries are in hand, and swapped in by
+     rec1SyncStory() whenever a switch changes. */
+  _rec1Stories = {};
   for (const ent of entityConfig) {
     const perScope = 'ones-' + ent.key;
-    let h = '<div class="dc-tabs rec-per-tabs" data-rec-per-scope="' + esc(perScope) + '"'
+    // A segmented switch like the type pills beside it, so both sit in one row.
+    let h = '<div class="dc-seg rec-per-tabs" data-rec-per-scope="' + esc(perScope) + '"'
       + ' role="tablist" aria-label="' + esc(t('rec_per_tabs_label')) + '">';
     for (const cfg of typeConfig) {
       h += '<button type="button" class="rec-per-tab" role="tab"'
@@ -8738,10 +8772,15 @@ function buildRecords() {
       h += '<div class="rec-per-panel" role="tabpanel"'
         + ' data-rec-per-scope="' + esc(perScope) + '" data-rec-per="' + cfg.pt + '"'
         + ' data-rec-scope="' + esc(perScope + '-' + cfg.pt) + '" style="display:none">';
-      h += '<div class="rec-section rec-run-total"><div class="rec-section-title">'
+      /* The title stays in the DOM: the records search, the hero reel and the
+         Overview cards all name a record by it. On screen the sentence above
+         the switches says the same thing, so the title only shows during a
+         search, where it tells the result tables apart (.rec1-title). The
+         section opts out of the inner −/+ button for the same reason. */
+      h += '<div class="rec-section rec-run-total rec1-sec" data-rec-no-collapse="1"><div class="rec-section-title rec1-title">'
         + ent.icon + ' ' + ent.label + ' &mdash; ' + t('rec_most_times_1_on', { period: cfg.label })
         + ' ' + t('rec_suffix_non_consec') + '</div>';
-      h += '<div class="rec-section-sub">' + t('rec_have_hit_1', { n: '<strong>' + entries.length + '</strong>', type: ent.label.toLowerCase() }) + '</div>';
+      _rec1Stories[ent.key + '|' + cfg.pt + '|total'] = rec1Story(ent, cfg, entries, 'total');
       const tableId = 'rec-1s-tbl-' + ent.key + '-' + cfg.pt;
       const runBaseId = 'rec-1s-run-' + ent.key + '-' + cfg.pt;
       const headers = ['#', '', ent.label, periodAtOneHeader(cfg.pt), t('rec_th_first_at_1')];
@@ -8806,10 +8845,10 @@ function buildRecords() {
         });
       const cTableId = 'rec-1sc-tbl-' + ent.key + '-' + cfg.pt;
       const cRunBaseId = 'rec-1sc-run-' + ent.key + '-' + cfg.pt;
-      h += '<div class="rec-section rec-run-consec"><div class="rec-section-title">'
+      h += '<div class="rec-section rec-run-consec rec1-sec" data-rec-no-collapse="1"><div class="rec-section-title rec1-title">'
         + ent.icon + ' ' + ent.label + ' &mdash; ' + t('rec_most_times_1_on', { period: cfg.label })
         + ' ' + t('rec_suffix_consec') + '</div>';
-      h += '<div class="rec-section-sub">' + t('rec_consec_sub_1') + '</div>';
+      _rec1Stories[ent.key + '|' + cfg.pt + '|consec'] = rec1Story(ent, cfg, streakRows, 'consec');
       // A streak has a start and an end rather than a "first at #1" and a peak
       // date, so the two middle columns are its own — on the yearly chart too,
       // where the total table drops its last column.
@@ -8838,6 +8877,8 @@ function buildRecords() {
         }),
         cTableId
       );
+      // How ties are broken, under the table it applies to.
+      h += '<div class="rec-section-sub rec1-note">' + t('rec_consec_sub_1') + '</div>';
       // Closes the consecutive .rec-section.
       h += '</div>';
       streakRows.forEach(function (s, i) {
@@ -8853,6 +8894,7 @@ function buildRecords() {
     onesPanels.push({ key: ent.key, icon: ent.icon, label: ent.label, html: h });
   }
   document.getElementById('recAllOnesBody').innerHTML = recEntTabsHtml('ones', onesPanels);
+  rec1SyncStory();
   /* Split by type because loadImages() takes one type for the whole batch —
      it decides between getArtistImage / getAlbumImage / getTrackImage from it.
      Lazy, so the panels behind an unpicked pill cost nothing until picked. */
@@ -12354,6 +12396,7 @@ function initRecordsViewUI() {
       if (!b) return;
       apply(b.dataset.recRun);
       try { localStorage.setItem('dc_rec_run_' + sec.id, b.dataset.recRun); } catch (err) {}
+      rec1SyncStory();
     });
   });
 
@@ -12911,6 +12954,28 @@ function applyRecPerTabs() {
       p.style.display = p.dataset.recPer === active ? '' : 'none';
     });
   });
+  // Every switch change ends here (the type pills call this too), so the
+  // All #1s sentence follows them from one place.
+  rec1SyncStory();
+}
+
+/* ── All #1s sentence (phase 20) ──────────────────────────────────────
+   The line under the title, for whichever type, chart and count are picked.
+   The sentences are built with the tables (rec1Story() in buildRecords) and
+   kept here by key, so a switch only swaps text. */
+let _rec1Stories = {};
+function rec1SyncStory() {
+  const box = document.getElementById('rec1Story');
+  const sec = document.getElementById('recAllOnesSection');
+  if (!box || !sec) return;
+  const ents = Array.from(sec.querySelectorAll('.rec-ent-tab')).map(function (b) { return b.dataset.recEnt; });
+  if (!ents.length) { box.innerHTML = ''; return; }
+  const ent = recEntTabState('ones', ents);
+  const pers = Array.from(sec.querySelectorAll('.rec-per-tab[data-rec-per-scope="ones-' + ent + '"]'))
+    .map(function (b) { return b.dataset.recPer; });
+  const pt = recPerTabState('ones-' + ent, pers);
+  const mode = sec.dataset.recRun === 'consec' ? 'consec' : 'total';
+  box.innerHTML = _rec1Stories[ent + '|' + pt + '|' + mode] || '';
 }
 
 document.addEventListener('click', function (e) {
@@ -12930,8 +12995,9 @@ document.addEventListener('click', function (e) {
 });
 
 function restoreRecordSectionCollapseState() {
+  // All #1s has no collapse button since phase 20, so a stored "collapsed"
+  // must not be able to hide it with no way back.
   const ids = [
-    'recAllOnesSection',
     'recPAKSection',
     'recAppearancesSection',
     'recDebutsSection',
@@ -12960,6 +13026,8 @@ function setupRecordSubsectionCollapse() {
   if (!root) return;
   root.querySelectorAll('.rec-section').forEach(section => {
     if (section.dataset.collapseReady === '1') return;
+    // All #1s (phase 20) shows one record at a time and has no −/+ to offer.
+    if (section.dataset.recNoCollapse === '1') return;
     const title = section.querySelector('.rec-section-title');
     if (!title) return;
     const header = document.createElement('div');
@@ -18016,6 +18084,26 @@ function rec1sBoxesHTML(periods, pt) {
     return [gapEl, box];
   }).join('');
   return '<div class="cr-boxes-wrap"><div class="cr-boxes">' + boxes + '</div></div>';
+}
+
+/* One short span between two chart periods (phase 20), the year written once:
+   "6 – 20 Aug 2023", "28 Dec 2025 – 4 Jan 2026", "Mar – May 2024",
+   "2019 – 2021". One period alone reads as the chart names it
+   ("Week of 6 Aug 2023"). Day-first order matches fmt() in every language. */
+function recRangeText(a, b, pt) {
+  if (!a) return '';
+  if (!b || a === b) return crPeriodTitle(pt, a);
+  if (pt === 'year') return a + ' – ' + b;
+  const MK = ['month_jan', 'month_feb', 'month_mar', 'month_apr', 'month_may_short', 'month_jun', 'month_jul', 'month_aug', 'month_sep', 'month_oct', 'month_nov', 'month_dec'];
+  if (pt === 'month') {
+    const [ya, ma] = a.split('-'), [yb, mb] = b.split('-');
+    return ya === yb ? t(MK[+ma - 1]) + ' – ' + t(MK[+mb - 1]) + ' ' + yb
+      : t(MK[+ma - 1]) + ' ' + ya + ' – ' + t(MK[+mb - 1]) + ' ' + yb;
+  }
+  const A = new Date(a + 'T12:00:00'), B = new Date(b + 'T12:00:00');
+  if (A.getFullYear() !== B.getFullYear()) return fmt(A) + ' – ' + fmt(B);
+  if (A.getMonth() === B.getMonth()) return A.getDate() + ' – ' + fmt(B);
+  return A.getDate() + ' ' + t(MK[A.getMonth()]) + ' – ' + fmt(B);
 }
 
 /* ── Consecutive-run records ──────────────────────────────────────────
