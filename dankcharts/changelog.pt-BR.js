@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "A clearer Certification Ledger":
+    ["Um Registro de Certificações mais claro",
+     "Cada linha do Registro de Certificações agora é um cartão: uma medalha com o nível e os plays com que foi conquistada, o título com os plays por dia e os plays atuais em destaque, e uma linha do tempo do primeiro play até o dia da certificação, com o tempo que levou sobre a linha e quanto tempo depois do nível anterior veio. O próximo nível aparece como uma barra com porcentagem. Os filtros agora dizem Músicas, Álbuns, Diamante, Platina e Ouro, e o resumo no topo está maior. Nada foi retirado. Funciona com Last.fm, Google Sheets e arquivos CSV."],
   "Certifications gets plaques for the top three":
     ["Certificações ganha placas para os três primeiros",
      "Recordes → Certificações agora começa com três placas para os artistas com mais certificações: a foto, todas as certificações em um número grande, uma barra mostrando quantas são Diamante, Platina e Ouro, e as contagens de músicas e álbuns. Ver todas as certificações abre o registro completo desse artista logo abaixo das placas, o mesmo registro que qualquer outra linha abre, então os três primeiros não o perdem mais. As contagens na lista abaixo agora têm a cor do nível. Funciona com Last.fm, Google Sheets e arquivos CSV."],

@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 451;
+const DC_CL_I18N_V = 452;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -326,6 +326,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-02', t: 'design', a: 'records', h: 'b512f03',
+    title: "A clearer Certification Ledger",
+    detail: "Every line in the Certification Ledger is now its own card: a medal with the tier and the play count it was awarded at, the title with its plays per day and plays now in big type, and a timeline from the first play to the day it was certified, with the time it took on the line and how long after the previous tier it came. The next tier shows as a bar with a percentage. The filters now say Songs, Albums, Diamond, Platinum and Gold, and the summary at the top is bigger. Nothing was taken out. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-11-02', t: 'design', a: 'records', h: 'e2d0afd',
     title: "Certifications gets plaques for the top three",
     detail: "Records → Certifications now opens with three plaques for the artists with the most certifications: their photo, every certification in one big number, a bar showing how many are Diamond, Platinum and Gold, and their song and album tallies. Show every certification opens that artist's full ledger right under the plaques, the same ledger every other row opens, so the top three no longer lose it. The tallies in the list below are now coloured by tier. Works with Last.fm, Google Sheets and CSV uploads." },
