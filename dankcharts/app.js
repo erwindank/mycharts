@@ -55845,7 +55845,7 @@ const _cgTourSteps = [
     nav: 'graphs' },
 
   { title: 'Records',
-    content: 'Your record book, and much bigger than it looks — eleven separate sections behind the row of buttons at the top. All #1s, Perfect All Kill, Most Chart Appearances, Biggest Debuts, Most Plays in a Period, Play Count Milestones, Fastest to Milestone, a Certifications leaderboard, Streak Records, New Charts and an Overview. Pick a section from that row rather than scrolling.',
+    content: 'Your record book: eleven sections in the menu on the left (a dropdown on a phone). All #1s, Perfect All Kill, Most Chart Appearances, Biggest Debuts, New Charts, Most Plays in a Period, Play Count Milestones, Fastest to Milestone, Streak Records, Certifications and an Overview. Each section opens with a sentence naming the record and who holds it, then a podium for the top three with their chart runs, then the ranked list with a bar for each entry. Switch the type, the chart and Total / In a row in the one row of buttons, sort from the headers, and pick how many rows to show under the list (All goes up to 1,000).',
     nav: 'records' },
 
   { title: 'Ratings',

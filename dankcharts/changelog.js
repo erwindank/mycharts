@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 449;
+const DC_CL_I18N_V = 450;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -98,6 +98,16 @@ const DC_CL_AREAS = {
    by id, as { title, intro, points }. A missing one shows in English.
    ------------------------------------------------------------------------- */
 const DC_CL_HIGHLIGHTS = [
+  { id: "records-look", d: "2026-11-02", a: "records", img: "whatsnew/records-look.webp", go: "records", then: [["dcOpenRecordsView", "recAllOnesSection"]],
+    title: "Records got a fresh look",
+    intro: "Every Records section now tells you its record in a sentence and puts the record holder on a podium, starting with All #1s.",
+    points: [
+      "Each section opens with who holds the record, for example \"I Belong In Your Arms held on longest: 4 weeks in a row\", and the switches sit in one row.",
+      "The top three get a podium: big cover, the record in large type, every week at #1 or on the chart as boxes, Play a sample and Details.",
+      "The lists below are cleaner, with gold, silver and bronze ranks and a bar showing how close each entry is to the #1. All #1s has a Sort menu.",
+      "Milestones folds a song's run of milestones into one row, New Charts is translated, and Records opens faster. Show → All goes up to 1,000 a list.",
+    ],
+    also: ["e296b06", "e7271bb", "9d59ac0", "912b8c7", "fcc42db", "49d689d", "3f18f40", "853c768", "1c54bf2", "749b57d", "5d5ae00"] },
   { id: "charts-look", d: "2026-11-01", a: "graphs", img: "whatsnew/charts-look.webp", go: "graphs", then: [["setStatsTab", "charts"]],
     title: "Graphs got a fresh look",
     intro: "Stats → Graphs is clearer and nicer to look at, and Daily play volume over a long range no longer looks empty.",

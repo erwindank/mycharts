@@ -4494,6 +4494,15 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 /* Highlight cards (DC_CL_HIGHLIGHTS in changelog.js), keyed by id. */
 window.DC_CL_HIGHLIGHTS_I18N = window.DC_CL_HIGHLIGHTS_I18N || {};
 window.DC_CL_HIGHLIGHTS_I18N["pt-BR"] = {
+  "records-look": {
+    title: "Recordes ganhou um visual novo",
+    intro: "Cada seção de Recordes agora conta o seu recorde numa frase e coloca quem o tem num pódio, começando por Todos os #1.",
+    points: [
+      "Cada seção começa com quem tem o recorde, por exemplo \"I Belong In Your Arms teve o reinado mais longo: 4 semanas sem interrupção\", e os seletores ficam numa só linha.",
+      "Os três primeiros ganham um pódio: capa grande, o recorde em destaque, cada semana no #1 ou na parada como caixas, Ouvir um trecho e Detalhes.",
+      "As listas abaixo estão mais limpas, com posições em ouro, prata e bronze e uma barra mostrando quão perto cada item está do #1. Todos os #1 tem um menu Ordenar.",
+      "Marcos agrupa a sequência de marcos de uma música numa linha, Novidades está traduzido e Recordes abre mais rápido. Mostrar → Todos vai até 1.000 por lista."
+    ] },
   "charts-look": {
     title: "Gráficos ganhou um visual novo",
     intro: "Estatísticas → Gráficos ficou mais claro e mais bonito, e o volume diário num período longo não parece mais vazio.",

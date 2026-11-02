@@ -405,3 +405,11 @@ document.addEventListener('click', function (e) {
     r.classList.toggle('recx-mil-open', open);
   });
 });
+
+/* Opens one Records section by id, as the sidebar does: the What's New card
+   for this phase calls it ("Take me there" → All #1s) after switching tabs. */
+window.dcOpenRecordsView = function (view) {
+  try { localStorage.setItem('dc_records_active_view', view); } catch (e) {}
+  if (typeof recSearchReset === 'function') recSearchReset();
+  if (typeof applyRecordsViewFilter === 'function') applyRecordsViewFilter(view);
+};
