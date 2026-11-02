@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Show → All in Records no longer crashes the page":
+    ["Mostrar → Todos en Récords ya no bloquea la página",
+     "Elegir Todos en una lista de Récords congelaba la página y podía cerrar el navegador en bibliotecas grandes, porque llenaba todas las listas de todas las secciones a la vez (cientos de miles de filas). Ahora Todos llena la sección que estás viendo; las demás se llenan al abrirlas, con un breve aviso \"Preparando tus récords…\". En una biblioteca grande, Todos en Todos los #1 ahora tarda unos segundos. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "#2 and #3 on the All #1s podium show their weeks at #1":
     ["El #2 y el #3 del podio de Todos los #1 muestran sus semanas en el #1",
      "Las tarjetas de plata y bronce del podio de Todos los #1 ahora muestran cada semana (o día, mes, año) que pasaron en el #1, como la tarjeta grande, con los huecos entre regresos. Haz clic en una casilla para abrir ese ranking. Funciona con Last.fm, Google Sheets y archivos CSV."],

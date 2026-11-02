@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 443;
+const DC_CL_I18N_V = 444;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -316,6 +316,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-02', t: 'fix', a: 'records', h: 'fcc42db',
+    title: "Show → All in Records no longer crashes the page",
+    detail: "Picking All under a Records list froze the page and could crash the browser on big libraries, because it filled every list in every Records section at once (hundreds of thousands of rows). All now fills the section you're looking at; the other sections fill in when you open them, behind a short \"Building your records…\" line. On a large library, All on All #1s now takes a few seconds. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-11-02', t: 'design', a: 'records', h: '912b8c7',
     title: "#2 and #3 on the All #1s podium show their weeks at #1",
     detail: "The silver and bronze cards on the All #1s podium now show every week (or day, month, year) they spent at #1, like the big card does, with gaps between comebacks. Click a box to open that chart. Works with Last.fm, Google Sheets and CSV uploads." },
