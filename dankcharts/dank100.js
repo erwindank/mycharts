@@ -633,7 +633,7 @@
   }
 
   // ── A row's run: its positions week by week, from its debut to the newest
-  // chart, as a small line (gaps where it was off the chart) plus four facts.
+  // chart, as a small line (gaps where it was off the chart) plus the Chart Run.
   function runHTML(r) {
     var a = C.arch, run = a && a.runs && a.runs[C.type] && a.runs[C.type][r.k];
     var h = '<div class="d100-run">';
@@ -669,11 +669,8 @@
       '<path d="' + path.trim() + '"/></svg>' + dots + '</div>';
     var peak = 100, at1 = 0;
     pts.forEach(function (x) { if (x[1] < peak) peak = x[1]; if (x[1] === 1) at1++; });
-    h += '<div class="d100-run-facts">' +
-      fact('d100_run_debut', '#' + pts[0][1] + ' · ' + fmtDay(weekBounds(a.weeks[first].w).start)) +
-      fact('d100_run_peak', '#' + peak) +
-      fact('d100_run_weeks', pts.length) +
-      fact('d100_run_at1', at1) + '</div>';
+    // No debut/peak/weeks boxes here any more: the Chart Run below already
+    // says all of it (the boxes only stay in the no-archive fallback above)
     h += crRunHTML(pts, peak, at1);
     h += '</div>';
     return h;

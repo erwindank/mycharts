@@ -45982,7 +45982,7 @@ th.cr-th { width: 92px; }              /* = .chart-table .cr-cell */
 .d100-fact-k { font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: 0.05em; color: var(--text3); }
 /* The Chart Run under the facts (dank100.js crRunHTML): app.js's story,
    ribbon and week boxes; boxes are buttons here, so reset the button look */
-.d100-cr { margin-top: 6px; padding-top: 12px; border-top: 1px solid color-mix(in srgb, var(--text) 8%, transparent); }
+.d100-cr { margin-top: 4px; }
 .d100-cr-title { font-family: var(--font-display); font-weight: 700; font-size: 1rem; color: var(--text); margin-bottom: 8px; }
 .d100-cr .cr-box { font: inherit; color: inherit; }
 /* The week on screen right now */
