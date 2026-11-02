@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 420;
+const DC_CL_I18N_V = 421;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -296,6 +296,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-01', t: 'design', a: 'graphs', h: 'cc78ff9',
+    title: "Compare: a richer Who was on top",
+    detail: "Who was on top on Stats → Compare has a taller strip with the years marked underneath, and each block is brighter the more clearly that month was won. Point at a block (or tap it on a phone) to see the month, who won it with how many plays, and who came next. Months won is now a ranked list with a bar each, and the times the lead changed hands read as a timeline." },
   { d: '2026-11-01', t: 'design', a: 'graphs', h: 'bf83fbe',
     title: "Compare: a clearer head to head",
     detail: "Head to head on Stats → Compare is easier to read: a colour strip under the sentence shows each pick's share of the plays at a glance, every row has its place and a small bar under the play count, and the best in each column is marked with a soft badge in that pick's colour. On phones each pick is its own card, and you sort with a row of buttons on top." },

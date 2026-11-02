@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Compare: a richer Who was on top":
+    ["Comparar: un Quién estuvo arriba más completo",
+     "Quién estuvo arriba en Estadísticas → Comparar tiene una franja más alta con los años marcados debajo, y cada bloque brilla más cuanto más clara fue la victoria de ese mes. Pasa el cursor por un bloque (o tócalo en el móvil) para ver el mes, quién lo ganó y con cuántas reproducciones, y quién quedó después. Los meses ganados son ahora una lista ordenada con una barra cada uno, y los cambios de líder se leen como una línea de tiempo."],
   "Compare: a clearer head to head":
     ["Comparar: un cara a cara más claro",
      "El cara a cara de Estadísticas → Comparar se lee mejor: una franja de colores bajo la frase muestra de un vistazo la parte de reproducciones de cada elección, cada fila tiene su puesto y una pequeña barra bajo las reproducciones, y lo mejor de cada columna se marca con una etiqueta suave del color de esa elección. En el móvil cada elección es su propia tarjeta y ordenas con una fila de botones arriba."],
