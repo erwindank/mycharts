@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 425;
+const DC_CL_I18N_V = 426;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -306,6 +306,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-01', t: 'fix', a: 'graphs', h: 'f7d333f',
+    title: "Charts: Daily play volume no longer looks empty",
+    detail: "On Stats → Charts, Play volume with Daily over a long range drew thousands of bars thinner than a pixel, so the chart looked blank. It now draws the same numbers as a smooth area, and pointing at it (or tapping) still shows that day and opens what you played." },
   { d: '2026-11-01', t: 'design', a: 'graphs', h: 'e583e45',
     title: "Compare: smoother when you change what you compare",
     detail: "When you switch type or change your picks on Stats → Compare, the cards below now slide in one after another and their bars grow into place. Sorting a table doesn't replay it, and it stays still if your device asks for less motion. The Charts Guide describes the new Compare look." },

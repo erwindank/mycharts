@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Charts: Daily play volume no longer looks empty":
+    ["Gráficos: o volume diário já não parece vazio",
+     "Em Estatísticas → Gráficos, o volume de reproduções em Diário com um intervalo longo desenhava milhares de barras mais finas que um píxel, e o gráfico parecia vazio. Agora desenha os mesmos números como uma área suave, e passar o cursor (ou tocar) continua a mostrar esse dia e o que ouviste."],
   "Compare: smoother when you change what you compare":
     ["Comparar: mais suave ao mudares o que comparas",
      "Ao trocares de tipo ou de escolhas em Estatísticas → Comparar, os cartões em baixo entram um a seguir ao outro e as barras crescem até ao lugar. Ordenar uma tabela não repete isso, e tudo fica parado se o teu dispositivo pedir menos movimento. O Guia das tabelas descreve o novo visual de Comparar."],
