@@ -46168,6 +46168,9 @@ body:not(:is([data-view="day"], [data-view="week"], [data-view="month"], [data-v
 #recordsView:not(.rec-searching) .rec1-podium-on .rec1-podium-row + .rec-run-detail { display: none; }
 #recordsView.rec-searching .rec1-podium,
 .rec1-podium.nc-podium-retired { display: none; }
+/* A list of exactly three is all podium: no empty table head under it. */
+#recordsView:not(.rec-searching) .app-table-wrap:has(> table.rec1-podium-on.recx-pod-only),
+#recordsView:not(.rec-searching) table.rec1-podium-on.recx-pod-only { display: none; }
 
 /* Sized by the room the panel has, not the window: the side menu and the
    page width change that room independently. */

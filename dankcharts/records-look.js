@@ -239,7 +239,10 @@ function recxPodiumFor(table) {
       return r.dataset.recIdx === String(i) && !r.matches(REC_DETAIL_ROW_SEL);
     });
   });
-  if (rows.some(function (r) { return !r; })) return null;   // needs a #4 to go on with
+  // A top three is enough (2026-11-02: lists of exactly three, like a new
+  // EPs list, kept the plain table). With no #4 the whole list is on the
+  // podium, so the table under it hides too (podOnly, see recxPodiums).
+  if (rows.slice(0, 3).some(function (r) { return !r; })) return null;
   const top = rows.slice(0, 3);
   const recs = top.map(recRowRecord);
   if (recs.some(function (r) { return !r; })) return null;
@@ -297,7 +300,7 @@ function recxPodiumFor(table) {
   const html = '<div class="rec1-podium recx-podium" data-rec1-podium-for="' + table.id + '">'
     + card(top[0], recs[0], 0)
     + '<div class="rec1-runners">' + card(top[1], recs[1], 1) + card(top[2], recs[2], 2) + '</div></div>';
-  return { html: html, rows: top, loads: loads };
+  return { html: html, rows: top, loads: loads, podOnly: !rows[3] };
 }
 
 function recxPodiums(sec) {
@@ -314,6 +317,9 @@ function recxPodiums(sec) {
     anchor.insertAdjacentHTML('beforebegin', pod.html);
     pod.rows.forEach(function (r) { r.classList.add('rec1-podium-row'); });
     table.classList.add('rec1-podium-on');
+    // Nothing left under the podium: hide the empty table head as well
+    // (style.css; it comes back with the rows on a sort or a search).
+    if (pod.podOnly) table.classList.add('recx-pod-only');
     /* A sort put back after a rebuild arrived before this podium did: if the
        table is not in rank order, the podium starts retired. */
     const ths = Array.from(table.tHead ? table.tHead.rows[0].cells : []);
