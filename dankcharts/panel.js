@@ -170,7 +170,7 @@
     catch (e) { return ''; }
   }
 
-  // Spotify and YouTube search for "title artist"; Last.fm goes straight to
+  // Spotify (or the chosen service) and YouTube search for "title artist"; Last.fm goes straight to
   // the artist, album or track page
   function searchLinks(kind, d) {
     var name = kind === 'song' ? d.title : kind === 'album' ? d.album : d.artist;
@@ -181,7 +181,9 @@
     var a = function (cls, href, label, svg) {
       return '<a class="dp-link dp-link--' + cls + '" href="' + href + '" target="_blank" rel="noopener" title="' + esc(label) + '" aria-label="' + esc(label) + '">' + svg + '</a>';
     };
-    return a('sp', 'https://open.spotify.com/search/' + q, tt('tm_action_spotify'), svgConst('_EA_SP_SVG'))
+    // Spotify, or Apple Music / Deezer if picked in Settings (app.js _msUrl)
+    var ms = (typeof _msUrl === 'function');
+    return a('sp', ms ? _msUrl(q) : 'https://open.spotify.com/search/' + q, ms ? _msLabel() : tt('tm_action_spotify'), ms ? _msSvg() : svgConst('_EA_SP_SVG'))
       + a('yt', 'https://www.youtube.com/results?search_query=' + q, tt('awx_yt'), svgConst('_ST_AM_YT_SVG'))
       + a('lf', 'https://www.last.fm/music/' + lfPath, tt('st_am_lastfm'), svgConst('_ST_AM_LF_SVG'));
   }

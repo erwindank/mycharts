@@ -674,6 +674,7 @@ function dcApplyAllSettings() {
   _awardsPaintFavBtns();
   applyChartPageSections();
   dcApplyTimeSettings();
+  _msPaintRoot(); paintMusicServiceButtons(); // search buttons' service
   /* Separation arrived from another device: re-read it and retire the chart
      caches, since which bucket a release ranks in has just changed. Mutated
      in place so every closure already holding releaseSeparation sees it. */
@@ -20864,10 +20865,72 @@ function _eaCoverPlay() {
 // The three waves are cut out of the circle (evenodd), not drawn in black on
 // top: light themes have dark text, and black waves on a dark circle vanished.
 const _EA_SP_SVG = '<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M8 .5a7.5 7.5 0 1 0 0 15a7.5 7.5 0 1 0 0-15zM4.03 5.55L4.86 5.33L5.69 5.17L6.53 5.08L7.37 5.05L8.21 5.09L9.04 5.19L9.86 5.37L10.66 5.61L11.43 5.92L12.18 6.3A0.57 0.57 0 0 1 11.62 7.3L10.96 6.97L10.28 6.69L9.57 6.48L8.85 6.33L8.11 6.24L7.37 6.2L6.62 6.23L5.86 6.31L5.11 6.45L4.37 6.65A0.57 0.57 0 0 1 4.03 5.55zM4.44 7.75L5.12 7.58L5.81 7.47L6.5 7.4L7.19 7.39L7.88 7.43L8.56 7.52L9.24 7.66L9.9 7.85L10.54 8.09L11.17 8.39A0.57 0.57 0 0 1 10.63 9.41L10.09 9.15L9.53 8.94L8.96 8.77L8.37 8.65L7.77 8.57L7.17 8.54L6.56 8.55L5.95 8.61L5.35 8.71L4.76 8.85A0.57 0.57 0 0 1 4.44 7.75zM4.87 9.84L5.41 9.73L5.95 9.65L6.5 9.61L7.04 9.6L7.58 9.63L8.11 9.7L8.64 9.81L9.16 9.96L9.67 10.15L10.17 10.39A0.57 0.57 0 0 1 9.63 11.41L9.22 11.21L8.79 11.05L8.36 10.92L7.92 10.83L7.47 10.77L7.02 10.75L6.55 10.75L6.08 10.79L5.61 10.86L5.13 10.96A0.57 0.57 0 0 1 4.87 9.84z"/></svg>';
+// ── Music search service (Settings → Charts → Search buttons) ─────────────
+// Every "Search on Spotify" button on the site can search Apple Music or
+// Deezer instead. Stored in dc_music_service (synced via SYNC_KEYS). The
+// helpers below are read each time a button is drawn, so after a change only
+// a redraw is needed. _EA_SP_SVG stays the Spotify mark; the others are
+// plain one-colour marks in currentColor, like it, so they show on any theme.
+const _MS_AM_SVG = '<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M2.5 12.3a2.1 1.7 0 1 0 4.2 0a2.1 1.7 0 1 0-4.2 0zM9.5 10.8a2.1 1.7 0 1 0 4.2 0a2.1 1.7 0 1 0-4.2 0zM5.9 3.6h1.2v8.7h-1.2zM12.9 2.1h1.2v8.7h-1.2zM5.9 3.6L14.1 1.6V3.6L5.9 5.6z"/></svg>';
+const _MS_DZ_SVG = '<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M0.60 13.00h2.2v2h-2.2zM3.65 13.00h2.2v2h-2.2zM3.65 10.40h2.2v2h-2.2zM6.70 13.00h2.2v2h-2.2zM6.70 10.40h2.2v2h-2.2zM6.70 7.80h2.2v2h-2.2zM9.75 13.00h2.2v2h-2.2zM9.75 10.40h2.2v2h-2.2zM9.75 7.80h2.2v2h-2.2zM9.75 5.20h2.2v2h-2.2zM12.80 13.00h2.2v2h-2.2zM12.80 10.40h2.2v2h-2.2zM12.80 7.80h2.2v2h-2.2zM12.80 5.20h2.2v2h-2.2zM12.80 2.60h2.2v2h-2.2z"/></svg>';
+const MUSIC_SERVICES = {
+  spotify: { name: 'Spotify',     label: 'tm_action_spotify', color: '#1DB954', svg: () => _EA_SP_SVG,
+             url: q => 'https://open.spotify.com/search/' + q },
+  apple:   { name: 'Apple Music', label: 'tm_action_apple',   color: '#FA2D48', svg: () => _MS_AM_SVG,
+             url: q => 'https://music.apple.com/search?term=' + q },
+  deezer:  { name: 'Deezer',      label: 'tm_action_deezer_search', color: '#A238FF', svg: () => _MS_DZ_SVG,
+             url: q => 'https://www.deezer.com/search/' + q },
+};
+const MUSIC_SERVICE_KEY = 'dc_music_service';
+function _msKey() {
+  try { const k = localStorage.getItem(MUSIC_SERVICE_KEY); return MUSIC_SERVICES[k] ? k : 'spotify'; } catch (e) { return 'spotify'; }
+}
+function _msSvc()   { return MUSIC_SERVICES[_msKey()]; }
+// q must already be encodeURIComponent'd, same as the old Spotify links
+function _msUrl(q)  { return _msSvc().url(q); }
+function _msSvg()   { return _msSvc().svg(); }
+function _msLabel() { return t(_msSvc().label); }
+// The brand colour rides on <html> as --ms-brand, so the CSS that used to
+// hard-code Spotify green follows the choice too.
+function _msPaintRoot() {
+  document.documentElement.style.setProperty('--ms-brand', _msSvc().color);
+  document.documentElement.dataset.musicSvc = _msKey();
+}
+_msPaintRoot();
+// Lights the matching button in Settings → Charts → Search buttons
+function paintMusicServiceButtons() {
+  const k = _msKey();
+  document.querySelectorAll('#musicSvcSwitcher .rt-sep-btn').forEach(b => b.classList.toggle('active', b.dataset.svc === k));
+}
+function setMusicService(key) {
+  if (!MUSIC_SERVICES[key]) return;
+  try { localStorage.setItem(MUSIC_SERVICE_KEY, key); } catch (e) { }
+  // Targeted save (not dcSaveUserConfig), same as the week start day
+  if (typeof dcSaveConfigKey === 'function') dcSaveConfigKey(MUSIC_SERVICE_KEY, key);
+  _msPaintRoot();
+  paintMusicServiceButtons();
+  // Redraw so the buttons already on screen swap too
+  if (allPlays.length) renderAll();
+}
+(function buildMusicSvcSwitcher() {
+  const box = document.getElementById('musicSvcSwitcher');
+  if (!box) return;
+  Object.keys(MUSIC_SERVICES).forEach(k => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'rt-sep-btn';
+    btn.dataset.svc = k;
+    btn.textContent = MUSIC_SERVICES[k].name;
+    btn.addEventListener('click', () => setMusicService(k));
+    box.appendChild(btn);
+  });
+  paintMusicServiceButtons();
+})();
+
 function _eaSpotifyBtn(type, name, artist) {
   const q = encodeURIComponent(type === 'artists' || !artist ? name : name + ' ' + artist);
-  const lbl = esc(t('tm_action_spotify'));
-  return `<a class="ea-spotify" href="https://open.spotify.com/search/${q}" target="_blank" rel="noopener" title="${lbl}" aria-label="${lbl}" onclick="event.stopPropagation()">${_EA_SP_SVG}</a>`;
+  const lbl = esc(_msLabel());
+  return `<a class="ea-spotify" href="${_msUrl(q)}" target="_blank" rel="noopener" title="${lbl}" aria-label="${lbl}" onclick="event.stopPropagation()">${_msSvg()}</a>`;
 }
 
 // Search on Spotify for rows that only have their data-ea-* attributes
@@ -20875,14 +20938,14 @@ function _eaSpotifyBtn(type, name, artist) {
 // so open-in-new-tab and middle-click work; its address is filled in from
 // the entry just before it is used (see the listener below).
 function _eaSpAuto() {
-  const lbl = esc(t('tm_action_spotify'));
-  return `<a class="ea-spotify ea-sp-auto" href="https://open.spotify.com/search/" target="_blank" rel="noopener" title="${lbl}" aria-label="${lbl}">${_EA_SP_SVG}</a>`;
+  const lbl = esc(_msLabel());
+  return `<a class="ea-spotify ea-sp-auto" href="${_msUrl('')}" target="_blank" rel="noopener" title="${lbl}" aria-label="${lbl}">${_msSvg()}</a>`;
 }
 function _eaSpotifyHref(el) {
   const d = _eaEntryData(el);
   const name = d.type === 'artists' ? d.artist : d.type === 'albums' ? d.album : d.title;
   const by = d.type === 'artists' ? '' : d.artist;
-  return 'https://open.spotify.com/search/' + encodeURIComponent(by ? name + ' ' + by : name);
+  return _msUrl(encodeURIComponent(by ? name + ' ' + by : name));
 }
 ['pointerdown', 'focusin', 'click'].forEach(ev => document.addEventListener(ev, e => {
   const a = e.target.closest && e.target.closest('.ea-sp-auto');
@@ -21075,7 +21138,7 @@ const _EA_MI = {
   chartrun: _EA_MI_SVG('<path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="m19 8-5 5-4-4-3 3"/>'),
   cover:    _EA_MI_SVG('<rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/>'),
   yt:       '<svg class="ea-mi-brand" viewBox="0 0 24 24" aria-hidden="true"><path fill="#FF0033" d="M22.6 7.2a2.8 2.8 0 0 0-2-2C18.9 4.7 12 4.7 12 4.7s-6.9 0-8.6.5a2.8 2.8 0 0 0-2 2A29 29 0 0 0 1 12a29 29 0 0 0 .4 4.8 2.8 2.8 0 0 0 2 2c1.7.5 8.6.5 8.6.5s6.9 0 8.6-.5a2.8 2.8 0 0 0 2-2A29 29 0 0 0 23 12a29 29 0 0 0-.4-4.8z"/><path fill="#fff" d="M9.8 15.1 15.5 12 9.8 8.9z"/></svg>',
-  spotify:  '<span class="ea-mi-brand ea-mi-sp">' + _EA_SP_SVG + '</span>',
+  get spotify() { return '<span class="ea-mi-brand ea-mi-sp">' + _msSvg() + '</span>'; }, // or Apple Music / Deezer
 };
 
 // iconKey: borrow another action's icon (Bubbling Under history uses the chart-run one)
@@ -21133,7 +21196,7 @@ function _eaOpenMenu(el, x, y, alignRight) {
   h += sep;
   if (d.imgId && document.getElementById(d.imgId)) h += _eaMenuItem('cover', '✎', t('ea_change_cover'));
   h += _eaMenuItem('yt', '↗', t('ea_search_yt'));
-  h += _eaMenuItem('spotify', '↗', t('tm_action_spotify'));
+  h += _eaMenuItem('spotify', '↗', _msLabel());
   _eaMenuEl.innerHTML = h;
   _eaMenuEl.style.display = 'block';
   const mw = _eaMenuEl.offsetWidth || 200, mh = _eaMenuEl.offsetHeight || 300;
@@ -38844,11 +38907,12 @@ function openStreakModal(opts) {
   // streak can be saved by playing it there (a Spotify scrobble counts too).
   // Was on every at-risk song before the 2026-10-16 redesign; brought back.
   // same mark as _EA_SP_SVG (waves cut out, so it shows on light themes too)
-  const SK_SP_SVG = _EA_SP_SVG.replace('<svg ', '<svg width="15" height="15" ');
+  // (or the Apple Music / Deezer mark, per Settings → Charts → Search buttons)
+  const SK_SP_SVG = _msSvg().replace('<svg ', '<svg width="15" height="15" ');
   function skSpLink(title, artist) {
     const q = encodeURIComponent(title + (artist ? ' ' + artist : ''));
-    const lbl = esc('Search "' + title + '" on Spotify');
-    return `<a class="sk-sp-link" href="https://open.spotify.com/search/${q}" target="_blank" rel="noopener" title="${lbl}" aria-label="${lbl}" onclick="event.stopPropagation()">${SK_SP_SVG}</a>`;
+    const lbl = esc('Search "' + title + '" on ' + _msSvc().name);
+    return `<a class="sk-sp-link" href="${_msUrl(q)}" target="_blank" rel="noopener" title="${lbl}" aria-label="${lbl}" onclick="event.stopPropagation()">${SK_SP_SVG}</a>`;
   }
   // mode: 'active' (On fire) · 'risk' (needs a play today) · 'lost' (ended yesterday)
   function skRowHtml(it, mode) {
@@ -40398,7 +40462,7 @@ function _altToggle(btn) {
   const album = btn.dataset.album, artist = btn.dataset.artist;
   const rows = _altRanking(album, artist);
   const label = currentPeriod === 'alltime' ? '' : getDateRange().label;
-  const lSp = esc(t('tm_action_spotify')), lG = esc(t('tm_action_google')), lYt = esc(t('awx_yt'));
+  const lSp = esc(_msLabel()), lG = esc(t('tm_action_google')), lYt = esc(t('awx_yt'));
   const link = (cls, href, lbl, svg) => `<a class="alt-link alt-link--${cls}" href="${href}" target="_blank" rel="noopener" title="${lbl}" aria-label="${lbl}">${svg}</a>`;
   // Ties share a rank (1, 2, 2, 4), like the charts themselves
   let rank = 0;
@@ -40412,7 +40476,7 @@ function _altToggle(btn) {
         ${_eaSampleBtn('alt-sample')}
         <a href="javascript:void(0)" class="ars-title" onclick="_altHide();openSongModal(${esc(JSON.stringify(r.key))})">${esc(r.title)}</a>
         <span class="ars-count">${r.count}</span>
-        <span class="alt-links">${link('sp', 'https://open.spotify.com/search/' + q, lSp, _EA_SP_SVG)}${link('g', 'https://www.google.com/search?q=' + q, lG, _ALT_G_SVG)}${link('yt', 'https://www.youtube.com/results?search_query=' + q, lYt, _ST_AM_YT_SVG)}</span>
+        <span class="alt-links">${link('sp', _msUrl(q), lSp, _msSvg())}${link('g', 'https://www.google.com/search?q=' + q, lG, _ALT_G_SVG)}${link('yt', 'https://www.youtube.com/results?search_query=' + q, lYt, _ST_AM_YT_SVG)}</span>
       </li>`;
     }).join('')}</ol>`;
   _altTooltip.style.display = 'block';
@@ -40887,14 +40951,14 @@ function _tmShowSongMenu(ev, title, artist, album) {
   menu.className = 'tm-action-menu';
   menu.innerHTML =
     '<div class="tm-action-menu-arrow"></div>' +
-    '<button class="tm-action-menu-item" data-act="spotify">🎧 ' + esc(t('tm_action_spotify')) + '</button>' +
+    '<button class="tm-action-menu-item" data-act="spotify">🎧 ' + esc(_msLabel()) + '</button>' +
     '<button class="tm-action-menu-item" data-act="playlist">' + DC_PL_ICON + esc(t('tm_action_playlist')) + '</button>' +
     '<button class="tm-action-menu-item" data-act="player">▶ ' + esc(t('tm_action_player')) + '</button>' +
     '<button class="tm-action-menu-item" data-act="google">🔎 ' + esc(t('tm_action_google')) + '</button>';
 
   menu.querySelector('[data-act="spotify"]').addEventListener('click', (e) => {
     e.stopPropagation();
-    window.open('https://open.spotify.com/search/' + q, '_blank', 'noopener');
+    window.open(_msUrl(q), '_blank', 'noopener');
     _tmCloseMenu();
   });
   // Saves the song to a playlist instead of the player queue — the menu closes
@@ -40978,7 +41042,7 @@ function _tmShowEntityMenu(ev, searchQuery, fetchSongs, plLabel, opts) {
     menu.innerHTML =
       '<div class="tm-action-menu-arrow"></div>' +
       (sourceLink ? '<button class="tm-action-menu-item" data-act="source">' + esc(sourceLink.icon) + ' ' + esc(sourceLink.label) + '</button>' : '') +
-      '<button class="tm-action-menu-item" data-act="spotify">🎧 ' + esc(t('tm_action_spotify')) + '</button>' +
+      '<button class="tm-action-menu-item" data-act="spotify">🎧 ' + esc(_msLabel()) + '</button>' +
       (canPlaylist ? '<button class="tm-action-menu-item" data-act="playlist">' + DC_PL_ICON + esc(t('tm_action_playlist')) + '</button>' : '') +
       (hasPlays ? '<button class="tm-action-menu-item" data-act="last10">🎵 ' + esc(t('tm_action_last10')) + '</button>' : '') +
       '<button class="tm-action-menu-item" data-act="google">🔎 ' + esc(t('tm_action_google')) + '</button>';
@@ -40991,7 +41055,7 @@ function _tmShowEntityMenu(ev, searchQuery, fetchSongs, plLabel, opts) {
     }
     menu.querySelector('[data-act="spotify"]').addEventListener('click', (e) => {
       e.stopPropagation();
-      window.open('https://open.spotify.com/search/' + q, '_blank', 'noopener');
+      window.open(_msUrl(q), '_blank', 'noopener');
       _tmCloseMenu();
     });
     if (canPlaylist) {
@@ -41144,12 +41208,12 @@ function _relShowMenu(ev, title, artist) {
   menu.className = 'tm-action-menu';
   menu.innerHTML =
     '<div class="tm-action-menu-arrow"></div>' +
-    '<button class="tm-action-menu-item" data-act="spotify">🎧 ' + esc(t('tm_action_spotify')) + '</button>' +
+    '<button class="tm-action-menu-item" data-act="spotify">🎧 ' + esc(_msLabel()) + '</button>' +
     '<button class="tm-action-menu-item" data-act="google">🔎 ' + esc(t('tm_action_google')) + '</button>';
 
   menu.querySelector('[data-act="spotify"]').addEventListener('click', (e) => {
     e.stopPropagation();
-    window.open('https://open.spotify.com/search/' + q, '_blank', 'noopener');
+    window.open(_msUrl(q), '_blank', 'noopener');
     _tmCloseMenu();
   });
   menu.querySelector('[data-act="google"]').addEventListener('click', (e) => {
@@ -52289,8 +52353,8 @@ const _ST_AM_SHARE_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none
 // so middle-click and open-in-new-tab work too.
 function _stAmLinks(q, withLastfm) {
   const e = encodeURIComponent(q);
-  const sp = esc(t('tm_action_spotify')), yt = esc(t('awx_yt')), lf = esc(t('st_am_lastfm'));
-  return `<a class="st-am-link st-am-link--sp" href="https://open.spotify.com/search/${e}" target="_blank" rel="noopener" title="${sp}" aria-label="${sp}">${_EA_SP_SVG}</a>`
+  const sp = esc(_msLabel()), yt = esc(t('awx_yt')), lf = esc(t('st_am_lastfm'));
+  return `<a class="st-am-link st-am-link--sp" href="${_msUrl(e)}" target="_blank" rel="noopener" title="${sp}" aria-label="${sp}">${_msSvg()}</a>`
     + `<a class="st-am-link st-am-link--yt" href="https://www.youtube.com/results?search_query=${e}" target="_blank" rel="noopener" title="${yt}" aria-label="${yt}">${_ST_AM_YT_SVG}</a>`
     + (withLastfm ? `<a class="st-am-link st-am-link--lf" href="https://www.last.fm/music/${e}" target="_blank" rel="noopener" title="${lf}" aria-label="${lf}">${_ST_AM_LF_SVG}</a>` : '');
 }
@@ -52472,7 +52536,7 @@ async function _stAmFillSimilar(artist) {
   const pic = a => a.pic ? `<img src="${esc(a.pic)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : `<span>${esc(initials(a.name))}</span>`;
   // Artists already in the library open their full profile; new ones search Spotify
   const lovedHtml = loved.slice(0, 6).map(a => `<button type="button" class="st-am-sim" data-st-am-profile="${esc(a.name)}" title="${esc(t('st_am_open_profile', { name: a.name }))}"><span class="st-am-sim-pic">${pic(a)}</span><span class="st-am-sim-name">${esc(a.name)}</span><span class="st-am-sim-sub">${a.count.toLocaleString()} ${tUnit('plays', a.count)}</span></button>`).join('');
-  const freshHtml = fresh.slice(0, 6).map(a => `<a class="st-am-sim st-am-sim--new" href="https://open.spotify.com/search/${encodeURIComponent(a.name)}" target="_blank" rel="noopener" title="${esc(t('tm_action_spotify'))}"><span class="st-am-sim-pic">${pic(a)}</span><span class="st-am-sim-name">${esc(a.name)}</span><span class="st-am-sim-sub">${t('st_am_similar_new')}</span></a>`).join('');
+  const freshHtml = fresh.slice(0, 6).map(a => `<a class="st-am-sim st-am-sim--new" href="${_msUrl(encodeURIComponent(a.name))}" target="_blank" rel="noopener" title="${esc(_msLabel())}"><span class="st-am-sim-pic">${pic(a)}</span><span class="st-am-sim-name">${esc(a.name)}</span><span class="st-am-sim-sub">${t('st_am_similar_new')}</span></a>`).join('');
   el.innerHTML = (lovedHtml ? `<div class="st-am-sub-h">${t('st_am_similar_love')}</div><div class="st-am-sims">${lovedHtml}</div>` : '')
     + (freshHtml ? `<div class="st-am-sub-h">${t('st_am_similar_try')}</div><div class="st-am-sims">${freshHtml}</div>` : '');
 }

@@ -1504,7 +1504,7 @@
     .dp-link { flex: 0 0 44px; }
     .dp-link svg { width: 19px; height: 19px; }
     .dp-link:hover, .dp-share-card:hover { background: var(--bg3); transform: translateY(-1px); }
-    .dp-link--sp:hover { color: #1ed760; border-color: #1ed760; }
+    .dp-link--sp:hover { color: var(--ms-brand, #1ed760); border-color: var(--ms-brand, #1ed760); }
     .dp-link--yt:hover { color: #ff4e45; border-color: #ff4e45; }
     .dp-link--lf:hover { color: #ff5a5f; border-color: #ff5a5f; }
     .dp-share-card {
@@ -2343,7 +2343,7 @@
     .dp-body .am-act-play { color: var(--dp-ac); }
     .dp-body .am-act-play:hover { color: var(--dp-ac); background: color-mix(in srgb, var(--dp-ac) 16%, transparent); border-color: color-mix(in srgb, var(--dp-ac) 50%, var(--border)); }
     .dp-body .am-act-play.is-on { color: var(--on-accent, #fff); background: var(--dp-ac); border-color: var(--dp-ac); }
-    .dp-body .am-act-sp:hover { background: color-mix(in srgb, #1DB954 14%, transparent); border-color: color-mix(in srgb, #1DB954 50%, var(--border)); }
+    .dp-body .am-act-sp:hover { background: color-mix(in srgb, var(--ms-brand, #1DB954) 14%, transparent); border-color: color-mix(in srgb, var(--ms-brand, #1DB954) 50%, var(--border)); }
     .dp-body .am-act-yt { color: #ff3b3b; }
     .dp-body .am-act-yt svg { width: 15px; height: 15px; }
     .dp-body .am-act-yt:hover { background: color-mix(in srgb, #ff3b3b 14%, transparent); border-color: color-mix(in srgb, #ff3b3b 50%, var(--border)); }
@@ -26172,7 +26172,7 @@ body[class*="-light"] .hero-stats [class*="hero-stat--streak-"] .hero-val {
   transition: color 0.12s;
 }
 .alt-link svg { width: 14px; height: 14px; }
-.alt-link--sp:hover, .alt-link--sp:focus-visible { color: #1db954; }
+.alt-link--sp:hover, .alt-link--sp:focus-visible { color: var(--ms-brand, #1db954); }
 .alt-link--g:hover, .alt-link--g:focus-visible { color: var(--accent); }
 .alt-link--yt:hover, .alt-link--yt:focus-visible { color: #ff0033; }
 
@@ -30909,7 +30909,7 @@ body.green-light .awards-reallife-badge.nom { color: #4338ca; border-color: #636
   white-space: nowrap;
 }
 .sk-sp-link {
-  color: #1DB954;
+  color: var(--ms-brand, #1DB954);
   font-size: var(--fs-xs);
   flex-shrink: 0;
   text-decoration: none;
@@ -33967,7 +33967,7 @@ body.st-story-open { overflow: hidden; }
 .st-am-hero-links .st-am-link { width: 40px; }
 .st-am-hero-links .st-am-link svg { width: 18px; height: 18px; }
 .st-am-hero-links .st-am-link:hover { background: rgba(255, 255, 255, 0.22); }
-.st-am-hero-links .st-am-link--sp:hover { color: #1ed760; }
+.st-am-hero-links .st-am-link--sp:hover { color: var(--ms-brand, #1ed760); }
 .st-am-hero-links .st-am-link--yt:hover { color: #ff4e45; }
 .st-am-hero-links .st-am-link--lf:hover { color: #ff5a5f; }
 
@@ -34137,7 +34137,7 @@ body.st-story-open { overflow: hidden; }
 }
 .st-am-link svg { width: 16px; height: 16px; display: block; }
 .st-am-list .st-am-link:hover { background: var(--hover, var(--raised)); }
-.st-am-list .st-am-link--sp:hover { color: #1db954; }
+.st-am-list .st-am-link--sp:hover { color: var(--ms-brand, #1db954); }
 .st-am-list .st-am-link--yt:hover { color: #ff0033; }
 .st-am-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
@@ -41078,7 +41078,8 @@ body.cp-hide-cert-reel    #certReelSection { display: none !important; }
 /* Search on Spotify (Stack, beside ▶ and ⋮): same size, quiet until hover */
 .ea-spotify {
   display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
-  width: 28px; height: 28px; border-radius: var(--r-full); color: #1DB954; text-decoration: none;
+  /* --ms-brand: Spotify green, or Apple Music / Deezer (app.js _msPaintRoot) */
+  width: 28px; height: 28px; border-radius: var(--r-full); color: var(--ms-brand, #1DB954); text-decoration: none;
   opacity: 0.55; transition: opacity var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
 }
 .ea-spotify svg { width: 16px; height: 16px; display: block; }
@@ -41216,7 +41217,7 @@ body.cp-hide-cert-reel    #certReelSection { display: none !important; }
 .ea-mi-ic > svg:not(.ea-mi-brand) { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .ea-menu .wv-ctx-item:is(:hover, :focus-visible) .ea-mi-ic { color: var(--accent); }
 .ea-mi-ic > svg.ea-mi-brand { width: 18px; height: 18px; }
-.ea-mi-sp { display: inline-flex; color: #1DB954; }
+.ea-mi-sp { display: inline-flex; color: var(--ms-brand, #1DB954); }
 .ea-mi-sp svg { width: 16px; height: 16px; }
 
 /* First-time hint on touch screens (app.js, _eaHintShow): a small bubble

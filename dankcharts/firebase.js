@@ -32,7 +32,8 @@ const SYNC_KEYS = [
   'dc_chart_anim', 'dc_awards_credit_features', 'dc_awards_hide_plays', 'dc_awards_show_rating', 'dc_awards_samples',
   'dc_awards_hide_decided', 'dc_awards_fav_cats',
   'dc_chart_page_sections',
-  'dc_d100_autosend',   // The Dank 100: send my week by itself (dank100.js)
+  'dc_d100_autosend',
+  'dc_music_service',   // Spotify / Apple Music / Deezer for the search buttons (app.js _msKey)   // The Dank 100: send my week by itself (dank100.js)
   'dc_col_widths'   // the chart tables' adjusted column widths (app.js, _colw*)
 ];
 
