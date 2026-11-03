@@ -45186,14 +45186,33 @@ function _awardsSetCats(data, cats, enabled) {
   _awardsRenderCatList(data);
 }
 
-function _awardsRenderCatList(data) {
-  const el = document.getElementById('awardsCatList');
-  if (!el) return;
+// The categories switched on, and the ones of those on screen
+function _awardsListCats(data) {
   const activeCats = AWARD_CATEGORIES.filter(c => data.categories[c.id]?.enabled ?? c.defaultOn);
   // "Hide decided" leaves out the categories that already have a winner
   const shownCats = _awardsHideDecided
     ? activeCats.filter(c => !_awardsCatDecided(c, data.categories[c.id]))
     : activeCats;
+  return { activeCats, shownCats };
+}
+
+// Everything around the cards that a ballot change can move: the view bar's
+// progress chip, the ceremony buttons and the stats block
+function _awardsRenderListChrome(data, activeCats, shownCats) {
+  _awardsRenderViewBar(activeCats.length > 0, {
+    hidden:  activeCats.length - shownCats.length,
+    // Still waiting on a winner, whether or not "Hide decided" is on
+    pending: activeCats.filter(c => !_awardsCatDecided(c, data.categories[c.id])).length,
+    total:   activeCats.length,
+  });
+  _awardsShowCeremonyBtns(activeCats.some(c => data.categories[c.id]?.winner));
+  _awardsRenderSummary(data.year);
+}
+
+function _awardsRenderCatList(data) {
+  const el = document.getElementById('awardsCatList');
+  if (!el) return;
+  const { activeCats, shownCats } = _awardsListCats(data);
   const seq = ++_awardsViewSeq;
   _awardsRenderViewBar(activeCats.length > 0, {
     hidden:  activeCats.length - shownCats.length,
@@ -46273,6 +46292,55 @@ function _awardsRerenderCard(year, catId) {
   return card;
 }
 
+/* After a change to one category's ballot (a crown, a removal, a saved picker),
+   redraw that card alone instead of the whole list. A full render rebuilt every
+   switched-on category (~150 with them all on) and started a fresh round of
+   artwork lookups, each one forcing the page to lay itself out again: ~200ms a
+   click on a desktop, most of a second on a phone, for one changed card.
+   Falls back to the full render when the list itself changes shape (Hide
+   decided taking the card away) or the card isn't on screen. */
+function _awardsCatChanged(year, catId) {
+  const data = _awardsYearData[year];
+  if (!data) return;
+  const { activeCats, shownCats } = _awardsListCats(data);
+  if (year !== _awardsYear || !shownCats.some(c => c.id === catId) || !_awardsRerenderCard(year, catId)) {
+    _awardsRenderCatList(data);
+    return;
+  }
+  _awardsRenderListChrome(data, activeCats, shownCats);
+}
+
+/* A category switched on or off in the settings: add or take away its card
+   rather than rebuilding the list, for the same reason as above. A switched-on
+   card goes in before the next category that is on screen, so the order is the
+   one a full render would give. */
+function _awardsCatToggled(data, catId, enabled) {
+  const el = document.getElementById('awardsCatList');
+  if (!el) return;
+  const { activeCats, shownCats } = _awardsListCats(data);
+  // Nothing on screen yet (the empty message), or nothing left: the full render
+  // owns those messages
+  if (!shownCats.length || !el.querySelector('.awards-cat-card')) { _awardsRenderCatList(data); return; }
+  const old = document.getElementById('awardsCat_' + catId);
+  const i = shownCats.findIndex(c => c.id === catId);
+  if (!enabled || i < 0) {
+    old?.remove();
+  } else if (!old) {
+    const cd = data.categories[catId] || { enabled: true, nominees: [], winner: null };
+    const queue = [];
+    const html = _awardsView === 'ballot'
+      ? _awardsRenderCatCard(shownCats[i], cd, data.year, i)
+      : _awardsRenderArtCard(shownCats[i], cd, data.year, i, _awardsView, `awv${_awardsViewSeq}_${i}m${++_awardsCardSeq}`, queue);
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    const card = tmp.firstElementChild;
+    const next = shownCats.slice(i + 1).map(c => document.getElementById('awardsCat_' + c.id)).find(Boolean);
+    el.insertBefore(card, next || null);
+    if (queue.length) _awardsViewLoadArt(queue, _awardsViewSeq);
+  }
+  _awardsRenderListChrome(data, activeCats, shownCats);
+}
+
 // Native drag and drop, delegated from the list so it survives every re-render.
 // A nominee only ever lands inside its own card.
 function _awardsBindDrag(el) {
@@ -46564,7 +46632,7 @@ function awardsToggleCat(catId, enabled) {
   if (!data.categories[catId]) data.categories[catId] = { enabled, nominees: [], winner: null };
   data.categories[catId].enabled = enabled;
   _awardsSave(_awardsYear);
-  _awardsRenderCatList(data);
+  _awardsCatToggled(data, catId, enabled);
   // The card's own look and the counts; the list itself stays as it is
   document.querySelector(`#awardsCatToggles .awc-card[data-cat="${catId}"]`)?.classList.toggle('is-on', enabled);
   _awcUpdateCounts(data);
@@ -48483,7 +48551,7 @@ async function awardsPickerSave(year, catId) {
   const wk = data.categories[catId].winner ? _awardItemKey(data.categories[catId].winner) : null;
   if (wk && !nominees.some(n => _awardItemKey(n) === wk)) data.categories[catId].winner = null;
   await _awardsSave(year);
-  _awardsRenderCatList(data);
+  _awardsCatChanged(year, catId);
 }
 
 async function awardsPickWinner(year, catId, item) {
@@ -48492,7 +48560,7 @@ async function awardsPickWinner(year, catId, item) {
   const curWk = data.categories[catId].winner ? _awardItemKey(data.categories[catId].winner) : null;
   data.categories[catId].winner = (_awardItemKey(item) === curWk) ? null : item;
   await _awardsSave(year);
-  _awardsRenderCatList(data);
+  _awardsCatChanged(year, catId);
 }
 
 // Break a tie in an auto category: the chosen item becomes its one nominee and
@@ -48505,7 +48573,7 @@ async function awardsPickTieWinner(year, catId, i) {
   cd.nominees = [item];
   cd.winner   = item;
   await _awardsSave(year);
-  _awardsRenderCatList(_awardsYearData[year]);
+  _awardsCatChanged(year, catId);
 }
 
 async function awardsRemoveNominee(e, year, catId, item) {
@@ -48516,7 +48584,7 @@ async function awardsRemoveNominee(e, year, catId, item) {
   data.categories[catId].nominees = data.categories[catId].nominees.filter(n => _awardItemKey(n) !== ik);
   if (data.categories[catId].winner && _awardItemKey(data.categories[catId].winner) === ik) data.categories[catId].winner = null;
   await _awardsSave(year);
-  _awardsRenderCatList(data);
+  _awardsCatChanged(year, catId);
 }
 
 // ── Real-Life Awards ──────────────────────────────────────────────────────────
@@ -57859,7 +57927,10 @@ function ratingAlbumEntry(key) { return _ratings.albums[key] || null; }
    in place; the only in-place edits are sorts, and none of these aggregations
    depend on play order. The cached objects are shared, not copied, so callers
    must treat them as read-only (every current one does).                       */
-const _rtMemo = { plays: null, len: -1, tracks: new Map(), artistKeys: new Map(), album: new Map(), artist: new Map(), songNames: null };
+const _rtMemo = { plays: null, len: -1, tracks: new Map(), artistKeys: new Map(), album: new Map(), artist: new Map(), songNames: null,
+  // Whole-library indexes behind tracks / artistKeys, filled in one walk on the
+  // first lookup (see _rtTrackIndex / _rtArtistIndex)
+  trackIdx: null, artistIdx: null };
 
 // Drop the scores. Called whenever a rating or the rubric config changes.
 // The tracklists and artist key sets are left alone: they come from the library
@@ -57880,6 +57951,8 @@ function _rtMemoFresh() {
     _rtMemo.tracks.clear();
     _rtMemo.artistKeys.clear();
     _rtMemo.songNames = null;
+    _rtMemo.trackIdx  = null;
+    _rtMemo.artistIdx = null;
     _rtMemo.plays = plays;
     _rtMemo.len   = len;
   }
@@ -57948,16 +58021,30 @@ function ratingAlbumTrackKeys(albumKey) {
   const memo = _rtMemoFresh();
   const hit  = memo.tracks.get(albumKey);
   if (hit) return hit;
-  const seen = new Map();
-  for (const p of allPlays) {
-    if (albumKeyOf(p) !== albumKey) continue;
-    const k = songKey(p);
-    if (!seen.has(k)) seen.set(k, { key: k, title: p.title, artist: p.artist, count: 0 });
-    seen.get(k).count++;
-  }
-  const out = [...seen.values()].sort((a, b) => b.count - a.count);
+  const seen = _rtTrackIndex(memo).get(albumKey);
+  const out = seen ? [...seen.values()].sort((a, b) => b.count - a.count) : [];
   memo.tracks.set(albumKey, out);
   return out;
+}
+
+/* Every album's played songs, from ONE walk of allPlays. Looking albums up one
+   at a time walked the whole library per album, so anything that scores a list
+   (the Awards picker's 60 rows, an artist's every album) paid for dozens of
+   full walks: about a second to open an artist picker at 80k plays. Same
+   result as the single-album walk: first play spells the title, plays counted. */
+function _rtTrackIndex(memo) {
+  if (memo.trackIdx) return memo.trackIdx;
+  const idx = new Map();
+  for (const p of allPlays) {
+    const ak = albumKeyOf(p);
+    let seen = idx.get(ak);
+    if (!seen) idx.set(ak, seen = new Map());
+    const k = songKey(p);
+    let e = seen.get(k);
+    if (!e) seen.set(k, e = { key: k, title: p.title, artist: p.artist, count: 0 });
+    e.count++;
+  }
+  return memo.trackIdx = idx;
 }
 
 // The headline album number.
@@ -58052,16 +58139,27 @@ function _ratingArtistKeys(artistName) {
   const memo = _rtMemoFresh();
   const hit  = memo.artistKeys.get(artistName);
   if (hit) return hit;
-  const albumKeys = new Set();
-  const songKeys  = new Set();
-  for (const p of allPlays) {
-    if (!p.artists.includes(artistName)) continue;
-    songKeys.add(songKey(p));
-    if (p.album && p.album !== '—') albumKeys.add(albumKeyOf(p));
-  }
-  const out = { albumKeys, songKeys };
+  const out = _rtArtistIndex(memo).get(artistName) || { albumKeys: new Set(), songKeys: new Set() };
   memo.artistKeys.set(artistName, out);
   return out;
+}
+
+// Every credited artist's songs and albums, from one walk of allPlays — the
+// same reason as _rtTrackIndex above
+function _rtArtistIndex(memo) {
+  if (memo.artistIdx) return memo.artistIdx;
+  const idx = new Map();
+  for (const p of allPlays) {
+    const sk = songKey(p);
+    const ak = (p.album && p.album !== '—') ? albumKeyOf(p) : null;
+    for (const a of (p.artists || [])) {
+      let e = idx.get(a);
+      if (!e) idx.set(a, e = { albumKeys: new Set(), songKeys: new Set() });
+      e.songKeys.add(sk);
+      if (ak) e.albumKeys.add(ak);
+    }
+  }
+  return memo.artistIdx = idx;
 }
 
 /* What a release counts as in ratings: 'album', 'single' or 'ep' (2026-10-28).
