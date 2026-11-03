@@ -38153,7 +38153,12 @@ function nsSyncMoreToggle() {
 // ─── STREAK HEATMAP STATE ─────────────────────────────────────
 let _skHmTheme = localStorage.getItem('sk-hm-theme') || 'ocean';
 let _skHmRange = 'year';
-let _skHmCount = {}, _skHmNames = {}, _skHmByType = {}, _skHmNamesByType = {};
+let _skHmCount = {}, _skHmByType = {};
+// Every streak run of 2+ days ({ type, key, name, sub, album, start, end, len, best }),
+// built in openStreakModal. The Calendar's day panel reads it to say which day of its
+// run each streak was on, how far it went, and which streaks ended that day.
+let _skRuns = [];
+let _skHmDayCache = new Map();   // ds → { running, fresh, lost } (see _skDayData)
 
 // ─── STREAK DETAILS MODAL ─────────────────────────────────────
 // opts.keep: re-render in place (live poll top-up) — keep the open tab and scroll
@@ -38257,24 +38262,28 @@ function openStreakModal(opts) {
   for (const [k, d] of Object.entries(albumDays)) albBest[k] = longestInSet(d);
 
   // ── Heatmap data ─────────────────────────────────────────────────
-  _skHmCount = {}; _skHmNames = {}; _skHmByType = {}; _skHmNamesByType = {};
-  function accHm(daySet, name, type) {
+  _skHmCount = {}; _skHmByType = {}; _skRuns = []; _skHmDayCache = new Map();
+  // One pass per day set: count each streak on day 2 onward of its run (as before)
+  // and keep the run itself for the day panel.
+  function accHm(daySet, type, key, name, sub, album, best) {
     const s = [...daySet].sort();
+    if (!s.length) return;
+    let start = s[0], len = 1;
+    const close = end => { if (len >= 2) _skRuns.push({ type, key, name, sub, album, start, end, len, best }); };
     for (let i = 1; i < s.length; i++) {
       const diff = Math.round((+new Date(s[i] + 'T12:00:00') - +new Date(s[i - 1] + 'T12:00:00')) / 86400000);
       if (diff === 1) {
+        len++;
         _skHmCount[s[i]] = (_skHmCount[s[i]] || 0) + 1;
-        (_skHmNames[s[i]] = _skHmNames[s[i]] || []).push(name);
         if (!_skHmByType[s[i]]) _skHmByType[s[i]] = { artist: 0, album: 0, song: 0 };
         _skHmByType[s[i]][type]++;
-        if (!_skHmNamesByType[s[i]]) _skHmNamesByType[s[i]] = { artist: [], song: [], album: [] };
-        _skHmNamesByType[s[i]][type].push(name);
-      }
+      } else { close(s[i - 1]); start = s[i]; len = 1; }
     }
+    close(s[s.length - 1]);
   }
-  for (const [a, d] of Object.entries(artistDays)) accHm(d, a, 'artist');
-  for (const [sk, d] of Object.entries(songDays)) accHm(d, songInfo[sk].title + ' · ' + songInfo[sk].artist, 'song');
-  for (const [ak, d] of Object.entries(albumDays)) accHm(d, albumInfo[ak].album + ' · ' + albumInfo[ak].artist, 'album');
+  for (const [a, d] of Object.entries(artistDays)) accHm(d, 'artist', a, a, '', '', artBest[a]);
+  for (const [sk, d] of Object.entries(songDays)) accHm(d, 'song', sk, songInfo[sk].title, songInfo[sk].artist, songInfo[sk].album, songBest[sk]);
+  for (const [ak, d] of Object.entries(albumDays)) accHm(d, 'album', ak, albumInfo[ak].album, albumInfo[ak].artist, albumInfo[ak].album, albBest[ak]);
 
   // ── Build enriched item ──────────────────────────────────────────
   function mkItem(name, sub, type, len, key, endD) {
@@ -40328,22 +40337,96 @@ let _skHmSel = '';
 function _skHmCnt(ds) {
   return _skHmType === 'all' ? (_skHmCount[ds] || 0) : ((_skHmByType[ds] || {})[_skHmType] || 0);
 }
-function _skHmNamesFor(ds, type) {
-  return ((_skHmNamesByType[ds] || {})[type]) || [];
+// ─── Calendar day panel ───────────────────────────────────────
+// What the panel under the grid shows for the chosen day: Running (every streak
+// alive that day, with the day of its run it was on), New (streaks on day 2 that
+// day) and Lost (streaks whose last day was the day before; on today these are
+// still savable, so they show as "At risk"). Split by artists, albums and songs,
+// with one-click Play / Queue / Save playlist / Copy tracklist for the list on screen.
+let _skHmView = (() => { try { const v = localStorage.getItem('sk-dd-view'); return ['running', 'fresh', 'lost'].includes(v) ? v : 'running'; } catch (e) { return 'running'; } })();
+let _skHmQ = '';                 // filter text in the day panel
+let _skHmOpenGrp = new Set();    // groups showing every row ("Show all")
+let _skHmList = [];              // songs behind the list on screen (Play / Save / Copy)
+let _skDdImgQ = [], _skDdImgSeq = 0;
+const SK_DD_MS = [7, 14, 30, 50, 100, 200, 365];
+
+function _skDsShift(ds, n) {
+  const d = new Date(ds + 'T12:00:00');
+  d.setDate(d.getDate() + n);
+  return localDateStr(d);
+}
+function _skDsDiff(a, b) {
+  return Math.round((+new Date(b + 'T12:00:00') - +new Date(a + 'T12:00:00')) / 86400000);
+}
+// Every run touching the day, sorted for display (cached; cleared on rebuild).
+function _skDayData(ds) {
+  let d = _skHmDayCache.get(ds);
+  if (d) return d;
+  const prev = _skDsShift(ds, -1);
+  const running = [], lost = [];
+  for (const r of _skRuns) {
+    if (r.start < ds && r.end >= ds) running.push({ r, day: _skDsDiff(r.start, ds) + 1 });
+    else if (r.end === prev) lost.push({ r, day: r.len });
+  }
+  running.sort((x, y) => y.day - x.day || y.r.len - x.r.len);
+  lost.sort((x, y) => y.r.len - x.r.len);
+  const fresh = running.filter(e => e.day === 2).sort((x, y) => y.r.len - x.r.len);
+  d = { running, fresh, lost };
+  if (_skHmDayCache.size > 60) _skHmDayCache.clear();
+  _skHmDayCache.set(ds, d);
+  return d;
+}
+// For artist and album streaks: the song played most for them on a day (the song
+// that kept the streak going). One scan of allPlays per day, cached.
+const _skDaySongCache = new Map();
+function _skDaySongs(ds) {
+  let m = _skDaySongCache.get(ds);
+  if (m) return m;
+  const art = new Map(), alb = new Map();
+  const bump = (map, k, p) => {
+    let inner = map.get(k); if (!inner) map.set(k, inner = new Map());
+    const sk = songKey(p);
+    const e = inner.get(sk) || { title: p.title, artist: p.artist, album: p.album && p.album !== '—' ? p.album : '', n: 0 };
+    e.n++; inner.set(sk, e);
+  };
+  for (const p of allPlays) {
+    if (dayStrOf(p) !== ds) continue;
+    for (const a of p.artists) bump(art, a, p);
+    if (p.album && p.album !== '—') bump(alb, albumKeyOf(p), p);
+  }
+  m = { art, alb };
+  if (_skDaySongCache.size > 30) _skDaySongCache.clear();
+  _skDaySongCache.set(ds, m);
+  return m;
+}
+// The song that stands for one streak in a playlist: the song itself, or the most
+// played song for the artist / album on the run's day (its last day, for lost ones).
+function _skRunSong(e, ds) {
+  const r = e.r;
+  if (r.type === 'song') return { title: r.name, artist: r.sub, album: r.album || '' };
+  const day = _skHmView === 'lost' ? r.end : ds;
+  const ds2 = _skDaySongs(day);
+  const inner = (r.type === 'artist' ? ds2.art : ds2.alb).get(r.key);
+  if (!inner) return null;
+  let best = null;
+  for (const v of inner.values()) if (!best || v.n > best.n) best = v;
+  return best;
 }
 
 function _skHmShowTip(cell, ev) {
   const ds = cell.dataset.ds;
   const cnt = +cell.dataset.cnt || 0;
   if (!cnt) return;
-  const names = _skHmType === 'all' ? (_skHmNames[ds] || []) : _skHmNamesFor(ds, _skHmType);
+  const dd = _skDayData(ds);
+  const pick = list => _skHmType === 'all' ? list : list.filter(e => e.r.type === _skHmType);
+  const run = pick(dd.running), lost = pick(dd.lost);
   const fmtDs = new Date(ds + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
-  const top6 = names.slice(0, 6);
-  const extra = names.length - top6.length;
+  const top6 = run.slice(0, 6);
+  const extra = run.length - top6.length;
   _skHmTip.innerHTML =
     `<div class="sk-hm-tip-date">${fmtDs}</div>` +
-    `<div class="sk-hm-tip-count">${esc(t('sk_hm_running', { n: cnt }))}</div>` +
-    (top6.length ? `<ul class="sk-hm-tip-list">${top6.map(n => `<li>${esc(n)}</li>`).join('')}${extra ? `<li class="sk-hm-tip-more">${esc(t('sk_more', { n: extra }))}</li>` : ''}</ul>` : '');
+    `<div class="sk-hm-tip-count">${esc(t('sk_hm_running', { n: cnt }))}${lost.length ? ` · <span class="sk-hm-tip-lost">${esc(t('sk_dd_tip_lost', { n: lost.length }))}</span>` : ''}</div>` +
+    (top6.length ? `<ul class="sk-hm-tip-list">${top6.map(e => `<li><b>${e.day}d</b> ${esc(e.r.name)}</li>`).join('')}${extra ? `<li class="sk-hm-tip-more">${esc(t('sk_more', { n: extra }))}</li>` : ''}</ul>` : '');
   _skHmTip.style.display = 'block';
   const cx = ev.clientX != null ? ev.clientX : ev.pageX - window.scrollX;
   const cy = ev.clientY != null ? ev.clientY : ev.pageY - window.scrollY;
@@ -40354,36 +40437,202 @@ function _skHmShowTip(cell, ev) {
   _skHmTip.style.left = l + 'px'; _skHmTip.style.top = top + 'px';
 }
 
-// The panel under the grid: every streak running on the chosen day, grouped by
-// type (only the chosen type when the switch isn't on All).
+// One row: cover, name, a bar of the whole run filled up to this day, and the
+// day number in the run's tier colour. ▶ plays the song that stands for it.
+function _skDdRowHtml(e, ds, song) {
+  const r = e.r, lost = _skHmView === 'lost';
+  const today = localDateStr(tzNow()), yest = _skDsShift(today, -1);
+  const tier = _skTier(lost ? r.len : e.day);
+  const imgId = 'sk-dd-img-' + (++_skDdImgSeq);
+  const img = r.type === 'artist'
+    ? { imgId, name: r.name, prefKey: 'artist:' + r.name.toLowerCase() }
+    : r.type === 'album'
+      ? { imgId, album: r.name, artist: r.sub, name: r.name, prefKey: 'album:' + r.sub.toLowerCase() + '|||' + r.name.toLowerCase() }
+      : { imgId, title: r.name, artist: r.sub, album: r.album || '', name: r.name, prefKey: 'song:' + r.sub.toLowerCase() + '|||' + r.name.toLowerCase() };
+  img._kind = r.type;
+  _skDdImgQ.push(img);
+  const fmt = x => new Date(x + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: x.slice(0, 4) === today.slice(0, 4) ? undefined : 'numeric' });
+  const pct = Math.max(4, Math.round(e.day / r.len * 100));
+  // Meta line: where the run stood that day, how it ended, and its dates.
+  const bits = [];
+  if (lost) bits.push(t(r.end === yest ? 'sk_dd_needs' : 'sk_dd_ended', { n: r.len }));
+  else bits.push(t('sk_dd_day', { n: e.day }), r.end === today ? t('sk_dd_still', { n: r.len }) : (r.len > e.day ? t('sk_dd_went_on', { n: r.len }) : t(r.end === yest ? 'sk_dd_risk_now' : 'sk_dd_last_day')));
+  bits.push(`${fmt(r.start)} – ${r.end === today ? t('sk_dd_now') : fmt(r.end)}`);
+  let tag = '';
+  if (r.best && r.len >= r.best && r.len >= 7) tag = `<span class="sk-dd-tag sk-dd-tag--best">🏆 ${esc(t('sk_dd_best'))}</span>`;
+  else if (!lost && SK_DD_MS.includes(e.day)) tag = `<span class="sk-dd-tag">🎯 ${esc(t('sk_dd_ms', { n: e.day }))}</span>`;
+  else if (lost) { const m = SK_DD_MS.find(x => x > r.len); if (m && m - r.len <= 3) tag = `<span class="sk-dd-tag sk-dd-tag--close">${esc(t('sk_short_of', { n: m - r.len, m }))}</span>`; }
+  const ea = r.type === 'artist' ? _eaAttrs('artists', { title: r.name, artist: r.name, key: r.key, imgId })
+    : r.type === 'album' ? _eaAttrs('albums', { title: r.name, artist: r.sub, album: r.name, key: r.key, imgId })
+    : _eaAttrs('songs', { title: r.name, artist: r.sub, album: r.album || '', key: r.key, imgId });
+  const playLbl = song ? t('sk_play_title', { song: song.title }) : '';
+  const alive = r.end === today;
+  return `<div class="sk-dd-row sk-t-${tier.key}${lost ? ' sk-dd-row--lost' : ''}${alive ? ' sk-dd-row--alive' : ''}" data-s="${r.start}" data-e="${r.end}"${ea}>` +
+    `<span class="sk-art${r.type === 'artist' ? ' sk-art--round' : ''}"><span id="${imgId}" class="sk-art-in"><span class="thumb-initials">${esc(initials(r.name))}</span></span></span>` +
+    `<div class="sk-dd-main">` +
+      `<div class="sk-dd-nm"><span class="sk-dd-t">${esc(r.name)}</span>${r.sub ? `<span class="sk-dd-sub">${esc(r.sub)}</span>` : ''}</div>` +
+      `<div class="sk-dd-bar" aria-hidden="true"><i style="width:${lost ? 100 : pct}%"></i></div>` +
+      `<div class="sk-dd-meta"><span>${bits.map(esc).join(' · ')}</span>${tag}</div>` +
+    `</div>` +
+    `<div class="sk-dd-num" title="${esc(lost ? t('sk_dd_ended', { n: r.len }) : t('sk_dd_day', { n: e.day }))}">${lost ? r.len : e.day}<small>d</small></div>` +
+    `<div class="sk-dd-btns">` +
+      (song ? `<button type="button" class="sk-play" onclick="event.stopPropagation();_ytStreakPlay(${esc(JSON.stringify(song.title))},${esc(JSON.stringify(song.artist))})" title="${esc(playLbl)}" aria-label="${esc(playLbl)}">${SK_PLAY_SVG}</button>` : '') +
+      _eaMoreBtn() +
+    `</div>` +
+  `</div>`;
+}
+
+// The panel under the grid for the chosen day.
 function _skHmShowDrill(ds) {
   const drill = document.getElementById('skHmDrill');
   if (!drill) return;
+  if ((ds || '') !== _skHmSel) _skHmOpenGrp = new Set();
   _skHmSel = ds || '';
   document.querySelectorAll('#skTabHeatmap .sk-hm-sel').forEach(c => c.classList.remove('sk-hm-sel'));
-  const cnt = ds ? _skHmCnt(ds) : 0;
-  if (!cnt) { drill.innerHTML = `<div class="sk-hm-drill-hint">${esc(t('sk_hm_click'))}</div>`; return; }
+  if (!ds) { drill.innerHTML = `<div class="sk-hm-drill-hint">${esc(t('sk_hm_click'))}</div>`; return; }
   document.querySelector(`#skTabHeatmap .sk-hm-cell[data-ds="${ds}"]`)?.classList.add('sk-hm-sel');
+  const today = localDateStr(tzNow());
+  const dd = _skDayData(ds);
+  const ofType = list => _skHmType === 'all' ? list : list.filter(e => e.r.type === _skHmType);
+  const lists = { running: ofType(dd.running), fresh: ofType(dd.fresh), lost: ofType(dd.lost) };
+  const lostLbl = ds === today ? 'sk_dd_risk' : 'sk_dd_lost';
   const fmtDs = new Date(ds + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+
+  // Header: ‹ date › and the three views with their counts
+  const nav = (dir, lbl, off) => `<button type="button" class="sk-dd-nav" onclick="_skHmStep(${dir})" title="${esc(t(lbl))}" aria-label="${esc(t(lbl))}"${off ? ' disabled' : ''}>${dir < 0 ? '‹' : '›'}</button>`;
+  const views = [['running', 'sk_dd_running'], ['fresh', 'sk_dd_new'], ['lost', lostLbl]];
+  const seg = `<div class="dc-seg sk-seg sk-dd-views" role="group">` + views.map(([k, l]) =>
+    `<button type="button" class="sk-seg-btn sk-dd-v--${k}${_skHmView === k ? ' active' : ''}" aria-pressed="${_skHmView === k}" onclick="_skHmSetView('${k}')">${esc(t(l))} <span class="sk-seg-ct">${lists[k].length}</span></button>`).join('') + `</div>`;
+
+  // Rows for the chosen view, filtered by the text box
+  const q = _skHmQ.trim().toLowerCase();
+  const list = lists[_skHmView].filter(e => !q || e.r.name.toLowerCase().includes(q) || e.r.sub.toLowerCase().includes(q));
+  _skDdImgQ = [];
+  _skHmList = [];
+  const seen = new Set();
+  const songFor = new Map();
+  for (const e of list) {
+    const s = _skRunSong(e, ds);
+    songFor.set(e, s);
+    if (s) { const k = s.title.toLowerCase() + '|' + s.artist.toLowerCase(); if (!seen.has(k)) { seen.add(k); _skHmList.push(s); } }
+  }
   const types = _skHmType === 'all' ? ['artist', 'album', 'song'] : [_skHmType];
-  const SHOW = 40;
+  const CAP = _skHmType === 'all' ? 5 : 25;
+  let body = '';
+  for (const tp of types) {
+    const rows = list.filter(e => e.r.type === tp);
+    if (!rows.length) continue;
+    const open = q || _skHmOpenGrp.has(tp) || rows.length <= CAP + 1;
+    const shown = open ? rows : rows.slice(0, CAP);
+    body += `<section class="sk-dd-grp sk-dd-grp--${tp}">` +
+      `<div class="sk-dd-grp-h">${SK_TYPE_SVG[tp]}<span>${esc(t('sk_fire_' + tp))}</span><b>${rows.length}</b></div>` +
+      shown.map(e => _skDdRowHtml(e, ds, songFor.get(e))).join('') +
+      (rows.length > CAP + 1 && !q ? `<button type="button" class="sk-dd-more" onclick="_skHmToggleGrp('${tp}')">${esc(open ? t('sk_dd_show_less') : t('sk_dd_show_all', { n: rows.length }))}</button>` : '') +
+      `</section>`;
+  }
+  if (!body) body = `<div class="sk-dd-empty">${esc(t(q ? 'sk_dd_no_match' : ('sk_dd_none_' + (_skHmView === 'lost' && ds === today ? 'risk' : _skHmView))))}</div>`;
+
+  const ic = (fn, lbl, svg) => `<button type="button" class="sk-plan-ic" onclick="${fn}" title="${esc(lbl)}" aria-label="${esc(lbl)}">${svg}</button>`;
+  const bar = _skHmList.length
+    ? `<div class="sk-plan-bar sk-dd-actions">` +
+        `<button type="button" class="sk-plan-playall" onclick="_skHmPlay('play')" title="${esc(t('sk_dd_pl_tip'))}">${esc(t('sk_play_n', { n: _skHmList.length }))}</button>` +
+        ic("_skHmPlay('queue')", t('sk_dd_queue'), '<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M2 4h9M2 8h9M2 12h5"/><path d="M12.5 9.5v5M10 12h5"/></svg>') +
+        ic("_skHmPlay('save')", t('sk_dd_save'), '<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 2h8v12l-4-3-4 3z"/></svg>') +
+        ic("_skHmPlay('copy')", t('sk_dd_copy'), '<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="8.5" height="9" rx="1.5"/><path d="M3 10.5V3.5A1.5 1.5 0 0 1 4.5 2H10"/></svg>') +
+      `</div>`
+    : '';
+
+  // Keep focus in the filter box across the redraw
+  const hadFocus = document.activeElement && document.activeElement.id === 'skDdFilter';
+  const caret = hadFocus ? document.activeElement.selectionStart : 0;
   drill.innerHTML =
-    `<div class="sk-hm-drill-hdr">${esc(fmtDs)} · <b>${esc(t('sk_hm_running', { n: cnt }))}</b></div>` +
-    types.map(tp => {
-      const names = _skHmNamesFor(ds, tp);
-      if (!names.length) return '';
-      return `<div class="sk-hm-drill-grp"><div class="sk-hm-drill-h">${esc(t('sk_fire_' + tp))} <span>${names.length}</span></div>` +
-        `<div class="sk-hm-drill-chips">${names.slice(0, SHOW).map(n => `<span class="sk-hm-chip sk-hm-chip--${tp}">${esc(n)}</span>`).join('')}` +
-        (names.length > SHOW ? `<span class="sk-hm-chip sk-hm-chip--more">${esc(t('sk_more', { n: names.length - SHOW }))}</span>` : '') + `</div></div>`;
-    }).join('');
+    `<div class="sk-dd-head">` +
+      nav(-1, 'sk_dd_prev', false) +
+      `<div class="sk-dd-date"><div class="sk-dd-dow">${esc(fmtDs)}</div><div class="sk-dd-sum">${esc(t('sk_hm_running', { n: lists.running.length }))}${lists.lost.length ? ' · ' + esc(t(ds === today ? 'sk_dd_tip_risk' : 'sk_dd_tip_lost', { n: lists.lost.length })) : ''}</div></div>` +
+      nav(1, 'sk_dd_next', ds >= today) +
+    `</div>` +
+    `<div class="sk-dd-tools">${seg}<input id="skDdFilter" class="sk-dd-filter" type="search" placeholder="${esc(t('sk_dd_filter'))}" aria-label="${esc(t('sk_dd_filter'))}" value="${esc(_skHmQ)}" oninput="_skHmSetQ(this.value)"></div>` +
+    bar + `<div class="sk-dd-list">${body}</div>`;
+  if (hadFocus) { const f = document.getElementById('skDdFilter'); f.focus(); try { f.setSelectionRange(caret, caret); } catch (er) {} }
+  ['song', 'album', 'artist'].forEach(kind => {
+    const items = _skDdImgQ.filter(i => i._kind === kind);
+    if (items.length) loadImages(items, kind);
+  });
+}
+function _skHmSetView(v) {
+  _skHmView = v;
+  try { localStorage.setItem('sk-dd-view', v); } catch (e) {}
+  _skHmOpenGrp = new Set();
+  _skHmShowDrill(_skHmSel);
+}
+function _skHmSetQ(v) { _skHmQ = v; _skHmShowDrill(_skHmSel); }
+function _skHmToggleGrp(tp) {
+  if (_skHmOpenGrp.has(tp)) _skHmOpenGrp.delete(tp); else _skHmOpenGrp.add(tp);
+  _skHmShowDrill(_skHmSel);
+}
+// ‹ › step one day (never past today); the grid's outline follows if the day is on it.
+function _skHmStep(dir) {
+  if (!_skHmSel) return;
+  const next = _skDsShift(_skHmSel, dir);
+  if (next > localDateStr(tzNow())) return;
+  _skHmShowDrill(next);
+}
+// Light up the days of a row's run on the grid while it is hovered or focused.
+function _skHmMarkRun(row) {
+  const s = row ? row.dataset.s : '', e = row ? row.dataset.e : '';
+  document.querySelectorAll('#skTabHeatmap .sk-hm-cell[data-ds]').forEach(c =>
+    c.classList.toggle('sk-hm-inrun', !!row && c.dataset.ds >= s && c.dataset.ds <= e));
+}
+// Play / queue / save as playlist / copy as tracklist: one song per streak on screen.
+function _skHmPlay(mode) {
+  const songs = _skHmList.slice();
+  if (!songs.length) return;
+  if (mode === 'play') {
+    const [first, ...rest] = songs;
+    openYtPlayer(first.title, first.artist, first.album || '', null);
+    rest.forEach(s => _ytQueue.push({ title: s.title, artist: s.artist, album: s.album || '', btn: null }));
+    _ytUpdateQueueDisplay(); _ytSaveQueue();
+    return;
+  }
+  if (mode === 'queue') {
+    songs.forEach(s => _ytQueue.push({ title: s.title, artist: s.artist, album: s.album || '', btn: null }));
+    _ytUpdateQueueDisplay(); _ytSaveQueue();
+    _eaQueueToast(t('sk_dd_queued', { n: songs.length }), true);
+    return;
+  }
+  const today = localDateStr(tzNow());
+  const dateLabel = new Date(_skHmSel + 'T12:00:00').toLocaleDateString(hmLocale(), { month: 'short', day: 'numeric', year: 'numeric' });
+  const viewKey = _skHmView === 'lost' && _skHmSel === today ? 'risk' : _skHmView;
+  const name = t('sk_dd_pl_' + viewKey, { date: dateLabel });
+  const mapped = songs.map(s => ({ title: s.title, artist: s.artist, album: s.album || '' }));
+  if (mode === 'save') {
+    // Reuses the calendar create-playlist window, like the Today tab's save plan
+    _calCreatePlTracks = mapped;
+    const subEl = document.getElementById('calCreatePlSub');
+    if (subEl) subEl.textContent = tCount('songs', songs.length) + ' · ' + name;
+    const nameInput = document.getElementById('calCreatePlName');
+    if (nameInput) nameInput.value = name;
+    const modal = document.getElementById('calCreatePlModal');
+    if (modal) { modal.classList.add('open'); setTimeout(() => nameInput && nameInput.select(), 80); }
+    return;
+  }
+  // copy: Artist - Title per line (Soundiiz), then the export window to name it
+  navigator.clipboard.writeText(mapped.map(s => `${s.artist} - ${s.title}`).join('\n')).catch(() => {});
+  _exportSongsOverride = mapped;
+  _exportShow(mapped, `${tCount('songs', songs.length)} · ${name}`, [name]);
+  _exportFlashCopied();
 }
 
 function _skHmOnMouseover(e) {
+  // A row in the day panel lights up its whole run on the grid instead
+  const row = e.target.closest('.sk-dd-row');
+  if (row) { _skHmTip.style.display = 'none'; _skHmMarkRun(row); return; }
   const cell = e.target.closest('.sk-hm-has');
   if (!cell) { _skHmTip.style.display = 'none'; return; }
   _skHmShowTip(cell, e);
 }
 function _skHmOnMouseout(e) {
+  if (e.target.closest('.sk-dd-row') && !e.relatedTarget?.closest('.sk-dd-row')) _skHmMarkRun(null);
   if (!e.relatedTarget?.closest('#skTabHeatmap')) _skHmTip.style.display = 'none';
 }
 function _skHmOnClick(e) {
