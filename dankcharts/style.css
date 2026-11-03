@@ -44229,11 +44229,22 @@ body.green-light .sk-hm-tswatch.active { border-color: var(--text); }
 .sk-dd-nm { display: flex; align-items: baseline; gap: 0.4rem; min-width: 0; }
 .sk-dd-t { font-size: var(--fs-sm); font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 0 1 auto; }
 .sk-dd-sub { font-size: 0.72rem; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1 1 0; }
-/* The run as a bar: filled up to the chosen day, the faint rest is what came after */
-.sk-dd-bar { position: relative; height: 4px; margin: 0.3rem 0 0.25rem; border-radius: 99px; background: color-mix(in srgb, var(--sk-tier) 18%, transparent); overflow: hidden; }
-.sk-dd-bar > i { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: var(--sk-tier); }
-.sk-dd-row--alive .sk-dd-bar { box-shadow: 0 0 0 1px color-mix(in srgb, var(--sk-tier) 30%, transparent); }
-.sk-dd-row--lost .sk-dd-bar > i { background: color-mix(in srgb, var(--sk-tier) 55%, var(--text3)); }
+/* The run as small square cells, calendar-style (see _skDdCellsHtml): filled =
+   days up to the chosen day, hollow = days the run still had ahead, outlined =
+   the chosen day, ✕ = the day a lost streak broke, glow = still going today. */
+.sk-dd-cells { display: flex; flex-wrap: wrap; gap: 2px; margin: 0.32rem 0 0.28rem; }
+.sk-dd-cells i { width: 7px; height: 7px; border-radius: 1.5px; flex-shrink: 0; }
+.sk-dd-cells i.on { background: var(--sk-tier); }
+.sk-dd-cells i.ahead { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sk-tier) 45%, transparent); }
+.sk-dd-cells i.sel { outline: 1px solid var(--text); outline-offset: 1px; }
+.sk-dd-cells i.live { box-shadow: 0 0 5px color-mix(in srgb, var(--sk-tier) 80%, transparent); }
+.sk-dd-cells i.ahead.live { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sk-tier) 45%, transparent), 0 0 5px color-mix(in srgb, var(--sk-tier) 80%, transparent); }
+.sk-dd-row--lost .sk-dd-cells i.on { background: color-mix(in srgb, var(--sk-tier) 50%, var(--text3)); }
+.sk-dd-cells i.broke {
+  margin-left: 2px; position: relative;
+  background: linear-gradient(45deg, transparent 42%, var(--rose) 42%, var(--rose) 58%, transparent 58%),
+              linear-gradient(-45deg, transparent 42%, var(--rose) 42%, var(--rose) 58%, transparent 58%);
+}
 .sk-dd-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.2rem 0.45rem; font-size: 0.7rem; color: var(--text3); line-height: 1.35; }
 .sk-dd-tag { white-space: nowrap; color: var(--text2); font-weight: 600; }
 .sk-dd-tag--best { color: var(--sk-tier); }

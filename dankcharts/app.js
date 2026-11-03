@@ -40437,7 +40437,25 @@ function _skHmShowTip(cell, ev) {
   _skHmTip.style.left = l + 'px'; _skHmTip.style.top = top + 'px';
 }
 
-// One row: cover, name, a bar of the whole run filled up to this day, and the
+// The run as a strip of small square cells (calendar-style, so it reads as past
+// days, unlike the tall orange ticks on Today): filled up to the chosen day, hollow
+// for the days the run still had ahead of it, the chosen day outlined, a ✕ cell for
+// the day a lost streak broke, and a glowing last cell when it is still going.
+// Runs longer than 30 days are shown as 30 cells, each covering a few days.
+function _skDdCellsHtml(r, day, lost, alive) {
+  const N = Math.min(r.len, 30), per = r.len / N;
+  const selCell = Math.min(N - 1, Math.floor((day - 1) / per));
+  let h = '';
+  for (let i = 0; i < N; i++) {
+    const cls = lost ? 'on' : (i <= selCell ? 'on' : 'ahead');
+    h += `<i class="${cls}${!lost && i === selCell ? ' sel' : ''}${alive && i === N - 1 ? ' live' : ''}"></i>`;
+  }
+  if (lost) h += '<i class="broke"></i>';
+  const lbl = per > 1 ? t('sk_dd_cells_scale', { n: Math.round(per * 10) / 10 }) : '';
+  return `<div class="sk-dd-cells"${lbl ? ` title="${esc(lbl)}"` : ''} aria-hidden="true">${h}</div>`;
+}
+
+// One row: cover, name, the run as a strip of cells up to this day, and the
 // day number in the run's tier colour. ▶ plays the song that stands for it.
 function _skDdRowHtml(e, ds, song) {
   const r = e.r, lost = _skHmView === 'lost';
@@ -40452,7 +40470,6 @@ function _skDdRowHtml(e, ds, song) {
   img._kind = r.type;
   _skDdImgQ.push(img);
   const fmt = x => new Date(x + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: x.slice(0, 4) === today.slice(0, 4) ? undefined : 'numeric' });
-  const pct = Math.max(4, Math.round(e.day / r.len * 100));
   // Meta line: where the run stood that day, how it ended, and its dates.
   const bits = [];
   if (lost) bits.push(t(r.end === yest ? 'sk_dd_needs' : 'sk_dd_ended', { n: r.len }));
@@ -40471,7 +40488,7 @@ function _skDdRowHtml(e, ds, song) {
     `<span class="sk-art${r.type === 'artist' ? ' sk-art--round' : ''}"><span id="${imgId}" class="sk-art-in"><span class="thumb-initials">${esc(initials(r.name))}</span></span></span>` +
     `<div class="sk-dd-main">` +
       `<div class="sk-dd-nm"><span class="sk-dd-t">${esc(r.name)}</span>${r.sub ? `<span class="sk-dd-sub">${esc(r.sub)}</span>` : ''}</div>` +
-      `<div class="sk-dd-bar" aria-hidden="true"><i style="width:${lost ? 100 : pct}%"></i></div>` +
+      _skDdCellsHtml(r, e.day, lost, alive) +
       `<div class="sk-dd-meta"><span>${bits.map(esc).join(' · ')}</span>${tag}</div>` +
     `</div>` +
     `<div class="sk-dd-num" title="${esc(lost ? t('sk_dd_ended', { n: r.len }) : t('sk_dd_day', { n: e.day }))}">${lost ? r.len : e.day}<small>d</small></div>` +
