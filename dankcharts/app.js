@@ -39878,6 +39878,7 @@ function openStreakModal(opts) {
     _skHmPane.addEventListener('mouseout', _skHmOnMouseout);
     _skHmPane.addEventListener('click', _skHmOnClick);
     _skHmPane.addEventListener('touchend', _skHmOnTouchend, { passive: false });
+    _skHmPane.addEventListener('wheel', _skHmOnWheel, { passive: false });
   }
 
   document.getElementById('streakModal').classList.add('open');
@@ -40663,6 +40664,22 @@ function _skHmOnTouchend(e) {
   e.preventDefault();
   _skHmTip.style.display = 'none';
   _skHmShowDrill(cell.dataset.ds); // on touch the panel does the tooltip's job
+}
+
+// Mouse wheel over the heatmap scrolls it sideways (computers have no sideways
+// swipe). Only while the grid can still move that way — at either end the wheel
+// scrolls the window as usual, so the page never feels stuck. A trackpad's own
+// sideways swipe (deltaX) is left alone.
+function _skHmOnWheel(e) {
+  const sc = e.target.closest('.sk-hm-scroll');
+  if (!sc || e.ctrlKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+  const max = sc.scrollWidth - sc.clientWidth;
+  if (max <= 0) return;
+  const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
+  if ((dy < 0 && sc.scrollLeft <= 0) || (dy > 0 && sc.scrollLeft >= max - 1)) return;
+  e.preventDefault();
+  _skHmTip.style.display = 'none';
+  sc.scrollLeft += dy;
 }
 
 function _skHmAnimate() {
