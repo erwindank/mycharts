@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 457;
+const DC_CL_I18N_V = 458;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -326,6 +326,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-03', t: 'improvement', a: 'streaks', h: 'cc5227f',
+    title: "Daily Streaks Calendar: see every streak on any day, and the ones you lost",
+    detail: "Click a day on the Calendar tab of the Daily Streaks window and the panel under it now lists that day's streaks properly, split into artists, albums and songs. Switch between Running, New (streaks on their second day) and Lost (streaks that ended the day before; on today this shows what is still at risk). Each row has its cover, the day of the streak it was on, a bar showing how far the streak went in the end, its dates, and a trophy when it was the longest ever. Hover a row to see its whole run on the calendar. Step through days with the arrows, filter by name, and play, queue, save or copy any list as a playlist: one song per streak, with artists and albums using the song you played most for them that day." },
   { d: '2026-11-02', t: 'feature', a: 'charts', h: 'be94eca',
     title: "Export The Dank 100 as a playlist",
     detail: "The Dank 100 has a new Export playlist button next to Share top 10. On Songs it exports the week's chart. On Artists you get each artist's top 2 songs, and on Albums the top 2 songs of each album: songs that are on that week's Dank 100 come first, and the rest are filled in with the most popular songs on Deezer, with no song added twice. Copy the list or download it, then import it into Spotify, Apple Music and more." },

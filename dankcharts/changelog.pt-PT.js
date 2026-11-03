@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Daily Streaks Calendar: see every streak on any day, and the ones you lost":
+    ["Calendário das Sequências diárias: vê cada sequência de qualquer dia e as que perdeste",
+     "Clica num dia do separador Calendário das Sequências diárias e o painel por baixo mostra agora as sequências desse dia como deve ser, separadas em artistas, álbuns e músicas. Alterna entre A decorrer, Novas (sequências no segundo dia) e Perdidas (sequências que terminaram no dia anterior; no dia de hoje mostra o que ainda está em risco). Cada linha tem a capa, o dia da sequência em que estava, uma barra com até onde a sequência chegou no fim, as datas e um troféu quando foi a mais longa. Passa o rato por uma linha para ver a sequência inteira no calendário. Avança dia a dia com as setas, filtra por nome e toca, põe na fila, guarda ou copia qualquer lista como playlist: uma música por sequência, e para artistas e álbuns a música que mais ouviste deles nesse dia."],
   "Export The Dank 100 as a playlist":
     ["Exporte o The Dank 100 como playlist",
      "O The Dank 100 tem um novo botão Exportar playlist ao lado de Partilhar top 10. Em Músicas exporta o top da semana. Em Artistas recebe as 2 melhores músicas de cada artista, e em Álbuns as 2 melhores de cada álbum: primeiro as que estão no The Dank 100 nessa semana, e o resto é completado com as mais populares no Deezer, sem repetir nenhuma. Copie a lista ou descarregue-a e importe-a no Spotify, Apple Music e outros."],

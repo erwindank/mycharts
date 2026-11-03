@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Daily Streaks Calendar: see every streak on any day, and the ones you lost":
+    ["Calendario de Rachas diarias: mira cada racha de cualquier día y las que perdiste",
+     "Haz clic en un día de la pestaña Calendario de Rachas diarias y el panel de abajo ahora muestra las rachas de ese día como es debido, separadas en artistas, álbumes y canciones. Cambia entre En curso, Nuevas (rachas en su segundo día) y Perdidas (rachas que terminaron el día anterior; en el día de hoy muestra lo que sigue en riesgo). Cada fila tiene su portada, el día de la racha en que estaba, una barra con hasta dónde llegó la racha al final, sus fechas y un trofeo cuando fue la más larga. Pasa el ratón por una fila para ver toda la racha en el calendario. Avanza de día en día con las flechas, filtra por nombre y reproduce, pon en cola, guarda o copia cualquier lista como playlist: una canción por racha, y para artistas y álbumes la canción que más escuchaste de ellos ese día."],
   "Export The Dank 100 as a playlist":
     ["Exporta The Dank 100 como playlist",
      "The Dank 100 tiene un nuevo botón Exportar playlist junto a Compartir top 10. En Canciones exporta el ranking de la semana. En Artistas obtienes las 2 mejores canciones de cada artista, y en Álbumes las 2 mejores de cada álbum: primero las que están en The Dank 100 esa semana y el resto se completa con las más populares en Deezer, sin repetir ninguna. Copia la lista o descárgala e impórtala en Spotify, Apple Music y más."],
