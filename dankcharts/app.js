@@ -41977,6 +41977,9 @@ function _awardsSaveLookupCaches() {
 // --- Nominee picker state (all reset every time the modal opens) ---
 let _awardsPickerSel      = [];        // ordered list of chosen nominees (order = display order)
 let _awardsPickerSelKeys  = new Set(); // _awardItemKey() of everything in _awardsPickerSel, for O(1) lookups
+let _awardsPickerStartSig = '';        // the ballot as it was on open (keys in order), to spot unsaved changes
+let _awardsPickerBgDown   = false;     // the press began on the dark backdrop, not inside the window
+let _awardsPickerAskOk    = null;      // what the open warning window's red button does
 let _awardsPickerCatType  = '';
 let _awardsPickerCatFilter = '';
 let _awardsPickerEligWin  = { start: '', end: '' };
@@ -47672,6 +47675,8 @@ function _awardsShowPicker(year, catId, candidates) {
   const existingNominees = data.categories[catId]?.nominees || [];
   _awardsPickerSel       = existingNominees.slice();
   _awardsPickerSelKeys   = new Set(_awardsPickerSel.map(_awardItemKey));
+  _awardsPickerStartSig  = _awardsPickerSig();
+  _awardsPickerBgDown    = false;
   _awardsPickerCatType   = catDef.type;
   _awardsPickerCatFilter = catDef.filter || '';
   _awardsPickerEligWin   = { start: data.eligStart, end: data.eligEnd };
@@ -47686,13 +47691,13 @@ function _awardsShowPicker(year, catId, candidates) {
   _awardsPickerCtx = { year, catId, typeLabel };
   _awardsPickerBuildIndex();
 
-  const html = `<div class="awards-picker-overlay" id="awardsPickerOverlay" onclick="awardsPickerBgClick(event)">
+  const html = `<div class="awards-picker-overlay" id="awardsPickerOverlay" onmousedown="awardsPickerBgDown(event)" onclick="awardsPickerBgClick(event)">
     <div class="dc-modal awards-picker-modal">
       <div class="awards-picker-head">
         <span class="awards-picker-eyebrow">${year} · ${typeLabel}</span>
         <span class="awards-picker-title">${esc(t('awards_cat_' + catDef.id))}</span>
         ${_awardsFavBtn(catDef.id, 'awards-picker-fav')}
-        <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close awards-picker-close" onclick="awardsPickerClose()" aria-label="Close" data-i18n-aria="set_close">✕</button>
+        <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close awards-picker-close" onclick="awardsPickerTryClose()" aria-label="Close" data-i18n-aria="set_close">✕</button>
       </div>
       <div class="awards-picker-ballot">
         <div class="awards-picker-ballot-head">
@@ -47748,7 +47753,7 @@ function _awardsShowPicker(year, catId, candidates) {
       else if (e.key !== 'Enter' && e.key !== ' ') e.preventDefault();
       return;
     }
-    if (e.key === 'Escape') { e.preventDefault(); awardsPickerClose(); return; }
+    if (e.key === 'Escape') { e.preventDefault(); awardsPickerTryClose(); return; }
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); awardsPickerSave(year, catId); return; }
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
       if (!_awardsPickerRows.length) return;
@@ -47810,25 +47815,46 @@ function awardsPickerRemoveNom(btn) {
    picker takes it along. Cancel has focus, so a reflex Enter is the safe answer. */
 function awardsPickerClearSel() {
   const n = _awardsPickerSel.length;
-  const overlay = document.getElementById('awardsPickerOverlay');
-  if (!n || !overlay || document.getElementById('awardsPickerConfirm')) return;
+  if (!n) return;
   const catName = _awardsPickerCtx ? t('awards_cat_' + _awardsPickerCtx.catId) : '';
+  _awardsPickerAsk({
+    title: 'Remove all nominees?',
+    text: `This takes all <strong>${n}</strong> nominee${n === 1 ? '' : 's'} off ${catName ? `<strong>${esc(catName)}</strong>` : 'this category'}. Nothing is saved until you press Save Nominees, so closing the picker without saving keeps your current ballot.`,
+    cancel: 'Cancel',
+    ok: 'Remove all',
+    onOk: awardsPickerClearConfirm,
+  });
+}
+
+/* The picker's warning window, shared by "Remove all" and "Close without
+   saving". `text` is HTML, so callers esc() anything that came from data.
+   Cancel has focus and the red button runs `onOk`. */
+function _awardsPickerAsk({ title, text, cancel, ok, onOk }) {
+  const overlay = document.getElementById('awardsPickerOverlay');
+  if (!overlay || document.getElementById('awardsPickerConfirm')) return;
+  _awardsPickerAskOk = onOk;
   const wrap = document.createElement('div');
   wrap.innerHTML = `<div class="awards-picker-confirm" id="awardsPickerConfirm" onclick="if(event.target===this)awardsPickerClearCancel()">
     <div class="dc-modal awards-picker-confirm-box" role="alertdialog" aria-modal="true" aria-labelledby="awardsPickerConfirmTitle" aria-describedby="awardsPickerConfirmText">
       <div class="awards-picker-confirm-icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       </div>
-      <div class="awards-picker-confirm-title" id="awardsPickerConfirmTitle">Remove all nominees?</div>
-      <div class="awards-picker-confirm-text" id="awardsPickerConfirmText">This takes all <strong>${n}</strong> nominee${n === 1 ? '' : 's'} off ${catName ? `<strong>${esc(catName)}</strong>` : 'this category'}. Nothing is saved until you press Save Nominees, so closing the picker without saving keeps your current ballot.</div>
+      <div class="awards-picker-confirm-title" id="awardsPickerConfirmTitle">${esc(title)}</div>
+      <div class="awards-picker-confirm-text" id="awardsPickerConfirmText">${text}</div>
       <div class="awards-picker-confirm-actions">
-        <button type="button" class="dc-btn dc-btn-normal awards-picker-confirm-cancel" onclick="awardsPickerClearCancel()">Cancel</button>
-        <button type="button" class="dc-btn dc-btn-plain dc-btn-danger awards-picker-confirm-ok" onclick="awardsPickerClearConfirm()">Remove all</button>
+        <button type="button" class="dc-btn dc-btn-normal awards-picker-confirm-cancel" onclick="awardsPickerClearCancel()">${esc(cancel)}</button>
+        <button type="button" class="dc-btn dc-btn-plain dc-btn-danger awards-picker-confirm-ok" onclick="awardsPickerAskOk()">${esc(ok)}</button>
       </div>
     </div>
   </div>`;
   overlay.appendChild(wrap.firstElementChild);
   document.querySelector('#awardsPickerConfirm .awards-picker-confirm-cancel')?.focus();
+}
+
+function awardsPickerAskOk() {
+  const fn = _awardsPickerAskOk;
+  _awardsPickerAskOk = null;
+  if (fn) fn();
 }
 
 // Keep Tab cycling between the warning's two buttons
@@ -48390,7 +48416,33 @@ async function _awardsPickerAlbumPreview(item, k, seq, panel, head) {
   render(info, note);
 }
 
-function awardsPickerBgClick(e) { if (e.target.id === 'awardsPickerOverlay') awardsPickerClose(); }
+/* A backdrop click only counts when the press also started on the backdrop.
+   Drag-selecting the search text and letting go outside the window fires a
+   click on the overlay too, and that used to close the picker. */
+function awardsPickerBgDown(e) { _awardsPickerBgDown = e.target.id === 'awardsPickerOverlay'; }
+function awardsPickerBgClick(e) {
+  const fromBg = _awardsPickerBgDown;
+  _awardsPickerBgDown = false;
+  if (fromBg && e.target.id === 'awardsPickerOverlay') awardsPickerTryClose();
+}
+
+// The ballot as a string of keys in order, so reordering counts as a change too
+function _awardsPickerSig() { return _awardsPickerSel.map(_awardItemKey).join('\n'); }
+
+/* ✕, Esc and the backdrop come here. With unsaved changes it asks first,
+   so a stray close doesn't throw away a hand-built ballot. Save skips this. */
+function awardsPickerTryClose() {
+  if (!document.getElementById('awardsPickerOverlay')) return;
+  if (_awardsPickerSig() === _awardsPickerStartSig) { awardsPickerClose(); return; }
+  const catName = _awardsPickerCtx ? t('awards_cat_' + _awardsPickerCtx.catId) : '';
+  _awardsPickerAsk({
+    title: 'Close without saving?',
+    text: `You changed the nominees for ${catName ? `<strong>${esc(catName)}</strong>` : 'this category'}. Closing now throws those changes away. To keep them, go back and press Save Nominees.`,
+    cancel: 'Keep editing',
+    ok: 'Close without saving',
+    onOk: awardsPickerClose,
+  });
+}
 
 function awardsPickerClose() {
   const el = document.getElementById('awardsPickerOverlay');
