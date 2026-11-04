@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "A parade of the nominees before the envelope opens":
+    ["Um desfile dos indicados antes de abrir o envelope",
+     "Na cerimônia de Prêmios, clicar no envelope agora começa primeiro um pequeno show. As capas dos indicados sobem da fileira e formam um anel que gira em volta do envelope, rápido no começo e cada vez mais devagar até parar. Depois as luzes se apagam uma a uma: cada capa escurece e cai dentro do envelope enquanto o palco escurece, até sobrar só o envelope iluminado, e aí ele abre. A capa em que o anel para e a última a se apagar são sempre sorteadas entre os indicados que perderam, então o show nunca entrega o vencedor. Clique de novo, ou aperte espaço ou enter, para pular direto para a abertura."],
   "Daily Streaks Calendar: see every streak on any day, and the ones you lost":
     ["Calendário das Sequências diárias: veja cada sequência de qualquer dia e as que você perdeu",
      "Clique num dia da aba Calendário das Sequências diárias e o painel abaixo agora mostra as sequências daquele dia direito, separadas em artistas, álbuns e músicas. Alterne entre Em andamento, Novas (sequências no segundo dia) e Perdidas (sequências que terminaram no dia anterior; no dia de hoje mostra o que ainda está em risco). Cada linha tem a capa, o dia da sequência em que ela estava, uma barra mostrando até onde a sequência chegou no fim, as datas e um troféu quando foi a mais longa. Passe o mouse numa linha para ver a sequência inteira no calendário. Avance dia a dia com as setas, filtre por nome e toque, enfileire, salve ou copie qualquer lista como playlist: uma música por sequência, e para artistas e álbuns a música que você mais ouviu deles naquele dia."],

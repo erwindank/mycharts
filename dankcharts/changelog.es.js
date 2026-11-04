@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "A parade of the nominees before the envelope opens":
+    ["Un desfile de los nominados antes de abrir el sobre",
+     "En la ceremonia de Premios, al hacer clic en el sobre ahora empieza primero un pequeño espectáculo. Las portadas de los nominados suben desde la fila y forman un anillo que gira alrededor del sobre, rápido al principio y cada vez más lento hasta detenerse. Luego se apagan las luces una a una: cada portada se oscurece y cae dentro del sobre mientras el escenario se oscurece, hasta que solo queda iluminado el sobre, y entonces se abre. La portada en la que se detiene el anillo y la última en apagarse siempre se eligen al azar entre los nominados que perdieron, así que el espectáculo nunca revela al ganador. Haz clic otra vez, o pulsa espacio o intro, para saltar directo a la apertura."],
   "Daily Streaks Calendar: see every streak on any day, and the ones you lost":
     ["Calendario de Rachas diarias: mira cada racha de cualquier día y las que perdiste",
      "Haz clic en un día de la pestaña Calendario de Rachas diarias y el panel de abajo ahora muestra las rachas de ese día como es debido, separadas en artistas, álbumes y canciones. Cambia entre En curso, Nuevas (rachas en su segundo día) y Perdidas (rachas que terminaron el día anterior; en el día de hoy muestra lo que sigue en riesgo). Cada fila tiene su portada, el día de la racha en que estaba, una barra con hasta dónde llegó la racha al final, sus fechas y un trofeo cuando fue la más larga. Pasa el ratón por una fila para ver toda la racha en el calendario. Avanza de día en día con las flechas, filtra por nombre y reproduce, pon en cola, guarda o copia cualquier lista como playlist: una canción por racha, y para artistas y álbumes la canción que más escuchaste de ellos ese día."],
