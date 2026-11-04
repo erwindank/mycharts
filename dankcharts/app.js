@@ -50266,6 +50266,9 @@ function _ceremonyDrawSidebar(data) {
 function _ceremonyPaintDots() {
   const el = document.getElementById('ceremonyDots');
   if (!el) return;
+  // Past ~30 categories the dots would run off the top bar (and push Close off
+  // the screen), so they become a segmented bar instead
+  el.classList.toggle('is-many', _ceremonyCats.length > 30);
   el.innerHTML = _ceremonyCats.map((cat, i) =>
     `<i class="${i === _ceremonyIdx ? 'is-on' : ''}${_ceremonyRevealed.has(cat.id) ? ' is-done' : ''}"></i>`).join('');
 }

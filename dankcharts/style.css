@@ -29509,7 +29509,9 @@ body.green-light .awards-reallife-badge.nom { color: #4338ca; border-color: #636
 }
 .ceremony-topbar {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  /* The button column is never narrower than its buttons, so a long dots row
+     can't push Close off the screen */
+  grid-template-columns: minmax(0, 1fr) auto minmax(max-content, 1fr);
   align-items: center;
   gap: var(--sp-3);
   padding: max(10px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px));
@@ -29526,7 +29528,12 @@ body.green-light .awards-reallife-badge.nom { color: #4338ca; border-color: #636
   min-width: 0;
 }
 /* One dot per category: the current one long, opened ones gold */
-.ceremony-dots { display: flex; align-items: center; gap: 6px; }
+.ceremony-dots { display: flex; align-items: center; gap: 6px; max-width: min(46vw, 640px); overflow: hidden; }
+/* A big ballot (more dots than fit) turns the dots into a thin segmented bar
+   that fills the space instead — set from _ceremonyPaintDots() */
+.ceremony-dots.is-many { gap: 2px; width: min(46vw, 640px); }
+.ceremony-dots.is-many i { flex: 1 1 0; min-width: 1px; width: auto; height: 5px; border-radius: 2px; }
+.ceremony-dots.is-many i.is-on { flex: 0 0 auto; width: 14px; }
 .ceremony-dots i {
   display: block;
   width: 7px; height: 7px;
