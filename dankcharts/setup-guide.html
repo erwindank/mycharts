@@ -8,6 +8,19 @@
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:ital,wght@0,400..800;1,400&display=swap" rel="stylesheet">
   <script src="translations.js"></script>
+  <!-- The saved language's own file (translations.js is English only). Must
+       come before setup-guide-i18n.js so the guide's strings are merged on top
+       of it, as before. Same DC_I18N_V as index.html. -->
+  <script>
+    window.DC_I18N_V = 1;
+    (function () {
+      try {
+        var l = localStorage.getItem('dankcharts-lang');
+        if (l === 'es' || l === 'pt-BR' || l === 'pt-PT')
+          document.write('<script src="translations.' + l + '.js?v=' + window.DC_I18N_V + '"><\/script>');
+      } catch (e) { }
+    })();
+  </script>
   <!-- The guide's own ES / PT strings, merged into TRANSLATIONS. Must load
        after translations.js and before its DOMContentLoaded pass runs. -->
   <script src="setup-guide-i18n.js"></script>
