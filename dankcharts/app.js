@@ -229,38 +229,127 @@ function stampPlays(plays) {
      apart from plays a since-removed split had renamed, which go back. */
   const rsIdx = _rsIndex();
   const rsStarts = rsIdx.byParent.size ? _rsStartDays(plays, rsIdx) : null;
+  /* Phone speed (2026-11-03): at 240k plays this loop was a 2.3s freeze on a
+     phone, because it rebuilt the same strings and Dates for every play.
+     - Song / album keys are pure functions of a few raw strings, so they are
+       memoised on those strings (two-level Maps: no key string is built just
+       to look one up). A miss computes exactly as before and still interns.
+     - Dates are memoised per 6-hour slice of real time (see _stampSlice).
+     Every stamp comes out identical to the old per-play code. */
+  const skBy = new Map();   // artist -> title -> song key
+  const akBy = new Map();   // album -> album artist -> album key
+  const compBy = new Map(); // album -> is it a compilation
+  const tzSame = userTimezone === BROWSER_TZ;
+  const slices = new Map();
   for (const p of plays) {
     if (rsStarts || p._rsTo !== undefined) _rsApply(p, rsIdx, rsStarts || new Map());
-    p._sk = _intern(iSk, p.title.toLowerCase().trim() + '|||' + p.artist.toLowerCase().trim());
-    const aa = _intern(iAa, _albumArtistRaw(p));
+    let byTitle = skBy.get(p.artist);
+    if (byTitle === undefined) { byTitle = new Map(); skBy.set(p.artist, byTitle); }
+    let sk = byTitle.get(p.title);
+    if (sk === undefined) {
+      sk = _intern(iSk, p.title.toLowerCase().trim() + '|||' + p.artist.toLowerCase().trim());
+      byTitle.set(p.title, sk);
+    }
+    p._sk = sk;
+    // _albumArtistRaw(p), with the compilation lookup memoised per album name
+    let comp = compBy.get(p.album);
+    if (comp === undefined) { comp = !!(p.album && isCompilationAlbum(p.album)); compBy.set(p.album, comp); }
+    const aa = _intern(iAa, comp ? VARIOUS_ARTISTS : ((p.artists && p.artists[0]) || p.artist));
     p._aa = aa;
-    p._ak = _intern(iAk, p.album + '|||' + aa);
+    let byAa = akBy.get(p.album);
+    if (byAa === undefined) { byAa = new Map(); akBy.set(p.album, byAa); }
+    let ak = byAa.get(aa);
+    if (ak === undefined) { ak = _intern(iAk, p.album + '|||' + aa); byAa.set(aa, ak); }
+    p._ak = ak;
 
     const ts = +p.date;
-    let d = byTs.get(ts);
-    if (d === undefined) {
-      // tzDate, never tzDateOf: re-stamping an already-stamped play (after an
-      // in-place edit moved its date) must recompute, not read the old stamp.
-      const td = tzDate(p.date);
-      const dow = td.getDay();
-      const wkStart = new Date(td.getFullYear(), td.getMonth(), td.getDate() - ((dow - weekStartDay + 7) % 7));
-      d = {
-        td,
-        // The tz-adjusted instant as a number. Period filters compare against
-        // fake-local Date bounds; doing that numerically avoids both a call and
-        // a valueOf coercion per play, and there is one such filter per render.
-        tdms: +td,
-        ds: _intern(iDs, localDateStr(td)),
-        wk: _intern(iWk, localDateStr(wkStart)),
-        mk: _intern(iMk, td.getFullYear() + '-' + String(td.getMonth() + 1).padStart(2, '0')),
-        yk: _intern(iYk, String(td.getFullYear())),
-      };
-      byTs.set(ts, d);
-    }
     p._ts = ts;   // raw epoch ms, so date comparisons never coerce a Date
-    p._td = d.td; p._tdms = d.tdms; p._ds = d.ds; p._wk = d.wk; p._mk = d.mk; p._yk = d.yk;
+    // tzDate, never tzDateOf: re-stamping an already-stamped play (after an
+    // in-place edit moved its date) must recompute, not read the old stamp.
+    const sl = _stampSlice(slices, ts, tzSame, iDs, iWk, iMk, iYk);
+    if (sl) {
+      /* The usual path: the slice already holds the keys. No per-timestamp
+         memo here - almost every scrobble has its own second, so a Map keyed
+         on it never hit and was the costliest line of the loop. */
+      // tzDate() hands back the same Date when the zones match; otherwise it
+      // drops the milliseconds, so the shift is added to whole seconds.
+      const td = tzSame ? p.date : new Date(sl.base + (Math.floor((ts - sl.start) / 1000) * 1000));
+      const tdms = +td;
+      // a slice can hold one local midnight: plays from it on take the next day's keys
+      const k = tdms >= sl.cut ? (sl.b || (sl.b = _stampSliceKeys(new Date(sl.cut), iDs, iWk, iMk, iYk))) : sl.a;
+      p._td = td; p._tdms = tdms; p._ds = k.ds; p._wk = k.wk; p._mk = k.mk; p._yk = k.yk;
+    } else {
+      // A slice that failed its check (or a bad date): the original per-play code
+      let d = byTs.get(ts);
+      if (d === undefined) {
+        const td = tzDate(p.date);
+        const dow = td.getDay();
+        const wkStart = new Date(td.getFullYear(), td.getMonth(), td.getDate() - ((dow - weekStartDay + 7) % 7));
+        d = {
+          td,
+          // The tz-adjusted instant as a number. Period filters compare against
+          // fake-local Date bounds; doing that numerically avoids both a call and
+          // a valueOf coercion per play, and there is one such filter per render.
+          tdms: +td,
+          ds: _intern(iDs, localDateStr(td)),
+          wk: _intern(iWk, localDateStr(wkStart)),
+          mk: _intern(iMk, td.getFullYear() + '-' + String(td.getMonth() + 1).padStart(2, '0')),
+          yk: _intern(iYk, String(td.getFullYear())),
+        };
+        byTs.set(ts, d);
+      }
+      p._td = d.td; p._tdms = d.tdms; p._ds = d.ds; p._wk = d.wk; p._mk = d.mk; p._yk = d.yk;
+    }
     p._se = _stampEpoch;
   }
+}
+
+/* The day / week / month / year keys and the timezone shift for one
+   6-hour slice of real time, shared by every play inside it.
+   Inside a slice the timezone shift is checked to be constant: the slice is
+   used only when its first and last second are exactly the slice length apart
+   after tzDate() (so no DST change, in the chosen zone or the browser's, falls
+   inside it). A slice is shorter than any day, so it holds at most one local
+   midnight; `cut` is that midnight on the same clock as the play's _tdms, and
+   plays from it on get the next day's keys (`b`, built on first use).
+   A slice that fails the check, or a non-finite date, returns null and those
+   plays are stamped the old way, one by one. */
+const STAMP_SLICE_MS = 6 * 60 * 60 * 1000;
+function _stampSlice(slices, ts, tzSame, iDs, iWk, iMk, iYk) {
+  if (!Number.isFinite(ts)) return null;
+  const start = Math.floor(ts / STAMP_SLICE_MS) * STAMP_SLICE_MS;
+  let sl = slices.get(start);
+  if (sl !== undefined) return sl;
+  const td0 = tzDate(new Date(start));
+  const td1 = tzDate(new Date(start + STAMP_SLICE_MS - 1000));
+  if (+td1 - +td0 !== STAMP_SLICE_MS - 1000) {
+    sl = null;
+  } else {
+    // The next local midnight after the slice starts (Date normalises a
+    // midnight that a DST jump skips to the first real time of that day)
+    const mid = +new Date(td0.getFullYear(), td0.getMonth(), td0.getDate() + 1);
+    sl = {
+      start,
+      base: tzSame ? start : +td0,
+      cut: mid <= +td1 ? mid : Infinity,
+      a: _stampSliceKeys(td0, iDs, iWk, iMk, iYk),
+      b: null,
+    };
+  }
+  slices.set(start, sl);
+  return sl;
+}
+
+// The four period keys for the local day a (fake-local) Date falls on
+function _stampSliceKeys(td, iDs, iWk, iMk, iYk) {
+  const dow = td.getDay();
+  const wkStart = new Date(td.getFullYear(), td.getMonth(), td.getDate() - ((dow - weekStartDay + 7) % 7));
+  return {
+    ds: _intern(iDs, localDateStr(td)),
+    wk: _intern(iWk, localDateStr(wkStart)),
+    mk: _intern(iMk, td.getFullYear() + '-' + String(td.getMonth() + 1).padStart(2, '0')),
+    yk: _intern(iYk, String(td.getFullYear())),
+  };
 }
 
 /* ─── STAMP READERS ────────────────────────────────────────────────────────
