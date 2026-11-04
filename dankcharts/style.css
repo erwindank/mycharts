@@ -4506,102 +4506,6 @@
       border-color: rgba(255, 255, 255, 0.5);
     }
 
-    body.red-light .modal-header {
-      background: linear-gradient(135deg, #960e0e, #b01010);
-    }
-
-    body.red-light .modal-header .modal-artist-name {
-      color: #ffffff;
-    }
-
-    body.red-light .modal-header .modal-artist-sub {
-      color: rgba(255, 255, 255, 0.8);
-    }
-
-    body.red-light .modal-header .modal-artist-link {
-      color: #ffffff;
-    }
-
-    body.yellow-light .modal-header {
-      background: linear-gradient(135deg, #7a6000, #9a7a00);
-    }
-
-    body.yellow-light .modal-header .modal-artist-name {
-      color: #fffde8;
-    }
-
-    body.yellow-light .modal-header .modal-artist-sub {
-      color: rgba(255, 248, 180, 0.9);
-    }
-
-    body.yellow-light .modal-header .modal-artist-link {
-      color: #fffde8;
-    }
-
-    body.purple-light .modal-header {
-      background: linear-gradient(135deg, #3828a8, #4a38c8);
-    }
-
-    body.green-light .modal-header {
-      background: linear-gradient(135deg, #0a5a2f, #0d7a40);
-    }
-
-    body.purple-light .modal-header .modal-artist-name {
-      color: #f0eeff;
-    }
-
-    body.green-light .modal-header .modal-artist-name {
-      color: #eefcf3;
-    }
-
-    body.purple-light .modal-header .modal-artist-sub {
-      color: rgba(220, 210, 255, 0.9);
-    }
-
-    body.green-light .modal-header .modal-artist-sub {
-      color: rgba(200, 240, 215, 0.9);
-    }
-
-    body.purple-light .modal-header .modal-artist-link {
-      color: #f0eeff;
-    }
-
-    body.green-light .modal-header .modal-artist-link {
-      color: #eefcf3;
-    }
-
-    body.navy-light .modal-header {
-      background: linear-gradient(135deg, #0852a8, #0a6acc);
-    }
-
-    body.navy-light .modal-header .modal-artist-name {
-      color: #e8f4ff;
-    }
-
-    body.navy-light .modal-header .modal-artist-sub {
-      color: rgba(180, 220, 255, 0.9);
-    }
-
-    body.navy-light .modal-header .modal-artist-link {
-      color: #e8f4ff;
-    }
-
-    body.pink-light .modal-header {
-      background: linear-gradient(135deg, #900054, #b0006a);
-    }
-
-    body.pink-light .modal-header .modal-artist-name {
-      color: #fff0f8;
-    }
-
-    body.pink-light .modal-header .modal-artist-sub {
-      color: rgba(255, 200, 230, 0.9);
-    }
-
-    body.pink-light .modal-header .modal-artist-link {
-      color: #fff0f8;
-    }
-
     /* Yellow Dark masthead — background now derives from theme tokens in the base .masthead rule */
     body.yellow .wordmark-fm {
       color: #ffe040;
@@ -8251,49 +8155,10 @@
     }
 
     /* Section controls row — below subtitle, above chart table */
-    .section-controls {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: var(--sp-1);
-      flex-wrap: wrap;
-      margin-top: var(--sp-2);
-      margin-bottom: var(--sp-3);
-    }
 
     /* Export playlist button inside section controls resets its standalone positioning */
-    .section-controls .export-playlist-btn {
-      margin: 0;
-      width: auto;
-      font-size: var(--fs-xs);
-      font-weight: 400;
-      padding: 0.2rem 0.7rem;
-      border-color: var(--border);
-      border-radius: var(--r-xs);
-    }
-    .section-controls .export-playlist-btn:hover {
-      background: var(--bg3);
-      border-color: var(--accent);
-      color: var(--text);
-      font-weight: 700;
-    }
 
     /* Share as image button inside section controls — matches yt-playall-btn style */
-    .section-controls .ig-share-btn.section-share-btn {
-      margin: 0;
-      width: auto;
-      font-size: var(--fs-xs);
-      padding: 0.2rem 0.7rem;
-      border-radius: var(--r-xs);
-      border-color: var(--border);
-      transition: background 0.15s, color 0.15s, border-color 0.15s;
-    }
-    .section-controls .ig-share-btn.section-share-btn:hover {
-      background: var(--bg3);
-      border-color: var(--accent);
-      color: var(--text);
-      font-weight: 700;
-    }
 
     /* Per-section cert badge visibility — artists never render cert badges */
     body.songs-hide-cert  #songsSection  .cert,
@@ -8722,9 +8587,6 @@
         flex-basis: 40%;
       }
     }
-    .cr-panel .cr-stat-k {
-      font-size: var(--fs-sm);
-    }
     .cr-panel .cr-stat strong {
       font-size: 1.375rem;
     }
@@ -8743,45 +8605,9 @@
     }
 
     /* Idea 8: italic, muted rank numbers */
-    .bu-rank-cell {
-      font-style: italic;
-      color: var(--text3);
-      font-size: var(--fs-xs);
-      font-family: var(--font-mono);
-      font-variant-numeric: tabular-nums;
-      text-align: center;
-      white-space: nowrap;
-      width: 36px;
-      vertical-align: middle;
-    }
 
     .bu-row .cr-cell {
       vertical-align: middle;
-    }
-
-    .bu-name-cell {
-      padding-left: var(--sp-3) !important;
-    }
-
-    .bu-display-name {
-      font-size: var(--fs-sm);
-      font-weight: 500;
-      color: var(--text);
-      line-height: 1.3;
-    }
-
-    .bu-sub-name {
-      font-size: var(--fs-xs);
-      color: var(--text2);
-      margin-top: 1px;
-      line-height: 1.3;
-    }
-
-    .bu-badges {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 3px;
-      margin-top: var(--sp-1);
     }
 
     .bu-legend {
@@ -8846,41 +8672,15 @@
       background: color-mix(in srgb, var(--chart-down) 12%, transparent);
     }
 
-    .bu-plays-cell {
-      text-align: right;
-      white-space: nowrap;
-      vertical-align: middle;
-    }
-
-    .bu-play-count {
-      font-size: var(--fs-xs);
-      color: var(--text2);
-      font-family: var(--font-mono);
-      font-variant-numeric: tabular-nums;
-    }
-
     .bu-row .cr-cell { white-space: nowrap; }
 
     /* Plays copy inside the name cell: hidden until phone width */
-    .bu-play-inline { display: none; }
 
     /* Phones: the Plays column squeezed titles and badges. Drop it and show
        the count under the artist instead; rank and ▶ ⋮ sit at the top of the
        row next to the title rather than floating in the middle. */
     @media (max-width: 640px) {
-      .bu-plays-cell { display: none; }
-      .bu-play-inline {
-        display: block;
-        margin-top: 2px;
-        font-size: var(--fs-xs);
-        font-weight: 700;
-        color: var(--text2);
-        font-family: var(--font-mono);
-        font-variant-numeric: tabular-nums;
-      }
       .bu-row td { padding-top: 0.5rem; padding-bottom: 0.5rem; }
-      .bu-rank-cell { vertical-align: top; padding-top: 0.6rem !important; width: 30px; }
-      .bu-name-cell { padding-left: var(--sp-1) !important; }
       .bu-row .cr-cell { vertical-align: top; padding-top: 0.25rem; }
     }
 
@@ -11501,7 +11301,6 @@
       color: var(--text); font: inherit; text-align: left; cursor: pointer;
     }
     .sx-row:hover { background: color-mix(in srgb, var(--accent) 10%, transparent); }
-    .sx-row-n { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--text3); text-align: right; }
     .sx-row-t { min-width: 0; }
     .sx-row-t b, .sx-row-t span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .sx-row-t b { font-weight: 600; font-size: var(--fs-sm); }
@@ -12462,14 +12261,7 @@
 
     /* Card head: title (and description) on the left, the chart's tools as
        small icon buttons on the right. */
-    .graph-card-head {
-      display: flex;
-      align-items: flex-start;
-      gap: var(--sp-3);
-      margin-bottom: 0.5rem;
-    }
 
-    .graph-card-head > .graph-card-title,
     .graph-card-text {
       flex: 1 1 auto;
       min-width: 0;
@@ -12560,16 +12352,6 @@
       margin-bottom: 0.6rem;
     }
 
-    .graph-ctrl-row {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 0.5rem;
-      margin-bottom: 0.5rem;
-    }
-
-    .graph-ctrl-row > .dc-btn { white-space: nowrap; }
-
     .graph-ctrl-label {
       font-family: var(--font-sans);
       font-size: var(--fs-xs);
@@ -12580,7 +12362,6 @@
     .dc-seg + .graph-ctrl-label { margin-left: 0.3rem; }
 
     /* Play Count Race */
-    .race-play-btn { min-width: 84px; }
     .race-gif-btn { margin-left: auto; }
 
     .race-seek {
@@ -14263,15 +14044,6 @@
       overflow: hidden;
       position: relative; }
 
-    .modal-header {
-      background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 12%, var(--bg3)), var(--bg3));
-      padding: var(--sp-5);
-      display: flex;
-      align-items: center;
-      gap: 1.1rem;
-      border-bottom: 1px solid var(--border);
-    }
-
     /* Profile-modal header artwork is drawn by fetchAndInjectImage() (see
        loadModalArt), which writes the chart classes .thumb / .thumb-initials —
        sized up here to the modal's 72px, with a roomier ✎ badge. */
@@ -14432,13 +14204,6 @@
       line-height: 1;
     }
     /* SONG MODAL — POSITION MOVEMENT CHART */
-    .song-pos-chart {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: var(--r-sm);
-      padding: 0.6rem 0.8rem;
-      margin-bottom: var(--sp-3);
-    }
     /* SONG ROW clickable cursor on alltime/year */
     #songsBody .song-row { cursor: pointer; }
     #songsBody .song-row:hover { background: var(--bg2) !important; }
@@ -15043,10 +14808,6 @@
       margin-left: auto;
     }
 
-    .modal-chart-section-body {
-      border-top: 1px solid var(--border);
-    }
-
     .cr-row>td {
       padding: 0 !important;
       border-top: none !important;
@@ -15384,14 +15145,6 @@
 
     /* What the tile counts, on top (phase 7: the label used to trail the
        figure, split from its unit — "1 wk / on Chart") */
-    .cr-stat-k {
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      line-height: 1.25;
-      letter-spacing: 0.03em;
-      text-transform: uppercase;
-      color: var(--text3);
-    }
 
     .cr-stat strong {
       display: inline-flex;
@@ -15412,9 +15165,6 @@
     /* Total plays is the one figure in the strip that answers "how much did I
        actually listen", not "how did it rank" — tinted so it reads apart from
        the run of week/rank counts around it. */
-    .cr-stat-total strong {
-      color: var(--accent);
-    }
 
     .cr-boxes-wrap {
       padding-bottom: 3px;
@@ -15531,32 +15281,6 @@
 
     /* COMBINED BU + CHART VIEW */
     /* Toggle button in BU panel header */
-    .bu-combined-toggle {
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      font-weight: 700;
-      color: var(--text3);
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r-xs);
-      padding: 3px 7px;
-      cursor: pointer;
-      transition: border-color 0.15s, color 0.15s, background 0.15s;
-      white-space: nowrap;
-      flex-shrink: 0;
-      align-self: center;
-    }
-
-    .bu-combined-toggle:hover {
-      border-color: var(--accent2);
-      color: var(--text);
-    }
-
-    .bu-combined-toggle.active {
-      background: rgba(34, 197, 94, 0.1);
-      border-color: rgba(34, 197, 94, 0.45);
-      color: #4ade80;
-    }
 
     /* Official chart box (green) in combined timeline */
     .cr-box-official {
@@ -19654,13 +19378,6 @@
       border-radius: 50%;
     }
 
-    .pak-mini-img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
     .pak-mini-initials {
       font-size: 0.48rem;
       font-weight: 700;
@@ -20367,9 +20084,6 @@
        for the phone layout where the numeral sits on the card surface and has
        to answer to the theme. The ink values are what .rec-rank-1/2/3 already
        use, so a podium card and its table row never disagree about a rank. */
-    .nc-podium-1 { --medal: rgba(240, 170, 48, 0.95); --medal-ink: var(--gold1); }
-    .nc-podium-2 { --medal: rgba(148, 163, 184, 0.95); --medal-ink: #94a3b8; }
-    .nc-podium-3 { --medal: rgba(205, 110, 40, 0.95); --medal-ink: #c07850; }
 
     /* Retired by the first column re-sort — see standDownPodium() in app.js. */
     .nc-podium-retired {
@@ -20386,252 +20100,43 @@
     /* The three rows the podium is speaking for. Suspended while searching so
        everything that was built stays findable, and dropped for good once the
        table is re-sorted (the .nc-podium-on class goes with the podium). */
-    #recordsView:not(.rec-searching) .nc-sd-table.nc-podium-on .nc-podium-row {
-      display: none !important;
-    }
-
-    .nc-podium-card {
-      position: relative;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      /* The whole text stack hangs off the bottom edge, which is what keeps the
-         three cards' figures and meta lines level. */
-      justify-content: flex-end;
-      align-items: flex-start;
-      text-align: left;
-      min-width: 0;
-      aspect-ratio: 4 / 5;
-      padding: 0 0.65rem 0.6rem;
-      background: var(--bg3);
-      border: none;
-      border-radius: 12px;
-      /* The metal ring, sized as .wv-r1/.wv-r2/.wv-r3 size theirs. */
-      box-shadow: 0 0 0 3px var(--medal),
-                  0 0 22px color-mix(in srgb, var(--medal) 45%, transparent);
-      transition: box-shadow 200ms cubic-bezier(0.4, 0, 0.2, 1),
-                  transform 200ms cubic-bezier(0.4, 0, 0.2, 1);
-    }
 
     /* Gold outranks the other two by carrying the wider halo, the way the
        mosaic's #1 tile does. */
-    .nc-podium-1 {
-      box-shadow: 0 0 0 3px var(--medal),
-                  0 0 28px color-mix(in srgb, var(--medal) 62%, transparent),
-                  0 0 50px color-mix(in srgb, var(--medal) 25%, transparent);
-    }
-
-    .nc-podium-card:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 0 0 3px var(--medal),
-                  0 0 30px color-mix(in srgb, var(--medal) 70%, transparent),
-                  0 10px 28px rgba(0, 0, 0, 0.35);
-    }
 
     /* Artwork fills the card; everything else is set over it. */
-    .nc-podium-art {
-      position: absolute;
-      inset: 0;
-      z-index: 0;
-      width: 100%;
-      height: 100%;
-      margin: 0;
-      border-radius: 0;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--bg3);
-      box-shadow: none;
-    }
-
-    .nc-podium-art .thumb,
-    .nc-podium-art .pak-mini-initials,
-    .nc-podium-art .thumb-initials {
-      width: 100%;
-      height: 100%;
-      border: none;
-      border-radius: 0;
-      font-size: 2rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
 
     /* Two scrims, same recipe as .wv-mos-top / .wv-mos-bot: one under the
        numeral, one under the text. Without them, a pale sleeve would swallow
        both. Neither takes pointer events — the week link underneath stays
        clickable. */
-    .nc-podium-card::before,
-    .nc-podium-card::after {
-      content: '';
-      position: absolute;
-      left: 0;
-      right: 0;
-      z-index: 1;
-      pointer-events: none;
-    }
-
-    .nc-podium-card::before {
-      top: 0;
-      height: 38%;
-      background: linear-gradient(to bottom, rgba(0, 0, 0, 0.72) 0%, transparent 100%);
-    }
-
-    .nc-podium-card::after {
-      bottom: 0;
-      height: 68%;
-      background: linear-gradient(to top,
-        rgba(0, 0, 0, 0.92) 0%,
-        rgba(0, 0, 0, 0.72) 38%,
-        transparent 100%);
-    }
 
     /* Everything except the artwork rides above both scrims. */
-    .nc-podium-card > *:not(.nc-podium-art) {
-      position: relative;
-      z-index: 2;
-      max-width: 100%;
-    }
 
     /* The placard numeral, stamped over the sleeve exactly as .wv-mos-item
        stamps its rank badge. */
-    .nc-podium-medal {
-      position: absolute;
-      top: 0.02em;
-      left: 0.06em;
-      font-family: var(--font-display);
-      font-size: 5rem;
-      font-weight: 900;
-      line-height: 0.85;
-      letter-spacing: -0.05em;
-      color: var(--medal);
-      /* Lit in its own metal. Over artwork it doubles as legibility insurance:
-         the halo separates the numeral from whatever the sleeve puts behind it. */
-      text-shadow: 0 0 8px color-mix(in srgb, var(--medal) 45%, transparent),
-                   0 0 26px color-mix(in srgb, var(--medal) 60%, transparent);
-      pointer-events: none;
-      user-select: none;
-    }
-
-    .nc-podium-art .thumb {
-      object-fit: cover;
-    }
 
     /* ── The text stack, set over the sleeve ──
        Colours are fixed white/alpha rather than tokens, matching .wv-mos-bot:
        the backdrop is a photograph in every theme, so theme text colours would
        be unreadable half the time. */
 
-    .nc-podium-title {
-      font-weight: 800;
-      font-size: var(--fs-base);
-      line-height: 1.2;
-      letter-spacing: -0.01em;
-      color: #fff;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-
-    .nc-podium-artist {
-      font-size: var(--fs-xs);
-      color: rgba(255, 255, 255, 0.72);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 100%;
-    }
-
     /* Number and caption share a baseline instead of stacking — the card is
        wide enough for one line and it buys the artwork more room. */
-    .nc-podium-figure {
-      display: flex;
-      flex-direction: row;
-      align-items: baseline;
-      gap: 0.4rem;
-      margin-top: var(--sp-1);
-    }
 
     /* One colour for all three: rank is already carried by the numeral and the
        metal ring, and tinting #1's figure gold made the largest number on the
        page the muddiest in every light theme. */
-    .nc-podium-num {
-      font-family: var(--font-display);
-      font-size: var(--fs-xl);
-      font-weight: 900;
-      line-height: 1;
-      letter-spacing: -0.035em;
-      font-feature-settings: "tnum";
-      color: #fff;
-    }
-
-    .nc-podium-unit,
-    .nc-podium-meta {
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      color: rgba(255, 255, 255, 0.62);
-    }
 
     /* One orchestrated entrance for the three cards rather than three separate
        flourishes. `backwards`, not `both`: `both` would pin transform to the
        keyframe's final value and silently kill the hover lift afterwards. */
-    .nc-podium-card {
-      animation: ncPodIn 460ms cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
-    }
-
-    .nc-podium-2 { animation-delay: 70ms; }
-    .nc-podium-3 { animation-delay: 140ms; }
-
-    @keyframes ncPodIn {
-      from { opacity: 0; transform: translateY(10px) scale(0.985); }
-      to   { opacity: 1; transform: none; }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .nc-podium-card {
-        animation: none;
-        transition: none;
-      }
-
-      .nc-podium-card:hover {
-        transform: none;
-      }
-    }
 
     /* Total plays and the week, side by side on the card's last line. */
-    .nc-podium-meta {
-      display: flex;
-      flex-direction: row;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: var(--sp-2);
-      margin-top: 0.4rem;
-      padding-top: 0.4rem;
-      border-top: 1px solid rgba(255, 255, 255, 0.18);
-      width: 100%;
-    }
-
-    .nc-podium-total {
-      color: rgba(255, 255, 255, 0.82);
-      white-space: nowrap;
-    }
 
     /* The link is the one interactive thing on the card, so it keeps its
        underline — but in white, since --accent over a photograph is a coin
        toss. Hover goes fully opaque rather than changing hue. */
-    .nc-podium-meta .rec-date-link {
-      color: rgba(255, 255, 255, 0.82);
-      border-bottom-color: rgba(255, 255, 255, 0.4);
-      white-space: nowrap;
-    }
-
-    .nc-podium-meta .rec-date-link:hover {
-      color: #fff;
-      border-bottom-color: #fff;
-    }
 
     /* ── Row artwork ── */
 
@@ -20682,106 +20187,25 @@
          where the card had nothing but empty space. It reads as a medal
          stamped on the card rather than a list index, and the two card kinds
          still share their surface, border, typography and meta strip. */
-      .nc-podium-card {
-        display: grid;
-        grid-template-columns: auto 1fr auto;
-        grid-template-areas:
-          "art  title  medal"
-          "art  artist medal"
-          "art  figure medal"
-          "meta meta   meta";
-        justify-items: start;
-        align-items: center;
-        text-align: left;
-        aspect-ratio: auto;
-        column-gap: 0.7rem;
-        row-gap: 0.1rem;
-        padding: 0.7rem;
-        background: var(--bg2);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        box-shadow: inset 0 3px 0 var(--medal-ink);
-      }
-
-      .nc-podium-card:hover {
-        transform: none;
-        box-shadow: inset 0 3px 0 var(--medal-ink);
-      }
-
-      .nc-podium-card::before,
-      .nc-podium-card::after {
-        display: none;
-      }
 
       /* Held against the card's right edge, spanning the three text rows so it
          centres against them. The glow is the metal's own colour, which is why
          it stays legible in the light themes where --gold1 is a dark brown: it
          reads as a soft halo there rather than the neon it becomes on dark. */
-      .nc-podium-medal {
-        position: static;
-        grid-area: medal;
-        justify-self: end;
-        font-size: 3.2rem;
-        font-weight: 900;
-        line-height: 1;
-        letter-spacing: -0.04em;
-        color: var(--medal-ink);
-        padding-right: 0.15rem;
-        text-shadow: 0 0 6px color-mix(in srgb, var(--medal-ink) 40%, transparent),
-                     0 0 20px color-mix(in srgb, var(--medal-ink) 55%, transparent);
-      }
-
-      .nc-podium-title { grid-area: title; }
-      .nc-podium-artist { grid-area: artist; }
 
       /* Out of the background and back to a thumbnail — larger than the table
          cards', which is the other half of the top three's promotion. */
-      .nc-podium-art {
-        position: static;
-        grid-area: art;
-        inset: auto;
-        margin: 0;
-        width: 88px;
-        height: 88px;
-        border-radius: var(--r-sm);
-      }
-
-      .nc-podium-art .thumb,
-      .nc-podium-art .pak-mini-initials,
-      .nc-podium-art .thumb-initials {
-        border-radius: var(--r-sm);
-        font-size: 1.5rem;
-      }
-
-      .nc-podium-figure {
-        grid-area: figure;
-        flex-direction: row;
-        align-items: baseline;
-        gap: 0.4rem;
-        margin-top: 0.2rem;
-        align-self: auto;
-      }
 
       /* Both figures ride the right edge, total plays immediately before the
          week, instead of being pushed to opposite ends of the card. They are
          one thought — "431 plays all-time, first charted this week" — and
          reading them together beats reading them apart. */
-      .nc-podium-meta {
-        grid-area: meta;
-        flex-direction: row;
-        justify-content: flex-end;
-        align-items: baseline;
-        gap: 0.7rem;
-        margin-top: 0.6rem;
-        align-self: auto;
-      }
 
       /* ── Typography shared by both card kinds ──
          Grouped on purpose: a podium card and a table card have to be the same
          object at this width, and one rule per pair is what guarantees it —
          they cannot drift if there is only one place to change them. */
 
-      .nc-podium-title,
       .nc-sd-table tbody td.nc-sd-title .rec-name {
         font-size: var(--fs-base);
         font-weight: 700;
@@ -20790,51 +20214,30 @@
         color: var(--text);
       }
 
-      .nc-podium-artist,
       .nc-sd-table tbody td.nc-sd-artist .rec-sub {
         font-size: var(--fs-xs);
         color: var(--text2);
       }
 
       /* Off the artwork, so the white-on-photo colours go back to tokens. */
-      .nc-podium-num,
       .nc-sd-table tbody td.nc-sd-debut {
         color: var(--accent);
       }
 
-      .nc-podium-unit,
-      .nc-podium-meta,
       .nc-sd-table tbody td.nc-sd-debut::after {
         color: var(--text3);
       }
 
-      .nc-podium-meta {
-        border-top-color: var(--border);
-      }
-
-      .nc-podium-total,
       .nc-sd-table tbody td.nc-sd-total {
         color: var(--text2);
       }
 
-      .nc-podium-meta .rec-date-link {
-        color: var(--accent);
-        border-bottom-color: var(--accent);
-      }
-
-      .nc-podium-meta .rec-date-link:hover {
-        color: var(--accent2);
-        border-bottom-color: var(--accent2);
-      }
-
-      .nc-podium-num,
       .nc-sd-table tbody td.nc-sd-debut {
         font-size: var(--fs-lg);
         font-weight: 800;
         letter-spacing: -0.03em;
       }
 
-      .nc-podium-unit,
       .nc-sd-table tbody td.nc-sd-debut::after {
         font-size: var(--fs-xs);
       }
@@ -25819,31 +25222,16 @@ body.yellow-light .hero-icon-crown {
    Applied outside the rotation (transforms compose right to left) so it
    stretches the finished teardrop along the page's vertical, not along the
    rotated diagonal, and anchored to the base so growing tiers rise upward. */
-.hero-flame-body {
-  position: absolute;
-  left: 50%;
-  bottom: 0.04rem;
-  width: 0.72rem;
-  height: 0.72rem;
-  margin-left: -0.36rem;
-  border-radius: 50% 2px 50% 50%;   /* sharp-ish corner top-right… */
-  transform-origin: bottom center;
-  transform: scaleY(1.24) rotate(-45deg) scale(var(--flame-scale)); /* …rotated to point up, then stretched */
-  background: linear-gradient(to top right, var(--flame-1), var(--flame-2));
-  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.4s ease;
-}
 
 @media (prefers-reduced-motion: reduce) {
   .hero-icon,
   .hero-icon-cal i,
   .hero-icon-bars i,
   .hero-crown-body,
-  .hero-flame-body,
   .hero-vinyl-disc::before {
     transition: none;
   }
   .hero-vinyl-disc,
-  .hero-flame-body,
   .hero-crown-body::before {
     animation: none;
   }
@@ -30708,19 +30096,6 @@ body.green-light .awards-reallife-badge.nom { color: #4338ca; border-color: #636
   flex-shrink: 0;
 }
 
-.streak-label {
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.streak-sub { color: var(--text2); font-size: var(--fs-sm); }
-
-.streak-name-link--play {
-  cursor: pointer;
-}
-
 .streak-empty {
   font-family: var(--font-sans);
   font-size: var(--fs-xs);
@@ -30769,17 +30144,6 @@ body.green-light .awards-reallife-badge.nom { color: #4338ca; border-color: #636
 
 .streak-modal-header { align-items: flex-start; flex-wrap: wrap; gap: 0.6rem; padding-right: 6.5rem; }
 .streak-hdr-text { flex: 1; min-width: 0; }
-
-.sk-stat {
-  font-family: var(--font-mono);
-      font-variant-numeric: tabular-nums;
-  font-size: var(--fs-xs);
-  color: var(--text2);
-  background: rgba(255,255,255,0.04);
-  border: 1px solid var(--border);
-  border-radius: var(--r-xs);
-  padding: 0.15rem 0.45rem;
-}
 
 /* ── Header: kept-today bar + chips (redesign phase 1) ──
    Sits under the title row at full width. Kept part is the fire gradient, the
@@ -31014,18 +30378,6 @@ body.green-light .awards-reallife-badge.nom { color: #4338ca; border-color: #636
   flex-shrink: 0;
   white-space: nowrap;
 }
-.sk-ms {
-  font-family: var(--font-mono);
-      font-variant-numeric: tabular-nums;
-  font-size: var(--fs-xs);
-  color: var(--accent2);
-  background: rgba(99,255,180,0.07);
-  border: 1px solid rgba(99,255,180,0.2);
-  border-radius: var(--r-xs);
-  padding: 0.08rem 0.28rem;
-  flex-shrink: 0;
-  white-space: nowrap;
-}
 .sk-sp-link {
   color: var(--ms-brand, #1DB954);
   font-size: var(--fs-xs);
@@ -31058,7 +30410,6 @@ body.green-light .awards-reallife-badge.nom { color: #4338ca; border-color: #636
 .streak-section--fame .streak-section-title { color: #f0c040; }
 
 /* ── Hall of Fame plaque grid ── */
-.sk-hof-body { flex: 1; min-width: 0; }
 
 /* ── Graveyard tab ── */
 .sk-grave-hdr {
@@ -31202,7 +30553,6 @@ body.green-light .awards-reallife-badge.nom { color: #4338ca; border-color: #636
 
 /* Drill-down panel */
 .sk-hm-drill { margin-top: 0.8rem; background: rgba(255,255,255,0.04); border: 1px solid var(--border2, rgba(255,255,255,0.08)); border-radius: var(--r-sm); padding: 0.65rem 0.9rem; }
-.sk-hm-drill-hdr { font-family: var(--font-sans); font-size: var(--fs-xs); color: var(--text2); font-weight: 600; margin-bottom: 0.45rem; }
 
 /* ═══════════════════════════════════════════════════════════════
    YOUR SOUNDTRACK — Wrapped-style story page
@@ -32995,14 +32345,6 @@ body[class*="-light"] .st-chap-head:not(.st-chap-head--artist):not(.st-chap-head
   margin-top: var(--sp-1);
 }
 
-.st-streak-link {
-  font-family: var(--font-sans);
-  font-size: var(--fs-xs);
-  margin-top: 0.2rem;
-}
-.st-streak-link a { color: var(--sc); text-decoration: none; font-weight: 600; }
-.st-streak-link a:hover { text-decoration: underline; }
-
 /* The top cards can be picked: the picked one lights up, its details show
    in the panel below and its days stay bright on the calendar */
 .st-streak-card[data-st-pick] { cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s; }
@@ -33874,7 +33216,7 @@ body.st-story-open { overflow: hidden; }
   .st-gem-icon { animation: none; }
   .st-replay-week-label::before { animation: none; }
   .st-replay-row { transition: none; opacity: 1; transform: none; }
-  .st-reveal, .st-milestone, .st-discovery-item, .st-grammy-card, .st-milestone-num.st-pop {
+  .st-reveal, .st-milestone, .st-grammy-card, .st-milestone-num.st-pop {
     animation: none;
     transition: none;
     opacity: 1;
@@ -35477,8 +34819,6 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
 .wv-wks { font-size: var(--fs-xs); color: var(--text3); font-family: var(--font-mono);
       font-variant-numeric: tabular-nums; margin-left: 0.4rem; }
 .wv-bar { height: 3px; background: var(--border); border-radius: 2px; margin-top: var(--sp-1); }
-.wv-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.5s ease; }
-.wv-r1 .wv-bar-fill { background: var(--gold1); }
 .wv-up   { color: var(--chart-up); font-size: var(--fs-xs); font-family: var(--font-mono);
       font-variant-numeric: tabular-nums; }
 .wv-down { color: var(--chart-down); font-size: var(--fs-xs); font-family: var(--font-mono);
@@ -35500,14 +34840,11 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
 .wv-thumb { position: relative; flex-shrink: 0; }
 .wv-thumb .thumb-wrap { flex-direction: row; gap: 0; }
 .wv-thumb-sm .thumb-initials, .wv-thumb-sm .thumb { width: 32px; height: 32px; font-size: 0.65rem; }
-.wv-thumb-md .thumb-initials, .wv-thumb-md .thumb { width: 48px; height: 48px; font-size: 0.85rem; }
 .wv-thumb-lg .thumb-initials, .wv-thumb-lg .thumb { width: 64px; height: 64px; font-size: 1.1rem; }
-.wv-thumb-xl .thumb-initials, .wv-thumb-xl .thumb { width: 96px; height: 96px; font-size: 1.6rem; }
 .wv-thumb-full { width: 100%; height: 100%; }
 .wv-thumb-full .thumb-wrap { width: 100%; height: 100%; }
 .wv-thumb-full .thumb-wrap > div { width: 100%; height: 100%; }
 .wv-thumb-full .thumb-initials, .wv-thumb-full .thumb { width: 100%; height: 100%; font-size: 1.2rem; border-radius: 0; }
-.wv-col-art .wv-thumb { height: 100%; }
 .wv-mos-item .wv-thumb { position: absolute; inset: 0; }
 
 /* shared card base */
@@ -35932,7 +35269,7 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
 .wv-mos-back-close:hover { background: rgba(255,255,255,0.22); color: #fff; }
 .wv-mos-back-header { display: flex; gap: var(--sp-2); align-items: flex-start; margin-bottom: var(--sp-1); }
 .wv-mos-back-img { width: 56px; height: 56px; flex-shrink: 0; border-radius: var(--r-sm); overflow: hidden; }
-.wv-mos-back-img img, .wv-mos-back-img .wv-thumb-placeholder { width: 100%; height: 100%; object-fit: cover; }
+.wv-mos-back-img img { width: 100%; height: 100%; object-fit: cover; }
 .wv-mos-back-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; padding-top: 2px; }
 .wv-mos-back-rank-row { display: flex; align-items: center; gap: 6px; }
 .wv-mos-back-ranknum { font-family: var(--font-mono);
@@ -35988,7 +35325,6 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
   .wv-mos-back-plays { font-size: 0.82rem; margin: 1px 0; }
   .wv-mos-back-plays-unit { font-size: 0.36rem; }
   .wv-mos-back-stats { gap: 2px; margin: 0; }
-  .wv-mos-back-stats .wv-peak-badge { font-size: 0.38rem; padding: 1px 3px; }
   .wv-mos-back .wv-mos-hcard-wks { font-size: 0.36rem; padding: 1px 3px; }
   .wv-mos-back .wv-mos-hcard-alltime { display: none; }
   .wv-mos-back .wv-mv-ov { font-size: 0.55rem; }
@@ -36313,10 +35649,6 @@ body.colw-dragging { cursor: col-resize; user-select: none; }
 .wv-title-link { cursor: pointer; }
 .wv-title-link:hover { color: var(--accent); text-decoration: underline; }
 /* phase 3: neutral, like .yt-play-btn */
-.wv-bar-fill.wv-bar-up { background: var(--chart-up); }
-.wv-bar-fill.wv-bar-down { background: var(--chart-down); }
-.wv-bar-fill.wv-bar-new { background: var(--chart-new); }
-.wv-bar-fill.wv-bar-re { background: var(--chart-re); }
 
 /* ═══════════════════════════════════════════════════════════════════════
    LIGHT THEME CONTRAST FIXES
@@ -36578,14 +35910,6 @@ body.green-light .cr-box-bu-miss.cr-box-bu-miss-peak .cr-box-rank {
 }
 
 /* "+ Chart" toggle (BU panel) active state — #4ade80 neon green is unreadable on light */
-body.navy-light .bu-combined-toggle.active,   body.purple-light .bu-combined-toggle.active,
-body.yellow-light .bu-combined-toggle.active, body.pink-light .bu-combined-toggle.active,
-body.red-light .bu-combined-toggle.active,
-body.green-light .bu-combined-toggle.active {
-  color: #166534;
-  background: rgba(22, 101, 52, 0.07);
-  border-color: rgba(22, 101, 52, 0.35);
-}
 
 /* "+ BU" toggle (chart run panel) active state — #f87171 neon red is unreadable on light */
 body.navy-light .cr-bu-toggle.active,   body.purple-light .cr-bu-toggle.active,
@@ -36716,13 +36040,6 @@ body.green-light .streak-section--fame .streak-section-title {
 }
 
 /* Milestone badge: neon green tint invisible/jarring on light backgrounds */
-body.navy-light .sk-ms,   body.purple-light .sk-ms,
-body.yellow-light .sk-ms, body.pink-light .sk-ms,
-body.red-light .sk-ms,
-body.green-light .sk-ms {
-  background: rgba(0, 0, 0, 0.04);
-  border-color: rgba(0, 0, 0, 0.15);
-}
 
 /* Modal peak/rank medals — #ffd700 gold (~1.4:1), #c0c8d8 silver and the
    #60a5fa year card vanish on light surfaces, and a neon glow is a
@@ -37061,7 +36378,6 @@ body.green-light :is(.sv--bronze, .modal-cb-detail-peak--bronze) {
       user-select: none;
     }
     .cg-acc-head:hover { background: var(--bg3); }
-    .cg-acc-icon { flex-shrink: 0; font-size: 1rem; }
     .cg-acc-name { flex: 1; font-weight: 600; }
     .cg-acc-chev {
       flex-shrink: 0;
@@ -39930,7 +39246,6 @@ body.green-light :is(.sv--bronze, .modal-cb-detail-peak--bronze) {
     .rt-tt-unrated { flex: 0 0 auto; font-size: var(--fs-xs); color: var(--text3); font-style: italic; }
 
     /* Touch screens have no hover, so the hint stays visible there. */
-    .rt-sub-count { margin-left: 0.3rem; color: var(--text3); font-weight: 400; }
 
     /* ═══ RATING EDITOR MODAL ═══════════════════════════════════
        On the shared window frame since phase 10 step 7: #ratingModalBody
@@ -40241,14 +39556,6 @@ body.green-light :is(.sv--bronze, .modal-cb-detail-peak--bronze) {
     /* Score distribution. One series, so no legend; the count sits above each
        column and the bucket below it, which is what keeps the encoding readable
        without relying on the band colour. */
-    .rt-dist-count {
-      font-size: var(--fs-xs);
-      font-weight: 800;
-      color: var(--text3);
-      text-align: center;
-      height: 1rem;
-      font-variant-numeric: tabular-nums;
-    }
 
     
 
@@ -40407,7 +39714,6 @@ body.green-light :is(.sv--bronze, .modal-cb-detail-peak--bronze) {
       .rt-slider { width: 100%; flex: 1 1 auto; }
       .rt-slider--track { width: auto; }
       .rt-formula-note { margin-left: 0; flex: 1 1 100%; }
-      .rt-dist-count { font-size: var(--fs-xs); }
     }
 
 /* ===========================================================================
@@ -41456,10 +40762,8 @@ body.cp-hide-cert-reel    #certReelSection { display: none !important; }
 .ea-drawer > .cr-panel { margin: 0; }
 /* The panel draws its own box; the drawer is only where it sits */
 .ea-drawer { padding: 0; gap: 0; border: 0; background: none; }
-.cr-stat.cr-stat-now { background: color-mix(in srgb, var(--accent) 9%, transparent); }
 .cr-stat.is-best strong { color: var(--accent); font-family: var(--font-sans); font-size: var(--fs-sm); white-space: normal; }
 .cr-stat strong .m-new, .cr-stat strong .m-re { margin-left: 0 !important; }
-.cr-stats-now { margin-bottom: var(--sp-3); }
 
 /* ── ALL-TIME CHART INSIGHTS ("Inside your Top N", insights.js) ──────────────
    Sits between the Songs / Artists / Albums switch and the All-Time songs
