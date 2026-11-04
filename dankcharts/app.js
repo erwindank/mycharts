@@ -50049,6 +50049,7 @@ function closeCeremony() {
   document.getElementById('awardsCeremonyOverlay').style.display = 'none';
   document.body.style.overflow = '';
   cerShowStop(true);
+  _cerParadeEnd(true);
   _ceremonyStopAudio();
   if (_ceremonyKeyHandler) { document.removeEventListener('keydown', _ceremonyKeyHandler); _ceremonyKeyHandler = null; }
 }
@@ -50179,6 +50180,7 @@ function _ceremonyRender() {
   const data = _ceremonyData;
   if (!data) return;
   cerShowStop(true);
+  _cerParadeEnd(true);                // leaving a slide mid-parade drops the ring
   _ceremonyStopAudio();
   const seq = ++_ceremonyRenderSeq;
   const slide = document.getElementById('ceremonySlide');
@@ -50346,6 +50348,8 @@ function _ceremonyFinaleHtml(data, queue) {
 
 function ceremonyReveal() {
   if (_ceremonyIsFinale()) return;
+  // A second click (or space/enter) while the parade is running skips straight to the opening
+  if (_cerParade) { _cerParadeSkip(); return; }
   const cat  = _ceremonyCats[_ceremonyIdx];
   const data = _ceremonyData;
   const winner = data?.categories?.[cat?.id]?.winner;
@@ -50354,11 +50358,226 @@ function ceremonyReveal() {
   if (!slide || slide.classList.contains('is-opening')) return;
 
   cerShowStop(true);                           // opening the envelope ends the walk-through
+  // The nominee parade plays first, then hands over to the envelope opening
+  _cerParadeStart(winner, () => _ceremonyOpenEnvelope(cat, winner));
+}
+
+/* ── The nominee parade ───────────────────────────────────────────────────────
+   Plays between the click on the envelope and the flap lifting. The nominees'
+   covers rise out of the strip into a ring that circles the envelope, spinning
+   fast and slowing to a stop. Then the lights go out on them one by one: each
+   cover darkens and drops into the envelope, the stage dims around it, until
+   only the envelope is left lit — and it opens.
+
+   No spoilers: the cover the ring stops on and the last cover to go out are both
+   picked at random from the nominees who did NOT win. A click or space/enter
+   during the parade skips it; reduced motion gets a short dim instead. */
+
+let _cerParade = null;   // { layer, curtain, items, raf, timers, done, finished } while running
+
+const CER_PARADE_FLY_MS  = 520;    // covers rise from the strip into the ring
+const CER_PARADE_SPIN_MS = 2300;   // fast → slow → stop
+const CER_PARADE_HOLD_MS = 260;    // beat of stillness before the lights go out
+const CER_PARADE_OUT_MS  = 1000;   // whole lights-out run, however many nominees
+
+function _cerParadeStart(winner, done) {
+  const stage = document.getElementById('ceremonyStage');
+  const slide = document.getElementById('ceremonySlide');
+  const env   = slide?.querySelector('.cer-envelope');
+  const cards = [...(slide?.querySelectorAll('.cer-nom-card') || [])];
+  // Auto categories (sealed placeholder) and one-nominee fields have nothing to parade
+  if (!stage || !env || cards.length < 2) { done(); return; }
+
+  const run = { items: [], timers: [], raf: 0, done, finished: false };
+  _cerParade = run;
+  slide.classList.add('is-parading');
+  stage.classList.add('is-parading');           // no scrolling while the ring is up
+
+  // Put the envelope in the middle of the view first; the ring is built around it
+  env.scrollIntoView({ block: 'center', behavior: 'auto' });
+
+  // The layer covers exactly the visible part of the scrolling stage
+  const layer = document.createElement('div');
+  layer.className = 'cer-parade';
+  layer.style.top = stage.scrollTop + 'px';
+  layer.style.height = stage.clientHeight + 'px';
+  layer.addEventListener('click', e => { e.stopPropagation(); _cerParadeSkip(); });
+  const curtain = document.createElement('div');
+  curtain.className = 'cer-parade-curtain';
+  layer.appendChild(curtain);
+  stage.appendChild(layer);
+  run.layer = layer;
+  run.curtain = curtain;
+
+  // Spotlight hole in the curtain sits on the envelope
+  const lr = layer.getBoundingClientRect();
+  const er = env.getBoundingClientRect();
+  const cx = er.left + er.width / 2 - lr.left;
+  const cy = er.top + er.height / 2 - lr.top;
+  curtain.style.setProperty('--cx', cx + 'px');
+  curtain.style.setProperty('--cy', cy + 'px');
+
+  if (_cerReducedMotion()) {
+    // No ring, no flying: the stage just dims to the envelope and it opens
+    requestAnimationFrame(() => curtain.classList.add('is-dark'));
+    run.timers.push(setTimeout(() => _cerParadeFinish(), 420));
+    return;
+  }
+
+  // Which cards did not win — the only ones allowed to stop in front or go out last
+  const wk = _awardItemKey(winner);
+  const n = cards.length;
+  const losers = cards.map((c, i) => i).filter(i => cards[i].dataset.nk !== wk);
+  const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+  const frontIdx = losers.length ? pick(losers) : 0;
+
+  // Ring size from the space available; covers shrink on a phone
+  const mobile = lr.width < 641;
+  const size = mobile ? 74 : 112;
+  // A phone is narrow but tall, so its ring is an upright oval instead of a flat one
+  const R  = Math.min(lr.width * (mobile ? 0.34 : 0.40), mobile ? 150 : 430);
+  const Ry = Math.min(R * (mobile ? 1.15 : 0.24), lr.height * (mobile ? 0.3 : 0.22));
+
+  // One cover per nominee, copied from the art the strip already loaded
+  cards.forEach((card, i) => {
+    const el = document.createElement('div');
+    el.className = 'cer-parade-cover';
+    el.style.width = el.style.height = size + 'px';
+    const art = card.querySelector('.cer-art');
+    el.innerHTML = art ? art.innerHTML : '';
+    const cr = (art || card).getBoundingClientRect();
+    layer.appendChild(el);
+    run.items.push({
+      el, i,
+      // where it starts: its spot in the strip, as an offset from the ring centre
+      sx: cr.left + cr.width / 2 - lr.left, sy: cr.top + cr.height / 2 - lr.top,
+      ss: cr.width / size,
+      out: null,          // set when its light goes out
+    });
+  });
+
+  // The spin ends with frontIdx facing the audience after ~2.5 turns
+  const step = (Math.PI * 2) / n;
+  const turns = 2 + Math.floor(Math.random() * 2);       // 2 or 3 full turns, so it never feels canned
+  const endBase = Math.PI * 2 * turns - frontIdx * step;
+  const startBase = 0;
+
+  // Lights-out order: random, but a winner never goes out last
+  const order = cards.map((c, i) => i).sort(() => Math.random() - 0.5);
+  if (cards[order[order.length - 1]].dataset.nk === wk && order.length > 1) {
+    [order[0], order[order.length - 1]] = [order[order.length - 1], order[0]];
+  }
+  const gap = CER_PARADE_OUT_MS / n;
+  const outStart = CER_PARADE_FLY_MS * 0.4 + CER_PARADE_SPIN_MS + CER_PARADE_HOLD_MS;
+  order.forEach((idx, k) => { run.items[idx].outAt = outStart + k * gap; });
+  const endAt = outStart + CER_PARADE_OUT_MS + 380;
+
+  const easeOut = t => 1 - Math.pow(1 - t, 3);
+  const ease = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  const t0 = performance.now();
+  let lastCurtain = -1;
+
+  const frame = now => {
+    if (_cerParade !== run) return;
+    const t = now - t0;
+    // Ring angle: starts spinning while the covers are still rising, eases to a stop
+    const spinT = Math.min(1, Math.max(0, (t - CER_PARADE_FLY_MS * 0.4) / CER_PARADE_SPIN_MS));
+    const base = startBase + (endBase - startBase) * easeOut(spinT);
+    const flyT = ease(Math.min(1, t / CER_PARADE_FLY_MS));
+
+    let gone = 0;
+    run.items.forEach(it => {
+      const a = base + it.i * step;
+      const depth = Math.cos(a);                       // 1 = front, -1 = back
+      const rx = cx + R * Math.sin(a);
+      const ry = cy + Ry * depth;
+      const rs = 0.6 + 0.4 * (depth + 1) / 2;
+      let x = it.sx + (rx - it.sx) * flyT;
+      let y = it.sy + (ry - it.sy) * flyT;
+      let s = it.ss + (rs - it.ss) * flyT;
+      let bright = 0.5 + 0.5 * (depth + 1) / 2;
+      let op = 1;
+
+      // Its light goes out: darken first, then drop into the envelope
+      if (t >= it.outAt) {
+        const o = Math.min(1, (t - it.outAt) / 420);
+        const dim = Math.min(1, o / 0.4);
+        const fall = ease(Math.max(0, (o - 0.3) / 0.7));
+        bright *= 1 - 0.85 * dim;
+        x += (cx - x) * fall;
+        y += (cy - y) * fall;
+        s *= 1 - 0.8 * fall;
+        op = 1 - fall;
+        if (o >= 1) gone++;
+      }
+      it.el.style.transform = `translate(${x - size / 2}px, ${y - size / 2}px) scale(${s})`;
+      it.el.style.filter = `brightness(${bright.toFixed(3)})`;
+      it.el.style.opacity = op.toFixed(3);
+      // Front half passes in front of the envelope, back half behind it
+      it.el.style.zIndex = depth > 0 && t < it.outAt + 120 ? 6 : 2;
+    });
+
+    // The stage dims a notch every time a light goes out
+    const lvl = t < outStart ? 0.35 * Math.min(1, t / CER_PARADE_FLY_MS) : 0.35 + 0.55 * (gone / n);
+    if (Math.abs(lvl - lastCurtain) > 0.004) { curtain.style.opacity = lvl.toFixed(3); lastCurtain = lvl; }
+
+    if (t >= endAt) { _cerParadeFinish(); return; }
+    run.raf = requestAnimationFrame(frame);
+  };
+  run.raf = requestAnimationFrame(frame);
+}
+
+// Second click / space: drop the ring, go fully dark, open now
+function _cerParadeSkip() {
+  const run = _cerParade;
+  if (!run || run.finished) return;
+  run.items.forEach(it => it.el.remove());
+  run.items = [];
+  run.curtain.style.opacity = '';
+  run.curtain.classList.add('is-dark');
+  _cerParadeFinish();
+}
+
+// Parade over: stop the clock and hand over to the envelope. The curtain stays
+// down through the opening and lifts once the winner is on stage.
+function _cerParadeFinish() {
+  const run = _cerParade;
+  if (!run || run.finished) return;
+  run.finished = true;
+  cancelAnimationFrame(run.raf);
+  run.timers.forEach(clearTimeout);
+  run.items.forEach(it => it.el.remove());
+  run.curtain.style.opacity = '';
+  run.curtain.classList.add('is-dark');
+  run.done();
+}
+
+// Lift the curtain (after the reveal), or tear everything down at once (nav/close)
+function _cerParadeEnd(instant) {
+  const run = _cerParade;
+  if (!run) return;
+  _cerParade = null;
+  cancelAnimationFrame(run.raf);
+  run.timers.forEach(clearTimeout);
+  document.getElementById('ceremonyStage')?.classList.remove('is-parading');
+  document.getElementById('ceremonySlide')?.classList.remove('is-parading');
+  if (instant || _cerReducedMotion()) { run.layer.remove(); return; }
+  run.curtain.classList.remove('is-dark');
+  run.curtain.classList.add('is-lifting');
+  setTimeout(() => run.layer.remove(), 650);
+}
+
+// The flap lifts and the card rides out (the part that ran on its own before the parade)
+function _ceremonyOpenEnvelope(cat, winner) {
+  const data = _ceremonyData;
+  const slide = document.getElementById('ceremonySlide');
+  if (!slide || _ceremonyCats[_ceremonyIdx] !== cat) { _cerParadeEnd(true); return; }
   _ceremonyRevealed.add(cat.id);
   slide.classList.add('is-opening');           // flap lifts, the card rides up out of it
   setTimeout(() => {
     slide.classList.remove('is-opening');
     slide.classList.add('is-revealed');
+    _cerParadeEnd();                           // the lights come back up on the winner
     _ceremonyMarkWinnerCard(winner);
     // The winner leads the revealed slide (the field shrinks to a strip under
     // it), so ride back to the top where it is.
