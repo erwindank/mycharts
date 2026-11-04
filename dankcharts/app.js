@@ -14447,7 +14447,9 @@ function playWeekKey(playDate) {
    '—'), while NEW albums is counted by album KEY (name|||credit). */
 function _buildPeriodAggIndex(periodType) {
   if (!firstSeenMaps) firstSeenMaps = buildFirstSeenMaps();
-  const { songFirst, artistFirst, albumFirst } = firstSeenMaps;
+  // Numeric first-play times (see buildFirstSeenMaps): "first seen on or after
+  // the period start" is then a number comparison, not two Date conversions
+  const { msSong, msArtist, msAlbum } = firstSeenMaps;
 
   // Period start dates, needed to decide what counts as "new" in that period.
   const startOf = (key) => {
@@ -14463,22 +14465,22 @@ function _buildPeriodAggIndex(periodType) {
               : yearKeyOf(p);
     let a = acc[key];
     if (a === undefined) {
-      a = acc[key] = { plays: 0, ps: startOf(key),
+      a = acc[key] = { plays: 0, ps: +startOf(key),
                        s: new Set(), ar: new Set(), al: new Set(),
                        ns: new Set(), na: new Set(), nb: new Set() };
     }
     a.plays++;
     const sk = songKey(p);
     a.s.add(sk);
-    if (songFirst[sk] && songFirst[sk] >= a.ps) a.ns.add(sk);
+    if (msSong.get(sk) >= a.ps) a.ns.add(sk);   // undefined >= n is false, as a missing entry was
     for (const ar of p.artists) {
       a.ar.add(ar);
-      if (artistFirst[ar] && artistFirst[ar] >= a.ps) a.na.add(ar);
+      if (msArtist.get(ar) >= a.ps) a.na.add(ar);
     }
     if (p.album && p.album !== '—') {
       a.al.add(p.album);                 // by name, matching the original stat
       const ak = albumKeyOf(p);          // by key, matching the original "new" stat
-      if (albumFirst[ak] && albumFirst[ak] >= a.ps) a.nb.add(ak);
+      if (msAlbum.get(ak) >= a.ps) a.nb.add(ak);
     }
   }
 
@@ -15134,19 +15136,29 @@ function fmtElapsed(elapsed) {
 
 function buildFirstSeenMaps() {
   const songFirst = {}, artistFirst = {}, albumFirst = {};
+  /* The comparisons run on numbers (tzMsOf is +tzDateOf, cached) kept in Maps
+     beside the Date-valued objects the callers read: comparing two Dates
+     converts both, three times per play, and that made this a half-second
+     step on a phone at 240k plays. Same result: a Date is stored only when its
+     time is strictly earlier, exactly as before. The Maps are handed out too
+     (msSong / msArtist / msAlbum) for builders that compare against them. */
+  const msSong = new Map(), msArtist = new Map(), msAlbum = new Map();
   for (const p of allPlays) {
-    const tz = tzDateOf(p);
+    const ms = tzMsOf(p);
     const sk = songKey(p);
-    if (!songFirst[sk] || tz < songFirst[sk]) songFirst[sk] = tz;
+    let cur = msSong.get(sk);
+    if (cur === undefined || ms < cur) { msSong.set(sk, ms); songFirst[sk] = tzDateOf(p); }
     for (const artist of p.artists) {
-      if (!artistFirst[artist] || tz < artistFirst[artist]) artistFirst[artist] = tz;
+      cur = msArtist.get(artist);
+      if (cur === undefined || ms < cur) { msArtist.set(artist, ms); artistFirst[artist] = tzDateOf(p); }
     }
     if (p.album && p.album !== '—') {
       const ak = albumKeyOf(p);
-      if (!albumFirst[ak] || tz < albumFirst[ak]) albumFirst[ak] = tz;
+      cur = msAlbum.get(ak);
+      if (cur === undefined || ms < cur) { msAlbum.set(ak, ms); albumFirst[ak] = tzDateOf(p); }
     }
   }
-  return { songFirst, artistFirst, albumFirst };
+  return { songFirst, artistFirst, albumFirst, msSong, msArtist, msAlbum };
 }
 
 const NEW_ENTRY_SECTIONS = ['newSongsSection', 'newArtistsSection', 'newAlbumsSection'];
@@ -15866,6 +15878,8 @@ function renderAll() {
   // Wake the backend early — user is browsing and may want to play a track soon
   _ytPrewarmBackend();
   clearImageObservers();
+  // The rows being replaced take their unbuilt details panels with them
+  if (_crLazyRows) _crLazyRows.clear();
   ['songsBody', 'artistsBody', 'albumsBody'].forEach(id => {
     const el = document.getElementById(id);
     if (el && el._visObs) { el._visObs.disconnect(); delete el._visObs; }
@@ -16709,7 +16723,7 @@ function renderPage(type, peaks) {
         <td class="cr-cell">${_eaBtns(true, true)}${hasCR ? `<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_song')}" onclick="event.stopPropagation();_drToggle(this.closest('tr'))">${CR_ICON}</button>` : ''}</td>
       </tr>`;
       if (!hasCR) return [mainRow];
-      return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="${colSpan}"><div class="cr-panel"${f.ea} data-crfacts="1" data-crtype="songs" data-crkey="${encodeURIComponent(k)}">${buildCrPanelHTML('songs', k, f)}</div></td></tr>`];
+      return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="${colSpan}"><div class="cr-panel"${f.ea} data-crfacts="1" data-crtype="songs" data-crkey="${encodeURIComponent(k)}">${_crLazy(rowId, 'songs', k, f)}</div></td></tr>`];
     }).join('');
     loadImages(imgItems.map(i => ({ ...i, name: i.title })), 'song');
     const playAllRow = document.getElementById('ytPlayAllRow');
@@ -16743,7 +16757,7 @@ function renderPage(type, peaks) {
         <td class="cr-cell">${_eaBtns(true, true)}${hasCR ? `<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_artist')}" onclick="event.stopPropagation();_drToggle(this.closest('tr'))">${CR_ICON}</button>` : ''}</td>
       </tr>`;
       if (!hasCR) return [mainRow];
-      return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="${colSpan}"><div class="cr-panel"${f.ea} data-crfacts="1" data-crtype="artists" data-crkey="${encodeURIComponent(a.name)}">${buildCrPanelHTML('artists', a.name, f)}</div></td></tr>`];
+      return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="${colSpan}"><div class="cr-panel"${f.ea} data-crfacts="1" data-crtype="artists" data-crkey="${encodeURIComponent(a.name)}">${_crLazy(rowId, 'artists', a.name, f)}</div></td></tr>`];
     }).join('');
     loadImages(imgItems, 'artist');
 
@@ -16786,7 +16800,7 @@ function renderPage(type, peaks) {
         <td class="cr-cell">${_eaBtns(true, true)}${hasCR ? `<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_album')}" onclick="event.stopPropagation();_drToggle(this.closest('tr'))">${CR_ICON}</button>` : ''}</td>
       </tr>`;
         if (!hasCR) return [mainRow];
-        return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="${colSpan}"><div class="cr-panel"${f.ea} data-crfacts="1" data-crtype="albums" data-crkey="${encodeURIComponent(ak)}">${buildCrPanelHTML('albums', ak, f)}</div></td></tr>`];
+        return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="${colSpan}"><div class="cr-panel"${f.ea} data-crfacts="1" data-crtype="albums" data-crkey="${encodeURIComponent(ak)}">${_crLazy(rowId, 'albums', ak, f)}</div></td></tr>`];
       }).join('');
     }
     loadImages(imgItems, 'album');
@@ -16978,6 +16992,37 @@ function openCrIgModalFromPanel(type, encodedKey) {
   }
   openCrIgModal(type, encodedKey, rank);
 }
+
+/* ── Table details panels are built when opened, not with the chart ─────
+   Phone speed (2026-11-03). Every chart row in the Table layout has a hidden
+   details panel (tr.cr-row) and all of them used to be built with the chart.
+   On All-Time that meant every row's full chart run, and the first one also
+   built the whole week / month / year / day history: 16.7s of a 23s freeze
+   on a phone at 240k plays, for panels nobody had opened. The other layouts
+   already built their drawer on open; the Table now does the same.
+   _crLazy() keeps the row's own facts (f) under its row id - not under the
+   entry key, since the same song can be in the chart and in New Entries with
+   different facts - and returns an empty panel; _crFillLazy() builds it the
+   moment the row opens, with the same arguments the render would have used. */
+// var, not const: renderAll() sits earlier in the file and must never hit a
+// temporal-dead-zone error if it runs before this line has been evaluated
+var _crLazyRows = new Map();   // cr-row id -> { type, key, f }
+function _crLazy(rowId, type, key, f) {
+  _crLazyRows.set(rowId, { type, key, f });
+  return '';
+}
+// Builds any not-yet-built panel in (or being) el. Safe to call repeatedly.
+function _crFillLazy(el) {
+  if (!el) return;
+  const rows = el.matches && el.matches('tr.cr-row') ? [el] : el.querySelectorAll ? el.querySelectorAll('tr.cr-row') : [];
+  rows.forEach(row => {
+    const job = _crLazyRows.get(row.id);
+    const panel = row.querySelector('.cr-panel');
+    if (!job || !panel || panel.childElementCount) return;
+    panel.innerHTML = buildCrPanelHTML(job.type, job.key, job.f);
+  });
+}
+window._crFillLazy = _crFillLazy;
 
 /* `f` (optional): the entry's facts from _chartItem, when the panel belongs to
    an entry on the chart. Then the panel is the entry's whole details panel
@@ -19898,7 +19943,7 @@ function renderSongs(plays, peaks, monthlyStats) {
       </td>
       <td class="cr-cell">${_eaBtns(true, true)}<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_song')}" onclick="event.stopPropagation();_drToggle(this.closest('tr'))">${CR_ICON}</button></td>
     </tr>`;
-    const expandRow = `<tr class="cr-row" id="${rowId}"><td colspan="${colCount}"><div class="cr-panel"${f.ea} data-crfacts="1" data-crtype="songs" data-crkey="${encodeURIComponent(k)}">${buildCrPanelHTML('songs', k, f)}</div></td></tr>`;
+    const expandRow = `<tr class="cr-row" id="${rowId}"><td colspan="${colCount}"><div class="cr-panel"${f.ea} data-crfacts="1" data-crtype="songs" data-crkey="${encodeURIComponent(k)}">${_crLazy(rowId, 'songs', k, f)}</div></td></tr>`;
     return [mainRow, expandRow];
   });
   const sbodyS = document.getElementById('songsBody');
@@ -19977,7 +20022,7 @@ function renderArtists(plays, peaks, monthlyStats) {
       </td>
       <td class="cr-cell">${_eaBtns(true, true)}<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_artist')}" onclick="event.stopPropagation();_drToggle(this.closest('tr'))">${CR_ICON}</button></td>
     </tr>`;
-    const expandRow = `<tr class="cr-row" id="${rowId}"><td colspan="${colCount}"><div class="cr-panel"${f.ea} data-crfacts="1" data-crtype="artists" data-crkey="${encodeURIComponent(artist)}">${buildCrPanelHTML('artists', artist, f)}</div></td></tr>`;
+    const expandRow = `<tr class="cr-row" id="${rowId}"><td colspan="${colCount}"><div class="cr-panel"${f.ea} data-crfacts="1" data-crtype="artists" data-crkey="${encodeURIComponent(artist)}">${_crLazy(rowId, 'artists', artist, f)}</div></td></tr>`;
     return [mainRow, expandRow];
   });
   const sbodyA = document.getElementById('artistsBody');
@@ -20075,7 +20120,7 @@ function renderAlbums(plays, peaks, monthlyStats) {
       </td>
       <td class="cr-cell">${_eaBtns(true, true)}<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_album')}" onclick="event.stopPropagation();_drToggle(this.closest('tr'))">${CR_ICON}</button></td>
     </tr>`;
-      const expandRow = `<tr class="cr-row" id="${rowId}"><td colspan="${colCount}"><div class="cr-panel"${f.ea} data-crfacts="1" data-crtype="albums" data-crkey="${encodeURIComponent(ak)}">${buildCrPanelHTML('albums', ak, f)}</div></td></tr>`;
+      const expandRow = `<tr class="cr-row" id="${rowId}"><td colspan="${colCount}"><div class="cr-panel"${f.ea} data-crfacts="1" data-crtype="albums" data-crkey="${encodeURIComponent(ak)}">${_crLazy(rowId, 'albums', ak, f)}</div></td></tr>`;
       return [mainRow, expandRow];
     });
     const sbodyL = document.getElementById('albumsBody');
@@ -22137,6 +22182,7 @@ function _drToggle(entry) {
     const crRow = d.crRow && document.getElementById(d.crRow);
     if (!crRow) return;
     const open = !crRow.classList.contains('open');
+    if (open) _crFillLazy(crRow);   // its details are built on first open
     crRow.classList.toggle('open', open);
     _drSetOpen(entry, open);
     if (open) _eaPaintSamples();
@@ -25470,6 +25516,10 @@ function setCrIgRange(mode) {
 // Resolves the selected periods into plain section objects (entries + summary
 // numbers) so the run templates only have to lay them out.
 function shRunContext(type, key, opts) {
+  /* The Table no longer builds the full chart history together with the chart
+     (its details panels are built on open, _crFillLazy), so a share card can
+     be the first thing that needs it. Same call those panels made. */
+  if (currentPeriod !== 'day' && !allChartRunIsFullHistory && allPlays && allPlays.length) ensureAllChartRun();
   // Resolve display name
   let displayName = key.split('|||')[0], artistName = key.split('|||')[1] || '';
   const crAny = allChartRun.day?.result?.[type]?.[key] || allChartRun.year?.result?.[type]?.[key] || allChartRun.month?.result?.[type]?.[key] || allChartRun.week?.result?.[type]?.[key];
@@ -25920,6 +25970,10 @@ document.getElementById('crIgModal').addEventListener('click', e => {
 // Everything a single-entry template needs: names, chart title, movement
 // sentence, the narrative description and the headline stats.
 function shEntryContext(type, key, rank, opts) {
+  /* The Table no longer builds the full chart history together with the chart
+     (its details panels are built on open, _crFillLazy), so a share card can
+     be the first thing that needs it. Same call those panels made. */
+  if (currentPeriod !== 'day' && !allChartRunIsFullHistory && allPlays && allPlays.length) ensureAllChartRun();
   const period = opts.period || currentPeriod;
   const fmt = SHARE_FORMATS[opts.format] ? opts.format : 'post';
   const d = shDims(fmt);
@@ -26209,6 +26263,10 @@ function _entryMovement(rank, key, type, period) {
 
 // Narrative description derived from chart run history
 function _entryDescription(type, key, rank, period, ctx) {
+  /* The Table no longer builds the full chart history together with the chart
+     (its details panels are built on open, _crFillLazy), so a share card can
+     be the first thing that needs it. Same call those panels made. */
+  if (currentPeriod !== 'day' && !allChartRunIsFullHistory && allPlays && allPlays.length) ensureAllChartRun();
   ctx = ctx || {};
   const crData = allChartRun[period] || (chartRunData && chartRunData.period === period ? chartRunData : null);
   if (!crData) return '';

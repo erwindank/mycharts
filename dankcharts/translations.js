@@ -5577,6 +5577,8 @@ function setLanguage(lang) {
       if (!panel) return;
       const crRow = panel.closest('.cr-row');
       if (!crRow) return;
+      // Table panels are built on first open now (app.js, _crFillLazy)
+      if (typeof _crFillLazy === 'function') _crFillLazy(crRow);
       crRow.classList.add('open');
       const mainRow = crRow.previousElementSibling;
       if (mainRow) {
