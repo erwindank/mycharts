@@ -27187,6 +27187,45 @@ body[class*="-light"] .tm-card-search:hover {
 .awards-fav-btn:focus-visible { outline: 2px solid var(--gold1); outline-offset: 1px; }
 .awards-fav-btn.is-fav { color: var(--gold1); }
 .awards-fav-btn.is-fav svg { fill: currentColor; }
+/* On/off switch in the card header (awardsCatOffAsk). Always shown "on", since
+   a card on the ballot is on; clicking it asks before turning the category off.
+   Smaller than the Settings switch so it sits with the ☆ and the chevron. */
+.awards-cat-onoff {
+  flex: none;
+  width: 30px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-full);
+  background: transparent;
+  cursor: pointer;
+}
+/* The track, with the knob on the right */
+.awards-cat-onoff > span {
+  position: relative;
+  width: 26px;
+  height: 15px;
+  border-radius: var(--r-full);
+  background: var(--accent);
+  transition: background var(--t-fast) var(--ease), opacity var(--t-fast) var(--ease);
+}
+.awards-cat-onoff > span::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--on-accent);
+  transition: right var(--t-fast) var(--ease);
+}
+/* Hover hints at what a click does: the knob leans toward off */
+.awards-cat-onoff:hover > span { opacity: 0.75; }
+.awards-cat-onoff:hover > span::before { right: 5px; }
+.awards-cat-onoff:focus-visible { outline: 2px solid var(--gold1); outline-offset: 1px; }
 /* In the picker head it sits just left of the close ✕ */
 .awards-picker-fav { position: absolute; top: 15px; right: 50px; }
 .awards-picker-head:has(.awards-picker-fav) { padding-right: 88px; }

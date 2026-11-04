@@ -46328,9 +46328,19 @@ function _awardsCatHeadHtml(cat, count, extra) {
         <span class="awards-cat-desc">${esc(_awardsCatHint(cat))}</span>
       </span>
       ${cat.auto ? '<span class="dc-chip dc-chip-warn awards-auto-tag">auto</span>' : ''}${extra || ''}
+      ${_awardsCatOffBtn(cat)}
       ${_awardsFavBtn(cat.id, 'awards-cat-fav')}
       ${_awardsCollapseBtn(cat)}
     </div>`;
+}
+
+/* The on/off switch in every card header, so a category can be switched off
+   while picking nominees without going back to Configure Year. A card on the
+   ballot is always on, so the switch only ever turns it off, and asks first
+   (awardsCatOffAsk). Switching back on is done in Configure Year. */
+function _awardsCatOffBtn(cat) {
+  const tip = t('awards_cat_off_tip');
+  return `<button type="button" class="awards-cat-onoff" role="switch" aria-checked="true" title="${esc(tip)}" aria-label="${esc(tip)}" onclick="awardsCatOffAsk(event,'${esc(cat.id)}')"><span aria-hidden="true"></span></button>`;
 }
 
 // The fold chevron at the end of every card header (awardsToggleCollapse)
@@ -47065,7 +47075,24 @@ function awardsToggleCat(catId, enabled) {
   _awardsCatToggled(data, catId, enabled);
   // The card's own look and the counts; the list itself stays as it is
   document.querySelector(`#awardsCatToggles .awc-card[data-cat="${catId}"]`)?.classList.toggle('is-on', enabled);
+  // Keep the Configure Year switch in step when the flip came from a card header
+  const sw = document.getElementById('awcIn_' + catId);
+  if (sw) sw.checked = enabled;
   _awcUpdateCounts(data);
+}
+
+// The card header's switch: ask in the site's own warning window, then turn the
+// category off. Nominees and the winner are kept, so switching it back on in
+// Configure Year brings the card back as it was.
+function awardsCatOffAsk(e, catId) {
+  if (e) { e.preventDefault(); e.stopPropagation(); }
+  const data = _awardsYearData[_awardsYear];
+  if (!data) return;
+  const name = t('awards_cat_' + catId);
+  const go = () => awardsToggleCat(catId, false);
+  if (typeof window.dcConfirmBox === 'function') {
+    window.dcConfirmBox(t('awards_cat_off_title', { name }), t('awards_cat_off_text', { year: _awardsYear }), t('awards_cat_off_ok'), go);
+  } else go();
 }
 
 // Enable All / Disable All: every category showing under the current search

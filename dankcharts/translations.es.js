@@ -1191,6 +1191,11 @@ TRANSLATIONS['es'] = Object.assign({
     awards_show_decided: 'Mostrarlas',
     awards_collapse: 'Contraer',
     awards_expand: 'Expandir',
+    // Card-header switch that turns a category off (awardsCatOffAsk)
+    awards_cat_off_tip: 'Desactivar esta categoría',
+    awards_cat_off_title: '¿Desactivar {{name}}?',
+    awards_cat_off_text: 'Su tarjeta sale de tu boleta de {{year}}. Los nominados y el ganador se guardan, así que puedes volver a activarla en Configurar Año.',
+    awards_cat_off_ok: 'Desactivar',
     awards_pending: 'por decidir',
     awards_none_pending: 'Todas las categorías decididas',
     awards_expand_all: 'Expandir todo',

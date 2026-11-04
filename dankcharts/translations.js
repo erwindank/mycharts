@@ -1234,6 +1234,11 @@ const TRANSLATIONS = {
     awards_show_decided: 'Show them',
     awards_collapse: 'Collapse',
     awards_expand: 'Expand',
+    // Card-header switch that turns a category off (awardsCatOffAsk)
+    awards_cat_off_tip: 'Turn this category off',
+    awards_cat_off_title: 'Turn off {{name}}?',
+    awards_cat_off_text: 'Its card leaves your {{year}} ballot. Nominees and the winner are kept, so you can switch it back on in Configure Year.',
+    awards_cat_off_ok: 'Turn off',
     awards_pending: 'left to decide',
     awards_none_pending: 'All categories decided',
     awards_expand_all: 'Expand all',

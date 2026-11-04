@@ -1191,6 +1191,11 @@ TRANSLATIONS['pt-BR'] = Object.assign({
     awards_show_decided: 'Mostrar',
     awards_collapse: 'Recolher',
     awards_expand: 'Expandir',
+    // Card-header switch that turns a category off (awardsCatOffAsk)
+    awards_cat_off_tip: 'Desativar esta categoria',
+    awards_cat_off_title: 'Desativar {{name}}?',
+    awards_cat_off_text: 'O cartão sai da sua cédula de {{year}}. Os indicados e o vencedor ficam salvos, então você pode reativá-la em Configurar Ano.',
+    awards_cat_off_ok: 'Desativar',
     awards_pending: 'para decidir',
     awards_none_pending: 'Todas as categorias decididas',
     awards_expand_all: 'Expandir tudo',
