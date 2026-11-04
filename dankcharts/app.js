@@ -57393,9 +57393,15 @@ function dcRenderChartsGuideView() {
      signpost, and the count comes from the real list so it cannot go stale. */
   h += `<div class="cg-sub-label">${esc(G.new_title)}</div>
   <div class="dc-card cg-panel cg-changelog-pointer">
-    <p>${esc(cgF(G.new_text, { n: typeof DC_CHANGELOG !== 'undefined' ? DC_CHANGELOG.length.toLocaleString(loc) : '' }))}</p>
+    <p id="cgChangelogCount">${esc(cgF(G.new_text, { n: typeof DC_CHANGELOG !== 'undefined' ? DC_CHANGELOG.length.toLocaleString(loc) : '…' }))}</p>
     <button class="dc-btn dc-btn-normal dc-btn-sm cg-mini-btn" onclick="openChangelog()">${esc(G.new_btn)}</button>
   </div>`;
+  /* changelog.js loads after the page (dcClEnsureData), so the guide can be
+     drawn before the count exists: it shows "…" and is filled in on arrival. */
+  if (typeof DC_CHANGELOG === 'undefined') dcClEnsureData(() => {
+    const el = document.getElementById('cgChangelogCount');
+    if (el && typeof DC_CHANGELOG !== 'undefined') el.textContent = cgF(G.new_text, { n: DC_CHANGELOG.length.toLocaleString(loc) });
+  });
 
   const savedFeedback = (() => { try { return localStorage.getItem('dc_guide_feedback') || ''; } catch(e) { return ''; } })();
   h += `<div class="cg-sub-label">${esc(G.stuck_title)}</div>
@@ -57511,9 +57517,40 @@ function dcClMarkSeen() {
   if (grp) grp.style.display = 'none';
 }
 
+/* changelog.js is loaded on demand rather than as a defer script: at ~520KB
+   (150KB over the wire) it sat in front of app.js in the defer queue, so on a
+   phone the whole app waited for a list almost nobody opens on a given visit.
+   Its URL (with the ?v= cache-buster) stays in index.html as #dcChangelogSrc.
+   Calls done() once DC_CHANGELOG exists - or the load failed, in which case
+   the callers' own typeof guards keep everything safe and empty. */
+const _dcClDataWaiting = [];
+let _dcClDataState = '';   // '' | 'loading' | 'done'
+function dcClEnsureData(done) {
+  if (typeof DC_CHANGELOG !== 'undefined' || _dcClDataState === 'done') { if (done) done(); return; }
+  if (done) _dcClDataWaiting.push(done);
+  if (_dcClDataState === 'loading') return;
+  _dcClDataState = 'loading';
+  const link = document.getElementById('dcChangelogSrc');
+  const s = document.createElement('script');
+  s.src = (link && link.getAttribute('content')) || 'changelog.js';
+  const finish = () => {
+    _dcClDataState = 'done';
+    _dcClDataWaiting.splice(0).forEach(cb => cb());
+  };
+  s.onload = finish;
+  s.onerror = finish;
+  document.head.appendChild(s);
+}
+
 function openChangelog() {
   const m = document.getElementById('changelogModal');
   if (!m) return;
+  /* The list may still be on its way (it loads after the page) - open once it
+     is in. Only the very first tap of a visit can ever wait here. */
+  if (typeof DC_CHANGELOG === 'undefined' && _dcClDataState !== 'done') {
+    dcClEnsureData(openChangelog);
+    return;
+  }
   /* Read the cutoff BEFORE anything is marked seen - the divider is drawn from
      where this visit started, not from where it ends. */
   if (!dcChangelogBuilt) {
@@ -57947,10 +57984,13 @@ document.addEventListener('keydown', function (ev) {
 }, true);
 
 window.addEventListener('DOMContentLoaded', function () {
-  if (location.hash === '#changelog') openChangelog();
-  /* changelog.js and translations.js are both plain defer scripts loaded ahead
-     of app.js, so DC_CHANGELOG and t() are both ready by the time this runs. */
-  dcClRefreshBadge();
+  /* A #changelog deep link fetches the list straight away (openChangelog
+     waits for it); otherwise it is fetched once the page has fully loaded, so
+     it never competes with the app's own start, and then the badge is drawn. */
+  if (location.hash === '#changelog') { openChangelog(); dcClEnsureData(dcClRefreshBadge); return; }
+  const later = () => setTimeout(() => dcClEnsureData(dcClRefreshBadge), 300);
+  if (document.readyState === 'complete') later();
+  else window.addEventListener('load', later, { once: true });
 });
 
 /* Arriving at #changelog from a link on a page that is already loaded is a
