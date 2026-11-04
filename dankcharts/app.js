@@ -46328,9 +46328,7 @@ function _awardsCatHeadHtml(cat, count, extra) {
         <span class="awards-cat-desc">${esc(_awardsCatHint(cat))}</span>
       </span>
       ${cat.auto ? '<span class="dc-chip dc-chip-warn awards-auto-tag">auto</span>' : ''}${extra || ''}
-      ${_awardsCatOffBtn(cat)}
-      ${_awardsFavBtn(cat.id, 'awards-cat-fav')}
-      ${_awardsCollapseBtn(cat)}
+      <span class="awards-cat-tools">${_awardsCatOffBtn(cat)}${_awardsFavBtn(cat.id, 'awards-cat-fav')}${_awardsCollapseBtn(cat)}</span>
     </div>`;
 }
 

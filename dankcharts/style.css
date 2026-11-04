@@ -26519,6 +26519,25 @@ body[class*="-light"] .tm-card-search:hover {
   color: var(--text3);
 }
 .awards-auto-tag { flex: none; }
+/* The on/off switch, ☆ and fold chevron, packed tight in the top-right corner on
+   the kicker's line, so the category name and description get the card's whole
+   width instead of wrapping beside three buttons. */
+.awards-cat-header { position: relative; }
+.awards-cat-tools {
+  position: absolute;
+  top: 9px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+}
+.awards-cat-tools .awards-cat-onoff { width: 30px; height: 24px; }
+.awards-cat-tools .awards-fav-btn,
+.awards-cat-tools .awards-cat-collapse { width: 24px; height: 24px; }
+/* Keep the kicker clear of the buttons */
+.awards-cat-header:has(.awards-cat-tools) .awards-cat-kicker { padding-right: 76px; }
+/* Reel cards are full width, so there the buttons stay in the row */
+.aw-v-reel .awards-cat-tools { position: static; }
+.aw-v-reel .awards-cat-header .awards-cat-kicker { padding-right: 0; }
 /* Fold chevron at the end of the header (awardsToggleCollapse) */
 .awards-cat-collapse {
   flex: none;
