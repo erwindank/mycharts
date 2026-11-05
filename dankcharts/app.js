@@ -52626,9 +52626,15 @@ function stRenderNumberOnes() {
       `<button type="button" class="${ty === type ? 'active' : ''}" aria-pressed="${ty === type}" onclick="stSetNo1Type('${ty}')">${esc(t('d100_type_' + ty))}</button>`).join('') +
     '</div>';
 
-  // Total weeks per entry in the period, for the band and the summary
-  const tot = {};
-  groups.forEach(g => { tot[g.k] = (tot[g.k] || 0) + g.weeks.length; });
+  // Per entry in the period: total weeks at #1, its longest unbroken run
+  // (a reign's weeks inside the period are always in a row) and the order it
+  // first got there — for the band and the summary
+  const tot = {}, run = {}, first = {};
+  groups.forEach((g, i) => {
+    tot[g.k] = (tot[g.k] || 0) + g.weeks.length;
+    run[g.k] = Math.max(run[g.k] || 0, g.weeks.length);
+    if (!(g.k in first)) first[g.k] = i;
+  });
   const distinct = Object.keys(tot).length;
 
   if (!groups.length) {
@@ -52637,16 +52643,35 @@ function stRenderNumberOnes() {
     return;
   }
 
-  // The band: how many different #1s, and who held it longest
-  let topK = null;
-  for (const k in tot) if (!topK || tot[k] > tot[topK]) topK = k;
+  // The band: how many different #1s, and who held it longest. Most weeks
+  // wins; level on weeks, the longer run in a row wins (7 straight beats
+  // 4 + 3); level on that too it is a real tie and they are named together,
+  // in the order they first got to #1.
+  const ranked = Object.keys(tot).sort((x, y) => tot[y] - tot[x] || run[y] - run[x] || first[x] - first[y]);
+  const topK = ranked[0];
   const top = groups.find(g => g.k === topK);
+  const label = k => { const g = groups.find(x => x.k === k); return g.name + (g.artist ? ' — ' + g.artist : ''); };
+  const joinNames = arr => arr.length < 2 ? arr.join('') : arr.slice(0, -1).join(', ') + ' ' + t('sx_gap_and') + ' ' + arr[arr.length - 1];
+  const sameWeeks = ranked.filter(k => tot[k] === tot[topK]);          // level on weeks
+  const tied = sameWeeks.filter(k => run[k] === run[topK]);            // level on the run too
+  let sub;
+  if (tied.length > 1) {
+    // A real tie: everyone level, named together
+    sub = t('st_ch_no1_sub_tie', { names: joinNames(tied.map(label)), weeks: weeksTxt(tot[topK]) });
+  } else if (sameWeeks.length > 1) {
+    // Level on weeks but the leader's run was longer: say so, and name the rest
+    sub = t(run[topK] === tot[topK] ? 'st_ch_no1_sub_row' : 'st_ch_no1_sub_run',
+      { name: label(topK), weeks: weeksTxt(tot[topK]), run: run[topK] }) + ' · ' +
+      t('st_ch_no1_sub_also', { names: joinNames(sameWeeks.slice(1).map(label)), weeks: weeksTxt(tot[topK]) });
+  } else {
+    sub = t('st_ch_no1_sub', { name: label(topK), weeks: weeksTxt(tot[topK]) });
+  }
   stFillHead('no1', {
     label: t('d100_no1_title'),
     title: distinct === 1
       ? esc(t('st_ch_no1_solo', { name: top.name }))
       : stHeadTitle('st_ch_no1_title', distinct),
-    sub: esc(t('st_ch_no1_sub', { name: top.name + (top.artist ? ' — ' + top.artist : ''), weeks: weeksTxt(tot[topK]) })),
+    sub: esc(sub),
     bg: [artType, top.name, top.artist],
   });
 
