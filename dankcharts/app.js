@@ -11256,6 +11256,8 @@ function buildRecords() {
 
   if (recSearchQuery()) runRecordsSearch(recSearchQuery());
   if (typeof recxSync === 'function') recxSync();
+  // "New #1 on a record" notifications read the fresh tables (notifications.js)
+  if (typeof ntRecordsBuilt === 'function') setTimeout(ntRecordsBuilt, 0);
 }
 
 /* ── Records overview ──────────────────────────────────────────────────

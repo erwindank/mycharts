@@ -45,6 +45,17 @@ const NT_KINDS = {
     tier: p.tier === 'diamond' ? tDiamondLabel(p.mult || 1) : tTierLabel(p.tier) }) },
   // More certifications at once than get one each (NT_CERT_MAX)
   cert_more: { emoji: '🏆', text: p => t('nt_cert_more', { n: p.n }) },
+  // A new holder at the top of a Records list (p.title = the list, in the
+  // language it was read in; p.type song / album / artist)
+  // p.n > 1: the same holder took several lists at once (p.title = the first)
+  rec_new: { emoji: '🥇', text: p => {
+    const multi = p.n > 1 ? '_multi' : '';
+    return p.type === 'artist'
+      ? t('nt_rec_new_artist' + multi, { name: p.name, record: p.title, n: p.n })
+      : t('nt_rec_new' + multi, { name: p.name, artist: p.artist, record: p.title, n: p.n });
+  } },
+  // Many lists changed at once (NT_REC_MAX)
+  rec_many: { emoji: '🥇', text: p => t('nt_rec_many', { n: p.n }) },
   // Someone else replied to one of the user's Board posts (p.n of them)
   bd_reply: { emoji: '💬', text: p => p.n > 1
     ? t('nt_bd_replies', { n: p.n, title: p.title })
@@ -193,6 +204,8 @@ function ntFollow(link) {
   if (link.tab === 'soundtrack' && link.month) { stOpenMonth(link.month); return; }
   // A year's Soundtrack
   if (link.tab === 'soundtrack' && link.year) { stOpenYear(link.year); return; }
+  // A record with a new #1
+  if (link.tab === 'records' && link.view) { _ntOpenRecord(link); return; }
   // A Board post
   if (link.tab === 'board' && link.post && window.dcBoard) { window.dcBoard.openFromLink(link.post); return; }
   // A certified song or album: its own window, over whatever is on screen.
@@ -232,6 +245,7 @@ async function ntWatch() {
     if (typeof _apAllowed === 'function' && _apAllowed() && allPlays && allPlays.length) {
       await _ntWatchSoundtrack();
       await _ntWatchCerts();
+      _ntRecordsCheck();   // reads Records now if built, else builds it later in idle time
     }
     await _ntWatchBoard();
   } catch (e) {
@@ -348,6 +362,155 @@ async function _ntWatchBoard() {
     return { state: same ? null : Object.assign({}, cur, { board }), out: tell };
   });
   if (Array.isArray(out)) out.forEach(n => dcNotify(n));
+}
+
+/* ── New #1 on a record ──
+   Records is ~150 lists (most times at #1, biggest debut, most plays in a
+   week…). When the holder of a list's top spot changes, the user hears who
+   took it. The lists only exist as the built Records tables (buildRecords,
+   app.js) — the same reason the Records search and hero walk the DOM — so
+   this reads the row each table built first (data-rec-idx="0", whatever
+   column sort the user picked since) through recRowRecord().
+
+   Building Records is slow on a big library (1–2 s), so it isn't done on
+   every load: it's read whenever Records gets built anyway (opening the tab,
+   buildRecords → ntRecordsBuilt), and otherwise built quietly in idle time
+   at most every NT_REC_BG_EVERY per device.
+
+   Kept in notifyState.rec = { lang, asOf, lead: { listId: holder key } }.
+   A list's id comes from its translated title, so a language change starts
+   over silently instead of reporting every list as new. asOf (the newest
+   play the leaders were read from) stops a device with older data — a CSV
+   upload from last month — from "taking back" records the newer data gave. */
+
+const NT_REC_MAX = 8;                              // more changes at once → one summary
+const NT_REC_BG_EVERY = 12 * 60 * 60 * 1000;       // background Records build, per device
+const NT_REC_BG_DELAY = 20 * 1000;                 // after a load, before trying it
+let _ntRecBgTimer = null;
+
+// Short, stable id for one list (Firestore map keys stay small)
+function _ntHash(s) {
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
+  return (h >>> 0).toString(36);
+}
+
+// Every ranked list's #1 in the built Records tables: { id: { k, name, artist, type, title, sec } }
+function _ntRecordLeaders() {
+  const out = {};
+  REC_SECTION_IDS.forEach(secId => {
+    if (secId === 'recOverviewSection') return;   // copies of the other sections' bests
+    const sec = document.getElementById(secId);
+    if (!sec) return;
+    const seen = {};
+    sec.querySelectorAll('table').forEach(tb => {
+      const row = tb.querySelector('tbody tr[data-rec-idx="0"]');
+      if (!row || !row.classList.contains('rec-rank-1')) return;   // only ranked lists
+      const rec = recRowRecord(row);
+      if (!rec || !rec.prefKey) return;
+      const tEl = tb.closest('.rec-section')?.querySelector('.rec-section-title');
+      const title = tEl ? tEl.textContent.replace(/\s+/g, ' ').trim() : '';
+      if (!title) return;
+      // Some titles repeat inside a section (Most Plays in a Single Day for
+      // songs, artists and albums), so the nth list with a title is its own
+      const base = secId + '|' + title;
+      seen[base] = (seen[base] || 0) + 1;
+      out[_ntHash(base + '|' + seen[base])] = { k: rec.prefKey, name: rec.name, artist: rec.artist, type: rec.type, title, sec: secId };
+    });
+  });
+  return out;
+}
+
+function _ntRecordsBuilt() {
+  return _recBuiltKey === _recBuildKey() && !!_recArtistTally;
+}
+
+// From ntWatch: read now if the tables are current, else plan a quiet build
+function _ntRecordsCheck() {
+  if (_ntRecordsBuilt()) { ntRecordsBuilt(); return; }
+  let last = 0;
+  try { last = +localStorage.getItem('dc_nt_rec_bg') || 0; } catch (e) {}
+  if (Date.now() - last < NT_REC_BG_EVERY || _ntRecBgTimer) return;
+  _ntRecBgTimer = setTimeout(() => {
+    const idle = window.requestIdleCallback || (fn => setTimeout(fn, 0));
+    idle(() => {
+      _ntRecBgTimer = null;
+      if (!allPlays.length || _ntRecordsBuilt() || !dcIsSignedIn()) return;
+      try { localStorage.setItem('dc_nt_rec_bg', String(Date.now())); } catch (e) {}
+      buildRecords();   // ends by calling ntRecordsBuilt
+    }, { timeout: 60000 });
+  }, NT_REC_BG_DELAY);
+}
+
+// Called at the end of every Records build (app.js), and from _ntRecordsCheck
+let _ntRecBusy = false;
+async function ntRecordsBuilt() {
+  if (_ntRecBusy || typeof dcIsSignedIn !== 'function' || !dcIsSignedIn()) return;
+  if (typeof _apAllowed === 'function' && !_apAllowed()) return;   // not the demo library
+  if (!allPlays.length) return;
+  _ntRecBusy = true;
+  try {
+    const now = _ntRecordLeaders();
+    const ids = Object.keys(now);
+    if (!ids.length) return;
+    const lang = typeof currentLang !== 'undefined' ? currentLang : '';
+    const asOf = +allPlays[0].date;   // allPlays is newest first
+    const lead = {};
+    ids.forEach(id => { lead[id] = now[id].k; });
+    const changed = await dcUpdateNotifyState(cur => {
+      const prev = cur.rec;
+      const save = { state: Object.assign({}, cur, { rec: { lang, asOf, lead } }), out: [] };
+      // First time, or another language: note where things stand, tell nothing
+      if (!prev || !prev.lead || prev.lang !== lang) return save;
+      if (asOf < prev.asOf) return { state: null, out: [] };   // older data than last time
+      const out = ids.filter(id => prev.lead[id] && prev.lead[id] !== lead[id]);
+      if (!out.length && JSON.stringify(prev.lead) === JSON.stringify(lead)) return { state: null, out: [] };
+      save.out = out;
+      return save;
+    });
+    if (!Array.isArray(changed) || !changed.length) return;
+    // One notification per new holder: a song that had a huge day takes
+    // most-plays, debut and fastest-to records together, and that reads
+    // better as "now holds 12 records" than as 12 lines
+    const byHolder = new Map();
+    changed.forEach(id => {
+      const r = now[id];
+      if (!byHolder.has(r.k)) byHolder.set(r.k, []);
+      byHolder.get(r.k).push(r);
+    });
+    // Many holders at once is usually a setting (chart size, week start)
+    // moving everything, not a run of new records: one line for all of them
+    if (byHolder.size > NT_REC_MAX) {
+      dcNotify({ kind: 'rec_many', n: changed.length, link: { tab: 'records' } });
+      return;
+    }
+    byHolder.forEach(list => {
+      const r = list[0];
+      dcNotify({ kind: 'rec_new', type: r.type, name: r.name, artist: r.artist, title: r.title, n: list.length,
+                 link: { tab: 'records', view: r.sec, title: r.title } });
+    });
+  } catch (e) {
+    console.warn('[dankcharts] Records notification check failed:', e);
+  } finally {
+    _ntRecBusy = false;
+  }
+}
+
+/* Opens Records on the section a record is in and brings that list into
+   view (when it's on screen; some sections show one entity type at a time). */
+function _ntOpenRecord(link) {
+  if (link.view && REC_SECTION_IDS.includes(link.view)) {
+    try { localStorage.setItem('dc_records_active_view', link.view); } catch (e) {}
+  }
+  if (currentPeriod === 'records') applyRecordsViewFilter(link.view || REC_DEFAULT_VIEW);
+  else dcGoTab('records');
+  if (!link.title) return;
+  setTimeout(() => {
+    const sec = document.getElementById(link.view);
+    const el = sec && [...sec.querySelectorAll('.rec-section-title')]
+      .find(x => x.textContent.replace(/\s+/g, ' ').trim() === link.title && x.getClientRects().length);
+    if (el) el.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  }, 400);
 }
 
 // The Board isn't tied to a data load, so it's also checked every few minutes
