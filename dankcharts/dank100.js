@@ -996,18 +996,32 @@
       var cur = best[id];
       if (!cur || (lowerWins ? val < cur.val : val > cur.val)) best[id] = { k: k, val: val, extra: extra || '' };
     }
+    var day = function (i) { return fmtDay(weekBounds(a.weeks[i].w).start); };
+    // Per-artist tallies (songs chart only): different songs charted, different
+    // #1 songs, and the most songs on one week's chart
+    var byArtist = {}, artistWeek = {};
     Object.keys(runs).forEach(function (k) {
       var r = runs[k].r;
-      var at1 = 0, streak = 1, longest = 1, maxL = 0;
+      var at1 = 0, streak = 1, longest = 1, maxL = 0, top10 = 0, total = 0, first1 = -1;
       r.forEach(function (x, j) {
-        if (x[1] === 1) at1++;
+        var pts = x[3] || 0;     // archives cached before points were added have none
+        total += pts;
+        if (x[1] === 1) { at1++; if (first1 < 0) first1 = j; }
+        if (x[1] <= 10) top10++;
+        if (pts) offer('bigweek', k, pts, '#' + x[1] + ' · ' + day(x[0]));
         if (j > 0) {
-          if (x[0] === r[j - 1][0] + 1) {
+          var prev = r[j - 1];
+          if (x[0] === prev[0] + 1) {
             streak++;
-            // A climb only counts between two weeks in a row
-            var climb = r[j - 1][1] - x[1];
-            if (climb > 0) offer('jump', k, climb, '#' + r[j - 1][1] + ' → #' + x[1]);
-          } else streak = 1;
+            // A climb or fall only counts between two weeks in a row
+            var climb = prev[1] - x[1];
+            if (climb > 0) offer('jump', k, climb, '#' + prev[1] + ' → #' + x[1]);
+            if (climb < 0) offer('fall', k, -climb, '#' + prev[1] + ' → #' + x[1]);
+          } else {
+            streak = 1;
+            // Back on the chart after time away: how many weeks it was gone
+            offer('comeback', k, x[0] - prev[0] - 1, '#' + x[1] + ' · ' + day(x[0]));
+          }
           if (streak > longest) longest = streak;
         }
         if ((x[2] || 0) > maxL) maxL = x[2];
@@ -1015,22 +1029,69 @@
       if (at1) offer('at1', k, at1);
       offer('weeks', k, r.length);
       offer('run', k, longest);
-      offer('debut', k, r[0][1], fmtDay(weekBounds(a.weeks[r[0][0]].w).start), true);
+      if (top10) offer('top10', k, top10);
+      if (total) offer('points', k, total);
+      // Debut records skip the very first Dank 100 week: everything already
+      // popular "debuted" then, so it says nothing about a real debut
+      if (r[0][0] > 0) {
+        if (r[0][3]) offer('debut', k, r[0][3], '#' + r[0][1] + ' · ' + day(r[0][0]));
+        // Slow burner: the most weeks from a real debut to the first #1
+        if (first1 > 0) offer('slow', k, r[first1][0] - r[0][0], tr('d100_rec_debut_at', { p: r[0][1] }));
+      }
       if (maxL) offer('listeners', k, maxL);
+      if (C.type === 'songs' && runs[k].a) {
+        var an = runs[k].a;
+        var t = byArtist[an] || (byArtist[an] = { songs: 0, no1: 0 });
+        t.songs++;
+        if (at1) t.no1++;
+        r.forEach(function (x) { var wk = an + '\n' + x[0]; artistWeek[wk] = (artistWeek[wk] || 0) + 1; });
+      }
     });
+    // Artist winners keep their own name (shown with artist art)
+    var bestA = {};
+    function offerA(id, an, val, extra) {
+      if (!bestA[id] || val > bestA[id].val) bestA[id] = { an: an, val: val, extra: extra || '' };
+    }
+    Object.keys(byArtist).forEach(function (an) {
+      offerA('a_songs', an, byArtist[an].songs);
+      if (byArtist[an].no1) offerA('a_no1', an, byArtist[an].no1);
+    });
+    Object.keys(artistWeek).forEach(function (wk) {
+      var parts = wk.split('\n');
+      offerA('a_week', parts[0], artistWeek[wk], day(+parts[1]));
+    });
+
     var unit = function (n) { return tr(n === 1 ? 'd100_no1_weeks_one' : 'd100_no1_weeks_other', { n: n }); };
+    var pts = function (v) { return tr('d100_rec_pts', { n: v.toLocaleString(locale()) }); };
+    var songsN = function (v) { return tr(v === 1 ? 'd100_rec_songs_one' : 'd100_rec_songs_other', { n: v }); };
+    // [id, label key, value format]: the order they are shown in
     var defs = [
-      ['at1', 'd100_rec_at1', function (v) { return unit(v); }],
-      ['weeks', 'd100_rec_weeks', function (v) { return unit(v); }],
-      ['run', 'd100_rec_run', function (v) { return unit(v); }],
+      ['at1', 'd100_rec_at1', unit],
+      ['weeks', 'd100_rec_weeks', unit],
+      ['run', 'd100_rec_run', unit],
+      ['bigweek', 'd100_rec_bigweek', pts],
+      ['debut', 'd100_rec_debut', pts],
+      ['points', 'd100_rec_points', pts],
+      ['top10', 'd100_rec_top10', unit],
       ['jump', 'd100_rec_jump', function (v) { return '+' + v; }],
-      ['debut', 'd100_rec_debut', function (v) { return '#' + v; }],
+      ['fall', 'd100_rec_fall', function (v) { return '−' + v; }],
+      ['comeback', 'd100_rec_comeback', unit],
+      ['slow', 'd100_rec_slow', unit],
       ['listeners', 'd100_rec_listeners', function (v) { return v + ' ' + tr(v === 1 ? 'd100_listener_one' : 'd100_listener_other'); }]
     ];
-    return defs.filter(function (d) { return best[d[0]]; }).map(function (d) {
+    var out = defs.filter(function (d) { return best[d[0]]; }).map(function (d) {
       var b = best[d[0]], x = runs[b.k];
-      return { label: tr(d[1]), value: d[2](b.val), extra: b.extra, t: x.t, a: x.a };
+      return { label: tr(d[1]), value: d[2](b.val), extra: b.extra, t: x.t, a: x.a, type: C.type };
     });
+    [
+      ['a_songs', 'd100_rec_a_songs', songsN],
+      ['a_no1', 'd100_rec_a_no1', function (v) { return tr(v === 1 ? 'd100_rec_no1s_one' : 'd100_rec_no1s_other', { n: v }); }],
+      ['a_week', 'd100_rec_a_week', songsN]
+    ].forEach(function (d) {
+      var b = bestA[d[0]];
+      if (b) out.push({ label: tr(d[1]), value: d[2](b.val), extra: b.extra, t: b.an, a: '', type: 'artists' });
+    });
+    return out;
   }
 
   function recordsHTML() {
@@ -1041,7 +1102,7 @@
       h += '<div class="d100-rec">' +
         '<div class="d100-rec-k">' + esc(r.label) + '</div>' +
         '<div class="d100-rec-v">' + esc(r.value) + (r.extra ? ' <span class="d100-rec-x">' + esc(r.extra) + '</span>' : '') + '</div>' +
-        '<div class="d100-rec-who">' + artHTML(C.type, r.t, r.a) +
+        '<div class="d100-rec-who">' + artHTML(r.type || C.type, r.t, r.a) +
         '<span class="d100-name"><span class="d100-t">' + esc(r.t) + '</span>' + (r.a ? '<span class="d100-a">' + esc(r.a) + '</span>' : '') + '</span></div>' +
         '</div>';
     });

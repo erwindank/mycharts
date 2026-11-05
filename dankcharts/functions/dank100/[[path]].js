@@ -457,9 +457,10 @@ async function ensureChart(db, week, meta) {
 // ── The archive (step 5) ────────────────────────────────────────────────────
 // Every published week up to `through`, and each row's run, in one answer:
 //   weeks: [{ w, status, entries }]                oldest first
-//   runs:  { songs: { k: { t, a, r: [[i, p, l], …] } }, artists, albums }
-// where i indexes `weeks`, p is the position that week and l how many
-// listeners charted it (for the Most listeners record). The page draws the
+//   runs:  { songs: { k: { t, a, r: [[i, p, l, pts], …] } }, artists, albums }
+// where i indexes `weeks`, p is the position that week, l how many
+// listeners charted it (for the Most listeners record) and pts its points
+// that week (for the Biggest week / Biggest debut / Most points records). The page draws the
 // week picker, a song's run and the list of number ones from it. A finished
 // week never changes, so the answer is cached by `through`.
 export function buildArchive(weekIds, charts) {
@@ -475,7 +476,7 @@ export function buildArchive(weekIds, charts) {
         // The newest spelling wins (later weeks overwrite)
         if (!x) x = runs[type][row.k] = { r: [] };
         x.t = row.t; if (row.a) x.a = row.a;
-        x.r.push([i, row.p, row.l || 0]);
+        x.r.push([i, row.p, row.l || 0, row.pts || 0]);
       }
     }
   });
