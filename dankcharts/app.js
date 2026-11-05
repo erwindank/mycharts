@@ -52547,46 +52547,59 @@ function renderSoundtrack() {
 // months is counted once. Read from the cached weekly chart history
 // (_crFull), so the ranks match the Charts tab. Clicking a row opens that
 // week's chart. Hidden on All-Time.
-let stNo1Type = 'songs';   // songs | artists | albums
+// The month view also has a Weekly / Daily switch: Daily reads the Daily
+// tab's chart history (dyFullRun in daily.js) the same way, one row per run
+// of days at #1, and a row opens that day.
+let stNo1Type = 'songs';   // songs | artists | albums | single | ep (the last two only while separated)
+let stNo1Unit = 'week';    // week | day (day only in the month view)
 let stNo1All = false;      // show every reign, not just the latest few
 
 function stSetNo1Type(type) { stNo1Type = type; stNo1All = false; stRenderNumberOnes(); stNumberChapters(); }
-function stNo1Toggle() { stNo1All = !stNo1All; stRenderNumberOnes(); }
+// (each redraws the band, so the "Chapter N ·" number is put back after)
+function stSetNo1Unit(unit) { stNo1Unit = unit; stNo1All = false; stRenderNumberOnes(); stNumberChapters(); }
+function stNo1Toggle() { stNo1All = !stNo1All; stRenderNumberOnes(); stNumberChapters(); }
 
 // The reigns inside the period on screen, oldest first:
-// [{ k, name, artist, weeks: [weekKeys in the period], back }]
-function stNo1Reigns(type) {
+// [{ k, name, artist, weeks: [period keys in the period], back }]
+// unit 'week' = weekly charts (keys are week starts), 'day' = daily charts
+// (keys are days); "weeks" holds either.
+function stNo1Reigns(type, unit) {
   if (!allPlays.length) return [];
-  const full = _crFull('week');
-  const res = full && full.result && full.result[type];
+  const isDay = unit === 'day';
+  const full = isDay ? (typeof dyFullRun === 'function' ? dyFullRun() : null) : _crFull('week');
+  // Singles and EPs live in the albums run: while a type is separated, that
+  // run ranks each bucket on its own (an album #1, a singles #1, an EPs #1
+  // every week), so keep only the rows of the bucket asked for
+  const isRel = type === 'albums' || type === 'single' || type === 'ep';
+  const bucket = type === 'albums' ? 'album' : type;
+  const res = full && full.result && full.result[isRel ? 'albums' : type];
   if (!res) return [];
-  // While release types are separated, the albums run ranks each bucket on
-  // its own (an album #1 and a singles #1 every week) — keep the albums one
-  const sep = type === 'albums' && separatedTypes().length > 0;
+  const sep = isRel && separatedTypes().length > 0;
   const byWeek = {};
   for (const k in res) {
     if (sep) {
       const i = k.lastIndexOf('|||');
-      if (certKindFor(k.slice(0, i), k.slice(i + 3)) !== 'album') continue;
+      if (albumBucketOf(k.slice(0, i), k.slice(i + 3)) !== bucket) continue;
     }
     for (const e of res[k].entries) if (e.rank === 1) byWeek[e.periodKey] = k;
   }
-  // Every week of your history in order, so a gap breaks a reign
-  const weeks = Object.keys(full.periodMap).sort();
+  // Every week (or day) with a #1, in order. A reign only carries on into the
+  // very next week / day on the calendar, so a gap with no plays breaks it.
+  const step = isDay ? 1 : 7;
+  const nextKey = key => { const d = new Date(key + 'T00:00:00'); d.setDate(d.getDate() + step); return localDateStr(d); };
   const reigns = [];
-  weeks.forEach((wk, i) => {
+  Object.keys(byWeek).sort().forEach(wk => {
     const k = byWeek[wk];
-    if (!k) return;
     const g = reigns[reigns.length - 1];
-    if (g && g.k === k && g.to === i - 1) { g.to = i; g.all.push(wk); }
-    else reigns.push({ k, to: i, all: [wk] });
+    if (g && g.k === k && nextKey(g.all[g.all.length - 1]) === wk) g.all.push(wk);
+    else reigns.push({ k, all: [wk] });
   });
   // Mark returns across the whole history, then keep the period's reigns
   const seen = {};
   reigns.forEach(g => { g.back = !!seen[g.k]; seen[g.k] = true; });
   const inPeriod = wk => {
     const d = new Date(wk + 'T00:00:00');
-    d.setDate(d.getDate() + 3);
+    if (!isDay) d.setDate(d.getDate() + 3);   // a week goes by its middle day
     return d.getFullYear() === stYear && (stPeriodType === 'year' || d.getMonth() + 1 === stMonth);
   };
   const out = [];
@@ -52596,7 +52609,7 @@ function stNo1Reigns(type) {
     const d = res[g.k];
     let name, artist;
     if (type === 'artists') { name = g.k; artist = ''; }
-    else if (type === 'albums') { const i = g.k.lastIndexOf('|||'); name = g.k.slice(0, i); artist = g.k.slice(i + 3); }
+    else if (isRel) { const i = g.k.lastIndexOf('|||'); name = g.k.slice(0, i); artist = g.k.slice(i + 3); }
     else { name = d._title || g.k; artist = d._artist || ''; }
     out.push({ k: g.k, name, artist, weeks: w, back: g.back });
   });
@@ -52611,10 +52624,15 @@ function stRenderNumberOnes() {
   if (stPeriodType === 'alltime' || !allPlays.length) { sec.style.display = 'none'; return; }
   sec.style.display = '';
 
+  // Singles / EPs only while that type is separated; back to Songs if not
+  if ((stNo1Type === 'single' || stNo1Type === 'ep') && !isTypeSeparated(stNo1Type)) stNo1Type = 'songs';
   const type = stNo1Type;
-  const groups = stNo1Reigns(type);
-  const artType = type === 'songs' ? 'song' : type === 'artists' ? 'artist' : 'album';
-  const weeksTxt = n => t(n === 1 ? 'd100_no1_weeks_one' : 'd100_no1_weeks_other', { n });
+  // Daily #1s only in the month view (a year of daily reigns is too many rows)
+  const unit = stPeriodType === 'month' ? stNo1Unit : 'week';
+  const groups = stNo1Reigns(type, unit);
+  const artType = type === 'songs' ? 'song' : type === 'artists' ? 'artist' : 'album';   // singles / EPs too
+  // "3 weeks" / "3 days" — every count below goes through this
+  const weeksTxt = n => unit === 'day' ? tCount('days', n) : t(n === 1 ? 'd100_no1_weeks_one' : 'd100_no1_weeks_other', { n });
   const shortDay = wk => {
     const d = new Date(wk + 'T00:00:00');
     return d.getDate() + ' ' + t(_CR_MON_SHORT[d.getMonth()]);
@@ -52622,9 +52640,18 @@ function stRenderNumberOnes() {
 
   // Songs / Artists / Albums, the same switch the Dank 100 has
   let h = '<div class="dc-seg st-no1-seg" role="group" aria-label="' + esc(t('d100_no1_title')) + '">' +
-    ['songs', 'artists', 'albums'].map(ty =>
-      `<button type="button" class="${ty === type ? 'active' : ''}" aria-pressed="${ty === type}" onclick="stSetNo1Type('${ty}')">${esc(t('d100_type_' + ty))}</button>`).join('') +
+    // + Singles / EPs for whoever charts them separately (Settings → Charts)
+    ['songs', 'artists', 'albums'].concat(separatedTypes()).map(ty =>
+      `<button type="button" class="${ty === type ? 'active' : ''}" aria-pressed="${ty === type}" onclick="stSetNo1Type('${ty}')">${esc(t(ty === 'single' || ty === 'ep' ? 'rtype_' + ty + '_plural' : 'd100_type_' + ty))}</button>`).join('') +
     '</div>';
+  // Month view: Weekly / Daily number ones
+  if (stPeriodType === 'month') {
+    h += '<div class="dc-seg st-no1-seg st-no1-unit" role="group" aria-label="' + esc(t('d100_no1_title')) + '">' +
+      [['week', 'nav_weekly'], ['day', 'nav_daily']].map(([u, key]) =>
+        `<button type="button" class="${u === unit ? 'active' : ''}" aria-pressed="${u === unit}" onclick="stSetNo1Unit('${u}')">${esc(t(key))}</button>`).join('') +
+      '</div>';
+    h = '<div class="st-no1-switches">' + h + '</div>';
+  }
 
   // Per entry in the period: total weeks at #1, its longest unbroken run
   // (a reign's weeks inside the period are always in a row) and the order it
@@ -52638,8 +52665,9 @@ function stRenderNumberOnes() {
   const distinct = Object.keys(tot).length;
 
   if (!groups.length) {
-    body.innerHTML = h + `<div class="st-empty">${esc(t('st_no1_none'))}</div>`;
-    stFillHead('no1', { label: t('d100_no1_title'), title: esc(t('st_no1_none')) });
+    const none = t(unit === 'day' ? 'st_no1_none_day' : 'st_no1_none');
+    body.innerHTML = h + `<div class="st-empty">${esc(none)}</div>`;
+    stFillHead('no1', { label: t('d100_no1_title'), title: esc(none) });
     return;
   }
 
@@ -52693,7 +52721,7 @@ function stRenderNumberOnes() {
   groups.forEach((g, j) => {
     const tip = g.name + (g.artist ? ' — ' + g.artist : '') + ' · ' + shortDay(g.weeks[0]) + ' · ' + weeksTxt(g.weeks.length);
     h += `<button type="button" role="listitem" class="d100-no1-seg${j % 2 ? ' is-alt' : ''}" style="flex-grow:${g.weeks.length}"` +
-      ` title="${esc(tip)}" aria-label="${esc(tip)}" onclick="navigateToRecPeriod('week','${g.weeks[g.weeks.length - 1]}')"></button>`;
+      ` title="${esc(tip)}" aria-label="${esc(tip)}" onclick="navigateToRecPeriod('${unit}','${g.weeks[g.weeks.length - 1]}')"></button>`;
   });
   h += '</div>';
 
@@ -52707,7 +52735,7 @@ function stRenderNumberOnes() {
     let pips = '';
     for (let p = 0; p < Math.min(n, 10); p++) pips += '<i></i>';
     h += `<li class="d100-no1-item">` +
-      `<button type="button" class="d100-no1-row" onclick="navigateToRecPeriod('week','${g.weeks[n - 1]}')">` +
+      `<button type="button" class="d100-no1-row" onclick="navigateToRecPeriod('${unit}','${g.weeks[n - 1]}')">` +
       `<span class="d100-no1-when">${esc(shortDay(g.weeks[0]))}</span>` +
       '<span class="d100-no1-dot" aria-hidden="true"></span>' +
       `<span class="d100-art" data-i="${i}"><span class="d100-art-ini" aria-hidden="true">${esc(initials(g.name))}</span></span>` +
@@ -52732,7 +52760,7 @@ function stRenderNumberOnes() {
   shown.forEach((g, i) => {
     queueImg(() => getArtAuto(artType, g.name, g.artist, artType === 'album' ? g.name : undefined).then(url => {
       const el = body.querySelector(`.d100-art[data-i="${i}"]`);
-      if (!url || tok !== _stHeadToken || !el || stNo1Type !== type) return;
+      if (!url || tok !== _stHeadToken || !el || stNo1Type !== type || (stPeriodType === 'month' ? stNo1Unit : 'week') !== unit) return;
       el.insertAdjacentHTML('beforeend', `<img src="${esc(sizedArtUrl(url, 120))}" alt="" loading="lazy">`);
       el.classList.add('has-img');
     }).catch(() => {}), true);

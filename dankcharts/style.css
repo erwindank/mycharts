@@ -47121,3 +47121,6 @@ html.lsx-open { overflow: hidden; }
 /* Artists: round photos (the Dank 100's own round rule loses to the
    timeline's 5px corner) */
 .st-no1-list.d100-list-artists .d100-art { border-radius: 50%; }
+/* Month view: the Songs/Artists/Albums and Weekly/Daily switches side by side */
+.st-no1-switches { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: var(--sp-3); }
+.st-no1-switches .st-no1-seg { margin-bottom: 0; }
