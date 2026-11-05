@@ -52658,14 +52658,16 @@ function stRenderNumberOnes() {
   if (tied.length > 1) {
     // A real tie: everyone level, named together — "in a row" when every
     // one of them did it unbroken (same total and same run = all straight)
-    sub = t(run[topK] === tot[topK] ? 'st_ch_no1_sub_tie_row' : 'st_ch_no1_sub_tie', { names: joinNames(tied.map(label)), weeks: weeksTxt(tot[topK]) });
+    sub = t(run[topK] === tot[topK] ? 'st_ch_no1_sub_tie_row' : 'st_ch_no1_sub_tie', { names: joinNames(tied.map(label)), weeks: weeksTxt(tot[topK]), run: run[topK] });
   } else if (sameWeeks.length > 1) {
     // Level on weeks but the leader's run was longer: say so, and name the rest
     sub = t(run[topK] === tot[topK] ? 'st_ch_no1_sub_row' : 'st_ch_no1_sub_run',
       { name: label(topK), weeks: weeksTxt(tot[topK]), run: run[topK] }) + ' · ' +
       t('st_ch_no1_sub_also', { names: joinNames(sameWeeks.slice(1).map(label)), weeks: weeksTxt(tot[topK]) });
   } else {
-    sub = t('st_ch_no1_sub', { name: label(topK), weeks: weeksTxt(tot[topK]) });
+    // A clear leader: still say whether its weeks were in a row or not
+    sub = t(run[topK] === tot[topK] ? 'st_ch_no1_sub_row' : 'st_ch_no1_sub_run',
+      { name: label(topK), weeks: weeksTxt(tot[topK]), run: run[topK] });
   }
   stFillHead('no1', {
     label: t('d100_no1_title'),
