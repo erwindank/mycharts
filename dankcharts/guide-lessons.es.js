@@ -95,9 +95,9 @@ window.GL_TEXT.es = {
           menu: ['Opciones del ranking (⋮)', 'Tres pestañas: Mostrar (más detalles en cada fila), Tamaño (cuántas entradas) y Acciones (escuchar, compartir, exportar).'],
           desc: ['Qué cuenta el ranking', 'Una línea corta bajo el título. Actívala o desactívala en ⋮ → Mostrar → Descripciones.'],
           heads: ['Columnas', 'Puesto, cambio, título y artista, álbum, semanas en el ranking y escuchas.'],
-          first: ['Una fila del ranking', 'Haz clic en una fila para abrir su ventana con todo sobre ella. La siguiente imagen desmonta una fila pieza a pieza.']
+          first: ['Una fila del ranking', 'Haz clic en una fila para abrir su ventana con todo sobre ella. La siguiente imagen desmonta una fila parte por parte.']
         } },
-        row: { title: 'Una fila, pieza a pieza', spots: {
+        row: { title: 'Una fila, parte por parte', spots: {
           rank: ['Puesto', 'Dónde está esta semana. La fila del #1 es la dorada.'],
           move: ['Sin cambio (=)', 'El mismo puesto que la semana pasada.'],
           prev: ['Puesto de la semana pasada', 'El número pequeño bajo el cambio: dónde estaba la semana anterior.'],
