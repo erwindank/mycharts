@@ -36862,6 +36862,10 @@ function dcRenderPlaylistsView() {
         `<button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon" onclick="dcPlPlayFromStart(${nameJson})" title="${esc(t('pl_view_play'))}" aria-label="${esc(t('pl_view_play'))}">` +
         `<svg class="dc-pl-ic" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>` +
         `</button>` +
+        // Export: copy as text / download CSV / download text (dcPlExportMenu)
+        `<button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon" onclick="dcPlExportMenu(${nameJson},this)" title="${esc(t('pl_view_export'))}" aria-label="${esc(t('pl_view_export'))}" aria-haspopup="menu">` +
+        `<svg class="dc-pl-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>` +
+        `</button>` +
         `<button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon" onclick="dcPlStartRename(${nameJson})" title="${esc(t('pl_view_rename'))}" aria-label="${esc(t('pl_view_rename'))}">` +
         `<svg class="dc-pl-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>` +
         `</button>` +
@@ -36874,19 +36878,31 @@ function dcRenderPlaylistsView() {
       if (isExpanded) {
         html += `<div class="dc-pl-tracks">`;
         tracks.forEach((tr, idx) => {
+          // The row is an "entry" (data-ea-*) so the shared ▶ sample button
+          // and right-click menu work on it, same as on the charts. The key
+          // is songKey()'s title|||artist form.
+          const tKey = String(tr.title || '').toLowerCase().trim() + '|||' + String(tr.artist || '').toLowerCase().trim();
+          const ytQ = encodeURIComponent((tr.title || '') + ' ' + (tr.artist || ''));
           html += `<div class="dc-pl-track" draggable="true" ` +
             `ondragstart="event.stopPropagation();dcPlDragStart(event,${nameJson},${idx})" ` +
             `ondragover="event.preventDefault();event.currentTarget.classList.add('dc-pl-drag-over')" ` +
             `ondragleave="event.currentTarget.classList.remove('dc-pl-drag-over')" ` +
-            `ondrop="dcPlDrop(event,${nameJson},${idx})">` +
+            `ondrop="dcPlDrop(event,${nameJson},${idx})"` +
+            _eaAttrs('songs', { title: tr.title, artist: tr.artist, album: tr.album || '', key: tKey }) + `>` +
             `<span class="dc-pl-drag-handle" title="${esc(t('pl_view_drag'))}"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="6" cy="4" r="1.1"/><circle cx="10" cy="4" r="1.1"/><circle cx="6" cy="8" r="1.1"/><circle cx="10" cy="8" r="1.1"/><circle cx="6" cy="12" r="1.1"/><circle cx="10" cy="12" r="1.1"/></svg></span>` +
             dcPlArtHtml(tr) +
             `<div class="dc-pl-track-info">` +
             `<span class="dc-pl-track-title">${esc(tr.title)}</span>` +
             `<span class="dc-pl-track-artist">${esc(tr.artist)}</span>` +
             `</div>` +
+            // Sample · Spotify (or the chosen search service) · YouTube, then
+            // play-from-here in the site player and remove. ▶ is the sample;
+            // "play from here" uses the playlist icon so the two don't look alike.
             `<div class="dc-pl-track-actions">` +
-            `<button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon" onclick="dcPlPlayFromTrack(${nameJson},${idx})" title="${esc(t('pl_view_play_from'))}" aria-label="${esc(t('pl_view_play_from'))}"><svg class="dc-pl-ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6,4 19,12 6,20"/></svg></button>` +
+            _eaSampleBtn('dc-pl-act dc-pl-act-play') +
+            _eaSpotifyBtn('songs', tr.title || '', tr.artist || '').replace('class="ea-spotify"', 'class="ea-spotify dc-pl-act dc-pl-act-sp"') +
+            `<a class="dc-pl-act dc-pl-act-yt" href="https://www.youtube.com/results?search_query=${ytQ}" target="_blank" rel="noopener" draggable="false" title="${esc(t('awx_yt'))}" aria-label="${esc(t('awx_yt'))}" onclick="event.stopPropagation()">${_ST_AM_YT_SVG}</a>` +
+            `<button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon" onclick="dcPlPlayFromTrack(${nameJson},${idx})" title="${esc(t('pl_view_play_from'))}" aria-label="${esc(t('pl_view_play_from'))}"><svg class="dc-pl-ic dc-pl-ic-queue" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3.9h8.4M2 7.5h8.4M2 11.1h5"/><path d="M10.5 9.9 14.3 12.1 10.5 14.3Z"/></svg></button>` +
             `<button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon dc-btn-danger" onclick="dcPlRemoveTrack(${nameJson},${idx})" title="${esc(t('pl_view_remove'))}" aria-label="${esc(t('pl_view_remove'))}">✕</button>` +
             `</div>` +
             `</div>`; // end track
@@ -36942,6 +36958,87 @@ function dcPlLoadArt(root) {
       });
     }), true);
   });
+}
+
+// ── Export a playlist ──
+// The ⤓ button on a playlist row opens a small menu: copy the list as text,
+// download a .csv (Title, Artist, Album — the columns import tools such as
+// TuneMyMusic / Soundiiz read to rebuild it on Spotify, YouTube Music…), or
+// download a plain .txt. Works the same for every data source: it only reads
+// the saved playlist.
+let _dcPlExportEl = null;
+function _dcPlExportClose() {
+  if (_dcPlExportEl) { _dcPlExportEl.remove(); _dcPlExportEl = null; }
+  document.removeEventListener('pointerdown', _dcPlExportOutside, true);
+  document.removeEventListener('keydown', _dcPlExportKey, true);
+}
+function _dcPlExportOutside(e) { if (_dcPlExportEl && !_dcPlExportEl.contains(e.target)) _dcPlExportClose(); }
+function _dcPlExportKey(e) { if (e.key === 'Escape') { e.stopPropagation(); _dcPlExportClose(); } }
+function dcPlExportMenu(name, btn) {
+  const wasOpenHere = _dcPlExportEl && _dcPlExportEl.dataset.pl === name;
+  _dcPlExportClose();
+  if (wasOpenHere) return; // a second click on ⤓ just closes it
+  const m = document.createElement('div');
+  m.className = 'dc-pl-export-menu';
+  m.setAttribute('role', 'menu');
+  m.dataset.pl = name;
+  const item = (fmt, lbl) => `<button type="button" role="menuitem" class="dc-pl-export-item" data-fmt="${fmt}">${esc(t(lbl))}</button>`;
+  m.innerHTML = item('copy', 'pl_export_copy') + item('csv', 'pl_export_csv') + item('txt', 'pl_export_txt');
+  m.addEventListener('click', e => {
+    const b = e.target.closest('[data-fmt]');
+    if (!b) return;
+    _dcPlExportClose();
+    dcPlExport(name, b.dataset.fmt);
+  });
+  document.body.appendChild(m);
+  // Under the button, kept inside the window
+  const r = btn.getBoundingClientRect();
+  const w = m.offsetWidth, h = m.offsetHeight;
+  let left = Math.min(r.right - w, window.innerWidth - w - 8);
+  let top = r.bottom + 4;
+  if (top + h > window.innerHeight - 8) top = Math.max(8, r.top - h - 4);
+  m.style.left = Math.max(8, left) + 'px';
+  m.style.top = top + 'px';
+  _dcPlExportEl = m;
+  document.addEventListener('pointerdown', _dcPlExportOutside, true);
+  document.addEventListener('keydown', _dcPlExportKey, true);
+  m.querySelector('button')?.focus();
+}
+// "1. Title – Artist" lines, used for copy and .txt
+function _dcPlExportText(name, tracks) {
+  return name + '\n\n' + tracks.map((tr, i) => `${i + 1}. ${tr.title || ''} – ${tr.artist || ''}`).join('\n') + '\n';
+}
+function _dcPlExportCsv(tracks) {
+  const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+  return ['Position,Title,Artist,Album']
+    .concat(tracks.map((tr, i) => [i + 1, q(tr.title), q(tr.artist), q(tr.album)].join(',')))
+    .join('\r\n') + '\r\n';
+}
+function _dcPlDownload(filename, text, mime) {
+  // The BOM makes Excel read accents (Inéz, Beyoncé) correctly
+  const blob = new Blob(['﻿' + text], { type: mime + ';charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+function dcPlExport(name, fmt) {
+  const tracks = _ytPlaylists[name];
+  if (!tracks) return;
+  // Safe file name: no characters Windows / macOS refuse
+  const base = (name.replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim() || 'playlist').slice(0, 80);
+  if (fmt === 'csv') { _dcPlDownload(base + '.csv', _dcPlExportCsv(tracks), 'text/csv'); return; }
+  if (fmt === 'txt') { _dcPlDownload(base + '.txt', _dcPlExportText(name, tracks), 'text/plain'); return; }
+  const text = _dcPlExportText(name, tracks);
+  const done = () => dcPlToast(t('pl_export_copied', { n: tracks.length }));
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done, () => _dcPlDownload(base + '.txt', text, 'text/plain'));
+  } else {
+    _dcPlDownload(base + '.txt', text, 'text/plain'); // no clipboard: fall back to the file
+  }
 }
 
 // Toggle a playlist's track list open/closed
