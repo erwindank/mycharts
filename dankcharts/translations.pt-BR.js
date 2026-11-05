@@ -4129,7 +4129,7 @@ TRANSLATIONS['pt-BR'] = Object.assign({
     cr_modal_title_albums: 'Trajetória do álbum na parada',
 
     // Export modal
-    export_title: 'Exportar Playlist',
+    export_title: 'Exportar',
     export_no1_first: '▲ #1 Primeiro',
     export_no1_last: '▼ #1 Último',
     export_subtitle: '{{count}} · parada de {{period}}',
@@ -4405,10 +4405,9 @@ TRANSLATIONS['pt-BR'] = Object.assign({
     pl_view_drag: 'Arraste para reordenar',
     pl_view_play_from: 'Tocar a partir daqui',
     pl_view_export: 'Exportar playlist',
-    pl_export_copy: 'Copiar como texto',
+    pl_export_playlist: 'Exportar Playlist',
     pl_export_csv: 'Baixar CSV (para importar)',
     pl_export_txt: 'Baixar arquivo de texto',
-    pl_export_copied: '{{n}} músicas copiadas',
     pl_view_remove: 'Remover música',
     pl_view_need_name: 'Digite primeiro um nome para a playlist',
     pl_view_nothing_playing: 'Nada está tocando — comece a tocar música primeiro',

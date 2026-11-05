@@ -4128,7 +4128,7 @@ TRANSLATIONS['es'] = Object.assign({
     cr_modal_title_albums: 'Recorrido en el ranking de álbumes',
 
     // Export modal
-    export_title: 'Exportar Playlist',
+    export_title: 'Exportar',
     export_no1_first: '▲ #1 Primero',
     export_no1_last: '▼ #1 Último',
     export_subtitle: '{{count}} · ranking de {{period}}',
@@ -4404,10 +4404,9 @@ TRANSLATIONS['es'] = Object.assign({
     pl_view_drag: 'Arrastra para reordenar',
     pl_view_play_from: 'Reproducir desde aquí',
     pl_view_export: 'Exportar lista',
-    pl_export_copy: 'Copiar como texto',
+    pl_export_playlist: 'Exportar Playlist',
     pl_export_csv: 'Descargar CSV (para importar)',
     pl_export_txt: 'Descargar archivo de texto',
-    pl_export_copied: '{{n}} canciones copiadas',
     pl_view_remove: 'Quitar canción',
     pl_view_need_name: 'Escribe primero un nombre para la lista',
     pl_view_nothing_playing: 'No suena nada — pon música primero',

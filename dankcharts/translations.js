@@ -4273,7 +4273,7 @@ const TRANSLATIONS = {
     cr_modal_title_albums: 'Album chart run',
 
     // Export modal
-    export_title: 'Export Playlist',
+    export_title: 'Export',
     export_no1_first: '▲ #1 First',
     export_no1_last: '▼ #1 Last',
     export_subtitle: '{{count}} · {{period}} chart',
@@ -4552,10 +4552,9 @@ const TRANSLATIONS = {
     pl_view_drag: 'Drag to reorder',
     pl_view_play_from: 'Play from here',
     pl_view_export: 'Export playlist',
-    pl_export_copy: 'Copy as text',
+    pl_export_playlist: 'Export Playlist',
     pl_export_csv: 'Download CSV (for import tools)',
     pl_export_txt: 'Download text file',
-    pl_export_copied: 'Copied {{n}} songs',
     pl_view_remove: 'Remove song',
     pl_view_need_name: 'Enter a playlist name first',
     pl_view_nothing_playing: 'Nothing is playing — start some music first',

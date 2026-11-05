@@ -36410,8 +36410,15 @@ function _ytMergePlaylists(remote) {
       const modifiedAt = mergedModified[name] || 0;
       if (deletedAt > modifiedAt) delete mergedPlaylists[name];
     }
+    // Keep each deletion record while the playlist stays deleted — it is what
+    // stops another device's stale copy from bringing it back on its next
+    // sign-in. (Until 2026-11-05 this dropped the record whenever the name was
+    // NOT in the list, i.e. straight after every delete, so deleted playlists
+    // came back the next day.) A record is dropped only when the playlist was
+    // made again afterwards, or after a year, so the list can't grow forever.
+    const YEAR = 365 * 24 * 3600 * 1000;
     for (const name of Object.keys(mergedDeleted)) {
-      if (!(name in mergedPlaylists)) delete mergedDeleted[name]; // nothing left to remember deleting
+      if (name in mergedPlaylists || Date.now() - mergedDeleted[name] > YEAR) delete mergedDeleted[name];
     }
 
     _ytPlaylists = mergedPlaylists;
@@ -36961,7 +36968,9 @@ function dcPlLoadArt(root) {
 }
 
 // ── Export a playlist ──
-// The ⤓ button on a playlist row opens a small menu: copy the list as text,
+// The ⤓ button on a playlist row opens a small menu: Export Playlist (the
+// same Export window the charts, calendar and Dank 100 use: copy, .txt/.csv
+// and the Soundiiz steps — asked for 2026-11-05 in place of "Copy as text"),
 // download a .csv (Title, Artist, Album — the columns import tools such as
 // TuneMyMusic / Soundiiz read to rebuild it on Spotify, YouTube Music…), or
 // download a plain .txt. Works the same for every data source: it only reads
@@ -36983,7 +36992,7 @@ function dcPlExportMenu(name, btn) {
   m.setAttribute('role', 'menu');
   m.dataset.pl = name;
   const item = (fmt, lbl) => `<button type="button" role="menuitem" class="dc-pl-export-item" data-fmt="${fmt}">${esc(t(lbl))}</button>`;
-  m.innerHTML = item('copy', 'pl_export_copy') + item('csv', 'pl_export_csv') + item('txt', 'pl_export_txt');
+  m.innerHTML = item('soundiiz', 'pl_export_playlist') + item('csv', 'pl_export_csv') + item('txt', 'pl_export_txt');
   m.addEventListener('click', e => {
     const b = e.target.closest('[data-fmt]');
     if (!b) return;
@@ -37004,7 +37013,7 @@ function dcPlExportMenu(name, btn) {
   document.addEventListener('keydown', _dcPlExportKey, true);
   m.querySelector('button')?.focus();
 }
-// "1. Title – Artist" lines, used for copy and .txt
+// "1. Title – Artist" lines, used for the .txt
 function _dcPlExportText(name, tracks) {
   return name + '\n\n' + tracks.map((tr, i) => `${i + 1}. ${tr.title || ''} – ${tr.artist || ''}`).join('\n') + '\n';
 }
@@ -37032,13 +37041,8 @@ function dcPlExport(name, fmt) {
   const base = (name.replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim() || 'playlist').slice(0, 80);
   if (fmt === 'csv') { _dcPlDownload(base + '.csv', _dcPlExportCsv(tracks), 'text/csv'); return; }
   if (fmt === 'txt') { _dcPlDownload(base + '.txt', _dcPlExportText(name, tracks), 'text/plain'); return; }
-  const text = _dcPlExportText(name, tracks);
-  const done = () => dcPlToast(t('pl_export_copied', { n: tracks.length }));
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text).then(done, () => _dcPlDownload(base + '.txt', text, 'text/plain'));
-  } else {
-    _dcPlDownload(base + '.txt', text, 'text/plain'); // no clipboard: fall back to the file
-  }
+  // Soundiiz: the shared Export window, with the playlist's name suggested
+  if (fmt === 'soundiiz') dcOpenTextExport(tracks, name, [name]);
 }
 
 // Toggle a playlist's track list open/closed
