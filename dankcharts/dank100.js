@@ -914,17 +914,72 @@
       else groups.push({ k: k, from: i, to: i, n: 1 });
     }
     if (!groups.length) return '';
-    var h = '<section class="d100-no1"><h3 class="d100-h3">' + esc(tr('d100_no1_title')) + '</h3><ol class="d100-no1-list">';
-    groups.reverse().forEach(function (g) {
-      var x = runs[g.k], w = a.weeks[g.from].w;
-      h += '<li><button type="button" class="d100-no1-row" onclick="dcDank100.pickWeek(\'' + a.weeks[g.to].w + '\')">' +
+
+    // A reign is a "return" when the same entry held #1 in an earlier reign
+    var seen = {};
+    groups.forEach(function (g) { g.back = !!seen[g.k]; seen[g.k] = true; });
+    var distinct = Object.keys(seen).length;
+    // The week on screen, so its reign can be marked on the timeline
+    var hereIdx = -1;
+    a.weeks.forEach(function (wk, i) { if (wk.w === C.week) hereIdx = i; });
+    var maxN = groups.reduce(function (m, g) { return Math.max(m, g.n); }, 1);
+
+    var h = '<section class="d100-no1"><div class="d100-no1-head"><h3 class="d100-h3">' + esc(tr('d100_no1_title')) + '</h3>' +
+      '<span class="d100-no1-sum">' + esc(tr('d100_no1_summary', { reigns: groups.length, n: distinct })) + '</span></div>';
+
+    // ── The reign strip: every week from the first #1 to the latest, oldest
+    // on the left, one segment per reign (width = weeks held). Click = that week.
+    h += '<div class="d100-no1-strip" role="list">';
+    groups.forEach(function (g, j) {
+      var x = runs[g.k];
+      var here = hereIdx >= g.from && hereIdx <= g.to;
+      var tip = x.t + (x.a ? ' — ' + x.a : '') + ' · ' + fmtDay(weekBounds(a.weeks[g.from].w).start) + ' · ' +
+        tr(g.n === 1 ? 'd100_no1_weeks_one' : 'd100_no1_weeks_other', { n: g.n });
+      h += '<button type="button" role="listitem" class="d100-no1-seg' + (j % 2 ? ' is-alt' : '') + (here ? ' is-here' : '') + '"' +
+        ' style="flex-grow:' + g.n + '"' +
+        ' title="' + esc(tip) + '" aria-label="' + esc(tip) + '"' +
+        ' onclick="dcDank100.pickWeek(\'' + a.weeks[g.to].w + '\')"></button>';
+    });
+    h += '</div>';
+
+    // ── The timeline: newest first, a spine with one dot per reign, a year
+    // label whenever the year changes. Only the latest few until "Show all".
+    var list = groups.slice().reverse();
+    var LIMIT = 6;
+    var shown = C.no1All ? list : list.slice(0, LIMIT);
+    var lastYear = null;
+    h += '<ol class="d100-no1-list">';
+    shown.forEach(function (g) {
+      var x = runs[g.k], start = weekBounds(a.weeks[g.from].w).start;
+      var yr = start.getUTCFullYear();
+      if (yr !== lastYear) {
+        h += '<li class="d100-no1-year" aria-hidden="true">' + yr + '</li>';
+        lastYear = yr;
+      }
+      var here = hereIdx >= g.from && hereIdx <= g.to;
+      // Pips: one per week held, up to 10 (bar length tells the story)
+      var pips = '';
+      for (var p = 0; p < Math.min(g.n, 10); p++) pips += '<i></i>';
+      h += '<li class="d100-no1-item' + (here ? ' is-here' : '') + '">' +
+        '<button type="button" class="d100-no1-row" onclick="dcDank100.pickWeek(\'' + a.weeks[g.to].w + '\')"' + (here ? ' aria-current="true"' : '') + '>' +
+        '<span class="d100-no1-when">' + esc(fmtDay(start)) + '</span>' +
+        '<span class="d100-no1-dot" aria-hidden="true"></span>' +
         artHTML(C.type, x.t, x.a) +
-        '<span class="d100-name"><span class="d100-t">' + esc(x.t) + '</span>' + (x.a ? '<span class="d100-a">' + esc(x.a) + '</span>' : '') + '</span>' +
-        '<span class="d100-no1-when">' + esc(fmtDay(weekBounds(w).start)) + '</span>' +
-        '<span class="d100-no1-n">' + esc(tr(g.n === 1 ? 'd100_no1_weeks_one' : 'd100_no1_weeks_other', { n: g.n })) + '</span>' +
+        '<span class="d100-name"><span class="d100-t"><span class="d100-no1-tt">' + esc(x.t) + '</span>' +
+          (g.back ? ' <span class="d100-no1-back">' + esc(tr('d100_no1_back')) + '</span>' : '') + '</span>' +
+          (x.a ? '<span class="d100-a">' + esc(x.a) + '</span>' : '') + '</span>' +
+        '<span class="d100-no1-len">' +
+          '<span class="d100-no1-pips' + (g.n === maxN ? ' is-max' : '') + '" aria-hidden="true">' + pips + (g.n > 10 ? '<b>+</b>' : '') + '</span>' +
+          '<span class="d100-no1-n">' + esc(tr(g.n === 1 ? 'd100_no1_weeks_one' : 'd100_no1_weeks_other', { n: g.n })) + '</span>' +
+        '</span>' +
         '</button></li>';
     });
-    h += '</ol></section>';
+    h += '</ol>';
+    if (list.length > LIMIT) {
+      h += '<button type="button" class="dc-btn dc-btn-normal d100-more d100-no1-more" onclick="dcDank100.no1Toggle()">' +
+        esc(C.no1All ? tr('d100_no1_less') : tr('d100_show_all', { n: list.length })) + '</button>';
+    }
+    h += '</section>';
     return h;
   }
 
@@ -1698,6 +1753,8 @@
     weekPreview: weekPreview,
     hideWeekPreview: hideWeekPreview,
     showAll: function () { C.all = true; render(); },
+    // Number ones timeline: show every reign / only the latest few
+    no1Toggle: function () { C.no1All = !C.no1All; render(); },
     reloadChart: function () { C.tries = 0; loadChart(true, C.week); },
     sendYear: sendYear,
     renderPromo: renderPromo,

@@ -45478,25 +45478,84 @@ th.cr-th { width: 92px; }              /* = .chart-table .cr-cell */
 .d100-preview-pop .d100-pv-head { position: sticky; top: -0.55rem; margin: -0.55rem -0.65rem 0; padding: 0.55rem 0.65rem 0; background: var(--bg2); z-index: 1; }
 .d100-preview-pop .d100-pv-link { display: block; margin-top: 3px; font-weight: 600; }
 
-.d100-no1 { display: flex; flex-direction: column; gap: 8px; }
-.d100-no1-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
+/* Number ones as a timeline (dank100.js numberOnesHTML): a reign strip on
+   top (one segment per reign, width = weeks held), then a compact list with
+   a spine and one dot per reign, newest first, year labels in between. */
+.d100-no1 { display: flex; flex-direction: column; gap: 10px; }
+.d100-no1-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.d100-no1-sum { font-size: var(--fs-sm); color: var(--text3); }
+
+/* The reign strip: oldest left, newest right */
+.d100-no1-strip { display: flex; gap: 2px; height: 14px; }
+.d100-no1-seg {
+  flex: 1 1 0; min-width: 4px; padding: 0; border: 0; border-radius: 3px; cursor: pointer;
+  background: color-mix(in srgb, var(--accent) 55%, transparent);
+  transition: transform 0.15s, background 0.15s;
+}
+.d100-no1-seg.is-alt { background: color-mix(in srgb, var(--accent) 30%, transparent); }
+.d100-no1-seg:hover { background: var(--accent); transform: scaleY(1.35); }
+.d100-no1-seg.is-here { background: var(--accent); box-shadow: 0 0 0 2px var(--bg), 0 0 0 3px var(--accent); }
+.d100-no1-seg:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* The timeline list */
+.d100-no1-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; position: relative; }
+/* The spine, running through the dot column */
+.d100-no1-list::before {
+  content: ''; position: absolute; top: 6px; bottom: 6px; left: calc(4.6em + 10px + 5px); width: 2px;
+  background: var(--border); border-radius: 1px;
+}
+.d100-no1-year {
+  position: relative; padding: 8px 0 2px; width: 4.6em; text-align: right;
+  font-family: var(--font-display); font-weight: 700; font-size: var(--fs-xs); letter-spacing: 0.06em; color: var(--text3);
+}
 .d100-no1-row {
-  width: 100%; display: grid; grid-template-columns: 44px minmax(0, 1fr) auto auto; gap: 12px; align-items: center;
-  padding: 8px 10px; border-radius: var(--r-md);
-  border: 1px solid var(--border); background: var(--bg2);
+  position: relative; width: 100%;
+  display: grid; grid-template-columns: 4.6em 12px 34px minmax(0, 1fr) auto; gap: 10px; align-items: center;
+  padding: 5px 8px 5px 0; border: 0; border-radius: var(--r-sm); background: none;
   font: inherit; color: inherit; text-align: left; cursor: pointer;
 }
-.d100-no1-row:hover { border-color: var(--accent); }
-.d100-no1-row:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.d100-no1-when { font-size: var(--fs-sm); color: var(--text3); }
-.d100-no1-n { font-size: var(--fs-xs); font-weight: 700; padding: 2px 8px; border-radius: 4px; color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.d100-no1-row:hover { background: color-mix(in srgb, var(--accent) 7%, transparent); }
+.d100-no1-row:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.d100-no1-row .d100-art { width: 34px; height: 34px; border-radius: 5px; }
+.d100-no1-row .d100-a, .d100-no1-tt { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; overflow-wrap: normal; }
+/* Title line: the title is cut, the "Back" tag after it always shows */
+.d100-no1-row .d100-t { display: flex; align-items: center; min-width: 0; }
+.d100-no1-tt { min-width: 0; }
+.d100-no1-back { flex: none; }
+.d100-no1-when { text-align: right; font-size: var(--fs-sm); color: var(--text3); font-variant-numeric: tabular-nums; }
+.d100-no1-dot {
+  position: relative; z-index: 1; width: 12px; height: 12px; border-radius: 50%; box-sizing: border-box;
+  background: var(--bg); border: 2px solid var(--accent);
+}
+/* The reign the chart on screen belongs to */
+.d100-no1-item.is-here .d100-no1-dot { background: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
+.d100-no1-item.is-here .d100-no1-when { color: var(--accent); font-weight: 700; }
+/* "Back at #1" tag after the title */
+.d100-no1-back {
+  display: inline-block; margin-left: 4px; padding: 0 5px; border-radius: 3px; vertical-align: 1px;
+  font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+  color: var(--text3); border: 1px solid var(--border);
+}
+/* Weeks held: pips + label */
+.d100-no1-len { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+.d100-no1-pips { display: flex; gap: 2px; align-items: center; }
+.d100-no1-pips i { width: 6px; height: 12px; border-radius: 2px; background: color-mix(in srgb, var(--accent) 45%, transparent); }
+.d100-no1-pips.is-max i { background: var(--accent); }
+.d100-no1-pips b { font-size: var(--fs-xs); color: var(--accent); margin-left: 1px; }
+.d100-no1-n { min-width: 5.2em; text-align: right; font-size: var(--fs-xs); font-weight: 700; color: var(--text2); font-variant-numeric: tabular-nums; }
+.d100-no1-more { align-self: center; }
 @media (max-width: 640px) {
   .d100-run { padding-left: 8px; padding-right: 8px; }
   .d100-chart-head { flex-direction: column; align-items: stretch; }
   .d100-weeknav { width: 100%; }
   .d100-wk-select { flex: 1; min-width: 0; }
-  .d100-no1-row { grid-template-columns: 40px minmax(0, 1fr) auto; }
-  .d100-no1-when { display: none; }
+  /* Phone: narrower date column, pips hidden (the label stays) */
+  .d100-no1-list::before { left: calc(3.6em + 8px + 5px); }
+  .d100-no1-year { width: 3.6em; }
+  .d100-no1-row { grid-template-columns: 3.6em 12px 32px minmax(0, 1fr) auto; gap: 8px; }
+  .d100-no1-row .d100-art { width: 32px; height: 32px; }
+  .d100-no1-pips { display: none; }
+  .d100-no1-n { min-width: 0; }
 }
 
 /* The Dank 100, step 6: records and the share button */
