@@ -4375,6 +4375,7 @@ TRANSLATIONS['pt-PT'] = Object.assign({
     nt_ap_skipped: 'Estiveste fora algum tempo: {{n}} playlists antigas do teu {{chart}} foram saltadas. Só as 10 mais recentes são criadas de uma vez.',
     nt_pl_gone: '“{{name}}” já não está nas tuas playlists',
     nt_st_month: 'A tua Trilha Sonora de {{month}} está pronta — relembra o teu mês',
+    nt_st_year: 'A tua Trilha Sonora de {{year}} está pronta — relembra o teu ano inteiro',
     nt_cert_song: 'A tua música “{{title}}” de {{artist}} chegou a {{tier}}',
     nt_cert_album: 'O teu álbum “{{title}}” de {{artist}} chegou a {{tier}}',
     nt_cert_more: 'Mais {{n}} certificações desde a tua última visita — vê-as em Recordes',

@@ -51941,20 +51941,34 @@ function stSetPeriod(type) {
 function stOpenMonth(key) {
   const [y, m] = String(key || '').split('-').map(Number);
   if (!y || !m) return;
+  _stOpenPeriod('month', y, m);
+}
+window.stOpenMonth = stOpenMonth;
+
+// The same for a whole year ('YYYY'): the "your year's Soundtrack is ready"
+// notification
+function stOpenYear(key) {
+  const y = Number(key);
+  if (!y) return;
+  _stOpenPeriod('year', y, stMonth);
+}
+window.stOpenYear = stOpenYear;
+
+function _stOpenPeriod(type, y, m) {
   if (document.getElementById('awardsYearPicker')?.dataset.kind === 'soundtrack') _awardsCloseYearPicker();
-  stPeriodType = 'month';
+  stPeriodType = type;
   stYear = y; stMonth = m;
-  // The same toolbar state stSetPeriod('month') leaves behind
-  document.querySelectorAll('.st-period-btn').forEach(b => b.classList.toggle('active', b.dataset.stPeriod === 'month'));
+  // The same toolbar state stSetPeriod(type) leaves behind
+  document.querySelectorAll('.st-period-btn').forEach(b => b.classList.toggle('active', b.dataset.stPeriod === type));
   const navBar = document.getElementById('stNavBar');
   if (navBar) navBar.style.display = '';
+  // Chart History Replay is a Year-only section, so its toolbar button is too
   const replayBtn = document.getElementById('stTopReplayBtn');
-  if (replayBtn) replayBtn.style.display = 'none';
+  if (replayBtn) replayBtn.style.display = type === 'year' ? '' : 'none';
   if (currentPeriod === 'soundtrack') renderSoundtrack();
   else dcGoTab('soundtrack');
   window.scrollTo({ top: 0 });
 }
-window.stOpenMonth = stOpenMonth;
 
 // The toolbar's Chart History Replay: bring the replay into view and start it
 function stJumpToReplay() {

@@ -4504,6 +4504,7 @@ const TRANSLATIONS = {
     nt_ap_skipped: 'You were away a while: {{n}} older playlists from your {{chart}} were skipped. Only the newest 10 are made at once.',
     nt_pl_gone: '“{{name}}” isn’t in your playlists any more',
     nt_st_month: 'Your {{month}} Soundtrack is ready — look back on your month',
+    nt_st_year: 'Your {{year}} Soundtrack is ready — look back on your whole year',
     nt_cert_song: 'Your song “{{title}}” by {{artist}} went {{tier}}',
     nt_cert_album: 'Your album “{{title}}” by {{artist}} went {{tier}}',
     nt_cert_more: '{{n}} more certifications since your last visit — see them in Records',

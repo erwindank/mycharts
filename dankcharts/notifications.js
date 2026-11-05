@@ -37,6 +37,8 @@ const NT_KINDS = {
   ap_skipped: { emoji: '⏭️', text: p => t('nt_ap_skipped', { n: p.n, chart: t('ap_row_' + p.period) }) },
   // A month has ended: its Soundtrack is ready to look back on (p.key 'YYYY-MM')
   st_month: { emoji: '🎬', text: p => t('nt_st_month', { month: crPeriodTitle('month', p.key) }) },
+  // A year has ended: its Soundtrack is ready (p.key 'YYYY')
+  st_year: { emoji: '🎉', text: p => t('nt_st_year', { year: p.key }) },
   // A song or album reached Gold / Platinum / Diamond (p.tier, p.mult)
   cert_new: { emoji: '🏆', text: p => t(p.type === 'album' ? 'nt_cert_album' : 'nt_cert_song', {
     title: p.title, artist: p.artist,
@@ -189,6 +191,8 @@ function ntFollow(link) {
   if (link.tab === 'playlists' && link.playlist) { dcPlOpenByName(link.playlist, false); return; }
   // A month's Soundtrack
   if (link.tab === 'soundtrack' && link.month) { stOpenMonth(link.month); return; }
+  // A year's Soundtrack
+  if (link.tab === 'soundtrack' && link.year) { stOpenYear(link.year); return; }
   // A Board post
   if (link.tab === 'board' && link.post && window.dcBoard) { window.dcBoard.openFromLink(link.post); return; }
   // A certified song or album: its own window, over whatever is on screen.
@@ -253,6 +257,24 @@ async function _ntWatchSoundtrack() {
     return { state: Object.assign({}, cur, { stMonth: prev }), out: true };
   });
   if (tell === true) dcNotify({ kind: 'st_month', key: prev, link: { tab: 'soundtrack', month: prev } });
+  // After the month, so in January the year's notification lists above December's
+  await _ntWatchSoundtrackYear();
+}
+
+/* The year that just ended, the same way: once the data covers 31 December
+   and it had plays, one notification that opens the Soundtrack on that year.
+   The first run outside January only notes the last year as told, so a user
+   doesn't hear about last year's Soundtrack in the middle of this one. */
+async function _ntWatchSoundtrackYear() {
+  const prev = String(+apCurrentKey('year') - 1);
+  if (!apFinishedKeys('year', null).includes(prev)) return;    // no plays that year
+  if (!_apDataCoversDay(apLastDay('year', prev))) return;       // data still catching up
+  const january = tzNow().getMonth() === 0;
+  const tell = await dcUpdateNotifyState(cur => {
+    if (cur.stYear && cur.stYear >= prev) return { state: null, out: false };
+    return { state: Object.assign({}, cur, { stYear: prev }), out: !!cur.stYear || january };
+  });
+  if (tell === true) dcNotify({ kind: 'st_year', key: prev, link: { tab: 'soundtrack', year: prev } });
 }
 
 /* Certifications earned since the last one told, from the same history the
@@ -263,12 +285,14 @@ async function _ntWatchCerts() {
   if (!_certTimeline) _certTimeline = buildCertTimeline();
   const list = _certTimeline;
   if (!list.length) return;
-  const newest = list[0].date;
+  // Dates as plain ms (the timeline holds Date objects), so the account
+  // stores a number
+  const newest = +list[0].date;
   const fresh = await dcUpdateNotifyState(cur => {
     // First run: note where things stand, tell nothing (no back-fill)
     if (typeof cur.certAt !== 'number') return { state: Object.assign({}, cur, { certAt: newest }), out: [] };
     if (newest <= cur.certAt) return { state: null, out: [] };
-    const out = list.filter(c => c.date > cur.certAt);
+    const out = list.filter(c => +c.date > cur.certAt);
     return { state: Object.assign({}, cur, { certAt: newest }), out };
   });
   if (!Array.isArray(fresh) || !fresh.length) return;

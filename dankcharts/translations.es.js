@@ -4375,6 +4375,7 @@ TRANSLATIONS['es'] = Object.assign({
     nt_ap_skipped: 'Estuviste fuera un tiempo: se omitieron {{n}} listas antiguas de tu {{chart}}. Solo se crean las 10 más recientes a la vez.',
     nt_pl_gone: '«{{name}}» ya no está en tus listas',
     nt_st_month: 'Tu Banda Sonora de {{month}} está lista: repasa tu mes',
+    nt_st_year: 'Tu Banda Sonora de {{year}} está lista: repasa tu año entero',
     nt_cert_song: 'Tu canción «{{title}}» de {{artist}} es ahora {{tier}}',
     nt_cert_album: 'Tu álbum «{{title}}» de {{artist}} es ahora {{tier}}',
     nt_cert_more: '{{n}} certificaciones más desde tu última visita: míralas en Récords',
