@@ -4567,6 +4567,11 @@ TRANSLATIONS['pt-PT'] = Object.assign({
     st_nav_next: 'Seguinte',
     st_ch_label: 'Capítulo {{n}}',
     st_ch_artist_sub: '{{plays}} · {{pct}}% de tudo o que ouviste',
+    // Soundtrack → Number ones chapter (2026-11-05)
+    st_ch_no1_title: '{{n}} números um diferentes',
+    st_ch_no1_solo: '{{name}} foi n.º 1 o tempo todo',
+    st_ch_no1_sub: 'Mais tempo no n.º 1: {{name}}, {{weeks}}',
+    st_no1_none: 'Ainda não há números um semanais neste período',
     st_ch_top_name: 'As tuas músicas, artistas e álbuns top',
     st_ch_top_title: '“{{song}}” foi a tua música',
     st_ch_top_sub: 'e {{artist}}, o teu artista',

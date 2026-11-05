@@ -4719,6 +4719,11 @@ const TRANSLATIONS = {
     st_nav_next: 'Next',
     st_ch_label: 'Chapter {{n}}',
     st_ch_artist_sub: '{{plays}} · {{pct}}% of everything you played',
+    // Soundtrack → Number ones chapter (2026-11-05)
+    st_ch_no1_title: '{{n}} different number ones',
+    st_ch_no1_solo: '{{name}} was #1 the whole time',
+    st_ch_no1_sub: 'Longest at #1: {{name}}, {{weeks}}',
+    st_no1_none: 'No weekly #1s in this period yet',
     st_ch_top_name: 'Your top songs, artists and albums',
     st_ch_top_title: '“{{song}}” was your song',
     st_ch_top_sub: 'and {{artist}} your artist',

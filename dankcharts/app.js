@@ -52537,6 +52537,175 @@ function renderSoundtrack() {
   requestAnimationFrame(stSetupReveal);
 }
 
+// ── Number ones (2026-11-05) ──────────────────────────────────
+// Every #1 of your own weekly chart in the year or month on screen, drawn as
+// the Dank 100's "Number ones" timeline (same classes, so it looks the
+// same): a reign strip, then newest first one row per reign with its weeks.
+// A reign is a run of weeks in a row at #1; "Back" = that entry already had
+// a reign before (any time, not just this period). A week belongs to the
+// period its middle day (start + 3) falls in, so a week split across two
+// months is counted once. Read from the cached weekly chart history
+// (_crFull), so the ranks match the Charts tab. Clicking a row opens that
+// week's chart. Hidden on All-Time.
+let stNo1Type = 'songs';   // songs | artists | albums
+let stNo1All = false;      // show every reign, not just the latest few
+
+function stSetNo1Type(type) { stNo1Type = type; stNo1All = false; stRenderNumberOnes(); stNumberChapters(); }
+function stNo1Toggle() { stNo1All = !stNo1All; stRenderNumberOnes(); }
+
+// The reigns inside the period on screen, oldest first:
+// [{ k, name, artist, weeks: [weekKeys in the period], back }]
+function stNo1Reigns(type) {
+  if (!allPlays.length) return [];
+  const full = _crFull('week');
+  const res = full && full.result && full.result[type];
+  if (!res) return [];
+  // While release types are separated, the albums run ranks each bucket on
+  // its own (an album #1 and a singles #1 every week) — keep the albums one
+  const sep = type === 'albums' && separatedTypes().length > 0;
+  const byWeek = {};
+  for (const k in res) {
+    if (sep) {
+      const i = k.lastIndexOf('|||');
+      if (certKindFor(k.slice(0, i), k.slice(i + 3)) !== 'album') continue;
+    }
+    for (const e of res[k].entries) if (e.rank === 1) byWeek[e.periodKey] = k;
+  }
+  // Every week of your history in order, so a gap breaks a reign
+  const weeks = Object.keys(full.periodMap).sort();
+  const reigns = [];
+  weeks.forEach((wk, i) => {
+    const k = byWeek[wk];
+    if (!k) return;
+    const g = reigns[reigns.length - 1];
+    if (g && g.k === k && g.to === i - 1) { g.to = i; g.all.push(wk); }
+    else reigns.push({ k, to: i, all: [wk] });
+  });
+  // Mark returns across the whole history, then keep the period's reigns
+  const seen = {};
+  reigns.forEach(g => { g.back = !!seen[g.k]; seen[g.k] = true; });
+  const inPeriod = wk => {
+    const d = new Date(wk + 'T00:00:00');
+    d.setDate(d.getDate() + 3);
+    return d.getFullYear() === stYear && (stPeriodType === 'year' || d.getMonth() + 1 === stMonth);
+  };
+  const out = [];
+  reigns.forEach(g => {
+    const w = g.all.filter(inPeriod);
+    if (!w.length) return;
+    const d = res[g.k];
+    let name, artist;
+    if (type === 'artists') { name = g.k; artist = ''; }
+    else if (type === 'albums') { const i = g.k.lastIndexOf('|||'); name = g.k.slice(0, i); artist = g.k.slice(i + 3); }
+    else { name = d._title || g.k; artist = d._artist || ''; }
+    out.push({ k: g.k, name, artist, weeks: w, back: g.back });
+  });
+  return out;
+}
+
+function stRenderNumberOnes() {
+  const sec = document.getElementById('stNo1Section');
+  const body = document.getElementById('stNo1Body');
+  if (!sec || !body) return;
+  // Year and month only: All-Time already has the Records tab's All #1s
+  if (stPeriodType === 'alltime' || !allPlays.length) { sec.style.display = 'none'; return; }
+  sec.style.display = '';
+
+  const type = stNo1Type;
+  const groups = stNo1Reigns(type);
+  const artType = type === 'songs' ? 'song' : type === 'artists' ? 'artist' : 'album';
+  const weeksTxt = n => t(n === 1 ? 'd100_no1_weeks_one' : 'd100_no1_weeks_other', { n });
+  const shortDay = wk => {
+    const d = new Date(wk + 'T00:00:00');
+    return d.getDate() + ' ' + t(_CR_MON_SHORT[d.getMonth()]);
+  };
+
+  // Songs / Artists / Albums, the same switch the Dank 100 has
+  let h = '<div class="dc-seg st-no1-seg" role="group" aria-label="' + esc(t('d100_no1_title')) + '">' +
+    ['songs', 'artists', 'albums'].map(ty =>
+      `<button type="button" class="${ty === type ? 'active' : ''}" aria-pressed="${ty === type}" onclick="stSetNo1Type('${ty}')">${esc(t('d100_type_' + ty))}</button>`).join('') +
+    '</div>';
+
+  // Total weeks per entry in the period, for the band and the summary
+  const tot = {};
+  groups.forEach(g => { tot[g.k] = (tot[g.k] || 0) + g.weeks.length; });
+  const distinct = Object.keys(tot).length;
+
+  if (!groups.length) {
+    body.innerHTML = h + `<div class="st-empty">${esc(t('st_no1_none'))}</div>`;
+    stFillHead('no1', { label: t('d100_no1_title'), title: esc(t('st_no1_none')) });
+    return;
+  }
+
+  // The band: how many different #1s, and who held it longest
+  let topK = null;
+  for (const k in tot) if (!topK || tot[k] > tot[topK]) topK = k;
+  const top = groups.find(g => g.k === topK);
+  stFillHead('no1', {
+    label: t('d100_no1_title'),
+    title: distinct === 1
+      ? esc(t('st_ch_no1_solo', { name: top.name }))
+      : stHeadTitle('st_ch_no1_title', distinct),
+    sub: esc(t('st_ch_no1_sub', { name: top.name + (top.artist ? ' — ' + top.artist : ''), weeks: weeksTxt(tot[topK]) })),
+    bg: [artType, top.name, top.artist],
+  });
+
+  const maxN = groups.reduce((m, g) => Math.max(m, g.weeks.length), 1);
+  h += `<section class="d100-no1 st-no1">
+    ${groups.length > 1 ? `<div class="d100-no1-head"><span class="d100-no1-sum">${esc(t('d100_no1_summary', { reigns: groups.length, n: distinct }))}</span></div>` : ''}`;
+  // (one reign: no "1 reigns · 1 different #1s" line, the band says it)
+
+  // The reign strip: oldest left, one segment per reign, width = weeks held
+  h += '<div class="d100-no1-strip" role="list">';
+  groups.forEach((g, j) => {
+    const tip = g.name + (g.artist ? ' — ' + g.artist : '') + ' · ' + shortDay(g.weeks[0]) + ' · ' + weeksTxt(g.weeks.length);
+    h += `<button type="button" role="listitem" class="d100-no1-seg${j % 2 ? ' is-alt' : ''}" style="flex-grow:${g.weeks.length}"` +
+      ` title="${esc(tip)}" aria-label="${esc(tip)}" onclick="navigateToRecPeriod('week','${g.weeks[g.weeks.length - 1]}')"></button>`;
+  });
+  h += '</div>';
+
+  // The timeline: newest first, only the latest few until "Show all"
+  const list = groups.slice().reverse();
+  const LIMIT = 6;
+  const shown = stNo1All ? list : list.slice(0, LIMIT);
+  h += `<ol class="d100-no1-list st-no1-list${type === 'artists' ? ' d100-list-artists' : ''}">`;
+  shown.forEach((g, i) => {
+    const n = g.weeks.length;
+    let pips = '';
+    for (let p = 0; p < Math.min(n, 10); p++) pips += '<i></i>';
+    h += `<li class="d100-no1-item">` +
+      `<button type="button" class="d100-no1-row" onclick="navigateToRecPeriod('week','${g.weeks[n - 1]}')">` +
+      `<span class="d100-no1-when">${esc(shortDay(g.weeks[0]))}</span>` +
+      '<span class="d100-no1-dot" aria-hidden="true"></span>' +
+      `<span class="d100-art" data-i="${i}"><span class="d100-art-ini" aria-hidden="true">${esc(initials(g.name))}</span></span>` +
+      `<span class="d100-name"><span class="d100-t"><span class="d100-no1-tt">${esc(g.name)}</span>` +
+        (g.back ? ` <span class="d100-no1-back">${esc(t('d100_no1_back'))}</span>` : '') + '</span>' +
+        (g.artist ? `<span class="d100-a">${esc(g.artist)}</span>` : '') + '</span>' +
+      '<span class="d100-no1-len">' +
+        `<span class="d100-no1-pips${n === maxN ? ' is-max' : ''}" aria-hidden="true">${pips}${n > 10 ? '<b>+</b>' : ''}</span>` +
+        `<span class="d100-no1-n">${esc(weeksTxt(n))}</span>` +
+      '</span></button></li>';
+  });
+  h += '</ol>';
+  if (list.length > LIMIT) {
+    h += `<button type="button" class="dc-btn dc-btn-normal d100-no1-more" onclick="stNo1Toggle()">` +
+      esc(stNo1All ? t('d100_no1_less') : t('d100_show_all', { n: list.length })) + '</button>';
+  }
+  h += '</section>';
+  body.innerHTML = h;
+
+  // Covers / photos, from the same lookups (and cache) as everywhere else
+  const tok = _stHeadToken;
+  shown.forEach((g, i) => {
+    queueImg(() => getArtAuto(artType, g.name, g.artist, artType === 'album' ? g.name : undefined).then(url => {
+      const el = body.querySelector(`.d100-art[data-i="${i}"]`);
+      if (!url || tok !== _stHeadToken || !el || stNo1Type !== type) return;
+      el.insertAdjacentHTML('beforeend', `<img src="${esc(sizedArtUrl(url, 120))}" alt="" loading="lazy">`);
+      el.classList.add('has-img');
+    }).catch(() => {}), true);
+  });
+}
+
 // ── Chapters ──────────────────────────────────────────────────
 // Each section is a chapter: a headline band (one big sentence over a dim
 // picture) and the section's full detail under it. The section renderers
@@ -52644,6 +52813,10 @@ function stRenderChapters() {
 
   // The year: a grid of the period's albums that comes apart toward the text
   stRenderYearMosaic();
+
+  // Number ones: drawn here, after the token bump above, so its band
+  // picture and covers aren't thrown away as belonging to an older render
+  stRenderNumberOnes();
 
   // Top songs and artists
   if (f.topSongs && f.topSongs.length) {

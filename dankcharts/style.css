@@ -47112,3 +47112,12 @@ html.lsx-open { overflow: hidden; }
 .nt-empty-title { font-family: var(--font-display); font-size: var(--fs-md); font-weight: 600; color: var(--text); }
 .nt-empty-text { max-width: 320px; font-size: var(--fs-sm); line-height: 1.5; color: var(--text3); }
 #ntReadAllBtn [data-ico] svg { width: 15px; height: 15px; }
+
+/* ── Soundtrack → Number ones chapter (2026-11-05) ──────────────────────────
+   The timeline itself is the Dank 100's (.d100-no1-* rules above); these only
+   fit it into a Soundtrack chapter body. */
+.st-no1-seg { margin-bottom: var(--sp-3); }
+.st-no1 .d100-no1-head { margin-bottom: 2px; }
+/* Artists: round photos (the Dank 100's own round rule loses to the
+   timeline's 5px corner) */
+.st-no1-list.d100-list-artists .d100-art { border-radius: 50%; }
