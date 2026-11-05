@@ -24636,6 +24636,33 @@ body:has(#eventsStatus.is-loading) .dc-pl-ev-empty { display: none; }
   flex-direction: column;
   gap: var(--sp-2);
 }
+/* Automatic playlists setup card (autoplaylists.js, apRenderSetup): one row
+   per chart type, the switch row is a <label>; the size picker shows under
+   it while that chart type is on */
+.ap-card { padding: 0; }
+.ap-row { padding: var(--sp-3) var(--sp-4); }
+.ap-row + .ap-row { border-top: 1px solid var(--border); }
+.ap-row-title {
+  display: block;
+  font-weight: 600;
+  color: var(--text1);
+}
+.ap-size {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-top: var(--sp-2);
+  flex-wrap: wrap;
+}
+.ap-size-lbl { font-size: var(--fs-xs); color: var(--text3); }
+.ap-note {
+  font-size: var(--fs-sm);
+  color: var(--text2);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+}
 .dc-pl-card { overflow: hidden; transition: border-color 0.1s; }
 .dc-pl-card-open {
   border-color: var(--accent);

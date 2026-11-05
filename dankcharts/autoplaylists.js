@@ -324,3 +324,111 @@ async function apSetPeriod(period, patch) {
   if (ok) apSettings = Object.assign({}, apSettings, { [period]: next });
   return ok;
 }
+
+// ─── STEP 3: THE SETUP CARD (Playlists tab) ───────────────────────────────
+/* "Automatic playlists" under the user's playlists: one row per chart type
+   with an on/off switch and, while on, a size picker and when the next one
+   is due. dcRenderPlaylistsView (app.js) leaves an empty #apSetup and calls
+   apRenderSetup() to fill it, so the card can redraw on its own without
+   redrawing the playlists. */
+
+// Which period a calendar day falls in (day string → period key)
+function apKeyOfDay(period, ds) {
+  if (period === 'day') return ds;
+  if (period === 'month') return ds.slice(0, 7);
+  if (period === 'year') return ds.slice(0, 4);
+  const back = (dyDate(ds).getDay() - weekStartDay + 7) % 7;   // same rule as playWeekKey
+  return dyShift(ds, -back);
+}
+
+// The size a chart type starts at: the user's own chart size for it, when
+// that's one of the choices
+function _apDefaultSize(period) {
+  const own = period === 'day' ? chartSizeSongsD : period === 'week' ? chartSizeSongsW : period === 'month' ? chartSizeSongsM : chartSizeSongsY;
+  return AP_SIZES.includes(own) ? own : 40;
+}
+
+/* The line under a chart type that's on. The next playlist is for the
+   period right after lastDay. If that period is already over, it's waiting
+   for the data to catch up (see _apDataCoversDay); otherwise it's made once
+   the period ends. */
+function _apNextNote(period, cfg) {
+  const lastDay = cfg.lastDay || apStartLastDay(period);
+  const nextKey = apKeyOfDay(period, dyShift(lastDay, 1));
+  const ends = apLastDay(period, nextKey);
+  if (ends < localDateStr(tzNow())) return t('ap_row_pending');
+  return t('ap_row_next', { date: fmt(dyDate(ends)) });
+}
+
+let _apSetupLoading = false;
+function apRenderSetup() {
+  const el = document.getElementById('apSetup');
+  if (!el) return;
+  let body;
+  const signedIn = typeof dcIsSignedIn === 'function' && dcIsSignedIn();
+  if (!signedIn) {
+    body = `<div class="ap-note">${esc(t('ap_signin'))}` +
+      ` <button type="button" class="dc-btn dc-btn-normal dc-btn-sm" onclick="dcSignIn()">${esc(t('tb_sign_in'))}</button></div>`;
+  } else if (!_apAllowed()) {
+    body = `<div class="ap-note">${esc(t('ap_demo'))}</div>`;
+  } else if (!apSettings) {
+    body = `<div class="ap-note">${esc(t('ap_loading'))}</div>`;
+    if (!_apSetupLoading) {
+      _apSetupLoading = true;
+      dcLoadAutoPlaylists().then(s => {
+        _apSetupLoading = false;
+        if (s) apSettings = s;
+        else { const e = document.getElementById('apSetup'); if (e) e.querySelector('.ap-note').textContent = t('ap_load_err'); return; }
+        apRenderSetup();
+      });
+    }
+  } else {
+    body = `<div class="dc-card ap-card">` + AP_PERIODS.map(period => {
+      const cfg = apSettings[period] || {};
+      const on = !!cfg.on;
+      const size = AP_SIZES.includes(cfg.size) ? cfg.size : _apDefaultSize(period);
+      let h = `<div class="ap-row${on ? ' ap-row-on' : ''}">` +
+        // A <label>, so the whole row works the switch (as in Settings)
+        `<label class="src-switch-row">` +
+        `<span class="src-switch-label"><span class="ap-row-title">${esc(t('ap_row_' + period))}</span>` +
+        `<span class="set-switch-note">${esc(on ? _apNextNote(period, cfg) : t('ap_row_off_' + period))}</span></span>` +
+        `<span class="src-switch"><input type="checkbox"${on ? ' checked' : ''} onchange="apToggle('${period}', this.checked, this)"><span class="src-switch-slider"></span></span>` +
+        `</label>`;
+      // The size picker sits outside the label, so pressing a size never
+      // flips the switch
+      if (on) {
+        h += `<div class="ap-size"><span class="ap-size-lbl">${esc(t('ap_size'))}</span>` +
+          `<div class="dc-seg" role="group" aria-label="${esc(t('ap_size'))}">` +
+          AP_SIZES.map(n => `<button type="button" aria-pressed="${n === size}" onclick="apPickSize('${period}', ${n})">${n}</button>`).join('') +
+          `</div></div>`;
+      }
+      return h + `</div>`;
+    }).join('') + `</div>`;
+  }
+  el.innerHTML = `<div class="dc-pl-part-head"><h3 class="dc-pl-part-title">${esc(t('ap_setup_title'))}</h3></div>` +
+    `<p class="dc-pl-part-sub">${esc(t('ap_setup_sub'))}</p>` + body;
+}
+
+// The switch. Saved straight away; if the save fails the switch goes back
+// and a toast says so.
+async function apToggle(period, on, input) {
+  if (input) input.disabled = true;
+  const patch = { on };
+  if (on && !(apSettings && apSettings[period] && AP_SIZES.includes(apSettings[period].size))) patch.size = _apDefaultSize(period);
+  const ok = await apSetPeriod(period, patch);
+  if (!ok) dcPlToast(t('ap_save_err'));
+  apRenderSetup();
+}
+
+async function apPickSize(period, n) {
+  const ok = await apSetPeriod(period, { size: n });
+  if (!ok) dcPlToast(t('ap_save_err'));
+  apRenderSetup();
+}
+
+// Signing in or out changes the card; settings belong to the account
+document.addEventListener('DOMContentLoaded', () => {
+  try {
+    firebase.auth().onAuthStateChanged(() => { apSettings = null; apRenderSetup(); });
+  } catch (e) {}
+});

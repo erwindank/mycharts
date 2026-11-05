@@ -36819,9 +36819,12 @@ function dcRenderPlaylistsView() {
     html += `</div>`; // end list
   }
 
+  // Automatic playlists setup (autoplaylists.js fills it)
+  html += `<div id="apSetup" class="dc-pl-part ap-setup"></div>`;
   html += `</div>`; // end view
   el.innerHTML = html;
   dcPlLoadArt(el);
+  if (typeof apRenderSetup === 'function') apRenderSetup();
 }
 
 // ── Playlist covers ──
