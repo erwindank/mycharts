@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Playlists and Notifications got a fresh look":
+    ["Playlists e Notificações ganharam um visual novo",
+     "A aba Playlists agora é uma grade de capas. Cada cartão mostra quatro capas das suas músicas, quantas músicas tem, quando mudou pela última vez e os artistas principais, e há um botão de tocar sobre a capa. A busca encontra uma playlist pelo nome ou por um artista que está nela, e você pode ordenar por Recentes, A–Z ou Maiores. Salvar o que está no player é o primeiro cartão, e a música que você ouvia por último fica no topo para continuar. Ao abrir uma playlist ela ganha sua própria página: uma capa grande, Tocar, um novo botão Aleatório, Exportar, Renomear e Excluir, e depois as músicas numeradas, cada uma com seus botões de prévia, Spotify e YouTube (arraste o número para reordenar). As playlists automáticas agora são quatro cartões, um por parada. A janela de Notificações tem as abas Todas e Não lidas, agrupa em Hoje, Ontem e Antes, dá a cada tipo seu próprio ícone e rótulo colorido e deixa você remover uma única notificação com o ✕."],
   "Automatic playlists from your charts, and notifications":
     ["Playlists automáticas das suas paradas, e notificações",
      "A aba Playlists tem um novo cartão Playlists automáticas. Ative sua parada diária, semanal, mensal ou anual e escolha quantas músicas (de 10 a 100). Sempre que um dos períodos dela termina, essa parada vira uma playlist sozinha, com um nome como “Top 40 semanal · 25 Oct – 31 Oct 2026” e na mesma ordem da aba Paradas. Ela cobre o período inteiro, então uma playlist criada da próxima vez que você abrir o site é igual a uma criada na hora. Funciona com Last.fm, Google Sheets e arquivos CSV, e espera suas reproduções ficarem em dia. É preciso estar conectado. Sua foto de perfil agora tem Notificações: um ponto avisa quando há algo novo e cada notificação abre o que ela menciona. Cada playlist também tem o próprio link para salvar nos favoritos."],
@@ -4521,6 +4524,15 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 /* Highlight cards (DC_CL_HIGHLIGHTS in changelog.js), keyed by id. */
 window.DC_CL_HIGHLIGHTS_I18N = window.DC_CL_HIGHLIGHTS_I18N || {};
 window.DC_CL_HIGHLIGHTS_I18N["pt-BR"] = {
+  "playlists-look": {
+    title: "Playlists e Notificações ganharam um visual novo",
+    intro: "Suas playlists agora são uma grade de capas com página própria, e a janela de Notificações fica fácil de ler num relance.",
+    points: [
+      "Cada playlist é um cartão com as capas, número de músicas, última mudança e artistas principais. Toque em ▶ na capa para ouvir.",
+      "Busque pelo nome da playlist ou por artista, ordene por Recentes, A–Z ou Maiores, e salve a fila do player no primeiro cartão.",
+      "Uma playlist aberta tem página própria com Tocar, o novo Aleatório, Exportar, Renomear e Excluir, e músicas numeradas que você arrasta para reordenar.",
+      "As notificações têm as abas Todas e Não lidas, grupos Hoje / Ontem / Antes, um ícone colorido por tipo e ✕ para remover uma."
+    ] },
   "auto-playlists": {
     title: "Playlists que se fazem sozinhas",
     intro: "Ative uma parada e cada dia, semana, mês ou ano encerrado vira uma playlist sozinho. Sua foto de perfil avisa quando uma está pronta.",

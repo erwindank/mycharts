@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Playlists and Notifications got a fresh look":
+    ["Las listas y las notificaciones tienen un nuevo aspecto",
+     "La pestaña Listas de reproducción es ahora una cuadrícula de portadas. Cada tarjeta muestra cuatro portadas de sus canciones, cuántas canciones tiene, cuándo cambió por última vez y sus artistas principales, y hay un botón para reproducir sobre la portada. La búsqueda encuentra una lista por su nombre o por un artista que esté en ella, y puedes ordenar por Recientes, A–Z o Más grandes. Guardar lo que suena en el reproductor es la primera tarjeta, y la canción que escuchabas aparece arriba para seguir donde lo dejaste. Al abrir una lista tiene su propia página: una portada grande, Reproducir, un nuevo botón Aleatorio, Exportar, Renombrar y Eliminar, y debajo las canciones numeradas, cada una con sus botones de muestra, Spotify y YouTube (arrastra el número para cambiar el orden). Las listas automáticas son ahora cuatro tarjetas, una por ranking. La ventana de Notificaciones tiene las pestañas Todas y Sin leer, las agrupa en Hoy, Ayer y Antes, da a cada tipo su propio icono y etiqueta de color, y te deja quitar una sola notificación con su ✕."],
   "Automatic playlists from your charts, and notifications":
     ["Listas automáticas a partir de tus rankings, y notificaciones",
      "La pestaña Listas de reproducción tiene una nueva tarjeta Listas automáticas. Activa tu ranking diario, semanal, mensual o anual y elige cuántas canciones (de 10 a 100). Cada vez que termina uno de sus períodos, ese ranking se convierte solo en una lista, con un nombre como «Top 40 semanal · 25 Oct – 31 Oct 2026» y en el mismo orden que en la pestaña Rankings. Cubre el período entero, así que una lista creada la próxima vez que abras el sitio es igual que una creada a tiempo. Funciona con Last.fm, Google Sheets y archivos CSV, y espera a que tus reproducciones estén al día. Necesitas iniciar sesión. Tu foto de perfil ahora tiene Notificaciones: un punto avisa cuando hay algo nuevo y cada notificación abre aquello de lo que habla. Cada lista tiene además su propio enlace para guardarlo en favoritos."],
@@ -4525,6 +4528,15 @@ window.DC_CHANGELOG_I18N['es'] = {
 /* Highlight cards (DC_CL_HIGHLIGHTS in changelog.js), keyed by id. */
 window.DC_CL_HIGHLIGHTS_I18N = window.DC_CL_HIGHLIGHTS_I18N || {};
 window.DC_CL_HIGHLIGHTS_I18N["es"] = {
+  "playlists-look": {
+    title: "Las listas y las notificaciones tienen un nuevo aspecto",
+    intro: "Tus listas son ahora una cuadrícula de portadas con su propia página, y la ventana de Notificaciones se lee de un vistazo.",
+    points: [
+      "Cada lista es una tarjeta con sus portadas, número de canciones, último cambio y artistas principales. Pulsa ▶ en la portada para escucharla.",
+      "Busca por nombre de la lista o por artista, ordena por Recientes, A–Z o Más grandes, y guarda la cola del reproductor desde la primera tarjeta.",
+      "Una lista abierta tiene su propia página con Reproducir, el nuevo Aleatorio, Exportar, Renombrar y Eliminar, y canciones numeradas que puedes arrastrar para reordenar.",
+      "Las notificaciones tienen las pestañas Todas y Sin leer, grupos Hoy / Ayer / Antes, un icono de color para cada tipo y ✕ para quitar una."
+    ] },
   "auto-playlists": {
     title: "Listas que se hacen solas",
     intro: "Activa un ranking y cada día, semana, mes o año terminado se convierte solo en una lista. Tu foto de perfil te avisa cuando hay una lista.",

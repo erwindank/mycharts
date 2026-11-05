@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 460;
+const DC_CL_I18N_V = 461;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -98,6 +98,16 @@ const DC_CL_AREAS = {
    by id, as { title, intro, points }. A missing one shows in English.
    ------------------------------------------------------------------------- */
 const DC_CL_HIGHLIGHTS = [
+  { id: "playlists-look", d: "2026-11-05", a: "playlists", img: "whatsnew/playlists-look.webp", go: "playlists",
+    title: "Playlists and Notifications got a fresh look",
+    intro: "Your playlists are now a grid of covers with a page of their own, and the Notifications window is easier to read at a glance.",
+    points: [
+      "Each playlist is a card with its covers, song count, last change and top artists. Press ▶ on the cover to play it.",
+      "Search by playlist name or artist, sort by Recent, A–Z or Biggest, and save the player's queue from the first card.",
+      "An open playlist gets its own page with Play, a new Shuffle, Export, Rename and Delete, and numbered songs you can drag to reorder.",
+      "Notifications have All and Unread tabs, Today / Yesterday / Earlier groups, a coloured icon per kind, and ✕ to remove one.",
+    ],
+    also: ["c0ddacd"] },
   { id: "auto-playlists", d: "2026-11-04", a: "playlists", img: "whatsnew/auto-playlists.webp", go: "playlists",
     title: "Playlists that make themselves",
     intro: "Turn on a chart and every finished day, week, month or year becomes a playlist on its own. Your profile picture tells you when one is ready.",
@@ -336,6 +346,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-05', t: 'design', a: 'playlists', h: 'c0ddacd',
+    title: "Playlists and Notifications got a fresh look",
+    detail: "The Playlists tab is now a grid of covers. Each card shows four of its songs' covers, how many songs it has, when it last changed and its top artists, and a play button sits on the cover. Search finds a playlist by its name or by an artist in it, and you can sort by Recent, A–Z or Biggest. Saving what's in the player is the first card, and the song you were last playing sits at the top to pick up again. Opening a playlist gives it its own page: a big cover, Play, a new Shuffle button, Export, Rename and Delete, then the numbered songs, each with its sample, Spotify and YouTube buttons (drag the number to reorder). Automatic playlists are now four tiles, one per chart. The Notifications window has All and Unread tabs, groups them under Today, Yesterday and Earlier, gives each kind its own coloured icon and label, and lets you remove a single notification with its ✕." },
   { d: '2026-11-04', t: 'feature', a: 'playlists', h: 'f9dca69',
     title: "Automatic playlists from your charts, and notifications",
     detail: "The Playlists tab has a new Automatic playlists card. Turn on your Daily, Weekly, Monthly or Yearly chart and pick how many songs (10 to 100). Every time one of its periods ends, that chart becomes a playlist by itself, named like \"Weekly Top 40 · 25 Oct – 31 Oct 2026\", in the same order as on the Charts tab. It covers the whole period, so a playlist made the next time you open the site is exactly the same as one made on time. It works with Last.fm, Google Sheets and CSV uploads, and waits until your plays have caught up. You need to be signed in. Your profile picture now has Notifications: a dot shows when something is new, and each notification opens what it's about. Each playlist also has its own link you can bookmark." },
