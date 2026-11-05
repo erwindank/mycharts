@@ -36802,8 +36802,90 @@ function _dcPlTakePending() {
 window.addEventListener('hashchange', () => {
   const name = dcPlNameFromHash(window.location.hash);
   if (name && name !== _dcPlExpandedName) dcPlOpenByName(name);
+  // Back to the bare tab address: back to the library
+  else if (!name && _dcPlExpandedName && window.location.hash === '#t=playlists' && currentPeriod === 'playlists') {
+    _dcPlExpandedName = null;
+    dcRenderPlaylistsView();
+  }
 });
 let _dcPlDragSrc      = null; // index of the track being dragged for reorder
+
+/* ── The Playlists tab (redesigned 2026-11-05) ──
+   Two pages in one view:
+   • the library — a grid of cover cards (2×2 collage, ▶ on the cover),
+     a search box and a sort switch, a "save the queue" card first in the
+     grid, then the automatic-playlist tiles (autoplaylists.js);
+   • an open playlist — its own page: big cover on a blurred copy of itself,
+     name, song count, top artists, Play / Shuffle / Export / Rename / Delete,
+     then the numbered song list (drag to reorder, sample, Spotify, YouTube,
+     play from here, remove).
+   _dcPlExpandedName is the open playlist (null = the library); the address
+   follows it (#t=playlists/<name>). The Anniversaries / Recent Releases parts
+   under the view are hidden while a playlist is open (.dc-pl-has-open). */
+const DC_PL_SORTS = ['recent', 'name', 'size'];
+let _dcPlSort = (() => { try { const s = localStorage.getItem('dc_pl_sort'); return DC_PL_SORTS.includes(s) ? s : 'recent'; } catch (e) { return 'recent'; } })();
+let _dcPlQuery = '';   // the library search box (kept across redraws)
+
+// Small inline icons used only here
+const _DC_PL_SVG = {
+  play: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z"/></svg>',
+  shuffle: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>',
+  back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>',
+  search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>',
+  export: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
+  rename: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>',
+  trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3,6 5,6 21,6"/><path d="M19,6l-1,14a2,2,0,0,1-2,2H8a2,2,0,0,1-2-2L5,6"/><path d="M10,11v6"/><path d="M14,11v6"/><path d="M9,6V4a1,1,0,0,1,1-1h4a1,1,0,0,1,1,1v2"/></svg>',
+  save: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>',
+  queue: '<svg class="dc-pl-ic dc-pl-ic-queue" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3.9h8.4M2 7.5h8.4M2 11.1h5"/><path d="M10.5 9.9 14.3 12.1 10.5 14.3Z"/></svg>',
+  grip: '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="6" cy="4" r="1.1"/><circle cx="10" cy="4" r="1.1"/><circle cx="6" cy="8" r="1.1"/><circle cx="10" cy="8" r="1.1"/><circle cx="6" cy="12" r="1.1"/><circle cx="10" cy="12" r="1.1"/></svg>'
+};
+
+// "2 h ago" / "Yesterday" / a date — the same wording as the Notifications window
+function _dcPlAgo(ms) {
+  if (!ms) return '';
+  if (typeof ntAgo === 'function') return ntAgo(ms);
+  return fmt(new Date(ms));
+}
+
+// The names in the chosen order (Recent = last changed first)
+function _dcPlSortedNames() {
+  const names = Object.keys(_ytPlaylists);
+  if (_dcPlSort === 'name') return names.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }));
+  if (_dcPlSort === 'size') return names.sort((a, b) => (_ytPlaylists[b].length - _ytPlaylists[a].length) || a.localeCompare(b));
+  // recent: newest change first; ones never stamped keep their saved order at the end
+  const order = new Map(names.map((n, i) => [n, i]));
+  return names.sort((a, b) => ((_ytPlaylistModified[b] || 0) - (_ytPlaylistModified[a] || 0)) || (order.get(a) - order.get(b)));
+}
+
+// The artists that appear most in a playlist, most first
+function _dcPlTopArtists(tracks) {
+  const c = new Map();
+  tracks.forEach(tr => { const a = String(tr.artist || '').trim(); if (a) c.set(a, (c.get(a) || 0) + 1); });
+  return [...c.entries()].sort((x, y) => y[1] - x[1]).map(e => e[0]);
+}
+
+function dcPlSetSort(s) {
+  if (!DC_PL_SORTS.includes(s) || s === _dcPlSort) return;
+  _dcPlSort = s;
+  try { localStorage.setItem('dc_pl_sort', s); } catch (e) {}
+  dcRenderPlaylistsView();
+}
+
+// Search: hides the cards that don't match, without redrawing (keeps focus).
+// Matches the playlist's name or any of its artists.
+function dcPlFilter(q) {
+  _dcPlQuery = q;
+  const needle = q.trim().toLowerCase();
+  let shown = 0;
+  document.querySelectorAll('#dcPlMain .plx-card[data-pl-name]').forEach(card => {
+    const name = card.dataset.plName.toLowerCase();
+    const hit = !needle || name.includes(needle) || (card.dataset.plArtists || '').includes(needle);
+    card.hidden = !hit;
+    if (hit) shown++;
+  });
+  const none = document.getElementById('dcPlNoMatch');
+  if (none) none.hidden = shown > 0 || !needle;
+}
 
 function dcRenderPlaylistsView() {
   // Only the top part is redrawn: the release sections under it are filled
@@ -36817,118 +36899,164 @@ function dcRenderPlaylistsView() {
     const want = '#t=playlists' + (_dcPlExpandedName ? '/' + encodeURIComponent(_dcPlExpandedName) : '');
     if (window.location.hash !== want) history.replaceState(null, '', want);
   }
-  const names = Object.keys(_ytPlaylists);
+  const view = document.getElementById('playlistsView');
+  if (view) view.classList.toggle('dc-pl-has-open', !!_dcPlExpandedName);
+
+  el.innerHTML = `<div class="dc-pl-view">` +
+    (_dcPlExpandedName ? _dcPlDetailHtml(_dcPlExpandedName) : _dcPlLibraryHtml()) +
+    `</div>`;
+  dcPlLoadArt(el);
+  if (!_dcPlExpandedName) {
+    if (_dcPlQuery) dcPlFilter(_dcPlQuery);
+    if (typeof apRenderSetup === 'function') apRenderSetup();
+  }
+  if (justOpened) setTimeout(() => el.scrollIntoView({ block: 'start', behavior: 'smooth' }), 80);
+}
+
+// ── The library page ──
+function _dcPlLibraryHtml() {
+  const names = _dcPlSortedNames();
+  const totalSongs = names.reduce((s, n) => s + _ytPlaylists[n].length, 0);
 
   // The shared page title (as Records / Stats / Events / Awards / Soundtrack)
-  // with the nav's playlist icon, then one toolbar: Resume, save the queue
-  let html = `<div class="dc-pl-view">` +
-    `<div class="section-header dc-pl-page-header">` +
+  // with the nav's playlist icon
+  let html = `<div class="section-header dc-pl-page-header">` +
     `<h2 class="section-header-h2"><svg class="graphs-h2-ico dc-pl-h2-ico" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M2 3.9h8.4M2 7.5h8.4M2 11.1h5"/><path d="M10.5 9.9 14.3 12.1 10.5 14.3Z"/></svg><span>${esc(t('nav_playlists'))}</span></h2>` +
     `<div class="section-rule"></div>` +
-    `</div>` +
-    `<div class="dc-pl-header">`;
-
-  // Resume row: show if a track was playing (this session or restored from a prior session)
-  if (_ytCurrentTrack && _ytCurrentTrack.title) {
-    const resumeLabel = esc(_ytCurrentTrack.title) + (_ytCurrentTrack.artist ? ` – ${esc(_ytCurrentTrack.artist)}` : '');
-    html +=
-      `<div class="dc-pl-resume-row">` +
-      `<button class="dc-btn dc-btn-main dc-pl-resume-btn" onclick="dcPlResume()" title="${esc(t('pl_view_resume_title'))}"><svg class="dc-pl-ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6,4 19,12 6,20"/></svg>${t('pl_view_resume', { track: resumeLabel })}</button>` +
-      (_ytQueue.length > 0 ? `<span class="dc-pl-resume-hint">${esc(t('pl_view_in_queue', { n: _ytQueue.length }))}</span>` : '') +
-      `</div>`;
-  }
-
-  html +=
-    `<div class="dc-pl-save-row">` +
-    `<input id="dcPlNewName" class="dc-pl-name-input" type="text" placeholder="${esc(t('pl_view_save_ph'))}" aria-label="${esc(t('pl_view_save_ph'))}" maxlength="40" ` +
-    `onkeydown="if(event.key==='Enter'){dcPlSaveQueue(this.value.trim());}">` +
-    `<button class="dc-btn dc-btn-normal" onclick="dcPlSaveQueue(document.getElementById('dcPlNewName').value.trim())">${esc(t('pl_view_save_btn'))}</button>` +
-    `<span id="dcPlStatus" class="dc-pl-status"></span>` +
-    `</div>` +
     `</div>`;
 
-  if (names.length === 0) {
-    html += `<div class="dc-pl-empty-state">${esc(t('pl_view_empty_title'))}<br>${t('pl_view_empty_html')}</div>`;
+  // Resume: what was last playing, as a "now playing" strip
+  if (_ytCurrentTrack && _ytCurrentTrack.title) {
+    html += `<button type="button" class="plx-resume" onclick="dcPlResume()" title="${esc(t('pl_view_resume_title'))}">` +
+      dcPlArtHtml(_ytCurrentTrack, 'plx-resume-art') +
+      `<span class="plx-resume-txt"><span class="plx-kicker">${esc(t('pl_x_resume_kicker'))}</span>` +
+      `<span class="plx-resume-title">${esc(_ytCurrentTrack.title)}</span>` +
+      `<span class="plx-resume-sub">${esc(_ytCurrentTrack.artist || '')}${_ytQueue.length ? ' · ' + esc(t('pl_view_in_queue', { n: _ytQueue.length })) : ''}</span></span>` +
+      `<span class="plx-resume-go" aria-hidden="true">${_DC_PL_SVG.play}</span>` +
+      `</button>`;
+  }
+
+  // Toolbar: totals on the left; search + sort on the right
+  if (names.length) {
+    html += `<div class="plx-toolbar">` +
+      `<p class="plx-total">${esc(t('pl_x_total', { lists: names.length.toLocaleString(), songs: tCount('songs', totalSongs) }))}</p>` +
+      `<div class="plx-tools">` +
+      `<label class="plx-search">${_DC_PL_SVG.search}` +
+      `<input type="search" class="dc-input" placeholder="${esc(t('pl_x_search_ph'))}" aria-label="${esc(t('pl_x_search_ph'))}" value="${esc(_dcPlQuery)}" oninput="dcPlFilter(this.value)"></label>` +
+      `<div class="dc-seg plx-sort" role="group" aria-label="${esc(t('pl_x_sort'))}">` +
+      DC_PL_SORTS.map(s => `<button type="button" aria-pressed="${s === _dcPlSort}" onclick="dcPlSetSort('${s}')">${esc(t('pl_x_sort_' + s))}</button>`).join('') +
+      `</div></div></div>`;
+  }
+
+  // The grid: the "save the queue" card first, then one card per playlist
+  const queueN = (_ytCurrentTrack && _ytCurrentTrack.title ? 1 : 0) + _ytQueue.length;
+  html += `<div class="plx-grid">` +
+    `<div class="plx-new">` +
+    `<div class="plx-new-ico" aria-hidden="true">${_DC_PL_SVG.save}</div>` +
+    `<div class="plx-new-title">${esc(t('pl_x_new_title'))}</div>` +
+    `<div class="plx-new-sub">${esc(queueN ? t('pl_x_new_sub', { songs: tCount('songs', queueN) }) : t('pl_view_nothing_playing'))}</div>` +
+    `<div class="plx-new-form">` +
+    `<input id="dcPlNewName" class="dc-input" type="text" placeholder="${esc(t('pl_x_new_ph'))}" aria-label="${esc(t('pl_view_save_ph'))}" maxlength="40" ` +
+    `onkeydown="if(event.key==='Enter'){dcPlSaveQueue(this.value.trim());}">` +
+    `<button class="dc-btn dc-btn-main dc-btn-sm" onclick="dcPlSaveQueue(document.getElementById('dcPlNewName').value.trim())">${esc(t('pl_view_save_btn'))}</button>` +
+    `</div>` +
+    `<span id="dcPlStatus" class="dc-pl-status" role="status"></span>` +
+    `</div>`;
+
+  names.forEach(name => {
+    const tracks = _ytPlaylists[name];
+    const nameJson = esc(JSON.stringify(name)); // must escape " so it doesn't break the onclick="" attribute
+    const artists = _dcPlTopArtists(tracks);
+    const when = _dcPlAgo(_ytPlaylistModified[name]);
+    html += `<div class="plx-card" role="button" tabindex="0" data-pl-name="${esc(name)}" data-pl-artists="${esc(artists.join(' ').toLowerCase())}" ` +
+      `onclick="dcPlToggleExpand(${nameJson})" onkeydown="if(event.target===this&&(event.key==='Enter'||event.key===' ')){event.preventDefault();dcPlToggleExpand(${nameJson})}">` +
+      `<div class="plx-cover">` + dcPlCollageHtml(tracks) +
+      `<button type="button" class="plx-cover-play" onclick="event.stopPropagation();dcPlPlayFromStart(${nameJson})" title="${esc(t('pl_view_play'))}" aria-label="${esc(t('pl_view_play'))}">${_DC_PL_SVG.play}</button>` +
+      `</div>` +
+      `<div class="plx-card-name">${esc(name)}</div>` +
+      `<div class="plx-card-meta">${esc(tCount('songs', tracks.length))}${when ? ' · ' + esc(when) : ''}</div>` +
+      (artists.length ? `<div class="plx-card-artists">${esc(artists.slice(0, 3).join(', '))}</div>` : '') +
+      `</div>`;
+  });
+  html += `</div>`;
+
+  if (!names.length) {
+    html += `<div class="plx-empty"><div class="plx-empty-title">${esc(t('pl_view_empty_title'))}</div><p>${t('pl_view_empty_html')}</p></div>`;
   } else {
-    html += `<div class="dc-pl-list">`;
-    names.forEach(name => {
-      const tracks = _ytPlaylists[name];
-      const isExpanded = _dcPlExpandedName === name;
-      const nameEsc  = esc(name);
-      const nameJson = esc(JSON.stringify(name)); // must escape " so it doesn't break the onclick="" attribute
-
-      html += `<div class="dc-card dc-pl-card${isExpanded ? ' dc-pl-card-open' : ''}">` +
-        `<div class="dc-pl-card-header" onclick="dcPlToggleExpand(${nameJson})">` +
-        `<svg class="dc-pl-chevron${isExpanded ? ' dc-pl-chevron-open' : ''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9,18 15,12 9,6"/></svg>` +
-        dcPlCollageHtml(tracks) +
-        `<span class="dc-pl-name-wrap">` +
-        `<span class="dc-pl-name">${nameEsc}</span>` +
-        `<span class="dc-pl-count">${esc(tCount('songs', tracks.length))}</span>` +
-        `</span>` +
-        `<div class="dc-pl-actions" onclick="event.stopPropagation()">` +
-        `<button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon" onclick="dcPlPlayFromStart(${nameJson})" title="${esc(t('pl_view_play'))}" aria-label="${esc(t('pl_view_play'))}">` +
-        `<svg class="dc-pl-ic" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>` +
-        `</button>` +
-        // Export: copy as text / download CSV / download text (dcPlExportMenu)
-        `<button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon" onclick="dcPlExportMenu(${nameJson},this)" title="${esc(t('pl_view_export'))}" aria-label="${esc(t('pl_view_export'))}" aria-haspopup="menu">` +
-        `<svg class="dc-pl-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>` +
-        `</button>` +
-        `<button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon" onclick="dcPlStartRename(${nameJson})" title="${esc(t('pl_view_rename'))}" aria-label="${esc(t('pl_view_rename'))}">` +
-        `<svg class="dc-pl-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>` +
-        `</button>` +
-        `<button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon dc-btn-danger" onclick="dcPlDeleteFromView(${nameJson})" title="${esc(t('pl_view_delete'))}" aria-label="${esc(t('pl_view_delete'))}">` +
-        `<svg class="dc-pl-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,6 5,6 21,6"/><path d="M19,6l-1,14a2,2,0,0,1-2,2H8a2,2,0,0,1-2-2L5,6"/><path d="M10,11v6"/><path d="M14,11v6"/><path d="M9,6V4a1,1,0,0,1,1-1h4a1,1,0,0,1,1,1v2"/></svg>` +
-        `</button>` +
-        `</div>` +
-        `</div>`; // end card-header
-
-      if (isExpanded) {
-        html += `<div class="dc-pl-tracks">`;
-        tracks.forEach((tr, idx) => {
-          // The row is an "entry" (data-ea-*) so the shared ▶ sample button
-          // and right-click menu work on it, same as on the charts. The key
-          // is songKey()'s title|||artist form.
-          const tKey = String(tr.title || '').toLowerCase().trim() + '|||' + String(tr.artist || '').toLowerCase().trim();
-          const ytQ = encodeURIComponent((tr.title || '') + ' ' + (tr.artist || ''));
-          html += `<div class="dc-pl-track" draggable="true" ` +
-            `ondragstart="event.stopPropagation();dcPlDragStart(event,${nameJson},${idx})" ` +
-            `ondragover="event.preventDefault();event.currentTarget.classList.add('dc-pl-drag-over')" ` +
-            `ondragleave="event.currentTarget.classList.remove('dc-pl-drag-over')" ` +
-            `ondrop="dcPlDrop(event,${nameJson},${idx})"` +
-            _eaAttrs('songs', { title: tr.title, artist: tr.artist, album: tr.album || '', key: tKey }) + `>` +
-            `<span class="dc-pl-drag-handle" title="${esc(t('pl_view_drag'))}"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="6" cy="4" r="1.1"/><circle cx="10" cy="4" r="1.1"/><circle cx="6" cy="8" r="1.1"/><circle cx="10" cy="8" r="1.1"/><circle cx="6" cy="12" r="1.1"/><circle cx="10" cy="12" r="1.1"/></svg></span>` +
-            dcPlArtHtml(tr) +
-            `<div class="dc-pl-track-info">` +
-            `<span class="dc-pl-track-title">${esc(tr.title)}</span>` +
-            `<span class="dc-pl-track-artist">${esc(tr.artist)}</span>` +
-            `</div>` +
-            // Sample · Spotify (or the chosen search service) · YouTube, then
-            // play-from-here in the site player and remove. ▶ is the sample;
-            // "play from here" uses the playlist icon so the two don't look alike.
-            `<div class="dc-pl-track-actions">` +
-            _eaSampleBtn('dc-pl-act dc-pl-act-play') +
-            _eaSpotifyBtn('songs', tr.title || '', tr.artist || '').replace('class="ea-spotify"', 'class="ea-spotify dc-pl-act dc-pl-act-sp"') +
-            `<a class="dc-pl-act dc-pl-act-yt" href="https://www.youtube.com/results?search_query=${ytQ}" target="_blank" rel="noopener" draggable="false" title="${esc(t('awx_yt'))}" aria-label="${esc(t('awx_yt'))}" onclick="event.stopPropagation()">${_ST_AM_YT_SVG}</a>` +
-            `<button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon" onclick="dcPlPlayFromTrack(${nameJson},${idx})" title="${esc(t('pl_view_play_from'))}" aria-label="${esc(t('pl_view_play_from'))}"><svg class="dc-pl-ic dc-pl-ic-queue" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3.9h8.4M2 7.5h8.4M2 11.1h5"/><path d="M10.5 9.9 14.3 12.1 10.5 14.3Z"/></svg></button>` +
-            `<button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon dc-btn-danger" onclick="dcPlRemoveTrack(${nameJson},${idx})" title="${esc(t('pl_view_remove'))}" aria-label="${esc(t('pl_view_remove'))}">✕</button>` +
-            `</div>` +
-            `</div>`; // end track
-        });
-        html += `</div>`; // end tracks
-      }
-
-      html += `</div>`; // end card
-    });
-    html += `</div>`; // end list
+    html += `<p class="plx-nomatch" id="dcPlNoMatch" hidden>${esc(t('pl_x_no_match'))}</p>`;
   }
 
   // Automatic playlists setup (autoplaylists.js fills it)
   html += `<div id="apSetup" class="dc-pl-part ap-setup"></div>`;
-  html += `</div>`; // end view
-  el.innerHTML = html;
-  dcPlLoadArt(el);
-  if (typeof apRenderSetup === 'function') apRenderSetup();
-  if (justOpened) setTimeout(() => el.querySelector('.dc-pl-card-open')?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 120);
+  return html;
+}
+
+// ── An open playlist's page ──
+function _dcPlDetailHtml(name) {
+  const tracks = _ytPlaylists[name];
+  const nameJson = esc(JSON.stringify(name));
+  const artists = _dcPlTopArtists(tracks);
+  const when = _dcPlAgo(_ytPlaylistModified[name]);
+  const top = artists.slice(0, 3).join(', ');
+  const moreArtists = artists.length - 3;
+
+  let html = `<button type="button" class="plx-back" onclick="dcPlToggleExpand(null)">${_DC_PL_SVG.back}<span>${esc(t('pl_x_back'))}</span></button>`;
+
+  // The header: the cover big, on a blurred copy of itself (filled by dcPlLoadArt)
+  html += `<header class="plx-hero">` +
+    dcPlArtHtml(tracks[0] || {}, 'plx-hero-bg') +
+    `<div class="plx-hero-cover">${dcPlCollageHtml(tracks)}</div>` +
+    `<div class="plx-hero-info">` +
+    `<span class="plx-kicker">${esc(t('pl_x_kicker'))}</span>` +
+    // .dc-pl-name: dcPlStartRename swaps it for a text box
+    `<h2 class="plx-hero-name"><span class="dc-pl-name">${esc(name)}</span></h2>` +
+    (top ? `<p class="plx-hero-artists">${esc(top)}${moreArtists > 0 ? ' ' + esc(t('pl_x_more_artists', { n: moreArtists })) : ''}</p>` : '') +
+    `<p class="plx-hero-meta">${esc(tCount('songs', tracks.length))} · ${esc(tCount('artists', artists.length))}${when ? ' · ' + esc(t('pl_x_updated', { when })) : ''}</p>` +
+    `<div class="plx-hero-actions">` +
+    `<button type="button" class="dc-btn dc-btn-main plx-play" onclick="dcPlPlayFromStart(${nameJson})">${_DC_PL_SVG.play}<span>${esc(t('pl_x_play'))}</span></button>` +
+    `<button type="button" class="dc-btn dc-btn-normal plx-shuffle" onclick="dcPlPlayShuffled(${nameJson})">${_DC_PL_SVG.shuffle}<span>${esc(t('pl_x_shuffle'))}</span></button>` +
+    `<span class="plx-hero-tools">` +
+    // Export: Export Playlist window / download CSV / download text (dcPlExportMenu)
+    `<button type="button" class="dc-btn dc-btn-plain dc-btn-icon" onclick="dcPlExportMenu(${nameJson},this)" title="${esc(t('pl_view_export'))}" aria-label="${esc(t('pl_view_export'))}" aria-haspopup="menu">${_DC_PL_SVG.export}</button>` +
+    `<button type="button" class="dc-btn dc-btn-plain dc-btn-icon" onclick="dcPlStartRename(${nameJson})" title="${esc(t('pl_view_rename'))}" aria-label="${esc(t('pl_view_rename'))}">${_DC_PL_SVG.rename}</button>` +
+    `<button type="button" class="dc-btn dc-btn-plain dc-btn-icon dc-btn-danger" onclick="dcPlDeleteFromView(${nameJson})" title="${esc(t('pl_view_delete'))}" aria-label="${esc(t('pl_view_delete'))}">${_DC_PL_SVG.trash}</button>` +
+    `</span></div></div></header>`;
+
+  // The songs, numbered; the number turns into a drag grip on hover
+  html += `<div class="plx-tracks" role="list">`;
+  tracks.forEach((tr, idx) => {
+    // The row is an "entry" (data-ea-*) so the shared ▶ sample button
+    // and right-click menu work on it, same as on the charts. The key
+    // is songKey()'s title|||artist form.
+    const tKey = String(tr.title || '').toLowerCase().trim() + '|||' + String(tr.artist || '').toLowerCase().trim();
+    const ytQ = encodeURIComponent((tr.title || '') + ' ' + (tr.artist || ''));
+    html += `<div class="dc-pl-track plx-track" role="listitem" draggable="true" ` +
+      `ondragstart="event.stopPropagation();dcPlDragStart(event,${nameJson},${idx})" ` +
+      `ondragover="event.preventDefault();event.currentTarget.classList.add('dc-pl-drag-over')" ` +
+      `ondragleave="event.currentTarget.classList.remove('dc-pl-drag-over')" ` +
+      `ondrop="dcPlDrop(event,${nameJson},${idx})"` +
+      _eaAttrs('songs', { title: tr.title, artist: tr.artist, album: tr.album || '', key: tKey }) + `>` +
+      `<span class="plx-num"><span class="plx-num-n">${idx + 1}</span><span class="dc-pl-drag-handle" title="${esc(t('pl_view_drag'))}">${_DC_PL_SVG.grip}</span></span>` +
+      dcPlArtHtml(tr) +
+      `<div class="dc-pl-track-info">` +
+      `<span class="dc-pl-track-title">${esc(tr.title)}</span>` +
+      `<span class="dc-pl-track-artist">${esc(tr.artist)}</span>` +
+      `</div>` +
+      `<span class="plx-track-album">${esc(tr.album || '')}</span>` +
+      // Sample · Spotify (or the chosen search service) · YouTube, then
+      // play-from-here in the site player and remove. ▶ is the sample;
+      // "play from here" uses the playlist icon so the two don't look alike.
+      `<div class="dc-pl-track-actions">` +
+      _eaSampleBtn('dc-pl-act dc-pl-act-play') +
+      _eaSpotifyBtn('songs', tr.title || '', tr.artist || '').replace('class="ea-spotify"', 'class="ea-spotify dc-pl-act dc-pl-act-sp"') +
+      `<a class="dc-pl-act dc-pl-act-yt" href="https://www.youtube.com/results?search_query=${ytQ}" target="_blank" rel="noopener" draggable="false" title="${esc(t('awx_yt'))}" aria-label="${esc(t('awx_yt'))}" onclick="event.stopPropagation()">${_ST_AM_YT_SVG}</a>` +
+      `<button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon plx-tr-btn" onclick="dcPlPlayFromTrack(${nameJson},${idx})" title="${esc(t('pl_view_play_from'))}" aria-label="${esc(t('pl_view_play_from'))}">${_DC_PL_SVG.queue}</button>` +
+      `<button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon dc-btn-danger plx-tr-btn" onclick="dcPlRemoveTrack(${nameJson},${idx})" title="${esc(t('pl_view_remove'))}" aria-label="${esc(t('pl_view_remove'))}">✕</button>` +
+      `</div>` +
+      `</div>`; // end track
+  });
+  html += `</div>`;
+  return html;
 }
 
 // ── Playlist covers ──
@@ -37046,9 +37174,29 @@ function dcPlExport(name, fmt) {
 }
 
 // Toggle a playlist's track list open/closed
+// Opens a playlist's page (or, with null / the open one, goes back to the
+// library). Either way the page starts at the top of the view.
 function dcPlToggleExpand(name) {
   _dcPlExpandedName = _dcPlExpandedName === name ? null : name;
   dcRenderPlaylistsView();
+  const v = document.getElementById('playlistsView');
+  if (v && v.getBoundingClientRect().top < 0) v.scrollIntoView({ block: 'start' });
+}
+
+// Shuffle: the playlist in a random order into the site player
+function dcPlPlayShuffled(name) {
+  const pl = _ytPlaylists[name];
+  if (!pl || !pl.length) return;
+  const mixed = pl.slice();
+  for (let i = mixed.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [mixed[i], mixed[j]] = [mixed[j], mixed[i]];
+  }
+  const [first, ...rest] = mixed;
+  openYtPlayer(first.title, first.artist, first.album, null);
+  rest.forEach(tr => _ytQueue.push({ title: tr.title, artist: tr.artist, album: tr.album, btn: null }));
+  _ytUpdateQueueDisplay();
+  _ytSaveQueue();
 }
 
 // Load a playlist into the player (player floats over the page, no tab switch needed)

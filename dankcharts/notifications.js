@@ -29,39 +29,40 @@ let _ntFlushTimer = null;
 let _ntLastAt = 0;        // time of the last one posted (see dcNotify)
 
 // How each kind reads: an emoji (the site uses emoji, not line icons, for
-// these) and its text.
+// these), its category (cat: the coloured tile and the small label above the
+// text, nt_cat_<cat>) and its text.
 const NT_KINDS = {
   // A playlist made by automatic chart playlists
-  ap_made: { emoji: '🎵', text: p => t('nt_ap_made', { name: p.name }) },
+  ap_made: { emoji: '🎵', cat: 'playlist', text: p => t('nt_ap_made', { name: p.name }) },
   // Missed periods past the 10-at-a-time limit
-  ap_skipped: { emoji: '⏭️', text: p => t('nt_ap_skipped', { n: p.n, chart: t('ap_row_' + p.period) }) },
+  ap_skipped: { emoji: '⏭️', cat: 'playlist', text: p => t('nt_ap_skipped', { n: p.n, chart: t('ap_row_' + p.period) }) },
   // A month has ended: its Soundtrack is ready to look back on (p.key 'YYYY-MM')
-  st_month: { emoji: '🎬', text: p => t('nt_st_month', { month: crPeriodTitle('month', p.key) }) },
+  st_month: { emoji: '🎬', cat: 'soundtrack', text: p => t('nt_st_month', { month: crPeriodTitle('month', p.key) }) },
   // A year has ended: its Soundtrack is ready (p.key 'YYYY')
-  st_year: { emoji: '🎉', text: p => t('nt_st_year', { year: p.key }) },
+  st_year: { emoji: '🎉', cat: 'soundtrack', text: p => t('nt_st_year', { year: p.key }) },
   // A song or album reached Gold / Platinum / Diamond (p.tier, p.mult)
-  cert_new: { emoji: '🏆', text: p => t(p.type === 'album' ? 'nt_cert_album' : 'nt_cert_song', {
+  cert_new: { emoji: '🏆', cat: 'cert', text: p => t(p.type === 'album' ? 'nt_cert_album' : 'nt_cert_song', {
     title: p.title, artist: p.artist,
     tier: p.tier === 'diamond' ? tDiamondLabel(p.mult || 1) : tTierLabel(p.tier) }) },
   // More certifications at once than get one each (NT_CERT_MAX)
-  cert_more: { emoji: '🏆', text: p => t('nt_cert_more', { n: p.n }) },
+  cert_more: { emoji: '🏆', cat: 'cert', text: p => t('nt_cert_more', { n: p.n }) },
   // A new holder at the top of a Records list (p.title = the list, in the
   // language it was read in; p.type song / album / artist)
   // p.n > 1: the same holder took several lists at once (p.title = the first)
-  rec_new: { emoji: '🥇', text: p => {
+  rec_new: { emoji: '🥇', cat: 'record', text: p => {
     const multi = p.n > 1 ? '_multi' : '';
     return p.type === 'artist'
       ? t('nt_rec_new_artist' + multi, { name: p.name, record: p.title, n: p.n })
       : t('nt_rec_new' + multi, { name: p.name, artist: p.artist, record: p.title, n: p.n });
   } },
   // Many lists changed at once (NT_REC_MAX)
-  rec_many: { emoji: '🥇', text: p => t('nt_rec_many', { n: p.n }) },
+  rec_many: { emoji: '🥇', cat: 'record', text: p => t('nt_rec_many', { n: p.n }) },
   // Someone else replied to one of the user's Board posts (p.n of them)
-  bd_reply: { emoji: '💬', text: p => p.n > 1
+  bd_reply: { emoji: '💬', cat: 'board', text: p => p.n > 1
     ? t('nt_bd_replies', { n: p.n, title: p.title })
     : t('nt_bd_reply', { name: p.name, title: p.title }) },
   // A moderator changed the status of one of the user's Board posts
-  bd_status: { emoji: '📌', text: p => t('nt_bd_status', { title: p.title, status: t('board_status_' + p.status) }) }
+  bd_status: { emoji: '📌', cat: 'board', text: p => t('nt_bd_status', { title: p.title, status: t('board_status_' + p.status) }) }
 };
 
 // Newest first, no more than NT_MAX, nothing older than NT_MAX_AGE
@@ -126,38 +127,107 @@ function ntAgo(ms) {
   return fmt(tzDate(d));
 }
 
+/* The list (redesigned 2026-11-05): All / Unread tabs at the top, then the
+   notifications grouped under Today / Yesterday / Earlier. Each one has a
+   coloured tile with its emoji (colour by category; a certification takes
+   its tier's colour), a small category label with the time, the text, a
+   dot while unread, and an ✕ to remove just that one. */
+let _ntFilter = 'all';   // 'all' | 'unread'
+
+function ntSetFilter(f) {
+  _ntFilter = f === 'unread' ? 'unread' : 'all';
+  _ntRenderList();
+}
+
+// Which day group a time falls in
+function _ntGroupOf(ms) {
+  const ds = localDateStr(tzDate(new Date(ms))), td = localDateStr(tzNow());
+  if (ds === td) return 'today';
+  if (ds === dyShift(td, -1)) return 'yesterday';
+  return 'earlier';
+}
+
 function _ntRenderList() {
   const body = document.getElementById('ntBody');
   if (!body) return;
   const unread = _ntUnread();
   const sub = document.getElementById('ntSub');
-  if (sub) sub.textContent = ntItems.length ? t('nt_sub', { n: unread }) : '';
+  if (sub) sub.textContent = ntItems.length ? (unread ? t('nt_sub', { n: unread }) : t('nt_caught_up')) : '';
   const foot = document.getElementById('ntFoot');
   if (foot) foot.hidden = !ntItems.length;
   const all = document.getElementById('ntReadAllBtn');
   if (all) all.disabled = !unread;
   if (!ntItems.length) {
-    body.innerHTML = `<div class="dc-empty">${dcIco('bell')}<span>${esc(t('nt_empty'))}</span></div>`;
+    _ntFilter = 'all';
+    body.innerHTML = `<div class="nt-empty"><span class="nt-empty-ico">${dcIco('bell')}</span>` +
+      `<span class="nt-empty-title">${esc(t('nt_caught_up'))}</span>` +
+      `<span class="nt-empty-text">${esc(t('nt_empty'))}</span></div>`;
     return;
   }
-  body.innerHTML = `<div class="dc-list nt-list">` + ntItems.map(x => {
+  // The tabs
+  const tab = (f, label, n) => `<button type="button" role="tab" aria-selected="${_ntFilter === f}" class="nt-tab" onclick="ntSetFilter('${f}')">` +
+    `${esc(label)}${n ? `<span class="nt-tab-n">${n > 99 ? '99+' : n}</span>` : ''}</button>`;
+  let html = `<div class="nt-tabs" role="tablist">` + tab('all', t('nt_f_all'), 0) + tab('unread', t('nt_unread'), unread) + `</div>`;
+
+  const list = _ntFilter === 'unread' ? ntItems.filter(x => !x.read) : ntItems;
+  if (!list.length) {
+    html += `<div class="nt-empty nt-empty-sm"><span class="nt-empty-ico">${dcIco('check')}</span>` +
+      `<span class="nt-empty-title">${esc(t('nt_caught_up'))}</span>` +
+      `<span class="nt-empty-text">${esc(t('nt_no_unread'))}</span></div>`;
+    body.innerHTML = html;
+    return;
+  }
+  let group = null, i = 0;
+  list.forEach(x => {
     const k = NT_KINDS[x.kind];
-    if (!k) return '';
-    return `<button type="button" class="dc-list-row nt-row${x.read ? '' : ' nt-unread'}" onclick="ntOpenItem('${esc(x.id)}')">` +
-      `<span class="nt-emoji" aria-hidden="true">${k.emoji}</span>` +
-      `<span class="dc-list-main"><span class="dc-list-title">${esc(k.text(x.p || {}))}</span>` +
-      `<span class="dc-list-sub">${esc(ntAgo(x.at))}</span></span>` +
-      (x.read ? '' : `<span class="nt-row-dot" aria-label="${esc(t('nt_unread'))}"></span>`) +
-      `</button>`;
-  }).join('') + `</div>`;
+    if (!k) return;
+    const g = _ntGroupOf(x.at);
+    if (g !== group) {
+      if (group) html += `</div>`;
+      group = g;
+      html += `<div class="nt-group-h">${esc(t(g === 'yesterday' ? 'nt_yesterday' : 'nt_grp_' + g))}</div><div class="nt-list">`;
+    }
+    const p = x.p || {};
+    // A certification wears its tier's colour (gold / platinum / diamond)
+    const tone = k.cat === 'cert' && p.tier ? 'cert-' + p.tier : k.cat;
+    html += `<div class="nt-item${x.read ? '' : ' nt-unread'}" style="--nt-i:${i++}">` +
+      // The tone class sits on the row so the tile and the category label share it
+      `<button type="button" class="nt-row nt-tone-${esc(tone)}" onclick="ntOpenItem('${esc(x.id)}')">` +
+      `<span class="nt-tile" aria-hidden="true">${k.emoji}</span>` +
+      `<span class="nt-main">` +
+      `<span class="nt-meta"><span class="nt-cat">${esc(t('nt_cat_' + k.cat))}</span><span class="nt-time">${esc(ntAgo(x.at))}</span></span>` +
+      `<span class="nt-text">${esc(k.text(p))}</span>` +
+      `</span>` +
+      (x.read ? '' : `<span class="nt-row-dot" role="img" aria-label="${esc(t('nt_unread'))}"></span>`) +
+      `</button>` +
+      `<button type="button" class="nt-dismiss" onclick="ntDismiss('${esc(x.id)}')" title="${esc(t('nt_dismiss'))}" aria-label="${esc(t('nt_dismiss'))}">${dcIco('x')}</button>` +
+      `</div>`;
+  });
+  if (group) html += `</div>`;
+  body.innerHTML = html;
 }
+
+// Removes one notification (here and on the account)
+function ntDismiss(id) {
+  _ntChange(list => list.filter(i => i.id !== id));
+}
+
 
 function ntOpen() {
   document.querySelectorAll('.ctrl-group.open').forEach(g => g.classList.remove('open'));
   const modal = document.getElementById('ntModal');
   if (!modal) return;
+  _ntFilter = 'all';
   _ntRenderList();
   modal.classList.add('open');
+  // The rows slide in one after another only as the window opens, not on
+  // every redraw after it (style.css .nt-anim)
+  const body = document.getElementById('ntBody');
+  if (body) {
+    body.classList.add('nt-anim');
+    clearTimeout(body._ntAnimT);
+    body._ntAnimT = setTimeout(() => body.classList.remove('nt-anim'), 900);
+  }
   // Fresh copy from the account, in case another device added some
   dcLoadNotifications().then(list => { if (list) { ntItems = _ntTrim(list); ntRefresh(); } });
 }

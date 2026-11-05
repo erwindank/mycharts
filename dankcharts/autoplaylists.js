@@ -363,6 +363,10 @@ function _apNextNote(period, cfg) {
   return t('ap_row_next', { date: fmt(dyDate(ends)) });
 }
 
+// The icon on each chart type's tile: a sun for a day, a calendar for a
+// week, a moon for a month, a sparkle for a whole year
+const AP_ICONS = { day: 'sun', week: 'calendar', month: 'moon', year: 'sparkle' };
+
 let _apSetupLoading = false;
 function apRenderSetup() {
   const el = document.getElementById('apSetup');
@@ -386,25 +390,27 @@ function apRenderSetup() {
       });
     }
   } else {
-    body = `<div class="dc-card ap-card">` + AP_PERIODS.map(period => {
+    // One tile per chart type (redesigned 2026-11-05): an icon, the
+    // name and its note, the switch top right, the size picker along the
+    // bottom (greyed while the chart type is off, so every tile lines up)
+    body = `<div class="ap-grid">` + AP_PERIODS.map(period => {
       const cfg = apSettings[period] || {};
       const on = !!cfg.on;
       const size = AP_SIZES.includes(cfg.size) ? cfg.size : _apDefaultSize(period);
-      let h = `<div class="ap-row${on ? ' ap-row-on' : ''}">` +
-        // A <label>, so the whole row works the switch (as in Settings)
-        `<label class="src-switch-row">` +
+      let h = `<div class="ap-tile${on ? ' ap-row-on' : ''}">` +
+        // A <label>, so the whole top of the tile works the switch (as in Settings)
+        `<label class="src-switch-row ap-tile-top">` +
+        `<span class="ap-badge ap-badge-${period}" aria-hidden="true">${typeof dcIco === 'function' ? dcIco(AP_ICONS[period]) : ''}</span>` +
         `<span class="src-switch-label"><span class="ap-row-title">${esc(t('ap_row_' + period))}</span>` +
         `<span class="set-switch-note">${esc(on ? _apNextNote(period, cfg) : t('ap_row_off_' + period))}</span></span>` +
         `<span class="src-switch"><input type="checkbox"${on ? ' checked' : ''} onchange="apToggle('${period}', this.checked, this)"><span class="src-switch-slider"></span></span>` +
         `</label>`;
       // The size picker sits outside the label, so pressing a size never
       // flips the switch
-      if (on) {
-        h += `<div class="ap-size"><span class="ap-size-lbl">${esc(t('ap_size'))}</span>` +
-          `<div class="dc-seg" role="group" aria-label="${esc(t('ap_size'))}">` +
-          AP_SIZES.map(n => `<button type="button" aria-pressed="${n === size}" onclick="apPickSize('${period}', ${n})">${n}</button>`).join('') +
-          `</div></div>`;
-      }
+      h += `<div class="ap-size"><span class="ap-size-lbl">${esc(t('ap_size'))}</span>` +
+        `<div class="dc-seg dc-seg-fill" role="group" aria-label="${esc(t('ap_size'))}">` +
+        AP_SIZES.map(n => `<button type="button" aria-pressed="${on && n === size}"${on ? '' : ' disabled'} onclick="apPickSize('${period}', ${n})">${n}</button>`).join('') +
+        `</div></div>`;
       return h + `</div>`;
     }).join('') + `</div>`;
   }
