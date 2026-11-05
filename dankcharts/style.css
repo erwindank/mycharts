@@ -47124,3 +47124,102 @@ html.lsx-open { overflow: hidden; }
 /* Month view: the Songs/Artists/Albums and Weekly/Daily switches side by side */
 .st-no1-switches { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: var(--sp-3); }
 .st-no1-switches .st-no1-seg { margin-bottom: 0; }
+
+/* ── Soundtrack → All-Time New Discoveries, by year (2026-11-05) ────────────
+   stRenderDiscoveriesAll(): bars per year, year-tagged bubbles, then three
+   panels (Still with you, Slow burners, Where it began). Colours come from
+   the chapter's --sc so it matches the band above. --sc is green here, light
+   in some dark themes, so chips use --sc text on a tint, never white on it. */
+.st-dy-bars {
+  display: flex; align-items: stretch; gap: 6px; height: 190px;
+  overflow-x: auto; padding-bottom: 2px;
+}
+.st-dy-bar {
+  flex: 1 1 0; min-width: 34px; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 0; border: 0; background: none; font: inherit; color: inherit; cursor: pointer;
+}
+.st-dy-n { font-size: var(--fs-xs); font-weight: 700; color: var(--text2); font-variant-numeric: tabular-nums; }
+.st-dy-col {
+  flex: 1; width: 100%; display: flex; align-items: flex-end;
+  border-radius: var(--r-sm); background: color-mix(in srgb, var(--sc) 8%, transparent);
+}
+.st-dy-col i {
+  display: block; width: 100%; border-radius: var(--r-sm);
+  background: color-mix(in srgb, var(--sc) 55%, transparent); transition: background 0.15s;
+}
+.st-dy-bar.is-max .st-dy-col i, .st-dy-bar:hover .st-dy-col i { background: var(--sc); }
+.st-dy-bar.is-max .st-dy-n { color: var(--sc); }
+.st-dy-y { font-size: var(--fs-xs); color: var(--text3); font-variant-numeric: tabular-nums; }
+.st-dy-bar:focus-visible { outline: 2px solid var(--sc); outline-offset: 2px; border-radius: var(--r-sm); }
+
+/* Year-tagged bubbles: a shorter tank, the year over the name */
+.st-bubbles--years { height: 380px; }
+.st-bubble-tag {
+  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.05em; font-variant-numeric: tabular-nums;
+  color: var(--sc); background: color-mix(in srgb, var(--sc) 16%, var(--bg2)); border: 1px solid color-mix(in srgb, var(--sc) 40%, transparent); padding: 0 7px; border-radius: var(--r-full);
+  margin-bottom: 2px;
+}
+
+/* The three panels */
+.st-dy-panels { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-4); }
+.st-dy-panel {
+  padding: var(--sp-4); border-radius: var(--r-lg);
+  background: var(--bg2); border: 1px solid var(--border);
+}
+.st-dy-panel--wide { grid-column: 1 / -1; }
+.st-dy-panel .st-sub-title { margin-bottom: 2px; }
+.st-dy-hint { margin: 0 0 var(--sp-3); font-size: var(--fs-xs); color: var(--text3); }
+
+/* Still with you: year · meter · % */
+.st-dy-rows { display: flex; flex-direction: column; gap: 2px; max-height: 260px; overflow-y: auto; }
+.st-dy-row {
+  display: grid; grid-template-columns: 3.2em minmax(0, 1fr) 3em; gap: 10px; align-items: center;
+  padding: 4px 6px; border: 0; border-radius: var(--r-sm); background: none;
+  font: inherit; color: inherit; text-align: left; cursor: pointer;
+}
+.st-dy-row:hover { background: color-mix(in srgb, var(--sc) 8%, transparent); }
+.st-dy-row-y { font-size: var(--fs-sm); color: var(--text2); font-variant-numeric: tabular-nums; }
+.st-dy-meter { height: 8px; border-radius: 4px; background: color-mix(in srgb, var(--sc) 12%, transparent); overflow: hidden; }
+.st-dy-meter i { display: block; height: 100%; border-radius: 4px; background: var(--sc); }
+.st-dy-row-v { text-align: right; font-size: var(--fs-sm); font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+
+/* Round portraits */
+.st-dy-av {
+  flex: none; width: 40px; height: 40px; border-radius: 50%; overflow: hidden;
+  display: grid; place-items: center; background: color-mix(in srgb, var(--sc) 14%, var(--bg3));
+}
+.st-dy-av .thumb, .st-dy-av .thumb-initials { width: 100%; height: 100%; border: 0; border-radius: inherit; object-fit: cover; }
+
+/* Slow burners */
+.st-dy-picks { display: flex; flex-direction: column; gap: 2px; }
+.st-dy-pick {
+  display: flex; align-items: center; gap: 10px; padding: 5px 6px;
+  border: 0; border-radius: var(--r-sm); background: none; font: inherit; color: inherit; text-align: left; cursor: pointer;
+}
+.st-dy-pick:hover { background: color-mix(in srgb, var(--sc) 8%, transparent); }
+.st-dy-txt { display: flex; flex-direction: column; min-width: 0; }
+.st-dy-txt b { font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.st-dy-txt small { font-size: var(--fs-xs); color: var(--text3); }
+
+/* Where it began: numbered portraits in a row */
+.st-dy-firsts { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: var(--sp-3); }
+.st-dy-first {
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 0;
+  border: 0; background: none; font: inherit; color: inherit; cursor: pointer; min-width: 0;
+}
+.st-dy-first .st-dy-av { width: 100%; max-width: 72px; height: auto; aspect-ratio: 1; }
+.st-dy-first:hover .st-dy-av { box-shadow: 0 0 0 2px var(--sc); }
+.st-dy-num {
+  position: absolute; top: -4px; left: 50%; margin-left: -30px; min-width: 20px; height: 20px; padding: 0 5px;
+  display: grid; place-items: center; border-radius: var(--r-full);
+  font-size: 0.68rem; font-weight: 700; color: var(--sc); background: var(--bg2); border: 1.5px solid var(--sc);
+}
+.st-dy-fn { max-width: 100%; font-size: var(--fs-xs); color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+@media (max-width: 640px) {
+  .st-dy-panels { grid-template-columns: minmax(0, 1fr); }
+  .st-dy-bars { height: 150px; }
+  .st-dy-bar { min-width: 30px; }
+  .st-bubbles--years { height: 320px; }
+  .st-dy-firsts { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}

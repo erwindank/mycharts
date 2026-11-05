@@ -52927,7 +52927,17 @@ function stRenderChapters() {
 
   // New Discoveries
   const d = f.discoveries;
-  if (d && d.n) {
+  if (d && d.alltime) {
+    // All-Time: the best find (most played since its first play) and when
+    stFillHead('new', {
+      label: t('st_discoveries_title'),
+      title: esc(t('st_disc_all_title', { artist: d.best.artist })),
+      sub: esc(t('st_disc_all_sub', { year: d.best.year, plays: tCount('plays', d.best.count) })),
+      bg: ['artist', d.best.artist],
+      right: stHeadThumbHtml(d.top.slice(0, 5).map(x => ({ name: x })), true),
+      thumbs: d.top.slice(0, 5).map(x => ({ type: 'artist', name: x })),
+    });
+  } else if (d && d.n) {
     stFillHead('new', {
       label: t('st_discoveries_title'),
       title: stHeadTitle('st_ch_new_title', d.n.toLocaleString()),
@@ -54192,6 +54202,9 @@ function stRenderDiscoveries(plays) {
   const topCutoff = Math.max(1, Math.round(discovered.length * 0.2));
   const featuredSet = new Set([...discovered].sort((a, b) => b.count - a.count).slice(0, topCutoff).map(d => d.artist));
   discovered.forEach(d => { d.weight = featuredSet.has(d.artist) ? 3 : 1; });
+  // All-Time: every artist is a "discovery", so the count means nothing —
+  // tell it by year instead (stRenderDiscoveriesAll)
+  if (stPeriodType === 'alltime') { stRenderDiscoveriesAll(el, discovered, plays); return; }
   _stFacts.discoveries = { n: discovered.length, top: [...discovered].sort((a, b) => b.count - a.count).slice(0, 5).map(d => d.artist) };
 
   el.innerHTML = `
@@ -54201,6 +54214,145 @@ function stRenderDiscoveries(plays) {
   // the pop-up's ‹ › order: most played first
   _stDiscovered = [...discovered].sort((a, b) => b.count - a.count || a.date - b.date).map(d => d.artist);
   stStartBubbles(discovered);
+}
+
+// ── All-Time discoveries (2026-11-05) ─────────────────────────
+// On All-Time every artist you ever played is "new", so the chapter tells
+// the story by year instead:
+//   • the band: your best find (most plays since its first play) and the year
+//   • bars: how many new artists each year; a bar opens that year's Soundtrack
+//   • bubbles: each year's 3 best finds, labelled with the year
+//   • Still with you: of each year's finds, the share played in the last 12
+//     months of your history (counted back from your latest play, so an old
+//     CSV export still makes sense)
+//   • Slow burners: found at least 2 years before their biggest year, and
+//     that year had at least 3× their first year's plays (and 25+)
+//   • Where it began: the first 10 artists in your history
+// Works the same for Last.fm, Sheets and CSV: everything is read from plays.
+function stRenderDiscoveriesAll(el, discovered, plays) {
+  const byYear = {};               // year -> [{ artist, date, count }]
+  const perYear = {};              // artist -> { year: plays }
+  let lastTs = 0;
+  for (const p of plays) {
+    if (p.date > lastTs) lastTs = p.date;
+    const y = tzDate(p.date).getFullYear();
+    for (const a of (p.artists || splitArtists(p.artist))) {
+      const m = perYear[a] || (perYear[a] = {});
+      m[y] = (m[y] || 0) + 1;
+    }
+  }
+  // Played in the last 12 months of the history
+  const recentFrom = lastTs - 365 * 86400000;
+  const recent = new Set();
+  for (const p of plays) {
+    if (p.date >= recentFrom) for (const a of (p.artists || splitArtists(p.artist))) recent.add(a);
+  }
+  discovered.forEach(d => {
+    d.year = tzDate(d.date).getFullYear();
+    (byYear[d.year] || (byYear[d.year] = [])).push(d);
+  });
+  const years = Object.keys(byYear).map(Number).sort((a, b) => a - b);
+  years.forEach(y => byYear[y].sort((a, b) => b.count - a.count || a.date - b.date));
+  const best = [...discovered].sort((a, b) => b.count - a.count || a.date - b.date)[0];
+
+  _stFacts.discoveries = {
+    alltime: true, n: discovered.length,
+    best: { artist: best.artist, year: best.year, count: best.count },
+    // the band's portraits: the best find of the latest five years
+    top: years.slice(-5).reverse().map(y => byYear[y][0].artist),
+  };
+
+  // ── Bars: new artists per year
+  const maxN = Math.max(...years.map(y => byYear[y].length));
+  const bars = years.map(y => {
+    const n = byYear[y].length, top = byYear[y][0].artist;
+    const tip = t('st_disc_year_tip', { year: y, n: n.toLocaleString(), artist: top });
+    return `<button type="button" class="st-dy-bar${n === maxN ? ' is-max' : ''}" onclick="stOpenYear('${y}')" title="${esc(tip)}" aria-label="${esc(tip)}">
+      <span class="st-dy-n">${n.toLocaleString()}</span>
+      <span class="st-dy-col"><i style="height:${Math.max(4, Math.round(n / maxN * 100))}%"></i></span>
+      <span class="st-dy-y">${y}</span>
+    </button>`;
+  }).join('');
+
+  // ── Still with you: share of each year's finds played lately, newest first
+  const still = years.map(y => {
+    const list = byYear[y];
+    const k = list.filter(d => recent.has(d.artist)).length;
+    const pct = Math.round(k / list.length * 100);
+    return `<button type="button" class="st-dy-row" onclick="stOpenYear('${y}')">
+      <span class="st-dy-row-y">${y}</span>
+      <span class="st-dy-meter"><i style="width:${pct}%"></i></span>
+      <span class="st-dy-row-v">${pct}%</span>
+    </button>`;
+  }).reverse().join('');
+
+  // ── Slow burners
+  const slow = [];
+  discovered.forEach(d => {
+    const m = perYear[d.artist];
+    if (!m) return;
+    let peakY = d.year, peakN = 0;
+    for (const y in m) if (m[y] > peakN) { peakN = m[y]; peakY = +y; }
+    const firstN = m[d.year] || 0;
+    if (peakY - d.year >= 2 && peakN >= Math.max(25, firstN * 3)) slow.push({ artist: d.artist, from: d.year, to: peakY, n: peakN });
+  });
+  slow.sort((a, b) => b.n - a.n || (b.to - b.from) - (a.to - a.from));
+  const slowRows = slow.slice(0, 5).map(x => `<button type="button" class="st-dy-pick" data-artist="${esc(x.artist)}">
+      <span class="st-dy-av" data-a="${esc(x.artist)}"><span class="thumb-initials">${esc(initials(x.artist))}</span></span>
+      <span class="st-dy-txt"><b>${esc(x.artist)}</b><small>${esc(t('st_disc_slow_row', { from: x.from, to: x.to, plays: tCount('plays', x.n) }))}</small></span>
+    </button>`).join('');
+
+  // ── Where it began: the first 10 (discovered is oldest first)
+  const began = discovered.slice(0, 10).map((d, i) => `<button type="button" class="st-dy-first" data-artist="${esc(d.artist)}" title="${esc(d.artist + ' · ' + fmtDate(tzDate(d.date)))}">
+      <span class="st-dy-av" data-a="${esc(d.artist)}"><span class="thumb-initials">${esc(initials(d.artist))}</span></span>
+      <span class="st-dy-num">${i + 1}</span>
+      <span class="st-dy-fn">${esc(d.artist)}</span>
+    </button>`).join('');
+
+  el.innerHTML = `
+    <div class="st-discoveries-count">${esc(t('st_disc_all_count', { n: discovered.length.toLocaleString(), year: years[0] }))}</div>
+    <div class="st-sub">
+      <div class="st-sub-title">${esc(t('st_disc_by_year'))}</div>
+      <div class="st-dy-bars">${bars}</div>
+    </div>
+    <div class="st-sub">
+      <div class="st-sub-title">${esc(t('st_disc_bubbles_hint'))}</div>
+      <div class="st-bubbles st-bubbles--years" id="stDiscoveriesBubbles"></div>
+    </div>
+    <div class="st-sub st-dy-panels">
+      <div class="st-dy-panel">
+        <div class="st-sub-title">${esc(t('st_disc_still'))}</div>
+        <p class="st-dy-hint">${esc(t('st_disc_still_hint'))}</p>
+        <div class="st-dy-rows">${still}</div>
+      </div>
+      <div class="st-dy-panel">
+        <div class="st-sub-title">${esc(t('st_disc_slow'))}</div>
+        <p class="st-dy-hint">${esc(t('st_disc_slow_hint'))}</p>
+        ${slowRows ? `<div class="st-dy-picks">${slowRows}</div>` : `<div class="st-empty">${esc(t('st_disc_slow_none'))}</div>`}
+      </div>
+      <div class="st-dy-panel st-dy-panel--wide">
+        <div class="st-sub-title">${esc(t('st_disc_began'))}</div>
+        <p class="st-dy-hint">${esc(t('st_disc_began_hint'))}</p>
+        <div class="st-dy-firsts">${began}</div>
+      </div>
+    </div>`;
+
+  // Artists open the discovery pop-up (All-Time numbers)
+  el.querySelectorAll('[data-artist]').forEach(b => b.addEventListener('click', () => stOpenArtistModal(b.dataset.artist)));
+  // Portraits, from the shared lookups (and cache)
+  el.querySelectorAll('.st-dy-av[data-a]').forEach(av => {
+    queueImg(() => getArtAuto('artist', av.dataset.a).then(url => {
+      if (url && av.isConnected) av.innerHTML = thumbHtml(url, av.dataset.a, false);
+    }));
+  });
+
+  // Bubbles: each year's 3 best finds, tagged with the year; the best one of
+  // each year comes round more often
+  const deck = [];
+  years.forEach(y => byYear[y].slice(0, 3).forEach((d, i) => deck.push({ artist: d.artist, tag: String(y), weight: i === 0 ? 3 : 1 })));
+  // the pop-up's ‹ › order: newest year first, its best find first
+  _stDiscovered = years.slice().reverse().flatMap(y => byYear[y].slice(0, 3).map(d => d.artist));
+  stStartBubbles(deck);
 }
 
 // ── Discoveries "bubble tank" — floating artist portraits that rise,
@@ -54228,7 +54380,8 @@ function stBuildWeightedDeck(items) {
   return stShuffle(deck);
 }
 
-function stSpawnBubble(container, artist, isStatic) {
+// tag: a small line over the name (All-Time: the year the artist was found)
+function stSpawnBubble(container, artist, isStatic, tag) {
   const uid = 'stBubble' + (_stBubbleUid++);
   const size = 64 + Math.floor(Math.random() * 40);   // 64–104px, for a bit of depth variety
   const dur = (13 + Math.random() * 6).toFixed(1);     // 13–19s rise
@@ -54246,7 +54399,7 @@ function stSpawnBubble(container, artist, isStatic) {
   bubble.setAttribute('aria-label', artist);
   // Initials sit in the circle until the picture arrives (or if none is found),
   // so a bubble is never an empty ring.
-  bubble.innerHTML = `<div class="st-bubble-avatar" id="${uid}"><div class="thumb-initials">${esc(initials(artist))}</div></div><div class="st-bubble-name">${esc(artist)}</div>`;
+  bubble.innerHTML = `<div class="st-bubble-avatar" id="${uid}"><div class="thumb-initials">${esc(initials(artist))}</div></div>${tag ? `<div class="st-bubble-tag">${esc(tag)}</div>` : ''}<div class="st-bubble-name">${esc(artist)}</div>`;
   container.appendChild(bubble);
 
   if (!isStatic) bubble.addEventListener('animationend', () => bubble.remove());
@@ -54902,7 +55055,7 @@ function stStartBubbles(discovered) {
   const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (reduceMotion) {
     container.classList.add('st-bubbles-static');
-    stShuffle(discovered).slice(0, 10).forEach(item => stSpawnBubble(container, item.artist, true));
+    stShuffle(discovered).slice(0, 10).forEach(item => stSpawnBubble(container, item.artist, true, item.tag));
     return;
   }
   container.classList.remove('st-bubbles-static');
@@ -54913,7 +55066,7 @@ function stStartBubbles(discovered) {
     if (!live) { clearInterval(_stBubbleTimer); _stBubbleTimer = null; return; }
     if (!_stBubbleQueue.length) _stBubbleQueue = stBuildWeightedDeck(discovered);
     const item = _stBubbleQueue.pop();
-    stSpawnBubble(live, item.artist);
+    stSpawnBubble(live, item.artist, false, item.tag);
   };
 
   for (let i = 0; i < 5; i++) _stBubbleSeeds.push(setTimeout(spawn, i * 400));
