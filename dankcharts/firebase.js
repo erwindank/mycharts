@@ -321,6 +321,65 @@ async function dcLoadPlaylistsFromFirestore() {
   }
 }
 
+/* ── Automatic chart playlists (autoplaylists.js) ─────────────────────────
+   One document: { day|week|month|year: { on, size, lastDay } }. lastDay is
+   the last calendar day ('YYYY-MM-DD') of the newest period a playlist was
+   made for. Covered by the existing users/{uid}/data/{doc} rule. */
+function _autoPlRef(uid) {
+  return _db.collection('users').doc(uid).collection('data').doc('autoPlaylists');
+}
+
+async function dcLoadAutoPlaylists() {
+  if (!_currentUser) return null;
+  await _ensureDb();
+  try {
+    const snap = await _autoPlRef(_currentUser.uid).get();
+    return snap.exists ? snap.data() : {};
+  } catch (err) {
+    console.warn('[dankcharts] Auto playlists load error:', err);
+    return null;
+  }
+}
+
+// Saves one chart type's settings. Merged, so the other chart types — and a
+// lastDay another device just advanced — are left alone.
+async function dcSaveAutoPlaylist(period, settings) {
+  if (!_currentUser) return false;
+  await _ensureDb();
+  try {
+    await _autoPlRef(_currentUser.uid).set({ [period]: settings }, { merge: true });
+    return true;
+  } catch (err) {
+    console.warn('[dankcharts] Auto playlists save error:', err);
+    return false;
+  }
+}
+
+/* Claims one finished period before its playlist is made, so two devices
+   opening at the same time don't both make it. Inside a transaction: only
+   moves lastDay forward if this chart type is still on and nobody has
+   already made a playlist for a period starting on or after firstDay.
+   Returns 'ok', 'taken', 'off' or 'error'. Needs the network on purpose —
+   offline it returns 'error' and the run is simply tried again next load. */
+async function dcClaimAutoPlaylist(period, firstDay, lastDay) {
+  if (!_currentUser) return 'error';
+  await _ensureDb();
+  const ref = _autoPlRef(_currentUser.uid);
+  try {
+    return await _db.runTransaction(async tx => {
+      const snap = await tx.get(ref);
+      const cur = (snap.exists ? snap.data() : {})[period];
+      if (!cur || !cur.on) return 'off';
+      if (cur.lastDay && cur.lastDay >= firstDay) return 'taken';
+      tx.set(ref, { [period]: Object.assign({}, cur, { lastDay }) }, { merge: true });
+      return 'ok';
+    });
+  } catch (err) {
+    console.warn('[dankcharts] Auto playlist claim error:', err && err.code);
+    return 'error';
+  }
+}
+
 // Whether there is a signed-in account at all. Callers use it to tell a failed
 // write apart from the ordinary signed-out case, where local-only is the point.
 function dcIsSignedIn() { return !!_currentUser; }
@@ -699,6 +758,9 @@ window.dcSaveImgChoices            = dcSaveImgChoices;
 window.dcLoadImgChoices            = dcLoadImgChoices;
 window.dcSavePlaylistsToFirestore  = dcSavePlaylistsToFirestore;
 window.dcLoadPlaylistsFromFirestore = dcLoadPlaylistsFromFirestore;
+window.dcLoadAutoPlaylists         = dcLoadAutoPlaylists;
+window.dcSaveAutoPlaylist          = dcSaveAutoPlaylist;
+window.dcClaimAutoPlaylist         = dcClaimAutoPlaylist;
 
 // ── INIT ────────────────────────────────────────────────────────────────────
 firebase.initializeApp(firebaseConfig);
@@ -722,6 +784,10 @@ _auth.onAuthStateChanged(async (user) => {
   // Sync playlists from Firestore and merge with any locally-saved playlists
   const remotePlaylistData = await dcLoadPlaylistsFromFirestore();
   if (remotePlaylistData && typeof _ytMergePlaylists === 'function') _ytMergePlaylists(remotePlaylistData);
+  // Automatic chart playlists: the data may have loaded before sign-in
+  // finished, in which case the run after the load found nobody signed in.
+  // After the playlist merge, so a new playlist lands on the merged list.
+  if (typeof apRun === 'function') apRun();
 
   // Merge cloud ratings with anything rated locally while signed out. dcMergeRatings
   // resolves per-entry by last-edited timestamp, so neither side clobbers the other.

@@ -161,3 +161,166 @@ function _apAlbumsFor(period, key, want) {
   }
   return out;
 }
+
+// ─── STEP 2: SETTINGS + THE RUNNER ────────────────────────────────────────
+/* Settings live in Firestore (users/{uid}/data/autoPlaylists, firebase.js):
+     { day|week|month|year: { on, size, lastDay } }
+   Signed-in users only. lastDay is the last calendar day of the newest period
+   a playlist was made for — a day string rather than a period key, so that
+   changing the week start day can't make an overlapping week look new.
+
+   The runner (apRun) is called after every data load and refresh (app.js
+   finalizeLoad / refreshAfterPoll) and after sign-in (firebase.js). For each
+   chart type that's on, it makes a playlist for every finished period since
+   lastDay, oldest first, claiming each one in a Firestore transaction first
+   so two devices never make the same one. */
+
+const AP_SIZES = [10, 20, 40, 50, 100];
+const AP_MAX_CATCHUP = 10;              // missed periods made per chart type in one go
+const AP_GRACE_MS = 2 * 60 * 60 * 1000; // see _apDataCoversDay
+
+let apSettings = null;   // last copy loaded from Firestore (the setup UI reads it)
+let _apRunning = false;
+let _apAgain = false;    // another run was asked for while one was going
+
+// Signed in, and not the demo library (whose playlists would be nonsense on
+// the user's account). The demo is the sample Google Sheet; dank100.js has
+// the same check.
+const AP_SAMPLE_SHEET_ID = '1ulWuTKxreKLUWGBEI0g2d5iMgjHu6y02IFzg6A7BzVA';
+function _apAllowed() {
+  if (typeof dcIsSignedIn !== 'function' || !dcIsSignedIn()) return false;
+  try {
+    if (getDataSource() === 'sheets' && (localStorage.getItem('dc_sheet_id') || '').indexOf(AP_SAMPLE_SHEET_ID) >= 0) return false;
+  } catch (e) {}
+  return true;
+}
+
+// ─── Period key → its first and last calendar day ('YYYY-MM-DD')
+function apFirstDay(period, key) {
+  if (period === 'month') return key + '-01';
+  if (period === 'year') return key + '-01-01';
+  return key;   // day and week keys already are their first day
+}
+function apLastDay(period, key) {
+  if (period === 'day') return key;
+  if (period === 'week') return dyShift(key, 6);
+  if (period === 'month') {
+    const [y, m] = key.split('-').map(Number);
+    return localDateStr(new Date(y, m, 0));   // day 0 of next month = last day of this one
+  }
+  return key + '-12-31';
+}
+
+/* Whether the loaded plays can be trusted to hold everything up to the end
+   of `lastDay`. A playlist is made once and never changed, so making it from
+   data that hasn't caught up yet would leave it short for good.
+   - Last.fm / Google Sheets: the data was synced at least AP_GRACE_MS after
+     the day ended (late scrobbles, and the sheet's own sync, get time to land).
+     lastSyncTime is the cache's time when the charts came from the cache.
+   - CSV upload: nothing syncs, so the file itself has to have a play from
+     after that day — an upload made mid-week waits for the next upload. */
+function _apDataCoversDay(lastDay) {
+  if (getDataSource() === 'file') {
+    const newest = allPlays[0];   // allPlays is newest-first for every source
+    return !!newest && dayStrOf(newest) > lastDay;
+  }
+  if (!lastSyncTime) return false;
+  return localDateStr(tzDate(new Date(+lastSyncTime - AP_GRACE_MS))) > lastDay;
+}
+
+// The day before the running period starts: lastDay for a chart type that has
+// just been turned on, so its first playlist is the period running now (no
+// back-fill of older ones).
+function apStartLastDay(period) {
+  return dyShift(apFirstDay(period, apCurrentKey(period)), -1);
+}
+
+// ─── Names ─────────────────────────────────────────────────────────────────
+// "Weekly Top 40 · 26 Oct – 1 Nov 2026", "Monthly Top 50 · October 2026"…
+// Written in the language in use when it's made; it's the user's playlist
+// from then on and they can rename it.
+function apPlaylistName(period, key, n) {
+  let when;
+  if (period === 'day') when = fmt(dyDate(key));
+  else if (period === 'week') {
+    const a = dyDate(key), b = dyDate(apLastDay('week', key));
+    const ma = t(_CR_MON_SHORT[a.getMonth()]), mb = t(_CR_MON_SHORT[b.getMonth()]);
+    when = a.getFullYear() === b.getFullYear()
+      ? `${a.getDate()} ${ma} – ${b.getDate()} ${mb} ${b.getFullYear()}`
+      : `${fmt(a)} – ${fmt(b)}`;
+  } else when = crPeriodTitle(period, key);   // "October 2026" / "2026"
+  return t('ap_name_' + period, { n, when });
+}
+
+// Never overwrite: a taken name gets " (2)", " (3)"…
+function _apFreeName(name) {
+  if (!_ytPlaylists[name]) return name;
+  let i = 2;
+  while (_ytPlaylists[name + ' (' + i + ')']) i++;
+  return name + ' (' + i + ')';
+}
+
+// ─── The runner ────────────────────────────────────────────────────────────
+async function apRun() {
+  if (_apRunning) { _apAgain = true; return; }
+  if (!_apAllowed() || !allPlays || !allPlays.length) return;
+  _apRunning = true;
+  const made = [];
+  try {
+    const s = await dcLoadAutoPlaylists();
+    if (!s) return;   // offline or signed out meanwhile: try again next load
+    apSettings = s;
+    for (const period of AP_PERIODS) {
+      const cfg = s[period];
+      if (!cfg || !cfg.on) continue;
+      const size = AP_SIZES.includes(cfg.size) ? cfg.size : 40;
+      const lastDay = cfg.lastDay || apStartLastDay(period);
+      // Finished periods with plays, after lastDay, that the data covers
+      let due = apFinishedKeys(period, null).filter(k =>
+        apFirstDay(period, k) > lastDay && _apDataCoversDay(apLastDay(period, k)));
+      const skipped = Math.max(0, due.length - AP_MAX_CATCHUP);
+      if (skipped) due = due.slice(-AP_MAX_CATCHUP);   // keep the newest ones
+      for (const key of due) {
+        // Built before the claim (it's local and quick), saved after it
+        const songs = apChartSongs(period, key, size);
+        const claim = await dcClaimAutoPlaylist(period, apFirstDay(period, key), apLastDay(period, key));
+        if (claim === 'error') return;   // offline / rules: stop, retry next load
+        if (claim !== 'ok') continue;    // another device made it, or it was turned off
+        cfg.lastDay = apLastDay(period, key);
+        if (!songs.length) continue;
+        const name = _apFreeName(apPlaylistName(period, key, songs.length));
+        _ytPlaylists[name] = songs.map(x => ({ title: x.title, artist: x.artist, album: x.album }));
+        // Same save path as a playlist made by hand: timestamps, localStorage,
+        // Firestore, and a redraw of the player panel / Playlists tab
+        _dcPickCommit(name);
+        made.push({ period, key, name, n: songs.length });
+      }
+      if (skipped && typeof dcNotify === 'function') dcNotify({ kind: 'ap_skipped', period, n: skipped });
+    }
+  } catch (e) {
+    console.warn('[dankcharts] Automatic playlists run failed:', e);
+  } finally {
+    _apRunning = false;
+    // Each new playlist gets a notification (step 4 adds dcNotify and the
+    // panel). Until that exists, a toast says it happened.
+    for (const m of made) {
+      if (typeof dcNotify === 'function') dcNotify({ kind: 'ap_made', period: m.period, key: m.key, name: m.name, n: m.n });
+    }
+    if (made.length && typeof dcNotify !== 'function') dcPlToast(t('ap_toast_made', { name: made[made.length - 1].name }));
+    if (_apAgain) { _apAgain = false; apRun(); }
+  }
+}
+
+/* Turns one chart type on or off, or changes its size (the setup UI in step
+   3 calls this). Turning on, or back on, sets lastDay so the first playlist
+   is the period running now: nothing from before, or from the time it was
+   off, is made all at once. */
+async function apSetPeriod(period, patch) {
+  if (!_apAllowed() || !AP_PERIODS.includes(period)) return false;
+  const cur = Object.assign({ on: false, size: 40, lastDay: null }, (apSettings || {})[period]);
+  const next = Object.assign({}, cur, patch);
+  if (next.on && !cur.on) next.lastDay = apStartLastDay(period);
+  const ok = await dcSaveAutoPlaylist(period, next);
+  if (ok) apSettings = Object.assign({}, apSettings, { [period]: next });
+  return ok;
+}

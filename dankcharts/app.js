@@ -6155,6 +6155,8 @@ function refreshAfterPoll() {
   // A poll top-up can include the scrobble for the song still on air — restat so its
   // "43rd play" chip doesn't sit one behind.
   refreshNowPlayingStats();
+  // Fresh plays can finish off a period the cached data couldn't (autoplaylists.js)
+  if (typeof apRun === 'function') apRun();
 }
 
 async function pollLastFm() {
@@ -7580,6 +7582,9 @@ function finalizeLoad() {
   // The Dank 100: send this week's entry by itself when the user switched
   // that on (dank100.js decides whether it is due)
   if (window.dcDank100) window.dcDank100.autoSend();
+  // Automatic chart playlists: make the ones for periods that finished since
+  // the last run (autoplaylists.js decides what's due)
+  if (typeof apRun === 'function') apRun();
 }
 
 function splitCsvRow(row) {

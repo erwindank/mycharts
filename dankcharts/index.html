@@ -31,7 +31,7 @@
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=310"></script>
+  <script defer src="translations.js?v=311"></script>
   <!-- Only the visitor's own language is downloaded (translations.js holds
        English). This writes a defer tag for the saved language right here, so
        it runs straight after translations.js and before app.js, and the page
@@ -56,7 +56,7 @@
   <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-  <script defer src="firebase.js?v=21"></script>
+  <script defer src="firebase.js?v=22"></script>
 </head>
 
 <body>
@@ -4363,7 +4363,7 @@
   <!-- One behaviour and one icon set for every pop-up window (phase 10); before
        app.js so dcIco() is there when app.js draws a window -->
   <script defer src="popups.js?v=12"></script>
-  <script defer src="app.js?v=629"></script>
+  <script defer src="app.js?v=630"></script>
   <!-- The song / album / artist details side panel (phase 10 step 3); wraps app.js's open functions -->
   <script defer src="panel.js?v=16"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
@@ -4372,7 +4372,7 @@
   <script defer src="insights.js?v=10"></script>
   <script defer src="daily.js?v=39"></script>
   <!-- Automatic chart playlists: a finished period's chart → a playlist (SCHEDULED-PLAYLISTS-PLAN.md); reads app.js + daily.js -->
-  <script defer src="autoplaylists.js?v=1"></script>
+  <script defer src="autoplaylists.js?v=2"></script>
   <!-- The Stats page's tabs, Overview, Story, Games and Compare (phase 15); reads app.js globals -->
   <!-- Phase 20: the All #1s look laid over the other Records sections (recx*). -->
   <script defer src="records-look.js?v=12"></script>

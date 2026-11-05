@@ -4478,6 +4478,13 @@ const TRANSLATIONS = {
     pl_pick_skipped: '{{n}} already there',
     pl_pick_all_dupes: '“{{name}}” already has all of these',
     pl_pick_created: 'Playlist “{{name}}” created · {{songs}}',
+    // Automatic chart playlists (autoplaylists.js): the playlist's name, and
+    // the toast shown when one is made
+    ap_name_day: 'Daily Top {{n}} · {{when}}',
+    ap_name_week: 'Weekly Top {{n}} · {{when}}',
+    ap_name_month: 'Monthly Top {{n}} · {{when}}',
+    ap_name_year: 'Yearly Top {{n}} · {{when}}',
+    ap_toast_made: 'New playlist: “{{name}}”',
     pl_section_btn: '＋ Playlist',
     pl_ev_loading: 'Looking up releases from your top artists…',
     pl_ev_anniv_empty: 'No anniversaries in the next 30 days.',
