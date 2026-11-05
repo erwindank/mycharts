@@ -380,6 +380,47 @@ async function dcClaimAutoPlaylist(period, firstDay, lastDay) {
   }
 }
 
+/* ── Notifications (notifications.js) ─────────────────────────────────────
+   One document: { items: [{ id, kind, at, read, p, link }] }, newest first.
+   Covered by the existing users/{uid}/data/{doc} rule. */
+function _notesRef(uid) {
+  return _db.collection('users').doc(uid).collection('data').doc('notifications');
+}
+
+async function dcLoadNotifications() {
+  if (!_currentUser) return null;
+  await _ensureDb();
+  try {
+    const snap = await _notesRef(_currentUser.uid).get();
+    return snap.exists && Array.isArray(snap.data().items) ? snap.data().items : [];
+  } catch (err) {
+    console.warn('[dankcharts] Notifications load error:', err);
+    return null;
+  }
+}
+
+/* Every change goes through here: `change` gets the cloud's current list and
+   returns the new one. In a transaction, so a notification another device
+   adds at the same moment isn't lost when this one marks things read.
+   Returns the saved list, or null if it couldn't be saved. */
+async function dcUpdateNotifications(change) {
+  if (!_currentUser) return null;
+  await _ensureDb();
+  const ref = _notesRef(_currentUser.uid);
+  try {
+    return await _db.runTransaction(async tx => {
+      const snap = await tx.get(ref);
+      const cur = snap.exists && Array.isArray(snap.data().items) ? snap.data().items : [];
+      const items = change(cur);
+      tx.set(ref, { items });
+      return items;
+    });
+  } catch (err) {
+    console.warn('[dankcharts] Notifications save error:', err && err.code);
+    return null;
+  }
+}
+
 // Whether there is a signed-in account at all. Callers use it to tell a failed
 // write apart from the ordinary signed-out case, where local-only is the point.
 function dcIsSignedIn() { return !!_currentUser; }
@@ -761,6 +802,8 @@ window.dcLoadPlaylistsFromFirestore = dcLoadPlaylistsFromFirestore;
 window.dcLoadAutoPlaylists         = dcLoadAutoPlaylists;
 window.dcSaveAutoPlaylist          = dcSaveAutoPlaylist;
 window.dcClaimAutoPlaylist         = dcClaimAutoPlaylist;
+window.dcLoadNotifications         = dcLoadNotifications;
+window.dcUpdateNotifications       = dcUpdateNotifications;
 
 // ── INIT ────────────────────────────────────────────────────────────────────
 firebase.initializeApp(firebaseConfig);

@@ -5038,6 +5038,40 @@
       background: var(--hover);
     }
 
+    /* Notifications (notifications.js): the dot on the profile picture while
+       anything is unread, and the menu row with its count */
+    #topbar .tb-acct-btn { position: relative; }
+    #topbar .tb-acct-dot {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--rose);
+      box-shadow: 0 0 0 2px var(--bg);
+    }
+    #topbar .tb-acct-dot[hidden] { display: none; }
+    #topbar .tb-acct-nt {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-2);
+    }
+    #topbar .tb-acct-nt [data-ico] svg { width: 16px; height: 16px; }
+    #topbar .tb-acct-nt-n {
+      margin-left: auto;
+      min-width: 20px;
+      padding: 0 6px;
+      border-radius: var(--r-full);
+      background: var(--rose);
+      color: #fff;
+      font-size: var(--fs-xs);
+      font-weight: 700;
+      line-height: 20px;
+      text-align: center;
+    }
+    #topbar .tb-acct-nt-n[hidden] { display: none; }
+
     /* Sign in has a short label for tight bars (see dcFitTopbar) */
     #topbar .tb-signin-short {
       display: none;
@@ -24655,6 +24689,32 @@ body:has(#eventsStatus.is-loading) .dc-pl-ev-empty { display: none; }
   flex-wrap: wrap;
 }
 .ap-size-lbl { font-size: var(--fs-xs); color: var(--text3); }
+/* Notifications window (#ntModal, notifications.js): each row is a button
+   that goes to what it's about; unread ones are bolder with a dot */
+.dc-modal.nt-box { max-width: 520px; }
+.nt-body { max-height: min(60vh, 560px); overflow-y: auto; }
+.nt-row {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border-left: 0;
+  border-right: 0;
+  border-bottom: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.nt-row .dc-list-title { font-weight: 500; color: var(--text2); }
+.nt-unread .dc-list-title { font-weight: 600; color: var(--text); }
+.nt-emoji { font-size: 1.25rem; line-height: 1; flex-shrink: 0; }
+.nt-row-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+#ntFoot[hidden] { display: none; }
 .ap-note {
   font-size: var(--fs-sm);
   color: var(--text2);

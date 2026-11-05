@@ -295,18 +295,21 @@ async function apRun() {
         _dcPickCommit(name);
         made.push({ period, key, name, n: songs.length });
       }
-      if (skipped && typeof dcNotify === 'function') dcNotify({ kind: 'ap_skipped', period, n: skipped });
+      if (skipped && typeof dcNotify === 'function') dcNotify({ kind: 'ap_skipped', period, n: skipped, link: { tab: 'playlists' } });
     }
   } catch (e) {
     console.warn('[dankcharts] Automatic playlists run failed:', e);
   } finally {
     _apRunning = false;
-    // Each new playlist gets a notification (step 4 adds dcNotify and the
-    // panel). Until that exists, a toast says it happened.
+    // Each new playlist gets a notification (notifications.js) that opens it,
+    // and a toast says so straight away for whoever is looking
     for (const m of made) {
-      if (typeof dcNotify === 'function') dcNotify({ kind: 'ap_made', period: m.period, key: m.key, name: m.name, n: m.n });
+      if (typeof dcNotify === 'function') dcNotify({ kind: 'ap_made', period: m.period, key: m.key, name: m.name, n: m.n,
+                                                     link: { tab: 'playlists', playlist: m.name } });
     }
-    if (made.length && typeof dcNotify !== 'function') dcPlToast(t('ap_toast_made', { name: made[made.length - 1].name }));
+    if (made.length) dcPlToast(made.length === 1
+      ? t('ap_toast_made', { name: made[0].name })
+      : t('ap_toast_made_many', { n: made.length }));
     if (_apAgain) { _apAgain = false; apRun(); }
   }
 }
