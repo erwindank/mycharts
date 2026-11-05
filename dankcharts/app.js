@@ -7849,6 +7849,9 @@ function navigateToRecPeriod(period, periodKey) {
     offset = Math.round((dyDate(localDateStr(now)) - dyDate(periodKey)) / 86400000);
   }
   if (offset >= 0) {
+    // Coming from a page that isn't a chart (Dank 100, Ratings, Awards…):
+    // let the real tab click take that page down and put the chart back
+    if (_openChartFromOtherPage(period, offset)) return;
     savedOffsets[currentPeriod] = currentOffset;
     // If coming from records/graphs/rawdata, restore the chart UI
     if (currentPeriod === 'records' || currentPeriod === 'graphs' || currentPeriod === 'rawdata') {
@@ -7871,6 +7874,33 @@ function navigateToRecPeriod(period, periodKey) {
     pageState.songs = 0; pageState.artists = 0; pageState.albums = 0;
     renderAll();
   }
+}
+
+/* "Open that chart" from a pop-up (2026-11-04). The two helpers that do it
+   (navigateToRecPeriod, navigateToCrChart) only knew how to leave Records,
+   Graphs and Raw Data. Started from The Dank 100, Ratings, Awards, Events,
+   Soundtrack… they switched the period but left that page on screen and the
+   chart's own song/artist/album sections hidden — a half-built chart page.
+   The tab bar's click handler already takes every page down and restores the
+   chart, so from any non-chart page we go through it. Returns true when it
+   handled the jump. */
+function _openChartFromOtherPage(period, offset) {
+  if (['day', 'week', 'month', 'year', 'alltime'].includes(currentPeriod)) return false;
+  const btn = document.querySelector('#periodNav button[data-period="' + period + '"]');
+  if (!btn) return false;
+  // The click carries currentOffset over from most pages, so set it first —
+  // usually that makes the click's own render the only one
+  currentOffset = offset;
+  btn.click();
+  // Not every page carries it (the click reads the period's saved offset), so
+  // make sure the chart ends up on the right date
+  if (currentOffset !== offset) {
+    currentOffset = offset;
+    savedOffsets[period] = offset;
+    pageState.songs = 0; pageState.artists = 0; pageState.albums = 0;
+    renderAll();
+  }
+  return true;
 }
 
 // ─── CHART HASH ROUTING ───────────────────────────────────────
@@ -19410,6 +19440,8 @@ function navigateToCrChart(period, periodKey) {
   } else if (period === 'year') {
     offset = now.getFullYear() - parseInt(periodKey);
   }
+  // From a non-chart page, switch through the real tab click (see above)
+  if (_openChartFromOtherPage(period, Math.max(0, offset))) return;
   if (currentPeriod !== period) {
     savedOffsets[currentPeriod] = currentOffset;
     currentPeriod = period;
