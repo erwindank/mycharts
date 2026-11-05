@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Automatic playlists from your charts, and notifications":
+    ["Playlists automáticas dos teus tops, e notificações",
+     "O separador Playlists tem um novo cartão Playlists automáticas. Ativa o teu top diário, semanal, mensal ou anual e escolhe quantas músicas (de 10 a 100). Sempre que um dos seus períodos termina, esse top passa sozinho a ser uma playlist, com um nome como “Top 40 semanal · 25 Oct – 31 Oct 2026” e pela mesma ordem do separador Tops. Cobre o período inteiro, por isso uma playlist criada da próxima vez que abrires o site é igual a uma criada a tempo. Funciona com Last.fm, Google Sheets e ficheiros CSV, e espera que as tuas reproduções estejam em dia. Tens de ter sessão iniciada. A tua foto de perfil tem agora Notificações: um ponto avisa quando há algo novo e cada notificação abre aquilo de que fala. Cada playlist tem também o seu próprio link para guardares nos favoritos."],
   "A parade of the nominees before the envelope opens":
     ["Um desfile dos nomeados antes de abrir o envelope",
      "Na cerimónia de Prémios, clicar no envelope começa agora primeiro um pequeno espetáculo. As capas dos nomeados sobem da fila e formam um anel que gira à volta do envelope, rápido ao início e cada vez mais devagar até parar. Depois as luzes apagam-se uma a uma: cada capa escurece e cai dentro do envelope enquanto o palco escurece, até sobrar só o envelope iluminado, e então ele abre. A capa em que o anel para e a última a apagar-se são sempre sorteadas entre os nomeados que perderam, por isso o espetáculo nunca revela o vencedor. Clica outra vez, ou carrega em espaço ou enter, para saltar diretamente para a abertura."],
@@ -4518,6 +4521,15 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 /* Highlight cards (DC_CL_HIGHLIGHTS in changelog.js), keyed by id. */
 window.DC_CL_HIGHLIGHTS_I18N = window.DC_CL_HIGHLIGHTS_I18N || {};
 window.DC_CL_HIGHLIGHTS_I18N["pt-PT"] = {
+  "auto-playlists": {
+    title: "Playlists que se fazem sozinhas",
+    intro: "Ativa um top e cada dia, semana, mês ou ano terminado passa sozinho a ser uma playlist. A tua foto de perfil avisa-te quando uma está pronta.",
+    points: [
+      "Playlists → Playlists automáticas: liga o teu top diário, semanal, mensal ou anual e escolhe de 10 a 100 músicas.",
+      "Cada playlist é o período terminado inteiro pela ordem do top, por isso é igual mesmo que abras o site dias depois.",
+      "Notificações por baixo da tua foto de perfil: um ponto quando há algo novo, e um clique abre a playlist.",
+      "Funciona com Last.fm, Google Sheets e ficheiros CSV. Inicia sessão para usar."
+    ] },
   "records-look": {
     title: "Recordes tem um aspeto novo",
     intro: "Cada secção de Recordes diz-te agora o seu recorde numa frase e põe quem o tem num pódio, a começar por Todos os #1.",

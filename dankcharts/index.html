@@ -39,7 +39,7 @@
        whenever translations.es / pt-BR / pt-PT .js change (setup-guide.html
        has the same line). -->
   <script>
-    window.DC_I18N_V = 3;
+    window.DC_I18N_V = 4;
     (function () {
       try {
         var l = localStorage.getItem('dankcharts-lang');
@@ -4379,12 +4379,12 @@
        the whole start. app.js reads this tag's content and loads the file once
        the page has finished loading, or straight away when What's New opens
        (dcClEnsureData). Bump ?v= here exactly as before. -->
-  <meta id="dcChangelogSrc" name="dc-changelog-src" content="changelog.js?v=536">
+  <meta id="dcChangelogSrc" name="dc-changelog-src" content="changelog.js?v=537">
   <!-- Community board tab (suggestions / bugs / discussion). Loaded before
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
   <script defer src="board.js?v=6"></script>
   <!-- The Charts Guide's words in four languages (read by dcRenderChartsGuideView) -->
-  <script defer src="charts-guide-i18n.js?v=13"></script>
+  <script defer src="charts-guide-i18n.js?v=14"></script>
   <!-- One behaviour and one icon set for every pop-up window (phase 10); before
        app.js so dcIco() is there when app.js draws a window -->
   <script defer src="popups.js?v=13"></script>

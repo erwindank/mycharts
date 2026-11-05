@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Automatic playlists from your charts, and notifications":
+    ["Listas automáticas a partir de tus rankings, y notificaciones",
+     "La pestaña Listas de reproducción tiene una nueva tarjeta Listas automáticas. Activa tu ranking diario, semanal, mensual o anual y elige cuántas canciones (de 10 a 100). Cada vez que termina uno de sus períodos, ese ranking se convierte solo en una lista, con un nombre como «Top 40 semanal · 25 Oct – 31 Oct 2026» y en el mismo orden que en la pestaña Rankings. Cubre el período entero, así que una lista creada la próxima vez que abras el sitio es igual que una creada a tiempo. Funciona con Last.fm, Google Sheets y archivos CSV, y espera a que tus reproducciones estén al día. Necesitas iniciar sesión. Tu foto de perfil ahora tiene Notificaciones: un punto avisa cuando hay algo nuevo y cada notificación abre aquello de lo que habla. Cada lista tiene además su propio enlace para guardarlo en favoritos."],
   "A parade of the nominees before the envelope opens":
     ["Un desfile de los nominados antes de abrir el sobre",
      "En la ceremonia de Premios, al hacer clic en el sobre ahora empieza primero un pequeño espectáculo. Las portadas de los nominados suben desde la fila y forman un anillo que gira alrededor del sobre, rápido al principio y cada vez más lento hasta detenerse. Luego se apagan las luces una a una: cada portada se oscurece y cae dentro del sobre mientras el escenario se oscurece, hasta que solo queda iluminado el sobre, y entonces se abre. La portada en la que se detiene el anillo y la última en apagarse siempre se eligen al azar entre los nominados que perdieron, así que el espectáculo nunca revela al ganador. Haz clic otra vez, o pulsa espacio o intro, para saltar directo a la apertura."],
@@ -4522,6 +4525,15 @@ window.DC_CHANGELOG_I18N['es'] = {
 /* Highlight cards (DC_CL_HIGHLIGHTS in changelog.js), keyed by id. */
 window.DC_CL_HIGHLIGHTS_I18N = window.DC_CL_HIGHLIGHTS_I18N || {};
 window.DC_CL_HIGHLIGHTS_I18N["es"] = {
+  "auto-playlists": {
+    title: "Listas que se hacen solas",
+    intro: "Activa un ranking y cada día, semana, mes o año terminado se convierte solo en una lista. Tu foto de perfil te avisa cuando hay una lista.",
+    points: [
+      "Listas de reproducción → Listas automáticas: activa tu ranking diario, semanal, mensual o anual y elige de 10 a 100 canciones.",
+      "Cada lista es el período terminado completo en el orden del ranking, así que es igual aunque abras el sitio días después.",
+      "Notificaciones bajo tu foto de perfil: un punto cuando hay algo nuevo, y un clic abre la lista.",
+      "Funciona con Last.fm, Google Sheets y archivos CSV. Inicia sesión para usarlo."
+    ] },
   "records-look": {
     title: "Récords tiene un aspecto nuevo",
     intro: "Cada sección de Récords ahora te dice su récord en una frase y pone a quien lo tiene en un podio, empezando por Todos los #1.",

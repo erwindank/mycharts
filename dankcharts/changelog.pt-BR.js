@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Automatic playlists from your charts, and notifications":
+    ["Playlists automáticas das suas paradas, e notificações",
+     "A aba Playlists tem um novo cartão Playlists automáticas. Ative sua parada diária, semanal, mensal ou anual e escolha quantas músicas (de 10 a 100). Sempre que um dos períodos dela termina, essa parada vira uma playlist sozinha, com um nome como “Top 40 semanal · 25 Oct – 31 Oct 2026” e na mesma ordem da aba Paradas. Ela cobre o período inteiro, então uma playlist criada da próxima vez que você abrir o site é igual a uma criada na hora. Funciona com Last.fm, Google Sheets e arquivos CSV, e espera suas reproduções ficarem em dia. É preciso estar conectado. Sua foto de perfil agora tem Notificações: um ponto avisa quando há algo novo e cada notificação abre o que ela menciona. Cada playlist também tem o próprio link para salvar nos favoritos."],
   "A parade of the nominees before the envelope opens":
     ["Um desfile dos indicados antes de abrir o envelope",
      "Na cerimônia de Prêmios, clicar no envelope agora começa primeiro um pequeno show. As capas dos indicados sobem da fileira e formam um anel que gira em volta do envelope, rápido no começo e cada vez mais devagar até parar. Depois as luzes se apagam uma a uma: cada capa escurece e cai dentro do envelope enquanto o palco escurece, até sobrar só o envelope iluminado, e aí ele abre. A capa em que o anel para e a última a se apagar são sempre sorteadas entre os indicados que perderam, então o show nunca entrega o vencedor. Clique de novo, ou aperte espaço ou enter, para pular direto para a abertura."],
@@ -4518,6 +4521,15 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 /* Highlight cards (DC_CL_HIGHLIGHTS in changelog.js), keyed by id. */
 window.DC_CL_HIGHLIGHTS_I18N = window.DC_CL_HIGHLIGHTS_I18N || {};
 window.DC_CL_HIGHLIGHTS_I18N["pt-BR"] = {
+  "auto-playlists": {
+    title: "Playlists que se fazem sozinhas",
+    intro: "Ative uma parada e cada dia, semana, mês ou ano encerrado vira uma playlist sozinho. Sua foto de perfil avisa quando uma está pronta.",
+    points: [
+      "Playlists → Playlists automáticas: ative sua parada diária, semanal, mensal ou anual e escolha de 10 a 100 músicas.",
+      "Cada playlist é o período encerrado inteiro na ordem da parada, então ela é igual mesmo se você abrir o site dias depois.",
+      "Notificações embaixo da sua foto de perfil: um ponto quando há algo novo, e um clique abre a playlist.",
+      "Funciona com Last.fm, Google Sheets e arquivos CSV. Entre na sua conta para usar."
+    ] },
   "records-look": {
     title: "Recordes ganhou um visual novo",
     intro: "Cada seção de Recordes agora conta o seu recorde numa frase e coloca quem o tem num pódio, começando por Todos os #1.",

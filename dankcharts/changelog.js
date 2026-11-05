@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 459;
+const DC_CL_I18N_V = 460;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -98,6 +98,16 @@ const DC_CL_AREAS = {
    by id, as { title, intro, points }. A missing one shows in English.
    ------------------------------------------------------------------------- */
 const DC_CL_HIGHLIGHTS = [
+  { id: "auto-playlists", d: "2026-11-04", a: "playlists", img: "whatsnew/auto-playlists.webp", go: "playlists",
+    title: "Playlists that make themselves",
+    intro: "Turn on a chart and every finished day, week, month or year becomes a playlist on its own. Your profile picture tells you when one is ready.",
+    points: [
+      "Playlists → Automatic playlists: switch on your Daily, Weekly, Monthly or Yearly chart and pick 10 to 100 songs.",
+      "Each playlist is the whole finished period in chart order, so it's the same even if you open the site days later.",
+      "Notifications under your profile picture: a dot when there's something new, and a click opens the playlist.",
+      "Works with Last.fm, Google Sheets and CSV uploads. Sign in to use it.",
+    ],
+    also: ["ea72e23", "e93a90e", "94f719c", "2e94b40", "f9dca69"] },
   { id: "records-look", d: "2026-11-02", a: "records", img: "whatsnew/records-look.webp", go: "records", then: [["dcOpenRecordsView", "recAllOnesSection"]],
     title: "Records got a fresh look",
     intro: "Every Records section now tells you its record in a sentence and puts the record holder on a podium, starting with All #1s.",
@@ -326,6 +336,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-04', t: 'feature', a: 'playlists', h: 'f9dca69',
+    title: "Automatic playlists from your charts, and notifications",
+    detail: "The Playlists tab has a new Automatic playlists card. Turn on your Daily, Weekly, Monthly or Yearly chart and pick how many songs (10 to 100). Every time one of its periods ends, that chart becomes a playlist by itself, named like \"Weekly Top 40 · 25 Oct – 31 Oct 2026\", in the same order as on the Charts tab. It covers the whole period, so a playlist made the next time you open the site is exactly the same as one made on time. It works with Last.fm, Google Sheets and CSV uploads, and waits until your plays have caught up. You need to be signed in. Your profile picture now has Notifications: a dot shows when something is new, and each notification opens what it's about. Each playlist also has its own link you can bookmark." },
   { d: '2026-11-04', t: 'feature', a: 'ui', h: 'fe46df0',
     title: "Search your whole library from the top bar",
     detail: "There is now a Search box in the top bar on every page (just the magnifier on smaller screens). Press / or Ctrl+K to open it from the keyboard. Type part of an artist, song or album name and pick a result to open its full window, just as if you had clicked it on the All-Time chart. Your searches and the things you opened are saved, so the box shows them when it is empty: click one to search or open it again, or clear the list. The old Search your library button on the Charts Guide, which only took you to the All-Time chart, is gone." },
