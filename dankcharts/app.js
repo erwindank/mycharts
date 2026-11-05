@@ -57161,54 +57161,8 @@ function dcEndTour() {
   _cgTourAppliedStep = -1;
 }
 
-/* ── Library search (guide hero) ────────────────────────────────── */
-function dcToggleGuideSearch() {
-  const bar = document.getElementById('cgSearchBar');
-  if (!bar) return;
-  const hidden = bar.style.display === 'none';
-  bar.style.display = hidden ? 'block' : 'none';
-  if (hidden) document.getElementById('cgSearchInput')?.focus();
-}
-
-function dcGuideSearch(q) {
-  const resultsEl = document.getElementById('cgSearchResults');
-  if (!resultsEl) return;
-  q = q.trim().toLowerCase();
-  if (!q || !allPlays.length) { resultsEl.innerHTML = ''; return; }
-
-  const artistSet  = new Set();
-  const trackItems = []; // { title, artist }
-  for (const p of allPlays) {
-    if (artistSet.size < 5 && p.artist.toLowerCase().includes(q)) artistSet.add(p.artist);
-    if (trackItems.length < 5 && (p.title.toLowerCase().includes(q))) {
-      const key = p.title + '|||' + p.artist;
-      if (!trackItems.some(t => t.key === key)) trackItems.push({ key, title: p.title, artist: p.artist });
-    }
-  }
-
-  // the nav's own icons: All-Time's loop is where a result opens
-  let html = '';
-  for (const a of artistSet) {
-    html += '<div class="cg-search-item" onclick="dcGuideGoArtist(' + esc(JSON.stringify(a)) + ')">' + cgIco('mic') + '<strong>' + esc(a) + '</strong></div>';
-  }
-  for (const tr of trackItems) {
-    html += '<div class="cg-search-item" onclick="dcGuideGoTrack(' + esc(JSON.stringify(tr.title)) + ',' + esc(JSON.stringify(tr.artist)) + ')">' + cgIco('note') + esc(tr.title) + ' <span class="cg-search-by">— ' + esc(tr.artist) + '</span></div>';
-  }
-  if (!html) html = '<div class="cg-search-empty">' + esc(cgF(cgText().search_none, { q })) + '</div>';
-  resultsEl.innerHTML = html;
-}
-
-function dcGuideGoArtist(artist) {
-  document.querySelector('#periodNav button[data-period="alltime"]')?.click();
-  setTimeout(() => document.getElementById('artistsSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 350);
-  document.getElementById('cgSearchBar').style.display = 'none';
-}
-
-function dcGuideGoTrack(title, artist) {
-  document.querySelector('#periodNav button[data-period="alltime"]')?.click();
-  setTimeout(() => document.getElementById('songsSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 350);
-  document.getElementById('cgSearchBar').style.display = 'none';
-}
+/* ── Library search ── moved out of the guide on 2026-11-04: it is now the
+   magnifier in the top bar (library-search.js), on every page. */
 
 /* ── "First steps" checklist ────────────────────────────────────── */
 function dcGuideCheck(id, checked) {
@@ -57538,7 +57492,6 @@ function dcRenderChartsGuideView() {
     </div>
     <div class="cg-top-actions">
       <button class="dc-btn dc-btn-main cg-top-btn" onclick="dcStartChartsGuideTour()">${cgIco('play')}${esc(G.btn_tour)}</button>
-      <button class="dc-btn dc-btn-normal cg-top-btn" onclick="dcToggleGuideSearch()">${cgIco('search')}${esc(G.btn_search)}</button>
       <button class="dc-btn dc-btn-normal cg-top-btn" onclick="dcReplayWelcomeGate()">${cgIco('wave')}${esc(G.btn_replay)}</button>
     </div>
   </div>`;
@@ -57548,13 +57501,6 @@ function dcRenderChartsGuideView() {
     ${chapters.map(c => `<button type="button" class="cg-toc-pill" data-slug="${c.slug}" onclick="dcGuideJump('${c.slug}')"><span class="cg-toc-num">${c.num}</span> ${esc(c.label)}</button>`).join('')}
   </div>`;
 
-  /* ── Library search (hidden until the top button is pressed) ── */
-  h += `<div class="cg-search-bar" id="cgSearchBar" style="display:none">
-    <input type="text" id="cgSearchInput" class="cg-search-input"
-      placeholder="${esc(G.search_ph)}" aria-label="${esc(G.search_ph)}"
-      oninput="dcGuideSearch(this.value)" autocomplete="off">
-    <div id="cgSearchResults" class="cg-search-results"></div>
-  </div>`;
 
   /* ═══ 01 · START HERE ═════════════════════════════════════════ */
   h += chapterHead('start');

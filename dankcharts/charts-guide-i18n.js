@@ -21,10 +21,7 @@ window.CG_TEXT = {
     intro: 'Six chapters, in the order the questions come up: get set up, meet the tabs, see how a chart comes together, learn the shortcuts, look at your own data, and find help.',
     progress: '{{done}} of {{total}} first steps done',
     btn_tour: 'Take the tour',
-    btn_search: 'Search your library',
     btn_replay: 'Replay the welcome',
-    search_ph: 'Search artists or songs in your history…',
-    search_none: 'No results for “{{q}}”',
     ch: { start: 'Start Here', tabs: 'The Tabs', concepts: 'How Charts Work', tips: 'Tips & Shortcuts', yourdata: 'Your Data', help: 'Help & More' },
     blurb: {
       start: 'Check the app is reading your data correctly, then work through the first few things worth doing.',
@@ -156,6 +153,7 @@ window.CG_TEXT = {
     shortcuts: [
       ['D / W / M / Y / A', 'Jump to Daily / Weekly / Monthly / Yearly / All-Time'],
       ['← →', 'Previous / next chart period'],
+      ['/ or Ctrl+K', 'Search artists, songs and albums from any page (the magnifier in the top bar)'],
       ['Esc', 'Close any open window or menu'],
       ['Swipe left / right', 'Previous / next period on a phone'],
       ['Click a stat tile', 'Jump to the chart that number comes from'],
@@ -238,10 +236,7 @@ window.CG_TEXT = {
     intro: 'Seis capítulos, en el orden en que surgen las preguntas: configurarlo todo, conocer las pestañas, ver cómo se forma un ranking, aprender los atajos, mirar tus propios datos y encontrar ayuda.',
     progress: '{{done}} de {{total}} primeros pasos hechos',
     btn_tour: 'Hacer el recorrido',
-    btn_search: 'Buscar en tu biblioteca',
     btn_replay: 'Ver de nuevo la bienvenida',
-    search_ph: 'Busca artistas o canciones de tu historial…',
-    search_none: 'Sin resultados para «{{q}}»',
     ch: { start: 'Empieza aquí', tabs: 'Las pestañas', concepts: 'Cómo funcionan los rankings', tips: 'Consejos y atajos', yourdata: 'Tus datos', help: 'Ayuda y más' },
     blurb: {
       start: 'Comprueba que la app lee bien tus datos y luego haz las primeras cosas que merecen la pena.',
@@ -373,6 +368,7 @@ window.CG_TEXT = {
     shortcuts: [
       ['D / W / M / Y / A', 'Ir a Diario / Semanal / Mensual / Anual / Histórico'],
       ['← →', 'Período anterior / siguiente'],
+      ['/ o Ctrl+K', 'Busca artistas, canciones y álbumes desde cualquier página (la lupa de la barra superior)'],
       ['Esc', 'Cerrar cualquier ventana o menú abierto'],
       ['Deslizar a izquierda / derecha', 'Período anterior / siguiente en el móvil'],
       ['Clic en una cifra', 'Ir al ranking del que sale ese número'],
@@ -455,10 +451,7 @@ window.CG_TEXT = {
     intro: 'Seis capítulos, na ordem em que as perguntas aparecem: configurar tudo, conhecer as abas, ver como uma parada é montada, aprender os atalhos, olhar os seus próprios dados e encontrar ajuda.',
     progress: '{{done}} de {{total}} primeiros passos feitos',
     btn_tour: 'Fazer o tour',
-    btn_search: 'Pesquisar sua biblioteca',
     btn_replay: 'Rever as boas-vindas',
-    search_ph: 'Pesquise artistas ou músicas do seu histórico…',
-    search_none: 'Nenhum resultado para “{{q}}”',
     ch: { start: 'Comece aqui', tabs: 'As abas', concepts: 'Como as paradas funcionam', tips: 'Dicas e atalhos', yourdata: 'Seus dados', help: 'Ajuda e mais' },
     blurb: {
       start: 'Confira se o app está lendo seus dados direito e depois faça as primeiras coisas que valem a pena.',
@@ -590,6 +583,7 @@ window.CG_TEXT = {
     shortcuts: [
       ['D / W / M / Y / A', 'Ir para Diário / Semanal / Mensal / Anual / Histórico'],
       ['← →', 'Período anterior / seguinte'],
+      ['/ ou Ctrl+K', 'Busque artistas, músicas e álbuns de qualquer página (a lupa na barra de cima)'],
       ['Esc', 'Fechar qualquer janela ou menu aberto'],
       ['Deslizar para a esquerda / direita', 'Período anterior / seguinte no celular'],
       ['Clicar num número', 'Ir para a parada de onde vem esse número'],
@@ -672,10 +666,7 @@ window.CG_TEXT = {
     intro: 'Seis capítulos, pela ordem em que as perguntas surgem: configurar tudo, conhecer os separadores, ver como um top é montado, aprender os atalhos, olhar para os teus próprios dados e encontrar ajuda.',
     progress: '{{done}} de {{total}} primeiros passos feitos',
     btn_tour: 'Fazer a visita',
-    btn_search: 'Pesquisar a tua biblioteca',
     btn_replay: 'Rever as boas-vindas',
-    search_ph: 'Pesquisa artistas ou músicas do teu histórico…',
-    search_none: 'Sem resultados para “{{q}}”',
     ch: { start: 'Começa aqui', tabs: 'Os separadores', concepts: 'Como funcionam os tops', tips: 'Dicas e atalhos', yourdata: 'Os teus dados', help: 'Ajuda e mais' },
     blurb: {
       start: 'Confirma que a app está a ler bem os teus dados e depois faz as primeiras coisas que valem a pena.',
@@ -807,6 +798,7 @@ window.CG_TEXT = {
     shortcuts: [
       ['D / W / M / Y / A', 'Ir para Diário / Semanal / Mensal / Anual / De Sempre'],
       ['← →', 'Período anterior / seguinte'],
+      ['/ ou Ctrl+K', 'Pesquisa artistas, músicas e álbuns em qualquer página (a lupa na barra de cima)'],
       ['Esc', 'Fechar qualquer janela ou menu aberto'],
       ['Deslizar para a esquerda / direita', 'Período anterior / seguinte no telemóvel'],
       ['Clicar num número', 'Ir para o top de onde vem esse número'],

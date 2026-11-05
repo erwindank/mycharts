@@ -58,6 +58,9 @@ TRANSLATIONS['pt-PT'] = Object.assign({
     dp_show_fewer: 'Ver menos',
     set_tab_releases: 'Lançamentos',
     set_search_ph: 'Pesquisar nas definições…',
+    // Top-bar library search (library-search.js)
+    tb_search: 'Pesquisar',
+    tb_search_tip: 'Pesquisa artistas, músicas e álbuns (/)',
     set_search_none: 'Nenhuma definição corresponde.',
     set_unsaved: 'Alterações por guardar',
     set_appearance: 'Aparência',

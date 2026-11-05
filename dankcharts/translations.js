@@ -98,6 +98,9 @@ const TRANSLATIONS = {
     dp_show_fewer: 'Show fewer',
     set_tab_releases: 'Releases',
     set_search_ph: 'Search settings…',
+    // Top-bar library search (library-search.js)
+    tb_search: 'Search',
+    tb_search_tip: 'Search artists, songs and albums (/)',
     set_search_none: 'No setting matches that.',
     set_unsaved: 'Unsaved changes',
     set_appearance: 'Appearance',
