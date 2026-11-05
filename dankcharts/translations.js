@@ -4967,6 +4967,11 @@ const TRANSLATIONS = {
     st_replay_next_title: 'Next week',
     // Chart replay (▶ Animate Chart, replay.js)
     crp_btn_title: 'Animate chart: replay the plays one by one, from the previous chart to this one',
+    crp_btn_label: 'Animate Chart',
+    btn_play_all: '▶ PLAY ALL',
+    btn_shuffle_all: '🔀 SHUFFLE',
+    tooltip_play_all: 'Play all visible songs in order',
+    tooltip_shuffle_all: 'Play all visible songs in random order',
     crp_no_prev: 'Nothing to replay: the period before this one has no plays',
     crp_region: 'Chart replay',
     crp_close: 'Close the replay',

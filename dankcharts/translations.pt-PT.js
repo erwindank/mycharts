@@ -4815,6 +4815,11 @@ TRANSLATIONS['pt-PT'] = Object.assign({
     st_replay_next_title: 'Semana seguinte',
     // Chart replay (▶ Animate Chart, replay.js)
     crp_btn_title: 'Animar o top: repete os plays um a um, do top anterior até este',
+    crp_btn_label: 'Animar o top',
+    btn_play_all: '▶ OUVIR TUDO',
+    btn_shuffle_all: '🔀 ALEATÓRIO',
+    tooltip_play_all: 'Ouvir todas as músicas visíveis por ordem',
+    tooltip_shuffle_all: 'Ouvir todas as músicas visíveis por ordem aleatória',
     crp_no_prev: 'Nada para repetir: o período anterior não tem plays',
     crp_region: 'Replay do top',
     crp_close: 'Fechar o replay',

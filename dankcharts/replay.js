@@ -54,6 +54,9 @@ function crpRegister(type, prevPlays, currPlays, ms, finalKeys) {
   if (btn) {
     btn.disabled = !ok;
     btn.title = ok ? t('crp_btn_title') : t('crp_no_prev');
+    // The label was English-only in the HTML (found by the guide's Spanish screenshots)
+    const lbl = btn.querySelector('.replay-btn-label');
+    if (lbl) lbl.textContent = ' ' + t('crp_btn_label');
   }
   if (!ok || !chartAnimEnabled) return;
   const body = _crpBody(type);

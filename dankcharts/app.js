@@ -58131,8 +58131,10 @@ function dcGuideToggleChapter(slug, open) {
   sec.querySelector('.cg-chapter-head')?.setAttribute('aria-expanded', String(on));
 }
 
-function dcRenderChartsGuideView() {
-  const el = document.getElementById('chartsguideView');
+// `target`: where to draw it. Since the new guide (guide.js, GUIDE-PLAN.md) this
+// is the hub's Reference tab; with no target it fills the whole guide view as before.
+function dcRenderChartsGuideView(target) {
+  const el = target || document.getElementById('chartsguideView');
   if (!el) return;
   const G = cgText();
   const loc = currentLang || 'en';

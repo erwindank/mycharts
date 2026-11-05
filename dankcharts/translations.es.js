@@ -4815,6 +4815,11 @@ TRANSLATIONS['es'] = Object.assign({
     st_replay_next_title: 'Semana siguiente',
     // Chart replay (▶ Animate Chart, replay.js)
     crp_btn_title: 'Animar el ranking: repite las escuchas una a una, del ranking anterior a este',
+    crp_btn_label: 'Animar ranking',
+    btn_play_all: '▶ ESCUCHAR TODO',
+    btn_shuffle_all: '🔀 ALEATORIO',
+    tooltip_play_all: 'Escuchar todas las canciones visibles en orden',
+    tooltip_shuffle_all: 'Escuchar todas las canciones visibles en orden aleatorio',
     crp_no_prev: 'No hay nada que repetir: el periodo anterior no tiene escuchas',
     crp_region: 'Repetición del ranking',
     crp_close: 'Cerrar la repetición',
