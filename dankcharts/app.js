@@ -13674,6 +13674,11 @@ document.getElementById('periodNav').addEventListener('click', e => {
   // A board post link (#t=board/<postId>) is read before the hash is reset
   // below, so the board branch can still open that post.
   const _bdLink = window.location.hash.match(/^#t=board\/([\w-]+)$/);
+  // Same for a playlist link (#t=playlists/<name>): the Playlists view opens it
+  if (btn.dataset.period === 'playlists') {
+    const _plLink = dcPlNameFromHash(window.location.hash);
+    if (_plLink) _dcPlPendingOpen = { name: _plLink, until: Date.now() + DC_PL_LINK_WAIT };
+  }
   // Deep link: update URL hash so tab is bookmarkable/shareable (feature 13)
   history.replaceState(null, '', '#t=' + btn.dataset.period);
 
@@ -14150,6 +14155,13 @@ document.getElementById('nextBtn').addEventListener('click', () => { currentOffs
    a "before initialization" error, so every #t=<tab> link silently failed to
    open its tab. Deferred scripts all finish before DOMContentLoaded fires. */
 document.addEventListener('DOMContentLoaded', function initNavHashRestore() {
+  // A link to one playlist (#t=playlists/<name>) always opens it; the name is
+  // URI-encoded, so it doesn't fit the general pattern below
+  if (dcPlNameFromHash(window.location.hash)) {
+    const plBtn = document.querySelector('#periodNav button[data-period="playlists"]');
+    if (plBtn) plBtn.click();
+    return;
+  }
   // Optional trailing /<section> targets a Charts Guide section deep link, e.g. #t=chartsguide/faq
   const m = window.location.hash.match(/^#t=(\w+)(?:\/([\w-]+))?$/);
   if (!m) return;
@@ -36723,6 +36735,59 @@ function _dcPlDateTag() {
 // ── Full Playlist Manager View ─────────────────────────────────────────────
 
 let _dcPlExpandedName = null; // name of the playlist currently expanded in the manager
+
+/* ── Playlist links: #t=playlists/<URI-encoded name> ──
+   The address follows the open playlist (dcRenderPlaylistsView keeps it in
+   step), so it can be bookmarked or shared to another device, and
+   notifications (notifications.js) open playlists through dcPlOpenByName.
+   A playlist asked for before it exists here (signed-in playlists merge in
+   from the cloud a moment after the page loads) waits up to
+   DC_PL_LINK_WAIT for it, then says it's gone. */
+const DC_PL_LINK_WAIT = 10000;
+let _dcPlPendingOpen = null;   // { name, until } — a playlist to open once it's there
+let _dcPlPendingTimer = null;
+
+function dcPlNameFromHash(hash) {
+  const m = /^#t=playlists\/(.+)$/.exec(hash || '');
+  if (!m) return null;
+  try { return decodeURIComponent(m[1]); } catch (e) { return null; }
+}
+
+// Opens the Playlists tab with this playlist expanded and in view. `wait`
+// false says straight away if it's gone (a notification, clicked long after
+// the playlists loaded); links from outside wait for the cloud merge.
+function dcPlOpenByName(name, wait = true) {
+  _dcPlPendingOpen = { name, until: wait ? Date.now() + DC_PL_LINK_WAIT : 0 };
+  if (currentPeriod === 'playlists') dcRenderPlaylistsView();
+  else dcGoTab('playlists');
+}
+
+// Called at the top of every Playlists redraw: opens a waiting playlist if
+// it's there now, or gives up once the wait is over
+function _dcPlTakePending() {
+  const p = _dcPlPendingOpen;
+  if (!p) return false;
+  clearTimeout(_dcPlPendingTimer);
+  if (_ytPlaylists[p.name]) {
+    _dcPlPendingOpen = null;
+    _dcPlExpandedName = p.name;
+    return true;
+  }
+  if (Date.now() >= p.until) {
+    _dcPlPendingOpen = null;
+    dcPlToast(t('nt_pl_gone', { name: p.name }));
+    return false;
+  }
+  // Check again when the wait is up (a cloud merge redraws sooner if it brings it)
+  _dcPlPendingTimer = setTimeout(() => { if (currentPeriod === 'playlists') dcRenderPlaylistsView(); }, p.until - Date.now() + 50);
+  return false;
+}
+
+// Pasting a playlist link into the address bar while the site is open
+window.addEventListener('hashchange', () => {
+  const name = dcPlNameFromHash(window.location.hash);
+  if (name && name !== _dcPlExpandedName) dcPlOpenByName(name);
+});
 let _dcPlDragSrc      = null; // index of the track being dragged for reorder
 
 function dcRenderPlaylistsView() {
@@ -36730,6 +36795,13 @@ function dcRenderPlaylistsView() {
   // by the Events loader and must survive a redraw
   const el = document.getElementById('dcPlMain');
   if (!el) return;
+  const justOpened = _dcPlTakePending();
+  // A renamed or deleted playlist can't stay open
+  if (_dcPlExpandedName && !_ytPlaylists[_dcPlExpandedName]) _dcPlExpandedName = null;
+  if (currentPeriod === 'playlists') {
+    const want = '#t=playlists' + (_dcPlExpandedName ? '/' + encodeURIComponent(_dcPlExpandedName) : '');
+    if (window.location.hash !== want) history.replaceState(null, '', want);
+  }
   const names = Object.keys(_ytPlaylists);
 
   // The shared page title (as Records / Stats / Events / Awards / Soundtrack)
@@ -36825,6 +36897,7 @@ function dcRenderPlaylistsView() {
   el.innerHTML = html;
   dcPlLoadArt(el);
   if (typeof apRenderSetup === 'function') apRenderSetup();
+  if (justOpened) setTimeout(() => el.querySelector('.dc-pl-card-open')?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 120);
 }
 
 // ── Playlist covers ──

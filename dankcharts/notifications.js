@@ -171,15 +171,9 @@ function ntOpenItem(id) {
 
 function ntFollow(link) {
   if (!link || !link.tab) return;
-  if (link.tab === 'playlists' && link.playlist) {
-    // Open that playlist; it may have been deleted or renamed since
-    if (_ytPlaylists[link.playlist]) _dcPlExpandedName = link.playlist;
-    else setTimeout(() => dcPlToast(t('nt_pl_gone', { name: link.playlist })), 300);
-  }
-  if (currentPeriod === link.tab && link.tab === 'playlists') dcRenderPlaylistsView();
-  else dcGoTab(link.tab);
-  // Bring an opened playlist into view
-  if (link.playlist) setTimeout(() => document.querySelector('.dc-pl-card-open')?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 150);
+  // A playlist: open it (app.js handles one deleted or renamed since)
+  if (link.tab === 'playlists' && link.playlist) { dcPlOpenByName(link.playlist, false); return; }
+  if (currentPeriod !== link.tab) dcGoTab(link.tab);
 }
 
 // ─── Loading ───────────────────────────────────────────────────────────────
