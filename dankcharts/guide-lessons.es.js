@@ -113,7 +113,7 @@ window.GL_TEXT.es = {
           weeks: ['Semanas en el ranking', 'Cuántas semanas ha pasado en el ranking en total, sumando todas sus etapas. Nunca se reinicia.'],
           plays: ['Escuchas', 'Escuchas de esta semana. Es lo único por lo que se ordena el ranking.'],
           pdelta: ['Cambio de escuchas', 'Cuántas más o menos que la semana pasada.'],
-          best: ['Pico de escuchas (▲ BEST)', 'Su mayor número de escuchas en una semana hasta ahora. Actívalo en ⋮ → Mostrar → Pico reprods.'],
+          best: ['Pico de escuchas (▲ MÁX)', 'Su mayor número de escuchas en una semana hasta ahora. Actívalo en ⋮ → Mostrar → Pico reprods.'],
           spotify: ['Spotify', 'La busca en Spotify.'],
           more: ['Menú de la fila (⋮)', 'Escúchala, añádela a una lista, abre su ventana y más. Con clic derecho en una fila sale el mismo menú.'],
           run: ['Trayectoria', 'Abre su trayectoria bajo la fila: cada semana que estuvo en el ranking, y en qué puesto.']
@@ -205,7 +205,7 @@ window.GL_TEXT.es = {
         show: { title: '⋮ → Mostrar', items: {
           cert: ['Insignias cert', 'Oro, Platino y Diamante en canciones y álbumes que pasaron una cifra de escuchas.'],
           score: ['Mis notas', 'Tu valoración, en todo lo que hayas valorado.'],
-          ppeak: ['Pico reprods', 'Una etiqueta ▲ BEST cuando una entrada tiene su máximo de escuchas en una semana.'],
+          ppeak: ['Pico reprods', 'Una etiqueta ▲ MÁX cuando una entrada tiene su máximo de escuchas en una semana.'],
           ptags: ['Etiq. logro', 'El puesto más alto que ha alcanzado cada entrada.'],
           bulegend: ['Leyenda aspirantes', 'La explicación de las etiquetas de Aspirantes.'],
           desc: ['Descripciones', 'Una línea corta bajo el título de cada ranking que dice qué cuenta.']
@@ -235,7 +235,7 @@ window.GL_TEXT.es = {
           re: ['RE', 'Vuelve después de haber salido.'],
           peak: ['LOGRO #', 'Su mejor puesto.'],
           cert: ['Oro / Platino / Diamante', 'Pasó una cifra de escuchas.'],
-          best: ['▲ BEST', 'Más escuchas en una semana hasta ahora.']
+          best: ['▲ MÁX', 'Más escuchas en una semana hasta ahora.']
         } }
       },
       challenges: {

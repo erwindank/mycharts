@@ -103,7 +103,7 @@ window.GL_TEXT['pt-BR'] = {
           prev: ['Posição da semana passada', 'O número pequeno abaixo do movimento: onde estava na semana anterior.'],
           up: ['Subiu (▲)', 'Subiu essas posições desde a semana passada.'],
           down: ['Caiu (▼)', 'Caiu essas posições desde a semana passada.'],
-          newe: ['NOVO', 'A primeira semana dela nesta parada.'],
+          newe: ['NOVA', 'A primeira semana dela nesta parada.'],
           re: ['RE (reentrada)', 'Voltou à parada depois de ter saído. Mantém o pico e as semanas.'],
           art: ['Capa', 'Aperte ▶ na capa para ouvir um trecho de 30 segundos.'],
           title: ['Título e artista', 'Clique no título para a janela da música, ou no nome do artista para a dele.'],
@@ -113,7 +113,7 @@ window.GL_TEXT['pt-BR'] = {
           weeks: ['Semanas na parada', 'Quantas semanas passou na parada no total, somando todas as passagens. Nunca zera.'],
           plays: ['Plays', 'Plays desta semana. É a única coisa que define a ordem da parada.'],
           pdelta: ['Mudança de plays', 'Quantas a mais ou a menos que na semana passada.'],
-          best: ['Pico de plays (▲ BEST)', 'O maior número de plays dela numa semana até agora. Ligue em ⋮ → Mostrar → Pico de plays.'],
+          best: ['Pico de plays (▲ PICO DE PLAYS)', 'O maior número de plays dela numa semana até agora. Ligue em ⋮ → Mostrar → Pico de plays.'],
           spotify: ['Spotify', 'Procura no Spotify.'],
           more: ['Menu da linha (⋮)', 'Ouvir, adicionar a uma playlist, abrir a janela e mais. Clique com o botão direito numa linha para o mesmo menu.'],
           run: ['Trajetória', 'Abre a trajetória abaixo da linha: cada semana em que esteve na parada, e em que posição.']
@@ -205,7 +205,7 @@ window.GL_TEXT['pt-BR'] = {
         show: { title: '⋮ → Mostrar', items: {
           cert: ['Selos cert', 'Ouro, Platina e Diamante em músicas e álbuns que passaram de uma marca de plays.'],
           score: ['Minhas notas', 'Sua avaliação, em tudo o que você avaliou.'],
-          ppeak: ['Pico de plays', 'Uma tag ▲ BEST quando uma entrada tem o maior número de plays numa semana até agora.'],
+          ppeak: ['Pico de plays', 'Uma tag ▲ PICO DE PLAYS quando uma entrada tem o maior número de plays numa semana até agora.'],
           ptags: ['Tags pico', 'A posição mais alta que cada entrada já alcançou.'],
           bulegend: ['Legenda aspirantes', 'A explicação das tags dos Aspirantes.'],
           desc: ['Descrições', 'Uma linha curta abaixo do título de cada parada dizendo o que ela conta.']
@@ -231,11 +231,11 @@ window.GL_TEXT['pt-BR'] = {
           up: ['▲ Subiu', 'Subiu essas posições.'],
           down: ['▼ Caiu', 'Caiu essas posições.'],
           same: ['= Sem mudança', 'A mesma posição da semana passada.'],
-          newe: ['NOVO', 'Primeira semana na parada.'],
+          newe: ['NOVA', 'Primeira semana na parada.'],
           re: ['RE', 'Voltou depois de ter saído.'],
           peak: ['PICO #', 'A posição mais alta.'],
           cert: ['Ouro / Platina / Diamante', 'Passou de uma marca de plays.'],
-          best: ['▲ BEST', 'Mais plays numa semana até agora.']
+          best: ['▲ PICO DE PLAYS', 'Mais plays numa semana até agora.']
         } }
       },
       challenges: {
