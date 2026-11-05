@@ -4732,6 +4732,13 @@ const TRANSLATIONS = {
     st_ch_no1_sub_also: 'Also {{weeks}}: {{names}}',
     st_no1_also_run: '{{name}} ({{run}} in a row)',
     st_no1_also_norun: '{{name}} (never two in a row)',
+    // Daily view: días / dias are masculine, so seguidos (same text in English)
+    st_ch_no1_sub_tie_day: 'Longest at #1: {{names}}, {{weeks}} each ({{run}} in a row)',
+    st_ch_no1_sub_tie_row_day: 'Longest at #1: {{names}}, {{weeks}} in a row each',
+    st_ch_no1_sub_row_day: 'Longest at #1: {{name}}, {{weeks}} in a row',
+    st_ch_no1_sub_run_day: 'Longest at #1: {{name}}, {{weeks}} ({{run}} in a row)',
+    st_no1_also_run_day: '{{name}} ({{run}} in a row)',
+    st_no1_also_norun_day: '{{name}} (never two in a row)',
     st_ch_top_name: 'Your top songs, artists and albums',
     st_ch_top_title: '“{{song}}” was your song',
     st_ch_top_sub: 'and {{artist}} your artist',

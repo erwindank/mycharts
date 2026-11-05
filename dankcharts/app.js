@@ -52680,26 +52680,29 @@ function stRenderNumberOnes() {
   const top = groups.find(g => g.k === topK);
   const label = k => { const g = groups.find(x => x.k === k); return g.name + (g.artist ? ' — ' + g.artist : ''); };
   const joinNames = arr => arr.length < 2 ? arr.join('') : arr.slice(0, -1).join(', ') + ' ' + t('sx_gap_and') + ' ' + arr[arr.length - 1];
+  // Daily view: the "in a row" lines have their own wording (Spanish and
+  // Portuguese: días/dias are masculine, so seguidos, not seguidas)
+  const tk = key => unit === 'day' ? key + '_day' : key;
   const sameWeeks = ranked.filter(k => tot[k] === tot[topK]);          // level on weeks
   const tied = sameWeeks.filter(k => run[k] === run[topK]);            // level on the run too
   let sub;
   if (tied.length > 1) {
     // A real tie: everyone level, named together — "in a row" when every
     // one of them did it unbroken (same total and same run = all straight)
-    sub = t(run[topK] === tot[topK] ? 'st_ch_no1_sub_tie_row' : 'st_ch_no1_sub_tie', { names: joinNames(tied.map(label)), weeks: weeksTxt(tot[topK]), run: run[topK] });
+    sub = t(run[topK] === tot[topK] ? tk('st_ch_no1_sub_tie_row') : tk('st_ch_no1_sub_tie'), { names: joinNames(tied.map(label)), weeks: weeksTxt(tot[topK]), run: run[topK] });
   } else if (sameWeeks.length > 1) {
     // Level on weeks but the leader's run was longer: say so, and name the rest
-    sub = t(run[topK] === tot[topK] ? 'st_ch_no1_sub_row' : 'st_ch_no1_sub_run',
+    sub = t(run[topK] === tot[topK] ? tk('st_ch_no1_sub_row') : tk('st_ch_no1_sub_run'),
       { name: label(topK), weeks: weeksTxt(tot[topK]), run: run[topK] }) + ' · ' +
       t('st_ch_no1_sub_also', {
         // each with its own best run: "(4 in a row)", or none when it never
         // held #1 two weeks running
-        names: joinNames(sameWeeks.slice(1).map(k => t(run[k] > 1 ? 'st_no1_also_run' : 'st_no1_also_norun', { name: label(k), run: run[k] }))),
+        names: joinNames(sameWeeks.slice(1).map(k => t(run[k] > 1 ? tk('st_no1_also_run') : tk('st_no1_also_norun'), { name: label(k), run: run[k] }))),
         weeks: weeksTxt(tot[topK]),
       });
   } else {
     // A clear leader: still say whether its weeks were in a row or not
-    sub = t(run[topK] === tot[topK] ? 'st_ch_no1_sub_row' : 'st_ch_no1_sub_run',
+    sub = t(run[topK] === tot[topK] ? tk('st_ch_no1_sub_row') : tk('st_ch_no1_sub_run'),
       { name: label(topK), weeks: weeksTxt(tot[topK]), run: run[topK] });
   }
   stFillHead('no1', {

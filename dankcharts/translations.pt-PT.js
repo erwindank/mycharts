@@ -4580,6 +4580,13 @@ TRANSLATIONS['pt-PT'] = Object.assign({
     st_ch_no1_sub_also: 'Também {{weeks}}: {{names}}',
     st_no1_also_run: '{{name}} ({{run}} seguidas)',
     st_no1_also_norun: '{{name}} (nunca duas seguidas)',
+    // Daily view: días / dias are masculine, so seguidos (same text in English)
+    st_ch_no1_sub_tie_day: 'Mais tempo no n.º 1: {{names}}, {{weeks}} cada ({{run}} seguidos)',
+    st_ch_no1_sub_tie_row_day: 'Mais tempo no n.º 1: {{names}}, {{weeks}} seguidos cada',
+    st_ch_no1_sub_row_day: 'Mais tempo no n.º 1: {{name}}, {{weeks}} seguidos',
+    st_ch_no1_sub_run_day: 'Mais tempo no n.º 1: {{name}}, {{weeks}} ({{run}} seguidos)',
+    st_no1_also_run_day: '{{name}} ({{run}} seguidos)',
+    st_no1_also_norun_day: '{{name}} (nunca dois seguidos)',
     st_ch_top_name: 'As tuas músicas, artistas e álbuns top',
     st_ch_top_title: '“{{song}}” foi a tua música',
     st_ch_top_sub: 'e {{artist}}, o teu artista',
