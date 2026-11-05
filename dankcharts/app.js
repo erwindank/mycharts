@@ -52663,7 +52663,12 @@ function stRenderNumberOnes() {
     // Level on weeks but the leader's run was longer: say so, and name the rest
     sub = t(run[topK] === tot[topK] ? 'st_ch_no1_sub_row' : 'st_ch_no1_sub_run',
       { name: label(topK), weeks: weeksTxt(tot[topK]), run: run[topK] }) + ' · ' +
-      t('st_ch_no1_sub_also', { names: joinNames(sameWeeks.slice(1).map(label)), weeks: weeksTxt(tot[topK]) });
+      t('st_ch_no1_sub_also', {
+        // each with its own best run: "(4 in a row)", or none when it never
+        // held #1 two weeks running
+        names: joinNames(sameWeeks.slice(1).map(k => t(run[k] > 1 ? 'st_no1_also_run' : 'st_no1_also_norun', { name: label(k), run: run[k] }))),
+        weeks: weeksTxt(tot[topK]),
+      });
   } else {
     // A clear leader: still say whether its weeks were in a row or not
     sub = t(run[topK] === tot[topK] ? 'st_ch_no1_sub_row' : 'st_ch_no1_sub_run',
