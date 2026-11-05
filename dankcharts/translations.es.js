@@ -4573,6 +4573,7 @@ TRANSLATIONS['es'] = Object.assign({
     st_ch_no1_sub: 'Más tiempo en el n.º 1: {{name}}, {{weeks}}',
     st_no1_none: 'Aún no hay números uno semanales en este periodo',
     st_ch_no1_sub_tie: 'Más tiempo en el n.º 1: {{names}}, {{weeks}} cada uno',
+    st_ch_no1_sub_tie_row: 'Más tiempo en el n.º 1: {{names}}, {{weeks}} seguidas cada uno',
     st_ch_no1_sub_row: 'Más tiempo en el n.º 1: {{name}}, {{weeks}} seguidas',
     st_ch_no1_sub_run: 'Más tiempo en el n.º 1: {{name}}, {{weeks}} ({{run}} seguidas)',
     st_ch_no1_sub_also: '{{names}} también sumó {{weeks}}, con pausas',
