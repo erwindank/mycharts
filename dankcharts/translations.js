@@ -4503,6 +4503,13 @@ const TRANSLATIONS = {
     nt_ap_made: 'Your playlist “{{name}}” is ready',
     nt_ap_skipped: 'You were away a while: {{n}} older playlists from your {{chart}} were skipped. Only the newest 10 are made at once.',
     nt_pl_gone: '“{{name}}” isn’t in your playlists any more',
+    nt_st_month: 'Your {{month}} Soundtrack is ready — look back on your month',
+    nt_cert_song: 'Your song “{{title}}” by {{artist}} went {{tier}}',
+    nt_cert_album: 'Your album “{{title}}” by {{artist}} went {{tier}}',
+    nt_cert_more: '{{n}} more certifications since your last visit — see them in Records',
+    nt_bd_reply: '{{name}} replied to your post “{{title}}”',
+    nt_bd_replies: '{{n}} new replies on your post “{{title}}”',
+    nt_bd_status: 'Your post “{{title}}” is now {{status}}',
     // The "Automatic playlists" card in the Playlists tab
     ap_setup_title: 'Automatic playlists',
     ap_setup_sub: 'Turn on a chart, and every time one of its periods ends, its top songs become a playlist here.',

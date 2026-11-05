@@ -34,7 +34,21 @@ const NT_KINDS = {
   // A playlist made by automatic chart playlists
   ap_made: { emoji: '🎵', text: p => t('nt_ap_made', { name: p.name }) },
   // Missed periods past the 10-at-a-time limit
-  ap_skipped: { emoji: '⏭️', text: p => t('nt_ap_skipped', { n: p.n, chart: t('ap_row_' + p.period) }) }
+  ap_skipped: { emoji: '⏭️', text: p => t('nt_ap_skipped', { n: p.n, chart: t('ap_row_' + p.period) }) },
+  // A month has ended: its Soundtrack is ready to look back on (p.key 'YYYY-MM')
+  st_month: { emoji: '🎬', text: p => t('nt_st_month', { month: crPeriodTitle('month', p.key) }) },
+  // A song or album reached Gold / Platinum / Diamond (p.tier, p.mult)
+  cert_new: { emoji: '🏆', text: p => t(p.type === 'album' ? 'nt_cert_album' : 'nt_cert_song', {
+    title: p.title, artist: p.artist,
+    tier: p.tier === 'diamond' ? tDiamondLabel(p.mult || 1) : tTierLabel(p.tier) }) },
+  // More certifications at once than get one each (NT_CERT_MAX)
+  cert_more: { emoji: '🏆', text: p => t('nt_cert_more', { n: p.n }) },
+  // Someone else replied to one of the user's Board posts (p.n of them)
+  bd_reply: { emoji: '💬', text: p => p.n > 1
+    ? t('nt_bd_replies', { n: p.n, title: p.title })
+    : t('nt_bd_reply', { name: p.name, title: p.title }) },
+  // A moderator changed the status of one of the user's Board posts
+  bd_status: { emoji: '📌', text: p => t('nt_bd_status', { title: p.title, status: t('board_status_' + p.status) }) }
 };
 
 // Newest first, no more than NT_MAX, nothing older than NT_MAX_AGE
@@ -173,8 +187,148 @@ function ntFollow(link) {
   if (!link || !link.tab) return;
   // A playlist: open it (app.js handles one deleted or renamed since)
   if (link.tab === 'playlists' && link.playlist) { dcPlOpenByName(link.playlist, false); return; }
+  // A month's Soundtrack
+  if (link.tab === 'soundtrack' && link.month) { stOpenMonth(link.month); return; }
+  // A Board post
+  if (link.tab === 'board' && link.post && window.dcBoard) { window.dcBoard.openFromLink(link.post); return; }
+  // A certified song or album: its own window, over whatever is on screen.
+  // Needs the plays loaded; before that (or if it's gone from the library
+  // since) the window would be empty, so go to Records instead.
+  if (link.tab === 'cert') {
+    const has = allPlays && allPlays.some(p => link.type === 'album' ? albumKeyOf(p) === link.key : songKey(p) === link.key);
+    if (!has) { dcGoTab('records'); return; }
+    if (link.type === 'album') openAlbumModal(link.key); else openSongModal(link.key);
+    return;
+  }
   if (currentPeriod !== link.tab) dcGoTab(link.tab);
 }
+
+// ─── Watchers: things worth telling the user about ─────────────────────────
+/* Run after every data load and refresh (app.js finalizeLoad /
+   refreshAfterPoll), after sign-in, and every few minutes for the Board.
+   What has already been told is kept in the account (users/{uid}/data/
+   notifyState, firebase.js) and moved forward in a transaction, so each
+   thing is told once across all the user's devices. None of them back-fill:
+   the first run only notes where things stand.
+   Works the same for Last.fm, Google Sheets and CSV uploads — the Soundtrack
+   and certification watchers only read the loaded plays. */
+
+const NT_CERT_MAX = 10;                      // certifications told one by one per run
+const NT_BOARD_EVERY = 10 * 60 * 1000;       // Board check while the site is open
+
+let _ntWatching = false;
+let _ntWatchAgain = false;
+
+async function ntWatch() {
+  if (_ntWatching) { _ntWatchAgain = true; return; }
+  if (typeof dcIsSignedIn !== 'function' || !dcIsSignedIn()) return;
+  _ntWatching = true;
+  try {
+    // Soundtrack and certifications need the user's own library (not the demo)
+    if (typeof _apAllowed === 'function' && _apAllowed() && allPlays && allPlays.length) {
+      await _ntWatchSoundtrack();
+      await _ntWatchCerts();
+    }
+    await _ntWatchBoard();
+  } catch (e) {
+    console.warn('[dankcharts] Notification watch failed:', e);
+  } finally {
+    _ntWatching = false;
+    if (_ntWatchAgain) { _ntWatchAgain = false; ntWatch(); }
+  }
+}
+
+/* The month that just ended: once the data covers its last day (the same
+   check automatic playlists use) and it had plays, one notification that
+   opens the Soundtrack on that month. Only the latest finished month — a
+   user back after three months hears about the last one. */
+async function _ntWatchSoundtrack() {
+  const key = apCurrentKey('month');
+  const [y, m] = key.split('-').map(Number);
+  const prev = m === 1 ? (y - 1) + '-12' : y + '-' + String(m - 1).padStart(2, '0');
+  if (!apFinishedKeys('month', null).includes(prev)) return;   // no plays that month
+  if (!_apDataCoversDay(apLastDay('month', prev))) return;      // data still catching up
+  const tell = await dcUpdateNotifyState(cur => {
+    if (cur.stMonth && cur.stMonth >= prev) return { state: null, out: false };
+    return { state: Object.assign({}, cur, { stMonth: prev }), out: true };
+  });
+  if (tell === true) dcNotify({ kind: 'st_month', key: prev, link: { tab: 'soundtrack', month: prev } });
+}
+
+/* Certifications earned since the last one told, from the same history the
+   Certifications wall and "Certified this period" use (buildCertTimeline,
+   app.js), newest first. Kept by date: certAt is the date of the newest
+   certification already told. */
+async function _ntWatchCerts() {
+  if (!_certTimeline) _certTimeline = buildCertTimeline();
+  const list = _certTimeline;
+  if (!list.length) return;
+  const newest = list[0].date;
+  const fresh = await dcUpdateNotifyState(cur => {
+    // First run: note where things stand, tell nothing (no back-fill)
+    if (typeof cur.certAt !== 'number') return { state: Object.assign({}, cur, { certAt: newest }), out: [] };
+    if (newest <= cur.certAt) return { state: null, out: [] };
+    const out = list.filter(c => c.date > cur.certAt);
+    return { state: Object.assign({}, cur, { certAt: newest }), out };
+  });
+  if (!Array.isArray(fresh) || !fresh.length) return;
+  // The newest NT_CERT_MAX one by one (posted oldest first, so the list reads
+  // newest first), the rest as one "and N more"
+  const told = fresh.slice(0, NT_CERT_MAX);
+  if (fresh.length > told.length) dcNotify({ kind: 'cert_more', n: fresh.length - told.length, link: { tab: 'records' } });
+  for (const c of told.reverse()) {
+    dcNotify({ kind: 'cert_new', type: c.type, title: c.title, artist: c.artist, tier: c.tier, mult: c.mult,
+               link: { tab: 'cert', type: c.type, key: c.key } });
+  }
+}
+
+/* Replies from other people, and status changes, on the user's own Board
+   posts. Per post the state keeps r (time of the newest activity already
+   seen) and s (its status then). A post made since the last check starts
+   from when it was made, so a quick first reply isn't missed. */
+async function _ntWatchBoard() {
+  const posts = await dcLoadMyBoardPosts();
+  if (!posts) return;
+  const me = typeof _currentUser !== 'undefined' ? _currentUser : null;   // firebase.js
+  if (!me) return;
+  // Where each post stood last time: read first, to know whose replies to fetch
+  const st0 = await dcUpdateNotifyState(cur => ({ state: null, out: cur }));
+  if (st0 === 'error' || !st0) return;
+  const seenFrom = (board, p) => !board ? null : board.posts && board.posts[p.id] ? board.posts[p.id].r : p.createdAt;
+  const replies = {};
+  for (const p of posts) {
+    const r = seenFrom(st0.board, p);
+    if (r == null || p.lastActivity <= r) continue;
+    replies[p.id] = await dcLoadBoardRepliesSince(p.id, r);
+    if (!replies[p.id]) return;   // couldn't load (offline): try again next time
+  }
+  const out = await dcUpdateNotifyState(cur => {
+    const first = !cur.board;
+    const board = { since: first ? Date.now() : cur.board.since, posts: {} };
+    const tell = [];
+    for (const p of posts) {
+      const known = !first && cur.board.posts && cur.board.posts[p.id];
+      let r = first ? Math.max(p.lastActivity, p.createdAt) : known ? known.r : p.createdAt;
+      const s = known ? known.s : 'open';
+      if (!first) {
+        const theirs = (replies[p.id] || []).filter(x => x.at > r && x.authorUid !== me.uid);
+        if (theirs.length) tell.push({ kind: 'bd_reply', n: theirs.length, name: theirs[theirs.length - 1].authorName,
+                                       title: p.title, link: { tab: 'board', post: p.id } });
+        if (p.status !== s) tell.push({ kind: 'bd_status', status: p.status, title: p.title, link: { tab: 'board', post: p.id } });
+      }
+      (replies[p.id] || []).forEach(x => { if (x.at > r) r = x.at; });
+      board.posts[p.id] = { r: Math.max(r, p.lastActivity), s: p.status };
+    }
+    // Posts deleted since drop out of the state on their own (not in `posts`)
+    const same = !first && JSON.stringify(board.posts) === JSON.stringify(cur.board.posts || {});
+    return { state: same ? null : Object.assign({}, cur, { board }), out: tell };
+  });
+  if (Array.isArray(out)) out.forEach(n => dcNotify(n));
+}
+
+// The Board isn't tied to a data load, so it's also checked every few minutes
+// while the site is open and on screen
+setInterval(() => { if (!document.hidden) ntWatch(); }, NT_BOARD_EVERY);
 
 // ─── Loading ───────────────────────────────────────────────────────────────
 // Each sign-in loads that account's list; signing out empties it.
@@ -189,6 +343,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!user) return;
       const list = await dcLoadNotifications();
       if (list) { ntItems = _ntTrim(list); ntRefresh(); }
+      // Anything new since the last visit (the Board straight away; the
+      // Soundtrack and certifications once the plays are loaded)
+      ntWatch();
     });
   } catch (e) {}
 });

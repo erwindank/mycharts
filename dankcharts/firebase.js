@@ -421,6 +421,74 @@ async function dcUpdateNotifications(change) {
   }
 }
 
+/* ── What the notification watchers have already told (notifications.js) ──
+   users/{uid}/data/notifyState:
+     { stMonth: 'YYYY-MM',            newest Soundtrack month notified
+       certAt: ms,                    newest certification date notified
+       board: { since: ms, posts: { postId: { r: ms, s: status } } } }
+   Covered by the existing users/{uid}/data/{doc} rule. `change` gets the
+   cloud's current state and returns { state, out } — the new state (or null
+   for no change) and whatever the caller wants back. In a transaction, so
+   two devices open at once never tell the same thing twice.
+   Returns `out`, or 'error' (offline / rules: tried again next time). */
+function _notifyStateRef(uid) {
+  return _db.collection('users').doc(uid).collection('data').doc('notifyState');
+}
+
+async function dcUpdateNotifyState(change) {
+  if (!_currentUser) return 'error';
+  await _ensureDb();
+  const ref = _notifyStateRef(_currentUser.uid);
+  try {
+    return await _db.runTransaction(async tx => {
+      const snap = await tx.get(ref);
+      const r = change(snap.exists ? snap.data() : {});
+      if (r && r.state) tx.set(ref, r.state);
+      return r ? r.out : null;
+    });
+  } catch (err) {
+    console.warn('[dankcharts] Notify state error:', err && err.code);
+    return 'error';
+  }
+}
+
+// The signed-in user's own Board posts (an equality filter only, so it
+// needs no extra index). [{ id, title, status, lastActivity, createdAt }]
+async function dcLoadMyBoardPosts() {
+  if (!_currentUser) return null;
+  await _ensureDb();
+  try {
+    const snap = await _db.collection('boardPosts').where('authorUid', '==', _currentUser.uid).get();
+    const ms = ts => (ts && typeof ts.toMillis === 'function') ? ts.toMillis() : 0;
+    return snap.docs.map(d => {
+      const x = d.data();
+      return { id: d.id, title: x.title || '', status: x.status || 'open',
+               lastActivity: ms(x.lastActivity), createdAt: ms(x.createdAt) };
+    });
+  } catch (err) {
+    console.warn('[dankcharts] Board posts load error:', err && err.code);
+    return null;
+  }
+}
+
+// One post's replies written after `sinceMs`, oldest first: [{ authorUid, authorName, at }]
+async function dcLoadBoardRepliesSince(postId, sinceMs) {
+  await _ensureDb();
+  try {
+    const snap = await _db.collection('boardPosts').doc(postId).collection('replies')
+      .where('createdAt', '>', firebase.firestore.Timestamp.fromMillis(sinceMs))
+      .orderBy('createdAt', 'asc').get();
+    return snap.docs.map(d => {
+      const x = d.data();
+      return { authorUid: x.authorUid, authorName: x.authorName || '',
+               at: x.createdAt && x.createdAt.toMillis ? x.createdAt.toMillis() : 0 };
+    });
+  } catch (err) {
+    console.warn('[dankcharts] Board replies load error:', err && err.code);
+    return null;
+  }
+}
+
 // Whether there is a signed-in account at all. Callers use it to tell a failed
 // write apart from the ordinary signed-out case, where local-only is the point.
 function dcIsSignedIn() { return !!_currentUser; }
@@ -804,6 +872,9 @@ window.dcSaveAutoPlaylist          = dcSaveAutoPlaylist;
 window.dcClaimAutoPlaylist         = dcClaimAutoPlaylist;
 window.dcLoadNotifications         = dcLoadNotifications;
 window.dcUpdateNotifications       = dcUpdateNotifications;
+window.dcUpdateNotifyState         = dcUpdateNotifyState;
+window.dcLoadMyBoardPosts          = dcLoadMyBoardPosts;
+window.dcLoadBoardRepliesSince     = dcLoadBoardRepliesSince;
 
 // ── INIT ────────────────────────────────────────────────────────────────────
 firebase.initializeApp(firebaseConfig);

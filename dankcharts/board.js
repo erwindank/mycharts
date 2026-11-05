@@ -669,6 +669,14 @@
       unsubscribeReplies();
       S.openId = null; S.editingId = null; S.composing = false;
     },
+    // Opens one post from anywhere on the site (a notification about a reply
+    // or a status change, notifications.js): goes to the Board tab first if
+    // it isn't showing, the same way a #t=board/<id> link does.
+    openFromLink: function (id) {
+      if (_active) { if (S.openId !== id) openPost(id); return; }
+      setHash(id);
+      if (typeof dcGoTab === 'function') dcGoTab('board');
+    },
     // Redraw with the current data, e.g. after the language changes so the
     // labels and "3 days ago" dates switch over.
     rerender: function () { render(); },

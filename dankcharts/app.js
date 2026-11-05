@@ -6157,6 +6157,9 @@ function refreshAfterPoll() {
   refreshNowPlayingStats();
   // Fresh plays can finish off a period the cached data couldn't (autoplaylists.js)
   if (typeof apRun === 'function') apRun();
+  // Notifications for a finished month's Soundtrack, new certifications and
+  // Board replies (notifications.js)
+  if (typeof ntWatch === 'function') ntWatch();
 }
 
 async function pollLastFm() {
@@ -7585,6 +7588,9 @@ function finalizeLoad() {
   // Automatic chart playlists: make the ones for periods that finished since
   // the last run (autoplaylists.js decides what's due)
   if (typeof apRun === 'function') apRun();
+  // Notifications for a finished month's Soundtrack, new certifications and
+  // Board replies (notifications.js)
+  if (typeof ntWatch === 'function') ntWatch();
 }
 
 function splitCsvRow(row) {
@@ -51927,6 +51933,28 @@ function stSetPeriod(type) {
   if (type === 'month') { stYear = tzNow().getFullYear(); stMonth = tzNow().getMonth() + 1; }
   renderSoundtrack();
 }
+
+/* Opens the Soundtrack on one month ('YYYY-MM'). Used by the "your month's
+   Soundtrack is ready" notification (notifications.js). Sets the period
+   first, so switching to the tab draws the right month once instead of the
+   current year and then the month. */
+function stOpenMonth(key) {
+  const [y, m] = String(key || '').split('-').map(Number);
+  if (!y || !m) return;
+  if (document.getElementById('awardsYearPicker')?.dataset.kind === 'soundtrack') _awardsCloseYearPicker();
+  stPeriodType = 'month';
+  stYear = y; stMonth = m;
+  // The same toolbar state stSetPeriod('month') leaves behind
+  document.querySelectorAll('.st-period-btn').forEach(b => b.classList.toggle('active', b.dataset.stPeriod === 'month'));
+  const navBar = document.getElementById('stNavBar');
+  if (navBar) navBar.style.display = '';
+  const replayBtn = document.getElementById('stTopReplayBtn');
+  if (replayBtn) replayBtn.style.display = 'none';
+  if (currentPeriod === 'soundtrack') renderSoundtrack();
+  else dcGoTab('soundtrack');
+  window.scrollTo({ top: 0 });
+}
+window.stOpenMonth = stOpenMonth;
 
 // The toolbar's Chart History Replay: bring the replay into view and start it
 function stJumpToReplay() {
