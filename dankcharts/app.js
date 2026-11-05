@@ -52887,7 +52887,9 @@ function stRenderChapters() {
     const s = f.topSongs[0];
     stFillHead('top', {
       label: t('st_ch_top_name'),
-      title: esc(t('st_ch_top_title', { song: s.title })),
+      // "is your song" on All-Time and while the year / month is still going,
+      // "was your song" once it is over
+      title: esc(t(_stAmPeriodRunning() ? 'st_ch_top_title_now' : 'st_ch_top_title', { song: s.title })),
       sub: f.topArtist ? esc(t('st_ch_top_sub', { artist: f.topArtist })) : '',
       bg: ['song', s.title, s.artist],
       right: stHeadThumbHtml(f.topSongs.slice(0, 5).map(x => ({ name: x.title }))),

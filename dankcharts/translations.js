@@ -4756,6 +4756,7 @@ const TRANSLATIONS = {
     st_disc_began_hint: 'The first artists in your history',
     st_ch_top_name: 'Your top songs, artists and albums',
     st_ch_top_title: '“{{song}}” was your song',
+    st_ch_top_title_now: '“{{song}}” is your song',   // All-Time / a period still running
     st_ch_top_sub: 'and {{artist}} your artist',
     st_ch_act_title: '{{month}} was your loudest month',
     st_ch_act_sub: '{{plays}} · top artist that month: {{artist}}',

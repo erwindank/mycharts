@@ -4605,6 +4605,7 @@ TRANSLATIONS['pt-BR'] = Object.assign({
     st_disc_began_hint: 'Os primeiros artistas do seu histórico',
     st_ch_top_name: 'Suas músicas, artistas e álbuns top',
     st_ch_top_title: '“{{song}}” foi a sua música',
+    st_ch_top_title_now: '“{{song}}” é a sua música',   // All-Time / a period still running
     st_ch_top_sub: 'e {{artist}}, o seu artista',
     st_ch_act_title: '{{month}} foi o seu mês com mais plays',
     st_ch_act_sub: '{{plays}} · artista top desse mês: {{artist}}',

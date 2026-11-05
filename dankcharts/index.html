@@ -31,7 +31,7 @@
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=332"></script>
+  <script defer src="translations.js?v=333"></script>
   <!-- Only the visitor's own language is downloaded (translations.js holds
        English). This writes a defer tag for the saved language right here, so
        it runs straight after translations.js and before app.js, and the page
@@ -39,7 +39,7 @@
        whenever translations.es / pt-BR / pt-PT .js change (setup-guide.html
        has the same line). -->
   <script>
-    window.DC_I18N_V = 24;
+    window.DC_I18N_V = 25;
     (function () {
       try {
         var l = localStorage.getItem('dankcharts-lang');
@@ -4396,7 +4396,7 @@
   <!-- One behaviour and one icon set for every pop-up window (phase 10); before
        app.js so dcIco() is there when app.js draws a window -->
   <script defer src="popups.js?v=13"></script>
-  <script defer src="app.js?v=654"></script>
+  <script defer src="app.js?v=655"></script>
   <!-- The song / album / artist details side panel (phase 10 step 3); wraps app.js's open functions -->
   <script defer src="panel.js?v=16"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
