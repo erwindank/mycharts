@@ -326,6 +326,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-04', t: 'feature', a: 'ui', h: 'fe46df0',
+    title: "Search your whole library from the top bar",
+    detail: "There is now a Search box in the top bar on every page (just the magnifier on smaller screens). Press / or Ctrl+K to open it from the keyboard. Type part of an artist, song or album name and pick a result to open its full window, just as if you had clicked it on the All-Time chart. Your searches and the things you opened are saved, so the box shows them when it is empty: click one to search or open it again, or clear the list. The old Search your library button on the Charts Guide, which only took you to the All-Time chart, is gone." },
   { d: '2026-11-03', t: 'feature', a: 'awards', h: '1244cfa',
     title: "A parade of the nominees before the envelope opens",
     detail: "In the Awards ceremony, clicking the envelope now starts a short show first. The nominees' covers rise out of the row into a ring that spins around the envelope, fast at first and slowing to a stop. Then the lights go out on them one by one: each cover goes dark and drops into the envelope while the stage dims, until only the envelope is lit, and then it opens. The cover the ring stops on and the last one to go out are always picked at random from the nominees who lost, so the show never gives the winner away. Click again, or press space or enter, to skip straight to the opening." },
