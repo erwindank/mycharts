@@ -4,8 +4,8 @@
    The guide is mostly long prose (chapters, tab descriptions, glossary,
    FAQ), so its words live here, one block per language, instead of as
    hundreds of keys in translations.js (setup-guide-i18n.js does the same
-   for the setup guide). dcRenderChartsGuideView() in app.js reads
-   CG_TEXT[currentLang], falling back to English for anything missing.
+   for the setup guide). guide.js (the Reference tab and the guide search)
+   reads CG_TEXT[currentLang], falling back to English for anything missing.
 
    Placeholders are {{name}}. Strings marked "html" may hold <strong> or a
    link; everything else is escaped when drawn. Tab names are not here:

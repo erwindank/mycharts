@@ -61,7 +61,8 @@ async function lastWeek(pg) {
   await wait(pg, 1500);
 }
 // Any chart window at a given offset (periods back from now), Songs, ready to photograph.
-// Daily uses 27 Oct 2026 (offset 9 from the 5 Nov capture day): a busy day in the demo library.
+// Daily uses 27 Oct 2026: a busy day in the demo library. Its offset is worked out
+// from today, so a retake on a later day still lands on the same day.
 async function at(pg, period, offset, { spotlight = false } = {}) {
   await go(pg, period); await wait(pg, 900);
   await pg.evaluate(o => { setChartTypeView('songs'); currentOffset = o; renderAll(); }, offset);
@@ -69,7 +70,10 @@ async function at(pg, period, offset, { spotlight = false } = {}) {
     document.querySelector('#statsHeroTop') && (!sp || document.querySelector('.spotlight-card')), spotlight, { timeout: 60000 });
   await wait(pg, 2200);
 }
-const DAY_OFF = 9;
+const DAY_OFF = (() => {
+  const n = new Date(), today = Date.UTC(n.getFullYear(), n.getMonth(), n.getDate());
+  return Math.round((today - Date.UTC(2026, 9, 27)) / 864e5);
+})();
 // Open a song / artist / album window on one of its tabs, ready to photograph
 // Unfold the pop-up windows: on screen they are capped at the window height and
 // scroll inside, which would cut every picture off at the fold
@@ -854,7 +858,8 @@ const SHOTS = [
       // a search left open by the shot before would swallow the keys below
       for (let i = 0; i < 2; i++) { await pg.keyboard.press('Escape'); await wait(pg, 300); }
       await pg.keyboard.press('/'); await wait(pg, 800); await pg.keyboard.type('tate'); await wait(pg, 1800);
-      await pg.keyboard.press('Enter'); await wait(pg, 2500);
+      // Click the first result (Enter alone left the history empty): that saves the search and the pick
+      await pg.waitForSelector('.lsx-item', { timeout: 15000 }); await pg.click('.lsx-item'); await wait(pg, 2500);
       for (let i = 0; i < 3; i++) { await pg.keyboard.press('Escape'); await wait(pg, 500); }
       await pg.evaluate(() => { document.querySelectorAll('.dp-overlay.open').forEach(o => o.classList.remove('open')); });
       await pg.evaluate(() => document.querySelector('#topbar [class*="search"]').click()); await wait(pg, 1500); },
@@ -1690,13 +1695,20 @@ async function run() {
     for (const phone of [false, true]) {
       const list = shots.filter(s => !phone || s.phone);
       if (!list.length) continue;
-      let app = await openApp(b, lang, phone);
+      let app = await openApp(b, lang, phone), lastLesson = list[0].lesson;
       for (const s of list) {
         const id = s.id + (phone ? '-m' : '');
+        // A fresh page per lesson: a window one lesson leaves open (the cover picker,
+        // the streaks window…) would otherwise darken every picture of the next one
+        if (s.lesson !== lastLesson) { lastLesson = s.lesson; await app.ctx.close(); app = await openApp(b, lang, phone); }
         // Two tries: a slow page load is the usual reason a shot fails
         for (let attempt = 1; attempt <= 2; attempt++) try {
           // A fresh start per shot keeps one shot's open menu out of the next
-          await app.pg.evaluate(() => { window.scrollTo(0, 0); document.querySelectorAll('.kebab-menu-wrap.open').forEach(e => e.classList.remove('open')); });
+          await app.pg.evaluate(() => { window.scrollTo(0, 0); document.querySelectorAll('.kebab-menu-wrap.open').forEach(e => e.classList.remove('open'));
+            // The Day recap story pauses while the mouse is over it, so it never closes by
+            // itself; it and the Daily calendar would dim every picture after them
+            if (typeof dyCloseRecap === 'function') dyCloseRecap();
+            if (typeof dyCloseCalendar === 'function') dyCloseCalendar(); });
           await closeMenus(app.pg);
           // vp: a shot that needs its own window size (a full-screen layer); put back after
           await app.pg.setViewportSize(s.vp && !phone ? s.vp : (phone ? PHONE : DESK));

@@ -21,8 +21,8 @@
    The old guide's content (its words are still CG_TEXT in
    charts-guide-i18n.js) lives on since GUIDE-PLAN.md step 12: its setup
    check and first steps in the Getting started lesson, everything else in
-   the hub's Reference tab (refRender). dcRenderChartsGuideView in app.js is
-   no longer drawn; guide.js takes its place.
+   the hub's Reference tab (refRender). The old renderer was removed from app.js
+   in step 13; dcRenderChartsGuideView is now an empty name guide.js fills.
 
    Progress is kept in localStorage (dc_guide_progress):
      { ch: { id: time }, quiz: { lesson: { q: true } }, seen: { lesson: time },

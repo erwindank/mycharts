@@ -13,6 +13,87 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Charts Guide: Getting started, search the whole guide, and the Reference in a new look":
+    ["Guia de Charts: Comece aqui, busca no guia inteiro e a Consulta com novo visual",
+     "Comece aqui agora é a primeira lição do Guia de Charts. Ela confere sua configuração ao vivo (fonte de dados, plays, nome e fuso horário, qualidade dos dados) e mostra os três passos para começar; as marcações de primeiros passos que você já tinha continuam lá. Uma busca na página inicial do guia encontra qualquer lição, ponto de uma imagem, roteiro, opção ou desafio, além das perguntas frequentes, do glossário e dos atalhos, e abre direto naquele ponto. A aba Consulta mantém tudo o que o guia antigo tinha (como as paradas funcionam, glossário, dicas e atalhos, seus dados, perguntas frequentes, exportar, suas notas) com o novo visual. Fazer o tour e Rever as boas-vindas ficam na página inicial do guia, e o tour mostra um botão com a lição da aba em que está."],
+  "Charts Guide: the Settings & account lesson, and your progress follows your account":
+    ["Guia de Charts: a lição de Configurações e conta, e seu progresso segue sua conta",
+     "Uma lição nova explica a barra superior, as quatro abas de Configurações (Fonte de dados, Paradas, Lançamentos, Perfil), a busca nas configurações, os menus de tema e idioma, o menu da conta e as Notificações. Com login feito, seu progresso no guia é salvo na sua conta logo depois de cada mudança e combinado quando você entra em outro aparelho, então dois aparelhos nunca desfazem um ao outro. Os backups também o levam. E mais: em Configurações → Paradas, o dia em que as paradas semanais começam mostra os dias no seu idioma, em uma linha só no celular."],
+  "Charts Guide: Playlists, Raw Data and Board lessons":
+    ["Guia de Charts: lições de Playlists, Dados brutos e Fórum",
+     "Três lições novas. Playlists: suas playlists, uma playlist aberta (tocar, aleatório, exportar, renomear, excluir, reordenar), as opções de exportação, Adicionar à playlist, as playlists automáticas e as listas de lançamentos. Dados brutos: a tabela e seus filtros, Editar scrobble (todas as ocorrências, salvar como regra), Só corrigidos e a janela de regras de autocorreção. Fórum: categorias, status, ordem, busca, posts, votos, respostas e como escrever um post. Cada uma tem roteiros, desafios que você faz no app de verdade e uma revisão rápida. As imagens do Fórum usam posts inventados, nunca de pessoas reais."],
+  "Charts Guide: The Dank 100, Ratings and Events lessons":
+    ["Guia de Charts: lições de The Dank 100, Avaliações e Eventos",
+     "Três lições novas. The Dank 100: a parada e suas colunas, a trajetória de uma música e a parada de uma semana, Números um, os recordes e como enviar sua semana. Avaliações: a página e suas listas, como dar nota a um álbum (aspectos e faixas) e a uma música (detalhada ou rápida), e as abas de avaliação nas janelas de álbum e artista. Eventos: Hoje e a Máquina do tempo, Em breve, Recentes e New Music Friday, e o mês, a semana e o dia do calendário. Cada uma tem roteiros, desafios que você faz no app de verdade, uma revisão rápida e novas dicas do dia."],
+  "Long titles no longer push Ratings scores off a phone's screen":
+    ["Títulos longos não empurram mais as notas de Avaliações para fora da tela do celular",
+     "Na página de Avaliações, um título de música longo em Artistas mais bem avaliados ou Avaliados recentemente deixava a coluna mais larga que a tela do celular e cortava todas as notas. Agora títulos longos encurtam com …"],
+  "Charts Guide: the Your Soundtrack lesson":
+    ["Guia de Charts: a lição de Sua Trilha Sonora",
+     "Uma lição nova percorre Sua Trilha Sonora capítulo por capítulo: a troca de período, os números e o carrossel do início, seu artista nº 1, as principais músicas, artistas e álbuns, Números um, a atividade mensal, a pontuação de fidelidade, Novas Descobertas e a janela de uma descoberta, marcos, sequências de audição, vencedores de prêmios, o replay do histórico das paradas, Tocar sua história e como compartilhar. Sete roteiros, oito desafios, uma revisão rápida e novas dicas do dia."],
+  "Charts Guide: the Awards lesson":
+    ["Guia de Charts: a lição de Prêmios",
+     "Uma lição nova explica Meus Grammys do começo ao fim: escolher um ano, Configurar ano e o navegador de categorias, Gerar indicados, a cédula e suas cinco visões, o seletor de indicados, a cerimônia (o envelope, o vencedor, os vencedores), compartilhar uma cerimônia e os prêmios da vida real. Oito roteiros, oito desafios, uma revisão rápida e novas dicas do dia."],
+  "Charts Guide: the Records lesson":
+    ["Guia de Charts: a lição de Recordes",
+     "Uma lição nova explica a página de Recordes: o menu (e o seletor de seção no celular), a busca em todas as seções, os cartões do resumo, como cada seção funciona usando Todos os nº 1 de exemplo (a frase, as chaves, o pódio, a lista, as trajetórias, a ordem e Mostrar), Perfect All Kill, Novas paradas, Marcos, Mais rápidos, Sequências e o mural de placas de Certificações com seu registro. Me mostre abre primeiro a seção certa. Oito roteiros, oito desafios, uma revisão rápida e novas dicas do dia."],
+  "Charts Guide: the Stats lesson":
+    ["Guia de Charts: a lição de Estatísticas",
+     "Uma lição nova explica todas as Estatísticas: a barra de período e o Resumo (a frase, os blocos, o top 5, quem mais se moveu, a personalidade, o calendário, neste dia), História, Jogos e uma partida em andamento, Comparar (a seleção, frente a frente, quem esteve no topo, distâncias, hábitos, trajetória, corrida) e Gráficos (volume de plays, o relógio, sua semana, o mapa de calor e seus padrões). Me mostre abre primeiro a aba certa. Oito roteiros, oito desafios, uma revisão rápida e novas dicas do dia."],
+  "Charts Guide: how to change a cover, step by step":
+    ["Guia de Charts: como trocar uma capa, passo a passo",
+     "A lição das janelas ganhou um roteiro de sete passos para trocar uma capa, o seletor de capas como imagem que você pode explorar (Deezer, iTunes, Last.fm, YouTube, De um link, Sem imagem, Automática), onde ficam o ✎ de uma capa e ⋮ → Trocar imagem, e um desafio que conta quando você escolhe uma capa nova."],
+  "Charts Guide: song, artist and album windows, search and streaks":
+    ["Guia de Charts: janelas de música, artista e álbum, busca e sequências",
+     "Uma lição nova explica as janelas que abrem ao clicar em um nome: a de uma música (Resumo, Paradas, Audição), a de um artista (Resumo, Músicas, Prêmios) e a de um álbum, o menu ⋮, a busca da barra superior e seu histórico, e a janela de sequências diárias (Recordes com Hall da Fama e insígnias, Calendário). Seis roteiros e sete desafios, que contam seja qual for o jeito de abrir a janela."],
+  "Charts Guide: Around the chart, and sharing it":
+    ["Guia de Charts: ao redor da parada, e como compartilhá-la",
+     "Uma lição nova explica Bubbling Under (cada etiqueta com as palavras do próprio app), Fora da parada e Novas entradas, a janela Compartilhar como imagem (designs, paletas, formatos, o que mostrar, entradas, tamanho do texto, qualidade), o PDF para imprimir e Exportar playlist. Ela também diz onde as coisas se escondem: a legenda das etiquetas só aparece com ⋮ → Mostrar → legenda BU ligada, e Me mostre liga isso para você. Corrigido no caminho: a janela de Exportar repetia \"Semana de\" duas vezes."],
+  "Charts Guide: Daily, Monthly & Yearly and All-Time lessons":
+    ["Guia de Charts: lições da parada diária, mensal e anual, e de todos os tempos",
+     "Três lições novas. Sua parada diária: as ferramentas acima da parada, o painel do dia e seu diário, a hora do dia e os padrões, memórias, marcos e metas, o resumo do dia e o Calendário. Mensal e anual: os cabeçalhos, as paradas, Novidades do mês, Certificados no período e o que significam os dois tipos de pico. De todos os tempos: o cabeçalho, a parada inteira, Dentro do seu Top 100, páginas e exportação, e ‹ para ver a parada como estava um mês atrás. Os nomes de botões e etiquetas do guia agora sempre batem com os do app no seu idioma."],
+  "Charts Guide badges use the same names as the charts":
+    ["As etiquetas do Guia de Charts usam os mesmos nomes das paradas",
+     "Em português e espanhol, o Guia de Charts agora chama as etiquetas exatamente como aparecem nas paradas, como ▲ PICO DE PLAYS e NOVA."],
+  "Better Spanish wording in the Charts Guide":
+    ["Texto em espanhol melhorado no Guia de Charts",
+     "O Guia de Charts em espanhol agora diz \"parte por parte\" em vez de \"pieza a pieza\"."],
+  "A new interactive Charts Guide, starting with the Weekly chart":
+    ["Um novo Guia de Charts interativo, começando pela parada semanal",
+     "O Guia de Charts agora é um conjunto de lições. A página inicial mostra seu progresso, um cartão para continuar de onde parou e uma dica do dia. A primeira lição, Sua parada semanal, tem capturas reais com pontos numerados que você pode explorar (escolha um e o resto da imagem escurece), imagens de computador e de celular, roteiros passo a passo, todas as opções com uma imagem do controle real, desafios que você faz em qualquer parte do app (Me mostre aponta o controle real e um aviso diz quando está feito) e uma revisão de três perguntas. Tudo está nos quatro idiomas, imagens incluídas. O guia antigo continua inteiro em Consulta. Corrigido no caminho: Animar parada e ⋮ → Ações Tocar tudo / Aleatório estavam em inglês em todos os idiomas."],
+  "Your Soundtrack says \"is your song\" while the period is still going":
+    ["Sua Trilha Sonora diz \"é sua música\" enquanto o período ainda está rolando",
+     "A parte de músicas principais de Sua Trilha Sonora agora diz \"X é sua música\" em De todos os tempos e enquanto o ano ou o mês ainda estão rolando, e \"X foi sua música\" quando já terminaram."],
+  "All-Time New Discoveries told year by year":
+    ["Novas Descobertas de todos os tempos, ano a ano",
+     "Em De todos os tempos, todo artista contava como descoberta. Agora Novas Descobertas conta sua história por ano: seu melhor achado e o ano em que você o encontrou, os artistas novos de cada ano (clique em uma barra para abrir a Trilha Sonora daquele ano), os três melhores achados de cada ano, quantos dos achados de cada ano você ainda ouve, os que levaram dois anos ou mais para chegar ao auge e os dez primeiros artistas do seu histórico. Ano e Mês não mudaram."],
+  "Daily number ones read correctly in Spanish and Portuguese":
+    ["Os números um diários aparecem certos em português e espanhol",
+     "A visão diária de Números um em Sua Trilha Sonora agora diz \"dias seguidos\", porque dias é masculino. A semanal continua dizendo \"semanas seguidas\"."],
+  "Number ones in Your Soundtrack: a Daily view, and Singles / EPs":
+    ["Números um em Sua Trilha Sonora: visão diária, e Singles / EPs",
+     "Na visão do mês, Números um tem uma troca Semanal / Diária: Diária mostra cada sequência de dias em nº 1 da sua parada diária, e uma linha abre aquele dia. Se você tem paradas separadas de Singles ou EPs (Configurações → Paradas), eles também ganham botões próprios. Um reinado agora só continua na semana ou no dia seguinte, então um intervalo sem plays o interrompe."],
+  "Number ones summary shows each runner-up's own best run":
+    ["O resumo de Números um mostra a melhor sequência de cada perseguidor",
+     "Quando outros empatam com o líder em semanas no nº 1, mas com intervalo, o resumo agora mostra cada um com sua sequência mais longa, como \"Também 7 semanas: X (4 seguidas)\", ou diz que nunca ficou duas seguidas."],
+  "Number ones summary always says if the weeks were in a row":
+    ["O resumo de Números um sempre diz se as semanas foram seguidas",
+     "A linha de mais tempo em nº 1 agora diz \"seguidas\" ou \"(N seguidas)\" também para um líder claro e para empates com intervalos."],
+  "Number ones summary names every #1 tied on an unbroken run":
+    ["O resumo de Números um cita todos os empatados em uma sequência sem intervalo",
+     "Quando várias entradas empatam em semanas no nº 1 e na sequência mais longa, e essas sequências não tiveram intervalo, o resumo cita todas com \"N semanas seguidas cada\"."],
+  "Number ones summary handles ties and runs in a row":
+    ["O resumo de Números um resolve empates e sequências",
+     "A linha de mais tempo em nº 1 agora ordena pelo total de semanas, depois pela maior sequência seguida e depois por quem chegou primeiro. Um empate de verdade (mesmas semanas, mesma sequência) cita todos juntos."],
+  "Number ones: every #1 of the year or month in Your Soundtrack":
+    ["Números um: cada nº 1 do ano ou do mês em Sua Trilha Sonora",
+     "Um capítulo novo depois das músicas principais mostra cada nº 1 da sua parada semanal no ano ou mês na tela, como uma linha do tempo igual à do The Dank 100: uma faixa de reinados e depois cada nº 1 com suas semanas e uma etiqueta de volta quando retorna. Troque entre Músicas, Artistas e Álbuns, e clique em uma linha para abrir a parada daquela semana. Também faz parte de Tocar seu ano."],
+  "The Dank 100: 10 more records, and Biggest debut by points":
+    ["The Dank 100: mais 10 recordes, e Maior estreia por pontos",
+     "Os recordes do The Dank 100 ganham Maior semana, Mais pontos no total, Mais semanas no top 10, Maior queda, Mais tempo fora e Subida mais lenta ao nº 1, e em músicas o artista com mais músicas, mais nº 1 e mais músicas em uma semana. Estreia mais alta agora é Maior estreia, por pontos, e ignora a primeira semana do The Dank 100."],
+  "The Dank 100's Number ones as a compact timeline":
+    ["Os Números um do The Dank 100 como uma linha do tempo compacta",
+     "Números um no The Dank 100 começa com uma faixa de reinados (uma parte por nº 1, da largura das semanas em que ficou lá; clique em uma para ver aquela semana) e depois uma linha do tempo fina com os anos, uma marca por semana e uma etiqueta para o nº 1 que voltou. Aparecem os seis últimos, com Mostrar tudo para o resto."],
   "Playlists and Notifications got a fresh look":
     ["Playlists e Notificações ganharam um visual novo",
      "A aba Playlists agora é uma grade de capas. Cada cartão mostra quatro capas das suas músicas, quantas músicas tem, quando mudou pela última vez e os artistas principais, e há um botão de tocar sobre a capa. A busca encontra uma playlist pelo nome ou por um artista que está nela, e você pode ordenar por Recentes, A–Z ou Maiores. Salvar o que está no player é o primeiro cartão, e a música que você ouvia por último fica no topo para continuar. Ao abrir uma playlist ela ganha sua própria página: uma capa grande, Tocar, um novo botão Aleatório, Exportar, Renomear e Excluir, e depois as músicas numeradas, cada uma com seus botões de prévia, Spotify e YouTube (arraste o número para reordenar). As playlists automáticas agora são quatro cartões, um por parada. A janela de Notificações tem as abas Todas e Não lidas, agrupa em Hoje, Ontem e Antes, dá a cada tipo seu próprio ícone e rótulo colorido e deixa você remover uma única notificação com o ✕."],
@@ -4524,6 +4605,15 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 /* Highlight cards (DC_CL_HIGHLIGHTS in changelog.js), keyed by id. */
 window.DC_CL_HIGHLIGHTS_I18N = window.DC_CL_HIGHLIGHTS_I18N || {};
 window.DC_CL_HIGHLIGHTS_I18N["pt-BR"] = {
+  "charts-guide": {
+    title: "Um Guia de Charts para explorar",
+    intro: "O Guia de Charts agora é uma lição para cada aba, feita com capturas reais. Escolha um ponto em uma imagem para ver o que ele faz, siga os passos e teste no app.",
+    points: [
+      "Cada aba tem sua lição: pontos numerados em imagens reais, roteiros passo a passo e todas as opções explicadas, no computador e no celular.",
+      "Desafios que você faz no app de verdade. Me mostre aponta o controle, e o guia percebe quando você faz, onde quer que esteja.",
+      "Uma revisão rápida por lição, um anel com seu progresso e uma dica nova todo dia. Com login, seu progresso vai com você para todos os aparelhos.",
+      "Comece por Comece aqui ou busque no guia inteiro. Perguntas frequentes, glossário e atalhos ficam em Consulta."
+    ] },
   "playlists-look": {
     title: "Playlists e Notificações ganharam um visual novo",
     intro: "Suas playlists agora são uma grade de capas com página própria, e a janela de Notificações fica fácil de ler num relance.",
