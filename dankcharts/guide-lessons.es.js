@@ -2637,9 +2637,342 @@ window.GL_TEXT.es = {
         '¿No te interesan los cumpleaños? Toca {{t:ev_type_birthdays}} para ocultarlos en todas partes.'
       ]
     },
-    playlists: { title: 'Listas de reproducción', promise: 'Guarda rankings como listas, y deja que se hagan solas.' },
-    rawdata: { title: 'Base de datos', promise: 'Cada escucha: búscala, corrígela, expórtala.' },
-    board: { title: 'El Foro', promise: 'Propón ideas, informa de fallos y vota.' },
+    playlists: {
+      title: '{{t:nav_playlists}}',
+      promise: 'Haz listas con cualquier cosa que veas, deja que tus rankings hagan algunas solos y llévalas a tu app de música.',
+      scenes: {
+        top: { title: 'Tus listas', spots: {
+          title: ['{{t:nav_playlists}}', 'Todas las listas que hiciste, guardadas en este navegador (y en tu cuenta si has iniciado sesión).'],
+          total: ['En total', 'Cuántas listas y canciones.'],
+          search: ['{{t:pl_x_search_ph}}', 'Por el nombre de la lista o un artista que tenga.'],
+          sort: ['{{t:pl_x_sort_recent}} / {{t:pl_x_sort_name}} / {{t:pl_x_sort_size}}', 'El orden de las tarjetas.'],
+          new: ['{{t:pl_x_new_title}}', 'Lo que hay ahora en el reproductor, guardado como lista.'],
+          name: ['Nombre', 'Escribe un nombre y guarda.'],
+          card: ['Una lista', 'Haz clic para abrirla.'],
+          cover: ['Portada', 'Cuatro de sus portadas. El botón de reproducir encima la empieza.'],
+          meta: ['Sobre ella', 'Sus canciones, cuándo cambió y sus artistas.'],
+          ap: ['{{t:ap_setup_title}}', 'Listas que tus rankings hacen solos (con sesión iniciada).'],
+          tile: ['Un ranking', '{{t:ap_row_day}}, {{t:ap_row_week}}, {{t:ap_row_month}} o {{t:ap_row_year}}.'],
+          sw: ['Activar / desactivar', 'Cada vez que termina uno de sus periodos, sus canciones top se convierten en una lista.'],
+          size: ['{{t:ap_size}}', 'Cuántas canciones: 10, 20, 40, 50 o 100.']
+        } },
+        open: { title: 'Una lista', spots: {
+          back: ['{{t:pl_x_back}}', 'Vuelve a las tarjetas.'],
+          hero: ['La lista', 'Su nombre, artistas y canciones.'],
+          cover: ['Portada', 'Hecha con las portadas de sus canciones.'],
+          name: ['Nombre', 'Cómo la llamaste.'],
+          meta: ['Sobre ella', 'Canciones, artistas y cuándo cambió por última vez.'],
+          play: ['{{t:pl_x_play}}', 'La reproduce desde el principio en el reproductor.'],
+          shuffle: ['{{t:pl_x_shuffle}}', 'La reproduce en orden aleatorio.'],
+          export: ['{{t:pl_view_export}}', 'La guarda como archivo para tu app de música.'],
+          rename: ['{{t:pl_view_rename}}', 'Dale otro nombre.'],
+          del: ['{{t:pl_view_delete}}', 'Pregunta antes.'],
+          track: ['Una canción', 'Haz clic para reproducir desde aquí.'],
+          drag: ['{{t:pl_view_drag}}', 'Agarra una canción por su número para moverla.'],
+          acts: ['Escuchar', 'Reproducir, Spotify, YouTube o añadirla a la cola.'],
+          remove: ['{{t:pl_view_remove}}', 'La quita de esta lista.']
+        } },
+        export: { title: '{{t:pl_export_playlist}}', spots: {
+          btn: ['{{t:pl_view_export}}', 'Abre las opciones.'],
+          menu: ['Opciones', 'Un archivo para tu app de música, de dos formas.'],
+          item: ['{{t:pl_export_csv}}', 'Para una herramienta de importación como Soundiiz. O un archivo de texto.']
+        } },
+        pick: { title: '{{t:pl_pick_title}}', spots: {
+          sub: ['Lo que añades', 'Una canción, un álbum, las canciones de un artista, un ranking entero…'],
+          new: ['{{t:pl_pick_new}}', 'Empieza una lista nueva con ellas.'],
+          text: ['{{t:pl_pick_text}}', '{{t:pl_pick_text_hint}}.'],
+          list: ['Tus listas', 'Elige a cuál añadir.'],
+          item: ['Una lista', 'El número es cuántas canciones son nuevas para ella; las que ya tiene se saltan.']
+        } },
+        rel: { title: 'Lanzamientos', spots: {
+          anniv: ['{{t:ev_cal_anniversaries}}', 'Álbumes de tus artistas top que cumplen años en los próximos 30 días.'],
+          annpl: ['{{t:pl_section_btn}}', 'Todos ellos como lista.'],
+          card: ['Un lanzamiento', 'Haz clic para ver opciones.'],
+          recent: ['{{t:ev_sec_recent_releases}}', 'Lanzamientos de tus artistas top en los últimos seis meses.'],
+          recpl: ['{{t:pl_section_btn}}', 'Todos ellos como lista.']
+        } }
+      },
+      howto: {
+        make: { title: 'Haz una lista', slides: [
+          'Pulsa {{t:pl_section_btn}} o {{t:ea_add_playlist}} en cualquier cosa: una canción, un álbum, un ranking entero.',
+          '{{t:pl_pick_new}}…',
+          '…o añade a una que ya tengas.',
+          'O guarda lo que está sonando.',
+          'Las listas enteras también tienen un botón {{t:pl_section_btn}}.'
+        ] },
+        use: { title: 'Reprodúcela y ordénala', slides: [
+          'Abre una lista.',
+          '{{t:pl_x_play}} o {{t:pl_x_shuffle}}.',
+          'Arrastra canciones para cambiar el orden.',
+          'Quita una.',
+          'Cámbiale el nombre.'
+        ] },
+        take: { title: 'Llévala a tu app de música', slides: [
+          'Pulsa {{t:pl_view_export}}.',
+          'Descarga un archivo para una herramienta de importación.',
+          'O copia la lista como texto.'
+        ] },
+        auto: { title: 'Listas automáticas', slides: [
+          'Inicia sesión y mira debajo de tus listas.',
+          'Activa un ranking.',
+          'Elige cuántas canciones.',
+          'Cuando termina su periodo aparece la lista, y una notificación te avisa.'
+        ] }
+      },
+      options: {
+        list: { title: 'Tus listas', items: {
+          sort: ['Orden', '{{t:pl_x_sort_recent}}, {{t:pl_x_sort_name}} o {{t:pl_x_sort_size}}.'],
+          search: ['Buscar', 'Por nombre o artista.'],
+          new: ['{{t:pl_x_new_title}}', 'La cola del reproductor como lista.']
+        } },
+        one: { title: 'Una lista', items: {
+          play: ['{{t:pl_x_play}}', 'Desde el principio.'],
+          shuffle: ['{{t:pl_x_shuffle}}', 'En orden aleatorio.'],
+          export: ['{{t:pl_view_export}}', 'Un CSV o un archivo de texto.'],
+          rename: ['{{t:pl_view_rename}}', 'Otro nombre.'],
+          del: ['{{t:pl_view_delete}}', 'Para siempre, después de confirmar.'],
+          drag: ['{{t:pl_view_drag}}', 'Cambia el orden.']
+        } },
+        auto: { title: '{{t:ap_setup_title}}', items: {
+          types: ['Rankings', 'Diario, semanal, mensual, anual. Cada uno activado o no.'],
+          size: ['{{t:ap_size}}', 'De 10 a 100.']
+        } }
+      },
+      challenges: {
+        'pl.open': ['Abre una lista', 'Haz clic en una tarjeta.'],
+        'pl.sort': ['Cambia el orden de tus listas', 'Junto a la búsqueda.'],
+        'pl.search': ['Busca en tus listas', '{{t:pl_x_search_ph}}.'],
+        'pl.play': ['Reproduce una lista', '{{t:pl_x_play}} o {{t:pl_x_shuffle}}.'],
+        'pl.add': ['Añade algo a una lista', 'Desde el menú ⋮ de una canción, o cualquier botón {{t:pl_section_btn}}.'],
+        'pl.export': ['Abre {{t:pl_view_export}}', 'En una lista abierta.'],
+        'pl.auto': ['Activa una lista automática', 'Debajo de tus listas (con sesión iniciada).']
+      },
+      quiz: {
+        q1: ['¿Desde dónde puedes añadir canciones a una lista?',
+          ['Solo desde esta pestaña', 'Solo desde el reproductor', 'Casi desde cualquier sitio: una canción, un álbum, un ranking, una lista'],
+          'Busca {{t:ea_add_playlist}} o {{t:pl_section_btn}}: en filas, ventanas, rankings y listas.'],
+        q2: ['¿Qué tiene una lista automática semanal?',
+          ['Las canciones top de la semana, hecha cuando termina', 'Las canciones que añadiste esta semana', 'Los lanzamientos de esta semana'],
+          'Cada semana terminada, sus canciones top (tantas como elegiste) se convierten en una lista.'],
+        q3: ['¿Cómo llevas una lista a Spotify o Apple Music?',
+          ['Se sincroniza sola', 'Expórtala y carga el archivo con una herramienta de importación', 'Por correo'],
+          'Exporta un CSV (o cópiala como texto) y cárgalo con una herramienta como Soundiiz.']
+      },
+      tips: [
+        'La ventana de listas muestra cuántas canciones son nuevas para cada lista. Las que ya tiene se saltan.',
+        'Activa {{t:ap_row_week}} en {{t:ap_setup_title}} y las canciones top de cada semana se convierten en una lista.',
+        'Exporta una lista como CSV y una herramienta de importación puede pasarla a Spotify o Apple Music.',
+        'Arrastra una canción por su número para subirla o bajarla en una lista.'
+      ]
+    },
+    rawdata: {
+      title: '{{t:nav_rawdata}}',
+      promise: 'Cada reproducción de tu biblioteca, una fila cada una: encuentra cualquiera, corrige un nombre mal escrito y haz que la corrección se quede con reglas.',
+      scenes: {
+        top: { title: 'Cada reproducción', spots: {
+          title: ['{{t:sec_raw_data_title}}', 'Toda tu biblioteca, lo más reciente primero.'],
+          song: ['Canción', 'Escribe parte de un título.'],
+          artist: ['Artista', 'Escribe parte de un nombre.'],
+          album: ['Álbum', 'Escribe parte de un álbum.'],
+          date: ['Fecha', 'Cualquier parte de la fecha tal como la muestra la tabla: «mar 2024», «2023».'],
+          summary: ['Cuántas', 'Todas, o cuántas coinciden.'],
+          corr: ['{{t:raw_corrected_only}}', 'Solo las que cambió una regla o una edición.'],
+          rules: ['{{t:modal_rules_open_btn}}', 'Todas las reglas que guardaste.'],
+          pager: ['Páginas', 'Primera, atrás, un número de página, siguiente, última.'],
+          size: ['{{t:raw_rows_per_page}}', '50, 100, 200 o 500.'],
+          th: ['Ordenar', 'Haz clic en un encabezado para ordenar; otra vez para darle la vuelta.'],
+          row: ['Una reproducción', 'Cuándo, qué, quién y de qué álbum.'],
+          edit: ['Editar', 'Corrige esta reproducción.']
+        } },
+        edit: { title: '{{t:modal_edit_title}}', spots: {
+          artist: ['{{t:modal_label_artist}}', 'Con sugerencias de tu biblioteca mientras escribes.'],
+          track: ['{{t:modal_label_track}}', 'El título de la canción.'],
+          album: ['{{t:modal_label_album}}', 'Puede quedar vacío.'],
+          time: ['{{t:modal_label_datetime}}', 'Cuándo se escuchó.'],
+          now: ['{{t:modal_now_btn}}', 'La pone en este minuto.'],
+          all: ['Todas las iguales', '{{t:modal_edit_apply_all}}.'],
+          rule: ['Recordarlo', '{{t:modal_edit_save_rule}}.'],
+          save: ['{{t:modal_save_locally}}', 'Lo cambia aquí. Con Last.fm o una hoja de Google, otro botón lo envía allí también.'],
+          cancel: ['Cancelar', 'No cambia nada.']
+        } },
+        corr: { title: '{{t:raw_corrected_only}}', spots: {
+          corr: ['{{t:raw_corrected_only}}', 'Activado.'],
+          row: ['Una reproducción corregida', 'Una línea fina a la izquierda.'],
+          badge: ['~', 'Pasa el ratón por encima para ver cómo era antes.']
+        } },
+        rules: { title: '{{t:modal_rules_title}}', spots: {
+          count: ['Cuántas', 'Tus reglas guardadas.'],
+          search: ['Buscar', 'Encuentra una regla por cualquier nombre que tenga.'],
+          list: ['Las reglas', 'Cada una: lo que busca y en qué lo convierte.'],
+          rule: ['Una regla', 'Se aplica cada vez que se cargan tus reproducciones, de cualquier fuente. Bórrala aquí.'],
+          export: ['{{t:modal_rules_export}}', 'Las guarda en un archivo.'],
+          import: ['{{t:modal_rules_import}}', 'Carga un archivo de reglas.']
+        } }
+      },
+      howto: {
+        find: { title: 'Encuentra cualquier reproducción', slides: [
+          'Escribe parte de una canción, un artista o un álbum.',
+          'O una fecha: un día, un mes, un año.',
+          'Cuántas coinciden.',
+          'Ordena por cualquier columna.',
+          'Pasa las páginas.'
+        ] },
+        fix: { title: 'Corrige un nombre mal escrito', slides: [
+          'Pulsa Editar en la reproducción.',
+          'Corrige el nombre.',
+          'Corrige todas las iguales a la vez…',
+          '…y guárdalo como regla, para que las próximas importaciones lleguen bien.',
+          '{{t:modal_save_locally}}.',
+          'Ahora la reproducción tiene un ~.'
+        ] },
+        rules: { title: 'Cuida tus reglas', slides: [
+          'Abre {{t:modal_rules_open_btn}}.',
+          'Cada regla y lo que hace.',
+          'Busca una.',
+          'Guárdalas todas en un archivo…',
+          '…y cárgalas en otro dispositivo.'
+        ] }
+      },
+      options: {
+        table: { title: 'La tabla', items: {
+          filters: ['Canción / artista / álbum', 'Escribe para filtrar.'],
+          date: ['Fecha', 'Un día, un mes o un año.'],
+          corr: ['{{t:raw_corrected_only}}', 'Solo las cambiadas.'],
+          size: ['{{t:raw_rows_per_page}}', '50, 100, 200, 500.'],
+          sort: ['Ordenar', 'Cualquier columna, en los dos sentidos.']
+        } },
+        edit: { title: '{{t:modal_edit_title}}', items: {
+          all: ['Todas las iguales', 'Misma canción, artista y álbum.'],
+          rule: ['Guardar como regla', 'Para futuras importaciones.'],
+          save: ['{{t:modal_save_locally}}', 'O {{t:modal_push_lfm}} / {{t:modal_push_sheet}} si están conectados.']
+        } },
+        rules: { title: '{{t:modal_rules_title}}', items: {
+          export: ['{{t:modal_rules_export}}', 'Una copia de tus reglas.'],
+          import: ['{{t:modal_rules_import}}', 'Recupéralas.']
+        } }
+      },
+      challenges: {
+        'rd.filter': ['Busca en la tabla', 'Canción, artista, álbum o fecha.'],
+        'rd.sort': ['Ordena por una columna', 'Haz clic en un encabezado.'],
+        'rd.page': ['Ve a otra página', 'Encima o debajo de la tabla.'],
+        'rd.size': ['Cambia {{t:raw_rows_per_page}}', 'Encima de la tabla.'],
+        'rd.corr': ['Muestra solo las corregidas', '{{t:raw_corrected_only}}.'],
+        'rd.edit': ['Abre una reproducción para editarla', 'El lápiz al final de una fila.'],
+        'rd.rules': ['Abre {{t:modal_rules_title}}', 'Encima de la tabla.']
+      },
+      quiz: {
+        q1: ['Una canción está escrita de dos formas en tu biblioteca. ¿Qué lo arregla para siempre?',
+          ['Editar una reproducción', 'Editarla con «todas las iguales» y «guardar como regla» marcados', 'Borrar la canción'],
+          '«Todas las iguales» arregla las que ya tienes; la regla arregla las nuevas a medida que llegan.'],
+        q2: ['¿Cómo encuentras todo lo que escuchaste en marzo de 2024?',
+          ['Ordenando por artista', 'Escribiendo «2024» en la casilla de canción', 'Escribiendo «mar 2024» en la casilla de fecha'],
+          'La casilla de fecha acepta un día, un mes o un año.'],
+        q3: ['¿Qué significa el ~ junto a una fila?',
+          ['Una regla o una edición cambió esa reproducción', 'Se escuchó dos veces', 'Es una versión en directo'],
+          'Pasa el ratón por encima para ver el nombre que tenía antes.']
+      },
+      tips: [
+        'Escribe un mes, como «mar 2024», en la casilla de fecha de {{t:nav_rawdata}} para ver todo lo que escuchaste entonces.',
+        'Marca «guardar como regla» al corregir un nombre, y las próximas importaciones llegarán bien.',
+        'Haz una copia de tus reglas de corrección con {{t:modal_rules_export}}.',
+        'Activa {{t:raw_corrected_only}} para ver todo lo que ha cambiado una regla.'
+      ]
+    },
+    board: {
+      title: '{{t:nav_board}}',
+      promise: 'Propón funciones, informa de fallos, haz preguntas y habla de música con otros oyentes, y mira lo que está planeado.',
+      scenes: {
+        top: { title: 'El foro', spots: {
+          title: ['{{t:board_title}}', 'Un foro para todos los que usan dankcharts.'],
+          signin: ['Iniciar sesión', 'Cualquiera puede leer; con sesión iniciada puedes publicar, responder y votar.'],
+          chips: ['Categorías', '{{t:board_cat_suggestion}}, {{t:board_cat_bug}}, {{t:board_cat_question}} y {{t:board_cat_discussion}}, con cuántas publicaciones tiene cada una.'],
+          chip: ['Una categoría', 'Tócala para ver solo esas.'],
+          search: ['Buscar', '{{t:board_search}}'],
+          status: ['{{t:board_status_label}}', '{{t:board_status_open}}, {{t:board_status_planned}}, {{t:board_status_progress}}, {{t:board_status_done}} o {{t:board_status_declined}}.'],
+          sort: ['{{t:board_sort_top}} / {{t:board_sort_new}} / {{t:board_sort_active}}', 'Más votos, más nuevas o última respuesta.'],
+          newbtn: ['{{t:board_new}}', 'Escribe una publicación.'],
+          pinned: ['{{t:board_pinned}}', 'Siempre arriba.'],
+          post: ['Una publicación', 'Haz clic para leerla entera con sus respuestas.'],
+          vote: ['{{t:board_vote}}', 'Un voto cada uno. Toca otra vez para retirarlo.'],
+          cat: ['Categoría', 'Qué tipo de publicación es.'],
+          st: ['{{t:board_status_label}}', 'En qué punto está. Lo pone el equipo.'],
+          meta: ['Quién y cuándo', 'El autor, cuándo y cuántas respuestas.']
+        } },
+        post: { title: 'Una publicación', spots: {
+          vote: ['{{t:board_vote}}', 'Los votos ayudan a decidir qué viene después.'],
+          title: ['La publicación', 'Su título y categoría.'],
+          body: ['Entera', 'Todo lo que escribió el autor.'],
+          actions: ['{{t:board_copy_link}}', 'Un enlace directo a esta publicación. Las tuyas también tienen Editar y Borrar.'],
+          replies: ['Respuestas', 'Las más antiguas primero.'],
+          reply: ['Una respuesta', 'Su autor y cuándo.'],
+          form: ['Responder', 'Escribe una (con sesión iniciada).']
+        } },
+        new: { title: '{{t:board_new}}', spots: {
+          cats: ['Categoría', 'Elige una.'],
+          title: ['Título', '{{t:board_title_ph}}.'],
+          body: ['Detalles', 'Opcional.'],
+          foot: ['{{t:board_post}}', '{{t:board_public_note}}']
+        } }
+      },
+      howto: {
+        read: { title: 'Mira de qué se habla', slides: [
+          'Elige una categoría.',
+          'Ordena por votos, más nuevas o última respuesta.',
+          'Abre una publicación.',
+          'Lee las respuestas.'
+        ] },
+        post: { title: 'Publica algo', slides: [
+          'Inicia sesión con Google.',
+          'Pulsa {{t:board_new}}.',
+          'Elige una categoría.',
+          'Escribe un título (y detalles si quieres).',
+          'Pulsa {{t:board_post}}.'
+        ] },
+        follow: { title: 'Vota y sigue la conversación', slides: [
+          'Vota lo que más quieres.',
+          'El estado muestra en qué punto está.',
+          'Mira solo {{t:board_status_planned}} o {{t:board_status_done}}.',
+          'Únete con una respuesta.'
+        ] }
+      },
+      options: {
+        list: { title: 'La lista', items: {
+          cat: ['Categoría', 'Todas, o un tipo.'],
+          status: ['{{t:board_status_label}}', 'Cualquiera, o uno.'],
+          sort: ['{{t:board_sort}}', '{{t:board_sort_top}}, {{t:board_sort_new}} o {{t:board_sort_active}}.'],
+          search: ['Buscar', 'Títulos, texto y nombres.']
+        } },
+        post: { title: 'En una publicación', items: {
+          vote: ['{{t:board_vote}}', 'Uno por persona.'],
+          link: ['{{t:board_copy_link}}', 'Comparte la publicación.'],
+          reply: ['{{t:board_reply_btn}}', 'Con sesión iniciada.']
+        } }
+      },
+      challenges: {
+        'bd.cat': ['Elige una categoría', 'Los botones encima de la lista.'],
+        'bd.sort': ['Ordena el foro de otra forma', '{{t:board_sort_new}} o {{t:board_sort_active}}.'],
+        'bd.status': ['Filtra por estado', '{{t:board_status_all}}.'],
+        'bd.search': ['Busca en el foro', '{{t:board_search}}'],
+        'bd.open': ['Abre una publicación', 'Haz clic en una.'],
+        'bd.new': ['Pulsa {{t:board_new}}', 'Arriba a la derecha.']
+      },
+      quiz: {
+        q1: ['¿Qué necesitas para publicar o votar?',
+          ['Nada', 'Iniciar sesión con Google', 'Una cuenta de Last.fm'],
+          'Cualquiera puede leer el foro; publicar, responder y votar requieren iniciar sesión.'],
+        q2: ['¿Qué te dice el estado de una publicación?',
+          ['En qué punto está la idea o el fallo: planeada, en curso, hecha…', 'Cuánta gente la leyó', 'Cuándo se publicó'],
+          'Lo pone el equipo, así ves lo que viene.'],
+        q3: ['¿Qué se muestra con tu publicación?',
+          ['Tu correo', 'Tu historial de escucha', 'Tu nombre y tu foto de perfil de Google'],
+          'Se muestran tu nombre y tu foto. Tu correo nunca.']
+      },
+      tips: [
+        'Filtra el {{t:nav_board}} por {{t:board_status_planned}} para ver lo que viene.',
+        'Ordena el {{t:nav_board}} por {{t:board_sort_active}} para encontrar dónde se está hablando ahora.',
+        '¿Tienes una idea? Publícala en el {{t:nav_board}} en {{t:board_cat_suggestion}}.'
+      ]
+    },
     settings: { title: 'Ajustes y tu cuenta', promise: 'Fuentes de datos, ajustes de rankings, temas, inicio de sesión y copias de seguridad.' }
   }
 };

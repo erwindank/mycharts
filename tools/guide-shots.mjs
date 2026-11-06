@@ -340,6 +340,116 @@ async function evView(pg, tab = 'today', { view = 'carousel', cal = 'month' } = 
   await wait(pg, 1500);
 }
 
+// The fetched Events kept in C:/tmp (above) put in place before a tab that
+// shows releases (Events, the Playlists tab's two release lists)
+async function evCacheIn(pg) {
+  if (!(fs.existsSync(EV_CACHE) && Date.now() - fs.statSync(EV_CACHE).mtimeMs < 20 * 3600e3)) return;
+  const pre = JSON.parse(fs.readFileSync(EV_CACHE, 'utf8'));
+  await pg.evaluate(pre => { if (window._gdEv) return; window._gdEv = 1; for (const [k, v] of Object.entries(pre)) localStorage.setItem(k, v); }, pre);
+}
+
+// Playlists: three made-up playlists from the demo library's songs (once per
+// browser), and the automatic playlists card as a signed-in listener sees it
+// (Weekly and Monthly on). Never presses Play: that would use YouTube searches.
+async function plView(pg, { open = null, auto = true } = {}) {
+  await d1Unfake(pg);
+  await evCacheIn(pg);
+  await pg.evaluate(() => {
+    document.querySelectorAll('.dc-pl-export-menu').forEach(m => m.remove());
+    const pick = document.getElementById('dcPlPickModal'); if (pick) pick.classList.remove('open');
+    if (_ytPlaylists['Late night drive']) return;
+    const c = {};
+    allPlays.forEach(p => { const k = p.title + '|||' + p.artist; (c[k] = c[k] || { title: p.title, artist: p.artist, album: p.album, n: 0 }).n++; });
+    const top = Object.values(c).sort((a, b) => b.n - a.n);
+    const T = a => a.map(x => ({ title: x.title, artist: x.artist, album: x.album }));
+    // oldest first, so the newest ("Late night drive") leads the Recent sort
+    _ytPlaylists['Best of 2026'] = T(top.slice(0, 40)); _ytTouchPlaylist('Best of 2026');
+    _ytPlaylists['Gym'] = T(top.slice(40, 58)); _ytTouchPlaylist('Gym');
+    _ytPlaylists['Late night drive'] = T(top.slice(10, 34)); _ytTouchPlaylist('Late night drive');
+    _ytSavePlaylists();
+  });
+  await pg.evaluate(auto => {
+    if (!window._gdApOrig) window._gdApOrig = { s: dcIsSignedIn, a: _apAllowed };
+    if (auto) {
+      dcIsSignedIn = () => true; _apAllowed = () => true;
+      apSettings = { day: { on: false }, week: { on: true, size: 20 }, month: { on: true, size: 50 }, year: { on: false } };
+    } else { dcIsSignedIn = window._gdApOrig.s; _apAllowed = window._gdApOrig.a; apSettings = null; }
+  }, auto);
+  await go(pg, 'playlists'); await wait(pg, 2500);
+  // dcPlToggleExpand toggles: only call it when the open playlist must change
+  await pg.evaluate(o => { if (_dcPlExpandedName !== o) dcPlToggleExpand(o); apRenderSetup(); window.scrollTo(0, 0); }, open);
+  await pg.waitForFunction(() => document.querySelector('#dcPlMain .plx-card, #dcPlMain .plx-hero'), null, { timeout: 30000 });
+  await wait(pg, 3500);
+}
+// Put the real sign-in check back after the Playlists shots
+async function plUnfake(pg) {
+  await pg.evaluate(() => {
+    if (!window._gdApOrig) return;
+    dcIsSignedIn = window._gdApOrig.s; _apAllowed = window._gdApOrig.a; apSettings = null;
+  });
+}
+
+// Raw Data on page 1 with every filter cleared. Once per browser, one single's
+// album is corrected the way a listener would (the edit window, "save as a
+// rule"), and two more rules are added, so the ~ badge and the rules show.
+async function rdView(pg, { corrected = false } = {}) {
+  await d1Unfake(pg); await plUnfake(pg);
+  await pg.evaluate(() => { try { closeEditScrobbleModal(); } catch (e) {} try { closeRulesModal(); } catch (e) {} });
+  await go(pg, 'rawdata'); await wait(pg, 2500);
+  await pg.evaluate(async () => {
+    if (localStorage.getItem('gd_rd_seeded')) return;
+    localStorage.setItem('gd_rd_seeded', '1');
+    // The demo has both "Panic! at the Disco" and "Panic! At The Disco": one song's spelling fixed
+    const p = allPlays.find(x => x.artist === 'Panic! at the Disco');
+    if (p) saveAutocorrectRule(p.artist, p.title, rawAlbumOf(p), 'Panic! At The Disco', p.title, rawAlbumOf(p), { skipSheetSync: true });
+    const q = allPlays.find(x => /\(feat\./i.test(x.title));
+    if (q) saveAutocorrectRule(q.artist, q.title, rawAlbumOf(q), q.artist, q.title.replace(/\s*\(feat\..*\)$/i, ''), rawAlbumOf(q), { skipSheetSync: true });
+    // as a load does: the rules rewrite the plays, then the derived keys are rebuilt
+    allPlays = applyAutocorrectRules(allPlays);
+    firstSeenMaps = null; _certTimeline = null;
+    stampPlays(allPlays);
+  });
+  await pg.evaluate(c => {
+    ['rawFilterSong', 'rawFilterArtist', 'rawFilterAlbum', 'rawFilterDate'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    const cb = document.getElementById('rawFilterCorrected'); if (cb) cb.checked = c;
+    applyRawFilters(); window.scrollTo(0, 0);
+  }, corrected);
+  await wait(pg, 2500);
+}
+
+// The Board with made-up posts (dcBoard._sample): the guide never shows real
+// people's posts or names. open: a post id to open; compose: the new-post
+// form as a signed-in listener sees it.
+const BD_DAY = 864e5;
+async function bdView(pg, { open = null, compose = false } = {}) {
+  await d1Unfake(pg); await plUnfake(pg);
+  await go(pg, 'board'); await wait(pg, 2500);
+  await pg.evaluate(({ open, compose, D }) => {
+    const now = Date.now(), P = (id, category, status, title, body, authorName, voteCount, replyCount, days, act, pinned) =>
+      ({ id, category, status, title, body, authorName, authorPhoto: '', authorUid: 'u-' + id, voteCount, votes: [], replyCount,
+        createdAt: now - days * D, lastActivity: now - act * D, pinned: !!pinned });
+    const posts = [
+      P('welcome', 'discussion', 'open', 'Welcome to the Board', 'Say hi, share what you are listening to, and tell us what you would like next.', 'dankcharts', 3, 5, 40, 2, true),
+      P('season', 'suggestion', 'planned', 'Top songs for each season', 'A summer, autumn, winter and spring chart would be fun to look back on.', 'Maya R.', 14, 3, 6, 1),
+      P('summer', 'discussion', 'open', 'What was your #1 song this summer?', 'Mine stayed at the top for nine weeks. Yours?', 'Ines', 9, 12, 9, 0.2),
+      P('history', 'question', 'done', 'How do I add my older listening history?', 'I have years of plays in a CSV file. Can I add them?', 'Leo', 6, 2, 12, 5),
+      P('art', 'bug', 'progress', 'Missing covers on a few singles', 'Some singles show initials instead of their cover.', 'Sam K.', 4, 1, 3, 1.5)
+    ];
+    const R = (id, authorName, body, days) => ({ id, authorName, authorPhoto: '', authorUid: 'r-' + id, body, createdAt: now - days * D });
+    const replies = {
+      season: [R('a', 'Ines', 'Yes please! Summer especially.', 5), R('b', 'Leo', 'Would love a share picture for it too.', 4),
+        R('c', 'dankcharts', 'On the list. Thanks for the idea!', 1)]
+    };
+    if (compose) { _currentUser = { uid: 'guide-shot', displayName: 'You', photoURL: '' }; window._gdSheet = window._gdSheet ?? null; }
+    dcBoard._sample(posts, replies);
+    dcBoard.setCat('all'); dcBoard.setStatus('all'); dcBoard.setSort('top');
+    if (open) dcBoard.toggle(open);
+    if (compose) dcBoard.compose();
+    window.scrollTo(0, 0);
+  }, { open, compose, D: BD_DAY });
+  await wait(pg, 1500);
+}
+
 // Spot finders that need more than a selector: run in the page, return an element
 const byText = (scope, sel, re) => ({ js: `[...document.querySelectorAll(${JSON.stringify(scope + ' ' + sel)})].find(e => ${re}.test(e.textContent.trim()))` });
 
@@ -1274,7 +1384,99 @@ const SHOTS = [
   { id: 'ev-info', lesson: 'events',
     setup: async pg => { await evView(pg); await pg.evaluate(() => toggleEventsStatus()); await wait(pg, 800); },
     clip: { from: '#eventsView .events-header', to: '#eventsView .events-toolbar', pad: 14 },
-    spots: { info: '#eventsInfoBtn', status: '#eventsStatus', refresh: '#eventsRefreshBtn' } }
+    spots: { info: '#eventsInfoBtn', status: '#eventsStatus', refresh: '#eventsRefreshBtn' } },
+
+  /* ── Lesson: Playlists (GUIDE-PLAN.md step 10) ──────────────────────
+     Three made-up playlists; automatic playlists as when signed in. */
+  { id: 'pl-top', lesson: 'playlists', phone: true,
+    setup: async pg => { await plView(pg); },
+    clip: { from: '#dcPlMain .dc-pl-page-header', to: '#apSetup', pad: 14, maxH: 1750 },
+    spots: { title: '#dcPlMain .dc-pl-page-header', total: '#dcPlMain .plx-total', search: '#dcPlMain .plx-search', sort: '#dcPlMain .plx-sort',
+      new: '#dcPlMain .plx-new', name: '#dcPlNewName', card: '#dcPlMain .plx-card', cover: '#dcPlMain .plx-cover',
+      meta: '#dcPlMain .plx-card-meta', ap: '#apSetup', tile: '#apSetup .ap-tile.ap-row-on', sw: '#apSetup .ap-tile.ap-row-on .src-switch',
+      size: '#apSetup .ap-tile.ap-row-on .ap-size' } },
+  { id: 'pl-open', lesson: 'playlists', phone: true,
+    setup: async pg => { await plView(pg, { open: 'Late night drive' }); },
+    clip: { from: '#dcPlMain .plx-back', to: { js: "document.querySelectorAll('#dcPlMain .plx-track')[5]" }, pad: 14 },
+    spots: { back: '#dcPlMain .plx-back', hero: '#dcPlMain .plx-hero', cover: '#dcPlMain .plx-hero-cover', name: '#dcPlMain .plx-hero-name',
+      meta: '#dcPlMain .plx-hero-meta', play: '#dcPlMain .plx-play', shuffle: '#dcPlMain .plx-shuffle',
+      export: '#dcPlMain [onclick*="dcPlExportMenu"]', rename: '#dcPlMain [onclick*="dcPlStartRename"]', del: '#dcPlMain [onclick*="dcPlDeleteFromView"]',
+      track: '#dcPlMain .plx-track', drag: '#dcPlMain .dc-pl-drag-handle', acts: '#dcPlMain .dc-pl-track-actions',
+      remove: '#dcPlMain [onclick*="dcPlRemoveTrack"]' } },
+  { id: 'pl-export', lesson: 'playlists',
+    setup: async pg => { await plView(pg, { open: 'Late night drive' });
+      await pg.evaluate(() => document.querySelector('#dcPlMain [onclick*="dcPlExportMenu"]').click());
+      await pg.waitForFunction(() => document.querySelector('.dc-pl-export-menu'), null, { timeout: 10000 }); await wait(pg, 800); },
+    clip: { from: '#dcPlMain .plx-hero', to: '.dc-pl-export-menu', pad: 14 },
+    spots: { menu: '.dc-pl-export-menu', item: '.dc-pl-export-menu .dc-pl-export-item', btn: '#dcPlMain [onclick*="dcPlExportMenu"]' } },
+  // Adding to a playlist from anywhere: the picker (here for an album)
+  { id: 'pl-pick', lesson: 'playlists',
+    setup: async pg => { await plView(pg);
+      await pg.evaluate(() => {
+        const a = allPlays.find(p => p.album === 'The Life of a Showgirl') || allPlays[0];
+        dcOpenPlaylistPicker(dcPlTracksFor('album', a.album, albumArtist(a), a.album), a.album, a.album);
+      });
+      await wait(pg, 1500); },
+    clip: { from: '#dcPlPickModal .dc-modal', to: '#dcPlPickModal .dc-modal', pad: 10, narrow: true },
+    spots: { sub: '#dcPlPickSub', list: '#dcPlPickModal .dc-plpick-list', item: '#dcPlPickModal .dc-plpick-list > *',
+      new: '#dcPlPickModal .dc-plpick-new', text: '#dcPlPickModal .dc-plpick-text' } },
+  { id: 'pl-rel', lesson: 'playlists',
+    setup: async pg => { await plView(pg);
+      await pg.waitForFunction(() => document.querySelector('#anniversariesGrid > *'), null, { timeout: 480000 }); await wait(pg, 2500); },
+    clip: { from: '#anniversariesSection', to: '#eventsRecentSection', pad: 14, maxH: 1300 },
+    spots: { anniv: '#anniversariesSection .dc-pl-part-head', annpl: '#anniversariesPlBtn', card: '#anniversariesGrid > *',
+      recent: '#eventsRecentSection .dc-pl-part-head', recpl: '#eventsRecentPlBtn' } },
+
+  /* ── Lesson: Board (GUIDE-PLAN.md step 10) ──────────────────────────
+     Made-up posts only (dcBoard._sample). */
+  { id: 'bd-top', lesson: 'board', phone: true,
+    setup: async pg => { await bdView(pg); },
+    clip: { from: '#boardView .bd-page-header', to: '#boardView .bd-list', pad: 14, maxH: 1750 },
+    spots: { title: '#boardView .bd-page-header', signin: '#boardView .bd-signin', chips: '#boardView .bd-chips',
+      chip: { js: "document.querySelectorAll('#boardView .bd-chip')[1]" }, search: '#boardView .bd-search', status: '#boardView .bd-select',
+      sort: '#boardView .bd-seg', newbtn: '#boardView .bd-new-btn', pinned: '#boardView .bd-post.pinned',
+      post: { js: "document.querySelectorAll('#boardView .bd-post')[1]" }, vote: { js: "document.querySelectorAll('#boardView .bd-vote')[1]" },
+      cat: { js: "document.querySelectorAll('#boardView .bd-post')[1].querySelector('.bd-tag-cat')" },
+      st: { js: "document.querySelectorAll('#boardView .bd-post')[1].querySelector('.bd-status')" },
+      meta: { js: "document.querySelectorAll('#boardView .bd-post')[1].querySelector('.bd-meta')" } } },
+  { id: 'bd-post', lesson: 'board',
+    setup: async pg => { await bdView(pg, { open: 'season' }); },
+    clip: { from: '#boardView .bd-post.open', to: '#boardView .bd-post.open', pad: 14 },
+    spots: { title: '#boardView .bd-post.open .bd-post-title', body: '#boardView .bd-post.open .bd-post-body', actions: '#boardView .bd-post.open .bd-actions',
+      replies: '#boardView .bd-post.open .bd-reply-list', reply: '#boardView .bd-post.open .bd-reply',
+      form: '#boardView .bd-post.open .bd-reply-form, #boardView .bd-post.open .bd-signin-sm', vote: '#boardView .bd-post.open .bd-vote' } },
+  { id: 'bd-new', lesson: 'board',
+    setup: async pg => { await bdView(pg, { compose: true }); },
+    clip: { from: '#boardView .bd-composer', to: '#boardView .bd-composer', pad: 14 },
+    spots: { cats: '#boardView .bd-cat-pick', title: '#bdNewTitle', body: '#boardView .bd-composer .bd-textarea',
+      foot: '#boardView .bd-composer-foot' } },
+
+  /* ── Lesson: Raw Data (GUIDE-PLAN.md step 10) ───────────────────────
+     Last: its correction rules rewrite a couple of demo plays for the rest of
+     the run. */
+  { id: 'rd-top', lesson: 'rawdata', phone: true,
+    setup: async pg => { await rdView(pg); },
+    clip: { from: '#rawDataView .raw-header', to: { js: "document.querySelectorAll('#rawBody tr')[9]" }, pad: 14 },
+    spots: { title: '#rawDataView .raw-header', song: '#rawFilterSong', artist: '#rawFilterArtist', album: '#rawFilterAlbum', date: '#rawFilterDate',
+      summary: '#rawSummary', corr: '#rawDataView .raw-corrected-toggle', rules: '#manageRulesBtn',
+      pager: '#rawPagerTop .raw-pager-nav', size: '#rawPagerTop .raw-pager-size', th: '#rawDataView .raw-th.sort-active',
+      row: '#rawBody tr', edit: '#rawBody .raw-edit-btn' } },
+  { id: 'rd-corr', lesson: 'rawdata',
+    setup: async pg => { await rdView(pg, { corrected: true }); },
+    clip: { from: '#rawDataView .raw-bar', to: { js: "[...document.querySelectorAll('#rawBody tr')].slice(0, 6).pop()" }, pad: 14 },
+    spots: { corr: '#rawDataView .raw-corrected-toggle', row: '#rawBody tr.raw-corrected', badge: '#rawBody .raw-corrected-badge' } },
+  { id: 'rd-edit', lesson: 'rawdata',
+    setup: async pg => { await rdView(pg); await pg.evaluate(() => openEditScrobbleModal(2)); await wait(pg, 1200); },
+    clip: { from: '#editScrobbleModal .dc-modal', to: '#editScrobbleModal .dc-modal', pad: 10, narrow: true },
+    spots: { artist: '#editScrobbleArtist', track: '#editScrobbleTrack', album: '#editScrobbleAlbum', time: '#editScrobbleTime',
+      now: '#editScrobbleModal [onclick*="setEditScrobbleNow"]', all: { js: "document.getElementById('editApplyAll').closest('label')" },
+      rule: { js: "document.getElementById('editSaveRule').closest('label')" }, save: '#editSaveLocalBtn',
+      cancel: '#editScrobbleModal .dc-btn[onclick*="closeEditScrobbleModal"]:not(.dc-modal-close)' } },
+  { id: 'rd-rules', lesson: 'rawdata',
+    setup: async pg => { await rdView(pg); await pg.evaluate(() => openRulesModal()); await wait(pg, 1200); },
+    clip: { from: '#rulesModal .dc-modal', to: '#rulesModal .dc-modal', pad: 10, narrow: true },
+    spots: { count: '#rulesCount', search: '#rulesSearch', list: '#rulesList', rule: '#rulesList > *',
+      export: '#rulesModal [onclick*="exportRules"]', import: '#rulesModal [onclick*="importRules"]' } }
 ];
 
 /* ── Measuring + capture ────────────────────────────────────────── */

@@ -54,6 +54,9 @@
     busy: {}            // in-flight keys so a double click can't double-write
   };
   var _unsubPosts = null, _unsubReplies = null, _repliesFor = null;
+  // True once the Charts Guide's picture tool has put made-up posts in
+  // (dcBoard._sample): the live lists then stay unsubscribed until a reload.
+  var _sampleOn = false;
   var _active = false;  // board tab on screen
 
   try {
@@ -138,7 +141,7 @@
 
   // ── Live data ──────────────────────────────────────────────────────────────
   function subscribePosts() {
-    if (_unsubPosts) return;
+    if (_unsubPosts || _sampleOn) return;
     db().then(function (d) {
       if (!_active || _unsubPosts) return;
       _unsubPosts = d.collection('boardPosts').orderBy('createdAt', 'desc').limit(POST_LIMIT)
@@ -162,6 +165,7 @@
   }
 
   function subscribeReplies(id) {
+    if (_sampleOn) return;
     if (_repliesFor === id && _unsubReplies) return;
     unsubscribeReplies();
     _repliesFor = id;
@@ -680,6 +684,18 @@
     // Redraw with the current data, e.g. after the language changes so the
     // labels and "3 days ago" dates switch over.
     rerender: function () { render(); },
+    // For tools/guide-shots.mjs only: the guide's pictures show made-up posts
+    // and replies, never real people's. Swaps the live list for these until
+    // the page reloads. posts: the same fields as a boardPosts doc (times in
+    // ms); replies: postId -> [reply].
+    _sample: function (posts, replies) {
+      _sampleOn = true;
+      if (_unsubPosts) { _unsubPosts(); _unsubPosts = null; }
+      unsubscribeReplies();
+      S.posts = posts || []; S.replies = replies || {};
+      S.loaded = true; S.error = null;
+      render();
+    },
 
     setCat: function (c) { S.cat = c; savePrefs(); render(); },
     setStatus: function (s) { S.status = s; savePrefs(); render(); },

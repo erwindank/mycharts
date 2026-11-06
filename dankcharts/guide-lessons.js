@@ -815,9 +815,112 @@ window.GL = {
       quiz: [ { id: 'q1', answer: 0 }, { id: 'q2', answer: 1 }, { id: 'q3', answer: 1 } ],
       tips: [ ['ev-today', 'tm', 'ev.tm'], ['ev-cal', 'num', 'ev.day'], ['ev-coming', 'views', 'ev.view'], ['ev-today', 'types', 'ev.type'] ]
     },
-    { id: 'playlists', area: 'more', nav: 'playlists', soon: true },
-    { id: 'rawdata', area: 'more', nav: 'rawdata', soon: true },
-    { id: 'board', area: 'more', nav: 'board', soon: true },
+    /* ── Lesson 14: Playlists (yours, automatic ones, and releases) ── */
+    { id: 'playlists', area: 'more', nav: 'playlists', mins: 5, cover: 'pl-top',
+      scenes: [
+        { id: 'top', shot: 'pl-top', phone: true,
+          spots: ['title', 'total', 'search', 'sort', 'new', 'name', 'card', 'cover', 'meta', 'ap', 'tile', 'sw', 'size'] },
+        { id: 'open', shot: 'pl-open', phone: true,
+          spots: ['back', 'hero', 'cover', 'name', 'meta', 'play', 'shuffle', 'export', 'rename', 'del', 'track', 'drag', 'acts', 'remove'] },
+        { id: 'export', shot: 'pl-export', spots: ['btn', 'menu', 'item'] },
+        // What "Add to playlist" opens, from anywhere in the app
+        { id: 'pick', shot: 'pl-pick', spots: ['sub', 'new', 'text', 'list', 'item'] },
+        { id: 'rel', shot: 'pl-rel', spots: ['anniv', 'annpl', 'card', 'recent', 'recpl'] }
+      ],
+      howto: [
+        { id: 'make', challenge: 'pl.add', slides: [
+          { shot: 'pl-pick', spot: 'sub' }, { shot: 'pl-pick', spot: 'new' }, { shot: 'pl-pick', spot: 'item' },
+          { shot: 'pl-top', spot: 'new' }, { shot: 'pl-rel', spot: 'annpl' } ] },
+        { id: 'use', challenge: 'pl.open', slides: [
+          { shot: 'pl-top', spot: 'card' }, { shot: 'pl-open', spot: 'play' }, { shot: 'pl-open', spot: 'drag' },
+          { shot: 'pl-open', spot: 'remove' }, { shot: 'pl-open', spot: 'rename' } ] },
+        { id: 'take', challenge: 'pl.export', slides: [
+          { shot: 'pl-open', spot: 'export' }, { shot: 'pl-export', spot: 'item' }, { shot: 'pl-pick', spot: 'text' } ] },
+        { id: 'auto', challenge: 'pl.auto', slides: [
+          { shot: 'pl-top', spot: 'ap' }, { shot: 'pl-top', spot: 'sw' }, { shot: 'pl-top', spot: 'size' }, { shot: 'pl-top', spot: 'tile' } ] }
+      ],
+      options: [
+        { id: 'list', items: [
+          { id: 'sort', shot: 'pl-top', spot: 'sort', def: '{{t:pl_x_sort_recent}}' }, { id: 'search', shot: 'pl-top', spot: 'search' },
+          { id: 'new', shot: 'pl-top', spot: 'new' } ] },
+        { id: 'one', items: [
+          { id: 'play', shot: 'pl-open', spot: 'play' }, { id: 'shuffle', shot: 'pl-open', spot: 'shuffle' },
+          { id: 'export', shot: 'pl-open', spot: 'export' }, { id: 'rename', shot: 'pl-open', spot: 'rename' },
+          { id: 'del', shot: 'pl-open', spot: 'del' }, { id: 'drag', shot: 'pl-open', spot: 'drag' } ] },
+        { id: 'auto', items: [
+          { id: 'types', shot: 'pl-top', spot: 'tile', def: 'off' }, { id: 'size', shot: 'pl-top', spot: 'size' } ] }
+      ],
+      challenges: ['pl.open', 'pl.sort', 'pl.search', 'pl.play', 'pl.add', 'pl.export', 'pl.auto'],
+      quiz: [ { id: 'q1', answer: 2 }, { id: 'q2', answer: 0 }, { id: 'q3', answer: 1 } ],
+      tips: [ ['pl-pick', 'item', 'pl.add'], ['pl-top', 'ap', 'pl.auto'], ['pl-export', 'item', 'pl.export'], ['pl-open', 'drag', 'pl.open'] ]
+    },
+    /* ── Lesson 15: Raw Data (every play, corrections, rules) ── */
+    { id: 'rawdata', area: 'more', nav: 'rawdata', mins: 5, cover: 'rd-top',
+      scenes: [
+        { id: 'top', shot: 'rd-top', phone: true,
+          spots: ['title', 'song', 'artist', 'album', 'date', 'summary', 'corr', 'rules', 'pager', 'size', 'th', 'row', 'edit'] },
+        { id: 'edit', shot: 'rd-edit', spots: ['artist', 'track', 'album', 'time', 'now', 'all', 'rule', 'save', 'cancel'] },
+        { id: 'corr', shot: 'rd-corr', spots: ['corr', 'row', 'badge'] },
+        { id: 'rules', shot: 'rd-rules', spots: ['count', 'search', 'list', 'rule', 'export', 'import'] }
+      ],
+      howto: [
+        { id: 'find', challenge: 'rd.filter', slides: [
+          { shot: 'rd-top', spot: 'song' }, { shot: 'rd-top', spot: 'date' }, { shot: 'rd-top', spot: 'summary' },
+          { shot: 'rd-top', spot: 'th' }, { shot: 'rd-top', spot: 'pager' } ] },
+        { id: 'fix', challenge: 'rd.edit', slides: [
+          { shot: 'rd-top', spot: 'edit' }, { shot: 'rd-edit', spot: 'artist' }, { shot: 'rd-edit', spot: 'all' },
+          { shot: 'rd-edit', spot: 'rule' }, { shot: 'rd-edit', spot: 'save' }, { shot: 'rd-corr', spot: 'badge' } ] },
+        { id: 'rules', challenge: 'rd.rules', slides: [
+          { shot: 'rd-top', spot: 'rules' }, { shot: 'rd-rules', spot: 'rule' }, { shot: 'rd-rules', spot: 'search' },
+          { shot: 'rd-rules', spot: 'export' }, { shot: 'rd-rules', spot: 'import' } ] }
+      ],
+      options: [
+        { id: 'table', items: [
+          { id: 'filters', shot: 'rd-top', spot: 'song' }, { id: 'date', shot: 'rd-top', spot: 'date' },
+          { id: 'corr', shot: 'rd-top', spot: 'corr', def: 'off' }, { id: 'size', shot: 'rd-top', spot: 'size', def: '200' },
+          { id: 'sort', shot: 'rd-top', spot: 'th', def: '{{t:raw_th_date_time}}' } ] },
+        { id: 'edit', items: [
+          { id: 'all', shot: 'rd-edit', spot: 'all', def: 'off' }, { id: 'rule', shot: 'rd-edit', spot: 'rule', def: 'off' },
+          { id: 'save', shot: 'rd-edit', spot: 'save' } ] },
+        { id: 'rules', items: [
+          { id: 'export', shot: 'rd-rules', spot: 'export' }, { id: 'import', shot: 'rd-rules', spot: 'import' } ] }
+      ],
+      challenges: ['rd.filter', 'rd.sort', 'rd.page', 'rd.size', 'rd.corr', 'rd.edit', 'rd.rules'],
+      quiz: [ { id: 'q1', answer: 1 }, { id: 'q2', answer: 2 }, { id: 'q3', answer: 0 } ],
+      tips: [ ['rd-top', 'date', 'rd.filter'], ['rd-edit', 'rule', 'rd.edit'], ['rd-rules', 'export', 'rd.rules'], ['rd-corr', 'badge', 'rd.corr'] ]
+    },
+    /* ── Lesson 16: Board (suggestions, bugs, questions, talk) ── */
+    { id: 'board', area: 'more', nav: 'board', mins: 4, cover: 'bd-top',
+      scenes: [
+        { id: 'top', shot: 'bd-top', phone: true,
+          spots: ['title', 'signin', 'chips', 'chip', 'search', 'status', 'sort', 'newbtn', 'pinned', 'post', 'vote', 'cat', 'st', 'meta'] },
+        { id: 'post', shot: 'bd-post', spots: ['vote', 'title', 'body', 'actions', 'replies', 'reply', 'form'] },
+        // Pictured as a signed-in listener
+        { id: 'new', shot: 'bd-new', spots: ['cats', 'title', 'body', 'foot'] }
+      ],
+      howto: [
+        { id: 'read', challenge: 'bd.open', slides: [
+          { shot: 'bd-top', spot: 'chips' }, { shot: 'bd-top', spot: 'sort' }, { shot: 'bd-top', spot: 'post' },
+          { shot: 'bd-post', spot: 'replies' } ] },
+        { id: 'post', challenge: 'bd.new', slides: [
+          { shot: 'bd-top', spot: 'signin' }, { shot: 'bd-top', spot: 'newbtn' }, { shot: 'bd-new', spot: 'cats' },
+          { shot: 'bd-new', spot: 'title' }, { shot: 'bd-new', spot: 'foot' } ] },
+        { id: 'follow', challenge: 'bd.status', slides: [
+          { shot: 'bd-top', spot: 'vote' }, { shot: 'bd-top', spot: 'st' }, { shot: 'bd-top', spot: 'status' },
+          { shot: 'bd-post', spot: 'form' } ] }
+      ],
+      options: [
+        { id: 'list', items: [
+          { id: 'cat', shot: 'bd-top', spot: 'chips', def: '{{t:board_cat_all}}' }, { id: 'status', shot: 'bd-top', spot: 'status', def: '{{t:board_status_all}}' },
+          { id: 'sort', shot: 'bd-top', spot: 'sort', def: '{{t:board_sort_top}}' }, { id: 'search', shot: 'bd-top', spot: 'search' } ] },
+        { id: 'post', items: [
+          { id: 'vote', shot: 'bd-top', spot: 'vote' }, { id: 'link', shot: 'bd-post', spot: 'actions' },
+          { id: 'reply', shot: 'bd-post', spot: 'form' } ] }
+      ],
+      challenges: ['bd.cat', 'bd.sort', 'bd.status', 'bd.search', 'bd.open', 'bd.new'],
+      quiz: [ { id: 'q1', answer: 1 }, { id: 'q2', answer: 0 }, { id: 'q3', answer: 2 } ],
+      tips: [ ['bd-top', 'status', 'bd.status'], ['bd-top', 'sort', 'bd.sort'], ['bd-new', 'cats', 'bd.new'] ]
+    },
     { id: 'settings', area: 'setup', nav: null, soon: true }
   ]
 };
@@ -3459,9 +3562,342 @@ window.GL_TEXT.en = {
         'Not into birthdays? Tap {{t:ev_type_birthdays}} to hide them everywhere.'
       ]
     },
-    playlists: { title: 'Playlists', promise: 'Save charts as playlists, and let them build themselves.' },
-    rawdata: { title: 'Raw Data', promise: 'Every play: search it, fix it, export it.' },
-    board: { title: 'The Board', promise: 'Suggest ideas, report bugs and vote.' },
+    playlists: {
+      title: '{{t:nav_playlists}}',
+      promise: 'Make playlists from anything you see, let your charts make some by themselves, and take them to your music app.',
+      scenes: {
+        top: { title: 'Your playlists', spots: {
+          title: ['{{t:nav_playlists}}', 'Every playlist you made, kept in this browser (and in your account when signed in).'],
+          total: ['In all', 'How many playlists and songs.'],
+          search: ['{{t:pl_x_search_ph}}', 'By the playlist’s name or an artist in it.'],
+          sort: ['{{t:pl_x_sort_recent}} / {{t:pl_x_sort_name}} / {{t:pl_x_sort_size}}', 'The order of the cards.'],
+          new: ['{{t:pl_x_new_title}}', 'What’s in the music player right now, saved as a playlist.'],
+          name: ['Name', 'Type a name, then save.'],
+          card: ['A playlist', 'Click it to open it.'],
+          cover: ['Cover', 'Four of its covers. The play button on it starts it.'],
+          meta: ['About it', 'Its songs, when it changed, and its artists.'],
+          ap: ['{{t:ap_setup_title}}', 'Playlists your charts make by themselves (signed in).'],
+          tile: ['A chart', '{{t:ap_row_day}}, {{t:ap_row_week}}, {{t:ap_row_month}} or {{t:ap_row_year}}.'],
+          sw: ['On / off', 'Every time one of its periods ends, its top songs become a playlist.'],
+          size: ['{{t:ap_size}}', 'How many songs: 10, 20, 40, 50 or 100.']
+        } },
+        open: { title: 'One playlist', spots: {
+          back: ['{{t:pl_x_back}}', 'Back to the cards.'],
+          hero: ['The playlist', 'Its name, artists and songs.'],
+          cover: ['Cover', 'Made from its songs’ covers.'],
+          name: ['Name', 'What you called it.'],
+          meta: ['About it', 'Songs, artists and when it last changed.'],
+          play: ['{{t:pl_x_play}}', 'Plays it from the top in the music player.'],
+          shuffle: ['{{t:pl_x_shuffle}}', 'Plays it in a random order.'],
+          export: ['{{t:pl_view_export}}', 'Saves it as a file for your music app.'],
+          rename: ['{{t:pl_view_rename}}', 'Give it a new name.'],
+          del: ['{{t:pl_view_delete}}', 'Asks first.'],
+          track: ['A song', 'Click it to play from here.'],
+          drag: ['{{t:pl_view_drag}}', 'Grab a song by its number to move it.'],
+          acts: ['Listen', 'Play, Spotify, YouTube, or add it to the queue.'],
+          remove: ['{{t:pl_view_remove}}', 'Takes it out of this playlist.']
+        } },
+        export: { title: '{{t:pl_export_playlist}}', spots: {
+          btn: ['{{t:pl_view_export}}', 'Opens the choices.'],
+          menu: ['Choices', 'A file for your music app, two ways.'],
+          item: ['{{t:pl_export_csv}}', 'For an import tool such as Soundiiz. Or a plain text file.']
+        } },
+        pick: { title: '{{t:pl_pick_title}}', spots: {
+          sub: ['What you’re adding', 'A song, an album, an artist’s songs, a whole chart…'],
+          new: ['{{t:pl_pick_new}}', 'Starts a new playlist with them.'],
+          text: ['{{t:pl_pick_text}}', '{{t:pl_pick_text_hint}}.'],
+          list: ['Your playlists', 'Pick one to add to.'],
+          item: ['A playlist', 'The number is how many songs are new to it; ones already there are skipped.']
+        } },
+        rel: { title: 'Releases', spots: {
+          anniv: ['{{t:ev_cal_anniversaries}}', 'Albums from your top artists with a birthday in the next 30 days.'],
+          annpl: ['{{t:pl_section_btn}}', 'All of them as a playlist.'],
+          card: ['A release', 'Click it for options.'],
+          recent: ['{{t:ev_sec_recent_releases}}', 'Releases from your top artists in the past six months.'],
+          recpl: ['{{t:pl_section_btn}}', 'All of them as a playlist.']
+        } }
+      },
+      howto: {
+        make: { title: 'Make a playlist', slides: [
+          'Press {{t:pl_section_btn}} or {{t:ea_add_playlist}} on anything: a song, an album, a whole chart.',
+          '{{t:pl_pick_new}}…',
+          '…or add to one you have.',
+          'Or save what’s playing.',
+          'Whole lists have a {{t:pl_section_btn}} button too.'
+        ] },
+        use: { title: 'Play and tidy it', slides: [
+          'Open a playlist.',
+          '{{t:pl_x_play}} or {{t:pl_x_shuffle}}.',
+          'Drag songs into a new order.',
+          'Take one out.',
+          'Rename it.'
+        ] },
+        take: { title: 'Take it to your music app', slides: [
+          'Press {{t:pl_view_export}}.',
+          'Download a file for an import tool.',
+          'Or copy the list as text.'
+        ] },
+        auto: { title: 'Automatic playlists', slides: [
+          'Sign in, then look under your playlists.',
+          'Turn on a chart.',
+          'Choose how many songs.',
+          'When its period ends, the playlist appears, and a notification tells you.'
+        ] }
+      },
+      options: {
+        list: { title: 'Your playlists', items: {
+          sort: ['Order', '{{t:pl_x_sort_recent}}, {{t:pl_x_sort_name}} or {{t:pl_x_sort_size}}.'],
+          search: ['Search', 'By name or artist.'],
+          new: ['{{t:pl_x_new_title}}', 'The player’s queue as a playlist.']
+        } },
+        one: { title: 'One playlist', items: {
+          play: ['{{t:pl_x_play}}', 'From the top.'],
+          shuffle: ['{{t:pl_x_shuffle}}', 'In a random order.'],
+          export: ['{{t:pl_view_export}}', 'A CSV or a text file.'],
+          rename: ['{{t:pl_view_rename}}', 'A new name.'],
+          del: ['{{t:pl_view_delete}}', 'Gone for good, after you confirm.'],
+          drag: ['{{t:pl_view_drag}}', 'Change the order.']
+        } },
+        auto: { title: '{{t:ap_setup_title}}', items: {
+          types: ['Charts', 'Daily, weekly, monthly, yearly. Each one on or off.'],
+          size: ['{{t:ap_size}}', '10 to 100.']
+        } }
+      },
+      challenges: {
+        'pl.open': ['Open a playlist', 'Click a card.'],
+        'pl.sort': ['Change the order of your playlists', 'Next to the search box.'],
+        'pl.search': ['Search your playlists', '{{t:pl_x_search_ph}}.'],
+        'pl.play': ['Play a playlist', '{{t:pl_x_play}} or {{t:pl_x_shuffle}}.'],
+        'pl.add': ['Add something to a playlist', 'From a song’s ⋮ menu, or any {{t:pl_section_btn}} button.'],
+        'pl.export': ['Open {{t:pl_view_export}}', 'In an open playlist.'],
+        'pl.auto': ['Turn on an automatic playlist', 'Under your playlists (signed in).']
+      },
+      quiz: {
+        q1: ['Where can you add songs to a playlist from?',
+          ['Only from this tab', 'Only from the player', 'Almost anywhere: a song, an album, a chart, a list'],
+          'Look for {{t:ea_add_playlist}} or {{t:pl_section_btn}}: on rows, windows, charts and lists.'],
+        q2: ['What does an automatic weekly playlist hold?',
+          ['The week’s top songs, made when the week ends', 'Songs you added this week', 'New releases this week'],
+          'Every finished week, its top songs (as many as you chose) become a playlist.'],
+        q3: ['How do you get a playlist into Spotify or Apple Music?',
+          ['It syncs by itself', 'Export it and load the file with an import tool', 'Email it'],
+          'Export a CSV (or copy it as text), then load it with an import tool such as Soundiiz.']
+      },
+      tips: [
+        'The playlist window shows how many songs are new to each playlist. Ones already in it are skipped.',
+        'Turn on {{t:ap_row_week}} under {{t:ap_setup_title}} and every week’s top songs become a playlist.',
+        'Export a playlist as a CSV and an import tool can put it in Spotify or Apple Music.',
+        'Drag a song by its number to move it up or down a playlist.'
+      ]
+    },
+    rawdata: {
+      title: '{{t:nav_rawdata}}',
+      promise: 'Every play in your library, one row each: find any of them, fix a wrong name, and make the fix stick with rules.',
+      scenes: {
+        top: { title: 'Every play', spots: {
+          title: ['{{t:sec_raw_data_title}}', 'Your whole library, newest first.'],
+          song: ['Song', 'Type part of a title.'],
+          artist: ['Artist', 'Type part of a name.'],
+          album: ['Album', 'Type part of an album.'],
+          date: ['Date', 'Any part of the date as the table shows it: “Mar 2024”, “2023”.'],
+          summary: ['How many', 'All plays, or how many match.'],
+          corr: ['{{t:raw_corrected_only}}', 'Only plays a rule or an edit changed.'],
+          rules: ['{{t:modal_rules_open_btn}}', 'Every rule you have saved.'],
+          pager: ['Pages', 'First, back, a page number, next, last.'],
+          size: ['{{t:raw_rows_per_page}}', '50, 100, 200 or 500.'],
+          th: ['Sort', 'Click any heading to sort by it; again to turn it round.'],
+          row: ['A play', 'When, what, who and from which album.'],
+          edit: ['Edit', 'Fix this play.']
+        } },
+        edit: { title: '{{t:modal_edit_title}}', spots: {
+          artist: ['{{t:modal_label_artist}}', 'With suggestions from your library as you type.'],
+          track: ['{{t:modal_label_track}}', 'The song’s title.'],
+          album: ['{{t:modal_label_album}}', 'Can be left empty.'],
+          time: ['{{t:modal_label_datetime}}', 'When it was played.'],
+          now: ['{{t:modal_now_btn}}', 'Sets it to this minute.'],
+          all: ['Every match', '{{t:modal_edit_apply_all}}.'],
+          rule: ['Remember it', '{{t:modal_edit_save_rule}}.'],
+          save: ['{{t:modal_save_locally}}', 'Changes it here. With Last.fm or a Google Sheet, another button sends it there too.'],
+          cancel: ['Cancel', 'Nothing changes.']
+        } },
+        corr: { title: '{{t:raw_corrected_only}}', spots: {
+          corr: ['{{t:raw_corrected_only}}', 'Turned on.'],
+          row: ['A corrected play', 'A thin line on the left.'],
+          badge: ['~', 'Hover it to see what it was before.']
+        } },
+        rules: { title: '{{t:modal_rules_title}}', spots: {
+          count: ['How many', 'Your saved rules.'],
+          search: ['Search', 'Find a rule by any name in it.'],
+          list: ['The rules', 'Each one: what it finds, and what it turns it into.'],
+          rule: ['A rule', 'Applied every time your plays load, from any source. Delete it here.'],
+          export: ['{{t:modal_rules_export}}', 'Saves them to a file.'],
+          import: ['{{t:modal_rules_import}}', 'Loads a file of rules.']
+        } }
+      },
+      howto: {
+        find: { title: 'Find any play', slides: [
+          'Type part of a song, artist or album.',
+          'Or a date: a day, a month, a year.',
+          'How many match.',
+          'Sort by any column.',
+          'Go through the pages.'
+        ] },
+        fix: { title: 'Fix a wrong name', slides: [
+          'Press Edit on the play.',
+          'Correct the name.',
+          'Fix every play like it at once…',
+          '…and save it as a rule, so future imports get it right too.',
+          '{{t:modal_save_locally}}.',
+          'The play now has a ~.'
+        ] },
+        rules: { title: 'Look after your rules', slides: [
+          'Open {{t:modal_rules_open_btn}}.',
+          'Each rule and what it does.',
+          'Find one.',
+          'Save them all to a file…',
+          '…and load them on another device.'
+        ] }
+      },
+      options: {
+        table: { title: 'The table', items: {
+          filters: ['Song / artist / album', 'Type to filter.'],
+          date: ['Date', 'A day, a month or a year.'],
+          corr: ['{{t:raw_corrected_only}}', 'Just the changed plays.'],
+          size: ['{{t:raw_rows_per_page}}', '50, 100, 200, 500.'],
+          sort: ['Sort', 'Any column, either way.']
+        } },
+        edit: { title: '{{t:modal_edit_title}}', items: {
+          all: ['Every match', 'Same song, artist and album.'],
+          rule: ['Save as a rule', 'For future imports.'],
+          save: ['{{t:modal_save_locally}}', 'Or {{t:modal_push_lfm}} / {{t:modal_push_sheet}} when connected.']
+        } },
+        rules: { title: '{{t:modal_rules_title}}', items: {
+          export: ['{{t:modal_rules_export}}', 'A backup of your rules.'],
+          import: ['{{t:modal_rules_import}}', 'Bring them back.']
+        } }
+      },
+      challenges: {
+        'rd.filter': ['Search the table', 'Song, artist, album or date.'],
+        'rd.sort': ['Sort by a column', 'Click a heading.'],
+        'rd.page': ['Go to another page', 'Above or below the table.'],
+        'rd.size': ['Change {{t:raw_rows_per_page}}', 'Above the table.'],
+        'rd.corr': ['Show only corrected plays', '{{t:raw_corrected_only}}.'],
+        'rd.edit': ['Open a play to edit it', 'The pencil at the end of a row.'],
+        'rd.rules': ['Open {{t:modal_rules_title}}', 'Above the table.']
+      },
+      quiz: {
+        q1: ['A song is spelled two ways in your library. What fixes it for good?',
+          ['Editing one play', 'Editing it with “every match” and “save as a rule” ticked', 'Deleting the song'],
+          'Every match fixes the plays you have; the rule fixes new ones as they come in.'],
+        q2: ['How do you find everything you played in March 2024?',
+          ['Sort by artist', 'Type “2024” in the song box', 'Type “Mar 2024” in the date box'],
+          'The date box takes a day, a month or a year.'],
+        q3: ['What does the ~ next to a row mean?',
+          ['A rule or an edit changed that play', 'It was played twice', 'It’s a live version'],
+          'Hover it to see the name it had before.']
+      },
+      tips: [
+        'Type a month, like “Mar 2024”, in Raw Data’s date box to see every play from then.',
+        'Tick “save as a rule” when you fix a name, and future imports come in right.',
+        'Back up your correction rules with {{t:modal_rules_export}}.',
+        'Turn on {{t:raw_corrected_only}} to see everything a rule has changed.'
+      ]
+    },
+    board: {
+      title: '{{t:nav_board}}',
+      promise: 'Suggest features, report bugs, ask questions and talk music with other listeners, and see what’s planned.',
+      scenes: {
+        top: { title: 'The board', spots: {
+          title: ['{{t:board_title}}', 'One board for everyone who uses dankcharts.'],
+          signin: ['Sign in', 'Anyone can read; signing in lets you post, reply and vote.'],
+          chips: ['Categories', '{{t:board_cat_suggestion}}, {{t:board_cat_bug}}, {{t:board_cat_question}} and {{t:board_cat_discussion}}, with how many posts each.'],
+          chip: ['One category', 'Tap it to see only those.'],
+          search: ['Search', '{{t:board_search}}'],
+          status: ['{{t:board_status_label}}', '{{t:board_status_open}}, {{t:board_status_planned}}, {{t:board_status_progress}}, {{t:board_status_done}} or {{t:board_status_declined}}.'],
+          sort: ['{{t:board_sort_top}} / {{t:board_sort_new}} / {{t:board_sort_active}}', 'Most votes, newest, or latest reply.'],
+          newbtn: ['{{t:board_new}}', 'Write a post.'],
+          pinned: ['{{t:board_pinned}}', 'Always at the top.'],
+          post: ['A post', 'Click it to read it all and its replies.'],
+          vote: ['{{t:board_vote}}', 'One vote each. Tap again to take it back.'],
+          cat: ['Category', 'What kind of post.'],
+          st: ['{{t:board_status_label}}', 'Where it stands. Set by the team.'],
+          meta: ['Who and when', 'The author, when, and how many replies.']
+        } },
+        post: { title: 'A post', spots: {
+          vote: ['{{t:board_vote}}', 'Votes help decide what comes next.'],
+          title: ['The post', 'Its title and category.'],
+          body: ['In full', 'Everything the author wrote.'],
+          actions: ['{{t:board_copy_link}}', 'A link straight to this post. Yours also have Edit and Delete.'],
+          replies: ['Replies', 'Oldest first.'],
+          reply: ['A reply', 'Its author and when.'],
+          form: ['Reply', 'Write one (signed in).']
+        } },
+        new: { title: '{{t:board_new}}', spots: {
+          cats: ['Category', 'Pick one.'],
+          title: ['Title', '{{t:board_title_ph}}.'],
+          body: ['Details', 'Optional.'],
+          foot: ['{{t:board_post}}', '{{t:board_public_note}}']
+        } }
+      },
+      howto: {
+        read: { title: 'Find what’s being talked about', slides: [
+          'Pick a category.',
+          'Sort by votes, newest or latest reply.',
+          'Open a post.',
+          'Read the replies.'
+        ] },
+        post: { title: 'Post something', slides: [
+          'Sign in with Google.',
+          'Press {{t:board_new}}.',
+          'Pick a category.',
+          'Write a title (and details if you like).',
+          'Press {{t:board_post}}.'
+        ] },
+        follow: { title: 'Vote and follow along', slides: [
+          'Vote for what you want most.',
+          'The status shows where it stands.',
+          'See only {{t:board_status_planned}} or {{t:board_status_done}}.',
+          'Join in with a reply.'
+        ] }
+      },
+      options: {
+        list: { title: 'The list', items: {
+          cat: ['Category', 'All, or one kind.'],
+          status: ['{{t:board_status_label}}', 'Any, or one.'],
+          sort: ['{{t:board_sort}}', '{{t:board_sort_top}}, {{t:board_sort_new}} or {{t:board_sort_active}}.'],
+          search: ['Search', 'Titles, text and names.']
+        } },
+        post: { title: 'On a post', items: {
+          vote: ['{{t:board_vote}}', 'One per person.'],
+          link: ['{{t:board_copy_link}}', 'Share the post.'],
+          reply: ['{{t:board_reply_btn}}', 'Signed in.']
+        } }
+      },
+      challenges: {
+        'bd.cat': ['Pick a category', 'The buttons above the list.'],
+        'bd.sort': ['Sort the board another way', '{{t:board_sort_new}} or {{t:board_sort_active}}.'],
+        'bd.status': ['Filter by status', '{{t:board_status_all}}.'],
+        'bd.search': ['Search the board', '{{t:board_search}}'],
+        'bd.open': ['Open a post', 'Click one.'],
+        'bd.new': ['Press {{t:board_new}}', 'Top right.']
+      },
+      quiz: {
+        q1: ['What do you need to post or vote?',
+          ['Nothing', 'To sign in with Google', 'A Last.fm account'],
+          'Anyone can read the board; posting, replying and voting need you signed in.'],
+        q2: ['What does the status on a post tell you?',
+          ['Where the idea or bug stands: planned, in progress, done…', 'How many people read it', 'When it was posted'],
+          'The team sets it, so you can see what’s coming.'],
+        q3: ['What is shown with your post?',
+          ['Your email', 'Your listening history', 'Your name and Google profile picture'],
+          'Your name and picture are shown. Your email never is.']
+      },
+      tips: [
+        'Filter the Board by {{t:board_status_planned}} to see what’s coming next.',
+        'Sort the Board by {{t:board_sort_active}} to find where people are talking right now.',
+        'Got an idea? Post it on the Board under {{t:board_cat_suggestion}}.'
+      ]
+    },
     settings: { title: 'Settings and your account', promise: 'Data sources, chart settings, themes, sign-in and backups.' }
   }
 };

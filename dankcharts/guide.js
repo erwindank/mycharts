@@ -29,7 +29,7 @@
   'use strict';
 
   // Bump when the lesson files or the pictures change (it's their ?v=)
-  const GUIDE_V = '12';
+  const GUIDE_V = '13';
   const STORE = 'dc_guide_progress';
   const LANG_FILES = ['es', 'pt-BR', 'pt-PT'];
 
@@ -191,7 +191,30 @@
     'ev.day':        { lesson: 'events', fn: 'calOpenDay' },
     'ev.tm':         { lesson: 'events', fn: 'tmToggleType' },
     'ev.card':       { lesson: 'events', click: '#eventsView .ev-carousel-card, #eventsView .tm-card, #eventsView .cal-ev' },
-    'ev.info':       { lesson: 'events', fn: 'toggleEventsStatus' }
+    'ev.info':       { lesson: 'events', fn: 'toggleEventsStatus' },
+    // Playlists (app.js dcPl* functions, autoplaylists.js)
+    'pl.open':       { lesson: 'playlists', fn: 'dcPlToggleExpand', test: a => !!a[0] },
+    'pl.sort':       { lesson: 'playlists', fn: 'dcPlSetSort' },
+    'pl.search':     { lesson: 'playlists', input: '#dcPlMain .plx-search input' },
+    'pl.play':       { lesson: 'playlists', click: '#dcPlMain .plx-play, #dcPlMain .plx-shuffle, #dcPlMain .plx-cover-play' },
+    'pl.add':        { lesson: 'playlists', open: '#dcPlPickModal' },
+    'pl.export':     { lesson: 'playlists', fn: 'dcPlExportMenu' },
+    'pl.auto':       { lesson: 'playlists', fn: 'apToggle' },
+    // Raw Data (app.js; the table's clicks are handled by one listener)
+    'rd.filter':     { lesson: 'rawdata', input: '#rawFilterSong, #rawFilterArtist, #rawFilterAlbum, #rawFilterDate' },
+    'rd.page':       { lesson: 'rawdata', click: '#rawDataView [data-raw-page]', input: '#rawDataView .raw-page-input' },
+    'rd.size':       { lesson: 'rawdata', click: '#rawDataView .raw-pager-size button' },
+    'rd.sort':       { lesson: 'rawdata', click: '#rawDataView .raw-th' },
+    'rd.corr':       { lesson: 'rawdata', input: '#rawFilterCorrected' },
+    'rd.edit':       { lesson: 'rawdata', open: '#editScrobbleModal' },
+    'rd.rules':      { lesson: 'rawdata', open: '#rulesModal' },
+    // Board (board.js draws inline onclick handlers on the dcBoard object)
+    'bd.cat':        { lesson: 'board', click: '#boardView .bd-chip:not(.active)' },
+    'bd.sort':       { lesson: 'board', click: '#boardView .bd-seg button:not(.active)' },
+    'bd.status':     { lesson: 'board', input: '#boardView .bd-select' },
+    'bd.search':     { lesson: 'board', input: '#boardView .bd-search' },
+    'bd.open':       { lesson: 'board', click: '#boardView [onclick*="dcBoard.toggle"]' },
+    'bd.new':        { lesson: 'board', click: '#boardView .bd-new-btn' }
   };
   // Where "Show me" takes you for each challenge, and what it rings there.
   // open/tab: open the chart's ⋮ menu on a tab first.
@@ -296,7 +319,27 @@
     'ev.day':        { nav: 'events', prep: ['setEventsTab', 'calendar'], ring: '#eventsCalendarGrid .cal-today .cal-cell-num, #eventsCalendarGrid' },
     'ev.tm':         { nav: 'events', prep: ['setEventsTab', 'today'], ring: '#timeMachineSection .tm-toggle-btns' },
     'ev.card':       { nav: 'events', prep: ['setEventsTab', 'today'], ring: '#eventsTodayBody' },
-    'ev.info':       { nav: 'events', ring: '#eventsInfoBtn' }
+    'ev.info':       { nav: 'events', ring: '#eventsInfoBtn' },
+    'pl.open':       { nav: 'playlists', ring: '#dcPlMain .plx-grid, #dcPlMain .plx-new' },
+    'pl.sort':       { nav: 'playlists', ring: '#dcPlMain .plx-sort' },
+    'pl.search':     { nav: 'playlists', ring: '#dcPlMain .plx-search' },
+    'pl.play':       { nav: 'playlists', ring: '#dcPlMain .plx-play, #dcPlMain .plx-grid, #dcPlMain .plx-new' },
+    'pl.add':        { nav: 'week', ring: '#songsBody tr[data-ea-key]' },
+    'pl.export':     { nav: 'playlists', ring: '#dcPlMain [onclick*="dcPlExportMenu"], #dcPlMain .plx-grid, #dcPlMain .plx-new' },
+    'pl.auto':       { nav: 'playlists', ring: '#apSetup' },
+    'rd.filter':     { nav: 'rawdata', ring: '#rawDataView .raw-filters' },
+    'rd.page':       { nav: 'rawdata', ring: '#rawPagerTop .raw-pager-nav' },
+    'rd.size':       { nav: 'rawdata', ring: '#rawPagerTop .raw-pager-size' },
+    'rd.sort':       { nav: 'rawdata', ring: '#rawDataView .raw-table thead' },
+    'rd.corr':       { nav: 'rawdata', ring: '#rawDataView .raw-corrected-toggle' },
+    'rd.edit':       { nav: 'rawdata', ring: '#rawBody .raw-edit-btn' },
+    'rd.rules':      { nav: 'rawdata', ring: '#manageRulesBtn' },
+    'bd.cat':        { nav: 'board', ring: '#boardView .bd-chips' },
+    'bd.sort':       { nav: 'board', ring: '#boardView .bd-seg' },
+    'bd.status':     { nav: 'board', ring: '#boardView .bd-select' },
+    'bd.search':     { nav: 'board', ring: '#boardView .bd-search' },
+    'bd.open':       { nav: 'board', ring: '#boardView .bd-list' },
+    'bd.new':        { nav: 'board', ring: '#boardView .bd-new-btn' }
   };
 
   let lastInput = 0;
