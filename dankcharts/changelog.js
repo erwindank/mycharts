@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 463;
+const DC_CL_I18N_V = 464;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -356,6 +356,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-06', t: 'fix', a: 'records', h: '610351c',
+    title: "Record notifications open the exact list",
+    detail: "Tapping a new #1 notification now opens Records on that exact list: it picks Songs, Artists or Albums, the Daily, Weekly, Monthly or Yearly chart, Total or In a row, and the Fastest tier for you, scrolls to the list and outlines it for a moment. Before, it only opened the section and often showed a different list. Works for notifications you already have too. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-11-06', t: 'change', a: 'records', h: '5c39a9a',
     title: "Records: Show is now 10, 25, 50 or 100",
     detail: "The Show switch under each Records list now offers 10, 25, 50 and 100. All is gone: even capped at 1,000 rows it made Records slow to open and switch on a big library. If you had All picked, you now see 100. Works with Last.fm, Google Sheets and CSV uploads." },

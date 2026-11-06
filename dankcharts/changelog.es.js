@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Record notifications open the exact list":
+    ["Las notificaciones de récords abren la lista exacta",
+     "Al tocar una notificación de nuevo #1, Récords se abre en esa misma lista: elige por ti Canciones, Artistas o Álbumes, la lista Diaria, Semanal, Mensual o Anual, Total o Seguidas, y el nivel de Más rápidos, se desplaza hasta la lista y la resalta un momento. Antes solo abría la sección y a menudo mostraba otra lista. También funciona con las notificaciones que ya tienes. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Records: Show is now 10, 25, 50 or 100":
     ["Récords: Mostrar ahora es 10, 25, 50 o 100",
      "El selector Mostrar debajo de cada lista de Récords ahora ofrece 10, 25, 50 y 100. Todos ya no está: incluso limitado a 1.000 filas hacía que Récords tardara en abrirse y cambiar de sección en bibliotecas grandes. Si tenías Todos elegido, ahora ves 100. Funciona con Last.fm, Google Sheets y archivos CSV."],
