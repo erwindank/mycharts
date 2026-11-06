@@ -23441,7 +23441,9 @@ function openExportModal() {
   const songs = getCurrentChartSongs();
   const { label, sub } = getDateRange();
   const periodName = currentPeriod === 'alltime' ? t('period_alltime') :
-    currentPeriod === 'week' ? t('period_week_of', { date: label }) :
+    // The week's label already says "Week of 25 Oct 2026" (or "This Week"), so the
+    // week is named by its date range: no more "Week of Week of …" (fixed 2026-11-05)
+    currentPeriod === 'week' ? t('period_week_of', { date: sub || label }) :
       // Daily tab: the label is "Today" / a weekday, so name it by the full date
       currentPeriod === 'day' ? sub :
       label;

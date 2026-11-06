@@ -253,7 +253,66 @@ window.GL = {
       quiz: [ { id: 'q1', answer: 0 }, { id: 'q2', answer: 0 }, { id: 'q3', answer: 0 } ],
       tips: [ ['at-top', 'prev', 'at.travel'], ['at-ati', 'fact', 'at.fact'], ['at-chart', 'search', 'at.search'] ]
     },
-    { id: 'around', area: 'charts', nav: 'week', soon: true },
+    /* ── Lesson 5: Around the chart, and taking it out of the app ───── */
+    { id: 'around', area: 'charts', nav: 'week', mins: 7, cover: 'share',
+      scenes: [
+        { id: 'bu', shot: 'atc-bu',
+          spots: ['bar', 'tbu', 'toff', 'tnew', 'fold', 'sub', 'meter', 'info', 'rank', 'badge', 'weeks', 'away', 'row'] },
+        { id: 'legend', shot: 'atc-legend',
+          spots: ['fresh', 'trending', 'persistent', 'fading', 'resurgence', 'resurgent', 'clinging', 'fallen', 'surging', 'freefall', 'yoyo', 'weeks', 'streak'] },
+        { id: 'off', shot: 'atc-off', spots: ['toff', 'was', 'exit', 'peak', 'where', 'stats', 'streak', 'row'] },
+        { id: 'new', shot: 'atc-new', spots: ['tnew', 'chips', 'debut', 'caps', 'row'] },
+        { id: 'share', shot: 'share',
+          spots: ['preview', 'tpl', 'swatch', 'format', 'src', 'pick', 'toggles', 'entries', 'text', 'quality', 'copy', 'download'] },
+        { id: 'pdf', shot: 'pdf', spots: ['scope', 'all', 'cover', 'bu', 'create'] },
+        { id: 'export', shot: 'export', spots: ['names', 'order', 'album', 'list', 'copy', 'txt', 'csv', 'services', 'open'] }
+      ],
+      howto: [
+        { id: 'bu', challenge: 'around.legend', slides: [
+          { shot: 'atc-bu', spot: 'tbu' }, { shot: 'atc-bu', spot: 'away' }, { shot: 'atc-bu', spot: 'info' }, { shot: 'atc-legend', spot: 'fresh' } ] },
+        { id: 'off', challenge: 'around.tab', slides: [
+          { shot: 'atc-off', spot: 'toff' }, { shot: 'atc-off', spot: 'exit' }, { shot: 'atc-off', spot: 'where' } ] },
+        { id: 'hide', slides: [ { shot: 'week-menu-show', spot: 'sections' }, { shot: 'atc-bu', spot: 'fold' } ] },
+        { id: 'share', challenge: 'around.design', slides: [
+          { shot: 'week-menu-actions', spot: 'share' }, { shot: 'share', spot: 'tpl' }, { shot: 'share', spot: 'swatch' },
+          { shot: 'share', spot: 'format' }, { shot: 'share-poster', spot: null }, { shot: 'share', spot: 'toggles' },
+          { shot: 'share', spot: 'download' } ] },
+        { id: 'pdf', challenge: 'around.pdf', slides: [
+          { shot: 'week-menu-actions', spot: 'pdf' }, { shot: 'pdf', spot: 'scope' }, { shot: 'pdf', spot: 'create' } ] },
+        { id: 'export', challenge: 'around.export', slides: [
+          { shot: 'week-menu-actions', spot: 'export' }, { shot: 'export', spot: 'names' }, { shot: 'export', spot: 'copy' },
+          { shot: 'export', spot: 'services' }, { shot: 'export', spot: 'open' } ] },
+        { id: 'play', challenge: 'around.play', slides: [
+          { shot: 'week-menu-actions', spot: 'playall' }, { shot: 'week-menu-actions', spot: 'shuffle' } ] }
+      ],
+      options: [
+        { id: 'tabs', items: [
+          { id: 'bu', shot: 'atc-bu', spot: 'tbu' }, { id: 'off', shot: 'atc-bu', spot: 'toff' }, { id: 'new', shot: 'atc-bu', spot: 'tnew' } ] },
+        { id: 'tags', items: [
+          { id: 'fresh', shot: 'atc-legend', spot: 'fresh' }, { id: 'trending', shot: 'atc-legend', spot: 'trending' },
+          { id: 'persistent', shot: 'atc-legend', spot: 'persistent' }, { id: 'fading', shot: 'atc-legend', spot: 'fading' },
+          { id: 'resurgence', shot: 'atc-legend', spot: 'resurgence' }, { id: 'resurgent', shot: 'atc-legend', spot: 'resurgent' },
+          { id: 'clinging', shot: 'atc-legend', spot: 'clinging' }, { id: 'fallen', shot: 'atc-legend', spot: 'fallen' },
+          { id: 'surging', shot: 'atc-legend', spot: 'surging' }, { id: 'freefall', shot: 'atc-legend', spot: 'freefall' },
+          { id: 'yoyo', shot: 'atc-legend', spot: 'yoyo' }, { id: 'weeks', shot: 'atc-legend', spot: 'weeks' },
+          { id: 'streak', shot: 'atc-legend', spot: 'streak' } ] },
+        { id: 'design', items: [
+          { id: 'tpl', shot: 'share', spot: 'tpl', def: 'Editorial' }, { id: 'pal', shot: 'share', spot: 'swatch' },
+          { id: 'fmt', shot: 'share', spot: 'format', def: '1:1' }, { id: 'art', shot: 'share', spot: 'src', def: 'Deezer' },
+          { id: 'pick', shot: 'share', spot: 'pick' }, { id: 'show', shot: 'share', spot: 'toggles', def: 'on' },
+          { id: 'entries', shot: 'share', spot: 'entries' }, { id: 'text', shot: 'share', spot: 'text', def: '100%' },
+          { id: 'quality', shot: 'share', spot: 'quality' } ] },
+        { id: 'pdf', items: [
+          { id: 'scope', shot: 'pdf', spot: 'scope' }, { id: 'cover', shot: 'pdf', spot: 'cover', def: 'on' }, { id: 'bu', shot: 'pdf', spot: 'bu', def: 'on' } ] },
+        { id: 'export', items: [
+          { id: 'names', shot: 'export', spot: 'names' }, { id: 'order', shot: 'export', spot: 'order' },
+          { id: 'album', shot: 'export', spot: 'album', def: 'off' }, { id: 'copy', shot: 'export', spot: 'copy' },
+          { id: 'files', shot: 'export', spot: 'txt' }, { id: 'soundiiz', shot: 'export', spot: 'open' } ] }
+      ],
+      challenges: ['around.tab', 'around.legend', 'around.share', 'around.design', 'around.pdf', 'around.export', 'around.copy', 'around.play'],
+      quiz: [ { id: 'q1', answer: 0 }, { id: 'q2', answer: 0 }, { id: 'q3', answer: 0 } ],
+      tips: [ ['atc-bu', 'info', 'around.legend'], ['share', 'tpl', 'around.design'], ['export', 'services', 'around.export'] ]
+    },
     { id: 'windows', area: 'charts', nav: 'week', soon: true },
     { id: 'stats', area: 'insights', nav: 'graphs', soon: true },
     { id: 'records', area: 'insights', nav: 'records', soon: true },
@@ -990,7 +1049,205 @@ window.GL_TEXT.en = {
         'All-Time has a search box: find any song you’ve ever played and its all-time rank.'
       ]
     },
-    around: { title: 'Around the chart and sharing it', promise: 'Bubbling Under, Off the Chart, New Entries, share images, PDFs and playlists.' },
+    around: {
+      title: 'Around the chart, and sharing it',
+      promise: 'What just missed the chart, what fell off, what’s new, and every way to take a chart out of the app.',
+      scenes: {
+        bu: { title: '{{t:atc_tab_bu}}', spots: {
+          bar: ['{{t:atc_title}}', 'One box under the chart with three tabs. It shows on Daily and Weekly (Monthly and Yearly show only the new entries).'],
+          tbu: ['{{t:atc_tab_bu}}', 'The songs just below the cut: the next places after your chart size.'],
+          toff: ['{{t:sec_off_chart}}', 'What was on last time and isn’t now.'],
+          tnew: ['{{t:atc_tab_new}}', 'Everything new this time, in one list.'],
+          fold: ['Fold', 'Hides the box but keeps its title.'],
+          sub: ['What it ranks', 'Ranked by plays, like the chart itself. This line and the next show with ⋮ → {{t:kebab_tab_show}} → {{t:btn_display_desc}}.'],
+          meter: ['Away', 'How many plays the last place on the chart has, so “away” means how many more each one needed.'],
+          info: ['{{t:bu_legend_btn}}', 'Opens the key to every tag. It shows when ⋮ → {{t:kebab_tab_show}} → {{t:btn_display_bu_legend}} is on.'],
+          rank: ['Its place', 'Where it would sit if the chart were longer.'],
+          badge: ['Tags', 'A word or two about its story, like {{t:bu_badge_resurgence}} or {{t:bu_badge_debut}}.'],
+          weeks: ['Weeks here', 'How many weeks it has spent in Bubbling Under in total.'],
+          away: ['Plays and how far off', 'Its plays, and how many more it needed to make the chart.'],
+          row: ['A row', 'Click it to open its run and buttons, as on the chart.']
+        } },
+        legend: { title: '{{t:bu_legend_btn}}', spots: {
+          fresh: ['{{t:bu_badge_debut}}', '{{t:bu_badge_debut_title}}'],
+          trending: ['{{t:bu_badge_trending}}', '{{t:bu_badge_trending_title}}'],
+          persistent: ['{{t:bu_badge_persistent}}', '{{t:bu_badge_persistent_desc}}'],
+          fading: ['{{t:bu_badge_fading}}', '{{t:bu_badge_fading_title}}'],
+          resurgence: ['{{t:bu_badge_resurgence}}', '{{t:bu_badge_resurgence_desc}}'],
+          resurgent: ['{{t:bu_badge_resurgent}}', '{{t:bu_badge_resurgent_desc}}'],
+          clinging: ['{{t:bu_badge_clinging}}', '{{t:bu_badge_clinging_title}}'],
+          fallen: ['{{t:bu_badge_fallen}}', '{{t:bu_badge_fallen_desc}}'],
+          surging: ['{{t:bu_badge_surging}}', '{{t:bu_badge_surging_desc}}'],
+          freefall: ['{{t:bu_badge_freefall}}', '{{t:bu_badge_freefall_desc}}'],
+          yoyo: ['{{t:bu_badge_yoyo}}', '{{t:bu_badge_yoyo_desc}}'],
+          weeks: ['N weeks', '{{t:bu_badge_weeks_desc}}'],
+          streak: ['N-week streak', '{{t:bu_badge_streak_desc}}']
+        } },
+        off: { title: '{{t:sec_off_chart}}', spots: {
+          toff: ['{{t:sec_off_chart}}', 'Every entry that was on the chart last time and dropped out.'],
+          was: ['Was', 'Where it was on last time’s chart.'],
+          exit: ['How it left', 'Fell from the top 3, slipped just under, a long run ended, or simply dropped out.'],
+          peak: ['Its peak', 'The highest it ever reached.'],
+          where: ['Where it is now', 'Whether it’s in Bubbling Under now (and how far from coming back), or when you last played it.'],
+          stats: ['Before and after', 'Its plays last time and this time, and its weeks on the chart.'],
+          streak: ['Its run', 'How many weeks in a row it was on before it dropped.'],
+          row: ['A row', 'Click it to open its run.']
+        } },
+        new: { title: '{{t:atc_tab_new}}', spots: {
+          tnew: ['{{t:atc_tab_new}}', 'Every new song this time, made the chart or not.'],
+          chips: ['Filters', '{{t:ne_filter_all}}, {{t:ne_filter_chart}} or {{t:ne_filter_new_artists}}.'],
+          debut: ['Debut', 'The place it entered the chart at.'],
+          caps: ['When you played it', 'One mark per day of the week (per week on Monthly). Brighter means more plays.'],
+          row: ['A row', 'Click it to open its window.']
+        } },
+        share: { title: '{{t:ig_share_title}}', spots: {
+          preview: ['Preview', 'Exactly the picture you will get. It changes as you pick.'],
+          tpl: ['{{t:sh_design}}', 'Five looks: Editorial, Minimal, Spotlight, Grid and Poster.'],
+          swatch: ['{{t:sh_palette}}', 'Colours: your app theme, a fixed palette, or Cover, which takes its colours from your #1’s cover.'],
+          format: ['{{t:ig_format}}', '{{t:sh_fmt_post}} for a feed, {{t:sh_fmt_portrait}}, or {{t:sh_fmt_story}} for stories.'],
+          src: ['Where the covers come from', 'Deezer, iTunes, Last.fm or YouTube.'],
+          pick: ['Pick a picture', 'Click an entry to choose another picture for it.'],
+          toggles: ['{{t:ig_show_hide}}', 'Movement, peak badge, weeks on chart, play count, artist, the date and the footer. Untick what you don’t want.'],
+          entries: ['{{t:sh_entries}}', 'How many entries the picture holds. {{t:sh_entries_hint}}.'],
+          text: ['{{t:sh_text_size}}', 'Bigger or smaller text.'],
+          quality: ['{{t:sh_quality}}', '{{t:sh_quality_std}} or {{t:sh_quality_high}}, with the size in pixels.'],
+          copy: ['{{t:sh_copy}}', 'Copies the picture, ready to paste into a message or post.'],
+          download: ['{{t:btn_download_image}}', 'Saves it as a PNG.']
+        } },
+        pdf: { title: 'Printable PDF', spots: {
+          scope: ['This chart', 'Just the chart you’re on.'],
+          all: ['{{t:pdf_all_charts}}', 'Songs, artists and albums in one PDF.'],
+          cover: ['{{t:pdf_opt_art}}', 'Covers next to each entry, or a plain list.'],
+          bu: ['{{t:pdf_opt_bu}}', 'Adds Bubbling Under at the end.'],
+          create: ['{{t:pdf_create}}', 'Opens your print window. Choose “Save as PDF” as the printer to get the file.']
+        } },
+        export: { title: 'Export playlist', spots: {
+          names: ['{{t:export_step_name}}', 'Ready-made names for the playlist. Click one to copy it.'],
+          order: ['{{t:export_order_first}} / {{t:export_order_last}}', 'Which way round the list goes.'],
+          album: ['{{t:export_include_album}}', 'Adds each song’s album to the list.'],
+          list: ['The songs', 'What will be copied, in order.'],
+          copy: ['{{t:export_copy_list}}', 'Copies the list as “Artist - Title”, one song per line.'],
+          txt: ['.txt', 'Downloads it as a text file.'],
+          csv: ['.csv', 'Downloads it for a spreadsheet.'],
+          services: ['{{t:export_step_import}}', 'Soundiiz turns the list into a real playlist on Spotify, Apple Music, YouTube Music, Deezer or Tidal.'],
+          open: ['{{t:export_open_soundiiz}}', 'Opens Soundiiz in a new tab. The steps above say where to paste.']
+        } }
+      },
+      howto: {
+        bu: { title: 'See what just missed the chart', slides: [
+          'Under the chart, open {{t:atc_tab_bu}}.',
+          'Each song shows how many more plays it needed.',
+          'Switch on ⋮ → {{t:kebab_tab_show}} → {{t:btn_display_bu_legend}}, then press {{t:bu_legend_btn}} for the key.',
+          'Each tag explains a song’s story, like {{t:bu_badge_debut}}: its first time here.'
+        ] },
+        off: { title: 'See what fell off', slides: [
+          'Open {{t:sec_off_chart}}.',
+          'Each one says how it left.',
+          'And whether it’s close to coming back.'
+        ] },
+        hide: { title: 'Choose which lists show', slides: [
+          'In ⋮ → Show → Sections, switch Bubbling Under, Off the Chart and New Entries on or off.',
+          'Or fold the box with the arrow, so only its title stays.'
+        ] },
+        share: { title: 'Share your chart as a picture', slides: [
+          'In ⋮ → Actions, pick Share as image.',
+          'Choose a design.',
+          'Pick the colours.',
+          'Pick the shape: a post, a portrait or a story.',
+          'For example Poster, as a story.',
+          'Untick anything you don’t want on it.',
+          'Then copy it or download it.'
+        ] },
+        pdf: { title: 'Print the chart', slides: [
+          'In ⋮ → Actions, pick Printable PDF.',
+          'Just this chart, or all three.',
+          'Press {{t:pdf_create}} and choose “Save as PDF” as the printer.'
+        ] },
+        export: { title: 'Make a playlist on Spotify (or anywhere)', slides: [
+          'In ⋮ → Actions, pick Export playlist.',
+          'Click a name to copy it.',
+          'Copy the list of songs.',
+          'Soundiiz turns it into a playlist on the service you use.',
+          'Open Soundiiz and paste it where the steps say.'
+        ] },
+        play: { title: 'Play the whole chart', slides: [
+          'In ⋮ → Actions, Play all plays the chart in order.',
+          'Shuffle plays it in random order.'
+        ] }
+      },
+      options: {
+        tabs: { title: '{{t:atc_title}}', items: {
+          bu: ['{{t:atc_tab_bu}}', 'Just below the cut. Daily and Weekly.'],
+          off: ['{{t:sec_off_chart}}', 'Dropped out since last time. Daily and Weekly.'],
+          new: ['{{t:atc_tab_new}}', 'Everything new. Every window except All-Time.']
+        } },
+        tags: { title: '{{t:bu_legend_btn}}', items: {
+          fresh: ['{{t:bu_badge_debut}}', '{{t:bu_badge_debut_title}}'],
+          trending: ['{{t:bu_badge_trending}}', '{{t:bu_badge_trending_title}}'],
+          persistent: ['{{t:bu_badge_persistent}}', '{{t:bu_badge_persistent_desc}}'],
+          fading: ['{{t:bu_badge_fading}}', '{{t:bu_badge_fading_title}}'],
+          resurgence: ['{{t:bu_badge_resurgence}}', '{{t:bu_badge_resurgence_desc}}'],
+          resurgent: ['{{t:bu_badge_resurgent}}', '{{t:bu_badge_resurgent_desc}}'],
+          clinging: ['{{t:bu_badge_clinging}}', '{{t:bu_badge_clinging_title}}'],
+          fallen: ['{{t:bu_badge_fallen}}', '{{t:bu_badge_fallen_desc}}'],
+          surging: ['{{t:bu_badge_surging}}', '{{t:bu_badge_surging_desc}}'],
+          freefall: ['{{t:bu_badge_freefall}}', '{{t:bu_badge_freefall_desc}}'],
+          yoyo: ['{{t:bu_badge_yoyo}}', '{{t:bu_badge_yoyo_desc}}'],
+          weeks: ['N weeks', '{{t:bu_badge_weeks_desc}}'],
+          streak: ['N-week streak', '{{t:bu_badge_streak_desc}}']
+        } },
+        design: { title: '{{t:ig_share_title}}', items: {
+          tpl: ['{{t:sh_design}}', 'Editorial, Minimal, Spotlight, Grid or Poster.'],
+          pal: ['{{t:sh_palette}}', 'App theme, six fixed palettes, or Cover.'],
+          fmt: ['{{t:ig_format}}', '{{t:sh_fmt_post}}, {{t:sh_fmt_portrait}} or {{t:sh_fmt_story}}.'],
+          art: ['{{t:ig_album_art}}', 'On or off, and where the covers come from.'],
+          pick: ['Pictures', 'Choose another picture for any entry.'],
+          show: ['{{t:ig_show_hide}}', 'Movement, peak, weeks, plays, artist, date, footer.'],
+          entries: ['{{t:sh_entries}}', '{{t:sh_entries_hint}}.'],
+          text: ['{{t:sh_text_size}}', 'From 80% to 130%.'],
+          quality: ['{{t:sh_quality}}', '{{t:sh_quality_std}} or {{t:sh_quality_high}}.']
+        } },
+        pdf: { title: 'Printable PDF', items: {
+          scope: ['This chart / {{t:pdf_all_charts}}', 'One chart or all three.'],
+          cover: ['{{t:pdf_opt_art}}', 'Covers next to each entry.'],
+          bu: ['{{t:pdf_opt_bu}}', 'Adds Bubbling Under at the end.']
+        } },
+        export: { title: 'Export playlist', items: {
+          names: ['{{t:export_step_name}}', 'Ready-made playlist names.'],
+          order: ['{{t:export_order_first}} / {{t:export_order_last}}', 'Which way round.'],
+          album: ['{{t:export_include_album}}', 'Adds the album to each line.'],
+          copy: ['{{t:export_copy_list}}', 'Artist - Title, one per line.'],
+          files: ['.txt / .csv', 'Download the list as a file.'],
+          soundiiz: ['{{t:export_open_soundiiz}}', 'Build the playlist on another service.']
+        } }
+      },
+      challenges: {
+        'around.tab': ['Open another tab under the chart', '{{t:sec_off_chart}} or {{t:atc_tab_new}}.'],
+        'around.legend': ['Open {{t:bu_legend_btn}}', 'Switch on ⋮ → {{t:kebab_tab_show}} → {{t:btn_display_bu_legend}} first.'],
+        'around.share': ['Open Share as image', '⋮ → Actions.'],
+        'around.design': ['Try another design for the picture', 'In the share window.'],
+        'around.pdf': ['Open Printable PDF', '⋮ → Actions.'],
+        'around.export': ['Open Export playlist', '⋮ → Actions.'],
+        'around.copy': ['Copy a playlist name or the list', 'In the export window.'],
+        'around.play': ['Play all of a chart', '⋮ → Actions → Play all.']
+      },
+      quiz: {
+        q1: ['A song in Bubbling Under says 1 PLAY AWAY. What does it mean?',
+          ['One more play and it would have made the chart', 'You played it once', 'It is #1 in Bubbling Under'],
+          '“Away” is how many more plays it needed to reach the last place on the chart.'],
+        q2: ['Where do you find songs that were on last week’s chart but not this week’s?',
+          ['{{t:sec_off_chart}}', '{{t:atc_tab_new}}', 'All-Time'],
+          '{{t:sec_off_chart}} lists every dropout, how it left and whether it’s close to coming back.'],
+        q3: ['You want your chart picture to fill a phone screen for a story. What do you change?',
+          ['{{t:ig_format}} → {{t:sh_fmt_story}}', '{{t:sh_palette}}', '{{t:sh_text_size}}'],
+          'The format sets the shape: 1:1 for a post, 4:5 portrait, 9:16 for stories.']
+      },
+      tips: [
+        'In Bubbling Under, {{t:bu_legend_btn}} explains every tag, from {{t:bu_badge_debut}} to {{t:bu_badge_fallen}}.',
+        'The share window has five designs. Poster as a 9:16 story looks great on a phone.',
+        'Export playlist plus Soundiiz turns any chart into a real playlist on Spotify, Apple Music and more.'
+      ]
+    },
     windows: { title: 'Song, artist and album windows', promise: 'Everything about one song, artist or album, and how to find it fast.' },
     stats: { title: 'Stats', promise: 'Overview, Story, Graphs, Compare and Games for any date range.' },
     records: { title: 'Records', promise: 'Your record book: number ones, debuts, certifications, streaks and more.' },

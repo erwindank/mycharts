@@ -69,6 +69,14 @@ async function at(pg, period, offset, { spotlight = false } = {}) {
   await wait(pg, 2200);
 }
 const DAY_OFF = 9;
+// Around the chart: pick a tab (0 Bubbling Under, 1 Off the Chart, 2 New) and leave the
+// box well below the pinned bars so they don't print over it
+async function atcTab(pg, i) {
+  await pg.evaluate(i => { const t = document.querySelectorAll('#atcSongs .atc-tab')[i]; if (t) t.click(); }, i);
+  await wait(pg, 900);
+  await pg.evaluate(() => window.scrollTo(0, document.getElementById('atcSongs').getBoundingClientRect().top + scrollY - 800));
+  await wait(pg, 1500);
+}
 async function showAll(pg) { await pg.evaluate(() => setSectionDisplayShowAll(true)); await wait(pg, 500); }
 async function layout(pg, v) { await pg.evaluate(v => setWeeklyChartView(v), v); await wait(pg, 1800); }
 async function openKebab(pg, tab) {
@@ -305,7 +313,67 @@ const SHOTS = [
     // Time travel: one press of ‹ on All-Time = the chart as it stood a month ago
     setup: async pg => { await at(pg, 'alltime', 0); await pg.click('#prevBtn'); await wait(pg, 3500); },
     clip: { from: '#stickyNavBar', to: '#statsStrip', pad: 14 },
-    spots: { prev: '#prevBtn', label: '#periodLabel', next: '#nextBtn', banner: '#statsHeroTop', tiles: '#statsStrip' } }
+    spots: { prev: '#prevBtn', label: '#periodLabel', next: '#nextBtn', banner: '#statsHeroTop', tiles: '#statsStrip' } },
+  /* ── Lesson: Around the chart and taking it out ───────────────── */
+  { id: 'atc-bu', lesson: 'around',
+    setup: async pg => { await lastWeek(pg); await showAll(pg); await atcTab(pg, 0); },
+    clip: { from: '#atcSongs .atc-bar', to: nth('#buSongsTableBody', 5), pad: 12 },
+    spots: { bar: '#atcSongs .atc-bar', tbu: '#atcSongs .atc-tab', toff: '#atcSongs .atc-tab:nth-child(2)',
+      tnew: '#atcSongs .atc-tab:nth-child(3)', fold: '#atcSongs .atc-fold', sub: '#buSongsSection .bu-sub',
+      meter: '#buSongsMeterNote', info: '#atcSongs .atc-info', row: nth('#buSongsTableBody', 1),
+      rank: '#buSongsTableBody tr[data-ea-key] .atc-rank', badge: '#buSongsTableBody .bu-word',
+      weeks: '#buSongsTableBody tr[data-ea-key] .bu-word:last-child', away: '#buSongsTableBody tr[data-ea-key] td:nth-last-child(2), #buSongsTableBody .atc-plays' } },
+  { id: 'atc-legend', lesson: 'around',
+    setup: async pg => { await lastWeek(pg); await showAll(pg); await atcTab(pg, 0);
+      await pg.evaluate(() => document.querySelector('#atcSongs .atc-info').click()); await wait(pg, 900); },
+    clip: { from: '#buSongsSection .bu-legend', to: '#buSongsSection .bu-legend', pad: 12 },
+    spots: { fresh: '.bu-legend .bu-badge-debut', trending: '.bu-legend .bu-badge-trending', persistent: '.bu-legend .bu-badge-persistent',
+      fading: '.bu-legend .bu-badge-fading', resurgence: '.bu-legend .bu-badge-resurgence', resurgent: '.bu-legend .bu-badge-resurgent',
+      clinging: '.bu-legend .bu-badge-clinging', fallen: '.bu-legend .bu-badge-fallen', surging: '.bu-legend .bu-badge-surging',
+      freefall: '.bu-legend .bu-badge-freefall', yoyo: '.bu-legend .bu-badge-yoyo', weeks: '.bu-legend .bu-badge-weeks',
+      streak: '.bu-legend .bu-badge-streak' } },
+  { id: 'atc-off', lesson: 'around',
+    setup: async pg => { await lastWeek(pg); await showAll(pg); await atcTab(pg, 1); },
+    clip: { from: '#atcSongs .atc-bar', to: '#offSongsContent', pad: 12 },
+    spots: { toff: '#atcSongs .atc-tab:nth-child(2)', row: '#offSongsContent .dropout-row', was: '#offSongsContent .atc-was',
+      exit: '#offSongsContent .atc-exit', peak: '#offSongsContent [class^="peak-badge"]',
+      where: { js: "[...document.querySelectorAll('#offSongsContent .atc-ln')].find(e => /Bubbling|Aspirantes|Under/i.test(e.textContent) && !e.querySelector('.atc-title'))" },
+      stats: '#offSongsContent .atc-offstats', streak: { js: "[...document.querySelectorAll('#offSongsContent .atc-offstats *')].find(e => /🔥/.test(e.textContent) && !e.children.length)" } } },
+  { id: 'atc-new', lesson: 'around',
+    setup: async pg => { await lastWeek(pg); await atcTab(pg, 2); },
+    clip: { from: '#atcSongs .atc-bar', to: nth('#newSongsBody', 4), pad: 12 },
+    spots: { tnew: '#atcSongs .atc-tab:nth-child(3)', chips: '#newSongsChips', row: nth('#newSongsBody', 1),
+      debut: '#newSongsBody .atc-tag', caps: '#newSongsBody .ne-caps' } },
+  { id: 'share', lesson: 'around',
+    setup: async pg => { await lastWeek(pg); await pg.evaluate(() => openIgPreviewModal('songs')); await wait(pg, 4000); },
+    clip: { from: '#igPreviewModal .ig-modal-box', to: '#igPreviewModal .ig-modal-box', pad: 10, narrow: true },
+    spots: { preview: '#igPreviewFrame', design: '#igPreviewModal .sh-group:nth-of-type(1)', tpl: '#igPreviewModal .sh-tpl',
+      palette: { js: "[...document.querySelectorAll('#igPreviewModal .sh-group')][1]" }, swatch: '#igPreviewModal .sh-swatch',
+      format: '#igFormatBtns', show: { js: "[...document.querySelectorAll('#igPreviewModal .sh-group')][3]" },
+      src: '#igPreviewModal .ig-art-src-btn', pick: '#igPreviewModal .ig-art-pick', toggles: '#igPreviewModal .ig-ctrl-row:nth-of-type(2)',
+      entries: { js: "[...document.querySelectorAll('#igPreviewModal .sh-group')][4]" }, text: '#igTextScale',
+      quality: { js: "[...document.querySelectorAll('#igPreviewModal .sh-group')][5]" },
+      copy: { js: "[...document.querySelectorAll('#igPreviewModal button')].find(b => /copy|copiar/i.test(b.textContent))" },
+      download: { js: "[...document.querySelectorAll('#igPreviewModal button')].find(b => /download|descargar|descarregar|baixar|transferir/i.test(b.textContent))" } } },
+  { id: 'share-poster', lesson: 'around',
+    setup: async pg => { await lastWeek(pg); await pg.evaluate(() => openIgPreviewModal('songs')); await wait(pg, 3000);
+      await pg.evaluate(() => [...document.querySelectorAll('#igPreviewModal .sh-tpl')][4].click()); await wait(pg, 1500);
+      await pg.evaluate(() => [...document.querySelectorAll('#igFormatBtns button')][2].click()); await wait(pg, 3000); },
+    clip: { from: '#igPreviewFrame', to: '#igPreviewFrame', pad: 16, narrow: true },
+    spots: { preview: '#igPreviewFrame' } },
+  { id: 'pdf', lesson: 'around',
+    setup: async pg => { await lastWeek(pg); await pg.evaluate(() => openPdfModal('songs')); await wait(pg, 2500); },
+    clip: { from: '#pdfModal > *', to: '#pdfModal > *', pad: 10, narrow: true },
+    spots: { scope: '#pdfScopeOne', all: '#pdfScopeOne + button', cover: '#pdfModal .src-switch-row', bu: '#pdfOptBuRow',
+      create: '#pdfCreateBtn' } },
+  { id: 'export', lesson: 'around',
+    setup: async pg => { await lastWeek(pg); await pg.evaluate(() => openExportModal()); await wait(pg, 2500); },
+    clip: { from: '#exportModal > *', to: '#exportModal > *', pad: 10, narrow: true, maxH: 1400 },
+    spots: { names: '#exportModal .export-name-chip', order: '#exportOrderFirst', album: '#exportModal .export-switch',
+      list: { js: "document.querySelector('#exportModal ol, #exportModal ul, #exportModal [class*=export-list], #exportModal [class*=export-preview]')" },
+      copy: '#exportCopyBtn', txt: '#exportModal .export-btn-dl', csv: '#exportModal .export-btn-dl + .export-btn-dl',
+      open: { js: "[...document.querySelectorAll('#exportModal a, #exportModal button')].find(b => /Soundiiz/.test(b.textContent))" },
+      services: { js: "[...document.querySelectorAll('#exportModal *')].find(e => e.children.length > 2 && /Spotify/.test(e.textContent) && /Tidal/.test(e.textContent) && e.getBoundingClientRect().height < 60)" } } }
 ];
 
 /* ── Measuring + capture ────────────────────────────────────────── */

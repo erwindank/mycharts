@@ -721,7 +721,205 @@ window.GL_TEXT['pt-PT'] = {
       ]
     },
 
-    around: { title: 'À volta do top e partilhá-lo', promise: 'Aspirantes, Fora do Top, Novas Entradas, imagens, PDFs e playlists.' },
+    around: {
+      title: 'À volta do top, e partilhá-lo',
+      promise: 'O que ficou quase lá, o que saiu, o que é novo e todas as formas de levar um top para fora da app.',
+      scenes: {
+        bu: { title: '{{t:atc_tab_bu}}', spots: {
+          bar: ['{{t:atc_title}}', 'Um bloco por baixo do top com três separadores. Aparece no Diário e no Semanal (o Mensal e o Anual mostram só as novas entradas).'],
+          tbu: ['{{t:atc_tab_bu}}', 'As músicas logo abaixo do corte: as posições seguintes ao tamanho do teu top.'],
+          toff: ['{{t:sec_off_chart}}', 'O que estava da última vez e já não está.'],
+          tnew: ['{{t:atc_tab_new}}', 'Tudo o que é novo desta vez, numa lista.'],
+          fold: ['Recolher', 'Esconde o bloco e mantém o título.'],
+          sub: ['Como é ordenado', 'Por plays, como o próprio top. Esta linha e a seguinte aparecem com ⋮ → {{t:kebab_tab_show}} → {{t:btn_display_desc}}.'],
+          meter: ['Distância', 'Quantos plays tem a última posição do top, por isso a distância é quantos faltavam a cada uma.'],
+          info: ['{{t:bu_legend_btn}}', 'Abre a explicação de cada tag. Aparece quando ⋮ → {{t:kebab_tab_show}} → {{t:btn_display_bu_legend}} está ligado.'],
+          rank: ['A posição', 'Onde estaria se o top fosse mais longo.'],
+          badge: ['Tags', 'Uma ou duas palavras sobre a história dela, como {{t:bu_badge_resurgence}} ou {{t:bu_badge_debut}}.'],
+          weeks: ['Semanas aqui', 'Quantas semanas passou nos Aspirantes no total.'],
+          away: ['Plays e distância', 'Os plays dela, e quantos faltavam para entrar no top.'],
+          row: ['Uma linha', 'Clica para abrir o percurso e os botões, como no top.']
+        } },
+        legend: { title: '{{t:bu_legend_btn}}', spots: {
+          fresh: ['{{t:bu_badge_debut}}', '{{t:bu_badge_debut_title}}'],
+          trending: ['{{t:bu_badge_trending}}', '{{t:bu_badge_trending_title}}'],
+          persistent: ['{{t:bu_badge_persistent}}', '{{t:bu_badge_persistent_desc}}'],
+          fading: ['{{t:bu_badge_fading}}', '{{t:bu_badge_fading_title}}'],
+          resurgence: ['{{t:bu_badge_resurgence}}', '{{t:bu_badge_resurgence_desc}}'],
+          resurgent: ['{{t:bu_badge_resurgent}}', '{{t:bu_badge_resurgent_desc}}'],
+          clinging: ['{{t:bu_badge_clinging}}', '{{t:bu_badge_clinging_title}}'],
+          fallen: ['{{t:bu_badge_fallen}}', '{{t:bu_badge_fallen_desc}}'],
+          surging: ['{{t:bu_badge_surging}}', '{{t:bu_badge_surging_desc}}'],
+          freefall: ['{{t:bu_badge_freefall}}', '{{t:bu_badge_freefall_desc}}'],
+          yoyo: ['{{t:bu_badge_yoyo}}', '{{t:bu_badge_yoyo_desc}}'],
+          weeks: ['N semanas', '{{t:bu_badge_weeks_desc}}'],
+          streak: ['Sequência de N semanas', '{{t:bu_badge_streak_desc}}']
+        } },
+        off: { title: '{{t:sec_off_chart}}', spots: {
+          toff: ['{{t:sec_off_chart}}', 'Cada entrada que estava no top da última vez e saiu.'],
+          was: ['Estava', 'Onde estava no top anterior.'],
+          exit: ['Como saiu', 'Caiu do top 3, ficou logo abaixo, uma sequência longa acabou, ou simplesmente saiu.'],
+          peak: ['O pico', 'O mais alto que chegou.'],
+          where: ['Onde está agora', 'Se agora está nos Aspirantes (e quão perto está de voltar), ou quando a ouviste pela última vez.'],
+          stats: ['Antes e depois', 'Os plays da última vez e desta, e as semanas no top.'],
+          streak: ['A sequência', 'Quantas semanas seguidas esteve antes de sair.'],
+          row: ['Uma linha', 'Clica para abrir o percurso.']
+        } },
+        new: { title: '{{t:atc_tab_new}}', spots: {
+          tnew: ['{{t:atc_tab_new}}', 'Todas as músicas novas desta vez, tenham entrado no top ou não.'],
+          chips: ['Filtros', '{{t:ne_filter_all}}, {{t:ne_filter_chart}} ou {{t:ne_filter_new_artists}}.'],
+          debut: ['Estreia', 'A posição em que entrou no top.'],
+          caps: ['Quando a ouviste', 'Uma marca por dia da semana (por semana no Mensal). Quanto mais forte, mais plays.'],
+          row: ['Uma linha', 'Clica para abrir a janela dela.']
+        } },
+        share: { title: '{{t:ig_share_title}}', spots: {
+          preview: ['Pré-visualização', 'Exatamente a imagem que vais ter. Muda à medida que escolhes.'],
+          tpl: ['{{t:sh_design}}', 'Cinco estilos: Editorial, Minimal, Spotlight, Grid e Poster.'],
+          swatch: ['{{t:sh_palette}}', 'Cores: o tema da app, uma paleta fixa, ou Cover, que vai buscar as cores à capa da tua #1.'],
+          format: ['{{t:ig_format}}', '{{t:sh_fmt_post}} para o feed, {{t:sh_fmt_portrait}}, ou {{t:sh_fmt_story}} para histórias.'],
+          src: ['De onde vêm as capas', 'Deezer, iTunes, Last.fm ou YouTube.'],
+          pick: ['Escolher uma imagem', 'Clica numa entrada para escolheres outra imagem.'],
+          toggles: ['{{t:ig_show_hide}}', 'Movimento, pico, semanas no top, plays, artista, a data e o rodapé. Desmarca o que não quiseres.'],
+          entries: ['{{t:sh_entries}}', 'Quantas entradas tem a imagem. {{t:sh_entries_hint}}.'],
+          text: ['{{t:sh_text_size}}', 'Texto maior ou mais pequeno.'],
+          quality: ['{{t:sh_quality}}', '{{t:sh_quality_std}} ou {{t:sh_quality_high}}, com o tamanho em píxeis.'],
+          copy: ['{{t:sh_copy}}', 'Copia a imagem, pronta a colar numa mensagem ou publicação.'],
+          download: ['{{t:btn_download_image}}', 'Guarda-a como PNG.']
+        } },
+        pdf: { title: 'PDF para imprimir', spots: {
+          scope: ['Este top', 'Só o top em que estás.'],
+          all: ['{{t:pdf_all_charts}}', 'Músicas, artistas e álbuns num só PDF.'],
+          cover: ['{{t:pdf_opt_art}}', 'Capas ao lado de cada entrada, ou uma lista simples.'],
+          bu: ['{{t:pdf_opt_bu}}', 'Acrescenta os Aspirantes no fim.'],
+          create: ['{{t:pdf_create}}', 'Abre a janela de impressão. Escolhe “Guardar como PDF” como impressora para teres o ficheiro.']
+        } },
+        export: { title: 'Exportar playlist', spots: {
+          names: ['{{t:export_step_name}}', 'Nomes prontos para a playlist. Clica num para o copiares.'],
+          order: ['{{t:export_order_first}} / {{t:export_order_last}}', 'Por que ordem vai a lista.'],
+          album: ['{{t:export_include_album}}', 'Acrescenta o álbum de cada música.'],
+          list: ['As músicas', 'O que vai ser copiado, por ordem.'],
+          copy: ['{{t:export_copy_list}}', 'Copia a lista como “Artista - Título”, uma música por linha.'],
+          txt: ['.txt', 'Transfere-a como ficheiro de texto.'],
+          csv: ['.csv', 'Transfere-a para uma folha de cálculo.'],
+          services: ['{{t:export_step_import}}', 'O Soundiiz transforma a lista numa playlist a sério no Spotify, Apple Music, YouTube Music, Deezer ou Tidal.'],
+          open: ['{{t:export_open_soundiiz}}', 'Abre o Soundiiz noutro separador. Os passos acima dizem onde colar.']
+        } }
+      },
+      howto: {
+        bu: { title: 'Ver o que ficou quase lá', slides: [
+          'Por baixo do top, abre {{t:atc_tab_bu}}.',
+          'Cada música mostra quantos plays faltavam.',
+          'Liga ⋮ → {{t:kebab_tab_show}} → {{t:btn_display_bu_legend}} e carrega em {{t:bu_legend_btn}} para veres a explicação.',
+          'Cada tag conta a história de uma música, como {{t:bu_badge_debut}}: a primeira vez dela aqui.'
+        ] },
+        off: { title: 'Ver o que saiu', slides: [
+          'Abre {{t:sec_off_chart}}.',
+          'Cada uma diz como saiu.',
+          'E se está perto de voltar.'
+        ] },
+        hide: { title: 'Escolher que listas aparecem', slides: [
+          'Em ⋮ → Mostrar → Secções, liga ou desliga Aspirantes, Fora do Top e Novas Entradas.',
+          'Ou recolhe o bloco com a seta, para ficar só o título.'
+        ] },
+        share: { title: 'Partilhar o teu top como imagem', slides: [
+          'Em ⋮ → Ações, escolhe Partilhar como imagem.',
+          'Escolhe um design.',
+          'Escolhe as cores.',
+          'Escolhe o formato: publicação, retrato ou história.',
+          'Por exemplo Poster, como história.',
+          'Desmarca o que não quiseres na imagem.',
+          'Depois copia-a ou transfere-a.'
+        ] },
+        pdf: { title: 'Imprimir o top', slides: [
+          'Em ⋮ → Ações, escolhe PDF para imprimir.',
+          'Só este top, ou os três.',
+          'Carrega em {{t:pdf_create}} e escolhe “Guardar como PDF” como impressora.'
+        ] },
+        export: { title: 'Criar uma playlist no Spotify (ou onde quiseres)', slides: [
+          'Em ⋮ → Ações, escolhe Exportar playlist.',
+          'Clica num nome para o copiares.',
+          'Copia a lista de músicas.',
+          'O Soundiiz transforma-a numa playlist no serviço que usas.',
+          'Abre o Soundiiz e cola onde os passos dizem.'
+        ] },
+        play: { title: 'Ouvir o top inteiro', slides: [
+          'Em ⋮ → Ações, {{t:btn_play_all}} toca o top por ordem.',
+          '{{t:btn_shuffle_all}} toca-o por ordem aleatória.'
+        ] }
+      },
+      options: {
+        tabs: { title: '{{t:atc_title}}', items: {
+          bu: ['{{t:atc_tab_bu}}', 'Logo abaixo do corte. Diário e Semanal.'],
+          off: ['{{t:sec_off_chart}}', 'Saíram desde a última vez. Diário e Semanal.'],
+          new: ['{{t:atc_tab_new}}', 'Tudo o que é novo. Todos os períodos menos o De Sempre.']
+        } },
+        tags: { title: '{{t:bu_legend_btn}}', items: {
+          fresh: ['{{t:bu_badge_debut}}', '{{t:bu_badge_debut_title}}'],
+          trending: ['{{t:bu_badge_trending}}', '{{t:bu_badge_trending_title}}'],
+          persistent: ['{{t:bu_badge_persistent}}', '{{t:bu_badge_persistent_desc}}'],
+          fading: ['{{t:bu_badge_fading}}', '{{t:bu_badge_fading_title}}'],
+          resurgence: ['{{t:bu_badge_resurgence}}', '{{t:bu_badge_resurgence_desc}}'],
+          resurgent: ['{{t:bu_badge_resurgent}}', '{{t:bu_badge_resurgent_desc}}'],
+          clinging: ['{{t:bu_badge_clinging}}', '{{t:bu_badge_clinging_title}}'],
+          fallen: ['{{t:bu_badge_fallen}}', '{{t:bu_badge_fallen_desc}}'],
+          surging: ['{{t:bu_badge_surging}}', '{{t:bu_badge_surging_desc}}'],
+          freefall: ['{{t:bu_badge_freefall}}', '{{t:bu_badge_freefall_desc}}'],
+          yoyo: ['{{t:bu_badge_yoyo}}', '{{t:bu_badge_yoyo_desc}}'],
+          weeks: ['N semanas', '{{t:bu_badge_weeks_desc}}'],
+          streak: ['Sequência de N semanas', '{{t:bu_badge_streak_desc}}']
+        } },
+        design: { title: '{{t:ig_share_title}}', items: {
+          tpl: ['{{t:sh_design}}', 'Editorial, Minimal, Spotlight, Grid ou Poster.'],
+          pal: ['{{t:sh_palette}}', 'O tema da app, seis paletas fixas, ou Cover.'],
+          fmt: ['{{t:ig_format}}', '{{t:sh_fmt_post}}, {{t:sh_fmt_portrait}} ou {{t:sh_fmt_story}}.'],
+          art: ['{{t:ig_album_art}}', 'Com ou sem capas, e de onde vêm.'],
+          pick: ['Imagens', 'Escolhe outra imagem para qualquer entrada.'],
+          show: ['{{t:ig_show_hide}}', 'Movimento, pico, semanas, plays, artista, data e rodapé.'],
+          entries: ['{{t:sh_entries}}', '{{t:sh_entries_hint}}.'],
+          text: ['{{t:sh_text_size}}', 'De 80% a 130%.'],
+          quality: ['{{t:sh_quality}}', '{{t:sh_quality_std}} ou {{t:sh_quality_high}}.']
+        } },
+        pdf: { title: 'PDF para imprimir', items: {
+          scope: ['Este top / {{t:pdf_all_charts}}', 'Um top ou os três.'],
+          cover: ['{{t:pdf_opt_art}}', 'Capas ao lado de cada entrada.'],
+          bu: ['{{t:pdf_opt_bu}}', 'Acrescenta os Aspirantes no fim.']
+        } },
+        export: { title: 'Exportar playlist', items: {
+          names: ['{{t:export_step_name}}', 'Nomes de playlist prontos.'],
+          order: ['{{t:export_order_first}} / {{t:export_order_last}}', 'Por que ordem.'],
+          album: ['{{t:export_include_album}}', 'Acrescenta o álbum a cada linha.'],
+          copy: ['{{t:export_copy_list}}', 'Artista - Título, uma por linha.'],
+          files: ['.txt / .csv', 'Transfere a lista como ficheiro.'],
+          soundiiz: ['{{t:export_open_soundiiz}}', 'Cria a playlist noutro serviço.']
+        } }
+      },
+      challenges: {
+        'around.tab': ['Abre outro separador por baixo do top', '{{t:sec_off_chart}} ou {{t:atc_tab_new}}.'],
+        'around.legend': ['Abre {{t:bu_legend_btn}}', 'Antes liga ⋮ → {{t:kebab_tab_show}} → {{t:btn_display_bu_legend}}.'],
+        'around.share': ['Abre Partilhar como imagem', '⋮ → Ações.'],
+        'around.design': ['Experimenta outro design para a imagem', 'Na janela de partilhar.'],
+        'around.pdf': ['Abre PDF para imprimir', '⋮ → Ações.'],
+        'around.export': ['Abre Exportar playlist', '⋮ → Ações.'],
+        'around.copy': ['Copia um nome de playlist ou a lista', 'Na janela de exportar.'],
+        'around.play': ['Ouve um top inteiro', '⋮ → Ações → {{t:btn_play_all}}.']
+      },
+      quiz: {
+        q1: ['Uma música nos Aspirantes está a 1 play de distância. O que quer dizer?',
+          ['Com mais um play teria entrado no top', 'Ouviste-a uma vez', 'É a #1 dos Aspirantes'],
+          'A distância é quantos plays faltavam para chegar à última posição do top.'],
+        q2: ['Onde encontras as músicas que estavam no top da semana passada mas não estão neste?',
+          ['{{t:sec_off_chart}}', '{{t:atc_tab_new}}', 'De Sempre'],
+          '{{t:sec_off_chart}} reúne cada saída, como saiu e se está perto de voltar.'],
+        q3: ['Queres que a imagem do teu top ocupe o ecrã do telemóvel numa história. O que mudas?',
+          ['{{t:ig_format}} → {{t:sh_fmt_story}}', '{{t:sh_palette}}', '{{t:sh_text_size}}'],
+          'O formato define a forma: 1:1 para publicação, 4:5 retrato, 9:16 para histórias.']
+      },
+      tips: [
+        'Nos Aspirantes, {{t:bu_legend_btn}} explica cada tag, de {{t:bu_badge_debut}} a {{t:bu_badge_fallen}}.',
+        'A janela de partilhar tem cinco designs. Poster como história 9:16 fica ótimo no telemóvel.',
+        'Exportar playlist mais o Soundiiz transformam qualquer top numa playlist a sério no Spotify, Apple Music e mais.'
+      ]
+    },
     windows: { title: 'Janelas de música, artista e álbum', promise: 'Tudo sobre uma música, um artista ou um álbum, e como o encontrar depressa.' },
     stats: { title: 'Estatísticas', promise: 'Resumo, História, Gráficos, Comparar e Jogos para qualquer período.' },
     records: { title: 'Recordes', promise: 'O teu livro de recordes: números um, estreias, certificações, sequências e mais.' },

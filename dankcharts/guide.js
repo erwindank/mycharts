@@ -29,7 +29,7 @@
   'use strict';
 
   // Bump when the lesson files or the pictures change (it's their ?v=)
-  const GUIDE_V = '4';
+  const GUIDE_V = '5';
   const STORE = 'dc_guide_progress';
   const LANG_FILES = ['es', 'pt-BR', 'pt-PT'];
 
@@ -108,7 +108,16 @@
     'at.stats':     { lesson: 'alltime', click: '#atInsights .ati-toggle' },
     'at.travel':    { lesson: 'alltime', period: 'alltime', click: '#prevBtn', key: ['ArrowLeft'], input: '#atPicker' },
     'at.search':    { lesson: 'alltime', period: 'alltime', input: '#songsSearchInput, #artistsSearchInput, #albumsSearchInput' },
-    'at.export':    { lesson: 'alltime', period: 'alltime', click: '.chart-export-btn' }
+    'at.export':    { lesson: 'alltime', period: 'alltime', click: '.chart-export-btn' },
+    // Around the chart, share image, PDF, export, play
+    'around.tab':    { lesson: 'around', click: '.atc-tab' },
+    'around.legend': { lesson: 'around', click: '.atc-info' },
+    'around.share':  { lesson: 'around', fn: 'openIgPreviewModal' },
+    'around.design': { lesson: 'around', click: '#igPreviewModal .sh-tpl, #igPreviewModal .sh-swatch, #igFormatBtns button' },
+    'around.pdf':    { lesson: 'around', fn: 'openPdfModal' },
+    'around.export': { lesson: 'around', fn: 'openExportModal' },
+    'around.copy':   { lesson: 'around', click: '#exportCopyBtn, #exportModal .export-name-chip' },
+    'around.play':   { lesson: 'around', click: '.yt-playall-btn' }
   };
   // Where "Show me" takes you for each challenge, and what it rings there.
   // open/tab: open the chart's ⋮ menu on a tab first.
@@ -140,7 +149,16 @@
     'at.stats':     { nav: 'alltime', ring: '#atInsights' },
     'at.travel':    { nav: 'alltime', ring: '#prevBtn' },
     'at.search':    { nav: 'alltime', ring: '#songsSearch' },
-    'at.export':    { nav: 'alltime', ring: '#songsExportBar' }
+    'at.export':    { nav: 'alltime', ring: '#songsExportBar' },
+    'around.tab':    { nav: 'week', ring: '#atcSongs .atc-tabs' },
+    // the button only shows with ⋮ → Show → BU legend on, so point at that switch
+    'around.legend': { nav: 'week', menu: 'show', ring: '#toggleBuLegendBtn' },
+    'around.share':  { nav: 'week', menu: 'actions', ring: '#songsShareBtn' },
+    'around.design': { nav: 'week', menu: 'actions', ring: '#songsShareBtn' },
+    'around.pdf':    { nav: 'week', menu: 'actions', ring: '#songsPdfBtn' },
+    'around.export': { nav: 'week', menu: 'actions', ring: '#exportPlaylistBtn' },
+    'around.copy':   { nav: 'week', menu: 'actions', ring: '#exportPlaylistBtn' },
+    'around.play':   { nav: 'week', menu: 'actions', ring: '#ytPlayAllRow' }
   };
 
   let lastInput = 0;
