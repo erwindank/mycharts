@@ -485,7 +485,9 @@ function _ntRecordLeaders() {
       // songs, artists and albums), so the nth list with a title is its own
       const base = secId + '|' + title;
       seen[base] = (seen[base] || 0) + 1;
-      out[_ntHash(base + '|' + seen[base])] = { k: rec.prefKey, name: rec.name, artist: rec.artist, type: rec.type, title, sec: secId };
+      // nth goes into the notification's link so a tap can find this exact
+      // table again (see _ntFindRecordTable)
+      out[_ntHash(base + '|' + seen[base])] = { k: rec.prefKey, name: rec.name, artist: rec.artist, type: rec.type, title, sec: secId, nth: seen[base] };
     });
   });
   return out;
@@ -557,7 +559,7 @@ async function ntRecordsBuilt() {
     byHolder.forEach(list => {
       const r = list[0];
       dcNotify({ kind: 'rec_new', type: r.type, name: r.name, artist: r.artist, title: r.title, n: list.length,
-                 link: { tab: 'records', view: r.sec, title: r.title } });
+                 link: { tab: 'records', view: r.sec, title: r.title, nth: r.nth } });
     });
   } catch (e) {
     console.warn('[dankcharts] Records notification check failed:', e);
@@ -566,21 +568,99 @@ async function ntRecordsBuilt() {
   }
 }
 
-/* Opens Records on the section a record is in and brings that list into
-   view (when it's on screen; some sections show one entity type at a time). */
+/* Opens Records on the exact list a record notification is about.
+
+   Until 2026-11-06 this only picked the section and looked for a *visible*
+   title, so a list behind a switch (Artists instead of Songs, Monthly
+   instead of Weekly, In a row instead of Total, another Fastest tier) was
+   never found and the tap just landed on whatever the section showed last.
+   Now it finds the list's table (same walk as _ntRecordLeaders, so the nth
+   list with a repeated title is the right one), stores every switch that
+   hides it, re-applies the section, and scrolls to it. */
+
+// The table a link points at: the nth ranked list titled link.title in its
+// section (nth missing on older notifications → the first one)
+function _ntFindRecordTable(link) {
+  const sec = document.getElementById(link.view);
+  if (!sec || !link.title) return null;
+  const want = link.nth || 1;
+  let n = 0, first = null;
+  for (const tb of sec.querySelectorAll('table')) {
+    const tEl = tb.closest('.rec-section')?.querySelector('.rec-section-title');
+    if (!tEl || tEl.textContent.replace(/\s+/g, ' ').trim() !== link.title) continue;
+    if (!first) first = tb;
+    // Count only ranked lists, exactly as _ntRecordLeaders did
+    const row = tb.querySelector('tbody tr[data-rec-idx="0"]');
+    if (!row || !row.classList.contains('rec-rank-1')) continue;
+    if (++n === want) return tb;
+  }
+  return first;
+}
+
+// Stores the choice of every switch between the table and its section, so
+// the next applyRecordsViewFilter() shows it. Returns the Total / In a row
+// mode the table needs (or null), which is applied separately.
+function _ntPickSwitchesFor(tb) {
+  let run = null;
+  const set = (k, v) => { try { if (v) localStorage.setItem(k, v); } catch (e) {} };
+  for (let el = tb; el && !el.matches('.chart-section'); el = el.parentElement) {
+    const d = el.dataset;
+    if (el.matches('.rec-ent-panel')) set('dc_rec_ent_' + d.recEntScope, d.recEnt);       // Songs / Artists / Albums
+    if (el.matches('.rec-per-panel')) set('dc_rec_per_' + d.recPerScope, d.recPer);       // Daily / Weekly / Monthly / Yearly
+    if (el.matches('.nc-rec-panel')) { set('dc_nc_rec_type', d.ncType); set('dc_nc_rec_period', d.ncPeriod); }   // New Charts
+    if (el.matches('.mil-panel')) set('dc_mil_rec_type', d.milType);                    // Milestones
+    if (el.matches('.fast-panel')) set('dc_fast_rec_type', d.fastType);                 // Fastest
+    if (el.matches('.rec-section[data-fast-tier]')) {                                    // Fastest tier ("to 100 plays")
+      const panel = el.closest('.fast-panel');
+      if (panel) set('dc_fast_tier_' + panel.dataset.fastType, d.fastTier);
+    }
+    if (el.matches('.rec-run-consec')) run = 'consec';                                  // In a row
+    if (el.matches('.rec-run-total')) run = 'total';                                    // Total
+    if (el.classList.contains('rec-collapsed')) el.classList.remove('rec-collapsed');   // a folded list
+  }
+  return run;
+}
+
 function _ntOpenRecord(link) {
   if (link.view && REC_SECTION_IDS.includes(link.view)) {
     try { localStorage.setItem('dc_records_active_view', link.view); } catch (e) {}
   }
+  // A search shows its own matches instead of the section
+  if (typeof recSearchQuery === 'function' && recSearchQuery() && typeof clearRecordsSearch === 'function') clearRecordsSearch();
   if (currentPeriod === 'records') applyRecordsViewFilter(link.view || REC_DEFAULT_VIEW);
   else dcGoTab('records');
   if (!link.title) return;
-  setTimeout(() => {
-    const sec = document.getElementById(link.view);
-    const el = sec && [...sec.querySelectorAll('.rec-section-title')]
-      .find(x => x.textContent.replace(/\s+/g, ' ').trim() === link.title && x.getClientRects().length);
-    if (el) el.scrollIntoView({ block: 'start', behavior: 'smooth' });
-  }, 400);
+
+  // Records may be building (1–2 s on a big library), so wait for the tables
+  let tries = 0;
+  const go = () => {
+    const tb = _ntRecordsBuilt() ? _ntFindRecordTable(link) : null;
+    if (!tb) { if (++tries < 40) setTimeout(go, 150); return; }
+    const run = _ntPickSwitchesFor(tb);
+    applyRecordsViewFilter(link.view);
+    if (run) {
+      // The Total / In a row switch keeps its state on the section; its own
+      // click handler stores it and updates the sentence
+      const sec = document.getElementById(link.view);
+      const btn = sec && sec.querySelector('.rec-run-seg [data-rec-run="' + run + '"]');
+      if (btn && sec.dataset.recRun !== run) btn.click();
+    }
+    // Scroll to the list (its title if that shows, else the list's box),
+    // leaving room for the sticky bars, and flash it so the eye finds it
+    requestAnimationFrame(() => {
+      const box = tb.closest('.rec-section') || tb;
+      const tEl = box.querySelector('.rec-section-title');
+      const target = [tEl, box, tb].find(x => x && x.getClientRects().length);
+      if (!target) return;
+      const y = target.getBoundingClientRect().top + window.scrollY - 140;
+      window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+      box.classList.remove('nt-rec-flash');
+      void box.offsetWidth;   // restart the animation on a second tap
+      box.classList.add('nt-rec-flash');
+      setTimeout(() => box.classList.remove('nt-rec-flash'), 2200);
+    });
+  };
+  setTimeout(go, 100);
 }
 
 // The Board isn't tied to a data load, so it's also checked every few minutes

@@ -46509,3 +46509,18 @@ html.lsx-open { overflow: hidden; }
   .st-bubbles--years { height: 320px; }
   .st-dy-firsts { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 }
+
+/* A record list opened from a notification glows for a moment so the eye
+   lands on it (notifications.js _ntOpenRecord, 2026-11-06). Outline, not a
+   border, so nothing moves; the accent token so it fits every theme. */
+#recordsView .nt-rec-flash {
+  border-radius: var(--radius-md, 12px);
+  animation: ntRecFlash 2.2s ease-out;
+}
+@keyframes ntRecFlash {
+  0%, 35% { outline: 2px solid var(--accent); outline-offset: 6px; }
+  100%    { outline: 2px solid transparent; outline-offset: 6px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #recordsView .nt-rec-flash { animation: none; outline: 2px solid var(--accent); outline-offset: 6px; }
+}
