@@ -1663,7 +1663,276 @@ window.GL_TEXT.es = {
         'Cada tarjeta del {{t:rec_nav_overview}} puede cambiar sola entre los rankings diario, semanal, mensual y anual.'
       ]
     },
-    awards: { title: 'Premios', promise: 'Tu propia gala de premios, de los nominados a la ceremonia.' },
+    awards: {
+      title: '{{t:nav_awards}}',
+      promise: 'Tu propia gala de premios para cualquier año: elige las categorías, los nominados y los ganadores, y mira la ceremonia. Y cómo les fue a tus artistas en los premios reales.',
+      scenes: {
+        top: { title: '{{t:awards_tab_mygrammys}}', spots: {
+          sub: ['{{t:awards_tab_mygrammys}} / {{t:awards_tab_reallife}}', 'Tus propios premios, o los premios de la vida real.'],
+          year: ['El año', 'Cada año tiene su propia papeleta. Haz clic en el año para saltar a otro.'],
+          config: ['{{t:awards_configure}}', 'Qué categorías hay este año, las fechas que cuentan y algunos ajustes.'],
+          gen: ['{{t:awards_generate}}', 'Llena todas las categorías con nominados de tus escuchas de una vez.'],
+          cer: ['{{t:awards_ceremony_btn}}', 'Reproduce la gala a pantalla completa. También está al final de la página.'],
+          share: ['{{t:awards_share_btn}}', 'Un enlace con el que cualquiera puede ver tu ceremonia.'],
+          sum: ['{{t:awx_title}}', 'El año de un vistazo: más nominaciones, más premios y más. Ábrelo para verlo todo.'],
+          tools: ['Herramientas de la papeleta', 'Cuántas quedan por decidir, ocultar las decididas, abrir o plegar las tarjetas.'],
+          views: ['{{t:awards_view_label}}', '{{t:awards_view_ballot}}, {{t:awards_view_spotlight}}, {{t:awards_view_tiles}}, {{t:awards_view_collage}} o {{t:awards_view_reel}}.']
+        } },
+        empty: { title: 'Un año nuevo', spots: {
+          year: ['El año', 'Un año que aún no has preparado.'],
+          gen: ['{{t:awards_generate}}', 'La forma más rápida de empezar: nominados para todas las categorías a la vez.'],
+          card: ['Una categoría', 'Su tipo (canción, álbum o artista), su nombre y lo que premia.'],
+          onoff: ['Sí / no', 'Saca la categoría de la gala de este año, o la vuelve a poner.'],
+          fav: ['Favorita', 'Marca con estrella las categorías que siempre quieres.'],
+          pick: ['{{t:awards_pick_nominees_btn}}', 'Elige tú los nominados de una categoría.']
+        } },
+        cards: { title: 'La papeleta', spots: {
+          left: ['{{t:awards_pending}}', 'Cuántas categorías aún necesitan ganador.'],
+          hide: ['{{t:awards_hide_decided}}', 'Oculta las categorías que ya tienen ganador.'],
+          fold: ['Abrir / plegar', '{{t:awards_expand_all}} o {{t:awards_collapse_all}}: en todas las tarjetas, o solo en las de {{t:awards_fold_scope_pending}}.'],
+          views: ['{{t:awards_view_label}}', 'Cinco maneras de ver la papeleta.'],
+          hint: ['{{t:awards_pick_hint}}', 'Haz clic en un nominado para hacerlo ganador. Otro clic lo deshace.'],
+          head: ['Una categoría', 'Su tipo, su número de nominados, su nombre y lo que premia.'],
+          onoff: ['Sí / no', 'Saca la categoría de la gala.'],
+          fav: ['Favorita', 'Marca la categoría con estrella.'],
+          fold1: ['Plegar', 'Pliega esta tarjeta.'],
+          winner: ['El ganador', 'En dorado, con trofeo.'],
+          nom: ['Un nominado', 'Haz clic para coronarlo.'],
+          change: ['{{t:awards_change_btn}}', 'Abre el selector de nominados de esta categoría.'],
+          playlist: ['{{t:awx_playlist}}', 'Guarda los nominados como lista.'],
+          reorder: ['{{t:awards_reorder}}', 'Mueve los nominados arriba y abajo.']
+        } },
+        config: { title: '{{t:awards_configure}}', spots: {
+          elig: ['{{t:awards_elig_window}}', 'Las fechas que cuentan para los premios de este año.'],
+          gemini: ['Clave de Gemini', 'Opcional: una clave gratis {{t:awx_cfg_gemini_hint}}.'],
+          credit: ['{{t:awx_cfg_credit}}', 'Una nominación cuenta también para los artistas invitados, no solo para el principal.'],
+          hideplays: ['{{t:awx_cfg_hide_plays}}', 'La papeleta va de tus elecciones, no de los números.'],
+          rating: ['{{t:awx_cfg_scores}}', 'Tu nota de 0 a 10 junto a cada nominado que valoraste.'],
+          samples: ['{{t:awx_cfg_samples}}', 'Un botón ♪ que reproduce 30 segundos de cada nominado.'],
+          count: ['Cuántas hay', 'Categorías activas este año, de todas las que hay.'],
+          bulk: ['{{t:awards_enable_all}} / {{t:awards_disable_all}}', 'Todas las categorías a la vez, o solo tus favoritas.'],
+          favs: ['Solo favoritas', 'Activa solo las categorías con estrella.'],
+          search: ['Buscar', 'Encuentra una categoría por su nombre.'],
+          type: ['Canción, álbum, artista', 'Muestra solo un tipo.'],
+          status: ['Activas o no', 'Muestra solo las categorías activas, o las que no.'],
+          groups: ['Grupos', 'Salta a un grupo: premios principales, rock, pop, vídeos y más.'],
+          group: ['Un grupo', 'Activa o desactiva todo el grupo.'],
+          cat: ['Una categoría', 'Haz clic para activarla o desactivarla.'],
+          catfav: ['Estrella', 'Hazla favorita.']
+        } },
+        picker: { title: 'Elegir nominados', spots: {
+          title: ['La categoría', 'Para qué año y categoría eliges.'],
+          fav: ['Favorita', 'Marca la categoría con estrella.'],
+          close: ['Cerrar', 'Pregunta antes si tienes cambios.'],
+          ballot: ['{{t:awx_pk_nominees}}', 'Lo que llevas elegido. {{t:awx_pk_drag}}.'],
+          tally: ['Cuántos', 'Hasta 8.'],
+          quick: ['Elección rápida', 'Llena los 8 primeros, los 5 primeros, o {{t:awx_pk_clear}}.'],
+          nom: ['Una elección', 'Su puesto, una muestra, su vídeo y ✕ para quitarla.'],
+          clip: ['Muestra', 'Escucha 30 segundos.'],
+          x: ['Quitar', 'La quita de la lista.'],
+          search: ['Buscar', 'Cualquier canción de ese año.'],
+          sort: ['Ordenar', 'Cómo se ordena la lista de abajo.'],
+          group: ['{{t:awx_pk_suggested}}', 'Las que mejor encajan, primero.'],
+          row: ['Una sugerencia', 'Sus géneros, cuánto encaja en la categoría y sus escuchas. Haz clic para añadirla o quitarla.'],
+          save: ['{{t:awards_save_nominees}}', 'Los pone en la papeleta.']
+        } },
+        sum: { title: '{{t:awx_title}}', spots: {
+          head: ['El año de un vistazo', 'Cuántas nominaciones, categorías y artistas, y quién va en cabeza.'],
+          toggle: ['Abrir / cerrar', 'Más nominaciones y premios de siempre, y los líderes de este año.']
+        } },
+        intro: { title: 'La ceremonia', spots: {
+          badge: ['La gala', 'De qué año son los premios.'],
+          dots: ['Progreso', 'Un punto por categoría.'],
+          cats: ['{{t:awards_ceremony_cats}}', 'La lista de categorías: salta a cualquiera.'],
+          sound: ['Sonido', 'Música y efectos, sí o no.'],
+          close: ['Cerrar', 'Sal de la gala. Esc hace lo mismo.'],
+          title: ['{{t:awx_title}}', 'La gala empieza con los más nominados del año.'],
+          slide: ['{{t:awx_cer_before}}', 'Más nominaciones de siempre y de este año.'],
+          progress: ['Dónde estás', 'Antes de la gala, luego 1 de 6, etc.'],
+          next: ['{{t:awx_cer_start}}', 'Al primer premio.']
+        } },
+        cat: { title: 'Un premio', spots: {
+          title: ['La categoría', 'Su nombre, en grande.'],
+          noms: ['Los nominados', 'Todos los nominados, con su portada.'],
+          nom: ['Un nominado', 'Su título y su artista.'],
+          env: ['El sobre', 'El ganador está dentro.'],
+          meet: ['{{t:awx_cer_meet}}', 'Antes, unos segundos de cada nominado.'],
+          open: ['{{t:awards_open_envelope}}', 'Revela el ganador.'],
+          prev: ['Anterior', 'El premio anterior. ← hace lo mismo.'],
+          progress: ['Cuenta', 'Qué premio de cuántos.'],
+          next: ['Siguiente', 'El siguiente premio. → hace lo mismo.']
+        } },
+        win: { title: 'El ganador', spots: {
+          label: ['Ganador', 'El sobre está abierto.'],
+          name: ['El ganador', 'Y su artista.'],
+          art: ['Su portada', 'Con el trofeo.'],
+          play: ['Su canción', 'Suena una muestra; páusala o repítela aquí.'],
+          next: ['Siguiente', 'Al siguiente premio.']
+        } },
+        fin: { title: '{{t:awx_cer_winners}}', spots: {
+          grid: ['{{t:awx_cer_winners}}', 'Todos los ganadores de la noche.'],
+          card: ['Un ganador', 'Su categoría, su título y su artista.'],
+          stats: ['Después de la gala', 'Las estadísticas y récords finales, con los premios de este año sumados.']
+        } },
+        side: { title: '{{t:awards_ceremony_cats}}', spots: {
+          cats: ['{{t:awards_ceremony_cats}}', 'Abre y cierra la lista.'],
+          side: ['Todas las categorías', 'Haz clic en una para saltar a ella.']
+        } },
+        share: { title: '{{t:cer_share_title}}', spots: {
+          title: ['{{t:cer_share_title}}', 'Comparte tu ceremonia con un enlace.'],
+          body: ['Cómo funciona', 'Quien tenga el enlace puede verla, sin cuenta.'],
+          foot: ['{{t:cer_share_signin}}', 'Para crear el enlace hay que iniciar sesión. Después, cópialo desde aquí.']
+        } },
+        real: { title: '{{t:awards_tab_reallife}}', spots: {
+          sub: ['{{t:awards_tab_reallife}}', 'Premios reales, comparados con lo que escuchas.'],
+          shows: ['Las galas', 'Grammys, VMAs, AMAs, iHeartRadio, World Music, Billboard, ARIA, Juno y BRIT.'],
+          year: ['El año', 'Recorre los años de la gala.'],
+          head: ['La gala', 'Su nombre y cuántas categorías.'],
+          sub2: ['Qué escuchas cuentan', 'Tus escuchas durante la temporada de esa gala.'],
+          tally: ['Tus artistas', 'Cuántas nominaciones y premios consiguieron tus artistas.'],
+          card: ['Un artista', 'Todas sus nominaciones y premios.'],
+          plays: ['Escuchas esa temporada', 'Cuánto lo escuchaste entonces.'],
+          won: ['{{t:awx_rl_won}}', 'Un premio.'],
+          nomd: ['{{t:awx_rl_nominated}}', 'Una nominación.'],
+          work: ['Por qué', 'La canción, el álbum o el vídeo.']
+        } }
+      },
+      howto: {
+        setup: { title: 'Preparar un año', slides: [
+          'Elige el año.',
+          'Abre {{t:awards_configure}}.',
+          'Las fechas que cuentan.',
+          'Salta a un grupo de categorías.',
+          'Haz clic en una categoría para activarla o desactivarla.',
+          'Y algunos ajustes, como muestras en cada nominado.'
+        ] },
+        gen: { title: 'Nominados en un clic', slides: [
+          'Pulsa {{t:awards_generate}}.',
+          'Cada categoría recibe hasta 8 nominados de tus escuchas.',
+          'Luego cambia los que quieras.'
+        ] },
+        pick: { title: 'Elegir tú los nominados', slides: [
+          'Pulsa {{t:awards_change_btn}} (o {{t:awards_pick_nominees_btn}}) en una categoría.',
+          'Primero las sugerencias, las que mejor encajan arriba. Haz clic para añadir una.',
+          'O busca cualquier canción de ese año.',
+          'Llena los 8 primeros de una vez.',
+          'Arrastra tus elecciones para ordenarlas.',
+          'Guarda.'
+        ] },
+        win: { title: 'Coronar a los ganadores', slides: [
+          'Haz clic en un nominado.',
+          'Se vuelve dorado: es tu ganador.',
+          'Mira cuántas quedan.',
+          'Oculta las que ya decidiste.'
+        ] },
+        view: { title: 'Ver la papeleta de cinco maneras', slides: [
+          'Cambia la vista aquí.',
+          '{{t:awards_view_spotlight}}: el ganador en grande, con escuchas.',
+          '{{t:awards_view_tiles}}: portadas en cuadrícula.',
+          '{{t:awards_view_collage}}: una portada grande y el resto alrededor.',
+          '{{t:awards_view_reel}}: una tira que se desliza de lado.'
+        ] },
+        cer: { title: 'Ver la ceremonia', slides: [
+          'Pulsa {{t:awards_ceremony_btn}}.',
+          'Empieza con los líderes del año.',
+          '{{t:awx_cer_start}}.',
+          'Escucha a los nominados.',
+          'Abre el sobre.',
+          'Y el ganador es…',
+          'Al siguiente premio.',
+          'Termina con todos los ganadores de la noche.'
+        ] },
+        share: { title: 'Compartir tu ceremonia', slides: [
+          'Salta a cualquier categoría desde la lista.',
+          'Activa o quita el sonido.',
+          'Pulsa {{t:awards_share_btn}} en la página de Premios.',
+          'Inicia sesión y copia el enlace para enviarlo.'
+        ] },
+        real: { title: 'Ver los premios reales', slides: [
+          'Abre {{t:awards_tab_reallife}}.',
+          'Elige una gala.',
+          'Y un año.',
+          'Cómo les fue a tus artistas.',
+          'Cada nominación y premio, artista por artista.'
+        ] }
+      },
+      options: {
+        bar: { title: 'Arriba', items: {
+          year: ['El año', 'Cada año tiene su propia papeleta.'],
+          config: ['{{t:awards_configure}}', 'Categorías, fechas y ajustes.'],
+          gen: ['{{t:awards_generate}}', 'Nominados para todas las categorías.'],
+          cer: ['{{t:awards_ceremony_btn}}', 'La gala a pantalla completa.'],
+          share: ['{{t:awards_share_btn}}', 'Un enlace a tu ceremonia.']
+        } },
+        views: { title: '{{t:awards_view_label}}', items: {
+          ballot: ['{{t:awards_view_ballot}}', 'Una lista por categoría.'],
+          spotlight: ['{{t:awards_view_spotlight}}', 'El ganador en grande, con escuchas.'],
+          tiles: ['{{t:awards_view_tiles}}', 'Portadas en cuadrícula.'],
+          collage: ['{{t:awards_view_collage}}', 'Una portada grande y el resto alrededor.'],
+          reel: ['{{t:awards_view_reel}}', 'Una tira de lado.']
+        } },
+        tools: { title: 'La papeleta', items: {
+          hide: ['{{t:awards_hide_decided}}', 'Solo lo que queda por decidir.'],
+          fold: ['{{t:awards_fold_scope_all}} / {{t:awards_fold_scope_pending}}', 'Qué tarjetas se abren o pliegan juntas.'],
+          onoff: ['Sí / no', 'Por categoría.'],
+          fav: ['Favorita', 'Marca una categoría.'],
+          playlist: ['{{t:awx_playlist}}', 'Los nominados como lista.'],
+          reorder: ['{{t:awards_reorder}}', 'Cambia el orden de los nominados.']
+        } },
+        config: { title: '{{t:awards_configure}}', items: {
+          elig: ['{{t:awards_elig_window}}', 'Las fechas que cuentan.'],
+          gemini: ['Clave de Gemini', 'Opcional, {{t:awx_cfg_gemini_hint}}.'],
+          credit: ['{{t:awx_cfg_credit}}', 'Los invitados comparten el mérito.'],
+          hideplays: ['{{t:awx_cfg_hide_plays}}', 'Sin escuchas en la papeleta.'],
+          rating: ['{{t:awx_cfg_scores}}', 'Tus notas junto a los nominados.'],
+          samples: ['{{t:awx_cfg_samples}}', 'Un ♪ en cada nominado.'],
+          bulk: ['{{t:awards_enable_all}} / {{t:awards_disable_all}}', 'Todas las categorías a la vez.'],
+          favs: ['Solo favoritas', 'Solo tus categorías con estrella.']
+        } },
+        picker: { title: 'Selector de nominados', items: {
+          quick: ['Los 8 primeros / Top 5 / {{t:awx_pk_clear}}', 'Llena o vacía la lista.'],
+          sort: ['Ordenar', 'El orden de las sugerencias.'],
+          clip: ['♪', 'Una muestra de cada uno.']
+        } },
+        cer: { title: 'Ceremonia', items: {
+          cats: ['{{t:awards_ceremony_cats}}', 'Salta a cualquier premio.'],
+          sound: ['Sonido', 'Sí o no.'],
+          meet: ['{{t:awx_cer_meet}}', 'Escucha a cada nominado.'],
+          open: ['{{t:awards_open_envelope}}', 'Revela el ganador.']
+        } },
+        real: { title: '{{t:awards_tab_reallife}}', items: {
+          shows: ['Galas', 'Grammys, VMAs, AMAs, iHeartRadio, World Music, Billboard, ARIA, Juno, BRIT.']
+        } }
+      },
+      challenges: {
+        'aw.config': ['Abre {{t:awards_configure}}', 'Arriba en {{t:awards_tab_mygrammys}}.'],
+        'aw.gen': ['Genera nominados', '{{t:awards_generate}}.'],
+        'aw.pick': ['Abre el selector de nominados', '{{t:awards_change_btn}} en cualquier categoría.'],
+        'aw.win': ['Corona a un ganador', 'Haz clic en un nominado.'],
+        'aw.view': ['Prueba otra vista', '{{t:awards_view_spotlight}}, {{t:awards_view_tiles}}, {{t:awards_view_collage}} o {{t:awards_view_reel}}.'],
+        'aw.cer': ['Empieza la ceremonia', '{{t:awards_ceremony_btn}}.'],
+        'aw.reveal': ['Abre un sobre', 'En la ceremonia.'],
+        'aw.real': ['Abre {{t:awards_tab_reallife}}', 'La segunda pestaña.']
+      },
+      quiz: {
+        q1: ['¿Cómo eliges un ganador?',
+          ['Pulsa {{t:awards_ceremony_btn}}', 'Arrástralo arriba', 'Haz clic en el nominado en la papeleta'],
+          'Un clic en un nominado lo corona; otro clic lo deshace.'],
+        q2: ['¿Qué hace {{t:awards_generate}}?',
+          ['Llena cada categoría con nominados de tus escuchas', 'Elige los ganadores por ti', 'Empieza la ceremonia'],
+          'Elige nominados; los ganadores siempre los eliges tú.'],
+        q3: ['¿Quién puede ver una ceremonia que compartes?',
+          ['Solo tú', 'Cualquiera con el enlace, sin cuenta', 'Solo usuarios con sesión iniciada'],
+          'Tú inicias sesión para crear el enlace; quien lo abra puede verla.']
+      },
+      tips: [
+        'Prueba la vista {{t:awards_view_collage}} en {{t:awards_tab_mygrammys}}: cada categoría como un muro de portadas.',
+        'En la ceremonia, {{t:awx_cer_meet}} reproduce unos segundos de cada nominado antes de abrir el sobre.',
+        '{{t:awards_tab_reallife}} muestra cómo les fue a tus artistas en los Grammys, los VMAs, los BRIT y más.',
+        'En el selector de nominados, «Los 8 primeros» llena la lista con los que mejor encajan en un clic.',
+        'Marca con estrella tus categorías favoritas y activa solo esas para un año rápido.'
+      ]
+    },
     soundtrack: { title: 'Tu Banda Sonora', promise: 'Un mes, un año o desde siempre, contado en capítulos.' },
     dank100: { title: 'The Dank 100', promise: 'Los rankings semanales de todos, sumados en uno.' },
     ratings: { title: 'Valoraciones', promise: 'Puntúa álbumes y canciones, y descubre tu lado crítico.' },

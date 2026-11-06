@@ -29,7 +29,7 @@
   'use strict';
 
   // Bump when the lesson files or the pictures change (it's their ?v=)
-  const GUIDE_V = '9';
+  const GUIDE_V = '10';
   const STORE = 'dc_guide_progress';
   const LANG_FILES = ['es', 'pt-BR', 'pt-PT'];
 
@@ -146,7 +146,16 @@
     'rec.run':       { lesson: 'records', click: '#recordsView .rec-run-toggle-btn, #recordsView .rec-expand-all-btn' },
     'rec.search':    { lesson: 'records', input: '#recordsSearch' },
     'rec.ledger':    { lesson: 'records', click: '#recordsView .certw-open, #recCertsSection .rec-run-toggle-btn' },
-    'rec.show':      { lesson: 'records', click: '#recordsSizeBtns button' }
+    'rec.show':      { lesson: 'records', click: '#recordsSizeBtns button' },
+    // Awards (app.js)
+    'aw.config':     { lesson: 'awards', fn: 'awardsToggleConfig' },
+    'aw.gen':        { lesson: 'awards', fn: 'awardsGenerateCandidates' },
+    'aw.pick':       { lesson: 'awards', fn: 'awardsGenerateCatCandidates' },
+    'aw.win':        { lesson: 'awards', fn: 'awardsPickWinner' },
+    'aw.view':       { lesson: 'awards', fn: 'awardsSetView', test: a => a[0] && a[0] !== 'ballot' },
+    'aw.cer':        { lesson: 'awards', fn: 'startAwardsCeremony' },
+    'aw.reveal':     { lesson: 'awards', fn: 'ceremonyReveal' },
+    'aw.real':       { lesson: 'awards', fn: 'awardsSubTab', test: a => a[0] === 'reallife' }
   };
   // Where "Show me" takes you for each challenge, and what it rings there.
   // open/tab: open the chart's ⋮ menu on a tab first.
@@ -213,7 +222,15 @@
     'rec.run':       { nav: 'records', rview: 'recAllOnesSection', ring: '#recAllOnesSection .rec-run-toggle-btn' },
     'rec.search':    { nav: 'records', ring: '#recordsSearchBar' },
     'rec.ledger':    { nav: 'records', rview: 'recCertsSection', ring: '#recCertsSection .certw-open' },
-    'rec.show':      { nav: 'records', rview: 'recAllOnesSection', ring: '#recordsSizeBar' }
+    'rec.show':      { nav: 'records', rview: 'recAllOnesSection', ring: '#recordsSizeBar' },
+    'aw.config':     { nav: 'awards', ring: '#awardsConfigToggleBtn' },
+    'aw.gen':        { nav: 'awards', ring: '#awardsGenerateBtn' },
+    'aw.pick':       { nav: 'awards', ring: '#awardsCatList .awards-cat-action-btn' },
+    'aw.win':        { nav: 'awards', ring: '#awardsCatList .awards-nominee-row, #awardsGenerateBtn' },
+    'aw.view':       { nav: 'awards', ring: '#awardsViewBar .awards-view-pick' },
+    'aw.cer':        { nav: 'awards', ring: '#awardsMyGrammys .awards-ceremony-launch-btn, #awardsGenerateBtn' },
+    'aw.reveal':     { nav: 'awards', ring: '#awardsMyGrammys .awards-ceremony-launch-btn, #awardsGenerateBtn' },
+    'aw.real':       { nav: 'awards', ring: '#awardsView .awards-subnav' }
   };
 
   let lastInput = 0;

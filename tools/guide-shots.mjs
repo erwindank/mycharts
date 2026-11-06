@@ -150,6 +150,54 @@ async function recView(pg, view) {
   await pg.waitForFunction(v => { const el = document.getElementById(v); return el && el.offsetHeight > 200; }, view, { timeout: 60000 });
   await wait(pg, 2500);
 }
+// Awards on My Grammys for the sample year, with six categories on and their
+// nominees picked, and winners in the first three (done once per browser: the
+// ballot is kept, so later shots find it ready). empty: another year, untouched.
+const AW_ON = 'song_of_year|album_of_year|artist_of_year|new_artist|best_collab|song_summer';
+async function awSetup(pg, { winners = true, empty = false } = {}) {
+  // a ceremony or share window left open by the shot before
+  await pg.evaluate(() => {
+    const o = document.getElementById('awardsCeremonyOverlay');
+    if (o && o.style.display && o.style.display !== 'none' && typeof closeCeremony === 'function') closeCeremony();
+    if (typeof closeCeremonyShare === 'function') closeCeremonyShare();
+    // the nominee picker from the picker shot
+    if (document.querySelector('.awards-picker-modal') && typeof awardsPickerClose === 'function') awardsPickerClose();
+  });
+  await go(pg, 'awards'); await wait(pg, 2500);
+  await pg.evaluate(() => awardsSubTab('mygrammys')); await wait(pg, 800);
+  const year = await pg.evaluate(() => new Date().getFullYear() - 1);
+  if (empty) { await pg.evaluate(y => _awardsSetYear('mygrammys', y), year - 1); await wait(pg, 3000); return; }
+  await pg.evaluate(y => _awardsSetYear('mygrammys', y), year); await wait(pg, 2500);
+  await pg.evaluate(async on => {
+    const re = new RegExp('^(' + on + ')$');
+    const data = await _awardsLoad(_awardsYear);
+    const has = () => AWARD_CATEGORIES.some(c => re.test(c.id) && _awardsYearData[_awardsYear]?.categories[c.id]?.nominees?.length);
+    if (has()) return;
+    for (const c of AWARD_CATEGORIES) data.categories[c.id].enabled = re.test(c.id);
+    _awardsRenderCatList(data);
+    await awardsGenerateCandidates();
+    // the first run can come back empty while the library settles
+    if (!has()) await awardsGenerateCandidates();
+  }, AW_ON);
+  if (winners) await pg.evaluate(async () => {
+    const data = _awardsYearData[_awardsYear];
+    for (const id of ['song_of_year', 'album_of_year', 'artist_of_year']) {
+      const cd = data.categories[id];
+      if (cd?.nominees?.length && !cd.winner) await awardsPickWinner(_awardsYear, id, cd.nominees[0]);
+    }
+  });
+  await pg.evaluate(() => { awardsSetView('ballot'); window.scrollTo(0, 0); });
+  await pg.waitForFunction(() => document.querySelectorAll('#awardsCatList .awards-nominee-row').length >= 8, null, { timeout: 60000 });
+  await wait(pg, 2000);
+}
+// The ceremony, full screen, on one of its slides
+async function awCeremony(pg, slide) {
+  await awSetup(pg);
+  await pg.evaluate(() => startAwardsCeremony()); await wait(pg, 2500);
+  // slide: 'cat' the first category, 'fin' the winners at the end
+  if (slide === 'cat') { await pg.evaluate(() => ceremonyNav(1)); await wait(pg, 2500); }
+  if (slide === 'fin') { await pg.evaluate(() => ceremonyGoTo(_ceremonyCats.length)); await wait(pg, 2500); }
+}
 // Spot finders that need more than a selector: run in the page, return an element
 const byText = (scope, sel, re) => ({ js: `[...document.querySelectorAll(${JSON.stringify(scope + ' ' + sel)})].find(e => ${re}.test(e.textContent.trim()))` });
 
@@ -714,7 +762,110 @@ const SHOTS = [
       sort: '.certd .certd-sortwrap',
       row: { js: "[...document.querySelectorAll('.certd .certd-row')].filter(e => e.offsetParent).sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top)[0]" },
       medal: { js: "[...document.querySelectorAll('.certd .certd-medal')].filter(e => e.offsetParent).sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top)[0]" },
-      journey: { js: "[...document.querySelectorAll('.certd .certd-journey')].filter(e => e.offsetParent).sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top)[0]" } } }
+      journey: { js: "[...document.querySelectorAll('.certd .certd-journey')].filter(e => e.offsetParent).sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top)[0]" } } },
+
+  /* ── Lesson: Awards (GUIDE-PLAN.md step 7) ────────────────────────
+     My Grammys for last year with six categories, nominees and three
+     winners (awSetup), the ceremony, and Real-Life Awards (the VMAs:
+     Wikipedia has them for the demo library; the Grammys come from a
+     proxy that only answers the live site). */
+  { id: 'aw-top', lesson: 'awards', phone: true,
+    setup: async pg => { await awSetup(pg); },
+    clip: { from: '#awardsView .awards-header', to: '#awardsViewBar', pad: 14 },
+    spots: { sub: '#awardsView .awards-subnav', year: '#awardsMyGrammys .awards-year-stepper', config: '#awardsConfigToggleBtn',
+      gen: '#awardsGenerateBtn', cer: '#awardsMyGrammys .awards-ceremony-launch-btn', share: '#awardsMyGrammys .awards-ceremony-share-btn',
+      sum: '#awardsSummary', tools: '#awardsViewBar .awards-bar-tools', views: '#awardsViewBar .awards-view-pick' } },
+  { id: 'aw-empty', lesson: 'awards',
+    setup: async pg => { await awSetup(pg, { empty: true }); },
+    clip: { from: '#awardsMyGrammys .awards-year-bar', to: { js: "[...document.querySelectorAll('#awardsCatList .awards-cat-card')][2]" }, pad: 14 },
+    spots: { year: '#awardsMyGrammys .awards-year-stepper', gen: '#awardsGenerateBtn', card: '#awardsCatList .awards-cat-card',
+      onoff: '#awardsCatList .awards-cat-onoff', fav: '#awardsCatList .awards-cat-fav', pick: '#awardsCatList .awards-cat-action-btn' } },
+  { id: 'aw-cards', lesson: 'awards', phone: true,
+    setup: async pg => { await awSetup(pg); },
+    clip: { from: '#awardsViewBar', to: '#awardsCat_artist_of_year', pad: 14 },
+    spots: { left: { js: "document.querySelector('#awardsViewBar .awards-bar-tools').firstElementChild" }, hide: '#awardsViewBar .awards-hide-decided',
+      fold: '#awardsViewBar .awards-fold-scopes', views: '#awardsViewBar .awards-view-pick', hint: '#awardsView .awards-bar-hint',
+      card: '#awardsCat_song_of_year', head: '#awardsCat_song_of_year .awards-cat-header', onoff: '#awardsCat_song_of_year .awards-cat-onoff',
+      fav: '#awardsCat_song_of_year .awards-cat-fav', fold1: '#awardsCat_song_of_year .awards-cat-collapse',
+      winner: '#awardsCat_song_of_year .awards-nominee-row.is-winner', nom: '#awardsCat_song_of_year .awards-nominee-row:not(.is-winner)',
+      change: '#awardsCat_song_of_year .awards-cat-action-btn', playlist: '#awardsCat_song_of_year .awards-cat-pl-btn',
+      reorder: '#awardsCat_song_of_year .awards-cat-reorder-btn' } },
+  ...['spotlight', 'tiles', 'collage', 'reel'].map(v => ({
+    id: 'aw-view-' + v, lesson: 'awards',
+    setup: async pg => { await awSetup(pg); await pg.evaluate(v => awardsSetView(v), v); await wait(pg, 2500); },
+    clip: { from: '#awardsViewBar', to: '#awardsCatList', pad: 12, maxH: 900 },
+    spots: { btn: '#awardsViewBar .awards-view-opt[onclick*="' + v + '"]', list: '#awardsCatList' }
+  })),
+  { id: 'aw-sum', lesson: 'awards',
+    setup: async pg => { await awSetup(pg);
+      await pg.evaluate(() => { const b = document.querySelector('#awardsSummary .aw-sum-toggle'); if (b && document.querySelector('#awardsSummary .is-folded')) b.click(); }); await wait(pg, 1500); },
+    clip: { from: '#awardsSummary', to: '#awardsSummary', pad: 12, maxH: 1400 },
+    spots: { head: '#awardsSummary .aw-sum-head', toggle: '#awardsSummary .aw-sum-toggle' } },
+  { id: 'aw-config', lesson: 'awards',
+    setup: async pg => { await awSetup(pg); await pg.evaluate(() => awardsToggleConfig()); await wait(pg, 1200); },
+    clip: { from: '#awardsConfigPanel', to: '#awardsConfigPanel', pad: 12, maxH: 1250 },
+    spots: { elig: '#awardsConfigPanel .awards-config-row', gemini: '#awardsConfigPanel .awards-gemini-row',
+      credit: { js: "document.getElementById('awardsCreditFeatures').closest('label')" }, hideplays: { js: "document.getElementById('awardsHidePlays').closest('label')" },
+      rating: { js: "document.getElementById('awardsShowRating').closest('label')" }, samples: { js: "document.getElementById('awardsSamples').closest('label')" },
+      count: '#awardsCatCount', bulk: '#awardsCatBrowser .awc-bulk', favs: '#awardsCatFavsOnly', search: '#awardsCatSearch',
+      type: '#awardsCatTypeSeg', status: '#awardsCatStatusSeg', groups: '#awardsCatGroups', group: '#awardsCatToggles .awc-group-head',
+      cat: '#awardsCatToggles .awc-card', catfav: '#awardsCatToggles .awc-fav' } },
+  { id: 'aw-picker', lesson: 'awards',
+    setup: async pg => { await awSetup(pg); await pg.evaluate(() => window.scrollTo(0, 0));
+      await pg.evaluate(() => awardsGenerateCatCandidates(_awardsYear, 'song_summer'));
+      await pg.waitForFunction(() => document.querySelectorAll('.awards-picker-result-row').length >= 4, null, { timeout: 60000 }); await wait(pg, 2500); },
+    clip: { from: '.awards-picker-modal', to: '.awards-picker-modal', pad: 10, narrow: true },
+    spots: { title: '.awards-picker-title', fav: '.awards-picker-fav', close: '.awards-picker-close', ballot: '.awards-picker-ballot',
+      tally: '#awardsPickerTally', quick: '.awards-picker-quick', nom: '.awards-picker-nom-row', clip: '.awards-picker-nom-row .awards-picker-clip-btn',
+      x: '.awards-picker-nom-x', search: '#awardsPickerSearch', sort: '#awardsPickerSort', group: '.awards-picker-group',
+      row: '.awards-picker-result-row', save: '.awards-picker-modal .dc-btn-main' } },
+  // The ceremony: full screen, so a shorter window keeps the stage filled
+  { id: 'aw-cer-intro', lesson: 'awards', vp: { width: 1280, height: 860 },
+    setup: async pg => { await awCeremony(pg); },
+    clip: { from: '#awardsCeremonyModal', to: '#awardsCeremonyModal', narrow: true },
+    spots: { badge: '#ceremonyYearBadge', dots: '#ceremonyDots', cats: '#ceremonyCatsBtn', sound: '#ceremonySoundBtn',
+      close: '#awardsCeremonyModal .ceremony-close-btn', title: '#ceremonyCatName', slide: '#ceremonySlide', progress: '#ceremonyProgress',
+      next: '#ceremonyNextBtn' } },
+  { id: 'aw-cer-cat', lesson: 'awards', vp: { width: 1280, height: 860 },
+    setup: async pg => { await awCeremony(pg, 'cat'); },
+    clip: { from: '#awardsCeremonyModal', to: '#awardsCeremonyModal', narrow: true },
+    spots: { title: '#ceremonyCatName', noms: '#ceremonySlide .cer-nominees', nom: '#ceremonySlide .cer-nom-card', env: '#ceremonySlide .cer-envelope-wrap',
+      meet: { js: "document.querySelector('#ceremonySlide .cer-cta-row').firstElementChild" },
+      open: { js: "document.querySelector('#ceremonySlide .cer-cta-row').lastElementChild" },
+      prev: '#ceremonyPrevBtn', progress: '#ceremonyProgress', next: '#ceremonyNextBtn', dots: '#ceremonyDots' } },
+  { id: 'aw-cer-win', lesson: 'awards', vp: { width: 1280, height: 860 },
+    setup: async pg => { await awCeremony(pg, 'cat'); await pg.evaluate(() => ceremonyReveal()); await wait(pg, 8000); },
+    clip: { from: '#awardsCeremonyModal', to: '#awardsCeremonyModal', narrow: true },
+    spots: { winner: '#ceremonySlide .cer-winner', label: '#ceremonySlide .cer-winner-label', name: '#ceremonySlide .cer-winner-name',
+      art: '#ceremonySlide .cer-winner-art-wrap', play: '#ceremonySlide .cer-player, #ceremonyPlayer', take: '#ceremonyTakeBtn', next: '#ceremonyNextBtn' } },
+  { id: 'aw-cer-fin', lesson: 'awards', vp: { width: 1280, height: 860 },
+    setup: async pg => { await awCeremony(pg, 'fin'); },
+    clip: { from: '#awardsCeremonyModal', to: '#awardsCeremonyModal', narrow: true },
+    spots: { grid: '#ceremonySlide .cer-finale-grid', card: '#ceremonySlide .cer-fin-card', stats: '#ceremonySlide .cer-finale-stats', prev: '#ceremonyPrevBtn' } },
+  { id: 'aw-cer-side', lesson: 'awards', vp: { width: 1280, height: 860 },
+    setup: async pg => { await awCeremony(pg, 'cat'); await pg.evaluate(() => ceremonyToggleDrawer(true)); await wait(pg, 1200); },
+    clip: { from: '#awardsCeremonyModal', to: '#awardsCeremonyModal', narrow: true },
+    spots: { side: '#ceremonySidebar', cats: '#ceremonyCatsBtn' } },
+  { id: 'aw-share', lesson: 'awards',
+    setup: async pg => { await awSetup(pg); await pg.evaluate(() => window.scrollTo(0, 0)); await pg.evaluate(() => openCeremonyShare()); await wait(pg, 2000); },
+    clip: { from: '#cerShareModal .cer-share-box', to: '#cerShareModal .cer-share-box', pad: 10, narrow: true },
+    spots: { title: '#cerShareTitle', body: '#cerShareBody', foot: '#cerShareFoot' } },
+  { id: 'aw-real', lesson: 'awards',
+    setup: async pg => {
+      // the share window or ceremony from the shot before
+      await pg.evaluate(() => { if (typeof closeCeremonyShare === 'function') closeCeremonyShare();
+        if (document.querySelector('.awards-picker-modal') && typeof awardsPickerClose === 'function') awardsPickerClose();
+        const o = document.getElementById('awardsCeremonyOverlay'); if (o && o.style.display && o.style.display !== 'none') closeCeremony(); });
+      await go(pg, 'awards'); await wait(pg, 2500);
+      await pg.evaluate(() => awardsSubTab('reallife')); await wait(pg, 2500);
+      await pg.evaluate(() => realLifeSetShow('vmas'));
+      await pg.waitForFunction(() => document.querySelector('#realLifeContent .awards-reallife-card'), null, { timeout: 90000 }); await wait(pg, 4000); },
+    clip: { from: '#awardsView .awards-subnav', to: '#realLifeContent .awards-reallife-card', pad: 14 },
+    spots: { sub: '#awardsView .awards-subnav', shows: '#awardsRealLife .awards-show-seg', year: '#awardsRealLife .awards-year-stepper',
+      head: '#realLifeContent .awards-reallife-head', sub2: '#realLifeContent .awards-reallife-sub', tally: '#realLifeContent .awards-reallife-tally',
+      card: '#realLifeContent .awards-reallife-card', portrait: '#realLifeContent .awards-reallife-portrait',
+      plays: '#realLifeContent .awards-reallife-alltime', won: '#realLifeContent .awards-reallife-badge.won',
+      nomd: '#realLifeContent .awards-reallife-badge.nom', work: '#realLifeContent .awards-reallife-work' } }
 ];
 
 /* ── Measuring + capture ────────────────────────────────────────── */

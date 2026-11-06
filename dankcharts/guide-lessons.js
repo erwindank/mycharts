@@ -534,7 +534,85 @@ window.GL = {
       tips: [ ['rec-search', 'field', 'rec.search'], ['rec-ones', 'run', 'rec.consec'], ['rec-certs', 'open', 'rec.ledger'],
         ['rec-pak', 'info'], ['rec-ov', 'sw', 'rec.per'] ]
     },
-    { id: 'awards', area: 'insights', nav: 'awards', soon: true },
+    /* ── Lesson 9: Awards (My Grammys, the ceremony, Real-Life Awards) ── */
+    { id: 'awards', area: 'insights', nav: 'awards', mins: 9, cover: 'aw-view-collage',
+      scenes: [
+        { id: 'top', shot: 'aw-top', phone: true, spots: ['sub', 'year', 'config', 'gen', 'cer', 'share', 'sum', 'tools', 'views'] },
+        // A year nobody has set up yet
+        { id: 'empty', shot: 'aw-empty', spots: ['year', 'gen', 'card', 'onoff', 'fav', 'pick'] },
+        { id: 'cards', shot: 'aw-cards', phone: true,
+          spots: ['left', 'hide', 'fold', 'views', 'hint', 'head', 'onoff', 'fav', 'fold1', 'winner', 'nom', 'change', 'playlist', 'reorder'] },
+        { id: 'config', shot: 'aw-config',
+          spots: ['elig', 'gemini', 'credit', 'hideplays', 'rating', 'samples', 'count', 'bulk', 'favs', 'search', 'type', 'status', 'groups', 'group', 'cat', 'catfav'] },
+        { id: 'picker', shot: 'aw-picker',
+          spots: ['title', 'fav', 'close', 'ballot', 'tally', 'quick', 'nom', 'clip', 'x', 'search', 'sort', 'group', 'row', 'save'] },
+        { id: 'sum', shot: 'aw-sum', spots: ['head', 'toggle'] },
+        { id: 'intro', shot: 'aw-cer-intro', spots: ['badge', 'dots', 'cats', 'sound', 'close', 'title', 'slide', 'progress', 'next'] },
+        { id: 'cat', shot: 'aw-cer-cat', spots: ['title', 'noms', 'nom', 'env', 'meet', 'open', 'prev', 'progress', 'next'] },
+        { id: 'win', shot: 'aw-cer-win', spots: ['label', 'name', 'art', 'play', 'next'] },
+        { id: 'fin', shot: 'aw-cer-fin', spots: ['grid', 'card', 'stats'] },
+        { id: 'side', shot: 'aw-cer-side', spots: ['cats', 'side'] },
+        { id: 'share', shot: 'aw-share', spots: ['title', 'body', 'foot'] },
+        { id: 'real', shot: 'aw-real', spots: ['sub', 'shows', 'year', 'head', 'sub2', 'tally', 'card', 'plays', 'won', 'nomd', 'work'] }
+      ],
+      howto: [
+        { id: 'setup', challenge: 'aw.config', slides: [
+          { shot: 'aw-top', spot: 'year' }, { shot: 'aw-top', spot: 'config' }, { shot: 'aw-config', spot: 'elig' },
+          { shot: 'aw-config', spot: 'groups' }, { shot: 'aw-config', spot: 'cat' }, { shot: 'aw-config', spot: 'samples' } ] },
+        { id: 'gen', challenge: 'aw.gen', slides: [
+          { shot: 'aw-empty', spot: 'gen' }, { shot: 'aw-cards', spot: 'card' }, { shot: 'aw-cards', spot: 'nom' } ] },
+        { id: 'pick', challenge: 'aw.pick', slides: [
+          { shot: 'aw-cards', spot: 'change' }, { shot: 'aw-picker', spot: 'row' }, { shot: 'aw-picker', spot: 'search' },
+          { shot: 'aw-picker', spot: 'quick' }, { shot: 'aw-picker', spot: 'nom' }, { shot: 'aw-picker', spot: 'save' } ] },
+        { id: 'win', challenge: 'aw.win', slides: [
+          { shot: 'aw-cards', spot: 'hint' }, { shot: 'aw-cards', spot: 'winner' }, { shot: 'aw-cards', spot: 'left' },
+          { shot: 'aw-cards', spot: 'hide' } ] },
+        { id: 'view', challenge: 'aw.view', slides: [
+          { shot: 'aw-cards', spot: 'views' }, { shot: 'aw-view-spotlight', spot: 'btn' }, { shot: 'aw-view-tiles', spot: 'btn' },
+          { shot: 'aw-view-collage', spot: 'btn' }, { shot: 'aw-view-reel', spot: 'btn' } ] },
+        { id: 'cer', challenge: 'aw.cer', slides: [
+          { shot: 'aw-top', spot: 'cer' }, { shot: 'aw-cer-intro', spot: 'slide' }, { shot: 'aw-cer-intro', spot: 'next' },
+          { shot: 'aw-cer-cat', spot: 'meet' }, { shot: 'aw-cer-cat', spot: 'open' }, { shot: 'aw-cer-win', spot: 'name' },
+          { shot: 'aw-cer-cat', spot: 'next' }, { shot: 'aw-cer-fin', spot: 'grid' } ] },
+        { id: 'share', challenge: 'aw.reveal', slides: [
+          { shot: 'aw-cer-side', spot: 'side' }, { shot: 'aw-cer-intro', spot: 'sound' }, { shot: 'aw-top', spot: 'share' },
+          { shot: 'aw-share', spot: 'foot' } ] },
+        { id: 'real', challenge: 'aw.real', slides: [
+          { shot: 'aw-real', spot: 'sub' }, { shot: 'aw-real', spot: 'shows' }, { shot: 'aw-real', spot: 'year' },
+          { shot: 'aw-real', spot: 'tally' }, { shot: 'aw-real', spot: 'card' } ] }
+      ],
+      options: [
+        { id: 'bar', items: [
+          { id: 'year', shot: 'aw-top', spot: 'year' }, { id: 'config', shot: 'aw-top', spot: 'config' },
+          { id: 'gen', shot: 'aw-top', spot: 'gen' }, { id: 'cer', shot: 'aw-top', spot: 'cer' }, { id: 'share', shot: 'aw-top', spot: 'share' } ] },
+        { id: 'views', big: true, items: [
+          { id: 'ballot', shot: 'aw-cards', spot: 'card', crop: 'area', def: 'on' },
+          { id: 'spotlight', shot: 'aw-view-spotlight', spot: 'list', crop: 'area' },
+          { id: 'tiles', shot: 'aw-view-tiles', spot: 'list', crop: 'area' },
+          { id: 'collage', shot: 'aw-view-collage', spot: 'list', crop: 'area' },
+          { id: 'reel', shot: 'aw-view-reel', spot: 'list', crop: 'area' } ] },
+        { id: 'tools', items: [
+          { id: 'hide', shot: 'aw-cards', spot: 'hide', def: 'off' }, { id: 'fold', shot: 'aw-cards', spot: 'fold', def: '{{t:awards_fold_scope_all}}' },
+          { id: 'onoff', shot: 'aw-cards', spot: 'onoff' }, { id: 'fav', shot: 'aw-cards', spot: 'fav' },
+          { id: 'playlist', shot: 'aw-cards', spot: 'playlist' }, { id: 'reorder', shot: 'aw-cards', spot: 'reorder' } ] },
+        { id: 'config', items: [
+          { id: 'elig', shot: 'aw-config', spot: 'elig' }, { id: 'gemini', shot: 'aw-config', spot: 'gemini' },
+          { id: 'credit', shot: 'aw-config', spot: 'credit' }, { id: 'hideplays', shot: 'aw-config', spot: 'hideplays', def: 'off' },
+          { id: 'rating', shot: 'aw-config', spot: 'rating' }, { id: 'samples', shot: 'aw-config', spot: 'samples' },
+          { id: 'bulk', shot: 'aw-config', spot: 'bulk' }, { id: 'favs', shot: 'aw-config', spot: 'favs' } ] },
+        { id: 'picker', items: [
+          { id: 'quick', shot: 'aw-picker', spot: 'quick' }, { id: 'sort', shot: 'aw-picker', spot: 'sort' },
+          { id: 'clip', shot: 'aw-picker', spot: 'clip' } ] },
+        { id: 'cer', items: [
+          { id: 'cats', shot: 'aw-cer-intro', spot: 'cats' }, { id: 'sound', shot: 'aw-cer-intro', spot: 'sound' },
+          { id: 'meet', shot: 'aw-cer-cat', spot: 'meet' }, { id: 'open', shot: 'aw-cer-cat', spot: 'open' } ] },
+        { id: 'real', items: [ { id: 'shows', shot: 'aw-real', spot: 'shows' } ] }
+      ],
+      challenges: ['aw.config', 'aw.gen', 'aw.pick', 'aw.win', 'aw.view', 'aw.cer', 'aw.reveal', 'aw.real'],
+      quiz: [ { id: 'q1', answer: 2 }, { id: 'q2', answer: 0 }, { id: 'q3', answer: 1 } ],
+      tips: [ ['aw-view-collage', 'btn', 'aw.view'], ['aw-cer-cat', 'meet', 'aw.cer'], ['aw-real', 'shows', 'aw.real'],
+        ['aw-picker', 'quick', 'aw.pick'], ['aw-config', 'favs', 'aw.config'] ]
+    },
     { id: 'soundtrack', area: 'insights', nav: 'soundtrack', soon: true },
     { id: 'dank100', area: 'more', nav: 'dank100', soon: true },
     { id: 'ratings', area: 'more', nav: 'ratings', soon: true },
@@ -2209,7 +2287,276 @@ window.GL_TEXT.en = {
         'Every {{t:rec_nav_overview}} card can switch between the Daily, Weekly, Monthly and Yearly charts on its own.'
       ]
     },
-    awards: { title: 'Awards', promise: 'Your own awards show, from nominees to the ceremony.' },
+    awards: {
+      title: '{{t:nav_awards}}',
+      promise: 'Your own awards show for any year: pick the categories, choose the nominees, crown the winners and watch the ceremony. Plus how your artists did at the real ones.',
+      scenes: {
+        top: { title: '{{t:awards_tab_mygrammys}}', spots: {
+          sub: ['{{t:awards_tab_mygrammys}} / {{t:awards_tab_reallife}}', 'Your own awards, or real-life award shows.'],
+          year: ['The year', 'Each year has its own ballot. Click the year to jump to another.'],
+          config: ['{{t:awards_configure}}', 'Which categories are on this year, the dates that count, and a few settings.'],
+          gen: ['{{t:awards_generate}}', 'Fills every category with nominees from your plays in one go.'],
+          cer: ['{{t:awards_ceremony_btn}}', 'Plays the awards show, full screen. It is at the bottom of the page too.'],
+          share: ['{{t:awards_share_btn}}', 'A link anyone can open to watch your ceremony.'],
+          sum: ['{{t:awx_title}}', 'The year at a glance: most nominations, most wins and more. Open it to see everything.'],
+          tools: ['Ballot tools', 'How many are left to decide, hide the decided ones, open or fold the cards.'],
+          views: ['{{t:awards_view_label}}', '{{t:awards_view_ballot}}, {{t:awards_view_spotlight}}, {{t:awards_view_tiles}}, {{t:awards_view_collage}} or {{t:awards_view_reel}}.']
+        } },
+        empty: { title: 'A new year', spots: {
+          year: ['The year', 'A year you haven’t set up yet.'],
+          gen: ['{{t:awards_generate}}', 'The quickest start: nominees for every category at once.'],
+          card: ['A category', 'Its type (song, album or artist), its name and what it rewards.'],
+          onoff: ['On / off', 'Takes the category out of this year’s show, or puts it back.'],
+          fav: ['Favourite', 'Star the categories you always want.'],
+          pick: ['{{t:awards_pick_nominees_btn}}', 'Choose the nominees for one category yourself.']
+        } },
+        cards: { title: 'The ballot', spots: {
+          left: ['{{t:awards_pending}}', 'How many categories still need a winner.'],
+          hide: ['{{t:awards_hide_decided}}', 'Hides the categories that already have a winner.'],
+          fold: ['Open / fold', '{{t:awards_expand_all}} or {{t:awards_collapse_all}}: for every card, or only the ones with {{t:awards_fold_scope_pending}}.'],
+          views: ['{{t:awards_view_label}}', 'Five ways to look at the ballot.'],
+          hint: ['{{t:awards_pick_hint}}', 'Click a nominee to make it the winner. Click it again to undo.'],
+          head: ['A category', 'Its type, its number of nominees, its name and what it rewards.'],
+          onoff: ['On / off', 'Takes the category out of the show.'],
+          fav: ['Favourite', 'Stars the category.'],
+          fold1: ['Fold', 'Folds this card.'],
+          winner: ['The winner', 'Gold, with a trophy.'],
+          nom: ['A nominee', 'Click to crown it.'],
+          change: ['{{t:awards_change_btn}}', 'Opens the nominee picker for this category.'],
+          playlist: ['{{t:awx_playlist}}', 'Saves the nominees as a playlist.'],
+          reorder: ['{{t:awards_reorder}}', 'Move the nominees up and down.']
+        } },
+        config: { title: '{{t:awards_configure}}', spots: {
+          elig: ['{{t:awards_elig_window}}', 'The dates that count for this year’s awards.'],
+          gemini: ['Gemini key', 'Optional: a free key {{t:awx_cfg_gemini_hint}}.'],
+          credit: ['{{t:awx_cfg_credit}}', 'A nomination also counts for everyone featured, not just the lead artist.'],
+          hideplays: ['{{t:awx_cfg_hide_plays}}', 'The ballot is about your picks, not the numbers.'],
+          rating: ['{{t:awx_cfg_scores}}', 'Your 0–10 score next to each nominee you rated.'],
+          samples: ['{{t:awx_cfg_samples}}', 'A ♪ button that plays 30 seconds of each nominee.'],
+          count: ['How many are on', 'Categories on this year, out of all of them.'],
+          bulk: ['{{t:awards_enable_all}} / {{t:awards_disable_all}}', 'Every category at once, or only your favourites.'],
+          favs: ['Favourites only', 'Turns on just the categories you starred.'],
+          search: ['Search', 'Find a category by name: rock, album, cover…'],
+          type: ['Song, album, artist', 'Show only one kind.'],
+          status: ['On or off', 'Show only the categories that are on, or off.'],
+          groups: ['Groups', 'Jump to a group: main awards, rock, pop, videos and more.'],
+          group: ['A group', 'Turn its whole group on or off.'],
+          cat: ['A category', 'Click to turn it on or off.'],
+          catfav: ['Star', 'Make it a favourite.']
+        } },
+        picker: { title: 'Picking nominees', spots: {
+          title: ['The category', 'Which year and category you are picking for.'],
+          fav: ['Favourite', 'Stars the category.'],
+          close: ['Close', 'Asks first if you have changes.'],
+          ballot: ['{{t:awx_pk_nominees}}', 'Your picks so far. {{t:awx_pk_drag}}.'],
+          tally: ['How many', 'Up to 8.'],
+          quick: ['Quick picks', 'Fill the top 8, the top 5, or {{t:awx_pk_clear}}.'],
+          nom: ['A pick', 'Its place, a sample, its video and ✕ to take it off.'],
+          clip: ['Sample', 'Hear 30 seconds.'],
+          x: ['Remove', 'Takes it off the list.'],
+          search: ['Search', 'Any song from that year.'],
+          sort: ['Sort', 'How the list below is ordered.'],
+          group: ['{{t:awx_pk_suggested}}', 'The best fits come first.'],
+          row: ['A suggestion', 'Its genres, how well it fits the category and its plays. Click to add or remove it.'],
+          save: ['{{t:awards_save_nominees}}', 'Puts them on the ballot.']
+        } },
+        sum: { title: '{{t:awx_title}}', spots: {
+          head: ['The year at a glance', 'How many nominations, categories and artists, and who leads.'],
+          toggle: ['Open / close', 'All-time most nominations and wins, and this year’s leaders.']
+        } },
+        intro: { title: 'The ceremony', spots: {
+          badge: ['The show', 'Which year’s awards.'],
+          dots: ['Progress', 'One dot per category.'],
+          cats: ['{{t:awards_ceremony_cats}}', 'A list of every category: jump to any.'],
+          sound: ['Sound', 'Music and sound effects on or off.'],
+          close: ['Close', 'Leave the show. Esc does the same.'],
+          title: ['{{t:awx_title}}', 'The show opens with the year’s nomination leaders.'],
+          slide: ['{{t:awx_cer_before}}', 'Most nominations ever and this year.'],
+          progress: ['Where you are', 'Before the show, then 1 of 6 and so on.'],
+          next: ['{{t:awx_cer_start}}', 'On to the first award.']
+        } },
+        cat: { title: 'An award', spots: {
+          title: ['The category', 'Its name, big.'],
+          noms: ['The nominees', 'Every nominee, with its cover.'],
+          nom: ['A nominee', 'Its title and artist.'],
+          env: ['The envelope', 'The winner is inside.'],
+          meet: ['{{t:awx_cer_meet}}', 'Plays a few seconds of each nominee first.'],
+          open: ['{{t:awards_open_envelope}}', 'Reveals the winner.'],
+          prev: ['Previous', 'The award before. ← does the same.'],
+          progress: ['Count', 'Which award of how many.'],
+          next: ['Next', 'The next award. → does the same.']
+        } },
+        win: { title: 'The winner', spots: {
+          label: ['Winner', 'The envelope is open.'],
+          name: ['The winner', 'And its artist.'],
+          art: ['Its cover', 'With the trophy.'],
+          play: ['Its song', 'A sample plays; pause or replay it here.'],
+          next: ['Next', 'On to the next award.']
+        } },
+        fin: { title: '{{t:awx_cer_winners}}', spots: {
+          grid: ['{{t:awx_cer_winners}}', 'Every winner of the night.'],
+          card: ['A winner', 'Its category, title and artist.'],
+          stats: ['After the show', 'The final stats and records, with this year’s wins added.']
+        } },
+        side: { title: '{{t:awards_ceremony_cats}}', spots: {
+          cats: ['{{t:awards_ceremony_cats}}', 'Opens and closes the list.'],
+          side: ['Every category', 'Click one to jump to it.']
+        } },
+        share: { title: '{{t:cer_share_title}}', spots: {
+          title: ['{{t:cer_share_title}}', 'Share your ceremony with a link.'],
+          body: ['How it works', 'Anyone with the link can watch it, without an account.'],
+          foot: ['{{t:cer_share_signin}}', 'A link needs you to be signed in. Once you are, copy it from here.']
+        } },
+        real: { title: '{{t:awards_tab_reallife}}', spots: {
+          sub: ['{{t:awards_tab_reallife}}', 'Real award shows, matched against what you play.'],
+          shows: ['The shows', 'Grammys, VMAs, AMAs, iHeartRadio, World Music, Billboard, ARIA, Juno and BRIT.'],
+          year: ['The year', 'Step through the years of the show.'],
+          head: ['The show', 'Its name and how many categories.'],
+          sub2: ['Which plays count', 'Your plays in that show’s season.'],
+          tally: ['Your artists', 'How many nominations and wins your artists got.'],
+          card: ['An artist', 'Every nomination and win of theirs.'],
+          plays: ['Plays that season', 'How much you played them then.'],
+          won: ['{{t:awx_rl_won}}', 'A win.'],
+          nomd: ['{{t:awx_rl_nominated}}', 'A nomination.'],
+          work: ['For what', 'The song, album or video it was for.']
+        } }
+      },
+      howto: {
+        setup: { title: 'Set up a year', slides: [
+          'Pick the year.',
+          'Open {{t:awards_configure}}.',
+          'The dates that count.',
+          'Jump to a group of categories.',
+          'Click a category to turn it on or off.',
+          'And a few settings, like samples on each nominee.'
+        ] },
+        gen: { title: 'Get nominees in one click', slides: [
+          'Press {{t:awards_generate}}.',
+          'Every category gets up to 8 nominees from your plays.',
+          'Then change any of them as you like.'
+        ] },
+        pick: { title: 'Choose the nominees yourself', slides: [
+          'Press {{t:awards_change_btn}} (or {{t:awards_pick_nominees_btn}}) on a category.',
+          'Suggestions come first, best fit at the top. Click to add one.',
+          'Or search any song of that year.',
+          'Fill the top 8 in one go.',
+          'Drag your picks into order.',
+          'Save.'
+        ] },
+        win: { title: 'Crown the winners', slides: [
+          'Click a nominee.',
+          'It turns gold: that’s your winner.',
+          'Keep track of what’s left.',
+          'Hide the ones you’ve decided.'
+        ] },
+        view: { title: 'Look at your ballot five ways', slides: [
+          'Switch the view here.',
+          '{{t:awards_view_spotlight}}: the winner big, with plays.',
+          '{{t:awards_view_tiles}}: covers in a grid.',
+          '{{t:awards_view_collage}}: one big cover and the rest around it.',
+          '{{t:awards_view_reel}}: a strip you scroll sideways.'
+        ] },
+        cer: { title: 'Watch the ceremony', slides: [
+          'Press {{t:awards_ceremony_btn}}.',
+          'It opens with the year’s leaders.',
+          '{{t:awx_cer_start}}.',
+          'Hear the nominees.',
+          'Open the envelope.',
+          'And the winner is…',
+          'On to the next award.',
+          'It ends with every winner of the night.'
+        ] },
+        share: { title: 'Share your ceremony', slides: [
+          'Jump to any category from the list.',
+          'Turn the sound on or off.',
+          'Press {{t:awards_share_btn}} on the Awards page.',
+          'Sign in, and copy the link to send.'
+        ] },
+        real: { title: 'See the real awards', slides: [
+          'Open {{t:awards_tab_reallife}}.',
+          'Pick a show.',
+          'And a year.',
+          'How your artists did.',
+          'Every nomination and win, artist by artist.'
+        ] }
+      },
+      options: {
+        bar: { title: 'At the top', items: {
+          year: ['The year', 'Each year has its own ballot.'],
+          config: ['{{t:awards_configure}}', 'Categories, dates and settings.'],
+          gen: ['{{t:awards_generate}}', 'Nominees for every category.'],
+          cer: ['{{t:awards_ceremony_btn}}', 'The full-screen show.'],
+          share: ['{{t:awards_share_btn}}', 'A link to your ceremony.']
+        } },
+        views: { title: '{{t:awards_view_label}}', items: {
+          ballot: ['{{t:awards_view_ballot}}', 'A list per category.'],
+          spotlight: ['{{t:awards_view_spotlight}}', 'The winner big, with plays.'],
+          tiles: ['{{t:awards_view_tiles}}', 'Covers in a grid.'],
+          collage: ['{{t:awards_view_collage}}', 'One big cover and the rest around it.'],
+          reel: ['{{t:awards_view_reel}}', 'A sideways strip.']
+        } },
+        tools: { title: 'The ballot', items: {
+          hide: ['{{t:awards_hide_decided}}', 'Only what is left to decide.'],
+          fold: ['{{t:awards_fold_scope_all}} / {{t:awards_fold_scope_pending}}', 'Which cards open or fold together.'],
+          onoff: ['On / off', 'Per category.'],
+          fav: ['Favourite', 'Star a category.'],
+          playlist: ['{{t:awx_playlist}}', 'The nominees as a playlist.'],
+          reorder: ['{{t:awards_reorder}}', 'Change the nominees’ order.']
+        } },
+        config: { title: '{{t:awards_configure}}', items: {
+          elig: ['{{t:awards_elig_window}}', 'The dates that count.'],
+          gemini: ['Gemini key', 'Optional, {{t:awx_cfg_gemini_hint}}.'],
+          credit: ['{{t:awx_cfg_credit}}', 'Featured artists share the credit.'],
+          hideplays: ['{{t:awx_cfg_hide_plays}}', 'No play counts on the ballot.'],
+          rating: ['{{t:awx_cfg_scores}}', 'Your scores next to nominees.'],
+          samples: ['{{t:awx_cfg_samples}}', 'A ♪ on each nominee.'],
+          bulk: ['{{t:awards_enable_all}} / {{t:awards_disable_all}}', 'Every category at once.'],
+          favs: ['Favourites only', 'Just your starred categories.']
+        } },
+        picker: { title: 'Nominee picker', items: {
+          quick: ['Fill top 8 / Top 5 / {{t:awx_pk_clear}}', 'Fill or empty the list.'],
+          sort: ['Sort', 'How suggestions are ordered.'],
+          clip: ['♪', 'A sample of each.']
+        } },
+        cer: { title: 'Ceremony', items: {
+          cats: ['{{t:awards_ceremony_cats}}', 'Jump to any award.'],
+          sound: ['Sound', 'On or off.'],
+          meet: ['{{t:awx_cer_meet}}', 'Hear each nominee.'],
+          open: ['{{t:awards_open_envelope}}', 'Reveal the winner.']
+        } },
+        real: { title: '{{t:awards_tab_reallife}}', items: {
+          shows: ['Shows', 'Grammys, VMAs, AMAs, iHeartRadio, World Music, Billboard, ARIA, Juno, BRIT.']
+        } }
+      },
+      challenges: {
+        'aw.config': ['Open {{t:awards_configure}}', 'At the top of {{t:awards_tab_mygrammys}}.'],
+        'aw.gen': ['Generate nominees', '{{t:awards_generate}}.'],
+        'aw.pick': ['Open the nominee picker', '{{t:awards_change_btn}} on any category.'],
+        'aw.win': ['Crown a winner', 'Click a nominee.'],
+        'aw.view': ['Try another view', '{{t:awards_view_spotlight}}, {{t:awards_view_tiles}}, {{t:awards_view_collage}} or {{t:awards_view_reel}}.'],
+        'aw.cer': ['Start the ceremony', '{{t:awards_ceremony_btn}}.'],
+        'aw.reveal': ['Open an envelope', 'In the ceremony.'],
+        'aw.real': ['Open {{t:awards_tab_reallife}}', 'The second tab.']
+      },
+      quiz: {
+        q1: ['How do you pick a winner?',
+          ['Press {{t:awards_ceremony_btn}}', 'Drag it to the top', 'Click the nominee on the ballot'],
+          'A click on a nominee crowns it; click again to undo.'],
+        q2: ['What does {{t:awards_generate}} do?',
+          ['Fills every category with nominees from your plays', 'Picks the winners for you', 'Starts the ceremony'],
+          'It picks nominees; the winners are always yours to choose.'],
+        q3: ['Who can watch a ceremony you share?',
+          ['Only you', 'Anyone with the link, no account needed', 'Only signed-in users'],
+          'You sign in to make the link; whoever opens it can watch.']
+      },
+      tips: [
+        'Try the {{t:awards_view_collage}} view on {{t:awards_tab_mygrammys}}: every category as a wall of covers.',
+        'In the ceremony, {{t:awx_cer_meet}} plays a few seconds of each nominee before you open the envelope.',
+        '{{t:awards_tab_reallife}} shows how your artists did at the Grammys, VMAs, BRITs and more.',
+        'In the nominee picker, Fill top 8 picks the best fits in one click.',
+        'Star your favourite categories, then turn on just those for a quick year.'
+      ]
+    },
     soundtrack: { title: 'Your Soundtrack', promise: 'A month, a year or all time told in chapters.' },
     dank100: { title: 'The Dank 100', promise: 'Everyone’s weekly charts added up into one.' },
     ratings: { title: 'Ratings', promise: 'Score albums and songs, and see your critic side.' },
