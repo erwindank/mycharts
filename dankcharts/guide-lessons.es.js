@@ -1150,7 +1150,280 @@ window.GL_TEXT.es = {
         '¿No te gusta una portada? Pasa el ratón por encima y pulsa el ✎ para elegir otra, o pega el enlace de cualquier imagen.'
       ]
     },
-    stats: { title: 'Estadísticas', promise: 'Resumen, Historia, Gráficas, Comparar y Juegos para cualquier rango de fechas.' },
+    stats: {
+      title: '{{t:tab_stats}}',
+      promise: 'Tus escuchas de cualquier periodo: un resumen, su historia, juegos, comparaciones lado a lado y gráficas.',
+      scenes: {
+        top: { title: 'El rango y el {{t:sx_tab_overview}}', spots: {
+          presets: ['Rangos rápidos', '{{t:range_4w}}, {{t:range_12m}}, {{t:range_3y}} o {{t:range_all}}. Todas las pestañas usan el rango que elijas aquí.'],
+          dates: ['Tus propias fechas', 'Elige cualquier fecha de inicio y de fin.'],
+          tabs: ['Cinco pestañas', '{{t:sx_tab_overview}}, {{t:sx_tab_story}}, {{t:sx_tab_games}}, {{t:sx_tab_compare}} y {{t:sx_tab_charts}}. La que dejes abierta es la que verás al volver.'],
+          line: ['En una frase', 'Tu rango en una frase: cuánto escuchaste, frente al periodo anterior, y quién lideró. Haz clic en el artista para abrir su ventana.'],
+          share: ['{{t:sx_share}}', 'Crea una imagen de este resumen para guardarla o enviarla.'],
+          tile: ['Cuatro casillas', 'Escuchas, canciones, artistas y álbumes del rango.'],
+          delta: ['Frente al anterior', 'Sube o baja frente al mismo tiempo justo antes, con esa cifra al lado.'],
+          trend: ['Cómo fue', 'Una pequeña línea de cómo fue a lo largo del rango.'],
+          sub: ['Cifras pequeñas', 'Escuchas al día, tu mejor día, cuántas eran nuevas para ti.'],
+          go: ['Ver más', 'Cada casilla lleva a la gráfica o la comparación que cuenta más.']
+        } },
+        ov: { title: 'El resto del {{t:sx_tab_overview}}', spots: {
+          top5: ['{{t:sx_top5_title}}', 'Los cinco que más escuchaste en el rango. Haz clic en uno para abrir su ventana.'],
+          t5seg: ['Canciones, artistas o álbumes', 'Cambia lo que muestra el top 5.'],
+          t5lead: ['Tu #1', 'El líder, sus escuchas, su parte del total y su ventaja sobre el #2. Escucha una muestra aquí mismo.'],
+          t5rows: ['Del #2 al #5', 'Las barras muestran lo cerca que está cada uno del #1.'],
+          sotp: ['{{t:sx_sotp_title}}', 'Tu canción más escuchada del rango y cómo fueron sus escuchas, día a día o semana a semana.'],
+          movers: ['{{t:sx_mov_title}}', 'Lo que escuchaste mucho más, y mucho menos, que en el periodo anterior.'],
+          mvseg: ['Canciones, artistas o álbumes', 'Cambia lo que muestran los cambios.'],
+          persona: ['{{t:sx_pers_title}}', 'Un nombre para cómo escuchaste en este rango, como {{t:sx_pers_explorer}} o {{t:sx_pers_marathon}}, y por qué.'],
+          facts: ['{{t:sx_fact_title}}', 'Detalles del rango: tu repetición más larga, tu hora y tu día con más escuchas.'],
+          shuffle: ['{{t:sx_fact_shuffle}}', 'Muestra otros datos curiosos.'],
+          cal: ['{{t:sx_cal_title}}', 'Un pequeño calendario del rango, más oscuro cuanto más escuchaste. Haz clic en un día para abrir su ranking diario.'],
+          calmore: ['Cada año', 'Salta al mapa de calor completo en {{t:sx_tab_charts}}.'],
+          otd: ['{{t:sx_otd_title}}', 'La fecha de hoy en años pasados, y la canción que más escuchaste ese día.'],
+          split: ['{{t:sx_split_title}}', 'Hallazgos nuevos frente a viejas favoritas, y cuánto fue a tus 5 artistas principales.']
+        } },
+        story: { title: '{{t:sx_tab_story}}', spots: {
+          obs: ['{{t:sx_obs_title_m}}', 'El artista que más escuchaste cada mes (o cada semana en un rango corto).'],
+          obsone: ['Un mes', 'Haz clic para abrir el ranking de ese mes.'],
+          eras: ['{{t:sx_eras_title}}', 'Periodos en los que un artista fue #1 en tu ranking semanal tres semanas o más seguidas.'],
+          drift: ['{{t:sx_drift_title}}', 'Tus 10 artistas de cada año, año a año. Haz clic en una línea o un nombre para seguir a un artista.'],
+          driftkeys: ['Seguir a un artista', 'Haz clic en un nombre para resaltar su línea.'],
+          loyal: ['{{t:sx_loyal_title}}', 'Cuánto fue a tus 10 artistas principales, en una escala de aventurero a fiel.'],
+          comfort: ['{{t:sx_comfort_title}}', 'Canciones que ya conocías frente a canciones que encontraste en este rango.'],
+          disc: ['{{t:sx_disc_title}}', 'Tus mayores artistas nuevos del rango, y si aún los escuchas.'],
+          fun: ['{{t:sx_fun_title}}', 'El rango en otras palabras: escuchas al día, tu canción top, cuánto andarían tus escuchas.'],
+          miles: ['{{t:sx_miles_title}}', 'Cifras redondas que pasaste: escuchas, canciones y artistas distintos, y cuándo.']
+        } },
+        games: { title: '{{t:sx_tab_games}}', spots: {
+          head: ['{{t:sx_games_title}}', 'Juegos de preguntas hechos con tu propia biblioteca.'],
+          tally: ['Tu marcador', 'Cuántos juegos has jugado, y tu racha de días con el juego del día.'],
+          daily: ['{{t:sx_daily_k}}', 'Un reto al día, el mismo todo el día. Solo cuenta tu primer intento; juega cada día para mantener la racha.'],
+          dailygo: ['{{t:sx_daily_play}}', 'Empieza el reto de hoy.'],
+          card: ['Un juego', 'Doce juegos: {{t:sx_game_hl}}, {{t:sx_game_tune}}, {{t:sx_game_year}}, {{t:sx_game_one}} y más.'],
+          tag: ['{{t:sx_games_new}}', 'Los juegos que aún no has jugado llevan una etiqueta.'],
+          go: ['{{t:sx_game_play}}', 'Abre el juego a pantalla completa.']
+        } },
+        game: { title: 'Jugar una partida', spots: {
+          title: ['El juego', 'Su nombre.'],
+          score: ['Tu puntuación', 'Tu racha o puntuación de ahora, y tu mejor marca.'],
+          close: ['Cerrar', 'Vuelve a los juegos. Esc hace lo mismo.'],
+          q: ['La pregunta', 'Lo que tienes que adivinar.'],
+          known: ['Lo que sabes', 'Un lado muestra su respuesta.'],
+          guess: ['Lo que adivinas', 'El otro está oculto.'],
+          btns: ['Tu respuesta', 'Elige una. Si aciertas, la partida sigue; al final puedes compartir tu resultado.']
+        } },
+        cmp: { title: '{{t:sx_tab_compare}}', spots: {
+          gran: ['{{t:gran_daily}} / {{t:gran_monthly}} / {{t:gran_yearly}}', 'Cómo se dividen las líneas: por día, por mes o por año. Sale en {{t:sx_tab_compare}} y {{t:sx_tab_charts}}.'],
+          top: ['Tu top', 'Llena la selección con tus favoritos del rango.'],
+          saved: ['{{t:sx_saved_title}}', 'Guarda una selección para recuperarla luego.'],
+          types: ['Qué comparar', '{{t:sx_cmp_type_artists}}, {{t:sx_cmp_type_songs}}, {{t:sx_cmp_type_albums}} o {{t:sx_cmp_type_years}}.'],
+          modes: ['Cómo verlo', '{{t:sx_cmp_mode_cum}}, {{t:sx_cmp_mode_per}}, {{t:sx_cmp_mode_run}} o {{t:sx_cmp_mode_race}}.'],
+          chip: ['Una elección', 'Su puesto, escuchas y porcentaje. La barra de abajo es su color en la gráfica.'],
+          x: ['Quitar', 'La quita.'],
+          add: ['Añadir', 'Escribe un nombre y elígelo de la lista. Hasta 10.'],
+          legend: ['La leyenda', '{{t:sx_cmp_legend_tip}}.'],
+          chart: ['La gráfica', 'Pasa el ratón (o toca) para leer cada periodo.'],
+          verdict: ['Quién gana', 'Más escuchas, más semanas en el #1, el más en forma ahora, el que lleva más tiempo contigo.']
+        } },
+        cmpmore: { title: 'Más en {{t:sx_tab_compare}}', spots: {
+          h2h: ['{{t:sx_h2h_title}}', 'Quién va delante y por cuánto, y la parte de cada uno.'],
+          share: ['{{t:sx_share}}', 'Una imagen de la comparación.'],
+          table: ['La tabla', 'Escuchas, porcentaje, primera escucha, semanas en el #1, mejor mes, racha más larga. Haz clic en una columna para ordenar; lo mejor de cada una sale en su color.'],
+          own: ['{{t:sx_own_title}}', 'Un bloque por mes con el color de quien más se escuchó, y cuándo cambió el liderato.'],
+          gaps: ['{{t:sx_gap_title}}', 'La carrera más ajustada, la mayor ventaja, la subida más rápida y quién lideró más tiempo.'],
+          ts: ['{{t:sx_ts_title}}', 'Las tres canciones más escuchadas de cada uno.'],
+          hab: ['{{t:sx_hab_title}}', 'Cuándo se escucha cada uno: por hora y por día de la semana.']
+        } },
+        run: { title: '{{t:sx_cmp_mode_run}}', spots: {
+          run: ['{{t:sx_cmp_mode_run}}', 'Sus puestos en tu ranking, semana a semana.'],
+          crun: ['Qué ranking', '{{t:nav_daily}}, {{t:nav_weekly}}, {{t:nav_monthly}} o {{t:nav_yearly}}.'],
+          chart: ['Puesto en el tiempo', 'Más arriba es mejor. Los huecos son semanas fuera del ranking.']
+        } },
+        race: { title: '{{t:sx_cmp_mode_race}}', spots: {
+          race: ['{{t:sx_cmp_mode_race}}', 'Tus elecciones como barras que corren hacia arriba, periodo a periodo.'],
+          canvas: ['La carrera', 'Se abre en el resultado. Pulsa play para verla desde el principio.'],
+          start: ['Al principio', 'Vuelve al primer periodo.'],
+          play: ['Play', 'Reproduce o pausa la carrera.'],
+          step: ['Un paso', 'Un periodo adelante (el botón a la izquierda de play va atrás).'],
+          seek: ['Cualquier fecha', 'Arrastra a cualquier momento.'],
+          speeds: ['Velocidad', 'De 0.5× a 4×.'],
+          gif: ['{{t:btn_download_gif}}', 'Guarda la carrera como imagen animada.'],
+          range: ['Las fechas de la carrera', 'La carrera tiene su propio rango, desde tu primera escucha. Cámbialo aquí; {{t:btn_reset}} lo devuelve.']
+        } },
+        vol: { title: '{{t:sx_vol_title}}', spots: {
+          gran: ['Por día, mes o año', 'Cómo se dividen las barras.'],
+          mode: ['{{t:sx_vol_mode_plays}} / {{t:sx_vol_mode_new}}', 'Todas tus escuchas con la parte nueva encima, o solo lo que era nuevo para ti.'],
+          labels: ['Cifras en las barras', 'Muestra la cifra de cada barra.'],
+          zoom: ['Quitar zoom', 'Arrastra sobre la gráfica para acercar; este botón vuelve a alejar.'],
+          figs: ['Las cifras', 'Totales del rango. También son la leyenda: azul es {{t:sx_vol_known}}, verde es {{t:sx_vol_new}}.'],
+          busiest: ['{{t:sx_v_month}}', 'Haz clic para ver ese mes por dentro.'],
+          canvas: ['Las barras', 'Haz clic en cualquier barra para ver ese periodo por dentro.']
+        } },
+        drill: { title: 'Dentro de un periodo', spots: {
+          when: ['El periodo', 'Cuál es, y cómo fue frente al anterior.'],
+          step: ['Antes / después', 'Pasa al periodo anterior o al siguiente.'],
+          figs: ['Sus cifras', 'Escuchas, cuánto fue nuevo, canciones y artistas.'],
+          hero: ['La más escuchada', 'Su canción top, con una muestra.'],
+          spark: ['{{t:sx_cal_title}}', 'Cada día del periodo, con el de más escuchas resaltado.'],
+          tabs: ['Tres listas', '{{t:sx_dr_tab_top}}, {{t:sx_dr_tab_new}} y {{t:sx_dr_tab_art}}.'],
+          rows: ['La lista', 'Haz clic en una para abrir su ventana.'],
+          open: ['{{t:sx_drill_open}}', 'Abre el ranking de ese periodo.']
+        } },
+        clock: { title: '{{t:sx_clock_title}} y {{t:sx_week_title}}', spots: {
+          clock: ['{{t:sx_clock_title}}', 'Cada porción es una hora; más larga, más escuchas. Pasa el ratón (o toca) para ver qué escuchabas entonces.'],
+          parts: ['Partes del día', 'Mañana, tarde, noche y madrugada, y la parte de cada una.'],
+          cnote: ['En una frase', 'Tus horas con más y con menos escuchas.'],
+          wfigs: ['Entre semana frente al fin de semana', 'Escuchas al día en cada uno, y tu día con más escuchas.'],
+          week: ['{{t:sx_week_title}}', 'Media de escuchas de cada día. Haz clic en un día para ver más.'],
+          wnote: ['En una frase', 'Tus días con más y con menos escuchas.']
+        } },
+        heat: { title: '{{t:hm_title}}', spots: {
+          types: ['{{t:hm_type_all}} / {{t:hm_type_artist}} / {{t:hm_type_song}} / {{t:hm_type_album}}', 'Todas tus escuchas, o solo un artista, una canción o un álbum: añádelo por su nombre.'],
+          colors: ['Colores', 'Elige una combinación de colores para el mapa.'],
+          year: ['El año', 'Pasa al año anterior o al siguiente.'],
+          best: ['Mejor racha', 'Tu racha más larga de días con música.'],
+          figs: ['El año en cifras', 'Escuchas, mejor día, artista top y artistas nuevos.'],
+          grid: ['Cada día', 'Un cuadro por día, más intenso cuanto más escuchaste. Pasa el ratón (o toca) para ver qué escuchabas.'],
+          strip: ['{{t:hm_every_year}}', 'Cada año en miniatura. Haz clic en uno para abrirlo.'],
+          patterns: ['{{t:hm_patterns}}', 'Cuándo escuchas a lo largo de la semana.'],
+          scope: ['{{t:hm_pat_year}} / {{t:hm_pat_all}}', 'Patrones del año abierto o de siempre.'],
+          rhythm: ['Ritmo semanal', 'Escuchas al día de cada día de la semana.'],
+          hours: ['Hora del día', 'Cada hora de cada día de la semana. La de más escuchas va rodeada.']
+        } }
+      },
+      howto: {
+        range: { title: 'Elegir un rango', slides: [
+          'Elige un rango rápido: las últimas 4 semanas, 12 meses, 3 años, o todo.',
+          'O pon tu propia fecha de inicio y de fin.',
+          'Todas las pestañas usan el mismo rango. Cambia de pestaña cuando quieras.',
+          'En {{t:sx_tab_compare}} y {{t:sx_tab_charts}}, elige además por día, mes o año.'
+        ] },
+        overview: { title: 'Leer tu {{t:sx_tab_overview}}', slides: [
+          'Empieza por la frase: tu rango en una línea.',
+          'Las flechas comparan con el mismo periodo justo antes.',
+          'Cada casilla lleva a la gráfica que cuenta más.',
+          'Tu top 5: cambia entre canciones, artistas y álbumes.',
+          'Mira qué escuchaste más, y menos, que antes.',
+          'Haz clic en cualquier día del calendario para abrir el ranking de ese día.'
+        ] },
+        story: { title: 'Ver tu historia', slides: [
+          'Abre {{t:sx_tab_story}}.',
+          'Tu artista top de cada mes. Haz clic en uno para abrir el ranking de ese mes.',
+          'Tus eras: cuando un artista mandó en tu ranking semanal.',
+          'Cómo cambió tu top 10 año a año.',
+          'Y los artistas nuevos que encontraste, y si aún los escuchas.'
+        ] },
+        game: { title: 'Jugar una partida', slides: [
+          'Empieza por el {{t:sx_daily_k}}: un reto, el mismo todo el día.',
+          'O elige cualquiera de los doce juegos.',
+          'Haz tu apuesta.',
+          'Tu puntuación y tu mejor marca, arriba.',
+          'Ciérralo cuando quieras.',
+          'Tu marcador cuenta los juegos jugados y tu racha de días.'
+        ] },
+        compare: { title: 'Comparar artistas, canciones o años', slides: [
+          'Elige qué comparar.',
+          'Escribe un nombre y añádelo. Hasta 10.',
+          'Cada elección tiene su tarjeta y su color. La ✕ la quita.',
+          'Elige cómo verlos: total acumulado, por periodo, trayectoria o carrera.',
+          'Haz clic en un nombre de la leyenda para ocultar o mostrar su línea.',
+          'Baja: cara a cara, quién estuvo arriba, las diferencias, sus canciones top y sus hábitos.',
+          'Guarda la selección para volver a ella.'
+        ] },
+        race: { title: 'Ver una carrera', slides: [
+          'En {{t:sx_tab_compare}}, elige {{t:sx_cmp_mode_race}}.',
+          'Pulsa play.',
+          'Arrastra a cualquier momento.',
+          'Más lenta o más rápida.',
+          'Guárdala como imagen animada para compartirla.'
+        ] },
+        drill: { title: 'Ver un mes por dentro', slides: [
+          'En {{t:sx_tab_charts}}, haz clic en cualquier barra.',
+          'O haz clic en el periodo con más escuchas.',
+          'Se abre debajo de la gráfica. Las flechas pasan al periodo anterior o siguiente.',
+          'Cambia entre canciones top, hallazgos nuevos y artistas top.',
+          'Abre el ranking de ese periodo.'
+        ] },
+        heat: { title: 'Explorar el mapa de calor', slides: [
+          'Cada día del año, más intenso cuanto más escuchaste. Pasa el ratón por un día.',
+          'Recorre los años.',
+          'Muestra solo un artista, una canción o un álbum.',
+          'Elige una combinación de colores.',
+          'Y mira las horas de la semana en que más escuchas.'
+        ] }
+      },
+      options: {
+        range: { title: 'Rango', items: {
+          presets: ['{{t:range_4w}} / {{t:range_12m}} / {{t:range_3y}} / {{t:range_all}}', 'Un rango rápido hasta hoy.'],
+          dates: ['Fechas', 'Cualquier inicio y fin.'],
+          gran: ['{{t:gran_daily}} / {{t:gran_monthly}} / {{t:gran_yearly}}', 'Cómo se dividen las gráficas. Solo {{t:sx_tab_compare}} y {{t:sx_tab_charts}}.']
+        } },
+        tabs: { title: 'Pestañas', items: {
+          overview: ['{{t:sx_tab_overview}}', 'El rango en una frase, cuatro casillas y ocho tarjetas.'],
+          story: ['{{t:sx_tab_story}}', 'De qué fue el rango.'],
+          games: ['{{t:sx_tab_games}}', 'Doce juegos y un juego del día.'],
+          compare: ['{{t:sx_tab_compare}}', 'Hasta 10 lado a lado, o en carrera.'],
+          charts: ['{{t:sx_tab_charts}}', 'Volumen, el reloj, tu semana y el mapa de calor.']
+        } },
+        overview: { title: '{{t:sx_tab_overview}}', items: {
+          share: ['{{t:sx_share}}', 'Una imagen del resumen.'],
+          t5seg: ['{{t:sx_top5_title}}', 'Canciones, artistas o álbumes.'],
+          mvseg: ['{{t:sx_mov_title}}', 'Canciones, artistas o álbumes.'],
+          shuffle: ['{{t:sx_fact_shuffle}}', 'Otros datos curiosos.']
+        } },
+        compare: { title: '{{t:sx_tab_compare}}', items: {
+          types: ['Qué', '{{t:sx_cmp_type_artists}}, {{t:sx_cmp_type_songs}}, {{t:sx_cmp_type_albums}}, {{t:sx_cmp_type_years}}.'],
+          modes: ['Cómo', '{{t:sx_cmp_mode_cum}}, {{t:sx_cmp_mode_per}}, {{t:sx_cmp_mode_run}}, {{t:sx_cmp_mode_race}}.'],
+          crun: ['{{t:sx_cmp_mode_run}}', 'Qué ranking: {{t:nav_daily}}, {{t:nav_weekly}}, {{t:nav_monthly}}, {{t:nav_yearly}}.'],
+          top: ['Top 3 / {{t:sx_cmp_fill10}}', 'Llena la selección con tus favoritos.'],
+          saved: ['{{t:sx_saved_title}}', 'Selecciones guardadas.'],
+          legend: ['Leyenda', 'Oculta o muestra una línea.'],
+          h2hshare: ['{{t:sx_share}}', 'Una imagen de la comparación.']
+        } },
+        race: { title: '{{t:sx_cmp_mode_race}}', items: {
+          speeds: ['Velocidad', '0.5×, 1×, 2×, 4×.'],
+          gif: ['{{t:btn_download_gif}}', 'Guarda la carrera.'],
+          range: ['Rango', 'Las fechas propias de la carrera.']
+        } },
+        graphs: { title: '{{t:sx_tab_charts}}', items: {
+          mode: ['{{t:sx_vol_mode_plays}} / {{t:sx_vol_mode_new}}', 'Todas las escuchas, o solo lo nuevo.'],
+          labels: ['Cifras en las barras', 'Sí o no.'],
+          zoom: ['Quitar zoom', 'Vuelve al rango entero.'],
+          drtabs: ['Dentro de un periodo', '{{t:sx_dr_tab_top}}, {{t:sx_dr_tab_new}}, {{t:sx_dr_tab_art}}.'],
+          hmtypes: ['Mapa de calor', '{{t:hm_type_all}}, {{t:hm_type_artist}}, {{t:hm_type_song}}, {{t:hm_type_album}}.'],
+          colors: ['Colores del mapa', 'Seis combinaciones de colores.'],
+          scope: ['{{t:hm_patterns}}', '{{t:hm_pat_year}} o {{t:hm_pat_all}}.']
+        } }
+      },
+      challenges: {
+        'stats.range': ['Cambia el rango', 'Un rango rápido o tus propias fechas.'],
+        'stats.story': ['Abre {{t:sx_tab_story}}', 'La segunda pestaña.'],
+        'stats.go': ['Sigue el enlace de una casilla', 'Debajo de cualquiera de las cuatro casillas de {{t:sx_tab_overview}}.'],
+        'stats.game': ['Juega una partida', 'Cualquier juego de {{t:sx_tab_games}}, o el {{t:sx_daily_k}}.'],
+        'stats.add': ['Añade algo a {{t:sx_tab_compare}}', 'Escribe un nombre en la casilla de añadir.'],
+        'stats.race': ['Mira una carrera', '{{t:sx_tab_compare}} → {{t:sx_cmp_mode_race}}.'],
+        'stats.drill': ['Mira un periodo por dentro', 'Haz clic en una barra de {{t:sx_tab_charts}}.'],
+        'stats.heat': ['Cambia el mapa de calor', 'Otro año, color o vista.']
+      },
+      quiz: {
+        q1: ['Una casilla dice ▲ 20%. ¿Frente a qué?',
+          ['El mismo tiempo justo antes', 'El año pasado', 'Tu media de siempre'],
+          'Cada casilla compara el rango con el mismo periodo justo antes.'],
+        q2: ['¿Dónde puedes ver a tus artistas top hacer una carrera?',
+          ['{{t:sx_tab_story}}', '{{t:sx_tab_compare}} → {{t:sx_cmp_mode_race}}', '{{t:sx_tab_games}}'],
+          '{{t:sx_cmp_mode_race}} es una de las cuatro formas en que {{t:sx_tab_compare}} muestra tus elecciones.'],
+        q3: ['¿Qué tiene de especial el {{t:sx_daily_k}}?',
+          ['Es un tipo de juego nuevo', 'Da puntos dobles', 'Todos tienen el mismo reto todo el día, y solo cuenta tu primer intento'],
+          'Un reto al día, el mismo todo el día. Juega cada día para mantener tu racha.']
+      },
+      tips: [
+        'Las casillas de {{t:tab_stats}} comparan tu rango con el mismo periodo justo antes. Prueba {{t:range_4w}} para ver la tendencia de este mes.',
+        'En {{t:sx_tab_compare}}, {{t:sx_cmp_mode_race}} convierte a tus artistas top en una carrera que puedes guardar como GIF.',
+        'Cada día te espera un nuevo {{t:sx_daily_k}} en {{t:sx_tab_games}}. Mantén tu racha.',
+        'Haz clic en cualquier barra de {{t:sx_tab_charts}} para ver las canciones top y los hallazgos nuevos de ese mes.',
+        'El mapa de calor tiene seis combinaciones de colores, y puede mostrar un solo artista, canción o álbum.'
+      ]
+    },
     records: { title: 'Récords', promise: 'Tu libro de récords: números uno, debuts, certificaciones, rachas y más.' },
     awards: { title: 'Premios', promise: 'Tu propia gala de premios, de los nominados a la ceremonia.' },
     soundtrack: { title: 'Tu Banda Sonora', promise: 'Un mes, un año o desde siempre, contado en capítulos.' },

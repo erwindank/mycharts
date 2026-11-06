@@ -11,6 +11,7 @@
      cd dankcharts && python -m http.server 8777
      node tools/guide-shots.mjs                 every lesson, every language
      node tools/guide-shots.mjs week en         one lesson, one language
+   A shot can set vp: { width, height } for its own window size.
 
    Writes  dankcharts/guide/<lang>/<shot>.webp      (phone shots end in -m)
            dankcharts/guide/<lang>/shots.json       { shot: { w, h, spots } }
@@ -115,6 +116,29 @@ async function openKebab(pg, tab) {
   await pg.click('#songsSection .kebab-menu-btn');
   await wait(pg, 300);
   if (tab) { await pg.click('#songsSection .kebab-tab[data-tab="' + tab + '"]'); await wait(pg, 300); }
+}
+// The Stats page on one of its tabs (overview, story, games, compare, charts), the
+// 12-month range; Compare on Artists with its mode (cum, per, run, race)
+async function statsTab(pg, tab, cmode = 'cum') {
+  await pg.evaluate(() => { if (typeof sxGameClose === 'function' && document.getElementById('sxGameLayer')) sxGameClose(); });
+  await go(pg, 'graphs'); await wait(pg, 1500);
+  await pg.evaluate(() => { const b = document.querySelector('#graphRangePresets [data-range="12m"]'); if (b && !b.classList.contains('active')) b.click(); });
+  await wait(pg, 600);
+  await pg.evaluate(t => setStatsTab(t), tab); await wait(pg, 2500);
+  if (tab === 'compare') {
+    await pg.evaluate(m => {
+      const ty = document.querySelector('#sxCmpType [data-ctype="artists"]'); if (ty && !ty.classList.contains('active')) ty.click();
+      const b = document.querySelector('#sxCmpMode [data-cmode="' + m + '"]'); if (b && !b.classList.contains('active')) b.click();
+    }, cmode);
+    await wait(pg, 2500);
+  }
+  if (tab === 'charts') {
+    await pg.evaluate(() => { const b = document.querySelector('#graphGranularity [data-gran="month"]'); if (b && !b.classList.contains('active')) b.click(); });
+    await wait(pg, 1500);
+  }
+  await pg.waitForFunction(id => { const el = document.getElementById(id); return el && el.offsetHeight > 100; },
+    { overview: 'sxOverview', story: 'sxStory', games: 'sxGames', compare: 'sxCmpMore', charts: 'heatmapCard' }[tab], { timeout: 60000 });
+  await wait(pg, 1500);
 }
 // Spot finders that need more than a selector: run in the page, return an element
 const byText = (scope, sel, re) => ({ js: `[...document.querySelectorAll(${JSON.stringify(scope + ' ' + sel)})].find(e => ${re}.test(e.textContent.trim()))` });
@@ -504,7 +528,90 @@ const SHOTS = [
     spots: { now: '.imgpk-now', title: '#imgpkTitle', close: '.imgpk-close', deezer: '.imgpk-section[data-src="deezer"]',
       itunes: '.imgpk-section[data-src="itunes"]', lastfm: '.imgpk-section[data-src="lastfm"]', youtube: '.imgpk-section[data-src="youtube"]',
       current: '.imgpk-tile--current', tile: '.imgpk-section[data-src="itunes"] .imgpk-tile:nth-child(2)',
-      url: '.imgpk-url-input', set: '.imgpk-url-apply', none: '.imgpk-panel [data-act="off"]', auto: '.imgpk-panel [data-act="auto"]' } }
+      url: '.imgpk-url-input', set: '.imgpk-url-apply', none: '.imgpk-panel [data-act="off"]', auto: '.imgpk-panel [data-act="auto"]' } },
+
+  /* ── Lesson: Stats (GUIDE-PLAN.md step 5) ─────────────────────────
+     Every Stats shot opens the page on one of its five tabs with the
+     12-month range (the one people start with), Artists in Compare as
+     a running total, and the Graphs volume chart by month. */
+  { id: 'stats-top', lesson: 'stats', phone: true,
+    setup: async pg => { await statsTab(pg, 'overview'); },
+    clip: { from: '#graphsView .graphs-header', to: '#sxOverview .sx-hero', pad: 14 },
+    spots: { presets: '#graphRangePresets', p12: '#graphRangePresets [data-range="12m"]', dates: '#graphsView .graphs-range-dates',
+      tabs: '#graphsView .stats-tabs', line: '#sxOverview .sx-hero-line', share: '#sxOverview .sx-hero-share',
+      tiles: '#sxOverview .sx-tiles', tile: '#sxOverview .sx-tile', delta: '#sxOverview .sx-tile .stat-foot',
+      trend: '#sxOverview .sx-tile .sx-trend', sub: '#sxOverview .sx-tile .stat-sub', go: '#sxOverview .sx-tile-go' } },
+  { id: 'stats-ov', lesson: 'stats',
+    setup: async pg => { await statsTab(pg, 'overview'); },
+    clip: { from: '#sxTop5', to: '#sxSplit', pad: 12, maxH: 2300 },
+    spots: { top5: '#sxTop5', t5seg: '#sxTop5 .dc-seg', t5lead: '#sxTop5 .sx-t5-lead', t5rows: '#sxTop5 .sx-t5-rows',
+      sotp: '#sxSotp', movers: '#sxMovers', mvseg: '#sxMovers .dc-seg', persona: '#sxPersona', facts: '#sxFacts',
+      shuffle: '#sxFacts .sx-ov-head button', cal: '#sxCal', calmore: '#sxCal .sx-cal-more', otd: '#sxOtd', split: '#sxSplit' } },
+  { id: 'stats-story', lesson: 'stats',
+    setup: async pg => { await statsTab(pg, 'story'); },
+    clip: { from: '#sxStory', to: '#sxStory', pad: 12, maxH: 2300 },
+    spots: { obs: '#sxStory > section:nth-of-type(1)', obsone: '#sxStory .sx-obs', eras: '#sxStory > section:nth-of-type(2)',
+      drift: '#sxStory .sx-drift-card', driftkeys: '#sxStory .sx-drift-keys',
+      loyal: '#sxStory > .sx-row2:nth-of-type(1) > section:first-child', comfort: '#sxStory > .sx-row2:nth-of-type(1) > section:last-child',
+      disc: '#sxStory .sx-disc-card', fun: '#sxStory > .sx-row2:nth-of-type(2) > section:last-child',
+      miles: '#sxStory > section:nth-of-type(4)' } },
+  { id: 'stats-games', lesson: 'stats',
+    setup: async pg => { await statsTab(pg, 'games'); },
+    clip: { from: '#sxGames .sx-games-head', to: '#sxGames .sx-game-card', pad: 12 },
+    spots: { head: '#sxGames .sx-games-head', tally: '#sxGames .sx-games-tally', daily: '#sxGames .sx-daily',
+      dailygo: '#sxGames .sx-daily-go', card: '#sxGames .sx-game-card', tag: '#sxGames .sx-game-tag', go: '#sxGames .sx-game-go' } },
+  // A game in play, full screen. A shorter window so the stage isn't mostly empty.
+  { id: 'stats-game', lesson: 'stats', vp: { width: 1280, height: 860 },
+    setup: async pg => { await statsTab(pg, 'games');
+      await pg.evaluate(() => sxGameOpen('hl')); await wait(pg, 2500); },
+    clip: { from: '#sxGameLayer .sx-game-top', to: '#sxGameLayer', pad: 0, narrow: true },
+    spots: { title: '#sxGameTitle', score: '#sxGameScore', close: '#sxGameLayer .sx-game-close', q: '#sxGameStage .sx-game-q',
+      known: '#sxGameStage .sx-gsong', guess: { js: "[...document.querySelectorAll('#sxGameStage .sx-gsong')].pop()" },
+      btns: '#sxGameStage .sx-hl-btns' } },
+  { id: 'stats-cmp', lesson: 'stats', phone: true,
+    setup: async pg => { await statsTab(pg, 'compare'); },
+    clip: { from: '#graphsControls', to: '#sxCmpVerdict', pad: 12 },
+    spots: { gran: '#graphGranularity', types: '#sxCmpType', modes: '#sxCmpMode', top: '#sxCmpTop', saved: '#sxCmpSavedBtn',
+      chip: '#sxCmpChips .sx-lu-card', x: '#sxCmpChips .sx-lu-x', add: '#sxCmpAddCard', legend: '#sxCmpLegend',
+      chart: '.sx-cmp-canvas', verdict: '#sxCmpVerdict' } },
+  { id: 'stats-cmp-more', lesson: 'stats',
+    setup: async pg => { await statsTab(pg, 'compare'); },
+    clip: { from: '#sxCmpMore', to: '#sxCmpMore', pad: 12, maxH: 2300 },
+    spots: { h2h: '#sxCmpMore .sx-cmp-h2h', share: '#sxCmpMore .sx-cmp-h2h .sx-ov-head button', table: '#sxCmpMore .sx-h2h',
+      own: '#sxCmpMore .sx-cmp-own', gaps: '#sxCmpMore .sx-cmp-gaps', ts: '#sxCmpMore .sx-cmp-ts', hab: '#sxCmpMore .sx-cmp-hab' } },
+  { id: 'stats-run', lesson: 'stats',
+    setup: async pg => { await statsTab(pg, 'compare', 'run'); },
+    clip: { from: '#graphsView .sx-cmp-bar', to: '.sx-cmp-canvas', pad: 12 },
+    spots: { run: '#sxCmpMode [data-cmode="run"]', crun: '#sxCmpRun', chart: '.sx-cmp-canvas' } },
+  { id: 'stats-race', lesson: 'stats',
+    setup: async pg => { await statsTab(pg, 'compare', 'race'); },
+    clip: { from: '#graphsView .sx-cmp-bar', to: '#sxCmpRaceBox', pad: 12 },
+    spots: { race: '#sxCmpMode [data-cmode="race"]', canvas: '#gBarRace', play: '#racePlayBtn', step: '#raceStepFwdBtn',
+      start: '#raceRestartBtn', seek: '#raceSeekSlider', speeds: '#raceSpeedBtns', gif: '#raceGifBtn', range: '#sxCmpRaceBox .sx-race-range' } },
+  { id: 'stats-vol', lesson: 'stats', phone: true,
+    setup: async pg => { await statsTab(pg, 'charts'); },
+    clip: { from: '#graphsControls', to: '.sx-vol-card', pad: 12 },
+    spots: { gran: '#graphGranularity', vol: '.sx-vol-card', mode: '#sxVolMode', labels: '#gTotalVolumeLabelsBtn',
+      zoom: '#gTotalVolumeResetZoom', figs: '#sxVolFigs', busiest: '#sxVolFigs .sx-fig.is-go', canvas: '.sx-vol-canvas' } },
+  { id: 'stats-drill', lesson: 'stats',
+    setup: async pg => { await statsTab(pg, 'charts');
+      await pg.evaluate(() => document.querySelector('#sxVolFigs .sx-fig.is-go').click()); await wait(pg, 2500);
+      await pg.evaluate(() => window.scrollTo(0, document.getElementById('sxVolDrill').getBoundingClientRect().top + scrollY - 800)); await wait(pg, 800); },
+    clip: { from: '#sxVolDrill', to: '#sxVolDrill', pad: 12 },
+    spots: { when: '#sxVolDrill .sx-dr-when', step: '#sxVolDrill .sx-dr-step', close: '#sxVolDrill .sx-dr-head > button',
+      figs: '#sxVolDrill .sx-dr-figs', hero: '#sxVolDrill .sx-dr-hero', spark: '#sxVolDrill .sx-dr-rh',
+      tabs: '#sxVolDrill .sx-dr-tabs', rows: '#sxDrRows', open: '#sxVolDrill .sx-drill-foot button' } },
+  { id: 'stats-clock', lesson: 'stats',
+    setup: async pg => { await statsTab(pg, 'charts'); },
+    clip: { from: '.sx-clock-card', to: '.sx-week-card', pad: 12 },
+    spots: { clock: '#sxClock', parts: '#sxClockParts', cnote: '#sxClockNote', wfigs: '#sxWeekFigs', week: '#sxWeek', wnote: '#sxWeekNote' } },
+  { id: 'stats-heat', lesson: 'stats',
+    setup: async pg => { await statsTab(pg, 'charts'); },
+    clip: { from: '#heatmapCard', to: '#heatmapCard', pad: 12, maxH: 2300 },
+    spots: { types: '#heatmapTypeBtns', colors: '#heatmapThemeBtns', year: '#heatmapCard .hm-stepper', best: '#heatmapCard .hm-streak-chip',
+      figs: '#heatmapCard .hm-figs', grid: '#heatmapCard .hm-y-scroll', strip: '#heatmapCard .hm-strip',
+      patterns: '#heatmapCard .hm-patterns-section', scope: '#heatmapCard .hm-pat-scope', rhythm: '#heatmapCard .hm-pat-weekday',
+      hours: '#heatmapCard .hm-pat-hourblock' } }
 ];
 
 /* ── Measuring + capture ────────────────────────────────────────── */
@@ -597,6 +704,8 @@ async function run() {
           // A fresh start per shot keeps one shot's open menu out of the next
           await app.pg.evaluate(() => { window.scrollTo(0, 0); document.querySelectorAll('.kebab-menu-wrap.open').forEach(e => e.classList.remove('open')); });
           await closeMenus(app.pg);
+          // vp: a shot that needs its own window size (a full-screen layer); put back after
+          await app.pg.setViewportSize(s.vp && !phone ? s.vp : (phone ? PHONE : DESK));
           await s.setup(app.pg);
           await wait(app.pg, 600);
           const m = await measure(app.pg, s.clip, s.spots);

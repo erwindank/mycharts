@@ -373,7 +373,90 @@ window.GL = {
       quiz: [ { id: 'q1', answer: 0 }, { id: 'q2', answer: 0 }, { id: 'q3', answer: 0 } ],
       tips: [ ['search', 'field', 'win.search'], ['win-song-listening', 'found', 'win.tab'], ['streak-records', 'badges', 'win.streak'], ['cover-hover', 'pencil', 'win.cover'] ]
     },
-    { id: 'stats', area: 'insights', nav: 'graphs', soon: true },
+    /* ── Lesson 7: Stats (Overview, Story, Games, Compare, Graphs) ── */
+    { id: 'stats', area: 'insights', nav: 'graphs', mins: 9, cover: 'stats-top',
+      scenes: [
+        // The range bar, the five tabs and the Overview's sentence and tiles
+        { id: 'top', shot: 'stats-top', phone: true,
+          spots: ['presets', 'dates', 'tabs', 'line', 'share', 'tile', 'delta', 'trend', 'sub', 'go'] },
+        { id: 'ov', shot: 'stats-ov',
+          spots: ['top5', 't5seg', 't5lead', 't5rows', 'sotp', 'movers', 'mvseg', 'persona', 'facts', 'shuffle', 'cal', 'calmore', 'otd', 'split'] },
+        { id: 'story', shot: 'stats-story',
+          spots: ['obs', 'obsone', 'eras', 'drift', 'driftkeys', 'loyal', 'comfort', 'disc', 'fun', 'miles'] },
+        { id: 'games', shot: 'stats-games', spots: ['head', 'tally', 'daily', 'dailygo', 'card', 'tag', 'go'] },
+        // Higher or lower, open full screen
+        { id: 'game', shot: 'stats-game', spots: ['title', 'score', 'close', 'q', 'known', 'guess', 'btns'] },
+        { id: 'cmp', shot: 'stats-cmp', phone: true,
+          spots: ['gran', 'top', 'saved', 'types', 'modes', 'chip', 'x', 'add', 'legend', 'chart', 'verdict'] },
+        { id: 'cmpmore', shot: 'stats-cmp-more', spots: ['h2h', 'share', 'table', 'own', 'gaps', 'ts', 'hab'] },
+        { id: 'run', shot: 'stats-run', spots: ['run', 'crun', 'chart'] },
+        { id: 'race', shot: 'stats-race', spots: ['race', 'canvas', 'start', 'play', 'step', 'seek', 'speeds', 'gif', 'range'] },
+        { id: 'vol', shot: 'stats-vol', phone: true, spots: ['gran', 'mode', 'labels', 'zoom', 'figs', 'busiest', 'canvas'] },
+        // What opens under the volume chart when a bar (or the busiest period) is tapped
+        { id: 'drill', shot: 'stats-drill', spots: ['when', 'step', 'figs', 'hero', 'spark', 'tabs', 'rows', 'open'] },
+        { id: 'clock', shot: 'stats-clock', spots: ['clock', 'parts', 'cnote', 'wfigs', 'week', 'wnote'] },
+        { id: 'heat', shot: 'stats-heat',
+          spots: ['types', 'colors', 'year', 'best', 'figs', 'grid', 'strip', 'patterns', 'scope', 'rhythm', 'hours'] }
+      ],
+      howto: [
+        { id: 'range', challenge: 'stats.range', slides: [
+          { shot: 'stats-top', spot: 'presets' }, { shot: 'stats-top', spot: 'dates' },
+          { shot: 'stats-top', spot: 'tabs' }, { shot: 'stats-cmp', spot: 'gran' } ] },
+        { id: 'overview', challenge: 'stats.go', slides: [
+          { shot: 'stats-top', spot: 'line' }, { shot: 'stats-top', spot: 'delta' }, { shot: 'stats-top', spot: 'go' },
+          { shot: 'stats-ov', spot: 't5seg' }, { shot: 'stats-ov', spot: 'movers' }, { shot: 'stats-ov', spot: 'cal' } ] },
+        { id: 'story', challenge: 'stats.story', slides: [
+          { shot: 'stats-top', spot: 'tabs' }, { shot: 'stats-story', spot: 'obs' }, { shot: 'stats-story', spot: 'eras' },
+          { shot: 'stats-story', spot: 'drift' }, { shot: 'stats-story', spot: 'disc' } ] },
+        { id: 'game', challenge: 'stats.game', slides: [
+          { shot: 'stats-games', spot: 'daily' }, { shot: 'stats-games', spot: 'go' }, { shot: 'stats-game', spot: 'btns' },
+          { shot: 'stats-game', spot: 'score' }, { shot: 'stats-game', spot: 'close' }, { shot: 'stats-games', spot: 'tally' } ] },
+        { id: 'compare', challenge: 'stats.add', slides: [
+          { shot: 'stats-cmp', spot: 'types' }, { shot: 'stats-cmp', spot: 'add' }, { shot: 'stats-cmp', spot: 'chip' },
+          { shot: 'stats-cmp', spot: 'modes' }, { shot: 'stats-cmp', spot: 'legend' }, { shot: 'stats-cmp-more', spot: 'h2h' },
+          { shot: 'stats-cmp', spot: 'saved' } ] },
+        { id: 'race', challenge: 'stats.race', slides: [
+          { shot: 'stats-race', spot: 'race' }, { shot: 'stats-race', spot: 'play' }, { shot: 'stats-race', spot: 'seek' },
+          { shot: 'stats-race', spot: 'speeds' }, { shot: 'stats-race', spot: 'gif' } ] },
+        { id: 'drill', challenge: 'stats.drill', slides: [
+          { shot: 'stats-vol', spot: 'canvas' }, { shot: 'stats-vol', spot: 'busiest' }, { shot: 'stats-drill', spot: 'when' },
+          { shot: 'stats-drill', spot: 'tabs' }, { shot: 'stats-drill', spot: 'open' } ] },
+        { id: 'heat', challenge: 'stats.heat', slides: [
+          { shot: 'stats-heat', spot: 'grid' }, { shot: 'stats-heat', spot: 'year' }, { shot: 'stats-heat', spot: 'types' },
+          { shot: 'stats-heat', spot: 'colors' }, { shot: 'stats-heat', spot: 'hours' } ] }
+      ],
+      options: [
+        { id: 'range', items: [
+          { id: 'presets', shot: 'stats-top', spot: 'presets', def: '{{t:range_12m}}' },
+          { id: 'dates', shot: 'stats-top', spot: 'dates' },
+          { id: 'gran', shot: 'stats-cmp', spot: 'gran', def: '{{t:gran_monthly}}' } ] },
+        { id: 'tabs', items: [
+          { id: 'overview', shot: 'stats-top', spot: 'tabs', def: 'on' }, { id: 'story', shot: 'stats-story', spot: 'obs' },
+          { id: 'games', shot: 'stats-games', spot: 'card' }, { id: 'compare', shot: 'stats-cmp', spot: 'chart' },
+          { id: 'charts', shot: 'stats-vol', spot: 'canvas' } ] },
+        { id: 'overview', items: [
+          { id: 'share', shot: 'stats-top', spot: 'share' }, { id: 't5seg', shot: 'stats-ov', spot: 't5seg', def: '{{t:sx_cmp_type_songs}}' },
+          { id: 'mvseg', shot: 'stats-ov', spot: 'mvseg', def: '{{t:sx_cmp_type_songs}}' }, { id: 'shuffle', shot: 'stats-ov', spot: 'shuffle' } ] },
+        { id: 'compare', items: [
+          { id: 'types', shot: 'stats-cmp', spot: 'types', def: '{{t:sx_cmp_type_artists}}' },
+          { id: 'modes', shot: 'stats-cmp', spot: 'modes', def: '{{t:sx_cmp_mode_cum}}' },
+          { id: 'crun', shot: 'stats-run', spot: 'crun', def: '{{t:nav_weekly}}' },
+          { id: 'top', shot: 'stats-cmp', spot: 'top' }, { id: 'saved', shot: 'stats-cmp', spot: 'saved' },
+          { id: 'legend', shot: 'stats-cmp', spot: 'legend' }, { id: 'h2hshare', shot: 'stats-cmp-more', spot: 'share' } ] },
+        { id: 'race', items: [
+          { id: 'speeds', shot: 'stats-race', spot: 'speeds', def: '1×' }, { id: 'gif', shot: 'stats-race', spot: 'gif' },
+          { id: 'range', shot: 'stats-race', spot: 'range' } ] },
+        { id: 'graphs', items: [
+          { id: 'mode', shot: 'stats-vol', spot: 'mode', def: '{{t:sx_vol_mode_plays}}' }, { id: 'labels', shot: 'stats-vol', spot: 'labels', def: 'off' },
+          { id: 'zoom', shot: 'stats-vol', spot: 'zoom' }, { id: 'drtabs', shot: 'stats-drill', spot: 'tabs', def: '{{t:sx_dr_tab_top}}' },
+          { id: 'hmtypes', shot: 'stats-heat', spot: 'types', def: '{{t:hm_type_all}}' }, { id: 'colors', shot: 'stats-heat', spot: 'colors' },
+          { id: 'scope', shot: 'stats-heat', spot: 'scope' } ] }
+      ],
+      challenges: ['stats.range', 'stats.story', 'stats.go', 'stats.game', 'stats.add', 'stats.race', 'stats.drill', 'stats.heat'],
+      quiz: [ { id: 'q1', answer: 0 }, { id: 'q2', answer: 1 }, { id: 'q3', answer: 2 } ],
+      tips: [ ['stats-top', 'delta', 'stats.range'], ['stats-race', 'play', 'stats.race'], ['stats-games', 'daily', 'stats.game'],
+        ['stats-drill', 'tabs', 'stats.drill'], ['stats-heat', 'colors', 'stats.heat'] ]
+    },
     { id: 'records', area: 'insights', nav: 'records', soon: true },
     { id: 'awards', area: 'insights', nav: 'awards', soon: true },
     { id: 'soundtrack', area: 'insights', nav: 'soundtrack', soon: true },
@@ -1537,7 +1620,280 @@ window.GL_TEXT.en = {
         'Don’t like a cover? Point at it and press the ✎ to pick another, or paste a link to any picture.'
       ]
     },
-    stats: { title: 'Stats', promise: 'Overview, Story, Graphs, Compare and Games for any date range.' },
+    stats: {
+      title: '{{t:tab_stats}}',
+      promise: 'Your listening for any stretch of time: a summary, its story, games, side-by-side comparisons and graphs.',
+      scenes: {
+        top: { title: 'The range and the {{t:sx_tab_overview}}', spots: {
+          presets: ['Quick ranges', '{{t:range_4w}}, {{t:range_12m}}, {{t:range_3y}} or {{t:range_all}}. Every tab uses the range you pick here.'],
+          dates: ['Your own dates', 'Pick any start and end date for a stretch of your own.'],
+          tabs: ['Five tabs', '{{t:sx_tab_overview}}, {{t:sx_tab_story}}, {{t:sx_tab_games}}, {{t:sx_tab_compare}} and {{t:sx_tab_charts}}. The one you leave open is the one you come back to.'],
+          line: ['In one sentence', 'Your range in a sentence: how much you played, against the stretch before, and who led. Click the artist to open their window.'],
+          share: ['{{t:sx_share}}', 'Makes a picture of this summary to save or send.'],
+          tile: ['Four tiles', 'Plays, songs, artists and albums in the range.'],
+          delta: ['Against before', 'Up or down against the same length of time just before it, with that number next to it.'],
+          trend: ['How it went', 'A small line of how it went over the range.'],
+          sub: ['Small numbers', 'Plays a day, your best day, how many were new to you.'],
+          go: ['Go deeper', 'Each tile has a link to the graph or comparison that tells more.']
+        } },
+        ov: { title: 'The rest of the {{t:sx_tab_overview}}', spots: {
+          top5: ['{{t:sx_top5_title}}', 'The five you played most in the range. Click one for its window.'],
+          t5seg: ['Songs, artists or albums', 'Switch what the top 5 shows.'],
+          t5lead: ['Your #1', 'The leader, its plays, its share of all your plays and its lead over #2. Play a sample right here.'],
+          t5rows: ['#2 to #5', 'The bars show how close each is to the #1.'],
+          sotp: ['{{t:sx_sotp_title}}', 'Your most played song of the range and how its plays went, day by day or week by week.'],
+          movers: ['{{t:sx_mov_title}}', 'What you played much more, and much less, than the stretch before.'],
+          mvseg: ['Songs, artists or albums', 'Switch what the movers show.'],
+          persona: ['{{t:sx_pers_title}}', 'A name for how you listened in this range, like {{t:sx_pers_explorer}} or {{t:sx_pers_marathon}}, and why.'],
+          facts: ['{{t:sx_fact_title}}', 'Little things from the range: your longest repeat, your busiest hour and day.'],
+          shuffle: ['{{t:sx_fact_shuffle}}', 'Shows other fun facts.'],
+          cal: ['{{t:sx_cal_title}}', 'A small calendar of the range, darker the more you played. Click a day to open its Daily chart.'],
+          calmore: ['Every year', 'Jumps to the full heatmap in {{t:sx_tab_charts}}.'],
+          otd: ['{{t:sx_otd_title}}', 'Today’s date in years past, and the song you played most that day.'],
+          split: ['{{t:sx_split_title}}', 'New finds against old favourites, and how much went to your top 5 artists.']
+        } },
+        story: { title: '{{t:sx_tab_story}}', spots: {
+          obs: ['{{t:sx_obs_title_m}}', 'The artist you played most each month (or each week on a short range).'],
+          obsone: ['One month', 'Click it to open that month’s chart.'],
+          eras: ['{{t:sx_eras_title}}', 'Stretches where one artist was #1 on your weekly chart three weeks or more in a row.'],
+          drift: ['{{t:sx_drift_title}}', 'Your yearly top 10 artists, year by year. Click a line or a name to follow one artist.'],
+          driftkeys: ['Follow one artist', 'Click a name to light up their line.'],
+          loyal: ['{{t:sx_loyal_title}}', 'How much went to your top 10 artists, on a scale from adventurous to loyal.'],
+          comfort: ['{{t:sx_comfort_title}}', 'Songs you already knew against songs you found in this range.'],
+          disc: ['{{t:sx_disc_title}}', 'Your biggest new artists of the range, and whether you still play them.'],
+          fun: ['{{t:sx_fun_title}}', 'The range in other words: plays a day, your top song, how far your plays would walk.'],
+          miles: ['{{t:sx_miles_title}}', 'Round numbers you passed: play counts, different songs and artists, and when.']
+        } },
+        games: { title: '{{t:sx_tab_games}}', spots: {
+          head: ['{{t:sx_games_title}}', 'Quizzes made from your own library.'],
+          tally: ['Your tally', 'How many of the games you have played, and your day streak for the game of the day.'],
+          daily: ['{{t:sx_daily_k}}', 'One puzzle a day, the same all day. Only your first try counts; play every day to keep the streak.'],
+          dailygo: ['{{t:sx_daily_play}}', 'Starts today’s puzzle.'],
+          card: ['A game', 'Twelve games: {{t:sx_game_hl}}, {{t:sx_game_tune}}, {{t:sx_game_year}}, {{t:sx_game_one}} and more.'],
+          tag: ['{{t:sx_games_new}}', 'Games you haven’t played yet are tagged.'],
+          go: ['{{t:sx_game_play}}', 'Opens the game full screen.']
+        } },
+        game: { title: 'Playing a game', spots: {
+          title: ['The game', 'Its name.'],
+          score: ['Your score', 'Your streak or score now, and your best ever.'],
+          close: ['Close', 'Back to the games. Esc does the same.'],
+          q: ['The question', 'What you have to guess.'],
+          known: ['What you know', 'One side shows its answer.'],
+          guess: ['What you guess', 'The other is hidden.'],
+          btns: ['Your answer', 'Pick one. Right answers keep the game going; at the end you can share your result.']
+        } },
+        cmp: { title: '{{t:sx_tab_compare}}', spots: {
+          gran: ['{{t:gran_daily}} / {{t:gran_monthly}} / {{t:gran_yearly}}', 'How the lines are split: by day, by month or by year. Shows on {{t:sx_tab_compare}} and {{t:sx_tab_charts}}.'],
+          top: ['Your top', 'Fills the line-up with your top picks for the range.'],
+          saved: ['{{t:sx_saved_title}}', 'Save a line-up to bring it back later.'],
+          types: ['What to compare', '{{t:sx_cmp_type_artists}}, {{t:sx_cmp_type_songs}}, {{t:sx_cmp_type_albums}} or {{t:sx_cmp_type_years}}.'],
+          modes: ['How to show it', '{{t:sx_cmp_mode_cum}}, {{t:sx_cmp_mode_per}}, {{t:sx_cmp_mode_run}} or {{t:sx_cmp_mode_race}}.'],
+          chip: ['A pick', 'Its rank, plays and share. The bar under it is its colour on the graph.'],
+          x: ['Remove', 'Takes it off.'],
+          add: ['Add', 'Type a name, pick it from the list. Up to 10.'],
+          legend: ['The legend', '{{t:sx_cmp_legend_tip}}.'],
+          chart: ['The graph', 'Point at it (or tap) to read each period.'],
+          verdict: ['Who wins', 'Most plays, most weeks at #1, hottest right now, with you longest.']
+        } },
+        cmpmore: { title: 'More under {{t:sx_tab_compare}}', spots: {
+          h2h: ['{{t:sx_h2h_title}}', 'Who leads and by how much, and each one’s share.'],
+          share: ['{{t:sx_share}}', 'A picture of the comparison.'],
+          table: ['The table', 'Plays, share, first play, weeks at #1, best month, longest streak. Click a column to sort; the best in each is in its colour.'],
+          own: ['{{t:sx_own_title}}', 'One block per month in the colour of whoever played most, and when the lead changed.'],
+          gaps: ['{{t:sx_gap_title}}', 'The closest race, the biggest lead, the fastest rise and the longest in front.'],
+          ts: ['{{t:sx_ts_title}}', 'Each one’s three most played songs.'],
+          hab: ['{{t:sx_hab_title}}', 'When each one gets played: by hour and by day of the week.']
+        } },
+        run: { title: '{{t:sx_cmp_mode_run}}', spots: {
+          run: ['{{t:sx_cmp_mode_run}}', 'Their places on your chart, week by week.'],
+          crun: ['Which chart', '{{t:nav_daily}}, {{t:nav_weekly}}, {{t:nav_monthly}} or {{t:nav_yearly}}.'],
+          chart: ['Rank over time', 'Higher is better. Gaps are weeks off the chart.']
+        } },
+        race: { title: '{{t:sx_cmp_mode_race}}', spots: {
+          race: ['{{t:sx_cmp_mode_race}}', 'Your picks as bars racing to the top, period by period.'],
+          canvas: ['The race', 'It opens on the result. Press play to watch it from the start.'],
+          start: ['To the start', 'Back to the first period.'],
+          play: ['Play', 'Plays or pauses the race.'],
+          step: ['One step', 'One period forward (the button left of play goes back).'],
+          seek: ['Any date', 'Drag to any point in time.'],
+          speeds: ['Speed', '0.5× to 4×.'],
+          gif: ['{{t:btn_download_gif}}', 'Saves the race as a moving picture.'],
+          range: ['The race’s dates', 'The race keeps its own range, from your first play. Change it here; {{t:btn_reset}} puts it back.']
+        } },
+        vol: { title: '{{t:sx_vol_title}}', spots: {
+          gran: ['By day, month or year', 'How the bars are split.'],
+          mode: ['{{t:sx_vol_mode_plays}} / {{t:sx_vol_mode_new}}', 'All your plays with the new part on top, or only what was new to you.'],
+          labels: ['Numbers on bars', 'Shows each bar’s number.'],
+          zoom: ['Reset zoom', 'Drag across the graph to zoom in; this button zooms back out.'],
+          figs: ['The figures', 'Totals for the range. They are also the key: blue is {{t:sx_vol_known}}, green is {{t:sx_vol_new}}.'],
+          busiest: ['{{t:sx_v_month}}', 'Click it to look inside that month.'],
+          canvas: ['The bars', 'Click any bar to look inside that period.']
+        } },
+        drill: { title: 'Inside one period', spots: {
+          when: ['The period', 'Which one, and how it did against the one before.'],
+          step: ['Before / after', 'Moves to the period before or after.'],
+          figs: ['Its numbers', 'Plays, how much was new, songs and artists.'],
+          hero: ['Most played', 'Its top song, with a sample.'],
+          spark: ['{{t:sx_cal_title}}', 'Every day of the period, with the busiest one lit.'],
+          tabs: ['Three lists', '{{t:sx_dr_tab_top}}, {{t:sx_dr_tab_new}} and {{t:sx_dr_tab_art}}.'],
+          rows: ['The list', 'Click one to open its window.'],
+          open: ['{{t:sx_drill_open}}', 'Opens the chart of that period.']
+        } },
+        clock: { title: '{{t:sx_clock_title}} and {{t:sx_week_title}}', spots: {
+          clock: ['{{t:sx_clock_title}}', 'Each slice is an hour; longer means more plays. Point at one (or tap) to see what you played then.'],
+          parts: ['Parts of the day', 'Morning, afternoon, evening and night, and the share of each.'],
+          cnote: ['In a sentence', 'Your busiest and quietest hours.'],
+          wfigs: ['Weekdays against the weekend', 'Plays a day on each, and your busiest day.'],
+          week: ['{{t:sx_week_title}}', 'Average plays on each day. Click a day for more.'],
+          wnote: ['In a sentence', 'Your busiest and quietest days.']
+        } },
+        heat: { title: '{{t:hm_title}}', spots: {
+          types: ['{{t:hm_type_all}} / {{t:hm_type_artist}} / {{t:hm_type_song}} / {{t:hm_type_album}}', 'All your plays, or only one artist, song or album: add it by name.'],
+          colors: ['Colours', 'Pick a colour scheme for the heatmap.'],
+          year: ['The year', 'Step to the year before or after.'],
+          best: ['Best streak', 'Your longest run of days with music.'],
+          figs: ['The year in figures', 'Plays, best day, top artist and new artists.'],
+          grid: ['Every day', 'One square per day, stronger the more you played. Point at one (or tap) to see what you listened to.'],
+          strip: ['{{t:hm_every_year}}', 'Every year as a small picture. Click one to open it.'],
+          patterns: ['{{t:hm_patterns}}', 'When in the week you play.'],
+          scope: ['{{t:hm_pat_year}} / {{t:hm_pat_all}}', 'Patterns for the open year or for all time.'],
+          rhythm: ['Weekday rhythm', 'Plays a day for each weekday.'],
+          hours: ['Hour of day', 'Every hour of every weekday. The busiest one is ringed.']
+        } }
+      },
+      howto: {
+        range: { title: 'Pick a range', slides: [
+          'Pick a quick range: the last 4 weeks, 12 months, 3 years, or all of it.',
+          'Or set your own start and end date.',
+          'Every tab uses the same range. Switch tabs as you like.',
+          'On {{t:sx_tab_compare}} and {{t:sx_tab_charts}}, also pick by day, month or year.'
+        ] },
+        overview: { title: 'Read your {{t:sx_tab_overview}}', slides: [
+          'Start with the sentence: your range in a line.',
+          'The arrows compare with the same stretch just before.',
+          'Each tile links to the graph that tells more.',
+          'Your top 5: switch between songs, artists and albums.',
+          'See what you played more, and less, than before.',
+          'Click any day of the calendar to open that day’s chart.'
+        ] },
+        story: { title: 'See your story', slides: [
+          'Open {{t:sx_tab_story}}.',
+          'Your top artist of every month. Click one to open that month’s chart.',
+          'Your eras: when one artist ruled your weekly chart.',
+          'Taste drift: how your top 10 changed year by year.',
+          'And the new artists you found, and if you still play them.'
+        ] },
+        game: { title: 'Play a game', slides: [
+          'Start with the {{t:sx_daily_k}}: one puzzle, the same all day.',
+          'Or pick any of the twelve games.',
+          'Make your guess.',
+          'Your score and your best, at the top.',
+          'Close it whenever you like.',
+          'Your tally counts the games you’ve played and your day streak.'
+        ] },
+        compare: { title: 'Compare artists, songs or years', slides: [
+          'Pick what to compare.',
+          'Type a name and add it. Up to 10.',
+          'Each pick gets a card and a colour. The ✕ removes it.',
+          'Choose how to see them: running total, per period, chart run or race.',
+          'Click a name in the legend to hide or show its line.',
+          'Scroll down: head to head, who was on top, the gaps, their top songs and habits.',
+          'Save the line-up to come back to it.'
+        ] },
+        race: { title: 'Watch a race', slides: [
+          'On {{t:sx_tab_compare}}, choose {{t:sx_cmp_mode_race}}.',
+          'Press play.',
+          'Drag to any point in time.',
+          'Go slower or faster.',
+          'Save it as a moving picture to share.'
+        ] },
+        drill: { title: 'Look inside a month', slides: [
+          'On {{t:sx_tab_charts}}, click any bar.',
+          'Or click the busiest period.',
+          'It opens under the graph. The arrows move to the period before or after.',
+          'Switch between top songs, new finds and top artists.',
+          'Open the chart of that period.'
+        ] },
+        heat: { title: 'Explore the heatmap', slides: [
+          'Every day of the year, stronger the more you played. Point at a day.',
+          'Step through the years.',
+          'Show only one artist, song or album.',
+          'Pick a colour scheme.',
+          'And see the hours of the week you play most.'
+        ] }
+      },
+      options: {
+        range: { title: 'Range', items: {
+          presets: ['{{t:range_4w}} / {{t:range_12m}} / {{t:range_3y}} / {{t:range_all}}', 'A quick range up to today.'],
+          dates: ['Dates', 'Any start and end date.'],
+          gran: ['{{t:gran_daily}} / {{t:gran_monthly}} / {{t:gran_yearly}}', 'How graphs are split. {{t:sx_tab_compare}} and {{t:sx_tab_charts}} only.']
+        } },
+        tabs: { title: 'Tabs', items: {
+          overview: ['{{t:sx_tab_overview}}', 'The range in a sentence, four tiles and eight cards.'],
+          story: ['{{t:sx_tab_story}}', 'What the range was about.'],
+          games: ['{{t:sx_tab_games}}', 'Twelve quizzes and a game of the day.'],
+          compare: ['{{t:sx_tab_compare}}', 'Up to 10 side by side, or as a race.'],
+          charts: ['{{t:sx_tab_charts}}', 'Volume, the clock, your week and the heatmap.']
+        } },
+        overview: { title: '{{t:sx_tab_overview}}', items: {
+          share: ['{{t:sx_share}}', 'A picture of the summary.'],
+          t5seg: ['{{t:sx_top5_title}}', 'Songs, artists or albums.'],
+          mvseg: ['{{t:sx_mov_title}}', 'Songs, artists or albums.'],
+          shuffle: ['{{t:sx_fact_shuffle}}', 'Other fun facts.']
+        } },
+        compare: { title: '{{t:sx_tab_compare}}', items: {
+          types: ['What', '{{t:sx_cmp_type_artists}}, {{t:sx_cmp_type_songs}}, {{t:sx_cmp_type_albums}}, {{t:sx_cmp_type_years}}.'],
+          modes: ['How', '{{t:sx_cmp_mode_cum}}, {{t:sx_cmp_mode_per}}, {{t:sx_cmp_mode_run}}, {{t:sx_cmp_mode_race}}.'],
+          crun: ['{{t:sx_cmp_mode_run}}', 'Which chart: {{t:nav_daily}}, {{t:nav_weekly}}, {{t:nav_monthly}}, {{t:nav_yearly}}.'],
+          top: ['Top 3 / {{t:sx_cmp_fill10}}', 'Fills the line-up with your top picks.'],
+          saved: ['{{t:sx_saved_title}}', 'Saved line-ups.'],
+          legend: ['Legend', 'Hide or show a line.'],
+          h2hshare: ['{{t:sx_share}}', 'A picture of the comparison.']
+        } },
+        race: { title: '{{t:sx_cmp_mode_race}}', items: {
+          speeds: ['Speed', '0.5×, 1×, 2×, 4×.'],
+          gif: ['{{t:btn_download_gif}}', 'Save the race.'],
+          range: ['Range', 'The race’s own dates.']
+        } },
+        graphs: { title: '{{t:sx_tab_charts}}', items: {
+          mode: ['{{t:sx_vol_mode_plays}} / {{t:sx_vol_mode_new}}', 'All plays, or only new finds.'],
+          labels: ['Numbers on bars', 'On or off.'],
+          zoom: ['Reset zoom', 'Back to the whole range.'],
+          drtabs: ['Inside a period', '{{t:sx_dr_tab_top}}, {{t:sx_dr_tab_new}}, {{t:sx_dr_tab_art}}.'],
+          hmtypes: ['Heatmap', '{{t:hm_type_all}}, {{t:hm_type_artist}}, {{t:hm_type_song}}, {{t:hm_type_album}}.'],
+          colors: ['Heatmap colours', 'Six colour schemes.'],
+          scope: ['{{t:hm_patterns}}', '{{t:hm_pat_year}} or {{t:hm_pat_all}}.']
+        } }
+      },
+      challenges: {
+        'stats.range': ['Change the range', 'A quick range or your own dates.'],
+        'stats.story': ['Open {{t:sx_tab_story}}', 'The second tab.'],
+        'stats.go': ['Follow a tile’s link', 'Under any of the four tiles on {{t:sx_tab_overview}}.'],
+        'stats.game': ['Play a game', 'Any game on {{t:sx_tab_games}}, or the {{t:sx_daily_k}}.'],
+        'stats.add': ['Add something to {{t:sx_tab_compare}}', 'Type a name in the Add box.'],
+        'stats.race': ['Watch a race', '{{t:sx_tab_compare}} → {{t:sx_cmp_mode_race}}.'],
+        'stats.drill': ['Look inside a period', 'Click a bar on {{t:sx_tab_charts}}.'],
+        'stats.heat': ['Change the heatmap', 'Another year, colour or view.']
+      },
+      quiz: {
+        q1: ['A tile says ▲ 20%. Compared with what?',
+          ['The same length of time just before', 'Last year', 'Your all-time average'],
+          'Each tile compares the range with the same stretch just before it.'],
+        q2: ['Where can you watch your top artists race each other?',
+          ['{{t:sx_tab_story}}', '{{t:sx_tab_compare}} → {{t:sx_cmp_mode_race}}', '{{t:sx_tab_games}}'],
+          '{{t:sx_cmp_mode_race}} is one of the four ways {{t:sx_tab_compare}} shows your picks.'],
+        q3: ['What is special about the {{t:sx_daily_k}}?',
+          ['It is a new kind of game', 'It gives double points', 'Everyone gets the same puzzle all day, and only your first try counts'],
+          'One puzzle a day, the same all day. Play every day to keep your day streak.']
+      },
+      tips: [
+        'Stats tiles compare your range with the same stretch just before it. Try {{t:range_4w}} to see this month’s trend.',
+        'On {{t:sx_tab_compare}}, {{t:sx_cmp_mode_race}} turns your top artists into a race you can save as a GIF.',
+        'A new {{t:sx_daily_k}} waits on {{t:sx_tab_games}} every day. Keep your day streak going.',
+        'Click any bar on {{t:sx_tab_charts}} to see the top songs and new finds of that month.',
+        'The heatmap has six colour schemes, and can show one artist, song or album on its own.'
+      ]
+    },
     records: { title: 'Records', promise: 'Your record book: number ones, debuts, certifications, streaks and more.' },
     awards: { title: 'Awards', promise: 'Your own awards show, from nominees to the ceremony.' },
     soundtrack: { title: 'Your Soundtrack', promise: 'A month, a year or all time told in chapters.' },

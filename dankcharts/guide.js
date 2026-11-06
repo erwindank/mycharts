@@ -29,7 +29,7 @@
   'use strict';
 
   // Bump when the lesson files or the pictures change (it's their ?v=)
-  const GUIDE_V = '7';
+  const GUIDE_V = '8';
   const STORE = 'dc_guide_progress';
   const LANG_FILES = ['es', 'pt-BR', 'pt-PT'];
 
@@ -128,7 +128,16 @@
     'win.search':    { lesson: 'windows', input: '.lsx-input' },
     'win.menu':      { lesson: 'windows', click: '.ea-more' },
     'win.cover':     { lesson: 'windows', fn: 'applyImgChoice' },
-    'win.streak':    { lesson: 'windows', open: '#streakModal' }
+    'win.streak':    { lesson: 'windows', open: '#streakModal' },
+    // Stats (stats.js functions; Graphs is period 'graphs')
+    'stats.range':   { lesson: 'stats', period: 'graphs', click: '#graphRangePresets button', input: '#gRangeFrom, #gRangeTo' },
+    'stats.story':   { lesson: 'stats', fn: 'setStatsTab', test: a => a[0] === 'story' },
+    'stats.go':      { lesson: 'stats', click: '.sx-tile-go' },
+    'stats.game':    { lesson: 'stats', fn: 'sxGameOpen' },
+    'stats.add':     { lesson: 'stats', fn: 'sxCmpAddKey' },
+    'stats.race':    { lesson: 'stats', click: '#sxCmpMode [data-cmode="race"]' },
+    'stats.drill':   { lesson: 'stats', fn: 'sxShowVolDrill' },
+    'stats.heat':    { lesson: 'stats', click: '#heatmapThemeBtns button, #heatmapCard .hm-step, #heatmapTypeBtns button, #heatmapCard .hm-strip > *' }
   };
   // Where "Show me" takes you for each challenge, and what it rings there.
   // open/tab: open the chart's ⋮ menu on a tab first.
@@ -177,7 +186,16 @@
     'win.search':    { nav: 'week', ring: '#topbar [class*="search"]' },
     'win.menu':      { nav: 'week', ring: '#songsBody .ea-more' },
     'win.cover':     { nav: 'week', ring: '#songsBody .thumb-cell' },
-    'win.streak':    { nav: 'week', ring: '#nsDayStreak, #nsSummary' }
+    'win.streak':    { nav: 'week', ring: '#nsDayStreak, #nsSummary' },
+    // stab: the Stats tab to open first
+    'stats.range':   { nav: 'graphs', ring: '#graphsControls' },
+    'stats.story':   { nav: 'graphs', ring: '.stats-tabs [data-st-tab="story"]' },
+    'stats.go':      { nav: 'graphs', stab: 'overview', ring: '#sxOverview .sx-tiles' },
+    'stats.game':    { nav: 'graphs', stab: 'games', ring: '#sxGames .sx-daily, #sxGames .sx-game-card' },
+    'stats.add':     { nav: 'graphs', stab: 'compare', ring: '#sxCmpAddCard' },
+    'stats.race':    { nav: 'graphs', stab: 'compare', ring: '#sxCmpMode' },
+    'stats.drill':   { nav: 'graphs', stab: 'charts', ring: '.sx-vol-card' },
+    'stats.heat':    { nav: 'graphs', stab: 'charts', ring: '#heatmapCard .hm-bar' }
   };
 
   let lastInput = 0;
@@ -603,7 +621,7 @@
       <div class="gd-opts${g.big ? ' gd-opts-big' : ''}">${g.items.map(it => {
         const t = tx(base + '.options.' + g.id + '.items.' + it.id) || [];
         const s = shot(it.shot);
-        const def = it.def ? `<span class="gd-def">${h(ui('default'))}: ${h(it.def === 'on' ? ui('def_on') : it.def === 'off' ? ui('def_off') : it.def)}</span>` : '';
+        const def = it.def ? `<span class="gd-def">${h(ui('default'))}: ${h(it.def === 'on' ? ui('def_on') : it.def === 'off' ? ui('def_off') : fill(it.def))}</span>` : '';
         return `<button type="button" class="gd-opt" data-zoom="${h(it.shot)}" data-spot="${h(it.spot || '')}">
           ${g.big ? cropHTML(s, it.spot, 320, 150, it.crop) : cropHTML(s, it.spot, 112, 64, it.crop)}<span class="gd-opt-body"><strong>${h(t[0] || it.id)}</strong><span>${h(t[1] || '')}</span>${def}</span></button>`;
       }).join('')}</div></div>`).join('');
@@ -941,6 +959,8 @@
     const navBtn = sh.nav && document.querySelector('#periodNav button[data-period="' + sh.nav + '"]');
     if (navBtn && (typeof currentPeriod === 'undefined' || currentPeriod !== sh.nav)) navBtn.click();
     setTimeout(() => {
+      // A Stats tab first (it is drawn as it opens)
+      if (sh.stab && typeof window.setStatsTab === 'function') window.setStatsTab(sh.stab);
       if (sh.menu) {
         // Open the songs chart's ⋮ on the right tab
         const wrap = $('#songsSection .kebab-menu-wrap');

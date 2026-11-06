@@ -70,7 +70,7 @@ Decisions (2026-11-05):
 
 ## Steps
 
-Done: steps 1–4 (2026-11-05).
+Done: steps 1–5 (2026-11-05).
 
 1. **Engine + hub + lesson 1 (Weekly chart).** The new frame, the screenshot
    pipeline, and one full lesson: the date bar, the Songs / Artists / Albums
