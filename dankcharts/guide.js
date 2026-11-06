@@ -29,7 +29,7 @@
   'use strict';
 
   // Bump when the lesson files or the pictures change (it's their ?v=)
-  const GUIDE_V = '5';
+  const GUIDE_V = '6';
   const STORE = 'dc_guide_progress';
   const LANG_FILES = ['es', 'pt-BR', 'pt-PT'];
 
@@ -117,7 +117,17 @@
     'around.pdf':    { lesson: 'around', fn: 'openPdfModal' },
     'around.export': { lesson: 'around', fn: 'openExportModal' },
     'around.copy':   { lesson: 'around', click: '#exportCopyBtn, #exportModal .export-name-chip' },
-    'around.play':   { lesson: 'around', click: '.yt-playall-btn' }
+    'around.play':   { lesson: 'around', click: '.yt-playall-btn' },
+    // Windows, search, menus, streaks
+    // A window can open several ways (a link, a row, the search, another window),
+    // so these watch the window itself: noticed when it opens after a click or key
+    'win.song':      { lesson: 'windows', open: '#songModal' },
+    'win.artist':    { lesson: 'windows', open: '#artistModal' },
+    'win.album':     { lesson: 'windows', open: '#albumModal' },
+    'win.tab':       { lesson: 'windows', click: '.dp-tab' },
+    'win.search':    { lesson: 'windows', input: '.lsx-input' },
+    'win.menu':      { lesson: 'windows', click: '.ea-more' },
+    'win.streak':    { lesson: 'windows', open: '#streakModal' }
   };
   // Where "Show me" takes you for each challenge, and what it rings there.
   // open/tab: open the chart's ⋮ menu on a tab first.
@@ -158,7 +168,14 @@
     'around.pdf':    { nav: 'week', menu: 'actions', ring: '#songsPdfBtn' },
     'around.export': { nav: 'week', menu: 'actions', ring: '#exportPlaylistBtn' },
     'around.copy':   { nav: 'week', menu: 'actions', ring: '#exportPlaylistBtn' },
-    'around.play':   { nav: 'week', menu: 'actions', ring: '#ytPlayAllRow' }
+    'around.play':   { nav: 'week', menu: 'actions', ring: '#ytPlayAllRow' },
+    'win.song':      { nav: 'week', ring: '#songsBody .song-title' },
+    'win.artist':    { nav: 'week', ring: '#songsBody .song-artist' },
+    'win.album':     { nav: 'week', ring: '#songsBody .song-album' },
+    'win.tab':       { nav: 'week', ring: '#songsBody .song-title' },
+    'win.search':    { nav: 'week', ring: '#topbar [class*="search"]' },
+    'win.menu':      { nav: 'week', ring: '#songsBody .ea-more' },
+    'win.streak':    { nav: 'week', ring: '#nsDayStreak, #nsSummary' }
   };
 
   let lastInput = 0;
@@ -195,6 +212,23 @@
       if (c.input && e.target.closest && e.target.closest(c.input) && periodOk(c)) noteChallenge(id);
     }
   }, true);
+
+  // open: a pop-up window gaining its "open" class soon after the user acted
+  function watchOpens() {
+    for (const [id, c] of Object.entries(GD_CHALLENGES)) {
+      if (!c.open) continue;
+      const el = document.querySelector(c.open);
+      if (!el || el._gdWatch) continue;
+      el._gdWatch = true;
+      let was = el.classList.contains('open');
+      new MutationObserver(() => {
+        const now = el.classList.contains('open');
+        // a window can open a moment after the click (it loads first): allow 4s
+        if (now && !was && Date.now() - lastInput < 4000 && periodOk(c)) noteChallenge(id);
+        was = now;
+      }).observe(el, { attributes: true, attributeFilter: ['class'] });
+    }
+  }
 
   // Wrap the app's functions once they exist (app.js loads before this file)
   function wrapFns() {
@@ -954,6 +988,7 @@
   let renderRefOrig = null;
   function install() {
     wrapFns();
+    watchOpens();
     if (typeof window.dcRenderChartsGuideView === 'function' && !window.dcRenderChartsGuideView._gd) {
       renderRefOrig = window.dcRenderChartsGuideView;
       const r = function () { render(); };

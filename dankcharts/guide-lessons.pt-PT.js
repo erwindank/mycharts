@@ -920,7 +920,202 @@ window.GL_TEXT['pt-PT'] = {
         'Exportar playlist mais o Soundiiz transformam qualquer top numa playlist a sério no Spotify, Apple Music e mais.'
       ]
     },
-    windows: { title: 'Janelas de música, artista e álbum', promise: 'Tudo sobre uma música, um artista ou um álbum, e como o encontrar depressa.' },
+    windows: {
+      title: 'Janelas de música, artista e álbum',
+      promise: 'Tudo sobre uma música, um artista ou um álbum, como encontrar qualquer um num segundo, e as tuas sequências.',
+      scenes: {
+        song: { title: 'A janela de uma música', spots: {
+          art: ['Capa', 'A capa dela. A etiqueta pequena diz de onde veio a imagem; clica para escolheres outra.'],
+          title: ['A música', 'O nome dela.'],
+          sub: ['Artista e álbum', 'Clica em qualquer um para abrir a janela dele.'],
+          sample: ['{{t:ea_s_sample}}', 'Toca 30 segundos.'],
+          playlist: ['{{t:dp_playlist}}', 'Acrescenta-a a uma das tuas playlists.'],
+          rate: ['{{t:dp_rate}}', 'Dá-lhe uma nota de 0 a 10.'],
+          more: ['{{t:ea_more}}', 'Tudo o resto: o vídeo, o álbum, o artista, o percurso, trocar a imagem, procurar no YouTube ou no Spotify.'],
+          links: ['Spotify, YouTube, Last.fm', 'Procura-a em cada um deles.'],
+          share: ['{{t:st_am_share}}', 'Um cartão com imagem desta música para partilhar.'],
+          tabs: ['Separadores', '{{t:dp_tab_overview}}, {{t:dp_tab_charts}} e {{t:dp_tab_listening}}.'],
+          close: ['Fechar', 'Esc faz o mesmo.'],
+          hero: ['Plays totais', 'Todos os plays, a parte dela nos plays do artista, a certificação e a posição de sempre.'],
+          span: ['Primeiro e último play', 'Quando a ouviste pela primeira e pela última vez, e em quantos dias pelo meio.'],
+          trio: ['Três números', 'Dias ouvida, plays por dia nesses dias e plays até à próxima certificação.'],
+          favs: ['Onde mora', 'O álbum e o artista dela, e a posição em cada um. Clica para os abrires.'],
+          habits: ['{{t:ao_habits}}', 'A maior sequência de dias, o maior dia, a maior sequência de plays seguidos, a maior pausa e os regressos.'],
+          rating: ['A minha nota', 'A tua nota, e uma ligação para avaliares o álbum inteiro.'],
+          trophies: ['Conquistas nos tops', 'Cada selo que ganhou: semanas em #1, sequências no top 10, a estreia, a certificação. Toca num para veres o que o valeu.']
+        } },
+        songcharts: { title: '{{t:dp_tab_charts}}', spots: {
+          rktop: ['Picos', 'A melhor posição nos tops Diário, Semanal, Mensal e Anual.'],
+          rkhero: ['O pico', 'A melhor posição no top semanal e quando lá chegou.'],
+          plot: ['Posição ao longo do tempo', 'A posição semana a semana. Passa pela linha (ou toca nela) para veres cada semana.'],
+          detail: ['A semana que apontas', 'A posição, o movimento e os plays dessa semana.'],
+          moments: ['Momentos', 'A estreia, a maior sequência em #1 e outros momentos.'],
+          fam: ['Face ao álbum e ao artista', 'Como se saiu ao lado das outras músicas do álbum e do artista.'],
+          hof: ['Recordes do Hall da Fama', 'Cada recorde que tem em Recordes.'],
+          run: ['O percurso', 'O mesmo que por baixo de uma linha do top.']
+        } },
+        songlisten: { title: '{{t:dp_tab_listening}}', spots: {
+          lshero: ['Em rotação', 'Se ainda a ouves, há quanto tempo, e o maior mês dela.'],
+          spark: ['Plays por mês', 'Cada mês em que a ouviste. A coroa marca o melhor mês.'],
+          found: ['O dia em que a encontraste', 'O que ouvias perto da primeira vez que a ouviste.'],
+          along: ['Ouvida junto com', 'Músicas que tocaste até 30 minutos dela, as mais frequentes.'],
+          clock: ['Quando a ouves', 'A hora do dia em que mais a tocas.'],
+          seasons: ['Estações', 'Em que estações a ouves.'],
+          miles: ['Marcas', 'Quando chegou ao primeiro play, ao 100, ao 200…'],
+          next: ['A seguir', 'A próxima marca, quanto falta e mais ou menos quando lá chegas.'],
+          heat: ['Cada dia em que a ouviste', 'Um calendário de cada dia em que tocou.'],
+          more: ['Mais', 'Recordes de sequência e todo o histórico de plays.']
+        } },
+        artist: { title: 'A janela de um artista', spots: {
+          tabs: ['Seis separadores', '{{t:dp_tab_overview}}, {{t:dp_tab_music}}, {{t:dp_tab_charts}}, {{t:dp_tab_listening}}, {{t:dp_tab_rating}} e {{t:dp_tab_awards}}.'],
+          hero: ['Plays totais', 'Todos os plays dele, a parte nos teus e a posição entre os teus artistas.'],
+          favs: ['Favoritos', 'A música, o álbum e mais que mais ouves dele.'],
+          habits: ['{{t:ao_habits}}', 'Dias ouvido, maior sequência, maior dia e mais.'],
+          slam: ['Grand Slam', 'Aparece quando foi #1 nos tops Semanal, Mensal e Anual.'],
+          trophies: ['Conquistas nos tops', 'Cada selo que ganhou.'],
+          rating: ['As minhas notas', 'A tua nota média para o que avaliaste dele.']
+        } },
+        music: { title: '{{t:dp_tab_music}}', spots: {
+          top: ['Músicas e álbuns', 'Alterna entre as músicas e os álbuns dele.'],
+          intro: ['O que aparece', 'Tudo dele que entrou nos teus tops.'],
+          charts: ['Que top', 'De sempre, ou só o que entrou no Anual, Mensal, Semanal ou Diário.'],
+          sum: ['Totais', 'Quantas, quantas chegaram ao #1 e ao top 10, e os plays.'],
+          tools: ['Ordenar', '{{t:am_sort_rank}}, {{t:am_sort_plays}}, {{t:am_sort_recent}}, {{t:am_sort_az}}.'],
+          list: ['A lista', 'Cada uma com posição, certificação, primeiro e último play. Abre uma para veres os detalhes.']
+        } },
+        awards: { title: '{{t:dp_tab_awards}}', spots: {
+          sw: ['Dois lados', 'Os teus próprios prémios (My Grammies) ou galas de prémios reais.'],
+          real: ['Vida real', 'As nomeações e vitórias dele em galas reais, e como os teus votos se comparam.']
+        } },
+        album: { title: 'A janela de um álbum', spots: {
+          hero: ['Plays totais', 'Todos os plays, a parte nos plays do artista, a certificação e a posição.'],
+          favs: ['As músicas', 'As músicas mais ouvidas dele.'],
+          habits: ['{{t:ao_habits}}', 'Os mesmos hábitos de uma música, para o álbum inteiro.'],
+          rating: ['A minha avaliação', 'Dá nota a cada faixa e fica com a nota global do álbum.'],
+          trophies: ['Conquistas nos tops', 'Cada selo que o álbum ganhou.'],
+          plaques: ['Placas de certificação', 'As placas de Ouro, Platina ou Diamante.']
+        } },
+        menus: { title: 'O menu ⋮', spots: {
+          more: ['⋮ numa linha', 'Cada linha do top tem um. Clica com o botão direito numa linha para o mesmo menu.'],
+          menu: ['O menu', 'Um excerto, o vídeo, acrescentar a uma playlist, detalhes, o álbum e o artista, o percurso, trocar a imagem, procurar no YouTube ou no Spotify.']
+        } },
+        search: { title: 'Pesquisa', spots: {
+          field: ['Escreve um nome', 'Qualquer parte do nome de um artista, música ou álbum. Carrega em / ou Ctrl+K em qualquer lado para a abrires.'],
+          esc: ['Fechar', 'Esc fecha-a.'],
+          group: ['Agrupado', 'Primeiro artistas, depois músicas, depois álbuns.'],
+          top: ['Um resultado', 'Escolhe um para abrires a janela. ↑ ↓ e Enter também funcionam.'],
+          n: ['Plays', 'Quantas vezes o ouviste.'],
+          songs: ['Músicas', 'Músicas que coincidem com o que escreveste, com os artistas.'],
+          foot: ['Teclas', '↑ ↓ para mover, Enter para abrir, Esc para fechar.']
+        } },
+        hist: { title: 'Histórico de pesquisa', spots: {
+          chips: ['Pesquisas recentes', 'O que escreveste há pouco. Clica numa para pesquisares outra vez.'],
+          chip: ['Uma pesquisa', 'Repete-a.'],
+          item: ['Abertos recentemente', 'O que abriste a partir da pesquisa.'],
+          rm: ['Remover', 'Tira um da lista.'],
+          clear: ['Limpar histórico', 'Esvazia as duas listas.']
+        } },
+        streak: { title: '{{t:streak_modal_title}}', spots: {
+          today: ['{{t:sk_tab_today}}', 'As sequências que manténs se ouvires hoje, e o que perdeste ontem.'],
+          fire: ['{{t:sk_tab_fire}}', 'Todas as sequências a decorrer: artistas, álbuns e músicas que ouviste dias seguidos.'],
+          recs: ['{{t:sk_tab_records}}', 'As tuas maiores sequências de sempre, os teus selos e as sequências que acabaram.'],
+          cal: ['{{t:sk_tab_calendar}}', 'Um calendário das tuas sequências.'],
+          fame: ['Hall da Fama', 'As tuas 5 maiores sequências de artistas, álbuns e músicas.'],
+          badges: ['Selos', 'Ganham-se com sequências: uma muito longa, muitas ao mesmo tempo, muitas diferentes. Toca num selo ganho para o virares: a data e a música que o valeu.']
+        } },
+        streakcal: { title: '{{t:sk_tab_calendar}}', spots: {
+          cal: ['{{t:sk_tab_calendar}}', 'As tuas sequências, dia a dia.'],
+          filters: ['Filtros', 'Tudo, artistas, músicas ou álbuns, e que ano.'],
+          wrap: ['O calendário', 'Cada dia colorido conforme o que estava em sequência. Escolhe um dia para veres o quê.']
+        } }
+      },
+      howto: {
+        open: { title: 'Abrir tudo sobre uma música', slides: [
+          'Clica no título de uma música em qualquer lado: um top, um recorde, uma pesquisa.',
+          'A janela dela tem três separadores.',
+          'Salta daqui para o álbum ou para o artista.',
+          'Fecha-a, ou carrega em Esc.'
+        ] },
+        find: { title: 'Encontrar qualquer coisa num segundo', slides: [
+          'Carrega em / ou Ctrl+K em qualquer página e escreve.',
+          'Escolhe um resultado para abrires a janela.',
+          'Ou usa ↑ ↓ e Enter.',
+          'Da próxima vez, o que abriste está aqui à tua espera.'
+        ] },
+        history: { title: 'Ver a história toda de uma música', slides: [
+          'Em {{t:dp_tab_charts}}: a posição semana a semana.',
+          'Os grandes momentos, como a estreia e a sequência em #1.',
+          'Em {{t:dp_tab_listening}}: o dia em que a encontraste.',
+          'E quando chegou a cada marca.'
+        ] },
+        artist: { title: 'Explorar um artista', slides: [
+          'Um artista tem seis separadores.',
+          '{{t:dp_tab_music}} lista as músicas e os álbuns, pela ordem que quiseres.',
+          '{{t:dp_tab_awards}} mostra os teus prémios e os da vida real.'
+        ] },
+        menu: { title: 'Usar o menu ⋮', slides: [
+          'Cada linha tem um ⋮ (ou clica com o botão direito na linha).',
+          'Tem um excerto, o vídeo, playlists, detalhes e mais.',
+          'As janelas têm o mesmo menu.'
+        ] },
+        streak: { title: 'Manter as tuas sequências', slides: [
+          'A tua sequência de escuta fica no topo da página Charts. Clica nela.',
+          '{{t:sk_tab_records}}: as tuas maiores sequências de sempre.',
+          'E selos para colecionar.',
+          '{{t:sk_tab_calendar}} mostra-as dia a dia.'
+        ] }
+      },
+      options: {
+        tabs: { title: 'Separadores das janelas', items: {
+          song: ['Uma música', '{{t:dp_tab_overview}}, {{t:dp_tab_charts}}, {{t:dp_tab_listening}}.'],
+          artist: ['Um artista', '{{t:dp_tab_overview}}, {{t:dp_tab_music}}, {{t:dp_tab_charts}}, {{t:dp_tab_listening}}, {{t:dp_tab_rating}}, {{t:dp_tab_awards}}.'],
+          album: ['Um álbum', '{{t:dp_tab_overview}}, {{t:dp_tab_charts}}, {{t:dp_tab_listening}}, {{t:dp_tab_rating}}.']
+        } },
+        buttons: { title: 'Botões das janelas', items: {
+          sample: ['{{t:ea_s_sample}}', '30 segundos.'],
+          playlist: ['{{t:dp_playlist}}', 'Acrescentar a uma playlist.'],
+          rate: ['{{t:dp_rate}}', 'Músicas e álbuns.'],
+          share: ['{{t:st_am_share}}', 'Um cartão com imagem.'],
+          more: ['{{t:ea_more}}', 'O menu ⋮.'],
+          links: ['Spotify / YouTube / Last.fm', 'Encontrá-la noutro lado.']
+        } },
+        music: { title: '{{t:dp_tab_music}}', items: {
+          sorts: ['Ordenar', '{{t:am_sort_rank}} (o que tens ao começar), {{t:am_sort_plays}}, {{t:am_sort_recent}}, {{t:am_sort_az}}.'],
+          charts: ['Que top', 'De sempre, Anual, Mensal, Semanal ou Diário.']
+        } },
+        streaktabs: { title: '{{t:streak_modal_title}}', items: {
+          today: ['{{t:sk_tab_today}}', 'Mantém-nas vivas hoje.'],
+          fire: ['{{t:sk_tab_fire}}', 'A decorrer agora.'],
+          recs: ['{{t:sk_tab_records}}', 'As maiores, selos, terminadas.'],
+          cal: ['{{t:sk_tab_calendar}}', 'Dia a dia.']
+        } }
+      },
+      challenges: {
+        'win.song': ['Abre a janela de uma música', 'Clica no título de uma música.'],
+        'win.artist': ['Abre a janela de um artista', 'Clica no nome de um artista.'],
+        'win.album': ['Abre a janela de um álbum', 'Clica no nome de um álbum.'],
+        'win.tab': ['Muda de separador numa janela', '{{t:dp_tab_charts}} ou {{t:dp_tab_listening}}.'],
+        'win.search': ['Pesquisa na tua biblioteca', 'Carrega em / ou na pesquisa da barra superior.'],
+        'win.menu': ['Abre um menu ⋮', 'Numa linha, ou com o botão direito.'],
+        'win.streak': ['Abre as tuas sequências', 'A sequência de escuta no topo da página Charts.']
+      },
+      quiz: {
+        q1: ['Como abres a pesquisa pelo teclado?',
+          ['Carrega em / ou Ctrl+K', 'Carrega em S', 'Carrega em Enter'],
+          '/ ou Ctrl+K abrem-na a partir de qualquer página.'],
+        q2: ['Onde vês a posição de uma música semana a semana?',
+          ['No separador {{t:dp_tab_charts}} da janela dela', 'No separador {{t:dp_tab_listening}}', 'Definições'],
+          '{{t:dp_tab_charts}} tem a posição ao longo do tempo; passa pela linha para veres cada semana.'],
+        q3: ['O que conta uma sequência?',
+          ['Dias seguidos em que a ouviste', 'Os plays totais', 'As semanas no top'],
+          'Uma sequência são dias seguidos com pelo menos um play.']
+      },
+      tips: [
+        'Carrega em / em qualquer página para pesquisares em toda a tua biblioteca.',
+        'O separador {{t:dp_tab_listening}} de uma música mostra o dia em que a encontraste: o que tocava logo antes.',
+        'Nas tuas sequências, toca num selo ganho para o virares e veres quando o ganhaste.'
+      ]
+    },
     stats: { title: 'Estatísticas', promise: 'Resumo, História, Gráficos, Comparar e Jogos para qualquer período.' },
     records: { title: 'Recordes', promise: 'O teu livro de recordes: números um, estreias, certificações, sequências e mais.' },
     awards: { title: 'Prémios', promise: 'A tua própria gala de prémios, dos nomeados à cerimónia.' },

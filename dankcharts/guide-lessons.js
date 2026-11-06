@@ -313,7 +313,54 @@ window.GL = {
       quiz: [ { id: 'q1', answer: 0 }, { id: 'q2', answer: 0 }, { id: 'q3', answer: 0 } ],
       tips: [ ['atc-bu', 'info', 'around.legend'], ['share', 'tpl', 'around.design'], ['export', 'services', 'around.export'] ]
     },
-    { id: 'windows', area: 'charts', nav: 'week', soon: true },
+    /* ── Lesson 6: song, artist and album windows, search, streaks ─── */
+    { id: 'windows', area: 'charts', nav: 'week', mins: 8, cover: 'win-song',
+      scenes: [
+        { id: 'song', shot: 'win-song',
+          spots: ['art', 'title', 'sub', 'sample', 'playlist', 'rate', 'more', 'links', 'share', 'tabs', 'close', 'hero', 'span', 'trio', 'favs', 'habits', 'rating', 'trophies'] },
+        { id: 'songcharts', shot: 'win-song-charts', spots: ['rktop', 'rkhero', 'plot', 'detail', 'moments', 'fam', 'hof', 'run'] },
+        { id: 'songlisten', shot: 'win-song-listening', spots: ['lshero', 'spark', 'found', 'along', 'clock', 'seasons', 'miles', 'next', 'heat', 'more'] },
+        { id: 'artist', shot: 'win-artist', spots: ['tabs', 'hero', 'favs', 'habits', 'slam', 'trophies', 'rating'] },
+        { id: 'music', shot: 'win-artist-music', spots: ['top', 'intro', 'charts', 'sum', 'tools', 'list'] },
+        { id: 'awards', shot: 'win-artist-awards', spots: ['sw', 'real'] },
+        { id: 'album', shot: 'win-album', spots: ['hero', 'favs', 'habits', 'rating', 'trophies', 'plaques'] },
+        { id: 'menus', shot: 'week-rowmenu', spots: ['more', 'menu'] },
+        { id: 'search', shot: 'search', spots: ['field', 'esc', 'group', 'top', 'n', 'songs', 'foot'] },
+        { id: 'hist', shot: 'search-hist', spots: ['chips', 'chip', 'item', 'rm', 'clear'] },
+        { id: 'streak', shot: 'streak-records', spots: ['today', 'fire', 'recs', 'cal', 'fame', 'badges'] },
+        { id: 'streakcal', shot: 'streak-cal', spots: ['cal', 'filters', 'wrap'] }
+      ],
+      howto: [
+        { id: 'open', challenge: 'win.song', slides: [
+          { shot: 'week-rows', spot: 'title' }, { shot: 'win-song', spot: 'tabs' }, { shot: 'win-song', spot: 'favs' }, { shot: 'win-song', spot: 'close' } ] },
+        { id: 'find', challenge: 'win.search', slides: [
+          { shot: 'search', spot: 'field' }, { shot: 'search', spot: 'top' }, { shot: 'search', spot: 'foot' }, { shot: 'search-hist', spot: 'item' } ] },
+        { id: 'history', challenge: 'win.tab', slides: [
+          { shot: 'win-song-charts', spot: 'plot' }, { shot: 'win-song-charts', spot: 'moments' },
+          { shot: 'win-song-listening', spot: 'found' }, { shot: 'win-song-listening', spot: 'miles' } ] },
+        { id: 'artist', challenge: 'win.artist', slides: [
+          { shot: 'win-artist', spot: 'tabs' }, { shot: 'win-artist-music', spot: 'tools' }, { shot: 'win-artist-awards', spot: 'sw' } ] },
+        { id: 'menu', challenge: 'win.menu', slides: [ { shot: 'week-rows', spot: 'more' }, { shot: 'week-rowmenu', spot: 'menu' }, { shot: 'win-song', spot: 'more' } ] },
+        { id: 'streak', challenge: 'win.streak', slides: [
+          { shot: 'week-top', spot: 'streak' }, { shot: 'streak-records', spot: 'fame' },
+          { shot: 'streak-records', spot: 'badges' }, { shot: 'streak-cal', spot: 'wrap' } ] }
+      ],
+      options: [
+        { id: 'tabs', items: [
+          { id: 'song', shot: 'win-song', spot: 'tabs' }, { id: 'artist', shot: 'win-artist', spot: 'tabs' }, { id: 'album', shot: 'win-album', spot: 'tabs' } ] },
+        { id: 'buttons', items: [
+          { id: 'sample', shot: 'win-song', spot: 'sample' }, { id: 'playlist', shot: 'win-song', spot: 'playlist' },
+          { id: 'rate', shot: 'win-song', spot: 'rate' }, { id: 'share', shot: 'win-song', spot: 'share' },
+          { id: 'more', shot: 'win-song', spot: 'more' }, { id: 'links', shot: 'win-song', spot: 'links' } ] },
+        { id: 'music', items: [ { id: 'sorts', shot: 'win-artist-music', spot: 'tools' }, { id: 'charts', shot: 'win-artist-music', spot: 'charts' } ] },
+        { id: 'streaktabs', items: [
+          { id: 'today', shot: 'streak-records', spot: 'today' }, { id: 'fire', shot: 'streak-records', spot: 'fire' },
+          { id: 'recs', shot: 'streak-records', spot: 'recs' }, { id: 'cal', shot: 'streak-records', spot: 'cal' } ] }
+      ],
+      challenges: ['win.song', 'win.artist', 'win.album', 'win.tab', 'win.search', 'win.menu', 'win.streak'],
+      quiz: [ { id: 'q1', answer: 0 }, { id: 'q2', answer: 0 }, { id: 'q3', answer: 0 } ],
+      tips: [ ['search', 'field', 'win.search'], ['win-song-listening', 'found', 'win.tab'], ['streak-records', 'badges', 'win.streak'] ]
+    },
     { id: 'stats', area: 'insights', nav: 'graphs', soon: true },
     { id: 'records', area: 'insights', nav: 'records', soon: true },
     { id: 'awards', area: 'insights', nav: 'awards', soon: true },
@@ -1248,7 +1295,202 @@ window.GL_TEXT.en = {
         'Export playlist plus Soundiiz turns any chart into a real playlist on Spotify, Apple Music and more.'
       ]
     },
-    windows: { title: 'Song, artist and album windows', promise: 'Everything about one song, artist or album, and how to find it fast.' },
+    windows: {
+      title: 'Song, artist and album windows',
+      promise: 'Everything about one song, artist or album, how to find any of them in a second, and your listening streaks.',
+      scenes: {
+        song: { title: 'A song’s window', spots: {
+          art: ['Cover', 'Its cover. The small label says where the picture came from; click it to pick another.'],
+          title: ['The song', 'Its name.'],
+          sub: ['Artist and album', 'Click either to open its window.'],
+          sample: ['{{t:ea_s_sample}}', 'Plays 30 seconds of it.'],
+          playlist: ['{{t:dp_playlist}}', 'Adds it to one of your playlists.'],
+          rate: ['{{t:dp_rate}}', 'Give it a score out of 10.'],
+          more: ['{{t:ea_more}}', 'Everything else: the video, the album, the artist, its chart run, change the picture, search on YouTube or Spotify.'],
+          links: ['Spotify, YouTube, Last.fm', 'Finds it on each of them.'],
+          share: ['{{t:st_am_share}}', 'A picture card of this song to share.'],
+          tabs: ['Tabs', '{{t:dp_tab_overview}}, {{t:dp_tab_charts}} and {{t:dp_tab_listening}}.'],
+          close: ['Close', 'Esc does the same.'],
+          hero: ['Total plays', 'All its plays, its share of the artist’s plays, its certification and its all-time rank.'],
+          span: ['First and last play', 'When you first and last played it, and on how many days in between.'],
+          trio: ['Three numbers', 'Days played, plays per day on those days, and plays to the next certification.'],
+          favs: ['Where it lives', 'Its album and its artist, and where it ranks in each. Click to open them.'],
+          habits: ['{{t:ao_habits}}', 'Its longest run of days, its biggest day, its longest run of plays in a row, its longest break and its comebacks.'],
+          rating: ['My Rating', 'Your score, and a link to rate the whole album.'],
+          trophies: ['Chart Accomplishments', 'Every badge it earned: weeks at #1, top 10 runs, its debut, its certification. Tap one to see what earned it.']
+        } },
+        songcharts: { title: '{{t:dp_tab_charts}}', spots: {
+          rktop: ['Peaks', 'Its best place on the Daily, Weekly, Monthly and Yearly charts.'],
+          rkhero: ['Its peak', 'Its best place on the weekly chart and when it got there.'],
+          plot: ['Rank over time', 'Its position week by week. Move over the line (or tap it) to see each week.'],
+          detail: ['The week you point at', 'Its place, its move and its plays that week.'],
+          moments: ['Chart moments', 'Its debut, its longest run at #1 and other moments.'],
+          fam: ['Against its album and artist', 'How it did next to the other songs of its album and its artist.'],
+          hof: ['Hall of Fame records', 'Every record it holds in Records.'],
+          run: ['Its chart run', 'The same run as under a chart row.']
+        } },
+        songlisten: { title: '{{t:dp_tab_listening}}', spots: {
+          lshero: ['On rotation', 'Whether you still play it, how long you’ve been listening, and its biggest month.'],
+          spark: ['Plays by month', 'Every month you played it. The crown marks its best month.'],
+          found: ['The day you found it', 'What you were playing around the first time you heard it.'],
+          along: ['Heard alongside', 'Songs you played within 30 minutes of it, most often.'],
+          clock: ['When you listen', 'The time of day you play it most.'],
+          seasons: ['Seasons', 'Which seasons you play it in.'],
+          miles: ['Milestones', 'When it reached its first play, play 100, 200 and so on.'],
+          next: ['Next up', 'Its next milestone, how far away, and roughly when you’ll get there.'],
+          heat: ['Every day you played it', 'A calendar of every day it was played.'],
+          more: ['More', 'Streak records and its full play history.']
+        } },
+        artist: { title: 'An artist’s window', spots: {
+          tabs: ['Six tabs', '{{t:dp_tab_overview}}, {{t:dp_tab_music}}, {{t:dp_tab_charts}}, {{t:dp_tab_listening}}, {{t:dp_tab_rating}} and {{t:dp_tab_awards}}.'],
+          hero: ['Total plays', 'All their plays, their share of all yours, and where they rank among your artists.'],
+          favs: ['Favourites', 'Their song, album and more that you play most.'],
+          habits: ['{{t:ao_habits}}', 'Days played, longest run of days, biggest day and more.'],
+          slam: ['Grand Slam', 'Shows when they have been #1 on the Weekly, Monthly and Yearly charts.'],
+          trophies: ['Chart Accomplishments', 'Every badge they earned.'],
+          rating: ['My Ratings', 'Your average score for what you rated of theirs.']
+        } },
+        music: { title: '{{t:dp_tab_music}}', spots: {
+          top: ['Songs and albums', 'Switch between their songs and their albums.'],
+          intro: ['What’s listed', 'Everything of theirs that made your charts.'],
+          charts: ['Which chart', 'All-time, or only those that made the Yearly, Monthly, Weekly or Daily chart.'],
+          sum: ['Totals', 'How many, how many reached #1 and the top 10, and their plays.'],
+          tools: ['Sort', '{{t:am_sort_rank}}, {{t:am_sort_plays}}, {{t:am_sort_recent}}, {{t:am_sort_az}}.'],
+          list: ['The list', 'Each with its rank, certification, first and last play. Open one for its details.']
+        } },
+        awards: { title: '{{t:dp_tab_awards}}', spots: {
+          sw: ['Two sides', 'Your own awards (My Grammies) or real-life award shows.'],
+          real: ['Real life', 'Their nominations and wins at real award shows, and how your ballots compare.']
+        } },
+        album: { title: 'An album’s window', spots: {
+          hero: ['Total plays', 'All its plays, its share of the artist’s, its certification and its rank.'],
+          favs: ['Its songs', 'Its most played songs.'],
+          habits: ['{{t:ao_habits}}', 'The same habits as a song’s, for the whole album.'],
+          rating: ['My Evaluation', 'Score each track and get the album’s overall score.'],
+          trophies: ['Chart Accomplishments', 'Every badge the album earned.'],
+          plaques: ['Certification Plaques', 'Its Gold, Platinum or Diamond plaques.']
+        } },
+        menus: { title: 'The ⋮ menu', spots: {
+          more: ['⋮ on a row', 'Every chart row has one. Right-click a row for the same menu.'],
+          menu: ['The menu', 'A sample, the video, add to a playlist, details, its album and artist, its chart run, change its picture, search on YouTube or Spotify.']
+        } },
+        search: { title: 'Search', spots: {
+          field: ['Type a name', 'Any part of an artist, song or album name. Press / or Ctrl+K anywhere to open it.'],
+          esc: ['Close', 'Esc closes it.'],
+          group: ['Grouped', 'Artists first, then songs, then albums.'],
+          top: ['A result', 'Pick one to open its window. ↑ ↓ and Enter work too.'],
+          n: ['Plays', 'How many times you have played it.'],
+          songs: ['Songs', 'Songs matching what you typed, with their artists.'],
+          foot: ['Keys', '↑ ↓ to move, Enter to open, Esc to close.']
+        } },
+        hist: { title: 'Search history', spots: {
+          chips: ['Recent searches', 'What you typed lately. Click one to search it again.'],
+          chip: ['A search', 'Runs it again.'],
+          item: ['Recently opened', 'What you opened from the search.'],
+          rm: ['Remove', 'Takes one off the list.'],
+          clear: ['Clear history', 'Empties both lists.']
+        } },
+        streak: { title: '{{t:streak_modal_title}}', spots: {
+          today: ['{{t:sk_tab_today}}', 'Streaks you keep alive by playing today, and what you lost yesterday.'],
+          fire: ['{{t:sk_tab_fire}}', 'Every streak running now: artists, albums and songs you have played days in a row.'],
+          recs: ['{{t:sk_tab_records}}', 'Your longest streaks ever, your badges and the streaks that ended.'],
+          cal: ['{{t:sk_tab_calendar}}', 'A calendar of your streaks.'],
+          fame: ['Hall of Fame', 'Your top 5 longest streaks for artists, albums and songs.'],
+          badges: ['Badges', 'Earned by streaks: one long streak, many at once, many different ones. Tap an earned badge to flip it: the date and the music that earned it.']
+        } },
+        streakcal: { title: '{{t:sk_tab_calendar}}', spots: {
+          cal: ['{{t:sk_tab_calendar}}', 'Your streaks, day by day.'],
+          filters: ['Filters', 'All, artists, songs or albums, and which year.'],
+          wrap: ['The calendar', 'Each day coloured by how much was on a streak. Pick a day to see which.']
+        } }
+      },
+      howto: {
+        open: { title: 'Open everything about a song', slides: [
+          'Click a song’s title anywhere: a chart, a record, a search.',
+          'Its window has three tabs.',
+          'Jump to its album or artist from here.',
+          'Close it, or press Esc.'
+        ] },
+        find: { title: 'Find anything in a second', slides: [
+          'Press / or Ctrl+K from any page and type.',
+          'Pick a result to open its window.',
+          'Or use ↑ ↓ and Enter.',
+          'Next time, what you opened is waiting here.'
+        ] },
+        history: { title: 'See a song’s whole story', slides: [
+          'On {{t:dp_tab_charts}}: its position week by week.',
+          'Its big moments, like its debut and its run at #1.',
+          'On {{t:dp_tab_listening}}: the day you found it.',
+          'And when it reached each milestone.'
+        ] },
+        artist: { title: 'Explore an artist', slides: [
+          'An artist has six tabs.',
+          '{{t:dp_tab_music}} lists their songs and albums, sorted how you like.',
+          '{{t:dp_tab_awards}} shows your awards and real-life ones.'
+        ] },
+        menu: { title: 'Use the ⋮ menu', slides: [
+          'Every row has a ⋮ (or right-click the row).',
+          'It has a sample, the video, playlists, details and more.',
+          'Windows have the same menu.'
+        ] },
+        streak: { title: 'Keep your streaks going', slides: [
+          'Your listening streak sits at the top of the Charts page. Click it.',
+          '{{t:sk_tab_records}}: your longest streaks ever.',
+          'And badges to collect.',
+          '{{t:sk_tab_calendar}} shows them day by day.'
+        ] }
+      },
+      options: {
+        tabs: { title: 'Window tabs', items: {
+          song: ['A song', '{{t:dp_tab_overview}}, {{t:dp_tab_charts}}, {{t:dp_tab_listening}}.'],
+          artist: ['An artist', '{{t:dp_tab_overview}}, {{t:dp_tab_music}}, {{t:dp_tab_charts}}, {{t:dp_tab_listening}}, {{t:dp_tab_rating}}, {{t:dp_tab_awards}}.'],
+          album: ['An album', '{{t:dp_tab_overview}}, {{t:dp_tab_charts}}, {{t:dp_tab_listening}}, {{t:dp_tab_rating}}.']
+        } },
+        buttons: { title: 'Window buttons', items: {
+          sample: ['{{t:ea_s_sample}}', '30 seconds.'],
+          playlist: ['{{t:dp_playlist}}', 'Add to a playlist.'],
+          rate: ['{{t:dp_rate}}', 'Songs and albums.'],
+          share: ['{{t:st_am_share}}', 'A picture card.'],
+          more: ['{{t:ea_more}}', 'The ⋮ menu.'],
+          links: ['Spotify / YouTube / Last.fm', 'Find it elsewhere.']
+        } },
+        music: { title: '{{t:dp_tab_music}}', items: {
+          sorts: ['Sort', '{{t:am_sort_rank}} (the one you start with), {{t:am_sort_plays}}, {{t:am_sort_recent}}, {{t:am_sort_az}}.'],
+          charts: ['Which chart', 'All-time, Yearly, Monthly, Weekly or Daily.']
+        } },
+        streaktabs: { title: '{{t:streak_modal_title}}', items: {
+          today: ['{{t:sk_tab_today}}', 'Keep them alive today.'],
+          fire: ['{{t:sk_tab_fire}}', 'Running now.'],
+          recs: ['{{t:sk_tab_records}}', 'Longest ever, badges, ended.'],
+          cal: ['{{t:sk_tab_calendar}}', 'Day by day.']
+        } }
+      },
+      challenges: {
+        'win.song': ['Open a song’s window', 'Click a song title.'],
+        'win.artist': ['Open an artist’s window', 'Click an artist’s name.'],
+        'win.album': ['Open an album’s window', 'Click an album name.'],
+        'win.tab': ['Switch to another tab in a window', '{{t:dp_tab_charts}} or {{t:dp_tab_listening}}.'],
+        'win.search': ['Search your library', 'Press / or the search in the top bar.'],
+        'win.menu': ['Open a ⋮ menu', 'On a row, or right-click it.'],
+        'win.streak': ['Open your streaks', 'The listening streak at the top of the Charts page.']
+      },
+      quiz: {
+        q1: ['How do you open the search from the keyboard?',
+          ['Press / or Ctrl+K', 'Press S', 'Press Enter'],
+          '/ or Ctrl+K opens it from any page.'],
+        q2: ['Where do you see a song’s position week by week?',
+          ['The {{t:dp_tab_charts}} tab of its window', 'The {{t:dp_tab_listening}} tab', 'Settings'],
+          '{{t:dp_tab_charts}} has its rank over time; move over the line to see each week.'],
+        q3: ['What does a streak count?',
+          ['Days in a row you played it', 'Its total plays', 'Its weeks on the chart'],
+          'A streak is days in a row with at least one play.']
+      },
+      tips: [
+        'Press / on any page to search your whole library.',
+        'A song’s {{t:dp_tab_listening}} tab shows the day you found it: what you were playing right before.',
+        'In your streaks, tap an earned badge to flip it and see when you earned it.'
+      ]
+    },
     stats: { title: 'Stats', promise: 'Overview, Story, Graphs, Compare and Games for any date range.' },
     records: { title: 'Records', promise: 'Your record book: number ones, debuts, certifications, streaks and more.' },
     awards: { title: 'Awards', promise: 'Your own awards show, from nominees to the ceremony.' },

@@ -69,6 +69,37 @@ async function at(pg, period, offset, { spotlight = false } = {}) {
   await wait(pg, 2200);
 }
 const DAY_OFF = 9;
+// Open a song / artist / album window on one of its tabs, ready to photograph
+// Unfold the pop-up windows: on screen they are capped at the window height and
+// scroll inside, which would cut every picture off at the fold
+async function unfold(pg, on) {
+  await pg.evaluate(on => {
+    document.getElementById('gdUnfold')?.remove();
+    if (!on) return;
+    const st = document.createElement('style'); st.id = 'gdUnfold';
+    st.textContent = '.dp-overlay.open,#streakModal.open{align-items:flex-start!important;overflow:visible!important;position:absolute!important;height:auto!important}' +
+      '.dp-overlay .dc-modal,#streakModal .dc-modal{max-height:none!important;height:auto!important}' +
+      '.dp-overlay .dp-scroll,.dp-overlay .dp-body,#streakModal .modal-body,#streakModal .sk-tab-pane{max-height:none!important;height:auto!important;overflow:visible!important}';
+    document.head.appendChild(st);
+  }, on);
+}
+// Long lists (an artist's 120 songs) stay folded: the window at its normal height
+async function win(pg, kind, arg, tab, { full = true } = {}) {
+  await lastWeek(pg);
+  const fn = { song: 'openSongModal', artist: 'openArtistModal', album: 'openAlbumModal' }[kind];
+  await unfold(pg, full);
+  await pg.evaluate(([fn, arg]) => window[fn](arg), [fn, arg]); await wait(pg, 3800);
+  if (tab) { await pg.evaluate(id => document.getElementById(id).click(), 'dpTab-' + kind + '-' + tab); await wait(pg, 2500); }
+}
+const W = k => '#' + k + 'Modal';
+const WBOX = k => '#' + k + 'Modal .dc-modal';
+const winHead = k => ({
+  art: W(k) + ' .modal-thumb-wrap', title: W(k) + ' .modal-artist-name', sub: W(k) + ' .modal-artist-sub',
+  sample: W(k) + ' .dp-actions .dp-act-main', playlist: W(k) + ' .dp-actions [data-dp-act="playlist"]',
+  rate: W(k) + ' .dp-actions [data-dp-act="rate"]', more: W(k) + ' .dp-actions .ea-more',
+  links: W(k) + ' .dp-link', share: W(k) + ' .dp-share-card', tabs: W(k) + ' .dp-tabs', close: W(k) + ' .dp-bar button:last-child'
+});
+
 // Around the chart: pick a tab (0 Bubbling Under, 1 Off the Chart, 2 New) and leave the
 // box well below the pinned bars so they don't print over it
 async function atcTab(pg, i) {
@@ -373,7 +404,84 @@ const SHOTS = [
       list: { js: "document.querySelector('#exportModal ol, #exportModal ul, #exportModal [class*=export-list], #exportModal [class*=export-preview]')" },
       copy: '#exportCopyBtn', txt: '#exportModal .export-btn-dl', csv: '#exportModal .export-btn-dl + .export-btn-dl',
       open: { js: "[...document.querySelectorAll('#exportModal a, #exportModal button')].find(b => /Soundiiz/.test(b.textContent))" },
-      services: { js: "[...document.querySelectorAll('#exportModal *')].find(e => e.children.length > 2 && /Spotify/.test(e.textContent) && /Tidal/.test(e.textContent) && e.getBoundingClientRect().height < 60)" } } }
+      services: { js: "[...document.querySelectorAll('#exportModal *')].find(e => e.children.length > 2 && /Spotify/.test(e.textContent) && /Tidal/.test(e.textContent) && e.getBoundingClientRect().height < 60)" } } },
+  /* ── Lesson: Song, artist and album windows ───────────────────── */
+  { id: 'win-song', lesson: 'windows',
+    setup: async pg => { await win(pg, 'song', 'housewife|||tate mcrae'); },
+    clip: { from: WBOX('song'), to: WBOX('song'), pad: 10, narrow: true, maxH: 3200 },
+    spots: { ...winHead('song'), hero: '#songModal .ao-hero-top', span: '#songModal .ao-span', trio: '#songModal .ao-trio',
+      favs: '#songModal .ao-favs', habits: '#songModal .ao-habits', rating: '#songModalRating', trophies: '#songModalAccomplishments' } },
+  { id: 'win-song-charts', lesson: 'windows',
+    setup: async pg => { await win(pg, 'song', 'housewife|||tate mcrae', 'charts'); },
+    clip: { from: WBOX('song'), to: WBOX('song'), pad: 10, narrow: true, maxH: 3200 },
+    spots: { tabs: '#songModal .dp-tabs', rktop: '#songModal .dp-on .rk-top', rkhero: '#songModal .dp-on .rk-hero',
+      plot: '#songModal .dp-on .rk-plot-wrap', detail: '#songModal .dp-on .rk-detail', moments: '#songModal .dp-on .rk-moments',
+      fam: '#songModal .dp-on .rk-fam-list', hof: '#songHeldRecordsReel', run: '#songModalChartRun' } },
+  { id: 'win-song-listening', lesson: 'windows',
+    setup: async pg => { await win(pg, 'song', 'housewife|||tate mcrae', 'listening'); },
+    clip: { from: WBOX('song'), to: WBOX('song'), pad: 10, narrow: true, maxH: 3200 },
+    spots: { lshero: '#songModal .dp-on .ls-hero', spark: '#songSparklineWrap', found: '#songModal .dp-on .sl-found',
+      along: '#songModal .dp-on .sl-along', clock: '#songModal .dp-on .ls-clock', seasons: '#songModal .dp-on .sl-seasons',
+      miles: '#songModal .dp-on .ls-miles', next: '#songModal .dp-on .ls-next', heat: '#songListeningHeat', more: '#songModal .dp-on .ls-more' } },
+  { id: 'win-artist', lesson: 'windows',
+    setup: async pg => { await win(pg, 'artist', 'Tate McRae'); },
+    clip: { from: WBOX('artist'), to: WBOX('artist'), pad: 10, narrow: true, maxH: 3200 },
+    spots: { ...winHead('artist'), hero: '#artistModal .ao-hero', favs: '#artistModal .ao-favs', habits: '#artistModal .ao-habits',
+      slam: '#modalGrandSlam', trophies: '#modalAccomplishments', rating: '#modalArtistRatingMini' } },
+  { id: 'win-artist-music', lesson: 'windows',
+    setup: async pg => { await win(pg, 'artist', 'Tate McRae', 'music', { full: false }); },
+    clip: { from: WBOX('artist'), to: WBOX('artist'), pad: 10, narrow: true, maxH: 3200 },
+    spots: { tabs: '#artistModal .dp-tabs', top: '#artistModal .am-top', intro: '#artistModal .am-intro', charts: '#artistModal .am-charts',
+      sum: '#artistModal .am-sum', tools: '#artistModal .am-tools', list: '#artistModal .am-list' } },
+  { id: 'win-artist-awards', lesson: 'windows',
+    setup: async pg => { await win(pg, 'artist', 'Tate McRae', 'awards', { full: false });
+      await pg.evaluate(() => { const b = [...document.querySelectorAll('#artistModal .aw-switch button')][1]; if (b) b.click(); }); await wait(pg, 3500); },
+    clip: { from: WBOX('artist'), to: WBOX('artist'), pad: 10, narrow: true, maxH: 3200 },
+    spots: { tabs: '#artistModal .dp-tabs', sw: '#artistModal .aw-switch', real: '#awReal' } },
+  { id: 'win-album', lesson: 'windows',
+    setup: async pg => { await win(pg, 'album', 'Housewife|||Tate McRae'); },
+    clip: { from: WBOX('album'), to: WBOX('album'), pad: 10, narrow: true, maxH: 3200 },
+    spots: { ...winHead('album'), hero: '#albumModal .ao-hero', favs: '#albumModal .ao-favs', habits: '#albumModal .ao-habits',
+      rating: '#albumModalRatingMini', trophies: '#albumModalAccomplishments', plaques: '#albumModalCertPlaques' } },
+  { id: 'win-more', lesson: 'windows',
+    setup: async pg => { await win(pg, 'song', 'housewife|||tate mcrae');
+      await pg.click('#songModal .dp-actions .ea-more'); await wait(pg, 900); },
+    clip: { from: '#songModal .dp-head', to: '.ea-menu', pad: 16, maxH: 1100 },
+    spots: { more: '#songModal .dp-actions .ea-more', menu: '.ea-menu' } },
+  { id: 'search', lesson: 'windows',
+    setup: async pg => { await lastWeek(pg); await pg.evaluate(() => window.scrollTo(0, 0));
+      // a search left open by the shot before would swallow the keys below
+      for (let i = 0; i < 2; i++) { await pg.keyboard.press('Escape'); await wait(pg, 300); }
+      await pg.keyboard.press('/'); await wait(pg, 800); await pg.keyboard.type('tate'); await wait(pg, 2200); },
+    clip: { from: '.lsx-panel', to: '.lsx-panel', pad: 12, narrow: true },
+    spots: { field: '.lsx-field', esc: '.lsx-esc', group: '.lsx-group', top: '.lsx-item', songs: '.lsx-group:nth-of-type(2)',
+      n: '.lsx-item .lsx-n', foot: '.lsx-foot', btn: '#topbar [class*="search"]' } },
+  { id: 'search-hist', lesson: 'windows',
+    // After opening something from the search, the empty box lists what you looked at
+    setup: async pg => { await lastWeek(pg); await pg.evaluate(() => window.scrollTo(0, 0));
+      // a search left open by the shot before would swallow the keys below
+      for (let i = 0; i < 2; i++) { await pg.keyboard.press('Escape'); await wait(pg, 300); }
+      await pg.keyboard.press('/'); await wait(pg, 800); await pg.keyboard.type('tate'); await wait(pg, 1800);
+      await pg.keyboard.press('Enter'); await wait(pg, 2500);
+      for (let i = 0; i < 3; i++) { await pg.keyboard.press('Escape'); await wait(pg, 500); }
+      await pg.evaluate(() => { document.querySelectorAll('.dp-overlay.open').forEach(o => o.classList.remove('open')); });
+      await pg.evaluate(() => document.querySelector('#topbar [class*="search"]').click()); await wait(pg, 1500); },
+    clip: { from: '.lsx-panel', to: '.lsx-panel', pad: 12, narrow: true },
+    spots: { chips: '.lsx-chips', chip: '.lsx-chip', item: '.lsx-item', rm: '.lsx-rm', clear: '.lsx-clear' } },
+  { id: 'streak-records', lesson: 'windows',
+    setup: async pg => { await lastWeek(pg); await unfold(pg, true); await pg.evaluate(() => openStreakModal()); await wait(pg, 2500);
+      await pg.evaluate(() => [...document.querySelectorAll('#streakModal .sk-tab-btn')][2].click()); await wait(pg, 2500); },
+    clip: { from: '#streakModal .dc-modal', to: '#streakModal .dc-modal', pad: 10, narrow: true, maxH: 3200 },
+    spots: { tabs: '#streakModal .sk-tab-btn', today: '#streakModal .sk-tab-btn', fire: '#streakModal .sk-tab-btn:nth-child(2)',
+      recs: '#streakModal .sk-tab-btn:nth-child(3)', cal: '#streakModal .sk-tab-btn:nth-child(4)',
+      fame: '#streakModal .streak-section--fame', badges: '#streakModal .streak-section--badges', tl: '#streakModal .streak-section--tl',
+      grave: '#skGraveList' } },
+  { id: 'streak-cal', lesson: 'windows',
+    setup: async pg => { await lastWeek(pg); await unfold(pg, true); await pg.evaluate(() => openStreakModal()); await wait(pg, 2500);
+      await pg.evaluate(() => [...document.querySelectorAll('#streakModal .sk-tab-btn')][3].click()); await wait(pg, 3000); },
+    clip: { from: '#streakModal .dc-modal', to: '#streakModal .dc-modal', pad: 10, narrow: true, maxH: 3200 },
+    spots: { cal: '#streakModal .sk-tab-btn:nth-child(4)', wrap: '#streakModal .sk-hm-wrap',
+      filters: { js: "document.querySelector('#streakModal .sk-hm-wrap').firstElementChild" } } }
 ];
 
 /* ── Measuring + capture ────────────────────────────────────────── */
@@ -461,7 +569,8 @@ async function run() {
       let app = await openApp(b, lang, phone);
       for (const s of list) {
         const id = s.id + (phone ? '-m' : '');
-        try {
+        // Two tries: a slow page load is the usual reason a shot fails
+        for (let attempt = 1; attempt <= 2; attempt++) try {
           // A fresh start per shot keeps one shot's open menu out of the next
           await app.pg.evaluate(() => { window.scrollTo(0, 0); document.querySelectorAll('.kebab-menu-wrap.open').forEach(e => e.classList.remove('open')); });
           await closeMenus(app.pg);
@@ -476,9 +585,10 @@ async function run() {
           manifest[id] = { w: Math.round(m.clip.width), h: Math.round(m.clip.height), spots: m.spots };
           const miss = Object.keys(s.spots).filter(k => !m.spots[k]);
           console.log(`  ${lang} ${id}: ${Object.keys(m.spots).length} spots` + (miss.length ? ` (not found: ${miss.join(', ')})` : ''));
+          break;
         } catch (e) {
-          console.log(`  ${lang} ${id}: FAILED ${e.message.split('\n')[0]}`);
-          // A failed setup can leave the page in any state: start again for the next shot
+          console.log(`  ${lang} ${id}: ${attempt === 1 ? 'retrying' : 'FAILED'} ${e.message.split('\n')[0]}`);
+          // A failed setup can leave the page in any state: start again
           await app.ctx.close(); app = await openApp(b, lang, phone);
         }
       }
