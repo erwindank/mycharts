@@ -198,6 +198,22 @@ async function awCeremony(pg, slide) {
   if (slide === 'cat') { await pg.evaluate(() => ceremonyNav(1)); await wait(pg, 2500); }
   if (slide === 'fin') { await pg.evaluate(() => ceremonyGoTo(_ceremonyCats.length)); await wait(pg, 2500); }
 }
+// Your Soundtrack on a period (year / month / alltime), every chapter drawn.
+// Chapters fade in as they scroll into view, so they are all marked shown and
+// the page is scrolled through once; pop-ups from the shot before are closed.
+async function stView(pg, period = 'year') {
+  await pg.evaluate(() => {
+    try { stStoryClose(); } catch (e) {} try { stCloseCard(); } catch (e) {}
+    try { stCloseArtistModal(); } catch (e) {} try { stStopReplay(); } catch (e) {}
+  });
+  await unfold(pg, false);
+  await go(pg, 'soundtrack'); await wait(pg, 3000);
+  await pg.evaluate(p => { if (stPeriodType !== p) stSetPeriod(p); }, period);
+  await pg.waitForFunction(() => document.querySelector('#stStatsStrip .st-stat-val') && /\d/.test(document.getElementById('stStatPlaysVal').textContent), null, { timeout: 90000 });
+  for (let y = 0; y < 12000; y += 900) { await pg.evaluate(y => window.scrollTo(0, y), y); await wait(pg, 250); }
+  await pg.evaluate(() => { document.querySelectorAll('#soundtrackView .st-reveal').forEach(e => e.classList.add('st-in')); window.scrollTo(0, 0); });
+  await wait(pg, 3500);
+}
 // Spot finders that need more than a selector: run in the page, return an element
 const byText = (scope, sel, re) => ({ js: `[...document.querySelectorAll(${JSON.stringify(scope + ' ' + sel)})].find(e => ${re}.test(e.textContent.trim()))` });
 
@@ -865,7 +881,105 @@ const SHOTS = [
       head: '#realLifeContent .awards-reallife-head', sub2: '#realLifeContent .awards-reallife-sub', tally: '#realLifeContent .awards-reallife-tally',
       card: '#realLifeContent .awards-reallife-card', portrait: '#realLifeContent .awards-reallife-portrait',
       plays: '#realLifeContent .awards-reallife-alltime', won: '#realLifeContent .awards-reallife-badge.won',
-      nomd: '#realLifeContent .awards-reallife-badge.nom', work: '#realLifeContent .awards-reallife-work' } }
+      nomd: '#realLifeContent .awards-reallife-badge.nom', work: '#realLifeContent .awards-reallife-work' } },
+
+  /* ── Lesson: Your Soundtrack (GUIDE-PLAN.md step 8) ───────────────
+     The year view (this year), one chapter per shot, plus Play your
+     year, the share window, a discovery's pop-up and the replay. */
+  { id: 'st-top', lesson: 'soundtrack', phone: true,
+    setup: async pg => { await stView(pg); },
+    clip: { from: '#soundtrackView > .section-header', to: '#stReelSection', pad: 14 },
+    spots: { period: '#stPeriodNav', nav: '#stNavBar', label: '#stNavLabel', story: '#stStoryBtn', replay: '#stTopReplayBtn',
+      share: '#soundtrackView .st-controls [onclick*="stOpenCard"]', hero: '#stChYear .st-chap-l', mosaic: '#stYearMosaic',
+      stats: '#stStatsStrip', stat: '#stStatsStrip .st-stat.active', reel: '#stReelTickerOuter', pl: '#stReelPlBtn' } },
+  { id: 'st-month', lesson: 'soundtrack',
+    setup: async pg => { await stView(pg, 'month'); },
+    clip: { from: '#soundtrackView > .section-header', to: '#stStatsStrip', pad: 14 },
+    spots: { period: '#stPeriodNav', month: '#stPeriodNav [data-st-period="month"]', nav: '#stNavBar', hero: '#stChYear .st-chap-l' } },
+  { id: 'st-alltime', lesson: 'soundtrack',
+    setup: async pg => { await stView(pg, 'alltime'); },
+    clip: { from: '#soundtrackView > .section-header', to: '#stStatsStrip', pad: 14 },
+    spots: { period: '#stPeriodNav', all: '#stPeriodNav [data-st-period="alltime"]', hero: '#stChYear .st-chap-l' } },
+  { id: 'st-artist', lesson: 'soundtrack',
+    setup: async pg => { await stView(pg); },
+    clip: { from: '#stFeaturedArtist', to: '#stFeaturedArtist', pad: 12 },
+    spots: { name: '#stFeaturedArtistName', count: '#stFeaturedArtistCount', big: '#stFeaturedStats .st-fa-big',
+      favs: '#stFeaturedStats .st-fa-favs', stats: '#stFeaturedStats .st-fa-stats' } },
+  { id: 'st-tops', lesson: 'soundtrack',
+    setup: async pg => { await stView(pg); },
+    clip: { from: '#stChTop', to: '#stChTop', pad: 12, maxH: 1400 },
+    spots: { head: '#stHead_top', songs: '#stTopSongsSection', center: '#stTopSongs .st-cf-card.is-center',
+      prev: '#stTopSongsSection .st-cf-nav-prev', next: '#stTopSongsSection .st-cf-nav-next', count: '#stTopSongsSection .st-cf-count',
+      artists: '#stTopArtistsSection', albums: '#stTopAlbumsSection' } },
+  { id: 'st-no1', lesson: 'soundtrack',
+    setup: async pg => { await stView(pg); },
+    clip: { from: '#stNo1Section', to: '#stNo1Section', pad: 12 },
+    spots: { head: '#stNo1Section .st-chap-head', seg: '#stNo1Section .st-no1-seg', sum: '#stNo1Section .d100-no1-sum',
+      strip: { js: "document.querySelector('#stNo1Section .d100-no1-seg').parentElement" }, row: '#stNo1Section .d100-no1-row',
+      more: '#stNo1Section .d100-no1-more' } },
+  { id: 'st-activity', lesson: 'soundtrack',
+    setup: async pg => { await stView(pg); },
+    clip: { from: '#stActivitySection', to: '#stActivitySection', pad: 12 },
+    spots: { head: '#stActivitySection .st-chap-head', chart: '#stActivitySection .st-activity-chart',
+      bar: '#stActivitySection .st-activity-bar-wrap' } },
+  { id: 'st-loyalty', lesson: 'soundtrack',
+    setup: async pg => { await stView(pg); },
+    clip: { from: '#stLoyaltySection', to: '#stLoyaltySection', pad: 12 },
+    spots: { head: '#stLoyaltySection .st-chap-head', ring: '#stLoyaltySection .st-loyalty-ring', row: '#stLoyaltySection .st-row',
+      next: '#stLoyaltySection .st-row-next' } },
+  { id: 'st-new', lesson: 'soundtrack',
+    setup: async pg => { await stView(pg);
+      await pg.evaluate(() => window.scrollTo(0, document.getElementById('stDiscoveriesSection').getBoundingClientRect().top + scrollY - 300)); await wait(pg, 4000); },
+    clip: { from: '#stDiscoveriesSection', to: '#stDiscoveriesSection', pad: 12 },
+    spots: { head: '#stHead_new', bubbles: '#stDiscoveriesBubbles', bubble: '#stDiscoveriesBubbles .st-bubble' } },
+  { id: 'st-pop', lesson: 'soundtrack',
+    setup: async pg => { await stView(pg);
+      await pg.evaluate(() => window.scrollTo(0, document.getElementById('stDiscoveriesSection').getBoundingClientRect().top + scrollY - 300)); await wait(pg, 4000);
+      await unfold(pg, true);
+      await pg.evaluate(() => { const b = document.querySelector('#stDiscoveriesBubbles .st-bubble'); if (b) b.click(); });
+      await pg.waitForFunction(() => { const m = document.getElementById('stArtistModal'); return m && m.offsetParent !== null && document.getElementById('stArtistModalName').textContent.trim(); }, null, { timeout: 30000 });
+      await wait(pg, 3000); },
+    clip: { from: '#stArtistModal .dc-modal', to: '#stArtistModal .dc-modal', pad: 10, narrow: true },
+    spots: { nav: '#stArtistModalNav', name: '#stArtistModalName', meta: '#stArtistModalMeta', play: '#stArtistModal .st-am-play',
+      links: '#stArtistModal .st-am-hero-links', share: '#stArtistModal .st-am-share', stats: '#stArtistModal .st-am-stats',
+      goal: '#stArtistModal .st-am-goal', close: '#stArtistModal .modal-close' } },
+  { id: 'st-mil', lesson: 'soundtrack',
+    setup: async pg => { await stView(pg); },
+    clip: { from: '#stChMilestones', to: '#stChMilestones', pad: 12, maxH: 1000 },
+    spots: { head: '#stHead_milestones', overall: '#stMilestonesSection', artist: '#stArtistMilestonesSection',
+      toggle: '#stArtistMilestonesToggle' } },
+  { id: 'st-streaks', lesson: 'soundtrack',
+    setup: async pg => { await stView(pg); },
+    clip: { from: '#stStreaksSection', to: '#stStreaksSection', pad: 12 },
+    spots: { head: '#stHead_streaks', cards: '#stStreaksSection .st-streaks-grid', card: '#stStreaksSection .st-streak-card',
+      detail: '#stStreaksSection .st-streak-detail', cal: '#stStreaksSection .st-cal-wrap', chips: '#stStreaksSection .st-streak-chips',
+      entity: '#stStreaksSection .st-streaks-grid--entity' } },
+  { id: 'st-grammys', lesson: 'soundtrack',
+    setup: async pg => { await stView(pg); },
+    clip: { from: '#stGrammysSection', to: '#stGrammysSection', pad: 12, maxH: 900 },
+    spots: { head: '#stHead_grammys', grid: '#stGrammysSection .st-grammy-grid', card: '#stGrammysSection .st-grammy-card' } },
+  { id: 'st-end', lesson: 'soundtrack',
+    setup: async pg => { await stView(pg); },
+    clip: { from: '#stReplaySection', to: '#stCardSection', pad: 12 },
+    spots: { replay: '#stReplayBtn', share: '#stCardSection .st-act-btn' } },
+  { id: 'st-replay', lesson: 'soundtrack',
+    setup: async pg => { await stView(pg); await pg.evaluate(() => stStartReplay()); await wait(pg, 7000);
+      await pg.evaluate(() => { try { stReplayTogglePause(); } catch (e) {} }); await wait(pg, 800); },
+    clip: { from: '#stReplaySection', to: '#stReplaySection', pad: 12 },
+    spots: { canvas: '#stReplayCanvas', speed: '#stReplaySpeedBtn', prev: '#stReplayPrevBtn', pause: '#stReplayPauseBtn',
+      next: '#stReplayNextBtn', stop: '#stReplayStopBtn' } },
+  // Play your year: full screen, a shorter window
+  { id: 'st-story', lesson: 'soundtrack', vp: { width: 1280, height: 860 },
+    setup: async pg => { await stView(pg); await pg.evaluate(() => stStoryOpen()); await wait(pg, 2000);
+      await pg.evaluate(() => stStoryGo(1)); await wait(pg, 2500); },
+    clip: { from: '#stStory', to: '#stStory', narrow: true },
+    spots: { bars: '#stStory .st-story-bars', close: '#stStory .st-story-close', prev: '#stStory .st-story-prev', next: '#stStory .st-story-next' } },
+  { id: 'st-card', lesson: 'soundtrack',
+    setup: async pg => { await stView(pg); await pg.evaluate(() => stOpenCard()); await wait(pg, 4500); },
+    clip: { from: '#stCardModal .dc-modal', to: '#stCardModal .dc-modal', pad: 10, narrow: true },
+    spots: { preview: '#stCardFrame', tpl: '#stTemplateRow', pal: '#stPaletteRow', fmt: '#stFormatBtns',
+      art: { js: "document.getElementById('stOpt_showArt').closest('label')" }, src: '#stCardModal .sh-src-row',
+      topn: { js: "document.getElementById('stTopN').closest('.sh-slider-row')" }, copy: '#stCardCopyBtn', dl: '#stCardDownloadBtn' } }
 ];
 
 /* ── Measuring + capture ────────────────────────────────────────── */

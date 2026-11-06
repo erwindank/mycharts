@@ -29,7 +29,7 @@
   'use strict';
 
   // Bump when the lesson files or the pictures change (it's their ?v=)
-  const GUIDE_V = '10';
+  const GUIDE_V = '11';
   const STORE = 'dc_guide_progress';
   const LANG_FILES = ['es', 'pt-BR', 'pt-PT'];
 
@@ -155,7 +155,17 @@
     'aw.view':       { lesson: 'awards', fn: 'awardsSetView', test: a => a[0] && a[0] !== 'ballot' },
     'aw.cer':        { lesson: 'awards', fn: 'startAwardsCeremony' },
     'aw.reveal':     { lesson: 'awards', fn: 'ceremonyReveal' },
-    'aw.real':       { lesson: 'awards', fn: 'awardsSubTab', test: a => a[0] === 'reallife' }
+    'aw.real':       { lesson: 'awards', fn: 'awardsSubTab', test: a => a[0] === 'reallife' },
+    // Your Soundtrack (app.js st* functions)
+    'st.period':     { lesson: 'soundtrack', fn: 'stSetPeriod', test: a => a[0] === 'month' || a[0] === 'alltime' },
+    'st.nav':        { lesson: 'soundtrack', fn: 'stNavigate' },
+    'st.story':      { lesson: 'soundtrack', fn: 'stStoryOpen' },
+    'st.stat':       { lesson: 'soundtrack', fn: 'stSetReelMode' },
+    'st.no1':        { lesson: 'soundtrack', fn: 'stSetNo1Type', test: a => a[0] && a[0] !== 'songs' },
+    // a bubble opens its pop-up after a short pop, so watch the window itself
+    'st.bubble':     { lesson: 'soundtrack', open: '#stArtistModal' },
+    'st.replay':     { lesson: 'soundtrack', fn: 'stStartReplay' },
+    'st.card':       { lesson: 'soundtrack', fn: 'stOpenCard' }
   };
   // Where "Show me" takes you for each challenge, and what it rings there.
   // open/tab: open the chart's ⋮ menu on a tab first.
@@ -230,7 +240,15 @@
     'aw.view':       { nav: 'awards', ring: '#awardsViewBar .awards-view-pick' },
     'aw.cer':        { nav: 'awards', ring: '#awardsMyGrammys .awards-ceremony-launch-btn, #awardsGenerateBtn' },
     'aw.reveal':     { nav: 'awards', ring: '#awardsMyGrammys .awards-ceremony-launch-btn, #awardsGenerateBtn' },
-    'aw.real':       { nav: 'awards', ring: '#awardsView .awards-subnav' }
+    'aw.real':       { nav: 'awards', ring: '#awardsView .awards-subnav' },
+    'st.period':     { nav: 'soundtrack', ring: '#stPeriodNav' },
+    'st.nav':        { nav: 'soundtrack', ring: '#stNavBar' },
+    'st.story':      { nav: 'soundtrack', ring: '#stStoryBtn' },
+    'st.stat':       { nav: 'soundtrack', ring: '#stStatsStrip' },
+    'st.no1':        { nav: 'soundtrack', ring: '#stNo1Section .st-no1-seg' },
+    'st.bubble':     { nav: 'soundtrack', ring: '#stDiscoveriesBubbles' },
+    'st.replay':     { nav: 'soundtrack', ring: '#stTopReplayBtn, #stReplayBtn' },
+    'st.card':       { nav: 'soundtrack', ring: '#soundtrackView .st-controls [onclick*="stOpenCard"]' }
   };
 
   let lastInput = 0;

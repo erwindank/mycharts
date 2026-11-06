@@ -1933,7 +1933,237 @@ window.GL_TEXT['pt-BR'] = {
         'Marque suas categorias favoritas com estrela e ligue só elas para um ano rápido.'
       ]
     },
-    soundtrack: { title: 'Sua Trilha Sonora', promise: 'Um mês, um ano ou desde sempre, contado em capítulos.' },
+    soundtrack: {
+      title: '{{t:nav_soundtrack}}',
+      promise: 'Um ano, um mês ou tudo o que você ouviu contado como uma história em doze capítulos, para rolar, assistir como um show e compartilhar.',
+      scenes: {
+        top: { title: 'Capítulo 1: o período', spots: {
+          period: ['{{t:st_period_year}} / {{t:st_period_month}} / {{t:st_period_alltime}}', 'Qual história contar.'],
+          nav: ['Qual', 'Vá para o ano ou mês anterior ou seguinte, ou clique no nome para escolher um.'],
+          story: ['{{t:st_story_play_all}}', 'Cada capítulo em tela cheia, um depois do outro, como um show.'],
+          replay: ['{{t:st_replay_title}}', 'Leva ao replay dos seus artistas top, semana a semana.'],
+          share: ['{{t:st_share_btn}}', 'Cria uma imagem da sua trilha sonora.'],
+          hero: ['O período', 'O nome, sobre um mural das capas que você ouviu.'],
+          mosaic: ['As capas', 'Os álbuns do período.'],
+          stats: ['Cinco números', '{{t:st_stat_plays}}, {{t:st_stat_days}}, {{t:st_stat_artists}}, {{t:st_stat_new_discoveries}} e {{t:st_stat_peak_day}}.'],
+          stat: ['Escolha um número', 'A faixa abaixo muda junto: cada play, cada dia, cada artista, suas descobertas ou seu dia de pico.'],
+          reel: ['A faixa', 'Arraste para percorrer. Clique num cartão para Spotify, uma playlist, o player ou uma busca.'],
+          pl: ['{{t:pl_section_btn}}', 'Salva o que a faixa mostra como playlist.']
+        } },
+        artist: { title: '{{t:st_featured_label}}', spots: {
+          name: ['Seu artista #1', 'O artista que você mais ouviu.'],
+          count: ['Quanto', 'Os plays e a parte do total.'],
+          big: ['Um número grande', 'Sua maior sequência de músicas dele seguidas.'],
+          favs: ['Favoritos', 'O álbum e a música dele que você mais ouviu, com suas sequências.'],
+          stats: ['Mais números', 'Dia mais ouvido, sequência de dias, dias, músicas e álbuns, horário de pico.']
+        } },
+        tops: { title: '{{t:st_ch_top_name}}', spots: {
+          head: ['Sua música', 'A música do período, e seu artista.'],
+          songs: ['{{t:st_top_songs}}', 'Uma fileira de capas para passar.'],
+          center: ['A da frente', 'A posição e os plays. Clique para abrir a janela.'],
+          prev: ['Voltar', 'A anterior.'],
+          next: ['Próxima', 'A seguinte. Arrastar ou deslizar também funciona.'],
+          count: ['Posição e plays', 'Da que está na frente.'],
+          artists: ['{{t:st_top_artists}}', 'O mesmo, para artistas.'],
+          albums: ['{{t:st_top_albums}}', 'E para álbuns.']
+        } },
+        no1: { title: '{{t:d100_no1_title}}', spots: {
+          head: ['Quantos', 'Números um diferentes na sua parada semanal, e o que ficou mais tempo no topo.'],
+          seg: ['{{t:sx_cmp_type_songs}} / {{t:sx_cmp_type_artists}} / {{t:sx_cmp_type_albums}}', 'De qual parada são os #1.'],
+          sum: ['No total', 'Quantas vezes o #1 mudou.'],
+          strip: ['A linha do tempo', 'Cada reinado como um bloco; os mais longos, mais largos.'],
+          row: ['Um #1', 'Quando chegou lá e quanto tempo ficou.'],
+          more: ['Ver todos', 'A lista completa.']
+        } },
+        activity: { title: '{{t:st_activity_title}}', spots: {
+          head: ['Seu mês mais barulhento', 'O mês com mais plays.'],
+          chart: ['Mês a mês', 'Os plays de cada mês e a mudança em relação ao anterior.'],
+          bar: ['Um mês', 'Clique para ver os plays e o artista top daquele mês.']
+        } },
+        loyalty: { title: '{{t:st_loyalty_title}}', spots: {
+          head: ['Quem voltou', 'Quantos dos seus 10 artistas do ano passado continuam no seu top.'],
+          ring: ['A pontuação', 'Com um nome: de {{t:st_loyalty_explorer}} a {{t:st_loyalty_die_hard}}.'],
+          row: ['{{t:st_loyalty_artists_title}}', 'Os artistas que ficaram, com as músicas top.'],
+          next: ['Mais', 'Deslize a fileira.']
+        } },
+        new: { title: '{{t:st_discoveries_title}}', spots: {
+          head: ['Quantos', 'Artistas que você ouviu pela primeira vez, e o que você mais ouviu.'],
+          bubbles: ['As bolhas', 'Seus artistas novos flutuam. Os maiores você ouviu mais.'],
+          bubble: ['Um artista', 'Clique para abrir a história dele.']
+        } },
+        pop: { title: 'Uma nova descoberta', spots: {
+          nav: ['Anterior / próxima', 'Percorra todas as suas descobertas.'],
+          name: ['O artista', 'E quando você o encontrou.'],
+          meta: ['Encontrado', 'O dia em que você o encontrou e a posição no período.'],
+          play: ['{{t:st_am_play}}', 'Ouça.'],
+          links: ['Spotify, YouTube, Last.fm', 'Ache em outro lugar.'],
+          share: ['{{t:st_am_share}}', 'Uma imagem desta descoberta.'],
+          stats: ['Números', 'Plays, dias, sequência e álbuns.'],
+          goal: ['{{t:st_am_goal_title}}', 'Quanto falta para a sua próxima posição top.'],
+          close: ['Fechar', 'Esc faz o mesmo.']
+        } },
+        mil: { title: '{{t:st_ch_ms_name}}', spots: {
+          head: ['A grande marca', 'O maior total que você passou, e com qual música.'],
+          overall: ['{{t:st_milestones_title}}', 'Cada número redondo de plays, e a música que o marcou.'],
+          artist: ['{{t:st_artist_milestones_title}}', 'Números redondos de cada artista.'],
+          toggle: ['Mais', 'Mostra os próximos 25.']
+        } },
+        streaks: { title: '{{t:st_streaks_title}}', spots: {
+          head: ['Sua maior', 'Sua maior sequência de dias com música.'],
+          cards: ['Três cartões', 'Dias com música, sua melhor sequência e sua maior pausa. Toque num para ver detalhes.'],
+          detail: ['Detalhes', 'Do cartão que você tocou.'],
+          cal: ['Cada dia', 'Um calendário do período, colorido por sequência.'],
+          chips: ['Em resumo', 'Quantas semanas tiveram música.'],
+          entity: ['Um artista, álbum, música', 'Mais dias seguidos com o mesmo.']
+        } },
+        grammys: { title: '{{t:st_aw_title}}', spots: {
+          head: ['Vencedores', 'Seus artistas top que ganharam seus prêmios ou prêmios reais.'],
+          grid: ['Os vencedores', 'Um cartão por artista.'],
+          card: ['Um artista', 'As vitórias. Clique para ver.']
+        } },
+        end: { title: 'Os dois últimos capítulos', spots: {
+          replay: ['{{t:st_replay_btn}}', 'Seus 5 artistas top numa corrida, semana a semana.'],
+          share: ['{{t:st_card_open}}', 'Cria uma imagem da sua trilha sonora.']
+        } },
+        replay: { title: '{{t:st_replay_title}}', spots: {
+          canvas: ['A corrida', 'Os 5 artistas top da semana e seus plays.'],
+          speed: ['Velocidade', 'Mais devagar ou mais rápido.'],
+          prev: ['Semana anterior', 'Um passo para trás.'],
+          pause: ['Play / pausa', 'Para ou continua.'],
+          next: ['Semana seguinte', 'Um passo à frente.'],
+          stop: ['{{t:st_replay_stop}}', 'Encerra o replay.']
+        } },
+        story: { title: '{{t:st_story_play_all}}', spots: {
+          bars: ['Progresso', 'Uma linha por capítulo.'],
+          close: ['Fechar', 'Volta à página. Esc também.'],
+          prev: ['Anterior', '← faz o mesmo.'],
+          next: ['Próximo', '→ ou um toque à direita fazem o mesmo.']
+        } },
+        card: { title: '{{t:st_card_title}}', spots: {
+          preview: ['Prévia', 'Como a imagem vai ficar.'],
+          tpl: ['Design', 'Recap, Wrapped, Collage, Minimal ou Poster.'],
+          pal: ['Paleta', 'As cores do app, seis paletas fixas ou a capa.'],
+          fmt: ['{{t:ig_format}}', '{{t:sh_fmt_post}}, {{t:sh_fmt_portrait}} ou {{t:sh_fmt_story}}.'],
+          art: ['Mostrar / esconder', 'Capas, números, dia de pico, artistas top, músicas top, rodapé.'],
+          src: ['Origem das imagens', 'De onde vêm as capas.'],
+          topn: ['Entradas', 'Quantos artistas e músicas top.'],
+          copy: ['Copiar', 'Copia a imagem para colar onde quiser.'],
+          dl: ['Baixar', 'Salva a imagem.']
+        } }
+      },
+      howto: {
+        period: { title: 'Escolher um ano, um mês ou tudo', slides: [
+          'Escolha {{t:st_period_year}}, {{t:st_period_month}} ou {{t:st_period_alltime}}.',
+          '{{t:st_period_month}}: a história de um mês.',
+          '{{t:st_period_alltime}}: toda a sua história.',
+          'Vá para outro ano ou mês.'
+        ] },
+        story: { title: '{{t:st_story_play_all}}', slides: [
+          'Aperte o botão de tocar no topo.',
+          'Cada capítulo, um de cada vez.',
+          'Próximo, ou toque no lado direito da tela.',
+          'Feche quando quiser.'
+        ] },
+        read: { title: 'Ler o primeiro capítulo', slides: [
+          'O período, sobre as capas.',
+          'Escolha um dos cinco números.',
+          'A faixa mostra o que aquele número conta.',
+          'Salve a faixa como playlist.',
+          'Depois, seu artista #1.'
+        ] },
+        tops: { title: 'Seus tops e seus números um', slides: [
+          'Suas músicas top, bem na frente.',
+          'Passe por elas.',
+          'Números um: músicas, artistas ou álbuns.',
+          'Cada #1 e quanto tempo ficou.',
+          'Mês a mês: clique num mês.'
+        ] },
+        discover: { title: 'Conhecer seus artistas novos', slides: [
+          'Seus artistas novos flutuam.',
+          'Clique num.',
+          'A história dele: quando você o encontrou e quanto você ouve.',
+          'O quanto ele está perto do seu top.',
+          'Percorra os outros.'
+        ] },
+        replay: { title: 'Rever seu ano', slides: [
+          'Aperte {{t:st_replay_title}} no topo…',
+          '…ou {{t:st_replay_btn}} perto do fim.',
+          'Seus 5 top, semana a semana.',
+          'Pause, ou avance uma semana por vez.',
+          'Mude a velocidade.'
+        ] },
+        share: { title: 'Compartilhar sua trilha sonora', slides: [
+          'Aperte {{t:st_share_btn}} (ou {{t:st_card_open}} no fim).',
+          'Escolha um design.',
+          'E uma paleta.',
+          'E um formato.',
+          'Baixe ou copie.'
+        ] }
+      },
+      options: {
+        period: { title: 'Período', items: {
+          year: ['{{t:st_period_year}} / {{t:st_period_month}} / {{t:st_period_alltime}}', 'Qual história.'],
+          nav: ['Anterior / próximo', 'Outro ano ou mês.']
+        } },
+        chapters: { title: 'Os capítulos', items: {
+          year: ['1. {{t:nav_soundtrack}}', 'O período, cinco números e a faixa.'],
+          artist: ['2. {{t:st_featured_label}}', 'Seu artista #1.'],
+          tops: ['3. {{t:st_ch_top_name}}', 'Suas músicas, artistas e álbuns top.'],
+          no1: ['4. {{t:d100_no1_title}}', 'Cada #1 (só ano e mês).'],
+          activity: ['5. {{t:st_activity_title}}', 'Mês a mês (ou dia a dia).'],
+          loyalty: ['6. {{t:st_loyalty_title}}', 'Quem voltou.'],
+          new: ['7. {{t:st_discoveries_title}}', 'Artistas novos.'],
+          mil: ['8. {{t:st_ch_ms_name}}', 'Números redondos passados.'],
+          streaks: ['9. {{t:st_streaks_title}}', 'Dias seguidos.'],
+          awards: ['10. {{t:st_aw_title}}', 'Seus vencedores.'],
+          replay: ['11. {{t:st_replay_title}}', 'O ano como corrida (só ano).'],
+          share: ['12. {{t:st_card_title}}', 'Uma imagem para compartilhar.']
+        } },
+        tools: { title: 'No caminho', items: {
+          stat: ['Os cinco números', 'Cada um muda a faixa.'],
+          pl: ['{{t:pl_section_btn}}', 'A faixa como playlist.'],
+          no1: ['{{t:d100_no1_title}}', 'Músicas, artistas ou álbuns.'],
+          more: ['Ver mais', 'Listas de marcas maiores.'],
+          speed: ['Velocidade do replay', 'Mais devagar ou mais rápido.']
+        } },
+        card: { title: '{{t:st_card_title}}', items: {
+          tpl: ['Design', 'Cinco designs.'],
+          pal: ['Paleta', 'Oito conjuntos de cores.'],
+          fmt: ['{{t:ig_format}}', '1:1, 4:5 ou 9:16.'],
+          art: ['Capas', 'Ligado ou desligado, e a origem.'],
+          topn: ['Entradas', 'Quantas na lista.'],
+          copy: ['Copiar / Baixar', 'Leve a imagem.']
+        } }
+      },
+      challenges: {
+        'st.period': ['Troque para {{t:st_period_month}} ou {{t:st_period_alltime}}', 'No canto superior esquerdo.'],
+        'st.nav': ['Vá para outro ano ou mês', 'As setas ao lado do nome.'],
+        'st.story': ['Toque sua história', 'O botão de tocar no topo.'],
+        'st.stat': ['Escolha outro dos cinco números', 'No capítulo 1.'],
+        'st.no1': ['Veja os #1 de artistas ou álbuns', 'Em {{t:d100_no1_title}}.'],
+        'st.bubble': ['Abra uma nova descoberta', 'Clique numa bolha em {{t:st_discoveries_title}}.'],
+        'st.replay': ['Toque o histórico', '{{t:st_replay_title}}.'],
+        'st.card': ['Abra a janela de compartilhar', '{{t:st_share_btn}}.']
+      },
+      quiz: {
+        q1: ['O que muda quando você clica num dos cinco números?',
+          ['O período', 'A faixa embaixo deles', 'Seu tema'],
+          'Cada número enche a faixa com o que ele conta: cada play, cada dia, cada artista e assim por diante.'],
+        q2: ['Como você assiste a todos os capítulos como um show?',
+          ['Rolando rápido', 'Abrindo {{t:st_card_title}}', 'Apertando o botão de tocar no topo'],
+          '{{t:st_story_play_all}} mostra os capítulos em tela cheia, um depois do outro.'],
+        q3: ['Onde você vê como é um artista que acabou de encontrar?',
+          ['Clicando na bolha dele em {{t:st_discoveries_title}}', 'Em {{t:st_streaks_title}}', 'Na faixa'],
+          'Cada bolha abre a história daquele artista: como você o encontrou, os plays e sua próxima meta.']
+      },
+      tips: [
+        '{{t:st_story_play_all}} transforma seu ano num show em tela cheia, capítulo por capítulo.',
+        'Em {{t:st_discoveries_title}}, clique numa bolha para ver como você encontrou aquele artista: a música, o dia e o que tocava logo antes.',
+        'Clique em {{t:st_stat_peak_day}} no capítulo 1 e a faixa mostra cada música do seu dia mais ouvido.',
+        '{{t:st_replay_title}} põe seus 5 artistas top para correr pelo ano, semana a semana.',
+        'A imagem para compartilhar tem cinco designs. Experimente Wrapped como story 9:16.'
+      ]
+    },
     dank100: { title: 'The Dank 100', promise: 'As paradas semanais de todo mundo somadas numa só.' },
     ratings: { title: 'Avaliações', promise: 'Dê notas a álbuns e músicas, e veja seu lado crítico.' },
     events: { title: 'Eventos', promise: 'Aniversários, datas de álbuns, lançamentos e a Máquina do Tempo.' },

@@ -613,7 +613,74 @@ window.GL = {
       tips: [ ['aw-view-collage', 'btn', 'aw.view'], ['aw-cer-cat', 'meet', 'aw.cer'], ['aw-real', 'shows', 'aw.real'],
         ['aw-picker', 'quick', 'aw.pick'], ['aw-config', 'favs', 'aw.config'] ]
     },
-    { id: 'soundtrack', area: 'insights', nav: 'soundtrack', soon: true },
+    /* ── Lesson 10: Your Soundtrack (twelve chapters, Play your year) ── */
+    { id: 'soundtrack', area: 'insights', nav: 'soundtrack', mins: 8, cover: 'st-top',
+      scenes: [
+        { id: 'top', shot: 'st-top', phone: true,
+          spots: ['period', 'nav', 'story', 'replay', 'share', 'hero', 'mosaic', 'stats', 'stat', 'reel', 'pl'] },
+        { id: 'artist', shot: 'st-artist', spots: ['name', 'count', 'big', 'favs', 'stats'] },
+        { id: 'tops', shot: 'st-tops', spots: ['head', 'songs', 'center', 'prev', 'next', 'count', 'artists', 'albums'] },
+        { id: 'no1', shot: 'st-no1', spots: ['head', 'seg', 'sum', 'strip', 'row', 'more'] },
+        { id: 'activity', shot: 'st-activity', spots: ['head', 'chart', 'bar'] },
+        { id: 'loyalty', shot: 'st-loyalty', spots: ['head', 'ring', 'row', 'next'] },
+        { id: 'new', shot: 'st-new', spots: ['head', 'bubbles', 'bubble'] },
+        // What a bubble opens
+        { id: 'pop', shot: 'st-pop', spots: ['nav', 'name', 'meta', 'play', 'links', 'share', 'stats', 'goal', 'close'] },
+        { id: 'mil', shot: 'st-mil', spots: ['head', 'overall', 'artist', 'toggle'] },
+        { id: 'streaks', shot: 'st-streaks', spots: ['head', 'cards', 'detail', 'cal', 'chips', 'entity'] },
+        { id: 'grammys', shot: 'st-grammys', spots: ['head', 'grid', 'card'] },
+        { id: 'end', shot: 'st-end', spots: ['replay', 'share'] },
+        { id: 'replay', shot: 'st-replay', spots: ['canvas', 'speed', 'prev', 'pause', 'next', 'stop'] },
+        { id: 'story', shot: 'st-story', spots: ['bars', 'close', 'prev', 'next'] },
+        { id: 'card', shot: 'st-card', spots: ['preview', 'tpl', 'pal', 'fmt', 'art', 'src', 'topn', 'copy', 'dl'] }
+      ],
+      howto: [
+        { id: 'period', challenge: 'st.period', slides: [
+          { shot: 'st-top', spot: 'period' }, { shot: 'st-month', spot: 'month' }, { shot: 'st-alltime', spot: 'all' },
+          { shot: 'st-top', spot: 'nav' } ] },
+        { id: 'story', challenge: 'st.story', slides: [
+          { shot: 'st-top', spot: 'story' }, { shot: 'st-story', spot: 'bars' }, { shot: 'st-story', spot: 'next' },
+          { shot: 'st-story', spot: 'close' } ] },
+        { id: 'read', challenge: 'st.stat', slides: [
+          { shot: 'st-top', spot: 'hero' }, { shot: 'st-top', spot: 'stat' }, { shot: 'st-top', spot: 'reel' },
+          { shot: 'st-top', spot: 'pl' }, { shot: 'st-artist', spot: 'favs' } ] },
+        { id: 'tops', challenge: 'st.no1', slides: [
+          { shot: 'st-tops', spot: 'center' }, { shot: 'st-tops', spot: 'next' }, { shot: 'st-no1', spot: 'seg' },
+          { shot: 'st-no1', spot: 'row' }, { shot: 'st-activity', spot: 'bar' } ] },
+        { id: 'discover', challenge: 'st.bubble', slides: [
+          { shot: 'st-new', spot: 'bubbles' }, { shot: 'st-new', spot: 'bubble' }, { shot: 'st-pop', spot: 'name' },
+          { shot: 'st-pop', spot: 'goal' }, { shot: 'st-pop', spot: 'nav' } ] },
+        { id: 'replay', challenge: 'st.replay', slides: [
+          { shot: 'st-top', spot: 'replay' }, { shot: 'st-end', spot: 'replay' }, { shot: 'st-replay', spot: 'canvas' },
+          { shot: 'st-replay', spot: 'pause' }, { shot: 'st-replay', spot: 'speed' } ] },
+        { id: 'share', challenge: 'st.card', slides: [
+          { shot: 'st-top', spot: 'share' }, { shot: 'st-card', spot: 'tpl' }, { shot: 'st-card', spot: 'pal' },
+          { shot: 'st-card', spot: 'fmt' }, { shot: 'st-card', spot: 'dl' } ] }
+      ],
+      options: [
+        { id: 'period', items: [
+          { id: 'year', shot: 'st-top', spot: 'period', def: '{{t:st_period_year}}' }, { id: 'nav', shot: 'st-top', spot: 'nav' } ] },
+        { id: 'chapters', items: [
+          { id: 'year', shot: 'st-top', spot: 'hero' }, { id: 'artist', shot: 'st-artist', spot: 'name' },
+          { id: 'tops', shot: 'st-tops', spot: 'head' }, { id: 'no1', shot: 'st-no1', spot: 'head' },
+          { id: 'activity', shot: 'st-activity', spot: 'head' }, { id: 'loyalty', shot: 'st-loyalty', spot: 'head' },
+          { id: 'new', shot: 'st-new', spot: 'head' }, { id: 'mil', shot: 'st-mil', spot: 'head' },
+          { id: 'streaks', shot: 'st-streaks', spot: 'head' }, { id: 'awards', shot: 'st-grammys', spot: 'head' },
+          { id: 'replay', shot: 'st-end', spot: 'replay' }, { id: 'share', shot: 'st-end', spot: 'share' } ] },
+        { id: 'tools', items: [
+          { id: 'stat', shot: 'st-top', spot: 'stats', def: '{{t:st_stat_plays}}' }, { id: 'pl', shot: 'st-top', spot: 'pl' },
+          { id: 'no1', shot: 'st-no1', spot: 'seg', def: '{{t:sx_cmp_type_songs}}' }, { id: 'more', shot: 'st-mil', spot: 'toggle' },
+          { id: 'speed', shot: 'st-replay', spot: 'speed' } ] },
+        { id: 'card', items: [
+          { id: 'tpl', shot: 'st-card', spot: 'tpl' }, { id: 'pal', shot: 'st-card', spot: 'pal' }, { id: 'fmt', shot: 'st-card', spot: 'fmt' },
+          { id: 'art', shot: 'st-card', spot: 'art', def: 'on' }, { id: 'topn', shot: 'st-card', spot: 'topn', def: '5' },
+          { id: 'copy', shot: 'st-card', spot: 'copy' } ] }
+      ],
+      challenges: ['st.period', 'st.nav', 'st.story', 'st.stat', 'st.no1', 'st.bubble', 'st.replay', 'st.card'],
+      quiz: [ { id: 'q1', answer: 1 }, { id: 'q2', answer: 2 }, { id: 'q3', answer: 0 } ],
+      tips: [ ['st-top', 'story', 'st.story'], ['st-new', 'bubble', 'st.bubble'], ['st-top', 'stat', 'st.stat'],
+        ['st-replay', 'canvas', 'st.replay'], ['st-card', 'tpl', 'st.card'] ]
+    },
     { id: 'dank100', area: 'more', nav: 'dank100', soon: true },
     { id: 'ratings', area: 'more', nav: 'ratings', soon: true },
     { id: 'events', area: 'more', nav: 'events', soon: true },
@@ -2557,7 +2624,237 @@ window.GL_TEXT.en = {
         'Star your favourite categories, then turn on just those for a quick year.'
       ]
     },
-    soundtrack: { title: 'Your Soundtrack', promise: 'A month, a year or all time told in chapters.' },
+    soundtrack: {
+      title: '{{t:nav_soundtrack}}',
+      promise: 'A year, a month or all of your listening told as a story in twelve chapters, to scroll, to play like a show and to share.',
+      scenes: {
+        top: { title: 'Chapter 1: the period', spots: {
+          period: ['{{t:st_period_year}} / {{t:st_period_month}} / {{t:st_period_alltime}}', 'Which story to tell.'],
+          nav: ['Which one', 'Step to the year or month before or after, or click the name to pick one.'],
+          story: ['{{t:st_story_play_all}}', 'Every chapter full screen, one after another, like a show.'],
+          replay: ['{{t:st_replay_title}}', 'Jumps to the replay of your top artists, week by week.'],
+          share: ['{{t:st_share_btn}}', 'Makes a picture of your soundtrack.'],
+          hero: ['The period', 'Its name, over a wall of the covers you played.'],
+          mosaic: ['The covers', 'The albums of the period.'],
+          stats: ['Five numbers', '{{t:st_stat_plays}}, {{t:st_stat_days}}, {{t:st_stat_artists}}, {{t:st_stat_new_discoveries}} and {{t:st_stat_peak_day}}.'],
+          stat: ['Pick a number', 'The reel below changes to match it: every play, every day, every artist, your discoveries or your peak day.'],
+          reel: ['The reel', 'Drag to browse. Click a card for Spotify, a playlist, the player or a search.'],
+          pl: ['{{t:pl_section_btn}}', 'Saves what the reel shows as a playlist.']
+        } },
+        artist: { title: '{{t:st_featured_label}}', spots: {
+          name: ['Your #1 artist', 'The artist you played most.'],
+          count: ['How much', 'Their plays and their share of everything.'],
+          big: ['A big number', 'Your longest run of their songs back to back.'],
+          favs: ['Favourites', 'Their album and song you played most, with your streaks.'],
+          stats: ['More numbers', 'Most played day, day streak, days played, songs and albums, peak hour.']
+        } },
+        tops: { title: '{{t:st_ch_top_name}}', spots: {
+          head: ['Your song', 'The song of the period, and your artist.'],
+          songs: ['{{t:st_top_songs}}', 'A row of covers you can flip through.'],
+          center: ['The one in front', 'Its place and plays. Click it to open its window.'],
+          prev: ['Back', 'The one before.'],
+          next: ['Next', 'The one after. Drag or swipe works too.'],
+          count: ['Place and plays', 'Of the one in front.'],
+          artists: ['{{t:st_top_artists}}', 'The same, for artists.'],
+          albums: ['{{t:st_top_albums}}', 'And for albums.']
+        } },
+        no1: { title: '{{t:d100_no1_title}}', spots: {
+          head: ['How many', 'Different #1s on your weekly chart, and the longest at the top.'],
+          seg: ['{{t:sx_cmp_type_songs}} / {{t:sx_cmp_type_artists}} / {{t:sx_cmp_type_albums}}', 'Which chart’s #1s.'],
+          sum: ['In all', 'How many times #1 changed hands.'],
+          strip: ['The timeline', 'Every reign as a block, the longest ones widest.'],
+          row: ['A #1', 'When it got there and how long it stayed.'],
+          more: ['Show all', 'The full list.']
+        } },
+        activity: { title: '{{t:st_activity_title}}', spots: {
+          head: ['Your loudest month', 'The month with the most plays.'],
+          chart: ['Month by month', 'Each month’s plays and its change from the month before.'],
+          bar: ['A month', 'Click it for that month’s plays and top artist.']
+        } },
+        loyalty: { title: '{{t:st_loyalty_title}}', spots: {
+          head: ['Who came back', 'How many of last year’s top 10 artists are still in your top.'],
+          ring: ['The score', 'With a name: from {{t:st_loyalty_explorer}} to {{t:st_loyalty_die_hard}}.'],
+          row: ['{{t:st_loyalty_artists_title}}', 'The artists who stayed, with their top songs.'],
+          next: ['More', 'Slide the row.']
+        } },
+        new: { title: '{{t:st_discoveries_title}}', spots: {
+          head: ['How many', 'Artists you played for the first time, and the one you played most.'],
+          bubbles: ['The bubbles', 'Your new artists float by. Bigger ones you played more.'],
+          bubble: ['One artist', 'Click it to open their story.']
+        } },
+        pop: { title: 'A new discovery', spots: {
+          nav: ['Previous / next', 'Walk through all your discoveries.'],
+          name: ['The artist', 'And when you found them.'],
+          meta: ['Found', 'The day you found them and their place this period.'],
+          play: ['{{t:st_am_play}}', 'Hear them.'],
+          links: ['Spotify, YouTube, Last.fm', 'Find them elsewhere.'],
+          share: ['{{t:st_am_share}}', 'A picture of this discovery.'],
+          stats: ['Numbers', 'Plays, days, streak and albums.'],
+          goal: ['{{t:st_am_goal_title}}', 'How far they are from your next top spot.'],
+          close: ['Close', 'Esc does the same.']
+        } },
+        mil: { title: '{{t:st_ch_ms_name}}', spots: {
+          head: ['The big one', 'The biggest total you passed, and with which song.'],
+          overall: ['{{t:st_milestones_title}}', 'Every round number of plays, and the song that did it.'],
+          artist: ['{{t:st_artist_milestones_title}}', 'Round numbers for each artist.'],
+          toggle: ['More', 'Shows the next 25.']
+        } },
+        streaks: { title: '{{t:st_streaks_title}}', spots: {
+          head: ['Your longest', 'Your longest run of days with music.'],
+          cards: ['Three cards', 'Days with music, your best streak and your longest break. Tap one for details.'],
+          detail: ['Details', 'About the card you tapped.'],
+          cal: ['Every day', 'A calendar of the period, coloured by streak.'],
+          chips: ['In short', 'How many weeks had music.'],
+          entity: ['One artist, album, song', 'Most days in a row with the same one.']
+        } },
+        grammys: { title: '{{t:st_aw_title}}', spots: {
+          head: ['Award winners', 'Your top artists who won your own awards or real ones.'],
+          grid: ['The winners', 'One card per artist.'],
+          card: ['An artist', 'Their wins. Click to see them.']
+        } },
+        end: { title: 'The last two chapters', spots: {
+          replay: ['{{t:st_replay_btn}}', 'Your top 5 artists racing, week by week.'],
+          share: ['{{t:st_card_open}}', 'Makes a picture of your soundtrack.']
+        } },
+        replay: { title: '{{t:st_replay_title}}', spots: {
+          canvas: ['The race', 'The week’s top 5 artists and their plays.'],
+          speed: ['Speed', 'Slower or faster.'],
+          prev: ['Week before', 'One step back.'],
+          pause: ['Play / pause', 'Stops or carries on.'],
+          next: ['Week after', 'One step on.'],
+          stop: ['{{t:st_replay_stop}}', 'Ends the replay.']
+        } },
+        story: { title: '{{t:st_story_play_all}}', spots: {
+          bars: ['Progress', 'One line per chapter.'],
+          close: ['Close', 'Back to the page. Esc too.'],
+          prev: ['Previous', '← does the same.'],
+          next: ['Next', '→ or a tap on the right does the same.']
+        } },
+        card: { title: '{{t:st_card_title}}', spots: {
+          preview: ['Preview', 'The picture as it will look.'],
+          tpl: ['Design', 'Recap, Wrapped, Collage, Minimal or Poster.'],
+          pal: ['Palette', 'The app’s colours, six fixed palettes, or Cover.'],
+          fmt: ['{{t:ig_format}}', '{{t:sh_fmt_post}}, {{t:sh_fmt_portrait}} or {{t:sh_fmt_story}}.'],
+          art: ['Show / hide', 'Album art, numbers, peak day, top artists, top songs, footer.'],
+          src: ['Picture source', 'Where the covers come from.'],
+          topn: ['Entries shown', 'How many top artists and songs.'],
+          copy: ['Copy', 'Copies the picture to paste anywhere.'],
+          dl: ['Download', 'Saves the picture.']
+        } }
+      },
+      howto: {
+        period: { title: 'Pick a year, a month or all time', slides: [
+          'Pick {{t:st_period_year}}, {{t:st_period_month}} or {{t:st_period_alltime}}.',
+          '{{t:st_period_month}}: one month’s story.',
+          '{{t:st_period_alltime}}: your whole history.',
+          'Step to another year or month.'
+        ] },
+        story: { title: '{{t:st_story_play_all}}', slides: [
+          'Press the play button at the top.',
+          'Every chapter, one at a time.',
+          'Next, or tap the right side of the screen.',
+          'Close it whenever you like.'
+        ] },
+        read: { title: 'Read the first chapter', slides: [
+          'The period, over its covers.',
+          'Pick one of the five numbers.',
+          'The reel shows what that number counts.',
+          'Save the reel as a playlist.',
+          'Then your #1 artist.'
+        ] },
+        tops: { title: 'Your tops and number ones', slides: [
+          'Your top songs, front and centre.',
+          'Flip through them.',
+          'Number ones: songs, artists or albums.',
+          'Each #1 and how long it stayed.',
+          'Month by month: click a month.'
+        ] },
+        discover: { title: 'Meet your new artists', slides: [
+          'Your new artists float by.',
+          'Click one.',
+          'Their story: when you found them and how much you play them.',
+          'How close they are to your top.',
+          'Walk through the rest.'
+        ] },
+        replay: { title: 'Replay your year', slides: [
+          'Press {{t:st_replay_title}} at the top…',
+          '…or {{t:st_replay_btn}} near the end.',
+          'Your top 5, week by week.',
+          'Pause, or step a week at a time.',
+          'Change the speed.'
+        ] },
+        share: { title: 'Share your soundtrack', slides: [
+          'Press {{t:st_share_btn}} (or {{t:st_card_open}} at the end).',
+          'Pick a design.',
+          'And a palette.',
+          'And a format.',
+          'Download it, or copy it.'
+        ] }
+      },
+      options: {
+        period: { title: 'Period', items: {
+          year: ['{{t:st_period_year}} / {{t:st_period_month}} / {{t:st_period_alltime}}', 'Which story.'],
+          nav: ['Previous / next', 'Another year or month.']
+        } },
+        chapters: { title: 'The chapters', items: {
+          year: ['1. {{t:nav_soundtrack}}', 'The period, five numbers and the reel.'],
+          artist: ['2. {{t:st_featured_label}}', 'Your #1 artist.'],
+          tops: ['3. {{t:st_ch_top_name}}', 'Your top songs, artists and albums.'],
+          no1: ['4. {{t:d100_no1_title}}', 'Every #1 (year and month only).'],
+          activity: ['5. {{t:st_activity_title}}', 'Month by month (or day by day).'],
+          loyalty: ['6. {{t:st_loyalty_title}}', 'Who came back.'],
+          new: ['7. {{t:st_discoveries_title}}', 'New artists.'],
+          mil: ['8. {{t:st_ch_ms_name}}', 'Round numbers passed.'],
+          streaks: ['9. {{t:st_streaks_title}}', 'Days in a row.'],
+          awards: ['10. {{t:st_aw_title}}', 'Your award winners.'],
+          replay: ['11. {{t:st_replay_title}}', 'The year as a race (year only).'],
+          share: ['12. {{t:st_card_title}}', 'A picture to share.']
+        } },
+        tools: { title: 'Along the way', items: {
+          stat: ['The five numbers', 'Each one changes the reel.'],
+          pl: ['{{t:pl_section_btn}}', 'The reel as a playlist.'],
+          no1: ['{{t:d100_no1_title}}', 'Songs, artists or albums.'],
+          more: ['Show more', 'Longer milestone lists.'],
+          speed: ['Replay speed', 'Slower or faster.']
+        } },
+        card: { title: '{{t:st_card_title}}', items: {
+          tpl: ['Design', 'Five designs.'],
+          pal: ['Palette', 'Eight colour sets.'],
+          fmt: ['Format', '1:1, 4:5 or 9:16.'],
+          art: ['Album art', 'On or off, and its source.'],
+          topn: ['Entries shown', 'How many on the list.'],
+          copy: ['Copy / Download', 'Take the picture.']
+        } }
+      },
+      challenges: {
+        'st.period': ['Switch to {{t:st_period_month}} or {{t:st_period_alltime}}', 'At the top left.'],
+        'st.nav': ['Go to another year or month', 'The arrows next to its name.'],
+        'st.story': ['{{t:st_story_play_all}}', 'The play button at the top.'],
+        'st.stat': ['Pick another of the five numbers', 'In chapter 1.'],
+        'st.no1': ['See artist or album #1s', 'In {{t:d100_no1_title}}.'],
+        'st.bubble': ['Open a new discovery', 'Click a bubble in {{t:st_discoveries_title}}.'],
+        'st.replay': ['Play the chart history', '{{t:st_replay_title}}.'],
+        'st.card': ['Open the share window', '{{t:st_share_btn}}.']
+      },
+      quiz: {
+        q1: ['What changes when you click one of the five numbers?',
+          ['The period', 'The reel under them', 'Your theme'],
+          'Each number fills the reel with what it counts: every play, every day, every artist and so on.'],
+        q2: ['How do you watch every chapter like a show?',
+          ['Scroll fast', 'Open {{t:st_card_title}}', 'Press the play button at the top'],
+          '{{t:st_story_play_all}} shows the chapters full screen, one after another.'],
+        q3: ['Where do you find what an artist you just found is like?',
+          ['Click their bubble in {{t:st_discoveries_title}}', 'In {{t:st_streaks_title}}', 'In the reel'],
+          'Each bubble opens that artist’s story: how you found them, their plays and your next goal.']
+      },
+      tips: [
+        '{{t:st_story_play_all}} turns your year into a full-screen show, chapter by chapter.',
+        'In {{t:st_discoveries_title}}, click a bubble to see how you found that artist: the song, the day, what you played right before.',
+        'Click {{t:st_stat_peak_day}} in chapter 1 and the reel shows every song from your busiest day.',
+        '{{t:st_replay_title}} races your top 5 artists through the year, week by week.',
+        'The share image has five designs. Try Wrapped as a 9:16 story.'
+      ]
+    },
     dank100: { title: 'The Dank 100', promise: 'Everyone’s weekly charts added up into one.' },
     ratings: { title: 'Ratings', promise: 'Score albums and songs, and see your critic side.' },
     events: { title: 'Events', promise: 'Birthdays, anniversaries, new releases and the Time Machine.' },
