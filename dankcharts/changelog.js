@@ -356,6 +356,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-06', t: 'change', a: 'soundtrack', h: '2f9f720',
+    title: "Yearly Number ones grow 15 at a time",
+    detail: "In a year's Soundtrack, the Number ones list no longer opens every reign at once, which was slow with a whole year of daily #1s. Show 15 more adds 15 rows at a time inside a box that scrolls on its own and jumps to the new rows, and Show fewer folds it back. The month view still has Show all. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-11-06', t: 'feature', a: 'soundtrack', h: 'e597f2c',
     title: "Daily number ones in the yearly Soundtrack",
     detail: "The Number ones chapter of a year's Soundtrack now has the same Weekly / Daily switch as the month view. Daily shows every run at #1 of your daily chart across the year, newest first, and each row opens that day. The reign strip packs tighter when there are many reigns, so a whole year still fits a phone screen. Works with Last.fm, Google Sheets and CSV uploads." },
