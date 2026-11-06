@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Records: Show is now 10, 25, 50 or 100":
+    ["Récords: Mostrar ahora es 10, 25, 50 o 100",
+     "El selector Mostrar debajo de cada lista de Récords ahora ofrece 10, 25, 50 y 100. Todos ya no está: incluso limitado a 1.000 filas hacía que Récords tardara en abrirse y cambiar de sección en bibliotecas grandes. Si tenías Todos elegido, ahora ves 100. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Charts Guide: Getting started, search the whole guide, and the Reference in a new look":
     ["Guía de Charts: Empieza aquí, busca en toda la guía y la Consulta con nuevo aspecto",
      "Empieza aquí es ahora la primera lección de la Guía de Charts. Revisa tu configuración en directo (fuente de datos, reproducciones, nombre y zona horaria, calidad de los datos) y te lleva por los tres pasos para empezar; las casillas de primeros pasos que ya tenías se conservan. Un buscador en la portada de la guía encuentra cualquier lección, punto de una imagen, recorrido, opción o reto, además de las preguntas frecuentes, el glosario y los atajos, y te lleva justo a ese punto. La pestaña Consulta conserva todo lo que tenía la guía anterior (cómo funcionan los rankings, glosario, consejos y atajos, tus datos, preguntas frecuentes, exportar, tus notas) con el nuevo aspecto. Hacer el recorrido y Volver a ver la bienvenida están en la portada de la guía, y el recorrido muestra un botón con la lección de la pestaña en la que está."],

@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 462;
+const DC_CL_I18N_V = 463;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -356,6 +356,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-06', t: 'change', a: 'records', h: '5c39a9a',
+    title: "Records: Show is now 10, 25, 50 or 100",
+    detail: "The Show switch under each Records list now offers 10, 25, 50 and 100. All is gone: even capped at 1,000 rows it made Records slow to open and switch on a big library. If you had All picked, you now see 100. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-11-06', t: 'feature', a: 'guide', h: '7a587e9',
     title: "Charts Guide: Getting started, search the whole guide, and the Reference in a new look",
     detail: "Getting started is now the first lesson of the Charts Guide. It checks your setup live (data source, plays, name and time zone, data quality) and walks you through the three setup steps; the first-steps ticks you already had carry over. A search box on the guide's front page finds any lesson, spot on a picture, walkthrough, option or challenge, plus the FAQ, glossary and shortcuts, and opens right at that spot. The Reference tab keeps everything the old guide had (how charts work, glossary, tips and shortcuts, your data, FAQ, export, your notes) in the new look. Take the tour and Replay the welcome sit on the guide's front page, and the tour shows a button for the lesson of the tab it is on." },
