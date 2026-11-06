@@ -1559,7 +1559,7 @@ window.GL_TEXT['pt-PT'] = {
         foot: { title: '{{t:rec_size_label}}', spots: {
           note: ['Quantas aparecem', 'Quantas entradas da lista vês.'],
           show: ['{{t:rec_size_label}}', 'O tamanho de cada lista.'],
-          sizes: ['Tamanhos', '25, 50, 100 ou todas (até 1000).']
+          sizes: ['Tamanhos', '10, 25, 50 ou 100.']
         } },
         search: { title: 'Pesquisa', spots: {
           field: ['Pesquisar', 'Um artista, uma música ou um álbum.'],
@@ -1694,7 +1694,7 @@ window.GL_TEXT['pt-PT'] = {
           per: ['{{t:nav_daily}} / {{t:nav_weekly}} / {{t:nav_monthly}} / {{t:nav_yearly}}', 'Que top.'],
           run: ['{{t:rec_run_total}} / {{t:rec_run_consec}}', 'Somado ou sem pausas. {{t:rec_nav_all_ones}} e {{t:rec_nav_appearances}}.'],
           sort: ['{{t:rec1_sort}}', '{{t:rec1_sort_rank}}, {{t:rec1_sort_recent}}, {{t:rec1_sort_oldest}}, {{t:rec1_sort_name}}.'],
-          show: ['{{t:rec_size_label}}', '25, 50, 100 ou todas.'],
+          show: ['{{t:rec_size_label}}', '10, 25, 50 ou 100.'],
           all: ['{{t:rec_expand_all}}', 'Todos os percursos de uma vez.']
         } },
         overview: { title: '{{t:rec_nav_overview}}', items: {

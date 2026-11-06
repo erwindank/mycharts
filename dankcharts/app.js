@@ -7574,7 +7574,11 @@ function finalizeLoad() {
   }
 
   // Restore saved records limit
-  const savedRecLimit = localStorage.getItem('dc_rec_limit');
+  let savedRecLimit = localStorage.getItem('dc_rec_limit');
+  // "0" was the old Show → All (removed 2026-11-06): those users get the
+  // biggest size left, 100. Anything else unknown falls back to 25.
+  if (savedRecLimit === '0') { savedRecLimit = '100'; localStorage.setItem('dc_rec_limit', '100'); }
+  if (savedRecLimit && !['10', '25', '50', '100'].includes(savedRecLimit)) savedRecLimit = null;
   if (savedRecLimit) {
     recLimit = parseInt(savedRecLimit, 10);
     const btn = document.querySelector(`#recordsSizeBtns button[data-rec-size="${savedRecLimit}"]`);
@@ -7943,40 +7947,9 @@ window.addEventListener('hashchange', handleChartHash);
 let _recBuiltKey = null;
 
 function _recBuildKey() {
-  // Under Show → All the section on screen is part of what was built.
-  const allFor = recLimit === 0 ? '|' + (localStorage.getItem('dc_records_active_view') || REC_DEFAULT_VIEW) : '';
-  return _crGeneration() + '|' + recLimit + '|' + (typeof currentLang !== 'undefined' ? currentLang : '') + allFor;
-}
-
-// Rows each section keeps under Show → All while it is not on screen.
-const REC_ALL_OTHERS = 25;
-// The most rows Show → All builds for one list (user's call, 2026-11-02).
-const REC_ALL_CAP = 1000;
-
-/* Under Show → All, opening another section has to build its full lists.
-   The section shows at once with what it has; the rebuild follows on the
-   next frame behind the "Building your records…" line, and puts any column
-   sorts back afterwards. */
-let _recAllPending = false;
-function recEnsureBuiltForView() {
-  if (recLimit !== 0 || _recAllPending || !_recArtistTally) return;
-  if (_recBuildKey() === _recBuiltKey) return;
-  _recAllPending = true;
-  const note = document.getElementById('recBuilding');
-  if (note) note.hidden = false;
-  requestAnimationFrame(function () {
-    setTimeout(function () {
-      try {
-        const sorts = captureRecSortState();
-        buildRecords();
-        restoreRecSortState(sorts);
-        applyRecordsViewFilter(localStorage.getItem('dc_records_active_view') || REC_DEFAULT_VIEW);
-      } finally {
-        _recAllPending = false;
-        if (note) note.hidden = true;
-      }
-    }, 0);
-  });
+  // Show → All (which also keyed on the section on screen, and built only
+  // that section in full) was removed 2026-11-06; sizes are now 10/25/50/100.
+  return _crGeneration() + '|' + recLimit + '|' + (typeof currentLang !== 'undefined' ? currentLang : '');
 }
 
 // Forces the next buildRecords() to do the work, whatever the key says.
@@ -8857,18 +8830,11 @@ function buildRecords() {
       }).join('') +
       '</tbody></table>';
   }
-  /* Show → All fills only the section on screen (fixed 2026-11-02). The
-     limit used to apply to all ~55 tables at once, so All built about
-     250,000 rows and four million elements, and the browser ran out of
-     memory. The other sections stay at REC_ALL_OTHERS until opened, which
-     rebuilds (see recEnsureBuiltForView). `lim` is set again at the top of
-     each section below. */
-  // And All stops at REC_ALL_CAP rows per list: Appearances alone had lists
-  // of several thousand, ~98,000 rows and ~15 s for one section.
-  const limFull = recLimit === 0 ? REC_ALL_CAP : recLimit;
-  const recActiveSec = localStorage.getItem('dc_records_active_view') || REC_DEFAULT_VIEW;
-  const recLimFor = function (sec) { return recLimit === 0 && sec !== recActiveSec ? REC_ALL_OTHERS : limFull; };
-  let lim = limFull;
+  /* Rows per list = the Show size (10/25/50/100). Show → All was removed
+     2026-11-06: even capped at 1,000 rows and built one section at a time
+     it was slow (Appearances alone had lists of several thousand). */
+  const limFull = recLimit;
+  const lim = limFull;
 
   /* The All #1s sentence (phase 20): how many reached #1 on this chart, and
      who holds the record. `rows` is the ranked list for that count: entries
@@ -9029,7 +8995,6 @@ function buildRecords() {
   const rec1Hidden = function (label) { return '<span class="rec1-hmark"></span>' + label; };
 
   // ── All #1s ──────────────────────────────────────────────────
-  lim = recLimFor('recAllOnesSection');
   /* `label` is the full chart name ("Weekly Chart") the record titles are built
      from; `short` is the bare period the pill row wears, because the title
      right under it already spells the chart name out in full. */
@@ -9270,7 +9235,6 @@ function buildRecords() {
   loadImages(onesImgQueue.filter(function (x) { return x.imgType === 'album'; }), 'album');
 
   // ── Perfect All Kill ─────────────────────────────────────────
-  lim = recLimFor('recPAKSection');
   /* One panel per chart, behind the same period pills All #1s wears. The three
      are not one list with a filter over it: holding all three #1s for a whole
      year is a different achievement from holding them for a week, and the
@@ -9449,7 +9413,6 @@ function buildRecords() {
   }
 
   // ── Most Chart Appearances ────────────────────────────────────
-  lim = recLimFor('recAppearancesSection');
   ensureAllChartRun();
   /* The section used to count weeks only, even though songApps/artistApps/
      albumApps have carried month and year tallies all along. Each period is now
@@ -9746,7 +9709,6 @@ function buildRecords() {
   loadImages(appImgQueue.filter(x => x.imgType === 'album'), 'album');
 
   // ── Biggest Debuts ───────────────────────────────────────────
-  lim = recLimFor('recDebutsSection');
   const debImgQueue = [];
   /* Debuts ranked the weekly chart only, though songDebuts/artistDebuts/
      albumDebuts have always held month and year maps too. Same treatment as
@@ -10026,7 +9988,6 @@ function buildRecords() {
   loadImages(debImgQueue.filter(function (x) { return x.imgType === 'album'; }), 'album');
 
   // ── Most Plays in a Period ────────────────────────────────────
-  lim = recLimFor('recPeakPlaysSection');
   /* `unitLabel` is the period word the record title and its last column wear
      ("Week"); `short` is the bare period the pill row wears, the same pair All
      #1s keeps above. */
@@ -10117,7 +10078,6 @@ function buildRecords() {
   document.getElementById('recPeakPlaysBody').innerHTML = recEntTabsHtml('pp', ppPanels);
 
   // ── Play Count Milestones ─────────────────────────────────────
-  lim = recLimFor('recMilestonesSection');
   /* Milestones are a ladder of firsts, not a leaderboard: every row is a
      different tier, and what matters is when each was reached and how long it
      took. That is a story with dates, so it renders as a vertical timeline
@@ -10343,7 +10303,6 @@ function buildRecords() {
   })();
 
   // ── Fastest to Milestone ──────────────────────────────────────
-  lim = recLimFor('recFastestSection');
   /* One ladder per entity, and each rung its own record table. The three
      ladders are deliberately different: a song is the smallest unit here, so
      it earns the finest steps at the bottom, while an artist — who collects
@@ -10479,7 +10438,6 @@ function buildRecords() {
   document.getElementById('recFastestBody').innerHTML = fh;
 
   // ── Certifications Leaderboard ────────────────────────────────
-  lim = recLimFor('recCertsSection');
   const certW = Object.entries(artistCertCounts).map(function (e) {
     const c = e[1];
     return {
@@ -10588,7 +10546,6 @@ function buildRecords() {
   renderCertifications(wallItems);
 
   // ── New Charts Records ────────────────────────────────────────
-  lim = recLimFor('recNewChartsSection');
   // Ten records × three entities × two period types is twenty tables, and they
   // used to render as one scroll. The pills below make it one entity and one
   // period at a time: a type row (Songs/Artists/Albums) and, under it, a
@@ -10813,7 +10770,6 @@ function buildRecords() {
   loadImages(ncImgQueue, 'song');
 
   // ── Streak Records ────────────────────────────────────────────
-  lim = recLimFor('recStreaksSection');
   /* Three entity pills now, each with its own period row underneath — the
      same two-level shape Most Plays and All #1s wear. A listening streak is
      the same record whichever calendar unit it is counted in, so days, months
@@ -11248,9 +11204,7 @@ function buildRecords() {
 
   // Canonical rank index per row, so the entries-per-table limit can be applied
   // (and re-applied at a smaller value) without rebuilding any of this.
-  // Under All the other sections hold REC_ALL_OTHERS rows, so that is what
-  // a later, smaller limit can count on without a rebuild.
-  recBuiltLimit = recLimit === 0 ? REC_ALL_OTHERS : limFull;
+  recBuiltLimit = limFull;
   tagRecCellLabels();
   tagRecRowIndices();
   applyRecRowLimit(limFull);
@@ -12509,7 +12463,7 @@ function applyRecRowLimit(limit) {
 }
 
 function applyRecordsLimitChange() {
-  const want = recLimit === 0 ? Infinity : recLimit;
+  const want = recLimit;
   if (recBuiltLimit !== null && want <= recBuiltLimit) {
     // The rows are already here — no rebuild, so the sort and the images stay put.
     applyRecRowLimit(want);
@@ -12959,7 +12913,6 @@ function applyRecordsViewFilter(view) {
   applyFastestRecTabs();
   applyRecEntTabs();
   applyRecPerTabs();
-  recEnsureBuiltForView();
   if (typeof recxSync === 'function') recxSync();
   if (typeof window._refreshBackToTop === 'function') window._refreshBackToTop();
 }
@@ -13400,7 +13353,7 @@ function rec1SyncStory() {
   const note = document.getElementById('rec1FootNote');
   if (note) {
     const total = _rec1Totals[ent + '|' + pt + '|' + mode] || 0;
-    const shown = Math.min(recLimit === 0 ? REC_ALL_CAP : recLimit, total);
+    const shown = Math.min(recLimit, total);
     note.textContent = !total ? '' : shown >= total
       ? t('rec1_showing_all', { total: total.toLocaleString() })
       : t('rec1_showing', { n: shown.toLocaleString(), total: total.toLocaleString() });

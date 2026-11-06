@@ -1559,7 +1559,7 @@ window.GL_TEXT.es = {
         foot: { title: '{{t:rec_size_label}}', spots: {
           note: ['Cuántas se ven', 'Cuántas entradas de la lista ves.'],
           show: ['{{t:rec_size_label}}', 'Lo larga que es cada lista.'],
-          sizes: ['Tamaños', '25, 50, 100 o todas (hasta 1000).']
+          sizes: ['Tamaños', '10, 25, 50 o 100.']
         } },
         search: { title: 'Buscar', spots: {
           field: ['Buscar', 'Un artista, una canción o un álbum.'],
@@ -1694,7 +1694,7 @@ window.GL_TEXT.es = {
           per: ['{{t:nav_daily}} / {{t:nav_weekly}} / {{t:nav_monthly}} / {{t:nav_yearly}}', 'Qué ranking.'],
           run: ['{{t:rec_run_total}} / {{t:rec_run_consec}}', 'Sumado o sin cortes. {{t:rec_nav_all_ones}} y {{t:rec_nav_appearances}}.'],
           sort: ['{{t:rec1_sort}}', '{{t:rec1_sort_rank}}, {{t:rec1_sort_recent}}, {{t:rec1_sort_oldest}}, {{t:rec1_sort_name}}.'],
-          show: ['{{t:rec_size_label}}', '25, 50, 100 o todas.'],
+          show: ['{{t:rec_size_label}}', '10, 25, 50 o 100.'],
           all: ['{{t:rec_expand_all}}', 'Todas las trayectorias a la vez.']
         } },
         overview: { title: '{{t:rec_nav_overview}}', items: {

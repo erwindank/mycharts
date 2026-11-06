@@ -2564,7 +2564,7 @@ window.GL_TEXT.en = {
         foot: { title: '{{t:rec_size_label}}', spots: {
           note: ['How many show', 'How many of the list you see.'],
           show: ['{{t:rec_size_label}}', 'How long each list is.'],
-          sizes: ['Sizes', '25, 50, 100 or All (up to 1,000).']
+          sizes: ['Sizes', '10, 25, 50 or 100.']
         } },
         search: { title: 'Search', spots: {
           field: ['Search', 'An artist, song or album.'],
@@ -2699,7 +2699,7 @@ window.GL_TEXT.en = {
           per: ['{{t:nav_daily}} / {{t:nav_weekly}} / {{t:nav_monthly}} / {{t:nav_yearly}}', 'Which chart.'],
           run: ['{{t:rec_run_total}} / {{t:rec_run_consec}}', 'Added up, or unbroken. {{t:rec_nav_all_ones}} and {{t:rec_nav_appearances}}.'],
           sort: ['{{t:rec1_sort}}', '{{t:rec1_sort_rank}}, {{t:rec1_sort_recent}}, {{t:rec1_sort_oldest}}, {{t:rec1_sort_name}}.'],
-          show: ['{{t:rec_size_label}}', '25, 50, 100 or All.'],
+          show: ['{{t:rec_size_label}}', '10, 25, 50 or 100.'],
           all: ['{{t:rec_expand_all}}', 'Every run at once.']
         } },
         overview: { title: '{{t:rec_nav_overview}}', items: {

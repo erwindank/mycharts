@@ -1840,10 +1840,11 @@
         <div class="rec-size-inline" id="recordsSizeBar">
           <label data-i18n="rec_size_label">Entries Display:</label>
           <div class="size-btns" id="recordsSizeBtns">
+            <!-- No "All": it built thousands of rows per list and was slow (removed 2026-11-06) -->
+            <button data-rec-size="10">10</button>
             <button data-rec-size="25" class="active">25</button>
             <button data-rec-size="50">50</button>
             <button data-rec-size="100">100</button>
-            <button data-rec-size="0">All</button>
           </div>
         </div>
       </div>
@@ -4389,16 +4390,16 @@
        the whole start. app.js reads this tag's content and loads the file once
        the page has finished loading, or straight away when What's New opens
        (dcClEnsureData). Bump ?v= here exactly as before. -->
-  <meta id="dcChangelogSrc" name="dc-changelog-src" content="changelog.js?v=539">
+  <meta id="dcChangelogSrc" name="dc-changelog-src" content="changelog.js?v=540">
   <!-- Community board tab (suggestions / bugs / discussion). Loaded before
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
   <script defer src="board.js?v=8"></script>
   <!-- The Charts Guide's words in four languages (read by guide.js: the Reference tab and search) -->
-  <script defer src="charts-guide-i18n.js?v=14"></script>
+  <script defer src="charts-guide-i18n.js?v=15"></script>
   <!-- One behaviour and one icon set for every pop-up window (phase 10); before
        app.js so dcIco() is there when app.js draws a window -->
   <script defer src="popups.js?v=13"></script>
-  <script defer src="app.js?v=661"></script>
+  <script defer src="app.js?v=662"></script>
   <!-- The song / album / artist details side panel (phase 10 step 3); wraps app.js's open functions -->
   <script defer src="panel.js?v=16"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
@@ -4423,7 +4424,7 @@
        anywhere in the app; the lessons themselves (guide-lessons*.js) and the
        picture measurements load only when the guide opens. After app.js: it
        wraps app functions and takes over dcRenderChartsGuideView. -->
-  <script defer src="guide.js?v=17"></script>
+  <script defer src="guide.js?v=18"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at
