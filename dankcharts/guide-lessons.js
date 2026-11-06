@@ -21,9 +21,36 @@
    ═══════════════════════════════════════════════════════════════════ */
 window.GL = {
   // Areas group the lessons on the hub, in this order
-  areas: ['charts', 'insights', 'more', 'setup'],
+  areas: ['start', 'charts', 'insights', 'more', 'setup'],
 
   lessons: [
+    /* ── Lesson 0: Getting started (GUIDE-PLAN.md step 12) ─────────
+       The old guide's Start Here: a live check of your setup (live:
+       'setup', drawn by guide.js) above the lesson, and its seven first
+       steps as the challenges. Pictures are the Weekly and Settings ones. */
+    { id: 'start', area: 'start', nav: null, mins: 4, cover: 'week-top', live: 'setup',
+      scenes: [
+        { id: 'bar', shot: 'set-bar', phone: true, spots: ['search', 'settings', 'theme', 'lang', 'signin'] },
+        { id: 'chart', shot: 'week-top', phone: true, spots: ['periods', 'prev', 'label', 'next', 'tiles'] },
+        { id: 'row', shot: 'week-rows', phone: true, spots: ['rank', 'move', 'title', 'peak', 'weeks', 'plays', 'more'] }
+      ],
+      howto: [
+        { id: 'first', challenge: 'start.chart', slides: [
+          { shot: 'set-source', spot: 'cards' }, { shot: 'set-lastfm', spot: 'save' }, { shot: 'week-top', spot: 'periods' },
+          { shot: 'week-rows', spot: 'rank' }, { shot: 'week-rows', spot: 'more' } ] },
+        { id: 'around', challenge: 'start.explore', slides: [
+          { shot: 'set-bar', spot: 'search' }, { shot: 'week-top', spot: 'periods' }, { shot: 'week-chart', spot: 'type' },
+          { shot: 'set-bar', spot: 'settings' } ] }
+      ],
+      options: [
+        { id: 'where', items: [
+          { id: 'settings', shot: 'set-bar', spot: 'settings' }, { id: 'search', shot: 'set-bar', spot: 'search' },
+          { id: 'periods', shot: 'week-top', spot: 'periods' } ] }
+      ],
+      challenges: ['start.data', 'start.chart', 'start.tour', 'start.explore', 'start.size', 'start.card', 'start.playlist'],
+      quiz: [ { id: 'q1', answer: 1 }, { id: 'q2', answer: 0 }, { id: 'q3', answer: 2 } ],
+      tips: [ ['set-bar', 'search', 'start.explore'], ['week-top', 'periods', 'start.chart'], ['week-rows', 'more', 'start.playlist'] ]
+    },
     /* ── Lesson 1: the Weekly chart page ─────────────────────────── */
     { id: 'week', area: 'charts', nav: 'week', mins: 8, cover: 'week-chart',
       scenes: [
@@ -997,7 +1024,7 @@ window.GL_TEXT.en = {
     tip_new: 'A new one every day',
     tip_try: 'Show me',
     tip_open: 'Open the lesson',
-    area: { charts: 'Your charts', insights: 'Stats, records and awards', more: 'More tabs', setup: 'Settings' },
+    area: { start: 'Start here', charts: 'Your charts', insights: 'Stats, records and awards', more: 'More tabs', setup: 'Settings' },
     soon: 'Coming soon',
     mastered: 'Mastered',
     in_progress: '{{pct}}% done',
@@ -1043,11 +1070,92 @@ window.GL_TEXT.en = {
     mastered_title: 'Lesson mastered',
     mastered_text: 'You know “{{lesson}}” inside out.',
     loading: 'Loading the guide…',
-    ref_note: 'Setup checks, your data, the FAQ, glossary and shortcuts. These get the new look in a later update.'
+    search_ph: 'Search the guide: a button, a word, a question…',
+    search_none: 'Nothing found. Try another word.',
+    sr_lesson: 'Lesson', sr_spot: 'On screen', sr_howto: 'How to', sr_option: 'Option', sr_challenge: 'Challenge',
+    sr_faq: 'FAQ', sr_gloss: 'Glossary', sr_key: 'Shortcut', sr_ref: 'How charts work',
+    ref_lesson: 'The lesson',
+    tour_lesson: 'Lesson: {{lesson}}'
   },
 
   /* ── Lessons ─────────────────────────────────────────────────────── */
   lessons: {
+    start: {
+      title: 'Getting started',
+      promise: 'Check your setup, find your way around, and do the first things worth doing. Everything else builds on this.',
+      scenes: {
+        bar: { title: 'The top bar', spots: {
+          search: ['{{t:tb_search}}', 'Any song, artist or album in your library.'],
+          settings: ['{{t:set_title}}', 'Where your plays come from, and how your charts work.'],
+          theme: ['{{t:set_theme}}', 'Twelve colour themes.'],
+          lang: ['{{t:set_language}}', 'Four languages.'],
+          signin: ['{{t:tb_sign_in}}', 'Optional: keeps everything in step on every device.']
+        } },
+        chart: { title: 'Your chart', spots: {
+          periods: ['Periods', 'Daily, weekly, monthly, yearly and all-time charts.'],
+          prev: ['Back', 'The period before.'],
+          label: ['Which one', 'Click it to jump to any date.'],
+          next: ['On', 'The period after.'],
+          tiles: ['At a glance', 'The numbers of the period.']
+        } },
+        row: { title: 'A chart row', spots: {
+          rank: ['Place', 'Its position.'],
+          move: ['Move', 'Up, down, new or back since last time.'],
+          title: ['The song', 'Click it for everything about it.'],
+          peak: ['Peak', 'Its best place.'],
+          weeks: ['Weeks', 'How long it has charted.'],
+          plays: ['Plays', 'In this period.'],
+          more: ['⋮', 'Listen, add to a playlist, share and more.']
+        } }
+      },
+      howto: {
+        first: { title: 'Your first five minutes', slides: [
+          'Connect your listening: Google Sheets, Last.fm, or a file.',
+          'Save, and your plays load.',
+          'Your weekly chart is ready. Try the other periods.',
+          'Read a row: its place, its move, its peak.',
+          'The ⋮ menu: listen, a playlist, share.'
+        ] },
+        around: { title: 'Find your way around', slides: [
+          'Search finds anything in your library.',
+          'Switch periods along the top.',
+          'Songs, artists or albums.',
+          '{{t:set_title}} holds the rest.'
+        ] }
+      },
+      options: {
+        where: { title: 'Where things are', items: {
+          settings: ['{{t:set_title}}', 'Your source, chart week, time zone, look and backups.'],
+          search: ['{{t:tb_search}}', 'Press / anywhere.'],
+          periods: ['Periods', 'Each chart has its own lesson in this guide.']
+        } }
+      },
+      challenges: {
+        'start.data': ['Load your plays', 'Connect a source in {{t:set_title}}. Ticks itself once plays are in.'],
+        'start.chart': ['Open your weekly chart', '{{t:tab_charts}} in the top bar.'],
+        'start.tour': ['Take the tour', 'Four minutes around every tab.'],
+        'start.explore': ['Open another tab', 'Stats, Records, Awards… anything.'],
+        'start.size': ['Change a chart’s size', 'The ⋮ above the chart → Size.'],
+        'start.card': ['Make a share image', 'The ⋮ above the chart → Share.'],
+        'start.playlist': ['Add something to a playlist', 'A row’s ⋮ → {{t:ea_add_playlist}}.']
+      },
+      quiz: {
+        q1: ['Where do you connect Last.fm, a Google Sheet or a file?',
+          ['On the Weekly chart', 'In {{t:set_title}}', 'In the Charts Guide'],
+          '{{t:set_title}} (the gear in the top bar) opens on {{t:set_tab_source}}.'],
+        q2: ['What does a chart row’s ⋮ menu give you?',
+          ['Listen, add to a playlist, share and more', 'Only delete', 'The settings'],
+          'Every row has one, and so do the windows.'],
+        q3: ['You played a song a lot last March. How do you find that week?',
+          ['Scroll down a lot', 'It’s gone', 'Click the date and pick the week'],
+          'The date opens a picker; the arrows step one period at a time.']
+      },
+      tips: [
+        'Press / anywhere to search your whole library.',
+        'Click the date above any chart to jump straight to a week, month or year.',
+        'Every chart row has a ⋮ menu: listen, add to a playlist, share.'
+      ]
+    },
     week: {
       title: 'Your Weekly chart',
       promise: 'Read every number on a chart, move between weeks and make it look the way you like.',

@@ -29,7 +29,7 @@
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
   <link rel="stylesheet" href="style.css?v=886">
   <!-- The Charts Guide's lessons (guide.js, GUIDE-PLAN.md) -->
-  <link rel="stylesheet" href="guide.css?v=1">
+  <link rel="stylesheet" href="guide.css?v=3">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -4423,7 +4423,7 @@
        anywhere in the app; the lessons themselves (guide-lessons*.js) and the
        picture measurements load only when the guide opens. After app.js: it
        wraps app functions and takes over dcRenderChartsGuideView. -->
-  <script defer src="guide.js?v=15"></script>
+  <script defer src="guide.js?v=16"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at

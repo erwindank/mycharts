@@ -20,7 +20,7 @@ window.GL_TEXT['pt-PT'] = {
     tip_new: 'Uma nova todos os dias',
     tip_try: 'Mostra-me',
     tip_open: 'Abrir a lição',
-    area: { charts: 'Os teus tops', insights: 'Estatísticas, recordes e prémios', more: 'Mais separadores', setup: 'Definições' },
+    area: { start: 'Começa aqui', charts: 'Os teus tops', insights: 'Estatísticas, recordes e prémios', more: 'Mais separadores', setup: 'Definições' },
     soon: 'Em breve',
     mastered: 'Dominada',
     in_progress: '{{pct}}% feito',
@@ -66,10 +66,91 @@ window.GL_TEXT['pt-PT'] = {
     mastered_title: 'Lição dominada',
     mastered_text: 'Já conheces “{{lesson}}” de uma ponta à outra.',
     loading: 'A carregar o guia…',
-    ref_note: 'Verificações, os teus dados, perguntas frequentes, glossário e atalhos. Vão ganhar o novo visual numa próxima atualização.'
+    search_ph: 'Pesquisa no guia: um botão, uma palavra, uma pergunta…',
+    search_none: 'Nada encontrado. Experimenta outra palavra.',
+    sr_lesson: 'Lição', sr_spot: 'No ecrã', sr_howto: 'Como', sr_option: 'Opção', sr_challenge: 'Desafio',
+    sr_faq: 'Pergunta', sr_gloss: 'Glossário', sr_key: 'Atalho', sr_ref: 'Como funcionam',
+    ref_lesson: 'A lição',
+    tour_lesson: 'Lição: {{lesson}}'
   },
 
   lessons: {
+    start: {
+      title: 'Primeiros passos',
+      promise: 'Verifica a tua configuração, aprende a orientar-te e faz as primeiras coisas que valem a pena. Tudo o resto parte daqui.',
+      scenes: {
+        bar: { title: 'A barra de cima', spots: {
+          search: ['{{t:tb_search}}', 'Qualquer música, artista ou álbum da tua biblioteca.'],
+          settings: ['{{t:set_title}}', 'De onde vêm os teus plays e como funcionam os teus tops.'],
+          theme: ['{{t:set_theme}}', 'Doze temas de cor.'],
+          lang: ['{{t:set_language}}', 'Quatro idiomas.'],
+          signin: ['{{t:tb_sign_in}}', 'Opcional: mantém tudo igual em todos os dispositivos.']
+        } },
+        chart: { title: 'O teu top', spots: {
+          periods: ['Períodos', 'Tops diários, semanais, mensais, anuais e de sempre.'],
+          prev: ['Anterior', 'O período anterior.'],
+          label: ['Qual', 'Clica para ires a qualquer data.'],
+          next: ['Seguinte', 'O período seguinte.'],
+          tiles: ['Num relance', 'Os números do período.']
+        } },
+        row: { title: 'Uma linha do top', spots: {
+          rank: ['Posição', 'Onde está.'],
+          move: ['Movimento', 'Subiu, desceu, nova ou voltou desde a última vez.'],
+          title: ['A música', 'Clica para veres tudo sobre ela.'],
+          peak: ['Pico', 'A melhor posição.'],
+          weeks: ['Semanas', 'Há quanto tempo está no top.'],
+          plays: ['Plays', 'Neste período.'],
+          more: ['⋮', 'Ouvir, juntar a uma playlist, partilhar e mais.']
+        } }
+      },
+      howto: {
+        first: { title: 'Os teus primeiros cinco minutos', slides: [
+          'Liga o que ouves: Google Sheets, Last.fm ou um ficheiro.',
+          'Guarda, e os teus plays carregam.',
+          'O teu top semanal está pronto. Experimenta os outros períodos.',
+          'Lê uma linha: a posição, o movimento, o pico.',
+          'O menu ⋮: ouvir, uma playlist, partilhar.'
+        ] },
+        around: { title: 'Aprende a orientar-te', slides: [
+          'A pesquisa encontra qualquer coisa da tua biblioteca.',
+          'Muda de período lá em cima.',
+          'Músicas, artistas ou álbuns.',
+          '{{t:set_title}} tem o resto.'
+        ] }
+      },
+      options: {
+        where: { title: 'Onde está cada coisa', items: {
+          settings: ['{{t:set_title}}', 'A tua fonte, a semana do top, o fuso horário, o aspeto e as cópias.'],
+          search: ['{{t:tb_search}}', 'Carrega em / em qualquer lado.'],
+          periods: ['Períodos', 'Cada top tem a sua própria lição neste guia.']
+        } }
+      },
+      challenges: {
+        'start.data': ['Carrega os teus plays', 'Liga uma fonte em {{t:set_title}}. Marca-se sozinho quando os plays chegam.'],
+        'start.chart': ['Abre o teu top semanal', '{{t:tab_charts}} na barra de cima.'],
+        'start.tour': ['Faz a visita guiada', 'Quatro minutos por todos os separadores.'],
+        'start.explore': ['Abre outro separador', 'Estatísticas, Recordes, Prémios… qualquer um.'],
+        'start.size': ['Muda o tamanho de um top', 'O ⋮ por cima do top → Tamanho.'],
+        'start.card': ['Cria uma imagem para partilhar', 'O ⋮ por cima do top → Partilhar.'],
+        'start.playlist': ['Junta algo a uma playlist', 'O ⋮ de uma linha → {{t:ea_add_playlist}}.']
+      },
+      quiz: {
+        q1: ['Onde ligas o Last.fm, uma folha do Google ou um ficheiro?',
+          ['No top semanal', 'Em {{t:set_title}}', 'No guia'],
+          '{{t:set_title}} (a roda dentada na barra de cima) abre em {{t:set_tab_source}}.'],
+        q2: ['O que te dá o menu ⋮ de uma linha?',
+          ['Ouvir, juntar a uma playlist, partilhar e mais', 'Só apagar', 'As definições'],
+          'Todas as linhas têm um, e as janelas também.'],
+        q3: ['Ouviste muito uma música em março passado. Como encontras essa semana?',
+          ['A descer muito', 'Desapareceu', 'Clicar na data e escolher a semana'],
+          'A data abre um seletor; as setas andam um período de cada vez.']
+      },
+      tips: [
+        'Carrega em / em qualquer lado para pesquisares na tua biblioteca inteira.',
+        'Clica na data por cima de qualquer top para ires direto a uma semana, um mês ou um ano.',
+        'Cada linha do top tem um menu ⋮: ouvir, juntar a uma playlist, partilhar.'
+      ]
+    },
     week: {
       title: 'O teu top Semanal',
       promise: 'Lê cada número de um top, anda entre semanas e deixa-o com o aspeto de que mais gostas.',

@@ -20,7 +20,7 @@ window.GL_TEXT['pt-BR'] = {
     tip_new: 'Uma nova todo dia',
     tip_try: 'Me mostre',
     tip_open: 'Abrir a lição',
-    area: { charts: 'Suas paradas', insights: 'Estatísticas, recordes e prêmios', more: 'Mais abas', setup: 'Configurações' },
+    area: { start: 'Comece aqui', charts: 'Suas paradas', insights: 'Estatísticas, recordes e prêmios', more: 'Mais abas', setup: 'Configurações' },
     soon: 'Em breve',
     mastered: 'Dominada',
     in_progress: '{{pct}}% feito',
@@ -66,10 +66,91 @@ window.GL_TEXT['pt-BR'] = {
     mastered_title: 'Lição dominada',
     mastered_text: 'Você conhece “{{lesson}}” de ponta a ponta.',
     loading: 'Carregando o guia…',
-    ref_note: 'Verificações, seus dados, perguntas frequentes, glossário e atalhos. Eles ganham o novo visual numa próxima atualização.'
+    search_ph: 'Busque no guia: um botão, uma palavra, uma pergunta…',
+    search_none: 'Nada encontrado. Tente outra palavra.',
+    sr_lesson: 'Lição', sr_spot: 'Na tela', sr_howto: 'Como', sr_option: 'Opção', sr_challenge: 'Desafio',
+    sr_faq: 'Pergunta', sr_gloss: 'Glossário', sr_key: 'Atalho', sr_ref: 'Como funcionam',
+    ref_lesson: 'A lição',
+    tour_lesson: 'Lição: {{lesson}}'
   },
 
   lessons: {
+    start: {
+      title: 'Primeiros passos',
+      promise: 'Confira sua configuração, aprenda a se achar e faça as primeiras coisas que valem a pena. Todo o resto parte daqui.',
+      scenes: {
+        bar: { title: 'A barra de cima', spots: {
+          search: ['{{t:tb_search}}', 'Qualquer música, artista ou álbum da sua biblioteca.'],
+          settings: ['{{t:set_title}}', 'De onde vêm seus plays e como suas paradas funcionam.'],
+          theme: ['{{t:set_theme}}', 'Doze temas de cor.'],
+          lang: ['{{t:set_language}}', 'Quatro idiomas.'],
+          signin: ['{{t:tb_sign_in}}', 'Opcional: mantém tudo igual em todos os aparelhos.']
+        } },
+        chart: { title: 'Sua parada', spots: {
+          periods: ['Períodos', 'Paradas diárias, semanais, mensais, anuais e de todos os tempos.'],
+          prev: ['Voltar', 'O período anterior.'],
+          label: ['Qual', 'Clique para ir a qualquer data.'],
+          next: ['Avançar', 'O período seguinte.'],
+          tiles: ['Num relance', 'Os números do período.']
+        } },
+        row: { title: 'Uma linha da parada', spots: {
+          rank: ['Posição', 'Onde ela está.'],
+          move: ['Movimento', 'Subiu, caiu, nova ou voltou desde a última vez.'],
+          title: ['A música', 'Clique para ver tudo sobre ela.'],
+          peak: ['Pico', 'A melhor posição.'],
+          weeks: ['Semanas', 'Há quanto tempo está na parada.'],
+          plays: ['Plays', 'Neste período.'],
+          more: ['⋮', 'Ouvir, adicionar a uma playlist, compartilhar e mais.']
+        } }
+      },
+      howto: {
+        first: { title: 'Seus primeiros cinco minutos', slides: [
+          'Conecte o que você ouve: Google Sheets, Last.fm ou um arquivo.',
+          'Salve, e seus plays carregam.',
+          'Sua parada semanal está pronta. Experimente os outros períodos.',
+          'Leia uma linha: a posição, o movimento, o pico.',
+          'O menu ⋮: ouvir, uma playlist, compartilhar.'
+        ] },
+        around: { title: 'Aprenda a se achar', slides: [
+          'A busca acha qualquer coisa da sua biblioteca.',
+          'Troque de período lá em cima.',
+          'Músicas, artistas ou álbuns.',
+          '{{t:set_title}} tem o resto.'
+        ] }
+      },
+      options: {
+        where: { title: 'Onde fica cada coisa', items: {
+          settings: ['{{t:set_title}}', 'Sua fonte, a semana da parada, o fuso horário, o visual e os backups.'],
+          search: ['{{t:tb_search}}', 'Aperte / em qualquer lugar.'],
+          periods: ['Períodos', 'Cada parada tem sua própria lição neste guia.']
+        } }
+      },
+      challenges: {
+        'start.data': ['Carregue seus plays', 'Conecte uma fonte em {{t:set_title}}. Marca sozinho quando os plays chegam.'],
+        'start.chart': ['Abra sua parada semanal', '{{t:tab_charts}} na barra de cima.'],
+        'start.tour': ['Faça o tour', 'Quatro minutos por todas as abas.'],
+        'start.explore': ['Abra outra aba', 'Estatísticas, Recordes, Prêmios… qualquer uma.'],
+        'start.size': ['Mude o tamanho de uma parada', 'O ⋮ acima da parada → Tamanho.'],
+        'start.card': ['Crie uma imagem para compartilhar', 'O ⋮ acima da parada → Compartilhar.'],
+        'start.playlist': ['Adicione algo a uma playlist', 'O ⋮ de uma linha → {{t:ea_add_playlist}}.']
+      },
+      quiz: {
+        q1: ['Onde você conecta o Last.fm, uma planilha do Google ou um arquivo?',
+          ['Na parada semanal', 'Em {{t:set_title}}', 'No guia'],
+          '{{t:set_title}} (a engrenagem na barra de cima) abre em {{t:set_tab_source}}.'],
+        q2: ['O que o menu ⋮ de uma linha oferece?',
+          ['Ouvir, adicionar a uma playlist, compartilhar e mais', 'Só apagar', 'As configurações'],
+          'Toda linha tem um, e as janelas também.'],
+        q3: ['Você ouviu muito uma música em março passado. Como achar aquela semana?',
+          ['Rolando muito', 'Ela sumiu', 'Clicando na data e escolhendo a semana'],
+          'A data abre um seletor; as setas andam um período por vez.']
+      },
+      tips: [
+        'Aperte / em qualquer lugar para buscar na sua biblioteca inteira.',
+        'Clique na data acima de qualquer parada para ir direto a uma semana, um mês ou um ano.',
+        'Toda linha da parada tem um menu ⋮: ouvir, adicionar a uma playlist, compartilhar.'
+      ]
+    },
     week: {
       title: 'Sua parada Semanal',
       promise: 'Leia cada número de uma parada, navegue entre semanas e deixe ela do jeito que você gosta.',

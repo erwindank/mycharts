@@ -20,7 +20,7 @@ window.GL_TEXT.es = {
     tip_new: 'Uno nuevo cada día',
     tip_try: 'Enséñamelo',
     tip_open: 'Abrir la lección',
-    area: { charts: 'Tus rankings', insights: 'Estadísticas, récords y premios', more: 'Más pestañas', setup: 'Ajustes' },
+    area: { start: 'Empieza aquí', charts: 'Tus rankings', insights: 'Estadísticas, récords y premios', more: 'Más pestañas', setup: 'Ajustes' },
     soon: 'Muy pronto',
     mastered: 'Dominada',
     in_progress: '{{pct}}% hecho',
@@ -66,10 +66,91 @@ window.GL_TEXT.es = {
     mastered_title: 'Lección dominada',
     mastered_text: 'Ya conoces «{{lesson}}» a fondo.',
     loading: 'Cargando la guía…',
-    ref_note: 'Comprobaciones, tus datos, preguntas frecuentes, glosario y atajos. Tendrán el nuevo diseño en una próxima actualización.'
+    search_ph: 'Busca en la guía: un botón, una palabra, una pregunta…',
+    search_none: 'No se encontró nada. Prueba otra palabra.',
+    sr_lesson: 'Lección', sr_spot: 'En pantalla', sr_howto: 'Cómo', sr_option: 'Opción', sr_challenge: 'Reto',
+    sr_faq: 'Pregunta', sr_gloss: 'Glosario', sr_key: 'Atajo', sr_ref: 'Cómo funcionan',
+    ref_lesson: 'La lección',
+    tour_lesson: 'Lección: {{lesson}}'
   },
 
   lessons: {
+    start: {
+      title: 'Primeros pasos',
+      promise: 'Revisa tu configuración, aprende a moverte y haz lo primero que vale la pena hacer. Todo lo demás parte de aquí.',
+      scenes: {
+        bar: { title: 'La barra superior', spots: {
+          search: ['{{t:tb_search}}', 'Cualquier canción, artista o álbum de tu biblioteca.'],
+          settings: ['{{t:set_title}}', 'De dónde vienen tus reproducciones y cómo funcionan tus rankings.'],
+          theme: ['{{t:set_theme}}', 'Doce temas de color.'],
+          lang: ['{{t:set_language}}', 'Cuatro idiomas.'],
+          signin: ['{{t:tb_sign_in}}', 'Opcional: lo mantiene todo igual en cada dispositivo.']
+        } },
+        chart: { title: 'Tu ranking', spots: {
+          periods: ['Periodos', 'Rankings diarios, semanales, mensuales, anuales y de siempre.'],
+          prev: ['Atrás', 'El periodo anterior.'],
+          label: ['Cuál', 'Haz clic para ir a cualquier fecha.'],
+          next: ['Adelante', 'El periodo siguiente.'],
+          tiles: ['De un vistazo', 'Las cifras del periodo.']
+        } },
+        row: { title: 'Una fila del ranking', spots: {
+          rank: ['Puesto', 'Su posición.'],
+          move: ['Movimiento', 'Sube, baja, nueva o vuelve desde la última vez.'],
+          title: ['La canción', 'Haz clic para verlo todo sobre ella.'],
+          peak: ['Pico', 'Su mejor puesto.'],
+          weeks: ['Semanas', 'Cuánto tiempo lleva en el ranking.'],
+          plays: ['Reproducciones', 'En este periodo.'],
+          more: ['⋮', 'Escuchar, añadir a una lista, compartir y más.']
+        } }
+      },
+      howto: {
+        first: { title: 'Tus primeros cinco minutos', slides: [
+          'Conecta lo que escuchas: Google Sheets, Last.fm o un archivo.',
+          'Guarda y se cargan tus reproducciones.',
+          'Tu ranking semanal está listo. Prueba los otros periodos.',
+          'Lee una fila: su puesto, su movimiento, su pico.',
+          'El menú ⋮: escuchar, una lista, compartir.'
+        ] },
+        around: { title: 'Aprende a moverte', slides: [
+          'La búsqueda encuentra cualquier cosa de tu biblioteca.',
+          'Cambia de periodo arriba.',
+          'Canciones, artistas o álbumes.',
+          '{{t:set_title}} tiene el resto.'
+        ] }
+      },
+      options: {
+        where: { title: 'Dónde está cada cosa', items: {
+          settings: ['{{t:set_title}}', 'Tu fuente, la semana del ranking, la zona horaria, el aspecto y las copias.'],
+          search: ['{{t:tb_search}}', 'Pulsa / en cualquier parte.'],
+          periods: ['Periodos', 'Cada ranking tiene su propia lección en esta guía.']
+        } }
+      },
+      challenges: {
+        'start.data': ['Carga tus reproducciones', 'Conecta una fuente en {{t:set_title}}. Se marca sola cuando llegan.'],
+        'start.chart': ['Abre tu ranking semanal', '{{t:tab_charts}} en la barra superior.'],
+        'start.tour': ['Haz el recorrido', 'Cuatro minutos por todas las pestañas.'],
+        'start.explore': ['Abre otra pestaña', 'Estadísticas, Récords, Premios… la que sea.'],
+        'start.size': ['Cambia el tamaño de un ranking', 'El ⋮ encima del ranking → Tamaño.'],
+        'start.card': ['Haz una imagen para compartir', 'El ⋮ encima del ranking → Compartir.'],
+        'start.playlist': ['Añade algo a una lista', 'El ⋮ de una fila → {{t:ea_add_playlist}}.']
+      },
+      quiz: {
+        q1: ['¿Dónde conectas Last.fm, una hoja de Google o un archivo?',
+          ['En el ranking semanal', 'En {{t:set_title}}', 'En la guía'],
+          '{{t:set_title}} (el engranaje de la barra superior) se abre en {{t:set_tab_source}}.'],
+        q2: ['¿Qué te da el menú ⋮ de una fila?',
+          ['Escuchar, añadir a una lista, compartir y más', 'Solo borrar', 'Los ajustes'],
+          'Todas las filas tienen uno, y las ventanas también.'],
+        q3: ['Escuchaste mucho una canción el marzo pasado. ¿Cómo encuentras esa semana?',
+          ['Bajando mucho', 'Ya no está', 'Haz clic en la fecha y elige la semana'],
+          'La fecha abre un selector; las flechas avanzan de periodo en periodo.']
+      },
+      tips: [
+        'Pulsa / en cualquier parte para buscar en toda tu biblioteca.',
+        'Haz clic en la fecha encima de cualquier ranking para ir directo a una semana, un mes o un año.',
+        'Cada fila tiene un menú ⋮: escuchar, añadir a una lista, compartir.'
+      ]
+    },
     week: {
       title: 'Tu ranking Semanal',
       promise: 'Lee cada número de un ranking, muévete entre semanas y déjalo con el aspecto que más te guste.',

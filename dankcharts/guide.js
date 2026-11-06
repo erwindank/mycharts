@@ -18,8 +18,11 @@
    guide-lessons.<lang>.js) and the picture measurements
    (guide/<lang>/shots.json) load only when the guide opens.
 
-   The old guide (dcRenderChartsGuideView in app.js) is kept whole as the
-   hub's Reference tab until GUIDE-PLAN.md step 12 moves its content.
+   The old guide's content (its words are still CG_TEXT in
+   charts-guide-i18n.js) lives on since GUIDE-PLAN.md step 12: its setup
+   check and first steps in the Getting started lesson, everything else in
+   the hub's Reference tab (refRender). dcRenderChartsGuideView in app.js is
+   no longer drawn; guide.js takes its place.
 
    Progress is kept in localStorage (dc_guide_progress):
      { ch: { id: time }, quiz: { lesson: { q: true } }, seen: { lesson: time },
@@ -29,7 +32,7 @@
   'use strict';
 
   // Bump when the lesson files or the pictures change (it's their ?v=)
-  const GUIDE_V = '15';
+  const GUIDE_V = '16';
   const STORE = 'dc_guide_progress';
   const LANG_FILES = ['es', 'pt-BR', 'pt-PT'];
 
@@ -253,7 +256,16 @@
     'set.theme':     { lesson: 'settings', click: '.theme-btn' },
     'set.lang':      { lesson: 'settings', click: '.lang-btn:not(.active)' },
     'set.backup':    { lesson: 'settings', fn: 'backupsDownload' },
-    'set.nt':        { lesson: 'settings', open: '#ntModal' }
+    'set.nt':        { lesson: 'settings', open: '#ntModal' },
+    // Getting started: the old Start Here checklist, one challenge per step.
+    // start.data is ticked by itself once plays are loaded (checkStart)
+    'start.data':    { lesson: 'start' },
+    'start.chart':   { lesson: 'start', click: '#periodNav button[data-period="week"], [data-go="charts"]' },
+    'start.tour':    { lesson: 'start', fn: 'dcStartChartsGuideTour' },
+    'start.explore': { lesson: 'start', click: '#periodNav button[data-period]:not([data-period="week"]):not([data-period="chartsguide"]), .tb-tab[data-go]:not([data-go="charts"]), .tb-more-item[data-go]:not([data-go="chartsguide"]), .bt-tab[data-go]:not([data-go="charts"])' },
+    'start.size':    { lesson: 'start', click: '.size-btns button' },
+    'start.card':    { lesson: 'start', fn: 'openIgPreviewModal' },
+    'start.playlist': { lesson: 'start', open: '#dcPlPickModal' }
   };
   // Where "Show me" takes you for each challenge, and what it rings there.
   // open/tab: open the chart's ⋮ menu on a tab first.
@@ -385,8 +397,33 @@
     'set.theme':     { ring: '#themeGroupBtn' },
     'set.lang':      { ring: '#langGroupBtn' },
     'set.backup':    { prep: ['openSourceModal'], ring: '#setTabProfile' },
-    'set.nt':        { ring: '#acctGroupBtn, .tb-signin-btn' }
+    'set.nt':        { ring: '#acctGroupBtn, .tb-signin-btn' },
+    'start.data':    { ring: '#configureSourceBtn' },
+    'start.chart':   { ring: '.tb-tab[data-go="charts"], .bt-tab[data-go="charts"]' },
+    'start.tour':    { ring: '#gdStartTour' },
+    'start.explore': { ring: '#topbarNav, #bottomTabs' }
   };
+  // The same places as their lessons' challenges
+  GD_SHOW['start.size'] = GD_SHOW['week.size'];
+  GD_SHOW['start.card'] = GD_SHOW['around.share'];
+  GD_SHOW['start.playlist'] = GD_SHOW['pl.add'];
+
+  // The old guide's checklist ticks (dc_guide_checks) carry over to these
+  // challenges, so nobody starts again from nothing
+  (function migrateChecks() {
+    let old = null;
+    try { old = JSON.parse(localStorage.getItem('dc_guide_checks') || 'null'); } catch (e) {}
+    if (!old) return;
+    let changed = false;
+    ['data', 'chart', 'tour', 'explore', 'size', 'card', 'playlist'].forEach(k => {
+      if (old[k] && !P.ch['start.' + k]) { P.ch['start.' + k] = Date.now(); changed = true; }
+    });
+    if (changed) saveP();
+  })();
+  // Plays loaded = the first step is done; ticked quietly (no toast)
+  function checkStart() {
+    if (!P.ch['start.data'] && typeof allPlays !== 'undefined' && allPlays && allPlays.length) { P.ch['start.data'] = Date.now(); saveP(); }
+  }
 
   let lastInput = 0;
   const userActed = () => Date.now() - lastInput < 1500;
@@ -425,16 +462,20 @@
 
   // open: a pop-up window gaining its "open" class soon after the user acted
   function watchOpens() {
-    for (const [id, c] of Object.entries(GD_CHALLENGES)) {
-      if (!c.open) continue;
-      const el = document.querySelector(c.open);
+    // One watcher per window, for every challenge on it: the Add to Playlist
+    // window counts for both Playlists (pl.add) and Getting started
+    // (start.playlist). One watcher per challenge used to skip the second.
+    const bySel = {};
+    for (const [id, c] of Object.entries(GD_CHALLENGES)) if (c.open) (bySel[c.open] = bySel[c.open] || []).push(id);
+    for (const [sel, ids] of Object.entries(bySel)) {
+      const el = document.querySelector(sel);
       if (!el || el._gdWatch) continue;
       el._gdWatch = true;
       let was = el.classList.contains('open');
       new MutationObserver(() => {
         const now = el.classList.contains('open');
         // a window can open a moment after the click (it loads first): allow 4s
-        if (now && !was && Date.now() - lastInput < 4000 && periodOk(c)) noteChallenge(id);
+        if (now && !was && Date.now() - lastInput < 4000) ids.forEach(id => { if (periodOk(GD_CHALLENGES[id])) noteChallenge(id); });
         was = now;
       }).observe(el, { attributes: true, attributeFilter: ['class'] });
     }
@@ -666,6 +707,7 @@
   /* ── The hub ──────────────────────────────────────────────────── */
   function renderHub(tab) {
     view.page = tab === 'ref' ? 'ref' : 'hub';
+    checkStart();
     const o = overall();
     const ready = GL.lessons.filter(x => !x.soon);
     // Continue: the last lesson opened that isn't finished, else the first unfinished one
@@ -692,6 +734,10 @@
               ${cont ? `<button type="button" class="dc-btn dc-btn-main gd-go" data-open="${h(cont.id)}">${h(contStats.done ? ui('continue') : ui('start'))} · ${h(tx('lessons.' + cont.id + '.title'))} →</button>` : ''}
               ${nextCh ? `<span class="gd-hero-next">${h(ui('continue_note', { what: chText(cont.id, nextCh)[0] }))}</span>` : ''}
             </div>
+            <div class="gd-hero-more">
+              <button type="button" class="dc-btn dc-btn-plain dc-btn-sm" data-act="tour">${h(cgW('btn_tour'))}</button>
+              <button type="button" class="dc-btn dc-btn-plain dc-btn-sm" data-act="welcome">${h(cgW('btn_replay'))}</button>
+            </div>
           </div>
           <div class="gd-hero-ring">
             ${ring(o.pct, 132, o.pct + '%')}
@@ -699,6 +745,11 @@
             <div class="gd-hero-ring-sub">${h(ui('hero_stats', { lessons: o.all, ch: o.chDone + ' / ' + o.chTotal }))}</div>
           </div>
         </header>
+        <div class="gd-search" role="search">
+          <label class="gd-search-box"><svg class="gd-ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.6"/><path d="M10.4 10.4 14 14"/></svg>
+            <input type="search" id="gdSearch" placeholder="${h(ui('search_ph'))}" aria-label="${h(ui('search_ph'))}" autocomplete="off"></label>
+          <div class="gd-search-res" id="gdSearchRes" hidden></div>
+        </div>
         ${tipHTML()}
         <div class="gd-tabs" role="tablist">
           <button type="button" role="tab" class="gd-tab${tab !== 'ref' ? ' on' : ''}" data-tab="lessons" aria-selected="${tab !== 'ref'}">${h(ui('tab_lessons'))}</button>
@@ -706,7 +757,6 @@
         </div>
         <div class="gd-tabpanel" ${tab === 'ref' ? 'hidden' : ''}>${areas}</div>
         <div class="gd-tabpanel gd-ref" ${tab === 'ref' ? '' : 'hidden'}>
-          <p class="gd-ref-note">${h(ui('ref_note'))}</p>
           <div id="gdRefHost"></div>
         </div>
       </div>`;
@@ -761,10 +811,13 @@
 
   function renderRef() {
     const box = document.getElementById('gdRefHost');
-    if (box && typeof renderRefOrig === 'function') renderRefOrig(box);
+    if (box) refRender(box);
   }
 
   function bindHub() {
+    $$('[data-act="tour"]', host).forEach(b => b.addEventListener('click', () => { if (typeof window.dcStartChartsGuideTour === 'function') window.dcStartChartsGuideTour(); }));
+    $$('[data-act="welcome"]', host).forEach(b => b.addEventListener('click', () => { if (typeof window.dcReplayWelcomeGate === 'function') window.dcReplayWelcomeGate(); }));
+    bindSearch();
     $$('[data-open]', host).forEach(b => b.addEventListener('click', () => openLesson(b.dataset.open)));
     $$('[data-show]', host).forEach(b => b.addEventListener('click', () => showMe(b.dataset.show)));
     $$('.gd-tab', host).forEach(b => b.addEventListener('click', () => {
@@ -776,6 +829,310 @@
       if (ref && !$('#gdRefHost', host).children.length) renderRef();
       try { history.replaceState(null, '', '#t=chartsguide' + (ref ? '/reference' : '')); } catch (e) {}
     }));
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     THE OLD GUIDE'S CONTENT, NEW HOME (GUIDE-PLAN.md step 12)
+     Its words stay in charts-guide-i18n.js (CG_TEXT, four languages);
+     the setup check and first steps live in the Getting started lesson,
+     everything else in the Reference tab below.
+     ═══════════════════════════════════════════════════════════════ */
+  // A CG_TEXT string in the current language (English for anything missing)
+  const cgAll = () => Object.assign({}, (window.CG_TEXT || {}).en || {}, (window.CG_TEXT || {})[lang()] || {});
+  const cgW = k => cgAll()[k] || '';
+  const cgFill = (str, v) => String(str || '').replace(/\{\{(\w+)\}\}/g, (m, k) => (v && v[k] != null ? v[k] : m));
+  const navIco = (nav, cls) => (nav && typeof window.cgNavIco === 'function' ? window.cgNavIco(nav, cls || 'gd-ref-navico') : '');
+  const plays = () => (typeof allPlays !== 'undefined' && allPlays) || [];
+
+  /* ── Getting started: your setup, live ── */
+  function setupHTML() {
+    const G = cgAll(), n = plays().length, loc = lang();
+    const src = typeof getDataSource === 'function' ? getDataSource() : '';
+    const lfmUser = typeof getLastFmUser === 'function' ? getLastFmUser() : '';
+    const ls = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+    const srcLabel = src === 'lastfm' ? 'Last.fm' : src === 'sheets' ? 'Google Sheets' : G.src_csv;
+    const srcOk = src === 'lastfm' ? !!lfmUser : src === 'sheets' ? !!ls('dc_sheet_id') : n > 0;
+    const hasName = !!ls('dc_display_name'), hasTz = !!ls('dc_timezone');
+    const nPlays = n.toLocaleString(loc);
+    // Data quality, as the old Start Here checked it
+    const warn = [];
+    if (!n) warn.push(['bad', G.q_none]);
+    else {
+      warn.push(['ok', cgFill(G.q_ok, { n: nPlays, src: srcLabel })]);
+      const tracks = new Set(plays().map(p => p.title + '|||' + p.artist)).size;
+      if (tracks < 10) warn.push(['warn', G.q_few]);
+      if (!window.firstScrobbleDate && !(plays()[0] && plays()[0].date)) warn.push(['warn', G.q_nodate]);
+      const noAlbum = plays().filter(p => !p.album || p.album === '—').length;
+      if (n > 100 && noAlbum / n > 0.3) warn.push(['warn', cgFill(G.q_noalbum, { pct: Math.round(noAlbum / n * 100) })]);
+    }
+    if (src === 'lastfm' && !lfmUser) warn.push(['warn', G.q_lfm_nouser]);
+    const mark = t => (t === 'ok' ? '✓' : t === 'bad' ? '✗' : t === 'warn' ? '!' : '○');
+    const item = (t, msg) => `<li class="gd-si gd-si-${t}"><span aria-hidden="true">${mark(t)}</span>${h(msg)}</li>`;
+    const step = (done, num, title, text, act, btn, id) => `<div class="gd-step${done ? ' done' : ''}">
+        <span class="gd-step-n">${done ? '✓' : num}</span>
+        <div class="gd-step-b"><strong>${h(title)}</strong><p>${h(text)}</p>
+        <button type="button" class="dc-btn dc-btn-normal dc-btn-sm" data-act="${act}"${id ? ` id="${id}"` : ''}>${h(btn)} →</button></div></div>`;
+    return `<section class="gd-setup" aria-label="${h(G.setup_title)}">
+      <div class="gd-steps">
+        ${step(srcOk, 1, G.step1_title, srcOk ? cgFill(G.step1_ok, { src: srcLabel, n: nPlays }) : G.step1_no, 'settings', srcOk ? G.step1_btn_ok : G.step1_btn_no)}
+        ${step(hasName && hasTz, 2, G.step2_title, [G.step2_text, hasName ? G.name_set : G.name_unset, hasTz ? G.tz_set : G.tz_unset].join(' '), 'settings', G.open_settings)}
+        ${step(!!P.ch['start.tour'], 3, G.step3_title, G.step3_text, 'tour', G.step3_btn, 'gdStartTour')}
+      </div>
+      <div class="gd-panels">
+        <div class="gd-panel"><h4>${h(G.setup_title)}</h4><ul class="gd-si-list">
+          ${item(srcOk ? 'ok' : 'warn', cgFill(srcOk ? G.si_src_ok : G.si_src_no, { src: srcLabel }))}
+          ${item(n ? 'ok' : 'warn', n ? cgFill(G.si_plays, { n: nPlays }) : G.si_noplays)}
+          ${item(hasName ? 'ok' : 'none', hasName ? G.si_name_set : G.si_name_unset)}
+          ${item(hasTz ? 'ok' : 'none', hasTz ? G.si_tz_set : G.si_tz_unset)}</ul></div>
+        <div class="gd-panel"><h4>${h(G.quality_title)}</h4><ul class="gd-si-list">${warn.map(w => item(w[0], w[1])).join('')}</ul></div>
+        <div class="gd-panel"><h4>${h(cgFill(G.source_title, { src: srcLabel }))}</h4><p class="gd-panel-p">${h((G.src_desc || {})[src] || '')}</p>
+          <div class="gd-src-dots">${['lastfm', 'sheets', 'file'].map(x => `<span class="gd-chip${x === src ? ' gd-chip-on' : ''}">${x === 'lastfm' ? 'Last.fm' : x === 'sheets' ? 'Sheets' : 'CSV'}</span>`).join('')}</div></div>
+      </div>
+    </section>`;
+  }
+
+  /* ── Reference: the tabs, how charts work, glossary, tips & shortcuts,
+     your data, FAQ, export, what's new and your notes ── */
+  const REF_SECS = ['tabs', 'concepts', 'glossary', 'tips', 'yourdata', 'faq', 'export', 'news', 'notes'];
+  // Old guide section names (deep links like #t=chartsguide/help) → new sections
+  const REF_ALIAS = { help: 'faq', shortcuts: 'tips' };
+  // Which lesson teaches a tab (the old "The Tabs" chapter links to them now)
+  const lessonForNav = nav => {
+    const map = { month: 'periods', year: 'periods', graphs: 'stats', day: 'daily' };
+    const id = map[nav] || nav;
+    const l = window.GL && GL.lessons.find(x => x.id === id);
+    return l && !l.soon ? l : null;
+  };
+  function refTitle(k) {
+    const G = cgAll(), ch = G.ch || {};
+    return { tabs: ch.tabs, concepts: ch.concepts, glossary: G.glossary_head, tips: ch.tips, yourdata: ch.yourdata,
+      faq: G.faq_title, export: G.export_head, news: G.new_title, notes: G.stuck_title }[k] || k;
+  }
+  function refRender(box) {
+    const G = cgAll(), loc = lang(), all = plays(), n = all.length;
+    const tName = k => (typeof window.t === 'function' ? window.t(k) : k);
+    const TAB_NAME = { day: 'nav_daily', week: 'nav_weekly', month: 'nav_monthly', year: 'nav_yearly', alltime: 'nav_alltime',
+      graphs: 'tab_stats', records: 'nav_records', awards: 'nav_awards', soundtrack: 'nav_soundtrack', events: 'nav_events',
+      playlists: 'nav_playlists', rawdata: 'nav_rawdata', board: 'nav_board', chartsguide: 'nav_chartsguide', dank100: 'nav_dank100', ratings: 'nav_ratings' };
+    const recSections = ['rec_nav_overview', 'rec_nav_all_ones', 'rec_nav_pak', 'rec_nav_appearances', 'rec_nav_debuts', 'rec_nav_new_charts',
+      'rec_nav_peak_plays', 'rec_nav_milestones', 'rec_nav_fastest', 'rec_nav_streaks', 'rec_nav_certs'].map(tName).join(', ');
+    const sec = (k, inner, sub) => `<section class="gd-rsec" id="gd-ref-${k}"><h3 class="gd-rsec-h">${h(refTitle(k))}</h3>
+      ${sub ? `<p class="gd-rsec-sub">${h(sub)}</p>` : ''}${inner}</section>`;
+    const filter = (id, ph) => `<label class="gd-filter"><svg class="gd-ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.6"/><path d="M10.4 10.4 14 14"/></svg>
+      <input type="search" data-filter="${id}" placeholder="${h(ph)}" aria-label="${h(ph)}" autocomplete="off"><span class="gd-filter-n" data-count="${id}"></span></label>`;
+
+    // The tabs, as the top bar groups them, each with its lesson
+    const tabs = (G.groups || []).map(row => `<div class="gd-rgroup"><h4>${h(row.group)}</h4><p class="gd-rsec-sub">${h(row.note)}</p>
+      <div class="gd-rtabs">${row.tabs.map(tb => {
+        const name = tName(TAB_NAME[tb.period] || tb.period), lsn = lessonForNav(tb.period);
+        return `<div class="gd-rtab"><div class="gd-rtab-h">${navIco(tb.period)}<strong>${h(name)}</strong></div>
+          <p>${h(cgFill(tb.desc, { sections: recSections }))}</p><p class="gd-rtab-use"><span>${h(G.best_for)}</span> ${h(tb.use)}</p>
+          <div class="gd-rtab-act">${lsn ? `<button type="button" class="dc-btn dc-btn-normal dc-btn-sm" data-open="${h(lsn.id)}">${h(ui('ref_lesson'))} →</button>` : ''}
+          ${tb.period !== 'chartsguide' ? `<button type="button" class="dc-btn dc-btn-plain dc-btn-sm" data-go="${h(tb.period)}">${h(cgFill(G.open_tab, { name }))}</button>` : `<span class="gd-chip">${h(G.you_are_here)}</span>`}</div></div>`;
+      }).join('')}</div></div>`).join('');
+
+    const concepts = `<div class="gd-rconcepts">${(G.concepts || []).map(c => `<div class="gd-rconcept"><span class="gd-rconcept-i" aria-hidden="true">${h(c.icon)}</span>
+      <strong>${h(c.title)}</strong><p>${h(c.body)}</p></div>`).join('')}</div>`;
+
+    const gloss = filter('gloss', G.glossary_ph) + `<dl class="gd-rgloss" id="gdRefGloss">${(G.glossary || []).map((g, i) => `<div class="gd-rgloss-row" id="gd-gl-${i}" data-text="${h((g.term + ' ' + g.def).toLowerCase())}">
+      <dt>${h(g.term)}</dt><dd>${h(g.def)}</dd></div>`).join('')}</dl>`;
+
+    // Tips are trusted HTML from charts-guide-i18n.js (they may hold <strong>)
+    const tips = `<div class="gd-rduo"><div class="gd-panel"><h4>${h(G.shortcuts_title)}</h4>${(G.shortcuts || []).map(([k, d], i) => `<div class="gd-rkey" id="gd-sc-${i}">
+        <kbd>${h(k)}</kbd><span>${h(d)}</span></div>`).join('')}</div>
+      <div class="gd-panel"><h4>${h(G.tips_title)}</h4><ul class="gd-rtips">${(G.tips || []).map(tp => `<li>${tp}</li>`).join('')}</ul></div></div>`;
+
+    // Your data: totals, what to look at next, on this day, milestones
+    const artists = n ? new Set(all.map(p => p.artist)).size : 0;
+    const tracks = n ? new Set(all.map(p => p.title + '|||' + p.artist)).size : 0;
+    const albums = n ? new Set(all.filter(p => p.album && p.album !== '—').map(p => p.album + '|||' + p.artist)).size : 0;
+    const first = n ? (window.firstScrobbleDate || all.reduce((m, p) => (p.date < m ? p.date : m), all[0].date)) : null;
+    const span = first ? Date.now() - first : 0;
+    const spanTxt = span >= 365 * 864e5 ? cgFill(G.years, { n: (span / (365.25 * 864e5)).toLocaleString(loc, { maximumFractionDigits: 1 }) })
+      : cgFill(G.days, { n: Math.round(span / 864e5) });
+    const tile = (v, l) => `<div class="gd-rstat"><b>${h(v)}</b><span>${h(l)}</span></div>`;
+    const sugg = [];
+    const S = (key, nav, act) => { if (G.sugg && G.sugg[key]) sugg.push({ t: G.sugg[key].text, b: G.sugg[key].btn, nav, act }); };
+    if (!n) S('settings', null, 'settings');
+    else {
+      S('records', 'records'); if (artists > 20) S('events', 'events'); if (n > 500) S('graphs', 'graphs');
+      if (n > 1000) S('playlists', 'playlists'); S('week', 'week');
+    }
+    const today = typeof tzNow === 'function' ? tzNow() : new Date();
+    const otd = [];
+    if (n && first) {
+      const dOf = p => (typeof tzDateOf === 'function' ? tzDateOf(p) : p.date);
+      for (let y = today.getFullYear() - 1; y >= Math.max(today.getFullYear() - 5, first.getFullYear()); y--) {
+        const dp = all.filter(p => { const d = dOf(p); return d.getMonth() === today.getMonth() && d.getDate() === today.getDate() && d.getFullYear() === y; });
+        if (!dp.length) continue;
+        const ac = {}; dp.forEach(p => { ac[p.artist] = (ac[p.artist] || 0) + 1; });
+        const top = Object.entries(ac).sort((a, b) => b[1] - a[1])[0];
+        otd.push({ y, plays: dp.length, artist: top[0], count: top[1] });
+      }
+    }
+    const ms = [];
+    if (n && first) {
+      const sorted = [...all].sort((a, b) => a.date - b.date);
+      ms.push({ l: G.ms_first, d: first, p: sorted[0] });
+      for (const c of [100, 500, 1000, 5000, 10000, 25000, 50000, 100000, 250000, 500000]) if (sorted.length >= c) ms.push({ l: cgFill(G.ms_nth, { n: c.toLocaleString(loc) }), d: sorted[c - 1].date, p: sorted[c - 1] });
+    }
+    const playsWord = c => (typeof tCount === 'function' ? tCount('plays', c) : c + ' plays');
+    const yourdata = `<div class="gd-rstats">${tile(artists.toLocaleString(loc), G.stat_artists)}${tile(tracks.toLocaleString(loc), G.stat_tracks)}
+        ${tile(albums.toLocaleString(loc), G.stat_albums)}${tile(n ? spanTxt : '—', G.stat_history)}${tile(first ? first.toLocaleDateString(loc, { month: 'short', year: 'numeric' }) : '—', G.stat_first)}</div>
+      <h4 class="gd-rsub">${h(G.next_title)}</h4>
+      <div class="gd-rsugg">${sugg.map(x => `<button type="button" class="gd-rsugg-row" ${x.nav ? `data-go="${h(x.nav)}"` : `data-act="${h(x.act)}"`}>
+        ${x.nav ? navIco(x.nav) : ''}<span>${h(x.t)}</span><b>${h(x.b)} →</b></button>`).join('')}</div>
+      <div class="gd-rduo">
+        <div class="gd-panel"><h4>${h(cgFill(G.otd_title, { date: today.toLocaleDateString(loc, { month: 'long', day: 'numeric' }) }))}</h4>
+          ${otd.length ? otd.map(r => `<div class="gd-rotd"><b>${r.y}</b><span>${cgFill(G.otd_row, { plays: h(playsWord(r.plays)), artist: h(r.artist), count: r.count })}</span></div>`).join('')
+            : `<p class="gd-panel-p">${h(n ? G.otd_empty : G.otd_empty_noplays)}</p>`}</div>
+        <div class="gd-panel"><h4>${h(G.ms_title)}</h4>
+          ${ms.length ? `<ol class="gd-rms">${ms.map(m => `<li><strong>${h(m.l)}</strong><span>${h(m.d.toLocaleDateString(loc, { year: 'numeric', month: 'short', day: 'numeric' }))}</span>
+            ${m.p ? `<em>${cgFill(G.ms_by, { title: h(m.p.title), artist: h(m.p.artist) })}</em>` : ''}</li>`).join('')}</ol>`
+            : `<p class="gd-panel-p">${h(G.ms_empty)}</p>`}</div>
+      </div>`;
+
+    const faq = filter('faq', G.faq_ph) + `<div class="gd-rfaq" id="gdRefFaq">${(G.faqs || []).map((f, i) => `<details class="gd-rfaq-row" id="gd-fq-${i}" data-text="${h((f.q + ' ' + f.a).toLowerCase())}">
+      <summary>${h(f.q)}</summary><p>${h(f.a)}</p></details>`).join('')}</div>`;
+
+    const expIco = [navIco('week'), navIco('rawdata'), navIco('playlists')];
+    const exp = `<div class="gd-rexport">${(G.export || []).map((e, i) => `<div class="gd-panel"><h4>${expIco[i] || ''}${h(e.title)}</h4>
+      <ol>${e.steps.map(st => `<li>${h(st)}</li>`).join('')}</ol></div>`).join('')}</div>`;
+
+    const count = typeof DC_CHANGELOG !== 'undefined' ? DC_CHANGELOG.length.toLocaleString(loc) : '…';
+    const news = `<div class="gd-panel gd-rnews"><p id="gdRefNews">${h(cgFill(G.new_text, { n: count }))}</p>
+      <button type="button" class="dc-btn dc-btn-normal dc-btn-sm" data-act="changelog">${h(G.new_btn)}</button></div>`;
+
+    let note = ''; try { note = localStorage.getItem('dc_guide_feedback') || ''; } catch (e) {}
+    // stuck_text is trusted HTML from charts-guide-i18n.js (it holds a link)
+    const notes = `<div class="gd-panel"><p class="gd-panel-p">${G.stuck_text || ''}</p>
+      <textarea class="gd-rnote dc-input" id="gdRefNote" rows="4" placeholder="${h(G.stuck_ph)}" aria-label="${h(G.stuck_ph)}">${h(note)}</textarea>
+      <div class="gd-rnote-row"><button type="button" class="dc-btn dc-btn-normal dc-btn-sm" data-act="note">${h(G.stuck_save)}</button><span class="gd-rnote-ok" aria-live="polite"></span></div></div>`;
+
+    box.innerHTML = `<div class="gd-refview">
+      <nav class="gd-rnav" aria-label="${h(ui('tab_ref'))}">${REF_SECS.map(k => `<a href="#gd-ref-${k}" data-jump="${k}">${h(refTitle(k))}</a>`).join('')}</nav>
+      <div class="gd-rbody">
+        ${sec('tabs', tabs, G.blurb && G.blurb.tabs)}
+        ${sec('concepts', concepts, G.blurb && G.blurb.concepts)}
+        ${sec('glossary', gloss)}
+        ${sec('tips', tips, G.blurb && G.blurb.tips)}
+        ${sec('yourdata', yourdata, G.blurb && G.blurb.yourdata)}
+        ${sec('faq', faq)}
+        ${sec('export', exp)}
+        ${sec('news', news)}
+        ${sec('notes', notes)}
+      </div></div>`;
+
+    if (typeof DC_CHANGELOG === 'undefined' && typeof window.dcClEnsureData === 'function') window.dcClEnsureData(() => {
+      const el = document.getElementById('gdRefNews');
+      if (el && typeof DC_CHANGELOG !== 'undefined') el.textContent = cgFill(cgAll().new_text, { n: DC_CHANGELOG.length.toLocaleString(lang()) });
+    });
+    // Wiring
+    $$('[data-open]', box).forEach(b => b.addEventListener('click', () => openLesson(b.dataset.open)));
+    $$('[data-go]', box).forEach(b => b.addEventListener('click', () => { const nb = document.querySelector('#periodNav button[data-period="' + b.dataset.go + '"]'); if (nb) nb.click(); }));
+    $$('[data-act="settings"]', box).forEach(b => b.addEventListener('click', () => window.openSourceModal && window.openSourceModal()));
+    $$('[data-act="changelog"]', box).forEach(b => b.addEventListener('click', () => window.openChangelog && window.openChangelog()));
+    $$('[data-act="note"]', box).forEach(b => b.addEventListener('click', () => {
+      try { localStorage.setItem('dc_guide_feedback', $('#gdRefNote', box).value); } catch (e) {}
+      const ok = $('.gd-rnote-ok', box); ok.textContent = cgAll().stuck_saved || '✓'; setTimeout(() => { ok.textContent = ''; }, 2000);
+    }));
+    $$('[data-jump]', box).forEach(a => a.addEventListener('click', e => { e.preventDefault(); refJump(a.dataset.jump); }));
+    $$('[data-filter]', box).forEach(inp => inp.addEventListener('input', () => {
+      const q = norm(inp.value), wrap = inp.dataset.filter === 'faq' ? $('#gdRefFaq', box) : $('#gdRefGloss', box);
+      let shown = 0;
+      $$('[data-text]', wrap).forEach(r => {
+        const m = !q || norm(r.dataset.text).includes(q);
+        r.hidden = !m; if (m) shown++;
+        if (r.tagName === 'DETAILS') r.open = !!q && m;
+      });
+      const c = $('[data-count="' + inp.dataset.filter + '"]', box), GG = cgAll();
+      c.textContent = !q ? '' : shown ? cgFill(shown === 1 ? GG.match_one : GG.match_other, { n: shown }) : GG.match_none;
+    }));
+  }
+  // Scroll the Reference to a section (and open / light up a row in it)
+  function refJump(k, rowId) {
+    const el = document.getElementById(rowId || 'gd-ref-' + (REF_ALIAS[k] || k));
+    if (!el) return;
+    if (el.tagName === 'DETAILS') el.open = true;
+    if (rowId) { el.classList.add('gd-flash'); setTimeout(() => el.classList.remove('gd-flash'), 1800); }
+    window.scrollTo({ top: el.getBoundingClientRect().top + scrollY - 140, behavior: reduced() ? 'auto' : 'smooth' });
+  }
+
+  /* ── Search the whole guide: lessons, every spot, walkthrough, option
+     and challenge, and the Reference's FAQ, glossary and shortcuts ── */
+  // Lower case, accents off ("música" finds "musica")
+  const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  let _index = null, _indexLang = null;
+  function searchIndex() {
+    if (_index && _indexLang === lang()) return _index;
+    const out = [];
+    const add = (kind, title, text, go, where) => {
+      if (title) out.push({ kind, title: String(title), text: String(text || ''), go, where: where || '', key: norm(title + ' ' + (text || '') + ' ' + (where || '')) });
+    };
+    GL.lessons.filter(x => !x.soon).forEach(ls => {
+      const b = 'lessons.' + ls.id, lt = tx(b + '.title');
+      add('lesson', lt, tx(b + '.promise'), { lesson: ls.id });
+      ls.scenes.forEach((sc, si) => sc.spots.forEach(k => { const t = tx(b + '.scenes.' + sc.id + '.spots.' + k) || []; add('spot', t[0], t[1], { lesson: ls.id, scene: si, spot: k }, lt); }));
+      ls.howto.forEach(w => add('howto', tx(b + '.howto.' + w.id + '.title'), (tx(b + '.howto.' + w.id + '.slides') || []).join(' '), { lesson: ls.id, walk: w.id }, lt));
+      ls.options.forEach(g => g.items.forEach(it => { const t = tx(b + '.options.' + g.id + '.items.' + it.id) || []; add('option', t[0], t[1], { lesson: ls.id, zoom: it.shot, spot: it.spot || '' }, lt); }));
+      (ls.challenges || []).forEach(c => { const t = chText(ls.id, c); add('challenge', t[0], t[1], { lesson: ls.id, sec: 'gd-try' }, lt); });
+    });
+    const G = cgAll();
+    (G.faqs || []).forEach((f, i) => add('faq', f.q, f.a, { ref: 'faq', row: 'gd-fq-' + i }));
+    (G.glossary || []).forEach((g, i) => add('gloss', g.term, g.def, { ref: 'glossary', row: 'gd-gl-' + i }));
+    (G.shortcuts || []).forEach(([k, d], i) => add('key', d, k, { ref: 'tips', row: 'gd-sc-' + i }));
+    (G.concepts || []).forEach(c => add('ref', c.title, c.body, { ref: 'concepts' }));
+    _index = out; _indexLang = lang();
+    return out;
+  }
+  function bindSearch() {
+    const inp = $('#gdSearch', host), res = $('#gdSearchRes', host);
+    if (!inp) return;
+    let hits = [];
+    const show = () => {
+      const words = norm(inp.value).split(/\s+/).filter(Boolean);
+      if (!words.length) { res.hidden = true; res.innerHTML = ''; hits = []; return; }
+      const order = { lesson: 0, howto: 1, faq: 2, spot: 3, option: 4, gloss: 5, challenge: 6, key: 7, ref: 8 };
+      const inTitle = x => words.every(w => norm(x.title).includes(w));
+      hits = searchIndex().filter(x => words.every(w => x.key.includes(w)))
+        .sort((a, b) => (inTitle(b) - inTitle(a)) || (order[a.kind] - order[b.kind])).slice(0, 12);
+      res.hidden = false;
+      res.innerHTML = hits.length ? hits.map((x, i) => `<button type="button" class="gd-sr" data-i="${i}">
+          <span class="gd-sr-k">${h(ui('sr_' + x.kind))}</span><span class="gd-sr-t"><strong>${h(x.title)}</strong>
+          <span>${h(x.where ? x.where + ' · ' + x.text : x.text)}</span></span></button>`).join('')
+        : `<p class="gd-sr-none">${h(ui('search_none'))}</p>`;
+      $$('.gd-sr', res).forEach(b => b.addEventListener('click', () => goHit(hits[+b.dataset.i])));
+    };
+    inp.addEventListener('input', show);
+    inp.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && hits[0]) { e.preventDefault(); goHit(hits[0]); }
+      if (e.key === 'Escape') { inp.value = ''; show(); }
+    });
+  }
+  function goHit(x) {
+    if (!x) return;
+    const g = x.go;
+    if (g.ref) {
+      renderHub('ref');
+      try { history.replaceState(null, '', '#t=chartsguide/reference'); } catch (e) {}
+      setTimeout(() => refJump(g.ref, g.row), 60);
+      return;
+    }
+    const ls = lessonById(g.lesson);
+    if (!ls) return;
+    if (g.scene != null) view.sceneIdx[ls.id] = g.scene;
+    openLesson(ls.id);
+    setTimeout(() => {
+      const to = el => { if (el) window.scrollTo({ top: el.getBoundingClientRect().top + scrollY - 130, behavior: 'auto' }); };
+      if (g.spot && g.scene != null) {
+        const it = $('.gd-ex-item[data-k="' + g.spot + '"]', host); if (it) it.click();
+        to($('#gd-screen', host));
+      } else if (g.walk) {
+        const b = $('[data-walk="' + g.walk + '"]', host); if (b) b.click();
+      } else if (g.zoom) {
+        const b = $('[data-zoom="' + g.zoom + '"][data-spot="' + g.spot + '"]', host); if (b) b.click();
+      } else if (g.sec) to($('#' + g.sec, host));
+    }, 120);
   }
 
   /* ── A lesson ─────────────────────────────────────────────────── */
@@ -791,6 +1148,7 @@
   }
 
   function renderLesson(id) {
+    checkStart();
     const ls = lessonById(id);
     const base = 'lessons.' + id;
     const st = lessonStats(ls);
@@ -846,6 +1204,7 @@
           </div>
           <div class="gd-lhead-ring">${ring(st.pct, 76)}</div>
         </header>
+        ${ls.live === 'setup' ? setupHTML() : ''}
         <div class="gd-jump" role="navigation">
           <a href="#gd-screen">${h(ui('sec_screen'))}</a><a href="#gd-howto">${h(ui('sec_howto'))}</a>
           <a href="#gd-options">${h(ui('sec_options'))}</a><a href="#gd-try">${h(ui('sec_try'))}</a><a href="#gd-quiz">${h(ui('sec_quiz'))}</a>
@@ -882,6 +1241,8 @@
   }
 
   function bindLesson(ls) {
+    $$('[data-act="settings"]', host).forEach(b => b.addEventListener('click', () => { if (typeof window.openSourceModal === 'function') window.openSourceModal(); }));
+    $$('[data-act="tour"]', host).forEach(b => b.addEventListener('click', () => { if (typeof window.dcStartChartsGuideTour === 'function') window.dcStartChartsGuideTour(); }));
     $('[data-hub]', host).addEventListener('click', () => { view.page = 'hub'; renderHub('lessons'); try { history.replaceState(null, '', '#t=chartsguide'); } catch (e) {} });
     $$('[data-open]', host).forEach(b => b.addEventListener('click', () => openLesson(b.dataset.open)));
     $$('.gd-jump a', host).forEach(a => a.addEventListener('click', e => {
@@ -1208,16 +1569,44 @@
     setTimeout(() => { const t = $('#gd-try'); if (t) window.scrollTo({ top: t.getBoundingClientRect().top + scrollY - 140, behavior: 'auto' }); }, 120);
   }
 
+  /* ── The tour's "This tab's lesson" button ──
+     Shown on each tour step that is about a tab with a lesson; it ends the
+     tour and opens that lesson. Lesson words load with the guide, so the
+     label is read when the step changes. */
+  function tourLessonBtn() {
+    const bar = document.querySelector('#cgTourBanner .cg-tour-controls');
+    if (!bar) return;
+    let b = document.getElementById('gdTourLesson');
+    if (!b) {
+      b = document.createElement('button');
+      b.type = 'button'; b.id = 'gdTourLesson'; b.className = 'dc-btn dc-btn-plain dc-btn-sm gd-tour-lesson';
+      b.addEventListener('click', () => {
+        const id = b.dataset.lesson;
+        if (typeof window.dcEndTour === 'function') window.dcEndTour();
+        if (id) { view.page = 'lesson'; view.lesson = id; const nb = document.querySelector('#periodNav button[data-period="chartsguide"]'); if (nb) nb.click(); render(); }
+      });
+      bar.insertBefore(b, bar.firstChild);
+    }
+    let nav = null;
+    try { nav = _cgTourSteps[_cgTourStep] && _cgTourSteps[_cgTourStep].nav; } catch (e) {}
+    ensure().then(() => {
+      const ls = nav ? lessonForNav(nav) : lessonById('start');
+      b.hidden = !ls;
+      if (!ls) return;
+      b.dataset.lesson = ls.id;
+      b.textContent = ui('tour_lesson', { lesson: tx('lessons.' + ls.id + '.title') });
+    });
+  }
+
   /* ═══════════════════════════════════════════════════════════════
      WIRING INTO THE APP
      ═══════════════════════════════════════════════════════════════ */
-  // The old guide renderer becomes the Reference tab
-  let renderRefOrig = null;
+  // The guide takes over the old guide renderer (dcRenderChartsGuideView); its
+  // content now lives in the Getting started lesson and the Reference tab
   function install() {
     wrapFns();
     watchOpens();
     if (typeof window.dcRenderChartsGuideView === 'function' && !window.dcRenderChartsGuideView._gd) {
-      renderRefOrig = window.dcRenderChartsGuideView;
       const r = function () { render(); };
       r._gd = true;
       window.dcRenderChartsGuideView = r;
@@ -1225,14 +1614,30 @@
     // Deep links: #t=chartsguide/lesson-week opens a lesson, /reference the Reference
     // tab, and any old section name (e.g. /faq) opens Reference at that section
     if (typeof window.dcGuideJump === 'function' && !window.dcGuideJump._gd) {
-      const oldJump = window.dcGuideJump;
       const j = function (slug) {
         if (/^lesson-/.test(slug)) { view.page = 'lesson'; view.lesson = slug.slice(7); render(); return; }
+        // The old Start Here chapter is the Getting started lesson now
+        if (slug === 'start') { view.page = 'lesson'; view.lesson = 'start'; render(); return; }
         view.page = 'ref';
-        ensure().then(() => { renderHub('ref'); if (slug !== 'reference') setTimeout(() => oldJump(slug), 80); });
+        ensure().then(() => { renderHub('ref'); if (slug !== 'reference') setTimeout(() => refJump(slug), 80); });
       };
       j._gd = true;
       window.dcGuideJump = j;
+    }
+    if (typeof window.dcGateChoose === 'function' && !window.dcGateChoose._gd) {
+      const gate = window.dcGateChoose;
+      const g = function (mode) {
+        gate.apply(this, arguments);
+        if (mode === 'guide') { view.page = 'lesson'; view.lesson = 'start'; render(); }
+      };
+      g._gd = true;
+      window.dcGateChoose = g;
+    }
+    if (typeof window._dcApplyTourStep === 'function' && !window._dcApplyTourStep._gd) {
+      const apply = window._dcApplyTourStep;
+      const a = function () { const r = apply.apply(this, arguments); tourLessonBtn(); return r; };
+      a._gd = true;
+      window._dcApplyTourStep = a;
     }
     // Coming back to the guide from the nav always starts at the hub, unless
     // "Back to the lesson" asked for a lesson
