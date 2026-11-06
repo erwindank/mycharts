@@ -46410,6 +46410,10 @@ html.lsx-open { overflow: hidden; }
 /* Month view: the Songs/Artists/Albums and Weekly/Daily switches side by side */
 .st-no1-switches { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: var(--sp-3); }
 .st-no1-switches .st-no1-seg { margin-bottom: 0; }
+/* Many reigns (a year of daily #1s): no gaps and no minimum width, so even
+   200+ reigns fit a phone; the alternating shade still tells them apart */
+.d100-no1-strip.is-dense { gap: 0; overflow: hidden; border-radius: 3px; }
+.d100-no1-strip.is-dense .d100-no1-seg { min-width: 0; border-radius: 0; }
 
 /* ── Soundtrack → All-Time New Discoveries, by year (2026-11-05) ────────────
    stRenderDiscoveriesAll(): bars per year, year-tagged bubbles, then three

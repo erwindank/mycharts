@@ -52517,11 +52517,11 @@ function renderSoundtrack() {
 // months is counted once. Read from the cached weekly chart history
 // (_crFull), so the ranks match the Charts tab. Clicking a row opens that
 // week's chart. Hidden on All-Time.
-// The month view also has a Weekly / Daily switch: Daily reads the Daily
+// The year and month views have a Weekly / Daily switch: Daily reads the Daily
 // tab's chart history (dyFullRun in daily.js) the same way, one row per run
 // of days at #1, and a row opens that day.
 let stNo1Type = 'songs';   // songs | artists | albums | single | ep (the last two only while separated)
-let stNo1Unit = 'week';    // week | day (day only in the month view)
+let stNo1Unit = 'week';    // week | day (year and month views; since 2026-11-06 the year too)
 let stNo1All = false;      // show every reign, not just the latest few
 
 function stSetNo1Type(type) { stNo1Type = type; stNo1All = false; stRenderNumberOnes(); stNumberChapters(); }
@@ -52597,8 +52597,9 @@ function stRenderNumberOnes() {
   // Singles / EPs only while that type is separated; back to Songs if not
   if ((stNo1Type === 'single' || stNo1Type === 'ep') && !isTypeSeparated(stNo1Type)) stNo1Type = 'songs';
   const type = stNo1Type;
-  // Daily #1s only in the month view (a year of daily reigns is too many rows)
-  const unit = stPeriodType === 'month' ? stNo1Unit : 'week';
+  // Weekly or daily #1s, in both the year and the month view (the year got
+  // the Daily switch on 2026-11-06; "Show all" keeps the long list short)
+  const unit = stNo1Unit;
   const groups = stNo1Reigns(type, unit);
   const artType = type === 'songs' ? 'song' : type === 'artists' ? 'artist' : 'album';   // singles / EPs too
   // "3 weeks" / "3 days" — every count below goes through this
@@ -52614,8 +52615,8 @@ function stRenderNumberOnes() {
     ['songs', 'artists', 'albums'].concat(separatedTypes()).map(ty =>
       `<button type="button" class="${ty === type ? 'active' : ''}" aria-pressed="${ty === type}" onclick="stSetNo1Type('${ty}')">${esc(t(ty === 'single' || ty === 'ep' ? 'rtype_' + ty + '_plural' : 'd100_type_' + ty))}</button>`).join('') +
     '</div>';
-  // Month view: Weekly / Daily number ones
-  if (stPeriodType === 'month') {
+  // Weekly / Daily number ones (year and month views)
+  {
     h += '<div class="dc-seg st-no1-seg st-no1-unit" role="group" aria-label="' + esc(t('d100_no1_title')) + '">' +
       [['week', 'nav_weekly'], ['day', 'nav_daily']].map(([u, key]) =>
         `<button type="button" class="${u === unit ? 'active' : ''}" aria-pressed="${u === unit}" onclick="stSetNo1Unit('${u}')">${esc(t(key))}</button>`).join('') +
@@ -52690,7 +52691,9 @@ function stRenderNumberOnes() {
   // (one reign: no "1 reigns · 1 different #1s" line, the band says it)
 
   // The reign strip: oldest left, one segment per reign, width = weeks held
-  h += '<div class="d100-no1-strip" role="list">';
+  // A year of daily #1s can be well over 100 reigns: thinner segments and
+  // gaps then, so the strip still fits a phone screen
+  h += `<div class="d100-no1-strip${groups.length > 40 ? ' is-dense' : ''}" role="list">`;
   groups.forEach((g, j) => {
     const tip = g.name + (g.artist ? ' — ' + g.artist : '') + ' · ' + shortDay(g.weeks[0]) + ' · ' + weeksTxt(g.weeks.length);
     h += `<button type="button" role="listitem" class="d100-no1-seg${j % 2 ? ' is-alt' : ''}" style="flex-grow:${g.weeks.length}"` +
@@ -52733,7 +52736,7 @@ function stRenderNumberOnes() {
   shown.forEach((g, i) => {
     queueImg(() => getArtAuto(artType, g.name, g.artist, artType === 'album' ? g.name : undefined).then(url => {
       const el = body.querySelector(`.d100-art[data-i="${i}"]`);
-      if (!url || tok !== _stHeadToken || !el || stNo1Type !== type || (stPeriodType === 'month' ? stNo1Unit : 'week') !== unit) return;
+      if (!url || tok !== _stHeadToken || !el || stNo1Type !== type || stNo1Unit !== unit) return;
       el.insertAdjacentHTML('beforeend', `<img src="${esc(sizedArtUrl(url, 120))}" alt="" loading="lazy">`);
       el.classList.add('has-img');
     }).catch(() => {}), true);
