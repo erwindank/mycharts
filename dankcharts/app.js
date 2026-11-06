@@ -840,10 +840,14 @@ function readWeekStartDay() {
   } catch (e) { return 0; }
 }
 
-// Lights the matching button in Settings → Charts → Chart Week.
+// Lights the matching button in Settings → Charts → Chart Week, and names
+// the days in the site's language ("Dom", "Seg"…): they were always English
+// (DAY_ABBREVS). Also run each time Settings opens, after a language change.
 function paintWeekStartButtons() {
   document.querySelectorAll('#daySwitcher .rt-sep-btn').forEach(btn => {
-    btn.classList.toggle('active', parseInt(btn.dataset.day) === weekStartDay);
+    const d = parseInt(btn.dataset.day);
+    btn.classList.toggle('active', d === weekStartDay);
+    if (typeof _calDayName === 'function') btn.textContent = _calDayName(d, 'short');
   });
 }
 
@@ -6611,6 +6615,7 @@ function switchSettingsTab(name) {
 }
 
 function openSourceModal() {
+  paintWeekStartButtons();   // day names in the current language
   document.getElementById('configureSourceBtn').classList.remove('configure-attention');
   const modal = document.getElementById('sourceModal');
   modal.classList.add('open');
@@ -43112,9 +43117,12 @@ async function _backupCollect() {
   const hasRatings = Object.keys(_ratings.songs).length || Object.keys(_ratings.albums).length || _ratings.cfgTs;
   // The Daily tab's moods and notes (daily.js)
   const diary = typeof _dyDiary !== 'undefined' && Object.keys(_dyDiary.days).length ? _dyDiary : null;
+  // The Charts Guide's progress (guide.js)
+  let guide = null;
+  try { guide = JSON.parse(localStorage.getItem('dc_guide_progress') || 'null'); } catch (e) {}
   return JSON.parse(JSON.stringify({
     app: 'dankcharts', v: 1, createdAt: Date.now(),
-    config, awards, ratings: hasRatings ? _ratings : null, diary
+    config, awards, ratings: hasRatings ? _ratings : null, diary, guide
   }));
 }
 
@@ -43208,6 +43216,13 @@ async function _backupApply(p) {
     for (const e of Object.values(dd.days)) if (e && typeof e === 'object') e.ts = now;
     try { localStorage.setItem('dc_daily_diary', JSON.stringify(dd)); } catch (e) {}
     if (typeof dcSaveDiary === 'function') await _withTimeout(dcSaveDiary(dd), 10000);
+  }
+  if (p.guide && typeof p.guide === 'object') {
+    // Merged, not replaced: progress only ever grows (guide.js)
+    if (typeof dcMergeGuideProgress === 'function') dcMergeGuideProgress(p.guide);
+    if (typeof dcSaveGuideProgress === 'function') {
+      try { await _withTimeout(dcSaveGuideProgress(JSON.parse(localStorage.getItem('dc_guide_progress') || '{}')), 10000); } catch (e) {}
+    }
   }
   location.reload();
 }

@@ -38570,6 +38570,13 @@ body.green-light :is(.sv--bronze, .modal-cb-detail-peak--bronze) {
 }
 
 .rt-sep-seg { flex-shrink: 0; }
+/* Week-start days are named in the site's language since 2026-11-06 ("Dom",
+   "Seg"…, three letters, not "Su"): on a phone the seven of them stay on
+   one line by sharing the width with tighter padding */
+@media (max-width: 480px) {
+  #daySwitcher { display: flex; flex-wrap: nowrap; width: 100%; }
+  #daySwitcher .rt-sep-btn { flex: 1 1 0; min-width: 0; padding-inline: 2px; }
+}
 
 .rt-sep-hint {
   margin-top: 0.55rem;

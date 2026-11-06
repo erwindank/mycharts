@@ -450,6 +450,63 @@ async function bdView(pg, { open = null, compose = false } = {}) {
   await wait(pg, 1500);
 }
 
+// Settings & account. The account menu and Notifications are pictured signed
+// in as a made-up listener ("Alex") with made-up notifications; acctUnfake
+// signs that pretend account out again.
+async function acctUnfake(pg) {
+  await pg.evaluate(() => {
+    if (!window._gdAcct) return;
+    window._gdAcct = false;
+    _currentUser = null; _refreshAuthUI(null);
+    try { ntClose(); } catch (e) {}
+    ntItems = []; ntRefresh();
+  });
+}
+async function acctFake(pg) {
+  await pg.evaluate(() => {
+    window._gdAcct = true;
+    _currentUser = { uid: 'guide-shot', displayName: 'Alex', email: '', photoURL: '' };
+    _refreshAuthUI(_currentUser);
+    // no account to load from: the made-up list below stays
+    dcLoadNotifications = async () => null; dcUpdateNotifications = async () => null;
+    const now = Date.now(), H = 36e5;
+    const N = (kind, h, read, p) => ({ id: kind + h, kind, at: now - h * H, read, p, link: null });
+    ntItems = [
+      N('ap_made', 1, false, { name: t('ap_name_week', { n: 20, when: '30 Oct – 5 Nov' }) }),
+      N('cert_new', 3, false, { type: 'song', title: 'Housewife', artist: 'Tate McRae', tier: 'gold' }),
+      N('bd_reply', 26, true, { name: 'Ines', title: 'Top songs for each season' }),
+      N('st_month', 30, true, { key: '2026-10' }),
+      N('rec_new', 75, true, { type: 'song', name: 'The Fate of Ophelia', artist: 'Taylor Swift', title: t('d100_rec_at1'), n: 1 })
+    ];
+    ntRefresh();
+  });
+}
+// The Settings window on a tab, as if just opened. The time zone list shows a
+// city for the picture's language rather than this computer's own.
+const TZ = { en: 'America/New_York', es: 'Europe/Madrid', 'pt-BR': 'America/Sao_Paulo', 'pt-PT': 'Europe/Lisbon' };
+async function setView(pg, tab, { card = null } = {}) {
+  await d1Unfake(pg); await plUnfake(pg); await acctUnfake(pg);
+  await pg.evaluate(() => {
+    document.querySelectorAll('.ctrl-group.open').forEach(g => g.classList.remove('open'));
+    if (document.getElementById('sourceModal').classList.contains('open')) closeSourceModal();
+  });
+  await pg.evaluate(({ tab, card, TZ }) => {
+    openSourceModal(); switchSettingsTab(tab);
+    const s = document.getElementById('setSearch'); if (s && s.value) { s.value = ''; s.dispatchEvent(new Event('input')); }
+    if (card) document.getElementById(card).click();
+    const tz = document.getElementById('srcTimezone'), want = TZ[currentLang] || TZ.en;
+    if (tz && [...tz.options].some(o => o.value === want)) tz.value = want;
+    document.querySelector('#sourceModal .dc-modal, #sourceModal .modal').scrollTop = 0;
+  }, { tab, card, TZ });
+  await wait(pg, 1500);
+}
+// A top-bar menu (theme / language / account) opened
+async function tbMenu(pg, groupId) {
+  await pg.evaluate(() => { if (document.getElementById('sourceModal').classList.contains('open')) closeSourceModal(); window.scrollTo(0, 0); });
+  await pg.evaluate(id => { document.querySelectorAll('.ctrl-group.open').forEach(g => g.classList.remove('open')); document.querySelector('#' + id + ' .ctrl-group-btn').click(); }, groupId);
+  await wait(pg, 900);
+}
+
 // Spot finders that need more than a selector: run in the page, return an element
 const byText = (scope, sel, re) => ({ js: `[...document.querySelectorAll(${JSON.stringify(scope + ' ' + sel)})].find(e => ${re}.test(e.textContent.trim()))` });
 
@@ -1450,6 +1507,77 @@ const SHOTS = [
     clip: { from: '#boardView .bd-composer', to: '#boardView .bd-composer', pad: 14 },
     spots: { cats: '#boardView .bd-cat-pick', title: '#bdNewTitle', body: '#boardView .bd-composer .bd-textarea',
       foot: '#boardView .bd-composer-foot' } },
+
+  /* ── Lesson: Settings & account (GUIDE-PLAN.md step 11) ──────────────
+     The Settings window's four tabs, the top bar's controls, and the
+     account menu and Notifications as a made-up signed-in listener. */
+  { id: 'set-bar', lesson: 'settings', phone: true,
+    setup: async pg => { await setView(pg, 'source'); await pg.evaluate(() => closeSourceModal()); await wait(pg, 600); },
+    clip: { from: '#tbSearchBtn', to: '.tb-signin-btn', pad: 10, narrow: true },
+    spots: { search: '#tbSearchBtn', news: '#clNewBtn', sync: '#syncNowBtn', settings: '#configureSourceBtn', theme: '#themeGroupBtn',
+      lang: '#langGroupBtn', signin: '.tb-signin-btn' } },
+  { id: 'set-source', lesson: 'settings', phone: true,
+    setup: async pg => { await setView(pg, 'source'); },
+    clip: { from: '#sourceModal .dc-modal', to: '#sourceModal .dc-modal', pad: 10, narrow: true },
+    spots: { search: '#setSearch', tabs: '#sourceModal .set-tabs, #setTabSource', cards: { js: "document.getElementById('srcCardSheets').parentElement" },
+      sheets: '#srcCardSheets', lastfm: '#srcCardLastfm', file: '#srcCardFile', url: '#srcSheetId', tab: '#srcSheetTab',
+      auto: { js: "document.getElementById('srcSheetWriteUrl').closest('details')" }, account: '#lfmAccountSection', connect: '#lfmConnectBtn',
+      close: '#sourceModal .set-close' } },
+  { id: 'set-lastfm', lesson: 'settings',
+    setup: async pg => { await setView(pg, 'source', { card: 'srcCardLastfm' }); },
+    clip: { from: '#sourceModal .dc-modal', to: '#sourceModal .dc-modal', pad: 10, narrow: true },
+    spots: { card: '#srcCardLastfm', user: '#srcLastfmUser', fields: '#srcLastfmFields', save: '#sourceModal .set-save', dirty: '#sourceModal .set-dirty-note' } },
+  { id: 'set-file', lesson: 'settings',
+    setup: async pg => { await setView(pg, 'source', { card: 'srcCardFile' }); },
+    clip: { from: '#sourceModal .dc-modal', to: '#sourceModal .dc-modal', pad: 10, narrow: true },
+    spots: { card: '#srcCardFile', drop: '#srcFileDrop', fields: '#srcFileFields' } },
+  { id: 'set-charts', lesson: 'settings',
+    setup: async pg => { await setView(pg, 'charts'); },
+    clip: { from: '#sourceModal .dc-modal', to: '#sourceModal .dc-modal', pad: 10, narrow: true },
+    spots: { tab: '#setTabCharts', week: '#daySwitcher', svc: '#musicSvcSwitcher',
+      sections: { js: "document.getElementById('setCpTimeMachine').closest('.set-switch-row, label')" },
+      stats: { js: "document.getElementById('setCpPeriodStats').closest('.set-switch-row, label')" },
+      events: '#eventsArtistLimitSelect', d100: { js: "document.getElementById('setD100Auto').closest('.set-switch-row, label')" },
+      anim: { js: "document.getElementById('srcChartAnim').closest('.set-switch-row, label')" },
+      split: { js: "document.getElementById('srcNoArtistSplit').closest('.set-switch-row, label')" },
+      credit: { js: "document.getElementById('srcAwardsCreditFeatures').closest('.set-switch-row, label')" } } },
+  { id: 'set-releases', lesson: 'settings',
+    setup: async pg => { await setView(pg, 'releases'); },
+    clip: { from: '#sourceModal .dc-modal', to: '#sourceModal .dc-modal', pad: 10, narrow: true },
+    spots: { tab: '#setTabReleases', detect: { js: "document.getElementById('rtAutodetectOn').closest('.set-switch-row, label')" },
+      album: '#certAlbumGold', song: '#certSongGold', single: '#certColSingle', ep: '#certColEp',
+      reset: '#setPanelReleases .cert-reset-btn', rollup: '#rollupHint' } },
+  { id: 'set-profile', lesson: 'settings',
+    setup: async pg => { await setView(pg, 'profile'); },
+    clip: { from: '#sourceModal .dc-modal', to: '#sourceModal .dc-modal', pad: 10, narrow: true },
+    spots: { tab: '#setTabProfile', name: '#srcDisplayName', tz: '#srcTimezone', themes: '#setPanelProfile .set-theme-grid',
+      theme: '#setPanelProfile .set-theme-swatch.active', lang: '#setPanelProfile .set-lang-seg', backups: '#setPanelProfile .set-backups',
+      dl: '#setPanelProfile [onclick*="backupsDownload"]', restore: '#setPanelProfile [onclick*="backupsFileInput"]' } },
+  { id: 'set-search', lesson: 'settings',
+    setup: async pg => { await setView(pg, 'source');
+      await pg.locator('#setSearch').pressSequentially(await pg.evaluate(() => ({ en: 'week', es: 'semana', 'pt-BR': 'semana', 'pt-PT': 'semana' })[currentLang] || 'week'), { delay: 40 });
+      await wait(pg, 1200); },
+    clip: { from: '#sourceModal .dc-modal', to: '#setSearchResults', pad: 10, narrow: true },
+    spots: { search: '#setSearch', results: '#setSearchResults', result: '#setSearchResults > *' } },
+  { id: 'set-theme', lesson: 'settings',
+    setup: async pg => { await setView(pg, 'source'); await tbMenu(pg, 'themeCtrlGroup'); },
+    clip: { from: '#themeCtrlGroup', to: '#themeCtrlGroup .ctrl-group-panel', pad: 12, narrow: true },
+    spots: { btn: '#themeGroupBtn', panel: '#themeCtrlGroup .ctrl-group-panel', on: '#themeCtrlGroup .theme-btn.active' } },
+  { id: 'set-lang', lesson: 'settings',
+    setup: async pg => { await setView(pg, 'source'); await tbMenu(pg, 'langCtrlGroup'); },
+    clip: { from: '#langCtrlGroup', to: '#langCtrlGroup .ctrl-group-panel', pad: 12, narrow: true },
+    spots: { btn: '#langGroupBtn', panel: '#langSwitcher', on: '#langSwitcher .lang-btn.active' } },
+  { id: 'set-acct', lesson: 'settings',
+    setup: async pg => { await setView(pg, 'source'); await acctFake(pg); await tbMenu(pg, 'acctCtrlGroup'); },
+    clip: { from: '#acctCtrlGroup', to: '#acctCtrlGroup .ctrl-group-panel', pad: 12, narrow: true },
+    spots: { btn: '#acctGroupBtn', dot: '#ntDot', name: '#acctCtrlGroup .dc-user-name', nt: '#acctCtrlGroup .tb-acct-nt',
+      out: { js: "[...document.querySelectorAll('#acctCtrlGroup .tb-acct-signout')].pop()" } } },
+  { id: 'set-nt', lesson: 'settings',
+    setup: async pg => { await setView(pg, 'source'); await pg.evaluate(() => closeSourceModal()); await acctFake(pg);
+      await pg.evaluate(() => ntOpen()); await wait(pg, 1500); },
+    clip: { from: '#ntModal .dc-modal', to: '#ntModal .dc-modal', pad: 10, narrow: true },
+    spots: { tabs: '#ntModal .nt-tabs', group: '#ntModal .nt-group-h', row: '#ntModal .nt-item.nt-unread', tile: '#ntModal .nt-tile',
+      cat: '#ntModal .nt-cat', dismiss: '#ntModal .nt-dismiss', foot: '#ntFoot', close: '#ntModal .dc-modal-close' } },
 
   /* ── Lesson: Raw Data (GUIDE-PLAN.md step 10) ───────────────────────
      Last: its correction rules rewrite a couple of demo plays for the rest of

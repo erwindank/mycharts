@@ -29,7 +29,7 @@
   'use strict';
 
   // Bump when the lesson files or the pictures change (it's their ?v=)
-  const GUIDE_V = '13';
+  const GUIDE_V = '15';
   const STORE = 'dc_guide_progress';
   const LANG_FILES = ['es', 'pt-BR', 'pt-PT'];
 
@@ -42,7 +42,36 @@
     return p;
   }
   const P = loadP();
-  function saveP() { try { localStorage.setItem(STORE, JSON.stringify(P)); } catch (e) {} }
+  // Saved here at once, and to the signed-in account a moment later (one
+  // write for a burst of changes). firebase.js loads the account's copy on
+  // sign-in and hands it to dcMergeGuideProgress below.
+  let _cloudTimer = null;
+  function saveP() {
+    try { localStorage.setItem(STORE, JSON.stringify(P)); } catch (e) {}
+    if (typeof window.dcSaveGuideProgress !== 'function' || typeof dcIsSignedIn !== 'function' || !dcIsSignedIn()) return;
+    clearTimeout(_cloudTimer);
+    _cloudTimer = setTimeout(() => window.dcSaveGuideProgress(JSON.parse(JSON.stringify(P))), 1500);
+  }
+  // Merges the account's progress into this device's: a challenge or a
+  // mastered lesson keeps its earliest time, a lesson opened keeps its latest,
+  // a right quiz answer stays right. Nothing is ever taken away, so two
+  // devices can't undo each other. Then the merged copy is saved back.
+  window.dcMergeGuideProgress = function (remote) {
+    if (remote && typeof remote === 'object') {
+      const early = (a, b) => (a && b ? Math.min(a, b) : a || b);
+      for (const [k, t] of Object.entries(remote.ch || {})) P.ch[k] = early(P.ch[k], t);
+      for (const [k, t] of Object.entries(remote.mastered || {})) P.mastered[k] = early(P.mastered[k], t);
+      for (const [k, t] of Object.entries(remote.seen || {})) P.seen[k] = Math.max(P.seen[k] || 0, t || 0);
+      for (const [ls, qs] of Object.entries(remote.quiz || {})) {
+        P.quiz[ls] = P.quiz[ls] || {};
+        for (const [q, ok] of Object.entries(qs || {})) if (ok) P.quiz[ls][q] = true;
+      }
+      if (!P.last && remote.last) P.last = remote.last;
+      // Redraw the guide if it's on screen (it reads P as it draws)
+      if (host && host.isConnected && host.offsetParent !== null) render();
+    }
+    saveP();
+  };
 
   /* ── Small helpers ────────────────────────────────────────────── */
   const $ = (s, r) => (r || document).querySelector(s);
@@ -53,7 +82,9 @@
   // called exactly what the app shows. A leading emoji on the app's label is dropped.
   const appWord = k => {
     const w = typeof window.t === 'function' ? window.t(k) : '';
-    return String(w && w !== k ? w : '').replace(/^\p{Extended_Pictographic}\uFE0F?\s*/u, '');
+    // Some app labels carry markup ("Last.fm Account <span>(optional)</span>"):
+    // the guide escapes what it shows, so only their words are kept
+    return String(w && w !== k ? w : '').replace(/<[^>]*>/g, '').replace(/^\p{Extended_Pictographic}\uFE0F?\s*/u, '');
   };
   const fill = (s, v) => String(s || '')
     .replace(/\{\{t:(\w+)\}\}/g, (m, k) => appWord(k))
@@ -214,7 +245,15 @@
     'bd.status':     { lesson: 'board', input: '#boardView .bd-select' },
     'bd.search':     { lesson: 'board', input: '#boardView .bd-search' },
     'bd.open':       { lesson: 'board', click: '#boardView [onclick*="dcBoard.toggle"]' },
-    'bd.new':        { lesson: 'board', click: '#boardView .bd-new-btn' }
+    'bd.new':        { lesson: 'board', click: '#boardView .bd-new-btn' },
+    // Settings & account
+    'set.open':      { lesson: 'settings', open: '#sourceModal' },
+    'set.tab':       { lesson: 'settings', fn: 'switchSettingsTab', test: a => a[0] && a[0] !== 'source' },
+    'set.search':    { lesson: 'settings', input: '#setSearch' },
+    'set.theme':     { lesson: 'settings', click: '.theme-btn' },
+    'set.lang':      { lesson: 'settings', click: '.lang-btn:not(.active)' },
+    'set.backup':    { lesson: 'settings', fn: 'backupsDownload' },
+    'set.nt':        { lesson: 'settings', open: '#ntModal' }
   };
   // Where "Show me" takes you for each challenge, and what it rings there.
   // open/tab: open the chart's ⋮ menu on a tab first.
@@ -339,7 +378,14 @@
     'bd.status':     { nav: 'board', ring: '#boardView .bd-select' },
     'bd.search':     { nav: 'board', ring: '#boardView .bd-search' },
     'bd.open':       { nav: 'board', ring: '#boardView .bd-list' },
-    'bd.new':        { nav: 'board', ring: '#boardView .bd-new-btn' }
+    'bd.new':        { nav: 'board', ring: '#boardView .bd-new-btn' },
+    'set.open':      { ring: '#configureSourceBtn' },
+    'set.tab':       { prep: ['openSourceModal'], ring: '#setTabCharts' },
+    'set.search':    { prep: ['openSourceModal'], ring: '#setSearch' },
+    'set.theme':     { ring: '#themeGroupBtn' },
+    'set.lang':      { ring: '#langGroupBtn' },
+    'set.backup':    { prep: ['openSourceModal'], ring: '#setTabProfile' },
+    'set.nt':        { ring: '#acctGroupBtn, .tb-signin-btn' }
   };
 
   let lastInput = 0;

@@ -2973,6 +2973,197 @@ window.GL_TEXT['pt-BR'] = {
         'Tem uma ideia? Poste no {{t:nav_board}} em {{t:board_cat_suggestion}}.'
       ]
     },
-    settings: { title: 'Configurações e sua conta', promise: 'Fontes de dados, ajustes das paradas, temas, login e backups.' }
+    settings: {
+      title: '{{t:set_title}}',
+      promise: 'Conecte o que você ouve, escolha como suas paradas funcionam, um visual e um idioma, e entre na sua conta para tudo seguir você em qualquer aparelho.',
+      scenes: {
+        bar: { title: 'A barra de cima', spots: {
+          search: ['{{t:tb_search}}', 'Ache qualquer música, artista ou álbum da sua biblioteca. A tecla / também abre.'],
+          news: ['{{t:footer_changelog}}', 'O que mudou no site desde a sua última visita.'],
+          sync: ['{{t:tooltip_sync_now}}', 'Traz seus plays mais novos da sua fonte.'],
+          settings: ['{{t:set_title}}', 'Tudo desta lição.'],
+          theme: ['{{t:set_theme}}', 'Doze temas de cor.'],
+          lang: ['{{t:set_language}}', 'English, Español, Português (BR) ou Português (PT).'],
+          signin: ['{{t:tb_sign_in}}', 'Com o Google: suas configurações, playlists, avaliações, prêmios e seu progresso neste guia seguem você em qualquer aparelho.']
+        } },
+        source: { title: '{{t:set_tab_source}}', spots: {
+          search: ['{{t:set_search_ph}}', 'Digite uma palavra para ir direto a qualquer configuração.'],
+          tabs: ['Quatro abas', '{{t:set_tab_source}}, {{t:set_tab_charts}}, {{t:set_tab_releases}} e {{t:set_tab_profile}}.'],
+          cards: ['De onde vêm seus plays', 'Escolha uma de três.'],
+          sheets: ['Google Sheets', '{{t:set_card_sheets_note}}: sua própria planilha, preenchida pelo Last.fm a cada 90 minutos.'],
+          lastfm: ['Last.fm', '{{t:set_card_lastfm_note}}: só o seu nome de usuário.'],
+          file: ['{{t:set_card_file_name}}', '{{t:set_card_file_note}}: um arquivo com seus plays, sem conta.'],
+          url: ['{{t:set_sheet_url}}', 'Cole o link da sua planilha. O botão do modelo faz uma cópia para você.'],
+          tab: ['{{t:set_sheet_tab}}', 'A aba que tem seus plays.'],
+          auto: ['{{t:set_adv_summary}}', 'Passo a passo, com imagens, para uma planilha que se preenche sozinha.'],
+          account: ['{{t:set_lfm_account}}', '{{t:set_lfm_hint_idle}}'],
+          connect: ['Conectar', 'Abre o Last.fm para aprovar. Só diz conectado quando o Last.fm aceitou.'],
+          close: ['Fechar', 'Quando algo precisa ser salvo, {{t:set_save_load}} aparece aqui.']
+        } },
+        lastfm: { title: 'Last.fm', spots: {
+          card: ['Last.fm', 'O jeito mais rápido de começar.'],
+          user: ['{{t:set_lfm_user}}', '{{t:set_lfm_hint}}'],
+          dirty: ['{{t:set_unsaved}}', 'Aparece enquanto uma mudança não foi salva.'],
+          save: ['{{t:set_save_load}}', 'Salva e carrega seus plays.']
+        } },
+        file: { title: '{{t:set_card_file_name}}', spots: {
+          card: ['{{t:set_card_file_name}}', 'Para dar uma olhada uma vez, sem conta.'],
+          drop: ['{{t:set_drop}}', 'Uma exportação do Last.fm ou um CSV com seus plays.']
+        } },
+        charts: { title: '{{t:set_tab_charts}}', spots: {
+          tab: ['{{t:set_tab_charts}}', 'Como suas paradas funcionam.'],
+          week: ['{{t:set_week_label}}', '{{t:set_week_hint}}'],
+          svc: ['{{t:set_ms_label}}', '{{t:set_ms_hint}}.'],
+          sections: ['{{t:set_cp_title}}', 'Ligue ou desligue {{t:set_cp_tm}}, {{t:set_cp_stats}} e {{t:set_cp_cert}}.'],
+          stats: ['{{t:set_cp_stats}}', '{{t:set_cp_stats_note}}'],
+          events: ['{{t:set_events_title}}', 'Quantos dos seus artistas top a aba {{t:nav_events}} acompanha.'],
+          d100: ['{{t:d100_auto}}', 'Sua semana vai sozinha para {{t:nav_dank100}} (com login).'],
+          anim: ['{{t:set_anim}}', 'As paradas repetem os movimentos toda vez que abrem.'],
+          split: ['{{t:set_nosplit}}', '{{t:set_nosplit_note}}'],
+          credit: ['{{t:set_credit}}', 'Uma participação também conta nos seus prêmios.']
+        } },
+        releases: { title: '{{t:set_tab_releases}}', spots: {
+          tab: ['{{t:set_tab_releases}}', 'Singles, EPs e certificações.'],
+          detect: ['{{t:rtd_setting}}', 'Marca singles, EPs, discos ao vivo e trilhas sonoras pelo título e pelo Deezer.'],
+          album: ['{{t:set_cert_title}}', 'Os plays que um álbum precisa para {{t:set_cert_gold}}, {{t:set_cert_plat}} e {{t:set_cert_diamond}}.'],
+          song: ['{{t:ig_type_songs}}', 'E uma música.'],
+          single: ['{{t:rtype_single_plural}}', 'Os singles têm os seus.'],
+          ep: ['{{t:rtype_ep_plural}}', 'E os EPs.'],
+          reset: ['{{t:set_cert_reset}}', 'Volta aos números padrão.'],
+          rollup: ['{{t:rollup_label}}', 'Os plays de um single também contam para o álbum.']
+        } },
+        profile: { title: '{{t:set_tab_profile}}', spots: {
+          tab: ['{{t:set_tab_profile}}', 'Você, o visual e seus backups.'],
+          name: ['{{t:set_display_name}}', 'Aparece na página e na aba do navegador.'],
+          tz: ['{{t:set_timezone}}', '{{t:set_timezone_hint}}'],
+          themes: ['{{t:set_theme}}', 'Doze temas, escuros e claros.'],
+          theme: ['Seu tema', 'O que você usa agora.'],
+          lang: ['{{t:set_language}}', 'O site inteiro, este guia também.'],
+          backups: ['{{t:set_backups}}', 'Com login, uma cópia fica na sua conta todo dia. Restaure a que quiser.'],
+          dl: ['{{t:set_backup_download}}', 'Um arquivo que fica com você. Tem suas chaves de API, então guarde em lugar privado.'],
+          restore: ['{{t:set_backup_restore_file}}', 'Restaura um arquivo de backup.']
+        } },
+        search: { title: 'Ache uma configuração', spots: {
+          search: ['{{t:set_search_ph}}', 'Digite o que você procura.'],
+          results: ['Resultados', 'Cada configuração com essa palavra, e a aba dela.'],
+          result: ['Um resultado', 'Clique para ir direto.']
+        } },
+        theme: { title: '{{t:set_theme}}', spots: {
+          btn: ['{{t:set_theme}}', 'O ponto mostra a sua cor.'],
+          panel: ['Doze temas', 'Seis cores, cada uma escura e clara.'],
+          on: ['O seu', 'O que você usa agora.']
+        } },
+        lang: { title: '{{t:set_language}}', spots: {
+          btn: ['{{t:set_language}}', 'Mostra o código do seu idioma.'],
+          panel: ['Quatro idiomas', 'O site inteiro muda de uma vez.'],
+          on: ['O seu', 'O que você usa agora.']
+        } },
+        acct: { title: 'Sua conta', spots: {
+          btn: ['Sua foto', 'Abre o menu da sua conta.'],
+          dot: ['Novidade', 'Tem algo novo em {{t:nt_title}}.'],
+          name: ['Você', 'A conta Google com que você entrou.'],
+          nt: ['{{t:nt_title}}', 'Com quantas são novas.'],
+          out: ['{{t:tb_sign_out}}', 'Este aparelho para de sincronizar. Seus dados continuam na sua conta.']
+        } },
+        nt: { title: '{{t:nt_title}}', spots: {
+          tabs: ['Todas / Não lidas', 'Tudo, ou só o que é novo.'],
+          group: ['Por dia', 'Hoje, ontem, antes.'],
+          row: ['Uma notificação', 'Clique para ir até lá: uma playlist nova, uma certificação, uma resposta, a trilha sonora do seu mês, um recorde.'],
+          tile: ['De que tipo', 'A cor e o ícone.'],
+          cat: ['Tipo e hora', 'Playlist, certificação, fórum, trilha sonora, recorde.'],
+          dismiss: ['✕', 'Tira só esta.'],
+          foot: ['{{t:nt_clear}} / {{t:nt_read_all}}', 'Limpar tudo pergunta antes.'],
+          close: ['Fechar', 'Esc faz o mesmo.']
+        } }
+      },
+      howto: {
+        connect: { title: 'Conecte o que você ouve', slides: [
+          'Abra {{t:set_title}}.',
+          'Escolha de onde vêm seus plays.',
+          'Google Sheets: cole o link da sua planilha.',
+          'Last.fm: digite seu usuário.',
+          'Ou solte um arquivo.',
+          'Aperte {{t:set_save_load}}.'
+        ] },
+        tune: { title: 'Deixe as paradas do seu jeito', slides: [
+          'O dia em que suas semanas começam.',
+          'Seu fuso horário: quando os dias começam.',
+          'Quais seções as páginas das paradas mostram.',
+          'Quantos plays uma certificação pede.',
+          'Não achou algo? Busque.'
+        ] },
+        look: { title: 'Escolha um visual e um idioma', slides: [
+          'O ponto colorido na barra de cima.',
+          'Doze temas, escuros e claros.',
+          'O globo: seu idioma.',
+          'Quatro idiomas.',
+          'Os dois também estão em {{t:set_tab_profile}}.'
+        ] },
+        account: { title: 'Entre e proteja tudo', slides: [
+          'Entre com o Google.',
+          'Sua foto abre o seu menu.',
+          '{{t:nt_title}}: o que aconteceu enquanto você não estava.',
+          'Clique numa para ir até lá.',
+          'Backups: um por dia, e um arquivo que você pode guardar.'
+        ] }
+      },
+      options: {
+        source: { title: '{{t:set_tab_source}}', items: {
+          sheets: ['Google Sheets', 'Sua própria planilha, sempre em dia.'],
+          lastfm: ['Last.fm', 'Seu usuário.'],
+          file: ['{{t:set_card_file_name}}', 'Um arquivo, uma vez.'],
+          connect: ['{{t:set_lfm_account}}', 'Adicione e edite plays aqui.']
+        } },
+        charts: { title: '{{t:set_tab_charts}}', items: {
+          week: ['{{t:set_week_label}}', 'Qualquer dia.'],
+          svc: ['{{t:set_ms_label}}', 'Spotify, Apple Music ou Deezer.'],
+          sections: ['{{t:set_cp_title}}', 'Cada uma ligada ou não.'],
+          events: ['{{t:set_events_title}}', 'Seus 10 a 200 artistas top.'],
+          d100: ['{{t:d100_auto}}', 'Com login.'],
+          anim: ['{{t:set_anim}}', 'Toda vez.'],
+          split: ['{{t:set_nosplit}}', 'Para nomes “A, B”.'],
+          credit: ['{{t:set_credit}}', 'Participações contam nos prêmios.']
+        } },
+        releases: { title: '{{t:set_tab_releases}}', items: {
+          detect: ['{{t:rtd_setting}}', 'Títulos e Deezer.'],
+          apart: ['{{t:rtype_sep_singles}}', '{{t:rtype_sep_with}} ou {{t:rtype_sep_apart}}; os EPs igual.'],
+          rollup: ['{{t:rollup_label}}', '{{t:rollup_off}}, {{t:rollup_modal}} ou {{t:rollup_charts}}.'],
+          cert: ['{{t:set_cert_title}}', 'Para álbuns, músicas, singles e EPs.']
+        } },
+        profile: { title: '{{t:set_tab_profile}}', items: {
+          name: ['{{t:set_display_name}}', 'Seu nome na página.'],
+          tz: ['{{t:set_timezone}}', 'O deste computador, até você mudar.'],
+          theme: ['{{t:set_theme}}', 'Doze.'],
+          lang: ['{{t:set_language}}', 'Quatro.'],
+          backups: ['{{t:set_backups}}', 'Todo dia na sua conta; um arquivo quando quiser.']
+        } }
+      },
+      challenges: {
+        'set.open': ['Abra {{t:set_title}}', 'A engrenagem na barra de cima.'],
+        'set.tab': ['Abra outra aba de {{t:set_title}}', '{{t:set_tab_charts}}, {{t:set_tab_releases}} ou {{t:set_tab_profile}}.'],
+        'set.search': ['Busque nas configurações', '{{t:set_search_ph}}'],
+        'set.theme': ['Experimente um tema', 'O ponto colorido na barra de cima.'],
+        'set.lang': ['Mude o idioma', 'O globo na barra de cima. (Volte do mesmo jeito.)'],
+        'set.backup': ['{{t:set_backup_download}}', '{{t:set_title}} → {{t:set_tab_profile}}.'],
+        'set.nt': ['Abra {{t:nt_title}}', 'Sua foto na barra de cima (com login).']
+      },
+      quiz: {
+        q1: ['Qual fonte de dados não precisa de nenhuma conta?',
+          ['Google Sheets', 'Last.fm', '{{t:set_card_file_name}}'],
+          'Envie um arquivo com seus plays e suas paradas são feitas com ele, sem cadastro em lugar nenhum.'],
+        q2: ['O que entrar com o Google faz?',
+          ['Suas configurações, playlists, avaliações, prêmios e progresso do guia seguem você em qualquer aparelho', 'Deixa suas paradas públicas', 'É preciso para ver qualquer parada'],
+          'Suas paradas funcionam sem isso; entrar mantém tudo igual em todos os aparelhos, com backups diários.'],
+        q3: ['Você quer que as semanas comecem na segunda. Onde muda?',
+          ['{{t:set_tab_profile}}', '{{t:set_tab_charts}} → {{t:set_week_label}}', 'A barra de datas'],
+          'É a primeira configuração da aba {{t:set_tab_charts}}, e refaz todas as semanas de uma vez.']
+      },
+      tips: [
+        'Não acha uma configuração? Digite uma palavra em {{t:set_search_ph}} e vá direto.',
+        'Doze temas: experimente um claro de dia.',
+        'Baixe de vez em quando um arquivo de backup em {{t:set_title}} → {{t:set_tab_profile}}.',
+        'Com login, sua foto mostra um ponto quando tem algo novo em {{t:nt_title}}.'
+      ]
+    }
   }
 };

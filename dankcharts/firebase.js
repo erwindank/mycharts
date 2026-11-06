@@ -233,6 +233,33 @@ async function dcLoadRatings() {
   }
 }
 
+// The Charts Guide's progress (guide.js): challenges done, quiz answers,
+// lessons opened. Its own document, like ratings, so the config doc's
+// wholesale writes can never race it. guide.js merges per entry.
+function _guideRef(uid) {
+  return _db.collection('users').doc(uid).collection('data').doc('guideProgress');
+}
+async function dcSaveGuideProgress(payload) {
+  if (!_currentUser) return;
+  await _ensureDb();
+  try {
+    await _guideRef(_currentUser.uid).set(payload);
+  } catch (err) {
+    console.warn('[dankcharts] Guide progress save error:', err);
+  }
+}
+async function dcLoadGuideProgress() {
+  if (!_currentUser) return null;
+  await _ensureDb();
+  try {
+    const snap = await _guideRef(_currentUser.uid).get();
+    return snap.exists ? snap.data() : null;
+  } catch (err) {
+    console.warn('[dankcharts] Guide progress load error:', err);
+    return null;
+  }
+}
+
 function _diaryRef(uid) {
   return _db.collection('users').doc(uid).collection('data').doc('diary');
 }
@@ -861,6 +888,8 @@ window.dcLoadSharedCeremony        = dcLoadSharedCeremony;
 window.dcUnshareCeremony           = dcUnshareCeremony;
 window.dcSaveRatings               = dcSaveRatings;
 window.dcLoadRatings               = dcLoadRatings;
+window.dcSaveGuideProgress         = dcSaveGuideProgress;
+window.dcLoadGuideProgress         = dcLoadGuideProgress;
 window.dcSaveDiary                 = dcSaveDiary;
 window.dcLoadDiary                 = dcLoadDiary;
 window.dcSaveImgChoices            = dcSaveImgChoices;
@@ -915,6 +944,10 @@ _auth.onAuthStateChanged(async (user) => {
   // Same per-entry merge for pictures picked in the image picker.
   const remoteImgChoices = await dcLoadImgChoices();
   if (typeof dcMergeImgChoices === 'function') dcMergeImgChoices(remoteImgChoices);
+
+  // The Charts Guide's progress, merged per challenge / answer (guide.js)
+  const remoteGuide = await dcLoadGuideProgress();
+  if (typeof dcMergeGuideProgress === 'function') dcMergeGuideProgress(remoteGuide);
 
   const hasLocalConfig = SYNC_KEYS.some(k => localStorage.getItem(k) !== null);
   if (!hasLocalConfig && !applied) return; // truly fresh user with no data anywhere
