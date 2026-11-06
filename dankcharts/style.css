@@ -46410,6 +46410,16 @@ html.lsx-open { overflow: hidden; }
 /* Month view: the Songs/Artists/Albums and Weekly/Daily switches side by side */
 .st-no1-switches { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: var(--sp-3); }
 .st-no1-switches .st-no1-seg { margin-bottom: 0; }
+/* Year view: past the first few reigns the timeline sits in a box that
+   scrolls inside itself (about 10 rows tall), so "Show more" doesn't make
+   the page endless; the timeline line scrolls with the rows */
+.st-no1-scroll {
+  max-height: 520px; overflow-y: auto; overscroll-behavior: contain;
+  border-radius: var(--radius-md, 10px); padding-right: 4px;
+  scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--accent) 45%, transparent) transparent;
+}
+.st-no1-scroll:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.st-no1-btns { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; }
 /* Many reigns (a year of daily #1s): no gaps and no minimum width, so even
    200+ reigns fit a phone; the alternating shade still tells them apart */
 .d100-no1-strip.is-dense { gap: 0; overflow: hidden; border-radius: 3px; }

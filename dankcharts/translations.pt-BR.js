@@ -4574,6 +4574,7 @@ TRANSLATIONS['pt-BR'] = Object.assign({
     st_ch_no1_sub: 'Mais tempo no nº 1: {{name}}, {{weeks}}',
     st_no1_none: 'Ainda não há números um semanais neste período',
     st_no1_none_day: 'Ainda não há números um diários neste período',
+    st_no1_more: 'Ver mais {{n}}',   // year view: adds rows to the Number ones list
     st_ch_no1_sub_tie: 'Mais tempo no nº 1: {{names}}, {{weeks}} cada ({{run}} seguidas)',
     st_ch_no1_sub_tie_row: 'Mais tempo no nº 1: {{names}}, {{weeks}} seguidas cada',
     st_ch_no1_sub_row: 'Mais tempo no nº 1: {{name}}, {{weeks}} seguidas',

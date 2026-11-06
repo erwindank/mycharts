@@ -4725,6 +4725,7 @@ const TRANSLATIONS = {
     st_ch_no1_sub: 'Longest at #1: {{name}}, {{weeks}}',
     st_no1_none: 'No weekly #1s in this period yet',
     st_no1_none_day: 'No daily #1s in this period yet',
+    st_no1_more: 'Show {{n}} more',   // year view: adds rows to the Number ones list
     st_ch_no1_sub_tie: 'Longest at #1: {{names}}, {{weeks}} each ({{run}} in a row)',
     st_ch_no1_sub_tie_row: 'Longest at #1: {{names}}, {{weeks}} in a row each',
     st_ch_no1_sub_row: 'Longest at #1: {{name}}, {{weeks}} in a row',

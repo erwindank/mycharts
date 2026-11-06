@@ -52522,12 +52522,23 @@ function renderSoundtrack() {
 // of days at #1, and a row opens that day.
 let stNo1Type = 'songs';   // songs | artists | albums | single | ep (the last two only while separated)
 let stNo1Unit = 'week';    // week | day (year and month views; since 2026-11-06 the year too)
-let stNo1All = false;      // show every reign, not just the latest few
+let stNo1All = false;      // month view: show every reign, not just the latest few
+// Year view (2026-11-06): a year of daily reigns runs into the hundreds, so
+// "Show all" would draw them all at once and slow the page. There the list
+// grows 15 rows per press instead, inside a box that scrolls on its own.
+const ST_NO1_LIMIT = 6;    // rows shown before any button is pressed
+const ST_NO1_STEP = 15;    // year view: rows added per "Show more" press
+let stNo1Shown = ST_NO1_LIMIT;   // year view: how many rows are drawn
+let _stNo1ScrollTo = -1;         // year view: row to scroll the box to after "Show more"
 
-function stSetNo1Type(type) { stNo1Type = type; stNo1All = false; stRenderNumberOnes(); stNumberChapters(); }
+function stNo1Reset() { stNo1All = false; stNo1Shown = ST_NO1_LIMIT; }
+function stSetNo1Type(type) { stNo1Type = type; stNo1Reset(); stRenderNumberOnes(); stNumberChapters(); }
 // (each redraws the band, so the "Chapter N ·" number is put back after)
-function stSetNo1Unit(unit) { stNo1Unit = unit; stNo1All = false; stRenderNumberOnes(); stNumberChapters(); }
+function stSetNo1Unit(unit) { stNo1Unit = unit; stNo1Reset(); stRenderNumberOnes(); stNumberChapters(); }
 function stNo1Toggle() { stNo1All = !stNo1All; stRenderNumberOnes(); stNumberChapters(); }
+// Year view: 15 more rows, and the box scrolls down to the first new one
+function stNo1More() { _stNo1ScrollTo = stNo1Shown; stNo1Shown += ST_NO1_STEP; stRenderNumberOnes(); stNumberChapters(); }
+function stNo1Less() { stNo1Shown = ST_NO1_LIMIT; stRenderNumberOnes(); stNumberChapters(); }
 
 // The reigns inside the period on screen, oldest first:
 // [{ k, name, artist, weeks: [period keys in the period], back }]
@@ -52703,8 +52714,14 @@ function stRenderNumberOnes() {
 
   // The timeline: newest first, only the latest few until "Show all"
   const list = groups.slice().reverse();
-  const LIMIT = 6;
-  const shown = stNo1All ? list : list.slice(0, LIMIT);
+  const LIMIT = ST_NO1_LIMIT;
+  // Year view: grows 15 at a time in a scrolling box; month view: Show all
+  const isYear = stPeriodType === 'year';
+  const shown = isYear ? list.slice(0, stNo1Shown) : stNo1All ? list : list.slice(0, LIMIT);
+  // Once the year list is longer than the first few rows it sits in a box
+  // that scrolls inside itself, so the page doesn't keep getting longer
+  const boxed = isYear && shown.length > LIMIT;
+  if (boxed) h += '<div class="st-no1-scroll" tabindex="0">';
   h += `<ol class="d100-no1-list st-no1-list${type === 'artists' ? ' d100-list-artists' : ''}">`;
   shown.forEach((g, i) => {
     const n = g.weeks.length;
@@ -52724,12 +52741,31 @@ function stRenderNumberOnes() {
       '</span></button></li>';
   });
   h += '</ol>';
-  if (list.length > LIMIT) {
+  if (boxed) h += '</div>';
+  if (isYear && list.length > LIMIT) {
+    // "Show 15 more" while rows are left, "Show fewer" once it has grown
+    h += '<div class="st-no1-btns">';
+    if (shown.length < list.length) {
+      h += `<button type="button" class="dc-btn dc-btn-normal d100-no1-more" onclick="stNo1More()">` +
+        esc(t('st_no1_more', { n: Math.min(ST_NO1_STEP, list.length - shown.length), total: list.length })) + '</button>';
+    }
+    if (shown.length > LIMIT) {
+      h += `<button type="button" class="dc-btn dc-btn-normal d100-no1-more" onclick="stNo1Less()">${esc(t('d100_no1_less'))}</button>`;
+    }
+    h += '</div>';
+  } else if (list.length > LIMIT) {
     h += `<button type="button" class="dc-btn dc-btn-normal d100-no1-more" onclick="stNo1Toggle()">` +
       esc(stNo1All ? t('d100_no1_less') : t('d100_show_all', { n: list.length })) + '</button>';
   }
   h += '</section>';
   body.innerHTML = h;
+  // After "Show more": bring the first new row to the top of the box
+  if (_stNo1ScrollTo >= 0) {
+    const box = body.querySelector('.st-no1-scroll');
+    const row = box && box.querySelectorAll('.d100-no1-item')[_stNo1ScrollTo];
+    if (row) box.scrollTop += row.getBoundingClientRect().top - box.getBoundingClientRect().top;
+    _stNo1ScrollTo = -1;
+  }
 
   // Covers / photos, from the same lookups (and cache) as everywhere else
   const tok = _stHeadToken;
