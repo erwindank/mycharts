@@ -57358,7 +57358,7 @@ let _cgTourTimers = [];// every pending auto-advance / sequence timer
 let _cgTourAppliedStep = -1; // last step index actually applied, so tab switches fire once per step
 const _cgTourSteps = [
   { title: 'Welcome',
-    content: 'Somewhere in your listening history is your number one song from a year you barely remember, the album you played to death one winter, and the artist who has quietly sat in your top ten ever since. dankcharts digs all of it out. Every song you have played becomes a chart you can flip through — week by week, year by year, right back to your very first scrobble. This tour visits all fourteen tabs in about four minutes, and you can stop it any time.',
+    content: 'Somewhere in your listening history is your number one song from a year you barely remember, the album you played to death one winter, and the artist who has quietly sat in your top ten ever since. dankcharts digs all of it out. Every song you have played becomes a chart you can flip through — week by week, year by year, right back to your very first scrobble. This tour visits every tab in about four minutes, and you can stop it any time.',
     nav: null },
 
   /* Written as short labelled lines rather than one dense paragraph — the
@@ -57491,6 +57491,10 @@ const _cgTourSteps = [
     content: 'Prev / Next walks one period at a time, and the ← → arrow keys do the same without touching the mouse. The date bar above the chart always names the period you are looking at, and the jump picker beside it drops you on any specific week, month or year directly.',
     nav: null, spotlight: '#dateNav' },
 
+  { title: 'Daily',
+    content: 'One day at a time: your top songs, artists and albums for any single day, with the hours you listened, a calendar to jump to any day, and a short recap of the day you can flip through or share.',
+    nav: 'day' },
+
   { title: 'Monthly',
     content: 'The same three charts counted over a calendar month. Because each period is counted independently, a song can top the weekly chart on one heavy afternoon and still finish nowhere monthly — the monthly chart rewards things you came back to. Worth checking when you want to know what actually stuck.',
     nav: 'month' },
@@ -57544,11 +57548,11 @@ const _cgTourSteps = [
     nav: 'board' },
 
   { title: 'Charts Guide',
-    content: 'Back where you started. Six chapters: setup checks, a card for every tab, how charts are actually calculated, keyboard shortcuts and lesser-known tricks, your own listening data, and an FAQ. Everything in this tour is written down here, so nothing depends on you remembering it.',
+    content: 'Back where you started. Every tab has its own lesson here: real pictures of the screen you can click on, step-by-step how-tos and small challenges you finish by trying things in the app. Getting started walks you through setup, the search box finds any feature, and the Reference tab answers how charts are counted, keyboard shortcuts and the FAQ.',
     nav: 'chartsguide' },
 
   { title: 'That is the whole app',
-    content: 'You have now seen all fourteen tabs. The Charts Guide stays in the nav bar, and you can restart this tour any time from the button at the top of it. Go and look at your Weekly chart.',
+    content: 'You have now seen every tab. The Charts Guide stays in the nav bar, and you can restart this tour any time from the button at the top of it. Go and look at your Weekly chart.',
     nav: null },
 ];
 
