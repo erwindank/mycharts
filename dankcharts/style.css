@@ -39692,8 +39692,10 @@ body.green-light :is(.sv--bronze, .modal-cb-detail-peak--bronze) {
     .rp-hi-n { flex-shrink: 0; font-size: var(--fs-xs); color: var(--text3); font-variant-numeric: tabular-nums; }
     @media (prefers-reduced-motion: reduce) { .rp-hi-track { transition: none; } }
     /* Top rated artists · recently rated, side by side from 900px */
-    .rp-duo { display: grid; grid-template-columns: 1fr; gap: var(--sp-5); }
-    @media (min-width: 1024px) { .rp-duo { grid-template-columns: 1fr 1fr; } }
+    /* minmax(0, 1fr), not 1fr: a long title (nowrap) would otherwise widen the
+       column to fit it and push the scores past a phone's edge */
+    .rp-duo { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-5); }
+    @media (min-width: 1024px) { .rp-duo { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
     .rp-rank { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
     .rp-rank-row {
       display: flex;
