@@ -29,7 +29,7 @@
   'use strict';
 
   // Bump when the lesson files or the pictures change (it's their ?v=)
-  const GUIDE_V = '11';
+  const GUIDE_V = '12';
   const STORE = 'dc_guide_progress';
   const LANG_FILES = ['es', 'pt-BR', 'pt-PT'];
 
@@ -165,7 +165,33 @@
     // a bubble opens its pop-up after a short pop, so watch the window itself
     'st.bubble':     { lesson: 'soundtrack', open: '#stArtistModal' },
     'st.replay':     { lesson: 'soundtrack', fn: 'stStartReplay' },
-    'st.card':       { lesson: 'soundtrack', fn: 'stOpenCard' }
+    'st.card':       { lesson: 'soundtrack', fn: 'stOpenCard' },
+    // The Dank 100 (dank100.js draws it with inline onclick handlers on
+    // dcDank100.*, which is an object, so these are noticed by their clicks)
+    'd1.week':       { lesson: 'dank100', click: '#dank100View .d100-wk-btn', input: '#dank100View .d100-wk-select' },
+    'd1.type':       { lesson: 'dank100', click: '#dank100View .d100-seg button:not(:first-child)' },
+    'd1.run':        { lesson: 'dank100', click: '#dank100View .d100-row' },
+    'd1.box':        { lesson: 'dank100', click: '#dank100View .cr-boxes [onclick]' },
+    'd1.no1':        { lesson: 'dank100', click: '#dank100View .d100-no1-row, #dank100View .d100-no1-more' },
+    'd1.export':     { lesson: 'dank100', click: '#dank100View [onclick*="dcDank100.exportPlaylist"]' },
+    'd1.share':      { lesson: 'dank100', click: '#dank100View [onclick*="dcDank100.share"]' },
+    // Ratings (app.js rating* / ar* / rp* functions)
+    'rt.rate':       { lesson: 'ratings', open: '#ratingModal' },
+    'rt.tracks':     { lesson: 'ratings', fn: 'ratingSwitchTab', test: a => a[0] === 'tracks' },
+    'rt.mode':       { lesson: 'ratings', fn: 'ratingSetSongMode' },
+    'rt.view':       { lesson: 'ratings', fn: 'arSetView', test: a => a[1] && a[1] !== 'albums' },
+    'rt.band':       { lesson: 'ratings', fn: 'arSetBand' },
+    'rt.sort':       { lesson: 'ratings', fn: 'arSort' },
+    'rt.artist':     { lesson: 'ratings', fn: 'rpOpenArtist' },
+    // Events (app.js)
+    'ev.tab':        { lesson: 'events', fn: 'setEventsTab', test: a => a[0] && a[0] !== 'today' },
+    'ev.type':       { lesson: 'events', fn: 'toggleEventsType' },
+    'ev.view':       { lesson: 'events', fn: 'setEventsView' },
+    'ev.cal':        { lesson: 'events', fn: 'setCalView', test: a => a[0] === 'week' || a[0] === 'day' },
+    'ev.day':        { lesson: 'events', fn: 'calOpenDay' },
+    'ev.tm':         { lesson: 'events', fn: 'tmToggleType' },
+    'ev.card':       { lesson: 'events', click: '#eventsView .ev-carousel-card, #eventsView .tm-card, #eventsView .cal-ev' },
+    'ev.info':       { lesson: 'events', fn: 'toggleEventsStatus' }
   };
   // Where "Show me" takes you for each challenge, and what it rings there.
   // open/tab: open the chart's ⋮ menu on a tab first.
@@ -248,7 +274,29 @@
     'st.no1':        { nav: 'soundtrack', ring: '#stNo1Section .st-no1-seg' },
     'st.bubble':     { nav: 'soundtrack', ring: '#stDiscoveriesBubbles' },
     'st.replay':     { nav: 'soundtrack', ring: '#stTopReplayBtn, #stReplayBtn' },
-    'st.card':       { nav: 'soundtrack', ring: '#soundtrackView .st-controls [onclick*="stOpenCard"]' }
+    'st.card':       { nav: 'soundtrack', ring: '#soundtrackView .st-controls [onclick*="stOpenCard"]' },
+    'd1.week':       { nav: 'dank100', ring: '#dank100View .d100-weeknav' },
+    'd1.type':       { nav: 'dank100', ring: '#dank100View .d100-seg' },
+    'd1.run':        { nav: 'dank100', ring: '#dank100View .d100-row' },
+    'd1.box':        { nav: 'dank100', ring: '#dank100View .cr-boxes, #dank100View .d100-row' },
+    'd1.no1':        { nav: 'dank100', ring: '#dank100View .d100-no1' },
+    'd1.export':     { nav: 'dank100', ring: '#dank100View [onclick*="dcDank100.exportPlaylist"]' },
+    'd1.share':      { nav: 'dank100', ring: '#dank100View [onclick*="dcDank100.share"]' },
+    'rt.rate':       { nav: 'ratings', ring: '#ratingsPageBody .ar-next, #ratingsPageBody .ar-list' },
+    'rt.tracks':     { nav: 'ratings', ring: '#ratingsPageBody .ar-next, #ratingsPageBody .ar-list' },
+    'rt.mode':       { nav: 'ratings', ring: '#ratingsPageBody .ar-tabs' },
+    'rt.view':       { nav: 'ratings', ring: '#ratingsPageBody .ar-tabs' },
+    'rt.band':       { nav: 'ratings', ring: '#ratingsPageBody .ar-dist-cols' },
+    'rt.sort':       { nav: 'ratings', ring: '#ratingsPageBody .am-sort' },
+    'rt.artist':     { nav: 'ratings', ring: '#ratingsPageBody .rp-duo .rp-col' },
+    'ev.tab':        { nav: 'events', ring: '#eventsView .events-tabs' },
+    'ev.type':       { nav: 'events', ring: '#eventsView .events-type-filters' },
+    'ev.view':       { nav: 'events', prep: ['setEventsTab', 'coming'], ring: '#eventsViewBtns' },
+    'ev.cal':        { nav: 'events', prep: ['setEventsTab', 'calendar'], ring: '#eventsView .cal-view-btns' },
+    'ev.day':        { nav: 'events', prep: ['setEventsTab', 'calendar'], ring: '#eventsCalendarGrid .cal-today .cal-cell-num, #eventsCalendarGrid' },
+    'ev.tm':         { nav: 'events', prep: ['setEventsTab', 'today'], ring: '#timeMachineSection .tm-toggle-btns' },
+    'ev.card':       { nav: 'events', prep: ['setEventsTab', 'today'], ring: '#eventsTodayBody' },
+    'ev.info':       { nav: 'events', ring: '#eventsInfoBtn' }
   };
 
   let lastInput = 0;
@@ -1014,6 +1062,10 @@
     setTimeout(() => {
       // A Stats tab first (it is drawn as it opens)
       if (sh.stab && typeof window.setStatsTab === 'function') window.setStatsTab(sh.stab);
+      // prep: [app function, ...args] that opens the right part of the tab
+      // first (an Events tab). It runs as if nobody clicked, so it never
+      // completes a challenge on the user's behalf.
+      if (sh.prep && typeof window[sh.prep[0]] === 'function') { lastInput = 0; window[sh.prep[0]](...sh.prep.slice(1)); }
       if (sh.menu) {
         // Open the songs chart's ⋮ on the right tab
         const wrap = $('#songsSection .kebab-menu-wrap');

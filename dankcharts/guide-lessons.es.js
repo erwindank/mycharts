@@ -2164,9 +2164,479 @@ window.GL_TEXT.es = {
         'La imagen para compartir tiene cinco diseños. Prueba Wrapped como historia 9:16.'
       ]
     },
-    dank100: { title: 'The Dank 100', promise: 'Los rankings semanales de todos, sumados en uno.' },
-    ratings: { title: 'Valoraciones', promise: 'Puntúa álbumes y canciones, y descubre tu lado crítico.' },
-    events: { title: 'Eventos', promise: 'Cumpleaños, aniversarios, lanzamientos y la Máquina del Tiempo.' },
+    dank100: {
+      title: '{{t:d100_title}}',
+      promise: 'Un ranking semanal compartido hecho con los rankings de todos: léelo, sigue la trayectoria de una canción y envía tu propia semana.',
+      scenes: {
+        top: { title: 'El ranking', spots: {
+          title: ['{{t:d100_title}}', 'Los rankings semanales de todos, sumados en un solo ranking de 100.'],
+          signin: ['Iniciar sesión', 'Solo hace falta para enviar tu semana. Cualquiera puede ver el ranking.'],
+          week: ['Qué semana', 'Elige de la lista cualquier ranking hasta ahora.'],
+          prev: ['{{t:d100_prev_week}}', 'Un ranking atrás.'],
+          next: ['{{t:d100_next_week}}', 'Un ranking adelante.'],
+          from: ['Oyentes', 'De cuántas personas salen las semanas de este ranking.'],
+          seg: ['{{t:d100_type_songs}} / {{t:d100_type_artists}} / {{t:d100_type_albums}}', 'Tres rankings cada semana.'],
+          export: ['{{t:d100_export}}', 'El ranking como playlist para copiar a tu app de música.'],
+          share: ['{{t:d100_share}}', 'Guarda una imagen del top 10 (en el móvil, la comparte).'],
+          cols: ['Las columnas', '{{t:d100_col_pts}}, {{t:d100_col_l}}, {{t:d100_col_lw}}, {{t:d100_col_pk}} y {{t:d100_col_wk}}.'],
+          row: ['Una fila', 'Haz clic para abrir su trayectoria en el ranking.'],
+          pos: ['Puesto', 'Su posición esta semana.'],
+          move: ['Movimiento', 'Sube o baja desde la semana pasada, o una etiqueta si es nueva o vuelve.'],
+          pts: ['{{t:d100_col_pts}}', 'Los puntos de todos sumados: 100 por el #1 de un oyente, hasta 1 por su #100.'],
+          l: ['{{t:d100_col_l}}', 'Cuántas personas la tenían en su ranking.'],
+          lw: ['{{t:d100_col_lw}}', 'Su puesto la semana pasada (– si no estaba).'],
+          pk: ['{{t:d100_col_pk}}', 'Su mejor puesto.'],
+          wk: ['{{t:d100_col_wk}}', 'Semanas en el ranking en total.'],
+          acts: ['Escuchar', 'Una muestra, Spotify o YouTube.']
+        } },
+        run: { title: 'Una trayectoria en el ranking', spots: {
+          row: ['La fila abierta', 'Haz clic otra vez para cerrarla.'],
+          plot: ['La línea', 'Su puesto semana a semana, con el #1 arriba. Un hueco es una semana fuera del ranking.'],
+          story: ['En una línea', 'Dónde empezó, su mejor puesto y cuánto lleva.'],
+          ribbon: ['Totales', 'Su pico, semanas en el #1 y semanas en el top 3, 5, 10 o 40.'],
+          chip: ['Un total', 'Tócalo para iluminar solo esas semanas abajo.'],
+          boxes: ['Cada semana', 'Una casilla por semana en el ranking, con su puesto.'],
+          box: ['Una semana', 'Haz clic para ver el ranking de esa semana.']
+        } },
+        week: { title: 'El ranking de una semana', spots: {
+          head: ['La semana', 'Qué semana y qué ranking.'],
+          item: ['Su top 30', 'La que tenías abierta aparece iluminada.'],
+          link: ['La semana entera', 'Abre el ranking completo de esa semana en la página.'],
+          close: ['Cerrar', 'Vuelve a la trayectoria.']
+        } },
+        no1: { title: '{{t:d100_no1_title}}', spots: {
+          head: ['{{t:d100_no1_title}}', 'Cada #1 del ranking que elegiste arriba.'],
+          sum: ['En total', 'Cuántos reinados y cuántos #1 distintos.'],
+          strip: ['La línea de tiempo', 'Cada reinado es un bloque: cuanto más duró, más ancho.'],
+          row: ['Un #1', 'La semana en que llegó y cuánto duró. Haz clic para ver esa semana.'],
+          back: ['{{t:d100_no1_back}}', 'Ya había sido #1 antes.'],
+          more: ['Ver todos', 'La lista completa.']
+        } },
+        recs: { title: '{{t:d100_rec_title}}', spots: {
+          grid: ['Los récords', 'Quince récords de todos los rankings hasta ahora.'],
+          rec: ['Un récord', '{{t:d100_rec_at1}}, {{t:d100_rec_debut}}, {{t:d100_rec_jump}} y más.'],
+          k: ['Qué récord', 'Lo que cuenta.'],
+          v: ['La cifra', 'La que hay que superar.'],
+          who: ['Quién lo tiene', 'La canción, el artista o el álbum.']
+        } },
+        entry: { title: '{{t:d100_entry_title}}', spots: {
+          soon: ['{{t:d100_soon_title}}', 'Qué semana se cuenta ahora y qué día sale.'],
+          entries: ['Tus semanas', 'La semana pasada (mientras aún se puede enviar) y esta semana.'],
+          last: ['{{t:d100_week_last}}', 'La semana que está a punto de contarse.'],
+          note: ['Última oportunidad', 'El día en que se cierra.'],
+          preview: ['{{t:d100_preview}}', 'Lo que enviarías: tu propio ranking de esa semana.'],
+          send: ['{{t:d100_send}}', 'Añade tu semana. Púlsalo otra vez para actualizarla, o retírala.'],
+          year: ['{{t:d100_year_title}}', 'Tus rankings de cada semana desde el 2 de enero, todos a la vez (hasta el 30 de noviembre).'],
+          yearbtn: ['{{t:d100_year_btn}}', 'Los envía.'],
+          auto: ['Automático', 'Actívalo en {{t:set_title}} y tu semana se envía sola cada domingo.'],
+          how: ['{{t:d100_how_title}}', 'Puntos, semanas y privacidad en cuatro líneas.']
+        } }
+      },
+      howto: {
+        read: { title: 'Lee el ranking', slides: [
+          'Su puesto esta semana.',
+          'Sube o baja desde la semana pasada.',
+          '{{t:d100_col_pts}}: 100 por el #1 de un oyente, 1 por su #100, todo sumado.',
+          'Cuántos oyentes la tenían.',
+          'Su mejor puesto, y luego sus semanas en el ranking.',
+          'Haz clic en una fila para abrir su trayectoria.'
+        ] },
+        run: { title: 'Sigue una trayectoria', slides: [
+          'Su puesto semana a semana.',
+          'Toca un total para iluminar esas semanas.',
+          'Haz clic en una semana…',
+          '…para ver el ranking de esa semana.',
+          'O abre la semana entera.'
+        ] },
+        weeks: { title: 'Viaja atrás en el tiempo', slides: [
+          'Elige una semana de la lista…',
+          '…o avanza de semana en semana.',
+          'O haz clic en un #1 para ir a su semana.',
+          'Cambia a {{t:d100_type_artists}} o {{t:d100_type_albums}}…',
+          '…para ver los otros dos rankings.'
+        ] },
+        join: { title: 'Envía tu semana', slides: [
+          'Inicia sesión con Google, con tu propia biblioteca conectada (la demo no puede enviar).',
+          'La semana pasada muestra tu ranking.',
+          'Pulsa {{t:d100_send}}.',
+          '¿Eres nuevo? Envía todo tu año de una vez.',
+          'O deja que se envíe solo cada domingo.',
+          'El ranking sale el lunes.'
+        ] },
+        share: { title: 'Llévatelo', slides: [
+          '{{t:d100_export}}: el ranking como playlist.',
+          '{{t:d100_share}}: una imagen del top 10.',
+          'Los dos funcionan también con los otros dos rankings.'
+        ] }
+      },
+      options: {
+        chart: { title: 'El ranking', items: {
+          type: ['{{t:d100_type_songs}} / {{t:d100_type_artists}} / {{t:d100_type_albums}}', 'Qué ranking.'],
+          week: ['Semana', 'El ranking más reciente, o cualquiera anterior.'],
+          cols: ['Columnas', '{{t:d100_col_pts}}, {{t:d100_col_l}}, {{t:d100_col_lw}}, {{t:d100_col_pk}}, {{t:d100_col_wk}}.'],
+          acts: ['Escuchar', 'Muestra, Spotify, YouTube.']
+        } },
+        tools: { title: 'Por el camino', items: {
+          run: ['Una trayectoria', 'Haz clic en una fila; luego en una casilla para esa semana.'],
+          more: ['Ver todo', 'Cada #1 y los 100 puestos.'],
+          export: ['{{t:d100_export}}', 'Las canciones tal cual; dos canciones por artista o álbum.'],
+          share: ['{{t:d100_share}}', 'Una imagen del top 10.']
+        } },
+        entry: { title: 'Tu envío', items: {
+          send: ['{{t:d100_send}}', 'Hasta el domingo siguiente a la semana (UTC).'],
+          back: ['{{t:d100_take_back}}', 'Quita tu envío mientras la semana esté abierta.'],
+          year: ['{{t:d100_year_btn}}', 'Cada semana desde el 2 de enero, hasta el 30 de noviembre.'],
+          auto: ['{{t:d100_auto}}', 'En {{t:set_title}}.']
+        } }
+      },
+      challenges: {
+        'd1.week': ['Mira otra semana', 'Las flechas o la lista encima del ranking.'],
+        'd1.type': ['Cambia a {{t:d100_type_artists}} o {{t:d100_type_albums}}', 'Junto a la semana.'],
+        'd1.run': ['Abre una trayectoria', 'Haz clic en cualquier fila.'],
+        'd1.box': ['Abre una semana desde una trayectoria', 'Haz clic en una casilla bajo una fila abierta.'],
+        'd1.no1': ['Abre un #1', 'En {{t:d100_no1_title}}, bajo el ranking.'],
+        'd1.export': ['{{t:d100_export}}', 'Encima del ranking.'],
+        'd1.share': ['{{t:d100_share}}', 'Encima del ranking.']
+      },
+      quiz: {
+        q1: ['¿Cómo consigue sus puntos una canción?',
+          ['Un punto por reproducción', 'Por su puesto en el ranking de cada oyente', 'Por cuántos oyentes tiene'],
+          'El #1 de un oyente le da 100 puntos, su #2 le da 99… así cada oyente cuenta igual, escuche lo que escuche.'],
+        q2: ['¿Cuándo sale el ranking de una semana?',
+          ['El viernes', 'El lunes, después de que los envíos cierren el domingo', 'A final de mes'],
+          'Las semanas van de viernes a jueves (UTC), los envíos siguen abiertos hasta el domingo y el ranking sale el lunes.'],
+        q3: ['¿Qué pueden ver los demás de lo que enviaste?',
+          ['Todo tu ranking', 'Tu top 10', 'Nada: solo el ranking combinado es público'],
+          'Solo el ranking combinado es público. Nadie puede ver lo que enviaste.']
+      },
+      tips: [
+        'Haz clic en cualquier casilla de la trayectoria de una canción para ver el ranking entero de esa semana.',
+        'En {{t:d100_no1_title}} cada reinado es un bloque: los más anchos duraron más.',
+        '{{t:d100_export}} convierte el ranking en una playlist, con dos canciones por artista o álbum.',
+        '{{t:d100_title}} tiene tres rankings cada semana: canciones, artistas y álbumes.'
+      ]
+    },
+    ratings: {
+      title: '{{t:nav_ratings}}',
+      promise: 'Puntúa álbumes y canciones como un crítico, y mira tus veredictos, tus mejores y peores notas y lo que aún te falta puntuar.',
+      scenes: {
+        page: { title: 'Tu página de crítico', spots: {
+          intro: ['{{t:nav_ratings}}', 'Todo lo que has puntuado, en un solo sitio.'],
+          ring: ['Tu media', 'Tu álbum medio (o canción, hasta que puntúes un álbum).'],
+          verdict: ['El veredicto', 'Una palabra para la nota, de {{t:rtb_poor}} a {{t:rtb_masterpiece}}.'],
+          meters: ['Cuánto', 'Álbumes, singles y EPs y canciones puntuados, de todo lo que escuchaste.'],
+          acts: ['Tu costumbre', 'Los días en que puntuaste, tu racha más larga de días y la última vez.'],
+          next: ['{{t:ar_next}}', 'Tu álbum más escuchado sin nota.'],
+          cta: ['{{t:rtg_rate_cta}}', 'Abre la ventana para puntuar.'],
+          hi: ['Lo mejor y lo peor', 'Tu álbum, single y canción con la nota más alta y más baja. Los empates pasan por turnos.'],
+          dots: ['Más con esa nota', 'Toca un punto para ver los demás.'],
+          recs: ['{{t:rp_recs}}', 'Lo que tus notas dicen de lo que escuchas.'],
+          rec: ['Un récord', '{{t:rp_rec_overplayed}}, {{t:rp_rec_underplayed}}, {{t:rp_rec_consistent}}, {{t:rp_rec_best_artist}}.'],
+          top: ['{{t:rp_top_artists}}', 'Por su álbum medio. Haz clic en uno para ver todas sus notas.'],
+          recent: ['{{t:rp_recent}}', 'Lo último que puntuaste. Haz clic para cambiarlo.']
+        } },
+        list: { title: 'Todo lo que puntuaste', spots: {
+          tabs: ['Las listas', '{{t:ig_type_albums}}, {{t:ar_singles}}, {{t:ig_type_songs}} o {{t:ar_todo}}.'],
+          spread: ['{{t:ar_spread}}', 'Cuántos hay en cada veredicto.'],
+          bar: ['Un veredicto', '{{t:ar_spread_hint}}.'],
+          search: ['{{t:ar_search}}', 'Busca uno por su nombre.'],
+          sort: ['Orden', '{{t:ar_sort_high}}, {{t:ar_sort_low}}, {{t:ar_sort_tracks}} o {{t:am_sort_az}}.'],
+          row: ['Una nota', 'Haz clic para cambiarla.'],
+          score: ['La nota', 'Sobre 10.'],
+          prog: ['Pistas puntuadas', 'Cuántas de sus pistas tienen nota.'],
+          band: ['El veredicto', 'La palabra para la nota.'],
+          go: ['Abrir', 'Abre la ventana del álbum.']
+        } },
+        todo: { title: '{{t:ar_todo}}', spots: {
+          tabs: ['{{t:ar_todo}}', 'Lo que escuchas y nunca has puntuado.'],
+          row: ['Lo más escuchado primero', 'Lo que mejor conoces.'],
+          cta: ['{{t:rtg_rate_cta}}', 'Puntúalo ya.']
+        } },
+        album: { title: 'Puntuar un álbum', spots: {
+          kind: ['{{t:rte_kind_album}}', 'Lo que estás puntuando.'],
+          title: ['El álbum', 'Y su artista.'],
+          ring: ['La nota', 'Cambia al mover cualquier control.'],
+          formula: ['Cómo se suma', 'La media de las pistas × 75% más los aspectos del álbum × 25%.'],
+          tabs: ['{{t:rte_aspects}} / {{t:rte_tracks}}', 'Las dos mitades de la nota.'],
+          row: ['Un aspecto', '{{t:rtc_coh}}, {{t:rtc_con}}, {{t:rtc_art}}, {{t:rtc_inn}}, {{t:rtc_imp}} y {{t:rtc_lon}}.'],
+          slider: ['Control', 'Arrastra de 0 a 10, de 0,1 en 0,1.'],
+          num: ['O escríbela', 'Escribe el número.'],
+          weight: ['Pistas frente a aspectos', 'Cuánto cuentan las pistas. Vale para todos los álbumes.'],
+          note: ['{{t:rte_note}}', 'Unas palabras, si quieres.'],
+          clear: ['{{t:rte_clear_album}}', 'Quita las notas de los aspectos (las de las pistas se quedan).'],
+          done: ['{{t:rte_done}}', 'Los cambios se guardan sobre la marcha.'],
+          close: ['Cerrar', 'Igual que {{t:rte_done}}.']
+        } },
+        tracks: { title: '{{t:rte_tracks}}', spots: {
+          tab: ['{{t:rte_tracks}}', 'Cada pista del álbum que escuchaste, con sus reproducciones.'],
+          formula: ['La nota', 'Se mueve con cada pista.'],
+          row: ['Una pista', 'Puntúala aquí mismo: un número.'],
+          slider: ['Control', 'De 0 a 10.'],
+          num: ['O escríbela', 'Un número.'],
+          rubric: ['Rúbrica completa', 'Abre la ventana de la canción para puntuarla.'],
+          full: ['Con la rúbrica completa', 'Una pista puntuada en detalle. Ábrela para cambiarla.']
+        } },
+        song: { title: 'Puntuar una canción', spots: {
+          back: ['{{t:rte_back_album}}', 'Cuando vienes de un álbum.'],
+          ring: ['La nota', 'La media de los criterios.'],
+          mode: ['{{t:rte_detailed}} / {{t:rte_quick}}', 'Seis criterios, o una nota a ojo.'],
+          row: ['Un criterio', '{{t:rtc_comp}}, {{t:rtc_lyr}}, {{t:rtc_voc}}, {{t:rtc_prod}}, {{t:rtc_mel}} y {{t:rtc_rhy}}.'],
+          na: ['{{t:rte_na}}', '{{t:rtc_lyr}} y {{t:rtc_voc}} pueden quedar fuera, para un instrumental.'],
+          note: ['{{t:rte_note}}', 'Opcional.'],
+          clear: ['{{t:rte_clear_song}}', 'Quita la nota de la canción.']
+        } },
+        quick: { title: '{{t:rte_quick}}', spots: {
+          mode: ['{{t:rte_quick}}', '{{t:rte_hint_quick}}'],
+          quick: ['Una nota', 'Arrástrala o escríbela.'],
+          ring: ['La nota', 'La misma allí donde aparezca la canción.']
+        } },
+        albwin: { title: 'En la ventana del álbum', spots: {
+          rate: ['{{t:dp_rate}}', 'Abre la ventana para puntuar. Las canciones también lo tienen.'],
+          tab: ['{{t:dp_tab_rating}}', 'La evaluación del álbum: la nota, sus partes, sus mejores y peores pistas.'],
+          ring: ['La nota', 'Con su veredicto.']
+        } },
+        artwin: { title: 'En la ventana del artista', spots: {
+          tab: ['{{t:dp_tab_rating}}', 'Todas las notas que le diste a este artista, como en la página {{t:nav_ratings}}.'],
+          ring: ['Su media', 'De sus álbumes puntuados.']
+        } }
+      },
+      howto: {
+        rate: { title: 'Puntúa un álbum', slides: [
+          'Empieza por {{t:ar_next}}, o por cualquier álbum.',
+          'Puntúa sus aspectos.',
+          'Luego sus pistas: un número cada una.',
+          'Elige cuánto cuentan las pistas.',
+          'La nota se suma sobre la marcha.',
+          'Listo. Todo está ya guardado.'
+        ] },
+        song: { title: 'Puntúa una canción en detalle', slides: [
+          'Abre la rúbrica completa de una pista…',
+          '…y elige {{t:rte_detailed}} o {{t:rte_quick}}.',
+          'Puntúa cada criterio.',
+          'Deja fuera {{t:rtc_lyr}} o {{t:rtc_voc}} cuando no aplican.',
+          '{{t:rte_quick}}: un número y listo.'
+        ] },
+        browse: { title: 'Recorre tus notas', slides: [
+          'Elige una lista.',
+          'Toca un veredicto para ver solo esos.',
+          'Cambia el orden.',
+          'Haz clic en una fila para cambiar su nota.',
+          '{{t:ar_todo}}: lo que aún te falta puntuar.'
+        ] },
+        where: { title: 'Las notas por la app', slides: [
+          'Cada ventana de álbum y de canción tiene un botón {{t:dp_rate}}.',
+          'Su pestaña {{t:dp_tab_rating}} muestra la evaluación.',
+          'Haz clic en un artista aquí…',
+          '…para ver todas sus notas en su pestaña {{t:dp_tab_rating}}.'
+        ] }
+      },
+      options: {
+        album: { title: 'Nota de un álbum', items: {
+          aspects: ['{{t:rte_aspects}}', 'Seis notas del álbum entero.'],
+          tracks: ['{{t:rte_tracks}}', 'Una nota por pista.'],
+          weight: ['Pistas frente a aspectos', 'Cuánto cuentan las pistas, en todos los álbumes.'],
+          note: ['{{t:rte_note}}', 'Tus palabras.']
+        } },
+        song: { title: 'Nota de una canción', items: {
+          mode: ['{{t:rte_detailed}} / {{t:rte_quick}}', 'Seis criterios o un número.'],
+          na: ['{{t:rte_na}}', 'Deja {{t:rtc_lyr}} o {{t:rtc_voc}} fuera de la media.'],
+          quick: ['{{t:rte_quick}}', 'Una nota a ojo.']
+        } },
+        page: { title: 'La página', items: {
+          lists: ['Listas', '{{t:ig_type_albums}}, {{t:ar_singles}}, {{t:ig_type_songs}}, {{t:ar_todo}}.'],
+          sort: ['Orden', '{{t:ar_sort_high}}, {{t:ar_sort_low}}, {{t:ar_sort_tracks}}, {{t:am_sort_az}}.'],
+          band: ['{{t:ar_spread}}', 'Toca un veredicto para filtrar.'],
+          search: ['{{t:ar_search}}', 'Por nombre.']
+        } }
+      },
+      challenges: {
+        'rt.rate': ['Abre la ventana para puntuar', '{{t:rtg_rate_cta}} en cualquier álbum.'],
+        'rt.tracks': ['Abre la pestaña {{t:rte_tracks}}', 'En la ventana para puntuar un álbum.'],
+        'rt.mode': ['Cambia una canción entre {{t:rte_detailed}} y {{t:rte_quick}}', 'En la ventana para puntuar una canción.'],
+        'rt.view': ['Abre otra lista', '{{t:ar_singles}}, {{t:ig_type_songs}} o {{t:ar_todo}}.'],
+        'rt.band': ['Muestra solo un veredicto', 'Toca una barra en {{t:ar_spread}}.'],
+        'rt.sort': ['Cambia el orden', 'Junto a {{t:ar_search}}.'],
+        'rt.artist': ['Abre un artista mejor valorado', 'En {{t:rp_top_artists}}.']
+      },
+      quiz: {
+        q1: ['¿Cómo se forma la nota de un álbum?',
+          ['Solo con sus pistas', 'Con sus pistas y sus aspectos de álbum juntos (75% y 25% si no lo cambias)', 'Con cuánto lo escuchas'],
+          'Se mezclan la media de las pistas y los aspectos del álbum. Si solo una mitad tiene nota, esa mitad es la nota.'],
+        q2: ['Una canción no tiene letra. ¿Qué haces?',
+          ['Darle un 0 a {{t:rtc_lyr}}', 'Marcar {{t:rtc_lyr}} como {{t:rte_na}}', 'Saltarte la canción'],
+          '{{t:rte_na}} lo deja fuera de la media, así un instrumental no sale perjudicado.'],
+        q3: ['¿Dónde encuentras lo que escuchas mucho pero nunca puntuaste?',
+          ['{{t:ar_todo}}', '{{t:rp_recent}}', '{{t:rp_top_artists}}'],
+          '{{t:ar_todo}} muestra lo que más escuchas sin nota, lo más escuchado primero.']
+      },
+      tips: [
+        'Puntúa un álbum entero de una vez en su pestaña {{t:rte_tracks}}: un número por pista.',
+        '¿Un instrumental? Marca {{t:rtc_lyr}} y {{t:rtc_voc}} como {{t:rte_na}} para que no cuenten.',
+        '{{t:rp_rec_underplayed}}: el álbum al que le pones buena nota pero casi nunca escuchas.',
+        'Toca un veredicto en {{t:ar_spread}} para ver solo esos álbumes.'
+      ]
+    },
+    events: {
+      title: '{{t:sec_events_title}}',
+      promise: 'Cumpleaños, aniversarios de álbumes, lanzamientos y conciertos de los artistas que escuchas, y lo que escuchabas este mismo día hace años.',
+      scenes: {
+        today: { title: '{{t:ev_tab_today}}', spots: {
+          title: ['{{t:sec_events_title}}', 'De tus 50 artistas top (cambia cuántos en {{t:set_title}}).'],
+          info: ['{{t:ev_info_title}}', 'Cuánto se encontró y cuándo.'],
+          refresh: ['{{t:ev_refresh_title}}', 'Vuelve a buscarlo todo.'],
+          tabs: ['Cuatro pestañas', '{{t:ev_tab_today}}, {{t:ev_tab_coming}}, {{t:ev_tab_recent}} y {{t:ev_tab_calendar}}.'],
+          types: ['Tipos', 'Toca uno para ocultarlo o mostrarlo otra vez.'],
+          bday: ['{{t:ev_type_birthdays}}', 'Los cumpleaños de los artistas.'],
+          shows: ['{{t:ev_type_shows}}', 'Conciertos (de Ticketmaster).'],
+          play: ['{{t:ev_play_all}}', 'Pone lo que muestra la pestaña en el reproductor.'],
+          pl: ['{{t:pl_section_btn}}', 'Guarda lo que muestra la pestaña en una playlist.'],
+          day: ['Hoy', 'Los cumpleaños, lanzamientos y conciertos de hoy.'],
+          card: ['Un evento', 'Haz clic para Spotify, una playlist, el reproductor o una búsqueda.'],
+          anniv: ['{{t:ev_today_anniversaries}}', 'Lanzamientos que cumplen años hoy, los que más escuchaste primero.'],
+          tm: ['{{t:time_machine_title}}', 'Lo que escuchabas este día en años anteriores.'],
+          tmtypes: ['{{t:time_machine_songs}} / {{t:time_machine_artists}} / {{t:time_machine_albums}}', 'Activa o desactiva cada uno.'],
+          tmpl: ['{{t:pl_section_btn}}', 'Guarda la {{t:time_machine_title}} como playlist.'],
+          tmcard: ['Un recuerdo', 'Con el año en que lo escuchaste. Arrastra la fila para recorrerla.']
+        } },
+        menu: { title: 'Lo que abre una tarjeta', spots: {
+          menu: ['Opciones', 'Buscar en Spotify, añadir a una playlist o al reproductor, o buscar en Google.'],
+          card: ['La tarjeta', 'Todas las tarjetas de esta pestaña funcionan igual.'],
+          tm: ['Tipos', 'Lo que muestra la {{t:time_machine_title}}.']
+        } },
+        coming: { title: '{{t:ev_tab_coming}}', spots: {
+          tab: ['{{t:ev_tab_coming}}', 'Lo que viene.'],
+          views: ['{{t:ev_view_reel}} / {{t:ev_view_tiles}} / {{t:ev_view_table}} / {{t:ev_view_list}}', 'Cuatro formas de verlo.'],
+          week: ['{{t:ev_group_week}}', 'Los próximos siete días.'],
+          soon: ['{{t:ev_group_soon}}', 'Hasta dentro de un mes.'],
+          later: ['{{t:ev_group_later}}', 'Más adelante: lanzamientos anunciados y fechas de gira.'],
+          card: ['Un evento', 'Su fecha, su artista y qué es.'],
+          when: ['Cuándo', 'Cuántos días faltan.'],
+          more: ['Ver todos', 'Los aniversarios se limitan a los que más escuchaste. Esto los muestra todos.'],
+          note: ['Conciertos', 'Cuántos conciertos se encontraron y dónde están las entradas.']
+        } },
+        table: { title: '{{t:ev_view_table}}', spots: {
+          views: ['{{t:ev_view_table}}', 'Los mismos eventos en una tabla.'],
+          table: ['La tabla', 'Una fila por evento.'],
+          th: ['Columnas', '{{t:ev_th_event}}, {{t:ev_th_artist}}, {{t:ev_th_date}} y {{t:ev_th_type}}.']
+        } },
+        recent: { title: '{{t:ev_tab_recent}}', spots: {
+          tab: ['{{t:ev_tab_recent}}', 'Lo que acaba de pasar.'],
+          past: ['{{t:ev_group_past_week}}', 'Los últimos siete días.'],
+          weeks: ['{{t:ev_group_past_weeks}}', 'Hasta hace un mes.'],
+          earlier: ['{{t:ev_group_earlier}}', 'Lanzamientos de los últimos seis meses.'],
+          more: ['Ver todos', 'Cada aniversario.'],
+          nmf: ['New Music Friday', 'Los lanzamientos de esta semana en Deezer, para todos, no solo tus artistas.'],
+          fridays: ['{{t:ev_nmf_past}}', 'Viernes anteriores que este navegador ha guardado.']
+        } },
+        cal: { title: '{{t:ev_tab_calendar}}', spots: {
+          tab: ['{{t:ev_tab_calendar}}', 'Cada evento en un calendario.'],
+          prev: ['{{t:ev_cal_prev}}', 'El mes anterior.'],
+          title: ['El mes', 'El que estás viendo.'],
+          next: ['{{t:ev_cal_next}}', 'El mes siguiente.'],
+          views: ['{{t:ev_cal_month}} / {{t:ev_cal_week}} / {{t:ev_cal_day}}', 'Cuánto ver a la vez.'],
+          today: ['Hoy', 'Enmarcado.'],
+          num: ['Un día', 'Haz clic en el número para abrir ese día.'],
+          ev: ['Un evento', 'Haz clic para ver opciones.'],
+          more: ['Más', 'El resto de eventos de ese día.']
+        } },
+        week: { title: '{{t:ev_cal_week}}', spots: {
+          views: ['{{t:ev_cal_week}}', 'Siete días uno al lado del otro.'],
+          title: ['La semana', 'Avanza de semana en semana con las flechas.'],
+          today: ['Hoy', 'Todos los eventos del día, en lista.']
+        } },
+        day: { title: '{{t:ev_cal_day}}', spots: {
+          views: ['{{t:ev_cal_day}}', 'Un día.'],
+          title: ['El día', 'Avanza de día en día con las flechas.'],
+          card: ['Un evento', 'En tarjetas, como en {{t:ev_tab_today}}.'],
+          anniv: ['{{t:ev_cal_anniversaries}}', 'Los aniversarios de ese día.']
+        } },
+        info: { title: '{{t:ev_info_title}}', spots: {
+          info: ['ⓘ', 'Abre o cierra esta línea.'],
+          status: ['En resumen', 'Cumpleaños, aniversarios, eventos próximos y recientes encontrados, de cuántos artistas y cuándo.'],
+          refresh: ['{{t:ev_refresh_title}}', 'Vuelve a buscarlo todo ahora (se actualiza solo una vez al día).']
+        } }
+      },
+      howto: {
+        today: { title: 'Qué pasa hoy', slides: [
+          'Los cumpleaños, lanzamientos y conciertos de hoy.',
+          'Haz clic en una tarjeta…',
+          '…para Spotify, una playlist, el reproductor o una búsqueda.',
+          'Lanzamientos que cumplen años hoy.',
+          'Y lo que escuchabas este día hace años.'
+        ] },
+        coming: { title: 'Mira lo que viene', slides: [
+          'Abre {{t:ev_tab_coming}}.',
+          'Primero esta semana.',
+          'Muestra todos los aniversarios.',
+          'Cambia la vista…',
+          '…a {{t:ev_view_table}}, por ejemplo.'
+        ] },
+        cal: { title: 'Usa el calendario', slides: [
+          'Abre {{t:ev_tab_calendar}}.',
+          '{{t:ev_cal_month}}, {{t:ev_cal_week}} o {{t:ev_cal_day}}.',
+          'Haz clic en el número de un día para abrirlo.',
+          'El día entero, en tarjetas.',
+          '{{t:ev_cal_week}}: siete días uno al lado del otro.'
+        ] },
+        filter: { title: 'Solo lo que quieres', slides: [
+          'Toca un tipo para ocultarlo.',
+          '{{t:ev_type_shows}} para las fechas en directo.',
+          'Reproduce lo que queda…',
+          '…o guárdalo como playlist.'
+        ] },
+        recent: { title: 'Ponte al día', slides: [
+          'Abre {{t:ev_tab_recent}}.',
+          'Primero la última semana.',
+          'New Music Friday: los lanzamientos de esta semana.',
+          'Y viernes anteriores.'
+        ] }
+      },
+      options: {
+        page: { title: 'Toda la pestaña', items: {
+          types: ['Tipos', '{{t:ev_type_birthdays}}, {{t:ev_type_albums}}, {{t:ev_type_singles}}, {{t:ev_type_eps}}, {{t:ev_type_other}}, {{t:ev_type_shows}}.'],
+          view: ['Vista', '{{t:ev_view_reel}}, {{t:ev_view_tiles}}, {{t:ev_view_table}} o {{t:ev_view_list}} ({{t:ev_tab_coming}} y {{t:ev_tab_recent}}).'],
+          play: ['{{t:ev_play_all}}', 'La pestaña en el reproductor.'],
+          pl: ['{{t:pl_section_btn}}', 'La pestaña como playlist.'],
+          refresh: ['{{t:ev_refresh_title}}', 'Buscar de nuevo.'],
+          limit: ['Artistas top', 'Cuántos de tus artistas top seguir. En {{t:set_title}}.']
+        } },
+        cal: { title: '{{t:ev_tab_calendar}}', items: {
+          views: ['{{t:ev_cal_month}} / {{t:ev_cal_week}} / {{t:ev_cal_day}}', 'Cuánto a la vez.'],
+          nav: ['‹ ›', 'Antes y después.']
+        } },
+        tm: { title: '{{t:time_machine_title}}', items: {
+          types: ['{{t:time_machine_songs}} / {{t:time_machine_artists}} / {{t:time_machine_albums}}', 'Lo que muestra.'],
+          pl: ['{{t:pl_section_btn}}', 'Como playlist.']
+        } }
+      },
+      challenges: {
+        'ev.tab': ['Abre otra pestaña', '{{t:ev_tab_coming}}, {{t:ev_tab_recent}} o {{t:ev_tab_calendar}}.'],
+        'ev.type': ['Oculta o muestra un tipo', 'Los botones bajo las pestañas.'],
+        'ev.view': ['Cambia la vista', 'En {{t:ev_tab_coming}} o {{t:ev_tab_recent}}.'],
+        'ev.cal': ['Cambia el calendario a {{t:ev_cal_week}} o {{t:ev_cal_day}}', 'En {{t:ev_tab_calendar}}.'],
+        'ev.day': ['Abre un día', 'Haz clic en el número de un día del calendario.'],
+        'ev.tm': ['Cambia lo que muestra la {{t:time_machine_title}}', 'En {{t:ev_tab_today}}.'],
+        'ev.card': ['Haz clic en una tarjeta', 'Cualquier evento o tarjeta de la {{t:time_machine_title}}.'],
+        'ev.info': ['Abre ⓘ', 'Junto al título.']
+      },
+      quiz: {
+        q1: ['¿Qué es la {{t:time_machine_title}}?',
+          ['Lo que escuchabas este día en años anteriores', 'Los lanzamientos de la semana que viene', 'Una forma de rebobinar el ranking'],
+          'Muestra las canciones, artistas y álbumes que escuchabas este mismo día hace años.'],
+        q2: ['¿Cómo abres un día en el calendario?',
+          ['Doble clic en el mes', 'Clic en el número del día', 'Abriendo {{t:ev_tab_today}}'],
+          'El número abre ese día, con todos sus eventos en tarjetas.'],
+        q3: ['¿De quién son los lanzamientos de New Music Friday?',
+          ['Solo de tus artistas top', 'De todos: los lanzamientos de esta semana en Deezer', 'Solo de álbumes que puntuaste'],
+          'New Music Friday no se filtra por tus artistas, así que sirve para descubrir otros nuevos.']
+      },
+      tips: [
+        'La {{t:time_machine_title}} muestra lo que escuchabas este mismo día hace años.',
+        'Haz clic en el número de un día del calendario para ver todo lo de ese día.',
+        '¿Prefieres una lista? {{t:ev_tab_coming}} y {{t:ev_tab_recent}} tienen cuatro vistas.',
+        '¿No te interesan los cumpleaños? Toca {{t:ev_type_birthdays}} para ocultarlos en todas partes.'
+      ]
+    },
     playlists: { title: 'Listas de reproducción', promise: 'Guarda rankings como listas, y deja que se hagan solas.' },
     rawdata: { title: 'Base de datos', promise: 'Cada escucha: búscala, corrígela, expórtala.' },
     board: { title: 'El Foro', promise: 'Propón ideas, informa de fallos y vota.' },

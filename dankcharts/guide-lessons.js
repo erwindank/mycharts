@@ -681,9 +681,140 @@ window.GL = {
       tips: [ ['st-top', 'story', 'st.story'], ['st-new', 'bubble', 'st.bubble'], ['st-top', 'stat', 'st.stat'],
         ['st-replay', 'canvas', 'st.replay'], ['st-card', 'tpl', 'st.card'] ]
     },
-    { id: 'dank100', area: 'more', nav: 'dank100', soon: true },
-    { id: 'ratings', area: 'more', nav: 'ratings', soon: true },
-    { id: 'events', area: 'more', nav: 'events', soon: true },
+    /* ── Lesson 11: The Dank 100 (everyone's weekly charts in one) ── */
+    { id: 'dank100', area: 'more', nav: 'dank100', mins: 6, cover: 'd1-top',
+      scenes: [
+        { id: 'top', shot: 'd1-top', phone: true,
+          spots: ['title', 'signin', 'week', 'prev', 'next', 'from', 'seg', 'export', 'share', 'cols', 'row', 'pos', 'move', 'pts', 'l', 'lw', 'pk', 'wk', 'acts'] },
+        { id: 'run', shot: 'd1-run', spots: ['row', 'plot', 'story', 'ribbon', 'chip', 'boxes', 'box'] },
+        // What a week box opens
+        { id: 'week', shot: 'd1-week', spots: ['head', 'item', 'link', 'close'] },
+        { id: 'no1', shot: 'd1-no1', spots: ['head', 'sum', 'strip', 'row', 'back', 'more'] },
+        { id: 'recs', shot: 'd1-recs', spots: ['grid', 'rec', 'k', 'v', 'who'] },
+        // Pictured as a signed-in listener with their own library
+        { id: 'entry', shot: 'd1-entry', spots: ['soon', 'entries', 'last', 'note', 'preview', 'send', 'year', 'yearbtn', 'auto', 'how'] }
+      ],
+      howto: [
+        { id: 'read', challenge: 'd1.run', slides: [
+          { shot: 'd1-top', spot: 'pos' }, { shot: 'd1-top', spot: 'move' }, { shot: 'd1-top', spot: 'pts' },
+          { shot: 'd1-top', spot: 'l' }, { shot: 'd1-top', spot: 'pk' }, { shot: 'd1-top', spot: 'row' } ] },
+        { id: 'run', challenge: 'd1.box', slides: [
+          { shot: 'd1-run', spot: 'plot' }, { shot: 'd1-run', spot: 'chip' }, { shot: 'd1-run', spot: 'box' },
+          { shot: 'd1-week', spot: 'item' }, { shot: 'd1-week', spot: 'link' } ] },
+        { id: 'weeks', challenge: 'd1.week', slides: [
+          { shot: 'd1-top', spot: 'week' }, { shot: 'd1-top', spot: 'prev' }, { shot: 'd1-no1', spot: 'row' },
+          { shot: 'd1-top', spot: 'seg' }, { shot: 'd1-artists', spot: 'row' } ] },
+        // Sending can't be watched here (the demo library can't send), so no challenge
+        { id: 'join', slides: [
+          { shot: 'd1-top', spot: 'signin' }, { shot: 'd1-entry', spot: 'last' }, { shot: 'd1-entry', spot: 'send' },
+          { shot: 'd1-entry', spot: 'year' }, { shot: 'd1-entry', spot: 'auto' }, { shot: 'd1-entry', spot: 'soon' } ] },
+        { id: 'share', challenge: 'd1.share', slides: [
+          { shot: 'd1-top', spot: 'export' }, { shot: 'd1-top', spot: 'share' }, { shot: 'd1-artists', spot: 'seg' } ] }
+      ],
+      options: [
+        { id: 'chart', items: [
+          { id: 'type', shot: 'd1-top', spot: 'seg', def: '{{t:d100_type_songs}}' }, { id: 'week', shot: 'd1-top', spot: 'week' },
+          { id: 'cols', shot: 'd1-top', spot: 'cols' }, { id: 'acts', shot: 'd1-top', spot: 'acts' } ] },
+        { id: 'tools', items: [
+          { id: 'run', shot: 'd1-run', spot: 'box' }, { id: 'more', shot: 'd1-no1', spot: 'more' },
+          { id: 'export', shot: 'd1-top', spot: 'export' }, { id: 'share', shot: 'd1-top', spot: 'share' } ] },
+        { id: 'entry', items: [
+          { id: 'send', shot: 'd1-entry', spot: 'send' }, { id: 'back', shot: 'd1-entry', spot: 'send' },
+          { id: 'year', shot: 'd1-entry', spot: 'yearbtn' }, { id: 'auto', shot: 'd1-entry', spot: 'auto', def: 'off' } ] }
+      ],
+      challenges: ['d1.week', 'd1.type', 'd1.run', 'd1.box', 'd1.no1', 'd1.export', 'd1.share'],
+      quiz: [ { id: 'q1', answer: 1 }, { id: 'q2', answer: 1 }, { id: 'q3', answer: 2 } ],
+      tips: [ ['d1-run', 'box', 'd1.box'], ['d1-no1', 'strip', 'd1.no1'], ['d1-top', 'export', 'd1.export'], ['d1-top', 'seg', 'd1.type'] ]
+    },
+    /* ── Lesson 12: Ratings (score like a critic) ── */
+    { id: 'ratings', area: 'more', nav: 'ratings', mins: 7, cover: 'rt-page',
+      scenes: [
+        { id: 'page', shot: 'rt-page', phone: true,
+          spots: ['intro', 'ring', 'verdict', 'meters', 'acts', 'next', 'cta', 'hi', 'dots', 'recs', 'rec', 'top', 'recent'] },
+        { id: 'list', shot: 'rt-list', spots: ['tabs', 'spread', 'bar', 'search', 'sort', 'row', 'score', 'prog', 'band', 'go'] },
+        { id: 'todo', shot: 'rt-todo', spots: ['tabs', 'row', 'cta'] },
+        { id: 'album', shot: 'rt-album',
+          spots: ['kind', 'title', 'ring', 'formula', 'tabs', 'row', 'slider', 'num', 'weight', 'note', 'clear', 'done', 'close'] },
+        { id: 'tracks', shot: 'rt-tracks', spots: ['tab', 'formula', 'row', 'slider', 'num', 'rubric', 'full'] },
+        { id: 'song', shot: 'rt-song', spots: ['back', 'ring', 'mode', 'row', 'na', 'note', 'clear'] },
+        { id: 'quick', shot: 'rt-quick', spots: ['mode', 'quick', 'ring'] },
+        { id: 'albwin', shot: 'rt-albwin', spots: ['rate', 'tab', 'ring'] },
+        { id: 'artwin', shot: 'rt-artwin', spots: ['tab', 'ring'] }
+      ],
+      howto: [
+        { id: 'rate', challenge: 'rt.rate', slides: [
+          { shot: 'rt-page', spot: 'next' }, { shot: 'rt-album', spot: 'row' }, { shot: 'rt-tracks', spot: 'row' },
+          { shot: 'rt-album', spot: 'weight' }, { shot: 'rt-album', spot: 'ring' }, { shot: 'rt-album', spot: 'done' } ] },
+        { id: 'song', challenge: 'rt.mode', slides: [
+          { shot: 'rt-tracks', spot: 'rubric' }, { shot: 'rt-song', spot: 'mode' }, { shot: 'rt-song', spot: 'row' },
+          { shot: 'rt-song', spot: 'na' }, { shot: 'rt-quick', spot: 'quick' } ] },
+        { id: 'browse', challenge: 'rt.band', slides: [
+          { shot: 'rt-list', spot: 'tabs' }, { shot: 'rt-list', spot: 'bar' }, { shot: 'rt-list', spot: 'sort' },
+          { shot: 'rt-list', spot: 'row' }, { shot: 'rt-todo', spot: 'tabs' } ] },
+        { id: 'where', challenge: 'rt.artist', slides: [
+          { shot: 'rt-albwin', spot: 'rate' }, { shot: 'rt-albwin', spot: 'tab' }, { shot: 'rt-page', spot: 'top' },
+          { shot: 'rt-artwin', spot: 'tab' } ] }
+      ],
+      options: [
+        { id: 'album', items: [
+          { id: 'aspects', shot: 'rt-album', spot: 'row' }, { id: 'tracks', shot: 'rt-tracks', spot: 'row' },
+          { id: 'weight', shot: 'rt-album', spot: 'weight', def: '75%' }, { id: 'note', shot: 'rt-album', spot: 'note' } ] },
+        { id: 'song', items: [
+          { id: 'mode', shot: 'rt-song', spot: 'mode', def: '{{t:rte_detailed}}' }, { id: 'na', shot: 'rt-song', spot: 'na' },
+          { id: 'quick', shot: 'rt-quick', spot: 'quick' } ] },
+        { id: 'page', items: [
+          { id: 'lists', shot: 'rt-list', spot: 'tabs', def: '{{t:ig_type_albums}}' }, { id: 'sort', shot: 'rt-list', spot: 'sort', def: '{{t:ar_sort_high}}' },
+          { id: 'band', shot: 'rt-list', spot: 'bar' }, { id: 'search', shot: 'rt-list', spot: 'search' } ] }
+      ],
+      challenges: ['rt.rate', 'rt.tracks', 'rt.mode', 'rt.view', 'rt.band', 'rt.sort', 'rt.artist'],
+      quiz: [ { id: 'q1', answer: 1 }, { id: 'q2', answer: 1 }, { id: 'q3', answer: 0 } ],
+      tips: [ ['rt-tracks', 'row', 'rt.tracks'], ['rt-song', 'na', 'rt.mode'], ['rt-page', 'rec', 'rt.rate'], ['rt-list', 'bar', 'rt.band'] ]
+    },
+    /* ── Lesson 13: Events (birthdays, releases, shows, Time Machine) ── */
+    { id: 'events', area: 'more', nav: 'events', mins: 6, cover: 'ev-today',
+      scenes: [
+        { id: 'today', shot: 'ev-today', phone: true,
+          spots: ['title', 'info', 'refresh', 'tabs', 'types', 'bday', 'shows', 'play', 'pl', 'day', 'card', 'anniv', 'tm', 'tmtypes', 'tmpl', 'tmcard'] },
+        { id: 'menu', shot: 'ev-menu', spots: ['menu', 'card', 'tm'] },
+        { id: 'coming', shot: 'ev-coming', spots: ['tab', 'views', 'week', 'soon', 'later', 'card', 'when', 'more', 'note'] },
+        { id: 'table', shot: 'ev-table', spots: ['views', 'table', 'th'] },
+        { id: 'recent', shot: 'ev-recent', spots: ['tab', 'past', 'weeks', 'earlier', 'more', 'nmf', 'fridays'] },
+        { id: 'cal', shot: 'ev-cal', phone: true, spots: ['tab', 'prev', 'title', 'next', 'views', 'today', 'num', 'ev', 'more'] },
+        { id: 'week', shot: 'ev-week', spots: ['views', 'title', 'today'] },
+        { id: 'day', shot: 'ev-day', spots: ['views', 'title', 'card', 'anniv'] },
+        { id: 'info', shot: 'ev-info', spots: ['info', 'status', 'refresh'] }
+      ],
+      howto: [
+        { id: 'today', challenge: 'ev.card', slides: [
+          { shot: 'ev-today', spot: 'day' }, { shot: 'ev-today', spot: 'card' }, { shot: 'ev-menu', spot: 'menu' },
+          { shot: 'ev-today', spot: 'anniv' }, { shot: 'ev-today', spot: 'tm' } ] },
+        { id: 'coming', challenge: 'ev.view', slides: [
+          { shot: 'ev-today', spot: 'tabs' }, { shot: 'ev-coming', spot: 'week' }, { shot: 'ev-coming', spot: 'more' },
+          { shot: 'ev-coming', spot: 'views' }, { shot: 'ev-table', spot: 'table' } ] },
+        { id: 'cal', challenge: 'ev.day', slides: [
+          { shot: 'ev-cal', spot: 'tab' }, { shot: 'ev-cal', spot: 'views' }, { shot: 'ev-cal', spot: 'num' },
+          { shot: 'ev-day', spot: 'card' }, { shot: 'ev-week', spot: 'today' } ] },
+        { id: 'filter', challenge: 'ev.type', slides: [
+          { shot: 'ev-today', spot: 'types' }, { shot: 'ev-today', spot: 'shows' }, { shot: 'ev-today', spot: 'play' },
+          { shot: 'ev-today', spot: 'pl' } ] },
+        { id: 'recent', challenge: 'ev.tab', slides: [
+          { shot: 'ev-recent', spot: 'tab' }, { shot: 'ev-recent', spot: 'past' }, { shot: 'ev-recent', spot: 'nmf' },
+          { shot: 'ev-recent', spot: 'fridays' } ] }
+      ],
+      options: [
+        { id: 'page', items: [
+          { id: 'types', shot: 'ev-today', spot: 'types', def: 'on' }, { id: 'view', shot: 'ev-coming', spot: 'views', def: '{{t:ev_view_reel}}' },
+          { id: 'play', shot: 'ev-today', spot: 'play' }, { id: 'pl', shot: 'ev-today', spot: 'pl' },
+          { id: 'refresh', shot: 'ev-info', spot: 'refresh' }, { id: 'limit', shot: 'ev-today', spot: 'title', def: '50' } ] },
+        { id: 'cal', items: [
+          { id: 'views', shot: 'ev-cal', spot: 'views', def: '{{t:ev_cal_month}}' }, { id: 'nav', shot: 'ev-cal', spot: 'prev' } ] },
+        { id: 'tm', items: [
+          { id: 'types', shot: 'ev-today', spot: 'tmtypes', def: 'on' }, { id: 'pl', shot: 'ev-today', spot: 'tmpl' } ] }
+      ],
+      challenges: ['ev.tab', 'ev.type', 'ev.view', 'ev.cal', 'ev.day', 'ev.tm', 'ev.card', 'ev.info'],
+      quiz: [ { id: 'q1', answer: 0 }, { id: 'q2', answer: 1 }, { id: 'q3', answer: 1 } ],
+      tips: [ ['ev-today', 'tm', 'ev.tm'], ['ev-cal', 'num', 'ev.day'], ['ev-coming', 'views', 'ev.view'], ['ev-today', 'types', 'ev.type'] ]
+    },
     { id: 'playlists', area: 'more', nav: 'playlists', soon: true },
     { id: 'rawdata', area: 'more', nav: 'rawdata', soon: true },
     { id: 'board', area: 'more', nav: 'board', soon: true },
@@ -2855,9 +2986,479 @@ window.GL_TEXT.en = {
         'The share image has five designs. Try Wrapped as a 9:16 story.'
       ]
     },
-    dank100: { title: 'The Dank 100', promise: 'Everyone’s weekly charts added up into one.' },
-    ratings: { title: 'Ratings', promise: 'Score albums and songs, and see your critic side.' },
-    events: { title: 'Events', promise: 'Birthdays, anniversaries, new releases and the Time Machine.' },
+    dank100: {
+      title: '{{t:d100_title}}',
+      promise: 'One shared weekly chart made from everyone’s charts: read it, follow a song’s run, and send in your own week.',
+      scenes: {
+        top: { title: 'The chart', spots: {
+          title: ['{{t:d100_title}}', 'Everyone’s weekly charts added up into one chart of 100.'],
+          signin: ['Sign in', 'Only needed to send your own week. Anyone can look at the chart.'],
+          week: ['Which week', 'Pick any chart so far from the list.'],
+          prev: ['{{t:d100_prev_week}}', 'One chart back.'],
+          next: ['{{t:d100_next_week}}', 'One chart on.'],
+          from: ['Listeners', 'How many people’s weeks made this chart.'],
+          seg: ['{{t:d100_type_songs}} / {{t:d100_type_artists}} / {{t:d100_type_albums}}', 'Three charts every week.'],
+          export: ['{{t:d100_export}}', 'The chart as a playlist to copy into your music app.'],
+          share: ['{{t:d100_share}}', 'Saves a picture of the top 10 (on a phone, shares it).'],
+          cols: ['The columns', '{{t:d100_col_pts}}, {{t:d100_col_l}}, {{t:d100_col_lw}}, {{t:d100_col_pk}} and {{t:d100_col_wk}}.'],
+          row: ['A row', 'Click it to open its run on the chart.'],
+          pos: ['Place', 'Its position this week.'],
+          move: ['Move', 'Up or down since last week, or a tag for a new entry or a return.'],
+          pts: ['{{t:d100_col_pts}}', 'Everyone’s points added up: 100 for a listener’s #1, down to 1 for their #100.'],
+          l: ['{{t:d100_col_l}}', 'How many people had it on their chart.'],
+          lw: ['{{t:d100_col_lw}}', 'Its place last week (– if it wasn’t there).'],
+          pk: ['{{t:d100_col_pk}}', 'Its best place ever.'],
+          wk: ['{{t:d100_col_wk}}', 'Weeks on the chart in all.'],
+          acts: ['Listen', 'A sample, Spotify or YouTube.']
+        } },
+        run: { title: 'A run on the chart', spots: {
+          row: ['The open row', 'Click it again to close it.'],
+          plot: ['The line', 'Its place week by week, #1 at the top. A gap is a week off the chart.'],
+          story: ['In one line', 'Where it started, its best and how long it has stayed.'],
+          ribbon: ['Totals', 'Its peak, weeks at #1, and weeks in the top 3, 5, 10 or 40.'],
+          chip: ['One total', 'Tap it to light up only those weeks below.'],
+          boxes: ['Every week', 'One box per week on the chart, with its place.'],
+          box: ['One week', 'Click it to see that week’s chart.']
+        } },
+        week: { title: 'One week’s chart', spots: {
+          head: ['The week', 'Which week, and which chart.'],
+          item: ['Its top 30', 'The one you came from is lit up.'],
+          link: ['The whole week', 'Opens that week’s full chart on the page.'],
+          close: ['Close', 'Back to the run.']
+        } },
+        no1: { title: '{{t:d100_no1_title}}', spots: {
+          head: ['{{t:d100_no1_title}}', 'Every #1 of the chart you picked above.'],
+          sum: ['In all', 'How many reigns, and how many different #1s.'],
+          strip: ['The timeline', 'Each reign is a block: the longer it stayed, the wider.'],
+          row: ['A #1', 'The week it got there and how long it stayed. Click it for that week.'],
+          back: ['{{t:d100_no1_back}}', 'It had been #1 before.'],
+          more: ['Show all', 'The full list.']
+        } },
+        recs: { title: '{{t:d100_rec_title}}', spots: {
+          grid: ['The records', 'Fifteen records across every chart so far.'],
+          rec: ['A record', '{{t:d100_rec_at1}}, {{t:d100_rec_debut}}, {{t:d100_rec_jump}} and more.'],
+          k: ['Which record', 'What it counts.'],
+          v: ['The number', 'The one to beat.'],
+          who: ['Who holds it', 'The song, artist or album.']
+        } },
+        entry: { title: '{{t:d100_entry_title}}', spots: {
+          soon: ['{{t:d100_soon_title}}', 'Which week is counted next, and the day it comes out.'],
+          entries: ['Your weeks', 'Last week (while it can still be sent) and this week.'],
+          last: ['{{t:d100_week_last}}', 'The week about to be counted.'],
+          note: ['Last chance', 'The day it closes.'],
+          preview: ['{{t:d100_preview}}', 'What you would send: your own chart for that week.'],
+          send: ['{{t:d100_send}}', 'Adds your week. Press it again to update it, or take it back.'],
+          year: ['{{t:d100_year_title}}', 'Your charts for every week since January 2, all at once (until November 30).'],
+          yearbtn: ['{{t:d100_year_btn}}', 'Sends them.'],
+          auto: ['Automatic', 'Turn it on in {{t:set_title}} and your week goes in by itself every Sunday.'],
+          how: ['{{t:d100_how_title}}', 'Points, weeks and privacy in four lines.']
+        } }
+      },
+      howto: {
+        read: { title: 'Read the chart', slides: [
+          'Its place this week.',
+          'Up or down since last week.',
+          '{{t:d100_col_pts}}: 100 for a listener’s #1, 1 for their #100, all added up.',
+          'How many listeners had it.',
+          'Its best place, then its weeks on the chart.',
+          'Click a row to open its run.'
+        ] },
+        run: { title: 'Follow a run', slides: [
+          'Its place week by week.',
+          'Tap a total to light up those weeks.',
+          'Click a week…',
+          '…to see that week’s chart.',
+          'Or open the whole week.'
+        ] },
+        weeks: { title: 'Go back in time', slides: [
+          'Pick a week from the list…',
+          '…or step one week at a time.',
+          'Or click a #1 to jump to its week.',
+          'Switch to {{t:d100_type_artists}} or {{t:d100_type_albums}}…',
+          '…for the other two charts.'
+        ] },
+        join: { title: 'Send in your week', slides: [
+          'Sign in with Google, with your own library connected (the demo can’t send).',
+          'Last week shows your chart for it.',
+          'Press {{t:d100_send}}.',
+          'New here? Send your whole year at once.',
+          'Or let it send itself every Sunday.',
+          'The chart comes out on Monday.'
+        ] },
+        share: { title: 'Take it with you', slides: [
+          '{{t:d100_export}}: the chart as a playlist.',
+          '{{t:d100_share}}: a picture of the top 10.',
+          'Both work for the other two charts too.'
+        ] }
+      },
+      options: {
+        chart: { title: 'The chart', items: {
+          type: ['{{t:d100_type_songs}} / {{t:d100_type_artists}} / {{t:d100_type_albums}}', 'Which chart.'],
+          week: ['Week', 'The newest chart, or any before it.'],
+          cols: ['Columns', '{{t:d100_col_pts}}, {{t:d100_col_l}}, {{t:d100_col_lw}}, {{t:d100_col_pk}}, {{t:d100_col_wk}}.'],
+          acts: ['Listen', 'Sample, Spotify, YouTube.']
+        } },
+        tools: { title: 'Along the way', items: {
+          run: ['A run', 'Click a row; then a week box for that week.'],
+          more: ['Show all', 'Every #1, and all 100 places.'],
+          export: ['{{t:d100_export}}', 'Songs as they are; two songs each for artists and albums.'],
+          share: ['{{t:d100_share}}', 'A picture of the top 10.']
+        } },
+        entry: { title: 'Your entry', items: {
+          send: ['{{t:d100_send}}', 'Until the Sunday after the week (UTC).'],
+          back: ['{{t:d100_take_back}}', 'Removes your entry while the week is open.'],
+          year: ['{{t:d100_year_btn}}', 'Every week since January 2, until November 30.'],
+          auto: ['{{t:d100_auto}}', 'In {{t:set_title}}.']
+        } }
+      },
+      challenges: {
+        'd1.week': ['Look at another week', 'The arrows or the list above the chart.'],
+        'd1.type': ['Switch to {{t:d100_type_artists}} or {{t:d100_type_albums}}', 'Next to the week.'],
+        'd1.run': ['Open a run', 'Click any row.'],
+        'd1.box': ['Open one week from a run', 'Click a week box under an open row.'],
+        'd1.no1': ['Open a #1', 'In {{t:d100_no1_title}}, under the chart.'],
+        'd1.export': ['{{t:d100_export}}', 'Above the chart.'],
+        'd1.share': ['{{t:d100_share}}', 'Above the chart.']
+      },
+      quiz: {
+        q1: ['How does a song get its points?',
+          ['One point per play', 'From its place on each listener’s chart', 'From how many listeners it has'],
+          'A listener’s #1 gives it 100 points, their #2 gives 99… so every listener counts the same, however much they play.'],
+        q2: ['When does a week’s chart come out?',
+          ['On Friday', 'On Monday, after entries close on Sunday', 'At the end of the month'],
+          'Weeks run Friday to Thursday (UTC), entries stay open until Sunday, and the chart comes out on Monday.'],
+        q3: ['What can other people see of what you sent?',
+          ['Your whole chart', 'Your top 10', 'Nothing: only the combined chart is public'],
+          'Only the combined chart is public. Nobody can see what you sent.']
+      },
+      tips: [
+        'Click any week box in a song’s run to see that whole week’s chart.',
+        'In {{t:d100_no1_title}} every reign is a block: the widest ones stayed longest.',
+        '{{t:d100_export}} turns the chart into a playlist, with two songs each on the artist and album charts.',
+        '{{t:d100_title}} has three charts every week: songs, artists and albums.'
+      ]
+    },
+    ratings: {
+      title: '{{t:nav_ratings}}',
+      promise: 'Score albums and songs like a critic, then see your verdicts, your highs and lows, and what still needs a score.',
+      scenes: {
+        page: { title: 'Your critic page', spots: {
+          intro: ['{{t:nav_ratings}}', 'Everything you have scored, in one place.'],
+          ring: ['Your average', 'Your average album (or song, until you score an album).'],
+          verdict: ['The verdict', 'A word for the score, from {{t:rtb_poor}} to {{t:rtb_masterpiece}}.'],
+          meters: ['How much', 'Albums, singles & EPs and songs scored, out of everything you played.'],
+          acts: ['Your habit', 'Days you rated on, your longest run of days, and the last time.'],
+          next: ['{{t:ar_next}}', 'Your most played album without a score.'],
+          cta: ['{{t:rtg_rate_cta}}', 'Opens the scoring window.'],
+          hi: ['Highs and lows', 'Your best and lowest album, single and song. Ties slide by in turn.'],
+          dots: ['More at that score', 'Tap a dot to see the others.'],
+          recs: ['{{t:rp_recs}}', 'What your scores say about your listening.'],
+          rec: ['A record', '{{t:rp_rec_overplayed}}, {{t:rp_rec_underplayed}}, {{t:rp_rec_consistent}}, {{t:rp_rec_best_artist}}.'],
+          top: ['{{t:rp_top_artists}}', 'By their average album. Click one for all their scores.'],
+          recent: ['{{t:rp_recent}}', 'The last things you scored. Click one to change it.']
+        } },
+        list: { title: 'Everything you scored', spots: {
+          tabs: ['The lists', '{{t:ig_type_albums}}, {{t:ar_singles}}, {{t:ig_type_songs}} or {{t:ar_todo}}.'],
+          spread: ['{{t:ar_spread}}', 'How many sit at each verdict.'],
+          bar: ['A verdict', '{{t:ar_spread_hint}}.'],
+          search: ['{{t:ar_search}}', 'Find one by name.'],
+          sort: ['Order', '{{t:ar_sort_high}}, {{t:ar_sort_low}}, {{t:ar_sort_tracks}} or {{t:am_sort_az}}.'],
+          row: ['A score', 'Click it to change the score.'],
+          score: ['The score', 'Out of 10.'],
+          prog: ['Tracks scored', 'How many of its tracks have a score.'],
+          band: ['The verdict', 'The word for the score.'],
+          go: ['Open', 'Opens the album’s window.']
+        } },
+        todo: { title: '{{t:ar_todo}}', spots: {
+          tabs: ['{{t:ar_todo}}', 'What you play and have never scored.'],
+          row: ['Most played first', 'The ones you know best.'],
+          cta: ['{{t:rtg_rate_cta}}', 'Score it now.']
+        } },
+        album: { title: 'Scoring an album', spots: {
+          kind: ['{{t:rte_kind_album}}', 'What you are scoring.'],
+          title: ['The album', 'And its artist.'],
+          ring: ['The score', 'Changes as you move any slider.'],
+          formula: ['How it adds up', 'Track average × 75% plus album aspects × 25%.'],
+          tabs: ['{{t:rte_aspects}} / {{t:rte_tracks}}', 'The two halves of the score.'],
+          row: ['An aspect', '{{t:rtc_coh}}, {{t:rtc_con}}, {{t:rtc_art}}, {{t:rtc_inn}}, {{t:rtc_imp}} and {{t:rtc_lon}}.'],
+          slider: ['Slider', 'Drag from 0 to 10, in steps of 0.1.'],
+          num: ['Or type it', 'Type the number instead.'],
+          weight: ['Tracks vs aspects', 'How much the tracks count. Applies to every album.'],
+          note: ['{{t:rte_note}}', 'A few words, if you like.'],
+          clear: ['{{t:rte_clear_album}}', 'Removes the aspect scores (the track scores stay).'],
+          done: ['{{t:rte_done}}', 'Changes save as you go.'],
+          close: ['Close', 'The same as {{t:rte_done}}.']
+        } },
+        tracks: { title: '{{t:rte_tracks}}', spots: {
+          tab: ['{{t:rte_tracks}}', 'Every track of the album you played, with its plays.'],
+          formula: ['The score', 'Moves with every track.'],
+          row: ['A track', 'Score it right here: one number.'],
+          slider: ['Slider', 'From 0 to 10.'],
+          num: ['Or type it', 'A number.'],
+          rubric: ['Full rubric', 'Opens the song’s own scoring window.'],
+          full: ['On the full rubric', 'A track scored in detail. Open it to change it.']
+        } },
+        song: { title: 'Scoring a song', spots: {
+          back: ['{{t:rte_back_album}}', 'When you came from an album.'],
+          ring: ['The score', 'The average of the criteria.'],
+          mode: ['{{t:rte_detailed}} / {{t:rte_quick}}', 'Six criteria, or one gut score.'],
+          row: ['A criterion', '{{t:rtc_comp}}, {{t:rtc_lyr}}, {{t:rtc_voc}}, {{t:rtc_prod}}, {{t:rtc_mel}} and {{t:rtc_rhy}}.'],
+          na: ['{{t:rte_na}}', '{{t:rtc_lyr}} and {{t:rtc_voc}} can be left out, for an instrumental.'],
+          note: ['{{t:rte_note}}', 'Optional.'],
+          clear: ['{{t:rte_clear_song}}', 'Removes the song’s score.']
+        } },
+        quick: { title: '{{t:rte_quick}}', spots: {
+          mode: ['{{t:rte_quick}}', '{{t:rte_hint_quick}}'],
+          quick: ['One score', 'Drag or type it.'],
+          ring: ['The score', 'The same wherever the song shows up.']
+        } },
+        albwin: { title: 'In the album window', spots: {
+          rate: ['{{t:dp_rate}}', 'Opens the scoring window. Song windows have one too.'],
+          tab: ['{{t:dp_tab_rating}}', 'The album’s evaluation: the score, its parts, its best and weakest tracks.'],
+          ring: ['The score', 'With its verdict.']
+        } },
+        artwin: { title: 'In the artist window', spots: {
+          tab: ['{{t:dp_tab_rating}}', 'Every score you gave this artist, laid out like the {{t:nav_ratings}} page.'],
+          ring: ['Their average', 'Across their scored albums.']
+        } }
+      },
+      howto: {
+        rate: { title: 'Score an album', slides: [
+          'Start with {{t:ar_next}}, or any album.',
+          'Score its aspects.',
+          'Then its tracks: one number each.',
+          'Choose how much the tracks count.',
+          'The score adds up as you go.',
+          'Done. Everything is already saved.'
+        ] },
+        song: { title: 'Score a song in detail', slides: [
+          'Open a track’s full rubric…',
+          '…and pick {{t:rte_detailed}} or {{t:rte_quick}}.',
+          'Score each criterion.',
+          'Leave out {{t:rtc_lyr}} or {{t:rtc_voc}} when they don’t apply.',
+          '{{t:rte_quick}}: one number and you’re done.'
+        ] },
+        browse: { title: 'Browse your scores', slides: [
+          'Pick a list.',
+          'Tap a verdict to see only those.',
+          'Change the order.',
+          'Click a row to change its score.',
+          '{{t:ar_todo}}: what still needs a score.'
+        ] },
+        where: { title: 'Scores around the app', slides: [
+          'Every album and song window has a {{t:dp_rate}} button.',
+          'Its {{t:dp_tab_rating}} tab shows the evaluation.',
+          'Click an artist here…',
+          '…for all their scores, on their {{t:dp_tab_rating}} tab.'
+        ] }
+      },
+      options: {
+        album: { title: 'Album score', items: {
+          aspects: ['{{t:rte_aspects}}', 'Six album-wide scores.'],
+          tracks: ['{{t:rte_tracks}}', 'One score per track.'],
+          weight: ['Tracks vs aspects', 'How much the tracks count, for every album.'],
+          note: ['{{t:rte_note}}', 'Your words.']
+        } },
+        song: { title: 'Song score', items: {
+          mode: ['{{t:rte_detailed}} / {{t:rte_quick}}', 'Six criteria or one number.'],
+          na: ['{{t:rte_na}}', 'Leaves {{t:rtc_lyr}} or {{t:rtc_voc}} out of the average.'],
+          quick: ['{{t:rte_quick}}', 'One gut score.']
+        } },
+        page: { title: 'The page', items: {
+          lists: ['Lists', '{{t:ig_type_albums}}, {{t:ar_singles}}, {{t:ig_type_songs}}, {{t:ar_todo}}.'],
+          sort: ['Order', '{{t:ar_sort_high}}, {{t:ar_sort_low}}, {{t:ar_sort_tracks}}, {{t:am_sort_az}}.'],
+          band: ['{{t:ar_spread}}', 'Tap a verdict to filter.'],
+          search: ['{{t:ar_search}}', 'By name.']
+        } }
+      },
+      challenges: {
+        'rt.rate': ['Open the scoring window', '{{t:rtg_rate_cta}} on any album.'],
+        'rt.tracks': ['Open the {{t:rte_tracks}} tab', 'In an album’s scoring window.'],
+        'rt.mode': ['Switch a song between {{t:rte_detailed}} and {{t:rte_quick}}', 'In a song’s scoring window.'],
+        'rt.view': ['Open another list', '{{t:ar_singles}}, {{t:ig_type_songs}} or {{t:ar_todo}}.'],
+        'rt.band': ['Show only one verdict', 'Tap a bar in {{t:ar_spread}}.'],
+        'rt.sort': ['Change the order', 'Next to {{t:ar_search}}.'],
+        'rt.artist': ['Open a top rated artist', 'In {{t:rp_top_artists}}.']
+      },
+      quiz: {
+        q1: ['How is an album’s score made?',
+          ['Only from its tracks', 'From its tracks and its album aspects together (75% and 25% unless you change it)', 'From how often you play it'],
+          'The track average and the album aspects are blended. If only one half is scored, that half is the score.'],
+        q2: ['A song has no lyrics. What do you do?',
+          ['Give {{t:rtc_lyr}} a 0', 'Mark {{t:rtc_lyr}} {{t:rte_na}}', 'Skip the song'],
+          '{{t:rte_na}} leaves it out of the average, so an instrumental isn’t pulled down.'],
+        q3: ['Where do you find what you play a lot but never scored?',
+          ['{{t:ar_todo}}', '{{t:rp_recent}}', '{{t:rp_top_artists}}'],
+          '{{t:ar_todo}} lists what you play most without a score, most played first.']
+      },
+      tips: [
+        'Score a whole album in one go on its {{t:rte_tracks}} tab: one number per track.',
+        'An instrumental? Mark {{t:rtc_lyr}} and {{t:rtc_voc}} {{t:rte_na}} so they don’t count.',
+        '{{t:rp_rec_underplayed}}: the album you score high but hardly ever play.',
+        'Tap a verdict in {{t:ar_spread}} to see only those albums.'
+      ]
+    },
+    events: {
+      title: '{{t:sec_events_title}}',
+      promise: 'Birthdays, album anniversaries, new releases and live shows of the artists you play, and what you played on this day years ago.',
+      scenes: {
+        today: { title: '{{t:ev_tab_today}}', spots: {
+          title: ['{{t:sec_events_title}}', 'For your top 50 artists (change how many in {{t:set_title}}).'],
+          info: ['{{t:ev_info_title}}', 'How much was found, and when.'],
+          refresh: ['{{t:ev_refresh_title}}', 'Fetches everything again.'],
+          tabs: ['Four tabs', '{{t:ev_tab_today}}, {{t:ev_tab_coming}}, {{t:ev_tab_recent}} and {{t:ev_tab_calendar}}.'],
+          types: ['Types', 'Tap one to hide it or show it again.'],
+          bday: ['{{t:ev_type_birthdays}}', 'Artists’ birthdays.'],
+          shows: ['{{t:ev_type_shows}}', 'Live shows (from Ticketmaster).'],
+          play: ['{{t:ev_play_all}}', 'Plays what the tab shows in the music player.'],
+          pl: ['{{t:pl_section_btn}}', 'Saves what the tab shows to a playlist.'],
+          day: ['Today', 'Today’s birthdays, releases and shows.'],
+          card: ['An event', 'Click it for Spotify, a playlist, the player or a search.'],
+          anniv: ['{{t:ev_today_anniversaries}}', 'Releases with a birthday today, the ones you played most first.'],
+          tm: ['{{t:time_machine_title}}', 'What you played on this day in past years.'],
+          tmtypes: ['{{t:time_machine_songs}} / {{t:time_machine_artists}} / {{t:time_machine_albums}}', 'Turn each one on or off.'],
+          tmpl: ['{{t:pl_section_btn}}', 'Saves the Time Machine as a playlist.'],
+          tmcard: ['A memory', 'With the year you played it. Drag the row to browse.']
+        } },
+        menu: { title: 'What a card opens', spots: {
+          menu: ['Options', 'Search on Spotify, add to a playlist or to the player, or search Google.'],
+          card: ['The card', 'Every card on this tab works the same way.'],
+          tm: ['Types', 'What the Time Machine shows.']
+        } },
+        coming: { title: '{{t:ev_tab_coming}}', spots: {
+          tab: ['{{t:ev_tab_coming}}', 'What’s ahead.'],
+          views: ['{{t:ev_view_reel}} / {{t:ev_view_tiles}} / {{t:ev_view_table}} / {{t:ev_view_list}}', 'Four ways to lay it out.'],
+          week: ['{{t:ev_group_week}}', 'The next seven days.'],
+          soon: ['{{t:ev_group_soon}}', 'Up to a month away.'],
+          later: ['{{t:ev_group_later}}', 'Further out: announced releases and tour dates.'],
+          card: ['An event', 'Its date, its artist and what it is.'],
+          when: ['When', 'How many days to go.'],
+          more: ['Show all', 'Anniversaries are cut to the ones you played most. This shows them all.'],
+          note: ['Shows', 'How many shows were found, and where the tickets are.']
+        } },
+        table: { title: '{{t:ev_view_table}}', spots: {
+          views: ['{{t:ev_view_table}}', 'The same events as a table.'],
+          table: ['The table', 'One row per event.'],
+          th: ['Columns', '{{t:ev_th_event}}, {{t:ev_th_artist}}, {{t:ev_th_date}} and {{t:ev_th_type}}.']
+        } },
+        recent: { title: '{{t:ev_tab_recent}}', spots: {
+          tab: ['{{t:ev_tab_recent}}', 'What just happened.'],
+          past: ['{{t:ev_group_past_week}}', 'The last seven days.'],
+          weeks: ['{{t:ev_group_past_weeks}}', 'Up to a month back.'],
+          earlier: ['{{t:ev_group_earlier}}', 'Releases from the past six months.'],
+          more: ['Show all', 'Every anniversary.'],
+          nmf: ['New Music Friday', 'This week’s new releases from Deezer, for everyone, not only your artists.'],
+          fridays: ['{{t:ev_nmf_past}}', 'Earlier Fridays this browser has kept.']
+        } },
+        cal: { title: '{{t:ev_tab_calendar}}', spots: {
+          tab: ['{{t:ev_tab_calendar}}', 'Every event on a calendar.'],
+          prev: ['{{t:ev_cal_prev}}', 'The month before.'],
+          title: ['The month', 'The one you are looking at.'],
+          next: ['{{t:ev_cal_next}}', 'The month after.'],
+          views: ['{{t:ev_cal_month}} / {{t:ev_cal_week}} / {{t:ev_cal_day}}', 'How much to see at once.'],
+          today: ['Today', 'Framed.'],
+          num: ['A day', 'Click the number to open that day.'],
+          ev: ['An event', 'Click it for options.'],
+          more: ['More', 'The rest of that day’s events.']
+        } },
+        week: { title: '{{t:ev_cal_week}}', spots: {
+          views: ['{{t:ev_cal_week}}', 'Seven days side by side.'],
+          title: ['The week', 'Step week by week with the arrows.'],
+          today: ['Today', 'Every event of the day, listed.']
+        } },
+        day: { title: '{{t:ev_cal_day}}', spots: {
+          views: ['{{t:ev_cal_day}}', 'One day.'],
+          title: ['The day', 'Step day by day with the arrows.'],
+          card: ['An event', 'As cards, like {{t:ev_tab_today}}.'],
+          anniv: ['{{t:ev_cal_anniversaries}}', 'That day’s anniversaries.']
+        } },
+        info: { title: '{{t:ev_info_title}}', spots: {
+          info: ['ⓘ', 'Opens or closes this line.'],
+          status: ['In short', 'Birthdays, anniversaries, upcoming and recent events found, for how many artists, and when.'],
+          refresh: ['{{t:ev_refresh_title}}', 'Fetch it all again now (it refreshes by itself once a day).']
+        } }
+      },
+      howto: {
+        today: { title: 'What’s on today', slides: [
+          'Today’s birthdays, releases and shows.',
+          'Click a card…',
+          '…for Spotify, a playlist, the player or a search.',
+          'Releases with a birthday today.',
+          'And what you played on this day years ago.'
+        ] },
+        coming: { title: 'See what’s coming', slides: [
+          'Open {{t:ev_tab_coming}}.',
+          'This week first.',
+          'Show every anniversary.',
+          'Change the layout…',
+          '…to a {{t:ev_view_table}}, for example.'
+        ] },
+        cal: { title: 'Use the calendar', slides: [
+          'Open {{t:ev_tab_calendar}}.',
+          '{{t:ev_cal_month}}, {{t:ev_cal_week}} or {{t:ev_cal_day}}.',
+          'Click a day’s number to open it.',
+          'The whole day, as cards.',
+          '{{t:ev_cal_week}}: seven days side by side.'
+        ] },
+        filter: { title: 'Only what you want', slides: [
+          'Tap a type to hide it.',
+          '{{t:ev_type_shows}} for live dates.',
+          'Play what’s left…',
+          '…or save it as a playlist.'
+        ] },
+        recent: { title: 'Catch up', slides: [
+          'Open {{t:ev_tab_recent}}.',
+          'The past week first.',
+          'New Music Friday: this week’s new releases.',
+          'Earlier Fridays too.'
+        ] }
+      },
+      options: {
+        page: { title: 'The whole tab', items: {
+          types: ['Types', '{{t:ev_type_birthdays}}, {{t:ev_type_albums}}, {{t:ev_type_singles}}, {{t:ev_type_eps}}, {{t:ev_type_other}}, {{t:ev_type_shows}}.'],
+          view: ['Layout', '{{t:ev_view_reel}}, {{t:ev_view_tiles}}, {{t:ev_view_table}} or {{t:ev_view_list}} ({{t:ev_tab_coming}} and {{t:ev_tab_recent}}).'],
+          play: ['{{t:ev_play_all}}', 'The tab in the player.'],
+          pl: ['{{t:pl_section_btn}}', 'The tab as a playlist.'],
+          refresh: ['{{t:ev_refresh_title}}', 'Fetch again.'],
+          limit: ['Top artists', 'How many of your top artists to follow. In {{t:set_title}}.']
+        } },
+        cal: { title: '{{t:ev_tab_calendar}}', items: {
+          views: ['{{t:ev_cal_month}} / {{t:ev_cal_week}} / {{t:ev_cal_day}}', 'How much at once.'],
+          nav: ['‹ ›', 'Before and after.']
+        } },
+        tm: { title: '{{t:time_machine_title}}', items: {
+          types: ['{{t:time_machine_songs}} / {{t:time_machine_artists}} / {{t:time_machine_albums}}', 'What it shows.'],
+          pl: ['{{t:pl_section_btn}}', 'As a playlist.']
+        } }
+      },
+      challenges: {
+        'ev.tab': ['Open another tab', '{{t:ev_tab_coming}}, {{t:ev_tab_recent}} or {{t:ev_tab_calendar}}.'],
+        'ev.type': ['Hide or show a type', 'The buttons under the tabs.'],
+        'ev.view': ['Change the layout', 'On {{t:ev_tab_coming}} or {{t:ev_tab_recent}}.'],
+        'ev.cal': ['Switch the calendar to {{t:ev_cal_week}} or {{t:ev_cal_day}}', 'On {{t:ev_tab_calendar}}.'],
+        'ev.day': ['Open one day', 'Click a day’s number on the calendar.'],
+        'ev.tm': ['Change what the Time Machine shows', 'On {{t:ev_tab_today}}.'],
+        'ev.card': ['Click a card', 'Any event or Time Machine card.'],
+        'ev.info': ['Open ⓘ', 'Next to the title.']
+      },
+      quiz: {
+        q1: ['What is the {{t:time_machine_title}}?',
+          ['What you played on this day in past years', 'Releases coming out next week', 'A way to rewind the chart'],
+          'It shows the songs, artists and albums you were playing on this very day years ago.'],
+        q2: ['How do you open one day on the calendar?',
+          ['Double-click the month', 'Click the day’s number', 'Open {{t:ev_tab_today}}'],
+          'The number opens that day, with all its events as cards.'],
+        q3: ['Whose releases are in New Music Friday?',
+          ['Only your top artists', 'Everyone’s: this week’s new releases from Deezer', 'Only albums you scored'],
+          'New Music Friday isn’t filtered to your artists, so it’s a way to find new ones.']
+      },
+      tips: [
+        'The {{t:time_machine_title}} shows what you were playing on this very day years ago.',
+        'Click a day’s number on the calendar to see everything on that day.',
+        'Prefer a list? {{t:ev_tab_coming}} and {{t:ev_tab_recent}} come in four layouts.',
+        'Not into birthdays? Tap {{t:ev_type_birthdays}} to hide them everywhere.'
+      ]
+    },
     playlists: { title: 'Playlists', promise: 'Save charts as playlists, and let them build themselves.' },
     rawdata: { title: 'Raw Data', promise: 'Every play: search it, fix it, export it.' },
     board: { title: 'The Board', promise: 'Suggest ideas, report bugs and vote.' },

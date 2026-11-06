@@ -214,6 +214,132 @@ async function stView(pg, period = 'year') {
   await pg.evaluate(() => { document.querySelectorAll('#soundtrackView .st-reveal').forEach(e => e.classList.add('st-in')); window.scrollTo(0, 0); });
   await wait(pg, 3500);
 }
+// The Dank 100 shots can pretend to be signed in with your own library (for
+// the Send buttons): undone before every Dank 100, Ratings and Events shot.
+async function d1Unfake(pg) {
+  await pg.evaluate(() => {
+    if (window._gdSheet === undefined) return;
+    if (window._gdSheet) localStorage.setItem('dc_sheet_id', window._gdSheet);
+    window._gdSheet = undefined;
+    _currentUser = null;
+  });
+}
+// The Dank 100 (live data from dankcharts.fm: localhost has no Functions),
+// the latest chart, on a type, with row 1's run open or closed
+async function d1View(pg, { type = 'songs', open = false } = {}) {
+  await d1Unfake(pg);
+  await pg.evaluate(() => { try { dcDank100.hideWeekPreview(); } catch (e) {} });
+  await go(pg, 'dank100');
+  // the chart, and the archive (records + runs) that loads after it
+  await pg.waitForFunction(() => document.querySelectorAll('#dank100View .d100-row').length >= 10 &&
+    document.querySelector('#dank100View .d100-recs'), null, { timeout: 90000 });
+  await pg.evaluate(t => {
+    const on = document.querySelector('#dank100View .d100-seg button.active');
+    if (!on || !on.getAttribute('onclick').includes("'" + t + "'")) dcDank100.setType(t);
+  }, type);
+  await wait(pg, 800);
+  await pg.evaluate(o => {
+    const r = document.querySelector('#dank100View .d100-row');
+    if ((r.getAttribute('aria-expanded') === 'true') !== o) r.click();
+    window.scrollTo(0, 0);
+  }, open);
+  if (open) await pg.waitForFunction(() => document.querySelector('#dank100View .is-open .cr-boxes'), null, { timeout: 30000 });
+  await wait(pg, 3000);
+}
+// Ratings: the demo library has no scores, so the 14 most played albums after
+// the first get some (every track a quick score, most of them the six album
+// aspects too), plus one song on the full rubric. Done once per browser; the
+// rated albums' keys are kept in gd_rt_keys for the editor shots.
+async function rtSeed(pg) {
+  await pg.evaluate(() => {
+    if (localStorage.getItem('gd_rt_keys')) return;
+    const sum = ratingLibrarySummary();
+    const keys = sum.todo.filter(k => ratingReleaseKind(k).kind === 'album').slice(1, 15);
+    const base = [8.6, 7.9, 9.1, 6.8, 8.2, 7.4, 9.4, 5.9, 7.7, 8.8, 6.3, 8.0, 7.1, 9.0];
+    let seed = 7; const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+    const sc = (b, spread) => Math.max(3, Math.min(10, Math.round((b + (rnd() - 0.5) * spread) * 10) / 10));
+    const day = 864e5, now = Date.now();
+    keys.forEach((k, i) => {
+      const ts = now - (i * 2 + 1) * day;
+      ratingAlbumTrackKeys(k).forEach(tr => { _ratings.songs[tr.key] = { m: 'quick', q: sc(base[i], 2.4), c: {}, note: '', ts }; });
+      if (i % 4 !== 3) {
+        const c = {};
+        RATING_ALBUM_CRITERIA.forEach(cr => { c[cr.id] = sc(base[i], 2); });
+        _ratings.albums[k] = { c, note: '', ts };
+      }
+    });
+    // The first album's first track on the full rubric
+    const t0 = ratingAlbumTrackKeys(keys[0])[0];
+    if (t0) _ratings.songs[t0.key] = { m: 'detailed', q: null, c: { comp: 9.2, lyr: 8.8, voc: 9.0, prod: 8.6, mel: 9.5, rhy: 8.4 }, note: '', ts: now - day };
+    ratingsPersist(true);
+    localStorage.setItem('gd_rt_keys', JSON.stringify(keys));
+  });
+}
+// The Ratings page on one of its lists (albums / todo), editor closed
+async function rtView(pg, list = 'albums') {
+  await d1Unfake(pg);
+  await pg.evaluate(() => { try { closeRatingModal(); } catch (e) {} });
+  await unfold(pg, false);
+  await rtSeed(pg);
+  await go(pg, 'ratings');
+  await pg.waitForFunction(() => document.querySelector('#ratingsPageBody .ar-list'), null, { timeout: 60000 });
+  await pg.evaluate(v => {
+    arSetView('p', v);
+    // the highs and lows slide by themselves: hold them on their first entry
+    clearInterval(_rpHiTimer);
+    document.querySelectorAll('#ratingsPageBody .rp-hi').forEach(c => rpHiGo(+c.dataset.hi, 0));
+    window.scrollTo(0, 0);
+  }, list);
+  await wait(pg, 3000);
+}
+// The rating editor on the first rated album: tab 'aspects' / 'tracks', or
+// song: 'detailed' (its first track, opened from the album) / 'quick' (its second)
+async function rtEditor(pg, { tab = 'aspects', song = null } = {}) {
+  await rtView(pg);
+  await pg.evaluate(({ tab, song }) => {
+    const k = JSON.parse(localStorage.getItem('gd_rt_keys'))[0];
+    openRatingModal('album', k, { tab });
+    if (song) openRatingModal('song', ratingAlbumTrackKeys(k)[song === 'quick' ? 1 : 0].key, { push: true });
+  }, { tab, song });
+  await wait(pg, 2500);
+}
+const rtAlbumKey = pg => pg.evaluate(() => JSON.parse(localStorage.getItem('gd_rt_keys'))[0]);
+
+// Events: fetching the top 50 artists' events takes minutes, so the first
+// fetch is kept in C:/tmp (for 20 hours) and put in place on every new page.
+const EV_CACHE = 'C:/tmp/guide-ev-cache.json';
+const EV_KEYS = ['dc_eventsCache', 'dc_concertsCache', 'dc_nmfCache', 'dc_nmfHistory'];
+async function evView(pg, tab = 'today', { view = 'carousel', cal = 'month' } = {}) {
+  await d1Unfake(pg);
+  await pg.evaluate(() => { document.querySelectorAll('.tm-action-menu').forEach(m => m.remove()); });
+  const fresh = fs.existsSync(EV_CACHE) && Date.now() - fs.statSync(EV_CACHE).mtimeMs < 20 * 3600e3;
+  if (fresh) {
+    const pre = JSON.parse(fs.readFileSync(EV_CACHE, 'utf8'));
+    await pg.evaluate(pre => { if (window._gdEv) return; window._gdEv = 1; for (const [k, v] of Object.entries(pre)) localStorage.setItem(k, v); }, pre);
+  }
+  await go(pg, 'events');
+  await pg.waitForFunction(() => !/\(\d+\/\d+\)/.test(document.getElementById('eventsStatus').textContent) &&
+    document.querySelector('#eventsTodayBody .ev-carousel-card'), null, { timeout: 480000 });
+  if (!fresh) {
+    const dump = await pg.evaluate(K => Object.fromEntries(K.map(k => [k, localStorage.getItem(k)]).filter(x => x[1])), EV_KEYS);
+    fs.writeFileSync(EV_CACHE, JSON.stringify(dump));
+  }
+  await pg.evaluate(({ tab, view, cal }) => {
+    // ⓘ's status line closed, the tab, its view
+    if (document.getElementById('eventsInfoBtn').getAttribute('aria-expanded') === 'true') toggleEventsStatus();
+    setEventsTab(tab);
+    if (tab === 'coming' || tab === 'recent') setEventsView(view);
+    if (tab === 'calendar') setCalView(cal);
+  }, { tab, view, cal });
+  await wait(pg, 3500);
+  // Reels roll by themselves: stop them at their start
+  await pg.evaluate(() => {
+    document.querySelectorAll('#eventsView .dcreel, #eventsView [data-reel-ready]').forEach(r => { r.dataset.reelPaused = '1'; r.scrollLeft = 0; });
+    window.scrollTo(0, 0);
+  });
+  await wait(pg, 1500);
+}
+
 // Spot finders that need more than a selector: run in the page, return an element
 const byText = (scope, sel, re) => ({ js: `[...document.querySelectorAll(${JSON.stringify(scope + ' ' + sel)})].find(e => ${re}.test(e.textContent.trim()))` });
 
@@ -979,7 +1105,176 @@ const SHOTS = [
     clip: { from: '#stCardModal .dc-modal', to: '#stCardModal .dc-modal', pad: 10, narrow: true },
     spots: { preview: '#stCardFrame', tpl: '#stTemplateRow', pal: '#stPaletteRow', fmt: '#stFormatBtns',
       art: { js: "document.getElementById('stOpt_showArt').closest('label')" }, src: '#stCardModal .sh-src-row',
-      topn: { js: "document.getElementById('stTopN').closest('.sh-slider-row')" }, copy: '#stCardCopyBtn', dl: '#stCardDownloadBtn' } }
+      topn: { js: "document.getElementById('stTopN').closest('.sh-slider-row')" }, copy: '#stCardCopyBtn', dl: '#stCardDownloadBtn' } },
+
+  /* ── Lesson: The Dank 100 (GUIDE-PLAN.md step 9) ────────────────────
+     The live chart (whatever week is newest when the pictures are taken). */
+  { id: 'd1-top', lesson: 'dank100', phone: true,
+    setup: async pg => { await d1View(pg); },
+    clip: { from: '#dank100View .d100-page-header', to: { js: "document.querySelectorAll('#dank100View .d100-li')[6]" }, pad: 14 },
+    spots: { title: '#dank100View .d100-page-header', signin: '#dank100View .d100-signin', week: '#dank100View .d100-wk-select',
+      prev: '#dank100View .d100-wk-btn', next: { js: "[...document.querySelectorAll('#dank100View .d100-wk-btn')].pop()" },
+      from: '#dank100View .d100-chart-meta', seg: '#dank100View .d100-seg', export: '#dank100View [onclick*="exportPlaylist"]',
+      share: '#dank100View [onclick*="dcDank100.share"]', cols: '#dank100View .d100-cols', row: '#dank100View .d100-row',
+      pos: '#dank100View .d100-pos', move: { js: "document.querySelectorAll('#dank100View .d100-move')[1]" },
+      pts: '#dank100View .d100-row .d100-pts', l: '#dank100View .d100-row .d100-l', lw: '#dank100View .d100-row .d100-lw',
+      pk: '#dank100View .d100-row .d100-pk', wk: '#dank100View .d100-row .d100-wk', acts: '#dank100View .d100-acts' } },
+  { id: 'd1-artists', lesson: 'dank100',
+    setup: async pg => { await d1View(pg, { type: 'artists' }); },
+    clip: { from: '#dank100View .d100-chart-head', to: { js: "document.querySelectorAll('#dank100View .d100-li')[4]" }, pad: 14 },
+    spots: { seg: '#dank100View .d100-seg', row: '#dank100View .d100-row' } },
+  { id: 'd1-run', lesson: 'dank100',
+    setup: async pg => { await d1View(pg, { open: true }); },
+    clip: { from: '#dank100View .d100-li.is-open', to: '#dank100View .d100-li.is-open', pad: 12 },
+    spots: { row: '#dank100View .is-open .d100-row', plot: '#dank100View .is-open .d100-run-plot', story: '#dank100View .is-open .cr-story',
+      ribbon: '#dank100View .is-open .cr-ribbon', chip: '#dank100View .is-open .cr-rb-chip', boxes: '#dank100View .is-open .cr-boxes',
+      box: { js: "[...document.querySelectorAll('#dank100View .is-open .cr-boxes [onclick]')].pop()" } } },
+  // A week box opens that week's chart in a small window
+  { id: 'd1-week', lesson: 'dank100',
+    setup: async pg => { await d1View(pg, { open: true });
+      await pg.evaluate(() => { const b = document.querySelector('#dank100View .is-open .cr-boxes [onclick]'); b.scrollIntoView({ block: 'center' }); b.click(); });
+      await pg.waitForFunction(() => document.querySelector('.cr-preview .cr-preview-item'), null, { timeout: 30000 }); await wait(pg, 1500); },
+    clip: { from: '.cr-preview', to: '.cr-preview', pad: 16, narrow: true },
+    spots: { head: '.cr-preview .d100-pv-head', item: '.cr-preview .cr-preview-item', link: '.cr-preview .cr-preview-link', close: '.cr-preview .cr-preview-close' } },
+  { id: 'd1-no1', lesson: 'dank100',
+    setup: async pg => { await d1View(pg); },
+    clip: { from: '#dank100View .d100-no1', to: '#dank100View .d100-no1', pad: 12 },
+    spots: { head: '#dank100View .d100-no1-head', sum: '#dank100View .d100-no1-sum', strip: '#dank100View .d100-no1-strip',
+      row: '#dank100View .d100-no1-row', back: '#dank100View .d100-no1-back', more: '#dank100View .d100-no1-more' } },
+  { id: 'd1-recs', lesson: 'dank100',
+    setup: async pg => { await d1View(pg); },
+    clip: { from: '#dank100View .d100-recs', to: '#dank100View .d100-recs', pad: 12, maxH: 820 },
+    spots: { grid: '#dank100View .d100-rec-grid', rec: '#dank100View .d100-rec', k: '#dank100View .d100-rec-k', v: '#dank100View .d100-rec-v',
+      who: '#dank100View .d100-rec-who' } },
+  // Your entry, as a signed-in listener with their own library sees it (Send buttons)
+  { id: 'd1-entry', lesson: 'dank100',
+    setup: async pg => { await d1View(pg);
+      await pg.evaluate(() => {
+        window._gdSheet = localStorage.getItem('dc_sheet_id') || '';
+        localStorage.removeItem('dc_sheet_id');
+        _currentUser = { uid: 'guide-shot' };
+        dcDank100.rerender();
+      });
+      await wait(pg, 1500); },
+    clip: { from: '#dank100View .d100-soon', to: '#dank100View .d100-how', pad: 12 },
+    spots: { soon: '#dank100View .d100-soon', entries: '#dank100View .d100-entries', last: '#dank100View .d100-entry-last',
+      note: '#dank100View .d100-entry-note', preview: '#dank100View .d100-preview', send: '#dank100View .d100-entry-last .d100-actions .dc-btn-main',
+      year: '#dank100View .d100-year', yearbtn: '#dank100View .d100-year .dc-btn', auto: '#dank100View .d100-auto-line',
+      how: '#dank100View .d100-how' } },
+
+  /* ── Lesson: Ratings (GUIDE-PLAN.md step 9) ─────────────────────────
+     With the scores rtSeed gives the demo library. */
+  { id: 'rt-page', lesson: 'ratings', phone: true,
+    setup: async pg => { await rtView(pg); },
+    clip: { from: '#ratingsView .rp-header', to: '#ratingsPageBody .rp-duo', pad: 14, maxH: 1750, box: '#ratingsView' },
+    spots: { intro: '#ratingsView .rp-intro', ring: '#ratingsPageBody .rp-hero .rt-ring', verdict: '#ratingsPageBody .rp-hero .ar-verdict',
+      meters: '#ratingsPageBody .rp-hero .ar-meters', acts: '#ratingsPageBody .rp-acts', next: '#ratingsPageBody .ar-next',
+      cta: '#ratingsPageBody .ar-next-cta', hi: '#ratingsPageBody .rp-hi', dots: '#ratingsPageBody .rp-hi-foot',
+      recs: '#ratingsPageBody .rt-rec-grid', rec: '#ratingsPageBody .rt-rec-card',
+      top: '#ratingsPageBody .rp-duo .rp-col:first-child', recent: '#ratingsPageBody .rp-duo .rp-col:last-child' } },
+  { id: 'rt-list', lesson: 'ratings',
+    setup: async pg => { await rtView(pg); },
+    clip: { from: '#ratingsPageBody .ar-body', to: '#ratingsPageBody .ar-body', pad: 12, maxH: 1000, box: '#ratingsView' },
+    spots: { tabs: '#ratingsPageBody .ar-tabs', spread: '#ratingsPageBody .ar-dist-cols', bar: '#ratingsPageBody .ar-dist-bar',
+      search: '#ratingsPageBody .am-search', sort: '#ratingsPageBody .am-sort', row: '#ratingsPageBody .ar-list > *',
+      score: '#ratingsPageBody .ar-list .ar-score', prog: '#ratingsPageBody .ar-list .ar-prog', band: '#ratingsPageBody .ar-list .ar-band',
+      go: '#ratingsPageBody .ar-list .ar-go' } },
+  { id: 'rt-todo', lesson: 'ratings',
+    setup: async pg => { await rtView(pg, 'todo'); },
+    clip: { from: '#ratingsPageBody .ar-body', to: '#ratingsPageBody .ar-body', pad: 12, maxH: 760, box: '#ratingsView' },
+    spots: { tabs: '#ratingsPageBody .ar-tabs', row: '#ratingsPageBody .ar-list > *', cta: '#ratingsPageBody .ar-list .ar-cta' } },
+  { id: 'rt-album', lesson: 'ratings',
+    setup: async pg => { await rtEditor(pg); },
+    clip: { from: '#ratingModal .dc-modal', to: '#ratingModal .dc-modal', pad: 10, narrow: true },
+    spots: { kind: '#ratingModal .rt-edit-kind', title: '#ratingModal .rt-edit-title', ring: '#rtEditTotal', formula: '#rtFormula',
+      tabs: '#ratingModal .rt-tabs', row: '#ratingModal .rt-edit-row', slider: '#ratingModal .rt-edit-row .rt-slider',
+      num: '#ratingModal .rt-edit-row .rt-num', weight: '#ratingModal .rt-weight-row', note: '#ratingModal .rt-note-wrap',
+      clear: '#ratingModal .dc-frame-foot-start', done: '#ratingModal .dc-frame-foot .dc-btn-main', close: '#ratingModal .dc-modal-close' } },
+  { id: 'rt-tracks', lesson: 'ratings',
+    setup: async pg => { await rtEditor(pg, { tab: 'tracks' }); },
+    clip: { from: '#ratingModal .dc-modal', to: '#ratingModal .dc-modal', pad: 10, narrow: true },
+    spots: { tab: { js: "document.querySelectorAll('#ratingModal .rt-tab')[1]" }, formula: '#rtFormula',
+      row: { js: "document.querySelectorAll('#ratingModal .rt-track-row')[1]" }, slider: { js: "document.querySelectorAll('#ratingModal .rt-slider--track')[1]" },
+      num: { js: "document.querySelectorAll('#ratingModal .rt-num--track')[1]" }, rubric: { js: "document.querySelectorAll('#ratingModal .rt-track-detail')[1]" },
+      full: '#ratingModal .rt-track-row .rt-track-meta' } },
+  { id: 'rt-song', lesson: 'ratings',
+    setup: async pg => { await rtEditor(pg, { song: 'detailed' }); },
+    clip: { from: '#ratingModal .dc-modal', to: '#ratingModal .dc-modal', pad: 10, narrow: true },
+    spots: { back: '#ratingModal .rt-back', ring: '#rtEditTotal', mode: '#ratingModal .rt-mode-switch', row: '#ratingModal .rt-edit-row',
+      na: '#ratingModal .rt-na-btn', note: '#ratingModal .rt-note-wrap', clear: '#ratingModal .dc-frame-foot-start' } },
+  { id: 'rt-quick', lesson: 'ratings',
+    setup: async pg => { await rtEditor(pg, { song: 'quick' }); },
+    clip: { from: '#ratingModal .dc-modal', to: '#ratingModal .dc-modal', pad: 10, narrow: true },
+    spots: { mode: '#ratingModal .rt-mode-switch', quick: '#ratingModal .rt-quick-wrap', ring: '#rtEditTotal' } },
+  // Where else a score lives: the album window's Rate button and Rating tab
+  { id: 'rt-albwin', lesson: 'ratings',
+    setup: async pg => { await rtView(pg); const k = await rtAlbumKey(pg); await win(pg, 'album', k, 'rating', { full: false }); },
+    clip: { from: WBOX('album'), to: WBOX('album'), pad: 10, narrow: true },
+    spots: { rate: W('album') + ' .dp-actions [data-dp-act="rate"]', tab: '#dpTab-album-rating', ring: W('album') + ' .rt-ring' } },
+  { id: 'rt-artwin', lesson: 'ratings',
+    setup: async pg => { await rtView(pg); await win(pg, 'artist', 'Taylor Swift', 'rating', { full: false }); },
+    clip: { from: WBOX('artist'), to: WBOX('artist'), pad: 10, narrow: true },
+    spots: { tab: '#dpTab-artist-rating', ring: W('artist') + ' .rt-ring' } },
+
+  /* ── Lesson: Events (GUIDE-PLAN.md step 9) ──────────────────────────
+     Birthdays, releases and shows of the demo library's top 50 artists,
+     on the day the pictures are taken. */
+  { id: 'ev-today', lesson: 'events', phone: true,
+    setup: async pg => { await evView(pg); },
+    clip: { from: '#eventsView .events-header', to: '#timeMachineSection', pad: 14, maxH: 1750 },
+    spots: { title: '#eventsView .events-header h2', info: '#eventsInfoBtn', refresh: '#eventsRefreshBtn', tabs: '#eventsView .events-tabs',
+      types: '#eventsView .events-type-filters', bday: '#eventsView [data-etype="birthday"]', shows: '#showsFilterBtn',
+      play: '#eventsPlayBtn', pl: '#eventsPlBtn', day: '#eventsTodayTitle', card: '#eventsTodayBody .ev-carousel-card',
+      anniv: { js: "[...document.querySelectorAll('#eventsTodayBody .ev-today-sub')].pop()" },
+      tm: '#timeMachineSection', tmtypes: '#timeMachineSection .tm-toggle-btns', tmpl: '#tmPlBtn', tmcard: '#tmTickerTrack .tm-card' } },
+  // What a card opens
+  { id: 'ev-menu', lesson: 'events',
+    setup: async pg => { await evView(pg);
+      await pg.evaluate(() => {
+        const c = document.querySelector('#tmTickerTrack .tm-card');
+        window.scrollTo(0, document.getElementById('timeMachineSection').getBoundingClientRect().top + scrollY - 700);
+        c.click();
+      });
+      await pg.waitForFunction(() => document.querySelector('.tm-action-menu'), null, { timeout: 20000 }); await wait(pg, 1200); },
+    clip: { from: '#timeMachineSection', to: '.tm-action-menu', pad: 12 },
+    spots: { menu: '.tm-action-menu', card: '#tmTickerTrack .tm-card', tm: '#timeMachineSection .tm-toggle-btns' } },
+  { id: 'ev-coming', lesson: 'events',
+    setup: async pg => { await evView(pg, 'coming'); },
+    clip: { from: '#eventsView .events-header', to: '#eventsComingSection', pad: 14 },
+    spots: { tab: '#eventsView .events-tabs [data-ev-tab="coming"]', views: '#eventsViewBtns', week: '#evComingWeek', soon: '#evComingSoon',
+      later: '#evComingLater', card: '#evComingWeekGrid .ev-carousel-card', when: '#evComingWeekGrid .ev-carousel-date',
+      more: '#eventsComingSection .ev-today-more', note: '#evComingShowsNote' } },
+  { id: 'ev-table', lesson: 'events',
+    setup: async pg => { await evView(pg, 'coming', { view: 'table' }); },
+    clip: { from: '#eventsView .events-toolbar', to: '#evComingWeek', pad: 14, maxH: 900 },
+    spots: { views: '#eventsViewBtns', table: '#evComingWeekGrid table', th: '#evComingWeekGrid th' } },
+  { id: 'ev-recent', lesson: 'events',
+    setup: async pg => { await evView(pg, 'recent'); },
+    clip: { from: '#eventsView .events-toolbar', to: '#nmfSection', pad: 14 },
+    spots: { tab: '#eventsView .events-tabs [data-ev-tab="recent"]', past: '#evRecentWeek', weeks: '#evRecentSoon', earlier: '#evRecentEarlier',
+      nmf: '#nmfSection', fridays: '#nmfPastBtn', more: '#eventsRecentListSection .ev-today-more' } },
+  { id: 'ev-cal', lesson: 'events', phone: true,
+    setup: async pg => { await evView(pg, 'calendar'); },
+    clip: { from: '#eventsView .events-toolbar', to: '#eventsView .events-calendar-wrap', pad: 14 },
+    spots: { tab: '#eventsView .events-tabs [data-ev-tab="calendar"]', prev: '#eventsView .events-calendar-header .cal-nav-btn',
+      next: '#eventsCalendarTitle ~ .cal-nav-btn',
+      title: '#eventsCalendarTitle', views: '#eventsView .cal-view-btns', today: '#eventsCalendarGrid .cal-today',
+      num: '#eventsCalendarGrid .cal-today .cal-cell-num', ev: '#eventsCalendarGrid .cal-today .cal-ev',
+      more: '#eventsCalendarGrid .cal-today .cal-ev-more' } },
+  { id: 'ev-week', lesson: 'events',
+    setup: async pg => { await evView(pg, 'calendar', { cal: 'week' }); },
+    clip: { from: '#eventsView .events-calendar-wrap', to: '#eventsView .events-calendar-wrap', pad: 12, maxH: 1000 },
+    spots: { views: '#eventsView .cal-view-btns', title: '#eventsCalendarTitle', today: '#eventsCalendarGrid .cal-today' } },
+  { id: 'ev-day', lesson: 'events',
+    setup: async pg => { await evView(pg, 'calendar', { cal: 'day' }); },
+    clip: { from: '#eventsView .events-calendar-wrap', to: '#eventsView .events-calendar-wrap', pad: 12, maxH: 1000 },
+    spots: { views: '#eventsView .cal-view-btns', title: '#eventsCalendarTitle', card: '#eventsCalendarGrid .ev-carousel-card',
+      anniv: { js: "[...document.querySelectorAll('#eventsCalendarGrid .ev-today-sub')].pop()" } } },
+  // ⓘ: what the lists hold and when they were fetched
+  { id: 'ev-info', lesson: 'events',
+    setup: async pg => { await evView(pg); await pg.evaluate(() => toggleEventsStatus()); await wait(pg, 800); },
+    clip: { from: '#eventsView .events-header', to: '#eventsView .events-toolbar', pad: 14 },
+    spots: { info: '#eventsInfoBtn', status: '#eventsStatus', refresh: '#eventsRefreshBtn' } }
 ];
 
 /* ── Measuring + capture ────────────────────────────────────────── */
