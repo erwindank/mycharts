@@ -70,6 +70,8 @@ Decisions (2026-11-05):
 
 ## Steps
 
+Done: step 1 (2026-11-05, 35b1a05), step 2 (2026-11-05).
+
 1. **Engine + hub + lesson 1 (Weekly chart).** The new frame, the screenshot
    pipeline, and one full lesson: the date bar, the Songs / Artists / Albums
    switch, the six layouts, how to read a row (moves, NEW, RE, peak, weeks,

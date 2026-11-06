@@ -268,9 +268,459 @@ window.GL_TEXT['pt-PT'] = {
       ]
     },
 
-    periods: { title: 'Tops Mensal e Anual', promise: 'Tops de fim de ano de qualquer ano, e meses que mostram o que ficou mesmo.' },
-    daily: { title: 'O teu top Diário', promise: 'Um dia de cada vez: as tuas músicas do dia, os teus hábitos e memórias do mesmo dia.' },
-    alltime: { title: 'De Sempre e viagens no tempo', promise: 'As tuas músicas mais ouvidas de sempre, e como estava o top em qualquer dia.' },
+    daily: {
+      title: 'O teu top Diário',
+      promise: 'Um dia de cada vez: o top, quando ouviste, como te sentiste e o que te faz lembrar.',
+      scenes: {
+        top: { title: 'Topo da página', spots: {
+          daily: ['{{t:nav_daily}}', 'O top de hoje e de qualquer dia anterior. A tecla D leva-te lá.'],
+          prev: ['Dia anterior', 'Recua um dia. A tecla ← faz o mesmo.'],
+          label: ['Que dia', 'Clica para abrir um calendário e saltar para qualquer dia.'],
+          next: ['Dia seguinte', 'Avança um dia.'],
+          banner: ['O dia numa linha', 'Quem dominou o dia e o que o fez destacar-se. Hoje diz quem vai à frente.'],
+          peak: ['Tag de recorde', 'Aparece quando um número é um recorde, como o teu maior dia do mês ou de sempre.'],
+          tiles: ['Quatro números', 'Plays, músicas diferentes, artistas e álbuns do dia, com a mudança face ao dia com que comparas.'],
+          hours: ['Plays por hora', 'Cada hora do dia e quantos plays teve.'],
+          best: ['Hora mais ativa', 'O quadrado dourado é a hora em que mais ouviste.'],
+          share: ['Partilhar', 'Guarda estes números como imagem.']
+        } },
+        tools: { title: 'Ferramentas por cima do top', spots: {
+          cmp: ['{{t:dy_compare_label}}', 'Com que dia se medem as setas e as mudanças.'],
+          cmp1: ['{{t:dy_vs_yesterday}}', 'Face ao dia anterior. É o que tens ao começar.'],
+          cmp2: ['O mesmo dia da semana', 'Face ao mesmo dia da semana anterior: uma terça-feira é medida com a terça-feira passada.'],
+          no1: ['{{t:dy_no1_today}}', 'A tua música #1 do dia, e há quantos dias seguidos está em #1.'],
+          recap: ['{{t:dy_recap}}', 'O dia como uma história curta, um cartão de cada vez.'],
+          share: ['{{t:dy_share_img}}', 'Uma imagem do top do dia para partilhar.'],
+          play: ['Ouvir as primeiras', 'Toca o top do dia por ordem.'],
+          cal: ['{{t:dy_cal_title}}', 'Um mês de dias, cada um com a capa da sua #1. Clica num para o abrir.'],
+          save: ['{{t:dy_save_pl}}', 'Guarda o top do dia como uma das tuas playlists.'],
+          export: ['{{t:dy_export}}', 'O top como lista para copiar, guardar como texto ou levar para o Spotify e outros.'],
+          title: ['Tamanho do top', 'Quantas músicas tem o top Diário. Muda-o em ⋮ → Tamanho.'],
+          heads: ['Colunas', 'Posição, movimento, título e artista, álbum, dias no top e plays.']
+        } },
+        panel: { title: 'O teu dia', spots: {
+          today: ['O dia', 'Os plays do dia face ao teu dia habitual.'],
+          week: ['Últimos 7 dias', 'Uma barra por cada um dos últimos 7 dias, e o total face aos 7 anteriores.'],
+          first: ['Primeiro play', 'A primeira música do dia, e a que horas.'],
+          last: ['Último play', 'A última música do dia, e a que horas.'],
+          topart: ['{{t:dy_top_artist}}', 'Quem mais ouviste nesse dia.'],
+          repeat: ['{{t:ns_x_on_repeat}}', 'Músicas que ouviste em quase todos os últimos 7 dias. Vão passando sozinhas.'],
+          moods: ['Humor', 'Escolhe como foi o dia.'],
+          note: ['Uma linha sobre o teu dia', 'Onde estavas, o que aconteceu. Até 500 caracteres.'],
+          status: ['Onde fica guardado', 'Neste navegador. Inicia sessão e vai contigo para todos os dispositivos.']
+        } },
+        time: { title: 'Hora do dia e padrões', spots: {
+          busiest: ['{{t:dy_busiest}}', 'A hora com mais plays.'],
+          sessions: ['Sessões de escuta', 'Quantos períodos separados de escuta teve o dia.'],
+          longest: ['{{t:dy_longest_lbl}}', 'O teu período mais longo sem uma pausa grande, e quando foi.'],
+          tl: ['Capas por hora', 'A música mais ouvida de cada hora.'],
+          hours: ['Barras por hora', 'Quantos plays teve cada hora. Clica numa barra para veres essa hora.'],
+          busy: ['A barra mais alta', 'Destacada para a encontrares depressa.'],
+          hourcard: ['A hora escolhida', 'Os plays dessa hora e a música mais ouvida.'],
+          parts: ['Partes do dia', '{{t:dy_part_night}}, {{t:dy_part_morning}}, {{t:dy_part_afternoon}} e {{t:dy_part_evening}}: os plays, a fatia do dia e a música principal. A mais ativa leva a marca {{t:dy_part_peak}}.'],
+          replayed: ['{{t:dy_pat_most}}', 'A música que mais ouviste nesse dia.'],
+          b2b: ['{{t:dy_pat_b2b}}', 'Quantas vezes seguidas tocou uma música, e um artista.'],
+          full: ['{{t:dy_pat_full}}', 'Álbuns que ouviste inteiros nesse dia.'],
+          variety: ['{{t:dy_pat_variety}}', 'De fiel (sempre as mesmas) a explorador (sempre algo diferente).'],
+          genres: ['{{t:dy_genre_title}}', 'Os géneros que ouviste nesse dia, como parte dos teus plays.']
+        } },
+        mem: { title: 'Memórias e marcas', spots: {
+          otd: ['{{t:dy_otd}}', 'O que ouvias nesta data em anos anteriores.'],
+          forgot: ['{{t:dy_forgot}}', 'Músicas que ouvias muito e já não tocas há algum tempo.'],
+          back: ['{{t:dy_comeback}}', 'Músicas que voltaste a pôr nesse dia depois de muito tempo.'],
+          firsth: ['{{t:dy_first}}', 'Músicas e artistas que ouviste pela primeira vez nesse dia.'],
+          list: ['A lista', 'Clica numa linha para abrir a janela dela.'],
+          awards: ['{{t:dy_aw_title}}', 'A música, o artista, o álbum, a descoberta e o regresso do dia.'],
+          mshit: ['{{t:dy_ms_hit}}', 'Marcas de plays alcançadas nesse dia, como o 500.º play de uma música.'],
+          msrec: ['{{t:dy_rec_title}}', 'Recordes batidos nesse dia.'],
+          msstreak: ['{{t:dy_streaks}}', 'Dias seguidos a ouvir uma música ou um artista, e sequências que acabaram.'],
+          msgoal: ['{{t:dy_goals}}', 'Quão longe está o dia dos teus melhores dias.'],
+          msnear: ['{{t:dy_close_title}}', 'Marcas a poucos plays de distância.']
+        } },
+        recap: { title: '{{t:dy_recap}}', spots: {
+          bars: ['Progresso', 'Uma barra por cada cartão da história.'],
+          big: ['Um cartão', 'Uma coisa do dia por cartão: os plays, a música #1, o artista principal, quando ouviste, a tua variedade e os destaques. O último cartão pode partilhar o dia ou tocar as músicas.'],
+          next: ['Cartão seguinte', 'Toca no lado direito ou carrega em →.'],
+          prev: ['Cartão anterior', 'Toca no lado esquerdo ou carrega em ←.'],
+          x: ['Fechar', 'Esc faz o mesmo.']
+        } },
+        cal: { title: '{{t:dy_cal_title}}', spots: {
+          title: ['O mês', 'Que mês estás a ver.'],
+          prev: ['Mês anterior', 'Recua um mês. A tecla ← faz o mesmo.'],
+          next: ['Mês seguinte', 'Avança um mês. A tecla → faz o mesmo.'],
+          grid: ['Cada dia', 'Cada dia mostra a capa da sua música #1.'],
+          day: ['Um dia', 'Clica para abrir o top desse dia.'],
+          share: ['Partilhar', 'Transforma o mês numa imagem para partilhar.'],
+          x: ['Fechar', 'Esc faz o mesmo.']
+        } }
+      },
+      howto: {
+        pick: { title: 'Ir para outro dia', slides: [
+          'Carrega em ‹ para o dia anterior. A tecla ← também funciona.',
+          'Ou clica na data para escolheres qualquer dia num calendário.',
+          '{{t:dy_cal_title}} mostra um mês inteiro de uma vez.',
+          'Cada dia tem a capa da sua #1. Clica num para abrires esse dia.'
+        ] },
+        compare: { title: 'Escolher com que se compara o dia', slides: [
+          'Ao começar, o movimento é medido face a ontem.',
+          'Escolhe o mesmo dia da semana para comparar, por exemplo, esta terça-feira com a terça-feira passada.',
+          'As setas, as tags NOVA e RE e as mudanças seguem a tua escolha.'
+        ] },
+        recap: { title: 'Ver o teu dia como uma história', slides: [
+          'Carrega em {{t:dy_recap}}.',
+          'O dia chega em cartões, uma coisa de cada vez.',
+          'Toca no lado direito para o seguinte.',
+          'Fecha quando quiseres.'
+        ] },
+        diary: { title: 'Fazer um diário dos teus dias', slides: [
+          'Escolhe como foi o dia.',
+          'Acrescenta uma linha: onde estavas, o que aconteceu.',
+          'Fica guardado logo. Inicia sessão e vai contigo para todos os dispositivos.'
+        ] },
+        hours: { title: 'Ver quando ouviste', slides: [
+          'Cada barra é uma hora. Clica numa.',
+          'Aqui aparecem os plays dessa hora e a música mais ouvida.',
+          'As quatro partes do dia resumem tudo, com a música principal de cada uma.'
+        ] },
+        memories: { title: 'Olhar para trás a partir de qualquer dia', slides: [
+          '{{t:dy_otd}}: o que ouvias nesta data em anos anteriores.',
+          '{{t:dy_forgot}}: antigas favoritas que já não tocas há algum tempo.',
+          '{{t:dy_comeback}}: músicas que voltaram nesse dia.',
+          '{{t:dy_first}}: tudo o que ouviste pela primeira vez.',
+          'Mais abaixo, {{t:dy_ms_title}} conta o que o dia alcançou e quão perto estás dos teus melhores dias.'
+        ] },
+        keep: { title: 'Guardar um dia', slides: [
+          '{{t:dy_save_pl}} guarda o top como uma das tuas playlists.',
+          '{{t:dy_export}} dá-te a lista para o Spotify e outros.',
+          '{{t:dy_share_img}} faz uma imagem dele.'
+        ] }
+      },
+      options: {
+        actions: { title: 'Botões por cima do top', items: {
+          recap: ['{{t:dy_recap}}', 'O dia como uma história em cartões.'],
+          share: ['{{t:dy_share_img}}', 'Uma imagem do top do dia.'],
+          play: ['Ouvir as primeiras', 'Toca o top do dia por ordem.'],
+          cal: ['{{t:dy_cal_title}}', 'Um mês de dias com as capas das #1.'],
+          save: ['{{t:dy_save_pl}}', 'O top como uma das tuas playlists.'],
+          export: ['{{t:dy_export}}', 'O top como lista para outras apps.']
+        } },
+        compare: { title: '{{t:dy_compare_label}}', items: {
+          yday: ['{{t:dy_vs_yesterday}}', 'Face ao dia anterior.'],
+          wday: ['O mesmo dia da semana', 'Face ao mesmo dia da semana anterior.']
+        } },
+        sections: { title: 'Por baixo do top', items: {
+          panel: ['O dia', 'Plays face ao teu dia habitual, os últimos 7 dias, primeiro e último play, artista principal e em repetição.'],
+          diary: ['{{t:dy_diary_title}}', 'Um humor e uma linha sobre o dia.'],
+          time: ['{{t:dy_tod_title}}', 'Plays por hora, sessões e as quatro partes do dia.'],
+          pats: ['{{t:dy_pat_title}}', 'A mais repetida, seguidas, álbuns inteiros, variedade e géneros.'],
+          mem: ['{{t:dy_mem_title}}', 'Esta data em anos anteriores, antigas favoritas, regressos e primeiros plays.'],
+          ms: ['{{t:dy_ms_title}}', 'Os prémios, marcas, recordes, sequências e metas do dia.']
+        } },
+        memtabs: { title: '{{t:dy_mem_title}}', items: {
+          otd: ['{{t:dy_otd}}', 'Esta data em anos anteriores.'],
+          forgot: ['{{t:dy_forgot}}', 'Antigas favoritas que desapareceram.'],
+          back: ['{{t:dy_comeback}}', 'De volta depois de muito tempo.'],
+          firsth: ['{{t:dy_first}}', 'Ouvidas pela primeira vez.'],
+          throw: ['{{t:dy_throw}}', 'Favoritos de sempre que já não tocas há algum tempo. Cada separador só aparece nos dias em que tem alguma coisa.']
+        } },
+        mstabs: { title: '{{t:dy_ms_title}}', items: {
+          hit: ['{{t:dy_ms_hit}}', 'Marcas de plays alcançadas.'],
+          rec: ['{{t:dy_rec_title}}', 'Recordes batidos nesse dia.'],
+          streak: ['{{t:dy_streaks}}', 'Sequências de dias mantidas ou terminadas.'],
+          goal: ['{{t:dy_goals}}', 'Quão longe dos teus melhores dias.'],
+          near: ['{{t:dy_close_title}}', 'Marcas a poucos plays.']
+        } },
+        size: { title: '⋮ → Tamanho', items: {
+          day: ['Tamanhos do Diário', 'Top 10, 20, 25, 30 ou 50.']
+        } }
+      },
+      challenges: {
+        'day.prev': ['Recua um dia', 'Carrega em ‹ ou na tecla ←.'],
+        'day.cmp': ['Compara com o mesmo dia da semana', 'O seletor ao lado de {{t:dy_compare_label}}.'],
+        'day.recap': ['Abre {{t:dy_recap}}', 'O primeiro botão por cima do top.'],
+        'day.cal': ['Abre o {{t:dy_cal_title}}', 'Um botão por cima do top.'],
+        'day.mood': ['Escolhe um humor para um dia', 'Em {{t:dy_diary_title}}.'],
+        'day.hour': ['Escolhe uma hora', 'Uma barra em {{t:dy_tod_title}}.'],
+        'day.tab': ['Abre outro separador de Memórias ou Marcas', 'Por exemplo {{t:dy_forgot}}.'],
+        'day.save': ['Guarda um dia como playlist', '{{t:dy_save_pl}} por cima do top.']
+      },
+      quiz: {
+        q1: ['Comparas com o mesmo dia da semana. Com o que é medido hoje?',
+          ['Com ontem', 'Com o mesmo dia da semana anterior', 'Com o teu melhor dia'],
+          'Compara, por exemplo, esta terça-feira com a terça-feira passada: mais justo quando os teus dias da semana são diferentes.'],
+        q2: ['Onde escreves uma linha sobre como correu o dia?',
+          ['{{t:dy_diary_title}}', '{{t:dy_mem_title}}', '{{t:dy_recap}}'],
+          '{{t:dy_diary_title}} guarda um humor e uma linha para cada dia.'],
+        q3: ['O que mostra {{t:dy_otd}}?',
+          ['O que ouvias nesta data em anos anteriores', 'A música mais ouvida de hoje', 'Músicas que nunca ouviste'],
+          'Olha para a mesma data em cada ano anterior em que tens plays.']
+      },
+      tips: [
+        '{{t:dy_recap}} transforma qualquer dia numa história em cartões. Experimenta no teu dia mais ativo.',
+        '{{t:dy_mem_title}} → {{t:dy_otd}} mostra o que ouvias nesta data em anos anteriores.',
+        'O {{t:dy_cal_title}} mostra a capa da #1 de cada dia: um mês inteiro de uma vez.',
+        'Escolhe um humor e escreve uma linha em {{t:dy_diary_title}}, e o separador Diário passa a ser um diário musical.'
+      ]
+    },
+
+    periods: {
+      title: 'Tops Mensal e Anual',
+      promise: 'Meses que mostram o que ficou mesmo, tops de fim de ano de qualquer ano e o que quer dizer cada tag de recorde.',
+      scenes: {
+        mtop: { title: 'Um mês', spots: {
+          monthly: ['{{t:nav_monthly}}', 'Um mês do calendário de cada vez. A tecla M leva-te lá.'],
+          yearly: ['{{t:nav_yearly}}', 'Um ano do calendário de cada vez. A tecla Y leva-te lá.'],
+          label: ['Que mês', 'Clica para saltar para qualquer mês. ‹ e › andam um mês de cada vez.'],
+          banner: ['O mês numa linha', 'Quem o dominou, e como se compara com os teus outros meses.'],
+          peak: ['Tag de recorde', '{{t:stat_alltime_peak}}: nenhum mês passou alguma vez deste número.'],
+          tiles: ['Quatro números', 'Plays, músicas diferentes, artistas e álbuns, com a mudança face ao mês anterior.'],
+          days: ['Plays por dia', 'Cada dia do mês e os seus plays.'],
+          day: ['Um dia', 'Clica em qualquer dia para o abrires no top Diário.'],
+          best: ['Melhor dia', 'O quadrado dourado é o dia mais ativo do mês.'],
+          share: ['Partilhar', 'Guarda estes números como imagem.']
+        } },
+        mchart: { title: 'O top mensal', spots: {
+          title: ['Tamanho do top', 'O Mensal começa em Top 50. Muda-o em ⋮ → Tamanho.'],
+          heads: ['Colunas', 'Igual ao Semanal, mas conta meses no top.'],
+          months: ['Meses no top', 'Quantos meses passou no top no total.'],
+          newe: ['NOVA', 'O primeiro mês no top.'],
+          up: ['Subiu', 'Subiu essas posições desde o mês passado.'],
+          plays: ['Plays', 'Plays do mês inteiro. Uma música precisa de plays constantes, não de uma semana forte.']
+        } },
+        mnew: { title: 'Novidades do mês', spots: {
+          bar: ['{{t:atc_title}}', 'As listas à volta do top. No Mensal e no Anual são as novas entradas.'],
+          tabs: ['{{t:atc_tab_new}}', 'Tudo o que é novo este mês, com a contagem.'],
+          fold: ['Recolher', 'Esconde o bloco e mantém o título.'],
+          chip1: ['{{t:ne_filter_all}}', 'Todas as músicas novas do mês.'],
+          chip2: ['{{t:ne_filter_chart}}', 'Só as novas que entraram no top.'],
+          chip3: ['{{t:ne_filter_new_artists}}', 'Só músicas de artistas que nunca tinhas ouvido.'],
+          row: ['Uma música nova', 'Clica para abrir a janela dela.'],
+          debut: ['Estreia', 'A posição em que entrou no top.'],
+          biggest: ['Estreia recorde', 'Aparece quando uma estreia é a maior de sempre, ou em muito tempo.'],
+          caps: ['Semana a semana', 'Uma marca por semana do mês. As acesas são semanas em que a ouviste; quanto mais forte, mais plays.'],
+          ndays: ['Semanas ouvida', 'Em quantas semanas do mês tocou.']
+        } },
+        cert: { title: 'Certificados este mês', spots: {
+          title: ['{{t:creel_title}}', 'Músicas e álbuns que chegaram a Ouro, Platina ou Diamante durante este mês.'],
+          count: ['Quantos', 'Quantos foram certificados este mês.'],
+          filter: ['Filtro', 'Todos, só músicas ou só álbuns.'],
+          plaque: ['Uma placa', 'O prémio, para que é e o dia em que foi alcançado.'],
+          hint: ['Explorar', 'As placas passam sozinhas. Passa o rato por cima para as parar, arrasta para explorar.'],
+          collapse: ['Recolher', 'Esconde as placas e mantém o título.']
+        } },
+        ytop: { title: 'Um ano', spots: {
+          yearly: ['{{t:nav_yearly}}', 'Um ano do calendário de cada vez.'],
+          label: ['Que ano', 'Clica para escolheres outro ano. ‹ e › andam um ano de cada vez.'],
+          banner: ['O ano numa linha', 'Quem dominou o teu ano e o tamanho dele.'],
+          peak: ['Tag de recorde', '{{t:stat_peak_at_time}}: foi um recorde quando aconteceu e já foi superado.'],
+          tiles: ['Quatro números', 'Os plays, músicas, artistas e álbuns do ano, com a mudança face ao ano anterior.'],
+          months: ['Plays por mês', 'Cada mês do ano. Clica num para o abrires.'],
+          best: ['Melhor mês', 'O quadrado dourado é o mês mais ativo do ano.']
+        } },
+        ychart: { title: 'O top anual', spots: {
+          title: ['Tamanho do top', 'O Anual começa em Top 100, e vai até 200 ou todas as músicas que ouviste.'],
+          search: ['Procurar no top', 'Escreve parte de um título ou de um artista para o encontrares no top.'],
+          heads: ['Colunas', 'Conta anos no top.'],
+          years: ['Anos no top', 'Em quantos tops de fim de ano entrou.'],
+          up: ['Subiu', 'Subiu face à posição no top do ano passado.'],
+          newe: ['NOVA', 'O primeiro top de fim de ano.'],
+          menu: ['Opções do top (⋮)', 'Mostrar, Tamanho e Ações, como no Semanal.']
+        } }
+      },
+      howto: {
+        month: { title: 'Ver um mês', slides: [
+          'Escolhe {{t:nav_monthly}}.',
+          '‹ e › andam um mês. Clica no nome para saltares mais longe.',
+          'Clica em qualquer dia da faixa para o abrires no top Diário.'
+        ] },
+        year: { title: 'Ver um ano', slides: [
+          'Escolhe {{t:nav_yearly}}.',
+          'Anda um ano com ‹ e ›, ou clica no ano para escolheres um.',
+          'Clica num mês da faixa para o abrires.'
+        ] },
+        peaks: { title: 'Perceber as tags de recorde', slides: [
+          '{{t:stat_alltime_peak}}: nenhum mês (ou ano) passou alguma vez deste número.',
+          '{{t:stat_peak_at_time}}: foi um recorde quando aconteceu e já foi superado.'
+        ] },
+        newones: { title: 'Encontrar o que é novo', slides: [
+          'Por baixo do top, {{t:atc_tab_new}} reúne todas as músicas novas do mês.',
+          '{{t:ne_filter_chart}} deixa só as que entraram no top.',
+          'Cada uma mostra onde se estreou.',
+          'E em que semanas do mês a ouviste.'
+        ] },
+        cert: { title: 'Ver o que chegou a Ouro', slides: [
+          'Filtra as placas: todas, músicas ou álbuns.',
+          'Cada placa diz para que é e o dia em que foi alcançada.',
+          'Passa o rato para parar a faixa, ou arrasta-a para explorar.'
+        ] },
+        find: { title: 'Encontrar uma música num top longo', slides: [
+          'Escreve na caixa de pesquisa por cima do top.',
+          'Ficam só as linhas que coincidem, com a posição real.'
+        ] }
+      },
+      options: {
+        size: { title: '⋮ → Tamanho', items: {
+          month: ['Tamanhos do Mensal', 'Top 25, 30, 50 ou 100.'],
+          year: ['Tamanhos do Anual', 'Top 50, 100, 200 ou todas as músicas.']
+        } },
+        peaks: { title: 'Tags de recorde nos números', items: {
+          alltime: ['{{t:stat_alltime_peak}}', 'O maior de sempre, ainda por superar.'],
+          attime: ['{{t:stat_peak_at_time}}', 'Um recorde quando aconteceu, superado depois.']
+        } },
+        newchips: { title: '{{t:atc_tab_new}}', items: {
+          all: ['{{t:ne_filter_all}}', 'Todas as músicas novas.'],
+          made: ['{{t:ne_filter_chart}}', 'As novas que entraram no top.'],
+          artists: ['{{t:ne_filter_new_artists}}', 'Músicas de artistas novos para ti.']
+        } },
+        certf: { title: '{{t:creel_title}}', items: {
+          filter: ['{{t:certd_all}} / {{t:chart_type_songs}} / {{t:chart_type_albums}}', 'Que placas mostrar.']
+        } }
+      },
+      challenges: {
+        'per.month': ['Abre o top Mensal', '{{t:nav_monthly}}, ao lado de {{t:nav_weekly}}.'],
+        'per.year': ['Abre o top Anual', '{{t:nav_yearly}}, ao lado de {{t:nav_monthly}}.'],
+        'per.day': ['Abre um dia a partir de um mês', 'Clica num dia na faixa de plays por dia.'],
+        'per.new': ['Filtra as músicas novas', '{{t:ne_filter_chart}}, por baixo do top.'],
+        'per.cert': ['Filtra as placas certificadas', 'Músicas ou Álbuns.'],
+        'per.search': ['Procura num top Anual', 'A caixa por cima do top.']
+      },
+      quiz: {
+        q1: ['Um número diz {{t:stat_alltime_peak}}. O que quer dizer?',
+          ['Nenhum mês passou alguma vez dele', 'É o melhor do ano até agora', 'Está acima do teu mês habitual'],
+          '{{t:stat_alltime_peak}} é o maior de sempre. {{t:stat_peak_at_time}} foi um recorde e já foi superado.'],
+        q2: ['Uma música foi #1 num top Semanal mas não é #1 do mês. Porquê?',
+          ['O mês conta todas as semanas, e plays constantes ganham a uma semana forte', 'O Mensal deixa de fora as músicas novas', 'O Mensal só conta fins de semana'],
+          'Cada top conta o seu próprio intervalo de tempo. Uma semana forte pode perder para uma música que ouviste o mês todo.'],
+        q3: ['Uma música nova mostra “3 de 5 semanas”. O que quer dizer?',
+          ['Tocou em 3 das 5 semanas do mês', 'Entrou 3 vezes no top', 'O pico foi #3'],
+          'As marcas mostram em que semanas do mês a ouviste.']
+      },
+      tips: [
+        'Clica em qualquer dia da faixa de plays por dia de um mês para abrires esse dia.',
+        'Por baixo de um top mensal, {{t:ne_filter_chart}} mostra só as músicas novas que entraram.',
+        'Os tops anuais têm caixa de pesquisa: escreve um nome para o encontrares no teu Top 100.'
+      ]
+    },
+
+    alltime: {
+      title: 'De Sempre e viagens no tempo',
+      promise: 'As tuas músicas mais ouvidas de sempre, de que é feito o teu top e como estava em qualquer dia do passado.',
+      scenes: {
+        top: { title: 'Topo da página', spots: {
+          alltime: ['{{t:nav_alltime}}', 'Todos os teus plays, contados uma vez. A tecla A leva-te lá.'],
+          label: ['Até quando', 'Clica para escolheres uma data e veres o top como estava nesse dia.'],
+          prev: ['Um mês atrás', 'Mostra o top como era um mês antes. Carrega outra vez para continuares a recuar.'],
+          banner: ['O teu #1 de sempre', 'O artista que mais ouviste, desde sempre.'],
+          tiles: ['Quatro números', 'Todos os teus plays, músicas, artistas e álbuns.'],
+          total: ['Dias e plays por dia', 'Quantos dias ouviste música, e os teus plays por dia em média.'],
+          years: ['Plays por ano', 'Cada ano e os seus plays. Clica num para abrires esse ano.'],
+          best: ['Melhor ano', 'O quadrado dourado é o teu maior ano.'],
+          share: ['Partilhar', 'Guarda estes números como imagem.']
+        } },
+        chart: { title: 'O top de sempre', spots: {
+          tip: ['Uma dica', 'Dá um tamanho ao top e vê de que é feito.'],
+          size: ['{{t:ati_hint_btn}}', 'Põe o top em Top 100 e abre as estatísticas.'],
+          hide: ['Esconder a dica', 'Não volta a aparecer.'],
+          title: ['O top inteiro', 'O De Sempre começa com todas as músicas que ouviste. ⋮ → Tamanho deixa-o em 50, 100 ou 200.'],
+          search: ['Procurar', 'Encontra qualquer música ou artista no top.'],
+          heads: ['Colunas', 'Aqui não há movimento: o De Sempre é um só top, por isso não há com que comparar.'],
+          menu: ['Opções do top (⋮)', 'Mostrar, Tamanho e Ações.']
+        } },
+        ati: { title: 'Dentro do teu Top 100', spots: {
+          head: ['Dentro do teu Top N', 'De que é feito o teu top. Segue o tamanho que escolheres.'],
+          toggle: ['{{t:ati_more}} / {{t:ati_less}}', 'Abre ou recolhe todas as estatísticas.'],
+          hero: ['Um facto', 'Algo que vale a pena saber sobre o teu top.'],
+          fact: ['{{t:ati_another}}', 'Mostra o facto seguinte.'],
+          tiles: ['Quatro números', 'Quantos artistas, quanto ocupam os teus 3 primeiros, a parte de todos os teus plays e quantas são novas desde o ano passado.'],
+          tile: ['Um número', 'Clica para veres o que está por trás.'],
+          tabs: ['Cinco vistas', '{{t:ati_tab_artists}}, {{t:ati_tab_eras}}, {{t:ati_tab_plays}}, {{t:ati_tab_badges}} e {{t:ati_tab_new}}.'],
+          panel: ['A vista', 'Aqui: quem tem mais músicas no top e os álbuns com mais músicas. Escolhe um nome para veres as músicas.']
+        } },
+        pages: { title: 'O fim de um top longo', spots: {
+          pages: ['Páginas', 'Um top longo vem de 100 em 100.'],
+          label: ['Onde estás', 'Que entradas estão à vista, de quantas.'],
+          input: ['Ir para uma página', 'Escreve o número da página e carrega em Enter.'],
+          next: ['Página seguinte', 'As 100 seguintes.'],
+          last: ['Última página', 'Diretamente para o fim.'],
+          export: ['Exportar', 'O top como TXT, CSV ou PDF para imprimir.']
+        } },
+        travel: { title: 'Viagem no tempo', spots: {
+          label: ['Até esse dia', 'O top conta agora todos os plays até esta data, e nada depois.'],
+          prev: ['Mais para trás', 'Mais um mês para trás.'],
+          next: ['Para a frente', 'Um mês para a frente, até voltares a hoje.'],
+          banner: ['O teu #1 nessa altura', 'Quem liderava o teu top de sempre nesse dia.'],
+          tiles: ['Os números nessa altura', 'Os teus totais como eram nesse dia.']
+        } }
+      },
+      howto: {
+        size: { title: 'Ver de que é feito o teu top', slides: [
+          'No De Sempre, uma dica oferece-se para olhar para dentro do teu top.',
+          'Carrega em {{t:ati_hint_btn}}.',
+          'As estatísticas ficam por cima do top e seguem o tamanho que escolheres.'
+        ] },
+        facts: { title: 'Explorar as estatísticas', slides: [
+          '{{t:ati_another}} mostra o facto seguinte sobre o teu top.',
+          'Clica num número para veres o que está por trás.',
+          'Cinco vistas: {{t:ati_tab_artists}}, {{t:ati_tab_eras}}, {{t:ati_tab_plays}}, {{t:ati_tab_badges}} e {{t:ati_tab_new}}.',
+          '{{t:ati_less}} recolhe tudo.'
+        ] },
+        travel: { title: 'Viajar no tempo', slides: [
+          'No De Sempre, carrega em ‹.',
+          'O top conta agora todos os plays até há um mês.',
+          'Todos os números recuam também.',
+          'Carrega em › para voltares para a frente, ou clica na data para escolheres qualquer dia.'
+        ] },
+        find: { title: 'Encontrar uma música', slides: [
+          'Escreve na caixa de pesquisa por cima do top.',
+          'Ou salta para uma página lá em baixo.'
+        ] },
+        export: { title: 'Levar o teu top contigo', slides: [
+          'Lá em baixo: TXT, CSV ou um PDF para imprimir do top inteiro.'
+        ] }
+      },
+      options: {
+        size: { title: '⋮ → Tamanho', items: {
+          sizes: ['Tamanhos do De Sempre', 'Top 50, 100, 200 ou todas as músicas (o que tens ao começar).']
+        } },
+        atitabs: { title: 'Dentro do teu Top N', items: {
+          artists: ['{{t:ati_tab_artists}}', 'Quem tem mais músicas, os álbuns com mais músicas, quem manda no top 10.'],
+          eras: ['{{t:ati_tab_eras}}', 'De que anos e décadas são as músicas.'],
+          plays: ['{{t:ati_tab_plays}}', 'Como os plays se espalham pelo top, e a rapidez com que as músicas entraram.'],
+          badges: ['{{t:ati_tab_badges}}', 'As certificações no top e as próximas placas.'],
+          newyear: ['{{t:ati_tab_new}}', 'O que entrou no top no último ano.']
+        } },
+        export: { title: 'Exportar', items: {
+          txt: ['TXT', 'Uma lista simples.'],
+          csv: ['CSV', 'Para uma folha de cálculo.'],
+          pdf: ['PDF', 'Preparado para imprimir.']
+        } }
+      },
+      challenges: {
+        'at.size': ['Olha para dentro do teu Top 100', '{{t:ati_hint_btn}}, ou ⋮ → Tamanho.'],
+        'at.fact': ['Vê outro facto', '{{t:ati_another}}.'],
+        'at.stats': ['Abre todas as estatísticas', '{{t:ati_more}}.'],
+        'at.travel': ['Recua um mês no tempo', 'Carrega em ‹ no De Sempre.'],
+        'at.search': ['Procura no teu top de sempre', 'A caixa por cima do top.'],
+        'at.export': ['Exporta o top', 'TXT, CSV ou PDF lá em baixo.']
+      },
+      quiz: {
+        q1: ['O que faz ‹ no De Sempre?',
+          ['Mostra o top como estava um mês antes', 'Vai para o top do ano passado', 'Nada'],
+          'O De Sempre conta todos os plays até à data mostrada. ‹ recua essa data um mês.'],
+        q2: ['Porque não há setas de movimento no De Sempre?',
+          ['É um só top com todos os plays, por isso não há um anterior para comparar', 'Estão desligadas', 'Só aparecem no telemóvel'],
+          'O movimento compara um período com o anterior. O De Sempre não tem “anterior”.'],
+        q3: ['Onde vês quem tem mais músicas no teu Top 100?',
+          ['Dentro do teu Top 100 → {{t:ati_tab_artists}}', 'Definições', 'O Fórum'],
+          'Põe o De Sempre em Top 100 e as estatísticas por cima do top mostram isso.']
+      },
+      tips: [
+        'No De Sempre, ‹ mostra o teu top como estava há um mês. Continua a recuar para o veres crescer.',
+        'Dentro do teu Top 100 tem doze factos. Carrega em {{t:ati_another}} para os veres todos.',
+        'O De Sempre tem caixa de pesquisa: encontra qualquer música que já ouviste e a sua posição de sempre.'
+      ]
+    },
+
     around: { title: 'À volta do top e partilhá-lo', promise: 'Aspirantes, Fora do Top, Novas Entradas, imagens, PDFs e playlists.' },
     windows: { title: 'Janelas de música, artista e álbum', promise: 'Tudo sobre uma música, um artista ou um álbum, e como o encontrar depressa.' },
     stats: { title: 'Estatísticas', promise: 'Resumo, História, Gráficos, Comparar e Jogos para qualquer período.' },

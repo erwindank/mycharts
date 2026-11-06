@@ -59,6 +59,16 @@ async function lastWeek(pg) {
     document.querySelector('#statsHeroTop .sh-name') && document.querySelector('.spotlight-card'), null, { timeout: 60000 });
   await wait(pg, 1500);
 }
+// Any chart window at a given offset (periods back from now), Songs, ready to photograph.
+// Daily uses 27 Oct 2026 (offset 9 from the 5 Nov capture day): a busy day in the demo library.
+async function at(pg, period, offset, { spotlight = false } = {}) {
+  await go(pg, period); await wait(pg, 900);
+  await pg.evaluate(o => { setChartTypeView('songs'); currentOffset = o; renderAll(); }, offset);
+  await pg.waitForFunction(sp => document.querySelectorAll('#songsBody tr[data-ea-key]').length >= 3 &&
+    document.querySelector('#statsHeroTop') && (!sp || document.querySelector('.spotlight-card')), spotlight, { timeout: 60000 });
+  await wait(pg, 2200);
+}
+const DAY_OFF = 9;
 async function showAll(pg) { await pg.evaluate(() => setSectionDisplayShowAll(true)); await wait(pg, 500); }
 async function layout(pg, v) { await pg.evaluate(v => setWeeklyChartView(v), v); await wait(pg, 1800); }
 async function openKebab(pg, tab) {
@@ -182,7 +192,120 @@ const SHOTS = [
     clip: { from: '#songsSection .section-header', to: '.crp', pad: 12, maxH: 1300 },
     spots: { when: '.crp .crp-when', count: '.crp .crp-count', close: '.crp .crp-close', days: '.crp .crp-days',
       ends: '.crp .crp-ends', scrub: '.crp .crp-scrub', transport: '.crp .crp-transport', play: '.crp .crp-play',
-      step: '.crp .crp-uback', speeds: '.crp .crp-speeds', log: '.crp .crp-log', keys: '.crp .crp-keys' } }
+      step: '.crp .crp-uback', speeds: '.crp .crp-speeds', log: '.crp .crp-log', keys: '.crp .crp-keys' } },
+  /* ── Lesson: Daily ─────────────────────────────────────────────── */
+  { id: 'day-top', lesson: 'daily', phone: true,
+    setup: async pg => { await at(pg, 'day', DAY_OFF); },
+    clip: { from: '#topbar', to: '#statsHeroDays', pad: 18 },
+    spots: { daily: '#periodNav button[data-period="day"]', prev: '#prevBtn', label: '#periodLabel', next: '#nextBtn',
+      banner: '#statsHeroTop', peak: '#statsStrip .stat-peak-badge', tiles: '#statsStrip', hours: '#statsHeroDays',
+      best: '#statsHeroDays .sh-day.is-best', share: '#statsHeroDays .sh-share' } },
+  { id: 'day-tools', lesson: 'daily', phone: true,
+    setup: async pg => { await at(pg, 'day', DAY_OFF); await layout(pg, 'table'); },
+    clip: { from: '#chartTypeToggleBar', to: nth('#songsBody', 3), pad: 14 },
+    spots: { type: '.chart-type-seg', layouts: '#chartLayoutBar', cmp: '.dy-cmp', cmp1: '.dy-seg-btn', cmp2: '.dy-seg-btn + .dy-seg-btn',
+      no1: '.dy-no1', recap: '.dy-act-main', share: '.dy-actions .dy-act:nth-child(2)', play: '.dy-actions .dy-act:nth-child(3)',
+      cal: '.dy-actions .dy-act:nth-child(4)', save: '.dy-actions .dy-act:nth-child(5)', export: '.dy-actions .dy-act:nth-child(6)',
+      title: '#songsSectionTitle', animate: '#songsReplayBtn', menu: '#songsSection .kebab-menu-btn', heads: '#songsHeadRow' } },
+  { id: 'day-panel', lesson: 'daily', phone: true,
+    setup: async pg => { await at(pg, 'day', DAY_OFF); },
+    clip: { from: '.dy-panel', to: '.dy-diary', pad: 12 },
+    spots: { today: '.dy-ptop .dy-pblock', week: '.dy-ptop .dy-pblock + .dy-pblock', first: '.dy-ptiles .dy-ptile:nth-child(1)',
+      last: '.dy-ptiles .dy-ptile:nth-child(2)', topart: '.dy-ptiles .dy-ptile:nth-child(3)', repeat: '.dy-ptiles .dy-rep',
+      moods: '.dy-moods', note: '.dy-note', status: '.dy-diary-status' } },
+  { id: 'day-time', lesson: 'daily',
+    setup: async pg => { await at(pg, 'day', DAY_OFF); },
+    clip: { from: '.dy-tod-sec', to: '.dy-pats', pad: 12 },
+    spots: { busiest: '.dy-tod-sec .dy-chip', sessions: '.dy-tod-sec .dy-chip:nth-child(2)', longest: '.dy-tod-sec .dy-chip:nth-child(3)',
+      tl: '.dy-tl', hours: '.dy-hours', busy: '.dy-hr.is-busy', hourcard: '.dy-tod-sec [class*="dy-hr-"]:not(.dy-hr), .dy-tod-sec .dy-sess',
+      parts: '.dy-tod-sec [class*="dy-parts"], .dy-tod-sec [class*="dy-part"]', replayed: '.dy-pat-grid .dy-pat:nth-child(1)',
+      b2b: '.dy-pat-grid .dy-pat:nth-child(2)', full: '.dy-pat-grid .dy-pat:nth-child(3)', variety: '.dy-pat-grid .dy-pat:nth-child(4)',
+      genres: '.dy-genres' } },
+  { id: 'day-mem', lesson: 'daily',
+    setup: async pg => { await at(pg, 'day', DAY_OFF); },
+    clip: { from: '.dy-mem', to: '.dy-ms', pad: 12 },
+    spots: { otd: '.dy-mem .dy-tab:nth-child(1)', forgot: '.dy-mem .dy-tab:nth-child(2)', back: '.dy-mem .dy-tab:nth-child(3)',
+      firsth: '.dy-mem .dy-tab:nth-child(4)', list: '.dy-mem .dy-mem-list', awards: '.dy-awards', mshit: '.dy-ms .dy-tab:nth-child(1)',
+      msrec: '.dy-ms .dy-tab:nth-child(2)', msstreak: '.dy-ms .dy-tab:nth-child(3)', msgoal: '.dy-ms .dy-tab:nth-child(4)',
+      msnear: '.dy-ms .dy-tab:nth-child(5)' } },
+  { id: 'day-recap', lesson: 'daily',
+    setup: async pg => { await at(pg, 'day', DAY_OFF); await pg.evaluate(() => dyOpenRecap()); await wait(pg, 2500); },
+    clip: { from: '.dy-rc-bars', to: '.dy-rc-stage', pad: 40, narrow: true },
+    spots: { bars: '.dy-rc-bars', x: '.dy-rc-x', next: '.dy-rc-nav.is-next', prev: '.dy-rc-nav.is-prev', big: '.dy-rc-big' } },
+  { id: 'day-cal', lesson: 'daily',
+    setup: async pg => { await at(pg, 'day', DAY_OFF); await pg.evaluate(() => dyOpenCalendar()); await wait(pg, 3500); },
+    clip: { from: '.dy-cal-card', to: '.dy-cal-card', pad: 16, narrow: true },
+    spots: { prev: '.dy-cal-head .dy-cal-nav', title: '.dy-cal-title',
+      next: { js: "[...document.querySelectorAll('.dy-cal-head .dy-cal-nav:not(.dy-cal-share)')][1]" },
+      share: '.dy-cal-share', x: '.dy-cal-x', grid: '.dy-cal-grid', day: '.dy-cal-cell.has-plays' } },
+
+  /* ── Lesson: Monthly and Yearly ───────────────────────────────── */
+  { id: 'month-top', lesson: 'periods', phone: true,
+    setup: async pg => { await at(pg, 'month', 1); },
+    clip: { from: '#topbar', to: '#statsHeroDays', pad: 18 },
+    spots: { monthly: '#periodNav button[data-period="month"]', yearly: '#periodNav button[data-period="year"]', label: '#periodLabel',
+      banner: '#statsHeroTop', peak: '#statsStrip .stat-peak-badge', tiles: '#statsStrip', days: '#statsHeroDays',
+      day: '#statsHeroDays .sh-day', best: '#statsHeroDays .sh-day.is-best', share: '#statsHeroDays .sh-share' } },
+  { id: 'month-chart', lesson: 'periods',
+    setup: async pg => { await at(pg, 'month', 1); await layout(pg, 'table'); },
+    clip: { from: '#chartTypeToggleBar', to: nth('#songsBody', 4), pad: 14 },
+    spots: { title: '#songsSectionTitle', heads: '#songsHeadRow', newe: byText('#songsBody', 'td.m-col', '/^NEW|^NUEV|^NOV/i'),
+      re: byText('#songsBody', 'td.m-col', '/^RE$/i'), up: byText('#songsBody', 'td.m-col', '/^▲/'),
+      months: R(1) + ' .m-mths', plays: R(1) + ' .play-count' } },
+  { id: 'month-new', lesson: 'periods',
+    setup: async pg => { await at(pg, 'month', 1); await pg.evaluate(() => window.scrollTo(0, document.getElementById('atcSongs').getBoundingClientRect().top + scrollY - 800)); await wait(pg, 1200); },
+    clip: { from: '#atcSongs .atc-bar', to: nth('#newSongsBody', 4), pad: 12 },
+    spots: { bar: '#atcSongs .atc-bar', tabs: '#atcSongs .atc-tabs', fold: '#atcSongs .atc-fold', chips: '#newSongsChips',
+      chip1: '#newSongsChips button', chip2: '#newSongsChips button:nth-child(2)', chip3: '#newSongsChips button:nth-child(3)',
+      row: nth('#newSongsBody', 1), debut: '#newSongsBody .atc-tag', biggest: '#newSongsBody .ne-big',
+      caps: '#newSongsBody .ne-caps', ndays: '#newSongsBody .ne-days' } },
+  { id: 'month-cert', lesson: 'periods',
+    setup: async pg => { await at(pg, 'month', 1); await pg.evaluate(() => window.scrollTo(0, document.getElementById('certReelSection').getBoundingClientRect().top + scrollY - 800)); await wait(pg, 2500); },
+    clip: { from: '#certReelSection', to: '#certReelSection', pad: 12 },
+    spots: { title: '#certReelSection .section-title', count: '#certReelSection .creel-count', filter: '#certReelSection .creel-filter-btns',
+      plaque: '#certReelSection .creel-track > *', hint: '#certReelSection .creel-hint', collapse: '#certReelSection .section-header button' } },
+  { id: 'year-top', lesson: 'periods', phone: true,
+    setup: async pg => { await at(pg, 'year', 1); },
+    clip: { from: '#topbar', to: '#statsHeroDays', pad: 18 },
+    spots: { yearly: '#periodNav button[data-period="year"]', label: '#periodLabel', banner: '#statsHeroTop',
+      peak: '#statsStrip .stat-peak-badge', tiles: '#statsStrip', months: '#statsHeroDays', best: '#statsHeroDays .sh-day.is-best' } },
+  { id: 'year-chart', lesson: 'periods',
+    setup: async pg => { await at(pg, 'year', 0); await layout(pg, 'table'); },
+    clip: { from: '#songsSection .section-header', to: nth('#songsBody', 4), pad: 14 },
+    spots: { title: '#songsSectionTitle', search: '#songsSearch', heads: '#songsHeadRow', menu: '#songsSection .kebab-menu-btn',
+      years: R(1) + ' .m-mths', up: byText('#songsBody', 'td.m-col', '/^▲/'), newe: byText('#songsBody', 'td.m-col', '/^NEW|^NUEV|^NOV/i') } },
+
+  /* ── Lesson: All-Time ─────────────────────────────────────────── */
+  { id: 'at-top', lesson: 'alltime', phone: true,
+    setup: async pg => { await at(pg, 'alltime', 0); },
+    clip: { from: '#topbar', to: '#statsHeroDays', pad: 18 },
+    spots: { alltime: '#periodNav button[data-period="alltime"]', prev: '#prevBtn', label: '#periodLabel', banner: '#statsHeroTop',
+      tiles: '#statsStrip', total: '#statsStrip .stat-box', years: '#statsHeroDays', best: '#statsHeroDays .sh-day.is-best',
+      share: '#statsHeroDays .sh-share' } },
+  { id: 'at-chart', lesson: 'alltime', phone: true,
+    setup: async pg => { await at(pg, 'alltime', 0); await layout(pg, 'table'); },
+    clip: { from: '#chartTypeToggleBar', to: nth('#songsBody', 3), pad: 14 },
+    spots: { type: '.chart-type-seg', tip: '#atInsights .ati-tip', size: '#atInsights [data-ati="size"]', hide: '#atInsights .ati-x',
+      title: '#songsSectionTitle', search: '#songsSearch', heads: '#songsHeadRow', menu: '#songsSection .kebab-menu-btn' } },
+  { id: 'at-ati', lesson: 'alltime',
+    setup: async pg => { await at(pg, 'alltime', 0);
+      await pg.evaluate(() => document.querySelector('#atInsights [data-ati="size"]').click()); await wait(pg, 2500);
+      await pg.evaluate(() => { const b = document.querySelector('#atInsights .ati-toggle'); if (b && !/hide|ocultar|esconder/i.test(b.textContent)) b.click(); }); await wait(pg, 1800); },
+    clip: { from: '#atInsights', to: '#atInsights', pad: 12, maxH: 1500 },
+    spots: { head: '#atInsights .ati-head-tx', toggle: '#atInsights .ati-toggle', hero: '#atInsights .ati-hero', fact: '#atInsights .ati-hero .ati-btn--ghost',
+      tiles: '#atInsights .ati-tiles', tile: '#atInsights .ati-tile', tabs: '#atInsights .ati-tabs', panel: '#atInsights .ati-panel' } },
+  { id: 'at-pages', lesson: 'alltime',
+    // Back to All Entries (the insights shot set Top 100), where the pages and export bar show
+    setup: async pg => { await at(pg, 'alltime', 0); await layout(pg, 'table');
+      await pg.evaluate(() => document.querySelector('#sizeBtnsSongsAT [data-size="0"]').click()); await wait(pg, 2500); },
+    clip: { from: nth('#songsBody', 97), to: '#songsExportBar', pad: 14 },
+    spots: { pages: '#songsPagination', label: '#songsPageLabel', input: '#songsPageInput', next: '#songsPagination .page-nav-next',
+      last: '#songsPagination .page-nav-last', export: '#songsExportBar' } },
+  { id: 'at-travel', lesson: 'alltime',
+    // Time travel: one press of ‹ on All-Time = the chart as it stood a month ago
+    setup: async pg => { await at(pg, 'alltime', 0); await pg.click('#prevBtn'); await wait(pg, 3500); },
+    clip: { from: '#stickyNavBar', to: '#statsStrip', pad: 14 },
+    spots: { prev: '#prevBtn', label: '#periodLabel', next: '#nextBtn', banner: '#statsHeroTop', tiles: '#statsStrip' } }
 ];
 
 /* ── Measuring + capture ────────────────────────────────────────── */
@@ -197,9 +320,11 @@ async function measure(pg, clip, spots) {
     // Full content width: the app's .container, so every picture of one lesson lines up
     const box = (document.querySelector('#mainApp') || document.body).getBoundingClientRect();
     const pad = clip.pad || 0;
-    // Always the app's own width (the top bar is full-window, the content isn't)
-    const x = Math.max(0, box.left - pad);
-    const right = Math.min(innerWidth, box.right + pad);
+    // Always the app's own width (the top bar is full-window, the content isn't),
+    // except a pop-up card (narrow: true), which is cut to its own width
+    const L = clip.narrow ? Math.min(ra.left, rb.left) : box.left, Rr = clip.narrow ? Math.max(ra.right, rb.right) : box.right;
+    const x = Math.max(0, L - pad);
+    const right = Math.min(innerWidth, Rr + pad);
     const y = Math.max(0, Math.min(ra.top, rb.top) - pad + scrollY);
     let bottom = Math.max(ra.bottom, rb.bottom) + pad + scrollY;
     if (clip.maxH) bottom = Math.min(bottom, y + clip.maxH);

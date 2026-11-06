@@ -29,7 +29,7 @@
   'use strict';
 
   // Bump when the lesson files or the pictures change (it's their ?v=)
-  const GUIDE_V = '3';
+  const GUIDE_V = '4';
   const STORE = 'dc_guide_progress';
   const LANG_FILES = ['es', 'pt-BR', 'pt-PT'];
 
@@ -48,7 +48,16 @@
   const $ = (s, r) => (r || document).querySelector(s);
   const $$ = (s, r) => [...(r || document).querySelectorAll(s)];
   const h = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const fill = (s, v) => String(s || '').replace(/\{\{(\w+)\}\}/g, (m, k) => (v && v[k] != null ? v[k] : ''));
+  // {{name}} is a value passed in; {{t:key}} is the app's own word for something
+  // in the current language (translations*.js), so a badge or button is always
+  // called exactly what the app shows. A leading emoji on the app's label is dropped.
+  const appWord = k => {
+    const w = typeof window.t === 'function' ? window.t(k) : '';
+    return String(w && w !== k ? w : '').replace(/^\p{Extended_Pictographic}\uFE0F?\s*/u, '');
+  };
+  const fill = (s, v) => String(s || '')
+    .replace(/\{\{t:(\w+)\}\}/g, (m, k) => appWord(k))
+    .replace(/\{\{(\w+)\}\}/g, (m, k) => (v && v[k] != null ? v[k] : ''));
   const lang = () => (typeof currentLang !== 'undefined' && currentLang) || 'en';
   const reduced = () => window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   // The two icons of the Computer / Phone switch (not in the shared icon set)
@@ -76,7 +85,30 @@
     'week.size':    { lesson: 'week', click: '.size-btns button' },
     'week.show':    { lesson: 'week', fn: 'toggleSectionDisplay' },
     'week.animate': { lesson: 'week', fn: 'replayChartAnimation' },
-    'week.run':     { lesson: 'week', click: '.cr-toggle-btn' }
+    'week.run':     { lesson: 'week', click: '.cr-toggle-btn' },
+    // Daily (daily.js functions)
+    'day.prev':     { lesson: 'daily', period: 'day', click: '#prevBtn, #nextBtn', key: ['ArrowLeft', 'ArrowRight'] },
+    'day.cmp':      { lesson: 'daily', fn: 'dySetCompare', test: a => a[0] === 'weekday' },
+    'day.recap':    { lesson: 'daily', fn: 'dyOpenRecap' },
+    'day.cal':      { lesson: 'daily', fn: 'dyOpenCalendar' },
+    'day.mood':     { lesson: 'daily', fn: 'dySetMood' },
+    'day.hour':     { lesson: 'daily', fn: 'dyPickHour' },
+    'day.tab':      { lesson: 'daily', fn: 'dyTabGo' },
+    'day.save':     { lesson: 'daily', fn: 'dySavePlaylist' },
+    // Monthly and Yearly
+    'per.month':    { lesson: 'periods', click: '#periodNav button[data-period="month"]' },
+    'per.year':     { lesson: 'periods', click: '#periodNav button[data-period="year"]' },
+    'per.day':      { lesson: 'periods', click: '#statsHeroDays .sh-day', period: ['month', 'year'] },
+    'per.new':      { lesson: 'periods', click: '.ne-chips button' },
+    'per.cert':     { lesson: 'periods', click: '#certReelSection .creel-btn' },
+    'per.search':   { lesson: 'periods', period: 'year', input: '#songsSearchInput, #artistsSearchInput, #albumsSearchInput' },
+    // All-Time
+    'at.size':      { lesson: 'alltime', period: 'alltime', click: '#atInsights [data-ati="size"], [id^="sizeBtns"][id$="AT"] button' },
+    'at.fact':      { lesson: 'alltime', click: '#atInsights .ati-hero .ati-btn--ghost' },
+    'at.stats':     { lesson: 'alltime', click: '#atInsights .ati-toggle' },
+    'at.travel':    { lesson: 'alltime', period: 'alltime', click: '#prevBtn', key: ['ArrowLeft'], input: '#atPicker' },
+    'at.search':    { lesson: 'alltime', period: 'alltime', input: '#songsSearchInput, #artistsSearchInput, #albumsSearchInput' },
+    'at.export':    { lesson: 'alltime', period: 'alltime', click: '.chart-export-btn' }
   };
   // Where "Show me" takes you for each challenge, and what it rings there.
   // open/tab: open the chart's ⋮ menu on a tab first.
@@ -88,12 +120,32 @@
     'week.size':    { nav: 'week', menu: 'size', ring: '#songsSection .kebab-panel[data-panel="size"]' },
     'week.show':    { nav: 'week', menu: 'show', ring: '#songsSection .kebab-panel[data-panel="show"]' },
     'week.animate': { nav: 'week', ring: '.section-replay-btn' },
-    'week.run':     { nav: 'week', ring: '.cr-toggle-btn' }
+    'week.run':     { nav: 'week', ring: '.cr-toggle-btn' },
+    'day.prev':     { nav: 'day', ring: '#prevBtn' },
+    'day.cmp':      { nav: 'day', ring: '.dy-cmp' },
+    'day.recap':    { nav: 'day', ring: '.dy-act-main' },
+    'day.cal':      { nav: 'day', ring: '.dy-actions .dy-act:nth-child(4)' },
+    'day.mood':     { nav: 'day', ring: '.dy-moods' },
+    'day.hour':     { nav: 'day', ring: '.dy-hours' },
+    'day.tab':      { nav: 'day', ring: '.dy-mem .dy-tab-row' },
+    'day.save':     { nav: 'day', ring: '.dy-actions .dy-act:nth-child(5)' },
+    'per.month':    { nav: 'week', ring: '#periodNav button[data-period="month"]' },
+    'per.year':     { nav: 'week', ring: '#periodNav button[data-period="year"]' },
+    'per.day':      { nav: 'month', ring: '#statsHeroDays' },
+    'per.new':      { nav: 'month', ring: '#atcSongs' },
+    'per.cert':     { nav: 'month', ring: '#certReelSection .creel-filter-btns' },
+    'per.search':   { nav: 'year', ring: '#songsSearch' },
+    'at.size':      { nav: 'alltime', ring: '#atInsights' },
+    'at.fact':      { nav: 'alltime', ring: '#atInsights' },
+    'at.stats':     { nav: 'alltime', ring: '#atInsights' },
+    'at.travel':    { nav: 'alltime', ring: '#prevBtn' },
+    'at.search':    { nav: 'alltime', ring: '#songsSearch' },
+    'at.export':    { nav: 'alltime', ring: '#songsExportBar' }
   };
 
   let lastInput = 0;
   const userActed = () => Date.now() - lastInput < 1500;
-  const periodOk = c => !c.period || (typeof currentPeriod !== 'undefined' && currentPeriod === c.period);
+  const periodOk = c => !c.period || (typeof currentPeriod !== 'undefined' && [].concat(c.period).includes(currentPeriod));
 
   function noteChallenge(id) {
     if (P.ch[id]) return;
@@ -116,6 +168,13 @@
     if (!e.isTrusted) return;
     for (const [id, c] of Object.entries(GD_CHALLENGES)) {
       if (c.click && e.target.closest && e.target.closest(c.click) && periodOk(c)) noteChallenge(id);
+    }
+  }, true);
+
+  document.addEventListener('input', e => {
+    if (!e.isTrusted) return;
+    for (const [id, c] of Object.entries(GD_CHALLENGES)) {
+      if (c.input && e.target.closest && e.target.closest(c.input) && periodOk(c)) noteChallenge(id);
     }
   }, true);
 
@@ -176,8 +235,10 @@
   function tx(path, vars) {
     const { L, E } = T();
     const get = o => path.split('.').reduce((a, k) => (a && a[k] != null ? a[k] : undefined), o);
+    // Strings inside arrays ([title, text], quiz choices) get filled too
+    const deep = x => (typeof x === 'string' ? fill(x, vars) : Array.isArray(x) ? x.map(deep) : x);
     const v = get(L);
-    return typeof v === 'string' ? fill(v, vars) : (v !== undefined ? v : (typeof get(E) === 'string' ? fill(get(E), vars) : get(E)));
+    return deep(v !== undefined ? v : get(E));
   }
   const ui = (k, v) => tx('ui.' + k, v) || '';
   // A challenge's [title, how]. Its id has a dot in it ("week.prev"), so it
@@ -185,7 +246,7 @@
   function chText(lessonId, id) {
     const { L, E } = T();
     const pick = o => o && o.lessons && o.lessons[lessonId] && o.lessons[lessonId].challenges && o.lessons[lessonId].challenges[id];
-    return pick(L) || pick(E) || [id, ''];
+    return (pick(L) || pick(E) || [id, '']).map(x => fill(x));
   }
   const lessonById = id => (window.GL && GL.lessons.find(x => x.id === id)) || null;
 
