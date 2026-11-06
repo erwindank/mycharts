@@ -29,7 +29,7 @@
   'use strict';
 
   // Bump when the lesson files or the pictures change (it's their ?v=)
-  const GUIDE_V = '6';
+  const GUIDE_V = '7';
   const STORE = 'dc_guide_progress';
   const LANG_FILES = ['es', 'pt-BR', 'pt-PT'];
 
@@ -127,6 +127,7 @@
     'win.tab':       { lesson: 'windows', click: '.dp-tab' },
     'win.search':    { lesson: 'windows', input: '.lsx-input' },
     'win.menu':      { lesson: 'windows', click: '.ea-more' },
+    'win.cover':     { lesson: 'windows', fn: 'applyImgChoice' },
     'win.streak':    { lesson: 'windows', open: '#streakModal' }
   };
   // Where "Show me" takes you for each challenge, and what it rings there.
@@ -175,6 +176,7 @@
     'win.tab':       { nav: 'week', ring: '#songsBody .song-title' },
     'win.search':    { nav: 'week', ring: '#topbar [class*="search"]' },
     'win.menu':      { nav: 'week', ring: '#songsBody .ea-more' },
+    'win.cover':     { nav: 'week', ring: '#songsBody .thumb-cell' },
     'win.streak':    { nav: 'week', ring: '#nsDayStreak, #nsSummary' }
   };
 

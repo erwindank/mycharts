@@ -925,7 +925,7 @@ window.GL_TEXT.es = {
       promise: 'Todo sobre una canción, un artista o un álbum, cómo encontrar cualquiera en un segundo, y tus rachas.',
       scenes: {
         song: { title: 'La ventana de una canción', spots: {
-          art: ['Portada', 'Su portada. La etiqueta pequeña dice de dónde salió la imagen; haz clic para elegir otra.'],
+          art: ['Portada', 'Su portada. Pasa el ratón por encima para ver el ✎ y elegir otra imagen (en el móvil, mantenla pulsada).'],
           title: ['La canción', 'Su nombre.'],
           sub: ['Artista y álbum', 'Haz clic en cualquiera para abrir su ventana.'],
           sample: ['{{t:ea_s_sample}}', 'Pone 30 segundos.'],
@@ -997,7 +997,23 @@ window.GL_TEXT.es = {
         } },
         menus: { title: 'El menú ⋮', spots: {
           more: ['⋮ en una fila', 'Cada fila del ranking tiene uno. Con clic derecho en una fila sale el mismo menú.'],
-          menu: ['El menú', 'Un fragmento, el vídeo, añadir a una lista, detalles, su álbum y su artista, su trayectoria, cambiar su imagen, buscar en YouTube o Spotify.']
+          menu: ['El menú', 'Un fragmento, el vídeo, añadir a una lista, detalles, su álbum y su artista, su trayectoria, cambiar su imagen, buscar en YouTube o Spotify.'],
+          change: ['{{t:img_picker_change}}', 'Abre el selector de portada de esta entrada.']
+        } },
+        cover: { title: '{{t:img_picker_change}}', spots: {
+          now: ['La imagen actual', 'La portada que tiene ahora.'],
+          title: ['Qué estás cambiando', 'La canción, el álbum o el artista de esta imagen.'],
+          deezer: ['Deezer', 'Imágenes encontradas en Deezer.'],
+          current: ['La que se usa', 'La imagen marcada es la que se ve ahora.'],
+          itunes: ['iTunes', 'Imágenes encontradas en iTunes, a menudo varias versiones y portadas de sencillos.'],
+          tile: ['Elige una', 'Haz clic en cualquier imagen para usarla. El selector se cierra y la nueva portada sale al momento.'],
+          lastfm: ['Last.fm', 'La imagen que tiene Last.fm.'],
+          youtube: ['YouTube', 'Un fotograma de su vídeo.'],
+          url: ['{{t:imgpk_url_label}}', 'Pega el enlace de cualquier imagen de internet…'],
+          set: ['{{t:imgpk_apply}}', '…y pulsa aquí para usarla.'],
+          none: ['{{t:imgpk_none}}', 'No muestra imagen, solo un recuadro liso.'],
+          auto: ['{{t:imgpk_auto}}', 'Vuelve a la imagen que elige la app sola.'],
+          close: ['Cerrar', 'Deja la portada como estaba.']
         } },
         search: { title: 'Buscar', spots: {
           field: ['Escribe un nombre', 'Cualquier parte del nombre de un artista, una canción o un álbum. Pulsa / o Ctrl+K en cualquier sitio para abrirlo.'],
@@ -1053,6 +1069,15 @@ window.GL_TEXT.es = {
           '{{t:dp_tab_music}} reúne sus canciones y álbumes, ordenados como quieras.',
           '{{t:dp_tab_awards}} muestra tus premios y los reales.'
         ] },
+        cover: { title: 'Cambiar una portada', slides: [
+          'Pasa el ratón por una portada: sale un ✎ en la esquina. Haz clic. En el móvil, mantén pulsada la portada.',
+          'O abre ⋮ en la fila y elige {{t:img_picker_change}}. Las ventanas tienen el mismo ✎ en su portada grande.',
+          'El selector muestra imágenes de Deezer, iTunes, Last.fm y YouTube. La marcada es la que se usa ahora.',
+          'Haz clic en la que quieras.',
+          'O pega el enlace de cualquier imagen y pulsa {{t:imgpk_apply}}.',
+          '{{t:imgpk_auto}} vuelve a la elección de la app; {{t:imgpk_none}} no muestra imagen.',
+          'La nueva portada sale en todas partes a la vez: cada ranking, su ventana, las imágenes para compartir y los premios. Con la sesión iniciada, te sigue a todos tus dispositivos.'
+        ] },
         menu: { title: 'Usar el menú ⋮', slides: [
           'Cada fila tiene un ⋮ (o haz clic derecho en la fila).',
           'Tiene un fragmento, el vídeo, listas, detalles y más.',
@@ -1079,6 +1104,13 @@ window.GL_TEXT.es = {
           more: ['{{t:ea_more}}', 'El menú ⋮.'],
           links: ['Spotify / YouTube / Last.fm', 'Encontrarla en otro sitio.']
         } },
+        cover: { title: '{{t:img_picker_change}}', items: {
+          open: ['Abrir el selector', 'El ✎ de una portada, mantener pulsado en el móvil, o ⋮ → {{t:img_picker_change}}.'],
+          sources: ['Deezer, iTunes, Last.fm, YouTube', 'Imágenes encontradas en cada uno.'],
+          link: ['{{t:imgpk_url_label}}', 'Cualquier imagen de internet, por su enlace.'],
+          none: ['{{t:imgpk_none}}', 'Un recuadro liso, sin imagen.'],
+          auto: ['{{t:imgpk_auto}}', 'La app elige la imagen sola.']
+        } },
         music: { title: '{{t:dp_tab_music}}', items: {
           sorts: ['Ordenar', '{{t:am_sort_rank}} (con el que empiezas), {{t:am_sort_plays}}, {{t:am_sort_recent}}, {{t:am_sort_az}}.'],
           charts: ['Qué ranking', 'De siempre, Anual, Mensual, Semanal o Diario.']
@@ -1097,6 +1129,7 @@ window.GL_TEXT.es = {
         'win.tab': ['Cambia de pestaña en una ventana', '{{t:dp_tab_charts}} o {{t:dp_tab_listening}}.'],
         'win.search': ['Busca en tu biblioteca', 'Pulsa / o la búsqueda de la barra superior.'],
         'win.menu': ['Abre un menú ⋮', 'En una fila, o con clic derecho.'],
+        'win.cover': ['Cambia una portada', 'El ✎ de una portada, o ⋮ → {{t:img_picker_change}}.'],
         'win.streak': ['Abre tus rachas', 'La racha de escucha arriba en la página de Charts.']
       },
       quiz: {
@@ -1113,7 +1146,8 @@ window.GL_TEXT.es = {
       tips: [
         'Pulsa / en cualquier página para buscar en toda tu biblioteca.',
         'La pestaña {{t:dp_tab_listening}} de una canción muestra el día que la encontraste: lo que escuchabas justo antes.',
-        'En tus rachas, toca una insignia ganada para darle la vuelta y ver cuándo la ganaste.'
+        'En tus rachas, toca una insignia ganada para darle la vuelta y ver cuándo la ganaste.',
+        '¿No te gusta una portada? Pasa el ratón por encima y pulsa el ✎ para elegir otra, o pega el enlace de cualquier imagen.'
       ]
     },
     stats: { title: 'Estadísticas', promise: 'Resumen, Historia, Gráficas, Comparar y Juegos para cualquier rango de fechas.' },

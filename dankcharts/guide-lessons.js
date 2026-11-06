@@ -324,7 +324,10 @@ window.GL = {
         { id: 'music', shot: 'win-artist-music', spots: ['top', 'intro', 'charts', 'sum', 'tools', 'list'] },
         { id: 'awards', shot: 'win-artist-awards', spots: ['sw', 'real'] },
         { id: 'album', shot: 'win-album', spots: ['hero', 'favs', 'habits', 'rating', 'trophies', 'plaques'] },
-        { id: 'menus', shot: 'week-rowmenu', spots: ['more', 'menu'] },
+        { id: 'menus', shot: 'week-rowmenu', spots: ['more', 'menu', 'change'] },
+        // The cover picker (⋮ → Change image, the ✎ on a cover, or press-and-hold on a phone)
+        { id: 'cover', shot: 'cover-picker',
+          spots: ['now', 'title', 'deezer', 'current', 'itunes', 'tile', 'lastfm', 'youtube', 'url', 'set', 'none', 'auto', 'close'] },
         { id: 'search', shot: 'search', spots: ['field', 'esc', 'group', 'top', 'n', 'songs', 'foot'] },
         { id: 'hist', shot: 'search-hist', spots: ['chips', 'chip', 'item', 'rm', 'clear'] },
         { id: 'streak', shot: 'streak-records', spots: ['today', 'fire', 'recs', 'cal', 'fame', 'badges'] },
@@ -340,6 +343,11 @@ window.GL = {
           { shot: 'win-song-listening', spot: 'found' }, { shot: 'win-song-listening', spot: 'miles' } ] },
         { id: 'artist', challenge: 'win.artist', slides: [
           { shot: 'win-artist', spot: 'tabs' }, { shot: 'win-artist-music', spot: 'tools' }, { shot: 'win-artist-awards', spot: 'sw' } ] },
+        { id: 'cover', challenge: 'win.cover', slides: [
+          { shot: 'cover-hover', spot: 'pencil' }, { shot: 'week-rowmenu', spot: 'change' },
+          { shot: 'cover-picker', spot: 'current' }, { shot: 'cover-picker', spot: 'tile' },
+          { shot: 'cover-picker', spot: 'url' }, { shot: 'cover-picker', spot: 'auto' },
+          { shot: 'week-rows', spot: 'art' } ] },
         { id: 'menu', challenge: 'win.menu', slides: [ { shot: 'week-rows', spot: 'more' }, { shot: 'week-rowmenu', spot: 'menu' }, { shot: 'win-song', spot: 'more' } ] },
         { id: 'streak', challenge: 'win.streak', slides: [
           { shot: 'week-top', spot: 'streak' }, { shot: 'streak-records', spot: 'fame' },
@@ -352,14 +360,18 @@ window.GL = {
           { id: 'sample', shot: 'win-song', spot: 'sample' }, { id: 'playlist', shot: 'win-song', spot: 'playlist' },
           { id: 'rate', shot: 'win-song', spot: 'rate' }, { id: 'share', shot: 'win-song', spot: 'share' },
           { id: 'more', shot: 'win-song', spot: 'more' }, { id: 'links', shot: 'win-song', spot: 'links' } ] },
+        { id: 'cover', items: [
+          { id: 'open', shot: 'cover-hover', spot: 'pencil' }, { id: 'sources', shot: 'cover-picker', spot: 'itunes' },
+          { id: 'link', shot: 'cover-picker', spot: 'url' }, { id: 'none', shot: 'cover-picker', spot: 'none' },
+          { id: 'auto', shot: 'cover-picker', spot: 'auto', def: 'on' } ] },
         { id: 'music', items: [ { id: 'sorts', shot: 'win-artist-music', spot: 'tools' }, { id: 'charts', shot: 'win-artist-music', spot: 'charts' } ] },
         { id: 'streaktabs', items: [
           { id: 'today', shot: 'streak-records', spot: 'today' }, { id: 'fire', shot: 'streak-records', spot: 'fire' },
           { id: 'recs', shot: 'streak-records', spot: 'recs' }, { id: 'cal', shot: 'streak-records', spot: 'cal' } ] }
       ],
-      challenges: ['win.song', 'win.artist', 'win.album', 'win.tab', 'win.search', 'win.menu', 'win.streak'],
+      challenges: ['win.song', 'win.artist', 'win.album', 'win.tab', 'win.search', 'win.menu', 'win.cover', 'win.streak'],
       quiz: [ { id: 'q1', answer: 0 }, { id: 'q2', answer: 0 }, { id: 'q3', answer: 0 } ],
-      tips: [ ['search', 'field', 'win.search'], ['win-song-listening', 'found', 'win.tab'], ['streak-records', 'badges', 'win.streak'] ]
+      tips: [ ['search', 'field', 'win.search'], ['win-song-listening', 'found', 'win.tab'], ['streak-records', 'badges', 'win.streak'], ['cover-hover', 'pencil', 'win.cover'] ]
     },
     { id: 'stats', area: 'insights', nav: 'graphs', soon: true },
     { id: 'records', area: 'insights', nav: 'records', soon: true },
@@ -1300,7 +1312,7 @@ window.GL_TEXT.en = {
       promise: 'Everything about one song, artist or album, how to find any of them in a second, and your listening streaks.',
       scenes: {
         song: { title: 'A song’s window', spots: {
-          art: ['Cover', 'Its cover. The small label says where the picture came from; click it to pick another.'],
+          art: ['Cover', 'Its cover. Point at it for the ✎ to pick another picture (press and hold on a phone).'],
           title: ['The song', 'Its name.'],
           sub: ['Artist and album', 'Click either to open its window.'],
           sample: ['{{t:ea_s_sample}}', 'Plays 30 seconds of it.'],
@@ -1372,7 +1384,23 @@ window.GL_TEXT.en = {
         } },
         menus: { title: 'The ⋮ menu', spots: {
           more: ['⋮ on a row', 'Every chart row has one. Right-click a row for the same menu.'],
-          menu: ['The menu', 'A sample, the video, add to a playlist, details, its album and artist, its chart run, change its picture, search on YouTube or Spotify.']
+          menu: ['The menu', 'A sample, the video, add to a playlist, details, its album and artist, its chart run, change its picture, search on YouTube or Spotify.'],
+          change: ['{{t:img_picker_change}}', 'Opens the cover picker for this entry.']
+        } },
+        cover: { title: '{{t:img_picker_change}}', spots: {
+          now: ['The picture now', 'The cover it has at the moment.'],
+          title: ['What you’re changing', 'The song, album or artist this picture is for.'],
+          deezer: ['Deezer', 'Pictures found on Deezer.'],
+          current: ['The one in use', 'The ringed picture is the one showing now.'],
+          itunes: ['iTunes', 'Pictures found on iTunes, often several versions and covers of singles.'],
+          tile: ['Pick one', 'Click any picture to use it. The picker closes and the new cover shows straight away.'],
+          lastfm: ['Last.fm', 'The picture Last.fm has.'],
+          youtube: ['YouTube', 'A still from its video.'],
+          url: ['{{t:imgpk_url_label}}', 'Paste a link to any picture on the web…'],
+          set: ['{{t:imgpk_apply}}', '…and press this to use it.'],
+          none: ['{{t:imgpk_none}}', 'Shows no picture for it, just a plain tile.'],
+          auto: ['{{t:imgpk_auto}}', 'Back to the picture the app picks by itself.'],
+          close: ['Close', 'Leaves the cover as it was.']
         } },
         search: { title: 'Search', spots: {
           field: ['Type a name', 'Any part of an artist, song or album name. Press / or Ctrl+K anywhere to open it.'],
@@ -1428,6 +1456,15 @@ window.GL_TEXT.en = {
           '{{t:dp_tab_music}} lists their songs and albums, sorted how you like.',
           '{{t:dp_tab_awards}} shows your awards and real-life ones.'
         ] },
+        cover: { title: 'Change a cover', slides: [
+          'Point at a cover: a ✎ appears in its corner. Click it. On a phone, press and hold the cover instead.',
+          'Or open ⋮ on the row and choose {{t:img_picker_change}}. Windows have the same ✎ on their big cover.',
+          'The picker shows pictures from Deezer, iTunes, Last.fm and YouTube. The ringed one is in use now.',
+          'Click the one you want.',
+          'Or paste a link to any picture and press {{t:imgpk_apply}}.',
+          '{{t:imgpk_auto}} goes back to the app’s own choice; {{t:imgpk_none}} shows no picture.',
+          'The new cover shows everywhere at once: every chart, its window, share images and awards. Signed in, it follows you to every device.'
+        ] },
         menu: { title: 'Use the ⋮ menu', slides: [
           'Every row has a ⋮ (or right-click the row).',
           'It has a sample, the video, playlists, details and more.',
@@ -1454,6 +1491,13 @@ window.GL_TEXT.en = {
           more: ['{{t:ea_more}}', 'The ⋮ menu.'],
           links: ['Spotify / YouTube / Last.fm', 'Find it elsewhere.']
         } },
+        cover: { title: '{{t:img_picker_change}}', items: {
+          open: ['Open the picker', 'The ✎ on a cover, press-and-hold on a phone, or ⋮ → {{t:img_picker_change}}.'],
+          sources: ['Deezer, iTunes, Last.fm, YouTube', 'Pictures found for it on each.'],
+          link: ['{{t:imgpk_url_label}}', 'Any picture on the web, by its link.'],
+          none: ['{{t:imgpk_none}}', 'A plain tile, no picture.'],
+          auto: ['{{t:imgpk_auto}}', 'The app picks the picture itself.']
+        } },
         music: { title: '{{t:dp_tab_music}}', items: {
           sorts: ['Sort', '{{t:am_sort_rank}} (the one you start with), {{t:am_sort_plays}}, {{t:am_sort_recent}}, {{t:am_sort_az}}.'],
           charts: ['Which chart', 'All-time, Yearly, Monthly, Weekly or Daily.']
@@ -1472,6 +1516,7 @@ window.GL_TEXT.en = {
         'win.tab': ['Switch to another tab in a window', '{{t:dp_tab_charts}} or {{t:dp_tab_listening}}.'],
         'win.search': ['Search your library', 'Press / or the search in the top bar.'],
         'win.menu': ['Open a ⋮ menu', 'On a row, or right-click it.'],
+        'win.cover': ['Change a cover', 'The ✎ on a cover, or ⋮ → {{t:img_picker_change}}.'],
         'win.streak': ['Open your streaks', 'The listening streak at the top of the Charts page.']
       },
       quiz: {
@@ -1488,7 +1533,8 @@ window.GL_TEXT.en = {
       tips: [
         'Press / on any page to search your whole library.',
         'A song’s {{t:dp_tab_listening}} tab shows the day you found it: what you were playing right before.',
-        'In your streaks, tap an earned badge to flip it and see when you earned it.'
+        'In your streaks, tap an earned badge to flip it and see when you earned it.',
+        'Don’t like a cover? Point at it and press the ✎ to pick another, or paste a link to any picture.'
       ]
     },
     stats: { title: 'Stats', promise: 'Overview, Story, Graphs, Compare and Games for any date range.' },

@@ -925,7 +925,7 @@ window.GL_TEXT['pt-BR'] = {
       promise: 'Tudo sobre uma música, um artista ou um álbum, como achar qualquer um num segundo, e suas sequências.',
       scenes: {
         song: { title: 'A janela de uma música', spots: {
-          art: ['Capa', 'A capa dela. A etiqueta pequena diz de onde veio a imagem; clique para escolher outra.'],
+          art: ['Capa', 'A capa dela. Passe o mouse para ver o ✎ e escolher outra imagem (no celular, segure o dedo).'],
           title: ['A música', 'O nome dela.'],
           sub: ['Artista e álbum', 'Clique em qualquer um para abrir a janela dele.'],
           sample: ['{{t:ea_s_sample}}', 'Toca 30 segundos.'],
@@ -997,7 +997,23 @@ window.GL_TEXT['pt-BR'] = {
         } },
         menus: { title: 'O menu ⋮', spots: {
           more: ['⋮ numa linha', 'Cada linha da parada tem um. Clique com o botão direito numa linha para o mesmo menu.'],
-          menu: ['O menu', 'Um trecho, o vídeo, adicionar a uma playlist, detalhes, o álbum e o artista, a trajetória, trocar a imagem, buscar no YouTube ou Spotify.']
+          menu: ['O menu', 'Um trecho, o vídeo, adicionar a uma playlist, detalhes, o álbum e o artista, a trajetória, trocar a imagem, buscar no YouTube ou Spotify.'],
+          change: ['{{t:img_picker_change}}', 'Abre o seletor de capa desta entrada.']
+        } },
+        cover: { title: '{{t:img_picker_change}}', spots: {
+          now: ['A imagem atual', 'A capa que ela tem agora.'],
+          title: ['O que você está mudando', 'A música, o álbum ou o artista desta imagem.'],
+          deezer: ['Deezer', 'Imagens achadas no Deezer.'],
+          current: ['A que está em uso', 'A imagem destacada é a que aparece agora.'],
+          itunes: ['iTunes', 'Imagens achadas no iTunes, muitas vezes várias versões e capas de singles.'],
+          tile: ['Escolha uma', 'Clique em qualquer imagem para usar. O seletor fecha e a nova capa aparece na hora.'],
+          lastfm: ['Last.fm', 'A imagem que o Last.fm tem.'],
+          youtube: ['YouTube', 'Um quadro do vídeo.'],
+          url: ['{{t:imgpk_url_label}}', 'Cole o link de qualquer imagem da internet…'],
+          set: ['{{t:imgpk_apply}}', '…e aperte aqui para usar.'],
+          none: ['{{t:imgpk_none}}', 'Não mostra imagem, só um quadro liso.'],
+          auto: ['{{t:imgpk_auto}}', 'Volta para a imagem que o app escolhe sozinho.'],
+          close: ['Fechar', 'Deixa a capa como estava.']
         } },
         search: { title: 'Busca', spots: {
           field: ['Digite um nome', 'Qualquer parte do nome de um artista, música ou álbum. Aperte / ou Ctrl+K em qualquer lugar para abrir.'],
@@ -1053,6 +1069,15 @@ window.GL_TEXT['pt-BR'] = {
           '{{t:dp_tab_music}} lista as músicas e os álbuns, na ordem que você quiser.',
           '{{t:dp_tab_awards}} mostra seus prêmios e os da vida real.'
         ] },
+        cover: { title: 'Trocar uma capa', slides: [
+          'Passe o mouse sobre uma capa: aparece um ✎ no canto. Clique nele. No celular, segure o dedo na capa.',
+          'Ou abra o ⋮ da linha e escolha {{t:img_picker_change}}. As janelas têm o mesmo ✎ na capa grande.',
+          'O seletor mostra imagens do Deezer, iTunes, Last.fm e YouTube. A destacada é a que está em uso.',
+          'Clique na que você quiser.',
+          'Ou cole o link de qualquer imagem e aperte {{t:imgpk_apply}}.',
+          '{{t:imgpk_auto}} volta para a escolha do app; {{t:imgpk_none}} não mostra imagem.',
+          'A nova capa aparece em todo lugar ao mesmo tempo: cada parada, a janela, as imagens para compartilhar e os prêmios. Com login, ela vai com você para todos os aparelhos.'
+        ] },
         menu: { title: 'Usar o menu ⋮', slides: [
           'Cada linha tem um ⋮ (ou clique com o botão direito na linha).',
           'Tem um trecho, o vídeo, playlists, detalhes e mais.',
@@ -1079,6 +1104,13 @@ window.GL_TEXT['pt-BR'] = {
           more: ['{{t:ea_more}}', 'O menu ⋮.'],
           links: ['Spotify / YouTube / Last.fm', 'Achar em outro lugar.']
         } },
+        cover: { title: '{{t:img_picker_change}}', items: {
+          open: ['Abrir o seletor', 'O ✎ numa capa, segurar o dedo no celular, ou ⋮ → {{t:img_picker_change}}.'],
+          sources: ['Deezer, iTunes, Last.fm, YouTube', 'Imagens achadas em cada um.'],
+          link: ['{{t:imgpk_url_label}}', 'Qualquer imagem da internet, pelo link.'],
+          none: ['{{t:imgpk_none}}', 'Um quadro liso, sem imagem.'],
+          auto: ['{{t:imgpk_auto}}', 'O app escolhe a imagem sozinho.']
+        } },
         music: { title: '{{t:dp_tab_music}}', items: {
           sorts: ['Ordenar', '{{t:am_sort_rank}} (o que você tem no começo), {{t:am_sort_plays}}, {{t:am_sort_recent}}, {{t:am_sort_az}}.'],
           charts: ['Qual parada', 'De sempre, Anual, Mensal, Semanal ou Diária.']
@@ -1097,6 +1129,7 @@ window.GL_TEXT['pt-BR'] = {
         'win.tab': ['Troque de aba numa janela', '{{t:dp_tab_charts}} ou {{t:dp_tab_listening}}.'],
         'win.search': ['Busque na sua biblioteca', 'Aperte / ou a busca na barra superior.'],
         'win.menu': ['Abra um menu ⋮', 'Numa linha, ou com o botão direito.'],
+        'win.cover': ['Troque uma capa', 'O ✎ numa capa, ou ⋮ → {{t:img_picker_change}}.'],
         'win.streak': ['Abra suas sequências', 'A sequência de escuta no topo da página Charts.']
       },
       quiz: {
@@ -1113,7 +1146,8 @@ window.GL_TEXT['pt-BR'] = {
       tips: [
         'Aperte / em qualquer página para buscar em toda a sua biblioteca.',
         'A aba {{t:dp_tab_listening}} de uma música mostra o dia em que você achou: o que tocava logo antes.',
-        'Nas suas sequências, toque num selo ganho para virá-lo e ver quando você o ganhou.'
+        'Nas suas sequências, toque num selo ganho para virá-lo e ver quando você o ganhou.',
+        'Não gostou de uma capa? Passe o mouse e aperte o ✎ para escolher outra, ou cole o link de qualquer imagem.'
       ]
     },
     stats: { title: 'Estatísticas', promise: 'Resumo, História, Gráficos, Comparar e Jogos para qualquer período.' },

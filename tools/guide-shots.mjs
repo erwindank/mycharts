@@ -219,7 +219,8 @@ const SHOTS = [
     setup: async pg => { await lastWeek(pg); await layout(pg, 'table');
       await pg.evaluate(() => document.querySelector('#songsBody tr[data-ea-key] .ea-more').click()); await wait(pg, 700); },
     clip: { from: R(1), to: '.ea-menu, [role="menu"]', pad: 12 },
-    spots: { more: R(1) + ' .ea-more', menu: '.ea-menu, [role="menu"]' } },
+    spots: { more: R(1) + ' .ea-more', menu: '.ea-menu, [role="menu"]',
+      change: { js: "[...document.querySelectorAll('.ea-menu [role=menuitem], .ea-menu button')].find(b => /image|imagen|imagem/i.test(b.textContent))" } } },
   { id: 'week-replay', lesson: 'week',
     // The replay plays inside the chart: let it load its covers, run a few
     // seconds so the chart is mid-shuffle, then pause it for the picture
@@ -481,7 +482,29 @@ const SHOTS = [
       await pg.evaluate(() => [...document.querySelectorAll('#streakModal .sk-tab-btn')][3].click()); await wait(pg, 3000); },
     clip: { from: '#streakModal .dc-modal', to: '#streakModal .dc-modal', pad: 10, narrow: true, maxH: 3200 },
     spots: { cal: '#streakModal .sk-tab-btn:nth-child(4)', wrap: '#streakModal .sk-hm-wrap',
-      filters: { js: "document.querySelector('#streakModal .sk-hm-wrap').firstElementChild" } } }
+      filters: { js: "document.querySelector('#streakModal .sk-hm-wrap').firstElementChild" } } },
+  /* ── Changing a cover (windows lesson) ────────────────────────── */
+  { id: 'cover-hover', lesson: 'windows',
+    // On a computer the ✎ shows while the pointer is over a cover
+    setup: async pg => { await lastWeek(pg); await layout(pg, 'table');
+      await pg.evaluate(() => window.scrollTo(0, document.getElementById('songsTable').getBoundingClientRect().top + scrollY - 300)); await wait(pg, 600);
+      await pg.hover('#songsBody tr[data-ea-key] .thumb-cell'); await wait(pg, 700); },
+    clip: { from: R(1), to: nth('#songsBody', 2), pad: 10 },
+    spots: { cover: R(1) + ' .thumb-cell', pencil: R(1) + ' .img-src-btn', play: R(1) + ' .ea-cover-play' } },
+  { id: 'cover-picker', lesson: 'windows',
+    setup: async pg => { await lastWeek(pg); await layout(pg, 'table');
+      await pg.evaluate(() => { const st = document.createElement('style'); st.id = 'gdUnfoldPk';
+        st.textContent = '.imgpk-panel{max-height:none!important;height:auto!important}.imgpk-body{max-height:none!important;overflow:visible!important}.imgpk-overlay{align-items:flex-start!important;position:absolute!important;height:auto!important}';
+        document.head.appendChild(st); });
+      await pg.evaluate(() => document.querySelector('#songsBody tr[data-ea-key] .img-src-btn').click());
+      // every source has to finish searching before the picture
+      await pg.waitForFunction(() => document.querySelector('.imgpk-panel') && !document.querySelector('.imgpk-panel .imgpk-loading'), null, { timeout: 60000 });
+      await wait(pg, 2500); },
+    clip: { from: '.imgpk-panel', to: '.imgpk-panel', pad: 10, narrow: true, maxH: 2000 },
+    spots: { now: '.imgpk-now', title: '#imgpkTitle', close: '.imgpk-close', deezer: '.imgpk-section[data-src="deezer"]',
+      itunes: '.imgpk-section[data-src="itunes"]', lastfm: '.imgpk-section[data-src="lastfm"]', youtube: '.imgpk-section[data-src="youtube"]',
+      current: '.imgpk-tile--current', tile: '.imgpk-section[data-src="itunes"] .imgpk-tile:nth-child(2)',
+      url: '.imgpk-url-input', set: '.imgpk-url-apply', none: '.imgpk-panel [data-act="off"]', auto: '.imgpk-panel [data-act="auto"]' } }
 ];
 
 /* ── Measuring + capture ────────────────────────────────────────── */

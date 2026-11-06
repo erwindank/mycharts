@@ -925,7 +925,7 @@ window.GL_TEXT['pt-PT'] = {
       promise: 'Tudo sobre uma música, um artista ou um álbum, como encontrar qualquer um num segundo, e as tuas sequências.',
       scenes: {
         song: { title: 'A janela de uma música', spots: {
-          art: ['Capa', 'A capa dela. A etiqueta pequena diz de onde veio a imagem; clica para escolheres outra.'],
+          art: ['Capa', 'A capa dela. Passa o rato por cima para veres o ✎ e escolheres outra imagem (no telemóvel, mantém premido).'],
           title: ['A música', 'O nome dela.'],
           sub: ['Artista e álbum', 'Clica em qualquer um para abrir a janela dele.'],
           sample: ['{{t:ea_s_sample}}', 'Toca 30 segundos.'],
@@ -997,7 +997,23 @@ window.GL_TEXT['pt-PT'] = {
         } },
         menus: { title: 'O menu ⋮', spots: {
           more: ['⋮ numa linha', 'Cada linha do top tem um. Clica com o botão direito numa linha para o mesmo menu.'],
-          menu: ['O menu', 'Um excerto, o vídeo, acrescentar a uma playlist, detalhes, o álbum e o artista, o percurso, trocar a imagem, procurar no YouTube ou no Spotify.']
+          menu: ['O menu', 'Um excerto, o vídeo, acrescentar a uma playlist, detalhes, o álbum e o artista, o percurso, trocar a imagem, procurar no YouTube ou no Spotify.'],
+          change: ['{{t:img_picker_change}}', 'Abre o seletor de capa desta entrada.']
+        } },
+        cover: { title: '{{t:img_picker_change}}', spots: {
+          now: ['A imagem atual', 'A capa que tem neste momento.'],
+          title: ['O que estás a mudar', 'A música, o álbum ou o artista desta imagem.'],
+          deezer: ['Deezer', 'Imagens encontradas no Deezer.'],
+          current: ['A que está em uso', 'A imagem destacada é a que aparece agora.'],
+          itunes: ['iTunes', 'Imagens encontradas no iTunes, muitas vezes várias versões e capas de singles.'],
+          tile: ['Escolhe uma', 'Clica em qualquer imagem para a usares. O seletor fecha e a nova capa aparece logo.'],
+          lastfm: ['Last.fm', 'A imagem que o Last.fm tem.'],
+          youtube: ['YouTube', 'Uma imagem do vídeo.'],
+          url: ['{{t:imgpk_url_label}}', 'Cola a ligação de qualquer imagem da internet…'],
+          set: ['{{t:imgpk_apply}}', '…e carrega aqui para a usares.'],
+          none: ['{{t:imgpk_none}}', 'Não mostra imagem, só um quadrado liso.'],
+          auto: ['{{t:imgpk_auto}}', 'Volta à imagem que a app escolhe sozinha.'],
+          close: ['Fechar', 'Deixa a capa como estava.']
         } },
         search: { title: 'Pesquisa', spots: {
           field: ['Escreve um nome', 'Qualquer parte do nome de um artista, música ou álbum. Carrega em / ou Ctrl+K em qualquer lado para a abrires.'],
@@ -1053,6 +1069,15 @@ window.GL_TEXT['pt-PT'] = {
           '{{t:dp_tab_music}} lista as músicas e os álbuns, pela ordem que quiseres.',
           '{{t:dp_tab_awards}} mostra os teus prémios e os da vida real.'
         ] },
+        cover: { title: 'Mudar uma capa', slides: [
+          'Passa o rato por cima de uma capa: aparece um ✎ no canto. Clica nele. No telemóvel, mantém a capa premida.',
+          'Ou abre o ⋮ da linha e escolhe {{t:img_picker_change}}. As janelas têm o mesmo ✎ na capa grande.',
+          'O seletor mostra imagens do Deezer, iTunes, Last.fm e YouTube. A destacada é a que está em uso.',
+          'Clica na que quiseres.',
+          'Ou cola a ligação de qualquer imagem e carrega em {{t:imgpk_apply}}.',
+          '{{t:imgpk_auto}} volta à escolha da app; {{t:imgpk_none}} não mostra imagem.',
+          'A nova capa aparece em todo o lado ao mesmo tempo: cada top, a janela, as imagens para partilhar e os prémios. Com sessão iniciada, vai contigo para todos os dispositivos.'
+        ] },
         menu: { title: 'Usar o menu ⋮', slides: [
           'Cada linha tem um ⋮ (ou clica com o botão direito na linha).',
           'Tem um excerto, o vídeo, playlists, detalhes e mais.',
@@ -1079,6 +1104,13 @@ window.GL_TEXT['pt-PT'] = {
           more: ['{{t:ea_more}}', 'O menu ⋮.'],
           links: ['Spotify / YouTube / Last.fm', 'Encontrá-la noutro lado.']
         } },
+        cover: { title: '{{t:img_picker_change}}', items: {
+          open: ['Abrir o seletor', 'O ✎ numa capa, manter premido no telemóvel, ou ⋮ → {{t:img_picker_change}}.'],
+          sources: ['Deezer, iTunes, Last.fm, YouTube', 'Imagens encontradas em cada um.'],
+          link: ['{{t:imgpk_url_label}}', 'Qualquer imagem da internet, pela ligação.'],
+          none: ['{{t:imgpk_none}}', 'Um quadrado liso, sem imagem.'],
+          auto: ['{{t:imgpk_auto}}', 'A app escolhe a imagem sozinha.']
+        } },
         music: { title: '{{t:dp_tab_music}}', items: {
           sorts: ['Ordenar', '{{t:am_sort_rank}} (o que tens ao começar), {{t:am_sort_plays}}, {{t:am_sort_recent}}, {{t:am_sort_az}}.'],
           charts: ['Que top', 'De sempre, Anual, Mensal, Semanal ou Diário.']
@@ -1097,6 +1129,7 @@ window.GL_TEXT['pt-PT'] = {
         'win.tab': ['Muda de separador numa janela', '{{t:dp_tab_charts}} ou {{t:dp_tab_listening}}.'],
         'win.search': ['Pesquisa na tua biblioteca', 'Carrega em / ou na pesquisa da barra superior.'],
         'win.menu': ['Abre um menu ⋮', 'Numa linha, ou com o botão direito.'],
+        'win.cover': ['Muda uma capa', 'O ✎ numa capa, ou ⋮ → {{t:img_picker_change}}.'],
         'win.streak': ['Abre as tuas sequências', 'A sequência de escuta no topo da página Charts.']
       },
       quiz: {
@@ -1113,7 +1146,8 @@ window.GL_TEXT['pt-PT'] = {
       tips: [
         'Carrega em / em qualquer página para pesquisares em toda a tua biblioteca.',
         'O separador {{t:dp_tab_listening}} de uma música mostra o dia em que a encontraste: o que tocava logo antes.',
-        'Nas tuas sequências, toca num selo ganho para o virares e veres quando o ganhaste.'
+        'Nas tuas sequências, toca num selo ganho para o virares e veres quando o ganhaste.',
+        'Não gostas de uma capa? Passa o rato por cima e carrega no ✎ para escolheres outra, ou cola a ligação de qualquer imagem.'
       ]
     },
     stats: { title: 'Estatísticas', promise: 'Resumo, História, Gráficos, Comparar e Jogos para qualquer período.' },
