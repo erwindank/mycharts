@@ -140,6 +140,16 @@ async function statsTab(pg, tab, cmode = 'cum') {
     { overview: 'sxOverview', story: 'sxStory', games: 'sxGames', compare: 'sxCmpMore', charts: 'heatmapCard' }[tab], { timeout: 60000 });
   await wait(pg, 1500);
 }
+// Records on one section (the nav's data-rec-view), built and at the top.
+// A search left in the box would filter every section, so it is cleared first.
+async function recView(pg, view) {
+  await go(pg, 'records');
+  await pg.waitForFunction(() => { const r = document.getElementById('recBuilding'); return !r || r.hidden; }, null, { timeout: 120000 });
+  await pg.evaluate(() => { const c = document.getElementById('recordsSearchClear'); if (c && c.offsetParent) c.click(); });
+  await pg.evaluate(v => { document.querySelector('#recordsNav [data-rec-view="' + v + '"]').click(); window.scrollTo(0, 0); }, view);
+  await pg.waitForFunction(v => { const el = document.getElementById(v); return el && el.offsetHeight > 200; }, view, { timeout: 60000 });
+  await wait(pg, 2500);
+}
 // Spot finders that need more than a selector: run in the page, return an element
 const byText = (scope, sel, re) => ({ js: `[...document.querySelectorAll(${JSON.stringify(scope + ' ' + sel)})].find(e => ${re}.test(e.textContent.trim()))` });
 
@@ -611,7 +621,100 @@ const SHOTS = [
     spots: { types: '#heatmapTypeBtns', colors: '#heatmapThemeBtns', year: '#heatmapCard .hm-stepper', best: '#heatmapCard .hm-streak-chip',
       figs: '#heatmapCard .hm-figs', grid: '#heatmapCard .hm-y-scroll', strip: '#heatmapCard .hm-strip',
       patterns: '#heatmapCard .hm-patterns-section', scope: '#heatmapCard .hm-pat-scope', rhythm: '#heatmapCard .hm-pat-weekday',
-      hours: '#heatmapCard .hm-pat-hourblock' } }
+      hours: '#heatmapCard .hm-pat-hourblock' } },
+
+  /* ── Lesson: Records (GUIDE-PLAN.md step 6) ───────────────────────
+     Every section shares one look: a sentence, the switches, a podium
+     of the top three, then the list. Shots open one section each. */
+  { id: 'rec-top', lesson: 'records', phone: true,
+    setup: async pg => { await recView(pg, 'recOverviewSection'); },
+    clip: { from: '#recordsView > .section-header', to: '#recHeroArtist', pad: 12, maxH: 1700, box: '#recordsView' },
+    spots: { intro: '#recIntro', search: '#recordsSearchBar', nav: '#recordsNav', grp: '#recordsNav .rec-nav-grp',
+      count: '#recordsNav .rec-nav-n', picker: '#recPicker', hero: '#recHeroBanner', reel: '#recHeroReel',
+      card: '#recHeroReel .rec-hero-card',
+      // one per section's menu button (pictures for Every option)
+      ...Object.fromEntries(['AllOnes', 'PAK', 'Appearances', 'Debuts', 'NewCharts', 'PeakPlays', 'Milestones', 'Fastest', 'Streaks', 'Certs']
+        .map(k => ['n-' + k, '#recordsNav [data-rec-view="rec' + k + 'Section"]'])) } },
+  { id: 'rec-ov', lesson: 'records',
+    setup: async pg => { await recView(pg, 'recOverviewSection'); },
+    clip: { from: '#recOverviewBody', to: '#recOverviewBody', pad: 12, maxH: 2000, box: '#recordsView' },
+    spots: { intro: '#recOverviewBody .rec-ov-intro', types: '#recOverviewBody .rec-ov-types', grp: '#recOverviewBody .rec-ov-grp',
+      cell: '#recOverviewBody .rec-ov-cell', value: '#recOverviewBody .rec-ov-value', sw: '#recOverviewBody .rec-ov-sw' } },
+  { id: 'rec-ones', lesson: 'records', phone: true,
+    setup: async pg => { await recView(pg, 'recAllOnesSection'); },
+    clip: { from: '#recAllOnesSection .section-header', to: '#recAllOnesSection .rec1-podium', pad: 14, box: '#recordsView' },
+    spots: { story: '#rec1Story', ent: '#recAllOnesSection .rec-ent-tabs', per: '#recAllOnesSection .rec-per-tabs',
+      run: '#recAllOnesSection .rec-run-seg', sort: '#rec1SortBtn', champ: '#recAllOnesSection .rec1-champ',
+      boxes: '#recAllOnesSection .rec1-champ .cr-boxes', sample: '#recAllOnesSection .rec1-acts .ea-sample',
+      details: '#recAllOnesSection .rec1-details', runner: '#recAllOnesSection .rec1-runner-2' } },
+  // The list under the podium, with the first row's chart run open
+  { id: 'rec-list', lesson: 'records',
+    setup: async pg => { await recView(pg, 'recAllOnesSection');
+      await pg.evaluate(() => [...document.querySelectorAll('#recAllOnesBody .rec-run-toggle-btn')].find(e => e.offsetParent).click()); await wait(pg, 1800);
+      await pg.evaluate(() => window.scrollTo(0, [...document.querySelectorAll('#recAllOnesBody table')].find(e => e.offsetParent).getBoundingClientRect().top + scrollY - 800)); await wait(pg, 800); },
+    clip: { from: '#recAllOnesBody table thead', to: { js: "[...document.querySelectorAll('#recAllOnesBody .rec-run-toggle-btn')].filter(e => e.offsetParent)[3].closest('tr')" }, pad: 10, box: '#recordsView' },
+    spots: { heads: '#recAllOnesBody th.rec-sortable', all: '#recAllOnesBody .rec-expand-all-btn', name: '#recAllOnesBody .rec-name',
+      tl: '#recAllOnesBody .rec1-tl', date: '#recAllOnesBody .rec-date-link', toggle: '#recAllOnesBody .rec-run-toggle-btn.active',
+      runrow: '#recAllOnesBody tr.open' } },
+  { id: 'rec-sort', lesson: 'records',
+    setup: async pg => { await recView(pg, 'recAllOnesSection');
+      await pg.evaluate(() => document.getElementById('rec1SortBtn').click()); await wait(pg, 700); },
+    clip: { from: '#rec1Story', to: '#rec1SortMenu', pad: 14, box: '#recordsView' },
+    spots: { btn: '#rec1SortBtn', menu: '#rec1SortMenu', rank: '[data-rec1-sort="rank"]', recent: '[data-rec1-sort="recent"]',
+      oldest: '[data-rec1-sort="oldest"]', name: '[data-rec1-sort="name"]' } },
+  { id: 'rec-foot', lesson: 'records',
+    setup: async pg => { await recView(pg, 'recAllOnesSection');
+      await pg.evaluate(() => window.scrollTo(0, document.querySelector('#recAllOnesSection .rec1-foot').getBoundingClientRect().top + scrollY - 900)); await wait(pg, 800); },
+    clip: { from: { js: "[...document.querySelectorAll('#recAllOnesBody .rec-run-toggle-btn')].filter(e => e.offsetParent).slice(-2)[0].closest('tr')" }, to: '#recAllOnesSection .rec1-foot', pad: 10, box: '#recordsView' },
+    spots: { note: '#rec1FootNote', show: '#recordsSizeBar', sizes: '#recordsSizeBtns' } },
+  { id: 'rec-search', lesson: 'records',
+    setup: async pg => { await recView(pg, 'recOverviewSection');
+      await pg.click('#recordsSearch'); await pg.keyboard.type('taylor', { delay: 40 }); await wait(pg, 3500); },
+    clip: { from: '#recordsSearchBar', to: '#recLayout', pad: 12, maxH: 1000, box: '#recordsView' },
+    spots: { field: '#recordsSearch', clear: '#recordsSearchClear', status: '#recordsSearchStatus', nav: '#recordsNav' } },
+  { id: 'rec-pak', lesson: 'records',
+    setup: async pg => { await recView(pg, 'recPAKSection');
+      await pg.evaluate(() => document.querySelector('#recPAKSection .pak-info-btn').click()); await wait(pg, 800); },
+    clip: { from: '#recPAKSection .section-header', to: '#recPAKSection .recx-pod-room', pad: 14, box: '#recordsView' },
+    spots: { story: '#recPAKSection .recx-story', about: '#recPAKSection .recx-about', info: '#recPAKSection .pak-info-btn',
+      infotext: '#pakInfo', per: '#recPAKSection .rec-per-tabs', champ: '#recPAKSection .rec1-champ', details: '#recPAKSection .rec1-details' } },
+  { id: 'rec-nc', lesson: 'records',
+    setup: async pg => { await recView(pg, 'recNewChartsSection'); },
+    clip: { from: '#recNewChartsSection .section-header', to: '#recNewChartsSection .recx-pod-room', pad: 14, box: '#recordsView' },
+    spots: { about: '#recNewChartsSection .recx-about', tabs: '#ncRecTypeTabs', title: '#recNewChartsSection .rec-section-title',
+      fold: '#recNewChartsSection .rec-collapse-btn', champ: '#recNewChartsSection .rec1-champ' } },
+  { id: 'rec-mil', lesson: 'records',
+    setup: async pg => { await recView(pg, 'recMilestonesSection'); },
+    clip: { from: '#recMilestonesSection .section-header', to: '#recMilestonesSection .mil-panel', pad: 14, box: '#recordsView' },
+    spots: { tabs: '#milRecTypeTabs', sub: '#recMilestonesSection .rec-section-sub', tier: '#recMilestonesSection .milestone-number',
+      art: '#recMilestonesSection .mil-art-box', more: '#recMilestonesSection .recx-mil-more', table: '#recMilestonesSection .mil-timeline' } },
+  { id: 'rec-fast', lesson: 'records',
+    setup: async pg => { await recView(pg, 'recFastestSection'); },
+    clip: { from: '#recFastestSection .section-header', to: '#recFastestSection .recx-pod-room', pad: 14, box: '#recordsView' },
+    spots: { tabs: '#fastRecTypeTabs', pick: '#recFastestSection .fast-pick', sub: '#recFastestSection .rec-section-sub',
+      champ: '#recFastestSection .rec1-champ' } },
+  { id: 'rec-streaks', lesson: 'records',
+    setup: async pg => { await recView(pg, 'recStreaksSection'); },
+    clip: { from: '#recStreaksSection .section-header', to: '#recStreaksSection .recx-pod-room', pad: 14, box: '#recordsView' },
+    spots: { ent: '#recStreaksSection .rec-ent-tabs', per: '#recStreaksSection .rec-per-tabs',
+      b2b: { js: "[...document.querySelectorAll('#recStreaksSection .rec-per-tab')].filter(e => e.offsetParent).pop()" },
+      sub: '#recStreaksSection .rec-section-sub', champ: '#recStreaksSection .rec1-champ' } },
+  { id: 'rec-certs', lesson: 'records',
+    setup: async pg => { await recView(pg, 'recCertsSection'); },
+    clip: { from: '#recCertsSection .section-header', to: '#recCertsSection .certw', pad: 14, box: '#recordsView' },
+    spots: { story: '#recCertsSection .recx-story', tiers: '#recCertsSection .rec-section-sub', card: '#recCertsSection .certw-card--1',
+      total: '#recCertsSection .certw-total', bar: '#recCertsSection .certw-bar', tally: '#recCertsSection .certw-tally',
+      open: '#recCertsSection .certw-open' } },
+  { id: 'rec-ledger', lesson: 'records',
+    setup: async pg => { await recView(pg, 'recCertsSection');
+      await pg.evaluate(() => document.querySelector('#recCertsSection .certw-open').click()); await wait(pg, 2500);
+      await pg.evaluate(() => window.scrollTo(0, document.querySelector('.certd').getBoundingClientRect().top + scrollY - 800)); await wait(pg, 800); },
+    clip: { from: '.certd', to: '.certd', pad: 10, maxH: 1050, box: '#recordsView' },
+    spots: { tally: '.certd .certd-tally', facts: '.certd .certd-facts', types: '.certd .certd-seg', tiers: '.certd .certd-seg-tier',
+      sort: '.certd .certd-sortwrap',
+      row: { js: "[...document.querySelectorAll('.certd .certd-row')].filter(e => e.offsetParent).sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top)[0]" },
+      medal: { js: "[...document.querySelectorAll('.certd .certd-medal')].filter(e => e.offsetParent).sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top)[0]" },
+      journey: { js: "[...document.querySelectorAll('.certd .certd-journey')].filter(e => e.offsetParent).sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top)[0]" } } }
 ];
 
 /* ── Measuring + capture ────────────────────────────────────────── */
@@ -624,7 +727,8 @@ async function measure(pg, clip, spots) {
     if (!a || !b) return { err: 'clip not found: ' + JSON.stringify(!a ? clip.from : clip.to) };
     const ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect();
     // Full content width: the app's .container, so every picture of one lesson lines up
-    const box = (document.querySelector('#mainApp') || document.body).getBoundingClientRect();
+    // clip.box: a page wider than the app's column (Records reaches past it)
+    const box = (document.querySelector(clip.box || '#mainApp') || document.body).getBoundingClientRect();
     const pad = clip.pad || 0;
     // Always the app's own width (the top bar is full-window, the content isn't),
     // except a pop-up card (narrow: true), which is cut to its own width

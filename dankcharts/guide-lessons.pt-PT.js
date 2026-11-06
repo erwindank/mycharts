@@ -1424,7 +1424,245 @@ window.GL_TEXT['pt-PT'] = {
         'O mapa de calor tem seis esquemas de cores, e pode mostrar um só artista, música ou álbum.'
       ]
     },
-    records: { title: 'Recordes', promise: 'O teu livro de recordes: números um, estreias, certificações, sequências e mais.' },
+    records: {
+      title: '{{t:nav_records}}',
+      promise: 'O teu livro de recordes: números um, estreias, mais plays, sequências, certificações e mais, para músicas, artistas e álbuns.',
+      scenes: {
+        top: { title: '{{t:sec_records_title}}', spots: {
+          intro: ['O que conta', 'O tamanho de cada top de onde vêm os recordes, e quantos dias, semanas, meses e anos tens.'],
+          search: ['Pesquisar em todos os recordes', 'Escreve um artista, uma música ou um álbum para veres todos os recordes dele, em todas as secções.'],
+          nav: ['Secções', '{{t:rec_nav_overview}}, depois {{t:rec_grp_chart}} e {{t:rec_grp_plays}}. Vês uma secção de cada vez.'],
+          grp: ['Dois grupos', '{{t:rec_grp_chart}} vêm dos teus tops; {{t:rec_grp_plays}} vêm dos teus plays.'],
+          count: ['Quantas', 'Quantas listas de recordes a secção tem.'],
+          picker: ['{{t:rec_picker_label}}', 'No telemóvel, as secções estão neste menu.'],
+          hero: ['{{t:rec_hero_label}}', 'O artista com mais recordes, e quantos são.'],
+          reel: ['Os recordes dele', 'Uma faixa com os recordes. Anda sozinha; arrasta-a para veres.'],
+          card: ['Um recorde', 'O que é, o número e quando. O selo é a posição dele nessa lista.']
+        } },
+        ov: { title: '{{t:rec_nav_overview}}', spots: {
+          intro: ['O melhor de cada', 'Quem tem o recorde de cada secção, numa só página.'],
+          types: ['{{t:sx_cmp_type_songs}} / {{t:sx_cmp_type_artists}} / {{t:sx_cmp_type_albums}}', 'Muda todos os cartões de uma vez.'],
+          grp: ['Dois grupos', '{{t:rec_grp_chart}} e {{t:rec_grp_plays}}, como no menu.'],
+          cell: ['Um cartão', 'Quem tem o recorde e o número. Clica para abrir essa secção.'],
+          value: ['O recorde', 'O número a bater.'],
+          sw: ['Que top', 'Muda um cartão entre {{t:nav_daily}}, {{t:nav_weekly}}, {{t:nav_monthly}} e {{t:nav_yearly}}.']
+        } },
+        ones: { title: '{{t:rec_nav_all_ones}}: como é cada secção', spots: {
+          story: ['Numa frase', 'O recorde e quem o tem. Muda com os botões abaixo.'],
+          ent: ['{{t:sx_cmp_type_songs}} / {{t:sx_cmp_type_artists}} / {{t:sx_cmp_type_albums}}', 'De quem ver os recordes.'],
+          per: ['Que top', '{{t:nav_daily}}, {{t:nav_weekly}}, {{t:nav_monthly}} ou {{t:nav_yearly}}.'],
+          run: ['{{t:rec_run_total}} / {{t:rec_run_consec}}', 'Todas as semanas em #1 somadas, ou a maior sequência sem pausas.'],
+          sort: ['{{t:rec1_sort}}', '{{t:rec1_sort_rank}}, {{t:rec1_sort_recent}}, {{t:rec1_sort_oldest}} ou {{t:rec1_sort_name}}.'],
+          champ: ['O primeiro', 'O #1 da lista, em destaque: o número e quando.'],
+          boxes: ['O percurso', 'Cada vez que foi #1. Os espaços pontilhados são o tempo entre elas.'],
+          sample: ['Amostra', 'Ouve 30 segundos.'],
+          details: ['Detalhes', 'Abre a janela dele.'],
+          runner: ['#2 e #3', 'Os dois logo atrás. Clica no ▸ para a janela deles.']
+        } },
+        list: { title: 'A lista', spots: {
+          heads: ['Colunas', 'Clica num título para ordenar por ele.'],
+          all: ['{{t:rec_expand_all}}', 'Abre ou fecha todos os percursos de uma vez.'],
+          name: ['A entrada', 'Clica no nome para abrir a janela.'],
+          tl: ['Quando', 'Uma linha da tua história: cada marca é uma vez em #1.'],
+          date: ['Datas', 'Clica numa data para abrir esse top.'],
+          toggle: ['O percurso', 'Abre ou fecha o percurso por baixo da linha.'],
+          runrow: ['O percurso', 'Cada semana em #1, com os espaços. Clica num quadrado para veres esse top.']
+        } },
+        sort: { title: '{{t:rec1_sort}}', spots: {
+          btn: ['{{t:rec1_sort}}', 'Abre o menu.'],
+          rank: ['{{t:rec1_sort_rank}}', 'O maior recorde primeiro.'],
+          recent: ['{{t:rec1_sort_recent}}', 'O mais recente primeiro.'],
+          oldest: ['{{t:rec1_sort_oldest}}', 'Desde o início da tua história.'],
+          name: ['{{t:rec1_sort_name}}', 'Por ordem alfabética.']
+        } },
+        foot: { title: '{{t:rec_size_label}}', spots: {
+          note: ['Quantas aparecem', 'Quantas entradas da lista vês.'],
+          show: ['{{t:rec_size_label}}', 'O tamanho de cada lista.'],
+          sizes: ['Tamanhos', '25, 50, 100 ou todas (até 1000).']
+        } },
+        search: { title: 'Pesquisa', spots: {
+          field: ['Pesquisar', 'Um artista, uma música ou um álbum.'],
+          clear: ['Limpar', 'Volta à página normal.'],
+          status: ['Resultados', 'Quantos recordes correspondem, e em quantas secções.'],
+          nav: ['Todas as secções de uma vez', 'Enquanto pesquisas, vês todas as secções, só com as linhas que correspondem.']
+        } },
+        pak: { title: '{{t:rec_nav_pak}}', spots: {
+          story: ['Quem o tem', 'Quem tem mais, e quantos há no total.'],
+          about: ['O que é', 'Um artista em #1 nos tops de artistas, músicas e álbuns ao mesmo tempo.'],
+          info: ['{{t:rec_pak_info_btn}}', 'Abre a explicação completa.'],
+          infotext: ['A explicação', 'O que é preciso, em poucas linhas.'],
+          per: ['Que top', '{{t:nav_daily}}, {{t:nav_weekly}}, {{t:nav_monthly}} ou {{t:nav_yearly}}.'],
+          champ: ['Quem o tem', 'Com a primeira música e o primeiro álbum a consegui-lo.'],
+          details: ['Detalhes', 'Abre a janela dele.']
+        } },
+        nc: { title: '{{t:rec_nav_new_charts}}', spots: {
+          about: ['O que é', 'Recordes de {{t:rec_nav_new_charts}}: só músicas, artistas e álbuns que descobriste há pouco.'],
+          tabs: ['{{t:sx_cmp_type_songs}} / {{t:sx_cmp_type_artists}} / {{t:sx_cmp_type_albums}}', 'De quem ver os recordes.'],
+          title: ['Uma lista', 'Cada lista tem o seu título.'],
+          fold: ['Recolher', 'Recolhe uma lista; carrega outra vez para a abrir.'],
+          champ: ['O primeiro', 'O #1 dessa lista.']
+        } },
+        mil: { title: '{{t:rec_nav_milestones}}', spots: {
+          tabs: ['{{t:sx_cmp_type_songs}} / {{t:sx_cmp_type_artists}} / {{t:sx_cmp_type_albums}}', 'De quem ver as marcas.'],
+          sub: ['Como funciona', 'Quem chegou primeiro a cada número redondo.'],
+          tier: ['Uma marca', 'O número de plays.'],
+          art: ['Quem chegou primeiro', 'E quando.'],
+          more: ['Mais', 'Abre as marcas recolhidas pelo meio.']
+        } },
+        fast: { title: '{{t:rec_nav_fastest}}', spots: {
+          tabs: ['{{t:sx_cmp_type_songs}} / {{t:sx_cmp_type_artists}} / {{t:sx_cmp_type_albums}}', 'De quem ver os recordes.'],
+          pick: ['{{t:fast_pick_pre}} … {{t:fast_pick_post}}', 'Escolhe o número de plays da corrida.'],
+          sub: ['Quantos chegaram', 'Quantos alcançaram esse número.'],
+          champ: ['O mais rápido', 'Quanto tempo demorou desde o primeiro play.']
+        } },
+        streaks: { title: '{{t:rec_nav_streaks}}', spots: {
+          ent: ['{{t:sx_cmp_type_songs}} / {{t:sx_cmp_type_artists}} / {{t:sx_cmp_type_albums}}', 'De quem ver as sequências.'],
+          per: ['Dias, semanas, meses, anos', 'Ouvido todos os dias seguidos, todas as semanas seguidas, e assim por diante.'],
+          b2b: ['{{t:rec_per_runs}}', 'As vezes que tocou de seguida, sem nada pelo meio.'],
+          sub: ['Como conta', 'O que a lista mede.'],
+          champ: ['A maior', 'De quando até quando.']
+        } },
+        certs: { title: '{{t:rec_nav_certs}}', spots: {
+          story: ['O líder', 'O artista com mais certificações.'],
+          tiers: ['O que é preciso', 'Os plays necessários para Ouro, Platina e Diamante, em músicas e em álbuns.'],
+          card: ['Uma placa', 'Os três primeiros artistas, cada um numa placa.'],
+          total: ['Certificações', 'Quantas têm no total.'],
+          bar: ['A mistura', 'Diamante, Platina e Ouro, numa barra.'],
+          tally: ['Músicas e álbuns', 'As certificações por nível.'],
+          open: ['{{t:certd_open_ledger}}', 'Abre o registo completo por baixo das placas.']
+        } },
+        ledger: { title: '{{t:certd_title}}', spots: {
+          tally: ['No total', 'Todas as certificações.'],
+          facts: ['Dados principais', 'Músicas e álbuns, a primeira e a última, a mais rápida e o melhor ritmo.'],
+          types: ['{{t:certd_all}} / {{t:certd_songs}} / {{t:certd_albums}}', 'Filtra por músicas ou álbuns.'],
+          tiers: ['Níveis', 'Filtra por Diamante, Platina ou Ouro.'],
+          sort: ['{{t:certd_sort}}', 'Muda a ordem.'],
+          medal: ['O nível', 'Que certificação, e com quantos plays.'],
+          row: ['Uma certificação', 'A música ou o álbum, os plays por dia e os plays de agora.'],
+          journey: ['Como lá chegou', 'Do primeiro play à certificação: quanto tempo demorou, e o próximo nível.']
+        } }
+      },
+      howto: {
+        find: { title: 'Encontrar uma secção', slides: [
+          'As secções estão no menu à esquerda.',
+          'No telemóvel, abre o menu {{t:rec_picker_label}}.',
+          'O número diz quantas listas tem.',
+          'Cada secção começa com o seu recorde numa frase.'
+        ] },
+        overview: { title: 'Ler a {{t:rec_nav_overview}}', slides: [
+          'Em cima: o artista com mais recordes.',
+          'Uma faixa com os recordes dele. Arrasta-a.',
+          'Em baixo, o melhor de cada secção. Muda-os todos para artistas ou álbuns.',
+          'Clica num cartão para abrir a secção.',
+          'Ou muda um cartão para outro top.'
+        ] },
+        types: { title: 'Músicas, artistas ou álbuns', slides: [
+          'Quase todas as secções mudam entre músicas, artistas e álbuns.',
+          'E entre os teus tops diário, semanal, mensal e anual.',
+          '{{t:rec_nav_milestones}} e {{t:rec_nav_fastest}} têm o seu próprio seletor.',
+          '{{t:rec_nav_fastest}} também te deixa escolher o número de plays.'
+        ] },
+        read: { title: 'Ler um recorde', slides: [
+          'Quem tem o recorde, em destaque, com o número.',
+          'Cada vez que foi #1, com os espaços.',
+          'O #2 e o #3 ao lado.',
+          'O resto da lista: uma linha do tempo para cada um.',
+          'Abre o percurso de uma linha.',
+          'Ou abre-os todos.'
+        ] },
+        count: { title: 'Total ou seguidas', slides: [
+          '{{t:rec_run_total}} soma todas as semanas em #1; {{t:rec_run_consec}} conta só a maior sequência sem pausas.',
+          'A frase muda com isso.',
+          'Ordena por posição, mais recente, mais antigo ou nome.',
+          'Ou clica no título de uma coluna.'
+        ] },
+        search: { title: 'Pesquisar nos teus recordes', slides: [
+          'Escreve um artista, uma música ou um álbum.',
+          'Quantos recordes correspondem.',
+          'Vês todas as secções, só com as linhas que correspondem.',
+          'Limpa para voltar.'
+        ] },
+        certs: { title: 'Abrir um registo de certificações', slides: [
+          'Os plays de que uma música ou um álbum precisa para cada nível.',
+          'Os três primeiros artistas em placas.',
+          'Abre todas as certificações de um artista.',
+          'Os dados principais.',
+          'Filtra por músicas, álbuns ou nível.',
+          'Cada certificação, com quanto tempo demorou.'
+        ] },
+        more: { title: 'Ver mais de uma lista', slides: [
+          'Quantas entradas da lista vês.',
+          'Mostra 25, 50, 100 ou todas.'
+        ] }
+      },
+      options: {
+        sections: { title: 'Secções', items: {
+          ones: ['{{t:rec_nav_all_ones}}', 'Tudo o que chegou a #1, e durante quanto tempo.'],
+          pak: ['{{t:rec_nav_pak}}', '#1 nos tops de artistas, músicas e álbuns ao mesmo tempo.'],
+          app: ['{{t:rec_nav_appearances}}', 'Mais semanas (dias, meses, anos) num top.'],
+          debuts: ['{{t:rec_nav_debuts}}', 'As maiores estreias.'],
+          nc: ['{{t:rec_nav_new_charts}}', 'Recordes de {{t:rec_nav_new_charts}}.'],
+          plays: ['{{t:rec_nav_peak_plays}}', 'Mais plays num dia, numa semana, num mês ou num ano.'],
+          mil: ['{{t:rec_nav_milestones}}', 'O primeiro a cada número redondo de plays.'],
+          fast: ['{{t:rec_nav_fastest}}', 'O mais rápido a chegar a um número de plays.'],
+          streaks: ['{{t:rec_nav_streaks}}', 'As maiores sequências de dias, semanas, meses, anos, e de seguida.'],
+          certs: ['{{t:rec_nav_certs}}', 'Ouro, Platina e Diamante, artista a artista.']
+        } },
+        switches: { title: 'Em todas as secções', items: {
+          ent: ['{{t:sx_cmp_type_songs}} / {{t:sx_cmp_type_artists}} / {{t:sx_cmp_type_albums}}', 'De quem.'],
+          per: ['{{t:nav_daily}} / {{t:nav_weekly}} / {{t:nav_monthly}} / {{t:nav_yearly}}', 'Que top.'],
+          run: ['{{t:rec_run_total}} / {{t:rec_run_consec}}', 'Somado ou sem pausas. {{t:rec_nav_all_ones}} e {{t:rec_nav_appearances}}.'],
+          sort: ['{{t:rec1_sort}}', '{{t:rec1_sort_rank}}, {{t:rec1_sort_recent}}, {{t:rec1_sort_oldest}}, {{t:rec1_sort_name}}.'],
+          show: ['{{t:rec_size_label}}', '25, 50, 100 ou todas.'],
+          all: ['{{t:rec_expand_all}}', 'Todos os percursos de uma vez.']
+        } },
+        overview: { title: '{{t:rec_nav_overview}}', items: {
+          types: ['{{t:sx_cmp_type_songs}} / {{t:sx_cmp_type_artists}} / {{t:sx_cmp_type_albums}}', 'Todos os cartões de uma vez.'],
+          sw: ['Top de um cartão', 'Um cartão de cada vez.']
+        } },
+        special: { title: 'Só em algumas secções', items: {
+          pakinfo: ['{{t:rec_pak_info_btn}}', '{{t:rec_nav_pak}} explicado.'],
+          b2b: ['{{t:rec_per_runs}}', '{{t:rec_nav_streaks}}: plays de seguida.'],
+          fastpick: ['{{t:fast_pick_pre}} … {{t:fast_pick_post}}', '{{t:rec_nav_fastest}}: o número de plays.'],
+          milmore: ['Mais marcas', '{{t:rec_nav_milestones}}: as recolhidas pelo meio.'],
+          ncfold: ['Recolher', '{{t:rec_nav_new_charts}}: recolhe uma lista.']
+        } },
+        certs: { title: '{{t:rec_nav_certs}}', items: {
+          open: ['{{t:certd_open_ledger}}', 'O registo completo.'],
+          types: ['{{t:certd_all}} / {{t:certd_songs}} / {{t:certd_albums}}', 'Filtra o registo.'],
+          tiers: ['Níveis', 'Diamante, Platina, Ouro.'],
+          sort: ['{{t:certd_sort}}', 'A ordem do registo.']
+        } }
+      },
+      challenges: {
+        'rec.view': ['Abre outra secção', 'No menu (no telemóvel, o menu {{t:rec_picker_label}}).'],
+        'rec.ent': ['Muda para artistas ou álbuns', 'O seletor por cima de qualquer lista.'],
+        'rec.per': ['Muda para outro top', '{{t:nav_daily}}, {{t:nav_monthly}} ou {{t:nav_yearly}}, numa secção ou num cartão da {{t:rec_nav_overview}}.'],
+        'rec.consec': ['Conta {{t:rec_run_consec}}', 'Em {{t:rec_nav_all_ones}}.'],
+        'rec.run': ['Abre o percurso de um recorde', 'A seta no fim de uma linha.'],
+        'rec.search': ['Pesquisa nos teus recordes', 'A caixa no topo.'],
+        'rec.ledger': ['Abre um registo de certificações', '{{t:rec_nav_certs}} → {{t:certd_open_ledger}}.'],
+        'rec.show': ['Mostra uma lista maior', '{{t:rec_size_label}}, por baixo da lista.']
+      },
+      quiz: {
+        q1: ['O que conta {{t:rec_run_consec}}?',
+          ['Todas as semanas em #1 somadas', 'Só a maior sequência sem pausas', 'Semanas no top 10'],
+          '{{t:rec_run_total}} soma todas as semanas; {{t:rec_run_consec}} conta só o troço mais longo sem pausas.'],
+        q2: ['Pesquisas um artista. O que acontece?',
+          ['Vês todas as secções, só com os recordes dele', 'Só a {{t:rec_nav_overview}} muda', 'Abre-se a janela dele'],
+          'A pesquisa filtra todas as secções de uma vez, e diz quantos recordes corresponderam.'],
+        q3: ['O que é um {{t:rec_nav_pak}}?',
+          ['Mais plays num dia', 'Uma estreia em #1', 'Um artista em #1 nos tops de artistas, músicas e álbuns ao mesmo tempo'],
+          'Os três tops liderados pelo mesmo artista no mesmo período.']
+      },
+      tips: [
+        'A pesquisa de {{t:nav_records}} mostra todos os recordes de um artista, música ou álbum, em todas as secções.',
+        'Em {{t:rec_nav_all_ones}}, muda para {{t:rec_run_consec}} para veres as maiores sequências sem pausas em #1.',
+        'Em {{t:rec_nav_certs}}, abre o registo de um artista para veres a rapidez de cada Ouro, Platina e Diamante.',
+        'Um {{t:rec_nav_pak}} é um artista em #1 nos três tops ao mesmo tempo. Quantos tens?',
+        'Cada cartão da {{t:rec_nav_overview}} muda sozinho entre os tops diário, semanal, mensal e anual.'
+      ]
+    },
     awards: { title: 'Prémios', promise: 'A tua própria gala de prémios, dos nomeados à cerimónia.' },
     soundtrack: { title: 'Sua Trilha Sonora', promise: 'Um mês, um ano ou desde sempre, contado em capítulos.' },
     dank100: { title: 'The Dank 100', promise: 'Os tops semanais de toda a gente somados num só.' },

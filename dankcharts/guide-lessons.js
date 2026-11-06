@@ -457,7 +457,83 @@ window.GL = {
       tips: [ ['stats-top', 'delta', 'stats.range'], ['stats-race', 'play', 'stats.race'], ['stats-games', 'daily', 'stats.game'],
         ['stats-drill', 'tabs', 'stats.drill'], ['stats-heat', 'colors', 'stats.heat'] ]
     },
-    { id: 'records', area: 'insights', nav: 'records', soon: true },
+    /* ── Lesson 8: Records (eleven sections, the plaque wall) ─────── */
+    { id: 'records', area: 'insights', nav: 'records', mins: 8, cover: 'rec-top',
+      scenes: [
+        // The page: its menu (a Section picker on a phone), the search and the Overview's hero
+        { id: 'top', shot: 'rec-top', phone: true,
+          spots: ['intro', 'search', 'nav', 'grp', 'count', 'picker', 'hero', 'reel', 'card'] },
+        { id: 'ov', shot: 'rec-ov', spots: ['intro', 'types', 'grp', 'cell', 'value', 'sw'] },
+        // Every section after Overview looks like All #1s
+        { id: 'ones', shot: 'rec-ones', phone: true,
+          spots: ['story', 'ent', 'per', 'run', 'sort', 'champ', 'boxes', 'sample', 'details', 'runner'] },
+        { id: 'list', shot: 'rec-list', spots: ['heads', 'all', 'name', 'tl', 'date', 'toggle', 'runrow'] },
+        { id: 'sort', shot: 'rec-sort', spots: ['btn', 'rank', 'recent', 'oldest', 'name'] },
+        { id: 'foot', shot: 'rec-foot', spots: ['note', 'show', 'sizes'] },
+        { id: 'search', shot: 'rec-search', spots: ['field', 'clear', 'status', 'nav'] },
+        { id: 'pak', shot: 'rec-pak', spots: ['story', 'about', 'info', 'infotext', 'per', 'champ', 'details'] },
+        { id: 'nc', shot: 'rec-nc', spots: ['about', 'tabs', 'title', 'fold', 'champ'] },
+        { id: 'mil', shot: 'rec-mil', spots: ['tabs', 'sub', 'tier', 'art', 'more'] },
+        { id: 'fast', shot: 'rec-fast', spots: ['tabs', 'pick', 'sub', 'champ'] },
+        { id: 'streaks', shot: 'rec-streaks', spots: ['ent', 'per', 'b2b', 'sub', 'champ'] },
+        { id: 'certs', shot: 'rec-certs', spots: ['story', 'tiers', 'card', 'total', 'bar', 'tally', 'open'] },
+        // What Show every certification opens under the wall
+        { id: 'ledger', shot: 'rec-ledger', spots: ['tally', 'facts', 'types', 'tiers', 'sort', 'medal', 'row', 'journey'] }
+      ],
+      howto: [
+        { id: 'find', challenge: 'rec.view', slides: [
+          { shot: 'rec-top', spot: 'nav' }, { shot: 'rec-top-m', spot: 'picker' }, { shot: 'rec-top', spot: 'count' },
+          { shot: 'rec-ones', spot: 'story' } ] },
+        { id: 'overview', challenge: 'rec.per', slides: [
+          { shot: 'rec-top', spot: 'hero' }, { shot: 'rec-top', spot: 'reel' }, { shot: 'rec-ov', spot: 'types' },
+          { shot: 'rec-ov', spot: 'cell' }, { shot: 'rec-ov', spot: 'sw' } ] },
+        { id: 'types', challenge: 'rec.ent', slides: [
+          { shot: 'rec-ones', spot: 'ent' }, { shot: 'rec-ones', spot: 'per' }, { shot: 'rec-mil', spot: 'tabs' },
+          { shot: 'rec-fast', spot: 'pick' } ] },
+        { id: 'read', challenge: 'rec.run', slides: [
+          { shot: 'rec-ones', spot: 'champ' }, { shot: 'rec-ones', spot: 'boxes' }, { shot: 'rec-ones', spot: 'runner' },
+          { shot: 'rec-list', spot: 'tl' }, { shot: 'rec-list', spot: 'toggle' }, { shot: 'rec-list', spot: 'all' } ] },
+        { id: 'count', challenge: 'rec.consec', slides: [
+          { shot: 'rec-ones', spot: 'run' }, { shot: 'rec-ones', spot: 'story' }, { shot: 'rec-sort', spot: 'btn' },
+          { shot: 'rec-list', spot: 'heads' } ] },
+        { id: 'search', challenge: 'rec.search', slides: [
+          { shot: 'rec-search', spot: 'field' }, { shot: 'rec-search', spot: 'status' }, { shot: 'rec-search', spot: 'nav' },
+          { shot: 'rec-search', spot: 'clear' } ] },
+        { id: 'certs', challenge: 'rec.ledger', slides: [
+          { shot: 'rec-certs', spot: 'tiers' }, { shot: 'rec-certs', spot: 'card' }, { shot: 'rec-certs', spot: 'open' },
+          { shot: 'rec-ledger', spot: 'facts' }, { shot: 'rec-ledger', spot: 'types' }, { shot: 'rec-ledger', spot: 'row' } ] },
+        { id: 'more', challenge: 'rec.show', slides: [
+          { shot: 'rec-foot', spot: 'note' }, { shot: 'rec-foot', spot: 'sizes' } ] }
+      ],
+      options: [
+        { id: 'sections', items: [
+          { id: 'ones', shot: 'rec-top', spot: 'n-AllOnes' }, { id: 'pak', shot: 'rec-top', spot: 'n-PAK' },
+          { id: 'app', shot: 'rec-top', spot: 'n-Appearances' }, { id: 'debuts', shot: 'rec-top', spot: 'n-Debuts' },
+          { id: 'nc', shot: 'rec-top', spot: 'n-NewCharts' }, { id: 'plays', shot: 'rec-top', spot: 'n-PeakPlays' },
+          { id: 'mil', shot: 'rec-top', spot: 'n-Milestones' }, { id: 'fast', shot: 'rec-top', spot: 'n-Fastest' },
+          { id: 'streaks', shot: 'rec-top', spot: 'n-Streaks' }, { id: 'certs', shot: 'rec-top', spot: 'n-Certs' } ] },
+        { id: 'switches', items: [
+          { id: 'ent', shot: 'rec-ones', spot: 'ent', def: '{{t:sx_cmp_type_songs}}' },
+          { id: 'per', shot: 'rec-ones', spot: 'per', def: '{{t:nav_weekly}}' },
+          { id: 'run', shot: 'rec-ones', spot: 'run', def: '{{t:rec_run_total}}' },
+          { id: 'sort', shot: 'rec-sort', spot: 'btn', def: '{{t:rec1_sort_rank}}' },
+          { id: 'show', shot: 'rec-foot', spot: 'sizes', def: '25' },
+          { id: 'all', shot: 'rec-list', spot: 'all' } ] },
+        { id: 'overview', items: [
+          { id: 'types', shot: 'rec-ov', spot: 'types', def: '{{t:sx_cmp_type_songs}}' }, { id: 'sw', shot: 'rec-ov', spot: 'sw' } ] },
+        { id: 'special', items: [
+          { id: 'pakinfo', shot: 'rec-pak', spot: 'info' }, { id: 'b2b', shot: 'rec-streaks', spot: 'b2b' },
+          { id: 'fastpick', shot: 'rec-fast', spot: 'pick' }, { id: 'milmore', shot: 'rec-mil', spot: 'more' },
+          { id: 'ncfold', shot: 'rec-nc', spot: 'fold' } ] },
+        { id: 'certs', items: [
+          { id: 'open', shot: 'rec-certs', spot: 'open' }, { id: 'types', shot: 'rec-ledger', spot: 'types', def: '{{t:certd_all}}' },
+          { id: 'tiers', shot: 'rec-ledger', spot: 'tiers', def: '{{t:certd_all}}' }, { id: 'sort', shot: 'rec-ledger', spot: 'sort' } ] }
+      ],
+      challenges: ['rec.view', 'rec.ent', 'rec.per', 'rec.consec', 'rec.run', 'rec.search', 'rec.ledger', 'rec.show'],
+      quiz: [ { id: 'q1', answer: 1 }, { id: 'q2', answer: 0 }, { id: 'q3', answer: 2 } ],
+      tips: [ ['rec-search', 'field', 'rec.search'], ['rec-ones', 'run', 'rec.consec'], ['rec-certs', 'open', 'rec.ledger'],
+        ['rec-pak', 'info'], ['rec-ov', 'sw', 'rec.per'] ]
+    },
     { id: 'awards', area: 'insights', nav: 'awards', soon: true },
     { id: 'soundtrack', area: 'insights', nav: 'soundtrack', soon: true },
     { id: 'dank100', area: 'more', nav: 'dank100', soon: true },
@@ -1894,7 +1970,245 @@ window.GL_TEXT.en = {
         'The heatmap has six colour schemes, and can show one artist, song or album on its own.'
       ]
     },
-    records: { title: 'Records', promise: 'Your record book: number ones, debuts, certifications, streaks and more.' },
+    records: {
+      title: '{{t:nav_records}}',
+      promise: 'Your record book: number ones, debuts, most plays, streaks, certifications and more, for songs, artists and albums.',
+      scenes: {
+        top: { title: '{{t:sec_records_title}}', spots: {
+          intro: ['What counts', 'The size of each chart the records come from, and how many days, weeks, months and years you have.'],
+          search: ['Search every record', 'Type an artist, song or album to see every record it holds, in every section.'],
+          nav: ['Sections', '{{t:rec_nav_overview}}, then {{t:rec_grp_chart}} and {{t:rec_grp_plays}}. One section shows at a time.'],
+          grp: ['Two groups', '{{t:rec_grp_chart}} come from your charts; {{t:rec_grp_plays}} come from your plays.'],
+          count: ['How many', 'How many record lists the section holds.'],
+          picker: ['{{t:rec_picker_label}}', 'On a phone the sections are in this menu.'],
+          hero: ['{{t:rec_hero_label}}', 'The artist who holds the most records, with their count.'],
+          reel: ['Their records', 'A reel of their records. It slides on its own; drag it to look through.'],
+          card: ['One record', 'What it is, the number, and when. The badge is its place in that list.']
+        } },
+        ov: { title: '{{t:rec_nav_overview}}', spots: {
+          intro: ['Your best in each', 'The record holder of every section on one page.'],
+          types: ['{{t:sx_cmp_type_songs}} / {{t:sx_cmp_type_artists}} / {{t:sx_cmp_type_albums}}', 'Switch all the cards at once.'],
+          grp: ['Two groups', '{{t:rec_grp_chart}} and {{t:rec_grp_plays}}, as in the menu.'],
+          cell: ['A card', 'The holder and their number. Click it to open that section.'],
+          value: ['The record', 'The number to beat.'],
+          sw: ['Which chart', 'Switch one card between {{t:nav_daily}}, {{t:nav_weekly}}, {{t:nav_monthly}} and {{t:nav_yearly}}.']
+        } },
+        ones: { title: '{{t:rec_nav_all_ones}}: how every section looks', spots: {
+          story: ['In one sentence', 'The record and who holds it. It changes with the switches below.'],
+          ent: ['{{t:sx_cmp_type_songs}} / {{t:sx_cmp_type_artists}} / {{t:sx_cmp_type_albums}}', 'Whose records to show.'],
+          per: ['Which chart', '{{t:nav_daily}}, {{t:nav_weekly}}, {{t:nav_monthly}} or {{t:nav_yearly}}.'],
+          run: ['{{t:rec_run_total}} / {{t:rec_run_consec}}', 'All the weeks at #1 added up, or the longest unbroken run.'],
+          sort: ['{{t:rec1_sort}}', '{{t:rec1_sort_rank}}, {{t:rec1_sort_recent}}, {{t:rec1_sort_oldest}} or {{t:rec1_sort_name}}.'],
+          champ: ['The holder', 'The #1 of the list, big: its number and when.'],
+          boxes: ['Its run', 'Every time it was #1. The dotted gaps are the time in between.'],
+          sample: ['Play a sample', 'Hear 30 seconds of it.'],
+          details: ['Details', 'Opens its window.'],
+          runner: ['#2 and #3', 'The two behind it. Click the ▸ for their window.']
+        } },
+        list: { title: 'The list', spots: {
+          heads: ['Columns', 'Click a heading to sort by it.'],
+          all: ['{{t:rec_expand_all}}', 'Opens or closes every run at once.'],
+          name: ['The entry', 'Click its name to open its window.'],
+          tl: ['When', 'A timeline of your history: each mark is a time it was #1.'],
+          date: ['Dates', 'Click a date to open that chart.'],
+          toggle: ['Its run', 'Opens or closes its run under the row.'],
+          runrow: ['The run', 'Every week it was #1, with the gaps. Click a box to see that chart.']
+        } },
+        sort: { title: '{{t:rec1_sort}}', spots: {
+          btn: ['{{t:rec1_sort}}', 'Opens the menu.'],
+          rank: ['{{t:rec1_sort_rank}}', 'The biggest record first.'],
+          recent: ['{{t:rec1_sort_recent}}', 'What happened last first.'],
+          oldest: ['{{t:rec1_sort_oldest}}', 'From the start of your history.'],
+          name: ['{{t:rec1_sort_name}}', 'Alphabetical.']
+        } },
+        foot: { title: '{{t:rec_size_label}}', spots: {
+          note: ['How many show', 'How many of the list you see.'],
+          show: ['{{t:rec_size_label}}', 'How long each list is.'],
+          sizes: ['Sizes', '25, 50, 100 or All (up to 1,000).']
+        } },
+        search: { title: 'Search', spots: {
+          field: ['Search', 'An artist, song or album.'],
+          clear: ['Clear', 'Back to the normal page.'],
+          status: ['Matches', 'How many records match, in how many sections.'],
+          nav: ['Every section at once', 'While you search, every section shows, only with the matching rows.']
+        } },
+        pak: { title: '{{t:rec_nav_pak}}', spots: {
+          story: ['The holder', 'Who has the most, and how many there are in all.'],
+          about: ['What it is', 'One artist at #1 on the artist, song and album charts at the same time.'],
+          info: ['{{t:rec_pak_info_btn}}', 'Opens the full explanation.'],
+          infotext: ['The explanation', 'What it takes, in a few lines.'],
+          per: ['Which chart', '{{t:nav_daily}}, {{t:nav_weekly}}, {{t:nav_monthly}} or {{t:nav_yearly}}.'],
+          champ: ['The holder', 'With their first song and album to do it.'],
+          details: ['Details', 'Opens their window.']
+        } },
+        nc: { title: '{{t:rec_nav_new_charts}}', spots: {
+          about: ['What it is', 'Records from {{t:rec_nav_new_charts}}: only songs, artists and albums you found recently.'],
+          tabs: ['{{t:sx_cmp_type_songs}} / {{t:sx_cmp_type_artists}} / {{t:sx_cmp_type_albums}}', 'Whose records to show.'],
+          title: ['One list', 'Each list has its own title.'],
+          fold: ['Fold', 'Folds a list away; press again to open it.'],
+          champ: ['The holder', 'The #1 of that list.']
+        } },
+        mil: { title: '{{t:rec_nav_milestones}}', spots: {
+          tabs: ['{{t:sx_cmp_type_songs}} / {{t:sx_cmp_type_artists}} / {{t:sx_cmp_type_albums}}', 'Whose milestones to show.'],
+          sub: ['How it works', 'Who got to each round number first.'],
+          tier: ['A milestone', 'The number of plays.'],
+          art: ['Who got there first', 'And when.'],
+          more: ['More', 'Opens the milestones folded in between.']
+        } },
+        fast: { title: '{{t:rec_nav_fastest}}', spots: {
+          tabs: ['{{t:sx_cmp_type_songs}} / {{t:sx_cmp_type_artists}} / {{t:sx_cmp_type_albums}}', 'Whose records to show.'],
+          pick: ['{{t:fast_pick_pre}} … {{t:fast_pick_post}}', 'Pick the number of plays to race to.'],
+          sub: ['How many made it', 'How many reached that number.'],
+          champ: ['The fastest', 'How long it took from its first play.']
+        } },
+        streaks: { title: '{{t:rec_nav_streaks}}', spots: {
+          ent: ['{{t:sx_cmp_type_songs}} / {{t:sx_cmp_type_artists}} / {{t:sx_cmp_type_albums}}', 'Whose streaks to show.'],
+          per: ['Days, weeks, months, years', 'Listened to every day in a row, every week in a row, and so on.'],
+          b2b: ['{{t:rec_per_runs}}', 'The most times one was played back to back, with nothing in between.'],
+          sub: ['How it counts', 'What the list measures.'],
+          champ: ['The longest', 'From when to when.']
+        } },
+        certs: { title: '{{t:rec_nav_certs}}', spots: {
+          story: ['The leader', 'The artist with the most certifications.'],
+          tiers: ['What it takes', 'The plays needed for Gold, Platinum and Diamond, for songs and for albums.'],
+          card: ['A plaque', 'The top three artists, each on a plaque.'],
+          total: ['Certifications', 'How many they have in all.'],
+          bar: ['The mix', 'Diamond, Platinum and Gold, as one bar.'],
+          tally: ['Songs and albums', 'Their certifications by tier.'],
+          open: ['{{t:certd_open_ledger}}', 'Opens their full ledger under the wall.']
+        } },
+        ledger: { title: '{{t:certd_title}}', spots: {
+          tally: ['In all', 'Every certification they have.'],
+          facts: ['Key facts', 'Songs and albums, the first and latest, the fastest earned and the best pace.'],
+          types: ['{{t:certd_all}} / {{t:certd_songs}} / {{t:certd_albums}}', 'Filter by songs or albums.'],
+          tiers: ['Tiers', 'Filter by Diamond, Platinum or Gold.'],
+          sort: ['{{t:certd_sort}}', 'Change the order.'],
+          medal: ['The tier', 'Which certification, and at how many plays.'],
+          row: ['One certification', 'The song or album, its plays a day and its plays now.'],
+          journey: ['How it got there', 'From its first play to the certification: how long it took, and the next tier to go.']
+        } }
+      },
+      howto: {
+        find: { title: 'Find a section', slides: [
+          'The sections are in the menu on the left.',
+          'On a phone, open the {{t:rec_picker_label}} menu.',
+          'The number says how many lists it holds.',
+          'Each section starts with its record in one sentence.'
+        ] },
+        overview: { title: 'Read the {{t:rec_nav_overview}}', slides: [
+          'Up top: the artist with the most records.',
+          'A reel of their records. Drag it.',
+          'Below, the best of each section. Switch them all to artists or albums.',
+          'Click a card to open its section.',
+          'Or switch one card to another chart.'
+        ] },
+        types: { title: 'Songs, artists or albums', slides: [
+          'Most sections switch between songs, artists and albums.',
+          'And between your Daily, Weekly, Monthly and Yearly charts.',
+          '{{t:rec_nav_milestones}} and {{t:rec_nav_fastest}} have their own switch.',
+          '{{t:rec_nav_fastest}} also lets you pick the number of plays.'
+        ] },
+        read: { title: 'Read a record', slides: [
+          'The holder, big, with its number.',
+          'Every time it was #1, with the gaps.',
+          '#2 and #3 beside it.',
+          'The rest of the list: a timeline for each.',
+          'Open a row’s run.',
+          'Or open them all.'
+        ] },
+        count: { title: 'Total or in a row', slides: [
+          '{{t:rec_run_total}} adds up every week at #1; {{t:rec_run_consec}} counts only the longest unbroken run.',
+          'The sentence changes with it.',
+          'Sort by rank, most recent, oldest or name.',
+          'Or click a column heading.'
+        ] },
+        search: { title: 'Search your records', slides: [
+          'Type an artist, song or album.',
+          'How many records match.',
+          'Every section shows, with only the matching rows.',
+          'Clear it to go back.'
+        ] },
+        certs: { title: 'Open a certification ledger', slides: [
+          'The plays a song or album needs for each tier.',
+          'The top three artists on plaques.',
+          'Open one artist’s every certification.',
+          'Their key facts.',
+          'Filter by songs, albums or tier.',
+          'Each certification, with how long it took.'
+        ] },
+        more: { title: 'See more of a list', slides: [
+          'How many of the list you see.',
+          'Show 25, 50, 100 or all.'
+        ] }
+      },
+      options: {
+        sections: { title: 'Sections', items: {
+          ones: ['{{t:rec_nav_all_ones}}', 'Everything that reached #1, and for how long.'],
+          pak: ['{{t:rec_nav_pak}}', '#1 on the artist, song and album charts at once.'],
+          app: ['{{t:rec_nav_appearances}}', 'The most weeks (days, months, years) on a chart.'],
+          debuts: ['{{t:rec_nav_debuts}}', 'The biggest debuts.'],
+          nc: ['{{t:rec_nav_new_charts}}', 'Records from {{t:rec_nav_new_charts}}.'],
+          plays: ['{{t:rec_nav_peak_plays}}', 'The most plays in one day, week, month or year.'],
+          mil: ['{{t:rec_nav_milestones}}', 'First to each round number of plays.'],
+          fast: ['{{t:rec_nav_fastest}}', 'Quickest to a number of plays.'],
+          streaks: ['{{t:rec_nav_streaks}}', 'Longest runs of days, weeks, months, years, and back to back.'],
+          certs: ['{{t:rec_nav_certs}}', 'Gold, Platinum and Diamond, artist by artist.']
+        } },
+        switches: { title: 'In every section', items: {
+          ent: ['{{t:sx_cmp_type_songs}} / {{t:sx_cmp_type_artists}} / {{t:sx_cmp_type_albums}}', 'Whose records.'],
+          per: ['{{t:nav_daily}} / {{t:nav_weekly}} / {{t:nav_monthly}} / {{t:nav_yearly}}', 'Which chart.'],
+          run: ['{{t:rec_run_total}} / {{t:rec_run_consec}}', 'Added up, or unbroken. {{t:rec_nav_all_ones}} and {{t:rec_nav_appearances}}.'],
+          sort: ['{{t:rec1_sort}}', '{{t:rec1_sort_rank}}, {{t:rec1_sort_recent}}, {{t:rec1_sort_oldest}}, {{t:rec1_sort_name}}.'],
+          show: ['{{t:rec_size_label}}', '25, 50, 100 or All.'],
+          all: ['{{t:rec_expand_all}}', 'Every run at once.']
+        } },
+        overview: { title: '{{t:rec_nav_overview}}', items: {
+          types: ['{{t:sx_cmp_type_songs}} / {{t:sx_cmp_type_artists}} / {{t:sx_cmp_type_albums}}', 'Every card at once.'],
+          sw: ['Card chart', 'One card at a time.']
+        } },
+        special: { title: 'Only in some sections', items: {
+          pakinfo: ['{{t:rec_pak_info_btn}}', '{{t:rec_nav_pak}} explained.'],
+          b2b: ['{{t:rec_per_runs}}', '{{t:rec_nav_streaks}}: plays back to back.'],
+          fastpick: ['{{t:fast_pick_pre}} … {{t:fast_pick_post}}', '{{t:rec_nav_fastest}}: the number of plays.'],
+          milmore: ['More milestones', '{{t:rec_nav_milestones}}: the ones folded in between.'],
+          ncfold: ['Fold', '{{t:rec_nav_new_charts}}: fold a list away.']
+        } },
+        certs: { title: '{{t:rec_nav_certs}}', items: {
+          open: ['{{t:certd_open_ledger}}', 'The full ledger.'],
+          types: ['{{t:certd_all}} / {{t:certd_songs}} / {{t:certd_albums}}', 'Filter the ledger.'],
+          tiers: ['Tiers', 'Diamond, Platinum, Gold.'],
+          sort: ['{{t:certd_sort}}', 'The ledger’s order.']
+        } }
+      },
+      challenges: {
+        'rec.view': ['Open another section', 'In the menu (on a phone, the {{t:rec_picker_label}} menu).'],
+        'rec.ent': ['Switch to artists or albums', 'The switch over any list.'],
+        'rec.per': ['Switch to another chart', '{{t:nav_daily}}, {{t:nav_monthly}} or {{t:nav_yearly}}, in a section or on an {{t:rec_nav_overview}} card.'],
+        'rec.consec': ['Count {{t:rec_run_consec}}', 'In {{t:rec_nav_all_ones}}.'],
+        'rec.run': ['Open a record’s run', 'The arrow at the end of a row.'],
+        'rec.search': ['Search your records', 'The box at the top.'],
+        'rec.ledger': ['Open a certification ledger', '{{t:rec_nav_certs}} → {{t:certd_open_ledger}}.'],
+        'rec.show': ['Show a longer list', '{{t:rec_size_label}}, under the list.']
+      },
+      quiz: {
+        q1: ['What does {{t:rec_run_consec}} count?',
+          ['Every week at #1 added up', 'Only the longest unbroken run', 'Weeks in the top 10'],
+          '{{t:rec_run_total}} adds up every week; {{t:rec_run_consec}} only counts the longest stretch without a break.'],
+        q2: ['You search for an artist. What happens?',
+          ['Every section shows, with only their records', 'Only {{t:rec_nav_overview}} changes', 'Their window opens'],
+          'Search filters every section at once, and says how many records matched.'],
+        q3: ['What is a {{t:rec_nav_pak}}?',
+          ['The most plays in one day', 'A debut at #1', 'One artist at #1 on the artist, song and album charts at once'],
+          'All three charts topped by the same artist in the same period.']
+      },
+      tips: [
+        'Search in {{t:nav_records}} shows every record an artist, song or album holds, across all sections.',
+        'In {{t:rec_nav_all_ones}}, switch to {{t:rec_run_consec}} to see the longest unbroken runs at #1.',
+        'In {{t:rec_nav_certs}}, open an artist’s ledger to see how fast each Gold, Platinum and Diamond came.',
+        'A {{t:rec_nav_pak}} is one artist at #1 on all three charts at once. How many do you have?',
+        'Every {{t:rec_nav_overview}} card can switch between the Daily, Weekly, Monthly and Yearly charts on its own.'
+      ]
+    },
     awards: { title: 'Awards', promise: 'Your own awards show, from nominees to the ceremony.' },
     soundtrack: { title: 'Your Soundtrack', promise: 'A month, a year or all time told in chapters.' },
     dank100: { title: 'The Dank 100', promise: 'Everyone’s weekly charts added up into one.' },

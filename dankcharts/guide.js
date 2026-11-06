@@ -29,7 +29,7 @@
   'use strict';
 
   // Bump when the lesson files or the pictures change (it's their ?v=)
-  const GUIDE_V = '8';
+  const GUIDE_V = '9';
   const STORE = 'dc_guide_progress';
   const LANG_FILES = ['es', 'pt-BR', 'pt-PT'];
 
@@ -137,7 +137,16 @@
     'stats.add':     { lesson: 'stats', fn: 'sxCmpAddKey' },
     'stats.race':    { lesson: 'stats', click: '#sxCmpMode [data-cmode="race"]' },
     'stats.drill':   { lesson: 'stats', fn: 'sxShowVolDrill' },
-    'stats.heat':    { lesson: 'stats', click: '#heatmapThemeBtns button, #heatmapCard .hm-step, #heatmapTypeBtns button, #heatmapCard .hm-strip > *' }
+    'stats.heat':    { lesson: 'stats', click: '#heatmapThemeBtns button, #heatmapCard .hm-step, #heatmapTypeBtns button, #heatmapCard .hm-strip > *' },
+    // Records (app.js + records-look.js)
+    'rec.view':      { lesson: 'records', click: '#recordsNav .records-nav-btn' },
+    'rec.ent':       { lesson: 'records', click: '#recordsView .rec-ent-tab, #recordsView .rec-ov-type, #recordsView .mil-tab, #recordsView .fast-tab, #recordsView .nc-rec-tab' },
+    'rec.per':       { lesson: 'records', click: '#recordsView .rec-per-tab, #recordsView .rec-ov-sw-btn' },
+    'rec.consec':    { lesson: 'records', click: '#recordsView [data-rec-run="consec"]' },
+    'rec.run':       { lesson: 'records', click: '#recordsView .rec-run-toggle-btn, #recordsView .rec-expand-all-btn' },
+    'rec.search':    { lesson: 'records', input: '#recordsSearch' },
+    'rec.ledger':    { lesson: 'records', click: '#recordsView .certw-open, #recCertsSection .rec-run-toggle-btn' },
+    'rec.show':      { lesson: 'records', click: '#recordsSizeBtns button' }
   };
   // Where "Show me" takes you for each challenge, and what it rings there.
   // open/tab: open the chart's ⋮ menu on a tab first.
@@ -195,7 +204,16 @@
     'stats.add':     { nav: 'graphs', stab: 'compare', ring: '#sxCmpAddCard' },
     'stats.race':    { nav: 'graphs', stab: 'compare', ring: '#sxCmpMode' },
     'stats.drill':   { nav: 'graphs', stab: 'charts', ring: '.sx-vol-card' },
-    'stats.heat':    { nav: 'graphs', stab: 'charts', ring: '#heatmapCard .hm-bar' }
+    'stats.heat':    { nav: 'graphs', stab: 'charts', ring: '#heatmapCard .hm-bar' },
+    // rview: the Records section to open first
+    'rec.view':      { nav: 'records', ring: '#recordsNav, #recPicker' },
+    'rec.ent':       { nav: 'records', rview: 'recAllOnesSection', ring: '#recAllOnesSection .rec-ent-tabs' },
+    'rec.per':       { nav: 'records', rview: 'recAllOnesSection', ring: '#recAllOnesSection .rec-per-tabs' },
+    'rec.consec':    { nav: 'records', rview: 'recAllOnesSection', ring: '#recAllOnesSection .rec-run-seg' },
+    'rec.run':       { nav: 'records', rview: 'recAllOnesSection', ring: '#recAllOnesSection .rec-run-toggle-btn' },
+    'rec.search':    { nav: 'records', ring: '#recordsSearchBar' },
+    'rec.ledger':    { nav: 'records', rview: 'recCertsSection', ring: '#recCertsSection .certw-open' },
+    'rec.show':      { nav: 'records', rview: 'recAllOnesSection', ring: '#recordsSizeBar' }
   };
 
   let lastInput = 0;
@@ -969,13 +987,24 @@
         const tab = wrap && $('.kebab-tab[data-tab="' + (sh.menu === 'actions' ? 'export' : sh.menu) + '"]', wrap);
         if (tab) tab.click();
       }
-      const el = $$(sh.ring).find(x => x.offsetParent !== null || x.getClientRects().length);
-      if (!el) return;
-      if (typeof window._dcTourScrollTo === 'function') window._dcTourScrollTo(el);
-      else el.scrollIntoView({ block: 'center', behavior: reduced() ? 'auto' : 'smooth' });
-      el.classList.add('cg-tour-spotlight', 'gd-spot');
-      setTimeout(() => el.classList.remove('cg-tour-spotlight', 'gd-spot'), 6000);
-      openCoach(lessonId, chId, el);
+      // A Records section next (rview: its data-rec-view)
+      if (sh.rview) {
+        const rb = $('#recordsNav [data-rec-view="' + sh.rview + '"]');
+        if (rb && !rb.classList.contains('active')) rb.click();
+      }
+      // Records builds the first time it opens, so the control is looked
+      // for again (up to ~7 s) until it shows
+      let tries = 0;
+      const ring = () => {
+        const el = $$(sh.ring).find(x => x.offsetParent !== null || x.getClientRects().length);
+        if (!el) { if (++tries < 25) setTimeout(ring, 300); return; }
+        if (typeof window._dcTourScrollTo === 'function') window._dcTourScrollTo(el);
+        else el.scrollIntoView({ block: 'center', behavior: reduced() ? 'auto' : 'smooth' });
+        el.classList.add('cg-tour-spotlight', 'gd-spot');
+        setTimeout(() => el.classList.remove('cg-tour-spotlight', 'gd-spot'), 6000);
+        openCoach(lessonId, chId, el);
+      };
+      ring();
     }, navBtn ? 700 : 50);
   }
 
