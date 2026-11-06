@@ -356,6 +356,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-06', t: 'feature', a: 'soundtrack', h: 'e597f2c',
+    title: "Daily number ones in the yearly Soundtrack",
+    detail: "The Number ones chapter of a year's Soundtrack now has the same Weekly / Daily switch as the month view. Daily shows every run at #1 of your daily chart across the year, newest first, and each row opens that day. The reign strip packs tighter when there are many reigns, so a whole year still fits a phone screen. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-11-06', t: 'fix', a: 'records', h: '610351c',
     title: "Record notifications open the exact list",
     detail: "Tapping a new #1 notification now opens Records on that exact list: it picks Songs, Artists or Albums, the Daily, Weekly, Monthly or Yearly chart, Total or In a row, and the Fastest tier for you, scrolls to the list and outlines it for a moment. Before, it only opened the section and often showed a different list. Works for notifications you already have too. Works with Last.fm, Google Sheets and CSV uploads." },
