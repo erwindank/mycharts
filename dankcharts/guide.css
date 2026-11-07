@@ -111,6 +111,11 @@
 .gd-card-body { display: flex; flex-direction: column; gap: var(--sp-2); padding: var(--sp-4); flex: 1; }
 .gd-card-top { display: flex; align-items: center; gap: var(--sp-2); }
 .gd-card-ico { width: 18px; height: 18px; color: var(--accent); flex: none; }
+/* Glow kit (2026-11-07): the card shows the tab's own drawn title icon, a
+   little bigger so the drawing reads; the front bubble etc. cut out against
+   the card, not the page */
+.gd-card-ico.dc-gico { width: 24px; height: 24px; }
+.gd-card { --gk-surf-bg: var(--bg2); }
 .gd-card-t { font-family: var(--font-display); font-size: var(--fs-md); font-weight: 700; color: var(--text); line-height: 1.2; }
 .gd-card-p { margin: 0; color: var(--text2); font-size: var(--fs-sm); line-height: 1.5; }
 .gd-card-meta { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); margin-top: auto; padding-top: var(--sp-2); }

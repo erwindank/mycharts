@@ -392,7 +392,8 @@
     // No box around the board: the posts are rows on the page.
     h += '<div class="bd-section">';
     h += '<div class="section-header bd-page-header"><h2 class="section-header-h2">' +
-      '<svg class="graphs-h2-ico bd-h2-ico" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M6.2 4.4V3.2c0-.8.6-1.4 1.4-1.4h5.6c.8 0 1.4.6 1.4 1.4v3.9c0 .8-.6 1.4-1.4 1.4h-.6v1.7l-1.8-1.7"/><path d="M1.4 6.4c0-.8.6-1.4 1.4-1.4h6.4c.8 0 1.4.6 1.4 1.4v4.3c0 .8-.6 1.4-1.4 1.4H5.4l-2.4 2v-2h-.2c-.8 0-1.4-.6-1.4-1.4Z"/></svg>' +
+      // the glow kit's two bubbles (glowkit.js)
+      (typeof window.dcGlowIco === 'function' ? window.dcGlowIco('board') : '') +
       '<span>' + esc(tr('board_title')) + '</span></h2><div class="section-rule"></div></div>';
     h += '<p class="bd-page-sub">' + esc(tr('board_sub')) + '</p>';
     h += '<div class="bd-body">';

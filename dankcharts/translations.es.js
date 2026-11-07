@@ -2441,7 +2441,7 @@ TRANSLATIONS['es'] = Object.assign({
     ev_empty_recent_rel: 'No hay lanzamientos en los últimos 6 meses de tus {{n}} artistas principales.',
     ev_tickets_credit: 'Entradas en Ticketmaster',
     ev_anniv_all: 'Mostrar los {{n}} aniversarios',
-    sec_records_title: '🏆 Récords y Salón de la Fama',
+    sec_records_title: 'Récords y Salón de la Fama',
     collapsed_hint: 'contraído — clic en + para expandir',
 
     // Upload zone

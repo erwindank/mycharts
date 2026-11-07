@@ -36879,9 +36879,9 @@ function _dcPlLibraryHtml() {
   const totalSongs = names.reduce((s, n) => s + _ytPlaylists[n].length, 0);
 
   // The shared page title (as Records / Stats / Events / Awards / Soundtrack)
-  // with the nav's playlist icon
+  // with the glow kit's playlist icon (glowkit.js)
   let html = `<div class="section-header dc-pl-page-header">` +
-    `<h2 class="section-header-h2"><svg class="graphs-h2-ico dc-pl-h2-ico" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M2 3.9h8.4M2 7.5h8.4M2 11.1h5"/><path d="M10.5 9.9 14.3 12.1 10.5 14.3Z"/></svg><span>${esc(t('nav_playlists'))}</span></h2>` +
+    `<h2 class="section-header-h2">${typeof dcGlowIco === 'function' ? dcGlowIco('lists') : ''}<span>${esc(t('nav_playlists'))}</span></h2>` +
     `<div class="section-rule"></div>` +
     `</div>`;
 
@@ -57997,7 +57997,15 @@ function dcGuideJump(slug) {}
    same 16px grid. */
 let _cgIcoN = 0;
 function cgNavIco(period, cls) {
-  const svg = document.querySelector(`#periodNav button[data-period="${period}"] .nav-icon svg`);
+  // Glow kit (2026-11-07): a tab's guide icon is now its title icon, the drawn
+  // glowing picture from glowkit.js, so a Guide card shows exactly what the tab
+  // opens with. The chart periods share the chart picture in their own nav hue.
+  const gName = window.DC_GLOW_NAV && window.DC_GLOW_NAV[period];
+  if (gName && typeof window.dcGlowIco === 'function') {
+    return window.dcGlowIco(gName, (cls || 'cg-ico') + ' gk-nav-' + period);
+  }
+  // Fallback: the nav's own line drawing
+  const svg =document.querySelector(`#periodNav button[data-period="${period}"] .nav-icon svg`);
   if (!svg) return '';
   const c = svg.cloneNode(true);
   // Yearly's page corner only shows while the tab is hovered; at rest it is
@@ -62548,7 +62556,7 @@ function renderRatingsPage() {
   const ic = _amIco;
   const key = k => esc(JSON.stringify(k));
   const onKey = `onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}"`;
-  const head = `<div class="section-header rp-header"><h2 class="section-header-h2">${typeof cgNavIco === 'function' ? cgNavIco('ratings', 'graphs-h2-ico') : ''}<span>${esc(t('nav_ratings'))}</span></h2><div class="section-rule"></div></div>
+  const head = `<div class="section-header rp-header"><h2 class="section-header-h2">${typeof dcGlowIco === 'function' ? dcGlowIco('ratings') : ''}<span>${esc(t('nav_ratings'))}</span></h2><div class="section-rule"></div></div>
     <p class="rp-intro">${esc(t('rp_intro'))}</p>`;
   if (!allPlays.length) { view.innerHTML = head; return; }
 

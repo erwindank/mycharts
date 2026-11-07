@@ -2496,7 +2496,7 @@ const TRANSLATIONS = {
     ev_empty_recent_rel: 'No recent releases in the past 6 months for your top {{n}} artists.',
     ev_tickets_credit: 'Tickets via Ticketmaster',
     ev_anniv_all: 'Show all {{n}} anniversaries',
-    sec_records_title: '🏆 Records & Hall of Fame',
+    sec_records_title: 'Records & Hall of Fame',
     collapsed_hint: 'collapsed — click + to expand',
 
     // Upload zone

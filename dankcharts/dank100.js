@@ -419,7 +419,9 @@
     var u = signedInUid();
     var weeks = openWeeks();
     var h = '<div class="d100-section">';
-    h += '<div class="section-header d100-page-header"><h2 class="section-header-h2">' + TITLE_ICO +
+    h += '<div class="section-header d100-page-header"><h2 class="section-header-h2">' +
+      // the glow kit's podium (glowkit.js); the old line podium if it is missing
+      (typeof window.dcGlowIco === 'function' ? window.dcGlowIco('d100') : TITLE_ICO) +
       '<span>' + esc(tr('d100_title')) + '</span></h2><div class="section-rule"></div></div>';
     h += '<p class="d100-page-sub">' + esc(tr('d100_sub')) + '</p>';
     h += '<div class="d100-body">';
