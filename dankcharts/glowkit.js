@@ -299,6 +299,28 @@
       '<path class="gk-s gk-ray gk-d1 gk-a70" d="m12 12-5.6-5.6M12 12l5.6 5.6M12 12l5.6-5.6M12 12l-5.6 5.6"/>' +
       '<circle class="gk-o gk-pop" cx="12" cy="12" r="2.4"/>',
 
+    /* ── Setup guide (setup-guide.html, 2026-11-07) ─────────────────────── */
+
+    // What you'll need: a clipboard whose two ticks pop in, one after the other
+    checklist:
+      '<rect class="gk-f" x="4" y="3.6" width="16" height="18" rx="2.6"/>' +
+      '<rect class="gk-o" x="8.4" y="2" width="7.2" height="3.4" rx="1.3"/>' +
+      '<path class="gk-s gk-pop" d="M7.4 10.6l1.5 1.5 2.6-2.8"/>' +
+      '<path class="gk-s gk-pop gk-late" d="M7.4 16l1.5 1.5 2.6-2.8"/>' +
+      '<path class="gk-s gk-a70" d="M13.6 11h3.4M13.6 16.4h3.4"/>',
+
+    // Troubleshooting: a spanner that gives a turn
+    wrench:
+      '<path class="gk-f gk-swing" d="M14.9 6.1a4.3 4.3 0 0 0-5.6 5.4l-5.9 5.9a2 2 0 0 0 2.8 2.8l5.9-5.9a4.3 4.3 0 0 0 5.4-5.6l-2.7 2.7-2.5-.6-.6-2.5z"/>',
+
+    // Need help?: a pair of headphones that bob to the beat
+    headset:
+      '<g class="gk-bob">' +
+        '<path class="gk-s gk-thick" d="M4.2 15.2V12a7.8 7.8 0 0 1 15.6 0v3.2"/>' +
+        '<rect class="gk-o" x="2.6" y="13.4" width="4.6" height="7" rx="1.8"/>' +
+        '<rect class="gk-o" x="16.8" y="13.4" width="4.6" height="7" rx="1.8"/>' +
+      '</g>',
+
     /* ── Stat tile glyphs (inside a glow tile; colour = the tile's) ─────── */
 
     play:

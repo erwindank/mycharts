@@ -51,6 +51,28 @@
       sg_goto_step: 'Go to step {{n}}: {{label}}',
       sg_mark_done: 'Mark step {{n}} done',
       sg_copied: 'Copied!',
+
+      // ── 2026-11-07 redesign: path cards, chooser, path bar ──
+      sg_card_open: 'Open below ↓',
+      sg_ch_step: 'Question {{n}} of 2',
+      sg_ch_q1: 'Do you already scrobble to Last.fm?',
+      sg_ch_q1_yes: 'Yes, I use Last.fm',
+      sg_ch_q1_no: 'No, or not sure what that is',
+      sg_ch_q2a: 'What matters more to you?',
+      sg_ch_q2a_now: 'Seeing my charts right now',
+      sg_ch_q2a_full: 'Charts that update themselves, and adding plays by hand',
+      sg_ch_q2b: 'Where do you listen?',
+      sg_ch_other: 'Somewhere else',
+      sg_ch_kicker: 'Your best way in',
+      sg_ch_why_sheets: 'Your Last.fm plays flow into your own Google Sheet every 90 minutes, and you can add or fix plays from the site. Ten minutes, once.',
+      sg_ch_why_lastfm: 'Type your Last.fm username and your charts appear in about a minute — nothing else to set up.',
+      sg_ch_why_file: 'Ask {{svc}} for a copy of your listening history and upload it. No account on our side needed.',
+      sg_ch_why_file_any: 'Upload an export from your music service or any spreadsheet of plays. No account on our side needed.',
+      sg_ch_tip_file: '<strong>Tip:</strong> a free <a href="https://www.last.fm/join" target="_blank" rel="noopener">Last.fm account</a> counts every play from now on, automatically — then the Google Sheets or Last.fm way keeps your charts fresh without re-uploading.',
+      sg_ch_go: 'Start this guide',
+      sg_ch_again: 'Start over',
+      sg_ch_back: '← Back',
+      sg_pathbar_switch: 'Switch to {{name}}',
     },
 
     // ── ESPAÑOL ──────────────────────────────────────────────────────────────
