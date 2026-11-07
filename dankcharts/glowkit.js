@@ -98,6 +98,24 @@
         '</g></g>' +
         '',
 
+    // Around the chart, and sharing it: a chart card with a share arrow
+    // flying out of its corner
+    around:
+      '<rect class="gk-f" x="2.5" y="6.5" width="13.5" height="15" rx="2.2"/>' +
+      '<path class="gk-s" d="M5.5 11h4.5M5.5 14.5h7.5M5.5 18h5.5"/>' +
+      '<g class="gk-shoot"><path class="gk-s" d="M12.5 11.5 20.5 3.5"/><path class="gk-o" d="M15.6 3h5.9v5.9Z"/></g>',
+
+    // Song, artist and album windows: a window sliding up from a stack,
+    // with a cover and its lines
+    windows:
+      '<rect class="gk-f gk-faint" x="6.5" y="2.5" width="15" height="12.5" rx="2"/>' +
+      '<g class="gk-lift">' +
+        '<rect class="gk-surf" x="2.5" y="7.5" width="15.5" height="14" rx="2.2"/>' +
+        '<path class="gk-s" d="M2.5 10.8h15.5"/>' +
+        '<rect class="gk-o" x="5" y="13.2" width="5.2" height="5.2" rx="0.9"/>' +
+        '<path class="gk-s" d="M12.2 14.2h3.5M12.2 17.4h2.4"/>' +
+      '</g>',
+
     // Settings: a gear that turns (its teeth are a dashed thick ring, so the
     // turn is visible and the path stays tiny)
     settings:

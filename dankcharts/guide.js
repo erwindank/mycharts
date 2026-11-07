@@ -769,11 +769,15 @@
   /* A lesson's icon: its tab's glow icon, or (for the two lessons with no tab
      behind them) a drawing of its own from glowkit.js: a rocket for Getting
      started, a gear for Settings (glow kit, 2026-11-07). */
-  const LESSON_GICO = { start: 'start', settings: 'settings' };
+  // Lessons with a drawing of their own. It wins over the tab's icon, so the
+  // two weekly-chart side lessons (Around the chart, the windows) don't repeat
+  // the Weekly strip.
+  const LESSON_GICO = { start: 'start', settings: 'settings', around: 'around', windows: 'windows' };
   function lessonIco(ls, cls) {
-    if (ls.nav && typeof window.cgNavIco === 'function') return window.cgNavIco(ls.nav, cls);
     const g = LESSON_GICO[ls.id];
-    return g && typeof window.dcGlowIco === 'function' ? window.dcGlowIco(g, cls) : '';
+    if (g && typeof window.dcGlowIco === 'function') return window.dcGlowIco(g, cls);
+    if (ls.nav && typeof window.cgNavIco === 'function') return window.cgNavIco(ls.nav, cls);
+    return '';
   }
 
   function cardHTML(ls) {
