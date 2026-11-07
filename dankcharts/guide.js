@@ -766,10 +766,20 @@
     if (tipStage) { const t = todaysTip(); const s = t && shot(t.shot); if (s) requestAnimationFrame(() => focus(tipStage, s, t.spot)); }
   }
 
+  /* A lesson's icon: its tab's glow icon, or (for the two lessons with no tab
+     behind them) a drawing of its own from glowkit.js: a rocket for Getting
+     started, a gear for Settings (glow kit, 2026-11-07). */
+  const LESSON_GICO = { start: 'start', settings: 'settings' };
+  function lessonIco(ls, cls) {
+    if (ls.nav && typeof window.cgNavIco === 'function') return window.cgNavIco(ls.nav, cls);
+    const g = LESSON_GICO[ls.id];
+    return g && typeof window.dcGlowIco === 'function' ? window.dcGlowIco(g, cls) : '';
+  }
+
   function cardHTML(ls) {
     const title = tx('lessons.' + ls.id + '.title') || ls.id;
     const promise = tx('lessons.' + ls.id + '.promise') || '';
-    const icon = ls.nav && typeof window.cgNavIco === 'function' ? window.cgNavIco(ls.nav, 'gd-card-ico') : '';
+    const icon = lessonIco(ls, 'gd-card-ico');
     if (ls.soon) {
       return `<div class="gd-card gd-card-soon" aria-disabled="true">
         <div class="gd-card-art gd-card-art-soon">${icon}</div>
@@ -1198,7 +1208,7 @@
         <nav class="gd-crumbs"><button type="button" class="gd-back" data-hub>← ${h(ui('back_hub'))}</button></nav>
         <header class="gd-lhead">
           <div class="gd-lhead-txt">
-            <div class="gd-eyebrow">${ls.nav && typeof window.cgNavIco === 'function' ? window.cgNavIco(ls.nav, 'gd-lhead-ico') : ''}${h(tx('ui.area.' + ls.area))} · ${h(ui('mins', { n: ls.mins || 5 }))}</div>
+            <div class="gd-eyebrow">${lessonIco(ls, 'gd-lhead-ico')}${h(tx('ui.area.' + ls.area))} · ${h(ui('mins', { n: ls.mins || 5 }))}</div>
             <h2 class="gd-lhead-h">${h(tx(base + '.title'))}</h2>
             <p class="gd-lhead-p">${h(tx(base + '.promise'))}</p>
           </div>
@@ -1489,7 +1499,7 @@
     el.setAttribute('role', 'status');
     const bits = reduced() ? '' : Array.from({ length: 28 }, (_, i) => `<i style="--a:${(i * 360 / 28).toFixed(1)}deg;--d:${(90 + (i * 37) % 70)}px;--c:${i % 3}"></i>`).join('');
     el.innerHTML = `<div class="gd-cele-box"><div class="gd-cele-burst" aria-hidden="true">${bits}</div>
-      <div class="gd-cele-medal" aria-hidden="true">${ls.nav && typeof window.cgNavIco === 'function' ? window.cgNavIco(ls.nav, 'gd-cele-ico') : '★'}</div>
+      <div class="gd-cele-medal" aria-hidden="true">${lessonIco(ls, 'gd-cele-ico') || '★'}</div>
       <div class="gd-cele-k">${h(ui('mastered_title'))}</div>
       <strong>${h(ui('mastered_text', { lesson: tx('lessons.' + ls.id + '.title') }))}</strong></div>`;
     document.body.appendChild(el);

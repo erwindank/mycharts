@@ -80,6 +80,33 @@
       '<path class="gk-f" d="M8.1 8.4c2.1 0 3 1.5 3.9 3.6s1.8 3.6 3.9 3.6a3.6 3.6 0 0 0 0-7.2c-2.1 0-3 1.5-3.9 3.6s-1.8 3.6-3.9 3.6a3.6 3.6 0 0 1 0-7.2Z"/>' +
       '<path class="gk-s gk-chase" pathLength="1" d="M8.1 8.4c2.1 0 3 1.5 3.9 3.6s1.8 3.6 3.9 3.6a3.6 3.6 0 0 0 0-7.2c-2.1 0-3 1.5-3.9 3.6s-1.8 3.6-3.9 3.6a3.6 3.6 0 0 1 0-7.2Z"/>',
 
+    /* Charts Guide lessons with no tab behind them */
+
+    // Getting started ("First steps"): a trail of footprints, left, right,
+    // left, each print appearing after the one before it. The prints sit
+    // in an outer <g> carrying their place and angle, so the CSS move on the
+    // inner <g> never overwrites that transform.
+    start:
+        '<g transform="translate(7.2 14.6) rotate(-12)"><g class="gk-step gk-s1">' +
+          '<ellipse class="gk-o" cx="0" cy="0" rx="2" ry="2.8"/><ellipse class="gk-o" cx="0" cy="4.3" rx="1.45" ry="1.5"/>' +
+        '</g></g>' +
+        '<g transform="translate(15.6 10.2) rotate(12)"><g class="gk-step gk-s2">' +
+          '<ellipse class="gk-o" cx="0" cy="0" rx="2" ry="2.8"/><ellipse class="gk-o" cx="0" cy="4.3" rx="1.45" ry="1.5"/>' +
+        '</g></g>' +
+        '<g transform="translate(8.6 3.9) rotate(-12)"><g class="gk-step gk-s3">' +
+          '<ellipse class="gk-o" cx="0" cy="0" rx="2" ry="2.8"/><ellipse class="gk-o" cx="0" cy="4.3" rx="1.45" ry="1.5"/>' +
+        '</g></g>' +
+        '',
+
+    // Settings: a gear that turns (its teeth are a dashed thick ring, so the
+    // turn is visible and the path stays tiny)
+    settings:
+      '<g class="gk-spin">' +
+        '<circle class="gk-teeth" cx="12" cy="12" r="8.6" pathLength="16"/>' +
+        '<circle class="gk-f" cx="12" cy="12" r="6.9"/>' +
+        '<circle class="gk-surf" cx="12" cy="12" r="2.6"/>' +
+      '</g>',
+
     // Stats: a framed bar chart whose bars grow — the Sheets card's bars
     stats:
       '<rect class="gk-f" x="2.5" y="2.5" width="19" height="19" rx="4"/>' +

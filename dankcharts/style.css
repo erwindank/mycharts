@@ -47018,3 +47018,39 @@ body.yellow-light .dc-gtile, body.pink-light .dc-gtile, body.green-light .dc-gti
 @media (prefers-reduced-motion: reduce) {
   .dc-gico .gk-chase { stroke-dasharray: none; stroke-width: 1.6; }
 }
+
+/* ── GLOW KIT: the two Charts Guide lessons with no tab (2026-11-07) ──────────
+   Getting started = a rocket (lime, the Charts Guide's own nav hue);
+   Settings = a turning gear (soft indigo). */
+.dc-gico--start    { --gk-c: #a3e635; }
+.dc-gico--settings { --gk-c: #a5b4fc; }
+/* gear teeth: a thick ring cut into 8 teeth by its dash pattern */
+.dc-gico .gk-teeth {
+  fill: none;
+  stroke: var(--gk);
+  stroke-width: 3.2;
+  stroke-dasharray: 1 1;
+}
+/* the gear keeps turning while its card is hovered (slower than a record) */
+.dc-gico--settings .gk-spin { animation-duration: 2.4s; }
+:is(.section-header-h2, .gd-card, .dc-gk-host):hover .dc-gico--settings .gk-spin { animation-iteration-count: infinite; }
+
+/* First steps footprints: each print stamps down after the one before it.
+   Once on show (ends with all three visible); while the card is hovered they
+   keep walking: stamp, stay, fade, and again (a second keyframe name, so the
+   loop starts fresh when the pointer arrives). */
+.dc-gico .gk-step { transform-origin: center; animation: gkStep 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.dc-gico .gk-s2 { animation-delay: 0.35s; }
+.dc-gico .gk-s3 { animation-delay: 0.7s; }
+@keyframes gkStep { from { opacity: 0; transform: scale(0.5); } to { opacity: 1; transform: scale(1); } }
+:is(.section-header-h2, .gd-card, .dc-gk-host):hover .dc-gico .gk-step {
+  animation: gkStepLoop 2.1s ease-out infinite;
+}
+:is(.section-header-h2, .gd-card, .dc-gk-host):hover .dc-gico .gk-s2 { animation-delay: 0.35s; }
+:is(.section-header-h2, .gd-card, .dc-gk-host):hover .dc-gico .gk-s3 { animation-delay: 0.7s; }
+@keyframes gkStepLoop {
+  0%       { opacity: 0; transform: scale(0.5); }
+  12%      { opacity: 1; transform: scale(1.08); }
+  18%, 70% { opacity: 1; transform: scale(1); }
+  100%     { opacity: 0; transform: scale(1); }
+}
