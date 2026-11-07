@@ -80,6 +80,13 @@
       '<path class="gk-f" d="M8.1 8.4c2.1 0 3 1.5 3.9 3.6s1.8 3.6 3.9 3.6a3.6 3.6 0 0 0 0-7.2c-2.1 0-3 1.5-3.9 3.6s-1.8 3.6-3.9 3.6a3.6 3.6 0 0 1 0-7.2Z"/>' +
       '<path class="gk-s gk-chase" pathLength="1" d="M8.1 8.4c2.1 0 3 1.5 3.9 3.6s1.8 3.6 3.9 3.6a3.6 3.6 0 0 0 0-7.2c-2.1 0-3 1.5-3.9 3.6s-1.8 3.6-3.9 3.6a3.6 3.6 0 0 1 0-7.2Z"/>',
 
+    // Charts Guide (tab title): an open book, its right page turning over
+    guide:
+      '<path class="gk-f" d="M12 6.45C9.9 4.65 7.2 4.05 3.75 4.05a1.35 1.35 0 0 0-1.35 1.35v11.1c0 .75.6 1.35 1.35 1.35 3.45 0 6.15.6 8.25 2.25Z"/>' +
+      '<path class="gk-f" d="M12 6.45c2.1-1.8 4.8-2.4 8.25-2.4.75 0 1.35.6 1.35 1.35v11.1c0 .75-.6 1.35-1.35 1.35-3.45 0-6.15.6-8.25 2.25Z"/>' +
+      '<path class="gk-surf gk-flip" d="M12 6.45c2.1-1.8 4.8-2.4 8.25-2.4.75 0 1.35.6 1.35 1.35v11.1c0 .75-.6 1.35-1.35 1.35-3.45 0-6.15.6-8.25 2.25Z"/>' +
+      '<path class="gk-s" d="M12 6.45V20.1M15 9.2h3.6M15 12.2h3.6"/>',
+
     /* Charts Guide lessons with no tab behind them */
 
     // Getting started ("First steps"): a trail of footprints, left, right,

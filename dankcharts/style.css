@@ -16666,7 +16666,8 @@
     .dc-pl-view>.section-header .section-header-h2,
     #ratingsView>.section-header .section-header-h2,
     #boardView .bd-section>.section-header .section-header-h2,
-    #dank100View .d100-section>.section-header .section-header-h2 {
+    #dank100View .d100-section>.section-header .section-header-h2,
+    #chartsguideView .gd-hub>.section-header .section-header-h2 {
       font-family: var(--font-display);
       font-size: var(--fs-lg);
       font-weight: 500;
@@ -46636,26 +46637,30 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
 .gd-card:hover .dc-gico .gk-fill,
 .dc-gk-host:hover .dc-gico .gk-fill { clip-path: inset(0 0 0 0); }
 
-@keyframes gkGrow  { from { transform: scaleY(0.15); } to { transform: scaleY(1); } }
-@keyframes gkClimb { from { transform: translateY(6px); opacity: 0.3; } to { transform: none; opacity: 1; } }
-@keyframes gkPop   { 0% { transform: scale(0) rotate(-40deg); } 60% { transform: scale(1.35) rotate(10deg); } 100% { transform: scale(1) rotate(0); } }
+/* Every move starts from a readable picture (opacity >= 0.45, scale >= 0.4):
+   while a tab is busy (Records calculating) the page can't advance
+   animations, and a move frozen on an invisible first frame looked like a
+   missing icon (the All #1s crown, 2026-11-07). */
+@keyframes gkGrow  { from { transform: scaleY(0.4); } to { transform: scaleY(1); } }
+@keyframes gkClimb { from { transform: translateY(6px); opacity: 0.6; } to { transform: none; opacity: 1; } }
+@keyframes gkPop   { 0% { transform: scale(0.6) rotate(-30deg); } 60% { transform: scale(1.35) rotate(10deg); } 100% { transform: scale(1) rotate(0); } }
 @keyframes gkSwing { 0% { transform: rotate(0); } 20% { transform: rotate(12deg); } 45% { transform: rotate(-8deg); } 70% { transform: rotate(4deg); } 100% { transform: rotate(0); } }
-@keyframes gkBlink { 0% { opacity: 0.2; } 50%, 100% { opacity: 1; } }
+@keyframes gkBlink { 0% { opacity: 0.55; } 50%, 100% { opacity: 1; } }
 @keyframes gkLvl   { 0%, 100% { transform: scaleX(1); } 50% { transform: scaleX(0.55); } }
-@keyframes gkDrop  { from { transform: translateY(-5px); opacity: 0; } to { transform: none; opacity: 1; } }
-@keyframes gkZoom  { from { transform: scale(1.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-@keyframes gkLay   { from { transform: translateY(-4px); opacity: 0; } to { transform: none; opacity: 1; } }
-@keyframes gkTrail { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes gkDrop  { from { transform: translateY(-5px); opacity: 0.6; } to { transform: none; opacity: 1; } }
+@keyframes gkZoom  { from { transform: scale(1.5); opacity: 0.6; } to { transform: scale(1); opacity: 1; } }
+@keyframes gkLay   { from { transform: translateY(-4px); opacity: 0.6; } to { transform: none; opacity: 1; } }
+@keyframes gkTrail { from { stroke-dashoffset: 0.6; } to { stroke-dashoffset: 0; } }
 @keyframes gkWave  { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(0.45); } }
 @keyframes gkFlag  { 0%, 100% { transform: skewY(0); } 25% { transform: skewY(-7deg); } 75% { transform: skewY(5deg); } }
-@keyframes gkZap   { 0% { transform: scale(0.6) rotate(-8deg); opacity: 0.2; } 40% { transform: scale(1.15) rotate(3deg); opacity: 1; } 55% { opacity: 0.55; } 70%, 100% { transform: none; opacity: 1; } }
+@keyframes gkZap   { 0% { transform: scale(0.7) rotate(-8deg); opacity: 0.6; } 40% { transform: scale(1.15) rotate(3deg); opacity: 1; } 55% { opacity: 0.55; } 70%, 100% { transform: none; opacity: 1; } }
 @keyframes gkFlick { 0%, 100% { transform: scale(1, 1); } 30% { transform: scale(0.94, 1.08); } 60% { transform: scale(1.04, 0.95); } }
-@keyframes gkRay   { from { transform: scale(0.2); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes gkRay   { from { transform: scale(0.6); opacity: 0.6; } to { transform: scale(1); opacity: 1; } }
 @keyframes gkSpin  { from { transform: rotate(0); } to { transform: rotate(360deg); } }
 @keyframes gkHop   { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-1.8px); } }
 @keyframes gkPing  { from { opacity: 0.9; transform: scale(1); } to { opacity: 0; transform: scale(2.6); } }
 @keyframes gkBeat  { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
-@keyframes gkRise  { from { transform: translateY(5px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes gkRise  { from { transform: translateY(5px); opacity: 0.6; } to { transform: none; opacity: 1; } }
 
 /* Per-icon hue: the same --nav-c each tab already owns in the period nav, so
    a title icon is the colour of the nav button that opened it. */
@@ -46999,7 +47004,7 @@ body.yellow-light .dc-gtile, body.pink-light .dc-gtile, body.green-light .dc-gti
 
 /* the week strip's highlighted day slides into place */
 .dc-gico .gk-slide { animation: gkSlide 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
-@keyframes gkSlide { from { transform: translateX(-9px); opacity: 0.2; } to { transform: none; opacity: 1; } }
+@keyframes gkSlide { from { transform: translateX(-9px); opacity: 0.6; } to { transform: none; opacity: 1; } }
 
 /* the sun's rays turn slowly (a slower gkSpin) */
 .dc-gico .gk-spin.gk-slow { animation-duration: 6s; transform-origin: center; }
@@ -47042,7 +47047,7 @@ body.yellow-light .dc-gtile, body.pink-light .dc-gtile, body.green-light .dc-gti
 .dc-gico .gk-step { transform-origin: center; animation: gkStep 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
 .dc-gico .gk-s2 { animation-delay: 0.35s; }
 .dc-gico .gk-s3 { animation-delay: 0.7s; }
-@keyframes gkStep { from { opacity: 0; transform: scale(0.5); } to { opacity: 1; transform: scale(1); } }
+@keyframes gkStep { from { opacity: 0.45; transform: scale(0.75); } to { opacity: 1; transform: scale(1); } }
 :is(.section-header-h2, .gd-card, .dc-gk-host):hover .dc-gico .gk-step {
   animation: gkStepLoop 2.1s ease-out infinite;
 }
@@ -47061,5 +47066,17 @@ body.yellow-light .dc-gtile, body.pink-light .dc-gtile, body.green-light .dc-gti
 .dc-gico--windows { --gk-c: #a78bfa; }
 .dc-gico .gk-shoot { animation: gkShoot 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
 .dc-gico .gk-lift  { animation: gkLift 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
-@keyframes gkShoot { from { transform: translate(-5px, 5px); opacity: 0.15; } to { transform: none; opacity: 1; } }
-@keyframes gkLift  { from { transform: translate(3px, 6px); opacity: 0.3; } to { transform: none; opacity: 1; } }
+@keyframes gkShoot { from { transform: translate(-5px, 5px); opacity: 0.6; } to { transform: none; opacity: 1; } }
+@keyframes gkLift  { from { transform: translate(3px, 6px); opacity: 0.6; } to { transform: none; opacity: 1; } }
+
+/* Charts Guide tab title: an open book (lime, the guide's nav hue) whose right
+   page turns over to the left, then settles back into the book */
+.dc-gico--guide { --gk-c: #a3e635; }
+.dc-gico .gk-flip { transform-origin: left center; animation: gkFlip 1s ease-in-out both; }
+@keyframes gkFlip {
+  0%   { transform: scaleX(1); opacity: 1; }
+  70%  { transform: scaleX(-1); opacity: 1; }
+  100% { transform: scaleX(-1); opacity: 0; }
+}
+/* the title row sits closer to the hero than the hub's section gap */
+.gd-hub > .gd-page-header { margin-bottom: calc(var(--sp-3) - var(--sp-6)); }

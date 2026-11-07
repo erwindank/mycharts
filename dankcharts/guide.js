@@ -725,9 +725,11 @@
 
     host.innerHTML = `
       <div class="gd-hub">
+        <!-- The tab title, like every other tab's (glow kit icon: an open book
+             whose page turns). It replaces the hero's small CHARTS GUIDE eyebrow. -->
+        <div class="section-header gd-page-header"><h2 class="section-header-h2">${typeof window.dcGlowIco === 'function' ? window.dcGlowIco('guide') : ''}<span>${h(typeof t === 'function' ? t('nav_chartsguide') : 'Charts Guide')}</span></h2><div class="section-rule"></div></div>
         <header class="gd-hero">
           <div class="gd-hero-txt">
-            <div class="gd-eyebrow">${h(ui('eyebrow'))}</div>
             <h2 class="gd-hero-h">${h(ui('hero_title'))}</h2>
             <p class="gd-hero-sub">${h(ui('hero_sub'))}</p>
             <div class="gd-hero-actions">
