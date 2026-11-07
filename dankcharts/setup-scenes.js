@@ -686,7 +686,7 @@
             '<div class="r-share-person"><span class="r-avatar r-avatar-xs">A</span><span>' + L('sh_you') + '<br><small>alex@gmail.com</small></span><span class="r-share-role">' + L('sh_owner') + '</span></div>' +
             '<p class="r-share-lbl">' + L('sh_general') + '</p>' +
             '<div class="r-share-general"><span class="r-share-globe">🌐</span>' +
-              '<span class="r-share-gtext"><span class="r-share-sel" data-dot="1">' + L('sh_anyone') + ' ▾</span><small>' + L('sh_anyone_d') + '</small></span>' +
+              '<span class="r-share-gtext"><span class="r-share-sel" data-dot="1" data-dot-at="r">' + L('sh_anyone') + ' ▾</span><small>' + L('sh_anyone_d') + '</small></span>' +
               '<span class="r-share-sel r-share-rolesel" data-dot="2" data-dot-at="r">' + L('sh_viewer') + ' ▾</span></div>' +
             '<div class="r-gdlg-actions r-share-actions"><span class="r-btn-out" data-dot="3">🔗 ' + L('sh_copy') + '</span><span class="r-btn-fill r-btn-pill">' + L('sh_done') + '</span></div>') });
       }
@@ -831,7 +831,7 @@
     function placeMarks() {
       marks.querySelectorAll('.shot-ring, .shot-dot').forEach(function (m) { m.remove(); });
       var fr = fig.getBoundingClientRect();
-      layer.querySelectorAll('[data-dot]').forEach(function (el) {
+      layer.querySelectorAll('[data-dot]').forEach(function (el, idx) {
         var n = el.getAttribute('data-dot');
         var r = el.getBoundingClientRect();
         if (!r.width && !r.height) return;
@@ -857,7 +857,7 @@
         if (at === 'l') { y = r.top - fr.top + r.height / 2; }
         dot.style.left = x + 'px';
         dot.style.top = y + 'px';
-        dot.style.animationDelay = (0.12 * (+n - 1)) + 's';
+        dot.style.animationDelay = (0.12 * idx) + 's';   // pop in one after another
         marks.appendChild(dot);
       });
     }
