@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Chart guides keep their own icons":
+    ["Os guias das tabelas voltam a ter o próprio ícone",
+     "No Guia, cada lição de tabela volta a mostrar a versão brilhante do ícone do seu separador em vez de um ícone único: o sol para Diário, a faixa de dias para Semanal, os calendários para Mensal e Anual, e o infinito para Histórico. Cada um mexe-se quando passas o rato pelo cartão."],
   "Stickers beside four tab titles":
     ["Autocolantes ao lado de quatro títulos de separador",
      "The Dank 100, Fórum da comunidade, Sua Trilha Sonora e Recordes têm agora um pequeno selo inclinado ao lado do título, como os da página inicial: ESTA SEMANA · EM DIRETO com um ponto a piscar, TODOS PODEM PUBLICAR, o número de capítulos da tua Trilha Sonora e HISTÓRICO. Acendem quando passas o rato pelo título. No telemóvel ficam ocultos para o título ter a linha toda."],

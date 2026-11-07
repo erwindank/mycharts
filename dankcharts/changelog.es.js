@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Chart guides keep their own icons":
+    ["Las guías de rankings tienen otra vez su propio icono",
+     "En la Guía de Charts, cada lección de ranking muestra otra vez la versión brillante del icono de su pestaña en lugar de un icono común: el sol para Diario, la tira de días para Semanal, los calendarios para Mensual y Anual, y el infinito para Histórico. Cada uno se mueve al pasar por su tarjeta."],
   "Stickers beside four tab titles":
     ["Pegatinas junto a cuatro títulos de pestaña",
      "The Dank 100, Foro de la comunidad, Tu Banda Sonora y Récords llevan ahora una pequeña insignia inclinada junto al título, como las de la página de inicio: ESTA SEMANA · EN VIVO con un punto que parpadea, TODOS PUEDEN PUBLICAR, el número de capítulos de tu Banda Sonora e HISTÓRICO. Se iluminan al pasar por el título. En el móvil se ocultan para que el título tenga toda la fila."],

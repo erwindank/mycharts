@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 465;
+const DC_CL_I18N_V = 466;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -107,7 +107,7 @@ const DC_CL_HIGHLIGHTS = [
       "The stat tiles' icons glow and move, and the option you pick in any switch lights up in its colour.",
       "Light themes get soft shadows instead of glows, and Reduce motion keeps everything still.",
     ],
-    also: ["976d4a0", "8651866", "f9c3ae2", "0fce0a6", "8e66664"] },
+    also: ["976d4a0", "8651866", "f9c3ae2", "0fce0a6", "8e66664", "2b5f651"] },
   { id: "charts-guide", d: "2026-11-06", a: "guide", img: "whatsnew/charts-guide.webp", go: "chartsguide",
     title: "A Charts Guide you can explore",
     intro: "The Charts Guide is now a lesson for every tab, built from real screenshots. Pick a spot on a picture to see what it does, follow the steps, then try it in the app.",
@@ -366,6 +366,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-07', t: 'design', a: 'guide', h: '2b5f651',
+    title: "Chart guides keep their own icons",
+    detail: "In the Charts Guide, each chart lesson shows the glowing version of its own tab icon again, instead of one shared chart icon: the sun for Daily, the day strip for Weekly, the calendars for Monthly and Yearly, and the infinity loop for All-Time. Each one moves when you point at its card." },
   { d: '2026-11-07', t: 'feature', a: 'ui', h: '8e66664',
     title: "Stickers beside four tab titles",
     detail: "The Dank 100, Community Board, Your Soundtrack and Records now carry a small tilted badge next to their title, like the ones on the start page: THIS WEEK · LIVE with a blinking dot, EVERYONE CAN POST, the number of chapters your Soundtrack has, and ALL-TIME. They light up when you point at the title. Hidden on phones so the title keeps the row." },
