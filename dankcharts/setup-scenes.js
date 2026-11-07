@@ -142,7 +142,9 @@
        o.lfmItems [label, …]                the Last.fm menu's items
        o.share    1                         dot on Share
        o.tabDot   1                         dot on the Settings tab
-       o.overlay  '…'                       a dialog drawn over the sheet */
+       o.overlay  '…'                       a dialog drawn over the sheet
+       o.open 'file' + o.fileHtml           the File menu, dropped down
+       o.doc / o.tabs                       another document's name / tab strip */
   function gsDropdown(items, dots) {
     return '<span class="r-dd">' + items.map(function (it, i) {
       if (it === '-') return '<span class="r-dd-sep"></span>';
@@ -158,6 +160,10 @@
       var isExt = i === 7;
       var open = isExt && o.open === 'ext';
       var dot = isExt && o.menuDot && o.menuDot.ext;
+      // File menu (i 0): o.open === 'file' drops it with o.fileHtml inside
+      if (i === 0 && o.open === 'file') {
+        return '<span class="r-gs-mi open"' + (o.menuDot && o.menuDot.file ? ' data-dot="' + o.menuDot.file + '"' : '') + '>' + m + o.fileHtml + '</span>';
+      }
       return '<span class="r-gs-mi' + (open ? ' open' : '') + '"' + (dot ? ' data-dot="' + dot + '"' : '') + '>' + m +
         (open ? gsDropdown(L('gs_ext').split('|'), o.itemDot) : '') + '</span>';
     }).join('');
@@ -180,17 +186,18 @@
         var cls = (o.cellCls && o.cellCls[ref]) || '';
         if (r === 0 && o.tab === 'data') cls += ' r-gs-head';
         grid += '<td' + (cls ? ' class="' + cls + '"' : '') + '>' +
-          (cd ? '<span class="r-gs-cellbox" data-dot="' + cd + '" data-dot-at="r"></span>' : '') + val + '</td>';
+          (cd ? '<span class="r-gs-cellbox" data-dot="' + cd + '" data-dot-at="' + (o.cellDotAt || 'r') + '"></span>' : '') + val + '</td>';
       }
       grid += '</tr>';
     }
     grid += '</table>';
     var tabs = '<div class="r-gs-tabs"><span class="r-gs-tabbtn">+</span><span class="r-gs-tabbtn">≡</span>' +
+      (o.tabs ? o.tabs :
       '<span class="r-gs-tab' + (o.tab !== 'settings' ? ' on' : '') + '">Full Raw Listening History</span>' +
-      '<span class="r-gs-tab' + (o.tab === 'settings' ? ' on' : '') + '"' + (o.tabDot ? ' data-dot="' + o.tabDot + '"' : '') + '>Settings</span></div>';
+      '<span class="r-gs-tab' + (o.tab === 'settings' ? ' on' : '') + '"' + (o.tabDot ? ' data-dot="' + o.tabDot + '"' : '') + '>Settings</span>') + '</div>';
     return '<div class="r-page r-gs">' +
       '<div class="r-gs-top">' + GS_ICON +
-        '<div class="r-gs-tt"><div class="r-gs-title">' + L('gs_doc') + ' <span class="r-gs-star">☆</span></div>' +
+        '<div class="r-gs-tt"><div class="r-gs-title">' + (o.doc || L('gs_doc')) + ' <span class="r-gs-star">☆</span></div>' +
         '<div class="r-gs-menu">' + menuHtml + '</div></div>' +
         '<div class="r-gs-right"><span class="r-gs-share"' + (o.share ? ' data-dot="' + o.share + '"' : '') + '><span class="r-gs-lock">🔒</span>' + L('gs_share') + '</span><span class="r-avatar">A</span></div>' +
       '</div>' +
@@ -756,6 +763,282 @@
     }
   };
 
+  /* ── Upload path: where each service hands out your history ─────────────
+     Each service's own words per language, as close as we know them. These
+     menus move around; the guide says so beside the pictures. */
+  var UP = {
+    en: {
+      cap_sp: 'Spotify: Account → Privacy settings',
+      sp_title: 'Download your data',
+      sp_intro: 'Select the data you want. You’ll get an email when it’s ready.',
+      sp_acct: 'Account data', sp_acct_d: 'Playlists, streaming history of the past year, searches… Ready in about 5 days.',
+      sp_ext: 'Extended streaming history', sp_ext_d: 'Your whole streaming history, from the very start. Ready in up to 30 days.',
+      sp_tech: 'Technical log information', sp_tech_d: 'Technical data, not needed here.',
+      sp_btn: 'Request data',
+      cap_dz: 'Your Deezer workbook: drag the history to the front',
+      dz_hist: 'Listening history',
+      cap_ghan: 'mainstream.ghan.nl/export.html',
+      cap_to: 'Google Takeout',
+      to_h: 'Create a new export',
+      to_sel: 'Select data to include',
+      to_desel: 'Deselect all',
+      to_yt: 'YouTube and YouTube Music',
+      to_yt_d: 'Watch and search history, videos, comments and other content',
+      to_all: 'All YouTube data included',
+      to_hist: 'history',
+      to_next: 'Next step',
+      cap_ap: 'privacy.apple.com',
+      ap_h: 'Get a copy of your data',
+      ap_sub: 'Select the data you’d like to request.',
+      ap_ams: 'Apple Media Services information',
+      ap_ams_d: 'Includes your music listening history',
+      ap_other: 'iCloud Photos', ap_other2: 'Apple Pay activity',
+      ap_btn: 'Continue',
+      cap_csv1: 'An export with its own column names',
+      cap_csv2: 'Row 1 renamed — that’s the whole job',
+      cap_csv3: 'Save it as a CSV',
+      csv_doc: 'my-listening-history',
+      gs_file: 'New|Open|Import|Make a copy|-|Share|Email|Download|-|Rename|Move',
+      gs_dl: 'Microsoft Excel (.xlsx)|OpenDocument (.ods)|PDF (.pdf)|Web page (.html)|Comma-separated values (.csv)|Tab-separated values (.tsv)'
+    },
+    es: {
+      cap_sp: 'Spotify: Cuenta → Ajustes de privacidad',
+      sp_title: 'Descarga tus datos',
+      sp_intro: 'Selecciona los datos que quieres. Te enviaremos un correo cuando estén listos.',
+      sp_acct: 'Datos de la cuenta', sp_acct_d: 'Listas, historial de reproducción del último año, búsquedas… Listos en unos 5 días.',
+      sp_ext: 'Historial de reproducción ampliado', sp_ext_d: 'Todo tu historial de reproducción, desde el principio. Listo en hasta 30 días.',
+      sp_tech: 'Información de registro técnico', sp_tech_d: 'Datos técnicos, no hacen falta aquí.',
+      sp_btn: 'Solicitar datos',
+      cap_dz: 'Tu libro de Deezer: arrastra el historial al principio',
+      dz_hist: 'Historial de escucha',
+      cap_to: 'Google Takeout',
+      to_h: 'Crear una exportación',
+      to_sel: 'Seleccionar los datos que se incluirán',
+      to_desel: 'Desmarcar todo',
+      to_yt: 'YouTube y YouTube Music',
+      to_yt_d: 'Historial de reproducciones y búsquedas, vídeos, comentarios y otro contenido',
+      to_all: 'Se incluyen todos los datos de YouTube',
+      to_hist: 'historial',
+      to_next: 'Siguiente paso',
+      ap_h: 'Obtener una copia de tus datos',
+      ap_sub: 'Selecciona los datos que quieres solicitar.',
+      ap_ams: 'Información de Apple Media Services',
+      ap_ams_d: 'Incluye tu historial de escucha de música',
+      ap_other: 'Fotos de iCloud', ap_other2: 'Actividad de Apple Pay',
+      ap_btn: 'Continuar',
+      cap_csv1: 'Una exportación con sus propios nombres de columna',
+      cap_csv2: 'La fila 1 renombrada: eso es todo',
+      cap_csv3: 'Guárdala como CSV',
+      csv_doc: 'mi-historial',
+      gs_file: 'Nuevo|Abrir|Importar|Hacer una copia|-|Compartir|Correo electrónico|Descargar|-|Cambiar nombre|Mover',
+      gs_dl: 'Microsoft Excel (.xlsx)|Documento OpenDocument (.ods)|Documento PDF (.pdf)|Página web (.html)|Valores separados por comas (.csv)|Valores separados por tabuladores (.tsv)'
+    },
+    'pt-BR': {
+      cap_sp: 'Spotify: Conta → Configurações de privacidade',
+      sp_title: 'Baixar seus dados',
+      sp_intro: 'Selecione os dados que você quer. Você vai receber um e-mail quando estiverem prontos.',
+      sp_acct: 'Dados da conta', sp_acct_d: 'Playlists, histórico de streaming do último ano, buscas… Prontos em cerca de 5 dias.',
+      sp_ext: 'Histórico de streaming estendido', sp_ext_d: 'Todo o seu histórico de streaming, desde o começo. Pronto em até 30 dias.',
+      sp_tech: 'Informações de log técnico', sp_tech_d: 'Dados técnicos, não precisa aqui.',
+      sp_btn: 'Solicitar dados',
+      cap_dz: 'Sua planilha do Deezer: arraste o histórico para o início',
+      dz_hist: 'Histórico de audição',
+      cap_to: 'Google Takeout',
+      to_h: 'Criar uma nova exportação',
+      to_sel: 'Selecionar os dados a serem incluídos',
+      to_desel: 'Desmarcar tudo',
+      to_yt: 'YouTube e YouTube Music',
+      to_yt_d: 'Histórico de exibição e pesquisa, vídeos, comentários e outros conteúdos',
+      to_all: 'Todos os dados do YouTube incluídos',
+      to_hist: 'histórico',
+      to_next: 'Próxima etapa',
+      ap_h: 'Obter uma cópia dos seus dados',
+      ap_sub: 'Selecione os dados que você quer solicitar.',
+      ap_ams: 'Informações dos Serviços de Mídia da Apple',
+      ap_ams_d: 'Inclui seu histórico de músicas ouvidas',
+      ap_other: 'Fotos do iCloud', ap_other2: 'Atividade do Apple Pay',
+      ap_btn: 'Continuar',
+      cap_csv1: 'Uma exportação com nomes de coluna próprios',
+      cap_csv2: 'A linha 1 renomeada: é só isso',
+      cap_csv3: 'Salve como CSV',
+      csv_doc: 'meu-historico',
+      gs_file: 'Novo|Abrir|Importar|Fazer uma cópia|-|Compartilhar|E-mail|Fazer download|-|Renomear|Mover',
+      gs_dl: 'Microsoft Excel (.xlsx)|Documento OpenDocument (.ods)|Documento PDF (.pdf)|Página da Web (.html)|Valores separados por vírgula (.csv)|Valores separados por tabulação (.tsv)'
+    },
+    'pt-PT': {
+      cap_sp: 'Spotify: Conta → Definições de privacidade',
+      sp_title: 'Transferir os teus dados',
+      sp_intro: 'Seleciona os dados que queres. Vais receber um email quando estiverem prontos.',
+      sp_acct: 'Dados da conta', sp_acct_d: 'Playlists, histórico de streaming do último ano, pesquisas… Prontos em cerca de 5 dias.',
+      sp_ext: 'Histórico de streaming alargado', sp_ext_d: 'Todo o teu histórico de streaming, desde o início. Pronto em até 30 dias.',
+      sp_tech: 'Informações de registo técnico', sp_tech_d: 'Dados técnicos, não são precisos aqui.',
+      sp_btn: 'Pedir dados',
+      cap_dz: 'O teu livro do Deezer: arrasta o histórico para o início',
+      dz_hist: 'Histórico de audição',
+      cap_to: 'Google Takeout',
+      to_h: 'Criar uma nova exportação',
+      to_sel: 'Selecionar os dados a incluir',
+      to_desel: 'Desmarcar tudo',
+      to_yt: 'YouTube e YouTube Music',
+      to_yt_d: 'Histórico de visualizações e pesquisas, vídeos, comentários e outro conteúdo',
+      to_all: 'Todos os dados do YouTube incluídos',
+      to_hist: 'histórico',
+      to_next: 'Passo seguinte',
+      ap_h: 'Obter uma cópia dos seus dados',
+      ap_sub: 'Selecione os dados que pretende pedir.',
+      ap_ams: 'Informações dos Serviços multimédia da Apple',
+      ap_ams_d: 'Inclui o seu histórico de audição de música',
+      ap_other: 'Fotografias em iCloud', ap_other2: 'Atividade do Apple Pay',
+      ap_btn: 'Continuar',
+      cap_csv1: 'Uma exportação com os seus próprios nomes de coluna',
+      cap_csv2: 'A linha 1 renomeada: é só isso',
+      cap_csv3: 'Guarda-a como CSV',
+      csv_doc: 'o-meu-historico',
+      gs_file: 'Novo|Abrir|Importar|Fazer uma cópia|-|Partilhar|Email|Transferir|-|Mudar o nome|Mover',
+      gs_dl: 'Microsoft Excel (.xlsx)|Documento OpenDocument (.ods)|Documento PDF (.pdf)|Página Web (.html)|Valores separados por vírgulas (.csv)|Valores separados por tabulações (.tsv)'
+    }
+  };
+  Object.keys(UP).forEach(function (l) { Object.assign(LBL[l], UP[l]); });
+
+  function chk(on) { return '<span class="r-chk' + (on ? ' on' : '') + '">' + (on ? '✓' : '') + '</span>'; }
+
+  Object.assign(SCENES, {
+    // Spotify: Privacy settings → Download your data
+    'sp-data': {
+      url: 'www.spotify.com/account/privacy/', w: 720, cap: 'cap_sp',
+      html: function (L) {
+        function opt(on, t, d, dot) {
+          return '<div class="r-sp-opt' + (on ? ' on' : '') + '"' + (dot ? ' data-dot="' + dot + '"' : '') + '>' + chk(on) +
+            '<span><b>' + t + '</b><small>' + d + '</small></span></div>';
+        }
+        return '<div class="r-page r-sp"><div class="r-sp-head"><span class="r-sp-logo"><i></i></span>Spotify</div>' +
+          '<div class="r-sp-body"><h4>' + L('sp_title') + '</h4><p class="r-sp-intro">' + L('sp_intro') + '</p>' +
+          opt(false, L('sp_acct'), L('sp_acct_d')) +
+          opt(true, L('sp_ext'), L('sp_ext_d'), 1) +
+          opt(false, L('sp_tech'), L('sp_tech_d')) +
+          '<div class="r-sp-actions"><span class="r-sp-btn" data-dot="2">' + L('sp_btn') + '</span></div></div></div>';
+      }
+    },
+
+    // Deezer: the XLSX's sheet tabs — the history moves to the front
+    'dz-tabs': {
+      url: 'deezer_data.xlsx', w: 840, cap: 'cap_dz',
+      html: function (L) {
+        var rows = [
+          ['Song Title', 'Artist', 'ISRC', 'Album Title', 'Listening Time', 'Date'],
+          ['Espresso', 'Sabrina Carpenter', 'USUM72401994', 'Short n\' Sweet', '175', '2026-11-06 21:14:05'],
+          ['APT.', 'ROSÉ', 'USAT22409172', 'rosie', '169', '2026-11-06 20:33:47'],
+          ['Tití Me Preguntó', 'Bad Bunny', 'QMFME2299478', 'Un Verano Sin Ti', '243', '2026-11-05 18:02:11']
+        ];
+        var tabs = '<span class="r-gs-tab r-dz-drag" data-dot="1">↤ ' + L('dz_hist') + '</span>' +
+          '<span class="r-gs-tab">1_identity</span><span class="r-gs-tab">2_favourites</span><span class="r-gs-tab">3_playlists</span><span class="r-gs-tab r-dz-gap"></span>';
+        return gsApp(L, { doc: 'deezer_data.xlsx', rows: rows, minRows: 6, tab: 'data', tabs: tabs, ref: 'A1', fx: 'Song Title' });
+      }
+    },
+
+    // Last.fm: ghan.nl's exporter
+    'ghan': {
+      url: 'mainstream.ghan.nl/export.html', w: 720, cap: 'cap_ghan',
+      html: function () {
+        function row(lbl, inner, dot) {
+          return '<div class="r-gh-row"><label>' + lbl + '</label><span' + (dot ? ' data-dot="' + dot + '"' : '') + ' class="r-gh-val">' + inner + '</span></div>';
+        }
+        return '<div class="r-page r-gh"><h4 class="r-gh-h">Last.fm to XML/JSON/CSV exporter</h4>' +
+          '<p class="r-gh-p">Export your Last.fm scrobbles, loved tracks, banned tracks, and more.</p>' +
+          row('Username', '<span class="r-input">alex_listens</span>', 1) +
+          row('Type', '<span class="r-input">scrobbles ▾</span>', 2) +
+          row('Format', '<span class="r-radio"></span> XML&nbsp;&nbsp; <span class="r-radio"></span> JSON&nbsp;&nbsp; <span class="r-radio on"></span> <b>CSV</b>', 3) +
+          '<div class="r-gh-actions"><span class="r-gh-btn" data-dot="4">Export</span></div></div>';
+      }
+    },
+
+    // YouTube Music: Google Takeout
+    'takeout': {
+      url: 'takeout.google.com', w: 720, cap: 'cap_to',
+      html: function (L) {
+        function prod(name, on, dot, sub) {
+          return '<div class="r-to-row' + (on ? ' on' : '') + '"><span><b>' + name + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '</span>' +
+            '<span class="r-to-chk"' + (dot ? ' data-dot="' + dot + '"' : '') + '>' + chk(on) + '</span></div>';
+        }
+        return '<div class="r-page r-to"><div class="r-gbar">' + G_DISC + '<span class="r-gbar-name">Takeout</span><span class="r-avatar">A</span></div>' +
+          '<div class="r-to-body"><h4>' + L('to_h') + '</h4>' +
+          '<div class="r-to-selrow"><span class="r-to-lbl">' + L('to_sel') + '</span><span class="r-link" data-dot="1">' + L('to_desel') + '</span></div>' +
+          prod('Workspace Marketplace', false) +
+          prod(L('to_yt'), true, 2, L('to_yt_d')) +
+          '<div class="r-to-opts"><span class="r-btn-out" data-dot="3">' + L('to_all') + ' → ' + L('to_hist') + '</span></div>' +
+          '<div class="r-to-actions"><span class="r-btn-fill">' + L('to_next') + '</span></div></div></div>';
+      }
+    },
+
+    // Apple Music: privacy.apple.com
+    'apple': {
+      url: 'privacy.apple.com/account', w: 720, cap: 'cap_ap',
+      html: function (L) {
+        function it(name, on, dot, sub) {
+          return '<div class="r-ap-row"' + (dot ? ' data-dot="' + dot + '"' : '') + '>' + chk(on) + '<span><b>' + name + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '</span></div>';
+        }
+        return '<div class="r-page r-ap"><div class="r-ap-head"><span class="r-ap-logo"></span>Data &amp; Privacy</div>' +
+          '<div class="r-ap-body"><h4>' + L('ap_h') + '</h4><p class="r-ap-sub">' + L('ap_sub') + '</p>' +
+          it(L('ap_other'), false) +
+          it(L('ap_ams'), true, 1, L('ap_ams_d')) +
+          it(L('ap_other2'), false) +
+          '<div class="r-ap-actions"><span class="r-ap-btn" data-dot="2">' + L('ap_btn') + '</span></div></div></div>';
+      }
+    },
+
+    // Step 3: an export's own headers → the names the site reads → CSV
+    'csv-before': {
+      url: 'docs.google.com/spreadsheets/d/…/edit', w: 840, cap: 'cap_csv1',
+      html: function (L) {
+        return gsApp(L, { doc: L('csv_doc'), tab: 'data', minRows: 6,
+          tabs: '<span class="r-gs-tab on">' + L('csv_doc') + '</span>',
+          rows: [
+            ['Track Description', 'Artist Name', 'Container Description', 'Play Date', 'Play Duration', 'Device'],
+            ['Espresso', 'Sabrina Carpenter', 'Short n\' Sweet', '06/11/2026 21:14', '175000', 'iPhone'],
+            ['APT.', 'ROSÉ', 'rosie', '06/11/2026 20:33', '169000', 'iPhone'],
+            ['Not Like Us', 'Kendrick Lamar', 'GNX', '05/11/2026 18:02', '274000', 'Mac']
+          ],
+          cellDots: { A1: 1, B1: 2, D1: 3, C1: 4 }, cellDotAt: 'tc', ref: 'A1', fx: 'Track Description' });
+      }
+    },
+    'csv-after': {
+      url: 'docs.google.com/spreadsheets/d/…/edit', w: 840, cap: 'cap_csv2',
+      html: function (L) {
+        return gsApp(L, { doc: L('csv_doc'), tab: 'data', minRows: 6,
+          tabs: '<span class="r-gs-tab on">' + L('csv_doc') + '</span>',
+          rows: [
+            ['Song Title', 'Artist', 'Album', 'Date and Time', 'Play Duration', 'Device'],
+            ['Espresso', 'Sabrina Carpenter', 'Short n\' Sweet', '2026-11-06 21:14:00', '175000', 'iPhone'],
+            ['APT.', 'ROSÉ', 'rosie', '2026-11-06 20:33:00', '169000', 'iPhone'],
+            ['Not Like Us', 'Kendrick Lamar', 'GNX', '2026-11-05 18:02:00', '274000', 'Mac']
+          ],
+          cellCls: { A1: 'r-gs-ok', B1: 'r-gs-ok', C1: 'r-gs-ok', D1: 'r-gs-ok', D2: 'r-gs-okc', D3: 'r-gs-okc', D4: 'r-gs-okc' },
+          cellDots: { D2: 5 }, ref: 'D2', fx: '2026-11-06 21:14:00' });
+      }
+    },
+    'csv-save': {
+      url: 'docs.google.com/spreadsheets/d/…/edit', w: 840, cap: 'cap_csv3',
+      html: function (L) {
+        var file = L('gs_file').split('|');
+        var dlIdx = 7;   // "Download" in every language's list
+        var fileHtml = '<span class="r-dd">' + file.map(function (it, i) {
+          if (it === '-') return '<span class="r-dd-sep"></span>';
+          if (i === dlIdx) {
+            return '<span class="r-dd-item r-dd-sub on" data-dot="7" data-dot-at="l">' + it + ' <i>▸</i>' +
+              '<span class="r-dd r-dd-side">' + L('gs_dl').split('|').map(function (f, k) {
+                return '<span class="r-dd-item"' + (k === 4 ? ' data-dot="8" data-dot-at="r"' : '') + '>' + f + '</span>';
+              }).join('') + '</span></span>';
+          }
+          return '<span class="r-dd-item">' + it + '</span>';
+        }).join('') + '</span>';
+        return gsApp(L, { doc: L('csv_doc'), tab: 'data', minRows: 9,
+          tabs: '<span class="r-gs-tab on">' + L('csv_doc') + '</span>',
+          rows: [['Song Title', 'Artist', 'Album', 'Date and Time', 'Play Duration', 'Device']],
+          open: 'file', menuDot: { file: 6 }, fileHtml: fileHtml, ref: 'A1', fx: 'Song Title' });
+      }
+    }
+  });
+
   /* ── Engine ──────────────────────────────────────────────────────────── */
   var mounted = [];   // every live figure controller
   var ro = 'ResizeObserver' in window ? new ResizeObserver(function (entries) {
@@ -825,6 +1108,7 @@
       fig.classList.toggle('shot-app', sc.frame === 'app');
       layer.style.width = sc.w + 'px';
       layer.innerHTML = sc.img ? imgScene(sc) : sc.html(L);
+      popped = false;
       // data-offsets="0,2,2" shifts each screen's dot numbers, so a list that
       // runs across several screens counts 1, 2, 3 … straight through
       var off = +(offsets[cur] || 0);
@@ -859,7 +1143,11 @@
       placeMarks();
     };
 
+    // Dots pop in the first time a screen is drawn; a later re-layout
+    // (resize, scrolling back into view) just moves them, without a replay
+    var popped = false;
     function placeMarks() {
+      var pop = !popped;
       marks.querySelectorAll('.shot-ring, .shot-dot').forEach(function (m) { m.remove(); });
       var fr = fig.getBoundingClientRect();
       layer.querySelectorAll('[data-dot]').forEach(function (el, idx) {
@@ -886,10 +1174,13 @@
         if (at === 'r') { x = r.right - fr.left + pad; y = r.top - fr.top + r.height / 2; }
         if (at === 'b') { y = r.bottom - fr.top + pad; }
         if (at === 'l') { y = r.top - fr.top + r.height / 2; }
+        if (at === 'tc') { x = r.left - fr.left + r.width / 2; }   // top centre
         dot.style.left = x + 'px';
         dot.style.top = y + 'px';
-        dot.style.animationDelay = (0.12 * idx) + 's';   // pop in one after another
+        if (pop) dot.style.animationDelay = (0.12 * idx) + 's';   // pop in one after another
+        else dot.classList.add('shot-dot-still');
         marks.appendChild(dot);
+        popped = true;
       });
     }
 

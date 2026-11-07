@@ -3262,8 +3262,19 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
             <ul class="svc">
               <li data-svc="spotify" data-fmt="zip">
                 <div class="svc-head"><span class="svc-name">Spotify</span><span data-i18n="sg_fmt_zip" class="svc-fmt">.zip · drop it in</span></div>
-                <p data-i18n-html="sg_fi_spotify1">Account → <strong>Privacy settings</strong> → Download your data. Tick <strong>Extended streaming history</strong> — "Account data" is only the last year.</p>
-                <p data-i18n-html="sg_fi_spotify2">Arrives by email as a ZIP. <strong>Upload it without unpacking.</strong></p>
+                <div class="shot-pair">
+                  <figure class="shot" data-scene="sp-data"></figure>
+                  <div class="do-col">
+                    <a class="btn-primary do-cta" href="https://www.spotify.com/account/privacy/" target="_blank" rel="noopener"><span data-i18n="sg_fi_sp_cta">Open Spotify privacy settings</span> <span class="btn-arrow" aria-hidden="true">↗</span></a>
+                    <p data-i18n="sg_do_head" class="do-head">Do this</p>
+                    <ol class="do">
+                      <li data-i18n-html="sg_fi_sp_do0">Open your Spotify <strong>Account</strong> page → <strong>Privacy settings</strong>.</li>
+                      <li data-dot="1" data-i18n-html="sg_fi_sp_do1">Tick <strong>Extended streaming history</strong>. "Account data" only covers the last year.</li>
+                      <li data-dot="2" data-i18n-html="sg_fi_sp_do2">Click <strong>Request data</strong>, then confirm from the email Spotify sends you.</li>
+                      <li data-i18n-html="sg_fi_spotify2">Arrives by email as a ZIP. <strong>Upload it without unpacking.</strong></li>
+                    </ol>
+                  </div>
+                </div>
                 <details class="why">
                   <summary data-i18n="sg_fi_spotify_why">How long does it take?</summary>
                   <div class="why-body">
@@ -3273,12 +3284,34 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
               </li>
               <li data-svc="deezer" data-fmt="xlsx">
                 <div class="svc-head"><span class="svc-name">Deezer</span><span data-i18n="sg_fmt_xlsx" class="svc-fmt svc-fmt-work">.xlsx · one edit first</span></div>
-                <p data-i18n-html="sg_fi_deezer1">Settings → <strong>My personal data</strong> → request your data.</p>
-                <p data-i18n-html="sg_fi_deezer2">You get a workbook of several sheets, and only the <strong>first</strong> one is read. Drag your listening history to the front, save, upload.</p>
+                <div class="shot-pair">
+                  <figure class="shot" data-scene="dz-tabs"></figure>
+                  <div class="do-col">
+                    <p data-i18n="sg_do_head" class="do-head">Do this</p>
+                    <ol class="do">
+                      <li data-i18n-html="sg_fi_deezer1">Settings → <strong>My personal data</strong> → request your data.</li>
+                      <li data-dot="1" data-i18n-html="sg_fi_dz_do1">Open the workbook you get and drag the <strong>listening history</strong> tab to the front. Only the first sheet is read.</li>
+                      <li data-i18n-html="sg_fi_dz_do2">Save it, and upload the <code>.xlsx</code> as it is.</li>
+                    </ol>
+                  </div>
+                </div>
               </li>
               <li data-svc="lastfm" data-fmt="csv">
                 <div class="svc-head"><span class="svc-name">Last.fm</span><span data-i18n="sg_fmt_csv" class="svc-fmt">.csv · drop it in</span></div>
                 <p data-i18n-html="sg_fi_lastfm1">No built-in export — use <a href="https://mainstream.ghan.nl/export.html" target="_blank" rel="noopener"><strong>ghan.nl's exporter</strong></a>: username → <strong>scrobbles</strong> → <strong>CSV</strong>. No API key, no sign-in, no editing afterwards.</p>
+                <div class="shot-pair">
+                  <figure class="shot" data-scene="ghan"></figure>
+                  <div class="do-col">
+                    <a class="btn-primary do-cta" href="https://mainstream.ghan.nl/export.html" target="_blank" rel="noopener"><span data-i18n="sg_fi_gh_cta">Open the exporter</span> <span class="btn-arrow" aria-hidden="true">↗</span></a>
+                    <p data-i18n="sg_do_head" class="do-head">Do this</p>
+                    <ol class="do">
+                      <li data-dot="1" data-i18n-html="sg_fi_gh_do1">Type your Last.fm <strong>username</strong>.</li>
+                      <li data-dot="2" data-i18n-html="sg_fi_gh_do2">Type: <strong>scrobbles</strong>.</li>
+                      <li data-dot="3" data-i18n-html="sg_fi_gh_do3">Format: <strong>CSV</strong>.</li>
+                      <li data-dot="4" data-i18n-html="sg_fi_gh_do4">Press <strong>Export</strong>. You get a <code>.csv</code> that uploads as it is.</li>
+                    </ol>
+                  </div>
+                </div>
                 <details class="why">
                   <summary data-i18n="sg_fi_lastfm_why">Two things worth knowing</summary>
                   <div class="why-body">
@@ -3289,12 +3322,34 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
               </li>
               <li data-svc="youtube" data-fmt="convert">
                 <div class="svc-head"><span class="svc-name">YouTube Music</span><span data-i18n="sg_fmt_convert" class="svc-fmt svc-fmt-work">convert first</span></div>
-                <p data-i18n-html="sg_fi_yt1"><a href="https://takeout.google.com" target="_blank" rel="noopener">Google Takeout</a> → deselect everything → <strong>YouTube and YouTube Music</strong> → limit to <strong>history</strong>.</p>
+                <div class="shot-pair">
+                  <figure class="shot" data-scene="takeout"></figure>
+                  <div class="do-col">
+                    <a class="btn-primary do-cta" href="https://takeout.google.com" target="_blank" rel="noopener"><span data-i18n="sg_fi_to_cta">Open Google Takeout</span> <span class="btn-arrow" aria-hidden="true">↗</span></a>
+                    <p data-i18n="sg_do_head" class="do-head">Do this</p>
+                    <ol class="do">
+                      <li data-dot="1" data-i18n-html="sg_fi_to_do1">Click <strong>Deselect all</strong>.</li>
+                      <li data-dot="2" data-i18n-html="sg_fi_to_do2">Tick <strong>YouTube and YouTube Music</strong>.</li>
+                      <li data-dot="3" data-i18n-html="sg_fi_to_do3">Open <strong>All YouTube data included</strong> and keep only <strong>history</strong>. Then Next step → Create export.</li>
+                    </ol>
+                  </div>
+                </div>
                 <p data-i18n="sg_fi_yt2">Takeout's ZIP isn't a shape we read. Turn its watch-history file into a CSV — Step 3.</p>
               </li>
               <li data-svc="apple" data-fmt="convert">
                 <div class="svc-head"><span class="svc-name">Apple Music</span><span data-i18n="sg_fmt_rename" class="svc-fmt svc-fmt-work">rename headers</span></div>
-                <p data-i18n-html="sg_fi_apple1"><a href="https://privacy.apple.com" target="_blank" rel="noopener">privacy.apple.com</a> → Request a copy of your data → <strong>Apple Media Services information</strong>.</p>
+                <div class="shot-pair">
+                  <figure class="shot" data-scene="apple"></figure>
+                  <div class="do-col">
+                    <a class="btn-primary do-cta" href="https://privacy.apple.com" target="_blank" rel="noopener"><span data-i18n="sg_fi_ap_cta">Open privacy.apple.com</span> <span class="btn-arrow" aria-hidden="true">↗</span></a>
+                    <p data-i18n="sg_do_head" class="do-head">Do this</p>
+                    <ol class="do">
+                      <li data-i18n-html="sg_fi_ap_do0">Sign in and choose <strong>Request a copy of your data</strong>.</li>
+                      <li data-dot="1" data-i18n-html="sg_fi_ap_do1">Tick <strong>Apple Media Services information</strong>.</li>
+                      <li data-dot="2" data-i18n-html="sg_fi_ap_do2">Click <strong>Continue</strong> and finish the request.</li>
+                    </ol>
+                  </div>
+                </div>
                 <p data-i18n="sg_fi_apple2">The play-history CSV uses Apple's own column names — rename the header row in Step 3.</p>
               </li>
               <li data-svc="other" data-fmt="convert">
@@ -3360,6 +3415,23 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
               </div>
             </aside>
             <p data-i18n="sg_fi3_p1">The universal path: any export becomes importable once row 1 uses these names.</p>
+            <div class="shot-pair">
+                  <figure class="shot" data-scenes="csv-before,csv-after,csv-save"></figure>
+                  <div class="do-col">
+                    <p data-i18n="sg_do_head" class="do-head">Do this</p>
+                    <ol class="do">
+                      <li data-dot="1" data-frame="1" data-i18n-html="sg_fi3_do1">Rename the song column to <strong>Song Title</strong>…</li>
+                      <li data-dot="2" data-frame="1" data-i18n-html="sg_fi3_do2">…the artist column to <strong>Artist</strong>…</li>
+                      <li data-dot="3" data-frame="1" data-i18n-html="sg_fi3_do3">…the date column to <strong>Date and Time</strong>…</li>
+                      <li data-dot="4" data-frame="1" data-i18n-html="sg_fi3_do4">…and the album column to <strong>Album</strong> (optional). Leave the rest; extra columns are ignored.</li>
+                      <li data-dot="5" data-frame="2" data-i18n-html="sg_fi3_do5">Make the dates <code>YYYY-MM-DD hh:mm:ss</code>, so 03/04 can't be misread.</li>
+                      <li data-dot="6" data-frame="3" data-i18n-html="sg_fi3_do6">Click <strong>File</strong>…</li>
+                      <li data-dot="7" data-frame="3" data-i18n-html="sg_fi3_do7">…<strong>Download</strong>…</li>
+                      <li data-dot="8" data-frame="3" data-i18n-html="sg_fi3_do8">…<strong>Comma-separated values (.csv)</strong>. In Excel: <strong>Save As → CSV UTF-8</strong>.</li>
+                    </ol>
+                  </div>
+                </div>
+
             <div class="spec">
               <div data-i18n-html="sg_fi3_head" class="spec-head"><span>Column</span><span>Header — any one of these</span></div>
               <div class="spec-row">
@@ -3394,7 +3466,6 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
                 <p data-i18n-html="sg_fi3_why3">In Google Sheets, reformat a date column with Format → Number → Custom date and time → <code>yyyy-mm-dd hh:mm:ss</code>.</p>
               </div>
             </details>
-            <p data-i18n-html="sg_fi3_p3">Save it out with <strong>File → Download → Comma-separated values</strong> (Excel: <strong>Save As → CSV UTF-8</strong>). Let the spreadsheet write the file and commas inside song titles look after themselves.</p>
           </div>
         </div>
       </li>
@@ -3406,10 +3477,16 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
         <div class="step-card">
           <h3 data-i18n="sg_fi4_title" class="step-title">Upload it</h3>
           <div class="step-body">
-            <div class="path">
-              <span data-i18n="sg_path_settings" class="path-step">Settings ⚙</span>
-              <span class="path-arrow" aria-hidden="true">→</span>
-              <span class="path-step">Upload File</span>
+            <div class="shot-pair">
+              <figure class="shot" data-scene="dc-set-file"></figure>
+              <div class="do-col">
+                <p data-i18n="sg_do_head" class="do-head">Do this</p>
+                <ol class="do">
+                  <li data-dot="1" data-i18n-html="sg_fi4_do1">On dankcharts.fm, open <strong>Settings ⚙</strong> → <strong>Data source</strong> (or pick the Upload File card on the start screen).</li>
+                  <li data-dot="2" data-i18n-html="sg_fi4_do2">Choose <strong>Upload File</strong>.</li>
+                  <li data-dot="3" data-i18n-html="sg_fi4_do3">Drop your file on the box, or click it to browse.</li>
+                </ol>
+              </div>
             </div>
             <p data-i18n-html="sg_fi4_p1">Drop the file on the box or click to browse — <code>.csv</code>, <code>.zip</code>, <code>.xlsx</code>, <code>.xls</code>. You'll see <strong>✓ N plays loaded</strong> and your charts appear.</p>
             <aside class="note">
