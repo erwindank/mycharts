@@ -47118,3 +47118,38 @@ body.yellow-light .dc-gtile, body.pink-light .dc-gtile, body.green-light .dc-gti
 /* The bar never has room for five icons (its content is width-capped), so only
    the open tab shows its glowing icon: it marks where you are */
 #topbar .tb-tab:not(.active) > .dc-gico { display: none; }
+
+/* ── GLOW KIT: top bar buttons + Settings window (2026-11-07) ─────────────────
+   Sync (a circular arrow, green), Settings (the gear, soft indigo) and Language
+   (a globe, sky) use glow icons. The arrow turns while hovered and for as
+   long as a sync is running (the button is disabled then); the gear turns
+   while hovered; the globe's meridian swings round. The Settings window's
+   header tile shows the same gear. */
+.dc-gico--sync     { --gk-c: #34d399; }
+.dc-gico--globe    { --gk-c: #38bdf8; }
+.dc-gico .gk-thick { stroke-width: 2.2; }
+
+#topbar .tb-btn > .dc-gico { width: 19px; height: 19px; }
+#topbar .tb-globe.dc-gico  { width: 18px; height: 18px; }
+.landing-controls .tb-globe.dc-gico { width: 15px; height: 15px; }
+/* the old CSS-drawn icon still rides inside the translated label; hide it here */
+#topbar .tb-btn-lbl .btn-icon { display: none; }
+
+/* sync arrow: one turn on show, keeps turning while hovered or syncing */
+.dc-gico .gk-turn { animation: gkSpin 0.9s ease-in-out both; }
+#syncNowBtn:is(:hover, :disabled) .dc-gico .gk-turn { animation: gkSpin 0.9s linear infinite; }
+
+/* settings gear keeps turning while hovered */
+#configureSourceBtn:hover .dc-gico .gk-spin { animation-iteration-count: infinite; }
+
+/* globe: the meridian narrows and widens like a turning globe */
+.dc-gico .gk-meridian { animation: gkMeridian 1.6s ease-in-out both; }
+@keyframes gkMeridian { 0%, 100% { transform: scaleX(1); } 50% { transform: scaleX(0.2); } }
+:is(#langGroupBtn, .landing-controls .ctrl-group-btn):hover .dc-gico .gk-meridian { animation-iteration-count: infinite; }
+
+/* Settings window header tile */
+.dc-frame-gk .dc-gico { width: 64%; height: 64%; }
+
+@media (prefers-reduced-motion: reduce) {
+  #syncNowBtn:is(:hover, :disabled) .dc-gico .gk-turn { animation: none; }
+}

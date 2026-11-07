@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=909">
+  <link rel="stylesheet" href="style.css?v=910">
   <!-- The Charts Guide's lessons (guide.js, GUIDE-PLAN.md) -->
   <link rel="stylesheet" href="guide.css?v=4">
   <!-- All scripts are deferred so the page paints without waiting on them.
@@ -89,8 +89,8 @@
       </div>
       <div class="ctrl-group" id="landingLangGroup">
         <button class="ctrl-group-btn" aria-label="Language" title="Language">
-          <span class="ctrl-btn-wide"><svg class="tb-globe" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><circle cx="8" cy="8" r="6.2"/><ellipse cx="8" cy="8" rx="2.6" ry="6.2"/><line x1="1.8" y1="8" x2="14.2" y2="8"/></svg><span data-i18n="ctrl_btn_language">LANGUAGE</span></span>
-          <span class="ctrl-btn-narrow"><svg class="tb-globe" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><circle cx="8" cy="8" r="6.2"/><ellipse cx="8" cy="8" rx="2.6" ry="6.2"/><line x1="1.8" y1="8" x2="14.2" y2="8"/></svg></span>
+          <span class="ctrl-btn-wide"><svg class="tb-globe" data-gico="globe"></svg><span data-i18n="ctrl_btn_language">LANGUAGE</span></span>
+          <span class="ctrl-btn-narrow"><svg class="tb-globe" data-gico="globe"></svg></span>
         </button>
         <div class="ctrl-group-panel">
           <div class="lang-switcher">
@@ -344,9 +344,10 @@
       <!-- Sync / Add Play / Settings — moved here from the sync bar. IDs and
            handlers unchanged; the labels stay in the markup (screen readers,
            and the translations still carry them) but the bar shows icons only. -->
-      <button id="syncNowBtn" class="tb-btn" data-i18n-html="sync_now" data-i18n-title="tooltip_sync_now" title="Sync now"><span class="btn-icon btn-ico-sync" aria-hidden="true"><i class="bi-ring"></i><i class="bi-head"></i></span> SYNC NOW</button>
+      <!-- Glow kit icon beside the translated label (the label keeps its old drawn icon, hidden in the top bar) -->
+      <button id="syncNowBtn" class="tb-btn" data-i18n-title="tooltip_sync_now" title="Sync now"><svg data-gico="sync"></svg><span class="tb-btn-lbl" data-i18n-html="sync_now"><span class="btn-icon btn-ico-sync" aria-hidden="true"><i class="bi-ring"></i><i class="bi-head"></i></span> SYNC NOW</span></button>
       <button id="scrobbleBtn" class="tb-btn" onclick="openScrobbleModal()" title="Add a play manually" style="display:none" data-i18n-html="btn_add_play"><span class="btn-icon">✚</span> Add Play</button>
-      <button id="configureSourceBtn" class="tb-btn" onclick="openSourceModal()" title="Settings" data-i18n-html="btn_configure"><span class="btn-icon btn-ico-gear" aria-hidden="true"><i></i></span> Settings</button>
+      <button id="configureSourceBtn" class="tb-btn" onclick="openSourceModal()" title="Settings"><svg data-gico="settings"></svg><span class="tb-btn-lbl" data-i18n-html="btn_configure"><span class="btn-icon btn-ico-gear" aria-hidden="true"><i></i></span> Settings</span></button>
       <div class="ctrl-group" id="themeCtrlGroup">
         <button class="ctrl-group-btn" id="themeGroupBtn" aria-label="Theme" title="Theme">
           <span class="ctrl-theme-dot"></span>
@@ -372,7 +373,7 @@
           <!-- Top bar face: a drawn globe and the language code ("EN", "PT-BR").
                The code is set by setLanguage() in translations.js. Flag emoji
                were dropped here because Windows draws them as two letters. -->
-          <svg class="tb-globe" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><circle cx="8" cy="8" r="6.2"/><ellipse cx="8" cy="8" rx="2.6" ry="6.2"/><line x1="1.8" y1="8" x2="14.2" y2="8"/></svg>
+          <svg class="tb-globe" data-gico="globe"></svg>
           <span class="tb-lang-code" id="langGroupCode">EN</span>
         </button>
         <div class="ctrl-group-panel">
@@ -4381,7 +4382,7 @@
   <!-- Community board tab (suggestions / bugs / discussion). Loaded before
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
   <!-- Glow kit: the drawn, glowing icons for titles, Records headings, Guide cards and stat tiles -->
-  <script defer src="glowkit.js?v=8"></script>
+  <script defer src="glowkit.js?v=9"></script>
   <script defer src="board.js?v=10"></script>
   <!-- The Charts Guide's words in four languages (read by guide.js: the Reference tab and search) -->
   <script defer src="charts-guide-i18n.js?v=15"></script>
@@ -4423,7 +4424,7 @@
   <div id="sourceModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="srcModalTitle">
     <div class="dc-modal src-modal-box set-box">
       <div class="src-modal-header">
-        <span class="dc-frame-icon" data-ico="gear"></span>
+        <span class="dc-frame-icon dc-frame-gk"><svg data-gico="settings"></svg></span>
         <h3 class="src-modal-title" id="srcModalTitle" data-i18n="set_title">Settings</h3>
         <button type="button" class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close src-modal-close" onclick="closeSourceModal()" aria-label="Close" data-i18n-aria="set_close">✕</button>
       </div>

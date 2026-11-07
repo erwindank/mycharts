@@ -87,6 +87,20 @@
       '<path class="gk-surf gk-flip" d="M12 6.45c2.1-1.8 4.8-2.4 8.25-2.4.75 0 1.35.6 1.35 1.35v11.1c0 .75-.6 1.35-1.35 1.35-3.45 0-6.15.6-8.25 2.25Z"/>' +
       '<path class="gk-s" d="M12 6.45V20.1M15 9.2h3.6M15 12.2h3.6"/>',
 
+    /* Top bar buttons */
+
+    // Sync: a circular arrow that turns while hovered and while a sync runs
+    sync:
+      '<circle class="gk-f" cx="12" cy="12" r="7" stroke-opacity="0"/>' +
+      '<g class="gk-turn"><path class="gk-s gk-thick" d="M12 5a7 7 0 1 0 6.06 3.5"/>' +
+      '<path class="gk-o" d="M10.4 2.1 14.6 5 10.4 7.9Z"/></g>',
+
+    // Language: a globe whose meridian swings round as if it were turning
+    globe:
+      '<circle class="gk-f" cx="12" cy="12" r="8.6"/>' +
+      '<path class="gk-s" d="M3.4 12h17.2M5 7.6h14M5 16.4h14"/>' +
+      '<ellipse class="gk-s gk-meridian" cx="12" cy="12" rx="3.7" ry="8.6"/>',
+
     /* Charts Guide lessons with no tab behind them */
 
     // Getting started ("First steps"): a trail of footprints, left, right,
@@ -365,7 +379,7 @@
   // Loops (reels, dots …) are left alone: CSS keeps them going on :hover.
   var hoverHost = null;
   document.addEventListener('mouseover', function (e) {
-    var host = e.target && e.target.closest ? e.target.closest('.section-header-h2, .gd-card, .stat-box, .st-stat, .tb-tab, .bt-tab, .tb-more-item, .records-nav-btn, .rec-picker, .dc-gk-host') : null;
+    var host = e.target && e.target.closest ? e.target.closest('.section-header-h2, .gd-card, .stat-box, .st-stat, .tb-tab, .bt-tab, .tb-more-item, .records-nav-btn, .rec-picker, .tb-btn, .ctrl-group-btn, .dc-gk-host') : null;
     if (host === hoverHost) return;
     hoverHost = host;
     if (!host || !host.getAnimations) return;
