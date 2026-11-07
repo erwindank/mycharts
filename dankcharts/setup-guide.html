@@ -10,12 +10,12 @@
   <!-- Step pictures (drawn screens + dots); Roboto above is for those, since
        the drawn Google screens use Google's own typeface -->
   <link rel="stylesheet" href="setup-scenes.css?v=1">
-  <script src="translations.js"></script>
+  <script src="translations.js?v=341"></script>
   <!-- The saved language's own file (translations.js is English only). Must
        come before setup-guide-i18n.js so the guide's strings are merged on top
        of it, as before. Same DC_I18N_V as index.html. -->
   <script>
-    window.DC_I18N_V = 32;
+    window.DC_I18N_V = 33;
     (function () {
       try {
         var l = localStorage.getItem('dankcharts-lang');
@@ -2054,6 +2054,13 @@
     .faq-body > * + * { margin-top: 0.5rem; }
     .faq-body a { overflow-wrap: anywhere; }
 
+    /* A troubleshooting answer opened from a link glows for a moment */
+    @keyframes faqFlash {
+      0%, 100% { box-shadow: none; }
+      30%      { box-shadow: 0 0 0 2px var(--accent), 0 0 26px color-mix(in srgb, var(--accent) 40%, transparent); }
+    }
+    .faq-item.faq-flash { animation: faqFlash 2.2s ease-in-out 2; border-radius: 10px; }
+
     /* ── Support ────────────────────────────────────────────────────────*/
     .support {
       margin-top: 3rem;
@@ -2843,20 +2850,17 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
             </aside>
 
             <p data-i18n="sg_sh6_sub3" class="step-sub">Paste it into the site</p>
-            <div class="path">
-              <span data-i18n="sg_path_settings" class="path-step">Settings ⚙</span>
-              <span class="path-arrow" aria-hidden="true">→</span>
-              <span class="path-step">Google Sheets</span>
-            </div>
-            <div class="spec">
-              <div data-i18n-html="sg_sh6_head2" class="spec-head"><span>Field</span><span>What to put in it</span></div>
-              <div class="spec-row">
-                <span class="spec-key">Sheet URL or ID</span>
-                <span data-i18n="sg_sh6_v1" class="spec-val">the link you just copied</span>
-              </div>
-              <div class="spec-row">
-                <span class="spec-key">Tab name</span>
-                <span data-i18n="sg_leave_empty" class="spec-val muted">leave empty</span>
+            <div class="shot-pair">
+              <figure class="shot" data-scene="dc-set-sheets"></figure>
+              <div class="do-col">
+                <p data-i18n="sg_do_head" class="do-head">Do this</p>
+                <ol class="do">
+                  <li data-i18n-html="sg_sh6_do5">On dankcharts.fm, open <strong>Settings ⚙</strong> (top right).</li>
+                  <li data-dot="1" data-i18n-html="sg_sh6_do6">Pick the <strong>Google Sheets</strong> card.</li>
+                  <li data-dot="2" data-i18n-html="sg_sh6_do7">Paste the link into <strong>Sheet URL or ID</strong>.</li>
+                  <li data-dot="3" data-i18n-html="sg_sh6_do8">Leave <strong>Tab name</strong> empty.</li>
+                  <li data-dot="4" data-i18n-html="sg_sh6_do9">Press <strong>Save &amp; Load</strong>. Your charts appear.</li>
+                </ol>
               </div>
             </div>
             <p data-i18n-html="sg_sh6_p4">Leave <strong>Tab name</strong> empty unless you renamed the data tab in your copy — empty means <em>Full Raw Listening History</em>, which is what the template calls it.</p>
@@ -2909,14 +2913,16 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
 
             <p data-i18n="sg_sh7_sub2" class="step-sub">Copy the URL it gives you</p>
             <p data-i18n-html="sg_sh7_p4">The deployment finishes on a <strong>Web app URL</strong> — a long one ending in <code>/exec</code>, like <code>https://script.google.com/macros/s/AKfy…/exec</code>. Copy it, then paste it into the site. It lives one fold down from where you put your sheet link:</p>
-            <div class="path">
-              <span data-i18n="sg_path_settings" class="path-step">Settings ⚙</span>
-              <span class="path-arrow" aria-hidden="true">→</span>
-              <span class="path-step">Google Sheets</span>
-              <span class="path-arrow" aria-hidden="true">→</span>
-              <span class="path-step">Enable auto-sync &amp; manual play entry</span>
-              <span class="path-arrow" aria-hidden="true">→</span>
-              <span class="path-step">Apps Script Web App URL</span>
+            <div class="shot-pair">
+              <figure class="shot" data-scene="dc-set-webapp"></figure>
+              <div class="do-col">
+                <p data-i18n="sg_do_head" class="do-head">Do this</p>
+                <ol class="do">
+                  <li data-i18n-html="sg_sh7_do11">In <strong>Settings ⚙ → Google Sheets</strong>, open <strong>Enable auto-sync &amp; manual play entry</strong>.</li>
+                  <li data-dot="1" data-i18n-html="sg_sh7_do12">Paste the URL into <strong>Apps Script Web App URL</strong> at the bottom of it.</li>
+                  <li data-i18n-html="sg_sh7_do13">Press <strong>Save &amp; Load</strong>.</li>
+                </ol>
+              </div>
             </div>
             <p data-i18n-html="sg_sh7_p5">Hit <strong>Save &amp; Load</strong>. Open the <strong>Raw Data</strong> tab and you'll find <strong>+ Add Play</strong> waiting at the top.</p>
             <aside class="note note-tip">
@@ -2933,32 +2939,32 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
     <section class="guide-section">
       <h2 class="section-label dc-gk-host"><svg data-gico="wrench" aria-hidden="true"></svg><span data-i18n="sg_troubleshooting">Troubleshooting</span></h2>
       <div class="faq">
-        <details class="faq-item">
+        <details class="faq-item" id="fix-sheets-menu">
           <summary data-i18n="sg_sh_q1">The Last.fm menu doesn't appear in my sheet.</summary>
           <div class="faq-body">
             <p data-i18n-html="sg_sh_a1">Close and reopen the sheet. The <code>onOpen</code> function runs when the sheet loads — if you had the sheet open right after making your copy, just refresh the page.</p>
           </div>
         </details>
-        <details class="faq-item">
+        <details class="faq-item" id="fix-sheets-noimport">
           <summary data-i18n="sg_sh_q2">No data is being imported.</summary>
           <div class="faq-body">
             <p data-i18n-html="sg_sh_a2">Check that your Last.fm username (B1) and API key (B2) in the Settings tab are correct and have no extra spaces. You can test by clicking <strong>Last.fm → Fetch Latest Tracks</strong> and then going to <strong>View → Logs</strong> in the Apps Script editor.</p>
           </div>
         </details>
-        <details class="faq-item">
+        <details class="faq-item" id="fix-sheets-access">
           <summary data-i18n="sg_sh_q3">The site shows "No Google Sheet configured".</summary>
           <div class="faq-body">
             <p data-i18n="sg_sh_a3">Make sure you've pasted the sheet URL in dankcharts.fm Settings and that the sheet is shared as "Anyone with the link can view".</p>
           </div>
         </details>
-        <details class="faq-item">
+        <details class="faq-item" id="fix-sheets-empty">
           <summary data-i18n="sg_sh_q4">My charts are empty, but the sheet is full of plays.</summary>
           <div class="faq-body">
             <p data-i18n-html="sg_sh_a4a">Look at the URL you pasted into Settings. If it ends in <code>#gid=</code> followed by a number, it's pointing at one specific tab — whichever one was open when you copied it from the address bar. When that's the <strong>Settings</strong> tab, the site reads three rows of configuration instead of your listening history and shows empty charts without complaining.</p>
             <p data-i18n-html="sg_sh_a4b">Fix it by deleting everything from <code>#gid=</code> onwards, or by re-copying the link with the <strong>Copy link</strong> button inside the sheet's Share dialog, which never includes one.</p>
           </div>
         </details>
-        <details class="faq-item">
+        <details class="faq-item" id="fix-sheets-addplay">
           <summary data-i18n="sg_sh_q5">Manual entry gives an error.</summary>
           <div class="faq-body">
             <p data-i18n-html="sg_sh_a5">The Web App URL must be redeployed after any script change. In Apps Script: <strong>Deploy → Manage deployments → edit the existing deployment → Deploy</strong>.</p>
@@ -3086,8 +3092,8 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
               <div class="do-col">
                 <p data-i18n="sg_do_head" class="do-head">Do this</p>
                 <ol class="do">
-                  <li data-dot="1" data-i18n-html="sg_lf2_do1">On dankcharts.fm, open <strong>Settings ⚙</strong> (top right) and stay on <strong>Data source</strong>.</li>
-                  <li data-dot="2" data-i18n-html="sg_lf2_do2">Scroll to <strong>Last.fm Account</strong> and open <strong>Use custom API credentials</strong>.</li>
+                  <li data-dot="1" data-i18n-html="sg_lf2_do1b">On dankcharts.fm, open <strong>Settings ⚙</strong> (top right). On <strong>Data source</strong>, scroll down to <strong>Last.fm Account</strong>.</li>
+                  <li data-dot="2" data-i18n-html="sg_lf2_do2b">Open <strong>Use custom API credentials</strong>.</li>
                   <li data-dot="3" data-i18n-html="sg_lf2_do3">Paste the key into <strong>API Key</strong>…</li>
                   <li data-dot="4" data-i18n-html="sg_lf2_do4">…and the shared secret into <strong>API Secret</strong>.</li>
                 </ol>
@@ -3140,14 +3146,15 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
           <h3 class="step-title"><span data-i18n="sg_lf4_title">Fix and push scrobbles</span> <span data-i18n="sg_optional" class="optional-badge">Optional</span></h3>
           <div class="step-body">
             <div class="shot-pair">
-              <figure class="shot" data-scene="dc-raw-edit"></figure>
+              <figure class="shot" data-scenes="dc-more,dc-raw,dc-raw-edit" data-offsets="0,2,3"></figure>
               <div class="do-col">
                 <p data-i18n="sg_do_head" class="do-head">Do this</p>
                 <ol class="do">
-                  <li data-dot="1" data-i18n-html="sg_lf4_do1">Open the <strong>Raw Data</strong> tab.</li>
-                  <li data-dot="2" data-i18n-html="sg_lf4_do2">Click <strong>✎</strong> on the play you want to fix.</li>
-                  <li data-dot="3" data-i18n-html="sg_lf4_do3">Fix the artist, title, album or time.</li>
-                  <li data-dot="4" data-i18n-html="sg_lf4_do4">Press <strong>Push to Last.fm</strong>.</li>
+                  <li data-dot="1" data-frame="1" data-i18n-html="sg_lf4_do0">In the top bar, open <strong>More</strong>…</li>
+                  <li data-dot="2" data-frame="1" data-i18n-html="sg_lf4_do1">…and pick <strong>Raw Data</strong>.</li>
+                  <li data-dot="3" data-frame="2" data-i18n-html="sg_lf4_do2">Click <strong>✎</strong> on the play you want to fix.</li>
+                  <li data-dot="4" data-frame="3" data-i18n-html="sg_lf4_do3">Fix the artist, title, album or time.</li>
+                  <li data-dot="5" data-frame="3" data-i18n-html="sg_lf4_do4">Press <strong>Push to Last.fm</strong>.</li>
                 </ol>
               </div>
             </div>
@@ -3171,25 +3178,25 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
     <section class="guide-section">
       <h2 class="section-label dc-gk-host"><svg data-gico="wrench" aria-hidden="true"></svg><span data-i18n="sg_troubleshooting">Troubleshooting</span></h2>
       <div class="faq">
-        <details class="faq-item">
+        <details class="faq-item" id="fix-lfm-push">
           <summary data-i18n="sg_lf_q1">The "Push to Last.fm" button doesn't appear in the edit panel.</summary>
           <div class="faq-body">
             <p data-i18n="sg_lf_a1">You need to complete Step 3 first. Open Settings → Data Source → Last.fm Account and check that the status shows "Connected". This section sits below the source cards and stays available whichever source you use, so you can connect from Google Sheets or a CSV upload too.</p>
           </div>
         </details>
-        <details class="faq-item">
+        <details class="faq-item" id="fix-lfm-connect">
           <summary data-i18n="sg_lf_q2">Clicking "Connect to Last.fm" gives an error.</summary>
           <div class="faq-body">
             <p data-i18n="sg_lf_a2">Make sure both your API Key and Shared Secret are filled in under "Use custom API credentials". The button won't work with just a username.</p>
           </div>
         </details>
-        <details class="faq-item">
+        <details class="faq-item" id="fix-lfm-pusherr">
           <summary data-i18n="sg_lf_q3">"Push to Last.fm" shows an error after connecting.</summary>
           <div class="faq-body">
             <p data-i18n="sg_lf_a3">Your session may have expired. Go to Settings → Disconnect, then reconnect following Step 3 again.</p>
           </div>
         </details>
-        <details class="faq-item">
+        <details class="faq-item" id="fix-lfm-twice">
           <summary data-i18n="sg_lf_q4">The scrobble appears twice on Last.fm.</summary>
           <div class="faq-body">
             <p data-i18n="sg_lf_a4">That's expected — the push added the corrected version but the original is still there. Delete the original manually on the Last.fm website (Profile → Scrobbles).</p>
@@ -3503,43 +3510,43 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
     <section class="guide-section">
       <h2 class="section-label dc-gk-host"><svg data-gico="wrench" aria-hidden="true"></svg><span data-i18n="sg_troubleshooting">Troubleshooting</span></h2>
       <div class="faq">
-        <details class="faq-item">
+        <details class="faq-item" id="fix-file-cols">
           <summary data-i18n="sg_fi_q1">It says the required columns are missing.</summary>
           <div class="faq-body">
             <p data-i18n="sg_fi_a1">The header row needs a title column, an artist column and a date column, spelled as one of the accepted names in Step 3. Check row 1 specifically — if your export has a title banner or a blank line above the headers, delete those rows so the header row is the very first line of the file.</p>
           </div>
         </details>
-        <details class="faq-item">
+        <details class="faq-item" id="fix-file-novalid">
           <summary data-i18n="sg_fi_q2">It says no valid records were found.</summary>
           <div class="faq-body">
             <p data-i18n-html="sg_fi_a2">Almost always the date column. Every row needs a date that parses to the year 2000 or later — rows without one are skipped, and if that's every row you get this message. Reformat the column to <code>yyyy-mm-dd hh:mm:ss</code> and try again.</p>
           </div>
         </details>
-        <details class="faq-item">
+        <details class="faq-item" id="fix-file-spotify">
           <summary data-i18n="sg_fi_q3">My Spotify ZIP imported far fewer plays than I expected.</summary>
           <div class="faq-body">
             <p data-i18n-html="sg_fi_a3">That's usually correct rather than broken. Plays shorter than 30 seconds are skipped, and podcasts and videos are dropped because they have no artist and track pair. If you got the basic "Account data" export rather than <strong>Extended streaming history</strong>, it also only covers about the past year.</p>
           </div>
         </details>
-        <details class="faq-item">
+        <details class="faq-item" id="fix-file-deezer">
           <summary data-i18n="sg_fi_q4">My Deezer XLSX imported nothing.</summary>
           <div class="faq-body">
             <p data-i18n="sg_fi_a4">Only the first sheet of a workbook is read, and Deezer's export usually opens on a different one. Move the listening-history sheet to the front of the workbook, save, and upload again.</p>
           </div>
         </details>
-        <details class="faq-item">
+        <details class="faq-item" id="fix-file-takeout">
           <summary data-i18n="sg_fi_q5">My Google Takeout ZIP does nothing.</summary>
           <div class="faq-body">
             <p data-i18n="sg_fi_a5">Only Spotify's ZIP layout is recognised — Takeout's is different, so nothing inside it is found. Open the watch-history file from the Takeout archive, reshape it into a CSV as described in Step 3, and upload that instead.</p>
           </div>
         </details>
-        <details class="faq-item">
+        <details class="faq-item" id="fix-file-ghan">
           <summary data-i18n="sg_fi_q6">My ghan.nl export won't upload.</summary>
           <div class="faq-body">
             <p data-i18n-html="sg_fi_a6">That tool offers XML, CSV and JSON — only the <strong>CSV</strong> option can be uploaded here. It also exports loved tracks and events, which aren't play histories; make sure <strong>scrobbles</strong> is the selected export type.</p>
           </div>
         </details>
-        <details class="faq-item">
+        <details class="faq-item" id="fix-file-dates">
           <summary data-i18n="sg_fi_q7">Everything imported, but the dates are all wrong.</summary>
           <div class="faq-body">
             <p data-i18n-html="sg_fi_a7">Your export is almost certainly day-first (<code>DD/MM/YYYY</code>), which is read as month-first. Reformat that column to <code>yyyy-mm-dd hh:mm:ss</code> in your spreadsheet, export again, and re-upload.</p>
@@ -3636,7 +3643,7 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
       p.style.display = p.id === 'tab-' + tabName ? '' : 'none';
     });
     currentTab = tabName;
-    try { history.replaceState(null, '', '?tab=' + tabName); } catch(e) {}
+    try { history.replaceState(null, '', '?tab=' + tabName + (/^#fix-/.test(location.hash) ? location.hash : '')); } catch(e) {}
     tabListeners.forEach(function (fn) { fn(tabName); });
   }
   var currentTab = 'sheets';
@@ -4420,6 +4427,28 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
     }
     labelOpenCards();
     relabelers.push(labelOpenCards);
+
+    // Deep link to one troubleshooting answer: #fix-sheets-access (the app's
+    // load errors link here with "How to fix this →"). Opens its path,
+    // unfolds the answer, scrolls to it and gives it a short glow.
+    function openFix() {
+      var id = (location.hash || '').slice(1);
+      if (!/^fix-/.test(id)) return false;
+      var d = document.getElementById(id);
+      if (!d) return false;
+      var panel = d.closest('.guide-tab-panel');
+      if (panel) switchTab(panel.id.replace('tab-', ''));
+      try { history.replaceState(null, '', location.search + '#' + id); } catch (e) {}
+      d.open = true;
+      setTimeout(function () {
+        var y = d.getBoundingClientRect().top + window.scrollY - 140;
+        window.scrollTo({ top: Math.max(0, y), behavior: prefersReduced() ? 'auto' : 'smooth' });
+        d.classList.remove('faq-flash'); void d.offsetWidth; d.classList.add('faq-flash');
+      }, 300);
+      return true;
+    }
+    openFix();
+    window.addEventListener('hashchange', openFix);
 
     // Deep link to one step: ?tab=sheets&step=6 opens Step 6 of that guide
     // (the app's error messages link straight to the step that fixes them)

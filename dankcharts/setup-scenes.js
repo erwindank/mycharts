@@ -1039,6 +1039,69 @@
     }
   });
 
+  /* ── dankcharts.fm's own screens: real screenshots ─────────────────────
+     Taken by tools/setup-shots.mjs in every language; dot positions come
+     from setup/<lang>/shots.json. Captions use the app's own labels. */
+  var DC_CAPS = {
+    en: {
+      c_dc_landing: 'dankcharts.fm start screen',
+      c_dc_sheets: 'Settings → Data source → Google Sheets',
+      c_dc_webapp: 'Settings → Google Sheets → Apps Script Web App URL',
+      c_dc_creds: 'Settings → Last.fm Account → Use custom API credentials',
+      c_dc_connect: 'Settings → Last.fm Account',
+      c_dc_connected: 'Connected',
+      c_dc_file: 'Settings → Data source → Upload File',
+      c_dc_more: 'Top bar → More → Raw Data',
+      c_dc_raw: 'Raw Data: ✎ on every row',
+      c_dc_edit: 'The Edit window'
+    },
+    es: {
+      c_dc_landing: 'Pantalla de inicio de dankcharts.fm',
+      c_dc_sheets: 'Ajustes → Fuente de datos → Google Sheets',
+      c_dc_webapp: 'Ajustes → Google Sheets → URL de la aplicación web de Apps Script',
+      c_dc_creds: 'Ajustes → Cuenta de Last.fm → Usar credenciales de API propias',
+      c_dc_connect: 'Ajustes → Cuenta de Last.fm',
+      c_dc_connected: 'Conectado',
+      c_dc_file: 'Ajustes → Fuente de datos → Subir archivo',
+      c_dc_more: 'Barra superior → Más → Base de datos',
+      c_dc_raw: 'Base de datos: ✎ en cada fila',
+      c_dc_edit: 'La ventana de edición'
+    },
+    'pt-BR': {
+      c_dc_landing: 'Tela inicial do dankcharts.fm',
+      c_dc_sheets: 'Configurações → Fonte de dados → Google Sheets',
+      c_dc_webapp: 'Configurações → Google Sheets → URL do app da Web do Apps Script',
+      c_dc_creds: 'Configurações → Conta do Last.fm → Usar credenciais de API próprias',
+      c_dc_connect: 'Configurações → Conta do Last.fm',
+      c_dc_connected: 'Conectado',
+      c_dc_file: 'Configurações → Fonte de dados → Enviar arquivo',
+      c_dc_more: 'Barra superior → Mais → Dados brutos',
+      c_dc_raw: 'Dados brutos: ✎ em cada linha',
+      c_dc_edit: 'A janela de edição'
+    },
+    'pt-PT': {
+      c_dc_landing: 'Ecrã inicial do dankcharts.fm',
+      c_dc_sheets: 'Definições → Fonte de dados → Google Sheets',
+      c_dc_webapp: 'Definições → Google Sheets → URL da aplicação Web do Apps Script',
+      c_dc_creds: 'Definições → Conta Last.fm → Usar credenciais de API próprias',
+      c_dc_connect: 'Definições → Conta Last.fm',
+      c_dc_connected: 'Ligado',
+      c_dc_file: 'Definições → Fonte de dados → Carregar ficheiro',
+      c_dc_more: 'Barra superior → Mais → Dados brutos',
+      c_dc_raw: 'Dados brutos: ✎ em cada linha',
+      c_dc_edit: 'A janela de edição'
+    }
+  };
+  Object.keys(DC_CAPS).forEach(function (l) { Object.assign(LBL[l], DC_CAPS[l]); });
+  [
+    ['dc-landing-lfm', 'c_dc_landing'], ['dc-set-sheets', 'c_dc_sheets'], ['dc-set-webapp', 'c_dc_webapp'],
+    ['dc-set-lfm-creds', 'c_dc_creds'], ['dc-set-lfm-connect', 'c_dc_connect'], ['dc-set-lfm-connected', 'c_dc_connected'],
+    ['dc-set-file', 'c_dc_file'], ['dc-more', 'c_dc_more'], ['dc-raw', 'c_dc_raw'], ['dc-raw-edit', 'c_dc_edit']
+  ].forEach(function (s) {
+    // w is replaced by the picture's own width once shots.json is in
+    SCENES[s[0]] = { img: s[0], url: 'dankcharts.fm', w: 800, cap: s[1] };
+  });
+
   /* ── Engine ──────────────────────────────────────────────────────────── */
   var mounted = [];   // every live figure controller
   var ro = 'ResizeObserver' in window ? new ResizeObserver(function (entries) {
@@ -1106,6 +1169,11 @@
       var urlText = head.querySelector('.shot-url-text');
       if (urlText) urlText.textContent = sc.url || '';
       fig.classList.toggle('shot-app', sc.frame === 'app');
+      if (sc.img) {
+        // A real screenshot is drawn at its own measured width
+        var meta = (SHOTS_JSON[lang()] || {})[sc.img] || (SHOTS_JSON.en || {})[sc.img];
+        if (meta && meta.w) sc.w = meta.w;
+      }
       layer.style.width = sc.w + 'px';
       layer.innerHTML = sc.img ? imgScene(sc) : sc.html(L);
       popped = false;
