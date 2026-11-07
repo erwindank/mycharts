@@ -649,6 +649,10 @@ TRANSLATIONS['es'] = Object.assign({
     // The Dank 100 (dank100.js)
     nav_dank100: "The Dank 100",
     d100_title: "The Dank 100",
+    // Glow kit header stickers (2026-11-07): beside the Dank 100, Board and Soundtrack titles
+    gk_stk_live: "En vivo",
+    gk_stk_board: "Todos pueden publicar",
+    gk_stk_chapters: "{{n}} capítulos",
     d100_sub: "Las listas semanales de todos, sumadas en una sola. Envía la tuya cada semana.",
     d100_signin_note: "Inicia sesión con Google para sumar tu semana a The Dank 100. Cualquiera puede ver la lista.",
     d100_demo: "Esta es la biblioteca de demostración, así que no se puede enviar. Conecta tus propios datos para participar.",

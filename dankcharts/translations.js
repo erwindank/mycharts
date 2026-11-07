@@ -689,6 +689,10 @@ const TRANSLATIONS = {
     // The Dank 100 (dank100.js)
     nav_dank100: "The Dank 100",
     d100_title: "The Dank 100",
+    // Glow kit header stickers (2026-11-07): beside the Dank 100, Board and Soundtrack titles
+    gk_stk_live: "Live",
+    gk_stk_board: "Everyone can post",
+    gk_stk_chapters: "{{n}} chapters",
     d100_sub: "Everyone's weekly charts, added up into one. Send yours in each week.",
     d100_signin_note: "Sign in with Google to add your week to The Dank 100. Anyone can look at the chart.",
     d100_demo: "This is the demo library, so it can't be sent in. Connect your own data to take part.",

@@ -53257,6 +53257,9 @@ function stNumberChapters() {
     const el = ch.querySelector('.st-chap-n');
     if (el) el.textContent = on ? t('st_ch_label', { n }) + ' · ' : '';
   });
+  // Glow kit header sticker beside the title: "12 chapters"
+  const stk = document.getElementById('stChapStk');
+  if (stk) { stk.textContent = t('gk_stk_chapters', { n }); stk.hidden = !n; }
 }
 
 function stSetupReveal() {

@@ -394,7 +394,10 @@
     h += '<div class="section-header bd-page-header"><h2 class="section-header-h2">' +
       // the glow kit's two bubbles (glowkit.js)
       (typeof window.dcGlowIco === 'function' ? window.dcGlowIco('board') : '') +
-      '<span>' + esc(tr('board_title')) + '</span></h2><div class="section-rule"></div></div>';
+      '<span>' + esc(tr('board_title')) + '</span></h2>' +
+      // glow kit header sticker
+      '<span class="dc-hstk dc-hstk--board">' + esc(tr('gk_stk_board')) + '</span>' +
+      '<div class="section-rule"></div></div>';
     h += '<p class="bd-page-sub">' + esc(tr('board_sub')) + '</p>';
     h += '<div class="bd-body">';
 

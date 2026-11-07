@@ -27,13 +27,13 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=898">
+  <link rel="stylesheet" href="style.css?v=899">
   <!-- The Charts Guide's lessons (guide.js, GUIDE-PLAN.md) -->
   <link rel="stylesheet" href="guide.css?v=4">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=339"></script>
+  <script defer src="translations.js?v=340"></script>
   <!-- Only the visitor's own language is downloaded (translations.js holds
        English). This writes a defer tag for the saved language right here, so
        it runs straight after translations.js and before app.js, and the page
@@ -41,7 +41,7 @@
        whenever translations.es / pt-BR / pt-PT .js change (setup-guide.html
        has the same line). -->
   <script>
-    window.DC_I18N_V = 31;
+    window.DC_I18N_V = 32;
     (function () {
       try {
         var l = localStorage.getItem('dankcharts-lang');
@@ -1686,6 +1686,8 @@
       <div id="recBuilding" class="rec-building" role="status" hidden><span class="rec-building-dot"></span><span data-i18n="rec_building">Building your records…</span></div>
       <div class="section-header section-header--tight">
         <h2 class="section-header-h2"><svg data-gico="records"></svg><span data-i18n="sec_records_title">Records &amp; Hall of Fame</span></h2>
+        <!-- Glow kit header sticker: what the tab covers, in two words -->
+        <span class="dc-hstk dc-hstk--records" data-i18n="st_period_alltime">All-Time</span>
         <div class="section-rule"></div>
       </div>
       <!-- Records icon sprite. One vocabulary, used in three places: the nav
@@ -2597,6 +2599,8 @@
          the nav's note icon -->
     <div class="section-header st-page-header">
       <h2 class="section-header-h2"><svg data-gico="sound"></svg><span data-i18n="nav_soundtrack">Your Soundtrack</span></h2>
+      <!-- Glow kit header sticker: how many chapters are showing (stNumberChapters fills it) -->
+      <span class="dc-hstk dc-hstk--sound" id="stChapStk" hidden></span>
       <div class="section-rule"></div>
     </div>
     <!-- One toolbar: period, the shared ‹ 2026 › stepper, then Replay and Share -->
@@ -4378,13 +4382,13 @@
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
   <!-- Glow kit: the drawn, glowing icons for titles, Records headings, Guide cards and stat tiles -->
   <script defer src="glowkit.js?v=2"></script>
-  <script defer src="board.js?v=9"></script>
+  <script defer src="board.js?v=10"></script>
   <!-- The Charts Guide's words in four languages (read by guide.js: the Reference tab and search) -->
   <script defer src="charts-guide-i18n.js?v=15"></script>
   <!-- One behaviour and one icon set for every pop-up window (phase 10); before
        app.js so dcIco() is there when app.js draws a window -->
   <script defer src="popups.js?v=13"></script>
-  <script defer src="app.js?v=667"></script>
+  <script defer src="app.js?v=668"></script>
   <!-- The song / album / artist details side panel (phase 10 step 3); wraps app.js's open functions -->
   <script defer src="panel.js?v=16"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
@@ -4401,7 +4405,7 @@
   <script defer src="records-look.js?v=12"></script>
   <script defer src="stats.js?v=59"></script>
   <!-- The Dank 100: weekly entries for the shared community chart; reads app.js and firebase.js globals -->
-  <script defer src="dank100.js?v=25"></script>
+  <script defer src="dank100.js?v=26"></script>
   <!-- Top-bar library search: artists / songs / albums, opens their windows as from All-Time; after panel.js -->
   <script defer src="library-search.js?v=1"></script>
   <!-- The Charts Guide: lessons, the picture explorer, step player and challenges

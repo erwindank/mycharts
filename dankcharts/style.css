@@ -46920,3 +46920,69 @@ body.yellow-light .dc-gtile, body.pink-light .dc-gtile, body.green-light .dc-gti
 @media (prefers-reduced-motion: reduce) {
   :is(.chart-type-toggle-btn .type-icon, .rec-ent-tab-icon) { transition: none; }
 }
+
+/* ── GLOW KIT 5: header stickers (2026-11-07) ─────────────────────────────────
+   A small landing-style badge beside a few tab titles, saying in two or three
+   words what the tab is: The Dank 100 "THIS WEEK · LIVE" (with a pulsing dot),
+   Community Board "EVERYONE CAN POST", Your Soundtrack "12 CHAPTERS" (counted
+   from the chapters showing), Records "ALL-TIME". Tinted with the title icon's
+   own nav hue, mixed per theme the same way. Decorative: hidden on phones,
+   where the title needs the whole row. */
+.dc-hstk {
+  --hc: var(--accent);
+  --sc: color-mix(in srgb, var(--hc) var(--nav-hue-lit, 85%), var(--nav-ink, var(--accent)));
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  margin-left: var(--sp-1);
+  padding: 3px 8px;
+  border: 1px solid color-mix(in srgb, var(--sc) 60%, transparent);
+  border-radius: var(--r-xs);
+  background: var(--surface);
+  color: var(--sc);
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  line-height: 1.35;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transform: rotate(-3deg);
+  box-shadow: 0 2px 8px color-mix(in srgb, #000 30%, transparent);
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease, background 0.22s ease;
+}
+.dc-hstk[hidden] { display: none; }
+.section-header:hover .dc-hstk {
+  transform: rotate(0deg) scale(1.04);
+  background: color-mix(in srgb, var(--sc) 14%, var(--surface));
+  box-shadow: 0 3px 14px color-mix(in srgb, var(--sc) 35%, transparent);
+}
+.dc-hstk--d100    { --hc: #2dd4bf; }
+.dc-hstk--board   { --hc: #f472b6; }
+.dc-hstk--sound   { --hc: #c084fc; }
+.dc-hstk--records { --hc: #fb923c; }
+
+/* the live dot */
+.dc-hstk-live {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--sc);
+  box-shadow: 0 0 6px var(--sc);
+  animation: gkLive 1.6s ease-in-out infinite;
+}
+@keyframes gkLive { 50% { opacity: 0.3; } }
+
+:is(body.navy-light, body.purple-light, body.red-light, body.yellow-light, body.pink-light, body.green-light) .dc-hstk {
+  background: var(--bg2);
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.12);
+}
+
+@media (max-width: 560px) {
+  .dc-hstk { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dc-hstk { transition: none; }
+  .dc-hstk-live { animation: none; }
+}
