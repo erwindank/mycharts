@@ -733,6 +733,29 @@
     }
   });
 
+  /* ── Last.fm path: the "allow access" page Connect opens ──────────────── */
+  ['en', 'es', 'pt-BR', 'pt-PT'].forEach(function (l) {
+    LBL[l].cap_lfm_auth = {
+      en: 'Last.fm asks you to allow access',
+      es: 'Last.fm te pide que permitas el acceso',
+      'pt-BR': 'O Last.fm pede que você permita o acesso',
+      'pt-PT': 'O Last.fm pede-te que permitas o acesso'
+    }[l];
+  });
+  SCENES['lfm-auth'] = {
+    url: 'www.last.fm/api/auth/?api_key=…',
+    w: 720,
+    cap: 'cap_lfm_auth',
+    html: function () {
+      return lfmPage(
+        '<h4 class="r-lfm-h">Connect application</h4>' +
+        '<div class="r-lfm-app"><span class="r-lfm-appico">♫</span><span><b>My Music Charts</b><br><small>would like to connect to your Last.fm account <b>alex_listens</b></small></span></div>' +
+        '<ul class="r-lfm-perms"><li>Scrobble tracks to your profile</li><li>See your profile and listening history</li></ul>' +
+        '<div class="r-lfm-actions r-lfm-actions-c"><span class="r-lfm-btn" data-dot="1">Yes, allow access</span><span class="r-lfm-no">No thanks</span></div>'
+      );
+    }
+  };
+
   /* ── Engine ──────────────────────────────────────────────────────────── */
   var mounted = [];   // every live figure controller
   var ro = 'ResizeObserver' in window ? new ResizeObserver(function (entries) {
@@ -752,12 +775,20 @@
 
   function Shot(fig) {
     var names = (fig.dataset.scenes || fig.dataset.scene || '').split(',').map(function (s) { return s.trim(); }).filter(Boolean);
-    names = names.filter(function (n) { return SCENES[n]; });
+    // Offsets belong to the screen's place in the attribute, so pair them up
+    // before dropping any screen this page doesn't have (yet)
+    var allOffsets = (fig.dataset.offsets || '').split(',');
+    var offsets = [], orig = [];
+    names = names.filter(function (n, i) {
+      if (!SCENES[n]) return false;
+      offsets.push(allOffsets[i] || 0);
+      orig.push(i);
+      return true;
+    });
     if (!names.length) return null;
     var self = this;
     var cur = Math.min(+(fig.dataset.start || 0), names.length - 1);
     var multi = names.length > 1;
-    var offsets = (fig.dataset.offsets || '').split(',');
     var big = fig.classList.contains('shot-big');   // the zoomed copy in the lightbox
     var toured = false;
 
@@ -911,6 +942,8 @@
       self.tour();
     };
     this.frame = function () { return cur; };
+    // A list line's data-frame counts screens as written in the attribute
+    this.goOrig = function (i) { var k = orig.indexOf(i); if (k >= 0) self.go(k); };
     this.names = names;
 
     if (multi) {
@@ -999,7 +1032,7 @@
       ol.querySelectorAll('li[data-dot]').forEach(function (li) {
         function on() {
           var s = shot(); if (!s) return;
-          if (li.dataset.frame) s.go(+li.dataset.frame - 1);
+          if (li.dataset.frame) s.goOrig(+li.dataset.frame - 1);
           s.hot(li.dataset.dot, true);
           li.classList.add('hot');
         }

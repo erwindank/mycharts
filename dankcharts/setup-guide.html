@@ -2542,7 +2542,7 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
         </span>
         <span class="guide-tab-text">
           <span data-i18n="sg_tab_lastfm" class="guide-tab-name">Last.fm Scrobbling</span>
-          <span data-i18n="sg_meta_lastfm" class="guide-tab-meta">4 steps · ~5 min</span>
+          <span data-i18n="sg_meta_lastfm2" class="guide-tab-meta">1 step · ~1 min (+4 optional)</span>
         </span>
       </span>
       <span data-i18n="sg_card_lastfm_desc" class="guide-tab-desc">Type your Last.fm username and your charts load straight from your scrobbles.</span>
@@ -2983,8 +2983,7 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
     <h2 class="section-label dc-gk-host"><svg data-gico="checklist" aria-hidden="true"></svg><span data-i18n="sg_needs_title">What you'll need</span></h2>
     <ul class="needs">
       <li data-i18n="sg_lf_need1">A Last.fm account</li>
-      <li data-i18n-html="sg_lf_need2">A free Last.fm API key &amp; shared secret — <a href="https://www.last.fm/api/account/create" target="_blank" rel="noopener">last.fm/api/account/create</a></li>
-      <li data-i18n-html="sg_lf_need3">dankcharts.fm loaded with your listening history — either from this guide's API connection, or by uploading a CSV from <a href="https://mainstream.ghan.nl/export.html" target="_blank" rel="noopener">ghan.nl's Last.fm exporter</a> (see the <strong>Upload a File</strong> guide)</li>
+      <li data-i18n-html="sg_lf_need2b">For the optional steps 2–5 only: a free Last.fm API key &amp; shared secret (Step 2 makes them)</li>
     </ul>
 
     <div class="viewbar">
@@ -3001,41 +3000,98 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
 
     <ol class="steps">
 
+      <!-- Step 1 (2026-11-07): the fastest start the landing card promises.
+           A username is all the charts need; everything after it is the
+           optional "fix and push scrobbles" setup. -->
       <li class="step">
         <button type="button" class="step-node" aria-pressed="false" aria-label="Mark step 1 done">
           <span class="step-num">01</span><span class="step-tick" aria-hidden="true">✓</span>
         </button>
         <div class="step-card">
-          <h3 data-i18n="sg_lf1_title" class="step-title">Create a Last.fm API app</h3>
+          <h3 data-i18n="sg_lf0_title" class="step-title">Quick start: just your username</h3>
           <div class="step-body">
-            <p data-i18n-html="sg_lf1_p1">Fill in the form at <a href="https://www.last.fm/api/account/create" target="_blank" rel="noopener">last.fm/api/account/create</a> — the values can be anything.</p>
-            <div class="spec">
-              <div data-i18n-html="sg_spec_head_form" class="spec-head"><span>Field</span><span>What to enter</span></div>
-              <div class="spec-row"><span class="spec-key">Application name</span><span data-i18n="sg_form_name" class="spec-val">My Music Charts</span></div>
-              <div class="spec-row"><span class="spec-key">Description</span><span data-i18n="sg_form_desc" class="spec-val">Personal use</span></div>
-              <div class="spec-row"><span class="spec-key">Homepage</span><span class="spec-val">https://dankcharts.fm</span></div>
-              <div class="spec-row"><span class="spec-key">Callback URL</span><span class="spec-val">https://dankcharts.fm</span></div>
+            <div class="shot-pair">
+              <figure class="shot" data-scene="dc-landing-lfm"></figure>
+              <div class="do-col">
+                <a class="btn-primary do-cta" href="https://dankcharts.fm" target="_blank" rel="noopener"><span data-i18n="sg_open_site">Open dankcharts.fm</span> <span class="btn-arrow" aria-hidden="true">↗</span></a>
+                <p data-i18n="sg_do_head" class="do-head">Do this</p>
+                <ol class="do">
+                  <li data-dot="1" data-i18n-html="sg_lf0_do1">On the start screen, pick the <strong>Last.fm</strong> card.</li>
+                  <li data-dot="2" data-i18n-html="sg_lf0_do2">Type your Last.fm <strong>username</strong>.</li>
+                  <li data-dot="3" data-i18n-html="sg_lf0_do3">Press <strong>Start Charting</strong>. Your whole history loads; a big library can take a minute or two the first time.</li>
+                </ol>
+                <p data-i18n-html="sg_lf0_ok" class="do-ok">Already using the site? <strong>Settings ⚙ → Data source → Last.fm</strong>, type your username, then <strong>Save &amp; Load</strong>.</p>
+              </div>
             </div>
-            <p data-i18n-html="sg_lf1_p2">Copy the <strong>API Key</strong> and <strong>Shared Secret</strong> it gives you. Free, instant, no approval.</p>
+            <aside class="note note-tip">
+              <span class="note-icon" aria-hidden="true">✦</span>
+              <div data-i18n-html="sg_lf0_tip" class="note-body">
+                <strong>That's all your charts need.</strong> Steps 2 to 5 are optional: they let you fix scrobbles that came in wrong and send the fixes back to Last.fm. They work whichever way you load your plays, Google Sheets and file uploads included.
+              </div>
+            </aside>
           </div>
         </div>
       </li>
 
-      <li class="step">
+      <li class="step step-optional">
         <button type="button" class="step-node" aria-pressed="false" aria-label="Mark step 2 done">
           <span class="step-num">02</span><span class="step-tick" aria-hidden="true">✓</span>
         </button>
         <div class="step-card">
-          <h3 data-i18n="sg_lf2_title" class="step-title">Paste them into dankcharts.fm</h3>
+          <h3 class="step-title"><span data-i18n="sg_lf1_title">Create a Last.fm API app</span> <span data-i18n="sg_optional" class="optional-badge">Optional</span></h3>
           <div class="step-body">
-            <div class="path">
-              <span data-i18n="sg_path_settings" class="path-step">Settings ⚙</span>
-              <span class="path-arrow" aria-hidden="true">→</span>
-              <span class="path-step">Data Source</span>
-              <span class="path-arrow" aria-hidden="true">→</span>
-              <span class="path-step">Last.fm Account</span>
-              <span class="path-arrow" aria-hidden="true">→</span>
-              <span class="path-step">Use custom API credentials</span>
+            <div class="shot-pair">
+              <figure class="shot" data-scenes="lfm-form,lfm-done"></figure>
+              <div class="do-col">
+                <a class="btn-primary do-cta" href="https://www.last.fm/api/account/create" target="_blank" rel="noopener"><span data-i18n="sg_lfm_cta">Open the Last.fm form</span> <span class="btn-arrow" aria-hidden="true">↗</span></a>
+                <p data-i18n="sg_do_head" class="do-head">Do this</p>
+                <ol class="do">
+                  <li data-i18n-html="sg_sh2_do0">Press <strong>Open the Last.fm form</strong> above and sign in to Last.fm.</li>
+                  <li data-dot="1" data-frame="1" data-i18n-html="sg_sh2_do1"><strong>Application name:</strong> anything, e.g. <em>My Music Charts</em>.</li>
+                  <li data-dot="2" data-frame="1" data-i18n-html="sg_sh2_do2"><strong>Application description:</strong> anything, e.g. <em>Personal use</em>. The other fields can stay empty.</li>
+                  <li data-dot="3" data-frame="1" data-i18n-html="sg_sh2_do3">Click <strong>Submit</strong>.</li>
+                  <li data-dot="4" data-frame="2" data-i18n-html="sg_lf1_do4">Copy the <strong>API key</strong>…</li>
+                  <li data-dot="5" data-frame="2" data-i18n-html="sg_lf1_do5">…and the <strong>Shared secret</strong>. This path needs both.</li>
+                </ol>
+                <p data-i18n-html="sg_sh2_ok" class="do-ok">Free and instant, no approval. Lost the key? It's always on <a href="https://www.last.fm/api/accounts" target="_blank" rel="noopener">last.fm/api/accounts</a>.</p>
+              </div>
+            </div>
+            <details class="why">
+              <summary data-i18n="sg_sh2_why">Why a key, and the exact values</summary>
+              <div class="why-body">
+                <p data-i18n-html="sg_lf1_p1">Fill in the form at <a href="https://www.last.fm/api/account/create" target="_blank" rel="noopener">last.fm/api/account/create</a> — the values can be anything.</p>
+                <div class="spec">
+                  <div data-i18n-html="sg_spec_head_form" class="spec-head"><span>Field</span><span>What to enter</span></div>
+                  <div class="spec-row"><span class="spec-key">Application name</span><span data-i18n="sg_form_name" class="spec-val">My Music Charts</span></div>
+                  <div class="spec-row"><span class="spec-key">Description</span><span data-i18n="sg_form_desc" class="spec-val">Personal use</span></div>
+                  <div class="spec-row"><span class="spec-key">Homepage</span><span class="spec-val">https://dankcharts.fm</span></div>
+                  <div class="spec-row"><span class="spec-key">Callback URL</span><span class="spec-val">https://dankcharts.fm</span></div>
+                </div>
+                <p data-i18n-html="sg_lf1_p2">Copy the <strong>API Key</strong> and <strong>Shared Secret</strong> it gives you. Free, instant, no approval.</p>
+              </div>
+            </details>
+          </div>
+        </div>
+      </li>
+
+      <li class="step step-optional">
+        <button type="button" class="step-node" aria-pressed="false" aria-label="Mark step 3 done">
+          <span class="step-num">03</span><span class="step-tick" aria-hidden="true">✓</span>
+        </button>
+        <div class="step-card">
+          <h3 class="step-title"><span data-i18n="sg_lf2_title">Paste them into dankcharts.fm</span> <span data-i18n="sg_optional" class="optional-badge">Optional</span></h3>
+          <div class="step-body">
+            <div class="shot-pair">
+              <figure class="shot" data-scene="dc-set-lfm-creds"></figure>
+              <div class="do-col">
+                <p data-i18n="sg_do_head" class="do-head">Do this</p>
+                <ol class="do">
+                  <li data-dot="1" data-i18n-html="sg_lf2_do1">On dankcharts.fm, open <strong>Settings ⚙</strong> (top right) and stay on <strong>Data source</strong>.</li>
+                  <li data-dot="2" data-i18n-html="sg_lf2_do2">Scroll to <strong>Last.fm Account</strong> and open <strong>Use custom API credentials</strong>.</li>
+                  <li data-dot="3" data-i18n-html="sg_lf2_do3">Paste the key into <strong>API Key</strong>…</li>
+                  <li data-dot="4" data-i18n-html="sg_lf2_do4">…and the shared secret into <strong>API Secret</strong>.</li>
+                </ol>
+              </div>
             </div>
             <aside class="note note-warn">
               <span class="note-icon" aria-hidden="true">!</span>
@@ -3047,21 +3103,24 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
         </div>
       </li>
 
-      <li class="step">
-        <button type="button" class="step-node" aria-pressed="false" aria-label="Mark step 3 done">
-          <span class="step-num">03</span><span class="step-tick" aria-hidden="true">✓</span>
+      <li class="step step-optional">
+        <button type="button" class="step-node" aria-pressed="false" aria-label="Mark step 4 done">
+          <span class="step-num">04</span><span class="step-tick" aria-hidden="true">✓</span>
         </button>
         <div class="step-card">
-          <h3 data-i18n="sg_lf3_title" class="step-title">Connect your account</h3>
+          <h3 class="step-title"><span data-i18n="sg_lf3_title">Connect your account</span> <span data-i18n="sg_optional" class="optional-badge">Optional</span></h3>
           <div class="step-body">
-            <div class="path">
-              <span class="path-step">Connect to Last.fm</span>
-              <span class="path-arrow" aria-hidden="true">→</span>
-              <span data-i18n="sg_lf3_allow" class="path-step">Allow access</span>
-              <span class="path-arrow" aria-hidden="true">→</span>
-              <span data-i18n="sg_lf3_back" class="path-step">back to the site</span>
+            <div class="shot-pair">
+              <figure class="shot" data-scenes="dc-set-lfm-connect,lfm-auth,dc-set-lfm-connected" data-offsets="0,1,2"></figure>
+              <div class="do-col">
+                <p data-i18n="sg_do_head" class="do-head">Do this</p>
+                <ol class="do">
+                  <li data-dot="1" data-frame="1" data-i18n-html="sg_lf3_do1">Still in Settings, click <strong>Connect to Last.fm</strong>. Last.fm opens in a new tab.</li>
+                  <li data-dot="2" data-frame="2" data-i18n-html="sg_lf3_do2">On Last.fm, click <strong>Yes, allow access</strong>.</li>
+                  <li data-dot="3" data-frame="3" data-i18n-html="sg_lf3_do3">Come back to dankcharts.fm. The status turns green: <strong>● Connected as</strong> your username.</li>
+                </ol>
+              </div>
             </div>
-            <p data-i18n-html="sg_lf3_p1">Clicking Connect opens Last.fm in a new tab. Approve it there, come back, and the status flips to <span style="color:var(--green);font-weight:600">● Connected as [your username]</span> on its own.</p>
             <p data-i18n-html="sg_lf3_p2">Until that happens it says <strong>● Waiting for your approval on Last.fm</strong>, which is the honest answer: opening the Last.fm tab does not connect anything by itself. If you approved it and the status hasn't caught up, press <strong>Check now</strong>. Only a verified reply from Last.fm turns it green.</p>
             <details class="why">
               <summary data-i18n="sg_lf3_why">Where is this stored?</summary>
@@ -3073,14 +3132,25 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
         </div>
       </li>
 
-      <li class="step">
-        <button type="button" class="step-node" aria-pressed="false" aria-label="Mark step 4 done">
-          <span class="step-num">04</span><span class="step-tick" aria-hidden="true">✓</span>
+      <li class="step step-optional">
+        <button type="button" class="step-node" aria-pressed="false" aria-label="Mark step 5 done">
+          <span class="step-num">05</span><span class="step-tick" aria-hidden="true">✓</span>
         </button>
         <div class="step-card">
-          <h3 data-i18n="sg_lf4_title" class="step-title">Fix and push scrobbles</h3>
+          <h3 class="step-title"><span data-i18n="sg_lf4_title">Fix and push scrobbles</span> <span data-i18n="sg_optional" class="optional-badge">Optional</span></h3>
           <div class="step-body">
-            <p data-i18n-html="sg_lf4_p1">Open the <strong>Raw Data</strong> tab. Every row has a <strong>✎</strong> button — click it, fix the artist, title, album or time, then hit <strong>Push to Last.fm</strong>.</p>
+            <div class="shot-pair">
+              <figure class="shot" data-scene="dc-raw-edit"></figure>
+              <div class="do-col">
+                <p data-i18n="sg_do_head" class="do-head">Do this</p>
+                <ol class="do">
+                  <li data-dot="1" data-i18n-html="sg_lf4_do1">Open the <strong>Raw Data</strong> tab.</li>
+                  <li data-dot="2" data-i18n-html="sg_lf4_do2">Click <strong>✎</strong> on the play you want to fix.</li>
+                  <li data-dot="3" data-i18n-html="sg_lf4_do3">Fix the artist, title, album or time.</li>
+                  <li data-dot="4" data-i18n-html="sg_lf4_do4">Press <strong>Push to Last.fm</strong>.</li>
+                </ol>
+              </div>
+            </div>
             <aside class="note note-warn">
               <span class="note-icon" aria-hidden="true">!</span>
               <div data-i18n-html="sg_lf4_warn" class="note-body">
