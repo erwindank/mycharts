@@ -212,6 +212,13 @@
        two-tone on the 24 grid. Their colour is the section's own --ico, so a
        heading still matches the Records pill that jumps to it. */
 
+    // Overview (Records menu): four tiles, the first lit, popping in one by one
+    'rec-overview':
+      '<rect class="gk-o gk-pop" x="3" y="3" width="7.6" height="7.6" rx="1.8"/>' +
+      '<rect class="gk-f gk-pop gk-d1" x="13.4" y="3" width="7.6" height="7.6" rx="1.8"/>' +
+      '<rect class="gk-f gk-pop gk-d1" x="3" y="13.4" width="7.6" height="7.6" rx="1.8"/>' +
+      '<rect class="gk-f gk-pop gk-d2" x="13.4" y="13.4" width="7.6" height="7.6" rx="1.8"/>',
+
     // All #1s: a crown that drops into place, jewel last
     'rec-ones':
       '<g class="gk-drop">' +
@@ -358,7 +365,7 @@
   // Loops (reels, dots …) are left alone: CSS keeps them going on :hover.
   var hoverHost = null;
   document.addEventListener('mouseover', function (e) {
-    var host = e.target && e.target.closest ? e.target.closest('.section-header-h2, .gd-card, .stat-box, .st-stat, .dc-gk-host') : null;
+    var host = e.target && e.target.closest ? e.target.closest('.section-header-h2, .gd-card, .stat-box, .st-stat, .tb-tab, .bt-tab, .tb-more-item, .records-nav-btn, .rec-picker, .dc-gk-host') : null;
     if (host === hoverHost) return;
     hoverHost = host;
     if (!host || !host.getAnimations) return;

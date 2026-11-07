@@ -47080,3 +47080,41 @@ body.yellow-light .dc-gtile, body.pink-light .dc-gtile, body.green-light .dc-gti
 }
 /* the title row sits closer to the hero than the hub's section gap */
 .gd-hub > .gd-page-header { margin-bottom: calc(var(--sp-3) - var(--sp-6)); }
+
+/* ── GLOW KIT: navigation (2026-11-07) ───────────────────────────────────────
+   The top bar's tabs, the phone bottom bar, both More menus and the Records
+   section menu (with its phone picker) carry the same drawn icons as the tab
+   titles. The open tab's icon glows; the others keep their colour but sit a
+   little quieter, without the glow, so the bar doesn't read as a rainbow. */
+
+/* top bar tabs: icon + word */
+.tb-tab { display: inline-flex; align-items: center; gap: 0.4em; }
+.tb-tab > .dc-gico { width: 1.2em; height: 1.2em; }
+.tb-more-btn { gap: 0.25em; }
+
+/* More menus: icon + word on each row */
+.tb-more-item { display: flex; align-items: center; gap: 0.6em; }
+.tb-more-item > .dc-gico { width: 1.25em; height: 1.25em; }
+
+/* Records menu + phone picker: the picture a touch larger than the old line icon */
+.records-nav-btn > .dc-gico,
+.rec-picker > .dc-gico { width: 20px; height: 20px; }
+
+/* quiet until open / hovered (higher than the light-theme filter rule) */
+:is(.tb-tab, .bt-tab, .records-nav-btn):not(.active):not(:hover) > .dc-gico {
+  filter: none;
+  opacity: 0.72;
+}
+
+/* the top bar runs out of room between tablet and laptop widths: words only there */
+@media (min-width: 961px) and (max-width: 1180px) {
+  .tb-tab > .dc-gico { display: none; }
+}
+
+/* The most crowded top bar (dcFitTopbar's .tb-tighter step) drops the open
+   tab's icon too */
+#topbar.tb-tighter .tb-tab > .dc-gico { display: none; }
+
+/* The bar never has room for five icons (its content is width-capped), so only
+   the open tab shows its glowing icon: it marks where you are */
+#topbar .tb-tab:not(.active) > .dc-gico { display: none; }

@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=905">
+  <link rel="stylesheet" href="style.css?v=909">
   <!-- The Charts Guide's lessons (guide.js, GUIDE-PLAN.md) -->
   <link rel="stylesheet" href="guide.css?v=4">
   <!-- All scripts are deferred so the page paints without waiting on them.
@@ -293,27 +293,27 @@
            Week / Month / Year / All-time is picked on the Charts page itself.
            On phones these move to the bottom bar (#bottomTabs) instead. -->
       <nav class="topbar-nav" id="topbarNav" data-i18n-aria-label="tab_main_nav" aria-label="Main">
-        <button class="tb-tab" data-go="charts" data-i18n="tab_charts">Charts</button>
-        <button class="tb-tab" data-go="graphs" data-i18n="tab_stats">Stats</button>
-        <button class="tb-tab" data-go="records" data-i18n="nav_records">Records</button>
-        <button class="tb-tab" data-go="awards" data-i18n="nav_awards">Awards</button>
-        <button class="tb-tab" data-go="soundtrack" data-i18n="tab_soundtrack">Soundtrack</button>
+        <button class="tb-tab" data-go="charts"><svg data-gico="charts"></svg><span data-i18n="tab_charts">Charts</span></button>
+        <button class="tb-tab" data-go="graphs"><svg data-gico="stats"></svg><span data-i18n="tab_stats">Stats</span></button>
+        <button class="tb-tab" data-go="records"><svg data-gico="records"></svg><span data-i18n="nav_records">Records</span></button>
+        <button class="tb-tab" data-go="awards"><svg data-gico="awards"></svg><span data-i18n="nav_awards">Awards</span></button>
+        <button class="tb-tab" data-go="soundtrack"><svg data-gico="sound"></svg><span data-i18n="tab_soundtrack">Soundtrack</span></button>
         <div class="ctrl-group tb-more" id="moreCtrlGroup">
           <button class="ctrl-group-btn tb-tab tb-more-btn" aria-haspopup="true">
             <span class="tb-more-label" data-i18n="nav_toggle_more">More</span>
             <svg class="tb-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6,9 12,15 18,9"/></svg>
           </button>
           <div class="ctrl-group-panel tb-more-panel">
-          <button class="tb-more-item" data-go="dank100" data-i18n="nav_dank100">The Dank 100</button>
-          <button class="tb-more-item" data-go="ratings" data-i18n="nav_ratings">Ratings</button>
-          <button class="tb-more-item" data-go="events" data-i18n="nav_events">Events</button>
-          <button class="tb-more-item" data-go="playlists" data-i18n="nav_playlists">Playlists</button>
-          <button class="tb-more-item" data-go="rawdata" data-i18n="nav_rawdata">Raw Data</button>
-          <button class="tb-more-item" data-go="board" data-i18n="nav_board">Board</button>
-          <button class="tb-more-item" data-go="chartsguide" data-i18n="nav_chartsguide">Charts Guide</button>
+          <button class="tb-more-item" data-go="dank100"><svg data-gico="d100"></svg><span data-i18n="nav_dank100">The Dank 100</span></button>
+          <button class="tb-more-item" data-go="ratings"><svg data-gico="ratings"></svg><span data-i18n="nav_ratings">Ratings</span></button>
+          <button class="tb-more-item" data-go="events"><svg data-gico="events"></svg><span data-i18n="nav_events">Events</span></button>
+          <button class="tb-more-item" data-go="playlists"><svg data-gico="lists"></svg><span data-i18n="nav_playlists">Playlists</span></button>
+          <button class="tb-more-item" data-go="rawdata"><svg data-gico="raw"></svg><span data-i18n="nav_rawdata">Raw Data</span></button>
+          <button class="tb-more-item" data-go="board"><svg data-gico="board"></svg><span data-i18n="nav_board">Board</span></button>
+          <button class="tb-more-item" data-go="chartsguide"><svg data-gico="guide"></svg><span data-i18n="nav_chartsguide">Charts Guide</span></button>
           <!-- What's New: opens the changelog window, not a tab, so it has no
                data-go and sits under a thin line apart from the pages above -->
-          <button class="tb-more-item tb-more-sep" onclick="openChangelog()" data-i18n="footer_changelog">What&rsquo;s New</button>
+          <button class="tb-more-item tb-more-sep" onclick="openChangelog()"><svg data-gico="spark"></svg><span data-i18n="footer_changelog">What&rsquo;s New</span></button>
           </div>
         </div>
       </nav>
@@ -414,23 +414,23 @@
        Soundtrack here. Hidden above 960px by CSS. It slides away together
        with the top bar while the page is still (body.topbar-idle). -->
   <nav class="bottom-tabs" id="bottomTabs" data-i18n-aria-label="tab_main_nav" aria-label="Main">
-    <button class="bt-tab" data-go="charts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="20" x2="5" y2="11"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="19" y1="20" x2="19" y2="14"/></svg><span data-i18n="tab_charts">Charts</span></button>
-    <button class="bt-tab" data-go="graphs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3,17 9,11 13,15 21,7"/><polyline points="15,7 21,7 21,13"/></svg><span data-i18n="tab_stats">Stats</span></button>
-    <button class="bt-tab" data-go="records"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 20.5 8 12.5l3.3 4 4.2-7.7 6 11.7Z"/><line x1="15.5" y1="8.8" x2="15.5" y2="3"/><path d="M15.5 3.4 20 5.1l-4.5 1.7"/></svg><span data-i18n="nav_records">Records</span></button>
-    <button class="bt-tab" data-go="awards"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M7 6H4.5a2.5 2.5 0 0 0 2.6 3"/><path d="M17 6h2.5a2.5 2.5 0 0 1-2.6 3"/><line x1="12" y1="14" x2="12" y2="17.5"/><path d="M8.5 20.5h7l-1-3h-5Z"/></svg><span data-i18n="nav_awards">Awards</span></button>
+    <button class="bt-tab" data-go="charts"><svg data-gico="charts"></svg><span data-i18n="tab_charts">Charts</span></button>
+    <button class="bt-tab" data-go="graphs"><svg data-gico="stats"></svg><span data-i18n="tab_stats">Stats</span></button>
+    <button class="bt-tab" data-go="records"><svg data-gico="records"></svg><span data-i18n="nav_records">Records</span></button>
+    <button class="bt-tab" data-go="awards"><svg data-gico="awards"></svg><span data-i18n="nav_awards">Awards</span></button>
     <div class="ctrl-group bt-more" id="bottomMoreGroup">
       <button class="ctrl-group-btn bt-tab bt-more-btn" aria-haspopup="true"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="19" cy="12" r="1.9"/></svg><span class="tb-more-label" data-i18n="nav_toggle_more">More</span></button>
       <div class="ctrl-group-panel bt-more-panel">
-          <button class="tb-more-item" data-go="soundtrack" data-i18n="tab_soundtrack">Soundtrack</button>
-          <button class="tb-more-item" data-go="dank100" data-i18n="nav_dank100">The Dank 100</button>
-          <button class="tb-more-item" data-go="ratings" data-i18n="nav_ratings">Ratings</button>
-          <button class="tb-more-item" data-go="events" data-i18n="nav_events">Events</button>
-          <button class="tb-more-item" data-go="playlists" data-i18n="nav_playlists">Playlists</button>
-          <button class="tb-more-item" data-go="rawdata" data-i18n="nav_rawdata">Raw Data</button>
-          <button class="tb-more-item" data-go="board" data-i18n="nav_board">Board</button>
-          <button class="tb-more-item" data-go="chartsguide" data-i18n="nav_chartsguide">Charts Guide</button>
+          <button class="tb-more-item" data-go="soundtrack"><svg data-gico="sound"></svg><span data-i18n="tab_soundtrack">Soundtrack</span></button>
+          <button class="tb-more-item" data-go="dank100"><svg data-gico="d100"></svg><span data-i18n="nav_dank100">The Dank 100</span></button>
+          <button class="tb-more-item" data-go="ratings"><svg data-gico="ratings"></svg><span data-i18n="nav_ratings">Ratings</span></button>
+          <button class="tb-more-item" data-go="events"><svg data-gico="events"></svg><span data-i18n="nav_events">Events</span></button>
+          <button class="tb-more-item" data-go="playlists"><svg data-gico="lists"></svg><span data-i18n="nav_playlists">Playlists</span></button>
+          <button class="tb-more-item" data-go="rawdata"><svg data-gico="raw"></svg><span data-i18n="nav_rawdata">Raw Data</span></button>
+          <button class="tb-more-item" data-go="board"><svg data-gico="board"></svg><span data-i18n="nav_board">Board</span></button>
+          <button class="tb-more-item" data-go="chartsguide"><svg data-gico="guide"></svg><span data-i18n="nav_chartsguide">Charts Guide</span></button>
           <!-- What's New: same as the top bar's More menu -->
-          <button class="tb-more-item tb-more-sep" onclick="openChangelog()" data-i18n="footer_changelog">What&rsquo;s New</button>
+          <button class="tb-more-item tb-more-sep" onclick="openChangelog()"><svg data-gico="spark"></svg><span data-i18n="footer_changelog">What&rsquo;s New</span></button>
       </div>
     </div>
   </nav>
@@ -1859,7 +1859,7 @@
            so every label is wrapped in its own <span>. -->
       <div class="rec-layout" id="recLayout">
         <button type="button" class="rec-picker" id="recPicker" aria-expanded="false" aria-controls="recordsNav">
-          <svg class="rec-nav-ico" aria-hidden="true" focusable="false"><use href="#ri-overview" /></svg>
+          <svg class="rec-nav-ico gk-ico" data-gico="rec-overview"></svg>
           <span class="rec-picker-text">
             <span class="rec-picker-label" data-i18n="rec_picker_label">Section</span>
             <span class="rec-picker-name" id="recPickerName">Overview</span>
@@ -1868,49 +1868,49 @@
         </button>
         <nav class="records-nav" id="recordsNav" aria-label="Records sections" data-i18n-aria="rec_nav_aria">
           <button type="button" class="records-nav-btn active" data-rec-view="recOverviewSection">
-            <svg class="rec-nav-ico" aria-hidden="true" focusable="false"><use href="#ri-overview" /></svg>
+            <svg class="rec-nav-ico gk-ico" data-gico="rec-overview"></svg>
             <span data-i18n="rec_nav_overview">Overview</span>
           </button>
           <div class="rec-nav-grp" data-i18n="rec_grp_chart">Chart records</div>
           <button type="button" class="records-nav-btn" data-rec-view="recAllOnesSection">
-            <svg class="rec-nav-ico" aria-hidden="true" focusable="false"><use href="#ri-ones" /></svg>
+            <svg class="rec-nav-ico gk-ico" data-gico="rec-ones"></svg>
             <span data-i18n="rec_nav_all_ones">All #1s</span>
           </button>
           <button type="button" class="records-nav-btn" data-rec-view="recPAKSection">
-            <svg class="rec-nav-ico" aria-hidden="true" focusable="false"><use href="#ri-pak" /></svg>
+            <svg class="rec-nav-ico gk-ico" data-gico="rec-pak"></svg>
             <span data-i18n="rec_nav_pak">Perfect All Kill</span>
           </button>
           <button type="button" class="records-nav-btn" data-rec-view="recAppearancesSection">
-            <svg class="rec-nav-ico" aria-hidden="true" focusable="false"><use href="#ri-appearances" /></svg>
+            <svg class="rec-nav-ico gk-ico" data-gico="rec-appearances"></svg>
             <span data-i18n="rec_nav_appearances">Appearances</span>
           </button>
           <button type="button" class="records-nav-btn" data-rec-view="recDebutsSection">
-            <svg class="rec-nav-ico" aria-hidden="true" focusable="false"><use href="#ri-debuts" /></svg>
+            <svg class="rec-nav-ico gk-ico" data-gico="rec-debuts"></svg>
             <span data-i18n="rec_nav_debuts">Debuts</span>
           </button>
           <button type="button" class="records-nav-btn" data-rec-view="recNewChartsSection">
-            <svg class="rec-nav-ico" aria-hidden="true" focusable="false"><use href="#ri-newcharts" /></svg>
+            <svg class="rec-nav-ico gk-ico" data-gico="rec-newcharts"></svg>
             <span data-i18n="rec_nav_new_charts">New Charts</span>
           </button>
           <div class="rec-nav-grp" data-i18n="rec_grp_plays">Play records</div>
           <button type="button" class="records-nav-btn" data-rec-view="recPeakPlaysSection">
-            <svg class="rec-nav-ico" aria-hidden="true" focusable="false"><use href="#ri-plays" /></svg>
+            <svg class="rec-nav-ico gk-ico" data-gico="rec-plays"></svg>
             <span data-i18n="rec_nav_peak_plays">Most Plays</span>
           </button>
           <button type="button" class="records-nav-btn" data-rec-view="recMilestonesSection">
-            <svg class="rec-nav-ico" aria-hidden="true" focusable="false"><use href="#ri-milestones" /></svg>
+            <svg class="rec-nav-ico gk-ico" data-gico="rec-milestones"></svg>
             <span data-i18n="rec_nav_milestones">Milestones</span>
           </button>
           <button type="button" class="records-nav-btn" data-rec-view="recFastestSection">
-            <svg class="rec-nav-ico" aria-hidden="true" focusable="false"><use href="#ri-fastest" /></svg>
+            <svg class="rec-nav-ico gk-ico" data-gico="rec-fastest"></svg>
             <span data-i18n="rec_nav_fastest">Fastest</span>
           </button>
           <button type="button" class="records-nav-btn" data-rec-view="recStreaksSection">
-            <svg class="rec-nav-ico" aria-hidden="true" focusable="false"><use href="#ri-streaks" /></svg>
+            <svg class="rec-nav-ico gk-ico" data-gico="rec-streaks"></svg>
             <span data-i18n="rec_nav_streaks">Streaks</span>
           </button>
           <button type="button" class="records-nav-btn" data-rec-view="recCertsSection">
-            <svg class="rec-nav-ico" aria-hidden="true" focusable="false"><use href="#ri-certs" /></svg>
+            <svg class="rec-nav-ico gk-ico" data-gico="rec-certs"></svg>
             <span data-i18n="rec_nav_certs">Certifications</span>
           </button>
         </nav>
@@ -4381,14 +4381,14 @@
   <!-- Community board tab (suggestions / bugs / discussion). Loaded before
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
   <!-- Glow kit: the drawn, glowing icons for titles, Records headings, Guide cards and stat tiles -->
-  <script defer src="glowkit.js?v=7"></script>
+  <script defer src="glowkit.js?v=8"></script>
   <script defer src="board.js?v=10"></script>
   <!-- The Charts Guide's words in four languages (read by guide.js: the Reference tab and search) -->
   <script defer src="charts-guide-i18n.js?v=15"></script>
   <!-- One behaviour and one icon set for every pop-up window (phase 10); before
        app.js so dcIco() is there when app.js draws a window -->
   <script defer src="popups.js?v=13"></script>
-  <script defer src="app.js?v=668"></script>
+  <script defer src="app.js?v=669"></script>
   <!-- The song / album / artist details side panel (phase 10 step 3); wraps app.js's open functions -->
   <script defer src="panel.js?v=16"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->

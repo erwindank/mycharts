@@ -12831,15 +12831,19 @@ function recNavUpdatePicker() {
   if (!picker) return;
   const active = document.querySelector('#recordsNav .records-nav-btn.active');
   const name = document.getElementById('recPickerName');
-  const use = picker.querySelector('use');
+  // Glow kit (2026-11-07): the menu icons are drawn in place (no <use>), so
+  // the picker copies the active item's drawing instead of its href
+  const ico = picker.querySelector('svg');
+  const glowIco = n => (window.DC_GLOW_ICONS && window.DC_GLOW_ICONS[n]) || '';
   if (active) {
     if (name) name.textContent = active.querySelector('span').textContent;
-    if (use) use.setAttribute('href', active.querySelector('use').getAttribute('href'));
+    const src = active.querySelector('svg');
+    if (ico && src) ico.innerHTML = src.innerHTML;
     // The icon keeps its family colour (set per item in style.css).
     picker.style.setProperty('--ico', getComputedStyle(active).getPropertyValue('--ico'));
   } else {
     if (name) name.textContent = t('rec_picker_search');
-    if (use) use.setAttribute('href', '#ri-overview');
+    if (ico) ico.innerHTML = glowIco('rec-overview');
     picker.style.removeProperty('--ico');
   }
 }
