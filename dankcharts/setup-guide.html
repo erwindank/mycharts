@@ -6,7 +6,10 @@
   <title>Setup Guide — dankcharts.fm</title>
   <meta name="description" content="Step-by-step setup for dankcharts.fm — connect Google Sheets or Last.fm scrobbling and start charting your listening history.">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:ital,wght@0,400..800;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:ital,wght@0,400..800;1,400&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <!-- Step pictures (drawn screens + dots); Roboto above is for those, since
+       the drawn Google screens use Google's own typeface -->
+  <link rel="stylesheet" href="setup-scenes.css?v=1">
   <script src="translations.js"></script>
   <!-- The saved language's own file (translations.js is English only). Must
        come before setup-guide-i18n.js so the guide's strings are merged on top
@@ -1618,6 +1621,9 @@
     /* Optional steps read as optional before you get to the badge */
     .step-optional .step-node { color: var(--text3); }
 
+    /* The step's main button (e.g. "Open the template") sits over its list */
+    .do-cta { margin-bottom: 1.1rem; padding: 0.7rem 1.4rem; font-size: 0.8rem; }
+
     .step-tick {
       position: absolute;
       inset: 0;
@@ -2630,8 +2636,21 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
         <div class="step-card">
           <h3 data-i18n="sg_sh1_title" class="step-title">Copy the template sheet</h3>
           <div class="step-body">
-            <p data-i18n-html="sg_sh1_p1">Open the template and click <strong>Make a copy</strong>. It lands in your own Drive — private to you.</p>
-            <p data-i18n-html="sg_sh1_open"><a href="https://docs.google.com/spreadsheets/d/19brQQYXn1WQNhCkSMCYnGVYmxhmLzKOE2A3E3QFCeqk/copy" target="_blank" rel="noopener"><strong>Open the template →</strong></a></p>
+            <!-- Picture of the screen + the numbered "Do this" list that
+                 matches its dots (setup-scenes.js) -->
+            <div class="shot-pair">
+              <figure class="shot" data-scene="gs-copy"></figure>
+              <div class="do-col">
+                <a class="btn-primary do-cta" href="https://docs.google.com/spreadsheets/d/19brQQYXn1WQNhCkSMCYnGVYmxhmLzKOE2A3E3QFCeqk/copy" target="_blank" rel="noopener"><span data-i18n="sg_sh1_cta">Open the template</span> <span class="btn-arrow" aria-hidden="true">↗</span></a>
+                <p data-i18n="sg_do_head" class="do-head">Do this</p>
+                <ol class="do">
+                  <li data-i18n-html="sg_sh1_do1">Press <strong>Open the template</strong> above. Sign in to Google if it asks.</li>
+                  <li data-dot="1" data-i18n-html="sg_sh1_do2">On the page that opens, click <strong>Make a copy</strong>.</li>
+                  <li data-i18n-html="sg_sh1_do3">Your own copy opens in a new tab. Keep that tab open: the next steps happen there.</li>
+                </ol>
+                <p data-i18n-html="sg_sh1_ok" class="do-ok">It lands in your own Google Drive, private to you, with the sync script already inside.</p>
+              </div>
+            </div>
           </div>
         </div>
       </li>
@@ -4241,6 +4260,11 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
     initViewToggle();
     initChooser();
     initPathBar();
+    // Step pictures: draw them, and redraw them in the new language on a switch
+    if (window.SGShots) {
+      SGShots.mountAll();
+      relabelers.push(function () { SGShots.relang(); });
+    }
     labelOpenCards();
     relabelers.push(labelOpenCards);
 
@@ -4295,6 +4319,8 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
       } else {
         reapplyServiceFilter();
       }
+      // Pictures that were hidden in the other view need sizing now
+      if (window.SGShots) setTimeout(SGShots.refresh, 30);
     }
 
     btns.forEach(function (b) {
@@ -4504,6 +4530,15 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
         el.classList.remove('wiz-in-fwd', 'wiz-in-back');
         void el.offsetWidth; // restart the entrance animation
         el.classList.add(dir < 0 ? 'wiz-in-back' : 'wiz-in-fwd');
+        // The new step's pictures were hidden until now: size them, then
+        // let the pointer show where to click once the card has slid in
+        if (window.SGShots) {
+          SGShots.refresh();
+          setTimeout(function () {
+            SGShots.refresh();
+            el.querySelectorAll('figure.shot').forEach(function (f) { SGShots.tour(f); });
+          }, 380);
+        }
         // A long card leaves the reader scrolled deep; bring the rail back
         // into reach so the new step starts at its top.
         if (document.body.classList.contains('view-guided')) {
@@ -4732,6 +4767,8 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
 </script>
 <!-- Contact Support form (replaces the Zoho Desk widget) - see support.js -->
 <script defer src="support.js?v=4"></script>
+<!-- Step pictures engine + drawn screens (before DOMContentLoaded mounts them) -->
+<script defer src="setup-scenes.js?v=1"></script>
 <!-- Glow Kit icons (the glowing drawn icons used across the site) -->
 <script defer src="glowkit.js?v=10"></script>
 </body>

@@ -73,6 +73,7 @@
       sg_ch_again: 'Start over',
       sg_ch_back: '← Back',
       sg_pathbar_switch: 'Switch to {{name}}',
+      sg_shot_zoom: 'Show this picture bigger',
     },
 
     // ── ESPAÑOL ──────────────────────────────────────────────────────────────
