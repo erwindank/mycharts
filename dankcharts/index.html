@@ -27,13 +27,13 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=910">
+  <link rel="stylesheet" href="style.css?v=911">
   <!-- The Charts Guide's lessons (guide.js, GUIDE-PLAN.md) -->
-  <link rel="stylesheet" href="guide.css?v=4">
+  <link rel="stylesheet" href="guide.css?v=5">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=340"></script>
+  <script defer src="translations.js?v=341"></script>
   <!-- Only the visitor's own language is downloaded (translations.js holds
        English). This writes a defer tag for the saved language right here, so
        it runs straight after translations.js and before app.js, and the page
@@ -41,7 +41,7 @@
        whenever translations.es / pt-BR / pt-PT .js change (setup-guide.html
        has the same line). -->
   <script>
-    window.DC_I18N_V = 32;
+    window.DC_I18N_V = 33;
     (function () {
       try {
         var l = localStorage.getItem('dankcharts-lang');
@@ -263,6 +263,14 @@
       <button class="landing-start-btn" onclick="startFromLanding()" data-i18n="landing_start_btn">Start Charting →</button>
     </div>
 
+    <!-- Setup Guide banner (2026-11-07): first-timers get a clear door to the
+         step-by-step guide, which shows a picture of every screen -->
+    <a class="landing-setup-banner" href="setup-guide.html" target="_blank" rel="noopener">
+      <svg data-gico="start" aria-hidden="true"></svg>
+      <span class="lsb-text"><strong data-i18n="landing_setup_banner_t">First time here?</strong> <span data-i18n="landing_setup_banner_p">Follow the step-by-step setup guide, with a picture of every screen.</span></span>
+      <span class="lsb-go" aria-hidden="true">→</span>
+    </a>
+
     <!-- Skip link = the "resume" action, so it gets a glyph: a CSS-drawn mini turntable
          (platter spins up + tonearm drops on hover). The label stays in its own span
          because data-i18n overwrites textContent, which would wipe the deck markup. -->
@@ -311,6 +319,8 @@
           <button class="tb-more-item" data-go="rawdata"><svg data-gico="raw"></svg><span data-i18n="nav_rawdata">Raw Data</span></button>
           <button class="tb-more-item" data-go="board"><svg data-gico="board"></svg><span data-i18n="nav_board">Board</span></button>
           <button class="tb-more-item" data-go="chartsguide"><svg data-gico="guide"></svg><span data-i18n="nav_chartsguide">Charts Guide</span></button>
+          <!-- Setup Guide (2026-11-07): its own page, so a link, not a tab -->
+          <a class="tb-more-item" href="setup-guide.html" target="_blank" rel="noopener"><svg data-gico="start"></svg><span data-i18n="nav_setup_guide">Setup Guide</span></a>
           <!-- What's New: opens the changelog window, not a tab, so it has no
                data-go and sits under a thin line apart from the pages above -->
           <button class="tb-more-item tb-more-sep" onclick="openChangelog()"><svg data-gico="spark"></svg><span data-i18n="footer_changelog">What&rsquo;s New</span></button>
@@ -430,6 +440,8 @@
           <button class="tb-more-item" data-go="rawdata"><svg data-gico="raw"></svg><span data-i18n="nav_rawdata">Raw Data</span></button>
           <button class="tb-more-item" data-go="board"><svg data-gico="board"></svg><span data-i18n="nav_board">Board</span></button>
           <button class="tb-more-item" data-go="chartsguide"><svg data-gico="guide"></svg><span data-i18n="nav_chartsguide">Charts Guide</span></button>
+          <!-- Setup Guide (2026-11-07): its own page, so a link, not a tab -->
+          <a class="tb-more-item" href="setup-guide.html" target="_blank" rel="noopener"><svg data-gico="start"></svg><span data-i18n="nav_setup_guide">Setup Guide</span></a>
           <!-- What's New: same as the top bar's More menu -->
           <button class="tb-more-item tb-more-sep" onclick="openChangelog()"><svg data-gico="spark"></svg><span data-i18n="footer_changelog">What&rsquo;s New</span></button>
       </div>
@@ -2953,6 +2965,8 @@
     <span data-i18n="footer_line1">dankcharts.fm · Your Personal Music Charts · Est. 2016</span><br>
     <span data-i18n="footer_line2">All data stays in your browser. Nothing is uploaded or stored externally.</span><br>
     <a href="terms.html" target="_blank" rel="noopener">Terms of Service &amp; Privacy Policy</a>
+    <span> · </span>
+    <a href="setup-guide.html" target="_blank" rel="noopener" data-i18n="nav_setup_guide">Setup Guide</a>
     <!-- The changelog lives here rather than in the Charts Guide: the guide
          answers "how do I use this", the changelog answers "what changed".
          Different question, different reader, so a different door. -->
@@ -4389,7 +4403,7 @@
   <!-- One behaviour and one icon set for every pop-up window (phase 10); before
        app.js so dcIco() is there when app.js draws a window -->
   <script defer src="popups.js?v=13"></script>
-  <script defer src="app.js?v=669"></script>
+  <script defer src="app.js?v=670"></script>
   <!-- The song / album / artist details side panel (phase 10 step 3); wraps app.js's open functions -->
   <script defer src="panel.js?v=16"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
@@ -4414,7 +4428,7 @@
        anywhere in the app; the lessons themselves (guide-lessons*.js) and the
        picture measurements load only when the guide opens. After app.js: it
        wraps app functions and takes over dcRenderChartsGuideView. -->
-  <script defer src="guide.js?v=21"></script>
+  <script defer src="guide.js?v=22"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at

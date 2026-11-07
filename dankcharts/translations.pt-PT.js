@@ -644,6 +644,12 @@ TRANSLATIONS['pt-PT'] = Object.assign({
     nav_awards: 'Prémios',
     nav_playlists: 'Playlists',
     nav_chartsguide: 'Guia de Charts',
+    // Setup Guide entry points (2026-11-07)
+    nav_setup_guide: 'Guia de configuração',
+    landing_setup_banner_t: 'Primeira vez aqui?',
+    landing_setup_banner_p: 'Segue o guia de configuração passo a passo, com uma imagem de cada ecrã.',
+    sync_guide_link: 'Como resolver →',
+    gd_setup_guide_link: 'Encravaste ao ligar a tua música? O guia de configuração passo a passo mostra cada ecrã →',
     // Community board (board.js)
     nav_board: "Fórum",
     // The Dank 100 (dank100.js)
@@ -2470,7 +2476,7 @@ TRANSLATIONS['pt-PT'] = Object.assign({
     set_card_file_name: "Carregar ficheiro",
     set_card_file_note: "Importação única",
     set_copy_template: "Copiar a folha modelo →",
-    set_setup_guide: 'Guia de configuração',
+    set_setup_guide: 'Guia passo a passo',
     set_sheet_url: "URL ou ID da folha",
     set_sheet_url_ph: "Cola o URL ou o ID da tua folha do Google Sheets",
     set_sheet_tab: "Nome do separador",
@@ -4490,7 +4496,7 @@ TRANSLATIONS['pt-PT'] = Object.assign({
     landing_sheets_template_sticker: 'PRONTO EM 30 SEG',
     landing_sheets_template_btn: 'Copia o modelo pronto a usar',
     landing_sheets_have_sheet: 'Já tens uma folha? Cola o link abaixo ↓',
-    landing_sheets_setup_guide: '📄 Guia de configuração',
+    landing_sheets_setup_guide: '📘 Guia de configuração passo a passo',
     landing_sheets_nosample: 'Só a explorar?',
     landing_sheets_sample_link: 'Experimenta com dados de exemplo →',
     landing_sheets_howwork: 'Como é que isto funciona?',
@@ -4508,7 +4514,7 @@ TRANSLATIONS['pt-PT'] = Object.assign({
     landing_file_desc: 'Importar de CSV, exportação do Last.fm, ZIP do Spotify ou XLSX do Deezer',
     landing_file_hint: 'Escolherás o teu ficheiro no próximo ecrã',
 
-    landing_file_setup_guide: '📄 Guia de configuração',
+    landing_file_setup_guide: '📘 Guia de configuração passo a passo',
     landing_start_btn: 'Começar →',
     landing_already_setup: 'Já configurado?',
     landing_continue_link: 'Ir para as tabelas',

@@ -644,6 +644,12 @@ TRANSLATIONS['es'] = Object.assign({
     nav_awards: 'Premios',
     nav_playlists: 'Listas de reproducción',
     nav_chartsguide: 'Guía de Charts',
+    // Setup Guide entry points (2026-11-07)
+    nav_setup_guide: 'Guía de configuración',
+    landing_setup_banner_t: '¿Primera vez aquí?',
+    landing_setup_banner_p: 'Sigue la guía de configuración paso a paso, con una imagen de cada pantalla.',
+    sync_guide_link: 'Cómo arreglarlo →',
+    gd_setup_guide_link: '¿Te atascas al conectar tu música? La guía de configuración paso a paso muestra cada pantalla →',
     // Community board (board.js)
     nav_board: "Foro",
     // The Dank 100 (dank100.js)
@@ -2470,7 +2476,7 @@ TRANSLATIONS['es'] = Object.assign({
     set_card_file_name: "Subir archivo",
     set_card_file_note: "Importación única",
     set_copy_template: "Copiar la hoja plantilla →",
-    set_setup_guide: 'Guía de configuración',
+    set_setup_guide: 'Guía paso a paso',
     set_sheet_url: "URL o ID de la hoja",
     set_sheet_url_ph: "Pega la URL o el ID de tu hoja de Google Sheets",
     set_sheet_tab: "Nombre de la pestaña",
@@ -4490,7 +4496,7 @@ TRANSLATIONS['es'] = Object.assign({
     landing_sheets_template_sticker: 'LISTO EN 30 SEG',
     landing_sheets_template_btn: 'Copia la plantilla lista para usar',
     landing_sheets_have_sheet: '¿Ya tienes una hoja? Pega el enlace abajo ↓',
-    landing_sheets_setup_guide: '📄 Guía de configuración',
+    landing_sheets_setup_guide: '📘 Guía de configuración paso a paso',
     landing_sheets_nosample: '¿Solo explorando?',
     landing_sheets_sample_link: 'Prueba con datos de ejemplo →',
     landing_sheets_howwork: '¿Cómo funciona esto?',
@@ -4508,7 +4514,7 @@ TRANSLATIONS['es'] = Object.assign({
     landing_file_desc: 'Importa desde CSV, exportación de Last.fm, ZIP de Spotify o XLSX de Deezer',
     landing_file_hint: 'Elegirás tu archivo en la siguiente pantalla',
 
-    landing_file_setup_guide: '📄 Guía de configuración',
+    landing_file_setup_guide: '📘 Guía de configuración paso a paso',
     landing_start_btn: 'Empezar →',
     landing_already_setup: '¿Ya configurado?',
     landing_continue_link: 'Ir a los Rankings',

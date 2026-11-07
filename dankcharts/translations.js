@@ -684,6 +684,12 @@ const TRANSLATIONS = {
     nav_awards: 'Awards',
     nav_playlists: 'Playlists',
     nav_chartsguide: 'Charts Guide',
+    // Setup Guide entry points (2026-11-07)
+    nav_setup_guide: 'Setup Guide',
+    landing_setup_banner_t: 'First time here?',
+    landing_setup_banner_p: 'Follow the step-by-step setup guide, with a picture of every screen.',
+    sync_guide_link: 'How to fix this →',
+    gd_setup_guide_link: 'Stuck connecting your music? The step-by-step Setup Guide shows every screen →',
     // Community board (board.js)
     nav_board: "Board",
     // The Dank 100 (dank100.js)
@@ -2525,7 +2531,7 @@ const TRANSLATIONS = {
     set_card_file_name: "Upload File",
     set_card_file_note: "One-off import",
     set_copy_template: "Copy the template sheet →",
-    set_setup_guide: 'Setup guide',
+    set_setup_guide: 'Step-by-step guide',
     set_sheet_url: "Sheet URL or ID",
     set_sheet_url_ph: "Paste your Google Sheets URL or Sheet ID",
     set_sheet_tab: "Tab name",
@@ -4642,7 +4648,7 @@ const TRANSLATIONS = {
     landing_sheets_template_sticker: '30 SEC SETUP',
     landing_sheets_template_btn: 'Copy the ready-to-use template',
     landing_sheets_have_sheet: 'Already have a sheet? Paste the link below ↓',
-    landing_sheets_setup_guide: '📄 Setup guide',
+    landing_sheets_setup_guide: '📘 Step-by-step setup guide',
     landing_sheets_nosample: 'Just exploring?',
     landing_sheets_sample_link: 'Try with sample data →',
     landing_sheets_howwork: 'How does this work?',
@@ -4660,7 +4666,7 @@ const TRANSLATIONS = {
     landing_file_desc: 'Import from CSV, Last.fm export, Spotify ZIP, or Deezer XLSX',
     landing_file_hint: "You'll choose your file on the next screen",
 
-    landing_file_setup_guide: '📄 Setup guide',
+    landing_file_setup_guide: '📘 Step-by-step setup guide',
     landing_start_btn: 'Start Charting →',
     landing_already_setup: 'Already set up?',
     landing_continue_link: 'Continue to charts',

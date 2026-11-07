@@ -47153,3 +47153,52 @@ body.yellow-light .dc-gtile, body.pink-light .dc-gtile, body.green-light .dc-gti
 @media (prefers-reduced-motion: reduce) {
   #syncNowBtn:is(:hover, :disabled) .dc-gico .gk-turn { animation: none; }
 }
+
+/* ── Setup Guide entry points (2026-11-07, SETUP-GUIDE-PLAN.md step 8) ──────────
+   The landing banner under the three source cards, the More-menu link and the
+   sync toast's "How to fix this →" link all open setup-guide.html. */
+.landing-setup-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  width: min(100%, 640px);
+  margin: 1.6rem auto 0;
+  padding: 0.85rem 1.1rem;
+  border-radius: 14px;
+  border: 1px dashed color-mix(in srgb, var(--accent) 50%, transparent);
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+  color: var(--text2);
+  text-decoration: none;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  transition: border-color 0.2s, background 0.2s, transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.landing-setup-banner:hover {
+  border-style: solid;
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 11%, transparent);
+  transform: translateY(-2px);
+  text-decoration: none;
+}
+.landing-setup-banner strong { color: var(--text); }
+.landing-setup-banner .dc-gico { width: 1.8em; height: 1.8em; }
+.landing-setup-banner .lsb-text { flex: 1; }
+.landing-setup-banner .lsb-go { color: var(--accent); font-weight: 700; transition: transform 0.2s; }
+.landing-setup-banner:hover .lsb-go { transform: translateX(4px); }
+.landing-setup-banner:hover .dc-gico .gk-step { animation: gkStepLoop 2.1s ease-out infinite; }
+.landing-setup-banner:hover .dc-gico .gk-s2 { animation-delay: 0.35s; }
+.landing-setup-banner:hover .dc-gico .gk-s3 { animation-delay: 0.7s; }
+a.tb-more-item { text-decoration: none; color: inherit; }
+a.tb-more-item:hover { text-decoration: none; }
+
+/* "How to fix this →" in an error toast */
+.sync-toast .sync-guide-link {
+  flex: none;
+  margin-left: 0.6rem;
+  font-weight: 700;
+  color: var(--accent);
+  white-space: nowrap;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.sync-toast:has(.sync-guide-link) { flex-wrap: wrap; }

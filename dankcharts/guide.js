@@ -894,6 +894,7 @@
         ${step(hasName && hasTz, 2, G.step2_title, [G.step2_text, hasName ? G.name_set : G.name_unset, hasTz ? G.tz_set : G.tz_unset].join(' '), 'settings', G.open_settings)}
         ${step(!!P.ch['start.tour'], 3, G.step3_title, G.step3_text, 'tour', G.step3_btn, 'gdStartTour')}
       </div>
+      <a class="gd-setup-guide" href="setup-guide.html${src ? '?tab=' + (src === 'csv' ? 'file' : src) : ''}" target="_blank" rel="noopener">📘 ${h(t('gd_setup_guide_link'))}</a>
       <div class="gd-panels">
         <div class="gd-panel"><h4>${h(G.setup_title)}</h4><ul class="gd-si-list">
           ${item(srcOk ? 'ok' : 'warn', cgFill(srcOk ? G.si_src_ok : G.si_src_no, { src: srcLabel }))}

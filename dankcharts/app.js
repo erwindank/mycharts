@@ -5511,8 +5511,12 @@ function _syncToastShow(cls) {
   box.addEventListener('mouseleave', () => _syncToastArm(box.dataset.kind));
 })();
 
+// opts.guide: a setup-guide.html query/hash (e.g. 'tab=sheets&step=6' or
+// 'tab=file#fix-file-cols') — an error then carries a "How to fix this →"
+// link to the exact step or troubleshooting answer (2026-11-07)
 function setSyncStatus(msg, cls, opts) {
   _renderSyncStatus(msg, cls);
+  _syncGuideLink(opts && opts.guide);
   const box = _syncToastEl();
   const onScreen = !!(box && !box.hidden && box.classList.contains('is-in'));
   if ((opts && opts.toast) || cls === 'err' || !_syncToastFirstDone || _syncToastUserAsked || onScreen) {
@@ -5523,6 +5527,23 @@ function setSyncStatus(msg, cls, opts) {
   // The last status is always one hover away, on the Sync button
   const btn = document.getElementById('syncNowBtn');
   if (btn && msg) btn.title = t('tooltip_sync_now') + ' · ' + String(msg).replace(/[⟦⟧]/g, '');
+}
+
+function _syncGuideLink(target) {
+  const box = _syncToastEl();
+  if (!box) return;
+  let a = box.querySelector('.sync-guide-link');
+  if (!target) { if (a) a.remove(); return; }
+  if (!a) {
+    a = document.createElement('a');
+    a.className = 'sync-guide-link';
+    a.target = '_blank';
+    a.rel = 'noopener';
+    box.insertBefore(a, document.getElementById('syncDismissBtn'));
+  }
+  const [q, h] = String(target).split('#');
+  a.href = 'setup-guide.html?' + q + (h ? '#' + h : '');
+  a.textContent = t('sync_guide_link');
 }
 
 function _renderSyncStatus(msg, cls) {
@@ -5627,7 +5648,7 @@ async function fetchSheetCsv() {
 
 async function syncFromSheets() {
   if (!localStorage.getItem('dc_sheet_id')) {
-    setSyncStatus('No Google Sheet configured — click ⚙ Settings to set one up.', 'err');
+    setSyncStatus('No Google Sheet configured — click ⚙ Settings to set one up.', 'err', { guide: 'tab=sheets&step=6' });
     document.getElementById('syncNowBtn').disabled = false;
     return;
   }
@@ -5644,7 +5665,8 @@ async function syncFromSheets() {
     await saveToIDB(IDB_SHEETS_KEY, { ts: lastSyncTime.getTime(), csv: text });
     setSyncStatus(t('sync_ok', { time: lastSyncTime.toLocaleTimeString(), n: allPlays.length.toLocaleString() }), 'ok');
   } catch (e) {
-    setSyncStatus(t('sync_failed', { error: e.message }), 'err');
+    // Almost always a sheet that isn't shared "Anyone with the link"
+    setSyncStatus(t('sync_failed', { error: e.message }), 'err', { guide: 'tab=sheets#fix-sheets-access' });
   }
   btn.disabled = false;
   // Schedule next auto-sync and background poll
@@ -5722,7 +5744,7 @@ async function fetchLastFmPage(username, page, fromUts = 0, attempts = 6, toUts 
 async function syncFromLastFm() {
   const username = getLastFmUser();
   if (!username) {
-    setSyncStatus('No Last.fm username set — click ⚙ Settings to get started.', 'err');
+    setSyncStatus('No Last.fm username set — click ⚙ Settings to get started.', 'err', { guide: 'tab=lastfm&step=1' });
     return;
   }
   const btn = document.getElementById('syncNowBtn');
@@ -5956,7 +5978,7 @@ async function syncFromLastFm() {
       }
     }
   } catch (e) {
-    setSyncStatus('Last.fm error: ' + e.message, 'err');
+    setSyncStatus('Last.fm error: ' + e.message, 'err', { guide: 'tab=lastfm&step=1' });
     btn.disabled = false;
     if (renderedFromCache) {
       // Cached charts are still on screen — keep them and retry on the normal schedule
@@ -7334,7 +7356,7 @@ window.addEventListener('load', async () => {
       setSyncStatus(`✓ ${allPlays.length.toLocaleString()} plays loaded from file`, 'ok');
       finalizeLoad();
     } else {
-      setSyncStatus('No file loaded — click ⚙ Settings to upload a file.', 'err');
+      setSyncStatus('No file loaded — click ⚙ Settings to upload a file.', 'err', { guide: 'tab=file&step=4' });
     }
     return;
   }
@@ -7369,7 +7391,7 @@ function parseCsv(text, fromSheets = false) {
   const lines = text.trim().split(/\r?\n/);
   if (lines.length < 2) {
     if (!fromSheets) return false;
-    setSyncStatus(t('sync_empty'), 'err'); return false;
+    setSyncStatus(t('sync_empty'), 'err', { guide: 'tab=sheets#fix-sheets-empty' }); return false;
   }
 
   const headers = lines[0].split(',').map(h => h.replace(/^"|"$/g, '').trim().toLowerCase());
@@ -7398,7 +7420,7 @@ function parseCsv(text, fromSheets = false) {
   }
 
   if (colMap.title === undefined || colMap.artist === undefined || colMap.datetime === undefined) {
-    setSyncStatus(t('sync_missing_cols'), 'err'); return false;
+    setSyncStatus(t('sync_missing_cols'), 'err', { guide: fromSheets ? 'tab=sheets#fix-sheets-empty' : 'tab=file#fix-file-cols' }); return false;
   }
   const readGenres = makeGenreReader(headers);
 
@@ -7455,7 +7477,7 @@ function parseCsv(text, fromSheets = false) {
   }
 
   if (allPlays.length === 0) {
-    setSyncStatus(t('sync_no_valid'), 'err'); return false;
+    setSyncStatus(t('sync_no_valid'), 'err', { guide: fromSheets ? 'tab=sheets#fix-sheets-empty' : 'tab=file#fix-file-novalid' }); return false;
   }
 
   // Every object here was built in the loop above, so _ts is always present.

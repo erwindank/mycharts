@@ -644,3 +644,17 @@ body.gd-player-open { overflow: hidden; }
   .gd-rstats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .gd-sr-k { flex-basis: 78px; font-size: 0.66rem; }
 }
+
+/* Link from the Getting started lesson to the step-by-step Setup Guide (2026-11-07) */
+.gd-setup-guide {
+  display: block;
+  margin: 0.9rem 0 0.2rem;
+  padding: 0.7rem 0.95rem;
+  border-radius: 12px;
+  border: 1px dashed color-mix(in srgb, var(--accent) 50%, transparent);
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+  color: var(--text);
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+.gd-setup-guide:hover { border-style: solid; border-color: var(--accent); text-decoration: none; }
