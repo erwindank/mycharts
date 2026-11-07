@@ -46986,3 +46986,35 @@ body.yellow-light .dc-gtile, body.pink-light .dc-gtile, body.green-light .dc-gti
   .dc-hstk { transition: none; }
   .dc-hstk-live { animation: none; }
 }
+
+/* ── GLOW KIT: the five chart-period icons (2026-11-07) ───────────────────────
+   Daily sun, Weekly day strip, Monthly and Yearly calendars, All-Time loop:
+   the glow versions of each nav icon, used on the Charts Guide cards so every
+   chart guide shows its own picture. Colour = that period's nav hue. */
+.dc-gico--day     { --gk-c: #f59e0b; }
+.dc-gico--week    { --gk-c: #4dabf7; }
+.dc-gico--month   { --gk-c: #6366f1; }
+.dc-gico--year    { --gk-c: #d946ef; }
+.dc-gico--alltime { --gk-c: #fb7185; }
+
+/* the week strip's highlighted day slides into place */
+.dc-gico .gk-slide { animation: gkSlide 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+@keyframes gkSlide { from { transform: translateX(-9px); opacity: 0.2; } to { transform: none; opacity: 1; } }
+
+/* the sun's rays turn slowly (a slower gkSpin) */
+.dc-gico .gk-spin.gk-slow { animation-duration: 6s; transform-origin: center; }
+
+/* All-Time: a light runs round the loop */
+.dc-gico .gk-chase {
+  stroke-width: 2;
+  stroke-dasharray: 0.22 0.78;
+  animation: gkChase 1.6s linear both;
+}
+@keyframes gkChase { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+
+/* both keep going while their card or heading is hovered */
+:is(.section-header-h2, .gd-card, .dc-gk-host):hover .dc-gico .gk-chase { animation-iteration-count: infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .dc-gico .gk-chase { stroke-dasharray: none; stroke-width: 1.6; }
+}

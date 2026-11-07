@@ -39,6 +39,47 @@
       '<rect class="gk-f" x="3" y="16.5" width="8.5" height="4.2" rx="1.5"/>' +
       '<path class="gk-s" d="M19.5 20.6v-5.2M17.4 17.5l2.1-2.1 2.1 2.1"/>',
 
+    /* The five chart periods, each the glow version of its own nav icon
+       (Charts Guide cards ask for these by nav period). */
+
+    // Daily: the sun — its rays burst out, then turn slowly while hovered
+    day:
+      '<g class="gk-spin gk-slow"><g class="gk-ray">' +
+        '<path class="gk-s" d="M12 2.4v2.1M12 19.5v2.1M2.4 12h2.1M19.5 12h2.1M5.25 5.25l1.5 1.5M17.25 17.25l1.5 1.5M5.25 18.75l1.5-1.5M17.25 6.75l1.5-1.5"/>' +
+      '</g></g>' +
+      '<circle class="gk-f" cx="12" cy="12" r="4.5"/>' +
+      '<circle class="gk-o gk-pop" cx="12" cy="12" r="2.3"/>',
+
+    // Weekly: a strip of seven days, today's column slides into place
+    week:
+      '<rect class="gk-o gk-slide" x="10.5" y="8.4" width="3" height="10.5"/>' +
+      '<rect class="gk-f" x="1.65" y="5.1" width="20.7" height="13.8" rx="2.1"/>' +
+      '<path class="gk-s" d="M1.65 8.4h20.7M4.6 8.4v10.5M7.56 8.4v10.5M10.5 8.4v10.5M13.5 8.4v10.5M16.44 8.4v10.5M19.4 8.4v10.5"/>',
+
+    // Monthly: a calendar page whose days fill in row by row
+    month:
+      '<rect class="gk-f" x="2.85" y="4.8" width="18.3" height="16.5" rx="2.4"/>' +
+      '<path class="gk-s" d="M2.85 9h18.3M7.8 2.55v2.85M16.2 2.55v2.85"/>' +
+      '<g class="gk-row"><circle class="gk-o" cx="12" cy="11.1" r="0.95"/><circle class="gk-o" cx="15.15" cy="11.1" r="0.95"/><circle class="gk-o" cx="18.3" cy="11.1" r="0.95"/></g>' +
+      '<g class="gk-row gk-d1"><circle class="gk-o" cx="5.7" cy="13.8" r="0.95"/><circle class="gk-o" cx="8.85" cy="13.8" r="0.95"/><circle class="gk-o" cx="12" cy="13.8" r="0.95"/><circle class="gk-o" cx="15.15" cy="13.8" r="0.95"/><circle class="gk-o" cx="18.3" cy="13.8" r="0.95"/></g>' +
+      '<g class="gk-row gk-d2"><circle class="gk-o" cx="5.7" cy="16.5" r="0.95"/><circle class="gk-o" cx="8.85" cy="16.5" r="0.95"/><circle class="gk-o" cx="12" cy="16.5" r="0.95"/><circle class="gk-o" cx="15.15" cy="16.5" r="0.95"/><circle class="gk-o" cx="18.3" cy="16.5" r="0.95"/></g>' +
+      '<g class="gk-row gk-late"><circle class="gk-o" cx="5.7" cy="19.2" r="0.95"/><circle class="gk-o" cx="8.85" cy="19.2" r="0.95"/><circle class="gk-o" cx="12" cy="19.2" r="0.95"/></g>',
+
+    // Yearly: a desk calendar on four rings, squares filling in, the corner
+    // of the page curling up
+    year:
+      '<rect class="gk-f" x="3.15" y="5.25" width="17.7" height="16.05" rx="2.25"/>' +
+      '<path class="gk-s" d="M3.15 7.95h17.7M6.45 2.7v4.5M10.2 2.7v4.5M13.95 2.7v4.5M17.7 2.7v4.5"/>' +
+      '<g class="gk-row"><rect class="gk-o" x="8.1" y="9.3" width="2.1" height="2.1" rx="0.5"/><rect class="gk-o" x="11.78" y="9.3" width="2.1" height="2.1" rx="0.5"/><rect class="gk-o" x="15.45" y="9.3" width="2.1" height="2.1" rx="0.5"/></g>' +
+      '<g class="gk-row gk-d1"><rect class="gk-o" x="4.43" y="12.22" width="2.1" height="2.1" rx="0.5"/><rect class="gk-o" x="8.1" y="12.22" width="2.1" height="2.1" rx="0.5"/><rect class="gk-o" x="11.78" y="12.22" width="2.1" height="2.1" rx="0.5"/><rect class="gk-o" x="15.45" y="12.22" width="2.1" height="2.1" rx="0.5"/></g>' +
+      '<g class="gk-row gk-d2"><rect class="gk-o" x="4.43" y="15.15" width="2.1" height="2.1" rx="0.5"/><rect class="gk-o" x="8.1" y="15.15" width="2.1" height="2.1" rx="0.5"/><rect class="gk-o" x="11.78" y="15.15" width="2.1" height="2.1" rx="0.5"/></g>' +
+      '<path class="gk-f gk-pop gk-late" d="M15 21.3 20.85 15.45V21.3Z"/>',
+
+    // All-Time: the infinity loop with a light running round it
+    alltime:
+      '<path class="gk-f" d="M8.1 8.4c2.1 0 3 1.5 3.9 3.6s1.8 3.6 3.9 3.6a3.6 3.6 0 0 0 0-7.2c-2.1 0-3 1.5-3.9 3.6s-1.8 3.6-3.9 3.6a3.6 3.6 0 0 1 0-7.2Z"/>' +
+      '<path class="gk-s gk-chase" pathLength="1" d="M8.1 8.4c2.1 0 3 1.5 3.9 3.6s1.8 3.6 3.9 3.6a3.6 3.6 0 0 0 0-7.2c-2.1 0-3 1.5-3.9 3.6s-1.8 3.6-3.9 3.6a3.6 3.6 0 0 1 0-7.2Z"/>',
+
     // Stats: a framed bar chart whose bars grow — the Sheets card's bars
     stats:
       '<rect class="gk-f" x="2.5" y="2.5" width="19" height="19" rx="4"/>' +
@@ -214,7 +255,8 @@
 
   // Which icon a period-nav tab gets (the Charts Guide asks by nav period).
   var NAV_TO_GICO = {
-    day: 'charts', week: 'charts', month: 'charts', year: 'charts', alltime: 'charts',
+    // each chart period has its own picture (its nav icon), not the shared chart list
+    day: 'day', week: 'week', month: 'month', year: 'year', alltime: 'alltime',
     rawdata: 'raw', graphs: 'stats', records: 'records', events: 'events',
     awards: 'awards', soundtrack: 'sound', playlists: 'lists', ratings: 'ratings',
     board: 'board', dank100: 'd100'
