@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 466;
+const DC_CL_I18N_V = 467;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -366,6 +366,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-07', t: 'design', a: 'guide', h: '4d0ecc5',
+    title: "Getting started and Settings lessons get their own icons",
+    detail: "In the Charts Guide, the Getting started lesson now has a trail of footprints that stamp down one after another, and the Settings lesson a gear that turns. Before, these two had no icon because there is no tab behind them. The icons also show at the top of the lesson and when you finish it." },
   { d: '2026-11-07', t: 'design', a: 'guide', h: '2b5f651',
     title: "Chart guides keep their own icons",
     detail: "In the Charts Guide, each chart lesson shows the glowing version of its own tab icon again, instead of one shared chart icon: the sun for Daily, the day strip for Weekly, the calendars for Monthly and Yearly, and the infinity loop for All-Time. Each one moves when you point at its card." },

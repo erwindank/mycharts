@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Getting started and Settings lessons get their own icons":
+    ["As lições Primeiros passos e Definições ganham ícone próprio",
+     "No Guia, a lição Primeiros passos tem agora um rasto de pegadas que aparecem uma depois da outra, e a lição de Definições uma roda dentada que gira. Antes as duas não tinham ícone porque não há um separador por trás. Os ícones também aparecem no topo da lição e quando a terminas."],
   "Chart guides keep their own icons":
     ["Os guias das tabelas voltam a ter o próprio ícone",
      "No Guia, cada lição de tabela volta a mostrar a versão brilhante do ícone do seu separador em vez de um ícone único: o sol para Diário, a faixa de dias para Semanal, os calendários para Mensal e Anual, e o infinito para Histórico. Cada um mexe-se quando passas o rato pelo cartão."],

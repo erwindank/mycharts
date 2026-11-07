@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Getting started and Settings lessons get their own icons":
+    ["As lições Primeiros passos e Configurações ganham ícone próprio",
+     "No Guia, a lição Primeiros passos agora tem um rastro de pegadas que aparecem uma depois da outra, e a lição de Configurações uma engrenagem que gira. Antes as duas não tinham ícone porque não há uma aba por trás. Os ícones também aparecem no topo da lição e quando você a termina."],
   "Chart guides keep their own icons":
     ["Os guias das paradas voltam a ter o próprio ícone",
      "No Guia, cada lição de parada volta a mostrar a versão brilhante do ícone da sua aba em vez de um ícone único: o sol para Diário, a faixa de dias para Semanal, os calendários para Mensal e Anual, e o infinito para Histórico. Cada um se mexe quando você passa o mouse pelo card."],

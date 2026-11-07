@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Getting started and Settings lessons get their own icons":
+    ["Las lecciones Primeros pasos y Ajustes tienen su propio icono",
+     "En la Guía de Charts, la lección Primeros pasos tiene ahora un rastro de pisadas que aparecen una tras otra, y la lección de Ajustes un engranaje que gira. Antes estas dos no tenían icono porque no hay una pestaña detrás. Los iconos también salen arriba en la lección y al terminarla."],
   "Chart guides keep their own icons":
     ["Las guías de rankings tienen otra vez su propio icono",
      "En la Guía de Charts, cada lección de ranking muestra otra vez la versión brillante del icono de su pestaña en lugar de un icono común: el sol para Diario, la tira de días para Semanal, los calendarios para Mensual y Anual, y el infinito para Histórico. Cada uno se mueve al pasar por su tarjeta."],
