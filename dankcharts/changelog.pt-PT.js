@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Charts Guide gets a proper title, and icons never vanish":
+    ["O Guia ganha um título a sério, e os ícones já não desaparecem",
+     "O Guia começa agora com um título como o dos outros separadores, com ícone próprio: um livro aberto que vira a página. A etiqueta pequena acima do quadro de boas-vindas saiu, porque o título já o diz. Também corrigido: enquanto Recordes ainda calculava, a coroa de Todos os #1 e outros ícones animados podiam ficar invisíveis. Agora cada ícone começa o movimento já visível."],
   "Around the chart and the windows lessons get their own icons":
     ["As lições À volta da tabela e Janelas ganham ícone próprio",
      "No Guia, a lição sobre o que fica à volta da tabela e a partilha mostra agora um cartão de tabela com uma seta de partilhar a sair a voar, e a lição das janelas de música, artista e álbum uma janela a subir de uma pilha. Antes as duas mostravam o ícone de Semanal."],

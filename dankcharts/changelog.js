@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 468;
+const DC_CL_I18N_V = 469;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -366,6 +366,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-07', t: 'design', a: 'guide', h: 'f90fd3d',
+    title: "Charts Guide gets a proper title, and icons never vanish",
+    detail: "The Charts Guide now opens with a title like every other tab, with its own icon: an open book whose page turns. The small CHARTS GUIDE label above the welcome box is gone, since the title says it. Also fixed: while Records was still calculating, the All #1s crown and other moving icons could stay invisible. Every icon now starts its move from a visible picture." },
   { d: '2026-11-07', t: 'design', a: 'guide', h: '3494e69',
     title: "Around the chart and the windows lessons get their own icons",
     detail: "In the Charts Guide, Around the chart, and sharing it now shows a chart card with a share arrow flying out, and Song, artist and album windows a window sliding up off a stack. Before, both showed the Weekly icon." },

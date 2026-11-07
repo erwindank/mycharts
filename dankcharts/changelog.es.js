@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Charts Guide gets a proper title, and icons never vanish":
+    ["La Guía de Charts tiene un título de verdad, y los iconos ya no desaparecen",
+     "La Guía de Charts empieza ahora con un título como el de las demás pestañas, con su propio icono: un libro abierto que pasa la página. La pequeña etiqueta GUÍA DE CHARTS sobre el recuadro de bienvenida ya no está, porque el título ya lo dice. También corregido: mientras Récords seguía calculando, la corona de Todos los #1 y otros iconos animados podían quedarse invisibles. Ahora cada icono empieza su movimiento ya visible."],
   "Around the chart and the windows lessons get their own icons":
     ["Las lecciones Alrededor del ranking y Ventanas tienen su propio icono",
      "En la Guía de Charts, Alrededor del ranking, y compartirlo muestra ahora una tarjeta de ranking con una flecha de compartir que sale volando, y Ventanas de canción, artista y álbum una ventana que sube desde una pila. Antes las dos mostraban el icono de Semanal."],
