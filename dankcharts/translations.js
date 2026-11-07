@@ -2161,7 +2161,7 @@ const TRANSLATIONS = {
 
     // "Certified this period" — the moving shelf of plaques on the weekly and
     // monthly charts.
-    creel_title: '🏆 CERTIFIED THIS PERIOD',
+    creel_title: 'CERTIFIED THIS PERIOD',
     creel_hint: 'Hover to pause · drag to browse',
     modal_calendar_days_played: 'Calendar Days<br>Played',
     modal_avg_plays_per_track: 'Avg Plays<br>Per Track',

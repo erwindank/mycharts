@@ -27,13 +27,13 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=892">
+  <link rel="stylesheet" href="style.css?v=894">
   <!-- The Charts Guide's lessons (guide.js, GUIDE-PLAN.md) -->
   <link rel="stylesheet" href="guide.css?v=4">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=338"></script>
+  <script defer src="translations.js?v=339"></script>
   <!-- Only the visitor's own language is downloaded (translations.js holds
        English). This writes a defer tag for the saved language right here, so
        it runs straight after translations.js and before app.js, and the page
@@ -41,7 +41,7 @@
        whenever translations.es / pt-BR / pt-PT .js change (setup-guide.html
        has the same line). -->
   <script>
-    window.DC_I18N_V = 30;
+    window.DC_I18N_V = 31;
     (function () {
       try {
         var l = localStorage.getItem('dankcharts-lang');
@@ -668,7 +668,7 @@
     <div class="chart-section" id="songsSection">
       <div class="section-header">
         <button class="section-collapse-btn" data-target="songsSection" data-i18n-title="tooltip_collapse">−</button>
-        <h2 id="songsSectionTitle"><span class="section-type-icon" aria-hidden="true">🎵</span><span class="section-title-text">Top 10 Songs</span></h2>
+        <h2 id="songsSectionTitle" class="dc-stk dc-stk--song"><span class="section-type-icon" aria-hidden="true">🎵</span><span class="section-title-text">Top 10 Songs</span></h2>
         <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
         <span class="chart-hidden-label" data-i18n="chart_hidden_hint">Chart hidden · switch it back on in ⋮ → Show</span>
         <div class="section-rule"></div>
@@ -807,7 +807,7 @@
     <div class="chart-section bu-section" id="buSongsSection" style="display:none;">
       <div class="bu-section-header" onclick="toggleBuSection('songs')">
         <span class="bu-bubble-emoji"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="15" r="4"/><circle cx="16" cy="7" r="3"/><circle cx="18" cy="16" r="2"/></svg></span>
-        <span class="bu-section-title" id="buSongsSectionTitle">BUBBLING UNDER</span>
+        <span class="bu-section-title dc-stk dc-stk--bu" id="buSongsSectionTitle">BUBBLING UNDER</span>
         <span class="bu-type-label" data-i18n="chart_type_songs">Songs</span>
         <span class="bu-count-pill" id="buSongsCount">0</span>
         <span class="bu-toggle-icon" id="buSongsToggleIcon">▼</span>
@@ -830,7 +830,7 @@
     <div class="chart-section off-section" id="offSongsSection" style="display:none;">
       <div class="off-section-header" onclick="toggleOffSection('songs')">
         <svg class="off-type-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>
-        <span class="off-section-title" id="offSongsSectionTitle" data-i18n="sec_off_chart">Off the Chart</span>
+        <span class="off-section-title dc-stk dc-stk--off" id="offSongsSectionTitle" data-i18n="sec_off_chart">Off the Chart</span>
         <span class="bu-type-label" data-i18n="drop_col_songs">★ Songs</span>
         <span class="off-count-pill" id="offSongsCount">0</span>
         <span class="off-toggle-icon" id="offSongsToggleIcon">▼</span>
@@ -845,7 +845,7 @@
     <div class="chart-section new-entries-section" id="newSongsSection" style="display:none;">
       <div class="section-header ne-section-header" onclick="toggleNeSection('songs')">
         <span class="ne-sparkle-emoji"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1 3.5L16.5 8 13 9l-1 3.5L11 9 7.5 8 11 6.5z"/><path d="M19 14l.6 2 2 .6-2 .6-.6 2-.6-2-2-.6 2-.6z"/></svg></span>
-        <span id="newSongsTitle" class="new-entries-title ne-title-text" data-i18n="sec_new_songs">New Songs</span>
+        <span id="newSongsTitle" class="new-entries-title ne-title-text dc-stk dc-stk--new" data-i18n="sec_new_songs">New Songs</span>
         <span class="ne-toggle-icon" id="neSongsToggleIcon">▲</span>
         <span class="section-collapsed-label">collapsed — click ✦ to expand</span>
         <div class="section-rule"></div>
@@ -883,7 +883,7 @@
     <div class="chart-section" id="artistsSection">
       <div class="section-header">
         <button class="section-collapse-btn" data-target="artistsSection" data-i18n-title="tooltip_collapse">−</button>
-        <h2 id="artistsSectionTitle"><span class="section-type-icon" aria-hidden="true">🎤</span><span class="section-title-text">Top 10 Artists</span></h2>
+        <h2 id="artistsSectionTitle" class="dc-stk dc-stk--artist"><span class="section-type-icon" aria-hidden="true">🎤</span><span class="section-title-text">Top 10 Artists</span></h2>
         <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
         <span class="chart-hidden-label" data-i18n="chart_hidden_hint">Chart hidden · switch it back on in ⋮ → Show</span>
         <div class="section-rule"></div>
@@ -1015,7 +1015,7 @@
     <div class="chart-section bu-section" id="buArtistsSection" style="display:none;">
       <div class="bu-section-header" onclick="toggleBuSection('artists')">
         <span class="bu-bubble-emoji"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="15" r="4"/><circle cx="16" cy="7" r="3"/><circle cx="18" cy="16" r="2"/></svg></span>
-        <span class="bu-section-title" id="buArtistsSectionTitle">BUBBLING UNDER</span>
+        <span class="bu-section-title dc-stk dc-stk--bu" id="buArtistsSectionTitle">BUBBLING UNDER</span>
         <span class="bu-type-label" data-i18n="chart_type_artists">Artists</span>
         <span class="bu-count-pill" id="buArtistsCount">0</span>
         <span class="bu-toggle-icon" id="buArtistsToggleIcon">▼</span>
@@ -1038,7 +1038,7 @@
     <div class="chart-section off-section" id="offArtistsSection" style="display:none;">
       <div class="off-section-header" onclick="toggleOffSection('artists')">
         <svg class="off-type-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>
-        <span class="off-section-title" id="offArtistsSectionTitle" data-i18n="sec_off_chart">Off the Chart</span>
+        <span class="off-section-title dc-stk dc-stk--off" id="offArtistsSectionTitle" data-i18n="sec_off_chart">Off the Chart</span>
         <span class="bu-type-label" data-i18n="drop_col_artists">♦ Artists</span>
         <span class="off-count-pill" id="offArtistsCount">0</span>
         <span class="off-toggle-icon" id="offArtistsToggleIcon">▼</span>
@@ -1053,7 +1053,7 @@
     <div class="chart-section new-entries-section" id="newArtistsSection" style="display:none;">
       <div class="section-header ne-section-header" onclick="toggleNeSection('artists')">
         <span class="ne-sparkle-emoji"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1 3.5L16.5 8 13 9l-1 3.5L11 9 7.5 8 11 6.5z"/><path d="M19 14l.6 2 2 .6-2 .6-.6 2-.6-2-2-.6 2-.6z"/></svg></span>
-        <span id="newArtistsTitle" class="new-entries-title ne-title-text" data-i18n="sec_new_artists">New Artists</span>
+        <span id="newArtistsTitle" class="new-entries-title ne-title-text dc-stk dc-stk--new" data-i18n="sec_new_artists">New Artists</span>
         <span class="ne-toggle-icon" id="neArtistsToggleIcon">▲</span>
         <span class="section-collapsed-label">collapsed — click ✦ to expand</span>
         <div class="section-rule"></div>
@@ -1091,7 +1091,7 @@
     <div class="chart-section" id="albumsSection">
       <div class="section-header">
         <button class="section-collapse-btn" data-target="albumsSection" data-i18n-title="tooltip_collapse">−</button>
-        <h2 id="albumsSectionTitle"><span class="section-type-icon" aria-hidden="true">💿</span><span class="section-title-text">Top 10 Albums</span></h2>
+        <h2 id="albumsSectionTitle" class="dc-stk dc-stk--album"><span class="section-type-icon" aria-hidden="true">💿</span><span class="section-title-text">Top 10 Albums</span></h2>
         <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
         <span class="chart-hidden-label" data-i18n="chart_hidden_hint">Chart hidden · switch it back on in ⋮ → Show</span>
         <div class="section-rule"></div>
@@ -1225,7 +1225,7 @@
     <div class="chart-section bu-section" id="buAlbumsSection" style="display:none;">
       <div class="bu-section-header" onclick="toggleBuSection('albums')">
         <span class="bu-bubble-emoji"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="15" r="4"/><circle cx="16" cy="7" r="3"/><circle cx="18" cy="16" r="2"/></svg></span>
-        <span class="bu-section-title" id="buAlbumsSectionTitle">BUBBLING UNDER</span>
+        <span class="bu-section-title dc-stk dc-stk--bu" id="buAlbumsSectionTitle">BUBBLING UNDER</span>
         <span class="bu-type-label" id="buAlbumsTypeLabel" data-i18n="chart_type_albums">Albums</span>
         <span class="bu-count-pill" id="buAlbumsCount">0</span>
         <span class="bu-toggle-icon" id="buAlbumsToggleIcon">▼</span>
@@ -1248,7 +1248,7 @@
     <div class="chart-section off-section" id="offAlbumsSection" style="display:none;">
       <div class="off-section-header" onclick="toggleOffSection('albums')">
         <svg class="off-type-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>
-        <span class="off-section-title" id="offAlbumsSectionTitle" data-i18n="sec_off_chart">Off the Chart</span>
+        <span class="off-section-title dc-stk dc-stk--off" id="offAlbumsSectionTitle" data-i18n="sec_off_chart">Off the Chart</span>
         <span class="bu-type-label" id="offAlbumsTypeLabel" data-i18n="drop_col_albums">◈ Albums</span>
         <span class="off-count-pill" id="offAlbumsCount">0</span>
         <span class="off-toggle-icon" id="offAlbumsToggleIcon">▼</span>
@@ -1263,7 +1263,7 @@
     <div class="chart-section new-entries-section" id="newAlbumsSection" style="display:none;">
       <div class="section-header ne-section-header" onclick="toggleNeSection('albums')">
         <span class="ne-sparkle-emoji"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1 3.5L16.5 8 13 9l-1 3.5L11 9 7.5 8 11 6.5z"/><path d="M19 14l.6 2 2 .6-2 .6-.6 2-.6-2-2-.6 2-.6z"/></svg></span>
-        <span id="newAlbumsTitle" class="new-entries-title ne-title-text" data-i18n="sec_new_albums">New Albums</span>
+        <span id="newAlbumsTitle" class="new-entries-title ne-title-text dc-stk dc-stk--new" data-i18n="sec_new_albums">New Albums</span>
         <span class="ne-toggle-icon" id="neAlbumsToggleIcon">▲</span>
         <span class="section-collapsed-label">collapsed — click ✦ to expand</span>
         <div class="section-rule"></div>
@@ -1317,7 +1317,7 @@
     <div class="chart-section creel-section" id="certReelSection" style="display:none;">
       <div class="section-header">
         <button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon section-collapse-btn" data-target="certReelSection" data-i18n-title="tooltip_collapse">−</button>
-        <h2 class="section-title" data-i18n="creel_title">🏆 CERTIFIED THIS PERIOD</h2>
+        <h2 class="section-title dc-stk dc-stk--cert" data-i18n="creel_title">CERTIFIED THIS PERIOD</h2>
         <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
         <div class="section-rule"></div>
         <span class="creel-count" id="certReelCount"></span>
@@ -2174,7 +2174,7 @@
            _renderEventsToday(); the Time Machine follows. -->
       <div class="chart-section" id="eventsTodaySection" data-ev-group="today">
         <div class="section-header">
-          <h2 class="section-header-h2" id="eventsTodayTitle"></h2>
+          <h2 class="section-header-h2 dc-stk dc-stk--events" id="eventsTodayTitle"></h2>
           <div class="section-rule"></div>
         </div>
         <div class="section-body" id="eventsTodayBody"></div>
@@ -2199,7 +2199,7 @@
            chart period); the Events tab branch in the period switch renders it. -->
       <div class="chart-section" id="timeMachineSection" data-ev-group="today" style="display:none;">
         <div class="section-header">
-          <h2 class="section-header-h2" data-i18n="time_machine_title">Time Machine</h2>
+          <h2 class="section-header-h2 dc-stk dc-stk--events" data-i18n="time_machine_title">Time Machine</h2>
           <div class="section-rule"></div>
           <button class="dc-btn dc-btn-normal dc-btn-sm" id="tmPlBtn" onclick="tmAddAllToPlaylist()"
             data-i18n="pl_section_btn" data-i18n-title="pl_section_btn_title"
@@ -2229,21 +2229,21 @@
       <div class="chart-section" id="eventsComingSection" data-ev-group="coming">
         <div class="ev-group" id="evComingWeek">
           <div class="section-header">
-            <h2 class="section-header-h2" data-i18n="ev_group_week">This week</h2>
+            <h2 class="section-header-h2 dc-stk dc-stk--events" data-i18n="ev_group_week">This week</h2>
             <div class="section-rule"></div>
           </div>
           <div id="evComingWeekGrid"></div>
         </div>
         <div class="ev-group" id="evComingSoon">
           <div class="section-header">
-            <h2 class="section-header-h2" data-i18n="ev_group_soon">Next few weeks</h2>
+            <h2 class="section-header-h2 dc-stk dc-stk--events" data-i18n="ev_group_soon">Next few weeks</h2>
             <div class="section-rule"></div>
           </div>
           <div id="evComingSoonGrid"></div>
         </div>
         <div class="ev-group" id="evComingLater">
           <div class="section-header">
-            <h2 class="section-header-h2" data-i18n="ev_group_later">Later</h2>
+            <h2 class="section-header-h2 dc-stk dc-stk--events" data-i18n="ev_group_later">Later</h2>
             <div class="section-rule"></div>
           </div>
           <div id="evComingLaterGrid"></div>
@@ -2262,21 +2262,21 @@
       <div class="chart-section" id="eventsRecentListSection" data-ev-group="recent">
         <div class="ev-group" id="evRecentWeek">
           <div class="section-header">
-            <h2 class="section-header-h2" data-i18n="ev_group_past_week">Past week</h2>
+            <h2 class="section-header-h2 dc-stk dc-stk--events" data-i18n="ev_group_past_week">Past week</h2>
             <div class="section-rule"></div>
           </div>
           <div id="evRecentWeekGrid"></div>
         </div>
         <div class="ev-group" id="evRecentSoon">
           <div class="section-header">
-            <h2 class="section-header-h2" data-i18n="ev_group_past_weeks">Past few weeks</h2>
+            <h2 class="section-header-h2 dc-stk dc-stk--events" data-i18n="ev_group_past_weeks">Past few weeks</h2>
             <div class="section-rule"></div>
           </div>
           <div id="evRecentSoonGrid"></div>
         </div>
         <div class="ev-group" id="evRecentEarlier">
           <div class="section-header">
-            <h2 class="section-header-h2" data-i18n="ev_group_earlier">Earlier</h2>
+            <h2 class="section-header-h2 dc-stk dc-stk--events" data-i18n="ev_group_earlier">Earlier</h2>
             <div class="section-rule"></div>
           </div>
           <div id="evRecentEarlierGrid"></div>
@@ -2288,7 +2288,7 @@
            so it sits on Recent, after your own recent events (step 5). -->
       <div class="chart-section" id="nmfSection" data-ev-group="recent">
         <div class="section-header">
-          <h2 class="section-header-h2">New Music Friday</h2>
+          <h2 class="section-header-h2 dc-stk dc-stk--events">New Music Friday</h2>
           <div class="section-rule"></div>
           <button type="button" class="dc-btn dc-btn-normal dc-btn-sm" id="nmfPastBtn" aria-pressed="false"
             onclick="toggleNMFPastFridays()" data-i18n="ev_nmf_past">Past Fridays</button>
@@ -4384,7 +4384,7 @@
   <!-- One behaviour and one icon set for every pop-up window (phase 10); before
        app.js so dcIco() is there when app.js draws a window -->
   <script defer src="popups.js?v=13"></script>
-  <script defer src="app.js?v=665"></script>
+  <script defer src="app.js?v=666"></script>
   <!-- The song / album / artist details side panel (phase 10 step 3); wraps app.js's open functions -->
   <script defer src="panel.js?v=16"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->

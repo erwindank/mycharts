@@ -2106,7 +2106,7 @@ TRANSLATIONS['es'] = Object.assign({
     rtype_pinned_albums: 'Álbumes confirmados',
     rtype_forget_hint: 'Olvidar este lanzamiento: la detección automática podría volver a sugerirlo.',
 
-    creel_title: '🏆 CERTIFICADOS EN ESTE PERIODO',
+    creel_title: 'CERTIFICADOS EN ESTE PERIODO',
     creel_hint: 'Pasa el cursor para pausar · arrastra para explorar',
     modal_calendar_days_played: 'Días Calendario<br>Escuchado',
     modal_avg_plays_per_track: 'Promedio de Reproducciones<br>por Canción',

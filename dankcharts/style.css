@@ -46687,3 +46687,99 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
   .dc-gico, .dc-gico * { animation: none !important; transition: none !important; }
   .dc-gico .gk-trail { stroke-dashoffset: 0; }
 }
+
+/* ── GLOW KIT 2: section label stickers (2026-11-07) ──────────────────────────
+   The small section labels (Top 10 Songs, Certified this period, Bubbling
+   Under, Off the Chart, New Songs, the Events headings) were white pills or
+   plain coloured words. They become the landing badges (FULL CONTROL, FASTEST
+   START …): tilted, page-surface fill, coloured border + text, and they peel
+   flat and light up in their own colour while their section is hovered.
+   Surface fill + coloured border/text, never a solid fill, so the light
+   themes stay clean (the same reason .landing-card-badge does it).
+
+   Colour by what the section lists: songs violet, artists sky, albums amber,
+   EPs pink, singles green; certifications gold with a ★ (the award, one size
+   louder, like RECOMMENDED); Bubbling Under accent, Off the Chart rose,
+   New entries green, Events headings the Events red.
+
+   Specificity: the old pill rules come in many theme flavours
+   (body.purple .section-header h2 …) and the New-entries title sets its
+   colour with !important, so the sticker restates type and colour with
+   !important and sits on a doubled class to win the rest. */
+:root { --gk-pink: #f472b6; }
+body.navy-light, body.purple-light, body.red-light,
+body.yellow-light, body.pink-light, body.green-light { --gk-pink: #be185d; }
+
+/* default colour on a plain class, so the --song/--artist … modifiers below win */
+.dc-stk { --sc: var(--accent); }
+html body .dc-stk.dc-stk {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  flex: none;
+  width: auto;
+  background: var(--surface);
+  color: var(--sc) !important;
+  border: 1px solid color-mix(in srgb, var(--sc) 60%, transparent);
+  font-family: var(--font-sans) !important;
+  font-size: var(--fs-xs) !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.35;
+  padding: 0.22rem 0.55rem;
+  border-radius: var(--r-xs);
+  white-space: nowrap;
+  transform: rotate(-2.5deg);
+  box-shadow: 0 2px 8px color-mix(in srgb, #000 30%, transparent);
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
+              border-color 0.22s ease, background 0.22s ease, box-shadow 0.22s ease;
+}
+/* light themes: the dark drop shadow reads as dirt on a pale page */
+body.navy-light .dc-stk.dc-stk, body.purple-light .dc-stk.dc-stk, body.red-light .dc-stk.dc-stk,
+body.yellow-light .dc-stk.dc-stk, body.pink-light .dc-stk.dc-stk, body.green-light .dc-stk.dc-stk {
+  background: var(--bg2);
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.12);
+}
+
+/* the emoji inside (🎵 🎤 💿) glows in the sticker's colour */
+.dc-stk .section-type-icon {
+  opacity: 1 !important;
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--sc) 70%, transparent));
+}
+
+/* peel flat and warm up while the section is in play */
+:is(.section-header, .bu-section-header, .off-section-header):hover .dc-stk.dc-stk {
+  transform: rotate(0deg) scale(1.04);
+  border-color: var(--sc);
+  background: color-mix(in srgb, var(--sc) 14%, var(--surface));
+  box-shadow: 0 3px 14px color-mix(in srgb, var(--sc) 35%, transparent);
+}
+
+.dc-stk.dc-stk--song    { --sc: var(--violet); }
+.dc-stk.dc-stk--artist  { --sc: var(--teal); }
+.dc-stk.dc-stk--album   { --sc: var(--amber); }
+.dc-stk.dc-stk--ep      { --sc: var(--gk-pink); }
+.dc-stk.dc-stk--single  { --sc: var(--green); }
+.dc-stk.dc-stk--bu      { --sc: var(--accent); }
+.dc-stk.dc-stk--off     { --sc: var(--rose); }
+.dc-stk.dc-stk--new     { --sc: var(--green); }
+.dc-stk.dc-stk--events  { --sc: var(--rose); }
+
+/* Certified this period: the award sticker, gold, a step louder, tilted the
+   other way, with the ★ drawn in CSS so a translation can never drop it */
+html body .dc-stk.dc-stk--cert {
+  --sc: var(--gold1);
+  border-width: 1.5px;
+  padding: 0.3rem 0.65rem;
+  transform: rotate(3deg);
+  box-shadow: 0 3px 14px color-mix(in srgb, var(--gold1) 30%, transparent);
+}
+.dc-stk--cert::before { content: '\2605'; }
+
+/* the Events day heading is empty until events.js fills it */
+.dc-stk:empty { display: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  html body .dc-stk.dc-stk { transition: none; }
+}

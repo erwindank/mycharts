@@ -1567,7 +1567,17 @@ function albumBucketNoun(plural) {
 }
 
 function retitleAlbumsSectionForFilter() {
-  if (!separatedTypes().length) return;
+  // Glow kit sticker: the title takes the colour of what it lists (EPs pink,
+  // singles green, albums orange), like the Records pills do. Set before the
+  // early return so it also clears when nothing is separated any more.
+  const sepOn = separatedTypes().length > 0;
+  const wantNow = sepOn ? albumsFilterBucket() : null;
+  const stk = document.getElementById('albumsSectionTitle');
+  if (stk) {
+    stk.classList.toggle('dc-stk--ep', wantNow === 'ep');
+    stk.classList.toggle('dc-stk--single', wantNow === 'single');
+  }
+  if (!sepOn) return;
   const want = albumsFilterBucket();
   const noun = albumBucketNoun(true);
 
