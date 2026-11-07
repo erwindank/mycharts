@@ -46783,3 +46783,63 @@ html body .dc-stk.dc-stk--cert {
 @media (prefers-reduced-motion: reduce) {
   html body .dc-stk.dc-stk { transition: none; }
 }
+
+/* ── GLOW KIT 3: stat tile icons (2026-11-07) ─────────────────────────────────
+   The small flat icon chips on the Charts period tiles (Total Plays, Unique
+   Songs, Artists, Albums & Singles, also the Daily tiles) and the Soundtrack
+   chapter tiles become glow tiles: a glassy square in the stat's colour with
+   a two-tone drawn glyph that glows and makes a small move when the tile is
+   hovered (glowkit.js rewinds it). Numbers, layout and centring are untouched.
+
+   The icon colour is the tile's own: --cat-color on the Charts tiles, --tc on
+   the Soundtrack ones. Artists is the exception: its number stays near-white
+   (the agreed look), but a white glow is no glow, so its tile takes sky blue. */
+.dc-gtile {
+  --gk: var(--gk-tile, var(--cat-color, var(--tc, var(--accent))));
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 9px;
+  background: linear-gradient(150deg,
+    color-mix(in srgb, var(--gk) 30%, transparent),
+    color-mix(in srgb, var(--gk) 7%, transparent));
+  border: 1px solid color-mix(in srgb, var(--gk) 42%, transparent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14),
+              0 0 16px -3px color-mix(in srgb, var(--gk) 55%, transparent);
+  transition: transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.24s ease;
+}
+/* the glyph takes the tile's colour, not a nav hue */
+.dc-gtile .dc-gico {
+  --gk: inherit;
+  width: 72%;
+  height: 72%;
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--gk) 70%, transparent));
+}
+.stat-cat-icon.dc-gtile { width: 30px; height: 30px; font-size: inherit; }
+/* inline, so the tile stays centred over the number like the old chip did */
+.st-stat-icon.dc-gtile  { display: inline-grid; width: 2.5rem; height: 2.5rem; border-radius: 12px; }
+.stat-box[data-cat="artists"] .dc-gtile { --gk-tile: var(--teal); }
+
+.stat-box:hover .dc-gtile,
+.st-stat:hover .dc-gtile {
+  transform: translateY(-2px) scale(1.07);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18),
+              0 0 24px -2px color-mix(in srgb, var(--gk) 60%, transparent);
+}
+/* the disc keeps turning while its tile is hovered */
+.stat-box:hover .dc-gico .gk-spin,
+.st-stat:hover .dc-gico .gk-spin { animation-iteration-count: infinite; }
+
+/* Light themes: a pale tinted square with a soft shadow; no coloured glow */
+body.navy-light .dc-gtile, body.purple-light .dc-gtile, body.red-light .dc-gtile,
+body.yellow-light .dc-gtile, body.pink-light .dc-gtile, body.green-light .dc-gtile {
+  background: linear-gradient(150deg,
+    color-mix(in srgb, var(--gk) 18%, transparent),
+    color-mix(in srgb, var(--gk) 5%, transparent));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 1px 3px rgba(15, 23, 42, 0.12);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dc-gtile { transition: none; }
+  .stat-box:hover .dc-gtile, .st-stat:hover .dc-gtile { transform: none; }
+}

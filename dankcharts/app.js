@@ -16096,7 +16096,8 @@ function renderAll() {
     const boxClass       = isAllTimePeak ? ' stat-peak-alltime' : isAtTimePeak ? ' stat-peak-attime' : '';
     const clickAttr      = scrollTo ? ` onclick="dcScrollTo('${scrollTo}')" title="Jump to section"` : '';
     const catAttr        = cat ? ` data-cat="${cat}"` : '';
-    const iconHtml       = emoji ? `<span class="stat-cat-icon">${emoji}</span>` : '';
+    // glow kit tile for the four totals (glowkit.js), the emoji otherwise
+    const iconHtml       = !emoji ? '' : typeof dcStatCatIco === 'function' ? dcStatCatIco(cat, emoji) : `<span class="stat-cat-icon">${emoji}</span>`;
     const footParts       = [deltaHtml, extraLabel ? `<span class="stat-rate">${extraLabel}</span>` : ''].filter(Boolean);
     const footHtml         = footParts.length ? `<div class="stat-foot">${footParts.join('<span class="stat-foot-sep">·</span>')}</div>` : '';
     return `<div class="stat-box${boxClass}${scrollTo ? ' stat-clickable' : ''}"${clickAttr}${catAttr}>

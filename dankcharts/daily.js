@@ -607,7 +607,7 @@ function dyRenderTiles(h, ds, plays) {
   // user's calls 2026-10-21).
   const box = (val, key, prevVal, emoji, cat, extraLine, badge, f, ringCls, facesHtml) => `
     <div class="stat-box${ringCls || ''}" data-cat="${cat}">
-      <div class="stat-head"><span class="stat-cat-icon">${emoji}</span><span class="stat-label">${t(key)}</span></div>
+      <div class="stat-head">${typeof dcStatCatIco === 'function' ? dcStatCatIco(cat, emoji) : `<span class="stat-cat-icon">${emoji}</span>`}<span class="stat-label">${t(key)}</span></div>
       <div class="stat-val" data-val="${val}">${val.toLocaleString()}</div>
       ${cmp ? `<div class="stat-foot">${delta(val, prevVal)}</div>` : ''}
       ${day ? shBarsHtml(val, prevVal, Math.max(before[f], val) || null, h._shRec.usual[f]) : ''}${facesHtml || ''}

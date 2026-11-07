@@ -242,6 +242,17 @@
     });
   }
 
+  // Stat tiles (Charts period tiles, Daily tiles): the small tinted square
+  // beside the label becomes a glow tile with the drawn glyph. Unknown
+  // categories keep their emoji, so nothing ever goes blank.
+  var CAT_TO_GICO = { plays: 'play', songs: 'note', artists: 'artist', albums: 'disc' };
+  function dcStatCatIco(cat, emoji) {
+    var g = CAT_TO_GICO[cat];
+    if (!g) return '<span class="stat-cat-icon">' + (emoji || '') + '</span>';
+    return '<span class="stat-cat-icon dc-gtile">' + dcGlowIco(g) + '</span>';
+  }
+  window.dcStatCatIco = dcStatCatIco;
+
   window.DC_GLOW_ICONS = GICO;
   window.DC_GLOW_NAV = NAV_TO_GICO;
   window.dcGlowIco = dcGlowIco;
@@ -253,7 +264,7 @@
   // Loops (reels, dots …) are left alone: CSS keeps them going on :hover.
   var hoverHost = null;
   document.addEventListener('mouseover', function (e) {
-    var host = e.target && e.target.closest ? e.target.closest('.section-header-h2, .gd-card, .dc-gk-host') : null;
+    var host = e.target && e.target.closest ? e.target.closest('.section-header-h2, .gd-card, .stat-box, .st-stat, .dc-gk-host') : null;
     if (host === hoverHost) return;
     hoverHost = host;
     if (!host || !host.getAnimations) return;
