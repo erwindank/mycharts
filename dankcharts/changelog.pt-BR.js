@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Glowing Sync, Settings and Language buttons":
+    ["Botões de Sincronizar, Configurações e Idioma que brilham",
+     "Os botões de Sincronizar, Configurações e Idioma da barra de cima agora usam ícones desenhados e brilhantes como o resto do site: a seta de Sincronizar gira quando você passa o mouse e enquanto sincroniza, a engrenagem de Configurações gira e o globo dá voltas. A janela de Configurações mostra a mesma engrenagem no topo."],
   "Glowing icons in the menus and the phone tab bar":
     ["Ícones que brilham nos menus e na barra do celular",
      "A barra de abas de baixo no celular, o menu Mais (no celular e na barra de cima), o menu de seções de Recordes e o seletor Seção no celular agora usam os mesmos ícones desenhados e brilhantes dos títulos das abas. Cada item do Mais agora tem seu ícone, inclusive Novidades. Na barra de cima, a aba em que você está mostra o ícone brilhante quando há espaço. As outras abas mantêm a cor, mas ficam mais discretas."],

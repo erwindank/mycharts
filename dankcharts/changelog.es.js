@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Glowing Sync, Settings and Language buttons":
+    ["Botones de Sincronizar, Ajustes e Idioma que brillan",
+     "Los botones de Sincronizar, Ajustes e Idioma de la barra de arriba usan ahora iconos dibujados y brillantes como el resto del sitio: la flecha de Sincronizar gira al pasar por encima y mientras se sincroniza, el engranaje de Ajustes gira y el globo da vueltas. La ventana de Ajustes muestra el mismo engranaje en su cabecera."],
   "Glowing icons in the menus and the phone tab bar":
     ["Iconos que brillan en los menús y en la barra del móvil",
      "La barra de pestañas de abajo en el móvil, el menú Más (en el móvil y en la barra de arriba), el menú de secciones de Récords y su selector Sección en el móvil usan ahora los mismos iconos dibujados y brillantes que los títulos de las pestañas. Cada opción de Más tiene ya su icono, también Novedades. En la barra de arriba, la pestaña en la que estás muestra su icono brillante cuando hay sitio. Las demás pestañas mantienen su color pero más discretas."],

@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 470;
+const DC_CL_I18N_V = 471;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -366,6 +366,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-07', t: 'design', a: 'ui', h: 'acc272c',
+    title: "Glowing Sync, Settings and Language buttons",
+    detail: "The Sync, Settings and Language buttons in the top bar now use drawn, glowing icons like the rest of the site: the Sync arrow turns while you point at it and for as long as a sync is running, the Settings gear turns, and the globe spins. The Settings window shows the same gear in its header." },
   { d: '2026-11-07', t: 'design', a: 'ui', h: '8b5bfaf',
     title: "Glowing icons in the menus and the phone tab bar",
     detail: "The phone tab bar at the bottom, the More menu (on phones and in the top bar), the Records section menu and its phone Section picker now use the same drawn, glowing icons as the tab titles. Every entry in More has its icon now, What's New too. In the top bar, the tab you're on shows its glowing icon when there is room. Tabs you're not on keep their colour but stay quieter." },

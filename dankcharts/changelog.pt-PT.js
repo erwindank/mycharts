@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Glowing Sync, Settings and Language buttons":
+    ["Botões de Sincronizar, Definições e Idioma que brilham",
+     "Os botões de Sincronizar, Definições e Idioma da barra de cima usam agora ícones desenhados e brilhantes como o resto do site: a seta de Sincronizar gira quando passas o rato e enquanto sincroniza, a roda dentada de Definições gira e o globo dá voltas. A janela de Definições mostra a mesma roda dentada no topo."],
   "Glowing icons in the menus and the phone tab bar":
     ["Ícones que brilham nos menus e na barra do telemóvel",
      "A barra de separadores de baixo no telemóvel, o menu Mais (no telemóvel e na barra de cima), o menu de secções de Recordes e o seletor Secção no telemóvel usam agora os mesmos ícones desenhados e brilhantes dos títulos dos separadores. Cada opção do Mais tem agora o seu ícone, também Novidades. Na barra de cima, o separador em que estás mostra o ícone brilhante quando há espaço. Os outros separadores mantêm a cor, mas ficam mais discretos."],
