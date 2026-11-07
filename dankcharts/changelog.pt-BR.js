@@ -13,6 +13,10 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Export an artist's songs as a playlist":
+    ['Exporte as músicas de um artista como playlist',
+     'A aba Música de um artista tem um botão Exportar playlist ao lado de Compartilhar músicas. Ele pega as músicas na ordem em que você deixou (Posição, Mais ouvidas, Ouvidas recentemente ou A–Z, e qualquer busca), e você escolhe quantas: 10, 25, 50, 100, todas, ou digita qualquer número. Depois copie a lista ou baixe e importe no Soundiiz para Spotify, Apple Music, YouTube Music, Deezer e mais.'],
+
   "The Setup Guide shows every screen":
     ["O guia de configuração mostra cada tela",
      "O guia de configuração foi refeito. Cada passo agora tem uma imagem da tela em que você vai estar, com pontos numerados no que clicar e uma lista curta numerada ao lado; aponte para uma linha e o ponto dela acende, e clique em uma imagem para vê-la em tamanho cheio. As telas de outros sites (Google Sheets, as páginas de permissão do Google, Apps Script, Last.fm, Spotify, Deezer, Apple, Google Takeout) são desenhadas no seu idioma, e as do dankcharts são capturas reais. Três cartões maiores explicam cada caminho, duas perguntas rápidas recomendam um e uma barra no topo guarda o seu lugar."],

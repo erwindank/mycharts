@@ -374,6 +374,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-07', t: 'feature', a: 'playlists', h: 'a3dbf1d',
+    title: "Export an artist's songs as a playlist",
+    detail: "An artist's Music tab has an Export playlist button next to Share songs. It takes their songs in the order you have them (Chart Rank, Most Played, Recently Played or A–Z, and any search), and you pick how many: 10, 25, 50, 100, all of them, or type any number. Then copy the list or download it and import it on Soundiiz into Spotify, Apple Music, YouTube Music, Deezer and more." },
   { d: '2026-11-07', t: 'feature', a: 'guide', h: 'f0f3435',
     title: "The Setup Guide shows every screen",
     detail: "The Setup Guide was rebuilt. Each step now has a picture of the screen you'll be on, with numbered dots on what to click and a short numbered list beside it; point at a line and its dot lights up, and click a picture to see it full size. Screens on other sites (Google Sheets, Google's approval pages, Apps Script, Last.fm, Spotify, Deezer, Apple, Google Takeout) are drawn in your language, and dankcharts' own screens are real screenshots. Three bigger cards explain each way in, two quick questions recommend one, and a bar at the top keeps your place." },
