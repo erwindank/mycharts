@@ -57220,15 +57220,19 @@ function _dcGateOpen(gate) {
   if (demo) {
     if (hook) hook.innerHTML = 'You\'re in the live demo. <span class="cg-gate-hook-em">Every chart here is real.</span>';
     if (sub)  sub.textContent = 'This is one real listener\'s history, charted week by week since day one. Click around freely — nothing you do here is saved. When you\'re ready, swap in your own Last.fm, Google Sheet or CSV.';
-    if (btn2) { btn2.innerHTML = '🎧&nbsp; Use my own listening'; btn2.setAttribute('onclick', "dcGateChoose('own')"); }
+    if (btn2) { btn2.innerHTML = _dcGateBtnIco('headset', '🎧') + 'Use my own listening'; btn2.setAttribute('onclick', "dcGateChoose('own')"); }
     if (skip) skip.textContent = 'Just let me explore the demo →';
   } else {
     if (hook) hook.innerHTML = 'Your listening, <span class="cg-gate-hook-em">charted like a real countdown.</span>';
     if (sub)  sub.textContent = 'Every play becomes a weekly, monthly, yearly and all-time chart — with climbers, debuts, peaks, records and awards.';
-    if (btn2) { btn2.innerHTML = '📖&nbsp; Read the Charts Guide'; btn2.setAttribute('onclick', "dcGateChoose('guide')"); }
+    if (btn2) { btn2.innerHTML = _dcGateBtnIco('guide', '📖') + 'Read the Charts Guide'; btn2.setAttribute('onclick', "dcGateChoose('guide')"); }
     if (skip) skip.textContent = 'Just take me to my charts →';
   }
 
+  // The primary button's icon is static markup; swap its fallback for the glow icon
+  gate.querySelectorAll('.cg-gate-btn-ic[data-ico]').forEach(el => {
+    if (typeof dcGlowIco === 'function' && !el.querySelector('svg')) el.outerHTML = _dcGateBtnIco(el.dataset.ico, el.textContent);
+  });
   dcGateFillTiles(gate);
   gate.style.display = 'flex';
   document.body.classList.add('cg-gate-open');
@@ -57238,19 +57242,37 @@ function _dcGateOpen(gate) {
   setTimeout(() => gate.querySelector('.cg-gate-btn-primary')?.focus({ preventScroll: true }), 80);
 }
 
-/* Shortcut tiles borrow their icons from the nav buttons they lead to, so the
-   welcome window teaches the same pictures the nav bar uses. Wired once. */
+/* Button icon: the Glow Kit picture (glowkit.js), or the old emoji if that
+   script hasn't loaded, so a button never ends up without one. */
+function _dcGateBtnIco(name, emoji) {
+  const svg = typeof dcGlowIco === 'function' ? dcGlowIco(name) : '';
+  return '<span class="cg-gate-btn-ic">' + (svg || emoji || '') + '</span>';
+}
+
+/* Shortcut tiles use the Glow Kit icon of the tab they lead to (the same
+   picture as that tab's title and the nav), in that tab's own colour, on a
+   glow tile like the stat tiles. If glowkit.js is missing they fall back to a
+   copy of the nav button's icon. Wired once. */
 function dcGateFillTiles(gate) {
   gate.querySelectorAll('.cg-gate-tile').forEach(tile => {
     const period = tile.dataset.go;
     const ic = tile.querySelector('.cg-gate-tile-ic');
-    const navIc = document.querySelector('#periodNav button[data-period="' + period + '"] .nav-icon');
-    // Ids inside the icon (gradients, masks) get a suffix: the nav's copies can
-    // sit in a collapsed nav, and url(#id) pointing into a hidden SVG paints nothing.
-    if (ic && navIc && !ic.childElementCount) {
-      ic.innerHTML = navIc.innerHTML
-        .replace(/id="([^"]+)"/g, 'id="$1-gate"')
-        .replace(/url\(#([^)]+)\)/g, 'url(#$1-gate)');
+    const gName = window.DC_GLOW_NAV && DC_GLOW_NAV[period];
+    if (ic && !ic.childElementCount) {
+      if (gName && typeof dcGlowIco === 'function') {
+        // gk-nav-<period> gives the five chart periods their nav hue; the
+        // other tabs get theirs from dc-gico--<name>
+        ic.innerHTML = dcGlowIco(gName, 'gk-nav-' + period);
+        ic.classList.add('dc-gtile');
+        tile.classList.add('cg-gate-tile--glow');
+      } else {
+        const navIc = document.querySelector('#periodNav button[data-period="' + period + '"] .nav-icon');
+        // Ids inside the icon (gradients, masks) get a suffix: the nav's copies can
+        // sit in a collapsed nav, and url(#id) pointing into a hidden SVG paints nothing.
+        if (navIc) ic.innerHTML = navIc.innerHTML
+          .replace(/id="([^"]+)"/g, 'id="$1-gate"')
+          .replace(/url\(#([^)]+)\)/g, 'url(#$1-gate)');
+      }
     }
     if (!tile._wired) {
       tile._wired = true;

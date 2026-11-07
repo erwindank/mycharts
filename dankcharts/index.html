@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=911">
+  <link rel="stylesheet" href="style.css?v=912">
   <!-- The Charts Guide's lessons (guide.js, GUIDE-PLAN.md) -->
   <link rel="stylesheet" href="guide.css?v=5">
   <!-- All scripts are deferred so the page paints without waiting on them.
@@ -2909,7 +2909,8 @@
            of instructions. Made-up songs — real plays may still be loading. -->
       <div class="cg-gate-demo" aria-hidden="true">
         <div class="cg-gate-demo-head">
-          <span class="cg-gate-demo-label">How a chart moves</span>
+          <!-- Section labels are Glow Kit stickers, like the chart pages' section labels -->
+          <span class="dc-stk dc-stk--song cg-gate-demo-label">How a chart moves</span>
           <span class="cg-gate-demo-week" id="cgGateDemoWeek">Week 1</span>
         </div>
         <div class="cg-gate-demo-rows" id="cgGateDemoRows"></div>
@@ -2917,19 +2918,21 @@
 
       <!-- Shortcuts straight into the most fun views. Icons are copied from the
            nav bar when the gate opens (dcGateFillTiles), so they always match. -->
-      <div class="cg-gate-jump-label">Jump straight in</div>
+      <div class="cg-gate-jump-label"><span class="dc-stk dc-stk--bu">Jump straight in</span></div>
       <div class="cg-gate-tiles">
-        <button class="dc-card-inset cg-gate-tile" data-go="week"><span class="cg-gate-tile-ic"></span><strong>Weekly chart</strong><em>This week's top songs</em></button>
-        <button class="dc-card-inset cg-gate-tile" data-go="records"><span class="cg-gate-tile-ic"></span><strong>Records</strong><em>Longest #1s, biggest debuts</em></button>
-        <button class="dc-card-inset cg-gate-tile" data-go="awards"><span class="cg-gate-tile-ic"></span><strong>Awards</strong><em>Your own award show</em></button>
-        <button class="dc-card-inset cg-gate-tile" data-go="soundtrack"><span class="cg-gate-tile-ic"></span><strong>Your Soundtrack</strong><em>Your life in songs</em></button>
-        <button class="dc-card-inset cg-gate-tile" data-go="graphs"><span class="cg-gate-tile-ic"></span><strong>Graphs</strong><em>Chart runs over time</em></button>
-        <button class="dc-card-inset cg-gate-tile" data-go="alltime"><span class="cg-gate-tile-ic"></span><strong>All-Time</strong><em>Your biggest songs ever</em></button>
+        <button class="dc-card-inset cg-gate-tile dc-gk-host" data-go="week"><span class="cg-gate-tile-ic"></span><strong>Weekly chart</strong><em>This week's top songs</em></button>
+        <button class="dc-card-inset cg-gate-tile dc-gk-host" data-go="records"><span class="cg-gate-tile-ic"></span><strong>Records</strong><em>Longest #1s, biggest debuts</em></button>
+        <button class="dc-card-inset cg-gate-tile dc-gk-host" data-go="awards"><span class="cg-gate-tile-ic"></span><strong>Awards</strong><em>Your own award show</em></button>
+        <button class="dc-card-inset cg-gate-tile dc-gk-host" data-go="soundtrack"><span class="cg-gate-tile-ic"></span><strong>Your Soundtrack</strong><em>Your life in songs</em></button>
+        <button class="dc-card-inset cg-gate-tile dc-gk-host" data-go="graphs"><span class="cg-gate-tile-ic"></span><strong>Graphs</strong><em>Chart runs over time</em></button>
+        <button class="dc-card-inset cg-gate-tile dc-gk-host" data-go="alltime"><span class="cg-gate-tile-ic"></span><strong>All-Time</strong><em>Your biggest songs ever</em></button>
       </div>
 
       <div class="cg-gate-actions">
-        <button class="dc-btn dc-btn-main cg-gate-btn" onclick="dcGateChoose('tour')">▶&nbsp; Show me around <span class="cg-gate-btn-note">2 min</span></button>
-        <button class="dc-btn dc-btn-normal cg-gate-btn" onclick="dcGateChoose('guide')">📖&nbsp; Read the Charts Guide</button>
+        <!-- cg-gate-btn-primary marks the button _dcGateOpen must leave alone (it
+             rewrites the other one for demo visitors). Icons filled in by _dcGateOpen. -->
+        <button class="dc-btn dc-btn-main cg-gate-btn cg-gate-btn-primary dc-gk-host" onclick="dcGateChoose('tour')"><span class="cg-gate-btn-ic" data-ico="start">▶</span>Show me around <span class="cg-gate-btn-note">2 min</span></button>
+        <button class="dc-btn dc-btn-normal cg-gate-btn dc-gk-host" onclick="dcGateChoose('guide')"><span class="cg-gate-btn-ic" data-ico="guide">📖</span>Read the Charts Guide</button>
       </div>
       <button class="cg-gate-skip" onclick="dcGateChoose('skip')">Just take me to my charts →</button>
     </div>

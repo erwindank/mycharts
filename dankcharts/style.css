@@ -47202,3 +47202,104 @@ a.tb-more-item:hover { text-decoration: none; }
   text-underline-offset: 3px;
 }
 .sync-toast:has(.sync-guide-link) { flex-wrap: wrap; }
+
+/* ── GLOW KIT: first-visit welcome window (2026-11-07) ────────────────────────
+   The welcome gate (#cgWelcomeGate) picks up the Glow Kit look:
+   - the source pill ("Live demo", "Last.fm connected …") is a tilted header
+     sticker with a live dot once a source is on;
+   - "How a chart moves" / "Jump straight in" are section stickers (.dc-stk);
+   - each shortcut tile gets its tab's drawn glow icon on a glow tile, in that
+     tab's nav hue (mixed per theme like the nav), and lights its border in
+     the same hue on hover;
+   - the two buttons swap their emoji for drawn icons (footprints, book,
+     headset). dcGateFillTiles / _dcGateBtnIco in app.js fill these in. */
+
+/* source pill → sticker */
+.cg-gate .cg-gate-src {
+  --sc: var(--text3);
+  gap: 6px;
+  padding: 3px 9px;
+  border-radius: var(--r-xs);
+  border: 1px solid color-mix(in srgb, var(--sc) 55%, transparent);
+  background: var(--surface);
+  color: var(--sc);
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  line-height: 1.35;
+  text-transform: uppercase;
+  transform: rotate(-3deg);
+  box-shadow: 0 2px 8px color-mix(in srgb, #000 30%, transparent);
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.22s ease, box-shadow 0.22s ease;
+}
+.cg-gate .cg-gate-src.on {
+  --sc: color-mix(in srgb, #2dd4bf var(--nav-hue-lit, 85%), var(--nav-ink, var(--accent)));
+  color: var(--sc);
+  border-color: color-mix(in srgb, var(--sc) 60%, transparent);
+}
+.cg-gate .cg-gate-src-dot { width: 6px; height: 6px; background: var(--sc); }
+.cg-gate .cg-gate-src.on .cg-gate-src-dot { background: var(--sc); box-shadow: 0 0 6px var(--sc); }
+.cg-gate-head:hover .cg-gate-src {
+  transform: rotate(0deg) scale(1.04);
+  background: color-mix(in srgb, var(--sc) 14%, var(--surface));
+  box-shadow: 0 3px 14px color-mix(in srgb, var(--sc) 35%, transparent);
+}
+
+/* section stickers: room for the tilt, and they peel flat while their part is hovered */
+.cg-gate-demo-head { align-items: center; margin-bottom: 0.6rem; }
+.cg-gate-demo { padding-top: 0.75rem; }
+.cg-gate-jump-label { margin-bottom: 0.7rem; padding-left: 2px; }
+:is(.cg-gate-demo:hover, .cg-gate-jump-label:hover, .cg-gate-jump-label:has(+ .cg-gate-tiles:hover)) .dc-stk.dc-stk {
+  transform: rotate(0deg) scale(1.04);
+  border-color: var(--sc);
+  background: color-mix(in srgb, var(--sc) 14%, var(--surface));
+}
+
+/* shortcut tiles: each in its tab's hue */
+.cg-gate-tile                   { --tile-c: var(--accent); }
+.cg-gate-tile[data-go="week"]       { --tile-c: #4dabf7; }
+.cg-gate-tile[data-go="records"]    { --tile-c: #fb923c; }
+.cg-gate-tile[data-go="awards"]     { --tile-c: #fbbf24; }
+.cg-gate-tile[data-go="soundtrack"] { --tile-c: #c084fc; }
+.cg-gate-tile[data-go="graphs"]     { --tile-c: #34d399; }
+.cg-gate-tile[data-go="alltime"]    { --tile-c: #fb7185; }
+.cg-gate-tile--glow {
+  --gk-tile: color-mix(in srgb, var(--tile-c) var(--nav-hue-lit, 85%), var(--nav-ink, var(--accent)));
+  gap: 0.2rem;
+  padding: 0.75rem 0.75rem 0.7rem;
+}
+.cg-gate-tile--glow .cg-gate-tile-ic.dc-gtile {
+  width: 2.1rem;
+  height: 2.1rem;
+  margin-bottom: 0.4rem;
+  border-radius: 10px;
+}
+/* the icon's own drop shadow is set on .dc-gico; on the tile it uses the tile's */
+.cg-gate-tile--glow .cg-gate-tile-ic svg { width: 72%; height: 72%; }
+.cg-gate-tile--glow:hover,
+.cg-gate-tile--glow:focus-visible {
+  border-color: color-mix(in srgb, var(--gk-tile) 70%, transparent);
+  box-shadow: 0 4px 18px -6px color-mix(in srgb, var(--gk-tile) 55%, transparent);
+}
+.cg-gate-tile--glow:hover .dc-gtile,
+.cg-gate-tile--glow:focus-visible .dc-gtile {
+  transform: translateY(-2px) scale(1.07);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18),
+              0 0 24px -2px color-mix(in srgb, var(--gk-tile) 60%, transparent);
+}
+
+/* button icons */
+.cg-gate-btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5em; }
+.cg-gate-btn-ic { display: inline-flex; align-items: center; line-height: 1; }
+.cg-gate-btn-ic .dc-gico { width: 1.3em; height: 1.3em; }
+/* on the accent-filled button the drawing is painted in the button's text colour */
+.cg-gate-btn.dc-btn-main .dc-gico {
+  --gk: var(--on-accent);
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25));
+}
+.cg-gate-btn .dc-gico--headset { --gk-c: #2dd4bf; }
+
+@media (prefers-reduced-motion: reduce) {
+  .cg-gate .cg-gate-src, .cg-gate-tile--glow .dc-gtile { transition: none; }
+  .cg-gate-tile--glow:hover .dc-gtile { transform: none; }
+}
