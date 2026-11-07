@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 464;
+const DC_CL_I18N_V = 465;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -98,6 +98,16 @@ const DC_CL_AREAS = {
    by id, as { title, intro, points }. A missing one shows in English.
    ------------------------------------------------------------------------- */
 const DC_CL_HIGHLIGHTS = [
+  { id: "glow-kit", d: "2026-11-07", a: "ui", img: "whatsnew/glow-kit.webp", go: "soundtrack",
+    title: "Glowing icons and stickers all over the site",
+    intro: "The start page's look now runs through the whole site: little drawn icons that glow in their own colour and move, and tilted stickers like FULL CONTROL and RECOMMENDED.",
+    points: [
+      "Every tab title and every Records section has its own drawing, in the tab's colour. It moves when you open the tab and when you point at it.",
+      "Section titles are stickers coloured by what they list: Songs violet, Artists sky blue, Albums amber, Certified this period gold.",
+      "The stat tiles' icons glow and move, and the option you pick in any switch lights up in its colour.",
+      "Light themes get soft shadows instead of glows, and Reduce motion keeps everything still.",
+    ],
+    also: ["976d4a0", "8651866", "f9c3ae2", "0fce0a6", "8e66664"] },
   { id: "charts-guide", d: "2026-11-06", a: "guide", img: "whatsnew/charts-guide.webp", go: "chartsguide",
     title: "A Charts Guide you can explore",
     intro: "The Charts Guide is now a lesson for every tab, built from real screenshots. Pick a spot on a picture to see what it does, follow the steps, then try it in the app.",
@@ -356,6 +366,21 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-07', t: 'feature', a: 'ui', h: '8e66664',
+    title: "Stickers beside four tab titles",
+    detail: "The Dank 100, Community Board, Your Soundtrack and Records now carry a small tilted badge next to their title, like the ones on the start page: THIS WEEK · LIVE with a blinking dot, EVERYONE CAN POST, the number of chapters your Soundtrack has, and ALL-TIME. They light up when you point at the title. Hidden on phones so the title keeps the row." },
+  { d: '2026-11-07', t: 'design', a: 'ui', h: '0fce0a6',
+    title: "Picked switches glow in their own colour",
+    detail: "Every switch where you pick one option (Songs / Artists / Albums, Year / Month / All-Time, Daily / Weekly / Monthly and the rest) now lights the picked one with a thin ring and a soft glow in its colour, and its emoji or icon lights up too. Songs is always violet, Artists sky blue and Albums amber, wherever they appear. Counts inside a switch are small chips, the year picker's number glows, and the open tab of a tab row glows off its line. Light themes get a soft shadow instead of the glow." },
+  { d: '2026-11-07', t: 'design', a: 'charts', h: 'f9c3ae2',
+    title: "Glowing icons on the stat tiles",
+    detail: "The small icons on the Total Plays, Unique Songs, Artists and Albums & Singles tiles (on every chart, Daily too) and on the Soundtrack's chapter tiles are now drawn pictures in a glassy tile that glows in the stat's colour. Point at a tile and its icon moves: the play button beats, the note bobs, the record spins, the sparkle pops, the sun rises. Artists is now a person with a music note, as on the Records Artists tab. The numbers and layout are the same." },
+  { d: '2026-11-07', t: 'design', a: 'charts', h: '8651866',
+    title: "Section titles are now stickers",
+    detail: "The small section titles have dropped the white pill and look like the badges on the start page: tilted, outlined in colour, and they straighten and light up while you point at their section. Top Songs is violet, Top Artists sky blue, Top Albums amber (pink for EPs, green for singles when you filter), Certified this period is the gold award one with a star, and the Events headings are red. The emoji stay." },
+  { d: '2026-11-07', t: 'design', a: 'ui', h: '976d4a0',
+    title: "Drawn, glowing icons on every tab title",
+    detail: "Each tab title now has its own little drawing in the tab's colour, with a soft glow and one move, like the icons on the start page: Stats bars grow, the Soundtrack cassette's reels turn, the Dank 100 podium rises, someone types on the Board, a medal swings on Records. They move once when you open the tab and again when you point at them. The Records section titles (All #1s, Most Chart Appearances, Streaks and the rest) and the Charts Guide cards use the same style. Light themes swap the glow for a soft shadow, and Reduce motion keeps them still." },
   { d: '2026-11-06', t: 'change', a: 'soundtrack', h: '2f9f720',
     title: "Yearly Number ones grow 15 at a time",
     detail: "In a year's Soundtrack, the Number ones list no longer opens every reign at once, which was slow with a whole year of daily #1s. Show 15 more adds 15 rows at a time inside a box that scrolls on its own and jumps to the new rows, and Show fewer folds it back. The month view still has Show all. Works with Last.fm, Google Sheets and CSV uploads." },

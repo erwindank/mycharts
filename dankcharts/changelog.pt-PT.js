@@ -13,6 +13,21 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Stickers beside four tab titles":
+    ["Autocolantes ao lado de quatro títulos de separador",
+     "The Dank 100, Fórum da comunidade, Sua Trilha Sonora e Recordes têm agora um pequeno selo inclinado ao lado do título, como os da página inicial: ESTA SEMANA · EM DIRETO com um ponto a piscar, TODOS PODEM PUBLICAR, o número de capítulos da tua Trilha Sonora e HISTÓRICO. Acendem quando passas o rato pelo título. No telemóvel ficam ocultos para o título ter a linha toda."],
+  "Picked switches glow in their own colour":
+    ["As opções escolhidas brilham na própria cor",
+     "Cada seletor em que escolhes uma opção (Músicas / Artistas / Álbuns, Ano / Mês / Histórico, Diário / Semanal / Mensal e os outros) acende agora a escolhida com uma borda fina e um brilho suave na cor dela, e o emoji ou ícone também acende. Músicas é sempre violeta, Artistas azul-céu e Álbuns âmbar, onde quer que apareçam. Os números dentro de um seletor passam a pequenas etiquetas, o ano do seletor de ano brilha e o separador aberto brilha sobre a linha. Os temas claros usam uma sombra suave em vez do brilho."],
+  "Glowing icons on the stat tiles":
+    ["Ícones que brilham nos cartões de estatísticas",
+     "Os ícones pequenos dos cartões de Reproduções, Músicas únicas, Artistas e Álbuns e singles (em todas as tabelas, também a Diária) e dos cartões de capítulo da Trilha Sonora são agora desenhos num cartão de vidro que brilha na cor do número. Passa o rato por um cartão e o ícone mexe-se: o play pulsa, a nota salta, o disco gira, o brilho aparece, o sol nasce. Artistas é agora uma pessoa com uma nota musical, como no separador Artistas de Recordes. Os números e a disposição ficam iguais."],
+  "Section titles are now stickers":
+    ["Os títulos de secção são agora autocolantes",
+     "Os títulos pequenos das secções deixaram a pílula branca e parecem os selos da página inicial: inclinados, com borda colorida, e endireitam-se e acendem quando passas o rato pela secção. Top Músicas é violeta, Top Artistas azul-céu, Top Álbuns âmbar (rosa para EPs e verde para singles ao filtrar), Certificados neste período é o dourado de prémio com uma estrela e os títulos de Eventos são vermelhos. Os emojis ficam."],
+  "Drawn, glowing icons on every tab title":
+    ["Ícones desenhados e brilhantes em cada título de separador",
+     "Cada título de separador tem agora o seu próprio desenho na cor do separador, com um brilho suave e um movimento, como os ícones da página inicial: as barras de Estatísticas crescem, as bobinas da cassete da Trilha Sonora giram, o pódio do The Dank 100 sobe, alguém escreve no Fórum, uma medalha balança em Recordes. Mexem-se uma vez ao abrir o separador e outra vez ao passar o rato. Os títulos de secção de Recordes (Todos os #1, Mais aparições, Sequências e os outros) e os cartões do Guia usam o mesmo estilo. Os temas claros trocam o brilho por uma sombra suave e Reduzir movimento deixa-os parados."],
   "Record notifications open the exact list":
     ["As notificações de recordes abrem a lista exata",
      "Ao tocar numa notificação de novo #1, os Recordes abrem nessa mesma lista: escolhe Músicas, Artistas ou Álbuns, a tabela Diária, Semanal, Mensal ou Anual, Total ou Seguidas, e o nível de Mais rápidos por ti, desloca-se até à lista e destaca-a por um momento. Antes só abria a secção e muitas vezes mostrava outra lista. Também funciona com as notificações que já tens. Funciona com Last.fm, Google Sheets e ficheiros CSV."],
@@ -4611,6 +4626,15 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 /* Highlight cards (DC_CL_HIGHLIGHTS in changelog.js), keyed by id. */
 window.DC_CL_HIGHLIGHTS_I18N = window.DC_CL_HIGHLIGHTS_I18N || {};
 window.DC_CL_HIGHLIGHTS_I18N["pt-PT"] = {
+  "glow-kit": {
+    title: "Ícones que brilham e autocolantes por todo o site",
+    intro: "O visual da página inicial chega agora ao site todo: pequenos ícones desenhados que brilham na própria cor e se mexem, e autocolantes inclinados como CONTROLO TOTAL e RECOMENDADO.",
+    points: [
+      "Cada título de separador e cada secção de Recordes tem o seu próprio desenho, na cor do separador. Mexe-se quando abres o separador e quando passas o rato.",
+      "Os títulos de secção são autocolantes na cor do que mostram: Músicas violeta, Artistas azul-céu, Álbuns âmbar, Certificados neste período dourado.",
+      "Os ícones dos cartões de estatísticas brilham e mexem-se, e a opção que escolhes em qualquer seletor acende na cor dela.",
+      "Os temas claros usam sombras suaves em vez do brilho, e Reduzir movimento deixa tudo parado."
+    ] },
   "charts-guide": {
     title: "Um Guia de Charts para explorar",
     intro: "O Guia de Charts é agora uma lição para cada separador, feita com capturas reais. Escolhe um ponto numa imagem para veres o que faz, segue os passos e experimenta na app.",

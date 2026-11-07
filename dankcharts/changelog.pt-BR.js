@@ -13,6 +13,21 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Stickers beside four tab titles":
+    ["Adesivos ao lado de quatro títulos de aba",
+     "The Dank 100, Fórum da comunidade, Sua Trilha Sonora e Recordes agora têm um pequeno selo inclinado ao lado do título, como os da página inicial: ESTA SEMANA · AO VIVO com um ponto piscando, TODOS PODEM PUBLICAR, o número de capítulos da sua Trilha Sonora e HISTÓRICO. Eles acendem quando você passa o mouse pelo título. No celular ficam ocultos para o título ter a linha inteira."],
+  "Picked switches glow in their own colour":
+    ["As opções escolhidas brilham na própria cor",
+     "Todo seletor em que você escolhe uma opção (Músicas / Artistas / Álbuns, Ano / Mês / Histórico, Diário / Semanal / Mensal e os outros) agora acende a escolhida com uma borda fina e um brilho suave na cor dela, e o emoji ou ícone também acende. Músicas é sempre violeta, Artistas azul-céu e Álbuns âmbar, onde quer que apareçam. Os números dentro de um seletor viram pequenas etiquetas, o ano do seletor de ano brilha e a aba aberta brilha sobre a linha. Os temas claros usam uma sombra suave no lugar do brilho."],
+  "Glowing icons on the stat tiles":
+    ["Ícones que brilham nos cards de estatísticas",
+     "Os ícones pequenos dos cards de Reproduções, Músicas únicas, Artistas e Álbuns e singles (em todas as paradas, inclusive a Diária) e dos cards de capítulo da Trilha Sonora agora são desenhos num card de vidro que brilha na cor do número. Passe o mouse num card e o ícone se mexe: o play pulsa, a nota pula, o disco gira, o brilho aparece, o sol nasce. Artistas agora é uma pessoa com uma nota musical, como na aba Artistas de Recordes. Os números e o layout continuam iguais."],
+  "Section titles are now stickers":
+    ["Os títulos de seção agora são adesivos",
+     "Os títulos pequenos das seções deixaram a pílula branca e parecem os selos da página inicial: inclinados, com borda colorida, e se endireitam e acendem quando você passa o mouse pela seção. Top Músicas é violeta, Top Artistas azul-céu, Top Álbuns âmbar (rosa para EPs e verde para singles ao filtrar), Certificados neste período é o dourado de prêmio com uma estrela e os títulos de Eventos são vermelhos. Os emojis continuam."],
+  "Drawn, glowing icons on every tab title":
+    ["Ícones desenhados e brilhantes em cada título de aba",
+     "Cada título de aba agora tem seu próprio desenho na cor da aba, com um brilho suave e um movimento, como os ícones da página inicial: as barras de Estatísticas crescem, os carretéis da fita da Trilha Sonora giram, o pódio do The Dank 100 sobe, alguém digita no Fórum, uma medalha balança em Recordes. Eles se mexem uma vez ao abrir a aba e de novo ao passar o mouse. Os títulos de seção de Recordes (Todos os #1, Mais aparições, Sequências e os outros) e os cards do Guia usam o mesmo estilo. Os temas claros trocam o brilho por uma sombra suave e Reduzir movimento deixa tudo parado."],
   "Record notifications open the exact list":
     ["Notificações de recordes abrem a lista exata",
      "Ao tocar numa notificação de novo #1, Recordes abre nessa mesma lista: escolhe Músicas, Artistas ou Álbuns, a parada Diária, Semanal, Mensal ou Anual, Total ou Seguidas, e o nível de Mais rápidos para você, rola até a lista e a destaca por um momento. Antes só abria a seção e muitas vezes mostrava outra lista. Vale também para as notificações que você já tem. Funciona com Last.fm, Google Sheets e arquivos CSV."],
@@ -4611,6 +4626,15 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 /* Highlight cards (DC_CL_HIGHLIGHTS in changelog.js), keyed by id. */
 window.DC_CL_HIGHLIGHTS_I18N = window.DC_CL_HIGHLIGHTS_I18N || {};
 window.DC_CL_HIGHLIGHTS_I18N["pt-BR"] = {
+  "glow-kit": {
+    title: "Ícones que brilham e adesivos pelo site todo",
+    intro: "O visual da página inicial agora está no site inteiro: pequenos ícones desenhados que brilham na própria cor e se mexem, e adesivos inclinados como CONTROLE TOTAL e RECOMENDADO.",
+    points: [
+      "Cada título de aba e cada seção de Recordes tem seu próprio desenho, na cor da aba. Ele se mexe quando você abre a aba e quando passa o mouse.",
+      "Os títulos de seção são adesivos na cor do que mostram: Músicas violeta, Artistas azul-céu, Álbuns âmbar, Certificados neste período dourado.",
+      "Os ícones dos cards de estatísticas brilham e se mexem, e a opção que você escolhe em qualquer seletor acende na cor dela.",
+      "Os temas claros usam sombras suaves no lugar do brilho, e Reduzir movimento deixa tudo parado."
+    ] },
   "charts-guide": {
     title: "Um Guia de Charts para explorar",
     intro: "O Guia de Charts agora é uma lição para cada aba, feita com capturas reais. Escolha um ponto em uma imagem para ver o que ele faz, siga os passos e teste no app.",

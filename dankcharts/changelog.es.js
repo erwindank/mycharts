@@ -13,6 +13,21 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Stickers beside four tab titles":
+    ["Pegatinas junto a cuatro títulos de pestaña",
+     "The Dank 100, Foro de la comunidad, Tu Banda Sonora y Récords llevan ahora una pequeña insignia inclinada junto al título, como las de la página de inicio: ESTA SEMANA · EN VIVO con un punto que parpadea, TODOS PUEDEN PUBLICAR, el número de capítulos de tu Banda Sonora e HISTÓRICO. Se iluminan al pasar por el título. En el móvil se ocultan para que el título tenga toda la fila."],
+  "Picked switches glow in their own colour":
+    ["Las opciones elegidas brillan con su propio color",
+     "Cada selector en el que eliges una opción (Canciones / Artistas / Álbumes, Año / Mes / Histórico, Diario / Semanal / Mensual y los demás) ilumina ahora la elegida con un borde fino y un brillo suave de su color, y su emoji o icono también se enciende. Canciones es siempre violeta, Artistas azul cielo y Álbumes ámbar, estén donde estén. Los números dentro de un selector son pequeñas etiquetas, el año del selector de año brilla y la pestaña abierta brilla sobre su línea. Los temas claros usan una sombra suave en lugar del brillo."],
+  "Glowing icons on the stat tiles":
+    ["Iconos que brillan en las tarjetas de estadísticas",
+     "Los iconos pequeños de las tarjetas de Reproducciones, Canciones únicas, Artistas y Álbumes y sencillos (en todos los rankings, también el Diario) y de las tarjetas de capítulo de la Banda Sonora son ahora dibujos en una tarjeta de cristal que brilla con el color de la cifra. Pasa por una tarjeta y su icono se mueve: el botón de reproducir late, la nota rebota, el disco gira, el destello aparece, el sol sale. Artistas es ahora una persona con una nota musical, como en la pestaña Artistas de Récords. Las cifras y la disposición no cambian."],
+  "Section titles are now stickers":
+    ["Los títulos de sección son ahora pegatinas",
+     "Los títulos pequeños de las secciones dejan la píldora blanca y se parecen a las insignias de la página de inicio: inclinados, con borde de color, y se enderezan y se iluminan al pasar por su sección. Top Canciones es violeta, Top Artistas azul cielo, Top Álbumes ámbar (rosa para EP y verde para sencillos al filtrar), Certificados en este periodo es la dorada de premio con una estrella y los títulos de Eventos son rojos. Los emojis se quedan."],
+  "Drawn, glowing icons on every tab title":
+    ["Iconos dibujados y brillantes en cada título de pestaña",
+     "Cada título de pestaña tiene ahora su propio dibujo con el color de la pestaña, un brillo suave y un movimiento, como los iconos de la página de inicio: las barras de Estadísticas crecen, las bobinas del casete de la Banda Sonora giran, el podio de The Dank 100 sube, alguien escribe en el Foro, una medalla se balancea en Récords. Se mueven una vez al abrir la pestaña y otra al pasar por encima. Los títulos de sección de Récords (Todos los #1, Más apariciones, Rachas y los demás) y las tarjetas de la Guía de Charts usan el mismo estilo. Los temas claros cambian el brillo por una sombra suave y Reducir movimiento los deja quietos."],
   "Record notifications open the exact list":
     ["Las notificaciones de récords abren la lista exacta",
      "Al tocar una notificación de nuevo #1, Récords se abre en esa misma lista: elige por ti Canciones, Artistas o Álbumes, la lista Diaria, Semanal, Mensual o Anual, Total o Seguidas, y el nivel de Más rápidos, se desplaza hasta la lista y la resalta un momento. Antes solo abría la sección y a menudo mostraba otra lista. También funciona con las notificaciones que ya tienes. Funciona con Last.fm, Google Sheets y archivos CSV."],
@@ -4615,6 +4630,15 @@ window.DC_CHANGELOG_I18N['es'] = {
 /* Highlight cards (DC_CL_HIGHLIGHTS in changelog.js), keyed by id. */
 window.DC_CL_HIGHLIGHTS_I18N = window.DC_CL_HIGHLIGHTS_I18N || {};
 window.DC_CL_HIGHLIGHTS_I18N["es"] = {
+  "glow-kit": {
+    title: "Iconos que brillan y pegatinas por todo el sitio",
+    intro: "El estilo de la página de inicio llega a todo el sitio: pequeños iconos dibujados que brillan con su propio color y se mueven, y pegatinas inclinadas como CONTROL TOTAL y RECOMENDADO.",
+    points: [
+      "Cada título de pestaña y cada sección de Récords tiene su propio dibujo, con el color de la pestaña. Se mueve al abrir la pestaña y al pasar por encima.",
+      "Los títulos de sección son pegatinas del color de lo que muestran: Canciones violeta, Artistas azul cielo, Álbumes ámbar, Certificados en este periodo dorado.",
+      "Los iconos de las tarjetas de estadísticas brillan y se mueven, y la opción que eliges en cualquier selector se ilumina con su color.",
+      "Los temas claros usan sombras suaves en lugar de brillos, y Reducir movimiento lo deja todo quieto."
+    ] },
   "charts-guide": {
     title: "Una Guía de Charts para explorar",
     intro: "La Guía de Charts es ahora una lección para cada pestaña, hecha con capturas reales. Elige un punto de una imagen para ver qué hace, sigue los pasos y pruébalo en la app.",
