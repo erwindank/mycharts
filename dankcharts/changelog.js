@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 467;
+const DC_CL_I18N_V = 468;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -366,6 +366,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-07', t: 'design', a: 'guide', h: '3494e69',
+    title: "Around the chart and the windows lessons get their own icons",
+    detail: "In the Charts Guide, Around the chart, and sharing it now shows a chart card with a share arrow flying out, and Song, artist and album windows a window sliding up off a stack. Before, both showed the Weekly icon." },
   { d: '2026-11-07', t: 'design', a: 'guide', h: '4d0ecc5',
     title: "Getting started and Settings lessons get their own icons",
     detail: "In the Charts Guide, the Getting started lesson now has a trail of footprints that stamp down one after another, and the Settings lesson a gear that turns. Before, these two had no icon because there is no tab behind them. The icons also show at the top of the lesson and when you finish it." },

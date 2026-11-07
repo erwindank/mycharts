@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Around the chart and the windows lessons get their own icons":
+    ["As lições À volta da tabela e Janelas ganham ícone próprio",
+     "No Guia, a lição sobre o que fica à volta da tabela e a partilha mostra agora um cartão de tabela com uma seta de partilhar a sair a voar, e a lição das janelas de música, artista e álbum uma janela a subir de uma pilha. Antes as duas mostravam o ícone de Semanal."],
   "Getting started and Settings lessons get their own icons":
     ["As lições Primeiros passos e Definições ganham ícone próprio",
      "No Guia, a lição Primeiros passos tem agora um rasto de pegadas que aparecem uma depois da outra, e a lição de Definições uma roda dentada que gira. Antes as duas não tinham ícone porque não há um separador por trás. Os ícones também aparecem no topo da lição e quando a terminas."],

@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Around the chart and the windows lessons get their own icons":
+    ["Las lecciones Alrededor del ranking y Ventanas tienen su propio icono",
+     "En la Guía de Charts, Alrededor del ranking, y compartirlo muestra ahora una tarjeta de ranking con una flecha de compartir que sale volando, y Ventanas de canción, artista y álbum una ventana que sube desde una pila. Antes las dos mostraban el icono de Semanal."],
   "Getting started and Settings lessons get their own icons":
     ["Las lecciones Primeros pasos y Ajustes tienen su propio icono",
      "En la Guía de Charts, la lección Primeros pasos tiene ahora un rastro de pisadas que aparecen una tras otra, y la lección de Ajustes un engranaje que gira. Antes estas dos no tenían icono porque no hay una pestaña detrás. Los iconos también salen arriba en la lección y al terminarla."],
