@@ -719,3 +719,9 @@ ol.do kbd {
 .r-dd-item.on { background: #e8eaed; }
 .r-dd-side { left: 100%; top: -6px; min-width: 290px; }
 .shot-dot.shot-dot-still { animation: shotDotPulse 2.4s ease-in-out infinite; }
+
+/* Touch screens have no hover: keep the zoom hint showing, since a picture
+   shrunk to phone width is best read full screen */
+@media (hover: none) {
+  .shot-zoom { opacity: 1; transform: none; }
+}

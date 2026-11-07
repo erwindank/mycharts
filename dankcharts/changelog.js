@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 471;
+const DC_CL_I18N_V = 472;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -98,6 +98,16 @@ const DC_CL_AREAS = {
    by id, as { title, intro, points }. A missing one shows in English.
    ------------------------------------------------------------------------- */
 const DC_CL_HIGHLIGHTS = [
+  { id: "setup-guide", d: "2026-11-07", a: "guide", img: "whatsnew/setup-guide.webp", url: "setup-guide.html",
+    title: "A Setup Guide with a picture of every screen",
+    intro: "Getting your music in is now shown, not just described: every step of the Setup Guide has a picture of exactly what you'll see, with numbered dots on what to click.",
+    points: [
+      "Google Sheets, Last.fm and file uploads: each step pairs a picture with a short numbered list. Point at a line and its dot lights up.",
+      "Google's approval screens, the Share window and Spotify's, Deezer's, Apple's and YouTube's export pages are drawn in your language; dankcharts' own screens are real screenshots.",
+      "Not sure which way to go? Two quick questions pick one for you.",
+      "Find it in More, in the footer and on the start screen. When loading fails, the message links to the exact fix.",
+    ],
+    also: ["f0f3435", "4f1c47f", "0cd47ee", "a630cee"] },
   { id: "glow-kit", d: "2026-11-07", a: "ui", img: "whatsnew/glow-kit.webp", go: "soundtrack",
     title: "Glowing icons and stickers all over the site",
     intro: "The start page's look now runs through the whole site: little drawn icons that glow in their own colour and move, and tilted stickers like FULL CONTROL and RECOMMENDED.",
@@ -366,6 +376,15 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-07', t: 'feature', a: 'guide', h: 'f0f3435',
+    title: "The Setup Guide shows every screen",
+    detail: "The Setup Guide was rebuilt. Each step now has a picture of the screen you'll be on, with numbered dots on what to click and a short numbered list beside it; point at a line and its dot lights up, and click a picture to see it full size. Screens on other sites (Google Sheets, Google's approval pages, Apps Script, Last.fm, Spotify, Deezer, Apple, Google Takeout) are drawn in your language, and dankcharts' own screens are real screenshots. Three bigger cards explain each way in, two quick questions recommend one, and a bar at the top keeps your place." },
+  { d: '2026-11-07', t: 'feature', a: 'guide', h: '0cd47ee',
+    title: "Last.fm setup starts with just your username",
+    detail: "The Last.fm part of the Setup Guide now starts where most people do: type your username and your charts load. Making an API key, connecting and pushing fixed scrobbles back to Last.fm follow as clearly marked optional steps." },
+  { d: '2026-11-07', t: 'feature', a: 'ui', h: 'a630cee',
+    title: "Load errors link to the fix",
+    detail: "When your plays can't load (no sheet set, a sheet that isn't shared, missing columns, unreadable dates, no Last.fm username), the message now has a How to fix this link that opens the Setup Guide right at the step or answer that fixes it. The Setup Guide is also in the More menu, in the footer and on the start screen." },
   { d: '2026-11-07', t: 'design', a: 'ui', h: 'acc272c',
     title: "Glowing Sync, Settings and Language buttons",
     detail: "The Sync, Settings and Language buttons in the top bar now use drawn, glowing icons like the rest of the site: the Sync arrow turns while you point at it and for as long as a sync is running, the Settings gear turns, and the globe spins. The Settings window shows the same gear in its header." },

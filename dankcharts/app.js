@@ -58482,7 +58482,7 @@ function dcClHighlightsHtml() {
         (tx.intro ? '<p class="cl-hl-intro">' + esc(tx.intro) + '</p>' : '') +
         (tx.points.length ? '<ul class="cl-hl-points">' + tx.points.map(p => '<li>' + esc(p) + '</li>').join('') + '</ul>' : '') +
         '<div class="cl-hl-actions">' +
-          (hl.go || hl.then ? '<button class="dc-btn dc-btn-main dc-btn-sm cl-hl-go" onclick="dcClGo(' + n + ')">' +
+          (hl.go || hl.then || hl.url ? '<button class="dc-btn dc-btn-main dc-btn-sm cl-hl-go" onclick="dcClGo(' + n + ')">' +
                    esc(t('cl_hl_go')) + ' <span aria-hidden="true">&rarr;</span></button>' : '') +
           (also.length ? '<button class="dc-btn dc-btn-plain dc-btn-sm cl-hl-more" aria-expanded="false" onclick="dcClToggleAlso(' + n + ',this)">' +
                          esc(t('cl_hl_also', { n: also.length })) + '</button>' : '') +
@@ -58553,6 +58553,8 @@ function dcClJumpToEntry(i) {
 function dcClGo(n) {
   const hl = (typeof DC_CL_HIGHLIGHTS !== 'undefined') ? DC_CL_HIGHLIGHTS[n] : null;
   if (!hl) return;
+  // url: a card about a page of its own (the Setup Guide) opens it in a new tab
+  if (hl.url) { window.open(hl.url, '_blank', 'noopener'); return; }
   closeChangelog();
   if (hl.go) {
     const btn = document.querySelector('#periodNav button[data-period="' + hl.go + '"]');

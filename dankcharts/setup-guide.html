@@ -2180,6 +2180,10 @@
        glass, no chrome — a page you can hand to someone next to a laptop.
        Only the open tab prints (the closed panel is display:none already). */
     @media print {
+      /* 2026-11-07: the pinned path bar and the "which one?" chooser are
+         screen-only helpers */
+      .pathbar, .chooser { display: none !important; }
+
       :root {
         --bg: #ffffff; --bg2: #ffffff; --bg3: #f4f8ff;
         --surface: #eef4fd; --border: #b6c9e2; --border2: #93aacb;

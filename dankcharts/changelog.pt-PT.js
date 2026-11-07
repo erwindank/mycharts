@@ -13,6 +13,15 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "The Setup Guide shows every screen":
+    ["O guia de configuração mostra cada ecrã",
+     "O guia de configuração foi refeito. Cada passo tem agora uma imagem do ecrã em que vais estar, com pontos numerados no que clicar e uma lista curta numerada ao lado; aponta para uma linha e o ponto dela acende, e clica numa imagem para a veres em tamanho completo. Os ecrãs de outros sites (Google Sheets, as páginas de autorização da Google, Apps Script, Last.fm, Spotify, Deezer, Apple, Google Takeout) são desenhados na tua língua, e os do dankcharts são capturas reais. Três cartões maiores explicam cada caminho, duas perguntas rápidas recomendam um e uma barra no topo guarda o teu lugar."],
+  "Last.fm setup starts with just your username":
+    ["A configuração do Last.fm começa só com o teu utilizador",
+     "A parte do Last.fm do guia de configuração começa agora onde quase toda a gente começa: escreve o teu utilizador e os teus charts carregam. Criar uma chave de API, ligar e enviar para o Last.fm os scrobbles corrigidos vêm depois, como passos opcionais bem marcados."],
+  "Load errors link to the fix":
+    ["Os erros de carregamento levam à solução",
+     "Quando os teus plays não carregam (nenhuma folha definida, uma folha não partilhada, colunas em falta, datas ilegíveis, nenhum utilizador do Last.fm), a mensagem tem agora uma ligação Como resolver que abre o guia de configuração diretamente no passo ou na resposta que resolve. O guia também está no menu Mais, no rodapé e no ecrã inicial."],
   "Glowing Sync, Settings and Language buttons":
     ["Botões de Sincronizar, Definições e Idioma que brilham",
      "Os botões de Sincronizar, Definições e Idioma da barra de cima usam agora ícones desenhados e brilhantes como o resto do site: a seta de Sincronizar gira quando passas o rato e enquanto sincroniza, a roda dentada de Definições gira e o globo dá voltas. A janela de Definições mostra a mesma roda dentada no topo."],
@@ -4644,6 +4653,16 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 /* Highlight cards (DC_CL_HIGHLIGHTS in changelog.js), keyed by id. */
 window.DC_CL_HIGHLIGHTS_I18N = window.DC_CL_HIGHLIGHTS_I18N || {};
 window.DC_CL_HIGHLIGHTS_I18N["pt-PT"] = {
+  "setup-guide": {
+    title: "Um guia de configuração com uma imagem de cada ecrã",
+    intro: "Trazer a tua música agora é mostrado, não só descrito: cada passo do guia de configuração tem uma imagem exata do que vais ver, com pontos numerados no que clicar.",
+    points: [
+      "Google Sheets, Last.fm e carregamento de ficheiro: cada passo junta uma imagem a uma lista curta numerada. Aponta para uma linha e o ponto dela acende.",
+      "Os ecrãs de autorização da Google, a janela Partilhar e as páginas de exportação do Spotify, Deezer, Apple e YouTube são desenhados na tua língua; os do dankcharts são capturas reais.",
+      "Não sabes que caminho seguir? Duas perguntas rápidas escolhem um por ti.",
+      "Está em Mais, no rodapé e no ecrã inicial. Se o carregamento falhar, a mensagem leva diretamente à solução.",
+    ],
+  },
   "glow-kit": {
     title: "Ícones que brilham e autocolantes por todo o site",
     intro: "O visual da página inicial chega agora ao site todo: pequenos ícones desenhados que brilham na própria cor e se mexem, e autocolantes inclinados como CONTROLO TOTAL e RECOMENDADO.",

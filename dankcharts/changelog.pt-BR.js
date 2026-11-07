@@ -13,6 +13,15 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "The Setup Guide shows every screen":
+    ["O guia de configuração mostra cada tela",
+     "O guia de configuração foi refeito. Cada passo agora tem uma imagem da tela em que você vai estar, com pontos numerados no que clicar e uma lista curta numerada ao lado; aponte para uma linha e o ponto dela acende, e clique em uma imagem para vê-la em tamanho cheio. As telas de outros sites (Google Sheets, as páginas de permissão do Google, Apps Script, Last.fm, Spotify, Deezer, Apple, Google Takeout) são desenhadas no seu idioma, e as do dankcharts são capturas reais. Três cartões maiores explicam cada caminho, duas perguntas rápidas recomendam um e uma barra no topo guarda o seu lugar."],
+  "Last.fm setup starts with just your username":
+    ["A configuração do Last.fm começa só com o seu usuário",
+     "A parte do Last.fm do guia de configuração agora começa onde quase todo mundo começa: digite seu usuário e seus charts carregam. Criar uma chave de API, conectar e enviar ao Last.fm os scrobbles corrigidos vêm depois, como passos opcionais bem marcados."],
+  "Load errors link to the fix":
+    ["Os erros de carregamento levam à solução",
+     "Quando seus plays não carregam (nenhuma planilha configurada, uma planilha não compartilhada, colunas faltando, datas ilegíveis, nenhum usuário do Last.fm), a mensagem agora tem um link Como resolver que abre o guia de configuração direto no passo ou na resposta que resolve. O guia também está no menu Mais, no rodapé e na tela inicial."],
   "Glowing Sync, Settings and Language buttons":
     ["Botões de Sincronizar, Configurações e Idioma que brilham",
      "Os botões de Sincronizar, Configurações e Idioma da barra de cima agora usam ícones desenhados e brilhantes como o resto do site: a seta de Sincronizar gira quando você passa o mouse e enquanto sincroniza, a engrenagem de Configurações gira e o globo dá voltas. A janela de Configurações mostra a mesma engrenagem no topo."],
@@ -4644,6 +4653,16 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 /* Highlight cards (DC_CL_HIGHLIGHTS in changelog.js), keyed by id. */
 window.DC_CL_HIGHLIGHTS_I18N = window.DC_CL_HIGHLIGHTS_I18N || {};
 window.DC_CL_HIGHLIGHTS_I18N["pt-BR"] = {
+  "setup-guide": {
+    title: "Um guia de configuração com uma imagem de cada tela",
+    intro: "Trazer sua música agora é mostrado, não só descrito: cada passo do guia de configuração tem uma imagem exata do que você vai ver, com pontos numerados no que clicar.",
+    points: [
+      "Google Sheets, Last.fm e envio de arquivo: cada passo junta uma imagem a uma lista curta numerada. Aponte para uma linha e o ponto dela acende.",
+      "As telas de permissão do Google, a janela Compartilhar e as páginas de exportação do Spotify, Deezer, Apple e YouTube são desenhadas no seu idioma; as do dankcharts são capturas reais.",
+      "Não sabe qual caminho seguir? Duas perguntas rápidas escolhem um para você.",
+      "Ele fica em Mais, no rodapé e na tela inicial. Se o carregamento falhar, a mensagem leva direto à solução.",
+    ],
+  },
   "glow-kit": {
     title: "Ícones que brilham e adesivos pelo site todo",
     intro: "O visual da página inicial agora está no site inteiro: pequenos ícones desenhados que brilham na própria cor e se mexem, e adesivos inclinados como CONTROLE TOTAL e RECOMENDADO.",
