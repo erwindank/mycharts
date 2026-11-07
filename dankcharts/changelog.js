@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 469;
+const DC_CL_I18N_V = 470;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -366,6 +366,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-07', t: 'design', a: 'ui', h: '8b5bfaf',
+    title: "Glowing icons in the menus and the phone tab bar",
+    detail: "The phone tab bar at the bottom, the More menu (on phones and in the top bar), the Records section menu and its phone Section picker now use the same drawn, glowing icons as the tab titles. Every entry in More has its icon now, What's New too. In the top bar, the tab you're on shows its glowing icon when there is room. Tabs you're not on keep their colour but stay quieter." },
   { d: '2026-11-07', t: 'design', a: 'guide', h: 'f90fd3d',
     title: "Charts Guide gets a proper title, and icons never vanish",
     detail: "The Charts Guide now opens with a title like every other tab, with its own icon: an open book whose page turns. The small CHARTS GUIDE label above the welcome box is gone, since the title says it. Also fixed: while Records was still calculating, the All #1s crown and other moving icons could stay invisible. Every icon now starts its move from a visible picture." },

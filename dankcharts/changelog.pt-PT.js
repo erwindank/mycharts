@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Glowing icons in the menus and the phone tab bar":
+    ["Ícones que brilham nos menus e na barra do telemóvel",
+     "A barra de separadores de baixo no telemóvel, o menu Mais (no telemóvel e na barra de cima), o menu de secções de Recordes e o seletor Secção no telemóvel usam agora os mesmos ícones desenhados e brilhantes dos títulos dos separadores. Cada opção do Mais tem agora o seu ícone, também Novidades. Na barra de cima, o separador em que estás mostra o ícone brilhante quando há espaço. Os outros separadores mantêm a cor, mas ficam mais discretos."],
   "Charts Guide gets a proper title, and icons never vanish":
     ["O Guia ganha um título a sério, e os ícones já não desaparecem",
      "O Guia começa agora com um título como o dos outros separadores, com ícone próprio: um livro aberto que vira a página. A etiqueta pequena acima do quadro de boas-vindas saiu, porque o título já o diz. Também corrigido: enquanto Recordes ainda calculava, a coroa de Todos os #1 e outros ícones animados podiam ficar invisíveis. Agora cada ícone começa o movimento já visível."],

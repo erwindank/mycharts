@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Glowing icons in the menus and the phone tab bar":
+    ["Iconos que brillan en los menús y en la barra del móvil",
+     "La barra de pestañas de abajo en el móvil, el menú Más (en el móvil y en la barra de arriba), el menú de secciones de Récords y su selector Sección en el móvil usan ahora los mismos iconos dibujados y brillantes que los títulos de las pestañas. Cada opción de Más tiene ya su icono, también Novedades. En la barra de arriba, la pestaña en la que estás muestra su icono brillante cuando hay sitio. Las demás pestañas mantienen su color pero más discretas."],
   "Charts Guide gets a proper title, and icons never vanish":
     ["La Guía de Charts tiene un título de verdad, y los iconos ya no desaparecen",
      "La Guía de Charts empieza ahora con un título como el de las demás pestañas, con su propio icono: un libro abierto que pasa la página. La pequeña etiqueta GUÍA DE CHARTS sobre el recuadro de bienvenida ya no está, porque el título ya lo dice. También corregido: mientras Récords seguía calculando, la corona de Todos los #1 y otros iconos animados podían quedarse invisibles. Ahora cada icono empieza su movimiento ya visible."],

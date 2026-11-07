@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Glowing icons in the menus and the phone tab bar":
+    ["Ícones que brilham nos menus e na barra do celular",
+     "A barra de abas de baixo no celular, o menu Mais (no celular e na barra de cima), o menu de seções de Recordes e o seletor Seção no celular agora usam os mesmos ícones desenhados e brilhantes dos títulos das abas. Cada item do Mais agora tem seu ícone, inclusive Novidades. Na barra de cima, a aba em que você está mostra o ícone brilhante quando há espaço. As outras abas mantêm a cor, mas ficam mais discretas."],
   "Charts Guide gets a proper title, and icons never vanish":
     ["O Guia ganha um título de verdade, e os ícones não somem mais",
      "O Guia agora começa com um título como o das outras abas, com ícone próprio: um livro aberto que vira a página. A etiqueta pequena acima do quadro de boas-vindas saiu, porque o título já diz isso. Também corrigido: enquanto Recordes ainda calculava, a coroa de Todos os #1 e outros ícones animados podiam ficar invisíveis. Agora todo ícone começa o movimento já visível."],
