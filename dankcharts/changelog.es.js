@@ -4668,13 +4668,11 @@ window.DC_CL_HIGHLIGHTS_I18N["es"] = {
     ],
   },
   "glow-kit": {
-    title: "Iconos que brillan y pegatinas por todo el sitio",
-    intro: "El estilo de la página de inicio llega a todo el sitio: pequeños iconos dibujados que brillan con su propio color y se mueven, y pegatinas inclinadas como CONTROL TOTAL y RECOMENDADO.",
+    title: "Iconos con un aspecto renovado",
+    intro: "Algunos iconos y títulos del sitio tienen ahora un aspecto nuevo y más colorido.",
     points: [
-      "Cada título de pestaña y cada sección de Récords tiene su propio dibujo, con el color de la pestaña. Se mueve al abrir la pestaña y al pasar por encima.",
-      "Los títulos de sección son pegatinas del color de lo que muestran: Canciones violeta, Artistas azul cielo, Álbumes ámbar, Certificados en este periodo dorado.",
-      "Los iconos de las tarjetas de estadísticas brillan y se mueven, y la opción que eliges en cualquier selector se ilumina con su color.",
-      "Los temas claros usan sombras suaves en lugar de brillos, y Reducir movimiento lo deja todo quieto."
+      "Las pestañas y los títulos de sección tienen iconos nuevos y un toque de color.",
+      "Funciona con todos los temas. ¿Prefieres menos movimiento? Activa Reducir movimiento."
     ] },
   "charts-guide": {
     title: "Una Guía de Charts para explorar",

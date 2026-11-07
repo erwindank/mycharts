@@ -4664,13 +4664,11 @@ window.DC_CL_HIGHLIGHTS_I18N["pt-PT"] = {
     ],
   },
   "glow-kit": {
-    title: "Ícones que brilham e autocolantes por todo o site",
-    intro: "O visual da página inicial chega agora ao site todo: pequenos ícones desenhados que brilham na própria cor e se mexem, e autocolantes inclinados como CONTROLO TOTAL e RECOMENDADO.",
+    title: "Ícones com um visual renovado",
+    intro: "Alguns ícones e títulos do site têm agora um visual novo e mais colorido.",
     points: [
-      "Cada título de separador e cada secção de Recordes tem o seu próprio desenho, na cor do separador. Mexe-se quando abres o separador e quando passas o rato.",
-      "Os títulos de secção são autocolantes na cor do que mostram: Músicas violeta, Artistas azul-céu, Álbuns âmbar, Certificados neste período dourado.",
-      "Os ícones dos cartões de estatísticas brilham e mexem-se, e a opção que escolhes em qualquer seletor acende na cor dela.",
-      "Os temas claros usam sombras suaves em vez do brilho, e Reduzir movimento deixa tudo parado."
+      "Os separadores e os títulos de secção têm ícones novos e um toque de cor.",
+      "Funciona em todos os temas. Preferes menos movimento? Ativa Reduzir movimento."
     ] },
   "charts-guide": {
     title: "Um Guia de Charts para explorar",

@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 472;
+const DC_CL_I18N_V = 473;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -109,13 +109,11 @@ const DC_CL_HIGHLIGHTS = [
     ],
     also: ["f0f3435", "4f1c47f", "0cd47ee", "a630cee"] },
   { id: "glow-kit", d: "2026-11-07", a: "ui", img: "whatsnew/glow-kit.webp", go: "soundtrack",
-    title: "Glowing icons and stickers all over the site",
-    intro: "The start page's look now runs through the whole site: little drawn icons that glow in their own colour and move, and tilted stickers like FULL CONTROL and RECOMMENDED.",
+    title: "Icons got a fresh look",
+    intro: "Some icons and headings around the site now have a fresh, more colourful look.",
     points: [
-      "Every tab title and every Records section has its own drawing, in the tab's colour. It moves when you open the tab and when you point at it.",
-      "Section titles are stickers coloured by what they list: Songs violet, Artists sky blue, Albums amber, Certified this period gold.",
-      "The stat tiles' icons glow and move, and the option you pick in any switch lights up in its colour.",
-      "Light themes get soft shadows instead of glows, and Reduce motion keeps everything still.",
+      "Tabs and section titles have new icons and a splash of colour.",
+      "Works in every theme. Prefer less movement? Turn on Reduce motion.",
     ],
     also: ["976d4a0", "8651866", "f9c3ae2", "0fce0a6", "8e66664", "2b5f651"] },
   { id: "charts-guide", d: "2026-11-06", a: "guide", img: "whatsnew/charts-guide.webp", go: "chartsguide",

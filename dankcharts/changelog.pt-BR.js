@@ -4664,13 +4664,11 @@ window.DC_CL_HIGHLIGHTS_I18N["pt-BR"] = {
     ],
   },
   "glow-kit": {
-    title: "Ícones que brilham e adesivos pelo site todo",
-    intro: "O visual da página inicial agora está no site inteiro: pequenos ícones desenhados que brilham na própria cor e se mexem, e adesivos inclinados como CONTROLE TOTAL e RECOMENDADO.",
+    title: "Ícones com visual renovado",
+    intro: "Alguns ícones e títulos do site agora têm um visual novo e mais colorido.",
     points: [
-      "Cada título de aba e cada seção de Recordes tem seu próprio desenho, na cor da aba. Ele se mexe quando você abre a aba e quando passa o mouse.",
-      "Os títulos de seção são adesivos na cor do que mostram: Músicas violeta, Artistas azul-céu, Álbuns âmbar, Certificados neste período dourado.",
-      "Os ícones dos cards de estatísticas brilham e se mexem, e a opção que você escolhe em qualquer seletor acende na cor dela.",
-      "Os temas claros usam sombras suaves no lugar do brilho, e Reduzir movimento deixa tudo parado."
+      "As abas e os títulos de seção têm ícones novos e um toque de cor.",
+      "Funciona em todos os temas. Prefere menos movimento? Ative Reduzir movimento."
     ] },
   "charts-guide": {
     title: "Um Guia de Charts para explorar",
