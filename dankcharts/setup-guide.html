@@ -2662,6 +2662,25 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
         <div class="step-card">
           <h3 data-i18n="sg_sh2_title" class="step-title">Get your free Last.fm API key</h3>
           <div class="step-body">
+            <div class="shot-pair">
+              <figure class="shot" data-scenes="lfm-form,lfm-done"></figure>
+              <div class="do-col">
+                <a class="btn-primary do-cta" href="https://www.last.fm/api/account/create" target="_blank" rel="noopener"><span data-i18n="sg_lfm_cta">Open the Last.fm form</span> <span class="btn-arrow" aria-hidden="true">↗</span></a>
+                <p data-i18n="sg_do_head" class="do-head">Do this</p>
+                <ol class="do">
+                  <li data-i18n-html="sg_sh2_do0">Press <strong>Open the Last.fm form</strong> above and sign in to Last.fm.</li>
+                  <li data-dot="1" data-frame="1" data-i18n-html="sg_sh2_do1"><strong>Application name:</strong> anything, e.g. <em>My Music Charts</em>.</li>
+                  <li data-dot="2" data-frame="1" data-i18n-html="sg_sh2_do2"><strong>Application description:</strong> anything, e.g. <em>Personal use</em>. The other fields can stay empty.</li>
+                  <li data-dot="3" data-frame="1" data-i18n-html="sg_sh2_do3">Click <strong>Submit</strong>.</li>
+                  <li data-dot="4" data-frame="2" data-i18n-html="sg_sh2_do4">Copy the <strong>API key</strong>, the 32-character code. You paste it in the next step.</li>
+                  <li data-dot="5" data-frame="2" data-i18n-html="sg_sh2_do5">Leave the <strong>Shared secret</strong> for now. This path doesn't need it.</li>
+                </ol>
+                <p data-i18n-html="sg_sh2_ok" class="do-ok">Free and instant, no approval. Lost the key? It's always on <a href="https://www.last.fm/api/accounts" target="_blank" rel="noopener">last.fm/api/accounts</a>.</p>
+              </div>
+            </div>
+            <details class="why">
+              <summary data-i18n="sg_sh2_why">Why a key, and the exact values</summary>
+              <div class="why-body">
             <p data-i18n-html="sg_sh2_p1">The sheet pulls your plays through Last.fm's API, and that needs a key of your own. Free, instant, no approval — sign in to Last.fm and fill in the form at <a href="https://www.last.fm/api/account/create" target="_blank" rel="noopener"><strong>last.fm/api/account/create</strong></a>. The values can be anything:</p>
             <div class="spec">
               <div data-i18n-html="sg_spec_head_form" class="spec-head"><span>Field</span><span>What to enter</span></div>
@@ -2670,7 +2689,8 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
               <div class="spec-row"><span data-i18n-html="sg_form_home_opt" class="spec-key">Homepage <em>(optional)</em></span><span class="spec-val">https://dankcharts.fm</span></div>
               <div class="spec-row"><span data-i18n-html="sg_form_cb_opt" class="spec-key">Callback URL <em>(optional)</em></span><span class="spec-val">https://dankcharts.fm</span></div>
             </div>
-            <p data-i18n-html="sg_sh2_p2">Copy the <strong>API Key</strong> it shows you — that's all this path needs. It also shows a Shared Secret; ignore that here, it's only for scrobble pushing.</p>
+              </div>
+            </details>
           </div>
         </div>
       </li>
@@ -2682,23 +2702,19 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
         <div class="step-card">
           <h3 data-i18n="sg_sh3_title" class="step-title">Fill in your details</h3>
           <div class="step-body">
-            <p data-i18n-html="sg_sh3_p1">In your copy, open the <strong>Settings</strong> tab at the bottom and fill in column B.</p>
-            <div class="spec">
-              <div data-i18n-html="sg_sh3_head" class="spec-head"><span>Column A</span><span>Column B — fill these in</span></div>
-              <div class="spec-row">
-                <span class="spec-key">Last.fm Username:</span>
-                <span class="spec-val">your_lastfm_username</span>
-              </div>
-              <div class="spec-row">
-                <span class="spec-key">Last.fm API Key:</span>
-                <span class="spec-val">your_32_character_api_key</span>
-              </div>
-              <div class="spec-row">
-                <span class="spec-key">Data Tab Name:</span>
-                <span data-i18n="sg_leave_asis" class="spec-val muted">leave as-is</span>
+            <div class="shot-pair">
+              <figure class="shot" data-scene="gs-settings"></figure>
+              <div class="do-col">
+                <p data-i18n="sg_do_head" class="do-head">Do this</p>
+                <ol class="do">
+                  <li data-dot="1" data-i18n-html="sg_sh3_do1">In your copy, open the <strong>Settings</strong> tab at the bottom.</li>
+                  <li data-dot="2" data-i18n-html="sg_sh3_do2">Click <strong>B1</strong> and type your Last.fm username.</li>
+                  <li data-dot="3" data-i18n-html="sg_sh3_do3">Click <strong>B2</strong> and paste the API key from Step 2, with no spaces before or after it.</li>
+                  <li data-i18n-html="sg_sh3_do4">Leave <strong>B3</strong> as it is.</li>
+                </ol>
+                <p data-i18n-html="sg_sh3_ok" class="do-ok">Nothing to save: Google Sheets saves as you type.</p>
               </div>
             </div>
-            <p data-i18n="sg_sh3_p2">The API key is the one you copied in Step 2 — paste it exactly, no extra spaces.</p>
           </div>
         </div>
       </li>
@@ -2710,13 +2726,19 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
         <div class="step-card">
           <h3 data-i18n="sg_sh4_title" class="step-title">The script is already there</h3>
           <div class="step-body">
-            <p data-i18n="sg_sh4_p1">It came with the template — nothing to add. To see it:</p>
-            <div class="path">
-              <span data-i18n="sg_g_extensions" class="path-step">Extensions</span>
-              <span class="path-arrow" aria-hidden="true">→</span>
-              <span class="path-step">Apps Script</span>
+            <div class="shot-pair">
+              <figure class="shot" data-scene="gs-ext"></figure>
+              <div class="do-col">
+                <p data-i18n="sg_sh4_p1" class="do-lead">It came with the template — nothing to add. To see it:</p>
+                <p data-i18n="sg_do_head" class="do-head">Do this</p>
+                <ol class="do">
+                  <li data-dot="1" data-i18n-html="sg_sh4_do1">Click <strong>Extensions</strong> in the menu bar.</li>
+                  <li data-dot="2" data-i18n-html="sg_sh4_do2">Click <strong>Apps Script</strong>. The script opens in a new tab, already filled in.</li>
+                  <li data-i18n="sg_sh4_p2">Close that tab and carry on.</li>
+                </ol>
+                <p data-i18n-html="sg_sh4_ok" class="do-ok">Just looking: this step is so you know where the script lives.</p>
+              </div>
             </div>
-            <p data-i18n="sg_sh4_p2">Close that tab and carry on.</p>
             <details class="disclose">
               <summary data-i18n="sg_sh4_replace">Replace the script manually</summary>
               <div class="disclose-body">

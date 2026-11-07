@@ -52,35 +52,66 @@
     en: {
       // Google Sheets "Make a copy" page
       gs_copy_title: 'Copy document',
-      gs_copy_q: 'Would you like to make a copy of <b>dankcharts template</b>?',
+      gs_copy_q: 'Would you like to make a copy of <b>Full Music History for Dankcharts.fm TEMPLATE</b>?',
       gs_copy_script: 'The attached Apps Script project will also be copied.',
       gs_copy_btn: 'Make a copy',
       gs_copy_note: 'Your copy is private to you — only you can see it until you share it.',
-      cap_gs_copy: 'The page the template link opens'
+      cap_gs_copy: 'The page the template link opens',
+      // Google Sheets window
+      gs_doc: 'Copy of Full Music History for Dankcharts.fm TEMPLATE',
+      gs_menu: 'File|Edit|View|Insert|Format|Data|Tools|Extensions|Help',
+      gs_ext: 'Add-ons|Macros|Apps Script|AppSheet',
+      gs_share: 'Share',
+      cap_gs_settings: 'Your copy, on its Settings tab',
+      cap_gs_ext: 'The Extensions menu in your copy',
+      // Last.fm API pages (Last.fm shows these in English)
+      cap_lfm_form: 'last.fm/api/account/create',
+      cap_lfm_done: 'The page you get after Submit'
     },
     es: {
       gs_copy_title: 'Copiar documento',
-      gs_copy_q: '¿Quieres hacer una copia de <b>dankcharts template</b>?',
+      gs_copy_q: '¿Quieres hacer una copia de <b>Full Music History for Dankcharts.fm TEMPLATE</b>?',
       gs_copy_script: 'También se copiará el proyecto de Apps Script adjunto.',
       gs_copy_btn: 'Hacer una copia',
       gs_copy_note: 'Tu copia es privada: solo tú la ves hasta que la compartas.',
-      cap_gs_copy: 'La página que abre el enlace de la plantilla'
+      cap_gs_copy: 'La página que abre el enlace de la plantilla',
+      gs_doc: 'Copia de Full Music History for Dankcharts.fm TEMPLATE',
+      gs_menu: 'Archivo|Editar|Ver|Insertar|Formato|Datos|Herramientas|Extensiones|Ayuda',
+      gs_ext: 'Complementos|Macros|Apps Script|AppSheet',
+      gs_share: 'Compartir',
+      cap_gs_settings: 'Tu copia, en la pestaña Settings',
+      cap_gs_ext: 'El menú Extensiones de tu copia',
+      cap_lfm_done: 'La página que ves tras pulsar Submit'
     },
     'pt-BR': {
       gs_copy_title: 'Copiar documento',
-      gs_copy_q: 'Quer fazer uma cópia de <b>dankcharts template</b>?',
+      gs_copy_q: 'Quer fazer uma cópia de <b>Full Music History for Dankcharts.fm TEMPLATE</b>?',
       gs_copy_script: 'O projeto do Apps Script anexado também será copiado.',
       gs_copy_btn: 'Fazer uma cópia',
       gs_copy_note: 'Sua cópia é privada: só você vê até compartilhar.',
-      cap_gs_copy: 'A página que o link do modelo abre'
+      cap_gs_copy: 'A página que o link do modelo abre',
+      gs_doc: 'Cópia de Full Music History for Dankcharts.fm TEMPLATE',
+      gs_menu: 'Arquivo|Editar|Ver|Inserir|Formatar|Dados|Ferramentas|Extensões|Ajuda',
+      gs_ext: 'Complementos|Macros|Apps Script|AppSheet',
+      gs_share: 'Compartilhar',
+      cap_gs_settings: 'Sua cópia, na aba Settings',
+      cap_gs_ext: 'O menu Extensões da sua cópia',
+      cap_lfm_done: 'A página que aparece depois de Submit'
     },
     'pt-PT': {
       gs_copy_title: 'Copiar documento',
-      gs_copy_q: 'Pretende fazer uma cópia de <b>dankcharts template</b>?',
+      gs_copy_q: 'Pretende fazer uma cópia de <b>Full Music History for Dankcharts.fm TEMPLATE</b>?',
       gs_copy_script: 'O projeto do Apps Script anexado também será copiado.',
       gs_copy_btn: 'Fazer uma cópia',
       gs_copy_note: 'A tua cópia é privada: só tu a vês até a partilhares.',
-      cap_gs_copy: 'A página que o link do modelo abre'
+      cap_gs_copy: 'A página que o link do modelo abre',
+      gs_doc: 'Cópia de Full Music History for Dankcharts.fm TEMPLATE',
+      gs_menu: 'Ficheiro|Editar|Ver|Inserir|Formatar|Dados|Ferramentas|Extensões|Ajuda',
+      gs_ext: 'Suplementos|Macros|Apps Script|AppSheet',
+      gs_share: 'Partilhar',
+      cap_gs_settings: 'A tua cópia, no separador Settings',
+      cap_gs_ext: 'O menu Extensões da tua cópia',
+      cap_lfm_done: 'A página que aparece depois de Submit'
     }
   };
   function L(key) {
@@ -96,8 +127,174 @@
   // Google Sheets' green document glyph
   var GS_ICON = '<span class="r-gs-icon" aria-hidden="true"><i></i></span>';
 
+  /* ── Google Sheets window ───────────────────────────────────────────────
+     gsApp(L, o) draws your copy of the template:
+       o.tab      'data' | 'settings'       which bottom tab is open
+       o.rows     [[A, B, …], …]            cell text (HTML allowed)
+       o.minRows  8                         rows drawn even if empty
+       o.cellDots { B1: 2 }                 a dot on a cell
+       o.cellCls  { B1: 'r-gs-sel' }        extra class on a cell
+       o.ref / o.fx                         name box / formula bar text
+       o.lastfm   true                      the template's Last.fm menu is there
+       o.open     'ext' | 'lastfm'          a menu is dropped down
+       o.menuDot  { ext: 1, lastfm: 1 }     dot on a menu name
+       o.itemDot  { 2: 2 }                  dot on a dropdown item (by index)
+       o.lfmItems [label, …]                the Last.fm menu's items
+       o.share    1                         dot on Share
+       o.tabDot   1                         dot on the Settings tab
+       o.overlay  '…'                       a dialog drawn over the sheet */
+  function gsDropdown(items, dots) {
+    return '<span class="r-dd">' + items.map(function (it, i) {
+      if (it === '-') return '<span class="r-dd-sep"></span>';
+      var d = dots && dots[i];
+      return '<span class="r-dd-item"' + (d ? ' data-dot="' + d + '" data-dot-at="l"' : '') + '>' + it + '</span>';
+    }).join('') + '</span>';
+  }
+  function gsApp(L, o) {
+    o = o || {};
+    var cols = ['A', 'B', 'C', 'D', 'E', 'F'];
+    var menu = L('gs_menu').split('|');
+    var menuHtml = menu.map(function (m, i) {
+      var isExt = i === 7;
+      var open = isExt && o.open === 'ext';
+      var dot = isExt && o.menuDot && o.menuDot.ext;
+      return '<span class="r-gs-mi' + (open ? ' open' : '') + '"' + (dot ? ' data-dot="' + dot + '"' : '') + '>' + m +
+        (open ? gsDropdown(L('gs_ext').split('|'), o.itemDot) : '') + '</span>';
+    }).join('');
+    if (o.lastfm) {
+      var lopen = o.open === 'lastfm';
+      var ldot = o.menuDot && o.menuDot.lastfm;
+      menuHtml += '<span class="r-gs-mi' + (lopen ? ' open' : '') + '"' + (ldot ? ' data-dot="' + ldot + '"' : '') + '>Last.fm' +
+        (lopen ? gsDropdown(o.lfmItems || [], o.itemDot) : '') + '</span>';
+    }
+    var rows = o.rows || [];
+    var nRows = Math.max(rows.length, o.minRows || 8);
+    var grid = '<table class="r-gs-grid"><tr><th class="r-gs-corner"></th>' +
+      cols.map(function (c) { return '<th>' + c + '</th>'; }).join('') + '</tr>';
+    for (var r = 0; r < nRows; r++) {
+      grid += '<tr><th>' + (r + 1) + '</th>';
+      for (var c = 0; c < cols.length; c++) {
+        var ref = cols[c] + (r + 1);
+        var val = (rows[r] && rows[r][c] != null) ? rows[r][c] : '';
+        var cd = o.cellDots && o.cellDots[ref];
+        var cls = (o.cellCls && o.cellCls[ref]) || '';
+        if (r === 0 && o.tab === 'data') cls += ' r-gs-head';
+        grid += '<td' + (cls ? ' class="' + cls + '"' : '') + '>' +
+          (cd ? '<span class="r-gs-cellbox" data-dot="' + cd + '" data-dot-at="r"></span>' : '') + val + '</td>';
+      }
+      grid += '</tr>';
+    }
+    grid += '</table>';
+    var tabs = '<div class="r-gs-tabs"><span class="r-gs-tabbtn">+</span><span class="r-gs-tabbtn">≡</span>' +
+      '<span class="r-gs-tab' + (o.tab !== 'settings' ? ' on' : '') + '">Full Raw Listening History</span>' +
+      '<span class="r-gs-tab' + (o.tab === 'settings' ? ' on' : '') + '"' + (o.tabDot ? ' data-dot="' + o.tabDot + '"' : '') + '>Settings</span></div>';
+    return '<div class="r-page r-gs">' +
+      '<div class="r-gs-top">' + GS_ICON +
+        '<div class="r-gs-tt"><div class="r-gs-title">' + L('gs_doc') + ' <span class="r-gs-star">☆</span></div>' +
+        '<div class="r-gs-menu">' + menuHtml + '</div></div>' +
+        '<div class="r-gs-right"><span class="r-gs-share"' + (o.share ? ' data-dot="' + o.share + '"' : '') + '><span class="r-gs-lock">🔒</span>' + L('gs_share') + '</span><span class="r-avatar">A</span></div>' +
+      '</div>' +
+      '<div class="r-gs-tools"><i></i><i></i><i></i><b></b><i></i><i></i><b></b><i class="w"></i><b></b><i></i><i></i><i></i><i></i><b></b><i></i><i></i></div>' +
+      '<div class="r-gs-fx"><span class="r-gs-ref">' + (o.ref || 'A1') + '</span><span class="r-gs-fxi">fx</span><span class="r-gs-fxv">' + (o.fx || '') + '</span></div>' +
+      '<div class="r-gs-body">' + grid + (o.overlay ? '<div class="r-scrim"></div>' + o.overlay : '') + '</div>' +
+      tabs +
+    '</div>';
+  }
+
+  // The template's Settings tab, as it looks once filled in
+  function settingsRows(fill) {
+    return [
+      ['Last.fm Username:', fill ? 'alex_listens' : ''],
+      ['Last.fm API Key:', fill ? '3f7a1c9e0b2d4f6a…' : ''],
+      ['Data Tab Name:', 'Full Raw Listening History']
+    ];
+  }
+  // The data tab with a few plays in it (made-up rows)
+  function dataRows() {
+    return [
+      ['Song Title', 'Artist', 'Album', 'Date and Time', 'Genre 1', 'Genre 2'],
+      ['Espresso', 'Sabrina Carpenter', 'Short n\' Sweet', '2026-11-06 21:14:05', 'pop', ''],
+      ['Not Like Us', 'Kendrick Lamar', 'GNX', '2026-11-06 20:58:41', 'hip hop', 'west coast'],
+      ['Birds of a Feather', 'Billie Eilish', 'Hit Me Hard and Soft', '2026-11-06 20:41:10', 'pop', 'alt pop'],
+      ['Die With A Smile', 'Lady Gaga', 'Mayhem', '2026-11-06 20:37:02', 'pop', ''],
+      ['APT.', 'ROSÉ', 'rosie', '2026-11-06 20:33:47', 'k-pop', 'pop']
+    ];
+  }
+
+  /* ── Last.fm pages: a simplified Last.fm header (red bar, wordmark text) ── */
+  function lfmPage(inner) {
+    return '<div class="r-page r-lfm">' +
+      '<div class="r-lfm-head"><span class="r-lfm-mark">last.fm</span><span class="r-lfm-nav">Music&nbsp;&nbsp;&nbsp;Events&nbsp;&nbsp;&nbsp;Features</span><span class="r-avatar r-avatar-sm">A</span></div>' +
+      '<div class="r-lfm-body">' + inner + '</div></div>';
+  }
+  function lfmField(label, value, dot, opt) {
+    return '<div class="r-lfm-field"><label>' + label + (opt ? ' <i>(optional)</i>' : '') + '</label>' +
+      '<span class="r-input' + (value ? '' : ' r-input-empty') + '"' + (dot ? ' data-dot="' + dot + '"' : '') + '>' + (value || '&nbsp;') + '</span></div>';
+  }
+
   /* ── The scenes ──────────────────────────────────────────────────────── */
   var SCENES = {
+
+    // Sheets step 2 / Last.fm step 2 — the API account form, filled in
+    'lfm-form': {
+      url: 'www.last.fm/api/account/create',
+      w: 720,
+      cap: 'cap_lfm_form',
+      html: function () {
+        return lfmPage(
+          '<h4 class="r-lfm-h">Create API account</h4>' +
+          lfmField('Contact email', 'you@example.com') +
+          lfmField('Application name', 'My Music Charts', 1) +
+          lfmField('Application description', 'Personal use', 2) +
+          lfmField('Callback URL', 'https://dankcharts.fm', 0, true) +
+          lfmField('Application homepage', 'https://dankcharts.fm', 0, true) +
+          '<div class="r-lfm-actions"><span class="r-lfm-btn" data-dot="3">Submit</span></div>'
+        );
+      }
+    },
+    // …and the page you land on: the key (and the secret)
+    'lfm-done': {
+      url: 'www.last.fm/api/account/create',
+      w: 720,
+      cap: 'cap_lfm_done',
+      html: function () {
+        return lfmPage(
+          '<h4 class="r-lfm-h">API account created</h4>' +
+          '<p class="r-lfm-p">Here are the details of your new API account.</p>' +
+          '<div class="r-lfm-kv"><span>Application name</span><span>My Music Charts</span></div>' +
+          '<div class="r-lfm-kv"><span>API key</span><span class="r-mono" data-dot="4">3f7a1c9e0b2d4f6a8c1e3b5d7f9a2c4e</span></div>' +
+          '<div class="r-lfm-kv"><span>Shared secret</span><span class="r-mono" data-dot="5">9b8a7c6d5e4f3a2b1c0d9e8f7a6b5c4d</span></div>' +
+          '<div class="r-lfm-kv"><span>Registered to</span><span>alex_listens</span></div>'
+        );
+      }
+    },
+
+    // Sheets step 3 — the Settings tab, B1 and B2 filled in
+    'gs-settings': {
+      url: 'docs.google.com/spreadsheets/d/…/edit',
+      w: 840,
+      cap: 'cap_gs_settings',
+      html: function (L) {
+        return gsApp(L, {
+          tab: 'settings', tabDot: 1, rows: settingsRows(true), minRows: 7,
+          cellDots: { B1: 2, B2: 3 }, cellCls: { B2: 'r-gs-sel' },
+          ref: 'B2', fx: '3f7a1c9e0b2d4f6a8c1e3b5d7f9a2c4e'
+        });
+      }
+    },
+
+    // Sheets step 4 — Extensions → Apps Script
+    'gs-ext': {
+      url: 'docs.google.com/spreadsheets/d/…/edit',
+      w: 840,
+      cap: 'cap_gs_ext',
+      html: function (L) {
+        return gsApp(L, {
+          tab: 'settings', rows: settingsRows(true), minRows: 7,
+          open: 'ext', menuDot: { ext: 1 }, itemDot: { 2: 2 }, ref: 'A1', fx: 'Last.fm Username:'
+        });
+      }
+    },
 
     // Sheets step 1 — the template's /copy link opens this page
     'gs-copy': {
