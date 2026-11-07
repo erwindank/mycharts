@@ -2080,6 +2080,10 @@
                      opens the song / album, ▸ unfolds its chart run or
                      play history (.am-detail), chart facts as chips under */
     .dp-body .am-top { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); flex-wrap: wrap; }
+    /* Export playlist + Share songs side by side (2026-11-07) */
+    .dp-body .am-top-acts { display: inline-flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; margin-left: auto; }
+    .dp-body .am-export { display: inline-flex; align-items: center; gap: 0.4em; }
+    .dp-body .am-export svg { width: 14px; height: 14px; flex: none; }
     .dp-body .am-type {
       display: inline-flex;
       gap: 4px;
@@ -13740,6 +13744,36 @@
       font-weight: 700;
       line-height: 1;
     }
+
+    /* ── Step 2: "How many songs" (2026-11-07) — presets + a number box,
+       only shown when the list came with a pool to cut from ── */
+    .export-countpick {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-2) var(--sp-3);
+      flex-wrap: wrap;
+      margin-bottom: var(--sp-3);
+    }
+    .export-countpick[hidden] { display: none; }
+    .export-countpick-label {
+      font-family: var(--font-sans);
+      font-size: var(--fs-xs);
+      font-weight: 600;
+      color: var(--text2);
+    }
+    .export-countpick-input {
+      width: 4.5em;
+      padding: 0.35rem 0.5rem;
+      border: 1px solid var(--border2);
+      border-radius: var(--r-sm);
+      background: var(--bg);
+      color: var(--text);
+      font: inherit;
+      font-size: var(--fs-xs);
+      font-variant-numeric: tabular-nums;
+      text-align: center;
+    }
+    .export-countpick-input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
     /* ── Step 2: options toolbar ── */
     .export-toolbar {

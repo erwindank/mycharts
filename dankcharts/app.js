@@ -23454,18 +23454,18 @@ function openExportModal() {
 // list (dcOpenTextExport) and the streaks At Risk list (skAtRiskExport) all
 // open it through here: subtitle, name chips, options reset, track rows and
 // the Soundiiz steps.
-function _exportShow(songs, subtitle, names) {
+function _exportShow(songs, subtitle, names, opts) {
   document.getElementById('exportModalSubtitle').textContent = subtitle;
 
-  // Name chips — JSON.stringify then esc: a name with an apostrophe must not
-  // end the JS string early. Step 1 hides itself when there's nothing to suggest.
-  names = [...new Set((names || []).filter(Boolean))];
-  const copyIc = '<svg class="export-chip-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>';
-  document.getElementById('exportNameChips').innerHTML = names.map(name =>
-    `<button type="button" class="export-name-chip" onclick="copyChipName(this,${esc(JSON.stringify(name))})">` +
-    `<span class="export-chip-text">${esc(name)}</span>${copyIc}</button>`
-  ).join('');
-  document.getElementById('exportNameSection').hidden = !names.length;
+  // The "How many songs" picker only shows for a caller that hands over a
+  // pool to cut from (dcOpenTextExport with opts.pickCount); everyone else
+  // gets the window as before.
+  if (!(opts && opts.pickCount)) _exportPool = null;
+  const pick = document.getElementById('exportCountPick');
+  if (pick) pick.hidden = !_exportPool;
+  if (_exportPool) _exportRenderCountPick();
+
+  _exportRenderNames(names);
 
   exportReversed = false;
   exportWithAlbum = false;
@@ -23481,6 +23481,71 @@ function _exportShow(songs, subtitle, names) {
 
   _liftExportModalIfStacked();
   document.getElementById('exportModal').classList.add('open');
+}
+
+// Step 1's name chips. names can be a list, or (with the count picker) a
+// function of the song count, so "Top 25" follows the picked number.
+function _exportRenderNames(names) {
+  if (typeof names === 'function') { _exportNamesFn = names; names = names(getCurrentChartSongs().length); }
+  else _exportNamesFn = null;
+  // Name chips — JSON.stringify then esc: a name with an apostrophe must not
+  // end the JS string early. Step 1 hides itself when there's nothing to suggest.
+  names = [...new Set((names || []).filter(Boolean))];
+  const copyIc = '<svg class="export-chip-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>';
+  document.getElementById('exportNameChips').innerHTML = names.map(name =>
+    `<button type="button" class="export-name-chip" onclick="copyChipName(this,${esc(JSON.stringify(name))})">` +
+    `<span class="export-chip-text">${esc(name)}</span>${copyIc}</button>`
+  ).join('');
+  document.getElementById('exportNameSection').hidden = !names.length;
+}
+
+/* ── "How many songs" (2026-11-07) ───────────────────────────────────────
+   _exportPool is the whole list in the order it was on screen (e.g. an
+   artist's songs sorted by Most Played); _exportSongsOverride is its first
+   _exportLimit songs, which is what the rows, Copy, .txt and .csv use.
+   Preset buttons show only the sizes smaller than the pool, plus All; the
+   number box takes any other amount. */
+let _exportPool = null;
+let _exportLimit = Infinity;
+let _exportNamesFn = null;
+const EXPORT_COUNT_PRESETS = [10, 25, 50, 100];
+
+function _exportRenderCountPick() {
+  const total = _exportPool.length;
+  const lim = Math.min(_exportLimit, total);
+  const presets = EXPORT_COUNT_PRESETS.filter(n => n < total);
+  const btn = (n, label) => {
+    const on = n === Infinity ? lim === total : lim === n;
+    return `<button type="button" aria-pressed="${on}" onclick="setExportCount(${n === Infinity ? 'Infinity' : n})">${esc(label)}</button>`;
+  };
+  document.getElementById('exportCountSeg').innerHTML =
+    presets.map(n => btn(n, String(n))).join('') + btn(Infinity, t('export_howmany_all', { n: total }));
+  const input = document.getElementById('exportCountInput');
+  input.max = total;
+  // don't rewrite the box while the user is typing in it
+  if (document.activeElement !== input) input.value = lim;
+}
+
+// Cuts the pool to n songs and redraws the rows, count and name chips
+function _exportApplyCount(n) {
+  if (!_exportPool) return;
+  _exportLimit = n;
+  _exportSongsOverride = _exportPool.slice(0, Math.min(n, _exportPool.length));
+  _exportRenderCountPick();
+  if (_exportNamesFn) _exportRenderNames(_exportNamesFn);
+  _exportResetCopyBtn();
+  _exportRender();
+}
+
+// A preset button (10 / 25 / 50 / 100 / All)
+function setExportCount(n) { _exportApplyCount(n); }
+
+// The number box: any whole number from 1 to the pool size; blank or junk is ignored
+function setExportCountTyped(v) {
+  if (!_exportPool) return;
+  const n = parseInt(v, 10);
+  if (!(n >= 1)) return;
+  _exportApplyCount(Math.min(n, _exportPool.length));
 }
 
 // #exportModal sits early in index.html, so at the shared --z-modal level any
@@ -23507,6 +23572,8 @@ function copyChipName(btn, name) {
 
 function closeExportModal() {
   _exportSongsOverride = null;
+  _exportPool = null;      // the next opener decides whether the count picker shows
+  _exportNamesFn = null;
   const modal = document.getElementById('exportModal');
   modal.classList.remove('open');
   modal.classList.remove('modal-on-top'); // back to the shared modal level
@@ -23537,15 +23604,24 @@ function _calCreatePlConfirm() {
    instead of the current chart: "Artist - Title" per line to copy, a .txt or
    .csv to download, and suggested playlist names to copy. Used by the calendar
    and by the playlist picker's "Copy as text" option, so every place that can
-   make a playlist can also hand it to Soundiiz. */
-function dcOpenTextExport(songs, label, names) {
-  _exportSongsOverride = (songs || []).map(s => ({ title: s.title, artist: s.artist || '', album: s.album || '' }));
-  if (!_exportSongsOverride.length) { _exportSongsOverride = null; return; }
+   make a playlist can also hand it to Soundiiz.
+   opts.pickCount (2026-11-07): show "How many songs" and start with the
+   first opts.count songs (default all); the songs must already be in the
+   order the user sees them. names may then be a function of the count. */
+function dcOpenTextExport(songs, label, names, opts) {
+  const all = (songs || []).map(s => ({ title: s.title, artist: s.artist || '', album: s.album || '' }));
+  if (!all.length) { _exportSongsOverride = null; return; }
+  const pickCount = !!(opts && opts.pickCount);
+  _exportPool = pickCount ? all : null;
+  _exportLimit = pickCount && opts.count ? Math.min(opts.count, all.length) : Infinity;
+  _exportSongsOverride = pickCount ? all.slice(0, Math.min(_exportLimit, all.length)) : all;
 
   _exportShow(
     _exportSongsOverride,
-    `${tCount('songs', _exportSongsOverride.length)}${label ? ' · ' + label : ''}`,
-    names
+    // with the picker the subtitle names the whole list; the step 2 count shows the cut
+    `${tCount('songs', all.length)}${label ? ' · ' + label : ''}`,
+    names,
+    opts
   );
 }
 
@@ -27172,7 +27248,11 @@ function amMusicRender() {
     : t('am_intro', { what: esc(what), chart: esc(t('am_in_' + ch)) });
   const share = onAlbum
     ? `<button class="dc-btn dc-btn-normal dc-btn-sm am-share" onclick="tpOpenCard()">${esc(t('tp_card_open'))}</button>`
-    : ty === 'songs' ? `<button class="dc-btn dc-btn-normal dc-btn-sm am-share" onclick="tpOpenArtistCard(${esc(JSON.stringify(_am.artistName))})">${esc(t('tp_card_open_artist'))}</button>` : '';
+    : ty === 'songs' ? `<span class="am-top-acts">` +
+      // Export playlist (2026-11-07): the songs as they're listed below (search
+      // + sort + chart), cut to a picked number, into the Soundiiz export window
+      (list.length ? `<button class="dc-btn dc-btn-normal dc-btn-sm am-export" onclick="amExportPlaylist()">${_amIco('listmusic')}<span>${esc(t('am_export_btn'))}</span></button>` : '') +
+      `<button class="dc-btn dc-btn-normal dc-btn-sm am-share" onclick="tpOpenArtistCard(${esc(JSON.stringify(_am.artistName))})">${esc(t('tp_card_open_artist'))}</button></span>` : '';
   el.innerHTML = `<div class="am">
     <div class="am-top">
       ${onAlbum ? '' : `<div class="am-type" role="tablist">${typeBtn('songs', t('ig_type_songs'), 'note')}${typeBtn('albums', t('ig_type_albums'), 'disc')}</div>`}
@@ -27286,6 +27366,29 @@ function amSort(s) {
   amRenderList();
 }
 function amShowAll() { if (!_am) return; _am.all = !_am.all; amRenderList(); }
+
+/* Export playlist on the artist's Music tab (2026-11-07). Takes the song
+   list exactly as it's shown — the picked chart, the search and the sort
+   (Chart Rank / Most Played / Recently Played / A–Z) — and opens the shared
+   export window with "How many songs" on, starting at 25 (or all, when
+   there are fewer). Works the same for Last.fm, Sheets and CSV libraries,
+   since it only reads the rows already built. */
+function amExportPlaylist() {
+  if (!_am || _am.type !== 'songs' || typeof dcOpenTextExport !== 'function') return;
+  const view = _am.view || [];
+  if (!view.length) return;
+  const artist = _am.artistName;
+  const songs = view.map(r => ({ title: r.name, artist: r.artist, album: r.albumName || r.sub || '' }));
+  // "Belanova · All-time · Most Played" after the song count
+  const label = [artist, t('am_c_' + _am.chart), t('am_sort_' + _am.sort)].join(' · ');
+  // name ideas follow the picked number ("Belanova: My Top 25")
+  const names = n => [
+    t('am_export_pn_top', { artist, n }),
+    t('am_export_pn_best', { artist }),
+    t('am_export_pn_essentials', { artist })
+  ];
+  dcOpenTextExport(songs, label, names, { pickCount: true, count: 25 });
+}
 // The name opens its own song / album panel
 function amOpen(i) {
   const r = _am && _am.view[i];
