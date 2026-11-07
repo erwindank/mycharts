@@ -2761,6 +2761,23 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
           <h3 data-i18n="sg_sh5_title" class="step-title">Start auto-sync</h3>
           <div class="step-body">
             <p data-i18n-html="sg_sh5_p1">Everything is in place — this switches it on. Go back to the browser tab with your sheet: there's now a <strong>Last.fm</strong> menu in the menu bar at the top, just right of <strong>Help</strong>.</p>
+            <!-- One slideshow: the menu, then Google's four one-time approval
+                 screens. Each line of the list flips to its screen. -->
+            <div class="shot-pair">
+              <figure class="shot" data-scenes="gs-lfm,g-auth1,g-auth2,g-auth3,g-auth4"></figure>
+              <div class="do-col">
+                <p data-i18n="sg_do_head" class="do-head">Do this</p>
+                <ol class="do">
+                  <li data-dot="1" data-frame="1" data-i18n-html="sg_sh5_do1">Click <strong>Last.fm</strong> in the menu bar, right of Help.</li>
+                  <li data-dot="2" data-frame="1" data-i18n-html="sg_sh5_do2">Click <strong>Start Auto-Update (90 min)</strong>.</li>
+                  <li data-dot="3" data-frame="2" data-i18n-html="sg_sh5_do3">Google asks for permission, once. Click <strong>Review permissions</strong> (or Continue).</li>
+                  <li data-dot="4" data-frame="3" data-i18n-html="sg_sh5_do4">Pick <strong>your own Google account</strong>.</li>
+                  <li data-dot="5" data-frame="4" data-i18n-html="sg_sh5_do5">On “Google hasn't verified this app”, click <strong>Advanced</strong>…</li>
+                  <li data-dot="6" data-frame="4" data-i18n-html="sg_sh5_do6">…then <strong>Go to … (unsafe)</strong>. The name is your script's, it may differ from the picture.</li>
+                  <li data-dot="7" data-frame="5" data-i18n-html="sg_sh5_do7">Click <strong>Allow</strong>. Done: the first plays arrive about a minute later.</li>
+                </ol>
+              </div>
+            </div>
             <aside class="note">
               <span class="note-icon" aria-hidden="true">i</span>
               <div data-i18n-html="sg_sh5_note" class="note-body">
@@ -2768,34 +2785,6 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
               </div>
             </aside>
 
-            <p data-i18n="sg_sh5_sub1" class="step-sub">Switch it on</p>
-            <div class="path">
-              <span class="path-step">Last.fm</span>
-              <span class="path-arrow" aria-hidden="true">→</span>
-              <span class="path-step">Start Auto-Update (90 min)</span>
-            </div>
-
-            <p data-i18n="sg_sh5_sub2" class="step-sub">Approve it — one time only</p>
-            <p data-i18n="sg_sh5_p2">The first time you run anything from that menu, Google asks you to approve the script. It walks you through four screens, and one of them looks scarier than it is:</p>
-            <div class="spec">
-              <div data-i18n-html="sg_sh5_head" class="spec-head"><span>Screen you'll see</span><span>What to click</span></div>
-              <div class="spec-row">
-                <span data-i18n="sg_auth1_k" class="spec-key">Authorization required</span>
-                <span data-i18n="sg_auth1_v" class="spec-val">Continue / Review permissions</span>
-              </div>
-              <div class="spec-row">
-                <span data-i18n="sg_auth2_k" class="spec-key">Choose an account</span>
-                <span data-i18n="sg_auth2_v" class="spec-val">your own Google account</span>
-              </div>
-              <div class="spec-row">
-                <span data-i18n="sg_auth3_k" class="spec-key">Google hasn't verified this app</span>
-                <span data-i18n="sg_auth3_v" class="spec-val">Advanced, then "Go to … (unsafe)"</span>
-              </div>
-              <div class="spec-row">
-                <span data-i18n="sg_auth4_k" class="spec-key">… wants access to your Google Account</span>
-                <span data-i18n="sg_auth4_v" class="spec-val">Allow</span>
-              </div>
-            </div>
             <aside class="note note-warn">
               <span class="note-icon" aria-hidden="true">!</span>
               <div data-i18n-html="sg_sh5_warn" class="note-body">
@@ -2827,15 +2816,16 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
 
             <p data-i18n="sg_sh6_sub1" class="step-sub">First, let the site read the sheet</p>
             <p data-i18n-html="sg_sh6_p2">dankcharts.fm reads your sheet straight from your browser and never signs in to your Google account, so a private sheet gives it nothing back. Open the <strong>Share</strong> button at the top right of your sheet and change one setting:</p>
-            <div class="spec">
-              <div data-i18n-html="sg_sh6_head1" class="spec-head"><span>In the Share dialog</span><span>Set it to</span></div>
-              <div class="spec-row">
-                <span data-i18n="sg_share_k1" class="spec-key">General access</span>
-                <span data-i18n="sg_share_v1" class="spec-val">Anyone with the link</span>
-              </div>
-              <div class="spec-row">
-                <span data-i18n="sg_share_k2" class="spec-key">The role beside it</span>
-                <span data-i18n="sg_share_v2" class="spec-val">Viewer</span>
+            <div class="shot-pair">
+              <figure class="shot" data-scenes="gs-sharebtn,gs-share" data-offsets="0,1"></figure>
+              <div class="do-col">
+                <p data-i18n="sg_do_head" class="do-head">Do this</p>
+                <ol class="do">
+                  <li data-dot="1" data-frame="1" data-i18n-html="sg_sh6_do1">Click <strong>Share</strong>, top right of your sheet.</li>
+                  <li data-dot="2" data-frame="2" data-i18n-html="sg_sh6_do2">Under <strong>General access</strong>, change <em>Restricted</em> to <strong>Anyone with the link</strong>.</li>
+                  <li data-dot="3" data-frame="2" data-i18n-html="sg_sh6_do3">Leave the role beside it on <strong>Viewer</strong>.</li>
+                  <li data-dot="4" data-frame="2" data-i18n-html="sg_sh6_do4">Click <strong>Copy link</strong>. Use this button, not the address bar.</li>
+                </ol>
               </div>
             </div>
             <aside class="note note-tip">
@@ -2845,8 +2835,6 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
               </div>
             </aside>
 
-            <p data-i18n="sg_sh6_sub2" class="step-sub">Copy the link from that same dialog</p>
-            <p data-i18n-html="sg_sh6_p3">While you're still in the Share dialog, use its <strong>Copy link</strong> button — not the URL in your browser's address bar.</p>
             <aside class="note note-warn">
               <span class="note-icon" aria-hidden="true">!</span>
               <div data-i18n-html="sg_sh6_warn" class="note-body">
@@ -2893,27 +2881,23 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
 
             <p data-i18n="sg_sh7_sub1" class="step-sub">Deploy the script as a Web App</p>
             <p data-i18n="sg_sh7_p2">The script that's been syncing your plays can also listen for messages from the site — but only once it's published with a URL of its own.</p>
-            <div class="path">
-              <span data-i18n="sg_g_extensions" class="path-step">Extensions</span>
-              <span class="path-arrow" aria-hidden="true">→</span>
-              <span class="path-step">Apps Script</span>
-              <span class="path-arrow" aria-hidden="true">→</span>
-              <span data-i18n="sg_g_deploy" class="path-step">Deploy</span>
-              <span class="path-arrow" aria-hidden="true">→</span>
-              <span data-i18n="sg_g_newdeploy" class="path-step">New deployment</span>
-            </div>
-            <aside class="note">
-              <span class="note-icon" aria-hidden="true">i</span>
-              <div data-i18n-html="sg_sh7_note" class="note-body">
-                <strong>The type isn't a dropdown.</strong> In that dialog, click the small <strong>gear icon</strong> beside "Select type" and choose <strong>Web app</strong> from it. It's the step most people hunt around for.
+            <div class="shot-pair">
+              <figure class="shot" data-scenes="gs-ext,as-deploy,as-new,as-done" data-offsets="0,2,2,2"></figure>
+              <div class="do-col">
+                <p data-i18n="sg_do_head" class="do-head">Do this</p>
+                <ol class="do">
+                  <li data-dot="1" data-frame="1" data-i18n-html="sg_sh7_do0a">In your sheet, click <strong>Extensions</strong>…</li>
+                  <li data-dot="2" data-frame="1" data-i18n-html="sg_sh7_do0b">…then <strong>Apps Script</strong>. The editor opens in a new tab.</li>
+                  <li data-dot="3" data-frame="2" data-i18n-html="sg_sh7_do1">Top right of the editor, click <strong>Deploy</strong>…</li>
+                  <li data-dot="4" data-frame="2" data-i18n-html="sg_sh7_do2">…then <strong>New deployment</strong>.</li>
+                  <li data-dot="5" data-frame="3" data-i18n-html="sg_sh7_do3">Click the small <strong>gear ⚙</strong> beside “Select type”. It's not a dropdown, it's this icon.</li>
+                  <li data-dot="6" data-frame="3" data-i18n-html="sg_sh7_do4">Choose <strong>Web app</strong>.</li>
+                  <li data-dot="7" data-frame="3" data-i18n-html="sg_sh7_do5"><strong>Execute as:</strong> Me.</li>
+                  <li data-dot="8" data-frame="3" data-i18n-html="sg_sh7_do6"><strong>Who has access:</strong> Anyone.</li>
+                  <li data-dot="9" data-frame="3" data-i18n-html="sg_sh7_do7">Click <strong>Deploy</strong>, and approve it the same way as in Step 5.</li>
+                  <li data-dot="10" data-frame="4" data-i18n-html="sg_sh7_do8">Copy the <strong>Web app URL</strong>, the one ending in <code>/exec</code>.</li>
+                </ol>
               </div>
-            </aside>
-            <div class="spec">
-              <div data-i18n-html="sg_sh7_head" class="spec-head"><span>Setting</span><span>Value</span></div>
-              <div class="spec-row"><span data-i18n-html="sg_sh7_k1" class="spec-key">Type <em>(the gear icon)</em></span><span data-i18n="sg_g_webapp" class="spec-val">Web app</span></div>
-              <div class="spec-row"><span data-i18n="sg_g_desc" class="spec-key">Description</span><span data-i18n="sg_sh7_v2" class="spec-val muted">anything, or nothing</span></div>
-              <div class="spec-row"><span data-i18n="sg_g_execas" class="spec-key">Execute as</span><span data-i18n="sg_g_me" class="spec-val">Me</span></div>
-              <div class="spec-row"><span data-i18n="sg_g_whoaccess" class="spec-key">Who has access</span><span data-i18n="sg_g_anyone" class="spec-val">Anyone</span></div>
             </div>
             <aside class="note note-warn">
               <span class="note-icon" aria-hidden="true">!</span>

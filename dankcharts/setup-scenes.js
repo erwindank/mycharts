@@ -316,6 +316,423 @@
     }
   };
 
+  /* ── Sheets steps 5–7: labels ───────────────────────────────────────────
+     Google's own words for the approval, Share and Apps Script screens.
+     The script's project name is shown as "Last.fm Sync": Google prints the
+     project's own name there, which the "Do this" text says may differ. */
+  var MORE = {
+    en: {
+      cap_gs_lfm: 'Your sheet, with the template’s Last.fm menu',
+      cap_auth1: 'Authorization required',
+      cap_auth2: 'Choose an account',
+      cap_auth3: 'The “unverified app” screen',
+      cap_auth4: 'The permissions screen',
+      a1_t: 'Authorization required',
+      a1_p: 'A script attached to this document needs your permission to run.',
+      a_cancel: 'Cancel',
+      a1_ok: 'Review permissions',
+      a2_t: 'Choose an account',
+      a2_s: 'to continue to <b>Last.fm Sync</b>',
+      a2_other: 'Use another account',
+      a3_t: 'Google hasn’t verified this app',
+      a3_p: 'The app is requesting access to sensitive info in your Google Account. Until the developer (alex@gmail.com) verifies this app with Google, you shouldn’t use it.',
+      a3_adv: 'Advanced',
+      a3_safe: 'BACK TO SAFETY',
+      a3_risk: 'Continue only if you understand the risks and trust the developer (alex@gmail.com).',
+      a3_go: 'Go to Last.fm Sync (unsafe)',
+      a4_t: 'Last.fm Sync wants access to your Google Account',
+      a4_p1: 'See, edit, create and delete all your Google Sheets spreadsheets',
+      a4_p2: 'Connect to an external service',
+      a4_p3: 'Allow this application to run when you are not present',
+      a4_allow: 'Allow',
+      cap_gs_sharebtn: 'The Share button, top right',
+      cap_gs_share: 'The Share dialog',
+      sh_t: 'Share “Copy of Full Music History…”',
+      sh_add: 'Add people, groups and calendar events',
+      sh_people: 'People with access',
+      sh_owner: 'Owner',
+      sh_you: 'Alex (you)',
+      sh_general: 'General access',
+      sh_anyone: 'Anyone with the link',
+      sh_anyone_d: 'Anyone on the internet with the link can view',
+      sh_viewer: 'Viewer',
+      sh_copy: 'Copy link',
+      sh_done: 'Done',
+      cap_as_deploy: 'Apps Script: the Deploy menu',
+      cap_as_new: 'The New deployment window',
+      cap_as_done: 'The Web app URL, ready to copy',
+      as_proj: 'Last.fm Sync',
+      as_run: 'Run',
+      as_debug: 'Debug',
+      as_deploy: 'Deploy',
+      as_new: 'New deployment',
+      as_manage: 'Manage deployments',
+      as_test: 'Test deployments',
+      as_newt: 'New deployment',
+      as_type: 'Select type',
+      as_web: 'Web app',
+      as_api: 'API Executable',
+      as_addon: 'Add-on',
+      as_lib: 'Library',
+      as_conf: 'Configuration',
+      as_desc: 'Description',
+      as_webapp: 'Web app',
+      as_exec: 'Execute as',
+      as_me: 'Me (alex@gmail.com)',
+      as_who: 'Who has access',
+      as_anyone: 'Anyone',
+      as_doit: 'Deploy',
+      as_okt: 'New deployment',
+      as_ok: 'Deployment successfully created.',
+      as_id: 'Deployment ID',
+      as_url: 'Web app',
+      as_urll: 'URL',
+      as_copy: 'Copy',
+      as_donebtn: 'Done'
+    },
+    es: {
+      cap_gs_lfm: 'Tu hoja, con el menú Last.fm de la plantilla',
+      cap_auth1: 'Se requiere autorización',
+      cap_auth2: 'Elige una cuenta',
+      cap_auth3: 'La pantalla de “aplicación no verificada”',
+      cap_auth4: 'La pantalla de permisos',
+      a1_t: 'Se requiere autorización',
+      a1_p: 'Una secuencia de comandos adjunta a este documento necesita tu permiso para ejecutarse.',
+      a_cancel: 'Cancelar',
+      a1_ok: 'Revisar permisos',
+      a2_t: 'Elige una cuenta',
+      a2_s: 'para ir a <b>Last.fm Sync</b>',
+      a2_other: 'Usar otra cuenta',
+      a3_t: 'Google no ha verificado esta aplicación',
+      a3_p: 'La aplicación solicita acceso a información sensible de tu cuenta de Google. Hasta que el desarrollador (alex@gmail.com) verifique esta aplicación con Google, no deberías utilizarla.',
+      a3_adv: 'Configuración avanzada',
+      a3_safe: 'VOLVER A LUGAR SEGURO',
+      a3_risk: 'Continúa solo si comprendes los riesgos y confías en el desarrollador (alex@gmail.com).',
+      a3_go: 'Ir a Last.fm Sync (no seguro)',
+      a4_t: 'Last.fm Sync quiere acceder a tu cuenta de Google',
+      a4_p1: 'Ver, editar, crear y eliminar todas tus hojas de cálculo de Hojas de cálculo de Google',
+      a4_p2: 'Conectarse a un servicio externo',
+      a4_p3: 'Permitir que esta aplicación se ejecute cuando no estés presente',
+      a4_allow: 'Permitir',
+      cap_gs_sharebtn: 'El botón Compartir, arriba a la derecha',
+      cap_gs_share: 'La ventana Compartir',
+      sh_t: 'Compartir “Copia de Full Music History…”',
+      sh_add: 'Añadir personas, grupos y eventos de calendario',
+      sh_people: 'Personas con acceso',
+      sh_owner: 'Propietario',
+      sh_you: 'Alex (tú)',
+      sh_general: 'Acceso general',
+      sh_anyone: 'Cualquier persona que tenga el enlace',
+      sh_anyone_d: 'Cualquier usuario de Internet que tenga el enlace puede ver',
+      sh_viewer: 'Lector',
+      sh_copy: 'Copiar enlace',
+      sh_done: 'Hecho',
+      cap_as_deploy: 'Apps Script: el menú Implementar',
+      cap_as_new: 'La ventana Nueva implementación',
+      cap_as_done: 'La URL de la aplicación web, lista para copiar',
+      as_run: 'Ejecutar',
+      as_debug: 'Depurar',
+      as_deploy: 'Implementar',
+      as_new: 'Nueva implementación',
+      as_manage: 'Gestionar implementaciones',
+      as_test: 'Probar implementaciones',
+      as_newt: 'Nueva implementación',
+      as_type: 'Seleccionar tipo',
+      as_web: 'Aplicación web',
+      as_api: 'Ejecutable de API',
+      as_addon: 'Complemento',
+      as_lib: 'Biblioteca',
+      as_conf: 'Configuración',
+      as_desc: 'Descripción',
+      as_webapp: 'Aplicación web',
+      as_exec: 'Ejecutar como',
+      as_me: 'Yo (alex@gmail.com)',
+      as_who: 'Quién tiene acceso',
+      as_anyone: 'Cualquier usuario',
+      as_doit: 'Implementar',
+      as_okt: 'Nueva implementación',
+      as_ok: 'La implementación se ha creado correctamente.',
+      as_id: 'ID de implementación',
+      as_url: 'Aplicación web',
+      as_copy: 'Copiar',
+      as_donebtn: 'Hecho'
+    },
+    'pt-BR': {
+      cap_gs_lfm: 'Sua planilha, com o menu Last.fm do modelo',
+      cap_auth1: 'Autorização necessária',
+      cap_auth2: 'Escolha uma conta',
+      cap_auth3: 'A tela de “app não verificado”',
+      cap_auth4: 'A tela de permissões',
+      a1_t: 'Autorização necessária',
+      a1_p: 'Um script anexado a este documento precisa da sua permissão para ser executado.',
+      a_cancel: 'Cancelar',
+      a1_ok: 'Revisar permissões',
+      a2_t: 'Escolha uma conta',
+      a2_s: 'para continuar no app <b>Last.fm Sync</b>',
+      a2_other: 'Usar outra conta',
+      a3_t: 'O Google não verificou este app',
+      a3_p: 'O app está solicitando acesso a informações confidenciais na sua Conta do Google. Não use este app até que o desenvolvedor (alex@gmail.com) faça a verificação com o Google.',
+      a3_adv: 'Avançado',
+      a3_safe: 'VOLTAR À SEGURANÇA',
+      a3_risk: 'Continue apenas se você entende os riscos e confia no desenvolvedor (alex@gmail.com).',
+      a3_go: 'Acessar Last.fm Sync (não seguro)',
+      a4_t: 'Last.fm Sync quer acessar sua Conta do Google',
+      a4_p1: 'Ver, editar, criar e excluir todas as suas planilhas do Google Planilhas',
+      a4_p2: 'Conectar a um serviço externo',
+      a4_p3: 'Permitir que este aplicativo seja executado quando você não estiver presente',
+      a4_allow: 'Permitir',
+      cap_gs_sharebtn: 'O botão Compartilhar, no canto superior direito',
+      cap_gs_share: 'A janela Compartilhar',
+      sh_t: 'Compartilhar “Cópia de Full Music History…”',
+      sh_add: 'Adicionar pessoas, grupos e eventos da agenda',
+      sh_people: 'Pessoas com acesso',
+      sh_owner: 'Proprietário',
+      sh_you: 'Alex (você)',
+      sh_general: 'Acesso geral',
+      sh_anyone: 'Qualquer pessoa com o link',
+      sh_anyone_d: 'Qualquer pessoa na Internet com o link pode ver',
+      sh_viewer: 'Leitor',
+      sh_copy: 'Copiar link',
+      sh_done: 'Concluído',
+      cap_as_deploy: 'Apps Script: o menu Implantar',
+      cap_as_new: 'A janela Nova implantação',
+      cap_as_done: 'O URL do app da Web, pronto para copiar',
+      as_run: 'Executar',
+      as_debug: 'Depurar',
+      as_deploy: 'Implantar',
+      as_new: 'Nova implantação',
+      as_manage: 'Gerenciar implantações',
+      as_test: 'Testar implantações',
+      as_newt: 'Nova implantação',
+      as_type: 'Selecionar tipo',
+      as_web: 'App da Web',
+      as_api: 'Executável de API',
+      as_addon: 'Complemento',
+      as_lib: 'Biblioteca',
+      as_conf: 'Configuração',
+      as_desc: 'Descrição',
+      as_webapp: 'App da Web',
+      as_exec: 'Executar como',
+      as_me: 'Eu (alex@gmail.com)',
+      as_who: 'Quem pode acessar',
+      as_anyone: 'Qualquer pessoa',
+      as_doit: 'Implantar',
+      as_okt: 'Nova implantação',
+      as_ok: 'Implantação criada.',
+      as_id: 'ID da implantação',
+      as_url: 'App da Web',
+      as_copy: 'Copiar',
+      as_donebtn: 'Concluído'
+    },
+    'pt-PT': {
+      cap_gs_lfm: 'A tua folha, com o menu Last.fm do modelo',
+      cap_auth1: 'Autorização necessária',
+      cap_auth2: 'Escolha uma conta',
+      cap_auth3: 'O ecrã de “app não validada”',
+      cap_auth4: 'O ecrã de autorizações',
+      a1_t: 'Autorização necessária',
+      a1_p: 'Um script anexado a este documento precisa da sua autorização para ser executado.',
+      a_cancel: 'Cancelar',
+      a1_ok: 'Rever autorizações',
+      a2_t: 'Escolha uma conta',
+      a2_s: 'para continuar para <b>Last.fm Sync</b>',
+      a2_other: 'Utilizar outra conta',
+      a3_t: 'A Google não validou esta app',
+      a3_p: 'A app está a pedir acesso a informações confidenciais na sua Conta Google. Até o programador (alex@gmail.com) validar esta app com a Google, não a deve utilizar.',
+      a3_adv: 'Avançadas',
+      a3_safe: 'VOLTAR À SEGURANÇA',
+      a3_risk: 'Continue apenas se compreender os riscos e confiar no programador (alex@gmail.com).',
+      a3_go: 'Aceder a Last.fm Sync (não seguro)',
+      a4_t: 'Last.fm Sync pretende aceder à sua Conta Google',
+      a4_p1: 'Ver, editar, criar e eliminar todas as suas folhas de cálculo do Google Sheets',
+      a4_p2: 'Ligar a um serviço externo',
+      a4_p3: 'Permitir que esta aplicação seja executada quando não está presente',
+      a4_allow: 'Permitir',
+      cap_gs_sharebtn: 'O botão Partilhar, no canto superior direito',
+      cap_gs_share: 'A janela Partilhar',
+      sh_t: 'Partilhar “Cópia de Full Music History…”',
+      sh_add: 'Adicionar pessoas, grupos e eventos do calendário',
+      sh_people: 'Pessoas com acesso',
+      sh_owner: 'Proprietário',
+      sh_you: 'Alex (você)',
+      sh_general: 'Acesso geral',
+      sh_anyone: 'Qualquer pessoa com o link',
+      sh_anyone_d: 'Qualquer pessoa na Internet com o link pode ver',
+      sh_viewer: 'Leitor',
+      sh_copy: 'Copiar link',
+      sh_done: 'Concluído',
+      cap_as_deploy: 'Apps Script: o menu Implementar',
+      cap_as_new: 'A janela Nova implementação',
+      cap_as_done: 'O URL da app Web, pronto a copiar',
+      as_run: 'Executar',
+      as_debug: 'Depurar',
+      as_deploy: 'Implementar',
+      as_new: 'Nova implementação',
+      as_manage: 'Gerir implementações',
+      as_test: 'Testar implementações',
+      as_newt: 'Nova implementação',
+      as_type: 'Selecionar tipo',
+      as_web: 'App Web',
+      as_api: 'Executável da API',
+      as_addon: 'Suplemento',
+      as_lib: 'Biblioteca',
+      as_conf: 'Configuração',
+      as_desc: 'Descrição',
+      as_webapp: 'App Web',
+      as_exec: 'Executar como',
+      as_me: 'Eu (alex@gmail.com)',
+      as_who: 'Quem tem acesso',
+      as_anyone: 'Qualquer pessoa',
+      as_doit: 'Implementar',
+      as_okt: 'Nova implementação',
+      as_ok: 'Implementação criada com êxito.',
+      as_id: 'ID da implementação',
+      as_url: 'App Web',
+      as_copy: 'Copiar',
+      as_donebtn: 'Concluído'
+    }
+  };
+  Object.keys(MORE).forEach(function (l) { LBL[l] = LBL[l] || {}; Object.assign(LBL[l], MORE[l]); });
+
+  // The four Google screens you meet the first time the script runs
+  function gAuthPage(inner) {
+    return '<div class="r-page r-gauth"><div class="r-gauth-card">' + inner + '</div></div>';
+  }
+  var LFM_ITEMS = ['Fetch Latest Tracks', 'Start Auto-Update (90 min)', '-', 'Start Genre Fetcher', 'Stop Genre Fetcher'];
+
+  // A Google dialog drawn over the sheet
+  function gDialog(cls, inner) { return '<div class="r-gdlg ' + (cls || '') + '">' + inner + '</div>'; }
+
+  // Apps Script editor shell
+  function asEditor(L, extra) {
+    return '<div class="r-page r-as">' +
+      '<div class="r-as-top"><span class="r-as-logo" aria-hidden="true"></span><span class="r-as-name">Apps Script</span>' +
+        '<span class="r-as-proj">' + L('as_proj') + '</span>' +
+        '<span class="r-as-right">' + (extra && extra.deploy || '<span class="r-btn-fill r-btn-pill r-as-dep">' + L('as_deploy') + ' ▾</span>') + '<span class="r-avatar r-avatar-sm">A</span></span></div>' +
+      '<div class="r-as-main"><div class="r-as-side"><i></i><i class="on"></i><i></i><i></i><i></i></div>' +
+        '<div class="r-as-files"><b>Code.gs</b></div>' +
+        '<div class="r-as-code">' +
+          '<div class="r-as-bar"><span>↶</span><span>↷</span><span>▶ ' + L('as_run') + '</span><span>' + L('as_debug') + '</span><span class="r-as-fn">fetchAndLogLastFmHistory ▾</span></div>' +
+          '<pre><span class="k">function</span> <span class="f">getSettings_</span>() {\n  <span class="k">var</span> ss = SpreadsheetApp.getActiveSpreadsheet();\n  <span class="k">var</span> s  = ss.getSheetByName(<span class="s">\'Settings\'</span>);\n  …\n}\n\n<span class="k">function</span> <span class="f">doPost</span>(e) {\n  <span class="c">// receives a play from dankcharts.fm</span>\n  …\n}</pre>' +
+        '</div>' +
+      '</div>' +
+      (extra && extra.overlay ? '<div class="r-scrim"></div>' + extra.overlay : '') +
+    '</div>';
+  }
+
+  Object.assign(SCENES, {
+    // Sheets step 5 — the Last.fm menu (reload the sheet if it's missing)
+    'gs-lfm': {
+      url: 'docs.google.com/spreadsheets/d/…/edit', w: 840, cap: 'cap_gs_lfm',
+      html: function (L) {
+        return gsApp(L, { tab: 'data', rows: dataRows(), minRows: 7, lastfm: true, open: 'lastfm',
+          lfmItems: LFM_ITEMS, menuDot: { lastfm: 1 }, itemDot: { 1: 2 }, ref: 'A1', fx: 'Song Title' });
+      }
+    },
+    'g-auth1': {
+      url: 'docs.google.com/spreadsheets/d/…/edit', w: 840, cap: 'cap_auth1',
+      html: function (L) {
+        return gsApp(L, { tab: 'data', rows: dataRows(), minRows: 7, lastfm: true, ref: 'A1', fx: 'Song Title',
+          overlay: gDialog('r-gdlg-sm',
+            '<h4>' + L('a1_t') + '</h4><p>' + L('a1_p') + '</p>' +
+            '<div class="r-gdlg-actions"><span class="r-btn-text">' + L('a_cancel') + '</span><span class="r-btn-fill" data-dot="3">' + L('a1_ok') + '</span></div>') });
+      }
+    },
+    'g-auth2': {
+      url: 'accounts.google.com/o/oauth2/…', w: 720, cap: 'cap_auth2',
+      html: function (L) {
+        return gAuthPage(G_DISC +
+          '<h4 class="r-gauth-h">' + L('a2_t') + '</h4><p class="r-gauth-sub">' + L('a2_s') + '</p>' +
+          '<div class="r-acct" data-dot="4"><span class="r-avatar">A</span><span><b>Alex</b><br><small>alex@gmail.com</small></span></div>' +
+          '<div class="r-acct r-acct-other"><span class="r-acct-ico">⊕</span><span>' + L('a2_other') + '</span></div>');
+      }
+    },
+    'g-auth3': {
+      url: 'accounts.google.com/o/oauth2/…', w: 720, cap: 'cap_auth3',
+      html: function (L) {
+        return gAuthPage(G_DISC +
+          '<h4 class="r-gauth-h r-gauth-warn"><span class="r-warn-ico">⚠</span>' + L('a3_t') + '</h4>' +
+          '<p class="r-gauth-p">' + L('a3_p') + '</p>' +
+          '<div class="r-gauth-row"><span class="r-link" data-dot="5">' + L('a3_adv') + '</span><span class="r-btn-fill">' + L('a3_safe') + '</span></div>' +
+          '<div class="r-gauth-more"><p class="r-gauth-p">' + L('a3_risk') + '</p><span class="r-link r-link-u" data-dot="6">' + L('a3_go') + '</span></div>');
+      }
+    },
+    'g-auth4': {
+      url: 'accounts.google.com/o/oauth2/…', w: 720, cap: 'cap_auth4',
+      html: function (L) {
+        return gAuthPage(G_DISC +
+          '<h4 class="r-gauth-h">' + L('a4_t') + '</h4>' +
+          '<p class="r-gauth-acct"><span class="r-avatar r-avatar-xs">A</span>alex@gmail.com</p>' +
+          '<ul class="r-perms"><li>' + L('a4_p1') + '</li><li>' + L('a4_p2') + '</li><li>' + L('a4_p3') + '</li></ul>' +
+          '<div class="r-gauth-row r-gauth-end"><span class="r-btn-out">' + L('a_cancel') + '</span><span class="r-btn-fill r-btn-pill" data-dot="7">' + L('a4_allow') + '</span></div>');
+      }
+    },
+
+    // Sheets step 6 — Share → Anyone with the link · Viewer → Copy link
+    'gs-sharebtn': {
+      url: 'docs.google.com/spreadsheets/d/…/edit', w: 840, cap: 'cap_gs_sharebtn',
+      html: function (L) {
+        return gsApp(L, { tab: 'data', rows: dataRows(), minRows: 7, lastfm: true, share: 1, ref: 'A1', fx: 'Song Title' });
+      }
+    },
+    'gs-share': {
+      url: 'docs.google.com/spreadsheets/d/…/edit', w: 840, cap: 'cap_gs_share',
+      html: function (L) {
+        return gsApp(L, { tab: 'data', rows: dataRows(), minRows: 9, lastfm: true, ref: 'A1', fx: 'Song Title',
+          overlay: gDialog('r-gdlg-share',
+            '<h4>' + L('sh_t') + '</h4>' +
+            '<span class="r-input r-input-empty r-share-add">' + L('sh_add') + '</span>' +
+            '<p class="r-share-lbl">' + L('sh_people') + '</p>' +
+            '<div class="r-share-person"><span class="r-avatar r-avatar-xs">A</span><span>' + L('sh_you') + '<br><small>alex@gmail.com</small></span><span class="r-share-role">' + L('sh_owner') + '</span></div>' +
+            '<p class="r-share-lbl">' + L('sh_general') + '</p>' +
+            '<div class="r-share-general"><span class="r-share-globe">🌐</span>' +
+              '<span class="r-share-gtext"><span class="r-share-sel" data-dot="1">' + L('sh_anyone') + ' ▾</span><small>' + L('sh_anyone_d') + '</small></span>' +
+              '<span class="r-share-sel r-share-rolesel" data-dot="2" data-dot-at="r">' + L('sh_viewer') + ' ▾</span></div>' +
+            '<div class="r-gdlg-actions r-share-actions"><span class="r-btn-out" data-dot="3">🔗 ' + L('sh_copy') + '</span><span class="r-btn-fill r-btn-pill">' + L('sh_done') + '</span></div>') });
+      }
+    },
+
+    // Sheets step 7 — Apps Script: Deploy → New deployment → ⚙ Web app
+    'as-deploy': {
+      url: 'script.google.com/u/0/home/projects/…/edit', w: 840, cap: 'cap_as_deploy',
+      html: function (L) {
+        return asEditor(L, { deploy:
+          '<span class="r-dd-host"><span class="r-btn-fill r-btn-pill r-as-dep" data-dot="1">' + L('as_deploy') + ' ▾</span>' +
+          '<span class="r-dd r-dd-right"><span class="r-dd-item" data-dot="2" data-dot-at="l">' + L('as_new') + '</span><span class="r-dd-item">' + L('as_manage') + '</span><span class="r-dd-item">' + L('as_test') + '</span></span></span>' });
+      }
+    },
+    'as-new': {
+      url: 'script.google.com/u/0/home/projects/…/edit', w: 840, cap: 'cap_as_new',
+      html: function (L) {
+        return asEditor(L, { overlay: gDialog('r-gdlg-dep',
+          '<h4>' + L('as_newt') + '</h4>' +
+          '<div class="r-dep-grid">' +
+            '<div class="r-dep-left"><p class="r-share-lbl">' + L('as_type') + ' <span class="r-gear" data-dot="3" data-dot-at="r">⚙</span></p>' +
+              '<div class="r-dep-pop"><span class="r-dd-item r-dd-on" data-dot="4" data-dot-at="l">' + L('as_web') + '</span><span class="r-dd-item">' + L('as_api') + '</span><span class="r-dd-item">' + L('as_addon') + '</span><span class="r-dd-item">' + L('as_lib') + '</span></div></div>' +
+            '<div class="r-dep-right"><p class="r-share-lbl">' + L('as_conf') + '</p>' +
+              '<span class="r-input r-input-empty">' + L('as_desc') + '</span>' +
+              '<p class="r-dep-sub">' + L('as_webapp') + '</p>' +
+              '<label class="r-dep-f"><small>' + L('as_exec') + '</small><span class="r-share-sel r-dep-sel" data-dot="5" data-dot-at="r">' + L('as_me') + ' ▾</span></label>' +
+              '<label class="r-dep-f"><small>' + L('as_who') + '</small><span class="r-share-sel r-dep-sel" data-dot="6" data-dot-at="r">' + L('as_anyone') + ' ▾</span></label>' +
+            '</div>' +
+          '</div>' +
+          '<div class="r-gdlg-actions"><span class="r-btn-text">' + L('a_cancel') + '</span><span class="r-btn-fill" data-dot="7">' + L('as_doit') + '</span></div>') });
+      }
+    },
+    'as-done': {
+      url: 'script.google.com/u/0/home/projects/…/edit', w: 840, cap: 'cap_as_done',
+      html: function (L) {
+        return asEditor(L, { overlay: gDialog('r-gdlg-dep',
+          '<h4>' + L('as_okt') + '</h4>' +
+          '<p class="r-dep-ok">✓ ' + L('as_ok') + '</p>' +
+          '<p class="r-share-lbl">' + L('as_id') + '</p><p class="r-dep-mono">AKfycbx3Qm…7hT2</p>' +
+          '<p class="r-share-lbl">' + L('as_url') + '</p>' +
+          '<div class="r-dep-urlrow"><span class="r-dep-mono r-dep-url">https://script.google.com/macros/s/AKfycbx3Qm…7hT2/exec</span><span class="r-btn-out" data-dot="8">⧉ ' + L('as_copy') + '</span></div>' +
+          '<div class="r-gdlg-actions"><span class="r-btn-fill">' + L('as_donebtn') + '</span></div>') });
+      }
+    }
+  });
+
   /* ── Engine ──────────────────────────────────────────────────────────── */
   var mounted = [];   // every live figure controller
   var ro = 'ResizeObserver' in window ? new ResizeObserver(function (entries) {
@@ -340,6 +757,7 @@
     var self = this;
     var cur = Math.min(+(fig.dataset.start || 0), names.length - 1);
     var multi = names.length > 1;
+    var offsets = (fig.dataset.offsets || '').split(',');
     var big = fig.classList.contains('shot-big');   // the zoomed copy in the lightbox
     var toured = false;
 
@@ -376,6 +794,12 @@
       fig.classList.toggle('shot-app', sc.frame === 'app');
       layer.style.width = sc.w + 'px';
       layer.innerHTML = sc.img ? imgScene(sc) : sc.html(L);
+      // data-offsets="0,2,2" shifts each screen's dot numbers, so a list that
+      // runs across several screens counts 1, 2, 3 … straight through
+      var off = +(offsets[cur] || 0);
+      if (off) layer.querySelectorAll('[data-dot]').forEach(function (el) {
+        el.setAttribute('data-dot', +el.getAttribute('data-dot') + off);
+      });
       var cap = sc.cap ? L(sc.cap) : '';
       capEl.textContent = (multi ? (cur + 1) + ' / ' + names.length + ' · ' : '') + cap;
       if (pips) {
@@ -540,6 +964,7 @@
     copy.className = 'shot shot-big';
     if (fig.dataset.scenes) copy.dataset.scenes = fig.dataset.scenes;
     if (fig.dataset.scene) copy.dataset.scene = fig.dataset.scene;
+    if (fig.dataset.offsets) copy.dataset.offsets = fig.dataset.offsets;
     copy.dataset.start = frame;
     slot.appendChild(copy);
     box.classList.add('open');
