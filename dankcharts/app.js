@@ -34539,6 +34539,7 @@ function openYtPlayer(title, artist, album, btn) {
   document.getElementById('ytMiniTitle').textContent  = title;
   document.getElementById('ytMiniArtist').textContent = artist;
   _ytUpdateArt(title, artist, album);
+  _ytUpdateChartStory(title, artist);
   const statusEl = document.getElementById('ytMiniStatus');
   statusEl.textContent = 'Searching…';
   statusEl.className   = 'yt-mini-status';
@@ -35402,6 +35403,61 @@ function _ytChosenPlayed() {
   } else {
     _ytPasteMsg('Playing your video.', '');
   }
+}
+
+// ── Chart story (PLAYER-PLAN.md step 4) ──────────────────────────────────
+// Four tiles under the song name, from the user's own loaded data (any
+// source — Last.fm, Sheets or CSV): this week's rank on the weekly chart,
+// its peak there, the user's plays and its weeks on that chart. A tile with
+// nothing to show is left out; a song never played gets "New to you"; no data
+// loaded (landing page) hides the row. Clicking a tile opens the song's window
+// (openSongModal), as from All-Time. Built after the player has drawn, so
+// opening a song never waits on it; the weekly chart run is cached by the
+// charts (_crFull), so after the first song this is quick.
+let _ytStoryToken = 0;
+function _ytUpdateChartStory(title, artist) {
+  const el = document.getElementById('ytChartStory');
+  if (!el) return;
+  const token = ++_ytStoryToken;
+  el.style.display = 'none';
+  el.innerHTML = '';
+  if (typeof allPlays === 'undefined' || !allPlays || !allPlays.length || !title || !artist) return;
+  const run = () => {
+    if (token !== _ytStoryToken) return;   // a newer song started meanwhile
+    try { _ytFillChartStory(el, title, artist); } catch (e) { el.style.display = 'none'; }
+  };
+  (window.requestIdleCallback || (f => setTimeout(f, 60)))(run, { timeout: 800 });
+}
+function _ytFillChartStory(el, title, artist) {
+  const key = songKey({ title, artist });
+  let plays = 0;
+  for (const p of allPlays) if (songKey(p) === key) plays++;
+  if (!plays) {
+    el.innerHTML = `<span class="ytp-story-new">New to you — not in your plays yet</span>`;
+    el.style.gridTemplateColumns = '';
+    el.style.display = '';
+    return;
+  }
+  const d = _crFull('week')?.result?.songs?.[key];
+  const tiles = [];
+  if (d && d.entries.length) {
+    const nowKey = playWeekKey(new Date());
+    const cur = d.entries.find(e => e.periodKey === nowKey);
+    let peak = Infinity;
+    for (const e of d.entries) if (e.rank < peak) peak = e.rank;
+    if (cur) tiles.push(['#' + cur.rank, 'This week', 'ytp-story-rank']);
+    tiles.push(['#' + peak, 'Peak', 'ytp-story-peak']);
+    tiles.push([plays.toLocaleString(), plays === 1 ? 'Your play' : 'Your plays', '']);
+    tiles.push([d.entries.length.toLocaleString(), d.entries.length === 1 ? 'Week on' : 'Weeks on', '']);
+  } else {
+    tiles.push([plays.toLocaleString(), plays === 1 ? 'Your play' : 'Your plays', '']);
+  }
+  const k = esc(JSON.stringify(key));
+  el.innerHTML = tiles.map(([v, lbl, cls]) =>
+    `<button type="button" class="ytp-story-tile" onclick="openSongModal(${k})" title="Open the song's chart history">` +
+    `<b class="${cls}">${esc(v)}</b><small>${esc(lbl)}</small></button>`).join('');
+  el.style.gridTemplateColumns = `repeat(${tiles.length}, minmax(0, 1fr))`;
+  el.style.display = '';
 }
 
 // ── Previous (PLAYER-PLAN.md step 2) ─────────────────────────────────────
