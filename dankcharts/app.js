@@ -35156,7 +35156,7 @@ function closeYtPlayer() {
   _ytUpdateQueueDisplay();
   if (player) player.classList.remove('yt-expanded', 'yt-expanded-lg', 'yt-expanded-xl', 'yt-mini-collapsed');
   const expandBtn = document.getElementById('ytMiniExpandBtn');
-  if (expandBtn) { expandBtn.innerHTML = _YT_IC.expand; expandBtn.title = 'Size: S → M'; }
+  if (expandBtn) expandBtn.title = 'Stage mode — big screen [G]';   // step 10
   const collapseBtn = document.getElementById('ytMiniCollapseBtn');
   if (collapseBtn) { collapseBtn.innerHTML = _YT_IC.collapseV; collapseBtn.title = 'Collapse player [M]'; }
   ['ytMiniSearchBox','ytSearchResults','ytMiniHistory','ytShortcutsPanel','ytLyricsPanel','ytSleepPanel','ytPlaylistsPanel'].forEach(id => {
@@ -35195,15 +35195,8 @@ const _YT_SIZES = [
   { w: 640, h: 360, cls: 'yt-expanded-xl', iconKey: 'shrink', title: 'Size: XL → S' },
 ];
 function _ytExpand() {
-  _ytExpandSize = (_ytExpandSize + 1) % _YT_SIZES.length;
-  if (_ytExpandSize === 1 && _ytMediaMode !== 'video') _ytSetMediaMode('video');
-  const { w, h, cls, iconKey, title } = _YT_SIZES[_ytExpandSize];
-  const player = document.getElementById('ytMiniPlayer');
-  player.classList.remove('yt-expanded', 'yt-expanded-lg', 'yt-expanded-xl');
-  if (cls) player.classList.add(cls);
-  const btn = document.getElementById('ytMiniExpandBtn');
-  if (btn) { btn.innerHTML = _YT_IC[iconKey]; btn.title = title; }
-  if (_ytPlayer) { try { _ytPlayer.setSize(w, h); } catch(e) {} }
+  // Step 10: the old S → M → L → XL sizes are replaced by Stage mode
+  _ytToggleStage();
 }
 
 function _ytOpenInYT() {
@@ -35794,6 +35787,62 @@ function _ytInitBar() {
     clearInterval(_ytBarIv); _ytBarIv = null;
     return orig.apply(this, arguments);
   };
+}
+
+// ── Stage mode (PLAYER-PLAN.md step 10) ─────────────────────────────────
+// The card fills the window: the video big on the left, the tabs (Lyrics
+// first) on the right, the progress bar and controls along the bottom. It is
+// the same card in a different layout (CSS grid, .ytp-stage), so the video
+// never reloads. G or Esc goes back to the card as it was (position, tab,
+// artwork/video choice). Full screen is one more click inside Stage.
+let _ytStagePrev = null;
+function _ytInStage() { const p = document.getElementById('ytMiniPlayer'); return !!(p && p.classList.contains('ytp-stage')); }
+function _ytToggleStage(force) {
+  const p = document.getElementById('ytMiniPlayer');
+  if (!p || p.style.display === 'none') return;
+  const on = force === undefined ? !_ytInStage() : !!force;
+  if (on === _ytInStage()) return;
+  const btn = document.getElementById('ytMiniExpandBtn');
+  if (on) {
+    if (p.classList.contains('yt-mini-collapsed')) _ytSetBar(false);
+    _ytStagePrev = { media: _ytMediaMode, tab: p.dataset.tab || 'next' };
+    p.classList.add('ytp-stage');
+    document.body.classList.add('ytp-stage-open');
+    _ytSetMediaMode('video', true);            // not saved: Stage always opens on the video
+    if (p.dataset.tab === 'next') _ytShowTab('lyrics');
+    if (btn) btn.title = 'Back to the small player [G]';
+  } else {
+    if (document.fullscreenElement) { try { document.exitFullscreen(); } catch (e) {} }
+    p.classList.remove('ytp-stage');
+    document.body.classList.remove('ytp-stage-open');
+    if (_ytStagePrev) {
+      _ytSetMediaMode(_ytStagePrev.media, true);
+      if (_ytStagePrev.tab && _ytStagePrev.tab !== p.dataset.tab) _ytShowTab(_ytStagePrev.tab);
+    }
+    _ytStagePrev = null;
+    if (btn) btn.title = 'Stage mode — big screen [G]';
+  }
+  _ytTipHide();
+}
+function _ytStageFullscreen() {
+  const p = document.getElementById('ytMiniPlayer');
+  if (!p) return;
+  try {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else if (p.requestFullscreen) p.requestFullscreen().catch(() => {});
+  } catch (e) {}
+}
+function _ytInitStage() {
+  // While on Stage the card must not be "kept on screen" by the drag code: that
+  // would save the full-window position as the card's spot
+  const orig = window._ytClampToViewport;
+  if (typeof orig === 'function') window._ytClampToViewport = function () { if (_ytInStage()) return; return orig.apply(this, arguments); };
+  const close = window.closeYtPlayer;
+  if (typeof close === 'function') window.closeYtPlayer = function () { if (_ytInStage()) _ytToggleStage(false); return close.apply(this, arguments); };
+  document.addEventListener('fullscreenchange', () => {
+    const b = document.getElementById('ytFullBtn');
+    if (b) b.title = document.fullscreenElement ? 'Leave full screen' : 'Full screen';
+  });
 }
 
 // ── Previous (PLAYER-PLAN.md step 2) ─────────────────────────────────────
@@ -37025,7 +37074,8 @@ document.addEventListener('keydown', e => {
   else if (key === 't' || key === 'T') { e.preventDefault(); _ytToggleSleep(); }
   else if (key === 's' || key === 'S') { e.preventDefault(); _ytCycleSpeed(); }
   else if (key === '?')                { e.preventDefault(); _ytToggleShortcuts(); }
-  else if (key === 'Escape')           { e.preventDefault(); closeYtPlayer(); }
+  else if (key === 'g' || key === 'G') { e.preventDefault(); _ytToggleStage(); }
+  else if (key === 'Escape')           { e.preventDefault(); if (_ytInStage()) _ytToggleStage(false); else closeYtPlayer(); }
 });
 
 // Scroll wheel on mini player changes volume (but not when scrolling the queue list)
@@ -37049,6 +37099,7 @@ _ytSetMediaMode(_ytMediaMode, true); // step 3: remembered artwork / video choic
 _ytInitTabs();                       // step 6: tabs + the old toggles routed through them
 _ytInitLove();                       // step 8: heart follows Favorites, also after a sync
 _ytInitBar();                        // step 9: the Bar follows closing
+_ytInitStage();                      // step 10: Stage mode
 _ytLoadPlaylists();
 _ytUpdateSpeedBtn();
 _ytUpdateCrossfadeBtn();
