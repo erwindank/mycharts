@@ -24474,6 +24474,129 @@ body.green .landing-card-config input:focus {
 .yt-mini-player .yt-speed-badge,
 .yt-mini-player .yt-sleep-badge { font-size: 8px; color: var(--accent); background: var(--bg2); bottom: 2px; right: 2px; padding: 0 2px; }
 
+/* ── Step 6: tabs (Up Next · Lyrics · History · Tools) ── */
+.yt-mini-player .ytp-tabs { display: flex; gap: 4px; justify-content: stretch; }
+.ytp-tab {
+  flex: 1;
+  height: 36px;
+  border: 0;
+  border-radius: var(--r-md);
+  background: transparent;
+  color: var(--text2);
+  font: 600 var(--fs-sm) var(--font-sans);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  padding: 0 4px;
+}
+.ytp-tab:hover { color: var(--text); background: color-mix(in srgb, var(--text) 7%, transparent); }
+.ytp-tab[aria-selected="true"] { background: var(--text); color: var(--bg); }
+.ytp-tab-count {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font: 700 10px/18px var(--font-mono);
+  box-sizing: border-box;
+}
+
+/* Only the chosen tab's panel shows (data-tab / data-tool on the card).
+   !important: the old toggles set inline display, this has the last word. */
+.yt-mini-player[data-tab]:not([data-tab="next"]) #ytMiniQueue,
+.yt-mini-player[data-tab]:not([data-tab="lyrics"]) #ytLyricsPanel,
+.yt-mini-player[data-tab]:not([data-tab="history"]) #ytMiniHistory,
+.yt-mini-player[data-tab]:not([data-tab="tools"]) #ytToolsGrid,
+.yt-mini-player[data-tab]:not([data-tab="tools"]) #ytMiniSearchBox,
+.yt-mini-player[data-tab]:not([data-tab="tools"]) #ytSearchResults,
+.yt-mini-player[data-tab]:not([data-tab="tools"]) #ytSleepPanel,
+.yt-mini-player[data-tab]:not([data-tab="tools"]) #ytPlaylistsPanel,
+.yt-mini-player[data-tab]:not([data-tab="tools"]) #ytShortcutsPanel,
+.yt-mini-player[data-tab="tools"]:not([data-tool=""]) #ytToolsGrid,
+.yt-mini-player[data-tab="tools"]:not([data-tool="search"]) #ytMiniSearchBox,
+.yt-mini-player[data-tab="tools"]:not([data-tool="search"]) #ytSearchResults,
+.yt-mini-player[data-tab="tools"]:not([data-tool="sleep"]) #ytSleepPanel,
+.yt-mini-player[data-tab="tools"]:not([data-tool="playlists"]) #ytPlaylistsPanel,
+.yt-mini-player[data-tab="tools"]:not([data-tool="keys"]) #ytShortcutsPanel { display: none !important; }
+
+/* "‹ All tools" bar above an open tool */
+.ytp-tool-back { display: none; align-items: center; gap: 8px; padding: 8px 0 4px; font-size: var(--fs-xs); color: var(--text3); }
+.yt-mini-player[data-tab="tools"]:not([data-tool=""]) .ytp-tool-back { display: flex; }
+.ytp-tool-back button { background: none; border: 0; padding: 4px 6px 4px 0; color: var(--text2); font: 600 var(--fs-xs) var(--font-sans); cursor: pointer; }
+.ytp-tool-back button:hover { color: var(--text); }
+.ytp-tool-back span { font-weight: 700; color: var(--text); }
+
+/* Tools: a card per extra */
+.ytp-tools { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 8px 0 10px; }
+.ytp-tool {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  text-align: left;
+  padding: 10px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  color: var(--text);
+  cursor: pointer;
+  min-width: 0;
+  font-family: var(--font-sans);
+  transition: border-color var(--t-fast), background var(--t-fast);
+}
+.ytp-tool:hover { border-color: var(--border2); background: color-mix(in srgb, var(--bg3) 70%, var(--text) 6%); }
+.ytp-tool-ic {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  color: var(--accent);
+}
+.ytp-tool-ic svg { width: 17px; height: 17px; }
+.ytp-tool-txt { min-width: 0; }
+.ytp-tool-txt b { display: block; font-size: var(--fs-sm); line-height: 1.2; }
+.ytp-tool-txt small { display: block; margin-top: 3px; font-size: 11px; line-height: 1.35; color: var(--text3); }
+.ytp-tool-val { display: inline-block; margin-top: 6px; padding: 2px 7px; border-radius: var(--r-xs); background: color-mix(in srgb, var(--text) 8%, transparent); font: 600 10px/1.4 var(--font-mono); color: var(--text2); }
+
+/* History rows */
+.ytp-list-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 0 6px; font-size: var(--fs-xs); color: var(--text3); }
+.ytp-mini-btn { height: 26px; padding: 0 10px; border-radius: var(--r-full); border: 1px solid var(--border); background: var(--bg3); color: var(--text2); font: 600 var(--fs-xs) var(--font-sans); cursor: pointer; white-space: nowrap; }
+.ytp-mini-btn:hover { color: var(--text); border-color: var(--border2); }
+.ytp-hrow { width: 100%; display: flex; align-items: center; gap: 10px; padding: 7px 8px; border: 0; border-radius: var(--r-md); background: transparent; color: var(--text); text-align: left; cursor: pointer; font-family: var(--font-sans); }
+.ytp-hrow:hover { background: color-mix(in srgb, var(--text) 6%, transparent); }
+.ytp-hrow-m { flex: 1; min-width: 0; }
+.ytp-hrow-m b { display: block; font-size: var(--fs-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ytp-hrow-m span { display: block; font-size: var(--fs-xs); color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ytp-hrow time { font-size: 11px; color: var(--text3); white-space: nowrap; }
+.ytp-empty { padding: 22px 8px; text-align: center; font-size: var(--fs-xs); color: var(--text3); }
+
+/* Up Next rows: a bit bigger and easier to hit (the queue's features are unchanged) */
+.yt-mini-player .yt-mini-queue { font-size: var(--fs-sm); padding-top: 4px; }
+.yt-mini-player .yt-mini-queue-item { padding: 5px 6px; border-radius: var(--r-sm); gap: 8px; }
+.yt-mini-player .yt-mini-queue-item:hover { background: color-mix(in srgb, var(--text) 6%, transparent); }
+.yt-mini-player .yt-mini-queue-title { color: var(--text); font-weight: 600; }
+.yt-mini-player .yt-mini-queue-artist { color: var(--text3); }
+.yt-mini-player .yt-queue-header { padding: 6px 0; }
+.yt-mini-player .yt-queue-header-count { font-weight: 600; color: var(--text2); }
+.yt-mini-player .yt-queue-empty { padding: 18px 8px; text-align: center; }
+
+/* The panel area has one scroll (inner lists drop their own small limits) */
+.yt-mini-player .yt-panels-zone { max-height: 340px; }
+.yt-mini-player #ytMiniQueue,
+.yt-mini-player #ytMiniHistory,
+.yt-mini-player #ytLyricsPanel,
+.yt-mini-player #ytSearchResults,
+.yt-mini-player #ytPlaylistsPanel,
+.yt-mini-player #ytShortcutsPanel { max-height: none; overflow: visible; }
+.yt-mini-player #ytLyricsPanel { font-size: var(--fs-sm); line-height: 1.6; padding: 8px 0; }
+
 /* Panels open between the extras row and the bottom row */
 .yt-mini-player .yt-panels-zone { padding: 0 16px; margin-top: 6px; flex: 0 1 auto; min-height: 0; overflow-y: auto; }
 

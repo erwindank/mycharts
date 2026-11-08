@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=936">
+  <link rel="stylesheet" href="style.css?v=938">
   <!-- The Charts Guide's lessons (guide.js, GUIDE-PLAN.md) -->
   <link rel="stylesheet" href="guide.css?v=5">
   <!-- All scripts are deferred so the page paints without waiting on them.
@@ -4427,7 +4427,7 @@
   <!-- One behaviour and one icon set for every pop-up window (phase 10); before
        app.js so dcIco() is there when app.js draws a window -->
   <script defer src="popups.js?v=13"></script>
-  <script defer src="app.js?v=683"></script>
+  <script defer src="app.js?v=684"></script>
   <!-- The song / album / artist details side panel (phase 10 step 3); wraps app.js's open functions -->
   <script defer src="panel.js?v=16"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
@@ -5683,41 +5683,22 @@ function deleteGenreTriggers() {
     </button>
   </div>
 
-  <!-- Extras row (becomes the Up Next / Lyrics / History / Tools tabs in step 6) -->
-  <div class="yt-secondary-controls">
-    <button id="ytMiniSearchBtn" class="yt-ctrl-sec yt-mini-ctrl-btn" onclick="_ytToggleSearch()" title="Find another version [F]">
-      <svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
-    </button>
-    <button id="ytMiniHistoryBtn" class="yt-ctrl-sec yt-mini-ctrl-btn" onclick="_ytToggleHistory()" title="History [H]">
-      <svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1,4 1,10 7,10"/><path d="M3.51,15a9,9,0,1,0,.49-4.49"/></svg>
-    </button>
-    <button id="ytLyricsBtn" class="yt-ctrl-sec yt-mini-ctrl-btn" onclick="_ytToggleLyrics()" title="Lyrics [L]">
-      <svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-    </button>
-    <button id="ytPlaylistsBtn" class="yt-ctrl-sec yt-mini-ctrl-btn" onclick="_ytTogglePlaylists()" title="Saved playlists">
-      <svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-    </button>
-    <!-- Queue toggle: shows/hides queue panel; badge shows how many songs are queued (#11) -->
-    <button id="ytQueueBtn" class="yt-ctrl-sec yt-mini-ctrl-btn" onclick="_ytToggleQueue()" title="Up Next">
-      <svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="2,5 2,9 5,7" fill="currentColor" stroke="none"/><line x1="8" y1="7" x2="21" y2="7"/><line x1="2" y1="13" x2="21" y2="13"/><line x1="2" y1="19" x2="21" y2="19"/></svg>
-      <span id="ytQueueBadge" class="yt-queue-badge" style="display:none"></span>
-    </button>
-    <button id="ytSimilarBtn" class="yt-ctrl-sec yt-mini-ctrl-btn" onclick="_ytPlaySimilar()" title="More by this artist">
-      <svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-    </button>
-    <button id="ytShareBtn" class="yt-ctrl-sec yt-mini-ctrl-btn" onclick="_ytShare()" title="Share card">
-      <svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
-    </button>
-    <button id="ytPipBtn" class="yt-ctrl-sec yt-mini-ctrl-btn" onclick="_ytTogglePiP()" title="Pop-out window">
-      <svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><rect x="13" y="11" width="8" height="6" rx="1"/></svg>
-    </button>
-    <button class="yt-ctrl-sec yt-mini-ctrl-btn" onclick="_ytOpenInYT()" title="Open on YouTube">
-      <svg class="yt-icon" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><polygon points="9,8 18,12 9,16" fill="currentColor"/></svg>
-    </button>
+  <!-- Step 6: named tabs instead of the old row of unlabeled icons. The panel
+       under them shows the chosen tab (data-tab on the card, see _ytShowTab).
+       Every old icon's feature is now a card in Tools. Keeps the
+       yt-secondary-controls class so the collapsed card still hides it. -->
+  <div class="yt-secondary-controls ytp-tabs" role="tablist" aria-label="Player sections">
+    <button type="button" role="tab" class="ytp-tab" data-tab="next" onclick="_ytShowTab('next')" title="Up Next [Q]">Up Next<span id="ytQueueBadge" class="ytp-tab-count" style="display:none"></span></button>
+    <button type="button" role="tab" class="ytp-tab" data-tab="lyrics" onclick="_ytShowTab('lyrics')" title="Lyrics [L]">Lyrics</button>
+    <button type="button" role="tab" class="ytp-tab" data-tab="history" onclick="_ytShowTab('history')" title="History [H]">History</button>
+    <button type="button" role="tab" class="ytp-tab" data-tab="tools" onclick="_ytShowTab('tools')" title="Tools">Tools</button>
   </div>
 
   <!-- Collapsible panels zone: search, history, lyrics, sleep, playlists, shortcuts, queue -->
   <div class="yt-panels-zone">
+    <!-- Step 6: Tools tab — a card per extra (drawn by _ytRenderTools) -->
+    <div id="ytToolBack" class="ytp-tool-back"><button type="button" onclick="_ytShowTab('tools')">‹ All tools</button><span id="ytToolBackName"></span></div>
+    <div id="ytToolsGrid" class="ytp-tools" style="display:none"></div>
     <div id="ytMiniSearchBox" class="yt-mini-search-box" style="display:none">
       <input id="ytMiniSearchInput" class="yt-mini-search-input" type="text" placeholder="Search YouTube…" onkeydown="if(event.key==='Enter')_ytRunCustomSearch();else if(event.key==='Escape')_ytToggleSearch();">
       <button class="yt-mini-search-go" onclick="_ytRunCustomSearch()" title="Search">↵</button>
@@ -5762,6 +5743,7 @@ function deleteGenreTriggers() {
       <div class="yt-shortcut-row"><kbd>F</kbd><span>Find another version / paste a link</span></div>
       <div class="yt-shortcut-row"><kbd>V</kbd><span>Artwork / video</span></div>
       <div class="yt-shortcut-row"><kbd>H</kbd><span>History</span></div>
+      <div class="yt-shortcut-row"><kbd>Q</kbd><span>Up Next</span></div>
       <div class="yt-shortcut-row"><kbd>?</kbd><span>These shortcuts</span></div>
       <div class="yt-shortcut-row"><kbd>Esc</kbd><span>Close player</span></div>
       <div class="yt-shortcut-divider"></div>

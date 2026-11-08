@@ -34542,6 +34542,7 @@ function openYtPlayer(title, artist, album, btn) {
   document.getElementById('ytMiniArtist').textContent = artist;
   _ytUpdateArt(title, artist, album);
   _ytUpdateChartStory(title, artist);
+  if (player.dataset.tab === 'lyrics') setTimeout(_ytFetchLyrics, 0);   // step 6: follow the new song
   const statusEl = document.getElementById('ytMiniStatus');
   statusEl.textContent = 'Searching…';
   statusEl.className   = 'yt-mini-status';
@@ -35644,8 +35645,7 @@ function _ytRunCustomSearch() {
   const input = document.getElementById('ytMiniSearchInput');
   if (!input || !input.value.trim()) return;
   const q = input.value.trim();
-  _ytToggleSearch();
-  _ytEmbedRetry = 0;
+  _ytEmbedRetry = 0;   // step 6: the box stays open, results show under it
   _ytSearchMulti(q);
 }
 
@@ -35817,8 +35817,9 @@ function _ytUpdateVolIcon() {
 
 function _ytRecordHistory(title, artist, album) {
   _ytHistory = _ytHistory.filter(h => !(h.title === title && h.artist === artist));
-  _ytHistory.unshift({ title, artist, album });
+  _ytHistory.unshift({ title, artist, album, at: Date.now() });
   if (_ytHistory.length > 20) _ytHistory.pop();
+  if (document.getElementById('ytMiniPlayer')?.dataset.tab === 'history') _ytRenderHistory();
 }
 
 function _ytToggleHistory() {
@@ -35834,19 +35835,23 @@ function _ytToggleHistory() {
 }
 
 function _ytRenderHistory() {
+  // Step 6: one row per song — title, artist, how long ago; click to play again
   const el = document.getElementById('ytMiniHistory');
   if (!el) return;
-  if (_ytHistory.length === 0) { el.innerHTML = '<div class="yt-hist-empty">No history yet</div>'; return; }
+  if (_ytHistory.length === 0) { el.innerHTML = '<div class="ytp-empty">Songs you play here show up in this list.</div>'; return; }
+  const ago = at => {
+    if (!at) return '';
+    const m = Math.round((Date.now() - at) / 60000);
+    return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : Math.round(m / 60) + ' h ago';
+  };
   el.innerHTML =
-    `<div class="yt-hist-header">` +
-    `<button class="dc-btn dc-btn-normal dc-btn-sm" onclick="_ytAddHistoryToQueue()" title="Add all to queue">+ Queue all</button>` +
-    `</div>` +
+    `<div class="ytp-list-head"><span>Played in this player · click to play again</span>` +
+    `<button type="button" class="ytp-mini-btn" onclick="_ytAddHistoryToQueue()" title="Add every song here to Up Next">+ Queue all</button></div>` +
     _ytHistory.map((h, i) =>
-    `<div class="yt-hist-item">` +
-    `<span class="yt-hist-title">${esc(h.title)}</span>` +
-    `<button class="yt-hist-play" onclick="_ytPlayFromHistory(${i})" title="Play">▶</button>` +
-    `</div>`
-  ).join('');
+      `<button type="button" class="ytp-hrow" onclick="_ytPlayFromHistory(${i})" title="Play again">` +
+      `<span class="ytp-hrow-m"><b>${esc(h.title)}</b><span>${esc(h.artist || '')}</span></span>` +
+      `<time>${ago(h.at)}</time></button>`
+    ).join('');
 }
 
 function _ytPlayFromHistory(i) {
@@ -36202,8 +36207,8 @@ function _ytUpdateQueueDisplay() {
     el.style.display = 'block';
     el.innerHTML =
       `<div class="yt-queue-empty">` +
-      `<div class="yt-queue-empty-msg">Queue is empty</div>` +
-      `<div class="yt-queue-empty-hint">Click ▶ on any song to play it, or ⏭ Next to queue it</div>` +
+      `<div class="yt-queue-empty-msg">Up Next is empty</div>` +
+      `<div class="yt-queue-empty-hint">Use Play next or Add to queue on any song to line it up here.</div>` +
       `</div>`;
     return;
   }
@@ -36225,8 +36230,8 @@ function _ytUpdateQueueDisplay() {
     ` Shuffle</button>` +
     `<button class="yt-queue-reverse-btn" onclick="_ytReverseQueue()" title="Reverse queue order">↕ Rev</button>` + // #16
     `<button class="yt-queue-dedup-btn" onclick="_ytDeduplicateQueue()" title="Remove duplicates">Dedup</button>` + // #7
-    `<button class="yt-queue-save-btn" onclick="_ytSaveQueueAsPlaylist()" title="Save queue as playlist">💾</button>` + // #8
-    `<button class="yt-queue-clear-btn" onclick="_ytClearQueue()" title="Clear queue">✕ Clear</button>` +
+    `<button class="yt-queue-save-btn" onclick="_ytSaveQueueAsPlaylist()" title="Save Up Next as a playlist">Save as playlist</button>` + // #8
+    `<button class="yt-queue-clear-btn" onclick="_ytAskClearQueue()" title="Clear Up Next">✕ Clear</button>` +
     `</div>` +
     `</div>`;
 
@@ -36725,6 +36730,7 @@ document.addEventListener('keydown', e => {
   else if (key === 'x' || key === 'X') { e.preventDefault(); _ytToggleShuffle(); }
   else if (key === 'm' || key === 'M') { e.preventDefault(); _ytToggleCollapse(); }
   else if (key === '0')                { e.preventDefault(); _ytToggleMute(); }
+  else if (key === 'q' || key === 'Q') { e.preventDefault(); _ytShowTab('next'); }
   else if (key === 'v' || key === 'V') { e.preventDefault(); _ytSetMediaMode(_ytMediaMode === 'video' ? 'art' : 'video'); }
   else if (key === 'ArrowLeft')        { e.preventDefault(); if (_ytPlayer) { try { _ytPlayer.seekTo(Math.max(0, _ytPlayer.getCurrentTime() - 10), true); } catch(ex) {} } }
   else if (key === 'ArrowRight')       { e.preventDefault(); if (_ytPlayer) { try { _ytPlayer.seekTo(_ytPlayer.getCurrentTime() + 10, true); } catch(ex) {} } }
@@ -36758,6 +36764,7 @@ _ytLoadQueue();
 _ytUpdateRepeatBtn();
 _ytUpdateShuffleBtn(); // step 2: remembered shuffle state
 _ytSetMediaMode(_ytMediaMode, true); // step 3: remembered artwork / video choice
+_ytInitTabs();                       // step 6: tabs + the old toggles routed through them
 _ytLoadPlaylists();
 _ytUpdateSpeedBtn();
 _ytUpdateCrossfadeBtn();
@@ -38058,6 +38065,133 @@ async function _ytShare() {
   } catch(e) {
     if (statusEl) { statusEl.textContent = 'Copy failed'; statusEl.className = 'yt-mini-status err'; setTimeout(() => { statusEl.textContent = ''; statusEl.className = 'yt-mini-status'; }, 2000); }
   }
+}
+
+// ── Tabs: Up Next · Lyrics · History · Tools (PLAYER-PLAN.md step 6) ─────
+// The card's data-tab says which tab shows; the CSS hides every panel that
+// belongs to another tab (with !important, so the old toggles' inline
+// display can't leak through). In Tools, data-tool names an open tool panel
+// (search, sleep, playlists, keys); empty = the grid of tool cards.
+// The old toggle functions (_ytToggleLyrics, _ytToggleSleep, …) are kept and
+// wrapped below, so the keys and every older caller open the right tab.
+const _YT_TOOL_PANELS = { search: ['ytMiniSearchBox', 'ytSearchResults'], sleep: ['ytSleepPanel'], playlists: ['ytPlaylistsPanel'], keys: ['ytShortcutsPanel'] };
+const _YT_TOOL_NAMES  = { search: 'Find another version', sleep: 'Sleep timer', playlists: 'Saved playlists', keys: 'Keys & settings' };
+function _ytShowTab(tab, tool) {
+  const player = document.getElementById('ytMiniPlayer');
+  if (!player) return;
+  tool = tool || '';
+  player.dataset.tab = tab;
+  player.dataset.tool = tab === 'tools' ? tool : '';
+  player.querySelectorAll('.ytp-tab').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === tab)));
+  try { localStorage.setItem('yt-tab', tab); } catch (e) {}
+  if (player.classList.contains('yt-mini-collapsed')) _ytToggleCollapse();
+  if (tab === 'next') {
+    _ytQueueHidden = false;
+    _ytUpdateQueueDisplay();
+  } else if (tab === 'lyrics') {
+    const el = document.getElementById('ytLyricsPanel');
+    if (el) el.style.display = 'block';
+    _ytFetchLyrics();
+  } else if (tab === 'history') {
+    const el = document.getElementById('ytMiniHistory');
+    if (el) el.style.display = 'block';
+    _ytRenderHistory();
+  } else if (tab === 'tools') {
+    // Close every tool panel that isn't the one asked for
+    Object.entries(_YT_TOOL_PANELS).forEach(([k, ids]) => {
+      if (k !== tool) ids.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+    });
+    const back = document.getElementById('ytToolBackName');
+    if (back) back.textContent = _YT_TOOL_NAMES[tool] || '';
+    if (!tool) _ytRenderTools();
+  }
+}
+
+// One card per extra: name, a line of help, its current value
+function _ytRenderTools() {
+  const grid = document.getElementById('ytToolsGrid');
+  if (!grid) return;
+  grid.style.display = 'grid';
+  const sleepVal = _ytSleepRemaining > 0 ? Math.ceil(_ytSleepRemaining / 60) + ' min left' : 'Off';
+  const nLists = Object.keys(_ytPlaylists || {}).length;
+  const ic = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
+  const tools = [
+    ['search',  'Find another version', 'Wrong video? Search for a better one, or paste a YouTube link.', 'F', 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM16.5 16.5L21 21', '_ytToggleSearch()'],
+    ['similar', 'More by this artist', 'Adds more songs by this artist to Up Next.', '+ songs', 'M9 18V5l12-2v13M6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM18 19a3 3 0 1 0 0-6 3 3 0 0 0 0 6z', '_ytPlaySimilar()'],
+    ['sleep',   'Sleep timer', 'Stops the music after a while.', sleepVal, 'M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z', '_ytToggleSleep()'],
+    ['speed',   'Speed', 'Slower or faster playback. Click to change.', (_ytSpeed || 1) + '×', 'M12 14l4-4M3.3 17a9 9 0 1 1 17.4 0', '_ytCycleSpeed();_ytRenderTools()'],
+    ['xfade',   'Crossfade', 'Blends the end of one song into the next. Click to change.', _ytCrossfade > 0 ? _ytCrossfade + ' s' : 'Off', 'M3 7h4l10 10h4M3 17h4L17 7h4', '_ytCycleCrossfade();_ytRenderTools()'],
+    ['scrobble','Scrobble at', 'When a play counts (the green mark). Click to change.', _ytScrobbleThreshold, 'M5 12l5 5 9-10', '_ytCycleScrobbleThreshold();_ytRenderTools()'],
+    ['lists',   'Saved playlists', 'Play one, or save Up Next as a new one.', nLists === 1 ? '1 list' : nLists + ' lists', 'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01', '_ytTogglePlaylists()'],
+    ['share',   'Share', 'Copies the song and its YouTube link.', 'Copy', 'M4 12v8h16v-8M16 6l-4-4-4 4M12 2v13', '_ytShare()'],
+    ['pip',     'Pop-out window', 'A small player that stays on top of other apps.', _ytPipWindow ? 'On' : 'Off', 'M3 4h18v14H3zM13 11h7v6h-7z', '_ytTogglePiP().then(_ytRenderTools)'],
+    ['youtube', 'Open on YouTube', 'Watch this video on youtube.com.', 'New tab', 'M2 6h20v12H2zM10 9l5 3-5 3z', '_ytOpenInYT()'],
+    ['keys',    'Keys & settings', 'Every key the player knows, and its settings.', '?', 'M2 6h20v12H2zM6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8', '_ytToggleShortcuts()'],
+  ];
+  grid.innerHTML = tools.map(([id, name, help, val, path, go]) =>
+    `<button type="button" class="ytp-tool ytp-tool-${id}" onclick="${go}">` +
+    `<span class="ytp-tool-ic">${ic(path)}</span>` +
+    `<span class="ytp-tool-txt"><b>${esc(name)}</b><small>${esc(help)}</small><span class="ytp-tool-val">${esc(String(val))}</span></span>` +
+    `</button>`).join('');
+}
+// Keeps the Tools cards' values fresh when they change elsewhere (keys, footer)
+function _ytToolsRefresh() {
+  const player = document.getElementById('ytMiniPlayer');
+  if (player && player.dataset.tab === 'tools' && !player.dataset.tool) _ytRenderTools();
+}
+
+// "Clear" asks first, in the site's own confirm window
+function _ytAskClearQueue() {
+  if (!_ytQueue.length && !_ytQueuePlayed.length) return;
+  if (typeof window.dcConfirmBox === 'function') {
+    window.dcConfirmBox('Clear Up Next?', `This removes ${_ytQueue.length === 1 ? 'the 1 song' : 'all ' + _ytQueue.length + ' songs'} waiting in Up Next. The song playing now keeps playing.`, 'Clear', _ytClearQueue);
+  } else {
+    _ytClearQueue();
+  }
+}
+
+function _ytInitTabs() {
+  // Route the old toggles through the tabs. Each tool toggle opens its panel
+  // inside Tools (or goes back to the cards when it is already open).
+  const wrapTool = (fnName, tool) => {
+    const orig = window[fnName];
+    if (typeof orig !== 'function') return;
+    window[fnName] = function () {
+      const player = document.getElementById('ytMiniPlayer');
+      const open = player && player.dataset.tab === 'tools' && player.dataset.tool === tool;
+      if (open) { _ytShowTab('tools'); return; }
+      _ytShowTab('tools', tool);
+      const first = document.getElementById(_YT_TOOL_PANELS[tool][0]);
+      if (first && first.style.display === 'none') return orig.apply(this, arguments);
+    };
+  };
+  wrapTool('_ytToggleSearch', 'search');
+  wrapTool('_ytToggleSleep', 'sleep');
+  wrapTool('_ytTogglePlaylists', 'playlists');
+  wrapTool('_ytToggleShortcuts', 'keys');
+  const wrapTab = (fnName, tab) => {
+    if (typeof window[fnName] !== 'function') return;
+    window[fnName] = function () {
+      const player = document.getElementById('ytMiniPlayer');
+      _ytShowTab(player && player.dataset.tab === tab && tab !== 'next' ? 'next' : tab);
+    };
+  };
+  wrapTab('_ytToggleLyrics', 'lyrics');
+  wrapTab('_ytToggleHistory', 'history');
+  wrapTab('_ytToggleQueue', 'next');
+  // Values shown on the Tools cards follow their settings
+  ['_ytUpdateSleepBtn', '_ytUpdateSpeedBtn', '_ytUpdateCrossfadeBtn', '_ytUpdateScrobbleThresholdBtn', '_ytUpdatePipBtn'].forEach(fnName => {
+    const orig = window[fnName];
+    if (typeof orig !== 'function') return;
+    window[fnName] = function () { const r = orig.apply(this, arguments); _ytToolsRefresh(); return r; };
+  });
+  let tab = 'next';
+  try { const saved = localStorage.getItem('yt-tab'); if (['next', 'lyrics', 'history', 'tools'].includes(saved)) tab = saved; } catch (e) {}
+  const player = document.getElementById('ytMiniPlayer');
+  if (player) { player.dataset.tab = tab; player.dataset.tool = ''; player.querySelectorAll('.ytp-tab').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === tab))); }
+  if (tab === 'history') { const el = document.getElementById('ytMiniHistory'); if (el) { el.style.display = 'block'; _ytRenderHistory(); } }
+  if (tab === 'tools') _ytRenderTools();
+  if (tab === 'lyrics') { const el = document.getElementById('ytLyricsPanel'); if (el) el.style.display = 'block'; }
 }
 
 // ── Panel helper (close all extra panels except the listed ones) ───
