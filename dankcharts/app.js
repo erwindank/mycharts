@@ -35845,6 +35845,64 @@ function _ytInitStage() {
   });
 }
 
+// ── Phone player (PLAYER-PLAN.md step 11) ───────────────────────────────
+// At phone width (≤ 760 px) the open card fills the screen: big cover, big
+// buttons, and Up Next / Lyrics / History / Tools as named buttons along the
+// bottom. Each opens its panel as a sheet that slides up (tap the same button
+// again, the ⌄ or swipe it down to close). Swiping the player itself down
+// shrinks it to the bar. All CSS (max-width: 760px); this adds the state
+// (data-sheet on the card), the swipes and a page-scroll lock.
+let _ytTabTap = false;   // the next _ytShowTab came from tapping a tab button
+function _ytIsPhone() { return window.matchMedia && window.matchMedia('(max-width: 760px)').matches; }
+function _ytCloseSheet() {
+  const p = document.getElementById('ytMiniPlayer');
+  if (p) p.dataset.sheet = '';
+}
+function _ytPhoneSync() {
+  const p = document.getElementById('ytMiniPlayer');
+  const open = !!(p && p.style.display !== 'none' && !p.classList.contains('yt-mini-collapsed') && _ytIsPhone());
+  document.body.classList.toggle('ytp-phone-open', open);
+}
+function _ytInitPhone() {
+  const p = document.getElementById('ytMiniPlayer');
+  if (!p) return;
+  p.dataset.sheet = '';
+  // Tab buttons mark their taps (so tapping the open tab closes its sheet)
+  p.querySelectorAll('.ytp-tab').forEach(b => b.addEventListener('pointerdown', () => { _ytTabTap = true; }));
+  // Keep the page from scrolling under the full-screen player
+  ['openYtPlayer', 'closeYtPlayer', '_ytSetBar'].forEach(fn => {
+    const orig = window[fn];
+    if (typeof orig !== 'function') return;
+    window[fn] = function () { const r = orig.apply(this, arguments); if (fn === 'openYtPlayer' && _ytIsPhone() && !p.classList.contains('yt-mini-collapsed')) _ytCloseSheet(); _ytPhoneSync(); return r; };
+  });
+  window.addEventListener('resize', _ytPhoneSync);
+  // No "keep on screen" for the full-screen phone card (it would save a bogus spot)
+  const clamp = window._ytClampToViewport;
+  if (typeof clamp === 'function') window._ytClampToViewport = function () { if (_ytIsPhone()) return; return clamp.apply(this, arguments); };
+  // Swipes: down on the player → bar; down on a sheet's top → close the sheet
+  let sw = null;
+  p.addEventListener('touchstart', e => {
+    if (!_ytIsPhone() || _ytInStage() || e.touches.length !== 1) return;
+    const t = e.target;
+    const onSheetHead = !!t.closest('.ytp-sheet-head');
+    if (!onSheetHead && (t.closest('.yt-panels-zone, input, .ytp-tabs, .yt-mini-video') )) return;
+    sw = { y: e.touches[0].clientY, x: e.touches[0].clientX, sheet: onSheetHead };
+  }, { passive: true });
+  p.addEventListener('touchmove', e => {
+    if (!sw) return;
+    const dy = e.touches[0].clientY - sw.y;
+    if (sw.sheet && dy > 0) { const z = p.querySelector('.yt-panels-zone'); if (z) z.style.transform = `translateY(${dy}px)`; }
+  }, { passive: true });
+  p.addEventListener('touchend', e => {
+    if (!sw) return;
+    const t = e.changedTouches[0];
+    const dy = t.clientY - sw.y, dx = Math.abs(t.clientX - sw.x);
+    const z = p.querySelector('.yt-panels-zone'); if (z) z.style.transform = '';
+    if (dy > 70 && dx < 60) { if (sw.sheet) _ytCloseSheet(); else _ytSetBar(true); }
+    sw = null;
+  });
+}
+
 // ── Previous (PLAYER-PLAN.md step 2) ─────────────────────────────────────
 // More than 3 seconds in: back to the start of the song. Otherwise: the song
 // played before it (from History). The current song goes back to the top of
@@ -37100,6 +37158,7 @@ _ytInitTabs();                       // step 6: tabs + the old toggles routed th
 _ytInitLove();                       // step 8: heart follows Favorites, also after a sync
 _ytInitBar();                        // step 9: the Bar follows closing
 _ytInitStage();                      // step 10: Stage mode
+_ytInitPhone();                      // step 11: phone player
 _ytLoadPlaylists();
 _ytUpdateSpeedBtn();
 _ytUpdateCrossfadeBtn();
@@ -38566,11 +38625,19 @@ const _YT_TOOL_NAMES  = { search: 'Find another version', sleep: 'Sleep timer', 
 function _ytShowTab(tab, tool) {
   const player = document.getElementById('ytMiniPlayer');
   if (!player) return;
+  if (_ytIsPhone() && !tool && player.dataset.sheet === 'open' && player.dataset.tab === tab && _ytTabTap) { _ytTabTap = false; _ytCloseSheet(); return; }
+  _ytTabTap = false;
   tool = tool || '';
   player.dataset.tab = tab;
   player.dataset.tool = tab === 'tools' ? tool : '';
   player.querySelectorAll('.ytp-tab').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === tab)));
   try { localStorage.setItem('yt-tab', tab); } catch (e) {}
+  // Step 11: on a phone the panel is a sheet — opening a tab slides it up
+  if (_ytIsPhone()) {
+    player.dataset.sheet = 'open';
+    const st = document.getElementById('ytSheetTitle');
+    if (st) st.textContent = { next: 'Up Next', lyrics: 'Lyrics', history: 'History', tools: 'Tools' }[tab] || '';
+  }
   if (player.classList.contains('yt-mini-collapsed')) _ytToggleCollapse();
   if (tab === 'next') {
     _ytQueueHidden = false;

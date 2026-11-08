@@ -24589,6 +24589,98 @@ body.ytp-stage-open { overflow: hidden; }
   .yt-mini-player.ytp-stage .ytp-stage-hint { display: none; }
 }
 
+/* ── Step 11: the phone player ── */
+.ytp-tab-ic { display: none; width: 19px; height: 19px; }
+.ytp-sheet-head { display: none; }
+@media (max-width: 760px) {
+  body.ytp-phone-open { overflow: hidden; }
+  /* The open card fills the screen; its content scrolls if the phone is short */
+  .yt-mini-player:not(.yt-mini-collapsed):not(.ytp-stage) {
+    position: fixed !important;
+    left: 0 !important; top: 0 !important; right: 0 !important; bottom: 0 !important;
+    width: auto !important; max-width: none !important;
+    height: 100dvh; max-height: none !important;
+    border-radius: 0; border: 0;
+    z-index: 950;
+    overflow-y: auto;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px));   /* room for the tab buttons */
+    --cv: min(60vw, 250px);
+  }
+  .yt-mini-player:not(.ytp-stage) .yt-mini-drag-handle,
+  .yt-mini-player:not(.ytp-stage) #ytMiniExpandBtn { display: none; }
+  .yt-mini-player:not(.ytp-stage) .yt-player-header { padding: 10px 8px 4px 14px; }
+  .yt-mini-player:not(.ytp-stage) .yt-hdr-btn { width: 44px; height: 44px; }
+  .yt-mini-player:not(.ytp-stage) .yt-hdr-btn .yt-icon { width: 20px; height: 20px; }
+  /* Bigger cover + record */
+  .yt-mini-player:not(.ytp-stage) .ytp-art { height: calc(var(--cv) + 40px); }
+  .yt-mini-player:not(.ytp-stage) .ytp-cover { width: var(--cv); height: var(--cv); left: 20px; top: 20px; border-radius: 14px; }
+  .yt-mini-player:not(.ytp-stage) .ytp-vinyl { width: calc(var(--cv) * 0.92); height: calc(var(--cv) * 0.92); top: calc(20px + var(--cv) * 0.04); left: calc(20px + var(--cv) * 0.42); }
+  .yt-mini-player.yt-is-playing:not(.ytp-stage) .ytp-vinyl { left: calc(20px + var(--cv) * 0.66); }
+  .yt-mini-player:not(.ytp-stage) .ytp-vinyl-label { inset: 30%; }
+  .yt-mini-player:not(.ytp-stage) .yt-mini-title { font-size: 1.55rem; }
+  .yt-mini-player:not(.ytp-stage) .ytp-song-act { width: 44px; height: 44px; }
+  .yt-mini-player:not(.ytp-stage) .yt-ctrl-btn { width: 50px; height: 50px; }
+  .yt-mini-player:not(.ytp-stage) .yt-pause-wrap,
+  .yt-mini-player:not(.ytp-stage) .yt-ctrl-play { width: 74px; height: 74px; }
+  .yt-mini-player:not(.ytp-stage) .yt-primary-controls { justify-content: space-between; gap: 4px; padding: 8px 18px 4px; }
+  .yt-mini-player:not(.ytp-stage) .ytp-foot { border-top: 0; }
+  .yt-mini-player:not(.ytp-stage) .ytp-foot .ytp-chip { height: 40px; }
+  .yt-mini-player:not(.ytp-stage) .yt-vol-btn { width: 44px !important; height: 44px !important; }
+  .yt-mini-player:not(.ytp-stage) .ytp-foot .yt-vol-group { max-width: 180px; }
+  /* Named buttons with icons along the bottom */
+  .yt-mini-player:not(.yt-mini-collapsed):not(.ytp-stage) .ytp-tabs {
+    position: fixed;
+    left: 10px; right: 10px;
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    margin: 0;
+    z-index: 3;
+    background: color-mix(in srgb, var(--bg3) 92%, transparent);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.25);
+  }
+  .yt-mini-player:not(.ytp-stage) .ytp-tab { flex-direction: column; height: 52px; gap: 3px; font-size: var(--fs-xs); position: relative; }
+  .yt-mini-player:not(.ytp-stage) .ytp-tab-ic { display: block; }
+  .yt-mini-player:not(.ytp-stage) .ytp-tab-count { position: absolute; top: 4px; left: calc(50% + 6px); }
+  /* Not the selected-tab white fill when no sheet is open: nothing is "open" then */
+  .yt-mini-player:not(.ytp-stage):not([data-sheet="open"]) .ytp-tab[aria-selected="true"] { background: transparent; color: var(--text2); }
+  /* The panel becomes a sheet that slides up over the player */
+  .yt-mini-player:not(.yt-mini-collapsed):not(.ytp-stage) .yt-panels-zone {
+    position: fixed;
+    left: 0; right: 0;
+    bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+    height: min(68dvh, 560px);
+    max-height: none;
+    margin: 0;
+    padding: 0 16px 16px;
+    z-index: 2;
+    background: var(--bg2);
+    border-radius: 20px 20px 0 0;
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -18px 40px rgba(0, 0, 0, 0.4);
+    overflow-y: auto;
+    transform: translateY(calc(100% + 90px));
+    transition: transform 0.3s var(--ease);
+    overscroll-behavior: contain;
+  }
+  .yt-mini-player[data-sheet="open"]:not(.ytp-stage) .yt-panels-zone { transform: none; }
+  .yt-mini-player:not(.ytp-stage) .ytp-sheet-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding: 14px 0 6px;
+    background: var(--bg2);
+    touch-action: none;
+  }
+  .ytp-sheet-grab { position: absolute; left: 50%; top: 6px; width: 40px; height: 4px; margin-left: -20px; border-radius: 2px; background: var(--border2); }
+  .ytp-sheet-head b { flex: 1; font: 800 var(--fs-md) var(--font-display); }
+  .yt-mini-player:not(.ytp-stage) .ytp-lyr-head { top: 58px; }
+  @media (prefers-reduced-motion: reduce) { .yt-mini-player .yt-panels-zone { transition: none; } }
+}
+
 /* Step 4: chart story tiles under the song name */
 .ytp-story { display: grid; gap: 6px; margin: 12px 16px 0; flex-shrink: 0; }
 .ytp-story-tile {
