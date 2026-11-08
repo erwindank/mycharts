@@ -25273,6 +25273,8 @@ body.green .landing-card-config input:focus {
   transition: opacity 0.1s, color 0.1s;
 }
 .yt-pl-del-btn:hover { opacity: 1; color: var(--rose); }
+/* Favorites shows a heart instead of the delete ✕ (it can't be deleted) */
+.yt-pl-fav { color: var(--rose); font-size: var(--fs-sm); padding: 0 6px; flex-shrink: 0; cursor: default; }
 
 /* ── Full Playlist Manager View ──
    Redesign phase 9 part 7: the shared page title, the playlists first, then

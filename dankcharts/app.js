@@ -23591,6 +23591,7 @@ function _calCreatePlConfirm() {
   const name = nameInput.value.trim();
   if (!name) { nameInput.focus(); return; }
   if (!_calCreatePlTracks || !_calCreatePlTracks.length) return;
+  if (_ytIsFavName(name)) { _ytFavLockedToast(true); nameInput.focus(); return; }
   _ytPlaylists[name] = _calCreatePlTracks;
   _ytTouchPlaylist(name);
   _ytSavePlaylists();
@@ -35539,6 +35540,14 @@ function _ytUpdateScrobbleNote(dur) {
 // for every data source. With Last.fm connected the song is also loved
 // (track.love) or unloved there.
 const _YT_FAV = 'Favorites';
+// Favorites can't be deleted or renamed, and no other playlist may take its
+// name (case-insensitive), so the heart always finds it
+function _ytIsFavName(name) { return String(name || '').trim().toLowerCase() === _YT_FAV.toLowerCase(); }
+function _ytFavLockedToast(nameTaken) {
+  if (typeof dcPlToast !== 'function') return;
+  dcPlToast(nameTaken ? '"Favorites" is the playlist for the songs you heart. Pick another name.'
+                      : 'Favorites can\'t be deleted or renamed. It holds the songs you heart in the player.');
+}
 const _ytSameSong = (a, b) => a && b && String(a.title).toLowerCase().trim() === String(b.title).toLowerCase().trim()
                               && String(a.artist).toLowerCase().trim() === String(b.artist).toLowerCase().trim();
 function _ytIsFavorite(track) {
@@ -37191,6 +37200,13 @@ function _ytTouchPlaylist(name) {
 // Call whenever a playlist is deleted, so the deletion propagates correctly even if
 // another device still has a stale local copy (see _ytMergePlaylists).
 function _ytMarkPlaylistDeleted(name) {
+  // Favorites (the heart's playlist) is never deleted: removing its last song
+  // leaves it empty, and nothing else may delete it
+  if (_ytIsFavName(name)) {
+    if (!Array.isArray(_ytPlaylists[name])) _ytPlaylists[name] = [];
+    _ytTouchPlaylist(name);
+    return;
+  }
   delete _ytPlaylists[name];
   delete _ytPlaylistModified[name];
   _ytDeletedPlaylists[name] = Date.now();
@@ -37230,6 +37246,7 @@ function _ytMergePlaylists(remote) {
 
     const mergedPlaylists = Object.assign({}, remotePlaylists, _ytPlaylists); // local wins on same-name conflict
     for (const name of Object.keys(mergedPlaylists)) {
+      if (_ytIsFavName(name)) { delete mergedDeleted[name]; continue; }   // Favorites can't be deleted
       const deletedAt = mergedDeleted[name] || 0;
       const modifiedAt = mergedModified[name] || 0;
       if (deletedAt > modifiedAt) delete mergedPlaylists[name];
@@ -37291,7 +37308,7 @@ function _ytRenderPlaylists() {
       `<div class="yt-pl-item">` +
       `<button class="yt-pl-load-btn" onclick="_ytLoadPlaylist(${JSON.stringify(n)})" title="Load">${esc(n)}</button>` +
       `<span class="yt-pl-count">${_ytPlaylists[n].length}</span>` +
-      `<button class="yt-pl-del-btn" onclick="_ytDeletePlaylist(${JSON.stringify(n)})" title="Delete">✕</button>` +
+      (_ytIsFavName(n) ? `<span class="yt-pl-fav" title="Your hearted songs — can't be deleted">♥</span>` : `<button class="yt-pl-del-btn" onclick="_ytDeletePlaylist(${JSON.stringify(n)})" title="Delete">✕</button>`) +
       `</div>`
     ).join('');
   }
@@ -37300,6 +37317,7 @@ function _ytRenderPlaylists() {
 
 function _ytSaveCurrentQueue(name) {
   if (!name) return;
+  if (_ytIsFavName(name)) { _ytFavLockedToast(true); return; }
   const tracks = [];
   if (_ytCurrentTrack) tracks.push({ title: _ytCurrentTrack.title, artist: _ytCurrentTrack.artist, album: _ytCurrentTrack.album });
   _ytQueue.forEach(t => tracks.push({ title: t.title, artist: t.artist, album: t.album }));
@@ -37324,6 +37342,7 @@ function _ytLoadPlaylist(name) {
 }
 
 function _ytDeletePlaylist(name) {
+  if (_ytIsFavName(name)) { _ytFavLockedToast(); return; }
   _ytMarkPlaylistDeleted(name);
   _ytSavePlaylists();
   _ytRenderPlaylists();
@@ -37842,8 +37861,9 @@ function _dcPlDetailHtml(name) {
     `<span class="plx-hero-tools">` +
     // Export: Export Playlist window / download CSV / download text (dcPlExportMenu)
     `<button type="button" class="dc-btn dc-btn-plain dc-btn-icon" onclick="dcPlExportMenu(${nameJson},this)" title="${esc(t('pl_view_export'))}" aria-label="${esc(t('pl_view_export'))}" aria-haspopup="menu">${_DC_PL_SVG.export}</button>` +
+    (_ytIsFavName(name) ? '' :
     `<button type="button" class="dc-btn dc-btn-plain dc-btn-icon" onclick="dcPlStartRename(${nameJson})" title="${esc(t('pl_view_rename'))}" aria-label="${esc(t('pl_view_rename'))}">${_DC_PL_SVG.rename}</button>` +
-    `<button type="button" class="dc-btn dc-btn-plain dc-btn-icon dc-btn-danger" onclick="dcPlDeleteFromView(${nameJson})" title="${esc(t('pl_view_delete'))}" aria-label="${esc(t('pl_view_delete'))}">${_DC_PL_SVG.trash}</button>` +
+    `<button type="button" class="dc-btn dc-btn-plain dc-btn-icon dc-btn-danger" onclick="dcPlDeleteFromView(${nameJson})" title="${esc(t('pl_view_delete'))}" aria-label="${esc(t('pl_view_delete'))}">${_DC_PL_SVG.trash}</button>`) +
     `</span></div></div></header>`;
 
   // The songs, numbered; the number turns into a drag grip on hover
@@ -38048,6 +38068,7 @@ function dcPlResume() {
 
 // Replace the name span with an inline input to rename a playlist in-place
 function dcPlStartRename(oldName) {
+  if (_ytIsFavName(oldName)) { _ytFavLockedToast(); return; }
   const nameEls = document.querySelectorAll('.dc-pl-name');
   let targetEl = null;
   nameEls.forEach(el => { if (el.textContent === oldName) targetEl = el; });
@@ -38077,6 +38098,7 @@ function dcPlStartRename(oldName) {
 // Commit an in-place rename — rebuilds the playlist object to preserve order
 function dcPlConfirmRename(oldName, newName) {
   if (!newName || newName === oldName) { dcRenderPlaylistsView(); return; }
+  if (_ytIsFavName(oldName) || _ytIsFavName(newName)) { dcRenderPlaylistsView(); _ytFavLockedToast(_ytIsFavName(newName)); return; }
   if (_ytPlaylists[newName] !== undefined) {
     // The list goes back to normal straight away; the rename happens only
     // if Replace is pressed
@@ -38107,6 +38129,7 @@ function _dcPlDoRename(oldName, newName) {
 
 // Delete a playlist from the manager view
 function dcPlDeleteFromView(name) {
+  if (_ytIsFavName(name)) { _ytFavLockedToast(); return; }
   const pl = _ytPlaylists[name];
   if (!pl) return;
   if (typeof window.dcConfirmBox === 'function') {
@@ -38116,6 +38139,7 @@ function dcPlDeleteFromView(name) {
 }
 
 function _dcPlDoDelete(name) {
+  if (_ytIsFavName(name)) return;
   if (_ytPlaylists[name] === undefined) return;
   _ytMarkPlaylistDeleted(name);
   if (_dcPlExpandedName === name) _dcPlExpandedName = null;
