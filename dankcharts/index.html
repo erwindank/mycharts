@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=940">
+  <link rel="stylesheet" href="style.css?v=941">
   <!-- The Charts Guide's lessons (guide.js, GUIDE-PLAN.md) -->
   <link rel="stylesheet" href="guide.css?v=5">
   <!-- All scripts are deferred so the page paints without waiting on them.
@@ -4427,7 +4427,7 @@
   <!-- One behaviour and one icon set for every pop-up window (phase 10); before
        app.js so dcIco() is there when app.js draws a window -->
   <script defer src="popups.js?v=13"></script>
-  <script defer src="app.js?v=687"></script>
+  <script defer src="app.js?v=688"></script>
   <!-- The song / album / artist details side panel (phase 10 step 3); wraps app.js's open functions -->
   <script defer src="panel.js?v=16"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
@@ -5638,6 +5638,15 @@ function deleteGenreTriggers() {
       <div id="ytMiniArtist" class="yt-mini-artist"></div>
       <div id="ytMiniStatus" class="yt-mini-status"></div>
     </div>
+    <!-- Step 8: add to a playlist, and the heart (adds to / removes from "Favorites") -->
+    <div class="ytp-song-acts">
+      <button id="ytAddPlBtn" type="button" class="ytp-song-act" onclick="_ytAddToPlaylist()" title="Add to a playlist [P]" aria-label="Add to a playlist">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+      <button id="ytLoveBtn" type="button" class="ytp-song-act ytp-love" onclick="_ytToggleLove()" title="Add to Favorites [K]" aria-label="Add to Favorites" aria-pressed="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>
+      </button>
+    </div>
   </div>
 
   <!-- Step 4: the song's chart story from the user's own data — rank this week,
@@ -5744,6 +5753,8 @@ function deleteGenreTriggers() {
       <div class="yt-shortcut-row"><kbd>V</kbd><span>Artwork / video</span></div>
       <div class="yt-shortcut-row"><kbd>H</kbd><span>History</span></div>
       <div class="yt-shortcut-row"><kbd>Q</kbd><span>Up Next</span></div>
+      <div class="yt-shortcut-row"><kbd>K</kbd><span>Add to / remove from Favorites</span></div>
+      <div class="yt-shortcut-row"><kbd>P</kbd><span>Add to a playlist</span></div>
       <div class="yt-shortcut-row"><kbd>?</kbd><span>These shortcuts</span></div>
       <div class="yt-shortcut-row"><kbd>Esc</kbd><span>Close player</span></div>
       <div class="yt-shortcut-divider"></div>

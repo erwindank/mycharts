@@ -24345,6 +24345,32 @@ body.green .landing-card-config input:focus {
 .yt-mini-player .yt-mini-artist { font-size: var(--fs-base); font-weight: 600; margin-top: 4px; }
 .yt-mini-player .yt-mini-status { margin-top: 3px; }
 
+/* Step 8: Add to playlist + heart, beside the song name */
+.yt-mini-player .yt-track-area { align-items: flex-start; }
+.ytp-song-acts { display: flex; gap: 6px; flex-shrink: 0; padding-top: 2px; }
+.ytp-song-act {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--text2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  transition: color var(--t-fast), border-color var(--t-fast), background var(--t-fast);
+}
+.ytp-song-act:hover { color: var(--text); border-color: var(--text3); background: color-mix(in srgb, var(--text) 6%, transparent); }
+.ytp-song-act svg { width: 19px; height: 19px; }
+.ytp-love.on { color: var(--rose); border-color: color-mix(in srgb, var(--rose) 55%, transparent); }
+.ytp-love.on svg { fill: currentColor; }
+@keyframes ytp-pop { 0% { transform: scale(1); } 40% { transform: scale(1.25); } 100% { transform: scale(1); } }
+.ytp-love.pop svg { animation: ytp-pop 0.35s var(--ease); }
+@media (prefers-reduced-motion: reduce) { .ytp-love.pop svg { animation: none; } }
+.yt-mini-player.yt-mini-collapsed .ytp-song-acts { display: none; }
+
 /* Step 4: chart story tiles under the song name */
 .ytp-story { display: grid; gap: 6px; margin: 12px 16px 0; flex-shrink: 0; }
 .ytp-story-tile {

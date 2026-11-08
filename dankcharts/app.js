@@ -34542,6 +34542,7 @@ function openYtPlayer(title, artist, album, btn) {
   document.getElementById('ytMiniArtist').textContent = artist;
   _ytUpdateArt(title, artist, album);
   _ytUpdateChartStory(title, artist);
+  _ytUpdateLoveBtn();   // step 8: filled heart when the song is in Favorites
   if (player.dataset.tab === 'lyrics') setTimeout(_ytFetchLyrics, 0);   // step 6: follow the new song
   const statusEl = document.getElementById('ytMiniStatus');
   statusEl.textContent = 'Searching…';
@@ -35528,6 +35529,70 @@ function _ytUpdateScrobbleNote(dur) {
   } else {
     mark.style.display = 'none';
   }
+}
+
+// ── Heart = Favorites playlist, and Add to playlist (PLAYER-PLAN.md step 8)
+// The heart adds the song to a saved playlist called "Favorites" (made on the
+// first heart) and takes it out again. Favorites is an ordinary playlist:
+// it shows in the Playlists tab and Saved playlists, can be played,
+// reordered and shared, and syncs like the others (_ytSavePlaylists). Works
+// for every data source. With Last.fm connected the song is also loved
+// (track.love) or unloved there.
+const _YT_FAV = 'Favorites';
+const _ytSameSong = (a, b) => a && b && String(a.title).toLowerCase().trim() === String(b.title).toLowerCase().trim()
+                              && String(a.artist).toLowerCase().trim() === String(b.artist).toLowerCase().trim();
+function _ytIsFavorite(track) {
+  const list = _ytPlaylists && _ytPlaylists[_YT_FAV];
+  return !!(track && Array.isArray(list) && list.some(x => _ytSameSong(x, track)));
+}
+function _ytUpdateLoveBtn() {
+  const btn = document.getElementById('ytLoveBtn');
+  if (!btn) return;
+  const on = _ytIsFavorite(_ytCurrentTrack);
+  btn.classList.toggle('on', on);
+  btn.setAttribute('aria-pressed', String(on));
+  const label = on ? 'In Favorites — click to remove [K]' : 'Add to Favorites [K]';
+  btn.title = label;   // an open hover label picks the new text up by itself
+  btn.setAttribute('aria-label', on ? 'Remove from Favorites' : 'Add to Favorites');
+}
+function _ytToggleLove() {
+  const tr = _ytCurrentTrack;
+  if (!tr) return;
+  const on = _ytIsFavorite(tr);
+  if (on) {
+    _ytPlaylists[_YT_FAV] = (_ytPlaylists[_YT_FAV] || []).filter(x => !_ytSameSong(x, tr));
+  } else {
+    if (!Array.isArray(_ytPlaylists[_YT_FAV])) _ytPlaylists[_YT_FAV] = [];
+    _ytPlaylists[_YT_FAV].push({ title: tr.title, artist: tr.artist, album: tr.album || '' });
+  }
+  _ytTouchPlaylist(_YT_FAV);
+  _ytSavePlaylists();
+  if (typeof _ytRenderPlaylists === 'function') _ytRenderPlaylists();
+  if (typeof currentPeriod !== 'undefined' && currentPeriod === 'playlists' && typeof dcRenderPlaylistsView === 'function') dcRenderPlaylistsView();
+  _ytUpdateLoveBtn();
+  const btn = document.getElementById('ytLoveBtn');
+  if (btn && !on) { btn.classList.remove('pop'); void btn.offsetWidth; btn.classList.add('pop'); }
+  if (typeof dcPlToast === 'function') dcPlToast(on ? 'Removed from Favorites' : 'Added to Favorites');
+  // Last.fm: love / unlove too, quietly (a failure doesn't undo Favorites)
+  try {
+    if (getScrobbleSession() && getScrobbleUser()) {
+      lfmPost({ method: on ? 'track.unlove' : 'track.love', artist: tr.artist, track: tr.title, sk: getScrobbleSession() }).catch(() => {});
+    }
+  } catch (e) {}
+}
+function _ytAddToPlaylist() {
+  const tr = _ytCurrentTrack;
+  if (!tr || typeof dcOpenPlaylistPicker !== 'function') return;
+  dcOpenPlaylistPicker([{ title: tr.title, artist: tr.artist, album: tr.album || '' }], tr.title, tr.title);
+}
+// The heart also follows changes made elsewhere (the playlist picker,
+// the Playlists tab, a sync from another device)
+function _ytInitLove() {
+  ['_ytSavePlaylists', '_ytMergePlaylists'].forEach(fnName => {
+    const orig = window[fnName];
+    if (typeof orig !== 'function') return;
+    window[fnName] = function () { const r = orig.apply(this, arguments); try { _ytUpdateLoveBtn(); } catch (e) {} return r; };
+  });
 }
 
 // ── Previous (PLAYER-PLAN.md step 2) ─────────────────────────────────────
@@ -36745,6 +36810,8 @@ document.addEventListener('keydown', e => {
   else if (key === 'm' || key === 'M') { e.preventDefault(); _ytToggleCollapse(); }
   else if (key === '0')                { e.preventDefault(); _ytToggleMute(); }
   else if (key === 'q' || key === 'Q') { e.preventDefault(); _ytShowTab('next'); }
+  else if (key === 'k' || key === 'K') { e.preventDefault(); _ytToggleLove(); }
+  else if (key === 'p' || key === 'P') { e.preventDefault(); _ytAddToPlaylist(); }
   else if (key === 'v' || key === 'V') { e.preventDefault(); _ytSetMediaMode(_ytMediaMode === 'video' ? 'art' : 'video'); }
   else if (key === 'ArrowLeft')        { e.preventDefault(); if (_ytPlayer) { try { _ytPlayer.seekTo(Math.max(0, _ytPlayer.getCurrentTime() - 10), true); } catch(ex) {} } }
   else if (key === 'ArrowRight')       { e.preventDefault(); if (_ytPlayer) { try { _ytPlayer.seekTo(_ytPlayer.getCurrentTime() + 10, true); } catch(ex) {} } }
@@ -36779,6 +36846,7 @@ _ytUpdateRepeatBtn();
 _ytUpdateShuffleBtn(); // step 2: remembered shuffle state
 _ytSetMediaMode(_ytMediaMode, true); // step 3: remembered artwork / video choice
 _ytInitTabs();                       // step 6: tabs + the old toggles routed through them
+_ytInitLove();                       // step 8: heart follows Favorites, also after a sync
 _ytLoadPlaylists();
 _ytUpdateSpeedBtn();
 _ytUpdateCrossfadeBtn();
