@@ -1636,7 +1636,7 @@ const SHOTS = [
       await pg.evaluate(() => { document.querySelector('#ytMiniPlayer .yt-panels-zone').style.maxHeight = 'none'; }); await wait(pg, 400); },
     clip: { from: '#ytMiniPlayer', to: '#ytMiniPlayer', pad: 12, narrow: true },
     spots: { search: '.ytp-tool-search', similar: '.ytp-tool-similar', sleep: '.ytp-tool-sleep', speed: '.ytp-tool-speed', xfade: '.ytp-tool-xfade',
-      scrobble: '.ytp-tool-scrobble', lists: '.ytp-tool-lists', share: '.ytp-tool-share', pip: '.ytp-tool-pip', youtube: '.ytp-tool-youtube',
+      scrobble: '.ytp-tool-scrobble', lists: '.ytp-tool-lists', share: '.ytp-tool-share', pip: '.ytp-tool-pip', youtube: '.ytp-tool-youtube', wake: '.ytp-tool-wake',
       keys: '.ytp-tool-keys', tour: '.ytp-tool-tour' } },
   { id: 'np-lyrics', lesson: 'player', phone: true, vpm: { width: 390, height: 844 },
     setup: async pg => { await npOpen(pg, { tab: 'lyrics' }); await pg.evaluate(() => { try { _ytPlayer.seekTo(45, true); } catch (e) {} }); await wait(pg, 2500); },

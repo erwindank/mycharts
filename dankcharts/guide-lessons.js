@@ -893,7 +893,7 @@ window.GL = {
         { id: 'play', shot: 'np-card', phone: true,
           spots: ['seek', 'mark', 'note', 'shuffle', 'prev', 'play', 'next', 'repeat', 'tabs', 'queue', 'vol', 'speed', 'sleep', 'help'] },
         { id: 'tools', shot: 'np-tools',
-          spots: ['search', 'similar', 'sleep', 'speed', 'xfade', 'scrobble', 'lists', 'share', 'pip', 'youtube', 'keys', 'tour'] },
+          spots: ['search', 'similar', 'sleep', 'speed', 'xfade', 'scrobble', 'lists', 'share', 'pip', 'youtube', 'wake', 'keys', 'tour'] },
         { id: 'lyrics', shot: 'np-lyrics', phone: true, spots: ['pill', 'nudge', 'now', 'line'] },
         { id: 'find', shot: 'np-find', spots: ['back', 'search', 'paste', 'use'] },
         { id: 'small', shot: 'np-bar', spots: ['who', 'love', 'play', 'open', 'close'] },
@@ -919,11 +919,12 @@ window.GL = {
         { id: 'play', items: [
           { id: 'speed', shot: 'np-tools', spot: 'speed', def: '1×' }, { id: 'xfade', shot: 'np-tools', spot: 'xfade', def: 'off' },
           { id: 'scrobble', shot: 'np-tools', spot: 'scrobble', def: '30s' }, { id: 'sleep', shot: 'np-tools', spot: 'sleep', def: 'off' },
-          { id: 'shuffle', shot: 'np-card', spot: 'shuffle', def: 'off' }, { id: 'repeat', shot: 'np-card', spot: 'repeat', def: 'off' } ] }
+          { id: 'shuffle', shot: 'np-card', spot: 'shuffle', def: 'off' }, { id: 'repeat', shot: 'np-card', spot: 'repeat', def: 'off' },
+          { id: 'wake', shot: 'np-tools', spot: 'wake', def: 'off' } ] }
       ],
       challenges: ['np.open', 'np.tab', 'np.love', 'np.find', 'np.sleep', 'np.stage', 'np.bar', 'np.tour'],
       quiz: [ { id: 'q1', answer: 1 }, { id: 'q2', answer: 2 }, { id: 'q3', answer: 0 } ],
-      tips: [ ['np-card', 'mark', 'np.open'], ['np-find', 'paste', 'np.find'], ['np-lyrics', 'now', 'np.tab'], ['np-stage', 'video', 'np.stage'] ]
+      tips: [ ['np-card', 'mark', 'np.open'], ['np-find', 'paste', 'np.find'], ['np-lyrics', 'now', 'np.tab'], ['np-stage', 'video', 'np.stage'], ['np-tools', 'wake', 'np.tab'] ]
     },
     { id: 'rawdata', area: 'more', nav: 'rawdata', mins: 5, cover: 'rd-top',
       scenes: [
@@ -3938,6 +3939,7 @@ window.GL_TEXT.en = {
           share: ['Share', 'Copies the song and its YouTube link.'],
           pip: ['Pop-out window', 'A small player that stays on top of other apps.'],
           youtube: ['Open on YouTube', 'The video on youtube.com.'],
+          wake: ['Keep screen on', 'On a phone, the music stops if the screen locks. Turn this on to keep it going.'],
           keys: ['Keys & settings', 'Every key the player knows.'],
           tour: ['Take the tour', 'The one-minute walk through the player.']
         } },
@@ -4015,7 +4017,8 @@ window.GL_TEXT.en = {
           scrobble: ['Scrobble at', 'When a play counts.'],
           sleep: ['Sleep timer', 'Stops the music after a while.'],
           shuffle: ['Shuffle', 'Random order from Up Next.'],
-          repeat: ['Repeat', 'All, or one song.']
+          repeat: ['Repeat', 'All, or one song.'],
+          wake: ['Keep screen on', 'On a phone, the music stops if the screen locks. This keeps the screen on while music plays.']
         } }
       },
       challenges: {
@@ -4043,7 +4046,8 @@ window.GL_TEXT.en = {
         'The green mark on the progress bar is where the play gets scrobbled.',
         'Wrong video? Paste the right YouTube link and the player remembers it.',
         'Click any line of the lyrics to jump to that part of the song.',
-        'Press G for Stage mode: the video big, the lyrics beside it.'
+        'Press G for Stage mode: the video big, the lyrics beside it.',
+        'On a phone, the music stops if the screen locks. Turn on Keep screen on in Tools to keep it going.'
       ]
     },
     rawdata: {

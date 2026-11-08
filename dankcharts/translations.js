@@ -5349,6 +5349,9 @@ const TRANSLATIONS = {
     yt_np_connect: 'Connect',
     yt_np_scrobble_failed: 'Scrobble failed',
     yt_np_mark_title: 'Play past this mark and it counts',
+    yt_np_wake_on: 'Screen stays on while music plays',
+    yt_np_wake_off: 'Screen can lock again',
+    yt_np_wake_unsupported: 'This browser can’t keep the screen on',
     // Signed-out visitors only get songs someone already found (see _ytNeedsSignIn)
     yt_signin_needed: 'Sign in to play songs nobody has played here yet.',
     yt_signin_btn: 'Sign in →',

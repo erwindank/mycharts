@@ -34946,6 +34946,7 @@ function _ytOnState(event) {
   const ytCard = document.getElementById('ytMiniPlayer');
   if (ytCard) ytCard.classList.toggle('yt-is-playing', event.data === YT.PlayerState.PLAYING);
   _ytBarSync();   // step 9
+  _ytWakeSync();  // step 14: keep the screen on while playing (if chosen)
   if (event.data === YT.PlayerState.PLAYING) {
     clearTimeout(_ytScrobbleTimer);
     if (!_ytScrobbled) {
@@ -35782,6 +35783,7 @@ function _ytInitBar() {
   const orig = window.closeYtPlayer;
   if (typeof orig !== 'function') return;
   window.closeYtPlayer = function () {
+    if (_ytWakeLock) { try { _ytWakeLock.release(); } catch (e) {} _ytWakeLock = null; }   // step 14
     const bar = document.getElementById('ytBar');
     if (bar) bar.style.display = 'none';
     document.body.classList.remove('ytp-bar-open');
@@ -36006,6 +36008,38 @@ function _ytGuideOpen() {
   const pick = top ? top.p : allPlays[0];
   openYtPlayer(pick.title, pick.artist, pick.album || '', null);
 }
+
+// ── Keep screen on (PLAYER-PLAN.md step 14) ────────────────────────────
+// Phones pause the YouTube player when the screen locks (iPhones always,
+// Android often), and a website can't play in the background. With this on
+// (Tools → Keep screen on, remembered), the screen doesn't go to sleep while
+// music plays, so it keeps going. Uses the Wake Lock API (Chrome, Edge,
+// Android, Safari 16.4+); the lock is let go on pause and when the page is
+// hidden, and taken again when it comes back.
+let _ytWakeOn = (() => { try { return localStorage.getItem('yt-wake') === '1'; } catch (e) { return false; } })();
+let _ytWakeLock = null;
+function _ytWakeSupported() { return !!(navigator.wakeLock && navigator.wakeLock.request); }
+async function _ytWakeSync() {
+  const card = document.getElementById('ytMiniPlayer');
+  const want = _ytWakeOn && _ytWakeSupported() && !document.hidden && card && card.style.display !== 'none' && card.classList.contains('yt-is-playing');
+  try {
+    if (want && !_ytWakeLock) {
+      _ytWakeLock = await navigator.wakeLock.request('screen');
+      _ytWakeLock.addEventListener('release', () => { _ytWakeLock = null; });
+    } else if (!want && _ytWakeLock) {
+      const l = _ytWakeLock; _ytWakeLock = null; await l.release();
+    }
+  } catch (e) { _ytWakeLock = null; /* refused (battery saver, no permission) */ }
+}
+function _ytToggleWake() {
+  if (!_ytWakeSupported()) { if (typeof dcPlToast === 'function') dcPlToast(t('yt_np_wake_unsupported')); return; }
+  _ytWakeOn = !_ytWakeOn;
+  try { localStorage.setItem('yt-wake', _ytWakeOn ? '1' : '0'); } catch (e) {}
+  _ytWakeSync();
+  _ytToolsRefresh();
+  if (typeof dcPlToast === 'function') dcPlToast(t(_ytWakeOn ? 'yt_np_wake_on' : 'yt_np_wake_off'));
+}
+document.addEventListener('visibilitychange', () => { _ytWakeSync(); });
 
 // ── Previous (PLAYER-PLAN.md step 2) ─────────────────────────────────────
 // More than 3 seconds in: back to the start of the song. Otherwise: the song
@@ -38786,6 +38820,7 @@ function _ytRenderTools() {
     ['share',   'Share', 'Copies the song and its YouTube link.', 'Copy', 'M4 12v8h16v-8M16 6l-4-4-4 4M12 2v13', '_ytShare()'],
     ['pip',     'Pop-out window', 'A small player that stays on top of other apps.', _ytPipWindow ? 'On' : 'Off', 'M3 4h18v14H3zM13 11h7v6h-7z', '_ytTogglePiP().then(_ytRenderTools)'],
     ['youtube', 'Open on YouTube', 'Watch this video on youtube.com.', 'New tab', 'M2 6h20v12H2zM10 9l5 3-5 3z', '_ytOpenInYT()'],
+    ['wake',    'Keep screen on', 'Stops the phone from locking while music plays, so it keeps going.', !_ytWakeSupported() ? 'Not here' : (_ytWakeOn ? 'On' : 'Off'), 'M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM12 18h.01', '_ytToggleWake()'],
     ['keys',    'Keys & settings', 'Every key the player knows, and its settings.', 'List', 'M2 6h20v12H2zM6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8', '_ytToggleShortcuts()'],
     ['tour',    'Take the tour', 'A one-minute walk through the player.', _YT_TOUR.length + ' stops', 'M12 2l3 7 7 .6-5.3 4.6L18.4 22 12 18l-6.4 4 1.7-7.8L2 9.6 9 9z', '_ytStartTour()'],
   ];
