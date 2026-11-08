@@ -34939,6 +34939,8 @@ function _ytOnState(event) {
     if (pauseBtn) { pauseBtn.innerHTML = _YT_IC.pause; pauseBtn.title = 'Pause [Space]'; }
     if (_ytActiveBtn) { _ytActiveBtn.classList.remove('yt-btn-loading'); _ytActiveBtn.classList.add('yt-btn-playing'); }
     if (_ytChosen && _ytChosen.id === _ytCurrentVideoId) _ytChosenPlayed();
+    // "Find a version that plays" found one: replace the "Looking for…" note
+    { const pm = document.getElementById('ytPasteMsg'); if (pm && pm.textContent.startsWith('Looking for a version')) _ytPasteMsg('Found a version that plays.', 'ok'); }
     if (!_ytHistoryRecorded && _ytCurrentTrack) {
       _ytHistoryRecorded = true;
       _ytRecordHistory(_ytCurrentTrack.title, _ytCurrentTrack.artist, _ytCurrentTrack.album);
@@ -35005,8 +35007,10 @@ function _ytOnError(event) {
   if (_ytChosen && _ytChosen.id === _ytCurrentVideoId) {
     _ytChosen = null;
     if (_ytActiveBtn) _ytActiveBtn.classList.remove('yt-btn-loading', 'yt-btn-playing');
-    _ytPasteMsg('That video can\'t be played on other sites. Try another link.', 'err');
-    if (statusEl) { statusEl.innerHTML = `This video can't play here — <button class="yt-err-open-btn" onclick="_ytOpenPaste()">try another link</button>`; statusEl.className = 'yt-mini-status err'; }
+    if (_ytCurrentVideoId) _ytFreeBad.add(_ytCurrentVideoId);
+    _ytBlockedMsg();
+    _ytOpenPaste();
+    if (statusEl) { statusEl.textContent = 'This video only plays on YouTube'; statusEl.className = 'yt-mini-status err'; }
     return;
   }
   // This video can't play here, so don't hand it to the next person either
@@ -35345,7 +35349,7 @@ async function _ytCheckAndShare(id, how) {
   if (!track) return false;
   const info = await _ytOEmbed(id);
   if (track !== _ytCurrentTrack) return false;   // the song changed meanwhile
-  if (!info.ok && info.why === 'noembed') { _ytPasteMsg('That video can\'t be played on other sites. Try another link.', 'err'); return false; }
+  if (!info.ok && info.why === 'noembed') { _ytBlockedMsg(); return false; }
   if (!info.ok && info.why === 'missing') { _ytPasteMsg('That video doesn\'t exist any more, or it\'s private. Try another link.', 'err'); return false; }
   // Couldn't reach YouTube to check: play it, but don't share an unchecked video
   const verdict = info.ok ? _ytMatchVerdict(info.title, info.author, track) : 'unchecked';
@@ -35357,27 +35361,46 @@ async function _ytCheckAndShare(id, how) {
   return true;
 }
 
+// A video YouTube won't play outside youtube.com (common for official label
+// / VEVO music videos, even when YouTube says it may be embedded)
+function _ytBlockedMsg() {
+  const el = document.getElementById('ytPasteMsg');
+  if (!el) return;
+  el.className = 'ytp-paste-msg err';
+  el.innerHTML = 'YouTube doesn\'t let this video play outside YouTube. Official music videos often do this — the song\'s audio or lyric video usually works.' +
+    '<span class="ytp-ask-btns"><button type="button" class="ytp-ask-btn ytp-ask-yes" onclick="_ytFindPlayable()">Find a version that plays</button></span>';
+}
+// Looks for the audio / lyric versions, the same way the player does by itself
+// when a video fails (shared memory first, then YouTube's search)
+function _ytFindPlayable() {
+  if (!_ytCurrentTrack) return;
+  const { title, artist } = _ytCurrentTrack;
+  _ytPasteMsg('Looking for a version that plays…', '');
+  _ytEmbedRetry = 0;
+  _ytSearch(null, null, `${artist} ${title} audio`);
+}
+
 // Called once the chosen video really plays
 function _ytChosenPlayed() {
+  // The messages only talk about this listener's video. Saving it to the
+  // site-wide memory (so the next person gets it too) happens quietly.
   const c = _ytChosen; _ytChosen = null;
   if (!c || !_ytCurrentTrack) return;
   const song = `“${_ytCurrentTrack.title}” by ${_ytCurrentTrack.artist}`;
-  const signedIn = typeof dcIsSignedIn === 'function' && dcIsSignedIn();
   if (c.verdict === 'clear') {
     _ytMemPut(c.key, c.id);
-    _ytPasteMsg(signedIn ? 'Matches the song — saved for everyone. Thanks!' : 'Matches the song. Sign in to save it for everyone.', 'ok');
+    _ytPasteMsg('Playing your video.', 'ok');
   } else if (c.verdict === 'partial') {
     const el = document.getElementById('ytPasteMsg');
     if (!el) return;
     el.className = 'ytp-paste-msg ask';
-    el.innerHTML = `“${esc(c.title)}” — is this ${esc(song)}? ` +
-      (signedIn
-        ? `<span class="ytp-ask-btns"><button type="button" class="ytp-ask-btn ytp-ask-yes" onclick="_ytMemPut(${esc(JSON.stringify(c.key))},'${c.id}');_ytPasteMsg('Saved for everyone. Thanks!','ok')">Yes, save it for everyone</button><button type="button" class="ytp-ask-btn" onclick="_ytPasteMsg('Playing just for you.','')">Just for me</button></span>`
-        : `It plays just for you.`);
+    el.innerHTML = `Is “${esc(c.title)}” the right video for ${esc(song)}?` +
+      `<span class="ytp-ask-btns"><button type="button" class="ytp-ask-btn ytp-ask-yes" onclick="_ytMemPut(${esc(JSON.stringify(c.key))},'${c.id}');_ytPasteMsg('Thanks!','ok')">Yes</button>` +
+      `<button type="button" class="ytp-ask-btn" onclick="_ytPasteMsg('OK — it plays just this time.','')">No, just play it</button></span>`;
   } else if (c.verdict === 'none') {
-    _ytPasteMsg(`This video (“${c.title}”) doesn't look like ${song}, so it plays just for you and isn't shared.`, 'warn');
+    _ytPasteMsg(`“${c.title}” doesn't look like ${song}. It plays just this time.`, 'warn');
   } else {
-    _ytPasteMsg('Couldn\'t check the video with YouTube, so it plays just for you.', 'warn');
+    _ytPasteMsg('Playing your video.', '');
   }
 }
 
