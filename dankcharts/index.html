@@ -5251,17 +5251,6 @@ function deleteGenreTriggers() {
         <p class="src-modal-hint rt-sep-hint" data-i18n="set_ms_hint">Which service the search button next to every song, artist and album opens.</p>
       </div>
 
-      <!-- Music player: how the player looks when shrunk (⌄ or M) on big
-           screens. Buttons built by app.js (_ytBuildMiniStyleSwitcher), saved
-           at once and synced (dc_player_mini_style), like Search buttons. -->
-      <div class="cert-config-group">
-        <div class="cert-config-title"><span class="set-group-ico" data-ico="listmusic"></span><span data-i18n="set_pm_title">Music player</span></div>
-        <div class="set-row rt-sep-row">
-          <span class="rt-sep-label" data-i18n="set_pm_label">Shrunk player on big screens</span>
-          <div class="dc-seg rt-sep-seg" role="group" id="playerMiniSwitcher"></div>
-        </div>
-        <p class="src-modal-hint rt-sep-hint" data-i18n="set_pm_hint">How the player looks after you shrink it with ⌄ or M. On phones it is always a bar along the bottom.</p>
-      </div>
 
 
 
@@ -5555,6 +5544,18 @@ function deleteGenreTriggers() {
             <button type="button" class="lang-btn" data-lang="pt-BR" onclick="setLanguage('pt-BR')">Português (BR)</button>
             <button type="button" class="lang-btn" data-lang="pt-PT" onclick="setLanguage('pt-PT')">Português (PT)</button>
           </div>
+        </div>
+
+        <!-- Music player: how the player looks when shrunk (⌄ or M) on big
+             screens. Buttons built by app.js (_ytBuildMiniStyleSwitcher), saved
+             at once and synced (dc_player_mini_style), like Search buttons. -->
+        <div class="cert-config-group">
+          <div class="cert-config-title"><span class="set-group-ico" data-ico="listmusic"></span><span data-i18n="set_pm_title">Music player</span></div>
+          <div class="set-row rt-sep-row">
+            <span class="rt-sep-label" data-i18n="set_pm_label">Shrunk player on big screens</span>
+            <div class="dc-seg rt-sep-seg" role="group" id="playerMiniSwitcher"></div>
+          </div>
+          <p class="src-modal-hint rt-sep-hint" data-i18n="set_pm_hint">How the player looks after you shrink it with ⌄ or M. On phones it is always a bar along the bottom.</p>
         </div>
 
         <!-- Backups: snapshots of settings, awards and ratings kept in the

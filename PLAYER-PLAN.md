@@ -151,7 +151,7 @@ lyrics, fall back to today's source (lyrics.ovh) as plain text. Clear
   top. Dragging the card, PiP and the remembered position keep working.
 
 **Shrunk player style on big screens (added 2026-11-08, user's choice).**
-Settings → Charts → Music player: **Corner capsule** (default — a compact
+Settings → Profile → Music player: **Corner capsule** (default — a compact
 mini player bottom-right, draggable, position remembered), **Full-width
 player** (progress bar with times, volume) or **Simple bar**. Phones always
 get the simple bar. Saved at once and synced (`dc_player_mini_style`).
