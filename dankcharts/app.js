@@ -36667,10 +36667,31 @@ document.addEventListener('visibilitychange', () => {
 });
 
 // ── Queue shuffle ───────────────────────────────────────────────────
+/* The Shuffle button in Up Next is a toggle:
+     1st tap  → remembers the current order, then shuffles
+     2nd tap  → puts the songs back in the remembered order
+     3rd tap  → remembers that order again and shuffles anew, and so on.
+   The remembered order holds the queue items themselves (same objects), so
+   songs played or removed while shuffled simply drop out, and songs added
+   while shuffled keep their spot at the end when the order is restored.
+   Memory only: a page reload forgets it (the queue stays as it is). */
+var _ytQueueOrigOrder = null; // null = not shuffled (var: the queue panel may draw before this line runs)
 function _ytShuffleQueue() {
-  for (let i = _ytQueue.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [_ytQueue[i], _ytQueue[j]] = [_ytQueue[j], _ytQueue[i]];
+  if (_ytQueueOrigOrder) {
+    // Back to the order from before the shuffle
+    const still = new Set(_ytQueue);
+    const back = _ytQueueOrigOrder.filter(item => still.has(item));
+    const kept = new Set(back);
+    const added = _ytQueue.filter(item => !kept.has(item)); // queued while shuffled
+    _ytQueue.splice(0, _ytQueue.length, ...back, ...added);
+    _ytQueueOrigOrder = null;
+  } else {
+    if (_ytQueue.length < 2) return; // nothing to shuffle
+    _ytQueueOrigOrder = _ytQueue.slice();
+    for (let i = _ytQueue.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [_ytQueue[i], _ytQueue[j]] = [_ytQueue[j], _ytQueue[i]];
+    }
   }
   _ytUpdateQueueDisplay();
   _ytSaveQueue();
@@ -36758,6 +36779,8 @@ function _ytUpdateQueueDisplay() {
   const el = document.getElementById('ytMiniQueue');
   if (!el) return;
   const totalVisible = _ytQueuePlayed.length + (_ytCurrentFromQueue ? 1 : 0) + _ytQueue.length;
+  // Up Next ran out or was cleared: nothing left to un-shuffle
+  if (!_ytQueue.length) _ytQueueOrigOrder = null;
 
   // Auto-open the panel when the queue goes from empty → non-empty (#11)
   if (totalVisible > 0 && _ytQueuePrevCount === 0) {
@@ -36797,7 +36820,8 @@ function _ytUpdateQueueDisplay() {
     `<button class="yt-queue-multi-btn${_ytQueueMultiSelect ? ' yt-ctrl-active' : ''}" onclick="_ytToggleQueueMultiSelect()" title="${esc(t('yt_np_q_multi'))}">` +
     `<svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="4" height="4" rx="0.5"/><rect x="3" y="11" width="4" height="4" rx="0.5"/><rect x="3" y="17" width="4" height="4" rx="0.5"/><line x1="10" y1="7" x2="21" y2="7"/><line x1="10" y1="13" x2="21" y2="13"/><line x1="10" y1="19" x2="21" y2="19"/></svg>` +
     `</button>` +
-    `<button class="yt-queue-shuffle-btn" onclick="_ytShuffleQueue()" title="${esc(t('yt_np_q_shuffle_t'))}">` +
+    // Shuffle toggle: lit while shuffled; the next tap restores the order
+    `<button class="yt-queue-shuffle-btn${_ytQueueOrigOrder ? ' yt-ctrl-active' : ''}" onclick="_ytShuffleQueue()" aria-pressed="${_ytQueueOrigOrder ? 'true' : 'false'}" title="${esc(t(_ytQueueOrigOrder ? 'yt_np_q_unshuffle_t' : 'yt_np_q_shuffle_t'))}">` +
     `<svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16,3 21,3 21,8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21,16 21,21 16,21"/><line x1="15" y1="15" x2="21" y2="21"/></svg>` +
     ` ${esc(t('yt_np_q_shuffle'))}</button>` +
     `<button class="yt-queue-reverse-btn" onclick="_ytReverseQueue()" title="${esc(t('yt_np_q_rev_t'))}">${esc(t('yt_np_q_rev'))}</button>` + // #16

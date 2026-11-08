@@ -25231,6 +25231,8 @@ body.ytp-stage-open { overflow: hidden; }
   transition: color 0.12s;
 }
 .yt-queue-shuffle-btn:hover { color: var(--text); }
+/* Lit while Up Next is shuffled — the next tap restores the order */
+.yt-queue-shuffle-btn.yt-ctrl-active { color: var(--accent); font-weight: 600; }
 .yt-queue-shuffle-btn .yt-icon { width: 10px; height: 10px; }
 /* Shuffle + clear buttons wrapper */
 .yt-queue-header-btns { display: flex; align-items: center; gap: 0.4em; }
