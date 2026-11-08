@@ -34519,6 +34519,8 @@ function openYtPlayer(title, artist, album, btn) {
   album = (album && album !== '—') ? album : '';
   _ytCurrentTrack    = { title, artist, album };
   _ytChosen = null;            // step 3: a pasted/picked video belongs to the song it was chosen for
+  _ytScrobbleFailed = false;   // step 5
+  _ytUpdateScrobbleNote(0);
   _ytSetVideoSource('');
   try { localStorage.setItem('yt-player-current', JSON.stringify({ title, artist, album })); } catch(e) {}
   _ytCurrentVideoId  = null;
@@ -35065,10 +35067,7 @@ async function _ytScrobble() {
   // stays true so the 50%/70% thresholds don't repeat this every tick.
   if (!hasLfm && !hasSheet) {
     _ytStopScrobbleRing();
-    if (statusEl) {
-      statusEl.innerHTML = `${esc(t('yt_scrobble_no_dest'))} <button class="yt-err-open-btn" onclick="openSourceModal()">${esc(t('yt_scrobble_connect'))}</button>`;
-      statusEl.className = 'yt-mini-status';
-    }
+    _ytUpdateScrobbleNote();   // step 5: the note under the bar already says "Not scrobbling · Connect"
     return;
   }
   try {
@@ -35084,11 +35083,13 @@ async function _ytScrobble() {
       const data = await res.json();
       if (data.status === 'error') throw new Error(data.message || 'Script error');
     }
-    if (statusEl) { statusEl.textContent = '✓ Scrobbled'; statusEl.className = 'yt-mini-status ok'; }
+    _ytScrobbleFailed = false;
+    _ytUpdateScrobbleNote();   // step 5: "✓ Scrobbled to Last.fm" / "✓ Saved to your sheet"
     _ytFlashScrobbleRing();
   } catch (e) {
     _ytScrobbled = false;
-    if (statusEl) { statusEl.textContent = 'Scrobble failed'; statusEl.className = 'yt-mini-status err'; }
+    _ytScrobbleFailed = true;
+    _ytUpdateScrobbleNote();
   }
 }
 
@@ -35458,6 +35459,60 @@ function _ytFillChartStory(el, title, artist) {
     `<b class="${cls}">${esc(v)}</b><small>${esc(lbl)}</small></button>`).join('');
   el.style.gridTemplateColumns = `repeat(${tiles.length}, minmax(0, 1fr))`;
   el.style.display = '';
+}
+
+// ── Scrobble mark + note (PLAYER-PLAN.md step 5) ─────────────────────────
+// A green mark on the progress bar where the play starts to count, from the
+// Scrobble at setting (30 s, 50 %, 70 %, end), and a short note in the
+// middle under the bar:
+//   before the mark   "Counts at 1:26"
+//   after scrobbling  "✓ Scrobbled to Last.fm" / "✓ Saved to your sheet"
+//   nowhere to save   "Not scrobbling · Connect" (opens Settings), no mark
+// The old ring around Play is hidden by the CSS; this replaces it.
+let _ytScrobbleFailed = false;
+let _ytLastDur = 0;
+function _ytScrobbleAtSec(dur) {
+  const th = _ytScrobbleThreshold;
+  if (th === '30s') return 30;
+  if (th === 'end') return dur;
+  return dur * (parseFloat(th) / 100);
+}
+function _ytUpdateScrobbleNote(dur) {
+  if (dur === undefined) dur = _ytLastDur;
+  else _ytLastDur = dur;
+  const note = document.getElementById('ytScrobbleNote');
+  const mark = document.getElementById('ytScrobbleMark');
+  if (!note || !mark) return;
+  const check = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>';
+  if (!_ytCurrentTrack) { note.innerHTML = ''; mark.style.display = 'none'; return; }
+  if (!_ytHasScrobbleDest()) {
+    note.className = 'ytp-scrobble-note';
+    note.innerHTML = `${esc(t('yt_np_not_scrobbling'))} · <button type="button" class="ytp-scrobble-connect" onclick="openSourceModal()" title="${esc(t('yt_scrobble_no_dest'))}">${esc(t('yt_np_connect'))}</button>`;
+    mark.style.display = 'none';
+    return;
+  }
+  const hasLfm = !!(getScrobbleSession() && getScrobbleUser());
+  if (_ytScrobbled) {
+    note.className = 'ytp-scrobble-note done';
+    note.innerHTML = check + esc(t(hasLfm ? 'yt_np_scrobbled_lfm' : 'yt_np_saved_sheet'));
+  } else if (_ytScrobbleFailed) {
+    note.className = 'ytp-scrobble-note err';
+    note.textContent = t('yt_np_scrobble_failed');
+  } else if (dur > 0) {
+    note.className = 'ytp-scrobble-note';
+    note.textContent = _ytScrobbleThreshold === 'end' ? t('yt_np_counts_end') : t('yt_np_counts_at', { time: _ytFmtTime(Math.min(dur, _ytScrobbleAtSec(dur))) });
+  } else {
+    note.innerHTML = '';
+  }
+  if (dur > 0) {
+    const pct = Math.max(0, Math.min(1, _ytScrobbleAtSec(dur) / dur));
+    mark.style.setProperty('--ytp-mark', pct);
+    mark.classList.toggle('passed', _ytScrobbled);
+    mark.title = t('yt_np_mark_title');
+    mark.style.display = '';
+  } else {
+    mark.style.display = 'none';
+  }
 }
 
 // ── Previous (PLAYER-PLAN.md step 2) ─────────────────────────────────────
@@ -35875,6 +35930,7 @@ function _ytUpdateSeekBar() {
     if (bar)   { bar.max = dur; bar.value = cur; }
     if (curEl) curEl.textContent = _ytFmtTime(cur);
     if (durEl) durEl.textContent = _ytFmtTime(dur);
+    _ytUpdateScrobbleNote(dur);
     if (!_ytScrobbled && (_ytScrobbleThreshold === '50%' || _ytScrobbleThreshold === '70%')) {
       const pct = parseFloat(_ytScrobbleThreshold) / 100;
       if (cur / dur >= pct) _ytScrobble();
@@ -36883,6 +36939,7 @@ function _ytCycleScrobbleThreshold() {
   _ytScrobbleThreshold = _YT_SCROBBLE_OPTIONS[(idx + 1) % _YT_SCROBBLE_OPTIONS.length];
   try { localStorage.setItem('yt-scrobble-threshold', _ytScrobbleThreshold); } catch(e) {}
   _ytUpdateScrobbleThresholdBtn();
+  _ytUpdateScrobbleNote();   // step 5: move the mark
 }
 
 function _ytUpdateScrobbleThresholdBtn() {

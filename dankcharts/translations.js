@@ -5333,6 +5333,15 @@ const TRANSLATIONS = {
     np_open_album: 'Open album',
     yt_scrobble_no_dest: 'Not saved — nowhere to scrobble to.',
     yt_scrobble_connect: 'Connect Last.fm →',
+    // Player scrobble note under the progress bar (PLAYER-PLAN.md step 5)
+    yt_np_counts_at: 'Counts at {{time}}',
+    yt_np_counts_end: 'Counts at the end',
+    yt_np_scrobbled_lfm: 'Scrobbled to Last.fm',
+    yt_np_saved_sheet: 'Saved to your sheet',
+    yt_np_not_scrobbling: 'Not scrobbling',
+    yt_np_connect: 'Connect',
+    yt_np_scrobble_failed: 'Scrobble failed',
+    yt_np_mark_title: 'Play past this mark and it counts',
     // Signed-out visitors only get songs someone already found (see _ytNeedsSignIn)
     yt_signin_needed: 'Sign in to play songs nobody has played here yet.',
     yt_signin_btn: 'Sign in →',
