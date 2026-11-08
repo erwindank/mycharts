@@ -527,6 +527,40 @@ const ROW = '#songsBody tr';
 // so :nth-of-type counts them too and can't be used
 const nth = (body, n) => ({ js: `[...document.querySelectorAll('${body} tr[data-ea-key]')][${n - 1}]` });
 const R = n => '#songsBody tr[data-ea-key]:nth-child(' + (2 * n - 1) + ')';
+// The music player open on this week's top song (app.js _ytGuideOpen), on one
+// tab, with four songs in Up Next. The hint is marked seen, the artwork shows
+// (not the video) and the small player is the corner capsule, so pictures
+// look the same each time. It waits for the song to start playing.
+async function npOpen(pg, { tab = 'next', tool = '', bar = false, stage = false, style = 'capsule', media = 'art' } = {}) {
+  await pg.evaluate(({ style, media }) => {
+    localStorage.setItem('dc_player_hint_seen', '1');
+    localStorage.setItem('dc_player_mini_style', style);
+    localStorage.setItem('yt-capsule-pos', '');
+    if (typeof _ytEndTour === 'function') _ytEndTour();
+    const p = document.getElementById('ytMiniPlayer');
+    if (p.style.display === 'none') { _ytGuideOpen(); }
+    if (_ytInStage()) _ytToggleStage(false);
+    if (p.classList.contains('yt-mini-collapsed')) _ytSetBar(false);
+    _ytSetMediaMode(media, true);
+    const h = document.getElementById('ytHint'); if (h) h.style.display = 'none';
+    // The demo library saves plays nowhere, which hides the scrobble mark: for
+    // the pictures, pretend it does, with the mark at half way (not saved)
+    window._ytHasScrobbleDest = () => true; _ytScrobbleThreshold = '50%'; _ytScrobbled = false;
+    try { if (_ytPlayer) _ytPlayer.seekTo(3, true); } catch (e) {}
+    // Up Next: the next four of the week's songs
+    if (_ytQueue.length < 4) {
+      const seen = new Set([songKey(_ytCurrentTrack)]), q = [];
+      for (const x of allPlays) { const k = songKey(x); if (!seen.has(k)) { seen.add(k); q.push({ title: x.title, artist: x.artist, album: x.album || '' }); } if (q.length === 4) break; }
+      _ytQueue = q; _ytUpdateQueueDisplay();
+    }
+  }, { style, media });
+  await pg.waitForFunction(() => _ytPlayer && _ytPlayer.getPlayerState && _ytPlayer.getPlayerState() === 1, null, { timeout: 45000 }).catch(() => {});
+  await pg.evaluate(({ tab, tool }) => { _ytShowTab(tab, tool); if (tool === 'search') { _ytToggleSearch(); _ytToggleSearch(); } }, { tab, tool });
+  if (bar) await pg.evaluate(() => _ytSetBar(true));
+  if (stage) await pg.evaluate(() => _ytToggleStage(true));
+  await wait(pg, tab === 'lyrics' ? 4500 : 2500);
+}
+
 const SHOTS = [
   { id: 'week-top', lesson: 'week', phone: true,
     setup: async pg => { await lastWeek(pg); },
@@ -1587,6 +1621,50 @@ const SHOTS = [
   /* ── Lesson: Raw Data (GUIDE-PLAN.md step 10) ───────────────────────
      Last: its correction rules rewrite a couple of demo plays for the rest of
      the run. */
+  /* ── Music player (PLAYER-PLAN.md step 13) ─────────────────────── */
+  { id: 'np-card', lesson: 'player', phone: true, vpm: { width: 390, height: 844 },
+    setup: async pg => { await npOpen(pg); },
+    clip: { from: '#ytMiniPlayer', to: '#ytMiniPlayer', pad: 12, narrow: true },
+    spots: { drag: '#ytMiniPlayer .yt-mini-drag-handle', stage: '#ytMiniExpandBtn', bar: '#ytMiniCollapseBtn', close: '#ytMiniPlayer .yt-hdr-close',
+      media: '#ytMiniPlayer .ytp-media', src: '#ytVideoSource', seg: '#ytMiniPlayer .ytp-seg', title: '#ytMiniTitle', add: '#ytAddPlBtn', love: '#ytLoveBtn',
+      story: '#ytChartStory', seek: '#ytSeekBar', mark: '#ytScrobbleMark', note: '#ytScrobbleNote',
+      shuffle: '#ytMiniShuffleBtn', prev: '#ytMiniPrevBtn', play: '#ytMiniPauseBtn', next: '#ytMiniNextBtn', repeat: '#ytMiniRepeatBtn',
+      tabs: '#ytMiniPlayer .ytp-tabs', queue: '#ytMiniQueue', vol: '#ytMiniPlayer .yt-vol-group', speed: '#ytSpeedBtn', sleep: '#ytSleepBtn', help: '#ytMiniShortcutsBtn' } },
+  { id: 'np-tools', lesson: 'player',
+    setup: async pg => { await npOpen(pg, { tab: 'tools' });
+      // All twelve cards in the picture (on screen the panel scrolls)
+      await pg.evaluate(() => { document.querySelector('#ytMiniPlayer .yt-panels-zone').style.maxHeight = 'none'; }); await wait(pg, 400); },
+    clip: { from: '#ytMiniPlayer', to: '#ytMiniPlayer', pad: 12, narrow: true },
+    spots: { search: '.ytp-tool-search', similar: '.ytp-tool-similar', sleep: '.ytp-tool-sleep', speed: '.ytp-tool-speed', xfade: '.ytp-tool-xfade',
+      scrobble: '.ytp-tool-scrobble', lists: '.ytp-tool-lists', share: '.ytp-tool-share', pip: '.ytp-tool-pip', youtube: '.ytp-tool-youtube',
+      keys: '.ytp-tool-keys', tour: '.ytp-tool-tour' } },
+  { id: 'np-lyrics', lesson: 'player', phone: true, vpm: { width: 390, height: 844 },
+    setup: async pg => { await npOpen(pg, { tab: 'lyrics' }); await pg.evaluate(() => { try { _ytPlayer.seekTo(45, true); } catch (e) {} }); await wait(pg, 2500); },
+    clip: { from: '#ytMiniPlayer', to: '#ytMiniPlayer', pad: 12, narrow: true },
+    spots: { pill: '#ytMiniPlayer .ytp-lyr-pill', nudge: '#ytMiniPlayer .ytp-lyr-nudge', now: '#ytMiniPlayer .ytp-lyr-line.now', line: '#ytMiniPlayer .ytp-lyr-line.next' } },
+  { id: 'np-find', lesson: 'player',
+    setup: async pg => { await npOpen(pg, { tab: 'tools', tool: 'search' }); },
+    clip: { from: '#ytMiniPlayer', to: '#ytMiniPlayer', pad: 12, narrow: true },
+    spots: { back: '#ytToolBack button', search: '#ytMiniSearchInput', paste: '#ytPasteInput', use: '#ytMiniPlayer .ytp-paste-row .yt-mini-search-go' } },
+  { id: 'np-bar', lesson: 'player',
+    setup: async pg => { await npOpen(pg, { bar: true }); },
+    clip: { from: '#ytBar', to: '#ytBar', pad: 14, narrow: true },
+    spots: { who: '#ytBar .ytp-bar-who', love: '#ytBarLove', play: '#ytBarPlay', open: { js: "document.querySelector('#ytBar > .ytp-bar-btn[onclick=\"_ytSetBar(false)\"]')" },
+      close: { js: "document.querySelector('#ytBar > .ytp-bar-btn[onclick=\"closeYtPlayer()\"]')" } } },
+  { id: 'np-filled', lesson: 'player',
+    setup: async pg => { await npOpen(pg, { bar: true, style: 'filled' }); await pg.evaluate(() => _ytApplyMiniStyle()); await wait(pg, 800); },
+    clip: { from: '#ytBar', to: '#ytBar', pad: 14, narrow: true },
+    spots: { who: '#ytBar .ytp-bar-who', seek: '#ytBar .ytp-bar-seek', next: '#ytBarNextWrap', queue: '#ytBar .ytp-bar-q', vol: '#ytBar .ytp-bar-vol' } },
+  { id: 'np-stage', lesson: 'player', vp: { width: 1280, height: 800 },
+    setup: async pg => { await npOpen(pg, { tab: 'lyrics', stage: true }); await wait(pg, 2000); },
+    clip: { from: '#ytMiniPlayer', to: '#ytMiniPlayer', pad: 0, narrow: true },
+    spots: { video: '#ytMiniPlayer .ytp-media', hint: '#ytMiniPlayer .ytp-stage-hint', full: '#ytFullBtn', back: '#ytMiniExpandBtn',
+      tabs: '#ytMiniPlayer .ytp-tabs', lyrics: '#ytMiniPlayer .yt-panels-zone', controls: '#ytMiniPlayer .yt-primary-controls' } },
+  { id: 'np-setting', lesson: 'player',
+    setup: async pg => { await npOpen(pg); await pg.evaluate(() => closeYtPlayer()); await setView(pg, 'profile');
+      await pg.evaluate(() => document.getElementById('playerMiniSwitcher').scrollIntoView({ block: 'center' })); await wait(pg, 800); },
+    clip: { from: { js: "document.getElementById('playerMiniSwitcher').closest('.cert-config-group')" }, to: { js: "document.getElementById('playerMiniSwitcher').closest('.cert-config-group')" }, pad: 12, narrow: true },
+    spots: { switch: '#playerMiniSwitcher', capsule: '#playerMiniSwitcher [data-st="capsule"]', filled: '#playerMiniSwitcher [data-st="filled"]', bar: '#playerMiniSwitcher [data-st="bar"]' } },
   { id: 'rd-top', lesson: 'rawdata', phone: true,
     setup: async pg => { await rdView(pg); },
     clip: { from: '#rawDataView .raw-header', to: { js: "document.querySelectorAll('#rawBody tr')[9]" }, pad: 14 },
@@ -1711,7 +1789,7 @@ async function run() {
             if (typeof dyCloseCalendar === 'function') dyCloseCalendar(); });
           await closeMenus(app.pg);
           // vp: a shot that needs its own window size (a full-screen layer); put back after
-          await app.pg.setViewportSize(s.vp && !phone ? s.vp : (phone ? PHONE : DESK));
+          await app.pg.setViewportSize(s.vp && !phone ? s.vp : (phone ? (s.vpm || PHONE) : DESK));
           await s.setup(app.pg);
           await wait(app.pg, 600);
           const m = await measure(app.pg, s.clip, s.spots);

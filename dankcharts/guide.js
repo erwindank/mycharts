@@ -32,7 +32,7 @@
   'use strict';
 
   // Bump when the lesson files or the pictures change (it's their ?v=)
-  const GUIDE_V = '17';
+  const GUIDE_V = '19';
   const STORE = 'dc_guide_progress';
   const LANG_FILES = ['es', 'pt-BR', 'pt-PT'];
 
@@ -234,6 +234,15 @@
     'pl.add':        { lesson: 'playlists', open: '#dcPlPickModal' },
     'pl.export':     { lesson: 'playlists', fn: 'dcPlExportMenu' },
     'pl.auto':       { lesson: 'playlists', fn: 'apToggle' },
+    // Music player (app.js _yt* functions — PLAYER-PLAN.md step 13)
+    'np.open':       { lesson: 'player', fn: 'openYtPlayer' },
+    'np.tab':        { lesson: 'player', fn: '_ytShowTab', test: a => a[0] && a[0] !== 'next' },
+    'np.love':       { lesson: 'player', fn: '_ytToggleLove' },
+    'np.find':       { lesson: 'player', fn: '_ytToggleSearch' },
+    'np.sleep':      { lesson: 'player', fn: '_ytStartSleep' },
+    'np.stage':      { lesson: 'player', fn: '_ytToggleStage', test: () => typeof _ytInStage === 'function' && _ytInStage() },
+    'np.bar':        { lesson: 'player', fn: '_ytSetBar', test: a => !!a[0] },
+    'np.tour':       { lesson: 'player', fn: '_ytStartTour' },
     // Raw Data (app.js; the table's clicks are handled by one listener)
     'rd.filter':     { lesson: 'rawdata', input: '#rawFilterSong, #rawFilterArtist, #rawFilterAlbum, #rawFilterDate' },
     'rd.page':       { lesson: 'rawdata', click: '#rawDataView [data-raw-page]', input: '#rawDataView .raw-page-input' },
@@ -378,6 +387,15 @@
     'pl.add':        { nav: 'week', ring: '#songsBody tr[data-ea-key]' },
     'pl.export':     { nav: 'playlists', ring: '#dcPlMain [onclick*="dcPlExportMenu"], #dcPlMain .plx-grid, #dcPlMain .plx-new' },
     'pl.auto':       { nav: 'playlists', ring: '#apSetup' },
+    // Music player: open it first (with this week's top song) if it is closed
+    'np.open':       { prep: ['_ytGuideOpen'], ring: '#ytMiniPauseBtn' },
+    'np.tab':        { prep: ['_ytGuideOpen'], ring: '#ytMiniPlayer .ytp-tabs' },
+    'np.love':       { prep: ['_ytGuideOpen'], ring: '#ytLoveBtn' },
+    'np.find':       { prep: ['_ytGuideOpen'], ring: '#ytVideoSource .ytp-src-fix, #ytMiniPlayer .ytp-tab[data-tab="tools"]' },
+    'np.sleep':      { prep: ['_ytGuideOpen'], ring: '#ytSleepBtn' },
+    'np.stage':      { prep: ['_ytGuideOpen'], ring: '#ytMiniExpandBtn, #ytMiniPlayer .yt-player-header' },
+    'np.bar':        { prep: ['_ytGuideOpen'], ring: '#ytMiniCollapseBtn' },
+    'np.tour':       { prep: ['_ytGuideOpen'], ring: '#ytMiniShortcutsBtn' },
     'rd.filter':     { nav: 'rawdata', ring: '#rawDataView .raw-filters' },
     'rd.page':       { nav: 'rawdata', ring: '#rawPagerTop .raw-pager-nav' },
     'rd.size':       { nav: 'rawdata', ring: '#rawPagerTop .raw-pager-size' },

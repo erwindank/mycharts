@@ -882,6 +882,49 @@ window.GL = {
       tips: [ ['pl-pick', 'item', 'pl.add'], ['pl-top', 'ap', 'pl.auto'], ['pl-export', 'item', 'pl.export'], ['pl-open', 'drag', 'pl.open'] ]
     },
     /* ── Lesson 15: Raw Data (every play, corrections, rules) ── */
+    /* ── The music player (PLAYER-PLAN.md step 13) ─────────────────
+       Not a tab: it opens from any Play. "Show me" opens it with this
+       week's top song (app.js _ytGuideOpen). */
+    { id: 'player', area: 'more', nav: null, mins: 6, cover: 'np-card',
+      scenes: [
+        // One picture, two scenes, so the dots don't crowd: the top half, then the controls
+        { id: 'card', shot: 'np-card', phone: true,
+          spots: ['drag', 'stage', 'bar', 'close', 'media', 'src', 'seg', 'title', 'add', 'love', 'story'] },
+        { id: 'play', shot: 'np-card', phone: true,
+          spots: ['seek', 'mark', 'note', 'shuffle', 'prev', 'play', 'next', 'repeat', 'tabs', 'queue', 'vol', 'speed', 'sleep', 'help'] },
+        { id: 'tools', shot: 'np-tools',
+          spots: ['search', 'similar', 'sleep', 'speed', 'xfade', 'scrobble', 'lists', 'share', 'pip', 'youtube', 'keys', 'tour'] },
+        { id: 'lyrics', shot: 'np-lyrics', phone: true, spots: ['pill', 'nudge', 'now', 'line'] },
+        { id: 'find', shot: 'np-find', spots: ['back', 'search', 'paste', 'use'] },
+        { id: 'small', shot: 'np-bar', spots: ['who', 'love', 'play', 'open', 'close'] },
+        { id: 'filled', shot: 'np-filled', spots: ['who', 'seek', 'next', 'queue', 'vol'] },
+        { id: 'stage', shot: 'np-stage', spots: ['video', 'hint', 'full', 'back', 'tabs', 'lyrics', 'controls'] }
+      ],
+      howto: [
+        { id: 'video', challenge: 'np.find', slides: [
+          { shot: 'np-card', spot: 'src' }, { shot: 'np-find', spot: 'search' }, { shot: 'np-find', spot: 'paste' }, { shot: 'np-find', spot: 'use' } ] },
+        { id: 'fav', challenge: 'np.love', slides: [
+          { shot: 'np-card', spot: 'love' }, { shot: 'np-card', spot: 'add' } ] },
+        { id: 'sleep', challenge: 'np.sleep', slides: [
+          { shot: 'np-card', spot: 'sleep' }, { shot: 'np-tools', spot: 'sleep' } ] },
+        { id: 'big', challenge: 'np.stage', slides: [
+          { shot: 'np-card', spot: 'stage' }, { shot: 'np-stage', spot: 'video' }, { shot: 'np-stage', spot: 'back' } ] },
+        { id: 'small', challenge: 'np.bar', slides: [
+          { shot: 'np-card', spot: 'bar' }, { shot: 'np-bar', spot: 'who' }, { shot: 'np-setting', spot: 'switch' } ] }
+      ],
+      options: [
+        { id: 'mini', items: [
+          { id: 'capsule', shot: 'np-bar', spot: 'who', def: 'on' }, { id: 'filled', shot: 'np-filled', spot: 'seek' },
+          { id: 'bar', shot: 'np-setting', spot: 'bar' } ] },
+        { id: 'play', items: [
+          { id: 'speed', shot: 'np-tools', spot: 'speed', def: '1×' }, { id: 'xfade', shot: 'np-tools', spot: 'xfade', def: 'off' },
+          { id: 'scrobble', shot: 'np-tools', spot: 'scrobble', def: '30s' }, { id: 'sleep', shot: 'np-tools', spot: 'sleep', def: 'off' },
+          { id: 'shuffle', shot: 'np-card', spot: 'shuffle', def: 'off' }, { id: 'repeat', shot: 'np-card', spot: 'repeat', def: 'off' } ] }
+      ],
+      challenges: ['np.open', 'np.tab', 'np.love', 'np.find', 'np.sleep', 'np.stage', 'np.bar', 'np.tour'],
+      quiz: [ { id: 'q1', answer: 1 }, { id: 'q2', answer: 2 }, { id: 'q3', answer: 0 } ],
+      tips: [ ['np-card', 'mark', 'np.open'], ['np-find', 'paste', 'np.find'], ['np-lyrics', 'now', 'np.tab'], ['np-stage', 'video', 'np.stage'] ]
+    },
     { id: 'rawdata', area: 'more', nav: 'rawdata', mins: 5, cover: 'rd-top',
       scenes: [
         { id: 'top', shot: 'rd-top', phone: true,
@@ -3849,6 +3892,158 @@ window.GL_TEXT.en = {
         'Turn on {{t:ap_row_week}} under {{t:ap_setup_title}} and every week’s top songs become a playlist.',
         'Export a playlist as a CSV and an import tool can put it in Spotify or Apple Music.',
         'Drag a song by its number to move it up or down a playlist.'
+      ]
+    },
+    player: {
+      title: 'Music player',
+      promise: 'Play any song from your charts, follow the lyrics, find the right video and keep the songs you love.',
+      scenes: {
+        card: { title: 'The player', spots: {
+          drag: ['Move it', 'Drag the dots to put the player anywhere.'],
+          stage: ['Stage mode', 'The big screen: the video large, the lyrics beside it. G does the same.'],
+          bar: ['Shrink it', 'Makes it a small player in the corner (or along the bottom), so you can keep browsing. M does the same.'],
+          close: ['Close', 'Stops the music. Esc does the same.'],
+          media: ['Artwork or video', 'The cover, with a record that spins while it plays, or the music video.'],
+          src: ['Where the video came from', 'Official video, Best match, Saved video or Your pick. “Wrong video?” lets you choose another.'],
+          seg: ['Artwork / Video', 'Switch between the cover and the music video. V does the same.'],
+          title: ['The song', 'Its name and artist. The soft colour behind it comes from the cover.'],
+          add: ['Add to a playlist', 'Puts the song in any of your playlists. P does the same.'],
+          love: ['♥ Favorites', 'Adds the song to your Favorites playlist, or takes it out. K does the same.'],
+          story: ['Your chart story', 'This song in your own charts: this week’s rank, its peak, your plays and weeks on the chart. Click one to open the song.'],
+        } },
+        play: { title: 'Playing', spots: {
+          seek: ['Progress', 'Drag to jump anywhere in the song.'],
+          mark: ['The green mark', 'Where the play gets scrobbled (Scrobble at in Tools).'],
+          note: ['When it counts', '“Counts at 1:25”, then “Scrobbled to Last.fm” — or “Not scrobbling · Connect” when nothing saves your plays.'],
+          shuffle: ['Shuffle', 'Next picks a random song from Up Next. X does the same.'],
+          prev: ['Previous', 'Back to the start of the song, or, in the first 3 seconds, the song before it. B does the same.'],
+          play: ['Play / Pause', 'Space does the same.'],
+          next: ['Next', 'The next song in Up Next. N does the same.'],
+          repeat: ['Repeat', 'Off, all, or this song (the 1). R does the same.'],
+          tabs: ['Four sections', 'Up Next, Lyrics, History and Tools.'],
+          queue: ['Up Next', 'The songs waiting to play. Drag to reorder; right-click a song for more.'],
+          vol: ['Volume', 'The arrow keys up and down do the same; 0 mutes.'],
+          speed: ['Speed', 'Shows the speed. Click to change it.'],
+          sleep: ['Sleep timer', 'Stops the music after a while. Shows the time left.'],
+          help: ['?', 'A one-minute tour of the player. The ? key does the same.']
+        } },
+        tools: { title: 'Tools', spots: {
+          search: ['Find another version', 'Search for a better video, or paste a YouTube link.'],
+          similar: ['More by this artist', 'Adds more of this artist’s songs to Up Next.'],
+          sleep: ['Sleep timer', '15, 30, 45 or 60 minutes.'],
+          speed: ['Speed', 'From 0.75× to 2×.'],
+          xfade: ['Crossfade', 'Blends the end of one song into the next.'],
+          scrobble: ['Scrobble at', '30 seconds, half, 70 % or the end.'],
+          lists: ['Saved playlists', 'Play one, or save Up Next as a playlist.'],
+          share: ['Share', 'Copies the song and its YouTube link.'],
+          pip: ['Pop-out window', 'A small player that stays on top of other apps.'],
+          youtube: ['Open on YouTube', 'The video on youtube.com.'],
+          keys: ['Keys & settings', 'Every key the player knows.'],
+          tour: ['Take the tour', 'The one-minute walk through the player.']
+        } },
+        lyrics: { title: 'Lyrics', spots: {
+          pill: ['Synced', 'These lyrics follow the song. “Not timed” ones are plain text.'],
+          nudge: ['Timing', 'Lyrics early or late (a video with an intro)? Move them half a second at a time.'],
+          now: ['The line being sung', 'Big and bright. The list follows the song by itself.'],
+          line: ['Any line', 'Click it to jump to that part of the song.']
+        } },
+        find: { title: 'Wrong video?', spots: {
+          back: ['All tools', 'Back to the tool cards.'],
+          search: ['Search', 'Look for another version by name.'],
+          paste: ['Paste a link', 'Copy the video’s address on YouTube and paste it here.'],
+          use: ['Use link', 'The player checks the video against the song and plays it.']
+        } },
+        small: { title: 'The small player', spots: {
+          who: ['The song', 'Click it to open the full player again. Drag the capsule anywhere.'],
+          love: ['♥', 'Favorites, from here too.'],
+          play: ['Play / Pause', 'With Previous and Next beside it.'],
+          open: ['Open', 'Back to the full player.'],
+          close: ['Close', 'Stops the music.']
+        } },
+        filled: { title: 'Full-width player', spots: {
+          who: ['The song', 'Click it to open the full player.'],
+          seek: ['Progress', 'With the times. Drag to jump.'],
+          next: ['Next up', 'The next song in Up Next.'],
+          queue: ['Up Next', 'Opens the full player on Up Next.'],
+          vol: ['Volume', 'Mute and volume.']
+        } },
+        stage: { title: 'Stage mode', spots: {
+          video: ['The video', 'As big as the window. Full screen is one more click.'],
+          hint: ['Going back', 'G or Esc returns to the card just as it was.'],
+          full: ['Full screen', 'The whole screen, no browser around it.'],
+          back: ['Small player', 'Back to the card.'],
+          tabs: ['The sections', 'Stage opens on Lyrics; Up Next, History and Tools are here too.'],
+          lyrics: ['Big lyrics', 'Easy to follow from across the room.'],
+          controls: ['Controls', 'Along the bottom.']
+        } }
+      },
+      howto: {
+        video: { title: 'Fix a wrong or missing video', slides: [
+          'Under the picture, press “Wrong video?”.',
+          'Search for another version…',
+          '…or copy the video’s address on YouTube and paste it here.',
+          'Press Use link. If it matches the song, the player remembers it.'
+        ] },
+        fav: { title: 'Keep the songs you love', slides: [
+          'Press ♥: the song goes into your Favorites playlist. Press it again to take it out.',
+          'Press + to add it to any other playlist.'
+        ] },
+        sleep: { title: 'Fall asleep to music', slides: [
+          'Press the moon in the bottom row.',
+          'Pick 15, 30, 45 or 60 minutes. The button counts down.'
+        ] },
+        big: { title: 'Watch it big', slides: [
+          'Press the screen button at the top (or G).',
+          'The video fills the window, with the lyrics beside it.',
+          'Press it again, or G or Esc, to go back.'
+        ] },
+        small: { title: 'Keep browsing while it plays', slides: [
+          'Press ⌄ at the top (or M).',
+          'The player becomes a small capsule in the corner. Click the song to open it again.',
+          'Prefer it along the bottom? Settings → Profile → Music player.'
+        ] }
+      },
+      options: {
+        mini: { title: '{{t:set_pm_label}}', items: {
+          capsule: ['{{t:set_pm_capsule}}', 'A small player in the corner. Drag it anywhere.'],
+          filled: ['{{t:set_pm_filled}}', 'Along the bottom, with progress, times and volume.'],
+          bar: ['{{t:set_pm_bar}}', 'Along the bottom, just the song and the controls.']
+        } },
+        play: { title: 'Playing', items: {
+          speed: ['Speed', 'Slower or faster.'],
+          xfade: ['Crossfade', '3 or 6 seconds of blend between songs.'],
+          scrobble: ['Scrobble at', 'When a play counts.'],
+          sleep: ['Sleep timer', 'Stops the music after a while.'],
+          shuffle: ['Shuffle', 'Random order from Up Next.'],
+          repeat: ['Repeat', 'All, or one song.']
+        } }
+      },
+      challenges: {
+        'np.open': ['Play a song', 'Any Play button, or a song in a playlist.'],
+        'np.tab': ['Open Lyrics, History or Tools', 'The tabs under the controls.'],
+        'np.love': ['Add a song to Favorites', 'The ♥ next to the song’s name.'],
+        'np.find': ['Open Find another version', '“Wrong video?”, or the first card in Tools.'],
+        'np.sleep': ['Set a sleep timer', 'The moon in the bottom row.'],
+        'np.stage': ['Open Stage mode', 'The screen button at the top, or G.'],
+        'np.bar': ['Shrink the player', 'The ⌄ at the top, or M.'],
+        'np.tour': ['Take the player tour', 'The ? in the bottom row.']
+      },
+      quiz: {
+        q1: ['What does the green mark on the progress bar show?',
+          ['The middle of the song', 'Where the play gets scrobbled', 'Where the chorus starts'],
+          'Play past it and the play counts. Scrobble at in Tools moves it.'],
+        q2: ['The video is wrong. What can you do?',
+          ['Nothing, it’s automatic', 'Close the player and start again', 'Press “Wrong video?” and pick another or paste a YouTube link'],
+          '“Wrong video?” opens Find another version: search, or paste the right link.'],
+        q3: ['Where do the songs you ♥ go?',
+          ['Into a playlist called Favorites', 'Nowhere, it’s just a like', 'Into Up Next'],
+          'Favorites is a normal playlist in the Playlists tab. It can’t be deleted.']
+      },
+      tips: [
+        'The green mark on the progress bar is where the play gets scrobbled.',
+        'Wrong video? Paste the right YouTube link and the player remembers it.',
+        'Click any line of the lyrics to jump to that part of the song.',
+        'Press G for Stage mode: the video big, the lyrics beside it.'
       ]
     },
     rawdata: {

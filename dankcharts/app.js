@@ -35987,6 +35987,26 @@ function _ytHintDone(quiet) {
   if (typeof dcSaveConfigKey === 'function') dcSaveConfigKey('dc_player_hint_seen', '1');
 }
 
+// ── For the Charts Guide (PLAYER-PLAN.md step 13) ──────────────────────
+// "Show me" in the Music player lesson needs a player to point at: this opens
+// it with your top song of the week (or any song you played) when it isn't
+// open, and brings back the card from the bar or Stage. Called by guide.js
+// with no user click, so it never completes a challenge by itself.
+function _ytGuideOpen() {
+  const p = document.getElementById('ytMiniPlayer');
+  if (p && p.style.display !== 'none') {
+    if (p.classList.contains('yt-mini-collapsed')) _ytSetBar(false);
+    if (_ytInStage()) _ytToggleStage(false);
+    return;
+  }
+  if (typeof allPlays === 'undefined' || !allPlays.length) return;
+  const weekAgo = Date.now() - 7 * 864e5, c = {};
+  allPlays.forEach(x => { if (new Date(x.date).getTime() >= weekAgo) { const k = songKey(x); (c[k] = c[k] || { p: x, n: 0 }).n++; } });
+  const top = Object.values(c).sort((a, b) => b.n - a.n)[0];
+  const pick = top ? top.p : allPlays[0];
+  openYtPlayer(pick.title, pick.artist, pick.album || '', null);
+}
+
 // ── Previous (PLAYER-PLAN.md step 2) ─────────────────────────────────────
 // More than 3 seconds in: back to the start of the song. Otherwise: the song
 // played before it (from History). The current song goes back to the top of
