@@ -35620,6 +35620,7 @@ function _ytSetBar(on) {
   const bar = document.getElementById('ytBar');
   if (!player || !bar) return;
   player.classList.toggle('yt-mini-collapsed', on);
+  _ytApplyMiniStyle();
   bar.style.display = on ? '' : 'none';
   document.body.classList.toggle('ytp-bar-open', on);
   const btn = document.getElementById('ytMiniCollapseBtn');
@@ -35658,6 +35659,13 @@ function _ytBarSync() {
     const c = _ytPlayer && _ytPlayer.getCurrentTime ? _ytPlayer.getCurrentTime() : 0;
     const line = document.getElementById('ytBarLine');
     if (line) line.style.width = (d ? Math.min(100, c / d * 100) : 0) + '%';
+    // Full-width style: the seek bar, times and volume
+    const seek = document.getElementById('ytBarSeek');
+    if (seek && !_ytBarSeeking && d) { seek.max = Math.floor(d); seek.value = Math.floor(c); }
+    set('ytBarCur', _ytFmtTime(c));
+    set('ytBarDur', d ? _ytFmtTime(d) : '0:00');
+    const vol = document.getElementById('ytBarVol');
+    if (vol && document.activeElement !== vol) vol.value = _ytMuted ? 0 : _ytVolume;
   } catch (e) {}
   // What's next + Up Next count
   const n = _ytQueue[0];
@@ -35668,7 +35676,114 @@ function _ytBarSync() {
   const love = document.getElementById('ytBarLove');
   if (love) { const on = _ytIsFavorite(tr); love.classList.toggle('on', on); love.setAttribute('aria-pressed', String(on)); }
 }
+// ── Shrunk player style on big screens (Settings → Music player) ───────────
+// capsule (default): a compact mini player in the bottom-right corner, which
+//                    can be dragged anywhere (position remembered)
+// filled:            full width, with a progress bar, times and volume
+// bar:               the simple full-width bar
+// Phones (≤ 760 px) always get the simple bar — the CSS only applies the
+// capsule / filled looks above that width. Saved at once and synced across
+// devices (dc_player_mini_style in firebase.js SYNC_KEYS), like Search buttons.
+const _YT_MINI_KEY = 'dc_player_mini_style';
+const _YT_MINI_STYLES = ['capsule', 'filled', 'bar'];
+let _ytBarSeeking = false;
+function _ytMiniStyle() {
+  try { const v = localStorage.getItem(_YT_MINI_KEY); return _YT_MINI_STYLES.includes(v) ? v : 'capsule'; } catch (e) { return 'capsule'; }
+}
+function _ytApplyMiniStyle() {
+  const bar = document.getElementById('ytBar');
+  if (!bar) return;
+  const st = _ytMiniStyle();
+  _YT_MINI_STYLES.forEach(k => bar.classList.toggle('ytp-bar--' + k, k === st));
+  document.body.classList.toggle('ytp-bar-capsule', st === 'capsule');
+  // The capsule goes back where it was dragged to; the other styles sit along the bottom
+  bar.style.left = bar.style.top = bar.style.right = bar.style.bottom = '';
+  if (st === 'capsule' && window.innerWidth > 760) {
+    try {
+      const pos = JSON.parse(localStorage.getItem('yt-capsule-pos') || 'null');
+      if (pos) _ytPlaceCapsule(pos.left, pos.top);
+    } catch (e) {}
+  }
+}
+function _ytPlaceCapsule(left, top) {
+  const bar = document.getElementById('ytBar');
+  if (!bar) return;
+  const w = bar.offsetWidth || 460, h = bar.offsetHeight || 76;
+  left = Math.max(8, Math.min(left, window.innerWidth - w - 8));
+  top  = Math.max(8, Math.min(top,  window.innerHeight - h - 8));
+  bar.style.left = left + 'px'; bar.style.top = top + 'px';
+  bar.style.right = 'auto'; bar.style.bottom = 'auto';
+}
+function _ytSetMiniStyle(st) {
+  if (!_YT_MINI_STYLES.includes(st)) return;
+  try { localStorage.setItem(_YT_MINI_KEY, st); } catch (e) {}
+  // Targeted save (not dcSaveUserConfig), same as Search buttons
+  if (typeof dcSaveConfigKey === 'function') dcSaveConfigKey(_YT_MINI_KEY, st);
+  _ytPaintMiniStyleButtons();
+  _ytApplyMiniStyle();
+}
+function _ytPaintMiniStyleButtons() {
+  const st = _ytMiniStyle();
+  document.querySelectorAll('#playerMiniSwitcher .rt-sep-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.st === st);
+    b.setAttribute('aria-pressed', String(b.dataset.st === st));
+  });
+}
+function _ytBuildMiniStyleSwitcher() {
+  const box = document.getElementById('playerMiniSwitcher');
+  if (!box || box.children.length) return;
+  _YT_MINI_STYLES.forEach(k => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'rt-sep-btn';
+    btn.dataset.st = k;
+    btn.dataset.i18n = 'set_pm_' + k;
+    btn.textContent = t('set_pm_' + k);
+    btn.addEventListener('click', () => _ytSetMiniStyle(k));
+    box.appendChild(btn);
+  });
+  _ytPaintMiniStyleButtons();
+  // A choice synced from another device shows when Settings opens
+  const orig = window.openSourceModal;
+  if (typeof orig === 'function') window.openSourceModal = function () { _ytPaintMiniStyleButtons(); return orig.apply(this, arguments); };
+}
+// Seek from the full-width style's progress bar
+function _ytBarSeekTo(v) {
+  _ytBarSeeking = false;
+  try { if (_ytPlayer) _ytPlayer.seekTo(v, true); } catch (e) {}
+}
+// Drag the capsule by its body (not its buttons); the spot is remembered
+function _ytInitCapsuleDrag() {
+  const bar = document.getElementById('ytBar');
+  if (!bar) return;
+  let drag = null;
+  bar.addEventListener('pointerdown', e => {
+    if (!bar.classList.contains('ytp-bar--capsule') || window.innerWidth <= 760) return;
+    if (e.target.closest('button, input, a')) return;
+    const r = bar.getBoundingClientRect();
+    drag = { dx: e.clientX - r.left, dy: e.clientY - r.top, moved: false };
+    bar.setPointerCapture(e.pointerId);
+  });
+  bar.addEventListener('pointermove', e => {
+    if (!drag) return;
+    drag.moved = true;
+    bar.classList.add('ytp-dragging');
+    _ytPlaceCapsule(e.clientX - drag.dx, e.clientY - drag.dy);
+  });
+  const end = () => {
+    if (!drag) return;
+    bar.classList.remove('ytp-dragging');
+    if (drag.moved) { try { localStorage.setItem('yt-capsule-pos', JSON.stringify({ left: parseFloat(bar.style.left), top: parseFloat(bar.style.top) })); } catch (e) {} }
+    drag = null;
+  };
+  bar.addEventListener('pointerup', end);
+  bar.addEventListener('pointercancel', end);
+  window.addEventListener('resize', () => { if (bar.style.display !== 'none') _ytApplyMiniStyle(); });
+}
+
 function _ytInitBar() {
+  _ytBuildMiniStyleSwitcher();
+  _ytInitCapsuleDrag();
   // Closing the player closes the bar too
   const orig = window.closeYtPlayer;
   if (typeof orig !== 'function') return;

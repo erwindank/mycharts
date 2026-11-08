@@ -4487,6 +4487,13 @@ const TRANSLATIONS = {
     set_ms_title: 'Search buttons',
     set_ms_label: 'Search buttons open',
     set_ms_hint: 'Which service the search button next to every song, artist and album opens.',
+    // Settings → Music player: the shrunk player's style on big screens (app.js _ytMiniStyle)
+    set_pm_title: 'Music player',
+    set_pm_label: 'Shrunk player on big screens',
+    set_pm_hint: 'How the player looks after you shrink it with ⌄ or M. On phones it is always a bar along the bottom.',
+    set_pm_capsule: 'Corner capsule',
+    set_pm_filled: 'Full-width player',
+    set_pm_bar: 'Simple bar',
     tm_action_player: 'Add to player',
     tm_action_google: 'Search on Google',
     tm_action_deezer: 'Open on Deezer',

@@ -150,6 +150,12 @@ lyrics, fall back to today's source (lyrics.ovh) as plain text. Clear
   Play / Next, what's next, Up Next count, open button, thin progress line on
   top. Dragging the card, PiP and the remembered position keep working.
 
+**Shrunk player style on big screens (added 2026-11-08, user's choice).**
+Settings → Charts → Music player: **Corner capsule** (default — a compact
+mini player bottom-right, draggable, position remembered), **Full-width
+player** (progress bar with times, volume) or **Simple bar**. Phones always
+get the simple bar. Saved at once and synced (`dc_player_mini_style`).
+
 ### 10. Stage mode
 Big video on the left, Lyrics / Up Next / About on the right, controls along
 the bottom. G or Esc to leave. Falls back to artwork when there is no video.

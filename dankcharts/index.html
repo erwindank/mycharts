@@ -33,7 +33,7 @@
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=343"></script>
+  <script defer src="translations.js?v=344"></script>
   <!-- Only the visitor's own language is downloaded (translations.js holds
        English). This writes a defer tag for the saved language right here, so
        it runs straight after translations.js and before app.js, and the page
@@ -58,7 +58,7 @@
   <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-  <script defer src="firebase.js?v=25"></script>
+  <script defer src="firebase.js?v=26"></script>
 </head>
 
 <body>
@@ -4427,7 +4427,7 @@
   <!-- One behaviour and one icon set for every pop-up window (phase 10); before
        app.js so dcIco() is there when app.js draws a window -->
   <script defer src="popups.js?v=13"></script>
-  <script defer src="app.js?v=690"></script>
+  <script defer src="app.js?v=691"></script>
   <!-- The song / album / artist details side panel (phase 10 step 3); wraps app.js's open functions -->
   <script defer src="panel.js?v=16"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
@@ -5251,6 +5251,18 @@ function deleteGenreTriggers() {
         <p class="src-modal-hint rt-sep-hint" data-i18n="set_ms_hint">Which service the search button next to every song, artist and album opens.</p>
       </div>
 
+      <!-- Music player: how the player looks when shrunk (⌄ or M) on big
+           screens. Buttons built by app.js (_ytBuildMiniStyleSwitcher), saved
+           at once and synced (dc_player_mini_style), like Search buttons. -->
+      <div class="cert-config-group">
+        <div class="cert-config-title"><span class="set-group-ico" data-ico="listmusic"></span><span data-i18n="set_pm_title">Music player</span></div>
+        <div class="set-row rt-sep-row">
+          <span class="rt-sep-label" data-i18n="set_pm_label">Shrunk player on big screens</span>
+          <div class="dc-seg rt-sep-seg" role="group" id="playerMiniSwitcher"></div>
+        </div>
+        <p class="src-modal-hint rt-sep-hint" data-i18n="set_pm_hint">How the player looks after you shrink it with ⌄ or M. On phones it is always a bar along the bottom.</p>
+      </div>
+
 
 
 
@@ -5811,11 +5823,22 @@ function deleteGenreTriggers() {
     <button type="button" id="ytBarPlay" class="ytp-bar-play" onclick="_ytPauseToggle()" title="Pause [Space]" aria-label="Play or pause"></button>
     <button type="button" class="ytp-bar-btn" onclick="_ytSkip()" title="Next [N]" aria-label="Next"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="5,3 15,12 5,21"/><rect x="17" y="3" width="3" height="18"/></svg></button>
   </div>
+  <!-- Full-width style only: a real progress bar with times -->
+  <div class="ytp-bar-seek">
+    <span id="ytBarCur" class="ytp-bar-time">0:00</span>
+    <input id="ytBarSeek" type="range" min="0" max="100" value="0" step="1" aria-label="Seek" oninput="_ytBarSeeking=true" onchange="_ytBarSeekTo(+this.value)">
+    <span id="ytBarDur" class="ytp-bar-time">0:00</span>
+  </div>
   <div class="ytp-bar-next" id="ytBarNextWrap">Next: <em id="ytBarNext"></em></div>
-  <button type="button" class="ytp-bar-btn" onclick="_ytSetBar(false);_ytShowTab('next')" title="Up Next [Q]" aria-label="Up Next">
+  <button type="button" class="ytp-bar-btn ytp-bar-q" onclick="_ytSetBar(false);_ytShowTab('next')" title="Up Next [Q]" aria-label="Up Next">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
     <span id="ytBarCount" class="ytp-tab-count ytp-bar-count" style="display:none"></span>
   </button>
+  <!-- Full-width style only: volume -->
+  <div class="ytp-bar-vol">
+    <button type="button" class="ytp-bar-btn" onclick="_ytToggleMute()" title="Mute [0]" aria-label="Mute"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H2v6h4l5 4z" fill="currentColor" stroke="none"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg></button>
+    <input id="ytBarVol" type="range" min="0" max="100" value="80" aria-label="Volume" oninput="_ytSetVolume(+this.value)">
+  </div>
   <button type="button" class="ytp-bar-btn" onclick="_ytSetBar(false)" title="Open the full player [M]" aria-label="Open the full player"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></button>
   <button type="button" class="ytp-bar-btn" onclick="closeYtPlayer()" title="Close player [Esc]" aria-label="Close player"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
 </div>

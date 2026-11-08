@@ -34,7 +34,8 @@ const SYNC_KEYS = [
   'dc_chart_page_sections',
   'dc_d100_autosend',
   'dc_music_service',   // Spotify / Apple Music / Deezer for the search buttons (app.js _msKey)   // The Dank 100: send my week by itself (dank100.js)
-  'dc_col_widths'   // the chart tables' adjusted column widths (app.js, _colw*)
+  'dc_col_widths',  // the chart tables' adjusted column widths (app.js, _colw*)
+  'dc_player_mini_style'   // shrunk player on big screens: capsule / filled / bar (app.js _ytMiniStyle)
 ];
 
 let _auth = null;
