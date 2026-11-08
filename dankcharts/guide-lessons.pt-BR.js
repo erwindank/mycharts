@@ -2846,6 +2846,176 @@ window.GL_TEXT['pt-BR'] = {
         'Arraste uma música pelo número para subir ou descer na playlist.'
       ]
     },
+    // Music player (PLAYER-PLAN.md step 14) — names use the app's own labels ({{t:yt_np_…}})
+    player: {
+      title: 'Player de música',
+      promise: 'Toque qualquer música das suas paradas, acompanhe a letra, ache o vídeo certo e guarde as músicas que você ama.',
+      scenes: {
+        card: {
+          title: 'O player',
+          spots: {
+            drag: ['Mova', 'Arraste os pontinhos para colocar o player onde quiser.'],
+            stage: ['Modo palco', 'A tela grande: o vídeo grande e a letra ao lado. G faz o mesmo.'],
+            bar: ['Diminua', 'Vira um player pequeno no canto (ou embaixo), para você continuar navegando. M faz o mesmo.'],
+            close: ['{{t:yt_np_close}}', 'Para a música. Esc faz o mesmo.'],
+            media: ['Capa ou vídeo', 'A capa, com um disco que gira enquanto toca, ou o clipe.'],
+            src: ['De onde veio o vídeo', '{{t:yt_np_src_official}}, {{t:yt_np_src_search}}, {{t:yt_np_src_saved}} ou {{t:yt_np_src_pick}}. “{{t:yt_np_wrong}}” deixa você escolher outro.'],
+            seg: ['{{t:yt_np_art}} / {{t:yt_np_video}}', 'Alterne entre a capa e o clipe. V faz o mesmo.'],
+            title: ['A música', 'O nome e o artista. A cor suave atrás vem da capa.'],
+            add: ['{{t:yt_np_add}}', 'Coloca a música em qualquer playlist sua. P faz o mesmo.'],
+            love: ['♥ Favorites', 'Coloca a música na sua playlist Favorites, ou tira. K faz o mesmo.'],
+            story: ['Sua história nas paradas', 'Esta música nas suas paradas: {{t:yt_np_this_week}}, {{t:yt_np_peak}}, {{t:yt_np_your_plays}} e {{t:yt_np_weeks_on}}. Clique num quadro para abrir a música.']
+          }
+        },
+        play: {
+          title: 'Tocando',
+          spots: {
+            seek: ['Progresso', 'Arraste para pular para qualquer ponto da música.'],
+            mark: ['A marca verde', 'Onde a play é registrada ({{t:yt_np_scrobble_at}} em {{t:yt_np_tab_tools}}).'],
+            note: ['Quando conta', '“Conta em 1:25”, depois “{{t:yt_np_scrobbled_lfm}}”, ou “{{t:yt_np_not_scrobbling}} · {{t:yt_np_connect}}” quando nada salva suas plays.'],
+            shuffle: ['{{t:pl_x_shuffle}}', 'Próxima escolhe uma música ao acaso de {{t:yt_np_tab_next}}. X faz o mesmo.'],
+            prev: ['{{t:yt_np_prev}}', 'Volta ao começo da música ou, nos 3 primeiros segundos, à anterior. B faz o mesmo.'],
+            play: ['{{t:yt_np_playpause}}', 'Espaço faz o mesmo.'],
+            next: ['{{t:yt_np_next_a}}', 'A próxima de {{t:yt_np_tab_next}}. N faz o mesmo.'],
+            repeat: ['Repetir', 'Desligado, tudo ou esta música (o 1). R faz o mesmo.'],
+            tabs: ['Quatro seções', '{{t:yt_np_tab_next}}, {{t:yt_np_tab_lyrics}}, {{t:yt_np_tab_history}} e {{t:yt_np_tab_tools}}.'],
+            queue: ['{{t:yt_np_tab_next}}', 'As músicas esperando. Arraste para reordenar; clique com o botão direito numa para mais.'],
+            vol: ['{{t:yt_np_volume}}', 'As setas para cima e para baixo fazem o mesmo; 0 silencia.'],
+            speed: ['{{t:yt_np_tool_speed}}', 'Mostra a velocidade. Clique para mudar.'],
+            sleep: ['{{t:yt_np_sleep}}', 'Para a música depois de um tempo. Mostra quanto falta.'],
+            help: ['?', 'Um tour de um minuto pelo player. A tecla ? faz o mesmo.']
+          }
+        },
+        tools: {
+          title: '{{t:yt_np_tab_tools}}',
+          spots: {
+            search: ['{{t:yt_np_tool_search}}', 'Busque um vídeo melhor ou cole um link do YouTube.'],
+            similar: ['{{t:yt_np_tool_similar}}', '{{t:yt_np_tool_similar_d}}'],
+            sleep: ['{{t:yt_np_sleep}}', '15, 30, 45 ou 60 minutos.'],
+            speed: ['{{t:yt_np_tool_speed}}', 'De 0,75× a 2×.'],
+            xfade: ['{{t:yt_np_xfade}}', 'Mistura o fim de uma música com a próxima.'],
+            scrobble: ['{{t:yt_np_scrobble_at}}', '30 segundos, metade, 70 % ou o fim.'],
+            lists: ['{{t:yt_np_tool_lists}}', '{{t:yt_np_tool_lists_d}}'],
+            share: ['{{t:yt_np_tool_share}}', '{{t:yt_np_tool_share_d}}'],
+            pip: ['{{t:yt_np_pip}}', '{{t:yt_np_tool_pip_d}}'],
+            youtube: ['{{t:yt_np_tool_youtube}}', 'O vídeo no youtube.com.'],
+            wake: ['{{t:yt_np_tool_wake}}', 'No celular, a música para se a tela bloquear. Ligue isto para ela continuar.'],
+            keys: ['{{t:yt_np_tool_keys}}', 'Todas as teclas do player.'],
+            tour: ['{{t:yt_np_tool_tour}}', 'O passeio de um minuto pelo player.']
+          }
+        },
+        lyrics: {
+          title: '{{t:yt_np_tab_lyrics}}',
+          spots: {
+            pill: ['{{t:yt_np_lyr_synced}}', 'Esta letra acompanha a música. As “{{t:yt_np_lyr_plain_pill}}” são texto simples.'],
+            nudge: ['Tempo', 'A letra está adiantada ou atrasada (um vídeo com introdução)? Mova meio segundo de cada vez.'],
+            now: ['A linha que está tocando', 'Grande e brilhante. A lista acompanha a música sozinha.'],
+            line: ['Qualquer linha', 'Clique para pular para essa parte da música.']
+          }
+        },
+        find: {
+          title: '{{t:yt_np_wrong}}',
+          spots: {
+            back: ['{{t:yt_np_all_tools}}', 'Volta para os cartões das ferramentas.'],
+            search: ['{{t:yt_np_search}}', 'Procure outra versão pelo nome.'],
+            paste: ['Cole um link', 'Copie o endereço do vídeo no YouTube e cole aqui.'],
+            use: ['{{t:yt_np_use_link}}', 'O player confere o vídeo com a música e toca.']
+          }
+        },
+        small: {
+          title: 'O player pequeno',
+          spots: {
+            who: ['A música', 'Clique para abrir o player completo de novo. Arraste a cápsula para onde quiser.'],
+            love: ['♥', 'Favorites, daqui também.'],
+            play: ['{{t:yt_np_playpause}}', 'Com {{t:yt_np_prev}} e {{t:yt_np_next_a}} ao lado.'],
+            open: ['Abrir', 'Volta ao player completo.'],
+            close: ['{{t:yt_np_close}}', 'Para a música.']
+          }
+        },
+        filled: {
+          title: '{{t:set_pm_filled}}',
+          spots: {
+            who: ['A música', 'Clique para abrir o player completo.'],
+            seek: ['Progresso', 'Com os tempos. Arraste para pular.'],
+            next: ['A próxima', 'A próxima de {{t:yt_np_tab_next}}.'],
+            queue: ['{{t:yt_np_tab_next}}', 'Abre o player completo em {{t:yt_np_tab_next}}.'],
+            vol: ['{{t:yt_np_volume}}', 'Silenciar e volume.']
+          }
+        },
+        stage: {
+          title: 'Modo palco',
+          spots: {
+            video: ['O vídeo', 'Do tamanho da janela. A tela cheia está a mais um clique.'],
+            hint: ['Voltar', 'G ou Esc voltam ao cartão como estava.'],
+            full: ['{{t:yt_np_full}}', 'A tela toda, sem o navegador em volta.'],
+            back: ['Player pequeno', 'Volta ao cartão.'],
+            tabs: ['As seções', 'O modo palco abre em {{t:yt_np_tab_lyrics}}; {{t:yt_np_tab_next}}, {{t:yt_np_tab_history}} e {{t:yt_np_tab_tools}} também estão aqui.'],
+            lyrics: ['Letra grande', 'Fácil de acompanhar do outro lado da sala.'],
+            controls: ['Controles', 'Embaixo.']
+          }
+        }
+      },
+      howto: {
+        video: {
+          title: 'Arrume um vídeo errado ou que falta',
+          slides: ['Embaixo da imagem, aperte “{{t:yt_np_wrong}}”.', 'Busque outra versão…', '…ou copie o endereço do vídeo no YouTube e cole aqui.', 'Aperte {{t:yt_np_use_link}}. Se for a música certa, o player lembra.']
+        },
+        fav: {
+          title: 'Guarde as músicas que você ama',
+          slides: ['Aperte ♥: a música vai para a sua playlist Favorites. Aperte de novo para tirar.', 'Aperte + para colocar em qualquer outra playlist.']
+        },
+        sleep: {
+          title: 'Dormir com música',
+          slides: ['Aperte a lua na fileira de baixo.', 'Escolha 15, 30, 45 ou 60 minutos. O botão faz a contagem regressiva.']
+        },
+        big: {
+          title: 'Veja em tela grande',
+          slides: ['Aperte o botão de tela em cima (ou G).', 'O vídeo ocupa a janela, com a letra ao lado.', 'Aperte de novo, ou G ou Esc, para voltar.']
+        },
+        small: {
+          title: 'Continue navegando enquanto toca',
+          slides: ['Aperte ⌄ em cima (ou M).', 'O player vira uma cápsula pequena no canto. Clique na música para abrir de novo.', 'Prefere embaixo? Ajustes → Perfil → {{t:set_pm_title}}.']
+        }
+      },
+      options: {
+        mini: {
+          title: '{{t:set_pm_label}}',
+          items: {
+            capsule: ['{{t:set_pm_capsule}}', 'Um player pequeno no canto. Arraste para onde quiser.'],
+            filled: ['{{t:set_pm_filled}}', 'Embaixo, com progresso, tempos e volume.'],
+            bar: ['{{t:set_pm_bar}}', 'Embaixo, só a música e os controles.']
+          }
+        },
+        play: {
+          title: 'Reprodução',
+          items: {
+            speed: ['{{t:yt_np_tool_speed}}', 'Mais devagar ou mais rápido.'],
+            xfade: ['{{t:yt_np_xfade}}', '3 ou 6 segundos de mistura entre as músicas.'],
+            scrobble: ['{{t:yt_np_scrobble_at}}', 'Quando uma play conta.'],
+            sleep: ['{{t:yt_np_sleep}}', 'Para a música depois de um tempo.'],
+            shuffle: ['{{t:pl_x_shuffle}}', 'Ordem aleatória de {{t:yt_np_tab_next}}.'],
+            repeat: ['Repetir', 'Tudo, ou uma música.'],
+            wake: ['{{t:yt_np_tool_wake}}', 'No celular, a música para se a tela bloquear. Isto mantém a tela ligada enquanto toca.']
+          }
+        }
+      },
+      challenges: {
+        'np.open': ['Toque uma música', 'Qualquer botão de tocar, ou uma música de uma playlist.'],
+        'np.tab': ['Abra {{t:yt_np_tab_lyrics}}, {{t:yt_np_tab_history}} ou {{t:yt_np_tab_tools}}', 'As abas embaixo dos controles.'],
+        'np.love': ['Coloque uma música em Favorites', 'O ♥ ao lado do nome da música.'],
+        'np.find': ['Abra {{t:yt_np_tool_search}}', '“{{t:yt_np_wrong}}”, ou o primeiro cartão de {{t:yt_np_tab_tools}}.'],
+        'np.sleep': ['Ligue o timer para dormir', 'A lua na fileira de baixo.'],
+        'np.stage': ['Abra o modo palco', 'O botão de tela em cima, ou G.'],
+        'np.bar': ['Diminua o player', 'O ⌄ em cima, ou M.'],
+        'np.tour': ['Faça o tour do player', 'O ? na fileira de baixo.']
+      },
+      quiz: {
+        q1: ['O que a marca verde da barra de progresso mostra?', ['O meio da música', 'Onde a play é registrada (scrobble)', 'Onde começa o refrão'], 'Passou dela, a play conta. {{t:yt_np_scrobble_at}} em {{t:yt_np_tab_tools}} muda o lugar dela.'],
+        q2: ['O vídeo está errado. O que dá para fazer?', ['Nada, é automático', 'Fechar o player e começar de novo', 'Apertar “{{t:yt_np_wrong}}” e escolher outro ou colar um link do YouTube'], '“{{t:yt_np_wrong}}” abre {{t:yt_np_tool_search}}: busque, ou cole o link certo.'],
+        q3: ['Para onde vão as músicas que você marca com ♥?', ['Para uma playlist chamada Favorites', 'Para lugar nenhum, é só uma curtida', 'Para {{t:yt_np_tab_next}}'], 'Favorites é uma playlist normal na aba {{t:nav_playlists}}. Ela não pode ser apagada.']
+      },
+      tips: ['A marca verde da barra de progresso é onde a play é registrada.', 'Vídeo errado? Cole o link certo do YouTube e o player lembra.', 'Clique em qualquer linha da letra para pular para essa parte da música.', 'Aperte G para o modo palco: o vídeo grande e a letra ao lado.', 'No celular, a música para se a tela bloquear. Ligue {{t:yt_np_tool_wake}} em {{t:yt_np_tab_tools}} para ela continuar.']
+    },
     rawdata: {
       title: '{{t:nav_rawdata}}',
       promise: 'Cada play da sua biblioteca, uma linha cada: ache qualquer um, corrija um nome errado e faça a correção valer sempre com regras.',

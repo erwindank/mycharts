@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 473;
+const DC_CL_I18N_V = 474;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -98,6 +98,16 @@ const DC_CL_AREAS = {
    by id, as { title, intro, points }. A missing one shows in English.
    ------------------------------------------------------------------------- */
 const DC_CL_HIGHLIGHTS = [
+  { id: "music-player", d: "2026-11-08", a: "player", img: "whatsnew/music-player.webp", go: "week", then: [["_ytGuideOpen"]],
+    title: "A new music player",
+    intro: "The music player has a new look and is much easier to use: every button is named, and it shows how the song is doing in your charts.",
+    points: [
+      "Big artwork with a spinning record, or the music video. Point at any button to see its name.",
+      "Up Next, lyrics that follow the song, History and Tools, each one tab away.",
+      "♥ keeps a song in your Favorites. Wrong video? Paste the right YouTube link.",
+      "Shrink it to a small player or open Stage mode for the big screen. Press ? for a quick tour.",
+    ],
+    also: ["e8b02b1", "ca99c4c", "5821df2", "708ad46", "9be9296", "7a6c643", "e86c83f", "843a51d", "b86ca4e", "ab3e5f1", "84802ef", "301e0e2", "dd77aed", "2b7aaa4", "dac91a3", "79f8571"] },
   { id: "setup-guide", d: "2026-11-07", a: "guide", img: "whatsnew/setup-guide.webp", url: "setup-guide.html",
     title: "A Setup Guide with a picture of every screen",
     intro: "Getting your music in is now shown, not just described: every step of the Setup Guide has a picture of exactly what you'll see, with numbered dots on what to click.",
@@ -374,6 +384,24 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-08', t: 'feature', a: 'player', h: 'e8b02b1',
+    title: "Keep the screen on while music plays",
+    detail: "Phones pause the music player when the screen locks. Tools → Keep screen on stops the phone from locking while music plays, so it keeps going." },
+  { d: '2026-11-08', t: 'feature', a: 'player', h: 'ca99c4c',
+    title: "Stage mode, a small player and a full-screen phone player",
+    detail: "The music player's screen button opens Stage mode: the video as big as the window, the lyrics beside it. ⌄ shrinks it to a small player in the corner (or along the bottom — choose in Settings → Profile → Music player). On a phone it fills the screen, with Up Next, Lyrics, History and Tools as sheets that slide up." },
+  { d: '2026-11-08', t: 'feature', a: 'player', h: '5821df2',
+    title: "A heart for your Favorites",
+    detail: "The ♥ next to the song in the music player adds it to a playlist called Favorites, which can't be deleted. With Last.fm connected the song is loved there too. + adds it to any playlist." },
+  { d: '2026-11-08', t: 'feature', a: 'player', h: '708ad46',
+    title: "Lyrics that follow the song",
+    detail: "The music player's Lyrics light up line by line as the song plays, and the list follows along. Click a line to jump there; nudge the timing if a video has an intro. Songs without timed lyrics show plain ones." },
+  { d: '2026-11-08', t: 'feature', a: 'player', h: '9be9296',
+    title: "Fix a wrong video with a YouTube link",
+    detail: "Wrong or missing video? “Wrong video?” under the picture lets you search for another version or paste a YouTube link. The player checks that it's the right song. The note under the picture says where each video came from." },
+  { d: '2026-11-08', t: 'feature', a: 'player', h: '7a6c643',
+    title: "A new music player",
+    detail: "The music player was redesigned: big artwork with a spinning record or the music video, Previous and Shuffle, every button named when you point at it, your chart story for the song, a mark where the play is scrobbled, and Up Next, Lyrics, History and Tools as tabs. A short tour (?) and a Music player lesson in the Charts Guide explain it all. Works in every language." },
   { d: '2026-11-07', t: 'feature', a: 'playlists', h: 'a3dbf1d',
     title: "Export an artist's songs as a playlist",
     detail: "An artist's Music tab has an Export playlist button next to Share songs. It takes their songs in the order you have them (Chart Rank, Most Played, Recently Played or A–Z, and any search), and you pick how many: 10, 25, 50, 100, all of them, or type any number. Then copy the list or download it and import it on Soundiiz into Spotify, Apple Music, YouTube Music, Deezer and more." },

@@ -13,6 +13,25 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Keep the screen on while music plays":
+    ["Mantenha a tela ligada enquanto a música toca",
+     "O celular pausa o player quando a tela bloqueia. Ferramentas → Tela ligada não deixa o celular bloquear enquanto a música toca, para ela continuar."],
+  "Stage mode, a small player and a full-screen phone player":
+    ["Modo palco, um player pequeno e um player de tela cheia no celular",
+     "O botão de tela do player abre o modo palco: o vídeo do tamanho da janela e a letra ao lado. ⌄ diminui para um player pequeno no canto (ou embaixo; escolha em Ajustes → Perfil → Player de música). No celular ele ocupa a tela toda, com A seguir, Letra, Histórico e Ferramentas em painéis que sobem."],
+  "A heart for your Favorites":
+    ["Um coração para as suas Favorites",
+     "O ♥ ao lado da música no player coloca ela numa playlist chamada Favorites, que não pode ser apagada. Com o Last.fm conectado, a música também é marcada lá. + coloca em qualquer playlist."],
+  "Lyrics that follow the song":
+    ["Letras que acompanham a música",
+     "A letra do player acende linha a linha enquanto a música toca, e a lista acompanha. Clique numa linha para ir até ela; ajuste o tempo se o vídeo tiver introdução. Músicas sem letra sincronizada mostram a letra simples."],
+  "Fix a wrong video with a YouTube link":
+    ["Arrume um vídeo errado com um link do YouTube",
+     "Vídeo errado ou faltando? “Vídeo errado?” embaixo da imagem deixa você buscar outra versão ou colar um link do YouTube. O player confere se é a música certa. A nota embaixo da imagem diz de onde veio cada vídeo."],
+  "A new music player":
+    ["Um player novo",
+     "O player foi redesenhado: capa grande com um disco que gira ou o clipe, Anterior e Aleatório, cada botão com o nome quando você passa o mouse, a história da música nas suas paradas, uma marca onde a play é registrada, e A seguir, Letra, Histórico e Ferramentas como abas. Um tour curto (?) e uma lição de Player de música no Guia de Charts explicam tudo."],
+
   "Export an artist's songs as a playlist":
     ['Exporte as músicas de um artista como playlist',
      'A aba Música de um artista tem um botão Exportar playlist ao lado de Compartilhar músicas. Ele pega as músicas na ordem em que você deixou (Posição, Mais ouvidas, Ouvidas recentemente ou A–Z, e qualquer busca), e você escolhe quantas: 10, 25, 50, 100, todas, ou digita qualquer número. Depois copie a lista ou baixe e importe no Soundiiz para Spotify, Apple Music, YouTube Music, Deezer e mais.'],
@@ -4657,6 +4676,16 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 /* Highlight cards (DC_CL_HIGHLIGHTS in changelog.js), keyed by id. */
 window.DC_CL_HIGHLIGHTS_I18N = window.DC_CL_HIGHLIGHTS_I18N || {};
 window.DC_CL_HIGHLIGHTS_I18N["pt-BR"] = {
+  "music-player": {
+    title: "Um player novo",
+    intro: "O player tem um visual novo e ficou muito mais fácil de usar: cada botão tem nome e ele mostra como a música está nas suas paradas.",
+    points: [
+      "Capa grande com um disco que gira, ou o clipe. Passe o mouse num botão para ver o nome.",
+      "A seguir, uma letra que acompanha a música, Histórico e Ferramentas, a uma aba de distância.",
+      "♥ guarda uma música nas suas Favorites. Vídeo errado? Cole o link certo do YouTube.",
+      "Diminua para um player pequeno ou abra o modo palco para a tela grande. Aperte ? para um tour rápido.",
+    ],
+  },
   "setup-guide": {
     title: "Um guia de configuração com uma imagem de cada tela",
     intro: "Trazer sua música agora é mostrado, não só descrito: cada passo do guia de configuração tem uma imagem exata do que você vai ver, com pontos numerados no que clicar.",

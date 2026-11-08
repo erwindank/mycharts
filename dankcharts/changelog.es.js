@@ -13,6 +13,25 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Keep the screen on while music plays":
+    ["Mantén la pantalla encendida mientras suena la música",
+     "Los móviles pausan el reproductor cuando se bloquea la pantalla. Herramientas → Pantalla encendida evita que el móvil se bloquee mientras suena la música, para que siga."],
+  "Stage mode, a small player and a full-screen phone player":
+    ["Modo escenario, un reproductor pequeño y uno a pantalla completa en el móvil",
+     "El botón de pantalla del reproductor abre el modo escenario: el vídeo tan grande como la ventana y la letra al lado. ⌄ lo reduce a un reproductor pequeño en la esquina (o abajo; elígelo en Ajustes → Perfil → Reproductor). En el móvil ocupa toda la pantalla, con A continuación, Letra, Historial y Herramientas en paneles que suben."],
+  "A heart for your Favorites":
+    ["Un corazón para tus Favorites",
+     "El ♥ junto a la canción en el reproductor la añade a una lista llamada Favorites, que no se puede borrar. Con Last.fm conectado, la canción también se marca allí como favorita. + la añade a cualquier lista."],
+  "Lyrics that follow the song":
+    ["Letras que siguen la canción",
+     "La letra del reproductor se ilumina línea a línea mientras suena la canción, y la lista la sigue. Haz clic en una línea para ir allí; ajusta la sincronía si el vídeo tiene intro. Las canciones sin letra sincronizada la muestran normal."],
+  "Fix a wrong video with a YouTube link":
+    ["Arregla un vídeo equivocado con un enlace de YouTube",
+     "¿Vídeo equivocado o que falta? “¿Vídeo equivocado?” bajo la imagen te deja buscar otra versión o pegar un enlace de YouTube. El reproductor comprueba que sea la canción correcta. La nota bajo la imagen dice de dónde salió cada vídeo."],
+  "A new music player":
+    ["Un reproductor nuevo",
+     "El reproductor se rediseñó: portada grande con un disco que gira o el videoclip, Anterior y Aleatorio, cada botón con su nombre al pasar el ratón, tu historia de la canción en las listas, una marca donde se hace el scrobble, y A continuación, Letra, Historial y Herramientas como pestañas. Un recorrido corto (?) y una lección de Reproductor en la Guía de Charts lo explican todo."],
+
   "Export an artist's songs as a playlist":
     ['Exporta las canciones de un artista como playlist',
      'La pestaña Música de un artista tiene un botón Exportar playlist junto a Compartir canciones. Toma sus canciones en el orden en que las tengas (Posición, Más escuchadas, Escuchadas hace poco o A–Z, y cualquier búsqueda) y eliges cuántas: 10, 25, 50, 100, todas, o escribe cualquier número. Luego copia la lista o descárgala e impórtala en Soundiiz a Spotify, Apple Music, YouTube Music, Deezer y más.'],
@@ -4661,6 +4680,16 @@ window.DC_CHANGELOG_I18N['es'] = {
 /* Highlight cards (DC_CL_HIGHLIGHTS in changelog.js), keyed by id. */
 window.DC_CL_HIGHLIGHTS_I18N = window.DC_CL_HIGHLIGHTS_I18N || {};
 window.DC_CL_HIGHLIGHTS_I18N["es"] = {
+  "music-player": {
+    title: "Un reproductor nuevo",
+    intro: "El reproductor tiene un aspecto nuevo y es mucho más fácil de usar: cada botón tiene nombre y muestra cómo va la canción en tus listas.",
+    points: [
+      "Portada grande con un disco que gira, o el videoclip. Pasa el ratón por un botón para ver su nombre.",
+      "A continuación, una letra que sigue la canción, Historial y Herramientas, a una pestaña.",
+      "♥ guarda una canción en tus Favorites. ¿Vídeo equivocado? Pega el enlace correcto de YouTube.",
+      "Redúcelo a un reproductor pequeño o abre el modo escenario para la pantalla grande. Pulsa ? para un recorrido rápido.",
+    ],
+  },
   "setup-guide": {
     title: "Una guía de configuración con una imagen de cada pantalla",
     intro: "Traer tu música ahora se muestra, no solo se explica: cada paso de la guía de configuración tiene una imagen de lo que verás exactamente, con puntos numerados sobre lo que hay que pulsar.",

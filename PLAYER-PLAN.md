@@ -9,6 +9,8 @@ able to do everything it does today.
 Preview of the look (working page, sample data):
 https://claude.ai/artifact/K8NFvbwNvyCrmKX31n9tSi
 
+**Status: finished 2026-11-08** — all 14 steps done and pushed to main, plus Keep screen on (Tools) and the three shrunk-player styles.
+
 Decisions (2026-11-08):
 - **Nothing is removed.** Every feature of today's player keeps working: queue
   drag, multi-select, undo, right-click menu, play next, history, lyrics, sleep

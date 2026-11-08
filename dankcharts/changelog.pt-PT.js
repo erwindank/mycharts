@@ -13,6 +13,25 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Keep the screen on while music plays":
+    ["Mantém o ecrã ligado enquanto a música toca",
+     "O telemóvel pausa o leitor quando o ecrã bloqueia. Ferramentas → Ecrã ligado não deixa o telemóvel bloquear enquanto a música toca, para continuar."],
+  "Stage mode, a small player and a full-screen phone player":
+    ["Modo palco, um leitor pequeno e um leitor de ecrã inteiro no telemóvel",
+     "O botão do ecrã do leitor abre o modo palco: o vídeo do tamanho da janela e a letra ao lado. ⌄ reduz para um leitor pequeno no canto (ou em baixo; escolhe em Definições → Perfil → Leitor de música). No telemóvel ocupa o ecrã inteiro, com A seguir, Letra, Histórico e Ferramentas em painéis que sobem."],
+  "A heart for your Favorites":
+    ["Um coração para as tuas Favorites",
+     "O ♥ ao lado da música no leitor põe-na numa playlist chamada Favorites, que não pode ser apagada. Com o Last.fm ligado, a música também é marcada lá. + põe-na em qualquer playlist."],
+  "Lyrics that follow the song":
+    ["Letras que acompanham a música",
+     "A letra do leitor acende linha a linha enquanto a música toca, e a lista acompanha. Clica numa linha para ir até lá; ajusta o tempo se o vídeo tiver introdução. Músicas sem letra sincronizada mostram a letra simples."],
+  "Fix a wrong video with a YouTube link":
+    ["Corrige um vídeo errado com um link do YouTube",
+     "Vídeo errado ou em falta? “Vídeo errado?” por baixo da imagem deixa-te procurar outra versão ou colar um link do YouTube. O leitor verifica se é a música certa. A nota por baixo da imagem diz de onde veio cada vídeo."],
+  "A new music player":
+    ["Um leitor novo",
+     "O leitor foi redesenhado: capa grande com um disco que gira ou o videoclipe, Anterior e Aleatório, cada botão com o nome quando passas o rato, a história da música nos teus tops, uma marca onde a reprodução é registada, e A seguir, Letra, Histórico e Ferramentas como separadores. Uma visita curta (?) e uma lição de Leitor de música no Guia de Charts explicam tudo."],
+
   "Export an artist's songs as a playlist":
     ['Exporta as músicas de um artista como playlist',
      'O separador Música de um artista tem um botão Exportar playlist ao lado de Partilhar músicas. Usa as músicas pela ordem em que as tens (Posição, Mais ouvidas, Ouvidas recentemente ou A–Z, e qualquer pesquisa), e escolhes quantas: 10, 25, 50, 100, todas, ou escreves qualquer número. Depois copia a lista ou descarrega-a e importa-a no Soundiiz para Spotify, Apple Music, YouTube Music, Deezer e mais.'],
@@ -4657,6 +4676,16 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 /* Highlight cards (DC_CL_HIGHLIGHTS in changelog.js), keyed by id. */
 window.DC_CL_HIGHLIGHTS_I18N = window.DC_CL_HIGHLIGHTS_I18N || {};
 window.DC_CL_HIGHLIGHTS_I18N["pt-PT"] = {
+  "music-player": {
+    title: "Um leitor novo",
+    intro: "O leitor tem um visual novo e ficou muito mais fácil de usar: cada botão tem nome e mostra como a música está nos teus tops.",
+    points: [
+      "Capa grande com um disco que gira, ou o videoclipe. Passa o rato por um botão para ver o nome.",
+      "A seguir, uma letra que acompanha a música, Histórico e Ferramentas, à distância de um separador.",
+      "♥ guarda uma música nas tuas Favorites. Vídeo errado? Cola o link certo do YouTube.",
+      "Reduz para um leitor pequeno ou abre o modo palco para o ecrã grande. Carrega em ? para uma visita rápida.",
+    ],
+  },
   "setup-guide": {
     title: "Um guia de configuração com uma imagem de cada ecrã",
     intro: "Trazer a tua música agora é mostrado, não só descrito: cada passo do guia de configuração tem uma imagem exata do que vais ver, com pontos numerados no que clicar.",

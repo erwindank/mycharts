@@ -24832,6 +24832,9 @@ body.ytp-stage-open { overflow: hidden; }
 }
 .yt-mini-player .yt-ctrl-play:hover { background: var(--accent); filter: brightness(1.08); }
 #ytMiniPauseBtn .yt-icon, #ytMiniPauseBtn .yt-icon-lg { width: 26px; height: 26px; }
+/* A soft shadow under the Play / Pause icon, so it stands out on the lighter
+   accent colours (navy and pink dark themes) */
+#ytMiniPauseBtn svg, .ytp-bar-play svg { filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.35)); }
 .yt-mini-player .yt-repeat-badge { font-size: 9px; bottom: 6px; right: 6px; color: var(--accent); }
 .yt-mini-player .yt-mini-ctrl-btn.yt-ctrl-active,
 .yt-mini-player .yt-ctrl-sec.yt-ctrl-active {
