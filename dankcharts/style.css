@@ -45969,6 +45969,26 @@ body:not(:is([data-view="day"], [data-view="week"], [data-view="month"], [data-v
 /* Long Total runs scroll inside the card; the fade says there is more. */
 .rec1-champ .cr-boxes-wrap { max-height: 96px; -webkit-mask-image: linear-gradient(#000 75%, transparent); mask-image: linear-gradient(#000 75%, transparent); }
 .rec1-champ .cr-boxes-wrap:not(:has(.cr-box:nth-child(9))) { -webkit-mask-image: none; mask-image: none; }
+/* Long runs use the room the #2 and #3 cards leave (2026-11-08): when the
+   side cards are taller than the #1 card, its box grid grows into that empty
+   space instead of staying 96px tall. Basis 0 keeps the box grid from making
+   the card taller on its own; min-height keeps today's 96px when there is no
+   spare room; max-content stops it growing past its last row. */
+.rec1-champ .cr-boxes-wrap:has(.cr-box:nth-child(9)) {
+  flex: 1 1 0;
+  min-height: 96px;
+  max-height: max-content;
+  /* The fade only while there is more to scroll: it goes at the bottom, and
+     a grid that fits whole has no scroll timeline, so no fade at all. */
+  -webkit-mask-image: none;
+  mask-image: none;
+  animation: rec1-boxes-fade linear both;
+  animation-timeline: scroll(self);
+}
+@keyframes rec1-boxes-fade {
+  0%, 97% { -webkit-mask-image: linear-gradient(#000 75%, transparent); mask-image: linear-gradient(#000 75%, transparent); }
+  100% { -webkit-mask-image: none; mask-image: none; }
+}
 
 /* ── Phase 20 step 3: the All #1s list ────────────────────────────────
    Still a <table> (search, sort, the row limit and the hero reel read its
