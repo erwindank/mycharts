@@ -35562,10 +35562,19 @@ function _ytUpdateLoveBtn() {
   const label = t(on ? 'yt_np_t_love_on' : 'yt_np_t_love_add');
   btn.title = label;   // an open hover label picks the new text up by itself
   btn.setAttribute('aria-label', t(on ? 'yt_np_love_remove' : 'yt_np_love_add'));
+  // The History rows' hearts follow too (hearted here, in the picker, elsewhere)
+  if (typeof _ytSyncHistHearts === 'function') _ytSyncHistHearts();
 }
 function _ytToggleLove() {
-  const tr = _ytCurrentTrack;
-  if (!tr) return;
+  if (!_ytCurrentTrack) return;
+  _ytToggleFavFor(_ytCurrentTrack);
+  const btn = document.getElementById('ytLoveBtn');
+  if (btn && _ytIsFavorite(_ytCurrentTrack)) { btn.classList.remove('pop'); void btn.offsetWidth; btn.classList.add('pop'); }
+}
+// Hearts / un-hearts any song (the one playing, or a History row), with the
+// toast and the Last.fm love. Returns true when the song is now in Favorites.
+function _ytToggleFavFor(tr) {
+  if (!tr) return false;
   const on = _ytIsFavorite(tr);
   if (on) {
     _ytPlaylists[_YT_FAV] = (_ytPlaylists[_YT_FAV] || []).filter(x => !_ytSameSong(x, tr));
@@ -35578,8 +35587,6 @@ function _ytToggleLove() {
   if (typeof _ytRenderPlaylists === 'function') _ytRenderPlaylists();
   if (typeof currentPeriod !== 'undefined' && currentPeriod === 'playlists' && typeof dcRenderPlaylistsView === 'function') dcRenderPlaylistsView();
   _ytUpdateLoveBtn();
-  const btn = document.getElementById('ytLoveBtn');
-  if (btn && !on) { btn.classList.remove('pop'); void btn.offsetWidth; btn.classList.add('pop'); }
   if (typeof dcPlToast === 'function') dcPlToast(t(on ? 'yt_np_fav_removed' : 'yt_np_fav_added'));
   // Last.fm: love / unlove too, quietly (a failure doesn't undo Favorites)
   try {
@@ -35587,6 +35594,7 @@ function _ytToggleLove() {
       lfmPost({ method: on ? 'track.unlove' : 'track.love', artist: tr.artist, track: tr.title, sk: getScrobbleSession() }).catch(() => {});
     }
   } catch (e) {}
+  return !on;
 }
 function _ytAddToPlaylist() {
   const tr = _ytCurrentTrack;
@@ -36427,7 +36435,12 @@ function _ytToggleHistory() {
 }
 
 function _ytRenderHistory() {
-  // Step 6: one row per song — title, artist, how long ago; click to play again
+  // Step 6: one row per song — title, artist, how long ago.
+  // 2026-11-08: tapping a row no longer plays it straight away (that threw
+  // away the song playing). It opens a menu instead: Play now, Play next,
+  // Add to queue, Add to a playlist, Favorites, Search YouTube / Spotify.
+  // The heart on the row hearts the song without opening the menu.
+  _ytHideHistMenu();
   const el = document.getElementById('ytMiniHistory');
   if (!el) return;
   if (_ytHistory.length === 0) { el.innerHTML = '<div class="ytp-empty">' + esc(t('yt_np_hist_empty')) + '</div>'; return; }
@@ -36439,16 +36452,157 @@ function _ytRenderHistory() {
   el.innerHTML =
     `<div class="ytp-list-head"><span>${esc(t('yt_np_hist_head'))}</span>` +
     `<button type="button" class="ytp-mini-btn" onclick="_ytAddHistoryToQueue()" title="${esc(t('yt_np_queue_all_t'))}">${esc(t('yt_np_queue_all'))}</button></div>` +
-    _ytHistory.map((h, i) =>
-      `<button type="button" class="ytp-hrow" onclick="_ytPlayFromHistory(${i})" title="${esc(t('yt_np_play_again'))}">` +
-      `<span class="ytp-hrow-m"><b>${esc(h.title)}</b><span>${esc(h.artist || '')}</span></span>` +
-      `<time>${ago(h.at)}</time></button>`
-    ).join('');
+    _ytHistory.map((h, i) => {
+      const fav = _ytIsFavorite(h);
+      return `<div class="ytp-hrow" data-i="${i}">` +
+        // The song itself: opens the menu
+        `<button type="button" class="ytp-hrow-main" onclick="_ytShowHistMenu(${i}, this)" aria-haspopup="menu" title="${esc(t('yt_np_hist_opts'))}">` +
+        `<span class="ytp-hrow-m"><b>${esc(h.title)}</b><span>${esc(h.artist || '')}</span></span>` +
+        `<time>${ago(h.at)}</time></button>` +
+        // Heart = Favorites, straight from the row
+        `<button type="button" class="ytp-hrow-love ytp-love${fav ? ' on' : ''}" onclick="_ytHistLove(${i}, this)" aria-pressed="${fav}" ` +
+        `title="${esc(t(fav ? 'yt_np_love_remove' : 'yt_np_love_add'))}" aria-label="${esc(t(fav ? 'yt_np_love_remove' : 'yt_np_love_add'))}">${_YT_HEART_SVG}</button>` +
+        `</div>`;
+    }).join('');
 }
 
-function _ytPlayFromHistory(i) {
+// The heart outline, the same as the player's own heart button
+const _YT_HEART_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>';
+
+// Heart / un-heart a History song (Favorites playlist + Last.fm love)
+function _ytHistLove(i, btn) {
   const h = _ytHistory[i];
-  if (h) openYtPlayer(h.title, h.artist, h.album, null);
+  if (!h) return;
+  const on = _ytToggleFavFor(h);   // redraws every heart via _ytUpdateLoveBtn
+  if (btn && on) { btn.classList.remove('pop'); void btn.offsetWidth; btn.classList.add('pop'); }
+}
+
+// Keep the rows' hearts in step with Favorites without redrawing the list
+function _ytSyncHistHearts() {
+  document.querySelectorAll('#ytMiniHistory .ytp-hrow[data-i]').forEach(row => {
+    const h = _ytHistory[+row.dataset.i];
+    const btn = row.querySelector('.ytp-hrow-love');
+    if (!h || !btn) return;
+    const on = _ytIsFavorite(h);
+    btn.classList.toggle('on', on);
+    btn.setAttribute('aria-pressed', String(on));
+    const label = t(on ? 'yt_np_love_remove' : 'yt_np_love_add');
+    btn.title = label; btn.setAttribute('aria-label', label);
+  });
+}
+
+// ── History row menu ────────────────────────────────────────────────────────
+// Looks like the charts' ⋮ menu (.ea-menu, same icons). Opens under the row
+// (above it when there's no room), and closes on a tap outside, Esc, scroll
+// of the list, or after choosing.
+let _ytHistMenuIdx = -1;
+function _ytShowHistMenu(i, anchor) {
+  const h = _ytHistory[i];
+  if (!h) return;
+  // A second tap on the same row closes it again
+  const open = document.getElementById('ytHistMenu');
+  if (open && _ytHistMenuIdx === i) { _ytHideHistMenu(); return; }
+  _ytHideHistMenu();
+  _ytHistMenuIdx = i;
+  const fav = _ytIsFavorite(h);
+  const item = (act, label, icon) =>
+    `<button type="button" role="menuitem" class="wv-ctx-item" data-act="${act}"><span class="ea-mi-ic" aria-hidden="true">${icon}</span>${esc(label)}</button>`;
+  const sep = '<div class="wv-ctx-sep" role="separator"></div>';
+  const menu = document.createElement('div');
+  menu.id = 'ytHistMenu';
+  menu.className = 'wv-ctx-menu ea-menu ytp-hist-menu';
+  menu.setAttribute('role', 'menu');
+  menu.innerHTML =
+    // The song's name on top, so it's clear which one the menu is for
+    `<div class="ytp-hist-menu-head"><b>${esc(h.title)}</b><span>${esc(h.artist || '')}</span></div>` + sep +
+    item('play',     t('ea_play_now_short'), _EA_MI.play) +
+    item('next',     t('ea_play_next'),      _EA_MI.next) +
+    item('queue',    t('ea_add_queue'),      _EA_MI.queue) +
+    sep +
+    item('playlist', t('ea_add_playlist'),   _EA_MI.playlist) +
+    item('fav',      t(fav ? 'yt_np_love_remove' : 'yt_np_love_add'), `<span class="ytp-hist-menu-heart${fav ? ' on' : ''}">${_YT_HEART_SVG}</span>`) +
+    sep +
+    item('yt',       t('ea_search_yt'),      _EA_MI.yt) +
+    item('spotify',  _msLabel(),             _EA_MI.spotify);   // Spotify, or Apple Music / Deezer from Settings
+  menu.style.display = 'block';
+  document.body.appendChild(menu);
+  menu.addEventListener('click', ev => {
+    const b = ev.target.closest('.wv-ctx-item[data-act]');
+    if (!b) return;
+    ev.stopPropagation();
+    const idx = _ytHistMenuIdx;
+    _ytHideHistMenu();
+    _ytHistAction(b.dataset.act, idx);
+  });
+  // Place it: under the row, lined up with it, kept inside the screen
+  const r = anchor.getBoundingClientRect();
+  const mw = menu.offsetWidth, mh = menu.offsetHeight;
+  const left = Math.max(8, Math.min(r.right - mw, window.innerWidth - mw - 8));
+  let top = r.bottom + 4;
+  if (top + mh > window.innerHeight - 8) top = Math.max(8, r.top - mh - 4);
+  menu.style.left = left + 'px';
+  menu.style.top  = top + 'px';
+  anchor.closest('.ytp-hrow')?.classList.add('menu-open');
+  // Close on a tap outside / Esc / the list scrolling (added after this tap)
+  setTimeout(() => {
+    document.addEventListener('pointerdown', _ytHistMenuOutside, true);
+    document.addEventListener('keydown', _ytHistMenuKey, true);
+    document.addEventListener('scroll', _ytHistMenuScroll, true);   // any list or the page scrolling
+  }, 0);
+  const first = menu.querySelector('.wv-ctx-item');
+  if (first) first.focus({ preventScroll: true });
+}
+function _ytHistMenuOutside(e) {
+  const m = document.getElementById('ytHistMenu');
+  if (!m || m.contains(e.target)) return;
+  // A tap on the same row's song goes to its onclick, which closes the menu
+  const row = e.target.closest && e.target.closest('#ytMiniHistory .ytp-hrow-main');
+  if (row && row.closest('.ytp-hrow.menu-open')) return;
+  _ytHideHistMenu();
+}
+function _ytHistMenuScroll(e) {
+  const m = document.getElementById('ytHistMenu');
+  if (m && e.target !== m && !(e.target.nodeType === 1 && m.contains(e.target))) _ytHideHistMenu();
+}
+function _ytHistMenuKey(e) {
+  if (e.key === 'Escape') { e.stopPropagation(); _ytHideHistMenu(); }
+}
+function _ytHideHistMenu() {
+  const m = document.getElementById('ytHistMenu');
+  if (m) m.remove();
+  _ytHistMenuIdx = -1;
+  document.querySelectorAll('#ytMiniHistory .ytp-hrow.menu-open').forEach(r => r.classList.remove('menu-open'));
+  document.removeEventListener('pointerdown', _ytHistMenuOutside, true);
+  document.removeEventListener('keydown', _ytHistMenuKey, true);
+  document.removeEventListener('scroll', _ytHistMenuScroll, true);
+}
+
+function _ytHistAction(act, i) {
+  const h = _ytHistory[i];
+  if (!h) return;
+  const tr = { title: h.title, artist: h.artist || '', album: h.album || '' };
+  if (act === 'play') {
+    openYtPlayer(tr.title, tr.artist, tr.album, null);
+  } else if (act === 'next' || act === 'queue') {
+    const q = { ...tr, btn: null };
+    if (act === 'next') _ytQueue.unshift(q); else _ytQueue.push(q);
+    _ytUpdateQueueDisplay(); _ytSaveQueue();
+    if (typeof dcPlToast === 'function') dcPlToast(t(act === 'next' ? 'yt_np_hist_next' : 'ea_queued', { name: tr.title }));
+  } else if (act === 'playlist') {
+    if (typeof dcOpenPlaylistPicker === 'function') dcOpenPlaylistPicker([tr], tr.title, tr.title);
+  } else if (act === 'fav') {
+    _ytToggleFavFor(tr);
+  } else if (act === 'yt') {
+    // A link to youtube.com: free, doesn't use the site's search allowance
+    window.open('https://www.youtube.com/results?search_query=' + encodeURIComponent(tr.artist + ' ' + tr.title), '_blank', 'noopener');
+  } else if (act === 'spotify') {
+    window.open(_msUrl(encodeURIComponent(tr.artist + ' ' + tr.title)), '_blank', 'noopener');
+  }
+}
+
+// Kept for anything that still calls it: plays a History song now
+function _ytPlayFromHistory(i) {
+  _ytHistAction('play', i);
 }
 
 function _ytToggleCollapse() {

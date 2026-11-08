@@ -24954,8 +24954,27 @@ body.ytp-stage-open { overflow: hidden; }
 .ytp-list-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 0 6px; font-size: var(--fs-xs); color: var(--text3); }
 .ytp-mini-btn { height: 26px; padding: 0 10px; border-radius: var(--r-full); border: 1px solid var(--border); background: var(--bg3); color: var(--text2); font: 600 var(--fs-xs) var(--font-sans); cursor: pointer; white-space: nowrap; }
 .ytp-mini-btn:hover { color: var(--text); border-color: var(--border2); }
-.ytp-hrow { width: 100%; display: flex; align-items: center; gap: 10px; padding: 7px 8px; border: 0; border-radius: var(--r-md); background: transparent; color: var(--text); text-align: left; cursor: pointer; font-family: var(--font-sans); }
-.ytp-hrow:hover { background: color-mix(in srgb, var(--text) 6%, transparent); }
+/* History rows (2026-11-08): the song part opens a menu (it no longer
+   plays straight away), the heart beside it adds to Favorites */
+.ytp-hrow { width: 100%; display: flex; align-items: center; gap: 2px; border-radius: var(--r-md); color: var(--text); }
+.ytp-hrow:hover, .ytp-hrow.menu-open { background: color-mix(in srgb, var(--text) 6%, transparent); }
+.ytp-hrow-main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 7px 4px 7px 8px; border: 0; border-radius: var(--r-md); background: transparent; color: inherit; text-align: left; cursor: pointer; font-family: var(--font-sans); }
+.ytp-hrow-main:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.ytp-hrow-love { flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; margin-right: 2px; border: 0; border-radius: 50%; background: transparent; color: var(--text3); cursor: pointer; }
+.ytp-hrow-love svg { width: 18px; height: 18px; }
+.ytp-hrow-love:hover { color: var(--rose); }
+.ytp-hrow-love:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+/* The row menu: over the player (and its phone sheet), with the song on top */
+.ytp-hist-menu { z-index: var(--z-max); }
+.ytp-hist-menu-head { padding: 6px 14px 4px; max-width: 280px; }
+.ytp-hist-menu-head b { display: block; font-size: var(--fs-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ytp-hist-menu-head span { display: block; font-size: var(--fs-xs); color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ytp-hist-menu-heart { display: inline-flex; }
+.ytp-hist-menu-heart svg { width: 17px; height: 17px; }
+.ytp-hist-menu-heart.on { color: var(--rose); }
+.ytp-hist-menu-heart.on svg { fill: currentColor; }
+/* Bigger touch targets on phones */
+@media (hover: none) { .ytp-hist-menu .wv-ctx-item { padding-top: 11px; padding-bottom: 11px; } }
 .ytp-hrow-m { flex: 1; min-width: 0; }
 .ytp-hrow-m b { display: block; font-size: var(--fs-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ytp-hrow-m span { display: block; font-size: var(--fs-xs); color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
