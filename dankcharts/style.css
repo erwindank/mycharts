@@ -4653,6 +4653,17 @@
       margin-bottom: var(--sp-2);
     }
 
+    /* Logo mark before the big landing wordmark — sized in em of the name */
+    .landing-logo {
+      font-size: clamp(2.4rem, 8vw, 4.8rem);   /* = .wordmark-dank */
+      height: 1.1em;
+      width: auto;
+      margin: 0 0.04em 0 0;
+      position: relative;
+      top: var(--logo-drop, 0.08em);   /* stands in for the "d"; moved down by top (see LOGO MARK) */
+      flex-shrink: 0;
+    }
+
     .wordmark-dank {
       /* brand moment — "dankcharts" in IBM Plex Sans, .fm badge stays on --font-mono */
       font-family: var(--font-sans);
@@ -4803,6 +4814,128 @@
       flex-shrink: 0;
       text-decoration: none;
       border-radius: var(--r-xs);
+    }
+
+    /* ── LOGO MARK (2026-11-07) ── drawn by logo.js (dcLogoSvg); copies in
+       index.html (landing, top bar, sync toast). The top bar uses the
+       small-size drawing.
+       LINING UP WITH THE NAME: measured in IBM Plex Sans, tall letters
+       (d k h t) reach 0.74em and round letters dip 0.02em under the
+       baseline. The logo is sized in em of the name so its bars end level
+       with the top of the "d" and its rings dip under the baseline like an
+       "o" does: 0.768em tall (the drawing's 500-unit frame has ~5 units of
+       margin), pulled down 0.025em. The row lines up on baseline, and an
+       svg's baseline is its bottom edge. Its rings then come out the same
+       height as the short letters (a n c r s), so it reads as part of the
+       name.
+       THE LOGO IS THE "d" (idea 3, kept 2026-11-07): it stands in for the
+       first letter of "dank" — the real .wm-d letter is hidden on screen
+       but still read by screen readers, and the gap is a letter gap. At
+       letter height (0.768em) it looked too small, so it is drawn larger,
+       1.1em: rings dip a little under the baseline like a round letter
+       (set by --logo-drop, nudged by eye 2026-11-08 — position:relative +
+       top, because in a baseline-aligned flex row a negative margin-bottom
+       does not move an svg at all), the
+       bars rise above the other tall letters like a big first letter. */
+    .topbar-brand {
+      align-items: baseline;
+    }
+    .topbar-logo {
+      font-size: 1.25rem;          /* = #topbar .wordmark-dank */
+      height: 1.1em;
+      width: auto;
+      margin: 0 0.04em 0 0;
+      position: relative;
+      top: var(--logo-drop, 0.08em);   /* moves it down: a negative margin-bottom does NOT, the row lines up on the border box */
+      flex-shrink: 0;
+    }
+    /* the hidden "d" the logo replaces (kept for screen readers) */
+    .wm-d {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    .dc-logo path {
+      stroke-dasharray: 1 1;       /* every path has pathLength="1" */
+      stroke-dashoffset: 0;
+    }
+    .dc-logo .lg-bar {
+      transform-box: fill-box;
+      transform-origin: 50% 100%;  /* bars bounce up from their foot */
+    }
+
+    /* Light themes: the pale pieces get deeper versions of their colour */
+    body[class*="-light"] .dc-logo .k-yellow { stroke: #e39a0e; }
+    body[class*="-light"] .dc-logo .k-olive  { stroke: #93802a; }
+    body[class*="-light"] .dc-logo .k-blue   { stroke: #2f86d1; }
+    body[class*="-light"] .dc-logo .k-orange { stroke: #e07a10; }
+
+    /* Hover: the pieces redraw in turn (inner ring → outer → bars), then
+       the bars keep bouncing like an equalizer for as long as you stay.
+       --i staggers the redraw; the bounce starts once the last piece is
+       drawn (~1.2s) and --b offsets each bar. */
+    @media (prefers-reduced-motion: no-preference) {
+      .topbar-brand:hover .dc-logo path,
+      .topbar-brand:focus-visible .dc-logo path,
+      .landing-wordmark:hover .dc-logo path {
+        animation: dcLogoDraw 0.55s cubic-bezier(0.3, 0.7, 0.3, 1) backwards;
+        animation-delay: calc(var(--i) * 45ms);
+      }
+      .topbar-brand:hover .dc-logo .lg-bar,
+      .topbar-brand:focus-visible .dc-logo .lg-bar,
+      .landing-wordmark:hover .dc-logo .lg-bar {
+        animation: dcLogoDraw 0.55s cubic-bezier(0.3, 0.7, 0.3, 1) backwards,
+                   dcLogoEq 0.46s ease-in-out infinite alternate;
+        animation-delay: calc(var(--i) * 45ms),
+                         calc(1.2s + var(--b) * 90ms);
+      }
+
+      /* small lift while hovered */
+      .dc-logo {
+        transition: transform 0.35s cubic-bezier(0.3, 0.7, 0.3, 1);
+      }
+      .topbar-brand:hover .dc-logo,
+      .landing-wordmark:hover .dc-logo {
+        transform: translateY(-2px);
+      }
+
+      /* Landing page: the logo draws itself once when the page opens.
+         logo.js removes .dc-logo-intro when it is done, so leaving a
+         hover does not play it again. */
+      .dc-logo-intro path {
+        animation: dcLogoDraw 0.7s cubic-bezier(0.3, 0.7, 0.3, 1) backwards;
+        animation-delay: calc(0.35s + var(--i) * 60ms);
+      }
+    }
+
+    @keyframes dcLogoDraw {
+      from { stroke-dashoffset: 1; }
+      to   { stroke-dashoffset: 0; }
+    }
+    @keyframes dcLogoEq {
+      0%   { transform: scaleY(1); }
+      50%  { transform: scaleY(0.55); }
+      100% { transform: scaleY(0.85); }
+    }
+
+    /* Logo as a loading spinner (dcLogoSpinner): the pieces light up one
+       after another in a loop. Opacity only, so it also runs with reduced
+       motion (it is the only sign that something is still working). */
+    .dc-logo-load {
+      width: auto;
+      flex-shrink: 0;
+    }
+    .dc-logo-load path {
+      animation: dcLogoChase 1.1s linear infinite;
+      animation-delay: calc(var(--i) * 110ms - 1.1s);
+    }
+    @keyframes dcLogoChase {
+      0%, 100% { opacity: 0.22; }
+      20%      { opacity: 1; }
     }
 
     #topbar .wordmark-dank,
@@ -5121,6 +5254,11 @@
 
       #topbar .wordmark-dank,
       #topbar .wordmark-station {
+        font-size: 1.05rem;
+      }
+
+      /* logo keeps its size relative to the smaller name */
+      #topbar .topbar-logo {
         font-size: 1.05rem;
       }
 
@@ -5758,6 +5896,18 @@
 
     .sync-toast[data-kind="ok"]::before      { background: var(--green); }
     .sync-toast[data-kind="err"]::before     { background: var(--rose); }
+    /* While a sync runs, the logo spinner takes the dot's place */
+    .sync-toast-logo {
+      display: none;
+      height: 20px;
+    }
+    .sync-toast[data-kind="loading"] .sync-toast-logo {
+      display: block;
+    }
+    .sync-toast[data-kind="loading"]::before {
+      display: none;
+    }
+
     .sync-toast[data-kind="loading"]::before {
       background: var(--amber);
       animation: syncToastPulse 1.2s ease-in-out infinite;
@@ -21958,6 +22108,15 @@ body.green-light .landing-screen:has(.landing-card:hover) .landing-eq-skyline {
 .landing-wordmark {
   font-size: clamp(2.6rem, 7vw, 4.2rem);
   line-height: 1;
+}
+
+/* Below 1000px the logo + wordmark row is wide enough to run under the
+   Theme / Language buttons in the top-right corner (seen at ~700–900px and
+   on phones), so drop the hero down until it clears them. */
+@media (max-width: 1000px) {
+  .landing-hero {
+    padding-top: 1.9rem;
+  }
 }
 
 .landing-tagline {

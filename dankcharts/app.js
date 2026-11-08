@@ -5194,7 +5194,7 @@ function openImgPicker(o) {
     <div class="dc-frame-body imgpk-body">
       ${sources.map(s => `<div class="imgpk-section" data-src="${s}">
         <div class="imgpk-src-label">${srcLabel(s)}</div>
-        <div class="imgpk-tiles"><div class="imgpk-loading"><span class="dc-spinner"></span>${t('imgpk_loading')}</div></div>
+        <div class="imgpk-tiles"><div class="imgpk-loading">${dcLogoSpinner(22)}${t('imgpk_loading')}</div></div>
       </div>`).join('')}
       <div class="imgpk-section">
         <div class="imgpk-src-label">${esc(t('imgpk_url_label'))}</div>
@@ -24327,6 +24327,14 @@ function shArt(p, url, size, opt) {
   </div>`;
 }
 
+// The logo in one colour (logo.js, small-size drawing) for share images —
+// an <img> of an SVG data URL, which html2canvas draws reliably (inline
+// <svg> it does not). Sits before "dankcharts.fm" in every card footer.
+function shLogoMark(color, h) {
+  const w = Math.round(h * 344 / 508);   // small drawing's frame
+  return `<img src="${_shSvgUrl(dcLogoSvg({ small: true, mono: color, size: h }))}" width="${w}" height="${h}" alt="" style="width:${w}px;height:${h}px;display:block;flex-shrink:0;">`;
+}
+
 // Bottom brand lockup. Every card ends with the same signature.
 function shFooter(p, fmt, opt) {
   const o = opt || {};
@@ -24334,7 +24342,7 @@ function shFooter(p, fmt, opt) {
   const pad = o.padX != null ? o.padX : 72;
   return `<div style="flex-shrink:0;padding:22px ${pad}px ${shSafeBottom(fmt)}px;display:flex;align-items:center;justify-content:space-between;gap:16px;">
     <div style="display:flex;align-items:center;gap:10px;min-width:0;">
-      <span style="width:9px;height:9px;border-radius:50%;background:${p.accent};flex-shrink:0;"></span>
+      ${shLogoMark(p.accent, 30)}
       <span style="font-family:${SH_FONT.mono};font-size:20px;font-weight:600;letter-spacing:0.1em;color:${o.light ? p.text : p.dim};white-space:nowrap;">dankcharts.fm</span>
     </div>
     <span style="font-family:${SH_FONT.mono};font-size:17px;letter-spacing:0.18em;color:${_shA(o.light ? p.text : p.dim, 0.7)};text-transform:uppercase;white-space:nowrap;">${esc(t('ig_personal_charts'))}</span>
@@ -52013,7 +52021,7 @@ async function _cerSharePublish() {
   if (!data) return;
   _cerShareBusy = true;
   const body = document.getElementById('cerShareBody');
-  body.innerHTML = `<div class="dc-empty"><span class="dc-spinner"></span><span id="cerShareProgress">${esc(t('cer_share_gathering'))}</span></div>`;
+  body.innerHTML = `<div class="dc-empty">${dcLogoSpinner(22)}<span id="cerShareProgress">${esc(t('cer_share_gathering'))}</span></div>`;
   const foot = document.getElementById('cerShareFoot');
   if (foot) foot.style.display = 'none';
   try {
