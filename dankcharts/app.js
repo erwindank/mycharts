@@ -34820,6 +34820,18 @@ async function _ytFreeLookup(artist, title) {
 
 let _ytLastQuery = null;   // the query behind the video now loading — for _ytOnError
 
+// The new song can't be played (not found, or needs sign-in): stop the
+// previous song's video, which would otherwise keep playing under the new
+// song's name (seen while testing PLAYER-PLAN.md step 7).
+function _ytStopStale() {
+  if (!_ytPlayer) return;
+  try { _ytPlayer.stopVideo(); } catch (e) {}
+  const card = document.getElementById('ytMiniPlayer');
+  if (card) card.classList.remove('yt-is-playing');
+  const pauseBtn = document.getElementById('ytMiniPauseBtn');
+  if (pauseBtn) { pauseBtn.innerHTML = _YT_IC.play; pauseBtn.title = 'Play [Space]'; }
+}
+
 async function _ytSearch(artist, title, overrideQuery) {
   const query = overrideQuery || (artist + ' ' + title + ' official audio');
   const statusEl = document.getElementById('ytMiniStatus');
@@ -34855,6 +34867,7 @@ async function _ytSearch(artist, title, overrideQuery) {
     }
   }
   if (_ytNeedsSignIn()) {
+    _ytStopStale();
     if (_ytActiveBtn) _ytActiveBtn.classList.remove('yt-btn-loading', 'yt-btn-playing');
     if (statusEl) { statusEl.innerHTML = _ytSignInHTML(); statusEl.className = 'yt-mini-status err'; }
     return;
@@ -34898,6 +34911,7 @@ async function _ytSearch(artist, title, overrideQuery) {
         await new Promise(r => setTimeout(r, RETRY_DELAY_MS));
         continue;
       }
+      _ytStopStale();
       if (_ytActiveBtn) _ytActiveBtn.classList.remove('yt-btn-loading', 'yt-btn-playing');
       if (statusEl) {
         const skipPart = _ytQueue.length > 0 ? ` — <button class="yt-err-open-btn" onclick="_ytSkip()">skip ⏭</button>` : '';
@@ -36916,27 +36930,164 @@ function _ytToggleLyrics() {
   if (!visible) _ytFetchLyrics();
 }
 
+// ── Lyrics (PLAYER-PLAN.md step 7) ───────────────────────────────────────
+// 1. LRCLIB (free, no key) — timed lyrics when it has them: the line being
+//    sung lights up and the list follows it; click a line to jump there.
+// 2. LRCLIB's plain lyrics, then lyrics.ovh (the old source) as plain text.
+// Music videos sometimes start with an intro, so the timing can be nudged
+// ±0.5 s per song (remembered for this session).
+// _ytLyricsCache: "artist|||title" → { kind: 'synced'|'plain'|'instrumental'|'none', lines?, text? }
+let _ytLyricsData   = null;   // what the panel shows now
+let _ytLyricsKey    = '';     // whose lyrics they are
+let _ytLyricsOffset = {};     // key → seconds added to the video time
+let _ytLyricsIv     = null;   // highlight timer (runs only while synced lyrics show)
+let _ytLyricsUserScroll = 0;  // when the listener last scrolled the panel by hand
+
+function _ytParseLrc(lrc) {
+  const out = [];
+  String(lrc || '').split('\n').forEach(raw => {
+    const tags = [...raw.matchAll(/\[(\d+):(\d+(?:\.\d+)?)\]/g)];
+    if (!tags.length) return;
+    const text = raw.replace(/\[[^\]]*\]/g, '').trim();
+    tags.forEach(m => out.push({ t: parseInt(m[1], 10) * 60 + parseFloat(m[2]), text }));
+  });
+  return out.sort((x, y) => x.t - y.t);
+}
+
+async function _ytLyricsLookup(artist, title) {
+  const main = typeof _ytFreeMainArtist === 'function' ? _ytFreeMainArtist(artist) : artist;
+  const clean = title.replace(/\s*[\(\[](feat|ft|with)\.?\s[^\)\]]*[\)\]]/gi, '').trim();
+  let dur = 0;
+  try { dur = Math.round(_ytPlayer && _ytPlayer.getDuration ? _ytPlayer.getDuration() : 0); } catch (e) {}
+  const pick = d => {
+    if (!d) return null;
+    if (d.instrumental) return { kind: 'instrumental' };
+    if (d.syncedLyrics) { const lines = _ytParseLrc(d.syncedLyrics); if (lines.length) return { kind: 'synced', lines, dur: d.duration || 0 }; }
+    if (d.plainLyrics) return { kind: 'plain', text: d.plainLyrics };
+    return null;
+  };
+  const get = async url => { const ctl = new AbortController(); const tm = setTimeout(() => ctl.abort(), 7000); try { const r = await fetch(url, { signal: ctl.signal }); return r.ok ? r.json() : null; } finally { clearTimeout(tm); } };
+  const q = `artist_name=${encodeURIComponent(main)}&track_name=${encodeURIComponent(clean)}`;
+  try {
+    const exact = pick(await get(`https://lrclib.net/api/get?${q}${dur > 30 ? '&duration=' + dur : ''}`))
+              || (dur > 30 ? pick(await get(`https://lrclib.net/api/get?${q}`)) : null);
+    if (exact) return exact;
+    const list = await get(`https://lrclib.net/api/search?${q}`);
+    if (Array.isArray(list) && list.length) {
+      const best = list.find(d => d.syncedLyrics) || list.find(d => d.plainLyrics) || list[0];
+      const r = pick(best);
+      if (r) return r;
+    }
+  } catch (e) { /* LRCLIB unreachable — try the old source */ }
+  try {
+    const d = await get(`https://api.lyrics.ovh/v1/${encodeURIComponent(artist)}/${encodeURIComponent(title)}`);
+    if (d && d.lyrics) return { kind: 'plain', text: d.lyrics };
+  } catch (e) {}
+  return { kind: 'none' };
+}
+
 async function _ytFetchLyrics() {
   const el = document.getElementById('ytLyricsPanel');
   if (!el || !_ytCurrentTrack) return;
   const { artist, title } = _ytCurrentTrack;
   const key = artist + '|||' + title;
-  if (_ytLyricsCache[key]) { el.innerHTML = _ytLyricsCache[key]; return; }
-  el.innerHTML = '<div class="yt-lyrics-loading">Loading lyrics…</div>';
-  try {
-    const res  = await fetch(`https://api.lyrics.ovh/v1/${encodeURIComponent(artist)}/${encodeURIComponent(title)}`);
-    const data = await res.json();
-    if (data.lyrics) {
-      const html = `<div class="yt-lyrics-text">${esc(data.lyrics).replace(/\n/g, '<br>')}</div>`;
-      _ytLyricsCache[key] = html;
-      el.innerHTML = html;
-    } else {
-      el.innerHTML = '<div class="yt-lyrics-empty">No lyrics found</div>';
-    }
-  } catch(e) {
-    el.innerHTML = '<div class="yt-lyrics-empty">Lyrics unavailable</div>';
+  if (_ytLyricsKey === key && _ytLyricsData && el.dataset.key === key) return;   // already showing
+  _ytLyricsKey = key;
+  let data = _ytLyricsCache[key];
+  if (!data) {
+    el.dataset.key = '';
+    el.innerHTML = '<div class="ytp-lyr-msg">Loading lyrics…</div>';
+    data = await _ytLyricsLookup(artist, title);
+    if (data.kind !== 'none') _ytLyricsCache[key] = data;
+    if (_ytLyricsKey !== key) return;   // a newer song started meanwhile
+  }
+  _ytLyricsData = data;
+  el.dataset.key = key;
+  _ytRenderLyrics();
+}
+
+function _ytRenderLyrics() {
+  const el = document.getElementById('ytLyricsPanel');
+  const data = _ytLyricsData;
+  if (!el || !data) return;
+  const credit = '<div class="ytp-lyr-credit">Lyrics from LRCLIB and lyrics.ovh</div>';
+  clearInterval(_ytLyricsIv); _ytLyricsIv = null;
+  if (data.kind === 'instrumental') { el.innerHTML = '<div class="ytp-lyr-msg">♪ This song has no words — it\'s an instrumental.</div>'; return; }
+  if (data.kind === 'none') { el.innerHTML = '<div class="ytp-lyr-msg">No lyrics found for this song.</div>'; return; }
+  if (data.kind === 'plain') {
+    el.innerHTML = `<div class="ytp-lyr-head"><span class="ytp-lyr-pill plain">NOT TIMED</span><span>These lyrics don't follow the song.</span></div>` +
+      `<div class="ytp-lyr-plain">${esc(data.text)}</div>` + credit;
+    return;
+  }
+  const off = _ytLyricsOffset[_ytLyricsKey] || 0;
+  const offTxt = off === 0 ? 'In time' : (off > 0 ? '+' : '') + off.toFixed(1) + ' s';
+  el.innerHTML =
+    `<div class="ytp-lyr-head"><span class="ytp-lyr-pill">SYNCED</span><span>Click a line to jump there.</span>` +
+    `<span class="ytp-lyr-nudge" role="group" aria-label="Lyrics timing">` +
+    `<button type="button" onclick="_ytLyricsNudge(-0.5)" title="Lyrics are late — show them earlier">−</button>` +
+    `<span title="Lyrics timing">${offTxt}</span>` +
+    `<button type="button" onclick="_ytLyricsNudge(0.5)" title="Lyrics are early — show them later">+</button></span></div>` +
+    `<div class="ytp-lyr-lines">` +
+    data.lines.map((l, i) => `<button type="button" class="ytp-lyr-line${l.text ? '' : ' gap'}" data-i="${i}" onclick="_ytLyricsJump(${i})">${l.text ? esc(l.text) : '♪'}</button>`).join('') +
+    `</div>` + credit;
+  _ytLyricsCurIdx = -1;
+  _ytLyricsTick();
+  _ytLyricsIv = setInterval(_ytLyricsTick, 250);
+}
+
+// Moves the highlight to the line being sung and keeps it in view
+let _ytLyricsCurIdx = -1;
+function _ytLyricsTick() {
+  const player = document.getElementById('ytMiniPlayer');
+  const data = _ytLyricsData;
+  if (!data || data.kind !== 'synced' || !player || player.dataset.tab !== 'lyrics' || player.style.display === 'none') return;
+  let cur = 0;
+  try { cur = (_ytPlayer && _ytPlayer.getCurrentTime ? _ytPlayer.getCurrentTime() : 0) - (_ytLyricsOffset[_ytLyricsKey] || 0); } catch (e) { return; }
+  let idx = -1;
+  for (let i = 0; i < data.lines.length; i++) { if (data.lines[i].t <= cur + 0.15) idx = i; else break; }
+  if (idx === _ytLyricsCurIdx) return;
+  _ytLyricsCurIdx = idx;
+  const lines = player.querySelectorAll('.ytp-lyr-line');
+  lines.forEach((b, i) => {
+    b.classList.toggle('now', i === idx);
+    b.classList.toggle('next', i === idx + 1);
+    b.classList.toggle('past', i < idx);
+  });
+  // Follow the song, unless the listener scrolled the lyrics in the last 4 s
+  const zone = player.querySelector('.yt-panels-zone');
+  const line = lines[Math.max(0, idx)];
+  if (zone && line && Date.now() - _ytLyricsUserScroll > 4000) {
+    const zr = zone.getBoundingClientRect(), lr = line.getBoundingClientRect();
+    const target = zone.scrollTop + (lr.top - zr.top) - zr.height * 0.35;
+    zone._ytAutoScroll = true;
+    zone.scrollTo({ top: Math.max(0, target), behavior: 'smooth' });
+    setTimeout(() => { zone._ytAutoScroll = false; }, 600);
   }
 }
+
+function _ytLyricsJump(i) {
+  const l = _ytLyricsData && _ytLyricsData.lines && _ytLyricsData.lines[i];
+  if (!l || !_ytPlayer) return;
+  try { _ytPlayer.seekTo(Math.max(0, l.t + (_ytLyricsOffset[_ytLyricsKey] || 0)), true); } catch (e) {}
+  _ytLyricsUserScroll = 0;
+  _ytLyricsCurIdx = -2;
+  setTimeout(_ytLyricsTick, 100);
+}
+
+function _ytLyricsNudge(sec) {
+  const k = _ytLyricsKey;
+  _ytLyricsOffset[k] = Math.round(((_ytLyricsOffset[k] || 0) + sec) * 10) / 10;
+  const zone = document.querySelector('#ytMiniPlayer .yt-panels-zone');
+  const keep = zone ? zone.scrollTop : 0;
+  _ytRenderLyrics();
+  if (zone) zone.scrollTop = keep;
+}
+
+// Scrolling the lyrics by hand pauses the auto-follow for a moment
+document.addEventListener('scroll', e => {
+  const zone = e.target;
+  if (zone && zone.classList && zone.classList.contains('yt-panels-zone') && !zone._ytAutoScroll) _ytLyricsUserScroll = Date.now();
+}, true);
 
 // ── 4. Scrobble threshold ─────────────────────────────────────────
 const _YT_SCROBBLE_OPTIONS = ['30s', '50%', '70%', 'end'];

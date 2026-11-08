@@ -24587,6 +24587,40 @@ body.green .landing-card-config input:focus {
 .yt-mini-player .yt-queue-header-count { font-weight: 600; color: var(--text2); }
 .yt-mini-player .yt-queue-empty { padding: 18px 8px; text-align: center; }
 
+/* ── Step 7: lyrics ── */
+.yt-mini-player #ytLyricsPanel { background: none; padding: 4px 0 10px; margin: 0; }
+.ytp-lyr-msg { padding: 22px 8px; text-align: center; font-size: var(--fs-sm); color: var(--text3); }
+.ytp-lyr-head { display: flex; align-items: center; gap: 8px; padding: 6px 0 10px; font-size: var(--fs-xs); color: var(--text3); position: sticky; top: 0; background: var(--bg2); z-index: 1; }
+.ytp-lyr-pill { height: 20px; padding: 0 8px; border-radius: var(--r-full); background: color-mix(in srgb, var(--green) 16%, transparent); color: var(--green); font: 700 10px/20px var(--font-sans); letter-spacing: 0.06em; flex-shrink: 0; }
+.ytp-lyr-pill.plain { background: color-mix(in srgb, var(--text) 8%, transparent); color: var(--text2); }
+.ytp-lyr-nudge { margin-left: auto; display: inline-flex; align-items: center; gap: 2px; border: 1px solid var(--border); border-radius: var(--r-full); padding: 1px; flex-shrink: 0; }
+.ytp-lyr-nudge button { width: 22px; height: 22px; border: 0; border-radius: 50%; background: transparent; color: var(--text2); font: 700 14px/1 var(--font-sans); cursor: pointer; }
+.ytp-lyr-nudge button:hover { background: color-mix(in srgb, var(--text) 9%, transparent); color: var(--text); }
+.ytp-lyr-nudge span { font: 600 10px var(--font-mono); color: var(--text2); min-width: 44px; text-align: center; }
+.ytp-lyr-lines { display: flex; flex-direction: column; align-items: flex-start; }
+.ytp-lyr-line {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: none;
+  padding: 3px 4px;
+  border-radius: var(--r-sm);
+  font: 700 1.05rem/1.4 var(--font-display);
+  color: var(--text2);
+  opacity: 0.45;
+  cursor: pointer;
+  transition: color 0.25s, font-size 0.25s, opacity 0.25s;
+}
+.ytp-lyr-line:hover { background: color-mix(in srgb, var(--text) 6%, transparent); opacity: 0.9; }
+.ytp-lyr-line.past { opacity: 0.3; }
+.ytp-lyr-line.next { opacity: 0.75; }
+.ytp-lyr-line.now { color: var(--text); font-size: 1.3rem; opacity: 1; }
+.ytp-lyr-line.gap { color: var(--text3); }
+.ytp-lyr-plain { white-space: pre-wrap; word-break: break-word; font-size: var(--fs-sm); line-height: 1.65; color: var(--text2); }
+.ytp-lyr-credit { margin-top: 12px; font-size: 10px; color: var(--text3); }
+@media (prefers-reduced-motion: reduce) { .ytp-lyr-line { transition: none; } }
+
 /* The panel area has one scroll (inner lists drop their own small limits) */
 .yt-mini-player .yt-panels-zone { max-height: 340px; }
 .yt-mini-player #ytMiniQueue,
