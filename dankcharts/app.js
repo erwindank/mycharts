@@ -34944,6 +34944,7 @@ function _ytOnState(event) {
   // Card-wide "music is playing" state: bounces the header bars (and spins the record later)
   const ytCard = document.getElementById('ytMiniPlayer');
   if (ytCard) ytCard.classList.toggle('yt-is-playing', event.data === YT.PlayerState.PLAYING);
+  _ytBarSync();   // step 9
   if (event.data === YT.PlayerState.PLAYING) {
     clearTimeout(_ytScrobbleTimer);
     if (!_ytScrobbled) {
@@ -35447,6 +35448,7 @@ function _ytUpdateChartStory(title, artist) {
   (window.requestIdleCallback || (f => setTimeout(f, 60)))(run, { timeout: 800 });
 }
 function _ytFillChartStory(el, title, artist) {
+  _ytBarRank = 0;
   const key = songKey({ title, artist });
   let plays = 0;
   for (const p of allPlays) if (songKey(p) === key) plays++;
@@ -35464,6 +35466,7 @@ function _ytFillChartStory(el, title, artist) {
     let peak = Infinity;
     for (const e of d.entries) if (e.rank < peak) peak = e.rank;
     if (cur) tiles.push(['#' + cur.rank, 'This week', 'ytp-story-rank']);
+    _ytBarRank = cur ? cur.rank : 0;   // step 9: shown in the bar
     tiles.push(['#' + peak, 'Peak', 'ytp-story-peak']);
     tiles.push([plays.toLocaleString(), plays === 1 ? 'Your play' : 'Your plays', '']);
     tiles.push([d.entries.length.toLocaleString(), d.entries.length === 1 ? 'Week on' : 'Weeks on', '']);
@@ -35604,6 +35607,80 @@ function _ytInitLove() {
   });
 }
 
+// ── The Bar (PLAYER-PLAN.md step 9) ─────────────────────────────────────
+// The player shrunk to a strip along the bottom of the page: artwork, song,
+// this week's rank, heart, Previous / Play / Next, what's next, Up Next,
+// open and close. Opening the player always starts as the card (the user's
+// choice); the bar stays while songs change. The card is only made
+// invisible (not display:none — the rest of the code reads that as "closed"
+// and the video inside it must keep playing).
+let _ytBarIv = null, _ytBarRank = 0;
+function _ytSetBar(on) {
+  const player = document.getElementById('ytMiniPlayer');
+  const bar = document.getElementById('ytBar');
+  if (!player || !bar) return;
+  player.classList.toggle('yt-mini-collapsed', on);
+  bar.style.display = on ? '' : 'none';
+  document.body.classList.toggle('ytp-bar-open', on);
+  const btn = document.getElementById('ytMiniCollapseBtn');
+  if (btn) btn.title = on ? 'Open the full player [M]' : 'Shrink to a bar [M]';
+  clearInterval(_ytBarIv); _ytBarIv = null;
+  if (on) { _ytTipHide && _ytTipHide(); _ytBarSync(); _ytBarIv = setInterval(_ytBarSync, 500); }
+  else requestAnimationFrame(_ytClampToViewport);
+  _ytUpdateCollapsedCount();
+}
+function _ytBarSync() {
+  const bar = document.getElementById('ytBar');
+  if (!bar || bar.style.display === 'none') return;
+  const tr = _ytCurrentTrack;
+  const set = (id, v) => { const el = document.getElementById(id); if (el && el.textContent !== v) el.textContent = v; };
+  set('ytBarTitle', tr ? tr.title : '');
+  set('ytBarSub', tr ? (tr.artist || '') + (_ytBarRank ? ` · #${_ytBarRank} this week` : '') : '');
+  // Artwork: the same picture as the card (or the initials)
+  const art = document.getElementById('ytMiniArt'), barArt = document.getElementById('ytBarArt');
+  const card = document.getElementById('ytMiniPlayer');
+  const hasArt = card && card.classList.contains('ytp-has-art') && art && art.src;
+  if (barArt) { if (hasArt && barArt.src !== art.src) barArt.src = art.src; barArt.style.opacity = hasArt ? '1' : '0'; }
+  set('ytBarArtInit', (document.getElementById('ytMiniArtInit') || {}).textContent || '');
+  // Play / pause
+  const playing = card && card.classList.contains('yt-is-playing');
+  const pb = document.getElementById('ytBarPlay');
+  if (pb && pb.dataset.state !== String(playing)) {
+    pb.dataset.state = String(playing);
+    pb.innerHTML = playing
+      ? '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>'
+      : '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="7,4 20,12 7,20"/></svg>';
+    pb.title = playing ? 'Pause [Space]' : 'Play [Space]';
+  }
+  // Progress line
+  try {
+    const d = _ytPlayer && _ytPlayer.getDuration ? _ytPlayer.getDuration() : 0;
+    const c = _ytPlayer && _ytPlayer.getCurrentTime ? _ytPlayer.getCurrentTime() : 0;
+    const line = document.getElementById('ytBarLine');
+    if (line) line.style.width = (d ? Math.min(100, c / d * 100) : 0) + '%';
+  } catch (e) {}
+  // What's next + Up Next count
+  const n = _ytQueue[0];
+  set('ytBarNext', n ? `${n.title} · ${n.artist}` : 'nothing queued');
+  const cnt = document.getElementById('ytBarCount');
+  if (cnt) { cnt.textContent = _ytQueue.length > 99 ? '99+' : String(_ytQueue.length); cnt.style.display = _ytQueue.length ? '' : 'none'; }
+  // Heart
+  const love = document.getElementById('ytBarLove');
+  if (love) { const on = _ytIsFavorite(tr); love.classList.toggle('on', on); love.setAttribute('aria-pressed', String(on)); }
+}
+function _ytInitBar() {
+  // Closing the player closes the bar too
+  const orig = window.closeYtPlayer;
+  if (typeof orig !== 'function') return;
+  window.closeYtPlayer = function () {
+    const bar = document.getElementById('ytBar');
+    if (bar) bar.style.display = 'none';
+    document.body.classList.remove('ytp-bar-open');
+    clearInterval(_ytBarIv); _ytBarIv = null;
+    return orig.apply(this, arguments);
+  };
+}
+
 // ── Previous (PLAYER-PLAN.md step 2) ─────────────────────────────────────
 // More than 3 seconds in: back to the start of the song. Otherwise: the song
 // played before it (from History). The current song goes back to the top of
@@ -35693,7 +35770,7 @@ function _ytTipHide() {
 (function _ytTipInit() {
   const hoverOk = () => window.matchMedia && window.matchMedia('(hover: hover)').matches;
   document.addEventListener('mouseover', e => {
-    const btn = e.target.closest && e.target.closest('#ytMiniPlayer button');
+    const btn = e.target.closest && e.target.closest('#ytMiniPlayer button, #ytBar button');
     if (!btn || btn === _ytTipFor || !hoverOk()) return;
     _ytTipHide();
     _ytTipShow(btn);
@@ -35706,7 +35783,7 @@ function _ytTipHide() {
   // A click changes the button (Pause → Play, Shuffle off → on): when the
   // player code has set a new title, show the new name right away
   document.addEventListener('click', e => {
-    const btn = e.target.closest && e.target.closest('#ytMiniPlayer button');
+    const btn = e.target.closest && e.target.closest('#ytMiniPlayer button, #ytBar button');
     if (btn && btn === _ytTipFor) setTimeout(() => { if (_ytTipFor === btn && btn.title) _ytTipShow(btn); }, 0);
   });
   document.addEventListener('scroll', _ytTipHide, true);
@@ -35948,12 +36025,12 @@ function _ytPlayFromHistory(i) {
 }
 
 function _ytToggleCollapse() {
+  // Step 9: "collapse" now shrinks the player to the Bar at the bottom of the
+  // page (the card keeps its .yt-mini-collapsed class meaning "in the bar",
+  // so older checks for it still work)
   const player = document.getElementById('ytMiniPlayer');
   if (!player) return;
-  const collapsed = player.classList.toggle('yt-mini-collapsed');
-  const btn = document.getElementById('ytMiniCollapseBtn');
-  if (btn) { btn.innerHTML = collapsed ? _YT_IC.expandV : _YT_IC.collapseV; btn.title = collapsed ? 'Expand player [M]' : 'Collapse player [M]'; }
-  _ytUpdateCollapsedCount(); // show/hide queue count badge (#14)
+  _ytSetBar(!player.classList.contains('yt-mini-collapsed'));
 }
 
 function _ytToggleShortcuts() {
@@ -36856,6 +36933,7 @@ _ytUpdateShuffleBtn(); // step 2: remembered shuffle state
 _ytSetMediaMode(_ytMediaMode, true); // step 3: remembered artwork / video choice
 _ytInitTabs();                       // step 6: tabs + the old toggles routed through them
 _ytInitLove();                       // step 8: heart follows Favorites, also after a sync
+_ytInitBar();                        // step 9: the Bar follows closing
 _ytLoadPlaylists();
 _ytUpdateSpeedBtn();
 _ytUpdateCrossfadeBtn();
@@ -36937,11 +37015,11 @@ function _ytUpdateSleepBtn() {
   if (_ytSleepRemaining > 0) {
     btn.classList.add('yt-ctrl-active');
     const m = Math.ceil(_ytSleepRemaining / 60);
-    if (badge) { badge.textContent = m + 'm'; badge.style.display = ''; }
+    if (badge) badge.textContent = m + ' min';   // step 9: the chip shows the time left
     btn.title = `Sleep in ${m}m (click to edit)`;
   } else {
     btn.classList.remove('yt-ctrl-active');
-    if (badge) badge.style.display = 'none';
+    if (badge) badge.textContent = 'Off';
     btn.title = 'Sleep timer [T]';
   }
 }
@@ -38287,7 +38365,7 @@ function _ytUpdateSpeedBtn() {
   if (!btn) return;
   btn.classList.toggle('yt-ctrl-active', _ytSpeed !== 1);
   btn.title = `Speed: ${_ytSpeed}x [S]`;
-  if (badge) { badge.textContent = _ytSpeed === 1 ? '' : _ytSpeed + 'x'; badge.style.display = _ytSpeed === 1 ? 'none' : ''; }
+  if (badge) badge.textContent = _ytSpeed + '×';   // step 9: the chip always shows the speed
 }
 
 // ── 10. Share card ────────────────────────────────────────────────
