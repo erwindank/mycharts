@@ -24681,6 +24681,46 @@ body.ytp-stage-open { overflow: hidden; }
   @media (prefers-reduced-motion: reduce) { .yt-mini-player .yt-panels-zone { transition: none; } }
 }
 
+/* ── Step 12: tour + first-visit hint ── */
+.yt-mini-player .ytp-foot .ytp-help-btn { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border); font: 700 var(--fs-sm) var(--font-sans); color: var(--text2); }
+.yt-mini-player .ytp-foot .ytp-help-btn:hover { border-color: var(--border2); color: var(--text); }
+.ytp-hint { margin: 10px 16px 0; padding: 12px 14px; border-radius: var(--r-md); background: color-mix(in srgb, var(--accent) 12%, var(--bg3)); border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border)); flex-shrink: 0; }
+.ytp-hint b { font: 800 var(--fs-base) var(--font-display); }
+.ytp-hint p { margin: 4px 0 0; font-size: var(--fs-xs); line-height: 1.45; color: var(--text2); }
+.yt-mini-player.yt-mini-collapsed .ytp-hint, .yt-mini-player.ytp-stage .ytp-hint { display: none !important; }
+.ytp-tour-dim { display: none; position: absolute; inset: 0; z-index: 30; background: rgba(4, 6, 12, 0.66); }
+.yt-mini-player.ytp-touring .ytp-tour-dim { display: block; position: fixed; }
+.yt-mini-player.ytp-touring .ytp-spot {
+  position: relative;
+  z-index: 31 !important;
+  border-radius: 14px;
+  box-shadow: 0 0 0 3px var(--accent), 0 0 30px color-mix(in srgb, var(--accent) 45%, transparent) !important;
+  background-color: var(--bg2);
+}
+.ytp-tour-card {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  z-index: 40;
+  padding: 14px 16px;
+  border-radius: var(--r-lg);
+  background: var(--text);
+  color: var(--bg);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5);
+}
+.ytp-tour-step { font: 700 11px var(--font-mono); letter-spacing: 0.06em; opacity: 0.6; text-transform: uppercase; }
+.ytp-tour-card h3 { margin: 4px 0; font: 800 var(--fs-md) var(--font-display); }
+.ytp-tour-card p { margin: 0; font-size: var(--fs-sm); line-height: 1.45; opacity: 0.85; }
+.ytp-tour-btns { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+.ytp-tour-card .ytp-ask-btn { border-color: color-mix(in srgb, var(--bg) 30%, transparent); background: transparent; color: var(--bg); }
+.ytp-tour-card .ytp-ask-btn.ytp-ask-yes { background: var(--bg); color: var(--text); border-color: var(--bg); }
+.ytp-tour-skip { margin-left: auto; background: none; border: 0; padding: 4px; font: 600 var(--fs-xs) var(--font-sans); color: inherit; opacity: 0.7; cursor: pointer; }
+.ytp-tour-skip:hover { opacity: 1; text-decoration: underline; }
+/* Phone: the tabs are fixed to the screen, so lift them above the dim layer when ringed */
+@media (max-width: 760px) {
+  .yt-mini-player.ytp-touring .ytp-tabs.ytp-spot { z-index: 31 !important; }
+}
+
 /* Step 4: chart story tiles under the song name */
 .ytp-story { display: grid; gap: 6px; margin: 12px 16px 0; flex-shrink: 0; }
 .ytp-story-tile {

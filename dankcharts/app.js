@@ -34544,6 +34544,7 @@ function openYtPlayer(title, artist, album, btn) {
   _ytUpdateArt(title, artist, album);
   _ytUpdateChartStory(title, artist);
   _ytUpdateLoveBtn();   // step 8: filled heart when the song is in Favorites
+  _ytMaybeHint();       // step 12: once per person
   if (player.dataset.tab === 'lyrics') setTimeout(_ytFetchLyrics, 0);   // step 6: follow the new song
   const statusEl = document.getElementById('ytMiniStatus');
   statusEl.textContent = 'Searching…';
@@ -35838,7 +35839,7 @@ function _ytInitStage() {
   const orig = window._ytClampToViewport;
   if (typeof orig === 'function') window._ytClampToViewport = function () { if (_ytInStage()) return; return orig.apply(this, arguments); };
   const close = window.closeYtPlayer;
-  if (typeof close === 'function') window.closeYtPlayer = function () { if (_ytInStage()) _ytToggleStage(false); return close.apply(this, arguments); };
+  if (typeof close === 'function') window.closeYtPlayer = function () { if (_ytTouring) _ytEndTour(); if (_ytInStage()) _ytToggleStage(false); return close.apply(this, arguments); };
   document.addEventListener('fullscreenchange', () => {
     const b = document.getElementById('ytFullBtn');
     if (b) b.title = document.fullscreenElement ? 'Leave full screen' : 'Full screen';
@@ -35901,6 +35902,89 @@ function _ytInitPhone() {
     if (dy > 70 && dx < 60) { if (sw.sheet) _ytCloseSheet(); else _ytSetBar(true); }
     sw = null;
   });
+}
+
+// ── Tour + first-visit hint (PLAYER-PLAN.md step 12) ─────────────────────
+// The ? button (bottom row), the ? key and the Tools card start a short tour:
+// the player dims, a ring goes round one part at a time and a card says
+// what it does. Next / Back / Skip, → ← Enter and Esc. Parts that aren't
+// showing (the chart story with no data) are skipped. In Stage or the bar the
+// tour first goes back to the card. The hint shows once per person (synced),
+// the first time the player opens.
+const _YT_TOUR = [
+  ['.yt-player-header', 'Your player', 'Drag it by the dots. ⌄ shrinks it to a small player, the screen button opens Stage (the big screen), ✕ closes it.'],
+  ['.ytp-media-bar', 'Artwork or video', 'Switch between the cover and the music video. The note says where the video came from, and “Wrong video?” lets you find a better one or paste a YouTube link.'],
+  ['#ytChartStory', 'Your chart story', 'This song in your own charts: this week’s rank, its peak, your plays and its weeks on the chart. Tap a tile to open the song’s page.'],
+  ['.yt-seek-bar-wrap', 'When a play counts', 'The green mark is where the play gets scrobbled. The note under the bar says when it counts, and when it did.'],
+  ['.yt-primary-controls', 'The controls', 'Shuffle, Previous, Play, Next and Repeat. Every button shows its name (and its key) when you point at it.'],
+  ['.ytp-song-acts', 'Keep the songs you love', '♥ adds the song to your Favorites playlist. + adds it to any playlist.'],
+  ['.ytp-tabs', 'Four sections', 'Up Next is your queue. Lyrics follow the song line by line. History is what you played here. Tools has everything else: sleep timer, speed, sharing and more.'],
+  ['.ytp-foot', 'Volume and quick settings', 'Volume, speed and the sleep timer. The ? button brings this tour back any time, and Tools → Keys & settings lists every key.'],
+];
+let _ytTouring = false, _ytTourIdx = 0, _ytTourSteps = [];
+function _ytStartTour() {
+  const p = document.getElementById('ytMiniPlayer');
+  if (!p || p.style.display === 'none') return;
+  if (_ytInStage()) _ytToggleStage(false);
+  if (p.classList.contains('yt-mini-collapsed')) _ytSetBar(false);
+  if (typeof _ytCloseSheet === 'function') _ytCloseSheet();
+  _ytHintDone(true);
+  // Only the parts that are showing right now
+  _ytTourSteps = _YT_TOUR.filter(([sel]) => { const el = p.querySelector(sel); return el && el.getClientRects().length && getComputedStyle(el).visibility !== 'hidden'; });   // (offsetParent is null for the phone's fixed tabs, so not used)
+  if (!_ytTourSteps.length) return;
+  _ytTouring = true; _ytTourIdx = 0;
+  p.classList.add('ytp-touring');
+  document.getElementById('ytTourCard').style.display = '';
+  _ytTipHide();
+  _ytTourShow();
+}
+function _ytTourShow() {
+  const p = document.getElementById('ytMiniPlayer');
+  const card = document.getElementById('ytTourCard');
+  p.querySelectorAll('.ytp-spot').forEach(el => el.classList.remove('ytp-spot'));
+  const [sel, head, text] = _ytTourSteps[_ytTourIdx];
+  const el = p.querySelector(sel);
+  if (!el) { _ytEndTour(); return; }
+  el.classList.add('ytp-spot');
+  document.getElementById('ytTourStep').textContent = `${_ytTourIdx + 1} of ${_ytTourSteps.length}`;
+  document.getElementById('ytTourHead').textContent = head;
+  document.getElementById('ytTourText').textContent = text;
+  document.getElementById('ytTourNext').textContent = _ytTourIdx === _ytTourSteps.length - 1 ? 'Done' : 'Next';
+  document.getElementById('ytTourBack').style.visibility = _ytTourIdx ? '' : 'hidden';
+  // Bring the part into view (the phone card scrolls), then put the card
+  // under it if there's room, otherwise above it
+  el.scrollIntoView({ block: 'nearest' });
+  requestAnimationFrame(() => {
+    const pr = p.getBoundingClientRect(), er = el.getBoundingClientRect();
+    const ch = card.offsetHeight;
+    const below = er.bottom - pr.top + p.scrollTop + 10;
+    const above = er.top - pr.top + p.scrollTop - ch - 10;
+    const fitsBelow = er.bottom + 10 + ch < Math.min(pr.bottom, window.innerHeight) - 8;
+    card.style.top = Math.max(8 + p.scrollTop, fitsBelow ? below : above) + 'px';
+    card.focus && card.querySelector('#ytTourNext').focus({ preventScroll: true });
+  });
+}
+function _ytTourNext() { if (!_ytTouring) return; if (_ytTourIdx >= _ytTourSteps.length - 1) { _ytEndTour(); return; } _ytTourIdx++; _ytTourShow(); }
+function _ytTourBack() { if (!_ytTouring || !_ytTourIdx) return; _ytTourIdx--; _ytTourShow(); }
+function _ytEndTour() {
+  const p = document.getElementById('ytMiniPlayer');
+  _ytTouring = false;
+  if (p) { p.classList.remove('ytp-touring'); p.querySelectorAll('.ytp-spot').forEach(el => el.classList.remove('ytp-spot')); }
+  const card = document.getElementById('ytTourCard');
+  if (card) card.style.display = 'none';
+}
+// First-visit hint: once per person (dc_player_hint_seen, synced)
+function _ytMaybeHint() {
+  let seen = false;
+  try { seen = !!localStorage.getItem('dc_player_hint_seen'); } catch (e) { seen = true; }
+  const h = document.getElementById('ytHint');
+  if (h) h.style.display = seen ? 'none' : '';
+}
+function _ytHintDone(quiet) {
+  const h = document.getElementById('ytHint');
+  if (h) h.style.display = 'none';
+  try { if (localStorage.getItem('dc_player_hint_seen')) return; localStorage.setItem('dc_player_hint_seen', '1'); } catch (e) { return; }
+  if (typeof dcSaveConfigKey === 'function') dcSaveConfigKey('dc_player_hint_seen', '1');
 }
 
 // ── Previous (PLAYER-PLAN.md step 2) ─────────────────────────────────────
@@ -37121,6 +37205,8 @@ document.addEventListener('keydown', e => {
   else if (key === 'k' || key === 'K') { e.preventDefault(); _ytToggleLove(); }
   else if (key === 'p' || key === 'P') { e.preventDefault(); _ytAddToPlaylist(); }
   else if (key === 'v' || key === 'V') { e.preventDefault(); _ytSetMediaMode(_ytMediaMode === 'video' ? 'art' : 'video'); }
+  else if (key === 'ArrowLeft' && _ytTouring) { e.preventDefault(); _ytTourBack(); }
+  else if (key === 'ArrowRight' && _ytTouring) { e.preventDefault(); _ytTourNext(); }   // (Enter already presses the focused Next button)
   else if (key === 'ArrowLeft')        { e.preventDefault(); if (_ytPlayer) { try { _ytPlayer.seekTo(Math.max(0, _ytPlayer.getCurrentTime() - 10), true); } catch(ex) {} } }
   else if (key === 'ArrowRight')       { e.preventDefault(); if (_ytPlayer) { try { _ytPlayer.seekTo(_ytPlayer.getCurrentTime() + 10, true); } catch(ex) {} } }
   else if (key === 'ArrowUp')          { e.preventDefault(); _ytSetVolume(_ytVolume + 5); }
@@ -37131,9 +37217,9 @@ document.addEventListener('keydown', e => {
   else if (key === 'l' || key === 'L') { e.preventDefault(); _ytToggleLyrics(); }
   else if (key === 't' || key === 'T') { e.preventDefault(); _ytToggleSleep(); }
   else if (key === 's' || key === 'S') { e.preventDefault(); _ytCycleSpeed(); }
-  else if (key === '?')                { e.preventDefault(); _ytToggleShortcuts(); }
+  else if (key === '?')                { e.preventDefault(); _ytTouring ? _ytEndTour() : _ytStartTour(); }
   else if (key === 'g' || key === 'G') { e.preventDefault(); _ytToggleStage(); }
-  else if (key === 'Escape')           { e.preventDefault(); if (_ytInStage()) _ytToggleStage(false); else closeYtPlayer(); }
+  else if (key === 'Escape')           { e.preventDefault(); if (_ytTouring) _ytEndTour(); else if (_ytInStage()) _ytToggleStage(false); else closeYtPlayer(); }
 });
 
 // Scroll wheel on mini player changes volume (but not when scrolling the queue list)
@@ -38680,7 +38766,8 @@ function _ytRenderTools() {
     ['share',   'Share', 'Copies the song and its YouTube link.', 'Copy', 'M4 12v8h16v-8M16 6l-4-4-4 4M12 2v13', '_ytShare()'],
     ['pip',     'Pop-out window', 'A small player that stays on top of other apps.', _ytPipWindow ? 'On' : 'Off', 'M3 4h18v14H3zM13 11h7v6h-7z', '_ytTogglePiP().then(_ytRenderTools)'],
     ['youtube', 'Open on YouTube', 'Watch this video on youtube.com.', 'New tab', 'M2 6h20v12H2zM10 9l5 3-5 3z', '_ytOpenInYT()'],
-    ['keys',    'Keys & settings', 'Every key the player knows, and its settings.', '?', 'M2 6h20v12H2zM6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8', '_ytToggleShortcuts()'],
+    ['keys',    'Keys & settings', 'Every key the player knows, and its settings.', 'List', 'M2 6h20v12H2zM6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8', '_ytToggleShortcuts()'],
+    ['tour',    'Take the tour', 'A one-minute walk through the player.', _YT_TOUR.length + ' stops', 'M12 2l3 7 7 .6-5.3 4.6L18.4 22 12 18l-6.4 4 1.7-7.8L2 9.6 9 9z', '_ytStartTour()'],
   ];
   grid.innerHTML = tools.map(([id, name, help, val, path, go]) =>
     `<button type="button" class="ytp-tool ytp-tool-${id}" onclick="${go}">` +

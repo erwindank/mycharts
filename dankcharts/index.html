@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=949">
+  <link rel="stylesheet" href="style.css?v=950">
   <!-- The Charts Guide's lessons (guide.js, GUIDE-PLAN.md) -->
   <link rel="stylesheet" href="guide.css?v=5">
   <!-- All scripts are deferred so the page paints without waiting on them.
@@ -58,7 +58,7 @@
   <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-  <script defer src="firebase.js?v=26"></script>
+  <script defer src="firebase.js?v=27"></script>
 </head>
 
 <body>
@@ -4427,7 +4427,7 @@
   <!-- One behaviour and one icon set for every pop-up window (phase 10); before
        app.js so dcIco() is there when app.js draws a window -->
   <script defer src="popups.js?v=13"></script>
-  <script defer src="app.js?v=693"></script>
+  <script defer src="app.js?v=696"></script>
   <!-- The song / album / artist details side panel (phase 10 step 3); wraps app.js's open functions -->
   <script defer src="panel.js?v=16"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
@@ -5779,7 +5779,7 @@ function deleteGenreTriggers() {
       <div class="yt-shortcut-row"><kbd>Q</kbd><span>Up Next</span></div>
       <div class="yt-shortcut-row"><kbd>K</kbd><span>Add to / remove from Favorites</span></div>
       <div class="yt-shortcut-row"><kbd>P</kbd><span>Add to a playlist</span></div>
-      <div class="yt-shortcut-row"><kbd>?</kbd><span>These shortcuts</span></div>
+      <div class="yt-shortcut-row"><kbd>?</kbd><span>Tour of the player</span></div>
       <div class="yt-shortcut-row"><kbd>G</kbd><span>Stage mode (big screen)</span></div>
       <div class="yt-shortcut-row"><kbd>Esc</kbd><span>Leave Stage mode / close player</span></div>
       <div class="yt-shortcut-divider"></div>
@@ -5795,6 +5795,29 @@ function deleteGenreTriggers() {
     <div id="ytMiniQueue" class="yt-mini-queue" style="display:none"></div>
   </div>
 
+
+  <!-- Step 12: first-visit hint (once per person) — see _ytMaybeHint -->
+  <div id="ytHint" class="ytp-hint" style="display:none" role="note">
+    <b>Your music player</b>
+    <p>It plays any song, chart or playlist on the site. Point at any button to see its name, or take a one-minute tour.</p>
+    <div class="ytp-ask-btns">
+      <button type="button" class="ytp-ask-btn ytp-ask-yes" onclick="_ytHintDone();_ytStartTour()">Show me around</button>
+      <button type="button" class="ytp-ask-btn" onclick="_ytHintDone()">Got it</button>
+    </div>
+  </div>
+  <!-- Step 12: the tour — a dim layer, a ring on the part being explained
+       (.ytp-spot) and a card with the words (_ytStartTour) -->
+  <div id="ytTourDim" class="ytp-tour-dim" aria-hidden="true"></div>
+  <div id="ytTourCard" class="ytp-tour-card" role="dialog" aria-modal="false" aria-labelledby="ytTourHead" style="display:none">
+    <div class="ytp-tour-step" id="ytTourStep"></div>
+    <h3 id="ytTourHead"></h3>
+    <p id="ytTourText"></p>
+    <div class="ytp-tour-btns">
+      <button type="button" class="ytp-ask-btn ytp-ask-yes" id="ytTourNext" onclick="_ytTourNext()">Next</button>
+      <button type="button" class="ytp-ask-btn" id="ytTourBack" onclick="_ytTourBack()">Back</button>
+      <button type="button" class="ytp-tour-skip" onclick="_ytEndTour()">Skip tour</button>
+    </div>
+  </div>
 
   <!-- Bottom row: volume · speed · sleep timer · keys & settings -->
   <div class="ytp-foot">
@@ -5813,9 +5836,7 @@ function deleteGenreTriggers() {
       <svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       <span id="ytSleepBadge" class="ytp-chip-val">Off</span>
     </button>
-    <button id="ytMiniShortcutsBtn" class="yt-ctrl-sec yt-mini-ctrl-btn" onclick="_ytToggleShortcuts()" title="Keys &amp; settings [?]">
-      <svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="13" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8"/></svg>
-    </button>
+    <button id="ytMiniShortcutsBtn" class="yt-ctrl-sec yt-mini-ctrl-btn ytp-help-btn" onclick="_ytStartTour()" title="How the player works [?]" aria-label="How the player works">?</button>
   </div>
 
 </div>

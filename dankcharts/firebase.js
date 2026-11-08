@@ -35,7 +35,8 @@ const SYNC_KEYS = [
   'dc_d100_autosend',
   'dc_music_service',   // Spotify / Apple Music / Deezer for the search buttons (app.js _msKey)   // The Dank 100: send my week by itself (dank100.js)
   'dc_col_widths',  // the chart tables' adjusted column widths (app.js, _colw*)
-  'dc_player_mini_style'   // shrunk player on big screens: capsule / filled / bar (app.js _ytMiniStyle)
+  'dc_player_mini_style',  // shrunk player on big screens: capsule / filled / bar (app.js _ytMiniStyle)
+  'dc_player_hint_seen'    // the player's first-visit hint was answered (app.js _ytMaybeHint)
 ];
 
 let _auth = null;
