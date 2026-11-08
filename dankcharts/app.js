@@ -34518,6 +34518,8 @@ function openYtPlayer(title, artist, album, btn) {
   // Treat '—' placeholder as empty so it isn't sent as an album name when scrobbling
   album = (album && album !== '—') ? album : '';
   _ytCurrentTrack    = { title, artist, album };
+  _ytChosen = null;            // step 3: a pasted/picked video belongs to the song it was chosen for
+  _ytSetVideoSource('');
   try { localStorage.setItem('yt-player-current', JSON.stringify({ title, artist, album })); } catch(e) {}
   _ytCurrentVideoId  = null;
   _ytScrobbled       = false;
@@ -34822,6 +34824,7 @@ async function _ytSearch(artist, title, overrideQuery) {
   const remembered = await _ytMemGet(query);
   if (remembered) {
     if (_ytLastQuery !== query) return;   // a newer play started meanwhile
+    _ytSetVideoSource('saved');
     _ytCurrentVideoId = remembered;
     _ytUpdateThumb();
     if (statusEl) { statusEl.textContent = ''; }
@@ -34838,6 +34841,7 @@ async function _ytSearch(artist, title, overrideQuery) {
     if (_ytLastQuery !== query) return;   // a newer play started meanwhile
     if (free) {
       _ytMemPut(query, free);
+      _ytSetVideoSource('official');
       _ytCurrentVideoId = free;
       _ytUpdateThumb();
       if (statusEl) { statusEl.textContent = ''; }
@@ -34870,6 +34874,7 @@ async function _ytSearch(artist, title, overrideQuery) {
       const videoId = data.videoId;
       if (!videoId) throw new Error('No results found');
       _ytMemPut(query, videoId);
+      _ytSetVideoSource('search');
       _ytCurrentVideoId = videoId;
       _ytUpdateThumb();
       // Only a real button gets the video title as tooltip (Play all passes the chart row)
@@ -34892,7 +34897,7 @@ async function _ytSearch(artist, title, overrideQuery) {
       if (_ytActiveBtn) _ytActiveBtn.classList.remove('yt-btn-loading', 'yt-btn-playing');
       if (statusEl) {
         const skipPart = _ytQueue.length > 0 ? ` — <button class="yt-err-open-btn" onclick="_ytSkip()">skip ⏭</button>` : '';
-        statusEl.innerHTML = `Not found — <button class="yt-err-open-btn" onclick="_ytOpenInYT()">search YouTube ↗</button>${skipPart}`;
+        statusEl.innerHTML = `Not found — <button class="yt-err-open-btn" onclick="_ytOpenInYT()">search YouTube ↗</button> then <button class="yt-err-open-btn" onclick="_ytOpenPaste()">paste the link</button>${skipPart}`;
         statusEl.className = 'yt-mini-status err';
       }
       return;
@@ -34933,6 +34938,7 @@ function _ytOnState(event) {
     if (_ytCrossfade > 0 && _ytNewTrackFade) { _ytNewTrackFade = false; _ytStartFadeIn(); }
     if (pauseBtn) { pauseBtn.innerHTML = _YT_IC.pause; pauseBtn.title = 'Pause [Space]'; }
     if (_ytActiveBtn) { _ytActiveBtn.classList.remove('yt-btn-loading'); _ytActiveBtn.classList.add('yt-btn-playing'); }
+    if (_ytChosen && _ytChosen.id === _ytCurrentVideoId) _ytChosenPlayed();
     if (!_ytHistoryRecorded && _ytCurrentTrack) {
       _ytHistoryRecorded = true;
       _ytRecordHistory(_ytCurrentTrack.title, _ytCurrentTrack.artist, _ytCurrentTrack.album);
@@ -34994,6 +35000,15 @@ function _ytOnState(event) {
 function _ytOnError(event) {
   const statusEl = document.getElementById('ytMiniStatus');
   const code = event && event.data;
+  // Step 3: a video the user chose (pasted or picked) that can't play: say so
+  // and stop — don't replace their choice with automatic alternate searches
+  if (_ytChosen && _ytChosen.id === _ytCurrentVideoId) {
+    _ytChosen = null;
+    if (_ytActiveBtn) _ytActiveBtn.classList.remove('yt-btn-loading', 'yt-btn-playing');
+    _ytPasteMsg('That video can\'t be played on other sites. Try another link.', 'err');
+    if (statusEl) { statusEl.innerHTML = `This video can't play here — <button class="yt-err-open-btn" onclick="_ytOpenPaste()">try another link</button>`; statusEl.className = 'yt-mini-status err'; }
+    return;
+  }
   // This video can't play here, so don't hand it to the next person either
   if (_ytLastQuery) _ytMemForget(_ytLastQuery);
   if (_ytCurrentVideoId) _ytFreeBad.add(_ytCurrentVideoId);
@@ -35157,6 +35172,7 @@ const _YT_SIZES = [
 ];
 function _ytExpand() {
   _ytExpandSize = (_ytExpandSize + 1) % _YT_SIZES.length;
+  if (_ytExpandSize === 1 && _ytMediaMode !== 'video') _ytSetMediaMode('video');
   const { w, h, cls, iconKey, title } = _YT_SIZES[_ytExpandSize];
   const player = document.getElementById('ytMiniPlayer');
   player.classList.remove('yt-expanded', 'yt-expanded-lg', 'yt-expanded-xl');
@@ -35185,6 +35201,183 @@ function _ytSkip() {
       statusEl.className = 'yt-mini-status';
       setTimeout(() => { if (statusEl.textContent === 'Nothing queued') { statusEl.innerHTML = prev; } }, 2000);
     }
+  }
+}
+
+// ── Artwork / Video switch (PLAYER-PLAN.md step 3) ───────────────────────
+// Any size can show the artwork or the video; the choice is remembered.
+// With the artwork showing, the video keeps playing (hidden), as before.
+let _ytMediaMode = (() => { try { return localStorage.getItem('yt-media-mode') === 'video' ? 'video' : 'art'; } catch (e) { return 'art'; } })();
+function _ytSetMediaMode(mode, quiet) {
+  _ytMediaMode = mode === 'video' ? 'video' : 'art';
+  if (!quiet) { try { localStorage.setItem('yt-media-mode', _ytMediaMode); } catch (e) {} }
+  const player = document.getElementById('ytMiniPlayer');
+  if (player) player.classList.toggle('ytp-show-video', _ytMediaMode === 'video');
+  const a = document.getElementById('ytMediaArtBtn'), v = document.getElementById('ytMediaVideoBtn');
+  if (a) a.setAttribute('aria-pressed', String(_ytMediaMode === 'art'));
+  if (v) v.setAttribute('aria-pressed', String(_ytMediaMode === 'video'));
+}
+
+// ── Where the video came from (step 3) ──────────────────────────────────────
+// A small note under the picture, with "Wrong video?" to fix it.
+//   official — linked to the song in Wikidata / MusicBrainz
+//   search   — YouTube's best match
+//   saved    — found before (by anyone) and remembered by the site
+//   pick     — chosen by this listener (pasted link or search result)
+function _ytSetVideoSource(kind) {
+  const el = document.getElementById('ytVideoSource');
+  if (!el) return;
+  const names = { official: 'Official video', search: 'Best match', saved: 'Saved video', pick: 'Your pick' };
+  if (!names[kind]) { el.style.display = 'none'; el.innerHTML = ''; return; }
+  el.innerHTML = `<i class="ytp-src-dot ytp-src-${kind}"></i>${names[kind]} · <button type="button" class="ytp-src-fix" onclick="_ytOpenPaste(true)">Wrong video?</button>`;
+  el.style.display = '';
+}
+
+// ── Paste a YouTube link, checked against the song (step 3) ─────────────────
+// The video's title and channel come from YouTube's free oEmbed (no quota)
+// and are compared with the song and artist:
+//   clear   (song + artist, or song + the artist's channel) → shared once it plays
+//   partial (only one of them) → plays, then asks before sharing
+//   none    → plays for this person only, never shared
+// Broken, removed or not-embeddable links are refused before playing.
+// Sharing uses the same memory as everything else (_ytMemPut: signed-in only).
+let _ytChosen = null;  // { id, verdict, title, author, how } for the video the user chose
+
+// Any common YouTube link → its 11-character video id (or null)
+function _ytIdFromAnyLink(text) {
+  const t = String(text || '').trim();
+  if (/^[A-Za-z0-9_-]{11}$/.test(t)) return t;
+  const m = t.match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/|v\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/i);
+  return m ? m[1] : null;
+}
+
+// Lower case, no accents, no "(Official Video)" / "feat. X" / "- Remastered",
+// only letters and digits separated by single spaces
+function _ytMatchNorm(s) {
+  return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+    .replace(/[\(\[][^\)\]]*[\)\]]/g, ' ')
+    .replace(/\b(feat|ft|featuring|with)\.?\s.*$/, ' ')
+    .replace(/\s-\s*(remaster(ed)?|official|lyric|audio|video|visualizer|live|single|radio edit).*$/, ' ')
+    .replace(/&/g, ' and ')
+    .replace(/[^a-z0-9]+/g, ' ').trim();
+}
+// "SlayyyterVEVO" / "Tove Lo - Topic" / "toveloofficial" → bare artist words
+function _ytChannelNorm(s) {
+  return _ytMatchNorm(String(s || '').replace(/\s*-\s*topic\s*$/i, '').replace(/vevo$/i, '').replace(/official$/i, ''));
+}
+// Does the whole phrase appear in the text (ignoring spaces, so "tove lo" ~ "tovelo")?
+function _ytHasPhrase(text, phrase) {
+  if (!phrase) return false;
+  return (' ' + text + ' ').includes(' ' + phrase + ' ') || text.replace(/ /g, '').includes(phrase.replace(/ /g, ''));
+}
+function _ytMatchVerdict(videoTitle, author, track) {
+  const vt = _ytMatchNorm(videoTitle);
+  const ch = _ytChannelNorm(author);
+  const song = _ytMatchNorm(track.title);
+  const artist = _ytMatchNorm(_ytFreeMainArtist(track.artist || ''));
+  const songOk = _ytHasPhrase(vt, song);
+  const artistOk = _ytHasPhrase(vt, artist) || (!!ch && (_ytHasPhrase(ch, artist) || _ytHasPhrase(artist, ch)));
+  // A remix / live / cover / sped-up… video of a song that isn't one itself is
+  // never a clear match: the brackets those words sit in are ignored above, so
+  // check the raw titles here. Then the listener is asked before sharing.
+  const VERSION = /\b(remix|live|cover|acoustic|sped up|speed up|slowed|reverb|nightcore|karaoke|instrumental|8d|mashup|bootleg|edit)\b/i;
+  const otherVersion = VERSION.test(videoTitle || '') && !VERSION.test(track.title || '');
+  if (songOk && artistOk) return otherVersion ? 'partial' : 'clear';
+  return songOk || artistOk ? 'partial' : 'none';
+}
+
+// Title + channel from oEmbed. { ok, title, author } or { ok:false, why }
+async function _ytOEmbed(id) {
+  try {
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), 6000);
+    const r = await fetch('https://www.youtube.com/oembed?format=json&url=' + encodeURIComponent('https://www.youtube.com/watch?v=' + id), { signal: ctl.signal });
+    clearTimeout(timer);
+    if (r.status === 401 || r.status === 403) return { ok: false, why: 'noembed' };
+    if (!r.ok) return { ok: false, why: 'missing' };
+    const d = await r.json();
+    return { ok: true, title: d.title || '', author: d.author_name || '' };
+  } catch (e) { return { ok: false, why: 'offline' }; }
+}
+
+// The key the normal play looks the song up under (see _ytSearch)
+function _ytMemKeyFor(track) { return track.artist + ' ' + track.title + ' official audio'; }
+
+function _ytPasteMsg(text, kind) {
+  const el = document.getElementById('ytPasteMsg');
+  if (!el) return;
+  el.textContent = text || '';
+  el.className = 'ytp-paste-msg' + (kind ? ' ' + kind : '');
+}
+
+// Opens Find another version with the paste box ready (from "Wrong video?"
+// and the not-found messages)
+function _ytOpenPaste(focusSearch) {
+  const box = document.getElementById('ytMiniSearchBox');
+  if (box && box.style.display === 'none') _ytToggleSearch();
+  const player = document.getElementById('ytMiniPlayer');
+  if (player && player.classList.contains('yt-mini-collapsed')) _ytToggleCollapse();
+  const input = document.getElementById(focusSearch ? 'ytMiniSearchInput' : 'ytPasteInput');
+  if (input) { input.focus(); input.select && input.select(); }
+}
+
+// "Use link" button / Enter in the paste box
+async function _ytUsePastedLink() {
+  const input = document.getElementById('ytPasteInput');
+  const id = _ytIdFromAnyLink(input && input.value);
+  if (!_ytCurrentTrack) return;
+  if (!id) { _ytPasteMsg('That doesn\'t look like a YouTube link. Copy it from the address bar or the Share button on YouTube.', 'err'); return; }
+  _ytPasteMsg('Checking the video…', '');
+  const ok = await _ytCheckAndShare(id, 'paste');
+  if (!ok) return;
+  if (input) input.value = '';
+  _ytSetVideoSource('pick');
+  _ytCurrentVideoId = id;
+  _ytEmbedRetry = 5;   // never auto-replace a chosen video
+  _ytUpdateThumb();
+  if (_ytApiReady) _ytLoadVideo(id); else _ytPendingVideo = id;
+}
+
+// Looks the video up and remembers the verdict for when it starts playing.
+// Returns false when the video can't be used at all (then nothing plays).
+async function _ytCheckAndShare(id, how) {
+  const track = _ytCurrentTrack;
+  if (!track) return false;
+  const info = await _ytOEmbed(id);
+  if (track !== _ytCurrentTrack) return false;   // the song changed meanwhile
+  if (!info.ok && info.why === 'noembed') { _ytPasteMsg('That video can\'t be played on other sites. Try another link.', 'err'); return false; }
+  if (!info.ok && info.why === 'missing') { _ytPasteMsg('That video doesn\'t exist any more, or it\'s private. Try another link.', 'err'); return false; }
+  // Couldn't reach YouTube to check: play it, but don't share an unchecked video
+  const verdict = info.ok ? _ytMatchVerdict(info.title, info.author, track) : 'unchecked';
+  _ytChosen = { id, verdict, title: info.title || '', author: info.author || '', how, key: _ytMemKeyFor(track) };
+  if (how === 'pick') _ytSetVideoSource('pick');
+  _ytPasteMsg(info.ok ? 'Loading “' + info.title + '”…' : 'Loading the video…', '');
+  // A picked result may already be playing by the time the check comes back
+  try { if (_ytPlayer && _ytCurrentVideoId === id && _ytPlayer.getPlayerState() === YT.PlayerState.PLAYING) _ytChosenPlayed(); } catch (e) {}
+  return true;
+}
+
+// Called once the chosen video really plays
+function _ytChosenPlayed() {
+  const c = _ytChosen; _ytChosen = null;
+  if (!c || !_ytCurrentTrack) return;
+  const song = `“${_ytCurrentTrack.title}” by ${_ytCurrentTrack.artist}`;
+  const signedIn = typeof dcIsSignedIn === 'function' && dcIsSignedIn();
+  if (c.verdict === 'clear') {
+    _ytMemPut(c.key, c.id);
+    _ytPasteMsg(signedIn ? 'Matches the song — saved for everyone. Thanks!' : 'Matches the song. Sign in to save it for everyone.', 'ok');
+  } else if (c.verdict === 'partial') {
+    const el = document.getElementById('ytPasteMsg');
+    if (!el) return;
+    el.className = 'ytp-paste-msg ask';
+    el.innerHTML = `“${esc(c.title)}” — is this ${esc(song)}? ` +
+      (signedIn
+        ? `<span class="ytp-ask-btns"><button type="button" class="ytp-ask-btn ytp-ask-yes" onclick="_ytMemPut(${esc(JSON.stringify(c.key))},'${c.id}');_ytPasteMsg('Saved for everyone. Thanks!','ok')">Yes, save it for everyone</button><button type="button" class="ytp-ask-btn" onclick="_ytPasteMsg('Playing just for you.','')">Just for me</button></span>`
+        : `It plays just for you.`);
+  } else if (c.verdict === 'none') {
+    _ytPasteMsg(`This video (“${c.title}”) doesn't look like ${song}, so it plays just for you and isn't shared.`, 'warn');
+  } else {
+    _ytPasteMsg('Couldn\'t check the video with YouTube, so it plays just for you.', 'warn');
   }
 }
 
@@ -35338,7 +35531,7 @@ async function _ytSearchMulti(baseQuery) {
     if (!resultsEl) return;
     const more = _ytNeedsSignIn()
       ? _ytSignInHTML()
-      : `Not here? <button class="yt-err-open-btn" onclick="_ytSearchMultiYT(_ytFreeSearchQuery)">Search YouTube</button>`;
+      : `Not here? <button class="yt-err-open-btn" onclick="_ytSearchMultiYT(_ytFreeSearchQuery)">Search YouTube</button> or paste a link below.`;
     resultsEl.innerHTML = _ytResultsHTML(free) + `<div class="yt-sr-more">${more}</div>`;
     return;
   }
@@ -35404,7 +35597,7 @@ async function _ytSearchMultiYT(baseQuery) {
   if (hits.length === 0) {
     resultsEl.innerHTML = _ytNeedsSignIn()
       ? `<div class="yt-sr-no-results">${_ytSignInHTML()}</div>`
-      : '<div class="yt-sr-no-results">No results found</div>';
+      : '<div class="yt-sr-no-results">No results found. <button class="yt-err-open-btn" onclick="_ytOpenInYT()">Search on YouTube ↗</button> and paste the video\'s link below.</div>';
     return;
   }
   if (hits.length === 1) { resultsEl.style.display = 'none'; _ytPickResult(hits[0].videoId); return; }
@@ -35414,6 +35607,9 @@ async function _ytSearchMultiYT(baseQuery) {
 function _ytPickResult(videoId) {
   const resultsEl = document.getElementById('ytSearchResults');
   if (resultsEl) resultsEl.style.display = 'none';
+  // Step 3: a hand pick is checked against the song and, if it matches, saved
+  // for everyone once it plays (before, it only played for this person)
+  _ytCheckAndShare(videoId, 'pick');
   _ytCurrentVideoId = videoId;
   _ytUpdateThumb();
   const statusEl = document.getElementById('ytMiniStatus');
@@ -36394,6 +36590,7 @@ document.addEventListener('keydown', e => {
   else if (key === 'x' || key === 'X') { e.preventDefault(); _ytToggleShuffle(); }
   else if (key === 'm' || key === 'M') { e.preventDefault(); _ytToggleCollapse(); }
   else if (key === '0')                { e.preventDefault(); _ytToggleMute(); }
+  else if (key === 'v' || key === 'V') { e.preventDefault(); _ytSetMediaMode(_ytMediaMode === 'video' ? 'art' : 'video'); }
   else if (key === 'ArrowLeft')        { e.preventDefault(); if (_ytPlayer) { try { _ytPlayer.seekTo(Math.max(0, _ytPlayer.getCurrentTime() - 10), true); } catch(ex) {} } }
   else if (key === 'ArrowRight')       { e.preventDefault(); if (_ytPlayer) { try { _ytPlayer.seekTo(_ytPlayer.getCurrentTime() + 10, true); } catch(ex) {} } }
   else if (key === 'ArrowUp')          { e.preventDefault(); _ytSetVolume(_ytVolume + 5); }
@@ -36425,6 +36622,7 @@ document.addEventListener('wheel', e => {
 _ytLoadQueue();
 _ytUpdateRepeatBtn();
 _ytUpdateShuffleBtn(); // step 2: remembered shuffle state
+_ytSetMediaMode(_ytMediaMode, true); // step 3: remembered artwork / video choice
 _ytLoadPlaylists();
 _ytUpdateSpeedBtn();
 _ytUpdateCrossfadeBtn();

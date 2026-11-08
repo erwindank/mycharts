@@ -24176,6 +24176,9 @@ body.green .landing-card-config input:focus {
 .yt-mini-player {
   width: 380px;
   max-width: calc(100vw - 24px);
+  /* Never taller than the screen: an open panel scrolls inside the card, so
+     the bottom row (and the button that closes the panel) stays reachable */
+  max-height: calc(100dvh - 24px - var(--bottomnav-space));
   border-radius: 20px;
   isolation: isolate; /* keeps the blurred glow behind the content */
 }
@@ -24191,7 +24194,7 @@ body.green .landing-card-config input:focus {
   opacity: 0;
   transition: opacity 0.6s var(--ease);
 }
-.ytp-glow img { width: 100%; height: 100%; object-fit: cover; filter: blur(40px) saturate(1.4); transform: scale(1.4); opacity: 0.4; }
+.ytp-glow img { width: 100%; height: 100%; object-fit: cover; filter: blur(40px) saturate(1.5); transform: scale(1.4); opacity: 0.55; }
 .ytp-glow::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 25%, var(--bg2) 95%); }
 .yt-mini-player.ytp-has-art .ytp-glow { opacity: 1; }
 
@@ -24268,13 +24271,72 @@ body.green .landing-card-config input:focus {
   .yt-mini-player.yt-is-playing .ytp-vinyl,
   .yt-mini-player.yt-is-playing .ytp-eq i { animation: none; }
 }
-/* Bigger sizes show the video instead of the artwork, at 16:9 */
-.yt-mini-player.yt-expanded .ytp-art,
-.yt-mini-player.yt-expanded-lg .ytp-art,
-.yt-mini-player.yt-expanded-xl .ytp-art { display: none; }
-.yt-mini-player.yt-expanded .yt-mini-video,
-.yt-mini-player.yt-expanded-lg .yt-mini-video,
-.yt-mini-player.yt-expanded-xl .yt-mini-video { height: auto; aspect-ratio: 16 / 9; }
+/* Step 3: the Artwork | Video switch decides what shows, at every size
+   (before, the size did: S = artwork, M/L/XL = video). Video is 16:9. */
+.yt-mini-player .yt-mini-video,
+.yt-mini-player.yt-expanded:not(.ytp-show-video) .yt-mini-video,
+.yt-mini-player.yt-expanded-lg:not(.ytp-show-video) .yt-mini-video,
+.yt-mini-player.yt-expanded-xl:not(.ytp-show-video) .yt-mini-video { display: none; }
+.yt-mini-player.ytp-show-video .yt-mini-video,
+.yt-mini-player.yt-expanded.ytp-show-video .yt-mini-video,
+.yt-mini-player.yt-expanded-lg.ytp-show-video .yt-mini-video,
+.yt-mini-player.yt-expanded-xl.ytp-show-video .yt-mini-video { display: block; height: auto; aspect-ratio: 16 / 9; }
+.yt-mini-player.ytp-show-video .ytp-art { display: none; }
+
+/* Step 3: strip under the picture — video source note + Artwork | Video switch */
+.ytp-media-bar { display: flex; align-items: center; gap: 8px; padding: 8px 16px 0; min-height: 30px; }
+.ytp-media-bar-sp { flex: 1; }
+.ytp-src { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); color: var(--text3); white-space: nowrap; min-width: 0; }
+.ytp-src-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text3); flex-shrink: 0; }
+.ytp-src-dot.ytp-src-official { background: var(--green); }
+.ytp-src-dot.ytp-src-pick { background: var(--accent); }
+.ytp-src-fix { background: none; border: 0; padding: 0; font: inherit; color: var(--text2); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+.ytp-src-fix:hover { color: var(--text); }
+.ytp-seg { display: flex; padding: 3px; border-radius: var(--r-full); background: var(--bg3); border: 1px solid var(--border); flex-shrink: 0; }
+.ytp-seg button {
+  height: 26px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: var(--r-full);
+  background: transparent;
+  color: var(--text2);
+  font: 600 var(--fs-xs) var(--font-sans);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+.ytp-seg button svg { width: 10px; height: 10px; }
+.ytp-seg button:hover { color: var(--text); }
+.ytp-seg button[aria-pressed="true"] { background: var(--text); color: var(--bg); }
+.yt-mini-player.yt-mini-collapsed .ytp-media-bar { display: none; }
+
+/* Step 3: paste a YouTube link (inside Find another version) */
+#ytMiniSearchBox { flex-wrap: wrap; }
+.ytp-paste { flex-basis: 100%; margin-top: 8px; }
+.ytp-paste-lbl { display: block; font-size: var(--fs-xs); color: var(--text2); margin-bottom: 5px; line-height: 1.35; }
+.ytp-paste-row { display: flex; gap: 6px; }
+.ytp-paste-row .yt-mini-search-input { flex: 1; min-width: 0; }
+.ytp-paste-msg { font-size: var(--fs-xs); color: var(--text3); margin-top: 6px; line-height: 1.4; }
+.ytp-paste-msg:empty { display: none; }
+.ytp-paste-msg.ok   { color: var(--green); }
+.ytp-paste-msg.err  { color: var(--rose); }
+.ytp-paste-msg.warn { color: var(--amber); }
+.ytp-paste-msg.ask  { color: var(--text); }
+/* "Is this the right song?" choices */
+.ytp-ask-btns { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.ytp-ask-btn {
+  height: 28px;
+  padding: 0 11px;
+  border-radius: var(--r-full);
+  border: 1px solid var(--border2);
+  background: var(--bg3);
+  color: var(--text);
+  font: 600 var(--fs-xs) var(--font-sans);
+  cursor: pointer;
+}
+.ytp-ask-btn:hover { border-color: var(--text3); }
+.ytp-ask-btn.ytp-ask-yes { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 
 /* Song name, artist, status */
 .yt-mini-player .yt-track-area { padding: 14px 16px 2px; }
@@ -24351,7 +24413,7 @@ body.green .landing-card-config input:focus {
 .yt-mini-player .yt-sleep-badge { font-size: 8px; color: var(--accent); background: var(--bg2); bottom: 2px; right: 2px; padding: 0 2px; }
 
 /* Panels open between the extras row and the bottom row */
-.yt-mini-player .yt-panels-zone { padding: 0 16px; margin-top: 6px; }
+.yt-mini-player .yt-panels-zone { padding: 0 16px; margin-top: 6px; flex: 0 1 auto; min-height: 0; overflow-y: auto; }
 
 /* Bottom row */
 .ytp-foot {
