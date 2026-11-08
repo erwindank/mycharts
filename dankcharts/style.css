@@ -24286,7 +24286,10 @@ body.green .landing-card-config input:focus {
 /* Step 3: strip under the picture — video source note + Artwork | Video switch */
 .ytp-media-bar { display: flex; align-items: center; gap: 8px; padding: 8px 16px 0; min-height: 30px; }
 .ytp-media-bar-sp { flex: 1; }
-.ytp-src { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); color: var(--text3); white-space: nowrap; min-width: 0; }
+.ytp-src { display: inline-block; font-size: var(--fs-xs); line-height: 1.35; color: var(--text3); min-width: 0; flex: 1 1 0; }
+/* Longer languages: the note wraps instead of running under the Artwork | Video switch */
+.ytp-src .ytp-src-dot { display: inline-block; margin-right: 6px; vertical-align: 1px; }
+.ytp-media-bar .ytp-media-bar-sp { flex: 0 0 4px; }
 .ytp-src-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text3); flex-shrink: 0; }
 .ytp-src-dot.ytp-src-official { background: var(--green); }
 .ytp-src-dot.ytp-src-pick { background: var(--accent); }
@@ -24853,7 +24856,8 @@ body.ytp-stage-open { overflow: hidden; }
 /* ── Step 6: tabs (Up Next · Lyrics · History · Tools) ── */
 .yt-mini-player .ytp-tabs { display: flex; gap: 4px; justify-content: stretch; }
 .ytp-tab {
-  flex: 1;
+  flex: 1 1 auto;
+  min-width: 0;
   height: 36px;
   border: 0;
   border-radius: var(--r-md);

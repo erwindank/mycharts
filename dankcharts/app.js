@@ -34496,7 +34496,7 @@ function _ytStreakPlay(title, artist) {
     _ytQueue.push({ title, artist, album: '', btn: null });
     _ytUpdateQueueDisplay(); _ytSaveQueue();
     const statusEl = document.getElementById('ytMiniStatus');
-    if (statusEl) { statusEl.textContent = `"${title}" added to queue`; statusEl.className = 'yt-mini-status ok'; setTimeout(() => { if (statusEl.textContent.includes('added to queue')) { statusEl.textContent = ''; statusEl.className = 'yt-mini-status'; } }, 2500); }
+    if (statusEl) { const msg = t('yt_np_added_queue', { title }); statusEl.textContent = msg; statusEl.className = 'yt-mini-status ok'; setTimeout(() => { if (statusEl.textContent === msg) { statusEl.textContent = ''; statusEl.className = 'yt-mini-status'; } }, 2500); }
   } else {
     openYtPlayer(title, artist, '', null);
   }
@@ -34547,7 +34547,7 @@ function openYtPlayer(title, artist, album, btn) {
   _ytMaybeHint();       // step 12: once per person
   if (player.dataset.tab === 'lyrics') setTimeout(_ytFetchLyrics, 0);   // step 6: follow the new song
   const statusEl = document.getElementById('ytMiniStatus');
-  statusEl.textContent = 'Searching…';
+  statusEl.textContent = t('yt_np_searching');
   statusEl.className   = 'yt-mini-status';
   const seekWrap = document.getElementById('ytSeekBarWrap');
   if (seekWrap) seekWrap.style.display = 'none';
@@ -34555,7 +34555,7 @@ function openYtPlayer(title, artist, album, btn) {
   if (seekBar) seekBar.value = 0;
   _ytStopSeekUpdate();
   const pauseBtn = document.getElementById('ytMiniPauseBtn');
-  if (pauseBtn) { pauseBtn.innerHTML = _YT_IC.pause; pauseBtn.title = 'Pause [Space]'; }
+  if (pauseBtn) { pauseBtn.innerHTML = _YT_IC.pause; pauseBtn.title = t('yt_np_t_pause'); }
   if (!_ytDragInitialized) { _ytDragInitialized = true; _ytInitDrag(); }
   _ytLoadVolume();
   requestAnimationFrame(_ytClampToViewport);
@@ -34832,7 +34832,7 @@ function _ytStopStale() {
   const card = document.getElementById('ytMiniPlayer');
   if (card) card.classList.remove('yt-is-playing');
   const pauseBtn = document.getElementById('ytMiniPauseBtn');
-  if (pauseBtn) { pauseBtn.innerHTML = _YT_IC.play; pauseBtn.title = 'Play [Space]'; }
+  if (pauseBtn) { pauseBtn.innerHTML = _YT_IC.play; pauseBtn.title = t('yt_np_t_play'); }
 }
 
 async function _ytSearch(artist, title, overrideQuery) {
@@ -34883,7 +34883,7 @@ async function _ytSearch(artist, title, overrideQuery) {
       const res  = await fetch(`${BACKEND_API}/api/youtube/search?q=${encodeURIComponent(query)}`);
       if (res.status === 502 || res.status === 503) {
         if (attempt < MAX_RETRIES) {
-          if (statusEl) { statusEl.textContent = 'Waking up server…'; statusEl.className = 'yt-mini-status'; }
+          if (statusEl) { statusEl.textContent = t('yt_np_waking'); statusEl.className = 'yt-mini-status'; }
           await new Promise(r => setTimeout(r, RETRY_DELAY_MS));
           continue;
         }
@@ -34910,15 +34910,15 @@ async function _ytSearch(artist, title, overrideQuery) {
       return;
     } catch (e) {
       if (attempt < MAX_RETRIES && (e.message === 'Server unavailable' || e.name === 'TypeError')) {
-        if (statusEl) { statusEl.textContent = 'Waking up server…'; statusEl.className = 'yt-mini-status'; }
+        if (statusEl) { statusEl.textContent = t('yt_np_waking'); statusEl.className = 'yt-mini-status'; }
         await new Promise(r => setTimeout(r, RETRY_DELAY_MS));
         continue;
       }
       _ytStopStale();
       if (_ytActiveBtn) _ytActiveBtn.classList.remove('yt-btn-loading', 'yt-btn-playing');
       if (statusEl) {
-        const skipPart = _ytQueue.length > 0 ? ` — <button class="yt-err-open-btn" onclick="_ytSkip()">skip ⏭</button>` : '';
-        statusEl.innerHTML = `Not found — <button class="yt-err-open-btn" onclick="_ytOpenInYT()">search YouTube ↗</button> then <button class="yt-err-open-btn" onclick="_ytOpenPaste()">paste the link</button>${skipPart}`;
+        const skipPart = _ytQueue.length > 0 ? ` — <button class="yt-err-open-btn" onclick="_ytSkip()">${esc(t('yt_np_skip_btn'))}</button>` : '';
+        statusEl.innerHTML = t('yt_np_not_found', { search: `<button class="yt-err-open-btn" onclick="_ytOpenInYT()">${esc(t('yt_np_search_yt_link'))}</button>`, paste: `<button class="yt-err-open-btn" onclick="_ytOpenPaste()">${esc(t('yt_np_paste_link'))}</button>`, skip: skipPart });
         statusEl.className = 'yt-mini-status err';
       }
       return;
@@ -34959,11 +34959,11 @@ function _ytOnState(event) {
     _ytStartSeekUpdate();
     _ytApplySpeed();
     if (_ytCrossfade > 0 && _ytNewTrackFade) { _ytNewTrackFade = false; _ytStartFadeIn(); }
-    if (pauseBtn) { pauseBtn.innerHTML = _YT_IC.pause; pauseBtn.title = 'Pause [Space]'; }
+    if (pauseBtn) { pauseBtn.innerHTML = _YT_IC.pause; pauseBtn.title = t('yt_np_t_pause'); }
     if (_ytActiveBtn) { _ytActiveBtn.classList.remove('yt-btn-loading'); _ytActiveBtn.classList.add('yt-btn-playing'); }
     if (_ytChosen && _ytChosen.id === _ytCurrentVideoId) _ytChosenPlayed();
     // "Find a version that plays" found one: replace the "Looking for…" note
-    { const pm = document.getElementById('ytPasteMsg'); if (pm && pm.textContent.startsWith('Looking for a version')) _ytPasteMsg('Found a version that plays.', 'ok'); }
+    if (_ytFindingPlayable) { _ytFindingPlayable = false; _ytPasteMsg(t('yt_np_found'), 'ok'); }
     if (!_ytHistoryRecorded && _ytCurrentTrack) {
       _ytHistoryRecorded = true;
       _ytRecordHistory(_ytCurrentTrack.title, _ytCurrentTrack.artist, _ytCurrentTrack.album);
@@ -35003,7 +35003,7 @@ function _ytOnState(event) {
     clearTimeout(_ytScrobbleTimer);
     _ytStopScrobbleRing();
     _ytStopSeekUpdate();
-    if (pauseBtn) { pauseBtn.innerHTML = _YT_IC.play; pauseBtn.title = 'Play [Space]'; }
+    if (pauseBtn) { pauseBtn.innerHTML = _YT_IC.play; pauseBtn.title = t('yt_np_t_play'); }
     if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
   } else if (event.data === YT.PlayerState.ENDED) {
     clearTimeout(_ytScrobbleTimer);
@@ -35033,7 +35033,7 @@ function _ytOnError(event) {
     if (_ytCurrentVideoId) _ytFreeBad.add(_ytCurrentVideoId);
     _ytBlockedMsg();
     _ytOpenPaste();
-    if (statusEl) { statusEl.textContent = 'This video only plays on YouTube'; statusEl.className = 'yt-mini-status err'; }
+    if (statusEl) { statusEl.textContent = t('yt_np_only_yt'); statusEl.className = 'yt-mini-status err'; }
     return;
   }
   // This video can't play here, so don't hand it to the next person either
@@ -35049,19 +35049,19 @@ function _ytOnError(event) {
       `${artist} ${title} audio`,
       `${artist} ${title} remastered`,
     ];
-    if (statusEl) { statusEl.textContent = `Trying alternate ${_ytEmbedRetry}/5…`; statusEl.className = 'yt-mini-status'; }
+    if (statusEl) { statusEl.textContent = t('yt_np_trying', { n: _ytEmbedRetry }); statusEl.className = 'yt-mini-status'; }
     _ytSearch(null, null, fallbacks[_ytEmbedRetry - 1]);
     return;
   }
   if (_ytActiveBtn) _ytActiveBtn.classList.remove('yt-btn-loading', 'yt-btn-playing');
   if (_ytQueue.length > 0) {
-    if (statusEl) { statusEl.textContent = 'Skipping unavailable…'; statusEl.className = 'yt-mini-status'; }
+    if (statusEl) { statusEl.textContent = t('yt_np_skipping'); statusEl.className = 'yt-mini-status'; }
     setTimeout(_ytSkip, 1500);
     return;
   }
   if (statusEl) {
-    const msg = (code === 101 || code === 150) ? 'Embedding disabled' : 'Playback unavailable';
-    statusEl.innerHTML = `${msg} — <button class="yt-err-open-btn" onclick="_ytOpenInYT()">open in YouTube ↗</button>`;
+    const msg = t((code === 101 || code === 150) ? 'yt_np_embed_off' : 'yt_np_unavail');
+    statusEl.innerHTML = `${esc(msg)} — <button class="yt-err-open-btn" onclick="_ytOpenInYT()">${esc(t('yt_np_open_yt_link'))}</button>`;
     statusEl.className = 'yt-mini-status err';
   }
 }
@@ -35158,9 +35158,9 @@ function closeYtPlayer() {
   _ytUpdateQueueDisplay();
   if (player) player.classList.remove('yt-expanded', 'yt-expanded-lg', 'yt-expanded-xl', 'yt-mini-collapsed');
   const expandBtn = document.getElementById('ytMiniExpandBtn');
-  if (expandBtn) expandBtn.title = 'Stage mode — big screen [G]';   // step 10
+  if (expandBtn) expandBtn.title = t('yt_np_t_stage');   // step 10
   const collapseBtn = document.getElementById('ytMiniCollapseBtn');
-  if (collapseBtn) { collapseBtn.innerHTML = _YT_IC.collapseV; collapseBtn.title = 'Collapse player [M]'; }
+  if (collapseBtn) { collapseBtn.innerHTML = _YT_IC.collapseV; collapseBtn.title = t('yt_np_t_bar'); }
   ['ytMiniSearchBox','ytSearchResults','ytMiniHistory','ytShortcutsPanel','ytLyricsPanel','ytSleepPanel','ytPlaylistsPanel'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = 'none';
@@ -35246,9 +35246,10 @@ function _ytSetMediaMode(mode, quiet) {
 function _ytSetVideoSource(kind) {
   const el = document.getElementById('ytVideoSource');
   if (!el) return;
-  const names = { official: 'Official video', search: 'Best match', saved: 'Saved video', pick: 'Your pick' };
+  _ytVideoSourceKind = kind;   // remembered, so a language change can redraw it
+  const names = { official: t('yt_np_src_official'), search: t('yt_np_src_search'), saved: t('yt_np_src_saved'), pick: t('yt_np_src_pick') };
   if (!names[kind]) { el.style.display = 'none'; el.innerHTML = ''; return; }
-  el.innerHTML = `<i class="ytp-src-dot ytp-src-${kind}"></i>${names[kind]} · <button type="button" class="ytp-src-fix" onclick="_ytOpenPaste(true)">Wrong video?</button>`;
+  el.innerHTML = `<i class="ytp-src-dot ytp-src-${kind}"></i>${esc(names[kind])} · <button type="button" class="ytp-src-fix" onclick="_ytOpenPaste(true)">${esc(t('yt_np_wrong'))}</button>`;
   el.style.display = '';
 }
 
@@ -35345,8 +35346,8 @@ async function _ytUsePastedLink() {
   const input = document.getElementById('ytPasteInput');
   const id = _ytIdFromAnyLink(input && input.value);
   if (!_ytCurrentTrack) return;
-  if (!id) { _ytPasteMsg('That doesn\'t look like a YouTube link. Copy it from the address bar or the Share button on YouTube.', 'err'); return; }
-  _ytPasteMsg('Checking the video…', '');
+  if (!id) { _ytPasteMsg(t('yt_np_paste_bad'), 'err'); return; }
+  _ytPasteMsg(t('yt_np_checking'), '');
   const ok = await _ytCheckAndShare(id, 'paste');
   if (!ok) return;
   if (input) input.value = '';
@@ -35365,12 +35366,12 @@ async function _ytCheckAndShare(id, how) {
   const info = await _ytOEmbed(id);
   if (track !== _ytCurrentTrack) return false;   // the song changed meanwhile
   if (!info.ok && info.why === 'noembed') { _ytBlockedMsg(); return false; }
-  if (!info.ok && info.why === 'missing') { _ytPasteMsg('That video doesn\'t exist any more, or it\'s private. Try another link.', 'err'); return false; }
+  if (!info.ok && info.why === 'missing') { _ytPasteMsg(t('yt_np_missing'), 'err'); return false; }
   // Couldn't reach YouTube to check: play it, but don't share an unchecked video
   const verdict = info.ok ? _ytMatchVerdict(info.title, info.author, track) : 'unchecked';
   _ytChosen = { id, verdict, title: info.title || '', author: info.author || '', how, key: _ytMemKeyFor(track) };
   if (how === 'pick') _ytSetVideoSource('pick');
-  _ytPasteMsg(info.ok ? 'Loading “' + info.title + '”…' : 'Loading the video…', '');
+  _ytPasteMsg(info.ok ? t('yt_np_loading_title', { title: info.title }) : t('yt_np_loading'), '');
   // A picked result may already be playing by the time the check comes back
   try { if (_ytPlayer && _ytCurrentVideoId === id && _ytPlayer.getPlayerState() === YT.PlayerState.PLAYING) _ytChosenPlayed(); } catch (e) {}
   return true;
@@ -35382,15 +35383,16 @@ function _ytBlockedMsg() {
   const el = document.getElementById('ytPasteMsg');
   if (!el) return;
   el.className = 'ytp-paste-msg err';
-  el.innerHTML = 'YouTube doesn\'t let this video play outside YouTube. Official music videos often do this — the song\'s audio or lyric video usually works.' +
-    '<span class="ytp-ask-btns"><button type="button" class="ytp-ask-btn ytp-ask-yes" onclick="_ytFindPlayable()">Find a version that plays</button></span>';
+  el.innerHTML = esc(t('yt_np_blocked')) +
+    '<span class="ytp-ask-btns"><button type="button" class="ytp-ask-btn ytp-ask-yes" onclick="_ytFindPlayable()">' + esc(t('yt_np_find_playable')) + '</button></span>';
 }
 // Looks for the audio / lyric versions, the same way the player does by itself
 // when a video fails (shared memory first, then YouTube's search)
 function _ytFindPlayable() {
   if (!_ytCurrentTrack) return;
   const { title, artist } = _ytCurrentTrack;
-  _ytPasteMsg('Looking for a version that plays…', '');
+  _ytPasteMsg(t('yt_np_looking'), '');
+  _ytFindingPlayable = true;
   _ytEmbedRetry = 0;
   _ytSearch(null, null, `${artist} ${title} audio`);
 }
@@ -35401,21 +35403,21 @@ function _ytChosenPlayed() {
   // site-wide memory (so the next person gets it too) happens quietly.
   const c = _ytChosen; _ytChosen = null;
   if (!c || !_ytCurrentTrack) return;
-  const song = `“${_ytCurrentTrack.title}” by ${_ytCurrentTrack.artist}`;
+  const song = t('yt_np_song_by', { title: _ytCurrentTrack.title, artist: _ytCurrentTrack.artist });
   if (c.verdict === 'clear') {
     _ytMemPut(c.key, c.id);
-    _ytPasteMsg('Playing your video.', 'ok');
+    _ytPasteMsg(t('yt_np_playing_yours'), 'ok');
   } else if (c.verdict === 'partial') {
     const el = document.getElementById('ytPasteMsg');
     if (!el) return;
     el.className = 'ytp-paste-msg ask';
-    el.innerHTML = `Is “${esc(c.title)}” the right video for ${esc(song)}?` +
-      `<span class="ytp-ask-btns"><button type="button" class="ytp-ask-btn ytp-ask-yes" onclick="_ytMemPut(${esc(JSON.stringify(c.key))},'${c.id}');_ytPasteMsg('Thanks!','ok')">Yes</button>` +
-      `<button type="button" class="ytp-ask-btn" onclick="_ytPasteMsg('OK — it plays just this time.','')">No, just play it</button></span>`;
+    el.innerHTML = esc(t('yt_np_is_right', { video: c.title, song })) +
+      `<span class="ytp-ask-btns"><button type="button" class="ytp-ask-btn ytp-ask-yes" onclick="_ytMemPut(${esc(JSON.stringify(c.key))},'${c.id}');_ytPasteMsg(t('yt_np_thanks'),'ok')">${esc(t('yt_np_yes'))}</button>` +
+      `<button type="button" class="ytp-ask-btn" onclick="_ytPasteMsg(t('yt_np_just_once'),'')">${esc(t('yt_np_no_just'))}</button></span>`;
   } else if (c.verdict === 'none') {
-    _ytPasteMsg(`“${c.title}” doesn't look like ${song}. It plays just this time.`, 'warn');
+    _ytPasteMsg(t('yt_np_not_match', { video: c.title, song }), 'warn');
   } else {
-    _ytPasteMsg('Playing your video.', '');
+    _ytPasteMsg(t('yt_np_playing_yours'), '');
   }
 }
 
@@ -35448,7 +35450,7 @@ function _ytFillChartStory(el, title, artist) {
   let plays = 0;
   for (const p of allPlays) if (songKey(p) === key) plays++;
   if (!plays) {
-    el.innerHTML = `<span class="ytp-story-new">New to you — not in your plays yet</span>`;
+    el.innerHTML = `<span class="ytp-story-new">${esc(t('yt_np_new_to_you'))}</span>`;
     el.style.gridTemplateColumns = '';
     el.style.display = '';
     return;
@@ -35460,17 +35462,17 @@ function _ytFillChartStory(el, title, artist) {
     const cur = d.entries.find(e => e.periodKey === nowKey);
     let peak = Infinity;
     for (const e of d.entries) if (e.rank < peak) peak = e.rank;
-    if (cur) tiles.push(['#' + cur.rank, 'This week', 'ytp-story-rank']);
+    if (cur) tiles.push(['#' + cur.rank, t('yt_np_this_week'), 'ytp-story-rank']);
     _ytBarRank = cur ? cur.rank : 0;   // step 9: shown in the bar
-    tiles.push(['#' + peak, 'Peak', 'ytp-story-peak']);
-    tiles.push([plays.toLocaleString(), plays === 1 ? 'Your play' : 'Your plays', '']);
-    tiles.push([d.entries.length.toLocaleString(), d.entries.length === 1 ? 'Week on' : 'Weeks on', '']);
+    tiles.push(['#' + peak, t('yt_np_peak'), 'ytp-story-peak']);
+    tiles.push([plays.toLocaleString(), t(plays === 1 ? 'yt_np_your_play' : 'yt_np_your_plays'), '']);
+    tiles.push([d.entries.length.toLocaleString(), t(d.entries.length === 1 ? 'yt_np_week_on' : 'yt_np_weeks_on'), '']);
   } else {
-    tiles.push([plays.toLocaleString(), plays === 1 ? 'Your play' : 'Your plays', '']);
+    tiles.push([plays.toLocaleString(), t(plays === 1 ? 'yt_np_your_play' : 'yt_np_your_plays'), '']);
   }
   const k = esc(JSON.stringify(key));
   el.innerHTML = tiles.map(([v, lbl, cls]) =>
-    `<button type="button" class="ytp-story-tile" onclick="openSongModal(${k})" title="Open the song's chart history">` +
+    `<button type="button" class="ytp-story-tile" onclick="openSongModal(${k})" title="${esc(t('yt_np_story_title'))}">` +
     `<b class="${cls}">${esc(v)}</b><small>${esc(lbl)}</small></button>`).join('');
   el.style.gridTemplateColumns = `repeat(${tiles.length}, minmax(0, 1fr))`;
   el.style.display = '';
@@ -35543,8 +35545,7 @@ const _YT_FAV = 'Favorites';
 function _ytIsFavName(name) { return String(name || '').trim().toLowerCase() === _YT_FAV.toLowerCase(); }
 function _ytFavLockedToast(nameTaken) {
   if (typeof dcPlToast !== 'function') return;
-  dcPlToast(nameTaken ? '"Favorites" is the playlist for the songs you heart. Pick another name.'
-                      : 'Favorites can\'t be deleted or renamed. It holds the songs you heart in the player.');
+  dcPlToast(t(nameTaken ? 'yt_np_fav_taken' : 'yt_np_fav_locked'));
 }
 const _ytSameSong = (a, b) => a && b && String(a.title).toLowerCase().trim() === String(b.title).toLowerCase().trim()
                               && String(a.artist).toLowerCase().trim() === String(b.artist).toLowerCase().trim();
@@ -35558,9 +35559,9 @@ function _ytUpdateLoveBtn() {
   const on = _ytIsFavorite(_ytCurrentTrack);
   btn.classList.toggle('on', on);
   btn.setAttribute('aria-pressed', String(on));
-  const label = on ? 'In Favorites — click to remove [K]' : 'Add to Favorites [K]';
+  const label = t(on ? 'yt_np_t_love_on' : 'yt_np_t_love_add');
   btn.title = label;   // an open hover label picks the new text up by itself
-  btn.setAttribute('aria-label', on ? 'Remove from Favorites' : 'Add to Favorites');
+  btn.setAttribute('aria-label', t(on ? 'yt_np_love_remove' : 'yt_np_love_add'));
 }
 function _ytToggleLove() {
   const tr = _ytCurrentTrack;
@@ -35579,7 +35580,7 @@ function _ytToggleLove() {
   _ytUpdateLoveBtn();
   const btn = document.getElementById('ytLoveBtn');
   if (btn && !on) { btn.classList.remove('pop'); void btn.offsetWidth; btn.classList.add('pop'); }
-  if (typeof dcPlToast === 'function') dcPlToast(on ? 'Removed from Favorites' : 'Added to Favorites');
+  if (typeof dcPlToast === 'function') dcPlToast(t(on ? 'yt_np_fav_removed' : 'yt_np_fav_added'));
   // Last.fm: love / unlove too, quietly (a failure doesn't undo Favorites)
   try {
     if (getScrobbleSession() && getScrobbleUser()) {
@@ -35619,7 +35620,7 @@ function _ytSetBar(on) {
   bar.style.display = on ? '' : 'none';
   document.body.classList.toggle('ytp-bar-open', on);
   const btn = document.getElementById('ytMiniCollapseBtn');
-  if (btn) btn.title = on ? 'Open the full player [M]' : 'Shrink to a bar [M]';
+  if (btn) btn.title = t(on ? 'yt_np_t_open' : 'yt_np_t_bar');
   clearInterval(_ytBarIv); _ytBarIv = null;
   if (on) { _ytTipHide && _ytTipHide(); _ytBarSync(); _ytBarIv = setInterval(_ytBarSync, 500); }
   else requestAnimationFrame(_ytClampToViewport);
@@ -35631,7 +35632,7 @@ function _ytBarSync() {
   const tr = _ytCurrentTrack;
   const set = (id, v) => { const el = document.getElementById(id); if (el && el.textContent !== v) el.textContent = v; };
   set('ytBarTitle', tr ? tr.title : '');
-  set('ytBarSub', tr ? (tr.artist || '') + (_ytBarRank ? ` · #${_ytBarRank} this week` : '') : '');
+  set('ytBarSub', tr ? (tr.artist || '') + (_ytBarRank ? ' · ' + t('yt_np_bar_rank', { n: _ytBarRank }) : '') : '');
   // Artwork: the same picture as the card (or the initials)
   const art = document.getElementById('ytMiniArt'), barArt = document.getElementById('ytBarArt');
   const card = document.getElementById('ytMiniPlayer');
@@ -35646,7 +35647,7 @@ function _ytBarSync() {
     pb.innerHTML = playing
       ? '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>'
       : '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="7,4 20,12 7,20"/></svg>';
-    pb.title = playing ? 'Pause [Space]' : 'Play [Space]';
+    pb.title = t(playing ? 'yt_np_t_pause' : 'yt_np_t_play');
   }
   // Progress line
   try {
@@ -35664,7 +35665,7 @@ function _ytBarSync() {
   } catch (e) {}
   // What's next + Up Next count
   const n = _ytQueue[0];
-  set('ytBarNext', n ? `${n.title} · ${n.artist}` : 'nothing queued');
+  set('ytBarNext', n ? `${n.title} · ${n.artist}` : t('yt_np_nothing_queued_s'));
   const cnt = document.getElementById('ytBarCount');
   if (cnt) { cnt.textContent = _ytQueue.length > 99 ? '99+' : String(_ytQueue.length); cnt.style.display = _ytQueue.length ? '' : 'none'; }
   // Heart
@@ -35813,7 +35814,7 @@ function _ytToggleStage(force) {
     document.body.classList.add('ytp-stage-open');
     _ytSetMediaMode('video', true);            // not saved: Stage always opens on the video
     if (p.dataset.tab === 'next') _ytShowTab('lyrics');
-    if (btn) btn.title = 'Back to the small player [G]';
+    if (btn) btn.title = t('yt_np_t_back_small');
   } else {
     if (document.fullscreenElement) { try { document.exitFullscreen(); } catch (e) {} }
     p.classList.remove('ytp-stage');
@@ -35823,7 +35824,7 @@ function _ytToggleStage(force) {
       if (_ytStagePrev.tab && _ytStagePrev.tab !== p.dataset.tab) _ytShowTab(_ytStagePrev.tab);
     }
     _ytStagePrev = null;
-    if (btn) btn.title = 'Stage mode — big screen [G]';
+    if (btn) btn.title = t('yt_np_t_stage');
   }
   _ytTipHide();
 }
@@ -35844,7 +35845,7 @@ function _ytInitStage() {
   if (typeof close === 'function') window.closeYtPlayer = function () { if (_ytTouring) _ytEndTour(); if (_ytInStage()) _ytToggleStage(false); return close.apply(this, arguments); };
   document.addEventListener('fullscreenchange', () => {
     const b = document.getElementById('ytFullBtn');
-    if (b) b.title = document.fullscreenElement ? 'Leave full screen' : 'Full screen';
+    if (b) b.title = t(document.fullscreenElement ? 'yt_np_full_leave' : 'yt_np_full');
   });
 }
 
@@ -35913,15 +35914,15 @@ function _ytInitPhone() {
 // showing (the chart story with no data) are skipped. In Stage or the bar the
 // tour first goes back to the card. The hint shows once per person (synced),
 // the first time the player opens.
-const _YT_TOUR = [
-  ['.yt-player-header', 'Your player', 'Drag it by the dots. ⌄ shrinks it to a small player, the screen button opens Stage (the big screen), ✕ closes it.'],
-  ['.ytp-media-bar', 'Artwork or video', 'Switch between the cover and the music video. The note says where the video came from, and “Wrong video?” lets you find a better one or paste a YouTube link.'],
-  ['#ytChartStory', 'Your chart story', 'This song in your own charts: this week’s rank, its peak, your plays and its weeks on the chart. Tap a tile to open the song’s page.'],
-  ['.yt-seek-bar-wrap', 'When a play counts', 'The green mark is where the play gets scrobbled. The note under the bar says when it counts, and when it did.'],
-  ['.yt-primary-controls', 'The controls', 'Shuffle, Previous, Play, Next and Repeat. Every button shows its name (and its key) when you point at it.'],
-  ['.ytp-song-acts', 'Keep the songs you love', '♥ adds the song to your Favorites playlist. + adds it to any playlist.'],
-  ['.ytp-tabs', 'Four sections', 'Up Next is your queue. Lyrics follow the song line by line. History is what you played here. Tools has everything else: sleep timer, speed, sharing and more.'],
-  ['.ytp-foot', 'Volume and quick settings', 'Volume, speed and the sleep timer. The ? button brings this tour back any time, and Tools → Keys & settings lists every key.'],
+const _YT_TOUR = [   // [part, title key, words key] — the words are in the translation files (yt_np_tour_*)
+  ['.yt-player-header', 'yt_np_tour_1h', 'yt_np_tour_1t'],
+  ['.ytp-media-bar', 'yt_np_tour_2h', 'yt_np_tour_2t'],
+  ['#ytChartStory', 'yt_np_tour_3h', 'yt_np_tour_3t'],
+  ['.yt-seek-bar-wrap', 'yt_np_tour_4h', 'yt_np_tour_4t'],
+  ['.yt-primary-controls', 'yt_np_tour_5h', 'yt_np_tour_5t'],
+  ['.ytp-song-acts', 'yt_np_tour_6h', 'yt_np_tour_6t'],
+  ['.ytp-tabs', 'yt_np_tour_7h', 'yt_np_tour_7t'],
+  ['.ytp-foot', 'yt_np_tour_8h', 'yt_np_tour_8t'],
 ];
 let _ytTouring = false, _ytTourIdx = 0, _ytTourSteps = [];
 function _ytStartTour() {
@@ -35944,14 +35945,15 @@ function _ytTourShow() {
   const p = document.getElementById('ytMiniPlayer');
   const card = document.getElementById('ytTourCard');
   p.querySelectorAll('.ytp-spot').forEach(el => el.classList.remove('ytp-spot'));
-  const [sel, head, text] = _ytTourSteps[_ytTourIdx];
+  const [sel, headKey, textKey] = _ytTourSteps[_ytTourIdx];
+  const head = t(headKey), text = t(textKey);
   const el = p.querySelector(sel);
   if (!el) { _ytEndTour(); return; }
   el.classList.add('ytp-spot');
-  document.getElementById('ytTourStep').textContent = `${_ytTourIdx + 1} of ${_ytTourSteps.length}`;
+  document.getElementById('ytTourStep').textContent = t('yt_np_tour_step', { n: _ytTourIdx + 1, total: _ytTourSteps.length });
   document.getElementById('ytTourHead').textContent = head;
   document.getElementById('ytTourText').textContent = text;
-  document.getElementById('ytTourNext').textContent = _ytTourIdx === _ytTourSteps.length - 1 ? 'Done' : 'Next';
+  document.getElementById('ytTourNext').textContent = t(_ytTourIdx === _ytTourSteps.length - 1 ? 'yt_np_tour_done' : 'yt_np_tour_next');
   document.getElementById('ytTourBack').style.visibility = _ytTourIdx ? '' : 'hidden';
   // Bring the part into view (the phone card scrolls), then put the card
   // under it if there's room, otherwise above it
@@ -36041,6 +36043,51 @@ function _ytToggleWake() {
 }
 document.addEventListener('visibilitychange', () => { _ytWakeSync(); });
 
+// ── The player in every language (PLAYER-PLAN.md step 14) ─────────────────
+// Fixed words in the markup carry data-ytt (title), data-yta (aria-label),
+// data-ytx (text) or data-ytph (placeholder) = a key after "yt_np_". This
+// fills them in, then redraws the parts the code writes (tooltips that
+// follow a state, the lists, the Tools cards, lyrics, the scrobble note…).
+// Runs at start and after every language change (applyI18n is wrapped).
+let _ytVideoSourceKind = '';
+let _ytFindingPlayable = false;
+function _ytApplyI18n() {
+  document.querySelectorAll('#ytMiniPlayer, #ytBar, #ytQueueToast').forEach(root => {
+    root.querySelectorAll('[data-ytt]').forEach(el => { el.title = t('yt_np_' + el.dataset.ytt); });
+    root.querySelectorAll('[data-yta]').forEach(el => { el.setAttribute('aria-label', t('yt_np_' + el.dataset.yta)); });
+    root.querySelectorAll('[data-ytx]').forEach(el => { el.textContent = t('yt_np_' + el.dataset.ytx); });
+    root.querySelectorAll('[data-ytph]').forEach(el => { el.placeholder = t('yt_np_' + el.dataset.ytph); });
+  });
+  const hint = document.getElementById('ytStageHint');
+  if (hint) hint.innerHTML = esc(t('yt_np_stage_hint', { g: '\u0001', esc: '\u0002' })).replace('\u0001', '<kbd>G</kbd>').replace('\u0002', '<kbd>Esc</kbd>');
+  document.querySelectorAll('#ytSleepPanel .yt-sleep-preset').forEach(b => {
+    const m = (b.getAttribute('onclick') || '').match(/\d+/);
+    if (m) b.textContent = t('yt_np_min_n', { n: m[0] });
+  });
+  const card = document.getElementById('ytMiniPlayer');
+  const pauseBtn = document.getElementById('ytMiniPauseBtn');
+  if (pauseBtn) pauseBtn.title = t(card && card.classList.contains('yt-is-playing') ? 'yt_np_t_pause' : 'yt_np_t_play');
+  const stageBtn = document.getElementById('ytMiniExpandBtn');
+  if (stageBtn) stageBtn.title = t(typeof _ytInStage === 'function' && _ytInStage() ? 'yt_np_t_back_small' : 'yt_np_t_stage');
+  const barBtn = document.getElementById('ytMiniCollapseBtn');
+  if (barBtn) barBtn.title = t(card && card.classList.contains('yt-mini-collapsed') ? 'yt_np_t_open' : 'yt_np_t_bar');
+  const full = document.getElementById('ytFullBtn');
+  if (full) full.title = t(document.fullscreenElement ? 'yt_np_full_leave' : 'yt_np_full');
+  ['_ytUpdateShuffleBtn', '_ytUpdateRepeatBtn', '_ytUpdateSpeedBtn', '_ytUpdateSleepBtn', '_ytUpdateCrossfadeBtn', '_ytUpdatePipBtn',
+   '_ytUpdateLoveBtn', '_ytUpdateQueueDisplay', '_ytUpdateScrobbleNote', '_ytToolsRefresh', '_ytBarSync'].forEach(fn => { try { if (typeof window[fn] === 'function') window[fn](); } catch (e) {} });
+  try { _ytSetVideoSource(_ytVideoSourceKind); } catch (e) {}
+  if (card && card.dataset.tab === 'history') try { _ytRenderHistory(); } catch (e) {}
+  try { if (_ytLyricsData) _ytRenderLyrics(); } catch (e) {}
+  if (card && card.dataset.tab) { const st = document.getElementById('ytSheetTitle'); if (st) st.textContent = t('yt_np_tab_' + card.dataset.tab); }
+  if (_ytCurrentTrack) try { _ytUpdateChartStory(_ytCurrentTrack.title, _ytCurrentTrack.artist); } catch (e) {}
+  try { if (_ytTouring) _ytTourShow(); } catch (e) {}
+}
+function _ytInitI18n() {
+  const orig = window.applyI18n;
+  if (typeof orig === 'function') window.applyI18n = function () { const r = orig.apply(this, arguments); try { _ytApplyI18n(); } catch (e) {} return r; };
+  _ytApplyI18n();
+}
+
 // ── Previous (PLAYER-PLAN.md step 2) ─────────────────────────────────────
 // More than 3 seconds in: back to the start of the song. Otherwise: the song
 // played before it (from History). The current song goes back to the top of
@@ -36078,7 +36125,7 @@ function _ytUpdateShuffleBtn() {
   const btn = document.getElementById('ytMiniShuffleBtn');
   if (!btn) return;
   btn.classList.toggle('yt-ctrl-active', _ytShuffle);
-  btn.title = _ytShuffle ? 'Shuffle: On [X]' : 'Shuffle: Off [X]';
+  btn.title = t(_ytShuffle ? 'yt_np_t_shuffle_on' : 'yt_np_t_shuffle_off');
 }
 
 // ── Button labels (step 2) ─────────────────────────────────────────────────
@@ -36182,7 +36229,7 @@ let _ytFreeSearchQuery = '';   // what the "Search YouTube" link searches for
 async function _ytSearchMulti(baseQuery) {
   const resultsEl = document.getElementById('ytSearchResults');
   const statusEl  = document.getElementById('ytMiniStatus');
-  if (resultsEl) { resultsEl.style.display = 'block'; resultsEl.innerHTML = '<div class="yt-sr-loading">Searching…</div>'; }
+  if (resultsEl) { resultsEl.style.display = 'block'; resultsEl.innerHTML = '<div class="yt-sr-loading">' + esc(t('yt_np_searching')) + '</div>'; }
   if (statusEl)  { statusEl.textContent = ''; }
   const free = await _ytFreeSearch(baseQuery);
   if (free.length) {
@@ -36190,7 +36237,7 @@ async function _ytSearchMulti(baseQuery) {
     if (!resultsEl) return;
     const more = _ytNeedsSignIn()
       ? _ytSignInHTML()
-      : `Not here? <button class="yt-err-open-btn" onclick="_ytSearchMultiYT(_ytFreeSearchQuery)">Search YouTube</button> or paste a link below.`;
+      : esc(t('yt_np_not_here', { btn: '\u0001' })).replace('\u0001', `<button class="yt-err-open-btn" onclick="_ytSearchMultiYT(_ytFreeSearchQuery)">${esc(t('yt_np_search_yt_btn'))}</button>`);
     resultsEl.innerHTML = _ytResultsHTML(free) + `<div class="yt-sr-more">${more}</div>`;
     return;
   }
@@ -36211,7 +36258,7 @@ function _ytResultsHTML(hits) {
 async function _ytSearchMultiYT(baseQuery) {
   const resultsEl = document.getElementById('ytSearchResults');
   const statusEl  = document.getElementById('ytMiniStatus');
-  if (resultsEl) { resultsEl.style.display = 'block'; resultsEl.innerHTML = '<div class="yt-sr-loading">Searching…</div>'; }
+  if (resultsEl) { resultsEl.style.display = 'block'; resultsEl.innerHTML = '<div class="yt-sr-loading">' + esc(t('yt_np_searching')) + '</div>'; }
   if (statusEl)  { statusEl.textContent = ''; }
   const variants = ['official audio', 'official video', 'lyric video'];
   const needsVariants = !/(official|lyric|audio|video|live|acoustic|cover)/i.test(baseQuery);
@@ -36238,8 +36285,8 @@ async function _ytSearchMultiYT(baseQuery) {
     // Check if all failed with server_unavailable — if so, retry after delay
     const allUnavailable = settled.every(r => r.status === 'rejected' && r.reason && r.reason.message === 'server_unavailable');
     if (allUnavailable && attempt < MAX_RETRIES) {
-      if (statusEl)  { statusEl.textContent = 'Waking up server…'; statusEl.className = 'yt-mini-status'; }
-      if (resultsEl) { resultsEl.innerHTML = '<div class="yt-sr-loading">Waking up server…</div>'; }
+      if (statusEl)  { statusEl.textContent = t('yt_np_waking'); statusEl.className = 'yt-mini-status'; }
+      if (resultsEl) { resultsEl.innerHTML = '<div class="yt-sr-loading">' + esc(t('yt_np_waking')) + '</div>'; }
       await new Promise(r => setTimeout(r, RETRY_DELAY_MS));
       continue;
     }
@@ -36256,7 +36303,7 @@ async function _ytSearchMultiYT(baseQuery) {
   if (hits.length === 0) {
     resultsEl.innerHTML = _ytNeedsSignIn()
       ? `<div class="yt-sr-no-results">${_ytSignInHTML()}</div>`
-      : '<div class="yt-sr-no-results">No results found. <button class="yt-err-open-btn" onclick="_ytOpenInYT()">Search on YouTube ↗</button> and paste the video\'s link below.</div>';
+      : '<div class="yt-sr-no-results">' + esc(t('yt_np_no_results', { btn: '\u0001' })).replace('\u0001', '<button class="yt-err-open-btn" onclick="_ytOpenInYT()">' + esc(t('yt_np_search_on_yt')) + '</button>') + '</div>';
     return;
   }
   if (hits.length === 1) { resultsEl.style.display = 'none'; _ytPickResult(hits[0].videoId); return; }
@@ -36363,17 +36410,17 @@ function _ytRenderHistory() {
   // Step 6: one row per song — title, artist, how long ago; click to play again
   const el = document.getElementById('ytMiniHistory');
   if (!el) return;
-  if (_ytHistory.length === 0) { el.innerHTML = '<div class="ytp-empty">Songs you play here show up in this list.</div>'; return; }
+  if (_ytHistory.length === 0) { el.innerHTML = '<div class="ytp-empty">' + esc(t('yt_np_hist_empty')) + '</div>'; return; }
   const ago = at => {
     if (!at) return '';
     const m = Math.round((Date.now() - at) / 60000);
-    return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : Math.round(m / 60) + ' h ago';
+    return m < 1 ? t('yt_np_just_now') : m < 60 ? t('yt_np_min_ago', { n: m }) : t('yt_np_h_ago', { n: Math.round(m / 60) });
   };
   el.innerHTML =
-    `<div class="ytp-list-head"><span>Played in this player · click to play again</span>` +
-    `<button type="button" class="ytp-mini-btn" onclick="_ytAddHistoryToQueue()" title="Add every song here to Up Next">+ Queue all</button></div>` +
+    `<div class="ytp-list-head"><span>${esc(t('yt_np_hist_head'))}</span>` +
+    `<button type="button" class="ytp-mini-btn" onclick="_ytAddHistoryToQueue()" title="${esc(t('yt_np_queue_all_t'))}">${esc(t('yt_np_queue_all'))}</button></div>` +
     _ytHistory.map((h, i) =>
-      `<button type="button" class="ytp-hrow" onclick="_ytPlayFromHistory(${i})" title="Play again">` +
+      `<button type="button" class="ytp-hrow" onclick="_ytPlayFromHistory(${i})" title="${esc(t('yt_np_play_again'))}">` +
       `<span class="ytp-hrow-m"><b>${esc(h.title)}</b><span>${esc(h.artist || '')}</span></span>` +
       `<time>${ago(h.at)}</time></button>`
     ).join('');
@@ -36498,8 +36545,8 @@ function _ytUpdateRepeatBtn() {
   const btn   = document.getElementById('ytMiniRepeatBtn');
   const badge = document.getElementById('ytRepeatBadge');
   if (!btn) return;
-  const labels = ['Repeat: Off [R]', 'Repeat: This song [R]', 'Repeat: All [R]'];
-  btn.title = labels[_ytRepeat];
+  const labels = ['yt_np_t_rep_off', 'yt_np_t_rep_one', 'yt_np_t_rep_all'];
+  btn.title = t(labels[_ytRepeat]);
   btn.classList.toggle('yt-ctrl-active', _ytRepeat > 0);
   if (badge) badge.style.display = _ytRepeat === 1 ? '' : 'none';
 }
@@ -36732,8 +36779,8 @@ function _ytUpdateQueueDisplay() {
     el.style.display = 'block';
     el.innerHTML =
       `<div class="yt-queue-empty">` +
-      `<div class="yt-queue-empty-msg">Up Next is empty</div>` +
-      `<div class="yt-queue-empty-hint">Use Play next or Add to queue on any song to line it up here.</div>` +
+      `<div class="yt-queue-empty-msg">${esc(t('yt_np_q_empty'))}</div>` +
+      `<div class="yt-queue-empty-hint">${esc(t('yt_np_q_empty_hint'))}</div>` +
       `</div>`;
     return;
   }
@@ -36744,19 +36791,19 @@ function _ytUpdateQueueDisplay() {
   const selCount = _ytQueueSelected.size;
   let html =
     `<div class="yt-queue-header">` +
-    `<span class="yt-queue-header-count">${_ytQueue.length} up next</span>` +
+    `<span class="yt-queue-header-count">${esc(t('yt_np_q_count', { n: _ytQueue.length }))}</span>` +
     `<div class="yt-queue-header-btns">` +
     // Multi-select toggle (#9)
-    `<button class="yt-queue-multi-btn${_ytQueueMultiSelect ? ' yt-ctrl-active' : ''}" onclick="_ytToggleQueueMultiSelect()" title="Multi-select">` +
+    `<button class="yt-queue-multi-btn${_ytQueueMultiSelect ? ' yt-ctrl-active' : ''}" onclick="_ytToggleQueueMultiSelect()" title="${esc(t('yt_np_q_multi'))}">` +
     `<svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="4" height="4" rx="0.5"/><rect x="3" y="11" width="4" height="4" rx="0.5"/><rect x="3" y="17" width="4" height="4" rx="0.5"/><line x1="10" y1="7" x2="21" y2="7"/><line x1="10" y1="13" x2="21" y2="13"/><line x1="10" y1="19" x2="21" y2="19"/></svg>` +
     `</button>` +
-    `<button class="yt-queue-shuffle-btn" onclick="_ytShuffleQueue()" title="Shuffle queue">` +
+    `<button class="yt-queue-shuffle-btn" onclick="_ytShuffleQueue()" title="${esc(t('yt_np_q_shuffle_t'))}">` +
     `<svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16,3 21,3 21,8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21,16 21,21 16,21"/><line x1="15" y1="15" x2="21" y2="21"/></svg>` +
-    ` Shuffle</button>` +
-    `<button class="yt-queue-reverse-btn" onclick="_ytReverseQueue()" title="Reverse queue order">↕ Rev</button>` + // #16
-    `<button class="yt-queue-dedup-btn" onclick="_ytDeduplicateQueue()" title="Remove duplicates">Dedup</button>` + // #7
-    `<button class="yt-queue-save-btn" onclick="_ytSaveQueueAsPlaylist()" title="Save Up Next as a playlist">Save as playlist</button>` + // #8
-    `<button class="yt-queue-clear-btn" onclick="_ytAskClearQueue()" title="Clear Up Next">✕ Clear</button>` +
+    ` ${esc(t('yt_np_q_shuffle'))}</button>` +
+    `<button class="yt-queue-reverse-btn" onclick="_ytReverseQueue()" title="${esc(t('yt_np_q_rev_t'))}">${esc(t('yt_np_q_rev'))}</button>` + // #16
+    `<button class="yt-queue-dedup-btn" onclick="_ytDeduplicateQueue()" title="${esc(t('yt_np_q_dedup_t'))}">${esc(t('yt_np_q_dedup'))}</button>` + // #7
+    `<button class="yt-queue-save-btn" onclick="_ytSaveQueueAsPlaylist()" title="${esc(t('yt_np_q_save_t'))}">${esc(t('yt_np_q_save'))}</button>` + // #8
+    `<button class="yt-queue-clear-btn" onclick="_ytAskClearQueue()" title="${esc(t('yt_np_q_clear_t'))}">${esc(t('yt_np_q_clear'))}</button>` +
     `</div>` +
     `</div>`;
 
@@ -36764,9 +36811,9 @@ function _ytUpdateQueueDisplay() {
   if (_ytQueueMultiSelect && selCount > 0) {
     html +=
       `<div class="yt-queue-multi-actions">` +
-      `<span class="yt-queue-sel-count">${selCount} selected</span>` +
-      `<button class="dc-btn dc-btn-normal dc-btn-sm" onclick="_ytMoveSelectedToTop()" title="Move selected to top">↑ Top</button>` +
-      `<button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-danger" onclick="_ytDeleteSelected()" title="Delete selected">✕ Del</button>` +
+      `<span class="yt-queue-sel-count">${esc(t('yt_np_q_sel', { n: selCount }))}</span>` +
+      `<button class="dc-btn dc-btn-normal dc-btn-sm" onclick="_ytMoveSelectedToTop()" title="${esc(t('yt_np_q_top_t'))}">${esc(t('yt_np_q_top'))}</button>` +
+      `<button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-danger" onclick="_ytDeleteSelected()" title="${esc(t('yt_np_q_del_t'))}">${esc(t('yt_np_q_del'))}</button>` +
       `</div>`;
   }
 
@@ -36809,13 +36856,13 @@ function _ytUpdateQueueDisplay() {
       // Left side: checkbox (multi-select) or drag handle
       (_ytQueueMultiSelect
         ? `<input type="checkbox" class="yt-mini-queue-cb"${isSel ? ' checked' : ''} onclick="event.stopPropagation();_ytQueueCheckbox(${i},event)">`
-        : `<span class="yt-mini-queue-drag" title="Long-press on mobile / drag on desktop to reorder">⠿</span>`) +
+        : `<span class="yt-mini-queue-drag" title="${esc(window.t('yt_np_q_drag_t'))}">⠿</span>`) +
       `<span class="yt-mini-queue-num">${i + 1}</span>` +
-      `<button class="yt-mini-queue-move-top" onclick="_ytMoveToTop(${i})" title="Move to top (play next)">↑</button>` + // #5
+      `<button class="yt-mini-queue-move-top" onclick="_ytMoveToTop(${i})" title="${esc(window.t('yt_np_q_movetop_t'))}">↑</button>` + // #5
       `<span class="yt-mini-queue-title">${esc(t.title)}` +
       (t.artist ? `<span class="yt-mini-queue-artist"> · ${esc(t.artist)}</span>` : '') +
       `</span>` +
-      `<button class="yt-mini-queue-rm" onclick="_ytRemoveFromQueue(${i})" title="Remove">✕</button>` +
+      `<button class="yt-mini-queue-rm" onclick="_ytRemoveFromQueue(${i})" title="${esc(window.t('yt_np_q_remove_t'))}">✕</button>` +
       `</div>`
     );
   }).join('');
@@ -36824,8 +36871,8 @@ function _ytUpdateQueueDisplay() {
   if (_ytLastRemovedItem) {
     html +=
       `<div class="yt-queue-undo-bar">` +
-      `<span class="yt-queue-undo-label">Removed "${esc(_ytLastRemovedItem.item.title)}"</span>` +
-      `<button class="dc-btn dc-btn-normal dc-btn-sm" onclick="_ytUndoRemove()">Undo</button>` +
+      `<span class="yt-queue-undo-label">${esc(t('yt_np_q_removed', { title: _ytLastRemovedItem.item.title }))}</span>` +
+      `<button class="dc-btn dc-btn-normal dc-btn-sm" onclick="_ytUndoRemove()">${esc(t('yt_np_q_undo'))}</button>` +
       `</div>`;
   }
 
@@ -37017,8 +37064,13 @@ function _ytRemoveByArtist(artist) {
 
 // ── #8: Save current queue as a named playlist ────────────────────────────────
 function _ytSaveQueueAsPlaylist() {
-  const name = prompt('Save queue as playlist:', '');
-  if (name && name.trim()) _ytSaveCurrentQueue(name.trim());
+  // Step 14: the site's own Add to Playlist window (new playlist or an existing
+  // one) instead of the browser's prompt(), like every other "add" on the site
+  const tracks = [];
+  if (_ytCurrentTrack) tracks.push({ title: _ytCurrentTrack.title, artist: _ytCurrentTrack.artist, album: _ytCurrentTrack.album || '' });
+  _ytQueue.forEach(x => tracks.push({ title: x.title, artist: x.artist, album: x.album || '' }));
+  if (!tracks.length || typeof dcOpenPlaylistPicker !== 'function') return;
+  dcOpenPlaylistPicker(tracks, t('yt_np_tab_next'), '');
 }
 
 // ── #6: Undo last removal ─────────────────────────────────────────────────────
@@ -37047,13 +37099,13 @@ function _ytShowQueueContextMenu(e, i) {
   menu.className = 'yt-queue-ctx';
   menu.innerHTML =
     // Play now: remove from queue then open directly
-    `<button onclick="_ytQueuePlayNow(${i})">▶ Play now</button>` +
+    `<button onclick="_ytQueuePlayNow(${i})">${esc(window.t('yt_np_q_play_now'))}</button>` +
     // Play next: move to top of upcoming list
-    `<button onclick="_ytHideQueueContextMenu();_ytMoveToTop(${i})">⏭ Play next</button>` +
+    `<button onclick="_ytHideQueueContextMenu();_ytMoveToTop(${i})">${esc(window.t('yt_np_q_play_next'))}</button>` +
     // Remove with undo support
-    `<button onclick="_ytHideQueueContextMenu();_ytRemoveFromQueue(${i})">✕ Remove</button>` +
+    `<button onclick="_ytHideQueueContextMenu();_ytRemoveFromQueue(${i})">${esc(window.t('yt_np_q_remove'))}</button>` +
     // Remove all by artist (only if artist is set)
-    (t.artist ? `<button onclick="_ytRemoveByArtist(${jar})">🗑 Remove all by ${esc(t.artist)}</button>` : '');
+    (t.artist ? `<button onclick="_ytRemoveByArtist(${jar})">${esc(window.t('yt_np_q_remove_artist', { artist: t.artist }))}</button>` : '');
   // Position near cursor, clamped to viewport edges
   const x = Math.min(e.clientX, window.innerWidth  - 185);
   const y = Math.min(e.clientY, window.innerHeight - 150);
@@ -37299,6 +37351,7 @@ _ytInitLove();                       // step 8: heart follows Favorites, also af
 _ytInitBar();                        // step 9: the Bar follows closing
 _ytInitStage();                      // step 10: Stage mode
 _ytInitPhone();                      // step 11: phone player
+setTimeout(_ytInitI18n, 0);          // step 14: the player in every language (after the whole file has run: it reads settings declared further down)
 _ytLoadPlaylists();
 _ytUpdateSpeedBtn();
 _ytUpdateCrossfadeBtn();
@@ -37324,8 +37377,8 @@ try {
         const pauseBtn = document.getElementById('ytMiniPauseBtn');
         if (titleEl)  titleEl.textContent  = track.title;
         if (artistEl) artistEl.textContent = track.artist || '';
-        if (statusEl) { statusEl.textContent = 'Tap ▶ to resume'; statusEl.className = 'yt-mini-status'; }
-        if (pauseBtn) { pauseBtn.innerHTML = _YT_IC.play; pauseBtn.title = 'Play [Space]'; }
+        if (statusEl) { statusEl.textContent = t('yt_np_tap_resume'); statusEl.className = 'yt-mini-status'; }
+        if (pauseBtn) { pauseBtn.innerHTML = _YT_IC.play; pauseBtn.title = t('yt_np_t_play'); }
         if (!_ytDragInitialized) { _ytDragInitialized = true; _ytInitDrag(); }
         _ytLoadVolume();
         requestAnimationFrame(_ytClampToViewport);
@@ -37380,12 +37433,12 @@ function _ytUpdateSleepBtn() {
   if (_ytSleepRemaining > 0) {
     btn.classList.add('yt-ctrl-active');
     const m = Math.ceil(_ytSleepRemaining / 60);
-    if (badge) badge.textContent = m + ' min';   // step 9: the chip shows the time left
-    btn.title = `Sleep in ${m}m (click to edit)`;
+    if (badge) badge.textContent = t('yt_np_min_n', { n: m });   // step 9: the chip shows the time left
+    btn.title = t('yt_np_t_sleep_in', { m });
   } else {
     btn.classList.remove('yt-ctrl-active');
-    if (badge) badge.textContent = 'Off';
-    btn.title = 'Sleep timer [T]';
+    if (badge) badge.textContent = t('yt_np_off');
+    btn.title = t('yt_np_t_sleep');
   }
 }
 
@@ -37402,7 +37455,7 @@ function _ytCycleCrossfade() {
 function _ytUpdateCrossfadeBtn() {
   const btn = document.getElementById('ytCrossfadeBtn');
   if (!btn) return;
-  btn.textContent = _ytCrossfade === 0 ? 'Off' : `${_ytCrossfade}s`;
+  btn.textContent = _ytCrossfade === 0 ? t('yt_np_off') : `${_ytCrossfade} s`;
   btn.classList.toggle('yt-setting-active', _ytCrossfade > 0);
 }
 
@@ -37516,7 +37569,7 @@ async function _ytFetchLyrics() {
   let data = _ytLyricsCache[key];
   if (!data) {
     el.dataset.key = '';
-    el.innerHTML = '<div class="ytp-lyr-msg">Loading lyrics…</div>';
+    el.innerHTML = '<div class="ytp-lyr-msg">' + esc(t('yt_np_lyr_loading')) + '</div>';
     data = await _ytLyricsLookup(artist, title);
     if (data.kind !== 'none') _ytLyricsCache[key] = data;
     if (_ytLyricsKey !== key) return;   // a newer song started meanwhile
@@ -37530,23 +37583,23 @@ function _ytRenderLyrics() {
   const el = document.getElementById('ytLyricsPanel');
   const data = _ytLyricsData;
   if (!el || !data) return;
-  const credit = '<div class="ytp-lyr-credit">Lyrics from LRCLIB and lyrics.ovh</div>';
+  const credit = '<div class="ytp-lyr-credit">' + esc(t('yt_np_lyr_credit')) + '</div>';
   clearInterval(_ytLyricsIv); _ytLyricsIv = null;
-  if (data.kind === 'instrumental') { el.innerHTML = '<div class="ytp-lyr-msg">♪ This song has no words — it\'s an instrumental.</div>'; return; }
-  if (data.kind === 'none') { el.innerHTML = '<div class="ytp-lyr-msg">No lyrics found for this song.</div>'; return; }
+  if (data.kind === 'instrumental') { el.innerHTML = '<div class="ytp-lyr-msg">' + esc(t('yt_np_lyr_instr')) + '</div>'; return; }
+  if (data.kind === 'none') { el.innerHTML = '<div class="ytp-lyr-msg">' + esc(t('yt_np_lyr_none')) + '</div>'; return; }
   if (data.kind === 'plain') {
-    el.innerHTML = `<div class="ytp-lyr-head"><span class="ytp-lyr-pill plain">NOT TIMED</span><span>These lyrics don't follow the song.</span></div>` +
+    el.innerHTML = `<div class="ytp-lyr-head"><span class="ytp-lyr-pill plain">${esc(t('yt_np_lyr_plain_pill'))}</span><span>${esc(t('yt_np_lyr_plain'))}</span></div>` +
       `<div class="ytp-lyr-plain">${esc(data.text)}</div>` + credit;
     return;
   }
   const off = _ytLyricsOffset[_ytLyricsKey] || 0;
-  const offTxt = off === 0 ? 'In time' : (off > 0 ? '+' : '') + off.toFixed(1) + ' s';
+  const offTxt = off === 0 ? t('yt_np_lyr_intime') : (off > 0 ? '+' : '') + off.toFixed(1) + ' s';
   el.innerHTML =
-    `<div class="ytp-lyr-head"><span class="ytp-lyr-pill">SYNCED</span><span>Click a line to jump there.</span>` +
-    `<span class="ytp-lyr-nudge" role="group" aria-label="Lyrics timing">` +
-    `<button type="button" onclick="_ytLyricsNudge(-0.5)" title="Lyrics are late — show them earlier">−</button>` +
-    `<span title="Lyrics timing">${offTxt}</span>` +
-    `<button type="button" onclick="_ytLyricsNudge(0.5)" title="Lyrics are early — show them later">+</button></span></div>` +
+    `<div class="ytp-lyr-head"><span class="ytp-lyr-pill">${esc(t('yt_np_lyr_synced'))}</span><span>${esc(t('yt_np_lyr_click'))}</span>` +
+    `<span class="ytp-lyr-nudge" role="group" aria-label="${esc(t('yt_np_lyr_timing'))}">` +
+    `<button type="button" onclick="_ytLyricsNudge(-0.5)" title="${esc(t('yt_np_lyr_earlier'))}">−</button>` +
+    `<span title="${esc(t('yt_np_lyr_timing'))}">${esc(offTxt)}</span>` +
+    `<button type="button" onclick="_ytLyricsNudge(0.5)" title="${esc(t('yt_np_lyr_later'))}">+</button></span></div>` +
     `<div class="ytp-lyr-lines">` +
     data.lines.map((l, i) => `<button type="button" class="ytp-lyr-line${l.text ? '' : ' gap'}" data-i="${i}" onclick="_ytLyricsJump(${i})">${l.text ? esc(l.text) : '♪'}</button>`).join('') +
     `</div>` + credit;
@@ -37751,7 +37804,7 @@ function _ytRenderPlaylists() {
       `<div class="yt-pl-item">` +
       `<button class="yt-pl-load-btn" onclick="_ytLoadPlaylist(${JSON.stringify(n)})" title="Load">${esc(n)}</button>` +
       `<span class="yt-pl-count">${_ytPlaylists[n].length}</span>` +
-      (_ytIsFavName(n) ? `<span class="yt-pl-fav" title="Your hearted songs — can't be deleted">♥</span>` : `<button class="yt-pl-del-btn" onclick="_ytDeletePlaylist(${JSON.stringify(n)})" title="Delete">✕</button>`) +
+      (_ytIsFavName(n) ? `<span class="yt-pl-fav" title="${esc(t('yt_np_fav_lock_title'))}">♥</span>` : `<button class="yt-pl-del-btn" onclick="_ytDeletePlaylist(${JSON.stringify(n)})" title="Delete">✕</button>`) +
       `</div>`
     ).join('');
   }
@@ -38656,13 +38709,13 @@ function _ytPlaySimilar() {
       && !(b.dataset.title === title && b.dataset.artist === artist));
   const statusEl = document.getElementById('ytMiniStatus');
   if (btns.length === 0) {
-    if (statusEl) { statusEl.textContent = `No other songs by ${artist} in chart`; statusEl.className = 'yt-mini-status'; setTimeout(() => { if (statusEl.textContent.startsWith('No other')) { statusEl.textContent = ''; statusEl.className = 'yt-mini-status'; } }, 3000); }
+    if (statusEl) { const msg = t('yt_np_similar_none', { artist }); statusEl.textContent = msg; statusEl.className = 'yt-mini-status'; setTimeout(() => { if (statusEl.textContent === msg) { statusEl.textContent = ''; statusEl.className = 'yt-mini-status'; } }, 3000); }
     return;
   }
   btns.forEach(b => _ytQueue.push({ title: b.dataset.title, artist: b.dataset.artist, album: b.dataset.album, btn: b.el }));
   _ytUpdateQueueDisplay();
   _ytSaveQueue();
-  if (statusEl) { statusEl.textContent = `+${btns.length} by ${artist} queued`; statusEl.className = 'yt-mini-status ok'; setTimeout(() => { if (statusEl.textContent.includes('queued')) { statusEl.textContent = ''; statusEl.className = 'yt-mini-status'; } }, 2000); }
+  if (statusEl) { const msg = t('yt_np_similar_added', { n: btns.length, artist }); statusEl.textContent = msg; statusEl.className = 'yt-mini-status ok'; setTimeout(() => { if (statusEl.textContent === msg) { statusEl.textContent = ''; statusEl.className = 'yt-mini-status'; } }, 2000); }
 }
 
 // ── 8. Picture-in-Picture ─────────────────────────────────────────
@@ -38674,7 +38727,7 @@ async function _ytTogglePiP() {
   }
   if (!window.documentPictureInPicture) {
     const statusEl = document.getElementById('ytMiniStatus');
-    if (statusEl) { statusEl.textContent = 'PiP requires Chrome 116+'; statusEl.className = 'yt-mini-status err'; setTimeout(() => { statusEl.textContent = ''; statusEl.className = 'yt-mini-status'; }, 3000); }
+    if (statusEl) { statusEl.textContent = t('yt_np_pip_need'); statusEl.className = 'yt-mini-status err'; setTimeout(() => { statusEl.textContent = ''; statusEl.className = 'yt-mini-status'; }, 3000); }
     return;
   }
   try {
@@ -38706,7 +38759,7 @@ function _ytUpdatePipBtn() {
   const btn = document.getElementById('ytPipBtn');
   if (!btn) return;
   btn.classList.toggle('yt-ctrl-active', !!_ytPipWindow);
-  btn.title = _ytPipWindow ? 'Close pop-out window' : 'Pop-out window';
+  btn.title = t(_ytPipWindow ? 'yt_np_pip_close' : 'yt_np_pip');
 }
 
 // ── 9. Playback speed ─────────────────────────────────────────────
@@ -38729,7 +38782,7 @@ function _ytUpdateSpeedBtn() {
   const badge = document.getElementById('ytSpeedBadge');
   if (!btn) return;
   btn.classList.toggle('yt-ctrl-active', _ytSpeed !== 1);
-  btn.title = `Speed: ${_ytSpeed}x [S]`;
+  btn.title = t('yt_np_t_speed', { x: _ytSpeed });
   if (badge) badge.textContent = _ytSpeed + '×';   // step 9: the chip always shows the speed
 }
 
@@ -38745,11 +38798,11 @@ async function _ytShare() {
   const statusEl = document.getElementById('ytMiniStatus');
   try {
     await navigator.clipboard.writeText(text);
-    if (statusEl) { statusEl.textContent = '✓ Copied!'; statusEl.className = 'yt-mini-status ok'; setTimeout(() => { if (statusEl.textContent === '✓ Copied!') { statusEl.textContent = ''; statusEl.className = 'yt-mini-status'; } }, 2000); }
+    if (statusEl) { const msg = t('yt_np_copied'); statusEl.textContent = msg; statusEl.className = 'yt-mini-status ok'; setTimeout(() => { if (statusEl.textContent === msg) { statusEl.textContent = ''; statusEl.className = 'yt-mini-status'; } }, 2000); }
     const btn = document.getElementById('ytShareBtn');
     if (btn) { btn.classList.add('yt-ctrl-active'); setTimeout(() => btn && btn.classList.remove('yt-ctrl-active'), 1500); }
   } catch(e) {
-    if (statusEl) { statusEl.textContent = 'Copy failed'; statusEl.className = 'yt-mini-status err'; setTimeout(() => { statusEl.textContent = ''; statusEl.className = 'yt-mini-status'; }, 2000); }
+    if (statusEl) { statusEl.textContent = t('yt_np_copy_failed'); statusEl.className = 'yt-mini-status err'; setTimeout(() => { statusEl.textContent = ''; statusEl.className = 'yt-mini-status'; }, 2000); }
   }
 }
 
@@ -38761,7 +38814,7 @@ async function _ytShare() {
 // The old toggle functions (_ytToggleLyrics, _ytToggleSleep, …) are kept and
 // wrapped below, so the keys and every older caller open the right tab.
 const _YT_TOOL_PANELS = { search: ['ytMiniSearchBox', 'ytSearchResults'], sleep: ['ytSleepPanel'], playlists: ['ytPlaylistsPanel'], keys: ['ytShortcutsPanel'] };
-const _YT_TOOL_NAMES  = { search: 'Find another version', sleep: 'Sleep timer', playlists: 'Saved playlists', keys: 'Keys & settings' };
+const _YT_TOOL_NAMES  = { search: 'yt_np_tool_search', sleep: 'yt_np_sleep', playlists: 'yt_np_tool_lists', keys: 'yt_np_tool_keys' };   // translation keys
 function _ytShowTab(tab, tool) {
   const player = document.getElementById('ytMiniPlayer');
   if (!player) return;
@@ -38776,7 +38829,7 @@ function _ytShowTab(tab, tool) {
   if (_ytIsPhone()) {
     player.dataset.sheet = 'open';
     const st = document.getElementById('ytSheetTitle');
-    if (st) st.textContent = { next: 'Up Next', lyrics: 'Lyrics', history: 'History', tools: 'Tools' }[tab] || '';
+    if (st) st.textContent = t('yt_np_tab_' + tab);
   }
   if (player.classList.contains('yt-mini-collapsed')) _ytToggleCollapse();
   if (tab === 'next') {
@@ -38796,7 +38849,7 @@ function _ytShowTab(tab, tool) {
       if (k !== tool) ids.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
     });
     const back = document.getElementById('ytToolBackName');
-    if (back) back.textContent = _YT_TOOL_NAMES[tool] || '';
+    if (back) back.textContent = _YT_TOOL_NAMES[tool] ? t(_YT_TOOL_NAMES[tool]) : '';
     if (!tool) _ytRenderTools();
   }
 }
@@ -38806,23 +38859,23 @@ function _ytRenderTools() {
   const grid = document.getElementById('ytToolsGrid');
   if (!grid) return;
   grid.style.display = 'grid';
-  const sleepVal = _ytSleepRemaining > 0 ? Math.ceil(_ytSleepRemaining / 60) + ' min left' : 'Off';
+  const sleepVal = _ytSleepRemaining > 0 ? t('yt_np_min_left', { n: Math.ceil(_ytSleepRemaining / 60) }) : t('yt_np_off');
   const nLists = Object.keys(_ytPlaylists || {}).length;
   const ic = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
   const tools = [
-    ['search',  'Find another version', 'Wrong video? Search for a better one, or paste a YouTube link.', 'F', 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM16.5 16.5L21 21', '_ytToggleSearch()'],
-    ['similar', 'More by this artist', 'Adds more songs by this artist to Up Next.', '+ songs', 'M9 18V5l12-2v13M6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM18 19a3 3 0 1 0 0-6 3 3 0 0 0 0 6z', '_ytPlaySimilar()'],
-    ['sleep',   'Sleep timer', 'Stops the music after a while.', sleepVal, 'M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z', '_ytToggleSleep()'],
-    ['speed',   'Speed', 'Slower or faster playback. Click to change.', (_ytSpeed || 1) + '×', 'M12 14l4-4M3.3 17a9 9 0 1 1 17.4 0', '_ytCycleSpeed();_ytRenderTools()'],
-    ['xfade',   'Crossfade', 'Blends the end of one song into the next. Click to change.', _ytCrossfade > 0 ? _ytCrossfade + ' s' : 'Off', 'M3 7h4l10 10h4M3 17h4L17 7h4', '_ytCycleCrossfade();_ytRenderTools()'],
-    ['scrobble','Scrobble at', 'When a play counts (the green mark). Click to change.', _ytScrobbleThreshold, 'M5 12l5 5 9-10', '_ytCycleScrobbleThreshold();_ytRenderTools()'],
-    ['lists',   'Saved playlists', 'Play one, or save Up Next as a new one.', nLists === 1 ? '1 list' : nLists + ' lists', 'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01', '_ytTogglePlaylists()'],
-    ['share',   'Share', 'Copies the song and its YouTube link.', 'Copy', 'M4 12v8h16v-8M16 6l-4-4-4 4M12 2v13', '_ytShare()'],
-    ['pip',     'Pop-out window', 'A small player that stays on top of other apps.', _ytPipWindow ? 'On' : 'Off', 'M3 4h18v14H3zM13 11h7v6h-7z', '_ytTogglePiP().then(_ytRenderTools)'],
-    ['youtube', 'Open on YouTube', 'Watch this video on youtube.com.', 'New tab', 'M2 6h20v12H2zM10 9l5 3-5 3z', '_ytOpenInYT()'],
-    ['wake',    'Keep screen on', 'Stops the phone from locking while music plays, so it keeps going.', !_ytWakeSupported() ? 'Not here' : (_ytWakeOn ? 'On' : 'Off'), 'M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM12 18h.01', '_ytToggleWake()'],
-    ['keys',    'Keys & settings', 'Every key the player knows, and its settings.', 'List', 'M2 6h20v12H2zM6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8', '_ytToggleShortcuts()'],
-    ['tour',    'Take the tour', 'A one-minute walk through the player.', _YT_TOUR.length + ' stops', 'M12 2l3 7 7 .6-5.3 4.6L18.4 22 12 18l-6.4 4 1.7-7.8L2 9.6 9 9z', '_ytStartTour()'],
+    ['search',  t('yt_np_tool_search'), t('yt_np_tool_search_d'), 'F', 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM16.5 16.5L21 21', '_ytToggleSearch()'],
+    ['similar', t('yt_np_tool_similar'), t('yt_np_tool_similar_d'), t('yt_np_val_songs'), 'M9 18V5l12-2v13M6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM18 19a3 3 0 1 0 0-6 3 3 0 0 0 0 6z', '_ytPlaySimilar()'],
+    ['sleep',   t('yt_np_sleep'), t('yt_np_tool_sleep_d'), sleepVal, 'M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z', '_ytToggleSleep()'],
+    ['speed',   t('yt_np_tool_speed'), t('yt_np_tool_speed_d'), (_ytSpeed || 1) + '×', 'M12 14l4-4M3.3 17a9 9 0 1 1 17.4 0', '_ytCycleSpeed();_ytRenderTools()'],
+    ['xfade',   t('yt_np_xfade'), t('yt_np_tool_xfade_d'), _ytCrossfade > 0 ? _ytCrossfade + ' s' : t('yt_np_off'), 'M3 7h4l10 10h4M3 17h4L17 7h4', '_ytCycleCrossfade();_ytRenderTools()'],
+    ['scrobble', t('yt_np_scrobble_at'), t('yt_np_tool_scrobble_d'), _ytScrobbleThreshold, 'M5 12l5 5 9-10', '_ytCycleScrobbleThreshold();_ytRenderTools()'],
+    ['lists',   t('yt_np_tool_lists'), t('yt_np_tool_lists_d'), nLists === 1 ? t('yt_np_val_lists_one') : t('yt_np_val_lists', { n: nLists }), 'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01', '_ytTogglePlaylists()'],
+    ['share',   t('yt_np_tool_share'), t('yt_np_tool_share_d'), t('yt_np_val_copy'), 'M4 12v8h16v-8M16 6l-4-4-4 4M12 2v13', '_ytShare()'],
+    ['pip',     t('yt_np_pip'), t('yt_np_tool_pip_d'), t(_ytPipWindow ? 'yt_np_on' : 'yt_np_off'), 'M3 4h18v14H3zM13 11h7v6h-7z', '_ytTogglePiP().then(_ytRenderTools)'],
+    ['youtube', t('yt_np_tool_youtube'), t('yt_np_tool_youtube_d'), t('yt_np_val_newtab'), 'M2 6h20v12H2zM10 9l5 3-5 3z', '_ytOpenInYT()'],
+    ['wake',    t('yt_np_tool_wake'), t('yt_np_tool_wake_d'), !_ytWakeSupported() ? t('yt_np_val_nothere') : t(_ytWakeOn ? 'yt_np_on' : 'yt_np_off'), 'M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM12 18h.01', '_ytToggleWake()'],
+    ['keys',    t('yt_np_tool_keys'), t('yt_np_tool_keys_d'), t('yt_np_val_list'), 'M2 6h20v12H2zM6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8', '_ytToggleShortcuts()'],
+    ['tour',    t('yt_np_tool_tour'), t('yt_np_tool_tour_d'), t('yt_np_val_stops', { n: _YT_TOUR.length }), 'M12 2l3 7 7 .6-5.3 4.6L18.4 22 12 18l-6.4 4 1.7-7.8L2 9.6 9 9z', '_ytStartTour()'],
   ];
   grid.innerHTML = tools.map(([id, name, help, val, path, go]) =>
     `<button type="button" class="ytp-tool ytp-tool-${id}" onclick="${go}">` +
@@ -38840,7 +38893,7 @@ function _ytToolsRefresh() {
 function _ytAskClearQueue() {
   if (!_ytQueue.length && !_ytQueuePlayed.length) return;
   if (typeof window.dcConfirmBox === 'function') {
-    window.dcConfirmBox('Clear Up Next?', `This removes ${_ytQueue.length === 1 ? 'the 1 song' : 'all ' + _ytQueue.length + ' songs'} waiting in Up Next. The song playing now keeps playing.`, 'Clear', _ytClearQueue);
+    window.dcConfirmBox(t('yt_np_clear_title'), _ytQueue.length === 1 ? t('yt_np_clear_one') : t('yt_np_clear_many', { n: _ytQueue.length }), t('yt_np_clear_ok'), _ytClearQueue);
   } else {
     _ytClearQueue();
   }

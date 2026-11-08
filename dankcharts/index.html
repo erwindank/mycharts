@@ -27,13 +27,13 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=950">
+  <link rel="stylesheet" href="style.css?v=951">
   <!-- The Charts Guide's lessons (guide.js, GUIDE-PLAN.md) -->
   <link rel="stylesheet" href="guide.css?v=5">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=345"></script>
+  <script defer src="translations.js?v=346"></script>
   <!-- Only the visitor's own language is downloaded (translations.js holds
        English). This writes a defer tag for the saved language right here, so
        it runs straight after translations.js and before app.js, and the page
@@ -41,7 +41,7 @@
        whenever translations.es / pt-BR / pt-PT .js change (setup-guide.html
        has the same line). -->
   <script>
-    window.DC_I18N_V = 34;
+    window.DC_I18N_V = 35;
     (function () {
       try {
         var l = localStorage.getItem('dankcharts-lang');
@@ -4427,7 +4427,7 @@
   <!-- One behaviour and one icon set for every pop-up window (phase 10); before
        app.js so dcIco() is there when app.js draws a window -->
   <script defer src="popups.js?v=13"></script>
-  <script defer src="app.js?v=698"></script>
+  <script defer src="app.js?v=700"></script>
   <!-- The song / album / artist details side panel (phase 10 step 3); wraps app.js's open functions -->
   <script defer src="panel.js?v=16"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
@@ -5600,13 +5600,13 @@ function deleteGenreTriggers() {
 
   <!-- Header: drag handle · playing bars · label · window controls -->
   <div class="yt-player-header">
-    <div class="yt-mini-drag-handle" title="Drag to move" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg></div>
+    <div class="yt-mini-drag-handle" title="Drag to move" data-ytt="drag" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg></div>
     <!-- Three little bars that bounce while music plays (.yt-is-playing on the card) -->
     <span class="ytp-eq" aria-hidden="true"><i></i><i></i><i></i></span>
-    <span class="yt-player-label">Now Playing</span>
+    <span class="yt-player-label" data-ytx="label">Now Playing</span>
     <!-- Step 10: only shown in Stage mode -->
-    <span class="ytp-stage-hint">Press <kbd>G</kbd> or <kbd>Esc</kbd> to go back</span>
-    <button id="ytFullBtn" type="button" class="yt-hdr-btn ytp-stage-only" onclick="_ytStageFullscreen()" title="Full screen">
+    <span class="ytp-stage-hint" id="ytStageHint">Press <kbd>G</kbd> or <kbd>Esc</kbd> to go back</span>
+    <button id="ytFullBtn" type="button" class="yt-hdr-btn ytp-stage-only" onclick="_ytStageFullscreen()" title="Full screen" data-ytt="full">
       <svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
     </button>
     <div class="yt-header-actions">
@@ -5616,7 +5616,7 @@ function deleteGenreTriggers() {
       <button id="ytMiniCollapseBtn" class="yt-hdr-btn yt-mini-ctrl-btn" onclick="_ytToggleCollapse()" title="Shrink to a bar [M]">
         <svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6,9 12,15 18,9"/></svg>
       </button>
-      <button class="yt-hdr-btn yt-hdr-close yt-mini-ctrl-btn" onclick="closeYtPlayer()" title="Close player [Esc]">
+      <button class="yt-hdr-btn yt-hdr-close yt-mini-ctrl-btn" onclick="closeYtPlayer()" title="Close player [Esc]" data-ytt="t_close">
         <svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
@@ -5640,9 +5640,9 @@ function deleteGenreTriggers() {
   <div class="ytp-media-bar">
     <span id="ytVideoSource" class="ytp-src" style="display:none"></span>
     <span class="ytp-media-bar-sp"></span>
-    <div class="ytp-seg" role="group" aria-label="Show artwork or music video">
-      <button id="ytMediaArtBtn" type="button" aria-pressed="true" onclick="_ytSetMediaMode('art')" title="Show the artwork [V]">Artwork</button>
-      <button id="ytMediaVideoBtn" type="button" aria-pressed="false" onclick="_ytSetMediaMode('video')" title="Show the video [V]"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4l13 8-13 8z"/></svg>Video</button>
+    <div class="ytp-seg" role="group" aria-label="Show artwork or music video" data-yta="media_group">
+      <button id="ytMediaArtBtn" type="button" aria-pressed="true" onclick="_ytSetMediaMode('art')" title="Show the artwork [V]" data-ytt="t_art"><span data-ytx="art">Artwork</span></button>
+      <button id="ytMediaVideoBtn" type="button" aria-pressed="false" onclick="_ytSetMediaMode('video')" title="Show the video [V]" data-ytt="t_video"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4l13 8-13 8z"/></svg><span data-ytx="video">Video</span></button>
     </div>
   </div>
 
@@ -5658,7 +5658,7 @@ function deleteGenreTriggers() {
     </div>
     <!-- Step 8: add to a playlist, and the heart (adds to / removes from "Favorites") -->
     <div class="ytp-song-acts">
-      <button id="ytAddPlBtn" type="button" class="ytp-song-act" onclick="_ytAddToPlaylist()" title="Add to a playlist [P]" aria-label="Add to a playlist">
+      <button id="ytAddPlBtn" type="button" class="ytp-song-act" onclick="_ytAddToPlaylist()" title="Add to a playlist [P]" aria-label="Add to a playlist" data-ytt="t_add" data-yta="add">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
       </button>
       <button id="ytLoveBtn" type="button" class="ytp-song-act ytp-love" onclick="_ytToggleLove()" title="Add to Favorites [K]" aria-label="Add to Favorites" aria-pressed="false">
@@ -5676,7 +5676,7 @@ function deleteGenreTriggers() {
   <div id="ytSeekBarWrap" class="yt-seek-bar-wrap" style="display:none">
     <!-- Step 5: the green mark is where the play starts to count (Scrobble at) -->
     <div class="ytp-seek-track">
-      <input id="ytSeekBar" type="range" min="0" max="100" value="0" step="1" class="yt-seek-bar" aria-label="Seek"
+      <input id="ytSeekBar" type="range" min="0" max="100" value="0" step="1" class="yt-seek-bar" aria-label="Seek" data-yta="seek"
         onmousedown="_ytSeekDragging=true" onmouseup="_ytSeekDragging=false;_ytSeek(+this.value)"
         ontouchstart="_ytSeekDragging=true" ontouchend="_ytSeekDragging=false;_ytSeek(+this.value)">
       <span id="ytScrobbleMark" class="ytp-scrobble-mark" style="display:none" aria-hidden="true"></span>
@@ -5693,7 +5693,7 @@ function deleteGenreTriggers() {
     <button id="ytMiniShuffleBtn" class="yt-ctrl-btn yt-mini-ctrl-btn" onclick="_ytToggleShuffle()" title="Shuffle: Off [X]">
       <svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>
     </button>
-    <button id="ytMiniPrevBtn" class="yt-ctrl-btn yt-mini-ctrl-btn" onclick="_ytPrev()" title="Previous [B]">
+    <button id="ytMiniPrevBtn" class="yt-ctrl-btn yt-mini-ctrl-btn" onclick="_ytPrev()" title="Previous [B]" data-ytt="t_prev">
       <svg class="yt-icon" viewBox="0 0 24 24" fill="currentColor"><polygon points="19,3 9,12 19,21"/><rect x="4" y="3" width="3" height="18"/></svg>
     </button>
     <div class="yt-pause-wrap">
@@ -5701,7 +5701,7 @@ function deleteGenreTriggers() {
         <svg class="yt-icon-lg" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
       </button>
     </div>
-    <button class="yt-ctrl-btn yt-mini-ctrl-btn" onclick="_ytSkip()" id="ytMiniNextBtn" title="Next [N]">
+    <button class="yt-ctrl-btn yt-mini-ctrl-btn" onclick="_ytSkip()" id="ytMiniNextBtn" title="Next [N]" data-ytt="t_next">
       <svg class="yt-icon" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 15,12 5,21"/><rect x="17" y="3" width="3" height="18"/></svg>
     </button>
     <button id="ytMiniRepeatBtn" class="yt-ctrl-btn yt-mini-ctrl-btn" onclick="_ytCycleRepeat()" title="Repeat: Off [R]">
@@ -5714,11 +5714,11 @@ function deleteGenreTriggers() {
        under them shows the chosen tab (data-tab on the card, see _ytShowTab).
        Every old icon's feature is now a card in Tools. Keeps the
        yt-secondary-controls class so the collapsed card still hides it. -->
-  <div class="yt-secondary-controls ytp-tabs" role="tablist" aria-label="Player sections">
-    <button type="button" role="tab" class="ytp-tab" data-tab="next" onclick="_ytShowTab('next')" title="Up Next [Q]"><svg class="ytp-tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>Up Next<span id="ytQueueBadge" class="ytp-tab-count" style="display:none"></span></button>
-    <button type="button" role="tab" class="ytp-tab" data-tab="lyrics" onclick="_ytShowTab('lyrics')" title="Lyrics [L]"><svg class="ytp-tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Lyrics</button>
-    <button type="button" role="tab" class="ytp-tab" data-tab="history" onclick="_ytShowTab('history')" title="History [H]"><svg class="ytp-tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v5l3 2"/></svg>History</button>
-    <button type="button" role="tab" class="ytp-tab" data-tab="tools" onclick="_ytShowTab('tools')" title="Tools"><svg class="ytp-tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>Tools</button>
+  <div class="yt-secondary-controls ytp-tabs" role="tablist" aria-label="Player sections" data-yta="sections">
+    <button type="button" role="tab" class="ytp-tab" data-tab="next" data-ytt="t_tab_next" onclick="_ytShowTab('next')" title="Up Next [Q]"><svg class="ytp-tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg><span data-ytx="tab_next">Up Next</span><span id="ytQueueBadge" class="ytp-tab-count" style="display:none"></span></button>
+    <button type="button" role="tab" class="ytp-tab" data-tab="lyrics" data-ytt="t_tab_lyrics" onclick="_ytShowTab('lyrics')" title="Lyrics [L]"><svg class="ytp-tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span data-ytx="tab_lyrics">Lyrics</span></button>
+    <button type="button" role="tab" class="ytp-tab" data-tab="history" data-ytt="t_tab_history" onclick="_ytShowTab('history')" title="History [H]"><svg class="ytp-tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v5l3 2"/></svg><span data-ytx="tab_history">History</span></button>
+    <button type="button" role="tab" class="ytp-tab" data-tab="tools" data-ytt="tab_tools" onclick="_ytShowTab('tools')" title="Tools"><svg class="ytp-tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg><span data-ytx="tab_tools">Tools</span></button>
   </div>
 
   <!-- Collapsible panels zone: search, history, lyrics, sleep, playlists, shortcuts, queue -->
@@ -5728,20 +5728,20 @@ function deleteGenreTriggers() {
     <div class="ytp-sheet-head">
       <span class="ytp-sheet-grab" aria-hidden="true"></span>
       <b id="ytSheetTitle"></b>
-      <button type="button" class="yt-hdr-btn" onclick="_ytCloseSheet()" title="Close" aria-label="Close this sheet"><svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></button>
+      <button type="button" class="yt-hdr-btn" onclick="_ytCloseSheet()" title="Close" aria-label="Close this sheet" data-ytt="close" data-yta="close_sheet"><svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></button>
     </div>
-    <div id="ytToolBack" class="ytp-tool-back"><button type="button" onclick="_ytShowTab('tools')">‹ All tools</button><span id="ytToolBackName"></span></div>
+    <div id="ytToolBack" class="ytp-tool-back"><button type="button" onclick="_ytShowTab('tools')" data-ytx="all_tools">‹ All tools</button><span id="ytToolBackName"></span></div>
     <div id="ytToolsGrid" class="ytp-tools" style="display:none"></div>
     <div id="ytMiniSearchBox" class="yt-mini-search-box" style="display:none">
-      <input id="ytMiniSearchInput" class="yt-mini-search-input" type="text" placeholder="Search YouTube…" onkeydown="if(event.key==='Enter')_ytRunCustomSearch();else if(event.key==='Escape')_ytToggleSearch();">
-      <button class="yt-mini-search-go" onclick="_ytRunCustomSearch()" title="Search">↵</button>
+      <input id="ytMiniSearchInput" class="yt-mini-search-input" type="text" placeholder="Search YouTube…" data-ytph="search_ph" onkeydown="if(event.key==='Enter')_ytRunCustomSearch();else if(event.key==='Escape')_ytToggleSearch();">
+      <button class="yt-mini-search-go" onclick="_ytRunCustomSearch()" title="Search" data-ytt="search">↵</button>
       <!-- Step 3: paste a YouTube link. The video's title is checked against the
            song before it is saved for everyone (_ytUsePastedLink) -->
       <div class="ytp-paste">
-        <label class="ytp-paste-lbl" for="ytPasteInput">Can't find it? Open YouTube, copy the video's link and paste it here:</label>
+        <label class="ytp-paste-lbl" for="ytPasteInput" data-ytx="paste_lbl">Can't find it? Open YouTube, copy the video's link and paste it here:</label>
         <div class="ytp-paste-row">
           <input id="ytPasteInput" class="yt-mini-search-input" type="url" inputmode="url" placeholder="https://www.youtube.com/watch?v=…" onkeydown="if(event.key==='Enter')_ytUsePastedLink();else if(event.key==='Escape')_ytToggleSearch();">
-          <button class="yt-mini-search-go" type="button" onclick="_ytUsePastedLink()" title="Use this link">Use link</button>
+          <button class="yt-mini-search-go" type="button" onclick="_ytUsePastedLink()" title="Use this link" data-ytt="t_use_link" data-ytx="use_link">Use link</button>
         </div>
         <div id="ytPasteMsg" class="ytp-paste-msg" role="status"></div>
       </div>
@@ -5750,45 +5750,45 @@ function deleteGenreTriggers() {
     <div id="ytMiniHistory" class="yt-mini-history" style="display:none"></div>
     <div id="ytLyricsPanel" class="yt-lyrics-panel" style="display:none"></div>
     <div id="ytSleepPanel" class="yt-sleep-panel" style="display:none">
-      <div class="yt-sleep-header">Sleep timer</div>
+      <div class="yt-sleep-header" data-ytx="sleep">Sleep timer</div>
       <div class="yt-sleep-presets">
         <button class="yt-sleep-preset" onclick="_ytStartSleep(15)">15m</button>
         <button class="yt-sleep-preset" onclick="_ytStartSleep(30)">30m</button>
         <button class="yt-sleep-preset" onclick="_ytStartSleep(45)">45m</button>
         <button class="yt-sleep-preset" onclick="_ytStartSleep(60)">60m</button>
-        <button class="yt-sleep-cancel" onclick="_ytCancelSleep()">Cancel</button>
+        <button class="yt-sleep-cancel" onclick="_ytCancelSleep()" data-ytx="cancel">Cancel</button>
       </div>
     </div>
     <div id="ytPlaylistsPanel" class="yt-playlists-panel" style="display:none"></div>
     <div id="ytShortcutsPanel" class="yt-shortcuts-panel" style="display:none">
-      <div class="yt-shortcut-row"><kbd>Space</kbd><span>Pause / Resume</span></div>
-      <div class="yt-shortcut-row"><kbd>N</kbd><span>Next song</span></div>
-      <div class="yt-shortcut-row"><kbd>B</kbd><span>Previous / restart</span></div>
-      <div class="yt-shortcut-row"><kbd>← →</kbd><span>Seek ±10s</span></div>
-      <div class="yt-shortcut-row"><kbd>↑ ↓</kbd><span>Volume ±5%</span></div>
-      <div class="yt-shortcut-row"><kbd>R</kbd><span>Cycle repeat</span></div>
-      <div class="yt-shortcut-row"><kbd>X</kbd><span>Shuffle on / off</span></div>
-      <div class="yt-shortcut-row"><kbd>0</kbd><span>Mute / unmute</span></div>
-      <div class="yt-shortcut-row"><kbd>M</kbd><span>Shrink to a bar / open again</span></div>
-      <div class="yt-shortcut-row"><kbd>S</kbd><span>Cycle speed</span></div>
-      <div class="yt-shortcut-row"><kbd>L</kbd><span>Lyrics</span></div>
-      <div class="yt-shortcut-row"><kbd>T</kbd><span>Sleep timer</span></div>
-      <div class="yt-shortcut-row"><kbd>F</kbd><span>Find another version / paste a link</span></div>
-      <div class="yt-shortcut-row"><kbd>V</kbd><span>Artwork / video</span></div>
-      <div class="yt-shortcut-row"><kbd>H</kbd><span>History</span></div>
-      <div class="yt-shortcut-row"><kbd>Q</kbd><span>Up Next</span></div>
-      <div class="yt-shortcut-row"><kbd>K</kbd><span>Add to / remove from Favorites</span></div>
-      <div class="yt-shortcut-row"><kbd>P</kbd><span>Add to a playlist</span></div>
-      <div class="yt-shortcut-row"><kbd>?</kbd><span>Tour of the player</span></div>
-      <div class="yt-shortcut-row"><kbd>G</kbd><span>Stage mode (big screen)</span></div>
-      <div class="yt-shortcut-row"><kbd>Esc</kbd><span>Leave Stage mode / close player</span></div>
+      <div class="yt-shortcut-row"><kbd data-ytx="kbd_space">Space</kbd><span data-ytx="k_space">Pause / Resume</span></div>
+      <div class="yt-shortcut-row"><kbd>N</kbd><span data-ytx="k_next">Next song</span></div>
+      <div class="yt-shortcut-row"><kbd>B</kbd><span data-ytx="k_prev">Previous / restart</span></div>
+      <div class="yt-shortcut-row"><kbd>← →</kbd><span data-ytx="k_seek">Seek ±10s</span></div>
+      <div class="yt-shortcut-row"><kbd>↑ ↓</kbd><span data-ytx="k_vol">Volume ±5%</span></div>
+      <div class="yt-shortcut-row"><kbd>R</kbd><span data-ytx="k_repeat">Cycle repeat</span></div>
+      <div class="yt-shortcut-row"><kbd>X</kbd><span data-ytx="k_shuffle">Shuffle on / off</span></div>
+      <div class="yt-shortcut-row"><kbd>0</kbd><span data-ytx="k_mute">Mute / unmute</span></div>
+      <div class="yt-shortcut-row"><kbd>M</kbd><span data-ytx="k_bar">Shrink to a bar / open again</span></div>
+      <div class="yt-shortcut-row"><kbd>S</kbd><span data-ytx="k_speed">Cycle speed</span></div>
+      <div class="yt-shortcut-row"><kbd>L</kbd><span data-ytx="k_lyrics">Lyrics</span></div>
+      <div class="yt-shortcut-row"><kbd>T</kbd><span data-ytx="k_sleep">Sleep timer</span></div>
+      <div class="yt-shortcut-row"><kbd>F</kbd><span data-ytx="k_find">Find another version / paste a link</span></div>
+      <div class="yt-shortcut-row"><kbd>V</kbd><span data-ytx="k_media">Artwork / video</span></div>
+      <div class="yt-shortcut-row"><kbd>H</kbd><span data-ytx="k_history">History</span></div>
+      <div class="yt-shortcut-row"><kbd>Q</kbd><span data-ytx="k_queue">Up Next</span></div>
+      <div class="yt-shortcut-row"><kbd>K</kbd><span data-ytx="k_love">Add to / remove from Favorites</span></div>
+      <div class="yt-shortcut-row"><kbd>P</kbd><span data-ytx="k_add">Add to a playlist</span></div>
+      <div class="yt-shortcut-row"><kbd>?</kbd><span data-ytx="k_tour">Tour of the player</span></div>
+      <div class="yt-shortcut-row"><kbd>G</kbd><span data-ytx="k_stage">Stage mode (big screen)</span></div>
+      <div class="yt-shortcut-row"><kbd>Esc</kbd><span data-ytx="k_esc">Leave Stage mode / close player</span></div>
       <div class="yt-shortcut-divider"></div>
       <div class="yt-shortcut-row yt-setting-row">
-        <span class="yt-setting-label">Scrobble at</span>
+        <span class="yt-setting-label" data-ytx="scrobble_at">Scrobble at</span>
         <button id="ytScrobbleThresholdBtn" class="yt-setting-cycle" onclick="_ytCycleScrobbleThreshold()">30s</button>
       </div>
       <div class="yt-shortcut-row yt-setting-row">
-        <span class="yt-setting-label">Crossfade</span>
+        <span class="yt-setting-label" data-ytx="xfade">Crossfade</span>
         <button id="ytCrossfadeBtn" class="yt-setting-cycle" onclick="_ytCycleCrossfade()">Off</button>
       </div>
     </div>
@@ -5798,11 +5798,11 @@ function deleteGenreTriggers() {
 
   <!-- Step 12: first-visit hint (once per person) — see _ytMaybeHint -->
   <div id="ytHint" class="ytp-hint" style="display:none" role="note">
-    <b>Your music player</b>
-    <p>It plays any song, chart or playlist on the site. Point at any button to see its name, or take a one-minute tour.</p>
+    <b data-ytx="hint_title">Your music player</b>
+    <p data-ytx="hint_text">It plays any song, chart or playlist on the site. Point at any button to see its name, or take a one-minute tour.</p>
     <div class="ytp-ask-btns">
-      <button type="button" class="ytp-ask-btn ytp-ask-yes" onclick="_ytHintDone();_ytStartTour()">Show me around</button>
-      <button type="button" class="ytp-ask-btn" onclick="_ytHintDone()">Got it</button>
+      <button type="button" class="ytp-ask-btn ytp-ask-yes" onclick="_ytHintDone();_ytStartTour()" data-ytx="hint_go">Show me around</button>
+      <button type="button" class="ytp-ask-btn" onclick="_ytHintDone()" data-ytx="hint_ok">Got it</button>
     </div>
   </div>
   <!-- Step 12: the tour — a dim layer, a ring on the part being explained
@@ -5814,18 +5814,18 @@ function deleteGenreTriggers() {
     <p id="ytTourText"></p>
     <div class="ytp-tour-btns">
       <button type="button" class="ytp-ask-btn ytp-ask-yes" id="ytTourNext" onclick="_ytTourNext()">Next</button>
-      <button type="button" class="ytp-ask-btn" id="ytTourBack" onclick="_ytTourBack()">Back</button>
-      <button type="button" class="ytp-tour-skip" onclick="_ytEndTour()">Skip tour</button>
+      <button type="button" class="ytp-ask-btn" id="ytTourBack" onclick="_ytTourBack()" data-ytx="tour_back">Back</button>
+      <button type="button" class="ytp-tour-skip" onclick="_ytEndTour()" data-ytx="tour_skip">Skip tour</button>
     </div>
   </div>
 
   <!-- Bottom row: volume · speed · sleep timer · keys & settings -->
   <div class="ytp-foot">
     <div class="yt-vol-group">
-      <button class="yt-ctrl-btn yt-vol-btn yt-mini-ctrl-btn" id="ytVolIconBtn" onclick="_ytToggleMute()" title="Mute [0]">
+      <button class="yt-ctrl-btn yt-vol-btn yt-mini-ctrl-btn" id="ytVolIconBtn" onclick="_ytToggleMute()" title="Mute [0]" data-ytt="t_mute">
         <svg id="ytVolIconSvg" class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11,5 6,9 2,9 2,15 6,15 11,19" fill="currentColor" stroke="none"/><path id="ytVolPath" d="M15.54,8.46a5,5,0,0,1,0,7.07M19.07,4.93a10,10,0,0,1,0,14.14"/></svg>
       </button>
-      <input id="ytVolumeSlider" type="range" min="0" max="100" value="80" class="yt-volume-slider" oninput="_ytSetVolume(+this.value)">
+      <input id="ytVolumeSlider" type="range" min="0" max="100" value="80" class="yt-volume-slider" aria-label="Volume" data-yta="volume" oninput="_ytSetVolume(+this.value)">
     </div>
     <span class="ytp-foot-sp"></span>
     <button id="ytSpeedBtn" class="yt-ctrl-sec yt-mini-ctrl-btn ytp-chip" onclick="_ytCycleSpeed()" title="Speed: 1x [S]">
@@ -5836,16 +5836,16 @@ function deleteGenreTriggers() {
       <svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       <span id="ytSleepBadge" class="ytp-chip-val">Off</span>
     </button>
-    <button id="ytMiniShortcutsBtn" class="yt-ctrl-sec yt-mini-ctrl-btn ytp-help-btn" onclick="_ytStartTour()" title="How the player works [?]" aria-label="How the player works">?</button>
+    <button id="ytMiniShortcutsBtn" class="yt-ctrl-sec yt-mini-ctrl-btn ytp-help-btn" onclick="_ytStartTour()" title="How the player works [?]" aria-label="How the player works" data-ytt="t_help" data-yta="help">?</button>
   </div>
 
 </div>
 <!-- Step 9: the Bar — the player shrunk to a strip along the bottom of the page
      (header ⌄ button or M). The card stays on the page, invisible, because the
      YouTube video inside it keeps playing; this strip mirrors it (_ytBarSync). -->
-<div id="ytBar" class="ytp-bar" style="display:none" role="region" aria-label="Music player">
+<div id="ytBar" class="ytp-bar" style="display:none" role="region" aria-label="Music player" data-yta="player">
   <div class="ytp-bar-line" aria-hidden="true"><i id="ytBarLine"></i></div>
-  <button type="button" class="ytp-bar-who" onclick="_ytSetBar(false)" title="Open the full player [M]">
+  <button type="button" class="ytp-bar-who" onclick="_ytSetBar(false)" title="Open the full player [M]" data-ytt="t_open">
     <span class="ytp-bar-art"><span id="ytBarArtInit"></span><img id="ytBarArt" alt=""></span>
     <span class="ytp-bar-m"><b id="ytBarTitle"></b><span id="ytBarSub"></span></span>
   </button>
@@ -5853,36 +5853,36 @@ function deleteGenreTriggers() {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>
   </button>
   <div class="ytp-bar-ctr">
-    <button type="button" class="ytp-bar-btn" onclick="_ytPrev()" title="Previous [B]" aria-label="Previous"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="19,3 9,12 19,21"/><rect x="4" y="3" width="3" height="18"/></svg></button>
-    <button type="button" id="ytBarPlay" class="ytp-bar-play" onclick="_ytPauseToggle()" title="Pause [Space]" aria-label="Play or pause"></button>
-    <button type="button" class="ytp-bar-btn" onclick="_ytSkip()" title="Next [N]" aria-label="Next"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="5,3 15,12 5,21"/><rect x="17" y="3" width="3" height="18"/></svg></button>
+    <button type="button" class="ytp-bar-btn" onclick="_ytPrev()" title="Previous [B]" aria-label="Previous" data-ytt="t_prev" data-yta="prev"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="19,3 9,12 19,21"/><rect x="4" y="3" width="3" height="18"/></svg></button>
+    <button type="button" id="ytBarPlay" class="ytp-bar-play" onclick="_ytPauseToggle()" title="Pause [Space]" aria-label="Play or pause" data-yta="playpause"></button>
+    <button type="button" class="ytp-bar-btn" onclick="_ytSkip()" title="Next [N]" aria-label="Next" data-ytt="t_next" data-yta="next_a"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="5,3 15,12 5,21"/><rect x="17" y="3" width="3" height="18"/></svg></button>
   </div>
   <!-- Full-width style only: a real progress bar with times -->
   <div class="ytp-bar-seek">
     <span id="ytBarCur" class="ytp-bar-time">0:00</span>
-    <input id="ytBarSeek" type="range" min="0" max="100" value="0" step="1" aria-label="Seek" oninput="_ytBarSeeking=true" onchange="_ytBarSeekTo(+this.value)">
+    <input id="ytBarSeek" type="range" min="0" max="100" value="0" step="1" aria-label="Seek" data-yta="seek" oninput="_ytBarSeeking=true" onchange="_ytBarSeekTo(+this.value)">
     <span id="ytBarDur" class="ytp-bar-time">0:00</span>
   </div>
-  <div class="ytp-bar-next" id="ytBarNextWrap">Next: <em id="ytBarNext"></em></div>
-  <button type="button" class="ytp-bar-btn ytp-bar-q" onclick="_ytSetBar(false);_ytShowTab('next')" title="Up Next [Q]" aria-label="Up Next">
+  <div class="ytp-bar-next" id="ytBarNextWrap"><span data-ytx="bar_next">Next:</span> <em id="ytBarNext"></em></div>
+  <button type="button" class="ytp-bar-btn ytp-bar-q" onclick="_ytSetBar(false);_ytShowTab('next')" title="Up Next [Q]" aria-label="Up Next" data-ytt="t_tab_next" data-yta="tab_next">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
     <span id="ytBarCount" class="ytp-tab-count ytp-bar-count" style="display:none"></span>
   </button>
   <!-- Full-width style only: volume -->
   <div class="ytp-bar-vol">
-    <button type="button" class="ytp-bar-btn" onclick="_ytToggleMute()" title="Mute [0]" aria-label="Mute"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H2v6h4l5 4z" fill="currentColor" stroke="none"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg></button>
-    <input id="ytBarVol" type="range" min="0" max="100" value="80" aria-label="Volume" oninput="_ytSetVolume(+this.value)">
+    <button type="button" class="ytp-bar-btn" onclick="_ytToggleMute()" title="Mute [0]" aria-label="Mute" data-ytt="t_mute" data-yta="mute"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H2v6h4l5 4z" fill="currentColor" stroke="none"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg></button>
+    <input id="ytBarVol" type="range" min="0" max="100" value="80" aria-label="Volume" data-yta="volume" oninput="_ytSetVolume(+this.value)">
   </div>
-  <button type="button" class="ytp-bar-btn" onclick="_ytSetBar(false)" title="Open the full player [M]" aria-label="Open the full player"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></button>
-  <button type="button" class="ytp-bar-btn" onclick="closeYtPlayer()" title="Close player [Esc]" aria-label="Close player"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+  <button type="button" class="ytp-bar-btn" onclick="_ytSetBar(false)" title="Open the full player [M]" aria-label="Open the full player" data-ytt="t_open" data-yta="open"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></button>
+  <button type="button" class="ytp-bar-btn" onclick="closeYtPlayer()" title="Close player [Esc]" aria-label="Close player" data-ytt="t_close" data-yta="close_player"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
 </div>
 
 <!-- YouTube Queue Toast -->
 <div id="ytQueueToast" style="display:none" class="yt-queue-toast">
   <span class="yt-queue-toast-label"></span>
-  <button class="dc-btn dc-btn-main dc-btn-sm yt-queue-now-btn">▶ Now</button>
-  <button class="dc-btn dc-btn-normal dc-btn-sm yt-queue-next-btn">⏭ Next</button>
-  <button class="dc-btn dc-btn-normal dc-btn-sm yt-queue-add-btn">+ Queue</button>
+  <button class="dc-btn dc-btn-main dc-btn-sm yt-queue-now-btn" data-ytx="qt_now">▶ Now</button>
+  <button class="dc-btn dc-btn-normal dc-btn-sm yt-queue-next-btn" data-ytx="qt_next">⏭ Next</button>
+  <button class="dc-btn dc-btn-normal dc-btn-sm yt-queue-add-btn" data-ytx="qt_add">+ Queue</button>
   <button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon" aria-label="Close" onclick="document.getElementById('ytQueueToast').style.display='none'">✕</button>
 </div>
 
