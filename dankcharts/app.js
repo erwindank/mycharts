@@ -34536,6 +34536,7 @@ function openYtPlayer(title, artist, album, btn) {
   player.style.display = '';
   document.getElementById('ytMiniTitle').textContent  = title;
   document.getElementById('ytMiniArtist').textContent = artist;
+  _ytUpdateArt(title, artist, album);
   const statusEl = document.getElementById('ytMiniStatus');
   statusEl.textContent = 'Searching…';
   statusEl.className   = 'yt-mini-status';
@@ -34915,6 +34916,9 @@ function _ytLoadVideo(videoId) {
 
 function _ytOnState(event) {
   const pauseBtn = document.getElementById('ytMiniPauseBtn');
+  // Card-wide "music is playing" state: bounces the header bars (and spins the record later)
+  const ytCard = document.getElementById('ytMiniPlayer');
+  if (ytCard) ytCard.classList.toggle('yt-is-playing', event.data === YT.PlayerState.PLAYING);
   if (event.data === YT.PlayerState.PLAYING) {
     clearTimeout(_ytScrobbleTimer);
     if (!_ytScrobbled) {
@@ -35540,6 +35544,45 @@ function _ytUpdateThumb() {
   } else {
     img.src = '';
   }
+  // The big artwork falls back to the video's still when the site has no cover
+  if (_ytCurrentVideoId && !_ytArtUrl) _ytShowArt(`https://img.youtube.com/vi/${_ytCurrentVideoId}/mqdefault.jpg`, true);
+}
+
+// ── Big artwork (PLAYER-PLAN.md step 1) ───────────────────────────────────
+// The card shows the song's cover the same way the rest of the site does
+// (getArtAuto: picked image, then the automatic chain). Until a cover is
+// found it shows the artist's initials; if none is found, the video still.
+// The same picture, blurred, is the soft colour behind the top of the card.
+let _ytArtUrl   = '';  // cover found by getArtAuto for the current song ('' = none yet)
+let _ytArtToken = 0;   // bumps per song so a late lookup can't paint over a newer song
+function _ytUpdateArt(title, artist, album) {
+  const token = ++_ytArtToken;
+  _ytArtUrl = '';
+  const init = document.getElementById('ytMiniArtInit');
+  if (init) init.textContent = (artist || title || '').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+  _ytShowArt('', false);
+  (async () => {
+    let url = '';
+    try {
+      url = (album ? await getArtAuto('album', album, artist, album) : '') ||
+            await getArtAuto('song', title, artist) || '';
+    } catch (e) { /* keep the initials or the video still */ }
+    if (!url || token !== _ytArtToken) return;
+    _ytArtUrl = url;
+    _ytShowArt(url, false);
+  })();
+}
+// isStill: the YouTube still (16:9) — framed a little differently from a square cover
+function _ytShowArt(url, isStill) {
+  const player = document.getElementById('ytMiniPlayer');
+  const img  = document.getElementById('ytMiniArt');
+  const glow = document.getElementById('ytMiniGlowImg');
+  if (!player || !img) return;
+  if (!url) { img.removeAttribute('src'); if (glow) glow.removeAttribute('src'); player.classList.remove('ytp-has-art'); return; }
+  img.onload  = () => { player.classList.add('ytp-has-art'); player.classList.toggle('ytp-art-still', !!isStill); };
+  img.onerror = () => { player.classList.remove('ytp-has-art'); };
+  img.src = url;
+  if (glow) glow.src = url;
 }
 
 // ── Media Session API ──────────────────────────────────────────────────────

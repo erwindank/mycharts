@@ -24162,6 +24162,182 @@ body.green .landing-card-config input:focus {
 .yt-mini-player.yt-mini-collapsed .yt-primary-controls { justify-content: center; padding: 0.3rem 0.85rem 0.55rem; }
 .yt-mini-player.yt-mini-collapsed .yt-track-area    { padding-bottom: 0.3rem; }
 
+/* ═══════════════════════════════════════════════════════════════
+   Now Playing redesign — step 1: the new frame (PLAYER-PLAN.md)
+   Overrides the card rules above with the new look: big artwork,
+   bigger song name, bigger controls, extras row as a soft pill,
+   volume / speed / sleep / keys in a bottom row. Colours come from
+   the theme tokens (YouTube red is gone), so every theme fits.
+   Later steps add the tabs, chart story, scrobble mark and so on.
+   ═══════════════════════════════════════════════════════════════ */
+@keyframes ytp-eq   { 0%, 100% { height: 4px; } 50% { height: 12px; } }
+@keyframes ytp-spin { to { transform: rotate(360deg); } }
+
+.yt-mini-player {
+  width: 380px;
+  max-width: calc(100vw - 24px);
+  border-radius: 20px;
+  isolation: isolate; /* keeps the blurred glow behind the content */
+}
+
+/* Soft colour behind the top of the card: the artwork, blurred */
+.ytp-glow {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 320px;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.6s var(--ease);
+}
+.ytp-glow img { width: 100%; height: 100%; object-fit: cover; filter: blur(40px) saturate(1.4); transform: scale(1.4); opacity: 0.4; }
+.ytp-glow::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 25%, var(--bg2) 95%); }
+.yt-mini-player.ytp-has-art .ytp-glow { opacity: 1; }
+
+/* Header */
+.yt-mini-player .yt-player-header { border-bottom: 0; padding: 10px 10px 4px 14px; gap: 8px; }
+.yt-mini-player .yt-mini-drag-handle { letter-spacing: 0; opacity: 0.55; padding: 0; }
+.yt-mini-player .yt-mini-drag-handle svg { width: 16px; height: 16px; display: block; }
+.yt-mini-player .yt-player-label { font-size: var(--fs-sm); font-weight: 700; color: var(--text); }
+.yt-mini-player .yt-hdr-btn { width: 32px; height: 32px; border-radius: var(--r-md); color: var(--text2); }
+.yt-mini-player .yt-hdr-btn .yt-icon { width: 16px; height: 16px; }
+.ytp-eq { display: flex; align-items: flex-end; gap: 2px; height: 12px; flex-shrink: 0; }
+.ytp-eq i { display: block; width: 3px; height: 4px; border-radius: 2px; background: var(--accent); }
+.yt-mini-player.yt-is-playing .ytp-eq i { animation: ytp-eq 1s ease-in-out infinite; }
+.yt-mini-player.yt-is-playing .ytp-eq i:nth-child(2) { animation-delay: 0.25s; }
+.yt-mini-player.yt-is-playing .ytp-eq i:nth-child(3) { animation-delay: 0.5s; }
+
+/* Media: artwork at size S, video at M / L / XL */
+.ytp-media { position: relative; margin: 4px 14px 0; border-radius: var(--r-lg); overflow: hidden; flex-shrink: 0; }
+.ytp-art {
+  position: relative;
+  height: 200px;
+  background: color-mix(in srgb, var(--bg3) 75%, transparent);
+}
+.ytp-cover {
+  position: absolute;
+  left: 18px;
+  top: 18px;
+  width: 164px;
+  height: 164px;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  background: var(--surface);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ytp-cover-init { font: 800 2.75rem/1 var(--font-display); color: var(--text3); }
+.ytp-cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.4s; }
+.yt-mini-player.ytp-has-art .ytp-cover img { opacity: 1; }
+/* The record peeks out behind the cover and slides out + spins while playing */
+.ytp-vinyl {
+  position: absolute;
+  left: 104px;
+  top: 24px;
+  width: 152px;
+  height: 152px;
+  border-radius: 50%;
+  background: repeating-radial-gradient(circle, #111 0 2px, #1c1c1c 2px 4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+  z-index: 1;
+  transition: left 0.5s var(--ease);
+}
+.ytp-vinyl::after { content: ''; position: absolute; inset: 52px; border-radius: 50%; background: var(--accent); box-shadow: inset 0 0 0 18px rgba(0, 0, 0, 0.14); }
+.ytp-vinyl::before { content: ''; position: absolute; left: 50%; top: 50%; width: 8px; height: 8px; margin: -4px; border-radius: 50%; background: #0b0b0b; z-index: 1; }
+.yt-mini-player.yt-is-playing .ytp-vinyl { left: 146px; animation: ytp-spin 4s linear infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .yt-mini-player.yt-is-playing .ytp-vinyl,
+  .yt-mini-player.yt-is-playing .ytp-eq i { animation: none; }
+}
+/* Bigger sizes show the video instead of the artwork, at 16:9 */
+.yt-mini-player.yt-expanded .ytp-art,
+.yt-mini-player.yt-expanded-lg .ytp-art,
+.yt-mini-player.yt-expanded-xl .ytp-art { display: none; }
+.yt-mini-player.yt-expanded .yt-mini-video,
+.yt-mini-player.yt-expanded-lg .yt-mini-video,
+.yt-mini-player.yt-expanded-xl .yt-mini-video { height: auto; aspect-ratio: 16 / 9; }
+
+/* Song name, artist, status */
+.yt-mini-player .yt-track-area { padding: 14px 16px 2px; }
+.yt-mini-player .yt-track-thumb { display: none; width: 44px; height: 44px; }
+.yt-mini-player .yt-mini-title { font: 800 1.35rem/1.15 var(--font-display); letter-spacing: -0.01em; }
+.yt-mini-player .yt-mini-artist { font-size: var(--fs-base); font-weight: 600; margin-top: 4px; }
+.yt-mini-player .yt-mini-status { margin-top: 3px; }
+
+/* Progress */
+.yt-mini-player .yt-seek-bar-wrap { padding: 10px 16px 0; }
+.yt-mini-player .yt-seek-bar { height: 18px; accent-color: var(--accent); }
+.yt-mini-player .yt-seek-time { font-family: var(--font-mono); }
+
+/* Main controls */
+.yt-mini-player .yt-primary-controls { gap: 18px; padding: 6px 16px 4px; }
+.yt-mini-player .yt-ctrl-btn { width: 46px; height: 46px; background: transparent; color: var(--text); }
+.yt-mini-player .yt-ctrl-btn:hover { background: color-mix(in srgb, var(--text) 9%, transparent); }
+.yt-mini-player .yt-ctrl-btn .yt-icon { width: 21px; height: 21px; }
+.yt-mini-player .yt-pause-wrap { width: 66px; height: 66px; }
+.yt-mini-player .yt-pause-wrap::after { background: conic-gradient(var(--accent) calc(var(--yt-sp, 0) * 1turn), transparent 0); }
+.yt-mini-player .yt-ctrl-play {
+  width: 66px;
+  height: 66px;
+  background: var(--accent);
+  color: var(--on-accent);
+  box-shadow: 0 10px 26px color-mix(in srgb, var(--accent) 40%, transparent);
+}
+.yt-mini-player .yt-ctrl-play:hover { background: var(--accent); filter: brightness(1.08); }
+#ytMiniPauseBtn .yt-icon, #ytMiniPauseBtn .yt-icon-lg { width: 26px; height: 26px; }
+.yt-mini-player .yt-repeat-badge { font-size: 9px; bottom: 6px; right: 6px; color: var(--accent); }
+.yt-mini-player .yt-mini-ctrl-btn.yt-ctrl-active,
+.yt-mini-player .yt-ctrl-sec.yt-ctrl-active {
+  background: color-mix(in srgb, var(--accent) 16%, transparent) !important;
+  color: var(--accent) !important;
+}
+
+/* Extras row: one soft pill under the controls */
+.yt-mini-player .yt-secondary-controls {
+  margin: 8px 14px 0;
+  padding: 4px;
+  border-radius: 14px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+}
+.yt-mini-player .yt-ctrl-sec { width: 34px; height: 34px; border-radius: var(--r-md); color: var(--text2); }
+.yt-mini-player .yt-ctrl-sec:hover { background: color-mix(in srgb, var(--text) 9%, transparent); color: var(--text); }
+.yt-mini-player .yt-ctrl-sec .yt-icon { width: 17px; height: 17px; }
+.yt-mini-player .yt-speed-badge,
+.yt-mini-player .yt-sleep-badge { font-size: 8px; color: var(--accent); background: var(--bg2); bottom: 2px; right: 2px; padding: 0 2px; }
+
+/* Panels open between the extras row and the bottom row */
+.yt-mini-player .yt-panels-zone { padding: 0 16px; margin-top: 6px; }
+
+/* Bottom row */
+.ytp-foot {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+  padding: 8px 12px 12px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.ytp-foot-sp { flex: 1; }
+.yt-mini-player .ytp-foot .yt-vol-group { max-width: 160px; }
+.yt-mini-player .yt-vol-btn { background: transparent; }
+.yt-mini-player .yt-vol-btn .yt-icon { width: 17px; height: 17px; }
+.yt-mini-player .yt-volume-slider { accent-color: var(--accent); }
+
+/* Collapsed: just the song and Play/Pause — no artwork, extras or bottom row */
+.yt-mini-player.yt-mini-collapsed .ytp-media,
+.yt-mini-player.yt-mini-collapsed .ytp-glow,
+.yt-mini-player.yt-mini-collapsed .ytp-foot { display: none !important; }
+.yt-mini-player.yt-mini-collapsed .yt-track-thumb { display: block; }
+.yt-mini-player.yt-mini-collapsed .yt-mini-title { font-size: var(--fs-base); }
+.yt-mini-player.yt-mini-collapsed .yt-pause-wrap,
+.yt-mini-player.yt-mini-collapsed .yt-ctrl-play { width: 48px; height: 48px; }
+
 /* ── Search box inside panels zone ── */
 .yt-mini-search-box {
   display: flex;
