@@ -24652,7 +24652,9 @@ body.ytp-stage-open { overflow: hidden; }
     position: fixed;
     left: 0; right: 0;
     bottom: calc(76px + env(safe-area-inset-bottom, 0px));
-    height: min(68dvh, 560px);
+    /* --ytp-sheet-h is set in app.js (_ytSizeSheet) so the sheet stops just
+       under the stats row and never covers the video */
+    height: var(--ytp-sheet-h, min(68dvh, 560px));
     max-height: none;
     margin: 0;
     padding: 0 16px 16px;

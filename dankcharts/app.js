@@ -35862,6 +35862,26 @@ function _ytCloseSheet() {
   const p = document.getElementById('ytMiniPlayer');
   if (p) p.dataset.sheet = '';
 }
+// Size the phone sheet so its top sits just under the chart-stats row (or the
+// cover / video when that row is hidden) — on short phones a fixed 68dvh sheet
+// climbed over the video. Sets --ytp-sheet-h on the card; CSS falls back to
+// the old height when it is not set. Never below 220px so the sheet stays usable.
+function _ytSizeSheet() {
+  const p = document.getElementById('ytMiniPlayer');
+  if (!p || !_ytIsPhone()) return;
+  const story = document.getElementById('ytChartStory');
+  let anchor = story && story.offsetParent ? story : null;
+  if (!anchor) anchor = p.querySelector('.ytp-art');
+  if (!anchor) return;
+  const tabs = p.querySelector('.ytp-tabs');
+  const sheetBottom = tabs ? tabs.getBoundingClientRect().top - 2 : window.innerHeight - 76;   // the sheet ends at the tab buttons
+  const top = anchor.getBoundingClientRect().bottom + 8;   // a little gap under the stats
+  p.style.setProperty('--ytp-sheet-h', Math.max(220, Math.round(sheetBottom - top)) + 'px');
+}
+window.addEventListener('resize', () => {
+  const p = document.getElementById('ytMiniPlayer');
+  if (p && p.dataset.sheet === 'open') _ytSizeSheet();
+});
 function _ytPhoneSync() {
   const p = document.getElementById('ytMiniPlayer');
   const open = !!(p && p.style.display !== 'none' && !p.classList.contains('yt-mini-collapsed') && _ytIsPhone());
@@ -38851,6 +38871,7 @@ function _ytShowTab(tab, tool) {
   try { localStorage.setItem('yt-tab', tab); } catch (e) {}
   // Step 11: on a phone the panel is a sheet — opening a tab slides it up
   if (_ytIsPhone()) {
+    _ytSizeSheet();   // measure before it slides up, so it stops under the stats
     player.dataset.sheet = 'open';
     const st = document.getElementById('ytSheetTitle');
     if (st) st.textContent = t('yt_np_tab_' + tab);
