@@ -34546,7 +34546,7 @@ function openYtPlayer(title, artist, album, btn) {
   if (seekBar) seekBar.value = 0;
   _ytStopSeekUpdate();
   const pauseBtn = document.getElementById('ytMiniPauseBtn');
-  if (pauseBtn) { pauseBtn.innerHTML = _YT_IC.pause; pauseBtn.title = 'Pause'; }
+  if (pauseBtn) { pauseBtn.innerHTML = _YT_IC.pause; pauseBtn.title = 'Pause [Space]'; }
   if (!_ytDragInitialized) { _ytDragInitialized = true; _ytInitDrag(); }
   _ytLoadVolume();
   requestAnimationFrame(_ytClampToViewport);
@@ -34931,7 +34931,7 @@ function _ytOnState(event) {
     _ytStartSeekUpdate();
     _ytApplySpeed();
     if (_ytCrossfade > 0 && _ytNewTrackFade) { _ytNewTrackFade = false; _ytStartFadeIn(); }
-    if (pauseBtn) { pauseBtn.innerHTML = _YT_IC.pause; pauseBtn.title = 'Pause'; }
+    if (pauseBtn) { pauseBtn.innerHTML = _YT_IC.pause; pauseBtn.title = 'Pause [Space]'; }
     if (_ytActiveBtn) { _ytActiveBtn.classList.remove('yt-btn-loading'); _ytActiveBtn.classList.add('yt-btn-playing'); }
     if (!_ytHistoryRecorded && _ytCurrentTrack) {
       _ytHistoryRecorded = true;
@@ -34972,7 +34972,7 @@ function _ytOnState(event) {
     clearTimeout(_ytScrobbleTimer);
     _ytStopScrobbleRing();
     _ytStopSeekUpdate();
-    if (pauseBtn) { pauseBtn.innerHTML = _YT_IC.play; pauseBtn.title = 'Resume'; }
+    if (pauseBtn) { pauseBtn.innerHTML = _YT_IC.play; pauseBtn.title = 'Play [Space]'; }
     if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
   } else if (event.data === YT.PlayerState.ENDED) {
     clearTimeout(_ytScrobbleTimer);
@@ -35119,7 +35119,7 @@ function closeYtPlayer() {
   const expandBtn = document.getElementById('ytMiniExpandBtn');
   if (expandBtn) { expandBtn.innerHTML = _YT_IC.expand; expandBtn.title = 'Size: S → M'; }
   const collapseBtn = document.getElementById('ytMiniCollapseBtn');
-  if (collapseBtn) { collapseBtn.innerHTML = _YT_IC.collapseV; collapseBtn.title = 'Collapse player'; }
+  if (collapseBtn) { collapseBtn.innerHTML = _YT_IC.collapseV; collapseBtn.title = 'Collapse player [M]'; }
   ['ytMiniSearchBox','ytSearchResults','ytMiniHistory','ytShortcutsPanel','ytLyricsPanel','ytSleepPanel','ytPlaylistsPanel'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = 'none';
@@ -35187,6 +35187,114 @@ function _ytSkip() {
     }
   }
 }
+
+// ── Previous (PLAYER-PLAN.md step 2) ─────────────────────────────────────
+// More than 3 seconds in: back to the start of the song. Otherwise: the song
+// played before it (from History). The current song goes back to the top of
+// Up Next, so Next returns to it. With nothing earlier, it just restarts.
+function _ytPrev() {
+  let pos = 0;
+  try { if (_ytPlayer) pos = _ytPlayer.getCurrentTime() || 0; } catch (e) {}
+  const cur = _ytCurrentTrack;
+  const same = h => cur && h.title === cur.title && h.artist === cur.artist;
+  const prev = _ytHistory.find(h => !same(h));
+  if (pos > 3 || !prev) {
+    if (_ytPlayer) { try { _ytPlayer.seekTo(0, true); _ytPlayer.playVideo(); } catch (e) {} }
+    return;
+  }
+  // Drop the current song from History so pressing Previous again goes further back
+  _ytHistory = _ytHistory.filter(h => !same(h));
+  if (cur) {
+    _ytQueue.unshift({ title: cur.title, artist: cur.artist, album: cur.album, btn: null });
+    _ytUpdateQueueDisplay();
+    _ytSaveQueue();
+  }
+  openYtPlayer(prev.title, prev.artist, prev.album, null);
+}
+
+// ── Shuffle (step 2) ───────────────────────────────────────────────────────
+// On: Next (and the end of a song) plays a random song from Up Next.
+// Remembered in localStorage like repeat and speed.
+let _ytShuffle = (() => { try { return localStorage.getItem('yt-shuffle') === '1'; } catch (e) { return false; } })();
+function _ytToggleShuffle() {
+  _ytShuffle = !_ytShuffle;
+  try { localStorage.setItem('yt-shuffle', _ytShuffle ? '1' : '0'); } catch (e) {}
+  _ytUpdateShuffleBtn();
+}
+function _ytUpdateShuffleBtn() {
+  const btn = document.getElementById('ytMiniShuffleBtn');
+  if (!btn) return;
+  btn.classList.toggle('yt-ctrl-active', _ytShuffle);
+  btn.title = _ytShuffle ? 'Shuffle: On [X]' : 'Shuffle: Off [X]';
+}
+
+// ── Button labels (step 2) ─────────────────────────────────────────────────
+// Hovering any player button shows its name and its key in one styled label.
+// The text comes from the button's title ("Next [N]"), which the player code
+// already keeps up to date; the title is emptied while the label shows so the
+// browser's own grey tooltip doesn't appear as well. Mouse only, not touch.
+let _ytTipEl = null, _ytTipFor = null;
+function _ytTipShow(btn) {
+  const raw = btn.title || btn.dataset.ytTip || '';
+  if (!raw) return;
+  btn.dataset.ytTip = raw;
+  btn.title = '';
+  const m = raw.match(/^(.*?)\s*\[([^\]]+)\]\s*$/);
+  const name = m ? m[1] : raw, key = m ? m[2] : '';
+  if (!_ytTipEl) {
+    _ytTipEl = document.createElement('div');
+    _ytTipEl.className = 'ytp-tip';
+    _ytTipEl.setAttribute('role', 'tooltip');
+    document.body.appendChild(_ytTipEl);
+  }
+  _ytTipEl.innerHTML = esc(name) + (key ? '<kbd>' + esc(key) + '</kbd>' : '');
+  _ytTipFor = btn;
+  const r = btn.getBoundingClientRect();
+  _ytTipEl.style.display = 'flex';
+  const tw = _ytTipEl.offsetWidth, th = _ytTipEl.offsetHeight;
+  let left = r.left + r.width / 2 - tw / 2;
+  left = Math.max(8, Math.min(left, window.innerWidth - tw - 8));
+  let top = r.top - th - 8;
+  if (top < 8) top = r.bottom + 8; // no room above: show it underneath
+  _ytTipEl.style.left = left + 'px';
+  _ytTipEl.style.top  = top + 'px';
+  // When the player renames the button while the label shows (Pause → Play once
+  // YouTube reports the new state), show the new name at once
+  if (!_ytTipObs) _ytTipObs = new MutationObserver(() => { if (_ytTipFor && _ytTipFor.title) _ytTipShow(_ytTipFor); });
+  _ytTipObs.disconnect();
+  _ytTipObs.observe(btn, { attributes: true, attributeFilter: ['title'] });
+}
+let _ytTipObs = null;
+function _ytTipHide() {
+  if (_ytTipObs) _ytTipObs.disconnect();
+  if (_ytTipFor) {
+    // Put the title back, unless the player changed it while the label showed
+    if (!_ytTipFor.title && _ytTipFor.dataset.ytTip) _ytTipFor.title = _ytTipFor.dataset.ytTip;
+    _ytTipFor = null;
+  }
+  if (_ytTipEl) _ytTipEl.style.display = 'none';
+}
+(function _ytTipInit() {
+  const hoverOk = () => window.matchMedia && window.matchMedia('(hover: hover)').matches;
+  document.addEventListener('mouseover', e => {
+    const btn = e.target.closest && e.target.closest('#ytMiniPlayer button');
+    if (!btn || btn === _ytTipFor || !hoverOk()) return;
+    _ytTipHide();
+    _ytTipShow(btn);
+  });
+  document.addEventListener('mouseout', e => {
+    if (!_ytTipFor) return;
+    if (e.relatedTarget && _ytTipFor.contains(e.relatedTarget)) return;
+    if (e.target.closest && e.target.closest('button') === _ytTipFor) _ytTipHide();
+  });
+  // A click changes the button (Pause → Play, Shuffle off → on): when the
+  // player code has set a new title, show the new name right away
+  document.addEventListener('click', e => {
+    const btn = e.target.closest && e.target.closest('#ytMiniPlayer button');
+    if (btn && btn === _ytTipFor) setTimeout(() => { if (_ytTipFor === btn && btn.title) _ytTipShow(btn); }, 0);
+  });
+  document.addEventListener('scroll', _ytTipHide, true);
+})();
 
 function _ytToggleSearch() {
   const box = document.getElementById('ytMiniSearchBox');
@@ -35421,7 +35529,7 @@ function _ytToggleCollapse() {
   if (!player) return;
   const collapsed = player.classList.toggle('yt-mini-collapsed');
   const btn = document.getElementById('ytMiniCollapseBtn');
-  if (btn) { btn.innerHTML = collapsed ? _YT_IC.expandV : _YT_IC.collapseV; btn.title = collapsed ? 'Expand player' : 'Collapse player'; }
+  if (btn) { btn.innerHTML = collapsed ? _YT_IC.expandV : _YT_IC.collapseV; btn.title = collapsed ? 'Expand player [M]' : 'Collapse player [M]'; }
   _ytUpdateCollapsedCount(); // show/hide queue count badge (#14)
 }
 
@@ -35529,7 +35637,7 @@ function _ytUpdateRepeatBtn() {
   const btn   = document.getElementById('ytMiniRepeatBtn');
   const badge = document.getElementById('ytRepeatBadge');
   if (!btn) return;
-  const labels = ['Repeat: Off', 'Repeat: One', 'Repeat: All'];
+  const labels = ['Repeat: Off [R]', 'Repeat: This song [R]', 'Repeat: All [R]'];
   btn.title = labels[_ytRepeat];
   btn.classList.toggle('yt-ctrl-active', _ytRepeat > 0);
   if (badge) badge.style.display = _ytRepeat === 1 ? '' : 'none';
@@ -35606,11 +35714,7 @@ function _ytSetMediaSession() {
   navigator.mediaSession.setActionHandler('stop',          () => closeYtPlayer());
   navigator.mediaSession.setActionHandler('nexttrack',     () => _ytSkip());
   // Previous: restart the track (or seek to 0 if already near the start)
-  navigator.mediaSession.setActionHandler('previoustrack', () => {
-    if (_ytPlayer) {
-      try { _ytPlayer.seekTo(0, true); } catch(e) {}
-    }
-  });
+  navigator.mediaSession.setActionHandler('previoustrack', () => _ytPrev());
   navigator.mediaSession.setActionHandler('seekto', e => {
     if (_ytPlayer && e.seekTime != null) {
       try { _ytPlayer.seekTo(e.seekTime, true); } catch(e2) {}
@@ -36000,7 +36104,9 @@ function _ytClearQueue() {
 // ── Queue advance: move to played history, pop next, and play (#songs-don't-disappear) ──
 function _ytAdvanceFromQueue() {
   if (_ytCurrentFromQueue) _ytQueuePlayed.push(_ytCurrentFromQueue);
-  const next = _ytQueue.shift();
+  // Shuffle on: take a random song from Up Next instead of the first one
+  const pick = (_ytShuffle && _ytQueue.length > 1) ? Math.floor(Math.random() * _ytQueue.length) : 0;
+  const next = _ytQueue.splice(pick, 1)[0];
   _ytCurrentFromQueue = next;
   _ytUpdateQueueDisplay();
   _ytSaveQueue();
@@ -36284,6 +36390,10 @@ document.addEventListener('keydown', e => {
   const key = e.key;
   if (e.code === 'Space')              { e.preventDefault(); _ytPauseToggle(); }
   else if (key === 'n' || key === 'N') { e.preventDefault(); _ytSkip(); }
+  else if (key === 'b' || key === 'B') { e.preventDefault(); _ytPrev(); }
+  else if (key === 'x' || key === 'X') { e.preventDefault(); _ytToggleShuffle(); }
+  else if (key === 'm' || key === 'M') { e.preventDefault(); _ytToggleCollapse(); }
+  else if (key === '0')                { e.preventDefault(); _ytToggleMute(); }
   else if (key === 'ArrowLeft')        { e.preventDefault(); if (_ytPlayer) { try { _ytPlayer.seekTo(Math.max(0, _ytPlayer.getCurrentTime() - 10), true); } catch(ex) {} } }
   else if (key === 'ArrowRight')       { e.preventDefault(); if (_ytPlayer) { try { _ytPlayer.seekTo(_ytPlayer.getCurrentTime() + 10, true); } catch(ex) {} } }
   else if (key === 'ArrowUp')          { e.preventDefault(); _ytSetVolume(_ytVolume + 5); }
@@ -36314,6 +36424,7 @@ document.addEventListener('wheel', e => {
 // Load persisted queue, volume, and repeat state on page load
 _ytLoadQueue();
 _ytUpdateRepeatBtn();
+_ytUpdateShuffleBtn(); // step 2: remembered shuffle state
 _ytLoadPlaylists();
 _ytUpdateSpeedBtn();
 _ytUpdateCrossfadeBtn();
@@ -36340,7 +36451,7 @@ try {
         if (titleEl)  titleEl.textContent  = track.title;
         if (artistEl) artistEl.textContent = track.artist || '';
         if (statusEl) { statusEl.textContent = 'Tap ▶ to resume'; statusEl.className = 'yt-mini-status'; }
-        if (pauseBtn) { pauseBtn.innerHTML = _YT_IC.play; pauseBtn.title = 'Play'; }
+        if (pauseBtn) { pauseBtn.innerHTML = _YT_IC.play; pauseBtn.title = 'Play [Space]'; }
         if (!_ytDragInitialized) { _ytDragInitialized = true; _ytInitDrag(); }
         _ytLoadVolume();
         requestAnimationFrame(_ytClampToViewport);
@@ -37568,7 +37679,7 @@ function _ytUpdatePipBtn() {
   const btn = document.getElementById('ytPipBtn');
   if (!btn) return;
   btn.classList.toggle('yt-ctrl-active', !!_ytPipWindow);
-  btn.title = _ytPipWindow ? 'Close Picture-in-Picture' : 'Picture-in-Picture';
+  btn.title = _ytPipWindow ? 'Close pop-out window' : 'Pop-out window';
 }
 
 // ── 9. Playback speed ─────────────────────────────────────────────

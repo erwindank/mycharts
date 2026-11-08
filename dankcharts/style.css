@@ -24289,7 +24289,32 @@ body.green .landing-card-config input:focus {
 .yt-mini-player .yt-seek-time { font-family: var(--font-mono); }
 
 /* Main controls */
-.yt-mini-player .yt-primary-controls { gap: 18px; padding: 6px 16px 4px; }
+/* Step 2: five controls — Shuffle · Previous · Play · Next · Repeat */
+.yt-mini-player .yt-primary-controls { gap: 10px; padding: 6px 16px 4px; }
+
+/* Step 2: the label that shows a button's name + key on hover (one element,
+   lives on <body> so the card's rounded clip can't cut it off) */
+.ytp-tip {
+  position: fixed;
+  z-index: var(--z-float);
+  display: none;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: var(--r-sm);
+  background: var(--text);
+  color: var(--bg);
+  font: 600 var(--fs-xs)/1 var(--font-sans);
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+}
+.ytp-tip kbd {
+  padding: 2px 5px;
+  border-radius: var(--r-xs);
+  background: color-mix(in srgb, var(--bg) 14%, transparent);
+  font: 600 11px/1.2 var(--font-mono);
+}
 .yt-mini-player .yt-ctrl-btn { width: 46px; height: 46px; background: transparent; color: var(--text); }
 .yt-mini-player .yt-ctrl-btn:hover { background: color-mix(in srgb, var(--text) 9%, transparent); }
 .yt-mini-player .yt-ctrl-btn .yt-icon { width: 21px; height: 21px; }
