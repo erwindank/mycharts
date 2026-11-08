@@ -24241,14 +24241,29 @@ body.green .landing-card-config input:focus {
   width: 152px;
   height: 152px;
   border-radius: 50%;
-  background: repeating-radial-gradient(circle, #111 0 2px, #1c1c1c 2px 4px);
+  /* Two light wedges across the grooves (top layer) + the grooves. Plain rings
+     look the same at every angle, so without the wedges the spin was invisible. */
+  background:
+    conic-gradient(from 20deg, transparent 0deg, rgba(255, 255, 255, 0.24) 18deg, transparent 44deg,
+                   transparent 180deg, rgba(255, 255, 255, 0.15) 198deg, transparent 224deg),
+    repeating-radial-gradient(circle, #111 0 2px, #1c1c1c 2px 4px);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
   z-index: 1;
   transition: left 0.5s var(--ease);
 }
-.ytp-vinyl::after { content: ''; position: absolute; inset: 52px; border-radius: 50%; background: var(--accent); box-shadow: inset 0 0 0 18px rgba(0, 0, 0, 0.14); }
+/* Centre label: the cover art (accent colour until a cover is found) */
+.ytp-vinyl-label {
+  position: absolute;
+  inset: 46px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--accent);
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.35);
+}
+.ytp-vinyl-label img { width: 100%; height: 100%; object-fit: cover; display: block; opacity: 0; transition: opacity 0.4s; }
+.yt-mini-player.ytp-has-art .ytp-vinyl-label img { opacity: 1; }
 .ytp-vinyl::before { content: ''; position: absolute; left: 50%; top: 50%; width: 8px; height: 8px; margin: -4px; border-radius: 50%; background: #0b0b0b; z-index: 1; }
-.yt-mini-player.yt-is-playing .ytp-vinyl { left: 146px; animation: ytp-spin 4s linear infinite; }
+.yt-mini-player.yt-is-playing .ytp-vinyl { left: 146px; animation: ytp-spin 2.4s linear infinite; }
 @media (prefers-reduced-motion: reduce) {
   .yt-mini-player.yt-is-playing .ytp-vinyl,
   .yt-mini-player.yt-is-playing .ytp-eq i { animation: none; }

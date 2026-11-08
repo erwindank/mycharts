@@ -35578,11 +35578,13 @@ function _ytShowArt(url, isStill) {
   const img  = document.getElementById('ytMiniArt');
   const glow = document.getElementById('ytMiniGlowImg');
   if (!player || !img) return;
-  if (!url) { img.removeAttribute('src'); if (glow) glow.removeAttribute('src'); player.classList.remove('ytp-has-art'); return; }
+  const label = document.getElementById('ytMiniVinylImg'); // the record's centre label shows the cover too
+  if (!url) { img.removeAttribute('src'); if (glow) glow.removeAttribute('src'); if (label) label.removeAttribute('src'); player.classList.remove('ytp-has-art'); return; }
   img.onload  = () => { player.classList.add('ytp-has-art'); player.classList.toggle('ytp-art-still', !!isStill); };
   img.onerror = () => { player.classList.remove('ytp-has-art'); };
   img.src = url;
   if (glow) glow.src = url;
+  if (label) label.src = url;
 }
 
 // ── Media Session API ──────────────────────────────────────────────────────
