@@ -76,6 +76,34 @@ all 12 themes look right. Bump `style.css?v=`.
   by the browser (blocked by the image host); then the theme accent is used.
 - "Official video found" / "Best match" note, linking to Find another version.
 
+**Wrong or missing video: paste a link (added 2026-11-08)**
+
+How a video is found today, and stays so: shared memory (videos anyone found
+before) → Wikidata → MusicBrainz → YouTube search (uses the daily quota,
+signed-in only). Find another version also asks Wikidata before YouTube.
+
+- **Paste a YouTube link** box in Find another version: always there, and
+  shown as the clear next step when nothing is found ("Can't find it? Open
+  YouTube, copy the video's link and paste it here"). Accepts youtube.com,
+  youtu.be, music.youtube.com and shorts links (`_ytIdFromUrl`).
+- **Check that it's the right song** before sharing it: read the video's
+  title and channel from YouTube's free oEmbed (no quota) and compare with the
+  song and artist, ignoring case, accents, "feat.", "(Official Video)",
+  "- Remastered" and the like.
+  - Clear match (title has song + artist, or song in title and the artist is
+    the channel, incl. "Artist - Topic"): plays and is saved for everyone.
+  - Partial match (only song or only artist): plays, then asks "Is this the
+    right song? Save it for everyone / Just for me".
+  - No match: plays for that person only, never shared, with a plain note why.
+  - Broken, removed or not allowed on other sites: not saved, "try another link".
+- Saved for everyone only **after it really plays**, and only for signed-in
+  users (the shared memory's existing rule); signed-out users can still play it.
+- **Hand-picked search results** get the same check and are saved for everyone
+  too (today a hand pick only plays for that person).
+- Limit, said plainly in the guide: the check reads the title, not the sound.
+  Anyone can fix a wrong video with Find another version; a video that won't
+  play is already forgotten automatically.
+
 ### 4. Chart story
 Four tiles under the song name: rank this week, peak, your plays, weeks on
 chart, built from the data already loaded, for every source. A tile with no
