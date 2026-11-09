@@ -5421,8 +5421,8 @@ TRANSLATIONS['es'] = Object.assign({
     yt_np_tour_6h: 'Guarda las canciones que te encantan',
     yt_np_tour_6t: '♥ añade la canción a tu lista Favorites. + la añade a cualquier lista.',
     yt_np_tour_7h: 'Cuatro secciones',
-    yt_np_tour_7t: 'A continuación es tu cola. La letra sigue la canción línea a línea. Historial es lo que escuchaste aquí. Herramientas tiene todo lo demás: temporizador, velocidad, compartir y más.',
-    yt_np_tour_7t_phone: 'A continuación es tu cola. La letra sigue la canción línea a línea. Historial es lo que escuchaste aquí. Herramientas tiene todo lo demás: temporizador, velocidad, compartir y más. Cada una se abre desde abajo; desliza hacia abajo para cerrarla.',   // phone / touch wording (_ytDeviceKey)
+    yt_np_tour_7t: 'A continuación muestra las canciones que sonarán después. La letra sigue la canción línea a línea. Historial muestra lo que ya escuchaste aquí. Herramientas tiene todo lo demás: temporizador, velocidad, compartir y más.',
+    yt_np_tour_7t_phone: 'A continuación muestra las canciones que sonarán después. La letra sigue la canción línea a línea. Historial muestra lo que ya escuchaste aquí. Herramientas tiene todo lo demás: temporizador, velocidad, compartir y más. Cada una se abre desde abajo; desliza hacia abajo para cerrarla.',   // phone / touch wording (_ytDeviceKey)
     yt_np_tour_8h: 'Volumen y ajustes rápidos',
     yt_np_tour_8t: 'Volumen, velocidad y temporizador. El botón ? repite este recorrido cuando quieras, y Herramientas → Teclas y ajustes lista todas las teclas.',
     yt_np_tour_8t_touch: 'Volumen, velocidad y temporizador. El botón ? repite este recorrido cuando quieras.',   // phone / touch wording (_ytDeviceKey)
