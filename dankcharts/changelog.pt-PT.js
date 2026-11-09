@@ -16,6 +16,9 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
   "Keep the screen on while music plays":
     ["Mantém o ecrã ligado enquanto a música toca",
      "O telemóvel pausa o leitor quando o ecrã bloqueia. Ferramentas → Ecrã ligado não deixa o telemóvel bloquear enquanto a música toca, para continuar."],
+  "Emoji and pictures on the Community Board":
+    ["Emoji e imagens no Fórum da comunidade",
+     "As publicações e respostas no Fórum agora podem ter emoji e imagens. O botão Emoji abre uma seleção para escolher, e Adicionar imagem (ou colar uma) anexa até 4 imagens. Clica numa imagem para a ver em tamanho real."],
   "Stage mode, a small player and a full-screen phone player":
     ["Modo palco, um leitor pequeno e um leitor de ecrã inteiro no telemóvel",
      "O botão do ecrã do leitor abre o modo palco: o vídeo do tamanho da janela e a letra ao lado. ⌄ reduz para um leitor pequeno no canto (ou em baixo; escolhe em Definições → Perfil → Leitor de música). No telemóvel ocupa o ecrã inteiro, com A seguir, Letra, Histórico e Ferramentas em painéis que sobem."],

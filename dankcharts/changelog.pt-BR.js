@@ -16,6 +16,9 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
   "Keep the screen on while music plays":
     ["Mantenha a tela ligada enquanto a música toca",
      "O celular pausa o player quando a tela bloqueia. Ferramentas → Tela ligada não deixa o celular bloquear enquanto a música toca, para ela continuar."],
+  "Emoji and pictures on the Community Board":
+    ["Emoji e imagens no Fórum da comunidade",
+     "Publicações e respostas no Fórum agora podem ter emoji e imagens. O botão Emoji abre uma seleção para escolher, e Adicionar imagem (ou colar uma) anexa até 4 imagens. Clique numa imagem para vê-la em tamanho real."],
   "Stage mode, a small player and a full-screen phone player":
     ["Modo palco, um player pequeno e um player de tela cheia no celular",
      "O botão de tela do player abre o modo palco: o vídeo do tamanho da janela e a letra ao lado. ⌄ diminui para um player pequeno no canto (ou embaixo; escolha em Ajustes → Perfil → Player de música). No celular ele ocupa a tela toda, com A seguir, Letra, Histórico e Ferramentas em painéis que sobem."],

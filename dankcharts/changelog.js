@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 474;
+const DC_CL_I18N_V = 475;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -384,6 +384,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-08', t: 'feature', a: 'ui', h: '9df7637',
+    title: "Emoji and pictures on the Community Board",
+    detail: "Posts and replies on the Board can now have emoji and pictures. The Emoji button opens a set to pick from, and Add picture (or pasting one) attaches up to 4 pictures. Click a picture to see it full size." },
   { d: '2026-11-08', t: 'feature', a: 'player', h: 'e8b02b1',
     title: "Keep the screen on while music plays",
     detail: "Phones pause the music player when the screen locks. Tools → Keep screen on stops the phone from locking while music plays, so it keeps going." },

@@ -16,6 +16,9 @@ window.DC_CHANGELOG_I18N['es'] = {
   "Keep the screen on while music plays":
     ["Mantén la pantalla encendida mientras suena la música",
      "Los móviles pausan el reproductor cuando se bloquea la pantalla. Herramientas → Pantalla encendida evita que el móvil se bloquee mientras suena la música, para que siga."],
+  "Emoji and pictures on the Community Board":
+    ["Emoji e imágenes en el Foro de la comunidad",
+     "Las publicaciones y respuestas del Foro ahora pueden llevar emoji e imágenes. El botón Emoji abre una selección para elegir, y Añadir imagen (o pegar una) adjunta hasta 4 imágenes. Haz clic en una imagen para verla a tamaño completo."],
   "Stage mode, a small player and a full-screen phone player":
     ["Modo escenario, un reproductor pequeño y uno a pantalla completa en el móvil",
      "El botón de pantalla del reproductor abre el modo escenario: el vídeo tan grande como la ventana y la letra al lado. ⌄ lo reduce a un reproductor pequeño en la esquina (o abajo; elígelo en Ajustes → Perfil → Reproductor). En el móvil ocupa toda la pantalla, con A continuación, Letra, Historial y Herramientas en paneles que suben."],
