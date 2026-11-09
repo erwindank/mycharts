@@ -834,6 +834,8 @@ function spRefresh(name, save) {
   _ytPlaylists[name] = tracks;
   if (typeof _ytTouchPlaylist === 'function') _ytTouchPlaylist(name);
   if (save !== false && typeof _ytSavePlaylists === 'function') _ytSavePlaylists();
+  // A list's first fill is where "what changed" starts from (step 7)
+  if (!_spSeenGet(name)) _spSeenSet(name, tracks);
   return true;
 }
 
@@ -870,6 +872,7 @@ function spOnDelete(name) {
   delete _spStore.modified[name];
   _spStore.deleted[name] = Date.now();
   _spSave();
+  _spSeenMove(name, null);   // step 7
 }
 
 // app.js: a playlist was renamed → its rules follow it
@@ -888,6 +891,7 @@ function spOnRename(oldName, newName) {
   delete _spStore.deleted[newName];
   _spStore.deleted[oldName] = Date.now();
   _spSave();
+  _spSeenMove(oldName, newName);   // step 7
 }
 
 /* Sign-in: the account's rules merged with this device's. For each name the
@@ -1946,4 +1950,132 @@ function _spRenameRefs(def, oldName, newName) {
     else if (r.f === 'inList' && r.v === oldName) { r.v = newName; hit = true; }
   }
   return hit;
+}
+
+
+/* ===========================================================================
+   STEP 7: SAVE A COPY, AND WHAT CHANGED SINCE YOU LAST LOOKED
+
+   Save a copy: today's songs as a normal playlist ("Stuck in My Head · Nov
+   9"), which stays as it is and can be edited by hand.
+
+   What changed: each device remembers the songs a smart list had the last
+   time it was opened (localStorage 'dc-smart-seen', not synced: the old
+   songs of every list would eat into the account's 1 MB playlists doc).
+     • the library card says "+3 new · 1 gone" until the list is opened
+     • the open list shows which songs came in and which dropped out, and
+       marks the new ones in the song list
+   Opening a list takes a snapshot of the difference (kept while it stays
+   open, so redraws don't lose it) and makes today's songs the new "last
+   looked". Only which songs are in it counts, not their order.
+   =========================================================================== */
+
+const SP_SEEN_LS = 'dc-smart-seen';
+let _spSeen = null;       // name → [{ title, artist }]
+let _spOpenDiff = null;   // { name, added, dropped } for the list that's open
+
+function _spTrKey(tr) {
+  return String(tr.title || '').toLowerCase().trim() + '|||' + String(tr.artist || '').toLowerCase().trim();
+}
+
+function _spSeenAll() {
+  if (_spSeen) return _spSeen;
+  try { _spSeen = JSON.parse(localStorage.getItem(SP_SEEN_LS) || '{}') || {}; } catch (e) { _spSeen = {}; }
+  return _spSeen;
+}
+function _spSeenSave() {
+  try { localStorage.setItem(SP_SEEN_LS, JSON.stringify(_spSeenAll())); } catch (e) {}
+}
+function _spSeenGet(name) { return _spSeenAll()[name] || null; }
+function _spSeenSet(name, tracks) {
+  _spSeenAll()[name] = (tracks || []).map(tr => ({ title: tr.title, artist: tr.artist }));
+  _spSeenSave();
+}
+// Rename (to) or delete (to = null)
+function _spSeenMove(from, to) {
+  const all = _spSeenAll();
+  if (!(from in all)) return;
+  if (to) all[to] = all[from];
+  delete all[from];
+  _spSeenSave();
+}
+
+// The difference between a list's songs now and when it was last looked at
+function _spDiffNow(name) {
+  const seen = _spSeenGet(name);
+  const now = _ytPlaylists[name] || [];
+  if (!seen) return { added: [], dropped: [] };
+  const was = new Set(seen.map(_spTrKey));
+  const is = new Set(now.map(_spTrKey));
+  return {
+    added: now.filter(tr => !was.has(_spTrKey(tr))),
+    dropped: seen.filter(tr => !is.has(_spTrKey(tr)))
+  };
+}
+
+// The open list's snapshot: taken once per opening, then "last looked" moves on
+function _spDiffFor(name) {
+  if (_spOpenDiff && _spOpenDiff.name === name) return _spOpenDiff;
+  const d = _spDiffNow(name);
+  _spOpenDiff = { name, added: d.added, dropped: d.dropped, newKeys: new Set(d.added.map(_spTrKey)) };
+  if (_ytPlaylists[name]) _spSeenSet(name, _ytPlaylists[name]);
+  return _spOpenDiff;
+}
+
+// app.js: the library page is showing, so no list is open any more
+function spLeftList() { _spOpenDiff = null; }
+
+// Library card: "+3 new · 1 gone", or nothing when nothing changed
+function spCardChangeHtml(name) {
+  if (!spIsSmart(name)) return '';
+  const d = _spDiffNow(name);
+  if (!d.added.length && !d.dropped.length) return '';
+  const parts = [];
+  if (d.added.length) parts.push(`<span class="sp-cg-add">${esc(t('sp_cg_new', { n: d.added.length }))}</span>`);
+  if (d.dropped.length) parts.push(`<span class="sp-cg-drop">${esc(t('sp_cg_gone', { n: d.dropped.length }))}</span>`);
+  return `<div class="sp-cg-card">${parts.join(' · ')}</div>`;
+}
+
+// Is this song new in the open list? (for the NEW mark on its row)
+function spIsNew(name, key) {
+  return spIsSmart(name) && _spDiffFor(name).newKeys.has(key);
+}
+function spNewPillHtml() {
+  return `<span class="sp-new-pill">${esc(t('badge_new_songs'))}</span>`;
+}
+
+// The open list's "Since you last looked" box, between the header and the songs
+function spChangesHtml(name) {
+  if (!spIsSmart(name)) return '';
+  const d = _spDiffFor(name);
+  if (!d.added.length && !d.dropped.length) return '';
+  const MAX = 8;
+  const list = (tracks, cls, sign) => `<ul class="sp-cg-list ${cls}">` +
+    tracks.slice(0, MAX).map(tr => `<li><span class="sp-cg-sign" aria-hidden="true">${sign}</span><b>${esc(tr.title)}</b> <span>${esc(tr.artist || '')}</span></li>`).join('') +
+    (tracks.length > MAX ? `<li class="sp-cg-more">${esc(t('sp_b_and_more', { n: tracks.length - MAX }))}</li>` : '') + `</ul>`;
+  return `<section class="sp-cg" aria-label="${esc(t('sp_cg_title'))}">` +
+    `<h3 class="sp-cg-title">${esc(t('sp_cg_title'))}</h3><div class="sp-cg-cols">` +
+    (d.added.length ? `<div><h4 class="sp-cg-h">${esc(t('sp_cg_added', { n: d.added.length }))}</h4>${list(d.added, 'sp-cg-in', '+')}</div>` : '') +
+    (d.dropped.length ? `<div><h4 class="sp-cg-h">${esc(t('sp_cg_dropped', { n: d.dropped.length }))}</h4>${list(d.dropped, 'sp-cg-out', '−')}</div>` : '') +
+    `</div></section>`;
+}
+
+// ─── Save a copy ──────────────────────────────────────────────────────────
+
+function spCopyBtnHtml(name) {
+  const ico = typeof dcIco === 'function' ? dcIco('copy') : '⧉';
+  return `<button type="button" class="dc-btn dc-btn-plain dc-btn-icon" onclick="spSaveCopy(${esc(JSON.stringify(name))})" title="${esc(t('sp_copy'))}" aria-label="${esc(t('sp_copy'))}">${ico}</button>`;
+}
+
+function spSaveCopy(name) {
+  const tracks = _ytPlaylists[name];
+  if (!tracks || !tracks.length) { if (typeof dcPlToast === 'function') dcPlToast(t('sp_b_err_empty')); return; }
+  const tag = typeof _dcPlDateTag === 'function' ? _dcPlDateTag() : _spBToday();
+  const base = name + ' · ' + tag;
+  let copy = base, n = 2;
+  while (_ytPlaylists[copy] || spIsSmart(copy)) copy = base + ' (' + n++ + ')';
+  _ytPlaylists[copy] = tracks.map(tr => ({ title: tr.title, artist: tr.artist, album: tr.album || '' }));
+  _ytTouchPlaylist(copy);
+  _ytSavePlaylists();
+  if (typeof dcPlToast === 'function') dcPlToast(t('sp_copy_saved', { name: copy }));
 }

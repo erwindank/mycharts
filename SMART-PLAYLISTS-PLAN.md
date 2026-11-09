@@ -202,6 +202,12 @@ Step 6 done 2026-11-09. Rule "Playlist has the song / doesn't have the song"
 one is read as its current songs). Refreshing a list refreshes the smart
 lists it reads first; loops (itself, or round a chain) are refused on Save;
 renaming a playlist renames it in every rule; a deleted one reads as empty.
+Step 7 done 2026-11-09. "Save a copy" (copy icon on an open smart list) makes
+a normal playlist "<name> · <date>". What changed is "since you last looked",
+kept per device (localStorage dc-smart-seen, not synced: old songs of every
+list would eat into the 1 MB playlists doc): card line "+3 new · 1 gone",
+a "Since you last looked" box (came in / dropped out) and NEW on new rows.
+Opening a list moves "last looked" on; only which songs, not their order.
 
 1. **Engine: song facts + rules.** smartplaylists.js with `spSongFacts()`
    (basics, plays, first/last played, ratings, genres, certs) and

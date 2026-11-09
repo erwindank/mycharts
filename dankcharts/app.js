@@ -38521,6 +38521,8 @@ function dcRenderPlaylistsView() {
     `</div>`;
   dcPlLoadArt(el);
   if (!_dcPlExpandedName) {
+    // Smart playlists: the next opening takes a fresh "what changed" (smartplaylists.js)
+    if (typeof spLeftList === 'function') spLeftList();
     if (_dcPlQuery) dcPlFilter(_dcPlQuery);
     if (typeof apRenderSetup === 'function') apRenderSetup();
   }
@@ -38593,6 +38595,8 @@ function _dcPlLibraryHtml() {
       `</div>` +
       `<div class="plx-card-name">${esc(name)}</div>` +
       `<div class="plx-card-meta">${esc(tCount('songs', tracks.length))}${when ? ' · ' + esc(when) : ''}</div>` +
+      // Smart playlists: "+3 new · 1 gone" since it was last opened (smartplaylists.js)
+      (typeof spCardChangeHtml === 'function' ? spCardChangeHtml(name) : '') +
       (artists.length ? `<div class="plx-card-artists">${esc(artists.slice(0, 3).join(', '))}</div>` : '') +
       `</div>`;
   });
@@ -38643,12 +38647,17 @@ function _dcPlDetailHtml(name) {
     // Smart playlists: change the rules in the builder (smartplaylists.js)
     (smart ? spEditBtnHtml(name) : '') +
     `<span class="plx-hero-tools">` +
+    // Smart playlists: save today's songs as a normal playlist (smartplaylists.js)
+    (smart ? spCopyBtnHtml(name) : '') +
     // Export: Export Playlist window / download CSV / download text (dcPlExportMenu)
     `<button type="button" class="dc-btn dc-btn-plain dc-btn-icon" onclick="dcPlExportMenu(${nameJson},this)" title="${esc(t('pl_view_export'))}" aria-label="${esc(t('pl_view_export'))}" aria-haspopup="menu">${_DC_PL_SVG.export}</button>` +
     (_ytIsFavName(name) ? '' :
     `<button type="button" class="dc-btn dc-btn-plain dc-btn-icon" onclick="dcPlStartRename(${nameJson})" title="${esc(t('pl_view_rename'))}" aria-label="${esc(t('pl_view_rename'))}">${_DC_PL_SVG.rename}</button>` +
     `<button type="button" class="dc-btn dc-btn-plain dc-btn-icon dc-btn-danger" onclick="dcPlDeleteFromView(${nameJson})" title="${esc(t('pl_view_delete'))}" aria-label="${esc(t('pl_view_delete'))}">${_DC_PL_SVG.trash}</button>`) +
     `</span></div></div></header>`;
+
+  // Smart playlists: which songs came in / dropped out since last time (smartplaylists.js)
+  if (smart) html += spChangesHtml(name);
 
   // The songs, numbered; the number turns into a drag grip on hover
   html += `<div class="plx-tracks" role="list">`;
@@ -38669,7 +38678,7 @@ function _dcPlDetailHtml(name) {
       `<span class="plx-num"><span class="plx-num-n">${idx + 1}</span>${smart ? '' : `<span class="dc-pl-drag-handle" title="${esc(t('pl_view_drag'))}">${_DC_PL_SVG.grip}</span>`}</span>` +
       dcPlArtHtml(tr) +
       `<div class="dc-pl-track-info">` +
-      `<span class="dc-pl-track-title">${esc(tr.title)}</span>` +
+      `<span class="dc-pl-track-title">${esc(tr.title)}${smart && spIsNew(name, tKey) ? spNewPillHtml() : ''}</span>` +
       `<span class="dc-pl-track-artist">${esc(tr.artist)}</span>` +
       `</div>` +
       `<span class="plx-track-album">${esc(tr.album || '')}</span>` +

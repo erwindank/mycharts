@@ -47397,6 +47397,42 @@ html.lsx-open { overflow: hidden; }
 .sp-pick-select { width: auto; min-width: 92px; height: 32px; padding: 0 var(--sp-2); }
 .sp-pick-seg { margin: 0 0 var(--sp-2); }
 
+/* What changed since the list was last opened (smartplaylists.js step 7):
+   a line on the library card, a box on the open list, NEW on rows that came in */
+.sp-cg-card { margin-top: 2px; font-size: var(--fs-xs); font-weight: 600; color: var(--text3); }
+.sp-cg-add { color: var(--teal); }
+.sp-cg-drop { color: var(--text3); }
+.sp-cg {
+  margin-top: var(--sp-4);
+  padding: var(--sp-3) var(--sp-4);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: color-mix(in srgb, var(--bg3) 50%, transparent);
+}
+.sp-cg-title { margin: 0 0 var(--sp-2); font-family: var(--font-display); font-size: var(--fs-base); font-weight: 600; color: var(--text); }
+.sp-cg-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--sp-3) var(--sp-5); }
+.sp-cg-h { margin: 0 0 4px; font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); }
+.sp-cg-list { list-style: none; margin: 0; padding: 0; font-size: var(--fs-sm); }
+.sp-cg-list li { padding: 2px 0; color: var(--text3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sp-cg-list b { color: var(--text); font-weight: 600; }
+.sp-cg-sign { display: inline-block; width: 1em; font-weight: 700; }
+.sp-cg-in .sp-cg-sign { color: var(--teal); }
+.sp-cg-out .sp-cg-sign { color: var(--text3); }
+.sp-cg-out b { color: var(--text2); }
+.sp-cg-more { font-style: italic; }
+.sp-new-pill {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  vertical-align: 1px;
+  color: var(--teal);
+  background: color-mix(in srgb, var(--teal) 16%, transparent);
+}
+
 /* The "New smart playlist" card in the library grid */
 .plx-new-smart .plx-new-ico { font-size: 22px; line-height: 1; }
 
