@@ -4598,7 +4598,7 @@ TRANSLATIONS['es'] = Object.assign({
     sp_ready_year50: 'Las 50 del año',
     sp_ready_almost1: '¡Por un pelo!',
     sp_ready_deep: 'Joyas ocultas',
-    sp_ready_title: 'Listas inteligentes listas para usar',
+    sp_ready_title: 'Listas inteligentes ya hechas',
     sp_ready_sub: 'Añade una a tus listas. Se actualizan solas.',
     sp_ready_added: '«{{name}}» añadida a tus listas',
     sp_pick_year: 'Año',

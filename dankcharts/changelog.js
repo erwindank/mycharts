@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 475;
+const DC_CL_I18N_V = 478;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -98,6 +98,15 @@ const DC_CL_AREAS = {
    by id, as { title, intro, points }. A missing one shows in English.
    ------------------------------------------------------------------------- */
 const DC_CL_HIGHLIGHTS = [
+  { id: "smart-playlists", d: "2026-11-09", a: "playlists", img: "whatsnew/smart-playlists.webp", go: "playlists",
+    title: "Smart playlists",
+    intro: "Playlists that fill themselves from your listening, and keep up as it changes.",
+    points: [
+      "A dozen ready-made ones to start, from Stuck in My Head to Hidden Gems.",
+      "Make your own with simple rules about plays, charts, dates and more.",
+      "See what changed, mix playlists together, or share one on the Board.",
+    ],
+    also: ["4786e8d", "2511bfd", "689eb17", "44db411", "166710e", "b512a6a", "3a39c6c", "e07bb02", "d8b87ff"] },
   { id: "music-player", d: "2026-11-08", a: "player", img: "whatsnew/music-player.webp", go: "week", then: [["_ytGuideOpen"]],
     title: "A new music player",
     intro: "The music player has a new look and is much easier to use: every button is named, and it shows how the song is doing in your charts.",
@@ -384,6 +393,36 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-09', t: 'feature', a: 'guide',
+    title: "A Charts Guide lesson for smart playlists",
+    detail: "The Charts Guide has a new lesson on smart playlists: the builder, ready-made lists, Mix it and sharing, with pictures and challenges." },
+  { d: '2026-11-09', t: 'feature', a: 'playlists', h: '4786e8d',
+    title: "Share smart playlists on the Board",
+    detail: "📣 on a smart playlist posts its rules to the Community Board. Anyone can press Add to my playlists and get the same smart playlist from their own listening." },
+  { d: '2026-11-09', t: 'feature', a: 'playlists', h: '2511bfd',
+    title: "Hear when a smart playlist changes a lot",
+    detail: "Turn on the bell on a smart playlist and a notification tells you when several new songs come into it." },
+  { d: '2026-11-09', t: 'feature', a: 'playlists', h: '689eb17',
+    title: "Mix it: blend playlists into one",
+    detail: "Mix it, on the Smart playlist card, takes a song from each of 2 to 4 playlists in turn, with no repeats. Play the mix or save it." },
+  { d: '2026-11-09', t: 'feature', a: 'playlists', h: '44db411',
+    title: "See what changed in a smart playlist",
+    detail: "Smart playlists show which songs came in and dropped out since you last opened them, with NEW on the new ones. Save a copy keeps today's songs as a normal playlist." },
+  { d: '2026-11-09', t: 'feature', a: 'playlists', h: '166710e',
+    title: "Smart playlists can use your other playlists",
+    detail: "A rule can now check whether a song is in one of your playlists, so a smart playlist can be “my top songs, minus my Gym playlist”." },
+  { d: '2026-11-09', t: 'fix', a: 'playlists', h: 'b512a6a',
+    title: "Friendlier names for the ready-made smart playlists",
+    detail: "The ready-made smart playlists got fun names, and lists that showed a code instead of a name are renamed." },
+  { d: '2026-11-08', t: 'feature', a: 'playlists', h: '3a39c6c',
+    title: "Make your own smart playlist",
+    detail: "The Smart playlist card opens a builder: pick rules about plays, dates, charts, genres and more, combine them, and watch how many songs match as you go." },
+  { d: '2026-11-08', t: 'feature', a: 'playlists', h: 'e07bb02',
+    title: "Ready-made smart playlists",
+    detail: "Twelve smart playlists made from your listening, added for you: your most played lately, forgotten favourites, your #1s, a year's best 50 and more." },
+  { d: '2026-11-08', t: 'feature', a: 'playlists', h: 'd8b87ff',
+    title: "Smart playlists",
+    detail: "Playlists that fill themselves from rules and keep up with your listening. They sit with your other playlists, marked Smart playlist, and sync to your account." },
   { d: '2026-11-08', t: 'feature', a: 'ui', h: '9df7637',
     title: "Emoji and pictures on the Community Board",
     detail: "Posts and replies on the Board can now have emoji and pictures. The Emoji button opens a set to pick from, and Add picture (or pasting one) attaches up to 4 pictures. Click a picture to see it full size." },

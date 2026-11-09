@@ -393,6 +393,39 @@ async function plUnfake(pg) {
   });
 }
 
+// Smart playlists (SMART-PLAYLISTS-PLAN.md step 11): the demo library's
+// ready-made smart lists (added on load, named in the page's language), the
+// three made-up playlists from plView, one ready-made list taken out so the
+// "add it back" row shows, and "The Year's Best 50" made to look as if three
+// songs came in and two dropped out since it was last opened.
+async function spView(pg, { open = null } = {}) {
+  await pg.evaluate(() => { if (typeof spCloseBuilder === 'function') spCloseBuilder(); if (typeof spCloseMix === 'function') spCloseMix(); });
+  await plView(pg);
+  await pg.waitForFunction(() => typeof spNames === 'function' && spNames().length >= 4, null, { timeout: 60000 });
+  await pg.evaluate(open => {
+    const byId = id => spNames().find(n => spGet(n).ready === id);
+    if (!window._gdSp) {
+      window._gdSp = 1;
+      // One ready-made list out, so the row that adds them back has a button
+      const out = ['oneHit', 'slow', 'almost1', 'deep', 'newToYou'].map(byId).find(Boolean);
+      if (out) _dcPlDoDelete(out);
+    }
+    const y = byId('year50');
+    if (y) {
+      const now = _ytPlaylists[y] || [];
+      const others = (_ytPlaylists['Gym'] || []).filter(t => !now.some(x => x.title === t.title && x.artist === t.artist)).slice(0, 2);
+      _spSeenSet(y, now.slice(3).concat(others));
+      _ytTouchPlaylist(y);   // first under Recent
+    }
+    spLeftList();
+    const want = open === 'year50' ? y : open;
+    if (_dcPlExpandedName !== want) { _dcPlExpandedName = want; }
+    dcRenderPlaylistsView();
+    window.scrollTo(0, 0);
+  }, open);
+  await wait(pg, 3500);
+}
+
 // Raw Data on page 1 with every filter cleared. Once per browser, one single's
 // album is corrected the way a listener would (the edit window, "save as a
 // rule"), and two more rules are added, so the ~ badge and the rules show.
@@ -1522,6 +1555,73 @@ const SHOTS = [
     clip: { from: '#anniversariesSection', to: '#eventsRecentSection', pad: 14, maxH: 1300 },
     spots: { anniv: '#anniversariesSection .dc-pl-part-head', annpl: '#anniversariesPlBtn', card: '#anniversariesGrid > *',
       recent: '#eventsRecentSection .dc-pl-part-head', recpl: '#eventsRecentPlBtn' } },
+
+  /* ── Lesson: Smart playlists (SMART-PLAYLISTS-PLAN.md step 11) ─────
+     The demo's ready-made smart lists; the builder, Mix it and a made-up
+     Board post with a shared smart list. */
+  { id: 'sp-top', lesson: 'smart',
+    setup: async pg => { await spView(pg); },
+    clip: { from: '#dcPlMain .plx-grid', to: '#spReady', pad: 14, maxH: 1750 },
+    spots: { new: '#dcPlMain .plx-new-smart', create: '#dcPlMain .plx-new-smart .dc-btn-main', mix: '#dcPlMain .plx-new-smart [onclick="spOpenMix()"]',
+      card: { js: "document.querySelector('#dcPlMain .plx-smart-tag').closest('.plx-card')" }, tag: '#dcPlMain .plx-smart-tag',
+      change: '#dcPlMain .sp-cg-card', ready: '#spReady .dc-pl-part-head', readybtn: '#spReady .sp-ready-btn' } },
+  { id: 'sp-open', lesson: 'smart', phone: true,
+    setup: async pg => { await spView(pg, { open: 'year50' }); },
+    clip: { from: '#dcPlMain .plx-back', to: { js: "document.querySelectorAll('#dcPlMain .plx-track')[3]" }, pad: 14 },
+    spots: { kicker: '#dcPlMain .plx-kicker-smart', rules: '#dcPlMain .plx-smart-rules', pick: '#dcPlMain .sp-pick', bell: '#dcPlMain .sp-nt-row',
+      edit: '#dcPlMain .spb-edit-btn', copy: '#dcPlMain [onclick^="spSaveCopy"]', share: '#dcPlMain .sp-share-btn', changes: '#dcPlMain .sp-cg',
+      newrow: { js: "document.querySelector('#dcPlMain .sp-new-pill').closest('.plx-track')" } } },
+  { id: 'sp-build', lesson: 'smart',
+    setup: async pg => { await spView(pg);
+      await pg.evaluate(() => {
+        const top = []; for (const s of spSongFacts().list.slice().sort((a, b) => b.plays - a.plays)) { const a = s.artists[0]; if (!top.includes(a)) top.push(a); if (top.length === 2) break; }
+        spOpenBuilder();
+        _spB.name = top.join(' & ');
+        _spB.def = { match: 'all', rules: [ { f: 'plays', op: 'gte', v: 10 }, { f: 'peak', op: 'lte', v: 10, ch: 'week' },
+          { match: 'any', rules: [ { f: 'artist', op: 'is', v: top[0] }, { f: 'artist', op: 'is', v: top[1] } ] } ],
+          sort: { f: 'peak', ch: 'week' }, limit: 50, perArtist: 25 };
+        _spBRender();
+      });
+      await wait(pg, 1200); },
+    clip: { from: '#spBuilderModal .dc-modal', to: '#spBuilderModal .dc-modal', pad: 10, narrow: true },
+    spots: { name: '#spBName', start: '#spBPreset', match: '#spBBody .spb-section-head .spb-match',
+      rule: { js: "document.querySelectorAll('#spBBody .spb-rules > .spb-rule')[1]" },
+      field: { js: "document.querySelectorAll('#spBBody .spb-rules > .spb-rule')[1].querySelector('.spb-field')" },
+      chart: { js: "document.querySelectorAll('#spBBody .spb-rules > .spb-rule')[1].querySelector('[data-k=\"ch\"]')" },
+      cond: { js: "document.querySelectorAll('#spBBody .spb-rules > .spb-rule')[1].querySelector('[data-k=\"op\"]')" },
+      value: { js: "document.querySelectorAll('#spBBody .spb-rules > .spb-rule')[1].querySelector('[data-k=\"v\"]')" },
+      group: '#spBBody .spb-group', add: '#spBBody .spb-adds', sort: '#spBBody .spb-rule[data-path="sort"]', size: '#spBLimit', per: '#spBPer',
+      mode: '#spBBody .spb-mode', count: '#spBBody .spb-count', desc: '#spBBody .spb-desc' } },
+  { id: 'sp-mix', lesson: 'smart',
+    setup: async pg => { await spView(pg);
+      await pg.evaluate(() => {
+        spOpenMix();
+        _spMix.picked = spNames().filter(n => (_ytPlaylists[n] || []).length).slice(0, 3);
+        _spMix.size = 25; _spMix.per = 2;
+        _spMixRender();
+      });
+      await wait(pg, 1200); },
+    clip: { from: '#spMixModal .dc-modal', to: '#spMixModal .dc-modal', pad: 10, narrow: true },
+    spots: { lists: '#spMixBody .spm-lists', on: '#spMixBody .spm-list.is-on', size: { js: "document.querySelector('#spMixBody [data-mix-size]').parentElement" },
+      per: '#spMixPer', name: '#spMixName', preview: '#spMixBody .spb-preview', play: '#spMixModal [onclick="spMixPlay()"]', save: '#spMixModal [onclick="spMixSave()"]' } },
+  { id: 'sp-share', lesson: 'smart',
+    setup: async pg => { await spView(pg); await plUnfake(pg);
+      await go(pg, 'board'); await wait(pg, 2500);
+      await pg.evaluate(D => {
+        const name = spNames().find(n => spGet(n).ready === 'heavy') || spNames()[0];
+        const now = Date.now();
+        const post = { id: 'smart', category: 'discussion', status: 'open', title: t('sp_share_title', { name }),
+          body: t('sp_share_body') + '\n\n⟦dc-smart:' + spShareCode(name) + '⟧', authorName: 'Maya R.', authorPhoto: '', authorUid: 'u-smart',
+          voteCount: 7, votes: [], replyCount: 0, createdAt: now - 2 * D, lastActivity: now - 2 * D, pinned: false };
+        dcBoard._sample([post], { smart: [] });
+        dcBoard.setCat('all'); dcBoard.setStatus('all'); dcBoard.setSort('top');
+        dcBoard.toggle('smart');
+        window.scrollTo(0, 0);
+      }, BD_DAY);
+      await wait(pg, 1500); },
+    clip: { from: '#boardView .bd-post.open', to: '#boardView .bd-smart-card', pad: 14 },
+    spots: { tag: '#boardView .bd-post.open .bd-tag-smart', card: '#boardView .bd-smart-card', desc: '#boardView .bd-smart-desc',
+      match: '#boardView .bd-smart-match', add: '#boardView .bd-smart-card .dc-btn-main' } },
 
   /* ── Lesson: Board (GUIDE-PLAN.md step 10) ──────────────────────────
      Made-up posts only (dcBoard._sample). */

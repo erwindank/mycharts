@@ -32,7 +32,7 @@
   'use strict';
 
   // Bump when the lesson files or the pictures change (it's their ?v=)
-  const GUIDE_V = '21';
+  const GUIDE_V = '23';
   const STORE = 'dc_guide_progress';
   const LANG_FILES = ['es', 'pt-BR', 'pt-PT'];
 
@@ -234,6 +234,13 @@
     'pl.add':        { lesson: 'playlists', open: '#dcPlPickModal' },
     'pl.export':     { lesson: 'playlists', fn: 'dcPlExportMenu' },
     'pl.auto':       { lesson: 'playlists', fn: 'apToggle' },
+    // Smart playlists (smartplaylists.js — SMART-PLAYLISTS-PLAN.md step 11)
+    'sp.open':       { lesson: 'smart', fn: 'dcPlToggleExpand', test: a => typeof spIsSmart === 'function' && spIsSmart(a[0]) },
+    'sp.build':      { lesson: 'smart', open: '#spBuilderModal' },
+    'sp.mix':        { lesson: 'smart', open: '#spMixModal' },
+    'sp.bell':       { lesson: 'smart', fn: 'spSetNotify', test: a => a[1] === true },
+    'sp.copy':       { lesson: 'smart', fn: 'spSaveCopy' },
+    'sp.share':      { lesson: 'smart', fn: 'spShareToBoard' },
     // Music player (app.js _yt* functions — PLAYER-PLAN.md step 13)
     'np.open':       { lesson: 'player', fn: 'openYtPlayer' },
     'np.tab':        { lesson: 'player', fn: '_ytShowTab', test: a => a[0] && a[0] !== 'next' },
@@ -387,6 +394,12 @@
     'pl.add':        { nav: 'week', ring: '#songsBody tr[data-ea-key]' },
     'pl.export':     { nav: 'playlists', ring: '#dcPlMain [onclick*="dcPlExportMenu"], #dcPlMain .plx-grid, #dcPlMain .plx-new' },
     'pl.auto':       { nav: 'playlists', ring: '#apSetup' },
+    'sp.open':       { nav: 'playlists', ring: '#dcPlMain .plx-smart-tag, #dcPlMain .plx-grid' },
+    'sp.build':      { nav: 'playlists', ring: '#dcPlMain .plx-new-smart' },
+    'sp.mix':        { nav: 'playlists', ring: '#dcPlMain .plx-new-smart' },
+    'sp.bell':       { nav: 'playlists', ring: '#dcPlMain .sp-nt-row, #dcPlMain .plx-smart-tag' },
+    'sp.copy':       { nav: 'playlists', ring: '#dcPlMain [onclick^="spSaveCopy"], #dcPlMain .plx-smart-tag' },
+    'sp.share':      { nav: 'playlists', ring: '#dcPlMain .sp-share-btn, #dcPlMain .plx-smart-tag' },
     // Music player: open it first (with this week's top song) if it is closed
     'np.open':       { prep: ['_ytGuideOpen'], ring: '#ytMiniPauseBtn' },
     'np.tab':        { prep: ['_ytGuideOpen'], ring: '#ytMiniPlayer .ytp-tabs' },

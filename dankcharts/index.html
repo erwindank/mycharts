@@ -33,7 +33,7 @@
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=366"></script>
+  <script defer src="translations.js?v=367"></script>
   <!-- Only the visitor's own language is downloaded (translations.js holds
        English). This writes a defer tag for the saved language right here, so
        it runs straight after translations.js and before app.js, and the page
@@ -41,7 +41,7 @@
        whenever translations.es / pt-BR / pt-PT .js change (setup-guide.html
        has the same line). -->
   <script>
-    window.DC_I18N_V = 56;
+    window.DC_I18N_V = 57;
     (function () {
       try {
         var l = localStorage.getItem('dankcharts-lang');
@@ -4454,7 +4454,7 @@
        the whole start. app.js reads this tag's content and loads the file once
        the page has finished loading, or straight away when What's New opens
        (dcClEnsureData). Bump ?v= here exactly as before. -->
-  <meta id="dcChangelogSrc" name="dc-changelog-src" content="changelog.js?v=555">
+  <meta id="dcChangelogSrc" name="dc-changelog-src" content="changelog.js?v=558">
   <!-- Community board tab (suggestions / bugs / discussion). Loaded before
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
   <!-- Glow kit: the drawn, glowing icons for titles, Records headings, Guide cards and stat tiles -->
@@ -4494,7 +4494,7 @@
        anywhere in the app; the lessons themselves (guide-lessons*.js) and the
        picture measurements load only when the guide opens. After app.js: it
        wraps app functions and takes over dcRenderChartsGuideView. -->
-  <script defer src="guide.js?v=26"></script>
+  <script defer src="guide.js?v=28"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at

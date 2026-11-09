@@ -881,6 +881,41 @@ window.GL = {
       quiz: [ { id: 'q1', answer: 2 }, { id: 'q2', answer: 0 }, { id: 'q3', answer: 1 } ],
       tips: [ ['pl-pick', 'item', 'pl.add'], ['pl-top', 'ap', 'pl.auto'], ['pl-export', 'item', 'pl.export'], ['pl-open', 'drag', 'pl.open'] ]
     },
+    /* ── Smart playlists (SMART-PLAYLISTS-PLAN.md step 11) ─────────
+       Playlists that fill themselves from rules (smartplaylists.js). */
+    { id: 'smart', area: 'more', nav: 'playlists', mins: 5, cover: 'sp-top',
+      scenes: [
+        { id: 'top', shot: 'sp-top', phone: true, spots: ['new', 'create', 'mix', 'card', 'tag', 'change', 'ready', 'readybtn'] },
+        { id: 'open', shot: 'sp-open', phone: true, spots: ['kicker', 'rules', 'pick', 'bell', 'edit', 'copy', 'share', 'changes', 'newrow'] },
+        { id: 'build', shot: 'sp-build',
+          spots: ['name', 'start', 'match', 'rule', 'field', 'chart', 'cond', 'value', 'group', 'add', 'sort', 'size', 'per', 'mode', 'count', 'desc'] },
+        { id: 'mix', shot: 'sp-mix', spots: ['lists', 'on', 'size', 'per', 'name', 'preview', 'play', 'save'] },
+        { id: 'share', shot: 'sp-share', spots: ['tag', 'card', 'desc', 'match', 'add'] }
+      ],
+      howto: [
+        { id: 'make', challenge: 'sp.build', slides: [
+          { shot: 'sp-top', spot: 'create' }, { shot: 'sp-build', spot: 'start' }, { shot: 'sp-build', spot: 'rule' },
+          { shot: 'sp-build', spot: 'group' }, { shot: 'sp-build', spot: 'count' }, { shot: 'sp-build', spot: 'mode' } ] },
+        { id: 'ready', challenge: 'sp.open', slides: [
+          { shot: 'sp-top', spot: 'tag' }, { shot: 'sp-open', spot: 'rules' }, { shot: 'sp-open', spot: 'pick' }, { shot: 'sp-top', spot: 'readybtn' } ] },
+        { id: 'changes', challenge: 'sp.bell', slides: [
+          { shot: 'sp-top', spot: 'change' }, { shot: 'sp-open', spot: 'changes' }, { shot: 'sp-open', spot: 'bell' } ] },
+        { id: 'mix', challenge: 'sp.mix', slides: [
+          { shot: 'sp-top', spot: 'mix' }, { shot: 'sp-mix', spot: 'lists' }, { shot: 'sp-mix', spot: 'size' }, { shot: 'sp-mix', spot: 'play' } ] },
+        { id: 'share', challenge: 'sp.share', slides: [
+          { shot: 'sp-open', spot: 'share' }, { shot: 'sp-share', spot: 'card' }, { shot: 'sp-share', spot: 'add' } ] }
+      ],
+      options: [
+        { id: 'list', items: [
+          { id: 'sort', shot: 'sp-build', spot: 'sort', def: '{{t:sp_b_dir_best}}' }, { id: 'size', shot: 'sp-build', spot: 'size', def: '500' },
+          { id: 'per', shot: 'sp-build', spot: 'per', def: '{{t:sp_mix_any}}' }, { id: 'mode', shot: 'sp-build', spot: 'mode', def: '{{t:sp_b_mode_live}}' } ] },
+        { id: 'one', items: [
+          { id: 'bell', shot: 'sp-open', spot: 'bell', def: 'off' }, { id: 'copy', shot: 'sp-open', spot: 'copy' }, { id: 'share', shot: 'sp-open', spot: 'share' } ] }
+      ],
+      challenges: ['sp.open', 'sp.build', 'sp.mix', 'sp.bell', 'sp.copy', 'sp.share'],
+      quiz: [ { id: 'q1', answer: 1 }, { id: 'q2', answer: 0 }, { id: 'q3', answer: 2 } ],
+      tips: [ ['sp-build', 'group', 'sp.build'], ['sp-open', 'bell', 'sp.bell'], ['sp-mix', 'lists', 'sp.mix'], ['sp-share', 'add', 'sp.share'] ]
+    },
     /* ── Lesson 15: Raw Data (every play, corrections, rules) ── */
     /* ── The music player (PLAYER-PLAN.md step 13) ─────────────────
        Not a tab: it opens from any Play. "Show me" opens it with this
@@ -3893,6 +3928,138 @@ window.GL_TEXT.en = {
         'Turn on {{t:ap_row_week}} under {{t:ap_setup_title}} and every week’s top songs become a playlist.',
         'Export a playlist as a CSV and an import tool can put it in Spotify or Apple Music.',
         'Drag a song by its number to move it up or down a playlist.'
+      ]
+    },
+    smart: {
+      title: 'Smart playlists',
+      promise: 'Playlists that fill themselves from rules about your listening, and keep up as your taste changes.',
+      scenes: {
+        top: { title: 'Smart playlists in your library', spots: {
+          new: ['{{t:sp_b_card_title}}', 'Make your own smart playlist, or mix a few playlists into one.'],
+          create: ['{{t:sp_b_card_btn}}', 'Opens the rules builder.'],
+          mix: ['{{t:sp_mix_btn}}', 'Blends 2 to 4 playlists into one.'],
+          card: ['A smart playlist', 'It sits with your other playlists and updates by itself.'],
+          tag: ['{{t:sp_tag}}', 'This label marks the ones that fill themselves.'],
+          change: ['What changed', 'New songs and songs that dropped out since you last opened it.'],
+          ready: ['{{t:sp_ready_title}}', 'Ready-made ones you don’t have, to add back.'],
+          readybtn: ['A ready-made list', 'One click adds it to your playlists.']
+        } },
+        open: { title: 'One smart playlist', spots: {
+          kicker: ['{{t:sp_tag}}', 'It fills itself from its rules.'],
+          rules: ['The rules', 'What it picks, in plain words.'],
+          pick: ['{{t:sp_pick_year}}', 'Some ready-made lists have a setting of their own, like the year.'],
+          bell: ['{{t:sp_nt_switch}}', 'A notification when several new songs come in (signed in).'],
+          edit: ['{{t:sp_b_edit}}', 'Change the rules.'],
+          copy: ['{{t:sp_copy}}', 'Keeps today’s songs as a playlist that won’t change.'],
+          share: ['{{t:sp_share}}', 'Posts the rules, so others can make it from their own listening.'],
+          changes: ['{{t:sp_cg_title}}', 'Which songs came in and which dropped out.'],
+          newrow: ['{{t:badge_new_songs}}', 'A song that’s new since you last looked.']
+        } },
+        build: { title: '{{t:sp_b_title_new}}', spots: {
+          name: ['{{t:sp_b_name}}', 'What to call it.'],
+          start: ['{{t:sp_b_start}}', 'Blank, or a copy of a ready-made list to change.'],
+          match: ['{{t:sp_b_match_all}} / {{t:sp_b_match_any}}', 'Every rule must be true, or just one.'],
+          rule: ['A rule', 'What to check, how, and the value.'],
+          field: ['{{t:sp_b_field}}', 'Plays, dates, charts, genre, when you listen, ratings, your other playlists…'],
+          chart: ['{{t:sp_b_chart}}', 'A chart rule picks its chart: daily, weekly, monthly or yearly.'],
+          cond: ['{{t:sp_b_condition}}', 'At least, in the top, in the last… days, contains…'],
+          value: ['{{t:sp_b_value}}', 'A number, a date or a name. Artist, album and genre suggest your own.'],
+          group: ['A group', 'Rules inside the rules, with their own all / any.'],
+          add: ['{{t:sp_b_add_rule}} / {{t:sp_b_add_group}}', 'More rules.'],
+          sort: ['{{t:sp_b_sort}}', 'The order of the songs, or random.'],
+          size: ['{{t:sp_b_limit}}', 'How many songs, 500 at most.'],
+          per: ['{{t:sp_b_per_artist}}', 'So one artist can’t take over.'],
+          mode: ['{{t:sp_b_save_as}}', '{{t:sp_b_mode_live}} or {{t:sp_b_mode_once}}.'],
+          count: ['How many match', 'Changes as you change the rules.'],
+          desc: ['In plain words', 'The rules as one sentence, and the first songs.']
+        } },
+        mix: { title: '{{t:sp_mix_btn}}', spots: {
+          lists: ['{{t:sp_mix_pick}}', 'Smart ones first, normal ones too.'],
+          on: ['A picked playlist', 'The number is its turn.'],
+          size: ['{{t:sp_mix_size}}', '25, 50 or 100 songs.'],
+          per: ['{{t:sp_b_per_artist}}', 'Keeps the mix varied.'],
+          name: ['{{t:sp_b_name}}', 'For when you save it.'],
+          preview: ['The mix', 'A song from each playlist in turn, no repeats.'],
+          play: ['{{t:sp_mix_play}}', 'Straight into the music player.'],
+          save: ['{{t:sp_mix_save}}', 'Keeps it as a normal playlist.']
+        } },
+        share: { title: 'A smart playlist on the {{t:nav_board}}', spots: {
+          tag: ['{{t:sp_tag}}', 'Posts with a smart playlist carry this tag.'],
+          card: ['The shared playlist', 'Its rules, not anyone’s songs.'],
+          desc: ['The rules', 'In your own language.'],
+          match: ['With your library', 'How many of your songs it would hold.'],
+          add: ['{{t:sp_share_add}}', 'Makes it from your own listening.']
+        } }
+      },
+      howto: {
+        make: { title: 'Make a smart playlist', slides: [
+          'Press {{t:sp_b_card_btn}} on the {{t:sp_b_card_title}} card.',
+          'Start blank, or from a ready-made list.',
+          'Pick what to check, the condition and the value.',
+          'Add a group for “this or that”.',
+          'Watch how many songs match.',
+          'Choose {{t:sp_b_mode_live}}, then {{t:sp_b_save}}.'
+        ] },
+        ready: { title: 'Use a ready-made one', slides: [
+          'They carry the {{t:sp_tag}} label.',
+          'Open one to see its rules.',
+          'Some have a setting, like the year.',
+          'Deleted one? Add it back under {{t:sp_ready_title}}.'
+        ] },
+        changes: { title: 'See what changed', slides: [
+          'The card shows new and dropped songs.',
+          'Open it: they’re listed at the top.',
+          'Turn on the bell for a notification.'
+        ] },
+        mix: { title: 'Mix playlists', slides: [
+          'Press {{t:sp_mix_btn}}.',
+          'Pick 2 to 4 playlists.',
+          'Choose a size.',
+          '{{t:sp_mix_play}} or {{t:sp_mix_save}}.'
+        ] },
+        share: { title: 'Share one on the {{t:nav_board}}', slides: [
+          'Press {{t:sp_share}} on an open smart playlist.',
+          'Post it: others see the rules.',
+          'They press {{t:sp_share_add}} and get it from their own listening.'
+        ] }
+      },
+      options: {
+        list: { title: 'In the builder', items: {
+          sort: ['{{t:sp_b_sort}}', 'Any fact, top first or reversed, or random (a new order each day).'],
+          size: ['{{t:sp_b_limit}}', 'Up to 500 songs.'],
+          per: ['{{t:sp_b_per_artist}}', '{{t:sp_mix_any}}, or a number.'],
+          mode: ['{{t:sp_b_save_as}}', '{{t:sp_b_mode_live}}, or {{t:sp_b_mode_once}} as a normal playlist.']
+        } },
+        one: { title: 'One smart playlist', items: {
+          bell: ['{{t:sp_nt_switch}}', 'On or off for each list (signed in).'],
+          copy: ['{{t:sp_copy}}', 'Today’s songs, kept as they are.'],
+          share: ['{{t:sp_share}}', 'The rules, for others to use.']
+        } }
+      },
+      challenges: {
+        'sp.open': ['Open a smart playlist', 'Look for the {{t:sp_tag}} label.'],
+        'sp.build': ['Open the rules builder', '{{t:sp_b_card_btn}} on the {{t:sp_b_card_title}} card, or {{t:sp_b_edit}}.'],
+        'sp.mix': ['Open {{t:sp_mix_btn}}', 'On the {{t:sp_b_card_title}} card.'],
+        'sp.bell': ['Turn on the bell for a smart playlist', 'In an open smart playlist (signed in).'],
+        'sp.copy': ['Save a copy of a smart playlist', 'The copy button in an open smart playlist.'],
+        'sp.share': ['Share a smart playlist on the {{t:nav_board}}', '📣 in an open smart playlist (signed in).']
+      },
+      quiz: {
+        q1: ['What does sharing a smart playlist on the {{t:nav_board}} share?',
+          ['Your songs', 'Its rules', 'A link to your profile'],
+          'Only the rules: everyone who adds it gets songs from their own listening.'],
+        q2: ['You want a playlist that never changes. What do you pick?',
+          ['{{t:sp_b_mode_once}}, or {{t:sp_copy}}', '{{t:sp_b_mode_live}}', 'The bell'],
+          '{{t:sp_b_mode_once}} (or a copy) makes a normal playlist with today’s songs.'],
+        q3: ['How do you get “Pop or Rock songs that reached the top 10”?',
+          ['Two smart playlists', 'Sort by genre', 'A group set to {{t:sp_b_match_any}} for the genres, plus a peak rule'],
+          'A group lets part of the rules be “this or that” while every other rule still counts.']
+      },
+      tips: [
+        'A group inside the rules gives you “this or that”, like Pop or Rock, while every other rule still counts.',
+        'Turn on the bell on a smart playlist and hear about it when several new songs come in.',
+        '{{t:sp_mix_btn}} blends up to 4 playlists into one, a song from each in turn.',
+        'A smart playlist shared on the {{t:nav_board}} builds from your own listening when you press {{t:sp_share_add}}.'
       ]
     },
     player: {

@@ -2847,6 +2847,138 @@ window.GL_TEXT.es = {
       ]
     },
     // Music player (PLAYER-PLAN.md step 14) — names use the app's own labels ({{t:yt_np_…}})
+    smart: {
+      title: 'Listas inteligentes',
+      promise: 'Listas que se llenan solas con reglas sobre lo que escuchas, y cambian contigo.',
+      scenes: {
+        top: { title: 'Listas inteligentes en tu biblioteca', spots: {
+          new: ['{{t:sp_b_card_title}}', 'Crea tu propia lista inteligente o mezcla varias listas en una.'],
+          create: ['{{t:sp_b_card_btn}}', 'Abre el editor de reglas.'],
+          mix: ['{{t:sp_mix_btn}}', 'Junta de 2 a 4 listas en una.'],
+          card: ['Una lista inteligente', 'Está con tus otras listas y se actualiza sola.'],
+          tag: ['{{t:sp_tag}}', 'Esta etiqueta marca las que se llenan solas.'],
+          change: ['Qué cambió', 'Canciones nuevas y las que salieron desde la última vez que la abriste.'],
+          ready: ['{{t:sp_ready_title}}', 'Las listas ya hechas que no tienes, para añadirlas de nuevo.'],
+          readybtn: ['Una lista ya hecha', 'Un clic la añade a tus listas.']
+        } },
+        open: { title: 'Una lista inteligente', spots: {
+          kicker: ['{{t:sp_tag}}', 'Se llena sola con sus reglas.'],
+          rules: ['Las reglas', 'Qué elige, en palabras sencillas.'],
+          pick: ['{{t:sp_pick_year}}', 'Algunas listas ya hechas tienen su propio ajuste, como el año.'],
+          bell: ['{{t:sp_nt_switch}}', 'Una notificación cuando entran varias canciones nuevas (con sesión iniciada).'],
+          edit: ['{{t:sp_b_edit}}', 'Cambia las reglas.'],
+          copy: ['{{t:sp_copy}}', 'Guarda las canciones de hoy en una lista que no cambia.'],
+          share: ['{{t:sp_share}}', 'Publica las reglas para que otros la creen con lo que escuchan.'],
+          changes: ['{{t:sp_cg_title}}', 'Qué canciones entraron y cuáles salieron.'],
+          newrow: ['{{t:badge_new_songs}}', 'Una canción nueva desde la última vez.']
+        } },
+        build: { title: '{{t:sp_b_title_new}}', spots: {
+          name: ['{{t:sp_b_name}}', 'Cómo llamarla.'],
+          start: ['{{t:sp_b_start}}', 'En blanco, o una copia de una lista ya hecha para cambiarla.'],
+          match: ['{{t:sp_b_match_all}} / {{t:sp_b_match_any}}', 'Todas las reglas, o solo una.'],
+          rule: ['Una regla', 'Qué comprobar, cómo y el valor.'],
+          field: ['{{t:sp_b_field}}', 'Reproducciones, fechas, listas, género, cuándo escuchas, puntuaciones, tus otras listas…'],
+          chart: ['{{t:sp_b_chart}}', 'Una regla de ranking elige su lista: diaria, semanal, mensual o anual.'],
+          cond: ['{{t:sp_b_condition}}', 'Al menos, en el top, en los últimos… días, contiene…'],
+          value: ['{{t:sp_b_value}}', 'Un número, una fecha o un nombre. Artista, álbum y género te sugieren los tuyos.'],
+          group: ['Un grupo', 'Reglas dentro de las reglas, con su propio “todas / alguna”.'],
+          add: ['{{t:sp_b_add_rule}} / {{t:sp_b_add_group}}', 'Más reglas.'],
+          sort: ['{{t:sp_b_sort}}', 'El orden de las canciones, o aleatorio.'],
+          size: ['{{t:sp_b_limit}}', 'Cuántas canciones, 500 como máximo.'],
+          per: ['{{t:sp_b_per_artist}}', 'Para que un artista no lo acapare todo.'],
+          mode: ['{{t:sp_b_save_as}}', '{{t:sp_b_mode_live}} o {{t:sp_b_mode_once}}.'],
+          count: ['Cuántas cumplen', 'Cambia al cambiar las reglas.'],
+          desc: ['En palabras sencillas', 'Las reglas en una frase y las primeras canciones.']
+        } },
+        mix: { title: '{{t:sp_mix_btn}}', spots: {
+          lists: ['{{t:sp_mix_pick}}', 'Primero las inteligentes, también las normales.'],
+          on: ['Una lista elegida', 'El número es su turno.'],
+          size: ['{{t:sp_mix_size}}', '25, 50 o 100 canciones.'],
+          per: ['{{t:sp_b_per_artist}}', 'Para que la mezcla sea variada.'],
+          name: ['{{t:sp_b_name}}', 'Para cuando la guardes.'],
+          preview: ['La mezcla', 'Una canción de cada lista por turnos, sin repetir.'],
+          play: ['{{t:sp_mix_play}}', 'Directo al reproductor.'],
+          save: ['{{t:sp_mix_save}}', 'La guarda como lista normal.']
+        } },
+        share: { title: 'Una lista inteligente en el {{t:nav_board}}', spots: {
+          tag: ['{{t:sp_tag}}', 'Las publicaciones con una lista inteligente llevan esta etiqueta.'],
+          card: ['La lista compartida', 'Sus reglas, no las canciones de nadie.'],
+          desc: ['Las reglas', 'En tu propio idioma.'],
+          match: ['Con tu biblioteca', 'Cuántas de tus canciones tendría.'],
+          add: ['{{t:sp_share_add}}', 'La crea con lo que tú escuchas.']
+        } }
+      },
+      howto: {
+        make: { title: 'Crea una lista inteligente', slides: [
+          'Pulsa {{t:sp_b_card_btn}} en la tarjeta {{t:sp_b_card_title}}.',
+          'Empieza en blanco o desde una lista ya hecha.',
+          'Elige qué comprobar, la condición y el valor.',
+          'Añade un grupo para “esto o aquello”.',
+          'Mira cuántas canciones cumplen.',
+          'Elige {{t:sp_b_mode_live}} y pulsa {{t:sp_b_save}}.'
+        ] },
+        ready: { title: 'Usa una lista ya hecha', slides: [
+          'Llevan la etiqueta {{t:sp_tag}}.',
+          'Abre una para ver sus reglas.',
+          'Algunas tienen un ajuste, como el año.',
+          '¿Borraste una? Añádela de nuevo en {{t:sp_ready_title}}.'
+        ] },
+        changes: { title: 'Mira qué cambió', slides: [
+          'La tarjeta muestra las canciones nuevas y las que salieron.',
+          'Ábrela: aparecen arriba.',
+          'Activa la campana para recibir una notificación.'
+        ] },
+        mix: { title: 'Mezcla listas', slides: [
+          'Pulsa {{t:sp_mix_btn}}.',
+          'Elige de 2 a 4 listas.',
+          'Elige un tamaño.',
+          '{{t:sp_mix_play}} o {{t:sp_mix_save}}.'
+        ] },
+        share: { title: 'Compártela en el {{t:nav_board}}', slides: [
+          'Pulsa {{t:sp_share}} en una lista inteligente abierta.',
+          'Publícala: los demás ven las reglas.',
+          'Pulsan {{t:sp_share_add}} y la obtienen con lo que escuchan.'
+        ] }
+      },
+      options: {
+        list: { title: 'En el editor', items: {
+          sort: ['{{t:sp_b_sort}}', 'Cualquier dato, lo mejor primero o al revés, o aleatorio (un orden nuevo cada día).'],
+          size: ['{{t:sp_b_limit}}', 'Hasta 500 canciones.'],
+          per: ['{{t:sp_b_per_artist}}', '{{t:sp_mix_any}}, o un número.'],
+          mode: ['{{t:sp_b_save_as}}', '{{t:sp_b_mode_live}}, o {{t:sp_b_mode_once}} como lista normal.']
+        } },
+        one: { title: 'Una lista inteligente', items: {
+          bell: ['{{t:sp_nt_switch}}', 'Activada o no en cada lista (con sesión iniciada).'],
+          copy: ['{{t:sp_copy}}', 'Las canciones de hoy, tal cual.'],
+          share: ['{{t:sp_share}}', 'Las reglas, para que otros las usen.']
+        } }
+      },
+      challenges: {
+        'sp.open': ['Abre una lista inteligente', 'Busca la etiqueta {{t:sp_tag}}.'],
+        'sp.build': ['Abre el editor de reglas', '{{t:sp_b_card_btn}} en la tarjeta {{t:sp_b_card_title}}, o {{t:sp_b_edit}}.'],
+        'sp.mix': ['Abre {{t:sp_mix_btn}}', 'En la tarjeta {{t:sp_b_card_title}}.'],
+        'sp.bell': ['Activa la campana de una lista inteligente', 'En una lista inteligente abierta (con sesión iniciada).'],
+        'sp.copy': ['Guarda una copia de una lista inteligente', 'El botón de copiar en una lista inteligente abierta.'],
+        'sp.share': ['Comparte una lista inteligente en el {{t:nav_board}}', '📣 en una lista inteligente abierta (con sesión iniciada).']
+      },
+      quiz: {
+        q1: ['¿Qué se comparte al compartir una lista inteligente en el {{t:nav_board}}?',
+          ['Tus canciones', 'Sus reglas', 'Un enlace a tu perfil'],
+          'Solo las reglas: quien la añade obtiene canciones de lo que escucha.'],
+        q2: ['Quieres una lista que nunca cambie. ¿Qué eliges?',
+          ['{{t:sp_b_mode_once}}, o {{t:sp_copy}}', '{{t:sp_b_mode_live}}', 'La campana'],
+          '{{t:sp_b_mode_once}} (o una copia) crea una lista normal con las canciones de hoy.'],
+        q3: ['¿Cómo consigues “canciones de Pop o Rock que llegaron al top 10”?',
+          ['Dos listas inteligentes', 'Ordenar por género', 'Un grupo con {{t:sp_b_match_any}} para los géneros, más una regla de posición máxima'],
+          'Un grupo permite que parte de las reglas sea “esto o aquello” mientras el resto sigue contando.']
+      },
+      tips: [
+        'Un grupo dentro de las reglas te da “esto o aquello”, como Pop o Rock, mientras las demás reglas siguen contando.',
+        'Activa la campana de una lista inteligente y entérate cuando entren varias canciones nuevas.',
+        '{{t:sp_mix_btn}} junta hasta 4 listas en una, una canción de cada una por turnos.',
+        'Una lista inteligente compartida en el {{t:nav_board}} se crea con lo que tú escuchas al pulsar {{t:sp_share_add}}.'
+      ]
+    },
     player: {
       title: 'Reproductor',
       promise: 'Escucha cualquier canción de tus listas, sigue la letra, encuentra el vídeo correcto y guarda las canciones que te encantan.',

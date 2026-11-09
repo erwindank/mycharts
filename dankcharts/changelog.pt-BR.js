@@ -13,6 +13,36 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "A Charts Guide lesson for smart playlists":
+    ["Uma lição do Guia de Charts sobre playlists inteligentes",
+     "O Guia de Charts tem uma lição nova sobre playlists inteligentes: o editor, as playlists prontas, Misturar e compartilhar, com imagens e desafios."],
+  "Share smart playlists on the Board":
+    ["Compartilhe playlists inteligentes no Fórum",
+     "📣 numa playlist inteligente publica as regras no Fórum. Qualquer pessoa pode tocar em Adicionar às minhas playlists e ter a mesma playlist com o que ouve."],
+  "Hear when a smart playlist changes a lot":
+    ["Saiba quando uma playlist inteligente muda muito",
+     "Ligue o sininho de uma playlist inteligente e uma notificação avisa quando várias músicas novas entram."],
+  "Mix it: blend playlists into one":
+    ["Misturar: junte playlists em uma",
+     "Misturar, no cartão Playlist inteligente, pega uma música de cada uma de 2 a 4 playlists, uma de cada vez, sem repetir. Toque a mistura ou salve."],
+  "See what changed in a smart playlist":
+    ["Veja o que mudou numa playlist inteligente",
+     "As playlists inteligentes mostram quais músicas entraram e saíram desde a última vez que você abriu, com NOVA nas novas. Salvar uma cópia guarda as músicas de hoje como playlist normal."],
+  "Smart playlists can use your other playlists":
+    ["Playlists inteligentes podem usar suas outras playlists",
+     "Uma regra agora pode verificar se uma música está numa das suas playlists, então uma playlist inteligente pode ser “minhas top músicas, menos minha playlist da academia”."],
+  "Friendlier names for the ready-made smart playlists":
+    ["Nomes mais simpáticos para as playlists inteligentes prontas",
+     "As playlists inteligentes prontas ganharam nomes divertidos, e as que mostravam um código em vez de um nome foram renomeadas."],
+  "Make your own smart playlist":
+    ["Crie sua própria playlist inteligente",
+     "O cartão Playlist inteligente abre um editor: escolha regras sobre reproduções, datas, paradas, gêneros e mais, combine-as e veja quantas músicas atendem enquanto isso."],
+  "Ready-made smart playlists":
+    ["Playlists inteligentes prontas",
+     "Doze playlists inteligentes feitas com o que você ouve, adicionadas para você: as mais tocadas ultimamente, favoritas esquecidas, seus #1, as 50 do ano e mais."],
+  "Smart playlists":
+    ["Playlists inteligentes",
+     "Playlists que se enchem sozinhas com regras e acompanham o que você ouve. Ficam com suas outras playlists, marcadas como Playlist inteligente, e sincronizam com sua conta."],
   "Keep the screen on while music plays":
     ["Mantenha a tela ligada enquanto a música toca",
      "O celular pausa o player quando a tela bloqueia. Ferramentas → Tela ligada não deixa o celular bloquear enquanto a música toca, para ela continuar."],
@@ -4679,6 +4709,15 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 /* Highlight cards (DC_CL_HIGHLIGHTS in changelog.js), keyed by id. */
 window.DC_CL_HIGHLIGHTS_I18N = window.DC_CL_HIGHLIGHTS_I18N || {};
 window.DC_CL_HIGHLIGHTS_I18N["pt-BR"] = {
+  "smart-playlists": {
+    title: "Playlists inteligentes",
+    intro: "Playlists que se enchem sozinhas com o que você ouve e mudam junto com você.",
+    points: [
+      "Uma dúzia de prontas para começar, de Não sai da minha cabeça a Joias escondidas.",
+      "Crie as suas com regras simples sobre reproduções, paradas, datas e mais.",
+      "Veja o que mudou, misture playlists ou compartilhe uma no Fórum.",
+    ],
+  },
   "music-player": {
     title: "Um player novo",
     intro: "O player tem um visual novo e ficou muito mais fácil de usar: cada botão tem nome e ele mostra como a música está nas suas paradas.",

@@ -2847,6 +2847,138 @@ window.GL_TEXT['pt-BR'] = {
       ]
     },
     // Music player (PLAYER-PLAN.md step 14) — names use the app's own labels ({{t:yt_np_…}})
+    smart: {
+      title: 'Playlists inteligentes',
+      promise: 'Playlists que se enchem sozinhas com regras sobre o que você ouve, e mudam junto com você.',
+      scenes: {
+        top: { title: 'Playlists inteligentes na sua biblioteca', spots: {
+          new: ['{{t:sp_b_card_title}}', 'Crie sua própria playlist inteligente ou misture várias playlists em uma.'],
+          create: ['{{t:sp_b_card_btn}}', 'Abre o editor de regras.'],
+          mix: ['{{t:sp_mix_btn}}', 'Junta de 2 a 4 playlists em uma.'],
+          card: ['Uma playlist inteligente', 'Fica com suas outras playlists e se atualiza sozinha.'],
+          tag: ['{{t:sp_tag}}', 'Essa etiqueta marca as que se enchem sozinhas.'],
+          change: ['O que mudou', 'Músicas novas e as que saíram desde a última vez que você abriu.'],
+          ready: ['{{t:sp_ready_title}}', 'As prontas que você não tem, para adicionar de volta.'],
+          readybtn: ['Uma playlist pronta', 'Um clique adiciona às suas playlists.']
+        } },
+        open: { title: 'Uma playlist inteligente', spots: {
+          kicker: ['{{t:sp_tag}}', 'Ela se enche sozinha com as regras.'],
+          rules: ['As regras', 'O que ela escolhe, em palavras simples.'],
+          pick: ['{{t:sp_pick_year}}', 'Algumas playlists prontas têm um ajuste próprio, como o ano.'],
+          bell: ['{{t:sp_nt_switch}}', 'Uma notificação quando várias músicas novas entram (com login).'],
+          edit: ['{{t:sp_b_edit}}', 'Mude as regras.'],
+          copy: ['{{t:sp_copy}}', 'Guarda as músicas de hoje numa playlist que não muda.'],
+          share: ['{{t:sp_share}}', 'Publica as regras para outras pessoas criarem com o que elas ouvem.'],
+          changes: ['{{t:sp_cg_title}}', 'Quais músicas entraram e quais saíram.'],
+          newrow: ['{{t:badge_new_songs}}', 'Uma música nova desde a última vez.']
+        } },
+        build: { title: '{{t:sp_b_title_new}}', spots: {
+          name: ['{{t:sp_b_name}}', 'Como chamá-la.'],
+          start: ['{{t:sp_b_start}}', 'Em branco, ou uma cópia de uma playlist pronta para mudar.'],
+          match: ['{{t:sp_b_match_all}} / {{t:sp_b_match_any}}', 'Todas as regras, ou só uma.'],
+          rule: ['Uma regra', 'O que verificar, como e o valor.'],
+          field: ['{{t:sp_b_field}}', 'Reproduções, datas, paradas, gênero, quando você ouve, notas, suas outras playlists…'],
+          chart: ['{{t:sp_b_chart}}', 'Uma regra de parada escolhe a parada: diária, semanal, mensal ou anual.'],
+          cond: ['{{t:sp_b_condition}}', 'Pelo menos, no top, nos últimos… dias, contém…'],
+          value: ['{{t:sp_b_value}}', 'Um número, uma data ou um nome. Artista, álbum e gênero sugerem os seus.'],
+          group: ['Um grupo', 'Regras dentro das regras, com o próprio “todas / qualquer uma”.'],
+          add: ['{{t:sp_b_add_rule}} / {{t:sp_b_add_group}}', 'Mais regras.'],
+          sort: ['{{t:sp_b_sort}}', 'A ordem das músicas, ou aleatória.'],
+          size: ['{{t:sp_b_limit}}', 'Quantas músicas, no máximo 500.'],
+          per: ['{{t:sp_b_per_artist}}', 'Para um artista não tomar conta.'],
+          mode: ['{{t:sp_b_save_as}}', '{{t:sp_b_mode_live}} ou {{t:sp_b_mode_once}}.'],
+          count: ['Quantas atendem', 'Muda quando você muda as regras.'],
+          desc: ['Em palavras simples', 'As regras numa frase e as primeiras músicas.']
+        } },
+        mix: { title: '{{t:sp_mix_btn}}', spots: {
+          lists: ['{{t:sp_mix_pick}}', 'As inteligentes primeiro, as normais também.'],
+          on: ['Uma playlist escolhida', 'O número é a vez dela.'],
+          size: ['{{t:sp_mix_size}}', '25, 50 ou 100 músicas.'],
+          per: ['{{t:sp_b_per_artist}}', 'Deixa a mistura variada.'],
+          name: ['{{t:sp_b_name}}', 'Para quando você salvar.'],
+          preview: ['A mistura', 'Uma música de cada playlist, uma de cada vez, sem repetir.'],
+          play: ['{{t:sp_mix_play}}', 'Direto no player.'],
+          save: ['{{t:sp_mix_save}}', 'Salva como playlist normal.']
+        } },
+        share: { title: 'Uma playlist inteligente no {{t:nav_board}}', spots: {
+          tag: ['{{t:sp_tag}}', 'Posts com uma playlist inteligente têm essa etiqueta.'],
+          card: ['A playlist compartilhada', 'As regras dela, não as músicas de ninguém.'],
+          desc: ['As regras', 'No seu idioma.'],
+          match: ['Com a sua biblioteca', 'Quantas das suas músicas ela teria.'],
+          add: ['{{t:sp_share_add}}', 'Cria com o que você ouve.']
+        } }
+      },
+      howto: {
+        make: { title: 'Crie uma playlist inteligente', slides: [
+          'Toque em {{t:sp_b_card_btn}} no cartão {{t:sp_b_card_title}}.',
+          'Comece em branco ou de uma playlist pronta.',
+          'Escolha o que verificar, a condição e o valor.',
+          'Adicione um grupo para “isto ou aquilo”.',
+          'Veja quantas músicas atendem.',
+          'Escolha {{t:sp_b_mode_live}} e toque em {{t:sp_b_save}}.'
+        ] },
+        ready: { title: 'Use uma playlist pronta', slides: [
+          'Elas têm a etiqueta {{t:sp_tag}}.',
+          'Abra uma para ver as regras.',
+          'Algumas têm um ajuste, como o ano.',
+          'Apagou uma? Adicione de volta em {{t:sp_ready_title}}.'
+        ] },
+        changes: { title: 'Veja o que mudou', slides: [
+          'O cartão mostra as músicas novas e as que saíram.',
+          'Abra: elas aparecem no topo.',
+          'Ligue o sininho para receber uma notificação.'
+        ] },
+        mix: { title: 'Misture playlists', slides: [
+          'Toque em {{t:sp_mix_btn}}.',
+          'Escolha de 2 a 4 playlists.',
+          'Escolha um tamanho.',
+          '{{t:sp_mix_play}} ou {{t:sp_mix_save}}.'
+        ] },
+        share: { title: 'Compartilhe no {{t:nav_board}}', slides: [
+          'Toque em {{t:sp_share}} numa playlist inteligente aberta.',
+          'Publique: os outros veem as regras.',
+          'Eles tocam em {{t:sp_share_add}} e recebem a playlist com o que ouvem.'
+        ] }
+      },
+      options: {
+        list: { title: 'No editor', items: {
+          sort: ['{{t:sp_b_sort}}', 'Qualquer dado, melhores primeiro ou ao contrário, ou aleatória (uma ordem nova a cada dia).'],
+          size: ['{{t:sp_b_limit}}', 'Até 500 músicas.'],
+          per: ['{{t:sp_b_per_artist}}', '{{t:sp_mix_any}}, ou um número.'],
+          mode: ['{{t:sp_b_save_as}}', '{{t:sp_b_mode_live}}, ou {{t:sp_b_mode_once}} como playlist normal.']
+        } },
+        one: { title: 'Uma playlist inteligente', items: {
+          bell: ['{{t:sp_nt_switch}}', 'Ligado ou não em cada playlist (com login).'],
+          copy: ['{{t:sp_copy}}', 'As músicas de hoje, como estão.'],
+          share: ['{{t:sp_share}}', 'As regras, para outras pessoas usarem.']
+        } }
+      },
+      challenges: {
+        'sp.open': ['Abra uma playlist inteligente', 'Procure a etiqueta {{t:sp_tag}}.'],
+        'sp.build': ['Abra o editor de regras', '{{t:sp_b_card_btn}} no cartão {{t:sp_b_card_title}}, ou {{t:sp_b_edit}}.'],
+        'sp.mix': ['Abra {{t:sp_mix_btn}}', 'No cartão {{t:sp_b_card_title}}.'],
+        'sp.bell': ['Ligue o sininho de uma playlist inteligente', 'Numa playlist inteligente aberta (com login).'],
+        'sp.copy': ['Salve uma cópia de uma playlist inteligente', 'O botão de copiar numa playlist inteligente aberta.'],
+        'sp.share': ['Compartilhe uma playlist inteligente no {{t:nav_board}}', '📣 numa playlist inteligente aberta (com login).']
+      },
+      quiz: {
+        q1: ['O que é compartilhado quando você compartilha uma playlist inteligente no {{t:nav_board}}?',
+          ['Suas músicas', 'As regras dela', 'Um link para o seu perfil'],
+          'Só as regras: quem adiciona recebe músicas do que ouve.'],
+        q2: ['Você quer uma playlist que nunca mude. O que escolhe?',
+          ['{{t:sp_b_mode_once}}, ou {{t:sp_copy}}', '{{t:sp_b_mode_live}}', 'O sininho'],
+          '{{t:sp_b_mode_once}} (ou uma cópia) cria uma playlist normal com as músicas de hoje.'],
+        q3: ['Como conseguir “músicas de Pop ou Rock que chegaram ao top 10”?',
+          ['Duas playlists inteligentes', 'Ordenar por gênero', 'Um grupo com {{t:sp_b_match_any}} para os gêneros, mais uma regra de pico'],
+          'Um grupo deixa parte das regras ser “isto ou aquilo” enquanto o resto continua valendo.']
+      },
+      tips: [
+        'Um grupo dentro das regras dá “isto ou aquilo”, como Pop ou Rock, enquanto as outras regras continuam valendo.',
+        'Ligue o sininho de uma playlist inteligente e fique sabendo quando várias músicas novas entrarem.',
+        '{{t:sp_mix_btn}} junta até 4 playlists em uma, uma música de cada, uma de cada vez.',
+        'Uma playlist inteligente compartilhada no {{t:nav_board}} é criada com o que você ouve quando você toca em {{t:sp_share_add}}.'
+      ]
+    },
     player: {
       title: 'Player de música',
       promise: 'Toque qualquer música das suas paradas, acompanhe a letra, ache o vídeo certo e guarde as músicas que você ama.',

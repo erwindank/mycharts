@@ -227,6 +227,13 @@ nothing has to be pasted. board.js hides the code (list, search, edit box)
 and shows a card: the rules in the reader's language, how many of their
 songs match, "Add to my playlists". Rules about the sharer's own playlists
 are left out; codes read from posts are cleaned to known fields only.
+Step 11 done 2026-11-09. Charts Guide lesson "smart" (5 scenes: sp-top,
+sp-open, sp-build, sp-mix, sp-share; 5 how-tos; 6 challenges sp.*; quiz; tips)
+in all four languages, pictures taken in all four (tools/guide-shots.mjs
+spView). What's New card "smart-playlists" + 10 changelog entries, four
+languages. Screen check in all 12 themes, desktop and phone (library, open
+list, builder, Mix it, Board card). Spanish "listas para usar" → "ya hechas".
+PLAN FINISHED.
 
 1. **Engine: song facts + rules.** smartplaylists.js with `spSongFacts()`
    (basics, plays, first/last played, ratings, genres, certs) and
