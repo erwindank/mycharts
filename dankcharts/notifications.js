@@ -31,6 +31,17 @@ let _ntLastAt = 0;        // time of the last one posted (see dcNotify)
 // How each kind reads: an emoji (the site uses emoji, not line icons, for
 // these), its category (cat: the coloured tile and the small label above the
 // text, nt_cat_<cat>) and its text.
+/* What a certified release is called right now: 'single' / 'ep' while that
+   type is Apart and the release is marked as one, else ''. Read from the
+   saved album title + artist (app.js certReleaseLabelType); the rtype saved
+   on the notification is only a fallback if app.js isn't ready. */
+function _ntCertRtype(p) {
+  if (typeof certReleaseLabelType === 'function' && p.title) {
+    try { return certReleaseLabelType(p.title, p.artist || ''); } catch (e) {}
+  }
+  return p.rtype || '';
+}
+
 const NT_KINDS = {
   // A playlist made by automatic chart playlists
   ap_made: { emoji: '🎵', cat: 'playlist', text: p => t('nt_ap_made', { name: p.name }) },
@@ -44,11 +55,15 @@ const NT_KINDS = {
   st_year: { emoji: '🎉', cat: 'soundtrack', text: p => t('nt_st_year', { year: p.key }) },
   // A song or album reached Gold / Platinum / Diamond (p.tier, p.mult)
   // The emoji follows the tier, same as the Certifications wall: 📀 gold, 💿 platinum, 💎 diamond
-  // p.rtype is 'single' / 'ep' when that type was Apart at the time (says "Your single…")
-  cert_new: { emoji: p => ({ platinum: '💿', diamond: '💎' })[p.tier] || '📀', cat: 'cert', text: p => t(p.type !== 'album' ? 'nt_cert_song'
-      : p.rtype === 'single' ? 'nt_cert_single' : p.rtype === 'ep' ? 'nt_cert_ep' : 'nt_cert_album', {
+  // Single / EP / album is decided when the list is drawn, from the release's
+  // current mark and the Apart setting (_ntCertRtype), so old notifications
+  // follow too and a type put back "With albums" says album again.
+  cert_new: { emoji: p => ({ platinum: '💿', diamond: '💎' })[p.tier] || '📀', cat: 'cert', text: p => {
+    const rt = p.type === 'album' ? _ntCertRtype(p) : '';
+    return t(p.type !== 'album' ? 'nt_cert_song'
+      : rt === 'single' ? 'nt_cert_single' : rt === 'ep' ? 'nt_cert_ep' : 'nt_cert_album', {
     title: p.title, artist: p.artist,
-    tier: p.tier === 'diamond' ? tDiamondLabel(p.mult || 1) : tTierLabel(p.tier) }) },
+    tier: p.tier === 'diamond' ? tDiamondLabel(p.mult || 1) : tTierLabel(p.tier) }); } },
   // More certifications at once than get one each (NT_CERT_MAX)
   cert_more: { emoji: '📀', cat: 'cert', text: p => t('nt_cert_more', { n: p.n }) },
   // A year's awards period (its own eligibility window) has ended: time to
