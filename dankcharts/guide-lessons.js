@@ -3571,10 +3571,10 @@ window.GL_TEXT.en = {
           newtag: ['{{t:wc_new_to_you}}', 'You haven’t played it yet.']
         } },
         youtube: { title: 'YouTube', spots: {
-          pick: ['{{t:wc_chart_youtube_top}}', 'The most viewed music videos of the day.'],
-          cols: ['The columns', 'Views and likes that day.'],
+          pick: ['{{t:wc_chart_youtube_trending}}', 'The music videos trending around the world right now.'],
+          cols: ['The columns', 'How many countries it’s trending in, and its best place in one of them.'],
           art: ['The video', 'Its thumbnail.'],
-          row: ['A video', 'Many are from India, Latin America and K-pop: this is what the world watches.'],
+          row: ['A video', 'What the world is watching right now.'],
           yt: ['YouTube', 'Opens the video itself.']
         } }
       },

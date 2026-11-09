@@ -47,7 +47,7 @@
     { id: 'billboard-global-200',  source: 'billboard', kind: 'songs',  period: 'week', pastWeeks: true, first: '2020-09-19' },
     { id: 'spotify-global-daily',  source: 'kworb',     kind: 'songs',  period: 'day'  },
     { id: 'spotify-global-weekly', source: 'kworb',     kind: 'songs',  period: 'week' },
-    { id: 'youtube-top',           source: 'kworb',     kind: 'videos', period: 'day'  }
+    { id: 'youtube-trending',      source: 'kworb',     kind: 'videos', period: 'day'  }
   ];
 
   var LS_CHART = 'dc_wc_chart';            // the chart you looked at last
@@ -142,6 +142,8 @@
 
   function pickStart() {
     var saved = lsGet(LS_CHART);
+    // 2026-11-09: the YouTube chart changed from Most Viewed to Trending
+    if (saved === 'youtube-top') saved = 'youtube-trending';
     var ids = S.menu.map(function (c) { return c.id; });
     return ids.indexOf(saved) >= 0 ? saved : ids[0];
   }
@@ -287,7 +289,7 @@
   // source, so each source has a column set:
   //   billboard: Last wk | Peak | Weeks
   //   spotify:   Streams | Change | Peak | Days or Weeks
-  //   youtube:   Views | Likes
+  //   youtube:   Countries (how many it's trending in) | Best spot (#5 Mexico)
   // On phones only the first column marked `phone` stays, written short (5.1M).
   function colsFor(d) {
     var brand = brandOf(d.chart);
@@ -303,9 +305,36 @@
       { key: d.period === 'day' ? 'wc_col_days' : 'd100_col_wk', val: function (r) { return r.onChart; } }
     ];
     return [
-      { key: 'wc_col_views', val: function (r) { return fmtNum(r.views); }, short: function (r) { return fmtShort(r.views); }, phone: true, wide: true },
-      { key: 'wc_col_likes', val: function (r) { return fmtNum(r.likes); }, wide: true }
+      { key: 'wc_col_countries', val: function (r) { return r.countries == null ? '–' : fmtNum(r.countries); }, phone: true },
+      { key: 'wc_col_best_spot', val: bestSpot }
     ];
+  }
+
+  // YouTube Trending: the video's best place in one country, "#5 Mexico".
+  // kworb writes the country in English, so it's put into the site language
+  // through its region code when we can find one ("Estados Unidos").
+  function bestSpot(r) {
+    var b = r.spots && r.spots[0];
+    if (!b) return '–';
+    return '#' + b.pos + ' ' + countryName(b.country);
+  }
+  var _regionCodes = null;   // English country name -> region code, built once
+  function countryName(en) {
+    try {
+      if (!window.Intl || !Intl.DisplayNames) return en;
+      if (!_regionCodes) {
+        _regionCodes = {};
+        var dnEn = new Intl.DisplayNames(['en'], { type: 'region' });
+        var A = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        for (var i = 0; i < 26; i++) for (var j = 0; j < 26; j++) {
+          var code = A[i] + A[j], name;
+          try { name = dnEn.of(code); } catch (e) { continue; }
+          if (name && name !== code) _regionCodes[name] = code;
+        }
+      }
+      var cc = _regionCodes[en];
+      return cc ? new Intl.DisplayNames([locale() || 'en'], { type: 'region' }).of(cc) || en : en;
+    } catch (e) { return en; }
   }
 
   // 5,075,633 → "5.1M" (in the site language's own short form)

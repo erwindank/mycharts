@@ -1454,7 +1454,7 @@ const SHOTS = [
     spots: { pick: '#worldchartsView .wc-pick.active', source: '#worldchartsView .wc-source', cols: '#worldchartsView .wc-cols', row: '#worldchartsView .wc-row',
       spotify: '#worldchartsView .wc-acts .ea-spotify', sample: '#worldchartsView .wc-acts .ea-sample', newtag: '#worldchartsView .wc-mine-tag--new' } },
   { id: 'wc-youtube', lesson: 'worldcharts',
-    setup: async pg => { await wcView(pg, { chart: 'youtube-top' }); },
+    setup: async pg => { await wcView(pg, { chart: 'youtube-trending' }); },
     clip: { from: '#worldchartsView .wc-menu', to: { js: "document.querySelectorAll('#worldchartsView .wc-li')[4]" }, pad: 14 },
     spots: { pick: '#worldchartsView .wc-pick.active', cols: '#worldchartsView .wc-cols', art: '#worldchartsView .wc-art--video', row: '#worldchartsView .wc-row', yt: '#worldchartsView .wc-acts .d100-yt' } },
 

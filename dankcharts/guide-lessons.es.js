@@ -2449,10 +2449,10 @@ window.GL_TEXT.es = {
           newtag: ['{{t:wc_new_to_you}}', 'Todavía no la escuchaste.']
         } },
         youtube: { title: 'YouTube', spots: {
-          pick: ['{{t:wc_chart_youtube_top}}', 'Los videos musicales más vistos del día.'],
-          cols: ['Las columnas', 'Vistas y me gusta de ese día.'],
+          pick: ['{{t:wc_chart_youtube_trending}}', 'Los videos musicales que son tendencia en el mundo ahora mismo.'],
+          cols: ['Las columnas', 'En cuántos países es tendencia y su mejor puesto en uno de ellos.'],
           art: ['El video', 'Su miniatura.'],
-          row: ['Un video', 'Muchos son de India, Latinoamérica y el K-pop: es lo que ve el mundo.'],
+          row: ['Un video', 'Lo que el mundo está viendo ahora mismo.'],
           yt: ['YouTube', 'Abre el video.']
         } }
       },

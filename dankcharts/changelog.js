@@ -102,7 +102,7 @@ const DC_CL_HIGHLIGHTS = [
     title: "World Charts",
     intro: "The real charts everyone else is listening to, right next to your own.",
     points: [
-      "Billboard Hot 100, Billboard 200 and Global 200, Spotify Global and the most viewed YouTube videos.",
+      "Billboard Hot 100, Billboard 200 and Global 200, Spotify Global and the music videos trending on YouTube.",
       "Every song says how often you've played it, or that it's new to you.",
       "Go back to any Billboard week, play samples and share the top 10.",
     ],
@@ -402,6 +402,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-09', t: 'improvement', a: 'charts',
+    title: "YouTube Trending in World Charts",
+    detail: "The YouTube chart in World Charts now shows the music videos trending around the world, with how many countries each one is trending in and its best spot." },
   { d: '2026-11-09', t: 'feature', a: 'guide',
     title: "A World Charts lesson in the Charts Guide",
     detail: "The Charts Guide has a new lesson on World Charts: pictures of every part, step-by-step how-tos, challenges and a short quiz." },

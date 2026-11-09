@@ -27,7 +27,8 @@
 //   debutPos, debutDate (Billboard only)
 //   feat       featured artists (Spotify only)
 //   streams, streamsChange, total (Spotify only)
-//   views, likes (YouTube only)
+//   countries  how many countries it's trending in (YouTube only)
+//   spots      its best places, e.g. [{ pos: 5, country: 'Mexico' }] (YouTube only)
 //   spotifyId / videoId: the track or video id, for players and artwork later
 //   raw        the untouched video title (YouTube only)
 //
@@ -77,10 +78,14 @@ const CHARTS = {
     title: 'Spotify Global Weekly', source: 'kworb', kind: 'songs', period: 'week',
     path: 'spotify/country/global_weekly.html', ttl: 6 * HOUR, min: 150,
   },
-  'youtube-top': {
-    // kworb's list is 500 long. We keep the top 200 so it matches Spotify.
-    title: 'YouTube Most Viewed', source: 'kworb', kind: 'videos', period: 'day',
-    path: 'youtube/', ttl: 3 * HOUR, min: 150, max: 200,
+  // 2026-11-09: was 'youtube-top' (most viewed, kworb.net/youtube/). Now the
+  // music videos trending worldwide. A new id so no old "most viewed" copy in
+  // the cache can be served under the trending name.
+  'youtube-trending': {
+    // kworb's list is usually 200–300 long. We keep the top 200 so it matches
+    // Spotify. It can be shorter on a quiet day, so `min` is lower.
+    title: 'YouTube Trending', source: 'kworb', kind: 'videos', period: 'day',
+    path: 'youtube/trending.html', ttl: 3 * HOUR, min: 100, max: 200,
   },
 };
 
@@ -305,12 +310,14 @@ function parseKworbSpotify(html) {
   return { date: kworbDate(html), rows };
 }
 
-// YouTube most viewed (past 24 hours). Cells: Pos | change | Video | Views | Likes.
-// The video link is either "video/ID.html" or a full youtube.com watch link.
+// YouTube music videos trending worldwide. Cells: Pos | change | Video | # | Highlights.
+//   #           how many countries the video is trending in
+//   Highlights  its best places, "#13 Brazil, #13 Indonesia, #10 United States"
+// The video link is "/youtube/trending/video/ID.html" (or a youtube.com watch link).
 function parseKworbYouTube(html) {
   const rows = [];
   for (const c of kworbRows(html)) {
-    if (c.length < 5) continue;
+    if (c.length < 4) continue;
     const rank = num(c[0]);
     if (!rank) continue;
     const link = c[2].match(/href="([^"]+)"/);
@@ -318,11 +325,15 @@ function parseKworbYouTube(html) {
     const raw = clean(c[2]);
     if (!raw) continue;
     const { artist, title } = splitVideoTitle(raw);
+    // Best place first, so the app can show just the top one
+    const spots = c[4] ? [...clean(c[4]).matchAll(/#(\d+)\s+([^,]+)/g)]
+      .map(m => ({ pos: +m[1], country: m[2].trim() }))
+      .sort((a, b) => a.pos - b.pos) : [];
     rows.push({
       rank, title, artist, raw,
       ...kworbMove(rank, c[1]),
-      views: num(c[3]),
-      likes: num(c[4]),
+      countries: num(c[3]),
+      ...(spots.length ? { spots } : {}),
       videoId: idM ? idM[1] : null,
     });
   }
