@@ -286,6 +286,10 @@ PLAN FINISHED.
 2. ~~Where do ready-made lists sit?~~ Decided: among the other playlists,
    with the "Smart playlist" label.
 3. **Can ready-made lists be hidden** by the user if they don't want them?
-4. **Signed-out users:** full feature on this device only, or a sign-in prompt
-   like automatic playlists?
-5. **Night hours:** fixed 22:00–05:00, or set by the user?
+4. ~~Signed-out users?~~ Decided 2026-11-09: signed in only. Signed out, the
+   doors stay (Create, Mix it, ready-made row, Add to my playlists) and open a
+   "Sign in with Google" window; nothing is added or run, and smart lists on
+   the device stay hidden until sign-in.
+5. ~~Night hours?~~ Decided 2026-11-09: morning 04:00–12:00, afternoon
+   12:00–17:30, evening 17:30–20:00, night 20:00–04:00, each its own rule,
+   plus "time of day it's played most".

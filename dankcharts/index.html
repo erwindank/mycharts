@@ -27,13 +27,13 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=964">
+  <link rel="stylesheet" href="style.css?v=965">
   <!-- The Charts Guide's lessons (guide.js, GUIDE-PLAN.md) -->
   <link rel="stylesheet" href="guide.css?v=5">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=367"></script>
+  <script defer src="translations.js?v=368"></script>
   <!-- Only the visitor's own language is downloaded (translations.js holds
        English). This writes a defer tag for the saved language right here, so
        it runs straight after translations.js and before app.js, and the page
@@ -41,7 +41,7 @@
        whenever translations.es / pt-BR / pt-PT .js change (setup-guide.html
        has the same line). -->
   <script>
-    window.DC_I18N_V = 57;
+    window.DC_I18N_V = 58;
     (function () {
       try {
         var l = localStorage.getItem('dankcharts-lang');
@@ -58,7 +58,7 @@
   <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-  <script defer src="firebase.js?v=28"></script>
+  <script defer src="firebase.js?v=29"></script>
 </head>
 
 <body>
@@ -3534,6 +3534,24 @@
     </div>
   </div>
 
+  <!-- SMART PLAYLISTS NEED AN ACCOUNT (smartplaylists.js): the invite a signed-out visitor sees -->
+  <div class="modal-overlay" id="spSignModal" onclick="if(event.target===this)spCloseSignInvite()" role="dialog" aria-modal="true" aria-labelledby="spSignTitle">
+    <div class="dc-modal dc-frame sp-sign-box">
+      <div class="dc-frame-head">
+        <span class="dc-frame-icon" data-ico="sparkle"></span>
+        <div class="dc-frame-titles">
+          <h3 class="dc-frame-title" id="spSignTitle" data-i18n="sp_signin_title">Sign in for smart playlists</h3>
+        </div>
+        <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close" onclick="spCloseSignInvite()" aria-label="Close" data-i18n-aria="set_close">✕</button>
+      </div>
+      <div class="dc-frame-body"><p class="dc-frame-lead" data-i18n="sp_signin_text">Smart playlists fill themselves from your listening and keep up as it changes. Sign in with your Google account to use them: they're saved to your account and follow you to every device.</p></div>
+      <div class="dc-frame-foot">
+        <button class="dc-btn dc-btn-plain" onclick="spCloseSignInvite()" data-i18n="sp_signin_later">Not now</button>
+        <button class="dc-btn dc-btn-main" onclick="spSignInFromInvite()" data-i18n="sp_signin_btn">Sign in with Google</button>
+      </div>
+    </div>
+  </div>
+
   <!-- MIX IT (smartplaylists.js step 8): blend 2–4 playlists into one -->
   <div class="modal-overlay" id="spMixModal" onclick="if(event.target===this)spCloseMix()" role="dialog" aria-modal="true" aria-labelledby="spMixTitle">
     <div class="dc-modal dc-frame spb-box spm-box">
@@ -4467,7 +4485,7 @@
   <!-- One behaviour and one icon set for every pop-up window (phase 10); before
        app.js so dcIco() is there when app.js draws a window -->
   <script defer src="popups.js?v=13"></script>
-  <script defer src="app.js?v=712"></script>
+  <script defer src="app.js?v=713"></script>
   <!-- The song / album / artist details side panel (phase 10 step 3); wraps app.js's open functions -->
   <script defer src="panel.js?v=16"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
@@ -4478,7 +4496,7 @@
   <!-- Automatic chart playlists: a finished period's chart → a playlist (SCHEDULED-PLAYLISTS-PLAN.md); reads app.js + daily.js -->
   <script defer src="autoplaylists.js?v=5"></script>
   <!-- Smart playlists: playlists built from saved rules (SMART-PLAYLISTS-PLAN.md); reads app.js -->
-  <script defer src="smartplaylists.js?v=14"></script>
+  <script defer src="smartplaylists.js?v=15"></script>
   <!-- Notifications under the profile picture (any feature calls dcNotify); reads app.js + firebase.js -->
   <script defer src="notifications.js?v=10"></script>
   <!-- The Stats page's tabs, Overview, Story, Games and Compare (phase 15); reads app.js globals -->

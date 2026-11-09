@@ -47477,6 +47477,10 @@ html.lsx-open { overflow: hidden; }
 .sp-nt-row:has(input:disabled) { cursor: default; opacity: 0.75; }
 @media (max-width: 760px) { .sp-nt-row { margin-left: auto; margin-right: auto; text-align: left; } }
 
+/* The sign-in invite smart playlists show signed-out visitors */
+.dc-modal.sp-sign-box { max-width: 480px; }
+.sp-sign-box .dc-frame-icon { background: linear-gradient(140deg, color-mix(in srgb, var(--accent) 26%, transparent), color-mix(in srgb, var(--accent) 8%, transparent)); }
+
 /* ── Mix it (smartplaylists.js step 8) ──
    The playlists to blend as tappable rows; a picked one shows its turn (1–4) */
 .dc-modal.spm-box { max-width: 620px; }

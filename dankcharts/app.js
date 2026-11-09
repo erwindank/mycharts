@@ -38064,7 +38064,7 @@ function _ytTogglePlaylists() {
 function _ytRenderPlaylists() {
   const el = document.getElementById('ytPlaylistsPanel');
   if (!el) return;
-  const names = Object.keys(_ytPlaylists);
+  const names = Object.keys(_ytPlaylists).filter(n => !(typeof spHidden === 'function' && spHidden(n)));
   let html = `<div class="yt-pl-save-row">` +
     `<input id="ytPlNewName" class="yt-pl-name-input" type="text" placeholder="Playlist name…" maxlength="40" onkeydown="if(event.key==='Enter')_ytSaveCurrentQueue(this.value.trim())">` +
     `<button class="dc-btn dc-btn-main dc-btn-sm" onclick="_ytSaveCurrentQueue(document.getElementById('ytPlNewName').value.trim())">Save</button>` +
@@ -38463,7 +38463,8 @@ function _dcPlAgo(ms) {
 
 // The names in the chosen order (Recent = last changed first)
 function _dcPlSortedNames() {
-  const names = Object.keys(_ytPlaylists);
+  // Smart playlists stay out while signed out (smartplaylists.js spHidden)
+  const names = Object.keys(_ytPlaylists).filter(n => !(typeof spHidden === 'function' && spHidden(n)));
   if (_dcPlSort === 'name') return names.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }));
   if (_dcPlSort === 'size') return names.sort((a, b) => (_ytPlaylists[b].length - _ytPlaylists[a].length) || a.localeCompare(b));
   // recent: newest change first; ones never stamped keep their saved order at the end
@@ -38509,6 +38510,8 @@ function dcRenderPlaylistsView() {
   const justOpened = _dcPlTakePending();
   // A renamed or deleted playlist can't stay open
   if (_dcPlExpandedName && !_ytPlaylists[_dcPlExpandedName]) _dcPlExpandedName = null;
+  // …and so can't a smart playlist while signed out (smartplaylists.js)
+  if (_dcPlExpandedName && typeof spHidden === 'function' && spHidden(_dcPlExpandedName)) _dcPlExpandedName = null;
   if (currentPeriod === 'playlists') {
     const want = '#t=playlists' + (_dcPlExpandedName ? '/' + encodeURIComponent(_dcPlExpandedName) : '');
     if (window.location.hash !== want) history.replaceState(null, '', want);

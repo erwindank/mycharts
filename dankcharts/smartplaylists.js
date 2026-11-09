@@ -596,12 +596,25 @@ spAddField('peakAt',   { kind: 'date',   chart: true, get: _spChartGet('peakAt')
    these rules greyed out (spDataHas('times')).
 
    Per song:
-     night     % of plays between 22:00 and 04:59
-     weekend   % of plays on Saturday or Sunday
-     topHour   the hour (0–23) it's played most
-     topDay    the weekday ('0' = Sunday … '6' = Saturday) it's played most */
+     morning    % of plays from 04:00 to 11:59
+     afternoon  % of plays from 12:00 to 17:29
+     evening    % of plays from 17:30 to 19:59
+     night      % of plays from 20:00 to 03:59
+     topPart    the part of the day it's played most (morning … night)
+     weekend    % of plays on Saturday or Sunday
+     topHour    the hour (0–23) it's played most
+     topDay     the weekday ('0' = Sunday … '6' = Saturday) it's played most
+   The parts of the day are the user's own (2026-11-09). */
 
-const SP_NIGHT_FROM = 22, SP_NIGHT_TO = 5;   // 22:00 up to (not including) 05:00
+// Where each part of the day starts, in minutes after midnight; night runs
+// from the evening's end round to the morning
+const SP_PARTS = [['morning', 4 * 60], ['afternoon', 12 * 60], ['evening', 17 * 60 + 30], ['night', 20 * 60]];
+const SP_PART_IDS = SP_PARTS.map(p => p[0]);
+function _spPartOf(mins) {
+  let part = 'night';   // before 04:00 is still the night before
+  for (const [id, from] of SP_PARTS) if (mins >= from) part = id;
+  return part;
+}
 let _spHabitCache = null;   // { gen, map, timed }
 
 function spHabitFacts() {
@@ -616,17 +629,22 @@ function spHabitFacts() {
     if (h || td.getMinutes()) timed++;
     const k = _spKey(p);
     let x = raw.get(k);
-    if (!x) raw.set(k, x = { n: 0, night: 0, weekend: 0, hours: new Array(24).fill(0), days: new Array(7).fill(0) });
+    if (!x) raw.set(k, x = { n: 0, morning: 0, afternoon: 0, evening: 0, night: 0, weekend: 0, hours: new Array(24).fill(0), days: new Array(7).fill(0) });
     x.n++;
-    if (h >= SP_NIGHT_FROM || h < SP_NIGHT_TO) x.night++;
+    x[_spPartOf(h * 60 + td.getMinutes())]++;
     if (wd === 0 || wd === 6) x.weekend++;
     x.hours[h]++; x.days[wd]++;
   }
   const argmax = a => a.reduce((bi, v, i) => v > a[bi] ? i : bi, 0);
   const map = new Map();
   for (const [k, x] of raw) {
+    const parts = SP_PART_IDS.map(id => x[id]);
     map.set(k, {
+      morning: Math.round(x.morning / x.n * 100),
+      afternoon: Math.round(x.afternoon / x.n * 100),
+      evening: Math.round(x.evening / x.n * 100),
       night: Math.round(x.night / x.n * 100),
+      topPart: SP_PART_IDS[argmax(parts)],
       weekend: Math.round(x.weekend / x.n * 100),
       topHour: argmax(x.hours),
       topDay: String(argmax(x.days))
@@ -640,7 +658,11 @@ function spHabitFacts() {
 function _spHabitGet(name) {
   return s => { const h = spHabitFacts().map.get(s.key); return h ? h[name] : null; };
 }
-spAddField('night',   { kind: 'number', needs: 'times', get: _spHabitGet('night') });
+spAddField('morning',   { kind: 'number', needs: 'times', get: _spHabitGet('morning') });
+spAddField('afternoon', { kind: 'number', needs: 'times', get: _spHabitGet('afternoon') });
+spAddField('evening',   { kind: 'number', needs: 'times', get: _spHabitGet('evening') });
+spAddField('night',     { kind: 'number', needs: 'times', get: _spHabitGet('night') });
+spAddField('topPart',   { kind: 'enum',   needs: 'times', get: _spHabitGet('topPart'), values: SP_PART_IDS });
 spAddField('weekend', { kind: 'number', needs: 'times', get: _spHabitGet('weekend') });
 spAddField('topHour', { kind: 'number', needs: 'times', get: _spHabitGet('topHour') });
 spAddField('topDay',  { kind: 'enum',   needs: 'times', get: _spHabitGet('topDay'), values: ['0', '1', '2', '3', '4', '5', '6'] });
@@ -801,7 +823,7 @@ function _spClean(def) {
    overwrite. */
 function spCreate(name, def) {
   name = String(name || '').trim();
-  if (!name) return false;
+  if (!name || !spSignedIn()) return false;
   if (typeof _ytIsFavName === 'function' && _ytIsFavName(name)) return false;
   if (_ytPlaylists[name] && !spIsSmart(name)) return false;
   _spStore.lists[name] = _spClean(def || {});
@@ -818,7 +840,7 @@ function spCreate(name, def) {
    an empty library would wipe every smart list. Returns true when changed. */
 function spRefresh(name, save) {
   const def = spGet(name);
-  if (!def || !allPlays || !allPlays.length) return false;
+  if (!def || !allPlays || !allPlays.length || !spSignedIn()) return false;
   // Smart lists this one's rules read go first, so it sees their current
   // songs (step 6). _spRefreshing stops a loop from going round forever.
   if (_spRefreshing.has(name)) return false;
@@ -843,7 +865,7 @@ function spRefresh(name, save) {
 // Every smart playlist, after a data load / refresh / sign-in. One save at the end.
 let _spRefreshTok = 0;
 function spRefreshAll() {
-  if (!allPlays || !allPlays.length) return;
+  if (!allPlays || !allPlays.length || !spSignedIn()) return;
   _spFixReadyNames();
   if (!_spStore.seeded) spSeedReady();
   // One list per tick: the first chart rule on a huge library can take a
@@ -943,7 +965,7 @@ function spMerge(remote) {
    Board posts). */
 
 // Percentages get a % sign in the sentence
-const SP_PCT_FIELDS = ['night', 'weekend', 'artistShare', 'topPct'];
+const SP_PCT_FIELDS = ['morning', 'afternoon', 'evening', 'night', 'weekend', 'artistShare', 'topPct'];
 
 // The words for a rule's chart: "weekly" and its unit, "weeks"
 function _spChWords(r) {
@@ -1263,6 +1285,7 @@ function spReadyRowHtml() {
 }
 
 function spAddReadyFromRow(id) {
+  if (!spSignedIn()) { spSignInvite(); return; }
   const name = spAddReady(id);
   if (!name) return;
   if (typeof dcPlToast === 'function') dcPlToast(t('sp_ready_added', { name }));
@@ -1322,7 +1345,7 @@ const SP_B_GROUPS = [
   ['song',     ['title', 'artist', 'album', 'genre', 'release']],
   ['plays',    ['plays', 'days', 'maxDay', 'first', 'last', 'otd']],
   ['charts',   ['charted', 'peak', 'wks', 'at1', 'debut', 'climb', 'runs', 'longest', 'toPeak', 'at1At', 'peakAt']],
-  ['habits',   ['night', 'weekend', 'topHour', 'topDay']],
+  ['habits',   ['topPart', 'morning', 'afternoon', 'evening', 'night', 'weekend', 'topHour', 'topDay']],
   ['compared', ['rankAll', 'topPct', 'artistBest', 'artistShare', 'artistPlays', 'artistSongs', 'albumPlays', 'albumRank', 'albumTop']],
   ['ratings',  ['rating', 'aboveAvg', 'cert']],
   ['lists',    ['inList']]
@@ -1399,6 +1422,7 @@ function _spBFixValue(r) {
 
 // New smart playlist (preset = a ready-made id to start from, optional)
 function spOpenBuilder(name, preset) {
+  if (!spSignedIn()) { spSignInvite(); return; }
   const modal = document.getElementById('spBuilderModal');
   if (!modal) return;
   document.querySelectorAll('.ctrl-group.open').forEach(g => g.classList.remove('open'));
@@ -1826,10 +1850,10 @@ function spNewCardHtml() {
   return `<div class="plx-new plx-new-smart">` +
     `<div class="plx-new-ico" aria-hidden="true">✨</div>` +
     `<div class="plx-new-title">${esc(t('sp_b_card_title'))}</div>` +
-    `<div class="plx-new-sub">${esc(t('sp_b_card_sub'))}</div>` +
+    `<div class="plx-new-sub">${esc(t(spSignedIn() ? 'sp_b_card_sub' : 'sp_signin_card'))}</div>` +
     `<div class="plx-new-form"><button type="button" class="dc-btn dc-btn-main dc-btn-sm" onclick="spOpenBuilder()">${esc(t('sp_b_card_btn'))}</button>` +
     // Mix it (step 8): needs two playlists to blend
-    (Object.keys(_ytPlaylists).length >= 2 ? `<button type="button" class="dc-btn dc-btn-normal dc-btn-sm" onclick="spOpenMix()">🎛️ ${esc(t('sp_mix_btn'))}</button>` : '') +
+    (!spSignedIn() || Object.keys(_ytPlaylists).length >= 2 ? `<button type="button" class="dc-btn dc-btn-normal dc-btn-sm" onclick="spOpenMix()">🎛️ ${esc(t('sp_mix_btn'))}</button>` : '') +
     `</div>` +
     `</div>`;
 }
@@ -2143,6 +2167,7 @@ function spBlend(names, size, per) {
 }
 
 function spOpenMix() {
+  if (!spSignedIn()) { spSignInvite(); return; }
   const modal = document.getElementById('spMixModal');
   if (!modal) return;
   let saved = {};
@@ -2485,6 +2510,7 @@ function spSharedCardHtml(code) {
 
 // "Add to my playlists": the same rules, run on this user's library
 function spAddShared(code) {
+  if (!spSignedIn()) { spSignInvite(); return; }
   const got = spShareRead(code);
   if (!got) return;
   let name = got.name, n = 2;
@@ -2492,4 +2518,41 @@ function spAddShared(code) {
   if (!spCreate(name, got.def)) return;
   if (typeof dcPlToast === 'function') dcPlToast(t('sp_share_added', { name }));
   if (typeof dcPlOpenByName === 'function') dcPlOpenByName(name, false);
+}
+
+
+/* ===========================================================================
+   SIGNED IN ONLY (2026-11-09)
+
+   Smart playlists are for signed-in listeners. Signed out, the doors are
+   still there (the Smart playlist card's Create and Mix it, the ready-made
+   row, "Add to my playlists" on the Board), but each one opens a window
+   that invites the visitor to sign in with Google (#spSignModal). Nothing
+   is added, run or refreshed while signed out, and smart lists already on
+   this device stay hidden until the visitor signs in again (spHidden, used
+   by the library, the player's list and an open playlist).
+   =========================================================================== */
+
+function spSignedIn() { return typeof dcIsSignedIn === 'function' && dcIsSignedIn(); }
+
+// app.js: should this playlist be left out right now?
+function spHidden(name) { return spIsSmart(name) && !spSignedIn(); }
+
+function spSignInvite() {
+  const m = document.getElementById('spSignModal');
+  if (!m) { if (typeof dcPlToast === 'function') dcPlToast(t('sp_signin_text')); return; }
+  spCloseBuilder(); spCloseMix();
+  m.classList.add('open');
+  if (typeof dcFillIcons === 'function') dcFillIcons(m);
+}
+function spCloseSignInvite() { document.getElementById('spSignModal')?.classList.remove('open'); }
+function spSignInFromInvite() {
+  spCloseSignInvite();
+  if (typeof dcSignIn === 'function') dcSignIn();
+}
+
+// firebase.js: signed in or out. The Playlists tab redraws so smart lists
+// appear or hide; signing in also runs them (spMerge does that).
+function spOnAuth() {
+  if (typeof currentPeriod !== 'undefined' && currentPeriod === 'playlists' && typeof dcRenderPlaylistsView === 'function') dcRenderPlaylistsView();
 }

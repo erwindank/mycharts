@@ -949,6 +949,8 @@ _auth = firebase.auth();
 _auth.onAuthStateChanged(async (user) => {
   _currentUser = user;
   _refreshAuthUI(user);
+  // Smart playlists show only when signed in (smartplaylists.js)
+  if (typeof spOnAuth === 'function') spOnAuth(user);
 
   if (!user) return;
 
