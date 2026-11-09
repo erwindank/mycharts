@@ -652,6 +652,25 @@ TRANSLATIONS['pt-BR'] = Object.assign({
     gd_setup_guide_link: 'Travou ao conectar sua música? O guia de configuração passo a passo mostra cada tela →',
     // Community board (board.js)
     nav_board: "Fórum",
+    // World Charts (worldcharts.js): Billboard, Spotify and YouTube charts
+    nav_worldcharts: "Paradas mundiais",
+    wc_title: "Paradas mundiais",
+    wc_sub: "As paradas de verdade que todo mundo está ouvindo, da Billboard, do Spotify e do YouTube.",
+    // the chart buttons: the brand (Billboard / Spotify / YouTube) is shown above these
+    wc_chart_hot_100: "Hot 100",
+    wc_chart_billboard_200: "Billboard 200",
+    wc_chart_spotify_global_daily: "Global diária",
+    wc_chart_spotify_global_weekly: "Global semanal",
+    wc_chart_youtube_top: "Mais vistos",
+    wc_loading: "Carregando a parada…",
+    wc_err: "Não foi possível carregar esta parada agora.",
+    wc_retry: "Tentar de novo",
+    wc_stale: "Não foi possível atualizar esta parada agora, então você está vendo a última cópia salva.",
+    wc_source: "Fonte:",
+    wc_week_of: "Semana de {{date}}",
+    wc_day_of: "{{date}}",
+    wc_with: "com {{names}}",
+    wc_show_all: "Ver todas as {{n}}",
     // The Dank 100 (dank100.js)
     nav_dank100: "The Dank 100",
     d100_title: "The Dank 100",

@@ -221,6 +221,13 @@
       '<rect class="gk-f gk-grow" x="15.2" y="14.5" width="6.3" height="7" rx="1.2"/>' +
       '<path class="gk-gold gk-pop gk-late" d="M12 1.2l1.2 2.4 2.6.4-1.9 1.8.5 2.6L12 7.2 9.6 8.4l.5-2.6L8.2 4l2.6-.4z"/>',
 
+    // World Charts: a globe with a chart bar rising in front of it
+    world:
+      '<circle class="gk-f" cx="11" cy="11" r="8.6"/>' +
+      '<path class="gk-s" d="M2.4 11h17.2M11 2.4c2.4 2.3 3.6 5.2 3.6 8.6s-1.2 6.3-3.6 8.6c-2.4-2.3-3.6-5.2-3.6-8.6S8.6 4.7 11 2.4Z"/>' +
+      '<rect class="gk-o gk-grow gk-d1" x="15.6" y="13.2" width="3.4" height="8.3" rx="1"/>' +
+      '<rect class="gk-o gk-grow gk-d2" x="19.6" y="10" width="3" height="11.5" rx="1"/>',
+
     /* ── Records section headings ───────────────────────────────────────
        The same pictures as the Records sprite (ri-*) in index.html, redrawn
        two-tone on the 24 grid. Their colour is the section's own --ico, so a
@@ -354,7 +361,7 @@
     day: 'day', week: 'week', month: 'month', year: 'year', alltime: 'alltime',
     rawdata: 'raw', graphs: 'stats', records: 'records', events: 'events',
     awards: 'awards', soundtrack: 'sound', playlists: 'lists', ratings: 'ratings',
-    board: 'board', dank100: 'd100'
+    board: 'board', dank100: 'd100', worldcharts: 'world'
   };
 
   function dcGlowIco(name, cls) {

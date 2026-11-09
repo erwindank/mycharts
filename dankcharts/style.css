@@ -5472,11 +5472,11 @@
       padding-top: var(--sp-5);
     }
 
-    /* Soundtrack, Playlists, Board and the Charts Guide live after #mainApp in
+    /* Soundtrack, Playlists, Board, the Dank 100, World Charts and the Charts Guide live after #mainApp in
        the page, not inside it, so on those tabs #mainApp is empty and its
        padding was a ~90px gap above them. (Playlists used to show Events'
        release sections inside #mainApp; they moved under the playlists.) */
-    body:is([data-view="soundtrack"], [data-view="playlists"], [data-view="board"], [data-view="dank100"], [data-view="chartsguide"]) #mainApp {
+    body:is([data-view="soundtrack"], [data-view="playlists"], [data-view="board"], [data-view="dank100"], [data-view="worldcharts"], [data-view="chartsguide"]) #mainApp {
       padding-block: 0;
     }
 
@@ -16851,6 +16851,7 @@
     #ratingsView>.section-header .section-header-h2,
     #boardView .bd-section>.section-header .section-header-h2,
     #dank100View .d100-section>.section-header .section-header-h2,
+    #worldchartsView .wc-section>.section-header .section-header-h2,
     #chartsguideView .gd-hub>.section-header .section-header-h2 {
       font-family: var(--font-display);
       font-size: var(--fs-lg);
@@ -48822,4 +48823,151 @@ a.tb-more-item:hover { text-decoration: none; }
 @media (prefers-reduced-motion: reduce) {
   .cg-gate .cg-gate-src, .cg-gate-tile--glow .dc-gtile { transition: none; }
   .cg-gate-tile--glow:hover .dc-gtile { transform: none; }
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   WORLD CHARTS (worldcharts.js, WORLDCHARTS-PLAN.md)
+   Billboard, Spotify and YouTube charts, read through functions/world-charts.js.
+   Step 3: the page, the chart buttons and a plain list. Step 4 gives the rows
+   the site's chart look.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* Sits outside #mainApp's .container like #dank100View, so it sets the same
+   width itself. Keep in step with .container. */
+#worldchartsView {
+  max-width: 980px;
+  width: 100%;
+  margin: 0 auto;
+  padding: var(--sp-2) var(--sp-4) var(--sp-9);
+  box-sizing: border-box;
+}
+.wc-page-sub { margin: 0 0 var(--sp-4); font-size: var(--fs-sm); color: var(--text3); }
+
+/* The chart buttons: brand on top, chart name under it. One row that scrolls
+   sideways on phones instead of wrapping into a messy block. */
+.wc-menu {
+  display: flex;
+  gap: var(--sp-2);
+  margin: 0 0 var(--sp-4);
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+.wc-menu::-webkit-scrollbar { display: none; }
+.wc-pick {
+  /* --bc: the brand's own colour, only used as a small dot so it never
+     fights the theme */
+  --bc: var(--text3);
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  min-width: 120px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  color: var(--text2);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+}
+.wc-pick--billboard { --bc: #e8473f; }
+.wc-pick--spotify   { --bc: #1ed760; }
+.wc-pick--youtube   { --bc: #ff3d3d; }
+.wc-pick:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); color: var(--text); }
+.wc-pick:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.wc-pick.active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  color: var(--text);
+}
+.wc-pick-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+.wc-pick-brand::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--bc);
+}
+.wc-pick-name { font-weight: 600; font-size: var(--fs-sm); white-space: nowrap; }
+
+/* Source line, notes and messages */
+.wc-source { margin: 0 0 var(--sp-3); font-size: var(--fs-xs); color: var(--text3); }
+.wc-source a { color: var(--text2); text-decoration: underline; text-underline-offset: 2px; }
+.wc-source a:hover { color: var(--accent); }
+.wc-note {
+  margin: 0 0 var(--sp-3);
+  padding: 8px 12px;
+  border-radius: var(--r-md);
+  font-size: var(--fs-sm);
+  color: var(--text2);
+  background: color-mix(in srgb, var(--text) 5%, transparent);
+}
+.wc-note--stale { border-left: 3px solid var(--chart-re); }
+.wc-msg {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+  border-radius: var(--r-md);
+  border: 1px dashed var(--border);
+  font-size: var(--fs-sm);
+  color: var(--text2);
+}
+.wc-msg p { margin: 0; }
+
+/* The plain list (step 3) */
+.wc-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; }
+.wc-row {
+  display: grid;
+  grid-template-columns: 2.6em minmax(0, 1fr);
+  align-items: center;
+  gap: var(--sp-3);
+  padding: 8px 10px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+}
+.wc-rank {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.1rem;
+  text-align: right;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.wc-text { display: flex; flex-direction: column; min-width: 0; }
+.wc-t, .wc-a { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wc-t { font-weight: 600; color: var(--text); }
+.wc-a { font-size: var(--fs-sm); color: var(--text3); }
+.wc-more { align-self: center; margin: var(--sp-4) auto 0; display: block; }
+
+/* Loading rows: grey bars that gently pulse */
+.wc-row--sk .wc-rank,
+.wc-row--sk .wc-t,
+.wc-row--sk .wc-a {
+  display: block;
+  height: 0.8em;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--text) 9%, transparent);
+  animation: wcPulse 1.2s ease-in-out infinite;
+}
+.wc-row--sk .wc-rank { width: 1.4em; justify-self: end; }
+.wc-row--sk .wc-t { width: 45%; margin-bottom: 6px; }
+.wc-row--sk .wc-a { width: 28%; }
+@keyframes wcPulse { 50% { opacity: 0.45; } }
+@media (prefers-reduced-motion: reduce) {
+  .wc-row--sk .wc-rank, .wc-row--sk .wc-t, .wc-row--sk .wc-a { animation: none; }
 }

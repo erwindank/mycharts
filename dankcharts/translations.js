@@ -692,6 +692,25 @@ const TRANSLATIONS = {
     gd_setup_guide_link: 'Stuck connecting your music? The step-by-step Setup Guide shows every screen →',
     // Community board (board.js)
     nav_board: "Board",
+    // World Charts (worldcharts.js): Billboard, Spotify and YouTube charts
+    nav_worldcharts: "World Charts",
+    wc_title: "World Charts",
+    wc_sub: "The real charts everyone else is listening to, from Billboard, Spotify and YouTube.",
+    // the chart buttons: the brand (Billboard / Spotify / YouTube) is shown above these
+    wc_chart_hot_100: "Hot 100",
+    wc_chart_billboard_200: "Billboard 200",
+    wc_chart_spotify_global_daily: "Global Daily",
+    wc_chart_spotify_global_weekly: "Global Weekly",
+    wc_chart_youtube_top: "Most Viewed",
+    wc_loading: "Loading the chart…",
+    wc_err: "This chart couldn't be loaded right now.",
+    wc_retry: "Try again",
+    wc_stale: "This chart couldn't be refreshed just now, so you're seeing the last saved copy.",
+    wc_source: "Source:",
+    wc_week_of: "Week of {{date}}",
+    wc_day_of: "{{date}}",
+    wc_with: "with {{names}}",
+    wc_show_all: "Show all {{n}}",
     // The Dank 100 (dank100.js)
     nav_dank100: "The Dank 100",
     d100_title: "The Dank 100",
@@ -6383,6 +6402,8 @@ function setLanguage(lang) {
   if (typeof currentPeriod !== 'undefined' && currentPeriod === 'board' && window.dcBoard) window.dcBoard.rerender();
   // ...and The Dank 100, for the same reason
   if (typeof currentPeriod !== 'undefined' && currentPeriod === 'dank100' && window.dcDank100) window.dcDank100.rerender();
+  // ...and World Charts
+  if (typeof currentPeriod !== 'undefined' && currentPeriod === 'worldcharts' && window.dcWorldCharts) window.dcWorldCharts.rerender();
   // ...and its invite banner on the chart tabs
   if (window.dcDank100) window.dcDank100.renderPromo();
 

@@ -13803,6 +13803,12 @@ document.getElementById('periodNav').addEventListener('click', e => {
     if (d100View) d100View.style.display = 'none';
     if (window.dcDank100) window.dcDank100.hide();
   }
+  // World Charts (worldcharts.js) too
+  if (btn.dataset.period !== 'worldcharts') {
+    const wcView = document.getElementById('worldchartsView');
+    if (wcView) wcView.style.display = 'none';
+    if (window.dcWorldCharts) window.dcWorldCharts.hide();
+  }
 
   /* Every tab page comes down here, once; the branch below shows its own.
      Each branch used to hide the others by hand and some lists were short:
@@ -14123,6 +14129,29 @@ document.getElementById('periodNav').addEventListener('click', e => {
     return;
   }
 
+  if (btn.dataset.period === 'worldcharts') {
+    // Switch to World Charts: Billboard, Spotify and YouTube charts
+    // (worldcharts.js). Same as The Dank 100 above: only the chart page's own
+    // pieces need taking down here.
+    savedOffsets[currentPeriod] = currentOffset;
+    currentPeriod = 'worldcharts';
+    localStorage.setItem('dc_period', currentPeriod);
+    ['chartTypeToggleBar', 'exportPlaylistBtn', 'dateNav', 'navHint', 'statsStrip', 'statsStrip3',
+     'songsSection', 'artistsSection', 'albumsSection',
+     'buSongsSection', 'buArtistsSection', 'buAlbumsSection'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
+    COLLAPSE_ALL_TYPES.forEach(hideOffSection);
+    NEW_ENTRY_SECTIONS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+    document.getElementById('eventsView').classList.remove('dc-pl-mode');
+    document.getElementById('worldchartsView').style.display = 'block';
+    if (window.dcWorldCharts) window.dcWorldCharts.show();
+    if (typeof window._refreshBackToTop === 'function') window._refreshBackToTop();
+    updateScrobbleBtn();
+    return;
+  }
+
   if (btn.dataset.period === 'ratings') {
     // The Ratings page (2026-10-29): My Ratings from Stats and Rating Records
     // from Records, on one page
@@ -14177,7 +14206,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
   }
 
   // Leaving raw data, graphs, records, events, awards, soundtrack, playlists, chartsguide or board view — restore chart UI
-  if (currentPeriod === 'rawdata' || currentPeriod === 'graphs' || currentPeriod === 'records' || currentPeriod === 'events' || currentPeriod === 'awards' || currentPeriod === 'soundtrack' || currentPeriod === 'playlists' || currentPeriod === 'chartsguide' || currentPeriod === 'board' || currentPeriod === 'dank100' || currentPeriod === 'ratings') {
+  if (currentPeriod === 'rawdata' || currentPeriod === 'graphs' || currentPeriod === 'records' || currentPeriod === 'events' || currentPeriod === 'awards' || currentPeriod === 'soundtrack' || currentPeriod === 'playlists' || currentPeriod === 'chartsguide' || currentPeriod === 'board' || currentPeriod === 'dank100' || currentPeriod === 'worldcharts' || currentPeriod === 'ratings') {
     document.getElementById('dateNav').style.display = '';
     document.getElementById('navHint').style.display = '';
     document.getElementById('statsStrip').style.display = '';
@@ -14197,7 +14226,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
   }
 
 
-  savedOffsets[(currentPeriod === 'rawdata' || currentPeriod === 'graphs' || currentPeriod === 'records' || currentPeriod === 'events' || currentPeriod === 'awards' || currentPeriod === 'playlists' || currentPeriod === 'chartsguide' || currentPeriod === 'board' || currentPeriod === 'dank100' || currentPeriod === 'ratings') ? btn.dataset.period : currentPeriod] = currentOffset;
+  savedOffsets[(currentPeriod === 'rawdata' || currentPeriod === 'graphs' || currentPeriod === 'records' || currentPeriod === 'events' || currentPeriod === 'awards' || currentPeriod === 'playlists' || currentPeriod === 'chartsguide' || currentPeriod === 'board' || currentPeriod === 'dank100' || currentPeriod === 'worldcharts' || currentPeriod === 'ratings') ? btn.dataset.period : currentPeriod] = currentOffset;
   currentPeriod = btn.dataset.period;
   localStorage.setItem('dc_period', currentPeriod);
   currentOffset = savedOffsets[currentPeriod];
@@ -31267,7 +31296,7 @@ window.dcTopbarHome = dcTopbarHome;
 // it clicks that tab, so there is still exactly one place where views switch.
 // "charts" is the exception: it reopens the chart period you used last.
 const DC_CHART_PERIODS = ['day', 'week', 'month', 'year', 'alltime'];
-const DC_MORE_VIEWS = ['dank100', 'ratings', 'events', 'playlists', 'rawdata', 'board', 'chartsguide'];
+const DC_MORE_VIEWS = ['dank100', 'worldcharts', 'ratings', 'events', 'playlists', 'rawdata', 'board', 'chartsguide'];
 // Keyboard shortcuts (initNavShortcuts) shown in the tab tooltips
 const DC_TAB_SHORTCUT = { charts: '1–4', graphs: '6', records: '7', awards: '9', events: '8', rawdata: '5' };
 

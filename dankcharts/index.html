@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=966">
+  <link rel="stylesheet" href="style.css?v=967">
   <!-- The Charts Guide's lessons (guide.js, GUIDE-PLAN.md) -->
   <link rel="stylesheet" href="guide.css?v=5">
   <!-- All scripts are deferred so the page paints without waiting on them.
@@ -41,7 +41,7 @@
        whenever translations.es / pt-BR / pt-PT .js change (setup-guide.html
        has the same line). -->
   <script>
-    window.DC_I18N_V = 61;
+    window.DC_I18N_V = 62;
     (function () {
       try {
         var l = localStorage.getItem('dankcharts-lang');
@@ -321,6 +321,7 @@
           </button>
           <div class="ctrl-group-panel tb-more-panel">
           <button class="tb-more-item" data-go="dank100"><svg data-gico="d100"></svg><span data-i18n="nav_dank100">The Dank 100</span></button>
+          <button class="tb-more-item" data-go="worldcharts"><svg data-gico="world"></svg><span data-i18n="nav_worldcharts">World Charts</span></button>
           <button class="tb-more-item" data-go="ratings"><svg data-gico="ratings"></svg><span data-i18n="nav_ratings">Ratings</span></button>
           <button class="tb-more-item" data-go="events"><svg data-gico="events"></svg><span data-i18n="nav_events">Events</span></button>
           <button class="tb-more-item" data-go="playlists"><svg data-gico="lists"></svg><span data-i18n="nav_playlists">Playlists</span></button>
@@ -442,6 +443,7 @@
       <div class="ctrl-group-panel bt-more-panel">
           <button class="tb-more-item" data-go="soundtrack"><svg data-gico="sound"></svg><span data-i18n="tab_soundtrack">Soundtrack</span></button>
           <button class="tb-more-item" data-go="dank100"><svg data-gico="d100"></svg><span data-i18n="nav_dank100">The Dank 100</span></button>
+          <button class="tb-more-item" data-go="worldcharts"><svg data-gico="world"></svg><span data-i18n="nav_worldcharts">World Charts</span></button>
           <button class="tb-more-item" data-go="ratings"><svg data-gico="ratings"></svg><span data-i18n="nav_ratings">Ratings</span></button>
           <button class="tb-more-item" data-go="events"><svg data-gico="events"></svg><span data-i18n="nav_events">Events</span></button>
           <button class="tb-more-item" data-go="playlists"><svg data-gico="lists"></svg><span data-i18n="nav_playlists">Playlists</span></button>
@@ -577,6 +579,10 @@
             <!-- The Dank 100 (dank100.js): everyone's weekly charts added up -->
             <button data-period="dank100">
               <span class="nav-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.05" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="1.4" y1="14.2" x2="14.6" y2="14.2"/><rect class="ni-a" x="5.9" y="7" width="4.2" height="7.2" rx="0.5"/><rect x="1.8" y="9.6" width="4.1" height="4.6" rx="0.5"/><rect x="10.1" y="11" width="4.1" height="3.2" rx="0.5"/><path class="ni-star" d="M8 2.1l.7 1.4 1.5.2-1.1 1 .3 1.5L8 5.5l-1.4.7.3-1.5-1.1-1 1.5-.2z" fill="currentColor" stroke="none"/></svg></span><span data-i18n="nav_dank100">The Dank 100</span><span class="nav-eq" aria-hidden="true"></span>
+            </button>
+            <!-- World Charts (worldcharts.js): Billboard, Spotify and YouTube charts -->
+            <button data-period="worldcharts">
+              <span class="nav-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.05" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="6.2"/><path d="M1.8 8h12.4"/><path class="ni-a" d="M8 1.8c1.8 1.7 2.7 3.8 2.7 6.2S9.8 12.5 8 14.2C6.2 12.5 5.3 10.4 5.3 8S6.2 3.5 8 1.8Z"/></svg></span><span data-i18n="nav_worldcharts">World Charts</span><span class="nav-eq" aria-hidden="true"></span>
             </button>
             <button data-period="ratings">
               <span class="nav-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.05" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 1.9l1.8 3.7 4.1.6-3 2.9.7 4.1L8 11.3l-3.6 1.9.7-4.1-3-2.9 4.1-.6z"/></svg></span><span data-i18n="nav_ratings">Ratings</span><span class="nav-eq" aria-hidden="true"></span>
@@ -2896,6 +2902,12 @@
   </div>
   <!-- END THE DANK 100 VIEW -->
 
+  <!-- WORLD CHARTS VIEW -->
+  <div id="worldchartsView" style="display:none;">
+    <!-- Rendered by dcWorldCharts.show() in worldcharts.js -->
+  </div>
+  <!-- END WORLD CHARTS VIEW -->
+
   <!-- FIRST-RUN WELCOME GATE ─────────────────────────────────────────────
        A blocking overlay shown once to every new visitor (and once more
        after CG_GUIDE_VERSION is bumped). Nothing else on the page announces
@@ -4476,7 +4488,7 @@
   <!-- Community board tab (suggestions / bugs / discussion). Loaded before
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
   <!-- Glow kit: the drawn, glowing icons for titles, Records headings, Guide cards and stat tiles -->
-  <script defer src="glowkit.js?v=10"></script>
+  <script defer src="glowkit.js?v=11"></script>
   <!-- logo drawing helpers: dcLogoSvg / dcLogoSpinner (before app.js) -->
   <script defer src="logo.js?v=1"></script>
   <script defer src="board.js?v=14"></script>
@@ -4505,6 +4517,7 @@
   <script defer src="stats.js?v=59"></script>
   <!-- The Dank 100: weekly entries for the shared community chart; reads app.js and firebase.js globals -->
   <script defer src="dank100.js?v=26"></script>
+  <script defer src="worldcharts.js?v=1"></script>
   <!-- Top-bar library search: artists / songs / albums, opens their windows as from All-Time; after panel.js -->
   <script defer src="library-search.js?v=1"></script>
   <!-- The Charts Guide: lessons, the picture explorer, step player and challenges

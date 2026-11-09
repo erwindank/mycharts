@@ -652,6 +652,25 @@ TRANSLATIONS['es'] = Object.assign({
     gd_setup_guide_link: '¿Te atascas al conectar tu música? La guía de configuración paso a paso muestra cada pantalla →',
     // Community board (board.js)
     nav_board: "Foro",
+    // World Charts (worldcharts.js): Billboard, Spotify and YouTube charts
+    nav_worldcharts: "Listas mundiales",
+    wc_title: "Listas mundiales",
+    wc_sub: "Las listas reales que escucha todo el mundo, de Billboard, Spotify y YouTube.",
+    // the chart buttons: the brand (Billboard / Spotify / YouTube) is shown above these
+    wc_chart_hot_100: "Hot 100",
+    wc_chart_billboard_200: "Billboard 200",
+    wc_chart_spotify_global_daily: "Global diaria",
+    wc_chart_spotify_global_weekly: "Global semanal",
+    wc_chart_youtube_top: "Más vistos",
+    wc_loading: "Cargando la lista…",
+    wc_err: "Ahora mismo no se pudo cargar esta lista.",
+    wc_retry: "Reintentar",
+    wc_stale: "No se pudo actualizar esta lista ahora mismo, así que ves la última copia guardada.",
+    wc_source: "Fuente:",
+    wc_week_of: "Semana del {{date}}",
+    wc_day_of: "{{date}}",
+    wc_with: "con {{names}}",
+    wc_show_all: "Ver las {{n}}",
     // The Dank 100 (dank100.js)
     nav_dank100: "The Dank 100",
     d100_title: "The Dank 100",
