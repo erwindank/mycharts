@@ -1,4 +1,4 @@
-// World Charts proxy: fetches a real-world chart page (Billboard or kworb.net)
+// World Charts proxy: fetches a real-world chart (Billboard, kworb.net or YouTube Charts)
 // and returns its rows as small JSON for the World Charts tab.
 //
 // Why a proxy: neither billboard.com nor kworb.net sends CORS headers, so the
@@ -11,9 +11,9 @@
 //   → { chart, title, kind, period, date, source, sourceUrl, fetchedAt, stale?, rows }
 //
 // Chart fields:
-//   - `kind`   'songs' | 'albums' | 'videos'. It tells the app what to match
-//              the rows against in the user's library. 'videos' are YouTube
-//              video titles, which we split into artist + title as well as we can.
+//   - `kind`   'songs' | 'albums'. It tells the app what to match the rows
+//              against in the user's library. (YouTube's chart has a clean
+//              artist and title per video, so it is 'songs' too.)
 //   - `period` 'week' | 'day'. It's what `last` and `onChart` count in.
 //   - `stale: true` means the source couldn't be read just now, so this is the
 //     last good copy we saved.
@@ -28,10 +28,8 @@
 //   feat       featured artists (Spotify only)
 //   streams, streamsChange, total (Spotify only)
 //   points, pointsChange (Apple Music only: kworb's chart points)
-//   countries  how many countries it's trending in (YouTube only)
-//   spots      its best places, e.g. [{ pos: 5, country: 'Mexico' }] (YouTube only)
+//   views, viewsChange (YouTube only: that week's views, % change from the week before)
 //   spotifyId / videoId: the track or video id, for players and artwork later
-//   raw        the untouched video title (YouTube only)
 //
 // Caching (no cron, same idea as grammy-proxy): the first visitor after the
 // cache runs out triggers a fresh fetch, and everyone after that gets the saved
@@ -85,14 +83,15 @@ const CHARTS = {
     title: 'Apple Music Global Daily', source: 'kworb', kind: 'songs', period: 'day',
     path: 'apple_songs/', ttl: 3 * HOUR, min: 150,
   },
-  // 2026-11-09: was 'youtube-top' (most viewed, kworb.net/youtube/). Now the
-  // music videos trending worldwide. A new id so no old "most viewed" copy in
-  // the cache can be served under the trending name.
-  'youtube-trending': {
-    // kworb's list is usually 200–300 long. We keep the top 200 so it matches
-    // Spotify. It can be shorter on a quiet day, so `min` is lower.
-    title: 'YouTube Trending', source: 'kworb', kind: 'videos', period: 'day',
-    path: 'youtube/trending.html', ttl: 3 * HOUR, min: 100, max: 200,
+  // YouTube's own weekly chart of the top music videos worldwide
+  // (charts.youtube.com, "Top music videos"). Only real music videos count,
+  // so no lyric re-uploads or trailers. 100 places, weeks end on Thursday.
+  // History: 'youtube-top' (kworb most viewed) and then 'youtube-trending'
+  // (kworb trending music videos), both 2026-11-09. A new id each time so no
+  // old copy in the cache is served under the new name.
+  'youtube-music-videos': {
+    title: 'YouTube Top Music Videos', source: 'youtube', kind: 'songs', period: 'week',
+    ttl: 6 * HOUR, min: 90,
   },
 };
 
@@ -110,7 +109,8 @@ export async function onRequest(context) {
   }
   if (!def) return json({ error: 'Unknown chart' }, 400, 0);
   if (date && !/^\d{4}-\d{2}-\d{2}$/.test(date)) return json({ error: 'Bad date' }, 400, 0);
-  // kworb has no history pages, so it only has the current chart.
+  // kworb has no history pages, so it only has the current chart (and
+  // YouTube's past weeks aren't wired up yet).
   if (date && def.source !== 'billboard') return json({ error: 'No past weeks for this chart' }, 400, 0);
 
   const cache = caches.default;
@@ -164,6 +164,7 @@ function json(body, status, maxAge) {
 // Fetch + parse one chart. Returns null if the result doesn't look like a real
 // chart (too few rows), so the caller falls back to the last good copy.
 async function fetchChart(id, def, date) {
+  if (def.source === 'youtube') return fetchYouTubeChart(id, def);
   const isBB = def.source === 'billboard';
   const sourceUrl = isBB
     ? `https://www.billboard.com/charts/${def.path}/${date ? date + '/' : ''}`
@@ -178,7 +179,6 @@ async function fetchChart(id, def, date) {
   const html = await r.text();
 
   const parsed = isBB ? parseBillboard(html)
-    : def.kind === 'videos' ? parseKworbYouTube(html)
     : id.startsWith('apple') ? parseKworbApple(html)
     : parseKworbSpotify(html);
   // Old weeks can be shorter than today's chart (the album chart had only 150
@@ -347,59 +347,73 @@ function parseKworbApple(html) {
   return { date: kworbDate(html), rows };
 }
 
-// YouTube music videos trending worldwide. Cells: Pos | change | Video | # | Highlights.
-//   #           how many countries the video is trending in
-//   Highlights  its best places, "#13 Brazil, #13 Indonesia, #10 United States"
-// The video link is "/youtube/trending/video/ID.html" (or a youtube.com watch link).
-function parseKworbYouTube(html) {
-  const rows = [];
-  for (const c of kworbRows(html)) {
-    if (c.length < 4) continue;
-    const rank = num(c[0]);
-    if (!rank) continue;
-    const link = c[2].match(/href="([^"]+)"/);
-    const idM = link && (link[1].match(/video\/([\w-]{11})\.html/) || link[1].match(/[?&]v=([\w-]{11})/));
-    const raw = clean(c[2]);
-    if (!raw) continue;
-    const { artist, title } = splitVideoTitle(raw);
-    // Best place first, so the app can show just the top one
-    const spots = c[4] ? [...clean(c[4]).matchAll(/#(\d+)\s+([^,]+)/g)]
-      .map(m => ({ pos: +m[1], country: m[2].trim() }))
-      .sort((a, b) => a.pos - b.pos) : [];
-    rows.push({
-      rank, title, artist, raw,
-      ...kworbMove(rank, c[1]),
-      countries: num(c[3]),
-      ...(spots.length ? { spots } : {}),
-      videoId: idM ? idM[1] : null,
-    });
-  }
-  return { date: kworbDate(html), rows };
+// ── YouTube Charts ────────────────────────────────────────────────────────────
+// charts.youtube.com has no page to read: the site asks its own JSON API, the
+// same one called here. No key is needed. The answer is big (~400 KB) and
+// deep, so we only take what the tab shows. Per video:
+//   chartEntryMetadata: currentPosition, previousPosition (missing when it
+//     wasn't on last week's chart), periodsOnChart, percentViewsChange
+//   title, artists[].name, viewCount (that week), id (the video id)
+// No previousPosition: new if it's the first week on the chart, else a re-entry.
+const YT_CHARTS_API = 'https://charts.youtube.com/youtubei/v1/browse?alt=json';
+const YT_CHARTS_PAGE = 'https://charts.youtube.com/charts/TopVideos/global/weekly';
+
+async function fetchYouTubeChart(id, def) {
+  const r = await fetch(YT_CHARTS_API, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Origin': 'https://charts.youtube.com',
+      'Referer': YT_CHARTS_PAGE,
+      'User-Agent': UA_BROWSER,
+    },
+    body: JSON.stringify({
+      context: { client: { clientName: 'WEB_MUSIC_ANALYTICS', clientVersion: '2.0', hl: 'en', gl: 'US', theme: 'MUSIC' },
+        capabilities: {}, request: { internalExperimentFlags: [] } },
+      browseId: 'FEmusic_analytics_charts_home',
+      query: 'perspective=CHART_DETAILS&chart_params_country_code=global&chart_params_chart_type=VIDEOS&chart_params_period_type=WEEKLY',
+    }),
+  });
+  if (!r.ok) return null;
+  const parsed = parseYouTubeCharts(await r.json());
+  if (parsed.rows.length < def.min) return null;
+  return {
+    chart: id, title: def.title, kind: def.kind, period: def.period,
+    date: parsed.date, source: 'YouTube Charts', sourceUrl: YT_CHARTS_PAGE,
+    fetchedAt: new Date().toISOString(),
+    rows: parsed.rows,
+  };
 }
 
-// "Shakira, Burna Boy - Dai Dai (Official Video)" → { artist: "Shakira, Burna Boy", title: "Dai Dai" }
-// Video titles are free text, so this is a best guess. With no " - " in the
-// title we can't tell the artist, so artist is null and the app falls back to
-// matching on the title alone.
-function splitVideoTitle(raw) {
-  // Tidy first, then split. Order matters:
-  //   1. drop bracketed video tags: (Official Video), [Lyrics], (Video Oficial)…
-  //      ("Ao Vivo" = live in Portuguese, kept out of this list so live
-  //      versions stay visible as such.)
-  //   2. cut everything after the first " | ": that part is credits/cast
-  //   3. drop loose tags at the end: M/V, Official (Lyric/Music) Video, #hashtags
-  //   4. strip the curly quotes some labels wrap titles in
-  const s = raw
-    .replace(/\s*[(\[][^)\]]*\b(official|oficial|video|audio|lyrics?|letra|visuali[sz]er|m\/?v|mv|clip|full song)\b[^)\]]*[)\]]/gi, '')
-    .replace(/\s*\|.*$/, '')
-    .replace(/\s+#\S+/g, '')
-    .replace(/\s+(M\/V|MV|(Official )?(Lyric |Music )?Video|Video Klip)\s*$/i, '')
-    .replace(/[“”‘’]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim() || raw;
-  const m = s.match(/^(.+?)\s+[-–—]\s+(.+)$/);
-  if (!m) return { artist: null, title: s };
-  return { artist: m[1].trim(), title: m[2].trim() };
+function parseYouTubeCharts(j) {
+  const sections = (((j || {}).contents || {}).sectionListRenderer || {}).contents || [];
+  let chart = null;
+  for (const sec of sections) {
+    const v = (((sec.musicAnalyticsSectionRenderer || {}).content || {}).videos || [])[0];
+    if (v && v.videoViews) { chart = v; break; }
+  }
+  if (!chart) return { date: null, rows: [] };
+  const rows = [];
+  for (const x of chart.videoViews) {
+    const m = x.chartEntryMetadata || {};
+    const rank = m.currentPosition;
+    if (!rank || !x.title) continue;
+    const weeks = m.periodsOnChart || null;
+    const prev = m.previousPosition || null;
+    rows.push({
+      rank,
+      title: x.title,
+      artist: (x.artists || []).map(a => a.name).join(', '),
+      status: prev ? null : weeks > 1 ? 're' : 'new',
+      last: prev,
+      onChart: weeks,
+      views: x.viewCount ? Number(x.viewCount) : null,
+      // -0.059 → -5.9 (%), one decimal
+      viewsChange: typeof m.percentViewsChange === 'number' ? Math.round(m.percentViewsChange * 1000) / 10 : null,
+      videoId: x.id || null,
+    });
+  }
+  return { date: chart.endDate || null, rows };
 }
 
 // Tags out, entities decoded, spaces squeezed.
@@ -417,4 +431,4 @@ function clean(s) {
 }
 
 // Exported for local tests.
-export { parseBillboard, parseKworbSpotify, parseKworbApple, parseKworbYouTube, splitVideoTitle, CHARTS };
+export { parseBillboard, parseKworbSpotify, parseKworbApple, parseYouTubeCharts, CHARTS };

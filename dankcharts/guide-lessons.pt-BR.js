@@ -2449,10 +2449,10 @@ window.GL_TEXT['pt-BR'] = {
           newtag: ['{{t:wc_new_to_you}}', 'Você ainda não ouviu.']
         } },
         youtube: { title: 'YouTube', spots: {
-          pick: ['{{t:wc_chart_youtube_trending}}', 'Os clipes em alta no mundo agora.'],
-          cols: ['As colunas', 'Em quantos países está em alta e sua melhor posição em um deles.'],
+          pick: ['{{t:wc_chart_youtube_music_videos}}', 'A parada do próprio YouTube com os clipes mais vistos do mundo a cada semana. Só contam clipes de verdade.'],
+          cols: ['As colunas', 'Views da semana, a variação em relação à semana anterior e semanas na parada.'],
           art: ['O vídeo', 'A miniatura dele.'],
-          row: ['Um vídeo', 'O que o mundo está assistindo agora.'],
+          row: ['Um vídeo', 'O que o mundo está assistindo nesta semana.'],
           yt: ['YouTube', 'Abre o próprio vídeo.']
         } }
       },

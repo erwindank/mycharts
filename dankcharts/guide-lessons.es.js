@@ -2449,10 +2449,10 @@ window.GL_TEXT.es = {
           newtag: ['{{t:wc_new_to_you}}', 'Todavía no la escuchaste.']
         } },
         youtube: { title: 'YouTube', spots: {
-          pick: ['{{t:wc_chart_youtube_trending}}', 'Los videos musicales que son tendencia en el mundo ahora mismo.'],
-          cols: ['Las columnas', 'En cuántos países es tendencia y su mejor puesto en uno de ellos.'],
+          pick: ['{{t:wc_chart_youtube_music_videos}}', 'La lista de YouTube de los videos musicales más vistos del mundo cada semana. Solo cuentan videos musicales de verdad.'],
+          cols: ['Las columnas', 'Vistas de esa semana, el cambio frente a la semana anterior y semanas en la lista.'],
           art: ['El video', 'Su miniatura.'],
-          row: ['Un video', 'Lo que el mundo está viendo ahora mismo.'],
+          row: ['Un video', 'Lo que el mundo está viendo esta semana.'],
           yt: ['YouTube', 'Abre el video.']
         } }
       },

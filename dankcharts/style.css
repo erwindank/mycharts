@@ -49064,10 +49064,9 @@ a.tb-more-item:hover { text-decoration: none; }
   grid-template-columns: 2.2em 3.4em 44px minmax(0, 1fr) 6.6em 4.6em 3.4em 3.6em;
 }
 .wc-list--youtube .d100-row, .wc-cols:has(+ .wc-list--youtube) {
-  /* Countries | Best spot ("#10 United States") */
-  grid-template-columns: 2.2em 3.4em 44px minmax(0, 1fr) 5.4em 10em;
+  /* Views | Change (%) | Weeks */
+  grid-template-columns: 2.2em 3.4em 44px minmax(0, 1fr) 6.6em 4.6em 3.6em;
 }
-.wc-list--youtube .wc-num:last-of-type { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* the column labels need the same em size as the rows, see .d100-cols */
 .wc-cols span { white-space: nowrap; }
 /* Video thumbnails are 16:9: crop to the middle of the frame */

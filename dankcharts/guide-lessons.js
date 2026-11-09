@@ -3571,10 +3571,10 @@ window.GL_TEXT.en = {
           newtag: ['{{t:wc_new_to_you}}', 'You haven’t played it yet.']
         } },
         youtube: { title: 'YouTube', spots: {
-          pick: ['{{t:wc_chart_youtube_trending}}', 'The music videos trending around the world right now.'],
-          cols: ['The columns', 'How many countries it’s trending in, and its best place in one of them.'],
+          pick: ['{{t:wc_chart_youtube_music_videos}}', 'YouTube’s own chart of the most watched music videos in the world each week. Only real music videos count.'],
+          cols: ['The columns', 'Views that week, the change from the week before, and weeks on the chart.'],
           art: ['The video', 'Its thumbnail.'],
-          row: ['A video', 'What the world is watching right now.'],
+          row: ['A video', 'What the world is watching this week.'],
           yt: ['YouTube', 'Opens the video itself.']
         } }
       },

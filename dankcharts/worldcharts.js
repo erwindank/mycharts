@@ -48,7 +48,7 @@
     { id: 'spotify-global-daily',  source: 'kworb',     kind: 'songs',  period: 'day'  },
     { id: 'spotify-global-weekly', source: 'kworb',     kind: 'songs',  period: 'week' },
     { id: 'apple-global-daily',    source: 'kworb',     kind: 'songs',  period: 'day'  },
-    { id: 'youtube-trending',      source: 'kworb',     kind: 'videos', period: 'day'  }
+    { id: 'youtube-music-videos',  source: 'youtube',   kind: 'songs',  period: 'week' }
   ];
 
   var LS_CHART = 'dc_wc_chart';            // the chart you looked at last
@@ -143,8 +143,9 @@
 
   function pickStart() {
     var saved = lsGet(LS_CHART);
-    // 2026-11-09: the YouTube chart changed from Most Viewed to Trending
-    if (saved === 'youtube-top') saved = 'youtube-trending';
+    // 2026-11-09: the YouTube chart changed from Most Viewed to Trending and
+    // then to YouTube's own Top Music Videos
+    if (saved === 'youtube-top' || saved === 'youtube-trending') saved = 'youtube-music-videos';
     var ids = S.menu.map(function (c) { return c.id; });
     return ids.indexOf(saved) >= 0 ? saved : ids[0];
   }
@@ -293,7 +294,7 @@
   //   billboard: Last wk | Peak | Weeks
   //   spotify:   Streams | Change | Peak | Days or Weeks
   //   apple:     Points | Change | Peak | Days (kworb's points, not plays)
-  //   youtube:   Countries (how many it's trending in) | Best spot (#5 Mexico)
+  //   youtube:   Views | Change (% from last week) | Weeks
   // On phones only the first column marked `phone` stays, written short (5.1M).
   function colsFor(d) {
     var brand = brandOf(d.chart);
@@ -315,36 +316,20 @@
       { key: 'wc_col_days', val: function (r) { return r.onChart; } }
     ];
     return [
-      { key: 'wc_col_countries', val: function (r) { return r.countries == null ? '–' : fmtNum(r.countries); }, phone: true },
-      { key: 'wc_col_best_spot', val: bestSpot }
+      { key: 'wc_col_views', val: function (r) { return fmtNum(r.views); }, short: function (r) { return fmtShort(r.views); }, phone: true, wide: true },
+      { key: 'wc_col_change', val: pctHTML, html: true },
+      { key: 'd100_col_wk', val: function (r) { return r.onChart; } }
     ];
   }
 
-  // YouTube Trending: the video's best place in one country, "#5 Mexico".
-  // kworb writes the country in English, so it's put into the site language
-  // through its region code when we can find one ("Estados Unidos").
-  function bestSpot(r) {
-    var b = r.spots && r.spots[0];
-    if (!b) return '–';
-    return '#' + b.pos + ' ' + countryName(b.country);
-  }
-  var _regionCodes = null;   // English country name -> region code, built once
-  function countryName(en) {
-    try {
-      if (!window.Intl || !Intl.DisplayNames) return en;
-      if (!_regionCodes) {
-        _regionCodes = {};
-        var dnEn = new Intl.DisplayNames(['en'], { type: 'region' });
-        var A = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        for (var i = 0; i < 26; i++) for (var j = 0; j < 26; j++) {
-          var code = A[i] + A[j], name;
-          try { name = dnEn.of(code); } catch (e) { continue; }
-          if (name && name !== code) _regionCodes[name] = code;
-        }
-      }
-      var cc = _regionCodes[en];
-      return cc ? new Intl.DisplayNames([locale() || 'en'], { type: 'region' }).of(cc) || en : en;
-    } catch (e) { return en; }
+  // YouTube: views up or down from last week, in %, coloured like changeHTML
+  function pctHTML(r) {
+    var c = r.viewsChange;
+    if (c == null || r.status) return '<span class="wc-chg">–</span>';
+    var up = c >= 0, n = Math.abs(c);
+    var txt;
+    try { txt = n.toLocaleString(locale(), { maximumFractionDigits: n >= 10 ? 0 : 1 }); } catch (e) { txt = String(n); }
+    return '<span class="wc-chg wc-chg--' + (up ? 'up' : 'down') + '">' + (up ? '+' : '−') + esc(txt) + '%</span>';
   }
 
   // 5,075,633 → "5.1M" (in the site language's own short form)
