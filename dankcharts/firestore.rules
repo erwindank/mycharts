@@ -39,6 +39,10 @@ service cloud.firestore {
     function changedOnly(keys) {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys);
     }
+    // A post's or reply's pictures: a list of up to 4 {id, w, h} pointing at
+    // boardImages docs. Leaving the field out means no pictures.
+    function imagesOk(d) { return !('images' in d) || (d.images is list && d.images.size() <= 4); }
+    function hasImages(d) { return 'images' in d && d.images is list && d.images.size() > 0; }
     function postPath(postId) { return /databases/$(database)/documents/boardPosts/$(postId); }
     function replyPath(postId, replyId) {
       return /databases/$(database)/documents/boardPosts/$(postId)/replies/$(replyId);
@@ -145,7 +149,8 @@ service cloud.firestore {
       // with the server's clock and the poster's own uid.
       allow create: if signedIn()
         && request.resource.data.keys().hasOnly(['title', 'body', 'category', 'authorUid', 'authorName',
-             'authorPhoto', 'createdAt', 'lastActivity', 'status', 'pinned', 'votes', 'voteCount', 'replyCount'])
+             'authorPhoto', 'createdAt', 'lastActivity', 'status', 'pinned', 'votes', 'voteCount', 'replyCount', 'images'])
+        && imagesOk(request.resource.data)
         && request.resource.data.authorUid == request.auth.uid
         && textOk(request.resource.data.title, 3, 120)
         && textOk(request.resource.data.body, 0, 5000)
@@ -163,7 +168,8 @@ service cloud.firestore {
       allow update: if signedIn() && (
         // 1. The author edits their own text or category.
         (resource.data.authorUid == request.auth.uid
-          && changedOnly(['title', 'body', 'category', 'editedAt'])
+          && changedOnly(['title', 'body', 'category', 'editedAt', 'images'])
+          && imagesOk(request.resource.data)
           && textOk(request.resource.data.title, 3, 120)
           && textOk(request.resource.data.body, 0, 5000)
           && request.resource.data.category in ['suggestion', 'bug', 'question', 'discussion']
@@ -214,9 +220,12 @@ service cloud.firestore {
         allow read: if true;
         // Must go in together with the post's counter bump (rule 3 above).
         allow create: if signedIn()
-          && request.resource.data.keys().hasOnly(['body', 'authorUid', 'authorName', 'authorPhoto', 'createdAt'])
+          && request.resource.data.keys().hasOnly(['body', 'authorUid', 'authorName', 'authorPhoto', 'createdAt', 'images'])
           && request.resource.data.authorUid == request.auth.uid
-          && textOk(request.resource.data.body, 1, 3000)
+          && imagesOk(request.resource.data)
+          // text, or just a picture
+          && (textOk(request.resource.data.body, 1, 3000)
+              || (textOk(request.resource.data.body, 0, 0) && hasImages(request.resource.data)))
           && textOk(request.resource.data.authorName, 1, 60)
           && textOk(request.resource.data.authorPhoto, 0, 500)
           && request.resource.data.createdAt == request.time
@@ -230,6 +239,27 @@ service cloud.firestore {
           || get(postPath(postId)).data.authorUid == request.auth.uid
           || isBoardAdmin());
       }
+    }
+
+    // ── Board pictures (board.js) ───────────────────────────────────────────
+    // One picture per doc as a WebP/JPEG/PNG data URL, shrunk in the browser
+    // to fit. Anyone can open one by id; nobody can list them. Only the
+    // signed-in uploader adds one, never changes it, and the uploader or a
+    // moderator removes it. The size cap keeps a doc from being free storage.
+    match /boardImages/{imageId} {
+      allow get: if true;
+      allow list: if false;
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['data', 'w', 'h', 'authorUid', 'createdAt'])
+        && request.resource.data.authorUid == request.auth.uid
+        && request.resource.data.data is string
+        && request.resource.data.data.size() <= 750000
+        && request.resource.data.data[0:30].matches('data:image/(webp|jpeg|png);base64,.*')
+        && request.resource.data.w is int && request.resource.data.w > 0 && request.resource.data.w <= 4000
+        && request.resource.data.h is int && request.resource.data.h > 0 && request.resource.data.h <= 4000
+        && request.resource.data.createdAt == request.time;
+      allow update: if false;
+      allow delete: if signedIn() && (resource.data.authorUid == request.auth.uid || isBoardAdmin());
     }
   }
 }

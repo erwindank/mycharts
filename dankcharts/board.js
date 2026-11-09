@@ -8,6 +8,11 @@
      boardPosts/{postId}                 one post: title, body, category,
                                          status, pinned, votes (uids), counts
      boardPosts/{postId}/replies/{id}    replies to that post, oldest first
+     boardImages/{imageId}               one picture (a small WebP/JPEG data
+                                         URL) added to a post or reply; the
+                                         post/reply keeps [{id, w, h}] in its
+                                         `images` field. Kept apart so the
+                                         post list never downloads pictures.
      boardAdmins/{uid}                   an empty doc per moderator; only its
                                          own uid can read it, nobody can write
                                          it from the site (add it in the
@@ -35,6 +40,15 @@
   // The whole board is read in one go and filtered/sorted in the browser, so
   // there is no index to set up in the console. Plenty for a fan board.
   var POST_LIMIT = 300;
+  // Pictures: up to 4 per post or reply, shrunk in the browser to fit one
+  // Firestore document each (the rules cap data at 750,000 characters).
+  var MAX_IMAGES = 4, IMG_MAX_SIDE = 1600, IMG_MAX_CHARS = 700000;
+  // The emoji picker's grid. Typed emoji always worked (they're just text);
+  // the picker makes them easy on a computer keyboard.
+  var EMOJI = ('😀 😂 🤣 😊 😍 🥰 😎 🤩 🥳 😅 😉 🙂 🤔 🙃 😴 😮 😢 😭 😡 🤯 ' +
+    '👍 👎 👏 🙌 🙏 💪 👀 🤝 ✌️ 🤘 👋 🫶 ❤️ 🧡 💛 💚 💙 💜 🖤 💔 ' +
+    '🔥 ✨ ⭐ 🌟 💯 🎉 🏆 🥇 👑 💎 ✅ ❌ ⚠️ ❓ 💡 🐛 🚀 📈 📉 🕒 ' +
+    '🎵 🎶 🎤 🎧 🎸 🎹 🥁 🎺 💿 📻 🎼 🪩').split(' ');
   var PREFS_KEY = 'dc_board_prefs';
 
   // ── State ──────────────────────────────────────────────────────────────────
@@ -58,6 +72,11 @@
   // (dcBoard._sample): the live lists then stay unsubscribed until a reload.
   var _sampleOn = false;
   var _active = false;  // board tab on screen
+  // Pictures waiting in a form, per form: 'bdNew', 'bdEdit', 'bdReply'.
+  // Each is {id, w, h} (already saved, when editing) or {data, w, h} (new).
+  var _pending = { bdNew: [], bdEdit: [], bdReply: [] };
+  // imageId -> data URL, so a redraw never fetches a picture twice.
+  var _imgCache = {};
 
   try {
     var p = JSON.parse(localStorage.getItem(PREFS_KEY) || '{}');
@@ -208,20 +227,48 @@
     }).then(function () { delete S.busy[key]; render(); });
   }
 
+  // Adds a set() to batch `b` for each new picture in `list` and returns the
+  // [{id, w, h}] list the post or reply stores (kept pictures pass through).
+  function imageWrites(d, b, list, uid) {
+    return (list || []).map(function (im) {
+      if (im.id) return { id: im.id, w: im.w, h: im.h };
+      var ref = d.collection('boardImages').doc();
+      b.set(ref, { data: im.data, w: im.w, h: im.h, authorUid: uid, createdAt: FV().serverTimestamp() });
+      _imgCache[ref.id] = im.data;
+      return { id: ref.id, w: im.w, h: im.h };
+    });
+  }
+  // Removes pictures that are no longer used. Best effort: the rules only let
+  // the picture's owner or a moderator remove it, and a leftover picture
+  // nobody points at does no harm.
+  function dropImages(d, list) {
+    (list || []).forEach(function (im) {
+      if (im && im.id) d.collection('boardImages').doc(im.id).delete().catch(function () {});
+    });
+  }
+
   function createPost(cat, title, body) {
     var u = user(); if (!u) return;
     return guard('create', function () {
       return db().then(function (d) {
         var now = FV().serverTimestamp();
-        return d.collection('boardPosts').add({
+        // Pictures and the post go in one batch: all saved, or none.
+        var b = d.batch();
+        var ref = d.collection('boardPosts').doc();
+        var doc = {
           title: title, body: body, category: cat,
           authorUid: u.uid, authorName: authorName(), authorPhoto: (u.photoURL || '').slice(0, 500),
           createdAt: now, lastActivity: now,
           status: 'open', pinned: false,
           votes: [], voteCount: 0, replyCount: 0
-        });
+        };
+        var imgs = imageWrites(d, b, _pending.bdNew, u.uid);
+        if (imgs.length) doc.images = imgs;
+        b.set(ref, doc);
+        return b.commit().then(function () { return ref; });
       }).then(function (ref) {
         clearForm('bdNew');   // only on success - a failed post keeps its text
+        _pending.bdNew = [];
         S.composing = false;
         S.cat = 'all'; S.status = 'all'; S.sort = 'new'; S.query = ''; savePrefs();
         openPost(ref.id);
@@ -230,10 +277,19 @@
   }
 
   function savePostEdit(id, cat, title, body) {
+    var u = user(); if (!u) return;
+    var before = (findPost(id) || {}).images || [];
     return guard('edit:' + id, function () {
       return db().then(function (d) {
-        return postRef(d, id).update({ title: title, body: body, category: cat, editedAt: FV().serverTimestamp() });
-      }).then(function () { clearForm('bdEdit'); S.editingId = null; });
+        var b = d.batch();
+        var imgs = imageWrites(d, b, _pending.bdEdit, u.uid);
+        b.update(postRef(d, id), { title: title, body: body, category: cat, images: imgs, editedAt: FV().serverTimestamp() });
+        return b.commit().then(function () {
+          // Pictures taken out while editing are removed once the edit saved.
+          var kept = imgs.map(function (im) { return im.id; });
+          dropImages(d, before.filter(function (im) { return kept.indexOf(im.id) < 0; }));
+        });
+      }).then(function () { clearForm('bdEdit'); _pending.bdEdit = []; S.editingId = null; });
     });
   }
 
@@ -261,25 +317,30 @@
         var rref = pref.collection('replies').doc();
         var now = FV().serverTimestamp();
         var b = d.batch();
-        b.set(rref, { body: body, authorUid: u.uid, authorName: authorName(), authorPhoto: (u.photoURL || '').slice(0, 500), createdAt: now });
+        var doc = { body: body, authorUid: u.uid, authorName: authorName(), authorPhoto: (u.photoURL || '').slice(0, 500), createdAt: now };
+        var imgs = imageWrites(d, b, _pending.bdReply, u.uid);
+        if (imgs.length) doc.images = imgs;
+        b.set(rref, doc);
         b.update(pref, { replyCount: FV().increment(1), lastActivity: now, lastReplyId: rref.id });
         return b.commit();
       }).then(function () {
         var ta = document.getElementById('bdReplyInput');
         if (ta) ta.value = '';
         _drafts['bdReplyInput'] = '';
+        _pending.bdReply = [];
       });
     });
   }
 
   function deleteReply(postId, replyId) {
+    var r = (S.replies[postId] || []).filter(function (x) { return x.id === replyId; })[0];
     return guard('delreply:' + replyId, function () {
       return db().then(function (d) {
         var pref = postRef(d, postId);
         var b = d.batch();
         b.delete(pref.collection('replies').doc(replyId));
         b.update(pref, { replyCount: FV().increment(-1), lastReplyId: replyId });
-        return b.commit();
+        return b.commit().then(function () { if (r) dropImages(d, r.images); });
       });
     });
   }
@@ -289,8 +350,12 @@
     return guard('delpost:' + id, function () {
       return db().then(function (d) {
         var pref = postRef(d, id);
+        var postImgs = (findPost(id) || {}).images || [];
         return pref.collection('replies').get().then(function (snap) {
           var docs = snap.docs, chain = Promise.resolve();
+          // Their pictures go too (best effort, see dropImages).
+          docs.forEach(function (r) { dropImages(d, (r.data() || {}).images); });
+          dropImages(d, postImgs);
           for (var i = 0; i < docs.length; i += 400) {
             (function (slice) {
               chain = chain.then(function () {
@@ -368,6 +433,7 @@
     var focus = captureDrafts(root);
     root.innerHTML = viewHTML();
     restoreDrafts(root, focus);
+    loadImages(root);
   }
 
   // Line icons for the buttons and tags (redesign phase 9 part 7; they were
@@ -378,7 +444,9 @@
     edit: '<path d="M10.6 2.8l2.6 2.6L6 12.6l-3.2.6.6-3.2z"/>',
     link: '<path d="M6.8 9.2l2.4-2.4"/><path d="M7.6 4.6l1-1a2.6 2.6 0 0 1 3.7 3.7l-1 1"/><path d="M8.4 11.4l-1 1a2.6 2.6 0 0 1-3.7-3.7l1-1"/>',
     trash: '<path d="M2.8 4.4h10.4M6.2 4.4V3h3.6v1.4M4.2 4.4l.6 8.6h6.4l.6-8.6"/>',
-    plus: '<path d="M8 3v10M3 8h10"/>'
+    plus: '<path d="M8 3v10M3 8h10"/>',
+    image: '<rect x="2.5" y="3" width="11" height="10" rx="1.6"/><circle cx="6" cy="6.5" r="1.1"/><path d="M2.8 11.4l3.4-3 2.4 2.1 1.9-1.6 2.8 2.4"/>',
+    smile: '<circle cx="8" cy="8" r="5.6"/><path d="M5.8 9.6c.6.8 1.3 1.1 2.2 1.1s1.6-.3 2.2-1.1"/><path d="M6.2 6.4v.4M9.8 6.4v.4"/>'
   };
   function ico(name) {
     return '<svg class="bd-ico" viewBox="0 0 16 16" aria-hidden="true" focusable="false">' + ICONS[name] + '</svg>';
@@ -462,7 +530,8 @@
     });
     h += '</div>';
     h += '<input type="text" id="' + pre + 'Title" data-draft class="bd-input" maxlength="' + MAX_TITLE + '" placeholder="' + esc(tr('board_title_ph')) + '" aria-label="' + esc(tr('board_title_ph')) + '"' + (post ? ' value="' + esc(post.title) + '"' : '') + ' required>';
-    h += '<textarea id="' + pre + 'Body" data-draft class="bd-input bd-textarea" maxlength="' + MAX_BODY + '" rows="5" placeholder="' + esc(tr('board_body_ph')) + '" aria-label="' + esc(tr('board_body_ph')) + '" oninput="dcBoard.count(this)">' + (post ? esc(post.body) : '') + '</textarea>';
+    h += '<textarea id="' + pre + 'Body" data-draft class="bd-input bd-textarea" maxlength="' + MAX_BODY + '" rows="5" placeholder="' + esc(tr('board_body_ph')) + '" aria-label="' + esc(tr('board_body_ph')) + '" oninput="dcBoard.count(this)" onpaste="dcBoard.pasteImg(event,\'' + pre + '\')">' + (post ? esc(post.body) : '') + '</textarea>';
+    h += attachHTML(pre, pre + 'Body');
     h += '<div class="bd-composer-foot"><span class="bd-note">' + (post ? '' : esc(tr('board_public_note'))) + '</span>' +
       '<span class="bd-count" data-for="' + pre + 'Body"></span>' +
       '<button type="button" class="dc-btn dc-btn-normal" onclick="dcBoard.cancelCompose(' + (post ? 'true' : 'false') + ')">' + esc(tr('board_cancel')) + '</button>' +
@@ -494,13 +563,15 @@
       h += composerHTML(p);
     } else {
       h += '<button type="button" class="bd-post-title" aria-expanded="' + open + '" onclick="dcBoard.toggle(\'' + esc(p.id) + '\')">' + esc(p.title) + '</button>';
-      if (open) h += '<div class="bd-post-body">' + richText(p.body || '') + '</div>';
+      if (open) h += '<div class="bd-post-body">' + richText(p.body || '') + '</div>' + imagesHTML(p.images);
       else if (p.body) h += '<div class="bd-post-snippet">' + esc(p.body.slice(0, 220)) + '</div>';
     }
     h += '<div class="bd-meta">' + avatar(p.authorPhoto, p.authorName) +
       '<span class="bd-author">' + esc(p.authorName || tr('board_anon')) + '</span>' +
       '<span class="bd-sep">·</span><span title="' + esc(new Date(toMs(p.createdAt)).toLocaleString()) + '">' + esc(ago(toMs(p.createdAt))) + '</span>' +
       (p.editedAt ? '<span class="bd-sep">·</span><span>' + esc(tr('board_edited')) + '</span>' : '') +
+      // closed posts say how many pictures they hold; open ones show them
+      (!open && p.images && p.images.length ? '<span class="bd-sep">·</span><span class="bd-img-n" title="' + esc(tr('board_img_count', { n: p.images.length })) + '">' + ico('image') + p.images.length + '</span>' : '') +
       '<span class="bd-sep">·</span><button type="button" class="bd-link bd-replies-link" onclick="dcBoard.toggle(\'' + esc(p.id) + '\')">' + ico('reply') +
       esc(tr((p.replyCount || 0) === 1 ? 'board_replies_one' : 'board_replies_other', { n: p.replyCount || 0 })) + '</button>' +
       '</div>';
@@ -546,12 +617,13 @@
           (isOp ? '<span class="bd-op">' + esc(tr('board_op')) + '</span>' : '') +
           '<span class="bd-sep">·</span><span title="' + esc(new Date(toMs(r.createdAt)).toLocaleString()) + '">' + esc(ago(toMs(r.createdAt))) + '</span>' +
           (canDel ? '<button type="button" class="bd-link bd-reply-del" onclick="dcBoard.askDeleteReply(\'' + esc(p.id) + '\',\'' + esc(r.id) + '\')" aria-label="' + esc(tr('board_delete_reply')) + '">' + esc(tr('board_delete')) + '</button>' : '') +
-          '</div><div class="bd-reply-body">' + richText(r.body || '') + '</div></li>';
+          '</div><div class="bd-reply-body">' + richText(r.body || '') + '</div>' + imagesHTML(r.images) + '</li>';
       }).join('') + '</ul>';
     }
     if (u) {
       h += '<form class="bd-reply-form" onsubmit="dcBoard.reply(event,\'' + esc(p.id) + '\')">' +
-        '<textarea id="bdReplyInput" data-draft class="bd-input bd-textarea" rows="3" maxlength="' + MAX_REPLY + '" placeholder="' + esc(tr('board_reply_ph')) + '" aria-label="' + esc(tr('board_reply_ph')) + '" oninput="dcBoard.count(this)" required></textarea>' +
+        '<textarea id="bdReplyInput" data-draft class="bd-input bd-textarea" rows="3" maxlength="' + MAX_REPLY + '" placeholder="' + esc(tr('board_reply_ph')) + '" aria-label="' + esc(tr('board_reply_ph')) + '" oninput="dcBoard.count(this)" onpaste="dcBoard.pasteImg(event,\'bdReply\')"></textarea>' +
+        attachHTML('bdReply', 'bdReplyInput') +
         '<div class="bd-composer-foot"><span class="bd-note"></span><span class="bd-count" data-for="bdReplyInput"></span>' +
         '<button type="submit" class="dc-btn dc-btn-main"' + (S.busy['reply:' + p.id] ? ' disabled' : '') + '>' + esc(tr('board_reply_btn')) + '</button></div></form>';
     } else {
@@ -560,6 +632,195 @@
     }
     h += '</div>';
     return h;
+  }
+
+  // ── Pictures and emoji in the forms ────────────────────────────────────────
+  // The row under a textarea: emoji button, add-picture button (a hidden file
+  // input inside a <label>, so a real click opens the file chooser), then the
+  // pictures waiting to be posted, each with a remove button.
+  function attachHTML(key, taId) {
+    var list = _pending[key] || [];
+    var full = list.length >= MAX_IMAGES;
+    var h = '<div class="bd-attach">';
+    h += '<button type="button" class="dc-btn dc-btn-normal dc-btn-sm bd-emoji-btn" aria-haspopup="true" onclick="dcBoard.emoji(this,\'' + taId + '\')" title="' + esc(tr('board_emoji')) + '">' + ico('smile') + '<span>' + esc(tr('board_emoji')) + '</span></button>';
+    h += '<label class="dc-btn dc-btn-normal dc-btn-sm bd-img-btn' + (full ? ' disabled' : '') + '" title="' + esc(tr(full ? 'board_img_full' : 'board_add_image')) + '">' + ico('image') + '<span>' + esc(tr('board_add_image')) + '</span>' +
+      '<input type="file" accept="image/*" multiple' + (full ? ' disabled' : '') + ' onchange="dcBoard.addImg(this,\'' + key + '\')"></label>';
+    if (S.busy['img:' + key]) h += '<span class="bd-note">' + esc(tr('board_img_working')) + '</span>';
+    h += '</div>';
+    if (list.length) {
+      h += '<div class="bd-thumbs">' + list.map(function (im, i) {
+        var src = im.data || _imgCache[im.id] || '';
+        return '<span class="bd-thumb"><img ' + (src ? 'src="' + esc(src) + '"' : 'data-bdimg="' + esc(im.id) + '"') + ' alt="">' +
+          '<button type="button" class="bd-thumb-x" aria-label="' + esc(tr('board_img_remove')) + '" title="' + esc(tr('board_img_remove')) + '" onclick="dcBoard.removeImg(\'' + key + '\',' + i + ')">×</button></span>';
+      }).join('') + '</div>';
+    }
+    return h;
+  }
+
+  // Pictures shown under a post or reply. The size is known up front, so the
+  // space is held while the picture loads and nothing jumps.
+  function imagesHTML(list) {
+    if (!list || !list.length) return '';
+    return '<div class="bd-imgs bd-imgs-' + Math.min(list.length, 4) + '">' + list.map(function (im) {
+      if (!im || !im.id) return '';
+      var src = _imgCache[im.id];
+      var ratio = im.w && im.h ? ' style="aspect-ratio:' + (+im.w) + '/' + (+im.h) + '"' : '';
+      // One picture: the box is the picture's own shape, at most 560 wide and
+      // 360 tall, so a tall picture doesn't sit in a wide empty frame.
+      var box = '';
+      if (list.length === 1 && im.w && im.h) box = ' style="width:' + Math.round(Math.min(560, +im.w, +im.w * 360 / +im.h)) + 'px"';
+      return '<button type="button" class="bd-img"' + box + ' onclick="dcBoard.viewImg(\'' + esc(im.id) + '\')" aria-label="' + esc(tr('board_img_open')) + '">' +
+        '<img ' + (src ? 'src="' + esc(src) + '"' : 'data-bdimg="' + esc(im.id) + '"') + ratio + ' alt="' + esc(tr('board_img_alt')) + '"></button>';
+    }).join('') + '</div>';
+  }
+
+  // Fills in every picture on screen that isn't downloaded yet.
+  var _imgLoading = {};
+  function loadImages(root) {
+    root.querySelectorAll('img[data-bdimg]').forEach(function (img) {
+      var id = img.getAttribute('data-bdimg');
+      if (_imgCache[id]) { img.src = _imgCache[id]; return; }
+      if (_imgLoading[id] || _sampleOn) return;
+      _imgLoading[id] = true;
+      db().then(function (d) { return d.collection('boardImages').doc(id).get(); }).then(function (snap) {
+        var data = snap.exists ? (snap.data() || {}).data : '';
+        // Only pictures: anything else stored there is never put on the page.
+        if (typeof data === 'string' && /^data:image\/(webp|jpeg|png);base64,/.test(data)) {
+          _imgCache[id] = data;
+          document.querySelectorAll('img[data-bdimg="' + id + '"]').forEach(function (el) { el.src = data; });
+        }
+      }).catch(function (err) {
+        console.warn('[dankcharts] Board picture error:', err);
+      }).then(function () { delete _imgLoading[id]; });
+    });
+  }
+
+  // Shrinks a picture file so it fits one Firestore document: longest side
+  // at most IMG_MAX_SIDE, WebP (JPEG where the browser can't make WebP),
+  // lowering the quality and then the size until it fits IMG_MAX_CHARS.
+  // Animated GIFs keep only their first frame.
+  function shrinkImage(file) {
+    return new Promise(function (resolve, reject) {
+      var url = URL.createObjectURL(file);
+      var img = new Image();
+      img.onload = function () {
+        URL.revokeObjectURL(url);
+        var side = IMG_MAX_SIDE, q = 0.85;
+        var webp = document.createElement('canvas').toDataURL('image/webp').indexOf('data:image/webp') === 0;
+        for (var tries = 0; tries < 12; tries++) {
+          var k = Math.min(1, side / Math.max(img.naturalWidth, img.naturalHeight));
+          var w = Math.max(1, Math.round(img.naturalWidth * k)), h = Math.max(1, Math.round(img.naturalHeight * k));
+          var c = document.createElement('canvas');
+          c.width = w; c.height = h;
+          var x = c.getContext('2d');
+          // JPEG has no see-through parts; give it a dark backdrop.
+          if (!webp) { x.fillStyle = '#111'; x.fillRect(0, 0, w, h); }
+          x.drawImage(img, 0, 0, w, h);
+          var data = c.toDataURL(webp ? 'image/webp' : 'image/jpeg', q);
+          if (data.length <= IMG_MAX_CHARS) { resolve({ data: data, w: w, h: h }); return; }
+          if (q > 0.6) q -= 0.1; else side = Math.round(side * 0.8);
+        }
+        reject(new Error('too big'));
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); reject(new Error('not an image')); };
+      img.src = url;
+    });
+  }
+
+  function addFiles(key, files) {
+    files = Array.prototype.filter.call(files || [], function (f) { return /^image\//.test(f.type); });
+    if (!files.length) return;
+    var room = MAX_IMAGES - _pending[key].length;
+    if (room <= 0) { toast(tr('board_img_full')); return; }
+    if (files.length > room) toast(tr('board_img_full'));
+    files = files.slice(0, room);
+    S.busy['img:' + key] = true;
+    render();
+    var chain = Promise.resolve();
+    files.forEach(function (f) {
+      chain = chain.then(function () {
+        return shrinkImage(f).then(function (im) {
+          if (_pending[key].length < MAX_IMAGES) _pending[key].push(im);
+        }, function () { toast(tr('board_img_bad')); });
+      });
+    });
+    chain.then(function () { delete S.busy['img:' + key]; render(); });
+  }
+
+  // The emoji grid floats on <body>, so a redraw of the board (a new post
+  // arriving while it's open) doesn't close it. It types into the textarea
+  // whose id it was opened for, at the caret.
+  var _emojiPop = null;
+  function closeEmoji() {
+    if (!_emojiPop) return;
+    _emojiPop.remove(); _emojiPop = null;
+    document.removeEventListener('mousedown', onEmojiOutside, true);
+    document.removeEventListener('keydown', onEmojiKey, true);
+  }
+  function onEmojiOutside(e) {
+    if (_emojiPop && !_emojiPop.contains(e.target) && !(e.target.closest && e.target.closest('.bd-emoji-btn'))) closeEmoji();
+  }
+  function onEmojiKey(e) { if (e.key === 'Escape') { e.stopPropagation(); closeEmoji(); } }
+  function openEmoji(btn, taId) {
+    if (_emojiPop) { var same = _emojiPop.dataset.for === taId; closeEmoji(); if (same) return; }
+    var pop = document.createElement('div');
+    pop.className = 'bd-emoji-pop';
+    pop.dataset.for = taId;
+    pop.setAttribute('role', 'dialog');
+    pop.setAttribute('aria-label', tr('board_emoji'));
+    pop.innerHTML = EMOJI.map(function (e) { return '<button type="button" class="bd-emoji">' + e + '</button>'; }).join('');
+    pop.addEventListener('click', function (e) {
+      var b = e.target.closest('.bd-emoji'); if (!b) return;
+      var ta = document.getElementById(taId); if (!ta) { closeEmoji(); return; }
+      var s = ta.selectionStart != null ? ta.selectionStart : ta.value.length;
+      var en = ta.selectionEnd != null ? ta.selectionEnd : s;
+      var v = ta.value.slice(0, s) + b.textContent + ta.value.slice(en);
+      if (v.length > +ta.getAttribute('maxlength')) return;
+      ta.value = v;
+      _drafts[taId] = v;
+      ta.focus({ preventScroll: true });
+      try { ta.setSelectionRange(s + b.textContent.length, s + b.textContent.length); } catch (er) {}
+      updateCounters(ta.closest('form') || document);
+      // stays open, so several can go in; Escape or a click elsewhere closes it
+    });
+    document.body.appendChild(pop);
+    // Under the button, kept on screen; above it when there's no room below.
+    var r = btn.getBoundingClientRect(), pw = pop.offsetWidth, ph = pop.offsetHeight;
+    var left = Math.max(8, Math.min(r.left, window.innerWidth - pw - 8));
+    var top = r.bottom + 6 + ph > window.innerHeight ? r.top - ph - 6 : r.bottom + 6;
+    pop.style.left = left + 'px';
+    pop.style.top = Math.max(8, top) + 'px';
+    _emojiPop = pop;
+    document.addEventListener('mousedown', onEmojiOutside, true);
+    document.addEventListener('keydown', onEmojiKey, true);
+  }
+
+  // A picture full size, over the page. Escape, a click or the button closes it.
+  function viewImage(id) {
+    var src = _imgCache[id]; if (!src) return;
+    var layer = document.createElement('div');
+    layer.className = 'bd-lightbox';
+    layer.setAttribute('role', 'dialog');
+    layer.setAttribute('aria-modal', 'true');
+    layer.setAttribute('aria-label', tr('board_img_alt'));
+    layer.innerHTML = '<img src="' + esc(src) + '" alt="' + esc(tr('board_img_alt')) + '">' +
+      '<button type="button" class="bd-lightbox-x" aria-label="' + esc(tr('board_img_close')) + '">×</button>';
+    var prev = document.activeElement;
+    function close() {
+      document.removeEventListener('keydown', onKey, true);
+      layer.remove();
+      if (prev && prev.focus) try { prev.focus({ preventScroll: true }); } catch (e) {}
+    }
+    // Escape closes; Tab stays on the close button; the page's own keys stay quiet.
+    function onKey(e) {
+      if (e.key === 'Escape' || e.key === 'Tab') e.preventDefault();
+      if (e.key === 'Escape') close();
+      e.stopPropagation();
+    }
+    layer.addEventListener('click', close);
+    document.addEventListener('keydown', onKey, true);
+    document.body.appendChild(layer);
+    layer.querySelector('.bd-lightbox-x').focus();
   }
 
   // "1200 / 5000" under textareas, shown once the text gets long.
@@ -637,6 +898,7 @@
     S.openId = id;
     if (S.editingId && S.editingId !== id) S.editingId = null;
     _drafts['bdReplyInput'] = '';
+    _pending.bdReply = [];
     subscribeReplies(id);
     setHash(id);
     render();
@@ -715,8 +977,9 @@
       if (S.composing) { var el = document.getElementById('bdNewTitle'); if (el) el.focus(); }
     },
     cancelCompose: function (isEdit) {
-      if (isEdit) { clearForm('bdEdit'); S.editingId = null; }
-      else { clearForm('bdNew'); S.composing = false; }
+      if (isEdit) { clearForm('bdEdit'); _pending.bdEdit = []; S.editingId = null; }
+      else { clearForm('bdNew'); _pending.bdNew = []; S.composing = false; }
+      closeEmoji();
       render();
     },
     submit: function (e, editId) {
@@ -725,6 +988,8 @@
       var f = readForm(pre);
       if (f.title.length < MIN_TITLE) { toast(tr('board_err_title')); return; }
       if (f.body.length > MAX_BODY) return;
+      if (S.busy['img:' + pre]) return;   // a picture is still being shrunk
+      closeEmoji();
       if (editId) savePostEdit(editId, f.cat, f.title, f.body);
       else createPost(f.cat, f.title, f.body);
     },
@@ -737,10 +1002,30 @@
       e.preventDefault();
       var ta = document.getElementById('bdReplyInput');
       var body = ta ? ta.value.trim() : '';
-      if (!body) return;
+      // a reply can be just a picture
+      if (!body && !_pending.bdReply.length) return;
+      if (S.busy['img:bdReply']) return;
+      closeEmoji();
       addReply(id, body);
     },
-    edit: function (id) { S.editingId = id; clearForm('bdEdit'); render(); },
+    edit: function (id) {
+      var p = findPost(id);
+      S.editingId = id; clearForm('bdEdit');
+      // the post's pictures start in the form; taking one out removes it on Save
+      _pending.bdEdit = ((p && p.images) || []).map(function (im) { return { id: im.id, w: im.w, h: im.h }; });
+      render();
+    },
+    // Picture + emoji controls (attachHTML)
+    addImg: function (input, key) { var f = Array.prototype.slice.call(input.files || []); input.value = ''; addFiles(key, f); },
+    pasteImg: function (e, key) {
+      var items = (e.clipboardData && e.clipboardData.files) || [];
+      if (!items.length) return;   // plain text pastes as usual
+      e.preventDefault();
+      addFiles(key, items);
+    },
+    removeImg: function (key, i) { _pending[key].splice(i, 1); render(); },
+    emoji: function (btn, taId) { openEmoji(btn, taId); },
+    viewImg: function (id) { viewImage(id); },
     pin: function (id) { var p = findPost(id); if (p) adminSet(id, { pinned: !p.pinned }); },
     setPostStatus: function (id, s) { if (STATUSES.indexOf(s) >= 0) adminSet(id, { status: s }); },
     share: function (id) {
