@@ -8156,6 +8156,10 @@ function buildRecords() {
     year: { songs: {}, artists: {}, albums: {} }
   };
 
+  // Read once: are singles/EPs separated from albums? (see albumGroups below)
+  const _recSepOn = separatedTypes().length > 0;
+  // Read once: do singles lend their plays to their album on the charts?
+  const _recRoll = rollupAffectsCharts();
   function buildPeriodRecords(pt, playsMap, keys, sizeSongs, sizeArtists, sizeAlbums) {
     let prevSong = {}, prevArtist = {}, prevAlbum = {};
     const everSong = new Set(), everArtist = new Set(), everAlbum = new Set();
@@ -8178,6 +8182,19 @@ function buildRecords() {
           const ak = albumKeyOf(p);
           if (!lc[ak]) lc[ak] = { count: 0, album: p.album, artist: albumArtist(p), firstAchieved: p.date };
           lc[ak].count++;
+          /* "Singles count toward their album" at the charts level: the album
+             this single belongs to is credited the same play in the same
+             period, exactly as _buildChartRunFull() does. Without it the
+             albums #1 here could differ from the one on the weekly chart. The
+             single keeps its own entry and figure. */
+          const par = _recRoll ? rollupParentOf(p) : null;
+          if (par && par !== ak) {
+            if (!lc[par]) {
+              const pi = par.lastIndexOf('|||');
+              lc[par] = { count: 0, album: par.slice(0, pi), artist: par.slice(pi + 3), firstAchieved: p.date };
+            }
+            lc[par].count++;
+          }
         }
       }
       for (const [k, d] of Object.entries(sc)) { d.chartStatus = prevSong[k] ? 0 : everSong.has(k) ? 1 : 2; d.prevRank = prevSong[k] || Infinity; }
@@ -8185,7 +8202,21 @@ function buildRecords() {
       for (const [k, d] of Object.entries(lc)) { d.chartStatus = prevAlbum[k] ? 0 : everAlbum.has(k) ? 1 : 2; d.prevRank = prevAlbum[k] || Infinity; }
       const topSongs = Object.entries(sc).sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, sizeSongs);
       const topArtists = Object.entries(ac).sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, sizeArtists);
-      const topAlbums = Object.entries(lc).sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, sizeAlbums);
+      /* Album-side releases are ranked one bucket at a time — albums proper,
+         then each separated type (singles, EPs) — exactly as the chart run
+         does (_crBucketAlbums). They used to be ranked as one pile and split
+         afterwards, so a single only counted as a "Singles #1" in a week no
+         album out-played it: a song sitting at #1 on the weekly Singles chart
+         for weeks could be missing from All #1s entirely. Each group is its
+         own top-N, and `i` inside it is the rank on that bucket's chart. With
+         nothing separated there is one group and nothing changes. */
+      const albumGroups = _recSepOn
+        ? _crBucketAlbums(lc).map(g => g.sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, sizeAlbums))
+        : [Object.entries(lc).sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, sizeAlbums)];
+      /* Perfect All Kill reads the albums chart proper — the first group,
+         since _crBucketAlbums() always puts 'album' first when it has rows. */
+      const topAlbums = (albumGroups[0] && albumGroups[0][0] && (!_recSepOn || albumBucketOfKey(albumGroups[0][0][0]) === 'album'))
+        ? albumGroups[0] : [];
       const nPS = {}, nPA = {}, nPL = {};
       const newSongKeysThisPeriod = new Set();
       topSongs.forEach(([k, d], i) => {
@@ -8216,7 +8247,8 @@ function buildRecords() {
         artistApps[pt][a] = (artistApps[pt][a] || 0) + 1;
         if (!artistPP[pt][a] || d.count > artistPP[pt][a].count) artistPP[pt][a] = { count: d.count, period: pk };
       });
-      topAlbums.forEach(([ak, d], i) => {
+      // One pass per bucket chart (see albumGroups above).
+      for (const albGroup of albumGroups) albGroup.forEach(([ak, d], i) => {
         nPL[ak] = i + 1;
         if (!everAlbum.has(ak)) {
           albumDebuts[pt][ak] = { rank: i + 1, period: pk, album: d.album, artist: d.artist, plays: d.count };
@@ -8353,6 +8385,10 @@ function buildRecords() {
           if (!p.album || p.album === '—') continue;
           const ak = albumKeyOf(p);
           if (nl[ak]) nl[ak].plays++;
+          // A new album also gets the plays its singles lend it, as on the
+          // New Albums chart (renderNewEntries' _neCredit).
+          const par = _recRoll ? rollupParentOf(p) : null;
+          if (par && par !== ak && nl[par]) nl[par].plays++;
         }
       }
       for (const pk of keys) {
@@ -8360,13 +8396,29 @@ function buildRecords() {
         // Only tracks that made the New Songs chart count — an album can never
         // be credited with more debuting tracks than the chart has spots.
         const ns = sTop[pk] || [];
-        const rankedL = Object.entries(nl).sort((a, b) => b[1].plays - a[1].plays);
+        /* Ranked one bucket at a time (albums, then each separated type), the
+           way the New Albums chart shows them: with the Singles filter on it
+           lists new singles ranked among themselves, so a new single's record
+           is its rank there rather than its place behind every new album. */
+        const lGroups = _recSepOn
+          ? (() => {
+            const byB = {};
+            for (const e of Object.entries(nl)) {
+              const b = albumBucketOf(e[1].album, e[1].artist);
+              (byB[b] || (byB[b] = [])).push(e);
+            }
+            return Object.values(byB);
+          })()
+          : [Object.entries(nl)];
+        for (const lGroup of lGroups) {
+        const rankedL = lGroup.sort((a, b) => b[1].plays - a[1].plays);
         (isFinite(ncLimits[pt].albums) ? rankedL.slice(0, ncLimits[pt].albums) : rankedL).forEach(([ak, d], i) => {
           ncAlbumDebuts[pt][ak] = { rank: i + 1, period: pk, album: d.album, artist: d.artist, plays: d.plays };
           let nTracks = 0;
           for (const [, sd] of ns) { if (sd.album === d.album && (sd.artists_[0] || sd.artist) === d.artist) nTracks++; }
           ncAlbumNewTrackCount[pt][ak] = nTracks;
         });
+        } // end of one bucket (lGroups)
       }
     }
   }
@@ -10592,6 +10644,10 @@ function buildRecords() {
     { key: 'songs', icon: recEntIco('songs'), label: t('rec_th_songs') },
     { key: 'artists', icon: recEntIco('artists'), label: t('rec_th_artists') },
     { key: 'albums', icon: recEntIco('albums'), label: t('rec_th_albums') },
+    /* Singles and/or EPs when those types are separated — the same extra pills
+       every other Records section has. Before these existed a new single was
+       listed among the new albums, with its rank from a mixed list. */
+    ...recAlbumEnts().filter(ae => ae.key !== 'albums').map(ae => ({ key: ae.key, icon: ae.icon, label: ae.label })),
   ];
   const NC_REC_PERIODS = [
     { key: 'day', label: t('rec_daily_label') },
@@ -10689,10 +10745,15 @@ function buildRecords() {
   }
 
   // ── 3. Biggest New Album Debut ─────────────────────────────────
-  function ncRecAlbumDebut(pt) {
-    const sorted = Object.entries(ncAlbumDebuts[pt]).sort((a, b) => b[1].plays - a[1].plays || a[1].rank - b[1].rank || a[1].period.localeCompare(b[1].period));
-    return ncSec(recEntIco('albums') + ' ' + t('rec_th_albums') + ' &mdash; ' + t('nc_t_biggest_debut'),
-      recTable(['#', t('rec_th_albums'), t('rec_th_artist'), t('rec_th_plays'), t('rec_th_debut_rank'), ncPeriodTh(pt)],
+  /* `entKey` is 'albums', 'singles' or 'eps': each pill lists only its own
+     type, ranked by the debut rank that type's New chart gave it. */
+  function ncRecAlbumDebut(pt, entKey) {
+    entKey = entKey || 'albums';
+    const ent = recAlbumEnts().find(ae => ae.key === entKey) || recAlbumEnts()[0];
+    const src = recSplitFlat(ncAlbumDebuts[pt], ent.bucket);
+    const sorted = Object.entries(src).sort((a, b) => b[1].plays - a[1].plays || a[1].rank - b[1].rank || a[1].period.localeCompare(b[1].period));
+    return ncSec(ent.icon + ' ' + esc(ent.label) + ' &mdash; ' + t('nc_t_biggest_debut'),
+      recTable(['#', esc(ent.label), t('rec_th_artist'), t('rec_th_plays'), t('rec_th_debut_rank'), ncPeriodTh(pt)],
         sorted.map((e, i) => { const d = e[1]; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(d.album) + '</div></td><td><div class="rec-sub">' + esc(d.artist) + '</div></td><td class="rec-count">' + (d.plays || 0) + '</td><td class="rec-count">#' + d.rank + '</td>' + ncPeriodTd(pt, d.period); }), lim, null, null,
         { rowAttrs: i => recRowAttrs(sorted[i][1].artist, 'album', sorted[i][1].album) }));
   }
@@ -10757,16 +10818,19 @@ function buildRecords() {
   }
 
   // ── 10. New Album with Most Tracks Also Debuting ───────────────
-  function ncRecAlbumTracks(pt) {
+  // Same `entKey` as ncRecAlbumDebut: albums, or one separated type.
+  function ncRecAlbumTracks(pt, entKey) {
+    entKey = entKey || 'albums';
+    const ent = recAlbumEnts().find(ae => ae.key === entKey) || recAlbumEnts()[0];
     const debMap = ncAlbumDebuts[pt];
-    const combined = Object.entries(ncAlbumNewTrackCount[pt]).filter(e => e[1] > 0).map(([ak, cnt]) => {
+    const combined = Object.entries(recSplitFlat(ncAlbumNewTrackCount[pt], ent.bucket)).filter(e => e[1] > 0).map(([ak, cnt]) => {
       const deb = debMap[ak] || {};
       return { ak, cnt, album: deb.album || ak.split('|||')[0], artist: deb.artist || '', plays: deb.plays || 0, period: deb.period || '', rank: deb.rank || 0 };
     });
     combined.sort((a, b) => b.cnt - a.cnt || b.plays - a.plays || a.period.localeCompare(b.period));
-    return ncSec(recEntIco('albums') + ' ' + t('nc_t_album_tracks'),
+    return ncSec(ent.icon + ' ' + t('nc_t_album_tracks'),
       combined.length
-        ? recTable(['#', t('rec_th_albums'), t('rec_th_artist'), t('nc_th_tracks_debuting'), t('rec_th_plays'), ncPeriodTh(pt)],
+        ? recTable(['#', esc(ent.label), t('rec_th_artist'), t('nc_th_tracks_debuting'), t('rec_th_plays'), ncPeriodTh(pt)],
           combined.map((e, i) => '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e.album) + '</div></td><td><div class="rec-sub">' + esc(e.artist) + '</div></td><td class="rec-count">' + e.cnt + '</td><td class="rec-count">' + e.plays + '</td>' + ncPeriodTd(pt, e.period)), lim, null, null,
           { rowAttrs: i => recRowAttrs(combined[i].artist, 'album', combined[i].album) })
         : '<div class="rec-empty">' + t('rec_no_data') + '</div>');
@@ -10778,7 +10842,11 @@ function buildRecords() {
   const NC_REC_BY_TYPE = {
     songs: [ncRecSongDebut, pt => ncRecBusiest(pt, 'songs'), ncRecNewTo1],
     artists: [ncRecArtistDebut, pt => ncRecBusiest(pt, 'artists'), ncRecMostSongsOneChart, ncRecMostDebutsAllTime, ncRecDebutStreak],
-    albums: [ncRecAlbumDebut, ncRecAlbumTracks],
+    albums: [pt => ncRecAlbumDebut(pt, 'albums'), pt => ncRecAlbumTracks(pt, 'albums')],
+    // A single is one or two tracks, so "most tracks also debuting" says
+    // nothing about it; EPs keep both records.
+    singles: [pt => ncRecAlbumDebut(pt, 'singles')],
+    eps: [pt => ncRecAlbumDebut(pt, 'eps'), pt => ncRecAlbumTracks(pt, 'eps')],
   };
 
   let nch = '<div class="dc-seg nc-rec-tabs" id="ncRecTypeTabs" role="tablist" aria-label="New Charts record type">';
@@ -10990,11 +11058,16 @@ function buildRecords() {
   const songArt = k => (songNames[k] || {}).artist || '';
   const albumNm = k => (albumNames[k] || {}).album || String(k).split('|||')[0];
   const albumArt = k => (albumNames[k] || {}).artist || '';
+  /* The overview's Albums cards open the Albums pill of each section, so while
+     singles/EPs are separated they read the albums proper only — otherwise a
+     single (with its own #1s on the Singles chart) could take the Albums card.
+     A no-op when nothing is separated. */
+  const ovAlb = m => recSplitFlat(m, 'album');
 
   // All #1s — most periods spent at the top spot
   for (const pd of OV_PERIODS) {
     const L = ovL('rec_ov_all_ones', pd), U = OV_UNIT[pd];
-    const s = topBy(song1s[pd], byCount), a = topBy(artist1s[pd], byCount), l = topBy(album1s[pd], byCount);
+    const s = topBy(song1s[pd], byCount), a = topBy(artist1s[pd], byCount), l = topBy(ovAlb(album1s[pd]), byCount);
     if (s) hi('recAllOnesSection', pd, 'songs', L, tCount(U, s[1].count), s[1].title, s[1].artist, s[1].artist);
     if (a) hi('recAllOnesSection', pd, 'artists', L, tCount(U, a[1].count), a[0]);
     if (l) hi('recAllOnesSection', pd, 'albums', L, tCount(U, l[1].count), l[1].album, l[1].artist, l[1].artist);
@@ -11028,7 +11101,7 @@ function buildRecords() {
   // Most chart appearances — periods spent anywhere on the chart
   for (const pd of OV_PERIODS) {
     const L = ovL('rec_ov_appearances', pd), U = OV_UNIT[pd];
-    const s = topNum(songApps[pd]), a = topNum(artistApps[pd]), l = topNum(albumApps[pd]);
+    const s = topNum(songApps[pd]), a = topNum(artistApps[pd]), l = topNum(ovAlb(albumApps[pd]));
     if (s) hi('recAppearancesSection', pd, 'songs', L, tCount(U, s[1]), songNm(s[0]), songArt(s[0]), songArt(s[0]));
     if (a) hi('recAppearancesSection', pd, 'artists', L, tCount(U, a[1]), a[0]);
     if (l) hi('recAppearancesSection', pd, 'albums', L, tCount(U, l[1]), albumNm(l[0]), albumArt(l[0]), albumArt(l[0]));
@@ -11038,7 +11111,7 @@ function buildRecords() {
   for (const pd of OV_PERIODS) {
     const L = ovL('rec_ov_debuts', pd);
     const val = d => t('rec_ov_debut_value', { rank: d.rank, plays: tCount('plays', d.plays || 0) });
-    const s = topBy(songDebuts[pd], byDebut), a = topBy(artistDebuts[pd], byDebut), l = topBy(albumDebuts[pd], byDebut);
+    const s = topBy(songDebuts[pd], byDebut), a = topBy(artistDebuts[pd], byDebut), l = topBy(ovAlb(albumDebuts[pd]), byDebut);
     if (s) hi('recDebutsSection', pd, 'songs', L, val(s[1]), s[1].title, s[1].artist, s[1].artist);
     if (a) hi('recDebutsSection', pd, 'artists', L, val(a[1]), a[0]);
     if (l) hi('recDebutsSection', pd, 'albums', L, val(l[1]), l[1].album, l[1].artist, l[1].artist);
@@ -11047,7 +11120,7 @@ function buildRecords() {
   // Most plays inside a single week, month or year
   for (const pd of OV_PERIODS) {
     const L = ovL('rec_ov_peak_plays', pd);
-    const s = topBy(songPP[pd], byCount), a = topBy(artistPP[pd], byCount), l = topBy(albumPP[pd], byCount);
+    const s = topBy(songPP[pd], byCount), a = topBy(artistPP[pd], byCount), l = topBy(ovAlb(albumPP[pd]), byCount);
     if (s) hi('recPeakPlaysSection', pd, 'songs', L, tCount('plays', s[1].count), s[1].title || songNm(s[0]), s[1].artist || songArt(s[0]), s[1].artist || songArt(s[0]));
     if (a) hi('recPeakPlaysSection', pd, 'artists', L, tCount('plays', a[1].count), a[0]);
     if (l) hi('recPeakPlaysSection', pd, 'albums', L, tCount('plays', l[1].count), l[1].album || albumNm(l[0]), l[1].artist || albumArt(l[0]), l[1].artist || albumArt(l[0]));
@@ -11071,7 +11144,7 @@ function buildRecords() {
       }
       return best ? { m: topM, key: best[0], ms: best[1] } : null;
     };
-    const a = firstTo(artistMS), s = firstTo(songMS), l = firstTo(albumMS);
+    const a = firstTo(artistMS), s = firstTo(songMS), l = firstTo(ovAlb(albumMS));
     // 'all' only: a play-count milestone is a lifetime total, not something a
     // week or a year holds, so this card sits out the period pills.
     if (s) hi('recMilestonesSection', 'all', 'songs', L, tCount('plays', s.m), songNm(s.key), fmtDate(s.ms.date), songArt(s.key));
@@ -11108,7 +11181,7 @@ function buildRecords() {
     };
     const s = fastestAtOrBelow(songMS, [500, 250, 100, 50]);
     const a = fastestAtOrBelow(artistMS, [1000, 500]);
-    const l = fastestAtOrBelow(albumMS, [500, 250, 100]);
+    const l = fastestAtOrBelow(ovAlb(albumMS), [500, 250, 100]);
     // 'all' only, for the same reason as Milestones above: the race to a
     // lifetime total does not belong to any one chart period.
     if (s) hi('recFastestSection', 'all', 'songs', t('rec_ov_fastest', { n: s.m.toLocaleString() }),
@@ -11137,6 +11210,8 @@ function buildRecords() {
       let best = null, bestOrd = Infinity;
       for (const w of wallItems) {
         if (w.type !== type) continue;
+        // A single's or EP's plaque is not the Albums card's to show.
+        if (type === 'album' && separatedTypes().length && albumBucketOf(w.title, w.artist) !== 'album') continue;
         const ord = _wTierOrd[w.tier];
         if (ord > bestOrd) continue;
         if (ord < bestOrd) { bestOrd = ord; best = w; continue; }
@@ -11170,7 +11245,8 @@ function buildRecords() {
        row it sends you to — the yearly tiebreak in particular would be easy to
        let drift out of sync if this kept its own copy of the rule. */
     const bestStreak = function (kind, dim) {
-      const map = streaks[kind][dim];
+      // Albums proper only on the Albums card (see ovAlb).
+      const map = kind === 'album' ? ovAlb(streaks[kind][dim]) : streaks[kind][dim];
       const cmp = streakCmp(dim);
       let best = null;
       for (const k in map) {
@@ -11183,7 +11259,7 @@ function buildRecords() {
        so they get their own reader. Ties break toward the most recent run,
        matching the section's own table. */
     const bestRun = function (kind) {
-      const map = bestRuns[kind];
+      const map = kind === 'album' ? ovAlb(bestRuns[kind]) : bestRuns[kind];
       let bk = null, bv = null;
       for (const k in map) {
         const v = map[k];
@@ -11221,7 +11297,7 @@ function buildRecords() {
     if (pd === 'day') continue;   // no New Entries charts on the Daily tab
     const L = ovL('rec_ov_new_charts', pd);
     const val = d => t('rec_ov_debut_value', { rank: d.rank, plays: tCount('plays', d.plays || 0) });
-    const s = topBy(ncSongDebuts[pd], byDebut), a = topBy(ncArtistDebuts[pd], byDebut), l = topBy(ncAlbumDebuts[pd], byDebut);
+    const s = topBy(ncSongDebuts[pd], byDebut), a = topBy(ncArtistDebuts[pd], byDebut), l = topBy(ovAlb(ncAlbumDebuts[pd]), byDebut);
     if (s) hi('recNewChartsSection', pd, 'songs', L, val(s[1]), s[1].title, s[1].artist, s[1].artist);
     if (a) hi('recNewChartsSection', pd, 'artists', L, val(a[1]), a[0]);
     if (l) hi('recNewChartsSection', pd, 'albums', L, val(l[1]), l[1].album, l[1].artist, l[1].artist);

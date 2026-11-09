@@ -47829,6 +47829,67 @@ html.lsx-open { overflow: hidden; }
 .nt-dismiss:focus-visible { opacity: 1; }
 .nt-dismiss:hover { background: color-mix(in srgb, var(--rose) 14%, transparent); color: var(--rose); }
 @media (hover: none) { .nt-dismiss { opacity: 0.7; } }
+/* A one-time note from the site (notifications.js kind 'notice') */
+.nt-tone-news { --nt-tone: var(--accent); }
+/* Record notifications covering several lists open into a breakdown
+   (notifications.js _ntListHtml). The ✕ stays level with the first line
+   instead of sliding to the middle of a tall, opened item. */
+.nt-has-list .nt-dismiss { top: 16px; margin-top: 0; }
+/* Lined up under the text: 10px row padding + 40px tile + 12px gap */
+.nt-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: -4px 0 6px 62px;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-size: var(--fs-xs, 0.75rem);
+  font-weight: 600;
+  cursor: pointer;
+}
+.nt-more:hover { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.nt-more:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.nt-more-chev { display: inline-block; transition: transform var(--t-fast) var(--ease); }
+.nt-more[aria-expanded="true"] .nt-more-chev { transform: rotate(180deg); }
+.nt-sub {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0 8px 10px 62px;
+  padding-left: 10px;
+  border-left: 2px solid color-mix(in srgb, var(--amber) 40%, transparent);
+}
+.nt-sub-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 8px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.nt-sub-row:hover { background: var(--hover); }
+.nt-sub-row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.nt-sub-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.nt-sub-title { font-size: var(--fs-sm); line-height: 1.35; color: var(--text); overflow-wrap: anywhere; }
+.nt-sub-who { font-size: 0.75rem; line-height: 1.3; color: var(--text3); overflow-wrap: anywhere; }
+.nt-sub-go { flex-shrink: 0; color: var(--text3); font-size: 1.1rem; line-height: 1; }
+.nt-sub-row:hover .nt-sub-go { color: var(--accent); }
+.nt-sub-more { padding: 6px 8px 2px; font-size: 0.75rem; color: var(--text3); }
+@media (max-width: 480px) {
+  /* Narrow phones: the breakdown uses the full width under the row */
+  .nt-more { margin-left: 10px; }
+  .nt-sub { margin-left: 10px; }
+}
 /* Rows slide in one after another as the window opens (notifications.js ntOpen) */
 .nt-anim .nt-item { animation: nt-in 0.34s var(--ease) both; animation-delay: min(calc(var(--nt-i, 0) * 35ms), 350ms); }
 @keyframes nt-in { from { opacity: 0; transform: translateY(6px); } }

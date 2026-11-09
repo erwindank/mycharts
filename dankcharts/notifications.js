@@ -64,14 +64,42 @@ const NT_KINDS = {
     ? t('nt_bd_replies', { n: p.n, title: p.title })
     : t('nt_bd_reply', { name: p.name, title: p.title }) },
   // A moderator changed the status of one of the user's Board posts
-  bd_status: { emoji: '📌', cat: 'board', text: p => t('nt_bd_status', { title: p.title, status: t('board_status_' + p.status) }) }
+  bd_status: { emoji: '📌', cat: 'board', text: p => t('nt_bd_status', { title: p.title, status: t('board_status_' + p.status) }) },
+  // A one-time note from the site about a change that moved the user's
+  // numbers (p.key names the text, nt_notice_<key>). The first one
+  // (2026-11-09) explains the singles/EPs Records fix — see NT_NOTICE_REC_UNTIL.
+  notice: { emoji: '📣', cat: 'news', text: p => t('nt_notice_' + p.key) }
 };
+
+/* Record notifications that cover several lists (one holder taking many,
+   or many holders at once) keep the lists themselves in p.items, so the
+   row can open into a breakdown with a link to each one. Each item is
+   { nm, ar, ty, ti, v, nth }: holder name, its artist, its type, the
+   list's title, its Records section and which list of that title it is
+   (the same fields a single record's link uses). Capped so one
+   notification can't grow the account's notifications document much. */
+const NT_REC_LIST_MAX = 60;
+// Which notifications have their breakdown open (this visit only)
+const _ntOpenLists = new Set();
 
 // Newest first, no more than NT_MAX, nothing older than NT_MAX_AGE
 function _ntTrim(list) {
   const cutoff = Date.now() - NT_MAX_AGE;
-  return list.filter(x => x && x.at >= cutoff).sort((a, b) => b.at - a.at).slice(0, NT_MAX);
+  const out = list.filter(x => x && x.at >= cutoff).sort((a, b) => b.at - a.at).slice(0, NT_MAX);
+  /* Record breakdowns (p.items, up to NT_REC_LIST_MAX lines each) are kept
+     only on the NT_LISTS_KEEP newest notifications that have one, so the
+     account's notifications document stays far below Firestore's 1 MB limit.
+     Older ones keep their text; they just lose the "See all" list. */
+  let lists = 0;
+  return out.map(x => {
+    if (!x.p || !Array.isArray(x.p.items)) return x;
+    if (++lists <= NT_LISTS_KEEP) return x;
+    const p = Object.assign({}, x.p);
+    delete p.items;
+    return Object.assign({}, x, { p });
+  });
 }
+const NT_LISTS_KEEP = 20;
 
 /* Posts a notification. Several posted together (a run that made three
    playlists) are saved in one write a moment later. Signed out: nothing —
@@ -192,7 +220,9 @@ function _ntRenderList() {
     const p = x.p || {};
     // A certification wears its tier's colour (gold / platinum / diamond)
     const tone = k.cat === 'cert' && p.tier ? 'cert-' + p.tier : k.cat;
-    html += `<div class="nt-item${x.read ? '' : ' nt-unread'}" style="--nt-i:${i++}">` +
+    // nt-has-list pins the ✕ to the top row instead of the middle of the item
+    const hasList = !!(p.items && p.items.length > 1);
+    html += `<div class="nt-item${x.read ? '' : ' nt-unread'}${hasList ? ' nt-has-list' : ''}" style="--nt-i:${i++}">` +
       // The tone class sits on the row so the tile and the category label share it
       `<button type="button" class="nt-row nt-tone-${esc(tone)}" onclick="ntOpenItem('${esc(x.id)}')">` +
       `<span class="nt-tile" aria-hidden="true">${k.emoji}</span>` +
@@ -203,10 +233,58 @@ function _ntRenderList() {
       (x.read ? '' : `<span class="nt-row-dot" role="img" aria-label="${esc(t('nt_unread'))}"></span>`) +
       `</button>` +
       `<button type="button" class="nt-dismiss" onclick="ntDismiss('${esc(x.id)}')" title="${esc(t('nt_dismiss'))}" aria-label="${esc(t('nt_dismiss'))}">${dcIco('x')}</button>` +
+      _ntListHtml(x) +
       `</div>`;
   });
   if (group) html += `</div>`;
   body.innerHTML = html;
+}
+
+/* The "Show the list" switch and, when open, the breakdown under a record
+   notification that covers several lists. Each line is its own link to that
+   list. Empty for every other notification — and for record notifications
+   posted before 2026-11-09, which didn't keep their lists. */
+function _ntListHtml(x) {
+  const items = x.p && Array.isArray(x.p.items) ? x.p.items : null;
+  if (!items || items.length < 2) return '';
+  const open = _ntOpenLists.has(x.id);
+  // More lists changed than were kept (NT_REC_LIST_MAX): say how many aren't shown
+  const total = Math.max(items.length, x.p.n || 0);
+  let h = `<button type="button" class="nt-more" aria-expanded="${open}" onclick="ntToggleList('${esc(x.id)}')">` +
+    `${esc(open ? t('nt_list_hide') : t('nt_list_show', { n: total }))}<span class="nt-more-chev" aria-hidden="true">▾</span></button>`;
+  if (!open) return h;
+  h += `<div class="nt-sub" role="list">`;
+  // "X now holds N records": one holder, already named above, so the lines
+  // only name the lists. "N records have a new #1": each line names its holder.
+  const oneHolder = x.kind === 'rec_new';
+  const PD_LABEL = { day: 'rec_daily_label', week: 'rec_weekly_label', month: 'rec_monthly_label', year: 'rec_yearly_label' };
+  items.forEach((it, i) => {
+    // A song or album names its artist; an artist is the holder itself
+    const who = oneHolder ? '' : it.ty === 'artist' || !it.ar ? it.nm : t('nt_list_by', { name: it.nm, artist: it.ar });
+    const title = it.ti + (it.pd && PD_LABEL[it.pd] ? ' · ' + t(PD_LABEL[it.pd]) : '');
+    h += `<button type="button" role="listitem" class="nt-sub-row" onclick="ntOpenListItem('${esc(x.id)}',${i})">` +
+      `<span class="nt-sub-text"><span class="nt-sub-title">${esc(title)}</span>` +
+      (who ? `<span class="nt-sub-who">${esc(who)}</span>` : '') + `</span>` +
+      `<span class="nt-sub-go" aria-hidden="true">›</span></button>`;
+  });
+  if (total > items.length) h += `<div class="nt-sub-more">${esc(t('nt_list_rest', { n: total - items.length }))}</div>`;
+  return h + `</div>`;
+}
+
+// Opens or closes one notification's breakdown
+function ntToggleList(id) {
+  if (_ntOpenLists.has(id)) _ntOpenLists.delete(id); else _ntOpenLists.add(id);
+  _ntRenderList();
+}
+
+// One line of a breakdown was clicked: mark the notification read and open that list
+function ntOpenListItem(id, i) {
+  const x = ntItems.find(n => n.id === id);
+  const it = x && x.p && x.p.items && x.p.items[i];
+  if (!it) return;
+  if (!x.read) _ntChange(list => list.map(n => n.id === id ? Object.assign({}, n, { read: true }) : n));
+  ntClose();
+  ntFollow({ tab: 'records', view: it.v, title: it.ti, nth: it.nth });
 }
 
 // Removes one notification (here and on the account)
@@ -458,6 +536,14 @@ async function _ntWatchBoard() {
    upload from last month — from "taking back" records the newer data gave. */
 
 const NT_REC_MAX = 8;                              // more changes at once → one summary
+/* The one-time "why did I get new #1s" note (notice / rec_singles). On
+   2026-11-09 Records started ranking singles and EPs among themselves, as the
+   charts do — before, a single only counted as a Singles #1 in a week no album
+   out-played it — so anyone with singles or EPs set Apart saw a batch of new
+   #1s. Told once per account, only to accounts that had Records notifications
+   before this (a new account had nothing to be confused by), only while
+   something is set Apart, and not after this date. */
+const NT_NOTICE_REC_UNTIL = Date.UTC(2026, 11, 31);
 const NT_REC_BG_EVERY = 12 * 60 * 60 * 1000;       // background Records build, per device
 const NT_REC_BG_DELAY = 20 * 1000;                 // after a load, before trying it
 let _ntRecBgTimer = null;
@@ -491,7 +577,11 @@ function _ntRecordLeaders() {
       seen[base] = (seen[base] || 0) + 1;
       // nth goes into the notification's link so a tap can find this exact
       // table again (see _ntFindRecordTable)
-      out[_ntHash(base + '|' + seen[base])] = { k: rec.prefKey, name: rec.name, artist: rec.artist, type: rec.type, title, sec: secId, nth: seen[base] };
+      /* New Charts repeats each title in its Daily/Weekly/Monthly/Yearly
+         panels without naming the period, so the breakdown list keeps the
+         panel's period to tell those lines apart (pd, see _ntListHtml). */
+      const pd = tb.closest('.nc-rec-panel')?.dataset.ncPeriod || '';
+      out[_ntHash(base + '|' + seen[base])] = { k: rec.prefKey, name: rec.name, artist: rec.artist, type: rec.type, title, sec: secId, nth: seen[base], pd };
     });
   });
   return out;
@@ -533,17 +623,36 @@ async function ntRecordsBuilt() {
     const asOf = +allPlays[0].date;   // allPlays is newest first
     const lead = {};
     ids.forEach(id => { lead[id] = now[id].k; });
-    const changed = await dcUpdateNotifyState(cur => {
+    const sepOn = typeof separatedTypes === 'function' && separatedTypes().length > 0;
+    const res = await dcUpdateNotifyState(cur => {
       const prev = cur.rec;
-      const save = { state: Object.assign({}, cur, { rec: { lang, asOf, lead } }), out: [] };
+      const notices = cur.notices || {};
+      // The one-time note (NT_NOTICE_REC_UNTIL). Decided once per account:
+      // told if it had Records notifications already and something is Apart,
+      // otherwise marked 'skip' so it never turns up later out of context.
+      let noticeVal = null, notice = false;
+      if (!notices.recSingles && Date.now() < NT_NOTICE_REC_UNTIL) {
+        notice = !!(prev && prev.lead) && sepOn;
+        noticeVal = notice ? Date.now() : 'skip';
+      }
+      let rec = null, out = [];
       // First time, or another language: note where things stand, tell nothing
-      if (!prev || !prev.lead || prev.lang !== lang) return save;
-      if (asOf < prev.asOf) return { state: null, out: [] };   // older data than last time
-      const out = ids.filter(id => prev.lead[id] && prev.lead[id] !== lead[id]);
-      if (!out.length && JSON.stringify(prev.lead) === JSON.stringify(lead)) return { state: null, out: [] };
-      save.out = out;
-      return save;
+      if (!prev || !prev.lead || prev.lang !== lang) rec = { lang, asOf, lead };
+      else if (asOf >= prev.asOf) {   // older data than last time: leave it alone
+        out = ids.filter(id => prev.lead[id] && prev.lead[id] !== lead[id]);
+        if (out.length || JSON.stringify(prev.lead) !== JSON.stringify(lead)) rec = { lang, asOf, lead };
+      }
+      if (!rec && !noticeVal) return { state: null, out: { changed: [], notice: false } };
+      const state = Object.assign({}, cur);
+      if (rec) state.rec = rec;
+      if (noticeVal) state.notices = Object.assign({}, notices, { recSingles: noticeVal });
+      return { state, out: { changed: out, notice } };
     });
+    if (!res || typeof res !== 'object') return;   // 'error' (offline)
+    // Posted after the record notifications (finally, below), so it lists
+    // above them and is read first
+    _ntRecNotice = !!res.notice;
+    const changed = res.changed;
     if (!Array.isArray(changed) || !changed.length) return;
     // One notification per new holder: a song that had a huge day takes
     // most-plays, debut and fastest-to records together, and that reads
@@ -557,19 +666,35 @@ async function ntRecordsBuilt() {
     // Many holders at once is usually a setting (chart size, week start)
     // moving everything, not a run of new records: one line for all of them
     if (byHolder.size > NT_REC_MAX) {
-      dcNotify({ kind: 'rec_many', n: changed.length, link: { tab: 'records' } });
+      // Every changed list, grouped by holder so one song's lists sit together
+      const all = [];
+      byHolder.forEach(list => list.forEach(r => all.push(r)));
+      dcNotify({ kind: 'rec_many', n: changed.length, items: _ntRecItems(all), link: { tab: 'records' } });
       return;
     }
     byHolder.forEach(list => {
       const r = list[0];
-      dcNotify({ kind: 'rec_new', type: r.type, name: r.name, artist: r.artist, title: r.title, n: list.length,
-                 link: { tab: 'records', view: r.sec, title: r.title, nth: r.nth } });
+      const n = { kind: 'rec_new', type: r.type, name: r.name, artist: r.artist, title: r.title, n: list.length,
+                  link: { tab: 'records', view: r.sec, title: r.title, nth: r.nth } };
+      // Several lists for one holder: keep them for the breakdown
+      if (list.length > 1) n.items = _ntRecItems(list);
+      dcNotify(n);
     });
   } catch (e) {
     console.warn('[dankcharts] Records notification check failed:', e);
   } finally {
+    if (_ntRecNotice) { _ntRecNotice = false; dcNotify({ kind: 'notice', key: 'rec_singles', link: { tab: 'records' } }); }
     _ntRecBusy = false;
   }
+}
+let _ntRecNotice = false;   // the one-time note is due (set inside ntRecordsBuilt)
+
+// The stored breakdown of a record notification (see NT_REC_LIST_MAX).
+// Firestore refuses undefined, so a missing field stores ''.
+function _ntRecItems(list) {
+  return list.slice(0, NT_REC_LIST_MAX).map(r => ({
+    nm: r.name || '', ar: r.artist || '', ty: r.type || '', ti: r.title || '', v: r.sec || '', nth: r.nth || 1, pd: r.pd || ''
+  }));
 }
 
 /* Opens Records on the exact list a record notification is about.
