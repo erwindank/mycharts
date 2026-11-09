@@ -27,6 +27,7 @@
 //   debutPos, debutDate (Billboard only)
 //   feat       featured artists (Spotify only)
 //   streams, streamsChange, total (Spotify only)
+//   points, pointsChange (Apple Music only: kworb's chart points)
 //   countries  how many countries it's trending in (YouTube only)
 //   spots      its best places, e.g. [{ pos: 5, country: 'Mexico' }] (YouTube only)
 //   spotifyId / videoId: the track or video id, for players and artwork later
@@ -77,6 +78,12 @@ const CHARTS = {
   'spotify-global-weekly': {
     title: 'Spotify Global Weekly', source: 'kworb', kind: 'songs', period: 'week',
     path: 'spotify/country/global_weekly.html', ttl: 6 * HOUR, min: 150,
+  },
+  // Added 2026-11-09. kworb's worldwide Apple Music song chart: its own
+  // points total from Apple Music's daily charts in every country.
+  'apple-global-daily': {
+    title: 'Apple Music Global Daily', source: 'kworb', kind: 'songs', period: 'day',
+    path: 'apple_songs/', ttl: 3 * HOUR, min: 150,
   },
   // 2026-11-09: was 'youtube-top' (most viewed, kworb.net/youtube/). Now the
   // music videos trending worldwide. A new id so no old "most viewed" copy in
@@ -172,6 +179,7 @@ async function fetchChart(id, def, date) {
 
   const parsed = isBB ? parseBillboard(html)
     : def.kind === 'videos' ? parseKworbYouTube(html)
+    : id.startsWith('apple') ? parseKworbApple(html)
     : parseKworbSpotify(html);
   // Old weeks can be shorter than today's chart (the album chart had only 150
   // places before 1967), so a past week only needs `minPast` rows.
@@ -310,6 +318,35 @@ function parseKworbSpotify(html) {
   return { date: kworbDate(html), rows };
 }
 
+// Apple Music worldwide. Cells:
+//   Pos | P+ | Artist and Title | Days | Pk | (x?) | Pts | Pts+ | TPts | US | UK | JP | DE
+// The title cell is plain "Artist - Title" text, no links. Pts are kworb's
+// points from every country's Apple Music chart, not plays.
+function parseKworbApple(html) {
+  const rows = [];
+  for (const c of kworbRows(html)) {
+    if (c.length < 8) continue;
+    const rank = num(c[0]);
+    if (!rank) continue;
+    const text = clean(c[2]);
+    const at = text.indexOf(' - ');
+    if (at < 0) continue;
+    const atPeak = (clean(c[5]).match(/\d+/) || [])[0];
+    rows.push({
+      rank,
+      artist: text.slice(0, at).trim(),
+      title: text.slice(at + 3).trim(),
+      ...kworbMove(rank, c[1]),
+      onChart: num(c[3]),
+      peak: num(c[4]),
+      atPeak: atPeak ? +atPeak : null,
+      points: num(c[6]),
+      pointsChange: num(c[7]),
+    });
+  }
+  return { date: kworbDate(html), rows };
+}
+
 // YouTube music videos trending worldwide. Cells: Pos | change | Video | # | Highlights.
 //   #           how many countries the video is trending in
 //   Highlights  its best places, "#13 Brazil, #13 Indonesia, #10 United States"
@@ -380,4 +417,4 @@ function clean(s) {
 }
 
 // Exported for local tests.
-export { parseBillboard, parseKworbSpotify, parseKworbYouTube, splitVideoTitle, CHARTS };
+export { parseBillboard, parseKworbSpotify, parseKworbApple, parseKworbYouTube, splitVideoTitle, CHARTS };

@@ -653,16 +653,17 @@ TRANSLATIONS['pt-PT'] = Object.assign({
     gd_setup_guide_link: 'Encravaste ao ligar a tua música? O guia de configuração passo a passo mostra cada ecrã →',
     // Community board (board.js)
     nav_board: "Fórum",
-    // World Charts (worldcharts.js): Billboard, Spotify and YouTube charts
+    // World Charts (worldcharts.js): Billboard, Spotify, Apple Music and YouTube charts
     nav_worldcharts: "Tops mundiais",
     wc_title: "Tops mundiais",
-    wc_sub: "Os tops a sério que toda a gente está a ouvir, da Billboard, do Spotify e do YouTube.",
+    wc_sub: "Os tops a sério que toda a gente está a ouvir, da Billboard, do Spotify, do Apple Music e do YouTube.",
     // the chart buttons: the brand (Billboard / Spotify / YouTube) is shown above these
     wc_chart_hot_100: "Hot 100",
     wc_chart_billboard_200: "Billboard 200",
     wc_chart_billboard_global_200: "Global 200",
     wc_chart_spotify_global_daily: "Global diário",
     wc_chart_spotify_global_weekly: "Global semanal",
+    wc_chart_apple_global_daily: "Global diário",
     wc_chart_youtube_trending: "Em tendência",
     wc_loading: "A carregar o top…",
     wc_err: "Não foi possível carregar este top agora.",
@@ -675,6 +676,7 @@ TRANSLATIONS['pt-PT'] = Object.assign({
     // World Charts step 4: column labels, the #1 tag, the debut shown on hover
     wc_col_streams: "Streams",
     wc_col_change: "Variação",
+    wc_col_points: "Pontos",
     wc_col_days: "Dias",
     wc_col_countries: "Países",
     wc_col_best_spot: "Melhor posição",

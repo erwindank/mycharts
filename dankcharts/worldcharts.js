@@ -47,6 +47,7 @@
     { id: 'billboard-global-200',  source: 'billboard', kind: 'songs',  period: 'week', pastWeeks: true, first: '2020-09-19' },
     { id: 'spotify-global-daily',  source: 'kworb',     kind: 'songs',  period: 'day'  },
     { id: 'spotify-global-weekly', source: 'kworb',     kind: 'songs',  period: 'week' },
+    { id: 'apple-global-daily',    source: 'kworb',     kind: 'songs',  period: 'day'  },
     { id: 'youtube-trending',      source: 'kworb',     kind: 'videos', period: 'day'  }
   ];
 
@@ -191,7 +192,7 @@
 
   // ── Drawing ──
   function menuHTML() {
-    // Grouped by where the chart comes from: Billboard | Spotify | YouTube
+    // Grouped by where the chart comes from: Billboard | Spotify | Apple Music | YouTube
     return '<div class="wc-menu" role="tablist" aria-label="' + esc(tr('wc_title')) + '">' +
       S.menu.map(function (c) {
         var on = c.id === S.chart;
@@ -201,15 +202,17 @@
           '<span class="wc-pick-name">' + esc(chartName(c.id)) + '</span></button>';
       }).join('') + '</div>';
   }
-  function brandOf(id) { return /^spotify/.test(id) ? 'spotify' : /^youtube/.test(id) ? 'youtube' : 'billboard'; }
-  function brandName(id) { return { billboard: 'Billboard', spotify: 'Spotify', youtube: 'YouTube' }[brandOf(id)]; }
+  function brandOf(id) { return /^spotify/.test(id) ? 'spotify' : /^apple/.test(id) ? 'apple' : /^youtube/.test(id) ? 'youtube' : 'billboard'; }
+  function brandName(id) { return { billboard: 'Billboard', spotify: 'Spotify', apple: 'Apple Music', youtube: 'YouTube' }[brandOf(id)]; }
   // The top line of a chart button: the source's logo (2026-11-09). Spotify
   // and YouTube use the same icons as the row buttons (app.js); Billboard is
   // its name in lowercase bold, the way it writes itself.
   function brandHTML(id) {
     var b = brandOf(id);
     if (b === 'billboard') return '<span class="wc-pick-brand wc-pick-brand--word">billboard</span>';
+    // Apple Music: the note icon app.js uses for it (_MS_AM_SVG)
     var svg = b === 'spotify' ? (typeof _EA_SP_SVG !== 'undefined' ? _EA_SP_SVG : '')
+      : b === 'apple' ? (typeof _MS_AM_SVG !== 'undefined' ? _MS_AM_SVG : '')
       : (typeof _ST_AM_YT_SVG !== 'undefined' ? _ST_AM_YT_SVG : '');
     return '<span class="wc-pick-brand"><span class="wc-pick-logo">' + svg + '</span>' + esc(brandName(id)) + '</span>';
   }
@@ -289,6 +292,7 @@
   // source, so each source has a column set:
   //   billboard: Last wk | Peak | Weeks
   //   spotify:   Streams | Change | Peak | Days or Weeks
+  //   apple:     Points | Change | Peak | Days (kworb's points, not plays)
   //   youtube:   Countries (how many it's trending in) | Best spot (#5 Mexico)
   // On phones only the first column marked `phone` stays, written short (5.1M).
   function colsFor(d) {
@@ -303,6 +307,12 @@
       { key: 'wc_col_change', val: changeHTML, html: true },
       { key: 'd100_col_pk', val: function (r) { return r.peak; } },
       { key: d.period === 'day' ? 'wc_col_days' : 'd100_col_wk', val: function (r) { return r.onChart; } }
+    ];
+    if (brand === 'apple') return [
+      { key: 'wc_col_points', val: function (r) { return fmtNum(r.points); }, short: function (r) { return fmtShort(r.points); }, phone: true, wide: true },
+      { key: 'wc_col_change', val: changeHTML, html: true },
+      { key: 'd100_col_pk', val: function (r) { return r.peak; } },
+      { key: 'wc_col_days', val: function (r) { return r.onChart; } }
     ];
     return [
       { key: 'wc_col_countries', val: function (r) { return r.countries == null ? '–' : fmtNum(r.countries); }, phone: true },
@@ -343,9 +353,10 @@
     try { return new Intl.NumberFormat(locale(), { notation: 'compact', maximumFractionDigits: 1 }).format(n); }
     catch (e) { return fmtNum(n); }
   }
-  // Spotify's stream change since the day / week before, coloured up or down
+  // Spotify's stream change (or Apple Music's points change) since the day /
+  // week before, coloured up or down
   function changeHTML(r) {
-    var c = r.streamsChange;
+    var c = r.streamsChange != null ? r.streamsChange : r.pointsChange;
     if (c == null || r.status) return '<span class="wc-chg">–</span>';
     var up = c >= 0;
     return '<span class="wc-chg wc-chg--' + (up ? 'up' : 'down') + '">' + (up ? '+' : '−') + esc(fmtShort(Math.abs(c))) + '</span>';
@@ -666,7 +677,7 @@
   // lazy covers (getArtAuto).
   // On phones navigator.share() needs the tap itself, so the file is drawn
   // ahead of time after each render and shared at once when it's ready.
-  var BRAND_HEX = { billboard: '#ff4d5e', spotify: '#1ed760', youtube: '#ff3355' };
+  var BRAND_HEX = { billboard: '#ff4d5e', spotify: '#1ed760', apple: '#fa2d48', youtube: '#ff3355' };
   var _card = { key: '', file: null, busy: null };
   function cardKey() {
     return S.chart + '|' + (dateFor(S.chart) || '') + '|' + S.range + '|' + _lib.tag + '|' +

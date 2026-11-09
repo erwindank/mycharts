@@ -48935,11 +48935,13 @@ a.tb-more-item:hover { text-decoration: none; }
 }
 /* Each source's own colours (2026-11-09). Unpicked buttons only show the
    logo in its colour; the picked one takes the source's own look:
-   Billboard black and white, Spotify green with black, YouTube red with white.
+   Billboard black and white, Spotify green with black, Apple Music pink-red
+   with white, YouTube red with white.
    --bf: fill, --bt: text on the fill. Fixed brand colours, so they don't
    follow the theme on purpose. */
 .wc-pick--billboard { --bc: var(--text);  --bf: #000;    --bt: #fff; }
 .wc-pick--spotify   { --bc: #1ed760;      --bf: #1ed760; --bt: #000; }
+.wc-pick--apple     { --bc: #fa2d48;      --bf: #fa2d48; --bt: #fff; }
 .wc-pick--youtube   { --bc: #ff0000;      --bf: #e00000; --bt: #fff; }
 /* Mouse only, so a tap on a phone doesn't leave the glow behind */
 @media (hover: hover) {
@@ -49057,7 +49059,8 @@ a.tb-more-item:hover { text-decoration: none; }
 .wc-list--billboard .d100-row, .wc-cols:has(+ .wc-list--billboard) {
   grid-template-columns: 2.2em 3.4em 44px minmax(0, 1fr) 4.4em 3.6em 4.2em;
 }
-.wc-list--spotify .d100-row, .wc-cols:has(+ .wc-list--spotify) {
+.wc-list--spotify .d100-row, .wc-cols:has(+ .wc-list--spotify),
+.wc-list--apple .d100-row, .wc-cols:has(+ .wc-list--apple) {
   grid-template-columns: 2.2em 3.4em 44px minmax(0, 1fr) 6.6em 4.6em 3.4em 3.6em;
 }
 .wc-list--youtube .d100-row, .wc-cols:has(+ .wc-list--youtube) {

@@ -694,16 +694,17 @@ const TRANSLATIONS = {
     gd_setup_guide_link: 'Stuck connecting your music? The step-by-step Setup Guide shows every screen →',
     // Community board (board.js)
     nav_board: "Board",
-    // World Charts (worldcharts.js): Billboard, Spotify and YouTube charts
+    // World Charts (worldcharts.js): Billboard, Spotify, Apple Music and YouTube charts
     nav_worldcharts: "World Charts",
     wc_title: "World Charts",
-    wc_sub: "The real charts everyone else is listening to, from Billboard, Spotify and YouTube.",
+    wc_sub: "The real charts everyone else is listening to, from Billboard, Spotify, Apple Music and YouTube.",
     // the chart buttons: the brand (Billboard / Spotify / YouTube) is shown above these
     wc_chart_hot_100: "Hot 100",
     wc_chart_billboard_200: "Billboard 200",
     wc_chart_billboard_global_200: "Global 200",
     wc_chart_spotify_global_daily: "Global Daily",
     wc_chart_spotify_global_weekly: "Global Weekly",
+    wc_chart_apple_global_daily: "Global Daily",
     wc_chart_youtube_trending: "Trending",
     wc_loading: "Loading the chart…",
     wc_err: "This chart couldn't be loaded right now.",
@@ -716,6 +717,7 @@ const TRANSLATIONS = {
     // World Charts step 4: column labels, the #1 tag, the debut shown on hover
     wc_col_streams: "Streams",
     wc_col_change: "Change",
+    wc_col_points: "Points",
     wc_col_days: "Days",
     wc_col_countries: "Countries",
     wc_col_best_spot: "Best spot",
