@@ -21,6 +21,8 @@
    Step 6: past weeks for the Billboard charts (week picker, "Latest week",
    and a link to your own Weekly chart for the days Billboard counted). Kworb
    has no history pages, so its charts only show the current one.
+   Step 7: a sample (▶), Spotify and YouTube button beside every row, and a
+   "Share top 10" picture of the chart with how many of them you've played.
 
    The tab needs no sign-in and no data source: it only shows public charts.
    That's why #worldchartsView sits outside #mainApp, like the Dank 100 and the
@@ -261,8 +263,11 @@
   function sourceHTML(d) {
     // "Source: Billboard · Week of November 7, 2026"
     var when = d.date ? tr(d.period === 'day' ? 'wc_day_of' : 'wc_week_of', { date: fmtDate(d.date) }) : '';
-    return '<p class="wc-source">' + esc(tr('wc_source')) + ' <a href="' + esc(d.sourceUrl) +
-      '" target="_blank" rel="noopener">' + esc(d.source) + '</a>' + (when ? ' · ' + esc(when) : '') + '</p>';
+    return '<div class="wc-srcbar"><p class="wc-source">' + esc(tr('wc_source')) + ' <a href="' + esc(d.sourceUrl) +
+      '" target="_blank" rel="noopener">' + esc(d.source) + '</a>' + (when ? ' · ' + esc(when) : '') + '</p>' +
+      // Step 7: the chart's top 10 as a picture
+      '<button type="button" class="dc-btn dc-btn-normal dc-btn-sm wc-share-btn" onclick="dcWorldCharts.share(this)">' +
+      esc(tr('d100_share')) + '</button></div>';
   }
 
   // ── Step 4: the rows in the site's chart look ──
@@ -367,8 +372,38 @@
         (c.html ? v : (c.short ? '<span class="wc-full">' + esc(v) + '</span><span class="wc-short">' + esc(c.short(r)) + '</span>' : esc(v))) +
         '</span>';
     });
-    h += '</div></li>';
+    h += '</div>' + actsHTML(r, d) + '</li>';
     return h;
+  }
+
+  // ── Step 7: a row's three buttons, the same as The Dank 100's: play a
+  // sample (app.js's sample player, never YouTube), open it on the music
+  // service the user picked, and YouTube. They sit beside the row (the row
+  // itself can be a button). The data-ea-* attributes live on this little box
+  // only, so the sample player reads the entry from here and right-clicking
+  // the row doesn't open the library's ⋮ menu for a song never played.
+  // Rows that carry their own id link straight to it: Spotify charts to the
+  // track, YouTube charts to the video.
+  function actsHTML(r, d) {
+    if (typeof _eaSampleBtn !== 'function') return '';
+    var type = d.kind === 'albums' ? 'albums' : 'songs';
+    var artist = r.artist || '';
+    var q = encodeURIComponent(artist ? r.title + ' ' + artist : (r.raw || r.title));
+    var yt = esc(tr(r.videoId ? 'wc_yt_watch' : 'awx_yt'));
+    var ytUrl = r.videoId ? 'https://www.youtube.com/watch?v=' + encodeURIComponent(r.videoId)
+      : 'https://www.youtube.com/results?search_query=' + q;
+    var sp = typeof _eaSpotifyBtn === 'function' ? _eaSpotifyBtn(type, r.title, artist) : '';
+    // A Spotify chart row opens its own track when the user listens on Spotify
+    if (r.spotifyId && sp && /open\.spotify\.com/.test(sp)) {
+      sp = sp.replace(/href="[^"]*"/, 'href="https://open.spotify.com/track/' + esc(encodeURIComponent(r.spotifyId)) + '"');
+    }
+    return '<span class="d100-acts wc-acts" data-ea-type="' + type + '"' +
+      ' data-ea-title="' + esc(type === 'songs' ? r.title : '') + '" data-ea-artist="' + esc(artist) + '"' +
+      ' data-ea-album="' + esc(type === 'albums' ? r.title : '') + '" data-ea-key="' + esc('wc:' + d.chart + ':' + r.rank) + '">' +
+      _eaSampleBtn() + sp +
+      '<a class="d100-yt" href="' + esc(ytUrl) + '" target="_blank" rel="noopener"' +
+      ' title="' + yt + '" aria-label="' + yt + '">' + (typeof _ST_AM_YT_SVG !== 'undefined' ? _ST_AM_YT_SVG : '▶') + '</a>' +
+      '</span>';
   }
 
   function listHTML(d) {
@@ -580,6 +615,212 @@
     finally { if (prev !== undefined) { try { currentPeriod = prev; } catch (e) {} } }
   }
 
+  // ══ Step 7: the share card ════════════════════════════════════════════════
+  // The chart's top 10 as a 1080×1350 PNG, drawn straight onto a canvas like
+  // The Dank 100's card (no html2canvas). Each source has its own colour.
+  // Played rows get a "42 plays" tag and the footer says how many of the
+  // whole chart you've played (with the same plays the badges count).
+  // Pictures must be data URLs or the canvas can't be saved: YouTube
+  // thumbnails can be read directly; Billboard's pictures can't be read by
+  // other sites, so those (and Spotify rows) are looked up like the rows'
+  // lazy covers (getArtAuto).
+  // On phones navigator.share() needs the tap itself, so the file is drawn
+  // ahead of time after each render and shared at once when it's ready.
+  var BRAND_HEX = { billboard: '#ff4d5e', spotify: '#1ed760', youtube: '#ff3355' };
+  var _card = { key: '', file: null, busy: null };
+  function cardKey() {
+    return S.chart + '|' + (dateFor(S.chart) || '') + '|' + S.range + '|' + _lib.tag + '|' +
+      (typeof currentLang !== 'undefined' ? currentLang : '');
+  }
+
+  function loadCardImg(r, d) {
+    if (typeof _igToDataUrl !== 'function') return Promise.resolve(null);
+    var direct = r.videoId ? 'https://i.ytimg.com/vi/' + r.videoId + '/hqdefault.jpg' : '';
+    var find = direct ? Promise.resolve(direct)
+      : typeof getArtAuto !== 'function' ? Promise.resolve(null)
+      : d.kind === 'albums' ? getArtAuto('album', r.title, r.artist || '', r.title) : getArtAuto('song', r.title, r.artist || '');
+    return find.then(function (url) {
+      if (!url) return null;
+      return _igToDataUrl(typeof shHiResArt === 'function' ? shHiResArt(url) : url);
+    }).then(function (data) {
+      if (!data || !/^data:image\//.test(data)) return null;
+      var img = new Image();
+      img.src = data;
+      return img.decode().then(function () { return img; });
+    }).catch(function () { return null; });
+  }
+
+  function renderCard() {
+    var d = current();
+    if (!d || !d.rows || !d.rows.length) return Promise.resolve(null);
+    var list = withMatches(d), top = list.slice(0, 10);
+    var lib = hasLibrary() && d.kind !== 'artists';
+    var known = list.filter(function (x) { return x.m; }).length;
+    var brand = brandOf(d.chart), COL = BRAND_HEX[brand] || '#2dd4bf';
+    var W = 1080, H = 1350;
+    var cvs = document.createElement('canvas');
+    cvs.width = W; cvs.height = H;
+    var g = cvs.getContext('2d');
+    var css = getComputedStyle(document.documentElement);
+    var display = (css.getPropertyValue('--font-display') || 'sans-serif').trim();
+    var sans = (css.getPropertyValue('--font-sans') || 'sans-serif').trim();
+    var UP = '#4ade80', DOWN = '#fb7185';
+    var fonts = Promise.all([document.fonts.load('800 100px ' + display), document.fonts.load('600 40px ' + sans)]).catch(function () {});
+    return Promise.all([fonts].concat(top.map(function (x) { return loadCardImg(x.r, d); }))).then(function (res) {
+      var imgs = res.slice(1);
+      var clip = function (str, max) {
+        str = String(str || '');
+        if (g.measureText(str).width <= max) return str;
+        while (str.length > 1 && g.measureText(str + '…').width > max) str = str.slice(0, -1);
+        return str + '…';
+      };
+      var rgba = function (hex, a) {
+        var n = parseInt(hex.slice(1), 16);
+        return 'rgba(' + (n >> 16) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')';
+      };
+      var pill = function (x, y, w, h, r) {
+        g.beginPath();
+        if (g.roundRect) g.roundRect(x, y, w, h, r); else g.rect(x, y, w, h);
+      };
+
+      // Background: deep navy with the source's colour glowing in a corner
+      g.fillStyle = '#0a0f1c'; g.fillRect(0, 0, W, H);
+      var glow = g.createRadialGradient(W, 0, 0, W, 0, 950);
+      glow.addColorStop(0, rgba(COL, 0.30)); glow.addColorStop(1, rgba(COL, 0));
+      g.fillStyle = glow; g.fillRect(0, 0, W, H);
+
+      // Header: BILLBOARD / Hot 100 / Week of November 7, 2026
+      g.textBaseline = 'alphabetic'; g.textAlign = 'left';
+      g.font = '800 30px ' + sans; g.fillStyle = COL;
+      g.fillText(brandName(d.chart).toUpperCase(), 80, 110);
+      g.font = '800 88px ' + display; g.fillStyle = '#ffffff';
+      g.fillText(clip(chartName(d.chart), W - 160), 80, 196);
+      var when = d.date ? tr(d.period === 'day' ? 'wc_day_of' : 'wc_week_of', { date: fmtDate(d.date) }) : '';
+      g.font = '600 30px ' + sans; g.fillStyle = 'rgba(255,255,255,0.7)';
+      g.fillText(clip(when, W - 160), 80, 246);
+
+      // Rows
+      var y0 = 290, rowH = 88, art = 70;
+      top.forEach(function (x, i) {
+        var r = x.r, m = x.m;
+        var y = y0 + i * rowH, mid = y + rowH / 2 - 4;
+        if (i === 0) {
+          g.fillStyle = rgba(COL, 0.14);
+          pill(56, y - 4, W - 112, rowH - 6, 20); g.fill();
+        }
+        g.textAlign = 'right';
+        g.font = '800 ' + (i === 0 ? 54 : 44) + 'px ' + display;
+        g.fillStyle = i === 0 ? COL : '#ffffff';
+        g.fillText(String(r.rank), 150, mid + 17);
+        // Move: ▲3 / ▼2 / = / NEW / RE
+        g.textAlign = 'center'; g.font = '800 22px ' + sans;
+        var mv = '', mc = 'rgba(255,255,255,0.5)';
+        if (r.status === 'new') { mv = tr(d.kind === 'albums' ? 'badge_new' : 'badge_new_songs'); mc = COL; }
+        else if (r.status === 're') { mv = tr('badge_re'); mc = COL; }
+        else if (r.last != null) {
+          var diff = r.last - r.rank;
+          mv = diff ? (diff > 0 ? '▲' : '▼') + Math.abs(diff) : '=';
+          mc = diff > 0 ? UP : diff < 0 ? DOWN : mc;
+        }
+        g.fillStyle = mc; g.fillText(mv, 212, mid + 8);
+        // Artwork, cropped square from the middle (video thumbnails are 16:9)
+        var ax = 260, ay = mid - art / 2;
+        g.save();
+        pill(ax, ay, art, art, 12); g.clip();
+        g.fillStyle = rgba(COL, 0.18); g.fillRect(ax, ay, art, art);
+        var img = imgs[i];
+        if (img) {
+          var k = Math.max(art / img.naturalWidth, art / img.naturalHeight);
+          var sw = art / k, sh = art / k;
+          g.drawImage(img, (img.naturalWidth - sw) / 2, (img.naturalHeight - sh) / 2, sw, sh, ax, ay, art, art);
+        } else {
+          g.textAlign = 'center'; g.font = '700 24px ' + sans; g.fillStyle = 'rgba(255,255,255,0.6)';
+          g.fillText(initials(r.title), ax + art / 2, ay + art / 2 + 8);
+        }
+        g.restore();
+        // "42 plays" on the right for rows you've played
+        var tagW = 0;
+        if (lib && m) {
+          var unit = typeof tUnit === 'function' ? tUnit('plays', m.n) : (m.n === 1 ? 'play' : 'plays');
+          var tag = fmtNum(m.n) + ' ' + unit;
+          g.font = '700 24px ' + sans;
+          tagW = g.measureText(tag).width + 28;
+          g.fillStyle = rgba(COL, 0.18);
+          pill(W - 80 - tagW, mid - 20, tagW, 40, 20); g.fill();
+          g.fillStyle = COL; g.textAlign = 'center';
+          g.fillText(tag, W - 80 - tagW / 2, mid + 8);
+          tagW += 20;
+        }
+        // Title and artist
+        g.textAlign = 'left';
+        var tx = ax + art + 26, tw = W - tx - 80 - tagW;
+        var sub = r.artist || '';
+        g.font = '700 34px ' + sans; g.fillStyle = '#ffffff';
+        g.fillText(clip(r.title, tw), tx, sub ? mid - 2 : mid + 12);
+        if (sub) {
+          g.font = '500 26px ' + sans; g.fillStyle = 'rgba(255,255,255,0.6)';
+          g.fillText(clip(sub, tw), tx, mid + 32);
+        }
+      });
+
+      // Footer: "You've played 37 of these 100" and the site's name
+      var fy = H - 70;
+      g.strokeStyle = 'rgba(255,255,255,0.12)'; g.lineWidth = 2;
+      g.beginPath(); g.moveTo(80, fy - 56); g.lineTo(W - 80, fy - 56); g.stroke();
+      g.textAlign = 'left'; g.font = '700 30px ' + sans; g.fillStyle = '#ffffff';
+      if (lib) {
+        var sum = tr(pastWeekRange(d) ? 'wc_you_know_that_week' : S.range === 'week' ? 'wc_you_know_week' : 'wc_you_know',
+          { n: known, total: list.length });
+        g.fillText(clip(sum, W - 160 - 260), 80, fy);
+      }
+      g.textAlign = 'right'; g.font = '600 28px ' + sans; g.fillStyle = 'rgba(255,255,255,0.5)';
+      g.fillText('dankcharts.fm', W - 80, fy);
+
+      return new Promise(function (res2) { cvs.toBlob(res2, 'image/png'); });
+    }).then(function (blob) {
+      if (!blob) return null;
+      return new File([blob], 'world-charts-' + d.chart + (d.date ? '-' + d.date : '') + '.png', { type: 'image/png' });
+    });
+  }
+
+  function prepareCard() {
+    var key = cardKey();
+    if (_card.key === key && (_card.file || _card.busy)) return _card.busy || Promise.resolve(_card.file);
+    _card.key = key; _card.file = null;
+    _card.busy = renderCard().then(function (f) {
+      if (_card.key === key) { _card.file = f; _card.busy = null; }
+      return f;
+    }, function (e) { console.warn('[dankcharts] World Charts card failed:', e); if (_card.key === key) _card.busy = null; return null; });
+    return _card.busy;
+  }
+
+  function shareCard(btn) {
+    var ready = _card.key === cardKey() ? _card.file : null;
+    if (ready && navigator.canShare && navigator.canShare({ files: [ready] })) {
+      navigator.share({ files: [ready] }).catch(function () {});
+      return;
+    }
+    var orig = btn ? btn.textContent : '';
+    if (btn) { btn.disabled = true; btn.textContent = tr('d100_share_busy'); }
+    prepareCard().then(function (file) {
+      if (file) {
+        var a = document.createElement('a');
+        a.download = file.name;
+        a.href = URL.createObjectURL(file);
+        a.click();
+        setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+      }
+    }).then(function () { if (btn) { btn.disabled = false; btn.textContent = orig; } });
+  }
+
+  // Only phones share files; there, draw the card while the user reads.
+  var _prepTimer = null;
+  function schedulePrepare() {
+    if (!(navigator.canShare && current())) return;
+    clearTimeout(_prepTimer);
+    _prepTimer = setTimeout(function () { if (S.active) prepareCard(); }, 1500);
+  }
+
   // ── Lazy covers (rows with no picture of their own) ──
   var _artCache = {};     // "song|title|artist" -> url, null, or a pending promise
   var _artObs = null;
@@ -660,6 +901,7 @@
     if (!root || !S.active) return;
     root.innerHTML = viewHTML();
     observeArt(root);
+    schedulePrepare();
     // Phones: the chart buttons scroll sideways, so bring the chosen one into
     // view (only the button row scrolls, never the page)
     var menu = root.querySelector('.wc-menu'), on = menu && menu.querySelector('.wc-pick.active');
@@ -724,6 +966,8 @@
     stepWeek: stepWeek,
     typeDate: typeDate,
     myWeek: goMyWeek,
+    // Step 7: the share picture
+    share: shareCard,
     showAll: function () { S.all = true; render(); },
     // Step 5: filter rows by whether you've played them, and which plays count
     setFilter: function (f) { S.filter = f; S.all = false; render(); },

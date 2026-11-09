@@ -701,6 +701,8 @@ TRANSLATIONS['es'] = Object.assign({
     wc_counted: "Billboard contó las reproducciones del {{from}} al {{to}}",
     wc_range_that_week: "Esa semana",
     wc_you_know_that_week: "Escuchaste {{n}} de estas {{total}} esa semana",
+    // Step 7: a YouTube chart row links to its video
+    wc_yt_watch: "Ver en YouTube",
     // The Dank 100 (dank100.js)
     nav_dank100: "The Dank 100",
     d100_title: "The Dank 100",

@@ -59500,6 +59500,10 @@ const _cgTourSteps = [
     content: 'Everyone\'s weekly charts added up into one shared chart, out every Monday. Send your week in with one click (or switch on automatic sending in Settings → Charts), then see where your songs landed: movement, peaks, weeks on the chart, each song\'s run, the number ones and the Dank 100 records. Points come from chart positions, not play counts, so every listener counts the same.',
     nav: 'dank100' },
 
+  { title: 'World Charts',
+    content: 'The real charts everyone else is listening to: the Billboard Hot 100 and Billboard 200 (any week back to 1958), Spotify Global daily and weekly, and the most viewed YouTube music videos. Every row tells you how often you have played it, or that it is new to you. Filter to the ones you know or the ones you don\'t, play a sample, jump to your own chart for the same Billboard week, and share the top 10 as a picture.',
+    nav: 'worldcharts' },
+
   { title: 'Board',
     content: 'The community board. Suggest a feature, report a bug, ask a question or just talk music with other listeners. Vote up the ideas you want most, and watch them move from Planned to In progress to Done. Anyone can read it; sign in with Google to post, reply and vote.',
     nav: 'board' },

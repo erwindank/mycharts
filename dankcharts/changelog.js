@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 478;
+const DC_CL_I18N_V = 479;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -98,6 +98,15 @@ const DC_CL_AREAS = {
    by id, as { title, intro, points }. A missing one shows in English.
    ------------------------------------------------------------------------- */
 const DC_CL_HIGHLIGHTS = [
+  { id: "world-charts", d: "2026-11-09", a: "charts", img: "whatsnew/world-charts.webp", go: "worldcharts",
+    title: "World Charts",
+    intro: "The real charts everyone else is listening to, right next to your own.",
+    points: [
+      "Billboard Hot 100 and 200, Spotify Global and the most viewed YouTube videos.",
+      "Every song says how often you've played it, or that it's new to you.",
+      "Go back to any Billboard week, play samples and share the top 10.",
+    ],
+    also: ["Samples and a share picture for World Charts", "Past weeks of the Billboard charts", "See which world hits you've played", "World Charts in the site's chart look", "World Charts: Billboard, Spotify and YouTube"] },
   { id: "smart-playlists", d: "2026-11-09", a: "playlists", img: "whatsnew/smart-playlists.webp", go: "playlists",
     title: "Smart playlists",
     intro: "Playlists that fill themselves from your listening, and keep up as it changes.",
@@ -393,6 +402,21 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-09', t: 'feature', a: 'charts',
+    title: "Samples and a share picture for World Charts",
+    detail: "Play a sample or open a song on Spotify or YouTube from any World Charts row, and share a chart's top 10 as a picture with how many of them you've played." },
+  { d: '2026-11-09', t: 'feature', a: 'charts', h: '5224ff4',
+    title: "Past weeks of the Billboard charts",
+    detail: "Go back to any week of the Hot 100 (since 1958) or the Billboard 200 (since 1963), and jump to your own Weekly chart for the same days." },
+  { d: '2026-11-09', t: 'feature', a: 'charts', h: '3f2f002',
+    title: "See which world hits you've played",
+    detail: "Every World Charts row says how often you've played it, or that it's new to you. Show only the ones you've played or the new ones, count all time or the last 7 days, and click a song you know to open it." },
+  { d: '2026-11-09', t: 'feature', a: 'charts', h: '1e42aaf',
+    title: "World Charts in the site's chart look",
+    detail: "World Charts rows show movement, covers and the source's own numbers: peak, weeks, streams or views. The first 50 show, then Show all." },
+  { d: '2026-11-09', t: 'feature', a: 'charts', h: '5921a9c',
+    title: "World Charts: Billboard, Spotify and YouTube",
+    detail: "A new tab under More shows the real charts: the Billboard Hot 100 and Billboard 200, Spotify Global daily and weekly, and the most viewed YouTube music videos." },
   { d: '2026-11-09', t: 'feature', a: 'guide',
     title: "A Charts Guide lesson for smart playlists",
     detail: "The Charts Guide has a new lesson on smart playlists: the builder, ready-made lists, Mix it and sharing, with pictures and challenges." },

@@ -48972,11 +48972,14 @@ a.tb-more-item:hover { text-decoration: none; }
 
 /* Step 4: the rows. They reuse The Dank 100's row look (d100-li, d100-row,
    d100-pos, d100-mv, d100-art, d100-name …); only the number columns differ
-   per source, so each list sets its own grid. No buttons beside the rows
-   (yet), so the row takes the full width. */
-.wc-li { grid-template-columns: minmax(0, 1fr); }
+   per source, so each list sets its own grid. Step 7: the sample / Spotify /
+   YouTube buttons sit beside each row (.wc-acts = .d100-acts), so the label
+   row leaves their room on the right like The Dank 100's. */
 .wc-row { cursor: default; }
-.wc-cols { padding: 0 10px; }
+.wc-cols { padding: 0 calc(10px + var(--d100-acts-w, 96px)) 0 10px; }
+/* Step 7: the source line with "Share top 10" at its end */
+.wc-srcbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-2); margin: 0 0 var(--sp-3); }
+.wc-srcbar .wc-source { margin: 0; }
 .wc-list--billboard .d100-row, .wc-cols:has(+ .wc-list--billboard) {
   grid-template-columns: 2.2em 3.4em 44px minmax(0, 1fr) 4.4em 3.6em 4.2em;
 }
@@ -49057,7 +49060,7 @@ a.tb-more-item:hover { text-decoration: none; }
     grid-template-columns: 2.6em 40px minmax(0, 1fr) 3.6em !important;
     column-gap: 6px;
   }
-  .wc-cols { padding: 0 4px; }
+  .wc-cols { padding: 0 calc(4px + 72px) 0 4px; }
   .wc-cols span:nth-child(2) { display: none; }
   .wc-num:not(.wc-num--phone) { display: none; }
   /* The Dank 100's phone rule hides label 6 and up; Billboard's kept label is 7th */

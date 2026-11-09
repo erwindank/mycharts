@@ -961,7 +961,7 @@
     const tName = k => (typeof window.t === 'function' ? window.t(k) : k);
     const TAB_NAME = { day: 'nav_daily', week: 'nav_weekly', month: 'nav_monthly', year: 'nav_yearly', alltime: 'nav_alltime',
       graphs: 'tab_stats', records: 'nav_records', awards: 'nav_awards', soundtrack: 'nav_soundtrack', events: 'nav_events',
-      playlists: 'nav_playlists', rawdata: 'nav_rawdata', board: 'nav_board', chartsguide: 'nav_chartsguide', dank100: 'nav_dank100', ratings: 'nav_ratings' };
+      playlists: 'nav_playlists', rawdata: 'nav_rawdata', board: 'nav_board', chartsguide: 'nav_chartsguide', dank100: 'nav_dank100', worldcharts: 'nav_worldcharts', ratings: 'nav_ratings' };
     const recSections = ['rec_nav_overview', 'rec_nav_all_ones', 'rec_nav_pak', 'rec_nav_appearances', 'rec_nav_debuts', 'rec_nav_new_charts',
       'rec_nav_peak_plays', 'rec_nav_milestones', 'rec_nav_fastest', 'rec_nav_streaks', 'rec_nav_certs'].map(tName).join(', ');
     const sec = (k, inner, sub) => `<section class="gd-rsec" id="gd-ref-${k}"><h3 class="gd-rsec-h">${h(refTitle(k))}</h3>

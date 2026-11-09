@@ -741,6 +741,8 @@ const TRANSLATIONS = {
     wc_counted: "Billboard counted the plays from {{from}} to {{to}}",
     wc_range_that_week: "That week",
     wc_you_know_that_week: "You played {{n}} of these {{total}} that week",
+    // Step 7: a YouTube chart row links to its video
+    wc_yt_watch: "Watch on YouTube",
     // The Dank 100 (dank100.js)
     nav_dank100: "The Dank 100",
     d100_title: "The Dank 100",

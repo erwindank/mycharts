@@ -13,6 +13,21 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Samples and a share picture for World Charts":
+    ["Muestras y una imagen para compartir en Listas mundiales",
+     "Escucha una muestra o abre una canción en Spotify o YouTube desde cualquier fila de Listas mundiales, y comparte el top 10 de una lista como imagen, con cuántas de ellas escuchaste."],
+  "Past weeks of the Billboard charts":
+    ["Semanas anteriores de las listas de Billboard",
+     "Vuelve a cualquier semana del Hot 100 (desde 1958) o del Billboard 200 (desde 1963) y salta a tu propia lista semanal de esos mismos días."],
+  "See which world hits you've played":
+    ["Mira qué éxitos mundiales escuchaste",
+     "Cada fila de Listas mundiales dice cuántas veces la escuchaste o si es nueva para ti. Muestra solo las que escuchaste o las nuevas, cuenta todo el tiempo o los últimos 7 días, y pulsa una canción que conoces para abrirla."],
+  "World Charts in the site's chart look":
+    ["Listas mundiales con el aspecto de las listas del sitio",
+     "Las filas de Listas mundiales muestran movimientos, portadas y los números de cada fuente: pico, semanas, reproducciones o vistas. Se ven las primeras 50 y luego Ver todas."],
+  "World Charts: Billboard, Spotify and YouTube":
+    ["Listas mundiales: Billboard, Spotify y YouTube",
+     "Una pestaña nueva en Más muestra las listas reales: el Billboard Hot 100 y el Billboard 200, Spotify Global diaria y semanal, y los videos musicales más vistos de YouTube."],
   "A Charts Guide lesson for smart playlists":
     ["Una lección de la Guía de Charts sobre listas inteligentes",
      "La Guía de Charts tiene una lección nueva sobre listas inteligentes: el editor, las listas ya hechas, Mezclar y compartir, con imágenes y retos."],
@@ -4713,6 +4728,15 @@ window.DC_CHANGELOG_I18N['es'] = {
 /* Highlight cards (DC_CL_HIGHLIGHTS in changelog.js), keyed by id. */
 window.DC_CL_HIGHLIGHTS_I18N = window.DC_CL_HIGHLIGHTS_I18N || {};
 window.DC_CL_HIGHLIGHTS_I18N["es"] = {
+  "world-charts": {
+    title: "Listas mundiales",
+    intro: "Las listas reales que escucha todo el mundo, junto a las tuyas.",
+    points: [
+      "Billboard Hot 100 y 200, Spotify Global y los videos más vistos de YouTube.",
+      "Cada canción dice cuántas veces la escuchaste o si es nueva para ti.",
+      "Vuelve a cualquier semana de Billboard, escucha muestras y comparte el top 10.",
+    ],
+  },
   "smart-playlists": {
     title: "Listas inteligentes",
     intro: "Listas que se llenan solas con lo que escuchas y cambian contigo.",

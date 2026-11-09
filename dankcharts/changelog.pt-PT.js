@@ -13,6 +13,21 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Samples and a share picture for World Charts":
+    ["Amostras e uma imagem para partilhar nos Tops mundiais",
+     "Ouve uma amostra ou abre uma música no Spotify ou no YouTube em qualquer linha dos Tops mundiais, e partilha o top 10 de um top como imagem, com quantas delas ouviste."],
+  "Past weeks of the Billboard charts":
+    ["Semanas anteriores dos tops da Billboard",
+     "Volta a qualquer semana do Hot 100 (desde 1958) ou do Billboard 200 (desde 1963) e salta para o teu próprio top semanal dos mesmos dias."],
+  "See which world hits you've played":
+    ["Vê que êxitos mundiais já ouviste",
+     "Cada linha dos Tops mundiais mostra quantas vezes a ouviste ou se é nova para ti. Mostra só as que ouviste ou as novas, conta todo o tempo ou os últimos 7 dias, e clica numa música que conheces para a abrires."],
+  "World Charts in the site's chart look":
+    ["Tops mundiais com o aspeto dos tops do site",
+     "As linhas dos Tops mundiais mostram movimentos, capas e os números de cada fonte: pico, semanas, streams ou visualizações. Aparecem as primeiras 50 e depois Ver todas."],
+  "World Charts: Billboard, Spotify and YouTube":
+    ["Tops mundiais: Billboard, Spotify e YouTube",
+     "Um separador novo em Mais mostra os tops reais: o Billboard Hot 100 e o Billboard 200, Spotify Global diário e semanal, e os videoclipes mais vistos do YouTube."],
   "A Charts Guide lesson for smart playlists":
     ["Uma lição do Guia de Charts sobre playlists inteligentes",
      "O Guia de Charts tem uma lição nova sobre playlists inteligentes: o editor, as playlists prontas, Misturar e partilhar, com imagens e desafios."],
@@ -4709,6 +4724,15 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 /* Highlight cards (DC_CL_HIGHLIGHTS in changelog.js), keyed by id. */
 window.DC_CL_HIGHLIGHTS_I18N = window.DC_CL_HIGHLIGHTS_I18N || {};
 window.DC_CL_HIGHLIGHTS_I18N["pt-PT"] = {
+  "world-charts": {
+    title: "Tops mundiais",
+    intro: "Os tops reais que toda a gente está a ouvir, ao lado dos teus.",
+    points: [
+      "Billboard Hot 100 e 200, Spotify Global e os vídeos mais vistos do YouTube.",
+      "Cada música mostra quantas vezes a ouviste ou se é nova para ti.",
+      "Volta a qualquer semana da Billboard, ouve amostras e partilha o top 10.",
+    ],
+  },
   "smart-playlists": {
     title: "Playlists inteligentes",
     intro: "Playlists que se enchem sozinhas com o que ouves e mudam contigo.",

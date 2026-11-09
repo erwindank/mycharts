@@ -100,7 +100,7 @@ browser ──▶ /world-charts?chart=hot-100   (Cloudflare Function, dankcharts
 - "Your chart that week" side link: jump to your own Weekly chart for the same week.
 - Kworb has no history pages, so its charts show the current one only.
 
-### 7. Finishing
+### 7. Finishing — done 2026-11-09 (▶ / Spotify / YouTube beside every row, Spotify and YouTube rows link to their own track or video; canvas share card per chart; app tour stop + guide Reference line in 4 languages, no full guide lesson; What's New card world-charts + 5 entries; phone check of all 5 charts)
 - ▶ sample button on rows (samples only, never YouTube).
 - Share card for a chart (top 10 + "you know X of them").
 - Charts Guide tour step, What's New card, bump the changelog ?v=.

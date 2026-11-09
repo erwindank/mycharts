@@ -13,6 +13,21 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Samples and a share picture for World Charts":
+    ["Amostras e uma imagem para compartilhar nas Paradas mundiais",
+     "Ouça uma amostra ou abra uma música no Spotify ou no YouTube em qualquer linha das Paradas mundiais, e compartilhe o top 10 de uma parada como imagem, com quantas delas você ouviu."],
+  "Past weeks of the Billboard charts":
+    ["Semanas anteriores das paradas da Billboard",
+     "Volte para qualquer semana da Hot 100 (desde 1958) ou da Billboard 200 (desde 1963) e pule para a sua própria parada semanal dos mesmos dias."],
+  "See which world hits you've played":
+    ["Veja quais sucessos mundiais você ouviu",
+     "Cada linha das Paradas mundiais mostra quantas vezes você ouviu ou se é novidade para você. Mostre só as que você ouviu ou as novas, conte todo o tempo ou os últimos 7 dias, e clique numa música que você conhece para abri-la."],
+  "World Charts in the site's chart look":
+    ["Paradas mundiais com o visual das paradas do site",
+     "As linhas das Paradas mundiais mostram movimentos, capas e os números de cada fonte: pico, semanas, streams ou visualizações. Aparecem as primeiras 50 e depois Ver todas."],
+  "World Charts: Billboard, Spotify and YouTube":
+    ["Paradas mundiais: Billboard, Spotify e YouTube",
+     "Uma aba nova em Mais mostra as paradas reais: a Billboard Hot 100 e a Billboard 200, Spotify Global diária e semanal, e os clipes mais vistos do YouTube."],
   "A Charts Guide lesson for smart playlists":
     ["Uma lição do Guia de Charts sobre playlists inteligentes",
      "O Guia de Charts tem uma lição nova sobre playlists inteligentes: o editor, as playlists prontas, Misturar e compartilhar, com imagens e desafios."],
@@ -4709,6 +4724,15 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 /* Highlight cards (DC_CL_HIGHLIGHTS in changelog.js), keyed by id. */
 window.DC_CL_HIGHLIGHTS_I18N = window.DC_CL_HIGHLIGHTS_I18N || {};
 window.DC_CL_HIGHLIGHTS_I18N["pt-BR"] = {
+  "world-charts": {
+    title: "Paradas mundiais",
+    intro: "As paradas reais que todo mundo está ouvindo, ao lado das suas.",
+    points: [
+      "Billboard Hot 100 e 200, Spotify Global e os vídeos mais vistos do YouTube.",
+      "Cada música mostra quantas vezes você ouviu ou se é novidade para você.",
+      "Volte para qualquer semana da Billboard, ouça amostras e compartilhe o top 10.",
+    ],
+  },
   "smart-playlists": {
     title: "Playlists inteligentes",
     intro: "Playlists que se enchem sozinhas com o que você ouve e mudam junto com você.",
