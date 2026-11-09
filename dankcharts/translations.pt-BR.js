@@ -694,6 +694,13 @@ TRANSLATIONS['pt-BR'] = Object.assign({
     wc_none_known: "Você ainda não ouviu nenhuma destas.",
     wc_none_new: "Você já ouviu todas!",
     wc_show_all: "Ver todas as {{n}}",
+    // Passo 6: semanas anteriores da Billboard
+    wc_latest: "Semana mais recente",
+    wc_err_week: "Não foi possível carregar esta semana agora.",
+    wc_your_week: "Sua parada daquela semana",
+    wc_counted: "A Billboard contou as reproduções de {{from}} a {{to}}",
+    wc_range_that_week: "Naquela semana",
+    wc_you_know_that_week: "Você ouviu {{n}} destas {{total}} naquela semana",
     // The Dank 100 (dank100.js)
     nav_dank100: "The Dank 100",
     d100_title: "The Dank 100",

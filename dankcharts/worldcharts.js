@@ -17,7 +17,10 @@
    per-source number columns.
    Step 5: "your plays" on every row (matched in allPlays, see the step 5
    block below), a filter for rows you know / don't, and clicking a row you
-   know opens its window. Step 6 adds past weeks for Billboard.
+   know opens its window.
+   Step 6: past weeks for the Billboard charts (week picker, "Latest week",
+   and a link to your own Weekly chart for the days Billboard counted). Kworb
+   has no history pages, so its charts only show the current one.
 
    The tab needs no sign-in and no data source: it only shows public charts.
    That's why #worldchartsView sits outside #mainApp, like the Dank 100 and the
@@ -37,8 +40,8 @@
   // does), so the buttons are there straight away. Keep in step with CHARTS
   // in functions/world-charts.js.
   var FALLBACK_MENU = [
-    { id: 'hot-100',               source: 'billboard', kind: 'songs',  period: 'week' },
-    { id: 'billboard-200',         source: 'billboard', kind: 'albums', period: 'week' },
+    { id: 'hot-100',               source: 'billboard', kind: 'songs',  period: 'week', pastWeeks: true, first: '1958-08-04' },
+    { id: 'billboard-200',         source: 'billboard', kind: 'albums', period: 'week', pastWeeks: true, first: '1963-08-17' },
     { id: 'spotify-global-daily',  source: 'kworb',     kind: 'songs',  period: 'day'  },
     { id: 'spotify-global-weekly', source: 'kworb',     kind: 'songs',  period: 'week' },
     { id: 'youtube-top',           source: 'kworb',     kind: 'videos', period: 'day'  }
@@ -49,12 +52,15 @@
   var KEEP_MS = 30 * 60 * 1000;            // a loaded chart is reused for 30 min
   var STEP = 50;                           // rows shown before "Show all"
   var WEEK_MS = 7 * 86400000;
+  var TYPE_WAIT = 700;                     // ms after typing in the date box before the week loads
 
   var S = {
     active: false,
     menu: FALLBACK_MENU,
     chart: null,                           // id of the chart on screen
-    cache: {},                             // id -> { at, data }
+    cache: {},                             // ckey(id, date) -> { at, data }
+    date: null,                            // step 6: the Billboard week on screen, null = the latest
+    latest: {},                            // id -> date of its latest chart, once known
     loading: false,
     err: false,
     all: false,                            // "Show all" pressed
@@ -88,6 +94,49 @@
   // buttons follow the site language. Brand names stay as they are.
   function chartName(id) { return tr('wc_chart_' + id.replace(/-/g, '_')); }
 
+  // ── Step 6: past weeks ──
+  // Chart dates are "YYYY-MM-DD" strings, stepped in UTC so no time zone can
+  // move them a day.
+  function isoAdd(iso, days) {
+    var d = new Date(iso + 'T00:00:00Z');
+    d.setUTCDate(d.getUTCDate() + days);
+    return d.toISOString().slice(0, 10);
+  }
+  function todayIso() { return new Date().toISOString().slice(0, 10); }
+  // The same day at local midnight, to compare with the time of a play
+  function localDay(iso) { var p = iso.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]); }
+  // A chart's menu entry. Fields the server's menu leaves out (an older
+  // function without `first`, say) come from FALLBACK_MENU.
+  function chartDef(id) {
+    var fb = null, m = null, i;
+    for (i = 0; i < FALLBACK_MENU.length; i++) if (FALLBACK_MENU[i].id === id) fb = FALLBACK_MENU[i];
+    for (i = 0; i < S.menu.length; i++) if (S.menu[i].id === id) m = S.menu[i];
+    if (!m) return fb;
+    var out = {}, k;
+    if (fb) for (k in fb) out[k] = fb[k];
+    for (k in m) if (m[k] != null) out[k] = m[k];
+    return out;
+  }
+  function hasPast(id) { var c = chartDef(id); return !!(c && c.pastWeeks); }
+  // The week to ask for: only Billboard charts have past weeks, and never
+  // before the chart's first week (Hot 100 and Billboard 200 started apart,
+  // and both share S.date)
+  function dateFor(id) {
+    if (!hasPast(id) || !S.date) return null;
+    var first = chartDef(id).first;
+    return first && S.date < first ? first : S.date;
+  }
+  function ckey(id, date) { return id + (date ? '@' + date : ''); }
+  function current() { var hit = S.cache[ckey(S.chart, dateFor(S.chart))]; return hit && hit.data; }
+
+  // Billboard counts a chart's plays in the week ending the Thursday 9 days
+  // before its date: the chart of Saturday Nov 7 covers Fri Oct 23 – Thu Oct 29.
+  // (Before 1962 charts were dated Mondays; this is close enough for those.)
+  function trackingDays(d) {
+    if (!d || !d.date || brandOf(d.chart) !== 'billboard') return null;
+    return { from: isoAdd(d.date, -15), to: isoAdd(d.date, -9) };
+  }
+
   function pickStart() {
     var saved = lsGet(LS_CHART);
     var ids = S.menu.map(function (c) { return c.id; });
@@ -108,17 +157,30 @@
   }
 
   function loadChart(id, force) {
-    var hit = S.cache[id];
-    if (!force && hit && Date.now() - hit.at < KEEP_MS) { S.err = false; render(); return; }
+    var date = dateFor(id), key = ckey(id, date);
+    var hit = S.cache[key];
+    // A past week never changes, so it's reused for as long as the page is open
+    if (!force && hit && (date || Date.now() - hit.at < KEEP_MS)) { S.err = false; render(); return; }
     S.loading = true; S.err = false;
     render();
-    fetch(API + '/world-charts?chart=' + encodeURIComponent(id))
+    fetch(API + '/world-charts?chart=' + encodeURIComponent(id) + (date ? '&date=' + date : ''))
       .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
       .then(function (j) {
         if (!j || !j.rows || !j.rows.length) throw new Error('empty');
-        S.cache[id] = { at: Date.now(), data: j };
+        var entry = { at: Date.now(), data: j };
+        S.cache[key] = entry;
+        if (!date && j.date) S.latest[id] = j.date;
+        if (date && j.date) {
+          // Billboard moves any day to its chart week (Wed Oct 28 → Sat Oct
+          // 31), so the picker follows to the chart's real date. Landing on
+          // the latest week counts as "latest".
+          var isLatest = S.latest[id] && j.date >= S.latest[id];
+          S.cache[ckey(id, j.date)] = entry;
+          if (isLatest) S.cache[ckey(id, null)] = entry;
+          if (S.date === date) S.date = isLatest ? null : j.date;
+        }
       })
-      .catch(function () { if (S.chart === id) S.err = true; })
+      .catch(function () { if (S.chart === id && dateFor(id) === date) S.err = true; })
       .then(function () { if (S.chart === id) { S.loading = false; render(); } });
   }
 
@@ -143,6 +205,57 @@
       h += '<p class="wc-note wc-note--stale">' + esc(tr('wc_stale')) + '</p>';
     }
     return h;
+  }
+
+  // ── Step 6: the week picker (Billboard charts only) ──
+  //   ‹  [ date box ]  ›   Latest week            Your chart that week →
+  // The date box takes any day; Billboard moves it to that day's chart week.
+  function weekNavHTML(d) {
+    if (!hasPast(S.chart)) return '';
+    var c = chartDef(S.chart);
+    var cur = (d && d.date) || dateFor(S.chart) || S.latest[S.chart] || '';
+    var max = S.latest[S.chart] || todayIso();
+    var prevOk = !!cur && !(c.first && cur <= c.first);
+    var nextOk = !!S.date;
+    var h = '<div class="wc-weekbar"><div class="d100-weeknav wc-weeknav">';
+    h += '<button type="button" class="d100-wk-btn" aria-label="' + esc(tr('d100_prev_week')) + '"' + (prevOk ? '' : ' disabled') +
+      ' onclick="dcWorldCharts.stepWeek(-1)">‹</button>';
+    h += '<input type="date" class="d100-wk-select wc-wk-date" aria-label="' + esc(tr('d100_pick_week')) + '"' +
+      ' value="' + esc(cur) + '" min="' + esc(c.first || '') + '" max="' + esc(max) + '"' +
+      ' oninput="dcWorldCharts.typeDate(this.value)">';
+    h += '<button type="button" class="d100-wk-btn" aria-label="' + esc(tr('d100_next_week')) + '"' + (nextOk ? '' : ' disabled') +
+      ' onclick="dcWorldCharts.stepWeek(1)">›</button>';
+    if (S.date) h += '<button type="button" class="d100-link wc-latest" onclick="dcWorldCharts.pickDate(\'\')">' + esc(tr('wc_latest')) + '</button>';
+    h += '</div>' + yourWeekHTML(d) + '</div>';
+    return h;
+  }
+
+  // "Your chart that week →": your own Weekly chart for the days Billboard
+  // counted. Only when you have plays from then.
+  function yourWeekHTML(d) {
+    var days = trackingDays(d);
+    if (!days || !hasLibrary() || typeof goToWeek !== 'function') return '';
+    var first = libIndex(rangeWin(null)).first;
+    if (!first || +localDay(days.to) + 86400000 <= first) return '';
+    var tip = tr('wc_counted', { from: fmtDate(days.from), to: fmtDate(days.to) });
+    return '<button type="button" class="d100-link wc-yourweek" title="' + esc(tip) + '" onclick="dcWorldCharts.myWeek()">' +
+      esc(tr('wc_your_week')) + ' →</button>';
+  }
+
+  // Opens your Weekly chart for the week (by your own week start) that holds
+  // the middle of Billboard's counted days.
+  function goMyWeek() {
+    var days = trackingDays(current());
+    if (!days) return;
+    var mid = localDay(isoAdd(days.from, 3));
+    var wsd = typeof weekStartDay === 'number' ? weekStartDay : 0;
+    var start = new Date(mid.getFullYear(), mid.getMonth(), mid.getDate() - (mid.getDay() - wsd + 7) % 7);
+    var off = typeof weekOffset === 'function' ? Math.max(0, weekOffset(start)) : 0;
+    // The tab switch (app.js) saves currentOffset under the tab it opens when
+    // it leaves this page, then reads it back, so set both
+    try { currentOffset = off; savedOffsets.week = off; } catch (e) {}
+    var btn = document.querySelector('#periodNav button[data-period="week"]');
+    if (btn) { btn.click(); window.scrollTo(0, 0); }
   }
 
   function sourceHTML(d) {
@@ -302,18 +415,30 @@
   // Built once per library (and range), rebuilt when the plays change.
   var _lib = { tag: null, idx: {} };
 
+  // Step 6: which plays a badge counts: all of them, the last 7 days, or (on
+  // a past Billboard week) the days Billboard counted for that chart.
+  // → { key, from, to } in ms (to is exclusive)
+  function rangeWin(d) {
+    if (S.range !== 'week' || !d) return { key: 'all', from: -Infinity, to: Infinity };
+    var days = S.date && trackingDays(d);
+    if (days) return { key: days.from, from: +localDay(days.from), to: +localDay(days.to) + 86400000 };
+    return { key: 'week', from: Date.now() - WEEK_MS, to: Infinity };
+  }
+  function pastWeekRange(d) { return S.range === 'week' && !!(S.date && trackingDays(d)); }
+
   function libPlays() { return (typeof allPlays !== 'undefined' && allPlays) || []; }
   function hasLibrary() { return libPlays().length > 0 && !!window.dcDank100; }
 
-  function libIndex(range) {
+  function libIndex(win) {
     var P = libPlays();
     var tag = P.length + '|' + (P[0] ? +P[0].date : '') + '|' + (typeof _stampEpoch !== 'undefined' ? _stampEpoch : '');
     if (_lib.tag !== tag) _lib = { tag: tag, idx: {} };
-    if (_lib.idx[range]) return _lib.idx[range];
+    if (_lib.idx[win.key]) return _lib.idx[win.key];
 
     var D = window.dcDank100;
     var msFn = typeof msOf === 'function' ? msOf : function (p) { return +p.date; };
-    var from = range === 'week' ? Date.now() - WEEK_MS : -Infinity;
+    var from = win.from, to = win.to, limited = from > -Infinity || to < Infinity;
+    var first = Infinity;                  // time of your first play (for "Your chart that week")
     var songs = new Map(), albums = new Map(), byArtist = new Map();
 
     // n = plays; key = the site's own song/album key, to open its window;
@@ -328,7 +453,9 @@
     for (var i = 0; i < P.length; i++) {
       var p = P[i];
       if (!p.title || !p.artist) continue;
-      if (range === 'week' && !(msFn(p) >= from)) continue;
+      var ms = msFn(p);
+      if (ms < first) first = ms;
+      if (limited && !(ms >= from && ms < to)) continue;
       var credits = p.artists && p.artists.length ? p.artists : [p.artist];
       var sk = typeof songKey === 'function' ? songKey(p) : '';
       var ak = p.album && p.album !== '—' && typeof albumKeyOf === 'function' ? albumKeyOf(p) : '';
@@ -348,7 +475,7 @@
         }
       }
     }
-    return (_lib.idx[range] = { songs: songs, albums: albums, byArtist: byArtist });
+    return (_lib.idx[win.key] = { songs: songs, albums: albums, byArtist: byArtist, first: first < Infinity ? first : 0 });
   }
 
   // "Karol G With Judeline & rusowsky" → ["karol g with judeline and rusowsky",
@@ -407,7 +534,7 @@
   // Every row of the chart with its match, worked out once per draw
   function withMatches(d) {
     if (!hasLibrary() || d.kind === 'artists') return d.rows.map(function (r) { return { r: r, m: undefined }; });
-    var idx = libIndex(S.range);
+    var idx = libIndex(rangeWin(d));
     return d.rows.map(function (r) { return { r: r, m: matchRow(r, d, idx) }; });
   }
 
@@ -426,10 +553,11 @@
       }).join('') + '</div>';
     };
     return '<div class="wc-mine">' +
-      '<p class="wc-mine-sum"><strong>' + esc(tr(S.range === 'week' ? 'wc_you_know_week' : 'wc_you_know', { n: known, total: total })) + '</strong></p>' +
+      '<p class="wc-mine-sum"><strong>' + esc(tr(pastWeekRange(d) ? 'wc_you_know_that_week' : S.range === 'week' ? 'wc_you_know_week' : 'wc_you_know', { n: known, total: total })) + '</strong></p>' +
       '<div class="wc-mine-ctrls">' +
       seg('wc-seg--filter', [['all', tr('wc_filter_all') + ' ' + total], ['known', tr('wc_filter_known') + ' ' + known], ['new', tr('wc_filter_new') + ' ' + (total - known)]], S.filter, 'setFilter') +
-      seg('wc-seg--range', [['all', tr('wc_range_all')], ['week', tr('wc_range_week')]], S.range, 'setRange') +
+      // On a past Billboard week, "Last 7 days" becomes "That week" (the days Billboard counted)
+      seg('wc-seg--range', [['all', tr('wc_range_all')], ['week', tr(S.date && trackingDays(d) ? 'wc_range_that_week' : 'wc_range_week')]], S.range, 'setRange') +
       '</div></div>';
   }
 
@@ -495,19 +623,23 @@
   }
 
   function bodyHTML() {
-    var hit = S.cache[S.chart];
-    var d = hit && hit.data;
+    var d = current();
+    var nav = weekNavHTML(d);
+    var past = !!S.date && hasPast(S.chart);
     if (S.err && !d) {
-      return '<div class="wc-msg"><p>' + esc(tr('wc_err')) + '</p>' +
-        '<button type="button" class="dc-btn dc-btn-normal dc-btn-sm" onclick="dcWorldCharts.reload()">' + esc(tr('wc_retry')) + '</button></div>';
+      // A past week that won't load can go back to the latest one
+      return nav + '<div class="wc-msg"><p>' + esc(tr(past ? 'wc_err_week' : 'wc_err')) + '</p>' +
+        '<button type="button" class="dc-btn dc-btn-normal dc-btn-sm" onclick="dcWorldCharts.reload()">' + esc(tr('wc_retry')) + '</button>' +
+        (past ? ' <button type="button" class="dc-btn dc-btn-normal dc-btn-sm" onclick="dcWorldCharts.pickDate(\'\')">' + esc(tr('wc_latest')) + '</button>' : '') +
+        '</div>';
     }
     if (!d) {
       // Loading: a few grey rows, so the page doesn't jump when the chart lands
       var sk = '';
       for (var i = 0; i < 8; i++) sk += '<li class="wc-sk"><span class="wc-sk-rank"></span><span class="wc-sk-art"></span><span class="wc-sk-text"><span class="wc-sk-t"></span><span class="wc-sk-a"></span></span></li>';
-      return '<p class="wc-source">' + esc(tr('wc_loading')) + '</p><ol class="wc-sk-list" aria-hidden="true">' + sk + '</ol>';
+      return nav + '<p class="wc-source">' + esc(tr('wc_loading')) + '</p><ol class="wc-sk-list" aria-hidden="true">' + sk + '</ol>';
     }
-    return statusHTML(d) + sourceHTML(d) + listHTML(d);
+    return nav + statusHTML(d) + sourceHTML(d) + listHTML(d);
   }
 
   function viewHTML() {
@@ -544,6 +676,33 @@
     loadChart(id);
   }
 
+  // Step 6: go to a week. '' = the latest; any day = that day's chart week.
+  function pickDate(v) {
+    clearTimeout(_typeT);
+    var c = chartDef(S.chart);
+    if (!v || !/^\d{4}-\d{2}-\d{2}$/.test(v)) v = null;
+    if (v && c && c.first && v < c.first) v = c.first;
+    var latest = S.latest[S.chart];
+    if (v && ((latest && v >= latest) || v > todayIso())) v = null;
+    S.date = v; S.all = false; S.err = false;
+    loadChart(S.chart);
+  }
+  function stepWeek(n) {
+    var d = current();
+    var base = (d && d.date) || dateFor(S.chart) || S.latest[S.chart];
+    if (!base) return;
+    pickDate(isoAdd(base, 7 * n));
+  }
+  // Typing in the date box: wait until a whole date has been typed (the box
+  // reports half-typed years like 0019 along the way)
+  var _typeT = null;
+  function typeDate(v) {
+    clearTimeout(_typeT);
+    var c = chartDef(S.chart);
+    if (!v || (c && c.first && v.slice(0, 4) < c.first.slice(0, 4))) return;
+    _typeT = setTimeout(function () { pickDate(v); }, TYPE_WAIT);
+  }
+
   function show() {
     S.active = true;
     if (!S.range) S.range = lsGet(LS_RANGE) === 'week' ? 'week' : 'all';
@@ -560,6 +719,11 @@
     rerender: render,
     pick: pick,
     reload: function () { loadChart(S.chart, true); },
+    // Step 6: past weeks
+    pickDate: pickDate,
+    stepWeek: stepWeek,
+    typeDate: typeDate,
+    myWeek: goMyWeek,
     showAll: function () { S.all = true; render(); },
     // Step 5: filter rows by whether you've played them, and which plays count
     setFilter: function (f) { S.filter = f; S.all = false; render(); },

@@ -48906,6 +48906,19 @@ a.tb-more-item:hover { text-decoration: none; }
 
 /* Source line, notes and messages */
 .wc-source { margin: 0 0 var(--sp-3); font-size: var(--fs-xs); color: var(--text3); }
+/* Step 6: the week picker for the Billboard charts, with "Your chart that
+   week" at the other end of the line */
+.wc-weekbar {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: var(--sp-2) var(--sp-3); margin: 0 0 var(--sp-3);
+}
+.wc-wk-date { min-width: 10.5em; color-scheme: light dark; }
+.wc-latest, .wc-yourweek { font-size: var(--fs-sm); white-space: nowrap; }
+@media (max-width: 640px) {
+  .wc-weekbar { flex-direction: column; align-items: stretch; }
+  .wc-wk-date { flex: 1; min-width: 0; }
+  .wc-yourweek { align-self: flex-start; }
+}
 .wc-source a { color: var(--text2); text-decoration: underline; text-underline-offset: 2px; }
 .wc-source a:hover { color: var(--accent); }
 .wc-note {

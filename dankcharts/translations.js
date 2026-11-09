@@ -734,6 +734,13 @@ const TRANSLATIONS = {
     wc_none_known: "You haven't played any of these yet.",
     wc_none_new: "You've played every one of these!",
     wc_show_all: "Show all {{n}}",
+    // Step 6: past Billboard weeks
+    wc_latest: "Latest week",
+    wc_err_week: "This week couldn't be loaded right now.",
+    wc_your_week: "Your chart that week",
+    wc_counted: "Billboard counted the plays from {{from}} to {{to}}",
+    wc_range_that_week: "That week",
+    wc_you_know_that_week: "You played {{n}} of these {{total}} that week",
     // The Dank 100 (dank100.js)
     nav_dank100: "The Dank 100",
     d100_title: "The Dank 100",

@@ -53,14 +53,16 @@ const DAY = 86400;
 //   ttl:    how long a fresh copy is kept, in seconds
 //   min:    fewest rows we accept as a real parse. Fewer than this means
 //           the layout changed, so we fall back to the last good copy.
+//   minPast: the same for a past week (old charts could be shorter)
+//   first:  the oldest week the source has (Billboard only), for the week picker
 const CHARTS = {
   'hot-100': {
     title: 'Billboard Hot 100', source: 'billboard', kind: 'songs', period: 'week',
-    path: 'hot-100', ttl: 6 * HOUR, min: 90,
+    path: 'hot-100', ttl: 6 * HOUR, min: 90, minPast: 90, first: '1958-08-04',
   },
   'billboard-200': {
     title: 'Billboard 200', source: 'billboard', kind: 'albums', period: 'week',
-    path: 'billboard-200', ttl: 6 * HOUR, min: 180,
+    path: 'billboard-200', ttl: 6 * HOUR, min: 180, minPast: 100, first: '1963-08-17',
   },
   'spotify-global-daily': {
     title: 'Spotify Global Daily', source: 'kworb', kind: 'songs', period: 'day',
@@ -87,7 +89,7 @@ export async function onRequest(context) {
   if (id === 'list') {
     return json({ charts: Object.entries(CHARTS).map(([k, c]) => ({
       id: k, title: c.title, source: c.source, kind: c.kind, period: c.period,
-      pastWeeks: c.source === 'billboard' })) }, 200, HOUR);
+      pastWeeks: c.source === 'billboard', first: c.first || null })) }, 200, HOUR);
   }
   if (!def) return json({ error: 'Unknown chart' }, 400, 0);
   if (date && !/^\d{4}-\d{2}-\d{2}$/.test(date)) return json({ error: 'Bad date' }, 400, 0);
@@ -161,13 +163,18 @@ async function fetchChart(id, def, date) {
   const parsed = isBB ? parseBillboard(html)
     : def.kind === 'videos' ? parseKworbYouTube(html)
     : parseKworbSpotify(html);
-  if (parsed.rows.length < def.min) return null;
+  // Old weeks can be shorter than today's chart (the album chart had only 150
+  // places before 1967), so a past week only needs `minPast` rows.
+  if (parsed.rows.length < (date ? (def.minPast || def.min) : def.min)) return null;
   if (def.max) parsed.rows = parsed.rows.slice(0, def.max);
 
   return {
     chart: id, title: def.title, kind: def.kind, period: def.period,
     date: parsed.date || date || null,
-    source: isBB ? 'Billboard' : 'kworb.net', sourceUrl,
+    source: isBB ? 'Billboard' : 'kworb.net',
+    // A past week links to the chart's own date (Billboard moves any day to its
+    // chart week, so ?date=2026-10-28 is the chart of 2026-10-31)
+    sourceUrl: isBB && date && parsed.date ? `https://www.billboard.com/charts/${def.path}/${parsed.date}/` : sourceUrl,
     fetchedAt: new Date().toISOString(),
     rows: parsed.rows,
   };

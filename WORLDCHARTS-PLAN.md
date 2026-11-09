@@ -94,7 +94,7 @@ browser ──▶ /world-charts?chart=hot-100   (Cloudflare Function, dankcharts
 - Small summary at the top: "You know 37 of the Hot 100".
 - Clicking a matched song or artist opens its window as from All-Time.
 
-### 6. Past weeks (Billboard)
+### 6. Past weeks (Billboard) — done 2026-11-09 (‹ date box › + "Latest week"; "Your chart that week" opens your Weekly chart for the days Billboard counted, Fri–Thu ending 9 days before the chart date; on a past week "Last 7 days" becomes "That week"; old Billboard 200 weeks have 150 rows, so past weeks accept fewer)
 - Week picker. Billboard keeps old weeks (`/charts/hot-100/YYYY-MM-DD`), so the
   proxy takes `&date=`. Old weeks never change, so they're cached for a long time.
 - "Your chart that week" side link: jump to your own Weekly chart for the same week.
