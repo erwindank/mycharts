@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "A World Charts lesson in the Charts Guide":
+    ["Uma lição de Paradas mundiais no Guia",
+     "O Guia tem uma lição nova sobre as Paradas mundiais: imagens de cada parte, passo a passo, desafios e um quiz curto."],
   "Billboard Global 200 in World Charts":
     ["Billboard Global 200 nas Paradas mundiais",
      "As Paradas mundiais agora têm a Billboard Global 200, com todas as semanas desde 2020, e cada botão de parada mostra o logo da sua fonte."],
@@ -4731,7 +4734,7 @@ window.DC_CL_HIGHLIGHTS_I18N["pt-BR"] = {
     title: "Paradas mundiais",
     intro: "As paradas reais que todo mundo está ouvindo, ao lado das suas.",
     points: [
-      "Billboard Hot 100 e 200, Spotify Global e os vídeos mais vistos do YouTube.",
+      "Billboard Hot 100, Billboard 200 e Global 200, Spotify Global e os vídeos mais vistos do YouTube.",
       "Cada música mostra quantas vezes você ouviu ou se é novidade para você.",
       "Volte para qualquer semana da Billboard, ouça amostras e compartilhe o top 10.",
     ],

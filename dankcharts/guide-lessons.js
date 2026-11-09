@@ -753,6 +753,44 @@ window.GL = {
       quiz: [ { id: 'q1', answer: 1 }, { id: 'q2', answer: 1 }, { id: 'q3', answer: 2 } ],
       tips: [ ['d1-run', 'box', 'd1.box'], ['d1-no1', 'strip', 'd1.no1'], ['d1-top', 'export', 'd1.export'], ['d1-top', 'seg', 'd1.type'] ]
     },
+    /* ── Lesson: World Charts (2026-11-09: the real charts next to your plays) ── */
+    { id: 'worldcharts', area: 'more', nav: 'worldcharts', mins: 5, cover: 'wc-top',
+      scenes: [
+        { id: 'top', shot: 'wc-top', phone: true,
+          spots: ['title', 'menu', 'pick', 'week', 'prev', 'next', 'yourweek', 'source', 'share', 'sum', 'filter', 'range', 'cols', 'row', 'pos', 'move', 'tag', 'acts'] },
+        // A past Billboard week, counting only that week's plays
+        { id: 'past', shot: 'wc-past', spots: ['week', 'prev', 'next', 'latest', 'yourweek', 'source', 'sum', 'range', 'row'] },
+        { id: 'known', shot: 'wc-known', spots: ['sum', 'filter', 'on', 'row', 'tag'] },
+        { id: 'spotify', shot: 'wc-spotify', spots: ['pick', 'source', 'cols', 'row', 'spotify', 'sample', 'newtag'] },
+        { id: 'youtube', shot: 'wc-youtube', spots: ['pick', 'cols', 'art', 'row', 'yt'] }
+      ],
+      howto: [
+        { id: 'mine', challenge: 'wc.filter', slides: [
+          { shot: 'wc-top', spot: 'sum' }, { shot: 'wc-top', spot: 'tag' }, { shot: 'wc-top', spot: 'filter' },
+          { shot: 'wc-known', spot: 'row' }, { shot: 'wc-top', spot: 'range' } ] },
+        { id: 'past', challenge: 'wc.week', slides: [
+          { shot: 'wc-top', spot: 'week' }, { shot: 'wc-top', spot: 'prev' }, { shot: 'wc-past', spot: 'range' },
+          { shot: 'wc-past', spot: 'yourweek' }, { shot: 'wc-past', spot: 'latest' } ] },
+        { id: 'listen', challenge: 'wc.listen', slides: [
+          { shot: 'wc-spotify', spot: 'sample' }, { shot: 'wc-spotify', spot: 'spotify' }, { shot: 'wc-youtube', spot: 'yt' },
+          { shot: 'wc-known', spot: 'row' } ] },
+        { id: 'share', challenge: 'wc.share', slides: [
+          { shot: 'wc-top', spot: 'menu' }, { shot: 'wc-top', spot: 'range' }, { shot: 'wc-top', spot: 'share' } ] }
+      ],
+      options: [
+        { id: 'chart', items: [
+          { id: 'chart', shot: 'wc-top', spot: 'menu' }, { id: 'week', shot: 'wc-top', spot: 'week' },
+          { id: 'filter', shot: 'wc-top', spot: 'filter', def: '{{t:wc_filter_all}}' },
+          { id: 'range', shot: 'wc-top', spot: 'range', def: '{{t:wc_range_all}}' } ] },
+        { id: 'tools', items: [
+          { id: 'acts', shot: 'wc-top', spot: 'acts' }, { id: 'open', shot: 'wc-known', spot: 'row' },
+          { id: 'myweek', shot: 'wc-past', spot: 'yourweek' }, { id: 'share', shot: 'wc-top', spot: 'share' } ] }
+      ],
+      challenges: ['wc.chart', 'wc.week', 'wc.filter', 'wc.range', 'wc.open', 'wc.listen', 'wc.myweek', 'wc.share'],
+      quiz: [ { id: 'q1', answer: 1 }, { id: 'q2', answer: 2 }, { id: 'q3', answer: 0 } ],
+      tips: [ ['wc-past', 'yourweek', 'wc.myweek'], ['wc-known', 'filter', 'wc.filter'], ['wc-past', 'range', 'wc.range'],
+        ['wc-top', 'share', 'wc.share'] ]
+    },
     /* ── Lesson 12: Ratings (score like a critic) ── */
     { id: 'ratings', area: 'more', nav: 'ratings', mins: 7, cover: 'rt-page',
       scenes: [
@@ -3479,6 +3517,134 @@ window.GL_TEXT.en = {
         'In {{t:d100_no1_title}} every reign is a block: the widest ones stayed longest.',
         '{{t:d100_export}} turns the chart into a playlist, with two songs each on the artist and album charts.',
         '{{t:d100_title}} has three charts every week: songs, artists and albums.'
+      ]
+    },
+    worldcharts: {
+      title: '{{t:wc_title}}',
+      promise: 'The real charts from Billboard, Spotify and YouTube, with your own plays on every row: see which hits you know, go back in time, and find the ones you missed.',
+      scenes: {
+        top: { title: 'The page', spots: {
+          title: ['{{t:wc_title}}', 'Real charts from the outside world, next to your own listening.'],
+          menu: ['The charts', 'Three from Billboard, two from Spotify, one from YouTube. Each button shows where it comes from.'],
+          pick: ['The one you’re on', 'It takes that source’s own colours.'],
+          week: ['Which week', 'Billboard charts only: pick any day and you get that day’s chart week.'],
+          prev: ['{{t:d100_prev_week}}', 'One week back.'],
+          next: ['{{t:d100_next_week}}', 'One week on.'],
+          yourweek: ['{{t:wc_your_week}}', 'Opens your own Weekly chart for the same days.'],
+          source: ['Source', 'Where the chart comes from, and its date. The link opens the original.'],
+          share: ['{{t:d100_share}}', 'A picture of the top 10, with your plays on it.'],
+          sum: ['How many you know', 'How many of the chart you’ve played.'],
+          filter: ['{{t:wc_filter_all}} / {{t:wc_filter_known}} / {{t:wc_filter_new}}', 'Show every row, only the ones you know, or only the new ones.'],
+          range: ['{{t:wc_range_all}} / {{t:wc_range_week}}', 'Which of your plays count: all of them, or only the last 7 days.'],
+          cols: ['The columns', 'The source’s own numbers: last week, peak and weeks for Billboard, streams for Spotify, views for YouTube.'],
+          row: ['A row', 'Click a song you know to open its window.'],
+          pos: ['Place', 'Its position on the chart.'],
+          move: ['Move', 'Up or down since the last chart, or a tag for a new entry or a return.'],
+          tag: ['Your plays', 'How often you’ve played it, or {{t:wc_new_to_you}}.'],
+          acts: ['Listen', 'A sample, Spotify or YouTube.']
+        } },
+        past: { title: 'A week in the past', spots: {
+          week: ['The week', 'Every Hot 100 back to 1958, every Billboard 200 back to 1963, the Global 200 back to 2020.'],
+          prev: ['{{t:d100_prev_week}}', 'One week back.'],
+          next: ['{{t:d100_next_week}}', 'One week on.'],
+          latest: ['{{t:wc_latest}}', 'Back to the newest chart.'],
+          yourweek: ['{{t:wc_your_week}}', 'Your own Weekly chart for the days Billboard counted.'],
+          source: ['The date', 'The chart’s own date.'],
+          sum: ['That week', 'How many you played in the days that chart counted.'],
+          range: ['{{t:wc_range_that_week}}', 'On a past week, the second button counts only the days Billboard counted for it.'],
+          row: ['A row', 'Just as it stood that week.']
+        } },
+        known: { title: 'Only the ones you know', spots: {
+          sum: ['How many', 'The same count as above.'],
+          filter: ['The filter', 'Pick {{t:wc_filter_known}} or {{t:wc_filter_new}}.'],
+          on: ['{{t:wc_filter_known}}', 'Only the rows you’ve played.'],
+          row: ['A song you know', 'Click it to open its window, as from {{t:nav_alltime}}.'],
+          tag: ['Your plays', 'Counted with the range you picked.']
+        } },
+        spotify: { title: 'Spotify', spots: {
+          pick: ['{{t:wc_chart_spotify_global_daily}}', 'The most streamed songs in the world, day by day. There is a weekly one too.'],
+          source: ['Source', 'kworb.net, which collects Spotify’s numbers.'],
+          cols: ['The columns', 'Streams, and how many days it has been on the chart.'],
+          row: ['A row', 'Up to 200 a day.'],
+          spotify: ['Spotify', 'Opens that exact song on Spotify.'],
+          sample: ['Sample', 'A short preview, right here.'],
+          newtag: ['{{t:wc_new_to_you}}', 'You haven’t played it yet.']
+        } },
+        youtube: { title: 'YouTube', spots: {
+          pick: ['{{t:wc_chart_youtube_top}}', 'The most viewed music videos of the day.'],
+          cols: ['The columns', 'Views and likes that day.'],
+          art: ['The video', 'Its thumbnail.'],
+          row: ['A video', 'Many are from India, Latin America and K-pop: this is what the world watches.'],
+          yt: ['YouTube', 'Opens the video itself.']
+        } }
+      },
+      howto: {
+        mine: { title: 'See which hits you know', slides: [
+          'This line counts the ones you’ve played.',
+          'Every row says how often, or {{t:wc_new_to_you}}.',
+          'Pick {{t:wc_filter_known}} or {{t:wc_filter_new}}…',
+          '…and click one you know to open it.',
+          'Or count only the last 7 days.'
+        ] },
+        past: { title: 'Go back in time', slides: [
+          'On a Billboard chart, pick any day…',
+          '…or step one week at a time.',
+          '{{t:wc_range_that_week}} counts only the days Billboard counted.',
+          '{{t:wc_your_week}} opens your own chart for the same days.',
+          '{{t:wc_latest}} brings you back.'
+        ] },
+        listen: { title: 'Listen to one', slides: [
+          'Play a short sample.',
+          'Open the song on Spotify.',
+          'Or watch it on YouTube.',
+          'A song you know opens its window.'
+        ] },
+        share: { title: 'Share a chart', slides: [
+          'Pick a chart.',
+          'Pick which plays count.',
+          '{{t:d100_share}}: a picture of the top 10 with your plays on it.'
+        ] }
+      },
+      options: {
+        chart: { title: 'The chart', items: {
+          chart: ['Chart', 'The one you looked at last.'],
+          week: ['Week', 'The newest, or any Billboard week before it.'],
+          filter: ['{{t:wc_filter_all}} / {{t:wc_filter_known}} / {{t:wc_filter_new}}', 'Which rows show.'],
+          range: ['{{t:wc_range_all}} / {{t:wc_range_week}}', 'Which of your plays count. Remembered.']
+        } },
+        tools: { title: 'Along the way', items: {
+          acts: ['Listen', 'Sample, Spotify, YouTube.'],
+          open: ['A song you know', 'Opens its window.'],
+          myweek: ['{{t:wc_your_week}}', 'Your Weekly chart for the same days.'],
+          share: ['{{t:d100_share}}', 'A picture of the top 10.']
+        } }
+      },
+      challenges: {
+        'wc.chart': ['Switch to another chart', 'The buttons at the top.'],
+        'wc.week': ['Look at another week', 'The arrows or the date on a Billboard chart.'],
+        'wc.filter': ['Show only {{t:wc_filter_known}} or {{t:wc_filter_new}}', 'Above the chart.'],
+        'wc.range': ['Switch to {{t:wc_range_week}}', 'Next to the filter.'],
+        'wc.open': ['Open a song you know', 'Click a row with plays on it.'],
+        'wc.listen': ['Play a sample, or open Spotify or YouTube', 'The buttons at the end of a row.'],
+        'wc.myweek': ['Open {{t:wc_your_week}}', 'Next to the week, on a Billboard chart.'],
+        'wc.share': ['{{t:d100_share}}', 'Next to the source.']
+      },
+      quiz: {
+        q1: ['A row says {{t:wc_new_to_you}}. What does it mean?',
+          ['It is new on the chart this week', 'You haven’t played it', 'You haven’t played it in the last 7 days, whatever the range'],
+          'It means you have no plays of it, counted with the range you picked ({{t:wc_range_all}} or {{t:wc_range_week}}). A new entry on the chart has its own tag.'],
+        q2: ['Which charts can you go back in time on?',
+          ['All of them', 'Only Spotify', 'Only the Billboard ones'],
+          'Billboard keeps every past week (the Hot 100 back to 1958). Spotify and YouTube show only the newest one.'],
+        q3: ['On a past week, what does {{t:wc_range_that_week}} count?',
+          ['Your plays in the days Billboard counted for that chart', 'Your plays in the last 7 days', 'All your plays ever'],
+          'Billboard counts a week of plays ending about a week before the chart’s date. {{t:wc_range_that_week}} counts yours over those same days.']
+      },
+      tips: [
+        'On a past Billboard week, {{t:wc_your_week}} opens your own chart for the same days.',
+        'Pick {{t:wc_filter_new}} to find the world’s hits you haven’t heard yet.',
+        'On a past week, {{t:wc_range_that_week}} shows which hits you were playing back then.',
+        '{{t:d100_share}} puts your plays on the picture, too.'
       ]
     },
     ratings: {

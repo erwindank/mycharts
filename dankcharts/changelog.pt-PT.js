@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "A World Charts lesson in the Charts Guide":
+    ["Uma lição de Tops mundiais no Guia",
+     "O Guia tem uma lição nova sobre os Tops mundiais: imagens de cada parte, passo a passo, desafios e um quiz curto."],
   "Billboard Global 200 in World Charts":
     ["Billboard Global 200 nos Tops mundiais",
      "Os Tops mundiais têm agora o Billboard Global 200, com todas as semanas desde 2020, e cada botão de top mostra o logótipo da sua fonte."],
@@ -4731,7 +4734,7 @@ window.DC_CL_HIGHLIGHTS_I18N["pt-PT"] = {
     title: "Tops mundiais",
     intro: "Os tops reais que toda a gente está a ouvir, ao lado dos teus.",
     points: [
-      "Billboard Hot 100 e 200, Spotify Global e os vídeos mais vistos do YouTube.",
+      "Billboard Hot 100, Billboard 200 e Global 200, Spotify Global e os vídeos mais vistos do YouTube.",
       "Cada música mostra quantas vezes a ouviste ou se é nova para ti.",
       "Volta a qualquer semana da Billboard, ouve amostras e partilha o top 10.",
     ],

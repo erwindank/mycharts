@@ -32,7 +32,7 @@
   'use strict';
 
   // Bump when the lesson files or the pictures change (it's their ?v=)
-  const GUIDE_V = '23';
+  const GUIDE_V = '24';
   const STORE = 'dc_guide_progress';
   const LANG_FILES = ['es', 'pt-BR', 'pt-PT'];
 
@@ -209,6 +209,16 @@
     'd1.no1':        { lesson: 'dank100', click: '#dank100View .d100-no1-row, #dank100View .d100-no1-more' },
     'd1.export':     { lesson: 'dank100', click: '#dank100View [onclick*="dcDank100.exportPlaylist"]' },
     'd1.share':      { lesson: 'dank100', click: '#dank100View [onclick*="dcDank100.share"]' },
+    // World Charts (worldcharts.js: inline onclick handlers on dcWorldCharts.*,
+    // an object, so these are noticed by their clicks too)
+    'wc.chart':      { lesson: 'worldcharts', click: '#worldchartsView .wc-pick:not(.active)' },
+    'wc.week':       { lesson: 'worldcharts', click: '#worldchartsView .wc-weeknav .d100-wk-btn', input: '#worldchartsView .wc-wk-date' },
+    'wc.filter':     { lesson: 'worldcharts', click: '#worldchartsView .wc-seg--filter button:not(:first-child)' },
+    'wc.range':      { lesson: 'worldcharts', click: '#worldchartsView .wc-seg--range button:not(:first-child)' },
+    'wc.open':       { lesson: 'worldcharts', click: '#worldchartsView .wc-li--mine .wc-row' },
+    'wc.listen':     { lesson: 'worldcharts', click: '#worldchartsView .wc-acts .ea-sample, #worldchartsView .wc-acts .ea-spotify, #worldchartsView .wc-acts .d100-yt' },
+    'wc.myweek':     { lesson: 'worldcharts', click: '#worldchartsView .wc-yourweek' },
+    'wc.share':      { lesson: 'worldcharts', click: '#worldchartsView .wc-share-btn' },
     // Ratings (app.js rating* / ar* / rp* functions)
     'rt.rate':       { lesson: 'ratings', open: '#ratingModal' },
     'rt.tracks':     { lesson: 'ratings', fn: 'ratingSwitchTab', test: a => a[0] === 'tracks' },
@@ -372,6 +382,14 @@
     'd1.no1':        { nav: 'dank100', ring: '#dank100View .d100-no1' },
     'd1.export':     { nav: 'dank100', ring: '#dank100View [onclick*="dcDank100.exportPlaylist"]' },
     'd1.share':      { nav: 'dank100', ring: '#dank100View [onclick*="dcDank100.share"]' },
+    'wc.chart':      { nav: 'worldcharts', ring: '#worldchartsView .wc-menu' },
+    'wc.week':       { nav: 'worldcharts', ring: '#worldchartsView .wc-weeknav, #worldchartsView .wc-menu' },
+    'wc.filter':     { nav: 'worldcharts', ring: '#worldchartsView .wc-seg--filter' },
+    'wc.range':      { nav: 'worldcharts', ring: '#worldchartsView .wc-seg--range' },
+    'wc.open':       { nav: 'worldcharts', ring: '#worldchartsView .wc-li--mine .wc-row, #worldchartsView .wc-seg--filter' },
+    'wc.listen':     { nav: 'worldcharts', ring: '#worldchartsView .wc-acts' },
+    'wc.myweek':     { nav: 'worldcharts', ring: '#worldchartsView .wc-yourweek, #worldchartsView .wc-menu' },
+    'wc.share':      { nav: 'worldcharts', ring: '#worldchartsView .wc-share-btn' },
     'rt.rate':       { nav: 'ratings', ring: '#ratingsPageBody .ar-next, #ratingsPageBody .ar-list' },
     'rt.tracks':     { nav: 'ratings', ring: '#ratingsPageBody .ar-next, #ratingsPageBody .ar-list' },
     'rt.mode':       { nav: 'ratings', ring: '#ratingsPageBody .ar-tabs' },

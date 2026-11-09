@@ -2397,6 +2397,134 @@ window.GL_TEXT.es = {
         '{{t:d100_title}} tiene tres rankings cada semana: canciones, artistas y álbumes.'
       ]
     },
+    worldcharts: {
+      title: '{{t:wc_title}}',
+      promise: 'Las listas reales de Billboard, Spotify y YouTube, con tus propias reproducciones en cada fila: mira qué éxitos conoces, viaja al pasado y descubre los que te perdiste.',
+      scenes: {
+        top: { title: 'La página', spots: {
+          title: ['{{t:wc_title}}', 'Listas reales del mundo, junto a lo que escuchas tú.'],
+          menu: ['Las listas', 'Tres de Billboard, dos de Spotify y una de YouTube. Cada botón muestra de dónde viene.'],
+          pick: ['La que estás viendo', 'Toma los colores de su fuente.'],
+          week: ['Qué semana', 'Solo en las listas de Billboard: elige cualquier día y verás la lista de esa semana.'],
+          prev: ['{{t:d100_prev_week}}', 'Una semana atrás.'],
+          next: ['{{t:d100_next_week}}', 'Una semana adelante.'],
+          yourweek: ['{{t:wc_your_week}}', 'Abre tu propio ranking semanal de esos mismos días.'],
+          source: ['Fuente', 'De dónde viene la lista y su fecha. El enlace abre el original.'],
+          share: ['{{t:d100_share}}', 'Una imagen del top 10, con tus reproducciones.'],
+          sum: ['Cuántas conoces', 'Cuántas de la lista has escuchado.'],
+          filter: ['{{t:wc_filter_all}} / {{t:wc_filter_known}} / {{t:wc_filter_new}}', 'Muestra todas las filas, solo las que conoces o solo las nuevas.'],
+          range: ['{{t:wc_range_all}} / {{t:wc_range_week}}', 'Qué reproducciones cuentan: todas o solo las de los últimos 7 días.'],
+          cols: ['Las columnas', 'Los números de cada fuente: semana pasada, pico y semanas en Billboard, reproducciones en Spotify, vistas en YouTube.'],
+          row: ['Una fila', 'Pulsa una canción que conoces para abrir su ventana.'],
+          pos: ['Puesto', 'Su posición en la lista.'],
+          move: ['Movimiento', 'Sube o baja desde la lista anterior, o una marca de entrada nueva o regreso.'],
+          tag: ['Tus reproducciones', 'Cuántas veces la escuchaste, o {{t:wc_new_to_you}}.'],
+          acts: ['Escuchar', 'Una muestra, Spotify o YouTube.']
+        } },
+        past: { title: 'Una semana del pasado', spots: {
+          week: ['La semana', 'Todos los Hot 100 desde 1958, todos los Billboard 200 desde 1963 y el Global 200 desde 2020.'],
+          prev: ['{{t:d100_prev_week}}', 'Una semana atrás.'],
+          next: ['{{t:d100_next_week}}', 'Una semana adelante.'],
+          latest: ['{{t:wc_latest}}', 'Vuelve a la lista más reciente.'],
+          yourweek: ['{{t:wc_your_week}}', 'Tu ranking semanal de los días que contó Billboard.'],
+          source: ['La fecha', 'La fecha de la propia lista.'],
+          sum: ['Esa semana', 'Cuántas escuchaste en los días que contó esa lista.'],
+          range: ['{{t:wc_range_that_week}}', 'En una semana pasada, el segundo botón cuenta solo los días que contó Billboard.'],
+          row: ['Una fila', 'Tal como estaba esa semana.']
+        } },
+        known: { title: 'Solo las que conoces', spots: {
+          sum: ['Cuántas', 'La misma cuenta de arriba.'],
+          filter: ['El filtro', 'Elige {{t:wc_filter_known}} o {{t:wc_filter_new}}.'],
+          on: ['{{t:wc_filter_known}}', 'Solo las filas que escuchaste.'],
+          row: ['Una canción que conoces', 'Púlsala para abrir su ventana, como desde {{t:nav_alltime}}.'],
+          tag: ['Tus reproducciones', 'Contadas con el rango que elegiste.']
+        } },
+        spotify: { title: 'Spotify', spots: {
+          pick: ['{{t:wc_chart_spotify_global_daily}}', 'Las canciones más escuchadas del mundo, día a día. También hay una semanal.'],
+          source: ['Fuente', 'kworb.net, que recopila los números de Spotify.'],
+          cols: ['Las columnas', 'Reproducciones y cuántos días lleva en la lista.'],
+          row: ['Una fila', 'Hasta 200 al día.'],
+          spotify: ['Spotify', 'Abre esa misma canción en Spotify.'],
+          sample: ['Muestra', 'Un fragmento corto, aquí mismo.'],
+          newtag: ['{{t:wc_new_to_you}}', 'Todavía no la escuchaste.']
+        } },
+        youtube: { title: 'YouTube', spots: {
+          pick: ['{{t:wc_chart_youtube_top}}', 'Los videos musicales más vistos del día.'],
+          cols: ['Las columnas', 'Vistas y me gusta de ese día.'],
+          art: ['El video', 'Su miniatura.'],
+          row: ['Un video', 'Muchos son de India, Latinoamérica y el K-pop: es lo que ve el mundo.'],
+          yt: ['YouTube', 'Abre el video.']
+        } }
+      },
+      howto: {
+        mine: { title: 'Mira qué éxitos conoces', slides: [
+          'Esta línea cuenta las que escuchaste.',
+          'Cada fila dice cuántas veces, o {{t:wc_new_to_you}}.',
+          'Elige {{t:wc_filter_known}} o {{t:wc_filter_new}}…',
+          '…y pulsa una que conoces para abrirla.',
+          'O cuenta solo los últimos 7 días.'
+        ] },
+        past: { title: 'Viaja al pasado', slides: [
+          'En una lista de Billboard, elige cualquier día…',
+          '…o avanza semana a semana.',
+          '{{t:wc_range_that_week}} cuenta solo los días que contó Billboard.',
+          '{{t:wc_your_week}} abre tu propio ranking de esos días.',
+          '{{t:wc_latest}} te trae de vuelta.'
+        ] },
+        listen: { title: 'Escucha una', slides: [
+          'Pon una muestra corta.',
+          'Abre la canción en Spotify.',
+          'O mírala en YouTube.',
+          'Una canción que conoces abre su ventana.'
+        ] },
+        share: { title: 'Comparte una lista', slides: [
+          'Elige una lista.',
+          'Elige qué reproducciones cuentan.',
+          '{{t:d100_share}}: una imagen del top 10 con tus reproducciones.'
+        ] }
+      },
+      options: {
+        chart: { title: 'La lista', items: {
+          chart: ['Lista', 'La última que miraste.'],
+          week: ['Semana', 'La más reciente, o cualquier semana anterior de Billboard.'],
+          filter: ['{{t:wc_filter_all}} / {{t:wc_filter_known}} / {{t:wc_filter_new}}', 'Qué filas se ven.'],
+          range: ['{{t:wc_range_all}} / {{t:wc_range_week}}', 'Qué reproducciones cuentan. Se recuerda.']
+        } },
+        tools: { title: 'Por el camino', items: {
+          acts: ['Escuchar', 'Muestra, Spotify, YouTube.'],
+          open: ['Una canción que conoces', 'Abre su ventana.'],
+          myweek: ['{{t:wc_your_week}}', 'Tu ranking semanal de esos mismos días.'],
+          share: ['{{t:d100_share}}', 'Una imagen del top 10.']
+        } }
+      },
+      challenges: {
+        'wc.chart': ['Cambia a otra lista', 'Los botones de arriba.'],
+        'wc.week': ['Mira otra semana', 'Las flechas o la fecha en una lista de Billboard.'],
+        'wc.filter': ['Muestra solo {{t:wc_filter_known}} o {{t:wc_filter_new}}', 'Encima de la lista.'],
+        'wc.range': ['Cambia a {{t:wc_range_week}}', 'Junto al filtro.'],
+        'wc.open': ['Abre una canción que conoces', 'Pulsa una fila con reproducciones.'],
+        'wc.listen': ['Pon una muestra, o abre Spotify o YouTube', 'Los botones al final de una fila.'],
+        'wc.myweek': ['Abre {{t:wc_your_week}}', 'Junto a la semana, en una lista de Billboard.'],
+        'wc.share': ['{{t:d100_share}}', 'Junto a la fuente.']
+      },
+      quiz: {
+        q1: ['Una fila dice {{t:wc_new_to_you}}. ¿Qué significa?',
+          ['Es nueva en la lista esta semana', 'No la has escuchado', 'No la escuchaste en los últimos 7 días, sea cual sea el rango'],
+          'Significa que no tienes reproducciones de ella, contadas con el rango que elegiste ({{t:wc_range_all}} o {{t:wc_range_week}}). Una entrada nueva en la lista tiene su propia marca.'],
+        q2: ['¿En qué listas puedes viajar al pasado?',
+          ['En todas', 'Solo en Spotify', 'Solo en las de Billboard'],
+          'Billboard guarda todas sus semanas (el Hot 100 desde 1958). Spotify y YouTube muestran solo la más reciente.'],
+        q3: ['En una semana pasada, ¿qué cuenta {{t:wc_range_that_week}}?',
+          ['Tus reproducciones de los días que Billboard contó para esa lista', 'Tus reproducciones de los últimos 7 días', 'Todas tus reproducciones'],
+          'Billboard cuenta una semana de reproducciones que termina más o menos una semana antes de la fecha de la lista. {{t:wc_range_that_week}} cuenta las tuyas en esos mismos días.']
+      },
+      tips: [
+        'En una semana pasada de Billboard, {{t:wc_your_week}} abre tu propio ranking de esos días.',
+        'Elige {{t:wc_filter_new}} para encontrar los éxitos del mundo que aún no escuchaste.',
+        'En una semana pasada, {{t:wc_range_that_week}} muestra qué éxitos escuchabas entonces.',
+        '{{t:d100_share}} pone tus reproducciones en la imagen.'
+      ]
+    },
     ratings: {
       title: '{{t:nav_ratings}}',
       promise: 'Puntúa álbumes y canciones como un crítico, y mira tus veredictos, tus mejores y peores notas y lo que aún te falta puntuar.',

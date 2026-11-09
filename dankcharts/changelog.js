@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 480;
+const DC_CL_I18N_V = 482;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -98,11 +98,11 @@ const DC_CL_AREAS = {
    by id, as { title, intro, points }. A missing one shows in English.
    ------------------------------------------------------------------------- */
 const DC_CL_HIGHLIGHTS = [
-  { id: "world-charts", d: "2026-11-09", a: "charts", img: "whatsnew/world-charts.webp", go: "worldcharts",
+  { id: "world-charts", d: "2026-11-09", a: "charts", img: "whatsnew/world-charts.webp?v=2", go: "worldcharts",
     title: "World Charts",
     intro: "The real charts everyone else is listening to, right next to your own.",
     points: [
-      "Billboard Hot 100 and 200, Spotify Global and the most viewed YouTube videos.",
+      "Billboard Hot 100, Billboard 200 and Global 200, Spotify Global and the most viewed YouTube videos.",
       "Every song says how often you've played it, or that it's new to you.",
       "Go back to any Billboard week, play samples and share the top 10.",
     ],
@@ -402,6 +402,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-09', t: 'feature', a: 'guide',
+    title: "A World Charts lesson in the Charts Guide",
+    detail: "The Charts Guide has a new lesson on World Charts: pictures of every part, step-by-step how-tos, challenges and a short quiz." },
   { d: '2026-11-09', t: 'feature', a: 'charts',
     title: "Billboard Global 200 in World Charts",
     detail: "World Charts now has the Billboard Global 200, with every week back to 2020, and each chart button shows its source's logo." },

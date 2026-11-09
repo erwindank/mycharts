@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "A World Charts lesson in the Charts Guide":
+    ["Una lección de Listas mundiales en la Guía",
+     "La Guía tiene una lección nueva sobre Listas mundiales: imágenes de cada parte, pasos guiados, retos y un test corto."],
   "Billboard Global 200 in World Charts":
     ["Billboard Global 200 en Listas mundiales",
      "Listas mundiales ahora tiene el Billboard Global 200, con todas las semanas desde 2020, y cada botón de lista muestra el logo de su fuente."],
@@ -4735,7 +4738,7 @@ window.DC_CL_HIGHLIGHTS_I18N["es"] = {
     title: "Listas mundiales",
     intro: "Las listas reales que escucha todo el mundo, junto a las tuyas.",
     points: [
-      "Billboard Hot 100 y 200, Spotify Global y los videos más vistos de YouTube.",
+      "Billboard Hot 100, Billboard 200 y Global 200, Spotify Global y los videos más vistos de YouTube.",
       "Cada canción dice cuántas veces la escuchaste o si es nueva para ti.",
       "Vuelve a cualquier semana de Billboard, escucha muestras y comparte el top 10.",
     ],

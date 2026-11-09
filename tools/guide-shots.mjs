@@ -250,6 +250,30 @@ async function d1View(pg, { type = 'songs', open = false } = {}) {
   if (open) await pg.waitForFunction(() => document.querySelector('#dank100View .is-open .cr-boxes'), null, { timeout: 30000 });
   await wait(pg, 3000);
 }
+// World Charts (live charts from dankcharts.fm: localhost has no Functions),
+// one chart, a week (null = latest) and the "your plays" switches, ready to
+// photograph. The switches are set every time: the range is remembered in
+// localStorage, so one shot's choice would leak into the next.
+async function wcView(pg, { chart = 'hot-100', date = null, filter = 'all', range = 'all' } = {}) {
+  await go(pg, 'worldcharts');
+  await pg.waitForFunction(() => window.dcWorldCharts && document.querySelector('#worldchartsView .wc-menu'), null, { timeout: 30000 });
+  await pg.evaluate(([c, d, f, r]) => {
+    dcWorldCharts.setRange(r); dcWorldCharts.setFilter(f);
+    dcWorldCharts.pick(c);
+    if (d) dcWorldCharts.pickDate(d);
+  }, [chart, date, filter, range]);
+  await pg.waitForFunction(([c, d]) => {
+    const l = document.querySelector('#worldchartsView .wc-list');
+    const on = document.querySelector('#worldchartsView .wc-pick.active');
+    const dt = document.querySelector('#worldchartsView .wc-wk-date');
+    return l && on && on.getAttribute('onclick').includes("'" + c + "'") &&
+      document.querySelectorAll('#worldchartsView .wc-li').length >= 8 &&
+      document.querySelector('#worldchartsView .wc-mine-sum') && (!d || (dt && dt.value && dt.value !== '' && document.querySelector('#worldchartsView .wc-latest')));
+  }, [chart, date], { timeout: 90000 });
+  // the covers load as they come into view
+  await pg.evaluate(() => window.scrollTo(0, 0));
+  await wait(pg, 3500);
+}
 // Ratings: the demo library has no scores, so the 14 most played albums after
 // the first get some (every track a quick score, most of them the six album
 // aspects too), plus one song on the full rubric. Done once per browser; the
@@ -1400,6 +1424,39 @@ const SHOTS = [
       note: '#dank100View .d100-entry-note', preview: '#dank100View .d100-preview', send: '#dank100View .d100-entry-last .d100-actions .dc-btn-main',
       year: '#dank100View .d100-year', yearbtn: '#dank100View .d100-year .dc-btn', auto: '#dank100View .d100-auto-line',
       how: '#dank100View .d100-how' } },
+
+  /* ── Lesson: World Charts (2026-11-09) ──────────────────────────────
+     The live charts (whatever is newest when the pictures are taken). */
+  { id: 'wc-top', lesson: 'worldcharts', phone: true,
+    setup: async pg => { await wcView(pg); },
+    clip: { from: '#worldchartsView .wc-page-header', to: { js: "document.querySelectorAll('#worldchartsView .wc-li')[5]" }, pad: 14 },
+    spots: { title: '#worldchartsView .wc-page-header', menu: '#worldchartsView .wc-menu', pick: '#worldchartsView .wc-pick.active', week: '#worldchartsView .wc-wk-date',
+      prev: '#worldchartsView .wc-weeknav .d100-wk-btn', next: { js: "[...document.querySelectorAll('#worldchartsView .wc-weeknav .d100-wk-btn')].pop()" },
+      yourweek: '#worldchartsView .wc-yourweek', source: '#worldchartsView .wc-source', share: '#worldchartsView .wc-share-btn', sum: '#worldchartsView .wc-mine-sum',
+      filter: '#worldchartsView .wc-seg--filter', range: '#worldchartsView .wc-seg--range', cols: '#worldchartsView .wc-cols', row: '#worldchartsView .wc-row', pos: '#worldchartsView .wc-row .d100-pos',
+      move: { js: "document.querySelectorAll('#worldchartsView .wc-row .d100-move')[1]" }, tag: '#worldchartsView .wc-mine-tag', acts: '#worldchartsView .wc-acts' } },
+  // A past Billboard week, counting only the plays of the days Billboard counted
+  { id: 'wc-past', lesson: 'worldcharts',
+    setup: async pg => { await wcView(pg, { date: '2024-07-13', range: 'week' }); },
+    clip: { from: '#worldchartsView .wc-weekbar', to: { js: "document.querySelectorAll('#worldchartsView .wc-li')[4]" }, pad: 14 },
+    spots: { week: '#worldchartsView .wc-wk-date', prev: '#worldchartsView .wc-weeknav .d100-wk-btn', next: { js: "[...document.querySelectorAll('#worldchartsView .wc-weeknav .d100-wk-btn')].pop()" },
+      latest: '#worldchartsView .wc-latest', yourweek: '#worldchartsView .wc-yourweek', source: '#worldchartsView .wc-source', sum: '#worldchartsView .wc-mine-sum', range: '#worldchartsView .wc-seg--range',
+      row: '#worldchartsView .wc-row' } },
+  // Only the ones you've played
+  { id: 'wc-known', lesson: 'worldcharts',
+    setup: async pg => { await wcView(pg, { filter: 'known' }); },
+    clip: { from: '#worldchartsView .wc-mine', to: { js: "document.querySelectorAll('#worldchartsView .wc-li')[4]" }, pad: 14 },
+    spots: { sum: '#worldchartsView .wc-mine-sum', filter: '#worldchartsView .wc-seg--filter', on: '#worldchartsView .wc-seg--filter button.active', row: '#worldchartsView .wc-li--mine .wc-row',
+      tag: '#worldchartsView .wc-mine-tag--yes' } },
+  { id: 'wc-spotify', lesson: 'worldcharts',
+    setup: async pg => { await wcView(pg, { chart: 'spotify-global-daily' }); },
+    clip: { from: '#worldchartsView .wc-menu', to: { js: "document.querySelectorAll('#worldchartsView .wc-li')[4]" }, pad: 14 },
+    spots: { pick: '#worldchartsView .wc-pick.active', source: '#worldchartsView .wc-source', cols: '#worldchartsView .wc-cols', row: '#worldchartsView .wc-row',
+      spotify: '#worldchartsView .wc-acts .ea-spotify', sample: '#worldchartsView .wc-acts .ea-sample', newtag: '#worldchartsView .wc-mine-tag--new' } },
+  { id: 'wc-youtube', lesson: 'worldcharts',
+    setup: async pg => { await wcView(pg, { chart: 'youtube-top' }); },
+    clip: { from: '#worldchartsView .wc-menu', to: { js: "document.querySelectorAll('#worldchartsView .wc-li')[4]" }, pad: 14 },
+    spots: { pick: '#worldchartsView .wc-pick.active', cols: '#worldchartsView .wc-cols', art: '#worldchartsView .wc-art--video', row: '#worldchartsView .wc-row', yt: '#worldchartsView .wc-acts .d100-yt' } },
 
   /* ── Lesson: Ratings (GUIDE-PLAN.md step 9) ─────────────────────────
      With the scores rtSeed gives the demo library. */
