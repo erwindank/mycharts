@@ -720,3 +720,296 @@ spAddField('aboveAvg', { kind: 'bool', needs: 'ratings', get: s => {
   const v = spRatingOf(s), avg = _spRatingAvg();
   return (v == null || isNaN(avg)) ? null : v > avg;
 } });
+
+/* ===========================================================================
+   STEP 3: SMART PLAYLISTS IN THE PLAYLISTS TAB
+
+   A smart playlist is a normal playlist (_ytPlaylists in app.js, so the
+   player, Play / Shuffle, export and the player's own list all just work)
+   plus a saved rule set here. Whenever the data loads or the list is opened,
+   the rules run again and the playlist's songs are replaced with the result.
+
+   Rules are stored on their own (localStorage 'dc-smart-playlists', and the
+   Firestore doc users/{uid}/data/smartPlaylists for signed-in users), with
+   the same "last change wins, deletions stick" merge the playlists use, so a
+   smart list made on one device shows up on the others.
+
+   Songs can't be added, removed or dragged by hand: the rules decide. app.js
+   asks spIsSmart() in those places and shows spLockedToast() instead.
+   =========================================================================== */
+
+const SP_LS = 'dc-smart-playlists';
+/* The most songs a smart playlist keeps. The songs sync inside the one
+   Firestore playlists doc (1 MB at most), so "every song I've ever played"
+   can't be allowed to fill it and break syncing for every playlist. */
+const SP_MAX_SONGS = 500;
+
+let _spStore = { lists: {}, modified: {}, deleted: {} };
+
+function _spLoad() {
+  try {
+    const v = JSON.parse(localStorage.getItem(SP_LS) || 'null');
+    if (v && v.lists) _spStore = { lists: v.lists, modified: v.modified || {}, deleted: v.deleted || {} };
+  } catch (e) {}
+}
+_spLoad();
+
+// Saves locally, and to the account when signed in
+function _spSave() {
+  const json = JSON.stringify(_spStore);
+  try { localStorage.setItem(SP_LS, json); } catch (e) {}
+  if (typeof dcSaveSmartPlaylists === 'function') dcSaveSmartPlaylists(json);
+}
+
+// A rule set with the song cap applied, for running into a playlist
+function _spCapped(def) {
+  return Object.assign({}, def, { limit: Math.min(SP_MAX_SONGS, def.limit > 0 ? def.limit : SP_MAX_SONGS) });
+}
+
+function spIsSmart(name) { return !!(name && _spStore.lists[name]); }
+function spGet(name) { return _spStore.lists[name] || null; }
+function spNames() { return Object.keys(_spStore.lists); }
+
+// Only the parts of a rule set that mean something are kept
+function _spClean(def) {
+  const out = { match: def.match === 'any' ? 'any' : 'all', rules: def.rules || [] };
+  if (def.sort) out.sort = def.sort;
+  // The size the user picked (none = as many as match, up to SP_MAX_SONGS)
+  if (def.limit > 0) out.limit = Math.min(SP_MAX_SONGS, +def.limit);
+  if (def.perArtist > 0) out.perArtist = +def.perArtist;
+  if (def.ready) out.ready = def.ready;   // which ready-made list it came from (step 4)
+  return out;
+}
+
+/* Makes (or replaces) a smart playlist. Returns false when the name belongs
+   to a normal playlist or to Favorites, which a smart one must never
+   overwrite. */
+function spCreate(name, def) {
+  name = String(name || '').trim();
+  if (!name) return false;
+  if (typeof _ytIsFavName === 'function' && _ytIsFavName(name)) return false;
+  if (_ytPlaylists[name] && !spIsSmart(name)) return false;
+  _spStore.lists[name] = _spClean(def || {});
+  _spStore.modified[name] = Date.now();
+  delete _spStore.deleted[name];
+  _spSave();
+  spRefresh(name, true);
+  return true;
+}
+
+/* Runs one smart playlist's rules and puts the result into its playlist.
+   Only writes (and syncs) when the songs actually changed, so opening a list
+   doesn't touch its "updated" time. Never runs before the data has loaded:
+   an empty library would wipe every smart list. Returns true when changed. */
+function spRefresh(name, save) {
+  const def = spGet(name);
+  if (!def || !allPlays || !allPlays.length) return false;
+  const res = spRun(_spCapped(def));
+  const tracks = res.songs.map(s => ({ title: s.title, artist: s.artist, album: s.album || '' }));
+  const old = _ytPlaylists[name];
+  if (old && JSON.stringify(old) === JSON.stringify(tracks)) return false;
+  _ytPlaylists[name] = tracks;
+  if (typeof _ytTouchPlaylist === 'function') _ytTouchPlaylist(name);
+  if (save !== false && typeof _ytSavePlaylists === 'function') _ytSavePlaylists();
+  return true;
+}
+
+// Every smart playlist, after a data load / refresh / sign-in. One save at the end.
+function spRefreshAll() {
+  let changed = false;
+  for (const name of spNames()) if (spRefresh(name, false)) changed = true;
+  if (!changed) return;
+  if (typeof _ytSavePlaylists === 'function') _ytSavePlaylists();
+  if (typeof currentPeriod !== 'undefined' && currentPeriod === 'playlists' && typeof dcRenderPlaylistsView === 'function') dcRenderPlaylistsView();
+}
+
+// app.js: a playlist was deleted → its rules go too (and stay deleted on other devices)
+function spOnDelete(name) {
+  if (!spIsSmart(name)) return;
+  delete _spStore.lists[name];
+  delete _spStore.modified[name];
+  _spStore.deleted[name] = Date.now();
+  _spSave();
+}
+
+// app.js: a playlist was renamed → its rules follow it
+function spOnRename(oldName, newName) {
+  if (!spIsSmart(oldName) || oldName === newName) return;
+  _spStore.lists[newName] = _spStore.lists[oldName];
+  delete _spStore.lists[oldName];
+  delete _spStore.modified[oldName];
+  _spStore.modified[newName] = Date.now();
+  delete _spStore.deleted[newName];
+  _spStore.deleted[oldName] = Date.now();
+  _spSave();
+}
+
+/* Sign-in: the account's rules merged with this device's. For each name the
+   newest action wins: a create/edit keeps it, a delete drops it. Deletion
+   records are kept for a year so a stale device can't bring a list back. */
+function spMerge(remote) {
+  if (remote && remote.lists) {
+    const rMod = remote.modified || {};
+    const L = Object.assign({}, remote.lists, _spStore.lists);   // this device wins a same-name tie
+    const M = Object.assign({}, rMod);
+    for (const [n, ts] of Object.entries(_spStore.modified)) if (!M[n] || ts > M[n]) M[n] = ts;
+    const D = Object.assign({}, remote.deleted || {});
+    for (const [n, ts] of Object.entries(_spStore.deleted)) if (!D[n] || ts > D[n]) D[n] = ts;
+    for (const n of Object.keys(L)) {
+      // The newer edit's rules win, whichever device has them
+      if (remote.lists[n] && _spStore.lists[n] && (rMod[n] || 0) > (_spStore.modified[n] || 0)) L[n] = remote.lists[n];
+      if ((D[n] || 0) > (M[n] || 0)) {
+        delete L[n];
+        // The songs went with it on the other device; drop them here too
+        if (_ytPlaylists[n] && typeof _ytMarkPlaylistDeleted === 'function') { _ytMarkPlaylistDeleted(n); _ytSavePlaylists(); }
+      }
+    }
+    const YEAR = 365 * SP_DAY_MS;
+    for (const n of Object.keys(D)) if (n in L || Date.now() - D[n] > YEAR) delete D[n];
+    _spStore = { lists: L, modified: M, deleted: D };
+  }
+  _spSave();
+  spRefreshAll();
+}
+
+// ─── THE RULES IN PLAIN WORDS ─────────────────────────────────────────────
+/* One sentence under a smart playlist's title, e.g.
+     "Plays at least 50, last played more than 180 days ago · sorted by plays · up to 50 songs"
+   Built from translation pieces (sp_f_* field names, sp_o_* conditions), so
+   it reads in all four languages. Steps 5 and 10 reuse it (builder preview,
+   Board posts). */
+
+// Percentages get a % sign in the sentence
+const SP_PCT_FIELDS = ['night', 'weekend', 'artistShare', 'topPct'];
+
+// The words for a rule's chart: "weekly" and its unit, "weeks"
+function _spChWords(r) {
+  const ch = _spCh(r);
+  return { ch: t('sp_ch_' + ch), units: t('sp_u_' + ch) };
+}
+
+// A field's name, with its chart or date window filled in
+function spFieldLabel(id, r) {
+  const f = SP_FIELDS[id];
+  if (!f) return id;
+  if (id === 'plays' && r && r.win) {
+    if (r.win.last > 0) return t('sp_f_plays_last', { n: r.win.last });
+    return t('sp_f_plays_range', { a: _spFmtDay(r.win.from), b: _spFmtDay(r.win.to) });
+  }
+  return t('sp_f_' + id, f.chart ? _spChWords(r) : undefined);
+}
+
+function _spFmtDay(ds) {
+  if (!ds) return '…';
+  const d = new Date(ds + 'T12:00:00');
+  return (typeof fmt === 'function') ? fmt(d) : ds;
+}
+
+// Weekday i (0 = Sunday) in the site's language. 1 Nov 2026 is a Sunday.
+function _spWeekday(i) {
+  try { return new Date(2026, 10, 1 + (+i)).toLocaleDateString(currentLang || 'en', { weekday: 'long' }); }
+  catch (e) { return String(i); }
+}
+
+// One enum value in words (release type, certification, weekday)
+function _spEnumWord(id, v) {
+  if (id === 'topDay') return _spWeekday(v);
+  return t('sp_v_' + id + '_' + v);
+}
+
+function _spNum(id, v) {
+  if (id === 'topHour') return String(v).padStart(2, '0') + ':00';
+  const n = (+v).toLocaleString();
+  return SP_PCT_FIELDS.includes(id) ? n + '%' : n;
+}
+
+// One rule in words: "plays at least 50"
+function _spDescRule(r) {
+  const f = SP_FIELDS[r.f];
+  if (!f) return '';
+  if (f.kind === 'bool') {
+    const yes = r.v === true || r.v === 'true' || r.v === 1;
+    return t('sp_b_' + r.f + (yes ? '_yes' : '_no'), f.chart ? _spChWords(r) : undefined);
+  }
+  const label = spFieldLabel(r.f, r);
+  const v = r.v;
+  let cond = '';
+  if (f.kind === 'number') {
+    const pair = Array.isArray(v) ? { a: _spNum(r.f, v[0]), b: _spNum(r.f, v[1]) } : {};
+    if (f.lowFirst) {
+      // Ranks read the chart way round: "in the top 10", "#5 or lower"
+      const top = r.op === 'lt' ? +v - 1 : r.op === 'gt' ? +v + 1 : v;
+      const key = { lte: 'lte', lt: 'lte', gte: 'gte', gt: 'gte', eq: 'eq', between: 'between' }[r.op] || 'eq';
+      cond = t('sp_o_rank_' + key, Object.assign({ v: Array.isArray(v) ? '' : _spNum(r.f, top) }, pair));
+    } else {
+      cond = t('sp_o_n_' + r.op, Object.assign({ v: Array.isArray(v) ? '' : _spNum(r.f, v) }, pair));
+    }
+  } else if (f.kind === 'date') {
+    if (r.op === 'within' || r.op === 'older') cond = t('sp_o_d_' + r.op, { v: (+v).toLocaleString() });
+    else if (r.op === 'between') cond = t('sp_o_d_between', { a: _spFmtDay(v && v[0]), b: _spFmtDay(v && v[1]) });
+    else cond = t('sp_o_d_' + r.op, { v: _spFmtDay(v) });
+  } else if (f.kind === 'text' || f.kind === 'list') {
+    cond = t('sp_o_' + (f.kind === 'list' ? 'l_' : 't_') + r.op, { v: String(v == null ? '' : v) });
+  } else if (f.kind === 'enum') {
+    const vals = (Array.isArray(v) ? v : [v]).map(x => _spEnumWord(r.f, x)).join(t('sp_d_or'));
+    cond = t('sp_o_e_' + r.op, { v: vals });
+  }
+  return t('sp_d_rule', { f: label, o: cond });
+}
+
+// A group in words; nested groups of 2+ rules go in brackets
+function _spDescGroup(g, nested) {
+  const parts = (g.rules || []).map(r => r.rules ? _spDescGroup(r, true) : _spDescRule(r)).filter(Boolean);
+  if (!parts.length) return '';
+  const s = parts.join(g.match === 'any' ? t('sp_d_or') : t('sp_d_and'));
+  return nested && parts.length > 1 ? '(' + s + ')' : s;
+}
+
+function spDescribe(def) {
+  if (!def) return '';
+  let s = _spDescGroup(def, false) || t('sp_d_all_songs');
+  // Capital first letter, even when the sentence opens with a bracket
+  s = s.replace(/^(\(?)(.)/, (m, br, c) => br + c.toUpperCase());
+  const tail = [];
+  const sort = def.sort || { f: 'plays' };
+  if (sort.f === 'random') tail.push(t('sp_d_sort_random'));
+  else if (SP_FIELDS[sort.f]) {
+    // "reversed" only when it runs against the field's natural best-first order
+    const lowFirst = !!SP_FIELDS[sort.f].lowFirst;
+    const flipped = !!sort.dir && ((sort.dir === 'asc') !== lowFirst);
+    tail.push(t(flipped ? 'sp_d_sort_rev' : 'sp_d_sort', { f: spFieldLabel(sort.f, sort) }));
+  }
+  if (def.limit > 0) tail.push(t('sp_d_limit', { n: (+def.limit).toLocaleString() }));
+  if (def.perArtist > 0) tail.push(t('sp_d_per_artist', { n: def.perArtist }));
+  return [s].concat(tail).join(' · ');
+}
+
+// ─── PIECES app.js PUTS ON THE PAGE ───────────────────────────────────────
+
+// The label on a library card's cover
+function spCardTagHtml() {
+  return `<span class="plx-smart-tag"><span aria-hidden="true">✨</span>${esc(t('sp_tag'))}</span>`;
+}
+
+// The small line above an open smart playlist's name
+function spKickerHtml() {
+  return `<span class="plx-kicker plx-kicker-smart"><span aria-hidden="true">✨ </span>${esc(t('sp_tag'))}</span>`;
+}
+
+// Under the name: the rules in words, plus what was skipped or why it's empty
+function spRulesLineHtml(name) {
+  const def = spGet(name);
+  if (!def) return '';
+  let html = `<p class="plx-smart-rules">${esc(spDescribe(def))}</p>`;
+  const res = (allPlays && allPlays.length) ? spRun(_spCapped(def)) : null;
+  if (res && res.skipped.length) {
+    html += `<p class="plx-smart-note">${esc(res.skipped.map(n => t('sp_skip_' + n)).join(' '))}</p>`;
+  }
+  if (res && !res.songs.length) html += `<p class="plx-smart-note">${esc(t('sp_empty'))}</p>`;
+  return html;
+}
+
+// Shown when someone tries to add, remove or drag songs in a smart playlist
+function spLockedToast() {
+  if (typeof dcPlToast === 'function') dcPlToast(t('sp_locked'));
+}

@@ -6193,6 +6193,8 @@ function refreshAfterPoll() {
   refreshNowPlayingStats();
   // Fresh plays can finish off a period the cached data couldn't (autoplaylists.js)
   if (typeof apRun === 'function') apRun();
+  // Smart playlists re-run on the new data (smartplaylists.js)
+  if (typeof spRefreshAll === 'function') spRefreshAll();
   // Notifications for a finished month's Soundtrack, new certifications and
   // Board replies (notifications.js)
   if (typeof ntWatch === 'function') ntWatch();
@@ -7629,6 +7631,8 @@ function finalizeLoad() {
   // Automatic chart playlists: make the ones for periods that finished since
   // the last run (autoplaylists.js decides what's due)
   if (typeof apRun === 'function') apRun();
+  // Smart playlists re-run on the new data (smartplaylists.js)
+  if (typeof spRefreshAll === 'function') spRefreshAll();
   // Notifications for a finished month's Soundtrack, new certifications and
   // Board replies (notifications.js)
   if (typeof ntWatch === 'function') ntWatch();
@@ -37920,6 +37924,8 @@ function _ytMarkPlaylistDeleted(name) {
   delete _ytPlaylists[name];
   delete _ytPlaylistModified[name];
   _ytDeletedPlaylists[name] = Date.now();
+  // A smart playlist's rules go with it (smartplaylists.js)
+  if (typeof spOnDelete === 'function') spOnDelete(name);
 }
 
 function _ytSavePlaylists() {
@@ -38028,6 +38034,8 @@ function _ytRenderPlaylists() {
 function _ytSaveCurrentQueue(name) {
   if (!name) return;
   if (_ytIsFavName(name)) { _ytFavLockedToast(true); return; }
+  // A smart playlist fills itself from its rules, so it can't be overwritten
+  if (typeof spIsSmart === 'function' && spIsSmart(name)) { spLockedToast(); return; }
   const tracks = [];
   if (_ytCurrentTrack) tracks.push({ title: _ytCurrentTrack.title, artist: _ytCurrentTrack.artist, album: _ytCurrentTrack.album });
   _ytQueue.forEach(t => tracks.push({ title: t.title, artist: t.artist, album: t.album }));
@@ -38141,7 +38149,8 @@ function dcClosePlaylistPicker() {
 function _dcPickRenderList() {
   const body = document.getElementById('dcPlPickBody');
   if (!body) return;
-  const names = Object.keys(_ytPlaylists);
+  // Smart playlists fill themselves, so songs can't be added to them by hand
+  const names = Object.keys(_ytPlaylists).filter(n => !(typeof spIsSmart === 'function' && spIsSmart(n)));
   const staged = new Set(_dcPickTracks.map(_dcPickKey));
 
   // New playlist / copy as text side by side, then one row per playlist
@@ -38524,6 +38533,8 @@ function _dcPlLibraryHtml() {
     html += `<div class="plx-card" role="button" tabindex="0" data-pl-name="${esc(name)}" data-pl-artists="${esc(artists.join(' ').toLowerCase())}" ` +
       `onclick="dcPlToggleExpand(${nameJson})" onkeydown="if(event.target===this&&(event.key==='Enter'||event.key===' ')){event.preventDefault();dcPlToggleExpand(${nameJson})}">` +
       `<div class="plx-cover">` + dcPlCollageHtml(tracks) +
+      // Smart playlists carry their label on the cover (smartplaylists.js)
+      (typeof spIsSmart === 'function' && spIsSmart(name) ? spCardTagHtml() : '') +
       `<button type="button" class="plx-cover-play" onclick="event.stopPropagation();dcPlPlayFromStart(${nameJson})" title="${esc(t('pl_view_play'))}" aria-label="${esc(t('pl_view_play'))}">${_DC_PL_SVG.play}</button>` +
       `</div>` +
       `<div class="plx-card-name">${esc(name)}</div>` +
@@ -38548,6 +38559,9 @@ function _dcPlLibraryHtml() {
 function _dcPlDetailHtml(name) {
   const tracks = _ytPlaylists[name];
   const nameJson = esc(JSON.stringify(name));
+  // Smart playlists: their own kicker + the rules in plain words, and no
+  // drag / remove on the songs (smartplaylists.js fills itself from the rules)
+  const smart = typeof spIsSmart === 'function' && spIsSmart(name);
   const artists = _dcPlTopArtists(tracks);
   const when = _dcPlAgo(_ytPlaylistModified[name]);
   const top = artists.slice(0, 3).join(', ');
@@ -38560,9 +38574,10 @@ function _dcPlDetailHtml(name) {
     dcPlArtHtml(tracks[0] || {}, 'plx-hero-bg') +
     `<div class="plx-hero-cover">${dcPlCollageHtml(tracks)}</div>` +
     `<div class="plx-hero-info">` +
-    `<span class="plx-kicker">${esc(t('pl_x_kicker'))}</span>` +
+    (smart ? spKickerHtml() : `<span class="plx-kicker">${esc(t('pl_x_kicker'))}</span>`) +
     // .dc-pl-name: dcPlStartRename swaps it for a text box
     `<h2 class="plx-hero-name"><span class="dc-pl-name">${esc(name)}</span></h2>` +
+    (smart ? spRulesLineHtml(name) : '') +
     (top ? `<p class="plx-hero-artists">${esc(top)}${moreArtists > 0 ? ' ' + esc(t('pl_x_more_artists', { n: moreArtists })) : ''}</p>` : '') +
     `<p class="plx-hero-meta">${esc(tCount('songs', tracks.length))} · ${esc(tCount('artists', artists.length))}${when ? ' · ' + esc(t('pl_x_updated', { when })) : ''}</p>` +
     `<div class="plx-hero-actions">` +
@@ -38584,13 +38599,15 @@ function _dcPlDetailHtml(name) {
     // is songKey()'s title|||artist form.
     const tKey = String(tr.title || '').toLowerCase().trim() + '|||' + String(tr.artist || '').toLowerCase().trim();
     const ytQ = encodeURIComponent((tr.title || '') + ' ' + (tr.artist || ''));
-    html += `<div class="dc-pl-track plx-track" role="listitem" draggable="true" ` +
+    html += `<div class="dc-pl-track plx-track${smart ? ' plx-track-smart' : ''}" role="listitem"` +
+      (smart ? '' :
+      ` draggable="true" ` +
       `ondragstart="event.stopPropagation();dcPlDragStart(event,${nameJson},${idx})" ` +
       `ondragover="event.preventDefault();event.currentTarget.classList.add('dc-pl-drag-over')" ` +
       `ondragleave="event.currentTarget.classList.remove('dc-pl-drag-over')" ` +
-      `ondrop="dcPlDrop(event,${nameJson},${idx})"` +
+      `ondrop="dcPlDrop(event,${nameJson},${idx})"`) +
       _eaAttrs('songs', { title: tr.title, artist: tr.artist, album: tr.album || '', key: tKey }) + `>` +
-      `<span class="plx-num"><span class="plx-num-n">${idx + 1}</span><span class="dc-pl-drag-handle" title="${esc(t('pl_view_drag'))}">${_DC_PL_SVG.grip}</span></span>` +
+      `<span class="plx-num"><span class="plx-num-n">${idx + 1}</span>${smart ? '' : `<span class="dc-pl-drag-handle" title="${esc(t('pl_view_drag'))}">${_DC_PL_SVG.grip}</span>`}</span>` +
       dcPlArtHtml(tr) +
       `<div class="dc-pl-track-info">` +
       `<span class="dc-pl-track-title">${esc(tr.title)}</span>` +
@@ -38605,7 +38622,7 @@ function _dcPlDetailHtml(name) {
       _eaSpotifyBtn('songs', tr.title || '', tr.artist || '').replace('class="ea-spotify"', 'class="ea-spotify dc-pl-act dc-pl-act-sp"') +
       `<a class="dc-pl-act dc-pl-act-yt" href="https://www.youtube.com/results?search_query=${ytQ}" target="_blank" rel="noopener" draggable="false" title="${esc(t('awx_yt'))}" aria-label="${esc(t('awx_yt'))}" onclick="event.stopPropagation()">${_ST_AM_YT_SVG}</a>` +
       `<button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon plx-tr-btn" onclick="dcPlPlayFromTrack(${nameJson},${idx})" title="${esc(t('pl_view_play_from'))}" aria-label="${esc(t('pl_view_play_from'))}">${_DC_PL_SVG.queue}</button>` +
-      `<button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon dc-btn-danger plx-tr-btn" onclick="dcPlRemoveTrack(${nameJson},${idx})" title="${esc(t('pl_view_remove'))}" aria-label="${esc(t('pl_view_remove'))}">✕</button>` +
+      (smart ? '' : `<button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon dc-btn-danger plx-tr-btn" onclick="dcPlRemoveTrack(${nameJson},${idx})" title="${esc(t('pl_view_remove'))}" aria-label="${esc(t('pl_view_remove'))}">✕</button>`) +
       `</div>` +
       `</div>`; // end track
   });
@@ -38732,6 +38749,8 @@ function dcPlExport(name, fmt) {
 // library). Either way the page starts at the top of the view.
 function dcPlToggleExpand(name) {
   _dcPlExpandedName = _dcPlExpandedName === name ? null : name;
+  // A smart playlist is always up to date when it's opened (smartplaylists.js)
+  if (_dcPlExpandedName && typeof spIsSmart === 'function' && spIsSmart(_dcPlExpandedName)) spRefresh(_dcPlExpandedName);
   dcRenderPlaylistsView();
   const v = document.getElementById('playlistsView');
   if (v && v.getBoundingClientRect().top < 0) v.scrollIntoView({ block: 'start' });
@@ -38830,6 +38849,9 @@ function _dcPlDoRename(oldName, newName) {
     else if (k !== newName) rebuilt[k]   = _ytPlaylists[k];       // skip old target (overwrite)
   });
   _ytPlaylists = rebuilt;
+  // A smart playlist's rules move to the new name first, so marking the old
+  // name deleted below doesn't take them with it (smartplaylists.js)
+  if (typeof spOnRename === 'function') spOnRename(oldName, newName);
   _ytMarkPlaylistDeleted(oldName);
   _ytTouchPlaylist(newName);
   if (_dcPlExpandedName === oldName) _dcPlExpandedName = newName;
@@ -38861,6 +38883,7 @@ function _dcPlDoDelete(name) {
 function dcPlRemoveTrack(name, idx) {
   const pl = _ytPlaylists[name];
   if (!pl) return;
+  if (typeof spIsSmart === 'function' && spIsSmart(name)) { spLockedToast(); return; }
   pl.splice(idx, 1);
   if (pl.length === 0) {
     _ytMarkPlaylistDeleted(name);
@@ -38885,6 +38908,7 @@ function dcPlDrop(event, name, toIdx) {
   if (_dcPlDragSrc === null || _dcPlDragSrc === toIdx) { _dcPlDragSrc = null; return; }
   const pl = _ytPlaylists[name];
   if (!pl) return;
+  if (typeof spIsSmart === 'function' && spIsSmart(name)) { _dcPlDragSrc = null; spLockedToast(); return; }
   const [moved] = pl.splice(_dcPlDragSrc, 1);
   pl.splice(toIdx, 0, moved);
   _dcPlDragSrc = null;

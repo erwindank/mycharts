@@ -27,13 +27,13 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=956">
+  <link rel="stylesheet" href="style.css?v=957">
   <!-- The Charts Guide's lessons (guide.js, GUIDE-PLAN.md) -->
   <link rel="stylesheet" href="guide.css?v=5">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=350"></script>
+  <script defer src="translations.js?v=351"></script>
   <!-- Only the visitor's own language is downloaded (translations.js holds
        English). This writes a defer tag for the saved language right here, so
        it runs straight after translations.js and before app.js, and the page
@@ -41,7 +41,7 @@
        whenever translations.es / pt-BR / pt-PT .js change (setup-guide.html
        has the same line). -->
   <script>
-    window.DC_I18N_V = 41;
+    window.DC_I18N_V = 42;
     (function () {
       try {
         var l = localStorage.getItem('dankcharts-lang');
@@ -58,7 +58,7 @@
   <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-  <script defer src="firebase.js?v=27"></script>
+  <script defer src="firebase.js?v=28"></script>
 </head>
 
 <body>
@@ -4438,7 +4438,7 @@
   <!-- Automatic chart playlists: a finished period's chart → a playlist (SCHEDULED-PLAYLISTS-PLAN.md); reads app.js + daily.js -->
   <script defer src="autoplaylists.js?v=5"></script>
   <!-- Smart playlists: playlists built from saved rules (SMART-PLAYLISTS-PLAN.md); reads app.js -->
-  <script defer src="smartplaylists.js?v=3"></script>
+  <script defer src="smartplaylists.js?v=4"></script>
   <!-- Notifications under the profile picture (any feature calls dcNotify); reads app.js + firebase.js -->
   <script defer src="notifications.js?v=9"></script>
   <!-- The Stats page's tabs, Overview, Story, Games and Compare (phase 15); reads app.js globals -->

@@ -350,6 +350,39 @@ async function dcLoadPlaylistsFromFirestore() {
   }
 }
 
+/* ── Smart playlists (smartplaylists.js) ──────────────────────────────────
+   One document holding the rules of every smart playlist, as a JSON string
+   (like the playlists doc): { lists: { name: rules }, modified: { name: ms },
+   deleted: { name: ms } }. The songs themselves live in the normal playlists
+   doc, so the player, export and every other playlist feature see them.
+   Covered by the existing users/{uid}/data/{doc} rule. */
+function _smartPlRef(uid) {
+  return _db.collection('users').doc(uid).collection('data').doc('smartPlaylists');
+}
+
+async function dcSaveSmartPlaylists(json) {
+  if (!_currentUser) return;
+  await _ensureDb();
+  try {
+    await _smartPlRef(_currentUser.uid).set({ data: json });
+  } catch (err) {
+    console.warn('[dankcharts] Smart playlists save error:', err);
+  }
+}
+
+async function dcLoadSmartPlaylists() {
+  if (!_currentUser) return null;
+  await _ensureDb();
+  try {
+    const snap = await _smartPlRef(_currentUser.uid).get();
+    if (!snap.exists) return null;
+    return JSON.parse(snap.data().data || 'null');
+  } catch (err) {
+    console.warn('[dankcharts] Smart playlists load error:', err);
+    return null;
+  }
+}
+
 /* ── Automatic chart playlists (autoplaylists.js) ─────────────────────────
    One document: { day|week|month|year: { on, size, lastDay } }. lastDay is
    the last calendar day ('YYYY-MM-DD') of the newest period a playlist was
@@ -898,6 +931,8 @@ window.dcSaveImgChoices            = dcSaveImgChoices;
 window.dcLoadImgChoices            = dcLoadImgChoices;
 window.dcSavePlaylistsToFirestore  = dcSavePlaylistsToFirestore;
 window.dcLoadPlaylistsFromFirestore = dcLoadPlaylistsFromFirestore;
+window.dcSaveSmartPlaylists       = dcSaveSmartPlaylists;
+window.dcLoadSmartPlaylists       = dcLoadSmartPlaylists;
 window.dcLoadAutoPlaylists         = dcLoadAutoPlaylists;
 window.dcSaveAutoPlaylist          = dcSaveAutoPlaylist;
 window.dcClaimAutoPlaylist         = dcClaimAutoPlaylist;
@@ -929,6 +964,10 @@ _auth.onAuthStateChanged(async (user) => {
   // Sync playlists from Firestore and merge with any locally-saved playlists
   const remotePlaylistData = await dcLoadPlaylistsFromFirestore();
   if (remotePlaylistData && typeof _ytMergePlaylists === 'function') _ytMergePlaylists(remotePlaylistData);
+  // Smart playlists' rules, merged the same way; then every smart list is
+  // re-run, so one made on another device fills in here too
+  const remoteSmart = await dcLoadSmartPlaylists();
+  if (typeof spMerge === 'function') spMerge(remoteSmart);
   // Automatic chart playlists: the data may have loaded before sign-in
   // finished, in which case the run after the load found nobody signed in.
   // After the playlist merge, so a new playlist lands on the merged list.

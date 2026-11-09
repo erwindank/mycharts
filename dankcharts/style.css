@@ -47340,6 +47340,47 @@ html.lsx-open { overflow: hidden; }
   .plx-track:hover .plx-num-n { opacity: 1; }
 }
 
+/* ── Smart playlists (smartplaylists.js) ──
+   The label on a library card's cover, the kicker and the rules sentence on
+   an open smart playlist. Its songs can't be dragged, so the number stays put. */
+.plx-smart-tag {
+  position: absolute;
+  top: var(--sp-2);
+  left: var(--sp-2);
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: calc(100% - var(--sp-4));
+  padding: 3px 8px 3px 6px;
+  border-radius: var(--r-sm);
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+  color: var(--text);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(6px);
+  pointer-events: none;
+}
+.plx-smart-rules {
+  margin: 0 0 var(--sp-2);
+  max-width: 62ch;
+  font-size: var(--fs-sm);
+  line-height: 1.45;
+  color: var(--text);
+}
+.plx-smart-note {
+  margin: 0 0 var(--sp-2);
+  max-width: 62ch;
+  font-size: var(--fs-xs);
+  color: var(--text3);
+}
+.plx-track-smart:hover .plx-num-n { opacity: 1; }
+
 @media (max-width: 760px) {
   .dc-pl-track.plx-track { grid-template-columns: 26px 42px minmax(0, 1fr) auto; }
   .plx-track-album { display: none; }

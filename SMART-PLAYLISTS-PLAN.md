@@ -176,6 +176,12 @@ Progress: step 1 done 2026-11-08 (7debb69). Step 2 done 2026-11-08. Chart
 facts read the site's own chart runs, so first use of a chart rule on a very
 big library (250k plays) takes about 1 second to build that chart's history,
 the same time the Charts tab needs for it. Rules run in a few ms after that.
+Step 3 done 2026-11-08. A smart playlist is a normal playlist (so player,
+export, Play/Shuffle all work) plus rules in its own store/Firestore doc
+(smartPlaylists). Songs are re-run on data load, sign-in and when opened, and
+only written when they change. Smart lists keep at most 500 songs (they sync
+inside the one playlists doc, 1 MB max). Songs can't be added/removed/dragged
+by hand; the add-to-playlist picker leaves smart lists out.
 
 1. **Engine: song facts + rules.** smartplaylists.js with `spSongFacts()`
    (basics, plays, first/last played, ratings, genres, certs) and
