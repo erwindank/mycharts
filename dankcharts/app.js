@@ -771,7 +771,7 @@ function dcApplyAllSettings() {
     const savedSep = JSON.parse(localStorage.getItem(RELEASE_SEP_KEY) || 'null');
     for (const k of SEPARABLE_TYPES) {
       const next = (savedSep && savedSep[k] === 'apart') ? 'apart' : 'with';
-      if (releaseSeparation[k] !== next) { releaseSeparation[k] = next; _releaseEpoch++; }
+      if (releaseSeparation[k] !== next) { releaseSeparation[k] = next; _releaseEpoch++; _dcCertTlReset(); }
     }
   } catch (e) {}
   try {
@@ -785,7 +785,7 @@ function dcApplyAllSettings() {
   try {
     const savedRu = localStorage.getItem(SINGLE_ROLLUP_KEY);
     const nextRu = SINGLE_ROLLUP_LEVELS.includes(savedRu) ? savedRu : 'off';
-    if (singleRollup !== nextRu) { singleRollup = nextRu; _rollupCache = null; _releaseEpoch++; }
+    if (singleRollup !== nextRu) { singleRollup = nextRu; _rollupCache = null; _releaseEpoch++; _dcCertTlReset(); }
   } catch (e) {}
   // tmToggles is a const object — mutate in place so the TM section reflects the loaded state
   const savedTm = localStorage.getItem('dc_tm_toggles');
@@ -1104,7 +1104,7 @@ let _releaseEpoch = 0;
 window.dcResetReleaseTypesCache = () => {
   const splitsBefore = _rsSig(_rtMap());
   _releaseTypeMap = null;
-  _releaseEpoch++;
+  _releaseEpoch++; _dcCertTlReset();
   /* A "Single, then album" release set up on another device moves plays from
      one release to another, which only a re-stamp does (see _rsApply). Marks
      of any other kind keep the stamps as they are. */
@@ -1166,7 +1166,7 @@ function _saveReleaseTypes(map) {
   const splitsBefore = _rsSig(_rtMap());
   localStorage.setItem(RELEASE_TYPES_KEY, json);
   _releaseTypeMap = map;
-  _releaseEpoch++;
+  _releaseEpoch++; _dcCertTlReset();
   // Only a split moves plays between releases — see _rsApply()
   if (_rsSig(map) !== splitsBefore) _rsRestamp();
   if (typeof dcInvalidateRecords === 'function') dcInvalidateRecords();
@@ -1490,7 +1490,7 @@ function setReleaseSeparation(type, mode) {
   /* Separating a type re-ranks the albums chart and every period behind it, so
      both the chart-run caches and Records have to go. Play stamps are still
      untouched: this moves nothing about how a play is keyed. */
-  _releaseEpoch++;
+  _releaseEpoch++; _dcCertTlReset();
   if (typeof dcInvalidateRecords === 'function') dcInvalidateRecords();
   // A filter segment that no longer exists cannot stay selected.
   if (albumsChartFilter !== 'all' && albumsChartFilter !== 'album' && !isTypeSeparated(albumsChartFilter)) {
@@ -1738,7 +1738,7 @@ function setSingleRollup(level) {
   // Album totals move, so the chart and Records caches have to retire. Play
   // stamps do not: this changes what a play is counted toward, never how it
   // is keyed.
-  _releaseEpoch++;
+  _releaseEpoch++; _dcCertTlReset();
   if (typeof dcInvalidateRecords === 'function') dcInvalidateRecords();
 }
 
@@ -8787,6 +8787,9 @@ function buildRecords() {
       const akKind = certKindFor(p.album, aa);
       certTouch(certAlbumItems, ak, p, 'album', CERT[akKind], {
         title: p.album, artist: aa, artists: [aa], album: '', certKind: akKind,
+        // 'single' / 'ep' while that type is Apart: its own wording, filter and
+        // leaderboard column (certReleaseLabelType)
+        rtype: certReleaseLabelType(p.album, aa),
         // A compilation collects the singers who actually appear on it. The
         // plaque still hangs under Various Artists, but the ledger uses this
         // to list the album under each of them.
@@ -8815,6 +8818,7 @@ function buildRecords() {
           const pKind = certKindFor(pAlbum, pArtist);
           certTouch(certAlbumItems, par, p, 'album', CERT[pKind], {
             title: pAlbum, artist: pArtist, artists: [pArtist], album: '', certKind: pKind,
+            rtype: certReleaseLabelType(pAlbum, pArtist),
             // The parent can itself be a compilation — mark it as one so
             // later direct plays find a contributor set to add to.
             comp: pArtist === VARIOUS_ARTISTS,
@@ -8831,7 +8835,10 @@ function buildRecords() {
      The item lists ride along: they are what the expandable ledger reads. */
   const artistCertCounts = {};
   const certBucket = function (a) {
-    return artistCertCounts[a] || (artistCertCounts[a] = { sg: 0, sp: 0, sd: 0, ag: 0, ap: 0, ad: 0, songs: [], albums: [] });
+    // Singles (ng/np/nd) and EPs (eg/ep/ed) are counted apart from albums
+    // while that type is Apart; otherwise they stay 0 and the album tally
+    // holds them, as before.
+    return artistCertCounts[a] || (artistCertCounts[a] = { sg: 0, sp: 0, sd: 0, ag: 0, ap: 0, ad: 0, ng: 0, np: 0, nd: 0, eg: 0, ep: 0, ed: 0, songs: [], albums: [] });
   };
   for (const it of Object.values(certSongItems)) {
     const tier = it.plays >= CERT.song.diamond ? 'sd' : it.plays >= CERT.song.plat ? 'sp' : it.plays >= CERT.song.gold ? 'sg' : null;
@@ -8841,7 +8848,9 @@ function buildRecords() {
   for (const it of Object.values(certAlbumItems)) {
     // The item's own ladder — a separated single is not judged as an album.
     const _cfg = CERT[it.certKind] || CERT.album;
-    const tier = it.plays >= _cfg.diamond ? 'ad' : it.plays >= _cfg.plat ? 'ap' : it.plays >= _cfg.gold ? 'ag' : null;
+    // The tally letter: a = album, n = single, e = EP (single / EP only while Apart)
+    const pre = it.rtype === 'single' ? 'n' : it.rtype === 'ep' ? 'e' : 'a';
+    const tier = it.plays >= _cfg.diamond ? pre + 'd' : it.plays >= _cfg.plat ? pre + 'p' : it.plays >= _cfg.gold ? pre + 'g' : null;
     if (!tier) continue;
     if (it.comp) {
       /* A compilation's certification belongs to the record, not to the singers
@@ -10530,8 +10539,10 @@ function buildRecords() {
     const c = e[1];
     return {
       art: e[0], sg: c.sg, sp: c.sp, sd: c.sd, ag: c.ag, ap: c.ap, ad: c.ad,
+      ng: c.ng, np: c.np, nd: c.nd, eg: c.eg, ep: c.ep, ed: c.ed,
       songs: c.songs, albums: c.albums,
       score: c.sd * 4 + c.sp * 2 + c.sg + c.ad * 4 + c.ap * 2 + c.ag
+        + c.nd * 4 + c.np * 2 + c.ng + c.ed * 4 + c.ep * 2 + c.eg
     };
   }).filter(function (e) { return e.score > 0; }).sort(function (a, b) { return b.score - a.score; });
   /* Each row opens onto that artist's whole certification ledger. The rows are
@@ -10541,7 +10552,8 @@ function buildRecords() {
   /* The tallies ride along for the plaque wall over the top three
      (recxCertWallFor in records-look.js), which reads them by row index. */
   _certLedgers = certW.map(function (e) {
-    return { artist: e.art, songs: e.songs, albums: e.albums, sd: e.sd, sp: e.sp, sg: e.sg, ad: e.ad, ap: e.ap, ag: e.ag };
+    return { artist: e.art, songs: e.songs, albums: e.albums, sd: e.sd, sp: e.sp, sg: e.sg, ad: e.ad, ap: e.ap, ag: e.ag,
+      nd: e.nd, np: e.np, ng: e.ng, ed: e.ed, ep: e.ep, eg: e.eg };
   });
   let ch = '<div class="rec-section"><div class="rec-section-title">' + t('rec_artists_with_certs') + '</div>';
   ch += '<div class="rec-section-sub">' + t('rec_certs_thresholds', { sg: CERT.song.gold, sp: CERT.song.plat, sd: CERT.song.diamond, ag: CERT.album.gold, ap: CERT.album.plat, ad: CERT.album.diamond })
@@ -10559,8 +10571,10 @@ function buildRecords() {
     const certTblId = 'rec-certs-tbl';
     // Same glyph family as every other expandable table in Records: ▶▶ closed,
     // ▼▼ open.
-    ch += recTable(['#', t('rec_th_artist'), t('rec_th_song_cert'), t('rec_th_album_cert'),
-        '<button class="rec-expand-all-btn" onclick="event.stopPropagation();toggleAllCertLedgers(\'' + certTblId + '\',this)" title="' + esc(t('rec_expand_all')) + '">▶▶</button>'],
+    // A column each for singles and EPs while that type is Apart
+    const certSepCols = separatedTypes().map(function (ty) { return { pre: ty === 'ep' ? 'e' : 'n', label: t('rec_th_' + ty + '_cert') }; });
+    ch += recTable(['#', t('rec_th_artist'), t('rec_th_song_cert'), t('rec_th_album_cert')].concat(certSepCols.map(function (c) { return c.label; })).concat([
+        '<button class="rec-expand-all-btn" onclick="event.stopPropagation();toggleAllCertLedgers(\'' + certTblId + '\',this)" title="' + esc(t('rec_expand_all')) + '">▶▶</button>']),
       certW.map(function (e, i) {
         // Each tally is its own chip (.cert-tl in style.css); the text inside
         // is unchanged ("4× 💎 26× 💿"), so sorting and search read it as before.
@@ -10577,6 +10591,10 @@ function buildRecords() {
           + '<td><div class="rec-name cert-lb-name"><div class="thumb-wrap"><div id="rec-cert-img-' + i + '" class="app-art-circle cert-lb-art"><div class="thumb-initials">' + esc(initials(e.art)) + '</div></div></div>'
           + '<a href="javascript:void(0)" class="rec-artist-link" onclick="event.stopPropagation();openArtistModal(' + esc(JSON.stringify(e.art)) + ')">' + esc(e.art) + '</a></div></td>'
           + '<td class="rec-meta rec-meta--nowrap">' + sc2 + '</td><td class="rec-meta rec-meta--nowrap">' + ac2 + '</td>'
+          + certSepCols.map(function (c) {
+              const x = [tl(e[c.pre + 'd'], '💎', 'd'), tl(e[c.pre + 'p'], '💿', 'p'), tl(e[c.pre + 'g'], '📀', 'g')].filter(Boolean).join(' ') || '—';
+              return '<td class="rec-meta rec-meta--nowrap">' + x + '</td>';
+            }).join('')
           + '<td class="rec-run-toggle-cell"><button class="rec-run-toggle-btn" title="' + esc(t('certd_open_ledger')) + '" onclick="event.stopPropagation();toggleCertLedger(this,\'' + ledgerId + '\',' + i + ')">▶</button></td>';
       }),
       lim,
@@ -10608,6 +10626,8 @@ function buildRecords() {
     it.events.forEach(function (ev, i) {
       wallItems.push({
         title: it.title, artist: it.artist, image: null, type: type,
+        // 'single' / 'ep' while that type is Apart (wording + its own filter)
+        rtype: it.rtype || '',
         // The event history says 'plat'; the wall's classes and labels say
         // 'platinum'. Everything downstream reads the wall's spelling.
         tier: ev.tier === 'plat' ? 'platinum' : ev.tier,
@@ -11202,7 +11222,7 @@ function buildRecords() {
      certification date at that tier. */
   {
     if (certW[0]) {
-      const c0 = certW[0], nCert = c0.sg + c0.sp + c0.sd + c0.ag + c0.ap + c0.ad;
+      const c0 = certW[0], nCert = c0.sg + c0.sp + c0.sd + c0.ag + c0.ap + c0.ad + c0.ng + c0.np + c0.nd + c0.eg + c0.ep + c0.ed;
       // 'all' only: certifications are awarded on lifetime plays.
       hi('recCertsSection', 'all', 'artists', t('rec_ov_certs'), t('rec_ov_certs_value', { n: nCert }), c0.art);
     }
@@ -18996,6 +19016,7 @@ function certLedgerRows(items, cfg) {
       const days = Math.max(ev.elapsed / 86400000, 1 / 24);
       rows.push({
         kind: it.kind, key: it.key, title: it.title, artist: it.artist, album: it.album,
+        rtype: it.rtype || '',
         // Marks the line as a shared credit — the album is listed here but its
         // certification is counted once, against the record itself.
         comp: !!it.comp,
@@ -19006,7 +19027,7 @@ function certLedgerRows(items, cfg) {
         pace: ev.n / days, plays: it.plays, since: it.plays - ev.n,
         // The next rung is only worth naming on the record's current top
         // certification; on the earlier ones it is already history.
-        next: (ev === top) ? certdNextTarget(it.plays, cfg) : null
+        next: (ev === top) ? certdNextTarget(it.plays, cfg || CERT[it.certKind] || CERT.album) : null
       });
     });
   }
@@ -19027,7 +19048,7 @@ function certLedgerRowHTML(r, imgId) {
     // A compilation says so on its own line: it is listed in this artist's
     // ledger but counted in nobody's tally, and the word is what explains the
     // gap between the two.
-    : (t('certd_album') + (r.comp ? ' · ' + t('certd_compilation') : ''));
+    : ((r.rtype ? t('rtype_' + r.rtype) : t('certd_album')) + (r.comp ? ' · ' + t('certd_compilation') : ''));
 
   /* Redone 2026-11-02 to read at a glance, with every figure kept:
      a medal on the left (tier, and the play count it was awarded at), the
@@ -19057,7 +19078,8 @@ function certLedgerRowHTML(r, imgId) {
       + '</div>';
   }
 
-  return '<div class="certd-row certd-row--' + meta.cls + '" data-kind="' + r.kind + '"'
+  // data-kind is what the ledger's filter reads: 'single' / 'ep' while Apart
+  return '<div class="certd-row certd-row--' + meta.cls + '" data-kind="' + (r.rtype || r.kind) + '"'
     + ' data-tier="' + meta.cls + '" data-tw="' + certTierWeight(r.tier, r.mult) + '"'
     + ' data-d="' + (+r.date) + '" data-e="' + r.elapsed + '" data-p="' + r.pace + '" data-pl="' + r.plays + '">'
     // The medal: which award, and the play count that earned it.
@@ -19111,7 +19133,10 @@ function certdBtn(idx, field, value, label, active) {
 
 function certLedgerHTML(idx, artist, rows) {
   const songs = rows.filter(function (r) { return r.kind === 'song'; }).length;
-  const albums = rows.length - songs;
+  // Singles and EPs counted on their own while that type is Apart
+  const singles = rows.filter(function (r) { return r.rtype === 'single'; }).length;
+  const eps = rows.filter(function (r) { return r.rtype === 'ep'; }).length;
+  const albums = rows.length - songs - singles - eps;
   const byTier = { diamond: 0, plat: 0, gold: 0 };
   rows.forEach(function (r) { byTier[r.tier === 'diamond' ? 'diamond' : r.tier === 'plat' ? 'plat' : 'gold']++; });
 
@@ -19138,7 +19163,9 @@ function certLedgerHTML(idx, artist, rows) {
     + '</div>';
 
   h += '<div class="certd-facts">'
-    + fact('🎵 ' + songs.toLocaleString() + ' <span class="certd-fact-sep">/</span> ◈ ' + albums.toLocaleString(), t('certd_split'))
+    + fact('🎵 ' + songs.toLocaleString() + ' <span class="certd-fact-sep">/</span> ◈ ' + albums.toLocaleString()
+        + (singles ? ' <span class="certd-fact-sep">/</span> ' + esc(t('rtype_single')) + ' ' + singles.toLocaleString() : '')
+        + (eps ? ' <span class="certd-fact-sep">/</span> ' + esc(t('rtype_ep')) + ' ' + eps.toLocaleString() : ''), t('certd_split'))
     + (dates.length ? fact(fmtDate(new Date(Math.min.apply(null, dates))), t('certd_first_cert')) : '')
     + (dates.length ? fact(fmtDate(new Date(Math.max.apply(null, dates))), t('certd_latest_cert')) : '')
     + (fastest ? fact(fmtElapsed(fastest.elapsed), t('certd_fastest'), fastest.title) : '')
@@ -19152,6 +19179,8 @@ function certLedgerHTML(idx, artist, rows) {
       // count dimmed after it.
       + (songs ? certdBtn(idx, 'kind', 'song', '🎵 ' + esc(t('certd_songs')) + ' <span class="certd-chip-n">' + songs + '</span>', false) : '')
       + (albums ? certdBtn(idx, 'kind', 'album', '◈ ' + esc(t('certd_albums')) + ' <span class="certd-chip-n">' + albums + '</span>', false) : '')
+      + (singles ? certdBtn(idx, 'kind', 'single', esc(t('rtype_single_plural')) + ' <span class="certd-chip-n">' + singles + '</span>', false) : '')
+      + (eps ? certdBtn(idx, 'kind', 'ep', esc(t('rtype_ep_plural')) + ' <span class="certd-chip-n">' + eps + '</span>', false) : '')
     + '</div>'
     + '<div class="certd-seg certd-seg-tier" role="group" aria-label="' + esc(t('certd_filter_tier')) + '">'
       + certdBtn(idx, 'tier', 'all', t('certd_all'), true)
@@ -19188,7 +19217,8 @@ function buildCertLedger(idx) {
   host.dataset.certdTier = 'all';
   host.dataset.certdOrd = 'tier';
   host.dataset.certdExpanded = '0';
-  const rows = certLedgerRows(src.songs, CERT.song).concat(certLedgerRows(src.albums, CERT.album));
+  // No ladder passed for releases: each one uses its own (single / EP / album)
+  const rows = certLedgerRows(src.songs, CERT.song).concat(certLedgerRows(src.albums, null));
   host.innerHTML = certLedgerHTML(idx, src.artist, rows);
   /* Covers load as their cards scroll into view, so a 190-line ledger only
      looks up the dozen it shows (hidden lines never intersect). */
@@ -23351,6 +23381,17 @@ function certKindFor(album, artist) {
 // diamond directly rather than asking certBadge() for markup.
 function certCfgFor(album, artist) {
   return CERT[certKindFor(album, artist)] || CERT.album;
+}
+
+/* What a certified release is CALLED on screen (2026-11-09): 'single' or 'ep'
+   only while that type is set Apart in Settings → Charts, '' otherwise. The
+   ladder above follows the mark alone; the wording, the filters and the
+   leaderboard columns follow the Apart switch, the same way the charts do.
+   Every certification surface (wall, reel, ledger, leaderboard, notifications)
+   reads this one helper so they all agree. */
+function certReleaseLabelType(album, artist) {
+  const b = albumBucketOf(album, artist);
+  return b === 'album' ? '' : b;
 }
 
 /* The ladder types this library actually uses — nothing for a user who has
@@ -31468,7 +31509,17 @@ function cwallTierName(item) {
    language's (Spanish and Portuguese put the tier last, and gender the
    participle), so the whole line, span included, lives in the translation. */
 function cwallAwardLine(item) {
-  return t(item.type === 'album' ? 'cwall_award_album' : 'cwall_award_song', { tier: cwallTierName(item) });
+  // A single or EP says so while that type is Apart (item.rtype)
+  const key = item.type !== 'album' ? 'cwall_award_song'
+    : item.rtype === 'single' ? 'cwall_award_single'
+    : item.rtype === 'ep' ? 'cwall_award_ep' : 'cwall_award_album';
+  return t(key, { tier: cwallTierName(item) });
+}
+
+/* Which wall / shelf filter a plaque falls under: 'song', 'album', or
+   'single' / 'ep' while that type is Apart. */
+function cwallKindOf(item) {
+  return item.type === 'album' ? (item.rtype || 'album') : item.type;
 }
 
 /* How many records to press for one award. Diamond repeats, so a 3× hangs
@@ -31550,6 +31601,9 @@ function renderCertifications(data) {
      indexOf() lookup both a linear scan per card and, on a big library, a scan
      over four times as many cards as it used to be. */
   certWallData.forEach(function (item, i) { item._i = i; });
+  // A Singles / EPs filter left on after that type went back in with albums
+  // (or lost its last plaque) would show an empty wall: back to All.
+  if ((certWallFilter === 'single' || certWallFilter === 'ep') && !certWallData.some(it => it.rtype === certWallFilter)) certWallFilter = 'all';
   const wall = document.getElementById('certifications-wall');
   if (!wall) return;
 
@@ -31569,6 +31623,9 @@ function renderCertifications(data) {
           <button class="cwall-btn${certWallFilter==='all'?' active':''}" data-cwall-filter="all">${esc(t('cwall_all'))}</button>
           <button class="cwall-btn${certWallFilter==='song'?' active':''}" data-cwall-filter="song">${esc(t('cwall_songs'))}</button>
           <button class="cwall-btn${certWallFilter==='album'?' active':''}" data-cwall-filter="album">${esc(t('cwall_albums'))}</button>
+          ${/* Singles / EPs, only while Apart and only when one holds a plaque */
+            separatedTypes().filter(ty => certWallData.some(it => it.rtype === ty)).map(ty =>
+              `<button class="cwall-btn${certWallFilter===ty?' active':''}" data-cwall-filter="${ty}">${esc(t('rtype_' + ty + '_plural'))}</button>`).join('')}
         </div>
         <div class="cwall-sort-btns">
           <span class="cwall-sort-label">${esc(t('cwall_sort'))}</span>
@@ -31630,7 +31687,7 @@ function renderCertWallCards(keepShown) {
   let items = certWallData.slice();
 
   if (certWallFilter !== 'all') {
-    items = items.filter(item => item.type === certWallFilter);
+    items = items.filter(item => cwallKindOf(item) === certWallFilter);
   }
 
   if (certWallSearch.trim()) {
@@ -31901,6 +31958,12 @@ async function loadAlbumCertPlaqueImages(items, albumName, artistName) {
    or not the user has ever opened Records, so this stands alone. */
 let _certTimeline = null;
 window.dcResetCertTimeline = () => { _certTimeline = null; };
+/* Called wherever a release mark, the Apart switch or the roll-up changes
+   (next to every _releaseEpoch++): the timeline's ladders and its single / EP
+   wording come from those. A function declaration, so it exists before this
+   line runs; the try covers a config sync that lands before _certTimeline
+   has been declared (assigning it then would throw). */
+function _dcCertTlReset() { try { _certTimeline = null; } catch (e) {} }
 
 function buildCertTimeline() {
   const items = {};
@@ -31928,7 +31991,15 @@ function buildCertTimeline() {
     if (p.album && p.album !== '—') {
       // albumArtist() again, so a compilation contributes one album here too.
       const aa = albumArtist(p);
-      touch(p.album + '|||' + aa, p, 'album', CERT.album, { title: p.album, artist: aa, album: '' });
+      const ak = p.album + '|||' + aa;
+      /* Its own ladder: a marked single or EP certifies on the single / EP
+         thresholds, the same as Records (was always the album ladder here, so
+         a single's notification and shelf plaque came late or never).
+         Worked out once per release, on its first play. */
+      if (!items[ak]) {
+        const kind = certKindFor(p.album, aa);
+        touch(ak, p, 'album', CERT[kind] || CERT.album, { title: p.album, artist: aa, album: '', rtype: certReleaseLabelType(p.album, aa), _cfg: CERT[kind] || CERT.album });
+      } else touch(ak, p, 'album', items[ak]._cfg, null);
     }
   }
 
@@ -31939,6 +32010,8 @@ function buildCertTimeline() {
     it.events.forEach(function (ev, i) {
       out.push({
         type: it.kind, title: it.title, artist: it.artist, album: it.album,
+        // 'single' / 'ep' while that type is Apart, else '' (an album or a song)
+        rtype: it.rtype || '',
         tier: ev.tier === 'plat' ? 'platinum' : ev.tier,
         mult: ev.mult || 1, n: ev.n, date: ev.date,
         // The comparison date has to be the one the charts filter by, or a
@@ -32042,15 +32115,17 @@ function renderCertReel(start, end) {
     return;
   }
 
-  const nSongs = all.filter(c => c.type === 'song').length;
-  const nAlbums = all.length - nSongs;
+  // Counted per filter: songs, albums, and singles / EPs while Apart (cwallKindOf)
+  const nBy = { song: 0, album: 0, single: 0, ep: 0 };
+  all.forEach(c => { nBy[cwallKindOf(c)]++; });
+  const nSongs = nBy.song, nAlbums = nBy.album;
   /* A filter with nothing behind it in this period falls back to All rather
      than showing an empty shelf — stepping to a week that happened to earn
      only songs should not look like a week that earned nothing. */
-  if ((certReelFilter === 'song' && !nSongs) || (certReelFilter === 'album' && !nAlbums)) {
+  if (certReelFilter !== 'all' && !nBy[certReelFilter]) {
     certReelFilter = 'all';
   }
-  const items = certReelFilter === 'all' ? all : all.filter(c => c.type === certReelFilter);
+  const items = certReelFilter === 'all' ? all : all.filter(c => cwallKindOf(c) === certReelFilter);
 
   section.style.display = '';
   // The header chip counts what is on the shelf, so narrowing is visible there too.
@@ -32058,7 +32133,7 @@ function renderCertReel(start, end) {
 
   /* Both kinds present → the buttons carry the counts and the sub steps aside;
      one kind only → nothing to filter, so the plain sub does the talking. */
-  const canFilter = nSongs > 0 && nAlbums > 0;
+  const canFilter = Object.values(nBy).filter(n => n > 0).length > 1;
   const filterEl = document.getElementById('certReelFilter');
   if (filterEl) {
     filterEl.style.display = canFilter ? '' : 'none';
@@ -32067,6 +32142,13 @@ function renderCertReel(start, end) {
       setN('certReelNAll', all.length);
       setN('certReelNSongs', nSongs);
       setN('certReelNAlbums', nAlbums);
+      setN('certReelNSingles', nBy.single);
+      setN('certReelNEps', nBy.ep);
+      // Each kind's button only when this period has one of it
+      filterEl.querySelectorAll('[data-creel-filter]').forEach(b => {
+        const k = b.dataset.creelFilter;
+        if (k !== 'all') b.hidden = !nBy[k];
+      });
       filterEl.querySelectorAll('[data-creel-filter]').forEach(b =>
         b.classList.toggle('active', b.dataset.creelFilter === certReelFilter));
     }
@@ -32079,7 +32161,10 @@ function renderCertReel(start, end) {
        to report is left out entirely instead of reading "and 0 albums". */
     subEl.textContent = [
       nSongs ? tCount('songs', nSongs) : '',
-      nAlbums ? tCount('albums', nAlbums) : ''
+      nAlbums ? tCount('albums', nAlbums) : '',
+      // Singles / EPs (Apart only): the type's own word with the number
+      nBy.single ? nBy.single + ' ' + t(nBy.single === 1 ? 'rtype_single' : 'rtype_single_plural') : '',
+      nBy.ep ? nBy.ep + ' ' + t(nBy.ep === 1 ? 'rtype_ep' : 'rtype_ep_plural') : ''
     ].filter(Boolean).join(' · ');
   }
 

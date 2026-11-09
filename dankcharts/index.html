@@ -27,13 +27,13 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=985">
+  <link rel="stylesheet" href="style.css?v=986">
   <!-- The Charts Guide's lessons (guide.js, GUIDE-PLAN.md) -->
   <link rel="stylesheet" href="guide.css?v=5">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=379"></script>
+  <script defer src="translations.js?v=380"></script>
   <!-- Only the visitor's own language is downloaded (translations.js holds
        English). This writes a defer tag for the saved language right here, so
        it runs straight after translations.js and before app.js, and the page
@@ -41,7 +41,7 @@
        whenever translations.es / pt-BR / pt-PT .js change (setup-guide.html
        has the same line). -->
   <script>
-    window.DC_I18N_V = 72;
+    window.DC_I18N_V = 73;
     (function () {
       try {
         var l = localStorage.getItem('dankcharts-lang');
@@ -1366,6 +1366,9 @@
           <button class="creel-btn active" data-creel-filter="all" onclick="setCertReelFilter('all')"><span data-i18n="certd_all">All</span> <span class="creel-btn-n" id="certReelNAll"></span></button>
           <button class="creel-btn" data-creel-filter="song" onclick="setCertReelFilter('song')"><span data-i18n="chart_type_songs">Songs</span> <span class="creel-btn-n" id="certReelNSongs"></span></button>
           <button class="creel-btn" data-creel-filter="album" onclick="setCertReelFilter('album')"><span data-i18n="chart_type_albums">Albums</span> <span class="creel-btn-n" id="certReelNAlbums"></span></button>
+          <!-- Singles / EPs: shown only while that type is Apart and the period earned one (renderCertReel) -->
+          <button class="creel-btn" data-creel-filter="single" onclick="setCertReelFilter('single')" hidden><span data-i18n="rtype_single_plural">Singles</span> <span class="creel-btn-n" id="certReelNSingles"></span></button>
+          <button class="creel-btn" data-creel-filter="ep" onclick="setCertReelFilter('ep')" hidden><span data-i18n="rtype_ep_plural">EPs</span> <span class="creel-btn-n" id="certReelNEps"></span></button>
         </div>
       </div>
       <div class="section-body">
@@ -4501,7 +4504,7 @@
   <!-- One behaviour and one icon set for every pop-up window (phase 10); before
        app.js so dcIco() is there when app.js draws a window -->
   <script defer src="popups.js?v=13"></script>
-  <script defer src="app.js?v=718"></script>
+  <script defer src="app.js?v=719"></script>
   <!-- The song / album / artist details side panel (phase 10 step 3); wraps app.js's open functions -->
   <script defer src="panel.js?v=16"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
@@ -4514,10 +4517,10 @@
   <!-- Smart playlists: playlists built from saved rules (SMART-PLAYLISTS-PLAN.md); reads app.js -->
   <script defer src="smartplaylists.js?v=16"></script>
   <!-- Notifications under the profile picture (any feature calls dcNotify); reads app.js + firebase.js -->
-  <script defer src="notifications.js?v=18"></script>
+  <script defer src="notifications.js?v=19"></script>
   <!-- The Stats page's tabs, Overview, Story, Games and Compare (phase 15); reads app.js globals -->
   <!-- Phase 20: the All #1s look laid over the other Records sections (recx*). -->
-  <script defer src="records-look.js?v=12"></script>
+  <script defer src="records-look.js?v=13"></script>
   <script defer src="stats.js?v=59"></script>
   <!-- The Dank 100: weekly entries for the shared community chart; reads app.js and firebase.js globals -->
   <script defer src="dank100.js?v=26"></script>

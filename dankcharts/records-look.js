@@ -375,6 +375,12 @@ function recxCertWallFor(table) {
       + '</div>'
       + tally(t('rec_th_song_cert'), src.sd, src.sp, src.sg)
       + tally(t('rec_th_album_cert'), src.ad, src.ap, src.ag)
+      // Singles and EPs get their own line while that type is Apart (app.js
+      // counts them apart from albums then)
+      + separatedTypes().map(function (ty) {
+          const x = ty === 'ep' ? 'e' : 'n';
+          return tally(t('rec_th_' + ty + '_cert'), src[x + 'd'] || 0, src[x + 'p'] || 0, src[x + 'g'] || 0);
+        }).join('')
       + '<button type="button" class="dc-btn dc-btn-normal certw-open" aria-expanded="false" onclick="recxCertToggle(this,' + i + ')">'
         + '<span class="certw-open-l">' + esc(t('certd_open_ledger')) + '</span><span class="certw-caret" aria-hidden="true">▾</span></button>'
       + '</article>';

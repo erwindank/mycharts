@@ -693,6 +693,10 @@
     }
     .dc-seg > button:disabled,
     .dc-seg > button.is-disabled { opacity: 0.4; cursor: not-allowed; }
+    /* A segment button can be switched off with [hidden] (the certified shelf's
+       Singles / EPs buttons, 2026-11-09); display:inline-flex above would
+       otherwise keep it on screen. */
+    .dc-seg > button[hidden] { display: none; }
     .dc-seg-fill { display: flex; }
     .dc-seg-fill > button { flex: 1 1 auto; min-width: 0; }
 
@@ -47838,10 +47842,10 @@ html.lsx-open { overflow: hidden; }
 .nt-tile { position: relative; }
 .nt-seal {
   position: absolute;
-  right: -7px;
-  bottom: -10px;
-  width: 28px;
-  height: 28px;
+  right: -6px;
+  bottom: -14px;
+  width: 24px;
+  height: 30px;
   line-height: 0;
   filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.45));
 }

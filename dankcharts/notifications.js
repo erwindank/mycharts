@@ -44,7 +44,9 @@ const NT_KINDS = {
   st_year: { emoji: '🎉', cat: 'soundtrack', text: p => t('nt_st_year', { year: p.key }) },
   // A song or album reached Gold / Platinum / Diamond (p.tier, p.mult)
   // The emoji follows the tier, same as the Certifications wall: 📀 gold, 💿 platinum, 💎 diamond
-  cert_new: { emoji: p => ({ platinum: '💿', diamond: '💎' })[p.tier] || '📀', cat: 'cert', text: p => t(p.type === 'album' ? 'nt_cert_album' : 'nt_cert_song', {
+  // p.rtype is 'single' / 'ep' when that type was Apart at the time (says "Your single…")
+  cert_new: { emoji: p => ({ platinum: '💿', diamond: '💎' })[p.tier] || '📀', cat: 'cert', text: p => t(p.type !== 'album' ? 'nt_cert_song'
+      : p.rtype === 'single' ? 'nt_cert_single' : p.rtype === 'ep' ? 'nt_cert_ep' : 'nt_cert_album', {
     title: p.title, artist: p.artist,
     tier: p.tier === 'diamond' ? tDiamondLabel(p.mult || 1) : tTierLabel(p.tier) }) },
   // More certifications at once than get one each (NT_CERT_MAX)
@@ -171,47 +173,60 @@ function ntAgo(ms) {
    dot while unread, and an ✕ to remove just that one. */
 let _ntFilter = 'all';   // 'all' | 'unread'
 
-/* The certified seal on a certification's tile (2026-11-09): a small
-   award rosette on the tile's bottom-right corner, drawn like a real
-   "certified" stamp: a notched red edge, a metal disc in the tier's colour
-   (gold / platinum / diamond), and a red ribbon across it with its tails
-   sticking out. The ribbon carries three stars, or the multiplier ("3×")
-   for a multi-diamond; a word wouldn't be readable at this size. */
-const NT_SEAL_METAL = {   // disc gradient: light, mid, dark
-  gold:     ['#fff4b8', '#f2c94c', '#b8861b'],
-  platinum: ['#ffffff', '#d5dde8', '#8b9ab0'],
-  diamond:  ['#eafcff', '#8fe3fa', '#2aa3cc']
+/* The certified seal on a certification's tile (redone 2026-11-09 as an
+   award ribbon): a shiny metal rosette on the tile's bottom-right corner
+   with two V-cut ribbon tails hanging below it, like a prize ribbon.
+   The metal follows the tier so they read apart at a glance: shiny gold,
+   silvery platinum, icy-blue diamond. A multi-diamond shows its
+   multiplier ("3×") on the disc; a word wouldn't be readable at this size. */
+const NT_SEAL_METAL = {   // light, bright, mid, dark, deep (rosette sheen + tails)
+  gold:     ['#fff8d6', '#ffe27a', '#e9b330', '#b07a14', '#7a5208'],
+  platinum: ['#ffffff', '#eef2f7', '#c3ccd8', '#8592a5', '#566275'],
+  diamond:  ['#f2feff', '#bff3ff', '#6fd3f2', '#2a93c0', '#155f85']
 };
-// The notched edge: a 28-point star around the disc (viewBox 0 0 32 32)
+// The pleated edge: a 26-point star around the disc (viewBox 0 0 32 40)
 const NT_SEAL_EDGE = (() => {
-  const pts = [], n = 28;
+  const pts = [], n = 26;
   for (let i = 0; i < n * 2; i++) {
-    const r = i % 2 ? 11.4 : 13.2, a = (i / (n * 2)) * Math.PI * 2;
-    pts.push((16 + r * Math.cos(a)).toFixed(2) + ',' + (15 + r * Math.sin(a)).toFixed(2));
+    const r = i % 2 ? 11.6 : 13.4, a = (i / (n * 2)) * Math.PI * 2;
+    pts.push((16 + r * Math.cos(a)).toFixed(2) + ',' + (14 + r * Math.sin(a)).toFixed(2));
   }
   return pts.join(' ');
 })();
 function _ntSealHtml(k, p) {
   if (k.cat !== 'cert') return '';
   const tier = NT_SEAL_METAL[p.tier] ? p.tier : 'gold';
-  const [hi, mid, lo] = NT_SEAL_METAL[tier];
-  const g = 'ntSealM-' + tier;   // the same gradient for every seal of this tier
-  const star = (x, y, s) => `<path d="M${x} ${y - s}l${s * 0.29} ${s * 0.6} ${s * 0.66} ${s * 0.09} -${s * 0.48} ${s * 0.46} ${s * 0.12} ${s * 0.65} -${s * 0.59} -${s * 0.31} -${s * 0.59} ${s * 0.31} ${s * 0.12} -${s * 0.65} -${s * 0.48} -${s * 0.46} ${s * 0.66} -${s * 0.09}z" fill="#3a2a10" opacity=".75"/>`;
-  // Multi-diamond: the multiplier on the ribbon; otherwise a plain ribbon
+  const [lt, br, md, dk, dp] = NT_SEAL_METAL[tier];
+  const id = 'ntSeal-' + tier;   // the same gradients for every seal of this tier
+  // Multi-diamond: the multiplier on the disc
   const label = p.tier === 'diamond' && p.mult > 1
-    ? `<text x="16" y="18.3" text-anchor="middle" font-size="6.6" font-weight="800" fill="#fff">${esc(p.mult + '×')}</text>` : '';
-  return `<span class="nt-seal"><svg viewBox="0 0 32 32" width="28" height="28">` +
-    `<defs><radialGradient id="${g}" cx="38%" cy="30%" r="75%"><stop offset="0" stop-color="${hi}"/><stop offset=".55" stop-color="${mid}"/><stop offset="1" stop-color="${lo}"/></radialGradient></defs>` +
-    `<polygon points="${NT_SEAL_EDGE}" fill="#e3202c"/>` +
-    `<circle cx="16" cy="15" r="9.6" fill="url(#${g})" stroke="#fff" stroke-opacity=".55" stroke-width=".6"/>` +
-    star(16, 9.4, 2) + star(16, 22.8, 1.7) +
-    // The ribbon, tilted like a sash: two darker V-cut tails folded behind,
-    // then the bright band across the disc
-    `<g transform="rotate(-16 16 16)">` +
-    `<path d="M-1.5 14.6h6.5v5.6h-6.5l2-2.8z M33.5 14.6h-6.5v5.6h6.5l-2-2.8z" fill="#9e0f18"/>` +
-    `<path d="M3 13.4h26v5.4H3z" fill="#dc1c27"/>` +
-    `<path d="M3 18.8l2 1.4v-1.4z M29 18.8l-2 1.4v-1.4z" fill="#5e070d"/>` +
-    label + `</g>` +
+    ? `<text x="16" y="16.4" text-anchor="middle" font-size="6.4" font-weight="800" fill="${dp}">${esc(p.mult + '×')}</text>` : '';
+  return `<span class="nt-seal"><svg viewBox="0 0 32 40" width="24" height="30">` +
+    `<defs>` +
+    // Shiny metal: a diagonal sweep with a bright band through the middle
+    `<linearGradient id="${id}-m" x1="0" y1="0" x2="1" y2="1">` +
+    `<stop offset="0" stop-color="${lt}"/><stop offset=".28" stop-color="${md}"/><stop offset=".5" stop-color="${dk}"/>` +
+    `<stop offset=".68" stop-color="${br}"/><stop offset="1" stop-color="${dk}"/></linearGradient>` +
+    // The disc: lit from the top-left
+    `<radialGradient id="${id}-d" cx="35%" cy="30%" r="80%">` +
+    `<stop offset="0" stop-color="${lt}"/><stop offset=".45" stop-color="${br}"/><stop offset="1" stop-color="${md}"/></radialGradient>` +
+    // The tails: satin, darker toward the cut ends
+    `<linearGradient id="${id}-t" x1="0" y1="0" x2="0" y2="1">` +
+    `<stop offset="0" stop-color="${md}"/><stop offset="1" stop-color="${dk}"/></linearGradient>` +
+    `</defs>` +
+    // The two tails behind the rosette, each with a V-cut end and a bright edge stripe
+    `<path d="M9.5 19 L15.5 21.5 L12.6 39 L10.3 35.6 L6.6 37.6 Z" fill="url(#${id}-t)"/>` +
+    `<path d="M16.5 21.5 L22.5 19 L25.4 37.6 L21.7 35.6 L19.4 39 Z" fill="url(#${id}-t)"/>` +
+    `<path d="M8.4 22.4 L7.4 36.8 M14.3 22.6 L11.9 37.6 M17.7 22.6 L20.1 37.6 M23.6 22.4 L24.6 36.8" stroke="${br}" stroke-width=".7" opacity=".85"/>` +
+    // The pleated rosette, its rim and the disc
+    `<polygon points="${NT_SEAL_EDGE}" fill="url(#${id}-m)" stroke="${dp}" stroke-width=".4" stroke-opacity=".6"/>` +
+    `<circle cx="16" cy="14" r="10" fill="url(#${id}-m)" stroke="${dp}" stroke-width=".5" stroke-opacity=".7"/>` +
+    // Fine ticks round the rim, like the engraved ring on a medal
+    `<circle cx="16" cy="14" r="8.6" fill="none" stroke="${dk}" stroke-width="1.6" stroke-dasharray=".35 1.25" opacity=".55"/>` +
+    `<circle cx="16" cy="14" r="7" fill="url(#${id}-d)" stroke="${lt}" stroke-width=".6"/>` +
+    // The shine: a soft diagonal glint across the disc
+    `<path d="M11.2 15.6 L15.6 8.4 L17.8 8.2 L12.4 17.6 Z" fill="#fff" opacity=".45"/>` +
+    label +
     `</svg></span>`;
 }
 
@@ -522,7 +537,7 @@ async function _ntWatchCerts() {
   const told = fresh.slice(0, NT_CERT_MAX);
   if (fresh.length > told.length) dcNotify({ kind: 'cert_more', n: fresh.length - told.length, link: { tab: 'records' } });
   for (const c of told.reverse()) {
-    dcNotify({ kind: 'cert_new', type: c.type, title: c.title, artist: c.artist, tier: c.tier, mult: c.mult,
+    dcNotify({ kind: 'cert_new', type: c.type, rtype: c.rtype || '', title: c.title, artist: c.artist, tier: c.tier, mult: c.mult,
                link: { tab: 'cert', type: c.type, key: c.key } });
   }
 }
