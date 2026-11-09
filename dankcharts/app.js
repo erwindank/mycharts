@@ -31250,10 +31250,15 @@ function dcFitTopbar() {
     for (const tab of nav.children) need += tab.scrollWidth;
     return need > nav.clientWidth + 1;
   };
-  bar.classList.remove('tb-tight', 'tb-tighter');
+  bar.classList.remove('tb-tight', 'tb-tighter', 'tb-tightest');
   if (!overflows()) return;
   bar.classList.add('tb-tight');
-  if (overflows()) bar.classList.add('tb-tighter');
+  if (!overflows()) return;
+  bar.classList.add('tb-tighter');
+  // Step 3 (2026-11-09, when the top bar logo got bigger): narrow phones
+  // still did not fit, so the buttons get slimmer and the name a little
+  // smaller — still bigger than before
+  if (overflows()) bar.classList.add('tb-tightest');
 }
 
 (function initTopbarFit() {
@@ -31296,7 +31301,9 @@ window.dcTopbarHome = dcTopbarHome;
 // it clicks that tab, so there is still exactly one place where views switch.
 // "charts" is the exception: it reopens the chart period you used last.
 const DC_CHART_PERIODS = ['day', 'week', 'month', 'year', 'alltime'];
-const DC_MORE_VIEWS = ['dank100', 'worldcharts', 'ratings', 'events', 'playlists', 'rawdata', 'board', 'chartsguide'];
+// Pages inside More (2026-11-09: Soundtrack, then Records and Awards moved in;
+// Events and Playlists moved out to the tab bars)
+const DC_MORE_VIEWS = ['chartsguide', 'records', 'awards', 'soundtrack', 'dank100', 'worldcharts', 'ratings', 'board', 'rawdata'];
 // Keyboard shortcuts (initNavShortcuts) shown in the tab tooltips
 const DC_TAB_SHORTCUT = { charts: '1–4', graphs: '6', records: '7', awards: '9', events: '8', rawdata: '5' };
 
@@ -31327,7 +31334,7 @@ function dcSyncMainTabs(view) {
     b.classList.toggle('active', on);
     if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
   });
-  // On a phone Soundtrack is inside More too, so More lights up for it there
+  // Soundtrack is inside More (top bar and phone), so More lights up for it
   const inMore = DC_MORE_VIEWS.includes(view);
   const tbMore = document.querySelector('#topbarNav .tb-more-btn');
   if (tbMore) tbMore.classList.toggle('active', inMore);
@@ -46199,6 +46206,9 @@ async function _awardsSave(year) {
   // (see _awardsPush). Not awaited — offline, a transaction can take a while to
   // give up, and the click that triggered this shouldn't wait on it.
   _awardsQueuePush(year);
+  // Every switched-on category now has a winner? Tells "ceremony ready" once
+  // (notifications.js)
+  if (typeof ntAwardsSaved === 'function') ntAwardsSaved(year);
 }
 
 function _isCollab(play) {

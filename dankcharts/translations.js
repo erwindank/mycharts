@@ -683,6 +683,8 @@ const TRANSLATIONS = {
     nav_events: 'Events',
     nav_awards: 'Awards',
     nav_playlists: 'Playlists',
+    // short label for the tab bars (2026-11-09: Playlists moved up there)
+    tab_playlists: 'Playlists',
     nav_chartsguide: 'Charts Guide',
     // Setup Guide entry points (2026-11-07)
     nav_setup_guide: 'Setup Guide',
@@ -4613,6 +4615,8 @@ const TRANSLATIONS = {
     nt_cert_song: 'Your song “{{title}}” by {{artist}} went {{tier}}',
     nt_cert_album: 'Your album “{{title}}” by {{artist}} went {{tier}}',
     nt_cert_more: '{{n}} more certifications since your last visit — see them in Records',
+    nt_aw_open: 'Your {{year}} awards period has ended — time to pick your nominees',
+    nt_aw_ready: 'Every {{year}} category has a winner — your ceremony is ready to watch',
     nt_rec_new: 'New #1! “{{name}}” by {{artist}} now holds the record: {{record}}',
     nt_rec_new_artist: 'New #1! {{name}} now holds the record: {{record}}',
     nt_rec_new_multi: 'New #1s! “{{name}}” by {{artist}} now holds {{n}} records, including {{record}}',
@@ -4991,6 +4995,7 @@ const TRANSLATIONS = {
     nt_cat_playlist: 'Playlist',
     nt_cat_soundtrack: 'Soundtrack',
     nt_cat_cert: 'Certification',
+    nt_cat_awards: 'Awards',
     nt_cat_record: 'Record',
     nt_cat_board: 'Board',
     nt_cat_news: "News",

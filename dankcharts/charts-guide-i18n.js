@@ -25,7 +25,7 @@ window.CG_TEXT = {
     ch: { start: 'Start Here', tabs: 'The Tabs', concepts: 'How Charts Work', tips: 'Tips & Shortcuts', yourdata: 'Your Data', help: 'Help & More' },
     blurb: {
       start: 'Check the app is reading your data correctly, then work through the first few things worth doing.',
-      tabs: 'Charts, Stats, Records, Awards and Your Soundtrack sit in the top bar (at the bottom on a phone); everything else is under More.',
+      tabs: 'Charts, Stats, Events and Playlists sit in the top bar (at the bottom on a phone); everything else, Records, Awards and Your Soundtrack too, is under More.',
       concepts: 'What the app is counting, how a period is cut, and what the badges on a chart row mean.',
       tips: 'Everything with a key or a click behind it, then the things that are easy to miss.',
       yourdata: 'What the app has actually loaded about you. Last on purpose: none of it is documentation.',
@@ -241,7 +241,7 @@ window.CG_TEXT = {
     ch: { start: 'Empieza aquí', tabs: 'Las pestañas', concepts: 'Cómo funcionan los rankings', tips: 'Consejos y atajos', yourdata: 'Tus datos', help: 'Ayuda y más' },
     blurb: {
       start: 'Comprueba que la app lee bien tus datos y luego haz las primeras cosas que merecen la pena.',
-      tabs: 'Charts, Estadísticas, Récords, Premios y Tu Banda Sonora están en la barra superior (abajo en el móvil); todo lo demás está en Más.',
+      tabs: 'Charts, Estadísticas, Eventos y Listas están en la barra superior (abajo en el móvil); todo lo demás, también Récords, Premios y Tu Banda Sonora, está en Más.',
       concepts: 'Qué cuenta la app, cómo se corta un período y qué significan las marcas de una fila del ranking.',
       tips: 'Todo lo que tiene una tecla o un clic detrás, y después lo que es fácil pasar por alto.',
       yourdata: 'Lo que la app ha cargado realmente sobre ti. Va al final a propósito: nada de esto es documentación.',
@@ -457,7 +457,7 @@ window.CG_TEXT = {
     ch: { start: 'Comece aqui', tabs: 'As abas', concepts: 'Como as paradas funcionam', tips: 'Dicas e atalhos', yourdata: 'Seus dados', help: 'Ajuda e mais' },
     blurb: {
       start: 'Confira se o app está lendo seus dados direito e depois faça as primeiras coisas que valem a pena.',
-      tabs: 'Charts, Estatísticas, Recordes, Prêmios e Sua Trilha Sonora ficam na barra de cima (embaixo no celular); todo o resto fica em Mais.',
+      tabs: 'Charts, Estatísticas, Eventos e Playlists ficam na barra de cima (embaixo no celular); todo o resto, inclusive Recordes, Prêmios e Sua Trilha Sonora, fica em Mais.',
       concepts: 'O que o app conta, como um período é cortado e o que significam as marcas numa linha da parada.',
       tips: 'Tudo que tem uma tecla ou um clique por trás, e depois o que é fácil deixar passar.',
       yourdata: 'O que o app realmente carregou sobre você. Fica por último de propósito: nada disso é documentação.',
@@ -673,7 +673,7 @@ window.CG_TEXT = {
     ch: { start: 'Começa aqui', tabs: 'Os separadores', concepts: 'Como funcionam os tops', tips: 'Dicas e atalhos', yourdata: 'Os teus dados', help: 'Ajuda e mais' },
     blurb: {
       start: 'Confirma que a app está a ler bem os teus dados e depois faz as primeiras coisas que valem a pena.',
-      tabs: 'Charts, Estatísticas, Recordes, Prémios e Sua Trilha Sonora estão na barra de cima (em baixo no telemóvel); tudo o resto está em Mais.',
+      tabs: 'Charts, Estatísticas, Eventos e Playlists estão na barra de cima (em baixo no telemóvel); tudo o resto, incluindo Recordes, Prémios e Sua Trilha Sonora, está em Mais.',
       concepts: 'O que a app conta, como um período é cortado e o que significam as marcas numa linha do top.',
       tips: 'Tudo o que tem uma tecla ou um clique por trás, e depois o que é fácil deixar escapar.',
       yourdata: 'O que a app carregou realmente sobre ti. Fica no fim de propósito: nada disto é documentação.',

@@ -4841,7 +4841,7 @@
       align-items: baseline;
     }
     .topbar-logo {
-      font-size: 1.25rem;          /* = #topbar .wordmark-dank */
+      font-size: var(--tb-brand-fs);   /* = #topbar .wordmark-dank */
       height: 1.1em;
       width: auto;
       margin: 0 0.04em 0 0;
@@ -4938,9 +4938,17 @@
       20%      { opacity: 1; }
     }
 
+    /* Brand size in the top bar (2026-11-09: raised from 1.25rem so people
+       notice the logo; logo and name grow together so they still read as
+       one word). The bar height stays fixed; dcFitTopbar() makes room for
+       the tabs if they no longer fit. */
+    #topbar {
+      --tb-brand-fs: 1.5rem;
+    }
+
     #topbar .wordmark-dank,
     #topbar .wordmark-station {
-      font-size: 1.25rem;
+      font-size: var(--tb-brand-fs);
       letter-spacing: -0.02em;
       color: var(--text);
     }
@@ -5228,11 +5236,11 @@
       display: inline-flex;
       font-weight: 700;
     }
-    /* Step 2: short Sign in label, no .fm badge, tabs tighter still */
+    /* Step 2: short Sign in label, tabs tighter still. The .fm badge is
+       part of the logo and never hides (user, 2026-11-09). */
     #topbar.tb-tighter .tb-tab {
       padding: 0 6px;
     }
-    #topbar.tb-tighter .wordmark-fm,
     #topbar.tb-tighter .tb-signin-full {
       display: none;
     }
@@ -5252,14 +5260,48 @@
         gap: 2px;
       }
 
-      #topbar .wordmark-dank,
-      #topbar .wordmark-station {
-        font-size: 1.05rem;
+      /* smaller name on phones (was 1.05rem before 2026-11-09); the logo
+         follows it through --tb-brand-fs */
+      #topbar {
+        --tb-brand-fs: 1.3rem;
       }
-
-      /* logo keeps its size relative to the smaller name */
-      #topbar .topbar-logo {
-        font-size: 1.05rem;
+      /* Step 3 of dcFitTopbar (narrow phones): slimmer buttons, a little
+         smaller name, so Sign in is not cut off */
+      #topbar.tb-tightest {
+        --tb-brand-fs: 1.18rem;
+      }
+      #topbar.tb-tightest .tb-btn,
+      #topbar.tb-tightest .ctrl-group-btn {
+        min-width: 28px;
+        padding: 0 3px;
+      }
+      /* icon-only buttons (sync, settings) were 33px wide from their icon */
+      #topbar.tb-tightest .tb-btn:not(.tb-signin-btn) {
+        width: 28px;
+        padding: 0;
+      }
+      #topbar.tb-tightest .topbar-inner {
+        gap: 6px;
+        padding: 0 8px;
+      }
+      #topbar.tb-tightest .topbar-actions {
+        gap: 0;
+      }
+      /* ~360px phones: 9px short even then, so the name steps down a
+         little more (logo still a bit bigger than before 2026-11-09) */
+      @media (max-width: 375px) {
+        #topbar.tb-tightest {
+          --tb-brand-fs: 1.08rem;
+        }
+        #topbar.tb-tightest .topbar-inner {
+          gap: 4px;
+        }
+      }
+      /* the .fm badge never hides (part of the logo), it just gets smaller */
+      #topbar.tb-tightest .wordmark-fm {
+        font-size: 0.6rem;
+        padding: 0 3px;
+        margin-left: 2px;
       }
 
       #topbar .tb-btn,
@@ -5283,8 +5325,8 @@
       }
     }
 
+    /* (.fm used to hide here too; it is part of the logo, so it stays) */
     @media (max-width: 400px) {
-      #topbar .wordmark-fm,
       #topbar .tb-lang-code {
         display: none;
       }
@@ -47790,6 +47832,22 @@ html.lsx-open { overflow: hidden; }
 .nt-tone-cert-diamond   { --nt-tone: #67d4f5; }
 .nt-tone-record         { --nt-tone: var(--amber); }
 .nt-tone-board          { --nt-tone: var(--green); }
+/* The certified seal on a certification tile (notifications.js _ntSealHtml):
+   a small drawn award rosette (red notched edge, metal disc in the tier's
+   colour, red ribbon) on the tile's bottom-right corner. */
+.nt-tile { position: relative; }
+.nt-seal {
+  position: absolute;
+  right: -7px;
+  bottom: -10px;
+  width: 28px;
+  height: 28px;
+  line-height: 0;
+  filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.45));
+}
+.nt-seal svg { display: block; overflow: visible; }
+/* Awards notifications (notifications.js aw_open / aw_ready) */
+.nt-tone-awards         { --nt-tone: var(--gold1); }
 .nt-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; padding-top: 1px; }
 .nt-meta { display: flex; align-items: center; gap: 6px; font-size: 0.6875rem; line-height: 1.2; color: var(--text3); }
 .nt-cat { font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: color-mix(in srgb, var(--nt-tone) 70%, var(--text2)); }

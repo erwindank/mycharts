@@ -43,11 +43,18 @@ const NT_KINDS = {
   // A year has ended: its Soundtrack is ready (p.key 'YYYY')
   st_year: { emoji: '🎉', cat: 'soundtrack', text: p => t('nt_st_year', { year: p.key }) },
   // A song or album reached Gold / Platinum / Diamond (p.tier, p.mult)
-  cert_new: { emoji: '🏆', cat: 'cert', text: p => t(p.type === 'album' ? 'nt_cert_album' : 'nt_cert_song', {
+  // The emoji follows the tier, same as the Certifications wall: 📀 gold, 💿 platinum, 💎 diamond
+  cert_new: { emoji: p => ({ platinum: '💿', diamond: '💎' })[p.tier] || '📀', cat: 'cert', text: p => t(p.type === 'album' ? 'nt_cert_album' : 'nt_cert_song', {
     title: p.title, artist: p.artist,
     tier: p.tier === 'diamond' ? tDiamondLabel(p.mult || 1) : tTierLabel(p.tier) }) },
   // More certifications at once than get one each (NT_CERT_MAX)
-  cert_more: { emoji: '🏆', cat: 'cert', text: p => t('nt_cert_more', { n: p.n }) },
+  cert_more: { emoji: '📀', cat: 'cert', text: p => t('nt_cert_more', { n: p.n }) },
+  // A year's awards period (its own eligibility window) has ended: time to
+  // pick nominees (p.year). Opens Awards → My Grammys on that year.
+  aw_open: { emoji: '🏆', cat: 'awards', text: p => t('nt_aw_open', { year: p.year }) },
+  // Every switched-on category of a year has a winner: the ceremony is ready
+  // to watch (p.year). Opens the ceremony itself.
+  aw_ready: { emoji: '🎬', cat: 'awards', text: p => t('nt_aw_ready', { year: p.year }) },
   // A new holder at the top of a Records list (p.title = the list, in the
   // language it was read in; p.type song / album / artist)
   // p.n > 1: the same holder took several lists at once (p.title = the first)
@@ -164,6 +171,50 @@ function ntAgo(ms) {
    dot while unread, and an ✕ to remove just that one. */
 let _ntFilter = 'all';   // 'all' | 'unread'
 
+/* The certified seal on a certification's tile (2026-11-09): a small
+   award rosette on the tile's bottom-right corner, drawn like a real
+   "certified" stamp: a notched red edge, a metal disc in the tier's colour
+   (gold / platinum / diamond), and a red ribbon across it with its tails
+   sticking out. The ribbon carries three stars, or the multiplier ("3×")
+   for a multi-diamond; a word wouldn't be readable at this size. */
+const NT_SEAL_METAL = {   // disc gradient: light, mid, dark
+  gold:     ['#fff4b8', '#f2c94c', '#b8861b'],
+  platinum: ['#ffffff', '#d5dde8', '#8b9ab0'],
+  diamond:  ['#eafcff', '#8fe3fa', '#2aa3cc']
+};
+// The notched edge: a 28-point star around the disc (viewBox 0 0 32 32)
+const NT_SEAL_EDGE = (() => {
+  const pts = [], n = 28;
+  for (let i = 0; i < n * 2; i++) {
+    const r = i % 2 ? 11.4 : 13.2, a = (i / (n * 2)) * Math.PI * 2;
+    pts.push((16 + r * Math.cos(a)).toFixed(2) + ',' + (15 + r * Math.sin(a)).toFixed(2));
+  }
+  return pts.join(' ');
+})();
+function _ntSealHtml(k, p) {
+  if (k.cat !== 'cert') return '';
+  const tier = NT_SEAL_METAL[p.tier] ? p.tier : 'gold';
+  const [hi, mid, lo] = NT_SEAL_METAL[tier];
+  const g = 'ntSealM-' + tier;   // the same gradient for every seal of this tier
+  const star = (x, y, s) => `<path d="M${x} ${y - s}l${s * 0.29} ${s * 0.6} ${s * 0.66} ${s * 0.09} -${s * 0.48} ${s * 0.46} ${s * 0.12} ${s * 0.65} -${s * 0.59} -${s * 0.31} -${s * 0.59} ${s * 0.31} ${s * 0.12} -${s * 0.65} -${s * 0.48} -${s * 0.46} ${s * 0.66} -${s * 0.09}z" fill="#3a2a10" opacity=".75"/>`;
+  // Multi-diamond: the multiplier on the ribbon; otherwise a plain ribbon
+  const label = p.tier === 'diamond' && p.mult > 1
+    ? `<text x="16" y="18.3" text-anchor="middle" font-size="6.6" font-weight="800" fill="#fff">${esc(p.mult + '×')}</text>` : '';
+  return `<span class="nt-seal"><svg viewBox="0 0 32 32" width="28" height="28">` +
+    `<defs><radialGradient id="${g}" cx="38%" cy="30%" r="75%"><stop offset="0" stop-color="${hi}"/><stop offset=".55" stop-color="${mid}"/><stop offset="1" stop-color="${lo}"/></radialGradient></defs>` +
+    `<polygon points="${NT_SEAL_EDGE}" fill="#e3202c"/>` +
+    `<circle cx="16" cy="15" r="9.6" fill="url(#${g})" stroke="#fff" stroke-opacity=".55" stroke-width=".6"/>` +
+    star(16, 9.4, 2) + star(16, 22.8, 1.7) +
+    // The ribbon, tilted like a sash: two darker V-cut tails folded behind,
+    // then the bright band across the disc
+    `<g transform="rotate(-16 16 16)">` +
+    `<path d="M-1.5 14.6h6.5v5.6h-6.5l2-2.8z M33.5 14.6h-6.5v5.6h6.5l-2-2.8z" fill="#9e0f18"/>` +
+    `<path d="M3 13.4h26v5.4H3z" fill="#dc1c27"/>` +
+    `<path d="M3 18.8l2 1.4v-1.4z M29 18.8l-2 1.4v-1.4z" fill="#5e070d"/>` +
+    label + `</g>` +
+    `</svg></span>`;
+}
+
 function ntSetFilter(f) {
   _ntFilter = f === 'unread' ? 'unread' : 'all';
   _ntRenderList();
@@ -225,7 +276,8 @@ function _ntRenderList() {
     html += `<div class="nt-item${x.read ? '' : ' nt-unread'}${hasList ? ' nt-has-list' : ''}" style="--nt-i:${i++}">` +
       // The tone class sits on the row so the tile and the category label share it
       `<button type="button" class="nt-row nt-tone-${esc(tone)}" onclick="ntOpenItem('${esc(x.id)}')">` +
-      `<span class="nt-tile" aria-hidden="true">${k.emoji}</span>` +
+      // emoji is a string, or a function of the stored params (certifications pick by tier)
+      `<span class="nt-tile" aria-hidden="true">${typeof k.emoji === 'function' ? k.emoji(p) : k.emoji}${_ntSealHtml(k, p)}</span>` +
       `<span class="nt-main">` +
       `<span class="nt-meta"><span class="nt-cat">${esc(t('nt_cat_' + k.cat))}</span><span class="nt-time">${esc(ntAgo(x.at))}</span></span>` +
       `<span class="nt-text">${esc(k.text(p))}</span>` +
@@ -358,6 +410,8 @@ function ntFollow(link) {
   if (link.tab === 'records' && link.view) { _ntOpenRecord(link); return; }
   // A Board post
   if (link.tab === 'board' && link.post && window.dcBoard) { window.dcBoard.openFromLink(link.post); return; }
+  // A year's awards: its ballot, or (ceremony) the ceremony itself
+  if (link.tab === 'awards' && link.year) { _ntOpenAwards(+link.year, !!link.ceremony); return; }
   // A certified song or album: its own window, over whatever is on screen.
   // Needs the plays loaded; before that (or if it's gone from the library
   // since) the window would be empty, so go to Records instead.
@@ -395,6 +449,7 @@ async function ntWatch() {
     if (typeof _apAllowed === 'function' && _apAllowed() && allPlays && allPlays.length) {
       await _ntWatchSoundtrack();
       await _ntWatchCerts();
+      await _ntWatchAwards();
       _ntRecordsCheck();   // reads Records now if built, else builds it later in idle time
       // Smart playlists with their bell on (smartplaylists.js)
       if (typeof spNotifyWatch === 'function') await spNotifyWatch();
@@ -470,6 +525,134 @@ async function _ntWatchCerts() {
     dcNotify({ kind: 'cert_new', type: c.type, title: c.title, artist: c.artist, tier: c.tier, mult: c.mult,
                link: { tab: 'cert', type: c.type, key: c.key } });
   }
+}
+
+/* ─── Awards (2026-11-09) ─────────────────────────────────────────────────
+   Two notifications per year of My Grammys:
+     aw_open  — the year's awards period has ended (the day after its
+                eligibility window ends, so a custom window like Oct–Sep is
+                followed), time to pick nominees. Skipped when the ballot is
+                already finished, or nothing was played in the window.
+     aw_ready — every switched-on category has a winner, so the ceremony is
+                ready to watch. Told the moment the last winner is picked
+                (ntAwardsSaved, called from _awardsSave in app.js) and by the
+                watcher, for a ballot finished on another device.
+   Kept in notifyState: awOpen (newest year told as open) and awReady (years
+   told as ready), so each is told once across all devices, and removing a
+   winner and picking again doesn't tell it twice. The watcher only looks at
+   last year and this year; picking winners tells any year (older ones too). Works for every data source: it reads the ballot and
+   the loaded plays. */
+
+// A year's ballot without touching the Awards tab's own copy: the one in
+// memory if the tab loaded it, else the newer of the device and cloud copies
+// (the same rule _awardsLoad uses), else the default calendar-year ballot.
+async function _ntAwardsBallot(year) {
+  if (_awardsYearData[year]) return _awardsYearData[year];
+  const remote = (typeof dcLoadAwards === 'function') ? await dcLoadAwards(year) : null;
+  const local = _awardsReadLocal(year);
+  const pick = (local && remote) ? ((local.savedAt || 0) > (remote.savedAt || 0) ? local : remote) : (local || remote);
+  return pick ? _awardsFillCats(JSON.parse(JSON.stringify(pick))) : _awardsDefaultData(year);
+}
+
+// Every switched-on category has a winner (and at least one is switched on)
+function _ntAwardsDone(data) {
+  if (!data || !data.categories) return false;
+  const on = AWARD_CATEGORIES.filter(c => data.categories[c.id]?.enabled ?? c.defaultOn);
+  return on.length > 0 && on.every(c => !!data.categories[c.id]?.winner);
+}
+
+// Anything played inside the year's window? (allPlays holds Date objects)
+function _ntAwardsHasPlays(data) {
+  const s = new Date(data.eligStart + 'T00:00:00'), e = new Date(data.eligEnd + 'T23:59:59');
+  return allPlays.some(p => p.date >= s && p.date <= e);
+}
+
+async function _ntWatchAwards() {
+  if (typeof AWARD_CATEGORIES === 'undefined') return;
+  const thisYear = tzNow().getFullYear();
+  const today = localDateStr(tzNow());
+  const opened = [], done = [];   // years whose window has ended (with plays) / whose ballot is finished
+  const ended = {};               // year → the day its window ended, for the first run
+  for (const y of [thisYear - 1, thisYear]) {
+    const data = await _ntAwardsBallot(y);
+    if (!data || !data.eligEnd) continue;
+    if (_ntAwardsDone(data)) { done.push(y); continue; }
+    if (data.eligEnd < today && _ntAwardsHasPlays(data)) { opened.push(y); ended[y] = data.eligEnd; }
+  }
+  const out = await dcUpdateNotifyState(cur => {
+    const state = Object.assign({}, cur);
+    const tell = { open: [], ready: [] };
+    let changed = false;
+    // Open: the first run only tells a window that ended in the last 30 days
+    // (no back-fill), then notes the newest ended year as told
+    if (typeof cur.awOpen !== 'number') {
+      const recent = dyShift(today, -30);
+      tell.open = opened.filter(y => ended[y] >= recent);
+      state.awOpen = Math.max(thisYear - 2, ...opened, ...done);
+      changed = true;
+    } else {
+      tell.open = opened.filter(y => y > cur.awOpen);
+      if (tell.open.length) { state.awOpen = Math.max(cur.awOpen, ...tell.open); changed = true; }
+    }
+    // Ready: the first run notes the finished ballots without telling them
+    if (!Array.isArray(cur.awReady)) {
+      state.awReady = done.slice();
+      changed = true;
+    } else {
+      tell.ready = done.filter(y => !cur.awReady.includes(y));
+      if (tell.ready.length) { state.awReady = cur.awReady.concat(tell.ready).slice(-20); changed = true; }
+    }
+    return { state: changed ? state : null, out: tell };
+  });
+  if (!out || typeof out !== 'object') return;
+  for (const y of out.open) dcNotify({ kind: 'aw_open', year: y, link: { tab: 'awards', year: y } });
+  for (const y of out.ready) {
+    _ntAwReadyTold.add(y);
+    dcNotify({ kind: 'aw_ready', year: y, link: { tab: 'awards', year: y, ceremony: true } });
+  }
+}
+
+/* Called by _awardsSave (app.js) after every change to a ballot, for any
+   year — an older year finished only now is told too. It tells only when
+   this change is what finished the ballot (it wasn't finished just before),
+   so editing an old ballot that was finished long ago tells nothing. Then it
+   asks the account whether that year was told already. */
+const _ntAwReadyTold = new Set();   // years told (or known told) this visit
+const _ntAwWasDone = {};            // year → finished as of the last save seen
+async function ntAwardsSaved(year) {
+  year = +year;
+  const data = _awardsYearData[year];
+  // Finished before this change? The last save seen this visit, else the copy
+  // the cloud held before it (_awardsSave hasn't replaced that yet; read
+  // synchronously, before anything here waits)
+  const was = (year in _ntAwWasDone) ? _ntAwWasDone[year]
+    : (typeof _awardsGetBase === 'function' && _ntAwardsDone(_awardsGetBase(year)));
+  const now = _ntAwardsDone(data);
+  _ntAwWasDone[year] = now;
+  if (was || !now || _ntAwReadyTold.has(year)) return;
+  if (typeof _apAllowed !== 'function' || !_apAllowed()) return;
+  _ntAwReadyTold.add(year);
+  const tell = await dcUpdateNotifyState(cur => {
+    const told = Array.isArray(cur.awReady) ? cur.awReady : [];
+    if (told.includes(year)) return { state: null, out: false };
+    return { state: Object.assign({}, cur, { awReady: told.concat([year]).slice(-20) }), out: true };
+  });
+  if (tell === true) dcNotify({ kind: 'aw_ready', year, link: { tab: 'awards', year, ceremony: true } });
+  // Couldn't save: try again on the next save
+  else if (tell === 'error') { _ntAwReadyTold.delete(year); _ntAwWasDone[year] = false; }
+}
+
+// Awards → My Grammys on that year (the same way awOpenCeremony goes there),
+// then the ceremony on top when asked
+async function _ntOpenAwards(year, ceremony) {
+  _awardsRememberYear('mygrammys', year);
+  _awardsYear = year;
+  _awardsSubTab = 'mygrammys';
+  if (currentPeriod === 'awards') awardsSubTab('mygrammys');
+  else dcGoTab('awards');
+  if (!ceremony) return;
+  await _awardsLoad(year);
+  if (typeof startAwardsCeremony === 'function') startAwardsCeremony();
 }
 
 /* Replies from other people, and status changes, on the user's own Board
