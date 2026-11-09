@@ -197,6 +197,11 @@ groups, sort + order, size, songs per artist, Keeps updating / Save once
 it turns it into a normal one). Live count, sentence and first 8 songs.
 Fields the library can't use are greyed with "(needs …)". Editing a
 ready-made list keeps its id but drops its picker (readyEdited).
+Step 6 done 2026-11-09. Rule "Playlist has the song / doesn't have the song"
+(field inList) points at any playlist: normal, automatic or smart (a smart
+one is read as its current songs). Refreshing a list refreshes the smart
+lists it reads first; loops (itself, or round a chain) are refused on Save;
+renaming a playlist renames it in every rule; a deleted one reads as empty.
 
 1. **Engine: song facts + rules.** smartplaylists.js with `spSongFacts()`
    (basics, plays, first/last played, ratings, genres, certs) and

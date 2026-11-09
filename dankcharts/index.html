@@ -33,7 +33,7 @@
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=360"></script>
+  <script defer src="translations.js?v=361"></script>
   <!-- Only the visitor's own language is downloaded (translations.js holds
        English). This writes a defer tag for the saved language right here, so
        it runs straight after translations.js and before app.js, and the page
@@ -41,7 +41,7 @@
        whenever translations.es / pt-BR / pt-PT .js change (setup-guide.html
        has the same line). -->
   <script>
-    window.DC_I18N_V = 50;
+    window.DC_I18N_V = 51;
     (function () {
       try {
         var l = localStorage.getItem('dankcharts-lang');
@@ -4458,7 +4458,7 @@
   <!-- Automatic chart playlists: a finished period's chart → a playlist (SCHEDULED-PLAYLISTS-PLAN.md); reads app.js + daily.js -->
   <script defer src="autoplaylists.js?v=5"></script>
   <!-- Smart playlists: playlists built from saved rules (SMART-PLAYLISTS-PLAN.md); reads app.js -->
-  <script defer src="smartplaylists.js?v=9"></script>
+  <script defer src="smartplaylists.js?v=10"></script>
   <!-- Notifications under the profile picture (any feature calls dcNotify); reads app.js + firebase.js -->
   <script defer src="notifications.js?v=9"></script>
   <!-- The Stats page's tabs, Overview, Story, Games and Compare (phase 15); reads app.js globals -->

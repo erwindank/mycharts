@@ -295,6 +295,11 @@ const SP_OPS = {
     isNot: (x, v) => !(Array.isArray(v) ? v : [v]).includes(x)
     // gte / lte are added per field in _spTest, since they need the field's order
   },
+  // In / not in one of the user's playlists (step 6). x is the song's key.
+  pl: {
+    in:    (k, v) => _spPlSet(v).has(k),
+    notIn: (k, v) => !_spPlSet(v).has(k)
+  },
   // Yes/no facts ("has charted", "is the artist's most-played song")
   bool: {
     is: (x, v) => x === (v === true || v === 'true' || v === 1)
@@ -431,6 +436,8 @@ function spRun(list, opts) {
   // Ratings can change between runs without the plays changing, so the
   // average rating (step 2's aboveAvg) is worked out fresh every run
   _spAvgRating = null;
+  // Playlists can change between runs too (step 6)
+  _spPlSets = new Map();
 
   // Which "needs" this library can't meet, so those rules are skipped
   const skip = new Set();
@@ -811,6 +818,15 @@ function spCreate(name, def) {
 function spRefresh(name, save) {
   const def = spGet(name);
   if (!def || !allPlays || !allPlays.length) return false;
+  // Smart lists this one's rules read go first, so it sees their current
+  // songs (step 6). _spRefreshing stops a loop from going round forever.
+  if (_spRefreshing.has(name)) return false;
+  _spRefreshing.add(name);
+  let depChanged = false;
+  try {
+    for (const dep of spDeps(def)) if (spIsSmart(dep) && spRefresh(dep, false)) depChanged = true;
+  } finally { _spRefreshing.delete(name); }
+  if (depChanged && save !== false && typeof _ytSavePlaylists === 'function') _ytSavePlaylists();
   const res = spRun(_spCapped(def));
   const tracks = res.songs.map(s => ({ title: s.title, artist: s.artist, album: s.album || '' }));
   const old = _ytPlaylists[name];
@@ -858,7 +874,13 @@ function spOnDelete(name) {
 
 // app.js: a playlist was renamed → its rules follow it
 function spOnRename(oldName, newName) {
-  if (!spIsSmart(oldName) || oldName === newName) return;
+  if (oldName === newName) return;
+  // Rules that point at the renamed playlist follow it (step 6)
+  let refs = false;
+  for (const n of spNames()) {
+    if (_spRenameRefs(_spStore.lists[n], oldName, newName)) { _spStore.modified[n] = Date.now(); refs = true; }
+  }
+  if (!spIsSmart(oldName)) { if (refs) _spSave(); return; }
   _spStore.lists[newName] = _spStore.lists[oldName];
   delete _spStore.lists[oldName];
   delete _spStore.modified[oldName];
@@ -966,6 +988,8 @@ function _spNum(id, v) {
 function _spDescRule(r) {
   const f = SP_FIELDS[r.f];
   if (!f) return '';
+  // "in the playlist “Gym”" (step 6)
+  if (f.kind === 'pl') return t('sp_o_p_' + (r.op === 'notIn' ? 'notIn' : 'in'), { v: String(r.v || '') });
   if (f.kind === 'bool') {
     const yes = r.v === true || r.v === 'true' || r.v === 1;
     return t('sp_b_' + r.f + (yes ? '_yes' : '_no'), f.chart ? _spChWords(r) : undefined);
@@ -1294,7 +1318,8 @@ const SP_B_GROUPS = [
   ['charts',   ['charted', 'peak', 'wks', 'at1', 'debut', 'climb', 'runs', 'longest', 'toPeak', 'at1At', 'peakAt']],
   ['habits',   ['night', 'weekend', 'topHour', 'topDay']],
   ['compared', ['rankAll', 'topPct', 'artistBest', 'artistShare', 'artistPlays', 'artistSongs', 'albumPlays', 'albumRank', 'albumTop']],
-  ['ratings',  ['rating', 'aboveAvg', 'cert']]
+  ['ratings',  ['rating', 'aboveAvg', 'cert']],
+  ['lists',    ['inList']]
 ];
 
 // The conditions each kind of field offers, in order
@@ -1306,7 +1331,8 @@ const SP_B_OPS = {
   list:   ['has', 'hasNot'],
   enum:   ['is', 'isNot'],
   enumOrd:['is', 'isNot', 'gte', 'lte'],
-  bool:   ['yes', 'no']                                // stored as op 'is', v true / false
+  bool:   ['yes', 'no'],                               // stored as op 'is', v true / false
+  pl:     ['in', 'notIn']
 };
 
 let _spB = null;   // { orig: name being edited or null, name, def, mode: 'live'|'once', err }
@@ -1344,6 +1370,7 @@ function _spBNewRule(id) {
   else if (f.kind === 'list') { r.op = 'has'; r.v = ''; }
   else if (f.kind === 'enum') { r.op = f.ordered ? 'gte' : 'is'; r.v = f.values[f.ordered ? 1 : 0]; }
   else if (f.kind === 'bool') { r.op = 'is'; r.v = true; }
+  else if (f.kind === 'pl') { r.op = 'in'; r.v = _spBOtherLists()[0] || ''; }
   return r;
 }
 
@@ -1477,7 +1504,22 @@ function _spBValueHtml(r) {
     return `<select class="dc-input spb-small" data-k="v" aria-label="${esc(t('sp_b_value'))}">` +
       f.values.map(x => _spBOpt(x, _spEnumWord(r.f, x), String(x) === String(v))).join('') + `</select>`;
   }
+  if (f.kind === 'pl') {
+    // The user's other playlists; a smart one is marked ✨. A playlist that
+    // was deleted since stays in the list so the rule still shows it.
+    const names = _spBOtherLists();
+    if (v && !names.includes(v)) names.unshift(v);
+    if (!names.length) return `<span class="spb-unit">${esc(t('sp_b_no_lists'))}</span>`;
+    return `<select class="dc-input spb-text" data-k="v" aria-label="${esc(t('sp_b_value'))}">` +
+      names.map(n => _spBOpt(n, (spIsSmart(n) ? '✨ ' : '') + n + (_ytPlaylists[n] ? '' : ' ' + t('sp_b_gone')), n === v)).join('') + `</select>`;
+  }
   return '';
+}
+
+// Every playlist a rule can point at: all of them except the one being edited
+function _spBOtherLists() {
+  const me = _spB && _spB.orig;
+  return Object.keys(_ytPlaylists).filter(n => n !== me).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }));
 }
 
 // The condition picker
@@ -1485,7 +1527,7 @@ function _spBOpHtml(r) {
   const f = SP_FIELDS[r.f];
   if (!f) return '';
   const ops = _spBOpsFor(r.f);
-  const kindKey = f.kind === 'number' ? (f.lowFirst ? 'rank' : 'n') : f.kind === 'date' ? 'd' : f.kind === 'text' ? 't' : f.kind === 'list' ? 'l' : f.kind === 'enum' ? 'e' : 'b';
+  const kindKey = f.kind === 'number' ? (f.lowFirst ? 'rank' : 'n') : f.kind === 'date' ? 'd' : f.kind === 'text' ? 't' : f.kind === 'list' ? 'l' : f.kind === 'enum' ? 'e' : f.kind === 'pl' ? 'p' : 'b';
   const cur = f.kind === 'bool' ? ((r.v === true || r.v === 'true') ? 'yes' : 'no') : r.op;
   return `<select class="dc-input spb-small" data-k="op" aria-label="${esc(t('sp_b_condition'))}">` +
     ops.map(o => _spBOpt(o, t('sp_bo_' + kindKey + '_' + o), o === cur)).join('') + `</select>`;
@@ -1732,6 +1774,8 @@ function spSaveBuilder() {
   // Another playlist already has the name (renaming onto itself is fine)
   if (name !== _spB.orig && _ytPlaylists[name]) return fail('sp_b_err_taken');
   const def = JSON.parse(JSON.stringify(_spB.def));
+  // A smart list can't read itself, directly or through other smart lists
+  if (spMakesLoop(name, def, _spB.orig)) return fail('sp_b_err_loop');
   // A ready-made list that's been changed keeps its id (so it isn't offered
   // again) but loses its picker, which would rebuild the old rules
   if (_spB.orig) {
@@ -1832,4 +1876,74 @@ function _spFixReadyNames() {
     while (_ytPlaylists[target] || spIsSmart(target)) target = fresh + ' ' + n++;
     _dcPlDoRename(name, target);
   }
+}
+
+
+/* ===========================================================================
+   STEP 6: RULES ABOUT OTHER PLAYLISTS
+
+   "In playlist" / "not in playlist" point at any of the user's playlists:
+   normal ones, automatic chart ones, other smart ones. A smart list reads
+   another smart list's current songs, so:
+     • refreshing a list refreshes the smart lists it reads first (spRefresh)
+     • a list can't read itself, directly or round a loop (spMakesLoop)
+     • renaming a playlist renames it in every rule that points at it
+   A rule pointing at a playlist that's been deleted reads it as empty:
+   "in it" matches nothing, "not in it" matches everything.
+   =========================================================================== */
+
+let _spPlSets = new Map();      // playlist name → Set of song keys, per run
+const _spRefreshing = new Set(); // lists being refreshed right now (loop guard)
+
+// A playlist's songs as song keys (the same title|||artist form as songKey)
+function _spPlSet(name) {
+  let set = _spPlSets.get(name);
+  if (set) return set;
+  set = new Set();
+  for (const tr of (_ytPlaylists[name] || [])) {
+    set.add(String(tr.title || '').toLowerCase().trim() + '|||' + String(tr.artist || '').toLowerCase().trim());
+  }
+  _spPlSets.set(name, set);
+  return set;
+}
+
+spAddField('inList', { kind: 'pl', get: s => s.key });
+
+// The playlists a rule set reads, nested groups included
+function spDeps(def, out) {
+  out = out || new Set();
+  for (const r of ((def && def.rules) || [])) {
+    if (r.rules) spDeps(r, out);
+    else if (r.f === 'inList' && r.v) out.add(r.v);
+  }
+  return out;
+}
+
+/* Would saving `def` under `name` make a loop? It would if the rules read
+   `name` itself, or a smart list that (through any chain) reads `name`.
+   `orig` is the list's old name when it's being renamed: other lists may
+   still point at the old name, which becomes this list too. */
+function spMakesLoop(name, def, orig) {
+  const me = new Set([name, orig].filter(Boolean));
+  const seen = new Set();
+  const walk = deps => {
+    for (const d of deps) {
+      if (me.has(d)) return true;
+      if (seen.has(d) || !spIsSmart(d)) continue;
+      seen.add(d);
+      if (walk(spDeps(spGet(d)))) return true;
+    }
+    return false;
+  };
+  return walk(spDeps(def));
+}
+
+// Renames a playlist inside one rule set; true when something changed
+function _spRenameRefs(def, oldName, newName) {
+  let hit = false;
+  for (const r of ((def && def.rules) || [])) {
+    if (r.rules) { if (_spRenameRefs(r, oldName, newName)) hit = true; }
+    else if (r.f === 'inList' && r.v === oldName) { r.v = newName; hit = true; }
+  }
+  return hit;
 }
