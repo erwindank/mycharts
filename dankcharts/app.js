@@ -31966,10 +31966,14 @@ window.dcResetCertTimeline = () => { _certTimeline = null; };
 function _dcCertTlReset() { try { _certTimeline = null; } catch (e) {} }
 
 function buildCertTimeline() {
-  const items = {};
+  /* Songs and albums keep separate lists: a song key (lower-cased
+     "title|||artist") can equal an album key ("album|||artist") when a
+     release is named after its song, and sharing one list then handed the
+     album the song's entry, which has no ladder (_cfg) → crash on .diamond. */
+  const songItems = {}, albumItems = {};
   // allPlays runs newest → oldest; a certification is about the order plays
   // arrived, so this walks it backwards into chronological order.
-  const touch = function (key, p, kind, cfg, meta) {
+  const touch = function (items, key, p, kind, cfg, meta) {
     let it = items[key];
     if (!it) it = items[key] = Object.assign({ kind, key, first: p.date, plays: 0, events: [] }, meta);
     const n = ++it.plays;
@@ -31984,7 +31988,7 @@ function buildCertTimeline() {
 
   for (let i = allPlays.length - 1; i >= 0; i--) {
     const p = allPlays[i];
-    touch(songKey(p), p, 'song', CERT.song, {
+    touch(songItems, songKey(p), p, 'song', CERT.song, {
       title: p.title, artist: p.artist,
       album: (p.album && p.album !== '—') ? p.album : ''
     });
@@ -31996,17 +32000,17 @@ function buildCertTimeline() {
          thresholds, the same as Records (was always the album ladder here, so
          a single's notification and shelf plaque came late or never).
          Worked out once per release, on its first play. */
-      if (!items[ak]) {
+      if (!albumItems[ak]) {
         const kind = certKindFor(p.album, aa);
-        touch(ak, p, 'album', CERT[kind] || CERT.album, { title: p.album, artist: aa, album: '', rtype: certReleaseLabelType(p.album, aa), _cfg: CERT[kind] || CERT.album });
-      } else touch(ak, p, 'album', items[ak]._cfg, null);
+        touch(albumItems, ak, p, 'album', CERT[kind] || CERT.album, { title: p.album, artist: aa, album: '', rtype: certReleaseLabelType(p.album, aa), _cfg: CERT[kind] || CERT.album });
+      } else touch(albumItems, ak, p, 'album', albumItems[ak]._cfg, null);
     }
   }
 
   /* Flattened to one entry per plaque, in the wall's own vocabulary: the event
      history says 'plat', every plaque downstream says 'platinum'. */
   const out = [];
-  for (const it of Object.values(items)) {
+  for (const it of Object.values(songItems).concat(Object.values(albumItems))) {
     it.events.forEach(function (ev, i) {
       out.push({
         type: it.kind, title: it.title, artist: it.artist, album: it.album,
