@@ -710,6 +710,15 @@ const TRANSLATIONS = {
     wc_week_of: "Week of {{date}}",
     wc_day_of: "{{date}}",
     wc_with: "with {{names}}",
+    // World Charts step 4: column labels, the #1 tag, the debut shown on hover
+    wc_col_streams: "Streams",
+    wc_col_change: "Change",
+    wc_col_days: "Days",
+    wc_col_views: "Views",
+    wc_col_likes: "Likes",
+    wc_at_one: "{{n}} wks at #1",
+    wc_at_one_days: "{{n}} days at #1",
+    wc_debut: "Debuted at #{{pos}} on {{date}}",
     wc_show_all: "Show all {{n}}",
     // The Dank 100 (dank100.js)
     nav_dank100: "The Dank 100",

@@ -82,7 +82,7 @@ browser ──▶ /world-charts?chart=hot-100   (Cloudflare Function, dankcharts
 - Loading, error and "stale copy" states.
 - Translations: EN in translations.js, ES/PT in translations.<lang>.js (bump DC_I18N_V).
 
-### 4. The chart list
+### 4. The chart list — done 2026-11-09 (reuses the Dank 100 row classes; ▶/Spotify/YouTube buttons left for step 7)
 - Rows in the site's chart look: rank, movement arrow (up / down / NEW / RE),
   cover, title, artist, and the source's numbers (weeks, peak, streams, views).
 - First 50 rows, then *Show all* (same as the Dank 100).

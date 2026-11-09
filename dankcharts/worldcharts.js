@@ -10,10 +10,12 @@
      GET /world-charts?chart=<id>        → one chart (see the function's header
                                            comment for every field)
 
-   Step 3 (this file's first version): the tab itself. The chart buttons,
-   loading / error / "old copy" states, and a plain list of the rows.
-   Step 4 gives the rows the site's chart look, step 5 adds "your plays" on every
-   row, and step 6 adds past weeks for Billboard.
+   Step 3: the tab itself. The chart buttons and the loading / error /
+   "old copy" states.
+   Step 4: the rows in the site's chart look, reusing The Dank 100's row
+   classes (d100-li / d100-row / d100-art …) with wc-* additions for the
+   per-source number columns.
+   Step 5 adds "your plays" on every row, and step 6 adds past weeks for Billboard.
 
    The tab needs no sign-in and no data source: it only shows public charts.
    That's why #worldchartsView sits outside #mainApp, like the Dank 100 and the
@@ -144,21 +146,160 @@
       '" target="_blank" rel="noopener">' + esc(d.source) + '</a>' + (when ? ' · ' + esc(when) : '') + '</p>';
   }
 
-  // Plain rows for now. Step 4 replaces this with the site's chart look.
+  // ── Step 4: the rows in the site's chart look ──
+  // Same layout as The Dank 100's rows: position | move badge | cover |
+  // title + artist | the chart's own numbers. Which numbers depends on the
+  // source, so each source has a column set:
+  //   billboard: Last wk | Peak | Weeks
+  //   spotify:   Streams | Change | Peak | Days or Weeks
+  //   youtube:   Views | Likes
+  // On phones only the first column marked `phone` stays, written short (5.1M).
+  function colsFor(d) {
+    var brand = brandOf(d.chart);
+    if (brand === 'billboard') return [
+      { key: 'd100_col_lw', val: function (r) { return r.last || '–'; } },
+      { key: 'd100_col_pk', val: function (r) { return r.peak; } },
+      { key: 'd100_col_wk', val: function (r) { return r.onChart; }, phone: true }
+    ];
+    if (brand === 'spotify') return [
+      { key: 'wc_col_streams', val: function (r) { return fmtNum(r.streams); }, short: function (r) { return fmtShort(r.streams); }, phone: true, wide: true },
+      { key: 'wc_col_change', val: changeHTML, html: true },
+      { key: 'd100_col_pk', val: function (r) { return r.peak; } },
+      { key: d.period === 'day' ? 'wc_col_days' : 'd100_col_wk', val: function (r) { return r.onChart; } }
+    ];
+    return [
+      { key: 'wc_col_views', val: function (r) { return fmtNum(r.views); }, short: function (r) { return fmtShort(r.views); }, phone: true, wide: true },
+      { key: 'wc_col_likes', val: function (r) { return fmtNum(r.likes); }, wide: true }
+    ];
+  }
+
+  // 5,075,633 → "5.1M" (in the site language's own short form)
+  function fmtShort(n) {
+    if (n == null) return '';
+    try { return new Intl.NumberFormat(locale(), { notation: 'compact', maximumFractionDigits: 1 }).format(n); }
+    catch (e) { return fmtNum(n); }
+  }
+  // Spotify's stream change since the day / week before, coloured up or down
+  function changeHTML(r) {
+    var c = r.streamsChange;
+    if (c == null || r.status) return '<span class="wc-chg">–</span>';
+    var up = c >= 0;
+    return '<span class="wc-chg wc-chg--' + (up ? 'up' : 'down') + '">' + (up ? '+' : '−') + esc(fmtShort(Math.abs(c))) + '</span>';
+  }
+
+  // ▲3 / ▼2 / = / NEW / RE, the same badges as The Dank 100
+  function moveHTML(r, d) {
+    if (r.status === 'new') return '<span class="d100-mv d100-mv-new">' + esc(tr(d.kind === 'albums' ? 'badge_new' : 'badge_new_songs')) + '</span>';
+    if (r.status === 're') return '<span class="d100-mv d100-mv-re">' + esc(tr('badge_re')) + '</span>';
+    if (r.last == null) return '';
+    var diff = r.last - r.rank;
+    if (!diff) return '<span class="d100-mv d100-mv-same" aria-label="=">=</span>';
+    return '<span class="d100-mv ' + (diff > 0 ? 'd100-mv-up">▲' : 'd100-mv-down">▼') + Math.abs(diff) + '</span>';
+  }
+
+  function initials(s) {
+    return String(s || '').split(/\s+/).filter(Boolean).slice(0, 2).map(function (w) { return w[0]; }).join('').toUpperCase() || '♪';
+  }
+
+  // The cover. Billboard sends its own, and for YouTube the video's thumbnail
+  // is the cover. Anything else (Spotify rows, Billboard rows with no cover)
+  // is looked up lazily the same way the rest of the site finds artwork
+  // (getArtAuto in app.js), once the row scrolls near the screen.
+  function artHTML(r, d) {
+    var src = r.image || (r.videoId ? 'https://i.ytimg.com/vi/' + r.videoId + '/mqdefault.jpg' : '');
+    var h = '<span class="d100-art wc-art' + (r.videoId ? ' wc-art--video' : '') + '"';
+    if (!src) h += ' data-art="' + (d.kind === 'albums' ? 'album' : 'song') + '" data-t="' + esc(r.title) + '" data-a="' + esc(r.artist || '') + '"';
+    h += '><span class="d100-art-ini" aria-hidden="true">' + esc(initials(r.title)) + '</span>';
+    if (src) h += '<img src="' + esc(src) + '" alt="" loading="lazy" decoding="async" onload="this.parentNode.classList.add(\'has-img\')">';
+    return h + '</span>';
+  }
+
+  // Billboard rows say where they first charted: shown on hover
+  function debutTitle(r) {
+    if (!r.debutPos || !r.debutDate) return '';
+    return tr('wc_debut', { pos: r.debutPos, date: fmtDate(r.debutDate) });
+  }
+
+  function rowHTML(r, d, cols) {
+    var sub = r.artist || '';
+    if (r.feat && r.feat.length) sub += ' ' + tr('wc_with', { names: r.feat.join(', ') });
+    // The #1 row says how long it has been there (Billboard: weeks at #1;
+    // Spotify: days or weeks at its peak, which for #1 is #1)
+    var atOne = r.rank === 1 && r.peak === 1 && r.atPeak > 1
+      ? '<span class="wc-at1">' + esc(tr(d.period === 'day' ? 'wc_at_one_days' : 'wc_at_one', { n: r.atPeak })) + '</span>' : '';
+    var tip = debutTitle(r);
+    var h = '<li class="d100-li wc-li' + (r.rank === 1 ? ' d100-row-1' : '') + '"' + (tip ? ' title="' + esc(tip) + '"' : '') + '>';
+    h += '<div class="d100-row wc-row">';
+    h += '<span class="d100-pos">' + r.rank + '</span>';
+    h += '<span class="d100-move">' + moveHTML(r, d) + '</span>';
+    h += artHTML(r, d);
+    h += '<span class="d100-name"><span class="d100-t">' + esc(r.title) + atOne + '</span>' +
+      (sub ? '<span class="d100-a">' + esc(sub) + '</span>' : '') + '</span>';
+    cols.forEach(function (c) {
+      var v = c.val(r);
+      h += '<span class="d100-num wc-num' + (c.phone ? ' wc-num--phone' : '') + '">' +
+        (c.html ? v : (c.short ? '<span class="wc-full">' + esc(v) + '</span><span class="wc-short">' + esc(c.short(r)) + '</span>' : esc(v))) +
+        '</span>';
+    });
+    h += '</div></li>';
+    return h;
+  }
+
   function listHTML(d) {
     var rows = S.all ? d.rows : d.rows.slice(0, STEP);
-    var h = '<ol class="wc-list">' + rows.map(function (r) {
-      var sub = r.artist || '';
-      if (r.feat && r.feat.length) sub += ' ' + tr('wc_with', { names: r.feat.join(', ') });
-      return '<li class="wc-row"><span class="wc-rank">' + r.rank + '</span>' +
-        '<span class="wc-text"><span class="wc-t">' + esc(r.title) + '</span>' +
-        (sub ? '<span class="wc-a">' + esc(sub) + '</span>' : '') + '</span></li>';
-    }).join('') + '</ol>';
+    var cols = colsFor(d);
+    var brand = brandOf(d.chart);
+    // The column labels, lined up with the numbers below them
+    var h = '<div class="d100-cols wc-cols" aria-hidden="true"><span></span><span></span><span></span><span></span>' +
+      cols.map(function (c) { return '<span class="wc-num' + (c.phone ? ' wc-num--phone' : '') + '">' + esc(tr(c.key)) + '</span>'; }).join('') + '</div>';
+    h += '<ol class="d100-list wc-list wc-list--' + brand + '">' + rows.map(function (r) { return rowHTML(r, d, cols); }).join('') + '</ol>';
     if (d.rows.length > rows.length) {
       h += '<button type="button" class="dc-btn dc-btn-normal wc-more" onclick="dcWorldCharts.showAll()">' +
         esc(tr('wc_show_all', { n: d.rows.length })) + '</button>';
     }
     return h;
+  }
+
+  // ── Lazy covers (rows with no picture of their own) ──
+  var _artCache = {};     // "song|title|artist" -> url, null, or a pending promise
+  var _artObs = null;
+  function paintArt(el, url) {
+    if (!url || el.querySelector('img')) return;
+    var img = new Image();
+    img.alt = '';
+    img.decoding = 'async';
+    img.onload = function () { el.classList.add('has-img'); };
+    img.src = typeof sizedArtUrl === 'function' ? sizedArtUrl(url, 96) : url;
+    el.appendChild(img);
+  }
+  function loadArt(el) {
+    var type = el.getAttribute('data-art'), t = el.getAttribute('data-t'), a = el.getAttribute('data-a');
+    var key = type + '|' + t + '|' + a;
+    if (key in _artCache) {
+      var c = _artCache[key];
+      if (c && typeof c.then === 'function') c.then(function (u) { paintArt(el, u); });
+      else paintArt(el, c);
+      return;
+    }
+    if (typeof getArtAuto !== 'function') return;
+    var p = (type === 'album' ? getArtAuto('album', t, a, t) : getArtAuto('song', t, a))
+      .catch(function () { return null; });
+    _artCache[key] = p;
+    p.then(function (u) { _artCache[key] = u || null; paintArt(el, u); });
+  }
+  function observeArt(root) {
+    if (_artObs) _artObs.disconnect();
+    var els = root.querySelectorAll('.wc-art[data-art]');
+    if (!els.length) return;
+    if (!('IntersectionObserver' in window)) { Array.prototype.forEach.call(els, loadArt); return; }
+    _artObs = new IntersectionObserver(function (list) {
+      list.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        _artObs.unobserve(en.target);
+        loadArt(en.target);
+      });
+    }, { rootMargin: '200px' });
+    Array.prototype.forEach.call(els, function (el) { _artObs.observe(el); });
   }
 
   function bodyHTML() {
@@ -171,8 +312,8 @@
     if (!d) {
       // Loading: a few grey rows, so the page doesn't jump when the chart lands
       var sk = '';
-      for (var i = 0; i < 8; i++) sk += '<li class="wc-row wc-row--sk"><span class="wc-rank"></span><span class="wc-text"><span class="wc-t"></span><span class="wc-a"></span></span></li>';
-      return '<p class="wc-source wc-source--sk">' + esc(tr('wc_loading')) + '</p><ol class="wc-list" aria-hidden="true">' + sk + '</ol>';
+      for (var i = 0; i < 8; i++) sk += '<li class="wc-sk"><span class="wc-sk-rank"></span><span class="wc-sk-art"></span><span class="wc-sk-text"><span class="wc-sk-t"></span><span class="wc-sk-a"></span></span></li>';
+      return '<p class="wc-source">' + esc(tr('wc_loading')) + '</p><ol class="wc-sk-list" aria-hidden="true">' + sk + '</ol>';
     }
     return statusHTML(d) + sourceHTML(d) + listHTML(d);
   }
@@ -194,6 +335,13 @@
     var root = document.getElementById('worldchartsView');
     if (!root || !S.active) return;
     root.innerHTML = viewHTML();
+    observeArt(root);
+    // Phones: the chart buttons scroll sideways, so bring the chosen one into
+    // view (only the button row scrolls, never the page)
+    var menu = root.querySelector('.wc-menu'), on = menu && menu.querySelector('.wc-pick.active');
+    if (on && menu.scrollWidth > menu.clientWidth) {
+      menu.scrollLeft = Math.max(0, on.offsetLeft - menu.offsetLeft - (menu.clientWidth - on.offsetWidth) / 2);
+    }
   }
 
   // ── Actions ──

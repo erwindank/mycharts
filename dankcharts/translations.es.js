@@ -670,6 +670,15 @@ TRANSLATIONS['es'] = Object.assign({
     wc_week_of: "Semana del {{date}}",
     wc_day_of: "{{date}}",
     wc_with: "con {{names}}",
+    // World Charts step 4: column labels, the #1 tag, the debut shown on hover
+    wc_col_streams: "Streams",
+    wc_col_change: "Cambio",
+    wc_col_days: "Días",
+    wc_col_views: "Vistas",
+    wc_col_likes: "Me gusta",
+    wc_at_one: "{{n}} sem. en el n.º 1",
+    wc_at_one_days: "{{n}} días en el n.º 1",
+    wc_debut: "Debutó en el n.º {{pos}} el {{date}}",
     wc_show_all: "Ver las {{n}}",
     // The Dank 100 (dank100.js)
     nav_dank100: "The Dank 100",

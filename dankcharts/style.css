@@ -48930,44 +48930,90 @@ a.tb-more-item:hover { text-decoration: none; }
 }
 .wc-msg p { margin: 0; }
 
-/* The plain list (step 3) */
-.wc-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; }
-.wc-row {
+/* Loading rows: grey bars where the rank, cover and names will be, gently
+   pulsing, so the page doesn't jump when the chart lands */
+.wc-sk-list { margin: 0; padding: 0; list-style: none; }
+.wc-sk {
   display: grid;
-  grid-template-columns: 2.6em minmax(0, 1fr);
+  grid-template-columns: 2.2em 44px minmax(0, 1fr);
   align-items: center;
-  gap: var(--sp-3);
+  column-gap: 10px;
   padding: 8px 10px;
   border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
 }
-.wc-rank {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 1.1rem;
-  text-align: right;
-  color: var(--text);
-  font-variant-numeric: tabular-nums;
-}
-.wc-text { display: flex; flex-direction: column; min-width: 0; }
-.wc-t, .wc-a { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.wc-t { font-weight: 600; color: var(--text); }
-.wc-a { font-size: var(--fs-sm); color: var(--text3); }
-.wc-more { align-self: center; margin: var(--sp-4) auto 0; display: block; }
-
-/* Loading rows: grey bars that gently pulse */
-.wc-row--sk .wc-rank,
-.wc-row--sk .wc-t,
-.wc-row--sk .wc-a {
+.wc-sk-rank, .wc-sk-art, .wc-sk-t, .wc-sk-a {
   display: block;
-  height: 0.8em;
   border-radius: 4px;
   background: color-mix(in srgb, var(--text) 9%, transparent);
   animation: wcPulse 1.2s ease-in-out infinite;
 }
-.wc-row--sk .wc-rank { width: 1.4em; justify-self: end; }
-.wc-row--sk .wc-t { width: 45%; margin-bottom: 6px; }
-.wc-row--sk .wc-a { width: 28%; }
+.wc-sk-rank { width: 1.2em; height: 0.9em; justify-self: end; }
+.wc-sk-art { width: 44px; height: 44px; border-radius: 6px; }
+.wc-sk-text { display: flex; flex-direction: column; gap: 6px; }
+.wc-sk-t { width: 45%; height: 0.8em; }
+.wc-sk-a { width: 28%; height: 0.7em; }
 @keyframes wcPulse { 50% { opacity: 0.45; } }
 @media (prefers-reduced-motion: reduce) {
-  .wc-row--sk .wc-rank, .wc-row--sk .wc-t, .wc-row--sk .wc-a { animation: none; }
+  .wc-sk-rank, .wc-sk-art, .wc-sk-t, .wc-sk-a { animation: none; }
 }
+
+/* Step 4: the rows. They reuse The Dank 100's row look (d100-li, d100-row,
+   d100-pos, d100-mv, d100-art, d100-name …); only the number columns differ
+   per source, so each list sets its own grid. No buttons beside the rows
+   (yet), so the row takes the full width. */
+.wc-li { grid-template-columns: minmax(0, 1fr); }
+.wc-row { cursor: default; }
+.wc-cols { padding: 0 10px; }
+.wc-list--billboard .d100-row, .wc-cols:has(+ .wc-list--billboard) {
+  grid-template-columns: 2.2em 3.4em 44px minmax(0, 1fr) 4.4em 3.6em 4.2em;
+}
+.wc-list--spotify .d100-row, .wc-cols:has(+ .wc-list--spotify) {
+  grid-template-columns: 2.2em 3.4em 44px minmax(0, 1fr) 6.6em 4.6em 3.4em 3.6em;
+}
+.wc-list--youtube .d100-row, .wc-cols:has(+ .wc-list--youtube) {
+  grid-template-columns: 2.2em 3.4em 44px minmax(0, 1fr) 7em 6em;
+}
+/* the column labels need the same em size as the rows, see .d100-cols */
+.wc-cols span { white-space: nowrap; }
+/* Video thumbnails are 16:9: crop to the middle of the frame */
+.wc-art--video img { object-position: center; }
+.wc-art img { opacity: 0; transition: opacity 0.25s; }
+.wc-art.has-img img { opacity: 1; }
+/* Short numbers (5.1M) are for phones; desktops get the full figure */
+.wc-short { display: none; }
+/* Stream change since the day / week before */
+.wc-chg { font-size: var(--fs-xs); font-weight: 600; color: var(--text3); }
+.wc-chg--up   { color: var(--chart-up); }
+.wc-chg--down { color: var(--chart-down); }
+/* "26 wks at #1" beside the #1 title */
+.wc-at1 {
+  display: inline-block;
+  vertical-align: 1px;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+@media (max-width: 640px) {
+  /* Phones: like The Dank 100, the move badge sits under the position and
+     only one number stays (weeks / streams / views), written short */
+  .wc-list .d100-row, .wc-cols {
+    grid-template-columns: 2.6em 40px minmax(0, 1fr) 3.6em !important;
+    column-gap: 6px;
+  }
+  .wc-cols { padding: 0 4px; }
+  .wc-cols span:nth-child(2) { display: none; }
+  .wc-num:not(.wc-num--phone) { display: none; }
+  /* The Dank 100's phone rule hides label 6 and up; Billboard's kept label is 7th */
+  .wc-cols span.wc-num--phone { display: block; }
+  .wc-list .d100-row .wc-num--phone { grid-column: 4; grid-row: 1 / 3; }
+  .wc-full { display: none; }
+  .wc-short { display: inline; }
+  .wc-at1 { display: none; }
+}
+
