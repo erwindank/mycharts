@@ -5183,6 +5183,7 @@ TRANSLATIONS['es'] = Object.assign({
     yt_np_drag: 'Arrastra para mover',
     yt_np_label: 'Sonando ahora',
     yt_np_stage_hint: 'Pulsa {{g}} o {{esc}} para volver',
+    yt_np_stage_hint_touch: 'Toca otra vez el botón de pantalla para volver',   // phone / touch wording (_ytDeviceKey)
     yt_np_full: 'Pantalla completa',
     yt_np_full_leave: 'Salir de pantalla completa',
     yt_np_t_stage: 'Modo escenario — pantalla grande [G]',
@@ -5396,6 +5397,7 @@ TRANSLATIONS['es'] = Object.assign({
     yt_np_xfade: 'Fundido',
     yt_np_hint_title: 'Tu reproductor',
     yt_np_hint_text: 'Reproduce cualquier canción, lista o top del sitio. Pasa el ratón por un botón para ver su nombre, o haz un recorrido de un minuto.',
+    yt_np_hint_text_touch: 'Reproduce cualquier canción, lista o top del sitio. Haz un recorrido de un minuto para ver qué hace cada botón.',   // phone / touch wording (_ytDeviceKey)
     yt_np_hint_go: 'Enséñamelo',
     yt_np_hint_ok: 'Entendido',
     yt_np_tour_next: 'Siguiente',
@@ -5405,20 +5407,25 @@ TRANSLATIONS['es'] = Object.assign({
     yt_np_tour_step: '{{n}} de {{total}}',
     yt_np_tour_1h: 'Tu reproductor',
     yt_np_tour_1t: 'Arrástralo por los puntos. ⌄ lo reduce a un reproductor pequeño, el botón de pantalla abre el modo escenario (pantalla grande) y ✕ lo cierra.',
+    yt_np_tour_1t_phone: '⌄ lo reduce a una barra abajo de la pantalla (o desliza hacia abajo sobre el reproductor) y ✕ lo cierra.',   // phone / touch wording (_ytDeviceKey)
     yt_np_tour_2h: 'Portada o vídeo',
     yt_np_tour_2t: 'Cambia entre la portada y el videoclip. La nota dice de dónde salió el vídeo, y “¿Vídeo equivocado?” te deja buscar otro o pegar un enlace de YouTube.',
     yt_np_tour_3h: 'Tu historia en las listas',
-    yt_np_tour_3t: 'Esta canción en tus propias listas: su puesto esta semana, su máximo, tus escuchas y sus semanas en la lista. Toca una para abrir la canción.',
+    yt_np_tour_3t: 'Esta canción en tus propias listas: su puesto esta semana, su máximo, tus escuchas y sus semanas en la lista. Haz clic en una para abrir la canción.',
+    yt_np_tour_3t_touch: 'Esta canción en tus propias listas: su puesto esta semana, su máximo, tus escuchas y sus semanas en la lista. Toca una para abrir la canción.',   // phone / touch wording (_ytDeviceKey)
     yt_np_tour_4h: 'Cuándo cuenta una escucha',
     yt_np_tour_4t: 'La marca verde es donde se hace el scrobble. La nota bajo la barra dice cuándo cuenta, y cuándo ya contó.',
     yt_np_tour_5h: 'Los controles',
     yt_np_tour_5t: 'Aleatorio, Anterior, Reproducir, Siguiente y Repetir. Cada botón muestra su nombre (y su tecla) al pasar el ratón.',
+    yt_np_tour_5t_touch: 'Aleatorio, Anterior, Reproducir, Siguiente y Repetir. Toca Repetir otra vez para repetir solo esta canción (aparece un pequeño 1).',   // phone / touch wording (_ytDeviceKey)
     yt_np_tour_6h: 'Guarda las canciones que te encantan',
     yt_np_tour_6t: '♥ añade la canción a tu lista Favorites. + la añade a cualquier lista.',
     yt_np_tour_7h: 'Cuatro secciones',
     yt_np_tour_7t: 'A continuación es tu cola. La letra sigue la canción línea a línea. Historial es lo que escuchaste aquí. Herramientas tiene todo lo demás: temporizador, velocidad, compartir y más.',
+    yt_np_tour_7t_phone: 'A continuación es tu cola. La letra sigue la canción línea a línea. Historial es lo que escuchaste aquí. Herramientas tiene todo lo demás: temporizador, velocidad, compartir y más. Cada una se abre desde abajo; desliza hacia abajo para cerrarla.',   // phone / touch wording (_ytDeviceKey)
     yt_np_tour_8h: 'Volumen y ajustes rápidos',
     yt_np_tour_8t: 'Volumen, velocidad y temporizador. El botón ? repite este recorrido cuando quieras, y Herramientas → Teclas y ajustes lista todas las teclas.',
+    yt_np_tour_8t_touch: 'Volumen, velocidad y temporizador. El botón ? repite este recorrido cuando quieras.',   // phone / touch wording (_ytDeviceKey)
     yt_np_tool_search: 'Buscar otra versión',
     yt_np_tool_search_d: '¿Vídeo equivocado? Busca uno mejor o pega un enlace de YouTube.',
     yt_np_tool_similar: 'Más de este artista',

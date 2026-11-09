@@ -35953,6 +35953,17 @@ const _YT_TOUR = [   // [part, title key, words key] — the words are in the tr
   ['.ytp-foot', 'yt_np_tour_8h', 'yt_np_tour_8t'],
 ];
 let _ytTouring = false, _ytTourIdx = 0, _ytTourSteps = [];
+// Wording for the device: phones (≤760px) have no drag dots or Stage button
+// and open the sections as a sheet, so some steps have a "<key>_phone"
+// version; touch screens (no hover) can't point at buttons or press keys, so
+// some have a "<key>_touch" version. Falls back to the normal key.
+function _ytDeviceKey(key) {
+  const has = k => typeof TRANSLATIONS !== 'undefined' && TRANSLATIONS.en && TRANSLATIONS.en[k] !== undefined;
+  if (_ytIsPhone() && has(key + '_phone')) return key + '_phone';
+  const touch = window.matchMedia && window.matchMedia('(hover: none)').matches;
+  if (touch && has(key + '_touch')) return key + '_touch';
+  return key;
+}
 function _ytStartTour() {
   const p = document.getElementById('ytMiniPlayer');
   if (!p || p.style.display === 'none') return;
@@ -35974,7 +35985,7 @@ function _ytTourShow() {
   const card = document.getElementById('ytTourCard');
   p.querySelectorAll('.ytp-spot').forEach(el => el.classList.remove('ytp-spot'));
   const [sel, headKey, textKey] = _ytTourSteps[_ytTourIdx];
-  const head = t(headKey), text = t(textKey);
+  const head = t(headKey), text = t(_ytDeviceKey(textKey));   // phone / touch wording when there is one
   const el = p.querySelector(sel);
   if (!el) { _ytEndTour(); return; }
   el.classList.add('ytp-spot');
@@ -36011,6 +36022,9 @@ function _ytMaybeHint() {
   try { seen = !!localStorage.getItem('dc_player_hint_seen'); } catch (e) { seen = true; }
   const h = document.getElementById('ytHint');
   if (h) h.style.display = seen ? 'none' : '';
+  // Touch screens can't point at buttons — use the words for them
+  const ht = h && h.querySelector('[data-ytx="hint_text"]');
+  if (ht) ht.textContent = t(_ytDeviceKey('yt_np_hint_text'));
 }
 function _ytHintDone(quiet) {
   const h = document.getElementById('ytHint');
@@ -36083,11 +36097,13 @@ function _ytApplyI18n() {
   document.querySelectorAll('#ytMiniPlayer, #ytBar, #ytQueueToast').forEach(root => {
     root.querySelectorAll('[data-ytt]').forEach(el => { el.title = t('yt_np_' + el.dataset.ytt); });
     root.querySelectorAll('[data-yta]').forEach(el => { el.setAttribute('aria-label', t('yt_np_' + el.dataset.yta)); });
-    root.querySelectorAll('[data-ytx]').forEach(el => { el.textContent = t('yt_np_' + el.dataset.ytx); });
+    root.querySelectorAll('[data-ytx]').forEach(el => { el.textContent = t(_ytDeviceKey('yt_np_' + el.dataset.ytx)); });   // phone / touch wording when there is one
     root.querySelectorAll('[data-ytph]').forEach(el => { el.placeholder = t('yt_np_' + el.dataset.ytph); });
   });
   const hint = document.getElementById('ytStageHint');
-  if (hint) hint.innerHTML = esc(t('yt_np_stage_hint', { g: '\u0001', esc: '\u0002' })).replace('\u0001', '<kbd>G</kbd>').replace('\u0002', '<kbd>Esc</kbd>');
+  // Touch screens have no G / Esc keys — say which button to tap instead
+  if (hint && _ytDeviceKey('yt_np_stage_hint') !== 'yt_np_stage_hint') hint.textContent = t(_ytDeviceKey('yt_np_stage_hint'));
+  else if (hint) hint.innerHTML = esc(t('yt_np_stage_hint', { g: '\u0001', esc: '\u0002' })).replace('\u0001', '<kbd>G</kbd>').replace('\u0002', '<kbd>Esc</kbd>');
   document.querySelectorAll('#ytSleepPanel .yt-sleep-preset').forEach(b => {
     const m = (b.getAttribute('onclick') || '').match(/\d+/);
     if (m) b.textContent = t('yt_np_min_n', { n: m[0] });

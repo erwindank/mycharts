@@ -5184,6 +5184,7 @@ TRANSLATIONS['pt-BR'] = Object.assign({
     yt_np_drag: 'Arraste para mover',
     yt_np_label: 'Tocando agora',
     yt_np_stage_hint: 'Aperte {{g}} ou {{esc}} para voltar',
+    yt_np_stage_hint_touch: 'Toque de novo no botão de tela para voltar',   // phone / touch wording (_ytDeviceKey)
     yt_np_full: 'Tela cheia',
     yt_np_full_leave: 'Sair da tela cheia',
     yt_np_t_stage: 'Modo palco — tela grande [G]',
@@ -5397,6 +5398,7 @@ TRANSLATIONS['pt-BR'] = Object.assign({
     yt_np_xfade: 'Crossfade',
     yt_np_hint_title: 'Seu player de música',
     yt_np_hint_text: 'Ele toca qualquer música, parada ou playlist do site. Passe o mouse num botão para ver o nome dele, ou faça um tour de um minuto.',
+    yt_np_hint_text_touch: 'Ele toca qualquer música, parada ou playlist do site. Faça um tour de um minuto para ver o que cada botão faz.',   // phone / touch wording (_ytDeviceKey)
     yt_np_hint_go: 'Me mostre',
     yt_np_hint_ok: 'Entendi',
     yt_np_tour_next: 'Próximo',
@@ -5406,20 +5408,25 @@ TRANSLATIONS['pt-BR'] = Object.assign({
     yt_np_tour_step: '{{n}} de {{total}}',
     yt_np_tour_1h: 'Seu player',
     yt_np_tour_1t: 'Arraste pelos pontinhos. ⌄ diminui para um player pequeno, o botão de tela abre o modo palco (tela grande) e ✕ fecha.',
+    yt_np_tour_1t_phone: '⌄ diminui para uma barra embaixo da tela (ou deslize o player para baixo) e ✕ fecha.',   // phone / touch wording (_ytDeviceKey)
     yt_np_tour_2h: 'Capa ou vídeo',
     yt_np_tour_2t: 'Alterne entre a capa e o clipe. A nota diz de onde veio o vídeo, e “Vídeo errado?” deixa você achar outro ou colar um link do YouTube.',
     yt_np_tour_3h: 'Sua história nas paradas',
-    yt_np_tour_3t: 'Esta música nas suas paradas: a posição desta semana, o pico, suas plays e as semanas na parada. Toque num quadro para abrir a música.',
+    yt_np_tour_3t: 'Esta música nas suas paradas: a posição desta semana, o pico, suas plays e as semanas na parada. Clique num quadro para abrir a música.',
+    yt_np_tour_3t_touch: 'Esta música nas suas paradas: a posição desta semana, o pico, suas plays e as semanas na parada. Toque num quadro para abrir a música.',   // phone / touch wording (_ytDeviceKey)
     yt_np_tour_4h: 'Quando uma play conta',
     yt_np_tour_4t: 'A marca verde é onde a play é registrada (scrobble). A nota embaixo da barra diz quando conta, e quando contou.',
     yt_np_tour_5h: 'Os controles',
     yt_np_tour_5t: 'Aleatório, Anterior, Tocar, Próxima e Repetir. Cada botão mostra o nome (e a tecla) quando você passa o mouse.',
+    yt_np_tour_5t_touch: 'Aleatório, Anterior, Tocar, Próxima e Repetir. Toque em Repetir de novo para repetir só esta música (aparece um pequeno 1).',   // phone / touch wording (_ytDeviceKey)
     yt_np_tour_6h: 'Guarde as músicas que você ama',
     yt_np_tour_6t: '♥ coloca a música na sua playlist Favorites. + coloca em qualquer playlist.',
     yt_np_tour_7h: 'Quatro seções',
     yt_np_tour_7t: 'A seguir é a sua fila. A letra acompanha a música linha a linha. Histórico é o que você tocou aqui. Ferramentas tem todo o resto: timer, velocidade, compartilhar e mais.',
+    yt_np_tour_7t_phone: 'A seguir é a sua fila. A letra acompanha a música linha a linha. Histórico é o que você tocou aqui. Ferramentas tem todo o resto: timer, velocidade, compartilhar e mais. Cada uma abre de baixo; deslize para baixo para fechar.',   // phone / touch wording (_ytDeviceKey)
     yt_np_tour_8h: 'Volume e ajustes rápidos',
     yt_np_tour_8t: 'Volume, velocidade e timer. O botão ? traz este tour de volta quando quiser, e Ferramentas → Teclas e ajustes mostra todas as teclas.',
+    yt_np_tour_8t_touch: 'Volume, velocidade e timer. O botão ? traz este tour de volta quando quiser.',   // phone / touch wording (_ytDeviceKey)
     yt_np_tool_search: 'Buscar outra versão',
     yt_np_tool_search_d: 'Vídeo errado? Busque um melhor ou cole um link do YouTube.',
     yt_np_tool_similar: 'Mais deste artista',

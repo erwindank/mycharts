@@ -5356,6 +5356,7 @@ const TRANSLATIONS = {
     yt_np_drag: 'Drag to move',
     yt_np_label: 'Now Playing',
     yt_np_stage_hint: 'Press {{g}} or {{esc}} to go back',
+    yt_np_stage_hint_touch: 'Tap the screen button again to go back',   // phone / touch wording (_ytDeviceKey)
     yt_np_full: 'Full screen',
     yt_np_full_leave: 'Leave full screen',
     yt_np_t_stage: 'Stage mode — big screen [G]',
@@ -5569,6 +5570,7 @@ const TRANSLATIONS = {
     yt_np_xfade: 'Crossfade',
     yt_np_hint_title: 'Your music player',
     yt_np_hint_text: 'It plays any song, chart or playlist on the site. Point at any button to see its name, or take a one-minute tour.',
+    yt_np_hint_text_touch: 'It plays any song, chart or playlist on the site. Take a one-minute tour to see what each button does.',   // phone / touch wording (_ytDeviceKey)
     yt_np_hint_go: 'Show me around',
     yt_np_hint_ok: 'Got it',
     yt_np_tour_next: 'Next',
@@ -5578,20 +5580,25 @@ const TRANSLATIONS = {
     yt_np_tour_step: '{{n}} of {{total}}',
     yt_np_tour_1h: 'Your player',
     yt_np_tour_1t: 'Drag it by the dots. ⌄ shrinks it to a small player, the screen button opens Stage (the big screen), ✕ closes it.',
+    yt_np_tour_1t_phone: '⌄ shrinks it to a bar at the bottom of the screen (or swipe down on the player), and ✕ closes it.',   // phone / touch wording (_ytDeviceKey)
     yt_np_tour_2h: 'Artwork or video',
     yt_np_tour_2t: 'Switch between the cover and the music video. The note says where the video came from, and “Wrong video?” lets you find a better one or paste a YouTube link.',
     yt_np_tour_3h: 'Your chart story',
-    yt_np_tour_3t: 'This song in your own charts: this week’s rank, its peak, your plays and its weeks on the chart. Tap a tile to open the song’s page.',
+    yt_np_tour_3t: 'This song in your own charts: this week’s rank, its peak, your plays and its weeks on the chart. Click a tile to open the song’s page.',
+    yt_np_tour_3t_touch: 'This song in your own charts: this week’s rank, its peak, your plays and its weeks on the chart. Tap a tile to open the song’s page.',   // phone / touch wording (_ytDeviceKey)
     yt_np_tour_4h: 'When a play counts',
     yt_np_tour_4t: 'The green mark is where the play gets scrobbled. The note under the bar says when it counts, and when it did.',
     yt_np_tour_5h: 'The controls',
     yt_np_tour_5t: 'Shuffle, Previous, Play, Next and Repeat. Every button shows its name (and its key) when you point at it.',
+    yt_np_tour_5t_touch: 'Shuffle, Previous, Play, Next and Repeat. Tap Repeat again to repeat just this song (a small 1 shows on it).',   // phone / touch wording (_ytDeviceKey)
     yt_np_tour_6h: 'Keep the songs you love',
     yt_np_tour_6t: '♥ adds the song to your Favorites playlist. + adds it to any playlist.',
     yt_np_tour_7h: 'Four sections',
     yt_np_tour_7t: 'Up Next is your queue. Lyrics follow the song line by line. History is what you played here. Tools has everything else: sleep timer, speed, sharing and more.',
+    yt_np_tour_7t_phone: 'Up Next is your queue. Lyrics follow the song line by line. History is what you played here. Tools has everything else: sleep timer, speed, sharing and more. Each one opens from the bottom — swipe down to close it.',   // phone / touch wording (_ytDeviceKey)
     yt_np_tour_8h: 'Volume and quick settings',
     yt_np_tour_8t: 'Volume, speed and the sleep timer. The ? button brings this tour back any time, and Tools → Keys & settings lists every key.',
+    yt_np_tour_8t_touch: 'Volume, speed and the sleep timer. The ? button brings this tour back any time.',   // phone / touch wording (_ytDeviceKey)
     yt_np_tool_search: 'Find another version',
     yt_np_tool_search_d: 'Wrong video? Search for a better one, or paste a YouTube link.',
     yt_np_tool_similar: 'More by this artist',
