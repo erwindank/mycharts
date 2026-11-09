@@ -207,11 +207,13 @@ service cloud.firestore {
               && !existsAfter(replyPath(postId, request.resource.data.lastReplyId)))
           ))
         ||
-        // 4. Moderators set the status and pin/unpin.
+        // 4. Moderators set the status, pin/unpin and move a post to another
+        //    category.
         (isBoardAdmin()
-          && changedOnly(['status', 'pinned'])
+          && changedOnly(['status', 'pinned', 'category'])
           && request.resource.data.status in ['open', 'planned', 'progress', 'done', 'declined']
-          && request.resource.data.pinned is bool)
+          && request.resource.data.pinned is bool
+          && request.resource.data.category in ['suggestion', 'bug', 'question', 'discussion'])
       );
 
       allow delete: if signedIn() && (resource.data.authorUid == request.auth.uid || isBoardAdmin());

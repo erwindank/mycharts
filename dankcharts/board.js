@@ -594,6 +594,11 @@
         h += '<label class="bd-status-pick"><span>' + esc(tr('board_status_label')) + '</span><select class="bd-input bd-select" onchange="dcBoard.setPostStatus(\'' + esc(p.id) + '\', this.value)">' +
           STATUSES.map(function (s) { return '<option value="' + s + '"' + ((p.status || 'open') === s ? ' selected' : '') + '>' + esc(statusLabel(s)) + '</option>'; }).join('') +
           '</select></label>';
+        // Moderators can move a post to the right category (a "suggestion"
+        // that is really a question). Authors change theirs through Edit.
+        h += '<label class="bd-status-pick"><span>' + esc(tr('board_category_label')) + '</span><select class="bd-input bd-select" onchange="dcBoard.setPostCategory(\'' + esc(p.id) + '\', this.value)">' +
+          CATEGORIES.map(function (c) { return '<option value="' + c + '"' + (p.category === c ? ' selected' : '') + '>' + esc(catLabel(c)) + '</option>'; }).join('') +
+          '</select></label>';
       }
       h += '<button type="button" class="dc-btn dc-btn-plain dc-btn-sm dc-btn-danger" onclick="dcBoard.askDeletePost(\'' + esc(p.id) + '\')">' + ico('trash') + esc(tr('board_delete')) + '</button>';
       h += '</div>';
@@ -1028,6 +1033,7 @@
     viewImg: function (id) { viewImage(id); },
     pin: function (id) { var p = findPost(id); if (p) adminSet(id, { pinned: !p.pinned }); },
     setPostStatus: function (id, s) { if (STATUSES.indexOf(s) >= 0) adminSet(id, { status: s }); },
+    setPostCategory: function (id, c) { if (CATEGORIES.indexOf(c) >= 0) adminSet(id, { category: c }); },
     share: function (id) {
       var url = location.origin + location.pathname + '#t=board/' + id;
       var done = function () { toast(tr('board_link_copied')); };

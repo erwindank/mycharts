@@ -790,6 +790,7 @@ TRANSLATIONS['pt-BR'] = Object.assign({
     board_search: "Buscar no fórum…",
     board_status_all: "Qualquer status",
     board_status_label: "Status",
+    board_category_label: "Categoria",
     board_status_open: "Aberto",
     board_status_planned: "Planejado",
     board_status_progress: "Em andamento",

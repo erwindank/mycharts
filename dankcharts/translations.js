@@ -830,6 +830,7 @@ const TRANSLATIONS = {
     board_search: "Search the board…",
     board_status_all: "Any status",
     board_status_label: "Status",
+    board_category_label: "Category",
     board_status_open: "Open",
     board_status_planned: "Planned",
     board_status_progress: "In progress",
