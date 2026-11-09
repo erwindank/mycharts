@@ -825,6 +825,7 @@ function spRefresh(name, save) {
 let _spRefreshTok = 0;
 function spRefreshAll() {
   if (!allPlays || !allPlays.length) return;
+  _spFixReadyNames();
   if (!_spStore.seeded) spSeedReady();
   // One list per tick: the first chart rule on a huge library can take a
   // second to build, and the page should stay usable meanwhile. A newer call
@@ -1156,6 +1157,9 @@ function spAddReady(id) {
    per account (the flag syncs), so deleting one later doesn't bring it back. */
 function spSeedReady() {
   if (_spStore.seeded || !allPlays || !allPlays.length) return;
+  // Never before the words have loaded, or the lists get named after their
+  // translation keys ("sp_ready_deep"), which happened once (2026-11-09)
+  if (!_spWordsReady()) return;
   const used = _spReadyInUse();
   for (const id of SP_READY_IDS) {
     if (used.has(id) || !spReadyFits(id)) continue;
@@ -1794,3 +1798,38 @@ function spEditBtnHtml(name) {
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
 })();
+
+
+/* ===========================================================================
+   READY-MADE NAMES (2026-11-09)
+
+   The ready-made lists got friendlier names. Two kinds of saved name are
+   moved to the new ones the next time the lists refresh:
+     • a raw translation key ("sp_ready_deep"): a browser once had an older
+       copy of the language file cached when the lists were first added
+     • the first plain names, in any language ("Deep cuts", "Lados B"…)
+   A name the user picked themselves is never touched.
+   =========================================================================== */
+
+const SP_OLD_READY_NAMES = new Set(["A fuego lento", "Almost #1", "Casi n.º 1", "Crescimento lento", "Deep cuts", "Favoritas esquecidas", "Favoritas olvidadas", "Forgotten favourites", "Heavy rotation", "Joyas escondidas", "Lados B", "Lo que más suena", "Mais bem avaliadas", "Mais bem classificadas", "Mais tocadas do momento", "Mejor puntuadas", "Neste dia", "Never charted", "New to you", "Novas para ti", "Novas para você", "Nuevas para ti", "Nunca en la lista", "Nunca entraram na parada", "Nunca entraram na tabela", "O teu ano em 50", "On this day", "One-hit wonders", "Os teus #1", "Quase #1", "Seu ano em 50", "Seus #1", "Slow burners", "Sucessos de uma música só", "Tal día como hoy", "Top rated", "Tu año en 50", "Tus n.º 1", "Your #1s", "Your year in 50", "Éxitos únicos", "Êxitos únicos"]);
+
+// Have the ready-made names loaded? (t() hands back the key when a word is missing)
+function _spWordsReady() {
+  return typeof t === 'function' && t('sp_ready_heavy') !== 'sp_ready_heavy';
+}
+
+function _spFixReadyNames() {
+  if (!_spWordsReady() || typeof _dcPlDoRename !== 'function') return;
+  for (const name of spNames()) {
+    const def = spGet(name);
+    if (!def || !def.ready) continue;
+    const stale = /^sp_ready_/.test(name) || SP_OLD_READY_NAMES.has(name.replace(/ \d+$/, ''));
+    if (!stale) continue;
+    const fresh = t('sp_ready_' + def.ready);
+    if (!fresh || fresh === name || /^sp_ready_/.test(fresh)) continue;
+    // A free name: the new one, numbered if a playlist already has it
+    let target = fresh, n = 2;
+    while (_ytPlaylists[target] || spIsSmart(target)) target = fresh + ' ' + n++;
+    _dcPlDoRename(name, target);
+  }
+}
