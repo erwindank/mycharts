@@ -44,6 +44,7 @@
   var FALLBACK_MENU = [
     { id: 'hot-100',               source: 'billboard', kind: 'songs',  period: 'week', pastWeeks: true, first: '1958-08-04' },
     { id: 'billboard-200',         source: 'billboard', kind: 'albums', period: 'week', pastWeeks: true, first: '1963-08-17' },
+    { id: 'billboard-global-200',  source: 'billboard', kind: 'songs',  period: 'week', pastWeeks: true, first: '2020-09-19' },
     { id: 'spotify-global-daily',  source: 'kworb',     kind: 'songs',  period: 'day'  },
     { id: 'spotify-global-weekly', source: 'kworb',     kind: 'songs',  period: 'week' },
     { id: 'youtube-top',           source: 'kworb',     kind: 'videos', period: 'day'  }
@@ -194,12 +195,22 @@
         var on = c.id === S.chart;
         return '<button type="button" role="tab" class="wc-pick wc-pick--' + esc(brandOf(c.id)) + (on ? ' active' : '') +
           '" aria-selected="' + on + '" onclick="dcWorldCharts.pick(\'' + esc(c.id) + '\')">' +
-          '<span class="wc-pick-brand">' + esc(brandName(c.id)) + '</span>' +
+          brandHTML(c.id) +
           '<span class="wc-pick-name">' + esc(chartName(c.id)) + '</span></button>';
       }).join('') + '</div>';
   }
   function brandOf(id) { return /^spotify/.test(id) ? 'spotify' : /^youtube/.test(id) ? 'youtube' : 'billboard'; }
   function brandName(id) { return { billboard: 'Billboard', spotify: 'Spotify', youtube: 'YouTube' }[brandOf(id)]; }
+  // The top line of a chart button: the source's logo (2026-11-09). Spotify
+  // and YouTube use the same icons as the row buttons (app.js); Billboard is
+  // its name in lowercase bold, the way it writes itself.
+  function brandHTML(id) {
+    var b = brandOf(id);
+    if (b === 'billboard') return '<span class="wc-pick-brand wc-pick-brand--word">billboard</span>';
+    var svg = b === 'spotify' ? (typeof _EA_SP_SVG !== 'undefined' ? _EA_SP_SVG : '')
+      : (typeof _ST_AM_YT_SVG !== 'undefined' ? _ST_AM_YT_SVG : '');
+    return '<span class="wc-pick-brand"><span class="wc-pick-logo">' + svg + '</span>' + esc(brandName(id)) + '</span>';
+  }
 
   function statusHTML(d) {
     var h = '';

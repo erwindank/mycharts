@@ -701,6 +701,7 @@ const TRANSLATIONS = {
     // the chart buttons: the brand (Billboard / Spotify / YouTube) is shown above these
     wc_chart_hot_100: "Hot 100",
     wc_chart_billboard_200: "Billboard 200",
+    wc_chart_billboard_global_200: "Global 200",
     wc_chart_spotify_global_daily: "Global Daily",
     wc_chart_spotify_global_weekly: "Global Weekly",
     wc_chart_youtube_top: "Most Viewed",

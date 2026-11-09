@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Billboard Global 200 in World Charts":
+    ["Billboard Global 200 nas Paradas mundiais",
+     "As Paradas mundiais agora têm a Billboard Global 200, com todas as semanas desde 2020, e cada botão de parada mostra o logo da sua fonte."],
   "Samples and a share picture for World Charts":
     ["Amostras e uma imagem para compartilhar nas Paradas mundiais",
      "Ouça uma amostra ou abra uma música no Spotify ou no YouTube em qualquer linha das Paradas mundiais, e compartilhe o top 10 de uma parada como imagem, com quantas delas você ouviu."],

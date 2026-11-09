@@ -64,6 +64,11 @@ const CHARTS = {
     title: 'Billboard 200', source: 'billboard', kind: 'albums', period: 'week',
     path: 'billboard-200', ttl: 6 * HOUR, min: 180, minPast: 100, first: '1963-08-17',
   },
+  // Added 2026-11-09. Same page layout as the Hot 100; started 2020-09-19.
+  'billboard-global-200': {
+    title: 'Billboard Global 200', source: 'billboard', kind: 'songs', period: 'week',
+    path: 'billboard-global-200', ttl: 6 * HOUR, min: 180, minPast: 180, first: '2020-09-19',
+  },
   'spotify-global-daily': {
     title: 'Spotify Global Daily', source: 'kworb', kind: 'songs', period: 'day',
     path: 'spotify/country/global_daily.html', ttl: 3 * HOUR, min: 150,

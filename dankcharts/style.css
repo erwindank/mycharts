@@ -48933,33 +48933,49 @@ a.tb-more-item:hover { text-decoration: none; }
   cursor: pointer;
   transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
 }
-.wc-pick--billboard { --bc: #e8473f; }
-.wc-pick--spotify   { --bc: #1ed760; }
-.wc-pick--youtube   { --bc: #ff3d3d; }
-.wc-pick:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); color: var(--text); }
+/* Each source's own colours (2026-11-09). Unpicked buttons only show the
+   logo in its colour; the picked one takes the source's own look:
+   Billboard black and white, Spotify green with black, YouTube red with white.
+   --bf: fill, --bt: text on the fill. Fixed brand colours, so they don't
+   follow the theme on purpose. */
+.wc-pick--billboard { --bc: var(--text);  --bf: #000;    --bt: #fff; }
+.wc-pick--spotify   { --bc: #1ed760;      --bf: #1ed760; --bt: #000; }
+.wc-pick--youtube   { --bc: #ff0000;      --bf: #e00000; --bt: #fff; }
+/* Mouse only, so a tap on a phone doesn't leave the glow behind */
+@media (hover: hover) {
+  .wc-pick:hover { border-color: color-mix(in srgb, var(--bc) 55%, var(--border)); color: var(--text); }
+}
 .wc-pick:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .wc-pick.active {
-  border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
-  color: var(--text);
+  border-color: var(--bf);
+  background: var(--bf);
+  color: var(--bt);
 }
+/* Black Billboard fill on a dark theme: a light edge keeps it a button */
+.wc-pick--billboard.active { border-color: var(--text); }
 .wc-pick-brand {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   font-size: var(--fs-xs);
   font-weight: 700;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--text3);
 }
-.wc-pick-brand::before {
-  content: "";
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--bc);
+.wc-pick-logo { display: inline-flex; color: var(--bc); }
+.wc-pick-logo svg { width: 15px; height: 15px; display: block; }
+/* Billboard writes itself in lowercase heavy type */
+.wc-pick-brand--word {
+  font-size: 15px;
+  line-height: 15px;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  text-transform: none;
+  color: var(--text);
 }
+.wc-pick.active .wc-pick-brand,
+.wc-pick.active .wc-pick-logo { color: var(--bt); }
 .wc-pick-name { font-weight: 600; font-size: var(--fs-sm); white-space: nowrap; }
 
 /* Source line, notes and messages */

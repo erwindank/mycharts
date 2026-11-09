@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 479;
+const DC_CL_I18N_V = 480;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -402,6 +402,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-09', t: 'feature', a: 'charts',
+    title: "Billboard Global 200 in World Charts",
+    detail: "World Charts now has the Billboard Global 200, with every week back to 2020, and each chart button shows its source's logo." },
   { d: '2026-11-09', t: 'feature', a: 'charts',
     title: "Samples and a share picture for World Charts",
     detail: "Play a sample or open a song on Spotify or YouTube from any World Charts row, and share a chart's top 10 as a picture with how many of them you've played." },

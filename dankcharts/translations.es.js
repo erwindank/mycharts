@@ -660,6 +660,7 @@ TRANSLATIONS['es'] = Object.assign({
     // the chart buttons: the brand (Billboard / Spotify / YouTube) is shown above these
     wc_chart_hot_100: "Hot 100",
     wc_chart_billboard_200: "Billboard 200",
+    wc_chart_billboard_global_200: "Global 200",
     wc_chart_spotify_global_daily: "Global diaria",
     wc_chart_spotify_global_weekly: "Global semanal",
     wc_chart_youtube_top: "Más vistos",

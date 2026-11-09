@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Billboard Global 200 in World Charts":
+    ["Billboard Global 200 en Listas mundiales",
+     "Listas mundiales ahora tiene el Billboard Global 200, con todas las semanas desde 2020, y cada botón de lista muestra el logo de su fuente."],
   "Samples and a share picture for World Charts":
     ["Muestras y una imagen para compartir en Listas mundiales",
      "Escucha una muestra o abre una canción en Spotify o YouTube desde cualquier fila de Listas mundiales, y comparte el top 10 de una lista como imagen, con cuántas de ellas escuchaste."],
