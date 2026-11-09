@@ -47380,6 +47380,22 @@ html.lsx-open { overflow: hidden; }
   color: var(--text3);
 }
 .plx-track-smart:hover .plx-num-n { opacity: 1; }
+/* The ready-made lists not in the library yet: one button each */
+.sp-ready-list { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.sp-ready-btn { gap: 6px; }
+.sp-ready-btn > span { color: var(--accent); font-weight: 700; }
+/* A ready-made list's own setting on its page: the year, or day / week */
+.sp-pick {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin: 0 0 var(--sp-2);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--text2);
+}
+.sp-pick-select { width: auto; min-width: 92px; height: 32px; padding: 0 var(--sp-2); }
+.sp-pick-seg { margin: 0 0 var(--sp-2); }
 
 @media (max-width: 760px) {
   .dc-pl-track.plx-track { grid-template-columns: 26px 42px minmax(0, 1fr) auto; }

@@ -38602,6 +38602,9 @@ function _dcPlLibraryHtml() {
     html += `<p class="plx-nomatch" id="dcPlNoMatch" hidden>${esc(t('pl_x_no_match'))}</p>`;
   }
 
+  // Ready-made smart playlists not in the library yet, to add back (smartplaylists.js)
+  if (typeof spReadyRowHtml === 'function') html += spReadyRowHtml();
+
   // Automatic playlists setup (autoplaylists.js fills it)
   html += `<div id="apSetup" class="dc-pl-part ap-setup"></div>`;
   return html;

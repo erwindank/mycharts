@@ -182,6 +182,13 @@ export, Play/Shuffle all work) plus rules in its own store/Firestore doc
 only written when they change. Smart lists keep at most 500 songs (they sync
 inside the one playlists doc, 1 MB max). Songs can't be added/removed/dragged
 by hand; the add-to-playlist picker leaves smart lists out.
+Step 4 done 2026-11-08. The ready-made lists are added once per account
+(flag `seeded`, synced), only the ones the library can fill; names in the
+language in use then. Deleting one hides it; a "Ready-made smart playlists"
+row under the grid adds it back (this answers open question 3). Your year in
+50 has a year picker, On this day a This day / This week switch. Deep cuts =
+songs past the 3rd most played on one of your top 25 albums. Two devices
+never keep two copies of one ready-made list (merge keeps the account's).
 
 1. **Engine: song facts + rules.** smartplaylists.js with `spSongFacts()`
    (basics, plays, first/last played, ratings, genres, certs) and

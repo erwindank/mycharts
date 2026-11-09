@@ -648,6 +648,7 @@ spAddField('topDay',  { kind: 'enum',   needs: 'times', get: _spHabitGet('topDay
      artistSongs  how many songs its artist has (a one-hit wonder needs 2+)
      albumPlays   its album's total plays (deep cuts: a loved album…)
      albumRank    its place by plays inside its album (…where it sits low)
+     albumTop     its album's place among all albums by plays (1 = most played album)
      aboveAvg     its rating is above the user's average song rating (needs ratings)
    Artists here are the primary credited artist, as the per-artist cap uses. */
 
@@ -681,16 +682,17 @@ function spRelativeFacts() {
       artistShare: Math.round(s.plays / ax.n * 100),
       artistPlays: ax.n,
       artistSongs: ax.songs,
-      albumPlays: null, albumRank: null
+      albumPlays: null, albumRank: null, albumTop: null
     });
   });
-  for (const songs of alb.values()) {
-    const total = songs.reduce((t, s) => t + s.plays, 0);
+  const albums = [...alb.values()].map(songs => ({ songs, total: songs.reduce((t, s) => t + s.plays, 0) }));
+  albums.sort((a, b) => b.total - a.total);
+  albums.forEach(({ songs, total }, ai) => {
     songs.sort((a, b) => b.plays - a.plays).forEach((s, i) => {
       const m = map.get(s.key);
-      m.albumPlays = total; m.albumRank = i + 1;
+      m.albumPlays = total; m.albumRank = i + 1; m.albumTop = ai + 1;
     });
-  }
+  });
   _spRelCache = { gen, map };
   return map;
 }
@@ -706,6 +708,7 @@ spAddField('artistPlays', { kind: 'number', get: _spRelGet('artistPlays') });
 spAddField('artistSongs', { kind: 'number', get: _spRelGet('artistSongs') });
 spAddField('albumPlays',  { kind: 'number', get: _spRelGet('albumPlays') });
 spAddField('albumRank',   { kind: 'number', get: _spRelGet('albumRank'), lowFirst: true });
+spAddField('albumTop',    { kind: 'number', get: _spRelGet('albumTop'), lowFirst: true });
 
 // The user's average song rating; spRun clears it at the start of every run
 let _spAvgRating = null;
@@ -744,12 +747,14 @@ const SP_LS = 'dc-smart-playlists';
    can't be allowed to fill it and break syncing for every playlist. */
 const SP_MAX_SONGS = 500;
 
-let _spStore = { lists: {}, modified: {}, deleted: {} };
+/* lists: name → rules; modified / deleted: name → ms (for the merge);
+   seeded: the ready-made lists have been added once (step 4) */
+let _spStore = { lists: {}, modified: {}, deleted: {}, seeded: false };
 
 function _spLoad() {
   try {
     const v = JSON.parse(localStorage.getItem(SP_LS) || 'null');
-    if (v && v.lists) _spStore = { lists: v.lists, modified: v.modified || {}, deleted: v.deleted || {} };
+    if (v && v.lists) _spStore = { lists: v.lists, modified: v.modified || {}, deleted: v.deleted || {}, seeded: !!v.seeded };
   } catch (e) {}
 }
 _spLoad();
@@ -778,6 +783,7 @@ function _spClean(def) {
   if (def.limit > 0) out.limit = Math.min(SP_MAX_SONGS, +def.limit);
   if (def.perArtist > 0) out.perArtist = +def.perArtist;
   if (def.ready) out.ready = def.ready;   // which ready-made list it came from (step 4)
+  if (def.readyOpt) out.readyOpt = def.readyOpt;   // its picker setting (year, day / week)
   return out;
 }
 
@@ -815,12 +821,28 @@ function spRefresh(name, save) {
 }
 
 // Every smart playlist, after a data load / refresh / sign-in. One save at the end.
+let _spRefreshTok = 0;
 function spRefreshAll() {
-  let changed = false;
-  for (const name of spNames()) if (spRefresh(name, false)) changed = true;
-  if (!changed) return;
-  if (typeof _ytSavePlaylists === 'function') _ytSavePlaylists();
-  if (typeof currentPeriod !== 'undefined' && currentPeriod === 'playlists' && typeof dcRenderPlaylistsView === 'function') dcRenderPlaylistsView();
+  if (!allPlays || !allPlays.length) return;
+  if (!_spStore.seeded) spSeedReady();
+  // One list per tick: the first chart rule on a huge library can take a
+  // second to build, and the page should stay usable meanwhile. A newer call
+  // (data refreshed again) takes over from an older one.
+  const tok = ++_spRefreshTok;
+  const names = spNames();
+  let changed = false, i = 0;
+  const next = () => {
+    if (tok !== _spRefreshTok) return;
+    if (i < names.length) {
+      if (spRefresh(names[i++], false)) changed = true;
+      setTimeout(next, 0);
+      return;
+    }
+    if (!changed) return;
+    if (typeof _ytSavePlaylists === 'function') _ytSavePlaylists();
+    if (typeof currentPeriod !== 'undefined' && currentPeriod === 'playlists' && typeof dcRenderPlaylistsView === 'function') dcRenderPlaylistsView();
+  };
+  setTimeout(next, 0);
 }
 
 // app.js: a playlist was deleted → its rules go too (and stay deleted on other devices)
@@ -864,9 +886,20 @@ function spMerge(remote) {
         if (_ytPlaylists[n] && typeof _ytMarkPlaylistDeleted === 'function') { _ytMarkPlaylistDeleted(n); _ytSavePlaylists(); }
       }
     }
+    // One copy per ready-made list: the account's (older) copy wins
+    const seen = new Map();
+    for (const n of Object.keys(remote.lists).concat(Object.keys(_spStore.lists))) {
+      const id = L[n] && L[n].ready;
+      if (!id) continue;
+      if (!seen.has(id)) { seen.set(id, n); continue; }
+      if (seen.get(id) === n) continue;
+      delete L[n]; delete M[n];
+      D[n] = Date.now();
+      if (_ytPlaylists[n]) { delete _ytPlaylists[n]; if (typeof _ytSavePlaylists === 'function') _ytSavePlaylists(); }
+    }
     const YEAR = 365 * SP_DAY_MS;
     for (const n of Object.keys(D)) if (n in L || Date.now() - D[n] > YEAR) delete D[n];
-    _spStore = { lists: L, modified: M, deleted: D };
+    _spStore = { lists: L, modified: M, deleted: D, seeded: !!(remote.seeded || _spStore.seeded) };
   }
   _spSave();
   spRefreshAll();
@@ -892,7 +925,11 @@ function _spChWords(r) {
 function spFieldLabel(id, r) {
   const f = SP_FIELDS[id];
   if (!f) return id;
+  if (id === 'otd') return t((r && +r.span === 0) ? 'sp_f_otd_day' : 'sp_f_otd_week');
   if (id === 'plays' && r && r.win) {
+    // A whole calendar year reads "plays in 2025"
+    const w = r.win, y = String(w.from || '').slice(0, 4);
+    if (w.from === y + '-01-01' && w.to === y + '-12-31') return t('sp_f_plays_year', { y });
     if (r.win.last > 0) return t('sp_f_plays_last', { n: r.win.last });
     return t('sp_f_plays_range', { a: _spFmtDay(r.win.from), b: _spFmtDay(r.win.to) });
   }
@@ -977,7 +1014,10 @@ function spDescribe(def) {
     // "reversed" only when it runs against the field's natural best-first order
     const lowFirst = !!SP_FIELDS[sort.f].lowFirst;
     const flipped = !!sort.dir && ((sort.dir === 'asc') !== lowFirst);
-    tail.push(t(flipped ? 'sp_d_sort_rev' : 'sp_d_sort', { f: spFieldLabel(sort.f, sort) }));
+    // Turned round: dates read "oldest first", counts "fewest first"
+    const kind = SP_FIELDS[sort.f].kind;
+    const key = !flipped ? 'sp_d_sort' : kind === 'date' ? 'sp_d_sort_old' : (kind === 'number' && !lowFirst) ? 'sp_d_sort_low' : 'sp_d_sort_rev';
+    tail.push(t(key, { f: spFieldLabel(sort.f, sort) }));
   }
   if (def.limit > 0) tail.push(t('sp_d_limit', { n: (+def.limit).toLocaleString() }));
   if (def.perArtist > 0) tail.push(t('sp_d_per_artist', { n: def.perArtist }));
@@ -1000,7 +1040,7 @@ function spKickerHtml() {
 function spRulesLineHtml(name) {
   const def = spGet(name);
   if (!def) return '';
-  let html = `<p class="plx-smart-rules">${esc(spDescribe(def))}</p>`;
+  let html = `<p class="plx-smart-rules">${esc(spDescribe(def))}</p>` + spReadyPickerHtml(name);
   const res = (allPlays && allPlays.length) ? spRun(_spCapped(def)) : null;
   if (res && res.skipped.length) {
     html += `<p class="plx-smart-note">${esc(res.skipped.map(n => t('sp_skip_' + n)).join(' '))}</p>`;
@@ -1012,4 +1052,209 @@ function spRulesLineHtml(name) {
 // Shown when someone tries to add, remove or drag songs in a smart playlist
 function spLockedToast() {
   if (typeof dcPlToast === 'function') dcPlToast(t('sp_locked'));
+}
+
+
+/* ===========================================================================
+   STEP 4: READY-MADE SMART PLAYLISTS
+
+   Twelve lists written with the same rules as everything else, so each one
+   can later be opened in the builder as a preset (step 5). The first time
+   the data loads they're added to the user's playlists, but only the ones
+   this library can fill (a list that would be empty, or needs ratings or
+   genres the library doesn't have, is left out). Deleting one hides it; the
+   "Ready-made smart playlists" row under the grid adds it back.
+
+   Names are written in the language in use when the list is added. The
+   `ready` id on the rules is what ties a list to its ready-made source, so
+   renaming it is fine and two devices never end up with two copies.
+   =========================================================================== */
+
+// The year "Your year in 50" starts on: last year, or this one if the
+// library has nothing older
+function _spDefaultYear() {
+  const now = (typeof tzNow === 'function') ? tzNow() : new Date();
+  const years = spYears();
+  const last = now.getFullYear() - 1;
+  return years.includes(last) ? last : (years[0] || now.getFullYear());
+}
+
+// Every year the library has plays in, newest first
+function spYears() {
+  return [..._spYearCounts().keys()].sort((a, b) => b - a);
+}
+let _spYearCache = null;
+function _spYearCounts() {
+  const gen = _spGeneration();
+  if (_spYearCache && _spYearCache.gen === gen) return _spYearCache.m;
+  const m = new Map();
+  for (const p of (allPlays || [])) { const y = (typeof tzDateOf === 'function' ? tzDateOf(p) : p.date).getFullYear(); m.set(y, (m.get(y) || 0) + 1); }
+  _spYearCache = { gen, m };
+  return m;
+}
+
+/* The rule sets. opt: the list's own setting from its picker
+   (year for "Your year in 50", span for "On this day"). */
+const SP_READY = {
+  heavy:        () => ({ rules: [{ f: 'plays', op: 'gte', v: 3, win: { last: 30 } }], sort: { f: 'plays', win: { last: 30 } }, limit: 50 }),
+  forgotten:    () => ({ rules: [{ f: 'topPct', op: 'lte', v: 10 }, { f: 'plays', op: 'gte', v: 20 }, { f: 'last', op: 'older', v: 180 }], sort: { f: 'plays' }, limit: 50 }),
+  newToYou:     () => ({ rules: [{ f: 'first', op: 'within', v: 30 }], sort: { f: 'plays' }, limit: 50 }),
+  neverCharted: () => ({ rules: [{ f: 'charted', op: 'is', v: false, ch: 'week' }, { f: 'plays', op: 'gte', v: 10 }], sort: { f: 'plays' }, limit: 50 }),
+  no1s:         () => ({ rules: [{ f: 'at1', op: 'gte', v: 1, ch: 'week' }], sort: { f: 'at1At', ch: 'week', dir: 'asc' } }),
+  topRated:     () => ({ rules: [{ f: 'rating', op: 'gte', v: 7 }], sort: { f: 'rating' }, limit: 50 }),
+  onThisDay:    o => ({ rules: [{ f: 'otd', op: 'gte', v: 1, span: (o && o.span != null) ? o.span : 3 }], sort: { f: 'otd', span: (o && o.span != null) ? o.span : 3 }, limit: 50 }),
+  oneHit:       () => ({ rules: [{ f: 'artistShare', op: 'gte', v: 75 }, { f: 'artistSongs', op: 'gte', v: 2 }, { f: 'plays', op: 'gte', v: 10 }], sort: { f: 'plays' }, limit: 50 }),
+  slow:         () => ({ rules: [{ f: 'toPeak', op: 'gte', v: 6, ch: 'week' }], sort: { f: 'toPeak', ch: 'week' }, limit: 50 }),
+  year50:       o => { const y = (o && o.year) || _spDefaultYear(); const win = { from: y + '-01-01', to: y + '-12-31' };
+                       return { rules: [{ f: 'plays', op: 'gte', v: 1, win }], sort: { f: 'plays', win }, limit: 50 }; },
+  almost1:      () => ({ rules: [{ f: 'peak', op: 'eq', v: 2, ch: 'week' }], sort: { f: 'wks', ch: 'week' }, limit: 50 }),
+  deep:         () => ({ rules: [{ f: 'albumTop', op: 'lte', v: 25 }, { f: 'albumRank', op: 'gte', v: 4 }], sort: { f: 'plays', dir: 'asc' }, limit: 50, perArtist: 3 })
+};
+const SP_READY_IDS = Object.keys(SP_READY);
+
+function spReadyDef(id, opt) {
+  const make = SP_READY[id];
+  if (!make) return null;
+  const def = make(opt);
+  def.match = 'all';
+  def.ready = id;
+  if (opt) def.readyOpt = opt;
+  return def;
+}
+
+// Can this library fill this ready-made list? (no skipped rules, 1+ song)
+function spReadyFits(id) {
+  const res = spRun(spReadyDef(id));
+  return !res.skipped.length && res.count > 0;
+}
+
+// The ready-made ids already in the user's playlists
+function _spReadyInUse() {
+  const ids = new Set();
+  for (const n of spNames()) if (_spStore.lists[n].ready) ids.add(_spStore.lists[n].ready);
+  return ids;
+}
+
+// A free name for a ready-made list: its translated name, numbered if a
+// normal playlist already uses it
+function _spReadyName(id) {
+  const base = t('sp_ready_' + id);
+  let name = base, n = 2;
+  while (_ytPlaylists[name] || spIsSmart(name)) name = base + ' ' + n++;
+  return name;
+}
+
+// Adds one ready-made list. Returns its name, or '' when it couldn't be added.
+function spAddReady(id) {
+  if (!SP_READY[id] || _spReadyInUse().has(id)) return '';
+  const name = _spReadyName(id);
+  return spCreate(name, spReadyDef(id)) ? name : '';
+}
+
+/* The first time: every ready-made list this library can fill. Runs once
+   per account (the flag syncs), so deleting one later doesn't bring it back. */
+function spSeedReady() {
+  if (_spStore.seeded || !allPlays || !allPlays.length) return;
+  const used = _spReadyInUse();
+  for (const id of SP_READY_IDS) {
+    if (used.has(id) || !spReadyFits(id)) continue;
+    const name = _spReadyName(id);
+    _spStore.lists[name] = _spClean(spReadyDef(id));
+    _spStore.modified[name] = Date.now();
+  }
+  _spStore.seeded = true;
+  _spSave();
+}
+
+// A ready-made list's own setting changed (the year, or day / week)
+function spSetReadyOpt(name, opt) {
+  const def = spGet(name);
+  if (!def || !def.ready) return;
+  const next = spReadyDef(def.ready, Object.assign({}, def.readyOpt || {}, opt));
+  if (def.limit && !next.limit) next.limit = def.limit;
+  _spStore.lists[name] = _spClean(next);
+  _spStore.modified[name] = Date.now();
+  _spSave();
+  spRefresh(name, true);
+  if (typeof dcRenderPlaylistsView === 'function') dcRenderPlaylistsView();
+}
+
+// ─── "ON THIS DAY" ────────────────────────────────────────────────────────
+/* otd = plays in earlier years within `span` days of today's date
+   (span 0 = this exact day, 3 = this week). One pass per data load, day and
+   span. */
+let _spOtdCache = null;
+function _spOtdCounts(span) {
+  const now = (typeof tzNow === 'function') ? tzNow() : new Date();
+  const id = _spGeneration() + '|' + now.toDateString() + '|' + span;
+  if (_spOtdCache && _spOtdCache.id === id) return _spOtdCache.m;
+  const m = new Map();
+  const y0 = now.getFullYear();
+  const today = new Date(y0, now.getMonth(), now.getDate());
+  for (const p of (allPlays || [])) {
+    const td = (typeof tzDateOf === 'function') ? tzDateOf(p) : p.date;
+    if (td.getFullYear() >= y0) continue;
+    // The play's day moved into this year, compared both ways round New Year
+    const same = new Date(y0, td.getMonth(), td.getDate());
+    let diff = Math.abs(Math.round((same - today) / SP_DAY_MS));
+    diff = Math.min(diff, 365 - diff);
+    if (diff > span) continue;
+    const k = _spKey(p);
+    m.set(k, (m.get(k) || 0) + 1);
+  }
+  _spOtdCache = { id, m };
+  return m;
+}
+spAddField('otd', { kind: 'number', get: (s, r) => _spOtdCounts(r && r.span != null ? +r.span : 3).get(s.key) || 0 });
+
+// ─── ON THE PAGE ──────────────────────────────────────────────────────────
+
+/* Under the library grid: the ready-made lists that aren't in the user's
+   playlists (deleted, or not added because they were empty then) and that
+   this library can fill now. Each button adds one. */
+function spReadyRowHtml() {
+  if (!allPlays || !allPlays.length) return '';
+  const used = _spReadyInUse();
+  const ids = SP_READY_IDS.filter(id => !used.has(id) && spReadyFits(id));
+  if (!ids.length) return '';
+  // Same heading look as the Automatic playlists section under it
+  return `<div class="dc-pl-part sp-ready" id="spReady">` +
+    `<div class="dc-pl-part-head"><h3 class="dc-pl-part-title"><span aria-hidden="true">✨ </span>${esc(t('sp_ready_title'))}</h3></div>` +
+    `<p class="dc-pl-part-sub">${esc(t('sp_ready_sub'))}</p>` +
+    `<div class="sp-ready-list">` +
+    ids.map(id => `<button type="button" class="dc-btn dc-btn-normal dc-btn-sm sp-ready-btn" onclick="spAddReadyFromRow('${id}')" title="${esc(spDescribe(spReadyDef(id)))}">` +
+      `<span aria-hidden="true">＋</span>${esc(t('sp_ready_' + id))}</button>`).join('') +
+    `</div></div>`;
+}
+
+function spAddReadyFromRow(id) {
+  const name = spAddReady(id);
+  if (!name) return;
+  if (typeof dcPlToast === 'function') dcPlToast(t('sp_ready_added', { name }));
+  if (typeof dcRenderPlaylistsView === 'function') dcRenderPlaylistsView();
+}
+
+/* On an open ready-made list with a setting: the year picker for "Your year
+   in 50", day / week for "On this day". Empty for the others. */
+function spReadyPickerHtml(name) {
+  const def = spGet(name);
+  if (!def || !def.ready) return '';
+  const nameJson = esc(JSON.stringify(name));
+  if (def.ready === 'year50') {
+    const cur = (def.readyOpt && def.readyOpt.year) || _spDefaultYear();
+    const years = spYears();
+    if (years.length < 2) return '';
+    return `<label class="sp-pick">${esc(t('sp_pick_year'))} ` +
+      `<select class="dc-input sp-pick-select" onchange="spSetReadyOpt(${nameJson},{year:+this.value})">` +
+      years.map(y => `<option value="${y}"${y === +cur ? ' selected' : ''}>${y}</option>`).join('') +
+      `</select></label>`;
+  }
+  if (def.ready === 'onThisDay') {
+    const span = (def.readyOpt && def.readyOpt.span != null) ? def.readyOpt.span : 3;
+    return `<div class="dc-seg sp-pick-seg" role="group" aria-label="${esc(t('sp_ready_onThisDay'))}">` +
+      `<button type="button" aria-pressed="${span === 0}" onclick="spSetReadyOpt(${nameJson},{span:0})">${esc(t('sp_pick_otd_day'))}</button>` +
+      `<button type="button" aria-pressed="${span !== 0}" onclick="spSetReadyOpt(${nameJson},{span:3})">${esc(t('sp_pick_otd_week'))}</button>` +
+      `</div>`;
+  }
+  return '';
 }
