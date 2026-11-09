@@ -291,5 +291,5 @@ PLAN FINISHED.
    "Sign in with Google" window; nothing is added or run, and smart lists on
    the device stay hidden until sign-in.
 5. ~~Night hours?~~ Decided 2026-11-09: morning 04:00–12:00, afternoon
-   12:00–17:30, evening 17:30–20:00, night 20:00–04:00, each its own rule,
-   plus "time of day it's played most".
+   12:00–17:30, evening 17:30–20:00, night 20:00–01:00, late night
+   01:00–04:00, each its own rule, plus "time of day it's played most".

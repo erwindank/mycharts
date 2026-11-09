@@ -599,19 +599,21 @@ spAddField('peakAt',   { kind: 'date',   chart: true, get: _spChartGet('peakAt')
      morning    % of plays from 04:00 to 11:59
      afternoon  % of plays from 12:00 to 17:29
      evening    % of plays from 17:30 to 19:59
-     night      % of plays from 20:00 to 03:59
-     topPart    the part of the day it's played most (morning … night)
+     night      % of plays from 20:00 to 00:59
+     lateNight  % of plays from 01:00 to 03:59
+     topPart    the part of the day it's played most (morning … late night)
      weekend    % of plays on Saturday or Sunday
      topHour    the hour (0–23) it's played most
      topDay     the weekday ('0' = Sunday … '6' = Saturday) it's played most
    The parts of the day are the user's own (2026-11-09). */
 
-// Where each part of the day starts, in minutes after midnight; night runs
-// from the evening's end round to the morning
-const SP_PARTS = [['morning', 4 * 60], ['afternoon', 12 * 60], ['evening', 17 * 60 + 30], ['night', 20 * 60]];
-const SP_PART_IDS = SP_PARTS.map(p => p[0]);
+// Where each part of the day starts, in minutes after midnight, in clock
+// order from midnight. Night runs from 20:00 round past midnight to 01:00.
+const SP_PARTS = [['lateNight', 1 * 60], ['morning', 4 * 60], ['afternoon', 12 * 60], ['evening', 17 * 60 + 30], ['night', 20 * 60]];
+// The order they're offered in (the day as people think of it)
+const SP_PART_IDS = ['morning', 'afternoon', 'evening', 'night', 'lateNight'];
 function _spPartOf(mins) {
-  let part = 'night';   // before 04:00 is still the night before
+  let part = 'night';   // 00:00–00:59 is still the night before
   for (const [id, from] of SP_PARTS) if (mins >= from) part = id;
   return part;
 }
@@ -629,7 +631,7 @@ function spHabitFacts() {
     if (h || td.getMinutes()) timed++;
     const k = _spKey(p);
     let x = raw.get(k);
-    if (!x) raw.set(k, x = { n: 0, morning: 0, afternoon: 0, evening: 0, night: 0, weekend: 0, hours: new Array(24).fill(0), days: new Array(7).fill(0) });
+    if (!x) raw.set(k, x = { n: 0, morning: 0, afternoon: 0, evening: 0, night: 0, lateNight: 0, weekend: 0, hours: new Array(24).fill(0), days: new Array(7).fill(0) });
     x.n++;
     x[_spPartOf(h * 60 + td.getMinutes())]++;
     if (wd === 0 || wd === 6) x.weekend++;
@@ -644,6 +646,7 @@ function spHabitFacts() {
       afternoon: Math.round(x.afternoon / x.n * 100),
       evening: Math.round(x.evening / x.n * 100),
       night: Math.round(x.night / x.n * 100),
+      lateNight: Math.round(x.lateNight / x.n * 100),
       topPart: SP_PART_IDS[argmax(parts)],
       weekend: Math.round(x.weekend / x.n * 100),
       topHour: argmax(x.hours),
@@ -662,6 +665,7 @@ spAddField('morning',   { kind: 'number', needs: 'times', get: _spHabitGet('morn
 spAddField('afternoon', { kind: 'number', needs: 'times', get: _spHabitGet('afternoon') });
 spAddField('evening',   { kind: 'number', needs: 'times', get: _spHabitGet('evening') });
 spAddField('night',     { kind: 'number', needs: 'times', get: _spHabitGet('night') });
+spAddField('lateNight', { kind: 'number', needs: 'times', get: _spHabitGet('lateNight') });
 spAddField('topPart',   { kind: 'enum',   needs: 'times', get: _spHabitGet('topPart'), values: SP_PART_IDS });
 spAddField('weekend', { kind: 'number', needs: 'times', get: _spHabitGet('weekend') });
 spAddField('topHour', { kind: 'number', needs: 'times', get: _spHabitGet('topHour') });
@@ -965,7 +969,7 @@ function spMerge(remote) {
    Board posts). */
 
 // Percentages get a % sign in the sentence
-const SP_PCT_FIELDS = ['morning', 'afternoon', 'evening', 'night', 'weekend', 'artistShare', 'topPct'];
+const SP_PCT_FIELDS = ['morning', 'afternoon', 'evening', 'night', 'lateNight', 'weekend', 'artistShare', 'topPct'];
 
 // The words for a rule's chart: "weekly" and its unit, "weeks"
 function _spChWords(r) {
@@ -1345,7 +1349,7 @@ const SP_B_GROUPS = [
   ['song',     ['title', 'artist', 'album', 'genre', 'release']],
   ['plays',    ['plays', 'days', 'maxDay', 'first', 'last', 'otd']],
   ['charts',   ['charted', 'peak', 'wks', 'at1', 'debut', 'climb', 'runs', 'longest', 'toPeak', 'at1At', 'peakAt']],
-  ['habits',   ['topPart', 'morning', 'afternoon', 'evening', 'night', 'weekend', 'topHour', 'topDay']],
+  ['habits',   ['topPart', 'morning', 'afternoon', 'evening', 'night', 'lateNight', 'weekend', 'topHour', 'topDay']],
   ['compared', ['rankAll', 'topPct', 'artistBest', 'artistShare', 'artistPlays', 'artistSongs', 'albumPlays', 'albumRank', 'albumTop']],
   ['ratings',  ['rating', 'aboveAvg', 'cert']],
   ['lists',    ['inList']]
