@@ -169,6 +169,12 @@ TRANSLATIONS['es'] = Object.assign({
     am_none_albums_year: 'Ningún álbum en rankings anuales.',
     am_none_albums_month: 'Ningún álbum en rankings mensuales.',
     am_none_albums_week: 'Ningún álbum en rankings semanales.',
+    am_none_releases_all: 'Ningún sencillo ni EP en el ranking histórico.',
+    am_none_releases_year: 'Ningún sencillo ni EP en rankings anuales.',
+    am_none_releases_month: 'Ningún sencillo ni EP en rankings mensuales.',
+    am_none_releases_week: 'Ningún sencillo ni EP en rankings semanales.',
+    am_none_releases_day: 'Ningún sencillo ni EP en rankings diarios.',
+    am_search_releases: 'Buscar sus sencillos y EP',
     dp_more_stats: 'Las {{n}} cifras',
     // Artist panel Overview (2026-10-27)
     ao_share_of_all: '{{pct}} de todas tus escuchas',

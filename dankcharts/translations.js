@@ -209,6 +209,13 @@ const TRANSLATIONS = {
     am_none_albums_year: 'No albums on yearly charts.',
     am_none_albums_month: 'No albums on monthly charts.',
     am_none_albums_week: 'No albums on weekly charts.',
+    // Artist Music tab, Singles & EPs list (2026-11-09)
+    am_none_releases_all: 'No singles or EPs on the all-time chart.',
+    am_none_releases_year: 'No singles or EPs on yearly charts.',
+    am_none_releases_month: 'No singles or EPs on monthly charts.',
+    am_none_releases_week: 'No singles or EPs on weekly charts.',
+    am_none_releases_day: 'No singles or EPs on daily charts.',
+    am_search_releases: 'Search their singles and EPs',
     dp_more_stats: 'All {{n}} numbers',
     // Artist panel Overview (2026-10-27)
     ao_share_of_all: '{{pct}} of all your plays',

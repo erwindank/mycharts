@@ -2366,6 +2366,10 @@
     @media (max-width: 640px) {
       .dp-body .am-type { display: flex; width: 100%; }
       .dp-body .am-type-btn { flex: 1; justify-content: center; }
+      /* three buttons (Songs / Albums / Singles & EPs): each as wide as its
+         words, no icons, so all three fit one phone row */
+      .dp-body .am-type--3 .am-type-btn { flex: 1 1 auto; padding: 8px 6px; gap: 6px; white-space: nowrap; }
+      .dp-body .am-type--3 .am-type-btn svg { display: none; }
       .dp-body .am-sum-v { font-size: 1.2rem; }
       .dp-body .am-sum-l { font-size: 0.6rem; }
       .dp-body .am-main { grid-template-columns: 38px 40px minmax(0, 1fr) auto; gap: var(--sp-2); }

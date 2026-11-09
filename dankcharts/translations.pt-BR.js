@@ -169,6 +169,12 @@ TRANSLATIONS['pt-BR'] = Object.assign({
     am_none_albums_year: 'Nenhum álbum nas paradas anuais.',
     am_none_albums_month: 'Nenhum álbum nas paradas mensais.',
     am_none_albums_week: 'Nenhum álbum nas paradas semanais.',
+    am_none_releases_all: 'Nenhum single ou EP na parada de todos os tempos.',
+    am_none_releases_year: 'Nenhum single ou EP nas paradas anuais.',
+    am_none_releases_month: 'Nenhum single ou EP nas paradas mensais.',
+    am_none_releases_week: 'Nenhum single ou EP nas paradas semanais.',
+    am_none_releases_day: 'Nenhum single ou EP nas paradas diárias.',
+    am_search_releases: 'Buscar singles e EPs do artista',
     dp_more_stats: 'Todos os {{n}} números',
     // Artist panel Overview (2026-10-27)
     ao_share_of_all: '{{pct}} de todos os seus plays',

@@ -27331,7 +27331,9 @@ function _amRow(kind, x, rank, extra, ctx) {
     name: isSong ? x.title : x.album,
     sub: isSong ? ctx.songSub(x) : `${x.tracks.size} ${tUnit('tracks', x.tracks.size)}`,
     plays: x.count,
-    cert: certBadge(x.count, isSong ? 'song' : 'album'),
+    // a single or EP is certified on its own ladder (the mark, not the Apart
+    // switch decides that — see certKindFor), albums on the album one
+    cert: certBadge(x.count, isSong ? 'song' : certKindFor(x.album, art)),
     first: x.firstPlayed, last: x.lastPlayed,
     openKey: isSong ? songKey(x) : x.album + '|||' + art,
     // the album a song row's second line names, so it can open it too
@@ -27386,6 +27388,8 @@ function amMusicRender() {
   const L = _am.lists, ty = _am.type, ch = _am.chart, list = L[ty][ch];
   // How many different songs / albums made any chart, for the switch
   const distinct = k => new Set(AM_CHARTS.flatMap(c => L[k][c].map(r => r.openKey))).size;
+  // L.releases (Singles & EPs) exists only when the artist has a release marked
+  // single or EP — whether or not that type is set Apart in Settings → Charts
   const typeBtn = (k, label, icon) => `<button type="button" role="tab" class="am-type-btn${k === ty ? ' is-on' : ''}" aria-selected="${k === ty}" onclick="amSetType('${k}')">
       ${_amIco(icon)}<span>${esc(label)}</span><span class="am-type-n">${distinct(k).toLocaleString()}</span></button>`;
   const chartBtn = c => {
@@ -27399,7 +27403,7 @@ function amMusicRender() {
     ? { v: list.reduce((s, r) => s + r.plays, 0), l: t('th_plays') }
     : { v: list.reduce((s, r) => s + (r.spells || 0), 0), l: t('am_sum_spells_' + ch) };
   const sumCell = (v, l, tone) => `<div class="am-sum-cell am-tone-${tone}"><span class="am-sum-v">${v.toLocaleString()}</span><span class="am-sum-l">${esc(l)}</span></div>`;
-  const what = t(ty === 'songs' ? 'ig_type_songs' : 'ig_type_albums');
+  const what = t(ty === 'songs' ? 'ig_type_songs' : ty === 'releases' ? 'ar_singles' : 'ig_type_albums');
 
   // On an album: no Songs / Albums switch, its own words, the album's share card
   const intro = onAlbum
@@ -27414,7 +27418,7 @@ function amMusicRender() {
       `<button class="dc-btn dc-btn-normal dc-btn-sm am-share" onclick="tpOpenArtistCard(${esc(JSON.stringify(_am.artistName))})">${esc(t('tp_card_open_artist'))}</button></span>` : '';
   el.innerHTML = `<div class="am">
     <div class="am-top">
-      ${onAlbum ? '' : `<div class="am-type" role="tablist">${typeBtn('songs', t('ig_type_songs'), 'note')}${typeBtn('albums', t('ig_type_albums'), 'disc')}</div>`}
+      ${onAlbum ? '' : `<div class="am-type${L.releases ? ' am-type--3' : ''}" role="tablist">${typeBtn('songs', t('ig_type_songs'), 'note')}${typeBtn('albums', t('ig_type_albums'), 'disc')}${L.releases ? typeBtn('releases', t('ar_singles'), 'sparkle') : ''}</div>`}
       ${share}
     </div>
     <p class="am-intro">${intro} <span>${esc(t(ch === 'all' ? 'am_tap_hist' : 'am_tap_run'))}</span></p>
@@ -27442,7 +27446,7 @@ function amRenderList() {
   const ty = _am.type, ch = _am.chart, base = _am.lists[ty][ch];
   if (!base.length) {
     const none = ch === 'all'
-      ? (ty === 'songs' ? t('modal_no_songs', { n: chartSizeAllTime }) : t('am_none_albums_all'))
+      ? (ty === 'songs' ? t('modal_no_songs', { n: chartSizeAllTime }) : t('am_none_' + ty + '_all'))
       : t('am_none_' + ty + '_' + ch);
     box.innerHTML = `<div class="am-empty">${esc(none)}</div>`;
     return;
@@ -29049,9 +29053,32 @@ function openArtistModal(artistName) {
     day: periodRows('albums', 'day', crD, allAlbumsSorted, a => findAlbumCrKey(a, crD)),
   };
 
+  /* Singles & EPs (2026-11-09). Releases marked single or EP always get their
+     own list here, whatever the Apart setting says — the mark is what the
+     record is, Apart only decides where it ranks on the charts. Each keeps
+     the rank it has on the chart it really sits on: with Apart off there is no
+     separate chart, so the rank, run and stats are the albums chart's and the
+     release STAYS in the Albums list too (it is counted there); with Apart on
+     it ranks on its own singles / EPs chart and leaves the Albums list. The
+     second line names the type, so a single and an EP can be told apart.
+     No marks = no third button. */
+  const _amRelType = r => { const k = releaseTypeOf(r.name, r.artist); return k === 'single' || k === 'ep' ? k : null; };
+  let releaseLists = null;
+  if (AM_CHARTS.some(c => albumLists[c].some(_amRelType))) {
+    releaseLists = {};
+    for (const c of AM_CHARTS) {
+      releaseLists[c] = albumLists[c].filter(_amRelType).map(r =>
+        Object.assign({}, r, { sub: t('rtype_' + _amRelType(r)) + ' · ' + r.sub }));
+      // only a type set Apart leaves the Albums list (albumBucketOf follows it)
+      albumLists[c] = albumLists[c].filter(r => albumBucketOf(r.name, r.artist) === 'album');
+    }
+  }
+
   // Keep the Songs/Albums and chart picked last time when this artist has them
   const prevAm = _am && _am.root === 'modalMusic' ? _am : {};
-  _am = { root: 'modalMusic', artistName, lists: { songs: songLists, albums: albumLists }, type: prevAm.type || 'songs', chart: prevAm.chart || 'all', q: '', sort: 'rank', open: null, all: false };
+  const amLists = { songs: songLists, albums: albumLists };
+  if (releaseLists) amLists.releases = releaseLists;
+  _am = { root: 'modalMusic', artistName, lists: amLists, type: (prevAm.type && amLists[prevAm.type]) ? prevAm.type : 'songs', chart: prevAm.chart || 'all', q: '', sort: 'rank', open: null, all: false };
   if (!_am.lists[_am.type][_am.chart].length) {
     const firstWith = AM_CHARTS.find(c => _am.lists[_am.type][c].length);
     if (firstWith) _am.chart = firstWith;
