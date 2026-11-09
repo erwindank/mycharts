@@ -172,6 +172,11 @@ yet) are hidden, not shown empty.
 
 Each step ends with a review. Commit per step.
 
+Progress: step 1 done 2026-11-08 (7debb69). Step 2 done 2026-11-08. Chart
+facts read the site's own chart runs, so first use of a chart rule on a very
+big library (250k plays) takes about 1 second to build that chart's history,
+the same time the Charts tab needs for it. Rules run in a few ms after that.
+
 1. **Engine: song facts + rules.** smartplaylists.js with `spSongFacts()`
    (basics, plays, first/last played, ratings, genres, certs) and
    `spRun(rules)` (conditions, all/any, limit, sort, artist limit). No UI yet.
