@@ -47433,6 +47433,44 @@ html.lsx-open { overflow: hidden; }
   background: color-mix(in srgb, var(--teal) 16%, transparent);
 }
 
+/* A smart playlist shared on the Board (board.js + smartplaylists.js step 10):
+   the card on an open post, the note in the new-post form, the tag on the list */
+.bd-smart-card {
+  margin: var(--sp-3) 0 0;
+  padding: var(--sp-3) var(--sp-4);
+  max-width: 560px;
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+  border-radius: var(--r-md);
+  background: color-mix(in srgb, var(--accent) 7%, var(--bg2));
+}
+.bd-smart-head { display: flex; align-items: center; gap: var(--sp-3); }
+.bd-smart-ico {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-md);
+  font-size: 20px;
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+}
+.bd-smart-name { font-family: var(--font-display); font-size: var(--fs-md); font-weight: 600; color: var(--text); overflow-wrap: anywhere; }
+.bd-smart-desc { margin: var(--sp-2) 0 0; font-size: var(--fs-sm); line-height: 1.45; color: var(--text); }
+.bd-smart-match { margin: 4px 0 0; font-size: var(--fs-xs); color: var(--text3); }
+.bd-smart-card > .dc-btn { margin-top: var(--sp-3); }
+.bd-smart-attach {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-top: var(--sp-2);
+  padding: 6px 10px;
+  border-radius: var(--r-md);
+  font-size: var(--fs-sm);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+.bd-smart-attach-txt { flex: 1; min-width: 0; font-weight: 600; color: var(--text); }
+.bd-tag-smart { color: var(--accent); }
+
 /* The bell switch on an open smart list (smartplaylists.js step 9) */
 .sp-nt-row { max-width: 460px; margin: 0 0 var(--sp-2); padding: 6px 10px; border-radius: var(--r-md); background: color-mix(in srgb, var(--bg3) 50%, transparent); }
 .sp-nt-row .set-switch-note { display: block; margin-top: 1px; font-size: var(--fs-xs); color: var(--text3); line-height: 1.4; }

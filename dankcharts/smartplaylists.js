@@ -2068,6 +2068,11 @@ function spChangesHtml(name) {
 
 // ─── Save a copy ──────────────────────────────────────────────────────────
 
+// Share on the Board (step 10), next to Save a copy
+function spShareBtnHtml(name) {
+  return `<button type="button" class="dc-btn dc-btn-plain dc-btn-icon sp-share-btn" onclick="spShareToBoard(${esc(JSON.stringify(name))})" title="${esc(t('sp_share'))}" aria-label="${esc(t('sp_share'))}">📣</button>`;
+}
+
 function spCopyBtnHtml(name) {
   const ico = typeof dcIco === 'function' ? dcIco('copy') : '⧉';
   return `<button type="button" class="dc-btn dc-btn-plain dc-btn-icon" onclick="spSaveCopy(${esc(JSON.stringify(name))})" title="${esc(t('sp_copy'))}" aria-label="${esc(t('sp_copy'))}">${ico}</button>`;
@@ -2357,4 +2362,134 @@ async function spNotifyWatch() {
   } catch (e) {
     console.warn('[dankcharts] Smart playlist notify check failed:', e);
   } finally { _spNtBusy = false; }
+}
+
+
+/* ===========================================================================
+   STEP 10: SHARE A SMART PLAYLIST ON THE BOARD
+
+   "Share on the Board" (📣 on an open smart list) opens the Board's new-post
+   form with the list attached. What's shared is the RULES, not the songs:
+   anyone who opens the post sees the rules in plain words (in their own
+   language), how many of their own songs match, and "Add to my playlists",
+   which makes the same smart list from their library.
+
+   The rules travel as a short code at the end of the post's body (board.js
+   hides it and shows the card). Left out of what's shared: rules about the
+   sharer's own playlists (nobody else has them), the ready-made link, the
+   bell. Everything read back from a post is someone else's text, so it's
+   cleaned to the known fields and conditions before it's used.
+   =========================================================================== */
+
+const SP_SHARE_V = 1;
+
+function _spB64Enc(str) {
+  return btoa(unescape(encodeURIComponent(str))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+function _spB64Dec(code) {
+  let b = String(code).replace(/-/g, '+').replace(/_/g, '/');
+  while (b.length % 4) b += '=';
+  return decodeURIComponent(escape(atob(b)));
+}
+
+// Only what the engine knows, from a rule set someone else wrote
+function _spSafeRules(list, depth) {
+  const out = [];
+  for (const r of (Array.isArray(list) ? list : []).slice(0, 30)) {
+    if (!r || typeof r !== 'object') continue;
+    if (Array.isArray(r.rules)) {
+      if (depth > 0) continue;   // one level of groups, like the builder
+      const inner = _spSafeRules(r.rules, depth + 1);
+      if (inner.length) out.push({ match: r.match === 'any' ? 'any' : 'all', rules: inner });
+      continue;
+    }
+    const f = SP_FIELDS[r.f];
+    if (!f || f.kind === 'pl') continue;   // unknown, or about someone's own playlists
+    const x = { f: r.f, op: String(r.op || '') };
+    const okV = v => (typeof v === 'number' && isFinite(v)) || typeof v === 'boolean' || (typeof v === 'string' && v.length <= 120);
+    if (Array.isArray(r.v)) { if (r.v.length === 2 && r.v.every(okV)) x.v = r.v.slice(); else continue; }
+    else if (okV(r.v)) x.v = r.v; else if (r.v != null) continue;
+    if (SP_CHARTS.includes(r.ch)) x.ch = r.ch;
+    if (r.span === 0 || r.span === 3) x.span = r.span;
+    if (r.win && typeof r.win === 'object') {
+      if (r.win.last > 0 && r.win.last <= 3650) x.win = { last: Math.round(r.win.last) };
+      else if (/^\d{4}-\d{2}-\d{2}$/.test(r.win.from || '') && /^\d{4}-\d{2}-\d{2}$/.test(r.win.to || '')) x.win = { from: r.win.from, to: r.win.to };
+    }
+    out.push(x);
+  }
+  return out;
+}
+function _spSafeDef(d) {
+  if (!d || typeof d !== 'object') return null;
+  const def = { match: d.match === 'any' ? 'any' : 'all', rules: _spSafeRules(d.rules, 0) };
+  if (d.sort && (d.sort.f === 'random' || SP_FIELDS[d.sort.f])) {
+    def.sort = _spSafeRules([Object.assign({}, d.sort, { op: 'x' })], 0)[0] || { f: 'random' };
+    delete def.sort.op;
+    if (d.sort.dir === 'asc' || d.sort.dir === 'desc') def.sort.dir = d.sort.dir;
+    if (d.sort.f === 'random') def.sort = { f: 'random' };
+  }
+  if (d.limit > 0) def.limit = Math.min(SP_MAX_SONGS, Math.round(d.limit));
+  if (d.perArtist > 0) def.perArtist = Math.min(50, Math.round(d.perArtist));
+  return def;
+}
+
+// A smart list → the code that goes in a post
+function spShareCode(name) {
+  const def = spGet(name);
+  if (!def) return null;
+  const clean = _spSafeDef(def);
+  return _spB64Enc(JSON.stringify({ v: SP_SHARE_V, n: String(name).slice(0, 40), d: clean }));
+}
+
+// A code from a post → { name, def }, or null when it can't be read
+function spShareRead(code) {
+  try {
+    const o = JSON.parse(_spB64Dec(code));
+    const def = _spSafeDef(o && o.d);
+    if (!def) return null;
+    return { name: String(o.n || t('sp_tag')).slice(0, 40), def };
+  } catch (e) { return null; }
+}
+
+// Does sharing leave rules out (ones about the user's own playlists)?
+function _spShareDrops(def) {
+  return spDeps(def).size > 0;
+}
+
+function spShareToBoard(name) {
+  const def = spGet(name);
+  if (!def || !window.dcBoard) return;
+  if (typeof dcIsSignedIn === 'function' && !dcIsSignedIn()) { if (typeof dcPlToast === 'function') dcPlToast(t('sp_share_signin')); return; }
+  const code = spShareCode(name);
+  if (!code) return;
+  if (_spShareDrops(def) && typeof dcPlToast === 'function') dcPlToast(t('sp_share_dropped'));
+  window.dcBoard.composeSmart({ code, name }, t('sp_share_title', { name }), t('sp_share_body'));
+}
+
+// The card on an open Board post
+function spSharedCardHtml(code) {
+  const got = spShareRead(code);
+  if (!got) return `<div class="bd-smart-card"><p class="spb-hint">${esc(t('sp_share_bad'))}</p></div>`;
+  let match = '';
+  if (allPlays && allPlays.length) {
+    const n = spRun(_spCapped(got.def)).songs.length;
+    match = `<p class="bd-smart-match">${esc(t(n ? 'sp_share_match' : 'sp_share_match_none', { n: n.toLocaleString() }))}</p>`;
+  }
+  return `<div class="bd-smart-card">` +
+    `<div class="bd-smart-head"><span class="bd-smart-ico" aria-hidden="true">✨</span><div>` +
+    `<span class="plx-kicker">${esc(t('sp_tag'))}</span><div class="bd-smart-name">${esc(got.name)}</div></div></div>` +
+    `<p class="bd-smart-desc">${esc(spDescribe(got.def))}</p>` + match +
+    `<button type="button" class="dc-btn dc-btn-main dc-btn-sm" onclick="spAddShared('${code}')">＋ ${esc(t('sp_share_add'))}</button>` +
+    `</div>`;
+}
+
+// "Add to my playlists": the same rules, run on this user's library
+function spAddShared(code) {
+  const got = spShareRead(code);
+  if (!got) return;
+  let name = got.name, n = 2;
+  while (_ytPlaylists[name] || spIsSmart(name) || (typeof _ytIsFavName === 'function' && _ytIsFavName(name))) name = got.name + ' (' + n++ + ')';
+  if (!spCreate(name, got.def)) return;
+  if (typeof dcPlToast === 'function') dcPlToast(t('sp_share_added', { name }));
+  if (typeof dcPlOpenByName === 'function') dcPlOpenByName(name, false);
 }

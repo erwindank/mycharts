@@ -38649,6 +38649,8 @@ function _dcPlDetailHtml(name) {
     `<span class="plx-hero-tools">` +
     // Smart playlists: save today's songs as a normal playlist (smartplaylists.js)
     (smart ? spCopyBtnHtml(name) : '') +
+    // Smart playlists: share the rules on the Community Board (smartplaylists.js)
+    (smart && typeof spShareBtnHtml === 'function' ? spShareBtnHtml(name) : '') +
     // Export: Export Playlist window / download CSV / download text (dcPlExportMenu)
     `<button type="button" class="dc-btn dc-btn-plain dc-btn-icon" onclick="dcPlExportMenu(${nameJson},this)" title="${esc(t('pl_view_export'))}" aria-label="${esc(t('pl_view_export'))}" aria-haspopup="menu">${_DC_PL_SVG.export}</button>` +
     (_ytIsFavName(name) ? '' :

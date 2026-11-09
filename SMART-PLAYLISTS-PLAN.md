@@ -220,6 +220,13 @@ songs and at least 20% of the list came in since the user was last told.
 Baseline = short song hashes in notifyState.sp (transaction, no double
 notifications across devices). Runs after the lists refresh and in ntWatch.
 Signed-in only, not on the demo library.
+Step 10 done 2026-11-09. 📣 on an open smart list opens the Board's new-post
+form (Discussion) with the list attached. The rules travel as a code at the
+end of the post body ("⟦dc-smart:…⟧"), so firestore.rules did NOT change and
+nothing has to be pasted. board.js hides the code (list, search, edit box)
+and shows a card: the rules in the reader's language, how many of their
+songs match, "Add to my playlists". Rules about the sharer's own playlists
+are left out; codes read from posts are cleaned to known fields only.
 
 1. **Engine: song facts + rules.** smartplaylists.js with `spSongFacts()`
    (basics, plays, first/last played, ratings, genres, certs) and

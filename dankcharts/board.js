@@ -65,7 +65,8 @@
     composing: false,   // new-post form open
     editingId: null,    // post being edited in place
     isAdmin: false,
-    busy: {}            // in-flight keys so a double click can't double-write
+    busy: {},           // in-flight keys so a double click can't double-write
+    smart: null         // a smart playlist attached to the new post: { code, name } (smartplaylists.js)
   };
   var _unsubPosts = null, _unsubReplies = null, _repliesFor = null;
   // True once the Charts Guide's picture tool has put made-up posts in
@@ -136,6 +137,20 @@
     for (var i = 1; i < steps.length; i++) {
       if (a < steps[i][0]) return rtf.format(Math.round(diff / steps[i][2]), steps[i][1]);
     }
+    return '';
+  }
+
+  /* A shared smart playlist rides at the end of a post's body as a short
+     code: "⟦dc-smart:<base64url JSON>⟧" (smartplaylists.js makes and reads
+     it). Kept in the body, not its own field, so the Firestore rules need no
+     change. The Board never shows the code: posts show a card instead, the
+     list and search use the text without it, and editing keeps it. */
+  var SMART_RE = /\s*⟦dc-smart:([A-Za-z0-9_-]+)⟧\s*$/;
+  function smartCode(body) { var m = SMART_RE.exec(body || ''); return m ? m[1] : null; }
+  function smartStrip(body) { return String(body || '').replace(SMART_RE, ''); }
+  function smartTail(code) { return code ? '\n\n⟦dc-smart:' + code + '⟧' : ''; }
+  function smartCard(code) {
+    if (typeof spSharedCardHtml === 'function') return spSharedCardHtml(code);
     return '';
   }
 
@@ -255,6 +270,8 @@
         // Pictures and the post go in one batch: all saved, or none.
         var b = d.batch();
         var ref = d.collection('boardPosts').doc();
+        // A smart playlist attached in the form rides at the end of the body
+        if (S.smart) body = (body + smartTail(S.smart.code)).slice(-MAX_BODY);
         var doc = {
           title: title, body: body, category: cat,
           authorUid: u.uid, authorName: authorName(), authorPhoto: (u.photoURL || '').slice(0, 500),
@@ -269,6 +286,7 @@
       }).then(function (ref) {
         clearForm('bdNew');   // only on success - a failed post keeps its text
         _pending.bdNew = [];
+        S.smart = null;
         S.composing = false;
         S.cat = 'all'; S.status = 'all'; S.sort = 'new'; S.query = ''; savePrefs();
         openPost(ref.id);
@@ -279,6 +297,8 @@
   function savePostEdit(id, cat, title, body) {
     var u = user(); if (!u) return;
     var before = (findPost(id) || {}).images || [];
+    // A shared smart playlist stays attached through an edit
+    body = body + smartTail(smartCode((findPost(id) || {}).body));
     return guard('edit:' + id, function () {
       return db().then(function (d) {
         var b = d.batch();
@@ -388,7 +408,7 @@
     var list = S.posts.filter(function (p) {
       if (S.cat !== 'all' && p.category !== S.cat) return false;
       if (S.status !== 'all' && (p.status || 'open') !== S.status) return false;
-      if (q && ((p.title || '') + ' ' + (p.body || '') + ' ' + (p.authorName || '')).toLowerCase().indexOf(q) < 0) return false;
+      if (q && ((p.title || '') + ' ' + smartStrip(p.body) + ' ' + (p.authorName || '')).toLowerCase().indexOf(q) < 0) return false;
       return true;
     });
     list.sort(function (a, b) {
@@ -530,7 +550,14 @@
     });
     h += '</div>';
     h += '<input type="text" id="' + pre + 'Title" data-draft class="bd-input" maxlength="' + MAX_TITLE + '" placeholder="' + esc(tr('board_title_ph')) + '" aria-label="' + esc(tr('board_title_ph')) + '"' + (post ? ' value="' + esc(post.title) + '"' : '') + ' required>';
-    h += '<textarea id="' + pre + 'Body" data-draft class="bd-input bd-textarea" maxlength="' + MAX_BODY + '" rows="5" placeholder="' + esc(tr('board_body_ph')) + '" aria-label="' + esc(tr('board_body_ph')) + '" oninput="dcBoard.count(this)" onpaste="dcBoard.pasteImg(event,\'' + pre + '\')">' + (post ? esc(post.body) : '') + '</textarea>';
+    // Room is kept for an attached smart playlist's code (smartplaylists.js)
+    var code = post ? smartCode(post.body) : (S.smart && S.smart.code);
+    var room = MAX_BODY - (code ? smartTail(code).length : 0);
+    h += '<textarea id="' + pre + 'Body" data-draft class="bd-input bd-textarea" maxlength="' + room + '" rows="5" placeholder="' + esc(tr('board_body_ph')) + '" aria-label="' + esc(tr('board_body_ph')) + '" oninput="dcBoard.count(this)" onpaste="dcBoard.pasteImg(event,\'' + pre + '\')">' + (post ? esc(smartStrip(post.body)) : '') + '</textarea>';
+    if (code) {
+      h += '<div class="bd-smart-attach"><span aria-hidden="true">✨</span><span class="bd-smart-attach-txt">' + esc(tr('sp_share_attached', { name: post ? ((typeof spShareRead === 'function' && spShareRead(code)) || {}).name || '' : S.smart.name })) + '</span>' +
+        (post ? '' : '<button type="button" class="bd-link" onclick="dcBoard.dropSmart()">' + esc(tr('sp_share_remove')) + '</button>') + '</div>';
+    }
     h += attachHTML(pre, pre + 'Body');
     h += '<div class="bd-composer-foot"><span class="bd-note">' + (post ? '' : esc(tr('board_public_note'))) + '</span>' +
       '<span class="bd-count" data-for="' + pre + 'Body"></span>' +
@@ -558,13 +585,15 @@
       (p.pinned ? '<span class="dc-chip bd-tag bd-tag-pin">' + ico('pin') + esc(tr('board_pinned')) + '</span>' : '') +
       '<span class="dc-chip bd-tag bd-tag-cat"><span class="bd-dot bd-cat-' + esc(p.category) + '"></span>' + esc(catLabel(p.category)) + '</span>' +
       (status !== 'open' ? '<span class="dc-chip bd-tag bd-status bd-status-' + esc(status) + '">' + esc(statusLabel(status)) + '</span>' : '') +
+      (smartCode(p.body) ? '<span class="dc-chip bd-tag bd-tag-smart">✨ ' + esc(tr('sp_tag')) + '</span>' : '') +
       '</div>';
     if (S.editingId === p.id) {
       h += composerHTML(p);
     } else {
       h += '<button type="button" class="bd-post-title" aria-expanded="' + open + '" onclick="dcBoard.toggle(\'' + esc(p.id) + '\')">' + esc(p.title) + '</button>';
-      if (open) h += '<div class="bd-post-body">' + richText(p.body || '') + '</div>' + imagesHTML(p.images);
-      else if (p.body) h += '<div class="bd-post-snippet">' + esc(p.body.slice(0, 220)) + '</div>';
+      var text = smartStrip(p.body);
+      if (open) h += '<div class="bd-post-body">' + richText(text) + '</div>' + imagesHTML(p.images) + (smartCode(p.body) ? smartCard(smartCode(p.body)) : '');
+      else if (text) h += '<div class="bd-post-snippet">' + esc(text.slice(0, 220)) + '</div>';
     }
     h += '<div class="bd-meta">' + avatar(p.authorPhoto, p.authorName) +
       '<span class="bd-author">' + esc(p.authorName || tr('board_anon')) + '</span>' +
@@ -942,7 +971,7 @@
       _active = false;
       if (_unsubPosts) { _unsubPosts(); _unsubPosts = null; }
       unsubscribeReplies();
-      S.openId = null; S.editingId = null; S.composing = false;
+      S.openId = null; S.editingId = null; S.composing = false; S.smart = null;
     },
     // Opens one post from anywhere on the site (a notification about a reply
     // or a status change, notifications.js): goes to the Board tab first if
@@ -968,6 +997,28 @@
       render();
     },
 
+    /* smartplaylists.js "Share on the Board": goes to the Board with the
+       new-post form open, a title and text filled in, and the list's code
+       attached (shown as a card, never as text). */
+    composeSmart: function (smart, title, body) {
+      if (!user()) { toast(tr('board_signin_note')); return; }
+      S.smart = smart;
+      S.composing = true; S.editingId = null; S.openId = null;
+      S.cat = 'all';
+      _drafts.bdNewTitle = title || '';
+      _drafts.bdNewBody = body || '';
+      if (_active) { render(); }
+      else if (typeof dcGoTab === 'function') dcGoTab('board');
+      setTimeout(function () {
+        var c = document.querySelector('#boardView .bd-composer');
+        if (c) c.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        // The "discussion" category suits a shared list
+        var r = document.querySelector('input[name="bdNewCat"][value="discussion"]');
+        if (r) r.checked = true;
+      }, 350);
+    },
+    dropSmart: function () { S.smart = null; render(); },
+
     setCat: function (c) { S.cat = c; savePrefs(); render(); },
     setStatus: function (s) { S.status = s; savePrefs(); render(); },
     setSort: function (s) { S.sort = s; savePrefs(); render(); },
@@ -983,7 +1034,7 @@
     },
     cancelCompose: function (isEdit) {
       if (isEdit) { clearForm('bdEdit'); _pending.bdEdit = []; S.editingId = null; }
-      else { clearForm('bdNew'); _pending.bdNew = []; S.composing = false; }
+      else { clearForm('bdNew'); _pending.bdNew = []; S.composing = false; S.smart = null; }
       closeEmoji();
       render();
     },
