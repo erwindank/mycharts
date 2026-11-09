@@ -34530,6 +34530,7 @@ function openYtPlayer(title, artist, album, btn) {
   try { localStorage.setItem('yt-player-current', JSON.stringify({ title, artist, album })); } catch(e) {}
   _ytCurrentVideoId  = null;
   _ytScrobbled       = false;
+  _ytLfmLiveSent     = 0;   // new song: announce it to Last.fm when it starts
   _ytHistoryRecorded = false;
   _ytEmbedRetry      = 0;
   _ytCrossfadingOut  = false;
@@ -34960,6 +34961,7 @@ function _ytOnState(event) {
         if (_ytHasScrobbleDest()) _ytStartScrobbleRing();
       }
     }
+    _ytLfmLiveSend();   // show this song live on Last.fm ("now playing")
     _ytStartSeekUpdate();
     _ytApplySpeed();
     if (_ytCrossfade > 0 && _ytNewTrackFade) { _ytNewTrackFade = false; _ytStartFadeIn(); }
@@ -35115,6 +35117,56 @@ async function _ytScrobble() {
     _ytScrobbleFailed = true;
     _ytUpdateScrobbleNote();
   }
+}
+
+// ── Live on Last.fm ("now playing") ───────────────────────────────
+// track.updateNowPlaying tells Last.fm what is playing right now, so the song
+// shows live on the user's Last.fm profile (and in our own On Air bar, which
+// reads it back from user.getRecentTracks). It is not a scrobble — the real
+// scrobble still happens at the chosen threshold in _ytScrobble(). Last.fm
+// only, since a Sheet has no "now playing". On by default; Tools card toggles it.
+let _ytLfmLiveOn   = (() => { try { return localStorage.getItem('yt-lfm-live') !== '0'; } catch (e) { return true; } })();
+let _ytLfmLiveSent = 0;   // when the current song was last announced (ms); 0 = not yet
+
+function _ytLfmLiveSend() {
+  if (!_ytLfmLiveOn || !_ytCurrentTrack) return;
+  if (!(getScrobbleSession() && getScrobbleUser())) return;
+  // Once per song. Last.fm drops "now playing" after about the song's length,
+  // so a resume after a long pause sends it again (3+ minutes since the last send).
+  if (_ytLfmLiveSent && Date.now() - _ytLfmLiveSent < 3 * 60 * 1000) return;
+  _ytLfmLiveSent = Date.now();
+  const { title, artist, album } = _ytCurrentTrack;
+  const params = { method: 'track.updateNowPlaying', artist, track: title, sk: getScrobbleSession() };
+  if (album) params.album = album;
+  // Same albumArtist rule as the scrobble: only for collaborations
+  const primaryArt = _primaryArtist(artist);
+  if (primaryArt !== artist) params.albumArtist = primaryArt;
+  // Song length helps Last.fm know when "now playing" should end
+  let dur = 0;
+  try { dur = Math.round((_ytPlayer && _ytPlayer.getDuration()) || 0); } catch (e) {}
+  if (dur > 30) params.duration = String(dur);
+  const sentFor = _ytCurrentTrack;
+  lfmPost(params).then(() => {
+    // Refresh the On Air bar shortly so it shows this song without waiting
+    // out its 45s poll (Last.fm needs a moment before getRecentTracks has it)
+    if (sentFor === _ytCurrentTrack && typeof startNowPlaying === 'function') {
+      setTimeout(() => startNowPlaying({ force: true }), 4000);
+    }
+  }).catch(() => {
+    // Silent: it's a nice-to-have. Allow a retry on the next play/resume.
+    if (sentFor === _ytCurrentTrack) _ytLfmLiveSent = 0;
+  });
+}
+
+function _ytToggleLfmLive() {
+  _ytLfmLiveOn = !_ytLfmLiveOn;
+  try { localStorage.setItem('yt-lfm-live', _ytLfmLiveOn ? '1' : '0'); } catch (e) {}
+  // Switched on mid-song: announce the current song straight away
+  if (_ytLfmLiveOn) {
+    _ytLfmLiveSent = 0;
+    try { if (_ytPlayer && _ytPlayer.getPlayerState() === YT.PlayerState.PLAYING) _ytLfmLiveSend(); } catch (e) {}
+  }
+  _ytRenderTools();
 }
 
 function closeYtPlayer() {
@@ -39108,6 +39160,8 @@ function _ytRenderTools() {
     ['speed',   t('yt_np_tool_speed'), t('yt_np_tool_speed_d'), (_ytSpeed || 1) + '×', 'M12 14l4-4M3.3 17a9 9 0 1 1 17.4 0', '_ytCycleSpeed();_ytRenderTools()'],
     ['xfade',   t('yt_np_xfade'), t('yt_np_tool_xfade_d'), _ytCrossfade > 0 ? _ytCrossfade + ' s' : t('yt_np_off'), 'M3 7h4l10 10h4M3 17h4L17 7h4', '_ytCycleCrossfade();_ytRenderTools()'],
     ['scrobble', t('yt_np_scrobble_at'), t('yt_np_tool_scrobble_d'), _ytScrobbleThreshold, 'M5 12l5 5 9-10', '_ytCycleScrobbleThreshold();_ytRenderTools()'],
+    // Live "now playing" on Last.fm — needs a connected Last.fm account to do anything
+    ['live',    t('yt_np_tool_live'), t('yt_np_tool_live_d'), !(getScrobbleSession() && getScrobbleUser()) ? t('yt_np_val_needlfm') : t(_ytLfmLiveOn ? 'yt_np_on' : 'yt_np_off'), 'M12 12h.01M8.5 8.5a5 5 0 0 0 0 7M15.5 8.5a5 5 0 0 1 0 7M5.6 5.6a9 9 0 0 0 0 12.8M18.4 5.6a9 9 0 0 1 0 12.8', '_ytToggleLfmLive()'],
     ['lists',   t('yt_np_tool_lists'), t('yt_np_tool_lists_d'), nLists === 1 ? t('yt_np_val_lists_one') : t('yt_np_val_lists', { n: nLists }), 'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01', '_ytTogglePlaylists()'],
     ['share',   t('yt_np_tool_share'), t('yt_np_tool_share_d'), t('yt_np_val_copy'), 'M4 12v8h16v-8M16 6l-4-4-4 4M12 2v13', '_ytShare()'],
     ['pip',     t('yt_np_pip'), t('yt_np_tool_pip_d'), t(_ytPipWindow ? 'yt_np_on' : 'yt_np_off'), 'M3 4h18v14H3zM13 11h7v6h-7z', '_ytTogglePiP().then(_ytRenderTools)'],
