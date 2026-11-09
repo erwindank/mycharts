@@ -208,6 +208,12 @@ kept per device (localStorage dc-smart-seen, not synced: old songs of every
 list would eat into the 1 MB playlists doc): card line "+3 new · 1 gone",
 a "Since you last looked" box (came in / dropped out) and NEW on new rows.
 Opening a list moves "last looked" on; only which songs, not their order.
+Step 8 done 2026-11-09. Mix it: button on the Smart playlist card (shown when
+there are 2+ playlists), window #spMixModal. Pick 2–4 playlists (smart first,
+normal ones too), size 25/50/100, most per artist, name. spBlend takes one
+song from each list in turn from the top, no repeats, artist cap. Play puts
+it in the player; Save makes a normal playlist and opens it. Last picks are
+remembered per device (dc_sp_mix).
 
 1. **Engine: song facts + rules.** smartplaylists.js with `spSongFacts()`
    (basics, plays, first/last played, ratings, genres, certs) and

@@ -1824,7 +1824,10 @@ function spNewCardHtml() {
     `<div class="plx-new-ico" aria-hidden="true">✨</div>` +
     `<div class="plx-new-title">${esc(t('sp_b_card_title'))}</div>` +
     `<div class="plx-new-sub">${esc(t('sp_b_card_sub'))}</div>` +
-    `<div class="plx-new-form"><button type="button" class="dc-btn dc-btn-main dc-btn-sm" onclick="spOpenBuilder()">${esc(t('sp_b_card_btn'))}</button></div>` +
+    `<div class="plx-new-form"><button type="button" class="dc-btn dc-btn-main dc-btn-sm" onclick="spOpenBuilder()">${esc(t('sp_b_card_btn'))}</button>` +
+    // Mix it (step 8): needs two playlists to blend
+    (Object.keys(_ytPlaylists).length >= 2 ? `<button type="button" class="dc-btn dc-btn-normal dc-btn-sm" onclick="spOpenMix()">🎛️ ${esc(t('sp_mix_btn'))}</button>` : '') +
+    `</div>` +
     `</div>`;
 }
 
@@ -2079,3 +2082,181 @@ function spSaveCopy(name) {
   _ytSavePlaylists();
   if (typeof dcPlToast === 'function') dcPlToast(t('sp_copy_saved', { name: copy }));
 }
+
+
+/* ===========================================================================
+   STEP 8: MIX IT
+
+   Blend 2 to 4 playlists into one. Smart lists are offered first, normal
+   ones too. The mix takes one song from each list in turn, from the top of
+   each, skipping songs already in the mix and artists that have hit the
+   per-artist cap, until it's the chosen size or the lists run out. Then it
+   plays straight away or is saved as a normal playlist.
+
+   The last picks are remembered on this device (dc_sp_mix) so the same mix
+   is one tap away next time.
+   =========================================================================== */
+
+const SP_MIX_LS = 'dc_sp_mix';
+const SP_MIX_SIZES = [25, 50, 100];
+let _spMix = null;   // { picked: [names], size, per, name }
+
+// Smart lists first (A–Z), then the others (A–Z)
+function _spMixNames() {
+  const by = (a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true });
+  const all = Object.keys(_ytPlaylists).filter(n => (_ytPlaylists[n] || []).length);
+  return all.filter(spIsSmart).sort(by).concat(all.filter(n => !spIsSmart(n)).sort(by));
+}
+
+/* The blend. Returns [{ title, artist, album, from }] where `from` is the
+   list each song came from (shown in the preview). */
+function spBlend(names, size, per) {
+  const lists = names.map(n => ({ n, tracks: _ytPlaylists[n] || [], i: 0 }));
+  const seen = new Set(), perArtist = new Map(), out = [];
+  let going = true;
+  while (out.length < size && going) {
+    going = false;
+    for (const L of lists) {
+      if (out.length >= size) break;
+      while (L.i < L.tracks.length) {
+        const tr = L.tracks[L.i++];
+        const k = _spTrKey(tr);
+        const a = String(tr.artist || '').toLowerCase().trim();
+        if (seen.has(k) || (per > 0 && (perArtist.get(a) || 0) >= per)) continue;
+        seen.add(k);
+        perArtist.set(a, (perArtist.get(a) || 0) + 1);
+        out.push({ title: tr.title, artist: tr.artist, album: tr.album || '', from: L.n });
+        going = true;
+        break;
+      }
+    }
+  }
+  return out;
+}
+
+function spOpenMix() {
+  const modal = document.getElementById('spMixModal');
+  if (!modal) return;
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem(SP_MIX_LS) || '{}') || {}; } catch (e) {}
+  const names = _spMixNames();
+  // Last time's picks that still exist; else the first two smart lists
+  let picked = (saved.picked || []).filter(n => names.includes(n)).slice(0, 4);
+  if (picked.length < 2) picked = names.slice(0, 2);
+  const tag = typeof _dcPlDateTag === 'function' ? _dcPlDateTag() : '';
+  _spMix = {
+    picked,
+    size: SP_MIX_SIZES.includes(saved.size) ? saved.size : 50,
+    per: saved.per >= 0 ? saved.per : 2,
+    name: t('sp_mix_default', { date: tag })
+  };
+  _spMixRender();
+  modal.classList.add('open');
+  if (typeof dcFillIcons === 'function') dcFillIcons(modal);
+}
+
+function spCloseMix() {
+  document.getElementById('spMixModal')?.classList.remove('open');
+  _spMix = null;
+}
+
+function _spMixRemember() {
+  try { localStorage.setItem(SP_MIX_LS, JSON.stringify({ picked: _spMix.picked, size: _spMix.size, per: _spMix.per })); } catch (e) {}
+}
+
+function _spMixRender() {
+  const body = document.getElementById('spMixBody');
+  if (!body || !_spMix) return;
+  const full = _spMix.picked.length >= 4;
+  let html = `<h4 class="spb-h">${esc(t('sp_mix_pick'))}</h4><div class="spm-lists">` +
+    _spMixNames().map(n => {
+      const on = _spMix.picked.includes(n);
+      const order = on ? _spMix.picked.indexOf(n) + 1 : '';
+      return `<button type="button" class="spm-list${on ? ' is-on' : ''}" data-mix="${esc(n)}" aria-pressed="${on}"${!on && full ? ' disabled' : ''}>` +
+        `<span class="spm-check" aria-hidden="true">${order}</span>` +
+        `<span class="spm-name">${spIsSmart(n) ? '<span aria-hidden="true">✨ </span>' : ''}${esc(n)}</span>` +
+        `<span class="spm-n">${esc(tCount('songs', (_ytPlaylists[n] || []).length))}</span></button>`;
+    }).join('') + `</div>`;
+  html += `<div class="spb-settings spm-settings">` +
+    `<div class="spb-set"><span class="spb-label">${esc(t('sp_mix_size'))}</span><div class="dc-seg" role="group">` +
+      SP_MIX_SIZES.map(n => `<button type="button" data-mix-size="${n}" aria-pressed="${_spMix.size === n}">${n}</button>`).join('') + `</div></div>` +
+    `<label class="spb-set"><span class="spb-label">${esc(t('sp_b_per_artist'))}</span><select class="dc-input" id="spMixPer">` +
+      [0, 1, 2, 3, 5].map(n => `<option value="${n}"${_spMix.per === n ? ' selected' : ''}>${n ? n : esc(t('sp_mix_any'))}</option>`).join('') + `</select></label>` +
+    `<label class="spb-set"><span class="spb-label">${esc(t('sp_b_name'))}</span><input class="dc-input" id="spMixName" type="text" maxlength="40" value="${esc(_spMix.name)}"></label>` +
+    `</div>`;
+  html += `<div class="spb-preview" aria-live="polite">${_spMixPreviewHtml()}</div>`;
+  body.innerHTML = html;
+  const ready = _spMix.picked.length >= 2;
+  document.querySelectorAll('#spMixModal [data-mix-go]').forEach(b => { b.disabled = !ready; });
+}
+
+function _spMixPreviewHtml() {
+  if (_spMix.picked.length < 2) return `<p class="spb-hint">${esc(t('sp_mix_need'))}</p>`;
+  const mix = spBlend(_spMix.picked, _spMix.size, _spMix.per);
+  return `<div class="spb-count"><b>${mix.length.toLocaleString()}</b> ${esc(t('sp_mix_count'))}</div>` +
+    `<ol class="spb-songs">` + mix.slice(0, 10).map(s =>
+      `<li><span class="spb-song-t">${esc(s.title)}</span><span class="spb-song-a">${esc(s.artist)}</span><span class="spm-from">${esc(s.from)}</span></li>`).join('') + `</ol>` +
+    (mix.length > 10 ? `<p class="spb-hint">${esc(t('sp_b_and_more', { n: (mix.length - 10).toLocaleString() }))}</p>` : '');
+}
+
+function _spMixClick(e) {
+  if (!_spMix) return;
+  const pick = e.target.closest('[data-mix]');
+  const size = e.target.closest('[data-mix-size]');
+  if (pick) {
+    const n = pick.dataset.mix;
+    const i = _spMix.picked.indexOf(n);
+    if (i >= 0) _spMix.picked.splice(i, 1);
+    else if (_spMix.picked.length < 4) _spMix.picked.push(n);
+  } else if (size) _spMix.size = +size.dataset.mixSize;
+  else return;
+  _spMixRemember();
+  _spMixRender();
+}
+
+function _spMixInput(e) {
+  if (!_spMix) return;
+  if (e.target.id === 'spMixName') { _spMix.name = e.target.value; return; }
+  if (e.target.id === 'spMixPer') { _spMix.per = +e.target.value; _spMixRemember(); _spMixRender(); }
+}
+
+// Play the mix now, in the site player (it joins the queue like Play does)
+function spMixPlay() {
+  if (!_spMix || _spMix.picked.length < 2) return;
+  const mix = spBlend(_spMix.picked, _spMix.size, _spMix.per);
+  if (!mix.length) return;
+  spCloseMix();
+  const [first, ...rest] = mix;
+  openYtPlayer(first.title, first.artist, first.album, null);
+  rest.forEach(tr => _ytQueue.push({ title: tr.title, artist: tr.artist, album: tr.album, btn: null }));
+  _ytUpdateQueueDisplay();
+  _ytSaveQueue();
+}
+
+// Save the mix as a normal playlist (numbered if the name is taken) and open it
+function spMixSave() {
+  if (!_spMix || _spMix.picked.length < 2) return;
+  const mix = spBlend(_spMix.picked, _spMix.size, _spMix.per);
+  if (!mix.length) return;
+  const base = String(_spMix.name || '').trim() || t('sp_mix_default', { date: typeof _dcPlDateTag === 'function' ? _dcPlDateTag() : '' });
+  let name = base, n = 2;
+  while (_ytPlaylists[name] || spIsSmart(name) || (typeof _ytIsFavName === 'function' && _ytIsFavName(name))) name = base + ' (' + n++ + ')';
+  _ytPlaylists[name] = mix.map(s => ({ title: s.title, artist: s.artist, album: s.album }));
+  _ytTouchPlaylist(name);
+  _ytSavePlaylists();
+  spCloseMix();
+  if (typeof dcPlToast === 'function') dcPlToast(t('sp_b_saved', { name }));
+  if (typeof dcRenderPlaylistsView === 'function') { _dcPlExpandedName = name; dcRenderPlaylistsView(); }
+}
+
+(function () {
+  const wire = () => {
+    const body = document.getElementById('spMixBody');
+    if (!body || body._spWired) return;
+    body._spWired = true;
+    body.addEventListener('click', _spMixClick);
+    body.addEventListener('input', _spMixInput);
+    body.addEventListener('change', _spMixInput);
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
+})();

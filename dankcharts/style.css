@@ -47433,7 +47433,49 @@ html.lsx-open { overflow: hidden; }
   background: color-mix(in srgb, var(--teal) 16%, transparent);
 }
 
+/* ── Mix it (smartplaylists.js step 8) ──
+   The playlists to blend as tappable rows; a picked one shows its turn (1–4) */
+.dc-modal.spm-box { max-width: 620px; }
+.spm-lists { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px; margin-bottom: var(--sp-4); }
+.spm-list {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: color-mix(in srgb, var(--bg3) 45%, transparent);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--fs-sm);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+.spm-list:hover:not(:disabled) { border-color: color-mix(in srgb, var(--accent) 50%, var(--border)); }
+.spm-list:disabled { opacity: 0.45; cursor: default; }
+.spm-list.is-on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.spm-check {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+.spm-list.is-on .spm-check { border-color: var(--accent); background: var(--accent); color: var(--on-accent); }
+.spm-name { flex: 1; min-width: 0; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.spm-n { flex: none; font-size: var(--fs-xs); color: var(--text3); }
+.spm-settings .dc-input { max-width: 260px; }
+.spm-from { margin-left: 6px; font-size: var(--fs-xs); color: var(--text3); opacity: 0.8; }
+.spm-from::before { content: '· '; }
+
 /* The "New smart playlist" card in the library grid */
+.plx-new-smart .plx-new-form .dc-btn { width: 100%; }
 .plx-new-smart .plx-new-ico { font-size: 22px; line-height: 1; }
 
 /* "Edit rules" on an open smart playlist */
