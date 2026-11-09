@@ -88,7 +88,7 @@ browser ──▶ /world-charts?chart=hot-100   (Cloudflare Function, dankcharts
 - First 50 rows, then *Show all* (same as the Dank 100).
 - "Source: Billboard / kworb.net · updated <date>" with a link, on every chart.
 
-### 5. Your plays on every row
+### 5. Your plays on every row — done 2026-11-09 ("New to you" tag; ranges All time / Last 7 days; index under every credited artist)
 - Badge on each row: "▶ 42 plays" / "Not in your library".
 - Filter: *All · Ones I know · Ones I don't*.
 - Small summary at the top: "You know 37 of the Hot 100".

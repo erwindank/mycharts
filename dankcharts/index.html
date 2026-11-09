@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=968">
+  <link rel="stylesheet" href="style.css?v=969">
   <!-- The Charts Guide's lessons (guide.js, GUIDE-PLAN.md) -->
   <link rel="stylesheet" href="guide.css?v=5">
   <!-- All scripts are deferred so the page paints without waiting on them.
@@ -41,7 +41,7 @@
        whenever translations.es / pt-BR / pt-PT .js change (setup-guide.html
        has the same line). -->
   <script>
-    window.DC_I18N_V = 63;
+    window.DC_I18N_V = 64;
     (function () {
       try {
         var l = localStorage.getItem('dankcharts-lang');
@@ -4517,7 +4517,7 @@
   <script defer src="stats.js?v=59"></script>
   <!-- The Dank 100: weekly entries for the shared community chart; reads app.js and firebase.js globals -->
   <script defer src="dank100.js?v=26"></script>
-  <script defer src="worldcharts.js?v=2"></script>
+  <script defer src="worldcharts.js?v=3"></script>
   <!-- Top-bar library search: artists / songs / albums, opens their windows as from All-Time; after panel.js -->
   <script defer src="library-search.js?v=1"></script>
   <!-- The Charts Guide: lessons, the picture explorer, step player and challenges

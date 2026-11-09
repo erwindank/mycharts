@@ -48999,6 +48999,44 @@ a.tb-more-item:hover { text-decoration: none; }
   background: color-mix(in srgb, var(--accent) 14%, transparent);
 }
 
+/* Step 5: your plays. The bar above the list, the tag under each row's
+   artist, and rows you've played being clickable. */
+.wc-mine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2) var(--sp-4);
+  margin: 0 0 var(--sp-3);
+}
+.wc-mine-sum { margin: 0; font-size: var(--fs-sm); color: var(--text2); }
+.wc-mine-sum strong { color: var(--text); font-weight: 600; }
+.wc-mine-ctrls { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.wc-mine-tag {
+  align-self: flex-start;
+  margin-top: 3px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.wc-mine-tag--yes { color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.wc-mine-tag--new { color: var(--text3); background: color-mix(in srgb, var(--text) 6%, transparent); font-weight: 500; }
+/* Rows you've played open their window */
+.wc-row--open { cursor: pointer; }
+.wc-li:has(.wc-row--open):hover { background-color: color-mix(in srgb, var(--accent) 6%, transparent); border-radius: var(--r-md); }
+.wc-row--open:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: var(--r-md); }
+.wc-note--lib { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+
+@media (max-width: 640px) {
+  .wc-mine { flex-direction: column; align-items: stretch; }
+  .wc-mine-ctrls { flex-direction: column; }
+  .wc-seg { width: 100%; }
+  .wc-seg button { flex: 1; }
+}
+
 @media (max-width: 640px) {
   /* Phones: like The Dank 100, the move badge sits under the position and
      only one number stays (weeks / streams / views), written short */

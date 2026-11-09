@@ -15,7 +15,9 @@
    Step 4: the rows in the site's chart look, reusing The Dank 100's row
    classes (d100-li / d100-row / d100-art …) with wc-* additions for the
    per-source number columns.
-   Step 5 adds "your plays" on every row, and step 6 adds past weeks for Billboard.
+   Step 5: "your plays" on every row (matched in allPlays, see the step 5
+   block below), a filter for rows you know / don't, and clicking a row you
+   know opens its window. Step 6 adds past weeks for Billboard.
 
    The tab needs no sign-in and no data source: it only shows public charts.
    That's why #worldchartsView sits outside #mainApp, like the Dank 100 and the
@@ -43,8 +45,10 @@
   ];
 
   var LS_CHART = 'dc_wc_chart';            // the chart you looked at last
+  var LS_RANGE = 'dc_wc_range';            // 'all' | 'week': which plays the badges count
   var KEEP_MS = 30 * 60 * 1000;            // a loaded chart is reused for 30 min
   var STEP = 50;                           // rows shown before "Show all"
+  var WEEK_MS = 7 * 86400000;
 
   var S = {
     active: false,
@@ -53,7 +57,9 @@
     cache: {},                             // id -> { at, data }
     loading: false,
     err: false,
-    all: false                             // "Show all" pressed
+    all: false,                            // "Show all" pressed
+    filter: 'all',                         // 'all' | 'known' | 'new' (step 5)
+    range: null                            // 'all' | 'week', read from LS_RANGE on first show
   };
 
   // ── Small helpers ──
@@ -220,7 +226,9 @@
     return tr('wc_debut', { pos: r.debutPos, date: fmtDate(r.debutDate) });
   }
 
-  function rowHTML(r, d, cols) {
+  // m: the row's match in your plays (step 5): { n, key, type }, null (not in
+  // your library) or undefined (no library to look in)
+  function rowHTML(r, d, cols, m) {
     var sub = r.artist || '';
     if (r.feat && r.feat.length) sub += ' ' + tr('wc_with', { names: r.feat.join(', ') });
     // The #1 row says how long it has been there (Billboard: weeks at #1;
@@ -228,13 +236,18 @@
     var atOne = r.rank === 1 && r.peak === 1 && r.atPeak > 1
       ? '<span class="wc-at1">' + esc(tr(d.period === 'day' ? 'wc_at_one_days' : 'wc_at_one', { n: r.atPeak })) + '</span>' : '';
     var tip = debutTitle(r);
-    var h = '<li class="d100-li wc-li' + (r.rank === 1 ? ' d100-row-1' : '') + '"' + (tip ? ' title="' + esc(tip) + '"' : '') + '>';
-    h += '<div class="d100-row wc-row">';
+    var h = '<li class="d100-li wc-li' + (r.rank === 1 ? ' d100-row-1' : '') + (m ? ' wc-li--mine' : '') + '"' + (tip ? ' title="' + esc(tip) + '"' : '') + '>';
+    // A row you've played opens its window from your library when clicked
+    h += m && m.key
+      ? '<div class="d100-row wc-row wc-row--open" role="button" tabindex="0" data-type="' + m.type + '" data-key="' + esc(m.key) + '"' +
+        ' aria-label="' + esc(tr('wc_open_hint') + ': ' + r.title) + '"' +
+        ' onclick="dcWorldCharts.openRow(this)" onkeydown="dcWorldCharts.rowKey(event, this)">'
+      : '<div class="d100-row wc-row">';
     h += '<span class="d100-pos">' + r.rank + '</span>';
     h += '<span class="d100-move">' + moveHTML(r, d) + '</span>';
     h += artHTML(r, d);
     h += '<span class="d100-name"><span class="d100-t">' + esc(r.title) + atOne + '</span>' +
-      (sub ? '<span class="d100-a">' + esc(sub) + '</span>' : '') + '</span>';
+      (sub ? '<span class="d100-a">' + esc(sub) + '</span>' : '') + mineHTML(m) + '</span>';
     cols.forEach(function (c) {
       var v = c.val(r);
       h += '<span class="d100-num wc-num' + (c.phone ? ' wc-num--phone' : '') + '">' +
@@ -246,18 +259,197 @@
   }
 
   function listHTML(d) {
-    var rows = S.all ? d.rows : d.rows.slice(0, STEP);
+    // Step 5: each row with its match, then the filter (All / Played / New to you)
+    var list = withMatches(d);
+    var shownList = list.filter(function (x) {
+      return S.filter === 'known' ? x.m : S.filter === 'new' ? x.m === null : true;
+    });
+    if (!hasLibrary()) shownList = list;
+    var rows = S.all ? shownList : shownList.slice(0, STEP);
     var cols = colsFor(d);
     var brand = brandOf(d.chart);
     // The column labels, lined up with the numbers below them
-    var h = '<div class="d100-cols wc-cols" aria-hidden="true"><span></span><span></span><span></span><span></span>' +
+    var h = mineBarHTML(d, list);
+    if (!rows.length) {
+      return h + '<p class="wc-msg">' + esc(tr(S.filter === 'known' ? 'wc_none_known' : 'wc_none_new')) + '</p>';
+    }
+    h += '<div class="d100-cols wc-cols" aria-hidden="true"><span></span><span></span><span></span><span></span>' +
       cols.map(function (c) { return '<span class="wc-num' + (c.phone ? ' wc-num--phone' : '') + '">' + esc(tr(c.key)) + '</span>'; }).join('') + '</div>';
-    h += '<ol class="d100-list wc-list wc-list--' + brand + '">' + rows.map(function (r) { return rowHTML(r, d, cols); }).join('') + '</ol>';
-    if (d.rows.length > rows.length) {
+    h += '<ol class="d100-list wc-list wc-list--' + brand + '">' + rows.map(function (x) { return rowHTML(x.r, d, cols, x.m); }).join('') + '</ol>';
+    if (shownList.length > rows.length) {
       h += '<button type="button" class="dc-btn dc-btn-normal wc-more" onclick="dcWorldCharts.showAll()">' +
-        esc(tr('wc_show_all', { n: d.rows.length })) + '</button>';
+        esc(tr('wc_show_all', { n: shownList.length })) + '</button>';
     }
     return h;
+  }
+
+  // ══ Step 5: your plays on every row ═══════════════════════════════════════
+  // Each chart row is looked up in the user's own plays (allPlays, which every
+  // data source fills the same way: Last.fm, Google Sheets, CSV). Names are
+  // matched with The Dank 100's match keys (dcDank100.songMatchKey etc.):
+  // accents, case, punctuation and "(feat. X)" don't matter.
+  //
+  // Charts write artists in their own way ("Tame Impala & JENNIE",
+  // "Karol G With Judeline & rusowsky", "Shakira, Burna Boy"), and a library
+  // may credit any one of them. So the library is indexed under every
+  // credited artist of a play, and a chart row tries its whole artist string
+  // and then each artist named in it.
+  //
+  // YouTube rows are video titles. When the proxy couldn't split out an
+  // artist (or the split one doesn't match), a row also counts as yours if
+  // one of your artists AND one of their songs both appear in the full title.
+
+  // Built once per library (and range), rebuilt when the plays change.
+  var _lib = { tag: null, idx: {} };
+
+  function libPlays() { return (typeof allPlays !== 'undefined' && allPlays) || []; }
+  function hasLibrary() { return libPlays().length > 0 && !!window.dcDank100; }
+
+  function libIndex(range) {
+    var P = libPlays();
+    var tag = P.length + '|' + (P[0] ? +P[0].date : '') + '|' + (typeof _stampEpoch !== 'undefined' ? _stampEpoch : '');
+    if (_lib.tag !== tag) _lib = { tag: tag, idx: {} };
+    if (_lib.idx[range]) return _lib.idx[range];
+
+    var D = window.dcDank100;
+    var msFn = typeof msOf === 'function' ? msOf : function (p) { return +p.date; };
+    var from = range === 'week' ? Date.now() - WEEK_MS : -Infinity;
+    var songs = new Map(), albums = new Map(), byArtist = new Map();
+
+    // n = plays; key = the site's own song/album key, to open its window;
+    // keyN tracks which spelling of the site key has the most plays.
+    function add(map, mk, siteKey) {
+      var r = map.get(mk);
+      if (!r) { r = { n: 0, keys: {} }; map.set(mk, r); }
+      r.n++;
+      if (siteKey) r.keys[siteKey] = (r.keys[siteKey] || 0) + 1;
+    }
+
+    for (var i = 0; i < P.length; i++) {
+      var p = P[i];
+      if (!p.title || !p.artist) continue;
+      if (range === 'week' && !(msFn(p) >= from)) continue;
+      var credits = p.artists && p.artists.length ? p.artists : [p.artist];
+      var sk = typeof songKey === 'function' ? songKey(p) : '';
+      var ak = p.album && p.album !== '—' && typeof albumKeyOf === 'function' ? albumKeyOf(p) : '';
+      // The whole credit string too, so "A & B" on a chart matches "A & B" here
+      var names = credits.indexOf(p.artist) >= 0 ? credits : credits.concat([p.artist]);
+      for (var j = 0; j < names.length; j++) {
+        if (!names[j]) continue;
+        add(songs, D.songMatchKey(p.title, names[j]), sk);
+        if (ak) add(albums, D.albumMatchKey(p.album, names[j]), ak);
+        // For YouTube titles: artist → their song title keys
+        var arK = D.artistMatchKey(names[j]);
+        var tk = D.songMatchKey(p.title, '').replace(/\|$/, '');
+        if (arK.length >= 2 && tk.length >= 2) {
+          var set = byArtist.get(arK);
+          if (!set) { set = new Map(); byArtist.set(arK, set); }
+          set.set(tk, D.songMatchKey(p.title, names[j]));
+        }
+      }
+    }
+    return (_lib.idx[range] = { songs: songs, albums: albums, byArtist: byArtist });
+  }
+
+  // "Karol G With Judeline & rusowsky" → ["karol g with judeline and rusowsky",
+  // "karol g", "judeline", "rusowsky"] (as match keys), plus any featured names.
+  function artistParts(r) {
+    var D = window.dcDank100, out = [];
+    function push(s) { var k = D.artistMatchKey(s); if (k && out.indexOf(k) < 0) out.push(k); }
+    if (r.artist) {
+      push(r.artist);
+      String(r.artist).split(/\s*(?:,|&|\+|\/|\bx\b|\bwith\b|\bfeat\.?|\bft\.?|\bfeaturing\b|\band\b|\by\b|\be\b)\s*/i).forEach(push);
+    }
+    (r.feat || []).forEach(push);
+    return out;
+  }
+
+  // The most-played site key behind a match, so the right window opens
+  function bestKey(rec) {
+    var best = '', n = -1;
+    for (var k in rec.keys) if (rec.keys[k] > n) { best = k; n = rec.keys[k]; }
+    return best;
+  }
+
+  // → { n, key, type } or null
+  function matchRow(r, d, idx) {
+    var D = window.dcDank100;
+    var parts = artistParts(r);
+    var map = d.kind === 'albums' ? idx.albums : idx.songs;
+    var hit = null;
+    for (var i = 0; i < parts.length; i++) {
+      var mk = d.kind === 'albums' ? D.albumMatchKey(r.title, parts[i]) : D.songMatchKey(r.title, parts[i]);
+      var rec = map.get(mk);
+      if (rec && (!hit || rec.n > hit.n)) hit = rec;
+    }
+    // YouTube: look for one of your artists and their song inside the raw title
+    if (!hit && d.kind === 'videos' && r.raw) hit = matchRaw(r.raw, idx);
+    return hit ? { n: hit.n, key: bestKey(hit), type: d.kind === 'albums' ? 'album' : 'song' } : null;
+  }
+
+  function matchRaw(raw, idx) {
+    var D = window.dcDank100;
+    var hay = ' ' + D.artistMatchKey(raw) + ' ';
+    var best = null;
+    idx.byArtist.forEach(function (titles, arK) {
+      // Short names ("u2", "ok") would match by accident inside longer words,
+      // so they need to stand as whole words, like every name here does
+      if (arK.length < 3 || hay.indexOf(' ' + arK + ' ') < 0) return;
+      titles.forEach(function (mk, tk) {
+        if (tk.length < 3 || hay.indexOf(' ' + tk + ' ') < 0) return;
+        var rec = idx.songs.get(mk);
+        if (rec && (!best || rec.n > best.n)) best = rec;
+      });
+    });
+    return best;
+  }
+
+  // Every row of the chart with its match, worked out once per draw
+  function withMatches(d) {
+    if (!hasLibrary() || d.kind === 'artists') return d.rows.map(function (r) { return { r: r, m: undefined }; });
+    var idx = libIndex(S.range);
+    return d.rows.map(function (r) { return { r: r, m: matchRow(r, d, idx) }; });
+  }
+
+  // The bar above the list: "You've played 37 of these 100", the filter
+  // (All · Played · New to you) and which plays count (All time · Last 7 days).
+  function mineBarHTML(d, list) {
+    if (!hasLibrary()) {
+      return '<p class="wc-note wc-note--lib">' + esc(tr('wc_no_lib')) +
+        (typeof openSourceModal === 'function' ? ' <button type="button" class="d100-link" onclick="openSourceModal()">' + esc(tr('wc_connect')) + '</button>' : '') + '</p>';
+    }
+    var known = list.filter(function (x) { return x.m; }).length, total = list.length;
+    var seg = function (cls, items, cur, fn) {
+      return '<div class="dc-seg wc-seg ' + cls + '" role="group">' + items.map(function (it) {
+        return '<button type="button" class="' + (cur === it[0] ? 'active' : '') + '" aria-pressed="' + (cur === it[0]) +
+          '" onclick="dcWorldCharts.' + fn + '(\'' + it[0] + '\')">' + esc(it[1]) + '</button>';
+      }).join('') + '</div>';
+    };
+    return '<div class="wc-mine">' +
+      '<p class="wc-mine-sum"><strong>' + esc(tr(S.range === 'week' ? 'wc_you_know_week' : 'wc_you_know', { n: known, total: total })) + '</strong></p>' +
+      '<div class="wc-mine-ctrls">' +
+      seg('wc-seg--filter', [['all', tr('wc_filter_all') + ' ' + total], ['known', tr('wc_filter_known') + ' ' + known], ['new', tr('wc_filter_new') + ' ' + (total - known)]], S.filter, 'setFilter') +
+      seg('wc-seg--range', [['all', tr('wc_range_all')], ['week', tr('wc_range_week')]], S.range, 'setRange') +
+      '</div></div>';
+  }
+
+  // The little line under a row's artist: "42 plays" or "New to you"
+  function mineHTML(m) {
+    if (m === undefined) return '';
+    if (!m) return '<span class="wc-mine-tag wc-mine-tag--new">' + esc(tr('wc_new_to_you')) + '</span>';
+    var unit = typeof tUnit === 'function' ? tUnit('plays', m.n) : (m.n === 1 ? 'play' : 'plays');
+    return '<span class="wc-mine-tag wc-mine-tag--yes">' + esc(fmtNum(m.n) + ' ' + unit) + '</span>';
+  }
+
+  // Clicking a row you've played opens its window, as from All-Time (the
+  // same trick as the top-bar search: the windows read currentPeriod).
+  function openMine(type, key) {
+    var fn = type === 'album' ? window.openAlbumModal : window.openSongModal;
+    if (typeof fn !== 'function' || !key) return;
+    var prev;
+    try { prev = currentPeriod; currentPeriod = 'alltime'; } catch (e) { prev = undefined; }
+    try { fn(key); }
+    finally { if (prev !== undefined) { try { currentPeriod = prev; } catch (e) {} } }
   }
 
   // ── Lazy covers (rows with no picture of their own) ──
@@ -354,6 +546,7 @@
 
   function show() {
     S.active = true;
+    if (!S.range) S.range = lsGet(LS_RANGE) === 'week' ? 'week' : 'all';
     if (!S.chart) S.chart = pickStart();
     loadMenu();
     loadChart(S.chart);
@@ -367,6 +560,16 @@
     rerender: render,
     pick: pick,
     reload: function () { loadChart(S.chart, true); },
-    showAll: function () { S.all = true; render(); }
+    showAll: function () { S.all = true; render(); },
+    // Step 5: filter rows by whether you've played them, and which plays count
+    setFilter: function (f) { S.filter = f; S.all = false; render(); },
+    setRange: function (r) { S.range = r === 'week' ? 'week' : 'all'; lsSet(LS_RANGE, S.range); render(); },
+    openRow: function (el) { openMine(el.getAttribute('data-type'), el.getAttribute('data-key')); },
+    // Enter or Space on a focused row opens it too, like a real button
+    rowKey: function (e, el) {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      e.preventDefault();
+      openMine(el.getAttribute('data-type'), el.getAttribute('data-key'));
+    }
   };
 })();
