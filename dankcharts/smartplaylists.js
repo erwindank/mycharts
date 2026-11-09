@@ -784,6 +784,7 @@ function _spClean(def) {
   if (def.perArtist > 0) out.perArtist = +def.perArtist;
   if (def.ready) out.ready = def.ready;   // which ready-made list it came from (step 4)
   if (def.readyOpt) out.readyOpt = def.readyOpt;   // its picker setting (year, day / week)
+  if (def.readyEdited) out.readyEdited = true;     // its rules were changed in the builder (step 5)
   return out;
 }
 
@@ -1238,7 +1239,8 @@ function spAddReadyFromRow(id) {
    in 50", day / week for "On this day". Empty for the others. */
 function spReadyPickerHtml(name) {
   const def = spGet(name);
-  if (!def || !def.ready) return '';
+  // A ready-made list changed in the builder has its own rules now
+  if (!def || !def.ready || def.readyEdited) return '';
   const nameJson = esc(JSON.stringify(name));
   if (def.ready === 'year50') {
     const cur = (def.readyOpt && def.readyOpt.year) || _spDefaultYear();
@@ -1258,3 +1260,537 @@ function spReadyPickerHtml(name) {
   }
   return '';
 }
+
+
+/* ===========================================================================
+   STEP 5: THE BUILDER
+
+   One window (#spBuilderModal in index.html) to make a new smart playlist or
+   change an existing one's rules:
+     name · start from (blank or a ready-made list, when making a new one)
+     all / any · rule rows (field → its chart or date window → condition →
+       value) · one level of groups · sort, size, songs per artist
+     keeps updating (smart) or save once (a normal playlist)
+   with a live count, the rules in plain words and the first songs, updated
+   as the rules change.
+
+   Rules a library can't use yet (genres, ratings, times of day) stay in the
+   field list, greyed out with what they need.
+
+   The window works on a copy (_spB.def); nothing is saved until Save.
+   Clicks and typing are handled by listeners on the window body, with each
+   rule row carrying its place as data-path ("2" = third rule, "2.1" = second
+   rule inside the third item's group, "sort" = the sort settings).
+   =========================================================================== */
+
+// The builder's field list, in groups, in the order they're offered
+const SP_B_GROUPS = [
+  ['song',     ['title', 'artist', 'album', 'genre', 'release']],
+  ['plays',    ['plays', 'days', 'maxDay', 'first', 'last', 'otd']],
+  ['charts',   ['charted', 'peak', 'wks', 'at1', 'debut', 'climb', 'runs', 'longest', 'toPeak', 'at1At', 'peakAt']],
+  ['habits',   ['night', 'weekend', 'topHour', 'topDay']],
+  ['compared', ['rankAll', 'topPct', 'artistBest', 'artistShare', 'artistPlays', 'artistSongs', 'albumPlays', 'albumRank', 'albumTop']],
+  ['ratings',  ['rating', 'aboveAvg', 'cert']]
+];
+
+// The conditions each kind of field offers, in order
+const SP_B_OPS = {
+  number: ['gte', 'lte', 'gt', 'lt', 'eq', 'between'],
+  rank:   ['lte', 'gte', 'eq', 'between'],            // lowFirst numbers: "in the top"
+  date:   ['within', 'older', 'after', 'before', 'between'],
+  text:   ['is', 'isNot', 'has', 'hasNot', 'starts'],
+  list:   ['has', 'hasNot'],
+  enum:   ['is', 'isNot'],
+  enumOrd:['is', 'isNot', 'gte', 'lte'],
+  bool:   ['yes', 'no']                                // stored as op 'is', v true / false
+};
+
+let _spB = null;   // { orig: name being edited or null, name, def, mode: 'live'|'once', err }
+let _spBTimer = null;
+
+function _spBToday() {
+  return (typeof localDateStr === 'function' && typeof tzNow === 'function') ? localDateStr(tzNow()) : new Date().toISOString().slice(0, 10);
+}
+function _spBDaysAgo(n) {
+  const d = new Date(_spBToday() + 'T12:00:00'); d.setDate(d.getDate() - n);
+  return (typeof localDateStr === 'function') ? localDateStr(d) : d.toISOString().slice(0, 10);
+}
+
+// The list of conditions for a field
+function _spBOpsFor(id) {
+  const f = SP_FIELDS[id];
+  if (!f) return [];
+  if (f.kind === 'number') return f.lowFirst ? SP_B_OPS.rank : SP_B_OPS.number;
+  if (f.kind === 'enum') return f.ordered ? SP_B_OPS.enumOrd : SP_B_OPS.enum;
+  return SP_B_OPS[f.kind] || [];
+}
+
+// A fresh rule for a field, with sensible starting values
+function _spBNewRule(id) {
+  const f = SP_FIELDS[id];
+  const r = { f: id };
+  if (f.chart) r.ch = 'week';
+  if (f.kind === 'number') {
+    if (f.lowFirst) { r.op = 'lte'; r.v = 10; }
+    else { r.op = 'gte'; r.v = SP_PCT_FIELDS.includes(id) ? 50 : id === 'topHour' ? 22 : 1; }
+    if (id === 'plays') r.v = 10;
+    if (id === 'otd') r.span = 3;
+  } else if (f.kind === 'date') { r.op = 'within'; r.v = 30; }
+  else if (f.kind === 'text') { r.op = 'is'; r.v = ''; }
+  else if (f.kind === 'list') { r.op = 'has'; r.v = ''; }
+  else if (f.kind === 'enum') { r.op = f.ordered ? 'gte' : 'is'; r.v = f.values[f.ordered ? 1 : 0]; }
+  else if (f.kind === 'bool') { r.op = 'is'; r.v = true; }
+  return r;
+}
+
+// When a rule's condition changes, its value changes shape (one number,
+// two numbers, days, a date…)
+function _spBFixValue(r) {
+  const f = SP_FIELDS[r.f];
+  if (!f) return;
+  if (f.kind === 'number') {
+    if (r.op === 'between') { if (!Array.isArray(r.v)) r.v = [f.lowFirst ? 1 : (+r.v || 1), f.lowFirst ? 10 : (+r.v || 1) * 2]; }
+    else if (Array.isArray(r.v)) r.v = r.v[0];
+  } else if (f.kind === 'date') {
+    if (r.op === 'within' || r.op === 'older') { if (typeof r.v !== 'number') r.v = r.op === 'older' ? 180 : 30; }
+    else if (r.op === 'between') { if (!Array.isArray(r.v)) r.v = [_spBDaysAgo(365), _spBToday()]; }
+    else if (typeof r.v !== 'string' || !/^\d{4}-/.test(r.v)) r.v = _spBDaysAgo(r.op === 'after' ? 365 : 0);
+  }
+}
+
+// ─── Opening and closing ──────────────────────────────────────────────────
+
+// New smart playlist (preset = a ready-made id to start from, optional)
+function spOpenBuilder(name, preset) {
+  const modal = document.getElementById('spBuilderModal');
+  if (!modal) return;
+  document.querySelectorAll('.ctrl-group.open').forEach(g => g.classList.remove('open'));
+  if (name && spIsSmart(name)) {
+    const def = JSON.parse(JSON.stringify(spGet(name)));
+    _spB = { orig: name, name, def, mode: 'live', err: '' };
+  } else {
+    const def = preset ? spReadyDef(preset) : { match: 'all', rules: [_spBNewRule('plays')], sort: { f: 'plays' }, limit: 50 };
+    if (def) { delete def.ready; delete def.readyOpt; }
+    _spB = { orig: null, name: preset ? t('sp_ready_' + preset) : '', def, mode: 'live', err: '', preset: preset || '' };
+  }
+  document.getElementById('spBTitle').textContent = t(_spB.orig ? 'sp_b_title_edit' : 'sp_b_title_new');
+  _spBRender();
+  modal.classList.add('open');
+  if (typeof dcFillIcons === 'function') dcFillIcons(modal);
+  setTimeout(() => { const n = document.getElementById('spBName'); if (n && !_spB.orig) n.focus(); }, 60);
+}
+
+function spCloseBuilder() {
+  document.getElementById('spBuilderModal')?.classList.remove('open');
+  _spB = null;
+}
+
+// ─── Drawing ──────────────────────────────────────────────────────────────
+
+function _spBOpt(value, label, selected, disabled) {
+  return `<option value="${esc(String(value))}"${selected ? ' selected' : ''}${disabled ? ' disabled' : ''}>${esc(label)}</option>`;
+}
+
+// The field picker; fields the library can't use are greyed with what they need
+function _spBFieldSelect(cur, r, forSort) {
+  let html = `<select class="dc-input spb-field" data-k="f" aria-label="${esc(t('sp_b_field'))}">`;
+  if (forSort) html += _spBOpt('random', t('sp_b_random'), cur === 'random');
+  for (const [g, ids] of SP_B_GROUPS) {
+    html += `<optgroup label="${esc(t('sp_g_' + g))}">`;
+    for (const id of ids) {
+      const f = SP_FIELDS[id];
+      if (!f || (forSort && f.kind === 'bool')) continue;
+      const missing = f.needs && !spDataHas(f.needs);
+      const label = spFieldLabel(id, f.chart ? { ch: (r && r.ch) || 'week' } : (id === 'otd' ? r : null)) +
+        (missing ? ' ' + t('sp_b_needs_' + f.needs) : '');
+      html += _spBOpt(id, label.charAt(0).toUpperCase() + label.slice(1), id === cur, missing && id !== cur);
+    }
+    html += `</optgroup>`;
+  }
+  return html + `</select>`;
+}
+
+// The extras between field and condition: which chart, the plays window, day / week
+function _spBExtrasHtml(r) {
+  const f = SP_FIELDS[r.f];
+  if (!f) return '';
+  let html = '';
+  if (f.chart) {
+    html += `<select class="dc-input spb-small" data-k="ch" aria-label="${esc(t('sp_b_chart'))}">` +
+      SP_CHARTS.map(c => _spBOpt(c, t('sp_b_ch_' + c), _spCh(r) === c)).join('') + `</select>`;
+  }
+  if (r.f === 'plays') {
+    const mode = !r.win ? 'all' : r.win.last > 0 ? 'last' : 'range';
+    html += `<select class="dc-input spb-small" data-k="winMode" aria-label="${esc(t('sp_b_when'))}">` +
+      _spBOpt('all', t('sp_win_all'), mode === 'all') + _spBOpt('last', t('sp_win_last'), mode === 'last') + _spBOpt('range', t('sp_win_range'), mode === 'range') +
+      `</select>`;
+    if (mode === 'last') html += `<input class="dc-input spb-num" type="number" min="1" max="3650" data-k="winN" value="${r.win.last}" aria-label="${esc(t('sp_win_last'))}"><span class="spb-unit">${esc(t('sp_b_days'))}</span>`;
+    if (mode === 'range') html += `<input class="dc-input spb-date" type="date" data-k="winFrom" value="${esc(r.win.from || '')}" aria-label="${esc(t('sp_b_from'))}"><span class="spb-unit">–</span><input class="dc-input spb-date" type="date" data-k="winTo" value="${esc(r.win.to || '')}" aria-label="${esc(t('sp_b_to'))}">`;
+  }
+  if (r.f === 'otd') {
+    html += `<select class="dc-input spb-small" data-k="span" aria-label="${esc(t('sp_ready_onThisDay'))}">` +
+      _spBOpt(0, t('sp_pick_otd_day'), +r.span === 0) + _spBOpt(3, t('sp_pick_otd_week'), +r.span !== 0) + `</select>`;
+  }
+  return html;
+}
+
+// Shared lists for the text boxes: the user's own artists, albums and genres
+function _spBDatalists() {
+  const facts = spSongFacts().list.slice().sort((a, b) => b.plays - a.plays);
+  const artists = new Map(), albums = new Map(), genres = new Map();
+  for (const s of facts) {
+    for (const a of s.artists) if (artists.size < 400 && !artists.has(a.toLowerCase())) artists.set(a.toLowerCase(), a);
+    if (s.album && albums.size < 400 && !albums.has(s.album.toLowerCase())) albums.set(s.album.toLowerCase(), s.album);
+    const g = spGenresOf(s);
+    if (g) for (const x of g) if (genres.size < 200 && !genres.has(String(x).toLowerCase())) genres.set(String(x).toLowerCase(), x);
+  }
+  const dl = (id, m) => `<datalist id="${id}">` + [...m.values()].map(v => `<option value="${esc(v)}"></option>`).join('') + `</datalist>`;
+  return dl('spbDlArtist', artists) + dl('spbDlAlbum', albums) + dl('spbDlGenre', genres);
+}
+
+// The value box(es) for a rule
+function _spBValueHtml(r) {
+  const f = SP_FIELDS[r.f];
+  if (!f || f.kind === 'bool') return '';
+  const v = r.v;
+  if (f.kind === 'number') {
+    const pct = SP_PCT_FIELDS.includes(r.f) ? `<span class="spb-unit">%</span>` : '';
+    const num = (k, x) => `<input class="dc-input spb-num" type="number" data-k="${k}" value="${esc(String(x == null ? '' : x))}" aria-label="${esc(t('sp_b_value'))}">`;
+    if (r.op === 'between') return num('v0', v && v[0]) + `<span class="spb-unit">${esc(t('sp_b_and'))}</span>` + num('v1', v && v[1]) + pct;
+    return num('v', v) + pct;
+  }
+  if (f.kind === 'date') {
+    if (r.op === 'within' || r.op === 'older') return `<input class="dc-input spb-num" type="number" min="1" data-k="v" value="${esc(String(v))}" aria-label="${esc(t('sp_b_value'))}"><span class="spb-unit">${esc(t(r.op === 'older' ? 'sp_b_days_ago' : 'sp_b_days'))}</span>`;
+    const date = (k, x) => `<input class="dc-input spb-date" type="date" data-k="${k}" value="${esc(String(x || ''))}" aria-label="${esc(t('sp_b_value'))}">`;
+    if (r.op === 'between') return date('v0', v && v[0]) + `<span class="spb-unit">${esc(t('sp_b_and'))}</span>` + date('v1', v && v[1]);
+    return date('v', v);
+  }
+  if (f.kind === 'text' || f.kind === 'list') {
+    const dl = r.f === 'artist' ? 'spbDlArtist' : r.f === 'album' ? 'spbDlAlbum' : r.f === 'genre' ? 'spbDlGenre' : '';
+    return `<input class="dc-input spb-text" type="text" data-k="v" value="${esc(String(v || ''))}"${dl ? ` list="${dl}"` : ''} maxlength="120" aria-label="${esc(t('sp_b_value'))}">`;
+  }
+  if (f.kind === 'enum') {
+    return `<select class="dc-input spb-small" data-k="v" aria-label="${esc(t('sp_b_value'))}">` +
+      f.values.map(x => _spBOpt(x, _spEnumWord(r.f, x), String(x) === String(v))).join('') + `</select>`;
+  }
+  return '';
+}
+
+// The condition picker
+function _spBOpHtml(r) {
+  const f = SP_FIELDS[r.f];
+  if (!f) return '';
+  const ops = _spBOpsFor(r.f);
+  const kindKey = f.kind === 'number' ? (f.lowFirst ? 'rank' : 'n') : f.kind === 'date' ? 'd' : f.kind === 'text' ? 't' : f.kind === 'list' ? 'l' : f.kind === 'enum' ? 'e' : 'b';
+  const cur = f.kind === 'bool' ? ((r.v === true || r.v === 'true') ? 'yes' : 'no') : r.op;
+  return `<select class="dc-input spb-small" data-k="op" aria-label="${esc(t('sp_b_condition'))}">` +
+    ops.map(o => _spBOpt(o, t('sp_bo_' + kindKey + '_' + o), o === cur)).join('') + `</select>`;
+}
+
+function _spBRuleHtml(r, path) {
+  const f = SP_FIELDS[r.f];
+  const missing = f && f.needs && !spDataHas(f.needs);
+  return `<div class="spb-rule${missing ? ' spb-rule-off' : ''}" data-path="${path}">` +
+    _spBFieldSelect(r.f, r, false) + _spBExtrasHtml(r) + _spBOpHtml(r) + _spBValueHtml(r) +
+    `<button type="button" class="dc-btn dc-btn-plain dc-btn-icon dc-btn-sm spb-del" data-act="del" title="${esc(t('sp_b_remove'))}" aria-label="${esc(t('sp_b_remove'))}">✕</button>` +
+    (missing ? `<p class="spb-rule-note">${esc(t('sp_skip_' + f.needs))}</p>` : '') +
+    `</div>`;
+}
+
+function _spBMatchSeg(match, path) {
+  return `<div class="dc-seg spb-match" role="group" data-path="${path}">` +
+    `<button type="button" data-act="match" data-v="all" aria-pressed="${match !== 'any'}">${esc(t('sp_b_match_all'))}</button>` +
+    `<button type="button" data-act="match" data-v="any" aria-pressed="${match === 'any'}">${esc(t('sp_b_match_any'))}</button>` +
+    `</div>`;
+}
+
+function _spBRulesHtml() {
+  const def = _spB.def;
+  let html = `<div class="spb-rules">`;
+  (def.rules || []).forEach((r, i) => {
+    if (r.rules) {
+      html += `<div class="spb-group" data-path="${i}">` +
+        `<div class="spb-group-head">${_spBMatchSeg(r.match, String(i))}` +
+        `<button type="button" class="dc-btn dc-btn-plain dc-btn-sm spb-del" data-act="del" data-path="${i}" title="${esc(t('sp_b_remove_group'))}" aria-label="${esc(t('sp_b_remove_group'))}">✕</button></div>` +
+        r.rules.map((x, j) => _spBRuleHtml(x, i + '.' + j)).join('') +
+        `<button type="button" class="dc-btn dc-btn-plain dc-btn-sm spb-add" data-act="addRule" data-path="${i}">＋ ${esc(t('sp_b_add_rule'))}</button>` +
+        `</div>`;
+    } else html += _spBRuleHtml(r, String(i));
+  });
+  if (!(def.rules || []).length) html += `<p class="spb-none">${esc(t('sp_b_no_rules'))}</p>`;
+  html += `</div><div class="spb-adds">` +
+    `<button type="button" class="dc-btn dc-btn-normal dc-btn-sm spb-add" data-act="addRule">＋ ${esc(t('sp_b_add_rule'))}</button>` +
+    `<button type="button" class="dc-btn dc-btn-plain dc-btn-sm spb-add" data-act="addGroup">＋ ${esc(t('sp_b_add_group'))}</button>` +
+    `</div>`;
+  return html;
+}
+
+function _spBSettingsHtml() {
+  const def = _spB.def;
+  const sort = def.sort || { f: 'plays' };
+  const sf = SP_FIELDS[sort.f];
+  const flipped = !!sort.dir && sf && ((sort.dir === 'asc') !== !!sf.lowFirst);
+  return `<div class="spb-settings">` +
+    `<div class="spb-set spb-rule" data-path="sort"><span class="spb-label">${esc(t('sp_b_sort'))}</span>` +
+      _spBFieldSelect(sort.f, sort, true) + (sort.f === 'random' ? '' : _spBExtrasHtml(sort)) +
+      (sort.f === 'random' ? '' : `<select class="dc-input spb-small" data-k="dir" aria-label="${esc(t('sp_b_order'))}">` +
+        _spBOpt('best', t('sp_b_dir_best'), !flipped) + _spBOpt('rev', t('sp_b_dir_rev'), flipped) + `</select>`) +
+    `</div>` +
+    `<label class="spb-set"><span class="spb-label">${esc(t('sp_b_limit'))}</span>` +
+      `<input class="dc-input spb-num" type="number" min="1" max="${SP_MAX_SONGS}" id="spBLimit" value="${def.limit > 0 ? def.limit : ''}" placeholder="${SP_MAX_SONGS}"><span class="spb-unit">${esc(t('sp_b_songs'))}</span></label>` +
+    `<label class="spb-set"><span class="spb-label">${esc(t('sp_b_per_artist'))}</span>` +
+      `<input class="dc-input spb-num" type="number" min="1" max="50" id="spBPer" value="${def.perArtist > 0 ? def.perArtist : ''}" placeholder="–"></label>` +
+    `</div>`;
+}
+
+function _spBRender() {
+  const body = document.getElementById('spBBody');
+  if (!body || !_spB) return;
+  const def = _spB.def;
+  let html = `<div class="spb-top">` +
+    `<label class="spb-name"><span class="spb-label">${esc(t('sp_b_name'))}</span>` +
+    `<input id="spBName" class="dc-input" type="text" maxlength="40" value="${esc(_spB.name)}" placeholder="${esc(t('sp_b_name_ph'))}"></label>`;
+  // A new list can start from a ready-made one ("edit a copy")
+  if (!_spB.orig) {
+    html += `<label class="spb-name"><span class="spb-label">${esc(t('sp_b_start'))}</span>` +
+      `<select id="spBPreset" class="dc-input">` + _spBOpt('', t('sp_b_start_blank'), !_spB.preset) +
+      SP_READY_IDS.map(id => _spBOpt(id, t('sp_ready_' + id), _spB.preset === id)).join('') + `</select></label>`;
+  }
+  html += `</div>`;
+  html += `<div class="spb-section"><div class="spb-section-head"><h4 class="spb-h">${esc(t('sp_b_rules'))}</h4>${_spBMatchSeg(def.match, '')}</div>` + _spBRulesHtml() + `</div>`;
+  html += `<div class="spb-section"><h4 class="spb-h">${esc(t('sp_b_settings'))}</h4>` + _spBSettingsHtml() + `</div>`;
+  html += `<div class="spb-section"><h4 class="spb-h">${esc(t('sp_b_save_as'))}</h4>` +
+    `<div class="dc-seg spb-mode" role="group">` +
+    `<button type="button" data-act="mode" data-v="live" aria-pressed="${_spB.mode === 'live'}">✨ ${esc(t('sp_b_mode_live'))}</button>` +
+    `<button type="button" data-act="mode" data-v="once" aria-pressed="${_spB.mode === 'once'}">${esc(t('sp_b_mode_once'))}</button>` +
+    `</div><p class="spb-hint">${esc(t(_spB.mode === 'live' ? 'sp_b_mode_live_hint' : 'sp_b_mode_once_hint'))}</p></div>`;
+  html += `<div class="spb-preview" id="spBPreview" aria-live="polite"></div>`;
+  html += _spBDatalists();
+  body.innerHTML = html;
+  _spBPreview();
+}
+
+// The live part: how many songs match, the rules in words, the first songs
+function _spBPreview() {
+  const el = document.getElementById('spBPreview');
+  if (!el || !_spB) return;
+  const def = _spB.def;
+  const res = spRun(_spCapped(def));
+  let html = `<div class="spb-count"><b>${res.count.toLocaleString()}</b> ${esc(t(res.count === 1 ? 'sp_b_match_one' : 'sp_b_match_other'))}` +
+    (res.count > res.songs.length ? ` <span>· ${esc(t('sp_b_keeps', { n: res.songs.length.toLocaleString() }))}</span>` : '') + `</div>`;
+  html += `<p class="spb-desc">${esc(spDescribe(def))}</p>`;
+  if (res.skipped.length) html += `<p class="spb-hint">${esc(res.skipped.map(n => t('sp_skip_' + n)).join(' '))}</p>`;
+  if (res.songs.length) {
+    html += `<ol class="spb-songs">` + res.songs.slice(0, 8).map(s =>
+      `<li><span class="spb-song-t">${esc(s.title)}</span><span class="spb-song-a">${esc(s.artist)}</span></li>`).join('') + `</ol>`;
+    if (res.songs.length > 8) html += `<p class="spb-hint">${esc(t('sp_b_and_more', { n: (res.songs.length - 8).toLocaleString() }))}</p>`;
+  }
+  el.innerHTML = html;
+  const err = document.getElementById('spBErr');
+  if (err) err.textContent = _spB.err || '';
+}
+
+function _spBSoon() {
+  clearTimeout(_spBTimer);
+  _spBTimer = setTimeout(_spBPreview, 180);
+}
+
+// ─── Changing the copy ────────────────────────────────────────────────────
+
+// The rule (or group, or sort) a data-path points at, and the list it sits in
+function _spBAt(path) {
+  const def = _spB.def;
+  if (path === 'sort') return { node: def.sort || (def.sort = { f: 'plays' }) };
+  if (path === '' || path == null) return { node: def };
+  const parts = String(path).split('.').map(Number);
+  if (parts.length === 1) return { node: def.rules[parts[0]], list: def.rules, i: parts[0] };
+  const g = def.rules[parts[0]];
+  return { node: g.rules[parts[1]], list: g.rules, i: parts[1], group: g, gi: parts[0] };
+}
+
+// A value typed or picked in a rule row. Returns true when the row's shape
+// changed and the window has to be redrawn.
+function _spBSet(path, k, raw) {
+  const { node: r } = _spBAt(path);
+  if (!r) return false;
+  const f = SP_FIELDS[r.f];
+  const num = x => (x === '' || x == null) ? '' : +x;
+  if (k === 'f') {
+    if (path === 'sort') {
+      const keep = { f: raw };
+      if (SP_FIELDS[raw] && SP_FIELDS[raw].chart) keep.ch = r.ch || 'week';
+      _spB.def.sort = keep;
+    } else {
+      const fresh = _spBNewRule(raw);
+      Object.keys(r).forEach(x => delete r[x]);
+      Object.assign(r, fresh);
+    }
+    return true;
+  }
+  if (k === 'op') {
+    if (f.kind === 'bool') { r.op = 'is'; r.v = raw === 'yes'; return false; }
+    r.op = raw; _spBFixValue(r); return true;
+  }
+  if (k === 'v') {
+    if (f.kind === 'number' || (f.kind === 'date' && (r.op === 'within' || r.op === 'older'))) r.v = num(raw);
+    else r.v = raw;
+    return false;
+  }
+  if (k === 'v0' || k === 'v1') {
+    if (!Array.isArray(r.v)) r.v = ['', ''];
+    r.v[k === 'v0' ? 0 : 1] = f.kind === 'number' ? num(raw) : raw;
+    return false;
+  }
+  if (k === 'ch') { r.ch = raw; return true; }   // the labels name the chart
+  if (k === 'span') { r.span = +raw; return true; }
+  if (k === 'dir') {
+    const low = !!(SP_FIELDS[r.f] && SP_FIELDS[r.f].lowFirst);
+    if (raw === 'best') delete r.dir; else r.dir = low ? 'desc' : 'asc';
+    return false;
+  }
+  if (k === 'winMode') {
+    if (raw === 'all') delete r.win;
+    else if (raw === 'last') r.win = { last: 30 };
+    else r.win = { from: _spBDaysAgo(365), to: _spBToday() };
+    return true;
+  }
+  if (k === 'winN') { r.win = { last: Math.max(1, +raw || 1) }; return false; }
+  if (k === 'winFrom') { r.win = Object.assign({}, r.win, { from: raw }); delete r.win.last; return false; }
+  if (k === 'winTo') { r.win = Object.assign({}, r.win, { to: raw }); delete r.win.last; return false; }
+  return false;
+}
+
+function _spBClick(e) {
+  const btn = e.target.closest('[data-act]');
+  if (!btn || !_spB) return;
+  const act = btn.dataset.act;
+  const row = btn.closest('[data-path]');
+  const path = btn.dataset.path != null ? btn.dataset.path : (row ? row.dataset.path : '');
+  const def = _spB.def;
+  if (act === 'match') {
+    const seg = btn.closest('.spb-match');
+    const target = _spBAt(seg.dataset.path).node;
+    target.match = btn.dataset.v;
+  } else if (act === 'mode') {
+    _spB.mode = btn.dataset.v;
+  } else if (act === 'addRule') {
+    const list = path !== '' && def.rules[+path] && def.rules[+path].rules ? def.rules[+path].rules : def.rules;
+    list.push(_spBNewRule('plays'));
+  } else if (act === 'addGroup') {
+    def.rules.push({ match: 'any', rules: [_spBNewRule('genre'), _spBNewRule('genre')] });
+  } else if (act === 'del') {
+    const at = _spBAt(path);
+    if (at.list) {
+      at.list.splice(at.i, 1);
+      // A group left empty goes too
+      if (at.group && !at.group.rules.length) def.rules.splice(at.gi, 1);
+    }
+  } else return;
+  _spBRender();
+}
+
+function _spBInput(e) {
+  if (!_spB) return;
+  const el = e.target;
+  if (el.id === 'spBName') { _spB.name = el.value; _spB.err = ''; return; }
+  if (el.id === 'spBLimit') { _spB.def.limit = Math.min(SP_MAX_SONGS, Math.max(0, +el.value || 0)); _spBSoon(); return; }
+  if (el.id === 'spBPer') { _spB.def.perArtist = Math.max(0, +el.value || 0); _spBSoon(); return; }
+  const k = el.dataset.k;
+  const row = el.closest('[data-path]');
+  if (!k || !row) return;
+  // Typing in a box only updates the preview; picking from a list may
+  // change the row, which is redrawn on 'change'
+  if (e.type === 'input' && el.tagName === 'SELECT') return;
+  const redraw = _spBSet(row.dataset.path, k, el.value);
+  if (redraw && e.type === 'change') _spBRender(); else _spBSoon();
+}
+
+function _spBPreset(e) {
+  if (!_spB || e.target.id !== 'spBPreset') return;
+  const id = e.target.value;
+  const def = id ? spReadyDef(id) : { match: 'all', rules: [_spBNewRule('plays')], sort: { f: 'plays' }, limit: 50 };
+  delete def.ready; delete def.readyOpt;
+  // The name follows the preset until the user types their own
+  const typed = _spB.name && (!_spB.preset || _spB.name !== t('sp_ready_' + _spB.preset));
+  _spB.def = def; _spB.preset = id;
+  if (!typed) _spB.name = id ? t('sp_ready_' + id) : '';
+  _spBRender();
+}
+
+// ─── Saving ───────────────────────────────────────────────────────────────
+
+function spSaveBuilder() {
+  if (!_spB) return;
+  const name = String(_spB.name || '').trim();
+  const fail = key => { _spB.err = t(key); const el = document.getElementById('spBErr'); if (el) el.textContent = _spB.err; };
+  if (!name) return fail('sp_b_err_name');
+  if (typeof _ytIsFavName === 'function' && _ytIsFavName(name)) return fail('sp_b_err_taken');
+  // Another playlist already has the name (renaming onto itself is fine)
+  if (name !== _spB.orig && _ytPlaylists[name]) return fail('sp_b_err_taken');
+  const def = JSON.parse(JSON.stringify(_spB.def));
+  // A ready-made list that's been changed keeps its id (so it isn't offered
+  // again) but loses its picker, which would rebuild the old rules
+  if (_spB.orig) {
+    const old = spGet(_spB.orig);
+    if (old && old.ready) { def.ready = old.ready; def.readyEdited = true; delete def.readyOpt; }
+  }
+
+  if (_spB.mode === 'once') {
+    // Save once: a normal playlist with today's songs and no rules
+    const tracks = spRun(_spCapped(def)).songs.map(s => ({ title: s.title, artist: s.artist, album: s.album || '' }));
+    if (!tracks.length) return fail('sp_b_err_empty');
+    if (_spB.orig) {
+      if (name !== _spB.orig) _dcPlDoRename(_spB.orig, name);
+      spOnDelete(name);   // drop the rules, keep the playlist
+    }
+    _ytPlaylists[name] = tracks;
+    _ytTouchPlaylist(name);
+    _ytSavePlaylists();
+  } else {
+    if (_spB.orig && name !== _spB.orig) _dcPlDoRename(_spB.orig, name);
+    _spStore.lists[name] = _spClean(def);
+    _spStore.modified[name] = Date.now();
+    delete _spStore.deleted[name];
+    _spSave();
+    spRefresh(name, true);
+  }
+  spCloseBuilder();
+  if (typeof dcPlToast === 'function') dcPlToast(t('sp_b_saved', { name }));
+  // Open the saved list so the user sees the result (the builder is only
+  // opened from the Playlists tab)
+  if (typeof _dcPlExpandedName !== 'undefined' && typeof dcRenderPlaylistsView === 'function') {
+    _dcPlExpandedName = name;
+    dcRenderPlaylistsView();
+  }
+}
+
+// ─── Pieces app.js puts on the page ───────────────────────────────────────
+
+// The library grid's "New smart playlist" card, next to "Save your queue"
+function spNewCardHtml() {
+  return `<div class="plx-new plx-new-smart">` +
+    `<div class="plx-new-ico" aria-hidden="true">✨</div>` +
+    `<div class="plx-new-title">${esc(t('sp_b_card_title'))}</div>` +
+    `<div class="plx-new-sub">${esc(t('sp_b_card_sub'))}</div>` +
+    `<div class="plx-new-form"><button type="button" class="dc-btn dc-btn-main dc-btn-sm" onclick="spOpenBuilder()">${esc(t('sp_b_card_btn'))}</button></div>` +
+    `</div>`;
+}
+
+// "Edit rules" on an open smart playlist
+function spEditBtnHtml(name) {
+  return `<button type="button" class="dc-btn dc-btn-normal spb-edit-btn" onclick="spOpenBuilder(${esc(JSON.stringify(name))})">` +
+    `<span aria-hidden="true">✨</span><span>${esc(t('sp_b_edit'))}</span></button>`;
+}
+
+// The window's listeners, set once
+(function () {
+  const wire = () => {
+    const body = document.getElementById('spBBody');
+    if (!body || body._spWired) return;
+    body._spWired = true;
+    body.addEventListener('click', _spBClick);
+    body.addEventListener('input', _spBInput);
+    body.addEventListener('change', e => { if (e.target.id === 'spBPreset') _spBPreset(e); else _spBInput(e); });
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
+})();

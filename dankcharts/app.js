@@ -38575,7 +38575,9 @@ function _dcPlLibraryHtml() {
     `<button class="dc-btn dc-btn-main dc-btn-sm" onclick="dcPlSaveQueue(document.getElementById('dcPlNewName').value.trim())">${esc(t('pl_view_save_btn'))}</button>` +
     `</div>` +
     `<span id="dcPlStatus" class="dc-pl-status" role="status"></span>` +
-    `</div>`;
+    `</div>` +
+    // "New smart playlist" opens the rules builder (smartplaylists.js)
+    (typeof spNewCardHtml === 'function' ? spNewCardHtml() : '');
 
   names.forEach(name => {
     const tracks = _ytPlaylists[name];
@@ -38638,6 +38640,8 @@ function _dcPlDetailHtml(name) {
     `<div class="plx-hero-actions">` +
     `<button type="button" class="dc-btn dc-btn-main plx-play" onclick="dcPlPlayFromStart(${nameJson})">${_DC_PL_SVG.play}<span>${esc(t('pl_x_play'))}</span></button>` +
     `<button type="button" class="dc-btn dc-btn-normal plx-shuffle" onclick="dcPlPlayShuffled(${nameJson})">${_DC_PL_SVG.shuffle}<span>${esc(t('pl_x_shuffle'))}</span></button>` +
+    // Smart playlists: change the rules in the builder (smartplaylists.js)
+    (smart ? spEditBtnHtml(name) : '') +
     `<span class="plx-hero-tools">` +
     // Export: Export Playlist window / download CSV / download text (dcPlExportMenu)
     `<button type="button" class="dc-btn dc-btn-plain dc-btn-icon" onclick="dcPlExportMenu(${nameJson},this)" title="${esc(t('pl_view_export'))}" aria-label="${esc(t('pl_view_export'))}" aria-haspopup="menu">${_DC_PL_SVG.export}</button>` +

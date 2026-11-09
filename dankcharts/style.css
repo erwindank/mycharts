@@ -47397,6 +47397,95 @@ html.lsx-open { overflow: hidden; }
 .sp-pick-select { width: auto; min-width: 92px; height: 32px; padding: 0 var(--sp-2); }
 .sp-pick-seg { margin: 0 0 var(--sp-2); }
 
+/* The "New smart playlist" card in the library grid */
+.plx-new-smart .plx-new-ico { font-size: 22px; line-height: 1; }
+
+/* "Edit rules" on an open smart playlist */
+.plx-hero-actions > .spb-edit-btn { gap: 6px; }
+
+/* ── The builder window (smartplaylists.js step 5) ── */
+.dc-modal.spb-box { max-width: 760px; }
+.spb-box .dc-frame-icon { background: linear-gradient(140deg, color-mix(in srgb, var(--accent) 26%, transparent), color-mix(in srgb, var(--accent) 8%, transparent)); }
+.spb-top { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); }
+.spb-name { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.spb-label { font-size: var(--fs-xs); font-weight: 600; color: var(--text2); }
+.spb-section { margin-top: var(--sp-5); }
+.spb-section-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); flex-wrap: wrap; }
+.spb-h {
+  margin: 0 0 var(--sp-2);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+.spb-section-head .spb-h { margin: 0; }
+.spb-rules { display: flex; flex-direction: column; gap: var(--sp-2); margin-top: var(--sp-2); }
+/* One rule: field, its chart / window, condition, value, ✕ — wrapping on narrow screens */
+.spb-rule {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: var(--sp-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: color-mix(in srgb, var(--bg3) 45%, transparent);
+}
+.spb-rule .dc-input { height: 34px; padding: 0 var(--sp-2); font-size: var(--fs-sm); width: auto; }
+.spb-field { flex: 1 1 200px; min-width: 0; max-width: 100%; }
+.spb-small { flex: 0 1 auto; max-width: 100%; }
+.spb-num { width: 84px !important; }
+.spb-date { width: 150px !important; }
+.spb-text { flex: 1 1 160px; min-width: 0; }
+.spb-unit { font-size: var(--fs-xs); color: var(--text3); }
+.spb-rule .spb-del { margin-left: auto; }
+.spb-rule-off { opacity: 0.6; }
+.spb-rule-note { flex-basis: 100%; margin: 0; font-size: var(--fs-xs); color: var(--text3); }
+/* A group: its own all / any, a few rules inside, set off with a tinted box */
+.spb-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: var(--sp-2);
+  border-radius: var(--r-md);
+  border: 1px dashed color-mix(in srgb, var(--accent) 45%, var(--border));
+  background: color-mix(in srgb, var(--accent) 5%, transparent);
+}
+.spb-group .spb-rule { background: var(--bg2); }
+.spb-group-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); }
+.spb-group > .spb-add { align-self: flex-start; }
+.spb-adds { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-2); }
+.spb-none { margin: 0; font-size: var(--fs-sm); color: var(--text3); }
+.spb-settings { display: flex; flex-direction: column; gap: var(--sp-2); }
+.spb-set { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.spb-set > .spb-label { min-width: 150px; }
+.spb-set .dc-input { height: 34px; padding: 0 var(--sp-2); font-size: var(--fs-sm); width: auto; }
+.spb-settings .spb-rule { border: 0; padding: 0; background: none; }
+.spb-hint { margin: 6px 0 0; font-size: var(--fs-xs); color: var(--text3); line-height: 1.45; }
+/* The live preview: count, the rules in words, the first songs */
+.spb-preview {
+  margin-top: var(--sp-5);
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-md);
+  background: color-mix(in srgb, var(--accent) 8%, var(--bg3));
+}
+.spb-count { font-size: var(--fs-sm); color: var(--text2); }
+.spb-count b { font-family: var(--font-display); font-size: var(--fs-lg); color: var(--text); margin-right: 2px; }
+.spb-desc { margin: 4px 0 0; font-size: var(--fs-sm); color: var(--text); line-height: 1.45; }
+.spb-songs { margin: var(--sp-2) 0 0; padding-left: 1.6em; font-size: var(--fs-sm); }
+.spb-songs li { padding: 2px 0; color: var(--text3); }
+.spb-song-t { color: var(--text); font-weight: 600; }
+.spb-song-a { margin-left: 6px; color: var(--text3); }
+.spb-err { font-size: var(--fs-sm); color: var(--rose); }
+@media (max-width: 640px) {
+  .spb-top { grid-template-columns: 1fr; }
+  .spb-set > .spb-label { min-width: 0; flex-basis: 100%; }
+  .spb-field { flex-basis: 100%; }
+  /* Narrow rows (inside a group) keep the ✕ on the value's line */
+  .spb-text { flex-basis: 60px; }
+}
+
 @media (max-width: 760px) {
   .dc-pl-track.plx-track { grid-template-columns: 26px 42px minmax(0, 1fr) auto; }
   .plx-track-album { display: none; }

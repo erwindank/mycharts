@@ -189,6 +189,14 @@ row under the grid adds it back (this answers open question 3). Your year in
 50 has a year picker, On this day a This day / This week switch. Deep cuts =
 songs past the 3rd most played on one of your top 25 albums. Two devices
 never keep two copies of one ready-made list (merge keeps the account's).
+Step 5 done 2026-11-08. Builder window #spBuilderModal: "New smart playlist"
+card in the grid, "Edit rules" on an open smart list. Name, start from (blank
+or a ready-made list, new lists only), all/any, rule rows, one level of
+groups, sort + order, size, songs per artist, Keeps updating / Save once
+(Save once = a normal playlist with today's songs; on an existing smart list
+it turns it into a normal one). Live count, sentence and first 8 songs.
+Fields the library can't use are greyed with "(needs …)". Editing a
+ready-made list keeps its id but drops its picker (readyEdited).
 
 1. **Engine: song facts + rules.** smartplaylists.js with `spSongFacts()`
    (basics, plays, first/last played, ratings, genres, certs) and
