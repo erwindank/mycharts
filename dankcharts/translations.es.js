@@ -4735,6 +4735,12 @@ TRANSLATIONS['es'] = Object.assign({
     sp_mix_default: 'Mezcla · {{date}}',
     sp_mix_save: 'Guardar como lista',
     sp_mix_play: 'Reproducir',
+    // Smart playlists step 9: notifications
+    sp_nt_switch: 'Avísame cuando esta lista cambie mucho',
+    sp_nt_note: 'Una notificación cuando entren varias canciones nuevas.',
+    sp_nt_signin: 'Inicia sesión para recibir notificaciones.',
+    nt_sp_changed: '«{{name}}» tiene {{n}} canciones nuevas ({{gone}} salieron)',
+    nt_sp_changed_in: '«{{name}}» tiene {{n}} canciones nuevas',
     pl_x_play: 'Reproducir',
     pl_x_shuffle: 'Aleatorio',
     nt_caught_up: 'Estás al día',

@@ -792,6 +792,7 @@ function _spClean(def) {
   if (def.ready) out.ready = def.ready;   // which ready-made list it came from (step 4)
   if (def.readyOpt) out.readyOpt = def.readyOpt;   // its picker setting (year, day / week)
   if (def.readyEdited) out.readyEdited = true;     // its rules were changed in the builder (step 5)
+  if (def.notify) out.notify = true;               // tell me when it changes a lot (step 9)
   return out;
 }
 
@@ -861,6 +862,7 @@ function spRefreshAll() {
     if (!changed) return;
     if (typeof _ytSavePlaylists === 'function') _ytSavePlaylists();
     if (typeof currentPeriod !== 'undefined' && currentPeriod === 'playlists' && typeof dcRenderPlaylistsView === 'function') dcRenderPlaylistsView();
+    spNotifyWatch();   // step 9
   };
   setTimeout(next, 0);
 }
@@ -1070,7 +1072,7 @@ function spKickerHtml() {
 function spRulesLineHtml(name) {
   const def = spGet(name);
   if (!def) return '';
-  let html = `<p class="plx-smart-rules">${esc(spDescribe(def))}</p>` + spReadyPickerHtml(name);
+  let html = `<p class="plx-smart-rules">${esc(spDescribe(def))}</p>` + spReadyPickerHtml(name) + spNotifySwitchHtml(name);
   const res = (allPlays && allPlays.length) ? spRun(_spCapped(def)) : null;
   if (res && res.skipped.length) {
     html += `<p class="plx-smart-note">${esc(res.skipped.map(n => t('sp_skip_' + n)).join(' '))}</p>`;
@@ -1785,6 +1787,7 @@ function spSaveBuilder() {
   if (_spB.orig) {
     const old = spGet(_spB.orig);
     if (old && old.ready) { def.ready = old.ready; def.readyEdited = true; delete def.readyOpt; }
+    if (old && old.notify) def.notify = true;   // step 9
   }
 
   if (_spB.mode === 'once') {
@@ -2260,3 +2263,98 @@ function spMixSave() {
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
 })();
+
+
+/* ===========================================================================
+   STEP 9: TELL ME WHEN THIS LIST CHANGES A LOT
+
+   A switch on each open smart list. When it's on, the user gets a
+   notification (notifications.js, kind sp_changed) once enough new songs
+   have come into the list since the last time they were told:
+     at least SP_NT_MIN songs, and at least SP_NT_SHARE of the list
+   ("a lot" for a 10-song list is 3, for a 50-song list 10).
+
+   The songs the list had when the user was last told are kept in the
+   account's notifyState doc (field sp: { name: [short song hashes] }), in
+   the same transaction-guarded way as the other watchers, so two devices
+   never send the same notification twice. Hashes, not titles: 500 songs
+   fit in ~4 KB.
+
+   Runs after the smart lists refresh and with the other watchers (ntWatch).
+   Signed-in users only, and not on the demo library (the same rule the
+   other watchers follow).
+   =========================================================================== */
+
+const SP_NT_MIN = 3;
+const SP_NT_SHARE = 0.2;
+let _spNtBusy = false;
+
+// A short, steady hash of a song key, so the baseline stays small
+function _spHash(str) {
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return (h >>> 0).toString(36);
+}
+
+function _spNtOn() {
+  return typeof dcIsSignedIn === 'function' && dcIsSignedIn() && typeof dcNotify === 'function';
+}
+
+function spNotifySwitchHtml(name) {
+  const def = spGet(name);
+  if (!def) return '';
+  const signedIn = _spNtOn();
+  const on = !!def.notify && signedIn;
+  return `<label class="src-switch-row sp-nt-row">` +
+    `<span class="src-switch-label">🔔 ${esc(t('sp_nt_switch'))}` +
+    `<span class="set-switch-note">${esc(t(signedIn ? 'sp_nt_note' : 'sp_nt_signin'))}</span></span>` +
+    `<span class="src-switch"><input type="checkbox"${on ? ' checked' : ''}${signedIn ? '' : ' disabled'} onchange="spSetNotify(${esc(JSON.stringify(name))}, this.checked)"><span class="src-switch-slider"></span></span>` +
+    `</label>`;
+}
+
+function spSetNotify(name, on) {
+  const def = spGet(name);
+  if (!def) return;
+  if (on) def.notify = true; else delete def.notify;
+  _spStore.modified[name] = Date.now();
+  _spSave();
+  // Turning it on starts counting from today's songs
+  if (on) spNotifyWatch();
+}
+
+/* The check. For each list with the switch on: no baseline yet → today's
+   songs become it (nothing to tell). Otherwise count the songs that came
+   in since; past the bar → tell the user and move the baseline on. */
+async function spNotifyWatch() {
+  if (_spNtBusy || !_spNtOn() || typeof dcUpdateNotifyState !== 'function') return;
+  if (typeof _apAllowed === 'function' && !_apAllowed()) return;   // not on the demo library
+  const watched = spNames().filter(n => spGet(n).notify && _ytPlaylists[n]);
+  if (!watched.length) return;
+  _spNtBusy = true;
+  try {
+    const now = {};
+    for (const n of watched) now[n] = _ytPlaylists[n].map(tr => _spHash(_spTrKey(tr)));
+    const tell = await dcUpdateNotifyState(cur => {
+      const sp = Object.assign({}, cur.sp || {});
+      const out = [];
+      let dirty = false;
+      for (const n of watched) {
+        const base = sp[n];
+        if (!Array.isArray(base)) { sp[n] = now[n]; dirty = true; continue; }
+        const was = new Set(base), is = new Set(now[n]);
+        const added = now[n].filter(h => !was.has(h)).length;
+        const dropped = base.filter(h => !is.has(h)).length;
+        const bar = Math.max(SP_NT_MIN, Math.ceil(now[n].length * SP_NT_SHARE));
+        if (added >= bar) { out.push({ name: n, added, dropped }); sp[n] = now[n]; dirty = true; }
+      }
+      // Lists that no longer exist or were switched off drop their baseline
+      for (const n of Object.keys(sp)) if (!watched.includes(n)) { delete sp[n]; dirty = true; }
+      return dirty ? { state: Object.assign({}, cur, { sp }), out } : { state: null, out };
+    });
+    if (Array.isArray(tell)) {
+      for (const x of tell) dcNotify({ kind: 'sp_changed', name: x.name, added: x.added, dropped: x.dropped, link: { tab: 'playlists', playlist: x.name } });
+    }
+  } catch (e) {
+    console.warn('[dankcharts] Smart playlist notify check failed:', e);
+  } finally { _spNtBusy = false; }
+}

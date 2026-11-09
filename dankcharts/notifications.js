@@ -34,6 +34,8 @@ let _ntLastAt = 0;        // time of the last one posted (see dcNotify)
 const NT_KINDS = {
   // A playlist made by automatic chart playlists
   ap_made: { emoji: '🎵', cat: 'playlist', text: p => t('nt_ap_made', { name: p.name }) },
+  // A smart playlist with its bell on got a lot of new songs (smartplaylists.js step 9)
+  sp_changed: { emoji: '✨', cat: 'playlist', text: p => t(p.dropped ? 'nt_sp_changed' : 'nt_sp_changed_in', { name: p.name, n: p.added, gone: p.dropped }) },
   // Missed periods past the 10-at-a-time limit
   ap_skipped: { emoji: '⏭️', cat: 'playlist', text: p => t('nt_ap_skipped', { n: p.n, chart: t('ap_row_' + p.period) }) },
   // A month has ended: its Soundtrack is ready to look back on (p.key 'YYYY-MM')
@@ -316,6 +318,8 @@ async function ntWatch() {
       await _ntWatchSoundtrack();
       await _ntWatchCerts();
       _ntRecordsCheck();   // reads Records now if built, else builds it later in idle time
+      // Smart playlists with their bell on (smartplaylists.js)
+      if (typeof spNotifyWatch === 'function') await spNotifyWatch();
     }
     await _ntWatchBoard();
   } catch (e) {

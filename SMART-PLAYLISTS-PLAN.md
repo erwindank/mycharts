@@ -214,6 +214,12 @@ normal ones too), size 25/50/100, most per artist, name. spBlend takes one
 song from each list in turn from the top, no repeats, artist cap. Play puts
 it in the player; Save makes a normal playlist and opens it. Last picks are
 remembered per device (dc_sp_mix).
+Step 9 done 2026-11-09. Bell switch on an open smart list (def.notify,
+synced). Notification kind sp_changed (cat playlist) when at least 3 new
+songs and at least 20% of the list came in since the user was last told.
+Baseline = short song hashes in notifyState.sp (transaction, no double
+notifications across devices). Runs after the lists refresh and in ntWatch.
+Signed-in only, not on the demo library.
 
 1. **Engine: song facts + rules.** smartplaylists.js with `spSongFacts()`
    (basics, plays, first/last played, ratings, genres, certs) and

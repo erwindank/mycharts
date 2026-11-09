@@ -4890,6 +4890,12 @@ const TRANSLATIONS = {
     sp_mix_default: 'Mix · {{date}}',
     sp_mix_save: 'Save as playlist',
     sp_mix_play: 'Play',
+    // Smart playlists step 9: notifications
+    sp_nt_switch: 'Tell me when this list changes a lot',
+    sp_nt_note: 'A notification when several new songs come in.',
+    sp_nt_signin: 'Sign in to get notifications.',
+    nt_sp_changed: '“{{name}}” has {{n}} new songs ({{gone}} dropped out)',
+    nt_sp_changed_in: '“{{name}}” has {{n}} new songs',
     pl_x_play: 'Play',
     pl_x_shuffle: 'Shuffle',
     nt_caught_up: 'You’re all caught up',
