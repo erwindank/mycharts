@@ -4568,7 +4568,10 @@ const _SX_TIME_BANDS = [['sx_time_morning', '🌅'], ['sx_time_afternoon', '☀�
 const _sxTimeBand = h => h >= 5 && h <= 11 ? 0 : h >= 12 && h <= 16 ? 1 : h >= 17 && h <= 21 ? 2 : 3;
 SX_GAMES.time = _sxQuiz({
   prepare(G) {
-    const pool = _sxSongPool().slice(0, 600).filter(s => s.n >= 8);
+    /* Up to 3000 songs, not just the top 600: big libraries that play all
+       day long have few top songs with one clear time, so they need the
+       wider pool (thebigtuxedoman, 780k plays, got "too small"). */
+    const pool = _sxSongPool().slice(0, 3000).filter(s => s.n >= 8);
     const want = new Map(pool.map(s => [s.sk, [0, 0, 0, 0]]));
     let midnight = 0;
     for (const p of allPlays) {
@@ -4578,11 +4581,19 @@ SX_GAMES.time = _sxQuiz({
       if (c) c[_sxTimeBand(d.getHours())]++;
     }
     if (midnight > allPlays.length * 0.8) return 'sx_time_none';
-    G.pool = [];
-    pool.forEach(s => {
-      const c = want.get(s.sk), tot = c.reduce((a, b) => a + b, 0), sorted = c.slice().sort((a, b) => b - a);
-      if (tot && sorted[0] / tot >= 0.4 && sorted[0] > sorted[1] * 1.3) G.pool.push({ ...s, bands: c, tot });
-    });
+    /* "Clear favourite time" starts strict (40% of plays, 1.3x the next
+       time) and loosens step by step until there are 10 songs. The answer
+       is always the time with the most plays, so a looser step only makes
+       the question a bit harder, never wrong. */
+    const TIERS = [[0.4, 1.3], [0.35, 1.2], [0.32, 1.12]];
+    for (const [share, lead] of TIERS) {
+      G.pool = [];
+      pool.forEach(s => {
+        const c = want.get(s.sk), tot = c.reduce((a, b) => a + b, 0), sorted = c.slice().sort((a, b) => b - a);
+        if (tot && sorted[0] / tot >= share && sorted[0] > sorted[1] * lead) G.pool.push({ ...s, bands: c, tot });
+      });
+      if (G.pool.length >= 10) break;
+    }
     if (G.pool.length < 10) return false;
     // Grouped by their answer, so a library that mostly plays at night
     // still gets mornings asked (drawn answer first, then a song)
