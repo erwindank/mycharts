@@ -8476,6 +8476,14 @@ function buildRecords() {
   const songApps = { day: {}, week: {}, month: {}, year: {} };
   const artistApps = { day: {}, week: {}, month: {}, year: {} };
   const albumApps = { day: {}, week: {}, month: {}, year: {} };
+  /* When each key reached its current appearance count: the chart's place in
+     the oldest-to-newest walk below. Between equal counts the one that got
+     there first stays ahead (2026-11-10); the lists used to sort by count
+     alone, so equals swapped places between builds and the Records
+     notifications posted "New #1s!" for every swap. One map per period type
+     covers songs, artists and album-side keys (their keys never collide). */
+  const appsReached = { day: {}, week: {}, month: {}, year: {} };
+  let _appsSeq = 0;
   const songDebuts = { day: {}, week: {}, month: {}, year: {} };
   const artistDebuts = { day: {}, week: {}, month: {}, year: {} };
   const albumDebuts = { day: {}, week: {}, month: {}, year: {} };
@@ -8515,6 +8523,7 @@ function buildRecords() {
     const everSong = new Set(), everArtist = new Set(), everAlbum = new Set();
     let lastPk = null;
     for (const pk of keys) {
+      _appsSeq++;   // see appsReached
       const plays = playsMap[pk];
       // A day with no plays has no chart, so the next one starts fresh
       if (pt === 'day' && lastPk && crPeriodGap('day', lastPk, pk) > 0) { prevSong = {}; prevArtist = {}; prevAlbum = {}; }
@@ -8583,7 +8592,7 @@ function buildRecords() {
         }
         everSong.add(k);
         if (i === 0) { if (!song1s[pt][k]) song1s[pt][k] = { title: d.title, artist: d.artist, album: d.album, count: 0, firstPeriod: pk, periods: [] }; song1s[pt][k].count++; song1s[pt][k].lastPeriod = pk; song1s[pt][k].periods.push(pk); if (!song1stNo1Period[pt][k]) song1stNo1Period[pt][k] = pk; }
-        songApps[pt][k] = (songApps[pt][k] || 0) + 1;
+        songApps[pt][k] = (songApps[pt][k] || 0) + 1; appsReached[pt]['s|' + k] = _appsSeq;
         if (!songPP[pt][k] || d.count > songPP[pt][k].count) songPP[pt][k] = { count: d.count, period: pk, title: d.title, artist: d.artist };
       });
       topArtists.forEach(([a, d], i) => {
@@ -8594,7 +8603,7 @@ function buildRecords() {
         }
         everArtist.add(a);
         if (i === 0) { if (!artist1s[pt][a]) artist1s[pt][a] = { count: 0, firstPeriod: pk, periods: [] }; artist1s[pt][a].count++; artist1s[pt][a].lastPeriod = pk; artist1s[pt][a].periods.push(pk); }
-        artistApps[pt][a] = (artistApps[pt][a] || 0) + 1;
+        artistApps[pt][a] = (artistApps[pt][a] || 0) + 1; appsReached[pt]['a|' + a] = _appsSeq;
         if (!artistPP[pt][a] || d.count > artistPP[pt][a].count) artistPP[pt][a] = { count: d.count, period: pk };
       });
       // One pass per bucket chart (see albumGroups above).
@@ -8609,7 +8618,7 @@ function buildRecords() {
         }
         everAlbum.add(ak);
         if (i === 0) { if (!album1s[pt][ak]) album1s[pt][ak] = { album: d.album, artist: d.artist, count: 0, firstPeriod: pk, periods: [] }; album1s[pt][ak].count++; album1s[pt][ak].lastPeriod = pk; album1s[pt][ak].periods.push(pk); }
-        albumApps[pt][ak] = (albumApps[pt][ak] || 0) + 1;
+        albumApps[pt][ak] = (albumApps[pt][ak] || 0) + 1; appsReached[pt]['l|' + ak] = _appsSeq;
         if (!albumPP[pt][ak] || d.count > albumPP[pt][ak].count) albumPP[pt][ak] = { count: d.count, period: pk, album: d.album, artist: d.artist };
       });
       prevSong = nPS; prevArtist = nPA; prevAlbum = nPL;
@@ -9886,7 +9895,7 @@ function buildRecords() {
      collide — toggleAppCr()/toggleAllAppCr() reach their rows by id. */
   const appBuild = {
     songs: function (cfg) {
-      const tops = Object.entries(songApps[cfg.pt]).sort((a, b) => b[1] - a[1]);
+      const tops = Object.entries(songApps[cfg.pt]).sort((a, b) => b[1] - a[1] || _appsTie(cfg.pt, 's|', a[0], b[0]));
       const sliced = isFinite(lim) ? tops.slice(0, lim) : tops;
       const tableId = 'app-tbl-songs-' + cfg.pt;
       let ah = '<div class="rec-section rec-run-total"><div class="rec-section-title">' + recEntIco('songs') + ' ' + t('rec_th_songs') + ' &mdash; ' + t('rec_most_appearances_on', { period: cfg.label }) + ' ' + t('rec_suffix_non_consec') + '</div>';
@@ -9929,7 +9938,7 @@ function buildRecords() {
     },
 
     artists: function (cfg) {
-      const tops = Object.entries(artistApps[cfg.pt]).sort((a, b) => b[1] - a[1]);
+      const tops = Object.entries(artistApps[cfg.pt]).sort((a, b) => b[1] - a[1] || _appsTie(cfg.pt, 'a|', a[0], b[0]));
       const sliced = isFinite(lim) ? tops.slice(0, lim) : tops;
       const tableId = 'app-tbl-artists-' + cfg.pt;
       let ah = '<div class="rec-section rec-run-total"><div class="rec-section-title">' + recEntIco('artists') + ' ' + t('rec_th_artists') + ' &mdash; ' + t('rec_most_appearances_on', { period: cfg.label }) + ' ' + t('rec_suffix_non_consec') + '</div>';
@@ -9972,7 +9981,7 @@ function buildRecords() {
        the entity says, and every generated id carries ent.key so the Albums
        and Singles panels cannot collide on element ids. */
     albums: function (cfg, ent) {
-      const tops = Object.entries(appsByKey[ent.key][cfg.pt]).sort((a, b) => b[1] - a[1]);
+      const tops = Object.entries(appsByKey[ent.key][cfg.pt]).sort((a, b) => b[1] - a[1] || _appsTie(cfg.pt, 'l|', a[0], b[0]));
       const sliced = isFinite(lim) ? tops.slice(0, lim) : tops;
       const tableId = 'app-tbl-' + ent.key + '-' + cfg.pt;
       let ah = '<div class="rec-section rec-run-total"><div class="rec-section-title">' + ent.icon + ' ' + esc(ent.label) + ' &mdash; ' + t('rec_most_appearances_on', { period: cfg.label }) + ' ' + t('rec_suffix_non_consec') + '</div>';
@@ -10040,6 +10049,10 @@ function buildRecords() {
   /* One entry per pill, the album-side ones each narrowed to their bucket.
      Built from the same recAlbumEnts() list the pills come from, so a pill can
      never exist without data behind it or the other way round. */
+  // Equal counts: whoever reached the count first ranks higher (appsReached)
+  function _appsTie(pt, pre, ka, kb) {
+    return (appsReached[pt][pre + ka] || 0) - (appsReached[pt][pre + kb] || 0);
+  }
   const appsByKey = { songs: songApps, artists: artistApps };
   for (const ae of recAlbumEnts()) appsByKey[ae.key] = recSplitAlbums(albumApps, ae.bucket);
   function appConsecSection(ent, cfg) {
