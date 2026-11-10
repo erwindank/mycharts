@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 483;
+const DC_CL_I18N_V = 484;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -402,6 +402,12 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-10', t: 'feature', a: 'data',
+    title: "Apple Music exports go straight in",
+    detail: "Upload File now reads Apple Music's own export from privacy.apple.com. Drop in the whole ZIP, or just its Apple Music Play Activity.csv, with no renaming. Plays under 30 seconds are left out, a song you paused and went back to counts once, and albums come from the library file in the ZIP. After an Apple Music import, the search buttons open Apple Music, unless you already picked a service." },
+  { d: '2026-11-10', t: 'feature', a: 'data',
+    title: "Add a new file to the one you have",
+    detail: "Uploading a file no longer has to replace the one already loaded. With Add to my current plays on (Settings → Data source → Upload File), the new file's plays are added and any play you already have is skipped, so a newer export or a second service can go on top. Turn it off to replace everything, as before." },
   { d: '2026-11-09', t: 'feature', a: 'charts',
     title: "Appears on, and joint albums",
     detail: "An artist's window now keeps their own albums apart from albums they're only a guest on. Albums by someone else that they're on are listed under a new Appears on button on the Music tab, and those no longer count toward their album total, favourite album or album certifications. Their songs still count in full. Some albums belong to more than one artist, so you can now pick an album's owners from the album window, or check the suggested joint albums in Settings → Releases. Works with Last.fm, Google Sheets and CSV uploads." },

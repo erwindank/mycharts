@@ -2576,7 +2576,7 @@ TRANSLATIONS['pt-PT'] = Object.assign({
     // Upload zone
     upload_title: 'Carregue o seu Histórico de Escuta',
     upload_desc: 'Largue o seu ficheiro CSV aqui, ou clique para procurar',
-    file_upload_hint: 'Carregue o seu histórico de escuta. Formatos suportados: <strong>Last.fm CSV</strong>, <strong>mycharts CSV</strong>, <strong>Spotify ZIP</strong> (histórico de streaming alargado), <strong>Deezer XLSX</strong>.',
+    file_upload_hint: 'Carregue o seu histórico de escuta. Formatos suportados: <strong>Last.fm CSV</strong>, <strong>mycharts CSV</strong>, <strong>Spotify ZIP</strong> (histórico de streaming alargado), <strong>Apple Music ZIP ou CSV</strong> (de privacy.apple.com), <strong>Deezer XLSX</strong>.',
 
     // Buttons
     btn_export_playlist: '📤 EXPORTAR PLAYLIST',
@@ -2651,6 +2651,12 @@ TRANSLATIONS['pt-PT'] = Object.assign({
     set_file_none: "Nenhum registo válido encontrado.",
     set_file_loaded: "✓ {{n}} plays carregados",
     set_file_unsupported: "Tipo de ficheiro não suportado.",
+    // Apple Music import + "add to current plays" switch (app.js importFileData)
+    set_file_merge: "Juntar aos meus plays atuais",
+    set_file_merge_note: "O ficheiro novo junta-se ao que já está carregado, e os plays que já tem são ignorados. Desligue para substituir tudo.",
+    set_file_merged: "✓ {{n}} plays novos adicionados ({{total}} no total)",
+    set_file_apple_search: "Os botões de pesquisa abrem agora o Apple Music. Mude em Definições → Tops → Botões de pesquisa.",
+    set_file_apple_tip: '<strong>Usa Apple Music?</strong> Uma exportação é um retrato fixo. Para manter os seus tops em dia, ligue uma conta do Last.fm com uma app que lhe envie os seus plays do Apple Music — como Marvis Pro ou QuietScrob no iPhone, ou a app do Last.fm no Mac.',
     set_error: "Erro: {{msg}}",
     set_lfm_account: "Conta do Last.fm <span class=\"lfm-optional\">(opcional)</span>",
     set_lfm_connected: "Ligado como <strong>{{user}}</strong>",

@@ -7753,7 +7753,9 @@ window.addEventListener('load', async () => {
   }
 });
 
-function parseCsv(text, fromSheets = false) {
+// opts.noFinalize: fill allPlays but don't draw — the file upload uses it so
+// it can add the plays to the ones already loaded first (importFileData)
+function parseCsv(text, fromSheets = false, opts = {}) {
   const lines = text.trim().split(/\r?\n/);
   if (lines.length < 2) {
     if (!fromSheets) return false;
@@ -7855,7 +7857,7 @@ function parseCsv(text, fromSheets = false) {
   }
 
   allPlays = applyAutocorrectRules(allPlays);
-  finalizeLoad();
+  if (!opts.noFinalize) finalizeLoad();
   return true;
 }
 
@@ -35020,6 +35022,11 @@ async function parseSpotifyZip(file) {
   await ensureLazyLib('JSZip'); // fetched on demand — not shipped with first paint
   const buf = await readFileAsBuffer(file);
   const zip = await window.JSZip.loadAsync(buf);
+  // Apple Music's export is a ZIP too — read it as Apple's when it is one.
+  // parseSpotifyZip.lastKind tells importFileData which service it was.
+  const apple = await parseAppleZip(zip);
+  parseSpotifyZip.lastKind = apple ? 'apple' : 'spotify';
+  if (apple) return apple;
   const scrobbles = [];
   for (const [name, entry] of Object.entries(zip.files)) {
     const lower = name.toLowerCase();
@@ -35075,56 +35082,356 @@ async function parseDeezerXlsx(file) {
   return scrobbles;
 }
 
-async function importFileData(file) {
+// ── APPLE MUSIC EXPORT (privacy.apple.com → Apple Media Services information) ──
+// Apple's export is a ZIP with an "Apple Music Activity" folder inside (some
+// files in it are ZIPs of their own). The file that matters is
+// "Apple Music Play Activity.csv": one row per playback event, with Apple's own
+// column names — so before this, Apple users had to rename the header row by
+// hand. Now the ZIP, or that CSV on its own, goes straight in.
+//
+// Built and tested against a real 2017–2020 export (the test data of the
+// apple_music_analyser project on GitHub), whose columns are
+//   Artist Name, Content Name, Event Start Timestamp, Event Type,
+//   Play Duration Milliseconds, Start Position In Milliseconds, …
+// and no album column. Newer exports are said to rename some of these
+// ("Song Name", "Container Album Name"…), so every field below takes a list of
+// names and the first one present wins. The "Play History Daily Tracks" file
+// (one row per song per day, "Artist - Song" in one field) is only used as a
+// fallback when there is no play-activity file — it has not been tested on a
+// real export yet.
+
+// Small RFC 4180 CSV reader: quoted fields, "" escapes and line breaks inside
+// quotes. splitCsvRow() works line by line and drops "" escapes, which is fine
+// for sheets but not for Apple's free-text song names.
+function _readCsvRows(text) {
+  const rows = [];
+  let row = [], cur = '', q = false;
+  text = String(text || '').replace(/^﻿/, '');
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) {
+      if (c === '"') { if (text[i + 1] === '"') { cur += '"'; i++; } else q = false; }
+      else cur += c;
+    } else if (c === '"') q = true;
+    else if (c === ',') { row.push(cur); cur = ''; }
+    else if (c === '\n' || c === '\r') {
+      if (c === '\r' && text[i + 1] === '\n') i++;
+      row.push(cur); cur = '';
+      if (row.length > 1 || row[0] !== '') rows.push(row);
+      row = [];
+    } else cur += c;
+  }
+  if (cur !== '' || row.length) { row.push(cur); rows.push(row); }
+  return rows;
+}
+
+// Is this header row (lower-cased) one of Apple's? Checked on every uploaded
+// CSV, so it must not match a plain "mycharts" or Last.fm CSV.
+function _isAppleHeader(h) {
+  const has = n => h.includes(n);
+  return (has('event start timestamp') && (has('content name') || has('song name')))
+      || (has('track description') && has('date played'));
+}
+
+// Library index from "Apple Music Library Tracks.json": the play-activity file
+// has no album column, so albums come from here (and an artist, when a newer
+// export leaves Artist Name empty and the song title is unique in the library).
+function _appleLibIndex(list) {
+  const album = new Map(), artistsByTitle = new Map();
+  if (!Array.isArray(list)) return { album, artistsByTitle };
+  for (const t of list) {
+    if (!t || typeof t !== 'object') continue;
+    const title = String(t['Title'] || '').trim();
+    const artist = String(t['Artist'] || '').trim();
+    if (!title) continue;
+    const tl = title.toLowerCase();
+    if (artist && t['Album']) album.set(tl + '\u0001' + artist.toLowerCase(), String(t['Album']).trim());
+    if (artist) {
+      if (!artistsByTitle.has(tl)) artistsByTitle.set(tl, new Set());
+      artistsByTitle.get(tl).add(artist);
+    }
+  }
+  return { album, artistsByTitle };
+}
+
+// Apple CSV text → [{ artist, album, track, date }], same shape as the
+// Spotify and Deezer readers. lib is an _appleLibIndex() result or null.
+function parseAppleCsv(text, lib) {
+  const rows = _readCsvRows(text);
+  if (rows.length < 2) return [];
+  const head = rows[0].map(h => String(h || '').trim().toLowerCase());
+  const col = (...names) => { for (const n of names) { const i = head.indexOf(n); if (i !== -1) return i; } return -1; };
+  const cell = (r, i) => (i >= 0 && r[i] != null) ? String(r[i]).trim() : '';
+  const albumFor = (title, artist, given) => given
+    || (lib && lib.album.get(title.toLowerCase() + '\u0001' + artist.toLowerCase())) || '—';
+  const artistFor = (title, given) => {
+    if (given || !lib) return given;
+    const set = lib.artistsByTitle.get(title.toLowerCase());
+    return set && set.size === 1 ? [...set][0] : ''; // only when there's no doubt
+  };
+
+  // ── "Play Activity": one row per playback event ──
+  const cTitle = col('content name', 'song name', 'track name', 'title');
+  const cStart = col('event start timestamp', 'event end timestamp', 'event received timestamp');
+  if (cTitle >= 0 && cStart >= 0) {
+    const cArtist = col('artist name', 'container artist name', 'artist');
+    const cAlbum  = col('album name', 'container album name', 'album');
+    const cType   = col('event type');
+    const cDur    = col('play duration milliseconds');
+    const cPos    = col('start position in milliseconds');
+    // Pausing and resuming a song leaves two rows: the second one starts
+    // part-way into the track (Start Position > 0). Those are folded into the
+    // listen they continue, so a paused song counts once, and the listen counts
+    // when the time heard adds up to 30 seconds — the same line the Spotify
+    // reader uses for skips.
+    const events = [];
+    for (let i = 1; i < rows.length; i++) {
+      const r = rows[i];
+      const type = cell(r, cType).toUpperCase();
+      if (type && type !== 'PLAY_END') continue;      // PLAY_START, LYRIC_DISPLAY…
+      const title = cell(r, cTitle);
+      if (!title) continue;                            // radio / "non-catalog" time totals
+      const date = parseDtStrImport(cell(r, cStart));
+      if (!date) continue;
+      const artist = artistFor(title, cell(r, cArtist));
+      if (!artist) continue;
+      events.push({
+        title, artist, album: cell(r, cAlbum), date,
+        dur: cDur >= 0 ? (parseInt(cell(r, cDur), 10) || 0) : 30000, // no column → trust the row
+        pos: cPos >= 0 ? (parseInt(cell(r, cPos), 10) || 0) : 0,
+      });
+    }
+    events.sort((a, b) => a.date - b.date);
+    const open = new Map();   // song key → the listen it could continue
+    const listens = [];
+    for (const e of events) {
+      const key = e.title.toLowerCase() + '\u0001' + e.artist.toLowerCase();
+      const prev = open.get(key);
+      // A resume within 6 hours of the last part of the same song continues it
+      if (e.pos > 0 && prev && e.date - prev.last < 6 * 3600e3) {
+        prev.heard += e.dur; prev.last = e.date;
+        continue;
+      }
+      const l = { ...e, heard: e.dur, last: e.date };
+      open.set(key, l);
+      listens.push(l);
+    }
+    const out = [], seen = new Set();
+    for (const l of listens) {
+      if (l.heard < 30000) continue;
+      const k = l.title + '\u0001' + l.artist + '\u0001' + (+l.date);
+      if (seen.has(k)) continue;                       // the same event listed twice
+      seen.add(k);
+      out.push({ artist: l.artist, album: albumFor(l.title, l.artist, l.album), track: l.title, date: l.date });
+    }
+    return out;
+  }
+
+  // ── "Play History Daily Tracks": one row per song per day (fallback, untested) ──
+  const cDesc = col('track description');
+  const cDay  = col('date played');
+  if (cDesc >= 0 && cDay >= 0) {
+    const cCount = col('play count');
+    const cHours = col('hours');
+    const out = [];
+    for (let i = 1; i < rows.length; i++) {
+      const r = rows[i];
+      const desc = cell(r, cDesc);
+      const cut = desc.indexOf(' - ');                 // "Artist - Song"
+      if (cut <= 0) continue;
+      const artist = desc.slice(0, cut).trim(), title = desc.slice(cut + 3).trim();
+      if (!artist || !title) continue;
+      const day = cell(r, cDay).replace(/\D/g, '');    // 20210319
+      if (day.length !== 8) continue;
+      const hour = Math.min(23, parseInt((cell(r, cHours).match(/\d+/) || ['12'])[0], 10) || 0);
+      const n = Math.max(0, parseInt(cell(r, cCount), 10) || (cCount >= 0 ? 0 : 1));
+      // Plays on the same day get one minute apart, so they stay separate plays
+      for (let k = 0; k < Math.min(n, 60); k++) {
+        const date = new Date(Date.UTC(+day.slice(0, 4), +day.slice(4, 6) - 1, +day.slice(6, 8), hour, k));
+        if (!isNaN(date)) out.push({ artist, album: albumFor(title, artist, ''), track: title, date });
+      }
+    }
+    return out;
+  }
+  return [];
+}
+
+// Apple ZIP: walks it (and ZIPs inside it, a few levels deep) for the
+// play-activity CSV, the daily-tracks CSV and the library JSON.
+// Returns null when the ZIP isn't Apple's, so Spotify's reader can take it.
+async function parseAppleZip(zip, depth = 0) {
+  const found = { play: [], daily: [], lib: null };
+  async function walk(z, d) {
+    for (const [name, entry] of Object.entries(z.files)) {
+      if (entry.dir || /(^|\/)__MACOSX\//.test(name) || /(^|\/)\._/.test(name)) continue;
+      const base = name.split('/').pop().toLowerCase();
+      if (base.endsWith('.zip') && d < 3) {
+        // Only open inner ZIPs that can hold music data; Apple's export also
+        // ships zipped iCloud / App Store files that aren't needed here.
+        if (!/apple music|media services|apple_media|play activity|library tracks/i.test(name) && d > 0) continue;
+        try { await walk(await window.JSZip.loadAsync(await entry.async('arraybuffer')), d + 1); } catch (e) { /* not a ZIP after all */ }
+      } else if (/play activity\.csv$/.test(base)) {
+        found.play.push(await entry.async('string'));
+      } else if (/play history daily tracks\.csv$/.test(base)) {
+        found.daily.push(await entry.async('string'));
+      } else if (/library tracks\.json$/.test(base) && !found.lib) {
+        try { found.lib = _appleLibIndex(JSON.parse(await entry.async('string'))); } catch (e) { /* skip */ }
+      }
+    }
+  }
+  await walk(zip, depth);
+  if (!found.play.length && !found.daily.length) return null;
+  const texts = found.play.length ? found.play : found.daily;
+  return texts.flatMap(txt => parseAppleCsv(txt, found.lib));
+}
+
+// After an Apple Music import, the "Search on Spotify" buttons switch to
+// Apple Music — but only if the user never picked a service themselves.
+// Done by hand (not setMusicService) so it doesn't trigger a second full
+// render; finalizeLoad() draws everything right after.
+function _defaultSearchToApple() {
+  try { if (localStorage.getItem(MUSIC_SERVICE_KEY)) return false; } catch (e) { return false; }
+  try { localStorage.setItem(MUSIC_SERVICE_KEY, 'apple'); } catch (e) { return false; }
+  if (typeof dcSaveConfigKey === 'function') dcSaveConfigKey(MUSIC_SERVICE_KEY, 'apple');
+  _msPaintRoot();
+  paintMusicServiceButtons();
+  return true;
+}
+
+// ── Adding a new upload to the one already loaded ──
+// Uploads used to replace whatever was there. Now, when a file is already
+// loaded and "Add to my current plays" is on, the new file's plays are added
+// and any play that's already there is skipped — so a fresh Apple/Spotify
+// export, or a second service, can go on top without duplicates.
+// Two plays are the same when song + artist match and they start in the same
+// minute (exports of the same history round seconds differently).
+function _filePlayKey(p) {
+  return String(p.title || '').toLowerCase() + '\u0001' + String(p.artist || '').toLowerCase()
+    + '\u0001' + Math.floor(p.date.getTime() / 60000);
+}
+async function _loadSavedFilePlays() {
+  if (getDataSource() !== 'file') return [];
+  const cached = await loadFromIDB(IDB_FILE_KEY);
+  if (!cached || !Array.isArray(cached.data)) return [];
+  return applyAutocorrectRules(cached.data.map(([title, artist, album, uts]) => {
+    const ar = artist || '';
+    return { title, artist: ar, artists: splitArtists(ar), album: album || '—', date: new Date(uts * 1000) };
+  }));
+}
+function _mergeFilePlays(oldPlays, newPlays) {
+  const have = new Set(oldPlays.map(_filePlayKey));
+  const added = [];
+  for (const p of newPlays) {
+    const k = _filePlayKey(p);
+    if (have.has(k)) continue;
+    have.add(k);          // also drops a play the new file lists twice
+    added.push(p);
+  }
+  return { plays: oldPlays.concat(added), added: added.length };
+}
+// Shows the "Add to my current plays" switch only when there's a file to add to
+async function refreshFileMergeRow() {
+  const row = document.getElementById('srcFileMergeRow');
+  if (!row) return;
+  let show = false;
+  try { show = getDataSource() === 'file' && !!(await loadFromIDB(IDB_FILE_KEY))?.data?.length; } catch (e) { }
+  row.hidden = !show;
+}
+
+// statusId: where the "Parsing… / ✓ N plays" line goes — the Settings upload
+// panel by default, or the start screen's upload box (initUploadZone)
+async function importFileData(file, statusId = 'srcFileStatus') {
   if (!file) return;
-  const statusEl = document.getElementById('srcFileStatus');
+  const statusEl = document.getElementById(statusId);
   if (statusEl) statusEl.textContent = t('set_file_parsing', { name: file.name });
   try {
     const fname = file.name.toLowerCase();
-    if (fname.endsWith('.csv')) {
-      // CSV: delegate to existing parseCsv which sets allPlays and calls finalizeLoad
-      const text = await readFileAsText(file);
-      parseCsv(text, false);
-      if (!allPlays.length) { if (statusEl) statusEl.textContent = t('set_file_none'); return; }
-      const compact = allPlays.map(p => [p.title, p.artist, rawAlbumOf(p), Math.floor(p.date.getTime()/1000)]);
-      await saveToIDB(IDB_FILE_KEY, { ts: Date.now(), data: compact });
-      localStorage.setItem('dc_source', 'file');
-      if (statusEl) statusEl.textContent = t('set_file_loaded', { n: allPlays.length.toLocaleString() });
-      closeSourceModal();
-      return;
-    }
+    // "Add to my current plays" — only offered (and only true) when a file is
+    // already loaded; see refreshFileMergeRow()
+    const mergeRow = document.getElementById('srcFileMergeRow');
+    const mergeBox = document.getElementById('srcFileMerge');
+    const merging = !!(mergeRow && !mergeRow.hidden && mergeBox && mergeBox.checked);
+    const toPlays = scrobbles => scrobbles.map(s => {
+      const ar = s.artist || '';
+      return { title: s.track || '', artist: ar, artists: splitArtists(ar), album: s.album || '—', date: s.date };
+    });
     let plays = [];
-    if (fname.endsWith('.zip')) {
-      const scrobbles = await parseSpotifyZip(file);
-      plays = scrobbles.map(s => {
-        const ar = s.artist || '';
-        return { title: s.track || '', artist: ar, artists: splitArtists(ar), album: s.album || '—', date: s.date };
-      });
+    let kind = '';          // 'apple' turns the search buttons to Apple Music
+    let autocorrected = false;
+    if (fname.endsWith('.csv')) {
+      const text = await readFileAsText(file);
+      const head = (text.replace(/^﻿/, '').split(/\r?\n/, 1)[0] || '').toLowerCase();
+      if (_isAppleHeader(head)) {
+        // Apple's play-activity CSV, uploaded on its own (no library file, so no albums)
+        plays = toPlays(parseAppleCsv(text, null));
+        kind = 'apple';
+      } else {
+        // Any other CSV: parseCsv reads it into allPlays. Told not to draw yet,
+        // because the plays may still be added to the ones already loaded.
+        const before = allPlays;
+        if (!parseCsv(text, false, { noFinalize: true })) {
+          allPlays = before;  // a failed read must not wipe the charts on screen
+          if (statusEl) statusEl.textContent = t('set_file_none');
+          return;
+        }
+        plays = allPlays;
+        autocorrected = true; // parseCsv already ran the autocorrect rules
+      }
+    } else if (fname.endsWith('.zip')) {
+      plays = toPlays(await parseSpotifyZip(file));
+      kind = parseSpotifyZip.lastKind;
     } else if (fname.endsWith('.xlsx') || fname.endsWith('.xls')) {
-      const scrobbles = await parseDeezerXlsx(file);
-      plays = scrobbles.map(s => {
-        const ar = s.artist || '';
-        return { title: s.track || '', artist: ar, artists: splitArtists(ar), album: s.album || '—', date: s.date };
-      });
+      plays = toPlays(await parseDeezerXlsx(file));
     } else {
       if (statusEl) statusEl.textContent = t('set_file_unsupported');
       return;
     }
     plays = plays.filter(p => p.title && p.artist && p.date && !isNaN(p.date));
     if (!plays.length) { if (statusEl) statusEl.textContent = t('set_file_none'); return; }
+    // Same autocorrect rules a reload applies, so merge keys match the saved plays
+    if (!autocorrected) plays = applyAutocorrectRules(plays);
+    let added = plays.length;
+    if (merging) {
+      const merged = _mergeFilePlays(await _loadSavedFilePlays(), plays);
+      plays = merged.plays;
+      added = merged.added;
+    }
     plays.sort((a, b) => b.date - a.date);
     allPlays = plays;
     const compact = allPlays.map(p => [p.title, p.artist, rawAlbumOf(p), Math.floor(p.date.getTime()/1000)]);
     await saveToIDB(IDB_FILE_KEY, { ts: Date.now(), data: compact });
     localStorage.setItem('dc_source', 'file');
-    if (statusEl) statusEl.textContent = t('set_file_loaded', { n: allPlays.length.toLocaleString() });
+    const msg = merging
+      ? t('set_file_merged', { n: added.toLocaleString(), total: allPlays.length.toLocaleString() })
+      : t('set_file_loaded', { n: allPlays.length.toLocaleString() });
+    if (statusEl) statusEl.textContent = msg;
     closeSourceModal();
-    setSyncStatus(`✓ ${allPlays.length.toLocaleString()} plays loaded from ${file.name}`, 'ok', { toast: true });
+    // Came from the start screen's upload box: it has done its job
+    const zone = document.getElementById('uploadZone');
+    if (zone) zone.style.display = 'none';
+    setSyncStatus(msg + ' — ' + file.name, 'ok', { toast: true });
+    if (kind === 'apple' && _defaultSearchToApple()) {
+      // A second toast, after the first, so both can be read
+      setTimeout(() => setSyncStatus(t('set_file_apple_search'), 'ok', { toast: true }), 3500);
+    }
     finalizeLoad();
   } catch (e) {
     if (statusEl) statusEl.textContent = t('set_error', { msg: e.message });
   }
 }
+
+// The upload box shown after picking Upload File on the start screen. Its input
+// had no listener at all, so a dropped or chosen file did nothing and new
+// file users were stuck until they found Settings. app.js is deferred, so the
+// box is already in the page here.
+(function initUploadZone() {
+  const input = document.getElementById('csvFile');
+  if (!input) return;
+  input.addEventListener('change', () => {
+    if (input.files[0]) importFileData(input.files[0], 'uploadZoneStatus');
+    input.value = '';
+  });
+})();
 
 let _srcFileUploadReady = false;
 
@@ -35132,6 +35439,7 @@ function initSrcFileUpload() {
   const zone = document.getElementById('srcFileDrop');
   const input = document.getElementById('srcFileInput');
   if (!zone || !input) return;
+  refreshFileMergeRow(); // every open: the switch shows only once a file is loaded
   // Called on every modal open — without this guard the listeners stack up and
   // the file picker opens once per time the modal has ever been opened.
   if (_srcFileUploadReady) return;

@@ -4766,6 +4766,14 @@
       font-size: var(--fs-xs);
       color: var(--text2);
     }
+    /* "Reading file…" / errors under the start-screen upload box */
+    .upload-zone-status {
+      margin-top: var(--sp-3);
+      text-align: center;
+      font-size: var(--fs-sm);
+      color: var(--text2);
+    }
+    .upload-zone-status:empty { display: none; }
 
     /* MAIN LAYOUT */
     .container {
@@ -6512,6 +6520,19 @@
       justify-content: space-between;
       gap: var(--sp-3);
       cursor: pointer;
+    }
+    /* display:flex above beats the browser's own [hidden] rule — the upload
+       panel's "Add to my current plays" row is hidden until a file is loaded */
+    .src-switch-row[hidden] { display: none; }
+    /* that row sits between the drop box and the status line. Being a label
+       inside .src-field-group, it would pick up that rule's column layout
+       (switch dropped under the text), so the row layout is restated here. */
+    #srcFileMergeRow {
+      margin-top: var(--sp-3);
+      flex-direction: row;
+      gap: var(--sp-3);
+      color: inherit;
+      font-size: inherit;
     }
     .src-switch-label {
       font-size: var(--fs-sm);
@@ -49211,6 +49232,7 @@ a.tb-more-item:hover { text-decoration: none; }
   .wc-short { display: inline; }
   .wc-at1 { display: none; }
 }
+
 
 /* Share button on a certification plaque (cert-plaque.js, 2026-11-10): a
    small round button in the panel's top-right corner, just inside the

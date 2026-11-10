@@ -13,6 +13,12 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Apple Music exports go straight in":
+    ["Las exportaciones de Apple Music entran tal cual",
+     "Subir archivo ahora lee la exportación propia de Apple Music de privacy.apple.com. Suelta el ZIP entero, o solo su Apple Music Play Activity.csv, sin renombrar nada. Las reproducciones de menos de 30 segundos se dejan fuera, una canción que pausaste y retomaste cuenta una vez, y los álbumes salen del archivo de biblioteca del ZIP. Tras importar de Apple Music, los botones de búsqueda abren Apple Music, salvo que ya hayas elegido un servicio."],
+  "Add a new file to the one you have":
+    ["Añade un archivo nuevo al que ya tienes",
+     "Subir un archivo ya no tiene que reemplazar el que está cargado. Con Añadir a mis reproducciones actuales activado (Ajustes → Fuente de datos → Subir archivo), se suman las reproducciones del archivo nuevo y se omiten las que ya tienes, así que una exportación más reciente o un segundo servicio pueden ir encima. Desactívalo para reemplazarlo todo, como antes."],
   "Appears on, and joint albums":
     ["Aparece en, y álbumes conjuntos",
      "La ventana de un artista ahora separa sus propios álbumes de los álbumes en los que solo es invitado. Los álbumes de otros en los que aparece están en un botón nuevo, Aparece en, en la pestaña Música, y ya no cuentan para su total de álbumes, su álbum favorito ni sus certificaciones de álbum. Sus canciones siguen contando completas. Algunos álbumes son de más de un artista, así que ahora puedes elegir los dueños de un álbum desde su ventana, o revisar los álbumes conjuntos sugeridos en Ajustes → Lanzamientos. Funciona con Last.fm, Google Sheets y archivos CSV."],

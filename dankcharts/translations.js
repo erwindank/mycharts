@@ -2633,7 +2633,7 @@ const TRANSLATIONS = {
     // Upload zone
     upload_title: 'Load Your Listening History',
     upload_desc: 'Drop your CSV file here, or click to browse',
-    file_upload_hint: 'Upload your listening history. Supported formats: <strong>Last.fm CSV</strong>, <strong>mycharts CSV</strong>, <strong>Spotify ZIP</strong> (extended streaming history), <strong>Deezer XLSX</strong>.',
+    file_upload_hint: 'Upload your listening history. Supported formats: <strong>Last.fm CSV</strong>, <strong>mycharts CSV</strong>, <strong>Spotify ZIP</strong> (extended streaming history), <strong>Apple Music ZIP or CSV</strong> (from privacy.apple.com), <strong>Deezer XLSX</strong>.',
 
     // Buttons
     btn_export_playlist: '📤 EXPORT PLAYLIST',
@@ -2708,6 +2708,12 @@ const TRANSLATIONS = {
     set_file_none: "No valid records found.",
     set_file_loaded: "✓ {{n}} plays loaded",
     set_file_unsupported: "Unsupported file type.",
+    // Apple Music import + "add to current plays" switch (app.js importFileData)
+    set_file_merge: "Add to my current plays",
+    set_file_merge_note: "The new file is added to what's already loaded, and plays you already have are skipped. Turn off to replace everything instead.",
+    set_file_merged: "✓ {{n}} new plays added ({{total}} in total)",
+    set_file_apple_search: "Search buttons now open Apple Music. Change it in Settings → Charts → Search buttons.",
+    set_file_apple_tip: '<strong>On Apple Music?</strong> An export is a snapshot. To keep your charts up to date, connect a Last.fm account with an app that sends your Apple Music plays to it — like Marvis Pro or QuietScrob on iPhone, or the Last.fm app on Mac.',
     set_error: "Error: {{msg}}",
     set_lfm_account: "Last.fm Account <span class=\"lfm-optional\">(optional)</span>",
     set_lfm_connected: "Connected as <strong>{{user}}</strong>",

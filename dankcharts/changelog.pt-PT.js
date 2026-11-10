@@ -13,6 +13,12 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Apple Music exports go straight in":
+    ["Exportações do Apple Music entram tal como estão",
+     "Carregar ficheiro lê agora a exportação do próprio Apple Music, de privacy.apple.com. Larga o ZIP inteiro, ou só o Apple Music Play Activity.csv, sem mudar nomes. Plays com menos de 30 segundos ficam de fora, uma música que pausaste e retomaste conta uma vez, e os álbuns vêm do ficheiro da biblioteca no ZIP. Depois de importar do Apple Music, os botões de pesquisa abrem o Apple Music, a não ser que já tenhas escolhido um serviço."],
+  "Add a new file to the one you have":
+    ["Junta um ficheiro novo ao que já tens",
+     "Carregar um ficheiro já não tem de substituir o que está carregado. Com Juntar aos meus plays atuais ligado (Definições → Fonte de dados → Carregar ficheiro), os plays do ficheiro novo juntam-se e os que já tens são ignorados, por isso uma exportação mais recente ou um segundo serviço podem entrar por cima. Desliga para substituir tudo, como antes."],
   "Appears on, and joint albums":
     ["Aparece em, e álbuns conjuntos",
      "A janela de um artista agora separa os seus álbuns dos álbuns em que só participa. Os álbuns de outros em que aparece ficam num botão novo, Aparece em, no separador Música, e deixam de contar para o total de álbuns, o álbum favorito e as certificações de álbum. As suas músicas continuam a contar por inteiro. Alguns álbuns são de mais de um artista, por isso agora podes escolher os donos de um álbum na janela dele, ou ver os álbuns conjuntos sugeridos em Definições → Lançamentos. Funciona com Last.fm, Google Sheets e ficheiros CSV."],

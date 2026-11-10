@@ -10,12 +10,12 @@
   <!-- Step pictures (drawn screens + dots); Roboto above is for those, since
        the drawn Google screens use Google's own typeface -->
   <link rel="stylesheet" href="setup-scenes.css?v=1">
-  <script src="translations.js?v=392"></script>
+  <script src="translations.js?v=393"></script>
   <!-- The saved language's own file (translations.js is English only). Must
        come before setup-guide-i18n.js so the guide's strings are merged on top
        of it, as before. Same DC_I18N_V as index.html. -->
   <script>
-    window.DC_I18N_V = 85;
+    window.DC_I18N_V = 86;
     (function () {
       try {
         var l = localStorage.getItem('dankcharts-lang');
@@ -26,7 +26,7 @@
   </script>
   <!-- The guide's own ES / PT strings, merged into TRANSLATIONS. Must load
        after translations.js and before its DOMContentLoaded pass runs. -->
-  <script src="setup-guide-i18n.js"></script>
+  <script src="setup-guide-i18n.js?v=2"></script>
   <style>
     /* ═══════════════════════════════════════════════════════════════════
        SETUP GUIDE — visual system
@@ -3327,7 +3327,7 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
                   <summary data-i18n="sg_fi_lastfm_why">Two things worth knowing</summary>
                   <div class="why-body">
                     <p data-i18n="sg_fi_lastfm_why1">Over 100,000 scrobbles takes a minute or two to build.</p>
-                    <p data-i18n-html="sg_fi_lastfm_why2">It can fetch only what's newer than a previous export — but uploads here <em>replace</em> rather than merge, so keep the full file.</p>
+                    <p data-i18n-html="sg_fi_lastfm_why2">It can fetch only what's newer than a previous export. Upload that with <strong>Add to my current plays</strong> on and the new plays are added to the ones you have.</p>
                   </div>
                 </details>
               </li>
@@ -3347,8 +3347,10 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
                 </div>
                 <p data-i18n="sg_fi_yt2">Takeout's ZIP isn't a shape we read. Turn its watch-history file into a CSV — Step 3.</p>
               </li>
-              <li data-svc="apple" data-fmt="convert">
-                <div class="svc-head"><span class="svc-name">Apple Music</span><span data-i18n="sg_fmt_rename" class="svc-fmt svc-fmt-work">rename headers</span></div>
+              <!-- Since 2026-11-10 Apple's export goes straight in (app.js parseAppleZip /
+                   parseAppleCsv), so it has its own drop-in format, not 'convert' -->
+              <li data-svc="apple" data-fmt="apple">
+                <div class="svc-head"><span class="svc-name">Apple Music</span><span data-i18n="sg_fmt_zip" class="svc-fmt">.zip · drop it in</span></div>
                 <div class="shot-pair">
                   <figure class="shot" data-scene="apple"></figure>
                   <div class="do-col">
@@ -3361,7 +3363,14 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
                     </ol>
                   </div>
                 </div>
-                <p data-i18n="sg_fi_apple2">The play-history CSV uses Apple's own column names — rename the header row in Step 3.</p>
+                <p data-i18n-html="sg_fi_apple2">Apple emails you a link to a ZIP. <strong>Upload it without unpacking</strong> — or just the <code>Apple Music Play Activity.csv</code> inside it.</p>
+                <!-- Apple Music can't send plays to Last.fm by itself: the way to keep charts current -->
+                <aside class="note note-tip">
+                  <span class="note-icon" aria-hidden="true">✦</span>
+                  <div data-i18n-html="sg_fi_ap_tip" class="note-body">
+                    <strong>Want your charts to keep up?</strong> An export is a snapshot. Apps like Marvis Pro or QuietScrob on iPhone, or the Last.fm app on Mac, send your Apple Music plays to Last.fm as you listen — then use the Last.fm tab of this guide.
+                  </div>
+                </aside>
               </li>
               <li data-svc="other" data-fmt="convert">
                 <div class="svc-head"><span data-i18n="sg_fi_other" class="svc-name">Something else</span><span data-i18n="sg_fmt_rename" class="svc-fmt svc-fmt-work">rename headers</span></div>
@@ -3389,7 +3398,7 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
             <p data-i18n="sg_fi2_p1">Three shapes need no editing. If yours is one, skip to Step 4.</p>
             <div class="spec">
               <div data-i18n-html="sg_fi2_head" class="spec-head"><span>File</span><span>What's read</span></div>
-              <div class="spec-row"><span class="spec-key">.zip</span><span data-i18n="sg_fi2_v1" class="spec-val">Spotify streaming history</span></div>
+              <div class="spec-row"><span class="spec-key">.zip</span><span data-i18n="sg_fi2_v1" class="spec-val">Spotify or Apple Music history</span></div>
               <div class="spec-row"><span class="spec-key">.xlsx / .xls</span><span data-i18n="sg_fi2_v2" class="spec-val">first sheet only</span></div>
               <div class="spec-row"><span class="spec-key">.csv</span><span data-i18n="sg_fi2_v3" class="spec-val">column names from Step 3</span></div>
             </div>
@@ -3397,6 +3406,11 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
             <div data-fmt-block="zip">
               <p data-i18n="sg_fi2_zip_sub" class="step-sub">Spotify ZIP</p>
               <p data-i18n="sg_fi2_zip">Upload it whole. Plays under 30 seconds are dropped, and so is anything without both a track and an artist — which is how podcasts fall out. A lower total than you expected is usually that, not a failure.</p>
+            </div>
+
+            <div data-fmt-block="apple">
+              <p data-i18n="sg_fi2_apple_sub" class="step-sub">Apple Music ZIP or CSV</p>
+              <p data-i18n="sg_fi2_apple">Upload the whole ZIP, or the Apple Music Play Activity.csv on its own. Plays under 30 seconds are dropped, and a song you paused and went back to counts once. Albums come from your library file in the ZIP, so the CSV alone has fewer of them.</p>
             </div>
 
             <div data-fmt-block="xlsx">
@@ -3503,7 +3517,7 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
             <aside class="note">
               <span class="note-icon" aria-hidden="true">i</span>
               <div data-i18n-html="sg_fi4_note" class="note-body">
-                <strong>Uploading replaces, it doesn't merge.</strong> Combining two services? Join them into one CSV first.
+                <strong>Already have a file loaded?</strong> With <strong>Add to my current plays</strong> on, a new upload is added to it and plays you already have are skipped — handy for a newer export, or a second service. Turn it off to replace everything.
               </div>
             </aside>
           </div>
