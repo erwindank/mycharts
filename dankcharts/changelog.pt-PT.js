@@ -13,6 +13,12 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Play or save the lists under the chart":
+    ["Ouve ou guarda as listas por baixo do top",
+     "Aspirantes, Fora do Top e as listas de Novas Entradas têm os seus próprios botões Reproduzir tudo, Aleatório, Guardar como playlist e Exportar playlist. As listas de artistas e álbuns usam as músicas mais ouvidas de cada um."],
+  "Choose how long the lists under the chart are":
+    ["Escolhe quantas entradas têm as listas por baixo do top",
+     "Aspirantes e cada lista de Novas Entradas mostram agora 20 entradas para começar. Escolhe outro número em ⋮ → Tamanho, ou escreve o teu. Singles e EPs têm a sua própria definição."],
   "Apple Music exports go straight in":
     ["Exportações do Apple Music entram tal como estão",
      "Carregar ficheiro lê agora a exportação do próprio Apple Music, de privacy.apple.com. Larga o ZIP inteiro, ou só o Apple Music Play Activity.csv, sem mudar nomes. Plays com menos de 30 segundos ficam de fora, uma música que pausaste e retomaste conta uma vez, e os álbuns vêm do ficheiro da biblioteca no ZIP. Depois de importar do Apple Music, os botões de pesquisa abrem o Apple Music, a não ser que já tenhas escolhido um serviço."],
@@ -4739,6 +4745,14 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 /* Highlight cards (DC_CL_HIGHLIGHTS in changelog.js), keyed by id. */
 window.DC_CL_HIGHLIGHTS_I18N = window.DC_CL_HIGHLIGHTS_I18N || {};
 window.DC_CL_HIGHLIGHTS_I18N["pt-PT"] = {
+  "around-the-chart": {
+    title: "Mais das listas por baixo do teu top",
+    intro: "Aspirantes, Fora do Top e as listas de Novas Entradas podem agora ser ouvidas, guardadas e ajustadas.",
+    points: [
+      "Ouve ou baralha uma lista, guarda-a como playlist ou exporta-a para o Soundiiz.",
+      "Escolhe quantas entradas cada lista mostra em ⋮ → Tamanho.",
+    ],
+  },
   "world-charts": {
     title: "Tops mundiais",
     intro: "Os tops reais que toda a gente está a ouvir, ao lado dos teus.",

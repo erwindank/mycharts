@@ -13,6 +13,12 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Play or save the lists under the chart":
+    ["Toque ou salve as listas abaixo da parada",
+     "Aspirantes, Fora da Parada e as listas de Novas Entradas têm seus próprios botões Tocar tudo, Aleatório, Salvar como playlist e Exportar playlist. As listas de artistas e álbuns usam as músicas mais ouvidas de cada um."],
+  "Choose how long the lists under the chart are":
+    ["Escolha quantas entradas têm as listas abaixo da parada",
+     "Aspirantes e cada lista de Novas Entradas agora mostram 20 entradas para começar. Escolha outro número em ⋮ → Tamanho, ou digite o seu. Singles e EPs têm sua própria configuração."],
   "Apple Music exports go straight in":
     ["Exportações do Apple Music entram direto",
      "Enviar arquivo agora lê a exportação do próprio Apple Music, de privacy.apple.com. Solte o ZIP inteiro, ou só o Apple Music Play Activity.csv dele, sem renomear nada. Plays com menos de 30 segundos ficam de fora, uma música que você pausou e retomou conta uma vez, e os álbuns vêm do arquivo da biblioteca no ZIP. Depois de importar do Apple Music, os botões de busca abrem o Apple Music, a menos que você já tenha escolhido um serviço."],
@@ -4739,6 +4745,14 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 /* Highlight cards (DC_CL_HIGHLIGHTS in changelog.js), keyed by id. */
 window.DC_CL_HIGHLIGHTS_I18N = window.DC_CL_HIGHLIGHTS_I18N || {};
 window.DC_CL_HIGHLIGHTS_I18N["pt-BR"] = {
+  "around-the-chart": {
+    title: "Mais das listas abaixo da sua parada",
+    intro: "Aspirantes, Fora da Parada e as listas de Novas Entradas agora podem ser tocadas, salvas e ajustadas.",
+    points: [
+      "Toque ou embaralhe uma lista, salve como playlist ou exporte para o Soundiiz.",
+      "Escolha quantas entradas cada lista mostra em ⋮ → Tamanho.",
+    ],
+  },
   "world-charts": {
     title: "Paradas mundiais",
     intro: "As paradas reais que todo mundo está ouvindo, ao lado das suas.",

@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 484;
+const DC_CL_I18N_V = 485;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -98,6 +98,14 @@ const DC_CL_AREAS = {
    by id, as { title, intro, points }. A missing one shows in English.
    ------------------------------------------------------------------------- */
 const DC_CL_HIGHLIGHTS = [
+  { id: "around-the-chart", d: "2026-11-10", a: "charts", img: "whatsnew/around-the-chart.webp", go: "week",
+    title: "More from the lists under your chart",
+    intro: "Bubbling Under, Off the Chart and the New lists can now be played, saved and sized.",
+    points: [
+      "Play or shuffle a list, save it as a playlist, or export it to Soundiiz.",
+      "Pick how many entries each list shows in ⋮ → Size.",
+    ],
+    also: ["Play or save the lists under the chart", "Choose how long the lists under the chart are"] },
   { id: "world-charts", d: "2026-11-09", a: "charts", img: "whatsnew/world-charts.webp?v=2", go: "worldcharts",
     title: "World Charts",
     intro: "The real charts everyone else is listening to, right next to your own.",
@@ -402,6 +410,12 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-10', t: 'feature', a: 'charts',
+    title: "Play or save the lists under the chart",
+    detail: "Bubbling Under, Off the Chart and the New lists have their own Play all, Shuffle, Save as playlist and Export playlist buttons. Artist and album lists use their most-played songs." },
+  { d: '2026-11-10', t: 'feature', a: 'charts',
+    title: "Choose how long the lists under the chart are",
+    detail: "Bubbling Under and each New list now show 20 entries to start with. Pick another number in the chart's ⋮ → Size, or type your own. Singles and EPs keep their own setting." },
   { d: '2026-11-10', t: 'feature', a: 'data',
     title: "Apple Music exports go straight in",
     detail: "Upload File now reads Apple Music's own export from privacy.apple.com. Drop in the whole ZIP, or just its Apple Music Play Activity.csv, with no renaming. Plays under 30 seconds are left out, a song you paused and went back to counts once, and albums come from the library file in the ZIP. After an Apple Music import, the search buttons open Apple Music, unless you already picked a service." },

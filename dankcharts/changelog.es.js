@@ -13,6 +13,12 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Play or save the lists under the chart":
+    ["Reproduce o guarda las listas bajo la lista",
+     "Aspirantes, Fuera del Ranking y las listas de Nuevas Entradas tienen sus propios botones Reproducir todo, Aleatorio, Guardar como playlist y Exportar playlist. Las listas de artistas y álbumes usan sus canciones más escuchadas."],
+  "Choose how long the lists under the chart are":
+    ["Elige cuántas entradas tienen las listas bajo la lista",
+     "Aspirantes y cada lista de Nuevas Entradas muestran ahora 20 entradas al empezar. Elige otro número en ⋮ → Tamaño, o escribe el tuyo. Los sencillos y los EP tienen su propio ajuste."],
   "Apple Music exports go straight in":
     ["Las exportaciones de Apple Music entran tal cual",
      "Subir archivo ahora lee la exportación propia de Apple Music de privacy.apple.com. Suelta el ZIP entero, o solo su Apple Music Play Activity.csv, sin renombrar nada. Las reproducciones de menos de 30 segundos se dejan fuera, una canción que pausaste y retomaste cuenta una vez, y los álbumes salen del archivo de biblioteca del ZIP. Tras importar de Apple Music, los botones de búsqueda abren Apple Music, salvo que ya hayas elegido un servicio."],
@@ -4743,6 +4749,14 @@ window.DC_CHANGELOG_I18N['es'] = {
 /* Highlight cards (DC_CL_HIGHLIGHTS in changelog.js), keyed by id. */
 window.DC_CL_HIGHLIGHTS_I18N = window.DC_CL_HIGHLIGHTS_I18N || {};
 window.DC_CL_HIGHLIGHTS_I18N["es"] = {
+  "around-the-chart": {
+    title: "Más de las listas bajo tu lista",
+    intro: "Aspirantes, Fuera del Ranking y las listas de Nuevas Entradas ahora se pueden reproducir, guardar y ajustar.",
+    points: [
+      "Reproduce o mezcla una lista, guárdala como playlist o expórtala a Soundiiz.",
+      "Elige cuántas entradas muestra cada lista en ⋮ → Tamaño.",
+    ],
+  },
   "world-charts": {
     title: "Listas mundiales",
     intro: "Las listas reales que escucha todo el mundo, junto a las tuyas.",
