@@ -2371,6 +2371,8 @@
       .dp-body .am-type--more .am-type-btn { flex: 1 1 auto; padding: 8px 6px; gap: 6px; white-space: nowrap; }
       .dp-body .am-type--more .am-type-btn svg { display: none; }
       .dp-body .am-type--4 { display: grid; grid-template-columns: 1fr 1fr; }
+      /* five lists (with Appears on): three by two */
+      .dp-body .am-type--5 { display: grid; grid-template-columns: 1fr 1fr 1fr; }
       .dp-body .am-sum-v { font-size: 1.2rem; }
       .dp-body .am-sum-l { font-size: 0.6rem; }
       .dp-body .am-main { grid-template-columns: 38px 40px minmax(0, 1fr) auto; gap: var(--sp-2); }
@@ -38931,6 +38933,48 @@ body.green-light :is(.sv--bronze, .modal-cb-detail-peak--bronze) {
 }
 
 .rt-row-remove { flex-shrink: 0; }
+
+/* ── Album owners / joint albums (2026-11-09) ──
+   The owners chip on the album window borrows .alb-rtype-toggle; is-suggest
+   is the "Joint album?" state — a dashed outline that asks without shouting. */
+.alb-owner-btn { background: none; }
+.alb-owner-btn svg { width: 0.9rem; height: 0.9rem; flex: none; }
+.alb-owner-btn.is-suggest { opacity: 1; border-style: dashed; }
+
+/* The picker: one row per artist on the album, songs count on the right */
+.ja-pick-list { display: flex; flex-direction: column; }
+.ja-pick-row { align-items: center; border-bottom: 1px solid var(--border); }
+.ja-pick-row input { margin-top: 0; }
+.ja-pick-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+.ja-pick-n { flex-shrink: 0; font-size: var(--fs-xs); color: var(--text3); }
+
+/* The manager's suggestions: the artists as tickable chips under the title */
+.ja-sugg-lead { margin: 0 0 var(--sp-2); font-size: var(--fs-xs); color: var(--text3); }
+.ja-row { align-items: flex-start; flex-wrap: wrap; }
+.ja-chips { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.35rem; }
+.ja-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.15rem 0.5rem 0.15rem 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: var(--r-full);
+  font-size: var(--fs-xs);
+  color: var(--text3);
+  cursor: pointer;
+}
+.ja-chip:has(input:checked) {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--text);
+}
+.ja-chip input { width: 0.8rem; height: 0.8rem; margin: 0; accent-color: var(--accent); cursor: pointer; }
+.ja-acts { display: flex; gap: 0.35rem; flex-shrink: 0; align-self: center; }
+.ja-more { display: flex; margin: var(--sp-2) auto 0; }
+@media (max-width: 640px) {
+  /* the buttons drop under the album instead of squeezing its name */
+  .ja-acts { width: 100%; justify-content: flex-end; }
+}
 
 .rt-empty {
   padding: var(--sp-4) 0.2rem;

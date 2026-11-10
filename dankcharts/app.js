@@ -1056,6 +1056,182 @@ function removeCompilationAlbum(title) {
   _saveCompilationAlbums(getCompilationAlbums().filter(a => a.toLowerCase() !== lc));
 }
 
+// ─── ALBUM OWNERS / JOINT ALBUMS (2026-11-09) ──────────────────
+/* Who an album BELONGS to, as opposed to who is on it. An album is filed
+   under its credit, the first artist on its plays (albumArtist()). Every other
+   artist named on one of its songs is a guest: in their artist window the
+   album sits under "Appears on", not Albums, and it does not count toward
+   their album totals or album certifications. Their songs still count in full
+   (plays, song charts, song certifications) — only the album credit differs.
+
+   Some albums really are shared — Watch the Throne, a duo record. This list
+   names their owners. It changes ownership only: the album stays ONE album in
+   every chart, filed under its credit exactly as before, so no key, stamp or
+   chart moves when an entry is added. That is why saving here costs no
+   rebuild, unlike the compilations list.
+
+   Keyed like the release-type map (releaseTypeKey: credit|||album, lower
+   case), because album titles collide across artists.
+   Shape: { 'credit|||album': { a: 'Album', c: 'Credit', o: ['Credit', 'Other'] } }
+     o   the owners, in the order they were picked
+     no  1 instead of o: the user said this is NOT a joint album, which is what
+         stops the suggestions from asking again. Behaves like no entry. */
+const JOINT_ALBUMS_KEY = 'dc_joint_albums';
+let _jointAlbumMap = null;   // parsed map, null = not read yet
+
+// Called by the Firestore sync when the map arrives from another device.
+// Nothing is stamped from it, so dropping the parsed copy is enough.
+window.dcResetJointAlbumsCache = () => { _jointAlbumMap = null; };
+
+function _jaMap() {
+  if (_jointAlbumMap === null) {
+    try {
+      const raw = JSON.parse(localStorage.getItem(JOINT_ALBUMS_KEY) || '{}');
+      _jointAlbumMap = (raw && typeof raw === 'object' && !Array.isArray(raw)) ? raw : {};
+    } catch { _jointAlbumMap = {}; }
+  }
+  return _jointAlbumMap;
+}
+
+/* Writes the map and pushes it straight to Firestore with the in-memory value —
+   not dcSaveUserConfig(), for the same race reason as _saveCompilationAlbums(). */
+function _saveJointAlbums(map) {
+  const json = JSON.stringify(map);
+  localStorage.setItem(JOINT_ALBUMS_KEY, json);
+  _jointAlbumMap = map;
+  if (typeof dcSaveJointAlbumsToFirestore === 'function') dcSaveJointAlbumsToFirestore(json);
+}
+
+// The saved entry for one album, or null
+function jointAlbumEntry(album, credit) {
+  return _jaMap()[releaseTypeKey(album, credit)] || null;
+}
+
+/* The owners of an album: the saved joint owners, or just its credit.
+   A compilation (credited to Various Artists) belongs to nobody in particular,
+   so every singer on it sees it under Appears on. */
+function albumOwnersOf(album, credit) {
+  const e = jointAlbumEntry(album, credit);
+  return e && Array.isArray(e.o) && e.o.length ? e.o : [credit];
+}
+
+// Does this artist own the album, or are they only on it?
+function isAlbumOwner(album, credit, artistName) {
+  const lc = String(artistName || '').toLowerCase();
+  return albumOwnersOf(album, credit).some(o => String(o).toLowerCase() === lc);
+}
+
+/* Saves who owns an album. Owners exactly [credit] is the default, so it is
+   stored as "not joint" (no: 1) — a decision, which keeps the album out of
+   the suggestions. An empty pick is refused. */
+function setJointAlbumOwners(album, credit, owners) {
+  const name = String(album || '').trim();
+  if (!name || name === '—' || !credit) return false;
+  const seen = new Set();
+  const o = (owners || []).map(x => String(x).trim()).filter(x => {
+    const lc = x.toLowerCase();
+    if (!x || seen.has(lc)) return false;
+    seen.add(lc); return true;
+  });
+  if (!o.length) return false;
+  const map = { ..._jaMap() };
+  const k = releaseTypeKey(name, credit);
+  map[k] = (o.length === 1 && o[0].toLowerCase() === String(credit).toLowerCase())
+    ? { a: name, c: credit, no: 1 }
+    : { a: name, c: credit, o };
+  _saveJointAlbums(map);
+  return true;
+}
+
+// Forgets the album entirely — back to undecided, so it may be suggested again
+function clearJointAlbum(album, credit) {
+  const map = { ..._jaMap() };
+  const k = releaseTypeKey(album, credit);
+  if (!(k in map)) return false;
+  delete map[k];
+  _saveJointAlbums(map);
+  return true;
+}
+
+// Every saved entry, for the manager: { album, credit, owners | null, no }
+function getJointAlbumEntries() {
+  return Object.values(_jaMap()).filter(e => e && e.a && e.c)
+    .map(e => ({ album: e.a, credit: e.c, owners: Array.isArray(e.o) ? e.o : null, no: !!e.no }));
+}
+
+/* Every artist credited on an album's plays, with how many of its songs name
+   them — what the owner picker offers. Credit first, then by songs. */
+function albumCreditedArtists(album, credit) {
+  const key = album + '|||' + credit;
+  const songs = new Map();   // artist -> Set of song keys
+  const order = [];
+  for (const p of allPlays) {
+    if (albumKeyOf(p) !== key) continue;
+    const sk = songKey(p);
+    for (const a of (p.artists && p.artists.length ? p.artists : [p.artist])) {
+      if (!songs.has(a)) { songs.set(a, new Set()); order.push(a); }
+      songs.get(a).add(sk);
+    }
+  }
+  return order.map(a => ({ name: a, songs: songs.get(a).size }))
+    .sort((x, y) => (y.name === credit) - (x.name === credit) || y.songs - x.songs);
+}
+
+/* Albums that look shared: EVERY play of the album names the same two or
+   more artists (so every song is a collaboration between them). Albums with
+   an entry already — joint or "not joint" — and compilations are skipped.
+   One pass over the library; each album keeps the artists all its plays so
+   far have in common and drops out as soon as fewer than two are left. */
+function jointAlbumSuggestions() {
+  if (noArtistSplit) return [];   // without splitting, no play names two artists
+  const map = _jaMap();
+  const byKey = new Map();   // album key -> { album, credit, common: [..] | null, plays, songs:Set }
+  for (const p of allPlays) {
+    if (!p.album || p.album === '—') continue;
+    const ak = albumKeyOf(p);
+    let s = byKey.get(ak);
+    if (!s) {
+      const credit = albumArtist(p);
+      const dead = credit === VARIOUS_ARTISTS || !!map[releaseTypeKey(p.album, credit)];
+      s = { album: p.album, credit, common: dead ? null : (p.artists || []).slice(), plays: 0, songs: new Set() };
+      byKey.set(ak, s);
+    }
+    if (!s.common) continue;
+    s.common = s.common.filter(a => p.artists.includes(a));
+    if (s.common.length < 2) { s.common = null; continue; }
+    s.plays++;
+    s.songs.add(songKey(p));
+  }
+  const out = [];
+  for (const s of byKey.values()) {
+    if (s.common && !_jaFeatSingle(s.album, s.songs.size)) out.push({ album: s.album, credit: s.credit, artists: s.common, plays: s.plays, songs: s.songs.size });
+  }
+  return out.sort((a, b) => b.plays - a.plays);
+}
+
+/* A one-song release whose title says "feat." / "ft." / "with" is a single
+   with a featured guest, not a shared record — and on a real library those
+   are most of the matches (1,600 of them on the sample data, 2026-11-09).
+   A one-song release without it ("365" by Zedd and Katy Perry) is still
+   suggested: that is what a joint single looks like. */
+const _JA_FEAT_RE = /[(\[]\s*(?:feat\.?|ft\.?|featuring|with)\s/i;
+function _jaFeatSingle(album, songs) {
+  return songs <= 1 && _JA_FEAT_RE.test(album);
+}
+
+// Is this one album a suggestion? Same test as above, for the album window.
+function isSuggestedJointAlbum(album, credit, plays) {
+  if (noArtistSplit || credit === VARIOUS_ARTISTS || jointAlbumEntry(album, credit) || !plays.length) return false;
+  let common = (plays[0].artists || []).slice();
+  const songs = new Set();
+  for (const p of plays) {
+    common = common.filter(a => p.artists.includes(a));
+    if (common.length < 2) return false;
+    songs.add(songKey(p));
+  }
+  return !_jaFeatSingle(album, songs.size);
+}
+
 // ─── RELEASE TYPES ─────────────────────────────────────────────
 /* What kind of release an album entry actually is: a proper album, a single,
    an EP, a live record, a soundtrack. Scrobbles carry an album name and
@@ -2965,6 +3141,180 @@ function toggleAlbumCompilation(albumName, on) {
   const modal = document.getElementById('albumModal');
   if (!play) { if (modal) modal.classList.remove('open'); return; }
   openAlbumModal(albumName + '|||' + albumArtist(play));
+}
+
+// ─── ALBUM OWNERS: THE PICKER AND THE MANAGER (2026-11-09) ────
+/* Two windows over the joint-albums map (JOINT_ALBUMS_KEY, above):
+     #albumOwnersModal  — one album: tick who owns it. Opened from the owners
+                          chip on the album window and from Edit in the list.
+     #jointAlbumsModal  — Settings → Charts: suggestions (albums where every
+                          song names the same two or more artists, each with
+                          its artists to tick), the joint albums, and the ones
+                          marked "not joint".
+   Nothing here rebuilds a chart: ownership only decides where an album shows
+   in an artist window (Albums or Appears on) and what it counts toward there. */
+let _jaPick = null;          // { album, credit } the picker is open on
+let _jaShowAll = false;      // the manager's suggestions: all, or the first page
+let _jaShowSingles = false;  // one-song suggestions unfolded
+let _jaShowAllSingles = false;
+const JA_PAGE = 30;
+
+function openAlbumOwnersModal(album, credit) {
+  _jaPick = { album, credit };
+  const artists = albumCreditedArtists(album, credit);
+  const owners = albumOwnersOf(album, credit).map(o => o.toLowerCase());
+  const sub = document.getElementById('jaPickSub');
+  if (sub) sub.textContent = album + ' · ' + credit;
+  const err = document.getElementById('jaPickErr');
+  if (err) err.hidden = true;
+  const el = document.getElementById('jaPickList');
+  if (el) el.innerHTML = artists.map(a => `<label class="dc-check ja-pick-row">
+      <input type="checkbox" value="${esc(a.name)}" ${owners.includes(a.name.toLowerCase()) ? 'checked' : ''}>
+      <span class="ja-pick-name">${esc(a.name)}</span>
+      ${a.name === credit ? `<span class="rt-row-auto">${esc(t('ja_credit_tag'))}</span>` : ''}
+      <span class="ja-pick-n">${esc(tCount('songs', a.songs))}</span>
+    </label>`).join('');
+  document.getElementById('albumOwnersModal')?.classList.add('open');
+}
+
+function closeAlbumOwnersModal() {
+  document.getElementById('albumOwnersModal')?.classList.remove('open');
+  _jaPick = null;
+}
+
+// After any change: the list, and the album window if it shows this album
+function _jaChanged(album, credit) {
+  renderJointAlbumsList();
+  const am = document.getElementById('albumModal');
+  if (am && am.classList.contains('open') && _currentAlbumKey === album + '|||' + credit) openAlbumModal(_currentAlbumKey);
+}
+
+function saveAlbumOwners() {
+  if (!_jaPick) return;
+  const picked = [...document.querySelectorAll('#jaPickList input:checked')].map(i => i.value);
+  if (!picked.length) {
+    const err = document.getElementById('jaPickErr');
+    if (err) err.hidden = false;
+    return;
+  }
+  const { album, credit } = _jaPick;
+  setJointAlbumOwners(album, credit, picked);
+  closeAlbumOwnersModal();
+  _jaChanged(album, credit);
+}
+
+// "Undecided" — forgets the album, so it can be suggested again
+function forgetAlbumOwners() {
+  if (!_jaPick) return;
+  const { album, credit } = _jaPick;
+  clearJointAlbum(album, credit);
+  closeAlbumOwnersModal();
+  _jaChanged(album, credit);
+}
+
+function openJointAlbumsModal() {
+  _jaShowAll = _jaShowSingles = _jaShowAllSingles = false;
+  document.getElementById('jointAlbumsModal')?.classList.add('open');
+  renderJointAlbumsList();
+}
+
+function closeJointAlbumsModal() {
+  document.getElementById('jointAlbumsModal')?.classList.remove('open');
+}
+
+function renderJointAlbumsList() {
+  const el = document.getElementById('jointAlbumsList');
+  // Only while the manager is open — the suggestion scan walks the library,
+  // and openJointAlbumsModal() renders fresh anyway
+  if (!el || !document.getElementById('jointAlbumsModal')?.classList.contains('open')) return;
+  const entries = getJointAlbumEntries().sort((a, b) => a.album.localeCompare(b.album));
+  const joint = entries.filter(e => e.owners);
+  const notJoint = entries.filter(e => e.no);
+  const sugg = allPlays.length ? jointAlbumSuggestions() : [];
+  const count = document.getElementById('jaCount');
+  if (count) count.textContent = joint.length ? tCount('albums', joint.length) : '';
+  const js = v => esc(JSON.stringify(v));
+  let html = '';
+
+  /* Suggestions: each artist a ticked chip, so the owners can be trimmed
+     first. Records with two or more songs come first; one-song releases are
+     folded behind a button — on a real library they are mostly collab singles
+     (1,182 of 1,270 on the sample data), and would bury the albums. */
+  const sugRow = s => `<div class="rt-row ja-row">
+      <div class="rt-row-name">
+        <span class="rt-row-album">${esc(s.album)}</span>
+        <span class="rt-row-artist">${esc(t('ja_sugg_meta', { songs: tCount('songs', s.songs), plays: tCount('plays', s.plays) }))}</span>
+        <span class="ja-chips">${s.artists.map(a => `<label class="ja-chip"><input type="checkbox" value="${esc(a)}" checked><span>${esc(a)}</span></label>`).join('')}</span>
+      </div>
+      <span class="ja-acts">
+        <button class="dc-btn dc-btn-main dc-btn-sm" onclick="acceptJointSuggestion(this,${js(s.album)},${js(s.credit)})">${esc(t('ja_make_joint'))}</button>
+        <button class="dc-btn dc-btn-plain dc-btn-sm" onclick="rejectJointSuggestion(${js(s.album)},${js(s.credit)})">${esc(t('ja_not_joint'))}</button>
+      </span>
+    </div>`;
+  const multi = sugg.filter(s => s.songs >= 2);
+  const ones = sugg.filter(s => s.songs < 2);
+  html += `<div class="rt-group-hdr">${esc(t('ja_sugg_hdr'))} <span class="rt-group-n">${multi.length}</span></div>`;
+  if (!sugg.length) {
+    html += `<div class="rt-empty">${esc(t(noArtistSplit ? 'ja_sugg_nosplit' : 'ja_sugg_none'))}</div>`;
+  } else {
+    html += `<p class="ja-sugg-lead">${esc(t('ja_sugg_lead'))}</p>`;
+    if (!multi.length) html += `<div class="rt-empty">${esc(t('ja_sugg_none_multi'))}</div>`;
+    html += (_jaShowAll ? multi : multi.slice(0, JA_PAGE)).map(sugRow).join('');
+    if (!_jaShowAll && multi.length > JA_PAGE) {
+      html += `<button class="dc-btn dc-btn-plain dc-btn-sm ja-more" onclick="_jaShowAll=true;renderJointAlbumsList()">${esc(t('ja_show_all', { n: multi.length }))}</button>`;
+    }
+    if (ones.length) {
+      html += `<div class="rt-group-hdr">${esc(t('ja_sugg_singles_hdr'))} <span class="rt-group-n">${ones.length}</span></div>`;
+      html += _jaShowSingles
+        ? (_jaShowAllSingles ? ones : ones.slice(0, JA_PAGE)).map(sugRow).join('') +
+          (!_jaShowAllSingles && ones.length > JA_PAGE ? `<button class="dc-btn dc-btn-plain dc-btn-sm ja-more" onclick="_jaShowAllSingles=true;renderJointAlbumsList()">${esc(t('ja_show_all', { n: ones.length }))}</button>` : '')
+        : `<button class="dc-btn dc-btn-plain dc-btn-sm ja-more" onclick="_jaShowSingles=true;renderJointAlbumsList()">${esc(t('ja_show_singles', { n: ones.length }))}</button>`;
+    }
+  }
+
+  // Joint albums already set
+  html += `<div class="rt-group-hdr">${esc(t('ja_joint_hdr'))} <span class="rt-group-n">${joint.length}</span></div>`;
+  html += joint.length ? joint.map(e => `<div class="rt-row">
+      <div class="rt-row-name">
+        <span class="rt-row-album">${esc(e.album)}</span>
+        <span class="rt-row-artist">${esc(e.owners.join(' & '))}</span>
+      </div>
+      <button class="dc-btn dc-btn-plain dc-btn-sm" onclick="openAlbumOwnersModal(${js(e.album)},${js(e.credit)})">${esc(t('rs_edit_short'))}</button>
+      <button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-danger rt-row-remove" onclick="forgetJointAlbum(${js(e.album)},${js(e.credit)})" title="${esc(t('ja_remove_hint'))}">${esc(t('comp_remove'))}</button>
+    </div>`).join('') : `<div class="rt-empty">${esc(t('ja_joint_none'))}</div>`;
+
+  // Marked "not joint": listed so the decision can be taken back
+  if (notJoint.length) {
+    html += `<div class="rt-group-hdr">${esc(t('ja_no_hdr'))} <span class="rt-group-n">${notJoint.length}</span></div>`;
+    html += notJoint.map(e => `<div class="rt-row">
+        <div class="rt-row-name">
+          <span class="rt-row-album">${esc(e.album)}</span>
+          <span class="rt-row-artist">${esc(e.credit)}</span>
+        </div>
+        <button class="dc-btn dc-btn-plain dc-btn-sm" onclick="forgetJointAlbum(${js(e.album)},${js(e.credit)})">${esc(t('ja_ask_again'))}</button>
+      </div>`).join('');
+  }
+  el.innerHTML = html;
+}
+
+// "Make joint" on a suggestion: the ticked chips of that row are the owners
+function acceptJointSuggestion(btn, album, credit) {
+  const row = btn.closest('.ja-row');
+  const picked = row ? [...row.querySelectorAll('.ja-chip input:checked')].map(i => i.value) : [];
+  if (!picked.length) return;
+  setJointAlbumOwners(album, credit, picked);
+  _jaChanged(album, credit);
+}
+
+// "Not joint": owned by its credit alone, and not suggested again
+function rejectJointSuggestion(album, credit) {
+  setJointAlbumOwners(album, credit, [credit]);
+  _jaChanged(album, credit);
+}
+
+function forgetJointAlbum(album, credit) {
+  clearJointAlbum(album, credit);
+  _jaChanged(album, credit);
 }
 
 // ─── RELEASE TYPE AUTO-DETECTION ──────────────────────────────
@@ -27392,6 +27742,9 @@ function amMusicRender() {
   // EP — whether or not that type is set Apart in Settings → Charts
   const typeBtn = (k, label, icon) => `<button type="button" role="tab" class="am-type-btn${k === ty ? ' is-on' : ''}" aria-selected="${k === ty}" onclick="amSetType('${k}')">
       ${_amIco(icon)}<span>${esc(label)}</span><span class="am-type-n">${distinct(k).toLocaleString()}</span></button>`;
+  // How many list buttons there are (Songs, Albums, then Singles / EPs /
+  // Appears on when the artist has them) — the phone layout wraps by it
+  const nTypes = 2 + ['singles', 'eps', 'appears'].filter(k => L[k]).length;
   const chartBtn = c => {
     const n = L[ty][c].length;
     return `<button type="button" class="am-chip${c === ch ? ' is-on' : ''}" aria-pressed="${c === ch}" ${n ? '' : 'disabled'} onclick="amSetChart('${c}')">${esc(t('am_c_' + c))}<span class="am-chip-n">${n.toLocaleString()}</span></button>`;
@@ -27404,10 +27757,13 @@ function amMusicRender() {
     : { v: list.reduce((s, r) => s + (r.spells || 0), 0), l: t('am_sum_spells_' + ch) };
   const sumCell = (v, l, tone) => `<div class="am-sum-cell am-tone-${tone}"><span class="am-sum-v">${v.toLocaleString()}</span><span class="am-sum-l">${esc(l)}</span></div>`;
   const what = t(ty === 'songs' ? 'ig_type_songs' : ty === 'singles' ? 'rtype_single_plural' : ty === 'eps' ? 'rtype_ep_plural' : 'ig_type_albums');
+  // Appears on is counted in albums and has its own intro (not "by this artist")
+  const unitTy = ty === 'appears' ? 'albums' : ty;
 
   // On an album: no Songs / Albums switch, its own words, the album's share card
   const intro = onAlbum
     ? (ch === 'all' ? esc(t('at_intro_all')) : t('at_intro', { chart: esc(t('am_in_' + ch)) }))
+    : ty === 'appears' ? t('am_intro_appears', { chart: esc(t('am_in_' + ch)) })
     : t('am_intro', { what: esc(what), chart: esc(t('am_in_' + ch)) });
   const share = onAlbum
     ? `<button class="dc-btn dc-btn-normal dc-btn-sm am-share" onclick="tpOpenCard()">${esc(t('tp_card_open'))}</button>`
@@ -27418,14 +27774,14 @@ function amMusicRender() {
       `<button class="dc-btn dc-btn-normal dc-btn-sm am-share" onclick="tpOpenArtistCard(${esc(JSON.stringify(_am.artistName))})">${esc(t('tp_card_open_artist'))}</button></span>` : '';
   el.innerHTML = `<div class="am">
     <div class="am-top">
-      ${onAlbum ? '' : `<div class="am-type${L.singles || L.eps ? ' am-type--more' : ''}${L.singles && L.eps ? ' am-type--4' : ''}" role="tablist">${typeBtn('songs', t('ig_type_songs'), 'note')}${typeBtn('albums', t('ig_type_albums'), 'disc')}${L.singles ? typeBtn('singles', t('rtype_single_plural'), 'sparkle') : ''}${L.eps ? typeBtn('eps', t('rtype_ep_plural'), 'layout') : ''}</div>`}
+      ${onAlbum ? '' : `<div class="am-type${nTypes > 2 ? ' am-type--more' : ''}${nTypes === 4 ? ' am-type--4' : ''}${nTypes === 5 ? ' am-type--5' : ''}" role="tablist">${typeBtn('songs', t('ig_type_songs'), 'note')}${typeBtn('albums', t('ig_type_albums'), 'disc')}${L.singles ? typeBtn('singles', t('rtype_single_plural'), 'sparkle') : ''}${L.eps ? typeBtn('eps', t('rtype_ep_plural'), 'layout') : ''}${L.appears ? typeBtn('appears', t('am_type_appears'), 'link') : ''}</div>`}
       ${share}
     </div>
     <p class="am-intro">${intro} <span>${esc(t(ch === 'all' ? 'am_tap_hist' : 'am_tap_run'))}</span></p>
     ${onAlbum && _am.split ? _am.split : ''}
     <div class="am-charts">${AM_CHARTS.map(chartBtn).join('')}</div>
     ${list.length ? `<div class="am-sum">
-      ${sumCell(list.length, tUnit(ty, list.length), 'count')}
+      ${sumCell(list.length, tUnit(unitTy, list.length), 'count')}
       ${sumCell(no1, t('am_sum_no1'), 'gold')}
       ${sumCell(top10, t('am_sum_top10'), 'silver')}
       ${sumCell(last.v, last.l, 'accent')}
@@ -28626,19 +28982,38 @@ function openArtistModal(artistName) {
   const allSongsSorted = Object.values(songCounts).sort((a, b) => b.count - a.count);
 
   // Albums
+  /* Keyed by the album's own key (album|||credit), not the title alone, so two
+     different records with the same name ("Greatest Hits") stay apart and the
+     chart lookups below can use the exact key. albumByName keeps the old
+     title lookup for song rows (songAlbumKey). */
   const albumCounts = {};
+  const albumByName = {};
   for (const p of artistPlays) {
     if (!p.album || p.album === '—') continue;
-    const k = p.album;
+    const k = albumKeyOf(p);
     // Track the album's primary artist (may differ from artistName when this
     // artist only appears as a featured/secondary credit) so chartAlbums below
     // can look it up in peaks.albumPeakMap, which is always keyed by primary artist.
-    if (!albumCounts[k]) albumCounts[k] = { album: p.album, primaryArtist: albumArtist(p), count: 0, tracks: new Set(), firstPlayed: p.date, lastPlayed: p.date };
+    if (!albumCounts[k]) {
+      const credit = albumArtist(p);
+      albumCounts[k] = { key: k, album: p.album, primaryArtist: credit, count: 0, tracks: new Set(), firstPlayed: p.date, lastPlayed: p.date,
+        // Owned (their album, or a joint album they co-own) or only a guest on it
+        own: isAlbumOwner(p.album, credit, artistName), owners: albumOwnersOf(p.album, credit) };
+      if (!albumByName[p.album]) albumByName[p.album] = albumCounts[k];
+    }
     else albumCounts[k].firstPlayed = p.date;
     albumCounts[k].count++;
     albumCounts[k].tracks.add(p.title);
   }
-  const allAlbumsSorted = Object.values(albumCounts).sort((a, b) => b.count - a.count);
+  /* Albums vs Appears on (2026-11-09). Everything album-shaped below — the
+     album count, favourite album, album chart counts and best peaks, album
+     certifications, the Albums / Singles / EPs lists — uses the albums the
+     artist OWNS. Albums they only guest on go to the Music tab's Appears on
+     list and nowhere else. Their songs on those albums still count in full:
+     the songs above are built from every play. */
+  const everyAlbumSorted = Object.values(albumCounts).sort((a, b) => b.count - a.count);
+  const allAlbumsSorted = everyAlbumSorted.filter(a => a.own);
+  const guestAlbumsSorted = everyAlbumSorted.filter(a => !a.own);
 
   // Always use all-time peaks for the artist modal (modal always shows all-time profile)
   const peaks = buildAllTimePeaks();
@@ -28665,7 +29040,7 @@ function openArtistModal(artistName) {
 
   // Songs that made it into the chart (have a peak position)
   const chartSongs = allSongsSorted.filter(s => allTimeSongPeakMap[songKey(s)] !== undefined);
-  const chartAlbums = allAlbumsSorted.filter(a => peaks.albumPeakMap[a.album + '|||' + a.primaryArtist] !== undefined || peaks.albumPeakMap[a.album + '|||' + artistName] !== undefined);
+  const chartAlbums = allAlbumsSorted.filter(a => peaks.albumPeakMap[a.key] !== undefined);
 
   // Certifications count
   const goldSongs = allSongsSorted.filter(s => s.count >= CERT.song.gold).length;
@@ -28687,10 +29062,7 @@ function openArtistModal(artistName) {
   const artistPeak = peaks.artistPeakMap[artistName];
   const allTimeArtistRank = artistPeak ?? null;
   const bestSongPeak = chartSongs.length ? Math.min(...chartSongs.map(s => allTimeSongPeakMap[songKey(s)])) : null;
-  const allTimeBestAlbumPeak = chartAlbums.length ? Math.min(...chartAlbums.map(a => {
-    const k = Object.keys(peaks.albumPeakMap).find(pk => pk.startsWith(a.album + '|||'));
-    return k ? peaks.albumPeakMap[k] : 999;
-  })) : null;
+  const allTimeBestAlbumPeak = chartAlbums.length ? Math.min(...chartAlbums.map(a => peaks.albumPeakMap[a.key] ?? 999)) : null;
 
   const weeklyArtistPeak = crW?.result?.artists[artistName]?.peak ?? null;
   const monthlyArtistPeak = crM?.result?.artists[artistName]?.peak ?? null;
@@ -28707,7 +29079,9 @@ function openArtistModal(artistName) {
   const dailyBestSongPeak = dailySongsCharted.length ? Math.min(...dailySongsCharted.map(s => crD.result.songs[songKey(s)].peak)) : null;
 
   // Per-chart-type album counts + best peaks
-  const _albumCrKey = (a, cr) => cr ? Object.keys(cr.result.albums).find(k => k.startsWith(a.album + '|||')) : null;
+  // The album's exact key (album|||credit) — a title match could pick another
+  // artist's record with the same name
+  const _albumCrKey = (a, cr) => cr && cr.result.albums[a.key] ? a.key : null;
   const weeklyAlbumsCharted = crW ? allAlbumsSorted.filter(a => _albumCrKey(a, crW)) : [];
   const weeklyBestAlbumPeak = weeklyAlbumsCharted.length ? Math.min(...weeklyAlbumsCharted.map(a => { const k = _albumCrKey(a, crW); return k ? crW.result.albums[k].peak : 999; })) : null;
   const monthlyAlbumsCharted = crM ? allAlbumsSorted.filter(a => _albumCrKey(a, crM)) : [];
@@ -29025,12 +29399,12 @@ function openArtistModal(artistName) {
   const amCtx = {
     artistName,
     songSub: x => x.album && x.album !== '—' ? x.album : '',
-    songAlbumKey: x => x.album && x.album !== '—' ? x.album + '|||' + (albumCounts[x.album]?.primaryArtist || x.artist) : null
+    songAlbumKey: x => x.album && x.album !== '—' ? x.album + '|||' + (albumByName[x.album]?.primaryArtist || x.artist) : null
   };
   const amRow = (kind, x, rank, extra) => _amRow(kind, x, rank, extra, amCtx);
   const periodRows = (kind, period, D, items, crKeyOf) => _amPeriodRows(kind, period, D, items, crKeyOf, amCtx);
   const historyPanel = _amHistoryPanel;
-  const findAlbumCrKey = (a, crData) => crData ? Object.keys(crData.result.albums).find(k => k.startsWith(a.album + '|||')) : null;
+  const findAlbumCrKey = _albumCrKey;
 
   const songLists = {
     all: chartSongs.map((s, i) => amRow('songs', s, allTimeSongPeakMap[songKey(s)] || i + 1, { panel: historyPanel('songs', songKey(s)) }))
@@ -29041,12 +29415,9 @@ function openArtistModal(artistName) {
     day: periodRows('songs', 'day', crD, allSongsSorted, s => songKey(s)),
   };
   const albumLists = {
-    all: chartAlbums.map(a => {
-      const pkKey = Object.keys(peaks.albumPeakMap).find(k => k.startsWith(a.album + '|||'));
-      const crKeyRaw = findAlbumCrKey(a, crY || crM || crW);
-      const ek = crKeyRaw ? encodeURIComponent(crKeyRaw) : encodeURIComponent(a.album + '|||' + artistName);
-      return amRow('albums', a, pkKey ? peaks.albumPeakMap[pkKey] : null, { panel: historyPanel('albums', ek) });
-    }).sort((a, b) => (a.rank || 1e9) - (b.rank || 1e9)),
+    all: chartAlbums.map(a =>
+      amRow('albums', a, peaks.albumPeakMap[a.key] ?? null, { panel: historyPanel('albums', encodeURIComponent(a.key)) })
+    ).sort((a, b) => (a.rank || 1e9) - (b.rank || 1e9)),
     year: periodRows('albums', 'year', crY, allAlbumsSorted, a => findAlbumCrKey(a, crY)),
     month: periodRows('albums', 'month', crM, allAlbumsSorted, a => findAlbumCrKey(a, crM)),
     week: periodRows('albums', 'week', crW, allAlbumsSorted, a => findAlbumCrKey(a, crW)),
@@ -29070,6 +29441,28 @@ function openArtistModal(artistName) {
   }
   // only a type set Apart leaves the Albums list (albumBucketOf follows it)
   for (const c of AM_CHARTS) albumLists[c] = albumLists[c].filter(r => albumBucketOf(r.name, r.artist) === 'album');
+
+  /* Appears on (2026-11-09): albums by other artists this artist is a guest on
+     — any release type. Same charts and ranks as the Albums list (the rank is
+     the album's own), but the second line names the owners and the plays are
+     only this artist's songs on it. No certification badge: the album's
+     certification belongs to its owners, and this artist's share of the plays
+     would be the wrong number for it anyway. */
+  const appearsRow = r => Object.assign(r, {
+    sub: t('am_appears_by', { artists: albumCounts[r.openKey]?.owners.join(' & ') || r.artist }) + ' · ' + r.sub,
+    cert: ''
+  });
+  const appearsLists = {
+    all: guestAlbumsSorted.filter(a => peaks.albumPeakMap[a.key] !== undefined).map(a =>
+      appearsRow(amRow('albums', a, peaks.albumPeakMap[a.key], { panel: historyPanel('albums', encodeURIComponent(a.key)) }))
+    ).sort((a, b) => (a.rank || 1e9) - (b.rank || 1e9)),
+    year: periodRows('albums', 'year', crY, guestAlbumsSorted, a => findAlbumCrKey(a, crY)).map(appearsRow),
+    month: periodRows('albums', 'month', crM, guestAlbumsSorted, a => findAlbumCrKey(a, crM)).map(appearsRow),
+    week: periodRows('albums', 'week', crW, guestAlbumsSorted, a => findAlbumCrKey(a, crW)).map(appearsRow),
+    day: periodRows('albums', 'day', crD, guestAlbumsSorted, a => findAlbumCrKey(a, crD)).map(appearsRow),
+  };
+  // Only shown when the artist is a guest on at least one charted album
+  if (AM_CHARTS.some(c => appearsLists[c].length)) relLists.appears = appearsLists;
 
   // Keep the Songs/Albums and chart picked last time when this artist has them
   const prevAm = _am && _am.root === 'modalMusic' ? _am : {};
@@ -29229,9 +29622,13 @@ function openAlbumModal(albumKey) {
      need several tracks. relType: what it is; bucket: the chart it ranks on. */
   const relType = releaseTypeOf(albumName, artistName);
   const bucket = albumBucketOf(albumName, artistName);
+  /* A joint album (2026-11-09) names every owner, each opening their own
+     artist window; any other album names its credit as before. */
+  const albOwners = albIsComp ? [] : albumOwnersOf(albumName, artistName);
+  const ownerLink = name => `<a class="modal-artist-link" href="javascript:void(0)" onclick="albumModal.classList.remove('open');setTimeout(()=>openArtistModal(${esc(JSON.stringify(name))}),50)">${esc(name)}</a>`;
   document.getElementById('albumModalSub').innerHTML = albIsComp
     ? `${t('modal_compilation_by')} <span class="modal-artist-va">${esc(VARIOUS_ARTISTS)}</span>`
-    : `${t(relType !== 'album' ? 'rlt_by_' + relType : 'am_album_by')} <a class="modal-artist-link" href="javascript:void(0)" onclick="albumModal.classList.remove('open');setTimeout(()=>openArtistModal(${esc(JSON.stringify(artistName))}),50)">${esc(artistName)}</a>`;
+    : `${t(relType !== 'album' ? 'rlt_by_' + relType : 'am_album_by')} ${albOwners.map(ownerLink).join(' &amp; ')}`;
 
   // The compilation switch itself — the album is the only place you can see
   // whether it is merged, so it is the natural place to flip it.
@@ -29263,11 +29660,26 @@ function openAlbumModal(albumKey) {
       (curType === 'single' && allTracksSorted.length >= 4
         ? `<button type="button" class="alb-rollup-note alb-rsplit-hint" title="${esc(t('rs_hint_tip', { n: allTracksSorted.length }))}" onclick="openReleaseSplitModal(${jsAlb},${jsArt})">${esc(t('rs_hint_btn'))}</button>`
         : '');
+    /* Owners chip (2026-11-09): who the album belongs to. Shown only when
+       more than one artist is credited on it (otherwise there is nothing to
+       choose) and never on a compilation. Lit when owners are set; marked
+       "Joint album?" when every song names the same two or more artists. */
+    let ownChip = '';
+    if (!albIsComp && !noArtistSplit) {
+      const credited = new Set();
+      for (const p of albumPlays) for (const a of p.artists || []) credited.add(a);
+      if (credited.size > 1) {
+        const je = jointAlbumEntry(albumName, artistName);
+        const joint = !!(je && je.o);
+        const suggested = !je && isSuggestedJointAlbum(albumName, artistName, albumPlays);
+        ownChip = `<button type="button" class="alb-rtype-toggle alb-owner-btn${joint ? ' is-set' : ''}${suggested ? ' is-suggest' : ''}" title="${esc(t('ja_chip_hint'))}" onclick="openAlbumOwnersModal(${jsAlb},${jsArt})">${_amIco('user')}<span>${esc(joint ? t('ja_chip_joint', { n: je.o.length }) : suggested ? t('ja_chip_suggest') : t('ja_chip'))}</span></button>`;
+      }
+    }
     compRowEl.innerHTML = `<label class="alb-comp-toggle" title="${esc(t('comp_toggle_hint'))}">
       <input type="checkbox" ${albIsComp ? 'checked' : ''} onchange="toggleAlbumCompilation(${jsAlb},this.checked)">
       <span>${t('comp_toggle_label')}</span>
     </label>
-    ${typeChip}` +
+    ${typeChip}${ownChip}` +
     /* A merged total has to say so, or the page silently disagrees with the
        chart the user came from. Names the singles it counted, because which
        ones were attached is a guess the app made and the user should be able

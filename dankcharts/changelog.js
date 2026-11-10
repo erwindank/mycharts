@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 482;
+const DC_CL_I18N_V = 483;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -402,6 +402,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-09', t: 'feature', a: 'charts',
+    title: "Appears on, and joint albums",
+    detail: "An artist's window now keeps their own albums apart from albums they're only a guest on. Albums by someone else that they're on are listed under a new Appears on button on the Music tab, and those no longer count toward their album total, favourite album or album certifications. Their songs still count in full. Some albums belong to more than one artist, so you can now pick an album's owners from the album window, or check the suggested joint albums in Settings → Releases. Works with Last.fm, Google Sheets and CSV uploads." },
   { d: '2026-11-09', t: 'feature', a: 'charts',
     title: "Apple Music in World Charts",
     detail: "World Charts now has the Apple Music Global daily song chart, with points, change, peak and days on the chart." },

@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Appears on, and joint albums":
+    ["Aparece em, e álbuns conjuntos",
+     "A janela de um artista agora separa os álbuns dele dos álbuns em que ele só participa. Os álbuns de outros em que ele aparece ficam em um botão novo, Aparece em, na aba Música, e não contam mais para o total de álbuns, o álbum favorito nem os certificados de álbum dele. As músicas dele continuam contando por inteiro. Alguns álbuns são de mais de um artista, então agora você pode escolher os donos de um álbum na janela dele, ou ver os álbuns conjuntos sugeridos em Configurações → Lançamentos. Funciona com Last.fm, Google Sheets e arquivos CSV."],
   "A World Charts lesson in the Charts Guide":
     ["Uma lição de Paradas mundiais no Guia",
      "O Guia tem uma lição nova sobre as Paradas mundiais: imagens de cada parte, passo a passo, desafios e um quiz curto."],

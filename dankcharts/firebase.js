@@ -19,6 +19,7 @@ const SYNC_KEYS = [
   'dc_display_name', 'dc_timezone', 'dc_week_start_day', 'dc_cert_config',
   'dc_events_artist_limit', 'dc_theme', 'dc_lang',
   'dc_autocorrect_rules', 'dc_autocorrect_deleted', 'dc_compilation_albums', 'dc_release_types',
+  'dc_joint_albums',   // album owners / joint albums (app.js JOINT_ALBUMS_KEY)
   'dc_release_separation', 'dc_release_autodetect', 'dc_single_rollup',
   'dc_no_artist_split', 'dc_tm_api_key',
   'dc_tm_toggles',
@@ -108,7 +109,7 @@ async function _loadAndApplyConfig(uid) {
         // Same guard for the release-type map, whose empty form is an object.
         // It is hand-built (and later machine-detected) over a whole library,
         // so an empty remote value must never flatten a populated local one.
-        if (key === 'dc_release_types' && data[key] === '{}') {
+        if ((key === 'dc_release_types' || key === 'dc_joint_albums') && data[key] === '{}') {
           const local = localStorage.getItem(key);
           if (local && local !== '{}' && local !== '') { applied = true; continue; }
         }
@@ -165,6 +166,17 @@ async function dcSaveCompilationsToFirestore(listJson) {
     await _configRef(_currentUser.uid).set({ dc_compilation_albums: listJson }, { merge: true });
   } catch (err) {
     console.warn('[dankcharts] Firebase compilations save error:', err);
+  }
+}
+
+// Targeted, like the saves above: album owners are set on a single click.
+async function dcSaveJointAlbumsToFirestore(mapJson) {
+  if (!_currentUser) return;
+  await _ensureDb();
+  try {
+    await _configRef(_currentUser.uid).set({ dc_joint_albums: mapJson }, { merge: true });
+  } catch (err) {
+    console.warn('[dankcharts] Firebase joint albums save error:', err);
   }
 }
 
@@ -908,6 +920,7 @@ window.dcSaveUserConfig            = dcSaveUserConfig;
 window.dcSaveRulesToFirestore      = dcSaveRulesToFirestore;
 window.dcSaveCompilationsToFirestore = dcSaveCompilationsToFirestore;
 window.dcSaveReleaseTypesToFirestore = dcSaveReleaseTypesToFirestore;
+window.dcSaveJointAlbumsToFirestore = dcSaveJointAlbumsToFirestore;
 window.dcSaveEventsCache           = dcSaveEventsCache;
 window.dcLoadEventsCache           = dcLoadEventsCache;
 window.dcIsSignedIn                = dcIsSignedIn;
@@ -960,6 +973,7 @@ _auth.onAuthStateChanged(async (user) => {
   if (applied && typeof dcResetRulesCache === 'function') dcResetRulesCache();
   if (applied && typeof dcResetCompilationsCache === 'function') dcResetCompilationsCache();
   if (applied && typeof dcResetReleaseTypesCache === 'function') dcResetReleaseTypesCache();
+  if (applied && typeof dcResetJointAlbumsCache === 'function') dcResetJointAlbumsCache();
   if (applied && typeof dcApplyDisplayToggles === 'function') dcApplyDisplayToggles();
   if (applied && typeof dcApplyAllSettings    === 'function') dcApplyAllSettings();
 
