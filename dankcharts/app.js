@@ -16508,11 +16508,14 @@ function renderAll() {
   ['songsReplayBtn', 'artistsReplayBtn', 'albumsReplayBtn'].forEach(id => {
     document.getElementById(id).style.display = _showReplay;
   });
-  // Show/hide search bars; clear search state on period change
+  // Show/hide search bars. Yearly / All-Time always have one; Daily, Weekly and
+  // Monthly get one once that section is set to 50 or more entries
+  // (_dcSearchShown). A hidden bar drops its search so it can't filter unseen.
   ['songs', 'artists', 'albums'].forEach(t => {
     const el = document.getElementById(t + 'Search');
-    if (el) el.style.display = paginated ? 'flex' : 'none';
-    if (!paginated) { searchState[t] = ''; const inp = document.getElementById(t + 'SearchInput'); if (inp) inp.value = ''; }
+    const shown = _dcSearchShown(t);
+    if (el) el.style.display = shown ? 'flex' : 'none';
+    if (!shown) { searchState[t] = ''; const inp = document.getElementById(t + 'SearchInput'); if (inp) inp.value = ''; }
   });
 
   // Update date nav
@@ -17368,6 +17371,8 @@ function renderPage(type, peaks) {
 function applySearch(type) {
   const q = document.getElementById(type + 'SearchInput').value.trim().toLowerCase();
   searchState[type] = q;
+  // Daily / Weekly / Monthly: the chart is all on the page, filter it in place
+  if (!isPaginated()) { _dcLiveSearch(type); return; }
   pageState[type] = 0;
   const peaks = buildPeaks();
   renderPage(type, peaks);
@@ -17376,20 +17381,90 @@ function applySearch(type) {
 function clearSearch(type) {
   document.getElementById(type + 'SearchInput').value = '';
   searchState[type] = '';
+  if (!isPaginated()) { _dcLiveSearch(type); return; }
   pageState[type] = 0;
   const peaks = buildPeaks();
   renderPage(type, peaks);
 }
 
+// Does one chart entry match the search text q (already lower-cased)?
+// Shared by the paginated search (filteredData) and the in-place one.
+function _dcSearchMatch(type, it, q) {
+  if (type === 'songs') return it.title.toLowerCase().includes(q) || it.artist.toLowerCase().includes(q) || (it.album || '').toLowerCase().includes(q);
+  if (type === 'artists') return it.name.toLowerCase().includes(q);
+  if (type === 'albums') return it.album.toLowerCase().includes(q) || it.artist.toLowerCase().includes(q);
+  return true;
+}
+
 function filteredData(type) {
   const q = searchState[type];
   if (!q) return fullData[type];
-  if (type === 'songs') return fullData[type].filter(s =>
-    s.title.toLowerCase().includes(q) || s.artist.toLowerCase().includes(q) || (s.album || '').toLowerCase().includes(q));
-  if (type === 'artists') return fullData[type].filter(a => a.name.toLowerCase().includes(q));
-  if (type === 'albums') return fullData[type].filter(a =>
-    a.album.toLowerCase().includes(q) || a.artist.toLowerCase().includes(q));
-  return fullData[type];
+  return fullData[type].filter(it => _dcSearchMatch(type, it, q));
+}
+
+// ─── SEARCH ON DAILY / WEEKLY / MONTHLY ────────────────────────
+// Those charts get the same search bar as Yearly / All-Time once a section is
+// set to this many entries or more.
+const DC_SEARCH_MIN_SIZE = 50;
+
+// The size the section is showing right now (Daily caps its own, see dySizeOf)
+function _dcSectionSize(type) {
+  if (currentPeriod === 'day' && typeof dySizeOf === 'function') return dySizeOf(type);
+  return type === 'artists' ? chartSizeArtists : type === 'albums' ? chartSizeAlbums : chartSizeSongs;
+}
+
+// Whether a section's search bar shows: always on Yearly / All-Time,
+// from DC_SEARCH_MIN_SIZE entries on the other periods
+function _dcSearchShown(type) {
+  return isPaginated() || _dcSectionSize(type) >= DC_SEARCH_MIN_SIZE;
+}
+
+/* Filters a non-paginated chart in place. These charts render every entry at
+   once (renderSongs / renderArtists / renderAlbums), so instead of rebuilding:
+   - table: each entry is a main row + its chart-run row; non-matches get
+     .search-hide, ranks stay the real chart ranks
+   - other layouts: _wvData's items are swapped for the matches, with rankOf
+     pointing back at each entry's real rank, and the layout redrawn
+   Called on typing, on clear, and after each render so a search survives
+   stepping to the next week. */
+function _dcLiveSearch(type) {
+  if (isPaginated()) return;
+  const all = fullData[type] || [];
+  const q = searchState[type] || '';
+  const keep = all.map(it => !q || _dcSearchMatch(type, it, q));
+  const n = keep.filter(Boolean).length;
+
+  const body = document.getElementById(type + 'Body');
+  if (body) {
+    body.querySelector('.search-empty-row')?.remove();
+    if (all.length) {
+      const rows = body.children;
+      keep.forEach((ok, i) => {
+        rows[2 * i]?.classList.toggle('search-hide', !ok);
+        rows[2 * i + 1]?.classList.toggle('search-hide', !ok);
+      });
+      // Nothing matched: say so instead of an empty table
+      if (q && !n) body.insertAdjacentHTML('beforeend', `<tr class="search-empty-row"><td colspan="8"><div class="empty-state"><p>${esc(t('empty_no_results'))}</p></div></td></tr>`);
+    }
+  }
+
+  const countEl = document.getElementById(type + 'SearchCount');
+  if (countEl) countEl.textContent = q ? t(n === 1 ? 'search_result' : 'search_results', { n }) : '';
+
+  // The other five layouts draw from _wvData
+  const d = _wvData[type];
+  if (d) {
+    if (!d._all) d._all = d.items;   // the full list, kept for when the search clears
+    if (q) {
+      const idx = new Map(d._all.map((it, i) => [it, i]));
+      d.items = d._all.filter(it => _dcSearchMatch(type, it, q));
+      d.rankOf = it => idx.get(it) ?? 0;
+    } else {
+      d.items = d._all;
+      delete d.rankOf;
+    }
+    if (weeklyChartViewMode[type] !== 'table') applyWeeklyChartView(type);
+  }
 }
 
 function changePage(type, dir) {
@@ -20510,6 +20585,7 @@ function renderSongs(plays, peaks, monthlyStats) {
   const playAllRow = document.getElementById('ytPlayAllRow');
   if (playAllRow) playAllRow.style.display = sorted.length > 0 ? '' : 'none';
   applyWeeklyChartView('songs');
+  _dcLiveSearch('songs');   // keep a running search (50+ entry charts)
   // Render Bubbling Under section (weekly only, requires history stats)
   if (currentPeriod === 'week' && monthlyStats) {
     const _buNormSongs = _buPoolSongs.map(s => ({
@@ -20586,6 +20662,7 @@ function renderArtists(plays, peaks, monthlyStats) {
   // ▶ Animate Chart (replay.js), as in renderSongs
   if (typeof crpRegister === 'function') crpRegister('artists', _animPrevPlays, _animCurrentPlays, monthlyStats, sorted.map(([name]) => name));
   applyWeeklyChartView('artists');
+  _dcLiveSearch('artists');   // keep a running search (50+ entry charts)
   // Render Bubbling Under section (weekly only, requires history stats)
   if (currentPeriod === 'week' && monthlyStats) {
     const _buNormArtists = _buPoolArtists.map(([name, data]) => ({
@@ -20685,6 +20762,7 @@ function renderAlbums(plays, peaks, monthlyStats) {
   // ▶ Animate Chart (replay.js), as in renderSongs
   if (typeof crpRegister === 'function') crpRegister('albums', _animPrevPlays, _animCurrentPlays, monthlyStats, sorted.map(a => a.album + '|||' + a.artist));
   applyWeeklyChartView('albums');
+  _dcLiveSearch('albums');   // keep a running search (50+ entry charts)
   // Render Bubbling Under section (weekly only, requires history stats)
   if (currentPeriod === 'week' && monthlyStats) {
     const _buNormAlbums = _buPoolAlbums.map(a => ({

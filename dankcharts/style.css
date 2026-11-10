@@ -10425,6 +10425,11 @@
       color: var(--text);
     }
 
+    /* Daily / Weekly / Monthly search (50+ entries): the whole chart is already
+       on the page, so non-matching rows (and their chart-run rows) just hide.
+       !important because .cr-row sets its own display when opened. */
+    .chart-table tr.search-hide { display: none !important; }
+
     /* PAGINATION */
     .page-nav {
       display: flex;
