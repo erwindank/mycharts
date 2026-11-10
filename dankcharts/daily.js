@@ -125,6 +125,9 @@ function dyHistory() {
 
   const days = Object.keys(byDay).sort();
   const charts = { songs: {}, artists: {}, albums: {} };   // type → ds → [{ k, rank, count }]
+  // Each day's Bubbling Under zone: the entries just below the chart (10, or
+  // 50 under a Top 100+), ranked BU1, BU2… — read by dyBuStats / dyBuChartRun
+  const bu = { songs: {}, artists: {}, albums: {} };       // type → ds → [{ k, buRank, count }]
   const ever = { songs: new Set(), artists: new Set(), albums: new Set() };
   for (const type of ['songs', 'artists', 'albums']) {
     for (const ds of days) {
@@ -139,15 +142,96 @@ function dyHistory() {
         return { k, count: e.count, first: e.first, status: pr ? 0 : ever[type].has(k) ? 1 : 2, prevRank: pr || Infinity };
       });
       rows.sort((a, b) => b.count - a.count || a.status - b.status || a.prevRank - b.prevRank || a.first - b.first);
-      const top = rows.slice(0, dySizeOf(type)).map((r, i) => ({ k: r.k, rank: i + 1, count: r.count }));
+      const size = dySizeOf(type);
+      const top = rows.slice(0, size).map((r, i) => ({ k: r.k, rank: i + 1, count: r.count }));
       charts[type][ds] = top;
+      const buN = size >= 100 ? 50 : 10;   // same zone size as the weekly chart's
+      const buRows = rows.slice(size, size + buN);
+      if (buRows.length) bu[type][ds] = buRows.map((r, i) => ({ k: r.k, buRank: i + 1, count: r.count }));
       for (const r of top) ever[type].add(r.k);
     }
   }
 
   // Real times of day if more than half the plays have one (see dyTimeOfDayHtml)
-  _dyHist = { gen, days, byDay, charts, timed: timedN > allPlays.length / 2 };
+  _dyHist = { gen, days, byDay, charts, bu, timed: timedN > allPlays.length / 2 };
   return _dyHist;
+}
+
+/* What the Bubbling Under tags need for the viewed day, in the shape
+   buildPeriodStats() gives the weekly chart (renderBubblingUnder reads it as
+   ms.bu on Daily). Always against the day before, not the compare switch,
+   so "Fading" / "Fallen" / Surging read as "since yesterday":
+     prevChart / prevBubblingUnder   yesterday's chart and BU zone
+     everChartedBefore               on the daily chart on any earlier day
+     bubblingUnderWeeks              days ever in the zone (the name is the weekly one)
+     bubblingUnderStreak             days in a row in the zone, ending today
+     bubblingUnderRuns               separate stints in the zone
+     bubblingUnderEntryFromChart     the current stint started straight off the chart
+   Cached per viewed day on the history object. */
+function dyBuStats(h, ds) {
+  if (h._buStats && h._buStats.ds === ds) return h._buStats.stats;
+  const y = dyShift(ds, -1);
+  const mk = () => ({ songs: {}, artists: {}, albums: {} });
+  const s = { prevChart: mk(), prevBubblingUnder: mk(), everChartedBefore: { songs: new Set(), artists: new Set(), albums: new Set() },
+    bubblingUnderWeeks: mk(), bubblingUnderStreak: mk(), bubblingUnderRuns: mk(), bubblingUnderEntryFromChart: mk() };
+  for (const type of ['songs', 'artists', 'albums']) {
+    const lastDay = {};   // k → the last day it was in the zone
+    for (const day of h.days) {
+      if (day > ds) break;
+      const prevDay = dyShift(day, -1);
+      for (const r of h.bu[type][day] || []) {
+        const k = r.k;
+        s.bubblingUnderWeeks[type][k] = (s.bubblingUnderWeeks[type][k] || 0) + 1;
+        if (lastDay[k] === prevDay) s.bubblingUnderStreak[type][k]++;
+        else {
+          // A new stint: did it come straight off yesterday's chart?
+          s.bubblingUnderStreak[type][k] = 1;
+          s.bubblingUnderRuns[type][k] = (s.bubblingUnderRuns[type][k] || 0) + 1;
+          s.bubblingUnderEntryFromChart[type][k] = (h.charts[type][prevDay] || []).some(c => c.k === k);
+        }
+        lastDay[k] = day;
+      }
+      if (day < ds) for (const r of h.charts[type][day] || []) s.everChartedBefore[type].add(r.k);
+    }
+    // A streak that didn't reach today has ended
+    for (const k in lastDay) if (lastDay[k] !== ds) s.bubblingUnderStreak[type][k] = 0;
+    for (const r of h.charts[type][y] || []) s.prevChart[type][r.k] = { rank: r.rank, count: r.count };
+    for (const r of h.bu[type][y] || []) s.prevBubblingUnder[type][r.k] = { count: r.count };
+  }
+  h._buStats = { ds, stats: s };
+  return s;
+}
+
+/* The Bubbling Under run up to the viewed day, in the shape buildBuChartRun()
+   gives the weekly chart: { period: 'day', curKey, result: { type: { key:
+   { entries: [{ periodKey, label, buRank, plays }], peakBuRank, peakPlays } } },
+   buPeriodMap: { day: { type: [{ key, buRank, plays, displayName }] } } }.
+   The BU history panel, its boxes and the day pop-up all read it. */
+function dyBuChartRun(h, ds) {
+  if (h._buRun && h._buRun.curKey === ds) return h._buRun;
+  const result = { songs: {}, artists: {}, albums: {} };
+  const buPeriodMap = {};
+  for (const day of h.days) {
+    if (day > ds) break;
+    const label = crPeriodLabel('day', day);
+    for (const type of ['songs', 'artists', 'albums']) {
+      const zone = h.bu[type][day];
+      if (!zone) continue;
+      const pm = buPeriodMap[day] || (buPeriodMap[day] = { songs: [], artists: [], albums: [] });
+      for (const r of zone) {
+        const displayName = type === 'songs' ? (h.byDay[day].songs[r.k]?.title || r.k.split('|||')[0]) : r.k.split('|||')[0];
+        pm[type].push({ key: r.k, buRank: r.buRank, plays: r.count, displayName });
+        const e = result[type][r.k] || (result[type][r.k] = { entries: [], peakBuRank: r.buRank, peakPlays: 0 });
+        e.entries.push({ periodKey: day, label, buRank: r.buRank, plays: r.count });
+        if (r.buRank < e.peakBuRank) e.peakBuRank = r.buRank;
+        if (r.count > e.peakPlays) e.peakPlays = r.count;
+      }
+    }
+  }
+  // The albums chart on screen is already the bucket in view (as in dyChartRun)
+  result.albumsMixed = result.albums;
+  for (const day in buPeriodMap) buPeriodMap[day].albumsMixed = buPeriodMap[day].albums;
+  return (h._buRun = { period: 'day', curKey: ds, result, buPeriodMap });
 }
 
 /* For the entries on the viewed day's chart: their peak (best rank and the
@@ -203,8 +287,9 @@ function dyNo1Facts(h, type, ds) {
        #albumsSection as every other period (renderSongs and co., with the
        day's stats in the weekly shape), so ⋮ → Show / Size / Actions, cert
        badges, scores, peak tags, plays peaks, ▶ / ⋮, the chart-run panel,
-       New Entries and Animate chart all behave as on Weekly. Bubbling Under
-       and Off the Chart stay weekly-only, as on Monthly.
+       New Entries, Animate chart and Bubbling Under (since 2026-11-10,
+       dyBuStats / dyBuChartRun) all behave as on Weekly. Off the Chart stays
+       weekly-only, as on Monthly.
      - fills #dailyBottom under the chart: time of day, patterns, memories,
        milestones & goals */
 
@@ -230,6 +315,8 @@ function dyRenderAll(plays, start, end) {
   dyRenderTop(h, ds);
 
   const { stats, peaks } = dyPublishForShare(h, ds);
+  // Bubbling Under's own day-before stats (renderBubblingUnder reads ms.bu)
+  stats.bu = dyBuStats(h, ds);
   renderTableHeaders();
 
   if (!plays.length) {
@@ -238,6 +325,7 @@ function dyRenderAll(plays, start, end) {
     });
     ['songsPagination', 'artistsPagination', 'albumsPagination'].forEach(id => { document.getElementById(id).style.display = 'none'; });
     COLLAPSE_ALL_TYPES.forEach(hideOffSection);
+    COLLAPSE_ALL_TYPES.forEach(hideBuSection);
     NEW_ENTRY_SECTIONS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
     dyRenderBottom(h, ds);
     dySyncLive();

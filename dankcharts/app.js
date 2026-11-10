@@ -74,9 +74,23 @@ const subChartToggleState = (() => {
 // and renderNewEntries (New Entries: week/month/year, never alltime). The Show row
 // for a sub-chart that doesn't exist this period is hidden entirely rather than left
 // clickable with no effect.
+/* Bubbling Under runs on the Weekly and (since 2026-11-10) the Daily chart.
+   _buPeriod() is the chart-run period its history, boxes and gaps use.
+   buT() is t() for its wording: on Daily it takes the key's "_day" version
+   when there is one ("3 days" for "3 weeks"), else the weekly words. */
+function _buOn() { return currentPeriod === 'week' || currentPeriod === 'day'; }
+function _buPeriod() { return currentPeriod === 'day' ? 'day' : 'week'; }
+function _buKey(key) {
+  if (currentPeriod !== 'day') return key;
+  const k = key + '_day';
+  const dict = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
+  return (dict[k] !== undefined || TRANSLATIONS.en[k] !== undefined) ? k : key;
+}
+function buT(key, vars) { return t(_buKey(key), vars); }
+
 const SUB_CHART_PERIOD_AVAILABILITY = {
   normal: () => true,
-  bu:     () => currentPeriod === 'week',
+  bu:     () => _buOn(),
   off:    () => currentPeriod === 'week',
   new:    () => currentPeriod === 'day' || currentPeriod === 'week' || currentPeriod === 'month' || currentPeriod === 'year'
 };
@@ -15955,7 +15969,7 @@ function _neDecorate(type, list) {
   if (isFinite(size)) (fullData[type] || []).slice(0, size).forEach((o, i) => chartRank.set(keyOfNew(o), i + 1));
   // …or in Bubbling Under (weekly only, the pool that section just drew)
   const buRank = new Map();
-  if (currentPeriod === 'week' && isFinite(size)) (_pdfBuPools[type] || []).forEach((o, i) => buRank.set(o.key, size + 1 + i));
+  if (_buOn() && isFinite(size)) (_pdfBuPools[type] || []).forEach((o, i) => buRank.set(o.key, size + 1 + i));
   // Big debut: the most recent earlier period with a debut at least this big,
   // if it is far enough back to be worth saying (or there is none at all)
   const minGap = { day: 14, week: 8, month: 4, year: 2 }[currentPeriod] || 8;
@@ -17665,8 +17679,8 @@ function buildCrPanelHTML(type, key, f) {
   }
   // Show "+ BU" toggle only in weekly view when BU history exists for this entry.
   // Build BU data now if not already cached (normally only built when the BU table is opened).
-  if (currentPeriod === 'week' && !buChartRunData) buildBuChartRun();
-  const hasBuData = currentPeriod === 'week' && !!(buChartRunData?.result?.[crRunType(type)]?.[key]?.entries?.length);
+  if (_buOn() && !buChartRunData) buildBuChartRun();
+  const hasBuData = _buOn() && !!(buChartRunData?.result?.[crRunType(type)]?.[key]?.entries?.length);
   const buToggleBtn = hasBuData
     ? `<button class="cr-bu-toggle" onclick="toggleCrBuView(this)">${t('cr_view_with_bu')}</button>`
     : '';
@@ -20531,7 +20545,7 @@ function renderSongs(plays, peaks, monthlyStats) {
   const _buSizeSongs = chartSize >= 100 ? 50 : 10;
   const _allSortedSongs = Object.values(counts).sort(monthlyStats ? rankSortWithStatus : rankSort);
   const sorted = _allSortedSongs.slice(0, chartSize);
-  const _buPoolSongs = (currentPeriod === 'week' && monthlyStats) ? _allSortedSongs.slice(chartSize, chartSize + _buSizeSongs) : [];
+  const _buPoolSongs = (_buOn() && monthlyStats) ? _allSortedSongs.slice(chartSize, chartSize + _buSizeSongs) : [];
   fullData.songs = sorted;
   // Reconcile peak map: current period was excluded from buildPeriodPeaks (which uses rankSort),
   // so apply the actual rendered rank here. Take the min vs any historical peak from past periods.
@@ -20587,12 +20601,14 @@ function renderSongs(plays, peaks, monthlyStats) {
   applyWeeklyChartView('songs');
   _dcLiveSearch('songs');   // keep a running search (50+ entry charts)
   // Render Bubbling Under section (weekly only, requires history stats)
-  if (currentPeriod === 'week' && monthlyStats) {
+  // Bubbling Under: Weekly and Daily (_buOn). Off the Chart: Weekly only.
+  if (_buOn() && monthlyStats) {
     const _buNormSongs = _buPoolSongs.map(s => ({
       key: songKey(s), displayName: s.title, subName: s.artist, album: s.album, count: s.count
     }));
     renderBubblingUnder('songs', _buNormSongs, monthlyStats, sorted[sorted.length - 1]?.count || 0);
-    renderOffChart('songs', plays, monthlyStats, _buNormSongs, sorted[sorted.length - 1]?.count || 0);
+    if (currentPeriod === 'week') renderOffChart('songs', plays, monthlyStats, _buNormSongs, sorted[sorted.length - 1]?.count || 0);
+    else hideOffSection('songs');
   } else {
     hideBuSection('songs');
     hideOffSection('songs');
@@ -20619,7 +20635,7 @@ function renderArtists(plays, peaks, monthlyStats) {
   const _buSizeArtists = chartSize >= 100 ? 50 : 10;
   const _allSortedArtists = Object.entries(counts).sort(([, a], [, b]) => monthlyStats ? rankSortWithStatus(a, b) : rankSort(a, b));
   const sorted = _allSortedArtists.slice(0, chartSize);
-  const _buPoolArtists = (currentPeriod === 'week' && monthlyStats) ? _allSortedArtists.slice(chartSize, chartSize + _buSizeArtists) : [];
+  const _buPoolArtists = (_buOn() && monthlyStats) ? _allSortedArtists.slice(chartSize, chartSize + _buSizeArtists) : [];
   fullData.artists = sorted.map(([name, data]) => ({ name, ...data }));
   // Reconcile peak map with actual chart ranks (current period excluded from buildPeriodPeaks)
   if (currentPeriod !== 'alltime') {
@@ -20664,12 +20680,14 @@ function renderArtists(plays, peaks, monthlyStats) {
   applyWeeklyChartView('artists');
   _dcLiveSearch('artists');   // keep a running search (50+ entry charts)
   // Render Bubbling Under section (weekly only, requires history stats)
-  if (currentPeriod === 'week' && monthlyStats) {
+  // Bubbling Under: Weekly and Daily (_buOn). Off the Chart: Weekly only.
+  if (_buOn() && monthlyStats) {
     const _buNormArtists = _buPoolArtists.map(([name, data]) => ({
       key: name, displayName: name, subName: '', count: data.count
     }));
     renderBubblingUnder('artists', _buNormArtists, monthlyStats, sorted[sorted.length - 1]?.[1].count || 0);
-    renderOffChart('artists', plays, monthlyStats, _buNormArtists, sorted[sorted.length - 1]?.[1].count || 0);
+    if (currentPeriod === 'week') renderOffChart('artists', plays, monthlyStats, _buNormArtists, sorted[sorted.length - 1]?.[1].count || 0);
+    else hideOffSection('artists');
   } else {
     hideBuSection('artists');
     hideOffSection('artists');
@@ -20710,7 +20728,7 @@ function renderAlbums(plays, peaks, monthlyStats) {
   const _buSizeAlbums = chartSize >= 100 ? 50 : 10;
   const _allSortedAlbums = Object.values(counts).filter(a => a.album && a.album !== '—').sort(monthlyStats ? rankSortWithStatus : rankSort);
   const sorted = _allSortedAlbums.slice(0, chartSize);
-  const _buPoolAlbums = (currentPeriod === 'week' && monthlyStats) ? _allSortedAlbums.slice(chartSize, chartSize + _buSizeAlbums) : [];
+  const _buPoolAlbums = (_buOn() && monthlyStats) ? _allSortedAlbums.slice(chartSize, chartSize + _buSizeAlbums) : [];
   fullData.albums = sorted;
   // Reconcile peak map with actual chart ranks (current period excluded from buildPeriodPeaks)
   if (currentPeriod !== 'alltime') {
@@ -20764,12 +20782,14 @@ function renderAlbums(plays, peaks, monthlyStats) {
   applyWeeklyChartView('albums');
   _dcLiveSearch('albums');   // keep a running search (50+ entry charts)
   // Render Bubbling Under section (weekly only, requires history stats)
-  if (currentPeriod === 'week' && monthlyStats) {
+  // Bubbling Under: Weekly and Daily (_buOn). Off the Chart: Weekly only.
+  if (_buOn() && monthlyStats) {
     const _buNormAlbums = _buPoolAlbums.map(a => ({
       key: a.album + '|||' + albumArtist(a), displayName: a.album, subName: albumArtist(a), count: a.count
     }));
     renderBubblingUnder('albums', _buNormAlbums, monthlyStats, sorted[sorted.length - 1]?.count || 0);
-    renderOffChart('albums', plays, monthlyStats, _buNormAlbums, sorted[sorted.length - 1]?.count || 0);
+    if (currentPeriod === 'week') renderOffChart('albums', plays, monthlyStats, _buNormAlbums, sorted[sorted.length - 1]?.count || 0);
+    else hideOffSection('albums');
   } else {
     hideBuSection('albums');
     hideOffSection('albums');
@@ -20894,6 +20914,11 @@ let _buSliceCache = {};  // chartSize + '|' + curKey -> sliced view
 let _buCacheGen = null;
 
 function buildBuChartRun() {
+  // Daily: the daily chart's own BU history up to the viewed day (daily.js)
+  if (currentPeriod === 'day' && typeof dyBuChartRun === 'function') {
+    buChartRunData = dyBuChartRun(dyHistory(), dyViewedDay());
+    return buChartRunData;
+  }
   const gen = _crGeneration();
   if (gen !== _buCacheGen) { _buFullCache = {}; _buSliceCache = {}; _buCacheGen = gen; }
   const size = chartSize;
@@ -20913,19 +20938,19 @@ function buildBuChartRun() {
 // Each box is clickable: shows a tooltip with the full BU chart for that week + a link to navigate there.
 function buCrBoxesHTML(type, key) {
   const d = buChartRunData?.result?.[crRunType(type)]?.[key];
-  if (!d || !d.entries.length) return `<div class="bu-cr-empty">${t('bucr_none')}</div>`;
+  if (!d || !d.entries.length) return `<div class="bu-cr-empty">${buT('bucr_none')}</div>`;
   const safeKey = encodeKeyForOnclick(key);
   const boxes = d.entries.flatMap((e, i) => {
     const isPeak = (e.buRank === d.peakBuRank);
     const cls = isPeak ? 'cr-box cr-box-peak' : 'cr-box';
     const box = `<div class="${cls}" data-rank="${e.buRank}" onclick="showBuCrPreview('${esc(e.periodKey)}','${type}','${safeKey}',this)">
-      <div class="cr-box-rank">${t('bucr_prefix')}${e.buRank}</div>
-      <div class="cr-box-label">${esc(crPeriodLabel('week', e.periodKey))}</div>
+      <div class="cr-box-rank">${buT('bucr_prefix')}${e.buRank}</div>
+      <div class="cr-box-label">${esc(crPeriodLabel(_buPeriod(), e.periodKey))}</div>
     </div>`;
     if (i === 0) return [box];
-    const gap = crPeriodGap('week', d.entries[i - 1].periodKey, e.periodKey);
+    const gap = crPeriodGap(_buPeriod(), d.entries[i - 1].periodKey, e.periodKey);
     if (gap <= 0) return [box];
-    const gapEl = `<div class="cr-box-gap"><div class="cr-box-gap-label">✕${gap}</div><div class="cr-box-gap-unit">${tUnit('weeks', gap)}</div></div>`;
+    const gapEl = `<div class="cr-box-gap"><div class="cr-box-gap-label">✕${gap}</div><div class="cr-box-gap-unit">${tUnit(_buPeriod() + 's', gap)}</div></div>`;
     return [gapEl, box];
   }).join('');
   return `<div class="cr-boxes-wrap"><div class="cr-boxes">${boxes}</div></div>`;
@@ -20936,10 +20961,10 @@ function buCrBoxesHTML(type, key) {
 // Entries are merged chronologically with gap indicators between non-consecutive weeks.
 function buildCombinedCrBoxesHTML(type, key) {
   const buD = buChartRunData?.result?.[crRunType(type)]?.[key];
-  const crD = allChartRun.week?.result?.[crRunType(type)]?.[key];
+  const crD = allChartRun[_buPeriod()]?.result?.[crRunType(type)]?.[key];
 
   if ((!buD || !buD.entries.length) && (!crD || !crD.entries.length)) {
-    return `<div class="bu-cr-empty">${t('bucr_none_any')}</div>`;
+    return `<div class="bu-cr-empty">${buT('bucr_none_any')}</div>`;
   }
 
   // Merge BU and official chart entries into one chronological array
@@ -20955,27 +20980,27 @@ function buildCombinedCrBoxesHTML(type, key) {
       const isPeak = crD && e.rank === crD.peak;
       cls = isPeak ? 'cr-box cr-box-official cr-box-official-peak' : 'cr-box cr-box-official';
       rankText = `#${e.rank}`;
-      onclk = `showCrPreview('${esc(e.periodKey)}','${type}','${safeKey}',this,'week'${albumsViewIsMixed() && type === 'albums' ? ',1' : ''})`;
+      onclk = `showCrPreview('${esc(e.periodKey)}','${type}','${safeKey}',this,'${_buPeriod()}'${albumsViewIsMixed() && type === 'albums' ? ',1' : ''})`;
     } else {
       const isPeak = buD && e.buRank === buD.peakBuRank;
       cls = isPeak ? 'cr-box cr-box-bu-entry cr-box-peak' : 'cr-box cr-box-bu-entry';
-      rankText = t('bucr_prefix') + e.buRank;
+      rankText = buT('bucr_prefix') + e.buRank;
       onclk = `showBuCrPreview('${esc(e.periodKey)}','${type}','${safeKey}',this)`;
     }
     const box = `<div class="${cls}" onclick="${onclk}">
       <div class="cr-box-rank">${rankText}</div>
-      <div class="cr-box-label">${esc(crPeriodLabel('week', e.periodKey))}</div>
+      <div class="cr-box-label">${esc(crPeriodLabel(_buPeriod(), e.periodKey))}</div>
     </div>`;
     if (i === 0) return [box];
-    const gap = crPeriodGap('week', all[i - 1].periodKey, e.periodKey);
+    const gap = crPeriodGap(_buPeriod(), all[i - 1].periodKey, e.periodKey);
     if (gap <= 0) return [box];
-    const gapEl = `<div class="cr-box-gap"><div class="cr-box-gap-label">✕${gap}</div><div class="cr-box-gap-unit">${tUnit('weeks', gap)}</div></div>`;
+    const gapEl = `<div class="cr-box-gap"><div class="cr-box-gap-label">✕${gap}</div><div class="cr-box-gap-unit">${tUnit(_buPeriod() + 's', gap)}</div></div>`;
     return [gapEl, box];
   }).join('');
 
   const legend = `<div class="bu-combined-legend">
-    <span class="bu-combined-legend-chart">${t('bucr_legend_chart')}</span>
-    <span class="bu-combined-legend-bu">${t('bucr_legend_bu')}</span>
+    <span class="bu-combined-legend-chart">${buT('bucr_legend_chart')}</span>
+    <span class="bu-combined-legend-bu">${buT('bucr_legend_bu')}</span>
   </div>`;
   return legend + `<div class="cr-boxes-wrap"><div class="cr-boxes">${boxes}</div></div>`;
 }
@@ -21000,27 +21025,27 @@ function buildCrWithBuBoxesHTML(type, key, d) {
       const isPeak = d && e.rank === d.peak;
       cls = isPeak ? 'cr-box cr-box-peak' : 'cr-box';
       rankText = `#${e.rank}`;
-      onclk = `showCrPreview('${esc(e.periodKey)}','${type}','${safeKey}',this,'week'${albumsViewIsMixed() && type === 'albums' ? ',1' : ''})`;
+      onclk = `showCrPreview('${esc(e.periodKey)}','${type}','${safeKey}',this,'${_buPeriod()}'${albumsViewIsMixed() && type === 'albums' ? ',1' : ''})`;
     } else {
       const isPeak = buD && e.buRank === buD.peakBuRank;
       cls = isPeak ? 'cr-box cr-box-bu-miss cr-box-bu-miss-peak' : 'cr-box cr-box-bu-miss';
-      rankText = t('bucr_prefix') + e.buRank;
+      rankText = buT('bucr_prefix') + e.buRank;
       onclk = `showBuCrPreview('${esc(e.periodKey)}','${type}','${safeKey}',this)`;
     }
     const box = `<div class="${cls}" onclick="${onclk}">
       <div class="cr-box-rank">${rankText}</div>
-      <div class="cr-box-label">${esc(crPeriodLabel('week', e.periodKey))}</div>
+      <div class="cr-box-label">${esc(crPeriodLabel(_buPeriod(), e.periodKey))}</div>
     </div>`;
     if (i === 0) return [box];
-    const gap = crPeriodGap('week', all[i - 1].periodKey, e.periodKey);
+    const gap = crPeriodGap(_buPeriod(), all[i - 1].periodKey, e.periodKey);
     if (gap <= 0) return [box];
-    const gapEl = `<div class="cr-box-gap"><div class="cr-box-gap-label">✕${gap}</div><div class="cr-box-gap-unit">${tUnit('weeks', gap)}</div></div>`;
+    const gapEl = `<div class="cr-box-gap"><div class="cr-box-gap-label">✕${gap}</div><div class="cr-box-gap-unit">${tUnit(_buPeriod() + 's', gap)}</div></div>`;
     return [gapEl, box];
   }).join('');
 
   const legend = `<div class="bu-combined-legend">
-    <span class="bu-combined-legend-cr">${t('bucr_legend_chart')}</span>
-    <span class="bu-combined-legend-bu-miss">${t('bucr_legend_bu')}</span>
+    <span class="bu-combined-legend-cr">${buT('bucr_legend_chart')}</span>
+    <span class="bu-combined-legend-bu-miss">${buT('bucr_legend_bu')}</span>
   </div>`;
   return legend + `<div class="cr-boxes-wrap"><div class="cr-boxes">${boxes}</div></div>`;
 }
@@ -21060,24 +21085,24 @@ function toggleCrBuView(btn) {
 function buildBuCrPanelHTML(type, key) {
   const d = buChartRunData?.result?.[crRunType(type)]?.[key];
   // Offer the combined view only when the entry also has official chart history
-  const hasCrData = !!(allChartRun.week?.result?.[crRunType(type)]?.[key]?.entries?.length);
+  const hasCrData = !!(allChartRun[_buPeriod()]?.result?.[crRunType(type)]?.[key]?.entries?.length);
   const viewSeg = hasCrData && d?.entries?.length
     ? `<div class="cr-seg bu-cr-seg">
-        <button class="cr-range-btn active" onclick="event.stopPropagation();toggleBuCombinedView(this,false)">${t('bucr_view_bu')}</button>
-        <button class="cr-range-btn" onclick="event.stopPropagation();toggleBuCombinedView(this,true)">${t('bucr_view_both')}</button>
+        <button class="cr-range-btn active" onclick="event.stopPropagation();toggleBuCombinedView(this,false)">${buT('bucr_view_bu')}</button>
+        <button class="cr-range-btn" onclick="event.stopPropagation();toggleBuCombinedView(this,true)">${buT('bucr_view_both')}</button>
       </div>`
     : '';
 
   const headerHtml = `<div class="cr-head">
     <div>
-      <div class="cr-head-title">${t('bucr_title')}</div>
-      <div class="cr-head-sub">${t('bucr_sub', { n: chartSize })}</div>
+      <div class="cr-head-title">${buT('bucr_title')}</div>
+      <div class="cr-head-sub">${buT('bucr_sub', { n: chartSize })}</div>
     </div>
     ${viewSeg}
   </div>`;
 
   if (!d || !d.entries.length) {
-    return headerHtml + `<div class="bu-cr-empty">${t('bucr_none')}</div>`;
+    return headerHtml + `<div class="bu-cr-empty">${buT('bucr_none')}</div>`;
   }
 
   // Compute streak and stints from the entries (which are already in chronological order)
@@ -21085,7 +21110,7 @@ function buildBuCrPanelHTML(type, key) {
   for (let i = 0; i < d.entries.length; i++) {
     if (i === 0) { curStreak = 1; stints = 1; }
     else {
-      const gap = crPeriodGap('week', d.entries[i - 1].periodKey, d.entries[i].periodKey);
+      const gap = crPeriodGap(_buPeriod(), d.entries[i - 1].periodKey, d.entries[i].periodKey);
       if (gap === 0) { curStreak++; }
       else { longestStreak = Math.max(longestStreak, curStreak); curStreak = 1; stints++; }
     }
@@ -21095,20 +21120,20 @@ function buildBuCrPanelHTML(type, key) {
   /* Same summary as the main chart run (crStats, 2026-10-26): a sentence, a
      boxed row of counts that filters the boxes, and the next milestones under
      the boxes. Was six tiles. */
-  const E = d.entries, n = E.length, P = t('bucr_prefix');
+  const E = d.entries, n = E.length, P = buT('bucr_prefix');
   const peak = d.peakBuRank; // 1 = closest to the chart
-  const overall = t('bucr_peak_overall', { n: chartSize + peak });
+  const overall = buT('bucr_peak_overall', { n: chartSize + peak });
   const cnt = max => E.filter(e => e.buRank <= max).length;
   const b = (s, gold) => `<b${gold ? ' class="is-gold"' : ''}>${s}</b>`;
 
   const first = E[0].buRank, last = E[n - 1];
-  let story = t('bucr_story_first', { r: b(P + first, first === peak) + (first === peak ? ` (${esc(overall)})` : '') });
-  if (first !== peak) story += t('bucr_story_peak', { r: b(P + peak, true), o: esc(overall) });
-  story += t('bucr_story_total', { n: b(_crU('week', n)), c: chartSize });
-  const crD = allChartRun.week?.result?.[crRunType(type)]?.[key];
-  if (crD?.entries?.length) story += t('bucr_story_chart', { n: b(_crU('week', crD.entries.length)), r: b('#' + crD.peak, crD.peak === 1) });
+  let story = buT('bucr_story_first', { r: b(P + first, first === peak) + (first === peak ? ` (${esc(overall)})` : '') });
+  if (first !== peak) story += buT('bucr_story_peak', { r: b(P + peak, true), o: esc(overall) });
+  story += buT('bucr_story_total', { n: b(_crU(_buPeriod(), n)), c: chartSize });
+  const crD = allChartRun[_buPeriod()]?.result?.[crRunType(type)]?.[key];
+  if (crD?.entries?.length) story += buT('bucr_story_chart', { n: b(_crU(_buPeriod(), crD.entries.length)), r: b('#' + crD.peak, crD.peak === 1) });
   const curKey = buChartRunData?.curKey;
-  if (curKey && last.periodKey === curKey) story += t('bucr_story_now');
+  if (curKey && last.periodKey === curKey) story += buT('bucr_story_now');
 
   // Tier chips (gold where the peak boxes are gold), only when they add something
   let chips = '', prev = 0;
@@ -21116,7 +21141,7 @@ function buildBuCrPanelHTML(type, key) {
   [1, 3, 5].forEach(max => {
     const c = cnt(max);
     if (c > prev && c < n) {
-      chips += chip(max, c, max === 1 ? t('bucr_rb_at1') : t('bucr_rb_range', { p: P, n: max }), max === 1 && peak === 1 ? 'gold' : 'top10');
+      chips += chip(max, c, max === 1 ? buT('bucr_rb_at1') : buT('bucr_rb_range', { p: P, n: max }), max === 1 && peak === 1 ? 'gold' : 'top10');
       prev = c;
     }
   });
@@ -21125,7 +21150,7 @@ function buildBuCrPanelHTML(type, key) {
      right now and the week's chart is the same week — the plays of the last
      spot on it, plus one — then the lifetime ones (certification, all-time) */
   const extra = [];
-  const wk = allChartRun.week;
+  const wk = allChartRun[_buPeriod()];
   if (curKey && last.periodKey === curKey && wk?.curKey === curKey) {
     let lastSpot = 0;
     const res = wk.result?.[crRunType(type)] || {};
@@ -21135,19 +21160,19 @@ function buildBuCrPanelHTML(type, key) {
     }
     if (lastSpot >= last.plays) {
       extra.push({ ic: '🎯', pin: true, t: lastSpot + 1, v: last.plays, u: 'plays', subKey: 'cr_g_left',
-        lbl: t('bucr_g_enter', { n: chartSize }), of: t('bucr_g_enter_of', { n: chartSize }) });
+        lbl: buT('bucr_g_enter', { n: chartSize }), of: buT('bucr_g_enter_of', { n: chartSize }) });
     }
   }
-  const goals = _crGoals(type, key, { entries: E, peak: 0 }, 'week', false, 0, extra);
+  const goals = _crGoals(type, key, { entries: E, peak: 0 }, _buPeriod(), false, 0, extra);
 
   const sticky = n >= CR_STICKY_MIN;
   const ribbon = `<div class="cr-ribbon${sticky ? ' is-sticky' : ''}">`
     + `<span class="cr-rb-i"><b class="${peak === 1 ? 'is-gold' : ''}">${P}${peak}</b>${esc(t('cr_rb_peak'))} · ${esc(overall)}</span>`
     + chips
-    + `<span class="cr-rb-i"><b>${n.toLocaleString()}</b>${esc(t('bucr_rb_weeks'))}</span>`
-    + (longestStreak > 1 ? `<span class="cr-rb-x">${esc(t('bucr_k_streak'))} <b>${esc(_crU('week', longestStreak))}</b></span>` : '')
-    + (stints > 1 ? `<span class="cr-rb-x">${esc(t('bucr_k_stints'))} <b>${stints}</b></span>` : '')
-    + `<span class="cr-rb-x">${esc(t('bucr_k_best'))} <b>${d.peakPlays.toLocaleString()}</b></span>`
+    + `<span class="cr-rb-i"><b>${n.toLocaleString()}</b>${esc(buT('bucr_rb_weeks'))}</span>`
+    + (longestStreak > 1 ? `<span class="cr-rb-x">${esc(buT('bucr_k_streak'))} <b>${esc(_crU(_buPeriod(), longestStreak))}</b></span>` : '')
+    + (stints > 1 ? `<span class="cr-rb-x">${esc(buT('bucr_k_stints'))} <b>${stints}</b></span>` : '')
+    + `<span class="cr-rb-x">${esc(buT('bucr_k_best'))} <b>${d.peakPlays.toLocaleString()}</b></span>`
     + (sticky && goals.first ? `<span class="cr-rb-mini" title="${esc(goals.first.lbl)}">→ ${esc(goals.first.lbl)}</span>` : '')
     + `</div>`;
   const statsHtml = `<div class="cr-stats cr-stats-sum"><div class="cr-sum"><p class="cr-story">${story}</p>${ribbon}</div></div>`;
@@ -21193,7 +21218,7 @@ function showBuCrPreview(periodKey, type, encodedKey, boxEl) {
   hideBuCrPreview();
   if (!buChartRunData?.buPeriodMap?.[periodKey]) return;
   const key = decodeURIComponent(encodedKey);
-  const title = crPeriodTitle('week', periodKey);
+  const title = crPeriodTitle(_buPeriod(), periodKey);
   const typeLabels = { songs: t('rec_th_songs'), artists: t('rec_th_artists'), albums: t('rec_th_albums') };
   /* Albums with a type separated: on the "All" view the combined chart's BU
      list; otherwise the BU list of the chart this release sits on — the
@@ -21206,14 +21231,14 @@ function showBuCrPreview(periodKey, type, encodedKey, boxEl) {
   }
   const items = entries.map(e => {
     const isActive = (e.key === key);
-    return `<div class="cr-preview-item${isActive ? ' highlighted' : ''}"><span class="cr-preview-rank">${t('bucr_prefix')}${e.buRank}</span><span>${esc(e.displayName)}</span></div>`;
+    return `<div class="cr-preview-item${isActive ? ' highlighted' : ''}"><span class="cr-preview-rank">${buT('bucr_prefix')}${e.buRank}</span><span>${esc(e.displayName)}</span></div>`;
   }).join('');
   const popup = document.createElement('div');
   popup.className = 'cr-preview';
   popup.id = 'buCrPreviewPopup';
   popup.style.position = 'fixed';
   popup.innerHTML = `<button class="cr-preview-close" onclick="hideBuCrPreview()">✕</button>`
-    + `<div class="cr-preview-title"><a class="cr-preview-link" href="#chart/week/${periodKey}" onclick="event.preventDefault();navigateToCrChart('week','${periodKey}')">${esc(title)}</a> · ${t('bucr_legend_bu')} · ${typeLabels[type]}</div>`
+    + `<div class="cr-preview-title"><a class="cr-preview-link" href="#chart/${_buPeriod()}/${periodKey}" onclick="event.preventDefault();navigateToCrChart('${_buPeriod()}','${periodKey}')">${esc(title)}</a> · ${buT('bucr_legend_bu')} · ${typeLabels[type]}</div>`
     + items;
   document.body.appendChild(popup);
   // Position near the box, keep within viewport
@@ -21420,8 +21445,14 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
     sectionEl.style.display = 'none';
     return;
   }
+  // Daily hands its own day-before stats in as ms.bu (dyBuStats in daily.js)
+  if (ms && ms.bu) ms = ms.bu;
 
   sectionEl.style.display = '';
+  // Subtitle: "ranked by plays this week" / "today". The key goes on
+  // data-i18n too, so a language switch keeps the right one.
+  const subEl = sectionEl.querySelector('.bu-sub');
+  if (subEl) { subEl.dataset.i18n = _buKey('bu_sub_' + type); subEl.textContent = t(subEl.dataset.i18n); }
   // Update title to show which chart size this BU section sits below (e.g. "BUBBLING UNDER TOP 10")
   if (titleEl) titleEl.textContent = t('sec_bubbling_under', { n: chartSize });
   if (countEl) countEl.textContent = normalizedPool.length;
@@ -21496,19 +21527,19 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
     // idea 1 "Like the chart"). Story words are bold; weeks and streak muted.
     const words = [];
     const word = (cls, title, label) => words.push(`<span class="bu-word ${cls}" title="${esc(title)}">${label}</span>`);
-    if (isFading)      word('is-story', t('bu_badge_fading_title'), t('bu_badge_fading'));
-    if (isDebut)       word('is-story', t('bu_badge_debut_title'), t('bu_badge_debut'));
-    if (isTrending)    word('is-story', t('bu_badge_trending_title'), t('bu_badge_trending'));
-    if (isPersistent)  word('is-story', t('bu_badge_persistent_title', { n: totalBuWeeks }), t('bu_badge_persistent'));
-    if (isResurgence)  word('is-story', t('bu_badge_resurgence_title'), t('bu_badge_resurgence'));
-    if (isResurgent)   word('is-story', t('bu_badge_resurgent_title'), t('bu_badge_resurgent'));
-    if (isClinging)    word('is-story', t('bu_badge_clinging_title'), t('bu_badge_clinging'));
-    if (isFallen)      word('is-story', t('bu_badge_fallen_title', { n: lastWeekRank }), t('bu_badge_fallen'));
-    if (isSurging)     word('is-story', t('bu_badge_surging_title', { n: bestSurgeDelta }), t('bu_badge_surging'));
-    if (isFreefall)    word('is-story', t('bu_badge_freefall_title', { n: bestFreefallDelta }), t('bu_badge_freefall'));
-    if (isYoYo)        word('is-story', t('bu_badge_yoyo_title', { n: buRuns }), t('bu_badge_yoyo'));
-    if (totalBuWeeks >= 2)       word('', t('bu_badge_weeks_title', { n: totalBuWeeks }), t('bu_badge_weeks_label', { n: totalBuWeeks }));
-    if (consecutiveBuWeeks >= 2) word('', t('bu_badge_streak_title', { n: consecutiveBuWeeks }), t('bu_badge_streak_label', { n: consecutiveBuWeeks }));
+    if (isFading)      word('is-story', buT('bu_badge_fading_title'), buT('bu_badge_fading'));
+    if (isDebut)       word('is-story', buT('bu_badge_debut_title'), buT('bu_badge_debut'));
+    if (isTrending)    word('is-story', buT('bu_badge_trending_title'), buT('bu_badge_trending'));
+    if (isPersistent)  word('is-story', buT('bu_badge_persistent_title', { n: totalBuWeeks }), buT('bu_badge_persistent'));
+    if (isResurgence)  word('is-story', buT('bu_badge_resurgence_title'), buT('bu_badge_resurgence'));
+    if (isResurgent)   word('is-story', buT('bu_badge_resurgent_title'), buT('bu_badge_resurgent'));
+    if (isClinging)    word('is-story', buT('bu_badge_clinging_title'), buT('bu_badge_clinging'));
+    if (isFallen)      word('is-story', buT('bu_badge_fallen_title', { n: lastWeekRank }), buT('bu_badge_fallen'));
+    if (isSurging)     word('is-story', buT('bu_badge_surging_title', { n: bestSurgeDelta }), buT('bu_badge_surging'));
+    if (isFreefall)    word('is-story', buT('bu_badge_freefall_title', { n: bestFreefallDelta }), buT('bu_badge_freefall'));
+    if (isYoYo)        word('is-story', buT('bu_badge_yoyo_title', { n: buRuns }), buT('bu_badge_yoyo'));
+    if (totalBuWeeks >= 2)       word('', buT('bu_badge_weeks_title', { n: totalBuWeeks }), buT('bu_badge_weeks_label', { n: totalBuWeeks }));
+    if (consecutiveBuWeeks >= 2) word('', buT('bu_badge_streak_title', { n: consecutiveBuWeeks }), buT('bu_badge_streak_label', { n: consecutiveBuWeeks }));
     const storyLine = words.join('<span class="bu-word-dot"> · </span>');
 
     // What the entry plays / adds: song title, artist, album by entry type
@@ -21528,8 +21559,8 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
     // Distance to the chart: "N plays away" under the plays number, gold
     // when it's only 1–2 away (no bar any more, step 10 idea 1). Phones show
     // the short form ("faltan 2") so long wording can't squeeze the names
-    const awayLong  = playsAway > 0 ? t(playsAway === 1 ? 'bu_badge_away_one' : 'bu_badge_away_other', { n: playsAway }) : t('bu_level_with', { n: chartSize });
-    const awayShort = playsAway > 0 ? t(playsAway === 1 ? 'bu_away_short_one' : 'bu_away_short_other', { n: playsAway }) : t('bu_level_short', { n: chartSize });
+    const awayLong  = playsAway > 0 ? t(playsAway === 1 ? 'bu_badge_away_one' : 'bu_badge_away_other', { n: playsAway }) : buT('bu_level_with', { n: chartSize });
+    const awayShort = playsAway > 0 ? t(playsAway === 1 ? 'bu_away_short_one' : 'bu_away_short_other', { n: playsAway }) : buT('bu_level_short', { n: chartSize });
     const awayTitle = playsAway > 0 ? t(playsAway === 1 ? 'bu_badge_away_title_one' : 'bu_badge_away_title_other', { n: playsAway }) : awayLong;
     const toGo = `<span class="bu-away${playsAway <= 2 ? ' is-close' : ''}" title="${esc(awayTitle)}"><span class="bu-away-l">${esc(awayLong)}</span><span class="bu-away-s">${esc(awayShort)}</span></span>`;
 
@@ -21566,23 +21597,23 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
 
   // What "away" means: plays needed to reach the last chart spot
   const noteEl = document.getElementById('bu' + ucType + 'MeterNote');
-  if (noteEl) noteEl.textContent = t('bu_away_note', { n: chartSize, p: lowestChartCount });
+  if (noteEl) noteEl.textContent = buT('bu_away_note', { n: chartSize, p: lowestChartCount });
 
   const legendEl = document.getElementById('bu' + ucType + 'Legend');
   if (legendEl) legendEl.innerHTML = `
-    <div class="bu-legend-item"><span class="bu-badge bu-badge-debut">${t('bu_badge_debut')}</span><span class="bu-legend-desc">${t('bu_badge_debut_title')}</span></div>
-    <div class="bu-legend-item"><span class="bu-badge bu-badge-trending">${t('bu_badge_trending')}</span><span class="bu-legend-desc">${t('bu_badge_trending_title')}</span></div>
-    <div class="bu-legend-item"><span class="bu-badge bu-badge-persistent">${t('bu_badge_persistent')}</span><span class="bu-legend-desc">${t('bu_badge_persistent_desc')}</span></div>
-    <div class="bu-legend-item"><span class="bu-badge bu-badge-fading">${t('bu_badge_fading')}</span><span class="bu-legend-desc">${t('bu_badge_fading_title')}</span></div>
-    <div class="bu-legend-item"><span class="bu-badge bu-badge-resurgence">${t('bu_badge_resurgence')}</span><span class="bu-legend-desc">${t('bu_badge_resurgence_desc')}</span></div>
-    <div class="bu-legend-item"><span class="bu-badge bu-badge-resurgent">${t('bu_badge_resurgent')}</span><span class="bu-legend-desc">${t('bu_badge_resurgent_desc')}</span></div>
-    <div class="bu-legend-item"><span class="bu-badge bu-badge-clinging">${t('bu_badge_clinging')}</span><span class="bu-legend-desc">${t('bu_badge_clinging_title')}</span></div>
-    <div class="bu-legend-item"><span class="bu-badge bu-badge-fallen">${t('bu_badge_fallen')}</span><span class="bu-legend-desc">${t('bu_badge_fallen_desc')}</span></div>
-    <div class="bu-legend-item"><span class="bu-badge bu-badge-surging">${t('bu_badge_surging')}</span><span class="bu-legend-desc">${t('bu_badge_surging_desc')}</span></div>
-    <div class="bu-legend-item"><span class="bu-badge bu-badge-freefall">${t('bu_badge_freefall')}</span><span class="bu-legend-desc">${t('bu_badge_freefall_desc')}</span></div>
-    <div class="bu-legend-item"><span class="bu-badge bu-badge-yoyo">${t('bu_badge_yoyo')}</span><span class="bu-legend-desc">${t('bu_badge_yoyo_desc')}</span></div>
-    <div class="bu-legend-item"><span class="bu-badge bu-badge-weeks">${t('bu_badge_weeks_label', { n: 'N' })}</span><span class="bu-legend-desc">${t('bu_badge_weeks_desc')}</span></div>
-    <div class="bu-legend-item"><span class="bu-badge bu-badge-streak">${t('bu_badge_streak_label', { n: 'N' })}</span><span class="bu-legend-desc">${t('bu_badge_streak_desc')}</span></div>
+    <div class="bu-legend-item"><span class="bu-badge bu-badge-debut">${buT('bu_badge_debut')}</span><span class="bu-legend-desc">${buT('bu_badge_debut_title')}</span></div>
+    <div class="bu-legend-item"><span class="bu-badge bu-badge-trending">${buT('bu_badge_trending')}</span><span class="bu-legend-desc">${buT('bu_badge_trending_title')}</span></div>
+    <div class="bu-legend-item"><span class="bu-badge bu-badge-persistent">${buT('bu_badge_persistent')}</span><span class="bu-legend-desc">${buT('bu_badge_persistent_desc')}</span></div>
+    <div class="bu-legend-item"><span class="bu-badge bu-badge-fading">${buT('bu_badge_fading')}</span><span class="bu-legend-desc">${buT('bu_badge_fading_title')}</span></div>
+    <div class="bu-legend-item"><span class="bu-badge bu-badge-resurgence">${buT('bu_badge_resurgence')}</span><span class="bu-legend-desc">${buT('bu_badge_resurgence_desc')}</span></div>
+    <div class="bu-legend-item"><span class="bu-badge bu-badge-resurgent">${buT('bu_badge_resurgent')}</span><span class="bu-legend-desc">${buT('bu_badge_resurgent_desc')}</span></div>
+    <div class="bu-legend-item"><span class="bu-badge bu-badge-clinging">${buT('bu_badge_clinging')}</span><span class="bu-legend-desc">${buT('bu_badge_clinging_title')}</span></div>
+    <div class="bu-legend-item"><span class="bu-badge bu-badge-fallen">${buT('bu_badge_fallen')}</span><span class="bu-legend-desc">${buT('bu_badge_fallen_desc')}</span></div>
+    <div class="bu-legend-item"><span class="bu-badge bu-badge-surging">${buT('bu_badge_surging')}</span><span class="bu-legend-desc">${buT('bu_badge_surging_desc')}</span></div>
+    <div class="bu-legend-item"><span class="bu-badge bu-badge-freefall">${buT('bu_badge_freefall')}</span><span class="bu-legend-desc">${buT('bu_badge_freefall_desc')}</span></div>
+    <div class="bu-legend-item"><span class="bu-badge bu-badge-yoyo">${buT('bu_badge_yoyo')}</span><span class="bu-legend-desc">${buT('bu_badge_yoyo_desc')}</span></div>
+    <div class="bu-legend-item"><span class="bu-badge bu-badge-weeks">${buT('bu_badge_weeks_label', { n: 'N' })}</span><span class="bu-legend-desc">${buT('bu_badge_weeks_desc')}</span></div>
+    <div class="bu-legend-item"><span class="bu-badge bu-badge-streak">${buT('bu_badge_streak_label', { n: 'N' })}</span><span class="bu-legend-desc">${buT('bu_badge_streak_desc')}</span></div>
   `;
 }
 
@@ -24393,8 +24424,8 @@ function openPdfModal(type) {
   setPdfScope(o.scope === 'all' ? 'all' : 'one');
   document.getElementById('pdfOptArt').checked = !!o.art;
   document.getElementById('pdfOptBu').checked = !!o.bu;
-  // Bubbling Under only exists on weekly charts
-  document.getElementById('pdfOptBuRow').style.display = currentPeriod === 'week' ? '' : 'none';
+  // Bubbling Under only exists on the weekly and daily charts
+  document.getElementById('pdfOptBuRow').style.display = _buOn() ? '' : 'none';
   const dr = getDateRange();
   document.getElementById('pdfSub').textContent = dr.sub || dr.label;
   const btn = document.getElementById('pdfCreateBtn');
@@ -24559,7 +24590,7 @@ async function createChartPdf() {
     bu: document.getElementById('pdfOptBu').checked,
   };
   try { localStorage.setItem('dc_pdf_opts', JSON.stringify(opts)); } catch (e) {}
-  const withBu = opts.bu && currentPeriod === 'week';
+  const withBu = opts.bu && _buOn();
   const types = (opts.scope === 'all' ? ['songs', 'artists', 'albums'] : [_pdfType]).filter(ty => (fullData[ty] || []).length);
   const charts = types.map(ty => ({ type: ty, rows: _pdfRows(ty, false), bu: withBu ? _pdfRows(ty, true) : [] }));
 
