@@ -17,6 +17,7 @@ TRANSLATIONS['es'] = Object.assign({
     nc_th_debut_plays: "Reproducciones en el debut",
     nc_note_busiest_songs: "Cuenta cada canción escuchada por primera vez, incluidas las que quedaron por debajo del corte del ranking.",
     nc_note_busiest_artists: "Cuenta cada artista escuchado por primera vez, incluidos los que quedaron por debajo del corte del ranking.",
+    nc_note_debut_streak: "Cuántos rankings seguidos cada artista metió al menos una canción en el ranking de Canciones Nuevas. Abre una fila (▶) para ver las canciones y las fechas.",
     nc_th_total_debuts: "Debuts en total",
     nc_th_consec_weeks: "Semanas seguidas",
     nc_th_consec_months: "Meses seguidos",

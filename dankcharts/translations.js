@@ -57,6 +57,7 @@ const TRANSLATIONS = {
     nc_th_debut_plays: "Debut Plays",
     nc_note_busiest_songs: "Counts every song heard for the first time, including the ones that finished below the chart cut-off.",
     nc_note_busiest_artists: "Counts every artist heard for the first time, including the ones that finished below the chart cut-off.",
+    nc_note_debut_streak: "How many charts in a row each artist got at least one song onto the New Songs chart. Open a row (▶) to see the songs and dates.",
     nc_th_total_debuts: "Total Debut Appearances",
     nc_th_consec_weeks: "Consecutive Weeks",
     nc_th_consec_months: "Consecutive Months",

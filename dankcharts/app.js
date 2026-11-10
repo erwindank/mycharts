@@ -8663,6 +8663,8 @@ function buildRecords() {
   const ncNewSongDebutsByArtist = { day: {}, week: {}, month: {}, year: {} };
   const ncNewSongsByArtistPerPeriod = { day: {}, week: {}, month: {}, year: {} };
   const ncArtistNewDebutPeriods = { day: {}, week: {}, month: {}, year: {} };
+  // artist → period key → [{ title, rank }] of the songs that debuted that period
+  const ncArtistDebutSongs = { day: {}, week: {}, month: {}, year: {} };
   const ncAlbumNewTrackCount = { day: {}, week: {}, month: {}, year: {} };
   // The New Songs/Artists/Albums charts only ever show the top N of a period.
   // Records built from every first-ever appearance were ranking entries that
@@ -8730,6 +8732,10 @@ function buildRecords() {
           ncNewSongsByArtistPerPeriod[pt][pk][d.artist] = (ncNewSongsByArtistPerPeriod[pt][pk][d.artist] || 0) + 1;
           if (!ncArtistNewDebutPeriods[pt][d.artist]) ncArtistNewDebutPeriods[pt][d.artist] = [];
           ncArtistNewDebutPeriods[pt][d.artist].push(pk);
+          // Which songs debuted for this artist in this period, with their New
+          // Songs rank — the debut streak record lists them under each row.
+          const _ads = ncArtistDebutSongs[pt][d.artist] || (ncArtistDebutSongs[pt][d.artist] = {});
+          (_ads[pk] || (_ads[pk] = [])).push({ title: d.title, rank: i + 1 });
         });
       }
       const abyp = {};
@@ -8826,20 +8832,24 @@ function buildRecords() {
   // crPeriodGap, since days with no plays are missing from dayKeys and a run
   // across a silent day is not a run. Weeks and months keep their old count.
   const artistConsecNewDebuts = { day: {}, week: {}, month: {}, year: {} };
+  // The periods of each artist's best run (the earliest one, on a tie), so the
+  // record can show which songs debuted on which date.
+  const artistConsecNewDebutRun = { day: {}, week: {}, month: {}, year: {} };
   for (const [pt, ptKeys] of [['day', dayKeys], ['week', weekKeys], ['month', monthKeys], ['year', yearKeys]]) {
     const pidx = {};
     ptKeys.forEach((k, i) => { pidx[k] = i; });
     const calendar = pt === 'day' || pt === 'year';
     for (const [artist, periods] of Object.entries(ncArtistNewDebutPeriods[pt])) {
       const uniq = [...new Set(periods)].sort();
-      let max = 1, cur = 1;
+      let max = 1, cur = 1, bestEnd = 0;
       for (let i = 1; i < uniq.length; i++) {
         const pi = pidx[uniq[i - 1]], ci = pidx[uniq[i]];
         const next = calendar ? crPeriodGap(pt, uniq[i - 1], uniq[i]) === 0
           : (pi !== undefined && ci !== undefined && ci === pi + 1);
-        if (next) { if (++cur > max) max = cur; } else cur = 1;
+        if (next) { if (++cur > max) { max = cur; bestEnd = i; } } else cur = 1;
       }
       artistConsecNewDebuts[pt][artist] = max;
+      artistConsecNewDebutRun[pt][artist] = uniq.slice(bestEnd - max + 1, bestEnd + 1);
     }
   }
   // Record 9: New Song → #1 fastest (fewest periods from debut on New Songs chart to first main-chart #1)
@@ -11200,10 +11210,34 @@ function buildRecords() {
   // ── 8. Longest Consecutive Debut Streak by Artist ─────────────
   function ncRecDebutStreak(pt) {
     const sorted = Object.entries(artistConsecNewDebuts[pt]).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    const tableId = 'nc-ds-tbl-' + pt;
+    const runBase = 'nc-ds-run-' + pt;
+    /* The streak itself, one card per period: the date (opens that New Songs
+       chart) and every song of the artist that debuted on it, with its rank.
+       A bare "5 days" left the reader guessing which songs made the run.
+       Wrapped in .cr-boxes-wrap so the podium (recxBoxesOf in records-look.js)
+       shows it on the top three cards as well. Built only when opened. */
+    const runHtml = artist => () => {
+      const songs = ncArtistDebutSongs[pt][artist] || {};
+      const cards = (artistConsecNewDebutRun[pt][artist] || []).map(pk => {
+        const list = (songs[pk] || []).slice().sort((a, b) => a.rank - b.rank);
+        return '<div class="nc-ds-card">'
+          + '<a href="javascript:void(0)" class="nc-ds-when rec-date-link" onclick="showNewChartRecPreview(\'' + pt + '\',\'' + esc(pk) + '\',this,event)">' + esc(crPeriodLabel(pt, pk)) + '</a>'
+          + '<ul class="nc-ds-songs">' + list.map(s => '<li><span class="nc-ds-rk">#' + s.rank + '</span><span class="nc-ds-t">' + esc(s.title) + '</span></li>').join('') + '</ul>'
+          + '</div>';
+      }).join('');
+      return '<div class="cr-boxes-wrap nc-ds-wrap"><div class="nc-ds">' + cards + '</div></div>';
+    };
     return ncSec('🔁 ' + t('nc_t_debut_streak'),
-      recTable(['#', t('rec_th_artist'), t(NC_CONSEC_TH[pt])],
-        sorted.map((e, i) => '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + e[1] + ' ' + tUnit(NC_UNIT[pt], e[1]) + '</td>'), lim, null, null,
-        { rowAttrs: i => recRowAttrs(sorted[i][0], 'artist', sorted[i][0]) }));
+      recTable(['#', t('rec_th_artist'), t(NC_CONSEC_TH[pt]),
+        '<button class="rec-expand-all-btn" onclick="event.stopPropagation();toggleAllRecRuns(\'' + tableId + '\',this)" title="' + esc(t('rec_expand_all')) + '">▶▶</button>'],
+        sorted.map((e, i) => '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + e[1] + ' ' + tUnit(NC_UNIT[pt], e[1]) + '</td>'
+          + '<td class="rec-run-toggle-cell"><button class="rec-run-toggle-btn" onclick="event.stopPropagation();toggleRecRun(this,\'' + runBase + '-' + i + '\')">▶</button></td>'),
+        lim,
+        sorted.map((e, i) => ({ id: runBase + '-' + i, html: runHtml(e[0]) })),
+        tableId,
+        { rowAttrs: i => recRowAttrs(sorted[i][0], 'artist', sorted[i][0]) }),
+      t('nc_note_debut_streak'));
   }
 
   // ── 9. New Song → #1 Fastest ──────────────────────────────────
