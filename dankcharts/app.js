@@ -27720,6 +27720,9 @@ function _amPeriodRows(kind, period, D, items, crKeyOf, ctx) {
     return _amRow(kind, x, cr.peak, {
       best: { period, key: bestKey, label: period === 'year' ? bestKey : crPeriodLabel(period, bestKey) },
       bestPlays: peakEntry.plays, days: peakEntry.days, run, spells: cr.entries.length,
+      // Which years / months / weeks / days it charted in — the summary counts
+      // these once per period, so two songs in the same week make one week
+      periodKeys: cr.entries.map(e => e.periodKey),
       panel: () => `<div class="cr-panel" data-crtype="${kind}" data-crkey="${ek}"><div class="cr-stats cr-stats-sum">${crStats(kind, crKeyRaw, period, D)}</div>${crBoxesHTML(kind, crKeyRaw, D, null, period)}</div>`
     }, ctx);
   }).filter(Boolean).sort((a, b) => a.rank - b.rank);
@@ -27755,7 +27758,9 @@ function amMusicRender() {
   const top10 = list.filter(r => r.rank && r.rank <= 10).length;
   const last = ch === 'all'
     ? { v: list.reduce((s, r) => s + r.plays, 0), l: t('th_plays') }
-    : { v: list.reduce((s, r) => s + (r.spells || 0), 0), l: t('am_sum_spells_' + ch) };
+    // Distinct periods with at least one entry on the chart (it used to add up
+    // every song's own count, so 12 songs in one year read "12 years")
+    : { v: new Set(list.flatMap(r => r.periodKeys || [])).size, l: t('am_sum_spells_' + ch) };
   const sumCell = (v, l, tone) => `<div class="am-sum-cell am-tone-${tone}"><span class="am-sum-v">${v.toLocaleString()}</span><span class="am-sum-l">${esc(l)}</span></div>`;
   const what = t(ty === 'songs' ? 'ig_type_songs' : ty === 'singles' ? 'rtype_single_plural' : ty === 'eps' ? 'rtype_ep_plural' : 'ig_type_albums');
   // Appears on is counted in albums and has its own intro (not "by this artist")
