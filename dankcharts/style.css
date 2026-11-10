@@ -2703,7 +2703,9 @@
 
     /* Songs and albums on each chart */
     .dp-body .rk-mu { display: flex; flex-direction: column; gap: 6px; }
-    .dp-body .rk-mu-row { display: grid; grid-template-columns: 120px repeat(4, minmax(0, 1fr)); gap: 6px; align-items: stretch; }
+    /* five chart columns: Daily, Weekly, Monthly, Yearly and All-Time (was 4,
+       which pushed All-Time onto a line of its own) */
+    .dp-body .rk-mu-row { display: grid; grid-template-columns: 110px repeat(5, minmax(0, 1fr)); gap: 6px; align-items: stretch; }
     .dp-body .rk-mu-hd > span { display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 0.66rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text3); }
     .dp-body .rk-mu-hd > span.is-on { color: var(--dp-ac); }
     .dp-body .rk-mu-hd svg { width: 13px; height: 13px; }
@@ -2759,7 +2761,10 @@
       .dp-body .rk-plot { height: 170px; }
       .dp-body .rk-dt { grid-template-columns: auto minmax(0, 1fr); }
       .dp-body .rk-dt-go { grid-column: 1 / -1; justify-content: center; }
-      .dp-body .rk-mu-row { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .dp-body .rk-mu-row { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
+      .dp-body .rk-mu-cell { padding: 6px 2px; }
+      .dp-body .rk-mu-n { font-size: 1.1rem; }
+      .dp-body .rk-mu-best { font-size: 0.6rem; }
       .dp-body .rk-mu-hd > span:first-child { display: none; }
       .dp-body .rk-mu-lbl { grid-column: 1 / -1; margin-top: 4px; }
       .dp-body .rk-mu-hd > span { font-size: 0.58rem; letter-spacing: 0.02em; }

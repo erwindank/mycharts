@@ -20192,7 +20192,8 @@ function buildAllTimePeaks(forView) {
       ap[a].songs.add(p.title);
     }
   }
-  const artistsSorted = Object.entries(ap).sort(([, a], [, b]) => rankSort(a, b)).slice(0, chartSizeAllTime);
+  // each type follows its own All-Time chart size (was the songs size for all three)
+  const artistsSorted = Object.entries(ap).sort(([, a], [, b]) => rankSort(a, b)).slice(0, chartSizeArtistsAT);
   const artistPeakMap = {};
   artistsSorted.forEach(([name], i) => { artistPeakMap[name] = i + 1; });
 
@@ -20206,7 +20207,7 @@ function buildAllTimePeaks(forView) {
   const albumGroups = (separatedTypes().length && !(forView && albumsViewIsMixed()))
     ? _crBucketAlbums(lp) : [Object.entries(lp)];
   for (const g of albumGroups) {
-    g.sort(([, a], [, b]) => rankSort(a, b)).slice(0, chartSizeAllTime)
+    g.sort(([, a], [, b]) => rankSort(a, b)).slice(0, chartSizeAlbumsAT)
      .forEach(([k], i) => { albumPeakMap[k] = i + 1; });
   }
 
