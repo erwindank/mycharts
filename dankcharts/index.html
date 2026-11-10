@@ -27,13 +27,13 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=992">
+  <link rel="stylesheet" href="style.css?v=1000">
   <!-- The Charts Guide's lessons (guide.js, GUIDE-PLAN.md) -->
   <link rel="stylesheet" href="guide.css?v=5">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=385"></script>
+  <script defer src="translations.js?v=392"></script>
   <!-- Only the visitor's own language is downloaded (translations.js holds
        English). This writes a defer tag for the saved language right here, so
        it runs straight after translations.js and before app.js, and the page
@@ -41,7 +41,7 @@
        whenever translations.es / pt-BR / pt-PT .js change (setup-guide.html
        has the same line). -->
   <script>
-    window.DC_I18N_V = 78;
+    window.DC_I18N_V = 85;
     (function () {
       try {
         var l = localStorage.getItem('dankcharts-lang');
@@ -4556,7 +4556,7 @@
   <!-- One behaviour and one icon set for every pop-up window (phase 10); before
        app.js so dcIco() is there when app.js draws a window -->
   <script defer src="popups.js?v=13"></script>
-  <script defer src="app.js?v=730"></script>
+  <script defer src="app.js?v=736"></script>
   <!-- The song / album / artist details side panel (phase 10 step 3); wraps app.js's open functions -->
   <script defer src="panel.js?v=16"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
@@ -4573,6 +4573,7 @@
   <!-- The Stats page's tabs, Overview, Story, Games and Compare (phase 15); reads app.js globals -->
   <!-- Phase 20: the All #1s look laid over the other Records sections (recx*). -->
   <script defer src="records-look.js?v=13"></script>
+  <script defer src="cert-plaque.js?v=3"></script>
   <script defer src="stats.js?v=60"></script>
   <!-- The Dank 100: weekly entries for the shared community chart; reads app.js and firebase.js globals -->
   <script defer src="dank100.js?v=26"></script>
@@ -6136,6 +6137,61 @@ function deleteGenreTriggers() {
     </div>
   </div>
 
+  <!-- CERTIFICATION PLAQUE SHARE (cert-plaque.js): one plaque as a picture.
+       Last in the page so it opens over the album window too. -->
+  <div class="ig-modal-overlay" id="cpModal">
+    <div class="dc-modal ig-modal-box">
+      <div class="ig-modal-header">
+        <h3 data-i18n="cp_title">Share Certification</h3>
+        <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close ig-modal-close" onclick="cpClose()" aria-label="Close" data-i18n-aria="set_close">✕</button>
+      </div>
+      <div class="ig-modal-body">
+        <div class="ig-preview-panel">
+          <div class="ig-preview-label" data-i18n="ig_preview_label">Preview</div>
+          <div class="ig-preview-frame" id="cpFrame">
+            <div class="ig-preview-inner" id="cpInner"></div>
+          </div>
+        </div>
+        <div class="ig-controls-panel">
+          <div class="sh-group">
+            <div class="sh-group-title" data-i18n="ig_format">Format</div>
+            <div class="dc-seg dc-seg-fill sh-seg" id="cpFormatBtns">
+              <button class="sh-seg-btn" data-fmt="post" onclick="cpSet('format','post')" data-i18n="sh_fmt_post">Post 1:1</button>
+              <button class="sh-seg-btn active" data-fmt="portrait" onclick="cpSet('format','portrait')" data-i18n="sh_fmt_portrait">Portrait 4:5</button>
+              <button class="sh-seg-btn" data-fmt="story" onclick="cpSet('format','story')" data-i18n="sh_fmt_story">Story 9:16</button>
+            </div>
+          </div>
+          <div class="sh-group">
+            <div class="sh-group-title" data-i18n="cp_backdrop">Background</div>
+            <div class="dc-seg dc-seg-fill sh-seg" id="cpBackdropBtns">
+              <button class="sh-seg-btn active" data-bd="wall" onclick="cpSet('backdrop','wall')" data-i18n="cp_bd_wall">Wall</button>
+              <button class="sh-seg-btn" data-bd="cover" onclick="cpSet('backdrop','cover')" data-i18n="cp_bd_cover">Cover</button>
+            </div>
+          </div>
+          <div class="sh-group">
+            <div class="sh-group-title" data-i18n="ig_show_hide">Show / Hide</div>
+            <label class="ig-ctrl-row"><input type="checkbox" id="cpOpt_showDate" checked onchange="cpToggles()"><span data-i18n="cp_opt_date">Date line</span></label>
+            <label class="ig-ctrl-row"><input type="checkbox" id="cpOpt_showFooter" checked onchange="cpToggles()"><span data-i18n="ig_footer_branding">Footer Branding</span></label>
+          </div>
+          <div class="sh-group">
+            <div class="sh-group-title" data-i18n="sh_quality">Quality</div>
+            <div class="dc-seg dc-seg-fill sh-seg" id="cpQualityBtns">
+              <button class="sh-seg-btn" data-q="1" onclick="cpSet('quality',1)" data-i18n="sh_quality_std">Standard</button>
+              <button class="sh-seg-btn active" data-q="2" onclick="cpSet('quality',2)" data-i18n="sh_quality_high">High</button>
+            </div>
+            <div class="sh-hint" id="cpQualityNote">2160 × 2700 px</div>
+          </div>
+        </div>
+      </div>
+      <div class="ig-modal-footer">
+        <button class="dc-btn dc-btn-plain" onclick="cpClose()" data-i18n="btn_cancel">Cancel</button>
+        <button class="dc-btn dc-btn-normal" id="cpCopyBtn" onclick="cpCopy()" data-i18n="sh_copy">Copy</button>
+        <button class="dc-btn dc-btn-normal ig-share-native-btn" id="cpShareBtn" onclick="cpShare()" data-i18n="sh_share">Share</button>
+        <button class="dc-btn dc-btn-main" id="cpDownloadBtn" onclick="cpDownload()" data-i18n="btn_download_image">Download Image</button>
+      </div>
+    </div>
+  </div>
+  <div id="cpCanvas" class="share-stage"></div>
 </body>
 
 </html>

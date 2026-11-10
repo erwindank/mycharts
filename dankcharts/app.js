@@ -30123,7 +30123,7 @@ function openAlbumModal(albumKey) {
       return `<div class="cert-card cert-card--${p.tier}">
         <div class="cert-frame">
           <span class="cert-bolt cert-bolt--tl"></span><span class="cert-bolt cert-bolt--tr"></span>
-          <span class="cert-bolt cert-bolt--bl"></span><span class="cert-bolt cert-bolt--br"></span>
+          <span class="cert-bolt cert-bolt--bl"></span><span class="cert-bolt cert-bolt--br"></span>${typeof cpShareBtnHTML === 'function' ? cpShareBtnHTML() : ''}
           <div class="cert-stage">
             <div class="cert-art-slot" id="albcp-${idx}"><div class="cert-art-initials">${esc(wallInitials(name))}</div></div>
             <div class="cert-fan cert-fan--${pDiscs}">${'<div class="cert-disc"></div>'.repeat(pDiscs)}</div>
@@ -32296,7 +32296,7 @@ function renderCertWallCards(keepShown) {
     return `<div class="cert-card cert-card--${tierClass}${more}"${item.top ? '' : ' data-cert-lesser="1"'} data-rec-artist="${esc(item.artist || '')}" data-rec-type="${esc(cwType)}" data-rec-name="${esc(item.title || '')}" data-rec-prefkey="${esc(cwPrefKey)}">
   <div class="cert-frame">
     <span class="cert-bolt cert-bolt--tl"></span><span class="cert-bolt cert-bolt--tr"></span>
-    <span class="cert-bolt cert-bolt--bl"></span><span class="cert-bolt cert-bolt--br"></span>
+    <span class="cert-bolt cert-bolt--bl"></span><span class="cert-bolt cert-bolt--br"></span>${typeof cpShareBtnHTML === 'function' ? cpShareBtnHTML() : ''}
     <div class="cert-stage" id="cwrec-${origIdx}">
       <div class="cert-art-slot" id="cwrec-img-${origIdx}" data-cwkey="${esc(cwKey)}">${known
       ? `<img class="thumb" src="${esc(known)}" alt="" loading="lazy">`
@@ -32611,7 +32611,7 @@ function certReelCard(item, i) {
   return `<div class="cert-card creel-card cert-card--${tierClass}">
     <div class="cert-frame">
       <span class="cert-bolt cert-bolt--tl"></span><span class="cert-bolt cert-bolt--tr"></span>
-      <span class="cert-bolt cert-bolt--bl"></span><span class="cert-bolt cert-bolt--br"></span>
+      <span class="cert-bolt cert-bolt--bl"></span><span class="cert-bolt cert-bolt--br"></span>${typeof cpShareBtnHTML === 'function' ? cpShareBtnHTML() : ''}
       <div class="cert-stage">
         <div class="cert-art-slot" id="${esc(imgId)}"><div class="cert-art-initials">${esc(wallInitials(item.title))}</div></div>
         <div class="cert-fan cert-fan--${discs}">${'<div class="cert-disc"></div>'.repeat(discs)}</div>

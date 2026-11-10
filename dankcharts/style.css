@@ -49212,3 +49212,30 @@ a.tb-more-item:hover { text-decoration: none; }
   .wc-at1 { display: none; }
 }
 
+/* Share button on a certification plaque (cert-plaque.js, 2026-11-10): a
+   small round button in the panel's top-right corner, just inside the
+   standoff. Shows on hover / focus on computers, always on touch screens. */
+.cert-share {
+  position: absolute;
+  top: 5px;
+  right: 20px;
+  z-index: 4;
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(var(--cpanel), 0.45);
+  background: rgba(14, 16, 20, 0.82);
+  color: var(--ctint);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease, border-color 0.15s ease;
+}
+.cert-card:hover .cert-share,
+.cert-share:focus-visible { opacity: 1; }
+.cert-share:hover { border-color: var(--chi); }
+.cert-share:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (hover: none) { .cert-share { opacity: 1; } }
