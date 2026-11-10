@@ -91,7 +91,7 @@ function buT(key, vars) { return t(_buKey(key), vars); }
 const SUB_CHART_PERIOD_AVAILABILITY = {
   normal: () => true,
   bu:     () => _buOn(),
-  off:    () => currentPeriod === 'week',
+  off:    () => _buOn(),
   new:    () => currentPeriod === 'day' || currentPeriod === 'week' || currentPeriod === 'month' || currentPeriod === 'year'
 };
 
@@ -20601,14 +20601,13 @@ function renderSongs(plays, peaks, monthlyStats) {
   applyWeeklyChartView('songs');
   _dcLiveSearch('songs');   // keep a running search (50+ entry charts)
   // Render Bubbling Under section (weekly only, requires history stats)
-  // Bubbling Under: Weekly and Daily (_buOn). Off the Chart: Weekly only.
+  // Bubbling Under and Off the Chart: Weekly and Daily (_buOn)
   if (_buOn() && monthlyStats) {
     const _buNormSongs = _buPoolSongs.map(s => ({
       key: songKey(s), displayName: s.title, subName: s.artist, album: s.album, count: s.count
     }));
     renderBubblingUnder('songs', _buNormSongs, monthlyStats, sorted[sorted.length - 1]?.count || 0);
-    if (currentPeriod === 'week') renderOffChart('songs', plays, monthlyStats, _buNormSongs, sorted[sorted.length - 1]?.count || 0);
-    else hideOffSection('songs');
+    renderOffChart('songs', plays, monthlyStats, _buNormSongs, sorted[sorted.length - 1]?.count || 0);
   } else {
     hideBuSection('songs');
     hideOffSection('songs');
@@ -20680,14 +20679,13 @@ function renderArtists(plays, peaks, monthlyStats) {
   applyWeeklyChartView('artists');
   _dcLiveSearch('artists');   // keep a running search (50+ entry charts)
   // Render Bubbling Under section (weekly only, requires history stats)
-  // Bubbling Under: Weekly and Daily (_buOn). Off the Chart: Weekly only.
+  // Bubbling Under and Off the Chart: Weekly and Daily (_buOn)
   if (_buOn() && monthlyStats) {
     const _buNormArtists = _buPoolArtists.map(([name, data]) => ({
       key: name, displayName: name, subName: '', count: data.count
     }));
     renderBubblingUnder('artists', _buNormArtists, monthlyStats, sorted[sorted.length - 1]?.[1].count || 0);
-    if (currentPeriod === 'week') renderOffChart('artists', plays, monthlyStats, _buNormArtists, sorted[sorted.length - 1]?.[1].count || 0);
-    else hideOffSection('artists');
+    renderOffChart('artists', plays, monthlyStats, _buNormArtists, sorted[sorted.length - 1]?.[1].count || 0);
   } else {
     hideBuSection('artists');
     hideOffSection('artists');
@@ -20782,14 +20780,13 @@ function renderAlbums(plays, peaks, monthlyStats) {
   applyWeeklyChartView('albums');
   _dcLiveSearch('albums');   // keep a running search (50+ entry charts)
   // Render Bubbling Under section (weekly only, requires history stats)
-  // Bubbling Under: Weekly and Daily (_buOn). Off the Chart: Weekly only.
+  // Bubbling Under and Off the Chart: Weekly and Daily (_buOn)
   if (_buOn() && monthlyStats) {
     const _buNormAlbums = _buPoolAlbums.map(a => ({
       key: a.album + '|||' + albumArtist(a), displayName: a.album, subName: albumArtist(a), count: a.count
     }));
     renderBubblingUnder('albums', _buNormAlbums, monthlyStats, sorted[sorted.length - 1]?.count || 0);
-    if (currentPeriod === 'week') renderOffChart('albums', plays, monthlyStats, _buNormAlbums, sorted[sorted.length - 1]?.count || 0);
-    else hideOffSection('albums');
+    renderOffChart('albums', plays, monthlyStats, _buNormAlbums, sorted[sorted.length - 1]?.count || 0);
   } else {
     hideBuSection('albums');
     hideOffSection('albums');
@@ -23553,7 +23550,9 @@ function renderOffChart(type, plays, periodStats, buPool, lowestChartCount) {
   const ucType    = type.charAt(0).toUpperCase() + type.slice(1);
   const sectionEl = document.getElementById('off' + ucType + 'Section');
   if (!sectionEl) return;
-  if (!periodStats || currentPeriod !== 'week') { sectionEl.style.display = 'none'; return; }
+  if (!periodStats || !_buOn()) { sectionEl.style.display = 'none'; return; }
+  // Daily hands its own day-before stats in as periodStats.bu (dyBuStats in daily.js)
+  if (periodStats.bu) periodStats = periodStats.bu;
 
   // Current week's chart keys for this type — must use rankSortWithStatus to match main chart tiebreakers
   let counts = {};
@@ -23619,7 +23618,7 @@ function renderOffChart(type, plays, periodStats, buPool, lowestChartCount) {
   const countEl = document.getElementById('off' + ucType + 'Count');
   const bodyEl  = document.getElementById('off' + ucType + 'Body');
   const iconEl  = document.getElementById('off' + ucType + 'ToggleIcon');
-  if (subEl)   { subEl.dataset.i18nN = chartSize; subEl.textContent = t('sub_off_chart', { n: chartSize }); }
+  if (subEl)   { subEl.dataset.i18nN = chartSize; subEl.dataset.i18nWithN = _buKey('sub_off_chart'); subEl.textContent = buT('sub_off_chart', { n: chartSize }); }
   if (countEl) countEl.textContent = dropped.length;
   if (bodyEl)  bodyEl.style.display = _offOpen[type] ? '' : 'none';
   if (iconEl)  iconEl.textContent = _offOpen[type] ? '▲' : '▼';
@@ -23627,7 +23626,7 @@ function renderOffChart(type, plays, periodStats, buPool, lowestChartCount) {
   // Nothing dropped out this week — celebrate the stability instead of hiding.
   if (!dropped.length) {
     const contentEl = document.getElementById('off' + ucType + 'Content');
-    if (contentEl) contentEl.innerHTML = `<div class="dropout-empty">${t('off_chart_empty', { n: chartSize })}</div>`;
+    if (contentEl) contentEl.innerHTML = `<div class="dropout-empty">${buT('off_chart_empty', { n: chartSize })}</div>`;
     return;
   }
 
@@ -23712,14 +23711,14 @@ function renderOffChart(type, plays, periodStats, buPool, lowestChartCount) {
     if (buEntry) {
       // Idea 3+5: it landed in Bubbling Under — link straight to its row there
       const playsAway = Math.max(0, (lowestChartCount || 0) - buEntry.count);
-      line3 = `<button class="atc-jump" onclick="event.stopPropagation();atcJumpToBu('${type}',${buEntry.rank})">${esc(t('off_bu_now_at', { n: buEntry.rank }))} →</button>`
+      line3 = `<button class="atc-jump" onclick="event.stopPropagation();atcJumpToBu('${type}',${buEntry.rank})">${esc(buT('off_bu_now_at', { n: buEntry.rank }))} →</button>`
         + (playsAway > 0 ? `<span class="bu-badge bu-badge-away" title="${t(playsAway === 1 ? 'off_bu_reenter_title_one' : 'off_bu_reenter_title_other', { n: playsAway })}">${t(playsAway === 1 ? 'bu_badge_away_one' : 'bu_badge_away_other', { n: playsAway })}</span>` : '');
     } else {
       // Not even in Bubbling Under — say so, and when it was last played
-      const why = thisWeekCount > 0 ? t('off_not_in_bu') : t('off_bu_no_plays');
+      const why = thisWeekCount > 0 ? buT('off_not_in_bu') : buT('off_bu_no_plays');
       const lp = lastPlayed.get(k);
       // On phones only "last played …" shows: the number strip already says 3 → 0
-      line3 = `<span class="atc-muted"><span class="atc-why${lp ? '' : ' is-only'}">${esc(why)}${lp ? ' <span class="atc-dot">·</span> ' : ''}</span>${lp ? esc(t('off_last_played', { date: shortDate(lp) })) : ''}</span>`;
+      line3 = `<span class="atc-muted"><span class="atc-why${lp ? '' : ' is-only'}">${esc(why)}${lp ? ' <span class="atc-dot">·</span> ' : ''}</span>${lp ? esc(buT('off_last_played', { date: shortDate(lp) })) : ''}</span>`;
     }
 
     // Exit type: one label for how it left; the first rule that matches wins
@@ -23728,7 +23727,7 @@ function renderOffChart(type, plays, periodStats, buPool, lowestChartCount) {
       : buEntry ? ['off_exit_slipped', ' is-soft']
       : wks === 1 ? ['off_exit_oneweek', ' is-soft']
       : ['off_exit_dropped', ''];
-    const exitTag = cls => `<span class="atc-exit${exit[1]}${cls}" title="${esc(t(exit[0] + '_title'))}">${esc(t(exit[0]))}</span>`;
+    const exitTag = cls => `<span class="atc-exit${exit[1]}${cls}" title="${esc(buT(exit[0] + '_title'))}">${esc(buT(exit[0]))}</span>`;
 
     // Idea 1: only worth calling out if this entry once did BETTER than the
     // rank it just fell from — restating "Peak #9" next to "Was #9" is noise,
@@ -23738,7 +23737,7 @@ function renderOffChart(type, plays, periodStats, buPool, lowestChartCount) {
 
     // Last week → this week, with two thin bars on the scale of last week's plays
     const nowPct = count > 0 ? Math.max(4, Math.round(thisWeekCount / count * 100)) : 0;
-    const wasLbl = esc(t('off_chart_rank_was'));
+    const wasLbl = esc(buT('off_chart_rank_was'));
 
     // A click on the row opens its chart run underneath (_offRowClick); the
     // panel is built on first open, so a long dropout list costs nothing
@@ -23753,11 +23752,11 @@ function renderOffChart(type, plays, periodStats, buPool, lowestChartCount) {
         <div class="atc-ln">${line3}</div>
       </div>
       <div class="atc-offstats">
-        <div class="atc-ln" data-cap="${esc(t('off_cap_plays'))}"><span class="atc-lt" title="${esc(t('off_lt_title', { a: count, b: thisWeekCount }))}"><span class="atc-lt-bars"><i style="width:100%"></i><i class="is-now" style="width:${nowPct}%"></i></span><span><b>${count}</b> <span class="atc-arrow">→</span> <b>${thisWeekCount}</b> <span class="atc-long">${esc(t('off_cap_plays'))}</span></span></span></div>
-        <div class="atc-ln" data-cap="${esc(t('off_cap_weeks'))}"><span class="atc-long">${tCount('weeks_full', wks)} ${t('film_on_chart')}</span><span class="atc-short">${wks}</span></div>
+        <div class="atc-ln" data-cap="${esc(buT('off_cap_plays'))}"><span class="atc-lt" title="${esc(buT('off_lt_title', { a: count, b: thisWeekCount }))}"><span class="atc-lt-bars"><i style="width:100%"></i><i class="is-now" style="width:${nowPct}%"></i></span><span><b>${count}</b> <span class="atc-arrow">→</span> <b>${thisWeekCount}</b> <span class="atc-long">${esc(buT('off_cap_plays'))}</span></span></span></div>
+        <div class="atc-ln" data-cap="${esc(buT('off_cap_weeks'))}"><span class="atc-long">${currentPeriod === 'day' ? tCount('days', wks) : tCount('weeks_full', wks)} ${t('film_on_chart')}</span><span class="atc-short">${wks}</span></div>
         ${streakWks >= 2
-          ? `<div class="atc-ln atc-strk" data-cap="${esc(t('off_cap_streak'))}"><span class="atc-long">${t('off_chart_streak_before_drop', { n: streakWks })}</span><span class="atc-short">🔥 ${streakWks}</span></div>`
-          : `<div class="atc-ln" data-cap="${esc(t('off_cap_nostreak'))}"><span class="atc-short">–</span></div>`}
+          ? `<div class="atc-ln atc-strk" data-cap="${esc(buT('off_cap_streak'))}"><span class="atc-long">${buT('off_chart_streak_before_drop', { n: streakWks })}</span><span class="atc-short">🔥 ${streakWks}</span></div>`
+          : `<div class="atc-ln" data-cap="${esc(buT('off_cap_nostreak'))}"><span class="atc-short">–</span></div>`}
       </div>
       <div class="dropout-actions">${ytBtn}</div>
     </div>
