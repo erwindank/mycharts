@@ -794,10 +794,32 @@ function _ntRecordLeaders() {
          panels without naming the period, so the breakdown list keeps the
          panel's period to tell those lines apart (pd, see _ntListHtml). */
       const pd = tb.closest('.nc-rec-panel')?.dataset.ncPeriod || '';
-      out[_ntHash(base + '|' + seen[base])] = { k: rec.prefKey, name: rec.name, artist: rec.artist, type: rec.type, title, sec: secId, nth: seen[base], pd };
+      out[_ntHash(base + '|' + seen[base])] = { k: rec.prefKey, name: rec.name, artist: rec.artist, type: rec.type, title, sec: secId, nth: seen[base], pd, tie: _ntTiedKeys(tb, row) };
     });
   });
   return out;
+}
+
+/* Everyone sharing first place with the #1 row (same .rec-count figure).
+   Lists sort by the figure alone, so between equals the order is just
+   build order and can flip from one build to the next. Before 2026-11-10
+   every flip posted "New #1s!" again (two EPs with the same years on the
+   yearly chart came back every check). ntRecordsBuilt uses this so a tie
+   is never a new record and a tied holder keeps its place. */
+function _ntTiedKeys(tb, row0) {
+  const cnt = r => { const c = r.querySelector('.rec-count'); return c ? c.textContent.replace(/\s+/g, ' ').trim() : ''; };
+  const top = cnt(row0);
+  if (!top) return [];   // a list without a count column: no tie check
+  const keys = [];
+  // Real rows only (the chart-run rows under them share their data-rec-idx)
+  for (const r of tb.querySelectorAll('tbody tr')) {
+    if (r === row0 || !r.querySelector('.rec-rank') || !r.dataset.recIdx) continue;
+    if (cnt(r) !== top) break;   // sorted, so the first different figure ends the tie
+    const k = r.dataset.recPrefkey || r.querySelector('.img-src-btn[data-prefkey]')?.getAttribute('data-prefkey') || '';
+    if (k) keys.push(k);
+    if (keys.length >= 20) break;
+  }
+  return keys;
 }
 
 function _ntRecordsBuilt() {
@@ -852,6 +874,12 @@ async function ntRecordsBuilt() {
       // First time, or another language: note where things stand, tell nothing
       if (!prev || !prev.lead || prev.lang !== lang) rec = { lang, asOf, lead };
       else if (asOf >= prev.asOf) {   // older data than last time: leave it alone
+        // Last holder still level with the top (only build order put another
+        // first): they keep the record and nothing is new (see _ntTiedKeys)
+        ids.forEach(id => {
+          const p = prev.lead[id];
+          if (p && p !== lead[id] && (now[id].tie || []).includes(p)) lead[id] = p;
+        });
         out = ids.filter(id => prev.lead[id] && prev.lead[id] !== lead[id]);
         if (out.length || JSON.stringify(prev.lead) !== JSON.stringify(lead)) rec = { lang, asOf, lead };
       }
