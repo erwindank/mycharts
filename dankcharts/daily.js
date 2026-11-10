@@ -92,7 +92,7 @@ function dyDateRange() {
    same "firstAchieved" the weekly sort (rankSortWithStatus) uses, so a
    day's ranks here and on screen agree. */
 function dyHistory() {
-  const gen = [_stampEpoch, _playsVersion, _releaseEpoch, dySizeOf('songs'), dySizeOf('artists'), dySizeOf('albums'), albumsFilterBucket() || '', singleRollupLevel()].join('|');
+  const gen = [_stampEpoch, _playsVersion, _releaseEpoch, dySizeOf('songs'), dySizeOf('artists'), dySizeOf('albums'), albumsFilterBucket() || '', singleRollupLevel(), _aroundSizesSig()].join('|');
   if (_dyHist && _dyHist.gen === gen) return _dyHist;
 
   const byDay = {};   // ds → { plays, songs: {k: e}, artists: {k: e}, albums: {k: e}, list: [plays] }
@@ -125,8 +125,8 @@ function dyHistory() {
 
   const days = Object.keys(byDay).sort();
   const charts = { songs: {}, artists: {}, albums: {} };   // type → ds → [{ k, rank, count }]
-  // Each day's Bubbling Under zone: the entries just below the chart (10, or
-  // 50 under a Top 100+), ranked BU1, BU2… — read by dyBuStats / dyBuChartRun
+  // Each day's Bubbling Under zone: the entries just below the chart (the BU
+  // size from ⋮ → Size, default 20), ranked BU1, BU2… — read by dyBuStats / dyBuChartRun
   const bu = { songs: {}, artists: {}, albums: {} };       // type → ds → [{ k, buRank, count }]
   const ever = { songs: new Set(), artists: new Set(), albums: new Set() };
   for (const type of ['songs', 'artists', 'albums']) {
@@ -145,7 +145,7 @@ function dyHistory() {
       const size = dySizeOf(type);
       const top = rows.slice(0, size).map((r, i) => ({ k: r.k, rank: i + 1, count: r.count }));
       charts[type][ds] = top;
-      const buN = size >= 100 ? 50 : 10;   // same zone size as the weekly chart's
+      const buN = buSizeOf(type);   // the BU size from ⋮ → Size, same as the weekly chart's
       const buRows = rows.slice(size, size + buN);
       if (buRows.length) bu[type][ds] = buRows.map((r, i) => ({ k: r.k, buRank: i + 1, count: r.count }));
       for (const r of top) ever[type].add(r.k);

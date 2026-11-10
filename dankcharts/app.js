@@ -426,6 +426,49 @@ let chartSizeSongsY = 100, chartSizeArtistsY = 100, chartSizeAlbumsY = 100;
 let chartSizeSongsAT = Infinity, chartSizeArtistsAT = Infinity, chartSizeAlbumsAT = Infinity;
 // Active per-section sizes (set at the start of renderAll for the current period)
 let chartSizeSongs = 10, chartSizeArtists = 10, chartSizeAlbums = 10;
+
+/* ─── NEW ENTRIES + BUBBLING UNDER SIZES (2026-11-10) ───────────────────────
+   How many entries each New list (New Songs / Artists / Albums / Singles /
+   EPs) and each Bubbling Under list shows. One setting per list, the same on
+   every period, picked in that chart's ⋮ → Size (_dcInitAroundSizeRows).
+   Default 20 for all of them. They used to follow the chart above instead
+   (New = the chart size, at least 20 on Daily/Weekly; BU = 10, or 50 under a
+   Top 100+). Singles and EPs have their own setting, used while that bucket
+   is the one on the albums chart (see _aroundKey). 0 is stored for "All"
+   (New Entries only) and read back as Infinity, like the chart sizes. */
+const AROUND_SIZE_DEFAULT = 20;
+const AROUND_SIZE_KEYS = ['songs', 'artists', 'albums', 'single', 'ep'];
+const NE_SIZE_PRESETS = [10, 20, 25, 30, 50, 0];   // 0 = All
+const BU_SIZE_PRESETS = [10, 20, 25, 30, 50];
+function _loadAroundSizes(lsKey) {
+  const out = {};
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(lsKey) || 'null'); } catch (e) {}
+  for (const k of AROUND_SIZE_KEYS) {
+    const v = saved && saved[k] != null ? parseInt(saved[k]) : NaN;
+    out[k] = v === 0 ? Infinity : (v > 0 ? v : AROUND_SIZE_DEFAULT);
+  }
+  return out;
+}
+let neSizes = _loadAroundSizes('dc_neSizes');   // New Entries
+let buSizes = _loadAroundSizes('dc_buSizes');   // Bubbling Under
+// The settings key a chart type uses: on the albums chart it is the bucket on
+// show (singles / EPs once separated), plain 'albums' otherwise and on "All".
+function _aroundKey(type, bucket) {
+  if (type !== 'albums') return type;
+  const b = bucket !== undefined ? bucket : (typeof albumsFilterBucket === 'function' ? albumsFilterBucket() : null);
+  return b === 'single' || b === 'ep' ? b : 'albums';
+}
+function neSizeOf(type, bucket) { return neSizes[_aroundKey(type, bucket)] || AROUND_SIZE_DEFAULT; }
+function buSizeOf(type, bucket) {
+  const v = buSizes[_aroundKey(type, bucket)];
+  return isFinite(v) && v > 0 ? v : AROUND_SIZE_DEFAULT;   // BU has no "All"
+}
+// For cache keys: anything built from these sizes must rebuild when one changes
+function _aroundSizesSig() {
+  return AROUND_SIZE_KEYS.map(k => (isFinite(neSizes[k]) ? neSizes[k] : 0) + '/' + buSizes[k]).join(',');
+}
+
 let recLimit = 25; // Records entries limit
 let eventsArtistLimit = parseInt(localStorage.getItem('dc_events_artist_limit') || '50') || 50;
 let eventsCalendarYear = tzNow().getFullYear();
@@ -7908,6 +7951,9 @@ function finalizeLoad() {
   chartSizeAlbumsM   = _loadSectionSize('dc_chartSizeAlbumsM',   'dc_chartSizeMonthly', 50);
   chartSizeAlbumsY   = _loadSectionSize('dc_chartSizeAlbumsY',   'dc_chartSizeYearly',  100);
   chartSizeAlbumsAT  = _loadSectionSize('dc_chartSizeAlbumsAT',  'dc_chartSizeAllTime', Infinity);
+  // New Entries / Bubbling Under sizes: read again, the account copy may have just landed
+  neSizes = _loadAroundSizes('dc_neSizes');
+  buSizes = _loadAroundSizes('dc_buSizes');
   // Keep compat vars in sync with songs (songs = primary chart)
   chartSizeWeekly  = chartSizeSongsW;
   chartSizeMonthly = chartSizeSongsM;
@@ -8247,6 +8293,163 @@ _bindSectionSizeBar('sizeBtnsSongsAT',   v => { chartSizeSongsAT   = v; chartSiz
 _bindSectionSizeBar('sizeBtnsArtistsAT', v => { chartSizeArtistsAT = v; },                       'dc_chartSizeArtistsAT', true, () => chartSizeArtistsAT);
 _bindSectionSizeBar('sizeBtnsAlbumsAT',  v => { chartSizeAlbumsAT  = v; },                       'dc_chartSizeAlbumsAT',  true, () => chartSizeAlbumsAT);
 _dcInitCustomSizeRows();
+
+// ─── NEW ENTRIES + BUBBLING UNDER SIZES IN ⋮ → SIZE (2026-11-10) ─
+// A small switch at the top of each chart's Size tab — Chart · Bubbling
+// Under · New Entries — picks which list the tab sizes. "Chart" is the Top N
+// list (+ Custom row, Reset column widths) as before; the other two show that
+// list's own sizes (neSizes / buSizes, default 20) as the same full-width
+// rows. Built in JS for the three charts. The lists sit outside
+// .section-size-bar so the chart-size code (_dcVisibleSizeGroup, the Custom
+// row) never mistakes them for a chart size group. On the albums chart they
+// set the bucket on show, so New Singles and New EPs each keep their own.
+// The chosen view is remembered (dc_size_view) and falls back to Chart on a
+// period where that list doesn't exist (no Bubbling Under on Monthly).
+let _dcSizeView = (() => { try { return localStorage.getItem('dc_size_view') || 'chart'; } catch (e) { return 'chart'; } })();
+function _dcInitAroundSizeRows() {
+  ['Songs', 'Artists', 'Albums'].forEach(sec => {
+    const bar = document.getElementById('sizeBar' + sec);
+    const panel = bar && bar.closest('.kebab-panel');
+    if (!panel || panel.querySelector('.size-around')) return;
+    const type = sec.toLowerCase();
+    // The switch, first thing in the tab
+    const seg = document.createElement('div');
+    seg.className = 'size-seg';
+    seg.setAttribute('role', 'tablist');
+    seg.innerHTML = [['chart', 'sub_toggle_chart'], ['bu', 'sub_toggle_bu'], ['ne', 'sub_toggle_new']].map(([v, k]) =>
+      '<button type="button" class="size-seg-btn" role="tab" data-view="' + v + '" data-i18n="' + k + '">' + t(k) + '</button>').join('');
+    panel.insertBefore(seg, panel.firstChild);
+    seg.addEventListener('click', e => {
+      const b = e.target.closest('.size-seg-btn'); if (!b) return;
+      _dcSizeView = b.dataset.view;
+      try { localStorage.setItem('dc_size_view', _dcSizeView); } catch (err) {}
+      _dcSyncAroundSizeRows();
+    });
+    // One list per view, the same row look as Top N (.size-btns)
+    const rows = (list, presets) => presets.map(n =>
+      '<button type="button" class="size-around-chip" data-around="' + list + '" data-n="' + n + '"' +
+      (n === 0 ? ' data-i18n="size_around_all">' + t('size_around_all') : '>' + t('size_around_n', { n })) + '</button>').join('');
+    // A Custom row under each list — the same markup and classes as the
+    // chart's Custom row (_dcInitCustomSizeRows), same 5–500 range. The note
+    // line only shows to say a number is out of range.
+    const custom = list =>
+      '<div class="size-custom size-around-custom" data-around="' + list + '">' +
+        '<div class="size-custom-row">' +
+          '<span class="size-custom-label" data-i18n="size_custom">' + t('size_custom') + '</span>' +
+          '<input type="number" class="size-custom-input" inputmode="numeric" step="1"' +
+            ' min="' + DC_CUSTOM_SIZE_MIN + '" max="' + DC_CUSTOM_SIZE_MAX + '"' +
+            ' placeholder="' + DC_CUSTOM_SIZE_MIN + '–' + DC_CUSTOM_SIZE_MAX + '"' +
+            ' data-i18n-aria="size_custom_aria" aria-label="' + esc(t('size_custom_aria')) + '">' +
+          '<button type="button" class="size-custom-apply" data-i18n="size_custom_apply">' + t('size_custom_apply') + '</button>' +
+        '</div>' +
+        '<div class="size-custom-note is-error" hidden></div>' +
+      '</div>';
+    const wrap = document.createElement('div');
+    wrap.className = 'size-around';
+    wrap.dataset.type = type;
+    wrap.innerHTML =
+      '<div class="size-around-row" data-list="bu">' +
+        '<div class="size-around-label" data-i18n="sub_toggle_bu">' + t('sub_toggle_bu') + '</div>' +
+        '<div class="size-btns size-around-chips">' + rows('bu', BU_SIZE_PRESETS) + '</div>' +
+        custom('bu') +
+      '</div>' +
+      '<div class="size-around-row" data-list="ne">' +
+        // Label filled by _dcSyncAroundSizeRows (New Songs / New Singles …)
+        '<div class="size-around-label size-around-ne-label"></div>' +
+        '<div class="size-btns size-around-chips">' + rows('ne', NE_SIZE_PRESETS) + '</div>' +
+        custom('ne') +
+      '</div>';
+    panel.appendChild(wrap);
+    wrap.addEventListener('click', e => {
+      const chip = e.target.closest('.size-around-chip'); if (!chip) return;
+      _dcSetAroundSize(chip.dataset.around, type, parseInt(chip.dataset.n));
+    });
+    // Custom: Set button or Enter applies a typed size; out of range says so instead
+    wrap.querySelectorAll('.size-around-custom').forEach(row => {
+      const input = row.querySelector('.size-custom-input');
+      const note = row.querySelector('.size-custom-note');
+      const submit = () => {
+        const v = Math.round(Number(input.value));
+        if (!input.value || !isFinite(v) || v < DC_CUSTOM_SIZE_MIN || v > DC_CUSTOM_SIZE_MAX) {
+          note.textContent = t('size_custom_range', { min: DC_CUSTOM_SIZE_MIN, max: DC_CUSTOM_SIZE_MAX });
+          note.hidden = false;
+          input.focus();
+          return;
+        }
+        _dcSetAroundSize(row.dataset.around, type, v);
+      };
+      row.querySelector('.size-custom-apply').addEventListener('click', submit);
+      input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); submit(); } });
+      input.addEventListener('input', () => { note.hidden = true; });   // typing again clears the message
+    });
+  });
+  _dcSyncAroundSizeRows();
+}
+
+// Saves one list's size, syncs it to the account and redraws the charts
+function _dcSetAroundSize(list, type, n) {
+  const store = list === 'bu' ? buSizes : neSizes;
+  const key = _aroundKey(type);
+  store[key] = n === 0 ? Infinity : n;
+  const raw = {};
+  for (const k of AROUND_SIZE_KEYS) raw[k] = isFinite(store[k]) ? store[k] : 0;
+  try { localStorage.setItem(list === 'bu' ? 'dc_buSizes' : 'dc_neSizes', JSON.stringify(raw)); } catch (e) {}
+  if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
+  if (list === 'ne') { pageState.newSongs = 0; pageState.newArtists = 0; pageState.newAlbums = 0; }
+  renderAll();
+  _dcSyncAroundSizeRows();
+}
+
+// Lights the size in use, names the New list (New Singles while singles are
+// on show), and sets the switch: Bubbling Under only on Daily and Weekly, New
+// Entries on Daily to Yearly; the switch hides when Chart is the only view.
+function _dcSyncAroundSizeRows() {
+  const avail = { chart: true, bu: typeof _buOn === 'function' && _buOn(), ne: ['day', 'week', 'month', 'year'].includes(currentPeriod) };
+  const view = avail[_dcSizeView] ? _dcSizeView : 'chart';
+  document.querySelectorAll('.size-around').forEach(wrap => {
+    const type = wrap.dataset.type;
+    const panel = wrap.closest('.kebab-panel');
+    const cur = { bu: buSizeOf(type), ne: neSizeOf(type) };
+    wrap.querySelectorAll('.size-around-chip').forEach(c => {
+      const n = parseInt(c.dataset.n);
+      const v = cur[c.dataset.around];
+      c.classList.toggle('active', n === 0 ? !isFinite(v) : n === v);
+    });
+    // A size that isn't a preset lights the Custom row and fills its box
+    // (Custom · 37), like the chart's Custom row does
+    wrap.querySelectorAll('.size-around-custom').forEach(row => {
+      const v = cur[row.dataset.around];
+      const isPreset = !!row.closest('.size-around-row').querySelector('.size-around-chip.active');
+      row.classList.toggle('active', !isPreset);
+      const input = row.querySelector('.size-custom-input');
+      // Don't overwrite what the user is in the middle of typing
+      if (document.activeElement !== input) input.value = isPreset || !isFinite(v) ? '' : String(v);
+      if (document.activeElement !== input) row.querySelector('.size-custom-note').hidden = true;
+    });
+    const neLabel = wrap.querySelector('.size-around-ne-label');
+    if (neLabel) {
+      const b = type === 'albums' ? _aroundKey('albums') : null;
+      neLabel.textContent = type === 'songs' ? t('sec_new_songs')
+        : type === 'artists' ? t('sec_new_artists')
+        : (b === 'single' || b === 'ep') ? t('sec_new_of_type', { type: albumBucketNoun(true) })
+        : t('sec_new_albums');
+    }
+    if (!panel) return;
+    panel.dataset.sizeView = view;   // CSS shows only this view's part of the tab
+    const seg = panel.querySelector('.size-seg');
+    if (seg) {
+      seg.querySelectorAll('.size-seg-btn').forEach(b => {
+        b.style.display = avail[b.dataset.view] ? '' : 'none';
+        b.classList.toggle('active', b.dataset.view === view);
+        b.setAttribute('aria-selected', b.dataset.view === view ? 'true' : 'false');
+      });
+      seg.style.display = avail.bu || avail.ne ? '' : 'none';
+    }
+    wrap.querySelector('[data-list="bu"]').style.display = view === 'bu' ? '' : 'none';
+    wrap.querySelector('[data-list="ne"]').style.display = view === 'ne' ? '' : 'none';
+  });
+}
+_dcInitAroundSizeRows();
 
 // ─── NAVIGATE TO RECORD PERIOD ────────────────────────────────
 function navigateToRecPeriod(period, periodKey) {
@@ -8671,13 +8874,11 @@ function buildRecords() {
   // never made the chart (a #247 "debut" on a top-20 chart, an album credited
   // with 36 debuting tracks when only 20 fit), so mirror renderNewEntries'
   // per-section limits exactly and let a record come only from a charting entry.
-  // Daily mirrors renderNewEntries too: the daily New charts show at least 20.
-  const ncLimits = {
-    day:   { songs: Math.max(20, chartSizeSongsD), artists: Math.max(20, chartSizeArtistsD), albums: Math.max(20, chartSizeAlbumsD) },
-    week:  { songs: Math.max(20, chartSizeSongsW), artists: Math.max(20, chartSizeArtistsW), albums: Math.max(20, chartSizeAlbumsW) },
-    month: { songs: chartSizeSongsM, artists: chartSizeArtistsM, albums: chartSizeAlbumsM },
-    year:  { songs: chartSizeSongsY, artists: chartSizeArtistsY, albums: chartSizeAlbumsY },
-  };
+  // Since 2026-11-10 each New list has its own size (neSizes), the same on
+  // every period. Records list albums of every type together, so they use the
+  // New Albums size.
+  const _ncLim = { songs: neSizeOf('songs'), artists: neSizeOf('artists'), albums: neSizeOf('albums', null) };
+  const ncLimits = { day: _ncLim, week: _ncLim, month: _ncLim, year: _ncLim };
   {
     const sfp = { day: {}, week: {}, month: {}, year: {} };
     const afp = { day: {}, week: {}, month: {}, year: {} };
@@ -15754,37 +15955,142 @@ function buildFirstSeenMaps() {
 
 const NEW_ENTRY_SECTIONS = ['newSongsSection', 'newArtistsSection', 'newAlbumsSection'];
 
+/* ─── AROUND-THE-CHART LIST ACTIONS (2026-11-10) ───────────────────────────
+   Bubbling Under, Off the Chart and the New lists each get a row of four
+   buttons at the top of the list: Play all, Shuffle (into the YouTube player
+   queue, like the chart's own Play all), Save as playlist (the shared
+   playlist picker: a new playlist or add to one) and Export playlist (the
+   Soundiiz text export). Works on every period the lists show on, Daily
+   included, and for all three chart types: a song list plays its songs; an
+   artist list plays each artist's 3 most-played songs, an album list each
+   album's 5 most-played songs (ATC_TRACKS_PER). The bar is built in JS the
+   first time a list renders and hides while its list is empty. */
+const ATC_LISTS = ['bu', 'off', 'ne'];
+const ATC_TRACKS_PER = { artists: 3, albums: 5 };
+// Off the Chart's dropouts, in the order shown — filled by renderOffChart
+const _offLists = { songs: [], artists: [], albums: [] };
+
+// A list's entries as { title, artist, album } (songs) / { name } (artists) /
+// { album, artist } (albums), in the order they appear on screen
+function _atcItems(list, type) {
+  if (list === 'bu') {
+    return (_pdfBuPools[type] || []).map(i => type === 'songs' ? { title: i.displayName, artist: i.subName, album: i.album || '' }
+      : type === 'artists' ? { name: i.displayName } : { album: i.displayName, artist: i.subName });
+  }
+  if (list === 'off') return _offLists[type] || [];
+  const src = fullNewData['new' + type.charAt(0).toUpperCase() + type.slice(1)] || [];
+  return src.map(i => type === 'songs' ? { title: i.title, artist: i.artist, album: i.album || '' }
+    : type === 'artists' ? { name: i.name } : { album: i.album, artist: i.artist });
+}
+
+// The songs to play / save for a list. Artists and albums become their
+// most-played songs (one pass over the history for the whole list).
+function _atcTracks(list, type) {
+  const items = _atcItems(list, type);
+  if (type === 'songs') return items.filter(i => i.title);
+  const per = ATC_TRACKS_PER[type];
+  const lc = s => String(s || '').toLowerCase().trim();
+  const itemKey = i => type === 'artists' ? i.name : lc(i.album) + '|||' + lc(i.artist);
+  const want = new Map(items.map(i => [itemKey(i), new Map()]));   // entry → songKey → song + plays
+  const add = (bucket, p) => {
+    const sk = songKey(p);
+    const s = bucket.get(sk) || bucket.set(sk, { title: p.title, artist: p.artist, album: p.album || '', n: 0 }).get(sk);
+    s.n++;
+  };
+  for (const p of allPlays) {
+    if (type === 'artists') { for (const a of p.artists) { const b = want.get(a); if (b) add(b, p); } }
+    else if (p.album && p.album !== '—') { const b = want.get(lc(p.album) + '|||' + lc(albumArtist(p))); if (b) add(b, p); }
+  }
+  const out = [];
+  for (const i of items) {
+    const songs = [...(want.get(itemKey(i)) || new Map()).values()].sort((a, b) => b.n - a.n).slice(0, per);
+    songs.forEach(s => out.push({ title: s.title, artist: s.artist, album: s.album }));
+  }
+  return out;
+}
+
+// "Bubbling Under · Songs · Week of 2 Nov 2026" — names the picker and export
+function _atcLabel(list, type) {
+  const noun = type === 'albums' ? albumBucketNoun(true) : t('chart_type_' + type);
+  const what = list === 'ne'
+    ? (document.getElementById('new' + type.charAt(0).toUpperCase() + type.slice(1) + 'Title')?.textContent || t('sub_toggle_new'))
+    : (list === 'bu' ? t('sub_toggle_bu') : t('sec_off_chart')) + ' · ' + noun;
+  return what + ' · ' + _chartPeriodName();
+}
+
+// The button row's clicks: 'play' / 'shuffle' / 'save' / 'export'
+function atcListAction(list, type, act) {
+  const tracks = _atcTracks(list, type);
+  if (!tracks.length) { dcPlToast(t('pl_pick_nothing')); return; }
+  const label = _atcLabel(list, type);
+  if (act === 'save') { dcOpenPlaylistPicker(tracks, label, label); return; }
+  if (act === 'export') { dcOpenTextExport(tracks, label, [label]); return; }
+  const q = tracks.slice();
+  if (act === 'shuffle') {
+    for (let i = q.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [q[i], q[j]] = [q[j], q[i]]; }
+  }
+  const [first, ...rest] = q;
+  openYtPlayer(first.title, first.artist, first.album, null);
+  rest.forEach(s => _ytQueue.push({ title: s.title, artist: s.artist, album: s.album, btn: null }));
+  _ytUpdateQueueDisplay();
+  _ytSaveQueue();
+}
+
+// Builds the button rows once and shows each only while its list has entries.
+// Called at the end of renderNewEntries, after all three lists have rendered.
+function _atcSyncActions() {
+  const ic = d => `<svg class="dy-act-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+  const I = {
+    play:    ic('<path d="M7 4.5v15l12-7.5z"/>'),
+    shuffle: ic('<path d="M16 3h5v5"/><path d="M4 20L21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/>'),
+    save:    ic('<path d="M3 6h12M3 12h12M3 18h7"/><path d="M18 14v7M14.5 17.5h7"/>'),
+    export:  ic('<path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/>'),
+  };
+  for (const list of ATC_LISTS) {
+    for (const type of ['songs', 'artists', 'albums']) {
+      const Uc = type.charAt(0).toUpperCase() + type.slice(1);
+      const host = list === 'bu' ? document.getElementById('bu' + Uc + 'Body')
+        : list === 'off' ? document.getElementById('off' + Uc + 'Body')
+        : document.querySelector('#new' + Uc + 'Section .section-body');
+      if (!host) continue;
+      let bar = host.querySelector(':scope > .atc-acts');
+      if (!bar) {
+        bar = document.createElement('div');
+        bar.className = 'atc-acts';
+        const tip = type === 'songs' ? '' : ` title="${esc(t('atc_tracks_tip_' + type, { n: ATC_TRACKS_PER[type] }))}"`;
+        const b = (act, icon, key, extra) => `<button type="button" class="dy-act" onclick="atcListAction('${list}','${type}','${act}')"${extra || ''}>${icon}<span data-i18n="${key}">${esc(t(key))}</span></button>`;
+        bar.innerHTML =
+          b('play', I.play, 'atc_play_all', tip) +
+          b('shuffle', I.shuffle, 'atc_shuffle', tip) +
+          b('save', I.save, 'dy_save_pl', tip) +
+          b('export', I.export, 'dy_export', ` title="${esc(t('dy_export_tip'))}"`);
+        host.insertBefore(bar, host.firstChild);
+      }
+      bar.hidden = !_atcItems(list, type).length;
+    }
+  }
+}
+
 function renderNewEntries(plays, start, end) {
-  const show = plays.length > 0 && ['day', 'week', 'month', 'year'].includes(currentPeriod);
+  // ⋮ → Size rows follow the period and album bucket (every period's render comes through here)
+  if (typeof _dcSyncAroundSizeRows === 'function') _dcSyncAroundSizeRows();
+  const show =plays.length > 0 && ['day', 'week', 'month', 'year'].includes(currentPeriod);
   if (!show) {
     NEW_ENTRY_SECTIONS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
     pageState.newSongs = 0; pageState.newArtists = 0; pageState.newAlbums = 0;
+    _atcSyncActions();   // Bubbling Under / Off the Chart still have their buttons
     return;
   }
 
   _neRange.start = start; _neRange.end = end;   // for the per-row strips (renderNewPage)
   const periodLabel = currentPeriod === 'day' ? t('period_this_day') : currentPeriod === 'week' ? t('period_this_week') : currentPeriod === 'month' ? t('period_this_month') : t('period_this_year');
 
-  // Each section's own SIZE setting, not the (Songs-only) compat globals — otherwise
-  // the Artists/Albums SIZE bar has no effect on how many New Entries are shown.
-  let limitSongs, limitArtists, limitAlbums;
-  if (currentPeriod === 'day') {
-    limitSongs   = Math.max(20, chartSizeSongsD);
-    limitArtists = Math.max(20, chartSizeArtistsD);
-    limitAlbums  = Math.max(20, chartSizeAlbumsD);
-  } else if (currentPeriod === 'week') {
-    limitSongs   = Math.max(20, chartSizeSongsW);
-    limitArtists = Math.max(20, chartSizeArtistsW);
-    limitAlbums  = Math.max(20, chartSizeAlbumsW);
-  } else if (currentPeriod === 'month') {
-    limitSongs   = chartSizeSongsM;
-    limitArtists = chartSizeArtistsM;
-    limitAlbums  = chartSizeAlbumsM;
-  } else {
-    limitSongs   = chartSizeSongsY; // Infinity = All Entries
-    limitArtists = chartSizeArtistsY;
-    limitAlbums  = chartSizeAlbumsY;
-  }
+  // Each New list's own size (⋮ → Size → New Entries, default 20), the same on
+  // every period — no longer tied to the chart above. Albums reads the
+  // singles / EPs setting while that bucket is on show. Infinity = All.
+  const limitSongs   = neSizeOf('songs');
+  const limitArtists = neSizeOf('artists');
+  const limitAlbums  = neSizeOf('albums');
 
   if (!firstSeenMaps) firstSeenMaps = buildFirstSeenMaps();
   const { songFirst, artistFirst, albumFirst } = firstSeenMaps;
@@ -15917,6 +16223,9 @@ function renderNewEntries(plays, start, end) {
   renderNewPage('newSongs');
   renderNewPage('newArtists');
   renderNewPage('newAlbums');
+  // Play all / Save / Export rows on the three lists (Bubbling Under and Off
+  // the Chart rendered before this, so all their lists are current)
+  _atcSyncActions();
 }
 
 // ─── NEW ENTRIES ROWS (phase 7 step 10) ─────────────────────────
@@ -18824,7 +19133,8 @@ function _crGeneration() {
   return _stampEpoch + '|' + _playsVersion + '|' + _releaseEpoch + '|' +
     chartSizeSongsW + ',' + chartSizeArtistsW + ',' + chartSizeAlbumsW + ',' +
     chartSizeSongsM + ',' + chartSizeArtistsM + ',' + chartSizeAlbumsM + ',' +
-    chartSizeSongsY + ',' + chartSizeArtistsY + ',' + chartSizeAlbumsY;
+    chartSizeSongsY + ',' + chartSizeArtistsY + ',' + chartSizeAlbumsY + '|' +
+    _aroundSizesSig();   // New Entries / Bubbling Under sizes (Records' debut lists, BU runs)
 }
 
 let _crFullCache = {};    // period -> full-history run
@@ -20194,7 +20504,7 @@ function buildPeriodStats(period) {
     for (const type of ['songs', 'artists', 'albums']) {
       // Use per-section chart size so each section's BU/prev-chart tracking matches what's rendered
       const _typeChartSize = type === 'songs' ? chartSizeSongs : type === 'artists' ? chartSizeArtists : chartSizeAlbums;
-      const _bpsBuSize = _typeChartSize >= 100 ? 50 : 10;
+      const _bpsBuSize = buSizeOf(type);   // each list's own BU size (albums: the bucket on show)
       for (const [k, data] of Object.entries(mm[type])) {
         const prevRk = bpsPrev[type].get(k);
         data.chartStatus = prevRk !== undefined ? 0 : bpsEver[type].has(k) ? 1 : 2;
@@ -20578,7 +20888,7 @@ function renderSongs(plays, peaks, monthlyStats) {
     }
   }
   // Sort once; BU pool is the slice just beyond chartSize
-  const _buSizeSongs = chartSize >= 100 ? 50 : 10;
+  const _buSizeSongs = buSizeOf('songs');   // ⋮ → Size → Bubbling Under (default 20)
   const _allSortedSongs = Object.values(counts).sort(monthlyStats ? rankSortWithStatus : rankSort);
   const sorted = _allSortedSongs.slice(0, chartSize);
   const _buPoolSongs = (_buOn() && monthlyStats) ? _allSortedSongs.slice(chartSize, chartSize + _buSizeSongs) : [];
@@ -20667,7 +20977,7 @@ function renderArtists(plays, peaks, monthlyStats) {
     }
   }
   // Sort once; BU pool is the slice just beyond chartSize
-  const _buSizeArtists = chartSize >= 100 ? 50 : 10;
+  const _buSizeArtists = buSizeOf('artists');
   const _allSortedArtists = Object.entries(counts).sort(([, a], [, b]) => monthlyStats ? rankSortWithStatus(a, b) : rankSort(a, b));
   const sorted = _allSortedArtists.slice(0, chartSize);
   const _buPoolArtists = (_buOn() && monthlyStats) ? _allSortedArtists.slice(chartSize, chartSize + _buSizeArtists) : [];
@@ -20759,7 +21069,7 @@ function renderAlbums(plays, peaks, monthlyStats) {
     }
   }
   // Sort once; BU pool is the slice just beyond chartSize
-  const _buSizeAlbums = chartSize >= 100 ? 50 : 10;
+  const _buSizeAlbums = buSizeOf('albums');   // the singles / EPs setting while that bucket is on show
   const _allSortedAlbums = Object.values(counts).filter(a => a.album && a.album !== '—').sort(monthlyStats ? rankSortWithStatus : rankSort);
   const sorted = _allSortedAlbums.slice(0, chartSize);
   const _buPoolAlbums = (_buOn() && monthlyStats) ? _allSortedAlbums.slice(chartSize, chartSize + _buSizeAlbums) : [];
@@ -20839,12 +21149,21 @@ let buChartRunData = null;
    prefix property as the main chart run (see _buildChartRunFull) makes the
    viewed period a slice rather than a rebuild.
 
-   The BU zone is defined relative to chartSize, so the run genuinely depends
-   on it and the cache is keyed on it. That mirrors the existing behaviour:
-   buildBuChartRun() is called once per render behind an `if (!buChartRunData)`
-   guard, so it has always used whichever chartSize was current at that moment. */
-function _buildBuChartRunFull(size) {
-  const buSize = size >= 100 ? 50 : 10;
+   The BU zone sits right under each chart and is as long as that list's own
+   BU size, so the run depends on each type's chart size and BU size and the
+   cache is keyed on all of them. (Until 2026-11-10 it used one chartSize —
+   whichever was current when the first BU section asked — for all three
+   types, and a fixed 10 / 50 zone.) Albums: each bucket's group uses that
+   bucket's BU size, so a single's BU run is measured against the singles
+   setting. */
+function _buildBuChartRunFull() {
+  const chartOf = type => type === 'songs' ? chartSizeSongs : type === 'artists' ? chartSizeArtists : chartSizeAlbums;
+  // The bucket of one album group from _crBucketAlbums (all entries share it)
+  const groupBucket = entries => {
+    if (!entries.length) return null;
+    const [k, d] = entries[0];
+    return d._album ? albumBucketOf(d._album, d._artist) : albumBucketOfKey(k);
+  };
 
   // Collect weekly play counts for all entries
   const periodMap = {};
@@ -20896,6 +21215,11 @@ function _buildBuChartRunFull(size) {
       if (!buPeriodMap[pk]) buPeriodMap[pk] = { songs: [], artists: [], albums: [] };
       if (type === 'albumsMixed' && !buPeriodMap[pk].albumsMixed) buPeriodMap[pk].albumsMixed = [];
       for (const groupEntries of groups) {
+        // This list's chart size and BU size (a separated bucket uses its own BU size;
+        // the mixed "All" chart and the unseparated albums chart use the albums one)
+        const size = chartOf(type);
+        const buSize = type === 'songs' || type === 'artists' ? buSizeOf(type)
+          : buSizeOf('albums', type === 'albums' && _sepRun ? groupBucket(groupEntries) : null);
         const allSorted = groupEntries.sort(([, a], [, b]) => rankSortWithStatus(a, b));
         // Update chart-zone prev/ever sets for the next period
         allSorted.slice(0, size).forEach(([k], i) => { newPrev.set(k, i + 1); everChartedKeys[type].add(k); });
@@ -20942,8 +21266,8 @@ function _buSlice(full, curKey) {
   return { period: 'week', curKey, result, buPeriodMap };
 }
 
-let _buFullCache = {};   // chartSize -> full-history BU run
-let _buSliceCache = {};  // chartSize + '|' + curKey -> sliced view
+let _buFullCache = {};   // the three chart sizes -> full-history BU run (BU sizes are in the generation)
+let _buSliceCache = {};  // those sizes + '|' + curKey -> sliced view
 let _buCacheGen = null;
 
 function buildBuChartRun() {
@@ -20954,12 +21278,13 @@ function buildBuChartRun() {
   }
   const gen = _crGeneration();
   if (gen !== _buCacheGen) { _buFullCache = {}; _buSliceCache = {}; _buCacheGen = gen; }
-  const size = chartSize;
+  // Each type's own chart size (not whichever chartSize was set last)
+  const size = chartSizeSongs + ',' + chartSizeArtists + ',' + chartSizeAlbums;
   const curKey = currentViewWeekKey();
   const sk = size + '|' + curKey;
   let run = _buSliceCache[sk];
   if (!run) {
-    const full = _buFullCache[size] || (_buFullCache[size] = _buildBuChartRunFull(size));
+    const full = _buFullCache[size] || (_buFullCache[size] = _buildBuChartRunFull());
     run = _buSliceCache[sk] = _buSlice(full, curKey);
   }
   buChartRunData = run;
@@ -23585,6 +23910,7 @@ function initStkInteractions(type) {
 function renderOffChart(type, plays, periodStats, buPool, lowestChartCount) {
   const ucType    = type.charAt(0).toUpperCase() + type.slice(1);
   const sectionEl = document.getElementById('off' + ucType + 'Section');
+  _offLists[type] = [];   // the dropouts for Play all / Save / Export, filled below
   if (!sectionEl) return;
   if (!periodStats || !_buOn()) { sectionEl.style.display = 'none'; return; }
   // Daily hands its own day-before stats in as periodStats.bu (dyBuStats in daily.js)
@@ -23648,6 +23974,14 @@ function renderOffChart(type, plays, periodStats, buPool, lowestChartCount) {
       if (!names[k]) names[k] = { album: p.album, artist: albumArtist(p) };
     }
   }
+
+  // The dropouts in display order, for the Play all / Save / Export row (_atcItems)
+  _offLists[type] = dropped.map(([k]) => {
+    if (type === 'artists') return { name: k };
+    const n = names[k];
+    if (!n) return null;
+    return type === 'songs' ? { title: n.title, artist: n.artist, album: n.album || '' } : { album: n.album, artist: n.artist };
+  }).filter(Boolean);
 
   sectionEl.style.display = '';
   const subEl   = document.getElementById('off' + ucType + 'Sub');
@@ -24090,16 +24424,23 @@ function generatePlaylistNames(songs, periodName) {
   return [...names];
 }
 
-function openExportModal() {
-  const songs = getCurrentChartSongs();
+// The period on screen as a playlist name part: "Week of 2 Nov 2026",
+// "16 Oct 2026" (Daily), "November 2026"… Shared by the chart's export and the
+// around-the-chart list buttons (_atcLabel).
+function _chartPeriodName() {
   const { label, sub } = getDateRange();
-  const periodName = currentPeriod === 'alltime' ? t('period_alltime') :
+  return currentPeriod === 'alltime' ? t('period_alltime') :
     // The week's label already says "Week of 25 Oct 2026" (or "This Week"), so the
     // week is named by its date range: no more "Week of Week of …" (fixed 2026-11-05)
     currentPeriod === 'week' ? t('period_week_of', { date: sub || label }) :
       // Daily tab: the label is "Today" / a weekday, so name it by the full date
       currentPeriod === 'day' ? sub :
       label;
+}
+
+function openExportModal() {
+  const songs = getCurrentChartSongs();
+  const periodName = _chartPeriodName();
 
   _exportShow(
     songs,

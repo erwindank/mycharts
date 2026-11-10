@@ -1527,6 +1527,8 @@ const TRANSLATIONS = {
     // Custom chart size row (under the Top N presets in each chart's Size menu)
     size_custom: 'Custom',
     size_custom_apply: 'Set',
+    size_around_all: 'All entries',   // New Entries size in ⋮ → Size: show every new entry
+    size_around_n: '{{n}} entries',   // Bubbling Under / New Entries size in ⋮ → Size
     size_custom_aria: 'Custom chart size',
     size_custom_note: 'Also changes past peaks, chart runs, debuts and records.',
     size_custom_range: 'Pick a number from {{min}} to {{max}}.',
@@ -5745,6 +5747,11 @@ const TRANSLATIONS = {
     dy_play_top: 'Play top {{n}}',
     dy_save_pl: 'Save as playlist',
     dy_export: 'Export playlist',
+    // Around-the-chart list buttons (Bubbling Under / Off the Chart / New lists, _atcSyncActions)
+    atc_play_all: 'Play all',
+    atc_shuffle: 'Shuffle',
+    atc_tracks_tip_artists: "Uses each artist's {{n}} most-played songs",
+    atc_tracks_tip_albums: "Uses each album's {{n}} most-played songs",
     dy_export_tip: 'Copy or download the list to import it in Soundiiz (Spotify, Apple Music, YouTube Music, Deezer…)',
     dy_pl_name: 'Daily chart · {{date}}',
     dy_pl_saved: 'Saved "{{name}}" to Playlists',

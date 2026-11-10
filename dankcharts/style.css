@@ -38040,6 +38040,55 @@ body.green-light :is(.sv--bronze, .modal-cb-detail-peak--bronze) {
       color: var(--chart-down);
     }
 
+    /* Size tab switch — Chart · Bubbling Under · New Entries — built by
+       _dcInitAroundSizeRows() (2026-11-10). The panel's data-size-view says
+       which one is on; only that part of the tab shows. The Bubbling Under /
+       New Entries lists are .size-btns, so they take the Top N row look above. */
+    .size-seg {
+      display: flex;
+      gap: 2px;
+      padding: 2px;
+      margin-bottom: var(--sp-1);
+      border-radius: var(--r-sm);
+      background: var(--bg3);
+    }
+    .size-seg-btn {
+      flex: 1 1 0;
+      min-width: 0;
+      padding: 0.35rem 0.3rem;
+      border: none;
+      border-radius: calc(var(--r-sm) - 2px);
+      background: none;
+      font-family: var(--font-sans);
+      font-size: 0.6875rem; /* 11px — three labels share a ~220px menu */
+      line-height: 1.2;
+      color: var(--text2);
+      text-align: center;
+      cursor: pointer;
+      transition: background 120ms ease, color 120ms ease;
+    }
+    .size-seg-btn:hover {
+      color: var(--text);
+    }
+    .size-seg-btn.active {
+      background: var(--bg2);
+      color: var(--accent);
+      font-weight: 600;
+      box-shadow: 0 1px 2px rgb(0 0 0 / 0.25);
+    }
+    /* Only the chosen view's part of the tab */
+    .kebab-panel[data-size-view="chart"] > .size-around,
+    .kebab-panel[data-size-view="bu"] > :not(.size-seg):not(.size-around),
+    .kebab-panel[data-size-view="ne"] > :not(.size-seg):not(.size-around) {
+      display: none !important;
+    }
+    .size-around-label {
+      padding: var(--sp-1) var(--sp-2);
+      color: var(--text3);
+      font-family: var(--font-sans);
+      font-size: var(--fs-xs);
+    }
+
     /* Actions tab — Play All / Shuffle (songs only) sit above a divider,
        then Export Playlist / Share as Image / TXT+CSV — all "do something
        with this chart" actions, one family */
@@ -49282,3 +49331,31 @@ a.tb-more-item:hover { text-decoration: none; }
 /* On the podium the run gets a little more height than the plain boxes do. */
 .rec1-champ .nc-ds-wrap, .rec1-runner-run .nc-ds-wrap { max-height: 150px; }
 .rec1-champ .nc-ds-card, .rec1-runner-run .nc-ds-card { flex-basis: 128px; padding: 6px 8px; }
+
+/* ─── Around-the-chart list buttons (2026-11-10) ───────────────────────────
+   Play all · Shuffle · Save as playlist · Export playlist at the top of
+   Bubbling Under, Off the Chart and each New list (_atcSyncActions). The
+   buttons are the Daily chart's .dy-act; this is their tray, spread across
+   the width like the Daily row, two by two on phones. */
+.atc-acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 3px;
+  margin: var(--sp-2) 0;
+  background: var(--raised);
+  border-radius: var(--r-sm);
+}
+.atc-acts[hidden] {
+  display: none;
+}
+.atc-acts .dy-act {
+  flex: 1 1 auto;
+  justify-content: center;
+}
+@media (max-width: 600px) {
+  .atc-acts {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
