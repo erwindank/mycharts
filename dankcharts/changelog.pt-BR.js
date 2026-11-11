@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "The full name and logo on shared pictures":
+    ["O nome completo e o logo nas imagens compartilhadas",
+     "As imagens para compartilhar agora começam ou terminam com o logo colorido e o nome dankcharts.fm como aparece no site. No formato Story, um título longo não empurra mais a última linha para baixo do nome no rodapé."],
   "Play or save the lists under the chart":
     ["Toque ou salve as listas abaixo da parada",
      "Aspirantes, Fora da Parada e as listas de Novas Entradas têm seus próprios botões Tocar tudo, Aleatório, Salvar como playlist e Exportar playlist. As listas de artistas e álbuns usam as músicas mais ouvidas de cada um."],

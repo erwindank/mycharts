@@ -25327,12 +25327,28 @@ function shArt(p, url, size, opt) {
   </div>`;
 }
 
-// The logo in one colour (logo.js, small-size drawing) for share images —
-// an <img> of an SVG data URL, which html2canvas draws reliably (inline
-// <svg> it does not). Sits before "dankcharts.fm" in every card footer.
-function shLogoMark(color, h) {
-  const w = Math.round(h * 344 / 508);   // small drawing's frame
-  return `<img src="${_shSvgUrl(dcLogoSvg({ small: true, mono: color, size: h }))}" width="${w}" height="${h}" alt="" style="width:${w}px;height:${h}px;display:block;flex-shrink:0;">`;
+// The full name as on the site (2026-11-11): the colourful logo stands in
+// for the "d", then "ank" bold, "charts" light and the ".fm" badge in the
+// accent colour. Used wherever a share picture says "dankcharts.fm" (the
+// footer, and the top line via shEyebrow). The canvas-drawn pictures use
+// dcDrawBrand in logo.js, which draws the same thing.
+//   o.size   name size in px · o.color name colour (default p.text)
+//   o.fm     .fm badge colour (default p.accent)
+// No letter-spacing here: html2canvas would draw it glyph by glyph.
+function shBrandLockup(p, opt) {
+  const o = opt || {};
+  const sz = o.size || 28;
+  const h = Math.round(sz * 1.1), w = Math.round(h * 344 / 508);
+  const name = o.color || p.text;
+  const fm = o.fm || p.accent;
+  const fs = Math.max(9, Math.round(sz * 0.42));
+  const logo = _shSvgUrl(dcLogoSvg({ small: true, xmlns: true, light: !p.dark, size: h }));
+  return `<span style="display:inline-flex;align-items:baseline;white-space:nowrap;line-height:1;flex-shrink:0;">
+    <img src="${logo}" width="${w}" height="${h}" alt="" style="width:${w}px;height:${h}px;display:block;flex-shrink:0;position:relative;top:${Math.round(sz * 0.08)}px;margin-right:${Math.max(1, Math.round(sz * 0.04))}px;">
+    <span style="font-family:${SH_FONT.sans};font-size:${sz}px;font-weight:700;color:${name};">ank</span>
+    <span style="font-family:${SH_FONT.sans};font-size:${sz}px;font-weight:300;color:${_shA(name, 0.82)};">charts</span>
+    <span style="align-self:center;font-family:${SH_FONT.mono};font-size:${fs}px;font-weight:500;line-height:1.4;color:${fm};background:${_shA(fm, 0.16)};border:${Math.max(1, Math.round(sz / 28))}px solid ${_shA(fm, 0.4)};border-radius:${Math.max(3, Math.round(fs * 0.22))}px;padding:0 ${Math.round(fs * 0.4)}px;margin-left:${Math.round(sz * 0.12)}px;">.fm</span>
+  </span>`;
 }
 
 // Bottom brand lockup. Every card ends with the same signature.
@@ -25341,9 +25357,8 @@ function shFooter(p, fmt, opt) {
   if (o.show === false) return `<div style="flex-shrink:0;height:${shSafeBottom(fmt)}px;"></div>`;
   const pad = o.padX != null ? o.padX : 72;
   return `<div style="flex-shrink:0;padding:22px ${pad}px ${shSafeBottom(fmt)}px;display:flex;align-items:center;justify-content:space-between;gap:16px;">
-    <div style="display:flex;align-items:center;gap:10px;min-width:0;">
-      ${shLogoMark(p.accent, 30)}
-      <span style="font-family:${SH_FONT.mono};font-size:20px;font-weight:600;letter-spacing:0.1em;color:${o.light ? p.text : p.dim};white-space:nowrap;">dankcharts.fm</span>
+    <div style="display:flex;align-items:center;min-width:0;">
+      ${shBrandLockup(p, { size: 28 })}
     </div>
     <span style="font-family:${SH_FONT.mono};font-size:17px;letter-spacing:0.18em;color:${_shA(o.light ? p.text : p.dim, 0.7)};text-transform:uppercase;white-space:nowrap;">${esc(t('ig_personal_charts'))}</span>
   </div>`;
@@ -25352,6 +25367,22 @@ function shFooter(p, fmt, opt) {
 // Eyebrow: the tiny accent-coloured kicker at the very top of a card.
 function shEyebrow(p, text, opt) {
   const o = opt || {};
+  // "dankcharts.fm" in the text becomes the full name with the logo
+  // (shBrandLockup); the rest stays a small kicker beside it. The lockup
+  // takes the place of the dot. A colour other than the palette's (e.g.
+  // white on a dark pill over artwork) is used for the badge too.
+  const BRAND = 'dankcharts.fm';
+  const at = String(text).indexOf(BRAND);
+  if (at >= 0) {
+    const size = o.size || 21;
+    const custom = o.color && o.color !== p.accent && o.color !== p.text;
+    const lock = shBrandLockup(p, { size: Math.round(size * 1.6), color: custom ? o.color : p.text, fm: custom ? o.color : p.accent });
+    const rest = (String(text).slice(0, at) + ' ' + String(text).slice(at + BRAND.length)).replace(/\s*·\s*/g, ' · ').replace(/^[\s·]+|[\s·]+$/g, '');
+    const kick = rest ? `<span style="font-family:${SH_FONT.mono};font-size:${size}px;font-weight:600;letter-spacing:0.26em;color:${o.color || p.accent};text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:clip;min-width:0;">${esc(rest)}</span>` : '';
+    const sep = rest ? `<span style="width:${Math.round(size * 0.3)}px;height:${Math.round(size * 0.3)}px;border-radius:50%;background:${_shA(o.color || p.accent, 0.6)};flex-shrink:0;"></span>` : '';
+    // the type label ("SONGS · …") went before the name; the name now leads
+    return `<div style="display:flex;align-items:center;gap:${Math.round(size * 0.7)}px;min-width:0;">${lock}${sep}${kick}</div>`;
+  }
   return `<div style="display:flex;align-items:center;gap:12px;">
     ${o.dot === false ? '' : `<span style="width:10px;height:10px;border-radius:50%;background:${p.accent};flex-shrink:0;"></span>`}
     <span style="font-family:${SH_FONT.mono};font-size:${o.size || 21}px;font-weight:600;letter-spacing:0.26em;color:${o.color || p.accent};text-transform:uppercase;white-space:nowrap;overflow:hidden;">${esc(text)}</span>
@@ -25730,6 +25761,10 @@ function _shChartMetrics(ctx, r, opt) {
 const SH_CHART_TEMPLATES = {
 
   // EDITORIAL — the default. Magazine masthead, airy rows, hairline rules.
+  // List layouts (editorial, minimal, spotlight, poster): rowH is a plan,
+  // worked out as if the title fits on one line. Rows use it as flex-basis
+  // and may shrink, so a title that wraps (e.g. "Top 10 Albums of the
+  // Week" in Story) no longer pushes row 10 under the footer (2026-11-11).
   editorial(ctx) {
     const p = ctx.p, opts = ctx.opts, rows = ctx.rows, n = ctx.n;
     const s = v => _shS(ctx, v);
@@ -25742,7 +25777,7 @@ const SH_CHART_TEMPLATES = {
     const subSize = Math.max(11, Math.round(nameSize * 0.72));
     const rankSize = Math.min(s(40), Math.round(rowH * 0.52));
 
-    const body = rows.map(r => `<div style="display:flex;align-items:center;gap:${Math.round(artSz * 0.2)}px;height:${rowH}px;border-top:1px solid ${p.line};padding:0 ${padX}px;box-sizing:border-box;">
+    const body = rows.map(r => `<div style="display:flex;align-items:center;gap:${Math.round(artSz * 0.2)}px;flex:0 1 ${rowH}px;min-height:0;border-top:1px solid ${p.line};padding:0 ${padX}px;box-sizing:border-box;">
       <div style="flex-shrink:0;width:${s(64)}px;font-family:${SH_FONT.display};font-size:${rankSize}px;font-weight:700;color:${shRankColor(p, r.rank)};line-height:1;">${r.rank}</div>
       ${opts.showMovement ? `<div style="flex-shrink:0;width:${s(60)}px;">${shMove(p, r.mv, s(19), true) || `<span style="font-family:${SH_FONT.mono};font-size:${s(19)}px;color:${_shA(p.dim, 0.5)};">—</span>`}</div>` : ''}
       ${opts.showArt ? shArt(p, r.art, artSz, { initials: initials(r.name), radius: Math.round(artSz * 0.16) }) : ''}
@@ -25753,7 +25788,7 @@ const SH_CHART_TEMPLATES = {
       ${_shChartMetrics(ctx, r, { minW: s(158) })}
     </div>`).join('');
 
-    return shShell(p, ctx.fmt, `${_shChartHeader(ctx, { padX })}<div style="flex:1;min-height:0;border-bottom:1px solid ${p.line};">${body}</div>${shFooter(p, ctx.fmt, { show: opts.showFooter, padX })}`);
+    return shShell(p, ctx.fmt, `${_shChartHeader(ctx, { padX })}<div style="flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden;border-bottom:1px solid ${p.line};">${body}</div>${shFooter(p, ctx.fmt, { show: opts.showFooter, padX })}`);
   },
 
   // MINIMAL — typography only. No artwork, no chips, maximum air.
@@ -25767,7 +25802,7 @@ const SH_CHART_TEMPLATES = {
     const rowH = Math.max(44, Math.floor((ctx.H - headH - footerH) / n));
     const nameSize = Math.min(s(38), Math.round(rowH * 0.44));
 
-    const body = rows.map(r => `<div style="display:flex;align-items:center;gap:${s(26)}px;height:${rowH}px;padding:0 ${padX}px;box-sizing:border-box;border-top:1px solid ${p.line};">
+    const body = rows.map(r => `<div style="display:flex;align-items:center;gap:${s(26)}px;flex:0 1 ${rowH}px;min-height:0;padding:0 ${padX}px;box-sizing:border-box;border-top:1px solid ${p.line};">
       <span style="flex-shrink:0;width:${s(54)}px;font-family:${SH_FONT.mono};font-size:${Math.round(nameSize * 0.6)}px;font-weight:500;color:${r.rank <= 3 ? p.accent : _shA(p.dim, 0.85)};letter-spacing:0.02em;">${String(r.rank).padStart(2, '0')}</span>
       <div style="flex:1;min-width:0;">
         <div style="font-family:${SH_FONT.sans};font-size:${nameSize}px;font-weight:500;color:${p.text};white-space:nowrap;overflow:hidden;line-height:1.2;">${esc(r.name)}</div>
@@ -25777,7 +25812,7 @@ const SH_CHART_TEMPLATES = {
       ${opts.showPlays ? `<span style="flex-shrink:0;font-family:${SH_FONT.mono};font-size:${Math.round(nameSize * 0.66)}px;font-weight:600;color:${p.text};min-width:${s(86)}px;text-align:right;">${r.plays.toLocaleString()}</span>` : ''}
     </div>`).join('');
 
-    return shShell(p, ctx.fmt, `${_shChartHeader(ctx, { padX, titleSize })}<div style="flex:1;min-height:0;border-bottom:1px solid ${p.line};">${body}</div>${shFooter(p, ctx.fmt, { show: opts.showFooter, padX })}`, { noBgImage: true });
+    return shShell(p, ctx.fmt, `${_shChartHeader(ctx, { padX, titleSize })}<div style="flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden;border-bottom:1px solid ${p.line};">${body}</div>${shFooter(p, ctx.fmt, { show: opts.showFooter, padX })}`, { noBgImage: true });
   },
 
   // SPOTLIGHT — the #1 gets a hero block, everything else rides underneath.
@@ -25811,7 +25846,7 @@ const SH_CHART_TEMPLATES = {
       </div>
     </div>`;
 
-    const list = rest.map(r => `<div style="display:flex;align-items:center;gap:${s(20)}px;height:${rowH}px;padding:0 ${padX}px;box-sizing:border-box;border-top:1px solid ${p.line};">
+    const list = rest.map(r => `<div style="display:flex;align-items:center;gap:${s(20)}px;flex:0 1 ${rowH}px;min-height:0;padding:0 ${padX}px;box-sizing:border-box;border-top:1px solid ${p.line};">
       <span style="flex-shrink:0;width:${s(44)}px;font-family:${SH_FONT.display};font-size:${Math.round(nameSize * 1.05)}px;font-weight:700;color:${shRankColor(p, r.rank)};">${r.rank}</span>
       ${opts.showArt ? shArt(p, r.art, smallArt, { initials: initials(r.name), radius: Math.round(smallArt * 0.16), shadow: false }) : ''}
       <div style="flex:1;min-width:0;">
@@ -25822,7 +25857,7 @@ const SH_CHART_TEMPLATES = {
       ${opts.showPlays ? `<span style="flex-shrink:0;font-family:${SH_FONT.mono};font-size:${Math.round(nameSize * 0.76)}px;font-weight:700;color:${p.text};min-width:${s(78)}px;text-align:right;">${r.plays.toLocaleString()}</span>` : ''}
     </div>`).join('');
 
-    return shShell(p, ctx.fmt, `${_shChartHeader(ctx, { padX, titleSize, padBottom: s(26) })}${heroBlock}<div style="flex:1;min-height:0;">${list}</div>${shFooter(p, ctx.fmt, { show: opts.showFooter, padX })}`);
+    return shShell(p, ctx.fmt, `${_shChartHeader(ctx, { padX, titleSize, padBottom: s(26) })}${heroBlock}<div style="flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden;">${list}</div>${shFooter(p, ctx.fmt, { show: opts.showFooter, padX })}`);
   },
 
   // GRID — artwork first. Covers in a grid with the rank stamped on each tile.
@@ -25887,7 +25922,7 @@ const SH_CHART_TEMPLATES = {
     const rowH = Math.max(44, Math.floor((ctx.H - headH - footerH) / rows.length));
     const nameSize = Math.min(s(32), Math.round(rowH * 0.42));
 
-    const list = rows.map(r => `<div style="display:flex;align-items:center;gap:${s(22)}px;height:${rowH}px;padding:0 ${padX}px;box-sizing:border-box;border-top:1px solid ${_shA(p.text, 0.16)};">
+    const list = rows.map(r => `<div style="display:flex;align-items:center;gap:${s(22)}px;flex:0 1 ${rowH}px;min-height:0;padding:0 ${padX}px;box-sizing:border-box;border-top:1px solid ${_shA(p.text, 0.16)};">
       <span style="flex-shrink:0;width:${s(58)}px;font-family:${SH_FONT.display};font-size:${Math.round(nameSize * 1.25)}px;font-weight:800;color:${r.rank === 1 ? p.accent : _shA(p.text, 0.85)};line-height:1;">${r.rank}</span>
       <div style="flex:1;min-width:0;">
         <div style="font-family:${SH_FONT.sans};font-size:${nameSize}px;font-weight:600;color:${p.text};white-space:nowrap;overflow:hidden;line-height:1.2;">${esc(r.name)}</div>
@@ -25903,7 +25938,7 @@ const SH_CHART_TEMPLATES = {
         <div style="margin-top:${s(18)}px;font-family:${SH_FONT.display};font-size:${s(titleSize)}px;font-weight:800;line-height:0.98;color:${p.text};${p.dark ? 'text-shadow:0 2px 24px rgba(0,0,0,0.5);' : ''}">${esc(ctx.headline)}${ctx.kicker ? `<span style="color:${_shA(p.text, 0.55)};"> ${esc(ctx.kicker)}</span>` : ''}</div>
         ${opts.showDate && ctx.dateLine ? `<div style="margin-top:${s(14)}px;font-family:${SH_FONT.mono};font-size:${s(22)}px;letter-spacing:0.16em;color:${_shA(p.text, 0.72)};text-transform:uppercase;">${esc(ctx.dateLine)}</div>` : ''}
       </div>
-      <div style="flex:1;min-height:0;">${list}</div>
+      <div style="flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden;">${list}</div>
       ${shFooter(p, ctx.fmt, { show: opts.showFooter, padX, light: true })}
     </div>`;
 
@@ -58304,9 +58339,8 @@ async function _stAmRenderCard() {
     g.fillText(clip(info.topSong, 900), W / 2, 1210);
   }
 
-  g.font = `600 30px ${sans}`;
-  g.fillStyle = 'rgba(255,255,255,0.5)';
-  g.fillText('dankcharts.fm', W / 2, 1300);
+  // the full name with the logo (dcDrawBrand in logo.js)
+  dcDrawBrand(g, W / 2, 1300, { size: 34, align: 'center', color: '#ffffff', accent: MINT, sans });
 
   const blob = await new Promise(res => cvs.toBlob(res, 'image/png'));
   if (!blob) return null;

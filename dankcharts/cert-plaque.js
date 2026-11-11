@@ -176,7 +176,8 @@ function cpCardHTML(it, o) {
     ? '<img src="' + blur + '" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"><div style="position:absolute;inset:0;background:rgba(6,7,10,0.55);"></div>'
     : '<div style="position:absolute;inset:0;background:radial-gradient(70% 46% at 50% 0%, rgba(' + m.panel + ', 0.30), rgba(' + m.panel + ', 0) 72%), linear-gradient(180deg, #16181d 0%, #0b0c0f 100%);"></div>';
   const foot = o.showFooter
-    ? '<div style="position:absolute;left:0;right:0;bottom:' + shSafeBottom(o.format) + 'px;text-align:center;font:700 ' + Math.round(30 * s) + 'px/1 ' + SH_FONT.display + ';color:' + m.tint + ';opacity:0.9;">dankcharts.fm</div>'
+    // the full name with the logo (shBrandLockup in app.js), .fm in the tier's tint
+    ? '<div style="position:absolute;left:0;right:0;bottom:' + shSafeBottom(o.format) + 'px;display:flex;justify-content:center;">' + shBrandLockup({ text: '#ffffff', accent: m.tint, dark: true }, { size: Math.round(30 * s) }) + '</div>'
     : '';
   return '<div style="width:' + d.w + 'px;height:' + d.h + 'px;position:relative;overflow:hidden;font-family:' + SH_FONT.sans + ';background:#0b0c0f;">'
     + bg

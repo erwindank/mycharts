@@ -386,8 +386,8 @@ async function sxShareOverview(btn) {
     x.textAlign = 'left';
   });
   x.textAlign = 'center';
-  x.fillStyle = gc.text; x.font = `700 46px ${disp}`;
-  x.fillText('dankcharts.fm', W / 2, H - 70);
+  // the full name with the logo (dcDrawBrand in logo.js)
+  dcDrawBrand(x, W / 2, H - 70, _sxBrandOpts(gc, 50));
   const blob = await new Promise(r => c.toBlob(r, 'image/png'));
   if (!blob) return;
   const name = 'dankcharts-stats.png';
@@ -1032,6 +1032,19 @@ function _sxAlpha(c, a) {
   if (h.length === 3) h = h.replace(/./g, x => x + x);
   const v = parseInt(h, 16);
   return `rgba(${v >> 16},${(v >> 8) & 255},${v & 255},${a})`;
+}
+
+// Settings for dcDrawBrand (logo.js) on the Stats share pictures: the
+// theme's text and accent colours, and the deeper logo colours when the
+// picture's background is light (2026-11-11)
+function _sxBrandOpts(gc, size) {
+  const m = /^#([0-9a-f]{6})$/i.exec(String(gc.bg || '').trim());
+  let light = false;
+  if (m) {
+    const v = parseInt(m[1], 16);
+    light = (0.299 * (v >> 16) + 0.587 * ((v >> 8) & 255) + 0.114 * (v & 255)) > 150;
+  }
+  return { size, align: 'center', color: gc.text, accent: gc.accent, light };
 }
 
 function _sxKeyStart(k) {
@@ -2917,8 +2930,8 @@ async function sxShareCompare(btn) {
     x.textAlign = 'right'; x.fillText(B.label(B.keys[B.keys.length - 1]), W - L, stripY + 92); x.textAlign = 'left';
   }
   x.textAlign = 'center';
-  x.fillStyle = gc.text; x.font = `700 46px ${disp}`;
-  x.fillText('dankcharts.fm', W / 2, H - 60);
+  // the full name with the logo (dcDrawBrand in logo.js)
+  dcDrawBrand(x, W / 2, H - 60, _sxBrandOpts(gc, 50));
   const blob = await new Promise(r => c.toBlob(r, 'image/png'));
   if (!blob) return;
   const name = 'dankcharts-compare.png';
@@ -3772,8 +3785,8 @@ async function sxGameShare(btn) {
   x.fillText(scoreTxt, S / 2, 520);
   x.fillStyle = gc.text3; x.font = '400 38px "IBM Plex Sans", sans-serif';
   x.fillText(t('sx_game_share_line'), S / 2, 620);
-  x.fillStyle = gc.text; x.font = '700 46px "Bricolage Grotesque", sans-serif';
-  x.fillText('dankcharts.fm', S / 2, S - 110);
+  // the full name with the logo (dcDrawBrand in logo.js)
+  dcDrawBrand(x, S / 2, S - 110, _sxBrandOpts(gc, 50));
   const blob = await new Promise(r => c.toBlob(r, 'image/png'));
   if (!blob) return;
   const name = 'dankcharts-' + id + '.png';

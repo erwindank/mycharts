@@ -809,8 +809,8 @@
           { n: known, total: list.length });
         g.fillText(clip(sum, W - 160 - 260), 80, fy);
       }
-      g.textAlign = 'right'; g.font = '600 28px ' + sans; g.fillStyle = 'rgba(255,255,255,0.5)';
-      g.fillText('dankcharts.fm', W - 80, fy);
+      // the full name with the logo (dcDrawBrand in logo.js)
+      dcDrawBrand(g, W - 80, fy, { size: 32, align: 'right', color: '#ffffff', sans: sans });
 
       return new Promise(function (res2) { cvs.toBlob(res2, 'image/png'); });
     }).then(function (blob) {

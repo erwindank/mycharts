@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 485;
+const DC_CL_I18N_V = 486;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -410,6 +410,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-11', t: 'design', a: 'share',
+    title: "The full name and logo on shared pictures",
+    detail: "Shared pictures now end, or start, with the colourful logo and the dankcharts.fm name as it looks on the site. In Story size, a long chart title no longer pushes the last row under the name at the bottom." },
   { d: '2026-11-10', t: 'feature', a: 'charts',
     title: "Play or save the lists under the chart",
     detail: "Bubbling Under, Off the Chart and the New lists have their own Play all, Shuffle, Save as playlist and Export playlist buttons. Artist and album lists use their most-played songs." },

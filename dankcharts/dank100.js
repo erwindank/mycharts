@@ -1231,8 +1231,8 @@
       });
 
       // Footer
-      g.textAlign = 'center'; g.font = '600 30px ' + sans; g.fillStyle = 'rgba(255,255,255,0.5)';
-      g.fillText('dankcharts.fm', W / 2, H - 50);
+      // the full name with the logo (dcDrawBrand in logo.js)
+      dcDrawBrand(g, W / 2, H - 50, { size: 34, align: 'center', color: '#ffffff', sans: sans });
 
       return new Promise(function (res2) { cvs.toBlob(res2, 'image/png'); });
     }).then(function (blob) {
