@@ -18117,6 +18117,11 @@ function buildCrPanelHTML(type, key, f) {
   const nowTiles = f ? _crNowTiles(f) : '';
   let sectionsHtml = '';
   if (currentPeriod === 'year' || currentPeriod === 'alltime') {
+    // Collect each section's milestones into one list instead of three
+    // near-identical blocks (see _crGoalsMerge)
+    const goalLists = [];
+    _crGoalsMerge = goalLists;
+    try {
     sectionsHtml = [
       { id: 'year', label: t('cr_yearly_label') },
       { id: 'month', label: t('cr_monthly_label') },
@@ -18139,6 +18144,10 @@ function buildCrPanelHTML(type, key, f) {
         <div class="cr-panel-section-body">${bodyHtml}</div>
       </div>`;
     }).join('');
+    } finally { _crGoalsMerge = null; }
+    // The merged milestones, once, above the three sections
+    const goalsHtml = _crGoalsMergeHTML(goalLists);
+    if (goalsHtml) sectionsHtml = `<div class="cr-goals-all">${goalsHtml}</div>` + sectionsHtml;
     // Year / All-Time split the run into three sections; this period's own
     // figures get a row of their own above them
     if (nowTiles) sectionsHtml = `<div class="cr-stats cr-stats-sum">${nowTiles}</div>` + sectionsHtml;
@@ -19338,7 +19347,10 @@ function crStats(type, key, period, crData, preD, rangeOpts) {
     + `</div>`;
   // The milestones go under the boxes, not here: every caller renders
   // crBoxesHTML for the same run right after this, and it picks them up
-  _crGoalsNext = goals.html ? { id: type + '|' + key + '|' + period, html: goals.html } : null;
+  // …except on the Yearly / Monthly / Weekly panel, which shows one merged
+  // list for all three sections (see _crGoalsMerge)
+  if (_crGoalsMerge) { _crGoalsMerge.push(goals.list || []); _crGoalsNext = null; }
+  else _crGoalsNext = goals.html ? { id: type + '|' + key + '|' + period, html: goals.html } : null;
   return `<div class="cr-sum"><p class="cr-story">${story}</p>${ribbon}</div>`;
 }
 let _crGoalsNext = null;   // crStats → crBoxesHTML hand-off, see above
@@ -19533,10 +19545,19 @@ function _crGoals(type, key, d, unit, fullRun, top1, extra) {
   }
   const rate = (_crLive().pace[type]?.[key] || 0) / CR_PACE_DAYS;
   G.push(..._crLiveGoals(type, key, rate, G.some(g => g.pin)));
-  if (!G.length) return { html: '', first: null };
+  if (!G.length) return { html: '', first: null, list: G };
   const UNIT_DAYS = { day: 1, week: 7, month: 30, year: 365 };
   const eta = g => !rate ? Infinity : g.eta !== undefined ? g.eta : g.u === 'plays' ? (g.t - g.v) / rate : (g.t - g.v) * UNIT_DAYS[g.u];
   G.forEach(g => { g._eta = eta(g); });
+  return _crGoalsRender(G, 3);
+}
+
+/* Draws a goal list (each goal already has its _eta): the soonest gets the
+   row with the bar, the next `more` follow under "Then". Shared by the one
+   run's goals above and the Yearly / Monthly / Weekly panel's merged list
+   (_crGoalsMergeHTML), which is why it is its own function. */
+function _crGoalsRender(G, more) {
+  if (!G.length) return { html: '', first: null, list: G };
   // A caller's own goals (the BU run's "make the chart this week") lead
   G.sort((x, y) => (y.pin ? 1 : 0) - (x.pin ? 1 : 0) || (x._eta - y._eta) || (x.t - x.v) / x.t - (y.t - y.v) / y.t);
   const need = g => g.u === 'plays' ? _crU('plays', g.t - g.v) : _crU(g.u, g.t - g.v);
@@ -19551,10 +19572,28 @@ function _crGoals(type, key, d, unit, fullRun, top1, extra) {
     + `<span class="cr-goal-sub">${esc(sub)}</span></div>`;
   if (rest.length) {
     html += `<span class="cr-goal-k">${esc(t('cr_g_then'))}</span><div class="cr-goal-v">`
-      + rest.slice(0, 3).map(g => `<span class="cr-goal-next">${g.ic} ${t('cr_g_item', { n: `<b>${esc(need(g))}</b>`, of: esc(g.of) })}</span>`).join('<span class="cr-goal-dot">·</span>')
+      + rest.slice(0, more).map(g => `<span class="cr-goal-next">${g.ic} ${t('cr_g_item', { n: `<b>${esc(need(g))}</b>`, of: esc(g.of) })}</span>`).join('<span class="cr-goal-dot">·</span>')
       + `</div>`;
   }
-  return { html: html + '</div>', first: g0 };
+  return { html: html + '</div>', first: g0, list: G };
+}
+
+/* Yearly / Monthly / Weekly panel (Year and All-Time charts), 2026-11-12.
+   Each section used to end with its own "Next milestone / Then" block, and
+   most of it was the same three times: the certification, the all-time spots
+   and today's / this week's chart goals do not depend on the section. Now
+   buildCrPanelHTML sets _crGoalsMerge to an array before the sections, crStats
+   drops each section's goals into it instead of under its boxes, and this
+   draws them once: shared goals once (same label = same goal), the
+   section-only ones ("52 weeks on the chart", "3 months at #1") kept. */
+let _crGoalsMerge = null;   // array while a three-section panel is being built
+function _crGoalsMergeHTML(lists) {
+  const seen = new Set(), G = [];
+  for (const list of lists) for (const g of list) {
+    if (seen.has(g.lbl)) continue;
+    seen.add(g.lbl); G.push(g);
+  }
+  return _crGoalsRender(G, 5).html;
 }
 
 // A ribbon chip: dim every box of this run outside its tier; tap again to clear
