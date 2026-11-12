@@ -2834,7 +2834,30 @@
       overflow-x: auto; scroll-snap-type: x proximity; scroll-padding: 0 var(--sp-1);
       padding: 2px 2px var(--sp-2);
       scrollbar-width: thin;
+      /* themed bar instead of the browser's white track */
+      scrollbar-color: color-mix(in srgb, var(--dp-ac) 45%, transparent) transparent;
     }
+    /* drag with the mouse (_lsStripNav in app.js) */
+    .dp-body .ls-eras.is-dragging { cursor: grabbing; scroll-snap-type: none; user-select: none; }
+    .dp-body .ls-eras.is-dragging .ls-era { pointer-events: none; }
+    /* ‹ › arrows on the strip's sides, for mouse users on big screens */
+    .dp-body .ls-strip-wrap { position: relative; }
+    .dp-body .ls-strip-arrow {
+      position: absolute; top: 50%; z-index: 2; transform: translateY(-60%);
+      width: 36px; height: 36px; border-radius: 50%;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; line-height: 1; padding-bottom: 3px;
+      color: var(--text); background: color-mix(in srgb, var(--bg2) 88%, transparent);
+      border: 1px solid var(--border); box-shadow: var(--shadow-2); cursor: pointer;
+      backdrop-filter: blur(6px);
+      transition: background .15s, border-color .15s;
+    }
+    .dp-body .ls-strip-arrow:hover { border-color: var(--dp-ac); background: var(--bg3); }
+    .dp-body .ls-strip-arrow--prev { left: -6px; }
+    .dp-body .ls-strip-arrow--next { right: -6px; }
+    .dp-body .ls-strip-arrow[hidden] { display: none; }
+    /* touch screens swipe; no arrows there */
+    @media (hover: none) { .dp-body .ls-strip-arrow { display: none; } }
     .dp-body .ls-eras:focus-visible { outline: 2px solid var(--dp-ac); outline-offset: 2px; border-radius: var(--r-md); }
     .dp-body .ls-era {
       flex: 0 0 148px; scroll-snap-align: start;

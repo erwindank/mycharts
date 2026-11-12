@@ -29586,6 +29586,57 @@ function lsRender(artistName, artistPlays, opts) {
   }
 }
 
+/* Sideways strips (Your eras, Heard along with) on big screens: a mouse
+   wheel only scrolls up and down, so the strip gets ‹ › arrow buttons at
+   its sides and can be dragged with the mouse. Touch keeps its own swipe.
+   The arrows hide at each end and when everything already fits. */
+function _lsStripNav(strip) {
+  if (!strip || strip.dataset.nav) return;
+  strip.dataset.nav = '1';
+  const wrap = document.createElement('div');
+  wrap.className = 'ls-strip-wrap';
+  strip.parentNode.insertBefore(wrap, strip);
+  wrap.appendChild(strip);
+  const mk = (dir) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'ls-strip-arrow ls-strip-arrow--' + (dir < 0 ? 'prev' : 'next');
+    b.setAttribute('aria-label', t(dir < 0 ? 'btn_prev' : 'btn_next'));
+    b.tabIndex = -1; // the strip itself takes arrow keys
+    b.innerHTML = dir < 0 ? '&#8249;' : '&#8250;';
+    // one page minus a card, so the last visible card stays as an anchor
+    b.addEventListener('click', () => strip.scrollBy({ left: dir * Math.max(160, strip.clientWidth - 160), behavior: 'smooth' }));
+    wrap.appendChild(b);
+    return b;
+  };
+  const prev = mk(-1), next = mk(1);
+  const sync = () => {
+    const max = strip.scrollWidth - strip.clientWidth;
+    prev.hidden = strip.scrollLeft <= 2;
+    next.hidden = strip.scrollLeft >= max - 2;
+  };
+  strip.addEventListener('scroll', sync, { passive: true });
+  window.addEventListener('resize', sync, { passive: true });
+  requestAnimationFrame(() => requestAnimationFrame(sync)); // after the scroll-to-latest
+  // click-and-drag with the mouse; a drag doesn't open the card under it
+  let down = false, moved = false, x0 = 0, s0 = 0;
+  strip.addEventListener('pointerdown', e => {
+    if (e.pointerType !== 'mouse' || e.button !== 0) return;
+    down = true; moved = false; x0 = e.clientX; s0 = strip.scrollLeft;
+  });
+  strip.addEventListener('pointermove', e => {
+    if (!down) return;
+    const dx = e.clientX - x0;
+    if (!moved && Math.abs(dx) < 5) return;
+    if (!moved) { moved = true; strip.classList.add('is-dragging'); strip.setPointerCapture(e.pointerId); }
+    strip.scrollLeft = s0 - dx;
+  });
+  const end = () => { down = false; setTimeout(() => strip.classList.remove('is-dragging'), 0); };
+  strip.addEventListener('pointerup', end);
+  strip.addEventListener('pointercancel', end);
+  strip.addEventListener('click', e => { if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; } }, true);
+}
+
 // The tab came on screen: count the numbers up, draw the calendar once.
 // root: the panel's Listening box; _ls belongs to whichever was filled last
 function lsShow(root) {
@@ -29596,6 +29647,8 @@ function lsShow(root) {
   // the eras strip opens on the latest era (it has no width while hidden)
   const strip = el.querySelector('.ls-eras:not(.sl-along)');
   if (strip) requestAnimationFrame(() => { strip.scrollLeft = strip.scrollWidth; });
+  // every sideways strip in the panel gets arrows + drag for mouse users
+  el.querySelectorAll('.ls-eras').forEach(_lsStripNav);
   _ls.heatmap = true;
   const { key, type, root: id } = _ls;
   // after the tab has painted, so switching to it stays instant
