@@ -410,6 +410,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-12', t: 'feature', a: 'charts',
+    title: "Leave singles off the albums chart",
+    detail: "Settings → Releases has a new Leave out choice for singles and for EPs. Anything you've marked that way stops showing in the albums chart, its Records and the lists under it, without getting a chart of its own. It still earns its own certifications." },
   { d: '2026-11-11', t: 'design', a: 'share',
     title: "The full name and logo on shared pictures",
     detail: "Shared pictures now end, or start, with the colourful logo and the dankcharts.fm name as it looks on the site. In Story size, a long chart title no longer pushes the last row under the name at the bottom." },

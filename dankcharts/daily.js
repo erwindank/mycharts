@@ -431,8 +431,9 @@ function dyChartRun(h, ds) {
 let _dyFull = null;
 function dyFullRun() {
   const h = dyHistory();
-  const sep = separatedTypes().length > 0;
-  const gen = h.gen + '|' + separatedTypes().join(',');
+  const sep = separatedTypes().length > 0;   // builds the combined 'albumsMixed'
+  const split = albumBucketsOn();            // ranks per bucket, drops left-out types
+  const gen = h.gen + '|' + separatedTypes().join(',') + '|' + hiddenTypes().join(',');
   if (_dyFull && _dyFull.gen === gen) return _dyFull.run;
 
   const types = sep ? ['songs', 'artists', 'albumsMixed', 'albums'] : ['songs', 'artists', 'albums'];
@@ -448,7 +449,7 @@ function dyFullRun() {
     const joined = lastDs === dyShift(ds, -1);
     for (const type of types) {
       const src = type === 'albumsMixed' ? 'albums' : type;
-      const groups = type === 'albums' && sep ? _crBucketAlbums(x.albums) : [Object.entries(x[src])];
+      const groups = type === 'albums' && split ? _crBucketAlbums(x.albums) : [Object.entries(x[src])];
       const ranks = new Map();
       for (const group of groups) {
         const rows = group.map(([k, e]) => {

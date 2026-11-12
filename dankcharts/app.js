@@ -827,7 +827,7 @@ function dcApplyAllSettings() {
   try {
     const savedSep = JSON.parse(localStorage.getItem(RELEASE_SEP_KEY) || 'null');
     for (const k of SEPARABLE_TYPES) {
-      const next = (savedSep && savedSep[k] === 'apart') ? 'apart' : 'with';
+      const next = (savedSep && (savedSep[k] === 'apart' || savedSep[k] === 'out')) ? savedSep[k] : 'with';
       if (releaseSeparation[k] !== next) { releaseSeparation[k] = next; _releaseEpoch++; _dcCertTlReset(); }
     }
   } catch (e) {}
@@ -1682,14 +1682,18 @@ function setReleaseSplit(album, artist, so, sb, date) {
 const RELEASE_SEP_KEY = 'dc_release_separation';
 const SEPARABLE_TYPES = ['single', 'ep'];
 
-// { single: 'with' | 'apart', ep: 'with' | 'apart' } — 'with' is the default,
+// { single: 'with' | 'apart' | 'out', ep: (same) } — 'with' is the default,
 // so a user who never opens the setting keeps the chart they have.
+// 'out' (2026-11-12, "Leave out"): the type is dropped from every albums-like
+// chart and gets NO chart of its own — the albums chart becomes "albums (and
+// whatever is still With albums)" and the left-out releases simply never rank.
+const RELEASE_SEP_MODES = ['with', 'apart', 'out'];
 let releaseSeparation = (() => {
   const base = { single: 'with', ep: 'with' };
   try {
     const saved = JSON.parse(localStorage.getItem(RELEASE_SEP_KEY) || 'null');
     if (saved && typeof saved === 'object') {
-      for (const k of SEPARABLE_TYPES) if (saved[k] === 'apart') base[k] = 'apart';
+      for (const k of SEPARABLE_TYPES) if (saved[k] === 'apart' || saved[k] === 'out') base[k] = saved[k];
     }
   } catch (e) {}
   return base;
@@ -1706,17 +1710,44 @@ function isTypeSeparated(type) {
   return releaseSeparation[type] === 'apart';
 }
 
+/* The types set to "Leave out": kept off every albums-like chart, with no
+   chart of their own. Not in separatedTypes() — that list is the one every
+   pill, filter chip and per-type column is built from, and a left-out type
+   must not grow any of those. */
+function hiddenTypes() {
+  return SEPARABLE_TYPES.filter(k => releaseSeparation[k] === 'out');
+}
+
+function isTypeHidden(type) {
+  return releaseSeparation[type] === 'out';
+}
+
+/* The bucket albumBucketOf() gives a left-out release. No chart, chip or
+   Records pill is ever built for it, so anything that ranks or filters by
+   bucket drops these releases without needing to know why. */
+const HIDDEN_BUCKET = 'out';
+
+/* Is the album pool split into buckets at all — something Apart OR something
+   left out? This, not separatedTypes().length, is the gate for code that
+   FILTERS or RANKS albums by bucket; separatedTypes() stays the gate for code
+   that draws a pill or a column per type. */
+function albumBucketsOn() {
+  return separatedTypes().length > 0 || hiddenTypes().length > 0;
+}
+
 /* Which chart bucket an album entry belongs in. 'album' is both a type id and
    the name of the bucket everything unseparated falls into, so a live album, a
    soundtrack, and a single that has not been separated all return 'album'. */
 function albumBucketOf(album, artist) {
   const t = releaseTypeOf(album, artist);
-  return (t !== 'album' && isTypeSeparated(t)) ? t : 'album';
+  if (t === 'album') return 'album';
+  if (isTypeSeparated(t)) return t;
+  return isTypeHidden(t) ? HIDDEN_BUCKET : 'album';
 }
 
 function setReleaseSeparation(type, mode) {
   if (!SEPARABLE_TYPES.includes(type)) return;
-  const next = mode === 'apart' ? 'apart' : 'with';
+  const next = RELEASE_SEP_MODES.includes(mode) ? mode : 'with';
   if (releaseSeparation[type] === next) return;
   releaseSeparation[type] = next;
   try { localStorage.setItem(RELEASE_SEP_KEY, JSON.stringify(releaseSeparation)); } catch (e) {}
@@ -1729,6 +1760,9 @@ function setReleaseSeparation(type, mode) {
   if (albumsChartFilter !== 'all' && albumsChartFilter !== 'album' && !isTypeSeparated(albumsChartFilter)) {
     setAlbumsChartFilter('album', true);
   }
+  /* The sidebar's pages are built per bucket, so a left-out type joining or
+     leaving the albums chart moves every page boundary. */
+  pageState.albums = 0;
 }
 
 /* Which bucket the albums chart is currently showing.
@@ -1746,8 +1780,17 @@ let albumsChartFilter = (() => {
    when the filter admits everything. Callers use the null to skip the test
    entirely, which is the path every user who has separated nothing takes. */
 function albumsFilterBucket() {
-  if (!separatedTypes().length) return null;   // nothing separated: no filtering
-  if (albumsChartFilter === 'all') return null;
+  if (!separatedTypes().length) {
+    // Nothing apart: no chips, one chart. Filtered to 'album' only while a type
+    // is left out, so its releases drop off; otherwise no filtering at all.
+    return hiddenTypes().length ? 'album' : null;
+  }
+  if (albumsChartFilter === 'all') {
+    /* "All" is the one mixed chart, which would bring left-out releases back.
+       The chip is not offered while anything is left out (syncAlbumsFilterBar),
+       and a stored 'all' reads as the albums chart. */
+    return hiddenTypes().length ? 'album' : null;
+  }
   return albumsChartFilter;
 }
 
@@ -1846,7 +1889,9 @@ function syncAlbumsFilterBar() {
   const seps = separatedTypes();
   if (!seps.length) { bar.style.display = 'none'; bar.innerHTML = ''; return; }
   bar.style.display = '';
-  const buckets = ['album', ...seps, 'all'];
+  // No "All" while a type is left out: the combined chart would be the one
+  // place those releases came back (see albumsFilterBucket)
+  const buckets = hiddenTypes().length ? ['album', ...seps] : ['album', ...seps, 'all'];
   if (!buckets.includes(albumsChartFilter)) albumsChartFilter = 'album';
   bar.innerHTML = buckets.map(b => {
     const label = b === 'all' ? t('afilter_all')
@@ -1955,8 +2000,10 @@ let singleRollup = (() => {
    sitting among the albums, rolling one up would either show it twice in the
    same chart or delete it. So it is only available once singles are Apart, and
    it quietly falls back to 'modal' if that setting is turned off later. */
+/* Left out works too (2026-11-12): the single is on no chart, so crediting
+   its plays to the album cannot show the same song twice. */
 function singleRollupLevel() {
-  if (singleRollup === 'charts' && !isTypeSeparated('single')) return 'modal';
+  if (singleRollup === 'charts' && releaseSeparation.single === 'with') return 'modal';
   return singleRollup;
 }
 
@@ -7262,7 +7309,7 @@ function syncReleaseSeparationUI() {
      stored 'charts' shows as the 'modal' it actually behaves as while singles
      are not separated. */
   const lvl = singleRollupLevel();
-  const chartsOk = isTypeSeparated('single');
+  const chartsOk = releaseSeparation.single !== 'with';   // Apart or Leave out
   document.querySelectorAll('.rt-sep-btn[data-rollup]').forEach(b => {
     b.classList.toggle('active', b.dataset.rollup === lvl);
     const off = b.dataset.rollup === 'charts' && !chartsOk;
@@ -7343,7 +7390,7 @@ function setReleaseSeparationFromUI(type, mode) {
 function setSingleRollupFromUI(level) {
   // The charts level is unreachable while singles sit with the albums — the
   // button is disabled, but a stored value could still name it.
-  if (level === 'charts' && !isTypeSeparated('single')) return;
+  if (level === 'charts' && releaseSeparation.single === 'with') return;
   setSingleRollup(level);
   syncReleaseSeparationUI();
   if (typeof renderAll === 'function') renderAll();
@@ -8734,7 +8781,8 @@ function buildRecords() {
   };
 
   // Read once: are singles/EPs separated from albums? (see albumGroups below)
-  const _recSepOn = separatedTypes().length > 0;
+  // (albumBucketsOn: a left-out type has to be dropped here too)
+  const _recSepOn = albumBucketsOn();
   // Read once: do singles lend their plays to their album on the charts?
   const _recRoll = rollupAffectsCharts();
   function buildPeriodRecords(pt, playsMap, keys, sizeSongs, sizeArtists, sizeAlbums) {
@@ -8987,6 +9035,7 @@ function buildRecords() {
             const byB = {};
             for (const e of Object.entries(nl)) {
               const b = albumBucketOf(e[1].album, e[1].artist);
+              if (b === HIDDEN_BUCKET) continue;   // left out: no New chart
               (byB[b] || (byB[b] = [])).push(e);
             }
             return Object.values(byB);
@@ -11845,7 +11894,7 @@ function buildRecords() {
       for (const w of wallItems) {
         if (w.type !== type) continue;
         // A single's or EP's plaque is not the Albums card's to show.
-        if (type === 'album' && separatedTypes().length && albumBucketOf(w.title, w.artist) !== 'album') continue;
+        if (type === 'album' && albumBucketsOn() && albumBucketOf(w.title, w.artist) !== 'album') continue;
         const ord = _wTierOrd[w.tier];
         if (ord > bestOrd) continue;
         if (ord < bestOrd) { bestOrd = ord; best = w; continue; }
@@ -13933,7 +13982,7 @@ function recAlbumEnts() {
    album key — to a single bucket. Returns the container untouched when nothing
    is separated, so the common path allocates nothing. */
 function recSplitAlbums(container, bucket) {
-  if (!separatedTypes().length) return container;
+  if (!albumBucketsOn()) return container;   // left-out types are split away too
   const out = { day: {}, week: {}, month: {}, year: {} };
   for (const pt of ['day', 'week', 'month', 'year']) {
     const src = container[pt] || {};
@@ -13958,7 +14007,7 @@ function recIsAlbumEnt(entKey) {
 
 // The flat (non-period) twin, for the containers keyed by album key alone.
 function recSplitFlat(map, bucket) {
-  if (!bucket || !separatedTypes().length) return map;
+  if (!bucket || !albumBucketsOn()) return map;
   const out = {};
   for (const k in map) if (albumBucketOfKey(k) === bucket) out[k] = map[k];
   return out;
@@ -18940,6 +18989,7 @@ function _crBucketAlbums(albums) {
        tallies store a bare count, so their bucket is read back out of the
        key. Same question, two shapes of answer. */
     const b = d._album ? albumBucketOf(d._album, d._artist) : albumBucketOfKey(k);
+    if (b === HIDDEN_BUCKET) continue;   // left out: ranks on no chart at all
     (byBucket[b] || byBucket.album).push([k, d]);
   }
   return order.map(b => byBucket[b]).filter(g => g.length);
@@ -19050,7 +19100,7 @@ function _buildChartRunFull(period) {
          all of them still share one result.albums — every consumer of the run
          (the chart-run panel, Records, the modals) keeps working untouched.
          Everything else, and albums while nothing is separated, is one group. */
-      const groups = (type === 'albums' && separatedTypes().length)
+      const groups = (type === 'albums' && albumBucketsOn())   // also drops left-out types
         ? _crBucketAlbums(pm.albums)
         : [Object.entries(pm[src])];
       // Accumulated across the groups and assigned once, or the second bucket
@@ -19381,7 +19431,7 @@ const CR_LIVE_SIZE = {
 function _crLiveGoals(type, key, rate, skipWeekEnter) {
   if (type !== 'songs' && type !== 'artists' && type !== 'albums') return [];
   const L = _crLive(), out = [];
-  const bucket = type === 'albums' && separatedTypes().length ? albumBucketOfKey(key) : null;
+  const bucket = type === 'albums' && albumBucketsOn() ? albumBucketOfKey(key) : null;
   for (const per of ['day', 'week', 'month', 'year']) {
     let tally;
     if (per === 'day') tally = L.day[type];
@@ -20164,11 +20214,11 @@ function showCrPreview(periodKey, type, encodedKey, boxEl, periodName, mixed) {
      that somehow isn't in this period's map. */
   let pool = Object.entries(pm[type]);
   let typeLabel = typeLabels[type];
-  if (type === 'albums' && separatedTypes().length && !mixed) {
+  if (type === 'albums' && albumBucketsOn() && !mixed) {
     const kd = pm.albums[key];
     const bucket = kd ? albumBucketOf(kd._album, kd._artist) : albumBucketOfKey(key);
     pool = pool.filter(([, d]) => albumBucketOf(d._album, d._artist) === bucket);
-    if (bucket !== 'album') typeLabel = t('rtype_' + bucket + '_plural');
+    if (bucket === 'single' || bucket === 'ep') typeLabel = t('rtype_' + bucket + '_plural');
   }
   // Daily: the day's chart as the Daily tab ranked it (daily.js)
   const ranked = period === 'day'
@@ -20652,7 +20702,7 @@ function buildAllTimePeaks(forView) {
   /* Separated types are their own all-time chart, so a single's all-time rank
      is its rank among singles — the same split the chart on screen makes. */
   const albumPeakMap = {};
-  const albumGroups = (separatedTypes().length && !(forView && albumsViewIsMixed()))
+  const albumGroups = (albumBucketsOn() && !(forView && albumsViewIsMixed()))
     ? _crBucketAlbums(lp) : [Object.entries(lp)];
   for (const g of albumGroups) {
     g.sort(([, a], [, b]) => rankSort(a, b)).slice(0, chartSizeAlbumsAT)
@@ -20733,7 +20783,7 @@ function buildPeriodPeaks(period) {
       /* On the combined "All" view the chart on screen is one mixed chart, so
          the badge is the peak on that chart — the same one the chart run
          beside it now shows (see crRunType). */
-      const groups = (type === 'albums' && separatedTypes().length && !albumsViewIsMixed())
+      const groups = (type === 'albums' && albumBucketsOn() && !albumsViewIsMixed())
         ? _crBucketAlbums(pm.albums)
         : [Object.entries(pm[type])];
       const newPrev = new Map();
@@ -21208,7 +21258,8 @@ function _buildBuChartRunFull() {
         data.chartStatus = prevRk !== undefined ? 0 : everChartedKeys[type].has(k) ? 1 : 2;
         data.prevRank = prevRk !== undefined ? prevRk : Infinity;
       }
-      const groups = (type === 'albums' && _sepRun) ? _crBucketAlbums(pm.albums) : [Object.entries(pm[src])];
+      // albumBucketsOn, not _sepRun: a left-out type is dropped even with nothing Apart
+      const groups = (type === 'albums' && albumBucketsOn()) ? _crBucketAlbums(pm.albums) : [Object.entries(pm[src])];
       // Accumulated across the groups and assigned once, or the second bucket
       // would wipe the first one's prev-rank map.
       const newPrev = new Map();
@@ -21582,10 +21633,10 @@ function showBuCrPreview(periodKey, type, encodedKey, boxEl) {
      list; otherwise the BU list of the chart this release sits on — the
      per-type lists are stored side by side, so keep only this one's bucket. */
   let entries = buChartRunData.buPeriodMap[periodKey][crRunType(type)] || [];
-  if (type === 'albums' && separatedTypes().length && !albumsViewIsMixed()) {
+  if (type === 'albums' && albumBucketsOn() && !albumsViewIsMixed()) {
     const bucket = albumBucketOfKey(key);
     entries = entries.filter(e => albumBucketOfKey(e.key) === bucket);
-    if (bucket !== 'album') typeLabels.albums = t('rtype_' + bucket + '_plural');
+    if (bucket === 'single' || bucket === 'ep') typeLabels.albums = t('rtype_' + bucket + '_plural');
   }
   const items = entries.map(e => {
     const isActive = (e.key === key);
@@ -24233,7 +24284,7 @@ function certCfgFor(album, artist) {
    reads this one helper so they all agree. */
 function certReleaseLabelType(album, artist) {
   const b = albumBucketOf(album, artist);
-  return b === 'album' ? '' : b;
+  return b === 'single' || b === 'ep' ? b : '';   // left out ('out') = no own columns
 }
 
 /* The ladder types this library actually uses — nothing for a user who has
@@ -29101,7 +29152,7 @@ function _rkDetailHTML(M, i) {
     if (pool) {
       let best = null;
       // an album is ranked against its own bucket when singles / EPs are apart
-      const sameChart = ty === 'albums' && separatedTypes().length ? k => albumBucketOfKey(k) === (_rnk.bucket || 'album') : () => true;
+      const sameChart = ty === 'albums' && albumBucketsOn() ? k => albumBucketOfKey(k) === (_rnk.bucket || 'album') : () => true;
       for (const k in pool) if (sameChart(k) && (!best || rankSortWithStatus(pool[k], pool[best]) < 0)) best = k;
       // songs are keyed title|||artist (lower case), albums album|||artist;
       // the entry keeps the names
@@ -30160,7 +30211,11 @@ function openAlbumModal(albumKey) {
      chart when it is not — and a one-song single leaves out the parts that
      need several tracks. relType: what it is; bucket: the chart it ranks on. */
   const relType = releaseTypeOf(albumName, artistName);
-  const bucket = albumBucketOf(albumName, artistName);
+  /* A left-out single / EP has no chart of its own, so it is described as
+     the albums chart sees it: "rank on the Albums chart", shown as — since
+     it never ranks there (allTimePeaks drops it). */
+  const _albBucket = albumBucketOf(albumName, artistName);
+  const bucket = _albBucket === HIDDEN_BUCKET ? 'album' : _albBucket;
   /* A joint album (2026-11-09) names every owner, each opening their own
      artist window; any other album names its credit as before. */
   const albOwners = albIsComp ? [] : albumOwnersOf(albumName, artistName);
@@ -55882,7 +55937,7 @@ function stNo1Reigns(type, unit) {
   const bucket = type === 'albums' ? 'album' : type;
   const res = full && full.result && full.result[isRel ? 'albums' : type];
   if (!res) return [];
-  const sep = isRel && separatedTypes().length > 0;
+  const sep = isRel && albumBucketsOn();
   const byWeek = {};
   for (const k in res) {
     if (sep) {
@@ -56709,7 +56764,11 @@ function stRenderTopCharts(plays) {
   });
   const buckets = { album: [] };
   for (const typ of separatedTypes()) buckets[typ] = [];
-  for (const e of Object.values(albumMap)) (buckets[albumBucketOf(e.album, e.artist)] || buckets.album).push(e);
+  for (const e of Object.values(albumMap)) {
+    const b = albumBucketOf(e.album, e.artist);
+    if (b === HIDDEN_BUCKET) continue;   // left out of albums-like charts
+    (buckets[b] || buckets.album).push(e);
+  }
   for (const b in buckets) buckets[b] = buckets[b].sort((a, b2) => b2.count - a.count).slice(0, 50);
   const albumItems = list => list.map(a => ({
     title: a.album, sub: a.artist, count: a.count, imgType: 'album', imgArgs: [a.album, a.artist],
