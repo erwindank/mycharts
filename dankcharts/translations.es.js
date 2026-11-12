@@ -1654,6 +1654,7 @@ TRANSLATIONS['es'] = Object.assign({
     sk_dd_went_on: 'llegó a {{n}} días',
     sk_dd_risk_now: 'necesita una escucha hoy',
     sk_dd_cells_scale: 'Cada cuadro son unos {{n}} días',
+    sk_dd_last14: '14 días hasta este día, este día a la derecha',
     sk_dd_last_day: 'su último día',
     sk_dd_now: 'hoy',
     sk_dd_needs: 'necesita una escucha hoy · {{n}} días',

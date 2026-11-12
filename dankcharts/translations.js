@@ -1705,6 +1705,7 @@ const TRANSLATIONS = {
     sk_dd_went_on: 'went on to {{n}} days',
     sk_dd_risk_now: 'needs a play today',
     sk_dd_cells_scale: 'Each square is about {{n}} days',
+    sk_dd_last14: '14 days up to this day, this day on the right',
     sk_dd_last_day: 'its last day',
     sk_dd_now: 'now',
     sk_dd_needs: 'needs a play today · {{n}} days',

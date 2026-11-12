@@ -44270,21 +44270,45 @@ body.green-light .sk-hm-tswatch.active { border-color: var(--text); }
 .sk-dd-nm { display: flex; align-items: baseline; gap: 0.4rem; min-width: 0; }
 .sk-dd-t { font-size: var(--fs-sm); font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 0 1 auto; }
 .sk-dd-sub { font-size: 0.72rem; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1 1 0; }
-/* The run as small square cells, calendar-style (see _skDdCellsHtml): filled =
-   days up to the chosen day, hollow = days the run still had ahead, outlined =
-   the chosen day, ✕ = the day a lost streak broke, glow = still going today. */
-.sk-dd-cells { display: flex; flex-wrap: wrap; gap: 2px; margin: 0.32rem 0 0.28rem; }
-.sk-dd-cells i { width: 7px; height: 7px; border-radius: 1.5px; flex-shrink: 0; }
-.sk-dd-cells i.on { background: var(--sk-tier); }
-.sk-dd-cells i.ahead { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sk-tier) 45%, transparent); }
-.sk-dd-cells i.sel { outline: 1px solid var(--text); outline-offset: 1px; }
-.sk-dd-cells i.live { box-shadow: 0 0 5px color-mix(in srgb, var(--sk-tier) 80%, transparent); }
-.sk-dd-cells i.ahead.live { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sk-tier) 45%, transparent), 0 0 5px color-mix(in srgb, var(--sk-tier) 80%, transparent); }
-.sk-dd-row--lost .sk-dd-cells i.on { background: color-mix(in srgb, var(--sk-tier) 50%, var(--text3)); }
-.sk-dd-cells i.broke {
-  margin-left: 2px; position: relative;
-  background: linear-gradient(45deg, transparent 42%, var(--rose) 42%, var(--rose) 58%, transparent 58%),
-              linear-gradient(-45deg, transparent 42%, var(--rose) 42%, var(--rose) 58%, transparent 58%);
+/* Calendar day panel: the 14 days up to the chosen day as a "chain" (see
+   _skDdCellsHtml). Same days as the Today tab's ticks, but its own look:
+   back-to-back played days fuse into one bar in the streak's tier colour (thin
+   cuts mark each day), missed days are faint stubs, the chosen day is a taller
+   glowing cap (pulsing when the streak is still going), and a lost streak gets
+   a red ✕ on the chosen day. The bars sweep in from the left. */
+.sk-dd-dots { margin: 0.32rem 0 0.28rem; line-height: 0; }
+.sk-cal-strip { display: inline-flex; align-items: center; gap: 3px; height: 13px; }
+.sk-cal-strip i { width: 5px; height: 4px; border-radius: 2px; flex-shrink: 0; background: color-mix(in srgb, var(--sk-tier) 22%, var(--bg3)); }
+.sk-cal-strip b {
+  position: relative; flex-shrink: 0; height: 8px; border-radius: 4px;
+  width: calc(var(--n) * 6px - 1px);
+  background:
+    repeating-linear-gradient(90deg, transparent 0 5px, rgba(0, 0, 0, 0.22) 5px 6px),
+    linear-gradient(90deg, color-mix(in srgb, var(--sk-tier) 45%, transparent), var(--sk-tier));
+  animation: skCalSweep 0.55s cubic-bezier(.2, .8, .2, 1) both;
+}
+/* the chosen day: a taller cap on the end of the bar */
+.sk-cal-strip b.sel::after {
+  content: ''; position: absolute; right: 0; top: 50%; width: 5px; height: 13px;
+  transform: translateY(-50%); border-radius: 2px; background: var(--sk-tier);
+  box-shadow: 0 0 7px color-mix(in srgb, var(--sk-tier) 75%, transparent);
+}
+.sk-dd-row--alive .sk-cal-strip b.sel::after { animation: skCalPulse 1.6s ease-in-out infinite; }
+/* lost: muted bars and a red ✕ where the next day should have been */
+.sk-dd-row--lost .sk-cal-strip b { background:
+    repeating-linear-gradient(90deg, transparent 0 5px, rgba(0, 0, 0, 0.22) 5px 6px),
+    linear-gradient(90deg, color-mix(in srgb, var(--sk-tier) 25%, transparent), color-mix(in srgb, var(--sk-tier) 50%, var(--text3))); }
+.sk-cal-strip i.miss {
+  width: 9px; height: 9px; border-radius: 0; background:
+    linear-gradient(45deg, transparent 40%, var(--rose) 40%, var(--rose) 60%, transparent 60%),
+    linear-gradient(-45deg, transparent 40%, var(--rose) 40%, var(--rose) 60%, transparent 60%);
+}
+@keyframes skCalSweep { from { clip-path: inset(0 100% 0 0 round 4px); } to { clip-path: inset(0 0 0 0 round 4px); } }
+@keyframes skCalPulse { 50% { box-shadow: 0 0 12px color-mix(in srgb, var(--sk-tier) 95%, transparent); } }
+/* the cap sticks out above/below the bar, so let it show past the sweep's clip once done */
+.sk-cal-strip b.sel { animation-fill-mode: backwards; }
+@media (prefers-reduced-motion: reduce) {
+  .sk-cal-strip b, .sk-dd-row--alive .sk-cal-strip b.sel::after { animation: none; }
 }
 .sk-dd-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.2rem 0.45rem; font-size: 0.7rem; color: var(--text3); line-height: 1.35; }
 .sk-dd-tag { white-space: nowrap; color: var(--text2); font-weight: 600; }

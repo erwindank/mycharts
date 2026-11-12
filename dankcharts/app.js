@@ -42063,7 +42063,9 @@ function openStreakModal(opts) {
     const s = [...daySet].sort();
     if (!s.length) return;
     let start = s[0], len = 1;
-    const close = end => { if (len >= 2) _skRuns.push({ type, key, name, sub, album, start, end, len, best }); };
+    // days = the whole day set, so the Calendar rows can draw the same 14-day
+    // tick strip as the Today tab (ending on the chosen day).
+    const close = end => { if (len >= 2) _skRuns.push({ type, key, name, sub, album, start, end, len, best, days: daySet }); };
     for (let i = 1; i < s.length; i++) {
       const diff = Math.round((+new Date(s[i] + 'T12:00:00') - +new Date(s[i - 1] + 'T12:00:00')) / 86400000);
       if (diff === 1) {
@@ -44232,22 +44234,27 @@ function _skHmShowTip(cell, ev) {
   _skHmTip.style.left = l + 'px'; _skHmTip.style.top = top + 'px';
 }
 
-// The run as a strip of small square cells (calendar-style, so it reads as past
-// days, unlike the tall orange ticks on Today): filled up to the chosen day, hollow
-// for the days the run still had ahead of it, the chosen day outlined, a ✕ cell for
-// the day a lost streak broke, and a glowing last cell when it is still going.
-// Runs longer than 30 days are shown as 30 cells, each covering a few days.
-function _skDdCellsHtml(r, day, lost, alive) {
-  const N = Math.min(r.len, 30), per = r.len / N;
-  const selCell = Math.min(N - 1, Math.floor((day - 1) / per));
-  let h = '';
-  for (let i = 0; i < N; i++) {
-    const cls = lost ? 'on' : (i <= selCell ? 'on' : 'ahead');
-    h += `<i class="${cls}${!lost && i === selCell ? ' sel' : ''}${alive && i === N - 1 ? ' live' : ''}"></i>`;
-  }
-  if (lost) h += '<i class="broke"></i>';
-  const lbl = per > 1 ? t('sk_dd_cells_scale', { n: Math.round(per * 10) / 10 }) : '';
-  return `<div class="sk-dd-cells"${lbl ? ` title="${esc(lbl)}"` : ''} aria-hidden="true">${h}</div>`;
+// The 14 days up to the chosen day (same days as the Today tab's ticks), drawn
+// as a "chain" so the Calendar has its own look (2026-11-11): each run of
+// back-to-back played days is one <b> bar (--n = its length), a missed day is a
+// small <i> stub, the chosen day is a glowing cap on the last bar ('sel'), or a
+// red ✕ ('miss') when it wasn't played (a lost streak). CSS: .sk-cal-strip.
+function _skDdCellsHtml(r, ds) {
+  const days = r.days || new Set();
+  const arr = []; let cur = ds;
+  for (let i = 0; i < 14; i++) { arr.unshift(days.has(cur) ? 1 : 0); cur = _skDsShift(cur, -1); }
+  let h = '', run = 0;
+  // bars after the first sweep in a little later, left to right
+  // (delay = where the bar starts, so later bars sweep in after earlier ones)
+  const bar = (n, sel, end) => `<b class="${sel ? 'sel' : ''}" style="--n:${n};animation-delay:${(end - n + 1) * 25}ms"></b>`;
+  arr.forEach((v, i) => {
+    const last = i === 13;
+    if (v) { run++; if (last) h += bar(run, true, i); return; }
+    if (run) { h += bar(run, false, i - 1); run = 0; }
+    h += last ? '<i class="miss"></i>' : '<i></i>';
+  });
+  const lbl = t('sk_dd_last14');
+  return `<div class="sk-dd-dots"><span class="sk-cal-strip" title="${esc(lbl)}" aria-label="${esc(lbl)}">${h}</span></div>`;
 }
 
 // One row: cover, name, the run as a strip of cells up to this day, and the
@@ -44283,7 +44290,7 @@ function _skDdRowHtml(e, ds, song) {
     `<span class="sk-art${r.type === 'artist' ? ' sk-art--round' : ''}"><span id="${imgId}" class="sk-art-in"><span class="thumb-initials">${esc(initials(r.name))}</span></span></span>` +
     `<div class="sk-dd-main">` +
       `<div class="sk-dd-nm"><span class="sk-dd-t">${esc(r.name)}</span>${r.sub ? `<span class="sk-dd-sub">${esc(r.sub)}</span>` : ''}</div>` +
-      _skDdCellsHtml(r, e.day, lost, alive) +
+      _skDdCellsHtml(r, ds) +
       `<div class="sk-dd-meta"><span>${bits.map(esc).join(' · ')}</span>${tag}</div>` +
     `</div>` +
     `<div class="sk-dd-num" title="${esc(lost ? t('sk_dd_ended', { n: r.len }) : t('sk_dd_day', { n: e.day }))}">${lost ? r.len : e.day}<small>d</small></div>` +
