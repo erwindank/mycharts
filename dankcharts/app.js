@@ -18126,6 +18126,9 @@ function buildCrPanelHTML(type, key, f) {
       { id: 'year', label: t('cr_yearly_label') },
       { id: 'month', label: t('cr_monthly_label') },
       { id: 'week', label: t('cr_weekly_label') },
+      // The daily chart's run too (2026-11-12): allChartRun.day is built by
+      // ensureAllChartRun above (dyFullRun in daily.js)
+      { id: 'day', label: t('cr_daily_label') },
     ].map(({ id, label }) => {
       const crData = allChartRun[id];
       // The history of the chart on screen — on the albums "All" view that is
@@ -18136,10 +18139,15 @@ function buildCrPanelHTML(type, key, f) {
       // that section's granularity and cutoff rather than the panel's.
       const rangeOpts = { mode: getCrRangeMode(type, key), viewedYear: vy, cutoffKeys, periodMap: crData?.periodMap };
       const bodyHtml = d ? `<div class="cr-stats cr-stats-sum">${crStats(type, key, id, null, d, rangeOpts)}</div>${crBoxesHTML(type, key, null, d, id)}` : `<div class="cr-empty-note">${t('cr_no_history')}</div>`;
-      return `<div class="cr-panel-section">
+      // Each section is its own card (2026-11-12): the header carries the
+      // run's peak and length, so a folded section still says something and
+      // the eye can find where each chart starts
+      const meta = d ? `<span class="cr-panel-section-meta"><b class="${d.peak === 1 ? 'is-gold' : ''}">#${d.peak}</b> ${esc(t('cr_rb_peak'))} · ${esc(_crU(id, d.entries.length))}</span>` : '';
+      return `<div class="cr-panel-section cr-panel-section--${id}">
         <div class="cr-panel-section-header is-open" onclick="toggleCrPanelSection(this)">
           <span class="cr-subsection-toggle">▼</span>
           <span class="cr-panel-section-title">${label}</span>
+          ${meta}
         </div>
         <div class="cr-panel-section-body">${bodyHtml}</div>
       </div>`;

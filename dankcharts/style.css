@@ -15115,8 +15115,18 @@
       border-top: none !important;
     }
 
+    /* Yearly / Monthly / Weekly / Daily sections (Year + All-Time panels).
+       Since 2026-11-12 each is its own card with a header bar, so it is clear
+       where one chart's run ends and the next begins (they used to run
+       together as plain text under small labels). */
     .cr-panel-section {
-      margin-top: var(--sp-2);
+      margin-top: var(--sp-3);
+      border: 1px solid color-mix(in srgb, var(--text) 9%, transparent);
+      border-radius: var(--r-lg, 12px);
+      background: color-mix(in srgb, var(--text) 2%, transparent);
+      /* clip, not hidden: hidden makes a scroll box and the sticky counts
+         row (.cr-ribbon.is-sticky) would stop pinning on long runs */
+      overflow: clip;
     }
 
     .cr-panel-section:first-child {
@@ -15129,8 +15139,17 @@
       gap: var(--sp-2);
       cursor: pointer;
       user-select: none;
-      padding: 0.35rem 0.1rem;
-      margin-bottom: 0.3rem;
+      padding: 0.6rem 0.9rem;
+      background: color-mix(in srgb, var(--text) 5%, transparent);
+    }
+
+    /* A divider under the header only while the section is open */
+    .cr-panel-section-header.is-open {
+      border-bottom: 1px solid color-mix(in srgb, var(--text) 8%, transparent);
+    }
+
+    .cr-panel-section-body {
+      padding: 0.85rem 0.9rem 0.9rem;
     }
 
     .cr-panel-section-header:hover .cr-panel-section-title {
@@ -15139,10 +15158,28 @@
 
     .cr-panel-section-title {
       font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      font-weight: 600;
-      color: var(--text2);
+      font-size: var(--fs-sm);
+      font-weight: 700;
+      color: var(--text);
       transition: color 0.15s;
+    }
+
+    /* Peak + length on the right of the header, readable when folded */
+    .cr-panel-section-meta {
+      margin-left: auto;
+      font-size: var(--fs-xs);
+      color: var(--text3);
+      white-space: nowrap;
+    }
+
+    .cr-panel-section-meta b {
+      font-family: var(--font-display);
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .cr-panel-section-meta b.is-gold {
+      color: var(--medal-gold);
     }
 
     /* Ghost pill, quiet until hovered - Share is a side action, not the
