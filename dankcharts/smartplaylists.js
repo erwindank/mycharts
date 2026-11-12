@@ -718,7 +718,13 @@ function spRelativeFacts() {
       albumPlays: null, albumRank: null, albumTop: null
     });
   });
-  const albums = [...alb.values()].map(songs => ({ songs, total: songs.reduce((t, s) => t + s.plays, 0) }));
+  /* "Its album's place among all albums" ranks albums proper: a single or
+     EP set Apart or Leave out in Settings → Releases is not an album here,
+     so its songs get no albumTop (and the albums behind it move up). */
+  const _sepOn = typeof albumBucketsOn === 'function' && albumBucketsOn();
+  const albums = [...alb.values()]
+    .filter(songs => !_sepOn || albumBucketOf(songs[0].album, songs[0].artist) === 'album')
+    .map(songs => ({ songs, total: songs.reduce((t, s) => t + s.plays, 0) }));
   albums.sort((a, b) => b.total - a.total);
   albums.forEach(({ songs, total }, ai) => {
     songs.sort((a, b) => b.plays - a.plays).forEach((s, i) => {

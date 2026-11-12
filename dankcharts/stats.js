@@ -120,9 +120,13 @@ function _sxTally(fromTs, toTs, trend) {
     for (const a of p.artists) { artists.add(a); artistPlays.set(a, (artistPlays.get(a) || 0) + 1); }
     const ak = p.album && p.album !== '—' ? albumKeyOf(p) : null;
     if (ak) {
-      albums.add(ak);
-      const ao = albumPlays.get(ak);
-      if (ao) ao.n++; else albumPlays.set(ak, { n: 1, p });
+      albums.add(ak);   // the count tile counts every release heard
+      /* The top lists rank albums proper: a single or EP set Apart or Leave
+         out in Settings → Releases is not an album here (isAlbumProperKey) */
+      if (isAlbumProperKey(ak)) {
+        const ao = albumPlays.get(ak);
+        if (ao) ao.n++; else albumPlays.set(ak, { n: 1, p });
+      }
     }
     const dk = dayKey(d);
     dayPlays.set(dk, (dayPlays.get(dk) || 0) + 1);
@@ -1667,7 +1671,8 @@ function _sxCmpSave() { try { localStorage.setItem('dc_sxCmp', JSON.stringify(sx
 function _sxPlayKeys(type, p) {
   if (type === 'artists') return p.artists;
   if (type === 'songs') return [songKey(p)];
-  if (type === 'albums') return p.album && p.album !== '—' ? [albumKeyOf(p)] : [];
+  // Albums proper only: Apart / left-out singles and EPs follow Settings → Releases
+  if (type === 'albums') return isAlbumProperPlay(p) ? [albumKeyOf(p)] : [];
   return [String(tzDateOf(p).getFullYear())];
 }
 
@@ -1675,7 +1680,7 @@ function _sxPlayKeys(type, p) {
    the chips and the verdict. Built once per data change. */
 let _sxIdx = null;
 function _sxIndex() {
-  const gen = allPlays.length + '|' + (typeof _playsVersion !== 'undefined' ? _playsVersion : '') + '|' + (typeof _stampEpoch !== 'undefined' ? _stampEpoch : '');
+  const gen = allPlays.length + '|' + (typeof _playsVersion !== 'undefined' ? _playsVersion : '') + '|' + (typeof _stampEpoch !== 'undefined' ? _stampEpoch : '') + '|' + (typeof _releaseEpoch !== 'undefined' ? _releaseEpoch : '');   // release epoch: Apart / Leave out moves albums in and out
   if (_sxIdx && _sxIdx.gen === gen) return _sxIdx;
   const idx = { gen };
   for (const type of SX_CMP_TYPES) idx[type] = new Map();

@@ -1926,6 +1926,18 @@ function albumBucketOfKey(ak) {
   return i < 0 ? 'album' : albumBucketOf(ak.slice(0, i), ak.slice(i + 3));
 }
 
+/* Is this release an album as far as album LISTS go — the Stats top lists,
+   the race, Awards' album categories, the banner pictures? (2026-11-12, user:
+   "make them follow the settings".) A single or EP set Apart has its own
+   chart and one set to Leave out has none; either way it is not an album
+   here. With nothing Apart or left out, everything with an album counts. */
+function isAlbumProperKey(ak) {
+  return !albumBucketsOn() || albumBucketOfKey(ak) === 'album';
+}
+function isAlbumProperPlay(p) {
+  return !!p.album && p.album !== '—' && isAlbumProperKey(albumKeyOf(p));
+}
+
 function applyAlbumsFilterByKey(counts) {
   const want = albumsFilterBucket();
   if (!want) return counts;
@@ -15767,7 +15779,8 @@ function shRenderMosaic() {
   } else {
     type = 'album';
     // Only All-Time follows the album chips; null = nothing separated / "All"
-    const want = _shMosaicPeriod === 'alltime' ? albumsFilterBucket() : null;
+    // Other periods: the albums proper, never an Apart / left-out single
+    const want = _shMosaicPeriod === 'alltime' ? albumsFilterBucket() : (albumBucketsOn() ? 'album' : null);
     const list = want ? tally.albumList.filter(b => albumBucketOfKey(b.key) === want) : tally.albumList;
     items = list.slice(0, 18).map(b => ({ album: b.album, name: b.album, artist: b.artist, prefKey: 'album:' + b.artist.toLowerCase() + '|||' + b.album.toLowerCase() }));
   }
@@ -16324,7 +16337,10 @@ function _nePeriodKeyFn(period) {
    cached until the plays or the period type change. */
 const _neDebutCache = {};
 function _neDebutHistory(type) {
-  const ck = currentPeriod + '|' + _playsVersion + '|' + _stampEpoch;
+  // Albums: only the bucket on show (albums proper / singles / EPs), so a
+  // left-out or Apart single never sets the albums chart's "biggest debut"
+  const want = type === 'albums' ? albumsFilterBucket() : null;
+  const ck = currentPeriod + '|' + _playsVersion + '|' + _stampEpoch + '|' + _releaseEpoch + '|' + (want || '');
   if (_neDebutCache[type] && _neDebutCache[type].ck === ck) return _neDebutCache[type];
   const keyOf = _nePeriodKeyFn(currentPeriod);
   const first = new Map(), cnt = new Map();
@@ -16337,7 +16353,10 @@ function _neDebutHistory(type) {
     const b = keyOf(p);
     if (type === 'songs') see(songKey(p), b);
     else if (type === 'artists') { for (const a of p.artists) see(a, b); }
-    else if (p.album && p.album !== '—') see(albumKeyOf(p), b);
+    else if (p.album && p.album !== '—') {
+      const ak = albumKeyOf(p);
+      if (!want || albumBucketOfKey(ak) === want) see(ak, b);
+    }
   }
   const max = new Map();
   for (const [k, b] of first) { const c = cnt.get(k); if (!(max.get(b) >= c)) max.set(b, c); }
@@ -17143,7 +17162,7 @@ function renderAll() {
   // Songs: the songs heard for the first time this period, as covers; a
   // period with none (and All-Time) shows its top 3 instead
   const _faceSongs = _tally.newSongs.length ? _tally.newSongs.slice(0, 5) : _tally.songList.slice(0, 3);
-  const _faces = { songs: _faceSongs, artists: _tally.artistList.slice(0, 5), albums: _tally.albumList.slice(0, 3) };
+  const _faces = { songs: _faceSongs, artists: _tally.artistList.slice(0, 5), albums: _tally.albumList.filter(b => isAlbumProperKey(b.key)).slice(0, 3) };
   const _songsTip = _tally.newSongs.length ? t('sh_faces_new') : t('sh_faces_top_songs');
 
   document.getElementById('statsStrip').innerHTML =
@@ -31761,6 +31780,8 @@ function buildRaceFrames() {
         pickOf[imgKey] = songKey(p);
       } else { // albums
         if (only && !only.has(albumKeyOf(p))) continue;
+        // Unless picked by hand, Apart / left-out singles and EPs don't race as albums
+        if (!only && !isAlbumProperPlay(p)) continue;
         const mainArtist = (p.artists && p.artists[0]) || p.artist;
         const imgKey = `${mainArtist}||${p.album}`;
         totals[imgKey] = (totals[imgKey] || 0) + 1;
@@ -48329,7 +48350,12 @@ async function _awardsGetCandidates(catDef, eligStart, eligEnd, log) {
   if (catDef.filter.includes('+genre:')) return _awardsSplitGenre(catDef, eligStart, eligEnd, log);
   const start = new Date(eligStart + 'T00:00:00');
   const end   = new Date(eligEnd   + 'T23:59:59');
-  const inWin = allPlays.filter(p => p.date >= start && p.date <= end);
+  /* Album categories follow Settings → Releases: a single or EP set Apart or
+     Leave out is not nominated as an album. Best EP / Best Live Album ('rt:')
+     ask for their type on purpose, so they keep everything. Only the window's
+     plays are narrowed — every branch below counts nominees from inWin. */
+  const _albProper = catDef.type === 'album' && !String(catDef.filter).startsWith('rt:');
+  const inWin = allPlays.filter(p => p.date >= start && p.date <= end && (!_albProper || isAlbumProperPlay(p)));
   if (!inWin.length) return [];
   const { songs, albums, artists } = _awardsCountMaps(inWin);
   const f = catDef.filter;
@@ -51073,6 +51099,9 @@ function _awardsPickerBuildIndex() {
       if (!map[k]) map[k] = { title: p.title, artist: p.artist, album: p.album, plays: 0, last: 0 };
     } else if (_awardsPickerCatType === 'album') {
       if (!p.album) continue;
+      // Same rule as _awardsGetCandidates: Apart / left-out singles and EPs
+      // are not albums here, except in the categories that ask for a type
+      if (!String(_awardsPickerCatFilter || '').startsWith('rt:') && !isAlbumProperPlay(p)) continue;
       k = _ak(p);
       if (!map[k]) map[k] = { album: p.album, artist: _pa(p), plays: 0, last: 0 };
     } else {
