@@ -5524,6 +5524,11 @@ const TRANSLATIONS = {
     rt_card_fit_hint: "Tracks that don't fit the format are left off.",
     ra_card_btn: '↗ Share scores',
     ra_card_title: 'Share Discography Scores',
+    // artist Rating tab: the card that opens the discography picture
+    ra_share_kicker: 'Share as a picture',
+    ra_share_title: "Compare {{artist}}'s albums",
+    ra_share_sub: 'Your {{n}} rated albums and singles, ranked by your score in one picture',
+    ra_share_cta: 'Make picture',
     ra_card_eyebrow: 'Discography scores',
     ra_card_per_page: 'Albums per page',
     ra_card_page: 'Page {{n}} of {{total}}',

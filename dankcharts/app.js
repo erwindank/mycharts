@@ -65039,9 +65039,23 @@ function renderArtistRatingSection(artistName) {
         : sum.albumAvg != null ? t('ar_avg_albums', { n: sum.ratedAlbums }) : t('ar_avg_songs', { n: sum.ratedSongs }))}</div>
       <div class="ar-meters">${meter(sum.ratedAlbums, sum.totalAlbums, t('rtg_albums_rated'))}${
         sum.totalSingles ? meter(sum.ratedSingles, sum.totalSingles, t('ar_singles_rated')) : ''}${meter(sum.ratedSongs, sum.totalSongs, t('rtg_songs_rated'))}</div>
-      ${sum.ratedAlbums || sum.ratedSingles ? `<button class="dc-btn dc-btn-normal dc-btn-sm ar-share" onclick="raOpenCard(${key(artistName)})">${esc(t('ra_card_btn'))}</button>` : ''}
     </div>
   </div>`;
+
+  // Share picture: its own card under the score box (was a small "Share
+  // scores" button inside it, which people missed and didn't read as
+  // "compare the albums"). The three bars on the left are only a drawing of
+  // the ranked picture, not real scores.
+  const nRated = (sum.ratedAlbums || 0) + (sum.ratedSingles || 0);
+  const share = nRated ? `<div class="ar-next ar-share-card" role="button" tabindex="0" onclick="raOpenCard(${key(artistName)})" ${onKey}>
+      <span class="ar-share-pic" aria-hidden="true"><i style="width:92%"></i><i style="width:74%"></i><i style="width:55%"></i></span>
+      <span class="ar-next-txt">
+        <span class="ao-kicker">${esc(t('ra_share_kicker'))}</span>
+        <span class="ar-next-name">${esc(t('ra_share_title', { artist: artistName }))}</span>
+        <span class="ar-next-sub">${esc(t('ra_share_sub', { n: nRated }))}</span>
+      </span>
+      <span class="ar-next-cta">${ic('image')}<span>${esc(t('ra_share_cta'))}</span></span>
+    </div>` : '';
 
   // Next up: their most played album without a score (a single only when
   // every album is rated)
@@ -65077,7 +65091,7 @@ function renderArtistRatingSection(artistName) {
     </button>`;
   }).join('')}</div>` : '';
 
-  el.innerHTML = `<div class="ar">${hero}${next}${highs}<div class="ar-body"></div></div>`;
+  el.innerHTML = `<div class="ar">${hero}${share}${next}${highs}<div class="ar-body"></div></div>`;
   if (nk) {
     const [an, aa] = nk.split('|||');
     fetchAndInjectImage(document.getElementById('arNextArt'), { imgId: 'arNextArt', name: an, title: an, album: an, artist: aa || artistName, prefKey: 'album:' + (aa || artistName).toLowerCase() + '|||' + an.toLowerCase() }, 'album');

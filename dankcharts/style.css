@@ -3568,7 +3568,26 @@
     .dp-body .ar-meter-track { height: 6px; border-radius: 6px; background: color-mix(in srgb, var(--text) 9%, transparent); overflow: hidden; }
     .dp-body .ar-meter-track > span { display: block; height: 100%; min-width: 4px; border-radius: inherit; background: var(--rt-c); transform-origin: left; animation: aoGrow 0.9s var(--ease) both; }
     .dp-body .rt--none .ar-meter-track > span { background: var(--dp-ac); }
-    .dp-body .ar-share { margin-top: var(--sp-4); }
+    /* Share picture card (raOpenCard). Uses the .ar-next card look with a
+       stronger tint so it stands out. The thumb is a drawn "ranked list": three shrinking bars. */
+    .dp-body .ar-share-card {
+      background:
+        linear-gradient(90deg, color-mix(in srgb, var(--dp-ac) 20%, transparent), transparent 75%),
+        var(--raised);
+      border-color: color-mix(in srgb, var(--dp-ac) 55%, var(--border));
+    }
+    .dp-body .ar-share-pic {
+      flex-shrink: 0;
+      display: flex; flex-direction: column; justify-content: center; gap: 6px;
+      width: 52px; height: 52px; padding: 0 9px;
+      border-radius: var(--r-sm);
+      background: color-mix(in srgb, var(--dp-ac) 18%, var(--bg3));
+      box-shadow: var(--shadow-1);
+    }
+    .dp-body .ar-share-pic i { display: block; height: 6px; border-radius: 3px; background: var(--dp-ac); }
+    .dp-body .ar-share-pic i:nth-child(2) { opacity: .75; }
+    .dp-body .ar-share-pic i:nth-child(3) { opacity: .5; }
+    .dp-body .ar-share-card .ar-next-name { white-space: normal; }
 
     /* Next to rate */
     .dp-body .ar-next {

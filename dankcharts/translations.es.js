@@ -5361,6 +5361,11 @@ TRANSLATIONS['es'] = Object.assign({
     rt_card_fit_hint: 'Las canciones que no caben en el formato se omiten.',
     ra_card_btn: '↗ Compartir notas',
     ra_card_title: 'Compartir notas de la discografía',
+    // artist Rating tab: the card that opens the discography picture
+    ra_share_kicker: 'Compartir como imagen',
+    ra_share_title: 'Compara los álbumes de {{artist}}',
+    ra_share_sub: 'Tus {{n}} álbumes y sencillos calificados, ordenados por tu nota en una imagen',
+    ra_share_cta: 'Crear imagen',
     ra_card_eyebrow: 'Notas de la discografía',
     ra_card_per_page: 'Álbumes por página',
     ra_card_page: 'Página {{n}} de {{total}}',
