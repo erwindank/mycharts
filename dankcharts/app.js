@@ -58443,6 +58443,13 @@ document.addEventListener('keydown', e => {
   const modal = document.getElementById('stArtistModal');
   if (!modal || !modal.classList.contains('open')) return;
   if (e.target.closest && e.target.closest('input, textarea, select, [contenteditable]')) return;
+  // A similar artist's full window is open on top: Esc closes just that one,
+  // and the arrows belong to it, not to this pop-up underneath
+  const over = document.getElementById('artistModal');
+  if (over && over.classList.contains('open') && over.classList.contains('modal-on-top')) {
+    if (e.key === 'Escape') over.classList.remove('open');
+    return;
+  }
   if (e.key === 'ArrowLeft') { stAmStep(-1); e.preventDefault(); }
   else if (e.key === 'ArrowRight') { stAmStep(1); e.preventDefault(); }
   else if (e.key === 'Escape') stCloseArtistModal();
@@ -58452,9 +58459,24 @@ document.addEventListener('click', e => {
   const chip = e.target.closest && e.target.closest('[data-st-am-profile]');
   if (!chip) return;
   const name = chip.dataset.stAmProfile;
-  stCloseArtistModal();
+  // Keep this pop-up open underneath: the artist window opens on top of it,
+  // and its × brings you straight back here. Only the sample stops.
+  _eaStopSample();
+  document.getElementById('artistModal')?.classList.add('modal-on-top');
   openArtistModal(name);
 });
+
+// When that artist window closes (×, backdrop, Esc, or a link inside it),
+// drop it back to the normal modal level so other places stack it as usual
+(() => {
+  const am = document.getElementById('artistModal');
+  if (!am) return;
+  new MutationObserver(() => {
+    // only touch the class when it's there: classList.remove() rewrites the
+    // attribute even when nothing changes, which would re-fire this observer forever
+    if (!am.classList.contains('open') && am.classList.contains('modal-on-top')) am.classList.remove('modal-on-top');
+  }).observe(am, { attributes: true, attributeFilter: ['class'] });
+})();
 
 // The chart rows' right-click menu would open under this pop-up: keep the browser's own
 document.getElementById('stArtistModal')?.addEventListener('contextmenu', e => e.stopPropagation());
