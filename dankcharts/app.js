@@ -2310,6 +2310,17 @@ function setAlbumReleaseDate(albumKey, dateStr) {
 }
 window.setAlbumReleaseDate = setAlbumReleaseDate;
 
+/* "Change" beside the chart date on the album page: opens the browser's date
+   picker on the hidden date box next to it. showPicker() is the modern way;
+   older browsers get a focus + click instead. */
+function _albRelPickDate(btn) {
+  const inp = btn.parentNode.querySelector('.alb-rel-dpick');
+  if (!inp) return;
+  try { if (inp.showPicker) { inp.showPicker(); return; } } catch (e) {}
+  inp.focus(); inp.click();
+}
+window._albRelPickDate = _albRelPickDate;
+
 /* Deezer's release date for one album.
    'YYYY-MM-DD' found · null = asked, no confident answer · undefined = the
    request failed (offline, proxy busy) — not saved, so it is asked again.
@@ -4157,7 +4168,7 @@ function setAlbumReleaseType(albumName, artistName, type) {
   /* "Single, then album" needs its songs sorted before anything is saved, so
      it opens the editor and the select goes back to what is stored. */
   if (type === 'split') {
-    const sel = document.querySelector('#albumModalCompRow .alb-rtype-toggle select');
+    const sel = document.querySelector('#albumModalCompRow .alb-rel-type select');
     if (sel) sel.value = releaseTypeOf(albumName, artistName);
     openReleaseSplitModal(albumName, artistName);
     return;
@@ -4167,7 +4178,7 @@ function setAlbumReleaseType(albumName, artistName, type) {
   /* The chip stays lit for a pinned album as well as a typed one: choosing
      Album by hand is a decision the user made and should be able to see they
      made, even though it changes nothing about the charts. */
-  const wrap = document.querySelector('#albumModalCompRow .alb-rtype-toggle');
+  const wrap = document.querySelector('#albumModalCompRow .alb-rel-type');
   if (wrap) wrap.classList.toggle('is-set', !!releaseTypeSource(albumName, artistName));
   if (typeof renderAll === 'function') renderAll();
 }
@@ -30664,20 +30675,46 @@ function openAlbumModal(albumKey) {
        than singles usually have asks whether it is one — the case that used to
        turn a whole album into a single. */
     const split = releaseSplitOf(albumName, artistName);
-    const typeChip = split
-      ? `<button type="button" class="alb-rtype-toggle is-set alb-rsplit-btn" onclick="openReleaseSplitModal(${jsAlb},${jsArt})">${esc(t('rs_edit'))}</button>`
-      : `<label class="alb-rtype-toggle${curPinned ? ' is-set' : ''}" title="${esc(t('rtype_toggle_hint'))}">
-      <span>${t('rtype_toggle_label')}</span>
-      <select onchange="setAlbumReleaseType(${jsAlb},${jsArt},this.value)">${opts}</select>
-    </label>` +
-      (curType === 'single' && allTracksSorted.length >= 4
-        ? `<button type="button" class="alb-rollup-note alb-rsplit-hint" title="${esc(t('rs_hint_tip', { n: allTracksSorted.length }))}" onclick="openReleaseSplitModal(${jsAlb},${jsArt})">${esc(t('rs_hint_btn'))}</button>`
-        : '');
-    /* Owners chip (2026-11-09): who the album belongs to. Shown only when
+    /* ── The Release panel (2026-11-13, user picked "Idea B") ──
+       Type, Owners and "Charts from" sit as rows of one framed box: label on
+       the left, value in the middle, the action on the right edge — so the
+       three columns line up however many rows there are. The compilation
+       switch stays a chip above it and the singles counted a quiet line under
+       it ("Idea A"), because one is a switch and the other is just a fact.
+       Rows are .alb-rel-row; the type select keeps .alb-rel-type so
+       setAlbumReleaseType() can find it. Colours are currentColor-based: the
+       masthead is dark on some themes and light on others. */
+    const rowHtml = (label, value, action, extra) =>
+      `<div class="alb-rel-row${extra || ''}"><span class="alb-rel-k">${esc(label)}</span><div class="alb-rel-v">${value}</div><div class="alb-rel-a">${action || ''}</div></div>`;
+
+    // Type: a split release opens its editor; anything else is the select,
+    // dimmed until the type is decided (by hand or by detection).
+    const typeRow = split
+      ? rowHtml(t('rp_type'), `<span>${esc(t('rtype_split'))}</span>`,
+          `<button type="button" class="alb-rel-act" onclick="openReleaseSplitModal(${jsAlb},${jsArt})">${esc(t('rp_edit'))}</button>`)
+      : rowHtml(t('rp_type'),
+          /* The chosen type is shown as plain text and the real select lies
+             invisibly on top of it: phones force every select to 16px (so
+             iOS does not zoom on tap), which made it bigger than the rest of
+             the panel. The text is re-synced after the change, because
+             "Single, then album" puts the select back while its editor opens. */
+          `<label class="alb-rel-type${curPinned ? ' is-set' : ''}" title="${esc(t('rtype_toggle_hint'))}">
+            <span class="alb-rel-type-val">${esc(t('rtype_' + curType))}</span>
+            <svg class="alb-rel-caret" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5l3 3 3-3"/></svg>
+            <select aria-label="${esc(t('rtype_toggle_label'))}" onchange="setAlbumReleaseType(${jsAlb},${jsArt},this.value);this.parentNode.querySelector('.alb-rel-type-val').textContent=this.options[this.selectedIndex].text">${opts}</select>
+          </label>` +
+          /* A "single" with more songs than singles usually have asks whether
+             it is really one — the case that used to turn a whole album into
+             a single. */
+          (curType === 'single' && allTracksSorted.length >= 4
+            ? `<button type="button" class="alb-rel-hint" title="${esc(t('rs_hint_tip', { n: allTracksSorted.length }))}" onclick="openReleaseSplitModal(${jsAlb},${jsArt})">${esc(t('rs_hint_btn'))}</button>`
+            : ''));
+
+    /* Owners row (2026-11-09): who the album belongs to. Shown only when
        more than one artist is credited on it (otherwise there is nothing to
-       choose) and never on a compilation. Lit when owners are set; marked
-       "Joint album?" when every song names the same two or more artists. */
-    let ownChip = '';
+       choose) and never on a compilation. "Joint album?" when every song
+       names the same two or more artists. */
+    let ownRow = '';
     if (!albIsComp && !noArtistSplit) {
       const credited = new Set();
       for (const p of albumPlays) for (const a of p.artists || []) credited.add(a);
@@ -30685,36 +30722,64 @@ function openAlbumModal(albumKey) {
         const je = jointAlbumEntry(albumName, artistName);
         const joint = !!(je && je.o);
         const suggested = !je && isSuggestedJointAlbum(albumName, artistName, albumPlays);
-        ownChip = `<button type="button" class="alb-rtype-toggle alb-owner-btn${joint ? ' is-set' : ''}${suggested ? ' is-suggest' : ''}" title="${esc(t('ja_chip_hint'))}" onclick="openAlbumOwnersModal(${jsAlb},${jsArt})">${_amIco('user')}<span>${esc(joint ? t('ja_chip_joint', { n: je.o.length }) : suggested ? t('ja_chip_suggest') : t('ja_chip'))}</span></button>`;
+        const val = joint ? esc(je.o.join(', '))
+          : suggested ? `<span class="alb-rel-ask">${esc(t('ja_chip_suggest'))}</span>`
+          : esc(artistName);
+        ownRow = rowHtml(t('rp_owners'), `<span title="${esc(t('ja_chip_hint'))}">${val}</span>`,
+          `<button type="button" class="alb-rel-act" onclick="openAlbumOwnersModal(${jsAlb},${jsArt})">${esc(t('rp_edit'))}</button>`);
       }
     }
+
+    /* Charts from: when the singles start counting toward this album on the
+       weekly / monthly / daily / yearly charts — the release date (found
+       online or typed here) or the first play. Only at the charts level,
+       elsewhere it changes nothing. The date is written in the page's own
+       font and the reader's language; the real date box is hidden behind
+       "Change", which opens the browser's picker. */
+    let dateRow = '';
+    if (rolledSingles.length && rollupAffectsCharts()) {
+      const info = albumChartStartInfo(albumKey);
+      if (info && isFinite(info.ms)) {
+        const jsKey = esc(JSON.stringify(albumKey));
+        let shown;
+        try { shown = new Date(info.ms).toLocaleDateString(currentLang, { day: 'numeric', month: 'short', year: 'numeric' }); }
+        catch (e) { shown = _ardDayStr(info.ms); }
+        /* Change (and Reset) sit on the small line under the date rather than
+           in the action column: on a phone the left column is too narrow for
+           a date AND a button side by side. */
+        dateRow = rowHtml(t('rp_charts'),
+          `<span class="alb-rel-date">${esc(shown)}</span>
+           <small class="alb-rel-dline">${esc(t('ard_src_' + info.src))} ·
+             <input type="date" class="alb-rel-dpick" tabindex="-1" aria-hidden="true" value="${_ardDayStr(info.ms)}" onchange="setAlbumReleaseDate(${jsKey},this.value)">
+             <button type="button" class="alb-rel-act" onclick="_albRelPickDate(this)">${esc(t('rp_change'))}</button>` +
+          (info.src === 'user' ? ` · <button type="button" class="alb-rel-act alb-rel-sub" onclick="setAlbumReleaseDate(${jsKey},'')">${esc(t('ard_reset'))}</button>` : '') +
+          `</small>`,
+          '', ' alb-rel-row--date" title="' + esc(t('ard_hint')));
+      }
+    }
+
     compRowEl.innerHTML = `<label class="alb-comp-toggle" title="${esc(t('comp_toggle_hint'))}">
-      <input type="checkbox" ${albIsComp ? 'checked' : ''} onchange="toggleAlbumCompilation(${jsAlb},this.checked)">
+      <input type="checkbox" role="switch" ${albIsComp ? 'checked' : ''} onchange="toggleAlbumCompilation(${jsAlb},this.checked)">
       <span>${t('comp_toggle_label')}</span>
     </label>
-    ${typeChip}${ownChip}` +
+    <div class="alb-rel-panel">
+      <div class="alb-rel-h">${esc(t('rp_title'))}</div>
+      ${typeRow}${ownRow}${dateRow}
+    </div>` +
     /* A merged total has to say so, or the page silently disagrees with the
-       chart the user came from. Names the singles it counted, because which
-       ones were attached is a guess the app made and the user should be able
-       to check it. */
+       chart the user came from. "See" lists the singles it counted, each one
+       opening its own page, because which ones were attached is a guess the
+       app made and the user should be able to check it. */
     (rolledSingles.length
-      ? `<span class="alb-rollup-note" title="${esc(rolledSingles.map(k => k.split('|||')[0]).join(' · '))}">${esc(t(rolledSingles.length === 1 ? 'rollup_note' : 'rollup_note_other', { n: rolledSingles.length }))}</span>`
-      : '') +
-    /* From when the singles count on the weekly / monthly / daily charts:
-       the album's release date (found online or typed here), or the first
-       play. Only at the charts level — elsewhere it changes nothing. */
-    (() => {
-      if (!rolledSingles.length || !rollupAffectsCharts()) return '';
-      const info = albumChartStartInfo(albumKey);
-      if (!info || !isFinite(info.ms)) return '';
-      const jsKey = esc(JSON.stringify(albumKey));
-      return `<label class="alb-reldate" title="${esc(t('ard_hint'))}">
-        <span>${esc(t('ard_label'))}</span>
-        <input type="date" value="${_ardDayStr(info.ms)}" onchange="setAlbumReleaseDate(${jsKey},this.value)">
-        <span class="alb-reldate-src">${esc(t('ard_src_' + info.src))}</span>
-        ${info.src === 'user' ? `<button type="button" class="alb-reldate-reset" onclick="event.preventDefault();setAlbumReleaseDate(${jsKey},'')">${esc(t('ard_reset'))}</button>` : ''}
-      </label>`;
-    })();
+      ? `<div class="alb-rel-facts">
+          <div class="alb-rel-fact-row">
+            <span class="alb-rollup-note"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="1.5"/></svg>${esc(t(rolledSingles.length === 1 ? 'rollup_note' : 'rollup_note_other', { n: rolledSingles.length }))}</span>
+            <button type="button" class="alb-rel-act" aria-expanded="false" onclick="const w=this.closest('.alb-rel-facts');this.setAttribute('aria-expanded',w.classList.toggle('is-open'))">${esc(t('rp_see'))}</button>
+          </div>
+          <ul class="alb-rel-singles">${rolledSingles.map(k =>
+            `<li><button type="button" onclick="openAlbumModal(${esc(JSON.stringify(k))})">${esc(k.split('|||')[0])}</button></li>`).join('')}</ul>
+        </div>`
+      : '');
   }
 
   // ── IMAGE ─────────────────────────────────────────────────────────────────
