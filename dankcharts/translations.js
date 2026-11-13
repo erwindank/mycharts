@@ -5538,6 +5538,10 @@ const TRANSLATIONS = {
     rt_act_edit_sub: 'Change track scores, album aspects or your note',
     rt_act_share_title: 'Make a picture',
     rt_act_share_sub: 'Your {{score}} and {{n}} track scores, ready to post',
+    // album Tracks tab: the share-a-picture card
+    at_share_title: 'Your top tracks from this album',
+    at_share_sub: "All {{n}} tracks you've played, ranked by plays, in one picture",
+    at_share_sub_one: "The 1 track you've played, in one picture",
     ra_card_eyebrow: 'Discography scores',
     ra_card_per_page: 'Albums per page',
     ra_card_page: 'Page {{n}} of {{total}}',

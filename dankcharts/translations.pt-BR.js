@@ -5376,6 +5376,10 @@ TRANSLATIONS['pt-BR'] = Object.assign({
     rt_act_edit_sub: 'Mude as notas das faixas, os aspectos ou seu comentário',
     rt_act_share_title: 'Criar imagem',
     rt_act_share_sub: 'Seu {{score}} e {{n}} notas das faixas, pronta para postar',
+    // album Tracks tab: the share-a-picture card
+    at_share_title: 'Suas faixas mais ouvidas deste álbum',
+    at_share_sub: 'As {{n}} faixas que você ouviu, por plays, numa imagem',
+    at_share_sub_one: 'A faixa que você ouviu, numa imagem',
     ra_card_eyebrow: 'Notas da discografia',
     ra_card_per_page: 'Álbuns por página',
     ra_card_page: 'Página {{n}} de {{total}}',

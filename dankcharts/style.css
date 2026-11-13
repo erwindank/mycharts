@@ -3593,6 +3593,8 @@
        its verdict colour (band class sets --rt-c). */
     .dp-body .rt-acts { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); margin: var(--sp-4) 0 var(--sp-2); }
     .dp-body .rt-acts .ar-next { margin-top: 0; }
+    /* album Tracks tab share card: sits between the plays split bar and the chart switch */
+    .dp-body .am-share-card { margin: 0 0 var(--sp-3); }
     .dp-body .rt-act-pic { align-items: center; padding: 0; color: var(--dp-ac); }
     .dp-body .rt-act-pic svg { width: 22px; height: 22px; }
     .dp-body .rt-act-score { font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; color: var(--rt-c, var(--dp-ac)); font-variant-numeric: tabular-nums; }

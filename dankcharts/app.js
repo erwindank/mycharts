@@ -28421,20 +28421,34 @@ function amMusicRender() {
     ? (ch === 'all' ? esc(t('at_intro_all')) : t('at_intro', { chart: esc(t('am_in_' + ch)) }))
     : ty === 'appears' ? t('am_intro_appears', { chart: esc(t('am_in_' + ch)) })
     : t('am_intro', { what: esc(what), chart: esc(t('am_in_' + ch)) });
+  // On an album the share is a card under the intro (atShare), not a small
+  // button up here: the "📸 Share tracks" button was easy to miss and didn't
+  // say it makes a picture. Same card look as the Rating tabs' share cards.
+  const nAt = (_albCurrentAlbumCtx && _albCurrentAlbumCtx.tracks.length) || 0;
+  const atShare = onAlbum && nAt ? `<div class="ar-next ar-share-card am-share-card" role="button" tabindex="0" onclick="tpOpenCard()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
+      <span class="ar-share-pic" aria-hidden="true"><i style="width:92%"></i><i style="width:74%"></i><i style="width:55%"></i></span>
+      <span class="ar-next-txt">
+        <span class="ao-kicker">${esc(t('ra_share_kicker'))}</span>
+        <span class="ar-next-name">${esc(t('at_share_title'))}</span>
+        <span class="ar-next-sub">${esc(t(nAt === 1 ? 'at_share_sub_one' : 'at_share_sub', { n: nAt }))}</span>
+      </span>
+      <span class="ar-next-cta">${_amIco('image')}<span>${esc(t('ra_share_cta'))}</span></span>
+    </div>` : '';
   const share = onAlbum
-    ? `<button class="dc-btn dc-btn-normal dc-btn-sm am-share" onclick="tpOpenCard()">${esc(t('tp_card_open'))}</button>`
+    ? ''
     : ty === 'songs' ? `<span class="am-top-acts">` +
       // Export playlist (2026-11-07): the songs as they're listed below (search
       // + sort + chart), cut to a picked number, into the Soundiiz export window
       (list.length ? `<button class="dc-btn dc-btn-normal dc-btn-sm am-export" onclick="amExportPlaylist()">${_amIco('listmusic')}<span>${esc(t('am_export_btn'))}</span></button>` : '') +
       `<button class="dc-btn dc-btn-normal dc-btn-sm am-share" onclick="tpOpenArtistCard(${esc(JSON.stringify(_am.artistName))})">${esc(t('tp_card_open_artist'))}</button></span>` : '';
   el.innerHTML = `<div class="am">
-    <div class="am-top">
-      ${onAlbum ? '' : `<div class="am-type${nTypes > 2 ? ' am-type--more' : ''}${nTypes === 4 ? ' am-type--4' : ''}${nTypes === 5 ? ' am-type--5' : ''}" role="tablist">${typeBtn('songs', t('ig_type_songs'), 'note')}${typeBtn('albums', t('ig_type_albums'), 'disc')}${L.singles ? typeBtn('singles', t('rtype_single_plural'), 'sparkle') : ''}${L.eps ? typeBtn('eps', t('rtype_ep_plural'), 'layout') : ''}${L.appears ? typeBtn('appears', t('am_type_appears'), 'link') : ''}</div>`}
+    ${onAlbum ? '' /* album: no type switch, share is a card below — no empty top row */ : `<div class="am-top">
+      <div class="am-type${nTypes > 2 ? ' am-type--more' : ''}${nTypes === 4 ? ' am-type--4' : ''}${nTypes === 5 ? ' am-type--5' : ''}" role="tablist">${typeBtn('songs', t('ig_type_songs'), 'note')}${typeBtn('albums', t('ig_type_albums'), 'disc')}${L.singles ? typeBtn('singles', t('rtype_single_plural'), 'sparkle') : ''}${L.eps ? typeBtn('eps', t('rtype_ep_plural'), 'layout') : ''}${L.appears ? typeBtn('appears', t('am_type_appears'), 'link') : ''}</div>
       ${share}
-    </div>
+    </div>`}
     <p class="am-intro">${intro} <span>${esc(t(ch === 'all' ? 'am_tap_hist' : 'am_tap_run'))}</span></p>
     ${onAlbum && _am.split ? _am.split : ''}
+    ${atShare}
     <div class="am-charts">${AM_CHARTS.map(chartBtn).join('')}</div>
     ${list.length ? `<div class="am-sum">
       ${sumCell(list.length, tUnit(unitTy, list.length), 'count')}
