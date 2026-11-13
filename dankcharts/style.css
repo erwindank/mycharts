@@ -33122,9 +33122,50 @@ body[class*="-light"] .st-chap-head:not(.st-chap-head--artist):not(.st-chap-head
   border-radius: 50%;
   background: var(--border2);
 }
-.st-loyalty-dot.is-on {
+.st-loyalty-dot.is-on,
+.st-loyalty-dot.is-top {
   background: var(--sc);
   box-shadow: 0 0 6px color-mix(in srgb, var(--sc) 60%, transparent);
+}
+/* still played but out of the top 10 — half credit, so a hollow-ish dot */
+.st-loyalty-dot.is-around {
+  background: color-mix(in srgb, var(--sc) 35%, transparent);
+  box-shadow: inset 0 0 0 1.5px var(--sc);
+}
+
+/* status label + rank move under each artist's name (2026-11-12) */
+.st-loyalty-artist-move {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: -0.2rem 0 0.7rem;
+}
+.st-loyalty-status {
+  font-family: var(--font-sans);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.12rem 0.45rem;
+  border-radius: var(--r-sm, 4px);
+}
+.st-loyalty-status.is-top    { background: var(--sc); color: var(--on-accent); }
+.st-loyalty-status.is-around { background: color-mix(in srgb, var(--sc) 14%, transparent); color: var(--sc); }
+.st-loyalty-status.is-gone   { background: var(--bg2); color: var(--text3); }
+.st-loyalty-rank {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--fs-xs);
+  color: var(--text3);
+}
+/* artists with no plays now: faded card with a short note instead of songs */
+.st-loyalty-artist.is-gone { opacity: 0.6; }
+.st-loyalty-artist.is-gone .st-loyalty-artist-avatar { filter: grayscale(1); }
+.st-loyalty-gone-note {
+  font-size: var(--fs-xs);
+  color: var(--text3);
+  line-height: 1.4;
 }
 
 /* ── Loyalty Score — returning artist roster ─────────────────── */

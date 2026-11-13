@@ -57665,36 +57665,61 @@ function stRenderLoyalty(plays) {
 
   const prevCounts = topCounts(prevPlays);
   const curCounts = topCounts(plays);
-  const prevTop = topSet(prevCounts);
-  const curTop = topSet(curCounts);
-  const returningKeys = [...curTop].filter(a => prevTop.has(a));
-  const returning = returningKeys.length;
+  // Full rankings (lowercased artist keys, most played first) for both periods
+  const rankList = counts => Object.entries(counts).sort((a, b) => b[1] - a[1]).map(([a]) => a);
+  const prevRanked = rankList(prevCounts);
+  const curRanked = rankList(curCounts);
+  const curRank = {};
+  curRanked.forEach((a, i) => { curRank[a] = i + 1; });
 
-  const total = Math.min(curTop.size, 10);
-  const score = total ? Math.round(returning / total * 100) : 0;
+  // Every artist from last year's top 10, in last year's order, with a status:
+  //   'top'    — still in this period's top 10 (full credit)
+  //   'around' — dropped out of the top 10 but still played (half credit)
+  //   'gone'   — no plays at all this period (no credit)
+  // Before 2026-11-12 only 'top' counted, so an artist who slipped from #4 to
+  // #12 read as "gone" and the score looked harsher than the listening was.
+  const prevTopKeys = prevRanked.slice(0, 10);
+  const statusOf = ak => !curCounts[ak] ? 'gone' : curRank[ak] <= 10 ? 'top' : 'around';
+  const nTop = prevTopKeys.filter(ak => statusOf(ak) === 'top').length;
+  const nAround = prevTopKeys.filter(ak => statusOf(ak) === 'around').length;
+  const nGone = prevTopKeys.length - nTop - nAround;
+
+  const total = prevTopKeys.length;
+  const score = total ? Math.round((nTop + nAround * 0.5) / total * 100) : 0;
   const label = score >= 80 ? t('st_loyalty_die_hard') : score >= 60 ? t('st_loyalty_loyal') : score >= 40 ? t('st_loyalty_mixed') : t('st_loyalty_explorer');
 
-  // Original-cased display name for each lowercased artist key
+  // "5 still in your top 10 · 4 still around · 1 gone" — zero parts left out
+  const subParts = [];
+  if (nTop) subParts.push(t('st_loyalty_n_top', { n: nTop }));
+  if (nAround) subParts.push(t('st_loyalty_n_around', { n: nAround }));
+  if (nGone) subParts.push(t('st_loyalty_n_gone', { n: nGone }));
+  const subText = subParts.join(' · ');
+
+  // Original-cased display name for each lowercased artist key (this period
+  // first, last year as a fallback for artists with no plays now)
   const nameByKey = {};
   for (const p of plays) { const ak = p.artist.toLowerCase(); if (!nameByKey[ak]) nameByKey[ak] = p.artist; }
+  for (const p of prevPlays) { const ak = p.artist.toLowerCase(); if (!nameByKey[ak]) nameByKey[ak] = p.artist; }
 
-  // For each returning artist: this period's top 5 songs with play counts
-  const returningArtists = returningKeys
-    .sort((a, b) => curCounts[b] - curCounts[a])
-    .map(ak => {
-      const name = nameByKey[ak] || ak;
-      const songCounts = {};
-      for (const p of plays) {
-        if (p.artist.toLowerCase() !== ak) continue;
-        const sk = songKey(p);
-        if (!songCounts[sk]) songCounts[sk] = { title: p.title, count: 0 };
-        songCounts[sk].count++;
-      }
-      const topSongs = Object.values(songCounts).sort((a, b) => b.count - a.count).slice(0, 5);
-      return { name, plays: curCounts[ak], topSongs };
-    });
+  // For each of last year's top 10: status, rank move, and this period's top 5
+  // songs (none for 'gone' artists — the card says so instead)
+  const loyaltyArtists = prevTopKeys.map((ak, idx) => {
+    const name = nameByKey[ak] || ak;
+    const songCounts = {};
+    for (const p of plays) {
+      if (p.artist.toLowerCase() !== ak) continue;
+      const sk = songKey(p);
+      if (!songCounts[sk]) songCounts[sk] = { title: p.title, count: 0 };
+      songCounts[sk].count++;
+    }
+    const topSongs = Object.values(songCounts).sort((a, b) => b.count - a.count).slice(0, 5);
+    return { name, status: statusOf(ak), prevRank: idx + 1, rank: curRank[ak] || null, plays: curCounts[ak] || 0, prevPlays: prevCounts[ak], topSongs };
+  });
+  // Header photo: the most-played artist who stayed in the top 10
+  const headArtist = loyaltyArtists.filter(a => a.status === 'top').sort((a, b) => b.plays - a.plays)[0];
+  const statusLabel = { top: t('st_loyalty_st_top'), around: t('st_loyalty_st_around'), gone: t('st_loyalty_st_gone') };
 
-  _stFacts.loyalty = { score, verdict: label, sub: t('st_loyalty_sub', { n: returning, year: prevYear }), artist: returningArtists[0] ? returningArtists[0].name : null };
+  _stFacts.loyalty = { score, verdict: label, sub: subText, artist: headArtist ? headArtist.name : null };
   el.innerHTML = `
     <div class="st-loyalty-score">
       <div class="st-loyalty-ring" style="--pct:${score}">
@@ -57702,17 +57727,17 @@ function stRenderLoyalty(plays) {
       </div>
       <div class="st-loyalty-text">
         <div class="st-loyalty-verdict">${label}</div>
-        <div class="st-loyalty-sub">${t('st_loyalty_sub', { n: returning, year: prevYear })}</div>
+        <div class="st-loyalty-sub">${esc(subText)}</div>
         <div class="st-loyalty-tally" aria-hidden="true">
-          ${Array.from({ length: total }, (_, i) => `<span class="st-loyalty-dot${i < returning ? ' is-on' : ''}"></span>`).join('')}
+          ${['top', 'around', 'gone'].flatMap(s => loyaltyArtists.filter(a => a.status === s)).map(a => `<span class="st-loyalty-dot is-${a.status}"></span>`).join('')}
         </div>
       </div>
     </div>
-    ${returningArtists.length ? `
-    <div class="st-loyalty-artists-title">${t('st_loyalty_artists_title')}</div>
-    ${stRowHtml('st-loyalty-artists', returningArtists.map((a, i) => `
-        <div class="st-loyalty-artist" style="--i:${i}">
-          <div class="st-loyalty-artist-badge" aria-hidden="true">↻</div>
+    ${loyaltyArtists.length ? `
+    <div class="st-loyalty-artists-title">${t('st_loyalty_artists_title', { year: prevYear })}</div>
+    ${stRowHtml('st-loyalty-artists', loyaltyArtists.map((a, i) => `
+        <div class="st-loyalty-artist is-${a.status}" style="--i:${i}">
+          ${a.status === 'top' ? '<div class="st-loyalty-artist-badge" aria-hidden="true">↻</div>' : ''}
           <div class="st-loyalty-artist-head">
             <div class="st-loyalty-artist-avatar" id="stLoyaltyImg${i}"></div>
             <div class="st-loyalty-artist-meta">
@@ -57720,9 +57745,13 @@ function stRenderLoyalty(plays) {
               <div class="st-loyalty-artist-plays">${a.plays.toLocaleString()} ${tUnit('plays', a.plays)}</div>
             </div>
           </div>
-          <div class="st-loyalty-artist-songs">
-            ${a.topSongs.map((s, j) => `<div class="st-loyalty-song"><span class="st-loyalty-song-idx">${j + 1}</span><span class="st-loyalty-song-title">${esc(s.title)}</span><span class="st-loyalty-song-count">${s.count.toLocaleString()}</span></div>`).join('')}
+          <div class="st-loyalty-artist-move">
+            <span class="st-loyalty-status is-${a.status}">${statusLabel[a.status]}</span>
+            <span class="st-loyalty-rank">#${a.prevRank} → ${a.rank ? '#' + a.rank : '–'}</span>
           </div>
+          ${a.topSongs.length ? `<div class="st-loyalty-artist-songs">
+            ${a.topSongs.map((s, j) => `<div class="st-loyalty-song"><span class="st-loyalty-song-idx">${j + 1}</span><span class="st-loyalty-song-title">${esc(s.title)}</span><span class="st-loyalty-song-count">${s.count.toLocaleString()}</span></div>`).join('')}
+          </div>` : `<div class="st-loyalty-gone-note">${t('st_loyalty_gone_note', { n: a.prevPlays.toLocaleString(), year: prevYear })}</div>`}
         </div>`).join(''))}` : ''}`;
   stRowsInit(el);
 
@@ -57730,7 +57759,7 @@ function stRenderLoyalty(plays) {
   // use) instead of firing all requests at once — a synchronous burst against
   // the Deezer proxy gets rate-limited, silently downgrading art to lower-res
   // itunes/lastfm fallbacks.
-  returningArtists.forEach((a, i) => {
+  loyaltyArtists.forEach((a, i) => {
     queueImg(() => getArtAuto('artist', a.name).then(url => {
       const imgEl = document.getElementById('stLoyaltyImg' + i);
       if (imgEl) imgEl.innerHTML = thumbHtml(url, a.name, false);
