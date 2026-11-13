@@ -27,13 +27,13 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=1027">
+  <link rel="stylesheet" href="style.css?v=1028">
   <!-- The Charts Guide's lessons (guide.js, GUIDE-PLAN.md) -->
   <link rel="stylesheet" href="guide.css?v=5">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=413"></script>
+  <script defer src="translations.js?v=414"></script>
   <!-- Only the visitor's own language is downloaded (translations.js holds
        English). This writes a defer tag for the saved language right here, so
        it runs straight after translations.js and before app.js, and the page
@@ -41,7 +41,7 @@
        whenever translations.es / pt-BR / pt-PT .js change (setup-guide.html
        has the same line). -->
   <script>
-    window.DC_I18N_V = 111;
+    window.DC_I18N_V = 112;
     (function () {
       try {
         var l = localStorage.getItem('dankcharts-lang');
@@ -3726,17 +3726,14 @@
         <div class="dp-tabs" role="tablist" hidden></div>
         <div class="modal-body dp-body">
           <!-- Overview (redone 2026-10-29, after the artist's): headline card,
-               top track / lately, habits (#albumModalStats), the rating card,
-               the achievements as badges and the plaques. openAlbumModal(). -->
+               top track / lately, habits (#albumModalStats) and the rating
+               card. openAlbumModal(). Since 2026-11-13 the achievements open
+               the Charts tab and the plaques have their own Plaques tab — at
+               the bottom of the Overview they were easy to miss. -->
           <section class="dp-sec" data-dp-tab="overview">
             <div class="ao" id="albumModalStats"></div>
             <div class="modal-section-title" data-i18n="modal_rating_album">★ My Evaluation</div>
             <div id="albumModalRatingMini"></div>
-            <div class="modal-section-title" data-i18n="modal_accomplishments">★ Chart Accomplishments</div>
-            <div id="albumModalGrandSlam"></div>
-            <div id="albumModalAccomplishments"></div>
-            <div class="modal-section-title" id="albumModalCertTitle" style="display:none" data-i18n="modal_cert_plaques">💿 Certification Plaques</div>
-            <div id="albumModalCertPlaques"></div>
           </section>
           <section class="dp-sec" data-dp-tab="tracks">
             <!-- The artist Music list on this album's tracks (amMusicRender),
@@ -3746,7 +3743,11 @@
           <section class="dp-sec" data-dp-tab="charts">
             <!-- Rankings (redone 2026-10-29): rkRender on the album charts and
                  its tracks on each chart, the records it holds, then the old
-                 chart run, kept -->
+                 chart run, kept. Chart Accomplishments (the badges) lead the
+                 tab since 2026-11-13, moved here from the Overview. -->
+            <div class="modal-section-title" data-i18n="modal_accomplishments">★ Chart Accomplishments</div>
+            <div id="albumModalGrandSlam"></div>
+            <div id="albumModalAccomplishments"></div>
             <div class="rk" id="albumRankings"></div>
             <div class="modal-section-title" id="albumHeldRecordsTitle" style="display:none"></div>
             <div class="modal-records-wait" id="albumHeldRecordsWait" style="display:none"></div>
@@ -3755,6 +3756,13 @@
             </div>
             <div class="modal-section-title" id="albumModalChartRunTitle" style="display:none" data-i18n="modal_chart_run_title">📊 Chart Run History</div>
             <div id="albumModalChartRun"></div>
+          </section>
+          <section class="dp-sec" data-dp-tab="plaques">
+            <!-- Plaques (own tab since 2026-11-13, was the end of the
+                 Overview): the album's and its tracks' certification plaques.
+                 No section title — the tab name says it. The tab only shows
+                 when there is at least one plaque (panel.js hasContent). -->
+            <div id="albumModalCertPlaques"></div>
           </section>
           <section class="dp-sec" data-dp-tab="listening">
             <!-- Listening (redone 2026-10-29): lsRender with the eras of its
@@ -4562,9 +4570,9 @@
   <!-- One behaviour and one icon set for every pop-up window (phase 10); before
        app.js so dcIco() is there when app.js draws a window -->
   <script defer src="popups.js?v=13"></script>
-  <script defer src="app.js?v=776"></script>
+  <script defer src="app.js?v=777"></script>
   <!-- The song / album / artist details side panel (phase 10 step 3); wraps app.js's open functions -->
-  <script defer src="panel.js?v=16"></script>
+  <script defer src="panel.js?v=17"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
   <script defer src="replay.js?v=2"></script>
   <!-- All-Time chart stats ("Inside your Top N"); reads app.js globals, so it loads after it -->

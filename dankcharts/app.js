@@ -31090,7 +31090,9 @@ function openAlbumModal(albumKey) {
   });
 
   // ── CERTIFICATION PLAQUES ─────────────────────────────────────────────────
-  const certTitleEl = document.getElementById('albumModalCertTitle');
+  // Own Plaques tab since 2026-11-13: no section title any more (the tab
+  // name says it), so certTitleEl is gone from index.html — kept null-safe
+  const certTitleEl = document.getElementById('albumModalCertTitle') || { style: {} };
   const certPlaquesEl = document.getElementById('albumModalCertPlaques');
   const plaqueItems = [];
   if (totalPlays >= CERT.album.gold) {

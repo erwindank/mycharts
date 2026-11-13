@@ -20,7 +20,7 @@
 
   var KINDS = {
     song:   { overlay: 'songModal',   img: 'songModalImg',   fn: 'openSongModal',   tabs: ['overview', 'charts', 'listening', 'awards'] },
-    album:  { overlay: 'albumModal',  img: 'albumModalImg',  fn: 'openAlbumModal',  tabs: ['overview', 'tracks', 'charts', 'listening', 'rating'] },
+    album:  { overlay: 'albumModal',  img: 'albumModalImg',  fn: 'openAlbumModal',  tabs: ['overview', 'tracks', 'charts', 'plaques', 'listening', 'rating'] },
     // 'rating' holds the artist's full ratings since 2026-10-27 (the
     // Overview keeps a short card that opens it)
     artist: { overlay: 'artistModal', img: 'modalArtistImg', fn: 'openArtistModal', tabs: ['overview', 'music', 'charts', 'listening', 'rating', 'awards'] }

@@ -634,6 +634,7 @@ TRANSLATIONS['pt-BR'] = Object.assign({
     dp_tab_awards: 'Prêmios',
     dp_tab_tracks: 'Faixas',
     dp_tab_rating: 'Avaliação',
+    dp_tab_plaques: 'Placas',
     dp_tab_music: 'Música',
     imgpk_url_label: 'De um link',
     pop_edit_sub: 'Corrija um nome escrito errado ou o horário em que tocou.',

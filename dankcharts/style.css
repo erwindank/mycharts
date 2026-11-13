@@ -14685,6 +14685,7 @@
 
     /* CERTIFICATION PLAQUES — album modal reuses the .cwall-grid / .cert-card
        vinyl-plaque styles defined further down (Certifications Wall section) */
+    /* Since 2026-11-13 they have their own Plaques tab in the album window. */
 
     /* ARTIST LINK IN ALBUM MODAL SUBTITLE */
     .modal-artist-link {

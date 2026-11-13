@@ -675,6 +675,7 @@ const TRANSLATIONS = {
     dp_tab_awards: 'Awards',
     dp_tab_tracks: 'Tracks',
     dp_tab_rating: 'Rating',
+    dp_tab_plaques: 'Plaques', // album window tab (2026-11-13)
     dp_tab_music: 'Music',
     imgpk_url_label: 'From a link',
     pop_edit_sub: 'Fix a misspelled name or the time it was played.',
