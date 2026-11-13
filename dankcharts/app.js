@@ -57567,7 +57567,7 @@ function stActivitySelectMonth(btn) {
     ? `<span class="st-activity-detail-delta st-${d.deltaDir}">${d.deltaDir === 'up' ? '▲' : d.deltaDir === 'down' ? '▼' : '•'} ${d.delta}% ${t('st_activity_vs_prev', { month: d.prevLabel })}</span>`
     : '';
   const artistHTML = d.artist
-    ? `<div class="st-activity-detail-artist">${stIco('mic')} ${t('st_activity_top_artist')}: <strong>${esc(d.artist)}</strong> · ${tCount('plays', parseInt(d.artistCount))}</div>`
+    ? `<div class="st-activity-detail-artist">${stIco('artist')} ${t('st_activity_top_artist')}: <strong>${esc(d.artist)}</strong> · ${tCount('plays', parseInt(d.artistCount))}</div>`
     : '';
 
   panel.innerHTML = `
@@ -57592,6 +57592,10 @@ const ST_ICO = {
   down: '<path d="M3 7l6 6 4-4 8 8"/><path d="M15 17h6v-6"/>',
   flat: '<path d="M4 12h15"/><path d="M14 7l5 5-5 5"/>',
   mic: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M9 21h6"/>',
+  // A person with a music note — the Artists icon used site-wide (the chart's
+  // Artists pill, REC_ENT_ICON_PARTS.artists), redrawn ×1.5 for this 24 grid.
+  // Replaced the stage mic for artists here on 2026-11-12.
+  artist: '<circle cx="9" cy="7.05" r="4.05"/><path d="M1.95 21v-1.95a4.05 4.05 0 0 1 4.05-4.05h4.95"/><path d="M19.05 19.05V12l3 1.5"/><circle cx="16.95" cy="19.05" r="2.1"/>',
   note: '<path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/>',
   disc: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5"/>',
   repeat: '<path d="M17 2l3 3-3 3"/><path d="M4 11V9a4 4 0 0 1 4-4h12"/><path d="M7 22l-3-3 3-3"/><path d="M20 13v2a4 4 0 0 1-4 4H4"/>',
@@ -58744,7 +58748,7 @@ function stRenderMilestones(plays) {
       const ak = a.toLowerCase();
       artistCounts[ak] = (artistCounts[ak] || 0) + 1;
       if (inPeriod && ARTIST_MS_SET.has(artistCounts[ak])) {
-        artistMs.push({ icon: stIco('mic'), sub: t('st_milestone_artist_sub', { title: esc(p.title) }), text: t('st_milestone_artist', { n: MS_NUM_TOKEN, artist: esc(a) }), date: p.date, rawTitle: p.title, rawArtist: a, nTarget: artistCounts[ak] });
+        artistMs.push({ icon: stIco('artist'), sub: t('st_milestone_artist_sub', { title: esc(p.title) }), text: t('st_milestone_artist', { n: MS_NUM_TOKEN, artist: esc(a) }), date: p.date, rawTitle: p.title, rawArtist: a, nTarget: artistCounts[ak] });
       }
     }
   }
@@ -59228,7 +59232,7 @@ function stRenderStreaks(plays) {
   _stFacts.streak = stPeriodType === 'alltime'
     ? { n: longestAll, start: longestStart ? fmtDay(longestStart) : '', end: longestEnd ? fmtDay(longestEnd) : '', artist: bestArtist ? bestArtist.label : null }
     : { n: longestPeriod, start: periodStart ? fmtDay(periodStart) : '', end: periodEnd ? fmtDay(periodEnd) : '', artist: bestArtist ? bestArtist.label : null };
-  const entityCardsHtml = entityCard('artist', stIco('mic'), 'st_streak_artist', bestArtist)
+  const entityCardsHtml = entityCard('artist', stIco('artist'), 'st_streak_artist', bestArtist)
     + entityCard('album', stIco('disc'), 'st_streak_album', bestAlbum)
     + entityCard('song', stIco('repeat'), 'st_streak_song', bestSong);
 
