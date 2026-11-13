@@ -822,6 +822,33 @@ function _ntTiedKeys(tb, row0) {
   return keys;
 }
 
+/* Which version of the Records rules the stored holders were read under.
+   2 (2026-11-13): Records counts only finished days/weeks/months/years
+   (recRunningKeys, app.js). Holders saved under the old rules include the
+   running periods, so comparing against them would post a batch of "new #1s"
+   that are only the switch — a different version starts over silently. */
+const NT_REC_RULES = 2;
+
+/* The settings that decide who leads a list without any new plays: chart
+   sizes, the daily and New/Bubbling sizes, week start, timezone, how singles
+   and EPs are set and whether they lend plays to their album. When any of
+   these is not what the stored holders were read under (changed here, or a
+   second device set up differently), holders are re-read silently: moving a
+   setting is not anyone taking a record, and two devices with different
+   chart sizes used to hand the same records back and forth on every check. */
+function _ntRecSettingsSig() {
+  const g = (fn, ...a) => { try { return typeof fn === 'function' ? fn(...a) : ''; } catch (e) { return ''; } };
+  return _ntHash([
+    chartSizeSongsW, chartSizeArtistsW, chartSizeAlbumsW,
+    chartSizeSongsM, chartSizeArtistsM, chartSizeAlbumsM,
+    chartSizeSongsY, chartSizeArtistsY, chartSizeAlbumsY,
+    g(window.dySizeOf, 'songs'), g(window.dySizeOf, 'artists'), g(window.dySizeOf, 'albums'),
+    g(window._aroundSizesSig), weekStartDay, userTimezone,
+    typeof releaseSeparation !== 'undefined' ? JSON.stringify(releaseSeparation) : '',
+    g(window.singleRollupLevel)
+  ].join('|'));
+}
+
 function _ntRecordsBuilt() {
   return _recBuiltKey === _recBuildKey() && !!_recArtistTally;
 }
@@ -859,6 +886,7 @@ async function ntRecordsBuilt() {
     const lead = {};
     ids.forEach(id => { lead[id] = now[id].k; });
     const sepOn = typeof separatedTypes === 'function' && separatedTypes().length > 0;
+    const sig = _ntRecSettingsSig();   // see NT_REC_RULES / _ntRecSettingsSig
     const res = await dcUpdateNotifyState(cur => {
       const prev = cur.rec;
       const notices = cur.notices || {};
@@ -871,8 +899,9 @@ async function ntRecordsBuilt() {
         noticeVal = notice ? Date.now() : 'skip';
       }
       let rec = null, out = [];
-      // First time, or another language: note where things stand, tell nothing
-      if (!prev || !prev.lead || prev.lang !== lang) rec = { lang, asOf, lead };
+      // First time, another language, older Records rules or other chart
+      // settings: note where things stand, tell nothing
+      if (!prev || !prev.lead || prev.lang !== lang || prev.v !== NT_REC_RULES || prev.sig !== sig) rec = { lang, asOf, lead, v: NT_REC_RULES, sig };
       else if (asOf >= prev.asOf) {   // older data than last time: leave it alone
         // Last holder still level with the top (only build order put another
         // first): they keep the record and nothing is new (see _ntTiedKeys)
@@ -881,7 +910,7 @@ async function ntRecordsBuilt() {
           if (p && p !== lead[id] && (now[id].tie || []).includes(p)) lead[id] = p;
         });
         out = ids.filter(id => prev.lead[id] && prev.lead[id] !== lead[id]);
-        if (out.length || JSON.stringify(prev.lead) !== JSON.stringify(lead)) rec = { lang, asOf, lead };
+        if (out.length || JSON.stringify(prev.lead) !== JSON.stringify(lead)) rec = { lang, asOf, lead, v: NT_REC_RULES, sig };
       }
       if (!rec && !noticeVal) return { state: null, out: { changed: [], notice: false } };
       const state = Object.assign({}, cur);

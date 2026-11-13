@@ -8873,7 +8873,25 @@ let _recBuiltKey = null;
 function _recBuildKey() {
   // Show → All (which also keyed on the section on screen, and built only
   // that section in full) was removed 2026-11-06; sizes are now 10/25/50/100.
-  return _crGeneration() + '|' + recLimit + '|' + (typeof currentLang !== 'undefined' ? currentLang : '');
+  // + today: Records leaves out the running periods (recRunningKeys), so a
+  // new day (and with it maybe a new week/month/year) has to rebuild them.
+  return _crGeneration() + '|' + recLimit + '|' + (typeof currentLang !== 'undefined' ? currentLang : '')
+    + '|' + recRunningKeys().day;
+}
+
+/* The day, week, month and year that are still running, keyed the way the
+   play stamps are (dayStrOf / playWeekKeyOf / monthKeyOf / yearKeyOf), in the
+   user's own timezone and week start. Records counts only the periods before
+   these (see buildRecords). */
+function recRunningKeys() {
+  const now = new Date();
+  const td = tzDate(now);
+  return {
+    day: localDateStr(td),
+    week: playWeekKey(now),
+    month: td.getFullYear() + '-' + String(td.getMonth() + 1).padStart(2, '0'),
+    year: String(td.getFullYear())
+  };
 }
 
 // Forces the next buildRecords() to do the work, whatever the key says.
@@ -8980,10 +8998,23 @@ function buildRecords() {
     (monthPlaysMap[mk] || (monthPlaysMap[mk] = [])).push(p);
     (yearPlaysMap[yk] || (yearPlaysMap[yk] = [])).push(p);
   }
-  const dayKeys = Object.keys(dayPlaysMap).sort();
-  const weekKeys = Object.keys(weekPlaysMap).sort();
-  const monthKeys = Object.keys(monthPlaysMap).sort();
-  const yearKeys = Object.keys(yearPlaysMap).sort();
+  /* Only finished periods count (2026-11-13). Today, this week, this month
+     and this year are still running — a song can lead the week on Tuesday and
+     lose it by Sunday — so a record is official only once its period is over.
+     Before this, a mid-week lead was a "new #1" on Records and posted a
+     notification, and the next check often took it back and posted again.
+     Every period-based list (All #1s, appearances, debuts, most plays in a
+     period, Perfect All Kill, New Charts) walks these key arrays, so leaving
+     the running key out here leaves it out of all of them. The play maps keep
+     it; nothing walks a map without its keys. Play-count ladders (milestones,
+     fastest to, certifications, streaks) read `chron` and stay live: a total
+     or a streak that has been reached can't be taken back. */
+  const _recRun = recRunningKeys();
+  const _recDone = (keys, run) => keys.filter(k => k !== run);
+  const dayKeys = _recDone(Object.keys(dayPlaysMap).sort(), _recRun.day);
+  const weekKeys = _recDone(Object.keys(weekPlaysMap).sort(), _recRun.week);
+  const monthKeys = _recDone(Object.keys(monthPlaysMap).sort(), _recRun.month);
+  const yearKeys = _recDone(Object.keys(yearPlaysMap).sort(), _recRun.year);
 
   // First/last play data for appearances charts
   const songFirstPlay = {}, songLastPlay = {};
@@ -10610,7 +10641,9 @@ function buildRecords() {
     const runs = (allChartRun[cfg.pt] && allChartRun[cfg.pt].result && allChartRun[cfg.pt].result[recRunKey(ent.key)]) || {};
     const rows = [];
     for (const k of Object.keys(appsByKey[ent.key][cfg.pt])) {
-      const crEntries = (runs[k] && runs[k].entries) || [];
+      // The chart run includes the running period; Records counts finished
+      // periods only (see _recRun at the top of buildRecords).
+      const crEntries = ((runs[k] && runs[k].entries) || []).filter(function (e) { return e.periodKey !== _recRun[cfg.pt]; });
       const streak = bestPeriodStreak(crEntries.map(function (e) { return e.periodKey; }), cfg.pt);
       if (!streak) continue;
       // The `d` each nameRow expects: song1s/album1s carry these fields, and the
