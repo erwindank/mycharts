@@ -64306,9 +64306,10 @@ let tpCard = {
   showShare: false,
   mono: false,         // black & white tiles (Mosaic / Puzzle) — off: the picture's own colours
   showFooter: true,
+  showCta: true,       // the "What's your most played?" tag in the footer — own toggle, apart from the brand
 };
 const TP_CARD_KEYS = Object.keys(tpCard);
-const TP_CARD_TOGGLES = ['showArt', 'showHeader', 'showShare', 'mono', 'showFooter'];
+const TP_CARD_TOGGLES = ['showArt', 'showHeader', 'showShare', 'mono', 'showFooter', 'showCta'];
 const TP_ORDERS = ['plays', 'album'];
 const TP_UNITS = ['plays', 'streams', 'scrobbles'];
 let _tpMode = 'album';        // 'album' = one album's tracks, 'artist' = an artist's songs
@@ -64586,13 +64587,16 @@ function _tpBackdrop(ctx) {
 
 // The footer every track-plays card ends with: the brand on the left, and on
 // the right a nudge for whoever sees the post to go and find their own.
+// Each half has its own toggle ("Footer Branding" / showCta); with only the
+// nudge on, it stays on the right.
 function _tpFooter(ctx, padX) {
   const p = ctx.p, fmt = ctx.fmt;
-  if (!ctx.opts.showFooter) return `<div style="flex-shrink:0;height:${shSafeBottom(fmt)}px;"></div>`;
+  const brand = ctx.opts.showFooter, cta = ctx.opts.showCta !== false;
+  if (!brand && !cta) return `<div style="flex-shrink:0;height:${shSafeBottom(fmt)}px;"></div>`;
   const fs = 22;   // the logo beside it is 40 (was 28): bigger brand on the card
-  return `<div style="flex-shrink:0;padding:22px ${padX}px ${shSafeBottom(fmt)}px;display:flex;align-items:center;justify-content:space-between;gap:16px;">
-    ${shBrandLockup(p, { size: 40 })}
-    <span style="flex-shrink:0;font-family:${SH_FONT.sans};font-size:${fs}px;font-weight:700;line-height:1;color:${p.onAccent};background:${p.accent};border-radius:12px;padding:${Math.round(fs * 0.6)}px ${Math.round(fs * 0.85)}px;white-space:nowrap;">${esc(t('tp_card_cta'))} →</span>
+  return `<div style="flex-shrink:0;padding:22px ${padX}px ${shSafeBottom(fmt)}px;display:flex;align-items:center;justify-content:${brand ? 'space-between' : 'flex-end'};gap:16px;">
+    ${brand ? shBrandLockup(p, { size: 40 }) : ''}
+    ${cta ? `<span style="flex-shrink:0;font-family:${SH_FONT.sans};font-size:${fs}px;font-weight:700;line-height:1;color:${p.onAccent};background:${p.accent};border-radius:12px;padding:${Math.round(fs * 0.6)}px ${Math.round(fs * 0.85)}px;white-space:nowrap;">${esc(t('tp_card_cta'))} →</span>` : ''}
   </div>`;
 }
 

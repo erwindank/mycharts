@@ -5631,6 +5631,7 @@ const TRANSLATIONS = {
     tp_card_pct_total: "{{pct}}% of the total",
     tp_card_vs_next: "{{x}}× the next one",
     tp_card_cta: "What's your most played?",
+    tp_card_opt_cta: "\"What's your most played?\" tag",
     rt_card_opt_titles: 'Song titles',
     rt_card_opt_acronyms: 'Shorten long titles to initials',
     rt_card_score_shown: 'Score shown',

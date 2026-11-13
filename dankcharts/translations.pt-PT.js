@@ -5468,6 +5468,7 @@ TRANSLATIONS['pt-PT'] = Object.assign({
     tp_card_pct_total: "{{pct}}% do total",
     tp_card_vs_next: "{{x}}× a seguinte",
     tp_card_cta: "Qual é a tua mais ouvida?",
+    tp_card_opt_cta: 'Selo "Qual é a tua mais ouvida?"',
     rt_card_opt_titles: 'Títulos das faixas',
     rt_card_opt_acronyms: 'Encurtar títulos longos para iniciais',
     rt_card_score_shown: 'Nota mostrada',
