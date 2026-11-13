@@ -775,6 +775,7 @@ TRANSLATIONS['pt-BR'] = Object.assign({
     d100_soon: "A The Dank 100 da semana de {{range}} sai na {{day}}.",
     d100_entry_title: "Seu envio",
     d100_week_this: "Esta semana",
+    d100_stk_next: "Próxima parada · {{day}}",
     d100_week_last: "Semana passada",
     d100_week_of: "Semana de {{range}}",
     d100_closes: "Última chance: você pode enviar até a noite de {{day}} (UTC).",

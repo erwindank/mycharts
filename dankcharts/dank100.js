@@ -415,6 +415,21 @@
     return h;
   }
 
+  // Glow kit header sticker. It used to always say "This week · Live", even
+  // Fri–Sun when last week's chart isn't out yet (entries can still be fixed
+  // until sending closes). While last week is still open it now says when the
+  // next chart comes out instead, with no live dot. The day is in the user's
+  // own clock: Monday 00:00 UTC is Sunday afternoon/evening in the Americas.
+  function stickerHTML(weeks) {
+    if (weeks.length > 1) {
+      var prev = weekBounds(weeks[weeks.length - 1]);
+      var day = new Date(chartDay(prev)).toLocaleDateString(locale(), { weekday: 'long' });
+      return '<span class="dc-hstk dc-hstk--d100">' + esc(tr('d100_stk_next', { day: day })) + '</span>';
+    }
+    return '<span class="dc-hstk dc-hstk--d100"><span class="dc-hstk-live" aria-hidden="true"></span>' +
+      esc(tr('d100_week_this')) + ' · ' + esc(tr('gk_stk_live')) + '</span>';
+  }
+
   function viewHTML() {
     var u = signedInUid();
     var weeks = openWeeks();
@@ -423,8 +438,7 @@
       // the glow kit's podium (glowkit.js); the old line podium if it is missing
       (typeof window.dcGlowIco === 'function' ? window.dcGlowIco('d100') : TITLE_ICO) +
       '<span>' + esc(tr('d100_title')) + '</span></h2>' +
-      // glow kit header sticker: the running week is live
-      '<span class="dc-hstk dc-hstk--d100"><span class="dc-hstk-live" aria-hidden="true"></span>' + esc(tr('d100_week_this')) + ' · ' + esc(tr('gk_stk_live')) + '</span>' +
+      stickerHTML(weeks) +
       '<div class="section-rule"></div></div>';
     h += '<p class="d100-page-sub">' + esc(tr('d100_sub')) + '</p>';
     h += '<div class="d100-body">';

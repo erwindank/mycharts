@@ -817,6 +817,7 @@ const TRANSLATIONS = {
     d100_soon: "The Dank 100 for the week of {{range}} comes out on {{day}}.",
     d100_entry_title: "Your entry",
     d100_week_this: "This week",
+    d100_stk_next: "Next chart · {{day}}",
     d100_week_last: "Last week",
     d100_week_of: "Week of {{range}}",
     d100_closes: "Last chance: you can send it until {{day}} night (UTC).",
