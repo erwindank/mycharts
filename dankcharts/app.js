@@ -64435,6 +64435,9 @@ function tpCardContext(opts) {
     // Tile artwork: the black & white copy when asked for (and ready).
     tileArt: anyArt ? (opts.mono ? (_tpGrayCache[anyArt] || anyArt) : anyArt) : null,
     tracks, total, max, played: _tpCardTracks.filter(tr => tr.count > 0).length,
+    // The overall #1 and #2's count, for the Ranking spotlight — whatever
+    // order or "Tracks shown" the card is set to.
+    top: byPlays[0] || null, runnerUp: byPlays[1] ? byPlays[1].count : 0,
   };
 }
 
@@ -64544,39 +64547,240 @@ function _tpRankCol(ctx, rank) {
   return rank === 1 ? p.gold : rank === 2 ? p.silver : rank === 3 ? p.bronze : p.dim;
 }
 
+/* ── Fun kit (2026-11-12) ─────────────────────────────────────────────
+   Ranking, Podium and Tracklist looked like a spreadsheet: flat black, a
+   thumbnail cover, thin bars. Redone so they are something people want to
+   post — and that makes their friends want one of their own:
+     _tpBackdrop   the picture blurred behind the whole card, so every card
+                   wears its album's colours
+     _tpSleeve     the cover with a record sliding out of it
+     _tpSpotlight  the #1 track in a big accent card: its count, its share of
+                   the total and how far ahead of #2 it is
+     bar rows      fat rounded bars with the rank, title and count on them
+     _tpConfetti   seeded confetti bits around the podium (same album = same
+                   confetti, so the preview never jumps)
+     _tpFooter     the brand plus a "What's your most played?" nudge
+   All html2canvas-safe: no letter-spacing on sans text, no CSS filters
+   (the blur is pre-baked by shComputeBlur), no repeating gradients, and
+   the record's grooves are real borders. */
+
+// The picture blurred behind the whole card under a palette-coloured scrim.
+// Nothing (the palette's own background) when "Album art" is off or the blur
+// isn't baked yet — tpPrefetchArt re-renders once it is.
+function _tpBackdrop(ctx) {
+  const blur = ctx.opts.showArt ? shBlurred(ctx.anyArt) : null;
+  if (!blur) return '';
+  const p = ctx.p, W = ctx.W, H = ctx.H;
+  const a = p.dark ? [0.5, 0.8, 0.93] : [0.58, 0.85, 0.95];
+  const scrim = `linear-gradient(180deg, ${_shA(p.bg, a[0])} 0%, ${_shA(p.bg, a[1])} 40%, ${_shA(p.bg, a[2])} 100%)`;
+  return `<div style="position:absolute;left:0;top:0;width:${W}px;height:${H}px;overflow:hidden;">
+    <img src="${blur}" width="${W}" height="${H}" style="width:${W}px;height:${H}px;object-fit:cover;display:block;">
+    <div style="position:absolute;left:0;top:0;width:${W}px;height:${H}px;background:${scrim};"></div>
+  </div>`;
+}
+
+// The footer every track-plays card ends with: the brand on the left, and on
+// the right a nudge for whoever sees the post to go and find their own.
+function _tpFooter(ctx, padX) {
+  const p = ctx.p, fmt = ctx.fmt;
+  if (!ctx.opts.showFooter) return `<div style="flex-shrink:0;height:${shSafeBottom(fmt)}px;"></div>`;
+  const fs = 20;
+  return `<div style="flex-shrink:0;padding:22px ${padX}px ${shSafeBottom(fmt)}px;display:flex;align-items:center;justify-content:space-between;gap:16px;">
+    ${shBrandLockup(p, { size: 28 })}
+    <span style="flex-shrink:0;font-family:${SH_FONT.sans};font-size:${fs}px;font-weight:700;line-height:1;color:${p.onAccent};background:${p.accent};border-radius:12px;padding:${Math.round(fs * 0.6)}px ${Math.round(fs * 0.85)}px;white-space:nowrap;">${esc(t('tp_card_cta'))} →</span>
+  </div>`;
+}
+
+// The card frame the list designs share: backdrop, a padded column for the
+// body, the footer.
+function _tpStage(ctx, body, padX, gap) {
+  return shShell(ctx.p, ctx.fmt, `${_tpBackdrop(ctx)}
+    <div style="position:relative;flex:1;min-height:0;display:flex;flex-direction:column;">
+      <div style="flex:1;min-height:0;padding:${shSafeTop(ctx.fmt)}px ${padX}px 0;display:flex;flex-direction:column;gap:${gap}px;overflow:hidden;">${body}</div>
+      ${_tpFooter(ctx, padX)}
+    </div>`);
+}
+
+// A small crown, drawn as SVG so it looks the same everywhere (emoji differ
+// per phone and html2canvas draws some of them blank).
+function _tpCrown(col, w) {
+  const h = Math.round(w * 0.84);
+  const url = _shSvgUrl(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 20" width="${w}" height="${h}"><path d="M2 5.5l5.2 4.3L12 1.5l4.8 8.3L22 5.5l-2.2 10.5H4.2z" fill="${col}"/><rect x="4.2" y="17.2" width="15.6" height="2.4" rx="1.2" fill="${col}"/></svg>`);
+  return `<img src="${url}" width="${w}" height="${h}" alt="" style="width:${w}px;height:${h}px;display:block;flex-shrink:0;">`;
+}
+
+// The cover with a record sliding out of its sleeve to the right. The
+// record's label is the picture itself. Without a picture: an accent label.
+function _tpSleeve(ctx, size) {
+  const p = ctx.p;
+  const disc = Math.round(size * 0.92);
+  const out = Math.round(size * 0.42);      // how far the record sticks out
+  const top = Math.round((size - disc) / 2);
+  const groove = Math.max(1, Math.round(disc / 240));
+  const ring = f => {
+    const d = Math.round(disc * f), o = Math.round((disc - d) / 2);
+    return `<div style="position:absolute;left:${o}px;top:${o}px;width:${d}px;height:${d}px;border-radius:50%;border:${groove}px solid rgba(255,255,255,0.075);box-sizing:border-box;"></div>`;
+  };
+  const lab = Math.round(disc * 0.38), lo = Math.round((disc - lab) / 2);
+  const hole = Math.max(6, Math.round(disc * 0.035)), ho = Math.round((disc - hole) / 2);
+  const label = ctx.anyArt
+    ? `<div style="position:absolute;left:${lo}px;top:${lo}px;width:${lab}px;height:${lab}px;border-radius:50%;overflow:hidden;"><img src="${ctx.anyArt}" width="${lab}" height="${lab}" style="width:${lab}px;height:${lab}px;object-fit:cover;display:block;"></div>`
+    : `<div style="position:absolute;left:${lo}px;top:${lo}px;width:${lab}px;height:${lab}px;border-radius:50%;background:${p.accent};"></div>`;
+  const record = `<div style="position:absolute;left:${size + out - disc}px;top:${top}px;width:${disc}px;height:${disc}px;border-radius:50%;background:radial-gradient(circle at 50% 50%, #2a2a31 0%, #121215 52%, #060607 100%);box-shadow:0 ${Math.round(size * 0.04)}px ${Math.round(size * 0.12)}px rgba(0,0,0,0.5);">
+      ${[0.95, 0.86, 0.77, 0.68, 0.59, 0.5].map(ring).join('')}
+      ${label}
+      <div style="position:absolute;left:${ho}px;top:${ho}px;width:${hole}px;height:${hole}px;border-radius:50%;background:#060607;"></div>
+    </div>`;
+  const cover = `<div style="position:absolute;left:0;top:0;">${shArt(p, ctx.anyArt, size, { initials: initials(ctx.album), radius: Math.round(size * 0.035) })}</div>`;
+  return `<div style="position:relative;flex-shrink:0;width:${size + out}px;height:${size}px;">${record}${cover}</div>`;
+}
+
+// "575 PLAYS" and "11 TRACKS PLAYED" as two chips.
+function _tpChips(ctx, center) {
+  const s = v => _shS(ctx, v);
+  const parts = [`${_tpNum(ctx.total)} ${_tpUnit(ctx.total)}`, t(_tpMode === 'artist' ? 'tp_card_songs_played' : 'tp_card_tracks_played', { n: ctx.played })];
+  return `<div style="margin-top:${s(16)}px;display:flex;flex-wrap:wrap;gap:${s(10)}px;${center ? 'justify-content:center;' : ''}">${parts.map(x => shChip(ctx.p, esc(String(x).toUpperCase()), { size: s(18), color: ctx.p.text })).join('')}</div>`;
+}
+
+// Sleeve on the left, title + chips on the right.
+function _tpHero(ctx, artSz, titleSz) {
+  const o = ctx.opts;
+  const sleeve = o.showArt ? _tpSleeve(ctx, artSz) : '';
+  const text = o.showHeader ? `<div style="flex:1;min-width:0;">${_rtTitle(ctx, titleSz, { lines: 2, artistColor: _shA(ctx.p.text, 0.72) })}${_tpChips(ctx)}</div>` : '';
+  if (!sleeve && !text) return '';
+  return `<div style="flex-shrink:0;display:flex;align-items:center;gap:${_shS(ctx, 30)}px;">${sleeve}${text}</div>`;
+}
+
+// The two fill colours of an accent card, worked out so the text on it stays
+// readable: towards black under white text, towards grey under dark text.
+function _tpAccentFill(p) {
+  const end = p.onAccent === '#ffffff' ? _shMix(p.accent, '#000000', 0.42) : _shMix(p.accent, '#8a8a94', 0.4);
+  // Straight left-to-right: html2canvas draws angled gradients on a rounded
+  // box with a visible seam down the edge.
+  return `linear-gradient(90deg, ${p.accent} 0%, ${end} 100%)`;
+}
+
+// THE #1 — the most played track in a big accent card: the crown, the title,
+// the count, its share of the total and how many times #2 it was played.
+// Always the overall #1, whatever order or "Tracks shown" the card is set to.
+function _tpSpotlight(ctx, big) {
+  const tr = ctx.top;
+  if (!tr || !tr.count) return '';
+  const p = ctx.p, on = p.onAccent;
+  const s = v => _shS(ctx, v);
+  const pct = ctx.total ? Math.round(tr.count / ctx.total * 100) : 0;
+  const facts = [t('tp_card_pct_total', { pct })];
+  const x = ctx.runnerUp ? tr.count / ctx.runnerUp : 0;
+  if (x >= 1.15) facts.push(t('tp_card_vs_next', { x: x.toFixed(1) }));
+  const tfs = s(big ? 46 : 36), cfs = s(big ? 92 : 70);
+  // No clipped decoration inside this card: html2canvas drew rings cut by
+  // the rounded corners as a grey strip down the right edge.
+  return `<div style="flex-shrink:0;position:relative;border-radius:${s(28)}px;background:${_tpAccentFill(p)};padding:${s(big ? 28 : 22)}px ${s(32)}px;display:flex;align-items:center;gap:${s(24)}px;">
+    <div style="position:relative;flex:1;min-width:0;">
+      <div style="display:flex;align-items:center;gap:${s(10)}px;">
+        ${_tpCrown(on, s(big ? 30 : 26))}
+        <span style="font-family:${SH_FONT.mono};font-size:${s(18)}px;font-weight:700;letter-spacing:0.2em;color:${_shA(on, 0.8)};text-transform:uppercase;white-space:nowrap;">${esc(t('tp_card_top_kicker'))}</span>
+      </div>
+      <div style="margin-top:${s(10)}px;font-family:${SH_FONT.display};font-size:${tfs}px;font-weight:800;line-height:1.05;color:${on};${shClamp(2, tfs, 1.05)}">${esc(tr.title)}</div>
+      <div style="margin-top:${s(10)}px;font-family:${SH_FONT.sans};font-size:${s(20)}px;font-weight:600;color:${_shA(on, 0.82)};white-space:nowrap;overflow:hidden;">${esc(facts.join(' · '))}</div>
+    </div>
+    <div style="position:relative;flex-shrink:0;text-align:right;">
+      <div style="font-family:${SH_FONT.display};font-size:${cfs}px;font-weight:800;line-height:0.9;color:${on};">${_tpNum(tr.count)}</div>
+      <div style="margin-top:${s(6)}px;font-family:${SH_FONT.mono};font-size:${s(16)}px;letter-spacing:0.14em;color:${_shA(on, 0.75)};text-transform:uppercase;">${esc(_tpUnit(tr.count))}</div>
+    </div>
+  </div>`;
+}
+
+// Seeded confetti: the same album always gets the same bits, so the preview
+// doesn't jump around on every re-render. The middle third stays clear for
+// the #1's title.
+function _tpConfetti(ctx, W, H, n) {
+  const p = ctx.p;
+  let seed = 7;
+  for (const ch of String(ctx.album)) seed = (Math.imul(seed, 31) + ch.charCodeAt(0)) >>> 0;
+  const rnd = () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; };
+  const cols = [p.accent, p.gold, p.silver, p.bronze, p.pos, p.neg];
+  let out = '';
+  for (let i = 0; i < n; i++) {
+    const w = Math.round(9 + rnd() * 14);
+    const h = Math.round(w * (0.35 + rnd() * 0.45));
+    const side = i % 2 ? 1 : 0;   // alternate left / right third
+    const x = Math.round((side ? W * 0.68 : 0) + rnd() * (W * 0.32 - w));
+    const y = Math.round(rnd() * H);
+    const rot = Math.round(rnd() * 180 - 90);
+    const dot = rnd() < 0.3;
+    out += `<div style="position:absolute;left:${x}px;top:${y}px;width:${w}px;height:${dot ? w : h}px;border-radius:${dot ? '50%' : '2px'};background:${cols[i % cols.length]};opacity:${(0.55 + rnd() * 0.4).toFixed(2)};transform:rotate(${rot}deg);"></div>`;
+  }
+  return `<div style="position:absolute;left:0;top:0;width:${W}px;height:${H}px;">${out}</div>`;
+}
+
 // A list of rows that fills the height it is given. Row height is worked out
 // from the space, so a short EP gets big rows and a long album small ones; when
 // even the smallest readable row can't hold them all, the tail is left off.
+//   ranking    fat rounded bars, each as long as the track's count against
+//              the most played one, rank / title / count on the bar
+//   tracklist  the record's back: track number, title, a little level meter
+//              and the count; the most played track lit up in the accent
 function _tpListHTML(ctx, rows, W, H, kind) {
   const p = ctx.p;
   const s = v => _shS(ctx, v);
-  const gap = 0;
-  const minH = s(38), maxH = s(kind === 'tracklist' ? 74 : 96);
+  const minH = s(44), maxH = s(kind === 'tracklist' ? 72 : 90);
   let n = rows.length;
   if (!n || H < minH) return '';
   let rowH = Math.min(maxH, Math.floor(H / n));
   if (rowH < minH) { n = Math.max(1, Math.floor(H / minH)); rowH = Math.floor(H / n); }
   const list = rows.slice(0, n);
-  const fs = Math.max(13, Math.min(s(34), Math.round(rowH * 0.4)));
-  const barW = Math.round(W * 0.24);
-  // Every count gets the width of the widest one, so the bars line up even
-  // when the counts drop from three digits to two.
+  const gap = Math.max(4, Math.round(rowH * 0.14));
+  const pillH = rowH - gap;
+  const r = Math.round(pillH * 0.32);
+  const fs = Math.max(13, Math.min(s(32), Math.round(pillH * 0.4)));
+  // Every count gets the width of the widest one, so the columns line up
+  // even when the counts drop from three digits to two.
   const numW = Math.ceil(_tpNum(ctx.max).length * fs * 0.62);
+  const share = (tr, col) => ctx.opts.showShare ? `<span style="flex-shrink:0;width:${Math.round(fs * 3)}px;text-align:right;font-family:${SH_FONT.mono};font-size:${Math.round(fs * 0.72)}px;color:${col};">${(tr.share * 100).toFixed(1)}%</span>` : '';
+  const track = _shA(p.text, p.dark ? 0.07 : 0.06);
+
+  if (kind === 'tracklist') {
+    return list.map(tr => {
+      const top = tr.rank === 1 && tr.count > 0;
+      const fg = top ? p.onAccent : tr.count ? p.text : p.dim;
+      const sub = top ? _shA(p.onAccent, 0.72) : p.dim;
+      // Level meter: five bars, lit by the count against the most played one.
+      const lit = tr.count && ctx.max ? Math.max(1, Math.ceil(5 * tr.count / ctx.max)) : 0;
+      const bw = Math.max(3, Math.round(fs * 0.2)), mh = Math.round(fs * 0.95);
+      const meter = `<span style="flex-shrink:0;display:flex;align-items:flex-end;gap:${Math.max(2, Math.round(bw * 0.6))}px;height:${mh}px;">${[1, 2, 3, 4, 5].map(i =>
+        `<span style="display:block;width:${bw}px;height:${Math.round(mh * (0.3 + 0.14 * i))}px;border-radius:${Math.ceil(bw / 2)}px;background:${i <= lit ? (top ? p.onAccent : p.accent) : _shA(top ? p.onAccent : p.text, 0.16)};"></span>`).join('')}</span>`;
+      return `<div style="height:${rowH}px;padding-bottom:${gap}px;box-sizing:border-box;">
+        <div style="height:${pillH}px;border-radius:${r}px;background:${top ? _tpAccentFill(p) : track};display:flex;align-items:center;gap:${Math.round(fs * 0.65)}px;padding:0 ${Math.round(fs * 0.75)}px;box-sizing:border-box;">
+          <span style="flex-shrink:0;width:${Math.round(fs * 1.5)}px;font-family:${SH_FONT.mono};font-size:${Math.round(fs * 0.78)}px;font-weight:700;color:${sub};">${String(tr.pos).padStart(2, '0')}</span>
+          <span style="flex:1;min-width:0;font-family:${SH_FONT.sans};font-size:${fs}px;font-weight:${top ? 700 : 600};color:${fg};white-space:nowrap;overflow:hidden;">${esc(tr.title)}</span>
+          ${top ? _tpCrown(p.onAccent, Math.round(fs * 0.95)) : ''}
+          ${meter}
+          <span style="flex-shrink:0;min-width:${numW}px;text-align:right;font-family:${SH_FONT.mono};font-size:${fs}px;font-weight:700;color:${fg};white-space:nowrap;">${_tpNum(tr.count)}</span>
+          ${share(tr, sub)}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
   return list.map(tr => {
-    const num = kind === 'tracklist'
-      ? `<span style="flex-shrink:0;width:${Math.round(fs * 1.7)}px;font-family:${SH_FONT.mono};font-size:${Math.round(fs * 0.78)}px;color:${p.dim};">${String(tr.pos).padStart(2, '0')}</span>`
-      : `<span style="flex-shrink:0;width:${Math.round(fs * 1.9)}px;font-family:${SH_FONT.display};font-size:${Math.round(fs * 1.12)}px;font-weight:800;line-height:1;color:${_tpRankCol(ctx, tr.rank)};">${tr.rank}</span>`;
-    const isTop = tr.rank === 1 && tr.count > 0;
-    const bar = kind === 'ranking' ? `<span style="flex-shrink:0;width:${barW}px;height:${Math.max(6, Math.round(rowH * 0.14))}px;border-radius:99px;background:${_shA(p.text, p.dark ? 0.1 : 0.08)};overflow:hidden;">
-        <span style="display:block;width:${ctx.max ? Math.max(4, Math.round(barW * tr.count / ctx.max)) : 0}px;height:100%;border-radius:99px;background:${isTop ? p.accent : _shA(p.accent, 0.6)};"></span>
-      </span>` : '';
-    const share = ctx.opts.showShare ? `<span style="flex-shrink:0;width:${Math.round(fs * 3)}px;text-align:right;font-family:${SH_FONT.mono};font-size:${Math.round(fs * 0.72)}px;color:${p.dim};">${(tr.share * 100).toFixed(1)}%</span>` : '';
-    return `<div style="display:flex;align-items:center;gap:${Math.round(fs * 0.6)}px;height:${rowH}px;border-top:1px solid ${p.line};box-sizing:border-box;">
-      ${num}
-      <span style="flex:1;min-width:0;font-family:${SH_FONT.sans};font-size:${fs}px;font-weight:600;color:${tr.count ? p.text : p.dim};white-space:nowrap;overflow:hidden;">${esc(tr.title)}</span>
-      ${bar}
-      <span style="flex-shrink:0;min-width:${numW}px;text-align:right;font-family:${SH_FONT.mono};font-size:${fs}px;font-weight:700;color:${isTop ? p.accent : p.text};white-space:nowrap;">${_tpNum(tr.count)}</span>
-      ${share}
+    const col = tr.rank <= 3 ? _tpRankCol(ctx, tr.rank) : p.accent;
+    const frac = ctx.max ? tr.count / ctx.max : 0;
+    const fillW = tr.count ? Math.max(pillH, Math.round(W * frac)) : 0;
+    const fill = fillW ? `<div style="position:absolute;left:0;top:0;width:${fillW}px;height:${pillH}px;border-radius:${r}px;background:linear-gradient(90deg, ${_shA(col, p.dark ? 0.6 : 0.42)} 0%, ${_shA(col, p.dark ? 0.32 : 0.2)} 100%);"></div>` : '';
+    // The medal colour is in the bar itself; the number stays plain text so
+    // it reads on any fill (a silver number on a silver bar disappeared).
+    const rankCol = _shA(p.text, tr.rank <= 3 ? 1 : 0.75);
+    return `<div style="height:${rowH}px;padding-bottom:${gap}px;box-sizing:border-box;">
+      <div style="position:relative;height:${pillH}px;border-radius:${r}px;overflow:hidden;background:${track};">
+        ${fill}
+        <div style="position:relative;height:${pillH}px;display:flex;align-items:center;gap:${Math.round(fs * 0.6)}px;padding:0 ${Math.round(fs * 0.75)}px;box-sizing:border-box;">
+          <span style="flex-shrink:0;width:${Math.round(fs * 1.7)}px;font-family:${SH_FONT.display};font-size:${Math.round(fs * 1.12)}px;font-weight:800;line-height:1;color:${rankCol};">${tr.rank}</span>
+          <span style="flex:1;min-width:0;font-family:${SH_FONT.sans};font-size:${fs}px;font-weight:600;color:${tr.count ? p.text : p.dim};white-space:nowrap;overflow:hidden;">${esc(tr.title)}</span>
+          <span style="flex-shrink:0;min-width:${numW}px;text-align:right;font-family:${SH_FONT.mono};font-size:${fs}px;font-weight:700;color:${p.text};white-space:nowrap;">${_tpNum(tr.count)}</span>
+          ${share(tr, p.dim)}
+        </div>
+      </div>
     </div>`;
   }).join('');
 }
@@ -64614,7 +64818,7 @@ const SH_TP_TEMPLATES = {
         ${_tpHeader(ctx, { artSz: ctx.fmt === 'story' ? 150 : 110, titleSz: ctx.fmt === 'story' ? 46 : 38 })}
         <div data-tp-fill style="flex:1;min-height:0;overflow:hidden;display:flex;align-items:center;"></div>
       </div>
-      ${shFooter(p, ctx.fmt, { show: opts.showFooter, padX })}`);
+      ${_tpFooter(ctx, padX)}`);
   },
 
   // PUZZLE — the cover cut into one piece per track, so the grid reads as the
@@ -64631,83 +64835,87 @@ const SH_TP_TEMPLATES = {
         ${_tpHeader(ctx, { noArt: true, titleSz: ctx.fmt === 'story' ? 50 : 40 })}
         <div data-tp-fill style="flex:1;min-height:0;overflow:hidden;display:flex;align-items:center;"></div>
       </div>
-      ${shFooter(p, ctx.fmt, { show: opts.showFooter, padX })}`);
+      ${_tpFooter(ctx, padX)}`);
   },
 
-  // RANKING — most played first, numbered, with a bar for each track's count
-  // against the album's most played song. Medal colours on the top three.
+  // RANKING — the sleeve and title up top, the #1 in its own big accent card,
+  // then everything else as fat bars, longest = most played. Medal colours on
+  // #2 and #3.
   ranking(ctx) {
-    const p = ctx.p, opts = ctx.opts;
     const s = v => _shS(ctx, v);
-    const padX = 68;
-    const rows = [...ctx.tracks].sort((a, b) => a.rank - b.rank);
+    const f = ctx.fmt;
+    const rows = [...ctx.tracks].sort((a, b) => a.rank - b.rank).filter(tr => !(tr.rank === 1 && tr.count));
     _tpLast = { ctx, rows, kind: 'ranking' };
-    return shShell(p, ctx.fmt, `
-      <div style="flex:1;min-height:0;padding:${shSafeTop(ctx.fmt)}px ${padX}px 0;display:flex;flex-direction:column;gap:${s(ctx.fmt === 'post' ? 20 : 30)}px;overflow:hidden;">
-        ${_tpEyebrow(ctx)}
-        ${_tpHeader(ctx)}
-        <div data-tp-fill style="flex:1;min-height:0;overflow:hidden;"></div>
-      </div>
-      ${shFooter(p, ctx.fmt, { show: opts.showFooter, padX })}`);
+    return _tpStage(ctx, `
+      ${_tpEyebrow(ctx)}
+      ${_tpHero(ctx, f === 'story' ? 250 : f === 'portrait' ? 180 : 136, f === 'story' ? 54 : f === 'portrait' ? 46 : 40)}
+      ${_tpSpotlight(ctx, f !== 'post')}
+      <div data-tp-fill style="flex:1;min-height:0;overflow:hidden;"></div>`, 64, s(f === 'post' ? 20 : 28));
   },
 
-  // PODIUM — the top three on pedestals sized by their counts, the rest of the
-  // ranking underneath.
+  // PODIUM — the top three on glossy pedestals sized by their counts, a crown
+  // on #1 and confetti around them; the rest of the ranking as bars underneath.
   podium(ctx) {
     const p = ctx.p, opts = ctx.opts;
     const s = v => _shS(ctx, v);
-    const padX = 68;
+    const f = ctx.fmt;
+    const padX = 64;
     const ranked = [...ctx.tracks].sort((a, b) => a.rank - b.rank);
     const top = ranked.slice(0, 3);
     _tpLast = { ctx, rows: ranked.slice(3), kind: 'ranking' };
-    const maxPed = ctx.fmt === 'story' ? 300 : ctx.fmt === 'portrait' ? 200 : 150;
-    const colW = Math.floor((ctx.W - padX * 2 - 2 * s(18)) / 3);
+    const maxPed = f === 'story' ? 300 : f === 'portrait' ? 190 : 140;
+    const innerW = ctx.W - padX * 2;
+    const colW = Math.floor((innerW - 2 * s(18)) / 3);
     const step = tr => {
       if (!tr) return `<div style="width:${colW}px;"></div>`;
-      const h = Math.round(maxPed * Math.max(0.38, ctx.max ? tr.count / ctx.max : 0) * (tr.rank === 1 ? 1 : tr.rank === 2 ? 0.86 : 0.74));
+      const first = tr.rank === 1;
+      // Never shorter than the number on its front plus a little air.
+      const h = Math.max(s(first ? 76 : 60) + s(30), Math.round(maxPed * Math.max(0.4, ctx.max ? tr.count / ctx.max : 0) * (first ? 1 : tr.rank === 2 ? 0.86 : 0.74)));
       const col = _tpRankCol(ctx, tr.rank);
-      const tfs = s(tr.rank === 1 ? 30 : 25);
-      return `<div style="width:${colW}px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;text-align:center;">
-        <div style="width:100%;font-family:${SH_FONT.sans};font-size:${tfs}px;font-weight:600;line-height:1.15;color:${p.text};${shClamp(2, tfs, 1.15)}">${esc(tr.title)}</div>
-        <div style="margin-top:${s(8)}px;font-family:${SH_FONT.display};font-size:${s(tr.rank === 1 ? 62 : 48)}px;font-weight:800;line-height:1;color:${p.text};">${_tpNum(tr.count)}</div>
+      const onCol = _shLum(col) > 0.35 ? '#0b0d12' : '#ffffff';
+      const tfs = s(first ? 30 : 25);
+      return `<div style="position:relative;width:${colW}px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;text-align:center;">
+        ${first ? `<div style="margin-bottom:${s(8)}px;">${_tpCrown(p.gold, s(f === 'post' ? 44 : 56))}</div>` : ''}
+        <div style="width:100%;font-family:${SH_FONT.sans};font-size:${tfs}px;font-weight:700;line-height:1.15;color:${p.text};${shClamp(2, tfs, 1.15)}">${esc(tr.title)}</div>
+        <div style="margin-top:${s(8)}px;font-family:${SH_FONT.display};font-size:${s(first ? 66 : 50)}px;font-weight:800;line-height:1;color:${first ? p.gold : p.text};">${_tpNum(tr.count)}</div>
         <div style="margin-top:${s(4)}px;font-family:${SH_FONT.mono};font-size:${s(15)}px;letter-spacing:0.12em;color:${p.dim};text-transform:uppercase;">${esc(_tpUnit(tr.count))}${opts.showShare ? ` · ${(tr.share * 100).toFixed(1)}%` : ''}</div>
-        <div style="margin-top:${s(14)}px;width:100%;height:${h}px;border-radius:${s(14)}px ${s(14)}px 0 0;background:linear-gradient(180deg, ${_shA(col, 0.9)}, ${_shA(col, 0.35)});display:flex;align-items:flex-start;justify-content:center;padding-top:${s(14)}px;box-sizing:border-box;">
-          <span style="font-family:${SH_FONT.display};font-size:${s(tr.rank === 1 ? 64 : 52)}px;font-weight:800;line-height:1;color:${_shLum(col) > 0.35 ? '#0b0d12' : '#ffffff'};">${tr.rank}</span>
+        <div style="position:relative;margin-top:${s(14)}px;width:100%;height:${h}px;border-radius:${s(18)}px ${s(18)}px 0 0;overflow:hidden;background:linear-gradient(180deg, ${col} 0%, ${_shMix(col, p.bg, 0.55)} 100%);display:flex;align-items:flex-start;justify-content:center;padding-top:${s(16)}px;box-sizing:border-box;">
+          <div style="position:absolute;left:${s(14)}px;top:${s(8)}px;width:${colW - s(28)}px;height:${s(6)}px;border-radius:99px;background:rgba(255,255,255,0.4);"></div>
+          <span style="position:relative;font-family:${SH_FONT.display};font-size:${s(first ? 76 : 60)}px;font-weight:800;line-height:1;color:${onCol};">${tr.rank}</span>
         </div>
       </div>`;
     };
-    return shShell(p, ctx.fmt, `
-      <div style="flex:1;min-height:0;padding:${shSafeTop(ctx.fmt)}px ${padX}px 0;display:flex;flex-direction:column;gap:${s(ctx.fmt === 'post' ? 18 : 28)}px;overflow:hidden;">
-        ${_tpEyebrow(ctx)}
-        ${_tpHeader(ctx, { artSz: ctx.fmt === 'story' ? 170 : 110, titleSz: ctx.fmt === 'story' ? 50 : 40 })}
-        <div style="flex-shrink:0;display:flex;align-items:flex-end;gap:${s(18)}px;border-bottom:2px solid ${p.line2};">
+    const podH = maxPed + s(f === 'post' ? 190 : 240);
+    return _tpStage(ctx, `
+      ${_tpEyebrow(ctx)}
+      ${_tpHero(ctx, f === 'story' ? 210 : f === 'portrait' ? 140 : 110, f === 'story' ? 50 : f === 'portrait' ? 42 : 36)}
+      <div style="position:relative;flex-shrink:0;">
+        ${_tpConfetti(ctx, innerW, Math.round(podH * 0.36), f === 'post' ? 14 : 20)}
+        <div style="position:relative;display:flex;align-items:flex-end;gap:${s(18)}px;border-bottom:${s(3)}px solid ${p.line2};">
           ${step(top[1])}${step(top[0])}${step(top[2])}
         </div>
-        <div data-tp-fill style="flex:1;min-height:0;overflow:hidden;"></div>
       </div>
-      ${shFooter(p, ctx.fmt, { show: opts.showFooter, padX })}`);
+      <div data-tp-fill style="flex:1;min-height:0;overflow:hidden;"></div>`, padX, s(f === 'post' ? 18 : 26));
   },
 
-  // TRACKLIST — the back of the record: the tracks in the order chosen, track
-  // numbers down the side and each count on the right; the most played one in
-  // the accent colour. Big cover on top.
+  // TRACKLIST — the back of the record: the sleeve with the record sliding
+  // out, the title under it, then the tracks in the order chosen with a level
+  // meter each and the most played one lit up in the accent colour.
   tracklist(ctx) {
     const p = ctx.p, opts = ctx.opts;
     const s = v => _shS(ctx, v);
-    const padX = 72;
+    const f = ctx.fmt;
     _tpLast = { ctx, rows: ctx.tracks, kind: 'tracklist' };
-    const artSz = ctx.fmt === 'story' ? 520 : ctx.fmt === 'portrait' ? 300 : 0;
+    const artSz = f === 'story' ? 400 : f === 'portrait' ? 250 : 0;
     const big = opts.showArt && artSz;
-    return shShell(p, ctx.fmt, `
-      <div style="flex:1;min-height:0;padding:${shSafeTop(ctx.fmt)}px ${padX}px 0;display:flex;flex-direction:column;gap:${s(ctx.fmt === 'post' ? 18 : 28)}px;overflow:hidden;">
-        ${_tpEyebrow(ctx)}
-        ${big ? `<div style="flex-shrink:0;display:flex;justify-content:center;">${shArt(p, ctx.anyArt, artSz, { initials: initials(ctx.album), radius: Math.round(artSz * 0.03) })}</div>
-          ${opts.showHeader ? `<div style="flex-shrink:0;text-align:center;">${_rtTitle(ctx, ctx.fmt === 'story' ? 54 : 44, { center: true, lines: 2 })}
-            <div style="margin-top:${s(12)}px;font-family:${SH_FONT.mono};font-size:${s(18)}px;letter-spacing:0.08em;color:${p.accent};text-transform:uppercase;">${esc(_tpSub(ctx))}</div></div>` : ''}`
-          : _tpHeader(ctx)}
-        <div data-tp-fill style="flex:1;min-height:0;overflow:hidden;"></div>
-      </div>
-      ${shFooter(p, ctx.fmt, { show: opts.showFooter, padX })}`);
+    const head = big
+      ? `<div style="flex-shrink:0;display:flex;justify-content:center;">${_tpSleeve(ctx, artSz)}</div>
+        ${opts.showHeader ? `<div style="flex-shrink:0;text-align:center;">${_rtTitle(ctx, f === 'story' ? 54 : 44, { center: true, lines: 2, artistColor: _shA(p.text, 0.72) })}${_tpChips(ctx, true)}</div>` : ''}`
+      : _tpHero(ctx, 130, 40);
+    return _tpStage(ctx, `
+      ${_tpEyebrow(ctx)}
+      ${head}
+      <div data-tp-fill style="flex:1;min-height:0;overflow:hidden;"></div>`, 68, s(f === 'post' ? 18 : 26));
   },
 };
 
@@ -64755,7 +64963,9 @@ async function tpPrefetchArt() {
       art = await _crInlineArt(await _lookupImgUrl('albums', _tpCardAlbum, _tpPic));
     }
   } catch (e) { art = null; }
-  if (art) await _tpComputeGray(art);
+  // The grey copy for the tiles, the blurred backdrop for the list designs
+  // and the colour for the Cover palette.
+  if (art) await Promise.all([_tpComputeGray(art), shComputeBlur(art), shComputeDominant(art)]);
   _tpArtCache[key] = art;
   _tpPicPending.delete(key);
   if (_tpArtKey() === key && document.getElementById('tpCardModal').classList.contains('open')) tpRenderCardPreview();
