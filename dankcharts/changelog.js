@@ -412,7 +412,7 @@ const DC_CHANGELOG = [
   /* ========== NOVEMBER 2026 ========== */
   { d: '2026-11-13', t: 'fix', a: 'records',
     title: "Records wait for the day, week, month or year to finish",
-    detail: "Records now count only finished days, weeks, months and years. A song that leads this week on Tuesday no longer takes a record that it could lose by Sunday, so you only hear about a new #1 once it's official, and the same records stop coming back in your notifications." },
+    detail: "Records now count only finished days, weeks, months and years. A song that leads this week on Tuesday no longer takes a record that it could lose by Sunday, so you only hear about a new #1 once it's official, and the same records stop coming back in your notifications. When a change to your chart sizes or other chart settings hands records to someone else, one notification says so and lists them." },
   { d: '2026-11-12', t: 'feature', a: 'charts',
     title: "Leave singles off the albums chart",
     detail: "Settings → Releases has a new Leave out choice for singles and for EPs. Anything you've marked that way stops showing in the albums chart, its Records and the lists under it, without getting a chart of its own. It still earns its own certifications. Singles and EPs set to Apart or Leave out also no longer show up as albums in Stats, the Awards album categories or your smart playlists." },

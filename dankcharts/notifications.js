@@ -83,6 +83,10 @@ const NT_KINDS = {
   } },
   // Many lists changed at once (NT_REC_MAX)
   rec_many: { emoji: '🥇', cat: 'record', text: p => t('nt_rec_many', { n: p.n }) },
+  // New #1s that a chart settings change made (sizes, week start…), not new plays
+  rec_settings: { emoji: '🥇', cat: 'record', text: p => p.n === 1 && p.name
+    ? t('nt_rec_settings_one', { name: p.name, record: p.title })
+    : t('nt_rec_settings', { n: p.n }) },
   // Someone else replied to one of the user's Board posts (p.n of them)
   bd_reply: { emoji: '💬', cat: 'board', text: p => p.n > 1
     ? t('nt_bd_replies', { n: p.n, title: p.title })
@@ -898,11 +902,15 @@ async function ntRecordsBuilt() {
         notice = !!(prev && prev.lead) && sepOn;
         noticeVal = notice ? Date.now() : 'skip';
       }
-      let rec = null, out = [];
-      // First time, another language, older Records rules or other chart
-      // settings: note where things stand, tell nothing
-      if (!prev || !prev.lead || prev.lang !== lang || prev.v !== NT_REC_RULES || prev.sig !== sig) rec = { lang, asOf, lead, v: NT_REC_RULES, sig };
+      let rec = null, out = [], bySettings = false;
+      // First time, another language or older Records rules: note where
+      // things stand, tell nothing
+      if (!prev || !prev.lead || prev.lang !== lang || prev.v !== NT_REC_RULES) rec = { lang, asOf, lead, v: NT_REC_RULES, sig };
       else if (asOf >= prev.asOf) {   // older data than last time: leave it alone
+        // Other chart settings than last time (sizes, week start…): the new
+        // #1s are told, but as one "your settings changed" notification
+        // (rec_settings) rather than as records anyone took
+        bySettings = prev.sig !== sig;
         // Last holder still level with the top (only build order put another
         // first): they keep the record and nothing is new (see _ntTiedKeys)
         ids.forEach(id => {
@@ -910,13 +918,13 @@ async function ntRecordsBuilt() {
           if (p && p !== lead[id] && (now[id].tie || []).includes(p)) lead[id] = p;
         });
         out = ids.filter(id => prev.lead[id] && prev.lead[id] !== lead[id]);
-        if (out.length || JSON.stringify(prev.lead) !== JSON.stringify(lead)) rec = { lang, asOf, lead, v: NT_REC_RULES, sig };
+        if (out.length || bySettings || JSON.stringify(prev.lead) !== JSON.stringify(lead)) rec = { lang, asOf, lead, v: NT_REC_RULES, sig };
       }
-      if (!rec && !noticeVal) return { state: null, out: { changed: [], notice: false } };
+      if (!rec && !noticeVal) return { state: null, out: { changed: [], notice: false, settings: false } };
       const state = Object.assign({}, cur);
       if (rec) state.rec = rec;
       if (noticeVal) state.notices = Object.assign({}, notices, { recSingles: noticeVal });
-      return { state, out: { changed: out, notice } };
+      return { state, out: { changed: out, notice, settings: bySettings } };
     });
     if (!res || typeof res !== 'object') return;   // 'error' (offline)
     // Posted after the record notifications (finally, below), so it lists
@@ -924,6 +932,18 @@ async function ntRecordsBuilt() {
     _ntRecNotice = !!res.notice;
     const changed = res.changed;
     if (!Array.isArray(changed) || !changed.length) return;
+    /* Moved by a settings change (see _ntRecSettingsSig): one notification
+       for every list, worded as the setting's doing — the same breakdown
+       list as rec_many. One list alone opens that list directly. */
+    if (res.settings) {
+      const all = changed.map(id => now[id]);
+      const n = { kind: 'rec_settings', n: all.length, link: { tab: 'records' } };
+      if (all.length > 1) n.items = _ntRecItems(all);
+      else Object.assign(n, { name: all[0].name, title: all[0].title,
+                              link: { tab: 'records', view: all[0].sec, title: all[0].title, nth: all[0].nth } });
+      dcNotify(n);
+      return;
+    }
     // One notification per new holder: a song that had a huge day takes
     // most-plays, debut and fastest-to records together, and that reads
     // better as "now holds 12 records" than as 12 lines

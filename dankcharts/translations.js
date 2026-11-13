@@ -4764,6 +4764,8 @@ const TRANSLATIONS = {
     nt_rec_new_multi: 'New #1s! “{{name}}” by {{artist}} now holds {{n}} records, including {{record}}',
     nt_rec_new_artist_multi: 'New #1s! {{name}} now holds {{n}} records, including {{record}}',
     nt_rec_many: '{{n}} records have a new #1 — see them in Records',
+    nt_rec_settings: 'Your chart settings changed, so {{n}} records have a new #1 — see them in Records',
+    nt_rec_settings_one: 'Your chart settings changed, so {{name}} is now #1 in {{record}}',
     nt_notice_rec_singles: "About your new #1s: we fixed how Records ranks singles and EPs. Before, a single only counted as a #1 if it also beat every album, so some of yours were missing. Now they're ranked against each other, just like on your charts — that's why a batch of new #1s just showed up. Sorry for the confusion!",
     nt_list_show: "See all {{n}}",
     nt_list_hide: "Hide the list",

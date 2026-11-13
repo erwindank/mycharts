@@ -4624,6 +4624,8 @@ TRANSLATIONS['es'] = Object.assign({
     nt_rec_new_multi: '¡Nuevos #1! «{{name}}» de {{artist}} tiene ahora {{n}} récords, entre ellos {{record}}',
     nt_rec_new_artist_multi: '¡Nuevos #1! {{name}} tiene ahora {{n}} récords, entre ellos {{record}}',
     nt_rec_many: '{{n}} récords tienen un nuevo #1: míralos en Récords',
+    nt_rec_settings: 'Cambiaste los ajustes de tus listas y {{n}} récords tienen un nuevo #1: míralos en Récords',
+    nt_rec_settings_one: 'Cambiaste los ajustes de tus listas y {{name}} es ahora #1 en {{record}}',
     nt_notice_rec_singles: "Sobre tus nuevos #1: arreglamos cómo Récords clasifica los sencillos y EP. Antes, un sencillo solo contaba como #1 si también superaba a todos los álbumes, así que faltaban algunos tuyos. Ahora se clasifican entre ellos, igual que en tus rankings; por eso acaban de aparecer varios #1 nuevos. ¡Perdón por la confusión!",
     nt_list_show: "Ver los {{n}}",
     nt_list_hide: "Ocultar la lista",
